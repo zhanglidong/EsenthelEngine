@@ -1,6 +1,6 @@
 ### About
 Full Source of Esenthel Engine and its Tools (http://www.esenthel.com)<br/>
-It's a high-performance, cross-platform Game Engine (software to create Games and Applications)<br/>
+A high-performance, cross-platform Game Engine (software to create Games and Applications)<br/>
 Official version available at: https://github.com/Esenthel/EsenthelEngine<br/>
 To continue its development, Esenthel needs your support:
 * Please donate: http://www.esenthel.com/?id=store&cat=1
@@ -19,6 +19,10 @@ from your games/apps made with Esenthel Engine.
 You can create unlimited number of games/apps using Esenthel Engine.
 You can redistribute Esenthel Engine source code.
 You can make changes to Esenthel Engine source code.
+
+ATTRIBUTION
+You don't have to show Esenthel Logo or mention the Engine anywhere in your game/app,
+but it would be cool if you could.
 
 LIMITATIONS
 Esenthel Engine code/algorithms/designs may NOT be used for development/improvement of other Game Engines.
