@@ -1,7 +1,7 @@
 ### About
 Full Source of Esenthel Engine and its Tools (http://www.esenthel.com), a high-performance, cross-platform Game Engine (software to create Games and Applications)<br/>
 Official version available at: https://github.com/Esenthel/EsenthelEngine<br/>
-Esenthel needs your support:
+To continue its development, Esenthel needs your support:
 * Please donate: http://www.esenthel.com/?id=store&cat=1
 * Or submit source code patches, thank you!
 
@@ -30,7 +30,7 @@ fraud, spam, bullying, harming life (people and animals), polluting environment.
 
 You may NOT resell or sub-license the source code to any third-party.
 You may NOT claim that you wrote the source code.
-You may NOT remove or change any copyright messages and this License text from the source code.
+You may NOT remove or change any copyright messages or this License text from the source code.
 Esenthel source code is not sold to you, it is licensed to you, Esenthel Creators remain as its copyright owners.
 
 If you submit any code to Esenthel Engine developers (for example bug fixes or improvements to the Engine) then
