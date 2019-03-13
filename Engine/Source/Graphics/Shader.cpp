@@ -1604,13 +1604,13 @@ void SetMatrixCount(Int num)
             SBObjMatrix->bind(SBI_OBJ_MATRIX);
             SBObjVel   ->bind(SBI_OBJ_VEL   );
          #else // bind 2 at the same time
-            // Warning: code below does not set the cached buffers as 'bind' does, as it's not needed, because those buffers have constant bind index
             ASSERT(SBI_OBJ_VEL==SBI_OBJ_MATRIX+1); // can do this only if they're next to each other
+            // Warning: code below does not set the cached buffers as 'bind' does, as it's not needed, because those buffers have constant bind index
             ID3D11Buffer *buf[]={SBObjMatrix->buffer.buffer, SBObjVel->buffer.buffer};
-            D3DC1->VSSetConstantBuffers(SBI_OBJ_MATRIX, 2, buf);
-            D3DC1->HSSetConstantBuffers(SBI_OBJ_MATRIX, 2, buf);
-            D3DC1->DSSetConstantBuffers(SBI_OBJ_MATRIX, 2, buf);
-            D3DC1->PSSetConstantBuffers(SBI_OBJ_MATRIX, 2, buf);
+            D3DC->VSSetConstantBuffers(SBI_OBJ_MATRIX, 2, buf);
+            D3DC->HSSetConstantBuffers(SBI_OBJ_MATRIX, 2, buf);
+            D3DC->DSSetConstantBuffers(SBI_OBJ_MATRIX, 2, buf);
+            D3DC->PSSetConstantBuffers(SBI_OBJ_MATRIX, 2, buf);
          #endif
          }
       }
