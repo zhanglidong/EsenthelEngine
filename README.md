@@ -98,8 +98,8 @@ Checked tasks will be executed in order from top to bottom, as some of the tasks
 
 ### Editions
 Esenthel Engine is available in 2 Editions:
-* **Binary** available from Esenthel Website
-* **Source** available from GitHub Website
+* **Binary** available from Esenthel Website - http://www.esenthel.com/
+* **Source** available from GitHub Website - https://github.com/Esenthel/EsenthelEngine
 
 Sometimes Source Edition is updated more frequently, which means that the Binary Edition may be older.
 
