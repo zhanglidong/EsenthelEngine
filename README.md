@@ -1,9 +1,9 @@
 ### About
-Full Source of Esenthel Engine and its Tools (http://www.esenthel.com)<br/>
+Full Source of Esenthel Engine and its Tools (http://www.esenthel.com), a high-performance, cross-platform Game Engine (software to create Games and Applications)<br/>
 Official version available at: https://github.com/Esenthel/EsenthelEngine<br/>
 Esenthel needs your support:
 * Please donate: http://www.esenthel.com/?id=store&cat=1
-* Or submit source code patches.
+* Or submit source code patches, thank you!
 
 
 ### License
@@ -12,13 +12,12 @@ Esenthel needs your support:
 ```
 COPYRIGHT
 Esenthel Engine created by Grzegorz Slazinski, all rights reserved.
-
-ABOUT
-Esenthel Engine was created mainly for purpose of making games, however it is perfectly suited for making
-regular applications as well.
+You can use it for free to create games and applications.
 This License is non-exclusive, worldwide and royalty-free - you don't have to share the income that you make
 from your games/apps made with Esenthel Engine.
 You can create unlimited number of games/apps using Esenthel Engine.
+You can redistribute Esenthel Engine source code.
+You can make changes to Esenthel Engine source code.
 
 LIMITATIONS
 Esenthel Engine code/algorithms/designs may NOT be used for development/improvement of other Game Engines.
@@ -31,7 +30,7 @@ fraud, spam, bullying, harming life (people and animals), polluting environment.
 
 You may NOT resell or sub-license the source code to any third-party.
 You may NOT claim that you wrote the source code.
-You may NOT remove any copyright messages and this License text from the source code.
+You may NOT remove or change any copyright messages and this License text from the source code.
 Esenthel source code is not sold to you, it is licensed to you, Esenthel Creators remain as its copyright owners.
 
 If you submit any code to Esenthel Engine developers (for example bug fixes or improvements to the Engine) then
