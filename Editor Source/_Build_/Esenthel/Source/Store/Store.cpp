@@ -7,11 +7,11 @@ StoreClass AppStore;
 /******************************************************************************/
    cchar8 *StoreClass::categories_t[]=
    {
-      "Engine",        // 0
-      "Contributions", // 1
-      "Source Code",   // 2
-      "Games",         // 3
-      "Assets",        // 4
+      "Engine",      // 0
+      "Donations",   // 1
+      "Source Code", // 2
+      "Games",       // 3
+      "Assets",      // 4
    };
    cchar8 *StoreClass::source_code_cats[]=
    {
@@ -1026,6 +1026,8 @@ StoreClass AppStore;
       FREPA(source_code_cats)categories_node.children[2]+=source_code_cats[i]; // #Category
       FREPA(       game_cats)categories_node.children[3]+=       game_cats[i];
       FREPA(      asset_cats)categories_node.children[4]+=      asset_cats[i];
+      categories_node.children[0].flag(MENU_HIDDEN);
+      categories_node.children[1].flag(MENU_HIDDEN);
 
       // all header
       ListColumn lc[]=
