@@ -159,10 +159,13 @@ struct SQL
 
    // reading column data must be done in sequential order !! (you can read data from column 0, 1, 2, ..; but NOT from 2, 0, 1, ..;) 
    Bool getCol(Int i, Bool        &value                 ); // get i-th column data as 'value', false on fail
-   Bool getCol(Int i, Byte        &value                 ); // get i-th column data as 'value', false on fail
+   Bool getCol(Int i, SByte       &value                 ); // get i-th column data as 'value', false on fail
+   Bool getCol(Int i,  Byte       &value                 ); // get i-th column data as 'value', false on fail
+   Bool getCol(Int i,  Short      &value                 ); // get i-th column data as 'value', false on fail
+   Bool getCol(Int i, UShort      &value                 ); // get i-th column data as 'value', false on fail
    Bool getCol(Int i,  Int        &value                 ); // get i-th column data as 'value', false on fail
    Bool getCol(Int i, UInt        &value                 ); // get i-th column data as 'value', false on fail
-   Bool getCol(Int i, Long        &value                 ); // get i-th column data as 'value', false on fail
+   Bool getCol(Int i,  Long       &value                 ); // get i-th column data as 'value', false on fail
    Bool getCol(Int i, ULong       &value                 ); // get i-th column data as 'value', false on fail
    Bool getCol(Int i, Flt         &value                 ); // get i-th column data as 'value', false on fail
    Bool getCol(Int i, Dbl         &value                 ); // get i-th column data as 'value', false on fail

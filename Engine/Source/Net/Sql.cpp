@@ -697,6 +697,30 @@ Bool SQL::getCol(Int i, Bool &value)
    }
    value=false; return false;
 }
+Bool SQL::getCol(Int i, SByte &value)
+{
+   switch(_type)
+   {
+   #if SUPPORT_ODBC
+      case MSSQL:
+      case MYSQL:
+      case PGSQL: if(SQLGetData(_statement, i+1, SQL_C_STINYINT, &value, SIZE(value), null)==SQL_SUCCESS)return true; break;
+   #endif
+
+      case SQLITE: if(InRange(i, _cols) && InRange(_rows_pos, _rows))
+      {
+       C Row::Col &col=_rows[_rows_pos].cols[i];
+         switch(   col.type)
+         {
+            case SDT_LONG  : value=        col.i ; return true;
+            case SDT_DBL   : value=  Round(col.d); return true;
+            case SDT_STR   : value=TextInt(col.s); return true;
+            case SDT_BINARY: value=(col.b.elms() ? col.b[0] : 0); return true;
+         }
+      }break;
+   }
+   value=0; return false;
+}
 Bool SQL::getCol(Int i, Byte &value)
 {
    switch(_type)
@@ -716,6 +740,54 @@ Bool SQL::getCol(Int i, Byte &value)
             case SDT_DBL   : value=  RoundU(col.d); return true;
             case SDT_STR   : value=TextUInt(col.s); return true;
             case SDT_BINARY: value=(col.b.elms() ? col.b[0] : 0); return true;
+         }
+      }break;
+   }
+   value=0; return false;
+}
+Bool SQL::getCol(Int i, Short &value)
+{
+   switch(_type)
+   {
+   #if SUPPORT_ODBC
+      case MSSQL:
+      case MYSQL:
+      case PGSQL: if(SQLGetData(_statement, i+1, SQL_C_SSHORT, &value, SIZE(value), null)==SQL_SUCCESS)return true; break;
+   #endif
+
+      case SQLITE: if(InRange(i, _cols) && InRange(_rows_pos, _rows))
+      {
+       C Row::Col &col=_rows[_rows_pos].cols[i];
+         switch(   col.type)
+         {
+            case SDT_LONG  : value=        col.i ; return true;
+            case SDT_DBL   : value=  Round(col.d); return true;
+            case SDT_STR   : value=TextInt(col.s); return true;
+            case SDT_BINARY: value=0; FREP(Min(col.b.elms(), SIZEI(value)))value|=(col.b[i]<<(i*8)); return true;
+         }
+      }break;
+   }
+   value=0; return false;
+}
+Bool SQL::getCol(Int i, UShort &value)
+{
+   switch(_type)
+   {
+   #if SUPPORT_ODBC
+      case MSSQL:
+      case MYSQL:
+      case PGSQL: if(SQLGetData(_statement, i+1, SQL_C_USHORT, &value, SIZE(value), null)==SQL_SUCCESS)return true; break;
+   #endif
+
+      case SQLITE: if(InRange(i, _cols) && InRange(_rows_pos, _rows))
+      {
+       C Row::Col &col=_rows[_rows_pos].cols[i];
+         switch(   col.type)
+         {
+            case SDT_LONG  : value=         col.i ; return true;
+            case SDT_DBL   : value=  RoundU(col.d); return true;
+            case SDT_STR   : value=TextUInt(col.s); return true;
+            case SDT_BINARY: value=0; FREP(Min(col.b.elms(), SIZEI(value)))value|=(col.b[i]<<(i*8)); return true;
          }
       }break;
    }
@@ -785,7 +857,7 @@ Bool SQL::getCol(Int i, Long &value)
          switch(   col.type)
          {
             case SDT_LONG  : value=         col.i ; return true;
-            case SDT_DBL   : value=         col.d ; return true;
+            case SDT_DBL   : value=  RoundL(col.d); return true;
             case SDT_STR   : value=TextLong(col.s); return true;
             case SDT_BINARY: value=0; FREP(Min(col.b.elms(), SIZEI(value)))value|=(ULong(col.b[i])<<(i*8)); return true;
          }
@@ -809,7 +881,7 @@ Bool SQL::getCol(Int i, ULong &value)
          switch(   col.type)
          {
             case SDT_LONG  : value=          col.i ; return true;
-            case SDT_DBL   : value=          col.d ; return true;
+            case SDT_DBL   : value=  RoundUL(col.d); return true;
             case SDT_STR   : value=TextULong(col.s); return true;
             case SDT_BINARY: value=0; FREP(Min(col.b.elms(), SIZEI(value)))value|=(ULong(col.b[i])<<(i*8)); return true;
          }
