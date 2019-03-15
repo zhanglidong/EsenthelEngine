@@ -97,7 +97,7 @@ void SQLTests()
       }
 
       // now let's process all returned rows
-      for(;sql.getNextRow();)
+      for(; sql.getNextRow(); )
       {
          // !! you can read data from columns only in sequential order, read from 0th, 1st, 2nd, .. column, but not from 2nd, 1st, 0th !!
          uint     id; sql.getCol(0, id  ); // we know that the 0-th column is the ID
@@ -111,12 +111,11 @@ void SQLTests()
 
    // adjust data in SQL
    {
-      // modify 'clan' column to "Ghosts" for all players that have 'id' equal to 1
-      if(!sql.setRow(table_name, "id=1", SQLValues().New("clan", "Ghosts"), &messages))Exit(S+"Can't modify clan for player:\n"+messages);
+      // modify 'clan' column to "Ghosts" for all players that have 'id' equal to 1, please note that 'condition' method is used to generate condition string
+      if(!sql.setRow(table_name, sql.condition("id", 1), SQLValues().New("clan", "Ghosts"), &messages))Exit(S+"Can't modify clan for player:\n"+messages);
 
-      // modify 'clan' column to "Zombies" for all players that have 'e_mail' equal to "address@domain.com"
-      // please note that for comparing strings we must use 'SQL.string' method
-      if(!sql.setRow(table_name, S+"e_mail="+sql.string("address@domain.com"), SQLValues().New("clan", "Zombies"), &messages))Exit(S+"Can't modify clan for player:\n"+messages);
+      // modify 'clan' column to "Zombies" for all players that have 'e_mail' equal to "xxx@domain.com", please note that 'condition' method is used to generate condition string
+      if(!sql.setRow(table_name, sql.condition("e_mail", "xxx@domain.com"), SQLValues().New("clan", "Zombies"), &messages))Exit(S+"Can't modify clan for player:\n"+messages);
    }
    
    // after performing all operations visit the "SQL Server Management Studio" application window again
