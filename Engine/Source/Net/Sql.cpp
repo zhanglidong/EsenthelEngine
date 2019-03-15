@@ -482,8 +482,13 @@ Bool SQL::existsTable(C Str &table_name, Str *messages, Int *error)
    return false;
 }
 /******************************************************************************/
+Bool SQL::delAllRows(C Str &table_name, Str *messages, Int *error)
+{
+   return command(S+"DELETE FROM "+token(table_name), messages, error);
+}
 Bool SQL::delRow(C Str &table_name, C Str &condition, Str *messages, Int *error)
 {
+   if(!condition.is())return delAllRows(table_name, messages, error);
    return command(S+"DELETE FROM "+token(table_name)+" WHERE "+condition, messages, error);
 }
 Bool SQL::newRow(C Str &table_name, C SQLValues &values, Str *messages, Int *error)
@@ -499,7 +504,7 @@ Bool SQL::setRow(C Str &table_name, C Str &condition, C SQLValues &values, Str *
 {
    Str cmd=S+"UPDATE "+token(table_name)+" SET ";
    FREPA(values._values){if(i)cmd+=", "; cmd+=token(values._values[i].name)+'='+value(values._values[i]);}
-   cmd+=" WHERE "; cmd+=condition;
+   if(condition.is()){cmd+=" WHERE "; cmd+=condition;}
    return command(cmd, messages, error);
 }
 /******************************************************************************/
