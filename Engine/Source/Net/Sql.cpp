@@ -438,7 +438,7 @@ Bool SQL::getTables(MemPtr<Str> table_names, Str *messages, Int *error)
 }
 Bool SQL::delTable(C Str &table_name, Str *messages, Int *error)
 {
-   return command(S+"DROP TABLE "+token(table_name), messages, error);
+   return command(S+"DROP TABLE "+name(table_name), messages, error);
 }
 Bool SQL::createTable(C Str &table_name, C MemPtr<SQLColumn> &columns, Str *messages, Int *error)
 {
@@ -449,7 +449,7 @@ Bool SQL::createTable(C Str &table_name, C MemPtr<SQLColumn> &columns, Str *mess
       if(messages)*messages="Can't create an empty table";
       return false;
    }
-   Str cmd=S+"CREATE TABLE "+token(table_name)+" (", desc;
+   Str cmd=S+"CREATE TABLE "+name(table_name)+" (", desc;
    FREPA(columns){if(i)cmd+=", "; if(!colDesc(columns[i], desc, messages))return false; cmd+=desc;}
    cmd+=')';
    return command(cmd, messages, error);
@@ -460,41 +460,41 @@ Bool SQL::appendTable(C Str &table_name, C MemPtr<SQLColumn> &columns, Str *mess
    if(error   )*error=0;
    if(columns.elms())
    {
-      Str cmd=S+"ALTER TABLE "+token(table_name)+" ADD ", desc;
+      Str cmd=S+"ALTER TABLE "+name(table_name)+" ADD ", desc;
       FREPA(columns){if(i)cmd+=", "; if(!colDesc(columns[i], desc, messages))return false; cmd+=desc;}
       return command(cmd, messages, error);
    }
    return true;
  //if(del_cols.elms())cmd+="DROP COLUMN "; FREPA(del_cols){if(i)cmd+=", "; cmd+=S+'['+del_cols[i]+']';}
- //FREPA(modify_cols)cmd+=S+"ALTER TABLE "+token(table_name)+" ALTER COLUMN "+colDesc(modify_cols[i])+" ;\n";
+ //FREPA(modify_cols)cmd+=S+"ALTER TABLE "+name(table_name)+" ALTER COLUMN "+colDesc(modify_cols[i])+" ;\n";
 }
 Bool SQL::existsTable(C Str &table_name, Str *messages, Int *error)
 {
    switch(_type)
    {
       default    : if(messages)*messages="SQL not connected"; return false;
-      case MSSQL : if(command(S+"SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME="  +string(table_name), messages, error))return getNextRow(); break;
-    //case MYSQL : if(command(S+"SHOW TABLES LIKE "                                          +string(table_name), messages, error))return getNextRow(); break; // this fails for 'table_name' - "\'\\a"
-      case MYSQL : return command(S+"SELECT 1 FROM "+token(table_name)+" LIMIT 1", messages, error);
-      case PGSQL : if(command(S+"SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE table_name="  +string(table_name), messages, error))return getNextRow(); break;
-      case SQLITE: if(command(S+"SELECT name FROM sqlite_master WHERE type='table' AND name="+string(table_name), messages, error))return getNextRow(); break;
+      case MSSQL : if(command(S+"SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME="  +value(table_name), messages, error))return getNextRow(); break;
+    //case MYSQL : if(command(S+"SHOW TABLES LIKE "                                          +value(table_name), messages, error))return getNextRow(); break; // this fails for 'table_name' - "\'\\a"
+      case MYSQL : return command(S+"SELECT 1 FROM "+name(table_name)+" LIMIT 1", messages, error);
+      case PGSQL : if(command(S+"SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE table_name="  +value(table_name), messages, error))return getNextRow(); break;
+      case SQLITE: if(command(S+"SELECT name FROM sqlite_master WHERE type='table' AND name="+value(table_name), messages, error))return getNextRow(); break;
    }
    return false;
 }
 /******************************************************************************/
 Bool SQL::delAllRows(C Str &table_name, Str *messages, Int *error)
 {
-   return command(S+"DELETE FROM "+token(table_name), messages, error);
+   return command(S+"DELETE FROM "+name(table_name), messages, error);
 }
 Bool SQL::delRow(C Str &table_name, C Str &condition, Str *messages, Int *error)
 {
    if(!condition.is())return delAllRows(table_name, messages, error);
-   return command(S+"DELETE FROM "+token(table_name)+" WHERE "+condition, messages, error);
+   return command(S+"DELETE FROM "+name(table_name)+" WHERE "+condition, messages, error);
 }
 Bool SQL::newRow(C Str &table_name, C SQLValues &values, Str *messages, Int *error)
 {
-   Str cmd=S+"INSERT INTO "+token(table_name)+" (";
-   FREPA(values._values){if(i)cmd+=", "; cmd+=token(values._values[i].name);}
+   Str cmd=S+"INSERT INTO "+name(table_name)+" (";
+   FREPA(values._values){if(i)cmd+=", "; cmd+=name(values._values[i].name);}
    cmd+=") VALUES (";
    FREPA(values._values){if(i)cmd+=", "; cmd+=value(values._values[i]);}
    cmd+=")";
@@ -502,40 +502,40 @@ Bool SQL::newRow(C Str &table_name, C SQLValues &values, Str *messages, Int *err
 }
 Bool SQL::setRow(C Str &table_name, C Str &condition, C SQLValues &values, Str *messages, Int *error)
 {
-   Str cmd=S+"UPDATE "+token(table_name)+" SET ";
-   FREPA(values._values){if(i)cmd+=", "; cmd+=token(values._values[i].name)+'='+value(values._values[i]);}
+   Str cmd=S+"UPDATE "+name(table_name)+" SET ";
+   FREPA(values._values){if(i)cmd+=", "; cmd+=name(values._values[i].name)+'='+value(values._values[i]);}
    if(condition.is()){cmd+=" WHERE "; cmd+=condition;}
    return command(cmd, messages, error);
 }
 /******************************************************************************/
 Bool SQL::getAllRows(C Str &table_name, Str *messages, Int *error)
 {
-   return command(S+"SELECT * FROM "+token(table_name), messages, error);
+   return command(S+"SELECT * FROM "+name(table_name), messages, error);
 }
 Bool SQL::getRows(C Str &table_name, C Str &condition, Str *messages, Int *error)
 {
    if(!condition.is())return getAllRows(table_name, messages, error);
-   return command(S+"SELECT * FROM "+token(table_name)+" WHERE "+condition, messages, error);
+   return command(S+"SELECT * FROM "+name(table_name)+" WHERE "+condition, messages, error);
 }
 Bool SQL::getAllRowsCols(C Str &table_name, C MemPtr<Str> &columns, Str *messages, Int *error)
 {
    Str cmd="SELECT ";
-   FREPA(columns){if(i)cmd+=", "; cmd+=token(columns[i]);}
-   cmd+=S+" FROM "+token(table_name);
+   FREPA(columns){if(i)cmd+=", "; cmd+=name(columns[i]);}
+   cmd+=S+" FROM "+name(table_name);
    return command(cmd, messages, error);
 }
 Bool SQL::getRowsCols(C Str &table_name, C Str &condition, C MemPtr<Str> &columns, Str *messages, Int *error)
 {
    if(!condition.is())return getAllRowsCols(table_name, columns, messages, error);
    Str cmd="SELECT ";
-   FREPA(columns){if(i)cmd+=", "; cmd+=token(columns[i]);}
-   cmd+=S+" FROM "+token(table_name)+" WHERE "; cmd+=condition;
+   FREPA(columns){if(i)cmd+=", "; cmd+=name(columns[i]);}
+   cmd+=S+" FROM "+name(table_name)+" WHERE "; cmd+=condition;
    return command(cmd, messages, error);
 }
 /******************************************************************************/
 Int SQL::getAllRowsNum(C Str &table_name, Str *messages, Int *error)
 {
-   if(command(S+"SELECT COUNT(*) FROM "+token(table_name), messages, error))if(getNextRow())
+   if(command(S+"SELECT COUNT(*) FROM "+name(table_name), messages, error))if(getNextRow())
    {
       Int    rows=0; getCol(0, rows);
       return rows;
@@ -545,7 +545,7 @@ Int SQL::getAllRowsNum(C Str &table_name, Str *messages, Int *error)
 Int SQL::getRowsNum(C Str &table_name, C Str &condition, Str *messages, Int *error)
 {
    if(!condition.is())return getAllRowsNum(table_name, messages, error);
-   if(command(S+"SELECT COUNT(*) FROM "+token(table_name)+" WHERE "+condition, messages, error))if(getNextRow())
+   if(command(S+"SELECT COUNT(*) FROM "+name(table_name)+" WHERE "+condition, messages, error))if(getNextRow())
    {
       Int    rows=0; getCol(0, rows);
       return rows;
@@ -554,33 +554,13 @@ Int SQL::getRowsNum(C Str &table_name, C Str &condition, Str *messages, Int *err
 }
 Int SQL::getUniqueValuesNum(C Str &table_name, C Str &column_name, Str *messages, Int *error)
 {
-   if(command(S+"SELECT COUNT(DISTINCT "+token(column_name)+") FROM "+token(table_name), messages, error))if(getNextRow())
+   if(command(S+"SELECT COUNT(DISTINCT "+name(column_name)+") FROM "+name(table_name), messages, error))if(getNextRow())
    {
       Int    rows=0; getCol(0, rows);
       return rows;
    }
    return -1;
 }
-/******************************************************************************/
-Str SQL::string(C Str &s)C
-{
-   switch(_type)
-   {
-      case MSSQL:
-      {
-         Str    out="N'"; FREPA(s){Char c=s[i]; if(c=='\'')out+="''";else if(c=='\n')out+="'+CHAR(10)+N'";else if(c=='\r')out+="'+CHAR(13)+N'";else out+=c;} out+='\''; // "some text" -> "'some text'", "I'm a text" -> "'I''m a text'", (' must be replaced with '')
-         return out;
-      }
-      case PGSQL:
-      case SQLITE:
-      {
-         Str    out='\''; FREPA(s){Char c=s[i]; if(c=='\'')out+="''";else out+=c;} out+='\''; // "some text" -> "'some text'", "I'm a text" -> "'I''m a text'", (' must be replaced with '')
-         return out;
-      }
-      case MYSQL: return S+'\''+Replace(Replace(s, "\\", "\\\\"), "'", "\\'")+'\''; // replace   \ into \\   and   ' into \'
-      default   : return s;
-   }
-}   
 /******************************************************************************/
 Bool SQL::getNextRow()
 {
@@ -1305,6 +1285,39 @@ Bool SQL::getCol(Int i, Ptr value, Int &size)
    size=0; return false;
 }
 /******************************************************************************/
+Str SQL::name(C Str &name)C
+{
+   switch(_type)
+   {
+      case MSSQL: return S+'['+Replace(name, "]", "]]")+']';
+
+      case MYSQL :
+      case SQLITE: return S+'`'+Replace(name, "`", "``")+'`';
+
+      case PGSQL: return S+'"'+Replace(name, "\"", "\"\"")+'"';
+
+      default: return name;
+   }
+}
+Str SQL::value(C Str &s)C
+{
+   switch(_type)
+   {
+      case MSSQL:
+      {
+         Str    out="N'"; FREPA(s){Char c=s[i]; if(c=='\'')out+="''";else if(c=='\n')out+="'+CHAR(10)+N'";else if(c=='\r')out+="'+CHAR(13)+N'";else out+=c;} out+='\''; // "some text" -> "'some text'", "I'm a text" -> "'I''m a text'", (' must be replaced with '')
+         return out;
+      }
+      case PGSQL:
+      case SQLITE:
+      {
+         Str    out='\''; FREPA(s){Char c=s[i]; if(c=='\'')out+="''";else out+=c;} out+='\''; // "some text" -> "'some text'", "I'm a text" -> "'I''m a text'", (' must be replaced with '')
+         return out;
+      }
+      case MYSQL: return S+'\''+Replace(Replace(s, "\\", "\\\\"), "'", "\\'")+'\''; // replace   \ into \\   and   ' into \'
+      default   : return s;
+   }
+}   
 Str SQL::valueBin(C Str &value)C
 {
    switch(_type)
@@ -1334,7 +1347,7 @@ Str SQL::valueID(C Str &value)C
       }
    }
 }
-Str SQL::string(C UID &id)C
+Str SQL::value(C UID &id)C
 {
    return valueID(TextHexMem(&id, SIZE(id), false));
 }
@@ -1342,30 +1355,16 @@ Str SQL::value(C SQLValues::Value &value)C
 {
    switch(value.type)
    {
-      default     : return          value.value ; // SVT_RAW
-      case SVT_STR: return string  (value.value);
-      case SVT_BIN: return valueBin(value.value);
-      case SVT_UID: return valueID (value.value);
+      default     : return            value.value ; // SVT_RAW
+      case SVT_STR: return T.value   (value.value);
+      case SVT_BIN: return T.valueBin(value.value);
+      case SVT_UID: return T.valueID (value.value);
    }
    return S;
 }
-Str SQL::token(C Str &token)C
-{
-   switch(_type)
-   {
-      case MSSQL: return S+'['+Replace(token, "]", "]]")+']';
-
-      case MYSQL :
-      case SQLITE: return S+'`'+Replace(token, "`", "``")+'`';
-
-      case PGSQL: return S+'"'+Replace(token, "\"", "\"\"")+'"';
-
-      default: return token;
-   }
-}
 Bool SQL::colDesc(C SQLColumn &col, Str &desc, Str *messages)
 {
-   desc=token(col.name)+' ';
+   desc=name(col.name)+' ';
    switch(_type)
    {
       default: if(messages)*messages="SQL not connected"; return false;
@@ -1481,7 +1480,7 @@ Bool SQL::colDesc(C SQLColumn &col, Str &desc, Str *messages)
    {
       if(col.type==SDT_STR || col.type==SDT_STR8)
       {
-         desc+="DEFAULT "; desc+=string(col.default_val);
+         desc+="DEFAULT "; desc+=value(col.default_val);
       }else
       {
          desc+="DEFAULT "; desc+=col.default_val;
@@ -1489,8 +1488,8 @@ Bool SQL::colDesc(C SQLColumn &col, Str &desc, Str *messages)
    }
    if(_type==MYSQL)
    {
-      if(col.mode==SQLColumn::PRIMARY || col.mode==SQLColumn::PRIMARY_AUTO)desc+=S+", PRIMARY KEY ("+token(col.name          )+")";
-      if(col.mode!=SQLColumn::DEFAULT                                     )desc+=S+", UNIQUE INDEX "+token(col.name+"_UNIQUE")+" ("+token(col.name)+" ASC)";
+      if(col.mode==SQLColumn::PRIMARY || col.mode==SQLColumn::PRIMARY_AUTO)desc+=S+", PRIMARY KEY ("+name(col.name          )+")";
+      if(col.mode!=SQLColumn::DEFAULT                                     )desc+=S+", UNIQUE INDEX "+name(col.name+"_UNIQUE")+" ("+name(col.name)+" ASC)";
    }
    return true;
 }

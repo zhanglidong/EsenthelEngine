@@ -147,14 +147,15 @@ struct SQL
 
       Bool commandExecute(Str *messages=null, Int *error=null); // execute prepared command, 'messages'=optional pointer to custom string which will receive any messages, 'error'=optional pointer to error code, false on fail
 
-   // get
-   Str string(C Str &s)C; // return 's' string in SQL friendly format, this is needed for writing custom SQL conditions, this converts "John's" string into:
-                          //    MSSQL  : "N'John''s'"
-                          //    MySQL  : "'John\'s'"
-                          //    PgSQL  : "'John''s'"
-                          //    SQLite : "'John''s'"
-   Str string(C UID &id)C; // return 'id' UID as string in SQL friendly format, this is needed for writing custom SQL conditions
+   // condition
+   Str name (C Str &s )C; // return 's'  string        in SQL friendly format to represent a parameter name , this is needed for making custom SQL conditions
+   Str value(C Str &s )C; // return 's'  string        in SQL friendly format to represent a parameter value, this is needed for making custom SQL conditions
+   Str value(C UID &id)C; // return 'id' UID as string in SQL friendly format to represent a parameter value, this is needed for making custom SQL conditions
 
+   Str condition(C Str &name, C Str &value)C {return T.name(name)+'='+T.value(value);} // create a condition string in which 'name' parameter value is equal to 'value'
+   Str condition(C Str &name, C UID &value)C {return T.name(name)+'='+T.value(value);} // create a condition string in which 'name' parameter value is equal to 'value'
+
+   // get
    Bool getNextRow(); // get next row, call this in a loop after calling sql command to process all returned rows, false on fail
 
    Int getCols(); // get number of columns in returned result, you can optionally call this after sql commands
@@ -226,7 +227,6 @@ private:
    Str  valueBin (C Str &value)C;
    Str  valueID  (C Str &value)C;
    Str  value    (C SQLValues::Value &value)C;
-   Str  token    (C Str &token)C;
    Bool colDesc  (C SQLColumn &col, Str &desc, Str *messages);
    void getStatus(Str *messages, Int *error, Bool statement=true);
 #endif
