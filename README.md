@@ -1,6 +1,5 @@
 ### About
-Full Source of Esenthel Engine and its Tools (http://www.esenthel.com)<br/>
-A super-optimized, high-performance, minimal-memory-usage, cross-platform Game Engine (software to create Games and Applications)<br/>
+Full Source of Esenthel Engine and its Tools (http://www.esenthel.com) - a super-optimized, high-performance, minimal-memory-usage, cross-platform Game Engine (software to create Games and Applications). Esenthel strives to be pure perfection!<br/>
 Official version available at: https://github.com/Esenthel/EsenthelEngine<br/>
 To continue its development, Esenthel needs your support:
 * Please donate: http://www.esenthel.com/?id=store&cat=1
