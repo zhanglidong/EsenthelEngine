@@ -160,12 +160,12 @@ void SetThreadName(C Str8 &name, UIntPtr thread_id)
             }
             InitializeCriticalSection(&_lock);
          }
-         DEBUG_ASSERT(created(), "SyncLock");
+         DYNAMIC_ASSERT(created(), "SyncLock");
       }
    #else
-      SyncLock:: SyncLock() {InitializeCriticalSectionEx(&_lock, 0, CRITICAL_SECTION_NO_DEBUG_INFO); DEBUG_ASSERT(created(), "SyncLock");}
+      SyncLock:: SyncLock() {InitializeCriticalSectionEx(&_lock, 0, CRITICAL_SECTION_NO_DEBUG_INFO); DYNAMIC_ASSERT(created(), "SyncLock");}
    #endif
-      SyncLock::~SyncLock() {    DeleteCriticalSection  (&_lock); DEBUG_ASSERT(!created(), "SyncLock");}
+      SyncLock::~SyncLock() {    DeleteCriticalSection  (&_lock); DEBUG_ASSERT(!created(), "~SyncLock");}
 
    #if SYNC_LOCK_SAFE
       Bool SyncLock::tryOn()C {return created() ? TryEnterCriticalSection(&_lock)!=0 : false;}
@@ -183,13 +183,13 @@ Bool SyncLock::created()C {return _is!=0;}
 SyncLock::SyncLock()
 {
 #if CUSTOM_RECURSIVE
-   pthread_mutex_init(&_lock, null);
+   DYNAMIC_ASSERT(!pthread_mutex_init(&_lock, null), "pthread_mutex_init");
 #else
-   pthread_mutexattr_t                attr;
-   pthread_mutexattr_init   (        &attr);
-   pthread_mutexattr_settype(        &attr, PTHREAD_MUTEX_RECURSIVE);
-   pthread_mutex_init       (&_lock, &attr);
-   pthread_mutexattr_destroy(        &attr);
+                   pthread_mutexattr_t                attr;
+   DYNAMIC_ASSERT(!pthread_mutexattr_init   (        &attr                         ), "pthread_mutexattr_init");
+     DEBUG_ASSERT(!pthread_mutexattr_settype(        &attr, PTHREAD_MUTEX_RECURSIVE), "pthread_mutexattr_settype"); // this can fail but only if parameter is invalid, and since PTHREAD_MUTEX_RECURSIVE is valid, then do error checking only in Debug
+   DYNAMIC_ASSERT(!pthread_mutex_init       (&_lock, &attr                         ), "pthread_mutex_init");
+                   pthread_mutexattr_destroy(        &attr                         ); // skip error checking for this one
 #endif
   _lock_count=0;
   _owner=0;
@@ -288,18 +288,18 @@ void SyncEvent:: off      (                )C {_condition=false;}
 Bool SyncEvent:: wait     (                )C {Bool ok=_condition; if(_auto_off)_condition=false; return ok;}
 Bool SyncEvent:: wait     (Int milliseconds)C {Bool ok=_condition; if(_auto_off)_condition=false; return ok;}
 #elif WINDOWS
-     SyncEvent:: SyncEvent(Bool auto_off   )  {     _handle=                 CreateEvent(null, !auto_off, false, null);               }
-     SyncEvent::~SyncEvent(                )  {  if(_handle){                CloseHandle(_handle                     ); _handle=null;}}
-void SyncEvent:: on       (                )C {/*if(_handle)*/                  SetEvent(_handle                     );               }                                         // checking for handle!=null is not needed, as the function will do nothing on null
-void SyncEvent:: off      (                )C {/*if(_handle)*/                ResetEvent(_handle                     );               }                                         // checking for handle!=null is not needed, as the function will do nothing on null
-Bool SyncEvent:: wait     (                )C {/*if(_handle)*/return WaitForSingleObject(_handle,                                    INFINITE)!=WAIT_TIMEOUT; return true;} // checking for handle!=null is not needed, as the function will return -1  on null, WAIT_TIMEOUT=258 so result will be -1!=258 -> true
-Bool SyncEvent:: wait     (Int milliseconds)C {/*if(_handle)*/return WaitForSingleObject(_handle, (milliseconds>=0) ? milliseconds : INFINITE)!=WAIT_TIMEOUT; return true;} // checking for handle!=null is not needed, as the function will return -1  on null, WAIT_TIMEOUT=258 so result will be -1!=258 -> true
+     SyncEvent:: SyncEvent(Bool auto_off   )  {DYNAMIC_ASSERT(_handle=                 CreateEvent(null, !auto_off, false, null), "SyncEvent.CreateEvent");}
+     SyncEvent::~SyncEvent(                )  {            if(_handle){                CloseHandle(_handle); _handle=null;}}
+void SyncEvent:: on       (                )C {          /*if(_handle)*/                  SetEvent(_handle);               }                                                          // checking for handle!=null is not needed, as   'SetEvent'          will do nothing on null
+void SyncEvent:: off      (                )C {          /*if(_handle)*/                ResetEvent(_handle);               }                                                          // checking for handle!=null is not needed, as 'ResetEvent'          will do nothing on null
+Bool SyncEvent:: wait     (                )C {          /*if(_handle)*/return WaitForSingleObject(_handle,                                    INFINITE)!=WAIT_TIMEOUT; return true;} // checking for handle!=null is not needed, as 'WaitForSingleObject' will return -1  on null, WAIT_TIMEOUT=258 so result will be -1!=258 -> true
+Bool SyncEvent:: wait     (Int milliseconds)C {          /*if(_handle)*/return WaitForSingleObject(_handle, (milliseconds>=0) ? milliseconds : INFINITE)!=WAIT_TIMEOUT; return true;} // checking for handle!=null is not needed, as 'WaitForSingleObject' will return -1  on null, WAIT_TIMEOUT=258 so result will be -1!=258 -> true
 #else
 SyncEvent::SyncEvent(Bool auto_off)
 {
   _condition=false; _auto_off=auto_off;
-   Alloc(_handle); pthread_cond_init (_handle, null);
-   Alloc(_mutex ); pthread_mutex_init(_mutex , null);
+   Alloc(_handle); DYNAMIC_ASSERT(!pthread_cond_init (_handle, null), "pthread_cond_init" );
+   Alloc(_mutex ); DYNAMIC_ASSERT(!pthread_mutex_init(_mutex , null), "pthread_mutex_init");
 }
 SyncEvent::~SyncEvent()
 {
@@ -382,17 +382,17 @@ void SyncCounter:: operator+= (Int count       )C {_counter=Mid(Long(_counter)+c
 Bool SyncCounter:: wait       (                )C {if(_counter>0){_counter--; return true;} return false;}
 Bool SyncCounter:: wait       (Int milliseconds)C {if(_counter>0){_counter--; return true;} return false;}
 #elif WINDOWS
-     SyncCounter:: SyncCounter(                )  {     _handle=             CreateSemaphore(null, 0, INT_MAX, null);}
-     SyncCounter::~SyncCounter(                )  {  if(_handle){                CloseHandle(_handle               ); _handle=null;}}
-void SyncCounter:: operator+= (Int count       )C {/*if(_handle)*/          ReleaseSemaphore(_handle, count, null  );}                                                          // checking for handle!=null is not needed, as the function will do nothing on null
-Bool SyncCounter:: wait       (                )C {/*if(_handle)*/return WaitForSingleObject(_handle,                                    INFINITE)!=WAIT_TIMEOUT; return true;} // checking for handle!=null is not needed, as the function will return -1  on null, WAIT_TIMEOUT=258 so result will be -1!=258 -> true
-Bool SyncCounter:: wait       (Int milliseconds)C {/*if(_handle)*/return WaitForSingleObject(_handle, (milliseconds>=0) ? milliseconds : INFINITE)!=WAIT_TIMEOUT; return true;} // checking for handle!=null is not needed, as the function will return -1  on null, WAIT_TIMEOUT=258 so result will be -1!=258 -> true
+     SyncCounter:: SyncCounter(                )  {DYNAMIC_ASSERT(_handle=             CreateSemaphore(null, 0, INT_MAX, null), "SyncCounter.CreateSemaphore");}
+     SyncCounter::~SyncCounter(                )  {            if(_handle){                CloseHandle(_handle               ); _handle=null;}}
+void SyncCounter:: operator+= (Int count       )C {          /*if(_handle)*/          ReleaseSemaphore(_handle, count, null  );}                                                          // checking for handle!=null is not needed, as 'ReleaseSemaphore'    will do nothing on null
+Bool SyncCounter:: wait       (                )C {          /*if(_handle)*/return WaitForSingleObject(_handle,                                    INFINITE)!=WAIT_TIMEOUT; return true;} // checking for handle!=null is not needed, as 'WaitForSingleObject' will return -1  on null, WAIT_TIMEOUT=258 so result will be -1!=258 -> true
+Bool SyncCounter:: wait       (Int milliseconds)C {          /*if(_handle)*/return WaitForSingleObject(_handle, (milliseconds>=0) ? milliseconds : INFINITE)!=WAIT_TIMEOUT; return true;} // checking for handle!=null is not needed, as 'WaitForSingleObject' will return -1  on null, WAIT_TIMEOUT=258 so result will be -1!=258 -> true
 #else
 SyncCounter::SyncCounter()
 {
   _counter=0;
-   Alloc(_handle); pthread_cond_init (_handle, null);
-   Alloc(_mutex ); pthread_mutex_init(_mutex , null);
+   Alloc(_handle); DYNAMIC_ASSERT(!pthread_cond_init (_handle, null), "pthread_cond_init" );
+   Alloc(_mutex ); DYNAMIC_ASSERT(!pthread_mutex_init(_mutex , null), "pthread_mutex_init");
 }
 SyncCounter::~SyncCounter()
 {
