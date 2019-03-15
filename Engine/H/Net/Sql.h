@@ -60,7 +60,9 @@ struct SQLColumn // SQL Column definition, use this for creating new tables in a
 struct SQLValues // SQL Row values, use this for creating new rows in a table
 {
    SQLValues& New(C Str &name,   Int       value);
+   SQLValues& New(C Str &name,   UInt      value);
    SQLValues& New(C Str &name,   Long      value);
+   SQLValues& New(C Str &name,   ULong     value);
    SQLValues& New(C Str &name,   Dbl       value);
    SQLValues& New(C Str &name, C Str      &value);
    SQLValues& New(C Str &name, C UID      &value);

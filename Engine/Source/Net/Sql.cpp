@@ -34,10 +34,12 @@ enum SQL_VAL_TYPE
    SVT_UID,
 };
 /******************************************************************************/
-SQLValues& SQLValues::New(C Str &name,   Int       value                ) {_values.New().set(name, S+value                               ).type=SVT_RAW; return T;}
-SQLValues& SQLValues::New(C Str &name,   Long      value                ) {_values.New().set(name, S+value                               ).type=SVT_RAW; return T;}
-SQLValues& SQLValues::New(C Str &name,   Dbl       value                ) {_values.New().set(name, S+value                               ).type=SVT_RAW; return T;}
-SQLValues& SQLValues::New(C Str &name, C Str      &value                ) {_values.New().set(name,   value                               ).type=SVT_STR; return T;}
+SQLValues& SQLValues::New(C Str &name,   Int       value                ) {_values.New().set(name, value                                 ).type=SVT_RAW; return T;}
+SQLValues& SQLValues::New(C Str &name,   UInt      value                ) {_values.New().set(name, value                                 ).type=SVT_RAW; return T;}
+SQLValues& SQLValues::New(C Str &name,   Long      value                ) {_values.New().set(name, value                                 ).type=SVT_RAW; return T;}
+SQLValues& SQLValues::New(C Str &name,   ULong     value                ) {_values.New().set(name, value                                 ).type=SVT_RAW; return T;}
+SQLValues& SQLValues::New(C Str &name,   Dbl       value                ) {_values.New().set(name, value                                 ).type=SVT_RAW; return T;}
+SQLValues& SQLValues::New(C Str &name, C Str      &value                ) {_values.New().set(name, value                                 ).type=SVT_STR; return T;}
 SQLValues& SQLValues::New(C Str &name, C DateTime &value                ) {_values.New().set(name, S+'\''+value.asText(true)+'\''        ).type=SVT_RAW; return T;}
 SQLValues& SQLValues::New(C Str &name,  CPtr       value, Int value_size) {_values.New().set(name, TextHexMem( value, value_size , false)).type=SVT_BIN; return T;}
 SQLValues& SQLValues::New(C Str &name,   File     &file                 ) {_values.New().set(name, TextHexMem( file              , false)).type=SVT_BIN; return T;}
