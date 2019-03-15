@@ -1305,37 +1305,47 @@ Bool SQL::getCol(Int i, Ptr value, Int &size)
    size=0; return false;
 }
 /******************************************************************************/
+Str SQL::valueBin(C Str &value)C
+{
+   switch(_type)
+   {
+      case MSSQL : return S+"0x"+value;                     // 0x     0x01     0x0102
+      case MYSQL : return value.is() ? S+"0x"+value : "''"; // ''     0x01     0x0102
+      case PGSQL : return S+"E'\\\\x"+value+'\'';           // E'\\x' E'\\x01' E'\\x0102'
+      case SQLITE: return S+"x'"+value+'\'';                // x''    x'01'    x'0102'
+   }
+   return S;
+}
+Str SQL::valueID(C Str &value)C
+{
+   switch(_type)
+   {
+      default   : return valueBin(value);
+      case PGSQL:
+      {
+         Str temp; temp.reserve(32+4+2);
+                                      temp='\''; // order of characters was specified to match the output in 'getCol(Int i, UID &value)'
+         for(Int i= 8-2; i>= 0; i-=2){temp+=value[i]; temp+=value[i+1];} temp+='-';
+         for(Int i=12-2; i>= 8; i-=2){temp+=value[i]; temp+=value[i+1];} temp+='-';
+         for(Int i=16-2; i>=12; i-=2){temp+=value[i]; temp+=value[i+1];} temp+='-';
+         for(Int i=16  ; i< 20; i+=2){temp+=value[i]; temp+=value[i+1];} temp+='-';
+         for(Int i=20  ; i< 32; i+=2){temp+=value[i]; temp+=value[i+1];} temp+='\'';
+         return temp;
+      }
+   }
+}
+Str SQL::string(C UID &id)C
+{
+   return valueID(TextHexMem(&id, SIZE(id), false));
+}
 Str SQL::value(C SQLValues::Value &value)C
 {
    switch(value.type)
    {
-      default: return value.value; // SVT_RAW
-
-      case SVT_STR: return string(value.value);
-
-      case SVT_BIN: bin: switch(_type)
-      {
-         case MSSQL : return S+"0x"+value.value;                           // 0x     0x01     0x0102
-         case MYSQL : return value.value.is() ? S+"0x"+value.value : "''"; // ''     0x01     0x0102
-         case PGSQL : return S+"E'\\\\x"+value.value+'\'';                 // E'\\x' E'\\x01' E'\\x0102'
-         case SQLITE: return S+"x'"+value.value+'\'';                      // x''    x'01'    x'0102'
-      }break;
-
-      case SVT_UID: switch(_type)
-      {
-         default   : goto bin;
-         case PGSQL:
-         {
-            Str temp; temp.reserve(32+4+2);
-                                         temp='\''; // order of characters was specified to match the output in 'getCol(Int i, UID &value)'
-            for(Int i= 8-2; i>= 0; i-=2){temp+=value.value[i]; temp+=value.value[i+1];} temp+='-';
-            for(Int i=12-2; i>= 8; i-=2){temp+=value.value[i]; temp+=value.value[i+1];} temp+='-';
-            for(Int i=16-2; i>=12; i-=2){temp+=value.value[i]; temp+=value.value[i+1];} temp+='-';
-            for(Int i=16  ; i< 20; i+=2){temp+=value.value[i]; temp+=value.value[i+1];} temp+='-';
-            for(Int i=20  ; i< 32; i+=2){temp+=value.value[i]; temp+=value.value[i+1];} temp+='\'';
-            return temp;
-         }
-      }break;
+      default     : return          value.value ; // SVT_RAW
+      case SVT_STR: return string  (value.value);
+      case SVT_BIN: return valueBin(value.value);
+      case SVT_UID: return valueID (value.value);
    }
    return S;
 }

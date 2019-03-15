@@ -153,6 +153,7 @@ struct SQL
                           //    MySQL  : "'John\'s'"
                           //    PgSQL  : "'John''s'"
                           //    SQLite : "'John''s'"
+   Str string(C UID &id)C; // return 'id' UID as string in SQL friendly format, this is needed for writing custom SQL conditions
 
    Bool getNextRow(); // get next row, call this in a loop after calling sql command to process all returned rows, false on fail
 
@@ -222,6 +223,8 @@ private:
    Memc<Col> _cols;
    Memc< Memc<Byte> > _params;
 #if EE_PRIVATE
+   Str  valueBin (C Str &value)C;
+   Str  valueID  (C Str &value)C;
    Str  value    (C SQLValues::Value &value)C;
    Str  token    (C Str &token)C;
    Bool colDesc  (C SQLColumn &col, Str &desc, Str *messages);
