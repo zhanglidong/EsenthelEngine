@@ -525,12 +525,6 @@
     <ClInclude Include="H\Net\Interpolator.h">
       <Filter>H\Net</Filter>
     </ClInclude>
-    <ClInclude Include="H\Net\Net Object.h">
-      <Filter>H\Net</Filter>
-    </ClInclude>
-    <ClInclude Include="H\Net\Net World.h">
-      <Filter>H\Net</Filter>
-    </ClInclude>
     <ClInclude Include="H\Net\Patcher.h">
       <Filter>H\Net</Filter>
     </ClInclude>
@@ -1467,12 +1461,6 @@
       <Filter>Source\Net</Filter>
     </ClCompile>
     <ClCompile Include="Source\Net\Interpolator.cpp">
-      <Filter>Source\Net</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Net\Net Object.cpp">
-      <Filter>Source\Net</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Net\Net World.cpp">
       <Filter>Source\Net</Filter>
     </ClCompile>
     <ClCompile Include="Source\Net\Patcher.cpp">

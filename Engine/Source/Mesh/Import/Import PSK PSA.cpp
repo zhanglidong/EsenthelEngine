@@ -1,7 +1,7 @@
 /******************************************************************************/
 #include "stdafx.h"
 namespace EE{
-namespace PSK_PSA{ // so local structures are unique
+namespace PSK_PSA{ // to make local structures unique
 /******************************************************************************/
 #pragma pack(push, 4) // PSK/PSA require 4 byte packing
 /******************************************************************************/

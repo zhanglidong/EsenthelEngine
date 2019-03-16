@@ -70,6 +70,8 @@ void ProfileEnd()
 
    Part of the algorithm is based on "Quadric Mesh Simplification" by Sven Forstmann:
       http://voxels.blogspot.com.au/2014/05/quadric-mesh-simplification-with-source.html
+      https://github.com/sp4cerat/Fast-Quadric-Mesh-Simplification
+      Available under MIT license
 
 /******************************************************************************/
 namespace EE{

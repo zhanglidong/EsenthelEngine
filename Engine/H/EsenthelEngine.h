@@ -360,8 +360,6 @@ namespace EE // Esenthel Engine namespace
    #include "Net/Patcher.h"
    #include "Net/Ftp.h"
    #include "Net/Connection.h"
-   #include "Net/Net Object.h"
-   #include "Net/Net World.h"
    #include "Net/Sql.h"
    #include "Net/Esenthel Store.h"
    #include "Net/Advertisement.h"

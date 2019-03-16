@@ -248,8 +248,6 @@
         <itemPath>../H/Net/Ftp.h</itemPath>
         <itemPath>../H/Net/Internet Cache.h</itemPath>
         <itemPath>../H/Net/Interpolator.h</itemPath>
-        <itemPath>../H/Net/Net Object.h</itemPath>
-        <itemPath>../H/Net/Net World.h</itemPath>
         <itemPath>../H/Net/Patcher.h</itemPath>
         <itemPath>../H/Net/Socket.h</itemPath>
         <itemPath>../H/Net/Sql.h</itemPath>
@@ -591,8 +589,6 @@
         <itemPath>../Source/Net/Ftp.cpp</itemPath>
         <itemPath>../Source/Net/Internet Cache.cpp</itemPath>
         <itemPath>../Source/Net/Interpolator.cpp</itemPath>
-        <itemPath>../Source/Net/Net Object.cpp</itemPath>
-        <itemPath>../Source/Net/Net World.cpp</itemPath>
         <itemPath>../Source/Net/Patcher.cpp</itemPath>
         <itemPath>../Source/Net/Socket.cpp</itemPath>
         <itemPath>../Source/Net/Sql.cpp</itemPath>
@@ -1154,10 +1150,6 @@
       <item path="../H/Net/Internet Cache.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../H/Net/Interpolator.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../H/Net/Net Object.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../H/Net/Net World.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../H/Net/Patcher.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1964,10 +1956,6 @@
       <item path="../Source/Net/Internet Cache.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../Source/Net/Interpolator.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../Source/Net/Net Object.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../Source/Net/Net World.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../Source/Net/Patcher.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -2573,10 +2561,6 @@
       </item>
       <item path="../H/Net/Interpolator.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../H/Net/Net Object.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../H/Net/Net World.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../H/Net/Patcher.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../H/Net/Socket.h" ex="false" tool="3" flavor2="0">
@@ -3382,10 +3366,6 @@
       <item path="../Source/Net/Internet Cache.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../Source/Net/Interpolator.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../Source/Net/Net Object.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../Source/Net/Net World.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../Source/Net/Patcher.cpp" ex="false" tool="1" flavor2="0">
       </item>

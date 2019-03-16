@@ -397,8 +397,6 @@
 		0B189B6A12DA3FED00499CA9 /* Connection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189B2A12DA3FED00499CA9 /* Connection.cpp */; };
 		0B189B6B12DA3FED00499CA9 /* Download.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189B2B12DA3FED00499CA9 /* Download.cpp */; };
 		0B189B6C12DA3FED00499CA9 /* Ftp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189B2C12DA3FED00499CA9 /* Ftp.cpp */; };
-		0B189B6D12DA3FED00499CA9 /* Net Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189B2D12DA3FED00499CA9 /* Net Object.cpp */; };
-		0B189B6E12DA3FED00499CA9 /* Net World.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189B2E12DA3FED00499CA9 /* Net World.cpp */; };
 		0B189B6F12DA3FED00499CA9 /* Socket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189B2F12DA3FED00499CA9 /* Socket.cpp */; };
 		0B189B7012DA3FED00499CA9 /* Export OBJ.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189AEC12DA3FED00499CA9 /* Export OBJ.cpp */; };
 		0B189B7112DA3FED00499CA9 /* Import 3DS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189AED12DA3FED00499CA9 /* Import 3DS.cpp */; };
@@ -450,8 +448,6 @@
 		0B189BAA12DA3FED00499CA9 /* Connection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189B2A12DA3FED00499CA9 /* Connection.cpp */; };
 		0B189BAB12DA3FED00499CA9 /* Download.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189B2B12DA3FED00499CA9 /* Download.cpp */; };
 		0B189BAC12DA3FED00499CA9 /* Ftp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189B2C12DA3FED00499CA9 /* Ftp.cpp */; };
-		0B189BAD12DA3FED00499CA9 /* Net Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189B2D12DA3FED00499CA9 /* Net Object.cpp */; };
-		0B189BAE12DA3FED00499CA9 /* Net World.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189B2E12DA3FED00499CA9 /* Net World.cpp */; };
 		0B189BAF12DA3FED00499CA9 /* Socket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189B2F12DA3FED00499CA9 /* Socket.cpp */; };
 		0B189BB012DA3FED00499CA9 /* Export OBJ.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189AEC12DA3FED00499CA9 /* Export OBJ.cpp */; };
 		0B189BB112DA3FED00499CA9 /* Import 3DS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189AED12DA3FED00499CA9 /* Import 3DS.cpp */; };
@@ -503,8 +499,6 @@
 		0B189BEA12DA3FED00499CA9 /* Connection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189B2A12DA3FED00499CA9 /* Connection.cpp */; };
 		0B189BEB12DA3FED00499CA9 /* Download.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189B2B12DA3FED00499CA9 /* Download.cpp */; };
 		0B189BEC12DA3FED00499CA9 /* Ftp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189B2C12DA3FED00499CA9 /* Ftp.cpp */; };
-		0B189BED12DA3FED00499CA9 /* Net Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189B2D12DA3FED00499CA9 /* Net Object.cpp */; };
-		0B189BEE12DA3FED00499CA9 /* Net World.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189B2E12DA3FED00499CA9 /* Net World.cpp */; };
 		0B189BEF12DA3FED00499CA9 /* Socket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B189B2F12DA3FED00499CA9 /* Socket.cpp */; };
 		0B18A0CA12DA4DA400499CA9 /* Chunk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18A0C212DA4DA400499CA9 /* Chunk.cpp */; };
 		0B18A0CB12DA4DA400499CA9 /* File Text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18A0C312DA4DA400499CA9 /* File Text.cpp */; };
@@ -1236,8 +1230,6 @@
 		0B189B2A12DA3FED00499CA9 /* Connection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Connection.cpp; sourceTree = "<group>"; };
 		0B189B2B12DA3FED00499CA9 /* Download.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Download.cpp; sourceTree = "<group>"; };
 		0B189B2C12DA3FED00499CA9 /* Ftp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ftp.cpp; sourceTree = "<group>"; };
-		0B189B2D12DA3FED00499CA9 /* Net Object.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Net Object.cpp"; sourceTree = "<group>"; };
-		0B189B2E12DA3FED00499CA9 /* Net World.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Net World.cpp"; sourceTree = "<group>"; };
 		0B189B2F12DA3FED00499CA9 /* Socket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Socket.cpp; sourceTree = "<group>"; };
 		0B189C2812DA427A00499CA9 /* Animation Keys.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Animation Keys.h"; sourceTree = "<group>"; };
 		0B189D6B12DA42B500499CA9 /* Clouds.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Clouds.h; sourceTree = "<group>"; };
@@ -1534,8 +1526,6 @@
 		0BE2A36C1273A9050021D662 /* Connection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Connection.h; sourceTree = "<group>"; };
 		0BE2A36D1273A9050021D662 /* Download.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Download.h; sourceTree = "<group>"; };
 		0BE2A36E1273A9050021D662 /* Ftp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ftp.h; sourceTree = "<group>"; };
-		0BE2A36F1273A9050021D662 /* Net Object.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Net Object.h"; sourceTree = "<group>"; };
-		0BE2A3701273A9050021D662 /* Net World.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Net World.h"; sourceTree = "<group>"; };
 		0BE2A3711273A9050021D662 /* Socket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Socket.h; sourceTree = "<group>"; };
 		0BE67A3E122EA9D3006BC8F0 /* PVRTC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PVRTC.cpp; path = ../ThirdPartyLibs/PVRTC/PVRTC.cpp; sourceTree = "<group>"; };
 		0BED2FA216B6E3800088106C /* Environment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Environment.h; sourceTree = "<group>"; };
@@ -2313,8 +2303,6 @@
 				3747E0A621ADEB3D0001AFC5 /* Game Analytics.cpp */,
 				370EB20719074F7D002DA375 /* Internet Cache.cpp */,
 				0B0DB07D13C5A8F4004F5451 /* Interpolator.cpp */,
-				0B189B2D12DA3FED00499CA9 /* Net Object.cpp */,
-				0B189B2E12DA3FED00499CA9 /* Net World.cpp */,
 				0BA71FC813C0C27A00E6BCAF /* Patcher.cpp */,
 				0B189B2F12DA3FED00499CA9 /* Socket.cpp */,
 				0BA71FCC13C0C28100E6BCAF /* Sql.cpp */,
@@ -2669,8 +2657,6 @@
 				0BE2A36E1273A9050021D662 /* Ftp.h */,
 				370EB20619074F68002DA375 /* Internet Cache.h */,
 				0B3F4C6618319A1D00518C8B /* Interpolator.h */,
-				0BE2A36F1273A9050021D662 /* Net Object.h */,
-				0BE2A3701273A9050021D662 /* Net World.h */,
 				0B3F4C6718319A1D00518C8B /* Patcher.h */,
 				0BE2A3711273A9050021D662 /* Socket.h */,
 				0B3F4C6818319A1D00518C8B /* Sql.h */,
@@ -3347,8 +3333,6 @@
 				0B189BEA12DA3FED00499CA9 /* Connection.cpp in Sources */,
 				0B189BEB12DA3FED00499CA9 /* Download.cpp in Sources */,
 				0B189BEC12DA3FED00499CA9 /* Ftp.cpp in Sources */,
-				0B189BED12DA3FED00499CA9 /* Net Object.cpp in Sources */,
-				0B189BEE12DA3FED00499CA9 /* Net World.cpp in Sources */,
 				0B189BEF12DA3FED00499CA9 /* Socket.cpp in Sources */,
 				0B18A0DA12DA4DA400499CA9 /* Chunk.cpp in Sources */,
 				0B18A0DB12DA4DA400499CA9 /* File Text.cpp in Sources */,
@@ -3652,8 +3636,6 @@
 				0B189B6A12DA3FED00499CA9 /* Connection.cpp in Sources */,
 				0B189B6B12DA3FED00499CA9 /* Download.cpp in Sources */,
 				0B189B6C12DA3FED00499CA9 /* Ftp.cpp in Sources */,
-				0B189B6D12DA3FED00499CA9 /* Net Object.cpp in Sources */,
-				0B189B6E12DA3FED00499CA9 /* Net World.cpp in Sources */,
 				0B189B6F12DA3FED00499CA9 /* Socket.cpp in Sources */,
 				3747E0A721ADEB3D0001AFC5 /* Game Analytics.cpp in Sources */,
 				0B18A0CA12DA4DA400499CA9 /* Chunk.cpp in Sources */,
@@ -3956,8 +3938,6 @@
 				0B189BAA12DA3FED00499CA9 /* Connection.cpp in Sources */,
 				0B189BAB12DA3FED00499CA9 /* Download.cpp in Sources */,
 				0B189BAC12DA3FED00499CA9 /* Ftp.cpp in Sources */,
-				0B189BAD12DA3FED00499CA9 /* Net Object.cpp in Sources */,
-				0B189BAE12DA3FED00499CA9 /* Net World.cpp in Sources */,
 				0B189BAF12DA3FED00499CA9 /* Socket.cpp in Sources */,
 				0B18A0D212DA4DA400499CA9 /* Chunk.cpp in Sources */,
 				0B18A0D312DA4DA400499CA9 /* File Text.cpp in Sources */,

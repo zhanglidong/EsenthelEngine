@@ -2430,8 +2430,6 @@
     <ClInclude Include="H\Net\Ftp.h" />
     <ClInclude Include="H\Net\Interpolator.h" />
     <ClInclude Include="H\Net\Store.h" />
-    <ClInclude Include="H\Net\Net Object.h" />
-    <ClInclude Include="H\Net\Net World.h" />
     <ClInclude Include="H\Net\Patcher.h" />
     <ClInclude Include="H\Net\Socket.h" />
     <ClInclude Include="H\Net\Sql.h" />
@@ -3902,8 +3900,6 @@
     <ClCompile Include="Source\Net\Ftp.cpp" />
     <ClCompile Include="Source\Net\Interpolator.cpp" />
     <ClCompile Include="Source\Net\Store.cpp" />
-    <ClCompile Include="Source\Net\Net Object.cpp" />
-    <ClCompile Include="Source\Net\Net World.cpp" />
     <ClCompile Include="Source\Net\Patcher.cpp" />
     <ClCompile Include="Source\Net\Socket.cpp" />
     <ClCompile Include="Source\Net\Sql.cpp" />

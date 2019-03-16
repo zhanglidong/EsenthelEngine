@@ -1,5 +1,9 @@
 /******************************************************************************/
 #include "stdafx.h"
+/******************************************************************************
+
+   Decompression codes based on PowerVR SDK, Copyright (c) Imagination Technologies Limited
+
 /******************************************************************************/
 namespace EE{
 namespace PVRTC{

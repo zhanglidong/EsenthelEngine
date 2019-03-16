@@ -341,6 +341,10 @@ Color DecompressPixelBC7(C Byte *b, Int x, Int y)
 }
 /******************************************************************************/
 // COMPRESS
+/******************************************************************************
+
+   Based on Microsoft DirectXTex - https://github.com/Microsoft/DirectXTex/blob/master/DirectXTex/BC.cpp
+
 /******************************************************************************/
 struct BC1
 {
