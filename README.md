@@ -1,5 +1,5 @@
 ### About
-Full Source of Esenthel Engine and its Tools (http://www.esenthel.com) - a super-optimized, high-performance, minimal-memory-usage, cross-platform Game Engine (software to create Games and Applications).<br/>
+Full Source of Esenthel Engine and its Tools (http://www.esenthel.com) - a super optimized, high performance, minimal memory usage, rock solid stable, cross platform Game Engine (software to create Games and Applications).<br/>
 Esenthel strives to be pure perfection!<br/>
 Official version available at: https://github.com/Esenthel/EsenthelEngine<br/>
 To continue its development, Esenthel needs your support:
@@ -14,7 +14,7 @@ To continue its development, Esenthel needs your support:
 COPYRIGHT
 Esenthel Engine created by Grzegorz Slazinski, all rights reserved.
 You can use it for free to create games and applications.
-This License is non-exclusive, worldwide and royalty-free - you don't have to share the income that you make
+This License is non-exclusive, non-transferable, worldwide and royalty-free - you don't have to share the income that you make
 from your games/apps made with Esenthel Engine.
 You can create unlimited number of games/apps using Esenthel Engine.
 You can redistribute Esenthel Engine source code.
@@ -26,8 +26,6 @@ but it would be cool if you could.
 
 LIMITATIONS
 Esenthel Engine code/algorithms/designs may NOT be used for development/improvement of other Game Engines.
-You may NOT browse Esenthel Engine source code if you work on improving other Game Engines, in that case
-you may only compile it with the included tool and work with the compiled binary version of Esenthel Engine.
 
 Esenthel Engine may NOT be used for - the purpose of/promoting/advertising/selling/assisting in/research/
 development/production/improvement of: terrorism, illegal drugs, smoking, stealing, piracy, gambling, extortion,
@@ -36,7 +34,7 @@ fraud, spam, bullying, harming life (people and animals), polluting environment.
 You may NOT resell or sub-license the source code to any third-party.
 You may NOT claim that you wrote the source code.
 You may NOT remove or change any copyright messages or this License text from the source code.
-Esenthel source code is not sold to you, it is licensed to you, Esenthel Creators remain as its copyright owners.
+Esenthel source code is not given/sold to you, it is licensed to you, Esenthel Creators remain as its copyright owners.
 
 If you submit any code to Esenthel Engine developers (for example bug fixes or improvements to the Engine) then
 you agree that: Esenthel Engine developers have the right to use that code without any restrictions and without
