@@ -9,8 +9,6 @@
 #include "../../Source/Net/Game Analytics.cpp"
 #include "../../Source/Net/Interpolator.cpp"
 #include "../../Source/Net/Internet Cache.cpp"
-#include "../../Source/Net/Net Object.cpp"
-#include "../../Source/Net/Net World.cpp"
 #include "../../Source/Net/Patcher.cpp"
 #include "../../Source/Net/Socket.cpp"
 //#include "../../Source/Net/Sql.cpp" - don't compile it here, instead specify this in "Android.mk" in case this is not used to don't link it at all
