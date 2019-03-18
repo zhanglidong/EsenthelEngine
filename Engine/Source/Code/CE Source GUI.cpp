@@ -202,7 +202,7 @@ void Source::update(C GuiPC &gpc)
       if(Kb.ctrlCmd() && !Kb.alt() && Kb.b(KB_UP  ))slidebar[1].button[1].push(); // scroll up
       if(Kb.ctrlCmd() && !Kb.alt() && Kb.b(KB_DOWN))slidebar[1].button[2].push(); // scroll down
 
-      for(; Kb.k.any(); Kb.nextKey())
+      for(; Kb.k.any() && !Kb.k.winCtrl(); Kb.nextKey())
       {
          if(Kb.k(KB_BACK )                  && !Kb.k.alt()){if(Kb.k.ctrlCmd())delWordBack   ();else delBack   ();}else
          if(Kb.k(KB_DEL  ) && !Kb.k.shift() && !Kb.k.alt()){if(Kb.k.ctrlCmd())delWordForward();else delForward();}else
