@@ -110,7 +110,13 @@ Bool StartsPath(CChar  *t, CChar8 *start                                        
 Bool StartsPath(CChar8 *t, CChar  *start                                                   ); // if 't' starts with 'start' path, (this function works the same as 'Starts', except that '/' is treated as equal to '\\')
 Bool StartsPath(CChar8 *t, CChar8 *start                                                   ); // if 't' starts with 'start' path, (this function works the same as 'Starts', except that '/' is treated as equal to '\\')
 
+Bool Contains   (C Str  &src,  Char   c                                                   ); // if 'src' contains 'c' character
+Bool Contains   (C Str  &src,  Char8  c                                                   ); // if 'src' contains 'c' character
+Bool Contains   (C Str8 &src,  Char   c                                                   ); // if 'src' contains 'c' character
+Bool Contains   (C Str8 &src,  Char8  c                                                   ); // if 'src' contains 'c' character
 Bool Contains   (CChar  *src,  Char   c                                                   ); // if 'src' contains 'c' character
+Bool Contains   (CChar  *src,  Char8  c                                                   ); // if 'src' contains 'c' character
+Bool Contains   (CChar8 *src,  Char   c                                                   ); // if 'src' contains 'c' character
 Bool Contains   (CChar8 *src,  Char8  c                                                   ); // if 'src' contains 'c' character
 Bool Contains   (CChar  *src, CChar  *t, Bool case_sensitive=false, Bool whole_words=false); // if 'src' contains 't' text
 Bool Contains   (CChar  *src, CChar8 *t, Bool case_sensitive=false, Bool whole_words=false); // if 'src' contains 't' text
