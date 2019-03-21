@@ -646,10 +646,8 @@ Bool SQL::getColDesc(Int i, Str &name, SQL_DATA_TYPE &type, Int &size)
             {
                default: size=-1; break;
 
-               case SDT_INT :
                case SDT_LONG: size=SIZE(Long); break;
 
-               case SDT_FLT:
                case SDT_DBL: size=SIZE(Dbl); break;
             }
             return true;
