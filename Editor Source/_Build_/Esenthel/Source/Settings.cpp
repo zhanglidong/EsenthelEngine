@@ -200,7 +200,7 @@ void ApplySettings(C TextData &data)
       if(C TextParam *p=main->findNode("ProjectsPath"        ))Projs.proj_path.set(MakeFullPath(p->value));
       if(C TextParam *p=main->findNode("ServerAddress"       ))Projs.server   .set(p->value);
       if(C TextParam *p=main->findNode("Email"               ))Projs.email    .set(p->value);
-      if(C TextParam *p=main->findNode("NetworkInterface"    ))Projs.editor_network_interface.set(p->asBool(), QUIET);
+      if(C TextParam *p=main->findNode("NetworkInterface"    ))Projs.editor_network_interface.set(p->asBool());
 
       if(C TextNode *pl=main->findNode("ProjectList"))
       {
