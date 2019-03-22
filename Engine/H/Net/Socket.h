@@ -21,9 +21,10 @@ struct SockAddr // Socket Address
    SockAddr& clear       (                      ); // clear address to zero
    Bool      setFrom     (C Socket &socket      ); // set   address from socket
    SockAddr& setServer   (              Int port); // set   address to be used for creating a server
-   SockAddr& setLocalFast(              Int port); // set   address to local host (  fast                 ip will be used "127.0.0.1"), this allows connections only within the same device
-   SockAddr& setLocal    (              Int port); // set   address to local host ( local                 ip will be used            ), this allows connections only within the same device and local network (connecting beyond local network depends if the local host is behind a router)
-   Bool      setGlobal   (              Int port); // set   address to local host (global/public/external ip will be used            ), this allows connections      within the same device,    local network and beyond (resolving global ip address requires connecting to external websites !!)
+   SockAddr& setLocalFast(              Int port); // set   address to local host     (  fast "127.0.0.1"     IP will be used), this allows connections only within the same device
+   SockAddr& setLocal    (              Int port); // set   address to local host     ( local                 IP will be used), this allows connections only within the same device and local network (connecting beyond local network depends if the local host is behind a router)
+   Bool      setGlobal   (              Int port); // set   address to local host     (global/public/external IP will be used), this allows connections      within the same device,    local network and beyond (resolving global IP address requires connecting to external websites !!)
+   SockAddr& setBroadcast(              Int port); // set   address to broadcast mode ("255.255.255.255"      IP will be used), this allows sending to all computers in local network, this is IPv4 only and does not support IPv6
    Bool      setHost     (C Str  &host, Int port); // set   address to host from its name, false on fail
    SockAddr& setIp4Port  (  UInt  ip4 , Int port); // set   address to direct IPv4 address                with specified port
    Bool      setIp4Port  (C Str8 &ip4 , Int port); // set   address to direct IPv4 address in text format with specified port, false on fail
@@ -129,8 +130,9 @@ struct Socket
    SockAddr addr()C;                          // get socket      address
 
    // set
-   Bool block     (Bool on); // set blocking mode     , false on fail
-   Bool tcpNoDelay(Bool on); // set TCP_NODELAY option, false on fail
+   Bool block     (Bool on); // set blocking mode      , false on fail
+   Bool tcpNoDelay(Bool on); // set TCP_NODELAY  option, false on fail
+   Bool broadcast (Bool on); // set SO_BROADCAST option, false on fail !! only UDP sockets are supported !! this allows sending data to all computers in local network by using 'SockAddr.setBroadcast' as 'send' address
 
    // operations
    Bool   bind   (C SockAddr &addr                ); // bind    socket to specific address, false on fail
@@ -209,9 +211,9 @@ C Str& GetComputerName(); // get name of this computer which can be used in 'Get
 void GetLocalAddresses(MemPtr<SockAddr> addresses,              Int port=0); // get a list of all known addresses for local     host
 void GetHostAddresses (MemPtr<SockAddr> addresses, C Str &host, Int port=0); // get a list of all known addresses for specified host
 
-void       GetGlobalIP(Bool refresh=false); // initiate        obtaining global ip address in the background, 'refresh'=if ignore previously obtained ip address and try getting a new one in case it was changed
-Bool       HasGlobalIP(                  ); // if successfully obtained  global ip address
-Bool ObtainingGlobalIP(                  ); // if currently    obtaining global ip address
+void       GetGlobalIP(Bool refresh=false); // initiate        obtaining global IP address in the background, 'refresh'=if ignore previously obtained IP address and try getting a new one in case it was changed
+Bool       HasGlobalIP(                  ); // if successfully obtained  global IP address
+Bool ObtainingGlobalIP(                  ); // if currently    obtaining global IP address
 
 Bool SendMailSupported(); // check if 'SendMail' function is supported on this machine, this function should not be called before 'InitPre'
 Bool SendMail(C Str &from_name, C Str &from_email, C Str &to_name, C Str &to_email, C Str &subject, C Str &message); // send e-mail using local host as SMTP server, 'from_name'=name of the sender (example "John Smith"), 'from_email'=sender e-mail address (example "user@domain.com"), 'to_name'=name of the recipent (example "Jane Smith"), 'to'=recipent e-mail address (example "user@domain.com"), 'subject'=subject, 'message'=e-mail message

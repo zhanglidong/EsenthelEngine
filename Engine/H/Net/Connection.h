@@ -77,6 +77,9 @@ struct FastConnection // fast but unreliable UDP based connection, data is not g
    Long sent    ()C {return _sent         ;} // get total amount of sent     data
    Long received()C {return _received     ;} // get total amount of received data
 
+   // set
+   Bool broadcast(Bool on) {return _socket.broadcast(on);} // set SO_BROADCAST option, false on fail, this allows sending data to all computers in local network by using 'SockAddr.setBroadcast' as 'send' address
+
    // io
    Bool send(C SockAddr &addr, CPtr data, Int size, Cipher *cipher=null); // send 'size' amount of 'data' to 'addr' address          , if 'cipher' is given then it will be used to encrypt the data, this method supports sending up to 64KB data, false on fail
    Bool send(C SockAddr &addr, File &f            , Cipher *cipher=null); // send 'f' file data, from its current position to its end, if 'cipher' is given then it will be used to encrypt the data, this method supports sending up to 64KB data, false on fail

@@ -496,6 +496,18 @@ Bool SockAddr::setGlobal(Int port)
    if( GIPC.valid()){T=GIPC.addr; T.port(port); return true;}
    clear(); return false;
 }
+SockAddr& SockAddr::setBroadcast(Int port)
+{
+   clear();
+   portN()=htons(port);
+   #if APPLE
+      v4().sin_len=SIZE(sockaddr_in);
+   #endif
+   v4Ip4 ()=INADDR_BROADCAST;
+   family()=AF_INET; // !! set family as last for thread-safety, because some methods (including 'GIPC') detect if address is valid based on family !!
+   return T;
+}
+
 SockAddr& SockAddr::setIp4Port(UInt ip4, Int port)
 {
    clear();
@@ -690,7 +702,7 @@ Bool SockAddr::load(File &f)
 /******************************************************************************/
 // SOCKET
 /******************************************************************************/
-void Socket::init(Bool ipv6)
+void Socket::init(Bool ipv6) // !! assumes 'is' !!
 {
 #if APPLE
    int val=1; setsockopt((SOCKET)_s, SOL_SOCKET, SO_NOSIGPIPE, &val, SIZE(val)); // disable SIGPIPE process signal on Unix machines (it is received when writing to closed socket, and it causes process termination)
@@ -743,8 +755,15 @@ Bool Socket::tcpNoDelay(Bool on)
 {
    if(is())
    {
-      int flag=on;
-      return !setsockopt((SOCKET)_s, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, SIZE(flag));
+      int val=on; return !setsockopt((SOCKET)_s, IPPROTO_TCP, TCP_NODELAY, (char*)&val, SIZE(val));
+   }
+   return false;
+}
+Bool Socket::broadcast(Bool on)
+{
+   if(is())
+   {
+      int val=on; return !setsockopt((SOCKET)_s, SOL_SOCKET, SO_BROADCAST, (char*)&val, SIZE(val)); // this allows broadcast mode, sending to 255.255.255.255 addr (all devices in local network)
    }
    return false;
 }
