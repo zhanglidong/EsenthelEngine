@@ -302,11 +302,11 @@ Bool FastConnection::send(C SockAddr &addr, CPtr data, Int size, Cipher *cipher)
 }
 Bool FastConnection::send(C SockAddr &addr, File &f, Cipher *cipher)
 {
-   Int left =f.left();
-   if( left<=65536)
+   Long left =f.left();
+   if(  left<=65536)
    {
-      Byte temp[65536]; f.get(temp, left);
-      return send(addr, temp, left, cipher);
+      Byte temp[65536];
+      if(f.getFast(temp, left))return send(addr, temp, left, cipher);
    }
    return false;
 }
