@@ -41,9 +41,14 @@ ASSERT(MEMBER_SIZE(sockaddr_in6, sin6_addr)==IPV6_SIZE);
 #define IPV6_UINTS (16/SIZE(UInt)) // number of UInt's in IPv6 address
 ASSERT(IPV6_SIZE%SIZE(UInt)==0);
 
-static INLINE Int CompareV6(C UInt *a, C UInt *b) // assumes that a!=null && b!=null
+static INLINE Int CompareV6(CPtr a, CPtr b) // assumes that a!=null && b!=null
 {
-   REP(IPV6_UINTS)if(Int c=Compare(*a++, *b++))return c;
+ C UInt *A=(UInt*)a, *B=(UInt*)b;
+#if 1 // check high-order first (this is needed when 'v4Ip4' is returned as direct cast without any byte shuffle)
+   REP(IPV6_UINTS)if(Int c=Compare(A[i], B[i]))return c;
+#else // check low-order first
+   REP(IPV6_UINTS)if(Int c=Compare(*A++, *B++))return c;
+#endif
    return 0;
 }
 
@@ -103,31 +108,43 @@ static Bool TextToIP4(CChar8 *text, UInt &ip)
 error:
    ip=0; return false;
 }
-static Bool EqualIgnorePort(C SockAddr &a, C SockAddr &b) // !! this ignores port and v6(v4-mapped) IP4_LOCAL_HOST and IP4_ANY !!
+/******************************************************************************/
+static Int CompareIgnorePort(C SockAddr &a, C SockAddr &b)
 {
-   if(a.family()!=b.family()) // they can still be the same if it's a v4 and v6(v4-mapped)
+   // one can be V4 and another v6(v4-mapped)
+   auto a_family=a.family(),
+        b_family=b.family();
+   UInt a_ip4, b_ip4;
+   switch(a_family)
    {
-    C SockAddr *v4=null, *v6=null;
-      switch(a.family())
-      {
-         case AF_INET : v4=&a; break;
-         case AF_INET6: v6=&a; break;
-         default      : return false;
-      }
-      switch(b.family())
-      {
-         case AF_INET : v4=&b; break;
-         case AF_INET6: v6=&b; break;
-         default      : return false;
-      }
-      return v4 && v6 && v6->v6Ip4()==v4->v4Ip4() && IN6_IS_ADDR_V4MAPPED(&v6->v6().sin6_addr); // check IP4's first because it's faster
+      case AF_INET : a_ip4=a.v4Ip4(); break;
+      case AF_INET6: // check if can convert to IP4
+         if(IN6_IS_ADDR_V4MAPPED   (&a.v6().sin6_addr)){a_family=AF_INET; a_ip4=a.v6Ip4()     ;}else
+         if(IN6_IS_ADDR_LOOPBACK   (&a.v6().sin6_addr)){a_family=AF_INET; a_ip4=IP4_LOCAL_HOST;}else
+         if(IN6_IS_ADDR_UNSPECIFIED(&a.v6().sin6_addr)){a_family=AF_INET; a_ip4=IP4_ANY       ;}
+      break;
    }
-   switch(a.family()) // at this stage a.family==b.family
+   switch(b_family)
    {
-      default      : return true;
-      case AF_INET : return a.v4Ip4()==b.v4Ip4();
-      case AF_INET6: return IN6_ARE_ADDR_EQUAL(&a.v6().sin6_addr, &b.v6().sin6_addr)!=0;
+      case AF_INET : b_ip4=b.v4Ip4(); break;
+      case AF_INET6: // check if can convert to IP4
+         if(IN6_IS_ADDR_V4MAPPED   (&b.v6().sin6_addr)){b_family=AF_INET; b_ip4=b.v6Ip4()     ;}else
+         if(IN6_IS_ADDR_LOOPBACK   (&b.v6().sin6_addr)){b_family=AF_INET; b_ip4=IP4_LOCAL_HOST;}else
+         if(IN6_IS_ADDR_UNSPECIFIED(&b.v6().sin6_addr)){b_family=AF_INET; b_ip4=IP4_ANY       ;}
+      break;
    }
+   if(Int c=Compare(a_family, b_family))return c;
+   switch(a_family) // at this stage "a_family==b_family"
+   {
+      default      : return 0; // the same
+      case AF_INET : return Compare  ( a_ip4           ,  b_ip4           );
+      case AF_INET6: return CompareV6(&a.v6().sin6_addr, &b.v6().sin6_addr);
+   }
+}
+Int Compare(C SockAddr &a, C SockAddr &b)
+{
+   if(Int c=CompareIgnorePort(a, b))return c;
+   return Compare(a.port(), b.port());
 }
 /******************************************************************************/
 struct GlobalIPChecker
@@ -232,7 +249,7 @@ Bool SockAddr::thisDevice()C
       case AF_INET6: if(v6Ip4()==IP4_LOCAL_HOST && IN6_IS_ADDR_V4MAPPED(&v6().sin6_addr) // check IP4 first because it's faster
                      ||                            IN6_IS_ADDR_LOOPBACK(&v6().sin6_addr))return true; break;
    }
-   Memt<SockAddr> addrs; GetLocalAddresses(addrs); REPA(addrs)if(EqualIgnorePort(T, addrs[i]))return true;
+   Memt<SockAddr> addrs; GetLocalAddresses(addrs); REPA(addrs)if(!CompareIgnorePort(T, addrs[i]))return true;
    return false;
 }
 Bool SockAddr::needsV6()C
@@ -649,17 +666,6 @@ Bool SockAddr::convert(C SockAddr &src)
       }return true;
    }
    return false;
-}
-/******************************************************************************/
-Int Compare(C SockAddr &a, C SockAddr &b)
-{
-   if(Int c=Compare(a.family(), b.family()))return c;
-   switch(a.family())
-   {
-      case AF_INET : if(Int c=Compare(a.v4Ip4(), b.v4Ip4()))return c; break;
-      case AF_INET6: if(Int c=CompareV6((UInt*)&a.v6().sin6_addr, (UInt*)&b.v6().sin6_addr))return c; break;
-   }
-   return Compare(a.port(), b.port());
 }
 /******************************************************************************/
 Bool SockAddr::save(File &f)C

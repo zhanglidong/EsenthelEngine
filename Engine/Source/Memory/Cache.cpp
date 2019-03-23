@@ -24,7 +24,7 @@ static Flt      DelayRemoveWaited;
 
 
    Normally 'Desc.delay_remove' should be stored as 'Dbl', however we store it as 'Flt',
-      to reduce memory usage (because it's stored for every cache element and it can be a lot of them).
+      to reduce memory usage (because it's stored for every cache element and there can be a lot of them).
    We can do this because we don't need high precision for this, as typically the delay times are set to several seconds,
       and the 'Flt' error after 1 month of application run-time is 0.25s and after 1 year is 2s (see "Timer.cpp" file).
    These errors are acceptable.
