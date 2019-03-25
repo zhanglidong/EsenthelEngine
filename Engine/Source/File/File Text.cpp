@@ -7,7 +7,7 @@ namespace EE{
 
 #define BOM_UTF_16  0xFEFF
 /******************************************************************************/
-static ENCODING LoadEncoding(File &f)
+static ENCODING LoadEncoding(File &f) // assumes f.pos() is 0
 {
    if(f.size()>=2) // encoding can be present only if there are at least 2 bytes
    {

@@ -227,10 +227,10 @@ Bool Connection::send(CPtr buf, Int size, Bool flush)
 {
    if(size>0 && _state==CONNECT_GREETED)
    {
-      Int pos=_out.pos(); _out.pos(_out.size());
-     _out.cmpUIntV(size);
-     _out.put     (buf, size); // size
-     _out.pos     (pos);
+      Long pos=_out.pos(); _out.pos(_out.size()); // remember current position and move to the end
+     _out.cmpUIntV(     size); // write data size
+     _out.put     (buf, size); // write data
+     _out.pos     (pos); // restore position
       return flush ? T.flush() : true;
    }
    return size==0;
@@ -240,17 +240,17 @@ Bool Connection::send(File &f, Int size, Bool flush)
    if(size<0)size=f.left();
    if(size>0 && _state==CONNECT_GREETED)
    {
-      Int pos=_out.pos(); _out.pos(_out.size());
-     _out.cmpUIntV(size);
+      Long out_pos=_out.pos(), out_size=_out.size(); _out.pos(out_size); // remember current position, size and move to the end
+     _out.cmpUIntV(size); // write data size
       for(; size>0; )
       {
          Byte buf[65536];
          Int  l=Min(SIZEU(buf), size);
-         f  .get(buf, l);
-        _out.put(buf, l); // size
+         if(!f  .getFast(buf, l)){_out.pos(out_pos); _out.size(out_size); return false;} // if failed to read from file, then cancel this entire 'send' call, by restoring both position and size, and return false
+            _out.put    (buf, l); // write data
          size-=l;
       }
-     _out.pos(pos);
+     _out.pos(out_pos); // restore position
       return flush ? T.flush() : true;
    }
    return size==0;
