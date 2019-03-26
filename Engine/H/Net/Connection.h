@@ -73,6 +73,7 @@ struct FastConnection // fast but unreliable UDP based connection, data is not g
    Bool create(C SockAddr &addr   ); // create using custom    address                                    , false on fail
 
    // get
+   Bool is      ()C {return _socket.is  ();} // get if            connection was created
    Int  port    ()C {return _socket.port();} // get port at which connection was created
    Long sent    ()C {return _sent         ;} // get total amount of sent     data
    Long received()C {return _received     ;} // get total amount of received data
