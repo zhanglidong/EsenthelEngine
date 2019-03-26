@@ -1005,7 +1005,7 @@ void GetLocalAddresses(MemPtr<SockAddr> addresses,              Int port) {retur
 void GetHostAddresses (MemPtr<SockAddr> addresses, C Str &host, Int port)
 {
    addresses.clear();
-   const Bool allow_local_host=true; // allow local host as it's actually needed if for example we want to use 'Download' (which uses this function) to connect to "localhost"
+   Bool local_host=false; // if encountered local host
 
 #if WINDOWS
    // 'GetAddrInfoW' requires at least Windows XP with SP2
@@ -1021,13 +1021,13 @@ void GetHostAddresses (MemPtr<SockAddr> addresses, C Str &host, Int port)
          case AF_INET: if(r->ai_addr && r->ai_addrlen<=MEMBER_SIZE(SockAddr, _data))
          {
           C sockaddr_in &addr=*(sockaddr_in*)r->ai_addr;
-            if(allow_local_host || addr.sin_addr.s_addr!=IP4_LOCAL_HOST){SockAddr &sa=addresses.New(); sa.v4()=addr; sa.port(port);}
+            if(addr.sin_addr.s_addr!=IP4_LOCAL_HOST){SockAddr &sa=addresses.New(); sa.v4()=addr; sa.port(port);}else local_host=true;
          }break;
 
          case AF_INET6: if(r->ai_addr && r->ai_addrlen<=MEMBER_SIZE(SockAddr, _data))
          {
           C sockaddr_in6 &addr=*(sockaddr_in6*)r->ai_addr;
-            if(allow_local_host || !IN6_IS_ADDR_LOOPBACK(&addr.sin6_addr)){SockAddr &sa=addresses.New(); sa.v6()=addr; sa.port(port);}
+            if(!IN6_IS_ADDR_LOOPBACK(&addr.sin6_addr)){SockAddr &sa=addresses.New(); sa.v6()=addr; sa.port(port);}else local_host=true;
          }break;
       }
       FreeAddrInfoW(result);
@@ -1043,13 +1043,13 @@ void GetHostAddresses (MemPtr<SockAddr> addresses, C Str &host, Int port)
             case AF_INET:
             {
              C sockaddr_in &addr=*(sockaddr_in*)r->ifa_addr;
-               if(allow_local_host || addr.sin_addr.s_addr!=IP4_LOCAL_HOST){SockAddr &sa=addresses.New(); sa.v4()=addr; sa.port(port);}
+               if(addr.sin_addr.s_addr!=IP4_LOCAL_HOST){SockAddr &sa=addresses.New(); sa.v4()=addr; sa.port(port);}else local_host=true;
             }break;
 
             case AF_INET6:
             {
              C sockaddr_in6 &addr=*(sockaddr_in6*)r->ifa_addr;
-               if(allow_local_host || !IN6_IS_ADDR_LOOPBACK(&addr.sin6_addr)){SockAddr &sa=addresses.New(); sa.v6()=addr; sa.port(port);}
+               if(!IN6_IS_ADDR_LOOPBACK(&addr.sin6_addr)){SockAddr &sa=addresses.New(); sa.v6()=addr; sa.port(port);}else local_host=true;
             }break;
          }
          freeifaddrs(interfaces);
@@ -1067,7 +1067,8 @@ void GetHostAddresses (MemPtr<SockAddr> addresses, C Str &host, Int port)
 	               if( addr.length()<=4*3 + 3) // 4*"255" + 3*'.'
 	               {
 	                  Int dots=0; REPA(addr)if(addr[i]=='.')dots++;
-	                  if( dots==3 && (allow_local_host || addr!="127.0.0.1"))addresses.New().setIP(addr, port);
+	                  if( dots==3)
+                        if(addr!="127.0.0.1"))addresses.New().setIP(addr, port);else local_host=true;
 	               }
 	            }
 	            //[addrs release]; don't release as it causes crashes
@@ -1082,13 +1083,13 @@ void GetHostAddresses (MemPtr<SockAddr> addresses, C Str &host, Int port)
                case AF_INET:
                {
                 C sockaddr_in &addr=*(sockaddr_in*)r->ifa_addr;
-                  if(allow_local_host || addr.sin_addr.s_addr!=IP4_LOCAL_HOST){SockAddr &sa=addresses.New(); sa.v4()=addr; sa.port(port);}
+                  if(addr.sin_addr.s_addr!=IP4_LOCAL_HOST){SockAddr &sa=addresses.New(); sa.v4()=addr; sa.port(port);}else local_host=true;
                }break;
 
                case AF_INET6:
                {
                 C sockaddr_in6 &addr=*(sockaddr_in6*)r->ifa_addr;
-                  if(allow_local_host || !IN6_IS_ADDR_LOOPBACK(&addr.sin6_addr)){SockAddr &sa=addresses.New(); sa.v6()=addr; sa.port(port);}
+                  if(!IN6_IS_ADDR_LOOPBACK(&addr.sin6_addr)){SockAddr &sa=addresses.New(); sa.v6()=addr; sa.port(port);}else local_host=true;
                }break;
             }
             freeifaddrs(interfaces);
@@ -1118,13 +1119,13 @@ void GetHostAddresses (MemPtr<SockAddr> addresses, C Str &host, Int port)
                      case AF_INET:
                      {
                       C sockaddr_in &addr=(sockaddr_in&)ifr.ifr_addr;
-                        if(allow_local_host || addr.sin_addr.s_addr!=IP4_LOCAL_HOST){SockAddr &sa=addresses.New(); sa.v4()=addr; sa.port(port);}
+                        if(addr.sin_addr.s_addr!=IP4_LOCAL_HOST){SockAddr &sa=addresses.New(); sa.v4()=addr; sa.port(port);}else local_host=true;
                      }break;
 
                      case AF_INET6:
                      {
                       C sockaddr_in6 &addr=(sockaddr_in6&)ifr.ifr_addr;
-                        if(allow_local_host || !IN6_IS_ADDR_LOOPBACK(&addr.sin6_addr)){SockAddr &sa=addresses.New(); sa.v6()=addr; sa.port(port);}
+                        if(!IN6_IS_ADDR_LOOPBACK(&addr.sin6_addr)){SockAddr &sa=addresses.New(); sa.v6()=addr; sa.port(port);}else local_host=true;
                      }break;
                   }
                }
@@ -1148,20 +1149,20 @@ void GetHostAddresses (MemPtr<SockAddr> addresses, C Str &host, Int port)
             case AF_INET: if(r->ai_addr && r->ai_addrlen<=MEMBER_SIZE(SockAddr, _data))
             {
              C sockaddr_in &addr=*(sockaddr_in*)r->ai_addr;
-               if(allow_local_host || addr.sin_addr.s_addr!=IP4_LOCAL_HOST){SockAddr &sa=addresses.New(); sa.v4()=addr; sa.port(port);}
+               if(addr.sin_addr.s_addr!=IP4_LOCAL_HOST){SockAddr &sa=addresses.New(); sa.v4()=addr; sa.port(port);}else local_host=true;
             }break;
 
             case AF_INET6: if(r->ai_addr && r->ai_addrlen<=MEMBER_SIZE(SockAddr, _data))
             {
              C sockaddr_in6 &addr=*(sockaddr_in6*)r->ai_addr;
-               if(allow_local_host || !IN6_IS_ADDR_LOOPBACK(&addr.sin6_addr)){SockAddr &sa=addresses.New(); sa.v6()=addr; sa.port(port);}
+               if(!IN6_IS_ADDR_LOOPBACK(&addr.sin6_addr)){SockAddr &sa=addresses.New(); sa.v6()=addr; sa.port(port);}else local_host=true;
             }break;
          }
          freeaddrinfo(result);
       }
    }
 #endif
-   if(!addresses.elms() && Equal(host, ComputerName, true))addresses.New().setLocalFast(port);
+   if(!addresses.elms() && local_host)addresses.New().setLocalFast(port);
 }
 /******************************************************************************/
 void       GetGlobalIP(Bool refresh) {if(!GIPC.valid() || refresh)GIPC.start();}
