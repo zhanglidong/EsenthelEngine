@@ -495,7 +495,7 @@ static Bool SNAPPYDecompress(CPtr src, UIntPtr src_size, Ptr dest, UIntPtr &dest
 /******************************************************************************/
 NOINLINE static Bool SNAPPYCompressMem(File &src, File &dest, DataCallback *callback)
 {
-   Memt<Byte, SNAPPY_BUF_SIZE > s; s.setNum(src.left()); if(src.getFast(s.data(), s.elms()))
+   Memt<Byte, SNAPPY_BUF_SIZE> s; s.setNum(src.left()); if(src.getFast(s.data(), s.elms()))
    {
       Memt<Byte, SNAPPY_COMPRESSBOUND(SNAPPY_BUF_SIZE)> d; d.setNum(SNAPPYSize(s.elms())); UIntPtr dest_size=d.elms();
       if(SNAPPYCompress(s.data(), s.elms(), d.data(), dest_size))
@@ -873,8 +873,8 @@ NOINLINE static Bool LZ4CompressMem(File &src, File &dest, Int compression_level
       Memt<Byte, LZ4_COMPRESSBOUND(LZ4_BUF_SIZE)> d; d.setNum(LZ4Size(s.elms())); UIntPtr dest_size=d.elms();
       if(LZ4Compress(s.data(), s.elms(), d.data(), dest_size, compression_level))
       {
-         s.del(); // delete 's' first to release memory
          if(callback)callback->data(s.data(), s.elms());
+         s.del(); // delete 's' first to release memory
          return dest.put(d.data(), dest_size);
       }
    }
@@ -1014,8 +1014,8 @@ NOINLINE static Bool LIZARDCompressMem(File &src, File &dest, Int compression_le
       Memt<Byte, LIZARD_COMPRESSBOUND(LIZARD_BUF_SIZE)> d; d.setNum(LIZARDSize(s.elms())); UIntPtr dest_size=d.elms();
       if(LIZARDCompress(s.data(), s.elms(), d.data(), dest_size, Mid(compression_level, LIZARD_MIN_CLEVEL, LIZARD_MAX_CLEVEL)))
       {
-         s.del(); // delete 's' first to release memory
          if(callback)callback->data(s.data(), s.elms());
+         s.del(); // delete 's' first to release memory
          return dest.put(d.data(), dest_size);
       }
    }
