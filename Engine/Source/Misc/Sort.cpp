@@ -120,6 +120,60 @@ void _Sort(Ptr data, Int elms, Int elm_size, Int compare(CPtr a, CPtr b))
       }
    }
 }
+void _Sort(Ptr data, Int elms, Int elm_size, CPtr user, Int compare(CPtr a, CPtr b, CPtr user))
+{
+   if(elms>1)
+   {
+      // init
+      Memt<Byte >   buf; buf.setNum(elm_size); Ptr temp=buf.data();
+      Memt<VecI2> stack; stack.New().set(0, elms-1);
+      for(; stack.elms(); )
+      {
+         VecI2 lr=stack.pop();
+         Int   l =lr.x,
+               r =lr.y;
+         if(r-l>16) // 16 gave the best result
+         {
+            // quicksort
+            Int m=UInt(r+l)/2;
+            if(compare(ELM(l), ELM(r), user)>0)SWAP(l, r);
+            if(compare(ELM(l), ELM(m), user)>0)SWAP(l, m);
+            if(compare(ELM(m), ELM(r), user)>0)SWAP(m, r);
+
+            Int i=l, j=r;
+            COPY(temp, ELM(m)); 
+            for(; i<=j; )
+            {
+               for(; compare(ELM(i), temp, user)<0; )i++; // find first element from left  that is larger  or equal to 'temp'
+               for(; compare(ELM(j), temp, user)>0; )j--; // find first element from right that is smaller or equal to 'temp'
+               if(i<=j)
+               {
+                  SWAP(i, j);
+                  i++;
+                  j--;
+               }
+            }
+            if(l<j)stack.New().set(l, j);
+            if(i<r)stack.New().set(i, r);
+         }else
+         {
+            // insertion sort
+            for(Int i=l+1; i<=r; i++)
+            {
+            #if 0 // slower
+               COPY(temp, ELM(i));
+               Int j; for(j=i; j>l && compare(ELM(j-1), temp, user)>0; j--)COPY(ELM(j), ELM(j-1));
+               COPY(ELM(j), temp);
+            #else
+               CPtr test=ELM(i);
+               Int j; for(j=i; j>l && compare(ELM(j-1), test, user)>0; j--);
+              _MoveElmLeftUnsafe(data, elm_size, i, j, temp);
+            #endif
+            }
+         }
+      }
+   }
+}
 #undef  ELM
 #define ELM(i) memb[i]
 void _Sort(_Memb &memb, Int compare(CPtr a, CPtr b))

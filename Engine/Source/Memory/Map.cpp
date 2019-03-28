@@ -382,6 +382,26 @@ Bool _MapTS::replaceKey(CPtr src_key, CPtr dest_key)
    return super::replaceKey(src_key, dest_key);
 }
 /******************************************************************************/
+static Int MapCompare(_Map::Elm *C&a, _Map::Elm *C&b, CPtr user)
+{
+  _Map &map=*(_Map*)user;
+   return map._compare(map.elmKey(*a), map.elmKey(*b));
+}
+void _Map::compare(Int compare(CPtr key_a, CPtr key_b))
+{
+   if(T._compare!=compare)
+   {
+      T._compare=compare;
+      Sort(_order, _elms, this, MapCompare);
+   }
+}
+void _MapTS::compare(Int compare(CPtr key_a, CPtr key_b))
+{
+   SyncUnlocker unlocker(D._lock); // must be used even though we're not using GPU
+   SyncLocker     locker(  _lock);
+   return super::compare(compare);
+}
+/******************************************************************************/
 void _Map::from(C _Map &src)
 {
    del();

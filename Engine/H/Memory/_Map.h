@@ -18,7 +18,9 @@ struct _Map // Map (base) - Do not use this class, use 'Map' instead
 
  ~_Map() {del();}
 
+#if !EE_PRIVATE
 private:
+#endif
    Byte       _mode;
    Int        _elms, _key_offset, /*_data_offset, */_desc_offset, _data_size;
    Elm      **_order;
@@ -74,6 +76,8 @@ private:
    void removeData(CPtr data);
    Bool replaceKey(CPtr src, CPtr dest);
 
+   void compare(Int compare(CPtr key_a, CPtr key_b));
+
    explicit _Map(Int block_elms, Int compare(CPtr key_a, CPtr key_b), Bool create(Ptr data, CPtr key, Ptr user), Ptr user, void (&copy_key)(Ptr dest, CPtr src));
 
    NO_COPY_CONSTRUCTOR(_Map);
@@ -114,6 +118,8 @@ private:
    void removeKey (CPtr key );
    void removeData(CPtr data);
    Bool replaceKey(CPtr src, CPtr dest);
+
+   void compare(Int compare(CPtr key_a, CPtr key_b));
 
    explicit _MapTS(Int block_elms, Int compare(CPtr key_a, CPtr key_b), Bool create(Ptr data, CPtr key, Ptr user), Ptr user, void (&copy_key)(Ptr dest, CPtr src));
 

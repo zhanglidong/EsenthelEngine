@@ -121,12 +121,16 @@ void _Sort(_Memb &memb,                         Int compare(CPtr a, CPtr b));
 void _Sort(_Memx &memx,                         Int compare(CPtr a, CPtr b));
 void _Sort(_Meml &meml,                         Int compare(CPtr a, CPtr b));
 
+void _Sort( Ptr   data, Int elms, Int elm_size, CPtr user, Int compare(CPtr a, CPtr b, CPtr user));
+
 Bool _BinarySearch(   CPtr  data, Int elms, Int elm_size, CPtr value, Int &index, Int compare(CPtr a, CPtr b));
 Bool _BinarySearch(C _Memb &data,                         CPtr value, Int &index, Int compare(CPtr a, CPtr b));
 Bool _BinarySearch(C _Memx &data,                         CPtr value, Int &index, Int compare(CPtr a, CPtr b));
 Bool _BinarySearch(C _Meml &data,                         CPtr value, Int &index, Int compare(CPtr a, CPtr b));
 
 T1(TYPE) void Sort(TYPE *data, Int elms, Int compare(C TYPE &a, C TYPE &b)) {_Sort(Ptr(data), elms, SIZE(TYPE), (Int(*)(CPtr, CPtr))compare);}
+
+T1(TYPE) void Sort(TYPE *data, Int elms, CPtr user, Int compare(C TYPE &a, C TYPE &b, CPtr user)) {_Sort(Ptr(data), elms, SIZE(TYPE), user, (Int(*)(CPtr, CPtr, CPtr))compare);}
 
 T2(DATA, VALUE) Bool BinarySearch(C DATA *data, Int elms, C VALUE &value, Int &index, Int compare(C DATA &a, C VALUE &b)) {return _BinarySearch(data, elms, SIZE(DATA), &value, index, (Int(*)(CPtr, CPtr))compare);}
 
@@ -1637,6 +1641,9 @@ T2(KEY, DATA)  void  Map<KEY, DATA>::remove    (  Int   i               ) {     
 T2(KEY, DATA)  void  Map<KEY, DATA>::removeKey (C KEY  &key             ) {       _Map::removeKey (&key );}
 T2(KEY, DATA)  void  Map<KEY, DATA>::removeData(C DATA *data            ) {       _Map::removeData( data);}
 T2(KEY, DATA)  Bool  Map<KEY, DATA>::replaceKey(C KEY  &src, C KEY &dest) {return _Map::replaceKey(&src, &dest);}
+
+T2(KEY, DATA)  void            Map<KEY, DATA>::compare(Int compare(C KEY &a, C KEY &b)) {_Map  ::compare((Int(*)(CPtr, CPtr))compare);}
+T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::compare(Int compare(C KEY &a, C KEY &b)) {_MapTS::compare((Int(*)(CPtr, CPtr))compare);}
 
 T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::remove    (  Int   i               ) {       _MapTS::remove    ( i   );}
 T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::removeKey (C KEY  &key             ) {       _MapTS::removeKey (&key );}
