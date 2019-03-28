@@ -103,9 +103,10 @@ private:
 #endif
 };
 // compare
-       Int  Compare   (C SockAddr &a, C SockAddr &b);                           // compare
-inline Bool operator==(C SockAddr &a, C SockAddr &b) {return Compare(a, b)==0;} // if     equal
-inline Bool operator!=(C SockAddr &a, C SockAddr &b) {return Compare(a, b)!=0;} // if not equal
+       Int  CompareIgnorePort(C SockAddr &a, C SockAddr &b);                           // compare and ignore port
+       Int  Compare          (C SockAddr &a, C SockAddr &b);                           // compare
+inline Bool operator==       (C SockAddr &a, C SockAddr &b) {return Compare(a, b)==0;} // if     equal
+inline Bool operator!=       (C SockAddr &a, C SockAddr &b) {return Compare(a, b)!=0;} // if not equal
 /******************************************************************************/
 struct Socket
 {

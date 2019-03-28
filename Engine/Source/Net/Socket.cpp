@@ -109,7 +109,7 @@ error:
    ip=0; return false;
 }
 /******************************************************************************/
-static Int CompareIgnorePort(C SockAddr &a, C SockAddr &b)
+Int CompareIgnorePort(C SockAddr &a, C SockAddr &b)
 {
    // one can be V4 and another v6(v4-mapped)
    auto a_family=a.family(),
@@ -1162,7 +1162,7 @@ void GetHostAddresses (MemPtr<SockAddr> addresses, C Str &host, Int port)
       }
    }
 #endif
-   if(!addresses.elms() && local_host)addresses.New().setLocalFast(port);
+   if(!addresses.elms() && local_host)addresses.New().setLocalFast(port); // if no other addresses were found, but only local host, then return it, this is needed if for example we want to use 'Download' (which uses this function) to connect to "localhost"
 }
 /******************************************************************************/
 void       GetGlobalIP(Bool refresh) {if(!GIPC.valid() || refresh)GIPC.start();}
