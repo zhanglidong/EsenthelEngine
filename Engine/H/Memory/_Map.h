@@ -30,15 +30,6 @@ private:
    Bool     (*_create  )( Ptr elm  , CPtr key  , Ptr user);
    void     (*_copy_key)( Ptr dest , CPtr src  );
 
-   Byte mode(Byte mode);
-
-   CPtr dataInMapToKeyRef(CPtr data)C {return (Byte*)data /*-_data_offset*/ + _key_offset;} // assumes that '_data_offset' is zero
-   CPtr dataInMapToKeyPtr(CPtr data)C {return data ? dataInMapToKeyRef(data) : null;}
-
-   CPtr absKey (Int abs_i)C;
-   CPtr absData(Int abs_i)C;
-
-   void from(C _Map &src);
 #if EE_PRIVATE
    Desc& elmDesc(  Elm &elm )C {return *(Desc*)((Byte*)&elm+_desc_offset);}
  C Desc& elmDesc(C Elm &elm )C {return *(Desc*)((Byte*)&elm+_desc_offset);}
@@ -54,7 +45,18 @@ private:
    void       getFailed()C;
    Bool     containsElm(C Elm *elm)C {return _memx.contains(elm);}
    Int  dataInMapToAbsIndex(CPtr data)C;
+
+private:
 #endif
+   Byte mode(Byte mode);
+
+   CPtr dataInMapToKeyRef(CPtr data)C {return (Byte*)data /*-_data_offset*/ + _key_offset;} // assumes that '_data_offset' is zero
+   CPtr dataInMapToKeyPtr(CPtr data)C {return data ? dataInMapToKeyRef(data) : null;}
+
+   CPtr absKey (Int abs_i)C;
+   CPtr absData(Int abs_i)C;
+
+   void from(C _Map &src);
    void clear();
    void del  ();
 
