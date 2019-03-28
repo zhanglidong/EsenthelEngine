@@ -655,6 +655,7 @@ Display::Display() : _monitors(Compare, Create, null, 4)
   _density_filter  =(MOBILE ? FILTER_LINEAR : FILTER_CUBIC_FAST);
   _tex_lod         =0;
   _tex_macro       =true;
+  _tex_detail_lod  =false;
   _tex_reflect     =TEX_USE_MULTI;
   _font_sharpness  =0.75f;
   _bend_leafs      =true;
@@ -2609,6 +2610,7 @@ Display& Display::dither             (Bool             dither   ) {             
 Display& Display::maxLights          (Byte             max      ) {Clamp(max, 0, 255);                                                 if(T._max_lights      !=max      ){T._max_lights      =max      ;             } return T;}
 Display& Display::texMacro           (Bool             use      ) {                                                                    if(T._tex_macro       !=use      ){T._tex_macro       =use      ; setShader();} return T;}
 Display& Display::texDetail          (TEXTURE_USAGE    usage    ) {Clamp(usage, TEX_USE_DISABLE, TEXTURE_USAGE(TEX_USE_NUM-1));        if(T._tex_detail      !=usage    ){T._tex_detail      =usage    ; setShader();} return T;}
+Display& Display::texDetailLOD       (Bool             on       ) {                                                                    if(T._tex_detail_lod  !=on       ){T._tex_detail_lod  =on       ; setShader();} return T;}
 Display& Display::texReflection      (TEXTURE_USAGE    usage    ) {Clamp(usage, TEX_USE_DISABLE, TEXTURE_USAGE(TEX_USE_NUM-1));        if(T._tex_reflect     !=usage    ){T._tex_reflect     =usage    ; setShader();} return T;}
 Display& Display::materialBlend      (Bool             per_pixel) {                                                                    if(T._mtrl_blend      !=per_pixel){T._mtrl_blend      =per_pixel; setShader();} return T;}
 Display& Display::bendLeafs          (Bool             on       ) {                                                                    if(T._bend_leafs      !=on       ){T._bend_leafs      =on       ; setShader();} return T;}

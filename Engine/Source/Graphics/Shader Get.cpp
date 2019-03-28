@@ -143,12 +143,12 @@ void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_
          case TEX_USE_DISABLE:                reflect=false; break;
          case TEX_USE_SINGLE : if(materials>1)reflect=false; break;
       }
-      if(!D.texMacro() || lod_index<=0)macro =false; // disable macro  for LOD's=0
-      if(                 lod_index> 0)detail=false; // disable detail for LOD's>0
-      if(                 lod_index> 0)MIN(bump, SBUMP_NORMAL); // limit to normal mapping for LOD's>0
-      if(!tex                         ){detail=macro=false; textures=0;}
-      if(!normal                      )reflect=false;
-      if(materials>1                  )MAX(textures, 1); // multi-materials don't support 0 textures
+      if(!D.texMacro    () || lod_index<=0)macro =false; // disable macro  for LOD's=0
+      if(!D.texDetailLOD() && lod_index> 0)detail=false; // disable detail for LOD's>0
+      if(                     lod_index> 0)MIN(bump, SBUMP_NORMAL); // limit to normal mapping for LOD's>0
+      if(!tex                             ){detail=macro=false; textures=0;}
+      if(!normal                          )reflect=false;
+      if(materials>1                      )MAX(textures, 1); // multi-materials don't support 0 textures
       if(materials>1 && (bump>SBUMP_PARALLAX_MAX_MULTI && bump<=SBUMP_PARALLAX_MAX))bump=SBUMP_PARALLAX_MAX_MULTI; // multi-materials have a different limit for parallax steps
    }
 
