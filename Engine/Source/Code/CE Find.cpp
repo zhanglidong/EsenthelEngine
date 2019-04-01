@@ -347,7 +347,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_words
       Memc<Result> temp;
       Memc<Str   > texts;
 
-         texts=Split(text, L' '); REPA(texts)if(!texts[i].is())texts.remove(i);
+         texts=Split(text, ' '); REPA(texts)if(!texts[i].is())texts.remove(i);
       if(texts.elms())
       {
          // files
@@ -359,7 +359,7 @@ void Find::ResultRegion::find(C Str &text, Bool case_sensitive, Bool whole_words
          temp.sort(CompareResult); REPA(temp)if(i)if(!Equal(GetPath(temp[i].text), GetPath(temp[i-1].text), true))temp.NewAt(i); FREPA(temp)Swap(data.New(), temp[i]);
       }
 
-         texts=Split(t, L' '); REPA(texts)if(!texts[i].is())texts.remove(i);
+         texts=Split(t, ' '); REPA(texts)if(!texts[i].is())texts.remove(i);
       if(texts.elms())
       {
          // macros

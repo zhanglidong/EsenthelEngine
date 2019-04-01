@@ -8,13 +8,15 @@ ASSERT(EXTRA>=2); // must be at least 2 because we use it for setting characters
 namespace EE{
 /******************************************************************************/
 static const Char
-            CharReal       =L'ℝ', // real number
-            CharSmiley     =L'☺',
-            CharMale       =L'♂',
-            CharFemale     =L'♀',
-            CharDeath      =L'☠',
-            CharRadioactive=L'☢',
-            CharBiohazard  =L'☣';
+            CharEnDash     =u'–',
+            CharEmDash     =u'—',
+            CharReal       =u'ℝ', // real number
+            CharSmiley     =u'☺',
+            CharMale       =u'♂',
+            CharFemale     =u'♀',
+            CharDeath      =u'☠',
+            CharRadioactive=u'☢',
+            CharBiohazard  =u'☣';
 static const Char Combining[]=u"ัิีึืฺุู็่้๊๋์ํ๎",
                   Stack    []=u"ัิีึื็่้๊๋์ํ๎";
 
@@ -60,82 +62,82 @@ static struct CharReplace
 }CharReplaces[]=
 {
    // !! This must be sorted !! codes for creation of this array are located in 'InitStr'
-   {L'À', 'A'},
-   {L'Á', 'A'},
-   {L'Â', 'A'},
-   {L'Ã', 'A'},
-   {L'Ä', 'A'},
-   {L'Å', 'A'},
-   {L'Æ', 'A'},
-   {L'Ç', 'C'},
-   {L'È', 'E'},
-   {L'É', 'E'},
-   {L'Ê', 'E'},
-   {L'Ë', 'E'},
-   {L'Ì', 'I'},
-   {L'Í', 'I'},
-   {L'Î', 'I'},
-   {L'Ï', 'I'},
-   {L'Ñ', 'N'},
-   {L'Ò', 'O'},
-   {L'Ó', 'O'},
-   {L'Ô', 'O'},
-   {L'Õ', 'O'},
-   {L'Ö', 'O'},
-   {L'Ø', 'O'},
-   {L'Ù', 'U'},
-   {L'Ú', 'U'},
-   {L'Û', 'U'},
-   {L'Ü', 'U'},
-   {L'Ý', 'Y'},
-   {L'ß', 's'},
-   {L'à', 'a'},
-   {L'á', 'a'},
-   {L'â', 'a'},
-   {L'ã', 'a'},
-   {L'ä', 'a'},
-   {L'å', 'a'},
-   {L'æ', 'a'},
-   {L'ç', 'c'},
-   {L'è', 'e'},
-   {L'é', 'e'},
-   {L'ê', 'e'},
-   {L'ë', 'e'},
-   {L'ì', 'i'},
-   {L'í', 'i'},
-   {L'î', 'i'},
-   {L'ï', 'i'},
-   {L'ñ', 'n'},
-   {L'ò', 'o'},
-   {L'ó', 'o'},
-   {L'ô', 'o'},
-   {L'õ', 'o'},
-   {L'ö', 'o'},
-   {L'ø', 'o'},
-   {L'ù', 'u'},
-   {L'ú', 'u'},
-   {L'û', 'u'},
-   {L'ü', 'u'},
-   {L'ý', 'y'},
-   {L'Ą', 'A'},
-   {L'ą', 'a'},
-   {L'Ć', 'C'},
-   {L'ć', 'c'},
-   {L'Ę', 'E'},
-   {L'ę', 'e'},
-   {L'Ł', 'L'},
-   {L'ł', 'l'},
-   {L'Ń', 'N'},
-   {L'ń', 'n'},
-   {L'Ŕ', 'R'},
-   {L'ŕ', 'r'},
-   {L'Ś', 'S'},
-   {L'ś', 's'},
-   {L'Ź', 'Z'},
-   {L'ź', 'z'},
-   {L'Ż', 'Z'},
-   {L'ż', 'z'},
-   {L'ẞ', 'S'},
+   {u'À', 'A'},
+   {u'Á', 'A'},
+   {u'Â', 'A'},
+   {u'Ã', 'A'},
+   {u'Ä', 'A'},
+   {u'Å', 'A'},
+   {u'Æ', 'A'},
+   {u'Ç', 'C'},
+   {u'È', 'E'},
+   {u'É', 'E'},
+   {u'Ê', 'E'},
+   {u'Ë', 'E'},
+   {u'Ì', 'I'},
+   {u'Í', 'I'},
+   {u'Î', 'I'},
+   {u'Ï', 'I'},
+   {u'Ñ', 'N'},
+   {u'Ò', 'O'},
+   {u'Ó', 'O'},
+   {u'Ô', 'O'},
+   {u'Õ', 'O'},
+   {u'Ö', 'O'},
+   {u'Ø', 'O'},
+   {u'Ù', 'U'},
+   {u'Ú', 'U'},
+   {u'Û', 'U'},
+   {u'Ü', 'U'},
+   {u'Ý', 'Y'},
+   {u'ß', 's'},
+   {u'à', 'a'},
+   {u'á', 'a'},
+   {u'â', 'a'},
+   {u'ã', 'a'},
+   {u'ä', 'a'},
+   {u'å', 'a'},
+   {u'æ', 'a'},
+   {u'ç', 'c'},
+   {u'è', 'e'},
+   {u'é', 'e'},
+   {u'ê', 'e'},
+   {u'ë', 'e'},
+   {u'ì', 'i'},
+   {u'í', 'i'},
+   {u'î', 'i'},
+   {u'ï', 'i'},
+   {u'ñ', 'n'},
+   {u'ò', 'o'},
+   {u'ó', 'o'},
+   {u'ô', 'o'},
+   {u'õ', 'o'},
+   {u'ö', 'o'},
+   {u'ø', 'o'},
+   {u'ù', 'u'},
+   {u'ú', 'u'},
+   {u'û', 'u'},
+   {u'ü', 'u'},
+   {u'ý', 'y'},
+   {u'Ą', 'A'},
+   {u'ą', 'a'},
+   {u'Ć', 'C'},
+   {u'ć', 'c'},
+   {u'Ę', 'E'},
+   {u'ę', 'e'},
+   {u'Ł', 'L'},
+   {u'ł', 'l'},
+   {u'Ń', 'N'},
+   {u'ń', 'n'},
+   {u'Ŕ', 'R'},
+   {u'ŕ', 'r'},
+   {u'Ś', 'S'},
+   {u'ś', 's'},
+   {u'Ź', 'Z'},
+   {u'ź', 'z'},
+   {u'Ż', 'Z'},
+   {u'ż', 'z'},
+   {u'ẞ', 'S'},
 };
 /******************************************************************************/
 // CHARACTER
@@ -235,10 +237,10 @@ CChar8* CharName(Char c)
 {
    switch(c)
    {
-      case L' ' : return "Space";
-      case L'`' : return "Tilde";
-      case L'\t': return "Tab";
-      case L'\n': return "Enter";
+      case ' ' : return "Space";
+      case '`' : return "Tilde";
+      case '\t': return "Tab";
+      case '\n': return "Enter";
    }
    return null;
 }
@@ -3859,15 +3861,15 @@ static void InitStr()
       REPA ( DownUps ){U16 d=DownUps[i][0], u=DownUps[i][1]; _CaseDown[u]=d; _CaseUp[d]=u;}
    #endif
 
-   #define SET(l, h) {_CaseDown[U16(L##h)]=L##l; _CaseUp[U16(L##l)]=L##h;}
+   #define SET(l, h) {_CaseDown[U16(u##h)]=u##l; _CaseUp[U16(u##l)]=u##h;}
       SET('ß', 'ẞ');
    #undef SET
    }
 
    // Character Order - do not make any changes to the character order as it should remain frozen! because this order affects the sort order of how files are stored in PAK files
    {
-   #define SET( x   ) CharOrder16[U16(L##x)]=o;                           o++
-   #define SET2(l, h) CharOrder16[U16(L##l)]=o; CharOrder16[U16(L##h)]=o; o++
+   #define SET( x   ) CharOrder16[U16(u##x)]=o;                           o++
+   #define SET2(l, h) CharOrder16[U16(u##l)]=o; CharOrder16[U16(u##h)]=o; o++
       U16 o=0;
       SET('\0');
       SET('\r');
@@ -3984,18 +3986,18 @@ static void InitStr()
    {
       // set custom
    #define SET(c, f) _CharFlag[U16(c)]|=f;
-                                   SET(L' '          , CHARF_SPACE);
-                                   SET(Nbsp          , CHARF_SPACE);
-                                   SET(FullWidthSpace, CHARF_SPACE);
-                                   SET('\t'          , CHARF_SPACE);
-                                   SET(L'_'          , CHARF_UNDER);
-                                   SET(L'0'          , CHARF_DIG2|CHARF_DIG10|CHARF_DIG16);
-                                   SET(L'1'          , CHARF_DIG2|CHARF_DIG10|CHARF_DIG16);
-      for(Int i=L'2'; i<=L'9'; i++)SET(i             ,            CHARF_DIG10|CHARF_DIG16);
-      for(Int i=L'a'; i<=L'f'; i++)SET(i             ,                        CHARF_DIG16);
-      for(Int i=L'A'; i<=L'F'; i++)SET(i             ,                        CHARF_DIG16);
-             REP(Elms(Combining)-1)SET(Combining[i]  , CHARF_COMBINING); // -1 to skip null char
-             REP(Elms(Stack    )-1)SET(Stack    [i]  , CHARF_STACK    ); // -1 to skip null char
+                                 SET(' '           , CHARF_SPACE);
+                                 SET(Nbsp          , CHARF_SPACE);
+                                 SET(FullWidthSpace, CHARF_SPACE);
+                                 SET('\t'          , CHARF_SPACE);
+                                 SET('_'           , CHARF_UNDER);
+                                 SET('0'           , CHARF_DIG2|CHARF_DIG10|CHARF_DIG16);
+                                 SET('1'           , CHARF_DIG2|CHARF_DIG10|CHARF_DIG16);
+      for(Int i='2'; i<='9'; i++)SET(i             ,            CHARF_DIG10|CHARF_DIG16);
+      for(Int i='a'; i<='f'; i++)SET(i             ,                        CHARF_DIG16);
+      for(Int i='A'; i<='F'; i++)SET(i             ,                        CHARF_DIG16);
+           REP(Elms(Combining)-1)SET(Combining[i]  , CHARF_COMBINING); // -1 to skip null char
+           REP(Elms(Stack    )-1)SET(Stack    [i]  , CHARF_STACK    ); // -1 to skip null char
    #undef  SET
 
       // set sign
@@ -4032,14 +4034,45 @@ static void InitStr()
       SET('|');
       SET('\\');
       SET('?');
-      SET(CharBullet);
-      SET(CharCopyright);
-      SET(CharDegree);
-      SET(    Ellipsis);
+      SET(CharPlusMinus);
+      SET(CharMul);
+      SET(CharDiv);
       SET(CharPermil);
+      SET(CharEnDash);
+      SET(CharEmDash);
+      SET(Ellipsis);
+      SET(CharBullet);
       SET(CharSection);
-      SET(CharStar);
+      SET(u'«'); SET(u'»'); SET(u'‹'); SET(u'›');
+      SET(u'‘'); SET(u'’'); SET(u'‚'); SET(u'‛');
+      SET(u'“'); SET(u'”'); SET(u'„'); SET(u'‟');
+   #undef SET
+
+      // set sign
+   #define SET(c) _CharFlag[U16(c)]|=CHARF_SIGN2;
+      SET(CharCopyright);
+      SET(CharRegTM);
       SET(CharTrademark);
+
+      SET(CharDegree);
+      SET(CharStar);
+
+      SET(CharSuper2);
+      SET(CharSuper3);
+
+      SET(CharLeft);
+      SET(CharRight);
+      SET(CharDown);
+      SET(CharUp);
+      SET(CharLeftRight);
+      SET(CharDownUp);
+
+      SET(CharSmiley);
+      SET(CharMale);
+      SET(CharFemale);
+      SET(CharDeath);
+      SET(CharRadioactive);
+      SET(CharBiohazard);
    #undef SET
 
    #if !USE_STD
@@ -4066,7 +4099,7 @@ static void InitStr()
 
 #if DEBUG && 0 // creation of 'CharReplaces'
    Memt<CharReplace> replaces;
-#define SET(sl, su, dl, du) replaces.New().set(L##sl, dl); replaces.New().set(L##su, du);
+#define SET(sl, su, dl, du) replaces.New().set(u##sl, dl); replaces.New().set(u##su, du);
    SET('ą', 'Ą', 'a', 'A'); // polish
    SET('à', 'À', 'a', 'A');
    SET('á', 'Á', 'a', 'A');
@@ -4107,7 +4140,7 @@ static void InitStr()
    SET('ź', 'Ź', 'z', 'Z'); // polish
 #undef SET
    replaces.sort(CharReplace::Compare);
-   Str s; FREPA(replaces)s+=S+"   {L'"+replaces[i].src+"', '"+replaces[i].dest+"'},\n"; ClipSet(s);
+   Str s; FREPA(replaces)s+=S+"   {u'"+replaces[i].src+"', '"+replaces[i].dest+"'},\n"; ClipSet(s);
 #endif
 }
 Char RemoveAccent(Char c)

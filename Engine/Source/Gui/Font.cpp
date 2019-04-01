@@ -325,7 +325,7 @@ void Font::setRemap()
       if(w)_wide_to_font[U16(w)]=i;
       switch(w)
       {
-         case L'�': invalid[0]=i; break;
+         case u'�': invalid[0]=i; break;
          case  '?': invalid[1]=i; break;
          case  '*': invalid[2]=i; break;
          case  '#': invalid[3]=i; break;

@@ -249,19 +249,21 @@ enum TEXT_TYPE
    TEXT_BINARY,
 };
 
-static Bool SimpleChar(Char c) {return CharType(c)==CHART_CHAR || c=='-' || c=='.';} // allow - and . for storing negative floats without the quotes
+static Bool SimpleChar(Char c) {return CharType(c)==CHART_CHAR || c=='-' || c=='.';} // allow - and . for storing negative numbers and floats without the quotes
 
 static TEXT_TYPE TextType(C Str &t)
 {
    Bool simple=t.is(); // empty strings aren't simple and require quote
    REPA(t) // entire string needs to be checked, if encountered binary then always return it
    {
-      U16 c=t()[i]; // () avoids range check
+      Char c=t()[i]; // () avoids range check
       if(!SimpleChar(c))
       {
-         if(c>=32 && c<127 // ASCII characters (32 is ' ', 127 is DEL)
+         if(Unsigned(c)>=32 && Unsigned(c)<127 // ASCII characters (32 is ' ', 127 is DEL)
        //|| c=='\0' even though '\0' can be encoded in TEXT_QUOTE, it will always use 2 characters, so prefer TEXT_BINARY, because this character can occur frequently when encoding raw memory of 0.0f value
-         || c=='\n' || c=='\t')simple=false;else return TEXT_BINARY;
+         || c=='\n' || c=='\t'
+         || CharFlag(c)&(CHARF_SPACE|CHARF_SIGN|CHARF_SIGN2)
+         )simple=false;else return TEXT_BINARY;
       }
    }
    return simple ? TEXT_SIMPLE : TEXT_QUOTE;
@@ -282,7 +284,7 @@ static void SaveText(FileText &f, C Str &t)
           //case '\t': f.putChar('~').putChar('t'); break; // we can encode tab below normally instead
             case '`' : f.putChar('~').putChar('`'); break;
             case '~' : f.putChar('~').putChar('~'); break;
-            default  : if(U16(c)>=32 || c=='\t' || c=='\n')f.putChar(c); break; // '\n' here is supported as well, but prefer as "~n"
+            default  : if(Unsigned(c)>=32 || c=='\t' || c=='\n')f.putChar(c); break; // '\n' here is supported as well, but prefer as "~n"
          }
          f.putChar(QUOTE_END);
       }break;
@@ -359,7 +361,7 @@ static Char LoadText(FileText &f, Str &t, Char c)
                if(c=='~')t.alwaysAppend('~' );else
                   return ERROR; // invalid char
             }else
-            if(U16(c)>=32 || c=='\t' || c=='\n')t.alwaysAppend(c);else // valid char, '\n' here is supported as well, but prefer as "~n"
+            if(Unsigned(c)>=32 || c=='\t' || c=='\n')t.alwaysAppend(c);else // valid char, '\n' here is supported as well, but prefer as "~n"
             if(c!='\r')return ERROR; // skip '\r'
          }
          c=f.getChar(); // read next char after the name, so we're at the same situation as with the "simple name" case
@@ -435,7 +437,7 @@ static Char LoadTextJSON(FileText &f, Str &t, Char c)
                t.alwaysAppend(Char((a<<12)|(b<<8)|(c<<4)|d));
             }else continue; // invalid char, just skip it
          }else
-         if(U16(c)>=32 || c=='\t')t.alwaysAppend(c);else // valid char
+         if(Unsigned(c)>=32 || c=='\t')t.alwaysAppend(c);else // valid char
             return c; // skip '\r', invalid char (return this one)
       }
       c=f.getChar(); // read next char after the string, so we're at the same situation as with the "simple name" case
@@ -495,7 +497,7 @@ static Char LoadYAMLValue     (FileText &f, Str &t, Char c)
             }else
                continue; // invalid char, just skip it
          }else
-         if(U16(c)>=32 || c=='\t')t.alwaysAppend(c);else // valid char
+         if(Unsigned(c)>=32 || c=='\t')t.alwaysAppend(c);else // valid char
          if(c=='\n')
          {
             t.space(); for(;;){c=f.getChar(); if(c!=' ' && c!='\r')goto process;}
@@ -534,7 +536,7 @@ static Char LoadYAMLValue     (FileText &f, Str &t, Char c)
                t.alwaysAppend(Char((a<<12)|(b<<8)|(c<<4)|d));
             }else continue; // invalid char, just skip it
          }else*/
-         if(U16(c)>=32 || c=='\t')t.alwaysAppend(c);else // valid char
+         if(Unsigned(c)>=32 || c=='\t')t.alwaysAppend(c);else // valid char
          if(c=='\n')
          {
             t.space(); for(;;){c=f.getChar(); if(c!=' ' && c!='\r')goto process2;}
@@ -1085,7 +1087,7 @@ static Bool LoadXmlValue(FileText &f, Str &value)
          value=DecodeXmlString(value);
          return true;
       }
-      if(U16(c)>=32 || c=='\t')value+=c;
+      if(Unsigned(c)>=32 || c=='\t')value+=c;
    }
 }
 static Char LoadXmlData(FileText &f, Str &data, Char c)
@@ -1094,7 +1096,7 @@ static Char LoadXmlData(FileText &f, Str &data, Char c)
    for(;;)
    {
       c=f.getChar(); if(!c || WhiteChar(c) || c=='<')break;
-      if(U16(c)>=32 || c=='\t' || c=='\n')data+=c;
+      if(Unsigned(c)>=32 || c=='\t' || c=='\n')data+=c;
    }
    data=DecodeXmlString(data);
    return c;

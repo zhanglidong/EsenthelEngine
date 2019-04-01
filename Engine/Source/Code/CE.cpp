@@ -1267,8 +1267,8 @@ void CodeEditor::update(Bool active)
             {
                Char c=output[i];
                if(c=='\t')build_output+="   ";else
-               if(c==L'‘')build_output+='\'' ;else // occurs on Linux
-               if(c==L'’')build_output+='\'' ;else // occurs on Linux
+               if(c==u'‘')build_output+='\'' ;else // occurs on Linux
+               if(c==u'’')build_output+='\'' ;else // occurs on Linux
                           build_output+=c;
             }
             refresh=true;

@@ -816,7 +816,7 @@ void SaveProperties(C Memx<Property> &properties, MemPtr<TextNode> nodes, Char s
     C Property &prop=properties[i]; C Str &name=prop.name(); if(name.is())
       {
          Int same_names=0; if(handle_same_names)REPD(j, i)if(Equal(properties[j].name(), name))same_names++;
-         Str temp=name; temp.replace(L' ', space_replacement); if(same_names){temp+='@'; temp+=same_names;}
+         Str temp=name; temp.replace(' ', space_replacement); if(same_names){temp+='@'; temp+=same_names;}
          GetNode(nodes, temp).value=prop.asText();
       }
    }
@@ -828,7 +828,7 @@ void LoadProperties(Memx<Property> &properties, C MemPtr<TextNode> &nodes, Char 
       Property &prop=properties[i]; C Str &name=prop.name(); if(name.is())
       {
          Int same_names=0; if(handle_same_names)REPD(j, i)if(Equal(properties[j].name(), name))same_names++;
-         Str temp=name; temp.replace(L' ', space_replacement); if(same_names){temp+='@'; temp+=same_names;}
+         Str temp=name; temp.replace(' ', space_replacement); if(same_names){temp+='@'; temp+=same_names;}
          if(C TextNode *node=FindNodeC(nodes, temp))prop.set(node->value, NO_SOUND);
       }
    }
@@ -841,7 +841,7 @@ void SaveProperties(C Memx<Property> &properties, XmlNode &node, Char space_repl
    {
     C Property &prop=properties[i]; if(prop.name().is())
       {
-         Str param_name=Replace(prop.name(), L' ', space_replacement);
+         Str param_name=Replace(prop.name(), ' ', space_replacement);
          if( param_name.is())node.getParam(param_name).value=prop.asText();
       }
    }
@@ -853,7 +853,7 @@ void LoadProperties(Memx<Property> &properties, C XmlNode &node, Char space_repl
    {
       Property &prop=properties[i]; if(prop.name().is())
       {
-         Str param_name=Replace(prop.name(), L' ', space_replacement);
+         Str param_name=Replace(prop.name(), ' ', space_replacement);
          if( param_name.is())if(C XmlParam *param=node.findParam(param_name))prop.set(param->value, NO_SOUND);
       }
    }

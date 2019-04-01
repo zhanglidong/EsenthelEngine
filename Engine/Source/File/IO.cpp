@@ -761,7 +761,7 @@ Bool FCreateDirs(C Str &name)
    {
       Char c=path[i];
       if( !c)return FCreateDir(path);
-      if(IsSlash(c) && !(i && path[i-1]==L':')){temp[i]=0; FCreateDir(temp);}
+      if(IsSlash(c) && !(i && path[i-1]==':')){temp[i]=0; FCreateDir(temp);}
       temp[i]=c;
    }
    return false;

@@ -8,11 +8,12 @@ enum CHAR_FLAG // Character Flag
    CHARF_ALPHA=1<<4, // if alphabetic
    CHARF_UNDER=1<<5, // if underline
    CHARF_UP   =1<<6, // if upper case
-   CHARF_SPACE=1<<7, // if space character
+   CHARF_SPACE=1<<7, // if space character (including Nbsp, FullWidthSpace, Tab)
 #if EE_PRIVATE
-   CHARF_COMBINING =1<< 8, // if combining character
-   CHARF_STACK     =1<< 9, // if stack on top of each other
-   CHARF_FONT_SPACE=1<<10, // if adjust font spacing
+   CHARF_SIGN2     =1<< 8, // if sign2
+   CHARF_COMBINING =1<< 9, // if combining character
+   CHARF_STACK     =1<<10, // if stack on top of each other
+   CHARF_FONT_SPACE=1<<11, // if adjust font spacing
 #endif
 
    CHARF_DIG=CHARF_DIG10,
@@ -67,27 +68,30 @@ inline Bool HasUnicode(Char8 c) {return U8 (c)>=128;} // if character is a unico
 const Char8 CharNull      ='\0',
             CharTab       ='\t',
             CharLine      ='\n';
-const Char  CharBullet    =L'•',
-            CharDegree    =L'°',
-            CharSection   =L'§',
-            CharStar      =L'★',
-            CharLeft      =L'←',
-            CharRight     =L'→',
-            CharDown      =L'↓',
-            CharUp        =L'↑',
-            CharLeftRight =L'↔',
-            CharDownUp    =L'↕',
-            CharCopyright =L'©',
-            CharRegTM     =L'®',
-            CharTrademark =L'™',
-            Nbsp          =L' ', // non-breaking space
-            FullWidthSpace=L'　',
-            Ellipsis      =L'…',
-            CharAlpha     =L'α',
-            CharBeta      =L'β',
-            CharSuper2    =L'²',
-            CharSuper3    =L'³',
-            CharPermil    =L'‰'; // 1/1000
+const Char  CharBullet    =u'•',
+            CharDegree    =u'°',
+            CharSection   =u'§',
+            CharPlusMinus =u'±',
+            CharMul       =u'×',
+            CharDiv       =u'÷',
+            CharStar      =u'★',
+            CharLeft      =u'←',
+            CharRight     =u'→',
+            CharDown      =u'↓',
+            CharUp        =u'↑',
+            CharLeftRight =u'↔',
+            CharDownUp    =u'↕',
+            CharCopyright =u'©',
+            CharRegTM     =u'®',
+            CharTrademark =u'™',
+            Nbsp          =u' ', // non-breaking space
+            FullWidthSpace=u'　',
+            Ellipsis      =u'…',
+            CharAlpha     =u'α',
+            CharBeta      =u'β',
+            CharSuper2    =u'²',
+            CharSuper3    =u'³',
+            CharPermil    =u'‰'; // 1/1000
 /******************************************************************************/
 #if EE_PRIVATE
 extern Char  _Char8To16[];
