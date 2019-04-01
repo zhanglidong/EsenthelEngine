@@ -262,7 +262,7 @@ static TEXT_TYPE TextType(C Str &t)
          if(Unsigned(c)>=32 && Unsigned(c)<127 // ASCII characters (32 is ' ', 127 is DEL)
        //|| c=='\0' even though '\0' can be encoded in TEXT_QUOTE, it will always use 2 characters, so prefer TEXT_BINARY, because this character can occur frequently when encoding raw memory of 0.0f value
          || c=='\n' || c=='\t'
-         || CharFlag(c)&(CHARF_SPACE|CHARF_SIGN|CHARF_SIGN2)
+         || CharFlag(c)&(CHARF_ALPHA|CHARF_SPACE|CHARF_SIGN|CHARF_SIGN2)
          )simple=false;else return TEXT_BINARY;
       }
    }

@@ -4048,7 +4048,7 @@ static void InitStr()
       SET(u'“'); SET(u'”'); SET(u'„'); SET(u'‟');
    #undef SET
 
-      // set sign
+      // set sign2
    #define SET(c) _CharFlag[U16(c)]|=CHARF_SIGN2;
       SET(CharCopyright);
       SET(CharRegTM);
