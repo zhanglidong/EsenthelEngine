@@ -82,11 +82,11 @@ void EsenthelStore::licenseTest(Int item_id, C Str &license_key, C Str &email, B
       T._device_id      =device_id;
       Memt<HTTPParam> params;
     //Int time=DateTime().getUTC().seconds1970()/(60*5); // 5 mins
-                          params.New().set("i"  , S+item_id); // item id
-                          params.New().set("r"  , S+_license_r); // request id
+                          params.New().set("i"  , item_id); // item ID
+                          params.New().set("r"  , _license_r); // request ID
       if(license_key.is())params.New().set("l"  , license_key); // license key
       if(email      .is())params.New().set("e"  , email); // email
-      if(device_id       )params.New().set("c"  , DeviceID()); // computer/device id
+      if(device_id       )params.New().set("c"  , DeviceID()); // computer/device ID
                           params.New().set("cmd", "test_license"); // command
      _license_download.create("http://www.esenthel.com/test_license.php", params);
      _license_result=CONNECTING;
@@ -219,8 +219,8 @@ void EsenthelStore::purchasesRefresh(C Str &email, C Str &access_key, Int item_i
       Memt<HTTPParam> params;
      _purchase_r=Random(1, INT_MAX);
       params.New().set("cmd", "get");
-      params.New().set("i", S+item_id);
-      params.New().set("r", S+_purchase_r); // request_id
+      params.New().set("i", item_id);
+      params.New().set("r", _purchase_r); // request_id
       params.New().set("e", email);
       params.New().set("k", MD5Text(CaseDown(access_key)+'|'+_purchase_r+'|'+item_id));
      _purchase_download.create("http://www.esenthel.com/purchases.php", params);
@@ -237,8 +237,8 @@ void EsenthelStore::_purchasesRefresh(C Str &email, C Str &password, Int item_id
       Memt<HTTPParam> params;
      _purchase_r=Random(1, INT_MAX);
       params.New().set("cmd", "get2");
-      params.New().set("i", S+item_id);
-      params.New().set("r", S+_purchase_r); // request_id
+      params.New().set("i", item_id);
+      params.New().set("r", _purchase_r); // request_id
       params.New().set("e", email);
       params.New().set("k", MD5Text(CaseDown(password)+'|'+_purchase_r+'|'+item_id));
      _purchase_download.create("http://www.esenthel.com/purchases.php", params);
@@ -253,8 +253,8 @@ EsenthelStore::RESULT EsenthelStore::consume(C Str &email, Int item_id, C Str &p
    Memt<HTTPParam> params;
    Int request_id=Random(1, INT_MAX);
    params.New().set("cmd", "consume");
-   params.New().set("i", S+item_id);
-   params.New().set("r", S+request_id);
+   params.New().set("i", item_id);
+   params.New().set("r", request_id);
    params.New().set("e", email);
    params.New().set("p", purchase_id);
    params.New().set("k", MD5Text(CaseDown(purchase_id)+'|'+request_id+'|'+item_id));

@@ -20,8 +20,7 @@ struct EsenthelStore // class allowing to communicate with Esenthel Store
       INVALID_ITEM              , // 'item_id' is invalid
       INVALID_LICENSE_KEY_FORMAT, // 'license_key' was specified however it is not of the "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" format
       INVALID_EMAIL_FORMAT      , // 'email'       was specified however it is not of correct format
-      INVALID_PASSWORD          , // 'password'    is invalid, its length must be between 4..16 characters and may not contain unicode characters
-      INVALID_NAME              , // 'name'        is invalid, its length must not exceed 32 characters
+      INVALID_PASSWORD          , // 'access_key' is invalid
       INVALID_CALL              , // '_purchasesRefresh' was called
       CONNECTING                , // connecting to Esenthel Store at the moment
       CANT_CONNECT              , // could not connect to Esenthel Store

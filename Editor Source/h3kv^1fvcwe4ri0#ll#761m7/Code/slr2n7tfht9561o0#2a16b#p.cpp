@@ -1020,7 +1020,7 @@ class StoreClass : ClosableWindow
    static void SetUserParams(MemPtr<HTTPParam> params, C Str &user, C Str &password, int key, C Str &cmd=S)
    {
       uint request_id=Random();
-      DateTime utc, epoch; utc.getUTC(); epoch.zero(); epoch.year=1970; epoch.month=1; epoch.day=1; int time=((utc-epoch)/60/5); // 5 mins
+      int  time=DateTime().getUTC().seconds1970()/(60*5); // 5 mins
       params.New().set("u", user);
       params.New().set("k", MD5Text(CaseDown(password+key+request_id+time)));
       params.New().set("r", S+request_id);
