@@ -80,6 +80,7 @@ void EsenthelStore::licenseTest(Int item_id, C Str &license_key, C Str &email, C
    if(license_key.is() && !ValidLicenseKey(license_key))_license_result=INVALID_LICENSE_KEY_FORMAT;else
    if(email      .is() && !ValidEmail     (email      ))_license_result=INVALID_EMAIL_FORMAT;else
    if(access_key .is() && !ValidAccessKey (access_key ))_license_result=INVALID_ACCESS_KEY;else
+   if(access_key .is() && !email.is()                  )_license_result=EMAIL_NOT_FOUND;else // 'email' required if 'access_key' specified
    if(license_key.is() || email.is() || access_key.is() || device_id) // if we were actually requested to test anything
    {
       T._license_item_id=item_id;
