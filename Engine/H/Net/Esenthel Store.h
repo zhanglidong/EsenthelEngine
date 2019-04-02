@@ -26,7 +26,7 @@ struct EsenthelStore // class allowing to communicate with Esenthel Store
       INVALID_RESPONSE          , // received an invalid response from Esenthel Store
       DATABASE_ERROR            , // Esenthel Store replied that it couldn't connect to the DataBase
       EMAIL_NOT_FOUND           , // Esenthel Store replied that given email was not found
-      EMAIL_ALREADY_EXISTS      , // Esenthel Store replied that given email is already in use
+      ACCESS_KEY_FAIL           , // Esenthel Store replied that given access key is not valid
       LICENSE_KEY_FAIL          , // Esenthel Store replied that given license is not valid for the specified item
       DEVICE_ID_FAIL            , // Esenthel Store replied that given license is     valid for the specified item however 'DeviceID' did not match   the one in the store
       CONFIRM_CODE_FAIL         , // Esenthel Store replied that given license is     valid for the specified item and     'DeviceID'         matches the one in the store however confirmation code was incorrect (this may be caused by user having invalid time/date/timezone on his device)

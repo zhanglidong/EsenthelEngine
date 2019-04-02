@@ -91,7 +91,7 @@ void EsenthelStore::licenseTest(Int item_id, C Str &license_key, C Str &email, C
                           params.New().set("r"  , _license_r); // request ID
       if(license_key.is())params.New().set("l"  , license_key); // license key
       if(email      .is())params.New().set("e"  , email); // email
-      if(access_key .is())params.New().set("k"  , MD5Text(S8+"Key|"+CaseDown(access_key)+'|'+_license_r+'|'+item_id+"|Key"));
+      if(access_key .is())params.New().set("k"  , MD5Text(S8+"Key|"+CaseDown(access_key)+'|'+item_id+'|'+_license_r+"|Key"));
       if(device_id       )params.New().set("c"  , DeviceID()); // computer/device ID
                           params.New().set("cmd", "test_license"); // command
      _license_download.create("http://www.esenthel.com/test_license.php", params);
@@ -114,6 +114,7 @@ void EsenthelStore::updateLicense()
             case 1: r=LICENSE_KEY_FAIL; break;
             case 2: r=  DEVICE_ID_FAIL; break;
             case 3: r= EMAIL_NOT_FOUND; break;
+            case 4: r= ACCESS_KEY_FAIL; break;
             case 0: if(C TextNode *confirm=data.findNode("Confirm")) // OK
             {
                Int  time=DateTime().getUTC().seconds1970()/(60*5); // 5 mins
