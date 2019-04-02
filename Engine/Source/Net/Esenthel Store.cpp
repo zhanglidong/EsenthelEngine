@@ -117,7 +117,7 @@ void EsenthelStore::updateLicense()
             case 0: if(C TextNode *confirm=data.findNode("Confirm")) // OK
             {
                Int  time=DateTime().getUTC().seconds1970()/(60*5); // 5 mins
-               Str8 str=CaseDown(_license_key+_license_email+_license_access+(_device_id ? DeviceID() : S)+_license_item_id+_license_r),
+               Str8 str=CaseDown(_license_key+_license_email+(_device_id ? DeviceID() : S)+_license_item_id+_license_r),
                     a=str+(time-1), b=str+time, c=str+(time+1); // time tolerance
                UID  code_id; code_id.fromHex(confirm->asText());
                r=((MD5Mem(a(), a.length())==code_id || MD5Mem(b(), b.length())==code_id || MD5Mem(c(), c.length())==code_id) ? OK : CONFIRM_CODE_FAIL);
