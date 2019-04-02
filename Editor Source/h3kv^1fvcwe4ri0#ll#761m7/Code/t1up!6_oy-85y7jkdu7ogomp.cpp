@@ -167,7 +167,7 @@ class LicenseCheckClass : ClosableWindow
    }
    void testLicense(C Str &license_key) // initialize test license download
    {
-      REPAO(es).licenseTest(EsenthelStoreEngineLicense[i], license_key, S, true);
+      REPAO(es).licenseTest(EsenthelStoreEngineLicense[i], license_key, S, S, true);
    }
    void check(C Str &license_key, bool notify)
    {

@@ -6,6 +6,10 @@ static StrO MD5Text(C Str8 &text)
 {
    UID id=MD5Mem(text(), text.length()); return TextHexMem(&id, SIZE(id));
 }
+static Bool ValidAccessKey(C Str &access_key)
+{
+   return access_key.length()>=4 && access_key.length()<=32;
+}
 void EsenthelStore::RegisterAccount()
 {
    Explore("http://www.esenthel.com/?id=store&mode=register");
@@ -66,16 +70,17 @@ void EsenthelStore::licenseClear(Bool params)
   _device_id=false;
   _license_result=NONE;
   _license_r=0;
-   if(params){_license_item_id=0; _license_key.del(); _license_email.del();}
+   if(params){_license_item_id=0; _license_key.del(); _license_email.del(); _license_access.del();}
 }
-void EsenthelStore::licenseTest(Int item_id, C Str &license_key, C Str &email, Bool device_id)
+void EsenthelStore::licenseTest(Int item_id, C Str &license_key, C Str &email, C Str &access_key, Bool device_id)
 {
-   licenseClear(false); T._license_key=license_key; T._license_email=email; // don't clear 'license_key' member in case it's the 'license_key' parameter
+   licenseClear(false); T._license_key=license_key; T._license_email=email; T._license_access=access_key; // don't clear 'license_key' member in case it's the 'license_key' parameter
 
    if(item_id<=0)_license_result=INVALID_ITEM;else
    if(license_key.is() && !ValidLicenseKey(license_key))_license_result=INVALID_LICENSE_KEY_FORMAT;else
    if(email      .is() && !ValidEmail     (email      ))_license_result=INVALID_EMAIL_FORMAT;else
-   if(license_key.is() || email.is() || device_id) // if we were actually requested to test anything
+   if(access_key .is() && !ValidAccessKey (access_key ))_license_result=INVALID_ACCESS_KEY;else
+   if(license_key.is() || email.is() || access_key.is() || device_id) // if we were actually requested to test anything
    {
       T._license_item_id=item_id;
       T._license_r      =Random();
@@ -86,6 +91,7 @@ void EsenthelStore::licenseTest(Int item_id, C Str &license_key, C Str &email, B
                           params.New().set("r"  , _license_r); // request ID
       if(license_key.is())params.New().set("l"  , license_key); // license key
       if(email      .is())params.New().set("e"  , email); // email
+      if(access_key .is())params.New().set("k"  , MD5Text(S8+"Key|"+CaseDown(access_key)+'|'+_license_r+'|'+item_id+"|Key"));
       if(device_id       )params.New().set("c"  , DeviceID()); // computer/device ID
                           params.New().set("cmd", "test_license"); // command
      _license_download.create("http://www.esenthel.com/test_license.php", params);
@@ -111,7 +117,7 @@ void EsenthelStore::updateLicense()
             case 0: if(C TextNode *confirm=data.findNode("Confirm")) // OK
             {
                Int  time=DateTime().getUTC().seconds1970()/(60*5); // 5 mins
-               Str8 str=CaseDown(_license_key+_license_email+(_device_id ? DeviceID() : S)+_license_item_id+_license_r),
+               Str8 str=CaseDown(_license_key+_license_email+_license_access+(_device_id ? DeviceID() : S)+_license_item_id+_license_r),
                     a=str+(time-1), b=str+time, c=str+(time+1); // time tolerance
                UID  code_id; code_id.fromHex(confirm->asText());
                r=((MD5Mem(a(), a.length())==code_id || MD5Mem(b(), b.length())==code_id || MD5Mem(c(), c.length())==code_id) ? OK : CONFIRM_CODE_FAIL);
@@ -138,9 +144,8 @@ void EsenthelStore::updatePurchases()
          FileText f; f.readMem(_purchase_download.data(), _purchase_download.size());
          TextData data; if(data.load(f))if(TextNode *result=data.findNode("result"))switch(result->asInt())
          {
-            case 1: r=EMAIL_NOT_FOUND ; break;
-            case 2: r=INVALID_PASSWORD; break;
-            case 3: r=INVALID_CALL    ; break;
+            case 1: r=EMAIL_NOT_FOUND   ; break;
+            case 2: r=INVALID_ACCESS_KEY; break;
             case 0: if(C TextNode *confirm=data.findNode("Confirm")) // OK
             {
                r=((MD5Text(CaseDown(purchasesEmail())+'|'+_purchase_r+'|'+_purchase_item_id)==confirm->asText()) ? OK : CONFIRM_CODE_FAIL);
@@ -212,9 +217,9 @@ C Memc<EsenthelStore::Purchase>& EsenthelStore::purchases      () {updatePurchas
 void EsenthelStore::purchasesRefresh(C Str &email, C Str &access_key, Int item_id)
 {
    purchasesClear(); _purchase_email=email; _purchase_item_id=item_id;
-   if(!ValidEmail(email)      )_purchase_result=INVALID_EMAIL_FORMAT;else
-   if( access_key.length()!=32)_purchase_result=INVALID_PASSWORD    ;else
-   if( item_id            <= 0)_purchase_result=INVALID_ITEM        ;else
+   if(!ValidEmail    (email     ))_purchase_result=INVALID_EMAIL_FORMAT;else
+   if(!ValidAccessKey(access_key))_purchase_result=INVALID_ACCESS_KEY  ;else
+   if(                item_id<=0 )_purchase_result=INVALID_ITEM        ;else
    {
       Memt<HTTPParam> params;
      _purchase_r=Random(1, INT_MAX);
@@ -223,24 +228,6 @@ void EsenthelStore::purchasesRefresh(C Str &email, C Str &access_key, Int item_i
       params.New().set("r", _purchase_r); // request_id
       params.New().set("e", email);
       params.New().set("k", MD5Text(CaseDown(access_key)+'|'+_purchase_r+'|'+item_id));
-     _purchase_download.create("http://www.esenthel.com/purchases.php", params);
-     _purchase_result=CONNECTING;
-   }
-}
-void EsenthelStore::_purchasesRefresh(C Str &email, C Str &password, Int item_id)
-{
-   purchasesClear(); _purchase_email=email; _purchase_item_id=item_id;
-   if(!ValidEmail(email))_purchase_result=INVALID_EMAIL_FORMAT;else
-   if(!password.is()    )_purchase_result=INVALID_PASSWORD    ;else
-   if( item_id       <=0)_purchase_result=INVALID_ITEM        ;else
-   {
-      Memt<HTTPParam> params;
-     _purchase_r=Random(1, INT_MAX);
-      params.New().set("cmd", "get2");
-      params.New().set("i", item_id);
-      params.New().set("r", _purchase_r); // request_id
-      params.New().set("e", email);
-      params.New().set("k", MD5Text(CaseDown(password)+'|'+_purchase_r+'|'+item_id));
      _purchase_download.create("http://www.esenthel.com/purchases.php", params);
      _purchase_result=CONNECTING;
    }
