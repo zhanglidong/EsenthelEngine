@@ -2,13 +2,17 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
+static Bool ValidAccessKey(C Str &access_key)
+{
+   return access_key.length()>=4 && access_key.length()<=32;
+}
 static StrO MD5Text(C Str8 &text)
 {
    UID id=MD5Mem(text(), text.length()); return TextHexMem(&id, SIZE(id));
 }
-static Bool ValidAccessKey(C Str &access_key)
+static Str EncodeAccessKey(C Str &access_key, Int item_id, UInt request_id)
 {
-   return access_key.length()>=4 && access_key.length()<=32;
+   return MD5Text(S8+"Key|"+CaseDown(access_key)+'|'+item_id+'|'+request_id+"|Key");
 }
 void EsenthelStore::RegisterAccount()
 {
@@ -92,7 +96,7 @@ void EsenthelStore::licenseTest(Int item_id, C Str &license_key, C Str &email, C
                           params.New().set("r"  , _license_r); // request ID
       if(license_key.is())params.New().set("l"  , license_key); // license key
       if(email      .is())params.New().set("e"  , email); // email
-      if(access_key .is())params.New().set("k"  , MD5Text(S8+"Key|"+CaseDown(access_key)+'|'+item_id+'|'+_license_r+"|Key"));
+      if(access_key .is())params.New().set("k"  , EncodeAccessKey(access_key, item_id, _license_r));
       if(device_id       )params.New().set("c"  , DeviceID()); // computer/device ID
                           params.New().set("cmd", "test_license"); // command
      _license_download.create("http://www.esenthel.com/test_license.php", params);
@@ -229,7 +233,7 @@ void EsenthelStore::purchasesRefresh(C Str &email, C Str &access_key, Int item_i
       params.New().set("i", item_id);
       params.New().set("r", _purchase_r); // request_id
       params.New().set("e", email);
-      params.New().set("k", MD5Text(CaseDown(access_key)+'|'+_purchase_r+'|'+item_id));
+      params.New().set("k", EncodeAccessKey(access_key, item_id, _purchase_r));
      _purchase_download.create("http://www.esenthel.com/purchases.php", params);
      _purchase_result=CONNECTING;
    }
