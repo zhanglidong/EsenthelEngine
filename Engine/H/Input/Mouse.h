@@ -35,7 +35,8 @@ struct Mouse // Mouse Input
  C VecI2& desktopPos()C {return _desktop_posi;} // cursor position in System      Desktop in Pixel Coordinates
  C VecI2& pixelDelta()C {return       _deltai;} // cursor position delta                  in Pixel Coordinates
 
-   Bool detected()C {return _detected;} // if mouse was detected in the system
+   Bool detected()C {return _detected ;} // if mouse was detected in the system
+   Bool onClient()C {return _on_client;} // if mouse is currently on top of the application window client area (and not occluded by other windows)
 
    Flt speed()C;   void speed(Flt speed); // get/set mouse movement speed, this affects only 'Ms.d', default=1
 
