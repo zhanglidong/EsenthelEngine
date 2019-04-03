@@ -8,12 +8,12 @@ static Bool ValidAccessKey(C Str &access_key)
 }
 void EsenthelStore::RegisterAccount()
 {
-   Explore("https://www.esenthel.com/?id=store&mode=register");
+   Explore("https://esenthel.com/?id=store&mode=register");
 }
 EsenthelStore::RESULT EsenthelStore::GetAccessKey(Int item_id)
 {
    if(item_id<=0)return INVALID_ITEM;
-   return Explore(S+"https://www.esenthel.com/?id=store&get_access_key="+item_id) ? CONNECTING : CANT_CONNECT;
+   return Explore(S+"https://esenthel.com/?id=store&get_access_key="+item_id) ? CONNECTING : CANT_CONNECT;
 }
 EsenthelStore::RESULT EsenthelStore::Buy(C Str &email, Int app_id, PURCHASE_TYPE purchase_type)
 {
@@ -32,7 +32,7 @@ EsenthelStore::RESULT EsenthelStore::Buy(C Str &email, Int app_id, PURCHASE_TYPE
       case PURCHASE_50 : item_id=146; break;
       case PURCHASE_100: item_id=147; break;
    }
-   return Explore(S+"https://www.esenthel.com/store.php?cmd=buy_item&i="+item_id+"&a="+app_id+"&u="+email) ? CONNECTING : CANT_CONNECT;
+   return Explore(S+"https://esenthel.com/store.php?cmd=buy_item&i="+item_id+"&a="+app_id+"&u="+email) ? CONNECTING : CANT_CONNECT;
 }
 Int EsenthelStore::PurchaseToUSD(PURCHASE_TYPE purchase_type)
 {
@@ -87,7 +87,7 @@ void EsenthelStore::licenseTest(Int item_id, C Str &license_key, C Str &email, C
       if(access_key .is())params.New().set("k"  , access_key, HTTP_POST);
       if(device_id       )params.New().set("c"  , DeviceID()); // computer/device ID
                           params.New().set("cmd", "test_license"); // command
-     _license_download.create("https://www.esenthel.com/test_license.php", params);
+     _license_download.create("https://esenthel.com/test_license.php", params);
      _license_result=CONNECTING;
    }
 }
@@ -214,7 +214,7 @@ void EsenthelStore::purchasesRefresh(C Str &email, C Str &access_key, Int item_i
       params.New().set("i", item_id);
       params.New().set("e", email);
       params.New().set("k", access_key, HTTP_POST);
-     _purchase_download.create("https://www.esenthel.com/purchases.php", params);
+     _purchase_download.create("https://esenthel.com/purchases.php", params);
      _purchase_result=CONNECTING;
    }
 }
@@ -231,7 +231,7 @@ EsenthelStore::RESULT EsenthelStore::consume(C Str &email, Int item_id, C Str &p
    params.New().set("e", email);
    params.New().set("p", purchase_id);
  //params.New().set("k", access_key, HTTP_POST);
-  _consume.New().create("https://www.esenthel.com/purchases.php", params);
+  _consume.New().create("https://esenthel.com/purchases.php", params);
    return CONNECTING;
 }
 /******************************************************************************/

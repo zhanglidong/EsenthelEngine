@@ -93,7 +93,7 @@ class LicenseCheckClass : ClosableWindow
       int    item_id=-1;
 
       static void Copy (DeviceIDWindow &cw) {ClipSet(EsenthelStore.DeviceID());}
-      static void Open (DeviceIDWindow &cw) {Explore(S+"https://www.esenthel.com/?id=store&item="+cw.item_id);}
+      static void Open (DeviceIDWindow &cw) {Explore(S+"https://esenthel.com/?id=store&item="+cw.item_id);}
       static void Retry(DeviceIDWindow &cw) {cw.del(); LicenseCheck.check(LicenseCheck.es[0].licenseKey(), true);}
 
       void create(int item_id)

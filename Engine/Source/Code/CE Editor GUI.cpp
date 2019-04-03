@@ -435,7 +435,7 @@ Window& CodeEditor::Options::hide()
 }
 static void  VSDownload    (             CodeEditor::Options &op) {Explore("https://www.visualstudio.com/downloads/download-visual-studio-vs#d-community");}
 static void  NBDownload    (             CodeEditor::Options &op) {Explore("https://netbeans.org/downloads/start.html?platform=linux&lang=en&option=cpp&bits=x64");}
-static void EASDownload    (             CodeEditor::Options &op) {Explore("http://www.esenthel.com/?id=store");}
+static void EASDownload    (             CodeEditor::Options &op) {Explore("https://esenthel.com/?id=store");}
 static void  ASDownload    (             CodeEditor::Options &op) {Explore("https://developer.android.com/studio/#command-tools");}
 static void  ANDownload    (             CodeEditor::Options &op) {Explore("https://developer.android.com/ndk/downloads/");}
 static void JDKDownload    (             CodeEditor::Options &op) {Explore("https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html");}

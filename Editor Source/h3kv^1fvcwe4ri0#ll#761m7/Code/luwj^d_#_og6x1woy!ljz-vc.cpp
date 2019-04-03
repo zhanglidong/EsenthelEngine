@@ -101,7 +101,7 @@ class UpdaterClass
       #error unknown platform
    #endif
       failed_download.clear();
-      patcher.create("http://www.esenthel.com/download/Patcher", upload_name);
+      patcher.create("http://esenthel.com/download/Patcher", upload_name);
       patcher.downloadIndex();
 
       // check local ver (do this before update ver)
@@ -217,7 +217,7 @@ class UpdateWindowClass : ClosableWindow
 
    static void ApplyDo(bool all_saved=true, ptr=null) {if(all_saved){UpdateWindow.hide(); if(Updater.ready)StateUpdate.set(StateFadeTime);}}
 
-   static void ShowChanges(UpdateWindowClass &uw) {Explore("http://www.esenthel.com/forum/forumdisplay.php?fid=8");}
+   static void ShowChanges(UpdateWindowClass &uw) {Explore("https://esenthel.com/forum/forumdisplay.php?fid=8");}
    static void Apply      (UpdateWindowClass &uw) {if(StateActive==&StateProject)SaveChanges(ApplyDo);else ApplyDo();}
 
    void create()

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) Grzegorz Slazinski. All Rights Reserved.                     *
- * Esenthel Engine (http://www.esenthel.com) shader file.                     *
+ * Esenthel Engine (http://esenthel.com) shader file.                         *
 /******************************************************************************
 
    Optimization guidelines:

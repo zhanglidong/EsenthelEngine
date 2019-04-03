@@ -297,7 +297,7 @@ void DrawInstall()
       #error unknown platform
    #endif
       failed_download.clear();
-      patcher.create("http://www.esenthel.com/download/Patcher", upload_name);
+      patcher.create("http://esenthel.com/download/Patcher", upload_name);
       patcher.downloadIndex();
 
       // check local ver (do this before update ver)
@@ -403,7 +403,7 @@ void DrawInstall()
    }
   UpdaterClass::~UpdaterClass() {del();}
    void UpdateWindowClass::ApplyDo(bool all_saved, ptr) {if(all_saved){UpdateWindow.hide(); if(Updater.ready)StateUpdate.set(StateFadeTime);}}
-   void UpdateWindowClass::ShowChanges(UpdateWindowClass &uw) {Explore("http://www.esenthel.com/forum/forumdisplay.php?fid=8");}
+   void UpdateWindowClass::ShowChanges(UpdateWindowClass &uw) {Explore("https://esenthel.com/forum/forumdisplay.php?fid=8");}
    void UpdateWindowClass::Apply(UpdateWindowClass &uw) {if(StateActive==&StateProject)SaveChanges(ApplyDo);else ApplyDo();}
    void UpdateWindowClass::create()
    {

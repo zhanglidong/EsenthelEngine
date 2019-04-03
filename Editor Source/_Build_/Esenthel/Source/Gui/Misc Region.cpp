@@ -60,8 +60,8 @@ MiscRegion Misc;
    void   MiscRegion::Mode4(MiscRegion &mr) {if(Tab *tab=Mode.visibleTab(4))tab->push();}
    void   MiscRegion::Mode5(MiscRegion &mr) {if(Tab *tab=Mode.visibleTab(5))tab->push();}
    void MiscRegion::VidOpt(MiscRegion &mr) {::VidOpt.visibleToggleActivate();}
-   void MiscRegion::BuyLicense(ptr           ) {Explore("https://www.esenthel.com/?id=store&cat=0");}
-   void MiscRegion::Help(MiscRegion &mr) {Explore("http://www.esenthel.com/forum/");}
+   void MiscRegion::BuyLicense(ptr           ) {Explore("https://esenthel.com/?id=store&cat=0");}
+   void MiscRegion::Help(MiscRegion &mr) {Explore("https://esenthel.com/forum/");}
    void MiscRegion::Fullscreen(MiscRegion &mr) {D.toggle();}
    void MiscRegion::Screenshot(MiscRegion &mr) {mr.screenshot=5;}
    void MiscRegion::CalcShow(MiscRegion &mr) {Calculator.visibleToggleActivate();}

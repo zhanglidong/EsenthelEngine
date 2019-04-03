@@ -1,14 +1,14 @@
 ﻿/******************************************************************************/
 class StoreClass : ClosableWindow
 {
-   static Str ItemPath(int item_id) {return S+"http://www.esenthel.com/store/items/"+item_id+"/";}
+   static Str ItemPath(int item_id) {return S+"http://esenthel.com/store/items/"+item_id+"/";}
    static Str ItemRes (int item_id, C Str &file, C Str &name)
    {
       Str path=file;
       if( path.is())
       {
          if(!GetPath(path).is())path=ItemPath(item_id)+name+file;else
-         if(!StartsPath(path, "http://") && !StartsPath(path, "https://"))path=S+"http://www.esenthel.com/"+path;
+         if(!StartsPath(path, "http://") && !StartsPath(path, "https://"))path=S+"http://esenthel.com/"+path;
       }
       return path;
    }
@@ -931,7 +931,7 @@ class StoreClass : ClosableWindow
 
    static void ItemWebsite(StoreClass &store)
    {
-      if(store.cur_item>=0)Explore(S+"https://www.esenthel.com/?id=store&item="+store.cur_item);
+      if(store.cur_item>=0)Explore(S+"https://esenthel.com/?id=store&item="+store.cur_item);
    }
    static void ItemVideo(StoreClass &store)
    {

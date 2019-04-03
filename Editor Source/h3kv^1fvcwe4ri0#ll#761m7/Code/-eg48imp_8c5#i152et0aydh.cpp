@@ -71,8 +71,8 @@ class MiscRegion : Region
    static void   Mode4        (MiscRegion &mr) {if(Tab *tab=Mode.visibleTab(4))tab.push();}
    static void   Mode5        (MiscRegion &mr) {if(Tab *tab=Mode.visibleTab(5))tab.push();}
    static void VidOpt         (MiscRegion &mr) {.VidOpt.visibleToggleActivate();}
-   static void BuyLicense     (ptr           ) {Explore("https://www.esenthel.com/?id=store&cat=0");}
-   static void Help           (MiscRegion &mr) {Explore("http://www.esenthel.com/forum/");}
+   static void BuyLicense     (ptr           ) {Explore("https://esenthel.com/?id=store&cat=0");}
+   static void Help           (MiscRegion &mr) {Explore("https://esenthel.com/forum/");}
    static void Fullscreen     (MiscRegion &mr) {D.toggle();}
    static void Screenshot     (MiscRegion &mr) {mr.screenshot=5;}
    static void CalcShow       (MiscRegion &mr) {Calculator.visibleToggleActivate();}
