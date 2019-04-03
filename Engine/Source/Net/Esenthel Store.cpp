@@ -6,22 +6,14 @@ static Bool ValidAccessKey(C Str &access_key)
 {
    return access_key.length()>=4 && access_key.length()<=32;
 }
-static StrO MD5Text(C Str8 &text)
-{
-   UID id=MD5Mem(text(), text.length()); return TextHexMem(&id, SIZE(id));
-}
-static Str EncodeAccessKey(C Str &access_key, Int item_id, UInt request_id)
-{
-   return MD5Text(S8+"Key|"+CaseDown(access_key)+'|'+item_id+'|'+request_id+"|Key");
-}
 void EsenthelStore::RegisterAccount()
 {
-   Explore("http://www.esenthel.com/?id=store&mode=register");
+   Explore("https://www.esenthel.com/?id=store&mode=register");
 }
 EsenthelStore::RESULT EsenthelStore::GetAccessKey(Int item_id)
 {
    if(item_id<=0)return INVALID_ITEM;
-   return Explore(S+"http://www.esenthel.com/?id=store&get_access_key="+item_id) ? CONNECTING : CANT_CONNECT;
+   return Explore(S+"https://www.esenthel.com/?id=store&get_access_key="+item_id) ? CONNECTING : CANT_CONNECT;
 }
 EsenthelStore::RESULT EsenthelStore::Buy(C Str &email, Int app_id, PURCHASE_TYPE purchase_type)
 {
@@ -40,7 +32,7 @@ EsenthelStore::RESULT EsenthelStore::Buy(C Str &email, Int app_id, PURCHASE_TYPE
       case PURCHASE_50 : item_id=146; break;
       case PURCHASE_100: item_id=147; break;
    }
-   return Explore(S+"http://www.esenthel.com/store.php?cmd=buy_item&i="+item_id+"&a="+app_id+"&u="+email) ? CONNECTING : CANT_CONNECT;
+   return Explore(S+"https://www.esenthel.com/store.php?cmd=buy_item&i="+item_id+"&a="+app_id+"&u="+email) ? CONNECTING : CANT_CONNECT;
 }
 Int EsenthelStore::PurchaseToUSD(PURCHASE_TYPE purchase_type)
 {
@@ -63,7 +55,6 @@ EsenthelStore::EsenthelStore()
   _device_id=false;
   _license_result=_purchase_result=NONE;
   _license_item_id=_purchase_item_id=0;
-  _license_r=_purchase_r=0;
 }
 /******************************************************************************/
 // LICENSE TEST
@@ -73,7 +64,6 @@ void EsenthelStore::licenseClear(Bool params)
   _license_download.del(); // delete this first in case it would change anything
   _device_id=false;
   _license_result=NONE;
-  _license_r=0;
    if(params){_license_item_id=0; _license_key.del(); _license_email.del(); _license_access.del();}
 }
 void EsenthelStore::licenseTest(Int item_id, C Str &license_key, C Str &email, C Str &access_key, Bool device_id)
@@ -88,18 +78,16 @@ void EsenthelStore::licenseTest(Int item_id, C Str &license_key, C Str &email, C
    if(license_key.is() || email.is() || access_key.is() || device_id) // if we were actually requested to test anything
    {
       T._license_item_id=item_id;
-      T._license_r      =Random();
       T._device_id      =device_id;
       Memt<HTTPParam> params;
     //Int time=DateTime().getUTC().seconds1970()/(60*5); // 5 mins
                           params.New().set("i"  , item_id); // item ID
-                          params.New().set("r"  , _license_r); // request ID
       if(license_key.is())params.New().set("l"  , license_key); // license key
       if(email      .is())params.New().set("e"  , email); // email
-      if(access_key .is())params.New().set("k"  , EncodeAccessKey(access_key, item_id, _license_r));
+      if(access_key .is())params.New().set("k"  , access_key, HTTP_POST);
       if(device_id       )params.New().set("c"  , DeviceID()); // computer/device ID
                           params.New().set("cmd", "test_license"); // command
-     _license_download.create("http://www.esenthel.com/test_license.php", params);
+     _license_download.create("https://www.esenthel.com/test_license.php", params);
      _license_result=CONNECTING;
    }
 }
@@ -116,18 +104,13 @@ void EsenthelStore::updateLicense()
          FileText f; f.readMem(_license_download.data(), _license_download.size());
          TextData data; if(data.load(f))if(C TextNode *result=data.findNode("Result"))switch(result->asInt())
          {
+            case 0: r=OK              ; break;
             case 1: r=LICENSE_KEY_FAIL; break;
-            case 2: r=  DEVICE_ID_FAIL; break;
-            case 3: r= EMAIL_NOT_FOUND; break;
-            case 4: r= ACCESS_KEY_FAIL; break;
-            case 0: if(C TextNode *confirm=data.findNode("Confirm")) // OK
-            {
-               Int  time=DateTime().getUTC().seconds1970()/(60*5); // 5 mins
-               Str8 str=CaseDown(_license_key+_license_email+(_device_id ? DeviceID() : S)+_license_item_id+_license_r),
-                    a=str+(time-1), b=str+time, c=str+(time+1); // time tolerance
-               UID  code_id; code_id.fromHex(confirm->asText());
-               r=((MD5Mem(a(), a.length())==code_id || MD5Mem(b(), b.length())==code_id || MD5Mem(c(), c.length())==code_id) ? OK : CONFIRM_CODE_FAIL);
-            }break;
+            case 2: r=DEVICE_ID_FAIL  ; break;
+            case 3: r=EMAIL_NOT_FOUND ; break;
+            case 4: r=ACCESS_KEY_FAIL ; break;
+            case 5: r=NOT_SECURE      ; break;
+            case 6: r=DATABASE_ERROR  ; break;
          }
         _license_download.del(); _license_result=r; // set at the end
       }break;
@@ -150,11 +133,13 @@ void EsenthelStore::updatePurchases()
          FileText f; f.readMem(_purchase_download.data(), _purchase_download.size());
          TextData data; if(data.load(f))if(TextNode *result=data.findNode("result"))switch(result->asInt())
          {
-            case 1: r=EMAIL_NOT_FOUND   ; break;
-            case 2: r=INVALID_ACCESS_KEY; break;
-            case 0: if(C TextNode *confirm=data.findNode("Confirm")) // OK
+            case 3: r=EMAIL_NOT_FOUND; break;
+            case 4: r=ACCESS_KEY_FAIL; break;
+            case 5: r=NOT_SECURE     ; break;
+            case 6: r=DATABASE_ERROR ; break;
+            case 0:
             {
-               r=((MD5Text(CaseDown(purchasesEmail())+'|'+_purchase_r+'|'+_purchase_item_id)==confirm->asText()) ? OK : CONFIRM_CODE_FAIL);
+               r=OK;
                if(TextNode *purchases=data.findNode("purchases"))FREPA(purchases->nodes) // list in order
                {
                   TextNode &purchase=purchases->nodes[i];
@@ -193,9 +178,7 @@ void EsenthelStore::updatePurchases()
             FileText f; f.readMem(consume.data(), consume.size());
             TextData data; if(data.load(f))if(TextNode *result=data.findNode("result"))switch(result->asInt())
             {
-               case 3: break; // invalid Key
-               case 2: break; // invalid PurchaseID
-               case 1: break; // email not found
+             //case 1: break; errors
                case 0: // removed OK
                {
                   if(TextNode *purchase_id=data.findNode("Purchase"))
@@ -212,7 +195,6 @@ void EsenthelStore::purchasesClear()
 {
   _purchase_download.del(); // delete this first in case it would change anything
   _purchase_item_id=0;
-  _purchase_r=0;
   _purchase_email.clear();
   _purchase_result=NONE;
   _purchases.clear();
@@ -228,13 +210,11 @@ void EsenthelStore::purchasesRefresh(C Str &email, C Str &access_key, Int item_i
    if(                item_id<=0 )_purchase_result=INVALID_ITEM        ;else
    {
       Memt<HTTPParam> params;
-     _purchase_r=Random(1, INT_MAX);
       params.New().set("cmd", "get");
       params.New().set("i", item_id);
-      params.New().set("r", _purchase_r); // request_id
       params.New().set("e", email);
-      params.New().set("k", EncodeAccessKey(access_key, item_id, _purchase_r));
-     _purchase_download.create("http://www.esenthel.com/purchases.php", params);
+      params.New().set("k", access_key, HTTP_POST);
+     _purchase_download.create("https://www.esenthel.com/purchases.php", params);
      _purchase_result=CONNECTING;
    }
 }
@@ -250,8 +230,8 @@ EsenthelStore::RESULT EsenthelStore::consume(C Str &email, Int item_id, C Str &p
    params.New().set("r", request_id);
    params.New().set("e", email);
    params.New().set("p", purchase_id);
-   params.New().set("k", MD5Text(CaseDown(purchase_id)+'|'+request_id+'|'+item_id));
-  _consume.New().create("http://www.esenthel.com/purchases.php", params);
+ //params.New().set("k", access_key, HTTP_POST);
+  _consume.New().create("https://www.esenthel.com/purchases.php", params);
    return CONNECTING;
 }
 /******************************************************************************/

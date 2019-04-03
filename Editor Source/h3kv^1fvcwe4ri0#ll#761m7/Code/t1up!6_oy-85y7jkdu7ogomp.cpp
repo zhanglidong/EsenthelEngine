@@ -233,11 +233,21 @@ class LicenseCheckClass : ClosableWindow
       {
          case EsenthelStore.INVALID_ITEM              : Gui.msgBox(S, "Invalid Item ID"           ); SetLicenseKey(S); clear(); break;
          case EsenthelStore.INVALID_LICENSE_KEY_FORMAT: Gui.msgBox(S, "Invalid License Key Format"); SetLicenseKey(S); clear(); break;
+         case EsenthelStore.INVALID_EMAIL_FORMAT      : Gui.msgBox(S, "Invalid Email"             ); SetLicenseKey(S); clear(); break;
+         case EsenthelStore.INVALID_ACCESS_KEY        : Gui.msgBox(S, "Invalid Access Key"        ); SetLicenseKey(S); clear(); break;
+         case EsenthelStore.EMAIL_NOT_FOUND           : Gui.msgBox(S, "Email not found"           ); SetLicenseKey(S); clear(); break;
+         case EsenthelStore.ACCESS_KEY_FAIL           : Gui.msgBox(S, "Wrong Access Key"          ); SetLicenseKey(S); clear(); break;
 
          case EsenthelStore.CANT_CONNECT:
          {
             Gui.msgBox(S, "Can't connect to Esenthel Authentication Server.\nPlease try again in a moment or check if you have Internet connection.");
             SetLicenseKey(S); clear(false); // keep license key in memory in case "retry" would be added
+         }break;
+
+         case EsenthelStore.DATABASE_ERROR:
+         {
+            Gui.msgBox(S, "Esenthel Authentication Server couldn't connect to its DataBase.\nPlease try again in a moment.");
+            SetLicenseKey(S); clear();
          }break;
 
          case EsenthelStore.INVALID_RESPONSE:

@@ -23,14 +23,14 @@ struct EsenthelStore // class allowing to communicate with Esenthel Store
       INVALID_ACCESS_KEY        , // 'access_key'  was specified however it is not of correct format
       CONNECTING                , // connecting to Esenthel Store at the moment
       CANT_CONNECT              , // could not connect to Esenthel Store
+      NOT_SECURE                , // connection to Esenthel Store was not secure
       INVALID_RESPONSE          , // received an invalid response from Esenthel Store
       DATABASE_ERROR            , // Esenthel Store replied that it couldn't connect to the DataBase
       EMAIL_NOT_FOUND           , // Esenthel Store replied that given email was not found
       ACCESS_KEY_FAIL           , // Esenthel Store replied that given access key is not valid
       LICENSE_KEY_FAIL          , // Esenthel Store replied that given license is not valid for the specified item
       DEVICE_ID_FAIL            , // Esenthel Store replied that given license is     valid for the specified item however 'DeviceID' did not match   the one in the store
-      CONFIRM_CODE_FAIL         , // Esenthel Store replied that given license is     valid for the specified item and     'DeviceID'         matches the one in the store however confirmation code was incorrect (this may be caused by user having invalid time/date/timezone on his device)
-      OK                        , // Esenthel Store replied that given license is     valid for the specified item and     'DeviceID'         matches the one in the store and     confirmation code was   correct
+      OK                        , // Esenthel Store replied that given license is     valid for the specified item and     'DeviceID'         matches the one in the store
    };
 
    static void RegisterAccount(); // this function will open Esenthel Store website in a System Browser for the purpose of registering a new account there
@@ -90,7 +90,6 @@ private:
 #endif
    Bool           _device_id;
    Int            _license_item_id, _purchase_item_id;
-   UInt           _license_r, _purchase_r;
    RESULT         _license_result, _purchase_result;
    Str            _license_key, _license_email, _license_access, _purchase_email;
    Download       _license_download, _purchase_download;
