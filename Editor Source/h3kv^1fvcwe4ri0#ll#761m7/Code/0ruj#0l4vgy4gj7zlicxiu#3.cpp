@@ -774,7 +774,7 @@ bool ValidSupport(C Str &support)
 }
 bool ValidVideo(C Str &video)
 {
-   return !video.is() || (ValidURL(video) && (StartsPath(video, "http://www.youtube.com/embed") || StartsPath(video, "https://www.youtube.com/embed")));
+   return !video.is() || (ValidURL(video) && (StartsPath(video, "https://www.youtube.com/embed")));
 }
 Str YouTubeEmbedToFull(C Str &video) {return Replace(video, "/embed/", "/watch?v=");}
 Str YouTubeFullToEmbed(C Str &video) {return Replace(video, "/watch?v=", "/embed/");}

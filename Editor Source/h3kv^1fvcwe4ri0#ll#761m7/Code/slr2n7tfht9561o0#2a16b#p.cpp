@@ -936,7 +936,7 @@ class StoreClass : ClosableWindow
    static void ItemVideo(StoreClass &store)
    {
       if(Item *item=store.findItem(store.cur_item))
-         if(StartsPath(item.video, "http://www.youtube.com") || StartsPath(item.video, "https://www.youtube.com"))
+         if(StartsPath(item.video, "https://www.youtube.com"))
             Explore(YouTubeEmbedToFull(item.video));
    }
    static void ItemCID(StoreClass &store)
@@ -1821,7 +1821,7 @@ class StoreClass : ClosableWindow
                {
                   if(Item *item=findItem(cur_item))item.setTemp().video=video;
                   sendCommand("set_item_video", "i", S+cur_item, "item_video", Replace(video, '/', '\\')); // server will fail for some reason if parameter contains "http://" (instead use '\')
-               }else Gui.msgBox(S, "Invalid item video link.\nIt must start with \"http://www.youtube.com/embed/\"");
+               }else Gui.msgBox(S, "Invalid item video link.\nIt must start with \"https://www.youtube.com/embed/\"");
             }
          }
 
