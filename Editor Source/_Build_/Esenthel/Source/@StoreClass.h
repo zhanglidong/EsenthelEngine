@@ -302,9 +302,9 @@ public:
    static void Readies(StoreClass &store);    
    static bool Check(Download &down);
    static Str MD5Text(C Str8 &text);
-   static void SetUserParams(MemPtr<HTTPParam> params, C Str&user, C Str&password, int key, C Str&cmd=S);
-   static void OpenSupport(C Str &support);                                                            
-   static void ItemSupport(StoreClass &store);                                                         
+   static void SetUserParams(MemPtr<HTTPParam> params, C Str&user, C Str&password, C Str&cmd=S);
+   static void OpenSupport(C Str &support);                                                   
+   static void ItemSupport(StoreClass &store);                                                
    static void DevSupport(StoreClass &store);                                   
    static void CloseDevPage(StoreClass &store);                         
    static void Account(StoreClass &store);   
@@ -337,7 +337,7 @@ public:
    Memx<Download> store_commands;
    Memx<Upload>   store_uploads;
    bool           user_seller;
-   int            user_id, user_key, user_discount, cur_item, cur_dev, cur_dev_discount;
+   int            user_id, user_discount, cur_item, cur_dev, cur_dev_discount;
    flt            item_files_region_height;
    Str            user_name, cur_dev_name, user_email, login_email, user_pass, login_pass, user_support, cur_dev_support, user_paypal, cur_dev_paypal;
    DateTime       user_date;
@@ -370,8 +370,8 @@ public:
    bool isPurchased(int id);                           
    bool isSeller()C;                                   
    void clearDownloadFiles();                                                                                
-   void setUserParams(MemPtr<HTTPParam> params, C Str &cmd);                                                          
-   void sendCommand(C Str &cmd, C Str &name=S, C Str &value=S, C Str&name2=S, C Str &value2=S, C Str&name3=S, C Str&value3=S);
+   void setUserParams(MemPtr<HTTPParam> params, C Str &cmd);                                                 
+   void sendCommand(C Str &cmd, C Str &name=S, C Str &value=S, C Str&name2=S, C Str &value2=S, C Str&name3=S, C Str &value3=S);
    void sendCommandPost(C Str &cmd, C Str &name, C Str &value, C Str&post_name, C Str &post_value);
    void setLogin();
    void loginDo(int mode, C Str &email, C Str &pass);

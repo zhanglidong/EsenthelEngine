@@ -878,13 +878,10 @@ StoreClass AppStore;
    {
       UID id=MD5Mem(text(), text.length()); return TextHexMem(&id, SIZE(id));
    }
-   void StoreClass::SetUserParams(MemPtr<HTTPParam> params, C Str &user, C Str &password, int key, C Str &cmd)
+   void StoreClass::SetUserParams(MemPtr<HTTPParam> params, C Str &user, C Str &password, C Str &cmd)
    {
-      uint request_id=Random();
-      int  time=DateTime().getUTC().seconds1970()/(60*5); // 5 mins
       params.New().set("u", user);
-      params.New().set("k", MD5Text(CaseDown(password+key+request_id+time)));
-      params.New().set("r", S+request_id);
+      params.New().set("k", MD5Text(CaseDown(password)));
       if(cmd.is())params.New().set("cmd", cmd);
    }
    void StoreClass::OpenSupport(C Str &support) {if(ValidEmail(support)){ClipSet(support); Gui.msgBox(S, S+"Support email\n\""+support+"\"\nhas been copied to clipboard.");}else if(ValidURL(support))Explore(support);}
@@ -925,7 +922,7 @@ StoreClass AppStore;
    bool StoreClass::isPurchased(int id) {if(Item *item=findItem(id))return item->purchased>0; return false;}
    bool StoreClass::isSeller()C {return loggedIn() && user_seller;}
    void StoreClass::clearDownloadFiles() {REPA(download_files)if(!download_files[i].valid())download_files.removeValid(i);}
-   void StoreClass::setUserParams(MemPtr<HTTPParam> params, C Str &cmd) {SetUserParams(params, S+user_id, user_pass, user_key, cmd);}
+   void StoreClass::setUserParams(MemPtr<HTTPParam> params, C Str &cmd) {SetUserParams(params, S+user_id, user_pass, cmd);}
    void StoreClass::sendCommand(C Str &cmd, C Str &name, C Str &value, C Str &name2, C Str &value2, C Str &name3, C Str &value3)
    {
       Memt<HTTPParam> params;
@@ -973,7 +970,7 @@ StoreClass AppStore;
       if(mode==2 || ValidPass(pass))
       {
          Memt<HTTPParam> params;
-         SetUserParams(params, email, pass, 0, mode==0 ? "register" : mode==1 ? "log_in" : "forgot_pass");
+         SetUserParams(params, email, pass, mode==0 ? "register" : mode==1 ? "log_in" : "forgot_pass");
          if(mode==0)params.New().set("p", pass, HTTP_POST);
          store_commands.New().create(EsenthelStoreURL, params);
          login_email=email;
@@ -982,8 +979,7 @@ StoreClass AppStore;
    }
    void StoreClass::logout()
    {
-       user_id =-1;
-       user_key= 0;
+       user_id=-1;
        user_discount=0;
        user_seller=false;
        user_name   .clear();
@@ -1630,7 +1626,6 @@ StoreClass AppStore;
                      if(ok && ok->asBool())
                      {
                         if(C TextNode *user_id      =data.findNode("u"       ))T.user_id      =user_id      ->asInt ();
-                        if(C TextNode *user_key     =data.findNode("k"       ))T.user_key     =user_key     ->asInt ();
                         if(C TextNode *user_name    =data.findNode("n"       ))T.user_name    =user_name    ->asText();
                         if(C TextNode *user_support =data.findNode("s"       ))T.user_support =user_support ->asText();
                         if(C TextNode *user_paypal  =data.findNode("p"       ))T.user_paypal  =user_paypal  ->asText();
@@ -1788,7 +1783,7 @@ StoreClass AppStore;
          }else if(image_preview_step<=EPS)image_preview=null;
       }
    }
-StoreClass::StoreClass() : downloaded(false), dev_editable(false), item_editable(false), user_seller(false), user_id(-1), user_key(0), user_discount(0), cur_item(-1), cur_dev(-1), cur_dev_discount(0), item_files_region_height(0), image_preview_step(0) {}
+StoreClass::StoreClass() : downloaded(false), dev_editable(false), item_editable(false), user_seller(false), user_id(-1), user_discount(0), cur_item(-1), cur_dev(-1), cur_dev_discount(0), item_files_region_height(0), image_preview_step(0) {}
 
 StoreClass::Item::ItemFile::ItemFile() : free(false) {}
 
