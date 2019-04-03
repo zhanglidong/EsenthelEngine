@@ -386,7 +386,7 @@ void BuildRun(Build &build, Ptr user, Int thread_index) {build.run();}
 CChar8 *separator="/******************************************************************************/";
 CChar8 *copyright="/******************************************************************************\r\n"
                   " * Copyright (c) Grzegorz Slazinski. All Rights Reserved.                     *\r\n"
-                  " * Esenthel Engine (http://www.esenthel.com) header file.                     *\r\n";
+                  " * Esenthel Engine (http://esenthel.com) header file.                         *\r\n";
 /******************************************************************************/
 FILE_LIST_MODE Header(C FileFind &ff, Ptr)
 {
@@ -1098,20 +1098,6 @@ static Bool PhysXCheck()
 
    // FIXME remove these in the future
    FileText f;
-   if(f.read(path+"PhysX/Include/common/PxPhysXCommonConfig.h"))
-   {
-      Str so=f.getAll(), s=so;
-      s=Replace(s, "\n//#error Visual studio 2017 is not supported because of a compiler bug, support will be enabled once a fix is out.",
-                     "\n#error Visual studio 2017 is not supported because of a compiler bug, support will be enabled once a fix is out."); // revert back the change made by older version of Esenthel Builder
-      s=Replace(s, "\n#error Visual studio 2017 is not supported because of a compiler bug, support will be enabled once a fix is out.",
-                   "\n#error This version of Visual Studio is not supported because of a compiler bug, you will have to install at least VS 2017 version 15.5, at the time of writing this, it can be downloaded only from the Preview link - https://www.visualstudio.com/vs/preview/");
-      s=Replace(s, "#if (PX_VC == 15) && PX_WINDOWS", "#if PX_WINDOWS && _MSC_VER<1912"); // replace check for VS 2017 with a check for _MSC_VER (1912 = VS 2017 15.5)
-      if(so!=s)
-      {
-         f.writeMem(f.encoding()).putText(s);
-         if(!SafeOverwrite(f, path+"PhysX/Include/common/PxPhysXCommonConfig.h"))return ErrorWrite(path+"PhysX/Include/common/PxPhysXCommonConfig.h");
-      }
-   }
    if(f.read(path+"PhysX/Source/PhysX/src/device/windows/PhysXIndicatorWindows.cpp")) // https://github.com/NVIDIAGameWorks/PhysX-3.4/issues/50
    {
       Str so=f.getAll(), s=so;
@@ -1155,17 +1141,6 @@ static Bool PhysXCheck()
       {
          f.writeMem(f.encoding()).putText(s);
          if(!SafeOverwrite(f, path+"PhysX/Source/LowLevelCloth/src/neon/NeonSelfCollision.cpp"))return ErrorWrite(path+"PhysX/Source/LowLevelCloth/src/neon/NeonSelfCollision.cpp");
-      }
-   }
-   if(f.read(path+"PhysX/Source/PhysXCooking/src/convex/ConvexMeshBuilder.cpp")) // https://github.com/NVIDIAGameWorks/PhysX-3.4/issues/49
-   {
-      Str so=f.getAll(), s=so;
-      s=Replace(s, "\t*dest++ = trig16[1];", "\t//*dest++ = trig16[1];");
-      s=Replace(s, "\t*dest++ = trig16[2];", "\t//*dest++ = trig16[2];");
-      if(so!=s)
-      {
-         f.writeMem(f.encoding()).putText(s);
-         if(!SafeOverwrite(f, path+"PhysX/Source/PhysXCooking/src/convex/ConvexMeshBuilder.cpp"))return ErrorWrite(path+"PhysX/Source/PhysXCooking/src/convex/ConvexMeshBuilder.cpp");
       }
    }
    if(f.read(path+"PxShared/src/foundation/include/windows/PsWindowsIntrinsics.h")) // FIXME report this
