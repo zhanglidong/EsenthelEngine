@@ -224,10 +224,8 @@ EsenthelStore::RESULT EsenthelStore::consume(C Str &email, Int item_id, C Str &p
    if( item_id<=0       )return INVALID_ITEM;
    if(!purchase_id.is() )return INVALID_ITEM;
    Memt<HTTPParam> params;
-   Int request_id=Random(1, INT_MAX);
    params.New().set("cmd", "consume");
    params.New().set("i", item_id);
-   params.New().set("r", request_id);
    params.New().set("e", email);
    params.New().set("p", purchase_id);
  //params.New().set("k", access_key, HTTP_POST);

@@ -35,6 +35,8 @@ struct EsenthelStore // class allowing to communicate with Esenthel Store
 
    static void RegisterAccount(); // this function will open Esenthel Store website in a System Browser for the purpose of registering a new account there
 
+   static Str Link(Int item_id) {return S+"https://esenthel.com/?id=store&item="+item_id;} // get link to Esenthel Store item
+
    // LICENSE VERIFICATION
       static Str DeviceID() {return EE::DeviceID(true).asHex();} // get Device ID used in Esenthel Store, you can use this function to get the ID of current device and display it to the users, so they can set it for their products in Esenthel Store if needed
 
