@@ -2699,22 +2699,113 @@ UID DeviceID(Bool per_user)
    ULong  mac=GetMac(); hash.update(&mac, SIZE(mac));
    return hash();
 }
+/******************************************************************************/
+#if WINDOWS_OLD
+static Bool HasDeviceInfo=false;
+static Str  _DeviceManufacturer, _DeviceModel;
+static Str8 _DeviceSerialNumber, _DeviceUUID;
+static void GetDeviceInfo()
+{
+   if(!HasDeviceInfo)
+   {
+      SyncLocker locker(D._lock); if(!HasDeviceInfo)
+      {
+         IWbemLocator *pIWbemLocator=null; CoCreateInstance(__uuidof(WbemLocator), null, CLSCTX_INPROC_SERVER, __uuidof(IWbemLocator), (Ptr*)&pIWbemLocator);
+         if(           pIWbemLocator)
+         {
+            // Using the locator, connect to WMI in the given namespace
+            if(BSTR Namespace=SysAllocString(L"root\\cimv2"))
+            {
+               IWbemServices *pIWbemServices=null; pIWbemLocator->ConnectServer(Namespace, null, null, null, 0, null, null, &pIWbemServices);
+               if(            pIWbemServices)
+               {
+                  if(BSTR Win32_ComputerSystemProduct=SysAllocString(L"Win32_ComputerSystemProduct"))
+                  {
+                     CoSetProxyBlanket(pIWbemServices, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, null, RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, null, EOAC_NONE); // Switch security level to IMPERSONATE
+                     IEnumWbemClassObject *pComputerSystemProducts=null; pIWbemServices->CreateInstanceEnum(Win32_ComputerSystemProduct, 0, null, &pComputerSystemProducts);
+                     if(                   pComputerSystemProducts)
+                     {
+                        IWbemClassObject *pComputerSystemProduct=null;
+                        DWORD returned=0;
+                        pComputerSystemProducts->Reset(); // Get the first one in the list
+                        if(OK(pComputerSystemProducts->Next(5000, 1, &pComputerSystemProduct, &returned))) // 5 second timeout
+                           if(returned && pComputerSystemProduct)
+                        {
+                           VARIANT var;
+                           if(BSTR Vendor=SysAllocString(L"Vendor"))
+                           {
+                              if(OK(pComputerSystemProduct->Get(Vendor, 0, &var, null, null)))
+                              {
+                                 if(var.vt==VT_BSTR)_DeviceManufacturer=var.bstrVal;
+                                 VariantClear(&var);
+                              }
+                              SysFreeString(Vendor);
+                           }
+                           if(BSTR Name=SysAllocString(L"Name"))
+                           {
+                              if(OK(pComputerSystemProduct->Get(Name, 0, &var, null, null)))
+                              {
+                                 if(var.vt==VT_BSTR)_DeviceModel=var.bstrVal;
+                                 VariantClear(&var);
+                              }
+                              SysFreeString(Name);
+                           }
+                           if(BSTR IdentifyingNumber=SysAllocString(L"IdentifyingNumber"))
+                           {
+                              if(OK(pComputerSystemProduct->Get(IdentifyingNumber, 0, &var, null, null)))
+                              {
+                                 if(var.vt==VT_BSTR)_DeviceSerialNumber=var.bstrVal;
+                                 VariantClear(&var);
+                              }
+                              SysFreeString(IdentifyingNumber);
+                           }
+                           if(BSTR UUID=SysAllocString(L"UUID"))
+                           {
+                              if(OK(pComputerSystemProduct->Get(UUID, 0, &var, null, null)))
+                              {
+                                 if(var.vt==VT_BSTR)_DeviceUUID=var.bstrVal;
+                                 VariantClear(&var);
+                              }
+                              SysFreeString(UUID);
+                           }
+                           pComputerSystemProduct->Release();
+                        }
+                        pComputerSystemProducts->Release();
+                     }
+                     SysFreeString(Win32_ComputerSystemProduct);
+                  }
+                  pIWbemServices->Release();
+               }
+               SysFreeString(Namespace);
+            }
+            pIWbemLocator->Release();
+         }
+         HasDeviceInfo=true; // set after obtaining all values
+      }
+   }
+}
+#endif
+/******************************************************************************/
 Str DeviceManufacturer()
 {
-#if ANDROID
+#if WINDOWS_OLD
+   GetDeviceInfo(); return _DeviceManufacturer;
+#elif APPLE
+   return "Apple";
+#elif ANDROID
    JNI jni;
    if(jni && ActivityClass)
       if(JMethodID method=jni->GetStaticMethodID(ActivityClass, "manufacturer", "()Ljava/lang/String;"))
       if(JString str=JString(jni, jni->CallStaticObjectMethod(ActivityClass, method)))
          return str.str();
-#elif APPLE
-   return "Apple";
 #endif
    return S;
 }
 Str DeviceModel()
 {
-#if ANDROID
+#if WINDOWS_OLD
+   GetDeviceInfo(); return _DeviceModel;
+#elif ANDROID
    JNI jni;
    if(jni && ActivityClass)
       if(JMethodID method=jni->GetStaticMethodID(ActivityClass, "model", "()Ljava/lang/String;"))
@@ -2725,7 +2816,9 @@ Str DeviceModel()
 }
 Str8 DeviceSerialNumber()
 {
-#if ANDROID
+#if WINDOWS_OLD
+   GetDeviceInfo(); return _DeviceSerialNumber;
+#elif ANDROID
    JNI jni;
    if(jni && ActivityClass)
       if(JMethodID method=jni->GetStaticMethodID(ActivityClass, "serial", "()Ljava/lang/String;"))
