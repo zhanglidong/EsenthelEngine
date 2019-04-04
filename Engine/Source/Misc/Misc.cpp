@@ -2703,7 +2703,8 @@ UID DeviceID(Bool per_user)
 #if WINDOWS_OLD
 static Bool HasDeviceInfo=false;
 static Str  _DeviceManufacturer, _DeviceModel;
-static Str8 _DeviceSerialNumber, _DeviceUUID;
+static Str8 _DeviceSerialNumber;
+static UID  _DeviceUUID;
 static void GetDeviceInfo()
 {
    if(!HasDeviceInfo)
@@ -2763,7 +2764,7 @@ static void GetDeviceInfo()
                            {
                               if(OK(pComputerSystemProduct->Get(UUID, 0, &var, null, null)))
                               {
-                                 if(var.vt==VT_BSTR)_DeviceUUID=var.bstrVal;
+                                 if(var.vt==VT_BSTR)_DeviceUUID.fromCanonical(var.bstrVal);
                                  VariantClear(&var);
                               }
                               SysFreeString(UUID);
@@ -2826,6 +2827,13 @@ Str8 DeviceSerialNumber()
          return str.str();
 #endif
    return S;
+}
+UID DeviceUUID()
+{
+#if WINDOWS_OLD
+   GetDeviceInfo(); return _DeviceUUID;
+#endif
+   return UIDZero;
 }
 ULong AndroidID()
 {
