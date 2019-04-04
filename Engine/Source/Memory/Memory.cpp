@@ -449,7 +449,7 @@ void AlignedFree(Ptr &data)
                data=null;
    }
 }
-#elif (defined WII) || MEM_CUSTOM
+#elif MEM_CUSTOM
 typedef Byte AAOffs; // Byte is enough to store the 0..16 offset
 Ptr AlignedAlloc(IntPtr size)
 {
@@ -474,7 +474,7 @@ void AlignedFree(Ptr &data)
       data=null;
    }
 }
-#else // PS3, XBox, Win64, Apple have 16-byte alignment
+#else // PS, XBox, Win64, Apple have 16-byte alignment
 Ptr  AlignedAlloc(IntPtr size) {Ptr  data=Alloc(size); DEBUG_ASSERT((UIntPtr(data)&15)==0, "Memory is not 16-byte aligned"); return data;}
 void AlignedFree (Ptr   &data) {Free(data);}
 #endif
