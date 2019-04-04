@@ -17,15 +17,12 @@ using namespace lzham;
 
 #define LZHAM_MEM_STATS 0
 
-// ESENTHEL CHANGED
-#ifdef LZHAM_USE_WIN32_API
-   #define MallocSize(p, size) _msize(p)
-#elif defined __APPLE__
-   #define MallocSize(p, size) malloc_size(p)
-#elif defined ANDROID
-   #define MallocSize(p, size) size
-#else
-   #define MallocSize(p, size) malloc_usable_size(p)
+#ifndef LZHAM_USE_WIN32_API
+   #ifndef __APPLE__
+      #define _msize malloc_usable_size
+   #else
+      #define _msize malloc_size
+   #endif
 #endif
 
 namespace lzham
@@ -93,7 +90,7 @@ namespace lzham
          LZHAM_ASSERT( (reinterpret_cast<ptr_bits_t>(p_new) & (LZHAM_MIN_ALLOC_ALIGNMENT - 1)) == 0 );
 
          if (pActual_size)
-            *pActual_size = p_new ? MallocSize(p_new, size) : 0;
+            *pActual_size = p_new ? _msize(p_new) : 0;
       }
       else if (!size)
       {
@@ -130,24 +127,20 @@ namespace lzham
          }
 
          if (pActual_size)
-            *pActual_size = MallocSize(p_final_block, size);
+            *pActual_size = _msize(p_final_block);
       }
 
       return p_new;
    }
 
-#if LZHAM_MEM_STATS
    static size_t lzham_default_msize(void* p, void* pUser_data)
    {
       LZHAM_NOTE_UNUSED(pUser_data);
       return p ? _msize(p) : 0;
    }
-#endif
 
    static lzham_realloc_func        g_pRealloc = lzham_default_realloc;
-#if LZHAM_MEM_STATS
    static lzham_msize_func          g_pMSize   = lzham_default_msize;
-#endif
    static void*                     g_pUser_data;
 
    static inline void lzham_mem_error(const char* p_msg)
@@ -250,7 +243,6 @@ namespace lzham
       (*g_pRealloc)(p, 0, NULL, true, g_pUser_data);
    }
 
-#if LZHAM_MEM_STATS
    size_t lzham_msize(void* p)
    {
       if (!p)
@@ -264,24 +256,19 @@ namespace lzham
 
       return (*g_pMSize)(p, g_pUser_data);
    }
-#endif
 
    void LZHAM_CDECL lzham_lib_set_memory_callbacks(lzham_realloc_func pRealloc, lzham_msize_func pMSize, void* pUser_data)
    {
       if ((!pRealloc) || (!pMSize))
       {
          g_pRealloc = lzham_default_realloc;
-      #if LZHAM_MEM_STATS
          g_pMSize = lzham_default_msize;
-      #endif
          g_pUser_data = NULL;
       }
       else
       {
          g_pRealloc = pRealloc;
-      #if LZHAM_MEM_STATS
          g_pMSize = pMSize;
-      #endif
          g_pUser_data = pUser_data;
       }
    }
