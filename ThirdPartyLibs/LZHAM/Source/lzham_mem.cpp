@@ -25,6 +25,26 @@ using namespace lzham;
    #endif
 #endif
 
+// ESENTHEL CHANGED
+#ifdef ANDROID
+#define malloc(size) memalign(LZHAM_MIN_ALLOC_ALIGNMENT, size)
+void* Realloc(void *data, size_t size)
+{
+   if(size<=0){free(data); return NULL;} // !! check this first because "free(null)" is valid, but "malloc(0)" returns an empty memory block (not null) !!
+   if(!data  )return malloc(size);
+
+   size_t old_size=_msize(data);
+   if(size==old_size)return data;
+   void *new_data=malloc(size); if(new_data) // 'realloc' does not free 'data' if there's not enough memory
+   {
+      memcpy(new_data, data, std::min(size, old_size));
+      free(data);
+   }
+   return new_data;
+}
+#define realloc Realloc
+#endif
+
 namespace lzham
 {
    #if LZHAM_64BIT_POINTERS
