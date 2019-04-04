@@ -12,13 +12,14 @@ void lzham_enable_fail_exceptions(bool enabled)
 
 void lzham_assert(const char* pExp, const char* pFile, unsigned line)
 {
+   /*ESENTHEL CHANGED
    char buf[512];
 
    sprintf_s(buf, sizeof(buf), "%s(%u): Assertion failed: \"%s\"\n", pFile, line, pExp);
 
    lzham_output_debug_string(buf);
 
-   //printf("%s", buf);
+   printf("%s", buf);*/
 
    if (lzham_is_debugger_present())
       lzham_debug_break();
@@ -26,13 +27,14 @@ void lzham_assert(const char* pExp, const char* pFile, unsigned line)
 
 void lzham_fail(const char* pExp, const char* pFile, unsigned line)
 {
+   /*ESENTHEL CHANGED
    char buf[512];
 
    sprintf_s(buf, sizeof(buf), "%s(%u): Failure: \"%s\"\n", pFile, line, pExp);
 
    lzham_output_debug_string(buf);
 
-   //printf("%s", buf);
+   printf("%s", buf);*/
 
    if (lzham_is_debugger_present())
       lzham_debug_break();
