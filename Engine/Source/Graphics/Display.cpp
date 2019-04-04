@@ -859,8 +859,8 @@ void Display::del()
 typedef BOOL (FAR PASCAL*LPDDENUMCALLBACKEXA)(GUID FAR *, LPSTR, LPSTR, LPVOID, HMONITOR);
 typedef HRESULT (WINAPI*LPDIRECTDRAWENUMERATEEXA)(LPDDENUMCALLBACKEXA lpCallback, LPVOID lpContext, DWORD dwFlags);
 typedef BOOL (WINAPI*PfnCoSetProxyBlanket)(IUnknown* pProxy, DWORD dwAuthnSvc, DWORD dwAuthzSvc, OLECHAR* pServerPrincName, DWORD dwAuthnLevel, DWORD dwImpLevel, RPC_AUTH_IDENTITY_HANDLE pAuthInfo, DWORD dwCapabilities);
-static CLSID CLSID_WbemLocator={0x4590F811, 0x1D3A, 0x11D0, {0x89, 0x1F, 0, 0xAA, 0, 0x4B, 0x2E, 0x24}};
-static GUID   IID_IWbemLocator={0xDC12A687, 0x737F, 0x11CF, {0x88, 0x4D, 0, 0xAA, 0, 0x4B, 0x2E, 0x24}};
+static const CLSID CLSID_WbemLocator={0x4590F811, 0x1D3A, 0x11D0, {0x89, 0x1F, 0, 0xAA, 0, 0x4B, 0x2E, 0x24}};
+static const GUID   IID_IWbemLocator={0xDC12A687, 0x737F, 0x11CF, {0x88, 0x4D, 0, 0xAA, 0, 0x4B, 0x2E, 0x24}};
 struct Match
 {
    HMONITOR monitor;
@@ -914,14 +914,11 @@ static Long DeviceMemory(Int adapter_index)
          if(           pIWbemLocator)
          {
             // Using the locator, connect to WMI in the given namespace
-            BSTR Namespace=SysAllocString(L"\\\\.\\root\\cimv2");
+            BSTR Namespace=SysAllocString(L"root\\cimv2");
             IWbemServices *pIWbemServices=null; pIWbemLocator->ConnectServer(Namespace, null, null, 0, 0, null, null, &pIWbemServices);
             if(            pIWbemServices)
             {
-               DLL ole;
-               if( ole.createFile(u"Ole32.dll"))
-                  if(PfnCoSetProxyBlanket pfnCoSetProxyBlanket=(PfnCoSetProxyBlanket)ole.getFunc("CoSetProxyBlanket"))
-                     pfnCoSetProxyBlanket(pIWbemServices, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, null, RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, null, 0); // Switch security level to IMPERSONATE
+               CoSetProxyBlanket(pIWbemServices, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, null, RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, null, EOAC_NONE); // Switch security level to IMPERSONATE
 
                BSTR Win32_VideoController=SysAllocString(L"Win32_VideoController");
                IEnumWbemClassObject *pEnumVideoControllers=null; pIWbemServices->CreateInstanceEnum(Win32_VideoController, 0, null, &pEnumVideoControllers);
@@ -940,13 +937,19 @@ static Long DeviceMemory(Int adapter_index)
                         if(!found)
                         {
                            VARIANT var;
-                           if(OK(controller->Get(PNPDeviceID, 0, &var, null, null)))if(wcsstr(var.bstrVal, strInputDeviceID))found=true;
-                           VariantClear(&var);
+                           if(OK(controller->Get(PNPDeviceID, 0, &var, null, null)))
+                           {
+                              if(wcsstr(var.bstrVal, strInputDeviceID))found=true;
+                              VariantClear(&var);
+                           }
 
                            if(found)
                            {
-                              if(OK(controller->Get(AdapterRAM, 0, &var, null, null)))size=var.ulVal;
-                              VariantClear(&var);
+                              if(OK(controller->Get(AdapterRAM, 0, &var, null, null)))
+                              {
+                                 size=var.ulVal;
+                                 VariantClear(&var);
+                              }
                            }
                         }
                         controller->Release();
