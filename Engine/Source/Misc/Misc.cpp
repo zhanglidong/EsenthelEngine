@@ -2587,119 +2587,6 @@ Bool ValidLicenseKey(C Str &key) // "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" 5*5X + 4*-
    return true;
 }
 /******************************************************************************/
-UID DeviceID(Bool per_user)
-{
-   if(!D.deviceName().is()) // display device name may be not available yet
-   {
-      SafeSyncLocker locker(D._lock);
-   #if WINDOWS_OLD
-      if(IDirect3D9 *d3d=Direct3DCreate9(D3D_SDK_VERSION))
-      {
-         D3DADAPTER_IDENTIFIER9 id; if(OK(d3d->GetAdapterIdentifier(D3DADAPTER_DEFAULT, 0, &id)))D._device_name=id.Description;
-         RELEASE(d3d);
-      }
-   #elif WINDOWS_NEW
-      IDXGIFactory1 *factory=null; CreateDXGIFactory1(__uuidof(IDXGIFactory1), (Ptr*)&factory); if(factory)
-      {
-         IDXGIAdapter *adapter=null; factory->EnumAdapters(0, &adapter); if(adapter)
-         {
-            DXGI_ADAPTER_DESC desc; if(OK(adapter->GetDesc(&desc)))D._device_name=desc.Description;
-            adapter->Release();
-         }
-         factory->Release();
-      }
-   #elif APPLE // Mac/iOS already have a context
-      D._device_name=(CChar8*)glGetString(GL_RENDERER);
-   #elif LINUX
-      int attribs[]=
-      {
-         GLX_X_RENDERABLE , true,
-         GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
-         GLX_RENDER_TYPE  , GLX_RGBA_BIT,
-         GLX_X_VISUAL_TYPE, GLX_TRUE_COLOR,
-       //GLX_RED_SIZE     , 8,
-       //GLX_GREEN_SIZE   , 8,
-       //GLX_BLUE_SIZE    , 8,
-       //GLX_ALPHA_SIZE   , 8,
-       //GLX_DEPTH_SIZE   , 24,
-       //GLX_STENCIL_SIZE , 8,
-       //GLX_DOUBLEBUFFER , true,
-         NULL
-      };
-      int count=0; if(GLXFBConfig *fbc=glXChooseFBConfig(XDisplay, DefaultScreen(XDisplay), attribs, &count))
-      {
-         if(count>=1 && fbc[0])
-            if(GLXContext context=glXCreateNewContext(XDisplay, fbc[0], GLX_RGBA_TYPE, null, true))
-         {
-            XSync(XDisplay, false); // Forcibly wait on any resulting X errors
-            if(glXMakeCurrent(XDisplay, NULL, context))
-            {
-               D._device_name=(CChar8*)glGetString(GL_RENDERER); for(; D._device_name.last()==' '; )D._device_name.removeLast(); // Linux may have unnecessary spaces at the end
-               glXMakeCurrent(XDisplay, NULL, null);
-            }
-            glXDestroyContext(XDisplay, context);
-         }
-         XFree(fbc);
-      }
-   #elif ANDROID
-      if(EGLDisplay display=eglGetDisplay(EGL_DEFAULT_DISPLAY))
-      {
-         if(eglInitialize(display, null, null)==EGL_TRUE)
-         {
-            EGLint attribs[]=
-            {
-               EGL_SURFACE_TYPE   , EGL_WINDOW_BIT,
-               EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-               EGL_NONE
-            };
-            EGLConfig config=0;
-            EGLint    num_configs=0;
-            if(eglChooseConfig(display, attribs, &config, 1, &num_configs)==EGL_TRUE)
-               if(num_configs>=1)
-                  if(EGLSurface surface=eglCreateWindowSurface(display, config, AndroidApp->window, null))
-            {
-               EGLint ctx_attribs[]=
-               {
-                  EGL_CONTEXT_CLIENT_VERSION, 2, // try OpenGL ES 2.0 context
-                  EGL_NONE
-               };
-               if(EGLContext context=eglCreateContext(display, config, null, ctx_attribs))
-               {
-                  if(eglMakeCurrent(display, surface, surface, context)==EGL_TRUE)
-                  {
-                     D._device_name=(CChar8*)glGetString(GL_RENDERER);
-                     eglMakeCurrent(display, null, null, null);
-                  }
-                  eglDestroyContext(display, context);
-               }
-               eglDestroySurface(display, surface);
-            }
-         }
-         eglTerminate(display);
-      }
-   #endif
-      if(!D.deviceName().is())D._device_name="None"; // to avoid calling above everytime
-   }
-
-   Str id=S
-     +Cpu.name()+'\n'
-     +D.deviceName()+'\n'
-     +OSName(OSGroup())+'\n'
-     +GetComputerName()+'\n'
-     +DeviceManufacturer()+'\n'
-     +DeviceModel()+'\n'
-     +DeviceSerialNumber()+'\n'
-     +(per_user ? OSUserName() : S)+'\n';
-
-   MD5 hash;
-   hash.update(id);
-#if ANDROID && 0 // don't do this because of "app-signing key" dependency
-   if(per_user){ULong android_id=AndroidID(); hash.update(&android_id, SIZE(android_id));} // 'AndroidID' depends on app-signing key, user and device
-#endif
-   ULong  mac=GetMac(); hash.update(&mac, SIZE(mac));
-   return hash();
-}
-/******************************************************************************/
 #if WINDOWS_OLD
 static Bool HasDeviceInfo=false;
 static Str  _DeviceManufacturer, _DeviceModel;
@@ -2849,6 +2736,120 @@ ULong AndroidID()
    }
 #endif
    return 0;
+}
+/******************************************************************************/
+UID DeviceID(Bool per_user)
+{
+   if(!D.deviceName().is()) // display device name may be not available yet
+   {
+      SafeSyncLocker locker(D._lock);
+   #if WINDOWS_OLD
+      if(IDirect3D9 *d3d=Direct3DCreate9(D3D_SDK_VERSION))
+      {
+         D3DADAPTER_IDENTIFIER9 id; if(OK(d3d->GetAdapterIdentifier(D3DADAPTER_DEFAULT, 0, &id)))D._device_name=id.Description;
+         RELEASE(d3d);
+      }
+   #elif WINDOWS_NEW
+      IDXGIFactory1 *factory=null; CreateDXGIFactory1(__uuidof(IDXGIFactory1), (Ptr*)&factory); if(factory)
+      {
+         IDXGIAdapter *adapter=null; factory->EnumAdapters(0, &adapter); if(adapter)
+         {
+            DXGI_ADAPTER_DESC desc; if(OK(adapter->GetDesc(&desc)))D._device_name=desc.Description;
+            adapter->Release();
+         }
+         factory->Release();
+      }
+   #elif APPLE // Mac/iOS already have a context
+      D._device_name=(CChar8*)glGetString(GL_RENDERER);
+   #elif LINUX
+      int attribs[]=
+      {
+         GLX_X_RENDERABLE , true,
+         GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
+         GLX_RENDER_TYPE  , GLX_RGBA_BIT,
+         GLX_X_VISUAL_TYPE, GLX_TRUE_COLOR,
+       //GLX_RED_SIZE     , 8,
+       //GLX_GREEN_SIZE   , 8,
+       //GLX_BLUE_SIZE    , 8,
+       //GLX_ALPHA_SIZE   , 8,
+       //GLX_DEPTH_SIZE   , 24,
+       //GLX_STENCIL_SIZE , 8,
+       //GLX_DOUBLEBUFFER , true,
+         NULL
+      };
+      int count=0; if(GLXFBConfig *fbc=glXChooseFBConfig(XDisplay, DefaultScreen(XDisplay), attribs, &count))
+      {
+         if(count>=1 && fbc[0])
+            if(GLXContext context=glXCreateNewContext(XDisplay, fbc[0], GLX_RGBA_TYPE, null, true))
+         {
+            XSync(XDisplay, false); // Forcibly wait on any resulting X errors
+            if(glXMakeCurrent(XDisplay, NULL, context))
+            {
+               D._device_name=(CChar8*)glGetString(GL_RENDERER); for(; D._device_name.last()==' '; )D._device_name.removeLast(); // Linux may have unnecessary spaces at the end
+               glXMakeCurrent(XDisplay, NULL, null);
+            }
+            glXDestroyContext(XDisplay, context);
+         }
+         XFree(fbc);
+      }
+   #elif ANDROID
+      if(EGLDisplay display=eglGetDisplay(EGL_DEFAULT_DISPLAY))
+      {
+         if(eglInitialize(display, null, null)==EGL_TRUE)
+         {
+            EGLint attribs[]=
+            {
+               EGL_SURFACE_TYPE   , EGL_WINDOW_BIT,
+               EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+               EGL_NONE
+            };
+            EGLConfig config=0;
+            EGLint    num_configs=0;
+            if(eglChooseConfig(display, attribs, &config, 1, &num_configs)==EGL_TRUE)
+               if(num_configs>=1)
+                  if(EGLSurface surface=eglCreateWindowSurface(display, config, AndroidApp->window, null))
+            {
+               EGLint ctx_attribs[]=
+               {
+                  EGL_CONTEXT_CLIENT_VERSION, 2, // try OpenGL ES 2.0 context
+                  EGL_NONE
+               };
+               if(EGLContext context=eglCreateContext(display, config, null, ctx_attribs))
+               {
+                  if(eglMakeCurrent(display, surface, surface, context)==EGL_TRUE)
+                  {
+                     D._device_name=(CChar8*)glGetString(GL_RENDERER);
+                     eglMakeCurrent(display, null, null, null);
+                  }
+                  eglDestroyContext(display, context);
+               }
+               eglDestroySurface(display, surface);
+            }
+         }
+         eglTerminate(display);
+      }
+   #endif
+      if(!D.deviceName().is())D._device_name="None"; // to avoid calling above everytime
+   }
+
+   Str id=S
+     +Cpu.name()+'\n'
+     +D.deviceName()+'\n'
+     +OSName(OSGroup())+'\n'
+     +GetComputerName()+'\n'
+     +DeviceManufacturer()+'\n'
+     +DeviceModel()+'\n'
+     +DeviceSerialNumber()+'\n'
+     +(per_user ? OSUserName() : S)+'\n';
+
+   MD5 hash;
+   hash.update(id);
+#if ANDROID && 0 // don't do this because of "app-signing key" dependency
+   if(per_user){ULong android_id=AndroidID(); hash.update(&android_id, SIZE(android_id));} // 'AndroidID' depends on app-signing key, user and device
+#endif
+   ULong  mac=    GetMac(); hash.update(&mac, SIZE(mac));
+   UID    uid=DeviceUUID(); hash.update(&uid, SIZE(uid));
+   return hash();
 }
 /******************************************************************************/
 Str MicrosoftWindowsStoreLink(C Str &app_id) {return S+"https://www.microsoft.com/store/apps/"         +app_id;}
