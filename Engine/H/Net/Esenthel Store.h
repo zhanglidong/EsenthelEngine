@@ -38,7 +38,8 @@ struct EsenthelStore // class allowing to communicate with Esenthel Store
    static Str Link(Int item_id) {return S+"https://esenthel.com/?id=store&item="+item_id;} // get link to Esenthel Store item
 
    // LICENSE VERIFICATION
-      static Str DeviceID() {return EE::DeviceID(true).asHex();} // get Device ID used in Esenthel Store, you can use this function to get the ID of current device and display it to the users, so they can set it for their products in Esenthel Store if needed
+      static UID DeviceID    () {return EE::DeviceID(true)        ;} // get Device ID used in Esenthel Store, you can use this function to get the ID of current device and display it to the users, so they can set it for their products in Esenthel Store if needed
+      static Str DeviceIDText() {return     DeviceID(    ).asHex();} // get Device ID used in Esenthel Store, you can use this function to get the ID of current device and display it to the users, so they can set it for their products in Esenthel Store if needed
 
       // operations
       void licenseClear(Bool params=true); // cancel any current 'licenseTest' request and clear the 'licenseResult' to NONE, 'params'=if additionally clear the last specified parameters (such as 'licenseItemID', 'licenseKey', 'licenseEmail' and 'licenseAccessKey')

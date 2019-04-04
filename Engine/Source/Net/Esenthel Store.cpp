@@ -85,7 +85,7 @@ void EsenthelStore::licenseTest(Int item_id, C Str &license_key, C Str &email, C
       if(license_key.is())params.New().set("l"  , license_key); // license key
       if(email      .is())params.New().set("e"  , email); // email
       if(access_key .is())params.New().set("k"  , access_key, HTTP_POST);
-      if(device_id       )params.New().set("c"  , DeviceID()); // computer/device ID
+      if(device_id       )params.New().set("c"  , DeviceIDText()); // computer/device ID
                           params.New().set("cmd", "test_license"); // command
      _license_download.create("https://esenthel.com/test_license.php", params);
      _license_result=CONNECTING;
