@@ -28,5 +28,6 @@ del "ARM\Release Universal\*.log"
 rmdir /s /q "ARM\Release Universal\lzham.tlog"
 
 del Emscripten\Release\*.o
+del Emscripten\Release\*.log
 del Emscripten\Release\*.tlog
 del Emscripten\Release\*.lastbuildstate
