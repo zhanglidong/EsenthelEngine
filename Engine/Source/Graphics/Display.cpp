@@ -859,8 +859,6 @@ void Display::del()
 typedef BOOL (FAR PASCAL*LPDDENUMCALLBACKEXA)(GUID FAR *, LPSTR, LPSTR, LPVOID, HMONITOR);
 typedef HRESULT (WINAPI*LPDIRECTDRAWENUMERATEEXA)(LPDDENUMCALLBACKEXA lpCallback, LPVOID lpContext, DWORD dwFlags);
 typedef BOOL (WINAPI*PfnCoSetProxyBlanket)(IUnknown* pProxy, DWORD dwAuthnSvc, DWORD dwAuthzSvc, OLECHAR* pServerPrincName, DWORD dwAuthnLevel, DWORD dwImpLevel, RPC_AUTH_IDENTITY_HANDLE pAuthInfo, DWORD dwCapabilities);
-static const CLSID CLSID_WbemLocator={0x4590F811, 0x1D3A, 0x11D0, {0x89, 0x1F, 0, 0xAA, 0, 0x4B, 0x2E, 0x24}};
-static const GUID   IID_IWbemLocator={0xDC12A687, 0x737F, 0x11CF, {0x88, 0x4D, 0, 0xAA, 0, 0x4B, 0x2E, 0x24}};
 struct Match
 {
    HMONITOR monitor;
@@ -910,59 +908,59 @@ static Long DeviceMemory(Int adapter_index)
       WCHAR strInputDeviceID[1024];
       if(GetDeviceIDFromHMonitor(monitor, strInputDeviceID, Elms(strInputDeviceID)))
       {
-         IWbemLocator *pIWbemLocator=null; CoCreateInstance(CLSID_WbemLocator, null, CLSCTX_INPROC_SERVER, IID_IWbemLocator, (Ptr*)&pIWbemLocator);
+         IWbemLocator *pIWbemLocator=null; CoCreateInstance(__uuidof(WbemLocator), null, CLSCTX_INPROC_SERVER, __uuidof(IWbemLocator), (Ptr*)&pIWbemLocator);
          if(           pIWbemLocator)
          {
             // Using the locator, connect to WMI in the given namespace
-            BSTR Namespace=SysAllocString(L"root\\cimv2");
-            IWbemServices *pIWbemServices=null; pIWbemLocator->ConnectServer(Namespace, null, null, 0, 0, null, null, &pIWbemServices);
-            if(            pIWbemServices)
+            if(BSTR Namespace=SysAllocString(L"root\\cimv2"))
             {
-               CoSetProxyBlanket(pIWbemServices, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, null, RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, null, EOAC_NONE); // Switch security level to IMPERSONATE
-
-               BSTR Win32_VideoController=SysAllocString(L"Win32_VideoController");
-               IEnumWbemClassObject *pEnumVideoControllers=null; pIWbemServices->CreateInstanceEnum(Win32_VideoController, 0, null, &pEnumVideoControllers);
-               if(                   pEnumVideoControllers)
+               IWbemServices *pIWbemServices=null; pIWbemLocator->ConnectServer(Namespace, null, null, null, 0, null, null, &pIWbemServices);
+               if(            pIWbemServices)
                {
-                  BSTR PNPDeviceID=SysAllocString(L"PNPDeviceID"),
-                        AdapterRAM=SysAllocString(L"AdapterRAM");
-                  IWbemClassObject *video_controllers[16]={0};
-                  DWORD returned=0;
-                  Bool  found=false;
-                  pEnumVideoControllers->Reset(); // Get the first one in the list
-                  if(OK(pEnumVideoControllers->Next(5000, Elms(video_controllers), video_controllers, &returned))) // 5 second timeout
+                  if(BSTR Win32_VideoController=SysAllocString(L"Win32_VideoController"))
                   {
-                     FREP(returned)if(IWbemClassObject *controller=video_controllers[i])
+                     CoSetProxyBlanket(pIWbemServices, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, null, RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, null, EOAC_NONE); // Switch security level to IMPERSONATE
+                     IEnumWbemClassObject *pEnumVideoControllers=null; pIWbemServices->CreateInstanceEnum(Win32_VideoController, 0, null, &pEnumVideoControllers);
+                     if(                   pEnumVideoControllers)
                      {
-                        if(!found)
+                        if(BSTR PNPDeviceID=SysAllocString(L"PNPDeviceID"))
                         {
-                           VARIANT var;
-                           if(OK(controller->Get(PNPDeviceID, 0, &var, null, null)))
+                           if(BSTR AdapterRAM=SysAllocString(L"AdapterRAM"))
                            {
-                              if(wcsstr(var.bstrVal, strInputDeviceID))found=true;
-                              VariantClear(&var);
-                           }
-
-                           if(found)
-                           {
-                              if(OK(controller->Get(AdapterRAM, 0, &var, null, null)))
+                              IWbemClassObject *video_controllers[16]={0};
+                              DWORD returned=0;
+                              Bool  found=false;
+                              pEnumVideoControllers->Reset(); // Get the first one in the list
+                              if(OK(pEnumVideoControllers->Next(5000, Elms(video_controllers), video_controllers, &returned))) // 5 second timeout
+                                 FREP(returned)if(IWbemClassObject *controller=video_controllers[i])
                               {
-                                 size=var.ulVal;
-                                 VariantClear(&var);
+                                 if(!found)
+                                 {
+                                    VARIANT var; if(OK(controller->Get(PNPDeviceID, 0, &var, null, null)))
+                                    {
+                                       if(wcsstr(var.bstrVal, strInputDeviceID))found=true;
+                                       VariantClear(&var);
+                                       if(found && OK(controller->Get(AdapterRAM, 0, &var, null, null)))
+                                       {
+                                          size=var.ulVal;
+                                          VariantClear(&var);
+                                       }
+                                    }
+                                 }
+                                 controller->Release();
                               }
+                              SysFreeString(AdapterRAM);
                            }
+                           SysFreeString(PNPDeviceID);
                         }
-                        controller->Release();
+                        pEnumVideoControllers->Release();
                      }
+                     SysFreeString(Win32_VideoController);
                   }
-                  if(AdapterRAM )SysFreeString(AdapterRAM);
-                  if(PNPDeviceID)SysFreeString(PNPDeviceID);
-                  pEnumVideoControllers->Release();
+                  pIWbemServices->Release();
                }
-               if(Win32_VideoController)SysFreeString(Win32_VideoController);
-               pIWbemServices->Release();
+               SysFreeString(Namespace);
             }
-            if(Namespace)SysFreeString(Namespace);
             pIWbemLocator->Release();
          }
       }

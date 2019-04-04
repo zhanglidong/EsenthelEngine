@@ -382,85 +382,68 @@ static Joypad& GetJoypad(UInt id, Bool &added)
 #if WINDOWS_OLD
 static Bool IsXInputDevice(C GUID &pGuidProductFromDirectInput)
 {
-   IWbemLocator*         pIWbemLocator =null;
-   IEnumWbemClassObject* pEnumDevices  =null;
-   IWbemClassObject*     pDevices[20]  ={0};
-   IWbemServices*        pIWbemServices=null;
-   BSTR                  bstrNamespace =null;
-   BSTR                  bstrDeviceID  =null;
-   BSTR                  bstrClassName =null;
-   DWORD                 uReturned     =0;
-   bool                  bIsXinputDevice=false;
-   UINT                  iDevice       =0;
-   VARIANT               var;
-   HRESULT               hr;
-
-   // CoInit if needed
-   hr=CoInitialize(null);
-   bool bCleanupCOM=SUCCEEDED(hr);
+   Bool xinput=false, cleanupCOM=OK(CoInitialize(null)); // CoInit if needed
 
    // Create WMI
-   hr=CoCreateInstance(__uuidof(WbemLocator), null, CLSCTX_INPROC_SERVER, __uuidof(IWbemLocator), (LPVOID*)&pIWbemLocator);
-   if(FAILED(hr) || pIWbemLocator==null)goto LCleanup;
-
-   bstrNamespace=SysAllocString(L"\\\\.\\root\\cimv2"); if(!bstrNamespace)goto LCleanup;
-   bstrClassName=SysAllocString(L"Win32_PNPEntity");    if(!bstrClassName)goto LCleanup;
-   bstrDeviceID =SysAllocString(L"DeviceID");           if(!bstrDeviceID )goto LCleanup;
-
-   // Connect to WMI
-   hr=pIWbemLocator->ConnectServer(bstrNamespace, null, null, 0L, 0L, null, null, &pIWbemServices);
-   if(FAILED(hr) || pIWbemServices==null)goto LCleanup;
-
-   // Switch security level to IMPERSONATE
-   CoSetProxyBlanket(pIWbemServices, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, null, RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, null, EOAC_NONE);
-
-   hr=pIWbemServices->CreateInstanceEnum(bstrClassName, 0, null, &pEnumDevices);
-   if(FAILED(hr) || pEnumDevices==null)goto LCleanup;
-
-   // Loop over all devices
-   for(;;)
+   IWbemLocator *pIWbemLocator=null; CoCreateInstance(__uuidof(WbemLocator), null, CLSCTX_INPROC_SERVER, __uuidof(IWbemLocator), (Ptr*)&pIWbemLocator);
+   if(           pIWbemLocator)
    {
-      hr=pEnumDevices->Next(10000, Elms(pDevices), pDevices, &uReturned); // Get 20 at a time
-      if(FAILED(hr))goto LCleanup;
-      if(uReturned==0)break;
-
-      FREP(uReturned) // For each device, get its device ID
+      // Using the locator, connect to WMI in the given namespace
+      if(BSTR Namespace=SysAllocString(L"root\\cimv2"))
       {
-         hr=pDevices[i]->Get(bstrDeviceID, 0L, &var, null, null);
-         if(SUCCEEDED(hr) && var.vt==VT_BSTR && var.bstrVal!=null)
+         IWbemServices *pIWbemServices=null; pIWbemLocator->ConnectServer(Namespace, null, null, null, 0, null, null, &pIWbemServices);
+         if(            pIWbemServices)
          {
-            if(wcsstr(var.bstrVal, L"IG_")) // Check if the device ID contains "IG_".  If it does, then it's an XInput device
+            if(BSTR Win32_PNPEntity=SysAllocString(L"Win32_PNPEntity"))
             {
-               DWORD dwPid=0, dwVid=0; // If it does, then get the VID/PID from var.bstrVal
-            #pragma warning(push)
-            #pragma warning(disable:4996)
-               WCHAR *strVid=wcsstr(var.bstrVal, L"VID_"); if(strVid && swscanf(strVid, L"VID_%4X", &dwVid)!=1)dwVid=0;
-               WCHAR *strPid=wcsstr(var.bstrVal, L"PID_"); if(strPid && swscanf(strPid, L"PID_%4X", &dwPid)!=1)dwPid=0;
-            #pragma warning(pop)
-
-               if(MAKELONG(dwVid, dwPid)==pGuidProductFromDirectInput.Data1) // Compare the VID/PID to the DInput device
+               CoSetProxyBlanket(pIWbemServices, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, null, RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, null, EOAC_NONE); // Switch security level to IMPERSONATE
+               IEnumWbemClassObject *pEnumDevices=null; pIWbemServices->CreateInstanceEnum(Win32_PNPEntity, 0, null, &pEnumDevices);
+               if(                   pEnumDevices)
                {
-                  bIsXinputDevice=true;
-                  goto LCleanup;
+                  if(BSTR DeviceID=SysAllocString(L"DeviceID"))
+                  {
+                     IWbemClassObject *pDevices[16]={0};
+                     for(;;) // Loop over all devices
+                     {
+                        DWORD returned=0; if(!OK(pEnumDevices->Next(10000, Elms(pDevices), pDevices, &returned)) || !returned)break;
+                        FREP( returned) // check each device
+                        {
+                           if(!xinput)
+                           {
+                              VARIANT var; if(OK(pDevices[i]->Get(DeviceID, 0, &var, null, null)))
+                              {
+                                 if(var.vt==VT_BSTR && var.bstrVal!=null && wcsstr(var.bstrVal, L"IG_")) // Check if the device ID contains "IG_". If it does, then it's an XInput device
+                                 {
+                                    DWORD dwPid=0, dwVid=0; // If it does, then get the VID/PID from var.bstrVal
+                                 #pragma warning(push)
+                                 #pragma warning(disable:4996)
+                                    WCHAR *strVid=wcsstr(var.bstrVal, L"VID_"); if(strVid && swscanf(strVid, L"VID_%4X", &dwVid)!=1)dwVid=0;
+                                    WCHAR *strPid=wcsstr(var.bstrVal, L"PID_"); if(strPid && swscanf(strPid, L"PID_%4X", &dwPid)!=1)dwPid=0;
+                                 #pragma warning(pop)
+
+                                    if(MAKELONG(dwVid, dwPid)==pGuidProductFromDirectInput.Data1) // Compare the VID/PID to the DInput device
+                                       xinput=true;
+                                 }
+                                 VariantClear(&var);
+                              }
+                           }
+                           RELEASE(pDevices[i]);
+                        }
+                     }
+                     SysFreeString(DeviceID);
+                  }
+                  pEnumDevices->Release();
                }
+               SysFreeString(Win32_PNPEntity);
             }
-         }   
-         RELEASE(pDevices[i]);
+            pIWbemServices->Release();
+         }
+         SysFreeString(Namespace);
       }
+      pIWbemLocator->Release();
    }
-
-LCleanup:
-   if(bstrNamespace)SysFreeString(bstrNamespace);
-   if(bstrDeviceID )SysFreeString(bstrDeviceID );
-   if(bstrClassName)SysFreeString(bstrClassName);
-   FREPA(pDevices)RELEASE(pDevices[i]);
-   RELEASE(pEnumDevices  );
-   RELEASE(pIWbemLocator );
-   RELEASE(pIWbemServices);
-
-   if(bCleanupCOM)CoUninitialize();
-
-   return bIsXinputDevice;
+   if(cleanupCOM)CoUninitialize();
+   return xinput;
 }
 static BOOL CALLBACK EnumAxes(const DIDEVICEOBJECTINSTANCE *pdidoi, VOID *user)
 {
@@ -488,7 +471,7 @@ static BOOL CALLBACK EnumAxes(const DIDEVICEOBJECTINSTANCE *pdidoi, VOID *user)
 }
 static BOOL CALLBACK EnumJoypads(const DIDEVICEINSTANCE *DIDevInst, void*)
 {
-   if(!IsXInputDevice(DIDevInst->guidProduct)) // x controllers are listed elsewhere
+   if(!IsXInputDevice(DIDevInst->guidProduct)) // X controllers are listed elsewhere
    {
       UInt id=0; ASSERT(SIZE(DIDevInst->guidInstance)==SIZE(UID)); C UID &uid=(UID&)DIDevInst->guidInstance; REPA(uid.i)id^=uid.i[i];
       Bool added; Joypad &joypad=GetJoypad(id, added);
