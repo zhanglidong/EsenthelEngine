@@ -1226,9 +1226,6 @@ static Bool InitSocketEx()
 #else
    signal(SIGPIPE, SIG_IGN); // ignore SIGPIPE signal
    Char8 host[NI_MAXHOST]; if(!gethostname(host, Elms(host)))ComputerName=host;
-#if MAC // Mac can append a suffix ".lan"
-   if(Ends(ComputerName, ".lan"))ComputerName.removeLast(4);
-#endif
    if(!ComputerName.is())ComputerName="localhost";
    #if LINUX
       Socket sock; if(sock.createUdp(true)) // we need this only for Mac Address, prefer IPv6 because it's better

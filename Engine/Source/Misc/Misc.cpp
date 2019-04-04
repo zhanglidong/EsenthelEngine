@@ -2685,6 +2685,7 @@ UID DeviceID(Bool per_user)
      +Cpu.name()+'\n'
      +D.deviceName()+'\n'
      +OSName(OSGroup())+'\n'
+     +GetComputerName()+'\n'
      +DeviceManufacturer()+'\n'
      +DeviceModel()+'\n'
      +DeviceSerialNumber()+'\n'
