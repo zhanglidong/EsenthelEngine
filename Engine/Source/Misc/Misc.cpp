@@ -2712,6 +2712,8 @@ Str8 DeviceSerialNumber()
 {
 #if WINDOWS_OLD
    GetDeviceInfo(); return _DeviceSerialNumber;
+#elif WINDOWS_NEW
+ //return Windows::System::Profile::SystemManufacturers::SmbiosInformation::SerialNumber->Data(); this results in Access Denied crash
 #elif ANDROID
    JNI jni;
    if(jni && ActivityClass)
