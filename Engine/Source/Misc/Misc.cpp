@@ -1156,6 +1156,15 @@ VecI4 OSVerNumber()
       if(GetVersionEx((OSVERSIONINFO*)&v))return VecI4(v.dwMajorVersion, v.dwMinorVersion, 0, 0);
    #endif
 #elif WINDOWS_NEW
+   if(auto ver_str=Windows::System::Profile::AnalyticsInfo::VersionInfo->DeviceFamilyVersion)
+   {
+      ULong  ver=TextULong(WChar(ver_str->Data()));
+      UInt major=(ver&0xFFFF000000000000L)>>48,
+           minor=(ver&0x0000FFFF00000000L)>>32,
+           build=(ver&0x00000000FFFF0000L)>>16,
+        revision=(ver&0x000000000000FFFFL)    ;
+      return VecI4(major, minor, build, revision);
+   }
    return VecI4(10, 0, 0, 0);
 #elif ANDROID
    return VecI4(AndroidSDK, 0, 0, 0);
