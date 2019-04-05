@@ -2678,6 +2678,9 @@ Str DeviceManufacturer()
 {
 #if WINDOWS_OLD
    GetDeviceInfo(); return _DeviceManufacturer;
+#elif WINDOWS_NEW
+   if(Windows::Security::ExchangeActiveSyncProvisioning::EasClientDeviceInformation ^device_info=ref new Windows::Security::ExchangeActiveSyncProvisioning::EasClientDeviceInformation())
+      return device_info->SystemManufacturer->Data();
 #elif APPLE
    return "Apple";
 #elif ANDROID
@@ -2693,6 +2696,9 @@ Str DeviceModel()
 {
 #if WINDOWS_OLD
    GetDeviceInfo(); return _DeviceModel;
+#elif WINDOWS_NEW
+   if(Windows::Security::ExchangeActiveSyncProvisioning::EasClientDeviceInformation ^device_info=ref new Windows::Security::ExchangeActiveSyncProvisioning::EasClientDeviceInformation())
+      return device_info->SystemProductName->Data();
 #elif ANDROID
    JNI jni;
    if(jni && ActivityClass)
@@ -2719,6 +2725,11 @@ UID DeviceUUID()
 {
 #if WINDOWS_OLD
    GetDeviceInfo(); return _DeviceUUID;
+#elif WINDOWS_NEW
+   if(Windows::Security::ExchangeActiveSyncProvisioning::EasClientDeviceInformation ^device_info=ref new Windows::Security::ExchangeActiveSyncProvisioning::EasClientDeviceInformation())
+   {
+      UID id; id.guid()=device_info->Id; return id; // Warning: this is not the same as on WINDOWS_OLD
+   }
 #endif
    return UIDZero;
 }

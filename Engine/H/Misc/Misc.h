@@ -270,9 +270,12 @@ Str       XmlString(C Str &str); // get string as if it would be stored for the 
 Str DecodeXmlString(C Str &str); // decode string back from the                 XML text     (replacing   &amp; -> &   &lt; -> <   &gt; -> >   &apos; -> '   &quot; -> "), for example: DecodeXmlString("abc&quot;def\ghi") -> ("abc"def\ghi")
 
 UID   DeviceID          (Bool per_user); // get a unique ID of this device, 'per_user'=if generate a different ID depending on which user is logged in
-Str   DeviceManufacturer(); // get Device Manufacturer , available only on Android and Apple
-Str   DeviceModel       (); // get Device Model        , available only on Android
-Str8  DeviceSerialNumber(); // get Device Serial Number, available only on Android
+Str   DeviceManufacturer(); // get Device Manufacturer , available only on Windows, Android and Apple
+Str   DeviceModel       (); // get Device Model        , available only on Windows, Android
+Str8  DeviceSerialNumber(); // get Device Serial Number, available only on Windows, Android
+#if EE_PRIVATE
+UID   DeviceUUID        (); // get Device Unique ID    , available only on Windows
+#endif
 ULong AndroidID         (); // get Android ID - https://developer.android.com/reference/android/provider/Settings.Secure.html#ANDROID_ID
 
 Str MicrosoftWindowsStoreLink(C Str &app_id); // return a website link to Microsoft Windows Store page for the specified App ID, 'app_id' example = "9NBLGGH4QC8G"
