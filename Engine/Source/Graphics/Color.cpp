@@ -56,6 +56,7 @@ Vec4 Color::asVec4()C
 }
 StrO Color::asText()C {StrO s; s.reserve(18); s+=r; s+=", "; s+=g; s+=", "; s+=b; s+=", "; s+=a; return s;} // 18 because of 4x"255" + 3x", " = 4*3 + 3*2 = 12 + 6 = 18
 StrO Color::asHex ()C {ASSERT(SIZE(T)==4); return TextHexMem(this, SIZE(T), false);}
+StrO Color::asHex3()C {ASSERT(SIZE(T)==4); return TextHexMem(this,       3, false);}
 
 Bool Color::fromHex(C Str &t)
 {

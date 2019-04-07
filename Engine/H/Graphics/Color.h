@@ -27,6 +27,7 @@ struct Color // 4-Byte Color
 
    Str asText()C; // return as text in following format "r, g, b, a" (using     decimal numbers)
    Str asHex ()C; // return as text in following format "rrggbbaa"   (using hexadecimal numbers)
+   Str asHex3()C; // return as text in following format "rrggbb"     (using hexadecimal numbers)
 
    Bool fromHex(C Str &t); // set from "rrggbbaa" text format (using hexadecimal numbers), false on fail
 
