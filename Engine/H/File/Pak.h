@@ -7,7 +7,7 @@
 /******************************************************************************/
 enum PAK_FILE_FLAG
 {
-   PF_REMOVED =1<<0, // this file is marked as removed, this flag is useful if you're using multiple paks and you want to specify that a file which was in one pak should now no longer exist (for example: having "Data.pak" - base pak of data, "Patch.pak" - pak storing updated files, "Data.pak" has "file.txt", in the "Patch.pak" we want to specify that "file.txt" should no longer exist, to do that, we include a dummy "file.txt" PakFile in the "Patch.pak" with PF_REMOVED enabled, now when loading "Data.pak" followed by "Patch.pak", "file.txt" from "Patch.pak" with PF_REMOVED flag will replace "file.txt" from "Data.pak" making it no longer accessible)
+   PF_REMOVED =1<<0, // this file is marked as removed, this flag is useful if you're using multiple paks and you want to specify that a file which was in one Pak should now no longer exist (for example: having "Data.pak" - base Pak of data, "Patch.pak" - Pak storing updated files, "Data.pak" has "file.txt", in the "Patch.pak" we want to specify that "file.txt" should no longer exist, to do that, we include a dummy "file.txt" PakFile in the "Patch.pak" with PF_REMOVED enabled, now when loading "Data.pak" followed by "Patch.pak", "file.txt" from "Patch.pak" with PF_REMOVED flag will replace "file.txt" from "Data.pak" making it no longer accessible)
    PF_STD_DIR =1<<1, // this file was originally created from a standard directory (not a file)
    PF_STD_LINK=1<<2, // this file was originally created from a symbolic link
 };
@@ -22,7 +22,7 @@ struct PakFile // Single File stored in Pak
    ULong         data_offset         ; // offset      of data     in Pak
    UInt          data_size           , // size        of data
                  data_size_compressed, // size        of data after compression (if this file is not compressed, then this member is equal to 'data_size')
-                 data_xxHash64_32    ; // xxHash64_32 of data, this member is set to 0 if PAK_SET_HASH was not enabled during pak creation
+                 data_xxHash64_32    ; // xxHash64_32 of data, this member is set to 0 if PAK_SET_HASH was not enabled during Pak creation
    DateTime      modify_time_utc     ; // file modification time (UTC time zone)
 
    FSTD_TYPE type()C {return (flag&PF_STD_DIR) ? FSTD_DIR : (flag&PF_STD_LINK) ? FSTD_LINK : FSTD_FILE;} // get type of the file
@@ -36,8 +36,8 @@ enum PAK_FLAG // Pak Creation Flags
 {
    PAK_SHORTEN =1<<0, // when packing only one directory "xxx", files inside it won't be stored in "xxx\*.*" but in root "*.*"
    PAK_NO_DATA =1<<1, // store only file names without their data
-   PAK_NO_FILE =1<<2, // don't create output pak file, but only set Pak class members
-   PAK_SET_HASH=1<<3, // calculate the hash member for each pak file, if not enabled then the hash will be set to zero (hash calculation requires additional processing and slows down creation of paks)
+   PAK_NO_FILE =1<<2, // don't create output Pak file, but only set Pak class members
+   PAK_SET_HASH=1<<3, // calculate the hash member for each Pak file, if not enabled then the hash will be set to zero (hash calculation requires additional processing and slows down creation of paks)
 };
 enum PAK_LOAD // Pak Load result
 {
@@ -51,11 +51,11 @@ enum PAK_LOAD // Pak Load result
 struct Pak // Set of Pak Files
 {
    // load
-   void operator=(              C Str &name                                              ); // load pak from file  , Exit  on fail
-   Bool load     (              C Str &name          , const_mem_addr Cipher *cipher=null); // load pak from file  , false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
-   Bool loadMem  (const_mem_addr CPtr  data, Int size, const_mem_addr Cipher *cipher=null); // load pak from memory, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), 'data' must point to a constant memory address (only pointer is stored through which the data can be later accessed)
+   void operator=(              C Str &name                                              ); // load Pak from file  , Exit  on fail
+   Bool load     (              C Str &name          , const_mem_addr Cipher *cipher=null); // load Pak from file  , false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
+   Bool loadMem  (const_mem_addr CPtr  data, Int size, const_mem_addr Cipher *cipher=null); // load Pak from memory, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), 'data' must point to a constant memory address (only pointer is stored through which the data can be later accessed)
 
-   PAK_LOAD loadEx(C Str &name, const_mem_addr Cipher *cipher=null, Long pak_offset=0, Long *expected_size=null, Long *actual_size=null); // load pak from file, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), 'pak_offset'=offset of PAK data inside the file, 'expected_size'=expected size of the PAK file, 'actual_size'=actual size of the PAK file
+   PAK_LOAD loadEx(C Str &name, const_mem_addr Cipher *cipher=null, Long pak_offset=0, Long *expected_size=null, Long *actual_size=null); // load Pak from file, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), 'pak_offset'=offset of PAK data inside the file, 'expected_size'=expected size of the PAK file, 'actual_size'=actual size of the PAK file
 
    // get
    Int        rootFiles(     )C {return _root_files  ;} // get number of files in root directory, they are stored first in the 'files' array
@@ -75,16 +75,16 @@ struct Pak // Set of Pak Files
    Pak& pakFileName(C Str &name);                      // manually adjust the Pak file name in case the file was moved
 
    // create from files and save to disk
-   Bool create(C Str                 &file , C Str &pak_name=S, UInt flag=PAK_SHORTEN, Cipher *dest_cipher=null, Cipher *src_cipher=null, COMPRESS_TYPE compress=COMPRESS_NONE, Int compression_level=9, Bool (*filter)(C Str &name)=null, Str *error_message=null, PakProgress *progress=null); // create pak, 'file '=single  file/directory      , 'pak_name'=pak file name to save to, 'flag'=PAK_FLAG                                                                 , 'compression_level'=0..CompressionLevels(compress) (0=fastest/worst, ..=slowest/best), false on fail, 'filter'=optional pointer to custom callback function which will receive information about encountered files and folders (their name) for which it should return true if the element should be included in the Pak and false if not included (if 'filter' is null then all encountered files/folders will be included), 'error_message'=will contain a message what went wrong upon error, 'progress'=optional parameter allowing to control creation from secondary thread
-   Bool create(C MemPtr<Str        > &files, C Str &pak_name=S, UInt flag=PAK_SHORTEN, Cipher *dest_cipher=null, Cipher *src_cipher=null, COMPRESS_TYPE compress=COMPRESS_NONE, Int compression_level=9, Bool (*filter)(C Str &name)=null, Str *error_message=null, PakProgress *progress=null); // create pak, 'files'=list of file/directories    , 'pak_name'=pak file name to save to, 'flag'=PAK_FLAG, all elements listed in 'files' must be located in the same path, 'compression_level'=0..CompressionLevels(compress) (0=fastest/worst, ..=slowest/best), false on fail, 'filter'=optional pointer to custom callback function which will receive information about encountered files and folders (their name) for which it should return true if the element should be included in the Pak and false if not included (if 'filter' is null then all encountered files/folders will be included), 'error_message'=will contain a message what went wrong upon error, 'progress'=optional parameter allowing to control creation from secondary thread
-   Bool create(C MemPtr<PakNode    > &files, C Str &pak_name  , UInt flag=          0, Cipher *dest_cipher=null                         , COMPRESS_TYPE compress=COMPRESS_NONE, Int compression_level=9                                  , Str *error_message=null, PakProgress *progress=null); // create pak, 'files'=list of file/directory nodes, 'pak_name'=pak file name to save to, 'flag'=PAK_FLAG                                                                 , 'compression_level'=0..CompressionLevels(compress) (0=fastest/worst, ..=slowest/best), false on fail                                                                                                                                                                                                                                                                                                                        , 'error_message'=will contain a message what went wrong upon error, 'progress'=optional parameter allowing to control creation from secondary thread
-   Bool create(C MemPtr<PakFileData> &files, C Str &pak_name  , UInt flag=          0, Cipher *dest_cipher=null                         , COMPRESS_TYPE compress=COMPRESS_NONE, Int compression_level=9                                  , Str *error_message=null, PakProgress *progress=null); // create pak, 'files'=list of file/directory data , 'pak_name'=pak file name to save to, 'flag'=PAK_FLAG                                                                 , 'compression_level'=0..CompressionLevels(compress) (0=fastest/worst, ..=slowest/best), false on fail                                                                                                                                                                                                                                                                                                                        , 'error_message'=will contain a message what went wrong upon error, 'progress'=optional parameter allowing to control creation from secondary thread
+   Bool create(C Str                 &file , C Str &pak_name=S, UInt flag=PAK_SHORTEN, Cipher *dest_cipher=null, Cipher *src_cipher=null, COMPRESS_TYPE compress=COMPRESS_NONE, Int compression_level=9, Bool (*filter)(C Str &name)=null, Str *error_message=null, PakProgress *progress=null); // create Pak, 'file '=single  file/directory      , 'pak_name'=Pak file name to save to, 'flag'=PAK_FLAG                                                                 , 'compression_level'=0..CompressionLevels(compress) (0=fastest/worst, ..=slowest/best), false on fail, 'filter'=optional pointer to custom callback function which will receive information about encountered files and folders (their name) for which it should return true if the element should be included in the Pak and false if not included (if 'filter' is null then all encountered files/folders will be included), 'error_message'=will contain a message what went wrong upon error, 'progress'=optional parameter allowing to control creation from secondary thread
+   Bool create(C MemPtr<Str        > &files, C Str &pak_name=S, UInt flag=PAK_SHORTEN, Cipher *dest_cipher=null, Cipher *src_cipher=null, COMPRESS_TYPE compress=COMPRESS_NONE, Int compression_level=9, Bool (*filter)(C Str &name)=null, Str *error_message=null, PakProgress *progress=null); // create Pak, 'files'=list of file/directories    , 'pak_name'=Pak file name to save to, 'flag'=PAK_FLAG, all elements listed in 'files' must be located in the same path, 'compression_level'=0..CompressionLevels(compress) (0=fastest/worst, ..=slowest/best), false on fail, 'filter'=optional pointer to custom callback function which will receive information about encountered files and folders (their name) for which it should return true if the element should be included in the Pak and false if not included (if 'filter' is null then all encountered files/folders will be included), 'error_message'=will contain a message what went wrong upon error, 'progress'=optional parameter allowing to control creation from secondary thread
+   Bool create(C MemPtr<PakNode    > &files, C Str &pak_name  , UInt flag=          0, Cipher *dest_cipher=null                         , COMPRESS_TYPE compress=COMPRESS_NONE, Int compression_level=9                                  , Str *error_message=null, PakProgress *progress=null); // create Pak, 'files'=list of file/directory nodes, 'pak_name'=Pak file name to save to, 'flag'=PAK_FLAG                                                                 , 'compression_level'=0..CompressionLevels(compress) (0=fastest/worst, ..=slowest/best), false on fail                                                                                                                                                                                                                                                                                                                        , 'error_message'=will contain a message what went wrong upon error, 'progress'=optional parameter allowing to control creation from secondary thread
+   Bool create(C MemPtr<PakFileData> &files, C Str &pak_name  , UInt flag=          0, Cipher *dest_cipher=null                         , COMPRESS_TYPE compress=COMPRESS_NONE, Int compression_level=9                                  , Str *error_message=null, PakProgress *progress=null); // create Pak, 'files'=list of file/directory data , 'pak_name'=Pak file name to save to, 'flag'=PAK_FLAG                                                                 , 'compression_level'=0..CompressionLevels(compress) (0=fastest/worst, ..=slowest/best), false on fail                                                                                                                                                                                                                                                                                                                        , 'error_message'=will contain a message what went wrong upon error, 'progress'=optional parameter allowing to control creation from secondary thread
 #if EE_PRIVATE
    Bool create(C Mems<C PakFileData*> &files, C Str &pak_name , UInt flag            , Cipher *dest_cipher                              , COMPRESS_TYPE compress              , Int compression_level                                    , Str *error_message=null, PakProgress *progress=null);
 #endif
 
    // io
-   Bool saveHeader(File &f)C; // save pak header (information about files, without their data), false on fail
+   Bool saveHeader(File &f)C; // save Pak header (information about files, without their data), false on fail
 
    Pak&   del(); // delete manually
   ~Pak() {del();}
@@ -107,7 +107,7 @@ private:
 #if EE_PRIVATE
    void     zero      ();
    PAK_LOAD loadHeader(File &f, Long *expected_size=null, Long *actual_size=null); // load just the header, access to data will not be available by using this method
-   PAK_LOAD loadMemEx (const_mem_addr CPtr data, Int size, const_mem_addr Cipher *cipher=null, Long *expected_size=null, Long *actual_size=null); // load pak from memory, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), 'data' must point to a constant memory address (only pointer is stored through which the data can be later accessed)
+   PAK_LOAD loadMemEx (const_mem_addr CPtr data, Int size, const_mem_addr Cipher *cipher=null, Long *expected_size=null, Long *actual_size=null); // load Pak from memory, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), 'data' must point to a constant memory address (only pointer is stored through which the data can be later accessed)
 #endif
    NO_COPY_CONSTRUCTOR(Pak);
 };
@@ -117,8 +117,8 @@ private:
 struct PaksFile // Single file stored in PakSet
 {
    Pak     *pak            ; // Pak to which file belongs to
- C PakFile *file           ; // pointer to pak file
-   Int      children_offset, // offset of children in PakSet.file
+ C PakFile *file           ; // pointer to Pak file
+   Int      children_offset, // offset of children in 'PakSet.file'
             children_num   ; // number of children
 
    Str fullName()C; // get file full name (path + name)
@@ -152,7 +152,7 @@ struct PakSet // set of Pak's combined together with all their PakFile's combine
    PakSet& addMem   (const_mem_addr CPtr  data, Int size, const_mem_addr Cipher *cipher=null, Bool auto_rebuild=true); // add Pak from memory, 'auto_rebuild'=if automatically call the 'rebuild' method, Exit  on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), 'data' must point to a constant memory address (only pointer is stored through which the data can be later accessed)
    Bool    remove   (              C Str &name                                                                      ); // remove previously added "Pak from file"  , true is returned if Pak was found and removed, false if it was not found, this method always calls 'rebuild' upon success
    Bool    removeMem(               CPtr  data                                                                      ); // remove previously added "Pak from memory", true is returned if Pak was found and removed, false if it was not found, this method always calls 'rebuild' upon success
-   void    rebuild  (                                                                                               ); // rebuild pak files database from loaded Pak's, this needs to be called once after adding new Pak's
+   void    rebuild  (                                                                                               ); // rebuild Pak files database from loaded Pak's, this needs to be called once after adding new Pak's
 
    PakSet& del(); // delete manually
    PakSet();
@@ -170,14 +170,14 @@ private:
    Meml<Src>      _paks;
    Memc<PaksFile> _files;
 }extern
-   Paks; // this is the global pak set which is automatically used when opening files
+   Paks; // this is the global Pak set which is automatically used when opening files
 /******************************************************************************/
 // PAK CREATE
 /******************************************************************************/
-struct PakProgress // class that can be optionally passed to Pak creation functions to get extra control over that process (for example on one thread you can call Pak create function with this class object as the parameter, then on secondary thread you can access that object and read the 'progress' or enable 'stop' to break pak creation)
+struct PakProgress // class that can be optionally passed to Pak creation functions to get extra control over that process (for example on one thread you can call Pak create function with this class object as the parameter, then on secondary thread you can access that object and read the 'progress' or enable 'stop' to break Pak creation)
 {
-   Bool stop    ; // set this to 'true' on secondary thread to break pak creation, default=false
-   Flt  progress; // current progress of pak creation, 0..1, pak creation functions will modify this value according to the progress, default=0
+   Bool stop    ; // set this to 'true' on secondary thread to break Pak creation, default=false
+   Flt  progress; // current progress of Pak creation, 0..1, Pak creation functions will modify this value according to the progress, default=0
 
    PakProgress&   reset() {stop=false; progress=0; return T;} // reset members to initial values
    PakProgress() {reset();}
