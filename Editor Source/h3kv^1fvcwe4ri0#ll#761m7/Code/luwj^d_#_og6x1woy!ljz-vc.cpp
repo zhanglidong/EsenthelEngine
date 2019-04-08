@@ -1,10 +1,9 @@
 /******************************************************************************/
 class UpdaterClass
 {
-   static cchar8 *TutorialsProjID="541oob6a_h_5el6-6!zan_50";
+   static cchar8   *TutorialsProjID="541oob6a_h_5el6-6!zan_50";
    static const int MaxDownloadAttempts=3;
-
-   static bool CreateFailedDownload(int &failed, C Str &file, ptr user) {failed=0; return true;}
+   static bool      CreateFailedDownload(int &failed, C Str &file, ptr user) {failed=0; return true;}
 
    bool    ready=false, show=false, has_update=false;
    Thread  thread;
@@ -12,7 +11,6 @@ class UpdaterClass
    Str     path, update_path;
    Memc<Patcher.LocalFile> local_files;
    Memc<int>               local_remove;
-   Map<Str, int>           failed_download(ComparePathCI, CreateFailedDownload); // doesn't need to be thread-safe
 
    static FILE_LIST_MODE Filter(C FileFind &ff, UpdaterClass &updater)
    {
@@ -27,8 +25,8 @@ class UpdaterClass
       ||  rel=="Esenthel Old.exe.bat" // used by 'App.deleteSelfAtExit'
       ||  rel=="Esenthel Old.app"
       ||  rel=="Esenthel Old"
-      ||  rel=="Bin/Store.dat"
-      ||  rel=="Bin/Code Editor.font"
+      ||  EqualPath(rel, "Bin/Store.dat")
+      ||  EqualPath(rel, "Bin/Code Editor.font")
       ||  EqualPath(rel, "Bin/Update"))return FILE_LIST_SKIP; // skip these elements
 
       if(StartsPath(rel, "Projects"))
@@ -71,7 +69,7 @@ class UpdaterClass
          if(C Pak *pak=patcher.index())
             REPA(local_remove) // iterate all files for removal
       {
-         C Str &name=local_files[local_remove[i]].full_name;
+       C Str &name=local_files[local_remove[i]].full_name;
          if(!pak.find(name))if(FExistSystem(path+name))return true; // if a file is not present on the server but exists locally
       }
       has_update=false; FList(update_path, HasUpdate, T); // check if there are any files to update (except "Tutorials" project)
@@ -100,7 +98,6 @@ class UpdaterClass
    #else 
       #error unknown platform
    #endif
-      failed_download.clear();
       patcher.create("http://esenthel.com/download/Patcher", upload_name);
       patcher.downloadIndex();
 
@@ -136,6 +133,7 @@ class UpdaterClass
 
       // download files
       bool ok=true;
+      Map<Str, int> failed_download(ComparePathCI, CreateFailedDownload); // doesn't need to be thread-safe, this is a list of files that failed to download (how many times)
       for(; ; )
       {
          if(thread.wantStop()){patcher.del(); return false;}
@@ -195,7 +193,7 @@ class UpdaterClass
       #if DEBUG
          if(ForceInstaller>=-1)
       #endif
-            thread.create(Update, this);
+            thread.create(Update, this, 0, false, "Update");
    #endif
    }
    void del()
@@ -365,7 +363,7 @@ void DrawUpdate()
 {
    D.clear(BackgroundColor());
    Gui.draw();
-   D.text(Rect(-D.w(), -D.h(), D.w(), D.h()), UpdateMessage);
+   D.text(D.rect(), UpdateMessage);
 }
 /******************************************************************************/
 State    StateInstall(UpdateInstall, DrawInstall, InitInstall, ShutInstall);

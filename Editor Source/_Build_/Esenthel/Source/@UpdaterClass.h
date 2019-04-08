@@ -2,10 +2,9 @@
 /******************************************************************************/
 class UpdaterClass
 {
-   static cchar8 *TutorialsProjID;
+   static cchar8   *TutorialsProjID;
    static const int MaxDownloadAttempts;
-
-   static bool CreateFailedDownload(int &failed, C Str &file, ptr user);
+   static bool      CreateFailedDownload(int &failed, C Str &file, ptr user);
 
    bool    ready, show, has_update;
    Thread  thread;
@@ -13,7 +12,6 @@ class UpdaterClass
    Str     path, update_path;
    Memc<Patcher::LocalFile> local_files;
    Memc<int>               local_remove;
-   Map<Str, int>           failed_download; // doesn't need to be thread-safe
 
    static FILE_LIST_MODE Filter(C FileFind &ff, UpdaterClass &updater);
    static FILE_LIST_MODE FilterUpdate(C FileFind &ff, UpdaterClass &updater);
