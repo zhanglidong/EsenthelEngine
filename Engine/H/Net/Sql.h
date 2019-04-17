@@ -101,11 +101,12 @@ struct SQL
       Bool flush(Str *messages=null, Int *error=null); // stop   buffered mode (commit transaction), false on fail
 
       // tables
-      Bool    getTables(MemPtr<Str> table_names,                               Str *messages=null, Int *error=null); // get    a list of all table names   in the database, false on fail
-      Bool    delTable (C Str      &table_name                               , Str *messages=null, Int *error=null); // delete a 'table_name' table from      the database, false on fail
-      Bool createTable (C Str      &table_name , C MemPtr<SQLColumn> &columns, Str *messages=null, Int *error=null); // create a 'table_name' table in        the database, false on fail
-      Bool appendTable (C Str      &table_name , C MemPtr<SQLColumn> &columns, Str *messages=null, Int *error=null); // append a 'table_name' table in        the database, false on fail, this method works by adding new 'columns' to an existing table
-      Bool existsTable (C Str      &table_name                               , Str *messages=null, Int *error=null); // check if 'table_name' table exists in the database, false on fail
+      Bool    getTables   (MemPtr<Str> table_names,                               Str *messages=null, Int *error=null); // get    a list of all  table names     in the database, false on fail
+      Bool    delTable    (C Str      &table_name                               , Str *messages=null, Int *error=null); // delete a 'table_name' table         from the database, false on fail
+      Bool createTable    (C Str      &table_name , C MemPtr<SQLColumn> &columns, Str *messages=null, Int *error=null); // create a 'table_name' table           in the database, false on fail
+      Bool appendTable    (C Str      &table_name , C MemPtr<SQLColumn> &columns, Str *messages=null, Int *error=null); // append a 'table_name' table           in the database, false on fail, this method works by adding new 'columns' to an existing table
+      Bool    delTableCols(C Str      &table_name , C MemPtr<Str      > &columns, Str *messages=null, Int *error=null); // delete   'table_name' table 'columns' in the database, false on fail
+      Bool existsTable    (C Str      &table_name                               , Str *messages=null, Int *error=null); // check if 'table_name' table exists    in the database, false on fail
    #if EE_PRIVATE
       Bool createTableIndexes(C Str &table_name, C MemPtr<SQLColumn> &columns, Str *messages, Str &cmd);
    #endif

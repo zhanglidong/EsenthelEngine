@@ -483,8 +483,8 @@ Bool SQL::createTableIndexes(C Str &table_name, C MemPtr<SQLColumn> &columns, St
                   ok=false;
                   if(messages)
                   {
-                     messages->line()+=S+"Can't create INDEX for column: "+col.name;
-                     if(temp.is()){*messages+='\n'; *messages+=temp;}
+                     messages->line()+=S+"Can't create INDEX for column \""+col.name+'"';
+                     if(temp.is()){*messages+=": "; *messages+=temp;}
                   }
                }
             }
@@ -511,15 +511,67 @@ Bool SQL::appendTable(C Str &table_name, C MemPtr<SQLColumn> &columns, Str *mess
 {
    if(messages)messages->clear();
    if(error   )*error=0;
-   if(columns.elms())
+   if(columns.elms())switch(_type)
    {
-      Str cmd=S+"ALTER TABLE "+name(table_name)+" ADD ", desc;
-      FREPA(columns){if(i)cmd+=", "; if(!colDesc(columns[i], desc, messages))return false; cmd+=desc;}
-      return command(cmd, messages, error) && createTableIndexes(table_name, columns, messages, cmd);
+      case SQLITE:
+      {
+         Bool ok=true;
+         Str  cmd, desc, temp;
+         FREPA(columns)
+         {
+          C SQLColumn &col=columns[i];
+            cmd=S+"ALTER TABLE "+name(table_name)+" ADD ";
+            if(colDesc(col, desc, messages ? &temp : null))
+            {
+               cmd+=desc;
+               if(command(cmd, messages ? &temp : null))
+               {
+                  if(!createTableIndexes(table_name, ConstCast(col), messages, cmd))ok=false;
+               }else goto error;
+            }else
+            {
+            error:;
+               ok=false;
+               if(messages)
+               {
+                  messages->line()+=S+"Can't add column \""+col.name+'"';
+                  if(temp.is()){*messages+=": "; *messages+=temp;}
+               }
+            }
+         }
+         return ok;
+      }break;
+
+      default:
+      {
+         Bool separate=(_type!=MSSQL);
+         Str  cmd=S+"ALTER TABLE "+name(table_name), desc; if(!separate)cmd+=" ADD ";
+         FREPA(columns){if(i)cmd+=", "; if(separate)cmd+=" ADD "; if(!colDesc(columns[i], desc, messages))return false; cmd+=desc;}
+         return command(cmd, messages, error) && createTableIndexes(table_name, columns, messages, cmd);
+      }break;
    }
    return true;
- //if(del_cols.elms())cmd+="DROP COLUMN "; FREPA(del_cols){if(i)cmd+=", "; cmd+=S+'['+del_cols[i]+']';}
- //FREPA(modify_cols)cmd+=S+"ALTER TABLE "+name(table_name)+" ALTER COLUMN "+colDesc(modify_cols[i])+" ;\n";
+}
+Bool SQL::delTableCols(C Str &table_name, C MemPtr<Str> &columns, Str *messages, Int *error)
+{
+   if(messages)messages->clear();
+   if(error   )*error=0;
+   if(columns.elms())switch(_type)
+   {
+      case SQLITE:
+      {
+         if(messages)*messages="SQLite does not support deleting table columns, please re-create the table without unwanted columns.";
+      }return false;
+
+      default:
+      {
+         Bool separate=(_type!=MSSQL);
+         Str  cmd=S+"ALTER TABLE "+name(table_name); if(!separate)cmd+=" DROP COLUMN ";
+         FREPA(columns){if(i)cmd+=", "; if(separate)cmd+=" DROP COLUMN "; cmd+=name(columns[i]);}
+         return command(cmd, messages, error);
+      }break;
+   }
+   return true;
 }
 Bool SQL::existsTable(C Str &table_name, Str *messages, Int *error)
 {
