@@ -18,6 +18,7 @@ del "Release Universal\*.xml"
 del "Release Universal\*.txt"
 del "Release Universal\SQLite\*.pri"
 rmdir /s /q "Release Universal\sqlite.tlog"
+rmdir /s /q "Release Universal\embed"
 
 del x64\Release\*.obj
 del x64\Release\*.log
@@ -32,6 +33,7 @@ del "x64\Release Universal\*.xml"
 del "x64\Release Universal\*.txt"
 del "x64\Release Universal\SQLite\*.pri"
 rmdir /s /q "x64\Release Universal\sqlite.tlog"
+rmdir /s /q "x64\Release Universal\embed"
 
 del "ARM\Release Universal\*.obj"
 del "ARM\Release Universal\*.log"
@@ -42,7 +44,9 @@ del "ARM\Release Universal\*.xml"
 del "ARM\Release Universal\*.txt"
 del "ARM\Release Universal\SQLite\*.pri"
 rmdir /s /q "ARM\Release Universal\sqlite.tlog"
+rmdir /s /q "ARM\Release Universal\embed"
 
 del Emscripten\Release\*.o
+del Emscripten\Release\*.log
 del Emscripten\Release\*.tlog
 del Emscripten\Release\*.lastbuildstate
