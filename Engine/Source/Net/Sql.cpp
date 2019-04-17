@@ -102,16 +102,16 @@ Bool SQL::connectODBC(C Str &server_name, C Str &database, C Str &user, C Str &p
    {
       case MSSQL: params+=S+"Trusted_Connection=Yes;UID="+user+";PWD="+password+";"; break;
       case MYSQL: params+=S+"User="+user+";Password="+password+";"; break;
-      case PGSQL: params+=S+"Port="+port+";UID="+user+";PWD="+password+";"; break;
+      case PGSQL: params+=S+"UID="+user+";PWD="+password+";"; if(port>=0)params+=S+"Port="+port+';'; break;
    }
 #else
    Str params;
 #endif
    return connectODBC(params, messages, error, sql_type);
 }
-Bool SQL::connectMSSQL(C Str &server_name, C Str &database, C Str &user, C Str &password, Str *messages, Int *error                                    ) {return connectODBC(server_name, database, user, password, messages, error,    0, "SQL Server"     , MSSQL);}
-Bool SQL::connectMySQL(C Str &server_name, C Str &database, C Str &user, C Str &password, Str *messages, Int *error,           C Str &mysql_driver_name) {return connectODBC(server_name, database, user, password, messages, error,    0, mysql_driver_name, MYSQL);}
-Bool SQL::connectPgSQL(C Str &server_name, C Str &database, C Str &user, C Str &password, Str *messages, Int *error, Int port, C Str &pgsql_driver_name) {return connectODBC(server_name, database, user, password, messages, error, port, pgsql_driver_name, PGSQL);}
+Bool SQL::connectMSSQL(C Str &server_name, C Str &database, C Str &user, C Str &password, Str *messages, Int *error                          ) {return connectODBC(server_name, database, user, password, messages, error, -1, "SQL Server"     , MSSQL);}
+Bool SQL::connectMySQL(C Str &server_name, C Str &database, C Str &user, C Str &password, Str *messages, Int *error, C Str &mysql_driver_name) {return connectODBC(server_name, database, user, password, messages, error, -1, mysql_driver_name, MYSQL);}
+Bool SQL::connectPgSQL(C Str &server_name, C Str &database, C Str &user, C Str &password, Str *messages, Int *error, C Str &pgsql_driver_name) {return connectODBC(server_name, database, user, password, messages, error, -1, pgsql_driver_name, PGSQL);}
 
 Bool SQL::dsnConnectMSSQL(C Str &dsn, Str *messages, Int *error) {return connectODBC(S+"DSN="+dsn+";", messages, error, MSSQL);}
 Bool SQL::dsnConnectMySQL(C Str &dsn, Str *messages, Int *error) {return connectODBC(S+"DSN="+dsn+";", messages, error, MYSQL);}
@@ -164,12 +164,12 @@ Bool SQL::command(C Str &command, Str *messages, Int *error)
    #if SUPPORT_SQLITE
       case SQLITE:
       {
-        _rows_pos=-1;
-        _rows.clear();
-        _cols.clear();
          if(_sqlite)
          {
             SQLiteMutexEnter((sqlite3*&)_sqlite);
+           _rows_pos=-1;
+           _rows.clear();
+           _cols.clear();
             sqlite3_stmt *stmt=null;
             Bool ok=(sqlite3_prepare16_v2((sqlite3*&)_sqlite, command(), -1, &stmt, null)==SQLITE_OK);
             if(ok && stmt)
@@ -415,11 +415,35 @@ Bool SQL::commandExecute(Str *messages, Int *error)
    if(messages)*messages="SQL not connected"; return false;
 }
 /******************************************************************************/
+Bool SQL::begin(Str *messages, Int *error)
+{
+   CChar8 *cmd; switch(_type)
+   {
+      default    : if(messages)*messages="SQL not connected"; if(error)*error=0; return false;
+      case MSSQL : cmd="BEGIN TRANSACTION"; break;
+      case MYSQL : cmd="BEGIN"; break;
+      case PGSQL : cmd="BEGIN"; break;
+      case SQLITE: cmd="BEGIN"; break;
+   }
+   return command(cmd, messages, error);
+}
+Bool SQL::flush(Str *messages, Int *error)
+{
+   CChar8 *cmd; switch(_type)
+   {
+      default    : if(messages)*messages="SQL not connected"; if(error)*error=0; return false;
+      case MSSQL : cmd="COMMIT TRANSACTION"; break;
+      case MYSQL : cmd="COMMIT"; break;
+      case PGSQL : cmd="COMMIT"; break;
+      case SQLITE: cmd="COMMIT"; break;
+   }
+   return command(cmd, messages, error);
+}
+/******************************************************************************/
 Bool SQL::getTables(MemPtr<Str> table_names, Str *messages, Int *error)
 {
    table_names.clear();
-   CChar8 *cmd=null;
-   switch(_type)
+   CChar8 *cmd; switch(_type)
    {
       default    : if(messages)*messages="SQL not connected"; if(error)*error=0; return false;
       case MSSQL : cmd="SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES"; break; // "INFORMATION_SCHEMA.TABLES" has 4 columns
@@ -440,6 +464,35 @@ Bool SQL::delTable(C Str &table_name, Str *messages, Int *error)
 {
    return command(S+"DROP TABLE "+name(table_name), messages, error);
 }
+Bool SQL::createTableIndexes(C Str &table_name, C MemPtr<SQLColumn> &columns, Str *messages, Str &cmd)
+{
+   Bool ok=true;
+   switch(_type)
+   {
+      case PGSQL :
+      case SQLITE:
+      {
+         Str temp;
+         FREPA(columns)
+         {
+          C SQLColumn &col=columns[i]; if(col.mode==SQLColumn::INDEX)
+            {
+               cmd="CREATE INDEX "; cmd+=name(table_name+"_|_"+col.name); cmd+=" ON "; cmd+=name(table_name); cmd+=" ("; cmd+=name(col.name); cmd+=')'; // need to include table name in the index name for both PGSQL and SQLITE, because without it, then creating INDEX would fail for "table" table with "id" column and "table1" table with "id" column
+               if(!command(cmd, messages ? &temp : null))
+               {
+                  ok=false;
+                  if(messages)
+                  {
+                     messages->line()+=S+"Can't create INDEX for column: "+col.name;
+                     if(temp.is()){*messages+='\n'; *messages+=temp;}
+                  }
+               }
+            }
+         }
+      }break;
+   }
+   return ok;
+}
 Bool SQL::createTable(C Str &table_name, C MemPtr<SQLColumn> &columns, Str *messages, Int *error)
 {
    if(messages)messages->clear();
@@ -452,7 +505,7 @@ Bool SQL::createTable(C Str &table_name, C MemPtr<SQLColumn> &columns, Str *mess
    Str cmd=S+"CREATE TABLE "+name(table_name)+" (", desc;
    FREPA(columns){if(i)cmd+=", "; if(!colDesc(columns[i], desc, messages))return false; cmd+=desc;}
    cmd+=')';
-   return command(cmd, messages, error);
+   return command(cmd, messages, error) && createTableIndexes(table_name, columns, messages, cmd);
 }
 Bool SQL::appendTable(C Str &table_name, C MemPtr<SQLColumn> &columns, Str *messages, Int *error)
 {
@@ -462,7 +515,7 @@ Bool SQL::appendTable(C Str &table_name, C MemPtr<SQLColumn> &columns, Str *mess
    {
       Str cmd=S+"ALTER TABLE "+name(table_name)+" ADD ", desc;
       FREPA(columns){if(i)cmd+=", "; if(!colDesc(columns[i], desc, messages))return false; cmd+=desc;}
-      return command(cmd, messages, error);
+      return command(cmd, messages, error) && createTableIndexes(table_name, columns, messages, cmd);
    }
    return true;
  //if(del_cols.elms())cmd+="DROP COLUMN "; FREPA(del_cols){if(i)cmd+=", "; cmd+=S+'['+del_cols[i]+']';}
@@ -1387,6 +1440,7 @@ Bool SQL::colDesc(C SQLColumn &col, Str &desc, Str *messages)
          }
          switch(col.mode)
          {
+            case SQLColumn::INDEX       : desc+=S+"INDEX "+name(col.name)+' '; break;
             case SQLColumn::UNIQUE      : desc+="UNIQUE "; break;
             case SQLColumn::PRIMARY     : desc+="PRIMARY KEY "; break;
             case SQLColumn::PRIMARY_AUTO: desc+="PRIMARY KEY IDENTITY(0,1) "; break;
@@ -1411,7 +1465,12 @@ Bool SQL::colDesc(C SQLColumn &col, Str &desc, Str *messages)
             case SDT_BINARY   : desc+=((col.binary_size<=0) ? "LONGBLOB "                    : S+ "BINARY("+col.binary_size+") "                   ); break;
             default           : if(messages)*messages=S+"Can't create table with column \""+col.name+"\" of UNKNOWN type"; return false;
          }
-         if(col.mode==SQLColumn::PRIMARY_AUTO)desc+="AUTO_INCREMENT ";
+         switch(col.mode)
+         {
+            case SQLColumn::UNIQUE      : desc+="UNIQUE "; break;
+            case SQLColumn::PRIMARY     : desc+="PRIMARY KEY "; break;
+            case SQLColumn::PRIMARY_AUTO: desc+="AUTO_INCREMENT PRIMARY KEY "; break;
+         }
       }break;
 
       case PGSQL:
@@ -1442,8 +1501,8 @@ Bool SQL::colDesc(C SQLColumn &col, Str &desc, Str *messages)
          }
          switch(col.mode)
          {
-            case SQLColumn::PRIMARY: desc+=S+"PRIMARY KEY "; break;
-            case SQLColumn::UNIQUE : desc+=S+"UNIQUE "; break;
+            case SQLColumn::UNIQUE : desc+="UNIQUE "; break;
+            case SQLColumn::PRIMARY: desc+="PRIMARY KEY "; break;
          }
       }break;
 
@@ -1484,10 +1543,12 @@ Bool SQL::colDesc(C SQLColumn &col, Str &desc, Str *messages)
          desc+="DEFAULT "; desc+=col.default_val;
       }
    }
-   if(_type==MYSQL)
+   switch(_type)
    {
-      if(col.mode==SQLColumn::PRIMARY || col.mode==SQLColumn::PRIMARY_AUTO)desc+=S+", PRIMARY KEY ("+name(col.name          )+")";
-      if(col.mode!=SQLColumn::DEFAULT                                     )desc+=S+", UNIQUE INDEX "+name(col.name+"_UNIQUE")+" ("+name(col.name)+" ASC)";
+      case MYSQL:
+      {
+         if(col.mode==SQLColumn::INDEX)desc+=S+", INDEX "+name(col.name)+" ("+name(col.name)+')';
+      }break;
    }
    return true;
 }

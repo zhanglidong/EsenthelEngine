@@ -36,6 +36,7 @@ struct SQLColumn // SQL Column definition, use this for creating new tables in a
    enum MODE : Byte
    {
       DEFAULT     , // default mode for most of the columns
+      INDEX       , // this column will support fast searching        , this can be set to custom number of columns, but requires additional memory usage and processing for adding/removing data
       UNIQUE      , // requires that this column must have unique data, this can be set to custom number of columns
       PRIMARY     , // requires that this column must have unique data, this can be set only up to 1 columns
       PRIMARY_AUTO, // requires that this column must have unique data, this can be set only up to 1 columns, this is a special type of PRIMARY mode, which automatically sets the value to a unique index, type of this column must be only of BYTE, SHORT, INT, LONG type
@@ -84,10 +85,10 @@ struct SQL
    Bool connectODBC(C Str &params, Str *messages, Int *error, Int sql_type);
    Bool connectODBC(C Str &server_name, C Str &database, C Str &user, C Str &password, Str *messages, Int *error, Int port, C Str &driver_name, Int sql_type);
 #endif
-   Bool connectMSSQL (C Str &server_name, C Str &database, C Str &user=S, C Str &password=S, Str *messages=null, Int *error=null                                                                           ); // connect to Microsoft SQL 'server_name' and 'database', 'messages'=optional pointer to custom string which will receive any messages, 'error'=optional pointer to error code, false on fail
-   Bool connectMySQL (C Str &server_name, C Str &database, C Str &user=S, C Str &password=S, Str *messages=null, Int *error=null,                C Str &mysql_driver_name="MySQL ODBC 5.3 Unicode Driver"  ); // connect to         MySQL 'server_name' and 'database', 'messages'=optional pointer to custom string which will receive any messages, 'error'=optional pointer to error code, false on fail
-   Bool connectPgSQL (C Str &server_name, C Str &database, C Str &user=S, C Str &password=S, Str *messages=null, Int *error=null, Int port=5432, C Str &pgsql_driver_name="PostgreSQL ODBC Driver(UNICODE)"); // connect to    PostgreSQL 'server_name' and 'database', 'messages'=optional pointer to custom string which will receive any messages, 'error'=optional pointer to error code, false on fail
-   Bool connectSQLite(C Str &database_file_name, const_mem_addr Cipher *cipher=null                                                                                                                        ); // connect to a SQLite database, 'database_file_name'=path to the database file (SQLite stores database information in regular files), if the specified file does not exist, then it will be automatically created, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), false on fail
+   Bool connectMSSQL (C Str &server_name, C Str &database, C Str &user=S, C Str &password=S, Str *messages=null, Int *error=null                                                                                   ); // connect to Microsoft SQL 'server_name' and 'database', 'messages'=optional pointer to custom string which will receive any messages, 'error'=optional pointer to error code, false on fail
+   Bool connectMySQL (C Str &server_name, C Str &database, C Str &user=S, C Str &password=S, Str *messages=null, Int *error=null, C Str &mysql_driver_name="MySQL ODBC 8.0 Unicode Driver"                         ); // connect to         MySQL 'server_name' and 'database', 'messages'=optional pointer to custom string which will receive any messages, 'error'=optional pointer to error code, false on fail, 'mysql_driver_name'=can be obtained by running "ODBC Data Sources" application on Windows (use 32/64-bit versions depending on your application) in the "Drivers" tab
+   Bool connectPgSQL (C Str &server_name, C Str &database, C Str &user=S, C Str &password=S, Str *messages=null, Int *error=null, C Str &pgsql_driver_name=(X64 ? "PostgreSQL Unicode(x64)" : "PostgreSQL Unicode")); // connect to    PostgreSQL 'server_name' and 'database', 'messages'=optional pointer to custom string which will receive any messages, 'error'=optional pointer to error code, false on fail
+   Bool connectSQLite(C Str &database_file_name, const_mem_addr Cipher *cipher=null                                                                                                                                ); // connect to a SQLite database, 'database_file_name'=path to the database file (SQLite stores database information in regular files), if the specified file does not exist, then it will be automatically created, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), false on fail
 
    // connect using DSN, DSN is a name of the configuration containing all the required information, including 'server_name', 'database', 'user' and 'password', you can read more about it here - https://support.quadrahosting.com/kb-article-23-0,3,15.html
    Bool dsnConnectMSSQL(C Str &dsn, Str *messages=null, Int *error=null); // connect to Microsoft SQL using a 'dsn', 'messages'=optional pointer to custom string which will receive any messages, 'error'=optional pointer to error code, false on fail, please check here how to setup DSN - https://msdn.microsoft.com/en-us/library/windows/desktop/dn170503(v=vs.85).aspx
@@ -95,12 +96,19 @@ struct SQL
    Bool dsnConnectPgSQL(C Str &dsn, Str *messages=null, Int *error=null); // connect to    PostgreSQL using a 'dsn', 'messages'=optional pointer to custom string which will receive any messages, 'error'=optional pointer to error code, false on fail
 
    // commands
+      // buffering
+      Bool begin(Str *messages=null, Int *error=null); // enable buffered mode (begin  transaction), false on fail
+      Bool flush(Str *messages=null, Int *error=null); // stop   buffered mode (commit transaction), false on fail
+
       // tables
       Bool    getTables(MemPtr<Str> table_names,                               Str *messages=null, Int *error=null); // get    a list of all table names   in the database, false on fail
       Bool    delTable (C Str      &table_name                               , Str *messages=null, Int *error=null); // delete a 'table_name' table from      the database, false on fail
       Bool createTable (C Str      &table_name , C MemPtr<SQLColumn> &columns, Str *messages=null, Int *error=null); // create a 'table_name' table in        the database, false on fail
       Bool appendTable (C Str      &table_name , C MemPtr<SQLColumn> &columns, Str *messages=null, Int *error=null); // append a 'table_name' table in        the database, false on fail, this method works by adding new 'columns' to an existing table
       Bool existsTable (C Str      &table_name                               , Str *messages=null, Int *error=null); // check if 'table_name' table exists in the database, false on fail
+   #if EE_PRIVATE
+      Bool createTableIndexes(C Str &table_name, C MemPtr<SQLColumn> &columns, Str *messages, Str &cmd);
+   #endif
 
       // rows
       Bool delAllRows(C Str &table_name,                                        Str *messages=null, Int *error=null); // delete all      rows in 'table_name' table                                                   , false on fail
