@@ -430,6 +430,7 @@ struct FBX
       {
          Bool flip_normal_y=Contains(app_name, "Maya", false, true);
          Int  mtrls=scene->GetMaterialCount();
+         Memt<Bool> duplicate_name; // there may be multiple materials with the same name, we need to make them unique
          FREP(mtrls)if(FbxSurfaceMaterial *mtrl=scene->GetMaterial(i))
          {
             XMaterial *xm=null;
@@ -461,6 +462,12 @@ struct FBX
 
             // name & props
             xm->name=FromUTF8(mtrl->GetName());
+            REP(materials.elms()-1)if(materials[i].name==xm->name) // if another material has the same name
+            { // mark them both as duplicates
+               duplicate_name(                 i)=true; // mark other i-th material
+               duplicate_name(materials.elms()-1)=true; // mark this 'xm'  material
+               break; // stop as there's no need to look any further (other duplicates for this name should have already been detected)
+            }
             xm->flip_normal_y=flip_normal_y;
 
             // textures
@@ -513,6 +520,7 @@ struct FBX
             }
          #endif
          }
+         REPA(duplicate_name)if(duplicate_name[i])materials[i].name+=S+'\\'+ee_mtrl_to_fbx_mtrl[i]->GetUniqueID(); // append the name with materials Unique ID
       }
    }
    void boneRemap(C MemPtrN<Byte, 256> &old_to_new)
