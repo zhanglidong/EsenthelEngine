@@ -2,24 +2,24 @@
 
    This tutorial presents the basics of SQL usage.
 
-   Esenthel Engine supports 3 SQL engines:
-      MS SQL
+   Esenthel Engine supports 4 SQL engines:
+      MS SQL Server
       MySQL
+      PostgreSQL
       SQLite
 
    This tutorial by default uses SQLite.
    
-   If you wish to use MS SQL, please first Install and Configure it:
+   If you wish to use MS SQL Server, please first Install and Configure it:
 
       1. Installing MS SQL Server
          In order for this tutorial to work, you must have installed MS SQL Server on your computer.
          You can obtain a free version of the SQL Server by downloading Express edition.
-            http://www.microsoft.com/express/Database/InstallOptions.aspx
-         It is recommended to download "Database with Management Tools" version.
+            https://www.microsoft.com/en-us/sql-server/sql-server-downloads
 
       2. Creating a Database
          After you have downloaded and installed the SQL Server,
-         please launch "SQL Server Management Studio" program from Windows Start Menu.
+         please launch "Microsoft SQL Server Management Studio" program from Windows Start Menu.
          In the popup window connect to your server:
             Default options should be set to:
                Server type   : Database Engine
@@ -49,7 +49,7 @@ void SQLTests()
    // connect to server/database
    switch(sql_type)
    {
-      case SQL_MSSQL : if(!sql.connectMSSQL ("LocalHost\\SQLExpress", "test_db", "", "", &messages))Exit(S+"Can't connect to Server!\nPlease read instructions in the tutorial codes.\nGiven Error:\n"+messages); break;
+      case SQL_MSSQL : if(!sql.connectMSSQL ("LocalHost\\SQLExpress", "test_db", S, S, &messages))Exit(S+"Can't connect to Server!\nPlease read instructions in the tutorial codes.\nGiven Error:\n"+messages); break;
       case SQL_SQLITE: if(!sql.connectSQLite("sqlite.db"))Exit("Can't connect to Server!"); break;
    }
 
@@ -112,12 +112,12 @@ void SQLTests()
    // adjust data in SQL
    {
       // modify 'clan' column to "Ghosts" for all players that have 'id' equal to 1, please note that 'condition' method is used to generate condition string
-      if(!sql.setRow(table_name, sql.condition("id", 1), SQLValues().New("clan", "Ghosts"), &messages))Exit(S+"Can't modify clan for player:\n"+messages);
+      if(!sql.modifyRows(table_name, sql.condition("id", 1), SQLValues().New("clan", "Ghosts"), &messages))Exit(S+"Can't modify clan for player:\n"+messages);
 
       // modify 'clan' column to "Zombies" for all players that have 'e_mail' equal to "xxx@domain.com", please note that 'condition' method is used to generate condition string
-      if(!sql.setRow(table_name, sql.condition("e_mail", "xxx@domain.com"), SQLValues().New("clan", "Zombies"), &messages))Exit(S+"Can't modify clan for player:\n"+messages);
+      if(!sql.modifyRows(table_name, sql.condition("e_mail", "xxx@domain.com"), SQLValues().New("clan", "Zombies"), &messages))Exit(S+"Can't modify clan for player:\n"+messages);
    }
-   
+
    // after performing all operations visit the "SQL Server Management Studio" application window again
    // and notice the changes that have been made in the table
    // (you may need to right-click on the table and select "Refresh" to see the changes)
