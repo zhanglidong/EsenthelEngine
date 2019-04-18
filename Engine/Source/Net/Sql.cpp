@@ -598,8 +598,7 @@ Bool SQL::delRow(C Str &table_name, C Str &condition, Str *messages, Int *error)
 Bool SQL::newRow(C Str &table_name, C SQLValues &values, Str *messages, Int *error)
 {
    Str cmd=S+"INSERT INTO "+name(table_name)+" (";
-   FREPA(values._values){if(i)cmd+=", "; cmd+=name(values._values[i].name);}
-   cmd+=") VALUES (";
+   FREPA(values._values){if(i)cmd+=", "; cmd+=name (values._values[i].name);} cmd+=") VALUES (";
    FREPA(values._values){if(i)cmd+=", "; cmd+=value(values._values[i]);}
    cmd+=")";
    return command(cmd, messages, error);
@@ -612,39 +611,35 @@ Bool SQL::modifyRows(C Str &table_name, C Str &condition, C SQLValues &values, S
    return command(cmd, messages, error);
 }
 
-Bool SQL:: setRow(C Str &table_name, C Str &id_name, C Str &id_value, C SQLValues &values, Str *messages, Int *error) {return _setRow(table_name, id_name, value(id_value), values, messages, error);}
-Bool SQL:: setRow(C Str &table_name, C Str &id_name, C UID &id_value, C SQLValues &values, Str *messages, Int *error) {return _setRow(table_name, id_name, value(id_value), values, messages, error);}
-Bool SQL::_setRow(C Str &table_name, C Str &id_name, C Str &id_value, C SQLValues &values, Str *messages, Int *error)
+Bool SQL:: setRow(C Str &table_name, C Str &id_name, C Str &     id_value, C SQLValues &values, Str *messages, Int *error) {return _setRow(table_name, id_name, value(id_value), values, messages, error);}
+Bool SQL:: setRow(C Str &table_name, C Str &id_name, C UID &     id_value, C SQLValues &values, Str *messages, Int *error) {return _setRow(table_name, id_name, value(id_value), values, messages, error);}
+Bool SQL::_setRow(C Str &table_name, C Str &id_name, C Str &safe_id_value, C SQLValues &values, Str *messages, Int *error)
 {
    const Bool insert_id=true; // if manually INSERT 'id_name' and 'id_value', if this is enabled then 'values' can't have 'id', otherwise 'values' must have 'id'
-   Str cmd;
+   Str cmd, safe_id_name=name(id_name);
    switch(_type)
    {
       case MSSQL:
       {
-         cmd=S+"MERGE "+name(table_name)+" AS Dest USING (SELECT id="+id_value+") AS Src ON (Dest."+name(id_name)+"=Src.id)";
+         cmd=S+"MERGE "+name(table_name)+" AS Dest USING (SELECT id="+safe_id_value+") AS Src ON (Dest."+safe_id_name+"=Src.id)";
          if(values._values.elms())
          {
             cmd+=" WHEN MATCHED THEN UPDATE SET ";
             FREPA(values._values){if(i)cmd+=", "; cmd+=S+"Dest."+name(values._values[i].name)+'='+value(values._values[i]);}
          }else
          { // have to do this, because without it, MS SQL will fail without any message, when trying to update existing row, with no values, which should normally succeed
-            cmd+=S+" WHEN MATCHED THEN UPDATE SET Dest."+name(id_name)+"=Dest."+name(id_name);
+            cmd+=S+" WHEN MATCHED THEN UPDATE SET Dest."+safe_id_name+"=Dest."+safe_id_name;
          }
          cmd+=" WHEN NOT MATCHED THEN INSERT (";
-         if(insert_id)cmd+=name(id_name); FREPA(values._values){if(insert_id || i)cmd+=", "; cmd+=name(values._values[i].name);}
-         cmd+=") VALUES (";
-         if(insert_id)cmd+=     id_value; FREPA(values._values){if(insert_id || i)cmd+=", "; cmd+=value(values._values[i]);}
-         cmd+=");";
+         if(insert_id)cmd+=safe_id_name ; FREPA(values._values){if(insert_id || i)cmd+=", "; cmd+=name (values._values[i].name);} cmd+=") VALUES (";
+         if(insert_id)cmd+=safe_id_value; FREPA(values._values){if(insert_id || i)cmd+=", "; cmd+=value(values._values[i]     );} cmd+=");";
       }return command(cmd, messages, error);
 
       case MYSQL:
       {
          cmd=S+(values._values.elms() ? "INSERT INTO " : "INSERT IGNORE INTO ")+name(table_name)+" (";
-         if(insert_id)cmd+=name(id_name); FREPA(values._values){if(insert_id || i)cmd+=", "; cmd+=name(values._values[i].name);}
-         cmd+=") VALUES (";
-         if(insert_id)cmd+=     id_value; FREPA(values._values){if(insert_id || i)cmd+=", "; cmd+=value(values._values[i]);}
-         cmd+=")";
+         if(insert_id)cmd+=safe_id_name ; FREPA(values._values){if(insert_id || i)cmd+=", "; cmd+=name (values._values[i].name);} cmd+=") VALUES (";
+         if(insert_id)cmd+=safe_id_value; FREPA(values._values){if(insert_id || i)cmd+=", "; cmd+=value(values._values[i]     );} cmd+=")";
          if(values._values.elms())
          {
             cmd+=" ON DUPLICATE KEY UPDATE ";
@@ -656,13 +651,11 @@ Bool SQL::_setRow(C Str &table_name, C Str &id_name, C Str &id_value, C SQLValue
       case SQLITE:
       {
          cmd=S+"INSERT INTO "+name(table_name)+" (";
-         if(insert_id)cmd+=name(id_name); FREPA(values._values){if(insert_id || i)cmd+=", "; cmd+=name(values._values[i].name);}
-         cmd+=") VALUES (";
-         if(insert_id)cmd+=     id_value; FREPA(values._values){if(insert_id || i)cmd+=", "; cmd+=value(values._values[i]);}
-         cmd+=") ON CONFLICT ";
+         if(insert_id)cmd+=safe_id_name ; FREPA(values._values){if(insert_id || i)cmd+=", "; cmd+=name (values._values[i].name);} cmd+=") VALUES (";
+         if(insert_id)cmd+=safe_id_value; FREPA(values._values){if(insert_id || i)cmd+=", "; cmd+=value(values._values[i]     );} cmd+=") ON CONFLICT ";
          if(values._values.elms())
          {
-            cmd+=S+'('+name(id_name)+')'; cmd+=" DO UPDATE SET ";
+            cmd+=S+'('+safe_id_name+')'; cmd+=" DO UPDATE SET ";
             FREPA(values._values){if(i)cmd+=", "; cmd+=name(values._values[i].name)+'='+value(values._values[i]);}
          }else
          {
