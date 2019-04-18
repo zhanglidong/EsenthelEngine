@@ -119,7 +119,7 @@ struct SQL
       Bool    setRow (C Str &table_name, C Str &id_name, C Str &id_value, C SQLValues &values, Str *messages=null, Int *error=null); // set             row  in 'table_name' table which matches ID parameters with given row 'values', false on fail, 'id_name'=column name used for row ID comparison, 'id_value'=value of the ID, if row with specified ID exists then it's modified with 'values', if it doesn't exist then it's created with 'values'
       Bool    setRow (C Str &table_name, C Str &id_name, C UID &id_value, C SQLValues &values, Str *messages=null, Int *error=null); // set             row  in 'table_name' table which matches ID parameters with given row 'values', false on fail, 'id_name'=column name used for row ID comparison, 'id_value'=value of the ID, if row with specified ID exists then it's modified with 'values', if it doesn't exist then it's created with 'values'
    #if EE_PRIVATE
-      Bool   _setRow (C Str &table_name, C Str &id_name, C Str &id_value, C SQLValues &values, Str *messages, Int *error);
+      Bool   _setRow (C Str &table_name, C Str &id_name, C Str &safe_id_value, C SQLValues &values, Str *messages, Int *error);
    #endif
 
       Bool getAllRows    (C Str &table_name,                                           Str *messages=null, Int *error=null); // get all rows of a 'table_name' table                           , if the method succeeds you can access the rows using 'getNextRow' method, returned rows will have information about all their     column data, false on fail

@@ -599,8 +599,7 @@ Bool SQL::newRow(C Str &table_name, C SQLValues &values, Str *messages, Int *err
 {
    Str cmd=S+"INSERT INTO "+name(table_name)+" (";
    FREPA(values._values){if(i)cmd+=", "; cmd+=name (values._values[i].name);} cmd+=") VALUES (";
-   FREPA(values._values){if(i)cmd+=", "; cmd+=value(values._values[i]);}
-   cmd+=")";
+   FREPA(values._values){if(i)cmd+=", "; cmd+=value(values._values[i]     );} cmd+=")";
    return command(cmd, messages, error);
 }
 Bool SQL::modifyRows(C Str &table_name, C Str &condition, C SQLValues &values, Str *messages, Int *error)
