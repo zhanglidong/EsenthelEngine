@@ -590,7 +590,7 @@ Bool SQL::delAllRows(C Str &table_name, Str *messages, Int *error)
 {
    return command(S+"DELETE FROM "+name(table_name), messages, error);
 }
-Bool SQL::delRow(C Str &table_name, C Str &condition, Str *messages, Int *error)
+Bool SQL::delRows(C Str &table_name, C Str &condition, Str *messages, Int *error)
 {
    if(!condition.is())return delAllRows(table_name, messages, error);
    return command(S+"DELETE FROM "+name(table_name)+" WHERE "+condition, messages, error);
@@ -664,7 +664,6 @@ Bool SQL::_setRow(C Str &table_name, C Str &id_name, C Str &safe_id_value, C SQL
    }
    if(messages)*messages="SQL not connected"; if(error)*error=0; return false;
 }
-
 /******************************************************************************/
 Bool SQL::getAllRows(C Str &table_name, Str *messages, Int *error)
 {

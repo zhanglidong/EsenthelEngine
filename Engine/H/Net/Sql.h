@@ -92,7 +92,7 @@ struct SQL
 
    // connect using DSN, DSN is a name of the configuration containing all the required information, including 'server_name', 'database', 'user' and 'password', you can read more about it here - https://support.quadrahosting.com/kb-article-23-0,3,15.html
    Bool dsnConnectMSSQL(C Str &dsn, Str *messages=null, Int *error=null); // connect to Microsoft SQL using a 'dsn', 'messages'=optional pointer to custom string which will receive any messages, 'error'=optional pointer to error code, false on fail, please check here how to setup DSN - https://msdn.microsoft.com/en-us/library/windows/desktop/dn170503(v=vs.85).aspx
-   Bool dsnConnectMySQL(C Str &dsn, Str *messages=null, Int *error=null); // connect to         MySQL using a 'dsn', 'messages'=optional pointer to custom string which will receive any messages, 'error'=optional pointer to error code, false on fail, please check here how to setup DSN - http://dev.mysql.com/doc/connector-odbc/en/connector-odbc-configuration-dsn-windows.html
+   Bool dsnConnectMySQL(C Str &dsn, Str *messages=null, Int *error=null); // connect to         MySQL using a 'dsn', 'messages'=optional pointer to custom string which will receive any messages, 'error'=optional pointer to error code, false on fail, please check here how to setup DSN - https://dev.mysql.com/doc/connector-odbc/en/connector-odbc-configuration-dsn-windows.html
    Bool dsnConnectPgSQL(C Str &dsn, Str *messages=null, Int *error=null); // connect to    PostgreSQL using a 'dsn', 'messages'=optional pointer to custom string which will receive any messages, 'error'=optional pointer to error code, false on fail
 
    // commands
@@ -113,7 +113,7 @@ struct SQL
 
       // rows
       Bool delAllRows(C Str &table_name,                                                       Str *messages=null, Int *error=null); // delete all      rows in 'table_name' table                                                    , false on fail
-      Bool    delRow (C Str &table_name, C Str &condition,                                     Str *messages=null, Int *error=null); // delete existing rows in 'table_name' table which meet the 'condition'                         , false on fail, 'condition' is a custom string specifying the condition, for example: "id=0" will delete all rows which have 'id' column equal to 0
+      Bool    delRows(C Str &table_name, C Str &condition,                                     Str *messages=null, Int *error=null); // delete existing rows in 'table_name' table which meet the 'condition'                         , false on fail, 'condition' is a custom string specifying the condition, for example: "id=0" will delete all rows which have 'id' column equal to 0
       Bool    newRow (C Str &table_name,                                  C SQLValues &values, Str *messages=null, Int *error=null); // create a new    row  in 'table_name' table                             with given row 'values', false on fail
       Bool modifyRows(C Str &table_name, C Str &condition               , C SQLValues &values, Str *messages=null, Int *error=null); // modify existing rows in 'table_name' table which meet the 'condition'  by setting its 'values', false on fail, 'condition' is a custom string specifying the condition, for example: "id=0" will modify all rows which have 'id' column equal to 0
       Bool    setRow (C Str &table_name, C Str &id_name, C Str &id_value, C SQLValues &values, Str *messages=null, Int *error=null); // set             row  in 'table_name' table which matches ID parameters with given row 'values', false on fail, 'id_name'=column name used for row ID comparison, 'id_value'=value of the ID, if row with specified ID exists then it's modified with 'values', if it doesn't exist then it's created with 'values'
@@ -133,10 +133,10 @@ struct SQL
       Int getUniqueValuesNum(C Str &table_name, C Str &column_name, Str *messages=null, Int *error=null); // get number of unique values in 'column_name' column of 'table_name' table, -1 on fail
 
       // custom
-      Bool command(C Str &command, Str *messages=null, Int *error=null); // 'command'=custom sql command to be executed, 'messages'=optional pointer to custom string which will receive any messages, 'error'=optional pointer to error code, false on fail
+      Bool command(C Str &command, Str *messages=null, Int *error=null); // 'command'=custom SQL command to be executed, 'messages'=optional pointer to custom string which will receive any messages, 'error'=optional pointer to error code, false on fail
 
       // custom with parameters passed by method calls !! these methods are supported only on MSSQL, MySQL and PostgreSQL !!
-      Bool commandPrepare(C Str &command, Str *messages=null, Int *error=null); // 'command'=custom sql command to be executed with parameters replaced with "?", 'messages'=optional pointer to custom string which will receive any messages, 'error'=optional pointer to error code, unlike the 'command' method above, this method only prepares execution of specified command, after calling this method you should call 'commandParam' for each parameter, and 'commandExecute' at the end. This method returns false on fail. For example: if(commandPrepare("insert into players(player_name, race, gender) values (?, ?, ?)"))commandParam(0, "John").commandParam(1, "Elf").commandParam(2, "Male").commandExecute(); Another example: if(commandPrepare("update players set player_name=? where player_id=?"))commandParam(0, "John").commandParam(1, "123").commandExecute();
+      Bool commandPrepare(C Str &command, Str *messages=null, Int *error=null); // 'command'=custom SQL command to be executed with parameters replaced with "?", 'messages'=optional pointer to custom string which will receive any messages, 'error'=optional pointer to error code, unlike the 'command' method above, this method only prepares execution of specified command, after calling this method you should call 'commandParam' for each parameter, and 'commandExecute' at the end. This method returns false on fail. For example: if(commandPrepare("insert into players(player_name, race, gender) values (?, ?, ?)"))commandParam(0, "John").commandParam(1, "Elf").commandParam(2, "Male").commandExecute(); Another example: if(commandPrepare("update players set player_name=? where player_id=?"))commandParam(0, "John").commandParam(1, "123").commandExecute();
 
    #if EE_PRIVATE
       Bool commandParamRaw (Int i, CPtr value, Int size, Int c_type, Int sql_type);
@@ -170,9 +170,9 @@ struct SQL
    Str condition(C Str &name, C UID &value)C {return T.name(name)+'='+T.value(value);} // create a condition string in which 'name' parameter value is equal to 'value'
 
    // get
-   Bool getNextRow(); // get next row, call this in a loop after calling sql command to process all returned rows, false on fail
+   Bool getNextRow(); // get next row, call this in a loop after calling SQL command to process all returned rows, false on fail
 
-   Int getCols(); // get number of columns in returned result, you can optionally call this after sql commands
+   Int getCols(); // get number of columns in returned result, you can optionally call this after SQL commands
 
    Bool getColDesc(Int i, Str &name, SQL_DATA_TYPE &type, Int &size); // get i-th column description, 'name'=column name, 'type'=column data type, 'size'=maximum column data size (in bytes)
 
