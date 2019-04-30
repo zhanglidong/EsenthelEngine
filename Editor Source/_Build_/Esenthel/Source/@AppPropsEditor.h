@@ -44,6 +44,7 @@ class AppPropsEditor : PropWin
    static void Changed             (C Property &prop);
    static void GetAndroidLicenseKey(  ptr           );
    static void GetFacebookAppID    (  ptr           );
+   static void GetAdMobApp         (  ptr           );
    static void GetChartboostApp    (  ptr           );
 
    static void DirsWin                     (  AppPropsEditor &ap, C Str &text);
@@ -80,6 +81,10 @@ class AppPropsEditor : PropWin
    static Str  LocationUsageReason         (C AppPropsEditor &ap             );
    static void FacebookAppID               (  AppPropsEditor &ap, C Str &text);
    static Str  FacebookAppID               (C AppPropsEditor &ap             );
+   static void AdMobAppIDiOS               (  AppPropsEditor &ap, C Str &text);
+   static Str  AdMobAppIDiOS               (C AppPropsEditor &ap             );
+   static void AdMobAppIDGoogle            (  AppPropsEditor &ap, C Str &text);
+   static Str  AdMobAppIDGoogle            (C AppPropsEditor &ap             );
    static void ChartboostAppIDiOS          (  AppPropsEditor &ap, C Str &text);
    static Str  ChartboostAppIDiOS          (C AppPropsEditor &ap             );
    static void ChartboostAppSignatureiOS   (  AppPropsEditor &ap, C Str &text);

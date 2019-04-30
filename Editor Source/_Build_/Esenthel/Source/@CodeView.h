@@ -34,6 +34,8 @@ class CodeView : Region, Edit::CodeEditorInterface
    virtual Str               appLocationUsageReason             ()override; 
    virtual Int               appBuild                           ()override; 
    virtual ulong             appFacebookAppID                   ()override; 
+   virtual Str               appAdMobAppIDiOS                   ()override; 
+   virtual Str               appAdMobAppIDGooglePlay            ()override; 
    virtual Str               appChartboostAppIDiOS              ()override; 
    virtual Str               appChartboostAppSignatureiOS       ()override; 
    virtual Str               appChartboostAppIDGooglePlay       ()override; 

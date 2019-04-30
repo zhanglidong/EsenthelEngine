@@ -11,9 +11,9 @@ Google Play Services libs were copied from Android SDK in the following way:
 6. move "classes.jar" in each library to "bin/classes.jar" (linker expects it to be in that location)
 
 After adding all libraries, they need to be "updated" with the console command, that needs to be executed from each library path location:
-D:\Progs\AndroidSDK\tools\android update lib-project --path . --target X
+C:\Progs\AndroidSDK\tools\android update lib-project --path . --target X
 where X can be obtained from:
-D:\Progs\AndroidSDK\tools\android list targets
+C:\Progs\AndroidSDK\tools\android list targets
 
 precompiling can be performed, HOWEVER it actually SLOWS DOWN building of apps when they're built 2nd or more time, so don't do it
 C:\Esenthel\Editor\Bin\Android\Ant\bin\ant clean

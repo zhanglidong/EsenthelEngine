@@ -2,6 +2,9 @@
 
    Use 'AdMob' or 'Chartboost' to display ads in your application (for Android and iOS).
 
+   Usage of 'AdMob' requires specifying following elements in the Application properties:
+      -AdMob App ID
+
    Usage of 'Chartboost' requires specifying following elements in the Application properties:
       -Chartboost App ID
       -Chartboost App Signature

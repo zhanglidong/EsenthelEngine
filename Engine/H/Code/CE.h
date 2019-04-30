@@ -160,7 +160,9 @@ struct CodeEditorInterface
    virtual Str           appLicenseKey                      () {return                 S;} // get android license key                 of current app
    virtual Str           appLocationUsageReason             () {return                 S;} // get location usage reason               of current app
    virtual Int           appBuild                           () {return                 1;} // get build number                        of current app
-   virtual ULong         appFacebookAppID                   () {return                 0;} // get Facebook App ID                     of current app
+   virtual ULong         appFacebookAppID                   () {return                 0;} // get Facebook   App ID                   of current app
+   virtual Str           appAdMobAppIDiOS                   () {return                 S;} // get AdMob      App ID                   of current app for iOS         platform
+   virtual Str           appAdMobAppIDGooglePlay            () {return                 S;} // get AdMob      App ID                   of current app for Google Play platform
    virtual Str           appChartboostAppIDiOS              () {return                 S;} // get Chartboost App ID                   of current app for iOS         platform
    virtual Str           appChartboostAppSignatureiOS       () {return                 S;} // get Chartboost App Signature            of current app for iOS         platform
    virtual Str           appChartboostAppIDGooglePlay       () {return                 S;} // get Chartboost App ID                   of current app for Google Play platform

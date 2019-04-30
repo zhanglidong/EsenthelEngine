@@ -2305,6 +2305,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
           && libs_windows_time==src.libs_windows_time && libs_mac_time==src.libs_mac_time && libs_linux_time==src.libs_linux_time && libs_android_time==src.libs_android_time && libs_ios_time==src.libs_ios_time
           && package_time==src.package_time && android_license_key_time==src.android_license_key_time && location_usage_reason_time==src.location_usage_reason_time && build_time==src.build_time
           && fb_app_id_time==src.fb_app_id_time
+          && am_app_id_ios_time==src.am_app_id_ios_time && am_app_id_google_time==src.am_app_id_google_time
           && cb_app_id_ios_time==src.cb_app_id_ios_time && cb_app_signature_ios_time==src.cb_app_signature_ios_time && cb_app_id_google_time==src.cb_app_id_google_time && cb_app_signature_google_time==src.cb_app_signature_google_time
           && storage_time==src.storage_time && supported_orientations_time==src.supported_orientations_time
           && embed_engine_data_time==src.embed_engine_data_time && publish_proj_data_time==src.publish_proj_data_time && publish_physx_dll_time==src.publish_physx_dll_time && publish_steam_dll_time==src.publish_steam_dll_time && publish_open_vr_dll_time==src.publish_open_vr_dll_time && publish_data_as_pak_time==src.publish_data_as_pak_time && android_expansion_time==src.android_expansion_time
@@ -2318,6 +2319,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
           || libs_windows_time>src.libs_windows_time || libs_mac_time>src.libs_mac_time || libs_linux_time>src.libs_linux_time || libs_android_time>src.libs_android_time || libs_ios_time>src.libs_ios_time
           || package_time>src.package_time || android_license_key_time>src.android_license_key_time || location_usage_reason_time>src.location_usage_reason_time || build_time>src.build_time
           || fb_app_id_time>src.fb_app_id_time
+          || am_app_id_ios_time>src.am_app_id_ios_time || am_app_id_google_time>src.am_app_id_google_time
           || cb_app_id_ios_time>src.cb_app_id_ios_time || cb_app_signature_ios_time>src.cb_app_signature_ios_time || cb_app_id_google_time>src.cb_app_id_google_time || cb_app_signature_google_time>src.cb_app_signature_google_time
           || storage_time>src.storage_time || supported_orientations_time>src.supported_orientations_time
           || embed_engine_data_time>src.embed_engine_data_time || publish_proj_data_time>src.publish_proj_data_time || publish_physx_dll_time>src.publish_physx_dll_time || publish_steam_dll_time>src.publish_steam_dll_time || publish_open_vr_dll_time>src.publish_open_vr_dll_time || publish_data_as_pak_time>src.publish_data_as_pak_time || android_expansion_time>src.android_expansion_time
@@ -2345,6 +2347,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       headers_windows_time++; headers_mac_time++; headers_linux_time++; headers_android_time++; headers_ios_time++;
       libs_windows_time++; libs_mac_time++; libs_linux_time++; libs_android_time++; libs_ios_time++;
       fb_app_id_time++;
+      am_app_id_ios_time++; am_app_id_google_time++;
       cb_app_id_ios_time++; cb_app_signature_ios_time++; cb_app_id_google_time++; cb_app_signature_google_time++;
       package_time++; android_license_key_time++; location_usage_reason_time++; build_time++; storage_time++; supported_orientations_time++;
       embed_engine_data_time++; publish_proj_data_time++; publish_physx_dll_time++; publish_steam_dll_time++; publish_open_vr_dll_time++; publish_data_as_pak_time++; android_expansion_time++;
@@ -2374,6 +2377,8 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          ch|=Undo(                  build_time, src.                  build_time, build                  , src.build                  );
          ch|=Undo(                storage_time, src.                storage_time, storage                , src.storage                );
          ch|=Undo(              fb_app_id_time, src.              fb_app_id_time, fb_app_id              , src.fb_app_id              );
+         ch|=Undo(          am_app_id_ios_time, src.          am_app_id_ios_time, am_app_id_ios          , src.am_app_id_ios          );
+         ch|=Undo(       am_app_id_google_time, src.       am_app_id_google_time, am_app_id_google       , src.am_app_id_google       );
          ch|=Undo(          cb_app_id_ios_time, src.          cb_app_id_ios_time, cb_app_id_ios          , src.cb_app_id_ios          );
          ch|=Undo(   cb_app_signature_ios_time, src.   cb_app_signature_ios_time, cb_app_signature_ios   , src.cb_app_signature_ios   );
          ch|=Undo(       cb_app_id_google_time, src.       cb_app_id_google_time, cb_app_id_google       , src.cb_app_id_google       );
@@ -2424,6 +2429,8 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          ch|=Sync(                  build_time, src.                  build_time, build                  , src.build                  );
          ch|=Sync(                storage_time, src.                storage_time, storage                , src.storage                );
          ch|=Sync(              fb_app_id_time, src.              fb_app_id_time, fb_app_id              , src.fb_app_id              );
+         ch|=Sync(          am_app_id_ios_time, src.          am_app_id_ios_time, am_app_id_ios          , src.am_app_id_ios          );
+         ch|=Sync(       am_app_id_google_time, src.       am_app_id_google_time, am_app_id_google       , src.am_app_id_google       );
          ch|=Sync(          cb_app_id_ios_time, src.          cb_app_id_ios_time, cb_app_id_ios          , src.cb_app_id_ios          );
          ch|=Sync(   cb_app_signature_ios_time, src.   cb_app_signature_ios_time, cb_app_signature_ios   , src.cb_app_signature_ios   );
          ch|=Sync(       cb_app_id_google_time, src.       cb_app_id_google_time, cb_app_id_google       , src.cb_app_id_google       );
@@ -2452,12 +2459,13 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    bool ElmApp::save(File &f)C 
 {
       ::ElmData::save(f);
-      f.cmpUIntV(16);
+      f.cmpUIntV(17);
       f<<dirs_windows<<dirs_nonwindows;
       f<<headers_windows<<headers_mac<<headers_linux<<headers_android<<headers_ios;
       f<<libs_windows<<libs_mac<<libs_linux<<libs_android<<libs_ios;
       f<<package<<android_license_key<<location_usage_reason<<build<<storage<<supported_orientations<<flag;
       f<<fb_app_id;
+      f<<am_app_id_ios<<am_app_id_google;
       f<<cb_app_id_ios<<cb_app_signature_ios<<cb_app_id_google<<cb_app_signature_google;
       f<<icon<<notification_icon<<image_portrait<<image_landscape<<gui_skin;
       f<<dirs_windows_time<<dirs_nonwindows_time;
@@ -2465,6 +2473,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       f<<libs_windows_time<<libs_mac_time<<libs_linux_time<<libs_android_time<<libs_ios_time;
       f<<package_time<<android_license_key_time<<location_usage_reason_time<<build_time<<storage_time<<supported_orientations_time;
       f<<fb_app_id_time;
+      f<<am_app_id_ios_time<<am_app_id_google_time;
       f<<cb_app_id_ios_time<<cb_app_signature_ios_time<<cb_app_id_google_time<<cb_app_signature_google_time;
       f<<embed_engine_data_time<<publish_proj_data_time<<publish_physx_dll_time<<publish_steam_dll_time<<publish_open_vr_dll_time<<publish_data_as_pak_time<<android_expansion_time;
       f<<icon_time<<notification_icon_time<<image_portrait_time<<image_landscape_time<<gui_skin_time;
@@ -2477,6 +2486,28 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       T=ElmApp(); // reset to default, in case this is needed (for example when loading data from reused objects for code synchronization)
       if(::ElmData::load(f))switch(f.decUIntV())
       {
+         case 17:
+         {
+            f>>dirs_windows>>dirs_nonwindows;
+            f>>headers_windows>>headers_mac>>headers_linux>>headers_android>>headers_ios;
+            f>>libs_windows>>libs_mac>>libs_linux>>libs_android>>libs_ios;
+            f>>package>>android_license_key>>location_usage_reason>>build>>storage>>supported_orientations>>flag;
+            f>>fb_app_id;
+            f>>am_app_id_ios>>am_app_id_google;
+            f>>cb_app_id_ios>>cb_app_signature_ios>>cb_app_id_google>>cb_app_signature_google;
+            f>>icon>>notification_icon>>image_portrait>>image_landscape>>gui_skin;
+            f>>dirs_windows_time>>dirs_nonwindows_time;
+            f>>headers_windows_time>>headers_mac_time>>headers_linux_time>>headers_android_time>>headers_ios_time;
+            f>>libs_windows_time>>libs_mac_time>>libs_linux_time>>libs_android_time>>libs_ios_time;
+            f>>package_time>>android_license_key_time>>location_usage_reason_time>>build_time>>storage_time>>supported_orientations_time;
+            f>>fb_app_id_time;
+            f>>am_app_id_ios_time>>am_app_id_google_time;
+            f>>cb_app_id_ios_time>>cb_app_signature_ios_time>>cb_app_id_google_time>>cb_app_signature_google_time;
+            f>>embed_engine_data_time>>publish_proj_data_time>>publish_physx_dll_time>>publish_steam_dll_time>>publish_open_vr_dll_time>>publish_data_as_pak_time>>android_expansion_time;
+            f>>icon_time>>notification_icon_time>>image_portrait_time>>image_landscape_time>>gui_skin_time;
+            if(f.ok())return true;
+         }break;
+
          case 16:
          {
             f>>dirs_windows>>dirs_nonwindows;
@@ -2751,15 +2782,23 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       if(fb_app_id)nodes.New().set("FacebookAppID", fb_app_id);
 
       {
+         TextNode &am=nodes.New().setName("AdMob");
+         if(am_app_id_ios   .is())am.nodes.New().set("AppIDiOS"       , am_app_id_ios);
+         if(am_app_id_google.is())am.nodes.New().set("AppIDGoogle"    , am_app_id_google);
+                                  am.nodes.New().set("AppIDiOSTime"   , am_app_id_ios_time.text());
+                                  am.nodes.New().set("AppIDGoogleTime", am_app_id_google_time.text());
+      }
+
+      {
          TextNode &cb=nodes.New().setName("Chartboost");
-         if(cb_app_id_ios          .is())cb.nodes.New().set("AppIDiOS"          , cb_app_id_ios);
-         if(cb_app_signature_ios   .is())cb.nodes.New().set("AppSignatureiOS"   , cb_app_signature_ios);
-         if(cb_app_id_google       .is())cb.nodes.New().set("AppIDGoogle"       , cb_app_id_google);
-         if(cb_app_signature_google.is())cb.nodes.New().set("AppSignatureGoogle", cb_app_signature_google);
-         cb.nodes.New().set("AppIDiOSTime"          , cb_app_id_ios_time.text());
-         cb.nodes.New().set("AppSignatureiOSTime"   , cb_app_signature_ios_time.text());
-         cb.nodes.New().set("AppIDGoogleTime"       , cb_app_id_google_time.text());
-         cb.nodes.New().set("AppSignatureGoogleTime", cb_app_signature_google_time.text());
+         if(cb_app_id_ios          .is())cb.nodes.New().set("AppIDiOS"              , cb_app_id_ios);
+         if(cb_app_signature_ios   .is())cb.nodes.New().set("AppSignatureiOS"       , cb_app_signature_ios);
+         if(cb_app_id_google       .is())cb.nodes.New().set("AppIDGoogle"           , cb_app_id_google);
+         if(cb_app_signature_google.is())cb.nodes.New().set("AppSignatureGoogle"    , cb_app_signature_google);
+                                         cb.nodes.New().set("AppIDiOSTime"          , cb_app_id_ios_time.text());
+                                         cb.nodes.New().set("AppSignatureiOSTime"   , cb_app_signature_ios_time.text());
+                                         cb.nodes.New().set("AppIDGoogleTime"       , cb_app_id_google_time.text());
+                                         cb.nodes.New().set("AppSignatureGoogleTime", cb_app_signature_google_time.text());
       }
 
       nodes.New().set("BuildTime"  ,   build_time.text());
@@ -2841,6 +2880,17 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          if(n.name=="AndroidLicenseKey"           )n.getValue(android_license_key);else
 
          if(n.name=="FacebookAppID"               )n.getValue(fb_app_id);else
+         if(n.name=="AdMob"                       )
+         {
+            REPA(n.nodes)
+            {
+             C TextNode &am=n.nodes[i];
+               if(am.name=="AppIDiOS"       )am.getValue(am_app_id_ios   );else
+               if(am.name=="AppIDGoogle"    )am.getValue(am_app_id_google);else
+               if(am.name=="AppIDiOSTime"   )am_app_id_ios_time   =am.asText();else
+               if(am.name=="AppIDGoogleTime")am_app_id_google_time=am.asText();
+            }
+         }else
          if(n.name=="Chartboost"                  )
          {
             REPA(n.nodes)

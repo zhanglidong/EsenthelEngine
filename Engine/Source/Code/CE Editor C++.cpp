@@ -1687,6 +1687,11 @@ Bool CodeEditor::generateXcodeProj()
          value.setName("string").nodes.del();
          value.data.setNum(1)[0]=cei().appName();
       }else
+      if(key=="GADApplicationIdentifier")
+      {
+         value.setName("string").nodes.del();
+         value.data.setNum(1)[0]=cei().appAdMobAppIDiOS();
+      }else
       if(key=="ChartboostAppID")
       {
          value.setName("string").nodes.del();
@@ -2224,6 +2229,7 @@ Bool CodeEditor::generateAndroidProj()
                }
             }
          }
+         Str s=cei().appAdMobAppIDGooglePlay(); if(s.is()){XmlNode &n=application.nodes.New().setName("meta-data"); n.params.New().set("android:name", "com.google.android.gms.ads.APPLICATION_ID"); n.params.New().set("android:value", s);}
       }
    }
    if(!OverwriteOnChangeLoud(xml, build_path+"Android/AndroidManifest.xml"))return false;
@@ -2235,6 +2241,7 @@ Bool CodeEditor::generateAndroidProj()
    CChar8 *android_libs[]=
    {
       // Google Play Services
+    //"play-services-ads",
       "play-services-ads-lite",
       "play-services-auth-base",
       "play-services-base",
@@ -2285,6 +2292,8 @@ Bool CodeEditor::generateAndroidProj()
       data=Replace(data, "EE_PACKAGE"                 , app_package                                , true, true);
       data=Replace(data, "EE_APP_NAME"                , CString(cei().appName())                   , true, true);
       data=Replace(data, "EE_LICENSE_KEY"             , cei().appLicenseKey                      (), true, true);
+      Str s=cei().appAdMobAppIDGooglePlay();
+      data=Replace(data, "EE_INIT_ADMOB"              , s.is() ? S+"MobileAds.initialize(this, \""+CString(s)+"\");" : S);
       data=Replace(data, "EE_INIT_CHARTBOOST"         , TextBool(cei().appChartboostAppIDGooglePlay().is() && cei().appChartboostAppSignatureGooglePlay().is()), true, true);
       data=Replace(data, "EE_CHARTBOOST_APP_ID"       , cei().appChartboostAppIDGooglePlay       (), true, true);
       data=Replace(data, "EE_CHARTBOOST_APP_SIGNATURE", cei().appChartboostAppSignatureGooglePlay(), true, true);

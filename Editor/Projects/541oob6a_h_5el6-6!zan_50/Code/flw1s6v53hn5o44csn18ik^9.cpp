@@ -1,3 +1,7 @@
+/******************************************************************************
+
+   !! Before using AdMob make sure that you've set "AdMob App ID" in your Application Properties for Android/iOS !!
+
 /******************************************************************************/
 const bool TestMode=true; // !! WARNING: if you disable test mode, and click on your own Ads, you may be banned from AdMob !! Do not click on your own Ads !!
 /******************************************************************************/
@@ -10,7 +14,7 @@ void InitPre()
 
    if(TestMode)AdMob.testMode(true); // enable test mode
    
-   AdMob.bannerCreate("ca-app-pub-".., AdMobClass.BANNER); // create banner from your AdMob Banner Unit ID, which is obtained from https://apps.admob.com/#monetize
+   AdMob.bannerCreate("ca-app-pub-3940256099942544/6300978111", AdMobClass.BANNER); // create banner from your AdMob Banner Unit ID, which is obtained from https://apps.admob.com/#monetize
    AdMob.bannerShow(); // display the Ad once it finishes loading
 }
 /******************************************************************************/

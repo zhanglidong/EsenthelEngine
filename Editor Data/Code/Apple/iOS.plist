@@ -60,6 +60,8 @@
    <string></string>
    <key>FacebookDisplayName</key>
    <string></string>
+   <key>GADApplicationIdentifier</key>
+   <string></string>
    <key>ChartboostAppID</key>
    <string></string>
    <key>ChartboostAppSignature</key>

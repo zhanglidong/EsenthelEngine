@@ -67,7 +67,12 @@ import android.widget.Toast;
 import com.android.vending.billing.IInAppBillingService;
 import com.chartboost.sdk.*;
 import com.chartboost.sdk.Model.CBError.CBImpressionError;
-import com.google.android.gms.ads.*;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdListener;
 import com.facebook.android.DialogError;
 import com.facebook.android.Facebook;
 import com.facebook.android.Facebook.DialogListener;
@@ -220,18 +225,6 @@ public class EsenthelActivity extends NativeActivity
    static IInAppBillingService iab_service;
    static ServiceConnection    iab_service_conn;
    static PublicKey            license_key;
-   static AdRequest            ad_request;
-          AdView               ad_view;
-   static boolean              ad_view_loaded=false, // if ad_view is loaded
-                               banner_visible=false, // if banner should be visible
-                               inters_show=false; // if show interstitial once it's loaded
-   static String               banner_id, // id of the banner       ad, null for none
-                               inters_id; // id of the interstitial ad, null for none
-   static int                  banner_type=AD_BANNER, // banner type
-                               banner_x=0, banner_y=1; // banner position, -1..1
-          InterstitialAd       interstitial;
-          PopupWindow          popup_window;
-          LinearLayout         popup_window_layout, ad_view_layout;
    static String               android_id;
           EditText             edit_text;
           TextWatcher          text_watcher;
@@ -355,8 +348,7 @@ public class EsenthelActivity extends NativeActivity
 
       initIAB();
       initFB (savedInstanceState);
-      com.esenthel.Native.bannerSize(0, 0); // at this stage the banner is lost, but the banner size on the native size is still present, so reset it
-      if(ad_request==null)setAdRequest(false);
+      initAdMob();
       initChartboost();
       initNotification();
 
@@ -653,6 +645,25 @@ public class EsenthelActivity extends NativeActivity
    /******************************************************************************/
    // ADMOB
    /******************************************************************************/
+   static AdRequest      ad_request;
+          AdView         ad_view;
+   static boolean        ad_view_loaded=false, // if ad_view is loaded
+                         banner_visible=false, // if banner should be visible
+                         inters_show=false; // if show interstitial once it's loaded
+   static String         banner_id, // id of the banner       ad, null for none
+                         inters_id; // id of the interstitial ad, null for none
+   static int            banner_type=AD_BANNER, // banner type
+                         banner_x=0, banner_y=1; // banner position, -1..1
+          InterstitialAd interstitial;
+          PopupWindow    popup_window;
+          LinearLayout   popup_window_layout, ad_view_layout;
+
+   final void initAdMob()
+   {
+      EE_INIT_ADMOB
+      com.esenthel.Native.bannerSize(0, 0); // at this stage the banner is lost, but the banner size on the native size is still present, so reset it
+      if(ad_request==null)setAdRequest(false);
+   }
    public static final void setAdRequest(boolean test_mode)
    {
       AdRequest.Builder builder=new AdRequest.Builder().addTestDevice(AdRequest.DEVICE_ID_EMULATOR);
@@ -1271,7 +1282,6 @@ public class EsenthelActivity extends NativeActivity
 		      @Override public final void didClickRewardedVideo(String location) {com.esenthel.Native.chartboost(REWARDED_VIDEO_CLICKED);}
 		      @Override public final void didCompleteRewardedVideo(String location, int reward) {com.esenthel.Native.chartboost(REWARDED_VIDEO_COMPLETED);}
          });
-         Chartboost.setImpressionsUseActivities(true); // this is required due to OpenGL usage, it must be called between 'Chartboost.startWithAppId' and 'Chartboost.onCreate'
          Chartboost.onCreate(this);
       }
    }

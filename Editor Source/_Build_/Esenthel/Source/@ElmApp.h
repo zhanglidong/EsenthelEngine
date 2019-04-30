@@ -16,7 +16,7 @@ class ElmApp : ElmData
    Str               dirs_windows, dirs_nonwindows,
                      headers_windows, headers_mac, headers_linux, headers_android, headers_ios,
                      libs_windows, libs_mac, libs_linux, libs_android, libs_ios,
-                     package, android_license_key, location_usage_reason, cb_app_id_ios, cb_app_signature_ios, cb_app_id_google, cb_app_signature_google;
+                     package, android_license_key, location_usage_reason, am_app_id_ios, am_app_id_google, cb_app_id_ios, cb_app_signature_ios, cb_app_id_google, cb_app_signature_google;
    int               build;
    ulong             fb_app_id;
    Edit::STORAGE_MODE storage;
@@ -27,7 +27,7 @@ class ElmApp : ElmData
                      gui_skin;
    TimeStamp         dirs_windows_time, dirs_nonwindows_time,
                      headers_windows_time, headers_mac_time, headers_linux_time, headers_android_time, headers_ios_time,
-                     fb_app_id_time, cb_app_id_ios_time, cb_app_signature_ios_time, cb_app_id_google_time, cb_app_signature_google_time,
+                     fb_app_id_time, am_app_id_ios_time, am_app_id_google_time, cb_app_id_ios_time, cb_app_signature_ios_time, cb_app_id_google_time, cb_app_signature_google_time,
                      libs_windows_time, libs_mac_time, libs_linux_time, libs_android_time, libs_ios_time,
                      package_time, android_license_key_time, location_usage_reason_time, build_time, storage_time, supported_orientations_time,
                      embed_engine_data_time, publish_proj_data_time, publish_physx_dll_time, publish_steam_dll_time, publish_open_vr_dll_time, publish_data_as_pak_time, android_expansion_time,
