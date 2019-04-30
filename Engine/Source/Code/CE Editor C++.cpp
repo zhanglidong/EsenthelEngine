@@ -2242,11 +2242,12 @@ Bool CodeEditor::generateAndroidProj()
    {
       // Google Play Services
     //"play-services-ads",
-      "play-services-ads-lite",
-      "play-services-auth-base",
-      "play-services-base",
-      "play-services-basement",
-      "play-services-drive",
+      "play-services-ads-lite", // needed by AdMob and Chartboost
+      "play-services-auth-base", // login/authentication
+      "play-services-base", // core
+      "play-services-basement", // core resources
+      "play-services-drive", // google drive
+    //"support-v4",
 
       "play_apk_expansion", // allows downloading APK expansions
       "market_licensing", // needed for "play_apk_expansion"
