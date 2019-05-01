@@ -3,7 +3,7 @@
 /******************************************************************************
 
    Warning/TODO/FIXME: Once every few months 'UpdateCertificates' should be called to update latest version of trusted certificates for SSL/TLS/HTTPS
-      Last Updated: 1 Feb 2019
+      Last Updated: 1 May 2019
 
 /******************************************************************************/
 #define UPDATE_CERTIFICATES (DEBUG && 0)
