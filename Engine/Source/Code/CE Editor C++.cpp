@@ -2061,9 +2061,10 @@ Bool CodeEditor::generateAndroidProj()
 
    // resources
    {
-      XmlData xml;
-      XmlNode &res=xml.nodes.New().setName("resources");
-      XmlNode &fb_app_id=res.nodes.New().setName("string"); fb_app_id.params.New().set("name", "app_id"); fb_app_id.data.add(S+cei().appFacebookAppID());
+       XmlData  xml;
+       XmlNode &res=xml.nodes.New().setName("resources");
+      {XmlNode &n  =res.nodes.New().setName("string"); n.params.New().set("name", "facebook_app_id"         ); n.data.add(cei().appFacebookAppID());}
+      {XmlNode &n  =res.nodes.New().setName("string"); n.params.New().set("name", "fb_login_protocol_scheme"); n.data.add(cei().appFacebookAppID());}
       if(!OverwriteOnChangeLoud(xml, build_path+"Android/res/values/strings.xml"))return false;
    }
 
@@ -2223,13 +2224,14 @@ Bool CodeEditor::generateAndroidProj()
                      node.getParam("android:screenOrientation").value=orn;
                   }
                }else
-               if(name->value=="com.facebook.LoginActivity")
+               if(name->value=="com.facebook.FacebookActivity")
                {
                   node.getParam("android:label").value=CString(cei().appName()); // android expects this as a C String
                }
             }
          }
-         Str s=cei().appAdMobAppIDGooglePlay(); if(s.is()){XmlNode &n=application.nodes.New().setName("meta-data"); n.params.New().set("android:name", "com.google.android.gms.ads.APPLICATION_ID"); n.params.New().set("android:value", s);}
+         Str    s=cei().appAdMobAppIDGooglePlay(); if(s.is()){XmlNode &n=application.nodes.New().setName("meta-data"); n.params.New().set("android:name", "com.google.android.gms.ads.APPLICATION_ID"); n.params.New().set("android:value", s);}
+         ULong id=cei().appFacebookAppID       (); if(id    ){XmlNode &n=application.nodes.New().setName("provider" ); n.params.New().set("android:authorities", S+"com.facebook.app.FacebookContentProvider"+id); n.params.New().set("android:name", "com.facebook.FacebookContentProvider"); n.params.New().set("android:exported", "true");}
       }
    }
    if(!OverwriteOnChangeLoud(xml, build_path+"Android/AndroidManifest.xml"))return false;
@@ -2262,15 +2264,24 @@ Bool CodeEditor::generateAndroidProj()
    // project.properties
    {
       FileText project; project.writeMem(UTF_8_NAKED);
-      project.putLine("target=android-18");
+      project.putLine("target=android-28");
       FREPA(android_libs) // process in order
       {
-         Str src_path=android_path+android_libs[i], dest_path=android_libs_path+android_libs[i];
+         Str src_path=android_path+android_libs[i], dest_path=android_libs_path+android_libs[i], dest_path_local_properties;
          if(C PaksFile *pf=Paks.find(src_path)){if(!FCopy(*pf->pak, *pf->file, dest_path, FILE_OVERWRITE_DIFFERENT))return ErrorWrite(dest_path);}else return ErrorRead(src_path); // copy from "Editor.pak" to 'android_libs_path'
          project.putLine(S+"android.library.reference."+(i+1)+"="+UnixPath(GetRelativePath(build_path+"Android", dest_path)));
-         if(!OverwriteOnChangeLoud(local, dest_path+"/local.properties"))return false;
+         if(!OverwriteOnChangeLoud(local, dest_path+"/local.properties"))return false; // this file is not included in "Editor.pak", it's skipped in 'FilterEditorPak' function from "Esenthel Builder"
       }
       if(!OverwriteOnChangeLoud(project, build_path+"Android/project.properties"))return false;
+   }
+   // fixup "facebook-core/AndroidManifest.xml" TODO: Warning: this will trigger rewrite everytime compilation is started (first file is copied above inside 'FCopy' and then replaced below)
+   {
+      Str path=android_libs_path+"facebook-core/AndroidManifest.xml";
+      FileText ft; if(!ft.read(path))return ErrorRead(path);
+      Str data=ft.getAll();
+      data=Replace(data, "${applicationId}", CString(app_package), true, true);
+      SetFile(ft, data, UTF_8_NAKED);
+      if(!OverwriteOnChangeLoud(ft, path))return false;
    }
 
    if(!CopyFile(android_path+"chartboost.jar", build_path+"Android/libs/chartboost.jar"))return false;
