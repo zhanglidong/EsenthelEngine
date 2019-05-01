@@ -89,7 +89,7 @@ AdMobClass& AdMobClass::testMode(Bool on)
 #if ANDROID
    JNI jni;
    if(jni && ActivityClass)
-      if(JMethodID setAdRequest=jni->GetStaticMethodID(ActivityClass, "setAdRequest", "(Z)V"))
+      if(JMethodID setAdRequest=jni.staticFunc(ActivityClass, "setAdRequest", "(Z)V"))
          jni->CallStaticVoidMethod(ActivityClass, setAdRequest, jboolean(on));
 #elif IOS
    Request.testDevices=nil;
@@ -112,7 +112,7 @@ AdMobClass& AdMobClass::bannerDel()
 #if ANDROID
    JNI jni;
    if(jni && ActivityClass && Activity)
-      if(JMethodID adDel=jni->GetMethodID(ActivityClass, "adDel", "(Z)V"))
+      if(JMethodID adDel=jni.func(ActivityClass, "adDel", "(Z)V"))
          jni->CallVoidMethod(Activity, adDel, jboolean(true));
 #elif IOS
    if(Banner)
@@ -131,7 +131,7 @@ AdMobClass& AdMobClass::fsDel()
 #if ANDROID
    JNI jni;
    if(jni && ActivityClass && Activity)
-      if(JMethodID adDel=jni->GetMethodID(ActivityClass, "adDel", "(Z)V"))
+      if(JMethodID adDel=jni.func(ActivityClass, "adDel", "(Z)V"))
          jni->CallVoidMethod(Activity, adDel, jboolean(false));
 #elif IOS
    if(Interstitial)
@@ -155,7 +155,7 @@ AdMobClass& AdMobClass::bannerCreate(C Str8 &unit_id, BANNER_TYPE type)
      _banner_size .zero();
       JNI jni;
       if(jni && ActivityClass && Activity)
-         if(JMethodID adCreate=jni->GetMethodID(ActivityClass, "adCreate", "(Ljava/lang/String;I)V"))
+         if(JMethodID adCreate=jni.func(ActivityClass, "adCreate", "(Ljava/lang/String;I)V"))
          if(JString j_unit_id=unit_id)
             jni->CallVoidMethod(Activity, adCreate, j_unit_id(), jint(type));
    #elif IOS
@@ -194,7 +194,7 @@ AdMobClass& AdMobClass::fsCreate(C Str8 &unit_id)
      _fs_state=LOADING;
       JNI jni;
       if(jni && ActivityClass && Activity)
-         if(JMethodID adCreate=jni->GetMethodID(ActivityClass, "adCreate", "(Ljava/lang/String;I)V"))
+         if(JMethodID adCreate=jni.func(ActivityClass, "adCreate", "(Ljava/lang/String;I)V"))
          if(JString j_unit_id=unit_id)
             jni->CallVoidMethod(Activity, adCreate, j_unit_id(), jint(INTERSTITIAL));
    #elif IOS
@@ -218,7 +218,7 @@ AdMobClass& AdMobClass::bannerVisible(Bool visible)
 #if ANDROID
    JNI jni;
    if(jni && ActivityClass && Activity)
-      if(JMethodID adVisible=jni->GetMethodID(ActivityClass, "adVisible", "(ZZ)V"))
+      if(JMethodID adVisible=jni.func(ActivityClass, "adVisible", "(ZZ)V"))
          jni->CallVoidMethod(Activity, adVisible, jboolean(true), jboolean(visible));
 #elif IOS
    BannerVisible=visible;
@@ -240,7 +240,7 @@ AdMobClass& AdMobClass::fsVisible(Bool visible)
 #if ANDROID
    JNI jni;
    if(jni && ActivityClass && Activity)
-      if(JMethodID adVisible=jni->GetMethodID(ActivityClass, "adVisible", "(ZZ)V"))
+      if(JMethodID adVisible=jni.func(ActivityClass, "adVisible", "(ZZ)V"))
          jni->CallVoidMethod(Activity, adVisible, jboolean(false), jboolean(visible));
 #elif IOS
    if(visible)
@@ -272,7 +272,7 @@ AdMobClass& AdMobClass::bannerPos(Int x, Int y)
    #if ANDROID
       JNI jni;
       if(jni && ActivityClass && Activity)
-         if(JMethodID adPos=jni->GetMethodID(ActivityClass, "adPos", "(II)V"))
+         if(JMethodID adPos=jni.func(ActivityClass, "adPos", "(II)V"))
             jni->CallVoidMethod(Activity, adPos, jint(x), jint(y));
    #elif IOS
       if(Banner)

@@ -1313,7 +1313,7 @@ static Bool InitSocketEx()
       if(JFieldID WIFI_SERVICEField=Jni->GetStaticFieldID(ContextClass, "WIFI_SERVICE", "Ljava/lang/String;"))
       if(JObject WIFI_SERVICE=Jni->GetStaticObjectField(ContextClass, WIFI_SERVICEField))
       if(JClass WifiManagerClass="android/net/wifi/WifiManager")
-      if(JMethodID getSystemService=Jni->GetMethodID(ActivityClass, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;"))
+      if(JMethodID getSystemService=Jni.func(ActivityClass, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;"))
       {
          JObject WifiManager=Jni->CallObjectMethod(Activity, getSystemService, WIFI_SERVICE());
          if(Jni->ExceptionCheck())
@@ -1325,9 +1325,9 @@ static Bool InitSocketEx()
          }
          if(WifiManager)
          if(JClass WifiInfoClass="android/net/wifi/WifiInfo")
-         if(JMethodID getConnectionInfo=Jni->GetMethodID(WifiManagerClass, "getConnectionInfo", "()Landroid/net/wifi/WifiInfo;"))
+         if(JMethodID getConnectionInfo=Jni.func(WifiManagerClass, "getConnectionInfo", "()Landroid/net/wifi/WifiInfo;"))
          if(JObject WifiInfo=Jni->CallObjectMethod(WifiManager, getConnectionInfo))
-         if(JMethodID getMacAddress=Jni->GetMethodID(WifiInfoClass, "getMacAddress", "()Ljava/lang/String;"))
+         if(JMethodID getMacAddress=Jni.func(WifiInfoClass, "getMacAddress", "()Ljava/lang/String;"))
          if(JString MacAddress=Jni->CallObjectMethod(WifiInfo     ,  getMacAddress))
          {
             Memt<Str> mac; Split(mac, MacAddress.str(), ':');

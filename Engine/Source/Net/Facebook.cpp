@@ -83,7 +83,7 @@ Bool Facebook::loggedIn()C
 #if ANDROID
    JNI jni;
    if(jni && ActivityClass)
-   if(JMethodID facebookLoggedIn=jni->GetStaticMethodID(ActivityClass, "facebookLoggedIn", "()Z"))
+   if(JMethodID facebookLoggedIn=jni.staticFunc(ActivityClass, "facebookLoggedIn", "()Z"))
       return jni->CallStaticBooleanMethod(ActivityClass, facebookLoggedIn);
 #elif IOS
    return [FBSDKAccessToken currentAccessToken]!=null;
@@ -95,7 +95,7 @@ Facebook& Facebook::logIn()
 #if ANDROID
    JNI jni;
    if(jni && ActivityClass && Activity)
-   if(JMethodID facebookLogIn=jni->GetMethodID(ActivityClass, "facebookLogIn", "()V"))
+   if(JMethodID facebookLogIn=jni.func(ActivityClass, "facebookLogIn", "()V"))
       jni->CallVoidMethod(Activity, facebookLogIn);
 #elif IOS
    if(FBSDKLoginManager *login=[[FBSDKLoginManager alloc] init])
@@ -125,7 +125,7 @@ Facebook& Facebook::logOut()
 #if ANDROID
    JNI jni;
    if(jni && ActivityClass)
-   if(JMethodID facebookLogOut=jni->GetStaticMethodID(ActivityClass, "facebookLogOut", "()V"))
+   if(JMethodID facebookLogOut=jni.staticFunc(ActivityClass, "facebookLogOut", "()V"))
       jni->CallStaticVoidMethod(ActivityClass, facebookLogOut);
 #elif IOS
    #if 0
@@ -148,7 +148,7 @@ Facebook& Facebook::getMe()
 #if ANDROID
    JNI jni;
    if(jni && ActivityClass && Activity)
-   if(JMethodID facebookGetMe=jni->GetMethodID(ActivityClass, "facebookGetMe", "()V"))
+   if(JMethodID facebookGetMe=jni.func(ActivityClass, "facebookGetMe", "()V"))
       jni->CallVoidMethod(Activity, facebookGetMe);
 #elif IOS
    if(loggedIn())GetMe();else{FlagEnable(Get, GET_ME); logIn();}
@@ -160,7 +160,7 @@ Facebook& Facebook::getFriends()
 #if ANDROID
    JNI jni;
    if(jni && ActivityClass && Activity)
-   if(JMethodID facebookGetFriends=jni->GetMethodID(ActivityClass, "facebookGetFriends", "()V"))
+   if(JMethodID facebookGetFriends=jni.func(ActivityClass, "facebookGetFriends", "()V"))
       jni->CallVoidMethod(Activity, facebookGetFriends);
 #elif IOS
    if(loggedIn())GetFriends();else{FlagEnable(Get, GET_FRIENDS); logIn();}
@@ -190,7 +190,7 @@ void Facebook::post(C Str &message, C Str &url, C Str &image_url, C Str &title, 
 #if ANDROID
    JNI jni;
    if(jni && ActivityClass && Activity)
-   if(JMethodID facebookPost=jni->GetMethodID(ActivityClass, "facebookPost", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V"))
+   if(JMethodID facebookPost=jni.func(ActivityClass, "facebookPost", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V"))
    if(JString   j_message  =JString(jni, message  ))
    if(JString   j_url      =JString(jni, url      ))
    if(JString   j_image_url=JString(jni, image_url))
@@ -240,8 +240,8 @@ extern "C" JNIEXPORT void JNICALL Java_com_esenthel_Native_facebookFriends(JNIEn
    JNI jni(env);
    Mems<Facebook::User> friends;
    if(JClass ArrayList=JClass(jni, ids))
-   if(JMethodID size=jni->GetMethodID(ArrayList, "size", "()I"))
-   if(JMethodID get =jni->GetMethodID(ArrayList, "get" , "(I)Ljava/lang/Object;"))
+   if(JMethodID size=jni.func(ArrayList, "size", "()I"))
+   if(JMethodID get =jni.func(ArrayList, "get" , "(I)Ljava/lang/Object;"))
    {
       Int ids_elms=jni->CallIntMethod(ids  , size),
         names_elms=jni->CallIntMethod(names, size);

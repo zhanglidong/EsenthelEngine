@@ -1050,8 +1050,8 @@ Bool GetDriveSize(C Str &path, Long *free, Long *total)
 #elif ANDROID && __ANDROID_API__<21 // on Android, only API 21 and above has 'statvfs', for below we need to use Java
    JNI jni;
    if(jni && ActivityClass)
-   if(JMethodID driveSizeFree =jni->GetStaticMethodID(ActivityClass, "driveSizeFree" , "(Ljava/lang/String;)J"))
-   if(JMethodID driveSizeTotal=jni->GetStaticMethodID(ActivityClass, "driveSizeTotal", "(Ljava/lang/String;)J"))
+   if(JMethodID driveSizeFree =jni.staticFunc(ActivityClass, "driveSizeFree" , "(Ljava/lang/String;)J"))
+   if(JMethodID driveSizeTotal=jni.staticFunc(ActivityClass, "driveSizeTotal", "(Ljava/lang/String;)J"))
    if(JString p=JString(jni, UnixPath(path)))
    {
       Long _free =jni->CallStaticLongMethod(ActivityClass, driveSizeFree , p()),

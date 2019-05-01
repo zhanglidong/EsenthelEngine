@@ -1050,7 +1050,7 @@ void WindowMsgBox(C Str &title, C Str &text, Bool error)
    // we need to call the code on UI thread, so we need to call java that will do this
    JNI jni;
    if(jni && ActivityClass)
-   if(JMethodID messageBox=jni->GetStaticMethodID(ActivityClass, "messageBox", "(Ljava/lang/String;Ljava/lang/String;Z)V"))
+   if(JMethodID messageBox=jni.staticFunc(ActivityClass, "messageBox", "(Ljava/lang/String;Ljava/lang/String;Z)V"))
       if(JString ti=JString(jni, title))
       if(JString te=JString(jni, text ))
          jni->CallStaticVoidMethod(ActivityClass, messageBox, ti(), te(), jboolean(false));

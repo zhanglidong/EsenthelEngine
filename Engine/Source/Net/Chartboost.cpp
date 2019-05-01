@@ -72,7 +72,7 @@ Bool ChartboostClass::visible()C // this does not work on Android, most likely i
 #if ANDROID
    JNI jni;
    if(jni && ActivityClass)
-   if(JMethodID chartboostVisible=jni->GetStaticMethodID(ActivityClass, "chartboostVisible", "()Z"))
+   if(JMethodID chartboostVisible=jni.staticFunc(ActivityClass, "chartboostVisible", "()Z"))
       return jni->CallStaticBooleanMethod(ActivityClass, chartboostVisible);
 #elif IOS
    return [::Chartboost isAnyViewVisible];
@@ -85,7 +85,7 @@ ChartboostClass& ChartboostClass::interstitialLoad()
 #if ANDROID
    JNI jni;
    if(jni && ActivityClass)
-      if(JMethodID chartboostInterstitialLoad=jni->GetStaticMethodID(ActivityClass, "chartboostInterstitialLoad", "()V"))
+      if(JMethodID chartboostInterstitialLoad=jni.staticFunc(ActivityClass, "chartboostInterstitialLoad", "()V"))
          jni->CallStaticVoidMethod(ActivityClass, chartboostInterstitialLoad);
 #elif IOS
    [::Chartboost cacheInterstitial:CBLocationDefault];
@@ -97,7 +97,7 @@ ChartboostClass& ChartboostClass::interstitialShow()
 #if ANDROID
    JNI jni;
    if(jni && ActivityClass)
-      if(JMethodID chartboostInterstitialShow=jni->GetStaticMethodID(ActivityClass, "chartboostInterstitialShow", "()V"))
+      if(JMethodID chartboostInterstitialShow=jni.staticFunc(ActivityClass, "chartboostInterstitialShow", "()V"))
          jni->CallStaticVoidMethod(ActivityClass, chartboostInterstitialShow);
 #elif IOS
    [::Chartboost showInterstitial:CBLocationDefault];
@@ -109,7 +109,7 @@ Bool ChartboostClass::interstitialAvailable()C
 #if ANDROID
    JNI jni;
    if(jni && ActivityClass)
-      if(JMethodID chartboostInterstitialAvailable=jni->GetStaticMethodID(ActivityClass, "chartboostInterstitialAvailable", "()Z"))
+      if(JMethodID chartboostInterstitialAvailable=jni.staticFunc(ActivityClass, "chartboostInterstitialAvailable", "()Z"))
          return jni->CallStaticBooleanMethod(ActivityClass, chartboostInterstitialAvailable);
 #elif IOS
    return [::Chartboost hasInterstitial:CBLocationDefault];
@@ -122,7 +122,7 @@ ChartboostClass& ChartboostClass::rewardedVideoLoad()
 #if ANDROID
    JNI jni;
    if(jni && ActivityClass)
-      if(JMethodID chartboostRewardedVideoLoad=jni->GetStaticMethodID(ActivityClass, "chartboostRewardedVideoLoad", "()V"))
+      if(JMethodID chartboostRewardedVideoLoad=jni.staticFunc(ActivityClass, "chartboostRewardedVideoLoad", "()V"))
          jni->CallStaticVoidMethod(ActivityClass, chartboostRewardedVideoLoad);
 #elif IOS
    [::Chartboost cacheRewardedVideo:CBLocationDefault];
@@ -134,7 +134,7 @@ ChartboostClass& ChartboostClass::rewardedVideoShow()
 #if ANDROID
    JNI jni;
    if(jni && ActivityClass)
-      if(JMethodID chartboostRewardedVideoShow=jni->GetStaticMethodID(ActivityClass, "chartboostRewardedVideoShow", "()V"))
+      if(JMethodID chartboostRewardedVideoShow=jni.staticFunc(ActivityClass, "chartboostRewardedVideoShow", "()V"))
          jni->CallStaticVoidMethod(ActivityClass, chartboostRewardedVideoShow);
 #elif IOS
    [::Chartboost showRewardedVideo:CBLocationDefault];
@@ -146,7 +146,7 @@ Bool ChartboostClass::rewardedVideoAvailable()C
 #if ANDROID
    JNI jni;
    if(jni && ActivityClass)
-      if(JMethodID chartboostRewardedVideoAvailable=jni->GetStaticMethodID(ActivityClass, "chartboostRewardedVideoAvailable", "()Z"))
+      if(JMethodID chartboostRewardedVideoAvailable=jni.staticFunc(ActivityClass, "chartboostRewardedVideoAvailable", "()Z"))
          return jni->CallStaticBooleanMethod(ActivityClass, chartboostRewardedVideoAvailable);
 #elif IOS
    return [::Chartboost hasRewardedVideo:CBLocationDefault];

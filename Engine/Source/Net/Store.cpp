@@ -38,7 +38,7 @@ static Bool                BackgroundUpdate(Thread &thread) {return ((PlatformSt
       #if ANDROID
          JNI jni;
          if(jni && ActivityClass)
-         if(JMethodID getItemDetails=jni->GetStaticMethodID(ActivityClass, "getItemDetails", "(ZZIJJ)Z"))
+         if(JMethodID getItemDetails=jni.staticFunc(ActivityClass, "getItemDetails", "(ZZIJJ)Z"))
          {
             Memt  <Item> items;
             MemPtr<Item> items_ptr=items;
@@ -65,7 +65,7 @@ static Bool                BackgroundUpdate(Thread &thread) {return ((PlatformSt
       #if ANDROID
          JNI jni;
          if(jni && ActivityClass)
-         if(JMethodID getPurchases=jni->GetStaticMethodID(ActivityClass, "getPurchases", "(ZJ)Z"))
+         if(JMethodID getPurchases=jni.staticFunc(ActivityClass, "getPurchases", "(ZJ)Z"))
          {
             Memc  <Purchase> purchases;
             MemPtr<Purchase> purchases_ptr=purchases;
@@ -93,7 +93,7 @@ static Bool                BackgroundUpdate(Thread &thread) {return ((PlatformSt
       #if ANDROID
          JNI jni;
          if(jni && ActivityClass)
-         if(JMethodID consume=jni->GetStaticMethodID(ActivityClass, "consume", "(Ljava/lang/String;)I"))
+         if(JMethodID consume=jni.staticFunc(ActivityClass, "consume", "(Ljava/lang/String;)I"))
          if(JString   j_token=JString(jni, purchase.token))
          {
             purchase.result=(RESULT)jni->CallStaticIntMethod(ActivityClass, consume, j_token());
@@ -414,7 +414,7 @@ PlatformStore::RESULT PlatformStore::buy(C Str &id, Bool subscription, C Str &da
 #elif ANDROID
    JNI jni;
    if(jni && ActivityClass)
-   if(JMethodID buy   =jni->GetStaticMethodID(ActivityClass, "buy", "(Ljava/lang/String;Ljava/lang/String;Z)I"))
+   if(JMethodID buy   =jni.staticFunc(ActivityClass, "buy", "(Ljava/lang/String;Ljava/lang/String;Z)I"))
    if(JString   j_id  =JString(jni, id  ))
    if(JString   j_data=JString(jni, data))
       return (RESULT)jni->CallStaticIntMethod(ActivityClass, buy, j_id(), j_data(), jboolean(subscription));

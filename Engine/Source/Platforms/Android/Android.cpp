@@ -200,6 +200,9 @@ void JNI::attach()
       if(!_)Exit("Can't attach thread to Java Virtual Machine");
    }
 }
+jmethodID JNI::      func(jclass clazz, const char* name, const char* sig)C {jmethodID f=_->GetMethodID      (clazz, name, sig); if(_->ExceptionCheck()){_->ExceptionClear(); f=null;} return f;}
+jmethodID JNI::staticFunc(jclass clazz, const char* name, const char* sig)C {jmethodID f=_->GetStaticMethodID(clazz, name, sig); if(_->ExceptionCheck()){_->ExceptionClear(); f=null;} return f;}
+
 JObject& JObject::clear     () {_=null; _global=false; return T;}
 JObject& JObject::del       () {if(_ && _jni){if(_global)_jni->DeleteGlobalRef(_);else _jni->DeleteLocalRef(_);} _=null; _global=false; return T;}
 JObject& JObject::makeGlobal() {if(!_global && _jni && _){jobject j=_jni->NewGlobalRef(_); del(); _=j; _global=true;} return T;}
@@ -631,7 +634,7 @@ static void SetActive()
       if(active)
       {
          if(Jni && ActivityClass)
-         if(JMethodID stopBackgroundService=Jni->GetMethodID(ActivityClass, "stopBackgroundService", "()V"))
+         if(JMethodID stopBackgroundService=Jni.func(ActivityClass, "stopBackgroundService", "()V"))
             Jni->CallVoidMethod(Activity, stopBackgroundService);
 
          LOG2("ResumeSound");
@@ -646,7 +649,7 @@ static void SetActive()
          if(App.flag&APP_WORK_IN_BACKGROUND)
          {
             if(Jni && ActivityClass)
-            if(JMethodID startBackgroundService=Jni->GetMethodID(ActivityClass, "startBackgroundService", "(Ljava/lang/String;)V"))
+            if(JMethodID startBackgroundService=Jni.func(ActivityClass, "startBackgroundService", "(Ljava/lang/String;)V"))
             if(JString   j_text=JString(Jni, App.backgroundText()))
                Jni->CallVoidMethod(Activity, startBackgroundService, j_text());
          }else
@@ -768,7 +771,7 @@ static void JavaGetAppPackage()
 {
    LOG("JavaGetAppPackage");
    if(!AndroidPackageName.is() && ActivityClass && Activity)
-   if(JMethodID getPackageName=Jni->GetMethodID(ActivityClass, "getPackageName", "()Ljava/lang/String;"))
+   if(JMethodID getPackageName=Jni.func(ActivityClass, "getPackageName", "()Ljava/lang/String;"))
    if(JString package_name=Jni->CallObjectMethod(Activity, getPackageName))
       AndroidPackageName=package_name.str();
 }
@@ -776,46 +779,46 @@ static void JavaGetAppName()
 {
    LOG("JavaGetAppName");
    //JClass Context="android/content/Context")
-   //JMethodID getApplicationContext=Jni->GetMethodID(Context, "getApplicationContext", "()Landroid/content/Context;");
-   //JMethodID getPackageName=Jni->GetMethodID(Context, "getPackageName", "()Ljava/lang/String;");
-   //JMethodID getApplicationContext=Jni->GetStaticMethodID(Context, "getApplicationContext", "()Landroid/content/Context;");
-   //JMethodID getPackageName=Jni->GetStaticMethodID(Context, "getPackageName", "()Ljava/lang/String;");
+   //JMethodID getApplicationContext=Jni.func(Context, "getApplicationContext", "()Landroid/content/Context;");
+   //JMethodID getPackageName=Jni.func(Context, "getPackageName", "()Ljava/lang/String;");
+   //JMethodID getApplicationContext=Jni.staticFunc(Context, "getApplicationContext", "()Landroid/content/Context;");
+   //JMethodID getPackageName=Jni.staticFunc(Context, "getPackageName", "()Ljava/lang/String;");
 
    if(Jni && ActivityClass)
    if(JClass FileClass="java/io/File")
-   if(JMethodID getAbsolutePath=Jni->GetMethodID(FileClass, "getAbsolutePath", "()Ljava/lang/String;"))
+   if(JMethodID getAbsolutePath=Jni.func(FileClass, "getAbsolutePath", "()Ljava/lang/String;"))
    {
       // code and assets
-      if(JMethodID getPackageCodePath=Jni->GetMethodID     (ActivityClass, "getPackageCodePath", "()Ljava/lang/String;"))
+      if(JMethodID getPackageCodePath=Jni.func             (ActivityClass, "getPackageCodePath", "()Ljava/lang/String;"))
       if(JString            code_path=Jni->CallObjectMethod(Activity     ,  getPackageCodePath))
          AndroidAppPath=    code_path.str().replace('/', '\\');
 
       // resources
-      //if(JMethodID getPackageResourcePath=Jni->GetMethodID     (ActivityClass, "getPackageResourcePath", "()Ljava/lang/String;"))
+      //if(JMethodID getPackageResourcePath=Jni.func             (ActivityClass, "getPackageResourcePath", "()Ljava/lang/String;"))
       //if(JString            resource_path=Jni->CallObjectMethod(Activity     ,  getPackageResourcePath)){}
 
       // app data private
-      if(JMethodID getFilesDir     =Jni->GetMethodID     (ActivityClass, "getFilesDir", "()Ljava/io/File;"))
+      if(JMethodID getFilesDir     =Jni.func             (ActivityClass, "getFilesDir", "()Ljava/io/File;"))
       if(JObject      files_dir    =Jni->CallObjectMethod(Activity     ,  getFilesDir))
       if(JString      files_dir_str=Jni->CallObjectMethod(files_dir    ,  getAbsolutePath))
          AndroidAppDataPath=files_dir_str.str().replace('/', '\\');
 
       // app data public
-      if(JMethodID getExternalFilesDir      =Jni->GetMethodID     (ActivityClass     , "getExternalFilesDir", "(Ljava/lang/String;)Ljava/io/File;"))
+      if(JMethodID getExternalFilesDir      =Jni.func             (ActivityClass     , "getExternalFilesDir", "(Ljava/lang/String;)Ljava/io/File;"))
       if(JObject      external_files_dir    =Jni->CallObjectMethod(Activity          ,  getExternalFilesDir, null))
       if(JString      external_files_dir_str=Jni->CallObjectMethod(external_files_dir,  getAbsolutePath))
          AndroidAppDataPublicPath=external_files_dir_str.str().replace('/', '\\');
 
       // public
       if(JClass    Environment="android/os/Environment")
-      if(JMethodID getExternalStorageDirectory    =Jni-> GetStaticMethodID    (Environment, "getExternalStorageDirectory", "()Ljava/io/File;"))
+      if(JMethodID getExternalStorageDirectory    =Jni. staticFunc            (Environment, "getExternalStorageDirectory", "()Ljava/io/File;"))
       if(JObject      externalStorageDirectory    =Jni->CallStaticObjectMethod(Environment,  getExternalStorageDirectory))
       if(JString      externalStorageDirectory_str=Jni->CallObjectMethod      (externalStorageDirectory, getAbsolutePath))
          AndroidPublicPath=externalStorageDirectory_str.str().replace('/', '\\');
 
       // SD Card
       // this method gets array of files using 'getExternalFilesDirs', and ignores 'AndroidAppDataPublicPath' obtained with 'getExternalFilesDir', then it removes the shared end like "external/Android/App", "sd_card/Android/App" to leave only "sd_card"
-      if(JMethodID getExternalFilesDirs=Jni->GetMethodID     (ActivityClass, "getExternalFilesDirs", "(Ljava/lang/String;)[Ljava/io/File;"))
+      if(JMethodID getExternalFilesDirs=Jni.func             (ActivityClass, "getExternalFilesDirs", "(Ljava/lang/String;)[Ljava/io/File;"))
       if(JObjectArray              dirs=Jni->CallObjectMethod(Activity,  getExternalFilesDirs, null))
       {
          Int length=dirs.elms();
@@ -838,7 +841,6 @@ static void JavaGetAppName()
             }
          }
       }
-      if(Jni->ExceptionCheck())Jni->ExceptionClear(); // clear in case 'getExternalFilesDirs' was not found
    }
    if(LogInit && AndroidPublicPath.is() && !EqualPath(AndroidPublicPath, GetPath(LogName()))){Str temp=LogName(); LogN(S+"Found public storage directory and continuing log there: "+AndroidPublicPath); LogName(Str(AndroidPublicPath).tailSlash(true)+"Esenthel Log.txt"); LogN(S+"Continuing log from: "+temp);}
 }
@@ -848,7 +850,7 @@ static void JavaLooper()
    LOG("JavaLooper");
    if(Jni)
    if(JClass LooperClass="android/os/Looper")
-   if(JMethodID prepare=Jni->GetStaticMethodID(LooperClass, "prepare", "()V"))
+   if(JMethodID prepare=Jni.staticFunc(LooperClass, "prepare", "()V"))
    {
       Jni->CallStaticVoidMethod(LooperClass, prepare);
       if(Jni->ExceptionCheck())
@@ -869,8 +871,8 @@ static void JavaGetInput()
       if(Jni)
       if(MotionEventClass="android/view/MotionEvent")
       {
-         getButtonState =Jni->GetStaticMethodID(MotionEventClass, "nativeGetButtonState" , X64 ? "(J)I"    : "(I)I"   ); if(Jni->ExceptionCheck()){getButtonState =null; Jni->ExceptionClear();} // Java exception can occur when methods not found
-         getRawAxisValue=Jni->GetStaticMethodID(MotionEventClass, "nativeGetRawAxisValue", X64 ? "(JIII)F" : "(IIII)F"); if(Jni->ExceptionCheck()){getRawAxisValue=null; Jni->ExceptionClear();} // Java exception can occur when methods not found
+         getButtonState =Jni.staticFunc(MotionEventClass, "nativeGetButtonState" , X64 ? "(J)I"    : "(I)I"   );
+         getRawAxisValue=Jni.staticFunc(MotionEventClass, "nativeGetRawAxisValue", X64 ? "(JIII)F" : "(IIII)F");
       }
 #endif
 
@@ -878,8 +880,8 @@ static void JavaGetInput()
       if(Jni)
       if(InputDeviceClass="android/view/InputDevice")
    {
-      InputDeviceGetDevice=Jni->GetStaticMethodID(InputDeviceClass, "getDevice", "(I)Landroid/view/InputDevice;"); if(Jni->ExceptionCheck()){InputDeviceGetDevice=null; Jni->ExceptionClear();} // Java exception can occur when methods not found
-      InputDeviceGetName  =Jni->GetMethodID      (InputDeviceClass, "getName"  , "()Ljava/lang/String;"         ); if(Jni->ExceptionCheck()){InputDeviceGetName  =null; Jni->ExceptionClear();} // Java exception can occur when methods not found
+      InputDeviceGetDevice=Jni.staticFunc(InputDeviceClass, "getDevice", "(I)Landroid/view/InputDevice;");
+      InputDeviceGetName  =Jni.func      (InputDeviceClass, "getName"  , "()Ljava/lang/String;"         );
    }
 }
 static void JavaGetScreenSize()
@@ -895,24 +897,24 @@ static void JavaGetScreenSize()
 
       // DisplayMetrics display_metrics=new DisplayMetrics();
       //if(JClass DisplayMetricsClass="android/util/DisplayMetrics")
-      //if(JMethodID DisplayMetricsCtor=Jni->GetMethodID(DisplayMetricsClass, "<init>", "()V"))
+      //if(JMethodID DisplayMetricsCtor=Jni.func(DisplayMetricsClass, "<init>", "()V"))
       //if(JObject display_metrics=Jni->NewObject(DisplayMetricsClass, DisplayMetricsCtor))
 
       // Get WindowManager
       if(JClass WindowManagerClass="android/view/WindowManager")
-      if(JMethodID getWindowManager=Jni->GetMethodID(ActivityClass, "getWindowManager", "()Landroid/view/WindowManager;"))
+      if(JMethodID getWindowManager=Jni.func(ActivityClass, "getWindowManager", "()Landroid/view/WindowManager;"))
       if(JObject window_manager=Jni->CallObjectMethod(Activity, getWindowManager))
       {
          // Get DefaultDisplay
          if(JClass Display="android/view/Display")
-         if(JMethodID getDefaultDisplay=Jni->GetMethodID(WindowManagerClass, "getDefaultDisplay", "()Landroid/view/Display;"))
+         if(JMethodID getDefaultDisplay=Jni.func(WindowManagerClass, "getDefaultDisplay", "()Landroid/view/Display;"))
          if(DefaultDisplay=Jni->CallObjectMethod(window_manager, getDefaultDisplay))if(DefaultDisplay.makeGlobal())
          {
             // Get Display methods
-                      getRotation=Jni->GetMethodID(Display, "getRotation", "()I"); // set this as the last one so only one 'if' can be performed in 'UpdateOrientation'
-            JMethodID getWidth   =Jni->GetMethodID(Display, "getWidth"   , "()I");
-            JMethodID getHeight  =Jni->GetMethodID(Display, "getHeight"  , "()I");
-          //JMethodID getMetrics =Jni->GetMethodID(Display, "getMetrics" , "(Landroid/util/DisplayMetrics;)V");
+                      getRotation=Jni.func(Display, "getRotation", "()I"); // set this as the last one so only one 'if' can be performed in 'UpdateOrientation'
+            JMethodID getWidth   =Jni.func(Display, "getWidth"   , "()I");
+            JMethodID getHeight  =Jni.func(Display, "getHeight"  , "()I");
+          //JMethodID getMetrics =Jni.func(Display, "getMetrics" , "(Landroid/util/DisplayMetrics;)V");
             Int rotation=(getRotation ? Jni->CallIntMethod(DefaultDisplay, getRotation) : ROTATION_0),
                 width   =(getWidth    ? Jni->CallIntMethod(DefaultDisplay, getWidth   ) : 800       ),
                 height  =(getHeight   ? Jni->CallIntMethod(DefaultDisplay, getHeight  ) : 600       );
@@ -930,8 +932,8 @@ static void JavaKeyboard()
    if(!KeyCharacterMapGet)
       if(Jni)
       if(KeyCharacterMapClass="android/view/KeyCharacterMap")
-      if(KeyCharacterMapLoad=Jni->GetStaticMethodID(KeyCharacterMapClass, "load", "(I)Landroid/view/KeyCharacterMap;"))
-         KeyCharacterMapGet=Jni->GetMethodID(KeyCharacterMapClass, "get", "(II)I");
+      if(KeyCharacterMapLoad=Jni.staticFunc(KeyCharacterMapClass, "load", "(I)Landroid/view/KeyCharacterMap;"))
+         KeyCharacterMapGet=Jni.func(KeyCharacterMapClass, "get", "(II)I");
 }
 static void JavaClipboard()
 {
@@ -942,7 +944,7 @@ static void JavaClipboard()
       if(JFieldID CLIPBOARD_SERVICEField=Jni->GetStaticFieldID(ContextClass, "CLIPBOARD_SERVICE", "Ljava/lang/String;"))
       if(JObject CLIPBOARD_SERVICE=Jni->GetStaticObjectField(ContextClass, CLIPBOARD_SERVICEField))
       if(ClipboardManagerClass="android/text/ClipboardManager")if(ClipboardManagerClass.makeGlobal()) // android/content/ClipboardManager
-      if(JMethodID getSystemService=Jni->GetMethodID(ActivityClass, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;"))
+      if(JMethodID getSystemService=Jni.func(ActivityClass, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;"))
       {
          ClipboardManager=Jni->CallObjectMethod(Activity, getSystemService, CLIPBOARD_SERVICE());
          if(Jni->ExceptionCheck())
@@ -958,15 +960,15 @@ static void JavaLocation()
 {
    LOG("JavaLocation");
    if(!LocationManager && Jni && ActivityClass)
-   if(JMethodID getClassLoader     =Jni->GetMethodID(ActivityClass, "getClassLoader", "()Ljava/lang/ClassLoader;"))
+   if(JMethodID getClassLoader     =Jni.func(ActivityClass, "getClassLoader", "()Ljava/lang/ClassLoader;"))
    if(JObject      ClassLoader     =Jni->CallObjectMethod(Activity, getClassLoader))
    if(JClass       ClassLoaderClass="java/lang/ClassLoader")
-   if(JMethodID loadClass=Jni->GetMethodID(ClassLoaderClass, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;"))
+   if(JMethodID loadClass=Jni.func(ClassLoaderClass, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;"))
    if(JClass ContextClass="android/content/Context")
    if(JFieldID LOCATION_SERVICEField=Jni->GetStaticFieldID(ContextClass, "LOCATION_SERVICE", "Ljava/lang/String;"))
    if(JObject LOCATION_SERVICE=Jni->GetStaticObjectField(ContextClass, LOCATION_SERVICEField))
    if(JClass LocationManagerClass="android/location/LocationManager")
-   if(JMethodID getSystemService=Jni->GetMethodID(ActivityClass, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;"))
+   if(JMethodID getSystemService=Jni.func(ActivityClass, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;"))
    {
       LocationManager=Jni->CallObjectMethod(Activity, getSystemService, LOCATION_SERVICE());
       if(Jni->ExceptionCheck())
@@ -983,22 +985,22 @@ static void JavaLocation()
       if(JFieldID NETWORK_PROVIDERField=Jni->GetStaticFieldID(LocationManagerClass, "NETWORK_PROVIDER", "Ljava/lang/String;"))
       if(    GPS_PROVIDER      =Jni->GetStaticObjectField(LocationManagerClass,     GPS_PROVIDERField))if(    GPS_PROVIDER.makeGlobal())
       if(NETWORK_PROVIDER      =Jni->GetStaticObjectField(LocationManagerClass, NETWORK_PROVIDERField))if(NETWORK_PROVIDER.makeGlobal())
-      if(getLastKnownLocation  =Jni->GetMethodID(LocationManagerClass, "getLastKnownLocation"  , "(Ljava/lang/String;)Landroid/location/Location;"))
-      if(getLatitude           =Jni->GetMethodID(LocationClass       , "getLatitude"           , "()D"))
-      if(getLongitude          =Jni->GetMethodID(LocationClass       , "getLongitude"          , "()D"))
-      if(getAltitude           =Jni->GetMethodID(LocationClass       , "getAltitude"           , "()D"))
-      if(getAccuracy           =Jni->GetMethodID(LocationClass       , "getAccuracy"           , "()F"))
-      if(getSpeed              =Jni->GetMethodID(LocationClass       , "getSpeed"              , "()F"))
-      if(getTime               =Jni->GetMethodID(LocationClass       , "getTime"               , "()J")) // set this as the last one so only one 'if' can be performed in 'UpdateLocation'
-      if(requestLocationUpdates=Jni->GetMethodID(LocationManagerClass, "requestLocationUpdates", "(Ljava/lang/String;JFLandroid/location/LocationListener;)V"))
-      if(removeUpdates         =Jni->GetMethodID(LocationManagerClass, "removeUpdates"         , "(Landroid/location/LocationListener;)V"))
+      if(getLastKnownLocation  =Jni.func(LocationManagerClass, "getLastKnownLocation"  , "(Ljava/lang/String;)Landroid/location/Location;"))
+      if(getLatitude           =Jni.func(LocationClass       , "getLatitude"           , "()D"))
+      if(getLongitude          =Jni.func(LocationClass       , "getLongitude"          , "()D"))
+      if(getAltitude           =Jni.func(LocationClass       , "getAltitude"           , "()D"))
+      if(getAccuracy           =Jni.func(LocationClass       , "getAccuracy"           , "()F"))
+      if(getSpeed              =Jni.func(LocationClass       , "getSpeed"              , "()F"))
+      if(getTime               =Jni.func(LocationClass       , "getTime"               , "()J")) // set this as the last one so only one 'if' can be performed in 'UpdateLocation'
+      if(requestLocationUpdates=Jni.func(LocationManagerClass, "requestLocationUpdates", "(Ljava/lang/String;JFLandroid/location/LocationListener;)V"))
+      if(removeUpdates         =Jni.func(LocationManagerClass, "removeUpdates"         , "(Landroid/location/LocationListener;)V"))
       if(JString EsenthelLocationListenerName=AndroidPackageName+"/EsenthelActivity$EsenthelLocationListener")
       {
          JClass EsenthelLocationListenerClass=(jclass)Jni->CallObjectMethod(ClassLoader, loadClass, EsenthelLocationListenerName());
          if(Jni->ExceptionCheck()){EsenthelLocationListenerClass.clear(); Jni->ExceptionClear(); LOG("EsenthelLocationListenerClass failed");}
 
          if(EsenthelLocationListenerClass)
-         if(JMethodID EsenthelLocationListenerCtor=Jni->GetMethodID(EsenthelLocationListenerClass, "<init>", "(Z)V"))
+         if(JMethodID EsenthelLocationListenerCtor=Jni.func(EsenthelLocationListenerClass, "<init>", "(Z)V"))
          REP(2)
          {
             EsenthelLocationListener[i]=Jni->NewObject(EsenthelLocationListenerClass, EsenthelLocationListenerCtor, jboolean(i)); // set this as the last one so only one 'if' can be performed in 'SetLocationRefresh'

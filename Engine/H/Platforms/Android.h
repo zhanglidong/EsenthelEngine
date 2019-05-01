@@ -19,6 +19,9 @@ struct JNI
    void del   ();
    void attach();
 
+   jmethodID       func(jclass clazz, CChar8 *name, CChar8 *sig)C;
+   jmethodID staticFunc(jclass clazz, CChar8 *name, CChar8 *sig)C;
+
    explicit JNI(JNIEnv *jni) {clear(); _=jni;}
             JNI(           ) {clear(); attach();}
            ~JNI(           ) {del();}

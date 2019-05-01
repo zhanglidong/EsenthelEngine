@@ -1009,7 +1009,7 @@ Bool ClipSet(C Str &text, Bool fix_new_line)
    if( jni && ClipboardManager) // system clipboard supported
    {
    #if 1
-      if(JMethodID setText=jni->GetMethodID(ClipboardManagerClass, "setText", "(Ljava/lang/CharSequence;)V"))
+      if(JMethodID setText=jni.func(ClipboardManagerClass, "setText", "(Ljava/lang/CharSequence;)V"))
       if(JString jtext=JString(jni, text))
       {
          jni->CallVoidMethod(ClipboardManager, setText, jtext());
@@ -1017,11 +1017,11 @@ Bool ClipSet(C Str &text, Bool fix_new_line)
       }
    #else
       if(JClass ClipDataClass=JClass(jni, "android/content/ClipData"))
-      if(JMethodID newPlainText=jni->GetStaticMethodID(ClipDataClass, "newPlainText", "(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Landroid/content/ClipData;"))
+      if(JMethodID newPlainText=jni.staticFunc(ClipDataClass, "newPlainText", "(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Landroid/content/ClipData;"))
       if(JString label=JString(jni, "Esenthel"))
       if(JString jtext=JString(jni, text))
       if(JObject ClipData=JObject(jni, jni->CallStaticObjectMethod(ClipDataClass, newPlainText, label(), jtext())))
-      if(JMethodID setPrimaryClip=jni->GetMethodID(ClipboardManagerClass, "setPrimaryClip", "(Landroid/content/ClipData;)V"))
+      if(JMethodID setPrimaryClip=jni.func(ClipboardManagerClass, "setPrimaryClip", "(Landroid/content/ClipData;)V"))
       {
          jni->CallVoidMethod(ClipboardManager, setPrimaryClip, ClipData());
          return true;
@@ -1122,17 +1122,17 @@ Str ClipGet(Bool fix_new_line)
    if( jni && ClipboardManager) // system clipboard supported
    {
    #if 1
-      if(JMethodID getText=jni->GetMethodID(ClipboardManagerClass, "getText", "()Ljava/lang/CharSequence;"))
+      if(JMethodID getText=jni.func(ClipboardManagerClass, "getText", "()Ljava/lang/CharSequence;"))
       if(JString text=JString(jni, jni->CallObjectMethod(ClipboardManager, getText)))
          return text.str();
    #else
       if(JClass ClipDataClass=JClass(jni, "android/content/ClipData"))
-      if(JMethodID getPrimaryClip=jni->GetMethodID(ClipboardManagerClass, "getPrimaryClip", "()Landroid/content/ClipData;"))
+      if(JMethodID getPrimaryClip=jni.func(ClipboardManagerClass, "getPrimaryClip", "()Landroid/content/ClipData;"))
       if(JObject ClipData=JObject(jni, jni->CallObjectMethod(ClipboardManager, getPrimaryClip)))
-      if(JMethodID getItemAt=jni->GetMethodID(ClipDataClass, "getItemAt", "(I)Landroid/content/ClipData$Item;"))
+      if(JMethodID getItemAt=jni.func(ClipDataClass, "getItemAt", "(I)Landroid/content/ClipData$Item;"))
       if(JObject ClipDataItem=JObject(jni, jni->CallObjectMethod(ClipData, getItemAt, jint(0))))
       if(JClass ClipDataItemClass=JClass(jni, ClipDataItem))
-      if(JMethodID getText=jni->GetMethodID(ClipDataItemClass, "getText", "()Ljava/lang/CharSequence;"))
+      if(JMethodID getText=jni.func(ClipDataItemClass, "getText", "()Ljava/lang/CharSequence;"))
       if(JString text=JString(jni, jni->CallObjectMethod(ClipDataItem, getText)))
          return text.str();
    #endif
@@ -1408,9 +1408,9 @@ Str OSUserName(Bool short_name)
          if(jni && Activity)
          if(JClass AccountManagerClass=JClass(jni, "android/accounts/AccountManager"))
          if(JClass AccountClass=JClass(jni, "android/accounts/Account"))
-         if(JMethodID get=jni->GetStaticMethodID(AccountManagerClass, "get", "(Landroid/content/Context;)Landroid/accounts/AccountManager;"))
+         if(JMethodID get=jni.staticFunc(AccountManagerClass, "get", "(Landroid/content/Context;)Landroid/accounts/AccountManager;"))
          if(JObject mgr=JObject(jni, jni->CallStaticObjectMethod(AccountManagerClass, get, Activity)))
-         if(JMethodID getAccountsByType=jni->GetMethodID(AccountManagerClass, "getAccountsByType", "(Ljava/lang/String;)[Landroid/accounts/Account;"))
+         if(JMethodID getAccountsByType=jni.func(AccountManagerClass, "getAccountsByType", "(Ljava/lang/String;)[Landroid/accounts/Account;"))
          if(JString com_google=JString(jni, "com.google"))
          if(JObjectArray accounts=JObjectArray(jni, jni->CallObjectMethod(mgr, getAccountsByType, com_google())))
          {
@@ -1684,13 +1684,13 @@ Bool Run(C Str &name, C Str &params, Bool hidden, Bool as_admin)
       if(JClass uriClass=JClass(jni, "android/net/Uri"))
       if(JClass intentClass=JClass(jni, "android/content/Intent"))
       if(JString urlStr=JString(jni, UnixPathUTF8(path)))
-      if(JMethodID parse=jni->GetStaticMethodID(uriClass, "parse", "(Ljava/lang/String;)Landroid/net/Uri;"))
+      if(JMethodID parse=jni.staticFunc(uriClass, "parse", "(Ljava/lang/String;)Landroid/net/Uri;"))
       if(JObject uri=JObject(jni, jni->CallStaticObjectMethod(uriClass, parse, urlStr())))
-      if(JMethodID intentCtor=jni->GetMethodID(intentClass, "<init>", "(Ljava/lang/String;)V"))
+      if(JMethodID intentCtor=jni.func(intentClass, "<init>", "(Ljava/lang/String;)V"))
       if(JFieldID actionViewField=jni->GetStaticFieldID(intentClass, "ACTION_VIEW", "Ljava/lang/String;"))
       if(JObject actionView=JObject(jni, jni->GetStaticObjectField(intentClass, actionViewField)))
       if(JObject intent=JObject(jni, jni->NewObject(intentClass, intentCtor, actionView())))
-      if(JMethodID startActivity=jni->GetMethodID(ActivityClass, "startActivity", "(Landroid/content/Intent;)V"))
+      if(JMethodID startActivity=jni.func(ActivityClass, "startActivity", "(Landroid/content/Intent;)V"))
       {
          if(Starts(path, "file:"))
          {
@@ -1703,7 +1703,7 @@ Bool Run(C Str &name, C Str &params, Bool hidden, Bool as_admin)
                case EXT_SOUND: mime="audio/*"; break;
             }
             if(mime.is())
-            if(JMethodID setDataAndType=jni->GetMethodID(intentClass, "setDataAndType", "(Landroid/net/Uri;Ljava/lang/String;)Landroid/content/Intent;"))
+            if(JMethodID setDataAndType=jni.func(intentClass, "setDataAndType", "(Landroid/net/Uri;Ljava/lang/String;)Landroid/content/Intent;"))
             if(JString jmime=JString(jni, mime))
             {
                JObject temp=JObject(jni, jni->CallObjectMethod(intent, setDataAndType, uri(), jmime()));
@@ -1712,7 +1712,7 @@ Bool Run(C Str &name, C Str &params, Bool hidden, Bool as_admin)
             }
          }
 
-         if(JMethodID setData=jni->GetMethodID(intentClass, "setData", "(Landroid/net/Uri;)Landroid/content/Intent;"))
+         if(JMethodID setData=jni.func(intentClass, "setData", "(Landroid/net/Uri;)Landroid/content/Intent;"))
          {
             JObject temp=JObject(jni, jni->CallObjectMethod(intent, setData, uri()));
                                       jni->CallVoidMethod(Activity, startActivity, intent());
@@ -1739,7 +1739,7 @@ Bool OpenAppSettings()
 #elif ANDROID
    JNI jni;
    if(jni && ActivityClass)
-      if(JMethodID openAppSettings=jni->GetStaticMethodID(ActivityClass, "openAppSettings", "()Z"))
+      if(JMethodID openAppSettings=jni.staticFunc(ActivityClass, "openAppSettings", "()Z"))
          return jni->CallStaticBooleanMethod(ActivityClass, openAppSettings);
 #endif
    return false;
@@ -1763,7 +1763,7 @@ Bool HasPermission(PERMISSION permission)
       JNI jni;
       if(jni)
       if(JClass ContextClass=JClass(jni, "android/content/Context"))
-      if(JMethodID checkSelfPermission=jni->GetMethodID(ContextClass, "checkSelfPermission", "(Ljava/lang/String;)I"))
+      if(JMethodID checkSelfPermission=jni.func(ContextClass, "checkSelfPermission", "(Ljava/lang/String;)I"))
       if(JString t=JString(jni, AndroidPermissions[permission]))
          return jni->CallIntMethod(Activity, checkSelfPermission, t())==0; // PackageManager.PERMISSION_GRANTED=0
    }
@@ -1779,7 +1779,7 @@ void GetPermission(PERMISSION permission)
    {
       JNI jni;
       if(jni && Activity && ActivityClass)
-      if(JMethodID requestPermissions=jni->GetMethodID(ActivityClass, "requestPermissions", "([Ljava/lang/String;I)V"))
+      if(JMethodID requestPermissions=jni.func(ActivityClass, "requestPermissions", "([Ljava/lang/String;I)V"))
       if(JObjectArray permissions=JObjectArray(jni, 1))
       {
          permissions.set(0, AndroidPermissions[permission]);
@@ -2701,7 +2701,7 @@ Str DeviceManufacturer()
 #elif ANDROID
    JNI jni;
    if(jni && ActivityClass)
-      if(JMethodID method=jni->GetStaticMethodID(ActivityClass, "manufacturer", "()Ljava/lang/String;"))
+      if(JMethodID method=jni.staticFunc(ActivityClass, "manufacturer", "()Ljava/lang/String;"))
       if(JString str=JString(jni, jni->CallStaticObjectMethod(ActivityClass, method)))
          return str.str();
 #endif
@@ -2717,7 +2717,7 @@ Str DeviceModel()
 #elif ANDROID
    JNI jni;
    if(jni && ActivityClass)
-      if(JMethodID method=jni->GetStaticMethodID(ActivityClass, "model", "()Ljava/lang/String;"))
+      if(JMethodID method=jni.staticFunc(ActivityClass, "model", "()Ljava/lang/String;"))
       if(JString str=JString(jni, jni->CallStaticObjectMethod(ActivityClass, method)))
          return str.str();
 #endif
@@ -2732,7 +2732,7 @@ Str8 DeviceSerialNumber()
 #elif ANDROID
    JNI jni;
    if(jni && ActivityClass)
-      if(JMethodID method=jni->GetStaticMethodID(ActivityClass, "serial", "()Ljava/lang/String;"))
+      if(JMethodID method=jni.staticFunc(ActivityClass, "serial", "()Ljava/lang/String;"))
       if(JString str=JString(jni, jni->CallStaticObjectMethod(ActivityClass, method)))
          return str.str();
 #endif
@@ -2755,7 +2755,7 @@ ULong AndroidID()
 #if ANDROID
    JNI jni;
    if(jni && ActivityClass)
-      if(JMethodID method=jni->GetStaticMethodID(ActivityClass, "androidID", "()Ljava/lang/String;"))
+      if(JMethodID method=jni.staticFunc(ActivityClass, "androidID", "()Ljava/lang/String;"))
       if(JString str=JString(jni, jni->CallStaticObjectMethod(ActivityClass, method)))
    {
       Char8 id[2+16+1]; // 0x + 0000000000000000 + nul

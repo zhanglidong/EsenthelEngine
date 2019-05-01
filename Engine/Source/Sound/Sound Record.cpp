@@ -164,7 +164,7 @@ void SoundRecord::del()
       JNI jni; if(jni && ActivityClass)
       {
          Str8 signature=S8+"(L"+AndroidPackageName+"/EsenthelActivity$EsenthelAudioRecord;)V"; signature.replace('.', '/');
-         if(JMethodID delAudioRecord=jni->GetStaticMethodID(ActivityClass, "delAudioRecord", signature))
+         if(JMethodID delAudioRecord=jni.staticFunc(ActivityClass, "delAudioRecord", signature))
             jni->CallStaticVoidMethod(ActivityClass, delAudioRecord, jobject(_handle));
          jni->DeleteGlobalRef(jobject(_handle));
       }
@@ -406,7 +406,7 @@ Bool SoundRecord::create(Device *device, Int bits, Int channels, Int frequency) 
       RequirePermission(PERMISSION_SOUND_RECORD);
 
       Str8 signature=S8+"(JIII)L"+AndroidPackageName+"/EsenthelActivity$EsenthelAudioRecord;"; signature.replace('.', '/');
-      if(JMethodID newAudioRecord=jni->GetStaticMethodID(ActivityClass, "newAudioRecord", signature))
+      if(JMethodID newAudioRecord=jni.staticFunc(ActivityClass, "newAudioRecord", signature))
          if(JObject audio_record=JObject(jni, jni->CallStaticObjectMethod(ActivityClass, newAudioRecord, jlong(this), jint(bits), jint(channels), jint(frequency))))
       {
          audio_record.makeGlobal(); _handle=audio_record(); audio_record.clear();
@@ -563,7 +563,7 @@ void SoundRecord::GetDevices(MemPtr<Device> devices)
 #elif ANDROID
    JNI jni; 
    if( jni && ActivityClass)
-      if(JMethodID hasAudioRecord=jni->GetStaticMethodID(ActivityClass, "hasAudioRecord", "()Z"))
+      if(JMethodID hasAudioRecord=jni.staticFunc(ActivityClass, "hasAudioRecord", "()Z"))
          if(jni->CallStaticBooleanMethod(ActivityClass, hasAudioRecord))
             devices.New().name="Microphone";
 #elif DIRECT_SOUND

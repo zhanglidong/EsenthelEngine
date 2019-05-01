@@ -80,14 +80,14 @@ static void RemoveNotification(Int id)
 {
    JNI jni;
    if(jni && ActivityClass)
-   if(JMethodID removeNotification=jni->GetStaticMethodID(ActivityClass, "removeNotification", "(I)V"))
+   if(JMethodID removeNotification=jni.staticFunc(ActivityClass, "removeNotification", "(I)V"))
       jni->CallStaticVoidMethod(ActivityClass, removeNotification, jint(id));
 }
 static void SetNotification(Int id, C Str &title, C Str &text, Bool dismissable)
 {
    JNI jni;
    if(jni && ActivityClass)
-   if(JMethodID setNotification=jni->GetStaticMethodID(ActivityClass, "setNotification", "(ILjava/lang/String;Ljava/lang/String;Z)V"))
+   if(JMethodID setNotification=jni.staticFunc(ActivityClass, "setNotification", "(ILjava/lang/String;Ljava/lang/String;Z)V"))
    if(JString   j_title=JString(jni, title))
    if(JString   j_text =JString(jni, text ))
       jni->CallStaticVoidMethod(ActivityClass, setNotification, jint(id), j_title(), j_text(), jboolean(dismissable));
@@ -306,7 +306,7 @@ Application& Application::stayAwake(AWAKE_MODE mode)
             mode=AWAKE_OFF; // then disable staying awake
       JNI jni;
       if(jni && ActivityClass)
-      if(JMethodID stayAwake=jni->GetStaticMethodID(ActivityClass, "stayAwake", "(I)V"))
+      if(JMethodID stayAwake=jni.staticFunc(ActivityClass, "stayAwake", "(I)V"))
          jni->CallStaticVoidMethod(ActivityClass, stayAwake, jint(mode));
    #elif IOS
       [UIApplication sharedApplication].idleTimerDisabled=(mode!=AWAKE_OFF);
@@ -543,7 +543,7 @@ void Application::showError(CChar *error)
          {
             JNI jni;
             if(jni && ActivityClass)
-            if(JMethodID messageBox=jni->GetStaticMethodID(ActivityClass, "messageBox", "(Ljava/lang/String;Ljava/lang/String;Z)V"))
+            if(JMethodID messageBox=jni.staticFunc(ActivityClass, "messageBox", "(Ljava/lang/String;Ljava/lang/String;Z)V"))
                if(JString ti=JString(jni, title))
                if(JString te=JString(jni, error))
                   jni->CallStaticVoidMethod(ActivityClass, messageBox, ti(), te(), jboolean(true));
@@ -554,7 +554,7 @@ void Application::showError(CChar *error)
             Str message=S+App.name()+" exited"; if(Is(error))message.line()+=error;
             JNI jni;
             if(jni && ActivityClass)
-            if(JMethodID toast=jni->GetStaticMethodID(ActivityClass, "toast", "(Ljava/lang/String;)V"))
+            if(JMethodID toast=jni.staticFunc(ActivityClass, "toast", "(Ljava/lang/String;)V"))
                if(JString text=JString(jni, message))
             {
                jni->CallStaticVoidMethod(ActivityClass, toast, text());

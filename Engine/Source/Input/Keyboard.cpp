@@ -98,12 +98,12 @@ static void SetKeyboardVisible(Bool visible)
                start=((tl._edit.sel<0) ? tl.cursor() : tl._edit.sel);
             }break;
          }
-         if(JMethodID editText=Jni->GetMethodID(ActivityClass, "editText", "(Ljava/lang/String;IIZ)V"))
+         if(JMethodID editText=Jni.func(ActivityClass, "editText", "(Ljava/lang/String;IIZ)V"))
          if(JString t=JString(Jni, *text))
             Jni->CallVoidMethod(Activity, editText, t(), jint(start), jint(end), jboolean(pass));
       }else
       {
-         if(JMethodID editTextHide=Jni->GetMethodID(ActivityClass, "editTextHide", "()V"))
+         if(JMethodID editTextHide=Jni.func(ActivityClass, "editTextHide", "()V"))
             Jni->CallVoidMethod(Activity, editTextHide);
       }
    #else
@@ -111,24 +111,24 @@ static void SetKeyboardVisible(Bool visible)
       if(JFieldID INPUT_METHOD_SERVICEField=Jni->GetStaticFieldID(ContextClass, "INPUT_METHOD_SERVICE", "Ljava/lang/String;"))
       if(JObject INPUT_METHOD_SERVICE=Jni->GetStaticObjectField(ContextClass, INPUT_METHOD_SERVICEField))
       if(JClass InputMethodManagerClass="android/view/inputmethod/InputMethodManager")
-      if(JMethodID getSystemService=Jni->GetMethodID(ActivityClass, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;"))
+      if(JMethodID getSystemService=Jni.func(ActivityClass, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;"))
       if(JObject InputMethodManager=Jni->CallObjectMethod(Activity, getSystemService, INPUT_METHOD_SERVICE()))
-      if(JMethodID getWindow=Jni->GetMethodID(ActivityClass, "getWindow", "()Landroid/view/Window;"))
+      if(JMethodID getWindow=Jni.func(ActivityClass, "getWindow", "()Landroid/view/Window;"))
       if(JObject window=Jni->CallObjectMethod(Activity, getWindow))
       if(JClass WindowClass="android/view/Window")
-      if(JMethodID getDecorView=Jni->GetMethodID(WindowClass, "getDecorView", "()Landroid/view/View;"))
+      if(JMethodID getDecorView=Jni.func(WindowClass, "getDecorView", "()Landroid/view/View;"))
       if(JObject decor_view=Jni->CallObjectMethod(window, getDecorView))
       {
          if(visible)
          {
-            if(JMethodID showSoftInput=Jni->GetMethodID(InputMethodManagerClass, "showSoftInput", "(Landroid/view/View;I)Z"))
+            if(JMethodID showSoftInput=Jni.func(InputMethodManagerClass, "showSoftInput", "(Landroid/view/View;I)Z"))
                Bool ok=Jni->CallBooleanMethod(InputMethodManager, showSoftInput, decor_view(), jint(0));
          }else
          {
             if(JClass ViewClass="android/view/View")
-            if(JMethodID getWindowToken=Jni->GetMethodID(ViewClass, "getWindowToken", "()Landroid/os/IBinder;"))
+            if(JMethodID getWindowToken=Jni.func(ViewClass, "getWindowToken", "()Landroid/os/IBinder;"))
             if(JObject binder=Jni->CallObjectMethod(decor_view, getWindowToken))
-            if(JMethodID hideSoftInput=Jni->GetMethodID(InputMethodManagerClass, "hideSoftInputFromWindow", "(Landroid/os/IBinder;I)Z"))
+            if(JMethodID hideSoftInput=Jni.func(InputMethodManagerClass, "hideSoftInputFromWindow", "(Landroid/os/IBinder;I)Z"))
                Bool ok=Jni->CallBooleanMethod(InputMethodManager, hideSoftInput, binder(), jint(0));
          }
       }
@@ -143,15 +143,15 @@ static void UpdateKeyboardRect()
       Kb._recti.set(0, D.resH()/2, D.resW(), D.resH()); // initially set as lower half of the screen
 
       if(Jni && ActivityClass)
-      if(JMethodID getWindow=Jni->GetMethodID(ActivityClass, "getWindow", "()Landroid/view/Window;"))
+      if(JMethodID getWindow=Jni.func(ActivityClass, "getWindow", "()Landroid/view/Window;"))
       if(JObject window=Jni->CallObjectMethod(Activity, getWindow))
       if(JClass WindowClass="android/view/Window")
-      if(JMethodID getDecorView=Jni->GetMethodID(WindowClass, "getDecorView", "()Landroid/view/View;"))
+      if(JMethodID getDecorView=Jni.func(WindowClass, "getDecorView", "()Landroid/view/View;"))
       if(JObject decor_view=Jni->CallObjectMethod(window, getDecorView))
       if(JClass ViewClass="android/view/View")
-      if(JMethodID getWindowVisibleDisplayFrame=Jni->GetMethodID(ViewClass, "getWindowVisibleDisplayFrame", "(Landroid/graphics/Rect;)V"))
+      if(JMethodID getWindowVisibleDisplayFrame=Jni.func(ViewClass, "getWindowVisibleDisplayFrame", "(Landroid/graphics/Rect;)V"))
       if(JClass RectClass="android/graphics/Rect")
-      if(JMethodID RectCtor=Jni->GetMethodID(RectClass, "<init>", "()V"))
+      if(JMethodID RectCtor=Jni.func(RectClass, "<init>", "()V"))
       if(JFieldID left=Jni->GetFieldID(RectClass, "left", "I"))
       if(JFieldID right=Jni->GetFieldID(RectClass, "right", "I"))
       if(JFieldID top=Jni->GetFieldID(RectClass, "top", "I"))
@@ -1068,7 +1068,7 @@ void Keyboard::    setTextInput(C Str &text, Int start, Int end, Bool password)
 {
 #if ANDROID
    if(Jni && ActivityClass && Activity)
-   if(JMethodID editTextSet=Jni->GetMethodID(ActivityClass, "editTextSet", "(Ljava/lang/String;IIZ)V"))
+   if(JMethodID editTextSet=Jni.func(ActivityClass, "editTextSet", "(Ljava/lang/String;IIZ)V"))
    if(JString t=JString(Jni, text))
       Jni->CallVoidMethod(Activity, editTextSet, t(), jint(start), jint(end), jboolean(password));
 #endif
