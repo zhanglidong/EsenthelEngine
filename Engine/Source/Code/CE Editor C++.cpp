@@ -2186,7 +2186,8 @@ Bool CodeEditor::generateAndroidProj()
 
    Str app_package=AndroidPackage(cei().appPackage());
    Bool chartboost          =(cei().appChartboostAppIDGooglePlay().is() && cei().appChartboostAppSignatureGooglePlay().is()),
-        google_play_services=(cei().appAdMobAppIDGooglePlay     ().is() || chartboost);
+        google_play_services=(cei().appAdMobAppIDGooglePlay     ().is() || chartboost),
+        facebook            =(cei().appFacebookAppID()!=0);
 
    // AndroidManifest.xml
    XmlData xml;
@@ -2280,7 +2281,7 @@ Bool CodeEditor::generateAndroidProj()
    android_libs.add("market_apk_expansion"); // allows downloading APK expansions
    android_libs.add("market_licensing"); // needed for "market_apk_expansion"
 #endif
-   if(cei().appFacebookAppID())
+   if(facebook)
    {
       android_libs.add("facebook-share");
       android_libs.add("facebook-login");
@@ -2312,6 +2313,7 @@ Bool CodeEditor::generateAndroidProj()
       if(!OverwriteOnChangeLoud(project, build_path+"Android/project.properties"))return false;
    }
    // fixup "facebook-core/AndroidManifest.xml" TODO: Warning: this will trigger rewrite everytime compilation is started (first file is copied above inside 'FCopy' and then replaced below)
+   if(facebook)
    {
       Str path=android_libs_path+"facebook-core/AndroidManifest.xml";
       FileText ft; if(!ft.read(path))return ErrorRead(path);
