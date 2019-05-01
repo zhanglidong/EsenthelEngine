@@ -753,7 +753,8 @@ void CreateEnginePak()
 /******************************************************************************/
 Bool FilterEditorPak(C Str &name)
 {
-   Str engine=EngineDataPath+SkipStartPath(name, EditorDataPath);
+   Str rel=SkipStartPath(name, EditorDataPath), engine=EngineDataPath+rel;
+   if(GetBase(rel)=="local.properties" && EqualPath(GetPath(GetPath(rel)), "Code/Android"))return false; // skip all "Code/Android/*/local.properties" as they're created manually by the Editor
    if(FileInfoSystem(engine).type==FSTD_FILE) // if file already exists in the Engine Data (Engine.pak) then skip (skip only files)
    {
       FRecycle(name); // remove to prevent uploading to GitHub
