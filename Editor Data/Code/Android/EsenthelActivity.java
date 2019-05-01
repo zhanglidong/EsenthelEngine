@@ -65,32 +65,18 @@ import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 import com.android.vending.billing.IInAppBillingService;
+CHARTBOOST_BEGIN
 import com.chartboost.sdk.*;
 import com.chartboost.sdk.Model.CBError.CBImpressionError;
+CHARTBOOST_END
+ADMOB_BEGIN
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdListener;
-import com.facebook.android.DialogError;
-import com.facebook.android.Facebook;
-import com.facebook.android.Facebook.DialogListener;
-import com.facebook.android.FacebookError;
-import com.facebook.HttpMethod;
-import com.facebook.LoggingBehavior;
-import com.facebook.model.GraphUser;
-import com.facebook.model.GraphObject;
-import com.facebook.Response;
-import com.facebook.Request;
-import com.facebook.Request.GraphUserListCallback;
-import com.facebook.Session;
-import com.facebook.SessionState;
-//import com.facebook.Settings; can't import due to 'android.provider.Settings'
-import com.facebook.UiLifecycleHelper;
-import com.facebook.widget.FacebookDialog;
-import com.facebook.widget.WebDialog;
-import com.facebook.widget.WebDialog.OnCompleteListener;
+ADMOB_END
 import java.io.File;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -244,14 +230,14 @@ public class EsenthelActivity extends NativeActivity
    @Override public final void onSaveInstanceState(Bundle savedInstanceState)
    {
       super.onSaveInstanceState(savedInstanceState);
-      Session.saveSession(Session.getActiveSession(), savedInstanceState);
-      if(ui_helper!=null)ui_helper.onSaveInstanceState(savedInstanceState);
    }
    @Override public final void onRestoreInstanceState(Bundle savedInstanceState)
    {
       super.onRestoreInstanceState(savedInstanceState);
+   ADMOB_BEGIN
       if(Is(inters_id))adCreate(inters_id, AD_INTERSTITIAL);
       if(Is(banner_id))adCreate(banner_id, banner_type    );
+   ADMOB_END
    }
    @Override public final void onNewIntent(Intent intent)
    {
@@ -260,7 +246,9 @@ public class EsenthelActivity extends NativeActivity
    }
    @Override public final void onBackPressed()
    {
+   CHARTBOOST_BEGIN
       if(!Chartboost.onBackPressed()) // this will detect if there's an interstitial and close it, otherwise process below:
+   CHARTBOOST_END
       {
          super.onBackPressed();
       }
@@ -268,36 +256,47 @@ public class EsenthelActivity extends NativeActivity
    @Override public final void onResume()
    {
                              super.onResume();
+   ADMOB_BEGIN
       if(ad_view  !=null)ad_view  .  resume();
-      if(ui_helper!=null)ui_helper.onResume();
+   ADMOB_END
+   CHARTBOOST_BEGIN
                         Chartboost.onResume(this);
+   CHARTBOOST_END
    }
    @Override public final void onPause()
    {
+   ADMOB_BEGIN
       if(ad_view  !=null)ad_view  .  pause();
-      if(ui_helper!=null)ui_helper.onPause();
+   ADMOB_END
                              super.onPause();
+   CHARTBOOST_BEGIN
                         Chartboost.onPause(this);
+   CHARTBOOST_END
    }
    @Override public final void onStart()
    {
            super.onStart();
+   CHARTBOOST_BEGIN
       Chartboost.onStart(this);
-      Session session=Session.getActiveSession(); if(session!=null)session.addCallback(fb_status_callback);
+   CHARTBOOST_END
    }
    @Override public final void onStop()
    {
            super.onStop();
+   CHARTBOOST_BEGIN
       Chartboost.onStop(this);
-      Session session=Session.getActiveSession(); if(session!=null)session.removeCallback(fb_status_callback);
+   CHARTBOOST_END
    }
    @Override public final void onDestroy()
    {
+   ADMOB_BEGIN
       bannerHide();
       adViewDel();
+   ADMOB_END
                              super.onDestroy();
-      if(ui_helper!=null)ui_helper.onDestroy();
+   CHARTBOOST_BEGIN
                         Chartboost.onDestroy(this);
+   CHARTBOOST_END
       shutIAB();
       context=application; activity=null; // when activity becomes unavailable, then use application context because we always need one
    }
@@ -347,9 +346,13 @@ public class EsenthelActivity extends NativeActivity
       startService(new Intent(this, DetectForceKill.class)); // start service that detects force kill
 
       initIAB();
-      initFB (savedInstanceState);
+    //initFB (savedInstanceState);
+   ADMOB_BEGIN
       initAdMob();
+   ADMOB_END
+   CHARTBOOST_BEGIN
       initChartboost();
+   CHARTBOOST_END
       initNotification();
 
       /*log("android_id "+android_id);
@@ -374,8 +377,6 @@ public class EsenthelActivity extends NativeActivity
    @Override protected final void onActivityResult(int requestCode, int resultCode, Intent data)
    {
       super.onActivityResult(requestCode, resultCode, data);
-      Session session=Session.getActiveSession(); if(  session!=null)  session.onActivityResult(this, requestCode, resultCode, data);
-                                                  if(ui_helper!=null)ui_helper.onActivityResult(      requestCode, resultCode, data, fb_dialog_callback);
       switch(requestCode)
       {
          case REQUEST_CODE_IAB:
@@ -417,7 +418,9 @@ public class EsenthelActivity extends NativeActivity
    @Override public final void onConfigurationChanged(Configuration newConfig)
    {
       super.onConfigurationChanged(newConfig);
+   ADMOB_BEGIN
       adPos(banner_x, banner_y); // reset banner position in new screen size/orientation
+   ADMOB_END
    }
    public static final void messageBox(String title, String text, boolean exit)
    {
@@ -483,6 +486,11 @@ public class EsenthelActivity extends NativeActivity
    public static final String model       () {return Build.MODEL;}
    public static final String serial      () {return Build.SERIAL;}
    public static final String androidID   () {return android_id;}
+
+   public final float dipToPx(float f) {return f*getResources().getDisplayMetrics().density;}
+   public final float pxToDip(float f) {return f/getResources().getDisplayMetrics().density;}
+   public final int screenW() {return getWindowManager().getDefaultDisplay().getWidth ();}
+   public final int screenH() {return getWindowManager().getDefaultDisplay().getHeight();}
 
    /******************************************************************************/
    // KEYBOARD
@@ -645,6 +653,7 @@ public class EsenthelActivity extends NativeActivity
    /******************************************************************************/
    // ADMOB
    /******************************************************************************/
+ADMOB_BEGIN
    static AdRequest      ad_request;
           AdView         ad_view;
    static boolean        ad_view_loaded=false, // if ad_view is loaded
@@ -660,7 +669,7 @@ public class EsenthelActivity extends NativeActivity
 
    final void initAdMob()
    {
-      EE_INIT_ADMOB
+      MobileAds.initialize(this, "ADMOB_APP_ID");
       com.esenthel.Native.bannerSize(0, 0); // at this stage the banner is lost, but the banner size on the native size is still present, so reset it
       if(ad_request==null)setAdRequest(false);
    }
@@ -791,10 +800,6 @@ public class EsenthelActivity extends NativeActivity
          }
       });
    }
-   public final float dipToPx(float f) {return f*getResources().getDisplayMetrics().density;}
-   public final float pxToDip(float f) {return f/getResources().getDisplayMetrics().density;}
-   public final int screenW() {return getWindowManager().getDefaultDisplay().getWidth ();}
-   public final int screenH() {return getWindowManager().getDefaultDisplay().getHeight();}
    public final int popupWindowW() {return (popup_window!=null) ? (int)dipToPx(popup_window.getWidth ()) : 0;}
    public final int popupWindowH() {return (popup_window!=null) ? (int)dipToPx(popup_window.getHeight()) : 0;}
    public final int bannerX() {int w=popupWindowW(); return (banner_x<0) ? 0 : (banner_x>0) ? screenW()-w : (screenW()-w)/2;}
@@ -862,7 +867,7 @@ public class EsenthelActivity extends NativeActivity
          }
       });
    }
-
+ADMOB_END
    /******************************************************************************/
    // IAB - In App Billing
    /******************************************************************************/
@@ -1077,7 +1082,7 @@ public class EsenthelActivity extends NativeActivity
 
    /******************************************************************************/
    // FB - Facebook
-   /******************************************************************************/
+   /******************************************************************************
   volatile static Bundle                 facebook_post;
    private static boolean                facebook_get_name=false, facebook_get_friends=false, facebook_want_post=false;
    private        UiLifecycleHelper      ui_helper;
@@ -1247,6 +1252,7 @@ public class EsenthelActivity extends NativeActivity
    /******************************************************************************/
    // CHARTBOOST
    /******************************************************************************/
+CHARTBOOST_BEGIN
    public static final boolean chartboostVisible() {return Chartboost.isAnyViewVisible();}
 
    public static final void    chartboostInterstitialLoad     () {       Chartboost.cacheInterstitial(CBLocation.LOCATION_DEFAULT);}
@@ -1259,33 +1265,30 @@ public class EsenthelActivity extends NativeActivity
 
    final void initChartboost()
    {
-      if(EE_INIT_CHARTBOOST)
-      {
-         Chartboost.startWithAppId(this, "EE_CHARTBOOST_APP_ID", "EE_CHARTBOOST_APP_SIGNATURE");
-         Chartboost.setDelegate(new ChartboostDelegate() { // it must be called between 'Chartboost.startWithAppId' and 'Chartboost.onCreate'
-		    //@Override public final boolean shouldRequestInterstitial(String location) {return true;}
-		    //@Override public final boolean shouldDisplayInterstitial(String location) {return true;}
-		      @Override public final void didCacheInterstitial(String location) {com.esenthel.Native.chartboost(INTERSTITIAL_LOADED);}
-		      @Override public final void didFailToLoadInterstitial(String location, CBImpressionError error) {com.esenthel.Native.chartboost(INTERSTITIAL_LOAD_FAIL);}
-		      @Override public final void didDisplayInterstitial(String location) {com.esenthel.Native.chartboost(INTERSTITIAL_DISPLAYED);}
-		      @Override public final void didDismissInterstitial(String location) {com.esenthel.Native.chartboost(INTERSTITIAL_CLOSED);}
-		    //@Override public final void didCloseInterstitial(String location) {com.esenthel.Native.chartboost(INTERSTITIAL_CLOSED);} this doesn't get called when interstitial is closed through clicking
-		      @Override public final void didClickInterstitial(String location) {com.esenthel.Native.chartboost(INTERSTITIAL_CLICKED);}
+      Chartboost.startWithAppId(this, "CHARTBOOST_APP_ID", "CHARTBOOST_APP_SIGNATURE");
+      Chartboost.setDelegate(new ChartboostDelegate() { // it must be called between 'Chartboost.startWithAppId' and 'Chartboost.onCreate'
+       //@Override public final boolean shouldRequestInterstitial(String location) {return true;}
+       //@Override public final boolean shouldDisplayInterstitial(String location) {return true;}
+         @Override public final void didCacheInterstitial(String location) {com.esenthel.Native.chartboost(INTERSTITIAL_LOADED);}
+         @Override public final void didFailToLoadInterstitial(String location, CBImpressionError error) {com.esenthel.Native.chartboost(INTERSTITIAL_LOAD_FAIL);}
+         @Override public final void didDisplayInterstitial(String location) {com.esenthel.Native.chartboost(INTERSTITIAL_DISPLAYED);}
+         @Override public final void didDismissInterstitial(String location) {com.esenthel.Native.chartboost(INTERSTITIAL_CLOSED);}
+       //@Override public final void didCloseInterstitial(String location) {com.esenthel.Native.chartboost(INTERSTITIAL_CLOSED);} this doesn't get called when interstitial is closed through clicking
+         @Override public final void didClickInterstitial(String location) {com.esenthel.Native.chartboost(INTERSTITIAL_CLICKED);}
 
-		    //@Override public final boolean shouldDisplayRewardedVideo(String location) {return true;}
-		      @Override public final void didCacheRewardedVideo(String location) {com.esenthel.Native.chartboost(REWARDED_VIDEO_LOADED);}
-		      @Override public final void didFailToLoadRewardedVideo(String location, CBImpressionError error) {com.esenthel.Native.chartboost(REWARDED_VIDEO_LOAD_FAIL);}
-		      @Override public final void didDisplayRewardedVideo(String location) {com.esenthel.Native.chartboost(REWARDED_VIDEO_DISPLAYED);}
-		    //@Override public final void willDisplayVideo(String location) {com.esenthel.Native.chartboost(REWARDED_VIDEO_DISPLAYED);} this gets called everytime 'didDisplayRewardedVideo' gets called too, no need for 2 notifications
-		      @Override public final void didDismissRewardedVideo(String location) {com.esenthel.Native.chartboost(REWARDED_VIDEO_CLOSED);}
-		    //@Override public final void didCloseRewardedVideo(String location) {com.esenthel.Native.chartboost(REWARDED_VIDEO_CLOSED);} this gets called everytime 'didDismissRewardedVideo' gets called too, no need for 2 notifications
-		      @Override public final void didClickRewardedVideo(String location) {com.esenthel.Native.chartboost(REWARDED_VIDEO_CLICKED);}
-		      @Override public final void didCompleteRewardedVideo(String location, int reward) {com.esenthel.Native.chartboost(REWARDED_VIDEO_COMPLETED);}
-         });
-         Chartboost.onCreate(this);
-      }
+       //@Override public final boolean shouldDisplayRewardedVideo(String location) {return true;}
+         @Override public final void didCacheRewardedVideo(String location) {com.esenthel.Native.chartboost(REWARDED_VIDEO_LOADED);}
+         @Override public final void didFailToLoadRewardedVideo(String location, CBImpressionError error) {com.esenthel.Native.chartboost(REWARDED_VIDEO_LOAD_FAIL);}
+         @Override public final void didDisplayRewardedVideo(String location) {com.esenthel.Native.chartboost(REWARDED_VIDEO_DISPLAYED);}
+       //@Override public final void willDisplayVideo(String location) {com.esenthel.Native.chartboost(REWARDED_VIDEO_DISPLAYED);} this gets called everytime 'didDisplayRewardedVideo' gets called too, no need for 2 notifications
+         @Override public final void didDismissRewardedVideo(String location) {com.esenthel.Native.chartboost(REWARDED_VIDEO_CLOSED);}
+       //@Override public final void didCloseRewardedVideo(String location) {com.esenthel.Native.chartboost(REWARDED_VIDEO_CLOSED);} this gets called everytime 'didDismissRewardedVideo' gets called too, no need for 2 notifications
+         @Override public final void didClickRewardedVideo(String location) {com.esenthel.Native.chartboost(REWARDED_VIDEO_CLICKED);}
+         @Override public final void didCompleteRewardedVideo(String location, int reward) {com.esenthel.Native.chartboost(REWARDED_VIDEO_COMPLETED);}
+      });
+      Chartboost.onCreate(this);
    }
-
+CHARTBOOST_END
    /******************************************************************************/
    // NOTIFICATIONS
    /******************************************************************************/

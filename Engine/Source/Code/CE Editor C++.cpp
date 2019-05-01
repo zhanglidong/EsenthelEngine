@@ -2063,8 +2063,8 @@ Bool CodeEditor::generateAndroidProj()
    {
        XmlData  xml;
        XmlNode &res=xml.nodes.New().setName("resources");
-      {XmlNode &n  =res.nodes.New().setName("string"); n.params.New().set("name", "facebook_app_id"         ); n.data.add(cei().appFacebookAppID());}
-      {XmlNode &n  =res.nodes.New().setName("string"); n.params.New().set("name", "fb_login_protocol_scheme"); n.data.add(cei().appFacebookAppID());}
+    //{XmlNode &n  =res.nodes.New().setName("string"); n.params.New().set("name", "facebook_app_id"         ); n.data.add(cei().appFacebookAppID());}
+    //{XmlNode &n  =res.nodes.New().setName("string"); n.params.New().set("name", "fb_login_protocol_scheme"); n.data.add(cei().appFacebookAppID());}
       if(!OverwriteOnChangeLoud(xml, build_path+"Android/res/values/strings.xml"))return false;
    }
 
@@ -2185,6 +2185,8 @@ Bool CodeEditor::generateAndroidProj()
    }
 
    Str app_package=AndroidPackage(cei().appPackage());
+   Bool chartboost          =(cei().appChartboostAppIDGooglePlay().is() && cei().appChartboostAppSignatureGooglePlay().is()),
+        google_play_services=(cei().appAdMobAppIDGooglePlay     ().is() || chartboost);
 
    // AndroidManifest.xml
    XmlData xml;
@@ -2223,39 +2225,72 @@ Bool CodeEditor::generateAndroidProj()
                                                   orn="fullSensor"     ;
                      node.getParam("android:screenOrientation").value=orn;
                   }
-               }else
-               if(name->value=="com.facebook.FacebookActivity")
-               {
-                  node.getParam("android:label").value=CString(cei().appName()); // android expects this as a C String
                }
             }
          }
-         Str    s=cei().appAdMobAppIDGooglePlay(); if(s.is()){XmlNode &n=application.nodes.New().setName("meta-data"); n.params.New().set("android:name", "com.google.android.gms.ads.APPLICATION_ID"); n.params.New().set("android:value", s);}
-         ULong id=cei().appFacebookAppID       (); if(id    ){XmlNode &n=application.nodes.New().setName("provider" ); n.params.New().set("android:authorities", S+"com.facebook.app.FacebookContentProvider"+id); n.params.New().set("android:name", "com.facebook.FacebookContentProvider"); n.params.New().set("android:exported", "true");}
+         Str s;
+         if(google_play_services){XmlNode &n=application.nodes.New().setName("meta-data"); n.params.New().set("android:name", "com.google.android.gms.version"); n.params.New().set("android:value", "@integer/google_play_services_version");}
+         s=cei().appAdMobAppIDGooglePlay(); if(s.is())
+         {
+            {XmlNode &n=application.nodes.New().setName("activity" ); n.params.New().set("android:name", "com.google.android.gms.ads.AdActivity"    ); n.params.New().set("android:configChanges", "keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize");}
+            {XmlNode &n=application.nodes.New().setName("meta-data"); n.params.New().set("android:name", "com.google.android.gms.ads.APPLICATION_ID"); n.params.New().set("android:value", s);}
+         }
+         if(chartboost)
+         {
+            XmlNode &n=application.nodes.New().setName("activity");
+            n.params.New().set("android:name", "com.chartboost.sdk.CBImpressionActivity");
+            n.params.New().set("android:excludeFromRecents", "true");
+            n.params.New().set("android:hardwareAccelerated", "true");
+            n.params.New().set("android:theme", "@android:style/Theme.Translucent.NoTitleBar.Fullscreen");
+            n.params.New().set("android:configChanges", "keyboardHidden|orientation|screenSize");
+         }
+         if(ULong id=cei().appFacebookAppID())
+         {
+            {XmlNode &n=application.nodes.New().setName("meta-data"); n.params.New().set("android:name", "com.facebook.sdk.ApplicationId"); n.params.New().set("android:value", id);}
+            {XmlNode &n=application.nodes.New().setName("activity" ); n.params.New().set("android:name", "com.facebook.FacebookActivity" ); n.params.New().set("android:configChanges", "keyboard|keyboardHidden|screenLayout|screenSize|orientation"); n.params.New().set("android:label", CString(cei().appName()));} // android expects this as a C String
+            {XmlNode &n=application.nodes.New().setName("provider" ); n.params.New().set("android:authorities", S+"com.facebook.app.FacebookContentProvider"+id); n.params.New().set("android:name", "com.facebook.FacebookContentProvider"); n.params.New().set("android:exported", "true");}
+            {XmlNode &n=application.nodes.New().setName("activity" ); n.params.New().set("android:name", "com.facebook.CustomTabActivity" ); n.params.New().set("android:exported", "true");
+             XmlNode &intent_filter=n.nodes.New().setName("intent-filter");
+             intent_filter.nodes.New().setName("action"  ).params.New().set("android:name"  , "android.intent.action.VIEW");
+             intent_filter.nodes.New().setName("category").params.New().set("android:name"  , "android.intent.category.DEFAULT");
+             intent_filter.nodes.New().setName("category").params.New().set("android:name"  , "android.intent.category.BROWSABLE");
+             intent_filter.nodes.New().setName("data"    ).params.New().set("android:scheme", id);
+            }
+         }
       }
    }
    if(!OverwriteOnChangeLoud(xml, build_path+"Android/AndroidManifest.xml"))return false;
 
-   // libraries (such as Google Play Services, Facebook, etc) always need to be copied
-   // because while building, some files get modified/added which would change the "Editor/Bin" in conflict with auto update functionality, and additionally "local.properties" needs to be manually generated
    android_path="Code/Android/"; // this is inside "Editor.pak"
-   Str     android_libs_path=Str(projects_build_path).tailSlash(true)+"_Android_\\"; FCreateDir(android_libs_path); // path where to store Android libs "_Build_\_Android_\"
-   CChar8 *android_libs[]=
+   Str       android_libs_path=Str(projects_build_path).tailSlash(true)+"_Android_\\"; FCreateDir(android_libs_path); // path where to store Android libs "_Build_\_Android_\"
+   Memc<Str> android_libs;
+   if(google_play_services)
    {
-      // Google Play Services
-    //"play-services-ads",
-      "play-services-ads-lite", // needed by AdMob and Chartboost
-      "play-services-auth-base", // login/authentication
-      "play-services-base", // core
-      "play-services-basement", // core resources
-      "play-services-drive", // google drive
-    //"support-v4",
+      android_libs.add("play-services-base"); // core, needed by "ads-lite"
+      android_libs.add("play-services-basement"); // core resources, needed by "ads-lite"
+      android_libs.add("play-services-ads-lite"); // needed by AdMob and Chartboost
+    //android_libs.add("play-services-ads");
+   }
+ //"play-services-auth-base", // login/authentication
+ //"play-services-drive", // google drive
+#if 1
+   android_libs.add("play-apk-expansion"); // allows downloading APK expansions
+   android_libs.add("play-licensing"); // needed for "play-apk-expansion"
+#else
+   android_libs.add("market_apk_expansion"); // allows downloading APK expansions
+   android_libs.add("market_licensing"); // needed for "market_apk_expansion"
+#endif
+   if(cei().appFacebookAppID())
+   {
+      android_libs.add("facebook-share");
+      android_libs.add("facebook-login");
+      android_libs.add("facebook-common");
+      android_libs.add("facebook-core");
 
-      "play_apk_expansion", // allows downloading APK expansions
-      "market_licensing", // needed for "play_apk_expansion"
-
-      "facebook",
-   };
+      android_libs.add("appcompat-v7"); // needed by Facebook (without it we get error: "facebook-common\res\values\values.xml:72: error: Error retrieving parent for item: No resource found that matches the given name '@style/Theme.AppCompat.NoActionBar'.")
+      android_libs.add("cardview-v7"); // needed by Facebook
+    //android_libs.add("support-v4");
+   }
 
    // local.properties
    FileText local; local.writeMem(UTF_8_NAKED); local.putLine(S+"sdk.dir="+UnixPath(android_sdk));
@@ -2265,6 +2300,8 @@ Bool CodeEditor::generateAndroidProj()
    {
       FileText project; project.writeMem(UTF_8_NAKED);
       project.putLine("target=android-28");
+      // libraries (such as Google Play Services, Facebook, etc) always need to be copied
+      // because while building, some files get modified/added which would change the "Editor/Bin" in conflict with auto update functionality, and additionally "local.properties" needs to be manually generated
       FREPA(android_libs) // process in order
       {
          Str src_path=android_path+android_libs[i], dest_path=android_libs_path+android_libs[i], dest_path_local_properties;
@@ -2284,7 +2321,8 @@ Bool CodeEditor::generateAndroidProj()
       if(!OverwriteOnChangeLoud(ft, path))return false;
    }
 
-   if(!CopyFile(android_path+"chartboost.jar", build_path+"Android/libs/chartboost.jar"))return false;
+   if(chartboost)
+      if(!CopyFile(android_path+"chartboost.jar", build_path+"Android/libs/chartboost.jar"))return false;
 
    // build.xml
    if(!xml.load("Code/Android/build.xml"))return ErrorRead("Code/Android/build.xml");
@@ -2301,15 +2339,18 @@ Bool CodeEditor::generateAndroidProj()
    {
       FileText ft; if(!ft.read("Code/Android/EsenthelActivity.java"))return ErrorRead("Code/Android/EsenthelActivity.java");
       Str data=ft.getAll();
-      data=Replace(data, "EE_PACKAGE"                 , app_package                                , true, true);
-      data=Replace(data, "EE_APP_NAME"                , CString(cei().appName())                   , true, true);
-      data=Replace(data, "EE_LICENSE_KEY"             , cei().appLicenseKey                      (), true, true);
+      data=Replace(data, "EE_PACKAGE"              , app_package                                , true, true);
+      data=Replace(data, "EE_APP_NAME"             , CString(cei().appName())                   , true, true);
+      data=Replace(data, "EE_LICENSE_KEY"          , cei().appLicenseKey                      (), true, true);
       Str s=cei().appAdMobAppIDGooglePlay();
-      data=Replace(data, "EE_INIT_ADMOB"              , s.is() ? S+"MobileAds.initialize(this, \""+CString(s)+"\");" : S);
-      data=Replace(data, "EE_INIT_CHARTBOOST"         , TextBool(cei().appChartboostAppIDGooglePlay().is() && cei().appChartboostAppSignatureGooglePlay().is()), true, true);
-      data=Replace(data, "EE_CHARTBOOST_APP_ID"       , cei().appChartboostAppIDGooglePlay       (), true, true);
-      data=Replace(data, "EE_CHARTBOOST_APP_SIGNATURE", cei().appChartboostAppSignatureGooglePlay(), true, true);
-      data=Replace(data, "EE_LOAD_LIBRARIES"          , load_libraries                             , true, true);
+      data=Replace(data, "ADMOB_APP_ID"            , CString(s)            , true, true);
+      data=Replace(data, "ADMOB_BEGIN"             , s.is()     ? "" : "/*", true, true);
+      data=Replace(data, "ADMOB_END"               , s.is()     ? "" : "*/", true, true);
+      data=Replace(data, "CHARTBOOST_BEGIN"        , chartboost ? "" : "/*", true, true);
+      data=Replace(data, "CHARTBOOST_END"          , chartboost ? "" : "*/", true, true);
+      data=Replace(data, "CHARTBOOST_APP_ID"       , CString(cei().appChartboostAppIDGooglePlay       ()), true, true);
+      data=Replace(data, "CHARTBOOST_APP_SIGNATURE", CString(cei().appChartboostAppSignatureGooglePlay()), true, true);
+      data=Replace(data, "EE_LOAD_LIBRARIES"       , load_libraries        , true, true);
       SetFile(ft, data, UTF_8_NAKED);
       if(!OverwriteOnChangeLoud(ft, build_path+"Android/src/EsenthelActivity.java"))return false;
    }
