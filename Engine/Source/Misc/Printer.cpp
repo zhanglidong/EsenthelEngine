@@ -237,22 +237,30 @@ Bool ReceiptPrinter::operator+=(C Image &img)
    if(src->lockRead())
    {
    #if 1
-      Int w=DivCeil8(src->lw()), h=src->lh();
-      data+="\x1D\x76\x30"; data.alwaysAppend(0);
-      data.alwaysAppend(w&0xFF);
-      data.alwaysAppend(w>>8  );
-      data.alwaysAppend(h&0xFF);
-      data.alwaysAppend(h>>8  );
-      FREPD(y, h)
-      for(Int x=0; x<src->lw(); )
+      const int  max_h=2048; // can print up to 2048 lines in one call, bigger values will cause garbage
+      const Bool multiple=(src->lh()>max_h);
+      if(multiple)lineHeight(0); // have to set zero line height to avoid any padding between line chunks
+      Int w=DivCeil8(src->lw());
+      for(Int y_ofs=0; y_ofs<src->lh(); y_ofs+=max_h)
       {
-         Byte b=0; REP(8)
+         Int h=Min(src->lh()-y_ofs, max_h), y_end=y_ofs+h;
+         data+="\x1D\x76\x30"; data.alwaysAppend(0);
+         data.alwaysAppend(w&0xFF);
+         data.alwaysAppend(w>>8  );
+         data.alwaysAppend(h&0xFF);
+         data.alwaysAppend(h>>8  );
+         for(Int y=y_ofs; y<y_end    ; y++)
+         for(Int x=    0; x<src->lw();    )
          {
-            if(ColToBit(src->colorF(x, y)))b|=(1<<i);
-            x++;
+            Byte b=0; REP(8)
+            {
+               if(ColToBit(src->colorF(x, y)))b|=(1<<i);
+               x++;
+            }
+            data.alwaysAppend(b);
          }
-         data.alwaysAppend(b);
       }
+      if(multiple)lineHeight();
    #else // this mode needs high DPI with 24 lines to achieve highest possible DPI output matching method above, however it results in padding to 24 lines, so don't use it
       lineHeight(0); // have to set zero line height to avoid any padding between line chunks
       for(Int y=0; y<src->lh(); y+=24)
