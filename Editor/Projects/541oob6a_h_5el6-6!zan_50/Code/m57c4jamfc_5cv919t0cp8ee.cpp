@@ -24,8 +24,8 @@ void SetNoise()
          case  7: transform=NoiseSqr; break;
          case  8: transform=NoiseCube; break;
       }
-      REPD(x, image.w())
       REPD(y, image.h())
+      REPD(x, image.w())
       {
          flt n=noise.noise2(x*mul.x, y*mul.y, Octaves, 0.5, transform); // get 2-dimensional noise
          image.pixelF(x, y, n*0.5+0.5);
