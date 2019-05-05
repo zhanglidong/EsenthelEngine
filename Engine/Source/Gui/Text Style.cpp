@@ -576,7 +576,7 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
                      {
                         c_pos.x+=xsize_2*fc.width; // after 'c_pos' was pixel aligned, move by half of the character width to put it at centerX of 'c' character
                         c_pos.y =p.y; // reset Y pos
-                        if(flag&CHARF_STACK)c_pos.y+=ysize*font->paddingB(); // skip shadow padding at the bottom, because next character is drawn after base character and on top, so its bottom shadow must not overlap the base
+                        Bool skipped_bottom_shadow_padding=false;
 
                      again:
                         UInt index=font->_wide_to_font[U16(n)]; if(InRange(index, font->_chrs))
@@ -590,6 +590,12 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
 
                          C Font::Chr &fc=font->_chrs[index];
 
+                           if((flag&CHARF_STACK) && !skipped_bottom_shadow_padding) // if found a first stacking character, then skip shadow padding at the bottom, because next character is drawn after base character and on top, so its bottom shadow must not overlap the base
+                           {
+                              skipped_bottom_shadow_padding=true; // do this only once
+                              c_pos.y+=ysize*font->paddingB();
+                           }
+
                            Vec2 n_pos=c_pos;
                            n_pos.x-=xsize_2*fc.width; // move back by half of the character width
                            n_pos.y-=ysize  *fc.offset;
@@ -601,9 +607,10 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
                            else         VI.font     (rect, fc.tex);
 
                            n=(ti.t8 ? Char8To16Fast(*++ti.t8) : *++ti.t16);
-                           flag=CharFlagFast(n); if(flag&CHARF_COMBINING) // if next character is combining too
+                           UInt flag_next=CharFlagFast(n); if(flag_next&CHARF_COMBINING) // if next character is combining too
                            {
-                              if(flag&CHARF_STACK)c_pos.y+=ysize*fc.height_padd; // move position higher, to stack combining characters on top of each other (needed for THAI)
+                              if(flag&CHARF_STACK)c_pos.y+=ysize*fc.height_padd; // if the drawn character is stacking, then move position higher, to stack combining characters on top of each other (needed for THAI)
+                              flag=flag_next;
                               goto again;
                            }
                         }
@@ -857,7 +864,7 @@ void TextStyleParams::drawMainSoft(Image &image, Flt x, Flt y, TextInput ti, Int
                      {
                         c_pos.x+=xsize_2*fc.width; // after 'c_pos' was pixel aligned, move by half of the character width to put it at centerX of 'c' character
                         c_pos.y =p.y; // reset Y pos
-                        if(flag&CHARF_STACK)c_pos.y+=ysize*font->paddingB(); // skip shadow padding at the bottom, because next character is drawn after base character and on top, so its bottom shadow must not overlap the base
+                        Bool skipped_bottom_shadow_padding=false;
 
                      again:
                         UInt index=font->_wide_to_font[U16(n)]; if(InRange(index, font->_chrs))
@@ -865,6 +872,12 @@ void TextStyleParams::drawMainSoft(Image &image, Flt x, Flt y, TextInput ti, Int
                            if(!max_length--)break;
 
                          C Font::Chr &fc=font->_chrs[index];
+
+                           if((flag&CHARF_STACK) && !skipped_bottom_shadow_padding) // if found a first stacking character, then skip shadow padding at the bottom, because next character is drawn after base character and on top, so its bottom shadow must not overlap the base
+                           {
+                              skipped_bottom_shadow_padding=true; // do this only once
+                              c_pos.y+=ysize*font->paddingB();
+                           }
 
                            Vec2 n_pos=c_pos;
                            n_pos.x-=xsize_2*fc.width; // move back by half of the character width
@@ -874,9 +887,10 @@ void TextStyleParams::drawMainSoft(Image &image, Flt x, Flt y, TextInput ti, Int
                            draw.draw(font->_images[fc.image], fc.tex, Rect_LU(n_pos, xsize*fc.width_padd, ysize*fc.height_padd));
 
                            n=(ti.t8 ? Char8To16Fast(*++ti.t8) : *++ti.t16);
-                           flag=CharFlagFast(n); if(flag&CHARF_COMBINING) // if next character is combining too
+                           UInt flag_next=CharFlagFast(n); if(flag_next&CHARF_COMBINING) // if next character is combining too
                            {
-                              if(flag&CHARF_STACK)c_pos.y+=ysize*fc.height_padd; // move position higher, to stack combining characters on top of each other (needed for THAI)
+                              if(flag&CHARF_STACK)c_pos.y+=ysize*fc.height_padd; // if the drawn character is stacking, then move position higher, to stack combining characters on top of each other (needed for THAI)
+                              flag=flag_next;
                               goto again;
                            }
                         }
