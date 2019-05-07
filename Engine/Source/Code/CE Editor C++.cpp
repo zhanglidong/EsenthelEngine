@@ -2721,18 +2721,35 @@ void CodeEditor::build(BUILD_MODE mode)
 
          Str platform=((build_exe_type==EXE_WEB) ? "4) Web" : config_32_bit ? "2) 32 bit" : "1) 64 bit");
 
-         build_msbuild=false;
-         Str msbuild; if(devenv_version.x>=10 && build_exe_type!=EXE_WEB){msbuild=MSBuildPath(vs_path, devenv_version); if(!FExistSystem(msbuild))msbuild.clear();} // detect MSBuild for VS 2010 projects or newer (MSBuild does not support VS 2008 projects and Web)
-         if( msbuild.is())
+         if(build_exe_type==EXE_WEB) // currently WEB compilation is available only through VC++ 2010
          {
-            Str params=MSBuildParams(build_project_file, config, platform);
-            if(build_exe_type==EXE_NEW)params.space()+="/p:AppxPackageSigningEnabled=false"; // disable code signing for Windows Universal builds, otherwise build will fail
-            build_msbuild=build_process.create(msbuild, params);
-         }
-         if(!build_msbuild)
+            Memc<VisualStudioInstallation> vs_installs; GetVisualStudioInstallations(vs_installs);
+            REPA(vs_installs)if(vs_installs[i].ver.x==10)
+            {
+               Str devenv=Str(vs_installs[i].path).tailSlash(true)+"Common7\\IDE\\devenv.exe"   ; if(FExistSystem(devenv))goto devenv_ok;
+                   devenv=Str(vs_installs[i].path).tailSlash(true)+"Common7\\IDE\\VCExpress.exe"; if(FExistSystem(devenv))goto devenv_ok; // express
+               continue;
+            devenv_ok:
+               build_log=build_path+"build_log.txt"; FDelFile(build_log);
+               if(build_process.create(devenv, VSBuildParams(build_project_file, config, platform, build_log)))goto build_ok;
+            }
+            Error("Compiling Web requires Visual C++ 2010");
+         build_ok:;
+         }else
          {
-            if(!devenv_com){build_log=build_path+"build_log.txt"; FDelFile(build_log);} // if we have "devenv.com" then we get the output from the console (devenv.exe does not generate any output)
-            VSBuild(build_project_file, config, platform, build_log);
+            build_msbuild=false;
+            Str msbuild; if(devenv_version.x>=10 && build_exe_type!=EXE_WEB){msbuild=MSBuildPath(vs_path, devenv_version); if(!FExistSystem(msbuild))msbuild.clear();} // detect MSBuild for VS 2010 projects or newer (MSBuild does not support VS 2008 projects and Web)
+            if( msbuild.is())
+            {
+               Str params=MSBuildParams(build_project_file, config, platform);
+               if(build_exe_type==EXE_NEW)params.space()+="/p:AppxPackageSigningEnabled=false"; // disable code signing for Windows Universal builds, otherwise build will fail
+               build_msbuild=build_process.create(msbuild, params);
+            }
+            if(!build_msbuild)
+            {
+               if(!devenv_com){build_log=build_path+"build_log.txt"; FDelFile(build_log);} // if we have "devenv.com" then we get the output from the console (devenv.exe does not generate any output)
+               VSBuild(build_project_file, config, platform, build_log);
+            }
          }
       }else
       if(build_exe_type==EXE_LINUX)

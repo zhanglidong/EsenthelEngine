@@ -201,7 +201,8 @@ Window& CodeEditor::Options::VSVersions::show()
    Memc<VisualStudioInstallation> installs; GetVisualStudioInstallations(installs); REPA(installs) // list newest first
    {
     C VisualStudioInstallation &install=installs[i];
-      T+=versions.New().create(Vec2(clientWidth()/2, -0.07f-versions.elms()*0.08f), install, ce);
+      if(install.ver.x>10) // skip VS 2010 because it's required only for WEB
+         T+=versions.New().create(Vec2(clientWidth()/2, -0.07f-versions.elms()*0.08f), install, ce);
    }
    if(versions.elms())
    {

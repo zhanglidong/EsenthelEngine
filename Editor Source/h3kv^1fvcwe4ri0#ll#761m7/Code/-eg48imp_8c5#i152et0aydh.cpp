@@ -251,7 +251,7 @@ class MiscRegion : Region
          build_menu.New().create("Windows Universal", ConfigNEW  , T).flag(MENU_TOGGLABLE);
          build_menu.New().create("Android APK"      , ConfigAPK  , T).flag(MENU_TOGGLABLE);
       #if WINDOWS
-         // temporarily disabled as no longer works on VS 2019 build_menu.New().create("Web"        , ConfigWeb  , T).flag(MENU_TOGGLABLE);
+         build_menu.New().create("Web"        , ConfigWeb  , T).flag(MENU_TOGGLABLE);
       #elif MAC
          build_menu.New().create("Mac APP"    , ConfigMAC  , T).flag(MENU_TOGGLABLE);
          build_menu.New().create("iOS APP"    , ConfigIOS  , T).flag(MENU_TOGGLABLE);

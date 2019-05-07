@@ -1958,6 +1958,27 @@ Bool GetVisualStudioInstallations(MemPtr<VisualStudioInstallation> installs)
    Bool ok=false;
    installs.clear();
 #if WINDOWS_OLD
+#if 1 // older versions (2008..2013) are obtained through registry
+   for(Int version=9; version<=12; version++)
+   REPD(express, 2)
+   {
+      Str path=GetRegStr(RKG_LOCAL_MACHINE, S+"Software/Microsoft/"+(express ? "VCExpress" : "VisualStudio")+'/'+version+".0/Setup/VS/ProductDir"); if(path.is())
+      {
+         VisualStudioInstallation &install=installs.New();
+         install.path=path;
+         install.ver.set(version, 0, 0, 0);
+         install.name="Visual Studio ";
+         switch(version)
+         {
+            case  9: install.name+="2008"; break;
+            case 10: install.name+="2010"; break;
+            case 11: install.name+="2012"; break;
+            case 12: install.name+="2013"; break;
+         }
+         if(express)install.name+=" Express";
+      }
+   }
+#endif
    // !! requires 'CoInitialize' !!
    ISetupConfigurationPtr query;
    if(OK(query.CreateInstance(__uuidof(SetupConfiguration))))
@@ -2003,21 +2024,6 @@ Bool GetVisualStudioInstallations(MemPtr<VisualStudioInstallation> installs)
          }
       }
    }
-#if 0
-   // older versions were obtained through registry:
-   for(Int version=9; version<=..; version++)
-   for(Int express=0; express<=1; express++)
-   {
-      Str path=GetRegStr(RKG_LOCAL_MACHINE, S+"Software/Microsoft/"+(express ? "VCExpress" : "VisualStudio")+'/'+version+".0/Setup/VS/ProductDir");
-      if(path.is())
-      {
-         VisualStudioInstallation &install=installs.New();
-         install.path=path;
-         install.ver.set(version, 0, 0, 0);
-         install.name=S+"Visual Studio "..+(express ? " Express" : null);
-      }
-   }
-#endif
    installs.sort(Compare);
 #endif
    return ok;

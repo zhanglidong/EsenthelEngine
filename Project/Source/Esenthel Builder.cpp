@@ -3,6 +3,7 @@
 using namespace Edit;
 /******************************************************************************/
       Str VSPath=""; // leave empty for auto-detect or type full path like this: "C:/Program Files (x86)/Microsoft Visual Studio 14.0"
+      Str VSPath2010;
       Str AndroidNDKPath=""; // leave empty for auto-detect or type full path like this: "C:/Progs/AndroidNDK"
       Str EngineDataPath="Data/"; // this will get updated to full path
       Str EditorDataPath="Editor Data/"; // this will get updated to full path
@@ -784,16 +785,27 @@ void CreateEditorPak()
 /******************************************************************************/
 void CompileVS(C Str &project, C Str &config, C Str &platform, void func()=null, void pre()=null)
 {
-   Str msbuild=MSBuildPath(Options.vs_path().is() ? Options.vs_path() : VSPath); if(FExistSystem(msbuild) && !Contains(platform, "Emscripten") && !Contains(platform, "Web")) // MSBuild is not compatible with Emscripten
+   if(Contains(platform, "Web", false, true)) // WEB requires VS 2010
    {
-      build_threads.queue(build_requests.New().set(msbuild, MSBuildParams(project, config, platform)).set(func).setPre(pre), BuildRun);
+      Str devenv=DevEnvPath(VSPath2010);
+      if(!devenv.is())Gui.msgBox("Error", "Compiling Web requires Visual C++ 2010");else
+      {
+         Str log=GetPath(App.exe())+"/vs_build_"+Replace(config+platform, ' ', '_')+".txt";
+         build_threads.queue(build_requests.New().set(devenv, VSBuildParams(project, config, platform, log), log).set(func).setPre(pre), BuildRun);
+      }
    }else
    {
-      Str devenv=DevEnvPath();
-      if(!devenv.is()){Options.show(); Gui.msgBox("Error", "Visual Studio Path unknown");}else
+      Str msbuild=MSBuildPath(Options.vs_path().is() ? Options.vs_path() : VSPath); if(FExistSystem(msbuild))
       {
-         Str log=S+GetPath(App.exe())+"/vs_build_"+Replace(config+platform, ' ', '_')+".txt";
-         build_threads.queue(build_requests.New().set(devenv, VSBuildParams(project, config, platform, log), log).set(func).setPre(pre), BuildRun);
+         build_threads.queue(build_requests.New().set(msbuild, MSBuildParams(project, config, platform)).set(func).setPre(pre), BuildRun);
+      }else
+      {
+         Str devenv=DevEnvPath();
+         if(!devenv.is()){Options.show(); Gui.msgBox("Error", "Visual Studio Path unknown");}else
+         {
+            Str log=GetPath(App.exe())+"/vs_build_"+Replace(config+platform, ' ', '_')+".txt";
+            build_threads.queue(build_requests.New().set(devenv, VSBuildParams(project, config, platform, log), log).set(func).setPre(pre), BuildRun);
+         }
       }
    }
 }
@@ -1397,13 +1409,27 @@ void InitPre()
 void SetPaths()
 {
    // setup VS path if not specified
-   if(!VSPath.is())
+   if(!VSPath.is() || !VSPath2010.is())
    {
-      Memc<VisualStudioInstallation> installs; GetVisualStudioInstallations(installs); REPA(installs) // go from the end to try the latest version first
+      Memc<VisualStudioInstallation> installs; GetVisualStudioInstallations(installs);
+      if(!VSPath.is())
       {
-       C VisualStudioInstallation &install=installs[i]; if(CheckVisualStudio(install.ver))if(DevEnvPath(install.path).is())
+         REPA(installs) // go from the end to try the latest version first
          {
-            VSPath=install.path; break;
+          C VisualStudioInstallation &install=installs[i]; if(CheckVisualStudio(install.ver) && DevEnvPath(install.path).is())
+            {
+               VSPath=install.path; break;
+            }
+         }
+      }
+      if(!VSPath2010.is())
+      {
+         REPA(installs) // go from the end to try the latest version first
+         {
+          C VisualStudioInstallation &install=installs[i]; if(install.ver.x==10 && DevEnvPath(install.path).is())
+            {
+               VSPath2010=install.path; break;
+            }
          }
       }
    }
