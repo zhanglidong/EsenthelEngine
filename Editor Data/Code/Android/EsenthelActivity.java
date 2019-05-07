@@ -1104,6 +1104,7 @@ FACEBOOK_BEGIN
    private static boolean  facebook_get_me=false, facebook_get_friends=false;
    final void initFB()
    {
+      com.facebook.FacebookSdk.sdkInitialize(getApplicationContext());
       callbackManager=CallbackManager.Factory.create();
       LoginManager.getInstance().registerCallback(callbackManager, new FacebookCallback<LoginResult>()
       {
@@ -1151,7 +1152,17 @@ FACEBOOK_BEGIN
          {
             if(jsonArray!=null)
             {
-               // FIXME
+               ArrayList<String>   ids=new ArrayList<String>();
+               ArrayList<String> names=new ArrayList<String>();
+               for(int i=0; i<jsonArray.length(); i++)
+               {
+                  JSONObject object=jsonArray.optJSONObject(i); if(object!=null)
+                  {
+                       ids.add(object.optString("id"  ));
+                     names.add(object.optString("name"));
+                  }
+               }
+               com.esenthel.Native.facebookFriends(ids, names);
             }
          }
       });
@@ -1164,12 +1175,6 @@ FACEBOOK_BEGIN
    public final void facebookGetFriends() {if(facebookLoggedIn())facebookGetFriendsDo();else{facebook_get_friends=true; facebookLogIn();}}
 FACEBOOK_END
 /*volatile static Bundle                 facebook_post;
-   private static boolean                facebook_get_me=false, facebook_get_friends=false, facebook_want_post=false;
-   private        UiLifecycleHelper      ui_helper;
-   private final  Session.StatusCallback ui_helper_callback=new Session.StatusCallback()
-   {
-      @Override public final void call(Session session, SessionState state, Exception exception) {}
-   };
    private final FacebookDialog.Callback fb_dialog_callback=new FacebookDialog.Callback()
    {
       @Override public final void onError   (FacebookDialog.PendingCall pendingCall, Exception error, Bundle data) {com.esenthel.Native.facebookPost(POST_ERROR);}
@@ -1201,84 +1206,6 @@ FACEBOOK_END
          }
       }
    };
-
-   final void initFB(Bundle savedInstanceState)
-   {
-      com.facebook.Settings.addLoggingBehavior(LoggingBehavior.INCLUDE_ACCESS_TOKENS);
-      Session session=Session.getActiveSession();
-      if(session==null)
-      {
-         if(savedInstanceState!=null)session=Session.restoreSession(this, null, fb_status_callback, savedInstanceState);
-         if(session==null)session=new Session(this);
-         Session.setActiveSession(session);
-         if(session.getState().equals(SessionState.CREATED_TOKEN_LOADED))session.openForRead(new Session.OpenRequest(this).setPermissions(Arrays.asList("public_profile", "email", "user_friends")).setCallback(fb_status_callback));
-      }
-      ui_helper=new UiLifecycleHelper(this, ui_helper_callback);
-      ui_helper.onCreate(savedInstanceState);
-   }
-   public static final boolean facebookLoggedIn()
-   {
-      Session session=Session.getActiveSession(); return session!=null && session.isOpened();
-   }
-   public static final boolean facebookCanPost()
-   {
-      Session session=Session.getActiveSession(); return session!=null && session.getPermissions().contains("publish_actions");
-   }
-   public static final void facebookWantPost()
-   {
-      Session session=Session.getActiveSession(); if(session!=null)session.requestNewPublishPermissions(new Session.NewPermissionsRequest(activity, "publish_actions"));
-   }
-   public static final void facebookLogOut()
-   {
-      Session session=Session.getActiveSession(); if(session!=null && !session.isClosed())session.closeAndClearTokenInformation();
-   }
-   public final void facebookLogIn()
-   {
-      Session session=Session.getActiveSession();
-      if(session==null || session.isClosed())
-      {
-         session=new Session(this);
-         Session.setActiveSession(session);
-      }
-      if(!session.isOpened())session.openForRead(new Session.OpenRequest(this).setPermissions(Arrays.asList("public_profile", "email", "user_friends")).setCallback(fb_status_callback));
-   }
-   public static final void facebookGetMeDo()
-   {
-      if(facebookLoggedIn())Request.newMeRequest(Session.getActiveSession(), new Request.GraphUserCallback()
-      {
-         @Override public final void onCompleted(GraphUser user, Response response)
-         {
-            if(user!=null)com.esenthel.Native.facebookMe(user.getId(), user.getName(), (String)user.getProperty("email"));
-         }
-      }).executeAsync();
-   }
-   public static final void facebookGetFriendsDo()
-   {
-      if(facebookLoggedIn())
-      {
-         Request request=Request.newMyFriendsRequest(Session.getActiveSession(), new GraphUserListCallback()
-         {
-            @Override public final void onCompleted(List<GraphUser> users, Response response)
-            {
-               if(users!=null)
-               {
-                  ArrayList<String>   ids=new ArrayList<String>();
-                  ArrayList<String> names=new ArrayList<String>();
-                  for(int i=0; i<users.size(); i++)
-                  {
-                     GraphUser user=users.get(i);
-                       ids.add(user.getId  ());
-                     names.add(user.getName());
-                  }
-                  com.esenthel.Native.facebookFriends(ids, names);
-               }
-            }
-         });
-         Bundle params=new Bundle(); params.putString("fields", "id, name");
-         request.setParameters(params);
-         request.executeAsync();
-      }
-   }
    public static final void facebookPostDo() // this does not require POST permission as it uses built-in Facebook app or WebView which handle this permission
    {
       Bundle post=facebook_post; facebook_post=null; if(post!=null && facebookLoggedIn())
@@ -1300,9 +1227,6 @@ FACEBOOK_END
          dialog.show();
       }
    }
-   public final void facebookGetMe     () {if(facebookLoggedIn())runOnUiThread(new Runnable(){@Override public final void run(){facebookGetMeDo     ();}});else{facebook_get_me     =true; facebookLogIn();}}
-   public final void facebookGetFriends() {if(facebookLoggedIn())runOnUiThread(new Runnable(){@Override public final void run(){facebookGetFriendsDo();}});else{facebook_get_friends=true; facebookLogIn();}}
-
    public final void facebookPost(String message, String url, String image_url, String title, String desc, String caption)
    {
       if(ui_helper!=null && FacebookDialog.canPresentShareDialog(this, FacebookDialog.ShareDialogFeature.SHARE_DIALOG)) // this does not require being logged in
