@@ -343,19 +343,20 @@ void Button::draw(C GuiPC &gpc)
          #else // modify color based on current state relative to normal state (slower but CAN support white text on colored backgrounds)
           C Color *normal_color=&button_skin->normal_color; if(pushed_color!=normal_color)
             {
-               // for performance reasons, this skips rounding, and uses 256 scale (which introduces some additional errors) so we can use fast >>8 for division (/256 instead of /255)
+               // for performance reasons, this skips rounding, and uses 65536 scale (which may introduce some additional errors) so we can use fast >>16 for division (/65536 instead of /255)
+               // 65536 scale was tested to work in worst case "pushed_color->c[brightest_channel]==255" and "brightest_value==1"
                    Int brightest_channel=MaxI(normal_color->r, normal_color->g, normal_color->b);
                if(Byte brightest_value  =     normal_color->c[brightest_channel])
                {
-                  UInt brightness=Min(pushed_color->c[brightest_channel]*256/brightest_value, 256); // for performance reasons, Min(256) is used here, instead of Min(255) for all 3 channels below
-                  ts.color.r=((ts.color.r*brightness)>>8);
-                  ts.color.g=((ts.color.g*brightness)>>8);
-                  ts.color.b=((ts.color.b*brightness)>>8);
+                  UInt brightness=Min(pushed_color->c[brightest_channel]*65536/brightest_value, 65536); // for performance reasons, Min(65536) is used here, instead of Min(255) for all 3 channels below
+                  ts.color.r=((ts.color.r*brightness)>>16);
+                  ts.color.g=((ts.color.g*brightness)>>16);
+                  ts.color.b=((ts.color.b*brightness)>>16);
                }
                if(Byte max_alpha=normal_color->a)
                {
-                  UInt opacity=pushed_color->a*256/max_alpha;
-                  ts.color.a=Min((ts.color.a*opacity)>>8, 255);
+                  UInt opacity=pushed_color->a*65536/max_alpha;
+                  ts.color.a=Min((ts.color.a*opacity)>>16, 255);
                }
             }
          #endif
