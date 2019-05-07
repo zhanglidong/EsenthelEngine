@@ -2184,7 +2184,7 @@ Bool CodeEditor::generateAndroidProj()
       FREPA(convert)if(!convert[i].ok)return ErrorWrite(convert[i].dest);
    }
 
-   Str app_package=AndroidPackage(cei().appPackage());
+   Str  app_package=AndroidPackage(cei().appPackage());
    Bool chartboost          =(cei().appChartboostAppIDGooglePlay().is() && cei().appChartboostAppSignatureGooglePlay().is()),
         google_play_services=(cei().appAdMobAppIDGooglePlay     ().is() || chartboost),
         facebook            =(cei().appFacebookAppID()!=0);
@@ -2264,13 +2264,13 @@ Bool CodeEditor::generateAndroidProj()
 
    android_path="Code/Android/"; // this is inside "Editor.pak"
    Str       android_libs_path=Str(projects_build_path).tailSlash(true)+"_Android_\\"; FCreateDir(android_libs_path); // path where to store Android libs "_Build_\_Android_\"
-   Memc<Str> android_libs;
+   Memc<Str> android_libs, jars;
    if(google_play_services)
    {
-      android_libs.add("play-services-base"); // core, needed by "ads-lite"
-      android_libs.add("play-services-basement"); // core resources, needed by "ads-lite"
-      android_libs.add("play-services-ads-lite"); // needed by AdMob and Chartboost
-    //android_libs.add("play-services-ads");
+      android_libs.add("play-services-base"); jars.add("play-services-base"); // core, needed by "ads-lite"
+      android_libs.add("play-services-basement"); jars.add("play-services-basement"); // core resources, needed by "ads-lite"
+      android_libs.add("play-services-ads-lite"); jars.add("play-services-ads-lite"); // needed by AdMob and Chartboost
+    //android_libs.add("play-services-ads"); jars.add("play-services-ads");
    }
  //"play-services-auth-base", // login/authentication
  //"play-services-drive", // google drive
@@ -2283,14 +2283,14 @@ Bool CodeEditor::generateAndroidProj()
 #endif
    if(facebook)
    {
-      android_libs.add("facebook-share");
-      android_libs.add("facebook-login");
-      android_libs.add("facebook-common");
-      android_libs.add("facebook-core");
+      android_libs.add("facebook-share"); jars.add("facebook-share");
+      android_libs.add("facebook-login"); jars.add("facebook-login");
+      android_libs.add("facebook-common"); jars.add("facebook-common");
+      android_libs.add("facebook-core"); jars.add("facebook-core");
 
-      android_libs.add("appcompat-v7"); // needed by Facebook (without it we get error: "facebook-common\res\values\values.xml:72: error: Error retrieving parent for item: No resource found that matches the given name '@style/Theme.AppCompat.NoActionBar'.")
-      android_libs.add("cardview-v7"); // needed by Facebook
-    //android_libs.add("support-v4");
+      android_libs.add("appcompat-v7"); jars.add("appcompat-v7"); // needed by Facebook (without it we get error: "facebook-common\res\values\values.xml:72: error: Error retrieving parent for item: No resource found that matches the given name '@style/Theme.AppCompat.NoActionBar'.")
+      android_libs.add("cardview-v7"); jars.add("cardview-v7"); // needed by Facebook
+    //android_libs.add("support-v4"); jars.add("support-v4");
    }
 
    // local.properties
@@ -2323,8 +2323,9 @@ Bool CodeEditor::generateAndroidProj()
       if(!OverwriteOnChangeLoud(ft, path))return false;
    }
 
-   if(chartboost)
-      if(!CopyFile(android_path+"chartboost.jar", build_path+"Android/libs/chartboost.jar"))return false;
+   if(chartboost)jars.add("chartboost");
+
+   FREPA(jars)if(!CopyFile(android_path+jars[i]+"/classes.jar", build_path+"Android/libs/"+jars[i]+".jar"))return false;
 
    // build.xml
    if(!xml.load("Code/Android/build.xml"))return ErrorRead("Code/Android/build.xml");
@@ -2341,9 +2342,9 @@ Bool CodeEditor::generateAndroidProj()
    {
       FileText ft; if(!ft.read("Code/Android/EsenthelActivity.java"))return ErrorRead("Code/Android/EsenthelActivity.java");
       Str data=ft.getAll();
-      data=Replace(data, "EE_PACKAGE"              , app_package                                , true, true);
-      data=Replace(data, "EE_APP_NAME"             , CString(cei().appName())                   , true, true);
-      data=Replace(data, "EE_LICENSE_KEY"          , cei().appLicenseKey                      (), true, true);
+      data=Replace(data, "EE_PACKAGE"              , app_package             , true, true);
+      data=Replace(data, "EE_APP_NAME"             , CString(cei().appName()), true, true);
+      data=Replace(data, "EE_LICENSE_KEY"          , cei().appLicenseKey   (), true, true);
       Str s=cei().appAdMobAppIDGooglePlay();
       data=Replace(data, "ADMOB_APP_ID"            , CString(s)            , true, true);
       data=Replace(data, "ADMOB_BEGIN"             , s.is()     ? "" : "/*", true, true);
@@ -2352,6 +2353,8 @@ Bool CodeEditor::generateAndroidProj()
       data=Replace(data, "CHARTBOOST_END"          , chartboost ? "" : "*/", true, true);
       data=Replace(data, "CHARTBOOST_APP_ID"       , CString(cei().appChartboostAppIDGooglePlay       ()), true, true);
       data=Replace(data, "CHARTBOOST_APP_SIGNATURE", CString(cei().appChartboostAppSignatureGooglePlay()), true, true);
+      data=Replace(data, "FACEBOOK_BEGIN"          , facebook   ? "" : "/*", true, true);
+      data=Replace(data, "FACEBOOK_END"            , facebook   ? "" : "*/", true, true);
       data=Replace(data, "EE_LOAD_LIBRARIES"       , load_libraries        , true, true);
       SetFile(ft, data, UTF_8_NAKED);
       if(!OverwriteOnChangeLoud(ft, build_path+"Android/src/EsenthelActivity.java"))return false;

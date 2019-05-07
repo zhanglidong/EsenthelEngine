@@ -1,6 +1,6 @@
 Android Libraries are added into "Editor Data\Code\Android" which are then packed into "Editor.pak" and extracted by the Editor to "_Build_/_Android_" when compiling for Android platform.
 
-Libraries need to be listed in Engine's "CE Editor C++.cpp" file, "CChar8 *android_libs[]=".
+Libraries need to be listed in Engine's "CE Editor C++.cpp" file, "Memc<Str> android_libs, jars".
 
 Google Play Services libs were copied from Android SDK in the following way:
 1. open "SDK Manager.exe"
@@ -8,12 +8,15 @@ Google Play Services libs were copied from Android SDK in the following way:
 3. go to "AndroidSDK\extras\google\m2repository\com\google\android\gms"
 4. extract required libs from *.aar files (they are actually ZIP files and can be opened using WinRar) into "Editor Data\Code\Android"
 5. create empty "src" folders in each library (without this empty folder, compilation will fail)
-6. move "classes.jar" in each library to "bin/classes.jar" (linker expects it to be in that location)
 
 After adding all libraries, they need to be "updated" with the console command, that needs to be executed from each library path location:
 C:\Progs\AndroidSDK\tools\android update lib-project --path . --target X
 where X can be obtained from:
 C:\Progs\AndroidSDK\tools\android list targets
+
+Make sure that "project.properties" has the line:
+android.library=true
+This will force generate "bin/classes.jar" which is required for building. Do not try to move "classes.jar" into "bin/classes.jar" as it would get destroyed, instead it should be copied manually through the editor "Memc<Str> jars"
 
 precompiling can be performed, HOWEVER it actually SLOWS DOWN building of apps when they're built 2nd or more time, so don't do it
 C:\Esenthel\Editor\Bin\Android\Ant\bin\ant clean
