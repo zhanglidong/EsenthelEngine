@@ -69,6 +69,16 @@ CHARTBOOST_BEGIN
 import com.chartboost.sdk.*;
 import com.chartboost.sdk.Model.CBError.CBImpressionError;
 CHARTBOOST_END
+FACEBOOK_BEGIN
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.login.LoginManager;
+import com.facebook.login.LoginResult;
+FACEBOOK_END
 ADMOB_BEGIN
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.AdRequest;
@@ -89,6 +99,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.json.JSONObject;
+import org.json.JSONArray;
 /******************************************************************************/
 public class EsenthelActivity extends NativeActivity
 {
@@ -346,13 +357,15 @@ public class EsenthelActivity extends NativeActivity
       startService(new Intent(this, DetectForceKill.class)); // start service that detects force kill
 
       initIAB();
-    //initFB (savedInstanceState);
    ADMOB_BEGIN
       initAdMob();
    ADMOB_END
    CHARTBOOST_BEGIN
       initChartboost();
    CHARTBOOST_END
+   FACEBOOK_BEGIN
+      initFB();
+   FACEBOOK_END
       initNotification();
 
       /*log("android_id "+android_id);
@@ -377,6 +390,9 @@ public class EsenthelActivity extends NativeActivity
    @Override protected final void onActivityResult(int requestCode, int resultCode, Intent data)
    {
       super.onActivityResult(requestCode, resultCode, data);
+   FACEBOOK_BEGIN
+      if(callbackManager!=null)callbackManager.onActivityResult(requestCode, resultCode, data);
+   FACEBOOK_END
       switch(requestCode)
       {
          case REQUEST_CODE_IAB:
@@ -1082,9 +1098,73 @@ ADMOB_END
 
    /******************************************************************************/
    // FB - Facebook
-   /******************************************************************************
-  volatile static Bundle                 facebook_post;
-   private static boolean                facebook_get_name=false, facebook_get_friends=false, facebook_want_post=false;
+   /******************************************************************************/
+FACEBOOK_BEGIN
+   private CallbackManager callbackManager;
+   private static boolean  facebook_get_me=false, facebook_get_friends=false;
+   final void initFB()
+   {
+      callbackManager=CallbackManager.Factory.create();
+      LoginManager.getInstance().registerCallback(callbackManager, new FacebookCallback<LoginResult>()
+      {
+         @Override public void onSuccess(LoginResult loginResult)
+         {
+            if(facebook_get_me     ){facebook_get_me     =false; facebookGetMeDo     ();}
+            if(facebook_get_friends){facebook_get_friends=false; facebookGetFriendsDo();}
+         }
+         @Override public void onCancel() {}
+         @Override public void onError(FacebookException exception) {}
+      });
+   }
+   public static final boolean facebookLoggedIn()
+   {
+      AccessToken accessToken=AccessToken.getCurrentAccessToken();
+      return accessToken!=null && !accessToken.isExpired();
+   }
+   public final void facebookLogIn()
+   {
+      LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("public_profile", "email", "user_friends"));
+   }
+   public static final void facebookLogOut()
+   {
+      LoginManager.getInstance().logOut();
+   }
+   public static final void facebookGetMeDo()
+   {
+      GraphRequest request=GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONObjectCallback()
+      {
+         @Override public void onCompleted(JSONObject object, GraphResponse response)
+         {
+            if(object!=null)com.esenthel.Native.facebookMe(object.optString("id"), object.optString("name"), object.optString("email"));
+         }
+      });
+      Bundle parameters=new Bundle();
+      parameters.putString("fields", "id,name,email");
+      request.setParameters(parameters);
+      request.executeAsync();
+   }
+   public static final void facebookGetFriendsDo()
+   {
+      GraphRequest request=GraphRequest.newMyFriendsRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONArrayCallback()
+      {
+         @Override public void onCompleted(JSONArray jsonArray, GraphResponse response)
+         {
+            if(jsonArray!=null)
+            {
+               // FIXME
+            }
+         }
+      });
+      Bundle parameters=new Bundle();
+      parameters.putString("fields", "id,name");
+      request.setParameters(parameters);
+      request.executeAsync();
+   }
+   public final void facebookGetMe     () {if(facebookLoggedIn())facebookGetMeDo     ();else{facebook_get_me     =true; facebookLogIn();}}
+   public final void facebookGetFriends() {if(facebookLoggedIn())facebookGetFriendsDo();else{facebook_get_friends=true; facebookLogIn();}}
+FACEBOOK_END
+/*volatile static Bundle                 facebook_post;
+   private static boolean                facebook_get_me=false, facebook_get_friends=false, facebook_want_post=false;
    private        UiLifecycleHelper      ui_helper;
    private final  Session.StatusCallback ui_helper_callback=new Session.StatusCallback()
    {
@@ -1114,7 +1194,7 @@ ADMOB_END
       {
          if(facebookLoggedIn())
          {
-            if(facebook_get_name   ){facebook_get_name   =false;                       facebookGetMeDo     ();}
+            if(facebook_get_me     ){facebook_get_me     =false;                       facebookGetMeDo     ();}
             if(facebook_get_friends){facebook_get_friends=false;                       facebookGetFriendsDo();}
             if(facebook_want_post  ){facebook_want_post  =false; if(!facebookCanPost())facebookWantPost    ();}
                                                                                        facebookPostDo      ();
@@ -1220,7 +1300,7 @@ ADMOB_END
          dialog.show();
       }
    }
-   public final void facebookGetMe     () {if(facebookLoggedIn())runOnUiThread(new Runnable(){@Override public final void run(){facebookGetMeDo     ();}});else{facebook_get_name   =true; facebookLogIn();}}
+   public final void facebookGetMe     () {if(facebookLoggedIn())runOnUiThread(new Runnable(){@Override public final void run(){facebookGetMeDo     ();}});else{facebook_get_me     =true; facebookLogIn();}}
    public final void facebookGetFriends() {if(facebookLoggedIn())runOnUiThread(new Runnable(){@Override public final void run(){facebookGetFriendsDo();}});else{facebook_get_friends=true; facebookLogIn();}}
 
    public final void facebookPost(String message, String url, String image_url, String title, String desc, String caption)
