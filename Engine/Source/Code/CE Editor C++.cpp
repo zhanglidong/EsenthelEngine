@@ -2063,8 +2063,8 @@ Bool CodeEditor::generateAndroidProj()
    {
        XmlData  xml;
        XmlNode &res=xml.nodes.New().setName("resources");
-    //{XmlNode &n  =res.nodes.New().setName("string"); n.params.New().set("name", "facebook_app_id"         ); n.data.add(cei().appFacebookAppID());}
-    //{XmlNode &n  =res.nodes.New().setName("string"); n.params.New().set("name", "fb_login_protocol_scheme"); n.data.add(cei().appFacebookAppID());}
+      {XmlNode &n  =res.nodes.New().setName("string"); n.params.New().set("name", "facebook_app_id"         ); n.data.add(       cei().appFacebookAppID());}
+      {XmlNode &n  =res.nodes.New().setName("string"); n.params.New().set("name", "fb_login_protocol_scheme"); n.data.add(S+"fb"+cei().appFacebookAppID());}
       if(!OverwriteOnChangeLoud(xml, build_path+"Android/res/values/strings.xml"))return false;
    }
 
@@ -2247,7 +2247,7 @@ Bool CodeEditor::generateAndroidProj()
          }
          if(ULong id=cei().appFacebookAppID())
          {
-            {XmlNode &n=application.nodes.New().setName("meta-data"); n.params.New().set("android:name", "com.facebook.sdk.ApplicationId"); n.params.New().set("android:value", id);}
+            {XmlNode &n=application.nodes.New().setName("meta-data"); n.params.New().set("android:name", "com.facebook.sdk.ApplicationId"); n.params.New().set("android:value", "@string/facebook_app_id"/*id*/);}
             {XmlNode &n=application.nodes.New().setName("activity" ); n.params.New().set("android:name", "com.facebook.FacebookActivity" ); n.params.New().set("android:configChanges", "keyboard|keyboardHidden|screenLayout|screenSize|orientation"); n.params.New().set("android:label", CString(cei().appName()));} // android expects this as a C String
             {XmlNode &n=application.nodes.New().setName("provider" ); n.params.New().set("android:authorities", S+"com.facebook.app.FacebookContentProvider"+id); n.params.New().set("android:name", "com.facebook.FacebookContentProvider"); n.params.New().set("android:exported", "true");}
             {XmlNode &n=application.nodes.New().setName("activity" ); n.params.New().set("android:name", "com.facebook.CustomTabActivity" ); n.params.New().set("android:exported", "true");
@@ -2255,7 +2255,7 @@ Bool CodeEditor::generateAndroidProj()
              intent_filter.nodes.New().setName("action"  ).params.New().set("android:name"  , "android.intent.action.VIEW");
              intent_filter.nodes.New().setName("category").params.New().set("android:name"  , "android.intent.category.DEFAULT");
              intent_filter.nodes.New().setName("category").params.New().set("android:name"  , "android.intent.category.BROWSABLE");
-             intent_filter.nodes.New().setName("data"    ).params.New().set("android:scheme", id);
+             intent_filter.nodes.New().setName("data"    ).params.New().set("android:scheme", "@string/fb_login_protocol_scheme"/*S+"fb"+id*/);
             }
          }
       }
