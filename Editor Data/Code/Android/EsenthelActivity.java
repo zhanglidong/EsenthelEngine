@@ -78,6 +78,9 @@ import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
+import com.facebook.share.model.ShareLinkContent;
+import com.facebook.share.Sharer;
+import com.facebook.share.widget.ShareDialog;
 FACEBOOK_END
 ADMOB_BEGIN
 import com.google.android.gms.ads.MobileAds;
@@ -175,7 +178,6 @@ public class EsenthelActivity extends NativeActivity
    public static final int POST_ERROR=0;
    public static final int POST_CANCEL=1;
    public static final int POST_SUCCESS=2;
-   public static final int POST_NOT_LOGGED_IN=3;
 
    // Billing response codes
    public static final int BILLING_RESPONSE_RESULT_OK = 0;
@@ -1101,6 +1103,7 @@ ADMOB_END
    /******************************************************************************/
 FACEBOOK_BEGIN
    private CallbackManager callbackManager;
+   private ShareDialog     shareDialog;
    private static boolean  facebook_get_me=false, facebook_get_friends=false;
    final void initFB()
    {
@@ -1115,6 +1118,13 @@ FACEBOOK_BEGIN
          }
          @Override public void onCancel() {}
          @Override public void onError(FacebookException exception) {}
+      });
+      shareDialog=new ShareDialog(this);
+      shareDialog.registerCallback(callbackManager, new FacebookCallback<Sharer.Result>()
+      {
+         @Override public void onSuccess(Sharer.Result    result) {com.esenthel.Native.facebookPost(POST_SUCCESS);}
+         @Override public void onCancel (                       ) {com.esenthel.Native.facebookPost(POST_CANCEL );}
+         @Override public void onError  (FacebookException error) {com.esenthel.Native.facebookPost(POST_ERROR  );}
       });
    }
    public static final boolean facebookLoggedIn()
@@ -1173,6 +1183,17 @@ FACEBOOK_BEGIN
    }
    public final void facebookGetMe     () {if(facebookLoggedIn())facebookGetMeDo     ();else{facebook_get_me     =true; facebookLogIn();}}
    public final void facebookGetFriends() {if(facebookLoggedIn())facebookGetFriendsDo();else{facebook_get_friends=true; facebookLogIn();}}
+   public final void facebookPost(String url, String quote)
+   {
+      if(shareDialog!=null)
+      {
+         ShareLinkContent content=new ShareLinkContent.Builder()
+           .setContentUrl(Uri.parse(url))
+           .setQuote(quote)
+           .build();
+         shareDialog.show(content);
+      }
+   }
 FACEBOOK_END
 /*volatile static Bundle                 facebook_post;
    private final FacebookDialog.Callback fb_dialog_callback=new FacebookDialog.Callback()

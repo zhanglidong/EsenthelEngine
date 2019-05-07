@@ -185,24 +185,20 @@ void Facebook::openPage(C Str &page_name, C Str &page_id)
       if(page_name.is())Explore(S+"https://www.facebook.com/"+page_name);else
       if(page_id  .is())Explore(S+"https://www.facebook.com/profile.php?id="+page_id);
 }
-void Facebook::post(C Str &message, C Str &url, C Str &image_url, C Str &title, C Str &desc, C Str &caption)
+void Facebook::post(C Str &url, C Str &quote)
 {
 #if ANDROID
    JNI jni;
    if(jni && ActivityClass && Activity)
-   if(JMethodID facebookPost=jni.func(ActivityClass, "facebookPost", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V"))
-   if(JString   j_message  =JString(jni, message  ))
-   if(JString   j_url      =JString(jni, url      ))
-   if(JString   j_image_url=JString(jni, image_url))
-   if(JString   j_title    =JString(jni, title    ))
-   if(JString   j_desc     =JString(jni, desc     ))
-   if(JString   j_caption  =JString(jni, caption  ))
-      jni->CallVoidMethod(Activity, facebookPost, j_message(), j_url(), j_image_url(), j_title(), j_desc(), j_caption());
+   if(JMethodID facebookPost=jni.func(ActivityClass, "facebookPost", "(Ljava/lang/String;Ljava/lang/String;)V"))
+   if(JString   j_url  =JString(jni, url  ))
+   if(JString   j_quote=JString(jni, quote))
+      jni->CallVoidMethod(Activity, facebookPost, j_url(), j_quote());
 #elif IOS
    if(FBSDKShareLinkContent *content=[[FBSDKShareLinkContent alloc] init])
    {
       NSURLAuto ns_url=url; content.contentURL=ns_url; // !! keep 'ns_url' as temp to be deleted later, in case 'content.contentURL' is a weak reference reusing its or NSString's memory
-                            content.quote     =NSStringAuto(title.is() ? title : desc.is() ? desc : caption);
+                            content.quote     =NSStringAuto(quote);
       if(FBSDKShareDialog *dialog=[[FBSDKShareDialog alloc] init])
       {
          dialog.fromViewController=ViewController;

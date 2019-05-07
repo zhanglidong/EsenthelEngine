@@ -46,10 +46,9 @@ struct Facebook
 #endif
    enum RESULT
    {
-      POST_ERROR        , // there was an error while trying to post
-      POST_CANCEL       , // user canceled posting
-      POST_SUCCESS      , // post completed successfully
-      POST_NOT_LOGGED_IN, // user is not logged in to Facebook, and the result of the post is unknown
+      POST_ERROR  , // there was an error while trying to post
+      POST_CANCEL , // user canceled posting
+      POST_SUCCESS, // post completed successfully
    };
 
    void (*callback)(RESULT result); // pointer to a custom function that will be called with processed events, 'result'=message received at the moment
@@ -70,7 +69,7 @@ struct Facebook
    // operations
    void openPage(C Str &page_name, C Str &page_id=S); // open a Facebook page, 'page_name'=name of the page (for example "EsenthelEngine"), 'page_id'=ID number of the page (for example "161038147263508", this is optional). By default the page will be opened in a browser, however on Android and iOS, if you specify the 'page_id', then it will be opened in the Facebook app if it's available.
 
-   void post(C Str &message, C Str &url=S, C Str &image_url=S, C Str &title=S, C Str &desc=S, C Str &caption=S); // post message to user's timeline, 'message'=message to post (if left as empty then a dialog will be opened where the user will be able to set his own message, this parameter is currently ignored and the dialog is always opened), most of the parameters are optional (if left empty, then Facebook will set them to default values), 'logIn' will be automatically called if needed
+   void post(C Str &url, C Str &quote=S); // post link to user's timeline, 'url'=link address, 'quote'=text to quote in the post
 
 #if !EE_PRIVATE
 private:
