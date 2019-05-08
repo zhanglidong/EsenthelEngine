@@ -1,9 +1,9 @@
 ### About
-Full Source of Esenthel Engine and its Tools (http://www.esenthel.com) - a super optimized, high performance, minimal memory usage, rock solid stable, cross platform Game Engine (software to create Games and Applications).<br/>
+Full Source of Esenthel Engine and its Tools (http://esenthel.com) - a super optimized, high performance, minimal memory usage, rock solid stable, cross platform Game Engine (software to create Games and Applications).<br/>
 Esenthel strives to be pure perfection!<br/>
 Official version available at: https://github.com/Esenthel/EsenthelEngine<br/>
 To continue its development, Esenthel needs your support:
-* Please donate: http://www.esenthel.com/?id=store&cat=1
+* Please donate: https://esenthel.com/?id=store&cat=1
 * Or submit source code patches, thank you!
 
 
@@ -100,7 +100,7 @@ Checked tasks will be executed in order from top to bottom, as some of the tasks
 
 ### Editions
 Esenthel Engine is available in 2 Editions:
-* **Binary** available from Esenthel Website - http://www.esenthel.com/
+* **Binary** available from Esenthel Website - http://esenthel.com/
 * **Source** available from GitHub Website - https://github.com/Esenthel/EsenthelEngine
 
 Sometimes Source Edition is updated more frequently, which means that the Binary Edition may be older.
