@@ -25,6 +25,9 @@ struct Color // 4-Byte Color
    Vec  asVec ()C; // return as Color in Vec  format (x=red, y=green, z=blue)
    Vec4 asVec4()C; // return as Color in Vec4 format (x=red, y=green, z=blue, w=alpha)
 
+   operator Vec ()C {return asVec ();} // cast to Vec
+   operator Vec4()C {return asVec4();} // cast to Vec4
+
    Str asText()C; // return as text in following format "r, g, b, a" (using     decimal numbers)
    Str asHex ()C; // return as text in following format "rrggbbaa"   (using hexadecimal numbers)
    Str asHex3()C; // return as text in following format "rrggbb"     (using hexadecimal numbers)

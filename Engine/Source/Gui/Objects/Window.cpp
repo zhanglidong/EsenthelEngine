@@ -675,10 +675,10 @@ void Window::draw(C GuiPC &gpc)
          if(ripple     )ripple->draw(*rt, D.rect());else
          if(transparent)
          {
-            Color      color=ColorMul(finalAlpha());
+            Color      color=ColorMul(finalAlpha()); // set all 4 channels to final alpha
             ALPHA_MODE alpha=D.alpha(ALPHA_MERGE);
-            if(Equal(Gui.window_fade_scale, 1))Sh .draw    (*rt, color, Vec4Zero, &ext_rect);
-            else                               rt->drawPart(color, TRANSPARENT, Rect_C(ext_rect.center(), ext_rect.size()*Lerp(Mid(Gui.window_fade_scale, 0.0f, 2.0f), 1.0f, fadeAlpha())), D.screenToUV(ext_rect));
+            if(Equal(Gui.window_fade_scale, 1))Sh .draw    (*rt, color, TRANSPARENT, &ext_rect);
+            else                               rt->drawPart(     color, TRANSPARENT, Rect_C(ext_rect.center(), ext_rect.size()*Lerp(Mid(Gui.window_fade_scale, 0.0f, 2.0f), 1.0f, fadeAlpha())), D.screenToUV(ext_rect));
             D.alpha(alpha);
          }
       }

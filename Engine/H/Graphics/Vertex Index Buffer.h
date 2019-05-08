@@ -6,23 +6,25 @@
 #if EE_PRIVATE
 enum VI_TYPE : Byte // VertexIndex vertex type
 {
-   VI_NONE        , // none
-   VI_2D_FLAT     , // pos
-   VI_2D_COL      , // pos+color
-   VI_2D_TEX      , // pos+tex
-   VI_2D_TEX_COL  , // pos+tex+color
-   VI_2D_TEX2     , // pos+tex*2
-   VI_2D_FONT     , // pos+tex+shade
-   VI_3D_FLAT     , // pos
-   VI_3D_COL      , // pos+color
-   VI_3D_TEX      , // pos+tex
-   VI_3D_TEX_COL  , // pos+tex+color
-   VI_3D_BILB     , // pos+color+tex+size
-   VI_3D_BILB_ANIM, // pos+color+tex+size+frame
-   VI_3D_LASER    , // pos+nrm
-   VI_3D_SIMPLE   , // pos+nrm+tex+color
-   VI_3D_STANDARD , // pos+nrm+tan+bin+tex0+tex1+color
-   VI_3D_FULL     , // pos+nrm+tan+bin+hlp+tex+blend+matrix
+   VI_NONE            , // none
+   VI_2D_FLAT         , // pos
+   VI_2D_COL          , // pos+color
+   VI_2D_TEX          , // pos+tex
+   VI_2D_TEX_COL      , // pos+tex+color
+   VI_2D_TEX2         , // pos+tex*2
+   VI_2D_FONT         , // pos+tex+shade
+   VI_2D_DEPTH_TEX    , // pos+depth+tex
+   VI_2D_DEPTH_TEX_COL, // pos+depth+tex+color
+   VI_3D_FLAT         , // pos
+   VI_3D_COL          , // pos+color
+   VI_3D_TEX          , // pos+tex
+   VI_3D_TEX_COL      , // pos+tex+color
+   VI_3D_BILB         , // pos+color+tex+size
+   VI_3D_BILB_ANIM    , // pos+color+tex+size+frame
+   VI_3D_LASER        , // pos+nrm
+   VI_3D_SIMPLE       , // pos+nrm+tex+color
+   VI_3D_STANDARD     , // pos+nrm+tan+bin+tex0+tex1+color
+   VI_3D_FULL         , // pos+nrm+tan+bin+hlp+tex+blend+matrix
 };
 enum VI_FLAG // VertexIndex flags
 {
@@ -210,6 +212,12 @@ struct VtxIndBuf // Vertex Index Buffer - used for buffered drawing
 #if EE_PRIVATE
    static void font     (C Rect &screen_rect, C Rect &tex_rect);
 #endif
+
+   // draw image at selected depth
+   static void imageDepth    (                C Rect &screen_rect                  , Flt depth);
+   static void imageDepth    (C Color &color, C Rect &screen_rect                  , Flt depth);
+   static void imagePartDepth(                C Rect &screen_rect, C Rect &tex_rect, Flt depth);
+   static void imagePartDepth(C Color &color, C Rect &screen_rect, C Rect &tex_rect, Flt depth);
 
    // draw faces
    static void face(C Vtx2DTex &a, C Vtx2DTex &b, C Vtx2DTex &c);

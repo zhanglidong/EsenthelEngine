@@ -294,7 +294,7 @@ void Draw2DCol_VS(VtxInput vtx,
               out Vec4  outVtx:POSITION)
 {
    outCol=     vtx.color();
-   outVtx=Vec4(vtx.pos  ().xy*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
+   outVtx=Vec4(vtx.pos2 ()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
 }
 Vec4 Draw2DCol_PS(NOPERSP Vec4 inCol:COLOR):COLOR {return inCol;}
 
@@ -356,7 +356,7 @@ void Draw2DTexCol_VS(VtxInput vtx,
 {
    outTex=     vtx.tex  ();
    outCol=     vtx.color();
-   outVtx=Vec4(vtx.pos  ().xy*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
+   outVtx=Vec4(vtx.pos2 ()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
 }
 Vec4 Draw2DTexCol_PS(NOPERSP Vec2  inTex:TEXCOORD,
                      NOPERSP VecH4 inCol:COLOR   ):COLOR
@@ -377,6 +377,14 @@ void Draw3DTex_VS(VtxInput vtx,
    if(fog)outFog=Vec4(FogColor(), AccumulatedDensity(FogDensity(), Length(pos)));
           outVtx=Project(pos);
 }
+void Draw2DDepthTex_VS(VtxInput vtx,
+                   out Vec2  outTex:TEXCOORD,
+                   out VecH4 outFog:COLOR   ,
+                   out Vec4  outVtx:POSITION)
+{
+   outTex=vtx.tex();
+   outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, DelinearizeDepth(vtx._pos.z), 1);
+}
 Vec4 Draw3DTex_PS(Vec2  inTex:TEXCOORD,
                   VecH4 inFog:COLOR   ,
           uniform Bool  alpha_test    ,
@@ -391,6 +399,9 @@ TECHNIQUE(Draw3DTex   , Draw3DTex_VS(false), Draw3DTex_PS(false, false));
 TECHNIQUE(Draw3DTexAT , Draw3DTex_VS(false), Draw3DTex_PS(true , false));
 TECHNIQUE(Draw3DTexF  , Draw3DTex_VS(true ), Draw3DTex_PS(false, true ));
 TECHNIQUE(Draw3DTexATF, Draw3DTex_VS(true ), Draw3DTex_PS(true , true ));
+
+TECHNIQUE(Draw2DDepthTex  , Draw2DDepthTex_VS(), Draw3DTex_PS(false, false));
+TECHNIQUE(Draw2DDepthTexAT, Draw2DDepthTex_VS(), Draw3DTex_PS(true , false));
 /******************************************************************************/
 void Draw3DTexCol_VS(VtxInput vtx,
                  out Vec2  outTex:TEXCOORD,
@@ -404,6 +415,16 @@ void Draw3DTexCol_VS(VtxInput vtx,
           outCol=vtx.color();
    if(fog)outFog=Vec4(FogColor(), AccumulatedDensity(FogDensity(), Length(pos)));
           outVtx=Project(pos);
+}
+void Draw2DDepthTexCol_VS(VtxInput vtx,
+                      out Vec2  outTex:TEXCOORD,
+                      out VecH4 outCol:COLOR   ,
+                      out VecH4 outFog:COLOR1  ,
+                      out Vec4  outVtx:POSITION)
+{
+   outTex=vtx.tex  ();
+   outCol=vtx.color();
+   outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, DelinearizeDepth(vtx._pos.z), 1);
 }
 Vec4 Draw3DTexCol_PS(Vec2  inTex:TEXCOORD,
                      VecH4 inCol:COLOR   ,
@@ -421,6 +442,9 @@ TECHNIQUE(Draw3DTexCol   , Draw3DTexCol_VS(false), Draw3DTexCol_PS(false, false)
 TECHNIQUE(Draw3DTexColAT , Draw3DTexCol_VS(false), Draw3DTexCol_PS(true , false));
 TECHNIQUE(Draw3DTexColF  , Draw3DTexCol_VS(true ), Draw3DTexCol_PS(false, true ));
 TECHNIQUE(Draw3DTexColATF, Draw3DTexCol_VS(true ), Draw3DTexCol_PS(true , true ));
+
+TECHNIQUE(Draw2DDepthTexCol  , Draw2DDepthTexCol_VS(), Draw3DTexCol_PS(false, false));
+TECHNIQUE(Draw2DDepthTexColAT, Draw2DDepthTexCol_VS(), Draw3DTexCol_PS(true , false));
 /******************************************************************************/
 Vec4 DrawTexXC_PS(NOPERSP Vec2 inTex:TEXCOORD,
                   NOPERSP PIXEL,
@@ -555,8 +579,8 @@ void Font_VS(VtxInput vtx,
 {
                    outTex  =     vtx.tex ();
                    outShade=     vtx.size();
-   if(custom_depth)outVtx  =Vec4(vtx.pos ().xy*Coords.xy+Coords.zw, DelinearizeDepth(FontDepth), 1);
-   else            outVtx  =Vec4(vtx.pos ().xy*Coords.xy+Coords.zw,               REVERSE_DEPTH, 1);
+   if(custom_depth)outVtx  =Vec4(vtx.pos2()*Coords.xy+Coords.zw, DelinearizeDepth(FontDepth), 1);
+   else            outVtx  =Vec4(vtx.pos2()*Coords.xy+Coords.zw,               REVERSE_DEPTH, 1);
 }
 Vec4 Font_PS
 (

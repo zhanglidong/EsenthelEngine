@@ -1836,23 +1836,25 @@ void VtxIndBuf::setType(VI_TYPE vtx_type, UInt flag)
    VtxFormat *vf;
    switch(VI._vtx_type=vtx_type)
    {
-      case VI_2D_FLAT     : VI._vb._vtx_size=SIZE(Vtx2DFlat    ); shader=Sh.h_Draw2DFlat                                                                                       ; vf=&VI._vf2D_flat     ; D.depth(false); D.cull(false); break;
-      case VI_2D_COL      : VI._vb._vtx_size=SIZE(Vtx2DCol     ); shader=Sh.h_Draw2DCol                                                                                        ; vf=&VI._vf2D_col      ; D.depth(false); D.cull(false); break;
-      case VI_2D_TEX      : VI._vb._vtx_size=SIZE(Vtx2DTex     ); shader=((flag&VI_SP_COL) ? Sh.h_Draw2DTexC : Sh.h_Draw2DTex)                                                 ; vf=&VI._vf2D_tex      ; D.depth(false); D.cull(false); break;
-      case VI_2D_TEX_COL  : VI._vb._vtx_size=SIZE(Vtx2DTexCol  ); shader=Sh.h_Draw2DTexCol                                                                                     ; vf=&VI._vf2D_tex_col  ; D.depth(false); D.cull(false); break;
-      case VI_2D_TEX2     : VI._vb._vtx_size=SIZE(Vtx2DTex2    ); shader=Sh.h_DrawMask                                                                                         ; vf=&VI._vf2D_tex2     ; D.depth(false); D.cull(false); break;
-      case VI_2D_FONT     : VI._vb._vtx_size=SIZE(Vtx2DFont    ); shader=Sh.h_Font                                                                                             ; vf=&VI._vf2D_font     ; D.depth(false); D.cull(false); break;
-      case VI_3D_FLAT     : VI._vb._vtx_size=SIZE(Vtx3DFlat    ); shader=Sh.h_Draw3DFlat                                                                                       ; vf=&VI._vf3D_flat     ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
-      case VI_3D_COL      : VI._vb._vtx_size=SIZE(Vtx3DCol     ); shader=Sh.h_Draw3DCol                                                                                        ; vf=&VI._vf3D_col      ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
-      case VI_3D_TEX      : VI._vb._vtx_size=SIZE(Vtx3DTex     ); shader=Sh.h_Draw3DTex   [FlagTest(VI._user_flag, VI_ALPHA_TEST)][FlagTest(VI._user_flag, VI_FOG) && Fog.draw]; vf=&VI._vf3D_tex      ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
-      case VI_3D_TEX_COL  : VI._vb._vtx_size=SIZE(Vtx3DTexCol  ); shader=Sh.h_Draw3DTexCol[FlagTest(VI._user_flag, VI_ALPHA_TEST)][FlagTest(VI._user_flag, VI_FOG) && Fog.draw]; vf=&VI._vf3D_tex_col  ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
-      case VI_3D_BILB     : VI._vb._vtx_size=SIZE(Vtx3DBilb    ); shader=Sh.h_Bilb                                                                                             ; vf=&VI._vf3D_bilb     ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
-      case VI_3D_BILB_ANIM: VI._vb._vtx_size=SIZE(Vtx3DBilbAnim); shader=null                                                                                                  ; vf=&VI._vf3D_bilb_anim; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
-      case VI_3D_LASER    : VI._vb._vtx_size=SIZE(Vtx3DLaser   ); shader=null                                                                                                  ; vf=&VI._vf3D_laser    ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
-      case VI_3D_SIMPLE   : VI._vb._vtx_size=SIZE(Vtx3DSimple  ); shader=Sh.h_Simple                                                                                           ; vf=&VI._vf3D_simple   ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
-      case VI_3D_STANDARD : VI._vb._vtx_size=SIZE(Vtx3DStandard); shader=Sh.h_Simple                                                                                           ; vf=&VI._vf3D_standard ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
-      case VI_3D_FULL     : VI._vb._vtx_size=SIZE(Vtx3DFull    ); shader=null                                                                                                  ; vf=&VI._vf3D_full     ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
-      default             : return;
+      case VI_2D_FLAT         : VI._vb._vtx_size=SIZE(Vtx2DFlat    ); shader=Sh.h_Draw2DFlat                                                                                       ; vf=&VI._vf2D_flat     ; D.depth(false); D.cull(false); break;
+      case VI_2D_COL          : VI._vb._vtx_size=SIZE(Vtx2DCol     ); shader=Sh.h_Draw2DCol                                                                                        ; vf=&VI._vf2D_col      ; D.depth(false); D.cull(false); break;
+      case VI_2D_TEX          : VI._vb._vtx_size=SIZE(Vtx2DTex     ); shader=((flag&VI_SP_COL) ? Sh.h_Draw2DTexC : Sh.h_Draw2DTex)                                                 ; vf=&VI._vf2D_tex      ; D.depth(false); D.cull(false); break;
+      case VI_2D_TEX_COL      : VI._vb._vtx_size=SIZE(Vtx2DTexCol  ); shader=Sh.h_Draw2DTexCol                                                                                     ; vf=&VI._vf2D_tex_col  ; D.depth(false); D.cull(false); break;
+      case VI_2D_TEX2         : VI._vb._vtx_size=SIZE(Vtx2DTex2    ); shader=Sh.h_DrawMask                                                                                         ; vf=&VI._vf2D_tex2     ; D.depth(false); D.cull(false); break;
+      case VI_2D_FONT         : VI._vb._vtx_size=SIZE(Vtx2DFont    ); shader=Sh.h_Font                                                                                             ; vf=&VI._vf2D_font     ; D.depth(false); D.cull(false); break;
+      case VI_2D_DEPTH_TEX    : VI._vb._vtx_size=SIZE(Vtx3DTex     ); shader=Sh.h_Draw2DDepthTex   [FlagTest(VI._user_flag, VI_ALPHA_TEST)]                                        ; vf=&VI._vf3D_tex      ; D.depth(true ); D.cull(false); break;
+      case VI_2D_DEPTH_TEX_COL: VI._vb._vtx_size=SIZE(Vtx3DTexCol  ); shader=Sh.h_Draw2DDepthTexCol[FlagTest(VI._user_flag, VI_ALPHA_TEST)]                                        ; vf=&VI._vf3D_tex_col  ; D.depth(true ); D.cull(false); break;
+      case VI_3D_FLAT         : VI._vb._vtx_size=SIZE(Vtx3DFlat    ); shader=Sh.h_Draw3DFlat                                                                                       ; vf=&VI._vf3D_flat     ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
+      case VI_3D_COL          : VI._vb._vtx_size=SIZE(Vtx3DCol     ); shader=Sh.h_Draw3DCol                                                                                        ; vf=&VI._vf3D_col      ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
+      case VI_3D_TEX          : VI._vb._vtx_size=SIZE(Vtx3DTex     ); shader=Sh.h_Draw3DTex   [FlagTest(VI._user_flag, VI_ALPHA_TEST)][FlagTest(VI._user_flag, VI_FOG) && Fog.draw]; vf=&VI._vf3D_tex      ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
+      case VI_3D_TEX_COL      : VI._vb._vtx_size=SIZE(Vtx3DTexCol  ); shader=Sh.h_Draw3DTexCol[FlagTest(VI._user_flag, VI_ALPHA_TEST)][FlagTest(VI._user_flag, VI_FOG) && Fog.draw]; vf=&VI._vf3D_tex_col  ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
+      case VI_3D_BILB         : VI._vb._vtx_size=SIZE(Vtx3DBilb    ); shader=Sh.h_Bilb                                                                                             ; vf=&VI._vf3D_bilb     ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
+      case VI_3D_BILB_ANIM    : VI._vb._vtx_size=SIZE(Vtx3DBilbAnim); shader=null                                                                                                  ; vf=&VI._vf3D_bilb_anim; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
+      case VI_3D_LASER        : VI._vb._vtx_size=SIZE(Vtx3DLaser   ); shader=null                                                                                                  ; vf=&VI._vf3D_laser    ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
+      case VI_3D_SIMPLE       : VI._vb._vtx_size=SIZE(Vtx3DSimple  ); shader=Sh.h_Simple                                                                                           ; vf=&VI._vf3D_simple   ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
+      case VI_3D_STANDARD     : VI._vb._vtx_size=SIZE(Vtx3DStandard); shader=Sh.h_Simple                                                                                           ; vf=&VI._vf3D_standard ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
+      case VI_3D_FULL         : VI._vb._vtx_size=SIZE(Vtx3DFull    ); shader=null                                                                                                  ; vf=&VI._vf3D_full     ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
+      default                 : return;
    }
 
 #if GL
@@ -2119,11 +2121,11 @@ void VtxIndBuf::dot(C Color &color, C Vec2 &pos, Flt r)
    setFirst(VI_2D_COL, VI_QUAD_IND);
    if(Vtx2DCol *v=(Vtx2DCol*)addVtx(4))
    {
-      v[0].color=v[1].color=v[2].color=v[3].color=color;
       v[0].pos.set(pos.x-r, pos.y+r);
       v[1].pos.set(pos.x+r, pos.y+r);
       v[2].pos.set(pos.x+r, pos.y-r);
       v[3].pos.set(pos.x-r, pos.y-r);
+      v[0].color=v[1].color=v[2].color=v[3].color=color;
    }
 }
 void VtxIndBuf::dot(                C Vec &pos, Flt r) {Vec2 screen; if(PosToScreenM(pos, screen))dot(       screen, r);}
@@ -2145,11 +2147,11 @@ void VtxIndBuf::rect(C Color &color, C Rect &rect)
    setFirst(VI_2D_COL, VI_QUAD_IND);
    if(Vtx2DCol *v=(Vtx2DCol*)addVtx(4))
    {
-      v[0].color=v[1].color=v[2].color=v[3].color=color;
       v[0].pos.set(rect.min.x, rect.max.y);
       v[1].pos.set(rect.max.x, rect.max.y);
       v[2].pos.set(rect.max.x, rect.min.y);
       v[3].pos.set(rect.min.x, rect.min.y);
+      v[0].color=v[1].color=v[2].color=v[3].color=color;
    }
 }
 /******************************************************************************/
@@ -2175,11 +2177,11 @@ void VtxIndBuf::rectL(C Color &color, C Rect &rect)
       // drawing lines needs adjustments
       Rect r(rect.min.x+D._pixel_size_2.x, rect.min.y+D._pixel_size_2.y,
              rect.max.x-D._pixel_size_2.x, rect.max.y-D._pixel_size_2.y);
-      v[0].color=v[1].color=v[2].color=v[3].color=v[4].color=v[5].color=v[6].color=v[7].color=color;
       v[0].pos.set(r.min.x, r.max.y); v[1].pos.set(r.max.x, r.max.y);
       v[2].pos.set(r.max.x, r.max.y); v[3].pos.set(r.max.x, r.min.y);
       v[4].pos.set(r.max.x, r.min.y); v[5].pos.set(r.min.x, r.min.y);
       v[6].pos.set(r.min.x, r.min.y); v[7].pos.set(r.min.x, r.max.y);
+      v[0].color=v[1].color=v[2].color=v[3].color=v[4].color=v[5].color=v[6].color=v[7].color=color;
    }
 }
 /******************************************************************************/
@@ -2188,12 +2190,12 @@ void VtxIndBuf::rectShadedX(C Color &color0, C Color &color1, C Rect &rect)
    setFirst(VI_2D_COL, VI_QUAD_IND);
    if(Vtx2DCol *v=(Vtx2DCol*)addVtx(4))
    {
-      v[0].color=v[3].color=color0;
-      v[1].color=v[2].color=color1;
       v[0].pos.set(rect.min.x, rect.max.y);
       v[1].pos.set(rect.max.x, rect.max.y);
       v[2].pos.set(rect.max.x, rect.min.y);
       v[3].pos.set(rect.min.x, rect.min.y);
+      v[0].color=v[3].color=color0;
+      v[1].color=v[2].color=color1;
    }
 }
 void VtxIndBuf::rectShadedY(C Color &color0, C Color &color1, C Rect &rect)
@@ -2201,12 +2203,12 @@ void VtxIndBuf::rectShadedY(C Color &color0, C Color &color1, C Rect &rect)
    setFirst(VI_2D_COL, VI_QUAD_IND);
    if(Vtx2DCol *v=(Vtx2DCol*)addVtx(4))
    {
-      v[0].color=v[1].color=color0;
-      v[2].color=v[3].color=color1;
       v[0].pos.set(rect.min.x, rect.max.y);
       v[1].pos.set(rect.max.x, rect.max.y);
       v[2].pos.set(rect.max.x, rect.min.y);
       v[3].pos.set(rect.min.x, rect.min.y);
+      v[0].color=v[1].color=color0;
+      v[2].color=v[3].color=color1;
    }
 }
 /******************************************************************************/
@@ -2245,9 +2247,9 @@ void VtxIndBuf::line(C Color &color, C Vec2 &a, C Vec2 &b)
    setFirst(VI_2D_COL, VI_LINE);
    if(Vtx2DCol *v=(Vtx2DCol*)addVtx(2))
    {
-      v[0].color=v[1].color=color;
       v[0].pos=a;
       v[1].pos=b;
+      v[0].color=v[1].color=color;
    }
 }
 void VtxIndBuf::line(C Color &color, C Vec &a, C Vec &b)
@@ -2255,9 +2257,9 @@ void VtxIndBuf::line(C Color &color, C Vec &a, C Vec &b)
    setFirst(VI_3D_COL, VI_LINE);
    if(Vtx3DCol *v=(Vtx3DCol*)addVtx(2))
    {
-      v[0].color=v[1].color=color;
       v[0].pos=a;
       v[1].pos=b;
+      v[0].color=v[1].color=color;
    }
 }
 void VtxIndBuf::line(C Color &col_a, C Color &col_b, C Vec2 &a, C Vec2 &b)
@@ -2324,10 +2326,10 @@ void VtxIndBuf::tri(C Color &color, C Vec2 &a, C Vec2 &b, C Vec2 &c)
    setFirst(VI_2D_COL);
    if(Vtx2DCol *v=(Vtx2DCol*)addVtx(3))
    {
-      v[0].color=v[1].color=v[2].color=color;
       v[0].pos=a;
       v[1].pos=b;
       v[2].pos=c;
+      v[0].color=v[1].color=v[2].color=color;
    }
 }
 void VtxIndBuf::tri(C Color &color, C Vec &a, C Vec &b, C Vec &c)
@@ -2335,10 +2337,10 @@ void VtxIndBuf::tri(C Color &color, C Vec &a, C Vec &b, C Vec &c)
    setFirst(VI_3D_COL);
    if(Vtx3DCol *v=(Vtx3DCol*)addVtx(3))
    {
-      v[0].color=v[1].color=v[2].color=color;
       v[0].pos=a;
       v[1].pos=b;
       v[2].pos=c;
+      v[0].color=v[1].color=v[2].color=color;
    }
 }
 void VtxIndBuf::tri(C Color &col_a, C Color &col_b, C Color &col_c, C Vec2 &a, C Vec2 &b, C Vec2 &c)
@@ -2411,11 +2413,11 @@ void VtxIndBuf::quad(C Color &color, C Quad2 &quad)
    setFirst(VI_2D_COL, VI_QUAD_IND);
    if(Vtx2DCol *v=(Vtx2DCol*)addVtx(4))
    {
-      v[0].color=v[1].color=v[2].color=v[3].color=color;
       v[0].pos=quad.p[0];
       v[1].pos=quad.p[1];
       v[2].pos=quad.p[2];
       v[3].pos=quad.p[3];
+      v[0].color=v[1].color=v[2].color=v[3].color=color;
    }
 }
 void VtxIndBuf::quad(C Color &color, C Quad &quad)
@@ -2423,11 +2425,11 @@ void VtxIndBuf::quad(C Color &color, C Quad &quad)
    setFirst(VI_3D_COL, VI_QUAD_IND);
    if(Vtx3DCol *v=(Vtx3DCol*)addVtx(4))
    {
-      v[0].color=v[1].color=v[2].color=v[3].color=color;
       v[0].pos=quad.p[0];
       v[1].pos=quad.p[1];
       v[2].pos=quad.p[2];
       v[3].pos=quad.p[3];
+      v[0].color=v[1].color=v[2].color=v[3].color=color;
    }
 }
 void VtxIndBuf::quad(C Color &color, C Vec2 &a, C Vec2 &b, C Vec2 &c, C Vec2 &d)
@@ -2435,11 +2437,11 @@ void VtxIndBuf::quad(C Color &color, C Vec2 &a, C Vec2 &b, C Vec2 &c, C Vec2 &d)
    setFirst(VI_2D_COL, VI_QUAD_IND);
    if(Vtx2DCol *v=(Vtx2DCol*)addVtx(4))
    {
-      v[0].color=v[1].color=v[2].color=v[3].color=color;
       v[0].pos=a;
       v[1].pos=b;
       v[2].pos=c;
       v[3].pos=d;
+      v[0].color=v[1].color=v[2].color=v[3].color=color;
    }
 }
 void VtxIndBuf::quad(C Color &color, C Vec &a, C Vec &b, C Vec &c, C Vec &d)
@@ -2447,11 +2449,11 @@ void VtxIndBuf::quad(C Color &color, C Vec &a, C Vec &b, C Vec &c, C Vec &d)
    setFirst(VI_3D_COL, VI_QUAD_IND);
    if(Vtx3DCol *v=(Vtx3DCol*)addVtx(4))
    {
-      v[0].color=v[1].color=v[2].color=v[3].color=color;
       v[0].pos=a;
       v[1].pos=b;
       v[2].pos=c;
       v[3].pos=d;
+      v[0].color=v[1].color=v[2].color=v[3].color=color;
    }
 }
 void VtxIndBuf::quad(C Color &c0, C Color &c1, C Vec2 &a, C Vec2 &b, C Vec2 &c, C Vec2 &d)
@@ -2459,12 +2461,12 @@ void VtxIndBuf::quad(C Color &c0, C Color &c1, C Vec2 &a, C Vec2 &b, C Vec2 &c, 
    setFirst(VI_2D_COL, VI_QUAD_IND);
    if(Vtx2DCol *v=(Vtx2DCol*)addVtx(4))
    {
-      v[0].color=v[3].color=c0;
-      v[1].color=v[2].color=c1;
       v[0].pos=a;
       v[1].pos=b;
       v[2].pos=c;
       v[3].pos=d;
+      v[0].color=v[3].color=c0;
+      v[1].color=v[2].color=c1;
    }
 }
 void VtxIndBuf::quad(C Color &c0, C Color &c1, C Vec &a, C Vec &b, C Vec &c, C Vec &d)
@@ -2472,12 +2474,12 @@ void VtxIndBuf::quad(C Color &c0, C Color &c1, C Vec &a, C Vec &b, C Vec &c, C V
    setFirst(VI_3D_COL, VI_QUAD_IND);
    if(Vtx3DCol *v=(Vtx3DCol*)addVtx(4))
    {
-      v[0].color=v[3].color=c0;
-      v[1].color=v[2].color=c1;
       v[0].pos=a;
       v[1].pos=b;
       v[2].pos=c;
       v[3].pos=d;
+      v[0].color=v[3].color=c0;
+      v[1].color=v[2].color=c1;
    }
 }
 /******************************************************************************/
@@ -2551,6 +2553,105 @@ void VtxIndBuf::font(C Rect &screen_rect, C Rect &tex_rect)
          v[2].tex.set(tex_rect.max.x, tex_rect.max.y);
          v[3].tex.set(tex_rect.min.x, tex_rect.max.y);
       }
+   }
+}
+/******************************************************************************/
+void VtxIndBuf::imageDepth(C Rect &screen_rect, Flt depth)
+{
+   setFirst(VI_2D_DEPTH_TEX, VI_QUAD_IND);
+   if(Vtx3DTex *v=(Vtx3DTex*)addVtx(4))
+   {
+      v[0].pos.set(screen_rect.min.x, screen_rect.max.y, depth);
+      v[1].pos.set(screen_rect.max.x, screen_rect.max.y, depth);
+      v[2].pos.set(screen_rect.max.x, screen_rect.min.y, depth);
+      v[3].pos.set(screen_rect.min.x, screen_rect.min.y, depth);
+      if(VI._image && VI._image->partial())
+      {
+         v[0].tex.x=v[3].tex.x=0;
+         v[1].tex.x=v[2].tex.x=VI._image->_part.x;
+         v[0].tex.y=v[1].tex.y=0;
+         v[2].tex.y=v[3].tex.y=VI._image->_part.y;
+      }else
+      {
+         v[0].tex.set(0, 0);
+         v[1].tex.set(1, 0);
+         v[2].tex.set(1, 1);
+         v[3].tex.set(0, 1);
+      }
+   }
+}
+void VtxIndBuf::imageDepth(C Color &color, C Rect &screen_rect, Flt depth)
+{
+   setFirst(VI_2D_DEPTH_TEX_COL, VI_QUAD_IND);
+   if(Vtx3DTexCol *v=(Vtx3DTexCol*)addVtx(4))
+   {
+      v[0].pos.set(screen_rect.min.x, screen_rect.max.y, depth);
+      v[1].pos.set(screen_rect.max.x, screen_rect.max.y, depth);
+      v[2].pos.set(screen_rect.max.x, screen_rect.min.y, depth);
+      v[3].pos.set(screen_rect.min.x, screen_rect.min.y, depth);
+      if(VI._image && VI._image->partial())
+      {
+         v[0].tex.x=v[3].tex.x=0;
+         v[1].tex.x=v[2].tex.x=VI._image->_part.x;
+         v[0].tex.y=v[1].tex.y=0;
+         v[2].tex.y=v[3].tex.y=VI._image->_part.y;
+      }else
+      {
+         v[0].tex.set(0, 0);
+         v[1].tex.set(1, 0);
+         v[2].tex.set(1, 1);
+         v[3].tex.set(0, 1);
+      }
+      v[0].color=v[1].color=v[2].color=v[3].color=color;
+   }
+}
+void VtxIndBuf::imagePartDepth(C Rect &screen_rect, C Rect &tex_rect, Flt depth)
+{
+   setFirst(VI_2D_DEPTH_TEX, VI_QUAD_IND);
+   if(Vtx3DTex *v=(Vtx3DTex*)addVtx(4))
+   {
+      v[0].pos.set(screen_rect.min.x, screen_rect.max.y, depth);
+      v[1].pos.set(screen_rect.max.x, screen_rect.max.y, depth);
+      v[2].pos.set(screen_rect.max.x, screen_rect.min.y, depth);
+      v[3].pos.set(screen_rect.min.x, screen_rect.min.y, depth);
+      if(VI._image && VI._image->partial())
+      {
+         v[0].tex.x=v[3].tex.x=tex_rect.min.x*VI._image->_part.x;
+         v[1].tex.x=v[2].tex.x=tex_rect.max.x*VI._image->_part.x;
+         v[0].tex.y=v[1].tex.y=tex_rect.min.y*VI._image->_part.y;
+         v[2].tex.y=v[3].tex.y=tex_rect.max.y*VI._image->_part.y;
+      }else
+      {
+         v[0].tex.set(tex_rect.min.x, tex_rect.min.y);
+         v[1].tex.set(tex_rect.max.x, tex_rect.min.y);
+         v[2].tex.set(tex_rect.max.x, tex_rect.max.y);
+         v[3].tex.set(tex_rect.min.x, tex_rect.max.y);
+      }
+   }
+}
+void VtxIndBuf::imagePartDepth(C Color &color, C Rect &screen_rect, C Rect &tex_rect, Flt depth)
+{
+   setFirst(VI_2D_DEPTH_TEX_COL, VI_QUAD_IND);
+   if(Vtx3DTexCol *v=(Vtx3DTexCol*)addVtx(4))
+   {
+      v[0].pos.set(screen_rect.min.x, screen_rect.max.y, depth);
+      v[1].pos.set(screen_rect.max.x, screen_rect.max.y, depth);
+      v[2].pos.set(screen_rect.max.x, screen_rect.min.y, depth);
+      v[3].pos.set(screen_rect.min.x, screen_rect.min.y, depth);
+      if(VI._image && VI._image->partial())
+      {
+         v[0].tex.x=v[3].tex.x=tex_rect.min.x*VI._image->_part.x;
+         v[1].tex.x=v[2].tex.x=tex_rect.max.x*VI._image->_part.x;
+         v[0].tex.y=v[1].tex.y=tex_rect.min.y*VI._image->_part.y;
+         v[2].tex.y=v[3].tex.y=tex_rect.max.y*VI._image->_part.y;
+      }else
+      {
+         v[0].tex.set(tex_rect.min.x, tex_rect.min.y);
+         v[1].tex.set(tex_rect.max.x, tex_rect.min.y);
+         v[2].tex.set(tex_rect.max.x, tex_rect.max.y);
+         v[3].tex.set(tex_rect.min.x, tex_rect.max.y);
+      }
+      v[0].color=v[1].color=v[2].color=v[3].color=color;
    }
 }
 /******************************************************************************/

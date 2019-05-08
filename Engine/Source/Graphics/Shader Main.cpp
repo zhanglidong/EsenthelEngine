@@ -375,6 +375,11 @@ void MainShaderClass::getTechniques()
       h_Draw3DTex   [at][f]=get(S8+"Draw3DTex"   +(at?"AT":"")+(f?'F':'\0'));
       h_Draw3DTexCol[at][f]=get(S8+"Draw3DTexCol"+(at?"AT":"")+(f?'F':'\0'));
    }
+   REPD(at, 2)
+   {
+      h_Draw2DDepthTex   [at]=get(S8+"Draw2DDepthTex"   +(at?"AT":""));
+      h_Draw2DDepthTexCol[at]=get(S8+"Draw2DDepthTexCol"+(at?"AT":""));
+   }
    h_PaletteDraw=get("PaletteDraw");
    h_Simple     =get("Simple");
    h_DrawTexX   =get("DrawTexX");

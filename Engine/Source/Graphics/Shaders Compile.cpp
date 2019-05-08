@@ -8,10 +8,10 @@ namespace EE{
 #define FORCE_LOG      0
 
 #if WINDOWS // DirectX 9
-   #define COMPILE_3  0
+   #define COMPILE_3 0
 #endif
 #if DX11   // DirectX 10+
-   #define COMPILE_4  0
+   #define COMPILE_4 0
 #endif
 #if GL && !GL_ES // Desktop OpenGL
    #define COMPILE_GL 0

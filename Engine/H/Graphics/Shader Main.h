@@ -136,24 +136,26 @@ struct MainShaderClass
 
    // SHADERS
    Shader
-      *h_Draw2DFlat        ,
-      *h_Draw3DFlat        ,
-      *h_Draw2DCol         ,
-      *h_Draw3DCol         ,
-      *h_Draw2DTex         ,
-      *h_Draw2DTexC        ,
-      *h_Draw2DTexCol      ,
-      *h_Draw3DTex   [2][2], // [AlphaTest] [Fog]
-      *h_Draw3DTexCol[2][2], // [AlphaTest] [Fog]
-      *h_DrawTexX          ,
-    //*h_DrawTexZ          ,
-      *h_DrawTexW          ,
-      *h_DrawTexXC         ,
-      *h_DrawTexWC         ,
-      *h_DrawTexXCD        ,
-      *h_DrawTexWCD        ,
-    //*h_DrawTexNrm        ,
-      *h_Simple            ,
+      *h_Draw2DFlat          ,
+      *h_Draw3DFlat          ,
+      *h_Draw2DCol           ,
+      *h_Draw3DCol           ,
+      *h_Draw2DTex           ,
+      *h_Draw2DTexC          ,
+      *h_Draw2DTexCol        ,
+      *h_Draw3DTex   [2][2]  , // [AlphaTest] [Fog]
+      *h_Draw3DTexCol[2][2]  , // [AlphaTest] [Fog]
+      *h_Draw2DDepthTex   [2], // [AlphaTest]
+      *h_Draw2DDepthTexCol[2], // [AlphaTest]
+      *h_DrawTexX            ,
+    //*h_DrawTexZ            ,
+      *h_DrawTexW            ,
+      *h_DrawTexXC           ,
+      *h_DrawTexWC           ,
+      *h_DrawTexXCD          ,
+      *h_DrawTexWCD          ,
+    //*h_DrawTexNrm          ,
+      *h_Simple              ,
 
       *h_DrawMask,
       *h_DrawCubeFace,
