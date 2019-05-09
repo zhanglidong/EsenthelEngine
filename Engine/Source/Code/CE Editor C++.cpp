@@ -124,7 +124,7 @@ Bool CodeEditor::verifyAndroid()
    }
    if(!ValidatePackage())return false;
 
-   Str key=cei().appLicenseKey();
+   Str key=cei().appGooglePlayLicenseKey();
    if(Contains(key, '"') || Contains(key, '\n') || Contains(key, '\\')){cei().appInvalidProperty("App License Key is invalid."); return false;}
 
    if(cei().appAndroidExpansion() && !key.is()){cei().appInvalidProperty("Auto-downloading Android Expansion Files requires setting Android License Key."); return false;}
@@ -2342,9 +2342,9 @@ Bool CodeEditor::generateAndroidProj()
    {
       FileText ft; if(!ft.read("Code/Android/EsenthelActivity.java"))return ErrorRead("Code/Android/EsenthelActivity.java");
       Str data=ft.getAll();
-      data=Replace(data, "EE_PACKAGE"              , app_package             , true, true);
-      data=Replace(data, "EE_APP_NAME"             , CString(cei().appName()), true, true);
-      data=Replace(data, "EE_LICENSE_KEY"          , cei().appLicenseKey   (), true, true);
+      data=Replace(data, "EE_PACKAGE"              , app_package                    , true, true);
+      data=Replace(data, "EE_APP_NAME"             , CString(cei().appName())       , true, true);
+      data=Replace(data, "EE_LICENSE_KEY"          , cei().appGooglePlayLicenseKey(), true, true);
       Str s=cei().appAdMobAppIDGooglePlay();
       data=Replace(data, "ADMOB_APP_ID"            , CString(s)            , true, true);
       data=Replace(data, "ADMOB_BEGIN"             , s.is()     ? "" : "/*", true, true);
@@ -2363,9 +2363,9 @@ Bool CodeEditor::generateAndroidProj()
    {
       FileText ft; if(!ft.read("Code/Android/LoaderActivity.java"))return ErrorRead("Code/Android/LoaderActivity.java");
       Str data=ft.getAll();
-      data=Replace(data, "EE_PACKAGE"           , app_package          , true, true);
-      data=Replace(data, "EE_LICENSE_KEY"       , cei().appLicenseKey(), true, true);
-      data=Replace(data, "EE_DOWNLOAD_EXPANSION", TextBool(cei().appAndroidExpansion() && cei().appLicenseKey().is()), true, true); // require license key provided, because otherwise the Java codes will crash throwing an exception
+      data=Replace(data, "EE_PACKAGE"           , app_package                    , true, true);
+      data=Replace(data, "EE_LICENSE_KEY"       , cei().appGooglePlayLicenseKey(), true, true);
+      data=Replace(data, "EE_DOWNLOAD_EXPANSION", TextBool(cei().appAndroidExpansion() && cei().appGooglePlayLicenseKey().is()), true, true); // require license key provided, because otherwise the Java codes will crash throwing an exception
       SetFile(ft, data, UTF_8_NAKED);
       if(!OverwriteOnChangeLoud(ft, build_path+"Android/src/LoaderActivity.java"))return false;
    }

@@ -30,7 +30,7 @@ class CodeView : Region, Edit::CodeEditorInterface
    virtual Str               appLibsAndroid                     ()override; 
    virtual Str               appLibsiOS                         ()override; 
    virtual Str               appPackage                         ()override; 
-   virtual Str               appLicenseKey                      ()override; 
+   virtual Str               appGooglePlayLicenseKey            ()override; 
    virtual Str               appLocationUsageReason             ()override; 
    virtual Int               appBuild                           ()override; 
    virtual ulong             appFacebookAppID                   ()override; 

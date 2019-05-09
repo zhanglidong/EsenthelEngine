@@ -157,7 +157,7 @@ struct CodeEditorInterface
    virtual Str           appLibsAndroid                     () {return                 S;} // get all libraries                       of current app
    virtual Str           appLibsiOS                         () {return                 S;} // get all libraries                       of current app
    virtual Str           appPackage                         () {return                 S;} // get package name                        of current app
-   virtual Str           appLicenseKey                      () {return                 S;} // get android license key                 of current app
+   virtual Str           appGooglePlayLicenseKey            () {return                 S;} // get Google Play license key             of current app
    virtual Str           appLocationUsageReason             () {return                 S;} // get location usage reason               of current app
    virtual Int           appBuild                           () {return                 1;} // get build number                        of current app
    virtual ULong         appFacebookAppID                   () {return                 0;} // get Facebook   App ID                   of current app

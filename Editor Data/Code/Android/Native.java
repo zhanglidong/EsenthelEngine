@@ -16,9 +16,8 @@ public class Native
    public static native void   location       (boolean gps, Location location);
    public static native void   adState        (boolean banner, int state);
    public static native void   bannerSize     (int width, int height);
-   public static native void   facebookMe     (          String  id  ,           String  name, String email);
-   public static native void   facebookFriends(ArrayList<String> ids , ArrayList<String> names );
-   public static native void   facebookScores (          String  json,           String  app_id);
+   public static native void   facebookMe     (          String  id ,           String  name, String email);
+   public static native void   facebookFriends(ArrayList<String> ids, ArrayList<String> names);
    public static native void   facebookPost   (int result);
    public static native void   chartboost     (int result);
    public static native void   audioRecord    (long sound_record, ByteBuffer buf, int size);
