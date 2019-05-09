@@ -128,6 +128,8 @@ class VideoOptions : PropWin
       static void LumRTPrec    (  Advanced &adv, C Str &text) {       D.highPrecLumRT(TextBool(text));}
       static Str  LitColRTPrec (C Advanced &adv             ) {return D.litColRTPrecision();}
       static void LitColRTPrec (  Advanced &adv, C Str &text) {       D.litColRTPrecision(IMAGE_PRECISION(TextInt(text)));}
+      static Str  BloomScale   (C Advanced &adv             ) {return DefaultEnvironment.bloom.scale;}
+      static void BloomScale   (  Advanced &adv, C Str &text) {       DefaultEnvironment.bloom.scale=TextFlt(text);}
       static Str  BloomSat     (C Advanced &adv             ) {return DefaultEnvironment.bloom.saturate;}
       static void BloomSat     (  Advanced &adv, C Str &text) {       DefaultEnvironment.bloom.saturate=TextBool(text);}
       static Str  AmbLight     (C Advanced &adv             ) {return DefaultEnvironment.ambient.color.max();}
@@ -202,6 +204,7 @@ class VideoOptions : PropWin
          props.New().create("High Precision Normal Calc" , MemberDesc(DATA_BOOL).setFunc(NrmCalcPrec  , NrmCalcPrec  )).desc("Enable high precision normal calculation\nThis increases precision of specular lighting in Deferred Renderer.");
          props.New().create("High Precision Normal RT"   , MemberDesc(DATA_BOOL).setFunc(NrmRTPrec    , NrmRTPrec    )).desc("Enable high precision normal render target\nThis increases precision of specular lighting in Deferred Renderer.");
          props.New().create("High Precision Light RT"    , MemberDesc(DATA_BOOL).setFunc(LumRTPrec    , LumRTPrec    )).desc("Enable high precision light render target\nThis increases lighting precision in Deferred Renderer.");
+         props.New().create("Bloom Scale"                , MemberDesc(DATA_BOOL).setFunc(BloomScale   , BloomScale   ));
          props.New().create("Bloom Saturate"             , MemberDesc(DATA_BOOL).setFunc(BloomSat     , BloomSat     ));
          props.New().create("Ambient Light"              , MemberDesc(DATA_REAL).setFunc(AmbLight     , AmbLight     )).range(0, 1);
          props.New().create("Ambient Occlusion Contrast" , MemberDesc(DATA_REAL).setFunc(AOContrast   , AOContrast   )).range(0, 2);

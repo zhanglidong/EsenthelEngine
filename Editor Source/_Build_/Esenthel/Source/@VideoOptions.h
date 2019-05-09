@@ -76,6 +76,8 @@ class VideoOptions : PropWin
       static void LumRTPrec    (  Advanced &adv, C Str &text);
       static Str  LitColRTPrec (C Advanced &adv             );
       static void LitColRTPrec (  Advanced &adv, C Str &text);
+      static Str  BloomScale   (C Advanced &adv             );
+      static void BloomScale   (  Advanced &adv, C Str &text);
       static Str  BloomSat     (C Advanced &adv             );
       static void BloomSat     (  Advanced &adv, C Str &text);
       static Str  AmbLight     (C Advanced &adv             );
