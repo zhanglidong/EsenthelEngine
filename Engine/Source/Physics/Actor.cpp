@@ -120,16 +120,22 @@ Actor& Actor::trigger(Bool on)
 }
 Actor& Actor::collision(Bool on)
 {
-   if(_actor)for(Int offset=0, shapes=_actor->getNbShapes(); shapes>0; )
+   if(_actor
+   && collision()!=on // perform only if changing, do this check because we may be doing 'resetFiltering' below, which is expensive, so do things only when necessary
+   )
    {
-      PxShape *shape[32]; Int s=Min(shapes, Elms(shape));
-      REP(_actor->getShapes(shape, s, offset))
+      for(Int offset=0, shapes=_actor->getNbShapes(); shapes>0; )
       {
-         if(on)shape[i]->setFlag(PxShapeFlag::eTRIGGER_SHAPE   , false); // if enabling collision, we need to first disable trigger, because PhysX will ignore setting collision flag
-               shape[i]->setFlag(PxShapeFlag::eSIMULATION_SHAPE, on   );
+         PxShape *shape[32]; Int s=Min(shapes, Elms(shape));
+         REP(_actor->getShapes(shape, s, offset))
+         {
+            if(on)shape[i]->setFlag(PxShapeFlag::eTRIGGER_SHAPE   , false); // if enabling collision, we need to first disable trigger, because PhysX will ignore setting collision flag
+                  shape[i]->setFlag(PxShapeFlag::eSIMULATION_SHAPE, on   );
+         }
+         shapes-=s;
+         offset+=s;
       }
-      shapes-=s;
-      offset+=s;
+      if(on && Physx.world)Physx.world->resetFiltering(*_actor); // in case we're enabling collisions then we have to call 'resetFiltering' which will recalculate any new collisions (just setting eTRIGGER_SHAPE is not enough, we have to tell PhysX to recalculate stuff - without this, some collisions could be ignored)
    }
    return T;
 }
