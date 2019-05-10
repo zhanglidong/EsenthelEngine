@@ -101,13 +101,13 @@ inline Int Elms(C Str8 &str) {return str.length();}
 /******************************************************************************/
 // OPERATORS
 /******************************************************************************/
-inline Str8&& operator+(Str8 &&a,   CChar  *b) {return RValue(a+=b);}
-inline Str8&& operator+(Str8 &&a,   CChar8 *b) {return RValue(a+=b);}
-inline Str8&& operator+(Str8 &&a, C wchar_t*b) {return RValue(a+=b);}
-inline Str8&& operator+(Str8 &&a, C Str    &b) {return RValue(a+=b);}
-inline Str8&& operator+(Str8 &&a, C Str8   &b) {return RValue(a+=b);}
-inline Str8&& operator+(Str8 &&a,   Char    b) {return RValue(a+=b);}
+inline Str    operator+(Str8 &&a,   Char    b) {return        a+ b ;}
 inline Str8&& operator+(Str8 &&a,   Char8   b) {return RValue(a+=b);}
+inline Str    operator+(Str8 &&a,   CChar  *b) {return        a+ b ;}
+inline Str8&& operator+(Str8 &&a,   CChar8 *b) {return RValue(a+=b);}
+inline Str    operator+(Str8 &&a, C wchar_t*b) {return        a+ b ;}
+inline Str    operator+(Str8 &&a, C Str    &b) {return        a+ b ;}
+inline Str8&& operator+(Str8 &&a, C Str8   &b) {return RValue(a+=b);}
 inline Str8&& operator+(Str8 &&a,   Bool    b) {return RValue(a+=b);}
 inline Str8&& operator+(Str8 &&a,   SByte   b) {return RValue(a+=b);}
 inline Str8&& operator+(Str8 &&a,   Int     b) {return RValue(a+=b);}
@@ -135,6 +135,6 @@ inline Str8&& operator+(Str8 &&a, C VecD4  &b) {return RValue(a+=b);}
 inline Str8&& operator+(Str8 &&a, C VecI4  &b) {return RValue(a+=b);}
 inline Str8&& operator+(Str8 &&a, C VecB4  &b) {return RValue(a+=b);}
 inline Str8&& operator+(Str8 &&a, C VecSB4 &b) {return RValue(a+=b);}
-inline Str8&& operator+(Str8 &&a, C BStr   &b) {return RValue(a+=b);}
+inline Str    operator+(Str8 &&a, C BStr   &b) {return        a+ b ;}
 T1(TYPE) ENABLE_IF_ENUM(TYPE, Str8&&) operator+(Str8 &&a, TYPE b) {return RValue(a+=Int(b));}
 /******************************************************************************/

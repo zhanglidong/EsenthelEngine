@@ -130,8 +130,8 @@ namespace EE // Esenthel Engine namespace
    #include "Misc/Character.h"
    #include "Misc/Sort.h" // have to include at the start because of "Compare" functions forward declarations for Clang
    #include "Memory/Mem Simple.h"
-   #include "Misc/String8.h"
    #include "Misc/String.h"
+   #include "Misc/String8.h"
    #include "Misc/String Functions.h"
    #include "Misc/Cpu.h"
    #include "Memory/Mem Pointer.h"
