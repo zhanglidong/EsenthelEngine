@@ -514,6 +514,7 @@ ImporterClass Importer;
       void ImporterClass::ImportElm::set(C UID &elm_id, bool remember_result) {T.elm_id=elm_id; T.remember_result=remember_result;}
   ImporterClass::~ImporterClass() {threads.del();}
    bool ImporterClass::busy()C {return threads.busy();}
+   int  ImporterClass::totalLeft()C {return imports.elms()+import_queue.elms();}
    void ImporterClass::ImportFull(ImporterClass &ic) {Proj.drop(ic.import_files, ic.import_target); ic.import_files.clear();}
    void ImporterClass::ImportReplace(ImporterClass &ic) {if(ic.import_files.elms())if(Elm *elm=Proj.findElm(ic.import_target)){elm->setSrcFile(ic.import_files[0]); Proj.elmReload(elm->id); Server.setElmShort(elm->id);}}
    void ImporterClass::ImportAnim(ImporterClass &ic) {ic.importSpecial(ANIM );}

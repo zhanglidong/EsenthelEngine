@@ -2333,6 +2333,21 @@ class Project
          }
       }
    #endif
+   #if 0 // reimport anims
+      {
+         REPA(elms)if(elms[i].type==ELM_ANIM)if(!elms[i].animData().rootRot())
+         {
+            Animation anim; if(!anim.load(gamePath(elms[i])))Exit("anim load");
+            if(anim.keys.orns.elms())
+            {
+               Edit.FileParams ei=elms[i].srcFile(); if(FExistSystem(ei.name))
+               {
+                  elms[i].importing(true);
+               }
+            }
+         }
+      }
+   #endif
    }
 
    void textData(bool on)

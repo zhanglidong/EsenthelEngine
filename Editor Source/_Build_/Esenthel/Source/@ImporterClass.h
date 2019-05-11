@@ -87,7 +87,8 @@ public:
   ~ImporterClass(); // delete threads before other members
 
    // get
-   bool busy()C;
+   bool busy()C;     
+   int  totalLeft()C;
 
    // manage
    static void ImportFull   (ImporterClass &ic); // import normally

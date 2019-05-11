@@ -4780,6 +4780,6 @@ void DrawProject()
    Proj.draw();
    GuiEdit.draw();
    WorldEdit.higlight();
-   //if(Importer.busy())D.text(0, D.h()-0.05, "Importing..");
+   //if(Importer.busy())D.text(0, D.h()-0.05, S+"Importing.. "+Importer.totalLeft());
 }
 /******************************************************************************/

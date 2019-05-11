@@ -575,6 +575,7 @@ class ImporterClass
 
    // get
    bool busy()C {return threads.busy();}
+   int  totalLeft()C {return imports.elms()+import_queue.elms();}
 
    // manage
    static void ImportFull   (ImporterClass &ic) {Proj.drop(ic.import_files, ic.import_target); ic.import_files.clear();} // import normally
