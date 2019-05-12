@@ -12,13 +12,13 @@ void EsenthelStore::RegisterAccount()
 }
 EsenthelStore::RESULT EsenthelStore::GetAccessKey(Int item_id)
 {
-   if(item_id<=0)return INVALID_ITEM;
+   if(item_id<0)return INVALID_ITEM;
    return Explore(S+"https://esenthel.com/?id=store&get_access_key="+item_id) ? CONNECTING : CANT_CONNECT;
 }
 EsenthelStore::RESULT EsenthelStore::Buy(C Str &email, Int app_id, PURCHASE_TYPE purchase_type)
 {
    if(!ValidEmail(email))return INVALID_EMAIL_FORMAT;
-   if(  app_id       <=0)return INVALID_ITEM;
+   if(  app_id        <0)return INVALID_ITEM;
    Int item_id;
    switch(purchase_type)
    {
@@ -52,9 +52,8 @@ Int EsenthelStore::PurchaseToUSD(PURCHASE_TYPE purchase_type)
 /******************************************************************************/
 EsenthelStore::EsenthelStore()
 {
-  _device_id=false;
   _license_result=_purchase_result=NONE;
-  _license_item_id=_purchase_item_id=0;
+  _license_item_id=_license_user_id=_purchase_item_id=-1;
 }
 /******************************************************************************/
 // LICENSE TEST
@@ -62,23 +61,20 @@ EsenthelStore::EsenthelStore()
 void EsenthelStore::licenseClear(Bool params)
 {
   _license_download.del(); // delete this first in case it would change anything
-  _device_id=false;
   _license_result=NONE;
-   if(params){_license_item_id=0; _license_key.del(); _license_email.del(); _license_access.del();}
+   if(params){_license_item_id=_license_user_id=-1; _license_key.del(); _license_email.del(); _license_access.del();}
 }
 void EsenthelStore::licenseTest(Int item_id, C Str &license_key, C Str &email, C Str &access_key, Bool device_id)
 {
-   licenseClear(false); T._license_key=license_key; T._license_email=email; T._license_access=access_key; // don't clear 'license_key' member in case it's the 'license_key' parameter
+   licenseClear(false); T._license_user_id=-1; T._license_item_id=item_id; T._license_key=license_key; T._license_email=email; T._license_access=access_key; // don't clear 'license_key' member in case it's the 'license_key' parameter
 
-   if(item_id<=0)_license_result=INVALID_ITEM;else
+   if(item_id<0                                        )_license_result=INVALID_ITEM;else
    if(license_key.is() && !ValidLicenseKey(license_key))_license_result=INVALID_LICENSE_KEY_FORMAT;else
    if(email      .is() && !ValidEmail     (email      ))_license_result=INVALID_EMAIL_FORMAT;else
    if(access_key .is() && !ValidAccessKey (access_key ))_license_result=INVALID_ACCESS_KEY;else
    if(access_key .is() && !email.is()                  )_license_result=EMAIL_NOT_FOUND;else // 'email' required if 'access_key' specified
-   if(license_key.is() || email.is() || access_key.is() || device_id) // if we were actually requested to test anything
+   if(license_key.is() ||  email.is() || access_key.is() || device_id) // if we were actually requested to test anything
    {
-      T._license_item_id=item_id;
-      T._device_id      =device_id;
       Memt<HTTPParam> params;
     //Int time=DateTime().getUTC().seconds1970()/(60*5); // 5 mins
                           params.New().set("i"  , item_id); // item ID
@@ -102,15 +98,19 @@ void EsenthelStore::updateLicense()
       {
          RESULT   r=INVALID_RESPONSE;
          FileText f; f.readMem(_license_download.data(), _license_download.size());
-         TextData data; if(data.load(f))if(C TextNode *result=data.findNode("Result"))switch(result->asInt())
+         TextData data; if(data.load(f))
          {
-            case 0: r=OK              ; break;
-            case 1: r=LICENSE_KEY_FAIL; break;
-            case 2: r=DEVICE_ID_FAIL  ; break;
-            case 3: r=EMAIL_NOT_FOUND ; break;
-            case 4: r=ACCESS_KEY_FAIL ; break;
-            case 5: r=NOT_SECURE      ; break;
-            case 6: r=DATABASE_ERROR  ; break;
+            if(C TextNode *result=data.findNode("Result"))switch(result->asInt())
+            {
+               case 0: r=OK              ; break;
+               case 1: r=LICENSE_KEY_FAIL; break;
+               case 2: r=DEVICE_ID_FAIL  ; break;
+               case 3: r=EMAIL_NOT_FOUND ; break;
+               case 4: r=ACCESS_KEY_FAIL ; break;
+               case 5: r=NOT_SECURE      ; break;
+               case 6: r=DATABASE_ERROR  ; break;
+            }
+            if(C TextNode *UserID=data.findNode("UserID"))_license_user_id=UserID->asInt();
          }
         _license_download.del(); _license_result=r; // set at the end
       }break;
@@ -194,7 +194,7 @@ void EsenthelStore::updatePurchases()
 void EsenthelStore::purchasesClear()
 {
   _purchase_download.del(); // delete this first in case it would change anything
-  _purchase_item_id=0;
+  _purchase_item_id=-1;
   _purchase_email.clear();
   _purchase_result=NONE;
   _purchases.clear();
@@ -207,7 +207,7 @@ void EsenthelStore::purchasesRefresh(C Str &email, C Str &access_key, Int item_i
    purchasesClear(); _purchase_email=email; _purchase_item_id=item_id;
    if(!ValidEmail    (email     ))_purchase_result=INVALID_EMAIL_FORMAT;else
    if(!ValidAccessKey(access_key))_purchase_result=INVALID_ACCESS_KEY  ;else
-   if(                item_id<=0 )_purchase_result=INVALID_ITEM        ;else
+   if(                item_id<0  )_purchase_result=INVALID_ITEM        ;else
    {
       Memt<HTTPParam> params;
       params.New().set("cmd", "get");
@@ -221,7 +221,7 @@ void EsenthelStore::purchasesRefresh(C Str &email, C Str &access_key, Int item_i
 EsenthelStore::RESULT EsenthelStore::consume(C Str &email, Int item_id, C Str &purchase_id)
 {
    if(!ValidEmail(email))return INVALID_EMAIL_FORMAT;
-   if( item_id<=0       )return INVALID_ITEM;
+   if( item_id<0        )return INVALID_ITEM;
    if(!purchase_id.is() )return INVALID_ITEM;
    Memt<HTTPParam> params;
    params.New().set("cmd", "consume");

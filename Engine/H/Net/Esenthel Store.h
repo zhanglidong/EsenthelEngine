@@ -42,7 +42,7 @@ struct EsenthelStore // class allowing to communicate with Esenthel Store
       static Str DeviceIDText() {return     DeviceID(    ).asHex();} // get Device ID used in Esenthel Store, you can use this function to get the ID of current device and display it to the users, so they can set it for their products in Esenthel Store if needed
 
       // operations
-      void licenseClear(Bool params=true); // cancel any current 'licenseTest' request and clear the 'licenseResult' to NONE, 'params'=if additionally clear the last specified parameters (such as 'licenseItemID', 'licenseKey', 'licenseEmail' and 'licenseAccessKey')
+      void licenseClear(Bool params=true); // cancel any current 'licenseTest' request and clear the 'licenseResult' to NONE, 'params'=if additionally clear the last specified parameters (such as 'licenseItemID', 'licenseKey', 'licenseEmail', 'licenseAccessKey' and 'licenseUserID')
       void licenseTest (Int  item_id, C Str &license_key=S, C Str &email=S, C Str &access_key=S, Bool device_id=false); // test if license is ok for a given item in Esenthel Store, 'item_id'=ID of an item in Esenthel Store (if you're the author of the item, then you can get its ID from Esenthel Store), following parameters are optional, only one of them needs to be specified (for example you can test only license key, only email, only device ID, or multiple at the same time), 'license_key'=if specified (must be of "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" format) then the license key will be tested if it's valid for the specified item in Esenthel Store, 'email'=test if there exists a user account with specified email address which has a valid license key for specified item, 'access_key'=can be obtained using 'GetAccessKey' function, 'device_id'=test if Device ID of current machine matches the one assigned to the license key, once this function is called it will try to connect to Esenthel Store on a secondary thread to verify the data, while it's running you can investigate the 'licenseResult' method to get the results
 
       // get
@@ -51,6 +51,7 @@ struct EsenthelStore // class allowing to communicate with Esenthel Store
     C Str&   licenseKey      ()C {return _license_key    ;} // get license key that was specified in the last 'licenseTest' request
     C Str&   licenseEmail    ()C {return _license_email  ;} // get email       that was specified in the last 'licenseTest' request
     C Str&   licenseAccessKey()C {return _license_access ;} // get access  key that was specified in the last 'licenseTest' request
+      Int    licenseUserID   ()C {return _license_user_id;} // get user    ID  that was obtained  in the last 'licenseTest' request, -1 if unknown
 
    // IN-APP PURCHASES
       enum PURCHASE_TYPE : Byte
@@ -91,8 +92,7 @@ struct EsenthelStore // class allowing to communicate with Esenthel Store
 #if !EE_PRIVATE
 private:
 #endif
-   Bool           _device_id;
-   Int            _license_item_id, _purchase_item_id;
+   Int            _license_item_id, _license_user_id, _purchase_item_id;
    RESULT         _license_result, _purchase_result;
    Str            _license_key, _license_email, _license_access, _purchase_email;
    Download       _license_download, _purchase_download;
