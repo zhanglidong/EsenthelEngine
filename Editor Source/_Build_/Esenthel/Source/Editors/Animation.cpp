@@ -575,10 +575,10 @@ AnimEditor AnimEdit;
    void AnimEditor::ReverseFrames(AnimEditor &editor) {editor.reverseFrames();}
    void AnimEditor::RemMovement(AnimEditor &editor) {editor.removeMovement();}
    void AnimEditor::FreezeBone(AnimEditor &editor) {editor.freezeBone();}
-   void AnimEditor::Mirror(AnimEditor &editor) {if(editor.anim){editor.undos.set("mirror", true); Skeleton temp; editor.anim->mirror   (                            editor.skel ? *editor.skel : temp); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged();}}
-   void AnimEditor::RotX(AnimEditor &editor) {if(editor.anim){editor.undos.set("rot"   , true); Skeleton temp; editor.anim->transform(Matrix3().setRotateX(PI_2), editor.skel ? *editor.skel : temp); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged();}}
-   void AnimEditor::RotY(AnimEditor &editor) {if(editor.anim){editor.undos.set("rot"   , true); Skeleton temp; editor.anim->transform(Matrix3().setRotateY(PI_2), editor.skel ? *editor.skel : temp); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged();}}
-   void AnimEditor::RotZ(AnimEditor &editor) {if(editor.anim){editor.undos.set("rot"   , true); Skeleton temp; editor.anim->transform(Matrix3().setRotateZ(PI_2), editor.skel ? *editor.skel : temp); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged();}}
+   void AnimEditor::Mirror(AnimEditor &editor) {if(editor.anim){editor.undos.set("mirror", true); Skeleton temp; editor.anim->mirror   (                            editor.skel ? *editor.skel : temp); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
+   void AnimEditor::RotX(AnimEditor &editor) {if(editor.anim){editor.undos.set("rot"   , true); Skeleton temp; editor.anim->transform(Matrix3().setRotateX(PI_2), editor.skel ? *editor.skel : temp); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
+   void AnimEditor::RotY(AnimEditor &editor) {if(editor.anim){editor.undos.set("rot"   , true); Skeleton temp; editor.anim->transform(Matrix3().setRotateY(PI_2), editor.skel ? *editor.skel : temp); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
+   void AnimEditor::RotZ(AnimEditor &editor) {if(editor.anim){editor.undos.set("rot"   , true); Skeleton temp; editor.anim->transform(Matrix3().setRotateZ(PI_2), editor.skel ? *editor.skel : temp); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
    void AnimEditor::DrawBones(AnimEditor &editor) {editor.draw_bones.push();}
    void AnimEditor::DrawMesh(AnimEditor &editor) {editor.draw_mesh .push();}
    void AnimEditor::Grid(AnimEditor &editor) {editor.show_grid .push();}
@@ -792,6 +792,7 @@ AnimEditor AnimEdit;
             prepMeshSkel();
             setOrnTarget();
             setChanged();
+            toGui();
          }
       }
    }

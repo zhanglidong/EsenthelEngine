@@ -676,10 +676,10 @@ class AnimEditor : Viewport4Region
    static void ReverseFrames  (AnimEditor &editor) {editor.reverseFrames();}
    static void RemMovement    (AnimEditor &editor) {editor.removeMovement();}
    static void FreezeBone     (AnimEditor &editor) {editor.freezeBone();}
-   static void Mirror         (AnimEditor &editor) {if(editor.anim){editor.undos.set("mirror", true); Skeleton temp; editor.anim.mirror   (                            editor.skel ? *editor.skel : temp); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged();}}
-   static void RotX           (AnimEditor &editor) {if(editor.anim){editor.undos.set("rot"   , true); Skeleton temp; editor.anim.transform(Matrix3().setRotateX(PI_2), editor.skel ? *editor.skel : temp); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged();}}
-   static void RotY           (AnimEditor &editor) {if(editor.anim){editor.undos.set("rot"   , true); Skeleton temp; editor.anim.transform(Matrix3().setRotateY(PI_2), editor.skel ? *editor.skel : temp); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged();}}
-   static void RotZ           (AnimEditor &editor) {if(editor.anim){editor.undos.set("rot"   , true); Skeleton temp; editor.anim.transform(Matrix3().setRotateZ(PI_2), editor.skel ? *editor.skel : temp); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged();}}
+   static void Mirror         (AnimEditor &editor) {if(editor.anim){editor.undos.set("mirror", true); Skeleton temp; editor.anim.mirror   (                            editor.skel ? *editor.skel : temp); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
+   static void RotX           (AnimEditor &editor) {if(editor.anim){editor.undos.set("rot"   , true); Skeleton temp; editor.anim.transform(Matrix3().setRotateX(PI_2), editor.skel ? *editor.skel : temp); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
+   static void RotY           (AnimEditor &editor) {if(editor.anim){editor.undos.set("rot"   , true); Skeleton temp; editor.anim.transform(Matrix3().setRotateY(PI_2), editor.skel ? *editor.skel : temp); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
+   static void RotZ           (AnimEditor &editor) {if(editor.anim){editor.undos.set("rot"   , true); Skeleton temp; editor.anim.transform(Matrix3().setRotateZ(PI_2), editor.skel ? *editor.skel : temp); editor.prepMeshSkel(); editor.setOrnTarget(); editor.setChanged(); editor.toGui();}}
    static void DrawBones      (AnimEditor &editor) {editor.draw_bones.push();}
    static void DrawMesh       (AnimEditor &editor) {editor.draw_mesh .push();}
    static void Grid           (AnimEditor &editor) {editor.show_grid .push();}
@@ -899,6 +899,7 @@ class AnimEditor : Viewport4Region
             prepMeshSkel();
             setOrnTarget();
             setChanged();
+            toGui();
          }
       }
    }
