@@ -21,7 +21,7 @@ ExportWindow Export;
                   if(ElmAnim *anim_data=elm->animData())
                   {
                      Skeleton skel; if(anim_data->skel_id.valid())skel.load(Proj.gamePath(anim_data->skel_id));
-                     anim.transform(~anim_data->transform(), skel); // restore to original transformation
+                     anim.transform(~anim_data->transform(), skel, false); // restore to original transformation
                   }
                   ok=anim.save(name);
                }

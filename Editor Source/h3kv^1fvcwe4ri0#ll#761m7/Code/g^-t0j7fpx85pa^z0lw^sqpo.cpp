@@ -2412,7 +2412,7 @@ class Project
                      if(Skeleton *skel=Skeletons.get(gamePath(skel_elm.id)))
                         if(!anim.bones.elms() || skel.is()) // if there are 'anim.bones' then process only if the skeleton is valid (known bones, because 'Animation.transform' relies on correct bone information)
       {
-         anim.transform(GetTransform(anim_data.transform(), skel_data.transform()), *skel);
+         anim.transform(GetTransform(anim_data.transform(), skel_data.transform()), *skel, false);
          Save(*anim, gamePath(elm_anim.id)); savedGame(elm_anim);
          anim_data.transform=skel_data.transform;
          animTransformChanged(elm_anim);

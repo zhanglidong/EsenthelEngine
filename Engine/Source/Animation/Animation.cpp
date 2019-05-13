@@ -3000,10 +3000,11 @@ Animation& Animation::mirrorX()
    REPAO(bones).mirrorX();
    return setRootMatrix();
 }
-Animation& Animation::transform(C Matrix &matrix, C Skeleton &source)
+Animation& Animation::transform(C Matrix &matrix, C Skeleton &source, Bool skel_const)
 {
    // root
    AnimParams anim_params(T, 0);
+ //AnimKeys   old=keys;
    if(keys.orns.elms())
    {
       MatrixD3 matrix_dn=matrix, matrix_dn_inv; matrix_dn.normalize(); matrix_dn.inverse(matrix_dn_inv, true);
@@ -3013,11 +3014,10 @@ Animation& Animation::transform(C Matrix &matrix, C Skeleton &source)
          orn=matrix_dn_inv*MatrixD3(orn)*matrix_dn;
       }
    }
-   if(keys.orns.elms() && matrix.pos.any())
+   if(keys.orns.elms() && matrix.pos.any()) // if there are any orientations and matrix position offset
    {
-      // if there are any orientations and matrix position offset, then we need to setup position keys from all orientation/position times
-      Memt<Flt, 16384>   times; keys.includeTimes(times, times, null);
-      Mems<AnimKeys::Pos> poss; poss.setNum(times.elms()); // work on temporary container
+      Memt<Flt, 16384   > times; keys.includeTimes(times, times, null); // we need to setup position keys from all orientation/position times
+      Mems<AnimKeys::Pos>  poss; poss.setNum      (times.elms()); // work on temporary container
       REPA(poss)
       {
          AnimKeys::Pos &pos=poss[i];   anim_params.time=pos.time=times[i];
@@ -3038,6 +3038,30 @@ Animation& Animation::transform(C Matrix &matrix, C Skeleton &source)
    // bones
    Flt     scale   =matrix.avgScale();
    Matrix3 matrix_n=matrix; matrix_n.normalize();
+   if(skel_const) // if we're not changing the skeleton (if skeleton is changing, then setting key is not needed, as they're updated dynamically during the animation process based on current skeleton bone orientation)
+   {
+      Bool set_orn=!Equal(MatrixIdentity.orn(), matrix_n), set_pos=!Equal(MatrixIdentity, matrix);
+      if(set_orn || set_pos) // if we have to set oriention/pos keys
+         FREPA(source.bones) // iterate all skeleton bones
+      {
+       C SkelBone &bone=source.bones[i]; if(bone.parent==0xFF) // process only main bones
+         {
+            AnimBone &abon=getBone(bone.name, bone.type, bone.type_index, bone.type_sub);
+            if(set_orn && !abon.orns.elms()) // if there are no orn keys
+            {
+               AnimKeys::Orn &orn=abon.orns.New();
+               orn.time=0;
+               orn.orn =bone;
+            }
+            if(set_pos && !abon.poss.elms()) // if there are no pos keys
+            {
+               AnimKeys::Pos &pos=abon.poss.New();
+               pos.time=0;
+               pos.pos.zero();
+            }
+         }
+      }
+   }
    REPA(bones)
    {
       AnimBone &abon      =bones[i];
@@ -3049,23 +3073,79 @@ Animation& Animation::transform(C Matrix &matrix, C Skeleton &source)
       Bool      main      =(sbon_index>=0 && source.bones[sbon_index].parent==0xFF);
       if(main)
       {
+      #if 1 // optimized
          REPAO(abon.orns).orn.mul(matrix_n, true);
+      #else // full formula
+         REPA(abon.orns)
+         {
+            AnimKeys::Orn &orn=abon.orns[i]; anim_params.time=orn.time;
+            Orient old_orn, new_orn;
+            //orn.orn=orn.orn*old_orn*matrix_n/new_orn;
+            if(old .orn(old_orn, anim_params))orn.orn.mul(old_orn , true);
+                                              orn.orn.mul(matrix_n, true);
+            if(keys.orn(new_orn, anim_params))orn.orn.div(new_orn , true);
+         }
+      #endif
       #if HAS_ANIM_ROT
          REPAO(abon.rots).rot*=matrix_n;
       #endif
-      }
-      if(main && !keys.orns.elms()
-   #if HAS_ANIM_ROT
-      && !keys.rots.elms()
-   #endif
-      )    REPAO(abon.poss).pos*=matrix.orn(); // we can use precise scale only if there are no orientations in parents
-      else REPAO(abon.poss).pos*=scale       ;
+
+         // position
+      #if 1 // optimized
+         if(skel_const) // as explained below, the more complex formula has to be done only for ANIM_TRANSFORM_SKEL_CONST, because for other cases, 'temp.pos' is zero
+         {
+            Vec bone=source.bones[sbon_index].pos;
+            Matrix temp(matrix.orn(), bone*matrix - bone);
+               REPAO(abon.poss).pos*=temp;
+         }else REPAO(abon.poss).pos*=matrix.orn();
+      #else // full formula
+         Vec bone=source.bones[sbon_index].pos, old_bone, new_bone;
+         switch(mode)
+         {
+            case ANIM_TRANSFORM_SKEL_ALREADY_TRANSFORMED:
+            {
+               new_bone=bone;
+               old_bone=bone; old_bone-=matrix.pos; old_bone.divNormalized(matrix_n); // old_bone=bone/matrix
+            }break;
+
+            case ANIM_TRANSFORM_SKEL_WILL_BE_TRANSFORMED:
+            {
+               old_bone=bone;
+               new_bone=bone; new_bone.mul(matrix_n)+=matrix.pos; // new_bone=bone*matrix
+            }break;
+
+            default: new_bone=old_bone=bone; break; // ANIM_TRANSFORM_SKEL_CONST
+         }
+      Memt<Flt, 16384> times, times2; keys.includeTimes(times, times, null); Mems<AnimKeys::Pos> poss; // reuse these from the top
+         times2=times; abon.includeTimes(null, times2, null);
+         if(poss.elms()!=times2.elms())poss.clear().setNum(times2.elms()); // clear first to prevent copying old data
+         REPA(poss)
+         {
+            AnimKeys::Pos &pos=poss[i];
+            pos.time=anim_params.time=times2[i];
+            Vec bone_offset; if(!abon.pos(bone_offset, anim_params) && !SET_ON_FAIL)bone_offset.zero();
+            Matrix old_root; GetRootMatrix(old , old_root, anim_params);
+            Matrix new_root; GetRootMatrix(keys, new_root, anim_params);
+                                    DEBUG_ASSERT(Equal(old_root*matrix/new_root, matrix), "matrixes should be equal");
+            DEBUG_ASSERT(Equal((old_bone+bone_offset)*old_root*matrix/new_root-new_bone, (old_bone+bone_offset)*matrix-new_bone), "vectors should be equal");
+                       pos.pos=(old_bone+bone_offset)*old_root*matrix/new_root-new_bone; //Vec global=(old_bone+bone_offset)*old_root; "old_root*matrix/new_root"=matrix
+                         //pos=(old_bone+bone_offset)*matrix-new_bone;
+                         //pos=old_bone*matrix.orn() + bone_offset*matrix.orn() + matrix.pos - new_bone; multiplied by matrix
+                         //pos=bone_offset*matrix.orn() + old_bone*matrix.orn() + matrix.pos - new_bone;
+                         //pos=bone_offset*matrix.orn() + old_bone*matrix                    - new_bone;
+          //ANIM_TRANSFORM_SKEL_ALREADY_TRANSFORMED: (bone/matrix)*matrix - bone        == 0; old_bone=bone/matrix; new_bone=bone
+          //ANIM_TRANSFORM_SKEL_WILL_BE_TRANSFORMED:       bone   *matrix - bone*matrix == 0; old_bone=bone       ; new_bone=bone*matrix
+                         // in both cases above, the formula can get simplified
+         }
+         Swap(abon.poss, poss);
+      #endif
+      }else REPAO(abon.poss).pos*=scale; // for sub bones we can use only uniform scale
    }
    return setTangents().setRootMatrix();
 }
 Animation& Animation::rightToLeft(C Skeleton &source) // this method can ignore name differences because it's used only during importing while the names are the same
 {
-   return transform(Matrix3().setRotateX(-PI_2), source).mirrorX();
+   return transform(Matrix3().setRotateX(-PI_2), source, false).mirrorX(); // set 'skel_const'=false because this method is called only during import, in which cases the skeleton is always going to get transformed too
 }
 static Str BoneNeutralName(C Str &name)
 {

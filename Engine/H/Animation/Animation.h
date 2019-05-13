@@ -87,8 +87,8 @@ struct Animation // set of animation keyframes used for animating 'AnimatedSkele
    Flt rootSpeedZ()C {return _root_transform.pos.z        /    _length ;} // get root Z movement speed         between first and last keyframe
 
    // transform
-   Animation& transform(C Matrix &matrix, C Skeleton &source); // transform animation by 'matrix', basing on 'source' skeleton
-   Animation& mirror   (                  C Skeleton &source); // mirror    animation in X axis  , basing on 'source' skeleton
+   Animation& transform(C Matrix &matrix, C Skeleton &source, Bool skel_const); // transform animation by 'matrix', basing on 'source' skeleton, 'skel_const'=if skeleton remains constant (was not and will not going to be transformed by 'matrix'), set to true if you haven't and won't transform the skeleton by 'matrix' or set to false if you have or will transform the skeleton by 'matrix'
+   Animation& mirror   (                  C Skeleton &source                 ); // mirror    animation in X axis  , basing on 'source' skeleton
 
    // operations
    Animation& setTangents  (); // recalculate tangents     , this needs to be called after manually modifying the keyframes
