@@ -251,11 +251,7 @@ Tabs& Tabs::layout(TABS_LAYOUT layout)
 Tabs& Tabs::valid(Bool on) {T._valid=on; return T;}
 Tabs& Tabs::set(Int i, SET_MODE mode)
 {
-   if(!InRange(i, _tabs))
-   {
-      if(valid())return T; // don't set to -1 if 'valid' is enabled
-      i=-1; // set sel to -1
-   }
+   if(!InRange(i, _tabs))i=-1; // set sel to -1
    if(T()!=i)
    {
       Bool kb=contains(Gui.kb());
@@ -272,7 +268,7 @@ Tabs& Tabs::set(Int i, SET_MODE mode)
    }
    return T;
 }
-Tabs& Tabs::toggle(Int i, SET_MODE mode) {return set((T()==i) ? -1 : i, mode);}
+Tabs& Tabs::toggle(Int i, SET_MODE mode) {return set((T()!=i || valid()) ? i : -1, mode);} // don't set to -1 if 'valid' is enabled
 /******************************************************************************/
 Tabs& Tabs::skin(C GuiSkinPtr &skin)
 {
