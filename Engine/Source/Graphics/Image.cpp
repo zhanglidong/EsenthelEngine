@@ -1194,17 +1194,31 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                UInt format=ImageTI[hwType()].format, gl_format=SourceGLFormat(hwType()), gl_type=SourceGLType(hwType());
                if(src)
                {
+               #if GL_ES
+                  if(mode!=IMAGE_RT && !(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA))Alloc(_data_all, CeilGL(src->memUsage())); Byte *dest=_data_all; Bool skip=false;
+               #endif
                 C Byte *data=src->softData(); FREPD(m, mipMaps()) // order important
                   {
                      if(m==1) // check at the start of mip-map #1, to skip this when there's only one mip-map
                      {
-                        if(ForceDisableMipMaps(T))break;
+                        if(ForceDisableMipMaps(T))
+                        #if GL_ES
+                           if(dest)skip=true;else // in GL ES we have to keep iterating if we have to copy to 'dest'
+                        #endif
+                           break; // otherwise we can just stop the loop
+
                         if(glGetError()!=GL_NO_ERROR)goto error; // if first mip failed, then skip remaining
                      }
                      VecI2 size(Max(1, hwW()>>m), Max(1, hwH()>>m));
                      Int   mip_size=ImageMipSize(size.x, size.y, 0, hwType());
+                  #if GL_ES
+                     if(skip)goto skip;
+                  #endif
                      if(!compressed())glTexImage2D(GL_TEXTURE_2D, m, format, size.x, size.y, 0, gl_format, gl_type, data);
                      else   glCompressedTexImage2D(GL_TEXTURE_2D, m, format, size.x, size.y, 0, mip_size, data);
+                  #if GL_ES
+                     skip: if(dest){CopyFast(dest, data, mip_size); dest+=mip_size;}
+                  #endif
                      data+=mip_size;
                   }
                }else
@@ -1241,7 +1255,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
                setInfo(w, h, d, type, mode);
             #if GL_ES
-               if(mode!=IMAGE_RT)Alloc(_data_all, CeilGL(memUsage()));
+               if(mode!=IMAGE_RT && !_data_all)Alloc(_data_all, CeilGL(memUsage())); // '_data_all' could've been created above
             #endif
                return true;
             }
@@ -1266,6 +1280,9 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                UInt format=ImageTI[hwType()].format, gl_format=SourceGLFormat(hwType()), gl_type=SourceGLType(hwType());
                if(src)
                {
+               #if GL_ES
+                  if(!(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA))Alloc(_data_all, CeilGL(src->memUsage())); Byte *dest=_data_all;
+               #endif
                 C Byte *data=src->softData(); FREPD(m, mipMaps()) // order important
                   {
                      if(m==1) // check at the start of mip-map #1, to skip this when there's only one mip-map
@@ -1276,6 +1293,9 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                      Int  mip_size=ImageMipSize(size.x, size.y, size.z, 0, hwType());
                      if(!compressed())glTexImage3D(GL_TEXTURE_3D, m, format, size.x, size.y, size.z, 0, gl_format, gl_type, data);
                      else   glCompressedTexImage3D(GL_TEXTURE_3D, m, format, size.x, size.y, size.z, 0, mip_size, data);
+                  #if GL_ES
+                     if(dest){CopyFast(dest, data, mip_size); dest+=mip_size;}
+                  #endif
                      data+=mip_size;
                   }
                }else
@@ -1296,7 +1316,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
                setInfo(w, h, d, type, mode);
             #if GL_ES
-            	Alloc(_data_all, CeilGL(memUsage()));
+               if(!_data_all)Alloc(_data_all, CeilGL(memUsage())); // '_data_all' could've been created above
             #endif
             	return true;
             }
@@ -1323,6 +1343,10 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
+            #if GL_ES
+               if(src && mode!=IMAGE_RT_CUBE && !(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA))Alloc(_data_all, CeilGL(src->memUsage())); Byte *dest=_data_all;
+            #endif
+
             again_cube:
                UInt format=ImageTI[hwType()].format, gl_format=SourceGLFormat(hwType()), gl_type=SourceGLType(hwType());
              C Byte *data=(src ? src->softData() : null); Int mip_maps=(src ? mipMaps() : 1); FREPD(m, mip_maps) // order important
@@ -1344,7 +1368,13 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                         goto again_cube;
                      }
                      
-                     if(src)data+=mip_size;
+                     if(src)
+                     {
+                     #if GL_ES
+                        if(dest){CopyFast(dest, data, mip_size); dest+=mip_size;}
+                     #endif
+                        data+=mip_size;
+                     }
                   }
                }
 
@@ -1353,7 +1383,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                   glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
                   setInfo(w, h, d, type, mode);
                #if GL_ES
-                  if(mode!=IMAGE_RT_CUBE)Alloc(_data_all, CeilGL(memUsage()));
+                  if(mode!=IMAGE_RT_CUBE && !_data_all)Alloc(_data_all, CeilGL(memUsage())); // '_data_all' could've been created above
                #endif
             	   return true;
                }
