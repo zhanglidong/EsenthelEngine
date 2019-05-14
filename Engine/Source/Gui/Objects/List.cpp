@@ -1454,17 +1454,152 @@ void _List::update(C GuiPC &gpc)
    {
       if(cur_mode==LCM_MOUSE)setCur(-1);
    }else
-   if(visible() && gpc.visible && visibleElms())
+   if(visible() && gpc.visible)
    {
-      Bool sel_changed=false;
-      Int  cur_prev=cur;
+      if(visibleElms())
+      {
+         Bool sel_changed=false;
+         Int  cur_prev=cur;
 
-     _kb_action&=!Ms._action; // disable keyboard action if there's a mouse action
+        _kb_action&=!Ms._action; // disable keyboard action if there's a mouse action
 
-      // mouse highlight
-      if(Gui.msLit()==this &&
-           (Gui.ms()==this || Gui.dragging()) // allow highlight when mouse original focus is at the list or when dragging
-      )lit=screenToVis(Ms.pos(), &gpc);
+         // mouse highlight
+         if(Gui.msLit()==this &&
+              (Gui.ms()==this || Gui.dragging()) // allow highlight when mouse original focus is at the list or when dragging
+         )lit=screenToVis(Ms.pos(), &gpc);
+
+         // touch
+         REPA(Touches)
+         {
+            Touch &touch=Touches[i]; if(touch.guiObj()==this && (touch.state()&(BS_PUSHED|BS_ON|BS_RELEASED))) // process cursor for (pushed to set) and (on+released to skip from mouse), release needed so 'Menu' detection can work
+            {
+               GuiObj *container=this; if(parent()->is(GO_MENU))container=parent(); if(container->contains(Gui.objAtPos(touch.pos())))
+               {
+                  if( touch.pd() // set cursor only when pushed
+                  || !touch.scrolling() // or not scrolling, to avoid situations when scrolling could possibly change the cursor, but allow for 'Menu'
+                  )sel_changed|=setCurEx(screenToVis(touch.pos(), &gpc), 0, touch.pd(), touch.id());
+                  goto skip_mt; // skip processing cursor by mouse touches
+               }
+            }
+         }
+
+         // mouse cursor
+         if(Gui.ms()==this)
+         {
+            if(Ms.bp(0) || (cur_mode==LCM_MOUSE && !_kb_action))sel_changed|=setCurEx(lit, 0, Ms.bp(0));
+         }else
+         {
+            if(cur_mode==LCM_MOUSE && !_kb_action)sel_changed|=setSel(cur=-1);
+         }
+      skip_mt:
+
+         Int cur_prev2=cur;
+
+         // select on tap
+         if(_tap_vis>=0)
+         {
+            Touch *touch=FindTouch(_tap_touch_id);
+            if(_tap_touch_id ? (!touch || touch->rs()) : !Ms.b(0))
+            {
+               if(InRange(_tap_vis, T))if(_tap_touch_id ? (touch && touch->tapped()) : Ms.tapped(0))sel_changed|=setCurEx(_tap_vis);
+              _tap_vis=-1;
+            }
+         }
+
+         // keyboard
+         if(Gui.kb()==this)
+         {
+            if(Kb.k.ctrlCmd())
+            {
+               // select all (Ctrl+A)
+               if(Kb.k(KB_A) && !Kb.k.shift() && !Kb.k.alt() && (flag&LIST_MULTI_SEL))
+               {
+                  if(Kb.k.first())
+                  {
+                                        REPA(sel          )if(               absToVis(sel[i])<0        )goto different; // if element is selected but not visible
+                     sel.sort(Compare); REP (visibleElms())if(!sel.binaryHas(visToAbs(    i ), Compare))goto different; // if element is visible  but not selected (sort first)
+                     if(0)
+                     {
+                     different:
+                        callSelChanging();
+                        sel.clear(); FREP(visibleElms())sel.add(visToAbs(i));
+                        sel_changed=true;
+                     }
+                  }
+                  Kb.eatKey();
+               }
+            }else
+            {
+               if(Kb.k(KB_HOME)){_kb_action=true; sel_changed|=setCurEx(              0); Kb.eatKey();}
+               if(Kb.k(KB_END )){_kb_action=true; sel_changed|=setCurEx(visibleElms()-1); Kb.eatKey();}
+               if(Kb.k(KB_PGUP) || Kb.k(KB_PGDN))
+               {
+                 _kb_action=true;
+                  if(drawMode()==LDM_LIST)
+                  {
+                     if(cur<0)cur=0;
+                     Int page_elms=pageElms(&gpc), dir, new_cur;
+                     if(Kb.k(KB_PGUP)){new_cur=cur-page_elms; dir=-1;}
+                     else             {new_cur=cur+page_elms; dir=+1;}
+                     Kb.eatKey();
+                     sel_changed|=setCurEx((flag&LIST_ROLLABLE) ? Mod(new_cur, visibleElms()) : Mid(new_cur, 0, visibleElms()-1), dir);
+                  }
+               }
+               if(drawMode()==LDM_LIST)
+               {
+                  if(Kb.k(KB_UP  )){_kb_action=true; sel_changed|=setCurEx((flag&LIST_ROLLABLE) ? ((cur<0) ? visibleElms()-1 : Mod(cur-1, visibleElms())) : Max(0              , cur-1), -1);}
+                  if(Kb.k(KB_DOWN)){_kb_action=true; sel_changed|=setCurEx((flag&LIST_ROLLABLE) ?                              Mod(cur+1, visibleElms())  : Min(visibleElms()-1, cur+1), +1);}
+               }else
+               if(drawMode()==LDM_RECTS)
+               {
+                  if(Kb.k(KB_LEFT )){_kb_action=true; sel_changed|=setCurEx(Max(0              , cur-1));}
+                  if(Kb.k(KB_RIGHT)){_kb_action=true; sel_changed|=setCurEx(Min(visibleElms()-1, cur+1));}
+               }
+            }
+
+            // smooth scroll
+            if(Kb.ctrlCmd() && _parent && _parent->type()==GO_REGION)
+            {
+               Region &region=_parent->asRegion();
+               if(Kb.b(KB_UP   )){Kb.eat(KB_UP   ); region.slidebar[1].button[1].push();}
+               if(Kb.b(KB_DOWN )){Kb.eat(KB_DOWN ); region.slidebar[1].button[2].push();}
+               if(Kb.b(KB_LEFT )){Kb.eat(KB_LEFT ); region.slidebar[0].button[1].push();}
+               if(Kb.b(KB_RIGHT)){Kb.eat(KB_RIGHT); region.slidebar[0].button[2].push();}
+            }
+
+            // quick search
+            if(flag&LIST_SEARCHABLE)
+            {
+               if(Kb.k.c && !Kb.k.ctrl() && !Kb.k.lalt() && !Kb.k.win())
+               {
+                 _kb_action=true;
+                  for(; Kb.k.c; Kb.nextKey())if(_search_i<Elms(_search)-1)
+                  {
+                    _search[  _search_i]=Kb.k.c;
+                    _search[++_search_i]=0;
+                  }
+                  FREPA(_columns)
+                  {
+                     ListColumn &lc=_columns[i];
+                     if(DataIsText(lc.md.type))
+                     {
+                        FREPA(T)if(Ptr data=visToData(i))if(Starts(lc.md.asText(data, lc.precision), _search)){sel_changed|=setSel(cur=i); break;}
+                        break;
+                     }
+                  }
+                 _search_t=0.9f;
+               }else
+               if((_search_t-=Time.ad())<=0
+               || (Kb.k.k && Kb.k.k!=KB_SHIFT && Kb.k.k!=KB_LSHIFT && Kb.k.k!=KB_RSHIFT))_search[_search_i=0]=0; // if time has passed, or function key was pressed (like arrow up/down or enter, but not shift)
+            }
+         }
+         if(cur!=cur_prev)
+         {
+            if((cur_prev2!=cur || cur_mode!=LCM_MOUSE) && cur>=0)scrollTo(cur, _search_i!=0, _search_i!=0); // scroll immediately if cursor was changed by "search"
+            callCurChanged();
+         }
+         if(sel_changed)callSelChanged();
+      }
 
       // zoom !! after mouse highlight !! because it affects zoom, offset but can't adjust 'gpc.offset' which results in incorrect 'lit'
       if(Gui.wheel()==this)
@@ -1478,138 +1613,6 @@ void _List::update(C GuiPC &gpc)
             Ms.eatWheel();
          }
       }
-
-      // touch
-      REPA(Touches)
-      {
-         Touch &touch=Touches[i]; if(touch.guiObj()==this && (touch.state()&(BS_PUSHED|BS_ON|BS_RELEASED))) // process cursor for (pushed to set) and (on+released to skip from mouse), release needed so 'Menu' detection can work
-         {
-            GuiObj *container=this; if(parent()->is(GO_MENU))container=parent(); if(container->contains(Gui.objAtPos(touch.pos())))
-            {
-               if( touch.pd() // set cursor only when pushed
-               || !touch.scrolling() // or not scrolling, to avoid situations when scrolling could possibly change the cursor, but allow for 'Menu'
-               )sel_changed|=setCurEx(screenToVis(touch.pos(), &gpc), 0, touch.pd(), touch.id());
-               goto skip_mt; // skip processing cursor by mouse touches
-            }
-         }
-      }
-
-      // mouse cursor
-      if(Gui.ms()==this)
-      {
-         if(Ms.bp(0) || (cur_mode==LCM_MOUSE && !_kb_action))sel_changed|=setCurEx(lit, 0, Ms.bp(0));
-      }else
-      {
-         if(cur_mode==LCM_MOUSE && !_kb_action)sel_changed|=setSel(cur=-1);
-      }
-   skip_mt:
-
-      Int cur_prev2=cur;
-
-      // select on tap
-      if(_tap_vis>=0)
-      {
-         Touch *touch=FindTouch(_tap_touch_id);
-         if(_tap_touch_id ? (!touch || touch->rs()) : !Ms.b(0))
-         {
-            if(InRange(_tap_vis, T))if(_tap_touch_id ? (touch && touch->tapped()) : Ms.tapped(0))sel_changed|=setCurEx(_tap_vis);
-           _tap_vis=-1;
-         }
-      }
-
-      // keyboard
-      if(Gui.kb()==this)
-      {
-         if(Kb.k.ctrlCmd())
-         {
-            // select all (Ctrl+A)
-            if(Kb.k(KB_A) && !Kb.k.shift() && !Kb.k.alt() && (flag&LIST_MULTI_SEL))
-            {
-               if(Kb.k.first())
-               {
-                                     REPA(sel          )if(               absToVis(sel[i])<0        )goto different; // if element is selected but not visible
-                  sel.sort(Compare); REP (visibleElms())if(!sel.binaryHas(visToAbs(    i ), Compare))goto different; // if element is visible  but not selected (sort first)
-                  if(0)
-                  {
-                  different:
-                     callSelChanging();
-                     sel.clear(); FREP(visibleElms())sel.add(visToAbs(i));
-                     sel_changed=true;
-                  }
-               }
-               Kb.eatKey();
-            }
-         }else
-         {
-            if(Kb.k(KB_HOME)){_kb_action=true; sel_changed|=setCurEx(              0); Kb.eatKey();}
-            if(Kb.k(KB_END )){_kb_action=true; sel_changed|=setCurEx(visibleElms()-1); Kb.eatKey();}
-            if(Kb.k(KB_PGUP) || Kb.k(KB_PGDN))
-            {
-              _kb_action=true;
-               if(drawMode()==LDM_LIST)
-               {
-                  if(cur<0)cur=0;
-                  Int page_elms=pageElms(&gpc), dir, new_cur;
-                  if(Kb.k(KB_PGUP)){new_cur=cur-page_elms; dir=-1;}
-                  else             {new_cur=cur+page_elms; dir=+1;}
-                  Kb.eatKey();
-                  sel_changed|=setCurEx((flag&LIST_ROLLABLE) ? Mod(new_cur, visibleElms()) : Mid(new_cur, 0, visibleElms()-1), dir);
-               }
-            }
-            if(drawMode()==LDM_LIST)
-            {
-               if(Kb.k(KB_UP  )){_kb_action=true; sel_changed|=setCurEx((flag&LIST_ROLLABLE) ? ((cur<0) ? visibleElms()-1 : Mod(cur-1, visibleElms())) : Max(0              , cur-1), -1);}
-               if(Kb.k(KB_DOWN)){_kb_action=true; sel_changed|=setCurEx((flag&LIST_ROLLABLE) ?                              Mod(cur+1, visibleElms())  : Min(visibleElms()-1, cur+1), +1);}
-            }else
-            if(drawMode()==LDM_RECTS)
-            {
-               if(Kb.k(KB_LEFT )){_kb_action=true; sel_changed|=setCurEx(Max(0              , cur-1));}
-               if(Kb.k(KB_RIGHT)){_kb_action=true; sel_changed|=setCurEx(Min(visibleElms()-1, cur+1));}
-            }
-         }
-
-         // smooth scroll
-         if(Kb.ctrlCmd() && _parent && _parent->type()==GO_REGION)
-         {
-            Region &region=_parent->asRegion();
-            if(Kb.b(KB_UP   )){Kb.eat(KB_UP   ); region.slidebar[1].button[1].push();}
-            if(Kb.b(KB_DOWN )){Kb.eat(KB_DOWN ); region.slidebar[1].button[2].push();}
-            if(Kb.b(KB_LEFT )){Kb.eat(KB_LEFT ); region.slidebar[0].button[1].push();}
-            if(Kb.b(KB_RIGHT)){Kb.eat(KB_RIGHT); region.slidebar[0].button[2].push();}
-         }
-
-         // quick search
-         if(flag&LIST_SEARCHABLE)
-         {
-            if(Kb.k.c && !Kb.k.ctrl() && !Kb.k.lalt() && !Kb.k.win())
-            {
-              _kb_action=true;
-               for(; Kb.k.c; Kb.nextKey())if(_search_i<Elms(_search)-1)
-               {
-                 _search[  _search_i]=Kb.k.c;
-                 _search[++_search_i]=0;
-               }
-               FREPA(_columns)
-               {
-                  ListColumn &lc=_columns[i];
-                  if(DataIsText(lc.md.type))
-                  {
-                     FREPA(T)if(Ptr data=visToData(i))if(Starts(lc.md.asText(data, lc.precision), _search)){sel_changed|=setSel(cur=i); break;}
-                     break;
-                  }
-               }
-              _search_t=0.9f;
-            }else
-            if((_search_t-=Time.ad())<=0
-            || (Kb.k.k && Kb.k.k!=KB_SHIFT && Kb.k.k!=KB_LSHIFT && Kb.k.k!=KB_RSHIFT))_search[_search_i=0]=0; // if time has passed, or function key was pressed (like arrow up/down or enter, but not shift)
-         }
-      }
-      if(cur!=cur_prev)
-      {
-         if((cur_prev2!=cur || cur_mode!=LCM_MOUSE) && cur>=0)scrollTo(cur, _search_i!=0, _search_i!=0); // scroll immediately if cursor was changed by "search"
-         callCurChanged();
-      }
-      if(sel_changed)callSelChanged();
 
       // update children
       GuiPC gpc_col(gpc, T); REPAO(_columns).update(gpc_col);
