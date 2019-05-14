@@ -171,7 +171,7 @@ void GetDrives(MemPtr<Drive> drives); // get Drives in the system
 Bool GetDriveSize(C Str &path, Long *free=null, Long *total=null); // get drive size in bytes of specified path. Warning: on some platforms, if you don't have write permission to the specified path, then 'free' value may be incorrect, always use a path where you actually intend to write data, false is returned on fail
 
 Str  CurDir(          ); // get current working directory, by default it's always set to path of the application executable file (an exception is iOS platform, there the path is set inside the executable, since the executable is actually a folder)
-void CurDir(C Str &dir); // set current working directory
+Bool CurDir(C Str &dir); // set current working directory, false on fail
 
 Str MakeFullPath(C Str &path, FILE_PATH type=FILE_CUR, Bool keep_empty=true); // if the path is not 'FullPath', then full path is returned as if 'path' was relative to 'type', 'keep_empty'=if the 'path' is empty then don't make it a full path but return an empty path
 

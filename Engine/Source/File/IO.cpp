@@ -16,12 +16,12 @@ Str CurDir()
    return FromUTF8(path);
 #endif
 }
-void CurDir(C Str &dir)
+Bool CurDir(C Str &dir)
 {
 #if WINDOWS
-   SetCurrentDirectory(dir);
+   return SetCurrentDirectory(dir)!=0;
 #else
-   chdir(UnixPathUTF8(dir));
+   return !chdir(UnixPathUTF8(dir));
 #endif
 }
 /******************************************************************************/
