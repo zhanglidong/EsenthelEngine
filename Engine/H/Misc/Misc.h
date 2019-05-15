@@ -213,7 +213,8 @@ Bool    OSLinux    (OS_VER ver=OSVer()); // if  Operating System is Linux
 Bool    OSAndroid  (OS_VER ver=OSVer()); // if  Operating System is Android
 Bool    OSiOS      (OS_VER ver=OSVer()); // if  Operating System is iOS
 
-Str OSUserName(Bool short_name=false); // get the user name of currently logged in user in the Operating System (for Android platform this will be the main email address associated with the device, 'GET_ACCOUNTS' permission which is by default enabled, needs to be specified in the "AndroidManifest.xml" file in order to access this value)
+Str OSUserName (Bool short_name=false); // get the user name  of currently logged in user in the Operating System, on Android this requires PERMISSION_USER_NAME
+Str OSUserEmail(                     ); // get the user email of currently logged in user in the Operating System, on Android this requires PERMISSION_USER_NAME, supported only on Android
 
 Bool Explore(C Str &name, Bool select=false                                      ); // explore selected 'name' location, 'select'=if explore the parent location instead, and inside it select desired element. This function will only open folders, drives, URL links using the System File Explorer or Browser, it will never run any programs. If 'name' points to a file, then its parent folder will be opened and the file will always be selected regardless of 'select', false on fail.
 Bool Run    (C Str &name, C Str &params=S, Bool hidden=false, Bool as_admin=false); // run     selected 'name' command/application/file/folder/drive/URL link, 'as_admin'=if run as administrator, Sample Usage: Run("C:/esenthel.exe"), Run("http://www.esenthel.com"), false on fail
@@ -365,7 +366,7 @@ enum PERMISSION // Permissions
    PERMISSION_EXTERNAL_STORAGE, // allow accessing files outside of application folders
    PERMISSION_LOCATION        , // allow accessing device location  using 'Location*' functions
    PERMISSION_SOUND_RECORD    , // allow recording sounds           using 'SoundRecord'
-   PERMISSION_USER_NAME       , // allow accessing system user name using 'OSUserName'
+   PERMISSION_USER_NAME       , // allow accessing system user name using 'OSUserName' and 'OSUserEmail'
 #if EE_PRIVATE
    PERMISSION_NUM             , // number of permissions
 #endif

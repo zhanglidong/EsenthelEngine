@@ -1,5 +1,7 @@
 /******************************************************************************/
 package EE_PACKAGE;
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Application;
@@ -370,7 +372,7 @@ public class EsenthelActivity extends NativeActivity
    FACEBOOK_END
       initNotification();
 
-      /*log("android_id "+android_id);
+    /*log("android_id "+android_id);
       log("BOARD "+Build.BOARD);
       log("BOOTLOADER "+Build.BOOTLOADER);
       log("BRAND "+Build.BRAND);
@@ -504,6 +506,26 @@ public class EsenthelActivity extends NativeActivity
    public static final String model       () {return Build.MODEL;}
    public static final String serial      () {return Build.SERIAL;}
    public static final String androidID   () {return android_id;}
+	public static final String userName    ()
+	{
+      try{
+			android.database.Cursor cursor=context.getContentResolver().query(android.provider.ContactsContract.Profile.CONTENT_URI, null, null, null, null);
+			if(cursor!=null && cursor.moveToFirst())
+			{
+				int col=cursor.getColumnIndex(android.provider.ContactsContract.Profile.DISPLAY_NAME); if(col>=0)return cursor.getString(col);
+			}
+      }catch(Exception exception){} // no permission
+		return null;
+	}
+	public static final String userEmail()
+	{
+      try{
+			AccountManager manager=AccountManager.get(context);
+			Account[] accounts=manager.getAccountsByType("com.google");
+			if(accounts!=null && accounts.length>0)return accounts[0].name;
+      }catch(Exception exception){} // no permission
+		return null;
+	}
 
    public final float dipToPx(float f) {return f*getResources().getDisplayMetrics().density;}
    public final float pxToDip(float f) {return f/getResources().getDisplayMetrics().density;}

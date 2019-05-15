@@ -1356,16 +1356,12 @@ static struct UserNameGetter
       return name;
    }
 }UserName;
-#elif ANDROID
-static SyncLock AndroidUserNameLock;
-static Str      AndroidUserName;
 #endif
 Str OSUserName(Bool short_name)
 {
 #if WINDOWS_OLD
    wchar_t user_name[256+1]; DWORD size=Elms(user_name);
    if(short_name ? GetUserName(user_name, &size) : GetUserNameEx(NameDisplay, user_name, &size))return user_name;
-   return S;
 #elif WINDOWS_NEW // calling this method will result in asking for permission on the screen
    return UserName.get();
 #elif MAC
@@ -1393,40 +1389,29 @@ Str OSUserName(Bool short_name)
       }
       return FromUTF8(pw.pw_name);
    }
-   return S;
 #elif IOS
 	return [[UIDevice currentDevice] name]; // don't release this NSString as it causes errors
 #elif ANDROID
-   if(!AndroidUserName.is())
-   {
-      SyncLocker locker(AndroidUserNameLock);
-      if(!AndroidUserName.is())
-      {
-         RequirePermission(PERMISSION_USER_NAME);
-
-         JNI jni;
-         if(jni && Activity)
-         if(JClass AccountManagerClass=JClass(jni, "android/accounts/AccountManager"))
-         if(JClass AccountClass=JClass(jni, "android/accounts/Account"))
-         if(JMethodID get=jni.staticFunc(AccountManagerClass, "get", "(Landroid/content/Context;)Landroid/accounts/AccountManager;"))
-         if(JObject mgr=JObject(jni, jni->CallStaticObjectMethod(AccountManagerClass, get, Activity)))
-         if(JMethodID getAccountsByType=jni.func(AccountManagerClass, "getAccountsByType", "(Ljava/lang/String;)[Landroid/accounts/Account;"))
-         if(JString com_google=JString(jni, "com.google"))
-         if(JObjectArray accounts=JObjectArray(jni, jni->CallObjectMethod(mgr, getAccountsByType, com_google())))
-         {
-            Int length=accounts.elms();
-            if( length>=1)
-            if(JObject account=JObject(jni, accounts[0]))
-            if(JFieldID name=jni->GetFieldID(AccountClass, "name", "Ljava/lang/String;"))
-            if(JString n=JString(jni, jni->GetObjectField(account, name)))
-               AndroidUserName=n.str();
-         }
-      }
-   }
-   return AndroidUserName;
-#else
-   return S;
+   RequirePermission(PERMISSION_USER_NAME);
+   JNI jni;
+   if(jni && ActivityClass)
+      if(JMethodID method=jni.staticFunc(ActivityClass, "userName", "()Ljava/lang/String;"))
+      if(JString str=JString(jni, jni->CallStaticObjectMethod(ActivityClass, method)))
+         return str.str();
 #endif
+   return S;
+}
+Str OSUserEmail()
+{
+#if ANDROID
+   RequirePermission(PERMISSION_USER_NAME);
+   JNI jni;
+   if(jni && ActivityClass)
+      if(JMethodID method=jni.staticFunc(ActivityClass, "userEmail", "()Ljava/lang/String;"))
+      if(JString str=JString(jni, jni->CallStaticObjectMethod(ActivityClass, method)))
+         return str.str();
+#endif
+   return S;
 }
 /******************************************************************************/
 static struct Locale
@@ -1751,7 +1736,7 @@ static CChar8* AndroidPermissions[]=
    "android.permission.WRITE_EXTERNAL_STORAGE", // 0
    "android.permission.ACCESS_FINE_LOCATION"  , // 1
    "android.permission.RECORD_AUDIO"          , // 2
-   "android.permission.GET_ACCOUNTS"          , // 3
+   "android.permission.READ_CONTACTS"         , // 3
 };
 ASSERT(PERMISSION_EXTERNAL_STORAGE==0 && PERMISSION_LOCATION==1 && PERMISSION_SOUND_RECORD==2 && PERMISSION_USER_NAME==3 && PERMISSION_NUM==4);
 #endif
