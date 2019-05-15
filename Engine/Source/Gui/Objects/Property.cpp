@@ -735,6 +735,16 @@ Property& Property::changed(void (*changed)(C Property &prop), void (*pre_change
    T._pre_changed=pre_changed;
    return T;
 }
+Property& Property::funcImmediate(Bool immediate)
+{
+   checkbox.funcImmediate(immediate);
+   textline.funcImmediate(immediate);
+   button  .funcImmediate(immediate);
+   combobox.funcImmediate(immediate);
+   slider  .funcImmediate(immediate);
+if(_cp)_cp->funcImmediate(immediate);
+   return T;
+}
 Rect Property::addTo(GuiObj &parent, C Vec2 &pos, Flt text_width, Flt height, Flt value_width)
 {
    Flt  value_height=height*0.92f;

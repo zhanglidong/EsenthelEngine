@@ -26,6 +26,11 @@ const_mem_addr STRUCT(TextLine , GuiObj) // Gui TextLine !! must be stored in co
    T1(TYPE) TextLine& func(void (*func)(TYPE *user), TYPE *user     , Bool immediate=false) {return T.func((void(*)(Ptr))func,  user, immediate);} // set function called when text has changed, with 'user' as its parameter, 'immediate'=if call the function immediately when a change occurs (this will happen inside object update function where you cannot delete any objects) if set to false then the function will get called after all objects finished updating (there you can delete objects)
    T1(TYPE) TextLine& func(void (*func)(TYPE &user), TYPE &user     , Bool immediate=false) {return T.func((void(*)(Ptr))func, &user, immediate);} // set function called when text has changed, with 'user' as its parameter, 'immediate'=if call the function immediately when a change occurs (this will happen inside object update function where you cannot delete any objects) if set to false then the function will get called after all objects finished updating (there you can delete objects)
 
+            void    (*func         ()C) (Ptr user)  {return _func                              ;} // get                         function called when text has changed, this returns a pointer to "void func(Ptr user)" function
+            Ptr       funcUser     ()C              {return _func_user                         ;} // get user      parameter for function called when text has changed
+            Bool      funcImmediate()C              {return _func_immediate                    ;} // get immediate parameter for function called when text has changed
+            TextLine& funcImmediate(Bool immediate) {       _func_immediate=immediate; return T;} // set immediate parameter for function called when text has changed
+
    virtual TextLine& rect(C Rect &rect );   C Rect& rect()C {return super::rect();} // set/get rectangle
    virtual TextLine& move(C Vec2 &delta);                                           // move by delta
 

@@ -62,6 +62,8 @@ const_mem_addr struct Property // Class Member Gui Control !! must be stored in 
 
    Property& changed(void (*changed)(C Property &prop), void (*pre_changed)(C Property &prop)=null); // set functions called after and before a property value is changed
 
+   Property& funcImmediate(Bool immediate); // if call the function immediately when a change occurs (this will happen inside object update function where you cannot delete any objects) if set to false then the function will get called after all objects finished updating (there you can delete objects)
+
    // get value clamped according to specified limits
    Bool  clamp(Bool  value);
    Int   clamp(Int   value);

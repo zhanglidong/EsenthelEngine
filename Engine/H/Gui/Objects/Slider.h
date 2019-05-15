@@ -19,6 +19,11 @@ const_mem_addr STRUCT(Slider , GuiObj) // Gui Slider !! must be stored in consta
    T1(TYPE) Slider& func(void (*func)(TYPE *user), TYPE *user     , Bool immediate=true) {return T.func((void(*)(Ptr))func,  user, immediate);} // set function called when value has changed, with 'user' as its parameter
    T1(TYPE) Slider& func(void (*func)(TYPE &user), TYPE &user     , Bool immediate=true) {return T.func((void(*)(Ptr))func, &user, immediate);} // set function called when value has changed, with 'user' as its parameter
 
+            void  (*func         ()C) (Ptr user)  {return _func                              ;} // get                         function called when value has changed, this returns a pointer to "void func(Ptr user)" function
+            Ptr     funcUser     ()C              {return _func_user                         ;} // get user      parameter for function called when value has changed
+            Bool    funcImmediate()C              {return _func_immediate                    ;} // get immediate parameter for function called when value has changed
+            Slider& funcImmediate(Bool immediate) {       _func_immediate=immediate; return T;} // set immediate parameter for function called when value has changed
+
    Slider& focusable(Bool on);   Bool focusable()C {return _focusable;} // set/get if can catch keyboard focus, default=false
 
    // operations

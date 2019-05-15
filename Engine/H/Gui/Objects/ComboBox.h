@@ -56,6 +56,9 @@ const_mem_addr STRUCT(ComboBox , Button) // Gui ComboBox !! must be stored in co
    T1(TYPE) ComboBox& func(void (*func)(TYPE *user), TYPE *user     , Bool immediate=false) {return T.func((void(*)(Ptr))func,  user, immediate);} // set function called when selection has changed, with 'user' as its parameter, 'immediate'=if call the function immediately when a change occurs (this will happen inside object update function where you cannot delete any objects) if set to false then the function will get called after all objects finished updating (there you can delete objects)
    T1(TYPE) ComboBox& func(void (*func)(TYPE &user), TYPE &user     , Bool immediate=false) {return T.func((void(*)(Ptr))func, &user, immediate);} // set function called when selection has changed, with 'user' as its parameter, 'immediate'=if call the function immediately when a change occurs (this will happen inside object update function where you cannot delete any objects) if set to false then the function will get called after all objects finished updating (there you can delete objects)
 
+            Bool      funcImmediate()C              {return _func_immediate                    ;} // get immediate parameter for function called when combobox state has changed
+            ComboBox& funcImmediate(Bool immediate) {       _func_immediate=immediate; return T;} // set immediate parameter for function called when combobox state has changed
+
    // main
    virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel); // test if 'pos' screen position intersects with the object, by returning pointer to object or its children upon intersection and null in case no intersection, 'mouse_wheel' may be modified upon intersection either to the object or its children or null
    virtual void    update(C GuiPC &gpc); // update object

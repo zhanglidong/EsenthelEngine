@@ -73,8 +73,10 @@ const_mem_addr STRUCT(Button , GuiObj) // Gui Button !! must be stored in consta
    T1(TYPE) Button& func(void (*func)(TYPE *user), TYPE *user     , Bool immediate=false) {return T.func((void(*)(Ptr))func,  user, immediate);} // set function called when button state has changed, with 'user' as its parameter, 'immediate'=if call the function immediately when a change occurs (this will happen inside object update function where you cannot delete any objects) if set to false then the function will get called after all objects finished updating (there you can delete objects)
    T1(TYPE) Button& func(void (*func)(TYPE &user), TYPE &user     , Bool immediate=false) {return T.func((void(*)(Ptr))func, &user, immediate);} // set function called when button state has changed, with 'user' as its parameter, 'immediate'=if call the function immediately when a change occurs (this will happen inside object update function where you cannot delete any objects) if set to false then the function will get called after all objects finished updating (there you can delete objects)
 
-            void  (*func    ()C) (Ptr user) {return _func     ;} // get                    function called when button state has changed, this returns a pointer to "void func(Ptr user)" function
-            Ptr     funcUser()C             {return _func_user;} // get user parameter for function called when button state has changed
+            void  (*func         ()C) (Ptr user)  {return _func                              ;} // get                         function called when button state has changed, this returns a pointer to "void func(Ptr user)" function
+            Ptr     funcUser     ()C              {return _func_user                         ;} // get user      parameter for function called when button state has changed
+            Bool    funcImmediate()C              {return _func_immediate                    ;} // get immediate parameter for function called when button state has changed
+            Button& funcImmediate(Bool immediate) {       _func_immediate=immediate; return T;} // set immediate parameter for function called when button state has changed
 
    // main
    virtual Button& hide  (            ); // hide
