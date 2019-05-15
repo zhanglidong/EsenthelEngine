@@ -953,7 +953,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       if(flag&ROOT_DEL_ROT_X)f|=::ROOT_DEL_ROTATION_X;
       if(flag&ROOT_DEL_ROT_Y)f|=::ROOT_DEL_ROTATION_Y;
       if(flag&ROOT_DEL_ROT_Z)f|=::ROOT_DEL_ROTATION_Z;
-      if(flag&ROOT_2_KEYS   )f|=::ROOT_2_KEYS;
+      if(flag&ROOT_SMOOTH   )f|=::ROOT_SMOOTH;
       if(flag&ROOT_FROM_BODY)f|=::ROOT_BONE_POSITION|::ROOT_START_IDENTITY;
       return f;
    }
@@ -1009,7 +1009,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       if(old&(1<<3))f|=ROOT_DEL_POS_Y;
       if(old&(1<<4))f|=ROOT_DEL_POS_Z;
       if(old&(1<<5))f|=ROOT_DEL_ROT;
-      if(old&(1<<6))f|=ROOT_2_KEYS;
+      if(old&(1<<6))f|=ROOT_SMOOTH;
       if(old&(1<<7))f|=ROOT_FROM_BODY;
       return f;
    }
@@ -1061,7 +1061,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
     if(rootRot ()       )nodes.New().setRaw("RootRot"     , root_rot );
     if(flag&ROOT_DEL_POS)nodes.New().set   ("RootDelPos"  , FlagAll(flag, ROOT_DEL_POS) ? S : S+(FlagTest(flag, ROOT_DEL_POS_X) ? 'X' : '\0')+(FlagTest(flag, ROOT_DEL_POS_Y) ? 'Y' : '\0')+(FlagTest(flag, ROOT_DEL_POS_Z) ? 'Z' : '\0'));
     if(flag&ROOT_DEL_ROT)nodes.New().set   ("RootDelRot"  , FlagAll(flag, ROOT_DEL_ROT) ? S : S+(FlagTest(flag, ROOT_DEL_ROT_X) ? 'X' : '\0')+(FlagTest(flag, ROOT_DEL_ROT_Y) ? 'Y' : '\0')+(FlagTest(flag, ROOT_DEL_ROT_Z) ? 'Z' : '\0'));
-    if(flag&ROOT_2_KEYS )nodes.New().set   ("Root2Keys"   );
+    if(flag&ROOT_SMOOTH )nodes.New().set   ("RootSmooth"  );
                          nodes.New().set   ("LoopTime"    ,   loop_time.text());
                          nodes.New().set   ("LinearTime"  , linear_time.text());
                          nodes.New().set   ("SkeletonTime",   skel_time.text());
@@ -1079,7 +1079,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          if(n.name=="RootRot"     )n.getValueRaw(root_rot);else
          if(n.name=="Loop"        )loop  (n.asBool1());else
          if(n.name=="Linear"      )linear(n.asBool1());else
-         if(n.name=="Root2Keys"   )FlagSet(flag, ROOT_2_KEYS, n.asBool1());else
+         if(n.name=="RootSmooth"  )FlagSet(flag, ROOT_SMOOTH, n.asBool1());else
          if(n.name=="LoopTime"    )  loop_time=n.asText();else
          if(n.name=="LinearTime"  )linear_time=n.asText();else
          if(n.name=="SkeletonTime")  skel_time=n.asText();else

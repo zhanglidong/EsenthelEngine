@@ -3,6 +3,7 @@ Str       str;
 TextEdit  ed;
 bool      ok;
 CalcValue val;
+Str       error;
 /******************************************************************************/
 void InitPre()
 {
@@ -36,7 +37,7 @@ bool Update()
    var[2].value.r=Ms.pos().x;
    var[3].value.r=Ms.pos().y;
 
-   ok=Calculate(val, str, var);
+   ok=Calculate(val, str, &error, var);
    return true;
 }
 /******************************************************************************/
@@ -47,7 +48,7 @@ void Draw()
    ts .size=0.070;
    tsb.size=0.085;
 
-   if(!ok)D.text(tsb, 0, 0, S+"Error : "+CalcError);else
+   if(!ok)D.text(tsb, 0, 0, error.is() ? error : "Error");else
    {
       D.text(tsb, 0, -D.h()+0.12, val.asText(-9));
 

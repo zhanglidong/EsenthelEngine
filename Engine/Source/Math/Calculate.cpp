@@ -7,17 +7,8 @@ enum CALC_ELM_TYPE : Byte
    CET_NONE,
    CET_OP  ,
    CET_VAL ,
-   CET_VAR ,
    CET_FUNC,
 };
-/******************************************************************************/
-Char CalcError[128];
-/******************************************************************************/
-static Bool E(C Str &name                                                                     ) {Set(CalcError,   name                                                                                ); return false;}
-static Bool E(C Str &name, C CalcValue &arg                                                   ) {Set(CalcError, S+name+'('+arg.typeName()                                                         +')'); return false;}
-static Bool E(C Str &name, C CalcValue &a0 , C CalcValue &a1                                  ) {Set(CalcError, S+name+'('+a0 .typeName()+", "+a1.typeName()                                      +')'); return false;}
-static Bool E(C Str &name, C CalcValue &a0 , C CalcValue &a1, C CalcValue &a2                 ) {Set(CalcError, S+name+'('+a0 .typeName()+", "+a1.typeName()+", "+a2.typeName()                   +')'); return false;}
-static Bool E(C Str &name, C CalcValue &a0 , C CalcValue &a1, C CalcValue &a2, C CalcValue &a3) {Set(CalcError, S+name+'('+a0 .typeName()+", "+a1.typeName()+", "+a2.typeName()+", "+a3.typeName()+')'); return false;}
 /******************************************************************************/
 CChar8* CalcValue::typeName()C
 {
@@ -1095,84 +1086,84 @@ Bool CalcValue::perp()
    return false;
 }
 /******************************************************************************/
-static Bool CLogicalNot(CalcValue &x) {return x.notLogical() ? true : E("!"   , x);}
-static Bool CBitwiseNot(CalcValue &x) {return x.notBitwise() ? true : E("~"   , x);}
-static Bool CChs       (CalcValue &x) {return x.chs       () ? true : E("-"   , x);}
-static Bool CAbs       (CalcValue &x) {return x.abs       () ? true : E("Abs" , x);}
-static Bool CSign      (CalcValue &x) {return x.sign      () ? true : E("Sign", x);}
+static Bool CLogicalNot(CalcValue &x) {return x.notLogical();}
+static Bool CBitwiseNot(CalcValue &x) {return x.notBitwise();}
+static Bool CChs       (CalcValue &x) {return x.chs       ();}
+static Bool CAbs       (CalcValue &x) {return x.abs       ();}
+static Bool CSign      (CalcValue &x) {return x.sign      ();}
 
-static Bool CSat(CalcValue &x              ) {return x.sat( ) ? true : E("Sat", x   );}
-static Bool CMin(CalcValue &x, CalcValue &y) {return x.min(y) ? true : E("Min", x, y);}
-static Bool CMax(CalcValue &x, CalcValue &y) {return x.max(y) ? true : E("Max", x, y);}
-static Bool CAvg(CalcValue &x, CalcValue &y) {return x.avg(y) ? true : E("Avg", x, y);}
+static Bool CSat(CalcValue &x              ) {return x.sat( );}
+static Bool CMin(CalcValue &x, CalcValue &y) {return x.min(y);}
+static Bool CMax(CalcValue &x, CalcValue &y) {return x.max(y);}
+static Bool CAvg(CalcValue &x, CalcValue &y) {return x.avg(y);}
 
-static Bool CAdd(CalcValue &x, CalcValue &y) {return x.add(y) ? true : E("+", x, y);}
-static Bool CSub(CalcValue &x, CalcValue &y) {return x.sub(y) ? true : E("-", x, y);}
-static Bool CMul(CalcValue &x, CalcValue &y) {return x.mul(y) ? true : E("*", x, y);}
-static Bool CDiv(CalcValue &x, CalcValue &y) {return x.div(y) ? true : E("/", x, y);}
-static Bool CMod(CalcValue &x, CalcValue &y) {return x.mod(y) ? true : E("%", x, y);}
+static Bool CAdd(CalcValue &x, CalcValue &y) {return x.add(y);}
+static Bool CSub(CalcValue &x, CalcValue &y) {return x.sub(y);}
+static Bool CMul(CalcValue &x, CalcValue &y) {return x.mul(y);}
+static Bool CDiv(CalcValue &x, CalcValue &y) {return x.div(y);}
+static Bool CMod(CalcValue &x, CalcValue &y) {return x.mod(y);}
 
-static Bool CSqr (CalcValue &x              ) {return x.sqr ( ) ? true : E("Sqr" , x   );}
-static Bool CCube(CalcValue &x              ) {return x.cube( ) ? true : E("Cube", x   );}
-static Bool CSqrt(CalcValue &x              ) {return x.sqrt( ) ? true : E("Sqrt", x   );}
-static Bool CCbrt(CalcValue &x              ) {return x.cbrt( ) ? true : E("Cbrt", x   );}
-static Bool CPow (CalcValue &x, CalcValue &y) {return x.pow (y) ? true : E("Pow" , x, y);}
-static Bool CLn  (CalcValue &x              ) {return x.ln  ( ) ? true : E("Ln"  , x   );}
-static Bool CLog2(CalcValue &x              ) {return x.log2( ) ? true : E("Log2", x   );}
-static Bool CLog (CalcValue &x, CalcValue &y) {return x.log (y) ? true : E("Log" , x, y);}
+static Bool CSqr (CalcValue &x              ) {return x.sqr ( );}
+static Bool CCube(CalcValue &x              ) {return x.cube( );}
+static Bool CSqrt(CalcValue &x              ) {return x.sqrt( );}
+static Bool CCbrt(CalcValue &x              ) {return x.cbrt( );}
+static Bool CPow (CalcValue &x, CalcValue &y) {return x.pow (y);}
+static Bool CLn  (CalcValue &x              ) {return x.ln  ( );}
+static Bool CLog2(CalcValue &x              ) {return x.log2( );}
+static Bool CLog (CalcValue &x, CalcValue &y) {return x.log (y);}
 
-static Bool CAnd(CalcValue &x, CalcValue &y) {return x.And(y) ? true : E("&" , x, y);}
-static Bool COr (CalcValue &x, CalcValue &y) {return x.Or (y) ? true : E("|" , x, y);}
-static Bool CXor(CalcValue &x, CalcValue &y) {return x.Xor(y) ? true : E("^" , x, y);}
-static Bool CShl(CalcValue &x, CalcValue &y) {return x.shl(y) ? true : E("<<", x, y);}
-static Bool CShr(CalcValue &x, CalcValue &y) {return x.shr(y) ? true : E(">>", x, y);}
-static Bool CRol(CalcValue &x, CalcValue &y) {return x.rol(y) ? true : E("Rol", x, y);}
-static Bool CRor(CalcValue &x, CalcValue &y) {return x.ror(y) ? true : E("Ror", x, y);}
+static Bool CAnd(CalcValue &x, CalcValue &y) {return x.And(y);}
+static Bool COr (CalcValue &x, CalcValue &y) {return x.Or (y);}
+static Bool CXor(CalcValue &x, CalcValue &y) {return x.Xor(y);}
+static Bool CShl(CalcValue &x, CalcValue &y) {return x.shl(y);}
+static Bool CShr(CalcValue &x, CalcValue &y) {return x.shr(y);}
+static Bool CRol(CalcValue &x, CalcValue &y) {return x.rol(y);}
+static Bool CRor(CalcValue &x, CalcValue &y) {return x.ror(y);}
 
-static Bool CEqual(CalcValue &x, CalcValue &y) {return x.     equal  (y) ? true : E("==", x, y);}
-static Bool CNequ (CalcValue &x, CalcValue &y) {return x.  notEqual  (y) ? true : E("!=", x, y);}
-static Bool CGr   (CalcValue &x, CalcValue &y) {return x.     greater(y) ? true : E(">" , x, y);}
-static Bool CSm   (CalcValue &x, CalcValue &y) {return x.     smaller(y) ? true : E("<" , x, y);}
-static Bool CEgr  (CalcValue &x, CalcValue &y) {return x.equalGreater(y) ? true : E(">=", x, y);}
-static Bool CEsm  (CalcValue &x, CalcValue &y) {return x.equalSmaller(y) ? true : E("<=", x, y);}
+static Bool CEqual(CalcValue &x, CalcValue &y) {return x.     equal  (y);}
+static Bool CNequ (CalcValue &x, CalcValue &y) {return x.  notEqual  (y);}
+static Bool CGr   (CalcValue &x, CalcValue &y) {return x.     greater(y);}
+static Bool CSm   (CalcValue &x, CalcValue &y) {return x.     smaller(y);}
+static Bool CEgr  (CalcValue &x, CalcValue &y) {return x.equalGreater(y);}
+static Bool CEsm  (CalcValue &x, CalcValue &y) {return x.equalSmaller(y);}
 
-static Bool CLogicalAnd(CalcValue &x, CalcValue &y) {return x.andLogical(y) ? true : E("&&", x, y);}
-static Bool CLogicalOr (CalcValue &x, CalcValue &y) {return x. orLogical(y) ? true : E("||", x, y);}
-static Bool CLogicalXor(CalcValue &x, CalcValue &y) {return x.xorLogical(y) ? true : E("^^", x, y);}
+static Bool CLogicalAnd(CalcValue &x, CalcValue &y) {return x.andLogical(y);}
+static Bool CLogicalOr (CalcValue &x, CalcValue &y) {return x. orLogical(y);}
+static Bool CLogicalXor(CalcValue &x, CalcValue &y) {return x.xorLogical(y);}
 
-static Bool CTrunc (CalcValue &x              ) {return x.trunc     ( ) ? true : E("Trunc"     , x);}
-static Bool CRound (CalcValue &x              ) {return x.round     ( ) ? true : E("Round"     , x);}
-static Bool CFloor (CalcValue &x              ) {return x.floor     ( ) ? true : E("Floor"     , x);}
-static Bool CCeil  (CalcValue &x              ) {return x.ceil      ( ) ? true : E("Ceil"      , x);}
-static Bool CFrac  (CalcValue &x              ) {return x.frac      ( ) ? true : E("Frac"      , x);}
-static Bool CAlignT(CalcValue &x, CalcValue &y) {return x.alignTrunc(y) ? true : E("AlignTrunc", x, y);}
-static Bool CAlignR(CalcValue &x, CalcValue &y) {return x.alignRound(y) ? true : E("AlignRound", x, y);}
-static Bool CAlignF(CalcValue &x, CalcValue &y) {return x.alignFloor(y) ? true : E("AlignFloor", x, y);}
-static Bool CAlignC(CalcValue &x, CalcValue &y) {return x.alignCeil (y) ? true : E("AlignCeil" , x, y);}
+static Bool CTrunc (CalcValue &x              ) {return x.trunc     ( );}
+static Bool CRound (CalcValue &x              ) {return x.round     ( );}
+static Bool CFloor (CalcValue &x              ) {return x.floor     ( );}
+static Bool CCeil  (CalcValue &x              ) {return x.ceil      ( );}
+static Bool CFrac  (CalcValue &x              ) {return x.frac      ( );}
+static Bool CAlignT(CalcValue &x, CalcValue &y) {return x.alignTrunc(y);}
+static Bool CAlignR(CalcValue &x, CalcValue &y) {return x.alignRound(y);}
+static Bool CAlignF(CalcValue &x, CalcValue &y) {return x.alignFloor(y);}
+static Bool CAlignC(CalcValue &x, CalcValue &y) {return x.alignCeil (y);}
 
-static Bool CSin     (CalcValue &x) {return x.sin     () ? true : E("Sin"     , x);}
-static Bool CCos     (CalcValue &x) {return x.cos     () ? true : E("Cos"     , x);}
-static Bool CTan     (CalcValue &x) {return x.tan     () ? true : E("Tan"     , x);}
-static Bool CCtg     (CalcValue &x) {return x.ctg     () ? true : E("Ctg"     , x);}
-static Bool CAcos    (CalcValue &x) {return x.acos    () ? true : E("Acos"    , x);}
-static Bool CAsin    (CalcValue &x) {return x.asin    () ? true : E("Asin"    , x);}
-static Bool CAtan    (CalcValue &x) {return x.atan    () ? true : E("Atan"    , x);}
-static Bool CDegToRad(CalcValue &x) {return x.degToRad() ? true : E("DegToRad", x);}
-static Bool CRadToDeg(CalcValue &x) {return x.radToDeg() ? true : E("RadToDeg", x);}
+static Bool CSin     (CalcValue &x) {return x.sin     ();}
+static Bool CCos     (CalcValue &x) {return x.cos     ();}
+static Bool CTan     (CalcValue &x) {return x.tan     ();}
+static Bool CCtg     (CalcValue &x) {return x.ctg     ();}
+static Bool CAcos    (CalcValue &x) {return x.acos    ();}
+static Bool CAsin    (CalcValue &x) {return x.asin    ();}
+static Bool CAtan    (CalcValue &x) {return x.atan    ();}
+static Bool CDegToRad(CalcValue &x) {return x.degToRad();}
+static Bool CRadToDeg(CalcValue &x) {return x.radToDeg();}
 
-static Bool CLength (CalcValue &x              ) {return x.length ( ) ? true : E("Length" , x   );}
-static Bool CLength2(CalcValue &x              ) {return x.length2( ) ? true : E("Length2", x   );}
-static Bool CDot    (CalcValue &x, CalcValue &y) {return x.dot    (y) ? true : E("Dot"    , x, y);}
-static Bool CCross  (CalcValue &x, CalcValue &y) {return x.cross  (y) ? true : E("Cross"  , x, y);}
-static Bool CPerp   (CalcValue &x              ) {return x.perp   ( ) ? true : E("Perp"   , x   );}
+static Bool CLength (CalcValue &x              ) {return x.length ( );}
+static Bool CLength2(CalcValue &x              ) {return x.length2( );}
+static Bool CDot    (CalcValue &x, CalcValue &y) {return x.dot    (y);}
+static Bool CCross  (CalcValue &x, CalcValue &y) {return x.cross  (y);}
+static Bool CPerp   (CalcValue &x              ) {return x.perp   ( );}
 
 static Bool CAngle(CalcValue &x, CalcValue &y)
 {
    Dbl xr, yr;
    if(x.type==CVAL_INT )xr=x.i;else
-   if(x.type==CVAL_REAL)xr=x.r;else return E("Angle", x, y);
+   if(x.type==CVAL_REAL)xr=x.r;else return false;
    if(y.type==CVAL_INT )yr=y.i;else
-   if(y.type==CVAL_REAL)yr=y.r;else return E("Angle", x, y);
+   if(y.type==CVAL_REAL)yr=y.r;else return false;
    x.r   =Angle(VecD2(xr, yr));
    x.type=CVAL_REAL; return true;
 }
@@ -1180,9 +1171,9 @@ static Bool CPinch(CalcValue &x, CalcValue &y)
 {
    Dbl step, pinch;
    if(x.type==CVAL_INT )step =x.i;else
-   if(x.type==CVAL_REAL)step =x.r;else return E("Pinch", x, y);
+   if(x.type==CVAL_REAL)step =x.r;else return false;
    if(y.type==CVAL_INT )pinch=y.i;else
-   if(y.type==CVAL_REAL)pinch=y.r;else return E("Pinch", x, y);
+   if(y.type==CVAL_REAL)pinch=y.r;else return false;
    x.r   =Pinch(step, pinch);
    x.type=CVAL_REAL; return true;
 }
@@ -1190,46 +1181,46 @@ static Bool CPinch(CalcValue &x, CalcValue &y)
 static Bool CSmoothSqr(CalcValue &x)
 {
    if(x.type==CVAL_INT )x.r=SmoothSqr(Dbl(x.i));else
-   if(x.type==CVAL_REAL)x.r=SmoothSqr(    x.r );else return E("SmoothSqr", x);
+   if(x.type==CVAL_REAL)x.r=SmoothSqr(    x.r );else return false;
    x.type=CVAL_REAL; return true;
 }
 static Bool CSmoothCube(CalcValue &x)
 {
    if(x.type==CVAL_INT )x.r=SmoothCube(Dbl(x.i));else
-   if(x.type==CVAL_REAL)x.r=SmoothCube(    x.r );else return E("SmoothCube", x);
+   if(x.type==CVAL_REAL)x.r=SmoothCube(    x.r );else return false;
    x.type=CVAL_REAL; return true;
 }
 static Bool CSmoothCubeInv(CalcValue &x)
 {
    if(x.type==CVAL_INT )x.r=SmoothCubeInv(Dbl(x.i));else
-   if(x.type==CVAL_REAL)x.r=SmoothCubeInv(    x.r );else return E("CSmoothCubeInv", x);
+   if(x.type==CVAL_REAL)x.r=SmoothCubeInv(    x.r );else return false;
    x.type=CVAL_REAL; return true;
 }
 static Bool CSmoothCube2(CalcValue &x)
 {
    if(x.type==CVAL_INT )x.r=SmoothCube2(Dbl(x.i));else
-   if(x.type==CVAL_REAL)x.r=SmoothCube2(    x.r );else return E("SmoothCube2", x);
+   if(x.type==CVAL_REAL)x.r=SmoothCube2(    x.r );else return false;
    x.type=CVAL_REAL; return true;
 }
 static Bool CSmoothSextic(CalcValue &x)
 {
    if(x.type==CVAL_INT )x.r=SmoothSextic(Dbl(x.i));else
-   if(x.type==CVAL_REAL)x.r=SmoothSextic(    x.r );else return E("SmoothSextic", x);
+   if(x.type==CVAL_REAL)x.r=SmoothSextic(    x.r );else return false;
    x.type=CVAL_REAL; return true;
 }
 static Bool CSmoothSin(CalcValue &x)
 {
    if(x.type==CVAL_INT )x.r=SmoothSin(Dbl(x.i));else
-   if(x.type==CVAL_REAL)x.r=SmoothSin(    x.r );else return E("SmoothSin", x);
+   if(x.type==CVAL_REAL)x.r=SmoothSin(    x.r );else return false;
    x.type=CVAL_REAL; return true;
 }
 static Bool CSmoothPow(CalcValue &x, CalcValue &y)
 {
    Dbl step, pow;
    if(x.type==CVAL_INT )step=x.i;else
-   if(x.type==CVAL_REAL)step=x.r;else return E("SmoothPow", x, y);
+   if(x.type==CVAL_REAL)step=x.r;else return false;
    if(y.type==CVAL_INT )pow =y.i;else
-   if(y.type==CVAL_REAL)pow =y.r;else return E("SmoothPow", x, y);
+   if(y.type==CVAL_REAL)pow =y.r;else return false;
    x.r   =SmoothPow(step, pow);
    x.type=CVAL_REAL; return true;
 }
@@ -1237,9 +1228,9 @@ static Bool CSmoothPinch(CalcValue &x, CalcValue &y)
 {
    Dbl step, pinch;
    if(x.type==CVAL_INT )step =x.i;else
-   if(x.type==CVAL_REAL)step =x.r;else return E("SmoothPinch", x, y);
+   if(x.type==CVAL_REAL)step =x.r;else return false;
    if(y.type==CVAL_INT )pinch=y.i;else
-   if(y.type==CVAL_REAL)pinch=y.r;else return E("SmoothPinch", x, y);
+   if(y.type==CVAL_REAL)pinch=y.r;else return false;
    x.r   =SmoothPinch(step, pinch);
    x.type=CVAL_REAL; return true;
 }
@@ -1247,31 +1238,31 @@ static Bool CSmoothPinch(CalcValue &x, CalcValue &y)
 static Bool CVec2(CalcValue &x, CalcValue &y)
 {
    if(x.type==CVAL_INT )x.v2.x=x.i;else
-   if(x.type==CVAL_REAL)x.v2.x=x.r;else return E("Vec2", x, y);
+   if(x.type==CVAL_REAL)x.v2.x=x.r;else return false;
    if(y.type==CVAL_INT )x.v2.y=y.i;else
-   if(y.type==CVAL_REAL)x.v2.y=y.r;else return E("Vec2", x, y);
+   if(y.type==CVAL_REAL)x.v2.y=y.r;else return false;
    x.type=CVAL_VEC2; return true;
 }
 static Bool CVec(CalcValue &x, CalcValue &y, CalcValue &z)
 {
    if(x.type==CVAL_INT )x.v.x=x.i;else
-   if(x.type==CVAL_REAL)x.v.x=x.r;else return E("Vec", x, y, z);
+   if(x.type==CVAL_REAL)x.v.x=x.r;else return false;
    if(y.type==CVAL_INT )x.v.y=y.i;else
-   if(y.type==CVAL_REAL)x.v.y=y.r;else return E("Vec", x, y, z);
+   if(y.type==CVAL_REAL)x.v.y=y.r;else return false;
    if(z.type==CVAL_INT )x.v.z=z.i;else
-   if(z.type==CVAL_REAL)x.v.z=z.r;else return E("Vec", x, y, z);
+   if(z.type==CVAL_REAL)x.v.z=z.r;else return false;
    x.type=CVAL_VEC; return true;
 }
 static Bool CVec4(CalcValue &x, CalcValue &y, CalcValue &z, CalcValue &w)
 {
    if(x.type==CVAL_INT )x.v4.x=x.i;else
-   if(x.type==CVAL_REAL)x.v4.x=x.r;else return E("Vec4", x, y, z, w);
+   if(x.type==CVAL_REAL)x.v4.x=x.r;else return false;
    if(y.type==CVAL_INT )x.v4.y=y.i;else
-   if(y.type==CVAL_REAL)x.v4.y=y.r;else return E("Vec4", x, y, z, w);
+   if(y.type==CVAL_REAL)x.v4.y=y.r;else return false;
    if(z.type==CVAL_INT )x.v4.z=z.i;else
-   if(z.type==CVAL_REAL)x.v4.z=z.r;else return E("Vec4", x, y, z, w);
+   if(z.type==CVAL_REAL)x.v4.z=z.r;else return false;
    if(w.type==CVAL_INT )x.v4.w=w.i;else
-   if(w.type==CVAL_REAL)x.v4.w=w.r;else return E("Vec4", x, y, z, w);
+   if(w.type==CVAL_REAL)x.v4.w=w.r;else return false;
    x.type=CVAL_VEC4; return true;
 }
 
@@ -1279,16 +1270,16 @@ static Bool CLerp(CalcValue &x, CalcValue &y, CalcValue &z)
 {
    Dbl from, to, s;
    if(z.type==CVAL_INT )s=z.i;else
-   if(z.type==CVAL_REAL)s=z.r;else return E("Lerp", x, y, z);
+   if(z.type==CVAL_REAL)s=z.r;else return false;
 
    if(x.type==CVAL_VEC2 && y.type==CVAL_VEC2){x.v2=Lerp(x.v2, y.v2, s); return true;}
    if(x.type==CVAL_VEC  && y.type==CVAL_VEC ){x.v =Lerp(x.v , y.v , s); return true;}
    if(x.type==CVAL_VEC4 && y.type==CVAL_VEC4){x.v4=Lerp(x.v4, y.v4, s); return true;}
 
    if(x.type==CVAL_INT )from=x.i;else
-   if(x.type==CVAL_REAL)from=x.r;else return E("Lerp", x, y, z);
+   if(x.type==CVAL_REAL)from=x.r;else return false;
    if(y.type==CVAL_INT )to  =y.i;else
-   if(y.type==CVAL_REAL)to  =y.r;else return E("Lerp", x, y, z);
+   if(y.type==CVAL_REAL)to  =y.r;else return false;
 
    x.r   =Lerp(from, to, s);
    x.type=CVAL_REAL; return true;
@@ -1297,11 +1288,11 @@ static Bool CLerpR(CalcValue &x, CalcValue &y, CalcValue &z)
 {
    Dbl from, to, s;
    if(x.type==CVAL_INT )from=x.i;else
-   if(x.type==CVAL_REAL)from=x.r;else return E("LerpR", x, y, z);
+   if(x.type==CVAL_REAL)from=x.r;else return false;
    if(y.type==CVAL_INT )to  =y.i;else
-   if(y.type==CVAL_REAL)to  =y.r;else return E("LerpR", x, y, z);
+   if(y.type==CVAL_REAL)to  =y.r;else return false;
    if(z.type==CVAL_INT )s   =z.i;else
-   if(z.type==CVAL_REAL)s   =z.r;else return E("LerpR", x, y, z);
+   if(z.type==CVAL_REAL)s   =z.r;else return false;
 
    x.r   =LerpR(from, to, s);
    x.type=CVAL_REAL; return true;
@@ -1310,11 +1301,11 @@ static Bool CLerpRS(CalcValue &x, CalcValue &y, CalcValue &z)
 {
    Dbl from, to, s;
    if(x.type==CVAL_INT )from=x.i;else
-   if(x.type==CVAL_REAL)from=x.r;else return E("LerpRS", x, y, z);
+   if(x.type==CVAL_REAL)from=x.r;else return false;
    if(y.type==CVAL_INT )to  =y.i;else
-   if(y.type==CVAL_REAL)to  =y.r;else return E("LerpRS", x, y, z);
+   if(y.type==CVAL_REAL)to  =y.r;else return false;
    if(z.type==CVAL_INT )s   =z.i;else
-   if(z.type==CVAL_REAL)s   =z.r;else return E("LerpRS", x, y, z);
+   if(z.type==CVAL_REAL)s   =z.r;else return false;
 
    x.r   =LerpRS(from, to, s);
    x.type=CVAL_REAL; return true;
@@ -1323,11 +1314,11 @@ static Bool CLerpSmoothSqr(CalcValue &x, CalcValue &y, CalcValue &z)
 {
    Dbl from, to, s;
    if(x.type==CVAL_INT )from=x.i;else
-   if(x.type==CVAL_REAL)from=x.r;else return E("LerpSmoothSqr", x, y, z);
+   if(x.type==CVAL_REAL)from=x.r;else return false;
    if(y.type==CVAL_INT )to  =y.i;else
-   if(y.type==CVAL_REAL)to  =y.r;else return E("LerpSmoothSqr", x, y, z);
+   if(y.type==CVAL_REAL)to  =y.r;else return false;
    if(z.type==CVAL_INT )s   =z.i;else
-   if(z.type==CVAL_REAL)s   =z.r;else return E("LerpSmoothSqr", x, y, z);
+   if(z.type==CVAL_REAL)s   =z.r;else return false;
 
    x.r   =LerpSmoothSqr(from, to, s);
    x.type=CVAL_REAL; return true;
@@ -1336,11 +1327,11 @@ static Bool CLerpSmoothCube(CalcValue &x, CalcValue &y, CalcValue &z)
 {
    Dbl from, to, s;
    if(x.type==CVAL_INT )from=x.i;else
-   if(x.type==CVAL_REAL)from=x.r;else return E("LerpSmoothCube", x, y, z);
+   if(x.type==CVAL_REAL)from=x.r;else return false;
    if(y.type==CVAL_INT )to  =y.i;else
-   if(y.type==CVAL_REAL)to  =y.r;else return E("LerpSmoothCube", x, y, z);
+   if(y.type==CVAL_REAL)to  =y.r;else return false;
    if(z.type==CVAL_INT )s   =z.i;else
-   if(z.type==CVAL_REAL)s   =z.r;else return E("LerpSmoothCube", x, y, z);
+   if(z.type==CVAL_REAL)s   =z.r;else return false;
 
    x.r   =LerpSmoothCube(from, to, s);
    x.type=CVAL_REAL; return true;
@@ -1349,11 +1340,11 @@ static Bool CLerpSmoothCube2(CalcValue &x, CalcValue &y, CalcValue &z)
 {
    Dbl from, to, s;
    if(x.type==CVAL_INT )from=x.i;else
-   if(x.type==CVAL_REAL)from=x.r;else return E("LerpSmoothCube2", x, y, z);
+   if(x.type==CVAL_REAL)from=x.r;else return false;
    if(y.type==CVAL_INT )to  =y.i;else
-   if(y.type==CVAL_REAL)to  =y.r;else return E("LerpSmoothCube2", x, y, z);
+   if(y.type==CVAL_REAL)to  =y.r;else return false;
    if(z.type==CVAL_INT )s   =z.i;else
-   if(z.type==CVAL_REAL)s   =z.r;else return E("LerpSmoothCube2", x, y, z);
+   if(z.type==CVAL_REAL)s   =z.r;else return false;
 
    x.r   =LerpSmoothCube2(from, to, s);
    x.type=CVAL_REAL; return true;
@@ -1362,11 +1353,11 @@ static Bool CLerpSmoothSextic(CalcValue &x, CalcValue &y, CalcValue &z)
 {
    Dbl from, to, s;
    if(x.type==CVAL_INT )from=x.i;else
-   if(x.type==CVAL_REAL)from=x.r;else return E("LerpSmoothSextic", x, y, z);
+   if(x.type==CVAL_REAL)from=x.r;else return false;
    if(y.type==CVAL_INT )to  =y.i;else
-   if(y.type==CVAL_REAL)to  =y.r;else return E("LerpSmoothSextic", x, y, z);
+   if(y.type==CVAL_REAL)to  =y.r;else return false;
    if(z.type==CVAL_INT )s   =z.i;else
-   if(z.type==CVAL_REAL)s   =z.r;else return E("LerpSmoothSextic", x, y, z);
+   if(z.type==CVAL_REAL)s   =z.r;else return false;
 
    x.r   =LerpSmoothSextic(from, to, s);
    x.type=CVAL_REAL; return true;
@@ -1375,11 +1366,11 @@ static Bool CLerpSmoothSin(CalcValue &x, CalcValue &y, CalcValue &z)
 {
    Dbl from, to, s;
    if(x.type==CVAL_INT )from=x.i;else
-   if(x.type==CVAL_REAL)from=x.r;else return E("LerpSmoothSin", x, y, z);
+   if(x.type==CVAL_REAL)from=x.r;else return false;
    if(y.type==CVAL_INT )to  =y.i;else
-   if(y.type==CVAL_REAL)to  =y.r;else return E("LerpSmoothSin", x, y, z);
+   if(y.type==CVAL_REAL)to  =y.r;else return false;
    if(z.type==CVAL_INT )s   =z.i;else
-   if(z.type==CVAL_REAL)s   =z.r;else return E("LerpSmoothSin", x, y, z);
+   if(z.type==CVAL_REAL)s   =z.r;else return false;
 
    x.r   =LerpSmoothSin(from, to, s);
    x.type=CVAL_REAL; return true;
@@ -1388,13 +1379,13 @@ static Bool CLerpSmoothPow(CalcValue &x, CalcValue &y, CalcValue &z, CalcValue &
 {
    Dbl from, to, s, p;
    if(x.type==CVAL_INT )from=x.i;else
-   if(x.type==CVAL_REAL)from=x.r;else return E("LerpSmoothPow", x, y, z, w);
+   if(x.type==CVAL_REAL)from=x.r;else return false;
    if(y.type==CVAL_INT )to  =y.i;else
-   if(y.type==CVAL_REAL)to  =y.r;else return E("LerpSmoothPow", x, y, z, w);
+   if(y.type==CVAL_REAL)to  =y.r;else return false;
    if(z.type==CVAL_INT )s   =z.i;else
-   if(z.type==CVAL_REAL)s   =z.r;else return E("LerpSmoothPow", x, y, z, w);
+   if(z.type==CVAL_REAL)s   =z.r;else return false;
    if(w.type==CVAL_INT )p   =w.i;else
-   if(w.type==CVAL_REAL)p   =w.r;else return E("LerpSmoothPow", x, y, z, w);
+   if(w.type==CVAL_REAL)p   =w.r;else return false;
 
    x.r   =LerpSmoothPow(from, to, s, p);
    x.type=CVAL_REAL; return true;
@@ -1403,13 +1394,13 @@ static Bool CLerpSmoothPinch(CalcValue &x, CalcValue &y, CalcValue &z, CalcValue
 {
    Dbl from, to, s, p;
    if(x.type==CVAL_INT )from=x.i;else
-   if(x.type==CVAL_REAL)from=x.r;else return E("LerpSmoothPinch", x, y, z, w);
+   if(x.type==CVAL_REAL)from=x.r;else return false;
    if(y.type==CVAL_INT )to  =y.i;else
-   if(y.type==CVAL_REAL)to  =y.r;else return E("LerpSmoothPinch", x, y, z, w);
+   if(y.type==CVAL_REAL)to  =y.r;else return false;
    if(z.type==CVAL_INT )s   =z.i;else
-   if(z.type==CVAL_REAL)s   =z.r;else return E("LerpSmoothPinch", x, y, z, w);
+   if(z.type==CVAL_REAL)s   =z.r;else return false;
    if(w.type==CVAL_INT )p   =w.i;else
-   if(w.type==CVAL_REAL)p   =w.r;else return E("LerpSmoothPinch", x, y, z, w);
+   if(w.type==CVAL_REAL)p   =w.r;else return false;
 
    x.r   =LerpSmoothPinch(from, to, s, p);
    x.type=CVAL_REAL; return true;
@@ -1418,13 +1409,13 @@ static Bool CLerpSmoothPinch(CalcValue &x, CalcValue &y, CalcValue &z, CalcValue
 static Bool CScaleFactor(CalcValue &x)
 {
    if(x.type==CVAL_INT )x.r=ScaleFactor(Dbl(x.i));else
-   if(x.type==CVAL_REAL)x.r=ScaleFactor(    x.r );else return E("ScaleFactor", x);
+   if(x.type==CVAL_REAL)x.r=ScaleFactor(    x.r );else return false;
    x.type=CVAL_REAL; return true;
 }
 static Bool CScaleFactorR(CalcValue &x)
 {
    if(x.type==CVAL_INT )x.r=ScaleFactorR(Dbl(x.i));else
-   if(x.type==CVAL_REAL)x.r=ScaleFactorR(    x.r );else return E("ScaleFactorR", x);
+   if(x.type==CVAL_REAL)x.r=ScaleFactorR(    x.r );else return false;
    x.type=CVAL_REAL; return true;
 }
 /******************************************************************************/
@@ -1583,14 +1574,18 @@ struct CalcElm
    CalcElm() {} // needed because of union
 };
 /******************************************************************************/
-static Bool ReadChar(Meml<CalcElm> &elms, CChar* &text, C MemPtr<CalcVar> &vars)
+static Bool ReadChar(Meml<CalcElm> &elms, CChar* &text, Str *error, C MemPtr<CalcVar> &vars)
 {
    Char name[256];
    for(Int i=0; ; )
    {
       Char c=*text; if(!(CharFlag(c)&(CHARF_ALPHA|CHARF_DIG|CHARF_UNDER)) && c!='.'){name[i]='\0'; break;}
       name[i++]=c; text++;
-      if(!InRange(i, name))return false;
+      if(!InRange(i, name))
+      {
+         if(error){name[i-1]='\0'; *error=S+"Token too long '"+name+'\'';}
+         return false;
+      }
    }
 
    if(Equal(name, "pi"))
@@ -1623,7 +1618,8 @@ static Bool ReadChar(Meml<CalcElm> &elms, CChar* &text, C MemPtr<CalcVar> &vars)
       elm.v   =vars[i].value;
       return true;
    }
-   return E(name);
+   if(error)*error=S+"Unrecognized token '"+name+'\'';
+   return false;
 }
 /******************************************************************************/
 static void AddOp(Meml<CalcElm> &elms, UInt op)
@@ -1632,7 +1628,7 @@ static void AddOp(Meml<CalcElm> &elms, UInt op)
    elm.type  =CET_OP;
    elm.o.type=op;
 }
-static Bool ReadOp(Meml<CalcElm> &elms, CChar* &text)
+static Bool ReadOp(Meml<CalcElm> &elms, CChar* &text, Str *error)
 {
    Char c=text[1];
    switch(text[0])
@@ -1653,7 +1649,7 @@ static Bool ReadOp(Meml<CalcElm> &elms, CChar* &text)
       case '^': if(c=='^'){AddOp(elms, COT_LOGICAL_XOR); text++;}else AddOp(elms, COT_XOR); break;
       case '<': if(c=='<'){AddOp(elms, COT_SHL        ); text++;}else if(c=='='){AddOp(elms, COT_ESM); text++;}else AddOp(elms, COT_SM); break;
       case '>': if(c=='>'){AddOp(elms, COT_SHR        ); text++;}else if(c=='='){AddOp(elms, COT_EGR); text++;}else AddOp(elms, COT_GR); break;
-      default : return E(text);
+      default : if(error)*error=S+"Unrecognized token '"+text[0]+'\''; return false;
    }
    text++; return true;
 }
@@ -1677,9 +1673,15 @@ static Bool CFuncReady(Meml<CalcElm> &elms, MemlNode *node, Int args)
    return true;
 }
 /******************************************************************************/
-Bool Calculate(CalcValue &value, C Str &expression, C MemPtr<CalcVar> &vars)
+static Bool Error(Str *error, C Str &name                                                                     ) {if(error)*error=  name                                                                                ; return false;}
+static Bool Error(Str *error, C Str &name, C CalcValue &arg                                                   ) {if(error)*error=S+name+'('+arg.typeName()                                                         +')'; return false;}
+static Bool Error(Str *error, C Str &name, C CalcValue &a0 , C CalcValue &a1                                  ) {if(error)*error=S+name+'('+a0 .typeName()+", "+a1.typeName()                                      +')'; return false;}
+static Bool Error(Str *error, C Str &name, C CalcValue &a0 , C CalcValue &a1, C CalcValue &a2                 ) {if(error)*error=S+name+'('+a0 .typeName()+", "+a1.typeName()+", "+a2.typeName()                   +')'; return false;}
+static Bool Error(Str *error, C Str &name, C CalcValue &a0 , C CalcValue &a1, C CalcValue &a2, C CalcValue &a3) {if(error)*error=S+name+'('+a0 .typeName()+", "+a1.typeName()+", "+a2.typeName()+", "+a3.typeName()+')'; return false;}
+/******************************************************************************/
+Bool Calculate(CalcValue &value, C Str &expression, Str *error, C MemPtr<CalcVar> &vars)
 {
-   CalcError[0]=0;
+   if(error)error->clear();
    value.type=CVAL_NONE;
 
    Meml<CalcElm> elms;
@@ -1688,9 +1690,9 @@ Bool Calculate(CalcValue &value, C Str &expression, C MemPtr<CalcVar> &vars)
    {
       Char c =*text; if(!c)break; if(c==' '){text++; continue;}
       UInt cf=CharFlag(c);
-      if(  cf& CHARF_DIG || c=='.'      ){CalcElm &elm=elms.New(); elm.type=CET_VAL; text=TextValue(text, elm.v); if(!elm.v.type)goto error;}else
-      if(!(cf&(CHARF_ALPHA|CHARF_UNDER))){if(!ReadOp  (elms, text      ))goto error;}else
-                                         {if(!ReadChar(elms, text, vars))goto error;}
+      if(  cf& CHARF_DIG || c=='.'      ){CalcElm &elm=elms.New(); elm.type=CET_VAL; text=TextValue(text, elm.v); if(!elm.v.type)return false;}else
+      if(!(cf&(CHARF_ALPHA|CHARF_UNDER))){if(!ReadOp  (elms, text, error      ))return false;}else
+                                         {if(!ReadChar(elms, text, error, vars))return false;}
    }
 
    for(Int loop=true; loop--; )MFREP(elms)
@@ -1717,7 +1719,7 @@ Bool Calculate(CalcValue &value, C Str &expression, C MemPtr<CalcVar> &vars)
        C CalcOpInfo &opi=CalcOpInfos[cot];
          if(opi.args==1)
          {
-            if(!((Bool(*)(CalcValue&))opi.func)(n->v))goto error;
+            if(!((Bool(*)(CalcValue&))opi.func)(n->v))return Error(error, opi.t, n->v);
             elms.remove(i);
             NEXT(next);
          }
@@ -1726,7 +1728,7 @@ Bool Calculate(CalcValue &value, C Str &expression, C MemPtr<CalcVar> &vars)
             if(!ppet || (ppet==CET_OP && opi.priority< CalcOpInfos[pp->o.type].priority))
             if(!nnet || (nnet==CET_OP && opi.priority<=CalcOpInfos[nn->o.type].priority))
          {
-            if(!((Bool(*)(CalcValue&, CalcValue&))opi.func)(p->v, n->v))goto error;
+            if(!((Bool(*)(CalcValue&, CalcValue&))opi.func)(p->v, n->v))return Error(error, opi.t, p->v, n->v);
             elms.remove(i   );
             elms.remove(next);
             NEXT(prev);
@@ -1741,10 +1743,11 @@ Bool Calculate(CalcValue &value, C Str &expression, C MemPtr<CalcVar> &vars)
        C CalcFuncInfo &funi=*c->f.funi;
          if(CFuncReady(elms, i, funi.args))
          {
-            if(funi.args==1){if(!((Bool(*)(CalcValue&                                    ))funi.func)(nn->v))goto error;}else
-            if(funi.args==2){if(!((Bool(*)(CalcValue&, CalcValue&                        ))funi.func)(nn->v, Celm(nnext->next()->next())->v))goto error;}else
-            if(funi.args==3){if(!((Bool(*)(CalcValue&, CalcValue&, CalcValue&            ))funi.func)(nn->v, Celm(nnext->next()->next())->v, Celm(nnext->next()->next()->next()->next())->v))goto error;}else
-            if(funi.args==4){if(!((Bool(*)(CalcValue&, CalcValue&, CalcValue&, CalcValue&))funi.func)(nn->v, Celm(nnext->next()->next())->v, Celm(nnext->next()->next()->next()->next())->v, Celm(nnext->next()->next()->next()->next()->next()->next())->v))goto error;}
+            CalcValue &v0=nn->v;
+            if(funi.args==1){                                                                                                                                                                      if(!((Bool(*)(CalcValue&                                    ))funi.func)(v0            ))return Error(error, funi.t, v0            );}else
+            if(funi.args==2){MemlNode *n1=nnext->next()->next(); CalcValue &v1=Celm(n1)->v;                                                                                                        if(!((Bool(*)(CalcValue&, CalcValue&                        ))funi.func)(v0, v1        ))return Error(error, funi.t, v0, v1        );}else
+            if(funi.args==3){MemlNode *n1=nnext->next()->next(); CalcValue &v1=Celm(n1)->v; MemlNode *n2=n1->next()->next(); CalcValue &v2=Celm(n2)->v;                                            if(!((Bool(*)(CalcValue&, CalcValue&, CalcValue&            ))funi.func)(v0, v1, v2    ))return Error(error, funi.t, v0, v1, v2    );}else
+            if(funi.args==4){MemlNode *n1=nnext->next()->next(); CalcValue &v1=Celm(n1)->v; MemlNode *n2=n1->next()->next(); CalcValue &v2=Celm(n2)->v; CalcValue &v3=Celm(n2->next()->next())->v; if(!((Bool(*)(CalcValue&, CalcValue&, CalcValue&, CalcValue&))funi.func)(v0, v1, v2, v3))return Error(error, funi.t, v0, v1, v2, v3);}
             elms.remove(i   ); // func
             elms.remove(next); // (
             i=nnext->next(); REPD(j, 2*(funi.args-1)){next=i->next(); elms.remove(i); i=next;} // ,y
@@ -1754,23 +1757,28 @@ Bool Calculate(CalcValue &value, C Str &expression, C MemPtr<CalcVar> &vars)
       }
    }
 
-   if(elms.elms()==1)
+   switch(elms.elms())
    {
-      CalcElm &elm=elms[elms.first()];
-      if(elm.type==CET_VAL)value=elm.v;
+      case 0: return true;
+      case 1: 
+      {
+         CalcElm &elm=elms[elms.first()]; if(elm.type==CET_VAL)
+         {
+            value=elm.v;
+            return true;
+         }
+      }break;
    }
-   return true;
-error:
    return false;
 }
 /******************************************************************************/
-Int   CalculateI (C Str &expression, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, vars); return value.asInt  ();}
-Long  CalculateL (C Str &expression, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, vars); return value.asLong ();}
-Flt   CalculateF (C Str &expression, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, vars); return value.asFlt  ();}
-Dbl   CalculateD (C Str &expression, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, vars); return value.asDbl  ();}
-VecD2 CalculateV2(C Str &expression, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, vars); return value.asVecD2();}
-VecD  CalculateV (C Str &expression, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, vars); return value.asVecD ();}
-VecD4 CalculateV4(C Str &expression, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, vars); return value.asVecD4();}
+Int   CalculateI (C Str &expression, Str *error, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asInt  ();}
+Long  CalculateL (C Str &expression, Str *error, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asLong ();}
+Flt   CalculateF (C Str &expression, Str *error, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asFlt  ();}
+Dbl   CalculateD (C Str &expression, Str *error, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asDbl  ();}
+VecD2 CalculateV2(C Str &expression, Str *error, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asVecD2();}
+VecD  CalculateV (C Str &expression, Str *error, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asVecD ();}
+VecD4 CalculateV4(C Str &expression, Str *error, C MemPtr<CalcVar> &vars) {CalcValue value; Calculate(value, expression, error, vars); return value.asVecD4();}
 /******************************************************************************/
 }
 /******************************************************************************/

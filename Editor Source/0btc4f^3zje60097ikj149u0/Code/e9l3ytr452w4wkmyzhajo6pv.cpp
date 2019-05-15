@@ -38,7 +38,7 @@ void DrawFunc(Color col, Str func)
    FREP(RES)
    {
       dbl  s=dbl(i)/(RES-1); var[0].value.r=center.x+size*(2*s-1);
-      dbl  y=(CalculateD(func, var)-center.y)/size;
+      dbl  y=(CalculateD(func, null, var)-center.y)/size;
       Vec2 point(-1+2*s, y);
       val[i]=point;
    }

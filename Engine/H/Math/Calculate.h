@@ -137,15 +137,13 @@ struct CalcVar // Calculator Variable
    explicit CalcVar(C Str &name, CVAL_TYPE type=CVAL_REAL) {set(name, type);}
 };
 /******************************************************************************/
-extern Char CalcError[]; // contains error on failed Calc()
-/******************************************************************************/
 // Calculate 'expression', with 'var' array of 'vars' variables
-Bool  Calculate  (CalcValue &value, C Str &expression, C MemPtr<CalcVar> &vars=null); // put    result value to 'value' and return if ok
-Int   CalculateI (                  C Str &expression, C MemPtr<CalcVar> &vars=null); // return result value as Int
-Long  CalculateL (                  C Str &expression, C MemPtr<CalcVar> &vars=null); // return result value as Long
-Flt   CalculateF (                  C Str &expression, C MemPtr<CalcVar> &vars=null); // return result value as Flt
-Dbl   CalculateD (                  C Str &expression, C MemPtr<CalcVar> &vars=null); // return result value as Dbl
-VecD2 CalculateV2(                  C Str &expression, C MemPtr<CalcVar> &vars=null); // return result value as Vec2
-VecD  CalculateV (                  C Str &expression, C MemPtr<CalcVar> &vars=null); // return result value as Vec
-VecD4 CalculateV4(                  C Str &expression, C MemPtr<CalcVar> &vars=null); // return result value as Vec4
+Bool  Calculate  (CalcValue &value, C Str &expression, Str *error=null, C MemPtr<CalcVar> &vars=null); // put    result value to 'value' and return if ok
+Int   CalculateI (                  C Str &expression, Str *error=null, C MemPtr<CalcVar> &vars=null); // return result value as Int
+Long  CalculateL (                  C Str &expression, Str *error=null, C MemPtr<CalcVar> &vars=null); // return result value as Long
+Flt   CalculateF (                  C Str &expression, Str *error=null, C MemPtr<CalcVar> &vars=null); // return result value as Flt
+Dbl   CalculateD (                  C Str &expression, Str *error=null, C MemPtr<CalcVar> &vars=null); // return result value as Dbl
+VecD2 CalculateV2(                  C Str &expression, Str *error=null, C MemPtr<CalcVar> &vars=null); // return result value as Vec2
+VecD  CalculateV (                  C Str &expression, Str *error=null, C MemPtr<CalcVar> &vars=null); // return result value as Vec
+VecD4 CalculateV4(                  C Str &expression, Str *error=null, C MemPtr<CalcVar> &vars=null); // return result value as Vec4
 /******************************************************************************/

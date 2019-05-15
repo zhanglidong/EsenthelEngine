@@ -1115,11 +1115,11 @@ class ElmAnim : ElmData
       ROOT_DEL_ROT_X=1<<5,
       ROOT_DEL_ROT_Y=1<<6,
       ROOT_DEL_ROT_Z=1<<7,
-      ROOT_2_KEYS   =1<<8,
+      ROOT_SMOOTH   =1<<8,
       ROOT_FROM_BODY=1<<9,
       ROOT_DEL_POS  =ROOT_DEL_POS_X|ROOT_DEL_POS_Y|ROOT_DEL_POS_Z,
       ROOT_DEL_ROT  =ROOT_DEL_ROT_X|ROOT_DEL_ROT_Y|ROOT_DEL_ROT_Z,
-      ROOT_ALL      =ROOT_DEL_POS|ROOT_DEL_ROT|ROOT_2_KEYS|ROOT_FROM_BODY,
+      ROOT_ALL      =ROOT_DEL_POS|ROOT_DEL_ROT|ROOT_SMOOTH|ROOT_FROM_BODY,
    }
    UID       skel_id=UIDZero;
    Pose      transform;
@@ -1149,7 +1149,7 @@ class ElmAnim : ElmData
       if(flag&ROOT_DEL_ROT_X)f|=.ROOT_DEL_ROTATION_X;
       if(flag&ROOT_DEL_ROT_Y)f|=.ROOT_DEL_ROTATION_Y;
       if(flag&ROOT_DEL_ROT_Z)f|=.ROOT_DEL_ROTATION_Z;
-      if(flag&ROOT_2_KEYS   )f|=.ROOT_2_KEYS;
+      if(flag&ROOT_SMOOTH   )f|=.ROOT_SMOOTH;
       if(flag&ROOT_FROM_BODY)f|=.ROOT_BONE_POSITION|.ROOT_START_IDENTITY;
       return f;
    }
@@ -1210,7 +1210,7 @@ class ElmAnim : ElmData
       if(old&(1<<3))f|=ROOT_DEL_POS_Y;
       if(old&(1<<4))f|=ROOT_DEL_POS_Z;
       if(old&(1<<5))f|=ROOT_DEL_ROT;
-      if(old&(1<<6))f|=ROOT_2_KEYS;
+      if(old&(1<<6))f|=ROOT_SMOOTH;
       if(old&(1<<7))f|=ROOT_FROM_BODY;
       return f;
    }
@@ -1262,7 +1262,7 @@ class ElmAnim : ElmData
     if(rootRot ()       )nodes.New().setRaw("RootRot"     , root_rot );
     if(flag&ROOT_DEL_POS)nodes.New().set   ("RootDelPos"  , FlagAll(flag, ROOT_DEL_POS) ? S : S+(FlagTest(flag, ROOT_DEL_POS_X) ? 'X' : '\0')+(FlagTest(flag, ROOT_DEL_POS_Y) ? 'Y' : '\0')+(FlagTest(flag, ROOT_DEL_POS_Z) ? 'Z' : '\0'));
     if(flag&ROOT_DEL_ROT)nodes.New().set   ("RootDelRot"  , FlagAll(flag, ROOT_DEL_ROT) ? S : S+(FlagTest(flag, ROOT_DEL_ROT_X) ? 'X' : '\0')+(FlagTest(flag, ROOT_DEL_ROT_Y) ? 'Y' : '\0')+(FlagTest(flag, ROOT_DEL_ROT_Z) ? 'Z' : '\0'));
-    if(flag&ROOT_2_KEYS )nodes.New().set   ("Root2Keys"   );
+    if(flag&ROOT_SMOOTH )nodes.New().set   ("RootSmooth"  );
                          nodes.New().set   ("LoopTime"    ,   loop_time.text());
                          nodes.New().set   ("LinearTime"  , linear_time.text());
                          nodes.New().set   ("SkeletonTime",   skel_time.text());
@@ -1280,7 +1280,7 @@ class ElmAnim : ElmData
          if(n.name=="RootRot"     )n.getValueRaw(root_rot);else
          if(n.name=="Loop"        )loop  (n.asBool1());else
          if(n.name=="Linear"      )linear(n.asBool1());else
-         if(n.name=="Root2Keys"   )FlagSet(flag, ROOT_2_KEYS, n.asBool1());else
+         if(n.name=="RootSmooth"  )FlagSet(flag, ROOT_SMOOTH, n.asBool1());else
          if(n.name=="LoopTime"    )  loop_time=n.asText();else
          if(n.name=="LinearTime"  )linear_time=n.asText();else
          if(n.name=="SkeletonTime")  skel_time=n.asText();else

@@ -24,14 +24,14 @@ class CalculatorClass : ClosableWindow
          super.draw(gpc);
          D.clip(gpc.clip);
 
-         CalcValue value; bool ok=Calculate(value, expression());
+         CalcValue value; Str error; bool ok=Calculate(value, expression(), &error);
          TextStyleParams ts(true); ts.align.y=1;
          TextStyleParams tsb=ts;
          ts .size=0.040;
          tsb.size=0.055;
          Rect rect=clientRect(); rect.min.y+=expression.rect().max.y+clientHeight(); rect.extendX(-0.01); rect+=gpc.offset;
 
-         if(!ok){tsb.align.y=0; D.text(tsb, rect.center(), S+"Error : "+CalcError);}else
+         if(!ok){tsb.align.y=0; D.text(tsb, rect.center(), error.is() ? error : "Error");}else
          {
             D.text(tsb, rect.down(), value.asText(-9));
 

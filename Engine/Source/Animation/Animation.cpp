@@ -2320,7 +2320,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
 
    MemtN<BoneWeight, 4> old_bones;
 
-   if(root_flags&ROOT_2_KEYS)
+   if(root_flags&(ROOT_2_KEYS|ROOT_SMOOTH)) // FIXME remove smooth
    {
       Bool changed=false;
       if(anim_out.keys.poss.elms()>2)
@@ -2350,6 +2350,10 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
        //anim_out.setRootMatrix(); no need to call because it doesn't change
          root_not_changed=root_not_changed_post=false;
       }
+   }else
+   if(root_flags&ROOT_SMOOTH)
+   {
+      // FIXME
    }
    if((root_flags&ROOT_START_IDENTITY) && anim_out.keys.is() && !Equal(anim_out.rootStart(), MatrixIdentity)) // !! adjust before ROOT_DEL !!
    {

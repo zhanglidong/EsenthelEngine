@@ -147,7 +147,7 @@ public:
                      loop, linear, root_from_body,
                      root_del_pos, root_del_pos_x, root_del_pos_y, root_del_pos_z,
                      root_del_rot, root_del_rot_x, root_del_rot_y, root_del_rot_z,
-                     root_del_scale, root_2_keys, root_set_move, root_set_rot, reload;
+                     root_del_scale, root_smooth, root_set_move, root_set_rot, reload;
    CheckBox          play;
    Memx<Property>    props, root_props;
    Tabs              op, settings;
@@ -214,7 +214,7 @@ public:
    static void RootDelRotY (AnimEditor &editor);
    static void RootDelRotZ (AnimEditor &editor);
  //static void RootDelScale(AnimEditor &editor) {if(ElmAnim *d=editor.data()){editor.undos.set("rootDelScale"); FlagToggle(d.flag, ElmAnim.ROOT_DEL_SCALE); /*d.file_time.getUTC(); already changed in 'setChanged' */ if(d.flag&ElmAnim.ROOT_DEL_SCALE){Skeleton temp, &skel=editor.skel ? *editor.skel : temp; editor.anim.adjustForSameTransformWithDifferentSkeleton(skel, skel, -1, null, ROOT_DEL_SCALE     ); editor.prepMeshSkel(); editor.setOrnTarget(); editor.toGui();} editor.setChanged();}}
-   static void Root2Keys   (AnimEditor &editor);
+   static void RootSmooth  (AnimEditor &editor);
    static void RootFromBody(AnimEditor &editor);
    static void RootFromBodyX(AnimEditor &editor);
    static void RootFromBodyZ(AnimEditor &editor);

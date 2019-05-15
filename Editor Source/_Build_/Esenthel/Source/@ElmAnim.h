@@ -12,11 +12,11 @@ class ElmAnim : ElmData
       ROOT_DEL_ROT_X=1<<5,
       ROOT_DEL_ROT_Y=1<<6,
       ROOT_DEL_ROT_Z=1<<7,
-      ROOT_2_KEYS   =1<<8,
+      ROOT_SMOOTH   =1<<8,
       ROOT_FROM_BODY=1<<9,
       ROOT_DEL_POS  =ROOT_DEL_POS_X|ROOT_DEL_POS_Y|ROOT_DEL_POS_Z,
       ROOT_DEL_ROT  =ROOT_DEL_ROT_X|ROOT_DEL_ROT_Y|ROOT_DEL_ROT_Z,
-      ROOT_ALL      =ROOT_DEL_POS|ROOT_DEL_ROT|ROOT_2_KEYS|ROOT_FROM_BODY,
+      ROOT_ALL      =ROOT_DEL_POS|ROOT_DEL_ROT|ROOT_SMOOTH|ROOT_FROM_BODY,
    };
    UID       skel_id;
    Pose      transform;
