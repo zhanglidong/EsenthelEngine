@@ -2040,6 +2040,7 @@ Bool CodeEditor::generateAndroidProj()
    FCreateDirs(build_path+"Android/src/com/android/vending/billing");
    FCreateDirs(build_path+"Android/res/layout");
    FCreateDirs(build_path+"Android/res/values");
+ //FCreateDirs(build_path+"Android/res/xml"); // needed for "android.support.v4.content.FileProvider"
 
    Str bin_path=BinPath(false),
    android_path=bin_path+"Android/";
@@ -2067,6 +2068,15 @@ Bool CodeEditor::generateAndroidProj()
       {XmlNode &n  =res.nodes.New().setName("string"); n.params.New().set("name", "fb_login_protocol_scheme"); n.data.add(S+"fb"+cei().appFacebookAppID());}
       if(!OverwriteOnChangeLoud(xml, build_path+"Android/res/values/strings.xml"))return false;
    }
+ /*// file paths needed for "android.support.v4.content.FileProvider"
+   {
+      XmlData  xml;
+      XmlNode &paths=xml.nodes.New().setName("paths"); paths.params.New().set("xmlns:android", "http://schemas.android.com/apk/res/android");
+     {XmlNode &path =paths.nodes.New().setName("external-files-path"); path.params.New().set("name", "AppDataPublic"); path.params.New().set("path", "/"       );} // app data public - getExternalFilesDir
+     {XmlNode &path =paths.nodes.New().setName("external-path"      ); path.params.New().set("name", "Public"       ); path.params.New().set("path", "/"       );} // public          - getExternalStorageDirectory
+     {XmlNode &path =paths.nodes.New().setName("root-path"          ); path.params.New().set("name", "Root"         ); path.params.New().set("path", "/storage");} // root            - to support SD cards, this also includes entire public data, except private which are in other folders such as "/data" ("/data/app" is APK and "/data/user" is APP PRIVATE DATA)
+     if(!OverwriteOnChangeLoud(xml, build_path+"Android/res/xml/file_paths.xml"))return false;
+   }*/
 
    // Android.mk
    Str load_libraries;
@@ -2229,6 +2239,11 @@ Bool CodeEditor::generateAndroidProj()
                }
             }
          }
+         // needed for opening files through "content://" instead of deprecated "file://"
+         {
+            XmlNode &n=application.nodes.New().setName("provider" ); n.params.New().set("android:name", "EsenthelActivity$FileProvider"      ); n.params.New().set("android:authorities", app_package+".fileprovider"); n.params.New().set("android:exported", "false"); n.params.New().set("android:grantUriPermissions", "true");
+          //XmlNode &m=          n.nodes.New().setName("meta-data"); m.params.New().set("android:name", "android.support.FILE_PROVIDER_PATHS"); m.params.New().set("android:resource", "@xml/file_paths"); // needed for "android.support.v4.content.FileProvider"
+         }
          Str s;
          if(google_play_services){XmlNode &n=application.nodes.New().setName("meta-data"); n.params.New().set("android:name", "com.google.android.gms.version"); n.params.New().set("android:value", "@integer/google_play_services_version");}
          s=cei().appAdMobAppIDGooglePlay(); if(s.is())
@@ -2247,10 +2262,10 @@ Bool CodeEditor::generateAndroidProj()
          }
          if(ULong id=cei().appFacebookAppID())
          {
-            {XmlNode &n=application.nodes.New().setName("meta-data"); n.params.New().set("android:name", "com.facebook.sdk.ApplicationId"); n.params.New().set("android:value", "@string/facebook_app_id"/*id*/);}
-            {XmlNode &n=application.nodes.New().setName("activity" ); n.params.New().set("android:name", "com.facebook.FacebookActivity" ); n.params.New().set("android:configChanges", "keyboard|keyboardHidden|screenLayout|screenSize|orientation"); n.params.New().set("android:label", CString(cei().appName()));} // android expects this as a C String
-            {XmlNode &n=application.nodes.New().setName("provider" ); n.params.New().set("android:authorities", S+"com.facebook.app.FacebookContentProvider"+id); n.params.New().set("android:name", "com.facebook.FacebookContentProvider"); n.params.New().set("android:exported", "true");}
-            {XmlNode &n=application.nodes.New().setName("activity" ); n.params.New().set("android:name", "com.facebook.CustomTabActivity" ); n.params.New().set("android:exported", "true");
+            {XmlNode &n=application.nodes.New().setName("meta-data"); n.params.New().set("android:name", "com.facebook.sdk.ApplicationId"      ); n.params.New().set("android:value", "@string/facebook_app_id"/*id*/);}
+            {XmlNode &n=application.nodes.New().setName("activity" ); n.params.New().set("android:name", "com.facebook.FacebookActivity"       ); n.params.New().set("android:configChanges", "keyboard|keyboardHidden|screenLayout|screenSize|orientation"); n.params.New().set("android:label", CString(cei().appName()));} // android expects this as a C String
+            {XmlNode &n=application.nodes.New().setName("provider" ); n.params.New().set("android:name", "com.facebook.FacebookContentProvider"); n.params.New().set("android:authorities", S+"com.facebook.app.FacebookContentProvider"+id); n.params.New().set("android:exported", "true");}
+            {XmlNode &n=application.nodes.New().setName("activity" ); n.params.New().set("android:name", "com.facebook.CustomTabActivity"      ); n.params.New().set("android:exported", "true");
              XmlNode &intent_filter=n.nodes.New().setName("intent-filter");
              intent_filter.nodes.New().setName("action"  ).params.New().set("android:name"  , "android.intent.action.VIEW");
              intent_filter.nodes.New().setName("category").params.New().set("android:name"  , "android.intent.category.DEFAULT");

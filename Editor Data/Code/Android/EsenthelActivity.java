@@ -13,16 +13,20 @@ import android.app.Service;
 import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnShowListener;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ProviderInfo;
 import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.database.Cursor;
+import android.database.MatrixCursor;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationListener;
@@ -39,12 +43,16 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.ParcelFileDescriptor;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.os.StatFs;
 import android.preference.PreferenceManager;
+import android.provider.OpenableColumns;
 import android.provider.Settings;
 import android.provider.Settings.Secure;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -60,6 +68,7 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.MimeTypeMap;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -92,7 +101,10 @@ import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdListener;
 ADMOB_END
+import java.io.IOException;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.lang.UnsupportedOperationException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.KeyFactory;
@@ -232,8 +244,9 @@ public class EsenthelActivity extends NativeActivity
    static WakeLock             wake_lock;
    static WifiLock             wifi_lock;
 
-   static final void   log(String s) {Log.e("Esenthel", s);}
-   static final boolean Is(String s) {return !TextUtils.isEmpty(s);}
+   public static final void    log   (String s) {Log.e("Esenthel", s);}
+   public static final boolean Is    (String s) {return !TextUtils.isEmpty(s);} // this supports null 's' too
+   public static final String  GetExt(String path) {final int last_dot=path.lastIndexOf('.'); return (last_dot>=0) ? path.substring(last_dot+1) : null;}
 
    static
    {
@@ -496,9 +509,121 @@ public class EsenthelActivity extends NativeActivity
       Intent intent=new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
       intent.setData(Uri.fromParts("package", "EE_PACKAGE", null));
-      boolean ok=true; try{context.startActivity(intent);}catch(Exception exception){ok=false;}
-      return  ok;
+      try{context.startActivity(intent); return true;}catch(Exception exception){}
+      return false;
    }
+   public static final String GetMime(String ext) {return MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);}
+
+   public static List<String> SharingPaths;
+   public final void addSharingPath(String path)
+   {
+      if(Is(path))
+      {
+         if(path.charAt(path.length()-1)!='/')path+='/';
+         SharingPaths.add(path);
+      }
+   }
+   public final void setSharingPaths(String sd_card)
+   {
+      SharingPaths=new ArrayList<String>();
+      addSharingPath(                       getExternalFilesDir    (null).getAbsolutePath()); // app data public
+      addSharingPath(android.os.Environment.getExternalStorageDirectory().getAbsolutePath()); //          public
+      addSharingPath(                                                               sd_card); // SD card
+    //log("SharingPaths: "+SharingPaths.size()); for(int i=0; i<SharingPaths.size(); i++)log(SharingPaths.get(i));
+   }
+   public static class FileProvider extends android.content.ContentProvider // !! if changing name of this class then update AndroidManifest.xml !!
+   {
+      private static final String[] COLUMNS={OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE};
+
+      @Override public boolean onCreate() {return true;}
+      @Override public void attachInfo(@NonNull Context context, @NonNull ProviderInfo info)
+      {
+         super.attachInfo(context, info);
+         // security checks
+         if( info.exported           )throw new SecurityException("Provider must not be exported");
+         if(!info.grantUriPermissions)throw new SecurityException("Provider must grant uri permissions");
+      }
+      @Override public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder)
+      {
+         final File file=getFileForUri(uri);
+         if(projection==null)projection=COLUMNS;
+         String[] cols  =new String[projection.length];
+         Object[] values=new Object[projection.length];
+         int i=0;
+         for(String col:projection)
+         {
+            if(OpenableColumns.DISPLAY_NAME.equals(col))
+            {
+               cols  [i  ]=OpenableColumns.DISPLAY_NAME;
+               values[i++]=file.getName();
+            }else
+            if(OpenableColumns.SIZE.equals(col))
+            {
+               cols  [i  ]=OpenableColumns.SIZE;
+               values[i++]=file.length();
+            }
+         }
+         cols  =copyOf(cols  , i);
+         values=copyOf(values, i);
+         final MatrixCursor cursor=new MatrixCursor(cols, 1); cursor.addRow(values); return cursor;
+      }
+      @Override public String               getType (@NonNull Uri uri) {final String mime=GetMime(GetExt(uri.getPath())); return (mime!=null) ? mime : "application/octet-stream";}
+      @Override public Uri                  insert  (@NonNull Uri uri, ContentValues values                                                              ) {throw new UnsupportedOperationException("No external inserts");}
+      @Override public int                  update  (@NonNull Uri uri, ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {throw new UnsupportedOperationException("No external updates");}
+      @Override public int                  delete  (@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs                      ) {return getFileForUri(uri).delete() ? 1 : 0;}
+      @Override public ParcelFileDescriptor openFile(@NonNull Uri uri, @NonNull String mode) throws FileNotFoundException                                  {return ParcelFileDescriptor.open(getFileForUri(uri), modeToMode(mode));}
+
+      private static final int modeToMode(String mode)
+      {
+         if("r"  .equals(mode)                     )return ParcelFileDescriptor.MODE_READ_ONLY;
+         if("w"  .equals(mode) || "wt".equals(mode))return ParcelFileDescriptor.MODE_WRITE_ONLY|ParcelFileDescriptor.MODE_CREATE|ParcelFileDescriptor.MODE_TRUNCATE;
+         if("wa" .equals(mode)                     )return ParcelFileDescriptor.MODE_WRITE_ONLY|ParcelFileDescriptor.MODE_CREATE|ParcelFileDescriptor.MODE_APPEND;
+         if("rw" .equals(mode)                     )return ParcelFileDescriptor.MODE_READ_WRITE|ParcelFileDescriptor.MODE_CREATE;
+         if("rwt".equals(mode)                     )return ParcelFileDescriptor.MODE_READ_WRITE|ParcelFileDescriptor.MODE_CREATE|ParcelFileDescriptor.MODE_TRUNCATE;
+         throw new IllegalArgumentException("Invalid mode: "+mode);
+      }
+      private static final String[] copyOf(String[] original, int newLength) {final String[] result=new String[newLength]; System.arraycopy(original, 0, result, 0, newLength); return result;}
+      private static final Object[] copyOf(Object[] original, int newLength) {final Object[] result=new Object[newLength]; System.arraycopy(original, 0, result, 0, newLength); return result;}
+
+      public static final boolean pathOK(String path)
+      {
+         for(int i=0; i<SharingPaths.size(); i++)if(path.startsWith(SharingPaths.get(i)))return true;
+         return false;
+      }
+      public static final File getFileForUri(Uri uri)
+      {
+         String path=uri.getPath();
+         File file=new File(path);
+         // code below is needed to calculate the full normalized path, which is required for precise path verification
+         try{file=file.getCanonicalFile();}catch(IOException e){throw new IllegalArgumentException("Failed to resolve canonical path for "+file);}
+         path=file.getPath();
+         if(!pathOK(path))throw new SecurityException("Resolved path jumped beyond configured root");
+         if(!file.exists())throw new IllegalArgumentException("Unable to find file for uri "+uri);
+         return file;
+      }
+      public static final Uri getUriForPath(String path) {return new Uri.Builder().scheme("content").authority("EE_PACKAGE.fileprovider").path(path).build();}
+   }
+   public static final boolean run(String path)
+   {
+      try{
+         Intent intent=new Intent(Intent.ACTION_VIEW);
+         if(path.charAt(0)=='/') // file
+         {
+            File file=new File(path);
+            if(!FileProvider.pathOK(path) // without this check 'run' will return true even if later accessing path will fail
+            || !file        .exists(    ))return false; // or file doesn't exist
+            String mime=GetMime(GetExt(path)); if(!Is(mime))mime="*/*";
+            intent.setDataAndType((Build.VERSION.SDK_INT>=Build.VERSION_CODES.N) ? FileProvider.getUriForPath(path) : Uri.fromFile(file), mime); // file provider needed starting Android Nougat, don't use below, as it may not work on older versions
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+         }else // HTTP, HTTPS, FTP, etc
+         {
+            intent.setData(Uri.parse(path));
+         }
+         context.startActivity(intent);
+         return true;
+      }catch(Exception exception){} return false;
+   }
+
    public static final long driveSizeFree (String path) {File file=new File(path); if(file!=null && file.exists())return file.getUsableSpace(); return -1;}
    public static final long driveSizeTotal(String path) {File file=new File(path); if(file!=null && file.exists())return file.getTotalSpace (); return -1;}
 
@@ -506,26 +631,26 @@ public class EsenthelActivity extends NativeActivity
    public static final String model       () {return Build.MODEL;}
    public static final String serial      () {return Build.SERIAL;}
    public static final String androidID   () {return android_id;}
-	public static final String userName    ()
-	{
+   public static final String userName    ()
+   {
       try{
-			android.database.Cursor cursor=context.getContentResolver().query(android.provider.ContactsContract.Profile.CONTENT_URI, null, null, null, null);
-			if(cursor!=null && cursor.moveToFirst())
-			{
-				int col=cursor.getColumnIndex(android.provider.ContactsContract.Profile.DISPLAY_NAME); if(col>=0)return cursor.getString(col);
-			}
+         Cursor cursor=context.getContentResolver().query(android.provider.ContactsContract.Profile.CONTENT_URI, null, null, null, null);
+         if(cursor!=null && cursor.moveToFirst())
+         {
+            int col=cursor.getColumnIndex(android.provider.ContactsContract.Profile.DISPLAY_NAME); if(col>=0)return cursor.getString(col);
+         }
       }catch(Exception exception){} // no permission
-		return null;
-	}
-	public static final String userEmail()
-	{
+      return null;
+   }
+   public static final String userEmail()
+   {
       try{
-			AccountManager manager=AccountManager.get(context);
-			Account[] accounts=manager.getAccountsByType("com.google");
-			if(accounts!=null && accounts.length>0)return accounts[0].name;
+         AccountManager manager=AccountManager.get(context);
+         Account[] accounts=manager.getAccountsByType("com.google");
+         if(accounts!=null && accounts.length>0)return accounts[0].name;
       }catch(Exception exception){} // no permission
-		return null;
-	}
+      return null;
+   }
 
    public final float dipToPx(float f) {return f*getResources().getDisplayMetrics().density;}
    public final float pxToDip(float f) {return f/getResources().getDisplayMetrics().density;}

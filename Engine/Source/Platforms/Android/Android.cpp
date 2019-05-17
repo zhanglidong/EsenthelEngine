@@ -819,9 +819,9 @@ static void JavaGetAppName()
       // SD Card
       // this method gets array of files using 'getExternalFilesDirs', and ignores 'AndroidAppDataPublicPath' obtained with 'getExternalFilesDir', then it removes the shared end like "external/Android/App", "sd_card/Android/App" to leave only "sd_card"
       if(JMethodID getExternalFilesDirs=Jni.func             (ActivityClass, "getExternalFilesDirs", "(Ljava/lang/String;)[Ljava/io/File;"))
-      if(JObjectArray              dirs=Jni->CallObjectMethod(Activity,  getExternalFilesDirs, null))
+      if(JObjectArray              dirs=Jni->CallObjectMethod(Activity     ,  getExternalFilesDirs, null))
       {
-         Int length=dirs.elms();
+         Int  length=dirs.elms();
          FREP(length)
             if(JObject dir=dirs[i]) // check this because it can be null
             if(JString dir_path=Jni->CallObjectMethod(dir, getAbsolutePath))
@@ -841,6 +841,11 @@ static void JavaGetAppName()
             }
          }
       }
+
+      // after having SD card path, call Java to setup allowed sharing paths
+      if(JMethodID setSharingPaths=Jni.func(ActivityClass, "setSharingPaths", "(Ljava/lang/String;)V"))
+      if(JString   sd_card=UnixPath(AndroidSDCardPath))
+         Jni->CallVoidMethod(Activity, setSharingPaths, sd_card());
    }
    if(LogInit && AndroidPublicPath.is() && !EqualPath(AndroidPublicPath, GetPath(LogName()))){Str temp=LogName(); LogN(S+"Found public storage directory and continuing log there: "+AndroidPublicPath); LogName(Str(AndroidPublicPath).tailSlash(true)+"Esenthel Log.txt"); LogN(S+"Continuing log from: "+temp);}
 }

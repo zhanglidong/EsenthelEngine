@@ -1661,49 +1661,11 @@ Bool Run(C Str &name, C Str &params, Bool hidden, Bool as_admin)
       }
       return ok;
    #elif ANDROID
-      Str path=name;
-      if(IsSlash(path[0]) && !Contains(path, ':'))path=S+"file://"+path; // "/sdcard/DCIM/" -> "file:///sdcard/DCIM/"
-
       JNI jni;
       if(jni && ActivityClass)
-      if(JClass uriClass=JClass(jni, "android/net/Uri"))
-      if(JClass intentClass=JClass(jni, "android/content/Intent"))
-      if(JString urlStr=JString(jni, UnixPathUTF8(path)))
-      if(JMethodID parse=jni.staticFunc(uriClass, "parse", "(Ljava/lang/String;)Landroid/net/Uri;"))
-      if(JObject uri=JObject(jni, jni->CallStaticObjectMethod(uriClass, parse, urlStr())))
-      if(JMethodID intentCtor=jni.func(intentClass, "<init>", "(Ljava/lang/String;)V"))
-      if(JFieldID actionViewField=jni->GetStaticFieldID(intentClass, "ACTION_VIEW", "Ljava/lang/String;"))
-      if(JObject actionView=JObject(jni, jni->GetStaticObjectField(intentClass, actionViewField)))
-      if(JObject intent=JObject(jni, jni->NewObject(intentClass, intentCtor, actionView())))
-      if(JMethodID startActivity=jni.func(ActivityClass, "startActivity", "(Landroid/content/Intent;)V"))
-      {
-         if(Starts(path, "file:"))
-         {
-            Str ext=GetExt(path), mime;
-            if( ext.is())switch(ExtType(ext))
-            {
-               case EXT_TEXT : mime= "text/*"; break;
-               case EXT_IMAGE: mime="image/*"; break;
-               case EXT_VIDEO: mime="video/*"; break;
-               case EXT_SOUND: mime="audio/*"; break;
-            }
-            if(mime.is())
-            if(JMethodID setDataAndType=jni.func(intentClass, "setDataAndType", "(Landroid/net/Uri;Ljava/lang/String;)Landroid/content/Intent;"))
-            if(JString jmime=JString(jni, mime))
-            {
-               JObject temp=JObject(jni, jni->CallObjectMethod(intent, setDataAndType, uri(), jmime()));
-                                         jni->CallVoidMethod(Activity, startActivity, intent());
-               if(!jni->ExceptionCheck())return true; jni->ExceptionClear(); // Java exception "ActivityNotFound" can occur
-            }
-         }
-
-         if(JMethodID setData=jni.func(intentClass, "setData", "(Landroid/net/Uri;)Landroid/content/Intent;"))
-         {
-            JObject temp=JObject(jni, jni->CallObjectMethod(intent, setData, uri()));
-                                      jni->CallVoidMethod(Activity, startActivity, intent());
-            if(!jni->ExceptionCheck())return true; jni->ExceptionClear(); // Java exception "ActivityNotFound" can occur
-         }
-      }
+      if(JMethodID run=jni.staticFunc(ActivityClass, "run", "(Ljava/lang/String;)Z"))
+      if(JString jpath=JString(jni, UnixPath(name)))
+         return jni->CallStaticBooleanMethod(ActivityClass, run, jpath());
    #elif WEB
       return JavaScriptRunI(S+"window.open(\""+CString(name)+"\")")!=0;
    #endif
