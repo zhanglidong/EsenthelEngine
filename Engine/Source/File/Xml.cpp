@@ -1210,5 +1210,174 @@ Bool XmlData::load(C UID &id)
    clear(); return false;
 }
 /******************************************************************************/
+Bool XmlData::loadAndroidBinary(File &f)
+{
+#pragma pack(push, 4)
+   struct Header
+   {
+      UShort type;
+      UShort header_size;
+      UInt   size;
+   };
+   struct Value
+   {
+      UShort size;
+      Byte   res0;
+      Byte   data_type;
+      union
+      {
+         UInt   data;
+         Flt    flt;
+      };
+   };
+#pragma pack(pop)
+
+   clear();
+   Header header; f>>header; if(header.type==3 && header.size==f.size())
+   {
+      Mems<Str  > strings;
+    //Mems<UInt > attr_names_res_ids;
+      Memc<VecI2> namespaces;
+      Memc< Memc<XmlNode>* > stack; stack.add(&nodes);
+      for(; f.pos()<header.size; )
+      {
+         Header header; f>>header;
+         Long next=f.pos()+header.size-SIZE(header);
+         switch(header.type)
+         {
+            case 0x0001: // strings
+            {
+               auto string_count =f.getUInt();
+               auto style_count  =f.getUInt();
+               auto flags        =f.getUInt(); //Bool sorted_flag=FlagTest(flags, 1<<0);
+               Bool utf8_flag    =FlagTest(flags, 1<<8);
+               auto strings_start=f.getUInt()+8;
+               auto styles_start =f.getUInt();
+
+               Mems<UInt> string_offsets; string_offsets.setNum(string_count); string_offsets.loadRawData(f);
+
+               strings.clear().setNum(string_count);
+               FREPA(strings)
+               {
+                  if(!f.pos(strings_start+string_offsets[i]))return false;
+                  Str &str=strings[i];
+                  if(utf8_flag)
+                  {
+                     Int wide_chars=f.getByte(); if(wide_chars&0x80)wide_chars|=((wide_chars&0x7F)<<8)|f.getByte(); // number of characters after converting from UTF8
+                     Int bytes     =f.getByte(); if(bytes     &0x80)bytes     |=((bytes     &0x7F)<<8)|f.getByte(); // number of bytes needed for UTF8 format
+                     if( bytes)
+                     {
+                        Memt<Char8> s; s.setNum(bytes+1); f.getFastN(s.data(), bytes); s[bytes]='\0'; str=FromUTF8(s.data());
+                     }
+                  }else
+                  {
+                     Int len=f.getUShort();
+                     if( len&0x8000)len|=((len&0x7FFF)<<16)|f.getUShort();
+                     if( len)
+                     {
+                                   str._d.setNum(len+1);
+                        f.getFastN(str._d.data(), len);
+                                   str._d[str._length=len]='\0';
+                     }
+                  }
+               }
+            }break;
+
+          /*case 0x0180: // resource map
+            {
+               attr_names_res_ids.clear().setNum((header.size-SIZE(header))/4).loadRawData(f);
+            }break;*/
+
+            case 0x0100: // namespace start
+            {
+               auto line_num=f.getUInt();
+               auto comment =f.getUInt();
+               auto prefix  =f.getUInt();
+               auto uri     =f.getUInt();
+               namespaces.New().set(uri, prefix);
+            }break;
+
+            case 0x0101: // namespace end
+            {
+               auto line_num=f.getUInt();
+               auto comment =f.getUInt();
+               auto prefix  =f.getUInt();
+               auto uri     =f.getUInt();
+               namespaces.removeLast();
+            }break;
+
+            case 0x0102: if(stack.elms()) // node start
+            {
+               XmlNode &node=stack.last()->New(); stack.add(&node.nodes);
+               auto line_num       =f.getUInt();
+               auto comment        =f.getUInt();
+               auto ns             =f.getUInt();
+               auto name           =f.getUInt();
+               auto attribute_size =f.getUInt();
+               auto attribute_count=f.getUShort();
+               auto id_index       =f.getUShort();
+               auto class_index    =f.getUShort();
+               auto style_index    =f.getUShort();
+
+               if(InRange(ns  , strings)){node.name =strings[ns  ]; node.name+=':';}
+               if(InRange(name, strings)) node.name+=strings[name];
+
+               /*only latest 'namespaces' FREPA(namespaces)
+               {
+                C auto ns=namespaces[i]; if(InRange(ns.x, strings) && InRange(ns.y, strings))node.params.New().set(S+"xmlns:"+strings[ns.y], strings[ns.x]);
+               }*/
+               FREP(attribute_count)
+               {
+                  auto attr_ns     =f.getUInt();
+                  auto attr_name   =f.getUInt();
+                  auto attr_raw_val=f.getUInt();
+                  Value value; f>>value;
+
+                  XmlParam &param=node.params.New();
+                  if(attr_ns!=0XFFFFFFFF)REPA(namespaces)if(namespaces[i].x==attr_ns)
+                  {
+                     Int ns=namespaces[i].y;
+                     if(InRange(ns, strings)){param.name=strings[ns]; param.name+=':';}
+                     break;
+                  }
+                  if(InRange(attr_name   , strings))param.name+=strings[attr_name];
+                  if(InRange(attr_raw_val, strings))param.value=strings[attr_raw_val];else switch(value.data_type)
+                  {
+                     case 0x00: param.value="null"; break; // null
+                     case 0x03: if(InRange(value.data, strings))param.value=strings[value.data]; break; // string
+                     case 0x04: param.value=TextReal(value.flt); break; // float
+                     case 0x10: param.value=value.data; break; // int
+                     case 0x11: param.value=TextHex (value.data, 8, 0, true); break; // hex
+                     case 0x12: param.value=TextBool(value.data!=0); break; // bool
+                  }
+               }
+            }break;
+
+            case 0x0103: // node end
+            {
+               auto line_num=f.getUInt();
+               auto comment =f.getUInt();
+               auto ns      =f.getUInt();
+               auto name    =f.getUInt();
+               stack.removeLast();
+            }break;
+
+            /*case 0x0104: // XML CDATA
+            {
+               auto line_num=f.getUInt();
+               auto comment =f.getUInt();
+               auto text    =f.getUInt();
+               f.getUInt();
+               f.getUInt();
+               add("<xmltext>", strings[text]);
+            }break;*/
+         }
+         if(!f.pos(next))return false;
+      }
+      return true;
+   }
+   return false;
+}
+/******************************************************************************/
 }
 /******************************************************************************/

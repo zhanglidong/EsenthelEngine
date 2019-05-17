@@ -210,6 +210,8 @@ struct XmlData // Xml Data
    Bool load(C UID    &id  ); // load from file, false on fail
    Bool load(FileText &f   ); // load from file, false on fail, 'f' file must be already opened for reading
 
+   Bool loadAndroidBinary(File &f); // load from Android Binary XML file, false on fail
+
    XmlData() {}
    XmlData(C TextData &text); // create from 'TextData'
 };
