@@ -25,6 +25,13 @@ struct DataCallback // you can override this class and pass its object into 'Com
    virtual void reset(                   )=NULL; // called when data stream needs to be reset
    virtual void data (CPtr data, Int size)=NULL; // called when processed 'data' of 'size'
 };
+struct CRC32Calc : DataCallback
+{
+   CRC32 hash;
+
+   virtual void reset(                   )override {hash.reset();}
+   virtual void data (CPtr data, Int size)override {hash.update(data, size);}
+};
 struct xxHash32Calc : DataCallback
 {
    xxHash32 hash;
@@ -65,4 +72,18 @@ const Int MaxCmpUIntVSize =5,
           MaxCmpULongVSize=9;
       Int     CmpUIntVSize(UInt u); // get number of bytes needed for storing 'u' using 'cmpUIntV' algorithm
 #endif
+/******************************************************************************/
+struct ZipFile
+{
+   Str      name             ; // full name (including paths)
+   Bool     compressed       ; // if file is compressed
+   UInt     uncompressed_size, // size of  uncompressed data
+              compressed_size, // size of    compressed data (if file is not compressed, it's equal to 'uncompressed_size')
+            crc32            ; // CRC32 hash
+   Long     offset           ; // data offset in ZIP file
+   DateTime modify_time_utc  ; // modification time (in UTC time zone)
+
+   COMPRESS_TYPE compression()C {return compressed ? COMPRESS_ZLIB : COMPRESS_NONE;} // get file compression type
+};
+Bool ParseZip(File &f, MemPtr<ZipFile> files); // parse a ZIP format file and get its 'files', false on fail, actual file decompression can be handled using 'DecompressRaw' function
 /******************************************************************************/

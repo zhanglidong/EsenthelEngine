@@ -163,7 +163,7 @@ NOINLINE static Bool ZLIBCompress(File &src, File &dest, Int compression_level, 
 {
    Bool     ok=false;
    z_stream stream; Zero(stream);
-   if(deflateInit(&stream, Mid(compression_level, 1, 9))==Z_OK) // 0=no compression
+   if(deflateInit2(&stream, Mid(compression_level, 1, 9), Z_DEFLATED, -MAX_WBITS, MAX_MEM_LEVEL, Z_DEFAULT_STRATEGY)==Z_OK) // level 0=no compression, using -MAX_WBITS prevents generating zlib header/trailer/check values which reduces size AND is required by ZIP format !! Do Not Change !!
    {
       Byte in[BUF_SIZE], out[BUF_SIZE];
       for(;;)
@@ -193,7 +193,7 @@ NOINLINE static Bool ZLIBDecompress(File &src, File &dest, Long compressed_size,
 {
    Bool     ok=false;
    z_stream stream; Zero(stream);
-   if(inflateInit(&stream)==Z_OK)
+   if(inflateInit2(&stream, -MAX_WBITS)==Z_OK) // using -MAX_WBITS prevents generating zlib header/trailer/check values which reduces size AND is required by ZIP format !! Do Not Change !!
    {
       Long  start=dest.pos();
       Byte  in[BUF_SIZE], out[BUF_SIZE];
@@ -1863,7 +1863,7 @@ UInt CompressionMemUsage(COMPRESS_TYPE type, Int compression_level, Long uncompr
 
       case COMPRESS_ZLIB:
       {
-         const UInt windowBits=15, memLevel=8;
+         const UInt windowBits=MAX_WBITS,  memLevel=MAX_MEM_LEVEL;
          return (1<<(windowBits+2)) + (1<<(memLevel+9)); // taken from "ThirdPartyLibs\Zlib\zconf.h" and http://www.zlib.net/zlib_tech.html
       }
 
@@ -1936,7 +1936,7 @@ UInt DecompressionMemUsage(COMPRESS_TYPE type, Int compression_level, Long uncom
 
       case COMPRESS_ZLIB:
       {
-         const UInt windowBits=15;
+         const UInt windowBits=MAX_WBITS;
          return (1<<windowBits) + 1440*2*SIZE(Int); // taken from "ThirdPartyLibs\Zlib\zconf.h" and http://www.zlib.net/zlib_tech.html
       }
 
@@ -1992,6 +1992,66 @@ UInt DecompressionMemUsage(COMPRESS_TYPE type, Int compression_level, Long uncom
       }
    #endif
    }
+}
+/******************************************************************************/
+Bool ParseZip(File &f, MemPtr<ZipFile> files)
+{
+   #pragma pack(push, 1)
+   struct Raw
+   {
+      UInt signature; // 0X04034B50
+      U16  min_ver;
+      U16  general_purpose_flag;
+      U16  compression_method;
+      U16  modify_time;
+      U16  modify_date;
+      UInt crc32;
+      UInt   compressed_size;
+      UInt uncompressed_size;
+      U16  name_length;
+      U16  extra_length;
+   };
+   struct DataDesc
+   {
+      UInt signature; // 0X08074B50
+      UInt crc32;
+      UInt   compressed_size;
+      UInt uncompressed_size;
+   };
+   #pragma pack(pop)
+   files.clear();
+   Memt<Char8> s;
+   for(;;)
+   {
+      Raw raw; f>>raw; if(raw.signature!=0X04034B50 || !f.ok())break;
+      s.clear().setNum(raw.name_length+1); if(!f.getFastN(s.data(), raw.name_length))break; s[raw.name_length]='\0';
+      Long offset=f.pos()+raw.extra_length;
+      f.pos(offset+raw.compressed_size);
+      if(raw.general_purpose_flag&0x08) // data descriptor
+      {
+         DataDesc dd; f>>dd; if(dd.signature!=0X08074B50 || !f.ok())break;
+         {
+            raw.crc32            =dd.crc32            ;
+            raw.uncompressed_size=dd.uncompressed_size;
+            raw.  compressed_size=dd.  compressed_size;
+         }
+      }
+      ZipFile &file=files.New();
+      file.compressed       =(raw.compression_method!=0);
+      file.uncompressed_size= raw.uncompressed_size;
+      file.  compressed_size= raw.  compressed_size;
+      file.            crc32= raw.            crc32;
+      file.offset=offset;
+      file.modify_time_utc.second=((raw.modify_time&31)<<1);
+      file.modify_time_utc.minute=((raw.modify_time>>5)&63);
+      file.modify_time_utc.hour  =((raw.modify_time>>11)  );
+      file.modify_time_utc.day   =((raw.modify_date&31)   );
+      file.modify_time_utc.month =((raw.modify_date>>5)&15);
+      file.modify_time_utc.year  =((raw.modify_date>>9)+1980);
+      file.modify_time_utc.toUTC();
+      file.name=FromUTF8(s.data());
+   }
+   return files.elms()>0;
 }
 /******************************************************************************/
 }
