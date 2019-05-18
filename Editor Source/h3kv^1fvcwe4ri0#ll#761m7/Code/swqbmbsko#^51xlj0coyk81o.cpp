@@ -3,6 +3,12 @@ class CalculatorClass : ClosableWindow
 {
    TextLine expression;
 
+   void visibleToggleActivate()
+   {
+      super.visibleToggleActivate();
+      expression.activate();
+   }
+
    CalculatorClass& create(C Rect &rect)
    {
       super.create("Calculator").clientRect(rect);

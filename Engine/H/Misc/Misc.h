@@ -165,7 +165,7 @@ void LogShow   (Bool thread_id, Bool date, Bool time, Bool cur_time); // set whi
 Bool ClipSet(C Str &text, Bool fix_new_line=true); // set system clipboard value to 'text', 'fix_new_line'=if replace "\n" characters with "\r\n" which are required in Windows operating system
 Str  ClipGet(             Bool fix_new_line=true); // get system clipboard value          , 'fix_new_line'=if remove  '\r' characters
 
-enum OS_VER // Operating System Version
+enum OS_VER : Byte // Operating System Version
 {
    OS_UNKNOWN,
 

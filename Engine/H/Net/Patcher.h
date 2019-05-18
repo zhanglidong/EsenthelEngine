@@ -62,7 +62,7 @@ const_mem_addr struct Patcher // class for automatic downloading file updates fr
    static void SetList(MemPtr<LocalFile> local_files, C PakSet &paks); // automatically create 'local_files' list from 'paks' set of paks                 (this will process all pak files                inside 'paks' and list them in 'local_files' container)
 
    // manage
-   Patcher& create(C Str &http_dir, C Str &upload_name, Cipher *cipher=null); // create the patcher according to provided internet address, 'http_dir'=case-sensitive http address of the directory where files were uploaded (for example: "http://www.domain.com/download"), 'upload_name'=case-sensitive name of the upload (for example: "GameName"), 'cipher'=cipher keys used during upload, these parameters must match the ones you have provided in the Uploader tool
+   Patcher& create(C Str &http_dir, C Str &upload_name, Cipher *cipher=null); // create the patcher according to provided internet address, 'http_dir'=case-sensitive url address of the directory where files were uploaded (for example: "http://domain.com/download"), 'upload_name'=case-sensitive name of the upload (for example: "GameName"), 'cipher'=cipher keys used during upload, these parameters must match the ones you have provided in the Uploader tool
 
    // get
       // installer information

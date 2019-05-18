@@ -5,6 +5,11 @@ CalculatorClass Calculator;
 /******************************************************************************/
 
 /******************************************************************************/
+   void CalculatorClass::visibleToggleActivate()
+   {
+      ::EE::GuiObj::visibleToggleActivate();
+      expression.activate();
+   }
    CalculatorClass& CalculatorClass::create(C Rect &rect)
    {
       ::EE::Window::create("Calculator").clientRect(rect);
