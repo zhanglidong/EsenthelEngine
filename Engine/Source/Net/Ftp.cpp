@@ -153,7 +153,7 @@ Bool Ftp::reconnect() // warning: this does not preserve the binary mode !!
       Swap(T._host    , host);
       Swap(T._user    , user);
       Swap(T._password, password);
-      return logIn(host, user, password);
+      return logOut().logIn(host, user, password);
    }
    return true;
 }
