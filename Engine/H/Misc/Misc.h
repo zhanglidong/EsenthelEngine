@@ -260,7 +260,7 @@ T1(TYPE) void EncodeRaw(  Str8 &dest, C TYPE &elm) {return EncodeRaw(dest, &elm,
 T1(TYPE) Bool DecodeRaw(C Str  &src ,   TYPE &elm) {return DecodeRaw(src , &elm, SIZE(elm));}
 T1(TYPE) Bool DecodeRaw(C Str8 &src ,   TYPE &elm) {return DecodeRaw(src , &elm, SIZE(elm));}
 
-VecI4 FileVersion(C Str &name); // get exe/dll file version, (-1, -1, -1, -1) on fail
+VecI4 FileVersion(C Str &name); // get EXE/DLL/APK file version, (-1, 0, 0, 0) on fail
 
 Bool ValidEmail     (C Str &email); // test if 'email' is in correct email       format - "user@domain.com"
 Bool ValidURL       (C Str &url  ); // test if 'url'   is in correct url         format - "http://domain.com"

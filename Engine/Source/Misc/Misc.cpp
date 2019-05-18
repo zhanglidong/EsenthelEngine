@@ -3026,6 +3026,20 @@ UID FileNameID(C Str &name)
 /******************************************************************************/
 VecI4 FileVersion(C Str &name)
 {
+   if(GetExt(name)=="apk")
+   {
+      Memt<ZipFile> files; File f; if(f.readTry(name) && ParseZip(f, files))REPA(files)
+      {
+       C ZipFile &file=files[i]; if(file.name=="AndroidManifest.xml")
+         {
+            File temp; f.pos(file.offset); if(DecompressRaw(f, temp, file.compression(), file.compressed_size, file.uncompressed_size, true))
+            {
+               XmlData xml; temp.pos(0); if(xml.loadAndroidBinary(temp))if(XmlNode *manifest=xml.findNode("manifest"))if(XmlParam *versionCode=manifest->findParam("android:versionCode"))return VecI4(versionCode->asInt(), 0, 0, 0);
+            }
+            break;
+         }
+      }
+   }
 #if WINDOWS_OLD
    if(UInt size=GetFileVersionInfoSize(name, null))
    {
@@ -3045,7 +3059,7 @@ VecI4 FileVersion(C Str &name)
       }
    }
 #endif
-   return -1;
+   return VecI4(-1, 0, 0, 0);
 }
 /******************************************************************************/
 Int TextPatch::diffLength()C
