@@ -28,7 +28,8 @@ static SByte LogInSequence[NUMLOGIN][18]=
    {10,LO,3,   11,LO, 6,   2,LO,ER                                 }, // USER remoteID@fireID@remotehost
 };
 /******************************************************************************/
-Ftp::Ftp()
+Ftp::Ftp() {zero();}
+void Ftp::zero()
 {
   _binary  =false;
   _abort   =false;
@@ -38,10 +39,24 @@ Ftp::Ftp()
   _total   =-1;
   _port    = 0;
 }
-/******************************************************************************/
-Bool Ftp::login(C Str8 &host, C Str8 &user, C Str8 &password, Bool ignore_auth_result)
+void Ftp::del()
 {
-   logout();
+  _socket  .del();
+  _response.clear();
+  _host    .clear();
+  _user    .clear();
+  _password.clear();
+   zero();
+}
+Ftp& Ftp::logOut()
+{
+   if(is())command("QUIT");
+   del(); return T;
+}
+/******************************************************************************/
+Bool Ftp::logIn(C Str8 &host, C Str8 &user, C Str8 &password, Bool ignore_auth_result)
+{
+   del();
 
    T._host    =host;
    T._user    =user;
@@ -128,23 +143,7 @@ Bool Ftp::login(C Str8 &host, C Str8 &user, C Str8 &password, Bool ignore_auth_r
       }
    }
 error:
-   logout(); return false;
-}
-void Ftp::logout()
-{
-   if(is())command("QUIT");
-  _socket.del();
-  _binary  =false;
-  _abort   =false;
-  _timeout =false;
-  _timeouts=false;
-  _progress= 0;
-  _total   =-1;
-  _port    = 0;
-  _response.clear();
-  _host    .clear();
-  _user    .clear();
-  _password.clear();
+   logOut(); return false;
 }
 Bool Ftp::reconnect() // warning: this does not preserve the binary mode !!
 {
@@ -154,7 +153,7 @@ Bool Ftp::reconnect() // warning: this does not preserve the binary mode !!
       Swap(T._host    , host);
       Swap(T._user    , user);
       Swap(T._password, password);
-      return login(host, user, password);
+      return logIn(host, user, password);
    }
    return true;
 }

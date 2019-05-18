@@ -10,8 +10,9 @@ struct FtpFile : FileInfo
 struct Ftp // File Transfer Protocol, Ftp supports only one command/transfer at a time
 {
    // manage
-   Bool login (C Str8 &host, C Str8 &user, C Str8 &password, Bool ignore_auth_result=false); //    connect to   FTP, false on fail, connection will use secure mode if 'host' starts with "ftps://", 'ignore_auth_result'=if ignore authorization results and continue even when they failed
-   void logout(                                                                           ); // disconnect from FTP
+   void del   (                                                                           ); // delete without sending 'logOut' command
+   Ftp& logOut(                                                                           ); // disconnect from FTP
+   Bool logIn (C Str8 &host, C Str8 &user, C Str8 &password, Bool ignore_auth_result=false); //    connect to   FTP, false on fail, connection will use secure mode if 'host' starts with "ftps://", 'ignore_auth_result'=if ignore authorization results and continue even when they failed
 
    // get / set
    Bool is        (                             )C {return _socket.is();} // if  connected to the FTP
@@ -34,7 +35,7 @@ struct Ftp // File Transfer Protocol, Ftp supports only one command/transfer at 
    Bool listNames(C Str  &path, MemPtr<Str    > names      , Bool passive=true                          ); // retrieve a list of all names in the specified path, 'passive'=transfer mode, false on fail
    void     abort(                                                                                      ); // notify that the current transfer operation should be aborted, this can be called in a secondary thread to cancel any active transfer
 
-  ~Ftp() {logout();}
+  ~Ftp() {del();}
    Ftp();
 
 private:
@@ -52,6 +53,7 @@ private:
    Bool connect  (SecureSocket &transfer, C Str &ftp_file, CChar8 *cmd, Long offset, Bool passive);
    Bool transfer (File         &file    , C Str &ftp_file, CChar8 *cmd, Long offset, Bool passive, Bool send, Bool binary, Cipher *cipher=null);
    Bool reconnect();
+   void zero();
 #endif
 };
 /******************************************************************************/
