@@ -156,7 +156,13 @@ Patcher& Patcher::downloadInstaller()
 {
    if(is())
    {
-      if(_inst_info_download.state()==DWNL_NONE)downloadInstallerInfo(); // for "Installer" we will also need "Installer Info"
+      switch(installerInfoState())
+      {
+         case DWNL_NONE :
+         case DWNL_ERROR:
+            downloadInstallerInfo(); // for "Installer" we will also need "Installer Info"
+         break;
+      }
      _inst_available=false;
      _inst.del();
      _inst_download.create(_http+_name+" Installer.exe");
@@ -176,6 +182,8 @@ DWNL_STATE Patcher::installerState()
         _inst_available=true; _inst_download.del(); return DWNL_DONE;
       }
      _inst_download.del().error(); state=DWNL_ERROR;
+      // if installer data doesn't match info, then one of possibilities is that data is OK but info outdated, so clear it
+     _inst_info_available=false; //_inst_info.zero();
    }
    return state;
 }
