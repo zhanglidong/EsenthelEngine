@@ -52,15 +52,11 @@ void Patcher::Downloaded::create(C Pak &pak, Int index, Download &download, Ciph
    if(download.size()==pf.data_size_compressed)
    {
       File temp; temp.readMem(download.data(), download.size(), cipher);
-      if(pf.compression){if(!DecompressRaw(temp, data, pf.compression, pf.data_size_compressed, pf.data_size, true))goto error;}
-      else              {temp.copy(data.writeMemFixed(temp.left()));}
-      if(data.size()!=pf.data_size)goto error;
+      xxHash64Calc _hasher, *hasher=(pf.data_xxHash64_32 ? &_hasher : null); // verify hash if available
+      if(!DecompressRaw(temp, data, pf.compression, pf.data_size_compressed, pf.data_size, true, hasher))goto error;
+      if(                    data.size()!=pf.data_size       )goto error;
+      if(hasher && hasher->hash.hash32()!=pf.data_xxHash64_32)goto error;
       data.pos(0);
-      if(pf.data_xxHash64_32) // verify hash if available
-      {
-         if(pf.data_xxHash64_32!=data.xxHash64_32())goto error;
-         data.pos(0);
-      }
       success        =true;
       type           =pf.type();
       xxHash64_32    =pf.data_xxHash64_32;
@@ -147,6 +143,7 @@ DWNL_STATE Patcher::installerInfoState()
          if(TextNode *p=data.findNode("xxHash64"     ))_inst_info.xxHash64_32=TextULong(S+"0x"+p->value)&UINT_MAX; // use 'TextULong' because 'TextUInt' may fail on large values
        //if(TextNode *p=data.findNode("xxHash64"     ))_inst_info.xxHash64   =TextULong(S+"0x"+p->value);
          if(TextNode *p=data.findNode("ModifyTimeUTC"))_inst_info.modify_time_utc.fromText(p->value);
+         if(TextNode *p=data.findNode("Version"      ))_inst_info.version    =TextVer     (p->value);
         _inst_info_available=true; _inst_info_download.del(); return DWNL_DONE;
       }
      _inst_info_download.del().error(); state=DWNL_ERROR;

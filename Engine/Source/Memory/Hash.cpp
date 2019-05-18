@@ -111,7 +111,9 @@ INLINE void xxHash32::finalize() {if(!_finalized){_finalized=true; _hash=XXH32_d
 INLINE void xxHash64::finalize() {if(!_finalized){_finalized=true; _hash=XXH64_digest((XXH64_state_t*)_buffer); if(ZERO_BUFFERS)Zero(_buffer);}}
 
 UInt  xxHash32::operator()() {finalize(); return _hash;}
+#pragma runtime_checks("", off)
 UInt  xxHash64::hash32    () {finalize(); return _hash;}
+#pragma runtime_checks("", restore)
 ULong xxHash64::hash64    () {finalize(); return _hash;}
 /******************************************************************************/
 // SPOOKY HASH

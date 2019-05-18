@@ -49,9 +49,10 @@ const_mem_addr struct Patcher // class for automatic downloading file updates fr
       Int      size           ; // file size
       UInt     xxHash64_32    ; // file data hash
       DateTime modify_time_utc; // file modification time in UTC time zone
+      VecI4    version        ; // file version
 
    #if EE_PRIVATE
-      void zero() {size=0; xxHash64_32=0; modify_time_utc.zero();}
+      void zero() {size=0; xxHash64_32=0; modify_time_utc.zero(); version.zero();}
    #endif
       InstallerInfo();
    };

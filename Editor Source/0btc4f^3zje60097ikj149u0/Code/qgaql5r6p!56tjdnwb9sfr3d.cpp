@@ -19,6 +19,7 @@
             "xxHash32"
             "xxHash64"
             "ModifyTimeUTC"
+            "Version"
 
       Creates Directories
 
@@ -37,6 +38,7 @@
             "xxHash32"
             "xxHash64"
             "ModifyTimeUTC"
+            "Version"
 
       Uploads New Pak Index + PHP Update Script
 
@@ -86,14 +88,15 @@ class InstallerInfo
    uint     xxHash32;
    ulong    xxHash64;
    DateTime modify_time_utc;
+   VecI4    ver;
 
    InstallerInfo() {reset();}
-   void    reset() {size=0; xxHash32=0; xxHash64=0; modify_time_utc.zero();}
+   void    reset() {size=0; xxHash32=0; xxHash64=0; modify_time_utc.zero(); ver.zero();}
 
    static bool SameHash(uint  a, uint  b) {return a==b || !a || !b;}
    static bool SameHash(ulong a, ulong b) {return a==b || !a || !b;}
 
-   bool operator==(InstallerInfo &ii) {return size==ii.size && SameHash(xxHash32, ii.xxHash32) && SameHash(xxHash64, ii.xxHash64) && !Compare(modify_time_utc, ii.modify_time_utc, 1);}
+   bool operator==(InstallerInfo &ii) {return size==ii.size && SameHash(xxHash32, ii.xxHash32) && SameHash(xxHash64, ii.xxHash64) && !Compare(modify_time_utc, ii.modify_time_utc, 1) && ver==ii.ver;}
    bool operator!=(InstallerInfo &ii) {return !(T==ii);}
 
    void save(TextData &data)
@@ -102,6 +105,7 @@ class InstallerInfo
       data.nodes.New().set("xxHash32"     , TextHex(xxHash32,  8, 0, false));
       data.nodes.New().set("xxHash64"     , TextHex(xxHash64, 16, 0, false));
       data.nodes.New().set("ModifyTimeUTC", modify_time_utc.asText(true));
+      if(Compare(ver, VecI4(0))>0)data.nodes.New().set("Version", TextVer(ver));
    }
    void load(TextData &data)
    {
@@ -110,12 +114,14 @@ class InstallerInfo
       if(TextNode *p=data.findNode("xxHash32"     ))xxHash32=TextUInt (S+"0x"+p.value);
       if(TextNode *p=data.findNode("xxHash64"     ))xxHash64=TextULong(S+"0x"+p.value);
       if(TextNode *p=data.findNode("ModifyTimeUTC"))modify_time_utc.fromText (p.value);
+      if(TextNode *p=data.findNode("Version"      ))ver=TextVer(p.value);
    }
    void load(C Str &name)
    {
       reset();
       FileInfo fi; if(fi.get       (name))modify_time_utc=fi.modify_time_utc;
       File     f ; if(f .readStdTry(name)){f.pos(0); xxHash32=f.xxHash32(); f.pos(0); xxHash64=f.xxHash64(); size=f.size();}
+      ver=FileVersion(name); if(Compare(ver, VecI4(0))<0)ver.zero();
    }
 }
 class LoadFile

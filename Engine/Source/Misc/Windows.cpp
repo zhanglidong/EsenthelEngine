@@ -1573,7 +1573,7 @@ def:
 static BOOL CALLBACK EnumResources(HMODULE hModule, LPCWSTR lpType, LPWSTR lpName, LONG_PTR lParam)
 {
    *((C wchar_t**)lParam)=lpName;
-   return false;
+   return false; // stop iterating
 }
 static ATOM WindowClass=0;
 #elif LINUX

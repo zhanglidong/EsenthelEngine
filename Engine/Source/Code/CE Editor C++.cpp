@@ -1175,7 +1175,6 @@ Bool CodeEditor::generateVSProj(Int version)
    FileText resource_rc; resource_rc.writeMem(UTF_16); // utf-16 must be used, because VS has problems with utf-8
    FileText src; if(!src.read("Code/Windows/resource.rc"))return ErrorRead("Code/Windows/resource.rc"); for(; !src.end(); )resource_rc.putLine(src.fullLine());
    Bool     resource_changed=false;
-   Int      resource_id=1; // 1 is currently used as the first resource
 
    // Steam DLL
    if(cei().appPublishSteamDll()) // this must be copied always because the DLL needs to be present in the EXE folder, since we can't specify a custom path for it
@@ -1197,21 +1196,25 @@ Bool CodeEditor::generateVSProj(Int version)
       if(!CopyFile(S+"Code/Windows/"+name, build_path+"d3dcompiler_47.dll"))return false;
    }
 
+   // file version !! must be first !! because VERSIONINFO is required to have ID=1, https://docs.microsoft.com/en-us/windows/desktop/menurc/versioninfo-resource "versionID = Version-information resource identifier. This value must be 1."
+   Int resource_id=1; // ID of the first resource
+   resource_rc.putLine(S+(resource_id++)+" VERSIONINFO FILEVERSION "+cei().appBuild()+",0,0,0 {}");
+
    // icon, generate always because it may be used by WINDOWS_OLD
-   resource_rc.putLine(S+(resource_id++)+"   ICON   \"Assets/Icon.ico\"");
+   resource_rc.putLine(S+(resource_id++)+" ICON        \"Assets/Icon.ico\"");
 
    // embed engine data, generate always because it may be used by WINDOWS_OLD
    if(cei().appEmbedEngineData())
    {
       Bool changed; if(!CreateEngineEmbedPak(build_path+"Assets/EngineEmbed.pak", &changed))return false;
-      resource_rc.putLine(S+(resource_id++)+"   PAK   \"Assets/EngineEmbed.pak\"");
+      resource_rc.putLine(S+(resource_id++)+" PAK         \"Assets/EngineEmbed.pak\"");
       resource_changed|=changed;
    }
 
    // app data, generate always because it may be used by WINDOWS_OLD
    {
       Bool exists, changed; if(!CreateAppPak(build_path+"Assets/App.pak", exists, &changed))return false;
-      if(exists)resource_rc.putLine(S+(resource_id++)+"   PAK   \"Assets/App.pak\"");
+      if(exists)resource_rc.putLine(S+(resource_id++)+" PAK         \"Assets/App.pak\"");
       resource_changed|=changed;
    }
 
