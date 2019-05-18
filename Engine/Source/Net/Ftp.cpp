@@ -319,12 +319,12 @@ Bool Ftp::connect(SecureSocket &transfer, C Str &ftp_file, CChar8 *cmd, Long off
          t++;
          Byte ip[4], port[2];
          CalcValue val;
-         t=_SkipChar(TextValue(t, val)); ip  [0]=val.asUInt();
-         t=_SkipChar(TextValue(t, val)); ip  [1]=val.asUInt();
-         t=_SkipChar(TextValue(t, val)); ip  [2]=val.asUInt();
-         t=_SkipChar(TextValue(t, val)); ip  [3]=val.asUInt();
-         t=_SkipChar(TextValue(t, val)); port[0]=val.asUInt();
-         t=_SkipChar(TextValue(t, val)); port[1]=val.asUInt();
+         t=_SkipComma(TextValue(t, val)); ip  [0]=val.asUInt();
+         t=_SkipComma(TextValue(t, val)); ip  [1]=val.asUInt();
+         t=_SkipComma(TextValue(t, val)); ip  [2]=val.asUInt();
+         t=_SkipComma(TextValue(t, val)); ip  [3]=val.asUInt();
+         t=_SkipComma(TextValue(t, val)); port[0]=val.asUInt();
+         t=_SkipComma(TextValue(t, val)); port[1]=val.asUInt();
          SockAddr addr; addr.setIp4Port(VecB4(ip[0], ip[1], ip[2], ip[3]).u, (port[0]<<8)|port[1]);
          if(transfer.createTcp(addr))
          if(transfer.connect  (addr)==Socket::CONNECTED)

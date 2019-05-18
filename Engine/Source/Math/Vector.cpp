@@ -1408,8 +1408,8 @@ Str VecD4::asText(Int precision)C {if(precision==INT_MAX)precision=PRECISION_DBL
 Str VecB4::asTextDots()C {Char8 text[256], temp[256]; Set(text, TextInt(x, temp)); Append(text, "."); Append(text, TextInt(y, temp)); Append(text, "."); Append(text, TextInt(z, temp)); Append(text, "."); Append(text, TextInt(w, temp)); return text;}
 Str VecI4::asTextDots()C {Char8 text[256], temp[256]; Set(text, TextInt(x, temp)); Append(text, "."); Append(text, TextInt(y, temp)); Append(text, "."); Append(text, TextInt(z, temp)); Append(text, "."); Append(text, TextInt(w, temp)); return text;}
 #else
-Str VecB4::asTextDots()C {Char8 temp[256]; Str s; s+=TextInt(x, temp); s+='.'; s+=TextInt(y, temp); s+="."; s+=TextInt(z, temp); s+="."; s+=TextInt(w, temp); return s;}
-Str VecI4::asTextDots()C {Char8 temp[256]; Str s; s+=TextInt(x, temp); s+='.'; s+=TextInt(y, temp); s+="."; s+=TextInt(z, temp); s+="."; s+=TextInt(w, temp); return s;}
+Str VecB4::asTextDots()C {Char8 temp[256]; Str s; s+=TextInt(x, temp); s+='.'; s+=TextInt(y, temp); s+='.'; s+=TextInt(z, temp); s+='.'; s+=TextInt(w, temp); return s;}
+Str VecI4::asTextDots()C {Char8 temp[256]; Str s; s+=TextInt(x, temp); s+='.'; s+=TextInt(y, temp); s+='.'; s+=TextInt(z, temp); s+='.'; s+=TextInt(w, temp); return s;}
 #endif
 /******************************************************************************/
 void Vec2::draw(C Color &color, Flt r)C

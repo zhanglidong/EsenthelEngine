@@ -193,7 +193,20 @@ Char8 CaseUp  (Char8 c) {I(); return CaseUpFast  (c);}
 CHAR_TYPE CharType(Char  c) {I(); return CharTypeFast(c);}
 CHAR_TYPE CharType(Char8 c) {I(); return CharTypeFast(c);}
 
-Bool WhiteChar(Char c) {return c==' ' || c=='\t' || c=='\n' || c=='\r' || c==FullWidthSpace || c==Nbsp;}
+Bool WhiteChar(Char c)
+{
+   switch(c)
+   {
+      case ' ' :
+      case '\t':
+      case '\n':
+      case '\r':
+      case FullWidthSpace:
+      case Nbsp:
+         return true;
+      default: return false;
+   }
+}
 
 Int CompareCS(Char8 a, Char8 b) {return U8 (          a )-U8 (          b );}
 Int CompareCS(Char8 a, Char  b) {return U16(Char8To16(a))-U16(          b );}
@@ -1490,8 +1503,12 @@ Bool ContainsAll(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
    return false;
 }
 /****************************************************************************/
-CChar * _SkipWhiteChars(CChar  *t) {if(t)for(; WhiteChar(*t); t++); return t;}
-CChar8* _SkipWhiteChars(CChar8 *t) {if(t)for(; WhiteChar(*t); t++); return t;}
+CChar * _SkipWhiteChars     (CChar  *t) {if(t) for(; WhiteChar(*t); t++);            return t;}
+CChar8* _SkipWhiteChars     (CChar8 *t) {if(t) for(; WhiteChar(*t); t++);            return t;}
+CChar * _SkipWhiteCharsComma(CChar  *t) {if(t){for(; WhiteChar(*t); t++); if(*t==',')return t+1;} return null;}
+CChar8* _SkipWhiteCharsComma(CChar8 *t) {if(t){for(; WhiteChar(*t); t++); if(*t==',')return t+1;} return null;}
+CChar * _SkipWhiteCharsDot  (CChar  *t) {if(t){for(; WhiteChar(*t); t++); if(*t=='.')return t+1;} return null;}
+CChar8* _SkipWhiteCharsDot  (CChar8 *t) {if(t){for(; WhiteChar(*t); t++); if(*t=='.')return t+1;} return null;}
 /****************************************************************************/
 CChar8* _SkipStart(CChar8 *t, CChar8 *start)
 {
@@ -2247,6 +2264,20 @@ StrO TextHex (ULong u, Int digits   , Int separate, Bool prefix) {Char8 temp[256
 StrO TextHex (Flt   r                                          ) {return _TextHex(r);}
 StrO TextHex (Dbl   r                                          ) {return _TextHex(r);}
 StrO TextReal(Dbl   r, Int precision, Int separate             ) {Char8 temp[256]; return TextReal(r, temp, precision, separate        );}
+StrO TextVer (C VecI4 &ver                                     )
+{
+   Char8 temp[256]; StrO s; s+=TextInt(ver.x, temp); if(ver.y || ver.z || ver.w)
+   {
+      s+='.'; s+=TextInt(ver.y, temp); if(ver.z || ver.w)
+      {
+         s+='.'; s+=TextInt(ver.z, temp); if(ver.w)
+         {
+            s+='.'; s+=TextInt(ver.w, temp);
+         }
+      }
+   }
+   return s;
+}
 /******************************************************************************/
 #if 0
 CChar * _TextPacked(  Flt   f, Char  (&temp)[ 7*1]=ConstCast(TempChar< 7*1>()).c);
@@ -2697,44 +2728,64 @@ Flt    TextFlt   (CChar8 *t) {CalcValue x         ; TextValue(t, x); return x.as
 Flt    TextFlt   (CChar  *t) {CalcValue x         ; TextValue(t, x); return x.asFlt ();}
 Dbl    TextDbl   (CChar8 *t) {CalcValue x         ; TextValue(t, x); return x.asDbl ();}
 Dbl    TextDbl   (CChar  *t) {CalcValue x         ; TextValue(t, x); return x.asDbl ();}
-Vec2   TextVec2  (CChar8 *t) {CalcValue x, y      ; TextValue(                                        _SkipChar(TextValue(t, x)), y)          ; return Vec2  (x.asFlt(), y.asFlt()                      );}
-Vec2   TextVec2  (CChar  *t) {CalcValue x, y      ; TextValue(                                        _SkipChar(TextValue(t, x)), y)          ; return Vec2  (x.asFlt(), y.asFlt()                      );}
-VecD2  TextVecD2 (CChar8 *t) {CalcValue x, y      ; TextValue(                                        _SkipChar(TextValue(t, x)), y)          ; return VecD2 (x.asDbl(), y.asDbl()                      );}
-VecD2  TextVecD2 (CChar  *t) {CalcValue x, y      ; TextValue(                                        _SkipChar(TextValue(t, x)), y)          ; return VecD2 (x.asDbl(), y.asDbl()                      );}
-VecI2  TextVecI2 (CChar8 *t) {CalcValue x, y      ; TextValue(                                        _SkipChar(TextValue(t, x)), y)          ; return VecI2 (x.asInt(), y.asInt()                      );}
-VecI2  TextVecI2 (CChar  *t) {CalcValue x, y      ; TextValue(                                        _SkipChar(TextValue(t, x)), y)          ; return VecI2 (x.asInt(), y.asInt()                      );}
-VecB2  TextVecB2 (CChar8 *t) {CalcValue x, y      ; TextValue(                                        _SkipChar(TextValue(t, x)), y)          ; return VecB2 (x.asInt(), y.asInt()                      );}
-VecB2  TextVecB2 (CChar  *t) {CalcValue x, y      ; TextValue(                                        _SkipChar(TextValue(t, x)), y)          ; return VecB2 (x.asInt(), y.asInt()                      );}
-VecSB2 TextVecSB2(CChar8 *t) {CalcValue x, y      ; TextValue(                                        _SkipChar(TextValue(t, x)), y)          ; return VecSB2(x.asInt(), y.asInt()                      );}
-VecSB2 TextVecSB2(CChar  *t) {CalcValue x, y      ; TextValue(                                        _SkipChar(TextValue(t, x)), y)          ; return VecSB2(x.asInt(), y.asInt()                      );}
-VecUS2 TextVecUS2(CChar8 *t) {CalcValue x, y      ; TextValue(                                        _SkipChar(TextValue(t, x)), y)          ; return VecUS2(x.asInt(), y.asInt()                      );}
-VecUS2 TextVecUS2(CChar  *t) {CalcValue x, y      ; TextValue(                                        _SkipChar(TextValue(t, x)), y)          ; return VecUS2(x.asInt(), y.asInt()                      );}
-Vec    TextVec   (CChar8 *t) {CalcValue x, y, z   ; TextValue(_SkipChar(TextValue(                    _SkipChar(TextValue(t, x)), y)), z)     ; return Vec   (x.asFlt(), y.asFlt(), z.asFlt()           );}
-Vec    TextVec   (CChar  *t) {CalcValue x, y, z   ; TextValue(_SkipChar(TextValue(                    _SkipChar(TextValue(t, x)), y)), z)     ; return Vec   (x.asFlt(), y.asFlt(), z.asFlt()           );}
-VecD   TextVecD  (CChar8 *t) {CalcValue x, y, z   ; TextValue(_SkipChar(TextValue(                    _SkipChar(TextValue(t, x)), y)), z)     ; return VecD  (x.asDbl(), y.asDbl(), z.asDbl()           );}
-VecD   TextVecD  (CChar  *t) {CalcValue x, y, z   ; TextValue(_SkipChar(TextValue(                    _SkipChar(TextValue(t, x)), y)), z)     ; return VecD  (x.asDbl(), y.asDbl(), z.asDbl()           );}
-VecI   TextVecI  (CChar8 *t) {CalcValue x, y, z   ; TextValue(_SkipChar(TextValue(                    _SkipChar(TextValue(t, x)), y)), z)     ; return VecI  (x.asInt(), y.asInt(), z.asInt()           );}
-VecI   TextVecI  (CChar  *t) {CalcValue x, y, z   ; TextValue(_SkipChar(TextValue(                    _SkipChar(TextValue(t, x)), y)), z)     ; return VecI  (x.asInt(), y.asInt(), z.asInt()           );}
-VecB   TextVecB  (CChar8 *t) {CalcValue x, y, z   ; TextValue(_SkipChar(TextValue(                    _SkipChar(TextValue(t, x)), y)), z)     ; return VecB  (x.asInt(), y.asInt(), z.asInt()           );}
-VecB   TextVecB  (CChar  *t) {CalcValue x, y, z   ; TextValue(_SkipChar(TextValue(                    _SkipChar(TextValue(t, x)), y)), z)     ; return VecB  (x.asInt(), y.asInt(), z.asInt()           );}
-VecSB  TextVecSB (CChar8 *t) {CalcValue x, y, z   ; TextValue(_SkipChar(TextValue(                    _SkipChar(TextValue(t, x)), y)), z)     ; return VecSB (x.asInt(), y.asInt(), z.asInt()           );}
-VecSB  TextVecSB (CChar  *t) {CalcValue x, y, z   ; TextValue(_SkipChar(TextValue(                    _SkipChar(TextValue(t, x)), y)), z)     ; return VecSB (x.asInt(), y.asInt(), z.asInt()           );}
-VecUS  TextVecUS (CChar8 *t) {CalcValue x, y, z   ; TextValue(_SkipChar(TextValue(                    _SkipChar(TextValue(t, x)), y)), z)     ; return VecUS (x.asInt(), y.asInt(), z.asInt()           );}
-VecUS  TextVecUS (CChar  *t) {CalcValue x, y, z   ; TextValue(_SkipChar(TextValue(                    _SkipChar(TextValue(t, x)), y)), z)     ; return VecUS (x.asInt(), y.asInt(), z.asInt()           );}
-Vec4   TextVec4  (CChar8 *t) {CalcValue x, y, z, w; TextValue(_SkipChar(TextValue(_SkipChar(TextValue(_SkipChar(TextValue(t, x)), y)), z)), w); return Vec4  (x.asFlt(), y.asFlt(), z.asFlt(), w.asFlt());}
-Vec4   TextVec4  (CChar  *t) {CalcValue x, y, z, w; TextValue(_SkipChar(TextValue(_SkipChar(TextValue(_SkipChar(TextValue(t, x)), y)), z)), w); return Vec4  (x.asFlt(), y.asFlt(), z.asFlt(), w.asFlt());}
-VecD4  TextVecD4 (CChar8 *t) {CalcValue x, y, z, w; TextValue(_SkipChar(TextValue(_SkipChar(TextValue(_SkipChar(TextValue(t, x)), y)), z)), w); return VecD4 (x.asDbl(), y.asDbl(), z.asDbl(), w.asDbl());}
-VecD4  TextVecD4 (CChar  *t) {CalcValue x, y, z, w; TextValue(_SkipChar(TextValue(_SkipChar(TextValue(_SkipChar(TextValue(t, x)), y)), z)), w); return VecD4 (x.asDbl(), y.asDbl(), z.asDbl(), w.asDbl());}
-VecI4  TextVecI4 (CChar8 *t) {CalcValue x, y, z, w; TextValue(_SkipChar(TextValue(_SkipChar(TextValue(_SkipChar(TextValue(t, x)), y)), z)), w); return VecI4 (x.asInt(), y.asInt(), z.asInt(), w.asInt());}
-VecI4  TextVecI4 (CChar  *t) {CalcValue x, y, z, w; TextValue(_SkipChar(TextValue(_SkipChar(TextValue(_SkipChar(TextValue(t, x)), y)), z)), w); return VecI4 (x.asInt(), y.asInt(), z.asInt(), w.asInt());}
-VecB4  TextVecB4 (CChar8 *t) {CalcValue x, y, z, w; TextValue(_SkipChar(TextValue(_SkipChar(TextValue(_SkipChar(TextValue(t, x)), y)), z)), w); return VecB4 (x.asInt(), y.asInt(), z.asInt(), w.asInt());}
-VecB4  TextVecB4 (CChar  *t) {CalcValue x, y, z, w; TextValue(_SkipChar(TextValue(_SkipChar(TextValue(_SkipChar(TextValue(t, x)), y)), z)), w); return VecB4 (x.asInt(), y.asInt(), z.asInt(), w.asInt());}
-VecSB4 TextVecSB4(CChar8 *t) {CalcValue x, y, z, w; TextValue(_SkipChar(TextValue(_SkipChar(TextValue(_SkipChar(TextValue(t, x)), y)), z)), w); return VecSB4(x.asInt(), y.asInt(), z.asInt(), w.asInt());}
-VecSB4 TextVecSB4(CChar  *t) {CalcValue x, y, z, w; TextValue(_SkipChar(TextValue(_SkipChar(TextValue(_SkipChar(TextValue(t, x)), y)), z)), w); return VecSB4(x.asInt(), y.asInt(), z.asInt(), w.asInt());}
-Color  TextColor (CChar8 *t) {CalcValue x, y, z, w; TextValue(_SkipChar(TextValue(_SkipChar(TextValue(_SkipChar(TextValue(t, x)), y)), z)), w); return Color (x.asInt(), y.asInt(), z.asInt(), w.asInt());}
-Color  TextColor (CChar  *t) {CalcValue x, y, z, w; TextValue(_SkipChar(TextValue(_SkipChar(TextValue(_SkipChar(TextValue(t, x)), y)), z)), w); return Color (x.asInt(), y.asInt(), z.asInt(), w.asInt());}
+Vec2   TextVec2  (CChar8 *t) {CalcValue x, y      ;                                                               TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)          ; return Vec2  (x.asFlt(), y.asFlt()                      );}
+Vec2   TextVec2  (CChar  *t) {CalcValue x, y      ;                                                               TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)          ; return Vec2  (x.asFlt(), y.asFlt()                      );}
+VecD2  TextVecD2 (CChar8 *t) {CalcValue x, y      ;                                                               TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)          ; return VecD2 (x.asDbl(), y.asDbl()                      );}
+VecD2  TextVecD2 (CChar  *t) {CalcValue x, y      ;                                                               TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)          ; return VecD2 (x.asDbl(), y.asDbl()                      );}
+VecI2  TextVecI2 (CChar8 *t) {CalcValue x, y      ;                                                               TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)          ; return VecI2 (x.asInt(), y.asInt()                      );}
+VecI2  TextVecI2 (CChar  *t) {CalcValue x, y      ;                                                               TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)          ; return VecI2 (x.asInt(), y.asInt()                      );}
+VecB2  TextVecB2 (CChar8 *t) {CalcValue x, y      ;                                                               TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)          ; return VecB2 (x.asInt(), y.asInt()                      );}
+VecB2  TextVecB2 (CChar  *t) {CalcValue x, y      ;                                                               TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)          ; return VecB2 (x.asInt(), y.asInt()                      );}
+VecSB2 TextVecSB2(CChar8 *t) {CalcValue x, y      ;                                                               TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)          ; return VecSB2(x.asInt(), y.asInt()                      );}
+VecSB2 TextVecSB2(CChar  *t) {CalcValue x, y      ;                                                               TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)          ; return VecSB2(x.asInt(), y.asInt()                      );}
+VecUS2 TextVecUS2(CChar8 *t) {CalcValue x, y      ;                                                               TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)          ; return VecUS2(x.asInt(), y.asInt()                      );}
+VecUS2 TextVecUS2(CChar  *t) {CalcValue x, y      ;                                                               TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)          ; return VecUS2(x.asInt(), y.asInt()                      );}
+Vec    TextVec   (CChar8 *t) {CalcValue x, y, z   ;                                TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)     ; return Vec   (x.asFlt(), y.asFlt(), z.asFlt()           );}
+Vec    TextVec   (CChar  *t) {CalcValue x, y, z   ;                                TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)     ; return Vec   (x.asFlt(), y.asFlt(), z.asFlt()           );}
+VecD   TextVecD  (CChar8 *t) {CalcValue x, y, z   ;                                TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)     ; return VecD  (x.asDbl(), y.asDbl(), z.asDbl()           );}
+VecD   TextVecD  (CChar  *t) {CalcValue x, y, z   ;                                TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)     ; return VecD  (x.asDbl(), y.asDbl(), z.asDbl()           );}
+VecI   TextVecI  (CChar8 *t) {CalcValue x, y, z   ;                                TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)     ; return VecI  (x.asInt(), y.asInt(), z.asInt()           );}
+VecI   TextVecI  (CChar  *t) {CalcValue x, y, z   ;                                TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)     ; return VecI  (x.asInt(), y.asInt(), z.asInt()           );}
+VecB   TextVecB  (CChar8 *t) {CalcValue x, y, z   ;                                TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)     ; return VecB  (x.asInt(), y.asInt(), z.asInt()           );}
+VecB   TextVecB  (CChar  *t) {CalcValue x, y, z   ;                                TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)     ; return VecB  (x.asInt(), y.asInt(), z.asInt()           );}
+VecSB  TextVecSB (CChar8 *t) {CalcValue x, y, z   ;                                TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)     ; return VecSB (x.asInt(), y.asInt(), z.asInt()           );}
+VecSB  TextVecSB (CChar  *t) {CalcValue x, y, z   ;                                TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)     ; return VecSB (x.asInt(), y.asInt(), z.asInt()           );}
+VecUS  TextVecUS (CChar8 *t) {CalcValue x, y, z   ;                                TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)     ; return VecUS (x.asInt(), y.asInt(), z.asInt()           );}
+VecUS  TextVecUS (CChar  *t) {CalcValue x, y, z   ;                                TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)     ; return VecUS (x.asInt(), y.asInt(), z.asInt()           );}
+Vec4   TextVec4  (CChar8 *t) {CalcValue x, y, z, w; TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)), w); return Vec4  (x.asFlt(), y.asFlt(), z.asFlt(), w.asFlt());}
+Vec4   TextVec4  (CChar  *t) {CalcValue x, y, z, w; TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)), w); return Vec4  (x.asFlt(), y.asFlt(), z.asFlt(), w.asFlt());}
+VecD4  TextVecD4 (CChar8 *t) {CalcValue x, y, z, w; TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)), w); return VecD4 (x.asDbl(), y.asDbl(), z.asDbl(), w.asDbl());}
+VecD4  TextVecD4 (CChar  *t) {CalcValue x, y, z, w; TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)), w); return VecD4 (x.asDbl(), y.asDbl(), z.asDbl(), w.asDbl());}
+VecI4  TextVecI4 (CChar8 *t) {CalcValue x, y, z, w; TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)), w); return VecI4 (x.asInt(), y.asInt(), z.asInt(), w.asInt());}
+VecI4  TextVecI4 (CChar  *t) {CalcValue x, y, z, w; TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)), w); return VecI4 (x.asInt(), y.asInt(), z.asInt(), w.asInt());}
+VecB4  TextVecB4 (CChar8 *t) {CalcValue x, y, z, w; TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)), w); return VecB4 (x.asInt(), y.asInt(), z.asInt(), w.asInt());}
+VecB4  TextVecB4 (CChar  *t) {CalcValue x, y, z, w; TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)), w); return VecB4 (x.asInt(), y.asInt(), z.asInt(), w.asInt());}
+VecSB4 TextVecSB4(CChar8 *t) {CalcValue x, y, z, w; TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)), w); return VecSB4(x.asInt(), y.asInt(), z.asInt(), w.asInt());}
+VecSB4 TextVecSB4(CChar  *t) {CalcValue x, y, z, w; TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)), w); return VecSB4(x.asInt(), y.asInt(), z.asInt(), w.asInt());}
+Color  TextColor (CChar8 *t) {CalcValue x, y, z, w; TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)), w); return Color (x.asInt(), y.asInt(), z.asInt(), w.asInt());}
+Color  TextColor (CChar  *t) {CalcValue x, y, z, w; TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(_SkipWhiteCharsComma(TextValue(t, x)), y)), z)), w); return Color (x.asInt(), y.asInt(), z.asInt(), w.asInt());}
 UID    TextUID   (CChar8 *t) {UID id; id.fromText(t); return id;}
 UID    TextUID   (CChar  *t) {UID id; id.fromText(t); return id;}
+VecI4  TextVer   (CChar  *t)
+{
+   VecI4 ver; CalcValue v; Int i=0; for(;;)
+   {
+      t=TextValue(t, v, false); if(!v.type)break; ver.c[i++]=v.asInt(); if(!InRange(i, ver))goto end; t=_SkipWhiteCharsDot(t);
+   }
+   for(; i<Elms(ver); i++)ver.c[i]=0;
+end:
+   return ver;
+}
+VecI4 TextVer(CChar8 *t)
+{
+   VecI4 ver; CalcValue v; Int i=0; for(;;)
+   {
+      t=TextValue(t, v, false); if(!v.type)break; ver.c[i++]=v.asInt(); if(!InRange(i, ver))goto end; t=_SkipWhiteCharsDot(t);
+   }
+   for(; i<Elms(ver); i++)ver.c[i]=0;
+end:
+   return ver;
+}
 /******************************************************************************/
 // STRING
 /******************************************************************************/

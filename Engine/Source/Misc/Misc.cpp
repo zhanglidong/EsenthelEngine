@@ -592,24 +592,24 @@ Bool UID::fromCString(C Str &text)
          {
             FREPA(b)
             {
-               t=TextValue(t, value); if(i<commas)t=_SkipChar(TextPos(t, ',')); if(!value.type)goto error; b[i]=value.asUInt();
+               t=TextValue(t, value); if(!value.type)goto error; if(i<commas){t=_SkipWhiteCharsComma(t); if(!t)goto error;} b[i]=value.asUInt();
             }
          }else
          if(commas==4-1) // uints
          {
             FREPA(T.i)
             {
-               t=TextValue(t, value); if(i<commas)t=_SkipChar(TextPos(t, ',')); if(!value.type)goto error; T.i[i]=value.asUInt();
+               t=TextValue(t, value); if(!value.type)goto error; if(i<commas){t=_SkipWhiteCharsComma(t); if(!t)goto error;} T.i[i]=value.asUInt();
             }
          }else
          if(commas==2-1) // ulongs
          {
             FREPA(l)
             {
-               t=TextValue(t, value, false); if(i<commas)t=_SkipChar(TextPos(t, ',')); if(!value.type)goto error; l[i]=value.asULong(); // have to disable reals, because otherwise some ULong's could get converted and lose precise value
+               t=TextValue(t, value, false); if(!value.type)goto error; if(i<commas){t=_SkipWhiteCharsComma(t); if(!t)goto error;} l[i]=value.asULong(); // have to disable reals, because otherwise some ULong's could get converted and lose precise value
             }
          }else goto error;
-         if(t=_SkipWhiteChars(t))if(t[0]==')')return true;
+         if(t=_SkipWhiteChars(t))if(*t==')')return true;
          return false; // leave contents on fail
       }
    }

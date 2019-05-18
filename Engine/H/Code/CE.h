@@ -432,7 +432,7 @@ const_mem_addr struct CodeEditor
             {
                T.install=install;
                T.ce     =ce;
-               super::create(Rect_C(pos, 0.7f, 0.06f), install.name).func(OK, T).desc(S+"Path: "+install.path+"\nVersion: "+install.ver.asTextDots());
+               super::create(Rect_C(pos, 0.7f, 0.06f), install.name).func(OK, T).desc(S+"Path: "+install.path+"\nVersion: "+TextVer(install.ver));
                return T;
             }
          };

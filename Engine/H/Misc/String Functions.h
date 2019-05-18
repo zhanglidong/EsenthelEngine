@@ -132,17 +132,23 @@ Bool ContainsAll(CChar8 *src, CChar  *t, Bool case_sensitive=false, Bool whole_w
 Bool ContainsAll(CChar8 *src, CChar8 *t, Bool case_sensitive=false, Bool whole_words=false); // if 'src' contains all words from 't' (words are separated by spaces)
 
 #if EE_PRIVATE
-inline CChar * _SkipChar      (CChar  *t               ) {return Is(t) ? t+1 : null;} // return next character in the text
-inline CChar8* _SkipChar      (CChar8 *t               ) {return Is(t) ? t+1 : null;} // return next character in the text
-       CChar * _SkipWhiteChars(CChar  *t               ); // skip all starting white chars, Sample Usage: SkipWhiteChars("   a b c") -> "a b c"
-       CChar8* _SkipWhiteChars(CChar8 *t               ); // skip all starting white chars, Sample Usage: SkipWhiteChars("   a b c") -> "a b c"
-       CChar * _SkipStart     (CChar  *t, CChar  *start); // if 't' starts with 'start'      then return 't' after 'start', in other case return full 't', Sample Usage: _SkipStart    ("abcd", "ab") -> "cd", SkipStart("abcd", "ef") -> "abcd"
-       CChar * _SkipStart     (CChar  *t, CChar8 *start); // if 't' starts with 'start'      then return 't' after 'start', in other case return full 't', Sample Usage: _SkipStart    ("abcd", "ab") -> "cd", SkipStart("abcd", "ef") -> "abcd"
-       CChar8* _SkipStart     (CChar8 *t, CChar  *start); // if 't' starts with 'start'      then return 't' after 'start', in other case return full 't', Sample Usage: _SkipStart    ("abcd", "ab") -> "cd", SkipStart("abcd", "ef") -> "abcd"
-       CChar8* _SkipStart     (CChar8 *t, CChar8 *start); // if 't' starts with 'start'      then return 't' after 'start', in other case return full 't', Sample Usage: _SkipStart    ("abcd", "ab") -> "cd", SkipStart("abcd", "ef") -> "abcd"
-       CChar * _SkipStartPath (CChar  *t, CChar  *start); // if 't' starts with 'start' path then return 't' after 'start', in other case return full 't', Sample Usage: _SkipStartPath("C:/Folder/temp/file.ext", "C:/Folder") -> "temp/file.ext" (treats '/' as equal to '\\')
-       CChar8* _SkipStartPath (CChar8 *t, CChar8 *start); // if 't' starts with 'start' path then return 't' after 'start', in other case return full 't', Sample Usage: _SkipStartPath("C:/Folder/temp/file.ext", "C:/Folder") -> "temp/file.ext" (treats '/' as equal to '\\')
-       CChar * _AfterPath     (CChar  *t, CChar  *start); // if 't' starts with 'start' path then return 't' after 'start', in other case return null    , Sample Usage: _AfterPath    ("C:/Folder/temp/file.ext", "C:/Folder") -> "temp/file.ext" (treats '/' as equal to '\\')
+inline CChar * _SkipChar           (CChar  *t               ) {return Is(t)          ? t+1 : null;} // return next character in the text
+inline CChar8* _SkipChar           (CChar8 *t               ) {return Is(t)          ? t+1 : null;} // return next character in the text
+inline CChar * _SkipComma          (CChar  *t               ) {return (t && *t==',') ? t+1 : null;} // return next character in the text, this expects text to start with comma, if it doesn't then null is returned
+inline CChar8* _SkipComma          (CChar8 *t               ) {return (t && *t==',') ? t+1 : null;} // return next character in the text, this expects text to start with comma, if it doesn't then null is returned
+       CChar * _SkipWhiteChars     (CChar  *t               ); // skip all starting white chars                  , Sample Usage: SkipWhiteChars     ("   a b c") ->  "a b c"
+       CChar8* _SkipWhiteChars     (CChar8 *t               ); // skip all starting white chars                  , Sample Usage: SkipWhiteChars     ("   a b c") ->  "a b c"
+       CChar * _SkipWhiteCharsComma(CChar  *t               ); // skip all starting white chars followed by comma, Sample Usage: SkipWhiteCharsComma(" , a b c") -> " a b c", if no comma is found after white chars, then null is returned
+       CChar8* _SkipWhiteCharsComma(CChar8 *t               ); // skip all starting white chars followed by comma, Sample Usage: SkipWhiteCharsComma(" , a b c") -> " a b c", if no comma is found after white chars, then null is returned
+       CChar * _SkipWhiteCharsDot  (CChar  *t               ); // skip all starting white chars followed by dot  , Sample Usage: SkipWhiteCharsDot  (" . a b c") -> " a b c", if no dot   is found after white chars, then null is returned
+       CChar8* _SkipWhiteCharsDot  (CChar8 *t               ); // skip all starting white chars followed by dot  , Sample Usage: SkipWhiteCharsDot  (" . a b c") -> " a b c", if no dot   is found after white chars, then null is returned
+       CChar * _SkipStart          (CChar  *t, CChar  *start); // if 't' starts with 'start'      then return 't' after 'start', in other case return full 't', Sample Usage: _SkipStart    ("abcd", "ab") -> "cd", SkipStart("abcd", "ef") -> "abcd"
+       CChar * _SkipStart          (CChar  *t, CChar8 *start); // if 't' starts with 'start'      then return 't' after 'start', in other case return full 't', Sample Usage: _SkipStart    ("abcd", "ab") -> "cd", SkipStart("abcd", "ef") -> "abcd"
+       CChar8* _SkipStart          (CChar8 *t, CChar  *start); // if 't' starts with 'start'      then return 't' after 'start', in other case return full 't', Sample Usage: _SkipStart    ("abcd", "ab") -> "cd", SkipStart("abcd", "ef") -> "abcd"
+       CChar8* _SkipStart          (CChar8 *t, CChar8 *start); // if 't' starts with 'start'      then return 't' after 'start', in other case return full 't', Sample Usage: _SkipStart    ("abcd", "ab") -> "cd", SkipStart("abcd", "ef") -> "abcd"
+       CChar * _SkipStartPath      (CChar  *t, CChar  *start); // if 't' starts with 'start' path then return 't' after 'start', in other case return full 't', Sample Usage: _SkipStartPath("C:/Folder/temp/file.ext", "C:/Folder") -> "temp/file.ext" (treats '/' as equal to '\\')
+       CChar8* _SkipStartPath      (CChar8 *t, CChar8 *start); // if 't' starts with 'start' path then return 't' after 'start', in other case return full 't', Sample Usage: _SkipStartPath("C:/Folder/temp/file.ext", "C:/Folder") -> "temp/file.ext" (treats '/' as equal to '\\')
+       CChar * _AfterPath          (CChar  *t, CChar  *start); // if 't' starts with 'start' path then return 't' after 'start', in other case return null    , Sample Usage: _AfterPath    ("C:/Folder/temp/file.ext", "C:/Folder") -> "temp/file.ext" (treats '/' as equal to '\\')
 #endif
 Str SkipWhiteChars(C Str &t              ); // skip all starting white chars, Sample Usage: SkipWhiteChars("   a b c") -> "a b c"
 Str SkipStartPath (C Str &t, C Str &start); // if 't' starts with 'start' path then return 't' after   'start', in other case return full 't', Sample Usage: SkipStartPath("C:/Folder/Temp/file.ext", "C:/Folder") -> "Temp/file.ext" (treats '/' as equal to '\\')
@@ -207,6 +213,7 @@ Str StrInside(C Str &str, C Str &from, C Str &to, Bool case_sensitive=false, Boo
        Str TextReal(Dbl   r, Int precision=-6, Int separate=0                   );
 inline Str TextFlt (Dbl   r,                   Int separate=0                   ) {return TextReal(r, 3, separate);}
 inline Str TextDbl (Dbl   r,                   Int separate=0                   ) {return TextReal(r, 9, separate);}
+       Str TextVer (C VecI4 &ver                                                );
 
 Str TextHexMem(CPtr data, Int size, Bool prefix=false); // convert memory to its hex representation, 'prefix'=if include "0x" prefix at the start
 
@@ -244,6 +251,7 @@ VecB4  TextVecB4 (CChar *t);   VecB4  TextVecB4 (CChar8 *t); // (0,0,0,0) on fai
 VecSB4 TextVecSB4(CChar *t);   VecSB4 TextVecSB4(CChar8 *t); // (0,0,0,0) on fail
 Color  TextColor (CChar *t);   Color  TextColor (CChar8 *t); // (0,0,0,0) on fail
 UID    TextUID   (CChar *t);   UID    TextUID   (CChar8 *t); // 'UIDZero' on fail
+VecI4  TextVer   (CChar *t);   VecI4  TextVer   (CChar8 *t); // (0,0,0,0) on fail
 
 Str  FromUTF8(CChar8 *text); // convert 'text' from UTF-8 format into Str
 Str8 UTF8    (C Str  &text); // convert 'text' from   Str        into UTF-8 format
