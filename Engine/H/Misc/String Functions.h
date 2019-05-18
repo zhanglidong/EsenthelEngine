@@ -218,12 +218,9 @@ inline Str TextDbl (Dbl   r,                   Int separate=0                   
 Str TextHexMem(CPtr data, Int size, Bool prefix=false); // convert memory to its hex representation, 'prefix'=if include "0x" prefix at the start
 
 // convert from text to value
-#if EE_PRIVATE
 CChar * TextValue(CChar  *t, CalcValue &value, Bool allow_real=true); // sets 'value' according to 't' input, returns pointer to the place in 't' after it stopped reading, 'allow_real'=if allow parsing floating point values
 CChar8* TextValue(CChar8 *t, CalcValue &value, Bool allow_real=true); // sets 'value' according to 't' input, returns pointer to the place in 't' after it stopped reading, 'allow_real'=if allow parsing floating point values
 
-Bool TextHexMem(C Str &t, Ptr data, Int size); // convert text hex representation to memory, this function assumes that there's no "0x" prefix at the start, false on fail
-#endif
 Bool   TextBool  (CChar *t);   Bool   TextBool  (CChar8 *t); // false     on fail (if 't' string is empty, then 'false' is returned)
 Bool   TextBool1 (CChar *t);   Bool   TextBool1 (CChar8 *t); // false     on fail (if 't' string is empty, then 'true'  is returned)
 Int    TextInt   (CChar *t);   Int    TextInt   (CChar8 *t); // 0         on fail
@@ -252,6 +249,10 @@ VecSB4 TextVecSB4(CChar *t);   VecSB4 TextVecSB4(CChar8 *t); // (0,0,0,0) on fai
 Color  TextColor (CChar *t);   Color  TextColor (CChar8 *t); // (0,0,0,0) on fail
 UID    TextUID   (CChar *t);   UID    TextUID   (CChar8 *t); // 'UIDZero' on fail
 VecI4  TextVer   (CChar *t);   VecI4  TextVer   (CChar8 *t); // (0,0,0,0) on fail
+
+#if EE_PRIVATE
+Bool TextHexMem(C Str &t, Ptr data, Int size); // convert text hex representation to memory, this function assumes that there's no "0x" prefix at the start, false on fail
+#endif
 
 Str  FromUTF8(CChar8 *text); // convert 'text' from UTF-8 format into Str
 Str8 UTF8    (C Str  &text); // convert 'text' from   Str        into UTF-8 format

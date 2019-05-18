@@ -1,6 +1,7 @@
 /******************************************************************************/
 #include "stdafx.h"
 namespace EE{
+#define AUTO_INSTALLER_INFO 0 // if automatically download installer info when requesting installer
 /******************************************************************************/
 // STATICS
 /******************************************************************************/
@@ -42,6 +43,8 @@ void Patcher::SetList(MemPtr<LocalFile> local_files, C PakSet &paks)
    }
 }
 /******************************************************************************/
+Str Patcher::Platform(OS_VER os) {return CaseDown(OSName(OSGroup(os)));}
+/******************************************************************************/
 // PATCHER DOWNLOADED
 /******************************************************************************/
 void Patcher::Downloaded::create(C Pak &pak, Int index, Download &download, Cipher *cipher)
@@ -53,17 +56,18 @@ void Patcher::Downloaded::create(C Pak &pak, Int index, Download &download, Ciph
    {
       File temp; temp.readMem(download.data(), download.size(), cipher);
       xxHash64Calc _hasher, *hasher=(pf.data_xxHash64_32 ? &_hasher : null); // verify hash if available
-      if(!DecompressRaw(temp, data, pf.compression, pf.data_size_compressed, pf.data_size, true, hasher))goto error;
-      if(                    data.size()!=pf.data_size       )goto error;
-      if(hasher && hasher->hash.hash32()!=pf.data_xxHash64_32)goto error;
-      data.pos(0);
-      success        =true;
-      type           =pf.type();
-      xxHash64_32    =pf.data_xxHash64_32;
-      modify_time_utc=pf.modify_time_utc;
-      return;
+      if(DecompressRaw(temp, data, pf.compression, pf.data_size_compressed, pf.data_size, true, hasher))
+      if(                     data.size()==pf.data_size       )
+      if(!hasher || hasher->hash.hash32()==pf.data_xxHash64_32)
+      {
+         data.pos(0);
+         success        =true;
+         type           =pf.type();
+         xxHash64_32    =pf.data_xxHash64_32;
+         modify_time_utc=pf.modify_time_utc;
+         return;
+      }
    }
-error:
    data.del();
 }
 void Patcher::Downloaded::createEmpty(C Pak &pak, Int index)
@@ -127,7 +131,7 @@ Patcher& Patcher::downloadInstallerInfo()
    {
      _inst_info_available=false;
      _inst_info.zero();
-     _inst_info_download.create(_http+CaseDown(_name)+".installer.txt");
+     _inst_info_download.create(_http+CaseDown(_name)+".installer."+Platform()+".txt");
    }
    return T;
 }
@@ -156,6 +160,7 @@ Patcher& Patcher::downloadInstaller()
 {
    if(is())
    {
+   #if AUTO_INSTALLER_INFO
       switch(installerInfoState())
       {
          case DWNL_NONE :
@@ -163,9 +168,10 @@ Patcher& Patcher::downloadInstaller()
             downloadInstallerInfo(); // for "Installer" we will also need "Installer Info"
          break;
       }
+   #endif
      _inst_available=false;
      _inst.del();
-     _inst_download.create(_http+_name+" Installer.exe");
+     _inst_download.create(_http+CaseDown(_name)+".installer."+Platform());
    }
    return T;
 }
@@ -174,21 +180,34 @@ DWNL_STATE Patcher::installerState()
    if(_inst_available)return DWNL_DONE;
    DWNL_STATE state=_inst_download.state(); if(state==DWNL_DONE)
    {
+      xxHash64Calc *hasher=null;
+   #if AUTO_INSTALLER_INFO
       DWNL_STATE inst_info_state=installerInfoState(); if(inst_info_state!=DWNL_DONE)return inst_info_state; // we need "Installer Info"
-      if(                          _inst_info.size       ==                                      _inst_download.size()
-      && (_inst_info.xxHash64_32 ? _inst_info.xxHash64_32==xxHash64_32Mem(_inst_download.data(), _inst_download.size()) : true))
+      xxHash64Calc _hasher; if(_inst_info.xxHash64_32)hasher=&_hasher; // if hash known, then test it
+   #endif
+      File compressed(_inst_download.data(), _inst_download.size(), _cipher);
+      if(Decompress(compressed, _inst, true, hasher))
       {
-        _inst.setNum(_inst_download.size()); CopyFast(_inst.data(), _inst_download.data(), _inst.elms()); // copy data
-        _inst_available=true; _inst_download.del(); return DWNL_DONE;
+      #if AUTO_INSTALLER_INFO
+         if(                    _inst.size()==_inst_info.size       )
+         if(!hasher || hasher->hash.hash32()==_inst_info.xxHash64_32)
+      #endif
+         {
+           _inst.pos(0);
+           _inst_available=true; _inst_download.del(); return DWNL_DONE;
+         }
+      #if AUTO_INSTALLER_INFO
+         // if installer data doesn't match info, then one of possibilities is that data is OK but info outdated, so clear it
+        _inst_info_available=false; //_inst_info.zero();
+      #endif
       }
-     _inst_download.del().error(); state=DWNL_ERROR;
-      // if installer data doesn't match info, then one of possibilities is that data is OK but info outdated, so clear it
-     _inst_info_available=false; //_inst_info.zero();
+     _inst.del(); _inst_download.del().error(); state=DWNL_ERROR;
    }
    return state;
 }
-Int           Patcher::installerProgress() {return _inst_download.done();}
-C Mems<Byte>* Patcher::installer        () {return (installerState()==DWNL_DONE) ? &_inst : null;}
+Int   Patcher::installerDownloadDone() {return _inst_download.done();}
+Int   Patcher::installerDownloadSize() {return _inst_download.size();}
+File* Patcher::installer            () {return (installerState()==DWNL_DONE) ? &_inst : null;}
 /******************************************************************************/
 Patcher& Patcher::downloadIndex()
 {

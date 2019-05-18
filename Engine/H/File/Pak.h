@@ -55,7 +55,8 @@ struct Pak // Set of Pak Files
    Bool load     (              C Str &name          , const_mem_addr Cipher *cipher=null); // load Pak from file  , false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
    Bool loadMem  (const_mem_addr CPtr  data, Int size, const_mem_addr Cipher *cipher=null); // load Pak from memory, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), 'data' must point to a constant memory address (only pointer is stored through which the data can be later accessed)
 
-   PAK_LOAD loadEx(C Str &name, const_mem_addr Cipher *cipher=null, Long pak_offset=0, Long *expected_size=null, Long *actual_size=null); // load Pak from file, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), 'pak_offset'=offset of PAK data inside the file, 'expected_size'=expected size of the PAK file, 'actual_size'=actual size of the PAK file
+   PAK_LOAD loadEx   (C Str &name                       , const_mem_addr Cipher *cipher=null, Long pak_offset=0, Long *expected_size=null, Long *actual_size=null); // load Pak from file  , 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), 'pak_offset'=offset of PAK data inside the file                                                                     , 'expected_size'=expected size of the PAK file, 'actual_size'=actual size of the PAK file
+   PAK_LOAD loadMemEx(const_mem_addr CPtr data, Int size, const_mem_addr Cipher *cipher=null,                    Long *expected_size=null, Long *actual_size=null); // load Pak from memory, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), 'data' must point to a constant memory address (only pointer is stored through which the data can be later accessed), 'expected_size'=expected size of the PAK file, 'actual_size'=actual size of the PAK file
 
    // get
    Int        rootFiles(     )C {return _root_files  ;} // get number of files in root directory, they are stored first in the 'files' array
@@ -107,7 +108,6 @@ private:
 #if EE_PRIVATE
    void     zero      ();
    PAK_LOAD loadHeader(File &f, Long *expected_size=null, Long *actual_size=null); // load just the header, access to data will not be available by using this method
-   PAK_LOAD loadMemEx (const_mem_addr CPtr data, Int size, const_mem_addr Cipher *cipher=null, Long *expected_size=null, Long *actual_size=null); // load Pak from memory, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed), 'data' must point to a constant memory address (only pointer is stored through which the data can be later accessed)
 #endif
    NO_COPY_CONSTRUCTOR(Pak);
 };

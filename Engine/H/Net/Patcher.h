@@ -71,10 +71,11 @@ const_mem_addr struct Patcher // class for automatic downloading file updates fr
     C InstallerInfo*   installerInfo     (); // get access to installer information (this will return a valid pointer only if 'installerInfoState' is equal to DWNL_DONE), null on fail
 
       // installer
-      Patcher& downloadInstaller        (); // initialize downloading of the installer, downloading will begin on secondary thread (this automatically initiates downloading of installer information if it wasn't previously downloaded)
-      DWNL_STATE       installerState   (); // get state  of installer download, once it's equal to DWNL_DONE you can access it
-      Int              installerProgress(); // get number of downloaded bytes for the installer
-    C Mems<Byte>*      installer        (); // get access to raw bytes of installer .exe file which you can write on disk, quit current installer and run the updated version (this will return a valid pointer only if 'installerState' is equal to DWNL_DONE), null on fail
+      Patcher& downloadInstaller            (); // initialize downloading of the installer, downloading will begin on secondary thread
+      DWNL_STATE       installerState       (); // get state  of installer download, once it's equal to DWNL_DONE you can access it
+      Int              installerDownloadDone(); // get number of completed bytes for installer download
+      Int              installerDownloadSize(); // get number of total     bytes for installer download
+      File*            installer            (); // get access to installer file data (this will return a valid pointer only if 'installerState' is equal to DWNL_DONE), null on fail
 
       // index
       Patcher& downloadIndex     (); // initialize downloading of the index (list of all current files on the server), downloading will begin on secondary thread
@@ -105,6 +106,8 @@ const_mem_addr struct Patcher // class for automatic downloading file updates fr
    void update();
 #endif
 
+   static Str Platform(OS_VER os=OSVer());
+
 private:
    struct FileDownload : Download
    {
@@ -119,7 +122,7 @@ private:
    Long             _bytes_downloaded;
    Pak              _pak;
    InstallerInfo    _inst_info;
-   Mems<Byte>       _inst;
+   File             _inst;
    Memc<Int >       _to_download;
    Memc<Downloaded> _downloaded;
    SyncLock         _lock;
