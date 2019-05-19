@@ -302,10 +302,10 @@ Bool GLContext::createSecondary()
 #elif LINUX
    context=glXCreateNewContext(XDisplay, GLConfig, GLX_RGBA_TYPE, MainContext.context, true);
 #elif ANDROID
-   EGLint attribs[]={EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE};
+   EGLint attribs[]={EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE}; // end of list
    if(surface=eglCreatePbufferSurface(GLDisplay, GLConfig, attribs))
    {
-      EGLint ctx_attribs[]={EGL_CONTEXT_CLIENT_VERSION, (D.shaderModel()==SM_GL_ES_3) ? 3 : 2, EGL_NONE};
+      EGLint ctx_attribs[]={EGL_CONTEXT_CLIENT_VERSION, (D.shaderModel()==SM_GL_ES_3) ? 3 : 2, EGL_NONE}; // end of list
       context=eglCreateContext(GLDisplay, GLConfig, MainContext.context, ctx_attribs);
    }
 #elif IOS
@@ -1203,7 +1203,7 @@ again:
       {
          const int attribs[]={WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
                               WGL_CONTEXT_MINOR_VERSION_ARB, 2,
-                              0};
+                              NULL}; // end of list
          if(HGLRC context=wglCreateContextAttribsARB(hDC, 0, attribs))
          {
             MainContext.del();
@@ -1241,7 +1241,7 @@ again:
             kCGLPFAStencilSize, (CGLPixelFormatAttribute) 8, // stencil
             kCGLPFAOpenGLProfile, profile_versions[ver], // version
             hw ? kCGLPFAAccelerated : kCGLPFAAllowOfflineRenderers, // HW/Soft
-            (CGLPixelFormatAttribute)0, // end of list
+            (CGLPixelFormatAttribute)NULL // end of list
          };
          GLint num_pixel_formats; CGLChoosePixelFormat(attribs, &pf, &num_pixel_formats); if(pf)goto found_pf;
       }
@@ -1289,7 +1289,7 @@ again:
             {
                GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
                GLX_CONTEXT_MINOR_VERSION_ARB, 2,
-               0,
+               NULL // end of list
             };
             // create context
             if(!glXCreateContextAttribsARB
@@ -1324,7 +1324,7 @@ again:
          EGLint ctx_attribs[]=
          {
             EGL_CONTEXT_CLIENT_VERSION, (gl_ver==0) ? 3 : 2, // try OpenGL ES 3.0 context first, then fallback to 2.0
-            EGL_NONE,
+            EGL_NONE // end of list
          };
          FREPD(c, 2) // colors  (process this as 1st in loop as it's most  important)
          FREPD(d, 3) // depth   (process this as 2nd in loop as it's more  important)
@@ -1344,7 +1344,7 @@ again:
                EGL_ALPHA_SIZE     , has_alpha ? 8 : 0,
                EGL_DEPTH_SIZE     , (d==0) ? 24 : (d==1) ? 32 : 16,
                EGL_STENCIL_SIZE   , (s==0) ?  8 : 0,
-               EGL_NONE
+               EGL_NONE // end of list
             };
             if(LogInit)LogN(S+"Trying config GL:"+gl_ver+", C:"+c+", D:"+d+", S:"+s+", A:"+a);
             EGLint num_configs=0;

@@ -2734,8 +2734,42 @@ UID DeviceID(Bool per_user)
          }
          factory->Release();
       }
-   #elif APPLE // Mac/iOS already have a context
-      D._device_name=(CChar8*)glGetString(GL_RENDERER);
+   #elif MAC
+      const CGLPixelFormatAttribute profile_versions[]=
+      {
+         (CGLPixelFormatAttribute)kCGLOGLPVersion_Legacy  , // NSOpenGLProfileVersionLegacy
+         (CGLPixelFormatAttribute)kCGLOGLPVersion_GL3_Core, // NSOpenGLProfileVersion3_2Core
+         (CGLPixelFormatAttribute)kCGLOGLPVersion_GL4_Core, // NSOpenGLProfileVersion4_1Core
+      };
+      CGLPixelFormatObj pf=null;
+      REPD (hw , 2) // HW acceleration, most important !! it's very important to check it first, in case device supports only 3.2 accelerated, and 4.1 perhaps could be done in software (if that's possible, it's very likely as one user with Intel HD 3300 which has 3.3 GL, reported poor performance without this) so first we check all profiles looking for accelerated, and if none are found, then try software !!
+      REPAD(ver, profile_versions) // profile version
+      REPD (buf, 2)
+      {
+         const CGLPixelFormatAttribute attribs[]=
+         {
+            buf ? kCGLPFATripleBuffer : kCGLPFADoubleBuffer, // triple/double buffered
+            kCGLPFADepthSize  , (CGLPixelFormatAttribute)24, // depth buffer
+            kCGLPFAStencilSize, (CGLPixelFormatAttribute) 8, // stencil
+            kCGLPFAOpenGLProfile, profile_versions[ver], // version
+            hw ? kCGLPFAAccelerated : kCGLPFAAllowOfflineRenderers, // HW/Soft
+            (CGLPixelFormatAttribute)NULL // end of list
+         };
+         GLint num_pixel_formats; CGLChoosePixelFormat(attribs, &pf, &num_pixel_formats); if(pf)goto found_pf;
+      }
+      goto no_pf;
+   found_pf:
+      {
+         CGLContextObj context=null;
+         CGLCreateContext(pf, null, &context);
+         CGLDestroyPixelFormat(pf);
+         if(context)
+         {
+            if(CGLSetCurrentContext(context)==kCGLNoError)D._device_name=(CChar8*)glGetString(GL_RENDERER);
+            CGLDestroyContext(context);
+         }
+      }
+   no_pf:
    #elif LINUX
       int attribs[]=
       {
@@ -2750,7 +2784,7 @@ UID DeviceID(Bool per_user)
        //GLX_DEPTH_SIZE   , 24,
        //GLX_STENCIL_SIZE , 8,
        //GLX_DOUBLEBUFFER , true,
-         NULL
+         NULL // end of list
       };
       int count=0; if(GLXFBConfig *fbc=glXChooseFBConfig(XDisplay, DefaultScreen(XDisplay), attribs, &count))
       {
@@ -2776,7 +2810,7 @@ UID DeviceID(Bool per_user)
             {
                EGL_SURFACE_TYPE   , EGL_WINDOW_BIT,
                EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-               EGL_NONE
+               EGL_NONE // end of list
             };
             EGLConfig config=0;
             EGLint    num_configs=0;
@@ -2787,7 +2821,7 @@ UID DeviceID(Bool per_user)
                EGLint ctx_attribs[]=
                {
                   EGL_CONTEXT_CLIENT_VERSION, 2, // try OpenGL ES 2.0 context
-                  EGL_NONE
+                  EGL_NONE // end of list
                };
                if(EGLContext context=eglCreateContext(display, config, null, ctx_attribs))
                {
@@ -2803,6 +2837,8 @@ UID DeviceID(Bool per_user)
          }
          eglTerminate(display);
       }
+   #elif IOS // iOS already has a context
+      D._device_name=(CChar8*)glGetString(GL_RENDERER);
    #endif
       if(!D.deviceName().is())D._device_name="None"; // to avoid calling above everytime
    }
