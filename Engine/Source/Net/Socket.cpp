@@ -1178,7 +1178,6 @@ static Bool InitSocketEx()
    {
       // get mac address
       {
-      #if WINDOWS_OLD
          Memt<Byte> addresses; ULONG size=0;
          if(GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_SKIP_UNICAST|GAA_FLAG_SKIP_ANYCAST|GAA_FLAG_SKIP_MULTICAST|GAA_FLAG_SKIP_DNS_SERVER|GAA_FLAG_INCLUDE_TUNNEL_BINDINGORDER, null, (IP_ADAPTER_ADDRESSES*)addresses.data(), &size)==ERROR_BUFFER_OVERFLOW)
          {
@@ -1219,9 +1218,6 @@ static Bool InitSocketEx()
                }
             }
          }
-      #else
-         // TODO: WINDOWS_NEW get MAC address, it should support 'GetAdaptersAddresses', however there are compilation errors as of right now, so try #include <IPHlpApi.h> in the future again
-      #endif
       }
 
       // get host name

@@ -158,8 +158,8 @@
       #include <sys/stat.h>
       #include <intrin.h>
       #include <locale.h>
+      #include <IPHlpApi.h>
       #if WINDOWS_OLD
-         #include <IPHlpApi.h> // including this fails on WINDOWS_NEW
          #include <shlobj.h>
          #include <psapi.h>
          #include <wbemidl.h>
