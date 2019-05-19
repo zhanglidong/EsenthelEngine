@@ -1186,15 +1186,37 @@ static Bool InitSocketEx()
             if(GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_SKIP_UNICAST|GAA_FLAG_SKIP_ANYCAST|GAA_FLAG_SKIP_MULTICAST|GAA_FLAG_SKIP_DNS_SERVER|GAA_FLAG_INCLUDE_TUNNEL_BINDINGORDER, null, (IP_ADAPTER_ADDRESSES*)addresses.data(), &size)==ERROR_SUCCESS)
                for(IP_ADAPTER_ADDRESSES *adapter=(IP_ADAPTER_ADDRESSES*)addresses.data(); adapter; adapter=adapter->Next)
             {
-   /*
-   On a Windows Laptop there were following adapters found:
-   1. MIB_IF_TYPE_ETHERNET "Qualcomm Atheros AR8151 PCI-E Gigabit Ethernet Controller (NDIS 6.30)"
-   2. IF_TYPE_IEEE80211    "Microsoft Wi-Fi Direct Virtual Adapter"
-   3. IF_TYPE_IEEE80211    "Intel(R) Centrino(R) Advanced-N 6235"
-   */
-               if(adapter->IfType==IF_TYPE_IEEE80211
-               || adapter->IfType==MIB_IF_TYPE_ETHERNET)
+               /* Examples of real world laptops:
+
+               Dell XPS 15 9570
+               1. IF_TYPE_IEEE80211      Microsoft Wi-Fi Direct Virtual Adapter                 Local Area Connection* 1
+               2. IF_TYPE_IEEE80211      Microsoft Wi-Fi Direct Virtual Adapter #2              Local Area Connection* 2
+               3. IF_TYPE_IEEE80211      Killer Wireless-n/a/ac 1535 Wireless Network Adapter   Wi-Fi
+               4. MIB_IF_TYPE_ETHERNET   Bluetooth Device (Personal Area Network) #2            Bluetooth Network Connection 2
+
+               Asus ZenBook Touch U500VZ
+               1. MIB_IF_TYPE_ETHERNET   Qualcomm Atheros AR8151 PCI-E Gigabit Ethernet Controller (NDIS 6.30)   Ethernet
+               2. IF_TYPE_IEEE80211      Microsoft Wi-Fi Direct Virtual Adapter                                  Local Area Connection* 1
+               3. IF_TYPE_IEEE80211      Microsoft Wi-Fi Direct Virtual Adapter #2                               Local Area Connection* 2
+               4. IF_TYPE_IEEE80211      Intel(R) Centrino(R) Advanced-N 6235                                    Wi-Fi
+               5. MIB_IF_TYPE_ETHERNET   Bluetooth Device (Personal Area Network)                                Bluetooth Network Connection
+
+               Lenovo Yoga 530
+               1. IF_TYPE_IEEE80211      Microsoft Wi-Fi Direct Virtual Adapter #3   Local Area Connection* 3
+               2. IF_TYPE_IEEE80211      Microsoft Wi-Fi Direct Virtual Adapter #4   Local Area Connection* 12
+               3. IF_TYPE_IEEE80211      Intel(R) Dual Band Wireless-AC 3165         Wi-Fi
+               4. MIB_IF_TYPE_ETHERNET   Bluetooth Device (Personal Area Network)    Bluetooth Network Connection
+
+               */
+               if(adapter->IfType==IF_TYPE_IEEE80211    && Equal(WChar(adapter->FriendlyName), "Wi-Fi"   )  // accept only "Wi-Fi
+               || adapter->IfType==MIB_IF_TYPE_ETHERNET && Equal(WChar(adapter->FriendlyName), "Ethernet")) // and "Ethernet", skipping others such as "Local Area Connection", "Bluetooth Network Connection", etc.
+               {
                   CopyFast(&Mac, adapter->PhysicalAddress, Min(SIZEU(Mac), (UInt)adapter->PhysicalAddressLength));
+               #if DEBUG && 0
+                  LogN(S+((adapter->IfType==MIB_IF_TYPE_ETHERNET) ? "MIB_IF_TYPE_ETHERNET" : "IF_TYPE_IEEE80211   ")+"   "+adapter->Description+"   "+adapter->FriendlyName+"   "+Mac);
+               #endif
+                  break; // stop on first found
+               }
             }
          }
       #else
