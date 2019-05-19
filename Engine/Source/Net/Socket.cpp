@@ -1307,33 +1307,9 @@ static Bool InitSocketEx()
       found:;
       }
    #elif ANDROID
-      if(!Mac)
       if(Jni && ActivityClass)
-      if(JClass ContextClass="android/content/Context")
-      if(JFieldID WIFI_SERVICEField=Jni->GetStaticFieldID(ContextClass, "WIFI_SERVICE", "Ljava/lang/String;"))
-      if(JObject WIFI_SERVICE=Jni->GetStaticObjectField(ContextClass, WIFI_SERVICEField))
-      if(JClass WifiManagerClass="android/net/wifi/WifiManager")
-      if(JMethodID getSystemService=Jni.func(ActivityClass, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;"))
-      {
-         JObject WifiManager=Jni->CallObjectMethod(Activity, getSystemService, WIFI_SERVICE());
-         if(Jni->ExceptionCheck())
-         {
-         #if DEBUG
-            Jni->ExceptionDescribe();
-         #endif
-            WifiManager.clear(); WifiManagerClass.clear(); Jni->ExceptionClear();
-         }
-         if(WifiManager)
-         if(JClass WifiInfoClass="android/net/wifi/WifiInfo")
-         if(JMethodID getConnectionInfo=Jni.func(WifiManagerClass, "getConnectionInfo", "()Landroid/net/wifi/WifiInfo;"))
-         if(JObject WifiInfo=Jni->CallObjectMethod(WifiManager, getConnectionInfo))
-         if(JMethodID getMacAddress=Jni.func(WifiInfoClass, "getMacAddress", "()Ljava/lang/String;"))
-         if(JString MacAddress=Jni->CallObjectMethod(WifiInfo     ,  getMacAddress))
-         {
-            Memt<Str> mac; Split(mac, MacAddress.str(), ':');
-            REP(Min(SIZE(Mac), Elms(mac)))((Byte*)&Mac)[i]=TextInt(S+"0x"+mac[i]);
-         }
-      }
+      if(JMethodID mac=Jni.staticFunc(ActivityClass, "mac" , "()J"))
+         Mac=Jni->CallStaticLongMethod(ActivityClass, mac);
    #endif
    return true;
 #endif

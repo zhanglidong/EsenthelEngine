@@ -106,6 +106,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.UnsupportedOperationException;
 import java.math.BigInteger;
+import java.net.NetworkInterface;
 import java.nio.ByteBuffer;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
@@ -114,6 +115,7 @@ import java.security.Signature;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -403,7 +405,7 @@ public class EsenthelActivity extends NativeActivity
       log("TIME "+Build.TIME);
       log("TYPE "+Build.TYPE);
       log("USER "+Build.USER);*/
-   }
+	}
    @Override protected final void onActivityResult(int requestCode, int resultCode, Intent data)
    {
       super.onActivityResult(requestCode, resultCode, data);
@@ -651,6 +653,20 @@ public class EsenthelActivity extends NativeActivity
       }catch(Exception exception){} // no permission
       return null;
    }
+   public static final long mac()
+	{
+		try{
+			List<NetworkInterface> nis=Collections.list(NetworkInterface.getNetworkInterfaces());
+			for( NetworkInterface ni:nis)if(ni.getName().equalsIgnoreCase("wlan0"))
+			{
+            byte[] bytes =ni.getHardwareAddress();
+				int    length=bytes.length; if(length>8)length=8;
+				long   mac   =0; for(int i=0; i<length; i++)mac|=(((long)(bytes[i]&0xFF))<<(i*8));
+				return mac;
+			}
+		}catch(Exception exception){}
+		return 0;
+	}
 
    public final float dipToPx(float f) {return f*getResources().getDisplayMetrics().density;}
    public final float pxToDip(float f) {return f/getResources().getDisplayMetrics().density;}
