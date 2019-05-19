@@ -65,7 +65,7 @@ void Highlight(C Rect &rect, flt alpha, C Color &color, flt e) // Color(100, 240
 /******************************************************************************/
 Color MaterialColor(C MaterialPtr &mtrl)
 {
-   return mtrl ? mtrl->color.xyz : WHITE;
+   return mtrl ? (Color)mtrl->color.xyz : WHITE;
 }
 ImagePtr MaterialImage(C MaterialPtr &mtrl)
 {
@@ -73,7 +73,7 @@ ImagePtr MaterialImage(C MaterialPtr &mtrl)
 }
 Color MaterialColor(C WaterMtrlPtr &mtrl)
 {
-   return mtrl ? mtrl->color : WHITE;
+   return mtrl ? (Color)mtrl->color : WHITE;
 }
 ImagePtr MaterialImage(C WaterMtrlPtr &mtrl)
 {
