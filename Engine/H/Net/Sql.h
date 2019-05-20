@@ -46,7 +46,7 @@ struct SQLColumn // SQL Column definition, use this for creating new tables in a
    SQL_DATA_TYPE type       ; // column type
    Bool          allow_nulls; // if allow this column to have a null value
    MODE          mode       ; // column mode
-   Str           default_val; // default value (optional, can be left empty), this can be set to: string "abc..", number "5", binary data "0x00112233..", SQL function "GetDate()" - gets current DateTime, "NewID()" - generates random UID
+   Str           default_val; // default value (optional, can be left empty)
    union
    {
       Int    str_len ; // maximum number of characters allowed in a string type (STR,STR8), giving a value<=0 will make the length be as long as possible (but slower)

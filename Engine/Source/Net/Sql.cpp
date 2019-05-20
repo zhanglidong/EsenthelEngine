@@ -1634,13 +1634,7 @@ Bool SQL::colDesc(C SQLColumn &col, Str &desc, Str *messages)
    desc+=(col.allow_nulls ? "NULL " : "NOT NULL ");
    if(col.default_val.is())
    {
-      if(col.type==SDT_STR || col.type==SDT_STR8)
-      {
-         desc+="DEFAULT "; desc+=value(col.default_val);
-      }else
-      {
-         desc+="DEFAULT "; desc+=col.default_val;
-      }
+      desc+="DEFAULT "; desc+=value(col.default_val);
    }
    switch(_type)
    {
