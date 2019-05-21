@@ -1402,7 +1402,7 @@ Bool ContainsAny(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words)
             Int len_1=t-start; // this will include nul char
             if( len_1>1)       // ignore empty words (in case 't' has "  ")
             {
-               word.clear().setNum(len_1); // clear first to avoid copying existing data in 'setNum'
+               word.setNum(len_1, 0); // clear previous data
                Set(word.data(), start, word.elms());
                if(Contains(src, word.data(), case_sensitive, whole_words))return true;
             }
@@ -1425,7 +1425,7 @@ Bool ContainsAll(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words)
             Int len_1=t-start; // this will include nul char
             if( len_1>1)       // ignore empty words (in case 't' has "  ")
             {
-               word.clear().setNum(len_1); // clear first to avoid copying existing data in 'setNum'
+               word.setNum(len_1, 0); // clear previous data
                Set(word.data(), start, word.elms());
                if(!Contains(src, word.data(), case_sensitive, whole_words))return false;
             }
@@ -1447,7 +1447,7 @@ Bool ContainsAll(CChar *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
             Int len_1=t-start; // this will include nul char
             if( len_1>1)       // ignore empty words (in case 't' has "  ")
             {
-               word.clear().setNum(len_1); // clear first to avoid copying existing data in 'setNum'
+               word.setNum(len_1, 0); // clear previous data
                Set(word.data(), start, word.elms());
                if(!Contains(src, word.data(), case_sensitive, whole_words))return false;
             }
@@ -1469,7 +1469,7 @@ Bool ContainsAll(CChar8 *src, CChar *t, Bool case_sensitive, Bool whole_words)
             Int len_1=t-start; // this will include nul char
             if( len_1>1)       // ignore empty words (in case 't' has "  ")
             {
-               word.clear().setNum(len_1); // clear first to avoid copying existing data in 'setNum'
+               word.setNum(len_1, 0); // clear previous data
                Set(word.data(), start, word.elms());
                if(!Contains(src, word.data(), case_sensitive, whole_words))return false;
             }
@@ -1491,7 +1491,7 @@ Bool ContainsAll(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
             Int len_1=t-start; // this will include nul char
             if( len_1>1)       // ignore empty words (in case 't' has "  ")
             {
-               word.clear().setNum(len_1); // clear first to avoid copying existing data in 'setNum'
+               word.setNum(len_1, 0); // clear previous data
                Set(word.data(), start, word.elms());
                if(!Contains(src, word.data(), case_sensitive, whole_words))return false;
             }

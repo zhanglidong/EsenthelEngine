@@ -2024,7 +2024,8 @@ Bool ParseZip(File &f, MemPtr<ZipFile> files)
    for(;;)
    {
       Raw raw; f>>raw; if(raw.signature!=0X04034B50 || !f.ok())break;
-      s.clear().setNum(raw.name_length+1); if(!f.getFastN(s.data(), raw.name_length))break; s[raw.name_length]='\0';
+      s.setNum(raw.name_length+1, 0); // clear previous data
+      if(!f.getFastN(s.data(), raw.name_length))break; s[raw.name_length]='\0';
       Long offset=f.pos()+raw.extra_length;
       f.pos(offset+raw.compressed_size);
       if(raw.general_purpose_flag&0x08) // data descriptor
