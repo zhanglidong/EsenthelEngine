@@ -250,8 +250,8 @@ T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::remove(Int i, Bool /*keep_order*/)
    {
       T[i].~TYPE();
       TYPE *temp=Alloc<TYPE>(elms()-1);
-      CopyN(temp  , data()    ,        i  );
-      CopyN(temp+i, data()+i+1, elms()-i-1);
+      CopyFastN(temp  , data()    ,        i  );
+      CopyFastN(temp+i, data()+i+1, elms()-i-1);
       Free(_data); _data=temp; _elms--;
    }
    return T;
