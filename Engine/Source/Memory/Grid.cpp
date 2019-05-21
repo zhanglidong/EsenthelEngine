@@ -435,8 +435,7 @@ void _Grid::fastAccess(C RectI *rect)
    {
      _fast_access_mul = rect->w()+1;
      _fast_access_rect=*rect;
-     _fast_access_cell.setNum(_fast_access_mul*(rect->h()+1));
-      ZeroN(_fast_access_cell.data(), _fast_access_cell.elms()); // set to null initially in case not all cells are created in that area
+     _fast_access_cell.setNumZero(_fast_access_mul*(rect->h()+1), 0); // set all to null initially in case not all cells are created in that area
       func(*rect, SetFastAccess, this);
    }
 }
