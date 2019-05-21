@@ -646,8 +646,8 @@ template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::remove(I
       T[i].~TYPE();
       if(i<elms()-1) // if this is not the last element
       {
-         if(keep_order)Copy(&T[i], &T[     i+1], elmSize()*(elms()-i-1));
-         else          Copy(&T[i], &T[elms()-1], elmSize());
+         if(keep_order)MoveFast(&T[i], &T[     i+1], elmSize()*(elms()-i-1));
+         else          CopyFast(&T[i], &T[elms()-1], elmSize());
       }
      _elms--;
    }
