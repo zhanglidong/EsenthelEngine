@@ -3,7 +3,7 @@
 
 #define USE_STD WINDOWS // 'iswalpha' on Apple/Linux supports only ASCII, on Android it works on more characters but not the same as on Windows, we need consistent results across all platforms, so use 'iswalpha' on Windows, and 'Alphas' on other platforms (which was pre-computed from 'iswalpha' on Windows)
 #define EXTRA 32 // extra length allocated, used for appending
-ASSERT(EXTRA>=2); // must be at least 2 because we use it for setting characters (char+nul)
+ASSERT(EXTRA>=2); // must be at least 2 because we use it for setting characters (char+NUL)
 
 namespace EE{
 /******************************************************************************/
@@ -1399,7 +1399,7 @@ Bool ContainsAny(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words)
       {
          Char c=*t++; if(c==' ' || c=='\0')
          {
-            Int len_1=t-start; // this will include nul char
+            Int len_1=t-start; // this will include NUL char
             if( len_1>1)       // ignore empty words (in case 't' has "  ")
             {
                word.setNum(len_1, 0); // clear previous data
@@ -1422,7 +1422,7 @@ Bool ContainsAll(CChar *src, CChar *t, Bool case_sensitive, Bool whole_words)
       {
          Char c=*t++; if(c==' ' || c=='\0')
          {
-            Int len_1=t-start; // this will include nul char
+            Int len_1=t-start; // this will include NUL char
             if( len_1>1)       // ignore empty words (in case 't' has "  ")
             {
                word.setNum(len_1, 0); // clear previous data
@@ -1444,7 +1444,7 @@ Bool ContainsAll(CChar *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
       {
          Char8 c=*t++; if(c==' ' || c=='\0')
          {
-            Int len_1=t-start; // this will include nul char
+            Int len_1=t-start; // this will include NUL char
             if( len_1>1)       // ignore empty words (in case 't' has "  ")
             {
                word.setNum(len_1, 0); // clear previous data
@@ -1466,7 +1466,7 @@ Bool ContainsAll(CChar8 *src, CChar *t, Bool case_sensitive, Bool whole_words)
       {
          Char c=*t++; if(c==' ' || c=='\0')
          {
-            Int len_1=t-start; // this will include nul char
+            Int len_1=t-start; // this will include NUL char
             if( len_1>1)       // ignore empty words (in case 't' has "  ")
             {
                word.setNum(len_1, 0); // clear previous data
@@ -1488,7 +1488,7 @@ Bool ContainsAll(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
       {
          Char8 c=*t++; if(c==' ' || c=='\0')
          {
-            Int len_1=t-start; // this will include nul char
+            Int len_1=t-start; // this will include NUL char
             if( len_1>1)       // ignore empty words (in case 't' has "  ")
             {
                word.setNum(len_1, 0); // clear previous data
@@ -2286,12 +2286,12 @@ CChar * _TextPacked(C Vec2 &v, Char  (&temp)[ 7*2]=ConstCast(TempChar< 7*2>()).c
 CChar * _TextPacked(C Vec  &v, Char  (&temp)[ 7*3]=ConstCast(TempChar< 7*3>()).c);
 CChar * _TextPacked(C Vec4 &v, Char  (&temp)[ 7*4]=ConstCast(TempChar< 7*4>()).c);
 
-CChar* _TextPacked(Flt f, Char (&temp)[7]) // 1 for CharReal, 5 for Flt, 1 for nul
+CChar* _TextPacked(Flt f, Char (&temp)[7]) // 1 for CharReal, 5 for Flt, 1 for NUL
 {
    temp[0]=CharReal; EncodeText(&f, SIZE(f), temp+1, Elms(temp)-1);
    return temp;
 }
-CChar* _TextPacked(Dbl d, Char (&temp)[12]) // 1 for CharReal, 10 for Dbl, 1 for nul
+CChar* _TextPacked(Dbl d, Char (&temp)[12]) // 1 for CharReal, 10 for Dbl, 1 for NUL
 {
    temp[0]=CharReal; EncodeText(&d, SIZE(d), temp+1, Elms(temp)-1);
    return temp;
@@ -2808,8 +2808,8 @@ Str ::Str (C Str  &s, Int additional_length) {   _length=s.length( ); _d.setNum(
 Str ::Str (C Str8 &s, Int additional_length) {   _length=s.length( ); _d.setNum(length()+1+additional_length); I(); FREP (length())_d[i]=Char8To16Fast(s ()[i]); _d[length()]='\0'; } // don't use 'Set' to allow copying '\0' chars in the middle, use () to avoid range checks
 Str8::Str8(C Str  &s                       ) {if(_length=s.length( )){_d.setNum(length()+1                  ); I(); FREPA(    _d  )_d[i]=Char16To8Fast(s._d[i]);                   }} // don't use 'Set' to allow copying '\0' chars in the middle
 Str ::Str (C Str8 &s                       ) {if(_length=s.length( )){_d.setNum(length()+1                  ); I(); FREPA(    _d  )_d[i]=Char8To16Fast(s._d[i]);                   }} // don't use 'Set' to allow copying '\0' chars in the middle
-Str8::Str8(C BStr &s                       ) {if(_length=s.length( )){_d.setNum(length()+1                  ); I(); FREP (length())_d[i]=Char16To8Fast(s ()[i]); _d[length()]='\0';}} // don't use 'Set' to allow copying '\0' chars in the middle, borrowed string may not be nul-terminated, use () to avoid range checks
-Str ::Str (C BStr &s                       ) {if(_length=s.length( )){_d.setNum(length()+1                  ); CopyFastN(_d.data(), s(), length()  );            _d[length()]='\0';}} // don't use 'Set' to allow copying '\0' chars in the middle, borrowed string may not be nul-terminated
+Str8::Str8(C BStr &s                       ) {if(_length=s.length( )){_d.setNum(length()+1                  ); I(); FREP (length())_d[i]=Char16To8Fast(s ()[i]); _d[length()]='\0';}} // don't use 'Set' to allow copying '\0' chars in the middle, borrowed string may not be null-terminated, use () to avoid range checks
+Str ::Str (C BStr &s                       ) {if(_length=s.length( )){_d.setNum(length()+1                  ); CopyFastN(_d.data(), s(), length()  );            _d[length()]='\0';}} // don't use 'Set' to allow copying '\0' chars in the middle, borrowed string may not be null-terminated
 Str8::Str8(Bool    b                       ) {   _length=         1 ; _d.setNum(         2                  ); _d[0]=(b ? '1' : '0'); _d[1]='\0';}
 Str ::Str (Bool    b                       ) {   _length=         1 ; _d.setNum(         2                  ); _d[0]=(b ? '1' : '0'); _d[1]='\0';}
 Str8::Str8(SByte   i                       ) : Str8(TextInt(    Int(i), ConstCast(TempChar8<256>()).c)) {}

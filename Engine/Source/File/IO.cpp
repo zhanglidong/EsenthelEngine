@@ -1175,7 +1175,7 @@ Bool UnixReadFile(CChar8 *file, Char8 *data, Int size)
       int fd =open(file, O_RDONLY|O_NONBLOCK);
       if( fd>=0)
       {
-         read=::read(fd, data, size-1); // leave room for nul character
+         read=::read(fd, data, size-1); // leave room for NUL character
          if(read>=0 && read<size)ok=true;else read=0;
          close(fd);
       }

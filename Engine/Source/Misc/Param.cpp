@@ -449,7 +449,7 @@ Param& Param::setAsIDArray(C MemPtr<UID> &ids, Bool allow_PARAM_ID_type)
       {
          Int chars=ids.elms()*(SIZE(UID)/SIZE(Char));
          value.s.reserve(chars); ids.copyTo((UID*)value.s());
-         value.s._d[value.s._length=chars]='\0'; // this is a string so it needs to have a nul terminate char
+         value.s._d[value.s._length=chars]='\0'; // this is a string so it needs to have a NUL terminate char
       }
    }
    return T;
@@ -513,7 +513,7 @@ Bool Param::load(File &f, CChar *path)
             {
                Int chars=ids*(SIZE(UID)/SIZE(Char));
                value.s.reserve(chars); f.getN((UID*)value.s(), ids);
-               value.s._d[value.s._length=chars]='\0'; // this is a string so it needs to have a nul terminate char
+               value.s._d[value.s._length=chars]='\0'; // this is a string so it needs to have a NUL terminate char
             }break;
          }
          if(f.ok())return true;
@@ -540,7 +540,7 @@ Bool Param::load(File &f, CChar *path)
             {
                Int chars=ids*(SIZE(UID)/SIZE(Char));
                value.s.reserve(chars); f.getN((UID*)value.s(), ids);
-               value.s._d[value.s._length=chars]='\0'; // this is a string so it needs to have a nul terminate char
+               value.s._d[value.s._length=chars]='\0'; // this is a string so it needs to have a NUL terminate char
             }break;
          }
          if(f.ok())return true;

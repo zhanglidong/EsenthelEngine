@@ -2363,7 +2363,7 @@ void Test()
    REPA(CleanFileNameArray)DEBUG_ASSERT(CleanFileNameIndex[(Byte)CleanFileNameArray[i]]==i, "err");
 }
 /******************************************************************************/
-CChar* _EncodeFileName(C UID &id, Char (&name)[24+1]) // 24 chars needed + nul terminate
+CChar* _EncodeFileName(C UID &id, Char (&name)[24+1]) // 24 chars needed + NUL terminate
 {
    Int  n=0;
 C UInt *src=id.i;
@@ -2705,7 +2705,7 @@ ULong AndroidID()
       if(JMethodID method=jni.staticFunc(ActivityClass, "androidID", "()Ljava/lang/String;"))
       if(JString str=JString(jni, jni->CallStaticObjectMethod(ActivityClass, method)))
    {
-      Char8 id[2+16+1]; // 0x + 0000000000000000 + nul
+      Char8 id[2+16+1]; // 0x + 0000000000000000 + NUL
       Set(id, "0x"); Append(id, str.str());
       return TextULong(id);
    }
