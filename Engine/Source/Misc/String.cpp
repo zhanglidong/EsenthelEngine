@@ -2803,8 +2803,8 @@ Str ::Str (C wchar_t *t                    ) {if(_length=  Length(t)){_d.setNum(
 Str ::Str (CChar8 *t                       ) {if(_length=  Length(t)){_d.setNum(length()+1                  ); Set      (_d.data(),   t,  _d.elms());}}
 Str8::Str8(C Str8 &s                       ) {if(_length=s.length( )){_d.setNum(length()+1                  ); CopyFastN(_d.data(), s(),  _d.elms());}}
 Str ::Str (C Str  &s                       ) {if(_length=s.length( )){_d.setNum(length()+1                  ); CopyFastN(_d.data(), s(),  _d.elms());}}
-Str8::Str8(C Str8 &s, Int additional_length) {   _length=s.length( ); _d.setNum(length()+1+additional_length); CopyN    (_d.data(), s(), length()+1); }
-Str ::Str (C Str  &s, Int additional_length) {   _length=s.length( ); _d.setNum(length()+1+additional_length); CopyN    (_d.data(), s(), length()+1); }
+Str8::Str8(C Str8 &s, Int additional_length) {   _length=s.length( ); _d.setNum(length()+1+additional_length); CopyN    (_d.data(), s(), length()+1); } // use 'CopyN' in case s() is null
+Str ::Str (C Str  &s, Int additional_length) {   _length=s.length( ); _d.setNum(length()+1+additional_length); CopyN    (_d.data(), s(), length()+1); } // use 'CopyN' in case s() is null
 Str ::Str (C Str8 &s, Int additional_length) {   _length=s.length( ); _d.setNum(length()+1+additional_length); I(); FREP (length())_d[i]=Char8To16Fast(s ()[i]); _d[length()]='\0'; } // don't use 'Set' to allow copying '\0' chars in the middle, use () to avoid range checks
 Str8::Str8(C Str  &s                       ) {if(_length=s.length( )){_d.setNum(length()+1                  ); I(); FREPA(    _d  )_d[i]=Char16To8Fast(s._d[i]);                   }} // don't use 'Set' to allow copying '\0' chars in the middle
 Str ::Str (C Str8 &s                       ) {if(_length=s.length( )){_d.setNum(length()+1                  ); I(); FREPA(    _d  )_d[i]=Char8To16Fast(s._d[i]);                   }} // don't use 'Set' to allow copying '\0' chars in the middle
@@ -2875,11 +2875,11 @@ Str & Str ::del() {_d.del(); _length=0; return T;}
 Str8& Str8::clear() {if(_d.elms())_d[0]='\0'; _length=0; return T;}
 Str & Str ::clear() {if(_d.elms())_d[0]='\0'; _length=0; return T;}
 
-Str8& Str8::space(Int num) {if(length() && last()!='\n' && last()!=' ')REP(num)T+=' '; return T;}
-Str & Str ::space(Int num) {if(length() && last()!='\n' && last()!=' ')REP(num)T+=' '; return T;}
+Str8& Str8::space(Int num) {if(is() && !WhiteChar(last()))REP(num)T+=' '; return T;}
+Str & Str ::space(Int num) {if(is() && !WhiteChar(last()))REP(num)T+=' '; return T;}
 
-Str8& Str8::line(Int num) {if(length() && last()!='\n')REP(num)T+='\n'; return T;}
-Str & Str ::line(Int num) {if(length() && last()!='\n')REP(num)T+='\n'; return T;}
+Str8& Str8::line(Int num) {if(is() && last()!='\n')REP(num)T+='\n'; return T;}
+Str & Str ::line(Int num) {if(is() && last()!='\n')REP(num)T+='\n'; return T;}
 
 Str8& Str8::insert(Int i, Char8 c)
 {
@@ -3072,10 +3072,9 @@ Str8& Str8::operator=(CChar8 *t)
    if(T()!=t)
    if(!Is(t))clear();else
    {
-      Int l=Length(t)+1;
+      Int l=(_length=Length(t))+1;
       if( l>_d.elms())_d.clear().setNum(l); // clear first to avoid copying existing data in 'setNum'
       MoveFastN(_d.data(), t, l); // 't' can be part of 'T'
-     _length=l-1;
    }
    return T;
 }
@@ -3083,10 +3082,9 @@ Str8& Str8::operator=(CChar *t)
 {
    if(!Is(t))clear();else
    {
-      Int l=Length(t)+1;
+      Int l=(_length=Length(t))+1;
       if( l>_d.elms())_d.clear().setNum(l); // clear first to avoid copying existing data in 'setNum'
       Set(  _d.data(), t, l);
-     _length=l-1;
    }
    return T;
 }
@@ -3094,10 +3092,9 @@ Str8& Str8::operator=(C wchar_t *t)
 {
    if(!Is(t))clear();else
    {
-      Int l=Length(t)+1;
+      Int l=(_length=Length(t))+1;
       if( l>_d.elms())_d.clear().setNum(l); // clear first to avoid copying existing data in 'setNum'
      _Set(  _d.data(), t, l);
-     _length=l-1;
    }
    return T;
 }
@@ -3105,10 +3102,9 @@ Str& Str::operator=(CChar8 *t)
 {
    if(!Is(t))clear();else
    {
-      Int l=Length(t)+1;
+      Int l=(_length=Length(t))+1;
       if( l>_d.elms())_d.clear().setNum(l); // clear first to avoid copying existing data in 'setNum'
       Set(  _d.data(), t, l);
-     _length=l-1;
    }
    return T;
 }
@@ -3117,10 +3113,9 @@ Str& Str::operator=(CChar *t)
    if(T()!=t)
    if(!Is(t))clear();else
    {
-      Int l=Length(t)+1;
+      Int l=(_length=Length(t))+1;
       if( l>_d.elms())_d.clear().setNum(l); // clear first to avoid copying existing data in 'setNum'
       MoveFastN(_d.data(), t, l); // 't' can be part of 'T'
-     _length=l-1;
    }
    return T;
 }
@@ -3128,10 +3123,9 @@ Str& Str::operator=(C wchar_t *t)
 {
    if(!Is(t))clear();else
    {
-      Int l=Length(t)+1;
+      Int l=(_length=Length(t))+1;
       if( l>_d.elms())_d.clear().setNum(l); // clear first to avoid copying existing data in 'setNum'
      _Set(  _d.data(), t, l);
-     _length=l-1;
    }
    return T;
 }
@@ -3141,10 +3135,9 @@ Str8& Str8::operator=(C Str8 &s)
    if(this!=&s)
    if(!s.is())clear();else
    {
-      Int l=s.length()+1;
+      Int l=(_length=s.length())+1;
       if( l>_d.elms())_d.clear().setNum(l); // clear first to avoid copying existing data in 'setNum'
       CopyFastN(_d.data(), s(), l);
-     _length=l-1;
    }
    return T;
 }
@@ -3152,10 +3145,9 @@ Str8& Str8::operator=(C Str &s)
 {
    if(!s.is())clear();else
    {
-      Int l=s.length()+1;
+      Int l=(_length=s.length())+1;
       if( l>_d.elms())_d.clear().setNum(l); // clear first to avoid copying existing data in 'setNum'
       I(); FREP(l)_d[i]=Char16To8Fast(s._d[i]); // don't use 'Set' to allow copying '\0' chars in the middle
-     _length=l-1;
    }
    return T;
 }
@@ -3163,10 +3155,9 @@ Str& Str::operator=(C Str8 &s)
 {
    if(!s.is())clear();else
    {
-      Int l=s.length()+1;
+      Int l=(_length=s.length())+1;
       if( l>_d.elms())_d.clear().setNum(l); // clear first to avoid copying existing data in 'setNum'
       I(); FREP(l)_d[i]=Char8To16Fast(s._d[i]); // don't use 'Set' to allow copying '\0' chars in the middle
-     _length=l-1;
    }
    return T;
 }
@@ -3175,10 +3166,9 @@ Str& Str::operator=(C Str &s)
    if(this!=&s)
    if(!s.is())clear();else
    {
-      Int l=s.length()+1;
+      Int l=(_length=s.length())+1;
       if( l>_d.elms())_d.clear().setNum(l); // clear first to avoid copying existing data in 'setNum'
       CopyFastN(_d.data(), s(), l);
-     _length=l-1;
    }
    return T;
 }
@@ -3832,8 +3822,8 @@ Int CompareCS(C Str &a, C BStr &b)
 {
    FREPA(b)
    {
-      Int ord0=a[i],
-          ord1=b[i];
+      auto ord0=Unsigned(a[i]),
+           ord1=Unsigned(b[i]);
       if(ord0<ord1)return -1;
       if(ord0>ord1)return +1;
    }

@@ -5,7 +5,7 @@ struct BStr // string which uses text memory allocated externally, and limiting 
    Int       length(     )C {return  _length  ;} // get string length
    Bool    borrowed(     )C {return !_custom  ;} // if string is borrowed (uses external           text memory), warning: this requires that the external memory is accessible during the lifetime of the string object
    Bool      custom(     )C {return  _custom  ;} // if string is custom   (uses manually allocated text memory)
-  CChar* operator()(     )C {return  _d       ;} // warning: for borrowed strings returned pointer may not be null-terminated
+  CChar* operator()(     )C {return  _d       ;} // !! WARNING: for borrowed strings returned pointer may not be null-terminated !!
    Char  operator[](Int i)C {return InRange(i, T) ? _d[        i] : '\0';} // get i-th character
    Char        last(     )C {return _length       ? _d[_length-1] : '\0';} // get last character
 
