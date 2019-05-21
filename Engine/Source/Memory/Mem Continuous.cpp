@@ -157,8 +157,8 @@ void _Memc::     swapOrder(Int i  , Int j             ) {if(InRange(i, T) && InR
 
 void _Memc::moveElmLeftUnsafe(Int elm, Int new_index, Ptr temp) {_MoveElmLeftUnsafe(data(), elmSize(), elm, new_index, temp);}
 /******************************************************************************/
-void _Memc::copyTo  ( Ptr dest)C {Copy(dest  , data(), elms()*elmSize());}
-void _Memc::copyFrom(CPtr src )  {Copy(data(), src   , elms()*elmSize());}
+void _Memc::copyTo  ( Ptr dest)C {if(dest)CopyFast(dest  , data(), elms()*elmSize());}
+void _Memc::copyFrom(CPtr src )  {        Copy    (data(), src   , elms()*elmSize());} // use 'Copy' in case 'src'  is null
 /******************************************************************************
 void _Memc::copyRaw(_Memc &dest)
 {

@@ -532,8 +532,8 @@ MeshBase& MeshBase::removeDegenerateFaces(Flt eps)
       temp.copyQuads(T, quad_is);
 
       // set missing data
-      if(temp.tri.flag() && !tri.flag())ZeroN(temp.tri.flag(), src_tris);
-      if(temp.tri.id  () && !tri.id  ())ZeroN(temp.tri.id  (), src_tris);
+      if(temp.tri.flag() && !tri.flag())ZeroFastN(temp.tri.flag(), src_tris);
+      if(temp.tri.id  () && !tri.id  ())ZeroFastN(temp.tri.id  (), src_tris);
       if(temp.tri.nrm () && !tri.nrm ())REP(src_tris)
       {
        C VecI &ind=temp.tri.ind(i);

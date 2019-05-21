@@ -845,7 +845,7 @@ Blocks& Blocks::cleanMaterials()
       }
 
       // get used materials
-      Bool  mtrl_is[256]; ZeroN(mtrl_is, _materials.elms()); // assume all are unused
+      Bool  mtrl_is[256]; ZeroFastN(mtrl_is, _materials.elms()); // assume all are unused
       REPA(_mtrl_combos)if(mc_is[i])
       {
          MtrlCombo &mc=_mtrl_combos[i];

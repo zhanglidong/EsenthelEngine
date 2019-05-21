@@ -384,7 +384,7 @@ void _Realloc(Ptr &data, IntPtr size_new, IntPtr size_old)
    if(size_new!=size_old)
    {
       Ptr p=Alloc(size_new);
-      Copy(p, data, Min(size_new, size_old)); // copy old data
+      Copy(p, data, Min(size_new, size_old)); // copy old data, use 'Copy' to allow 'Zero' if 'data' is null but "size_old>0"
       Free(data); data=p;
    }
 }
@@ -394,9 +394,11 @@ void _ReallocZero(Ptr &data, IntPtr size_new, IntPtr size_old)
    MAX(size_old, 0);
    if(size_new!=size_old)
    {
-      Ptr p=Alloc(size_new);
-      Copy(       p, data, Min(size_new, size_old)); // copy old data
-      Zero((Byte*)p+size_old,  size_new- size_old ); // zero new data
+      Ptr p=Alloc(size_new); if(p)
+      {
+                              Copy    (       p, data, Min(size_new, size_old)); // copy old data, use 'Copy' to allow 'Zero' if 'data' is null but "size_old>0"
+         if(size_new>size_old)ZeroFast((Byte*)p+size_old,  size_new- size_old ); // zero new data
+      }
       Free(data); data=p;
    }
 }

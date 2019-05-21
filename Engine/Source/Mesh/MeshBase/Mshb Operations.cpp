@@ -74,9 +74,9 @@ static void Weld(MeshBase &mshb, UInt flag, Flt pos_eps, Flt nrm_cos, Flt remove
             temp.tri._elms=tris+quad_tri.elms(); temp.include(f);
             temp.copyTris(mshb, is);
 
-            if(temp.tri.nrm () && !mshb.tri.nrm ())ZeroN(temp.tri.nrm (), tris);
-            if(temp.tri.flag() && !mshb.tri.flag())ZeroN(temp.tri.flag(), tris);
-            if(temp.tri.id  () && !mshb.tri.id  ())ZeroN(temp.tri.id  (), tris);
+            if(temp.tri.nrm () && !mshb.tri.nrm ())ZeroFastN(temp.tri.nrm (), tris);
+            if(temp.tri.flag() && !mshb.tri.flag())ZeroFastN(temp.tri.flag(), tris);
+            if(temp.tri.id  () && !mshb.tri.id  ())ZeroFastN(temp.tri.id  (), tris);
 
             REPA(quad_tri)
             {

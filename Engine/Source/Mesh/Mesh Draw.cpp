@@ -159,7 +159,7 @@ void MeshBase::drawAuto(C Material *material)C
    if(Shader   *shader=DefaultShaders(&mtrl, flag()&~VTX_MATERIAL, 0, false).get(Renderer()))
    {
       SetSkinning();
-      Vtx3DFull v[4]; ZeroN(v, 4);
+      Vtx3DFull v[4]; Zero(v);
     C Vec      *nrm ;
 
       ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
@@ -258,7 +258,7 @@ void MeshBase::drawAuto(C Material *material)C
       // quads
       VI.shader(shader);
       VI.cull  (true);
-      ZeroN(v, 4); nrm=quad.nrm(); if(C VecI4 *_quad=quad.ind())REPA(quad)
+      Zero(v); nrm=quad.nrm(); if(C VecI4 *_quad=quad.ind())REPA(quad)
       {
          VecI4 p=*_quad++;
          v[0].pos=vtx.pos(p.x);

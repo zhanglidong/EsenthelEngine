@@ -81,7 +81,7 @@ void MeshBase::split(MemPtr<MeshBaseIndex> meshes, C Boxes &boxes, UInt flag_and
          CopyList(mesh.quad.flag(), quad.flag(), MemPtr<Int>(_quad, quads));
          CopyList(mesh.quad.id  (), quad.id  (), MemPtr<Int>(_quad, quads));
 
-         Zero(vtx_is.data(), vtx_is.elms());
+         ZeroFast(vtx_is.data(), vtx_is.elms());
 
          REPAD(j, mesh.edge){p=mesh.edge.ind(j).c; REPD(k, 2)vtx_is[p[k]]=true;}
          REPAD(j, mesh.tri ){p=mesh.tri .ind(j).c; REPD(k, 3)vtx_is[p[k]]=true;}

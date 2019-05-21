@@ -1318,7 +1318,7 @@ Bool File::get(Ptr data, Int size)
 {
    Int read=getReturnSize(data, size);
    if( read==size)return true; // check this first because this is what's most likely going to happen
-   if( data)Zero((Byte*)data+read, size-read); // zero unread data, this is important because methods such as f.getInt, f.decUIntV, .. don't check for status, however they're expected to return zeros
+   if( data && size>read)ZeroFast((Byte*)data+read, size-read); // zero unread data, this is important because methods such as f.getInt, f.decUIntV, .. don't check for status, however they're expected to return zeros
   _ok=false; return false; // set error
 }
 Bool File::put(CPtr data, Int size)

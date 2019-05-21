@@ -129,7 +129,7 @@ Ptr _Meml::operator()(Int i)
 }
 /******************************************************************************/
 void _Meml::copyTo  ( Ptr dest)C {if(dest)MFREP(T){CopyFast(dest, i->data(), _elm_size);        dest=(Byte*)dest+_elm_size;}}
-void _Meml::copyFrom(CPtr src )  {        MFREP(T){Copy    (i->data(), src , _elm_size); if(src)src =(Byte*)src +_elm_size;}}
+void _Meml::copyFrom(CPtr src )  {        MFREP(T){Copy    (i->data(), src , _elm_size); if(src)src =(Byte*)src +_elm_size;}} // use 'Copy' in case 'src' is null
 /******************************************************************************/
 void _Meml::reverseOrder()
 {

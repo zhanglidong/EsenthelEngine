@@ -1691,8 +1691,8 @@ static void SetXInputValues(C Dbl *input, unsigned char *mask, Int mask_len, Dbl
 {
    const Int max_axis=16;
    Int mask_elms=Min(max_axis, mask_len*8); // bits per byte
-   ZeroN(output, output_elms);
-   for(int i=0, o=0; i<mask_elms && o<output_elms; i++, o++)if(XIMaskIsSet(mask, i))output[o]=*input++;
+   ZeroFastN(output, output_elms);
+   for(Int i=0, o=0; i<mask_elms && o<output_elms; i++, o++)if(XIMaskIsSet(mask, i))output[o]=*input++;
 }
 void Application::setWindowFlags(Bool force_resizable)
 {

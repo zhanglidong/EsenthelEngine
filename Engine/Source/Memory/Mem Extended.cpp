@@ -196,7 +196,7 @@ void _Memx::moveToStart(Int i) {moveElm(i,        0);}
 void _Memx::moveToEnd  (Int i) {moveElm(i, elms()-1);}
 /******************************************************************************/
 void _Memx::copyTo  ( Ptr dest)C {if(dest)FREPA(T){CopyFast(dest, T[i], elmSize());        dest=(Byte*)dest+elmSize();}}
-void _Memx::copyFrom(CPtr src )  {        FREPA(T){Copy    (T[i], src , elmSize()); if(src)src =(Byte*)src +elmSize();}}
+void _Memx::copyFrom(CPtr src )  {        FREPA(T){Copy    (T[i], src , elmSize()); if(src)src =(Byte*)src +elmSize();}} // use 'Copy' in case 'src' is null
 /******************************************************************************/
 UInt _Memx::memUsage()C
 {

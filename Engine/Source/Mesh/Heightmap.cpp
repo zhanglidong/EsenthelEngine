@@ -681,7 +681,7 @@ void Heightmap::cleanMaterials() // this function should be multi-threaded safe
 {
    if(_materials.elms()>1)
    {
-      Bool    is[256]; ZeroN(is, _materials.elms()); // assume all are unused
+      Bool    is[256]; ZeroFastN(is, _materials.elms()); // assume all are unused
       Byte remap[256];
 
       switch(_mtrl_blend.hwType())

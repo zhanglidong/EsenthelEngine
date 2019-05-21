@@ -50,29 +50,36 @@ T1(TYPE) void ReallocZero(TYPE* &data, Int elms_new, Int elms_old); // reallocat
 /******************************************************************************/
 // ZERO MEMORY
 /******************************************************************************/
-         void  Zero (Ptr   data, IntPtr size);                                            // zero                 memory
-T1(TYPE) TYPE& Zero (TYPE &elm              ) {Zero(&elm ,      SIZE(TYPE)); return elm;} // zero        element  memory
-T1(TYPE) void  ZeroN(TYPE *data, Int    elms) {Zero( data, elms*SIZE(TYPE));            } // zero 'elms' elements memory
+         void Zero (Ptr   data, IntPtr size);                                  // zero                 memory
+T1(TYPE) void Zero (TYPE &elm              ) {memset(&elm , 0,   SIZE(TYPE));} // zero        element  memory
+T1(TYPE) void ZeroN(TYPE *data, Int    elms) {Zero  ( data, elms*SIZE(TYPE));} // zero 'elms' elements memory
 /******************************************************************************/
 // SET MEMORY
 /******************************************************************************/
-         void  SetMem (Ptr   data, Byte value, IntPtr size);                                                     // set                 memory to Byte value
-T1(TYPE) TYPE& SetMem (TYPE &elm , Byte value             ) {SetMem(&elm , value,      SIZE(TYPE)); return elm;} // set 'elm'           memory to Byte value
-T1(TYPE) void  SetMemN(TYPE *data, Byte value, Int    elms) {SetMem( data, value, elms*SIZE(TYPE));            } // set 'elms' elements memory to Byte value
+         void SetMem (Ptr   data, Byte value, IntPtr size);                                         // set                 memory to Byte value
+T1(TYPE) void SetMem (TYPE &elm , Byte value             ) {memset(&elm , value,      SIZE(TYPE));} // set 'elm'           memory to Byte value
+T1(TYPE) void SetMemN(TYPE *data, Byte value, Int    elms) {SetMem( data, value, elms*SIZE(TYPE));} // set 'elms' elements memory to Byte value
 /******************************************************************************/
 // COPY MEMORY
 /******************************************************************************/
 #if EE_PRIVATE
+         void Copy (Ptr   dest,   CPtr  src, IntPtr dest_size, IntPtr src_size);                  // copy 'src'  memory  to 'dest', if 'src' is null then 'dest' will be set to zero, if 'src_size' is smaller than 'dest_size' then remaining bytes will be zeroed
+#endif
+         void Copy (Ptr   dest,   CPtr  src, IntPtr size);                                        // copy 'src'  memory  to 'dest', if 'src' is null then 'dest' will be set to zero
+T1(TYPE) void Copy (TYPE &dest, C TYPE &src             ) {memcpy(&dest, &src,      SIZE(TYPE));} // copy 'src'  element to 'dest'
+T1(TYPE) void CopyN(TYPE *dest, C TYPE *src, Int    elms) {Copy  ( dest,  src, elms*SIZE(TYPE));} // copy 'elms' elements
+/******************************************************************************/
+// MEMORY ADVANCED
+/******************************************************************************/
+  inline void ZeroFast (Ptr   data, IntPtr size) {memset( data, 0,      size      );} // !! this does not check for pointers!=null, size>=0
+T1(TYPE) void ZeroFast (TYPE &elm              ) {memset(&elm , 0,      SIZE(TYPE));}
+T1(TYPE) void ZeroFastN(TYPE *data, Int    elms) {memset( data, 0, elms*SIZE(TYPE));} // !! this does not check for pointers!=null, elms>=0
+
   inline void MoveFast (Ptr   dest,   CPtr  src, IntPtr size) {memmove( dest,  src,      size      );} // !! this does not check for pointers!=null, size>=0                       , this is more safe than 'CopyFast'
 T1(TYPE) void MoveFastN(TYPE *dest, C TYPE *src, Int    elms) {memmove( dest,  src, elms*SIZE(TYPE));} // !! this does not check for pointers!=null, elms>=0                       , this is more safe than 'CopyFast'
   inline void CopyFast (Ptr   dest,   CPtr  src, IntPtr size) {memcpy ( dest,  src,      size      );} // !! this does not check for pointers!=null, size>=0 and if memory overlaps, this is less safe than 'MoveFast'
-T1(TYPE) void CopyFast (TYPE &dest, C TYPE &src             ) {memcpy (&dest, &src,      SIZE(TYPE));} // !! this does not check for pointers!=null          and if memory overlaps, this is less safe than 'MoveFast'
+T1(TYPE) void CopyFast (TYPE &dest, C TYPE &src             ) {memcpy (&dest, &src,      SIZE(TYPE));} // !! this does not check                                 if memory overlaps, this is less safe than 'MoveFast'
 T1(TYPE) void CopyFastN(TYPE *dest, C TYPE *src, Int    elms) {memcpy ( dest,  src, elms*SIZE(TYPE));} // !! this does not check for pointers!=null, elms>=0 and if memory overlaps, this is less safe than 'MoveFast'
-         void Copy     (Ptr   dest,   CPtr  src, IntPtr dest_size, IntPtr src_size);                   // copy 'src'  memory  to 'dest', if 'src' is null then 'dest' will be set to zero, if 'src_size' is smaller than 'dest_size' then remaining bytes will be zeroed
-#endif
-         void Copy (Ptr   dest,   CPtr  src, IntPtr size);                                      // copy 'src'  memory  to 'dest', if 'src' is null then 'dest' will be set to zero
-T1(TYPE) void Copy (TYPE &dest, C TYPE &src             ) {Copy(&dest, &src,      SIZE(TYPE));} // copy 'src'  element to 'dest'
-T1(TYPE) void CopyN(TYPE *dest, C TYPE *src, Int    elms) {Copy( dest,  src, elms*SIZE(TYPE));} // copy 'elms' elements
 /******************************************************************************/
 // SWAP MEMORY
 /******************************************************************************/

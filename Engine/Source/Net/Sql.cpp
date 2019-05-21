@@ -1688,7 +1688,7 @@ static int SQLiteRead(sqlite3_file *pFile, void *zBuf, int iAmt, sqlite_int64 iO
    if( read>=iAmt              )return SQLITE_OK; // read all
    if( read<=0 && !f.file.end())return SQLITE_IOERR_READ; // read nothing but still have some left (not at the end)
    // partial read
-   Zero((Byte*)zBuf+read, iAmt-read); // zero remaining data (this is required by SQLite)
+   ZeroFast((Byte*)zBuf+read, iAmt-read); // zero remaining data (this is required by SQLite)
    return SQLITE_IOERR_SHORT_READ;
 }
 static int SQLiteWrite(sqlite3_file *pFile, const void *zBuf, int iAmt, sqlite_int64 iOfst)

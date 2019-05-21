@@ -651,10 +651,12 @@
    #undef min
    #undef max
    #define _ALLOW_RTCc_IN_STL
+   #include <vcruntime_string.h> // needed for 'memcpy' (inside "string.h")
 #else
    #include <new>
    #include <stdint.h>
    #include <stddef.h>
+   #include <string.h> // needed for 'memcpy'
 #endif
 #include <math.h>
 #include <typeinfo>

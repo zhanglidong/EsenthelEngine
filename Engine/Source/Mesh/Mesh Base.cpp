@@ -1257,21 +1257,21 @@ MeshBase& MeshBase::create(C MeshBase *src[], Int elms, UInt flag_and, Bool set_
       {
          if(Int edges=mesh->edges())
          {
-            if(edge_ind ){C VecI2 *ind=mesh->edge.ind(); if(!ind){ZeroN(edge_ind, edges); edge_ind+=edges;}else REP(edges)*edge_ind++=(*ind++)+vtx_ofs;}
+            if(edge_ind ){C VecI2 *ind=mesh->edge.ind(); if(!ind){ZeroFastN(edge_ind, edges); edge_ind+=edges;}else REP(edges)*edge_ind++=(*ind++)+vtx_ofs;}
             if(edge_nrm ){CopyN(edge_nrm , mesh->edge.nrm (), edges); edge_nrm +=edges;}
             if(edge_flag){CopyN(edge_flag, mesh->edge.flag(), edges); edge_flag+=edges;}
             if(set_face_id_from_part_index)REP(edges)*edge_id++=m;else if(edge_id){CopyN(edge_id, mesh->edge.id(), edges); edge_id+=edges;}
          }
          if(Int tris=mesh->tris())
          {
-            if(tri_ind ){C VecI *ind=mesh->tri.ind(); if(!ind){ZeroN(tri_ind, tris); tri_ind+=tris;}else REP(tris)*tri_ind++=(*ind++)+vtx_ofs;}
+            if(tri_ind ){C VecI *ind=mesh->tri.ind(); if(!ind){ZeroFastN(tri_ind, tris); tri_ind+=tris;}else REP(tris)*tri_ind++=(*ind++)+vtx_ofs;}
             if(tri_nrm ){CopyN(tri_nrm , mesh->tri.nrm (), tris); tri_nrm +=tris;}
             if(tri_flag){CopyN(tri_flag, mesh->tri.flag(), tris); tri_flag+=tris;}
             if(set_face_id_from_part_index)REP(tris)*tri_id++=m;else if(tri_id){CopyN(tri_id, mesh->tri.id(), tris); tri_id+=tris;}
          }
          if(Int quads=mesh->quads())
          {
-            if(quad_ind ){C VecI4 *ind=mesh->quad.ind(); if(!ind){ZeroN(quad_ind, quads); quad_ind+=quads;}else REP(quads)*quad_ind++=(*ind++)+vtx_ofs;}
+            if(quad_ind ){C VecI4 *ind=mesh->quad.ind(); if(!ind){ZeroFastN(quad_ind, quads); quad_ind+=quads;}else REP(quads)*quad_ind++=(*ind++)+vtx_ofs;}
             if(quad_nrm ){CopyN(quad_nrm , mesh->quad.nrm (), quads); quad_nrm +=quads;}
             if(quad_flag){CopyN(quad_flag, mesh->quad.flag(), quads); quad_flag+=quads;}
             if(set_face_id_from_part_index)REP(quads)*quad_id++=m;else if(quad_id){CopyN(quad_id, mesh->quad.id(), quads); quad_id+=quads;}
@@ -1353,9 +1353,9 @@ static void CopyId(MeshBase &dest, C MeshBase &src, Int id, Memt<Bool> &edge_is,
 
    // select
  C Int *_id;
-  _id=src.edge.id(); if(!_id)ZeroN(edge_is.data(), edge_is.elms());else FREPA(edge_is){edge_is[i]=(*_id==id); _id++;}
-  _id=src.tri .id(); if(!_id)ZeroN( tri_is.data(),  tri_is.elms());else FREPA( tri_is){ tri_is[i]=(*_id==id); _id++;}
-  _id=src.quad.id(); if(!_id)ZeroN(quad_is.data(), quad_is.elms());else FREPA(quad_is){quad_is[i]=(*_id==id); _id++;}
+  _id=src.edge.id(); if(!_id)ZeroFastN(edge_is.data(), edge_is.elms());else FREPA(edge_is){edge_is[i]=(*_id==id); _id++;}
+  _id=src.tri .id(); if(!_id)ZeroFastN( tri_is.data(),  tri_is.elms());else FREPA( tri_is){ tri_is[i]=(*_id==id); _id++;}
+  _id=src.quad.id(); if(!_id)ZeroFastN(quad_is.data(), quad_is.elms());else FREPA(quad_is){quad_is[i]=(*_id==id); _id++;}
 
    // copy
    src.copyFace(dest, edge_is, tri_is, quad_is, flag_and);

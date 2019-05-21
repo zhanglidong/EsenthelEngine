@@ -315,7 +315,7 @@ void Spectrometer::get(Flt *meter, Int meter_elms, Flt time, FILTER_TYPE filter)
          }
          return;
       }
-      ZeroN(meter, meter_elms); // if not available then zero
+      ZeroFastN(meter, meter_elms); // if not available then zero
    }
 }
 /******************************************************************************/
