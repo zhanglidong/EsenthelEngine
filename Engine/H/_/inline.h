@@ -622,14 +622,14 @@ template<typename TYPE, Int size>  TYPE&  Memt<TYPE, size>::NewAt(Int i)
    if(Greater(elms(), maxElms())) // elms()>maxElms()
    {
      _max_elms=CeilPow2(elms());
-      Ptr next=Alloc(_max_elms*elmSize());
-      CopyFast((Byte*)next                , &T[0],           i *elmSize());
-      CopyFast((Byte*)next+(i+1)*elmSize(), &T[i], (old_elms-i)*elmSize());
-      Free(_data); _data=(TYPE*)next;
+      TYPE *temp=Alloc<TYPE>(maxElms());
+      CopyFastN(temp      , &T[0],          i);
+      CopyFastN(temp+(i+1), &T[i], old_elms-i);
+      Free(_data); _data=temp;
    }else
    if(i<old_elms)
    {
-      MoveFast(&T[i+1], &T[i], (old_elms-i)*elmSize());
+      MoveFastN(&T[i+1], &T[i], old_elms-i);
    }
    TYPE &elm=T[i]; new(&elm)TYPE; return elm;
 }
@@ -649,8 +649,8 @@ template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::remove(I
       T[i].~TYPE();
       if(i<elms()-1) // if this is not the last element
       {
-         if(keep_order)MoveFast(&T[i], &T[     i+1], elmSize()*(elms()-i-1));
-         else          CopyFast(&T[i], &T[elms()-1], elmSize());
+         if(keep_order)MoveFastN(&T[i], &T[     i+1], elms()-i-1);
+         else          CopyFast ( T[i],  T[elms()-1]);
       }
      _elms--;
    }
@@ -664,9 +664,9 @@ template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::reserve(
    if(Greater(num, maxElms())) // num>maxElms()
    {
      _max_elms=CeilPow2(num);
-      Ptr next=Alloc(_max_elms*elmSize());
-      CopyFast(next, data(), elms()*elmSize());
-      Free(_data); _data=(TYPE*)next;
+      TYPE *temp=Alloc<TYPE>(maxElms());
+      CopyFastN(temp, data(), elms());
+      Free(_data); _data=temp;
    }
    return T;
 }
@@ -694,7 +694,7 @@ template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::setNumZe
    {
       reserve(num);
       Int old_elms=elms(); _elms=num;
-      ZeroFast(&T[old_elms], elmSize()*(elms()-old_elms));
+      ZeroFastN(&T[old_elms], elms()-old_elms);
       if(ClassFunc<TYPE>::HasNew())for(Int i=old_elms; i<elms(); i++)new(&T[i])TYPE;
    }else
    if(num<elms()) // remove elements
@@ -704,6 +704,37 @@ template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::setNumZe
    }
    return T;
 }
+
+template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::setNum(Int num, Int keep)
+{
+   MAX(num, 0);
+   Clamp(keep, 0, Min(elms(), num));
+   if(ClassFunc<TYPE>::HasDel())for(Int i=keep; i<elms(); i++)T[i].~TYPE(); // delete unkept elements
+   if(Greater(num, maxElms())) // resize memory, num>maxElms()
+   {
+     _elms=keep; // set '_elms' before 'reserve' to copy only 'keep' elements
+      reserve(num);
+   }
+  _elms=num; // set '_elms' before accessing new elements to avoid range assert
+   if(ClassFunc<TYPE>::HasNew())for(Int i=keep; i<elms(); i++)new(&T[i])TYPE; // create new elements
+   return T;
+}
+template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::setNumZero(Int num, Int keep)
+{
+   MAX(num, 0);
+   Clamp(keep, 0, Min(elms(), num));
+   if(ClassFunc<TYPE>::HasDel())for(Int i=keep; i<elms(); i++)T[i].~TYPE(); // delete unkept elements
+   if(Greater(num, maxElms())) // resize memory, num>maxElms()
+   {
+     _elms=keep; // set '_elms' before 'reserve' to copy only 'keep' elements
+      reserve(num);
+   }
+  _elms=num; // set '_elms' before accessing new elements to avoid range assert
+   ZeroFastN(&_element(keep), elms()-keep); // zero new elements, have to use '_element' to avoid out of range errors
+   if(ClassFunc<TYPE>::HasNew())for(Int i=keep; i<elms(); i++)new(&T[i])TYPE;  // create new elements
+   return T;
+}
+
 template<typename TYPE, Int size>  Int  Memt<TYPE, size>::addNum(Int num) {Int index=elms(); setNum(elms()+num); return index;}
 
 template<typename TYPE, Int size> T1(VALUE)  Bool  Memt<TYPE, size>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _BinarySearch(data(), elms(), elmSize(), &value, index, (Int(*)(CPtr, CPtr))compare);}
