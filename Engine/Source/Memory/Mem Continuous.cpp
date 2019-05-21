@@ -69,6 +69,39 @@ void _Memc::setNumZero(Int num)
      _elms=num; // set '_elms' after accessing new elements to avoid range assert
    }
 }
+void _Memc::setNum(Int num, Int keep)
+{
+   MAX(num, 0);
+   Clamp(keep, 0, Min(elms(), num));
+   if(_del)for(Int i=keep; i<elms(); i++)_del(T[i]); // delete unkept elements
+   if(num>_max_elms) // resize memory
+   {
+      if(!initialized())Exit("Attempting to create an object of zero size in 'Memc' container.\nThe container is not initialized or it is abstract and 'replaceClass' hasn't been called.");
+     _max_elms=CeilPow2(num);
+      Ptr temp=Alloc(_max_elms*elmSize()); // can't use Realloc, because we don't want to copy all old elements
+      CopyFast(temp, data(), keep*elmSize()); // copy kept elements
+      Free(_data); _data=temp;
+   }
+  _elms=num; // set '_elms' before accessing new elements to avoid range assert
+   if(_new)for(Int i=keep; i<elms(); i++)_new(T[i]); // create new elements
+}
+void _Memc::setNumZero(Int num, Int keep)
+{
+   MAX(num, 0);
+   Clamp(keep, 0, Min(elms(), num));
+   if(_del)for(Int i=keep; i<elms(); i++)_del(T[i]); // delete unkept elements
+   if(num>_max_elms) // resize memory
+   {
+      if(!initialized())Exit("Attempting to create an object of zero size in 'Memc' container.\nThe container is not initialized or it is abstract and 'replaceClass' hasn't been called.");
+     _max_elms=CeilPow2(num);
+      Ptr temp=Alloc(_max_elms*elmSize()); // can't use Realloc, because we don't want to copy all old elements
+      CopyFast(temp, data(), keep*elmSize()); // copy kept elements
+      Free(_data); _data=temp;
+   }
+  _elms=num; // set '_elms' before accessing new elements to avoid range assert
+   ZeroFast(_element(keep), elmSize()*(elms()-keep)); // zero   new elements
+   if(_new)for(Int i=keep; i<elms(); i++)_new(T[i]);  // create new elements
+}
 /******************************************************************************/
 Int _Memc::addNum    (Int num) {Int index=elms(); setNum    (elms()+num); return index;}
 Int _Memc::addNumZero(Int num) {Int index=elms(); setNumZero(elms()+num); return index;}
