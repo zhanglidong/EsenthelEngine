@@ -322,8 +322,8 @@ T1(TYPE) template<Int size>  Mems<TYPE>&  Mems<TYPE>::operator=(C MemPtr<TYPE, s
 T1(TYPE)                     Mems<TYPE>&  Mems<TYPE>::operator=(  Mems  <TYPE      > &&src) {Swap(T, src); return T;}
 
 #if EE_PRIVATE
-T1(TYPE)  void         Mems<TYPE>::copyTo  (  TYPE *dest)C {Copy(dest  , data(), elms()*elmSize());          }
-T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::copyFrom(C TYPE *src )  {Copy(data(), src   , elms()*elmSize()); return T;}
+T1(TYPE)  void         Mems<TYPE>::copyTo  (  TYPE *dest)C {if(dest)CopyFast(dest  , data(), elms()*elmSize());          }
+T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::copyFrom(C TYPE *src )  {        Copy    (data(), src   , elms()*elmSize()); return T;} // use 'Copy' in case 'src' is null
 T1(TYPE)  void         Mems<TYPE>:: setFrom(  TYPE* &data, Int elms) {if(data!=T._data){del(); T._data=data; T._elms=elms; data=null;}}
 T1(TYPE)  void         Mems<TYPE>:: setTemp(  TYPE*  data, Int elms) {                         T._data=data; T._elms=elms;            }
 #endif
@@ -631,7 +631,7 @@ template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::reserve(
    {
      _max_elms=CeilPow2(num);
       Ptr next=Alloc(_max_elms*elmSize());
-      Copy(next, data(), elms()*elmSize());
+      CopyFast(next, data(), elms()*elmSize());
       Free(_data); _data=(TYPE*)next;
    }
    return T;
@@ -1368,7 +1368,7 @@ template<typename TYPE, Int Memt_size>  void  MemPtr<TYPE, Memt_size>::copyTo(TY
 {
    switch(_mode)
    {
-      case PTR :  CopyN(dest, _ptr, _elms); break;
+      case PTR :  if(dest)CopyFastN(dest, _ptr, _elms); break;
       case MEMS: _mems->copyTo(dest); break;
       case MEMC: _memc->copyTo(dest); break;
       case MEMT: _memt->copyTo(dest); break;
@@ -1381,7 +1381,7 @@ template<typename TYPE, Int Memt_size>  MemPtr<TYPE, Memt_size>&  MemPtr<TYPE, M
 {
    switch(_mode)
    {
-      case PTR :  CopyN(_ptr, src, _elms); break;
+      case PTR :  CopyN(_ptr, src, _elms); break; // use 'CopyN' in case 'src' is null
       case MEMS: _mems->copyFrom(src); break;
       case MEMC: _memc->copyFrom(src); break;
       case MEMT: _memt->copyFrom(src); break;
