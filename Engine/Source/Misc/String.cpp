@@ -3396,26 +3396,34 @@ void Str::alwaysAppend(Char c)
 /******************************************************************************/
 Str8& Str8::operator=(C BStr &s)
 {
-   clear().reserve(s.length()); _length=s.length(); // change length after calling 'reserve'
-   I(); FREPA(T)_d[i]=Char16To8Fast(s()[i]); // () to avoid range checks
-   if(_d.elms())_d[length()]='\0';
+   if(!s.is())clear();else
+   {
+      Int l=(_length=s.length())+1;
+      if( l>_d.elms())_d.clear().setNum(l); // clear first to avoid copying existing data in 'setNum'
+      I(); FREPA(T)_d[i]=Char16To8Fast(s()[i]); // don't use 'Set' to allow copying '\0' chars in the middle and because 'BStr' may not end with '\0', () to avoid range checks
+      /*if(_d.elms())*/_d[length()]='\0'; // "if" not needed since we already know 's.is'
+   }
    return T;
 }
 Str& Str::operator=(C BStr &s)
 {
-   clear().reserve(s.length()); _length=s.length(); // change length after calling 'reserve'
-   CopyFastN(_d.data(), s(), length());
-   if(_d.elms())_d[length()]='\0';
+   if(!s.is())clear();else
+   {
+      Int l=(_length=s.length())+1;
+      if( l>_d.elms())_d.clear().setNum(l); // clear first to avoid copying existing data in 'setNum'
+      MoveFastN(_d.data(), s(), length()); // 's' can be part of 'T'
+      /*if(_d.elms())*/_d[length()]='\0'; // "if" not needed since we already know 's.is'
+   }
    return T;
 }
 Str8& Str8::operator+=(C BStr &s)
 {
    if(s.is())
    {
-      reserve(length()+s.length()+EXTRA);
+      Int length_dest=length()+s.length()+1; if(length_dest>_d.elms())_d.setNum(length_dest+EXTRA);
       I(); FREPA(s)_d[length()+i]=Char16To8Fast(s()[i]); // () to avoid range checks
      _length+=s.length();
-      if(_d.elms())_d[length()]='\0';
+      /*if(_d.elms())*/_d[length()]='\0'; // "if" not needed since we already know 's.is'
    }
    return T;
 }
@@ -3423,10 +3431,18 @@ Str& Str::operator+=(C BStr &s)
 {
    if(s.is())
    {
-      reserve(length()+s.length()+EXTRA);
-      CopyFastN(_d.data()+length(), s(), s.length());
-     _length+=s.length();
-      if(_d.elms())_d[length()]='\0';
+      CChar *t=s();
+      Int length_src =s.length(),
+          length_dest=T.length()+length_src+1;
+      if( length_dest>_d.elms())
+      {
+         UIntPtr offset=t-T();
+        _d.setNum(length_dest+EXTRA);
+         if(offset<UIntPtr(length()))t=T()+offset; // if adding text from self
+      }
+      MoveFastN(_d.data()+length(), t, length_src); // 't' can be part of 'T'
+     _length+=length_src;
+      /*if(_d.elms())*/_d[length()]='\0'; // "if" not needed since we already know 's.is'
    }
    return T;
 }
