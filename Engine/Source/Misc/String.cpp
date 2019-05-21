@@ -448,8 +448,8 @@ Int Compare(CChar8 *a, CChar8 *b, Bool case_sensitive)
       if(case_sensitive)
          for(; ; a++, b++)
       {
-         Int a_order=*a,
-             b_order=*b;
+         auto a_order=Unsigned(*a),
+              b_order=Unsigned(*b);
          if(a_order<b_order)return -1;
          if(a_order>b_order)return +1;
          if(!*a            )return  0;
@@ -475,8 +475,8 @@ Int Compare(CChar8 *a, CChar *b, Bool case_sensitive)
       if(case_sensitive)
          for(; ; a++, b++)
       {
-         Int a_order=Char8To16Fast(*a),
-             b_order=              *b ;
+         auto a_order=Unsigned(Char8To16Fast(*a)),
+              b_order=Unsigned(              *b );
          if(a_order<b_order)return -1;
          if(a_order>b_order)return +1;
          if(!*a            )return  0;
@@ -502,8 +502,8 @@ Int Compare(CChar *a, CChar8 *b, Bool case_sensitive)
       if(case_sensitive)
          for(; ; a++, b++)
       {
-         Int a_order=              *a ,
-             b_order=Char8To16Fast(*b);
+         auto a_order=Unsigned(              *a ),
+              b_order=Unsigned(Char8To16Fast(*b));
          if(a_order<b_order)return -1;
          if(a_order>b_order)return +1;
          if(!*a            )return  0;
@@ -528,8 +528,8 @@ Int Compare(CChar *a, CChar *b, Bool case_sensitive)
       if(case_sensitive)
          for(; ; a++, b++)
       {
-         Int a_order=*a,
-             b_order=*b;
+         auto a_order=Unsigned(*a),
+              b_order=Unsigned(*b);
          if(a_order<b_order)return -1;
          if(a_order>b_order)return +1;
          if(!*a            )return  0;
@@ -555,9 +555,9 @@ Int ComparePath(CChar *a, CChar *b, Bool case_sensitive)
       if(case_sensitive)
          for(; ; a++, b++)
       {
-         Int a_order=*a,
-             b_order=*b;
-         if( a_order!=b_order)
+         auto a_order=Unsigned(*a),
+              b_order=Unsigned(*b);
+         if(  a_order!=b_order)
          {
             Bool as=IsSlash(a[0]),
                  bs=IsSlash(b[0]);
@@ -610,9 +610,9 @@ Int ComparePath(CChar *a, CChar8 *b, Bool case_sensitive)
       if(case_sensitive)
          for(; ; a++, b++)
       {
-         Int a_order=             (*a),
-             b_order=Char8To16Fast(*b);
-         if( a_order!=b_order)
+         auto a_order=Unsigned(             (*a)),
+              b_order=Unsigned(Char8To16Fast(*b));
+         if(  a_order!=b_order)
          {
             Bool as=IsSlash(a[0]),
                  bs=IsSlash(b[0]);
@@ -665,9 +665,9 @@ Int ComparePath(CChar8 *a, CChar *b, Bool case_sensitive)
       if(case_sensitive)
          for(; ; a++, b++)
       {
-         Int a_order=Char8To16Fast(*a),
-             b_order=             (*b);
-         if( a_order!=b_order)
+         auto a_order=Unsigned(Char8To16Fast(*a)),
+              b_order=Unsigned(             (*b));
+         if(  a_order!=b_order)
          {
             Bool as=IsSlash(a[0]),
                  bs=IsSlash(b[0]);
@@ -719,9 +719,9 @@ Int ComparePath(CChar8 *a, CChar8 *b, Bool case_sensitive)
       if(case_sensitive)
          for(; ; a++, b++)
       {
-         Int a_order=*a,
-             b_order=*b;
-         if( a_order!=b_order)
+         auto a_order=Unsigned(*a),
+              b_order=Unsigned(*b);
+         if(  a_order!=b_order)
          {
             Bool as=IsSlash(a[0]),
                  bs=IsSlash(b[0]);
