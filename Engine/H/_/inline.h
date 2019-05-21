@@ -691,7 +691,7 @@ template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::setNumZe
    {
       reserve(num);
       Int old_elms=elms(); _elms=num;
-      Zero(&T[old_elms], elmSize()*(elms()-old_elms));
+      ZeroFast(&T[old_elms], elmSize()*(elms()-old_elms));
       if(ClassFunc<TYPE>::HasNew())for(Int i=old_elms; i<elms(); i++)new(&T[i])TYPE;
    }else
    if(num<elms()) // remove elements
