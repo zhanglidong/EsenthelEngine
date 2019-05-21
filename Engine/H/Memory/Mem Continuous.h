@@ -57,6 +57,9 @@ T1(const_mem_addr TYPE) struct Memc : _Memc // Continuous Memory Based Container
    Memc& setNumZero(Int num); // set number of elements to 'num', memory of new elements will be first zeroed before calling their constructor, this method may change the memory address of all elements
    Int   addNum    (Int num); // add 'num' elements, return index of first added element                                                      , this method may change the memory address of all elements
 
+   Memc& setNum    (Int num, Int keep); // set number of elements to 'num' keeping only up to 'keep' old elements,                                                                               this method may change the memory address of all elements
+   Memc& setNumZero(Int num, Int keep); // set number of elements to 'num' keeping only up to 'keep' old elements, memory of new elements will be first zeroed before calling their constructor, this method may change the memory address of all elements
+
    // values
    T1(VALUE) Int   find   (C VALUE &value                       )C {REPA(T)if(T[i]==value)return i; return -1;                                                 } // check if 'value' is present in container and return its index, -1 if not found
    T1(VALUE) Bool  has    (C VALUE &value                       )C {return find(value)>=0;                                                                     } // check if 'value' is present in container

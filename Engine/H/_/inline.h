@@ -323,10 +323,10 @@ T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::setNumZero(Int num, Int keep)
    if(num!=elms()) // resize memory
    {
       TYPE *temp=Alloc<TYPE>(num);
-      CopyFastN(temp     , data(),     keep); // copy kept elements
-      ZeroFastN(temp+keep,         num-keep); // zero new  elements
+      CopyFastN(temp, data(), keep); // copy kept elements
       Free(_data); _data=temp; _elms=num;
    }
+   ZeroFastN(data()+keep, elms()-keep); // zero new elements
    if(ClassFunc<TYPE>::HasNew())for(Int i=keep; i<elms(); i++)new(&T[i])TYPE; // create new elements
    return T;
 }
@@ -427,9 +427,11 @@ T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::remove    (  Int   i  ,        Bool keep_orde
 T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::removeNum (  Int   i  , Int n, Bool keep_order) {_Memc::removeNum (i, n, keep_order); return T;}
 T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::removeData(C TYPE *elm,        Bool keep_order) {_Memc::removeData(elm,  keep_order); return T;}
 
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNum    (Int num) {       _Memc::setNum    (num); return T;}
-T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNumZero(Int num) {       _Memc::setNumZero(num); return T;}
-T1(TYPE)  Int          Memc<TYPE>::addNum    (Int num) {return _Memc::addNum    (num);          }
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNum    (Int num          ) {       _Memc::setNum    (num      ); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNum    (Int num, Int keep) {       _Memc::setNum    (num, keep); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNumZero(Int num          ) {       _Memc::setNumZero(num      ); return T;}
+T1(TYPE)  Memc<TYPE>&  Memc<TYPE>::setNumZero(Int num, Int keep) {       _Memc::setNumZero(num, keep); return T;}
+T1(TYPE)  Int          Memc<TYPE>::addNum    (Int num          ) {return _Memc::addNum    (num      );          }
 
 T1(TYPE) T1(VALUE)  Bool  Memc<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _Memc::binarySearch(&value, index, (Int(*)(CPtr, CPtr))compare);}
 

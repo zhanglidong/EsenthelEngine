@@ -1710,7 +1710,7 @@ Bool CodeEditor::generateXcodeProj()
          if(value.name=="array")
          {
             XmlNode &dict=value.getNode("dict");
-            dict.nodes.clear().setNum(2);
+            dict.nodes.setNum(2, 0); // reset previous elements
             dict.nodes[0].setName("key"  ).data.add("CFBundleURLSchemes");
             dict.nodes[1].setName("array").nodes.New().setName("string").data.add(S+"fb"+cei().appFacebookAppID());
          }

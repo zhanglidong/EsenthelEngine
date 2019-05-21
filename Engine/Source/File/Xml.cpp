@@ -615,7 +615,7 @@ TextNode& TextData::getNode(C Str &name) {return GetNode(nodes, name);}
 TextNode::TextNode(C XmlNode &xml)
 {
    set(xml.name, S);
-   nodes.clear().setNum(xml.params.elms() + xml.nodes.elms() + (XML_NODE_DATA_SUB_NODE ? (xml.data.elms()!=0) : xml.data.elms()));
+   nodes.setNum(xml.params.elms() + xml.nodes.elms() + (XML_NODE_DATA_SUB_NODE ? (xml.data.elms()!=0) : xml.data.elms()), 0); // reset all previous elements
    Int n=0;
    FREPA(xml.params)SCAST(TextParam, nodes[n++])=xml.params[i];
    FREPA(xml.nodes )                 nodes[n++] =xml.nodes [i];

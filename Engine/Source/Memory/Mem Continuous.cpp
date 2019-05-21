@@ -79,10 +79,11 @@ Ptr _Memc::NewAt(Int i)
    Int old_elms=elms(); _elms++; // increase '_elms' before accessing new elements to avoid range assert
    if(elms()>_max_elms)
    {
+      if(!initialized())Exit("Attempting to create an object of zero size in 'Memc' container.\nThe container is not initialized or it is abstract and 'replaceClass' hasn't been called.");
      _max_elms=CeilPow2(elms());
       Ptr temp=Alloc(_max_elms*elmSize()); // copy everything to a new buffer
-      CopyFast((Byte*)temp                , T[0],           i *elmSize());
-      CopyFast((Byte*)temp+(i+1)*elmSize(), T[i], (old_elms-i)*elmSize());
+      CopyFast((Byte*)temp                , data(),           i *elmSize());
+      CopyFast((Byte*)temp+(i+1)*elmSize(), T[i]  , (old_elms-i)*elmSize());
       Free(_data); _data=temp;
    }else
    if(i<old_elms)

@@ -13,10 +13,10 @@ struct _Memc // Continuous Memory Based Container Base - Do not use this class, 
    Bool initialized()C {return _elm_size>0;}
 #endif
 
-   Ptr addr      (Int i)C {return InRange(i, _elms) ?       (Byte*)_data +        i *_elm_size : null;}
-   Ptr addrFirst (     )C {return            _elms  ?       (Byte*)_data                       : null;}
-   Ptr addrLast  (     )C {return            _elms  ?       (Byte*)_data + (_elms-1)*_elm_size : null;}
-   Ptr operator[](Int i)C {  RANGE_ASSERT(i, _elms); return (Byte*)_data +        i *_elm_size;}
+   Ptr addr      (Int i)C {return InRange(i, _elms) ?       _element(      i) : null;}
+   Ptr addrFirst (     )C {return            _elms  ?       _data             : null;}
+   Ptr addrLast  (     )C {return            _elms  ?       _element(_elms-1) : null;}
+   Ptr operator[](Int i)C {  RANGE_ASSERT(i, _elms); return _element(      i);}
    Ptr operator()(Int i);
    Ptr first     (     )C {return T[0        ];}
    Ptr last      (     )C {return T[elms()-1 ];}
@@ -32,7 +32,9 @@ struct _Memc // Continuous Memory Based Container Base - Do not use this class, 
    void removeData(CPtr elm,      Bool keep_order=false);
 
    void setNum    (Int num);
+   void setNum    (Int num, Int keep);
    void setNumZero(Int num);
+   void setNumZero(Int num, Int keep);
    Int  addNum    (Int num);
    Int  addNumZero(Int num);
    void reserve   (Int num);
@@ -70,6 +72,8 @@ private:
 
    explicit _Memc(Int elm_size, void (*_new)(Ptr elm), void (*_del)(Ptr elm));
       void _reset(Int elm_size, void (*_new)(Ptr elm), void (*_del)(Ptr elm));
+
+   inline Ptr _element(Int i)C {return (Byte*)_data + i*_elm_size;}
 
    NO_COPY_CONSTRUCTOR(_Memc);
 

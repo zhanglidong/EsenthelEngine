@@ -57,7 +57,7 @@ T1(const_mem_addr TYPE) struct Mems // Simple Continuous Memory Based Container
    Mems& setNumZero(Int num); // set number of elements to 'num', memory of new elements will be first zeroed before calling their constructor, this method changes the memory address of all elements
    Int   addNum    (Int num); // add 'num' elements, return index of first added element                                                      , this method changes the memory address of all elements
 
-   Mems& setNum    (Int num, Int keep); // set number of elements to 'num' keeping only up to 'keep' old elements,                                                                             , this method changes the memory address of all elements
+   Mems& setNum    (Int num, Int keep); // set number of elements to 'num' keeping only up to 'keep' old elements,                                                                               this method changes the memory address of all elements
    Mems& setNumZero(Int num, Int keep); // set number of elements to 'num' keeping only up to 'keep' old elements, memory of new elements will be first zeroed before calling their constructor, this method changes the memory address of all elements
 
    // values
