@@ -29,13 +29,17 @@ void _Memc::clear()
   _elms=0;
 }
 /******************************************************************************/
+inline void _Memc::_maxElms(UInt max_elms)
+{
+   if(!initialized())Exit("Attempting to create an object of zero size in 'Memc' container.\nThe container is not initialized or it is abstract and 'replaceClass' hasn't been called.");
+  _max_elms=CeilPow2(max_elms);
+}
 void _Memc::reserve(Int num)
 {
    if(Greater(num, maxElms())) // num>maxElms()
    {
-      if(!initialized())Exit("Attempting to create an object of zero size in 'Memc' container.\nThe container is not initialized or it is abstract and 'replaceClass' hasn't been called.");
-     _max_elms=CeilPow2(num);
-     _Realloc(_data, _max_elms*elmSize(), elms()*elmSize());
+     _maxElms(num);
+     _Realloc(_data, maxElms()*elmSize(), elms()*elmSize());
    }
 }
 void _Memc::setNum(Int num)
@@ -76,11 +80,8 @@ void _Memc::setNum(Int num, Int keep)
    if(_del)for(Int i=keep; i<elms(); i++)_del(T[i]); // delete unkept elements
    if(Greater(num, maxElms())) // resize memory, num>maxElms()
    {
-      if(!initialized())Exit("Attempting to create an object of zero size in 'Memc' container.\nThe container is not initialized or it is abstract and 'replaceClass' hasn't been called.");
-     _max_elms=CeilPow2(num);
-      Ptr temp=Alloc(_max_elms*elmSize()); // can't use Realloc, because we don't want to copy all old elements
-      CopyFast(temp, data(), keep*elmSize()); // copy kept elements
-      Free(_data); _data=temp;
+     _elms=keep; // set '_elms' before 'reserve' to copy only 'keep' elements
+      reserve(num);
    }
   _elms=num; // set '_elms' before accessing new elements to avoid range assert
    if(_new)for(Int i=keep; i<elms(); i++)_new(T[i]); // create new elements
@@ -92,11 +93,8 @@ void _Memc::setNumZero(Int num, Int keep)
    if(_del)for(Int i=keep; i<elms(); i++)_del(T[i]); // delete unkept elements
    if(Greater(num, maxElms())) // resize memory, num>maxElms()
    {
-      if(!initialized())Exit("Attempting to create an object of zero size in 'Memc' container.\nThe container is not initialized or it is abstract and 'replaceClass' hasn't been called.");
-     _max_elms=CeilPow2(num);
-      Ptr temp=Alloc(_max_elms*elmSize()); // can't use Realloc, because we don't want to copy all old elements
-      CopyFast(temp, data(), keep*elmSize()); // copy kept elements
-      Free(_data); _data=temp;
+     _elms=keep; // set '_elms' before 'reserve' to copy only 'keep' elements
+      reserve(num);
    }
   _elms=num; // set '_elms' before accessing new elements to avoid range assert
    ZeroFast(_element(keep), elmSize()*(elms()-keep)); // zero   new elements, have to use '_element' to avoid out of range errors
@@ -112,9 +110,8 @@ Ptr _Memc::NewAt(Int i)
    Int old_elms=elms(); _elms++; // increase '_elms' before accessing new elements to avoid range assert
    if(Greater(elms(), maxElms())) // elms()>maxElms()
    {
-      if(!initialized())Exit("Attempting to create an object of zero size in 'Memc' container.\nThe container is not initialized or it is abstract and 'replaceClass' hasn't been called.");
-     _max_elms=CeilPow2(elms());
-      Ptr temp=Alloc(_max_elms*elmSize()); // copy everything to a new buffer
+     _maxElms(elms());
+      Ptr temp=Alloc(maxElms()*elmSize()); // copy everything to a new buffer
       CopyFast((Byte*)temp                , data(),           i *elmSize());
       CopyFast((Byte*)temp+(i+1)*elmSize(), T[i]  , (old_elms-i)*elmSize());
       Free(_data); _data=temp;

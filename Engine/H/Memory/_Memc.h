@@ -72,6 +72,9 @@ private:
 
    explicit _Memc(Int elm_size, void (*_new)(Ptr elm), void (*_del)(Ptr elm));
       void _reset(Int elm_size, void (*_new)(Ptr elm), void (*_del)(Ptr elm));
+#if EE_PRIVATE
+   void _maxElms(UInt max_elms);
+#endif
 
    inline Ptr _element(Int i)C {return (Byte*)_data + i*_elm_size;}
 

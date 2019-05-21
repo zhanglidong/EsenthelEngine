@@ -589,11 +589,12 @@ template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::del()
 
 template<typename TYPE, Int size>  Int   Memt<TYPE, size>::elms    ()C {return _elms;}
 template<typename TYPE, Int size>  UInt  Memt<TYPE, size>::elmSize ()C {return SIZE(TYPE);}
-template<typename TYPE, Int size>  UInt  Memt<TYPE, size>::memUsage()C {return SIZE(T) + (_data ? elmSize()*_max_elms : 0);}
+template<typename TYPE, Int size>  UInt  Memt<TYPE, size>::memUsage()C {return SIZE(T) + (_data ? elmSize()*maxElms() : 0);}
 
 template<typename TYPE, Int size>  TYPE*  Memt<TYPE, size>::data      (     ) {                          return _data ? _data    :  (TYPE*)_temp    ;}
-template<typename TYPE, Int size>  TYPE&  Memt<TYPE, size>::operator[](Int i) {  RANGE_ASSERT(i, _elms); return _data ? _data[i] : ((TYPE*)_temp)[i];}
-template<typename TYPE, Int size>  TYPE*  Memt<TYPE, size>::addr      (Int i) {return InRange(i, _elms) ? &T[i] : null;}
+template<typename TYPE, Int size>  TYPE&  Memt<TYPE, size>::_element  (Int i) {                          return _data ? _data[i] : ((TYPE*)_temp)[i];}
+template<typename TYPE, Int size>  TYPE&  Memt<TYPE, size>::operator[](Int i) {  RANGE_ASSERT(i, _elms); return _element(i);}
+template<typename TYPE, Int size>  TYPE*  Memt<TYPE, size>::addr      (Int i) {return InRange(i, _elms)   ?    &_element(i) : null;}
 template<typename TYPE, Int size>  TYPE&  Memt<TYPE, size>::first     (     ) {return T[       0];}
 template<typename TYPE, Int size>  TYPE&  Memt<TYPE, size>::last      (     ) {return T[elms()-1];}
 
@@ -618,7 +619,7 @@ template<typename TYPE, Int size>  TYPE&  Memt<TYPE, size>::NewAt(Int i)
 {
    Clamp(i, 0, elms());
    Int old_elms=elms(); _elms++;
-   if(elms()>_max_elms)
+   if(Greater(elms(), maxElms())) // elms()>maxElms()
    {
      _max_elms=CeilPow2(elms());
       Ptr next=Alloc(_max_elms*elmSize());
@@ -660,7 +661,7 @@ template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::removeDa
 
 template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::reserve(Int num)
 {
-   if(num>_max_elms)
+   if(Greater(num, maxElms())) // num>maxElms()
    {
      _max_elms=CeilPow2(num);
       Ptr next=Alloc(_max_elms*elmSize());
