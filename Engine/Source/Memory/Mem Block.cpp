@@ -77,7 +77,7 @@ void _Memb::setNumZero(Int num)
    {
       reserve(num);
       Int old_elms=elms(); _elms=num;
-      for(Int i=old_elms; i<elms(); i++){Ptr elm=T[i]; Zero(elm, elmSize()); if(_new)_new(elm);}
+      for(Int i=old_elms; i<elms(); i++){Ptr elm=T[i]; ZeroFast(elm, elmSize()); if(_new)_new(elm);}
    }else
    if(num<elms()) // remove elements
    {

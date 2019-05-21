@@ -47,7 +47,7 @@ IndexPtr& IndexPtr::create(Int groups)
 }
 Index& Index::reset()
 {
-   ZeroN(group, groups);
+   ZeroFastN(group, groups);
    if(!elms_max)
    {
       Free(elm_group);
@@ -58,8 +58,8 @@ Index& Index::reset()
 }
 IndexPtr& IndexPtr::reset()
 {
-   ZeroN(group, groups);
-   Free (groups_elm);
+   ZeroFastN(group, groups);
+   Free(groups_elm);
    elms=group_elms_max=0;
    return T;
 }

@@ -1350,7 +1350,7 @@ AES_ATTR Bool AES::create(CPtr key_data, Int key_size)
             rk+=key_size/4;
          }
 
-         Copy(_decrypt_key, _encrypt_key);
+         CopyFast(_decrypt_key, _encrypt_key);
          rk=_decrypt_key;
          Swap(*(__m128i*)(rk), *(__m128i*)(rk+4*_rounds));
 

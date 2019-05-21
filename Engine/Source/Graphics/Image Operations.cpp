@@ -86,14 +86,14 @@ Bool Image::injectMipMap(C Image &src, Int mip_map, DIR_ENUM cube_face, FILTER_T
 /******************************************************************************/
 Image& Image::clear()
 {
-   if(soft())Zero(_data_all, memUsage());else
+   if(soft())ZeroFast(_data_all, memUsage());else
    {
       Int faces=T.faces();
       REPD(m, mipMaps())
       REPD(f, faces)
          if(lock(LOCK_WRITE, m, DIR_ENUM(f)))
       {
-         Zero(data(), ld()*pitch2());
+         ZeroFast(data(), ld()*pitch2());
          unlock();
       }
    }

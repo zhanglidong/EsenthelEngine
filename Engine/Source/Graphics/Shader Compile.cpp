@@ -2009,8 +2009,8 @@ Bool ShaderFile::load(C Str &name)
                            Alloc(sp._data, sp._gpu_data_size);                             // data
                            Alloc(sp._changed                );
                                  sp._constant_count=sp.fullConstantCount();
-                           if(f.getBool())f.get(sp._data, sp._gpu_data_size); // load default value
-                           else           Zero (sp._data, sp._gpu_data_size); // zero default value
+                           if(f.getBool())f.get   (sp._data, sp._gpu_data_size); // load default value
+                           else           ZeroFast(sp._data, sp._gpu_data_size); // zero default value
                            sp.optimize();
                         }else // verify if it's identical to previously created
                         {
@@ -2136,8 +2136,8 @@ Bool ShaderFile::load(C Str &name)
                            LoadTranslation(sp._full_translation, f, sp._elements);         // translation
                            Alloc(sp._data, sp._gpu_data_size);                             // data
                            Alloc(sp._changed                );
-                           if(f.getBool())f.get(sp._data, sp._gpu_data_size);              // load default value
-                           else           Zero (sp._data, sp._gpu_data_size);              // zero default value
+                           if(f.getBool())f.get   (sp._data, sp._gpu_data_size);           // load default value
+                           else           ZeroFast(sp._data, sp._gpu_data_size);           // zero default value
                         #if VARIABLE_MAX_MATRIX
                            when enabling VARIABLE_MAX_MATRIX then shaders need to be recompiled with "MAX_MATRIX 256" (for CG and GLSL) because we're only reducing in 'LimitTranslation' and when replacing shader codes
                            if(D.meshBoneSplit())
