@@ -230,8 +230,8 @@ T1(TYPE)  TYPE&  Mems<TYPE>::NewAt(Int i)
 {
    Clamp(i, 0, elms());
    TYPE *temp=Alloc<TYPE>(elms()+1);
-   CopyN(temp    , data()  ,        i);
-   CopyN(temp+i+1, data()+i, elms()-i);
+   CopyFastN(temp    , data()  ,        i);
+   CopyFastN(temp+i+1, data()+i, elms()-i);
    Free(_data); _data=temp; _elms++;
    TYPE &elm=T[i]; new(&elm)TYPE; return elm;
 }
@@ -620,13 +620,13 @@ template<typename TYPE, Int size>  TYPE&  Memt<TYPE, size>::NewAt(Int i)
    {
      _max_elms=CeilPow2(elms());
       Ptr next=Alloc(_max_elms*elmSize());
-      Copy((Byte*)next                , &T[0],           i *elmSize());
-      Copy((Byte*)next+(i+1)*elmSize(), &T[i], (old_elms-i)*elmSize());
+      CopyFast((Byte*)next                , &T[0],           i *elmSize());
+      CopyFast((Byte*)next+(i+1)*elmSize(), &T[i], (old_elms-i)*elmSize());
       Free(_data); _data=(TYPE*)next;
    }else
    if(i<old_elms)
    {
-      Copy(&T[i+1], &T[i], (old_elms-i)*elmSize());
+      MoveFast(&T[i+1], &T[i], (old_elms-i)*elmSize());
    }
    TYPE &elm=T[i]; new(&elm)TYPE; return elm;
 }
