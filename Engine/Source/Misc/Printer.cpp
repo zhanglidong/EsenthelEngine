@@ -242,9 +242,8 @@ Bool ReceiptPrinter::operator+=(C Image &img)
                  w       =DivCeil8(src->lw());
       const Bool multiple=(src->lh()>max_h);
       data.reserveAdd(splits  *(4+4) // 8 bytes per split (4 header + 4 img.size)
-                    + multiple*(3*2) // setting and resetting line heights
-                    + src->lh()*w    // image data
-                      );
+                     +multiple*(3*2) // setting and resetting line heights
+                     +src->lh()*w ); // image data
       if(multiple)lineHeight(0); // have to set zero line height to avoid any padding between line chunks
       for(Int y_ofs=0; y_ofs<src->lh(); y_ofs+=max_h)
       {
@@ -267,9 +266,8 @@ Bool ReceiptPrinter::operator+=(C Image &img)
       }
       if(multiple)lineHeight();
    #else // this mode needs high DPI with 24 lines to achieve highest possible DPI output matching method above, however it results in padding to 24 lines, so don't use it
-      data.reserveAdd((3*2) // setting and resetting line heights
-                    + DivCeil(src->lh(), 24)*(src->lw()*3 + 3+2+1) // image data + 3 header + 2 img.w() + 1 new line
-                      );
+      data.reserveAdd((3*2)                                          // setting and resetting line heights
+                     +DivCeil(src->lh(), 24)*(src->lw()*3 + 3+2+1)); // image data + 3 header + 2 img.w() + 1 new line
       lineHeight(0); // have to set zero line height to avoid any padding between line chunks
       for(Int y=0; y<src->lh(); y+=24)
       {
@@ -387,10 +385,10 @@ Bool LabelPrinter::end(C Str &document_name)
 /******************************************************************************/
 void LabelPrinter::pos(C VecI2 &pos)
 {
-   data+="^FO";
-   data+=pos.x;
-   data+=',';
-   data+=pos.y;
+   data+="^FO"; // 3
+   data+=pos.x; // 5
+   data+=','  ; // 1
+   data+=pos.y; // 5
 }
 void LabelPrinter::text(C VecI2 &pos, C Str &text)
 {
@@ -406,12 +404,15 @@ Bool LabelPrinter::image(C VecI2 &pos, C Image &img)
    Image tmp; C Image *src=&img; if(img.compressed())if(img.copyTry(tmp, -1, -1, -1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1))src=&tmp;else return false;
    if(src->lockRead())
    {
+      const Int w=DivCeil8(src->lw()), h=src->lh();
+      data.reserveAdd(3+5+1+5       // pos
+                     +5+5+1+5+1+5+1 // header
+                     +w*h        ); // image data
       T.pos(pos);
-      Int w=DivCeil8(src->lw()), h=src->lh();
-      data+="^GFB,"; // binary
-      data+=w*h; data+=',';
-      data+=w*h; data+=',';
-      data+=w  ; data+=','; // width
+      data+="^GFB,"; // binary, 5
+      data+=w*h; data+=','; // 5+1
+      data+=w*h; data+=','; // 5+1
+      data+=w  ; data+=','; // width, 5+1
       FREPD(y, h)
       for(Int x=0; x<src->lw(); )
       {
@@ -429,7 +430,8 @@ Bool LabelPrinter::image(C VecI2 &pos, C Image &img)
 }
 void LabelPrinter::barcodeHeight(Byte height)
 {
-   data+=S8+"^BY2,3.0,"+height;
+   data+="^BY2,3.0,";
+   data+=height;
 }
 void LabelPrinter::barcode39(C VecI2 &pos, C Str8 &code)
 {
