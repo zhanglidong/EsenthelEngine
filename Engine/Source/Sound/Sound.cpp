@@ -464,7 +464,7 @@ Bool _Sound::setBuffer(Bool buffer, Int thread_index) // this manages locking on
    if(size<=SIZE(temp))buffer_data=temp;else // if we can fit all data in stack then use it
    {
       Mems<Byte> &buffer=SoundThreadBuffer[thread_index];
-      if(size>buffer.elms())buffer.clear().setNum(size); // 'clear' first to avoid unnecessary copy of old elements
+      if(size>buffer.elms())buffer.setNum(size, 0); // set bigger size without copying old data
       buffer_data=buffer.data();
    }
    setBuffer(buffer_data, size);

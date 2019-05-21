@@ -529,7 +529,8 @@ _List& _List::setColumns(C ListColumn *column, Int columns, Bool columns_hidden)
 {
    T. draw_column   =-1;
    T._columns_hidden=columns_hidden;
-   T._columns.clear().setNum(columns); FREPAO(T._columns).create(column[i], T);
+   T._columns.setNum(columns, 0); // reset previous data
+   FREPAO(T._columns).create(column[i], T);
    parentClientRectChanged(null, null);
    return T;
 }

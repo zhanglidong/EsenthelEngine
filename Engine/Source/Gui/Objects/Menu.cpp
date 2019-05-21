@@ -314,7 +314,8 @@ Menu& Menu::setData(C Node<MenuElm> &node)
    if(!ts.font() && skin)ts.font(skin->font()); // adjust font in case it's empty and the custom skin has a different font than the 'Gui.skin'
 #endif
 
-  _elms.clear().setNum(node.children.elms()); Memt<Bool> visible; visible.setNum(_elms.elms());
+  _elms.setNum(node.children.elms(), 0); // reset previous data
+   Memt<Bool> visible; visible.setNum(_elms.elms());
    FREPA(_elms)
    {
     C Node<MenuElm> &child= node.children[i];

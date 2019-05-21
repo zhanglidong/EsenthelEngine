@@ -1256,7 +1256,7 @@ Bool XmlData::loadAndroidBinary(File &f)
 
                Mems<UInt> string_offsets; string_offsets.setNum(string_count); string_offsets.loadRawData(f);
 
-               strings.clear().setNum(string_count);
+               strings.setNum(string_count, 0); // reset previous data
                FREPA(strings)
                {
                   if(!f.pos(strings_start+string_offsets[i]))return false;
@@ -1285,7 +1285,7 @@ Bool XmlData::loadAndroidBinary(File &f)
 
           /*case 0x0180: // resource map
             {
-               attr_names_res_ids.clear().setNum((header.size-SIZE(header))/4).loadRawData(f);
+               attr_names_res_ids.setNum((header.size-SIZE(header))/4, 0).loadRawData(f); // reset previous data
             }break;*/
 
             case 0x0100: // namespace start
