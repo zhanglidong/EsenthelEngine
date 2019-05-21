@@ -31,7 +31,7 @@ void _Memc::clear()
 /******************************************************************************/
 void _Memc::reserve(Int num)
 {
-   if(num>_max_elms)
+   if(Greater(num, maxElms())) // num>maxElms()
    {
       if(!initialized())Exit("Attempting to create an object of zero size in 'Memc' container.\nThe container is not initialized or it is abstract and 'replaceClass' hasn't been called.");
      _max_elms=CeilPow2(num);
@@ -74,7 +74,7 @@ void _Memc::setNum(Int num, Int keep)
    MAX(num, 0);
    Clamp(keep, 0, Min(elms(), num));
    if(_del)for(Int i=keep; i<elms(); i++)_del(T[i]); // delete unkept elements
-   if(num>_max_elms) // resize memory
+   if(Greater(num, maxElms())) // resize memory, num>maxElms()
    {
       if(!initialized())Exit("Attempting to create an object of zero size in 'Memc' container.\nThe container is not initialized or it is abstract and 'replaceClass' hasn't been called.");
      _max_elms=CeilPow2(num);
@@ -90,7 +90,7 @@ void _Memc::setNumZero(Int num, Int keep)
    MAX(num, 0);
    Clamp(keep, 0, Min(elms(), num));
    if(_del)for(Int i=keep; i<elms(); i++)_del(T[i]); // delete unkept elements
-   if(num>_max_elms) // resize memory
+   if(Greater(num, maxElms())) // resize memory, num>maxElms()
    {
       if(!initialized())Exit("Attempting to create an object of zero size in 'Memc' container.\nThe container is not initialized or it is abstract and 'replaceClass' hasn't been called.");
      _max_elms=CeilPow2(num);
@@ -99,7 +99,7 @@ void _Memc::setNumZero(Int num, Int keep)
       Free(_data); _data=temp;
    }
   _elms=num; // set '_elms' before accessing new elements to avoid range assert
-   ZeroFast(_element(keep), elmSize()*(elms()-keep)); // zero   new elements
+   ZeroFast(_element(keep), elmSize()*(elms()-keep)); // zero   new elements, have to use '_element' to avoid out of range errors
    if(_new)for(Int i=keep; i<elms(); i++)_new(T[i]);  // create new elements
 }
 /******************************************************************************/
@@ -110,7 +110,7 @@ Ptr _Memc::NewAt(Int i)
 {
    Clamp(i, 0, elms());
    Int old_elms=elms(); _elms++; // increase '_elms' before accessing new elements to avoid range assert
-   if(elms()>_max_elms)
+   if(Greater(elms(), maxElms())) // elms()>maxElms()
    {
       if(!initialized())Exit("Attempting to create an object of zero size in 'Memc' container.\nThe container is not initialized or it is abstract and 'replaceClass' hasn't been called.");
      _max_elms=CeilPow2(elms());
