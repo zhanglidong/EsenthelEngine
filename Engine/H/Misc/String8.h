@@ -25,7 +25,8 @@ struct Str8 // Text String (8-bit per character)
    Str8& removeLast(         Int   num=1 ); // remove last 'num' characters in the string
    Str8& trim      (Int pos, Int   length); // trim string by removing start and end, to keep only the part starting at 'pos' of 'length' length
    Str8& clip      (Int length           ); // clip current length to 'length'
-   Str8& reserve   (Int length           ); // allocate enough space for the string to handle 'length' characters, if the parameter is smaller than current string length then no operation is performed
+   Str8& reserve   (Int length           ); // allocate enough space for the string to handle 'length'            characters, if the parameter is smaller than current string length then no operation is performed
+   Str8& reserveAdd(Int length           ); // allocate enough space for the string to handle 'length' additional characters
    Str8& reverse   (                     ); // reverse the order of characters
    Str8& replace   (Char8 src, Char8 dest); // replace all 'src' characters to 'dest'
    Str8& setChar   (Int   i  , Char8 c   ); // replace i-th character with 'c' (if 'i' is at the end of the string, then 'c' will be appended, if 'i' is after the end, then nothing will happen)

@@ -127,11 +127,11 @@ Bool ReceiptPrinter::end(C Str &document_name)
 /******************************************************************************/
 void ReceiptPrinter::lineHeight(Byte height)
 {
-   data+="\x1B"; data+='3'; data.alwaysAppend(height);
+   data+='\x1B'; data+='3'; data.alwaysAppend(height);
 }
 void ReceiptPrinter::lineHeight()
 {
-   data+="\x1B"; data+='2'; // default
+   data+='\x1B'; data+='2'; // default
 }
 /******************************************************************************/
 void ReceiptPrinter::codePage(Byte cp)
@@ -237,10 +237,15 @@ Bool ReceiptPrinter::operator+=(C Image &img)
    if(src->lockRead())
    {
    #if 1
-      const int  max_h=2048; // can print up to 2048 lines in one call, bigger values will cause garbage
+      const Int  max_h   =2048, // can print up to 2048 lines in one call, bigger values will cause garbage
+                 splits  =DivCeil (src->lh(), max_h),
+                 w       =DivCeil8(src->lw());
       const Bool multiple=(src->lh()>max_h);
+      data.reserveAdd(splits  *(4+4) // 8 bytes per split (4 header + 4 img.size)
+                    + multiple*(3*2) // setting and resetting line heights
+                    + src->lh()*w    // image data
+                      );
       if(multiple)lineHeight(0); // have to set zero line height to avoid any padding between line chunks
-      Int w=DivCeil8(src->lw());
       for(Int y_ofs=0; y_ofs<src->lh(); y_ofs+=max_h)
       {
          Int h=Min(src->lh()-y_ofs, max_h), y_end=y_ofs+h;
@@ -262,6 +267,9 @@ Bool ReceiptPrinter::operator+=(C Image &img)
       }
       if(multiple)lineHeight();
    #else // this mode needs high DPI with 24 lines to achieve highest possible DPI output matching method above, however it results in padding to 24 lines, so don't use it
+      data.reserveAdd((3*2) // setting and resetting line heights
+                    + DivCeil(src->lh(), 24)*(src->lw()*3 + 3+2+1) // image data + 3 header + 2 img.w() + 1 new line
+                      );
       lineHeight(0); // have to set zero line height to avoid any padding between line chunks
       for(Int y=0; y<src->lh(); y+=24)
       {

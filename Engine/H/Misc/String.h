@@ -47,7 +47,8 @@ struct Str // Text String (16-bit per character)
    Str& removeLast(         Int  num=1); // remove last 'num' characters in the string
    Str& trim      (Int pos, Int length); // trim string by removing start and end, to keep only the part starting at 'pos' of 'length' length
    Str& clip      (Int length         ); // clip current length to 'length'
-   Str& reserve   (Int length         ); // allocate enough space for the string to handle 'length' characters, if the parameter is smaller than current string length then no operation is performed
+   Str& reserve   (Int length         ); // allocate enough space for the string to handle 'length'            characters, if the parameter is smaller than current string length then no operation is performed
+   Str& reserveAdd(Int length         ); // allocate enough space for the string to handle 'length' additional characters
    Str& reverse   (                   ); // reverse the order of characters
    Str& replace   (Char src, Char dest); // replace all 'src' characters to 'dest'
    Str& setChar   (Int  i  , Char c   ); // replace i-th character with 'c' (if 'i' is at the end of the string, then 'c' will be appended, if 'i' is after the end, then nothing will happen)

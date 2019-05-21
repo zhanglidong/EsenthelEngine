@@ -2973,7 +2973,8 @@ Str& Str::clip(Int length)
 Str8& Str8::trim(Int pos, Int length) {clip(pos+length).remove(0, pos); return T;}
 Str & Str ::trim(Int pos, Int length) {clip(pos+length).remove(0, pos); return T;}
 /******************************************************************************/
-Str8& Str8::reserve(Int length)
+Str8& Str8::reserveAdd(Int length) {return reserve(T.length()+length);}
+Str8& Str8::reserve   (Int length)
 {
    if(length>0)
    {
@@ -2988,7 +2989,8 @@ Str8& Str8::reserve(Int length)
    }
    return T;
 }
-Str& Str::reserve(Int length)
+Str& Str::reserveAdd(Int length) {return reserve(T.length()+length);}
+Str& Str::reserve   (Int length)
 {
    if(length>0)
    {
