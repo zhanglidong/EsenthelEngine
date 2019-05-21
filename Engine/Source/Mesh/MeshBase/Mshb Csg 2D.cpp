@@ -483,7 +483,7 @@ static void CreateMesh(MeshBase &mshb, Memc<MC_EDGE> &medge, UInt sel)
       mshb.edge.flag(n)=flag;
       n++;
    }
-   is.clear().setNumZero(Csg2D.point.elms());
+   is.setNumZero(Csg2D.point.elms(), 0); // reset previous elements
    FREPA(mshb.edge)
    {
       Int *p=mshb.edge.ind(i).c;

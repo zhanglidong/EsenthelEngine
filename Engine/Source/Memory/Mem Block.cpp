@@ -43,10 +43,10 @@ void _Memb::reset() // remove all elements and leave the first block if it exist
 /******************************************************************************/
 void _Memb::reserve(Int num)
 {
-   if(num>0) // safety for Int/UInt mismatch below
+   if(num>0) // safety for Int/UInt mismatch
    {
       Int new_blocks=(num+blockElms()-1)>>_shr;
-      if( new_blocks>_blocks)
+      if(Greater(new_blocks, _blocks)) // new_blocks>_blocks
       {
          if(!elmSize())Exit("Attempting to create an object of zero size in 'Memb' container.\nThe container is not initialized or it is abstract and 'replaceClass' hasn't been called.");
                                       new_blocks=CeilPow2(new_blocks);
