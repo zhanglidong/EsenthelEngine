@@ -70,7 +70,6 @@ public:
     //
     // Hash32: hash a single message in one call, produce 32-bit output
     //
-   #pragma runtime_checks("", off) // ESENTHEL CHANGED
     static uint32 Hash32(
         const void *message,  // message to hash
         size_t length,        // length of message in bytes
@@ -80,7 +79,6 @@ public:
         Hash128(message, length, &hash1, &hash2);
         return (uint32)hash1;
     }
-   #pragma runtime_checks("", restore)
 
     //
     // Init: initialize the context of a SpookyHash

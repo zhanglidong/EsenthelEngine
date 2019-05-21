@@ -9,7 +9,9 @@
 #include "../../../ThirdPartyLibs/LZ4/xxhash.h"
 
 #define SpookyHash _SpookyHash
+#pragma runtime_checks("", off)
 #include "../../../ThirdPartyLibs/Spooky Hash/SpookyV2.cpp"
+#pragma runtime_checks("", restore)
 #undef SpookyHash
 
 #define MetroHash64  _MetroHash64
