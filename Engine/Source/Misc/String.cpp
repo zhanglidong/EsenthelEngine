@@ -2981,10 +2981,8 @@ Str8& Str8::reserve   (Int length)
       Int size=length+1; // 1 extra for '\0'
       if( size>_d.elms()) // increase only
       {
-         Bool empty=(_d.elms()<=0);
-         if(!T.length())_d.clear(); // if string is empty then clear so 'setNum' doesn't need to copy old contents
-        _d.setNum(size);
-         if(empty)_d[0]='\0'; // we need to initialize the first character as zero if it was empty before
+        _d.setNum(size, T.length()); // keep only characters that we have, instead of entire container
+        _d[T.length()]='\0'; // have to set NUL, because we don't copy last character above, as it may not always exist (if container was empty)
       }
    }
    return T;
@@ -2997,10 +2995,8 @@ Str& Str::reserve   (Int length)
       Int size=length+1; // 1 extra for '\0'
       if( size>_d.elms()) // increase only
       {
-         Bool empty=(_d.elms()<=0);
-         if(!T.length())_d.clear(); // if string is empty then clear so 'setNum' doesn't need to copy old contents
-        _d.setNum(size);
-         if(empty)_d[0]='\0'; // we need to initialize the first character as zero if it was empty before
+        _d.setNum(size, T.length()); // keep only characters that we have, instead of entire container
+        _d[T.length()]='\0'; // have to set NUL, because we don't copy last character above, as it may not always exist (if container was empty)
       }
    }
    return T;
