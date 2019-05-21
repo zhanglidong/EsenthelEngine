@@ -244,12 +244,12 @@ const Int    file_faces=(file_cube ? 6 : 1);
                         FREPD(y, file_blocks_y) // read each line separately
                         {
                            f.getFast(data, file_pitch);
-                           Zero(data+file_pitch, zero_pitch); // zero remaining data to avoid garbage
+                           if(zero_pitch>0)ZeroFast(data+file_pitch, zero_pitch); // zero remaining data to avoid garbage
                            data+=image_pitch;
                         }
-                        Zero(data, zero); data+=zero; // zero remaining data to avoid garbage
+                        if(zero>0)ZeroFast(data, zero); data+=zero; // zero remaining data to avoid garbage
                      }
-                     Zero(data, zero2); data+=zero2; // zero remaining data to avoid garbage
+                     if(zero2>0)ZeroFast(data, zero2); data+=zero2; // zero remaining data to avoid garbage
                   }
                }
             }else
@@ -297,12 +297,12 @@ const Int    file_faces=(file_cube ? 6 : 1);
                         FREPD(y, read_blocks_y) // read each line separately
                         {
                            f.getFast(dest_data, read_pitch); f.skip(skip_pitch);
-                           Zero(dest_data+read_pitch, zero_pitch); // zero remaining data to avoid garbage
+                           if(zero_pitch>0)ZeroFast(dest_data+read_pitch, zero_pitch); // zero remaining data to avoid garbage
                            dest_data+=dest->pitch();
                         }
                      }
                      f.skip(skip);
-                     Zero(dest_data, zero); // zero remaining data to avoid garbage
+                     if(zero>0)ZeroFast(dest_data, zero); // zero remaining data to avoid garbage
                      dest_data+=zero;
                   }
                   dest->unlock();

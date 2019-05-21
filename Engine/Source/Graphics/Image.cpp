@@ -2589,12 +2589,12 @@ Bool Image::setFrom(CPtr data, Int data_pitch, Int mip_map, DIR_ENUM cube_face)
             }else
             FREPD(y, valid_blocks_y) // copy each line separately
             {
-               CopyFast(dest_data, data, copy_pitch);
-               Zero    (dest_data+copy_pitch, zero_pitch); // zero remaining data to avoid garbage
+                               CopyFast(dest_data, data, copy_pitch);
+               if(zero_pitch>0)ZeroFast(dest_data+copy_pitch, zero_pitch); // zero remaining data to avoid garbage
                dest_data+=               T.pitch();
                     data =(Byte*)data+data_pitch;
             }
-            Zero(dest_data, zero); // zero remaining data to avoid garbage
+            if(zero>0)ZeroFast(dest_data, zero); // zero remaining data to avoid garbage
             dest_data+=zero;
          }
          unlock();
