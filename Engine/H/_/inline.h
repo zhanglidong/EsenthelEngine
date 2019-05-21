@@ -266,16 +266,16 @@ T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::setNum(Int num)
    {
       Int old_elms=elms();
       TYPE *temp=Alloc<TYPE>(num);
-      CopyN(temp, data(), elms());
-      Free (_data); _data=temp; _elms=num;
+      CopyFastN(temp, data(), elms());
+      Free(_data); _data=temp; _elms=num;
       if(ClassFunc<TYPE>::HasNew())for(Int i=old_elms; i<elms(); i++)new(&T[i])TYPE;
    }else
    if(num<elms()) // remove elements
    {
       if(ClassFunc<TYPE>::HasDel())for(Int i=num; i<elms(); i++)T[i].~TYPE();
       TYPE *temp=Alloc<TYPE>(num);
-      CopyN(temp, data(), num);
-      Free (_data); _data=temp; _elms=num;
+      CopyFastN(temp, data(), num);
+      Free(_data); _data=temp; _elms=num;
    }
    return T;
 }
@@ -286,20 +286,51 @@ T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::setNumZero(Int num)
    {
       Int old_elms=elms();
       TYPE *temp=Alloc<TYPE>(num);
-      CopyN(temp       , data(),     elms());
-      ZeroN(temp+elms(),         num-elms());
-      Free (_data); _data=temp; _elms=num;
+      CopyFastN(temp       , data(),     elms()); // copy old elements
+      ZeroFastN(temp+elms(),         num-elms()); // zero new elements
+      Free(_data); _data=temp; _elms=num;
       if(ClassFunc<TYPE>::HasNew())for(Int i=old_elms; i<elms(); i++)new(&T[i])TYPE;
    }else
    if(num<elms()) // remove elements
    {
       if(ClassFunc<TYPE>::HasDel())for(Int i=num; i<elms(); i++)T[i].~TYPE();
       TYPE *temp=Alloc<TYPE>(num);
-      CopyN(temp, data(), num);
-      Free (_data); _data=temp; _elms=num;
+      CopyFastN(temp, data(), num);
+      Free(_data); _data=temp; _elms=num;
    }
    return T;
 }
+
+T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::setNum(Int num, Int keep)
+{
+   MAX(num, 0);
+   Clamp(keep, 0, Min(elms(), num));
+   if(ClassFunc<TYPE>::HasDel())for(Int i=keep; i<elms(); i++)T[i].~TYPE(); // delete unkept elements
+   if(num!=elms()) // resize memory
+   {
+      TYPE *temp=Alloc<TYPE>(num);
+      CopyFastN(temp, data(), keep); // copy kept elements
+      Free(_data); _data=temp; _elms=num;
+   }
+   if(ClassFunc<TYPE>::HasNew())for(Int i=keep; i<elms(); i++)new(&T[i])TYPE; // create new elements
+   return T;
+}
+T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::setNumZero(Int num, Int keep)
+{
+   MAX(num, 0);
+   Clamp(keep, 0, Min(elms(), num));
+   if(ClassFunc<TYPE>::HasDel())for(Int i=keep; i<elms(); i++)T[i].~TYPE(); // delete unkept elements
+   if(num!=elms()) // resize memory
+   {
+      TYPE *temp=Alloc<TYPE>(num);
+      CopyFastN(temp     , data(),     keep); // copy kept elements
+      ZeroFastN(temp+keep,         num-keep); // zero new  elements
+      Free(_data); _data=temp; _elms=num;
+   }
+   if(ClassFunc<TYPE>::HasNew())for(Int i=keep; i<elms(); i++)new(&T[i])TYPE; // create new elements
+   return T;
+}
+
 T1(TYPE)  Int  Mems<TYPE>::addNum(Int num) {Int index=elms(); setNum(elms()+num); return index;}
 
 T1(TYPE) T1(VALUE)  Bool  Mems<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _BinarySearch(data(), elms(), elmSize(), &value, index, (Int(*)(CPtr, CPtr))compare);}
