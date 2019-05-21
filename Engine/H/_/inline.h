@@ -331,6 +331,18 @@ T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::setNumZero(Int num, Int keep)
    return T;
 }
 
+#if EE_PRIVATE
+T1(TYPE)  void  Mems<TYPE>::minNumDiscard(Int num)
+{
+   if(num>elms())
+   {
+      if(ClassFunc<TYPE>::HasDel())REPA(T)T[i].~TYPE(); // delete all elements
+      Alloc(Free(_data), _elms=num);
+      if(ClassFunc<TYPE>::HasNew())FREPA(T)new(&T[i])TYPE; // create new elements
+   }
+}
+#endif
+
 T1(TYPE)  Int  Mems<TYPE>::addNum(Int num) {Int index=elms(); setNum(elms()+num); return index;}
 
 T1(TYPE) T1(VALUE)  Bool  Mems<TYPE>::binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b))C {return _BinarySearch(data(), elms(), elmSize(), &value, index, (Int(*)(CPtr, CPtr))compare);}

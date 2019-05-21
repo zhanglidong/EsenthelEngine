@@ -99,6 +99,7 @@ T1(const_mem_addr TYPE) struct Mems // Simple Continuous Memory Based Container
    Mems& copyFrom(C TYPE *src ) ; // copy raw memory of all elements from 'src'
    void   setFrom(  TYPE* &data, Int elms); // this takes ownership of 'data' and sets that pointer to null
    void   setTemp(  TYPE*  data, Int elms); // this is not safe !!
+   void   minNumDiscard(Int num); // set at least 'num' elements, if reallocating then discard previous elements
 #endif
 
    // io
