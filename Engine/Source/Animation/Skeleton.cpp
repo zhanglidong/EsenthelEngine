@@ -1121,8 +1121,8 @@ Bool Skeleton::load(File &f)
 
       case 4:
       {
-         bones.clear().setNum(f.decUIntV());
-         slots.        setNum(f.decUIntV());
+         bones.setNum(f.decUIntV(), 0); // reset because not all params are set
+         slots.setNum(f.decUIntV());
          FREPA(bones){SkelBone &b=bones[i]; f>>SCAST(OrientP, b)>>b.name>>b.parent>>b.children_offset>>b.children_num>>b.flag>>b.length>>b.width>>b_frac>>b.offset>>b.shape;}
          FREPA(slots){SkelSlot &s=slots[i]; f>>SCAST(OrientP, s)>>s.name>>s.bone; s.bone1=s.bone; f.skip(3);}
          if(f.ok())
@@ -1134,8 +1134,8 @@ Bool Skeleton::load(File &f)
 
       case 3:
       {
-         bones.clear().setNum(f.decUIntV());
-         slots.        setNum(f.decUIntV());
+         bones.setNum(f.decUIntV(), 0); // reset because not all params are set
+         slots.setNum(f.decUIntV());
          FREPA(bones){SkelBone &b=bones[i]; f>>SCAST(OrientP, b)>>b.name>>b.parent>>b.flag; f.skip(2); f>>b.length>>b.width>>b_frac>>b.offset>>b.shape;}
          FREPA(slots){SkelSlot &s=slots[i]; f>>SCAST(OrientP, s)>>s.name>>s.bone; s.bone1=s.bone; f.skip(3);}
          if(f.ok())
@@ -1147,8 +1147,8 @@ Bool Skeleton::load(File &f)
 
       case 2:
       {
-         bones.clear().setNum(f.getUShort());
-         slots.        setNum(f.getUShort());
+         bones.setNum(f.getUShort(), 0); // reset because not all params are set
+         slots.setNum(f.getUShort());
          FREPA(bones){SkelBone &b=bones[i]; f>>SCAST(OrientP, b)>>b.name>>b.parent>>b.flag; f.skip(2); f>>b.length>>b.width>>b_frac;}
          FREPA(slots){SkelSlot &s=slots[i]; f>>SCAST(OrientP, s)>>s.name>>s.bone; s.bone1=s.bone; f.skip(3);}
          if(f.ok())
@@ -1160,8 +1160,8 @@ Bool Skeleton::load(File &f)
 
       case 1:
       {
-         bones.clear().setNum(f.getUShort());
-         slots.clear().setNum(f.getUShort());
+         bones.setNum(f.getUShort(), 0); // reset because not all params are set
+         slots.setNum(f.getUShort(), 0); // reset because not all params are set
          f.skip(2); // old body bones
          FREPA(bones){SkelBone &b=bones[i]; f>>SCAST(OrientP, b); f.get(b.name, 16); f>>b.parent>>b.flag; f.skip(2); f>>b.length>>b.width>>b_frac;}
          FREPA(slots){SkelSlot &s=slots[i]; f>>SCAST(OrientP, s); f.get(s.name, 16); f>>s.bone; s.bone1=s.bone; f.skip(3);                        }
@@ -1175,8 +1175,8 @@ Bool Skeleton::load(File &f)
       case 0:
       {
          f.skip(1); // old version byte
-         bones.clear().setNum(f.getUShort());
-         slots.clear().setNum(f.getUShort());
+         bones.setNum(f.getUShort(), 0); // reset because not all params are set
+         slots.setNum(f.getUShort(), 0); // reset because not all params are set
          FREPA(bones){SkelBone &b=bones[i]; f>>SCAST(OrientP, b); f.get(b.name, 16); f>>b.parent>>b.flag; f.skip(2); f>>b.length>>b.width>>b_frac;}
          FREPA(slots){SkelSlot &s=slots[i]; f>>SCAST(OrientP, s); f.get(s.name, 16); f>>s.bone; s.bone1=s.bone; f.skip(3);                        }
          if(f.ok())

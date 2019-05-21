@@ -3122,7 +3122,7 @@ Animation& Animation::transform(C Matrix &matrix, C Skeleton &source, Bool skel_
          }
       Memt<Flt, 16384> times, times2; keys.includeTimes(times, times, null); Mems<AnimKeys::Pos> poss; // reuse these from the top
          times2=times; abon.includeTimes(null, times2, null);
-         if(poss.elms()!=times2.elms())poss.clear().setNum(times2.elms()); // clear first to prevent copying old data
+         if(poss.elms()!=times2.elms())poss.setNum(times2.elms(), 0);
          REPA(poss)
          {
             AnimKeys::Pos &pos=poss[i];
