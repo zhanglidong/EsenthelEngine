@@ -114,6 +114,8 @@ template<const_mem_addr typename TYPE, Int size> struct Memt // Temporary Memory
 #if EE_PRIVATE
    void  copyTo  (  TYPE *dest)C {CopyN(dest  , data(), elms());          } // copy raw memory of all elements to   'dest'
    Memt& copyFrom(C TYPE *src )  {CopyN(data(), src   , elms()); return T;} // copy raw memory of all elements from 'src '
+   void  setNumDiscard(Int num); // set          'num' elements, if reallocating then discard previous elements
+   void  minNumDiscard(Int num); // set at least 'num' elements, if reallocating then discard previous elements
 #endif
 
    // io

@@ -332,9 +332,19 @@ T1(TYPE)  Mems<TYPE>&  Mems<TYPE>::setNumZero(Int num, Int keep)
 }
 
 #if EE_PRIVATE
+T1(TYPE)  void  Mems<TYPE>::setNumDiscard(Int num)
+{
+   MAX(num, 0);
+   if( num!=elms())
+   {
+      if(ClassFunc<TYPE>::HasDel())REPA(T)T[i].~TYPE(); // delete all elements
+      Alloc(Free(_data), _elms=num);
+      if(ClassFunc<TYPE>::HasNew())FREPA(T)new(&T[i])TYPE; // create new elements
+   }
+}
 T1(TYPE)  void  Mems<TYPE>::minNumDiscard(Int num)
 {
-   if(num>elms())
+   if(Greater(num, elms())) // num>elms()
    {
       if(ClassFunc<TYPE>::HasDel())REPA(T)T[i].~TYPE(); // delete all elements
       Alloc(Free(_data), _elms=num);
@@ -746,6 +756,52 @@ template<typename TYPE, Int size>  Memt<TYPE, size>&  Memt<TYPE, size>::setNumZe
    if(ClassFunc<TYPE>::HasNew())for(Int i=keep; i<elms(); i++)new(&T[i])TYPE;  // create new elements
    return T;
 }
+
+#if EE_PRIVATE
+template<typename TYPE, Int size>  void  Memt<TYPE, size>::setNumDiscard(Int num)
+{
+   MAX(num, 0);
+   if( num!=elms())
+   {
+      if(Greater(num, maxElms())) // resize memory, num>maxElms()
+      {
+         if(ClassFunc<TYPE>::HasDel())REPA(T)T[i].~TYPE(); // delete all elements
+        _elms=0; // set '_elms' before 'reserve' to skip copying old elements
+         reserve(num);
+        _elms=num; // set '_elms' before accessing new elements to avoid range assert
+         if(ClassFunc<TYPE>::HasNew())FREPA(T)new(&T[i])TYPE; // create new elements
+      }else
+      if(num>elms()) // add elements in existing memory
+      {
+         Int old_elms=elms(); _elms=num;
+         if(ClassFunc<TYPE>::HasNew())for(Int i=old_elms; i<elms(); i++)new(&T[i])TYPE;
+      }else
+    //if(num<elms()) // remove elements, "if" not needed because we already know that "num!=elms && !(num>elms())"
+      {
+         if(ClassFunc<TYPE>::HasDel())for(Int i=num; i<elms(); i++)T[i].~TYPE();
+        _elms=num;
+      }
+   }
+}
+template<typename TYPE, Int size>  void  Memt<TYPE, size>::minNumDiscard(Int num)
+{
+   if(Greater(num, elms())) // num>elms()
+   {
+      if(Greater(num, maxElms())) // resize memory, num>maxElms()
+      {
+         if(ClassFunc<TYPE>::HasDel())REPA(T)T[i].~TYPE(); // delete all elements
+        _elms=0; // set '_elms' before 'reserve' to skip copying old elements
+         reserve(num);
+        _elms=num; // set '_elms' before accessing new elements to avoid range assert
+         if(ClassFunc<TYPE>::HasNew())FREPA(T)new(&T[i])TYPE; // create new elements
+      }else // add elements in existing memory
+      {
+         Int old_elms=elms(); _elms=num;
+         if(ClassFunc<TYPE>::HasNew())for(Int i=old_elms; i<elms(); i++)new(&T[i])TYPE;
+      }
+   }
+}
+#endif
 
 template<typename TYPE, Int size>  Int  Memt<TYPE, size>::addNum(Int num) {Int index=elms(); setNum(elms()+num); return index;}
 

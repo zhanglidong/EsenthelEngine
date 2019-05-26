@@ -782,7 +782,7 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
    #if USE_DOT
       Flt dot_eps=Cos(angle_eps);
    #endif
-      optimized.setNum(orns.elms()); REPAO(optimized)=i;
+      optimized.setNumDiscard(orns.elms()); REPAO(optimized)=i;
       REPA(optimized)if(optimized.elms()>=2)
       {
          Int  prev2=optimized[Index(i-2, anim_loop, optimized.elms(), i)],
@@ -923,14 +923,14 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
          if(MaxAbsAngleBetween(identity, orns[optimized[0]].orn)<=angle_eps)optimized.clear();
       #endif
       }
-      if(optimized.elms()!=orns.elms()){Mems<Orn> temp; temp.setNum(optimized.elms()); REPAO(temp)=orns[optimized[i]]; Swap(temp, orns);}
+      if(optimized.elms()!=orns.elms()){Mems<Orn> temp; temp.setNumDiscard(optimized.elms()); REPAO(temp)=orns[optimized[i]]; Swap(temp, orns);}
    }
 
    // position
    if(pos_eps>=0)
    {
       pos_eps*=pos_eps; // make square
-      optimized.setNum(poss.elms()); REPAO(optimized)=i;
+      optimized.setNumDiscard(poss.elms()); REPAO(optimized)=i;
       REPA(optimized)if(optimized.elms()>=2)
       {
          Int  prev2=optimized[Index(i-2, anim_loop, optimized.elms(), i)],
@@ -1000,13 +1000,13 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
       pos_needed:;
       }
       if(optimized.elms()==1 && poss[optimized[0]].pos.length2()<=pos_eps)optimized.clear();
-      if(optimized.elms()!=poss.elms()){Mems<Pos> temp; temp.setNum(optimized.elms()); REPAO(temp)=poss[optimized[i]]; Swap(temp, poss);}
+      if(optimized.elms()!=poss.elms()){Mems<Pos> temp; temp.setNumDiscard(optimized.elms()); REPAO(temp)=poss[optimized[i]]; Swap(temp, poss);}
    }
 
    // scale
    if(scale_eps>=0)
    {
-      optimized.setNum(scales.elms()); REPAO(optimized)=i;
+      optimized.setNumDiscard(scales.elms()); REPAO(optimized)=i;
       REPA(optimized)if(optimized.elms()>=2)
       {
          Int prev2=optimized[Index(i-2, anim_loop, optimized.elms(), i)],
@@ -1076,14 +1076,14 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
       scale_needed:;
       }
       if(optimized.elms()==1 && MaxAbsDelta(scales[optimized[0]].scale, VecZero)<=scale_eps)optimized.clear();
-      if(optimized.elms()!=scales.elms()){Mems<Scale> temp; temp.setNum(optimized.elms()); REPAO(temp)=scales[optimized[i]]; Swap(temp, scales);}
+      if(optimized.elms()!=scales.elms()){Mems<Scale> temp; temp.setNumDiscard(optimized.elms()); REPAO(temp)=scales[optimized[i]]; Swap(temp, scales);}
    }
 
 #if HAS_ANIM_ROT
    // rotation
    if(angle_eps>=0)
    {
-      optimized.setNum(rots.elms()); REPAO(optimized)=i;
+      optimized.setNumDiscard(rots.elms()); REPAO(optimized)=i;
       REPA(optimized)if(optimized.elms()>=2)
       {
          Int  prev2=optimized[Index(i-2, anim_loop, optimized.elms(), i)],
@@ -1153,7 +1153,7 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
       rot_needed:;
       }
       if(optimized.elms()==1 && MaxAbsAngleBetween(rots[optimized[0]].rot, AxisRoll().zero())<=angle_eps)optimized.clear();
-      if(optimized.elms()!=rots.elms()){Mems<Rot> temp; temp.setNum(optimized.elms()); REPAO(temp)=rots[optimized[i]]; Swap(temp, rots);}
+      if(optimized.elms()!=rots.elms()){Mems<Rot> temp; temp.setNumDiscard(optimized.elms()); REPAO(temp)=rots[optimized[i]]; Swap(temp, rots);}
    }
 #endif
 
@@ -1161,7 +1161,7 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
    // color
    if(color_eps>=0)
    {
-      optimized.setNum(colors.elms()); REPAO(optimized)=i;
+      optimized.setNumDiscard(colors.elms()); REPAO(optimized)=i;
       REPA(optimized)if(optimized.elms()>=2)
       {
          Int prev2=optimized[Index(i-2, anim_loop, optimized.elms(), i)],
@@ -1231,7 +1231,7 @@ AnimKeys& AnimKeys::optimize(Bool anim_loop, Bool anim_linear, Flt anim_length, 
       color_needed:;
       }
       if(optimized.elms()==1 && MaxAbsDelta(colors[optimized[0]].color, Vec4(1, 1, 1, 1))<=color_eps)optimized.clear();
-      if(optimized.elms()!=colors.elms()){Mems<Color> temp; temp.setNum(optimized.elms()); REPAO(temp)=colors[optimized[i]]; Swap(temp, colors);}
+      if(optimized.elms()!=colors.elms()){Mems<Color> temp; temp.setNumDiscard(optimized.elms()); REPAO(temp)=colors[optimized[i]]; Swap(temp, colors);}
    }
 #endif
 
@@ -1423,7 +1423,7 @@ AnimKeys& AnimKeys::convertRotToOrn(C Skeleton &skeleton, Int skel_bone_index, B
    {
       if(skel_bone_index<0)
       {
-         orns.setNum(rots.elms());
+         orns.setNumDiscard(rots.elms());
          REPA(orns)
          {
           C Rot &rot=T.rots[i];
@@ -1441,7 +1441,7 @@ AnimKeys& AnimKeys::convertRotToOrn(C Skeleton &skeleton, Int skel_bone_index, B
                   *parent=skeleton.bones.addr(sbon.parent);
          Matrix3   parent_matrix, parent_matrix_inv; if(parent){parent_matrix=*parent; parent_matrix.inverse(parent_matrix_inv, true);}
 
-         orns.setNum(rots.elms());
+         orns.setNumDiscard(rots.elms());
          REPA(orns)
          {
           C Rot &rot=T.rots[i];
@@ -1472,7 +1472,7 @@ AnimKeys& AnimKeys::convertOrnToRot(C Skeleton &skeleton, Int skel_bone_index, B
    {
       if(skel_bone_index<0)
       {
-         rots.setNum(orns.elms());
+         rots.setNumDiscard(orns.elms());
          REPA(rots)
          {
           C Orn &orn=T.orns[i];
@@ -1489,7 +1489,7 @@ AnimKeys& AnimKeys::convertOrnToRot(C Skeleton &skeleton, Int skel_bone_index, B
                   *parent=skeleton.bones.addr(sbon.parent);
          Matrix3   parent_matrix_inv; if(parent)parent->inverse(parent_matrix_inv);
 
-         rots.setNum(orns.elms());
+         rots.setNumDiscard(orns.elms());
          REPA(rots)
          {
           C Orn &orn=T.orns[i];
@@ -1580,32 +1580,32 @@ Bool AnimKeys::loadData(File &f)
 }
 void AnimKeys::loadData3(File &f)
 {
-   orns  .setNum(f.decUIntV()); LoadOrnTan  (f, orns);
+   orns  .setNumDiscard(f.decUIntV()); LoadOrnTan  (f, orns);
 #if HAS_ANIM_ROT
-   rots  .setNum(f.decUIntV()); LoadRotTan  (f, rots);
+   rots  .setNumDiscard(f.decUIntV()); LoadRotTan  (f, rots);
 #else
-                                LoadRotTan  (f, f.decUIntV());
+                                       LoadRotTan  (f, f.decUIntV());
 #endif
-   poss  .setNum(f.decUIntV()); LoadPosTan  (f, poss);
-   scales.setNum(f.decUIntV()); LoadScaleTan(f, scales);
+   poss  .setNumDiscard(f.decUIntV()); LoadPosTan  (f, poss);
+   scales.setNumDiscard(f.decUIntV()); LoadScaleTan(f, scales);
 #if HAS_ANIM_COLOR
-   colors.setNum(f.decUIntV()); LoadColorTan(f, colors);
+   colors.setNumDiscard(f.decUIntV()); LoadColorTan(f, colors);
 #else
-                                LoadColorTan(f, f.decUIntV());
+                                       LoadColorTan(f, f.decUIntV());
 #endif
 }
 void AnimKeys::loadData2(File &f)
 {
-   orns.setNum(f.getUShort());
+   orns.setNumDiscard(f.getUShort());
 #if HAS_ANIM_ROT
-   rots.setNum(f.getUShort());
+   rots.setNumDiscard(f.getUShort());
 #else
    Int rots=f.getUShort();
 #endif
-   poss  .setNum(f.getUShort());
-   scales.setNum(f.getUShort());
+   poss  .setNumDiscard(f.getUShort());
+   scales.setNumDiscard(f.getUShort());
 #if HAS_ANIM_COLOR
-   colors.setNum(f.getUShort());
+   colors.setNumDiscard(f.getUShort());
 #else
    Int colors=f.getUShort();
 #endif
@@ -1618,14 +1618,14 @@ void AnimKeys::loadData2(File &f)
 }
 void AnimKeys::loadData1(File &f)
 {
-   orns.setNum(f.getUShort());
+   orns.setNumDiscard(f.getUShort());
 #if HAS_ANIM_ROT
-   rots.setNum(f.getUShort());
+   rots.setNumDiscard(f.getUShort());
 #else
    Int rots=f.getUShort();
 #endif
-   poss  .setNum(f.getUShort());
-   scales.setNum(f.getUShort());
+   poss  .setNumDiscard(f.getUShort());
+   scales.setNumDiscard(f.getUShort());
 
    LoadOrnTan(f, orns);
    LoadRotTan(f, rots);
@@ -1643,13 +1643,13 @@ void AnimKeys::loadData1(File &f)
 }
 void AnimKeys::loadData0(File &f)
 {
-   orns.setNum(f.getUShort());
+   orns.setNumDiscard(f.getUShort());
 #if HAS_ANIM_ROT
-   rots.setNum(f.getUShort());
+   rots.setNumDiscard(f.getUShort());
 #else
    Int rots=f.getUShort();
 #endif
-   poss.setNum(f.getUShort());
+   poss.setNumDiscard(f.getUShort());
 
    LoadOrnTan(f, orns);
    LoadRotTan(f, rots);
@@ -2246,7 +2246,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
       if(no_parent && !keys.orns.elms() && !keys.scales.elms()) // simple version
       {
          MatrixD3 old_bone_inv; old_bone.inverse(old_bone_inv);
-         anim_out.keys.orns.setNum(old_anim ? old_anim->orns.elms() : 0); REPA(anim_out.keys.orns)
+         anim_out.keys.orns.setNumDiscard(old_anim ? old_anim->orns.elms() : 0); REPA(anim_out.keys.orns)
          {
           C AnimKeys::Orn &src=    old_anim->orns[i];
             AnimKeys::Orn &orn=anim_out.keys.orns[i];
@@ -2259,7 +2259,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
          }
       }else // complex version
       {
-         anim_out.keys.orns.setNum(orn_times.elms()); REPA(anim_out.keys.orns)
+         anim_out.keys.orns.setNumDiscard(orn_times.elms()); REPA(anim_out.keys.orns)
          {
             AnimKeys::Orn &orn=anim_out.keys.orns[i];
             old_askel.clear().animateExactTime(old_skela, orn.time=orn_times[i]).updateMatrixParents(MatrixIdentity, old_skel_bone_as_root);
@@ -2269,7 +2269,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
       }
 
       // scale
-      anim_out.keys.scales.setNum(scale_times.elms()); REPA(anim_out.keys.scales)
+      anim_out.keys.scales.setNumDiscard(scale_times.elms()); REPA(anim_out.keys.scales)
       { // Warning: Scale conversion is not perfect, because scales are possible only on each axis separately, so if new bone is not rotated by 90 deg, then artifacts may occur
          AnimKeys::Scale &scale=anim_out.keys.scales[i];
          old_askel.clear().animateExactTime(old_skela, scale.time=scale_times[i]).updateMatrixParents(MatrixIdentity, old_skel_bone_as_root);
@@ -2294,7 +2294,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
          IncludeTimes(scale_times, pos_times); // this bone and parent scales       affect this position
          if(pos_times.elms())
          {
-            anim_out.keys.poss.setNum(pos_times.elms()); REPA(anim_out.keys.poss)
+            anim_out.keys.poss.setNumDiscard(pos_times.elms()); REPA(anim_out.keys.poss)
             {
                AnimKeys::Pos &pos=anim_out.keys.poss[i];
                old_askel.clear().animateExactTime(old_skela, pos.time=pos_times[i]).updateMatrixParents(MatrixIdentity, old_skel_bone_as_root);
@@ -2325,21 +2325,21 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
       Bool changed=false;
       if(anim_out.keys.poss.elms()>2)
       {
-         anim_out.keys.poss.setNum(2);
+         anim_out.keys.poss.setNumDiscard(2);
          anim_out.keys.poss[0].time=                0; anim_out.keys.poss[0].pos=anim_out.rootStart().pos;
          anim_out.keys.poss[1].time=anim_out.length(); anim_out.keys.poss[1].pos=anim_out.rootEnd  ().pos;
          changed=true;
       }
       if(anim_out.keys.orns.elms()>2)
       {
-         anim_out.keys.orns.setNum(2);
+         anim_out.keys.orns.setNumDiscard(2);
          anim_out.keys.orns[0].time=                0; anim_out.keys.orns[0].orn=anim_out.rootStart(); anim_out.keys.orns[0].orn.fix();
          anim_out.keys.orns[1].time=anim_out.length(); anim_out.keys.orns[1].orn=anim_out.rootEnd  (); anim_out.keys.orns[1].orn.fix();
          changed=true;
       }
       if(anim_out.keys.scales.elms()>2)
       {
-         anim_out.keys.scales.setNum(2);
+         anim_out.keys.scales.setNumDiscard(2);
          anim_out.keys.scales[0].time=                0; anim_out.keys.scales[0].scale=ScaleFactorR(anim_out.rootStart().scale());
          anim_out.keys.scales[1].time=anim_out.length(); anim_out.keys.scales[1].scale=ScaleFactorR(anim_out.rootEnd  ().scale());
          changed=true;
@@ -2594,7 +2594,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
                if(orn_times.elms()) // orientation
                {
                   MatrixD3 new_bone_m=new_bone, new_parent_m; if(new_parent)new_parent_m=*new_parent;
-                  anim.orns.setNum(orn_times.elms()); REPA(anim.orns)
+                  anim.orns.setNumDiscard(orn_times.elms()); REPA(anim.orns)
                   {
                      AnimKeys::Orn &orn=anim.orns[i]; orn.time=orn_times[i];
                      old_askel.clear().animateExactTime(old_skela, orn.time); if(old_bones.elms()==1)old_askel.updateMatrixParents(MatrixIdentity, old_bones[0].index);else old_askel.updateMatrix();
@@ -2618,7 +2618,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
 
                if(scale_times.elms()) // scale
                {
-                  anim.scales.setNum(scale_times.elms()); REPA(anim.scales)
+                  anim.scales.setNumDiscard(scale_times.elms()); REPA(anim.scales)
                   { // Warning: Scale conversion is not perfect, because scales are possible only on each axis separately, so if new bone is not rotated by 90 deg, then artifacts may occur
                      AnimKeys::Scale &scale=anim.scales[i]; scale.time=scale_times[i];
                      old_askel.clear().animateExactTime(old_skela, scale.time); if(old_bones.elms()==1)old_askel.updateMatrixParents(MatrixIdentity, old_bones[0].index);else old_askel.updateMatrix();
@@ -2644,7 +2644,7 @@ Animation& Animation::adjustForSameTransformWithDifferentSkeleton(C Skeleton &ol
                if(pos_times.elms()) // position
                {
                   MatrixD3 new_parent_m; if(new_parent)new_parent_m=*new_parent;
-                  anim.poss.setNum(pos_times.elms()); REPA(anim.poss)
+                  anim.poss.setNumDiscard(pos_times.elms()); REPA(anim.poss)
                   {
                      AnimKeys::Pos &pos=anim.poss[i]; pos.time=pos_times[i];
                      old_askel.clear().animateExactTime(old_skela, pos.time); if(old_bones.elms()==1)old_askel.updateMatrixParents(MatrixIdentity, old_bones[0].index);else old_askel.updateMatrix();
@@ -2697,7 +2697,7 @@ Animation& Animation::offsetRootBones(C Skeleton &skeleton, C Vec &move)
                keys.includeTimes(times, null, null); // orientations from root
                abon.includeTimes(null, times, null); //    positions from bone
                if(!times.elms())times.add(0);
-               Mems<AnimKeys::Pos> poss; poss.setNum(times.elms()); FREPA(poss)
+               Mems<AnimKeys::Pos> poss; poss.setNumDiscard(times.elms()); FREPA(poss)
                {
                   AnimKeys::Pos &key=poss[i];
                   key.time=params.time=times[i];
@@ -2736,7 +2736,7 @@ Animation& Animation::offsetRootBones(C Skeleton &skeleton, C Vec &move)
       {
          times.clear();
          keys.includeTimes(times, times, null); // orientations+positions from root
-         Mems<AnimKeys::Pos> poss; poss.setNum(times.elms()); FREPA(poss)
+         Mems<AnimKeys::Pos> poss; poss.setNumDiscard(times.elms()); FREPA(poss)
          {
             AnimKeys::Pos &key=poss[i];
             key.time=params.time=times[i];
@@ -3020,8 +3020,8 @@ Animation& Animation::transform(C Matrix &matrix, C Skeleton &source, Bool skel_
    }
    if(keys.orns.elms() && matrix.pos.any()) // if there are any orientations and matrix position offset
    {
-      Memt<Flt, 16384   > times; keys.includeTimes(times, times, null); // we need to setup position keys from all orientation/position times
-      Mems<AnimKeys::Pos>  poss; poss.setNum      (times.elms()); // work on temporary container
+      Memt<Flt, 16384   > times; keys.includeTimes (times, times, null); // we need to setup position keys from all orientation/position times
+      Mems<AnimKeys::Pos>  poss; poss.setNumDiscard(times.elms()); // work on temporary container
       REPA(poss)
       {
          AnimKeys::Pos &pos=poss[i];   anim_params.time=pos.time=times[i];
@@ -3122,7 +3122,7 @@ Animation& Animation::transform(C Matrix &matrix, C Skeleton &source, Bool skel_
          }
       Memt<Flt, 16384> times, times2; keys.includeTimes(times, times, null); Mems<AnimKeys::Pos> poss; // reuse these from the top
          times2=times; abon.includeTimes(null, times2, null);
-         if(poss.elms()!=times2.elms())poss.setNum(times2.elms(), 0);
+         poss.setNumDiscard(times2.elms());
          REPA(poss)
          {
             AnimKeys::Pos &pos=poss[i];
@@ -3310,7 +3310,7 @@ void Animation::freezeBone(C Skeleton &skel, Int skel_bone)
       // get root bones
       Byte root_bone[256]; Int root_bones=0;
       REPA(skel.bones)if(skel.bones[i].parent==0xFF){root_bone[root_bones++]=i; if(!InRange(root_bones, root_bone))break;}
-      Memt<AnimKeys, 32> root_bone_keys; root_bone_keys.setNum(root_bones);
+      Memt<AnimKeys, 32> root_bone_keys; root_bone_keys.setNumDiscard(root_bones);
       Memt<Flt  , 16384> root_times; // keep outside the loop to reduce overhead
       REPD(rb, root_bones) // iterate all root bones
       {
@@ -3325,7 +3325,7 @@ void Animation::freezeBone(C Skeleton &skel, Int skel_bone)
          if(AnimBone *abon=findBone(root.name, root.type, root.type_index, root.type_sub))
       #endif
             abon->includeTimes(null, root_times, null);
-         keys.poss.setNum(root_times.elms());
+         keys.poss.setNumDiscard(root_times.elms());
          FREPAD(t, root_times) // irerate all frames
          {
             Flt time=root_times[t];
@@ -3453,13 +3453,13 @@ Bool Animation::load(File &f)
          FREPA(bones)
          {
             AnimBone &abon=bones[i]; abon.set(null);
-            abon.orns.setNum(f.getUShort());
+            abon.orns.setNumDiscard(f.getUShort());
          #if HAS_ANIM_ROT
-            Mems<AnimKeys::Rot> &rots=abon.rots.setNum(f.getUShort());
+            Mems<AnimKeys::Rot> &rots=abon.rots.setNumDiscard(f.getUShort());
          #else
             Int rots=f.getUShort();
          #endif
-            abon.poss.setNum(f.getUShort());
+            abon.poss.setNumDiscard(f.getUShort());
             f.get(abon.name, 16); ASSERT(ELMS(abon.name)>=16);
             LoadOrnTan(f, abon.orns);
             LoadRotTan(f,      rots);
@@ -3479,8 +3479,8 @@ Bool Animation::load(File &f)
          FREPA(bones)
          {
             AnimBone &abon=bones[i]; abon.set(null);
-            abon.orns.setNum(f.getUShort());
-            abon.poss.setNum(f.getUShort());
+            abon.orns.setNumDiscard(f.getUShort());
+            abon.poss.setNumDiscard(f.getUShort());
             f.get(abon.name, 16); ASSERT(ELMS(abon.name)>=16);
             LoadOrnTan(f, abon.orns);
             LoadPosTan(f, abon.poss);
@@ -3499,7 +3499,7 @@ Bool Animation::load(File &f)
          FREPA(bones)
          {
             AnimBone &abon=bones[i]; abon.set(null);
-            abon.orns.setNum(f.getUShort());
+            abon.orns.setNumDiscard(f.getUShort());
             f.get(abon.name, 16); ASSERT(ELMS(abon.name)>=16);
             LoadOrnTan(f, abon.orns);
          }
