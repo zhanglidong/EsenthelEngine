@@ -3049,7 +3049,7 @@ Str8& Str8::setChar(Int i, Char8 c)
    if(c)
    {
       if(InRange(i, T))_d[i]=c;else
-      if(i==length()  ) T  +=c;
+      if(i==length()  )alwaysAppend(c);
    }else clip(i);
    return T;
 }
@@ -3058,7 +3058,7 @@ Str& Str::setChar(Int i, Char c)
    if(c)
    {
       if(InRange(i, T))_d[i]=c;else
-      if(i==length()  ) T  +=c;
+      if(i==length()  )alwaysAppend(c);
    }else clip(i);
    return T;
 }
