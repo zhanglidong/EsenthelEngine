@@ -3270,17 +3270,55 @@ Str8& Str8::operator+=(CChar8 *t)
 {
    if(Is(t))
    {
-      Int src_length=Length(t), size=length()+src_length+1; if(size>_d.elms())
+      Int t_length=Length(t), size=length()+t_length+1; // +1 for NUL char
+      if(size>_d.elms())
       {
-         UIntPtr offset=t-T();
-        _d.setNum(size+EXTRA, length()+1); // +1 because 't' can be part of 'T'
-         if(offset<UIntPtr(length()))t=T()+offset; // if adding text from self
+         UIntPtr offset=t-T(); if(offset<UIntPtr(length())) // if 't' is part of 'T'
+         {
+           _d.setNum(StrSize(size, _d.elms()), length()+1); // keep NUL because 't' is part of 'T'
+            t=T()+offset;
+            goto move;
+         }else
+         {
+           _d.setNum(StrSize(size, _d.elms()), length());
+            CopyFastN(_d.data()+length(), t, t_length+1);
+         }
+      }else
+      {
+      move:
+         MoveFastN(_d.data()+length(), t, t_length+1); // use 'MoveFastN' because 't' can be part of 'T'
       }
-      MoveFastN(_d.data()+length(), t, src_length+1); // 't' can be part of 'T'
-     _length+=src_length;
+     _length+=t_length;
    }
    return T;
 }
+Str& Str::operator+=(CChar *t)
+{
+   if(Is(t))
+   {
+      Int t_length=Length(t), size=length()+t_length+1; // +1 for NUL char
+      if(size>_d.elms())
+      {
+         UIntPtr offset=t-T(); if(offset<UIntPtr(length())) // if 't' is part of 'T'
+         {
+           _d.setNum(StrSize(size, _d.elms()), length()+1); // keep NUL because 't' is part of 'T'
+            t=T()+offset;
+            goto move;
+         }else
+         {
+           _d.setNum(StrSize(size, _d.elms()), length());
+            CopyFastN(_d.data()+length(), t, t_length+1);
+         }
+      }else
+      {
+      move:
+         MoveFastN(_d.data()+length(), t, t_length+1); // use 'MoveFastN' because 't' can be part of 'T'
+      }
+     _length+=t_length;
+   }
+   return T;
+}
+/******************************************************************************/
 Str8& Str8::operator+=(CChar *t)
 {
    if(Is(t))
@@ -3311,21 +3349,6 @@ Str& Str::operator+=(CChar8 *t)
    }
    return T;
 }
-Str& Str::operator+=(CChar *t)
-{
-   if(Is(t))
-   {
-      Int src_length=Length(t), size=length()+src_length+1; if(size>_d.elms())
-      {
-         UIntPtr offset=t-T();
-        _d.setNum(size+EXTRA, length()+1); // +1 because 't' can be part of 'T'
-         if(offset<UIntPtr(length()))t=T()+offset; // if adding text from self
-      }
-      MoveFastN(_d.data()+length(), t, src_length+1); // 't' can be part of 'T'
-     _length+=src_length;
-   }
-   return T;
-}
 Str& Str::operator+=(C wchar_t *t)
 {
    if(Is(t))
@@ -3342,7 +3365,7 @@ Str8& Str8::operator+=(C Str8 &s)
    if(s.is())
    {
       Reserve(T, s.length(), true); // keep NUL because 's' can be 'this'
-      MoveFastN(_d.data()+length(), s(), s.length()+1);
+      MoveFastN(_d.data()+length(), s(), s.length()+1); // use 'MoveFastN' because 's' can be 'this'
      _length+=s.length();
    }
    return T;
@@ -3372,7 +3395,7 @@ Str& Str::operator+=(C Str &s)
    if(s.is())
    {
       Reserve(T, s.length(), true); // keep NUL because 's' can be 'this'
-      MoveFastN(_d.data()+length(), s(), s.length()+1); // if 's' is this then the last '\0' will overlap
+      MoveFastN(_d.data()+length(), s(), s.length()+1); // use 'MoveFastN' because 's' can be 'this'
      _length+=s.length();
    }
    return T;
