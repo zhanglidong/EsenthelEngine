@@ -2889,9 +2889,9 @@ Str8& Str8::insert(Int i, Char8 c)
       Int size=length()+2; if(size>_d.elms())
       {
          Mems<Char8> temp(size+EXTRA);
-         CopyFastN(&temp[0  ], T()  ,          i); // copy text before 'i'
-                    temp[i  ]=c;                   // copy 'c'  into   'i'
-         CopyFastN(&temp[i+1], T()+i, length()-i); // copy text after  'i'
+         CopyFastN( temp.data(), T()  ,          i); // copy text before 'i'
+                    temp[i    ]=c;                   // copy 'c'  into   'i'
+         CopyFastN(&temp[i+1  ], T()+i, length()-i); // copy text after  'i'
          Swap(temp, _d);
       }else
       {
@@ -2910,9 +2910,9 @@ Str& Str::insert(Int i, Char c)
       Int size=length()+2; if(size>_d.elms())
       {
          Mems<Char> temp(size+EXTRA);
-         CopyFastN(&temp[0  ], T()  ,          i); // copy text before 'i'
-                    temp[i  ]=c;                   // copy 'c'  into   'i'
-         CopyFastN(&temp[i+1], T()+i, length()-i); // copy text after  'i'
+         CopyFastN( temp.data(), T()  ,          i); // copy text before 'i'
+                    temp[i    ]=c;                   // copy 'c'  into   'i'
+         CopyFastN(&temp[i+1  ], T()+i, length()-i); // copy text after  'i'
          Swap(temp, _d);
       }else
       {
@@ -2932,9 +2932,9 @@ Str8& Str8::insert(Int i, C Str8 &text)
       Int size=length()+text.length()+1; if(size>_d.elms())
       {
          Mems<Char8> temp(size+EXTRA);
-         CopyFastN(temp.data()                  , T()   ,               i); // copy  text  before 'i'
-         CopyFastN(temp.data()+ i               , text(), text.length()  ); // copy 'text' into   'i'
-         CopyFastN(temp.data()+(i+text.length()), T()+i ,      length()-i); // copy  text  after  'i'
+         CopyFastN( temp.data()          , T()   ,               i); // copy  text  before 'i'
+         CopyFastN(&temp[i              ], text(), text.length()  ); // copy 'text' into   'i'
+         CopyFastN(&temp[i+text.length()], T()+i ,      length()-i); // copy  text  after  'i'
          Swap(temp, _d);
       }else
       {
@@ -2953,9 +2953,9 @@ Str& Str::insert(Int i, C Str &text)
       Int size=length()+text.length()+1; if(size>_d.elms())
       {
          Mems<Char> temp(size+EXTRA);
-         CopyFastN(temp.data()                  , T()   ,               i); // copy  text  before 'i'
-         CopyFastN(temp.data()+ i               , text(), text.length()  ); // copy 'text' into   'i'
-         CopyFastN(temp.data()+(i+text.length()), T()+i ,      length()-i); // copy  text  after  'i'
+         CopyFastN( temp.data()          , T()   ,               i); // copy  text  before 'i'
+         CopyFastN(&temp[i              ], text(), text.length()  ); // copy 'text' into   'i'
+         CopyFastN(&temp[i+text.length()], T()+i ,      length()-i); // copy  text  after  'i'
          Swap(temp, _d);
       }else
       {
