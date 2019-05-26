@@ -420,7 +420,7 @@ void SlideBar::draw(C GuiPC &gpc)
             d=(_scroll_to-_offset)/d;
             Button button_temp; button_temp.create(button[0]);
 
-            // !! do a fast copy that avoids expensive cache elm assignment, must be in sync with 'Zero' below !!
+            // !! do a fast copy that avoids expensive cache elm assignment, must be in sync with 'ZeroFast' below !!
             CopyFast(GuiSkinTemp.slidebar.center, button_skin->slidebar.center);
 
             GuiSkinTemp.slidebar.center.normal_color.a=((GuiSkinTemp.slidebar.center.normal_color.a*96)>>8);
@@ -455,8 +455,8 @@ void SlideBar::draw(C GuiPC &gpc)
             button_temp.draw(gpc);
          #endif
 
-            // !! do a fast clear that avoids expensive cache elm release, must be in sync with 'Copy' above !!
-            Zero(GuiSkinTemp.slidebar.center);
+            // !! do a fast clear that avoids expensive cache elm release, must be in sync with 'CopyFast' above !!
+            ZeroFast(GuiSkinTemp.slidebar.center);
          }
                            button[0].draw(gpc);
          if(button[1].is())button[1].draw(gpc);
