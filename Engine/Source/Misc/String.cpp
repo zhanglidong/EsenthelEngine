@@ -6,7 +6,7 @@
 namespace EE{
 /******************************************************************************/
 static Int StrSize(Int New, Int Old) {return Max(16, New, Old + Old/2);}
-static Int StrSize(Int s_size, Int s_length, Int extra_length) {Int size=s_length+extra_length+1; return StrSize(size, s_size);}
+static Int StrNew (Int length) {Int size=length+1; return StrSize(size, size);}
 /******************************************************************************/
 static const Char
             CharEnDash     =u'–',
@@ -2790,47 +2790,49 @@ end:
 /******************************************************************************/
 // STRING
 /******************************************************************************/
-Str8::Str8(                           ) {   _length=         0 ;                                                                                 }
-Str ::Str (                           ) {   _length=         0 ;                                                                                 }
-Str8::Str8(Char8   c                  ) {if(_length=  (c!='\0')){_d.setNum(length()+1                                    ); _d[0]=          c ; _d[1]='\0';       }}
-Str ::Str (Char    c                  ) {if(_length=  (c!='\0')){_d.setNum(length()+1                                    ); _d[0]=          c ; _d[1]='\0';       }}
-Str8::Str8(Char    c                  ) {if(_length=  (c!='\0')){_d.setNum(length()+1                                    ); _d[0]=Char16To8(c); _d[1]='\0';       }}
-Str ::Str (Char8   c                  ) {if(_length=  (c!='\0')){_d.setNum(length()+1                                    ); _d[0]=Char8To16(c); _d[1]='\0';       }}
-Str8::Str8(CChar8 *t                  ) {if(_length=  Length(t)){_d.setNum(length()+1                                    ); CopyFastN(_d.data(),   t,  _d.elms());}}
-Str ::Str (CChar  *t                  ) {if(_length=  Length(t)){_d.setNum(length()+1                                    ); CopyFastN(_d.data(),   t,  _d.elms());}}
-Str8::Str8(CChar  *t                  ) {if(_length=  Length(t)){_d.setNum(length()+1                                    ); Set      (_d.data(),   t,  _d.elms());}}
-Str8::Str8(C wchar_t *t               ) {if(_length=  Length(t)){_d.setNum(length()+1                                    );_Set      (_d.data(),   t,  _d.elms());}}
-Str ::Str (C wchar_t *t               ) {if(_length=  Length(t)){_d.setNum(length()+1                                    );_Set      (_d.data(),   t,  _d.elms());}}
-Str ::Str (CChar8 *t                  ) {if(_length=  Length(t)){_d.setNum(length()+1                                    ); Set      (_d.data(),   t,  _d.elms());}}
-Str8::Str8(C Str8 &s                  ) {if(_length=s.length( )){_d.setNum(length()+1                                    ); CopyFastN(_d.data(), s(),  _d.elms());}}
-Str ::Str (C Str  &s                  ) {if(_length=s.length( )){_d.setNum(length()+1                                    ); CopyFastN(_d.data(), s(),  _d.elms());}}
-Str8::Str8(C Str8 &s, Int extra_length) {   _length=s.length( ); _d.setNum(StrSize(s._d.elms(), s.length(), extra_length)); CopyN    (_d.data(), s(), length()+1); } // use 'CopyN' in case s() is null
-Str ::Str (C Str  &s, Int extra_length) {   _length=s.length( ); _d.setNum(StrSize(s._d.elms(), s.length(), extra_length)); CopyN    (_d.data(), s(), length()+1); } // use 'CopyN' in case s() is null
-Str ::Str (C Str8 &s, Int extra_length) {   _length=s.length( ); _d.setNum(StrSize(s._d.elms(), s.length(), extra_length)); I(); FREP (length())_d[i]=Char8To16Fast(s()[i]); _d[length()]='\0'; } // don't use 'Set' to allow copying '\0' chars in the middle, use () to avoid range checks
-Str8::Str8(C Str  &s                  ) {if(_length=s.length( )){_d.setNum(length()+1                                    ); I(); FREPA(    _d  )_d[i]=Char16To8Fast(s()[i]);                   }} // don't use 'Set' to allow copying '\0' chars in the middle
-Str ::Str (C Str8 &s                  ) {if(_length=s.length( )){_d.setNum(length()+1                                    ); I(); FREPA(    _d  )_d[i]=Char8To16Fast(s()[i]);                   }} // don't use 'Set' to allow copying '\0' chars in the middle
-Str8::Str8(C BStr &s                  ) {if(_length=s.length( )){_d.setNum(length()+1                                    ); I(); FREP (length())_d[i]=Char16To8Fast(s()[i]); _d[length()]='\0';}} // don't use 'Set' to allow copying '\0' chars in the middle, borrowed string may not be null-terminated, use () to avoid range checks
-Str ::Str (C BStr &s                  ) {if(_length=s.length( )){_d.setNum(length()+1                                    ); CopyFastN(_d.data(), s(), length()  );           _d[length()]='\0';}} // don't use 'Set' to allow copying '\0' chars in the middle, borrowed string may not be null-terminated
-Str8::Str8(Bool    b                  ) {   _length=         1 ; _d.setNum(         2                                    ); _d[0]=(b ? '1' : '0'); _d[1]='\0';}
-Str ::Str (Bool    b                  ) {   _length=         1 ; _d.setNum(         2                                    ); _d[0]=(b ? '1' : '0'); _d[1]='\0';}
-Str8::Str8(SByte   i                  ) : Str8(TextInt(    Int(i), ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (SByte   i                  ) : Str (TextInt(    Int(i), ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(Int     i                  ) : Str8(TextInt(        i , ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (Int     i                  ) : Str (TextInt(        i , ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(Long    i                  ) : Str8(TextInt(        i , ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (Long    i                  ) : Str (TextInt(        i , ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(Byte    u                  ) : Str8(TextInt(   UInt(u), ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (Byte    u                  ) : Str (TextInt(   UInt(u), ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(UInt    u                  ) : Str8(TextInt(        u , ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (UInt    u                  ) : Str (TextInt(        u , ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(ULong   u                  ) : Str8(TextInt(        u , ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (ULong   u                  ) : Str (TextInt(        u , ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(Flt     f                  ) : Str8(TextFlt(        f , ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (Flt     f                  ) : Str (TextFlt(        f , ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(Dbl     d                  ) : Str8(TextDbl(        d , ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (Dbl     d                  ) : Str (TextDbl(        d , ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(CPtr    p                  ) : Str8(TextHex(UIntPtr(p), ConstCast(TempChar8<256>()).c, SIZE(p)*2, 0, true)) {}
-Str ::Str (CPtr    p                  ) : Str (TextHex(UIntPtr(p), ConstCast(TempChar8<256>()).c, SIZE(p)*2, 0, true)) {}
+Str8::Str8(            ) {   _length=         0 ;}
+Str ::Str (            ) {   _length=         0 ;}
+Str8::Str8(Char8   c   ) {if(_length=  (c!='\0')){_d.setNum(length()+1); _d[0]=          c ; _d[1]='\0';       }}
+Str ::Str (Char    c   ) {if(_length=  (c!='\0')){_d.setNum(length()+1); _d[0]=          c ; _d[1]='\0';       }}
+Str8::Str8(Char    c   ) {if(_length=  (c!='\0')){_d.setNum(length()+1); _d[0]=Char16To8(c); _d[1]='\0';       }}
+Str ::Str (Char8   c   ) {if(_length=  (c!='\0')){_d.setNum(length()+1); _d[0]=Char8To16(c); _d[1]='\0';       }}
+Str8::Str8(CChar8 *t   ) {if(_length=  Length(t)){_d.setNum(length()+1); CopyFastN(_d.data(),   t,  _d.elms());}}
+Str ::Str (CChar  *t   ) {if(_length=  Length(t)){_d.setNum(length()+1); CopyFastN(_d.data(),   t,  _d.elms());}}
+Str8::Str8(CChar  *t   ) {if(_length=  Length(t)){_d.setNum(length()+1); Set      (_d.data(),   t,  _d.elms());}}
+Str8::Str8(C wchar_t *t) {if(_length=  Length(t)){_d.setNum(length()+1);_Set      (_d.data(),   t,  _d.elms());}}
+Str ::Str (C wchar_t *t) {if(_length=  Length(t)){_d.setNum(length()+1);_Set      (_d.data(),   t,  _d.elms());}}
+Str ::Str (CChar8 *t   ) {if(_length=  Length(t)){_d.setNum(length()+1); Set      (_d.data(),   t,  _d.elms());}}
+Str8::Str8(C Str8 &s   ) {if(_length=s.length( )){_d.setNum(length()+1); CopyFastN(_d.data(), s(),  _d.elms());}}
+Str ::Str (C Str  &s   ) {if(_length=s.length( )){_d.setNum(length()+1); CopyFastN(_d.data(), s(),  _d.elms());}}
+Str8::Str8(C Str  &s   ) {if(_length=s.length( )){_d.setNum(length()+1); I(); FREPA(    _d  )_d[i]=Char16To8Fast(s()[i]);                   }} // don't use 'Set' to allow copying '\0' chars in the middle
+Str ::Str (C Str8 &s   ) {if(_length=s.length( )){_d.setNum(length()+1); I(); FREPA(    _d  )_d[i]=Char8To16Fast(s()[i]);                   }} // don't use 'Set' to allow copying '\0' chars in the middle
+Str8::Str8(C BStr &s   ) {if(_length=s.length( )){_d.setNum(length()+1); I(); FREP (length())_d[i]=Char16To8Fast(s()[i]); _d[length()]='\0';}} // don't use 'Set' to allow copying '\0' chars in the middle, borrowed string may not be null-terminated, use () to avoid range checks
+Str ::Str (C BStr &s   ) {if(_length=s.length( )){_d.setNum(length()+1); CopyFastN(_d.data(), s(), length()  );           _d[length()]='\0';}} // don't use 'Set' to allow copying '\0' chars in the middle, borrowed string may not be null-terminated
+Str8::Str8(Bool    b   ) {   _length=         1 ; _d.setNum(         2); _d[0]=(b ? '1' : '0'); _d[1]='\0';}
+Str ::Str (Bool    b   ) {   _length=         1 ; _d.setNum(         2); _d[0]=(b ? '1' : '0'); _d[1]='\0';}
+
+Str8::Str8(C Str8 &s, Int extra_length) {_length=s.length(); if(Int sum=length()+extra_length){_d.setNum(StrNew(sum)); CopyFastN(_d.data(), s(), length());            _d[length()]='\0';}} // always set NUL manually because 's' can be null
+Str ::Str (C Str  &s, Int extra_length) {_length=s.length(); if(Int sum=length()+extra_length){_d.setNum(StrNew(sum)); CopyFastN(_d.data(), s(), length());            _d[length()]='\0';}} // always set NUL manually because 's' can be null
+Str ::Str (C Str8 &s, Int extra_length) {_length=s.length(); if(Int sum=length()+extra_length){_d.setNum(StrNew(sum)); I(); FREP(length())_d[i]=Char8To16Fast(s()[i]); _d[length()]='\0';}} // always set NUL manually because 's' can be null, don't use 'Set' to allow copying '\0' chars in the middle, use () to avoid range checks
+
+Str8::Str8(SByte i) : Str8(TextInt(    Int(i), ConstCast(TempChar8<256>()).c)) {}
+Str ::Str (SByte i) : Str (TextInt(    Int(i), ConstCast(TempChar8<256>()).c)) {}
+Str8::Str8(Int   i) : Str8(TextInt(        i , ConstCast(TempChar8<256>()).c)) {}
+Str ::Str (Int   i) : Str (TextInt(        i , ConstCast(TempChar8<256>()).c)) {}
+Str8::Str8(Long  i) : Str8(TextInt(        i , ConstCast(TempChar8<256>()).c)) {}
+Str ::Str (Long  i) : Str (TextInt(        i , ConstCast(TempChar8<256>()).c)) {}
+Str8::Str8(Byte  u) : Str8(TextInt(   UInt(u), ConstCast(TempChar8<256>()).c)) {}
+Str ::Str (Byte  u) : Str (TextInt(   UInt(u), ConstCast(TempChar8<256>()).c)) {}
+Str8::Str8(UInt  u) : Str8(TextInt(        u , ConstCast(TempChar8<256>()).c)) {}
+Str ::Str (UInt  u) : Str (TextInt(        u , ConstCast(TempChar8<256>()).c)) {}
+Str8::Str8(ULong u) : Str8(TextInt(        u , ConstCast(TempChar8<256>()).c)) {}
+Str ::Str (ULong u) : Str (TextInt(        u , ConstCast(TempChar8<256>()).c)) {}
+Str8::Str8(Flt   f) : Str8(TextFlt(        f , ConstCast(TempChar8<256>()).c)) {}
+Str ::Str (Flt   f) : Str (TextFlt(        f , ConstCast(TempChar8<256>()).c)) {}
+Str8::Str8(Dbl   d) : Str8(TextDbl(        d , ConstCast(TempChar8<256>()).c)) {}
+Str ::Str (Dbl   d) : Str (TextDbl(        d , ConstCast(TempChar8<256>()).c)) {}
+Str8::Str8(CPtr  p) : Str8(TextHex(UIntPtr(p), ConstCast(TempChar8<256>()).c, SIZE(p)*2, 0, true)) {}
+Str ::Str (CPtr  p) : Str (TextHex(UIntPtr(p), ConstCast(TempChar8<256>()).c, SIZE(p)*2, 0, true)) {}
 
 Str8::Str8(C Vec2   &v) : Str8() {T=v;}
 Str ::Str (C Vec2   &v) : Str () {T=v;}
