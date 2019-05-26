@@ -6,6 +6,7 @@
 namespace EE{
 /******************************************************************************/
 static Int StrSize(Int New, Int Old) {return Max(16, New, Old + Old/2);}
+static Int StrSize(Int s_size, Int s_length, Int extra_length) {Int size=s_length+extra_length+1; return StrSize(size, s_size);}
 /******************************************************************************/
 static const Char
             CharEnDash     =u'–',
@@ -2789,47 +2790,47 @@ end:
 /******************************************************************************/
 // STRING
 /******************************************************************************/
-Str8::Str8(                                ) {   _length=         0 ;                                                                                 }
-Str ::Str (                                ) {   _length=         0 ;                                                                                 }
-Str8::Str8(Char8   c                       ) {if(_length=  (c!='\0')){_d.setNum(length()+1                  ); _d[0]=          c ; _d[1]='\0';       }}
-Str ::Str (Char    c                       ) {if(_length=  (c!='\0')){_d.setNum(length()+1                  ); _d[0]=          c ; _d[1]='\0';       }}
-Str8::Str8(Char    c                       ) {if(_length=  (c!='\0')){_d.setNum(length()+1                  ); _d[0]=Char16To8(c); _d[1]='\0';       }}
-Str ::Str (Char8   c                       ) {if(_length=  (c!='\0')){_d.setNum(length()+1                  ); _d[0]=Char8To16(c); _d[1]='\0';       }}
-Str8::Str8(CChar8 *t                       ) {if(_length=  Length(t)){_d.setNum(length()+1                  ); CopyFastN(_d.data(),   t,  _d.elms());}}
-Str ::Str (CChar  *t                       ) {if(_length=  Length(t)){_d.setNum(length()+1                  ); CopyFastN(_d.data(),   t,  _d.elms());}}
-Str8::Str8(CChar  *t                       ) {if(_length=  Length(t)){_d.setNum(length()+1                  ); Set      (_d.data(),   t,  _d.elms());}}
-Str8::Str8(C wchar_t *t                    ) {if(_length=  Length(t)){_d.setNum(length()+1                  );_Set      (_d.data(),   t,  _d.elms());}}
-Str ::Str (C wchar_t *t                    ) {if(_length=  Length(t)){_d.setNum(length()+1                  );_Set      (_d.data(),   t,  _d.elms());}}
-Str ::Str (CChar8 *t                       ) {if(_length=  Length(t)){_d.setNum(length()+1                  ); Set      (_d.data(),   t,  _d.elms());}}
-Str8::Str8(C Str8 &s                       ) {if(_length=s.length( )){_d.setNum(length()+1                  ); CopyFastN(_d.data(), s(),  _d.elms());}}
-Str ::Str (C Str  &s                       ) {if(_length=s.length( )){_d.setNum(length()+1                  ); CopyFastN(_d.data(), s(),  _d.elms());}}
-Str8::Str8(C Str8 &s, Int additional_length) {   _length=s.length( ); _d.setNum(length()+1+additional_length); CopyN    (_d.data(), s(), length()+1); } // use 'CopyN' in case s() is null
-Str ::Str (C Str  &s, Int additional_length) {   _length=s.length( ); _d.setNum(length()+1+additional_length); CopyN    (_d.data(), s(), length()+1); } // use 'CopyN' in case s() is null
-Str ::Str (C Str8 &s, Int additional_length) {   _length=s.length( ); _d.setNum(length()+1+additional_length); I(); FREP (length())_d[i]=Char8To16Fast(s()[i]); _d[length()]='\0'; } // don't use 'Set' to allow copying '\0' chars in the middle, use () to avoid range checks
-Str8::Str8(C Str  &s                       ) {if(_length=s.length( )){_d.setNum(length()+1                  ); I(); FREPA(    _d  )_d[i]=Char16To8Fast(s()[i]);                   }} // don't use 'Set' to allow copying '\0' chars in the middle
-Str ::Str (C Str8 &s                       ) {if(_length=s.length( )){_d.setNum(length()+1                  ); I(); FREPA(    _d  )_d[i]=Char8To16Fast(s()[i]);                   }} // don't use 'Set' to allow copying '\0' chars in the middle
-Str8::Str8(C BStr &s                       ) {if(_length=s.length( )){_d.setNum(length()+1                  ); I(); FREP (length())_d[i]=Char16To8Fast(s()[i]); _d[length()]='\0';}} // don't use 'Set' to allow copying '\0' chars in the middle, borrowed string may not be null-terminated, use () to avoid range checks
-Str ::Str (C BStr &s                       ) {if(_length=s.length( )){_d.setNum(length()+1                  ); CopyFastN(_d.data(), s(), length()  );           _d[length()]='\0';}} // don't use 'Set' to allow copying '\0' chars in the middle, borrowed string may not be null-terminated
-Str8::Str8(Bool    b                       ) {   _length=         1 ; _d.setNum(         2                  ); _d[0]=(b ? '1' : '0'); _d[1]='\0';}
-Str ::Str (Bool    b                       ) {   _length=         1 ; _d.setNum(         2                  ); _d[0]=(b ? '1' : '0'); _d[1]='\0';}
-Str8::Str8(SByte   i                       ) : Str8(TextInt(    Int(i), ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (SByte   i                       ) : Str (TextInt(    Int(i), ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(Int     i                       ) : Str8(TextInt(        i , ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (Int     i                       ) : Str (TextInt(        i , ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(Long    i                       ) : Str8(TextInt(        i , ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (Long    i                       ) : Str (TextInt(        i , ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(Byte    u                       ) : Str8(TextInt(   UInt(u), ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (Byte    u                       ) : Str (TextInt(   UInt(u), ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(UInt    u                       ) : Str8(TextInt(        u , ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (UInt    u                       ) : Str (TextInt(        u , ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(ULong   u                       ) : Str8(TextInt(        u , ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (ULong   u                       ) : Str (TextInt(        u , ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(Flt     f                       ) : Str8(TextFlt(        f , ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (Flt     f                       ) : Str (TextFlt(        f , ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(Dbl     d                       ) : Str8(TextDbl(        d , ConstCast(TempChar8<256>()).c)) {}
-Str ::Str (Dbl     d                       ) : Str (TextDbl(        d , ConstCast(TempChar8<256>()).c)) {}
-Str8::Str8(CPtr    p                       ) : Str8(TextHex(UIntPtr(p), ConstCast(TempChar8<256>()).c, SIZE(p)*2, 0, true)) {}
-Str ::Str (CPtr    p                       ) : Str (TextHex(UIntPtr(p), ConstCast(TempChar8<256>()).c, SIZE(p)*2, 0, true)) {}
+Str8::Str8(                           ) {   _length=         0 ;                                                                                 }
+Str ::Str (                           ) {   _length=         0 ;                                                                                 }
+Str8::Str8(Char8   c                  ) {if(_length=  (c!='\0')){_d.setNum(length()+1                                    ); _d[0]=          c ; _d[1]='\0';       }}
+Str ::Str (Char    c                  ) {if(_length=  (c!='\0')){_d.setNum(length()+1                                    ); _d[0]=          c ; _d[1]='\0';       }}
+Str8::Str8(Char    c                  ) {if(_length=  (c!='\0')){_d.setNum(length()+1                                    ); _d[0]=Char16To8(c); _d[1]='\0';       }}
+Str ::Str (Char8   c                  ) {if(_length=  (c!='\0')){_d.setNum(length()+1                                    ); _d[0]=Char8To16(c); _d[1]='\0';       }}
+Str8::Str8(CChar8 *t                  ) {if(_length=  Length(t)){_d.setNum(length()+1                                    ); CopyFastN(_d.data(),   t,  _d.elms());}}
+Str ::Str (CChar  *t                  ) {if(_length=  Length(t)){_d.setNum(length()+1                                    ); CopyFastN(_d.data(),   t,  _d.elms());}}
+Str8::Str8(CChar  *t                  ) {if(_length=  Length(t)){_d.setNum(length()+1                                    ); Set      (_d.data(),   t,  _d.elms());}}
+Str8::Str8(C wchar_t *t               ) {if(_length=  Length(t)){_d.setNum(length()+1                                    );_Set      (_d.data(),   t,  _d.elms());}}
+Str ::Str (C wchar_t *t               ) {if(_length=  Length(t)){_d.setNum(length()+1                                    );_Set      (_d.data(),   t,  _d.elms());}}
+Str ::Str (CChar8 *t                  ) {if(_length=  Length(t)){_d.setNum(length()+1                                    ); Set      (_d.data(),   t,  _d.elms());}}
+Str8::Str8(C Str8 &s                  ) {if(_length=s.length( )){_d.setNum(length()+1                                    ); CopyFastN(_d.data(), s(),  _d.elms());}}
+Str ::Str (C Str  &s                  ) {if(_length=s.length( )){_d.setNum(length()+1                                    ); CopyFastN(_d.data(), s(),  _d.elms());}}
+Str8::Str8(C Str8 &s, Int extra_length) {   _length=s.length( ); _d.setNum(StrSize(s._d.elms(), s.length(), extra_length)); CopyN    (_d.data(), s(), length()+1); } // use 'CopyN' in case s() is null
+Str ::Str (C Str  &s, Int extra_length) {   _length=s.length( ); _d.setNum(StrSize(s._d.elms(), s.length(), extra_length)); CopyN    (_d.data(), s(), length()+1); } // use 'CopyN' in case s() is null
+Str ::Str (C Str8 &s, Int extra_length) {   _length=s.length( ); _d.setNum(StrSize(s._d.elms(), s.length(), extra_length)); I(); FREP (length())_d[i]=Char8To16Fast(s()[i]); _d[length()]='\0'; } // don't use 'Set' to allow copying '\0' chars in the middle, use () to avoid range checks
+Str8::Str8(C Str  &s                  ) {if(_length=s.length( )){_d.setNum(length()+1                                    ); I(); FREPA(    _d  )_d[i]=Char16To8Fast(s()[i]);                   }} // don't use 'Set' to allow copying '\0' chars in the middle
+Str ::Str (C Str8 &s                  ) {if(_length=s.length( )){_d.setNum(length()+1                                    ); I(); FREPA(    _d  )_d[i]=Char8To16Fast(s()[i]);                   }} // don't use 'Set' to allow copying '\0' chars in the middle
+Str8::Str8(C BStr &s                  ) {if(_length=s.length( )){_d.setNum(length()+1                                    ); I(); FREP (length())_d[i]=Char16To8Fast(s()[i]); _d[length()]='\0';}} // don't use 'Set' to allow copying '\0' chars in the middle, borrowed string may not be null-terminated, use () to avoid range checks
+Str ::Str (C BStr &s                  ) {if(_length=s.length( )){_d.setNum(length()+1                                    ); CopyFastN(_d.data(), s(), length()  );           _d[length()]='\0';}} // don't use 'Set' to allow copying '\0' chars in the middle, borrowed string may not be null-terminated
+Str8::Str8(Bool    b                  ) {   _length=         1 ; _d.setNum(         2                                    ); _d[0]=(b ? '1' : '0'); _d[1]='\0';}
+Str ::Str (Bool    b                  ) {   _length=         1 ; _d.setNum(         2                                    ); _d[0]=(b ? '1' : '0'); _d[1]='\0';}
+Str8::Str8(SByte   i                  ) : Str8(TextInt(    Int(i), ConstCast(TempChar8<256>()).c)) {}
+Str ::Str (SByte   i                  ) : Str (TextInt(    Int(i), ConstCast(TempChar8<256>()).c)) {}
+Str8::Str8(Int     i                  ) : Str8(TextInt(        i , ConstCast(TempChar8<256>()).c)) {}
+Str ::Str (Int     i                  ) : Str (TextInt(        i , ConstCast(TempChar8<256>()).c)) {}
+Str8::Str8(Long    i                  ) : Str8(TextInt(        i , ConstCast(TempChar8<256>()).c)) {}
+Str ::Str (Long    i                  ) : Str (TextInt(        i , ConstCast(TempChar8<256>()).c)) {}
+Str8::Str8(Byte    u                  ) : Str8(TextInt(   UInt(u), ConstCast(TempChar8<256>()).c)) {}
+Str ::Str (Byte    u                  ) : Str (TextInt(   UInt(u), ConstCast(TempChar8<256>()).c)) {}
+Str8::Str8(UInt    u                  ) : Str8(TextInt(        u , ConstCast(TempChar8<256>()).c)) {}
+Str ::Str (UInt    u                  ) : Str (TextInt(        u , ConstCast(TempChar8<256>()).c)) {}
+Str8::Str8(ULong   u                  ) : Str8(TextInt(        u , ConstCast(TempChar8<256>()).c)) {}
+Str ::Str (ULong   u                  ) : Str (TextInt(        u , ConstCast(TempChar8<256>()).c)) {}
+Str8::Str8(Flt     f                  ) : Str8(TextFlt(        f , ConstCast(TempChar8<256>()).c)) {}
+Str ::Str (Flt     f                  ) : Str (TextFlt(        f , ConstCast(TempChar8<256>()).c)) {}
+Str8::Str8(Dbl     d                  ) : Str8(TextDbl(        d , ConstCast(TempChar8<256>()).c)) {}
+Str ::Str (Dbl     d                  ) : Str (TextDbl(        d , ConstCast(TempChar8<256>()).c)) {}
+Str8::Str8(CPtr    p                  ) : Str8(TextHex(UIntPtr(p), ConstCast(TempChar8<256>()).c, SIZE(p)*2, 0, true)) {}
+Str ::Str (CPtr    p                  ) : Str (TextHex(UIntPtr(p), ConstCast(TempChar8<256>()).c, SIZE(p)*2, 0, true)) {}
 
 Str8::Str8(C Vec2   &v) : Str8() {T=v;}
 Str ::Str (C Vec2   &v) : Str () {T=v;}
@@ -3602,37 +3603,37 @@ Str& Str::operator+=(C VecSB4 &v) {Char8 temp[256]; T+=TextInt(v.x, temp); T+=",
 Str8 Str8::operator+(CChar8 *t)C
 {
    if(!Is(t))return T;
-   Int length=Length(t); Str8 s(T, length+EXTRA); CopyFastN(s._d.data()+s.length(), t, 1+length); s._length+=length;
+   Int length=Length(t); Str8 s(T, length); CopyFastN(s._d.data()+s.length(), t, 1+length); s._length+=length;
    return s;
 }
 Str Str8::operator+(CChar *t)C
 {
    if(!Is(t))return T;
-   Int length=Length(t); Str s(T, length+EXTRA); CopyFastN(s._d.data()+s.length(), t, 1+length); s._length+=length;
+   Int length=Length(t); Str s(T, length); CopyFastN(s._d.data()+s.length(), t, 1+length); s._length+=length;
    return s;
 }
 Str Str::operator+(CChar8 *t)C
 {
    if(!Is(t))return T;
-   Int length=Length(t); Str s(T, length+EXTRA); Set(s._d.data()+s.length(), t, 1+length); s._length+=length;
+   Int length=Length(t); Str s(T, length); Set(s._d.data()+s.length(), t, 1+length); s._length+=length;
    return s;
 }
 Str Str::operator+(CChar *t)C
 {
    if(!Is(t))return T;
-   Int length=Length(t); Str s(T, length+EXTRA); CopyFastN(s._d.data()+s.length(), t, 1+length); s._length+=length;
+   Int length=Length(t); Str s(T, length); CopyFastN(s._d.data()+s.length(), t, 1+length); s._length+=length;
    return s;
 }
 Str Str8::operator+(C wchar_t *t)C
 {
    if(!Is(t))return T;
-   Int length=Length(t); Str s(T, length+EXTRA); _Set(s._d.data()+s.length(), t, 1+length); s._length+=length;
+   Int length=Length(t); Str s(T, length); _Set(s._d.data()+s.length(), t, 1+length); s._length+=length;
    return s;
 }
 Str Str::operator+(C wchar_t *t)C
 {
    if(!Is(t))return T;
-   Int length=Length(t); Str s(T, length+EXTRA); _Set(s._d.data()+s.length(), t, 1+length); s._length+=length;
+   Int length=Length(t); Str s(T, length); _Set(s._d.data()+s.length(), t, 1+length); s._length+=length;
    return s;
 }
 /******************************************************************************/
@@ -3648,70 +3649,70 @@ Str Str::operator+(C wchar_t *t)C
 #define    PTRC (2+(X64?16:8)) // Ptr    chars X64 ? "0x1234567812345678" : "0x12345678"
 #define   COMMA            2   // comma  chars ", "
 
-Str8 Str8::operator+(C Str8   &s)C {return RValue(Str8(T,          s.length() + EXTRA)+=s);}
-Str  Str8::operator+(C Str    &s)C {return RValue(Str (T,          s.length() + EXTRA)+=s);}
-Str  Str ::operator+(C Str8   &s)C {return RValue(Str (T,          s.length() + EXTRA)+=s);}
-Str  Str ::operator+(C Str    &s)C {return RValue(Str (T,          s.length() + EXTRA)+=s);}
-Str  Str8::operator+(C BStr   &s)C {return RValue(Str (T,          s.length() + EXTRA)+=s);}
-Str  Str ::operator+(C BStr   &s)C {return RValue(Str (T,          s.length() + EXTRA)+=s);}
-Str8 Str8::operator+(  Char8   c)C {return RValue(Str8(T,                   1 + EXTRA)+=c);}
-Str  Str8::operator+(  Char    c)C {return RValue(Str (T,                   1 + EXTRA)+=c);}
-Str  Str ::operator+(  Char8   c)C {return RValue(Str (T,                   1 + EXTRA)+=c);}
-Str  Str ::operator+(  Char    c)C {return RValue(Str (T,                   1 + EXTRA)+=c);}
-Str8 Str8::operator+(  Bool    b)C {return RValue(Str8(T,                   1 + EXTRA)+=b);}
-Str  Str ::operator+(  Bool    b)C {return RValue(Str (T,                   1 + EXTRA)+=b);}
-Str8 Str8::operator+(  SByte   i)C {return RValue(Str8(T,    SBYTEC +           EXTRA)+=i);}
-Str  Str ::operator+(  SByte   i)C {return RValue(Str (T,    SBYTEC +           EXTRA)+=i);}
-Str8 Str8::operator+(  Int     i)C {return RValue(Str8(T,      INTC +           EXTRA)+=i);}
-Str  Str ::operator+(  Int     i)C {return RValue(Str (T,      INTC +           EXTRA)+=i);}
-Str8 Str8::operator+(  Long    i)C {return RValue(Str8(T,     LONGC +           EXTRA)+=i);}
-Str  Str ::operator+(  Long    i)C {return RValue(Str (T,     LONGC +           EXTRA)+=i);}
-Str8 Str8::operator+(  Byte    u)C {return RValue(Str8(T,     BYTEC +           EXTRA)+=u);}
-Str  Str ::operator+(  Byte    u)C {return RValue(Str (T,     BYTEC +           EXTRA)+=u);}
-Str8 Str8::operator+(  UInt    u)C {return RValue(Str8(T,     UINTC +           EXTRA)+=u);}
-Str  Str ::operator+(  UInt    u)C {return RValue(Str (T,     UINTC +           EXTRA)+=u);}
-Str8 Str8::operator+(  ULong   u)C {return RValue(Str8(T,    ULONGC +           EXTRA)+=u);}
-Str  Str ::operator+(  ULong   u)C {return RValue(Str (T,    ULONGC +           EXTRA)+=u);}
-Str8 Str8::operator+(  Flt     f)C {return RValue(Str8(T,      FLTC +           EXTRA)+=f);}
-Str  Str ::operator+(  Flt     f)C {return RValue(Str (T,      FLTC +           EXTRA)+=f);}
-Str8 Str8::operator+(  Dbl     d)C {return RValue(Str8(T,      DBLC +           EXTRA)+=d);}
-Str  Str ::operator+(  Dbl     d)C {return RValue(Str (T,      DBLC +           EXTRA)+=d);}
-Str8 Str8::operator+(  CPtr    p)C {return RValue(Str8(T,      PTRC +           EXTRA)+=p);}
-Str  Str ::operator+(  CPtr    p)C {return RValue(Str (T,      PTRC +           EXTRA)+=p);}
-Str8 Str8::operator+(C Vec2   &v)C {return RValue(Str8(T, 2*   FLTC +   COMMA + EXTRA)+=v);}
-Str  Str ::operator+(C Vec2   &v)C {return RValue(Str (T, 2*   FLTC +   COMMA + EXTRA)+=v);}
-Str8 Str8::operator+(C VecD2  &v)C {return RValue(Str8(T, 2*   DBLC +   COMMA + EXTRA)+=v);}
-Str  Str ::operator+(C VecD2  &v)C {return RValue(Str (T, 2*   DBLC +   COMMA + EXTRA)+=v);}
-Str8 Str8::operator+(C VecI2  &v)C {return RValue(Str8(T, 2*   INTC +   COMMA + EXTRA)+=v);}
-Str  Str ::operator+(C VecI2  &v)C {return RValue(Str (T, 2*   INTC +   COMMA + EXTRA)+=v);}
-Str8 Str8::operator+(C VecB2  &v)C {return RValue(Str8(T, 2*  BYTEC +   COMMA + EXTRA)+=v);}
-Str  Str ::operator+(C VecB2  &v)C {return RValue(Str (T, 2*  BYTEC +   COMMA + EXTRA)+=v);}
-Str8 Str8::operator+(C VecSB2 &v)C {return RValue(Str8(T, 2* SBYTEC +   COMMA + EXTRA)+=v);}
-Str  Str ::operator+(C VecSB2 &v)C {return RValue(Str (T, 2* SBYTEC +   COMMA + EXTRA)+=v);}
-Str8 Str8::operator+(C VecUS2 &v)C {return RValue(Str8(T, 2*USHORTC +   COMMA + EXTRA)+=v);}
-Str  Str ::operator+(C VecUS2 &v)C {return RValue(Str (T, 2*USHORTC +   COMMA + EXTRA)+=v);}
-Str8 Str8::operator+(C Vec    &v)C {return RValue(Str8(T, 3*   FLTC + 2*COMMA + EXTRA)+=v);}
-Str  Str ::operator+(C Vec    &v)C {return RValue(Str (T, 3*   FLTC + 2*COMMA + EXTRA)+=v);}
-Str8 Str8::operator+(C VecD   &v)C {return RValue(Str8(T, 3*   DBLC + 2*COMMA + EXTRA)+=v);}
-Str  Str ::operator+(C VecD   &v)C {return RValue(Str (T, 3*   DBLC + 2*COMMA + EXTRA)+=v);}
-Str8 Str8::operator+(C VecI   &v)C {return RValue(Str8(T, 3*   INTC + 2*COMMA + EXTRA)+=v);}
-Str  Str ::operator+(C VecI   &v)C {return RValue(Str (T, 3*   INTC + 2*COMMA + EXTRA)+=v);}
-Str8 Str8::operator+(C VecB   &v)C {return RValue(Str8(T, 3*  BYTEC + 2*COMMA + EXTRA)+=v);}
-Str  Str ::operator+(C VecB   &v)C {return RValue(Str (T, 3*  BYTEC + 2*COMMA + EXTRA)+=v);}
-Str8 Str8::operator+(C VecSB  &v)C {return RValue(Str8(T, 3* SBYTEC + 2*COMMA + EXTRA)+=v);}
-Str  Str ::operator+(C VecSB  &v)C {return RValue(Str (T, 3* SBYTEC + 2*COMMA + EXTRA)+=v);}
-Str8 Str8::operator+(C VecUS  &v)C {return RValue(Str8(T, 3*USHORTC + 2*COMMA + EXTRA)+=v);}
-Str  Str ::operator+(C VecUS  &v)C {return RValue(Str (T, 3*USHORTC + 2*COMMA + EXTRA)+=v);}
-Str8 Str8::operator+(C Vec4   &v)C {return RValue(Str8(T, 4*   FLTC + 3*COMMA + EXTRA)+=v);}
-Str  Str ::operator+(C Vec4   &v)C {return RValue(Str (T, 4*   FLTC + 3*COMMA + EXTRA)+=v);}
-Str8 Str8::operator+(C VecD4  &v)C {return RValue(Str8(T, 4*   DBLC + 3*COMMA + EXTRA)+=v);}
-Str  Str ::operator+(C VecD4  &v)C {return RValue(Str (T, 4*   DBLC + 3*COMMA + EXTRA)+=v);}
-Str8 Str8::operator+(C VecI4  &v)C {return RValue(Str8(T, 4*   INTC + 3*COMMA + EXTRA)+=v);}
-Str  Str ::operator+(C VecI4  &v)C {return RValue(Str (T, 4*   INTC + 3*COMMA + EXTRA)+=v);}
-Str8 Str8::operator+(C VecB4  &v)C {return RValue(Str8(T, 4*  BYTEC + 3*COMMA + EXTRA)+=v);}
-Str  Str ::operator+(C VecB4  &v)C {return RValue(Str (T, 4*  BYTEC + 3*COMMA + EXTRA)+=v);}
-Str8 Str8::operator+(C VecSB4 &v)C {return RValue(Str8(T, 4* SBYTEC + 3*COMMA + EXTRA)+=v);}
-Str  Str ::operator+(C VecSB4 &v)C {return RValue(Str (T, 4* SBYTEC + 3*COMMA + EXTRA)+=v);}
+Str8 Str8::operator+(C Str8   &s)C {return RValue(Str8(T,          s.length())+=s);}
+Str  Str8::operator+(C Str    &s)C {return RValue(Str (T,          s.length())+=s);}
+Str  Str ::operator+(C Str8   &s)C {return RValue(Str (T,          s.length())+=s);}
+Str  Str ::operator+(C Str    &s)C {return RValue(Str (T,          s.length())+=s);}
+Str  Str8::operator+(C BStr   &s)C {return RValue(Str (T,          s.length())+=s);}
+Str  Str ::operator+(C BStr   &s)C {return RValue(Str (T,          s.length())+=s);}
+Str8 Str8::operator+(  Char8   c)C {return RValue(Str8(T,                   1)+=c);}
+Str  Str8::operator+(  Char    c)C {return RValue(Str (T,                   1)+=c);}
+Str  Str ::operator+(  Char8   c)C {return RValue(Str (T,                   1)+=c);}
+Str  Str ::operator+(  Char    c)C {return RValue(Str (T,                   1)+=c);}
+Str8 Str8::operator+(  Bool    b)C {return RValue(Str8(T,                   1)+=b);}
+Str  Str ::operator+(  Bool    b)C {return RValue(Str (T,                   1)+=b);}
+Str8 Str8::operator+(  SByte   i)C {return RValue(Str8(T,    SBYTEC          )+=i);}
+Str  Str ::operator+(  SByte   i)C {return RValue(Str (T,    SBYTEC          )+=i);}
+Str8 Str8::operator+(  Int     i)C {return RValue(Str8(T,      INTC          )+=i);}
+Str  Str ::operator+(  Int     i)C {return RValue(Str (T,      INTC          )+=i);}
+Str8 Str8::operator+(  Long    i)C {return RValue(Str8(T,     LONGC          )+=i);}
+Str  Str ::operator+(  Long    i)C {return RValue(Str (T,     LONGC          )+=i);}
+Str8 Str8::operator+(  Byte    u)C {return RValue(Str8(T,     BYTEC          )+=u);}
+Str  Str ::operator+(  Byte    u)C {return RValue(Str (T,     BYTEC          )+=u);}
+Str8 Str8::operator+(  UInt    u)C {return RValue(Str8(T,     UINTC          )+=u);}
+Str  Str ::operator+(  UInt    u)C {return RValue(Str (T,     UINTC          )+=u);}
+Str8 Str8::operator+(  ULong   u)C {return RValue(Str8(T,    ULONGC          )+=u);}
+Str  Str ::operator+(  ULong   u)C {return RValue(Str (T,    ULONGC          )+=u);}
+Str8 Str8::operator+(  Flt     f)C {return RValue(Str8(T,      FLTC          )+=f);}
+Str  Str ::operator+(  Flt     f)C {return RValue(Str (T,      FLTC          )+=f);}
+Str8 Str8::operator+(  Dbl     d)C {return RValue(Str8(T,      DBLC          )+=d);}
+Str  Str ::operator+(  Dbl     d)C {return RValue(Str (T,      DBLC          )+=d);}
+Str8 Str8::operator+(  CPtr    p)C {return RValue(Str8(T,      PTRC          )+=p);}
+Str  Str ::operator+(  CPtr    p)C {return RValue(Str (T,      PTRC          )+=p);}
+Str8 Str8::operator+(C Vec2   &v)C {return RValue(Str8(T, 2*   FLTC +   COMMA)+=v);}
+Str  Str ::operator+(C Vec2   &v)C {return RValue(Str (T, 2*   FLTC +   COMMA)+=v);}
+Str8 Str8::operator+(C VecD2  &v)C {return RValue(Str8(T, 2*   DBLC +   COMMA)+=v);}
+Str  Str ::operator+(C VecD2  &v)C {return RValue(Str (T, 2*   DBLC +   COMMA)+=v);}
+Str8 Str8::operator+(C VecI2  &v)C {return RValue(Str8(T, 2*   INTC +   COMMA)+=v);}
+Str  Str ::operator+(C VecI2  &v)C {return RValue(Str (T, 2*   INTC +   COMMA)+=v);}
+Str8 Str8::operator+(C VecB2  &v)C {return RValue(Str8(T, 2*  BYTEC +   COMMA)+=v);}
+Str  Str ::operator+(C VecB2  &v)C {return RValue(Str (T, 2*  BYTEC +   COMMA)+=v);}
+Str8 Str8::operator+(C VecSB2 &v)C {return RValue(Str8(T, 2* SBYTEC +   COMMA)+=v);}
+Str  Str ::operator+(C VecSB2 &v)C {return RValue(Str (T, 2* SBYTEC +   COMMA)+=v);}
+Str8 Str8::operator+(C VecUS2 &v)C {return RValue(Str8(T, 2*USHORTC +   COMMA)+=v);}
+Str  Str ::operator+(C VecUS2 &v)C {return RValue(Str (T, 2*USHORTC +   COMMA)+=v);}
+Str8 Str8::operator+(C Vec    &v)C {return RValue(Str8(T, 3*   FLTC + 2*COMMA)+=v);}
+Str  Str ::operator+(C Vec    &v)C {return RValue(Str (T, 3*   FLTC + 2*COMMA)+=v);}
+Str8 Str8::operator+(C VecD   &v)C {return RValue(Str8(T, 3*   DBLC + 2*COMMA)+=v);}
+Str  Str ::operator+(C VecD   &v)C {return RValue(Str (T, 3*   DBLC + 2*COMMA)+=v);}
+Str8 Str8::operator+(C VecI   &v)C {return RValue(Str8(T, 3*   INTC + 2*COMMA)+=v);}
+Str  Str ::operator+(C VecI   &v)C {return RValue(Str (T, 3*   INTC + 2*COMMA)+=v);}
+Str8 Str8::operator+(C VecB   &v)C {return RValue(Str8(T, 3*  BYTEC + 2*COMMA)+=v);}
+Str  Str ::operator+(C VecB   &v)C {return RValue(Str (T, 3*  BYTEC + 2*COMMA)+=v);}
+Str8 Str8::operator+(C VecSB  &v)C {return RValue(Str8(T, 3* SBYTEC + 2*COMMA)+=v);}
+Str  Str ::operator+(C VecSB  &v)C {return RValue(Str (T, 3* SBYTEC + 2*COMMA)+=v);}
+Str8 Str8::operator+(C VecUS  &v)C {return RValue(Str8(T, 3*USHORTC + 2*COMMA)+=v);}
+Str  Str ::operator+(C VecUS  &v)C {return RValue(Str (T, 3*USHORTC + 2*COMMA)+=v);}
+Str8 Str8::operator+(C Vec4   &v)C {return RValue(Str8(T, 4*   FLTC + 3*COMMA)+=v);}
+Str  Str ::operator+(C Vec4   &v)C {return RValue(Str (T, 4*   FLTC + 3*COMMA)+=v);}
+Str8 Str8::operator+(C VecD4  &v)C {return RValue(Str8(T, 4*   DBLC + 3*COMMA)+=v);}
+Str  Str ::operator+(C VecD4  &v)C {return RValue(Str (T, 4*   DBLC + 3*COMMA)+=v);}
+Str8 Str8::operator+(C VecI4  &v)C {return RValue(Str8(T, 4*   INTC + 3*COMMA)+=v);}
+Str  Str ::operator+(C VecI4  &v)C {return RValue(Str (T, 4*   INTC + 3*COMMA)+=v);}
+Str8 Str8::operator+(C VecB4  &v)C {return RValue(Str8(T, 4*  BYTEC + 3*COMMA)+=v);}
+Str  Str ::operator+(C VecB4  &v)C {return RValue(Str (T, 4*  BYTEC + 3*COMMA)+=v);}
+Str8 Str8::operator+(C VecSB4 &v)C {return RValue(Str8(T, 4* SBYTEC + 3*COMMA)+=v);}
+Str  Str ::operator+(C VecSB4 &v)C {return RValue(Str (T, 4* SBYTEC + 3*COMMA)+=v);}
 /******************************************************************************/
 // STRING LIBRARY
 /******************************************************************************/

@@ -39,7 +39,7 @@ struct Str8 // Text String (8-bit per character)
 
 #if EE_PRIVATE
    void alwaysAppend(Char8 c);
-   explicit Str8(C Str8 &s, Int additional_length);
+   explicit Str8(C Str8 &s, Int extra_length);
 #endif
    Str8(           );
    Str8(  Str8  &&s);   Str8& operator=(  Str8  &&s);
