@@ -2,10 +2,10 @@
 #include "stdafx.h"
 
 #define USE_STD WINDOWS // 'iswalpha' on Apple/Linux supports only ASCII, on Android it works on more characters but not the same as on Windows, we need consistent results across all platforms, so use 'iswalpha' on Windows, and 'Alphas' on other platforms (which was pre-computed from 'iswalpha' on Windows)
-#define EXTRA 32 // extra length allocated, used for appending
-ASSERT(EXTRA>=2); // must be at least 2 because we use it for setting characters (char+NUL)
 
 namespace EE{
+/******************************************************************************/
+static Int StrSize(Int New, Int Old) {return Max(16, New, Old + Old/2);}
 /******************************************************************************/
 static const Char
             CharEnDash     =u'–',
@@ -2888,7 +2888,7 @@ Str8& Str8::insert(Int i, Char8 c)
       Clamp(i, 0, length());
       Int size=length()+2; if(size>_d.elms())
       {
-         Mems<Char8> temp(size+EXTRA);
+         Mems<Char8> temp(StrSize(size, _d.elms()));
          CopyFastN( temp.data(), T()  ,          i); // copy text before 'i'
                     temp[i    ]=c;                   // copy 'c'  into   'i'
          CopyFastN(&temp[i+1  ], T()+i, length()-i); // copy text after  'i'
@@ -2909,7 +2909,7 @@ Str& Str::insert(Int i, Char c)
       Clamp(i, 0, length());
       Int size=length()+2; if(size>_d.elms())
       {
-         Mems<Char> temp(size+EXTRA);
+         Mems<Char> temp(StrSize(size, _d.elms()));
          CopyFastN( temp.data(), T()  ,          i); // copy text before 'i'
                     temp[i    ]=c;                   // copy 'c'  into   'i'
          CopyFastN(&temp[i+1  ], T()+i, length()-i); // copy text after  'i'
@@ -2931,7 +2931,7 @@ Str8& Str8::insert(Int i, C Str8 &text)
       Clamp(i, 0, length());
       Int size=length()+text.length()+1; if(size>_d.elms())
       {
-         Mems<Char8> temp(size+EXTRA);
+         Mems<Char8> temp(StrSize(size, _d.elms()));
          CopyFastN( temp.data()          , T()   ,               i); // copy  text  before 'i'
          CopyFastN(&temp[i              ], text(), text.length()  ); // copy 'text' into   'i'
          CopyFastN(&temp[i+text.length()], T()+i ,      length()-i); // copy  text  after  'i'
@@ -2952,7 +2952,7 @@ Str& Str::insert(Int i, C Str &text)
       Clamp(i, 0, length());
       Int size=length()+text.length()+1; if(size>_d.elms())
       {
-         Mems<Char> temp(size+EXTRA);
+         Mems<Char> temp(StrSize(size, _d.elms()));
          CopyFastN( temp.data()          , T()   ,               i); // copy  text  before 'i'
          CopyFastN(&temp[i              ], text(), text.length()  ); // copy 'text' into   'i'
          CopyFastN(&temp[i+text.length()], T()+i ,      length()-i); // copy  text  after  'i'
@@ -3232,182 +3232,6 @@ Str& Str::operator=(Char c)
    return T;
 }
 /******************************************************************************/
-// OPERATOR+=
-/******************************************************************************/
-Str8& Str8::operator+=(CChar8 *t)
-{
-   if(Is(t))
-   {
-      Int length_src =Length(t),
-          length_dest=length()+length_src+1;
-      if( length_dest>_d.elms())
-      {
-         UIntPtr offset=t-T();
-        _d.setNum(length_dest+EXTRA, length()+1); // +1 because 't' can be part of 'T'
-         if(offset<UIntPtr(length()))t=T()+offset; // if adding text from self
-      }
-      MoveFastN(_d.data()+length(), t, length_src+1); // if 't' belongs to self then the last '\0' will overlap
-     _length+=length_src;
-   }
-   return T;
-}
-Str8& Str8::operator+=(CChar *t)
-{
-   if(Is(t))
-   {
-      Int length_src =Length(t),
-          length_dest=length()+    length_src+1; if(length_dest>_d.elms())_d.setNum(length_dest+EXTRA, length());
-      Set(  _d.data()+length(), t, length_src+1);
-     _length+=length_src;
-   }
-   return T;
-}
-Str8& Str8::operator+=(C wchar_t *t)
-{
-   if(Is(t))
-   {
-      Int length_src =Length(t),
-          length_dest=length()+    length_src+1; if(length_dest>_d.elms())_d.setNum(length_dest+EXTRA, length());
-     _Set(  _d.data()+length(), t, length_src+1);
-     _length+=length_src;
-   }
-   return T;
-}
-Str& Str::operator+=(CChar8 *t)
-{
-   if(Is(t))
-   {
-      Int length_src =Length(t),
-          length_dest=length()+    length_src+1; if(length_dest>_d.elms())_d.setNum(length_dest+EXTRA, length());
-      Set(  _d.data()+length(), t, length_src+1);
-     _length+=length_src;
-   }
-   return T;
-}
-Str& Str::operator+=(CChar *t)
-{
-   if(Is(t))
-   {
-      Int length_src =Length(t),
-          length_dest=length()+length_src+1;
-      if( length_dest>_d.elms())
-      {
-         UIntPtr offset=t-T();
-        _d.setNum(length_dest+EXTRA, length()+1); // +1 because 't' can be part of 'T'
-         if(offset<UIntPtr(length()))t=T()+offset; // if adding text from self
-      }
-      MoveFastN(_d.data()+length(), t, length_src+1); // if 't' belongs to self then the last '\0' will overlap
-     _length+=length_src;
-   }
-   return T;
-}
-Str& Str::operator+=(C wchar_t *t)
-{
-   if(Is(t))
-   {
-      Int length_src =Length(t),
-          length_dest=length()+    length_src+1; if(length_dest>_d.elms())_d.setNum(length_dest+EXTRA, length());
-     _Set(  _d.data()+length(), t, length_src+1);
-     _length+=length_src;
-   }
-   return T;
-}
-/******************************************************************************/
-Str8& Str8::operator+=(C Str8 &s)
-{
-   if(s.is())
-   {
-      Int     length_dest=length()+      s.length()+1; if(length_dest>_d.elms())_d.setNum(length_dest+EXTRA, length()+1); // +1 because 's' can be 'this'
-      MoveFastN(_d.data()+length(), s(), s.length()+1); // if 's' is this then the last '\0' will overlap
-     _length+=s.length();
-   }
-   return T;
-}
-Str8& Str8::operator+=(C Str &s)
-{
-   if(s.is())
-   {
-      Int length_dest=length()+s.length()+1; if(length_dest>_d.elms())_d.setNum(length_dest+EXTRA, length());
-      I(); FREP(s.length()+1)_d[length()+i]=Char16To8Fast(s()[i]); // don't use 'Set' to allow copying '\0' chars in the middle - Set(_d.data()+length(), s(), s.length()+1)
-     _length+=s.length();
-   }
-   return T;
-}
-Str& Str::operator+=(C Str8 &s)
-{
-   if(s.is())
-   {
-      Int length_dest=length()+s.length()+1; if(length_dest>_d.elms())_d.setNum(length_dest+EXTRA, length());
-      I(); FREP(s.length()+1)_d[length()+i]=Char8To16Fast(s()[i]); // don't use 'Set' to allow copying '\0' chars in the middle - Set(_d.data()+length(), s(), s.length()+1)
-     _length+=s.length();
-   }
-   return T;
-}
-Str& Str::operator+=(C Str &s)
-{
-   if(s.is())
-   {
-      Int     length_dest=length()+      s.length()+1; if(length_dest>_d.elms())_d.setNum(length_dest+EXTRA, length()+1); // +1 because 's' can be 'this'
-      MoveFastN(_d.data()+length(), s(), s.length()+1); // if 's' is this then the last '\0' will overlap
-     _length+=s.length();
-   }
-   return T;
-}
-/******************************************************************************/
-Str8& Str8::operator+=(Char8 c)
-{
-   if(c)
-   {
-      if(length()+1>=_d.elms())_d.addNum(EXTRA);
-     _d[_length++]=c;
-     _d[_length  ]='\0';
-   }
-   return T;
-}
-Str8& Str8::operator+=(Char c)
-{
-   if(c)
-   {
-      if(length()+1>=_d.elms())_d.addNum(EXTRA);
-     _d[_length++]=Char16To8(c);
-     _d[_length  ]='\0';
-   }
-   return T;
-}
-Str& Str::operator+=(Char8 c)
-{
-   if(c)
-   {
-      if(length()+1>=_d.elms())_d.addNum(EXTRA);
-     _d[_length++]=Char8To16(c);
-     _d[_length  ]='\0';
-   }
-   return T;
-}
-Str& Str::operator+=(Char c)
-{
-   if(c)
-   {
-      if(length()+1>=_d.elms())_d.addNum(EXTRA);
-     _d[_length++]=c;
-     _d[_length  ]='\0';
-   }
-   return T;
-}
-/******************************************************************************/
-void Str8::alwaysAppend(Char8 c)
-{
-   if(length()+1>=_d.elms())_d.addNum(EXTRA);
-  _d[_length++]=c;
-  _d[_length  ]='\0';
-}
-void Str::alwaysAppend(Char c)
-{
-   if(length()+1>=_d.elms())_d.addNum(EXTRA);
-  _d[_length++]=c;
-  _d[_length  ]='\0';
-}
-/******************************************************************************/
 Str8& Str8::operator=(C BStr &s)
 {
    if(!s.is())clear();else
@@ -3428,11 +3252,191 @@ Str& Str::operator=(C BStr &s)
    }
    return T;
 }
+/******************************************************************************/
+// OPERATOR+=
+/******************************************************************************/
+static inline void Reserve(Str8 &s, Int length) // !! does not set last char as NUL !!
+{
+      length+=s.length()+1; // +1 for NUL char
+   if(length> s._d.elms())s._d.setNum(StrSize(length, s._d.elms()), s.length());
+}
+static inline void Reserve(Str &s, Int length) // !! does not set last char as NUL !!
+{
+      length+=s.length()+1; // +1 for NUL char
+   if(length> s._d.elms())s._d.setNum(StrSize(length, s._d.elms()), s.length());
+}
+/******************************************************************************/
+Str8& Str8::operator+=(CChar8 *t)
+{
+   if(Is(t))
+   {
+      Int length_src=Length(t), size=length()+length_src+1; if(size>_d.elms())
+      {
+         UIntPtr offset=t-T();
+        _d.setNum(size+EXTRA, length()+1); // +1 because 't' can be part of 'T'
+         if(offset<UIntPtr(length()))t=T()+offset; // if adding text from self
+      }
+      MoveFastN(_d.data()+length(), t, length_src+1); // if 't' belongs to self then the last '\0' will overlap
+     _length+=length_src;
+   }
+   return T;
+}
+Str8& Str8::operator+=(CChar *t)
+{
+   if(Is(t))
+   {
+      Int length_src=Length(t); Reserve(T, length_src);
+      Set(_d.data()+length(), t, length_src+1);
+     _length+=length_src;
+   }
+   return T;
+}
+Str8& Str8::operator+=(C wchar_t *t)
+{
+   if(Is(t))
+   {
+      Int length_src=Length(t); Reserve(T, length_src);
+     _Set(_d.data()+length(), t, length_src+1);
+     _length+=length_src;
+   }
+   return T;
+}
+Str& Str::operator+=(CChar8 *t)
+{
+   if(Is(t))
+   {
+      Int length_src=Length(t); Reserve(T, length_src);
+      Set(_d.data()+length(), t, length_src+1);
+     _length+=length_src;
+   }
+   return T;
+}
+Str& Str::operator+=(CChar *t)
+{
+   if(Is(t))
+   {
+      Int length_src=Length(t), size=length()+length_src+1; if(size>_d.elms())
+      {
+         UIntPtr offset=t-T();
+        _d.setNum(size+EXTRA, length()+1); // +1 because 't' can be part of 'T'
+         if(offset<UIntPtr(length()))t=T()+offset; // if adding text from self
+      }
+      MoveFastN(_d.data()+length(), t, length_src+1); // if 't' belongs to self then the last '\0' will overlap
+     _length+=length_src;
+   }
+   return T;
+}
+Str& Str::operator+=(C wchar_t *t)
+{
+   if(Is(t))
+   {
+      Int length_src=Length(t); Reserve(T, length_src);
+     _Set(_d.data()+length(), t, length_src+1);
+     _length+=length_src;
+   }
+   return T;
+}
+/******************************************************************************/
+Str8& Str8::operator+=(C Str8 &s)
+{
+   if(s.is())
+   {
+      Int size=length()+s.length()+1; if(size>_d.elms())_d.setNum(size+EXTRA, length()+1); // +1 because 's' can be 'this'
+      MoveFastN(_d.data()+length(), s(), s.length()+1); // if 's' is this then the last '\0' will overlap
+     _length+=s.length();
+   }
+   return T;
+}
+Str8& Str8::operator+=(C Str &s)
+{
+   if(s.is())
+   {
+      Reserve(T, s.length());
+      I(); FREP(s.length()+1)_d[length()+i]=Char16To8Fast(s()[i]); // don't use 'Set' to allow copying '\0' chars in the middle - Set(_d.data()+length(), s(), s.length()+1)
+     _length+=s.length();
+   }
+   return T;
+}
+Str& Str::operator+=(C Str8 &s)
+{
+   if(s.is())
+   {
+      Reserve(T, s.length());
+      I(); FREP(s.length()+1)_d[length()+i]=Char8To16Fast(s()[i]); // don't use 'Set' to allow copying '\0' chars in the middle - Set(_d.data()+length(), s(), s.length()+1)
+     _length+=s.length();
+   }
+   return T;
+}
+Str& Str::operator+=(C Str &s)
+{
+   if(s.is())
+   {
+      Int size=length()+s.length()+1; if(size>_d.elms())_d.setNum(size+EXTRA, length()+1); // +1 because 's' can be 'this'
+      MoveFastN(_d.data()+length(), s(), s.length()+1); // if 's' is this then the last '\0' will overlap
+     _length+=s.length();
+   }
+   return T;
+}
+/******************************************************************************/
+Str8& Str8::operator+=(Char8 c)
+{
+   if(c)
+   {
+      Reserve(T, 1);
+     _d[_length++]=c;
+     _d[_length  ]='\0';
+   }
+   return T;
+}
+Str8& Str8::operator+=(Char c)
+{
+   if(c)
+   {
+      Reserve(T, 1);
+     _d[_length++]=Char16To8(c);
+     _d[_length  ]='\0';
+   }
+   return T;
+}
+Str& Str::operator+=(Char8 c)
+{
+   if(c)
+   {
+      Reserve(T, 1);
+     _d[_length++]=Char8To16(c);
+     _d[_length  ]='\0';
+   }
+   return T;
+}
+Str& Str::operator+=(Char c)
+{
+   if(c)
+   {
+      Reserve(T, 1);
+     _d[_length++]=c;
+     _d[_length  ]='\0';
+   }
+   return T;
+}
+/******************************************************************************/
+void Str8::alwaysAppend(Char8 c)
+{
+   Reserve(T, 1);
+  _d[_length++]=c;
+  _d[_length  ]='\0';
+}
+void Str::alwaysAppend(Char c)
+{
+   Reserve(T, 1);
+  _d[_length++]=c;
+  _d[_length  ]='\0';
+}
+/******************************************************************************/
 Str8& Str8::operator+=(C BStr &s)
 {
    if(s.is())
    {
-      Int length_dest=length()+s.length()+1; if(length_dest>_d.elms())_d.setNum(length_dest+EXTRA, length());
+      Reserve(T, s.length());
       I(); FREPA(s)_d[length()+i]=Char16To8Fast(s()[i]); // () to avoid range checks
      _length+=s.length();
       /*if(_d.elms())*/_d[length()]='\0'; // "if" not needed since we already know 's.is'
@@ -3444,12 +3448,10 @@ Str& Str::operator+=(C BStr &s)
    if(s.is())
    {
       CChar *t=s();
-      Int length_src =s.length(),
-          length_dest=T.length()+length_src+1;
-      if( length_dest>_d.elms())
+      Int length_src=s.length(), size=T.length()+length_src+1; if(size>_d.elms())
       {
          UIntPtr offset=t-T();
-        _d.setNum(length_dest+EXTRA, length()); // +1 not needed because we append '\0' always
+        _d.setNum(size+EXTRA, length()); // +1 not needed because we append '\0' always
          if(offset<UIntPtr(length()))t=T()+offset; // if adding text from self
       }
       MoveFastN(_d.data()+length(), t, length_src); // 't' can be part of 'T'
