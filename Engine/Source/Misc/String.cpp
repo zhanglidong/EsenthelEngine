@@ -3370,6 +3370,16 @@ Str8& Str8::operator+=(C Str8 &s)
    }
    return T;
 }
+Str& Str::operator+=(C Str &s)
+{
+   if(s.is())
+   {
+      Reserve(T, s.length(), true); // keep NUL because 's' can be 'this'
+      MoveFastN(_d.data()+length(), s(), s.length()+1); // use 'MoveFastN' because 's' can be 'this'
+     _length+=s.length();
+   }
+   return T;
+}
 Str8& Str8::operator+=(C Str &s)
 {
    if(s.is())
@@ -3386,16 +3396,6 @@ Str& Str::operator+=(C Str8 &s)
    {
       Reserve(T, s.length());
       I(); FREP(s.length()+1)_d[length()+i]=Char8To16Fast(s()[i]); // don't use 'Set' to allow copying '\0' chars in the middle - Set(_d.data()+length(), s(), s.length()+1)
-     _length+=s.length();
-   }
-   return T;
-}
-Str& Str::operator+=(C Str &s)
-{
-   if(s.is())
-   {
-      Reserve(T, s.length(), true); // keep NUL because 's' can be 'this'
-      MoveFastN(_d.data()+length(), s(), s.length()+1); // use 'MoveFastN' because 's' can be 'this'
      _length+=s.length();
    }
    return T;
