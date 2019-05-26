@@ -2886,7 +2886,7 @@ Str8& Str8::insert(Int i, Char8 c)
    if(c)
    {
       Clamp(i, 0, length());
-      reserve(length()+1);
+      Int size=length()+2; if(size>_d.elms())_d.setNum(size+EXTRA, length()); // +1 not needed because we're always writing NUL char
       REPD(left, length()-i)_d[i+1+left ]=_d[i+left]; // copy text after 'i'
                             _d[i        ]= c        ; // copy 'c'  into  'i'
                             _d[++_length]='\0';
@@ -2898,7 +2898,7 @@ Str& Str::insert(Int i, Char c)
    if(c)
    {
       Clamp(i, 0, length());
-      reserve(length()+1);
+      Int size=length()+2; if(size>_d.elms())_d.setNum(size+EXTRA, length()); // +1 not needed because we're always writing NUL char
       REPD(left, length()-i)_d[i+1+left ]=_d[i+left]; // copy text after 'i'
                             _d[i        ]= c        ; // copy 'c'  into  'i'
                             _d[++_length]='\0';
@@ -2908,10 +2908,10 @@ Str& Str::insert(Int i, Char c)
 
 Str8& Str8::insert(Int i, C Str8 &text)
 {
-   if(text.length())
+   if(text.is())
    {
       Clamp(i, 0, length());
-      reserve(length()+text.length());
+      Int size=length()+text.length()+1; if(size>_d.elms())_d.setNum(size+EXTRA, length()); // +1 not needed because we're always writing NUL char
       REPD(left,      length()-i)_d[i+text.length()+left  ]=  _d[i+left]; // copy  text  after 'i'
       REPD(left, text.length()  )_d[i+              left  ]=text[  left]; // copy 'text' into  'i'
                                  _d[_length+=text.length()]='\0';
@@ -2920,10 +2920,10 @@ Str8& Str8::insert(Int i, C Str8 &text)
 }
 Str& Str::insert(Int i, C Str &text)
 {
-   if(text.length())
+   if(text.is())
    {
       Clamp(i, 0, length());
-      reserve(length()+text.length());
+      Int size=length()+text.length()+1; if(size>_d.elms())_d.setNum(size+EXTRA, length()); // +1 not needed because we're always writing NUL char
       REPD(left,      length()-i)_d[i+text.length()+left  ]=  _d[i+left]; // copy  text  after 'i'
       REPD(left, text.length()  )_d[i+              left  ]=text[  left]; // copy 'text' into  'i'
                                  _d[_length+=text.length()]='\0';
@@ -2937,7 +2937,7 @@ Str8& Str8::remove(Int i, Int num)
    if(i+num>length())num=length()-i;
    if(  num>=      1)
    {
-      REPD(left, length()-(i+num)+1){_d[i]=_d[i+num]; i++;}
+      MoveFastN(&_d[i], &_d[i+num], length()-(i+num)+1); //REPD(left, length()-(i+num)+1){_d[i]=_d[i+num]; i++;}
      _length-=num;
    }
    return T;
@@ -2948,7 +2948,7 @@ Str& Str::remove(Int i, Int num)
    if(i+num>length())num=length()-i;
    if(  num>=      1)
    {
-      REPD(left, length()-(i+num)+1){_d[i]=_d[i+num]; i++;}
+      MoveFastN(&_d[i], &_d[i+num], length()-(i+num)+1); //REPD(left, length()-(i+num)+1){_d[i]=_d[i+num]; i++;}
      _length-=num;
    }
    return T;
@@ -3155,7 +3155,7 @@ Str8& Str8::operator=(Char8 c)
 {
    if(!c)clear();else
    {
-      if(_d.elms()<2)_d.setNum(EXTRA);
+     _d.minNumDiscard(2);
      _d[0]  =c;
      _d[1]  ='\0';
      _length=1;
@@ -3166,7 +3166,7 @@ Str8& Str8::operator=(Char c)
 {
    if(!c)clear();else
    {
-      if(_d.elms()<2)_d.setNum(EXTRA);
+     _d.minNumDiscard(2);
      _d[0]  =Char16To8(c);
      _d[1]  ='\0';
      _length=1;
@@ -3177,7 +3177,7 @@ Str& Str::operator=(Char8 c)
 {
    if(!c)clear();else
    {
-      if(_d.elms()<2)_d.setNum(EXTRA);
+     _d.minNumDiscard(2);
      _d[0]  =Char8To16(c);
      _d[1]  ='\0';
      _length=1;
@@ -3188,7 +3188,7 @@ Str& Str::operator=(Char c)
 {
    if(!c)clear();else
    {
-      if(_d.elms()<2)_d.setNum(EXTRA);
+     _d.minNumDiscard(2);
      _d[0]  =c;
      _d[1]  ='\0';
      _length=1;
@@ -3593,12 +3593,12 @@ Str  Str ::operator+(C Str8   &s)C {return RValue(Str (T,          s.length() + 
 Str  Str ::operator+(C Str    &s)C {return RValue(Str (T,          s.length() + EXTRA)+=s);}
 Str  Str8::operator+(C BStr   &s)C {return RValue(Str (T,          s.length() + EXTRA)+=s);}
 Str  Str ::operator+(C BStr   &s)C {return RValue(Str (T,          s.length() + EXTRA)+=s);}
-Str8 Str8::operator+(  Char8   c)C {return RValue(Str8(T,                       EXTRA)+=c);}
-Str  Str8::operator+(  Char    c)C {return RValue(Str (T,                       EXTRA)+=c);}
-Str  Str ::operator+(  Char8   c)C {return RValue(Str (T,                       EXTRA)+=c);}
-Str  Str ::operator+(  Char    c)C {return RValue(Str (T,                       EXTRA)+=c);}
-Str8 Str8::operator+(  Bool    b)C {return RValue(Str8(T,                       EXTRA)+=b);}
-Str  Str ::operator+(  Bool    b)C {return RValue(Str (T,                       EXTRA)+=b);}
+Str8 Str8::operator+(  Char8   c)C {return RValue(Str8(T,                   1 + EXTRA)+=c);}
+Str  Str8::operator+(  Char    c)C {return RValue(Str (T,                   1 + EXTRA)+=c);}
+Str  Str ::operator+(  Char8   c)C {return RValue(Str (T,                   1 + EXTRA)+=c);}
+Str  Str ::operator+(  Char    c)C {return RValue(Str (T,                   1 + EXTRA)+=c);}
+Str8 Str8::operator+(  Bool    b)C {return RValue(Str8(T,                   1 + EXTRA)+=b);}
+Str  Str ::operator+(  Bool    b)C {return RValue(Str (T,                   1 + EXTRA)+=b);}
 Str8 Str8::operator+(  SByte   i)C {return RValue(Str8(T,    SBYTEC +           EXTRA)+=i);}
 Str  Str ::operator+(  SByte   i)C {return RValue(Str (T,    SBYTEC +           EXTRA)+=i);}
 Str8 Str8::operator+(  Int     i)C {return RValue(Str8(T,      INTC +           EXTRA)+=i);}
