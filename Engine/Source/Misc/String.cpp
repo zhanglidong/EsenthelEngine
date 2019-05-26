@@ -3470,15 +3470,15 @@ Str& Str::operator+=(C BStr &s)
 {
    if(s.is())
    {
-      CChar *t=s();
-      Int src_length=s.length(), size=T.length()+src_length+1; if(size>_d.elms())
+      CChar *t=s(); Int t_length=s.length(), size=length()+t_length+1; // +1 for NUL char
+      if(size>_d.elms())
       {
          UIntPtr offset=t-T();
-        _d.setNum(size+EXTRA, length()); // +1 not needed because we append '\0' always
-         if(offset<UIntPtr(length()))t=T()+offset; // if adding text from self
+        _d.setNum(StrSize(size, _d.elms()), length()); // +1 not needed because we append '\0' always
+         if(offset<UIntPtr(length()))t=T()+offset; // if 't' is part of 'T'
       }
-      MoveFastN(_d.data()+length(), t, src_length); // 't' can be part of 'T'
-     _length+=src_length;
+      MoveFastN(_d.data()+length(), t, t_length); // use 'MoveFastN' because 't' can be part of 'T', +1 not needed because we append '\0' always
+     _length+=t_length;
       /*if(_d.elms())*/_d[length()]='\0'; // "if" not needed since we already know 's.is'
    }
    return T;
