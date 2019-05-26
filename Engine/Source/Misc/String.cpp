@@ -3255,29 +3255,29 @@ Str& Str::operator=(C BStr &s)
 /******************************************************************************/
 // OPERATOR+=
 /******************************************************************************/
-static inline void Reserve(Str8 &s, Int length) // !! does not set last char as NUL !!
+static inline void Reserve(Str8 &s, Int length, Bool keep_nul=false) // !! does not set last char as NUL !!
 {
       length+=s.length()+1; // +1 for NUL char
-   if(length> s._d.elms())s._d.setNum(StrSize(length, s._d.elms()), s.length());
+   if(length> s._d.elms())s._d.setNum(StrSize(length, s._d.elms()), s.length()+keep_nul);
 }
-static inline void Reserve(Str &s, Int length) // !! does not set last char as NUL !!
+static inline void Reserve(Str &s, Int length, Bool keep_nul=false) // !! does not set last char as NUL !!
 {
       length+=s.length()+1; // +1 for NUL char
-   if(length> s._d.elms())s._d.setNum(StrSize(length, s._d.elms()), s.length());
+   if(length> s._d.elms())s._d.setNum(StrSize(length, s._d.elms()), s.length()+keep_nul);
 }
 /******************************************************************************/
 Str8& Str8::operator+=(CChar8 *t)
 {
    if(Is(t))
    {
-      Int length_src=Length(t), size=length()+length_src+1; if(size>_d.elms())
+      Int src_length=Length(t), size=length()+src_length+1; if(size>_d.elms())
       {
          UIntPtr offset=t-T();
         _d.setNum(size+EXTRA, length()+1); // +1 because 't' can be part of 'T'
          if(offset<UIntPtr(length()))t=T()+offset; // if adding text from self
       }
-      MoveFastN(_d.data()+length(), t, length_src+1); // if 't' belongs to self then the last '\0' will overlap
-     _length+=length_src;
+      MoveFastN(_d.data()+length(), t, src_length+1); // 't' can be part of 'T'
+     _length+=src_length;
    }
    return T;
 }
@@ -3285,9 +3285,9 @@ Str8& Str8::operator+=(CChar *t)
 {
    if(Is(t))
    {
-      Int length_src=Length(t); Reserve(T, length_src);
-      Set(_d.data()+length(), t, length_src+1);
-     _length+=length_src;
+      Int src_length=Length(t); Reserve(T, src_length);
+      Set(_d.data()+length(), t, src_length+1);
+     _length+=src_length;
    }
    return T;
 }
@@ -3295,9 +3295,9 @@ Str8& Str8::operator+=(C wchar_t *t)
 {
    if(Is(t))
    {
-      Int length_src=Length(t); Reserve(T, length_src);
-     _Set(_d.data()+length(), t, length_src+1);
-     _length+=length_src;
+      Int src_length=Length(t); Reserve(T, src_length);
+     _Set(_d.data()+length(), t, src_length+1);
+     _length+=src_length;
    }
    return T;
 }
@@ -3305,9 +3305,9 @@ Str& Str::operator+=(CChar8 *t)
 {
    if(Is(t))
    {
-      Int length_src=Length(t); Reserve(T, length_src);
-      Set(_d.data()+length(), t, length_src+1);
-     _length+=length_src;
+      Int src_length=Length(t); Reserve(T, src_length);
+      Set(_d.data()+length(), t, src_length+1);
+     _length+=src_length;
    }
    return T;
 }
@@ -3315,14 +3315,14 @@ Str& Str::operator+=(CChar *t)
 {
    if(Is(t))
    {
-      Int length_src=Length(t), size=length()+length_src+1; if(size>_d.elms())
+      Int src_length=Length(t), size=length()+src_length+1; if(size>_d.elms())
       {
          UIntPtr offset=t-T();
         _d.setNum(size+EXTRA, length()+1); // +1 because 't' can be part of 'T'
          if(offset<UIntPtr(length()))t=T()+offset; // if adding text from self
       }
-      MoveFastN(_d.data()+length(), t, length_src+1); // if 't' belongs to self then the last '\0' will overlap
-     _length+=length_src;
+      MoveFastN(_d.data()+length(), t, src_length+1); // 't' can be part of 'T'
+     _length+=src_length;
    }
    return T;
 }
@@ -3330,9 +3330,9 @@ Str& Str::operator+=(C wchar_t *t)
 {
    if(Is(t))
    {
-      Int length_src=Length(t); Reserve(T, length_src);
-     _Set(_d.data()+length(), t, length_src+1);
-     _length+=length_src;
+      Int src_length=Length(t); Reserve(T, src_length);
+     _Set(_d.data()+length(), t, src_length+1);
+     _length+=src_length;
    }
    return T;
 }
@@ -3341,8 +3341,8 @@ Str8& Str8::operator+=(C Str8 &s)
 {
    if(s.is())
    {
-      Int size=length()+s.length()+1; if(size>_d.elms())_d.setNum(size+EXTRA, length()+1); // +1 because 's' can be 'this'
-      MoveFastN(_d.data()+length(), s(), s.length()+1); // if 's' is this then the last '\0' will overlap
+      Reserve(T, s.length(), true); // keep NUL because 's' can be 'this'
+      MoveFastN(_d.data()+length(), s(), s.length()+1);
      _length+=s.length();
    }
    return T;
@@ -3371,7 +3371,7 @@ Str& Str::operator+=(C Str &s)
 {
    if(s.is())
    {
-      Int size=length()+s.length()+1; if(size>_d.elms())_d.setNum(size+EXTRA, length()+1); // +1 because 's' can be 'this'
+      Reserve(T, s.length(), true); // keep NUL because 's' can be 'this'
       MoveFastN(_d.data()+length(), s(), s.length()+1); // if 's' is this then the last '\0' will overlap
      _length+=s.length();
    }
@@ -3448,14 +3448,14 @@ Str& Str::operator+=(C BStr &s)
    if(s.is())
    {
       CChar *t=s();
-      Int length_src=s.length(), size=T.length()+length_src+1; if(size>_d.elms())
+      Int src_length=s.length(), size=T.length()+src_length+1; if(size>_d.elms())
       {
          UIntPtr offset=t-T();
         _d.setNum(size+EXTRA, length()); // +1 not needed because we append '\0' always
          if(offset<UIntPtr(length()))t=T()+offset; // if adding text from self
       }
-      MoveFastN(_d.data()+length(), t, length_src); // 't' can be part of 'T'
-     _length+=length_src;
+      MoveFastN(_d.data()+length(), t, src_length); // 't' can be part of 'T'
+     _length+=src_length;
       /*if(_d.elms())*/_d[length()]='\0'; // "if" not needed since we already know 's.is'
    }
    return T;
