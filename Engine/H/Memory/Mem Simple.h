@@ -125,10 +125,11 @@ T1(const_mem_addr TYPE) struct Mems // Simple Continuous Memory Based Container
    Bool _load   (File &f) ; // load elements with their own 'load' method, this method first loads number of saved   elements, and then for each element calls its 'load' method, false on fail, deprecated - do not use
 #endif
 
-  ~Mems(            );
-   Mems(            );
-   Mems(C Mems  &src);
-   Mems(  Mems &&src);
+           ~Mems(            );
+            Mems(            );
+   explicit Mems(  Int   elms);
+            Mems(C Mems  &src);
+            Mems(  Mems &&src);
 
 private:
    TYPE *_data;

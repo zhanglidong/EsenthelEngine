@@ -406,6 +406,7 @@ T1(TYPE)  Bool  Mems<TYPE>::_load   (File &f)  {setNum(f.getInt(      )); FREPA(
 
 T1(TYPE)  Mems<TYPE>::~Mems(            )          {del();}
 T1(TYPE)  Mems<TYPE>:: Mems(            )          {_data=null; _elms=0;}
+T1(TYPE)  Mems<TYPE>:: Mems(  Int   elms)          {MAX(elms, 0); Alloc(_data, elms); _elms=elms;}
 T1(TYPE)  Mems<TYPE>:: Mems(C Mems  &src) : Mems() {T=src;}
 T1(TYPE)  Mems<TYPE>:: Mems(  Mems &&src) : Mems() {Swap(T, src);}
 /******************************************************************************/

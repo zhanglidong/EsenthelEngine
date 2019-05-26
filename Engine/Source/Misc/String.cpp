@@ -2886,10 +2886,19 @@ Str8& Str8::insert(Int i, Char8 c)
    if(c)
    {
       Clamp(i, 0, length());
-      Int size=length()+2; if(size>_d.elms())_d.setNum(size+EXTRA, length()); // +1 not needed because we're always writing NUL char
-      REPD(left, length()-i)_d[i+1+left ]=_d[i+left]; // copy text after 'i'
-                            _d[i        ]= c        ; // copy 'c'  into  'i'
-                            _d[++_length]='\0';
+      Int size=length()+2; if(size>_d.elms())
+      {
+         Mems<Char8> temp(size+EXTRA);
+         CopyFastN(&temp[0  ], T()  ,          i); // copy text before 'i'
+                    temp[i  ]=c;                   // copy 'c'  into   'i'
+         CopyFastN(&temp[i+1], T()+i, length()-i); // copy text after  'i'
+         Swap(temp, _d);
+      }else
+      {
+         MoveFastN(&_d[i+1], &_d[i], length()-i); // copy text after 'i'
+                              _d[i]=          c ; // copy 'c'  into  'i'
+      }
+     _d[++_length]='\0';
    }
    return T;
 }
@@ -2898,10 +2907,19 @@ Str& Str::insert(Int i, Char c)
    if(c)
    {
       Clamp(i, 0, length());
-      Int size=length()+2; if(size>_d.elms())_d.setNum(size+EXTRA, length()); // +1 not needed because we're always writing NUL char
-      REPD(left, length()-i)_d[i+1+left ]=_d[i+left]; // copy text after 'i'
-                            _d[i        ]= c        ; // copy 'c'  into  'i'
-                            _d[++_length]='\0';
+      Int size=length()+2; if(size>_d.elms())
+      {
+         Mems<Char> temp(size+EXTRA);
+         CopyFastN(&temp[0  ], T()  ,          i); // copy text before 'i'
+                    temp[i  ]=c;                   // copy 'c'  into   'i'
+         CopyFastN(&temp[i+1], T()+i, length()-i); // copy text after  'i'
+         Swap(temp, _d);
+      }else
+      {
+         MoveFastN(&_d[i+1], &_d[i], length()-i); // copy text after 'i'
+                              _d[i]=          c ; // copy 'c'  into  'i'
+      }
+     _d[++_length]='\0';
    }
    return T;
 }
@@ -2911,10 +2929,19 @@ Str8& Str8::insert(Int i, C Str8 &text)
    if(text.is())
    {
       Clamp(i, 0, length());
-      Int size=length()+text.length()+1; if(size>_d.elms())_d.setNum(size+EXTRA, length()); // +1 not needed because we're always writing NUL char
-      REPD(left,      length()-i)_d[i+text.length()+left  ]=  _d[i+left]; // copy  text  after 'i'
-      REPD(left, text.length()  )_d[i+              left  ]=text[  left]; // copy 'text' into  'i'
-                                 _d[_length+=text.length()]='\0';
+      Int size=length()+text.length()+1; if(size>_d.elms())
+      {
+         Mems<Char8> temp(size+EXTRA);
+         CopyFastN(temp.data()                  , T()   ,               i); // copy  text  before 'i'
+         CopyFastN(temp.data()+ i               , text(), text.length()  ); // copy 'text' into   'i'
+         CopyFastN(temp.data()+(i+text.length()), T()+i ,      length()-i); // copy  text  after  'i'
+         Swap(temp, _d);
+      }else
+      {
+         MoveFastN(&_d[i+text.length()], &_d[i],      length()-i); // copy  text  after 'i'
+         MoveFastN(&_d[i              ], text(), text.length()  ); // copy 'text' into  'i', use 'MoveFastN' because 'text' can be 'this'
+      }
+     _d[_length+=text.length()]='\0';
    }
    return T;
 }
@@ -2923,10 +2950,19 @@ Str& Str::insert(Int i, C Str &text)
    if(text.is())
    {
       Clamp(i, 0, length());
-      Int size=length()+text.length()+1; if(size>_d.elms())_d.setNum(size+EXTRA, length()); // +1 not needed because we're always writing NUL char
-      REPD(left,      length()-i)_d[i+text.length()+left  ]=  _d[i+left]; // copy  text  after 'i'
-      REPD(left, text.length()  )_d[i+              left  ]=text[  left]; // copy 'text' into  'i'
-                                 _d[_length+=text.length()]='\0';
+      Int size=length()+text.length()+1; if(size>_d.elms())
+      {
+         Mems<Char> temp(size+EXTRA);
+         CopyFastN(temp.data()                  , T()   ,               i); // copy  text  before 'i'
+         CopyFastN(temp.data()+ i               , text(), text.length()  ); // copy 'text' into   'i'
+         CopyFastN(temp.data()+(i+text.length()), T()+i ,      length()-i); // copy  text  after  'i'
+         Swap(temp, _d);
+      }else
+      {
+         MoveFastN(&_d[i+text.length()], &_d[i],      length()-i); // copy  text  after 'i'
+         MoveFastN(&_d[i              ], text(), text.length()  ); // copy 'text' into  'i', use 'MoveFastN' because 'text' can be 'this'
+      }
+     _d[_length+=text.length()]='\0';
    }
    return T;
 }
@@ -3281,7 +3317,7 @@ Str8& Str8::operator+=(C Str8 &s)
 {
    if(s.is())
    {
-      Int     length_dest=length()+      s.length()+1; if(length_dest>_d.elms())_d.setNum(length_dest+EXTRA, length()+1); // +1 because 's' can be this
+      Int     length_dest=length()+      s.length()+1; if(length_dest>_d.elms())_d.setNum(length_dest+EXTRA, length()+1); // +1 because 's' can be 'this'
       MoveFastN(_d.data()+length(), s(), s.length()+1); // if 's' is this then the last '\0' will overlap
      _length+=s.length();
    }
@@ -3311,7 +3347,7 @@ Str& Str::operator+=(C Str &s)
 {
    if(s.is())
    {
-      Int     length_dest=length()+      s.length()+1; if(length_dest>_d.elms())_d.setNum(length_dest+EXTRA, length()+1); // +1 because 's' can be this
+      Int     length_dest=length()+      s.length()+1; if(length_dest>_d.elms())_d.setNum(length_dest+EXTRA, length()+1); // +1 because 's' can be 'this'
       MoveFastN(_d.data()+length(), s(), s.length()+1); // if 's' is this then the last '\0' will overlap
      _length+=s.length();
    }
