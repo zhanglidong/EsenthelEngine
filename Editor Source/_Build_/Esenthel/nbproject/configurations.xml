@@ -323,7 +323,7 @@
 
       <item path="stdafx.h" ex="false" tool="3" flavor2="0">
         <customTool>
-          <customToolCommandline>clang++ -x c++-header stdafx.h -o stdafx.h.pch $(CXXFLAGS) -g -DDEBUG=1 -I.  -std=c++14</customToolCommandline>
+          <customToolCommandline>clang++ -x c++-header stdafx.h -o stdafx.h.pch $(CXXFLAGS) -g -DDEBUG=1 -I.  -std=c++17</customToolCommandline>
           <customToolOutputs>stdafx.h.pch</customToolOutputs>
         </customTool>
       </item>
@@ -504,7 +504,7 @@
 
       <item path="stdafx.h" ex="false" tool="3" flavor2="0">
         <customTool>
-          <customToolCommandline>clang++ -x c++-header stdafx.h -o stdafx.h.pch $(CXXFLAGS) -O3 -DDEBUG=0 -I.  -std=c++14</customToolCommandline>
+          <customToolCommandline>clang++ -x c++-header stdafx.h -o stdafx.h.pch $(CXXFLAGS) -O3 -DDEBUG=0 -I.  -std=c++17</customToolCommandline>
           <customToolOutputs>stdafx.h.pch</customToolOutputs>
         </customTool>
       </item>
