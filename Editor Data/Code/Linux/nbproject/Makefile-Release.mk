@@ -41,8 +41,8 @@ EE_OBJ_FILES
 CFLAGS=
 
 # CC Compiler Flags
-CCFLAGS=-m64 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -include stdafx.h
-CXXFLAGS=-m64 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -include stdafx.h
+CCFLAGS=-m64 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-dynamic-class-memaccess -include stdafx.h
+CXXFLAGS=-m64 -fshort-wchar -fpermissive -ffast-math -ffriend-injection -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-dynamic-class-memaccess -include stdafx.h
 
 # Fortran Compiler Flags
 FFLAGS=

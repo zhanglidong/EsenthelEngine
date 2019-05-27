@@ -43,7 +43,7 @@ EE_APP_ITEMS
             <pElem>.</pElem>
 EE_HEADER_PATH
           </incDir>
-          <commandLine>-fshort-wchar -fpermissive -ffast-math -ffriend-injection -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-return-type-c-linkage -include stdafx.h</commandLine>
+          <commandLine>-fshort-wchar -fpermissive -ffast-math -ffriend-injection -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -include stdafx.h</commandLine>
           <preprocessorList>
             <Elem>DEBUG=1</Elem>
           </preprocessorList>
@@ -104,7 +104,7 @@ EE_HEADER_PATH
                <pElem>.</pElem>
                EE_HEADER_PATH
             </incDir>
-          <commandLine>-fshort-wchar -fpermissive -ffast-math -ffriend-injection -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-return-type-c-linkage -include stdafx.h</commandLine>
+          <commandLine>-fshort-wchar -fpermissive -ffast-math -ffriend-injection -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -include stdafx.h</commandLine>
             <preprocessorList>
                <Elem>DEBUG=0</Elem>
             </preprocessorList>
