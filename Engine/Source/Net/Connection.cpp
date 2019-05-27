@@ -99,7 +99,7 @@ Bool Connection::flush(Int timeout)
       Byte buf[(64+1)*1024]; // 1 extra for the headers
       Int  left=Min(SIZEI(buf), _out.left()); if(!_out.get(buf, left))break; if(_state==CONNECT_GREETED)_cipher.encrypt(buf, buf, left, _out_offset); // read data
       Int  sent=_socket.send(buf, left); // send data
-      if(sent<0 || sent>left)sent=0; // if an error occurred then clear sent. "sent==0" is also an error, but in this statement we don't need to change sent=0 -> 0
+      if(  sent<0)sent=0; // if an error occurred then clear sent. "sent==0" is also an error, but in this statement we don't need to change sent=0 -> 0
       if(_state==CONNECT_GREETED)_out_offset+=sent;
       if(left!=sent) // if haven't sent everything
       {
@@ -123,17 +123,18 @@ Bool Connection::flushEx(Int timeout)
    return flush() && _socket.flush((timeout<0) ? SEND_WAIT_TIME : timeout);
 }
 /******************************************************************************/
-Bool Connection::updateEx(Int timeout, Bool read)
+CONNECT_RECEIVE Connection::update(Int timeout, Bool read)
 {
    UInt    end_time; // this function was tested OK for UInt overflow
    Bool adjust_time; // if adjust 'timeout' based on 'Time.curTimeMs' and 'end_time' before making some func call
+   CONNECT_RECEIVE result=CONNECT_RECEIVE_NONE;
 
    switch(_state)
    {
       case CONNECT_CONNECTING:
       {
          if(timeout>0)end_time=Time.curTimeMs()+timeout;
-         if(_socket.any(timeout) && greet()){adjust_time=true; goto read_data;} // connected
+         if(_socket.any(timeout) && greet()){adjust_time=true; result=CONNECT_RECEIVE_PART; goto read_data;} // connected
          if(_socket.connectFailed())goto error;
       }break;
 
@@ -144,11 +145,11 @@ Bool Connection::updateEx(Int timeout, Bool read)
             if(_socket.wait(0) && _socket.available()<=0) // connection lost
             {
             #if LOG_ERROR
-               LogN(S+"Connection.updateEx 0:"+PLATFORM(WSAGetLastError(), errno)+", available:"+_socket.available());
+               LogN(S+"Connection.update 0:"+PLATFORM(WSAGetLastError(), errno)+", available:"+_socket.available());
             #endif
               _state=CONNECT_INVALID; goto error; // set '_state' to prevent calling 'flush' in the 'del' method
             }
-            return true;
+            return CONNECT_RECEIVE_FULL; // 'updateState' expects CONNECT_RECEIVE_FULL when having CONNECT_GREETED
          } // otherwise continue below
       case CONNECT_AWAIT_GREET:
       // in this section only 'end_time' and 'adjust_time' should be set
@@ -159,13 +160,13 @@ Bool Connection::updateEx(Int timeout, Bool read)
          for(; _msg_size_progress!=MSG_SIZE_KNOWN; ) // unknown packet size
          {
             if(timeout>0)if(adjust_time)MAX(timeout=end_time-Time.curTimeMs(), 0);else adjust_time=true;
-            if(!_socket.wait(timeout))return false; // if there's no data yet then abort
+            if(!_socket.wait(timeout))return result; result=CONNECT_RECEIVE_PART; // if there's no data yet then abort
 
             Byte b; Int l=_socket.receive(&b, 1); // '_msg_size' is compressed using 'File.cmpUIntV', so we need to decompress it byte by byte until last read byte doesn't have the last bit enabled (b&128)
             if(l!=1) // connection lost
             {
             #if LOG_ERROR
-               LogN(S+"Connection.updateEx 1:"+PLATFORM(WSAGetLastError(), errno)+", receive:"+l);
+               LogN(S+"Connection.update 1:"+PLATFORM(WSAGetLastError(), errno)+", receive:"+l);
             #endif
               _state=CONNECT_INVALID; goto error; // set '_state' to prevent calling 'flush' in the 'del' method
             }
@@ -181,7 +182,7 @@ Bool Connection::updateEx(Int timeout, Bool read)
          if(_msg_size_progress==MSG_SIZE_KNOWN)for(; _msg_size>0; ) // we await data
          {
             if(timeout>0)if(adjust_time)MAX(timeout=end_time-Time.curTimeMs(), 0);else adjust_time=true;
-            if(!_socket.wait(timeout))return false; // if there's no data yet then abort
+            if(!_socket.wait(timeout))return result; result=CONNECT_RECEIVE_PART; // if there's no data yet then abort
 
             Byte buf[65536];
             Int  want=Min(SIZEU(buf), _msg_size),
@@ -189,7 +190,7 @@ Bool Connection::updateEx(Int timeout, Bool read)
             if(  got<=0 || got>want) // connection lost
             {
             #if LOG_ERROR
-               LogN(S+"Connection.updateEx 2:"+PLATFORM(WSAGetLastError(), errno)+", receive:"+got);
+               LogN(S+"Connection.update 2:"+PLATFORM(WSAGetLastError(), errno)+", receive:"+got);
             #endif
               _state=CONNECT_INVALID; goto error; // set '_state' to prevent calling 'flush' in the 'del' method
             }
@@ -203,25 +204,26 @@ Bool Connection::updateEx(Int timeout, Bool read)
                if(_state==CONNECT_AWAIT_GREET)
                {
                   if(data.getUInt()!=CONNECTION_CC4    )goto error;
-                  if(data.getByte()!=CONNECTION_VERSION){del()._state=CONNECT_VERSION_CONFLICT; return false;}
+                  if(data.getByte()!=CONNECTION_VERSION){del()._state=CONNECT_VERSION_CONFLICT; return CONNECT_RECEIVE_ERROR;}
                   if(!_cipher.mixKey(data)             )goto error;
                   if(!data.end()                       )goto error; // there should be no data left after the cipher key
                  _state=CONNECT_GREETED;
                   data.reset(); // don't leave the greeting for the user
                   if(read)goto read_data; // here we've only greeted, however if we want an actual message, then try again
-                  // proceed below to return 'true' as success
+                  // proceed below to return 'CONNECT_RECEIVE_FULL' as success
                }
-               return true; // return this message to the user
+               return CONNECT_RECEIVE_FULL; // return this message to the user
             }
          }
       }break;
    }
-   return false;
+   return result;
 error:
-   del(); return false;
+   del(); return CONNECT_RECEIVE_ERROR;
 }
-Bool Connection::updateState(Int timeout) {return updateEx(timeout, false);}
-Bool Connection::receive    (Int timeout) {return updateEx(timeout, true );}
+Bool            Connection::updateState(Int timeout) {return update(timeout, false)==CONNECT_RECEIVE_FULL;}
+Bool            Connection::receive    (Int timeout) {return update(timeout, true )==CONNECT_RECEIVE_FULL;}
+CONNECT_RECEIVE Connection::receiveEx  (Int timeout) {return update(timeout, true )                      ;}
 /******************************************************************************/
 Bool Connection::send(CPtr buf, Int size, Bool flush)
 {

@@ -13,6 +13,13 @@ enum CONNECT_STATE : Byte
    CONNECT_VERSION_CONFLICT, // server/client use different software version
    CONNECT_GREETED         , // greeted
 };
+enum CONNECT_RECEIVE : Byte
+{
+   CONNECT_RECEIVE_ERROR, // error encountered
+   CONNECT_RECEIVE_NONE , // no   data was received
+   CONNECT_RECEIVE_PART , // some data was received, however it's still incomplete
+   CONNECT_RECEIVE_FULL , // full data was received
+};
 /******************************************************************************/
 struct Connection // reliable TCP based client/server connection with automatic data encryption and boundaries management, data always reaches the target, multiple data packets are always received in the same order as they were sent, received data size will always be the same as when it was sent
 {
@@ -33,6 +40,8 @@ struct Connection // reliable TCP based client/server connection with automatic 
 
    Bool receive    (Int timeout); // wait up to 'timeout' milliseconds to receive data, false if no data is available, this method automatically calls 'updateState'
    Bool updateState(Int timeout); // this method verifies current connection state, and performs necessary steps needed for connection to reach the CONNECT_GREETED state, 'timeout'=how long (in milliseconds) to wait for connection to reach CONNECT_GREETED state in this step, true is returned if connection has reached CONNECT_GREETED state, false is returned on fail (if connection failed or is still in progress)
+
+   CONNECT_RECEIVE receiveEx(Int timeout); // wait up to 'timeout' milliseconds to receive data, this method automatically calls 'updateState'
 
    // io
    Bool send(CPtr  buf, Int size   , Bool flush=true); //                                                 'flush'=if automatically call 'flush' method to send this message immediately, the method will always fail if connection state is not CONNECT_GREETED
@@ -59,9 +68,9 @@ private:
    Cipher1       _cipher;
 
 #if EE_PRIVATE
-   Bool greet   ();
-   Bool flushEx (Int timeout); // wait 'timeout' until all data has been sent
-   Bool updateEx(Int timeout, Bool read);
+   Bool            greet  ();
+   Bool            flushEx(Int timeout); // wait 'timeout' until all data has been sent
+   CONNECT_RECEIVE update (Int timeout, Bool read);
 #endif
 };
 /******************************************************************************/
