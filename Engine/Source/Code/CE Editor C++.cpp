@@ -2428,13 +2428,13 @@ Bool CodeEditor::generateLinuxMakeProj()
          EE_CPP_FILES_Debug+=obj_name+": "+src_name+'\n'; // ${OBJECTDIR}/_ext/1728301206/Auto.o: ../Source/Auto.cpp
          EE_CPP_FILES_Debug+="\t${MKDIR} -p ${OBJECTDIR}\n"; // ${MKDIR} -p ${OBJECTDIR}
          EE_CPP_FILES_Debug+="\t${RM} \"$@.d\"\n"; // ${RM} "$@.d"
-         EE_CPP_FILES_Debug+=S+"\t$(COMPILE.cc) -g -DDEBUG=1 -I. "+EE_HEADER_PATH+" -std=c++14 -MMD -MP -MF \"$@.d\" -o "+obj_name+' '+src_name+'\n'; // $(COMPILE.cc) -g -DDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1728301206/Auto.o ../Source/Auto.cpp
+         EE_CPP_FILES_Debug+=S+"\t$(COMPILE.cc) -g -DDEBUG=1 -I. "+EE_HEADER_PATH+" -std=c++17 -MMD -MP -MF \"$@.d\" -o "+obj_name+' '+src_name+'\n'; // $(COMPILE.cc) -g -DDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1728301206/Auto.o ../Source/Auto.cpp
          EE_CPP_FILES_Debug+='\n';
 
          EE_CPP_FILES_Release+=obj_name+": "+src_name+'\n'; // ${OBJECTDIR}/_ext/1728301206/Auto.o: ../Source/Auto.cpp
          EE_CPP_FILES_Release+="\t${MKDIR} -p ${OBJECTDIR}\n"; // ${MKDIR} -p ${OBJECTDIR}
          EE_CPP_FILES_Release+="\t${RM} \"$@.d\"\n"; // ${RM} "$@.d"
-         EE_CPP_FILES_Release+=S+"\t$(COMPILE.cc) -DDEBUG=0 -O3 -I. "+EE_HEADER_PATH+" -std=c++14 -MMD -MP -MF \"$@.d\" -o "+obj_name+' '+src_name+'\n'; // $(COMPILE.cc) -O3 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1728301206/Auto.o ../Source/Auto.cpp
+         EE_CPP_FILES_Release+=S+"\t$(COMPILE.cc) -DDEBUG=0 -O3 -I. "+EE_HEADER_PATH+" -std=c++17 -MMD -MP -MF \"$@.d\" -o "+obj_name+' '+src_name+'\n'; // $(COMPILE.cc) -O3 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1728301206/Auto.o ../Source/Auto.cpp
          EE_CPP_FILES_Release+='\n';
       }
    }

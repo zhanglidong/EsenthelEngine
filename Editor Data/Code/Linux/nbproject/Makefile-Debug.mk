@@ -67,7 +67,7 @@ EE_CPP_FILES
 stdafx.h.pch: stdafx.h
 	${MKDIR} -p ..
 	@echo Performing Custom Build Step
-	clang++ -x c++-header stdafx.h -o stdafx.h.pch $(CXXFLAGS) -g -DDEBUG=1 -I. EE_HEADER_PATH -std=c++14
+	clang++ -x c++-header stdafx.h -o stdafx.h.pch $(CXXFLAGS) -g -DDEBUG=1 -I. EE_HEADER_PATH -std=c++17
 
 # Subprojects
 .build-subprojects:

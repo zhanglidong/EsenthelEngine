@@ -79,7 +79,7 @@ EE_HEADER_PATH
       EE_APP_FILES
       <item path="stdafx.h" ex="false" tool="3" flavor2="0">
         <customTool>
-          <customToolCommandline>clang++ -x c++-header stdafx.h -o stdafx.h.pch $(CXXFLAGS) -g -DDEBUG=1 -I. EE_HEADER_PATH -std=c++14</customToolCommandline>
+          <customToolCommandline>clang++ -x c++-header stdafx.h -o stdafx.h.pch $(CXXFLAGS) -g -DDEBUG=1 -I. EE_HEADER_PATH -std=c++17</customToolCommandline>
           <customToolOutputs>stdafx.h.pch</customToolOutputs>
         </customTool>
       </item>
@@ -147,7 +147,7 @@ EXTERNAL_LIBS
 EE_APP_FILES
       <item path="stdafx.h" ex="false" tool="3" flavor2="0">
         <customTool>
-          <customToolCommandline>clang++ -x c++-header stdafx.h -o stdafx.h.pch $(CXXFLAGS) -O3 -DDEBUG=0 -I. EE_HEADER_PATH -std=c++14</customToolCommandline>
+          <customToolCommandline>clang++ -x c++-header stdafx.h -o stdafx.h.pch $(CXXFLAGS) -O3 -DDEBUG=0 -I. EE_HEADER_PATH -std=c++17</customToolCommandline>
           <customToolOutputs>stdafx.h.pch</customToolOutputs>
         </customTool>
       </item>
