@@ -16,7 +16,7 @@ LOCAL_LDLIBS           := -llog -landroid -lEGL -lGLESv3 -lz -lOpenSLES -Wl,--no
 LOCAL_STATIC_LIBRARIES := EsenthelEngine android_native_app_glue cpufeatures EXTERNAL_STATIC_LIB_NAMES
 LOCAL_SHARED_LIBRARIES := EXTERNAL_SHARED_LIB_NAMES
 LOCAL_CFLAGS           := -I.. INCLUDE_DIRS -fshort-wchar -ffast-math -fomit-frame-pointer -fpermissive
-LOCAL_CPPFLAGS         := -I.. INCLUDE_DIRS -fshort-wchar -ffast-math -fomit-frame-pointer -fpermissive -ffriend-injection -std=c++11 -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-address-of-temporary -Wno-null-dereference -Wno-int-to-void-pointer-cast
+LOCAL_CPPFLAGS         := -I.. INCLUDE_DIRS -fshort-wchar -ffast-math -fomit-frame-pointer -fpermissive -ffriend-injection -std=c++17 -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-address-of-temporary -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-dynamic-class-memaccess
 LOCAL_CPP_FEATURES     := rtti
 LOCAL_ARM_NEON         := true # force NEON usage for all files
 LOCAL_DISABLE_FATAL_LINKER_WARNINGS := true
