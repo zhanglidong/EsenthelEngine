@@ -30,8 +30,8 @@ constexpr Bool InRange(Long  i, Long  elms) {return ULong(i)<ULong(elms);} // if
 constexpr Bool InRange(Long  i, ULong elms) {return ULong(i)<ULong(elms);} // if 'i' index is in range "0..elms-1", this assumes that "elms>=0"
 constexpr Bool InRange(ULong i, ULong elms) {return ULong(i)<ULong(elms);} // if 'i' index is in range "0..elms-1", this assumes that "elms>=0"
 
-T1(TYPE) ENABLE_IF_ENUM(TYPE, constexpr Bool) InRange(Int  i, TYPE enum_value) {return UInt(i)<UInt(enum_value);} // template specialization for enum's
-T1(TYPE) ENABLE_IF_ENUM(TYPE, constexpr Bool) InRange(TYPE i, TYPE enum_value) {return UInt(i)<UInt(enum_value);} // template specialization for enum's
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Bool) InRange(Int  i, TYPE enum_value) {return UInt(i)<UInt(enum_value);} // template specialization for enum's
+T1(TYPE) constexpr ENABLE_IF_ENUM(TYPE, Bool) InRange(TYPE i, TYPE enum_value) {return UInt(i)<UInt(enum_value);} // template specialization for enum's
 
 T1(TYPE) DISABLE_IF_ENUM(TYPE, Bool) InRange(Int   i, C TYPE &container); // if 'i' index is in range of container, 'container' can be of many types, for example a C++ array (x[]), memory container ('Memc', 'Memb', ..) or any other type for which 'Elms' function was defined
 T1(TYPE) DISABLE_IF_ENUM(TYPE, Bool) InRange(UInt  i, C TYPE &container); // if 'i' index is in range of container, 'container' can be of many types, for example a C++ array (x[]), memory container ('Memc', 'Memb', ..) or any other type for which 'Elms' function was defined

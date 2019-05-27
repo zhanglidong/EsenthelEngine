@@ -1504,12 +1504,12 @@ Bool ContainsAll(CChar8 *src, CChar8 *t, Bool case_sensitive, Bool whole_words)
    return false;
 }
 /****************************************************************************/
-CChar * _SkipWhiteChars     (CChar  *t) {if(t) for(; WhiteChar(*t); t++);            return t;}
-CChar8* _SkipWhiteChars     (CChar8 *t) {if(t) for(; WhiteChar(*t); t++);            return t;}
-CChar * _SkipWhiteCharsComma(CChar  *t) {if(t){for(; WhiteChar(*t); t++); if(*t==',')return t+1;} return null;}
-CChar8* _SkipWhiteCharsComma(CChar8 *t) {if(t){for(; WhiteChar(*t); t++); if(*t==',')return t+1;} return null;}
-CChar * _SkipWhiteCharsDot  (CChar  *t) {if(t){for(; WhiteChar(*t); t++); if(*t=='.')return t+1;} return null;}
-CChar8* _SkipWhiteCharsDot  (CChar8 *t) {if(t){for(; WhiteChar(*t); t++); if(*t=='.')return t+1;} return null;}
+CChar * _SkipWhiteChars     (CChar  *t) {if(t) for(; WhiteChar(*t); )t++;            return t;}
+CChar8* _SkipWhiteChars     (CChar8 *t) {if(t) for(; WhiteChar(*t); )t++;            return t;}
+CChar * _SkipWhiteCharsComma(CChar  *t) {if(t){for(; WhiteChar(*t); )t++; if(*t==',')return t+1;} return null;}
+CChar8* _SkipWhiteCharsComma(CChar8 *t) {if(t){for(; WhiteChar(*t); )t++; if(*t==',')return t+1;} return null;}
+CChar * _SkipWhiteCharsDot  (CChar  *t) {if(t){for(; WhiteChar(*t); )t++; if(*t=='.')return t+1;} return null;}
+CChar8* _SkipWhiteCharsDot  (CChar8 *t) {if(t){for(; WhiteChar(*t); )t++; if(*t=='.')return t+1;} return null;}
 /****************************************************************************/
 CChar8* _SkipStart(CChar8 *t, CChar8 *start)
 {
