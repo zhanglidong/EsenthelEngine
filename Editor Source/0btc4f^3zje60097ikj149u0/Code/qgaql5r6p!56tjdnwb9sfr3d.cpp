@@ -722,6 +722,8 @@ REPAO(installer).disabled( disabled);
                // installer decompressed
                file_ftp_path=installer_dcmp_path[i]+new_suffix;
                io_load_files.New().set(installer[i](), file_ftp_path, null, installer_local.size, false, LoadFile.COMPRESS_NO  ); rename_files.add(file_ftp_path);
+               
+               if(InstallerPlatform[i]==ANDROID_UNKNOWN && Compare(installer_local.ver, installer_server[i].ver)<=0)Gui.msgBox("Warning", "Android installer file is different, but its Build Version is not newer - Android OS may refuse to update the app.");
             }else // remove
             {
                remove_files.add(installer_info_path[i]); // del installer info
