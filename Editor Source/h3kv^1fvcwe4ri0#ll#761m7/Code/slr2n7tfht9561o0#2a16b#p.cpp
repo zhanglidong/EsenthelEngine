@@ -1655,7 +1655,7 @@ class StoreClass : ClosableWindow
                         item_files_region+=upload.cancel.create("Cancel").func(Upload.Cancel, upload);
                         Swap(src, upload.src);
                         setUserParams(upload.params, "add_item_file");
-                                      upload.params.New().set("i"             , S+cur_item);
+                                      upload.params.New().set("i"             , cur_item);
                                       upload.params.New().set("item_file_file", file_file);
                                       upload.params.New().set("item_file_name", file_name);
                         upload.transfer();
