@@ -1677,7 +1677,7 @@
       <SmallerTypeCheck>false</SmallerTypeCheck>
       <CompileAsWinRT>true</CompileAsWinRT>
       <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1741,7 +1741,7 @@
       <SmallerTypeCheck>false</SmallerTypeCheck>
       <CompileAsWinRT>true</CompileAsWinRT>
       <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1868,7 +1868,7 @@
       <SmallerTypeCheck>false</SmallerTypeCheck>
       <CompileAsWinRT>true</CompileAsWinRT>
       <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -2202,7 +2202,7 @@
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <CompileAsWinRT>true</CompileAsWinRT>
       <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -2269,7 +2269,7 @@
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <CompileAsWinRT>true</CompileAsWinRT>
       <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -2399,7 +2399,7 @@
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <CompileAsWinRT>true</CompileAsWinRT>
       <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>

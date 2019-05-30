@@ -1360,7 +1360,7 @@
       <CompileAsWinRT>true</CompileAsWinRT>
       <SDLCheck>false</SDLCheck>
       <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1403,7 +1403,7 @@
       <CompileAsWinRT>true</CompileAsWinRT>
       <SDLCheck>false</SDLCheck>
       <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1495,7 +1495,7 @@
       <CompileAsWinRT>true</CompileAsWinRT>
       <SDLCheck>false</SDLCheck>
       <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1726,7 +1726,7 @@
       <CompileAsWinRT>true</CompileAsWinRT>
       <SDLCheck />
       <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1775,7 +1775,7 @@
       <CompileAsWinRT>true</CompileAsWinRT>
       <SDLCheck />
       <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1876,7 +1876,7 @@
       <CompileAsWinRT>true</CompileAsWinRT>
       <SDLCheck />
       <DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
