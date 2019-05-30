@@ -1861,11 +1861,13 @@ UInt CompressionMemUsage(COMPRESS_TYPE type, Int compression_level, Long uncompr
    {
       default: return 0;
 
+   #if SUPPORT_ZLIB
       case COMPRESS_ZLIB:
       {
          const UInt windowBits=MAX_WBITS,  memLevel=MAX_MEM_LEVEL;
          return (1<<(windowBits+2)) + (1<<(memLevel+9)); // taken from "ThirdPartyLibs\Zlib\zconf.h" and http://www.zlib.net/zlib_tech.html
       }
+   #endif
 
    #if SUPPORT_LZMA
       case COMPRESS_LZMA:
@@ -1934,11 +1936,13 @@ UInt DecompressionMemUsage(COMPRESS_TYPE type, Int compression_level, Long uncom
    {
       default: return 0;
 
+   #if SUPPORT_ZLIB
       case COMPRESS_ZLIB:
       {
          const UInt windowBits=MAX_WBITS;
          return (1<<windowBits) + 1440*2*SIZE(Int); // taken from "ThirdPartyLibs\Zlib\zconf.h" and http://www.zlib.net/zlib_tech.html
       }
+   #endif
 
    #if SUPPORT_LZMA
       case COMPRESS_LZMA:
