@@ -291,7 +291,7 @@ static Bool PatcherUpdate  (Thread &thread) {((Patcher*)thread.user)->update(); 
          case DWNL_ERROR: error: // error encountered
          {
             Downloaded downloaded; downloaded.createFail(_pak, download.index); // create 'downloaded' as failed
-            {locker.on(); Swap(downloaded, T._downloaded.New()); download.index=-1; download.del(); goto next;} // set 'index' and del 'download' under lock to have correct knowledge of progress, goto next without disabling lock because we will need it anyway
+            {locker.on(); Swap(downloaded, T._downloaded.New()); download.index=-1; if(0)_bytes_downloaded+=download.done(); download.del(); goto next;} // set 'index' and del 'download' under lock to have correct knowledge of progress (changing '_bytes_downloaded' is optional), goto next without disabling lock because we will need it anyway
          }break;
 
          case DWNL_NONE: // not downloading anything
