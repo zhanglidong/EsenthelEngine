@@ -64,8 +64,8 @@ STRUCT(HTTPParam , TextParam) // optional parameter that can be passed to the 'D
 const_mem_addr struct Download // File Downloader !! must be stored in constant memory address !!
 {
    // manage
-   Download& del   (  Int  milliseconds=-1                                                                                                                                                            ); // wait 'milliseconds' time for thread to exit and delete (<0 = infinite wait)
-   Download& create(C Str &url, C MemPtr<HTTPParam> &params=null, const_mem_addr File *post=null, Long max_post_size=-1, Long offset=0, Long size=-1, Bool paused=false, Bool ignore_auth_result=false); // download 'url' file, 'params'=optional parameters that you can pass if the 'url' is a php script, 'post'=data to be sent to the specified address (if this is null then HTTP GET is used, otherwise HTTP POST is used, 'post' File must point to a constant memory address as that pointer will be used until the data has been fully sent), 'max_post_size'=number of bytes to send (-1=all remaining), 'offset'=offset position of the file data to download, use this for example if you wish to resume previous download by starting from 'offset' position, 'size'=number of bytes to download (-1=all remaining), warning: some servers don't support manual specifying 'offset' and 'size', 'paused'=if create paused, 'ignore_auth_result'=if ignore authorization results and continue even when they failed
+   Download& del   (  Int  milliseconds=-1                                                                                                                                                                                   ); // wait 'milliseconds' time for thread to exit and delete (<0 = infinite wait)
+   Download& create(C Str &url, C MemPtr<HTTPParam> &params=null, const_mem_addr File *post=null, Long max_post_size=-1, Long offset=0, Long size=-1, Bool paused=false, Bool ignore_auth_result=false, SyncEvent *event=null); // download 'url' file, 'params'=optional parameters that you can pass if the 'url' is a php script, 'post'=data to be sent to the specified address (if this is null then HTTP GET is used, otherwise HTTP POST is used, 'post' File must point to a constant memory address as that pointer will be used until the data has been fully sent), 'max_post_size'=number of bytes to send (-1=all remaining), 'offset'=offset position of the file data to download, use this for example if you wish to resume previous download by starting from 'offset' position, 'size'=number of bytes to download (-1=all remaining), warning: some servers don't support manual specifying 'offset' and 'size', 'paused'=if create paused, 'ignore_auth_result'=if ignore authorization results and continue even when they failed, 'event'=event to signal when 'Download.state' changes
 
    // operations
    Download&  pause (                   ); // pause  downloading
@@ -92,14 +92,15 @@ const_mem_addr struct Download // File Downloader !! must be stored in constant 
    Bool       authFailed      ()C;                                  // get if authorization failed, this will be valid after DWNL_AUTH finished
 
 #if EE_PRIVATE
-   void parse  (Byte *data, Int size);
-   Int  send   (CPtr  data, Int size);
-   Int  receive( Ptr  data, Int size);
-   void finish ();
-   void zero   ();
-   Bool func   ();
+   void parse     (Byte *data, Int size);
+   Int  send      (CPtr  data, Int size);
+   Int  receive   ( Ptr  data, Int size);
+   void finish    ();
+   void zero      ();
+   Bool func      ();
    void delPartial();
-   Bool error  (); // !! this is not thread-safe !! set DWNL_ERROR state, you can signal that an error has encountered for example when invalid data downloaded, always returns false
+   Bool error     (); // !! this is not thread-safe !! set DWNL_ERROR state, you can signal that an error has encountered for example when invalid data downloaded, always returns false
+   void state     (DWNL_STATE state);
 #endif
 
            ~Download() {del();}
@@ -134,6 +135,7 @@ private:
    Long           _offset, _done, _size, _total_size, _sent, _to_send, _total_sent, _total_rcvd;
    Ptr            _data;
    File          *_post_file;
+   SyncEvent     *_event;
    DateTime       _modif_time;
    Str8           _url_full, _header;
    Str            _url;

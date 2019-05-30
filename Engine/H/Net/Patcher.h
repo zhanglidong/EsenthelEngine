@@ -101,9 +101,10 @@ const_mem_addr struct Patcher // class for automatic downloading file updates fr
    Patcher();
 
 #if EE_PRIVATE
-   Bool is    () {return _http.is();}
-   void zero  ();
-   void update();
+   Bool is       () {return _http.is();}
+   void zero     ();
+   void update   ();
+   void delThread();
 #endif
 
    static Str Platform(OS_VER os=OSVer());
@@ -126,6 +127,7 @@ private:
    Memc<Int >       _to_download;
    Memc<Downloaded> _downloaded;
    SyncLock         _lock;
+   SyncEvent        _event;
    Thread           _thread;
 };
 /******************************************************************************/

@@ -105,7 +105,7 @@ static void OnProgress(Ptr user, Int code, Int done, Int total, UInt timestamp)
             download->_done=done;
             download->_size=total;
          }
-         download->_state=DWNL_DOWNLOAD;
+         download->state(DWNL_DOWNLOAD); // set at the end
       }
    }
 }
@@ -149,7 +149,7 @@ static void OnError(Ptr user, Int code)
          {
             download->_code=code;
             download->_js_download=null; // unlink
-            download->_state=DWNL_ERROR; // !! set at the end !!
+            download->state(DWNL_ERROR); // !! set at the end !!
          }
       }
       JSDownloads.removeData(&js_download);
@@ -265,7 +265,7 @@ static Bool DownloadFunc(Thread &thread) {return ((Download*)thread.user)->func(
        Bool Download::func()
 {
    Byte data[BUF_SIZE];
-   switch(_state)
+   switch(state())
    {
       case DWNL_CONNECTING:
       {
@@ -312,12 +312,12 @@ static Bool DownloadFunc(Thread &thread) {return ((Download*)thread.user)->func(
             switch(_socket.connect  (addr, DOWNLOAD_WAIT_TIME))
             {
                case Socket::IN_PROGRESS: break;
-               case Socket::CONNECTED  : FlagDisable(_flags, HAS_ADDRS_HEADER); _state=DWNL_AUTH; goto auth;
+               case Socket::CONNECTED  : FlagDisable(_flags, HAS_ADDRS_HEADER); state(DWNL_AUTH); goto auth;
                default                 : _socket.del(); break;
             }
          }else
          {
-            if(_socket.any(DOWNLOAD_WAIT_TIME)){FlagDisable(_flags, HAS_ADDRS_HEADER); _state=DWNL_AUTH; goto auth;}
+            if(_socket.any(DOWNLOAD_WAIT_TIME)){FlagDisable(_flags, HAS_ADDRS_HEADER); state(DWNL_AUTH); goto auth;}
             if(_socket.connectFailed())_socket.del();
          }
       }break;
@@ -326,7 +326,7 @@ static Bool DownloadFunc(Thread &thread) {return ((Download*)thread.user)->func(
       {
          switch(_socket.handshake())
          {
-            case SecureSocket::OK        : ok: _state=DWNL_SENDING; goto sending;
+            case SecureSocket::OK        : ok: state(DWNL_SENDING); goto sending;
             case SecureSocket::NEED_FLUSH: _socket.flush(DOWNLOAD_WAIT_TIME); return true; // flush quickly and return regardless of result, to check if thread want to stop
             case SecureSocket::NEED_WAIT : _socket.wait (DOWNLOAD_WAIT_TIME); return true; // wait  quickly and return regardless of result, to check if thread want to stop
             case SecureSocket::BAD_CERT  : _flags|=AUTH_FAILED; if(_flags&AUTH_IGNORE)goto ok; goto error;
@@ -359,7 +359,7 @@ static Bool DownloadFunc(Thread &thread) {return ((Download*)thread.user)->func(
             }else
             {
                left=_message.elms()-_pos_send; if(left>0)goto send_message; // footer
-              _state=DWNL_DOWNLOAD; goto downloading;
+               state(DWNL_DOWNLOAD); goto downloading;
             }
          }
       }break;
@@ -417,7 +417,6 @@ static Bool DownloadFunc(Thread &thread) {return ((Download*)thread.user)->func(
                      FlagDisable(_flags, HAS_ADDRS_HEADER);
                     _header.clear();
                     _socket.del(); // unsecure and delete the socket because we will need to reconnect to a different address
-                    _state=DWNL_CONNECTING;
                     _addrs.clear();
                     _pos_send=0;
 
@@ -431,6 +430,7 @@ static Bool DownloadFunc(Thread &thread) {return ((Download*)thread.user)->func(
                     _pre_send=command.length();
                     _message.setNum(command.length());
                      CopyFast(_message.data(), command(), command.length());
+                     state(DWNL_CONNECTING);
                      break;
                   }
 
@@ -569,6 +569,7 @@ void Download::zero()
   _offset=_done=_size=_total_size=_sent=_to_send=_total_sent=_total_rcvd=0;
   _data=null;
   _post_file=null;
+  _event=null;
   _modif_time.zero();
 #if WEB
   _js_download=null;
@@ -602,9 +603,10 @@ Download& Download::del(Int milliseconds)
    delPartial();
   _url.clear();
    Free(_data);
+   if(state())state(DWNL_NONE); // call here because 'zero' does not call this
    zero(); return T;
 }
-Download& Download::create(C Str &url, C MemPtr<HTTPParam> &params, File *post, Long max_post_size, Long offset, Long size, Bool paused, Bool ignore_auth_result)
+Download& Download::create(C Str &url, C MemPtr<HTTPParam> &params, File *post, Long max_post_size, Long offset, Long size, Bool paused, Bool ignore_auth_result, SyncEvent *event)
 {
 #if WEB
    post=null; // not yet supported
@@ -618,7 +620,8 @@ Download& Download::create(C Str &url, C MemPtr<HTTPParam> &params, File *post, 
   _total_size=-1; // unknown total size
   _to_send   =(post ? ((max_post_size<0) ? post->left() : max_post_size) : 0);
   _post_file =post;
-  _state     =DWNL_CONNECTING; // this must be set immediately, so that we mark this 'Download' as used
+  _event     =event;
+   state     (DWNL_CONNECTING); // this must be set immediately, so that we mark this 'Download' as used
 
    // set url full
    Bool url_has_params=AppendUrlPath(_url_full, UTF8(url)), has_post_params=false;
@@ -813,12 +816,13 @@ Download& Download::pause (                ) {_thread.pause (            ); retu
 Download& Download::resume(                ) {_thread.resume(            ); return T;}
 Download& Download::stop  (                ) {_thread.stop  (            ); return T;}
 Download& Download::wait  (Int milliseconds) {_thread.wait  (milliseconds); return T;}
-void      Download::finish(                ) {_state=((code()>=200 && code()<300) ? DWNL_DONE : DWNL_ERROR);}
+void      Download::state (DWNL_STATE state) {_state=state; if(_event)_event->on();}
+void      Download::finish(                ) {state((code()>=200 && code()<300) ? DWNL_DONE : DWNL_ERROR);}
 Bool      Download::error (                ) // !! this is not thread-safe !! this can be called only on the download thread or if the thread is not running
 {
    stop();
    delPartial();
-  _state=DWNL_ERROR; // set this as last
+   state(DWNL_ERROR); // set this as last
    return false;
 }
 Bool Download::authFailed()C {return FlagTest(_flags, AUTH_FAILED);}

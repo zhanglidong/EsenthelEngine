@@ -102,10 +102,14 @@ void Patcher::zero()
   _bytes_downloaded   =0;
    REPAO(_file_download).index=-1;
 }
+inline void Patcher::delThread()
+{
+  _thread.stop(); _event.on(); _thread.del();
+}
 Patcher::Patcher() {zero();}
 Patcher& Patcher::del()
 {
-  _thread.del (); // first delete thread
+   delThread(); // first delete thread
   _pak_download.del (); REPAO(_file_download).del(); _inst_info_download.del(); _inst_download.del(); // delete all downloaders
   _pak         .del ();
   _inst_info   .zero();
@@ -213,7 +217,7 @@ Patcher& Patcher::downloadIndex()
 {
    if(is())
    {
-     _thread.del(); // first delete thread
+      delThread(); // first delete thread
      _pak_available=false;
      _pak.del();
      _pak_download.create(_http+CaseDown(_name)+".index.pak"); REPAO(_file_download).del();
@@ -255,8 +259,13 @@ static Str ServerPath(Str path, bool file=true) // !! this needs to be in sync w
    }
    return out;
 }
-void Patcher::update()
+static Bool PatcherUpdate  (Thread &thread) {((Patcher*)thread.user)->update(); return true;}
+       void Patcher::update()
 {
+#if HAS_THREADS
+  _event.wait();
+#endif
+   SyncLockerEx locker(_lock, false);
    REPA(_file_download)
    {
       FileDownload &download=_file_download[i];
@@ -265,7 +274,7 @@ void Patcher::update()
          case DWNL_DONE: // finished downloading
          {
             Downloaded downloaded; downloaded.create(_pak, download.index, download, _cipher);
-            {SyncLocker locker(_lock); Swap(downloaded, T._downloaded.New()); download.index=-1; _bytes_downloaded+=download.done(); download.del();} // adjust '_bytes_downloaded' and delete 'download' under lock to have correct knowledge of progress
+            {locker.on(); Swap(downloaded, T._downloaded.New()); download.index=-1; _bytes_downloaded+=download.done(); download.del(); goto next;} // set 'index', '_bytes_downloaded' and del 'download' under lock to have correct knowledge of progress, don't delete 'download' outside of the lock, because 'Patcher.progress' operates on both '_bytes_downloaded' and 'Download.done', goto next without disabling lock because we will need it anyway
          }break;
 
          case DWNL_DOWNLOAD: // verify while downloading
@@ -274,41 +283,32 @@ void Patcher::update()
             if((download.size()>=0) ? (download.size()!=pf.data_size_compressed)  // if file size is   known and it's    different than expected
                                     : (download.done()> pf.data_size_compressed)) // if file size is unknown but already exceeded  what expected
             {
-               goto set_failed; // set as failed download
+               download.del(); // here del 'download' already, outside the 'lock' because it's still in progress and may take a while longer to stop it
+               goto error; // set as failed download
             }
          }break;
 
-         case DWNL_ERROR: // error encountered
+         case DWNL_ERROR: error: // error encountered
          {
-         set_failed:
             Downloaded downloaded; downloaded.createFail(_pak, download.index); // create 'downloaded' as failed
-            {SyncLocker locker(_lock); Swap(downloaded, T._downloaded.New()); download.index=-1; _bytes_downloaded+=download.done(); download.del();} // adjust '_bytes_downloaded' and delete 'download' under lock to have correct knowledge of progress
+            {locker.on(); Swap(downloaded, T._downloaded.New()); download.index=-1; download.del(); goto next;} // set 'index' and del 'download' under lock to have correct knowledge of progress, goto next without disabling lock because we will need it anyway
          }break;
 
          case DWNL_NONE: // not downloading anything
          {
-            SyncLockerEx locker(_lock); if(_to_download.elms()) // check for elements to download
+            locker.on(); next: if(!_to_download.elms())locker.off();else // check for elements to download
             {
-               Int file_index=_to_download.pop(); locker.off();
+               download.index=_to_download.pop(); locker.off();
             #if 1 // direct download
-               download.create(_http+CaseDown(_name)+'/'+ServerPath(_pak.fullName(file_index))); // start downloading
+               download.create(_http+CaseDown(_name)+'/'+ServerPath(_pak.fullName(download.index)), null, null, -1, 0, -1, false, false, &_event); // start downloading
             #else // through PHP (had problems when tried accessing 6 downloads at the same time)
-               Memt<TextParam> params; params.New().set("file", ServerPath(_pak.fullName(file_index)));
-               download.create(_http+CaseDown(_name)+".download.php", params); // start downloading
+               Memt<TextParam> params; params.New().set("file", ServerPath(_pak.fullName(download.index)));
+               download.create(_http+CaseDown(_name)+".download.php", params, null, -1, 0, -1, false, false, &_event); // start downloading
             #endif
-               download.index=file_index;
             }
          }break;
       }
    }
-}
-static Bool PatcherFunc(Thread &thread)
-{
-   ((Patcher*)thread.user)->update();
-#if HAS_THREADS
-   Time.wait(1);
-#endif
-   return true;
 }
 /******************************************************************************/
 Patcher& Patcher::downloadFile(Int i)
@@ -319,7 +319,8 @@ Patcher& Patcher::downloadFile(Int i)
       if(pf.data_size) // has data size -> needs to be downloaded
       {
          {SyncLocker locker(_lock); _to_download.add(i); _files_left++;}
-         if(!_thread.created())_thread.create(PatcherFunc, this);
+        _event.on();
+         if(!_thread.created())_thread.create(PatcherUpdate, this);
       }else
       {
          SyncLocker locker(_lock); _downloaded.New().createEmpty(*pak, i); _files_left++;
