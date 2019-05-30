@@ -83,9 +83,9 @@ const_mem_addr struct Download // File Downloader !! must be stored in constant 
    Long       totalSize       ()C {return _total_size            ;} // get total file size            , this will be valid only in DWNL_DONE state, in DWNL_DOWNLOAD state the value will be either valid or equal to -1 if the size is still unknown
    Long       sent            ()C {return _sent                  ;} // get number of sent bytes 
    Long       toSend          ()C {return _to_send               ;} // get number of bytes to send
-   Long       totalSent       ()C {return _total_sent            ;} // get total number of bytes that were sent       , including ovearhead - headers, redirections and SSL/TLS/HTTPS handshake/data
-   Long       totalReceived   ()C {return _total_rcvd            ;} // get total number of bytes that were received   , including ovearhead - headers, redirections and SSL/TLS/HTTPS handshake/data
-   Long       totalTransferred()C {return _total_sent+_total_rcvd;} // get total number of bytes that were transferred, including ovearhead - headers, redirections and SSL/TLS/HTTPS handshake/data
+   Long       totalSent       ()C {return _total_sent            ;} // get total number of bytes that were sent       , including overhead - headers, redirections and SSL/TLS/HTTPS handshake/data
+   Long       totalReceived   ()C {return _total_rcvd            ;} // get total number of bytes that were received   , including overhead - headers, redirections and SSL/TLS/HTTPS handshake/data
+   Long       totalTransferred()C {return _total_sent+_total_rcvd;} // get total number of bytes that were transferred, including overhead - headers, redirections and SSL/TLS/HTTPS handshake/data
  C Str&       url             ()C {return _url                   ;} // get url address
  C DateTime&  modifyTimeUTC   ()C {return _modif_time            ;} // get modification time in UTC time zone of the downloaded file, if value is provided then it will be available starting from DWNL_DOWNLOAD state
    Bool       paused          ()C {return _thread.wantPause()    ;} // get if download is currently requested to be paused
