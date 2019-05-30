@@ -821,7 +821,7 @@ REPAO(installer).disabled( disabled);
    Str HTAccess()
    {
       Str s;
-      s+="Header append Cache-Control \"no-transform\"\r\nHeader append Vary \"Accept-Encoding\"\r\n";
+      s+="Header append Cache-Control \"must-revalidate, no-transform\"\r\nHeader append Vary \"Accept-Encoding\"\r\n";
       return s;
    }
 
