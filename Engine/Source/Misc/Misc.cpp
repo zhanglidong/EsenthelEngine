@@ -681,10 +681,6 @@ IDGenerator::~IDGenerator()
 {
   _created=0; // set '_created' to zero, so when calling 'Return' after destructor was called, it will get ignored (this can happen if calling 'Return' from a destructor of a secondary object, after destructor of 'IDGenerator' was already called)
 }
-IDGenerator::IDGenerator()
-{
-  _created=0;
-}
 UInt IDGenerator::New() // create new ID
 {
    if(_returned.elms())return _returned.pop(); // if we have an ID that was created and later returned, then give it

@@ -3,13 +3,12 @@ struct PtrCounter
 {
    Bool anyPtrs()C {return _ptrs>0;}
 
-   PtrCounter() {_ptrs=-1;}
   ~PtrCounter();
 
 #if !EE_PRIVATE
 private:
 #endif
-   Int _ptrs;
+   Int _ptrs=-1;
 #if EE_PRIVATE
 private:
 #endif

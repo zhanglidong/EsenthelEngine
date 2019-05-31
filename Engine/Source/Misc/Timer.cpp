@@ -49,6 +49,7 @@ TimeClass Time;
 /******************************************************************************/
 TimeClass::TimeClass()
 {
+#if 0 // there's only one 'TimeClass' global 'Time' and it doesn't need clearing members to zero
   _pc=false;
   _skip=0;
   _start_time_ms=_frame=_frames_drawn=0;
@@ -56,7 +57,7 @@ TimeClass::TimeClass()
   _fps=_fps_time=_state_update=_state_draw=0;
   _rd_2=_rd_1=_rd=_ad=_d=_rt=_at=_st=_t=0;
   _time_mul=0;
-  _speed=1;
+#endif
 }
 /******************************************************************************/
 Dbl TimeClass::curTime()C

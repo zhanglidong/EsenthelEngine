@@ -39,7 +39,7 @@ private:
    UInt        _start_time_ms, _frame, _frames_drawn;
    ULong       _start_time;
    Flt         _fps, _fps_time, _state_update, _state_draw;
-   Dbl         _rd_2, _rd_1, _rd, _ad, _d, _rt, _at, _st, _t, _speed, _time_mul;
+   Dbl         _rd_2, _rd_1, _rd, _ad, _d, _rt, _at, _st, _t, _speed=1, _time_mul;
    SmoothValue _sv_ad;
 
    TimeClass();
