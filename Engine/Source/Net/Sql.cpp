@@ -45,12 +45,6 @@ SQLValues& SQLValues::New(C Str &name,  CPtr       value, Int value_size) {_valu
 SQLValues& SQLValues::New(C Str &name,   File     &file                 ) {_values.New().set(name, TextHexMem( file              , false)).type=SVT_BIN; return T;}
 SQLValues& SQLValues::New(C Str &name, C UID      &value                ) {_values.New().set(name, TextHexMem(&value, SIZE(value), false)).type=SVT_UID; return T;}
 /******************************************************************************/
-SQL::SQL()
-{
-  _type=NONE;
-  _env=_conn=_statement=_sqlite=null;
-  _rows_pos=0;
-}
 SQL& SQL::del()
 {
 #if SUPPORT_ODBC

@@ -68,7 +68,7 @@ struct PlatformStore // class allowing to communicate with Platform Store
       DateTime date; // date  of purchase in UTC time zone
    };
 
-   void (*callback)(RESULT result, C Purchase *purchase); // pointer to a custom function that will be called with processed events, 'result'=message received at the moment, 'purchase'=purchase data related to this message (it may be null if not available, also some of its members may be empty)
+   void (*callback)(RESULT result, C Purchase *purchase)=null; // pointer to a custom function that will be called with processed events, 'result'=message received at the moment, 'purchase'=purchase data related to this message (it may be null if not available, also some of its members may be empty)
 
    // get
    Bool supportsItems        ()C {return _supports_items;} // if store supports purchasing regular items
@@ -101,7 +101,7 @@ struct PlatformStore // class allowing to communicate with Platform Store
 private:
 #endif
    struct Processed : Purchase {RESULT result;};
-   Bool            _supports_items, _supports_subs, _has_new_purchases, _refresh_purchases;
+   Bool            _supports_items=false, _supports_subs=false, _has_new_purchases=false, _refresh_purchases=false;
    Memc<Item     > _items, _new_items;
    Memc<Purchase > _purchases, _new_purchases;
    Memc<Processed> _processed;

@@ -42,7 +42,7 @@ struct SteamWorks
 	   FRIEND_STATE_CHANGE_Nickname           =0x1000,
 	   FRIEND_STATE_CHANGE_SteamLevel         =0x2000,
    };
-   enum PERIOD
+   enum PERIOD : Byte
    {
       DAY  ,
       WEEK ,
@@ -51,38 +51,38 @@ struct SteamWorks
    };
    struct Purchase // purchase status, can be available only in PURCHASE_STATUS_OK
    {
-      Bool  finalized; // if purchase was finalized
-      ULong   user_id; // User Steam ID for this purchase
-      Int     item_id, // Item       ID for this purchase
-        cost_in_cents; // cost in cents for this purchase
-      Str    currency, // currency       of the  purchase
-              country; // country code   of the  purchase
-      DateTime   date; // date           of the  purchase
+      Bool  finalized=false; // if purchase was finalized
+      Int     item_id=0    , // Item       ID for this purchase
+        cost_in_cents=0    ; // cost in cents for this purchase
+      ULong   user_id=0    ; // User Steam ID for this purchase
+      Str    currency      , // currency       of the  purchase
+              country      ; // country code   of the  purchase
+      DateTime   date      ; // date           of the  purchase
 
-      Purchase();
+      Purchase() {date.zero();}
    };
    struct Subscription // subscription status, can be available only in SUBSCRIPTION_STATUS_OK
    {
-      Bool      active; // if the subscription is active or canceled
-      Int      item_id, // Item       ID for this subscription
-         cost_in_cents, // cost in cents for this subscription
-             frequency; // frequency      of the  subscription
-      PERIOD    period; // period         of the  subscription
-      Str     currency; // currency       of the  subscription
-      DateTime created, // date when the subscription was created
-          last_payment, // date of the last payment
-          next_payment; // date of the next payment
+      Bool      active=false; // if the subscription is active or canceled
+      PERIOD    period=DAY  ; // period         of the  subscription
+      Int      item_id=0    , // Item       ID for this subscription
+         cost_in_cents=0    , // cost in cents for this subscription
+             frequency=0    ; // frequency      of the  subscription
+      Str     currency      ; // currency       of the  subscription
+      DateTime created      , // date when the subscription was created
+          last_payment      , // date of the last payment
+          next_payment      ; // date of the next payment
 
       Bool valid()C; // calculate if this subscription is currently valid (note that canceled subscription is still valid as long as it's not expired yet)
 
-      Subscription();
+      Subscription() {created.zero(); last_payment.zero(); next_payment.zero();}
    };
 
    static Str StoreLink(C Str &app_id); // return a website link to Steam Store page for the specified App ID, 'app_id' example = "366810"
 
-   void (*order_callback)(RESULT result, ULong order_id, C Str &error_message, C Purchase *purchase, C Subscription *subscription); // pointer to a custom function that will be called with processed events of an order, 'result'=message received at the moment, 'purchase'=status of the purchase (can be available only in PURCHASE_STATUS_OK), 'subscription'=status of the subscription (can be available only in SUBSCRIPTION_STATUS_OK or it can be null which means that there's no subscription)
+   void (*order_callback)(RESULT result, ULong order_id, C Str &error_message, C Purchase *purchase, C Subscription *subscription)=null; // pointer to a custom function that will be called with processed events of an order, 'result'=message received at the moment, 'purchase'=status of the purchase (can be available only in PURCHASE_STATUS_OK), 'subscription'=status of the subscription (can be available only in SUBSCRIPTION_STATUS_OK or it can be null which means that there's no subscription)
 
-   void (*friend_state_changed)(ULong friend_id, UInt flags); // pointer to a custom function that will be called when state of a friend changed, 'friend_id'=friend Steam ID, 'flags'=FRIEND_STATE_CHANGE_FLAG
+   void (*friend_state_changed)(ULong friend_id, UInt flags)=null; // pointer to a custom function that will be called when state of a friend changed, 'friend_id'=friend Steam ID, 'flags'=FRIEND_STATE_CHANGE_FLAG
 
    // get
    Bool        initialized           (            )C {return _initialized;} // if Steam is initialized
@@ -144,16 +144,16 @@ private:
       UInt  type;
       ULong order_id;
    };
-   Bool            _initialized;
-   UInt            _start_time_s;
+   Bool            _initialized=false;
+   UInt            _start_time_s=0;
    Str8            _web_api_key;
    Memx<Operation> _operations;
 #if EE_PRIVATE
    void update();
 #endif
 
-   SteamWorks(); // automatically calls 'init'
-  ~SteamWorks(); // automatically calls 'shut'
+   SteamWorks() {init();} // automatically calls 'init'
+  ~SteamWorks() {shut();} // automatically calls 'shut'
 }extern
    Steam;
 /******************************************************************************/

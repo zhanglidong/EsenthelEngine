@@ -46,12 +46,12 @@ struct SQLColumn // SQL Column definition, use this for creating new tables in a
    SQL_DATA_TYPE type       =SDT_UNKNOWN; // column type
    Bool          allow_nulls=false      ; // if allow this column to have a null value
    MODE          mode       =DEFAULT    ; // column mode
+union
+{
+   Int           str_len                ; // maximum number of characters allowed in a string type (STR,STR8), giving a value<=0 will make the length be as long as possible (but slower)
+   Int           binary_size            ; // maximum number of bytes      allowed in a binary type (BINARY  ), giving a value<=0 will make the size   be as big  as possible (but slower)
+};
    Str           default_val            ; // default value (optional, can be left empty)
-   union
-   {
-      Int    str_len ; // maximum number of characters allowed in a string type (STR,STR8), giving a value<=0 will make the length be as long as possible (but slower)
-      Int binary_size; // maximum number of bytes      allowed in a binary type (BINARY  ), giving a value<=0 will make the size   be as big  as possible (but slower)
-   };
 
    SQLColumn& set(C Str &name, SQL_DATA_TYPE type, Int str_len_bin_size=16) {T.name=name; T.type=type; T.str_len=T.binary_size=str_len_bin_size; return T;}
 
@@ -201,7 +201,7 @@ struct SQL
 
    SQL&   del(); // delete manually
   ~SQL() {del();}
-   SQL();
+   SQL() {}
 
 private:
    struct Row
@@ -231,11 +231,11 @@ private:
       SQLITE,
    };
 #endif
-   Byte      _type;
-   Ptr       _env, _conn, _statement, _sqlite;
-   Int       _rows_pos;
-   Memc<Row> _rows;
-   Memc<Col> _cols;
+   Byte               _type=0;
+   Int                _rows_pos=0;
+   Ptr                _env=null, _conn=null, _statement=null, _sqlite=null;
+   Memc<Row>          _rows;
+   Memc<Col>          _cols;
    Memc< Memc<Byte> > _params;
 #if EE_PRIVATE
    Str  valueBin (C Str &value)C;

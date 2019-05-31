@@ -15,10 +15,10 @@ const_mem_addr struct Patcher // class for automatic downloading file updates fr
          SYSTEM_DIR , // system directory (normal folder on     your drive  )
       };
 
-      TYPE     type           =PAK_FILE; // specifies how the file is stored on the local device
       Str      full_name               ; // file full name (path+name) relative to your data storage folder (don't include the drive here, instead, use path relative to the folder which was used for uploading your files)
-      Long     file_size      =0       ; // file size in bytes (leave 0 for folders)
+      TYPE     type           =PAK_FILE; // specifies how the file is stored on the local device
       UInt     xxHash64_32    =0       ; // file hash (this is optional, it can be left at 0 which will disable checking for hash differences, however when enabled, it can provide more reliable detecting differences between file versions)
+      Long     file_size      =0       ; // file size in bytes (leave 0 for folders)
       DateTime modify_time_utc; // file modification time in UTC time zone
 
       LocalFile& set(C Str &full_name, C FileInfo &fi); // set from 'full_name' and 'FileInfo'

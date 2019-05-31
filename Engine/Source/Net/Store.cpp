@@ -118,8 +118,6 @@ PlatformStore::~PlatformStore()
 }
 PlatformStore::PlatformStore()
 {
-   callback=null;
-  _supports_items=_supports_subs=_has_new_purchases=_refresh_purchases=false;
 #if WINDOWS_NEW
    try // exception may occur when using 'CurrentApp' instead of 'CurrentAppSimulator' on a debug build
    {

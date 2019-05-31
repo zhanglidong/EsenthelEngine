@@ -125,22 +125,6 @@ invalid:
    return false;
 }
 /******************************************************************************/
-SteamWorks::Purchase::Purchase()
-{
-   finalized=false;
-   user_id=0;
-   item_id=cost_in_cents=0;
-   date.zero();
-}
-SteamWorks::Subscription::Subscription()
-{
-   active=false;
-   item_id=cost_in_cents=frequency=0;
-   period=DAY;
-   created.zero();
-   last_payment.zero();
-   next_payment.zero();
-}
 #if 0 // following function was used to check that MONTH formula will work on every possible date
 void Test()
 {
@@ -190,9 +174,6 @@ Bool SteamWorks::Subscription::valid()C
    }
    return false;
 }
-/******************************************************************************/
-SteamWorks:: SteamWorks() {_initialized=false; init();}
-SteamWorks::~SteamWorks() {                    shut();}
 /******************************************************************************/
 SteamWorks& SteamWorks::webApiKey(C Str8 &web_api_key) {T._web_api_key=web_api_key; return T;}
 
