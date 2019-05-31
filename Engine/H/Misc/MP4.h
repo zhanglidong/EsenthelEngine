@@ -24,9 +24,9 @@ struct MP4
          Long dataSize()C;
       };
 
-      Int        id;
-      UInt       frame_size, channels, sample_rate, time_scale, avg_bit_rate;
-      Long       duration;
+      Int        id=-1;
+      UInt       frame_size=0, channels=0, sample_rate=0, time_scale=0, avg_bit_rate=0;
+      Long       duration=-1;
       Mems<UInt> frame_sizes;
       Mems<Long> chunk_offset;
       Mems<Byte> decoder_config;
@@ -42,8 +42,6 @@ struct MP4
       UInt frameSize  (Int i)C;
       Long  dataSize  ()C;
     C Part* findPart  (Int &frame)C;
-
-      Track() {id=-1; frame_size=channels=sample_rate=time_scale=avg_bit_rate=0; duration=-1;}
    };
 
    UInt        time_scale;

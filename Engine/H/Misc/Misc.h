@@ -673,7 +673,7 @@ Str         LanguageSpecific(LANG_TYPE lang); // get specific alphabet character
 /******************************************************************************/
 struct Notification
 {
-   Ptr user; // user data, default=null
+   Ptr user=null; // user data
 
    void set(C Str &title, C Str &text, Bool dismissable=true); // set notification parameters, 'dismissable'=if user can dismiss this notification. If this notification already exists, then calling this method will update its properties.
 
@@ -687,11 +687,10 @@ struct Notification
 #if !EE_PRIVATE // make constructors private to prevent from manually creating 'Notification' objects as they should be created only through 'Notifications.New'
 private:
 #endif
-   Bool _dismissable, _visible;
+   Bool _dismissable=false, _visible=false;
    Str  _title, _text;
 
   ~Notification();
-   Notification();
 };
 extern Memx<Notification> Notifications; // list of active notifications
 #if EE_PRIVATE

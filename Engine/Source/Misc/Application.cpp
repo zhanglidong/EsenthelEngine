@@ -103,11 +103,6 @@ Notification::~Notification()
 {
    hide();
 }
-Notification::Notification()
-{
-   user=null;
-  _dismissable=_visible=false;
-}
 void Notification::hide()
 {
    if(_visible)
