@@ -52,11 +52,9 @@ enum HTTP_TYPE : Byte // HTTP Parameter Type
 };
 STRUCT(HTTPParam , TextParam) // optional parameter that can be passed to the 'Download'
 //{
-   HTTP_TYPE type; // parameter type
+   HTTP_TYPE type=HTTP_GET; // parameter type
 
    HTTPParam& set(C Str &name, C Str &value, HTTP_TYPE type=HTTP_GET) {super::set(name, value); T.type=type; return T;}
-
-   HTTPParam() {type=HTTP_GET;}
 
    static Str8 Encode(C MemPtr<HTTPParam> &params); // encode 'params' array into string
 };
