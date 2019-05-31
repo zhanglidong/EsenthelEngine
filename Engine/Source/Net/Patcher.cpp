@@ -100,7 +100,7 @@ void Patcher::zero()
   _cipher             =null;
   _files_left         =0;
   _bytes_downloaded   =0;
-   REPAO(_file_download).index=-1;
+   REPAO(_file_download).clearIndex();
 }
 inline void Patcher::delThread()
 {
@@ -220,7 +220,7 @@ Patcher& Patcher::downloadIndex()
       delThread(); // first delete thread
      _pak_available=false;
      _pak.del();
-     _pak_download.create(_http+CaseDown(_name)+".index.pak"); REPAO(_file_download).del();
+     _pak_download.create(_http+CaseDown(_name)+".index.pak"); REPAO(_file_download).clearIndexDel();
      _to_download .del();
      _downloaded  .del();
      _files_left=0;
@@ -274,7 +274,7 @@ static Bool PatcherUpdate  (Thread &thread) {((Patcher*)thread.user)->update(); 
          case DWNL_DONE: // finished downloading
          {
             Downloaded downloaded; downloaded.create(_pak, download.index, download, _cipher);
-            {locker.on(); Swap(downloaded, T._downloaded.New()); download.index=-1; _bytes_downloaded+=download.done(); download.del(); goto next;} // set 'index', '_bytes_downloaded' and del 'download' under lock to have correct knowledge of progress, don't delete 'download' outside of the lock, because 'Patcher.progress' operates on both '_bytes_downloaded' and 'Download.done', goto next without disabling lock because we will need it anyway
+            {locker.on(); Swap(downloaded, T._downloaded.New()); _bytes_downloaded+=download.done(); download.clearIndexDel(); goto next;} // set '_bytes_downloaded' and 'clearIndexDel' under lock to have correct knowledge of progress, don't delete 'download' outside of the lock, because 'Patcher.progress' operates on both '_bytes_downloaded' and 'Download.done', goto next without disabling lock because we will need it anyway
          }break;
 
          case DWNL_DOWNLOAD: // verify while downloading
@@ -283,7 +283,7 @@ static Bool PatcherUpdate  (Thread &thread) {((Patcher*)thread.user)->update(); 
             if((download.size()>=0) ? (download.size()!=pf.data_size_compressed)  // if file size is   known and it's    different than expected
                                     : (download.done()> pf.data_size_compressed)) // if file size is unknown but already exceeded  what expected
             {
-               download.del(); // here del 'download' already, outside the 'lock' because it's still in progress and may take a while longer to stop it
+               download.del(); // here del 'download' already, outside the 'lock' because it's still in progress and may take a while longer to stop it !! however do not clear 'index' because we need it below !!
                goto error; // set as failed download
             }
          }break;
@@ -291,10 +291,10 @@ static Bool PatcherUpdate  (Thread &thread) {((Patcher*)thread.user)->update(); 
          case DWNL_ERROR: error: // error encountered
          {
             Downloaded downloaded; downloaded.createFail(_pak, download.index); // create 'downloaded' as failed
-            {locker.on(); Swap(downloaded, T._downloaded.New()); download.index=-1; if(0)_bytes_downloaded+=download.done(); download.del(); goto next;} // set 'index' and del 'download' under lock to have correct knowledge of progress (changing '_bytes_downloaded' is optional), goto next without disabling lock because we will need it anyway
+            {locker.on(); Swap(downloaded, T._downloaded.New()); if(0)_bytes_downloaded+=download.done(); download.clearIndexDel(); goto next;} // 'clearIndexDel' under lock to have correct knowledge of progress (changing '_bytes_downloaded' is optional), goto next without disabling lock because we will need it anyway
          }break;
 
-         case DWNL_NONE: // not downloading anything
+         case DWNL_NONE: if(_to_download.elms()) // not downloading anything
          {
             locker.on(); next: if(!_to_download.elms())locker.off();else // check for elements to download
             {

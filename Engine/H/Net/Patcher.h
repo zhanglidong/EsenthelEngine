@@ -113,6 +113,10 @@ private:
    struct FileDownload : Download
    {
       Int index;
+   #if EE_PRIVATE
+      void clearIndex   () {index=-1;}
+      void clearIndexDel() {clearIndex(); del();}
+   #endif
    };
    Str              _http, _name;
    Cipher          *_cipher;
