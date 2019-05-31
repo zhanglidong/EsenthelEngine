@@ -262,9 +262,6 @@ void GUI::dragDraw()
    if(dragging())if(Image *image=image_drag())image->draw(Rect_D(dragPos(), Vec2(0.05f*image->aspect(), 0.05f)));
 }
 /******************************************************************************/
-void GUI::addFuncCall(void func(        )          ) {_callbacks.add(func      );}
-void GUI::addFuncCall(void func(Ptr user), Ptr user) {_callbacks.add(func, user);}
-/******************************************************************************/
 void GUI::update()
 {
    Dbl t=Time.curTime();

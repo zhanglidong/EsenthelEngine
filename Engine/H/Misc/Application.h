@@ -91,6 +91,12 @@ struct Application // Application Settings
    void deleteSelfAtExit(           ); // notify that the exe should delete itself at application exit
    void close           (           ); // request application to be closed, if 'App.quit' was specified then it will be called instead
 
+   // function callbacks
+            void addFuncCall(void func(          )            ) {_callbacks.add(func      );}             // add custom function to the Application callback list to be automatically called during Application Update on the main thread
+            void addFuncCall(void func(Ptr   user), Ptr   user) {_callbacks.add(func, user);}             // add custom function to the Application callback list to be automatically called during Application Update on the main thread
+   T1(TYPE) void addFuncCall(void func(TYPE *user), TYPE *user) {addFuncCall((void(*)(Ptr))func,  user);} // add custom function to the Application callback list to be automatically called during Application Update on the main thread
+   T1(TYPE) void addFuncCall(void func(TYPE &user), TYPE &user) {addFuncCall((void(*)(Ptr))func, &user);} // add custom function to the Application callback list to be automatically called during Application Update on the main thread
+
    // advanced
    void coInitialize(UInt dwCoInit); // this method is for Windows only, it allows to change initialization of the Windows COM library. By default the engine already initializes the COM library using "CoInitialize(null)" system function (which is called before 'InitPre' function), however if you require to initialize the COM library using 'CoInitializeEx' system function with custom settings, then you must call this method ('coInitialize') with 'dwCoInit' parameter which you would normally use for 'CoInitializeEx'. The engine will reinitialize the COM library and any interfaces it previously obtained. You should not attempt to manually uninitialize the COM library by using 'CoUninitialize' on the main thread, as the engine already manages initialization and uninitialization of the library. 'CoUninitialize' will be automatically called by the engine at the end of the application, after 'Shut' function.
 

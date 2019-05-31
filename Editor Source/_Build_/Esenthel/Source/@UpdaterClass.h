@@ -22,10 +22,11 @@ class UpdaterClass
    flt  progress(); 
 
    static bool Update(Thread &thread);
-   bool update(); // !! this is called on secondary thread !!
+          void update(); // !! this is called on secondary thread !!
+   void updateEx(); // !! this is called on secondary thread !!
 
-   void create();
    void del();
+   void create();
   ~UpdaterClass(); // to manually delete the thread before other members
 
 public:

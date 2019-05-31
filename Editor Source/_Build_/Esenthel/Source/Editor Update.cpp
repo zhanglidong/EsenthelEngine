@@ -276,14 +276,15 @@ void DrawInstall()
    }
    bool UpdaterClass::updating() {return thread.active();}
    flt  UpdaterClass::progress() {if(long total=patcher.filesSize())return dbl(patcher.progress())/total; return 0;}
-   bool UpdaterClass::Update(Thread &thread)
+   bool UpdaterClass::Update(Thread &thread) {((UpdaterClass*)thread.user)->update(); return false;}
+          void UpdaterClass::update() // !! this is called on secondary thread !!
    {
       if(InstallerMode)App.stayAwake(AWAKE_SYSTEM);
-      bool ok=((UpdaterClass*)thread.user)->update();
+      updateEx();
+      patcher.del();
       if(InstallerMode)App.stayAwake(AWAKE_OFF);
-      return ok;
    }
-   bool UpdaterClass::update() // !! this is called on secondary thread !!
+   void UpdaterClass::updateEx() // !! this is called on secondary thread !!
    {
       // download latest ver
       Str upload_name;
@@ -301,30 +302,30 @@ void DrawInstall()
 
       // check local ver (do this before update ver)
       path=(InstallerMode ? InstallPath() : GetPath(App.exe())).tailSlash(true);
-      FList(path, Filter, T); if(thread.wantStop())return false;
+      FList(path, Filter, T); if(thread.wantStop())return;
 
       // check local update ver (do this after original ver so these files will overwrite previous info)
       update_path=path+"Bin\\Update\\";
-      FList(update_path, FilterUpdate, T); if(thread.wantStop())return false;
+      FList(update_path, FilterUpdate, T); if(thread.wantStop())return;
 
       // wait for patcher index
       for(; ; Time.wait(1))
       {
-         if(thread.wantStop())return false;
-         if(patcher.indexState()==DWNL_ERROR){if(InstallerMode)Gui.msgBox(S, "Can't access Esenthel Server"); return false;}
+         if(thread.wantStop())return;
+         if(patcher.indexState()==DWNL_ERROR){if(InstallerMode)Gui.msgBox(S, "Can't access Esenthel Server"); return;}
          if(patcher.indexState()==DWNL_DONE )break;
       }
 
       // process what to remove/download
       Memc<int> server_download;
-      if(!patcher.compare(local_files, local_remove, server_download))return false;
+      if(!patcher.compare(local_files, local_remove, server_download))return;
       bool deleted=false; REPA(local_remove)deleted|=FDel(update_path+local_files[local_remove[i]].full_name); // from leafs to root to delete files first (we're operating on temporary files here so there's no need for 'FRecycle')
       if(  deleted) // if deleted any file then list local files again, in case now we have them up to date
       {
          local_files.clear();
-         FList(       path, Filter      , T); if(thread.wantStop())return false;
-         FList(update_path, FilterUpdate, T); if(thread.wantStop())return false;
-         if(!patcher.compare(local_files, local_remove, server_download))return false;
+         FList(       path, Filter      , T); if(thread.wantStop())return;
+         FList(update_path, FilterUpdate, T); if(thread.wantStop())return;
+         if(!patcher.compare(local_files, local_remove, server_download))return;
       }
       FREPA(server_download)       patcher.downloadFile(server_download[i]); // from root to download folders first
        REPA( local_remove  )FDel(update_path+local_files[local_remove  [i]].full_name); // from leafs to root to delete files first (we're operating on temporary files here so there's no need for 'FRecycle')
@@ -332,9 +333,9 @@ void DrawInstall()
       // download files
       bool ok=true;
       Map<Str, int> failed_download(ComparePathCI, CreateFailedDownload); // doesn't need to be thread-safe, this is a list of files that failed to download (how many times)
-      for(; ; )
+      for(;;)
       {
-         if(thread.wantStop()){patcher.del(); return false;}
+         if(thread.wantStop())return;
          Patcher::Downloaded download;
          if(patcher.getNextDownload(download))
          {
@@ -349,13 +350,13 @@ void DrawInstall()
                   {
                      FCreateDirs(GetPath(full));
                      FDelFile(full);
-                     if(CreateSymLink(full, DecodeSymLink(download.data)))FTimeUTC(full, download.modify_time_utc);else{Gui.msgBox("Error", S+"Can't write to:\n\""+full+'"'); patcher.del(); return false;}
+                     if(CreateSymLink(full, DecodeSymLink(download.data)))FTimeUTC(full, download.modify_time_utc);else{Gui.msgBox("Error", S+"Can't write to:\n\""+full+'"'); return;}
                   }break;
 
                   case FSTD_FILE:
                   {
                      FCreateDirs(GetPath(full));
-                     if(!SafeOverwrite(download.data, full, &download.modify_time_utc)){Gui.msgBox("Error", S+"Can't write to:\n\""+full+"\"\nTry running as administrator."); patcher.del(); return false;}
+                     if(!SafeOverwrite(download.data, full, &download.modify_time_utc)){Gui.msgBox("Error", S+"Can't write to:\n\""+full+"\"\nTry running as administrator."); return;}
                   }break;
                }
             }else
@@ -364,7 +365,7 @@ void DrawInstall()
                if(++failed>=MaxDownloadAttempts)
                {
                   ok=false;
-                  if(InstallerMode){Gui.msgBox(S, S+"Error downloading file:\n\""+download.full_name+"\"\nPlease try again.\nUsing the same path will resume the download."); patcher.del(); return false;}
+                  if(InstallerMode){Gui.msgBox(S, S+"Error downloading file:\n\""+download.full_name+"\"\nPlease try again.\nUsing the same path will resume the download."); return;}
                }else // try again
                {
                   patcher.downloadFile(download.index);
@@ -377,11 +378,15 @@ void DrawInstall()
       // update
       if(ok) // if all succeeded
          if(InstallerMode || hasUpdate()) // there is an actual update
-      {
          show=ready=true;
-      }
-
-      return false;
+   }
+   void UpdaterClass::del()
+   {
+      thread.del(); // delete the thread first
+      ready=show=false;
+      patcher     .del();
+      local_remove.del();
+      local_files .del();
    }
    void UpdaterClass::create()
    {
@@ -392,14 +397,6 @@ void DrawInstall()
       #endif
             thread.create(Update, this, 0, false, "Update");
    #endif
-   }
-   void UpdaterClass::del()
-   {
-      thread.del(); // delete the thread first
-      ready=show=false;
-      patcher     .del();
-      local_remove.del();
-      local_files .del();
    }
   UpdaterClass::~UpdaterClass() {del();}
    void UpdateWindowClass::ApplyDo(bool all_saved, ptr) {if(all_saved){UpdateWindow.hide(); if(Updater.ready)StateUpdate.set(StateFadeTime);}}

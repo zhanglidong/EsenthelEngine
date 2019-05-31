@@ -85,8 +85,8 @@ struct GUI // Graphical User Interface
 #endif
 
    // function callbacks
-            void addFuncCall(void func(          )            );                                          // add custom function to the gui function callback list to be automatically called at the end of the 'Gui.update'
-            void addFuncCall(void func(Ptr   user), Ptr   user);                                          // add custom function to the gui function callback list to be automatically called at the end of the 'Gui.update'
+            void addFuncCall(void func(          )            ) {_callbacks.add(func      );}             // add custom function to the gui function callback list to be automatically called at the end of the 'Gui.update'
+            void addFuncCall(void func(Ptr   user), Ptr   user) {_callbacks.add(func, user);}             // add custom function to the gui function callback list to be automatically called at the end of the 'Gui.update'
    T1(TYPE) void addFuncCall(void func(TYPE *user), TYPE *user) {addFuncCall((void(*)(Ptr))func,  user);} // add custom function to the gui function callback list to be automatically called at the end of the 'Gui.update'
    T1(TYPE) void addFuncCall(void func(TYPE &user), TYPE &user) {addFuncCall((void(*)(Ptr))func, &user);} // add custom function to the gui function callback list to be automatically called at the end of the 'Gui.update'
 
