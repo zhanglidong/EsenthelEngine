@@ -887,13 +887,9 @@ static Bool ThreadsFunc(Threads::ThreadEx &thread)
    return true;
 }
 /******************************************************************************/
-void Threads::del()
+Threads::Threads() {zero();}
+void Threads::zero()
 {
-   AtomicSet(_left, 0); // this will stop processing priority elements so we don't have to check 'wantStop' every time
-   REPAO(_threads).stop(); // notify all threads that we want to stop
-  _wake_threads+=_threads.elms(); // wake up all of them in case they are sleeping
-  _threads.del(); // delete threads before anything else
-  _calls  .del(); _calls_pos=0;
   _func=null;
   _func_data=null;
   _func_memb=null;
@@ -903,7 +899,17 @@ void Threads::del()
   _ordered=false;
   _left=_processed=_elms=0;
   _elm_size=0;
+  _calls_pos=0;
   _waiting=0;
+}
+void Threads::del()
+{
+   AtomicSet(_left, 0); // this will stop processing priority elements so we don't have to check 'wantStop' every time
+   REPAO(_threads).stop(); // notify all threads that we want to stop
+  _wake_threads+=_threads.elms(); // wake up all of them in case they are sleeping
+  _threads.del(); // delete threads before anything else
+  _calls  .del();
+   zero();
 }
 void Threads::create(Bool ordered, Int threads, Int priority, C Str8 &name)
 {

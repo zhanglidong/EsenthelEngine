@@ -616,6 +616,7 @@ const_mem_addr struct Threads // Worker Threads, allow to process data on multip
    Int      priority()C;   Threads& priority     (Int priority); // get/set threads priority, 'priority'=-3..3
 
   ~Threads() {del();}
+   Threads();
 
 #if !EE_PRIVATE
 private:
@@ -644,6 +645,7 @@ private:
    Int            _left, _processed, _elms, _elm_size, _calls_pos, _waiting;
 
 #if EE_PRIVATE
+   void zero     ();
    Bool callsLeft();
    void free     ();
    void checkEnd ();
