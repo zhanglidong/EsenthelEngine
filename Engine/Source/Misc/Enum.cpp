@@ -14,7 +14,7 @@ Cache<Enum> Enums("Enum");
 Enum::Enum(C Enum &src) : Enum() {T=src;}
 Enum& Enum::del()
 {
-   name[0]=0;
+   name.del();
    Free(_order);
   _elms.del();
    return T;
@@ -40,7 +40,7 @@ Enum& Enum::create(C Str &name, C MemPtr<Elm> &elms)
 {
    del();
 
-   Set(T.name, name);
+   T. name=name;
    T._elms=elms;
    Alloc(_order, T.elms().elms()*2);
    sort();
@@ -51,7 +51,7 @@ Enum& Enum::operator=(C Enum &src)
 {
    if(this!=&src)
    {
-      Set(name, src.name);
+      name=src. name;
      _elms=src._elms;
       CopyN(Alloc(Free(_order), elms().elms()*2), src._order, elms().elms()*2);
    }
@@ -169,7 +169,7 @@ Bool Enum::load(File &f)
 
       case 1:
       {
-         Set(name, f._getStr());
+         name=f._getStr();
         _elms.setNum(f.decUIntV()); FREPA(T){Elm &elm=_elms[i]; Set(elm.name, f._getStr()); f>>elm.id;}
          f.getN(Alloc(_order, elms().elms()*2), elms().elms()*2);
          if(f.ok())return true;
@@ -178,7 +178,7 @@ Bool Enum::load(File &f)
       case 0:
       {
          f.getByte(); // old version byte
-         f>>name;
+         Char8 name[64]; f>>name; T.name=name;
         _elms.setNum(f.getInt()); FREPA(T){Elm &elm=_elms[i]; f>>elm.name; elm.id=MD5Mem(Str8(elm.name), Length(elm.name));}
          f.skip(SIZE(UInt)*elms().elms()); // skip old '_order'
          if(f.ok())

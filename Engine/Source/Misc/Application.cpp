@@ -65,12 +65,8 @@ Application::Application()
   _icon=null;
 #endif
 #endif
-   x          =-1;
-   y          = 1;
-  _lang       = EN;
-  _orientation= DIR_UP;
-  _thread_id  = GetThreadId();
-  _back_text  = "Running in background";
+  _thread_id=GetThreadId();
+  _back_text="Running in background";
 }
 Application& Application::name(C Str &name) {T._name=name; return T;}
 /******************************************************************************/

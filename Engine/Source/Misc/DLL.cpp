@@ -95,13 +95,6 @@ Ptr DLL::getFunc(CChar8 *name)C
       return null;
    }
 #endif
-
-DLL::DLL() {_dll_mem=_dll_file=null;}
-
-Bool DLL::is()C
-{
-   return _dll_mem || _dll_file;
-}
 /******************************************************************************/
 } // namespace
 /******************************************************************************/

@@ -43,7 +43,7 @@ enum AWAKE_MODE : Byte
 /******************************************************************************/
 struct Application // Application Settings
 {
-   Int     x, y       ; // initial position (-1..1) used to specify window position on the desktop at the creation of application, default=(-1, 1)
+   Int     x=-1, y=1  ; // initial position (-1..1) of the window on the desktop at the creation of application
    UInt    flag       ; // APP_FLAG
    Int     active_wait, // amount of milliseconds the application should wait before making 'Update' calls when in active     mode                                        , -1=unlimited (app will wait until event occurs  ), 0=instant (app will keep calling 'Update' continuously), >0=wait (app will wait specified time until event occurs before making 'Update' calls), default=0. It's recommended to use this instead of manually waiting with 'Time.wait', because this method allows app to resume instantly when event occurs     , unlike 'Time.wait' which waits without stopping.
        background_wait; // amount of milliseconds the application should wait before making 'Update' calls when in background mode and with APP_WORK_IN_BACKGROUND enabled, -1=unlimited (app will wait until it's activated), 0=instant (app will keep calling 'Update' continuously), >0=wait (app will wait specified time until activated    before making 'Update' calls), default=0. It's recommended to use this instead of manually waiting with 'Time.wait', because this method allows app to resume instantly when it gets activated, unlike 'Time.wait' which waits without stopping.
@@ -135,8 +135,8 @@ private:
    Bool                _loop;
 #endif
    AWAKE_MODE          _stay_awake;
-   DIR_ENUM            _orientation;
-   LANG_TYPE           _lang;
+   DIR_ENUM            _orientation=DIR_UP;
+   LANG_TYPE           _lang=EN;
    Int                 _mem_leaks;
    mutable UInt        _parent_process_id;
    UInt                _process_id;

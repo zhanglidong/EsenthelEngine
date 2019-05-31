@@ -13,7 +13,7 @@ struct Enum // Enum helper class !! Enum doesn't support manual value assigning,
       Elm& set(C Str8 &name, C UID &id) {Set(T.name, name); T.id=id; return T;}
    };
 
-   Char8 name[64]; // enum name
+   Str8 name; // enum name
 
    // get
  C Mems<Elm>& elms      (     )C {return _elms   ;} // get      enum elements
@@ -54,15 +54,15 @@ struct Enum // Enum helper class !! Enum doesn't support manual value assigning,
    UInt* nameOrder()C {return _order              ;} // get array of element indexes sorted by their name
    UInt*   idOrder()C {return _order+elms().elms();} // get array of element indexes sorted by their id
 #endif
-              Enum&   del ( );
-             ~Enum() {del ( );}
-              Enum() {Zero(T);}
+              Enum&   del();
+             ~Enum() {del();}
+              Enum() {}
               Enum(C Enum &src); // create from 'src'
    Enum& operator=(C Enum &src); // create from 'src'
 
 private:
-   UInt     *_order;
-   Mems<Elm> _elms ;
+   UInt     *_order=null;
+   Mems<Elm> _elms      ;
 };
 /******************************************************************************/
 extern Cache<Enum> Enums; // Enum Cache
