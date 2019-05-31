@@ -36,11 +36,11 @@ private:
 /******************************************************************************/
 struct MusicManager
 {
-   Bool       shuffle   ; // if select songs from Playlist in random order, default=true
-   FADE_CURVE fade_curve; // curve used for song crossfade                , default=FADE_LINEAR
-   Flt        fade_in   , // fade in  time for starting  new songs        , default=0.5
-              fade_out  , // fade out time for finishing old songs        , default=3.0
-              time_reset; // minimum  time left needed to play a song again from its last position instead of playing it from the start, default=10, for example: if song "A" was playing, and user manually switched to song "B", the last position of "A" song is remembered before switching to "B" song, then if user switches back to "A" song, the engine first checks if last position of "A" song has at least 'time_reset' seconds before the end of the song, if yes then song "A" is played from its last remembered position, if not then it is played from the start of the song
+   Bool       shuffle   =true       ; // if select songs from Playlist in random order
+   FADE_CURVE fade_curve=FADE_LINEAR; // curve used for song crossfade
+   Flt        fade_in   =0.5f       , // fade in  time for starting  new songs
+              fade_out  =3          , // fade out time for finishing old songs
+              time_reset=10         ; // minimum  time left needed to play a song again from its last position instead of playing it from the start, for example: if song "A" was playing, and user manually switched to song "B", the last position of "A" song is remembered before switching to "B" song, then if user switches back to "A" song, the engine first checks if last position of "A" song has at least 'time_reset' seconds before the end of the song, if yes then song "A" is played from its last remembered position, if not then it is played from the start of the song
 
    UID (*select_song)(C UID &next); // pointer to custom function (may be null) called when next song needs to be selected, return 'UID' of the song you wish to play, or 'UIDZero' for no song. 'next'=next song ID queued in the history, set to 'UIDZero' if there's no next song available. If this function is not specified then song will be selected based on active playlist. !! Warning: this may get called on a secondary thread !!
 

@@ -16,18 +16,23 @@ namespace EE{
 /******************************************************************************/
 // CONNECTION
 /******************************************************************************/
-Connection& Connection::del()
+Connection::Connection() {zero(); _in_offset=_out_offset=0;}
+void Connection::zero()
 {
-   if(_state==CONNECT_GREETED)flush(0); // if we were connected then flush any data, don't attempt to flush in other states (like sending a greeting for example)
   _state            =CONNECT_INVALID;
   _birth            =0;
   _msg_size_progress=0;
   _msg_size         =0;
+   // don't clear '_in_offset' '_out_offset' as they may be used after connection got deleted (deletion may occur upon error/connection lost and we want to keep the stats even after that)
+}
+Connection& Connection::del()
+{
+   if(_state==CONNECT_GREETED)flush(0); // if we were connected then flush any data, don't attempt to flush in other states (like sending a greeting for example)
   _socket.del();
   _out   .del();
    data  .del();
-   // don't clear '_in_offset' '_out_offset' '_address' as they may be called after connection got deleted (deletion may occur upon error/connection lost and we want to keep the stats even after that)
-   return T;
+   // don't clear '_address' as they may be used after connection got deleted (deletion may occur upon error/connection lost and we want to keep the stats even after that)
+   zero(); return T;
 }
 Bool Connection::serverAcceptClient(Socket &server)
 {

@@ -52,7 +52,7 @@ struct Connection // reliable TCP based client/server connection with automatic 
    // operations
    Bool tcpNoDelay(Bool on) {return _socket.tcpNoDelay(on);} // set TCP_NODELAY option, false on fail
 
-   Connection() {_state=CONNECT_INVALID; _msg_size_progress=0; _msg_size=_birth=0; _in_offset=_out_offset=0;}
+   Connection();
   ~Connection() {del();}
 
 #if !EE_PRIVATE
@@ -68,6 +68,7 @@ private:
    Cipher1       _cipher;
 
 #if EE_PRIVATE
+   void            zero   ();
    Bool            greet  ();
    Bool            flushEx(Int timeout); // wait 'timeout' until all data has been sent
    CONNECT_RECEIVE update (Int timeout, Bool read);
@@ -96,10 +97,8 @@ struct FastConnection // fast but unreliable UDP based connection, data is not g
 
    Int receive(SockAddr &addr, Byte (&data)[65536]); // receive data, 'data'=custom buffer which will receive data, if data was received successfully, the 'addr' will contain the address of the sender, and method will return size of received data, -1 if there was no data
 
-   FastConnection() {_sent=_received=0;}
-
 private:
-   Long   _sent, _received;
+   Long   _sent=0, _received=0;
    Socket _socket;
 };
 /******************************************************************************/

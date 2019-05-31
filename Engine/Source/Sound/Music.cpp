@@ -202,11 +202,6 @@ Int Playlist::prevSong(Bool shuffle, Randomizer &random)
 /******************************************************************************/
 MusicManager::MusicManager(VOLUME_GROUP volume_group)
 {
-   shuffle   =true;
-   fade_curve=FADE_LINEAR;
-   fade_in   =0.5f;
-   fade_out  =   3;
-   time_reset=  10;
    select_song=null;
 
    T._song[0]=-1;
