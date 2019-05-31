@@ -300,7 +300,7 @@ struct SimpleReadWriteSync // !! NOT REENTRANT - does not support 'enterWrite' i
 private:
            SyncLock  _lock;
            SyncEvent _finished;
-   mutable Int       _readers;
+   mutable Int       _readers=0;
 };
 
 struct SimpleReadLock // SimpleReadWriteSync Read Lock (automatically locks and unlocks for reading the 'SimpleReadWriteSync' at object creation and destruction)
