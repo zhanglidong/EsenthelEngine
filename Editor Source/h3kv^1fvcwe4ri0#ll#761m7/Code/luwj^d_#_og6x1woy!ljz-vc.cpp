@@ -5,7 +5,8 @@ class UpdaterClass
    static const int MaxDownloadAttempts=3;
    static bool      CreateFailedDownload(int &failed, C Str &file, ptr user) {failed=0; return true;}
 
-   bool    ready=false, show=false, has_update=false;
+   bool    ready=false, has_update=false;
+   flt     time=0;
    Thread  thread;
    Patcher patcher;
    Str     path, update_path;
@@ -180,13 +181,17 @@ class UpdaterClass
       // update
       if(ok) // if all succeeded
          if(InstallerMode || hasUpdate()) // there is an actual update
-         show=ready=true;
+      {
+         ready=true;
+         if(!InstallerMode)App.addFuncCall(AskUpdate); // call on the main thread
+      }
    }
+   static void AskUpdate() {UpdateWindow.create();}
 
    void del()
    {
       thread.del(); // delete the thread first
-      ready=show=false;
+      ready=false;
       patcher     .del();
       local_remove.del();
       local_files .del();
@@ -200,6 +205,14 @@ class UpdaterClass
       #endif
             thread.create(Update, this, 0, false, "Update");
    #endif
+   }
+   void check()
+   {
+      if(Time.realTime()>=time && UpdateWindow.hidden() && !InstallerMode)
+      {
+         time=Time.realTime()+12*60*60; // next check in 12 hours
+         create();
+      }
    }
   ~UpdaterClass() {del();} // to manually delete the thread before other members
 }
@@ -217,7 +230,7 @@ class UpdateWindowClass : ClosableWindow
 
    void create()
    {
-      Gui+=super       .create(Rect_C(0, 0, 1, 0.48)).barVisible(false).hide(); button[2].func(HideEditAct, SCAST(GuiObj, T)).show();
+      Gui+=super       .create(Rect_C(0, 0, 1, 0.48)).barVisible(false).hide().fadeIn(); button[2].func(HideEditAct, SCAST(GuiObj, T)).show();
       T  +=text        .create(Vec2  (clientWidth()/2, -0.19), "An update to Esenthel is available.\nWould you like to apply it now?\n\nWarning: Applying update will restore the default\n\"Tutorials\" project to its original state.\nAny changes you've made to it will be lost.");
       T  +=apply       .create(Rect_D(clientWidth()*1/6, -clientHeight()+0.04, 0.26, 0.06), "Apply"       ).focusable(false).func(Apply, T);
       T  +=show_changes.create(Rect_D(clientWidth()/2  , -clientHeight()+0.04, 0.32, 0.06), "Show Changes").focusable(false).func(ShowChanges, T);
@@ -226,15 +239,6 @@ class UpdateWindowClass : ClosableWindow
    virtual GuiObj* test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override
    {
       return (alpha()>=1) ? super.test(gpc, pos, mouse_wheel) : null; // check for alpha to avoid accidental clicks when window suddenly appears
-   }
-   virtual void update(C GuiPC &gpc)override
-   {
-      super.update(gpc);
-      if(Updater.show)
-      {
-         Updater.show=false;
-         fadeIn();
-      }
    }
 }
 UpdateWindowClass UpdateWindow;
