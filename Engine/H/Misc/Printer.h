@@ -26,7 +26,7 @@ struct RawPrinter
    void disconnect();
 
   ~RawPrinter() {disconnect();}
-   RawPrinter();
+   RawPrinter() {}
 
 #if !EE_PRIVATE
 private:
@@ -35,14 +35,15 @@ private:
    Str  printer_name;
 #if WINDOWS_OLD
 #if EE_PRIVATE
-	HANDLE printer;
+	HANDLE printer=null;
 #else
-   Ptr  printer;
+   Ptr  printer=null;
 #endif
 #endif
 #if EE_PRIVATE
    Bool send(C Str8 &data, C Str &document_name=S);
 #endif
+   NO_COPY_CONSTRUCTOR(RawPrinter);
 };
 STRUCT_PRIVATE(ReceiptPrinter , RawPrinter)
 //{

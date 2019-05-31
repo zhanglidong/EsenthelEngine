@@ -38,12 +38,6 @@ again:
 /******************************************************************************/
 // RAW PRINTER
 /******************************************************************************/
-RawPrinter::RawPrinter()
-{
-#if WINDOWS_OLD
-   printer=null;
-#endif
-}
 void RawPrinter::disconnect()
 {
 #if WINDOWS_OLD

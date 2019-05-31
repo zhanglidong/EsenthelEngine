@@ -37,14 +37,14 @@ struct BStr // string which uses text memory allocated externally, and limiting 
 
               BStr&   del() {return clear();}
              ~BStr() {del();}
-              BStr() {_custom=false; _d=null; _length=0;}
+              BStr() {}
               BStr(C BStr &src); // set as exact copy of 'src' string
    BStr& operator=(C BStr &src); // set as exact copy of 'src' string
 
 private:
-   Bool   _custom;
-   CChar *_d;
-   Int    _length;
+   Bool   _custom=false;
+   CChar *_d     =null;
+   Int    _length=0;
 };
 inline Int Elms(C BStr &s) {return s.length();}
 /******************************************************************************/
