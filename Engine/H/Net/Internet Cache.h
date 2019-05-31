@@ -22,27 +22,24 @@ struct InternetCache
    void     flush   (                         ); // flush updated files to disk, warning: this may update the Pak file, because of which existing file references 'SrcFile' obtained through 'getFile' will become invalid
 
   ~InternetCache() {del();}
-   InternetCache() {_image_mip_maps=0; _compress=COMPRESS_NONE; _threads=null;}
 
 #if !EE_PRIVATE
 private:
 #endif
    struct ImportImage : SrcFile
    {
-      Bool     done;       // if finished importing
+      Bool     done=false; // if finished importing
       ImagePtr image_ptr;  // image into which import
       Image    image_temp; // temp image which will have the data
-
-      ImportImage() {done=false;}
    };
    const_mem_addr struct Downloaded : PakFileData
    {
       Mems<Byte> file_data;
    };
 
-   COMPRESS_TYPE     _compress;
-   Int               _image_mip_maps;
-   Threads          *_threads;
+   COMPRESS_TYPE     _compress=COMPRESS_NONE;
+   Int               _image_mip_maps=0;
+   Threads          *_threads=null;
    Pak               _pak;
    Memb<Downloaded>  _downloaded; // use 'Memb' to have const_mem_addr needed for threads and pointing to 'data'
    Download          _downloading[6];

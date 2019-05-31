@@ -29,7 +29,7 @@ struct Facebook
 {
    struct User
    {
-      ULong id  ; // user id
+      ULong id=0; // user id
       Str   name; // user name (first+last)
 
       void clear() {id=0; name.clear();}
@@ -51,7 +51,7 @@ struct Facebook
       POST_SUCCESS, // post completed successfully
    };
 
-   void (*callback)(RESULT result); // pointer to a custom function that will be called with processed events, 'result'=message received at the moment
+   void (*callback)(RESULT result)=null; // pointer to a custom function that will be called with processed events, 'result'=message received at the moment
 
    // manage
    Bool      loggedIn()C; // if currently logged in to Facebook
@@ -74,10 +74,8 @@ struct Facebook
 #if !EE_PRIVATE
 private:
 #endif
-   UserEmail   _me;
-   Mems<User > _friends;
-
-   Facebook();
+   UserEmail  _me;
+   Mems<User> _friends;
 }extern
    FB;
 /******************************************************************************/

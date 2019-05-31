@@ -161,13 +161,13 @@ struct Socket
    static Bool WouldBlock();
 #endif
 
+   Socket() {}
   ~Socket() {del();}
-   Socket() {_s=NULL_SOCKET;}
 
 #if !EE_PRIVATE
 private:
 #endif
-   CPtr _s;
+   CPtr _s=NULL_SOCKET;
    NO_COPY_CONSTRUCTOR(Socket);
 };
 /******************************************************************************/
@@ -191,16 +191,16 @@ STRUCT(SecureSocket , Socket)
    Int send   (CPtr data, Int size); // can return RESULT (ERROR as in 'Socket', and NEED_WAIT, NEED_FLUSH)
    Int receive( Ptr data, Int size); // can return RESULT (ERROR as in 'Socket', and NEED_WAIT, NEED_FLUSH)
 
-   SecureSocket() { _secure=null;}
+   SecureSocket() {}
   ~SecureSocket() {unsecure();}
 
 #if !EE_PRIVATE
 private:
 #endif
 #if EE_PRIVATE && SUPPORT_MBED_TLS
-   mbedtls_ssl_context *_secure;
+   mbedtls_ssl_context *_secure=null;
 #else
-   Ptr _secure;
+   Ptr _secure=null;
 #endif
    NO_COPY_CONSTRUCTOR(SecureSocket);
 };

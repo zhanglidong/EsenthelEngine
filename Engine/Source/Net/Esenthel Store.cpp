@@ -50,12 +50,6 @@ Int EsenthelStore::PurchaseToUSD(PURCHASE_TYPE purchase_type)
    return 0;
 }
 /******************************************************************************/
-EsenthelStore::EsenthelStore()
-{
-  _license_result=_purchase_result=NONE;
-  _license_item_id=_license_user_id=_purchase_item_id=-1;
-}
-/******************************************************************************/
 // LICENSE TEST
 /******************************************************************************/
 void EsenthelStore::licenseClear(Bool params)

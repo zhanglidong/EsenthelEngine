@@ -42,11 +42,11 @@ struct SQLColumn // SQL Column definition, use this for creating new tables in a
       PRIMARY_AUTO, // requires that this column must have unique data, this can be set only up to 1 columns, this is a special type of PRIMARY mode, which automatically sets the value to a unique index, type of this column must be only of BYTE, SHORT, INT, LONG type
    };
 
-   Str           name       ; // column name
-   SQL_DATA_TYPE type       ; // column type
-   Bool          allow_nulls; // if allow this column to have a null value
-   MODE          mode       ; // column mode
-   Str           default_val; // default value (optional, can be left empty)
+   Str           name                   ; // column name
+   SQL_DATA_TYPE type       =SDT_UNKNOWN; // column type
+   Bool          allow_nulls=false      ; // if allow this column to have a null value
+   MODE          mode       =DEFAULT    ; // column mode
+   Str           default_val            ; // default value (optional, can be left empty)
    union
    {
       Int    str_len ; // maximum number of characters allowed in a string type (STR,STR8), giving a value<=0 will make the length be as long as possible (but slower)
@@ -55,7 +55,7 @@ struct SQLColumn // SQL Column definition, use this for creating new tables in a
 
    SQLColumn& set(C Str &name, SQL_DATA_TYPE type, Int str_len_bin_size=16) {T.name=name; T.type=type; T.str_len=T.binary_size=str_len_bin_size; return T;}
 
-   SQLColumn() {type=SDT_UNKNOWN; allow_nulls=false; mode=DEFAULT; str_len=binary_size=16;}
+   SQLColumn() {str_len=binary_size=16;}
 };
 /******************************************************************************/
 struct SQLValues // SQL Row values, use this for creating new rows in a table

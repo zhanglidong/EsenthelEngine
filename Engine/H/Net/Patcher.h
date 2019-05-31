@@ -15,28 +15,28 @@ const_mem_addr struct Patcher // class for automatic downloading file updates fr
          SYSTEM_DIR , // system directory (normal folder on     your drive  )
       };
 
-      TYPE     type           ; // specifies how the file is stored on the local device
-      Str      full_name      ; // file full name (path+name) relative to your data storage folder (don't include the drive here, instead, use path relative to the folder which was used for uploading your files)
-      Long     file_size      ; // file size in bytes (leave 0 for folders)
-      UInt     xxHash64_32    ; // file hash (this is optional, it can be left at 0 which will disable checking for hash differences, however when enabled, it can provide more reliable detecting differences between file versions)
+      TYPE     type           =PAK_FILE; // specifies how the file is stored on the local device
+      Str      full_name               ; // file full name (path+name) relative to your data storage folder (don't include the drive here, instead, use path relative to the folder which was used for uploading your files)
+      Long     file_size      =0       ; // file size in bytes (leave 0 for folders)
+      UInt     xxHash64_32    =0       ; // file hash (this is optional, it can be left at 0 which will disable checking for hash differences, however when enabled, it can provide more reliable detecting differences between file versions)
       DateTime modify_time_utc; // file modification time in UTC time zone
 
       LocalFile& set(C Str &full_name, C FileInfo &fi); // set from 'full_name' and 'FileInfo'
 
-      LocalFile() {type=PAK_FILE; file_size=0; xxHash64_32=0; modify_time_utc.zero();}
+      LocalFile() {modify_time_utc.zero();}
    };
 
    struct Downloaded
    {
-      Bool      success        ; // file downloaded successfully, if this is equal to false it means that the file was not found or it was different than expected
-      FSTD_TYPE type           ; // type of the element, can be FSTD_FILE, FSTD_DIR or FSTD_LINK
-      Int       index          ; // file index in 'Patcher.index' Pak
-      UInt      xxHash64_32    ; // file data hash (can be 0 if not calculated)
-      DateTime  modify_time_utc; // file modification time in UTC time zone
-      Str       full_name      ; // full name of downloaded file
-      File      data           ; // file data
+      Bool      success        =false    ; // file downloaded successfully, if this is equal to false it means that the file was not found or it was different than expected
+      FSTD_TYPE type           =FSTD_NONE; // type of the element, can be FSTD_FILE, FSTD_DIR or FSTD_LINK
+      Int       index          =-1       ; // file index in 'Patcher.index' Pak
+      UInt      xxHash64_32    = 0       ; // file data hash (can be 0 if not calculated)
+      DateTime  modify_time_utc          ; // file modification time in UTC time zone
+      Str       full_name                ; // full name of downloaded file
+      File      data                     ; // file data
 
-      Downloaded() {success=false; index=-1; xxHash64_32=0; type=FSTD_NONE; modify_time_utc.zero();}
+      Downloaded() {modify_time_utc.zero();}
    #if EE_PRIVATE
       void create     (C Pak &pak, Int index, Download &download, Cipher *cipher);
       void createEmpty(C Pak &pak, Int index);

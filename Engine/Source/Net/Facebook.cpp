@@ -72,12 +72,6 @@ static void FBUpdate()
 }
 #endif
 /******************************************************************************/
-Facebook::Facebook()
-{
-#if 0 // there's only one 'Facebook' global 'FB' and it doesn't need clearing members to zero
-  _me.clear();
-#endif
-}
 Bool Facebook::loggedIn()C
 {
 #if ANDROID

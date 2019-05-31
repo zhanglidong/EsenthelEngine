@@ -87,13 +87,11 @@ struct EsenthelStore // class allowing to communicate with Esenthel Store
       RESULT consume         (C Str &email,                    Int item_id, C Str      &purchase_id);                                               // consume a specific purchase, 'email'=Esenthel Store account email for the owner of the purchases, 'item_id'=ID of an item in Esenthel Store (if you're the author of the item, then you can get its ID from Esenthel Store), 'purchase_id'=unique ID of the purchase to be consumed (this is 'Purchase.id'), once this method is called, Esenthel Store will be contacted with the request of removing the purchase from its database, upon success, the purchase will be automatically removed from the 'purchases' list, this method may fail if Internet connection was lost/unavailable
       RESULT consume         (C Str &email,                    Int item_id, C Purchase &purchase   ) {return consume(email, item_id, purchase.id);} // consume a specific purchase, 'email'=Esenthel Store account email for the owner of the purchases, 'item_id'=ID of an item in Esenthel Store (if you're the author of the item, then you can get its ID from Esenthel Store), 'purchase_id'=unique ID of the purchase to be consumed (this is 'Purchase.id'), once this method is called, Esenthel Store will be contacted with the request of removing the purchase from its database, upon success, the purchase will be automatically removed from the 'purchases' list, this method may fail if Internet connection was lost/unavailable
 
-   EsenthelStore();
-
 #if !EE_PRIVATE
 private:
 #endif
-   Int            _license_item_id, _license_user_id, _purchase_item_id;
-   RESULT         _license_result, _purchase_result;
+   Int            _license_item_id=-1, _license_user_id=-1, _purchase_item_id=-1;
+   RESULT         _license_result=NONE, _purchase_result=NONE;
    Str            _license_key, _license_email, _license_access, _purchase_email;
    Download       _license_download, _purchase_download;
    Memx<Download> _consume;
