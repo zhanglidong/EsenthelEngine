@@ -14,13 +14,13 @@ STRUCT2(AnimBone , AnimKeys, BoneID) // Animation Bone - set of animation keyfra
 struct AnimEvent // Animation Event - custom event which occurs at 'time' in 'Animation'
 {
    Char8 name[32]; // name of the event
-   Flt   time    ; // time position when the event occurs
+   Flt   time=0  ; // time position when the event occurs
 
    AnimEvent& set(C Str8 &name, Flt time) {Set(T.name, name); T.time=time; return T;}
 
    void save(TextNode &node)C; // save as text
 
-   AnimEvent() {name[0]=0; time=0;}
+   AnimEvent() {name[0]=0;}
 };
 /******************************************************************************/
 enum ANIM_FLAG // Animation Flags
