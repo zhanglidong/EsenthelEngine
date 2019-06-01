@@ -101,6 +101,11 @@ import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdListener;
 ADMOB_END
+import com.google.android.vending.licensing.AESObfuscator;
+import com.google.android.vending.licensing.LicenseChecker;
+import com.google.android.vending.licensing.LicenseCheckerCallback;
+import com.google.android.vending.licensing.Policy;
+import com.google.android.vending.licensing.ServerManagedPolicy;
 import java.io.IOException;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -189,6 +194,14 @@ public class EsenthelActivity extends NativeActivity
    public static final int RES_UNKNOWN            =11;
    public static final int RES_REFRESHED_ITEMS    =12;
    public static final int RES_REFRESHED_PURCHASES=13;
+
+   // !! these must be equal to 'PlatformStore.LICENSE_TEST_RESULT' !!
+   public static final int LTR_NONE   =0;
+   public static final int LTR_WAITING=1;
+   public static final int LTR_OK     =2;
+   public static final int LTR_FAIL   =3;
+   public static final int LTR_RETRY  =4;
+   public static final int LTR_ERROR  =5;
 
    // !! these must be equal to 'Facebook.RESULT' !!
    public static final int POST_ERROR=0;
@@ -327,7 +340,8 @@ public class EsenthelActivity extends NativeActivity
    CHARTBOOST_BEGIN
                         Chartboost.onDestroy(this);
    CHARTBOOST_END
-      shutIAB();
+		shutIAB();
+		shutLicenseTest();
       context=application; activity=null; // when activity becomes unavailable, then use application context because we always need one
    }
    @Override public final void onCreate(Bundle savedInstanceState)
@@ -376,6 +390,7 @@ public class EsenthelActivity extends NativeActivity
       startService(new Intent(this, DetectForceKill.class)); // start service that detects force kill
 
       initIAB();
+		initLicenseTest();
    ADMOB_BEGIN
       initAdMob();
    ADMOB_END
@@ -1260,8 +1275,46 @@ ADMOB_END
       }catch(Exception exception){result=RES_UNKNOWN;}
       return result;
    }
-
+	/******************************************************************************/
+   // License Test
    /******************************************************************************/
+	private static class MyLicenseCheckerCallback implements LicenseCheckerCallback
+	{
+		public static final byte[] SALT=new byte[]{2, 53, 106, 6, 35, 69, 118, 115, 64, 101, 117, 1, 13, 83, 127, 7, 6, 85, 25, 8};
+		private final void set(int reason)
+		{
+			int result;
+			switch(reason)
+			{
+				case Policy.LICENSED: result=LTR_OK   ; break;
+				case Policy.RETRY   : result=LTR_RETRY; break;
+				default             : result=LTR_FAIL ; break; // Policy.NOT_LICENSED
+			}
+			com.esenthel.Native.licenseTest(result);
+		}
+		@Override public void            allow(int reason   ) {set(reason);}
+		@Override public void        dontAllow(int reason   ) {set(reason);}
+		@Override public void applicationError(int errorCode)
+		{
+			int result;
+			switch(errorCode)
+			{
+				case LicenseCheckerCallback.ERROR_CHECK_IN_PROGRESS: result=LTR_WAITING; break;
+				default													      : result=LTR_ERROR  ; break;
+			}
+			com.esenthel.Native.licenseTest(result);
+		}
+	}
+	private static LicenseCheckerCallback licenseCheckerCallback;
+   private static LicenseChecker         licenseChecker;
+	public final void initLicenseTest()
+	{
+		licenseCheckerCallback=new MyLicenseCheckerCallback();
+      licenseChecker        =new   LicenseChecker        (this, new ServerManagedPolicy(this, new AESObfuscator(MyLicenseCheckerCallback.SALT, "EE_PACKAGE", android_id)), "EE_LICENSE_KEY");
+	}
+	public final void shutLicenseTest() {licenseChecker.onDestroy();}
+	public static final void licenseTest() {licenseChecker.checkAccess(licenseCheckerCallback);}
+	/******************************************************************************/
    // FB - Facebook
    /******************************************************************************/
 FACEBOOK_BEGIN

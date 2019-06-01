@@ -477,6 +477,21 @@ PlatformStore::RESULT PlatformStore::consume(C Str &token)
    return SERVICE_UNAVAILABLE;
 }
 /******************************************************************************/
+void PlatformStore::licenseTest()
+{
+#if ANDROID
+   JNI jni;
+   if(jni && ActivityClass)
+   if(JMethodID licenseTest=jni.staticFunc(ActivityClass, "licenseTest", "()V"))
+   {
+     _ltr=LTR_WAITING; // set before calling
+      jni->CallStaticVoidMethod(ActivityClass, licenseTest);
+      return;
+   }
+  _ltr=LTR_ERROR; // function not found
+#endif
+}
+/******************************************************************************/
 }
 /******************************************************************************/
 #if ANDROID
@@ -528,6 +543,10 @@ JNIEXPORT void JNICALL Java_com_esenthel_Native_purchased(JNIEnv *env, jclass cl
    SyncLocker locker(Store._lock);
    Swap(Store._processed.New(), purchase);
    App._callbacks.include(Update, Store);
+}
+JNIEXPORT void JNICALL Java_com_esenthel_Native_licenseTest(JNIEnv *env, jclass clazz, jint result)
+{
+   Store._ltr=PlatformStore::LICENSE_TEST_RESULT(result);
 }
 /******************************************************************************/
 }

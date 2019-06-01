@@ -13,6 +13,7 @@ public class Native
    public static native void   listItem       (long user  , String sku, String name, String desc , String price, boolean sub);
    public static native void   listPurchase   (long user  , String sku, String data, String token, long date);
    public static native void   purchased      (int  result, String sku, String data, String token, long date);
+   public static native void   licenseTest    (int  result);
    public static native void   location       (boolean gps, Location location);
    public static native void   adState        (boolean banner, int state);
    public static native void   bannerSize     (int width, int height);

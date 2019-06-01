@@ -30,11 +30,11 @@
 /******************************************************************************/
 struct PlatformStore // class allowing to communicate with Platform Store
 {
-#if EE_PRIVATE
-   // !! These enums must be equal to "EsenthelActivity.java" !!
-#endif
-   enum RESULT
+   enum RESULT : Byte
    {
+   #if EE_PRIVATE
+      // !! These enums must be equal to "EsenthelActivity.java" !!
+   #endif
       PURCHASED          , // item was purchased successfully, 'purchases' container will now     include it
       CONSUMED           , // item was consumed  successfully, 'purchases' container will now not include it
       REFUND             , // item was refunded by the store
@@ -49,6 +49,18 @@ struct PlatformStore // class allowing to communicate with Platform Store
       UNKNOWN            , // unknown error
       REFRESHED_ITEMS    , // 'items'     were refreshed, this can occur after calling the 'refreshItems'     method
       REFRESHED_PURCHASES, // 'purchases' were refreshed, this can occur after calling the 'refreshPurchases' method
+   };
+   enum LICENSE_TEST_RESULT : Byte
+   {
+   #if EE_PRIVATE
+      // !! These enums must be equal to "EsenthelActivity.java" !!
+   #endif
+      LTR_NONE   , // no license test was requested
+      LTR_WAITING, // waiting for result
+      LTR_OK     , // user          has  a license
+      LTR_FAIL   , // user does NOT have a license
+      LTR_RETRY  , // probably a loss of connection with the service occurred, it's recommended to retry the license test
+      LTR_ERROR  , // an error occured, for example: "application requested a license check for a package that is not installed on the device", "application requested a license check for a package whose UID (package, user ID pair) does not match that of the requesting application", "application (package name) was not recognized by Google Play"
    };
 
    struct Item
@@ -97,17 +109,22 @@ struct PlatformStore // class allowing to communicate with Platform Store
 
    PlatformStore& restorePurchases(); // this function is usable only for Apple, it will call "[[SKPaymentQueue defaultQueue] restoreCompletedTransactions]"
 
+   // license test
+   void                licenseTest  ();               // test if user has a license for this Application [Supported Platforms: Android]
+ C LICENSE_TEST_RESULT licenseResult() {return _ltr;} // get license test result                         [Supported Platforms: Android]
+
 #if !EE_PRIVATE
 private:
 #endif
    struct Processed : Purchase {RESULT result;};
-   Bool            _supports_items=false, _supports_subs=false, _has_new_purchases=false, _refresh_purchases=false;
-   Memc<Item     > _items, _new_items;
-   Memc<Purchase > _purchases, _new_purchases;
-   Memc<Processed> _processed;
-   Thread          _thread;
-   SyncLock        _lock;
-   Memc<Str      > _get_item_details, _consume;
+   Bool                _supports_items=false, _supports_subs=false, _has_new_purchases=false, _refresh_purchases=false;
+   LICENSE_TEST_RESULT _ltr=LTR_NONE;
+   Memc<Item     >     _items, _new_items;
+   Memc<Purchase >     _purchases, _new_purchases;
+   Memc<Processed>     _processed;
+   Thread              _thread;
+   SyncLock            _lock;
+   Memc<Str      >     _get_item_details, _consume;
 
    PlatformStore();
   ~PlatformStore();
