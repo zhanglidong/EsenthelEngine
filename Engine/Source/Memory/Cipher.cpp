@@ -11,9 +11,7 @@
    #define AES_CPU 0
 #endif
 
-#if MAC
-   #define AES_ATTR __attribute__((target("aes")))
-#elif LINUX
+#if MAC || LINUX
    #define AES_ATTR __attribute__((target("aes,sse4.1")))
 #else
    #define AES_ATTR
