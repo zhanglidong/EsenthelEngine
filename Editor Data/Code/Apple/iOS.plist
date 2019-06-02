@@ -8,16 +8,8 @@
    <string>English</string>
    <key>CFBundleExecutable</key>
    <string>${EXECUTABLE_NAME}</string>
-   <key>CFBundleIconFiles</key>
-   <array>
-      <string>Icon-76.png</string>
-      <string>Icon-76@2x.png</string>
-      <string>Icon-60@2x.png</string>
-      <string>Icon-60@3x.png</string>
-      <string>Icon-83.5@2x.png</string>
-   </array>
    <key>CFBundleIdentifier</key>
-   <string>com.yourcompany.${PRODUCT_NAME:identifier}</string>
+   <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
    <key>CFBundleInfoDictionaryVersion</key>
    <string>6.0</string>
    <key>CFBundlePackageType</key>

@@ -23,8 +23,29 @@ T1(TYPE) ENABLE_IF_ENUM(TYPE, Int) Compare(C TYPE &a, C TYPE &b) {if(a<b)return 
 inline Int ComparePtr(CPtr a, CPtr b) {if(a<b)return -1; if(a>b)return +1; return 0;} // compare 'a' 'b' values and return -1, 0, +1
 /******************************************************************************/
 // have to forward declare 'Compare' functions for Clang compiler so functions using default parameters "Int compare(C TYPE &a, C VALUE &b)=Compare" can use them
-Int Compare(C Half &a, C Half &b);
-Int Compare(C UID  &a, C UID  &b);
+Int Compare(C Half   &a, C Half   &b);
+Int Compare(C UID    &a, C UID    &b);
+Int Compare(C Vec2   &a, C Vec2   &b);
+Int Compare(C VecD2  &a, C VecD2  &b);
+Int Compare(C Vec    &a, C Vec    &b);
+Int Compare(C VecD   &a, C VecD   &b);
+Int Compare(C Vec4   &a, C Vec4   &b);
+Int Compare(C VecD4  &a, C VecD4  &b);
+Int Compare(C VecI2  &a, C VecI2  &b);
+Int Compare(C VecB2  &a, C VecB2  &b);
+Int Compare(C VecSB2 &a, C VecSB2 &b);
+Int Compare(C VecUS2 &a, C VecUS2 &b);
+Int Compare(C VecI   &a, C VecI   &b);
+Int Compare(C VecB   &a, C VecB   &b);
+Int Compare(C VecSB  &a, C VecSB  &b);
+Int Compare(C VecUS  &a, C VecUS  &b);
+Int Compare(C VecI4  &a, C VecI4  &b);
+Int Compare(C VecB4  &a, C VecB4  &b);
+Int Compare(C VecSB4 &a, C VecSB4 &b);
+Int Compare(C Color  &a, C Color  &b);
+Int Compare(C VecH2  &a, C VecH2  &b);
+Int Compare(C VecH   &a, C VecH   &b);
+Int Compare(C VecH4  &a, C VecH4  &b);
 /******************************************************************************/
 // Sort Data
          void Sort(Int  *data, Int elms                                           ); // sort Int    array

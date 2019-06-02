@@ -1571,6 +1571,48 @@ static Bool GetXcodeProjTextPos(Str &str, Int &pos, CChar8 *text)
    pos=TextPosI(str, text); if(pos<0)return Error(S+"Text \""+text+"\"\nwas not found in Xcode project template.");
    return true;
 }
+struct iOSIcon
+{
+   CChar8 *idiom, *size, *scale;
+}iOSIcons[]=
+{
+   {"iphone", "20x20", "2x"},
+   {"iphone", "20x20", "3x"},
+   {"iphone", "29x29", "2x"},
+   {"iphone", "29x29", "3x"},
+   {"iphone", "40x40", "2x"},
+   {"iphone", "40x40", "3x"},
+   {"iphone", "60x60", "2x"},
+   {"iphone", "60x60", "3x"},
+   {"ipad", "20x20", "1x"},
+   {"ipad", "20x20", "2x"},
+   {"ipad", "29x29", "1x"},
+   {"ipad", "29x29", "2x"},
+   {"ipad", "40x40", "1x"},
+   {"ipad", "40x40", "2x"},
+   {"ipad", "76x76", "1x"},
+   {"ipad", "76x76", "2x"},
+   {"ipad", "83.5x83.5", "2x"},
+   {"ios-marketing", "1024x1024", "1x"},
+};
+struct iOSSplash
+{
+   Bool    ipad;
+   VecI2   size;
+   CChar8 *scale, *min_os, *subtype=null;
+
+   CChar8 *idiom()C {return ipad ? "ipad" : "iphone";}
+   CChar8 *orientation()C {return size.x>size.y ? "landscape" : "portrait";}
+}iOSSplashes[]=
+{
+   // ipad
+   {true, VecI2(768, 1024), "1x", "7.0"},
+   {true, VecI2(1024, 768), "1x", "7.0"},
+   // iPhone
+   {false, VecI2(640,  960), "2x", "7.0"           }, // iPhone Portrait iOS 7+ 2x
+   {false, VecI2(640, 1136), "2x", "7.0", "retina4"}, // iPhone Portrait iOS 7+ Retina 4
+   {false, VecI2(750, 1334), "2x", "8.0", "667h"   }, // iPhone Portrait iOS 8+ Retina HD 4.7"
+};
 Bool CodeEditor::generateXcodeProj()
 {
    Str bin_path=BinPath();
@@ -1611,29 +1653,81 @@ Bool CodeEditor::generateXcodeProj()
    Image      icon; DateTime icon_time;
    if(GetIcon(icon,          icon_time))
    {
+      // !! define images here, because we might point to them in the 'convert' !!
       Image portrait ; DateTime  portrait_time;
       Image landscape; DateTime landscape_time;
-      GetImages(portrait, portrait_time, landscape, landscape_time);
-
       Memc<ImageConvert> convert;
       CChar8 *rel="Assets/Icon.icns"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).ICNS().clamp(256, 256);
       if(build_exe_type==EXE_IOS || build_mode==BUILD_EXPORT) // creating iOS icons/images is slow, so do this only when necessary
       {
-         // list images starting from the smallest
-         rel="Assets/Icon-76.png"     ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize( 76,  76); ios_images.New().name=rel;
-         rel="Assets/Icon-60@2x.png"  ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(120, 120); ios_images.New().name=rel;
-         rel="Assets/Icon-76@2x.png"  ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(152, 152); ios_images.New().name=rel;
-         rel="Assets/Icon-60@3x.png"  ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(180, 180); ios_images.New().name=rel;
-         rel="Assets/Icon-83.5@2x.png"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, icon_time, 1))convert.New().set(build_path+rel, icon, icon_time).resize(167, 167); ios_images.New().name=rel;
+         GetImages(portrait, portrait_time, landscape, landscape_time);
 
-         const Bool hi_res=false; DateTime dt;
-                                       dt=(portrait.is() ? portrait_time : landscape.is() ? landscape_time : icon_time); rel="Assets/Default@2x.png"          ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, dt, 1))convert.New().set(build_path+rel, portrait.is() ? portrait : landscape.is() ? landscape : icon, dt).resizeFill( 640,  960); ios_images.New().name=rel;
-                                       dt=(portrait.is() ? portrait_time : landscape.is() ? landscape_time : icon_time); rel="Assets/Default-568h@2x.png"     ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, dt, 1))convert.New().set(build_path+rel, portrait.is() ? portrait : landscape.is() ? landscape : icon, dt).resizeFill( 640, 1136); ios_images.New().name=rel;
-                                       dt=(portrait.is() ? portrait_time : landscape.is() ? landscape_time : icon_time); rel="Assets/Default-667h@2x.png"     ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, dt, 1))convert.New().set(build_path+rel, portrait.is() ? portrait : landscape.is() ? landscape : icon, dt).resizeFill( 750, 1334); ios_images.New().name=rel;
-                                       dt=(portrait.is() ? portrait_time : landscape.is() ? landscape_time : icon_time); rel="Assets/Default-Portrait.png"    ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, dt, 1))convert.New().set(build_path+rel, portrait.is() ? portrait : landscape.is() ? landscape : icon, dt).resizeFill( 768, 1024); ios_images.New().name=rel;
-                            if(hi_res){dt=(portrait.is() ? portrait_time : landscape.is() ? landscape_time : icon_time); rel="Assets/Default-Portrait@2x.png" ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, dt, 1))convert.New().set(build_path+rel, portrait.is() ? portrait : landscape.is() ? landscape : icon, dt).resizeFill(1536, 2048); ios_images.New().name=rel;}
-         if(landscape.is()){           dt=(                                                 landscape_time            ); rel="Assets/Default-Landscape.png"   ; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, dt, 1))convert.New().set(build_path+rel,                                             landscape       , dt).resizeFill(1024,  768); ios_images.New().name=rel;
-                            if(hi_res){dt=(                                                 landscape_time            ); rel="Assets/Default-Landscape@2x.png"; if(Compare(FileInfoSystem(build_path+rel).modify_time_utc, dt, 1))convert.New().set(build_path+rel,                                             landscape       , dt).resizeFill(2048, 1536); ios_images.New().name=rel;}}
+         FCreateDirs(build_path+"Assets/Images.xcassets/AppIcon.appiconset");
+         FCreateDirs(build_path+"Assets/Images.xcassets/LaunchImage.launchimage");
+
+         // icon
+         {
+            TextData Contents; TextNode &root=Contents.nodes.New();
+            TextNode &images=root.nodes.New().setName("images");
+            Memc<VecI2> sizes;
+            FREPA(iOSIcons)
+            {
+             C auto &icon =iOSIcons[i];
+               Vec2  sizef=TextVec2(Replace(icon.size, 'x', ','));
+               Int   scale=TextInt(icon.scale);
+               VecI2 size =Round(sizef*scale);
+               sizes.binaryInclude(size);
+               Str name=S+size.x+'x'+size.y+".png";
+               TextNode &image=images.nodes.New();
+               image.nodes.New().set("idiom"   , icon.idiom);
+               image.nodes.New().set("size"    , icon.size);
+               image.nodes.New().set("scale"   , icon.scale);
+               image.nodes.New().set("filename", name);
+            }
+            TextNode &info=root.nodes.New().setName("info"); info.nodes.New().set("Version", 1); info.nodes.New().set("author", "Esenthel");
+            FileText f; f.writeMem(); Contents.saveJSON(f); if(!OverwriteOnChangeLoud(f, build_path+"Assets/Images.xcassets/AppIcon.appiconset/Contents.json"))return false;
+            FREPA(sizes)
+            {
+               auto size=sizes[i];
+               Str  name=S+size.x+'x'+size.y+".png", full=build_path+"Assets/Images.xcassets/AppIcon.appiconset/"+name;
+               if(Compare(FileInfoSystem(full).modify_time_utc, icon_time, 1))convert.New().set(full, icon, icon_time).resize(size.x, size.y);
+            }
+         }
+
+         // splash
+         {
+            TextData Contents; TextNode &root=Contents.nodes.New();
+            TextNode &images=root.nodes.New().setName("images");
+            Memc<VecI2> sizes;
+            FREPA(iOSSplashes)
+            {
+             C auto &splash=iOSSplashes[i];
+               VecI2 size  =splash.size;
+               if(((size.x>size.y) ? landscape : portrait).is())
+               {
+                  sizes.binaryInclude(size);
+                  Str name=S+size.x+'x'+size.y+".png";
+                  TextNode &image=images.nodes.New();
+                  image.nodes.New().set("idiom"      , splash.idiom());
+                  image.nodes.New().set("orientation", splash.orientation());
+                  image.nodes.New().set("filename"   , name);
+                  image.nodes.New().set("extent"     , "full-screen");
+                  if(CChar8 *v=splash.scale  )image.nodes.New().set("scale"                 , v);
+                  if(CChar8 *v=splash.min_os )image.nodes.New().set("minimum-system-version", v);
+                  if(CChar8 *v=splash.subtype)image.nodes.New().set("subtype"               , v);
+               }
+            }
+            TextNode &info=root.nodes.New().setName("info"); info.nodes.New().set("Version", 1); info.nodes.New().set("author", "Esenthel");
+            FileText f; f.writeMem(); Contents.saveJSON(f); if(!OverwriteOnChangeLoud(f, build_path+"Assets/Images.xcassets/LaunchImage.launchimage/Contents.json"))return false;
+            FREPA(sizes)
+            {
+               auto size=sizes[i];
+               Str  name=S+size.x+'x'+size.y+".png", full=build_path+"Assets/Images.xcassets/LaunchImage.launchimage/"+name;
+             C DateTime &image_time=((size.x>size.y) ? landscape_time : portrait_time);
+             C Image    &image     =((size.x>size.y) ? landscape      : portrait     );
+               if(Compare(FileInfoSystem(full).modify_time_utc, image_time, 1))convert.New().set(full, image, image_time).resizeFill(size.x, size.y);
+            }
+         }
       }
 
       convert.reverseOrder(); // start working from the biggest ones because they take the most time, yes this is correct
@@ -1655,11 +1749,6 @@ Bool CodeEditor::generateXcodeProj()
       {
          value.setName("string").nodes.del();
          value.data.setNum(1)[0]=cei().appName();
-      }else
-      if(key=="CFBundleIdentifier")
-      {
-         value.setName("string").nodes.del();
-         value.data.setNum(1)[0]=app_package;
       }else
       if(key=="CFBundleVersion" || key=="CFBundleShortVersionString")
       {
@@ -1730,11 +1819,6 @@ Bool CodeEditor::generateXcodeProj()
          value.setName("string").nodes.del();
          value.data.setNum(1)[0]=cei().appName();
       }else
-      if(key=="CFBundleIdentifier")
-      {
-         value.setName("string").nodes.del();
-         value.data.setNum(1)[0]=app_package;
-      }else
       if(key=="CFBundleVersion")
       {
          value.setName("string").nodes.del();
@@ -1749,11 +1833,10 @@ Bool CodeEditor::generateXcodeProj()
    str=Replace(str, "path = \"Engine.pak\""                , UnixPath(S+"path = \""+bin_path+"Mobile/Engine.pak\""         ));
    str=Replace(str, "/* ESENTHEL FRAMEWORK DIRS */"        , S+'"'+CString(S+'"'+UnixPath(bin_path)+'"')+"\",");
    str=Replace(str, "/* ESENTHEL LIBRARY DIRS */"          , S+'"'+CString(S+'"'+UnixPath(bin_path)+'"')+"\",");
-
-   str=Replace(str, "PRODUCT_NAME = Mac;", S+"PRODUCT_NAME = \""+CString(build_project_name)+"\";");
-   str=Replace(str, "PRODUCT_NAME = iOS;", S+"PRODUCT_NAME = \""+CString(build_project_name)+"\";");
-   str=Replace(str, "path = Mac.app;"    , S+"path = \""        +CString(build_project_name)+".app\";");
-   str=Replace(str, "path = iOS.app;"    , S+"path = \""        +CString(build_project_name)+".app\";");
+   str=Replace(str, "PRODUCT_BUNDLE_IDENTIFIER = \"\";"    , S+"PRODUCT_BUNDLE_IDENTIFIER = \""+CString(app_package       )+"\";");
+   str=Replace(str, "PRODUCT_NAME = \"\";"                 , S+"PRODUCT_NAME = \""             +CString(build_project_name)+"\";");
+   str=Replace(str, "path = Mac.app;"                      , S+"path = \""                     +CString(build_project_name)+".app\";");
+   str=Replace(str, "path = iOS.app;"                      , S+"path = \""                     +CString(build_project_name)+".app\";");
 
    {
       Str lib_dirs;

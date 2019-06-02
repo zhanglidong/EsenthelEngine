@@ -17,6 +17,7 @@
       0B9F062416CD7B80006A0106 /* iOS.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0B9F060C16CD7B80006A0106 /* iOS.xib */; };
       0B9F062816CD7C2B006A0106 /* Engine.pak in Resources */ = {isa = PBXBuildFile; fileRef = 0B9F062516CD7C21006A0106 /* Engine.pak */; };
       0B9F062916CD7C2B006A0106 /* Project.pak in Resources */ = {isa = PBXBuildFile; fileRef = 0B9F062516CD7C22006A0106 /* Project.pak */; };
+		3790A50D22A3DE7F003F81E2 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3790A50C22A3DE7F003F81E2 /* Images.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 		37307DB921AFDF87009ABBF9 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
       0B9F062516CD7C21006A0106 /* Engine.pak */ = {isa = PBXFileReference; lastKnownFileType = file; name = Engine.pak; path = "Engine.pak"; sourceTree = "<absolute>"; };
       0B9F062516CD7C22006A0106 /* Project.pak */ = {isa = PBXFileReference; lastKnownFileType = file; name = Project.pak; path = Assets/Project.pak; sourceTree = "<group>"; };
+		3790A50C22A3DE7F003F81E2 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Assets/Images.xcassets; sourceTree = "<group>"; };
       0B9F05BF16CD7377006A0106 /* Mac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mac.app; sourceTree = BUILT_PRODUCTS_DIR; };
       0B9F060816CD7B80006A0106 /* Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = Icon.icns; path = Assets/Icon.icns; sourceTree = "<group>"; };
       0B9F060C16CD7B80006A0106 /* iOS.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = iOS.xib; path = Assets/iOS.xib; sourceTree = "<group>"; };
@@ -110,7 +112,8 @@
       29B97317FDCFA39411CA2CEA /* Assets */ = {
          isa = PBXGroup;
          children = (
-            0B9F062516CD7C21006A0106 /* Engine.pak */,
+				3790A50C22A3DE7F003F81E2 /* Images.xcassets */,
+				0B9F062516CD7C21006A0106 /* Engine.pak */,
             0B9F062516CD7C22006A0106 /* Project.pak */,
             0B9F060816CD7B80006A0106 /* Icon.icns */,
             0B9F063B16CD7F75006A0106 /* Mac.plist */,
@@ -226,7 +229,8 @@
          isa = PBXResourcesBuildPhase;
          buildActionMask = 2147483647;
          files = (
-            0B9F062416CD7B80006A0106 /* iOS.xib in Resources */,
+				3790A50D22A3DE7F003F81E2 /* Images.xcassets in Resources */,
+				0B9F062416CD7B80006A0106 /* iOS.xib in Resources */,
             0B9F062816CD7C2B006A0106 /* Engine.pak in Resources */,
             0B9F062916CD7C2B006A0106 /* Project.pak in Resources */,
 /* ESENTHEL IOS EMBED */
@@ -280,7 +284,8 @@
                "$(inherited)",
 /* ESENTHEL MAC LIBRARY DIRS */
             );
-            PRODUCT_NAME = Mac;
+				PRODUCT_BUNDLE_IDENTIFIER = "";
+            PRODUCT_NAME = "";
          };
          name = Debug;
       };
@@ -309,13 +314,16 @@
                "$(inherited)",
 /* ESENTHEL MAC LIBRARY DIRS */
             );
-            PRODUCT_NAME = Mac;
+				PRODUCT_BUNDLE_IDENTIFIER = "";
+            PRODUCT_NAME = "";
          };
          name = Release;
       };
       0BDA9C82121EE06400ED5E97 /* Debug */ = {
          isa = XCBuildConfiguration;
          buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
             CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -346,7 +354,8 @@
                "$(inherited)",
 /* ESENTHEL IOS LIBRARY DIRS */
             );
-            PRODUCT_NAME = iOS;
+				PRODUCT_BUNDLE_IDENTIFIER = "";
+            PRODUCT_NAME = "";
             PROVISIONING_PROFILE = "";
             SDKROOT = iphoneos;
             TARGETED_DEVICE_FAMILY = "1,2";
@@ -356,6 +365,8 @@
       0BDA9C83121EE06400ED5E97 /* Release */ = {
          isa = XCBuildConfiguration;
          buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
             CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -386,7 +397,8 @@
                "$(inherited)",
 /* ESENTHEL IOS LIBRARY DIRS */
             );
-            PRODUCT_NAME = iOS;
+				PRODUCT_BUNDLE_IDENTIFIER = "";
+            PRODUCT_NAME = "";
             PROVISIONING_PROFILE = "";
             SDKROOT = iphoneos;
             STRIP_INSTALLED_PRODUCT = YES;
