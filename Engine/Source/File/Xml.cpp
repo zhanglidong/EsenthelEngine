@@ -242,15 +242,15 @@ Bool DecodeTextReal(CChar* &src, Dbl &real)
 #define BINARY_ZERO  '?' // optimization to store UInt(0) as only one character
 #define BINARY_TRIM   0  // because binary data comes from Str and will be loaded into Str, then it will always be aligned to 2 bytes (size of wide Char), this will enable optimizations to reduce the binary size, however it works on assumption that this data will be loaded into Str, if in the future that would be changed, then binary data length may not be preserved
 
+static Bool SimpleChar    (Char c) {return CharType(c)==CHART_CHAR || c=='-' || c=='.';} // allow - and . for storing negative numbers and floats without the quotes
+static Bool SimpleCharJSON(Char c) {return CharType(c)==CHART_CHAR || c=='-' || c=='.';} // JSON treats both - and . as simple chars to allow storing numbers - http://json.org/
+/******************************************************************************/
 enum TEXT_TYPE
 {
    TEXT_SIMPLE,
    TEXT_QUOTE ,
    TEXT_BINARY,
 };
-
-static Bool SimpleChar(Char c) {return CharType(c)==CHART_CHAR || c=='-' || c=='.';} // allow - and . for storing negative numbers and floats without the quotes
-
 static TEXT_TYPE TextType(C Str &t)
 {
    Bool simple=t.is(); // empty strings aren't simple and require quote
@@ -268,6 +268,8 @@ static TEXT_TYPE TextType(C Str &t)
    }
    return simple ? TEXT_SIMPLE : TEXT_QUOTE;
 }
+static TEXT_TYPE TextTypeJSON(C Str &t) {return TEXT_QUOTE;}
+/******************************************************************************/
 static void SaveText(FileText &f, C Str &t)
 {
    switch(TextType(t))
@@ -319,6 +321,29 @@ static void SaveText(FileText &f, C Str &t)
       }break;
    }
 }
+static void SaveTextJSON(FileText &f, C Str &t)
+{
+   switch(TextTypeJSON(t))
+   {
+      case TEXT_SIMPLE: f.putText(t); break;
+
+      case TEXT_QUOTE:
+      {
+         f.putChar('"');
+         FREPA(t)switch(Char c=t()[i]) // () avoids range check
+         {
+            case '\0': f.putChar('\\').putChar('0'); break;
+            case '\n': f.putChar('\\').putChar('n'); break;
+          //case '\t': f.putChar('\\').putChar('t'); break; // we can encode tab below normally instead
+            case '"' : f.putChar('\\').putChar('"'); break;
+            case '\\': f.putChar('\\').putChar('\\'); break;
+            default  : if(Unsigned(c)>=32 || c=='\t')f.putChar(c); break;
+         }
+         f.putChar('"');
+      }break;
+   }
+}
+/******************************************************************************/
 static Bool DecodeText(Char *src, Int src_elms, UInt &out)
 {
    UInt u=0, mul=1;
@@ -409,8 +434,6 @@ static Char LoadText(FileText &f, Str &t, Char c)
    }
    return c;
 }
-/******************************************************************************/
-static Bool SimpleCharJSON(Char c) {return CharType(c)==CHART_CHAR || c=='-' || c=='.';} // JSON treats both - and . as simple chars to allow storing numbers - http://json.org/
 static Char LoadTextJSON(FileText &f, Str &t, Char c)
 {
    if(c=='"') // string
@@ -729,6 +752,59 @@ Bool TextNode::save(FileText &f, Bool just_values)C
    if(!just_values)f.endLine();
    return f.ok();
 }
+Bool TextNode::saveJSON(FileText &f, Bool just_values, Bool last)C
+{
+   Bool skip_name=false;
+   if(!just_values)
+   {
+      f.startLine();
+      if(!name.is()) // no name (can happen in the root)
+         if(nodes.elms() || !value.is()) // have nodes, or no value (to skip where have just 'value' and no 'nodes')
+            {skip_name=true; goto skip_name;}
+      SaveTextJSON(f, name);
+   }
+   if(value.is() || nodes.elms())
+   {
+      if(!just_values)f.putChar(':');
+      if(!nodes.elms())SaveTextJSON(f, value);else // just 'value' is present (save this only when there are no nodes, because they have the priority)
+      {
+      skip_name:
+         if(EmptyNames(nodes)) // store just the values
+         {
+            Bool has_children=HasChildren(nodes);
+            if(  has_children){if(!skip_name)f.endLine().startLine(); f.depth++;}else
+            if(  just_values )               f.endLine().startLine();
+            f.putChar('[');
+            Bool after_elm=false;
+            FREPA(nodes)
+            {
+             C TextNode &node=nodes[i];
+               if(node.nodes.elms()) // this node has children
+               {
+                  after_elm=false;
+               }else
+               {
+                  if(after_elm)f.putChar(' ');
+                  else        {if(has_children)f.endLine().startLine(); after_elm=true;}
+               }
+               if(!node.saveJSON(f, true, i==nodes.elms()-1))return false;
+            }
+            if(has_children){f.endLine(); f.depth--; f.startLine();}
+            f.putChar(']');
+         }else
+         {
+            if(!skip_name)f.endLine().startLine(); f.putChar('{').endLine(); f.depth++;
+            FREPA(nodes)if(!nodes[i].saveJSON(f, false, i==nodes.elms()-1))return false;
+            f.depth--; f.startLine().putChar('}');
+         }
+      }
+   }else
+   if(just_values)SaveTextJSON(f, S); // we're storing values, so we need to store something
+
+   if(!last       )f.putChar(',');
+   if(!just_values)f.endLine();
+   return f.ok();
+}
 /******************************************************************************/
 Char TextNode::load(FileText &f, Bool just_values, Char c)
 {
@@ -880,9 +956,19 @@ Bool TextData::save(FileText &f)C
    FREPA(nodes)if(!nodes[i].save(f, false))return false;
    return f.ok();
 }
+Bool TextData::saveJSON(FileText &f)C
+{
+   FREPA(nodes)if(!nodes[i].saveJSON(f, false, i==nodes.elms()-1))return false;
+   return f.ok();
+}
 Bool TextData::save(C Str &name, ENCODING encoding, INDENT indent, Cipher *cipher)C
 {
    FileText f; if(f.write(name, encoding, cipher)){f.indent=indent; if(save(f) && f.flush())return true; /*f.del(); FDelFile(name);*/} // no need to delete incomplete text files, because they can be still readable, just partially
+   return false;
+}
+Bool TextData::saveJSON(C Str &name, ENCODING encoding, INDENT indent, Cipher *cipher)C
+{
+   FileText f; if(f.write(name, encoding, cipher)){f.indent=indent; if(saveJSON(f) && f.flush())return true; /*f.del(); FDelFile(name);*/} // no need to delete incomplete text files, because they can be still readable, just partially
    return false;
 }
 Bool TextData::load(FileText &f)

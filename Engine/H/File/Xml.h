@@ -117,6 +117,7 @@ STRUCT(TextNode , TextParam)
 
 #if EE_PRIVATE
    Bool save    (FileText &f, Bool just_values)C;
+   Bool saveJSON(FileText &f, Bool just_values, Bool last)C;
    Char load    (FileText &f, Bool just_values, Char first_char);
    Char loadJSON(FileText &f, Bool just_values, Char first_char);
    Char loadYAML(FileText &f, Bool just_values, Char first_char, const Int node_spaces, Int &cur_spaces);
@@ -142,6 +143,9 @@ struct TextData
    // io
    Bool save(C Str    &name, ENCODING encoding=UTF_8, INDENT indent=INDENT_TABS, const_mem_addr Cipher *cipher=null)C; // save to file, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
    Bool save(FileText &f                                                                                           )C; // save to file, false on fail, 'f' file must be already opened for writing
+
+   Bool saveJSON(C Str    &name, ENCODING encoding=UTF_8, INDENT indent=INDENT_TABS, const_mem_addr Cipher *cipher=null)C; // save to file, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
+   Bool saveJSON(FileText &f                                                                                           )C; // save to file, false on fail, 'f' file must be already opened for writing
 
    Bool load(C Str    &name, const_mem_addr Cipher *cipher=null); // load from file, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
    Bool load(C UID    &id  , const_mem_addr Cipher *cipher=null); // load from file, false on fail, 'cipher' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
