@@ -1994,6 +1994,38 @@ void Application::windowCreate()
    emscripten_set_canvas_element_size(null, w, h);
 #endif
 }
+#if WINDOWS_NEW
+static Int       EventPostWait;
+static SyncEvent EventPostEvent[2];
+static Thread    EventPoster;
+static Bool      EventPost(Thread &thread)
+{
+       EventPostEvent[0].wait(); // wait until we have 'EventPostWait'
+   if(!EventPostEvent[1].wait(EventPostWait)) // wait 'EventPostWait' time before posting event, post only on timeout
+   {
+      EventPostWait=0; // mark that we've waited entire time, and posting
+      Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([=]()
+      {
+      }));
+   }
+   return true;
+}
+static Bool WaitForEvent(Int time) // assumes "time>0", false on timeout
+{
+   if(!EventPoster.created())EventPoster.create(EventPost, null, 0, false, "EventPost");
+   EventPostWait=time;
+   EventPostEvent[0].on(); // signal that we've set 'EventPostWait'
+   Application::ExecuteRecordedEvents(); // since we're going to process system loop, first we need to execute any previously recorded events
+   // wait for event
+   Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->ProcessEvents(Windows::UI::Core::CoreProcessEventsOption::ProcessOneAndAllPending);
+   if(EventPostWait) // if still haven't posted our event, but processing events finished due to another event
+   {
+      EventPostEvent[1].on(); // wake up, so the next wait will use the entire 'EventPostWait' set at that time, this also prevents timeouts and posting
+      return true; // got another event
+   }
+   return false; // timeout
+}
+#endif
 void Application::windowDel()
 {
 #if WINDOWS_OLD
@@ -2009,6 +2041,7 @@ void Application::windowDel()
    if(_icon){DestroyIcon  (_icon ); _icon=null;}
    UnregisterClass((LPCWSTR)WindowClass, _hinstance);
 #elif WINDOWS_NEW
+   EventPoster.stop(); EventPostWait=0; EventPostEvent[1].on(); EventPostEvent[0].on(); EventPoster.del();
 #elif MAC
    [OpenGLView release]; OpenGLView=null;
    [    Hwnd() release]; _hwnd     =null;
@@ -2056,7 +2089,7 @@ NOINLINE void Application::windowMsg() // disable inline so we will don't use it
       #if WINDOWS_OLD
          MsgWaitForMultipleObjects(0, null, false, active_wait, QS_ALLINPUT);
       #elif WINDOWS_NEW
-         // TODO: have to use global "Bool EventOccured" in callbacks, combined with Time.wait(1) ? but that would slow down
+         WaitForEvent(active_wait);
       #elif MAC
          [NSApp nextEventMatchingMask:NSEventMaskAny untilDate:[NSDate dateWithTimeIntervalSinceNow:(active_wait/1000.0)] inMode:NSDefaultRunLoopMode dequeue:NO];
       #elif LINUX
@@ -2070,7 +2103,9 @@ NOINLINE void Application::windowMsg() // disable inline so we will don't use it
       }
    }
 
+#if !WINDOWS_NEW
 start:
+#endif
 
 #if WINDOWS_OLD
    for(MSG msg; PeekMessage(&msg, null, 0, 0, PM_REMOVE); )
@@ -2469,6 +2504,8 @@ again:
             }
          #if WINDOWS_OLD
             if(MsgWaitForMultipleObjects(0, null, false, wait, QS_ALLINPUT)!=WAIT_TIMEOUT)goto start;
+         #elif WINDOWS_NEW
+            if(WaitForEvent(wait))goto again;
          #else
             Time.wait(1); goto start;
          #endif
