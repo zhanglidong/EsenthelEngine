@@ -2035,6 +2035,9 @@ NOINLINE void Application::windowMsg() // disable inline so we will don't use it
 #endif
 
    if(active_wait && active()) // check 'active_wait' first, because it's most likely zero (rare case)
+   #if MAC
+      if(Time.frame()>1) // it was noticed that at the start of the app, waiting will take exactly the specified time amount without being interrupted by events (such as mouse movement, key presses, etc.), this is a workaround to disable waiting at the start, >1 and not >0 has to be used. TODO: check again in the future if this is needed (last tested 3 Jun 2019 Mac 10.14.5)
+   #endif
    {
       if(active_wait<0) // unlimited wait
       {
