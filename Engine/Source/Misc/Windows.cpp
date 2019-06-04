@@ -2093,10 +2093,10 @@ NOINLINE void Application::windowMsg() // disable inline so we will don't use it
       #elif MAC
          [NSApp nextEventMatchingMask:NSEventMaskAny untilDate:[NSDate dateWithTimeIntervalSinceNow:(active_wait/1000.0)] inMode:NSDefaultRunLoopMode dequeue:NO];
       #elif LINUX
-         if(!XEventsQueued(XDisplay, QueuedAfterFlush)) // no events
+         if(!XPending(XDisplay)) // no events
          {
             wait_end=Time.curTimeMs()+active_wait; // calc end-time
-            do Time.wait(1);while(!XEventsQueued(XDisplay, QueuedAfterFlush) // no events
+            do Time.wait(1);while(!XPending(XDisplay) // no events, TODO: this could be improved, perhaps in similar way to UWP
                                && Signed(wait_end-Time.curTimeMs())>0);
          }
       #endif
@@ -2128,7 +2128,7 @@ again:
    for(; NSEvent *event=[NSApp nextEventMatchingMask:NSEventMaskAny untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES]; ) // 'distantPast' will not wait for any new events but return those that happened already
       [NSApp sendEvent:event];
 #elif LINUX
-   for(; XEventsQueued(XDisplay, QueuedAfterFlush); )
+   for(; XPending(XDisplay); )
    {
    process:
       XEvent event; XNextEvent(XDisplay, &event);
@@ -2507,7 +2507,7 @@ again:
          #elif WINDOWS_NEW
             if(WaitForEvent(wait))goto again;
          #else
-            Time.wait(1); goto start;
+            Time.wait(1); goto start; // TODO: this could be improved, perhaps in similar way to UWP
          #endif
       #endif
       }
