@@ -2025,14 +2025,14 @@ static Bool WaitForEvent(Int time) // assumes "time>0", false on timeout
    }
    return false; // timeout
 }
-#elif LINUX
+#elif LINUX && 0 // this doesn't work
 static Bool WaitForEvent(Int time) // assumes "time>0", false on timeout
 {
    if(XPending(XDisplay))return true;
    int conn=XConnectionNumber(XDisplay);
    fd_set fd; FD_ZERO(&fd); FD_SET(conn, &fd);
    timeval tv; tv.tv_sec=time/1000; tv.tv_usec=(time%1000)*1000;
-   return select(conn+1, &fd, null, null, &tv)>0;
+   return select(conn+1, &fd, null, null, &tv)>0; // got event
 }
 #endif
 void Application::windowDel()
@@ -2101,8 +2101,9 @@ NOINLINE void Application::windowMsg() // disable inline so we will don't use it
          WaitForEvent(active_wait);
       #elif MAC
          [NSApp nextEventMatchingMask:NSEventMaskAny untilDate:[NSDate dateWithTimeIntervalSinceNow:(active_wait/1000.0)] inMode:NSDefaultRunLoopMode dequeue:NO];
+      #elif LINUX && 0 // doesn't work
+         WaitForEvent(active_wait);
       #elif LINUX
-       //WaitForEvent(active_wait); this doesn't work in active mode
          if(!XPending(XDisplay)) // no events
          {
             wait_end=Time.curTimeMs()+active_wait; // calc end-time
@@ -2516,7 +2517,7 @@ again:
             if(MsgWaitForMultipleObjects(0, null, false, wait, QS_ALLINPUT)!=WAIT_TIMEOUT)goto start;
          #elif WINDOWS_NEW
             if(WaitForEvent(wait))goto again; // goto 'again' because WINDOWS_NEW 'WaitForEvent' already processes events
-         #elif LINUX
+         #elif LINUX && 0 // doesn't work
             if(WaitForEvent(wait))goto start;
          #else
             Time.wait(1); goto start;
