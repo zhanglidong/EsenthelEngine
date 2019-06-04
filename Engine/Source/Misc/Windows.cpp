@@ -2025,7 +2025,7 @@ static Bool WaitForEvent(Int time) // assumes "time>0", false on timeout
    }
    return false; // timeout
 }
-#elif LINUX && 0 // this doesn't work
+#elif LINUX
 static Bool WaitForEvent(Int time) // assumes "time>0", false on timeout
 {
    if(XPending(XDisplay))return true;
@@ -2102,6 +2102,7 @@ NOINLINE void Application::windowMsg() // disable inline so we will don't use it
       #elif MAC
          [NSApp nextEventMatchingMask:NSEventMaskAny untilDate:[NSDate dateWithTimeIntervalSinceNow:(active_wait/1000.0)] inMode:NSDefaultRunLoopMode dequeue:NO];
       #elif LINUX
+       //WaitForEvent(active_wait); this doesn't work in active mode
          if(!XPending(XDisplay)) // no events
          {
             wait_end=Time.curTimeMs()+active_wait; // calc end-time
@@ -2516,7 +2517,7 @@ again:
          #elif WINDOWS_NEW
             if(WaitForEvent(wait))goto again; // goto 'again' because WINDOWS_NEW 'WaitForEvent' already processes events
          #elif LINUX
-            if(WaitForEvent(wait))goto start; // TODO: this could be improved, perhaps in similar way to UWP
+            if(WaitForEvent(wait))goto start;
          #else
             Time.wait(1); goto start;
          #endif
