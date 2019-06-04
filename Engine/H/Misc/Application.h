@@ -31,14 +31,24 @@ enum APP_FLAG // Application Flags
    APP_AUTO_FREE_OPEN_GL_ES_DATA=APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA|APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA,
 };
 /******************************************************************************/
-#if EE_PRIVATE
-// !! these enums must be equal to "EsenthelActivity.java" !!
-#endif
 enum AWAKE_MODE : Byte
 {
+#if EE_PRIVATE
+   // !! these enums must be equal to "EsenthelActivity.java" !!
+#endif
    AWAKE_OFF   , // the system and screen can go to sleep
    AWAKE_SYSTEM, // prevent the system from going to sleep, however the screen can go to sleep
    AWAKE_SCREEN, // prevent the system and screen from going to sleep, as long as the App is active or has APP_WORK_IN_BACKGROUND enabled
+};
+/******************************************************************************/
+enum SYSTEM_BAR : Byte
+{
+#if EE_PRIVATE
+   // !! these enums must be equal to "EsenthelActivity.java" !!
+#endif
+   SYSTEM_BAR_HIDDEN , // completely hidden
+   SYSTEM_BAR_OVERLAY, // semi-transparent drawn on top of the application
+   SYSTEM_BAR_VISIBLE, // completely visible
 };
 /******************************************************************************/
 struct Application // Application Settings
@@ -85,6 +95,11 @@ struct Application // Application Settings
    Application& stayAwake     (AWAKE_MODE mode);                           // set preventing the operating system from going to sleep
  C Str&         backgroundText(               )C {return _back_text     ;} // get text displayed on the Status Bar Notification when App is running in Background mode on Android, default="Running in background"
    Application& backgroundText(C Str &text    );                           // set text displayed on the Status Bar Notification when App is running in Background mode on Android, default="Running in background"
+
+   // system bars
+   Bool    getSystemBars(SYSTEM_BAR &status, SYSTEM_BAR &navigation)C;   Application& systemBars(SYSTEM_BAR status, SYSTEM_BAR navigation); // get/set system     bars [Supported Platforms: Android]
+   SYSTEM_BAR statusBar (                                          )C;   Application& statusBar (SYSTEM_BAR bar                          ); // get/set status     bar  [Supported Platforms: Android]
+   SYSTEM_BAR navBar    (                                          )C;   Application&    navBar (SYSTEM_BAR bar                          ); // get/set navigation bar  [Supported Platforms: Android]
 
    // operations
    Bool renameSelf      (C Str &dest); // rename application executable file to 'dest' location, false on fail

@@ -151,6 +151,11 @@ public class EsenthelActivity extends NativeActivity
    public static final int AWAKE_SYSTEM=1;
    public static final int AWAKE_SCREEN=2;
 
+   // !! these must be equal to 'SYSTEM_BAR' !!
+   public static final int SYSTEM_BAR_HIDDEN =0;
+   public static final int SYSTEM_BAR_OVERLAY=1;
+   public static final int SYSTEM_BAR_VISIBLE=2;
+
    // !! these must be equal to 'AdMobClass.BANNER_TYPE' !!
    public static final int AD_BANNER          =0;
    public static final int AD_MEDIUM_RECTANGLE=1;
@@ -390,6 +395,25 @@ public class EsenthelActivity extends NativeActivity
       super.onCreate(savedInstanceState);
 
       startService(new Intent(this, DetectForceKill.class)); // start service that detects force kill
+
+		// detect showing nav bar by the user manually in order to hide it automatically
+		system_bars=systemBarsActual();
+		Window window=activity.getWindow(); if(window!=null)
+		{
+			View view=window.getDecorView(); if(view!=null)view.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener()
+			{
+				@Override public void onSystemUiVisibilityChange(int visibility)
+				{
+					if((system_bars>>2)==SYSTEM_BAR_HIDDEN && (visibility&View.SYSTEM_UI_FLAG_HIDE_NAVIGATION)==0) // if want to hide, but user disabled
+					{
+						handler.postDelayed(new Runnable()
+						{
+							@Override public void run() {systemBars(system_bars);} // restore
+						}, 2000); // after 2 seconds
+					}
+				}
+			});
+		}
 
       initIAB();
 	LICENSE_KEY_BEGIN
@@ -685,6 +709,65 @@ public class EsenthelActivity extends NativeActivity
 			}
 		}catch(Exception exception){}
 		return 0;
+	}
+
+	static int system_bars;
+	public static final int systemBars      () {return system_bars;} // what requested by code
+	public static final int systemBarsActual()							  // what we actually have
+	{
+		int result=0; if(activity!=null)
+		{
+			Window window=activity.getWindow(); if(window!=null)
+			{
+				View view=window.getDecorView(); if(view!=null)
+				{
+					int v=view.getSystemUiVisibility(), status, nav;
+					if((window.getAttributes().flags&WindowManager.LayoutParams.FLAG_FULLSCREEN)!=0 // have to check this too
+					|| (v&View.SYSTEM_UI_FLAG_FULLSCREEN            )!=0)status=SYSTEM_BAR_HIDDEN ;else
+					if((v&View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN     )!=0)status=SYSTEM_BAR_OVERLAY;else
+																						  status=SYSTEM_BAR_VISIBLE;
+					if((v&View.SYSTEM_UI_FLAG_HIDE_NAVIGATION       )!=0)nav   =SYSTEM_BAR_HIDDEN ;else
+					if((v&View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)!=0)nav   =SYSTEM_BAR_OVERLAY;else
+																						  nav   =SYSTEM_BAR_VISIBLE;
+					result=(status|(nav<<2));
+				}
+			}
+		}
+		return result;
+	}
+	public static final void systemBars(final int bars)
+	{
+		system_bars=bars;
+      if(activity!=null)activity.runOnUiThread(new Runnable()
+      {
+         @Override public final void run()
+         {
+				Window window=activity.getWindow(); if(window!=null)
+				{
+					int status=(bars&(1|2)), nav=((bars>>2)&(1|2)), v=0;
+					View view=window.getDecorView(); if(view!=null)
+					{
+						switch(status)
+						{
+							case SYSTEM_BAR_HIDDEN : v|=View.SYSTEM_UI_FLAG_FULLSCREEN; break;
+							case SYSTEM_BAR_OVERLAY: v|=View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN; break;
+						}
+						switch(nav)
+						{
+							case SYSTEM_BAR_HIDDEN : v|=View.SYSTEM_UI_FLAG_HIDE_NAVIGATION|View.SYSTEM_UI_FLAG_IMMERSIVE|View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION; break; // use SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION so when user swipes to show nav bar manually, the view won't be resized because it will be temporarily as we post 'handler.postDelayed' to hide it later
+							case SYSTEM_BAR_OVERLAY: v|=View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION; break;
+						}
+						view.setSystemUiVisibility(v);
+						view.setFitsSystemWindows(true);
+					}
+					v=0;
+					if(status==SYSTEM_BAR_HIDDEN )v|=WindowManager.LayoutParams.FLAG_FULLSCREEN;
+					if(status==SYSTEM_BAR_OVERLAY)v|=WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN; // FLAG_LAYOUT_IN_SCREEN must be enabled only in SYSTEM_BAR_OVERLAY and in others it must be disabled (without it SYSTEM_BAR_VISIBLE would make View bigger and under status bar)
+					if(nav   ==SYSTEM_BAR_OVERLAY)v|=WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION;
+					window.setFlags(v, WindowManager.LayoutParams.FLAG_FULLSCREEN|WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS|WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
+				}
+			}
+		});
 	}
 
    public final float dipToPx(float f) {return f*getResources().getDisplayMetrics().density;}

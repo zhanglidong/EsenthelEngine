@@ -160,6 +160,39 @@ Application& Application::backgroundText(C Str &text)
    return T;
 }
 /******************************************************************************/
+Bool Application::getSystemBars(SYSTEM_BAR &status, SYSTEM_BAR &navigation)C
+{
+#if ANDROID
+   JNI jni;
+   if(jni && ActivityClass)
+   if(JMethodID systemBars=jni.staticFunc(ActivityClass, "systemBars", "()I"))
+   {
+      UInt bars=jni->CallStaticIntMethod(ActivityClass, systemBars);
+      status    =SYSTEM_BAR( bars    &(1|2));
+      navigation=SYSTEM_BAR((bars>>2)&(1|2));
+      return true;
+   }
+#elif IOS
+   status    =SYSTEM_BAR_HIDDEN;
+   navigation=SYSTEM_BAR_HIDDEN;
+   return true;
+#endif
+   status=navigation=SYSTEM_BAR_HIDDEN;
+   return false;
+}
+Application& Application::systemBars(SYSTEM_BAR status, SYSTEM_BAR navigation)
+{
+#if ANDROID
+   JNI jni;
+   if(jni && ActivityClass)
+   if(JMethodID systemBars=jni.staticFunc(ActivityClass, "systemBars", "(I)V"))
+      jni->CallStaticVoidMethod(ActivityClass, systemBars, jint(status|(navigation<<2)));
+#endif
+   return T;
+}
+SYSTEM_BAR Application::statusBar()C {SYSTEM_BAR status, navigation; getSystemBars(status, navigation); return status    ;}   Application& Application::statusBar(SYSTEM_BAR bar) {SYSTEM_BAR status, navigation; if(getSystemBars(status, navigation))systemBars(bar   , navigation); return T;}
+SYSTEM_BAR Application::   navBar()C {SYSTEM_BAR status, navigation; getSystemBars(status, navigation); return navigation;}   Application& Application::   navBar(SYSTEM_BAR bar) {SYSTEM_BAR status, navigation; if(getSystemBars(status, navigation))systemBars(status, bar       ); return T;}
+/******************************************************************************/
 #if WINDOWS || ANDROID
 Bool Application::minimized()C {return _minimized;}
 Bool Application::maximized()C {return _maximized;}
