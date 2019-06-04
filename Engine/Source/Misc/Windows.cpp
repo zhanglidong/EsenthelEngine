@@ -1994,7 +1994,10 @@ void Application::windowCreate()
    emscripten_set_canvas_element_size(null, w, h);
 #endif
 }
-#if WINDOWS_NEW
+#if WINDOWS_NEW || LINUX
+#if LINUX
+static XClientMessageEvent WakeUpEvent;
+#endif
 static Int       EventPostWait;
 static SyncEvent EventPostEvent[2];
 static Thread    EventPoster;
@@ -2004,20 +2007,42 @@ static Bool      EventPost(Thread &thread)
    if(!EventPostEvent[1].wait(EventPostWait)) // wait 'EventPostWait' time before posting event, post only on timeout
    {
       EventPostWait=0; // mark that we've waited entire time, and posting
+   #if WINDOWS_NEW
       Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([=]()
       {
       }));
+   #elif LINUX
+      XSendEvent(XDisplay, App.Hwnd(), 0, 0, (XEvent*)&WakeUpEvent); XFlush(XDisplay);
+   #endif
    }
    return true;
 }
 static Bool WaitForEvent(Int time) // assumes "time>0", false on timeout
 {
-   if(!EventPoster.created())EventPoster.create(EventPost, null, 0, false, "EventPost");
+#if LINUX
+   if(XPending(XDisplay))return true;
+#endif
+   if(!EventPoster.created())
+   {
+   #if LINUX
+    //Zero(WakeUpEvent); not needed since it's a global
+      WakeUpEvent.type  =ClientMessage;
+      WakeUpEvent.window=App.Hwnd();
+      WakeUpEvent.format=32;
+   #endif
+      EventPoster.create(EventPost, null, 0, false, "EventPost");
+   }
    EventPostWait=time;
    EventPostEvent[0].on(); // signal that we've set 'EventPostWait'
-   Application::ExecuteRecordedEvents(); // since we're going to process system loop, first we need to execute any previously recorded events
+
    // wait for event
+#if WINDOWS_NEW
+   Application::ExecuteRecordedEvents(); // since we're going to process system loop, first we need to execute any previously recorded events
    Windows::ApplicationModel::Core::CoreApplication::MainView->CoreWindow->Dispatcher->ProcessEvents(Windows::UI::Core::CoreProcessEventsOption::ProcessOneAndAllPending);
+#elif LINUX
+   XEvent event; XPeekEvent(XDisplay, &event);
+#endif
+
    if(EventPostWait) // if still haven't posted our event, but processing events finished due to another event
    {
       EventPostEvent[1].on(); // wake up, so the next wait will use the entire 'EventPostWait' set at that time, this also prevents timeouts and posting
@@ -2101,15 +2126,8 @@ NOINLINE void Application::windowMsg() // disable inline so we will don't use it
          WaitForEvent(active_wait);
       #elif MAC
          [NSApp nextEventMatchingMask:NSEventMaskAny untilDate:[NSDate dateWithTimeIntervalSinceNow:(active_wait/1000.0)] inMode:NSDefaultRunLoopMode dequeue:NO];
-      #elif LINUX && 0 // doesn't work
-         WaitForEvent(active_wait);
       #elif LINUX
-         if(!XPending(XDisplay)) // no events
-         {
-            wait_end=Time.curTimeMs()+active_wait; // calc end-time
-            do Time.wait(1);while(!XPending(XDisplay) // no events, TODO: this could be improved, perhaps in similar way to UWP
-                               && Signed(wait_end-Time.curTimeMs())>0);
-         }
+         WaitForEvent(active_wait);
       #endif
       }
    }
@@ -2517,7 +2535,7 @@ again:
             if(MsgWaitForMultipleObjects(0, null, false, wait, QS_ALLINPUT)!=WAIT_TIMEOUT)goto start;
          #elif WINDOWS_NEW
             if(WaitForEvent(wait))goto again; // goto 'again' because WINDOWS_NEW 'WaitForEvent' already processes events
-         #elif LINUX && 0 // doesn't work
+         #elif LINUX
             if(WaitForEvent(wait))goto start;
          #else
             Time.wait(1); goto start;
