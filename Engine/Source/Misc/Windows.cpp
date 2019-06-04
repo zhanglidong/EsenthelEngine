@@ -2025,6 +2025,15 @@ static Bool WaitForEvent(Int time) // assumes "time>0", false on timeout
    }
    return false; // timeout
 }
+#elif LINUX && 0 // this doesn't work
+static Bool WaitForEvent(Int time) // assumes "time>0", false on timeout
+{
+   if(XPending(XDisplay))return true;
+   int conn=XConnectionNumber(XDisplay);
+   fd_set fd; FD_ZERO(&fd); FD_SET(conn, &fd);
+   timeval tv; tv.tv_sec=time/1000; tv.tv_usec=(time%1000)*1000;
+   return select(conn+1, &fd, null, null, &tv)>0;
+}
 #endif
 void Application::windowDel()
 {
@@ -2505,9 +2514,11 @@ again:
          #if WINDOWS_OLD
             if(MsgWaitForMultipleObjects(0, null, false, wait, QS_ALLINPUT)!=WAIT_TIMEOUT)goto start;
          #elif WINDOWS_NEW
-            if(WaitForEvent(wait))goto again;
+            if(WaitForEvent(wait))goto again; // goto 'again' because WINDOWS_NEW 'WaitForEvent' already processes events
+         #elif LINUX
+            if(WaitForEvent(wait))goto start; // TODO: this could be improved, perhaps in similar way to UWP
          #else
-            Time.wait(1); goto start; // TODO: this could be improved, perhaps in similar way to UWP
+            Time.wait(1); goto start;
          #endif
       #endif
       }
