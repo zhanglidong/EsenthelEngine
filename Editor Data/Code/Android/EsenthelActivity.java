@@ -341,7 +341,9 @@ public class EsenthelActivity extends NativeActivity
                         Chartboost.onDestroy(this);
    CHARTBOOST_END
 		shutIAB();
+	LICENSE_KEY_BEGIN
 		shutLicenseTest();
+	LICENSE_KEY_END
       context=application; activity=null; // when activity becomes unavailable, then use application context because we always need one
    }
    @Override public final void onCreate(Bundle savedInstanceState)
@@ -390,7 +392,9 @@ public class EsenthelActivity extends NativeActivity
       startService(new Intent(this, DetectForceKill.class)); // start service that detects force kill
 
       initIAB();
+	LICENSE_KEY_BEGIN
 		initLicenseTest();
+	LICENSE_KEY_END
    ADMOB_BEGIN
       initAdMob();
    ADMOB_END
@@ -1278,6 +1282,7 @@ ADMOB_END
 	/******************************************************************************/
    // License Test
    /******************************************************************************/
+LICENSE_KEY_BEGIN
 	private static class MyLicenseCheckerCallback implements LicenseCheckerCallback
 	{
 		public static final byte[] SALT=new byte[]{2, 53, 106, 6, 35, 69, 118, 115, 64, 101, 117, 1, 13, 83, 127, 7, 6, 85, 25, 8};
@@ -1310,10 +1315,11 @@ ADMOB_END
 	public final void initLicenseTest()
 	{
 		licenseCheckerCallback=new MyLicenseCheckerCallback();
-      licenseChecker        =new   LicenseChecker        (this, new ServerManagedPolicy(this, new AESObfuscator(MyLicenseCheckerCallback.SALT, "EE_PACKAGE", android_id)), "EE_LICENSE_KEY");
+		licenseChecker        =new   LicenseChecker        (this, new ServerManagedPolicy(this, new AESObfuscator(MyLicenseCheckerCallback.SALT, "EE_PACKAGE", android_id)), "EE_LICENSE_KEY");
 	}
-	public final void shutLicenseTest() {licenseChecker.onDestroy();}
-	public static final void licenseTest() {licenseChecker.checkAccess(licenseCheckerCallback);}
+	public        final void shutLicenseTest() {if(licenseChecker!=null)licenseChecker.onDestroy();}
+	public static final void     licenseTest() {if(licenseChecker!=null)licenseChecker.checkAccess(licenseCheckerCallback);}
+LICENSE_KEY_END
 	/******************************************************************************/
    // FB - Facebook
    /******************************************************************************/

@@ -2442,11 +2442,14 @@ Bool CodeEditor::generateAndroidProj()
    // EsenthelActivity.java
    {
       FileText ft; if(!ft.read("Code/Android/EsenthelActivity.java"))return ErrorRead("Code/Android/EsenthelActivity.java");
-      Str data=ft.getAll();
-      data=Replace(data, "EE_PACKAGE"              , app_package                    , true, true);
-      data=Replace(data, "EE_APP_NAME"             , CString(cei().appName())       , true, true);
-      data=Replace(data, "EE_LICENSE_KEY"          , cei().appGooglePlayLicenseKey(), true, true);
-      Str s=cei().appAdMobAppIDGooglePlay();
+      Str data=ft.getAll(), s;
+      data=Replace(data, "EE_PACKAGE"              , app_package             , true, true);
+      data=Replace(data, "EE_APP_NAME"             , CString(cei().appName()), true, true);
+      s=cei().appGooglePlayLicenseKey();
+      data=Replace(data, "EE_LICENSE_KEY"          , s                 , true, true);
+      data=Replace(data, "LICENSE_KEY_BEGIN"       , s.is() ? "" : "/*", true, true);
+      data=Replace(data, "LICENSE_KEY_END"         , s.is() ? "" : "*/", true, true);
+      s=cei().appAdMobAppIDGooglePlay();
       data=Replace(data, "ADMOB_APP_ID"            , CString(s)            , true, true);
       data=Replace(data, "ADMOB_BEGIN"             , s.is()     ? "" : "/*", true, true);
       data=Replace(data, "ADMOB_END"               , s.is()     ? "" : "*/", true, true);
