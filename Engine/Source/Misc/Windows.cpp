@@ -1995,6 +1995,7 @@ void Application::windowCreate()
 #endif
 }
 #if WINDOWS_NEW || LINUX
+   #define CUSTOM_WAIT_FOR_EVENT 1
 #if LINUX
 static XClientMessageEvent WakeUpEvent;
 #endif
@@ -2062,6 +2063,9 @@ static Bool WaitForEvent(Int time) // assumes "time>0", false on timeout
 #endif
 void Application::windowDel()
 {
+#if CUSTOM_WAIT_FOR_EVENT
+   EventPoster.stop(); EventPostWait=0; EventPostEvent[1].on(); EventPostEvent[0].on(); EventPoster.del();
+#endif
 #if WINDOWS_OLD
    if(Kb._imc){ImmReleaseContext(Hwnd(), Kb._imc); Kb._imc=null;}
    if(PowerNotify)
@@ -2075,7 +2079,6 @@ void Application::windowDel()
    if(_icon){DestroyIcon  (_icon ); _icon=null;}
    UnregisterClass((LPCWSTR)WindowClass, _hinstance);
 #elif WINDOWS_NEW
-   EventPoster.stop(); EventPostWait=0; EventPostEvent[1].on(); EventPostEvent[0].on(); EventPoster.del();
 #elif MAC
    [OpenGLView release]; OpenGLView=null;
    [    Hwnd() release]; _hwnd     =null;
