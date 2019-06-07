@@ -100,23 +100,23 @@
 	<PropertyGroup Label="Globals">
 		<ProjectGuid>{D5E88CFD-53A1-4136-9D8C-2958A7F05334}</ProjectGuid>
 		<Keyword>Win32Proj</Keyword>
+		<WindowsTargetPlatformMinVersion>10.0.10240.0</WindowsTargetPlatformMinVersion>
 		<RootNamespace>Esenthel</RootNamespace>
 		<ProjectName>Esenthel</ProjectName>
-		<WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
-		<WindowsTargetPlatformMinVersion>10.0.17134.0</WindowsTargetPlatformMinVersion>
+		<WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
 	</PropertyGroup>
 	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props"/>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>NotSet</CharacterSet>
 		<WholeProgramOptimization>true</WholeProgramOptimization>
-		<PlatformToolset>v141_xp</PlatformToolset>
+		<PlatformToolset>v141</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>NotSet</CharacterSet>
 		<WholeProgramOptimization>true</WholeProgramOptimization>
-		<PlatformToolset>v141_xp</PlatformToolset>
+		<PlatformToolset>v141</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
@@ -137,12 +137,12 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>NotSet</CharacterSet>
-		<PlatformToolset>v141_xp</PlatformToolset>
+		<PlatformToolset>v141</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>NotSet</CharacterSet>
-		<PlatformToolset>v141_xp</PlatformToolset>
+		<PlatformToolset>v141</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
@@ -168,7 +168,7 @@
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>NotSet</CharacterSet>
 		<WholeProgramOptimization>true</WholeProgramOptimization>
-		<PlatformToolset>v141_xp</PlatformToolset>
+		<PlatformToolset>v141</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX9|Win32'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
@@ -178,13 +178,13 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX9|ARM'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>NotSet</CharacterSet>
-		<PlatformToolset>v141_xp</PlatformToolset>
+		<PlatformToolset>v141</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>NotSet</CharacterSet>
 		<WholeProgramOptimization>true</WholeProgramOptimization>
-		<PlatformToolset>v141_xp</PlatformToolset>
+		<PlatformToolset>v141</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
@@ -205,7 +205,7 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>NotSet</CharacterSet>
-		<PlatformToolset>v141_xp</PlatformToolset>
+		<PlatformToolset>v141</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
@@ -224,7 +224,7 @@
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>NotSet</CharacterSet>
 		<WholeProgramOptimization>true</WholeProgramOptimization>
-		<PlatformToolset>v141_xp</PlatformToolset>
+		<PlatformToolset>v141</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DX9|Emscripten'" Label="Configuration">
 		<CharacterSet>NotSet</CharacterSet>
@@ -233,7 +233,7 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX9|x64'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>NotSet</CharacterSet>
-		<PlatformToolset>v141_xp</PlatformToolset>
+		<PlatformToolset>v141</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX9|Emscripten'" Label="Configuration">
 		<CharacterSet>NotSet</CharacterSet>
@@ -373,6 +373,7 @@
 			<SmallerTypeCheck>true</SmallerTypeCheck>
 			<BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
 			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<LanguageStandard>stdcpplatest</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
@@ -413,6 +414,7 @@
 			<SmallerTypeCheck>true</SmallerTypeCheck>
 			<BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
 			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<LanguageStandard>stdcpplatest</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
@@ -456,6 +458,7 @@
 			<SmallerTypeCheck>true</SmallerTypeCheck>
 			<BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
 			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<LanguageStandard>stdcpplatest</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
@@ -497,6 +500,7 @@
 			<DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
 			<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
 			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<LanguageStandard>stdcpplatest</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>--memory-init-file 1 -s ALLOW_MEMORY_GROWTH=1 -s USE_WEBGL2=1 -s WASM=1</AdditionalOptions>
@@ -537,6 +541,7 @@
 			<WarningLevel>Level3</WarningLevel>
 			<DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
 			<DebugInformationFormat/>
+			<LanguageStandard>stdcpplatest</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
@@ -577,6 +582,7 @@
 			<WarningLevel>Level3</WarningLevel>
 			<DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
 			<DebugInformationFormat/>
+			<LanguageStandard>stdcpplatest</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
@@ -620,6 +626,7 @@
 			<WarningLevel>Level3</WarningLevel>
 			<DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
 			<DebugInformationFormat/>
+			<LanguageStandard>stdcpplatest</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
@@ -662,6 +669,7 @@
 			<DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
 			<DebugInformationFormat/>
 			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<LanguageStandard>stdcpplatest</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>--memory-init-file 1 -s ALLOW_MEMORY_GROWTH=1 -s USE_WEBGL2=1 -s WASM=1</AdditionalOptions>
@@ -704,6 +712,7 @@
 			<SmallerTypeCheck>true</SmallerTypeCheck>
 			<BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
 			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<LanguageStandard>stdcpplatest</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
@@ -744,6 +753,7 @@
 			<SmallerTypeCheck>true</SmallerTypeCheck>
 			<BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
 			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<LanguageStandard>stdcpplatest</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
@@ -785,6 +795,7 @@
 			<CompileAsWinRT>true</CompileAsWinRT>
 			<PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
 			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<LanguageStandard>stdcpp17</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
@@ -827,6 +838,7 @@
 			<CompileAsWinRT>true</CompileAsWinRT>
 			<PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
 			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<LanguageStandard>stdcpp17</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
@@ -871,6 +883,7 @@
 			<SmallerTypeCheck>true</SmallerTypeCheck>
 			<BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
 			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<LanguageStandard>stdcpplatest</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
@@ -916,6 +929,7 @@
 			<CompileAsWinRT>true</CompileAsWinRT>
 			<PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
 			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<LanguageStandard>stdcpp17</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
@@ -959,6 +973,7 @@
 			<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
 			<OptimizationLevel>O0</OptimizationLevel>
 			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<LanguageStandard>stdcpplatest</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>--memory-init-file 1 -s ALLOW_MEMORY_GROWTH=1 -s USE_WEBGL2=1 -s WASM=1</AdditionalOptions>
@@ -1002,6 +1017,7 @@
 			<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
 			<OptimizationLevel>O0</OptimizationLevel>
 			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<LanguageStandard>stdcpp17</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>--memory-init-file 1 -s ALLOW_MEMORY_GROWTH=1 -s USE_WEBGL2=1 -s WASM=1</AdditionalOptions>
@@ -1044,6 +1060,7 @@
 			<WarningLevel>Level3</WarningLevel>
 			<DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
 			<DebugInformationFormat/>
+			<LanguageStandard>stdcpplatest</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
@@ -1084,6 +1101,7 @@
 			<WarningLevel>Level3</WarningLevel>
 			<DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
 			<DebugInformationFormat/>
+			<LanguageStandard>stdcpplatest</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
@@ -1126,6 +1144,7 @@
 			<DebugInformationFormat/>
 			<CompileAsWinRT>true</CompileAsWinRT>
 			<PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
+			<LanguageStandard>stdcpp17</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
@@ -1169,6 +1188,7 @@
 			<DebugInformationFormat/>
 			<CompileAsWinRT>true</CompileAsWinRT>
 			<PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
+			<LanguageStandard>stdcpp17</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
@@ -1213,6 +1233,7 @@
 			<WarningLevel>Level3</WarningLevel>
 			<DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
 			<DebugInformationFormat/>
+			<LanguageStandard>stdcpplatest</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
@@ -1259,6 +1280,7 @@
 			<DebugInformationFormat/>
 			<CompileAsWinRT>true</CompileAsWinRT>
 			<PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
+			<LanguageStandard>stdcpp17</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>/IGNORE:4078 %(AdditionalOptions)</AdditionalOptions>
@@ -1302,6 +1324,7 @@
 			<DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
 			<DebugInformationFormat/>
 			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<LanguageStandard>stdcpplatest</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>--memory-init-file 1 -s ALLOW_MEMORY_GROWTH=1 -s USE_WEBGL2=1 -s WASM=1</AdditionalOptions>
@@ -1345,6 +1368,7 @@
 			<DisableSpecificWarnings>4018;4244;4312;4521</DisableSpecificWarnings>
 			<DebugInformationFormat/>
 			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<LanguageStandard>stdcpp17</LanguageStandard>
 		</ClCompile>
 		<Link>
 			<AdditionalOptions>--memory-init-file 1 -s ALLOW_MEMORY_GROWTH=1 -s USE_WEBGL2=1 -s WASM=1</AdditionalOptions>

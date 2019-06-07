@@ -6,16 +6,8 @@
 		<string>English</string>
 		<key>CFBundleExecutable</key>
 		<string>${EXECUTABLE_NAME}</string>
-		<key>CFBundleIconFiles</key>
-		<array>
-			<string>Icon-76.png</string>
-			<string>Icon-76@2x.png</string>
-			<string>Icon-60@2x.png</string>
-			<string>Icon-60@3x.png</string>
-			<string>Icon-83.5@2x.png</string>
-		</array>
 		<key>CFBundleIdentifier</key>
-		<string>com.esenthel.editor</string>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundlePackageType</key>
@@ -23,9 +15,9 @@
 		<key>CFBundleSignature</key>
 		<string>????</string>
 		<key>CFBundleVersion</key>
-		<string>58</string>
+		<string>60</string>
 		<key>CFBundleShortVersionString</key>
-		<string>58</string>
+		<string>60</string>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
 		<key>NSMainNibFile</key>
@@ -58,6 +50,8 @@
 		<string>0</string>
 		<key>FacebookDisplayName</key>
 		<string>Esenthel</string>
+		<key>GADApplicationIdentifier</key>
+		<string></string>
 		<key>ChartboostAppID</key>
 		<string></string>
 		<key>ChartboostAppSignature</key>
@@ -70,6 +64,13 @@
 					<string>fb0</string>
 				</array>
 			</dict>
+		</array>
+		<key>LSApplicationQueriesSchemes</key>
+		<array>
+			<string>fbapi</string>
+			<string>fb-messenger-share-api</string>
+			<string>fbauth2</string>
+			<string>fbshareextension</string>
 		</array>
 	</dict>
 </plist>

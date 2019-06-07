@@ -17,6 +17,7 @@
       0B9F062416CD7B80006A0106 /* iOS.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0B9F060C16CD7B80006A0106 /* iOS.xib */; };
       0B9F062816CD7C2B006A0106 /* Engine.pak in Resources */ = {isa = PBXBuildFile; fileRef = 0B9F062516CD7C21006A0106 /* Engine.pak */; };
       0B9F062916CD7C2B006A0106 /* Project.pak in Resources */ = {isa = PBXBuildFile; fileRef = 0B9F062516CD7C22006A0106 /* Project.pak */; };
+		3790A50D22A3DE7F003F81E2 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3790A50C22A3DE7F003F81E2 /* Images.xcassets */; };
       00000000EEC0C0A000000001 /* Mac: Source\Synchronize.cpp */ = {isa = PBXBuildFile; fileRef = 00000000EEC0C0A000000000 /* Source\Synchronize.cpp */; };
       00000000EEC0C0A000000002 /* iOS: Source\Synchronize.cpp */ = {isa = PBXBuildFile; fileRef = 00000000EEC0C0A000000000 /* Source\Synchronize.cpp */; };
       00000000EEC0C0A000000004 /* Mac: Source\Store\Store.cpp */ = {isa = PBXBuildFile; fileRef = 00000000EEC0C0A000000003 /* Source\Store\Store.cpp */; };
@@ -244,15 +245,6 @@
       00000000EEC0C0A000000151 /* Mac: Source\Auto.cpp */ = {isa = PBXBuildFile; fileRef = 00000000EEC0C0A000000150 /* Source\Auto.cpp */; };
       00000000EEC0C0A000000152 /* iOS: Source\Auto.cpp */ = {isa = PBXBuildFile; fileRef = 00000000EEC0C0A000000150 /* Source\Auto.cpp */; };
       00000000EEC0C0A000000154 /* Mac: Assets/EngineEmbed.pak */ = {isa = PBXBuildFile; fileRef = 00000000EEC0C0A000000153 /* Assets/EngineEmbed.pak */; };
-      00000000EEC0C0A000000156 /* iOS: Assets/Default-Portrait.png */ = {isa = PBXBuildFile; fileRef = 00000000EEC0C0A000000155 /* Assets/Default-Portrait.png */; };
-      00000000EEC0C0A000000158 /* iOS: Assets/Default-667h@2x.png */ = {isa = PBXBuildFile; fileRef = 00000000EEC0C0A000000157 /* Assets/Default-667h@2x.png */; };
-      00000000EEC0C0A00000015A /* iOS: Assets/Default-568h@2x.png */ = {isa = PBXBuildFile; fileRef = 00000000EEC0C0A000000159 /* Assets/Default-568h@2x.png */; };
-      00000000EEC0C0A00000015C /* iOS: Assets/Default@2x.png */ = {isa = PBXBuildFile; fileRef = 00000000EEC0C0A00000015B /* Assets/Default@2x.png */; };
-      00000000EEC0C0A00000015E /* iOS: Assets/Icon-83.5@2x.png */ = {isa = PBXBuildFile; fileRef = 00000000EEC0C0A00000015D /* Assets/Icon-83.5@2x.png */; };
-      00000000EEC0C0A000000160 /* iOS: Assets/Icon-60@3x.png */ = {isa = PBXBuildFile; fileRef = 00000000EEC0C0A00000015F /* Assets/Icon-60@3x.png */; };
-      00000000EEC0C0A000000162 /* iOS: Assets/Icon-76@2x.png */ = {isa = PBXBuildFile; fileRef = 00000000EEC0C0A000000161 /* Assets/Icon-76@2x.png */; };
-      00000000EEC0C0A000000164 /* iOS: Assets/Icon-60@2x.png */ = {isa = PBXBuildFile; fileRef = 00000000EEC0C0A000000163 /* Assets/Icon-60@2x.png */; };
-      00000000EEC0C0A000000166 /* iOS: Assets/Icon-76.png */ = {isa = PBXBuildFile; fileRef = 00000000EEC0C0A000000165 /* Assets/Icon-76.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -264,6 +256,7 @@
 		37307DB921AFDF87009ABBF9 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
       0B9F062516CD7C21006A0106 /* Engine.pak */ = {isa = PBXFileReference; lastKnownFileType = file; name = Engine.pak; path = "../../../Editor/Bin/Mobile/Engine.pak"; sourceTree = "<absolute>"; };
       0B9F062516CD7C22006A0106 /* Project.pak */ = {isa = PBXFileReference; lastKnownFileType = file; name = Project.pak; path = Assets/Project.pak; sourceTree = "<group>"; };
+		3790A50C22A3DE7F003F81E2 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Assets/Images.xcassets; sourceTree = "<group>"; };
       0B9F05BF16CD7377006A0106 /* Mac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Esenthel.app"; sourceTree = BUILT_PRODUCTS_DIR; };
       0B9F060816CD7B80006A0106 /* Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = Icon.icns; path = Assets/Icon.icns; sourceTree = "<group>"; };
       0B9F060C16CD7B80006A0106 /* iOS.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = iOS.xib; path = Assets/iOS.xib; sourceTree = "<group>"; };
@@ -385,15 +378,6 @@
       00000000EEC0C0A00000014D /* Source\Editor Update.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "Editor Update.cpp"; path = "Source/Editor Update.cpp"; sourceTree = "<group>"; };
       00000000EEC0C0A000000150 /* Source\Auto.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "Auto.cpp"; path = "Source/Auto.cpp"; sourceTree = "<group>"; };
       00000000EEC0C0A000000153 /* Assets/EngineEmbed.pak */ = {isa = PBXFileReference; lastKnownFileType = file; name = "EngineEmbed.pak"; path = "Assets/EngineEmbed.pak"; sourceTree = "<group>"; };
-      00000000EEC0C0A000000155 /* Assets/Default-Portrait.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-Portrait.png"; path = "Assets/Default-Portrait.png"; sourceTree = "<group>"; };
-      00000000EEC0C0A000000157 /* Assets/Default-667h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-667h@2x.png"; path = "Assets/Default-667h@2x.png"; sourceTree = "<group>"; };
-      00000000EEC0C0A000000159 /* Assets/Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-568h@2x.png"; path = "Assets/Default-568h@2x.png"; sourceTree = "<group>"; };
-      00000000EEC0C0A00000015B /* Assets/Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default@2x.png"; path = "Assets/Default@2x.png"; sourceTree = "<group>"; };
-      00000000EEC0C0A00000015D /* Assets/Icon-83.5@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Icon-83.5@2x.png"; path = "Assets/Icon-83.5@2x.png"; sourceTree = "<group>"; };
-      00000000EEC0C0A00000015F /* Assets/Icon-60@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Icon-60@3x.png"; path = "Assets/Icon-60@3x.png"; sourceTree = "<group>"; };
-      00000000EEC0C0A000000161 /* Assets/Icon-76@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Icon-76@2x.png"; path = "Assets/Icon-76@2x.png"; sourceTree = "<group>"; };
-      00000000EEC0C0A000000163 /* Assets/Icon-60@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Icon-60@2x.png"; path = "Assets/Icon-60@2x.png"; sourceTree = "<group>"; };
-      00000000EEC0C0A000000165 /* Assets/Icon-76.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Icon-76.png"; path = "Assets/Icon-76.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -458,7 +442,7 @@
          isa = PBXGroup;
          children = (
             0B9F063316CD7D6D006A0106 /* H */,
-            00000000EEC0C0A000000168 /* Source */,
+            00000000EEC0C0A000000156 /* Source */,
 /* ESENTHEL ROOT */
             29B97323FDCFA39411CA2CEA /* Frameworks */,
             29B97317FDCFA39411CA2CEA /* Assets */,
@@ -470,22 +454,14 @@
       29B97317FDCFA39411CA2CEA /* Assets */ = {
          isa = PBXGroup;
          children = (
-            0B9F062516CD7C21006A0106 /* Engine.pak */,
+				3790A50C22A3DE7F003F81E2 /* Images.xcassets */,
+				0B9F062516CD7C21006A0106 /* Engine.pak */,
             0B9F062516CD7C22006A0106 /* Project.pak */,
             0B9F060816CD7B80006A0106 /* Icon.icns */,
             0B9F063B16CD7F75006A0106 /* Mac.plist */,
             0B9F063C16CD802D006A0106 /* iOS.plist */,
             0B9F060C16CD7B80006A0106 /* iOS.xib */,
             00000000EEC0C0A000000153 /* Assets/EngineEmbed.pak */,
-            00000000EEC0C0A000000155 /* Assets/Default-Portrait.png */,
-            00000000EEC0C0A000000157 /* Assets/Default-667h@2x.png */,
-            00000000EEC0C0A000000159 /* Assets/Default-568h@2x.png */,
-            00000000EEC0C0A00000015B /* Assets/Default@2x.png */,
-            00000000EEC0C0A00000015D /* Assets/Icon-83.5@2x.png */,
-            00000000EEC0C0A00000015F /* Assets/Icon-60@3x.png */,
-            00000000EEC0C0A000000161 /* Assets/Icon-76@2x.png */,
-            00000000EEC0C0A000000163 /* Assets/Icon-60@2x.png */,
-            00000000EEC0C0A000000165 /* Assets/Icon-76.png */,
 /* ESENTHEL ASSETS CHILDREN */
          );
          name = Assets;
@@ -505,14 +481,14 @@
          name = Frameworks;
          sourceTree = "<group>";
       };
-      00000000EEC0C0A000000168 /* Source */ = {
+      00000000EEC0C0A000000156 /* Source */ = {
          isa = PBXGroup;
          children = (
-            00000000EEC0C0A000000169 /* Editors */,
-            00000000EEC0C0A00000016C /* Game */,
-            00000000EEC0C0A00000016D /* Gui */,
-            00000000EEC0C0A00000016E /* Shared */,
-            00000000EEC0C0A000000170 /* Store */,
+            00000000EEC0C0A000000157 /* Editors */,
+            00000000EEC0C0A00000015A /* Game */,
+            00000000EEC0C0A00000015B /* Gui */,
+            00000000EEC0C0A00000015C /* Shared */,
+            00000000EEC0C0A00000015E /* Store */,
             00000000EEC0C0A000000150 /* Auto.cpp */,
             00000000EEC0C0A00000014D /* Editor Update.cpp */,
             00000000EEC0C0A0000000B7 /* Elm@0.cpp */,
@@ -530,11 +506,11 @@
          name = "Source";
          sourceTree = "<group>";
       };
-      00000000EEC0C0A000000169 /* Editors */ = {
+      00000000EEC0C0A000000157 /* Editors */ = {
          isa = PBXGroup;
          children = (
-            00000000EEC0C0A00000016A /* Object */,
-            00000000EEC0C0A00000016B /* World */,
+            00000000EEC0C0A000000158 /* Object */,
+            00000000EEC0C0A000000159 /* World */,
             00000000EEC0C0A00000014A /* Animation.cpp */,
             00000000EEC0C0A000000147 /* Code@0.cpp */,
             00000000EEC0C0A000000144 /* Enum@0.cpp */,
@@ -559,7 +535,7 @@
          name = "Editors";
          sourceTree = "<group>";
       };
-      00000000EEC0C0A00000016A /* Object */ = {
+      00000000EEC0C0A000000158 /* Object */ = {
          isa = PBXGroup;
          children = (
             00000000EEC0C0A000000126 /* Adjust Bone Orientations.cpp */,
@@ -576,7 +552,7 @@
          name = "Object";
          sourceTree = "<group>";
       };
-      00000000EEC0C0A00000016B /* World */ = {
+      00000000EEC0C0A000000159 /* World */ = {
          isa = PBXGroup;
          children = (
             00000000EEC0C0A0000000F0 /* Area@0.cpp */,
@@ -602,7 +578,7 @@
          name = "World";
          sourceTree = "<group>";
       };
-      00000000EEC0C0A00000016C /* Game */ = {
+      00000000EEC0C0A00000015A /* Game */ = {
          isa = PBXGroup;
          children = (
             00000000EEC0C0A0000000B4 /* Controls.cpp */,
@@ -612,7 +588,7 @@
          name = "Game";
          sourceTree = "<group>";
       };
-      00000000EEC0C0A00000016D /* Gui */ = {
+      00000000EEC0C0A00000015B /* Gui */ = {
          isa = PBXGroup;
          children = (
             00000000EEC0C0A0000000AB /* Brush.cpp */,
@@ -640,10 +616,10 @@
          name = "Gui";
          sourceTree = "<group>";
       };
-      00000000EEC0C0A00000016E /* Shared */ = {
+      00000000EEC0C0A00000015C /* Shared */ = {
          isa = PBXGroup;
          children = (
-            00000000EEC0C0A00000016F /* Elements */,
+            00000000EEC0C0A00000015D /* Elements */,
             00000000EEC0C0A000000051 /* Area.cpp */,
             00000000EEC0C0A00000004E /* Commands.cpp */,
             00000000EEC0C0A00000004B /* Constants.cpp */,
@@ -656,7 +632,7 @@
          name = "Shared";
          sourceTree = "<group>";
       };
-      00000000EEC0C0A00000016F /* Elements */ = {
+      00000000EEC0C0A00000015D /* Elements */ = {
          isa = PBXGroup;
          children = (
             00000000EEC0C0A000000048 /* Code.cpp */,
@@ -679,7 +655,7 @@
          name = "Elements";
          sourceTree = "<group>";
       };
-      00000000EEC0C0A000000170 /* Store */ = {
+      00000000EEC0C0A00000015E /* Store */ = {
          isa = PBXGroup;
          children = (
             00000000EEC0C0A000000009 /* Internet Cache.cpp */,
@@ -781,18 +757,10 @@
          isa = PBXResourcesBuildPhase;
          buildActionMask = 2147483647;
          files = (
-            0B9F062416CD7B80006A0106 /* iOS.xib in Resources */,
+				3790A50D22A3DE7F003F81E2 /* Images.xcassets in Resources */,
+				0B9F062416CD7B80006A0106 /* iOS.xib in Resources */,
             0B9F062816CD7C2B006A0106 /* Engine.pak in Resources */,
             0B9F062916CD7C2B006A0106 /* Project.pak in Resources */,
-            00000000EEC0C0A000000156 /* Assets/Default-Portrait.png */,
-            00000000EEC0C0A000000158 /* Assets/Default-667h@2x.png */,
-            00000000EEC0C0A00000015A /* Assets/Default-568h@2x.png */,
-            00000000EEC0C0A00000015C /* Assets/Default@2x.png */,
-            00000000EEC0C0A00000015E /* Assets/Icon-83.5@2x.png */,
-            00000000EEC0C0A000000160 /* Assets/Icon-60@3x.png */,
-            00000000EEC0C0A000000162 /* Assets/Icon-76@2x.png */,
-            00000000EEC0C0A000000164 /* Assets/Icon-60@2x.png */,
-            00000000EEC0C0A000000166 /* Assets/Icon-76.png */,
 /* ESENTHEL IOS EMBED */
          );
          runOnlyForDeploymentPostprocessing = 0;
@@ -1070,6 +1038,7 @@
                "$(inherited)",
 
             );
+				PRODUCT_BUNDLE_IDENTIFIER = "com.esenthel.editor";
             PRODUCT_NAME = "Esenthel";
          };
          name = Debug;
@@ -1099,6 +1068,7 @@
                "$(inherited)",
 
             );
+				PRODUCT_BUNDLE_IDENTIFIER = "com.esenthel.editor";
             PRODUCT_NAME = "Esenthel";
          };
          name = Release;
@@ -1106,6 +1076,8 @@
       0BDA9C82121EE06400ED5E97 /* Debug */ = {
          isa = XCBuildConfiguration;
          buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
             CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -1136,6 +1108,7 @@
                "$(inherited)",
 
             );
+				PRODUCT_BUNDLE_IDENTIFIER = "com.esenthel.editor";
             PRODUCT_NAME = "Esenthel";
             PROVISIONING_PROFILE = "";
             SDKROOT = iphoneos;
@@ -1146,6 +1119,8 @@
       0BDA9C83121EE06400ED5E97 /* Release */ = {
          isa = XCBuildConfiguration;
          buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
             CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -1176,6 +1151,7 @@
                "$(inherited)",
 
             );
+				PRODUCT_BUNDLE_IDENTIFIER = "com.esenthel.editor";
             PRODUCT_NAME = "Esenthel";
             PROVISIONING_PROFILE = "";
             SDKROOT = iphoneos;
