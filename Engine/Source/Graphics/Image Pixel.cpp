@@ -156,8 +156,6 @@ static const Flt CFSMW8[8][8]= // [y][x]
    {0.000000000f, 0.000355931f, 0.004531289f, 0.010840487f, 0.010840487f, 0.004531289f, 0.000355931f, 0.000000000f},
    {0.000000000f, 0.000000000f, 0.000025184f, 0.000355931f, 0.000355931f, 0.000025184f, 0.000000000f, 0.000000000f},
 };
-
-#define J1 PLATFORM(_j1, j1)
 /******************************************************************************/
 // SRGB
 /******************************************************************************/
@@ -292,6 +290,7 @@ static INLINE Flt SincSinc(Flt x)
  //return Sinc(x)*Sinc(x*JINC_SMOOTH);
    x*=PI; Flt xx=Sqr(x); return xx ? Sin(x)*Sin(x*JINC_SMOOTH)/xx : JINC_SMOOTH;
 }
+#define J1 PLATFORM(_j1, j1)
 static INLINE Flt JincJinc(Flt x)
 {
  //return Jinc(x)*Jinc(x*JINC_SMOOTH);
