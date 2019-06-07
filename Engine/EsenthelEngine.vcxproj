@@ -849,7 +849,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-invalid-pp-token -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-return-type-c-linkage -std=c++14</AdditionalOptions>
+      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-invalid-pp-token -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -std=c++17</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -1032,7 +1032,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-invalid-pp-token -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-return-type-c-linkage -std=c++14</AdditionalOptions>
+      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-invalid-pp-token -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -std=c++17</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -1199,7 +1199,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release DX9|Emscripten'">
     <Midl />
     <ClCompile>
-      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-invalid-pp-token -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-return-type-c-linkage -std=c++14</AdditionalOptions>
+      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-invalid-pp-token -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -std=c++17</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -1524,7 +1524,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-invalid-pp-token -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-return-type-c-linkage -std=c++14</AdditionalOptions>
+      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-invalid-pp-token -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -std=c++17</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -1569,7 +1569,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-invalid-pp-token -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-return-type-c-linkage -std=c++14</AdditionalOptions>
+      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-invalid-pp-token -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -std=c++17</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -1893,7 +1893,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'">
     <Midl />
     <ClCompile>
-      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-invalid-pp-token -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-return-type-c-linkage -std=c++14</AdditionalOptions>
+      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-invalid-pp-token -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -std=c++17</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -1939,7 +1939,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Emscripten'">
     <Midl />
     <ClCompile>
-      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-invalid-pp-token -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-return-type-c-linkage -std=c++14</AdditionalOptions>
+      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-invalid-pp-token -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -std=c++17</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -2131,7 +2131,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-invalid-pp-token -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-return-type-c-linkage -std=c++14</AdditionalOptions>
+      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-invalid-pp-token -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -std=c++17</AdditionalOptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
@@ -2298,7 +2298,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release GL|Emscripten'">
     <Midl />
     <ClCompile>
-      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-invalid-pp-token -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-return-type-c-linkage -std=c++14</AdditionalOptions>
+      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-invalid-pp-token -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -std=c++17</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
