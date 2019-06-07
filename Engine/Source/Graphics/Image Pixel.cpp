@@ -496,16 +496,22 @@ static inline Flt GetPixelF(C Byte *data, C Image &image, Bool _2d, Int x, Int y
       case IMAGE_I8      :
          return (*(U8*)data)/Flt(0x000000FFu);
 
+      // 16
       case IMAGE_D16: if(GL)return (*(U16*)data)/Flt(0x0000FFFFu)*2-1; // !! else fall through no break on purpose !!
-      case IMAGE_I16:       return (*(U16*)data)/Flt(0x0000FFFFu);
+      case IMAGE_I16:
+         return (*(U16*)data)/Flt(0x0000FFFFu);
 
+      // 32
       case IMAGE_D32 :       return GL ? (*(Flt*)data)*2-1 : *(Flt*)data;
     //case IMAGE_D32I: if(GL)return (*(U32*)data)/Dbl(0xFFFFFFFFu)*2-1; // !! else fall through no break on purpose !!
-      case IMAGE_I32 :       return (*(U32*)data)/Dbl(0xFFFFFFFFu); // Dbl required to get best precision
+      case IMAGE_I32 :
+         return (*(U32*)data)/Dbl(0xFFFFFFFFu); // Dbl required to get best precision
 
+      // 24
       case IMAGE_D24S8:
       case IMAGE_D24X8: if(GL)return (*(U16*)(data+1) | (data[3]<<16))/Flt(0x00FFFFFFu)*2-1; // !! else fall through no break on purpose !!
-      case IMAGE_I24  :       return (*(U16*) data    | (data[2]<<16))/Flt(0x00FFFFFFu)    ; // here Dbl is not required, this was tested
+      case IMAGE_I24  :
+         return (*(U16*)data | (data[2]<<16))/Flt(0x00FFFFFFu); // here Dbl is not required, this was tested
 
       case IMAGE_R10G10B10A2: return ((*(UInt*)data)&0x3FF)/Flt(0x3FF);
 
@@ -553,23 +559,46 @@ static inline Byte SByteToByte(SByte s) {return (s<=0) ? 0 : (s<<1);}
 static inline Byte SByteToByte(SByte s) {return (s<=0) ? 0 : (s*255+63)/127;}
 #endif
 /******************************************************************************/
-static Color PixelToColor(IMAGE_TYPE type, UInt pixel) // convert pixel to color
+static inline Color GetColor(C Byte *data, C Image &image, Bool _2d, Int x, Int y, Int z=0)
 {
-   switch(type)
+   switch(image.hwType())
    {
-      case IMAGE_B8G8R8A8: return Color((pixel>>16)&0xFF, (pixel>> 8)&0xFF,  pixel     &0xFF, pixel>>24);
-      case IMAGE_R8G8B8A8: return Color( pixel     &0xFF, (pixel>> 8)&0xFF, (pixel>>16)&0xFF, pixel>>24);
-      case IMAGE_R8G8B8  : return Color( pixel     &0xFF, (pixel>> 8)&0xFF, (pixel>>16)&0xFF,       255);
-      case IMAGE_R8G8    : return Color( pixel     &0xFF, (pixel>> 8)&0xFF,                0,       255);
-      case IMAGE_R8      : return Color( pixel     &0xFF,                0,                0,       255);
-      case IMAGE_A8      : return Color(               0,                0,                0, pixel    );
-      case IMAGE_L8      : return Color( pixel          ,  pixel          ,  pixel          ,       255);
-      case IMAGE_L8A8    : return Color( pixel     &0xFF,  pixel     &0xFF,  pixel&0xFF     , pixel>> 8);
-      case IMAGE_I8      : return Color( pixel          ,  pixel          ,  pixel          ,       255);
-      case IMAGE_I16     : return Color( pixel>> 8      ,  pixel>>8       ,  pixel>>8       ,       255);
-      case IMAGE_I24     : return Color( pixel>>16      ,  pixel>>16      ,  pixel>>16      ,       255);
-      case IMAGE_I32     : return Color( pixel>>24      ,  pixel>>24      ,  pixel>>24      ,       255);
-      default            : return Color(               0,                0,                0,         0);
+      case IMAGE_B8G8R8A8: {C Color &c=*(Color*)data; return Color(  c.b, c.g, c.r,   c.a);}
+      case IMAGE_R8G8B8A8: return      *(Color*)data;
+      case IMAGE_R8G8B8  : {C VecB  &v=*(VecB *)data; return Color(  v.x, v.y, v.z,   255);}
+      case IMAGE_R8G8    : {C VecB2 &v=*(VecB2*)data; return Color(  v.x, v.y,   0,   255);}
+      case IMAGE_R8      :                            return Color(*data,   0,   0,   255);
+      case IMAGE_A8      :                            return Color(    0,   0,   0, *data);
+      case IMAGE_L8      : {  Byte   b=*data;         return Color(    b,   b,   b,   255);}
+      case IMAGE_L8A8    : {C VecB2 &v=*(VecB2*)data; return Color(  v.x, v.x, v.x,   v.y);}
+      case IMAGE_I8      : {  Byte   b=data[0];       return Color(    b,   b,   b,   255);}
+      case IMAGE_I16     : {  Byte   b=data[1];       return Color(    b,   b,   b,   255);}
+      case IMAGE_I24     : {  Byte   b=data[2];       return Color(    b,   b,   b,   255);}
+      case IMAGE_I32     : {  Byte   b=data[3];       return Color(    b,   b,   b,   255);}
+      case IMAGE_B8G8R8  : {C VecB  &v=*(VecB *)data; return Color(  v.z, v.y, v.x,   255);}
+      case IMAGE_B8G8R8X8: {C VecB4 &v=*(VecB4*)data; return Color(  v.z, v.y, v.x,   255);}
+      case IMAGE_R8G8B8X8: {C VecB4 &v=*(VecB4*)data; return Color(  v.x, v.y, v.z,   255);}
+
+      case IMAGE_B4G4R4X4   : {U16  d=*(U16 *)data; return Color(((d>> 8)&0x0F)<<4, ((d>> 4)&0x0F)<<4, ((d    )&0x0F)<<4,                   255);}
+      case IMAGE_B4G4R4A4   : {U16  d=*(U16 *)data; return Color(((d>> 8)&0x0F)<<4, ((d>> 4)&0x0F)<<4, ((d    )&0x0F)<<4, ((d>>12)&0x0F)<<4    );}
+      case IMAGE_B5G5R5X1   : {U16  d=*(U16 *)data; return Color(((d>>10)&0x1F)<<3, ((d>> 5)&0x1F)<<3, ((d    )&0x1F)<<3,                   255);}
+      case IMAGE_B5G5R5A1   : {U16  d=*(U16 *)data; return Color(((d>>10)&0x1F)<<3, ((d>> 5)&0x1F)<<3, ((d    )&0x1F)<<3,  (d&0x8000) ? 255 : 0);}
+      case IMAGE_B5G6R5     : {U16  d=*(U16 *)data; return Color(((d>>11)&0x1F)<<3, ((d>> 5)&0x3F)<<2, ((d    )&0x1F)<<3,                   255);}
+      case IMAGE_R10G10B10A2: {UInt d=*(UInt*)data; return Color( (d>> 2)&0xFF    ,  (d>>12)&0xFF    ,  (d>>22)&0xFF    ,  (d>>30)*255/3       );}
+
+      case IMAGE_R8_SIGN      : {  SByte   b=         *data; return Color(SByteToByte(b  ),                0,                0,              255);}
+      case IMAGE_R8G8_SIGN    : {C VecSB2 &v=*(VecSB2*)data; return Color(SByteToByte(v.x), SByteToByte(v.y),                0,              255);}
+      case IMAGE_R8G8B8A8_SIGN: {C VecSB4 &v=*(VecSB4*)data; return Color(SByteToByte(v.x), SByteToByte(v.y), SByteToByte(v.z), SByteToByte(v.w));}
+
+      case IMAGE_F32  : {C Flt  &v=*(Flt *)data; return Color(FltToByte(v  ),              0,              0,            255);}
+      case IMAGE_F32_2: {C Vec2 &v=*(Vec2*)data; return Color(FltToByte(v.x), FltToByte(v.y),              0,            255);}
+      case IMAGE_F32_3: {C Vec  &v=*(Vec *)data; return Color(FltToByte(v.x), FltToByte(v.y), FltToByte(v.z),            255);}
+      case IMAGE_F32_4: {C Vec4 &v=*(Vec4*)data; return Color(FltToByte(v.x), FltToByte(v.y), FltToByte(v.z), FltToByte(v.w));}
+
+      case IMAGE_F16  : {C Half  &v=*(Half *)data; return Color(FltToByte(v  ),              0,              0,            255);}
+      case IMAGE_F16_2: {C VecH2 &v=*(VecH2*)data; return Color(FltToByte(v.x), FltToByte(v.y),              0,            255);}
+      case IMAGE_F16_3: {C VecH  &v=*(VecH *)data; return Color(FltToByte(v.x), FltToByte(v.y), FltToByte(v.z),            255);}
+      case IMAGE_F16_4: {C VecH4 &v=*(VecH4*)data; return Color(FltToByte(v.x), FltToByte(v.y), FltToByte(v.z), FltToByte(v.w));}
 
       case IMAGE_BC1     :
       case IMAGE_BC2     :
@@ -581,22 +610,21 @@ static Color PixelToColor(IMAGE_TYPE type, UInt pixel) // convert pixel to color
       case IMAGE_ETC2_A8 :
       case IMAGE_PVRTC1_2:
       case IMAGE_PVRTC1_4:
-         return Color(pixel&0xFF, (pixel>>8)&0xFF, (pixel>>16)&0xFF, pixel>>24);
-
-      case IMAGE_B4G4R4X4   : return Color(((pixel>> 8)&0x0F)<<4, ((pixel>> 4)&0x0F)<<4, ((pixel    )&0x0F)<<4,                       255);
-      case IMAGE_B4G4R4A4   : return Color(((pixel>> 8)&0x0F)<<4, ((pixel>> 4)&0x0F)<<4, ((pixel    )&0x0F)<<4, ((pixel>>12)&0x0F)<<4    );
-      case IMAGE_B5G5R5X1   : return Color(((pixel>>10)&0x1F)<<3, ((pixel>> 5)&0x1F)<<3, ((pixel    )&0x1F)<<3,                       255);
-      case IMAGE_B5G5R5A1   : return Color(((pixel>>10)&0x1F)<<3, ((pixel>> 5)&0x1F)<<3, ((pixel    )&0x1F)<<3,  (pixel&0x8000) ? 255 : 0);
-      case IMAGE_B5G6R5     : return Color(((pixel>>11)&0x1F)<<3, ((pixel>> 5)&0x3F)<<2, ((pixel    )&0x1F)<<3,                       255);
-      case IMAGE_B8G8R8     : return Color( (pixel>>16)&0xFF    ,  (pixel>> 8)&0xFF    ,   pixel     &0xFF    ,                       255);
-      case IMAGE_B8G8R8X8   : return Color( (pixel>>16)&0xFF    ,  (pixel>> 8)&0xFF    ,   pixel     &0xFF    ,                       255);
-      case IMAGE_R8G8B8X8   : return Color( (pixel    )&0xFF    ,  (pixel>> 8)&0xFF    ,  (pixel>>16)&0xFF    ,                       255);
-      case IMAGE_R10G10B10A2: return Color( (pixel>> 2)&0xFF    ,  (pixel>>12)&0xFF    ,  (pixel>>22)&0xFF    ,  (pixel>>30)*255/3       );
-
-      case IMAGE_R8_SIGN      : return Color(SByteToByte(pixel&0xFF),                            0,                            0 ,                   255 );
-      case IMAGE_R8G8_SIGN    : return Color(SByteToByte(pixel&0xFF), SByteToByte((pixel>>8)&0xFF),                            0 ,                   255 );
-      case IMAGE_R8G8B8A8_SIGN: return Color(SByteToByte(pixel&0xFF), SByteToByte((pixel>>8)&0xFF), SByteToByte((pixel>>16)&0xFF), SByteToByte(pixel>>24));
+         return _2d ? image.decompress(x, y) : image.decompress3D(x, y, z);
    }
+   return TRANSPARENT;
+}
+Color Image::color(Int x, Int y)C
+{
+   if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+      return GetColor(data() + x*bytePP() + y*pitch(), T, true, x, y);
+   return TRANSPARENT;
+}
+Color Image::color3D(Int x, Int y, Int z)C
+{
+   if(InRange(x, lw()) && InRange(y, lh()) && InRange(z, ld())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+      return GetColor(data() + x*bytePP() + y*pitch() + z*pitch2(), T, false, x, y, z);
+   return TRANSPARENT;
 }
 /******************************************************************************/
 static UInt ColorToPixel(IMAGE_TYPE type, C Color &color) // convert color to pixel
@@ -677,8 +705,6 @@ static UInt ColorToPixel(IMAGE_TYPE type, IMAGE_TYPE hw_type, C Color &color) //
 /******************************************************************************/
 void  Image::color  (Int x, Int y,        C Color &color)  {                                           if(highPrecision())        colorF  (x, y,    color.asVec4());else pixel  (x, y,    ColorToPixel(type(), hwType(), color          ));}
 void  Image::color3D(Int x, Int y, Int z, C Color &color)  {                                           if(highPrecision())        color3DF(x, y, z, color.asVec4());else pixel3D(x, y, z, ColorToPixel(type(), hwType(), color          ));}
-Color Image::color  (Int x, Int y                       )C {return compressed() ? decompress  (x, y   ) : highPrecision() ? Color(colorF  (x, y                   )) :                    PixelToColor(        hwType(), pixel  (x, y   ));}
-Color Image::color3D(Int x, Int y, Int z                )C {return compressed() ? decompress3D(x, y, z) : highPrecision() ? Color(color3DF(x, y, z                )) :                    PixelToColor(        hwType(), pixel3D(x, y, z));}
 /******************************************************************************/
 Color Image::decompress(Int x, Int y)C
 {
@@ -849,22 +875,28 @@ static inline Vec4 GetColorF(C Byte *data, C Image &image, Bool _2d, Int x, Int 
       case IMAGE_L8: return Vec4(Vec(     Flt(*(U8*)data)/0x000000FFu), 1);
       case IMAGE_I8: return Vec4(Vec(     Flt(*(U8*)data)/0x000000FFu), 1);
 
+      // 16
    #if SUPPORT_DEPTH_TO_COLOR
       case IMAGE_D16: if(GL)return Vec4(Vec((*(U16*)data)/Flt(0x0000FFFFu)*2-1), 1); // !! else fall through no break on purpose !!
    #endif
-      case IMAGE_I16:       return Vec4(Vec((*(U16*)data)/Flt(0x0000FFFFu)    ), 1);
+      case IMAGE_I16:
+         return Vec4(Vec((*(U16*)data)/Flt(0x0000FFFFu)), 1);
 
+      // 32
    #if SUPPORT_DEPTH_TO_COLOR
       case IMAGE_D32 :       return Vec4(Vec(GL ? (*(Flt*)data)*2-1 : *(Flt*)data), 1);
     //case IMAGE_D32I: if(GL)return Vec4(Vec((*(U32*)data)/Dbl(0xFFFFFFFFu)*2-1), 1); // !! else fall through no break on purpose !!
    #endif
-      case IMAGE_I32 :       return Vec4(Vec((*(U32*)data)/Dbl(0xFFFFFFFFu)    ), 1); // Dbl required to get best precision
+      case IMAGE_I32:
+         return Vec4(Vec((*(U32*)data)/Dbl(0xFFFFFFFFu)), 1); // Dbl required to get best precision
 
+      // 24
    #if SUPPORT_DEPTH_TO_COLOR
       case IMAGE_D24S8:
       case IMAGE_D24X8: if(GL)return Vec4(Vec((*(U16*)(data+1) | (data[3]<<16))/Flt(0x00FFFFFFu)*2-1), 1); // !! else fall through no break on purpose !!
    #endif
-      case IMAGE_I24  :       return Vec4(Vec((*(U16*) data    | (data[2]<<16))/Flt(0x00FFFFFFu)    ), 1); // here Dbl is not required, this was tested
+      case IMAGE_I24:
+         return Vec4(Vec((*(U16*)data | (data[2]<<16))/Flt(0x00FFFFFFu)), 1); // here Dbl is not required, this was tested
 
       case IMAGE_L8A8: {VecB2 &c=*(VecB2*)data; Flt l=c.x/255.0f; return Vec4(l, l, l, c.y/255.0f);}
 
