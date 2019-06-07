@@ -103,20 +103,19 @@
 		<WindowsTargetPlatformMinVersion>10.0.10240.0</WindowsTargetPlatformMinVersion>
 		<RootNamespace>Esenthel</RootNamespace>
 		<ProjectName>Esenthel</ProjectName>
-		<WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
 	</PropertyGroup>
 	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props"/>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|Win32'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>NotSet</CharacterSet>
 		<WholeProgramOptimization>true</WholeProgramOptimization>
-		<PlatformToolset>v141</PlatformToolset>
+		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>NotSet</CharacterSet>
 		<WholeProgramOptimization>true</WholeProgramOptimization>
-		<PlatformToolset>v141</PlatformToolset>
+		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|Win32'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
@@ -124,7 +123,7 @@
 		<CharacterSet>Unicode</CharacterSet>
 		<WindowsAppContainer>true</WindowsAppContainer>
 		<AppContainerApplication>true</AppContainerApplication>
-		<PlatformToolset>v141</PlatformToolset>
+		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|ARM'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
@@ -132,31 +131,31 @@
 		<CharacterSet>Unicode</CharacterSet>
 		<WindowsAppContainer>true</WindowsAppContainer>
 		<AppContainerApplication>true</AppContainerApplication>
-		<PlatformToolset>v141</PlatformToolset>
+		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>NotSet</CharacterSet>
-		<PlatformToolset>v141</PlatformToolset>
+		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>NotSet</CharacterSet>
-		<PlatformToolset>v141</PlatformToolset>
+		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>Unicode</CharacterSet>
 		<WindowsAppContainer>true</WindowsAppContainer>
 		<AppContainerApplication>true</AppContainerApplication>
-		<PlatformToolset>v141</PlatformToolset>
+		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>Unicode</CharacterSet>
 		<WindowsAppContainer>true</WindowsAppContainer>
 		<AppContainerApplication>true</AppContainerApplication>
-		<PlatformToolset>v141</PlatformToolset>
+		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DX9|Win32'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
@@ -168,7 +167,7 @@
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>NotSet</CharacterSet>
 		<WholeProgramOptimization>true</WholeProgramOptimization>
-		<PlatformToolset>v141</PlatformToolset>
+		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX9|Win32'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
@@ -178,13 +177,13 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX9|ARM'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>NotSet</CharacterSet>
-		<PlatformToolset>v141</PlatformToolset>
+		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>NotSet</CharacterSet>
 		<WholeProgramOptimization>true</WholeProgramOptimization>
-		<PlatformToolset>v141</PlatformToolset>
+		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Universal DX11|x64'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
@@ -192,7 +191,7 @@
 		<CharacterSet>Unicode</CharacterSet>
 		<WindowsAppContainer>true</WindowsAppContainer>
 		<AppContainerApplication>true</AppContainerApplication>
-		<PlatformToolset>v141</PlatformToolset>
+		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|Emscripten'" Label="Configuration">
 		<CharacterSet>NotSet</CharacterSet>
@@ -205,14 +204,14 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>NotSet</CharacterSet>
-		<PlatformToolset>v141</PlatformToolset>
+		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>Unicode</CharacterSet>
 		<WindowsAppContainer>true</WindowsAppContainer>
 		<AppContainerApplication>true</AppContainerApplication>
-		<PlatformToolset>v141</PlatformToolset>
+		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'" Label="Configuration">
 		<CharacterSet>NotSet</CharacterSet>
@@ -224,7 +223,7 @@
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>NotSet</CharacterSet>
 		<WholeProgramOptimization>true</WholeProgramOptimization>
-		<PlatformToolset>v141</PlatformToolset>
+		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DX9|Emscripten'" Label="Configuration">
 		<CharacterSet>NotSet</CharacterSet>
@@ -233,7 +232,7 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX9|x64'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
 		<CharacterSet>NotSet</CharacterSet>
-		<PlatformToolset>v141</PlatformToolset>
+		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX9|Emscripten'" Label="Configuration">
 		<CharacterSet>NotSet</CharacterSet>
