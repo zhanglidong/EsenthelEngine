@@ -6,7 +6,8 @@ class UpdaterClass
    static const int MaxDownloadAttempts;
    static bool      CreateFailedDownload(int &failed, C Str &file, ptr user);
 
-   bool    ready, show, has_update;
+   bool    ready, has_update;
+   flt     time;
    Thread  thread;
    Patcher patcher;
    Str     path, update_path;
@@ -24,9 +25,11 @@ class UpdaterClass
    static bool Update(Thread &thread);
           void update(); // !! this is called on secondary thread !!
    void updateEx(); // !! this is called on secondary thread !!
+   static void AskUpdate();
 
    void del();
    void create();
+   void check();
   ~UpdaterClass(); // to manually delete the thread before other members
 
 public:

@@ -195,8 +195,7 @@ bool Init()
 {
    if(InstallerMode)StateInstall.set();else
    {
-      Updater     .create();
-      UpdateWindow.create();
+      Updater.create();
 
       if(!Physics.created())Physics.create(EE_PHYSX_DLL_PATH).timestep(PHYS_TIMESTEP_VARIABLE);
 

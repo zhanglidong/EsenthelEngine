@@ -168,7 +168,7 @@
          </cTool>
          <ccTool>
           <architecture>2</architecture>
-          <standard>11</standard>
+          <standard>17</standard>
           <commandlineTool>clang++</commandlineTool>
           <incDir>
             <pElem>.</pElem>
@@ -342,7 +342,7 @@
          <ccTool>
             <developmentMode>6</developmentMode>
           <architecture>2</architecture>
-          <standard>11</standard>
+          <standard>17</standard>
           <commandlineTool>clang++</commandlineTool>
             <incDir>
                <pElem>.</pElem>

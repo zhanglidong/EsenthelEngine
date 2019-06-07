@@ -378,12 +378,16 @@ void DrawInstall()
       // update
       if(ok) // if all succeeded
          if(InstallerMode || hasUpdate()) // there is an actual update
-         show=ready=true;
+      {
+         ready=true;
+         if(!InstallerMode)App.addFuncCall(AskUpdate); // call on the main thread
+      }
    }
+   void UpdaterClass::AskUpdate() {UpdateWindow.create();}
    void UpdaterClass::del()
    {
       thread.del(); // delete the thread first
-      ready=show=false;
+      ready=false;
       patcher     .del();
       local_remove.del();
       local_files .del();
@@ -398,13 +402,21 @@ void DrawInstall()
             thread.create(Update, this, 0, false, "Update");
    #endif
    }
+   void UpdaterClass::check()
+   {
+      if(Time.realTime()>=time && UpdateWindow.hidden() && !InstallerMode)
+      {
+         time=Time.realTime()+12*60*60; // next check in 12 hours
+         create();
+      }
+   }
   UpdaterClass::~UpdaterClass() {del();}
    void UpdateWindowClass::ApplyDo(bool all_saved, ptr) {if(all_saved){UpdateWindow.hide(); if(Updater.ready)StateUpdate.set(StateFadeTime);}}
    void UpdateWindowClass::ShowChanges(UpdateWindowClass &uw) {Explore("https://esenthel.com/forum/forumdisplay.php?fid=8");}
    void UpdateWindowClass::Apply(UpdateWindowClass &uw) {if(StateActive==&StateProject)SaveChanges(ApplyDo);else ApplyDo();}
    void UpdateWindowClass::create()
    {
-      Gui+=::EE::Window::create(Rect_C(0, 0, 1, 0.48f)).barVisible(false).hide(); button[2].func(HideEditAct, SCAST(GuiObj, T)).show();
+      Gui+=::EE::Window::create(Rect_C(0, 0, 1, 0.48f)).barVisible(false).hide().fadeIn(); button[2].func(HideEditAct, SCAST(GuiObj, T)).show();
       T  +=text        .create(Vec2  (clientWidth()/2, -0.19f), "An update to Esenthel is available.\nWould you like to apply it now?\n\nWarning: Applying update will restore the default\n\"Tutorials\" project to its original state.\nAny changes you've made to it will be lost.");
       T  +=apply       .create(Rect_D(clientWidth()*1/6, -clientHeight()+0.04f, 0.26f, 0.06f), "Apply"       ).focusable(false).func(Apply, T);
       T  +=show_changes.create(Rect_D(clientWidth()/2  , -clientHeight()+0.04f, 0.32f, 0.06f), "Show Changes").focusable(false).func(ShowChanges, T);
@@ -414,15 +426,6 @@ void DrawInstall()
 {
       return (alpha()>=1) ? ::EE::Window::test(gpc, pos, mouse_wheel) : null; // check for alpha to avoid accidental clicks when window suddenly appears
    }
-   void UpdateWindowClass::update(C GuiPC &gpc)
-{
-      ::EE::ClosableWindow::update(gpc);
-      if(Updater.show)
-      {
-         Updater.show=false;
-         fadeIn();
-      }
-   }
-UpdaterClass::UpdaterClass() : ready(false), show(false), has_update(false) {}
+UpdaterClass::UpdaterClass() : ready(false), has_update(false), time(0) {}
 
 /******************************************************************************/

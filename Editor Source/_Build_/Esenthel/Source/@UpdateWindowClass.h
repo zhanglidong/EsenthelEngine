@@ -12,7 +12,6 @@ class UpdateWindowClass : ClosableWindow
 
    void create();
    virtual GuiObj* test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override;
-   virtual void update(C GuiPC &gpc)override;
 };
 /******************************************************************************/
 /******************************************************************************/
