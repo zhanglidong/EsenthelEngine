@@ -520,6 +520,12 @@ static inline Flt GetPixelF(C Byte *data, C Image &image, Bool _2d, Int x, Int y
       case IMAGE_R8G8B8A8_SIGN:
          return SByteToSFlt(*(U8*)data);
 
+      case IMAGE_B4G4R4X4: return (((*(U16*)data)>> 8)&0x0F)/15.0f;
+      case IMAGE_B4G4R4A4: return (((*(U16*)data)>> 8)&0x0F)/15.0f;
+      case IMAGE_B5G5R5X1: return (((*(U16*)data)>>10)&0x1F)/31.0f;
+      case IMAGE_B5G5R5A1: return (((*(U16*)data)>>10)&0x1F)/31.0f;
+      case IMAGE_B5G6R5  : return (((*(U16*)data)>>11)&0x1F)/31.0f;
+
       case IMAGE_BC1     :
       case IMAGE_BC2     :
       case IMAGE_BC3     :
@@ -531,12 +537,6 @@ static inline Flt GetPixelF(C Byte *data, C Image &image, Bool _2d, Int x, Int y
       case IMAGE_PVRTC1_2:
       case IMAGE_PVRTC1_4:
          return (_2d ? image.decompress(x, y) : image.decompress3D(x, y, z)).r/255.0f;
-
-      case IMAGE_B4G4R4X4: return (((*(U16*)data)>> 8)&0x0F)/15.0f;
-      case IMAGE_B4G4R4A4: return (((*(U16*)data)>> 8)&0x0F)/15.0f;
-      case IMAGE_B5G5R5X1: return (((*(U16*)data)>>10)&0x1F)/31.0f;
-      case IMAGE_B5G5R5A1: return (((*(U16*)data)>>10)&0x1F)/31.0f;
-      case IMAGE_B5G6R5  : return (((*(U16*)data)>>11)&0x1F)/31.0f;
    }
    return 0;
 }
