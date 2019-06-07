@@ -936,7 +936,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
          initial_data=res_data.setNum(mip_maps*faces).data();
          FREPD(m, mip_maps)
          { // have to specify HW sizes, because all images (HW and SOFT) are stored like that
-            Int mip_pitch =ImagePitch  (src->hwW(), src->hwH(), m, src->hwType())           , // X
+            Int mip_pitch =src->softPitch(m)                                                , // X
                 mip_pitch2=ImageBlocksY(src->hwW(), src->hwH(), m, src->hwType())*mip_pitch , // X*Y
                 mip_size  =                  Max(1, src->hwD()>>m               )*mip_pitch2; // X*Y*Z
             FREPD(f, faces)
@@ -1826,13 +1826,15 @@ Bool Image::fromCube(C Image &src, Int type, IMAGE_MODE mode)
 /******************************************************************************/
 // LOCK
 /******************************************************************************/
-Byte* Image::softData(Int mip_map, DIR_ENUM cube_face)
+Int   Image::softFaceSize(Int mip_map                    )C {return ImageMipSize(hwW(), hwH(), hwD(), mip_map, hwType());}
+UInt  Image::softPitch   (Int mip_map                    )C {return ImagePitch  (hwW(), hwH(),        mip_map, hwType());}
+Byte* Image::softData    (Int mip_map, DIR_ENUM cube_face)
 {
-   return _data_all+ImageSize(hwW(), hwH(), hwD(), hwType(), mode(), mip_map)+(cube_face ? ImageMipSize(hwW(), hwH(), hwD(), mip_map, hwType())*cube_face : 0); // call 'ImageMipSize' only when needed because most likely 'cube_face' is zero
+   return _data_all+ImageSize(hwW(), hwH(), hwD(), hwType(), mode(), mip_map)+(cube_face ? softFaceSize(mip_map)*cube_face : 0); // call 'softFaceSize' only when needed because most likely 'cube_face' is zero
 }
 void Image::lockSoft()
 {
-  _pitch      =ImagePitch  (hwW(), hwH(), lMipMap(), hwType());
+  _pitch      =softPitch   (              lMipMap());
   _pitch2     =ImageBlocksY(hwW(), hwH(), lMipMap(), hwType())*_pitch;
   _lock_size.x=Max(1, w()>>lMipMap());
   _lock_size.y=Max(1, h()>>lMipMap());
@@ -1976,7 +1978,7 @@ Bool Image::lock(LOCK_MODE lock, Int mip_map, DIR_ENUM cube_face)
                case IMAGE_2D: if(_txtr)
                {
                   Int blocks_y=ImageBlocksY(hwW(), hwH(), mip_map, hwType()),
-                      pitch   =ImagePitch  (hwW(), hwH(), mip_map, hwType()),
+                      pitch   =softPitch   (              mip_map          ),
                       pitch2  =pitch*blocks_y;
 
                   if(lock==LOCK_WRITE)Alloc(_data, pitch2);else
@@ -2031,7 +2033,7 @@ Bool Image::lock(LOCK_MODE lock, Int mip_map, DIR_ENUM cube_face)
                {
                   Int ld      =Max(1, d()>>mip_map),
                       blocks_y=ImageBlocksY(hwW(), hwH(), mip_map, hwType()),
-                      pitch   =ImagePitch  (hwW(), hwH(), mip_map, hwType()),
+                      pitch   =softPitch   (              mip_map          ),
                       pitch2  =pitch *blocks_y,
                       pitch3  =pitch2*ld;
                   if(lock==LOCK_WRITE)Alloc(_data, pitch3);else
@@ -2083,7 +2085,7 @@ Bool Image::lock(LOCK_MODE lock, Int mip_map, DIR_ENUM cube_face)
                case IMAGE_CUBE: if(_txtr)
                {
                   Int blocks_y=ImageBlocksY(hwW(), hwH(), mip_map, hwType()),
-                      pitch   =ImagePitch  (hwW(), hwH(), mip_map, hwType()),
+                      pitch   =softPitch   (              mip_map          ),
                       pitch2  =pitch*blocks_y;
                   if(lock==LOCK_WRITE)Alloc(_data, pitch2);else
                   {
@@ -2120,7 +2122,7 @@ Bool Image::lock(LOCK_MODE lock, Int mip_map, DIR_ENUM cube_face)
                case IMAGE_SURF        :
                case IMAGE_DS_RT       : if(_txtr)
                {
-                  Int pitch =ImagePitch  (hwW(), hwH(), mip_map, hwType()),
+                  Int pitch =softPitch   (              mip_map          ),
                       pitch2=ImageBlocksY(hwW(), hwH(), mip_map, hwType())*pitch;
                #if GL_ES // 'glGetTexImage' not available on GL ES
                   if(mode()==IMAGE_RT) // must use 'glReadPixels'
@@ -2183,7 +2185,7 @@ Bool Image::lock(LOCK_MODE lock, Int mip_map, DIR_ENUM cube_face)
                case IMAGE_3D: if(_txtr)
                {
                   Int ld    =Max(1, d()>>mip_map),
-                      pitch =ImagePitch  (hwW(), hwH(), mip_map, hwType()),
+                      pitch =softPitch   (              mip_map          ),
                       pitch2=ImageBlocksY(hwW(), hwH(), mip_map, hwType())*pitch;
 
                #if GL_ES // 'glGetTexImage' not available on GL ES
@@ -2217,7 +2219,7 @@ Bool Image::lock(LOCK_MODE lock, Int mip_map, DIR_ENUM cube_face)
 
                case IMAGE_CUBE: if(_txtr)
                {
-                  Int pitch =ImagePitch  (hwW(), hwH(), mip_map, hwType()),
+                  Int pitch =softPitch   (              mip_map          ),
                       pitch2=ImageBlocksY(hwW(), hwH(), mip_map, hwType())*pitch;
 
                #if GL_ES
@@ -2501,7 +2503,7 @@ Bool Image::setFrom(CPtr data, Int data_pitch, Int mip_map, DIR_ENUM cube_face)
       #pragma message("!! Warning: Use this only for debugging !!")
       Memt<Byte> temp;
       {
-         Int hw_pitch   =ImagePitch  (hwW(), hwH(), mip_map, hwType()),
+         Int hw_pitch   =softPitch   (              mip_map          ),
              hw_blocks_y=ImageBlocksY(hwW(), hwH(), mip_map, hwType()),
              hw_pitch2  =hw_pitch*hw_blocks_y;
          temp.setNum(hw_pitch2);
@@ -2535,7 +2537,7 @@ Bool Image::setFrom(CPtr data, Int data_pitch, Int mip_map, DIR_ENUM cube_face)
          }
       }
    #elif GL // GL can accept only HW sizes
-      Int hw_pitch   =ImagePitch  (hwW(), hwH(), mip_map, hwType()),
+      Int hw_pitch   =softPitch   (              mip_map          ),
           hw_blocks_y=ImageBlocksY(hwW(), hwH(), mip_map, hwType()),
           hw_pitch2  =hw_pitch*hw_blocks_y;
       if( hw_pitch==data_pitch && InRange(mip_map, mipMaps()) && InRange(cube_face, 6) && D.created())switch(mode())

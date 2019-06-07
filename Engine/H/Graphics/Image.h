@@ -254,6 +254,8 @@ struct Image // Image (Texture)
  C Byte* softData()C {return _data_all;} // get software image data without locking the image
    Byte* softData(Int mip_map, DIR_ENUM cube_face=DIR_RIGHT);                                                     // get software image data for 'mip_map' and 'cube_face' without locking the image
  C Byte* softData(Int mip_map, DIR_ENUM cube_face=DIR_RIGHT)C {return ConstCast(T).softData(mip_map, cube_face);} // get software image data for 'mip_map' and 'cube_face' without locking the image
+   Int   softFaceSize(Int mip_map)C; // get size in bytes for a single cube face for specified 'mip_map'
+   UInt  softPitch   (Int mip_map)C; // get pitch of specified 'mip_map'
 
    void lockSoft();
    Bool setFrom(CPtr data, Int data_pitch, Int mip_map=0, DIR_ENUM cube_face=DIR_RIGHT);
