@@ -547,6 +547,170 @@ Flt Image::pixel3DF(Int x, Int y, Int z)C
    return 0;
 }
 /******************************************************************************/
+#if 1 // faster, but reaches max 254 values instead of 255
+static inline Byte SByteToByte(SByte s) {return (s<=0) ? 0 : (s<<1);}
+#else
+static inline Byte SByteToByte(SByte s) {return (s<=0) ? 0 : (s*255+63)/127;}
+#endif
+/******************************************************************************/
+static Color PixelToColor(IMAGE_TYPE type, UInt pixel) // convert pixel to color
+{
+   switch(type)
+   {
+      case IMAGE_B8G8R8A8: return Color((pixel>>16)&0xFF, (pixel>> 8)&0xFF,  pixel     &0xFF, pixel>>24);
+      case IMAGE_R8G8B8A8: return Color( pixel     &0xFF, (pixel>> 8)&0xFF, (pixel>>16)&0xFF, pixel>>24);
+      case IMAGE_R8G8B8  : return Color( pixel     &0xFF, (pixel>> 8)&0xFF, (pixel>>16)&0xFF,       255);
+      case IMAGE_R8G8    : return Color( pixel     &0xFF, (pixel>> 8)&0xFF,                0,       255);
+      case IMAGE_R8      : return Color( pixel     &0xFF,                0,                0,       255);
+      case IMAGE_A8      : return Color(               0,                0,                0, pixel    );
+      case IMAGE_L8      : return Color( pixel          ,  pixel          ,  pixel          ,       255);
+      case IMAGE_L8A8    : return Color( pixel     &0xFF,  pixel     &0xFF,  pixel&0xFF     , pixel>> 8);
+      case IMAGE_I8      : return Color( pixel          ,  pixel          ,  pixel          ,       255);
+      case IMAGE_I16     : return Color( pixel>> 8      ,  pixel>>8       ,  pixel>>8       ,       255);
+      case IMAGE_I24     : return Color( pixel>>16      ,  pixel>>16      ,  pixel>>16      ,       255);
+      case IMAGE_I32     : return Color( pixel>>24      ,  pixel>>24      ,  pixel>>24      ,       255);
+      default            : return Color(               0,                0,                0,         0);
+
+      case IMAGE_BC1     :
+      case IMAGE_BC2     :
+      case IMAGE_BC3     :
+      case IMAGE_BC7     :
+      case IMAGE_ETC1    :
+      case IMAGE_ETC2    :
+      case IMAGE_ETC2_A1 :
+      case IMAGE_ETC2_A8 :
+      case IMAGE_PVRTC1_2:
+      case IMAGE_PVRTC1_4:
+         return Color(pixel&0xFF, (pixel>>8)&0xFF, (pixel>>16)&0xFF, pixel>>24);
+
+      case IMAGE_B4G4R4X4   : return Color(((pixel>> 8)&0x0F)<<4, ((pixel>> 4)&0x0F)<<4, ((pixel    )&0x0F)<<4,                       255);
+      case IMAGE_B4G4R4A4   : return Color(((pixel>> 8)&0x0F)<<4, ((pixel>> 4)&0x0F)<<4, ((pixel    )&0x0F)<<4, ((pixel>>12)&0x0F)<<4    );
+      case IMAGE_B5G5R5X1   : return Color(((pixel>>10)&0x1F)<<3, ((pixel>> 5)&0x1F)<<3, ((pixel    )&0x1F)<<3,                       255);
+      case IMAGE_B5G5R5A1   : return Color(((pixel>>10)&0x1F)<<3, ((pixel>> 5)&0x1F)<<3, ((pixel    )&0x1F)<<3,  (pixel&0x8000) ? 255 : 0);
+      case IMAGE_B5G6R5     : return Color(((pixel>>11)&0x1F)<<3, ((pixel>> 5)&0x3F)<<2, ((pixel    )&0x1F)<<3,                       255);
+      case IMAGE_B8G8R8     : return Color( (pixel>>16)&0xFF    ,  (pixel>> 8)&0xFF    ,   pixel     &0xFF    ,                       255);
+      case IMAGE_B8G8R8X8   : return Color( (pixel>>16)&0xFF    ,  (pixel>> 8)&0xFF    ,   pixel     &0xFF    ,                       255);
+      case IMAGE_R8G8B8X8   : return Color( (pixel    )&0xFF    ,  (pixel>> 8)&0xFF    ,  (pixel>>16)&0xFF    ,                       255);
+      case IMAGE_R10G10B10A2: return Color( (pixel>> 2)&0xFF    ,  (pixel>>12)&0xFF    ,  (pixel>>22)&0xFF    ,  (pixel>>30)*255/3       );
+
+      case IMAGE_R8_SIGN      : return Color(SByteToByte(pixel&0xFF),                            0,                            0 ,                   255 );
+      case IMAGE_R8G8_SIGN    : return Color(SByteToByte(pixel&0xFF), SByteToByte((pixel>>8)&0xFF),                            0 ,                   255 );
+      case IMAGE_R8G8B8A8_SIGN: return Color(SByteToByte(pixel&0xFF), SByteToByte((pixel>>8)&0xFF), SByteToByte((pixel>>16)&0xFF), SByteToByte(pixel>>24));
+   }
+}
+/******************************************************************************/
+static UInt ColorToPixel(IMAGE_TYPE type, C Color &color) // convert color to pixel
+{
+   switch(type)
+   {
+      case IMAGE_B8G8R8A8: return color.b | (color.g<<8) | (color.r<<16) | (color.a<<24);
+      case IMAGE_R8G8B8A8: return color.r | (color.g<<8) | (color.b<<16) | (color.a<<24);
+      case IMAGE_R8G8B8  : return color.r | (color.g<<8) | (color.b<<16);
+      case IMAGE_R8G8    : return color.r | (color.g<<8);
+      case IMAGE_R8      : return color.r;
+      case IMAGE_A8      : return color.a;
+      case IMAGE_L8      : return color.lum();
+      case IMAGE_L8A8    : return color.lum()|(color.a<<8);
+      case IMAGE_I8      : return color.r;
+      case IMAGE_I16     : return color.r<<8;
+      case IMAGE_I24     : return color.r<<16;
+      case IMAGE_I32     : return color.r<<24;
+      default            : return 0;
+
+      case IMAGE_BC1     :
+      case IMAGE_BC2     :
+      case IMAGE_BC3     :
+      case IMAGE_BC7     :
+      case IMAGE_ETC1    :
+      case IMAGE_ETC2    :
+      case IMAGE_ETC2_A1 :
+      case IMAGE_ETC2_A8 :
+      case IMAGE_PVRTC1_2:
+      case IMAGE_PVRTC1_4:
+         return color.r | (color.g<<8) | (color.b<<16) | (color.a<<24);
+
+      case IMAGE_B4G4R4X4: return ((color.r>>4)<< 8) | ((color.g>>4)<< 4) | (color.b>> 4) | 0xF000;
+      case IMAGE_B4G4R4A4: return ((color.r>>4)<< 8) | ((color.g>>4)<< 4) | (color.b>> 4) | ((color.a>>4)<<12);
+      case IMAGE_B5G5R5X1: return ((color.r>>3)<<10) | ((color.g>>3)<< 5) | (color.b>> 3) | 0x8000;
+      case IMAGE_B5G5R5A1: return ((color.r>>3)<<10) | ((color.g>>3)<< 5) | (color.b>> 3) | ((color.a>>7)<<15);
+      case IMAGE_B5G6R5  : return ((color.r>>3)<<11) | ((color.g>>2)<< 5) | (color.b>> 3);
+      case IMAGE_B8G8R8  : return ( color.r    <<16) | ( color.g    << 8) | (color.b    );
+      case IMAGE_B8G8R8X8: return ( color.r    <<16) | ( color.g    << 8) | (color.b    ) | 0xFF000000;
+      case IMAGE_R8G8B8X8: return ( color.r        ) | ( color.g    << 8) | (color.b<<16) | 0xFF000000;
+
+      case IMAGE_R8_SIGN      : return (color.r>>1);
+      case IMAGE_R8G8_SIGN    : return (color.r>>1) | ((color.g>>1)<<8);
+      case IMAGE_R8G8B8A8_SIGN: return (color.r>>1) | ((color.g>>1)<<8) | ((color.b>>1)<<16) | ((color.a>>1)<<24);
+
+      case IMAGE_R10G10B10A2: return (color.r*1023+127)/255 | (((color.g*1023+127)/255)<<10) | (((color.b*1023+127)/255)<<20) | (((color.a*3+127)/255)<<30);
+   }
+}
+static UInt ColorToPixel(IMAGE_TYPE type, IMAGE_TYPE hw_type, C Color &color) // convert color to pixel
+{
+   if(type==hw_type)normal: return ColorToPixel(hw_type, color); // first check if types are the same, the most common case
+   Color c; switch(type) // however if we want 'type' but we've got 'hw_type' then we have to adjust the color we're going to set. This will prevent setting different R G B values for type=IMAGE_L8 when hw_type=IMAGE_R8G8B8A8
+   {
+      case IMAGE_R8G8B8:
+      case IMAGE_F16_3 :
+      case IMAGE_F32_3 : c.set(color.r, color.g, color.b, 255); break;
+
+      case IMAGE_R8G8 :
+      case IMAGE_F16_2:
+      case IMAGE_F32_2: c.set(color.r, color.g, 0, 255); break;
+
+      case IMAGE_R8 :
+      case IMAGE_I8 :
+      case IMAGE_I16:
+      case IMAGE_I24:
+      case IMAGE_I32:
+      case IMAGE_F16:
+      case IMAGE_F32: c.set(color.r, 0, 0, 255); break;
+
+      case IMAGE_A8  : c.set(0, 0, 0    , color.a); break;
+      case IMAGE_L8  : c.set(color.lum(),     255); break;
+      case IMAGE_L8A8: c.set(color.lum(), color.a); break;
+
+      default: goto normal;
+   }
+   return ColorToPixel(hw_type, c);
+}
+/******************************************************************************/
+void  Image::color  (Int x, Int y,        C Color &color)  {                                           if(highPrecision())        colorF  (x, y,    color.asVec4());else pixel  (x, y,    ColorToPixel(type(), hwType(), color          ));}
+void  Image::color3D(Int x, Int y, Int z, C Color &color)  {                                           if(highPrecision())        color3DF(x, y, z, color.asVec4());else pixel3D(x, y, z, ColorToPixel(type(), hwType(), color          ));}
+Color Image::color  (Int x, Int y                       )C {return compressed() ? decompress  (x, y   ) : highPrecision() ? Color(colorF  (x, y                   )) :                    PixelToColor(        hwType(), pixel  (x, y   ));}
+Color Image::color3D(Int x, Int y, Int z                )C {return compressed() ? decompress3D(x, y, z) : highPrecision() ? Color(color3DF(x, y, z                )) :                    PixelToColor(        hwType(), pixel3D(x, y, z));}
+/******************************************************************************/
+Color Image::decompress(Int x, Int y)C
+{
+   if(InRange(x, lw()) && InRange(y, lh()))switch(hwType()) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+   {
+      case IMAGE_BC1    : return DecompressPixelBC1   (data() + (x>>2)* 8 + (y>>2)*pitch(), x&3, y&3);
+      case IMAGE_BC2    : return DecompressPixelBC2   (data() + (x>>2)*16 + (y>>2)*pitch(), x&3, y&3);
+      case IMAGE_BC3    : return DecompressPixelBC3   (data() + (x>>2)*16 + (y>>2)*pitch(), x&3, y&3);
+      case IMAGE_BC7    : return DecompressPixelBC7   (data() + (x>>2)*16 + (y>>2)*pitch(), x&3, y&3);
+      case IMAGE_ETC1   : return DecompressPixelETC1  (data() + (x>>2)* 8 + (y>>2)*pitch(), x&3, y&3);
+      case IMAGE_ETC2   : return DecompressPixelETC2  (data() + (x>>2)* 8 + (y>>2)*pitch(), x&3, y&3);
+      case IMAGE_ETC2_A1: return DecompressPixelETC2A1(data() + (x>>2)* 8 + (y>>2)*pitch(), x&3, y&3);
+      case IMAGE_ETC2_A8: return DecompressPixelETC2A8(data() + (x>>2)*16 + (y>>2)*pitch(), x&3, y&3);
+   }
+   return TRANSPARENT;
+}
+Color Image::decompress3D(Int x, Int y, Int z)C
+{
+   if(InRange(x, lw()) && InRange(y, lh()) && InRange(z, ld()))switch(hwType()) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+   {
+      case IMAGE_BC1    : return DecompressPixelBC1   (data() + (x>>2)* 8 + (y>>2)*pitch() + z*pitch2(), x&3, y&3);
+      case IMAGE_BC2    : return DecompressPixelBC2   (data() + (x>>2)*16 + (y>>2)*pitch() + z*pitch2(), x&3, y&3);
+      case IMAGE_BC3    : return DecompressPixelBC3   (data() + (x>>2)*16 + (y>>2)*pitch() + z*pitch2(), x&3, y&3);
+      case IMAGE_BC7    : return DecompressPixelBC7   (data() + (x>>2)*16 + (y>>2)*pitch() + z*pitch2(), x&3, y&3);
+      case IMAGE_ETC1   : return DecompressPixelETC1  (data() + (x>>2)* 8 + (y>>2)*pitch() + z*pitch2(), x&3, y&3);
+      case IMAGE_ETC2   : return DecompressPixelETC2  (data() + (x>>2)* 8 + (y>>2)*pitch() + z*pitch2(), x&3, y&3);
+      case IMAGE_ETC2_A1: return DecompressPixelETC2A1(data() + (x>>2)* 8 + (y>>2)*pitch() + z*pitch2(), x&3, y&3);
+      case IMAGE_ETC2_A8: return DecompressPixelETC2A8(data() + (x>>2)*16 + (y>>2)*pitch() + z*pitch2(), x&3, y&3);
+   }
+   return TRANSPARENT;
+}
+/******************************************************************************/
 static void SetColorF(Byte *data, IMAGE_TYPE type, C Vec4 &color)
 {
    switch(type)
@@ -2591,172 +2755,6 @@ Vec4 Image::areaColorLanczosOrtho(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool al
       return color;
    }
    return 0;
-}
-/******************************************************************************/
-#if 1 // faster, but reaches max 254 values instead of 255
-static inline Byte SByteToByte(SByte s) {return (s<=0) ? 0 : (s<<1);}
-#else
-static inline Byte SByteToByte(SByte s) {return (s<=0) ? 0 : (s*255+63)/127;}
-#endif
-/******************************************************************************/
-static Color PixelToColor(IMAGE_TYPE type, UInt pixel) // convert pixel to color
-{
-   switch(type)
-   {
-      case IMAGE_B8G8R8A8: return Color((pixel>>16)&0xFF, (pixel>> 8)&0xFF,  pixel     &0xFF, pixel>>24);
-      case IMAGE_R8G8B8A8: return Color( pixel     &0xFF, (pixel>> 8)&0xFF, (pixel>>16)&0xFF, pixel>>24);
-      case IMAGE_R8G8B8  : return Color( pixel     &0xFF, (pixel>> 8)&0xFF, (pixel>>16)&0xFF,       255);
-      case IMAGE_R8G8    : return Color( pixel     &0xFF, (pixel>> 8)&0xFF,                0,       255);
-      case IMAGE_R8      : return Color( pixel     &0xFF,                0,                0,       255);
-      case IMAGE_A8      : return Color(               0,                0,                0, pixel    );
-      case IMAGE_L8      : return Color( pixel          ,  pixel          ,  pixel          ,       255);
-      case IMAGE_L8A8    : return Color( pixel     &0xFF,  pixel     &0xFF,  pixel&0xFF     , pixel>> 8);
-      case IMAGE_I8      : return Color( pixel          ,  pixel          ,  pixel          ,       255);
-      case IMAGE_I16     : return Color( pixel>> 8      ,  pixel>>8       ,  pixel>>8       ,       255);
-      case IMAGE_I24     : return Color( pixel>>16      ,  pixel>>16      ,  pixel>>16      ,       255);
-      case IMAGE_I32     : return Color( pixel>>24      ,  pixel>>24      ,  pixel>>24      ,       255);
-      default            : return Color(               0,                0,                0,         0);
-
-      case IMAGE_BC1     :
-      case IMAGE_BC2     :
-      case IMAGE_BC3     :
-      case IMAGE_BC7     :
-      case IMAGE_ETC1    :
-      case IMAGE_ETC2    :
-      case IMAGE_ETC2_A1 :
-      case IMAGE_ETC2_A8 :
-      case IMAGE_PVRTC1_2:
-      case IMAGE_PVRTC1_4:
-         return Color(pixel&0xFF, (pixel>>8)&0xFF, (pixel>>16)&0xFF, pixel>>24);
-
-      case IMAGE_B4G4R4X4   : return Color(((pixel>> 8)&0x0F)<<4, ((pixel>> 4)&0x0F)<<4, ((pixel    )&0x0F)<<4,                       255);
-      case IMAGE_B4G4R4A4   : return Color(((pixel>> 8)&0x0F)<<4, ((pixel>> 4)&0x0F)<<4, ((pixel    )&0x0F)<<4, ((pixel>>12)&0x0F)<<4    );
-      case IMAGE_B5G5R5X1   : return Color(((pixel>>10)&0x1F)<<3, ((pixel>> 5)&0x1F)<<3, ((pixel    )&0x1F)<<3,                       255);
-      case IMAGE_B5G5R5A1   : return Color(((pixel>>10)&0x1F)<<3, ((pixel>> 5)&0x1F)<<3, ((pixel    )&0x1F)<<3,  (pixel&0x8000) ? 255 : 0);
-      case IMAGE_B5G6R5     : return Color(((pixel>>11)&0x1F)<<3, ((pixel>> 5)&0x3F)<<2, ((pixel    )&0x1F)<<3,                       255);
-      case IMAGE_B8G8R8     : return Color( (pixel>>16)&0xFF    ,  (pixel>> 8)&0xFF    ,   pixel     &0xFF    ,                       255);
-      case IMAGE_B8G8R8X8   : return Color( (pixel>>16)&0xFF    ,  (pixel>> 8)&0xFF    ,   pixel     &0xFF    ,                       255);
-      case IMAGE_R8G8B8X8   : return Color( (pixel    )&0xFF    ,  (pixel>> 8)&0xFF    ,  (pixel>>16)&0xFF    ,                       255);
-      case IMAGE_R10G10B10A2: return Color( (pixel>> 2)&0xFF    ,  (pixel>>12)&0xFF    ,  (pixel>>22)&0xFF    ,  (pixel>>30)*255/3       );
-
-      case IMAGE_R8_SIGN      : return Color(SByteToByte(pixel&0xFF),                            0,                            0 ,                   255 );
-      case IMAGE_R8G8_SIGN    : return Color(SByteToByte(pixel&0xFF), SByteToByte((pixel>>8)&0xFF),                            0 ,                   255 );
-      case IMAGE_R8G8B8A8_SIGN: return Color(SByteToByte(pixel&0xFF), SByteToByte((pixel>>8)&0xFF), SByteToByte((pixel>>16)&0xFF), SByteToByte(pixel>>24));
-   }
-}
-/******************************************************************************/
-static UInt ColorToPixel(IMAGE_TYPE type, C Color &color) // convert color to pixel
-{
-   switch(type)
-   {
-      case IMAGE_B8G8R8A8: return color.b | (color.g<<8) | (color.r<<16) | (color.a<<24);
-      case IMAGE_R8G8B8A8: return color.r | (color.g<<8) | (color.b<<16) | (color.a<<24);
-      case IMAGE_R8G8B8  : return color.r | (color.g<<8) | (color.b<<16);
-      case IMAGE_R8G8    : return color.r | (color.g<<8);
-      case IMAGE_R8      : return color.r;
-      case IMAGE_A8      : return color.a;
-      case IMAGE_L8      : return color.lum();
-      case IMAGE_L8A8    : return color.lum()|(color.a<<8);
-      case IMAGE_I8      : return color.r;
-      case IMAGE_I16     : return color.r<<8;
-      case IMAGE_I24     : return color.r<<16;
-      case IMAGE_I32     : return color.r<<24;
-      default            : return 0;
-
-      case IMAGE_BC1     :
-      case IMAGE_BC2     :
-      case IMAGE_BC3     :
-      case IMAGE_BC7     :
-      case IMAGE_ETC1    :
-      case IMAGE_ETC2    :
-      case IMAGE_ETC2_A1 :
-      case IMAGE_ETC2_A8 :
-      case IMAGE_PVRTC1_2:
-      case IMAGE_PVRTC1_4:
-         return color.r | (color.g<<8) | (color.b<<16) | (color.a<<24);
-
-      case IMAGE_B4G4R4X4: return ((color.r>>4)<< 8) | ((color.g>>4)<< 4) | (color.b>> 4) | 0xF000;
-      case IMAGE_B4G4R4A4: return ((color.r>>4)<< 8) | ((color.g>>4)<< 4) | (color.b>> 4) | ((color.a>>4)<<12);
-      case IMAGE_B5G5R5X1: return ((color.r>>3)<<10) | ((color.g>>3)<< 5) | (color.b>> 3) | 0x8000;
-      case IMAGE_B5G5R5A1: return ((color.r>>3)<<10) | ((color.g>>3)<< 5) | (color.b>> 3) | ((color.a>>7)<<15);
-      case IMAGE_B5G6R5  : return ((color.r>>3)<<11) | ((color.g>>2)<< 5) | (color.b>> 3);
-      case IMAGE_B8G8R8  : return ( color.r    <<16) | ( color.g    << 8) | (color.b    );
-      case IMAGE_B8G8R8X8: return ( color.r    <<16) | ( color.g    << 8) | (color.b    ) | 0xFF000000;
-      case IMAGE_R8G8B8X8: return ( color.r        ) | ( color.g    << 8) | (color.b<<16) | 0xFF000000;
-
-      case IMAGE_R8_SIGN      : return (color.r>>1);
-      case IMAGE_R8G8_SIGN    : return (color.r>>1) | ((color.g>>1)<<8);
-      case IMAGE_R8G8B8A8_SIGN: return (color.r>>1) | ((color.g>>1)<<8) | ((color.b>>1)<<16) | ((color.a>>1)<<24);
-
-      case IMAGE_R10G10B10A2: return (color.r*1023+127)/255 | (((color.g*1023+127)/255)<<10) | (((color.b*1023+127)/255)<<20) | (((color.a*3+127)/255)<<30);
-   }
-}
-static UInt ColorToPixel(IMAGE_TYPE type, IMAGE_TYPE hw_type, C Color &color) // convert color to pixel
-{
-   if(type==hw_type)normal: return ColorToPixel(hw_type, color); // first check if types are the same, the most common case
-   Color c; switch(type) // however if we want 'type' but we've got 'hw_type' then we have to adjust the color we're going to set. This will prevent setting different R G B values for type=IMAGE_L8 when hw_type=IMAGE_R8G8B8A8
-   {
-      case IMAGE_R8G8B8:
-      case IMAGE_F16_3 :
-      case IMAGE_F32_3 : c.set(color.r, color.g, color.b, 255); break;
-
-      case IMAGE_R8G8 :
-      case IMAGE_F16_2:
-      case IMAGE_F32_2: c.set(color.r, color.g, 0, 255); break;
-
-      case IMAGE_R8 :
-      case IMAGE_I8 :
-      case IMAGE_I16:
-      case IMAGE_I24:
-      case IMAGE_I32:
-      case IMAGE_F16:
-      case IMAGE_F32: c.set(color.r, 0, 0, 255); break;
-
-      case IMAGE_A8  : c.set(0, 0, 0    , color.a); break;
-      case IMAGE_L8  : c.set(color.lum(),     255); break;
-      case IMAGE_L8A8: c.set(color.lum(), color.a); break;
-
-      default: goto normal;
-   }
-   return ColorToPixel(hw_type, c);
-}
-/******************************************************************************/
-void  Image::color  (Int x, Int y,        C Color &color)  {                                           if(highPrecision())        colorF  (x, y,    color.asVec4());else pixel  (x, y,    ColorToPixel(type(), hwType(), color          ));}
-void  Image::color3D(Int x, Int y, Int z, C Color &color)  {                                           if(highPrecision())        color3DF(x, y, z, color.asVec4());else pixel3D(x, y, z, ColorToPixel(type(), hwType(), color          ));}
-Color Image::color  (Int x, Int y                       )C {return compressed() ? decompress  (x, y   ) : highPrecision() ? Color(colorF  (x, y                   )) :                    PixelToColor(        hwType(), pixel  (x, y   ));}
-Color Image::color3D(Int x, Int y, Int z                )C {return compressed() ? decompress3D(x, y, z) : highPrecision() ? Color(color3DF(x, y, z                )) :                    PixelToColor(        hwType(), pixel3D(x, y, z));}
-/******************************************************************************/
-// COMPRESSION
-/******************************************************************************/
-Color Image::decompress(Int x, Int y)C
-{
-   if(InRange(x, lw()) && InRange(y, lh()))switch(hwType()) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
-   {
-      case IMAGE_BC1    : return DecompressPixelBC1   (data() + (x>>2)* 8 + (y>>2)*pitch(), x&3, y&3);
-      case IMAGE_BC2    : return DecompressPixelBC2   (data() + (x>>2)*16 + (y>>2)*pitch(), x&3, y&3);
-      case IMAGE_BC3    : return DecompressPixelBC3   (data() + (x>>2)*16 + (y>>2)*pitch(), x&3, y&3);
-      case IMAGE_BC7    : return DecompressPixelBC7   (data() + (x>>2)*16 + (y>>2)*pitch(), x&3, y&3);
-      case IMAGE_ETC1   : return DecompressPixelETC1  (data() + (x>>2)* 8 + (y>>2)*pitch(), x&3, y&3);
-      case IMAGE_ETC2   : return DecompressPixelETC2  (data() + (x>>2)* 8 + (y>>2)*pitch(), x&3, y&3);
-      case IMAGE_ETC2_A1: return DecompressPixelETC2A1(data() + (x>>2)* 8 + (y>>2)*pitch(), x&3, y&3);
-      case IMAGE_ETC2_A8: return DecompressPixelETC2A8(data() + (x>>2)*16 + (y>>2)*pitch(), x&3, y&3);
-   }
-   return TRANSPARENT;
-}
-Color Image::decompress3D(Int x, Int y, Int z)C
-{
-   if(InRange(x, lw()) && InRange(y, lh()) && InRange(z, ld()))switch(hwType()) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
-   {
-      case IMAGE_BC1    : return DecompressPixelBC1   (data() + (x>>2)* 8 + (y>>2)*pitch() + z*pitch2(), x&3, y&3);
-      case IMAGE_BC2    : return DecompressPixelBC2   (data() + (x>>2)*16 + (y>>2)*pitch() + z*pitch2(), x&3, y&3);
-      case IMAGE_BC3    : return DecompressPixelBC3   (data() + (x>>2)*16 + (y>>2)*pitch() + z*pitch2(), x&3, y&3);
-      case IMAGE_BC7    : return DecompressPixelBC7   (data() + (x>>2)*16 + (y>>2)*pitch() + z*pitch2(), x&3, y&3);
-      case IMAGE_ETC1   : return DecompressPixelETC1  (data() + (x>>2)* 8 + (y>>2)*pitch() + z*pitch2(), x&3, y&3);
-      case IMAGE_ETC2   : return DecompressPixelETC2  (data() + (x>>2)* 8 + (y>>2)*pitch() + z*pitch2(), x&3, y&3);
-      case IMAGE_ETC2_A1: return DecompressPixelETC2A1(data() + (x>>2)* 8 + (y>>2)*pitch() + z*pitch2(), x&3, y&3);
-      case IMAGE_ETC2_A8: return DecompressPixelETC2A8(data() + (x>>2)*16 + (y>>2)*pitch() + z*pitch2(), x&3, y&3);
-   }
-   return TRANSPARENT;
 }
 /******************************************************************************/
 // GATHER
