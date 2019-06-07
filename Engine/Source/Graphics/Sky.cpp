@@ -70,10 +70,10 @@ SkyClass& SkyClass::skybox(C ImagePtr &image)
 SkyClass& SkyClass::skybox(C ImagePtr &a, C ImagePtr &b)
 {
    T._is=(a || b);
-   if(a && b){T._image[0]=a   ; T._image[1]=b   ;}else
-   if(a     ){T._image[0]=a   ; T._image[1]=null;}else
-   if(     b){T._image[0]=b   ; T._image[1]=null;}else
-             {T._image[0]=null; T._image[1]=null;}
+   if(a && b && a!=b){T._image[0]=a   ; T._image[1]=b   ;}else
+   if(a             ){T._image[0]=a   ; T._image[1]=null;}else
+   if(     b        ){T._image[0]=b   ; T._image[1]=null;}else
+                     {T._image[0]=null; T._image[1]=null;}
    return T;
 }
 /******************************************************************************/

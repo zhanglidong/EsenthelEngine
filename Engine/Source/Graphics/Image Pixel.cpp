@@ -254,7 +254,7 @@ ASSERT(CEIL(1.1f)==2);
 #define CUBIC_MED_SAMPLES     CEIL(CUBIC_MED_RANGE    )
 #define CUBIC_SHARP_SAMPLES   CEIL(CUBIC_SHARP_RANGE  )
 
-static INLINE Flt Cubic(Flt x, const Flt blur, const Flt sharpen)
+static INLINE Flt Cubic(Flt x, const Flt blur, const Flt sharpen) // x=0..2
 {
    Flt x2=x*x,
        x3=x*x*x;

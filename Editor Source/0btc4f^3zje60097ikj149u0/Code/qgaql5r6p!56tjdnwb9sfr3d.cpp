@@ -80,6 +80,8 @@ const OS_VER InstallerPlatform[]=
    OS_LINUX,
    ANDROID_UNKNOWN,
 };
+const COMPRESS_TYPE Compression=COMPRESS_LZMA;
+const int           CompressionLevel=9;
 /******************************************************************************/
 Str ServerPath(Str path, bool file=true) // !! this needs to be in sync with 'Patcher' class !!
 {
@@ -200,7 +202,7 @@ class Upload
       T.path=path;
       T.display="Index";
       File temp; temp.writeMem(); pak.saveHeader(temp);
-      data.writeMem(); temp.pos(0); Compress(temp, data, COMPRESS_LZMA, 9, false);
+      data.writeMem(); temp.pos(0); Compress(temp, data, Compression, CompressionLevel, false);
    }
 
    void createText(FileText &f, C Str &path, C Str &display)
@@ -227,19 +229,19 @@ class Upload
       if(src.pf)ConstCast(src.pf.data_xxHash64_32)=xxHash64_32Mem(src.data.data(), src.data.elms());
 
       // compress file
-      COMPRESS_TYPE compress=COMPRESS_LZMA;
       File temp; temp.readMem(src.data.data(), src.data.elms());
       data.writeMem(src.data.elms()/10);
       switch(src.compress)
       {
          case LoadFile.COMPRESS_FULL:
          {
-            if(Compress(temp, data, compress, 9, UP.cmpr_threads.elms()<=1) // compressed ok (use multi-threaded compression only if using up to 1 compression threads)
+            if(Compressable(GetExt(src.src_path)) // compression can potentially decrease the file size
+            && Compress(temp, data, Compression, CompressionLevel, UP.cmpr_threads.elms()<=1) // compressed ok (use multi-threaded compression only if using up to 1 compression threads)
             && data.size()<temp.size()) // compressed size is smaller
             {
                if(src.pf) // update PAK header
                {
-                  ConstCast(src.pf.compression         )=compress   ; // set compression algorithm
+                  ConstCast(src.pf.compression         )=Compression; // set compression algorithm
                   ConstCast(src.pf.data_size_compressed)=data.size(); // set compressed  size
                }
                return;
@@ -249,12 +251,13 @@ class Upload
 
          case LoadFile.COMPRESS_RAW:
          {
-            if(CompressRaw(temp, data, compress, 9, UP.cmpr_threads.elms()<=1) // compressed ok (use multi-threaded compression only if using up to 1 compression threads)
+            if(Compressable(GetExt(src.src_path)) // compression can potentially decrease the file size
+            && CompressRaw(temp, data, Compression, CompressionLevel, UP.cmpr_threads.elms()<=1) // compressed ok (use multi-threaded compression only if using up to 1 compression threads)
             && data.size()<temp.size()) // compressed size is smaller
             {
                if(src.pf) // update PAK header
                {
-                  ConstCast(src.pf.compression         )=compress   ; // set compression algorithm
+                  ConstCast(src.pf.compression         )=Compression; // set compression algorithm
                   ConstCast(src.pf.data_size_compressed)=data.size(); // set compressed  size
                }
                return;
@@ -623,7 +626,7 @@ REPAO(installer).disabled( disabled);
       FREPA(ftp){Gui+=ftp[i].progress.create(Rect_C(0, pos, 0.9, height)); Gui+=ftp[i].tprogress.create(Vec2(0, pos), S, &ts_small); pos-=space;}
 
       MemStats mem; mem.get();
-      int threads=(mem.avail_phys-(1ll*1024*1024*1024))/CompressionMemUsage(COMPRESS_LZMA, 9, 64*1024*1024); // leave 1 GB for OS and stuff
+      int threads=(mem.avail_phys-(1ll*1024*1024*1024))/CompressionMemUsage(Compression, CompressionLevel, 64*1024*1024); // leave 1 GB for OS and stuff
       cmpr_threads.setNum(Mid(threads, 1, Cpu.threads()));
       REPAO(cmpr_threads).create(CompressThread, this, 0, false, "Compress");
 
