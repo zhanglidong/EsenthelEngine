@@ -680,7 +680,7 @@
         </cTool>
         <ccTool>
           <architecture>2</architecture>
-          <standard>11</standard>
+          <standard>17</standard>
           <commandlineTool>clang++</commandlineTool>
           <incDir>
             <pElem>..</pElem>
@@ -721,7 +721,7 @@
             <pElem>../../ThirdPartyLibs/FDK-AAC/lib/libSYS/include</pElem>
             <pElem>../../ThirdPartyLibs</pElem>
           </incDir>
-          <commandLine>-fshort-wchar -fpermissive -ffast-math -ffriend-injection -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -Wno-undefined-bool-conversion -include ../stdafx.h</commandLine>
+          <commandLine>-fshort-wchar -fpermissive -ffast-math -ffriend-injection -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -Wno-undefined-bool-conversion -std=c++17 -include ../stdafx.h</commandLine>
           <preprocessorList>
             <Elem>DEBUG=1</Elem>
           </preprocessorList>
@@ -2084,7 +2084,7 @@
         <ccTool>
           <developmentMode>6</developmentMode>
           <architecture>2</architecture>
-          <standard>11</standard>
+          <standard>17</standard>
           <commandlineTool>clang++</commandlineTool>
           <incDir>
             <pElem>..</pElem>
@@ -2125,7 +2125,7 @@
             <pElem>../../ThirdPartyLibs/FDK-AAC/lib/libSYS/include</pElem>
             <pElem>../../ThirdPartyLibs</pElem>
           </incDir>
-          <commandLine>-fshort-wchar -fpermissive -ffast-math -ffriend-injection -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -Wno-undefined-bool-conversion -include ../stdafx.h</commandLine>
+          <commandLine>-fshort-wchar -fpermissive -ffast-math -ffriend-injection -Wno-int-to-pointer-cast -Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-null-dereference -Wno-empty-body -Wno-address-of-temporary -Wno-return-type-c-linkage -Wno-dynamic-class-memaccess -Wno-undefined-bool-conversion -std=c++17 -include ../stdafx.h</commandLine>
           <preprocessorList>
             <Elem>DEBUG=0</Elem>
           </preprocessorList>
