@@ -627,55 +627,52 @@ Color Image::color3D(Int x, Int y, Int z)C
    return TRANSPARENT;
 }
 /******************************************************************************/
-static UInt ColorToPixel(IMAGE_TYPE type, C Color &color) // convert color to pixel
+static void SetColor(Byte *data, IMAGE_TYPE type, C Color &color)
 {
    switch(type)
    {
-      case IMAGE_B8G8R8A8: return color.b | (color.g<<8) | (color.r<<16) | (color.a<<24);
-      case IMAGE_R8G8B8A8: return color.r | (color.g<<8) | (color.b<<16) | (color.a<<24);
-      case IMAGE_R8G8B8  : return color.r | (color.g<<8) | (color.b<<16);
-      case IMAGE_R8G8    : return color.r | (color.g<<8);
-      case IMAGE_R8      : return color.r;
-      case IMAGE_A8      : return color.a;
-      case IMAGE_L8      : return color.lum();
-      case IMAGE_L8A8    : return color.lum()|(color.a<<8);
-      case IMAGE_I8      : return color.r;
-      case IMAGE_I16     : return color.r<<8;
-      case IMAGE_I24     : return color.r<<16;
-      case IMAGE_I32     : return color.r<<24;
-      default            : return 0;
+      case IMAGE_B8G8R8A8: ((VecB4*)data)->set(color.b, color.g, color.r, color.a); break;
+      case IMAGE_B8G8R8  : ((VecB *)data)->set(color.b, color.g, color.r); break;
+      case IMAGE_R8G8B8A8: *(Color*)data=color; break;
+      case IMAGE_R8G8B8  : ((VecB *)data)->set(color.r, color.g, color.b); break;
+      case IMAGE_R8G8    : ((VecB2*)data)->set(color.r, color.g); break;
+      case IMAGE_R8      : *        data=color.r; break;
+      case IMAGE_A8      : *        data=color.a; break;
+      case IMAGE_L8      : *        data=color.lum(); break;
+      case IMAGE_L8A8    : ((VecB2*)data)->set(color.lum(), color.a); break;
+      case IMAGE_I8      : *        data=color.r; break;
+      case IMAGE_I16     : *(U16  *)data=(color.r<<8); break;
+      case IMAGE_I24     : *(U16  *)data=0; data[2]=color.r; break;
+      case IMAGE_I32     : *(U32  *)data=(color.r<<24); break;
 
-      case IMAGE_BC1     :
-      case IMAGE_BC2     :
-      case IMAGE_BC3     :
-      case IMAGE_BC7     :
-      case IMAGE_ETC1    :
-      case IMAGE_ETC2    :
-      case IMAGE_ETC2_A1 :
-      case IMAGE_ETC2_A8 :
-      case IMAGE_PVRTC1_2:
-      case IMAGE_PVRTC1_4:
-         return color.r | (color.g<<8) | (color.b<<16) | (color.a<<24);
+      case IMAGE_B4G4R4X4: *(U16*)data=((color.r>>4)<< 8) | ((color.g>>4)<< 4) | (color.b>> 4) | 0xF000; break;
+      case IMAGE_B4G4R4A4: *(U16*)data=((color.r>>4)<< 8) | ((color.g>>4)<< 4) | (color.b>> 4) | ((color.a>>4)<<12); break;
+      case IMAGE_B5G5R5X1: *(U16*)data=((color.r>>3)<<10) | ((color.g>>3)<< 5) | (color.b>> 3) | 0x8000; break;
+      case IMAGE_B5G5R5A1: *(U16*)data=((color.r>>3)<<10) | ((color.g>>3)<< 5) | (color.b>> 3) | ((color.a>>7)<<15); break;
+      case IMAGE_B5G6R5  : *(U16*)data=((color.r>>3)<<11) | ((color.g>>2)<< 5) | (color.b>> 3); break;
+      case IMAGE_B8G8R8X8: *(U32*)data=( color.r    <<16) | ( color.g    << 8) | (color.b    ) | 0xFF000000; break;
+      case IMAGE_R8G8B8X8: *(U32*)data=( color.r        ) | ( color.g    << 8) | (color.b<<16) | 0xFF000000; break;
 
-      case IMAGE_B4G4R4X4: return ((color.r>>4)<< 8) | ((color.g>>4)<< 4) | (color.b>> 4) | 0xF000;
-      case IMAGE_B4G4R4A4: return ((color.r>>4)<< 8) | ((color.g>>4)<< 4) | (color.b>> 4) | ((color.a>>4)<<12);
-      case IMAGE_B5G5R5X1: return ((color.r>>3)<<10) | ((color.g>>3)<< 5) | (color.b>> 3) | 0x8000;
-      case IMAGE_B5G5R5A1: return ((color.r>>3)<<10) | ((color.g>>3)<< 5) | (color.b>> 3) | ((color.a>>7)<<15);
-      case IMAGE_B5G6R5  : return ((color.r>>3)<<11) | ((color.g>>2)<< 5) | (color.b>> 3);
-      case IMAGE_B8G8R8  : return ( color.r    <<16) | ( color.g    << 8) | (color.b    );
-      case IMAGE_B8G8R8X8: return ( color.r    <<16) | ( color.g    << 8) | (color.b    ) | 0xFF000000;
-      case IMAGE_R8G8B8X8: return ( color.r        ) | ( color.g    << 8) | (color.b<<16) | 0xFF000000;
+      case IMAGE_R8_SIGN      : *(SByte *)data=     (color.r>>1); break;
+      case IMAGE_R8G8_SIGN    : ((VecSB2*)data)->set(color.r>>1, color.g>>1); break;
+      case IMAGE_R8G8B8A8_SIGN: ((VecSB4*)data)->set(color.r>>1, color.g>>1, color.b>>1, color.a>>1); break;
 
-      case IMAGE_R8_SIGN      : return (color.r>>1);
-      case IMAGE_R8G8_SIGN    : return (color.r>>1) | ((color.g>>1)<<8);
-      case IMAGE_R8G8B8A8_SIGN: return (color.r>>1) | ((color.g>>1)<<8) | ((color.b>>1)<<16) | ((color.a>>1)<<24);
+      case IMAGE_R10G10B10A2: *(U32*)data=(color.r*1023+127)/255 | (((color.g*1023+127)/255)<<10) | (((color.b*1023+127)/255)<<20) | (((color.a*3+127)/255)<<30); break;
 
-      case IMAGE_R10G10B10A2: return (color.r*1023+127)/255 | (((color.g*1023+127)/255)<<10) | (((color.b*1023+127)/255)<<20) | (((color.a*3+127)/255)<<30);
+      case IMAGE_F32  : *(Flt *)data =     color.r/255.0f; break;
+      case IMAGE_F32_2: ((Vec2*)data)->set(color.r/255.0f, color.g/255.0f); break;
+      case IMAGE_F32_3: ((Vec *)data)->set(color.r/255.0f, color.g/255.0f, color.b/255.0f); break;
+      case IMAGE_F32_4: ((Vec4*)data)->set(color.r/255.0f, color.g/255.0f, color.b/255.0f, color.a/255.0f); break;
+
+      case IMAGE_F16  : *(Half *)data =     color.r/255.0f; break;
+      case IMAGE_F16_2: ((VecH2*)data)->set(color.r/255.0f, color.g/255.0f); break;
+      case IMAGE_F16_3: ((VecH *)data)->set(color.r/255.0f, color.g/255.0f, color.b/255.0f); break;
+      case IMAGE_F16_4: ((VecH4*)data)->set(color.r/255.0f, color.g/255.0f, color.b/255.0f, color.a/255.0f); break;
    }
 }
-static UInt ColorToPixel(IMAGE_TYPE type, IMAGE_TYPE hw_type, C Color &color) // convert color to pixel
+static void SetColor(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Color &color)
 {
-   if(type==hw_type)normal: return ColorToPixel(hw_type, color); // first check if types are the same, the most common case
+   if(type==hw_type)normal: return SetColor(data, hw_type, color); // first check if types are the same, the most common case
    Color c; switch(type) // however if we want 'type' but we've got 'hw_type' then we have to adjust the color we're going to set. This will prevent setting different R G B values for type=IMAGE_L8 when hw_type=IMAGE_R8G8B8A8
    {
       case IMAGE_R8G8B8:
@@ -700,11 +697,18 @@ static UInt ColorToPixel(IMAGE_TYPE type, IMAGE_TYPE hw_type, C Color &color) //
 
       default: goto normal;
    }
-   return ColorToPixel(hw_type, c);
+   SetColor(data, hw_type, c);
 }
-/******************************************************************************/
-void  Image::color  (Int x, Int y,        C Color &color)  {                                           if(highPrecision())        colorF  (x, y,    color.asVec4());else pixel  (x, y,    ColorToPixel(type(), hwType(), color          ));}
-void  Image::color3D(Int x, Int y, Int z, C Color &color)  {                                           if(highPrecision())        color3DF(x, y, z, color.asVec4());else pixel3D(x, y, z, ColorToPixel(type(), hwType(), color          ));}
+void Image::color(Int x, Int y, C Color &color)
+{
+   if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+      SetColor(data() + x*bytePP() + y*pitch(), type(), hwType(), color);
+}
+void Image::color3D(Int x, Int y, Int z, C Color &color)
+{
+   if(InRange(x, lw()) && InRange(y, lh()) && InRange(z, ld())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+      SetColor(data() + x*bytePP() + y*pitch() + z*pitch2(), type(), hwType(), color);
+}
 /******************************************************************************/
 Color Image::decompress(Int x, Int y)C
 {
