@@ -375,9 +375,6 @@ struct Image // Image (Texture)
    Bool compatible  (C Image &image)C;
 
    Image& fastCrop(Int w, Int h, Int d); // crop by adjusting the internal dimension members only, this will work only if the new dimensions are smaller or equal than hardware dimensions and mip map count is equal to 1
-
-   Color decompress  (Int x, Int y       )C;
-   Color decompress3D(Int x, Int y, Int z)C;
 #endif
 
    Bool raycast(C Vec &start, C Vec &move, C Matrix *image_matrix=null, Flt *hit_frac=null, Vec *hit_pos=null, Flt precision=1.0f)C; // perform ray casting from 'start' position along 'move' vector, return true if collision encountered with the image, by default the Image is on XY plane with its pixel values extending it towards the Z axis, 'image_matrix'=image transformation matrix, 'hit_frac'=fraction of the movement where collision occurs, 'hit_pos'=position where collision occurs, 'precision'=affects number of pixels to advance in a single step (lower value makes calculations faster but less precise)
