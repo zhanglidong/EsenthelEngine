@@ -374,65 +374,48 @@ static void Normalize(Vec4 &color, C Vec &rgb, Flt weight, Bool alpha_weight, Bo
 /******************************************************************************/
 // PIXEL / COLOR
 /******************************************************************************/
+static inline void SetPixel(Byte *data, Int byte_pp, UInt pixel)
+{
+   switch(byte_pp)
+   {
+      case 1: (*(U8 *)data)=pixel&0xFF; break;
+      case 2: (*(U16*)data)=pixel&0xFFFF; break;
+      case 3: (*(U16*)data)=pixel&0xFFFF; data[2]=(pixel>>16)&0xFF; break;
+      case 4: (*(U32*)data)=pixel; break;
+   }
+}
 void Image::pixel(Int x, Int y, UInt pixel)
 {
    if(InRange(x, lw()) && InRange(y, lh()) && !compressed()) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
-   {
-      Byte *data=T.data() + x*bytePP() + y*pitch();
-      switch(bytePP())
-      {
-         case 1: (*(U8 *)data)=pixel&0xFF; break;
-         case 2: (*(U16*)data)=pixel&0xFFFF; break;
-         case 3: (*(U16*)data)=pixel&0xFFFF; data[2]=(pixel>>16)&0xFF; break;
-         case 4: (*(U32*)data)=pixel; break;
-      }
-   }
+      SetPixel(data() + x*bytePP() + y*pitch(), bytePP(), pixel);
 }
-/******************************************************************************/
 void Image::pixel3D(Int x, Int y, Int z, UInt pixel)
 {
    if(InRange(x, lw()) && InRange(y, lh()) && InRange(z, ld()) && !compressed()) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
-   {
-      Byte *data=T.data() + x*bytePP() + y*pitch() + z*pitch2();
-      switch(bytePP())
-      {
-         case 1: (*(U8 *)data)=pixel&0xFF; break;
-         case 2: (*(U16*)data)=pixel&0xFFFF; break;
-         case 3: (*(U16*)data)=pixel&0xFFFF; data[2]=(pixel>>16)&0xFF; break;
-         case 4: (*(U32*)data)=pixel; break;
-      }
-   }
+      SetPixel(data() + x*bytePP() + y*pitch() + z*pitch2(), bytePP(), pixel);
 }
 /******************************************************************************/
-UInt Image::pixel(Int x, Int y)C
+static inline UInt GetPixel(C Byte *data, Int byte_pp)
 {
-   if(InRange(x, lw()) && InRange(y, lh()) && !compressed()) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+   switch(byte_pp)
    {
-    C Byte *data=T.data() + x*bytePP() + y*pitch();
-      switch(bytePP())
-      {
-         case 1: return *(U8 *)data;
-         case 2: return *(U16*)data;
-         case 3: return *(U16*)data | (data[2]<<16);
-         case 4: return *(U32*)data;
-      }
+      case 1: return *(U8 *)data;
+      case 2: return *(U16*)data;
+      case 3: return *(U16*)data | (data[2]<<16);
+      case 4: return *(U32*)data;
    }
    return 0;
 }
-/******************************************************************************/
+UInt Image::pixel(Int x, Int y)C
+{
+   if(InRange(x, lw()) && InRange(y, lh()) && !compressed()) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+      return GetPixel(data() + x*bytePP() + y*pitch(), bytePP());
+   return 0;
+}
 UInt Image::pixel3D(Int x, Int y, Int z)C
 {
    if(InRange(x, lw()) && InRange(y, lh()) && InRange(z, ld()) && !compressed()) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
-   {
-    C Byte *data=T.data() + x*bytePP() + y*pitch() + z*pitch2();
-      switch(bytePP())
-      {
-         case 1: return *(U8 *)data;
-         case 2: return *(U16*)data;
-         case 3: return *(U16*)data | (data[2]<<16);
-         case 4: return *(U32*)data;
-      }
-   }
+      return GetPixel(data() + x*bytePP() + y*pitch() + z*pitch2(), bytePP());
    return 0;
 }
 /******************************************************************************/
