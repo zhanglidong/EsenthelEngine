@@ -461,148 +461,86 @@ void Image::pixelF(Int x, Int y, Flt pixel)
    if(InRange(x, lw()) && InRange(y, lh()) && !compressed()) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
       SetPixelF(data() + x*bytePP() + y*pitch(), hwType(), pixel);
 }
-/******************************************************************************/
 void Image::pixel3DF(Int x, Int y, Int z, Flt pixel)
 {
    if(InRange(x, lw()) && InRange(y, lh()) && InRange(z, ld()) && !compressed()) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
       SetPixelF(data() + x*bytePP() + y*pitch() + z*pitch2(), hwType(), pixel);
 }
 /******************************************************************************/
-Flt Image::pixelF(Int x, Int y)C
+static inline Flt GetPixelF(C Byte *data, C Image &image, Bool _2d, Int x, Int y, Int z=0)
 {
-   if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+   switch(image.hwType())
    {
-    C Byte *data=T.data() + x*bytePP() + y*pitch();
-      switch(hwType())
-      {
-         case IMAGE_F32  : return *(Flt*)data;
-         case IMAGE_F32_2: return *(Flt*)data;
-         case IMAGE_F32_3: return *(Flt*)data;
-         case IMAGE_F32_4: return *(Flt*)data;
+      case IMAGE_F32  : return *(Flt*)data;
+      case IMAGE_F32_2: return *(Flt*)data;
+      case IMAGE_F32_3: return *(Flt*)data;
+      case IMAGE_F32_4: return *(Flt*)data;
 
-         case IMAGE_F16  : return *(Half*)data;
-         case IMAGE_F16_2: return *(Half*)data;
-         case IMAGE_F16_3: return *(Half*)data;
-         case IMAGE_F16_4: return *(Half*)data;
+      case IMAGE_F16  : return *(Half*)data;
+      case IMAGE_F16_2: return *(Half*)data;
+      case IMAGE_F16_3: return *(Half*)data;
+      case IMAGE_F16_4: return *(Half*)data;
 
-         case IMAGE_B8G8R8  :
-         case IMAGE_B8G8R8X8:
-         case IMAGE_B8G8R8A8: return ((VecB4*)data)->z/Flt(0xFF);
+      case IMAGE_B8G8R8  :
+      case IMAGE_B8G8R8X8:
+      case IMAGE_B8G8R8A8: return ((VecB4*)data)->z/Flt(0xFF);
 
-         case IMAGE_R8      :
-         case IMAGE_R8G8    :
-         case IMAGE_R8G8B8  :
-         case IMAGE_R8G8B8X8:
-         case IMAGE_R8G8B8A8:
-         case IMAGE_A8      :
-         case IMAGE_L8      :
-         case IMAGE_L8A8    :
-         case IMAGE_I8      : return (*(U8*)data)/Flt(0x000000FFu);
+      case IMAGE_R8      :
+      case IMAGE_R8G8    :
+      case IMAGE_R8G8B8  :
+      case IMAGE_R8G8B8X8:
+      case IMAGE_R8G8B8A8:
+      case IMAGE_A8      :
+      case IMAGE_L8      :
+      case IMAGE_L8A8    :
+      case IMAGE_I8      : return (*(U8*)data)/Flt(0x000000FFu);
 
-         case IMAGE_D16: if(GL)return (*(U16*)data)/Flt(0x0000FFFFu)*2-1; // !! else fall through no break on purpose !!
-         case IMAGE_I16:       return (*(U16*)data)/Flt(0x0000FFFFu);
+      case IMAGE_D16: if(GL)return (*(U16*)data)/Flt(0x0000FFFFu)*2-1; // !! else fall through no break on purpose !!
+      case IMAGE_I16:       return (*(U16*)data)/Flt(0x0000FFFFu);
 
-         case IMAGE_D32 :       return GL ? (*(Flt*)data)*2-1 : *(Flt*)data;
-       //case IMAGE_D32I: if(GL)return (*(U32*)data)/Dbl(0xFFFFFFFFu)*2-1; // !! else fall through no break on purpose !!
-         case IMAGE_I32 :       return (*(U32*)data)/Dbl(0xFFFFFFFFu); // Dbl required to get best precision
+      case IMAGE_D32 :       return GL ? (*(Flt*)data)*2-1 : *(Flt*)data;
+      //case IMAGE_D32I: if(GL)return (*(U32*)data)/Dbl(0xFFFFFFFFu)*2-1; // !! else fall through no break on purpose !!
+      case IMAGE_I32 :       return (*(U32*)data)/Dbl(0xFFFFFFFFu); // Dbl required to get best precision
 
-         case IMAGE_D24S8:
-         case IMAGE_D24X8: if(GL)return (*(U16*)(data+1) | (data[3]<<16))/Flt(0x00FFFFFFu)*2-1; // !! else fall through no break on purpose !!
-         case IMAGE_I24  :       return (*(U16*) data    | (data[2]<<16))/Flt(0x00FFFFFFu)    ; // here Dbl is not required, this was tested
+      case IMAGE_D24S8:
+      case IMAGE_D24X8: if(GL)return (*(U16*)(data+1) | (data[3]<<16))/Flt(0x00FFFFFFu)*2-1; // !! else fall through no break on purpose !!
+      case IMAGE_I24  :       return (*(U16*) data    | (data[2]<<16))/Flt(0x00FFFFFFu)    ; // here Dbl is not required, this was tested
 
-         case IMAGE_R10G10B10A2: return ((*(UInt*)data)&0x3FF)/Flt(0x3FF);
+      case IMAGE_R10G10B10A2: return ((*(UInt*)data)&0x3FF)/Flt(0x3FF);
 
-         case IMAGE_R8_SIGN      :
-         case IMAGE_R8G8_SIGN    :
-         case IMAGE_R8G8B8A8_SIGN: return SByteToSFlt(*(U8*)data);
+      case IMAGE_R8_SIGN      :
+      case IMAGE_R8G8_SIGN    :
+      case IMAGE_R8G8B8A8_SIGN: return SByteToSFlt(*(U8*)data);
 
-         case IMAGE_BC1     :
-         case IMAGE_BC2     :
-         case IMAGE_BC3     :
-         case IMAGE_BC7     :
-         case IMAGE_PVRTC1_2:
-         case IMAGE_PVRTC1_4:
-         case IMAGE_ETC1    :
-         case IMAGE_ETC2    :
-         case IMAGE_ETC2_A1 :
-         case IMAGE_ETC2_A8 : return decompress(x, y).r/255.0f;
+      case IMAGE_BC1     :
+      case IMAGE_BC2     :
+      case IMAGE_BC3     :
+      case IMAGE_BC7     :
+      case IMAGE_PVRTC1_2:
+      case IMAGE_PVRTC1_4:
+      case IMAGE_ETC1    :
+      case IMAGE_ETC2    :
+      case IMAGE_ETC2_A1 :
+      case IMAGE_ETC2_A8 : return (_2d ? image.decompress(x, y) : image.decompress3D(x, y, z)).r/255.0f;
 
-         case IMAGE_B4G4R4X4: return (((*(U16*)data)>> 8)&0x0F)/15.0f;
-         case IMAGE_B4G4R4A4: return (((*(U16*)data)>> 8)&0x0F)/15.0f;
-         case IMAGE_B5G5R5X1: return (((*(U16*)data)>>10)&0x1F)/31.0f;
-         case IMAGE_B5G5R5A1: return (((*(U16*)data)>>10)&0x1F)/31.0f;
-         case IMAGE_B5G6R5  : return (((*(U16*)data)>>11)&0x1F)/31.0f;
-      }
+      case IMAGE_B4G4R4X4: return (((*(U16*)data)>> 8)&0x0F)/15.0f;
+      case IMAGE_B4G4R4A4: return (((*(U16*)data)>> 8)&0x0F)/15.0f;
+      case IMAGE_B5G5R5X1: return (((*(U16*)data)>>10)&0x1F)/31.0f;
+      case IMAGE_B5G5R5A1: return (((*(U16*)data)>>10)&0x1F)/31.0f;
+      case IMAGE_B5G6R5  : return (((*(U16*)data)>>11)&0x1F)/31.0f;
    }
    return 0;
 }
-/******************************************************************************/
+Flt Image::pixelF(Int x, Int y)C
+{
+   if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+      return GetPixelF(data() + x*bytePP() + y*pitch(), T, true, x, y);
+   return 0;
+}
 Flt Image::pixel3DF(Int x, Int y, Int z)C
 {
    if(InRange(x, lw()) && InRange(y, lh()) && InRange(z, ld())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
-   {
-    C Byte *data=T.data() + x*bytePP() + y*pitch() + z*pitch2();
-      switch(hwType())
-      {
-         case IMAGE_F32  : return *(Flt*)data;
-         case IMAGE_F32_2: return *(Flt*)data;
-         case IMAGE_F32_3: return *(Flt*)data;
-         case IMAGE_F32_4: return *(Flt*)data;
-
-         case IMAGE_F16  : return *(Half*)data;
-         case IMAGE_F16_2: return *(Half*)data;
-         case IMAGE_F16_3: return *(Half*)data;
-         case IMAGE_F16_4: return *(Half*)data;
-
-         case IMAGE_B8G8R8  :
-         case IMAGE_B8G8R8X8:
-         case IMAGE_B8G8R8A8: return ((VecB4*)data)->z/Flt(0xFF);
-
-         case IMAGE_R8      :
-         case IMAGE_R8G8    :
-         case IMAGE_R8G8B8  :
-         case IMAGE_R8G8B8X8:
-         case IMAGE_R8G8B8A8:
-         case IMAGE_A8      :
-         case IMAGE_L8      :
-         case IMAGE_L8A8    :
-         case IMAGE_I8      : return (*(U8*)data)/Flt(0x000000FFu);
-
-         case IMAGE_D16: if(GL)return (*(U16*)data)/Flt(0x0000FFFFu)*2-1; // !! else fall through no break on purpose !!
-         case IMAGE_I16:       return (*(U16*)data)/Flt(0x0000FFFFu);
-
-         case IMAGE_D32 :       return GL ? (*(Flt*)data)*2-1 : *(Flt*)data;
-       //case IMAGE_D32I: if(GL)return (*(U32*)data)/Dbl(0xFFFFFFFFu)*2-1; // !! else fall through no break on purpose !!
-         case IMAGE_I32 :       return (*(U32*)data)/Dbl(0xFFFFFFFFu); // Dbl required to get best precision
-
-         case IMAGE_D24S8:
-         case IMAGE_D24X8: if(GL)return (*(U16*)(data+1) | (data[3]<<16))/Flt(0x00FFFFFFu)*2-1; // !! else fall through no break on purpose !!
-         case IMAGE_I24  :       return (*(U16*) data    | (data[2]<<16))/Flt(0x00FFFFFFu)    ; // here Dbl is not required, this was tested
-
-         case IMAGE_R10G10B10A2: return ((*(UInt*)data)&0x3FF)/Flt(0x3FF);
-
-         case IMAGE_R8_SIGN      :
-         case IMAGE_R8G8_SIGN    :
-         case IMAGE_R8G8B8A8_SIGN: return SByteToSFlt(*(U8*)data);
-
-         case IMAGE_BC1     :
-         case IMAGE_BC2     :
-         case IMAGE_BC3     :
-         case IMAGE_BC7     :
-         case IMAGE_PVRTC1_2:
-         case IMAGE_PVRTC1_4:
-         case IMAGE_ETC1    :
-         case IMAGE_ETC2    :
-         case IMAGE_ETC2_A1 :
-         case IMAGE_ETC2_A8 : return decompress3D(x, y, z).r/255.0f;
-
-         case IMAGE_B4G4R4X4: return (((*(U16*)data)>> 8)&0x0F)/15.0f;
-         case IMAGE_B4G4R4A4: return (((*(U16*)data)>> 8)&0x0F)/15.0f;
-         case IMAGE_B5G5R5X1: return (((*(U16*)data)>>10)&0x1F)/31.0f;
-         case IMAGE_B5G5R5A1: return (((*(U16*)data)>>10)&0x1F)/31.0f;
-         case IMAGE_B5G6R5  : return (((*(U16*)data)>>11)&0x1F)/31.0f;
-      }
-   }
+      return GetPixelF(data() + x*bytePP() + y*pitch() + z*pitch2(), T, false, x, y, z);
    return 0;
 }
 /******************************************************************************/
