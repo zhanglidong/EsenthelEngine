@@ -519,12 +519,12 @@ static inline Flt GetPixelF(C Byte *data, C Image &image, Bool _2d, Int x, Int y
       case IMAGE_BC2     :
       case IMAGE_BC3     :
       case IMAGE_BC7     :
-      case IMAGE_PVRTC1_2:
-      case IMAGE_PVRTC1_4:
       case IMAGE_ETC1    :
       case IMAGE_ETC2    :
       case IMAGE_ETC2_A1 :
       case IMAGE_ETC2_A8 :
+      case IMAGE_PVRTC1_2:
+      case IMAGE_PVRTC1_4:
          return (_2d ? image.decompress(x, y) : image.decompress3D(x, y, z)).r/255.0f;
 
       case IMAGE_B4G4R4X4: return (((*(U16*)data)>> 8)&0x0F)/15.0f;
@@ -724,12 +724,12 @@ static inline Vec4 GetColorF(C Byte *data, C Image &image, Bool _2d, Int x, Int 
       case IMAGE_BC2     :
       case IMAGE_BC3     :
       case IMAGE_BC7     :
-      case IMAGE_PVRTC1_2:
-      case IMAGE_PVRTC1_4:
       case IMAGE_ETC1    :
       case IMAGE_ETC2    :
       case IMAGE_ETC2_A1 :
       case IMAGE_ETC2_A8 :
+      case IMAGE_PVRTC1_2:
+      case IMAGE_PVRTC1_4:
          return _2d ? image.decompress(x, y) : image.decompress3D(x, y, z);
    }
    return 0;
@@ -2622,12 +2622,13 @@ static Color PixelToColor(IMAGE_TYPE type, UInt pixel) // convert pixel to color
       case IMAGE_BC2     :
       case IMAGE_BC3     :
       case IMAGE_BC7     :
-      case IMAGE_PVRTC1_2:
-      case IMAGE_PVRTC1_4:
       case IMAGE_ETC1    :
       case IMAGE_ETC2    :
       case IMAGE_ETC2_A1 :
-      case IMAGE_ETC2_A8 : return Color(pixel&0xFF, (pixel>>8)&0xFF, (pixel>>16)&0xFF, pixel>>24);
+      case IMAGE_ETC2_A8 :
+      case IMAGE_PVRTC1_2:
+      case IMAGE_PVRTC1_4:
+         return Color(pixel&0xFF, (pixel>>8)&0xFF, (pixel>>16)&0xFF, pixel>>24);
 
       case IMAGE_B4G4R4X4   : return Color(((pixel>> 8)&0x0F)<<4, ((pixel>> 4)&0x0F)<<4, ((pixel    )&0x0F)<<4,                       255);
       case IMAGE_B4G4R4A4   : return Color(((pixel>> 8)&0x0F)<<4, ((pixel>> 4)&0x0F)<<4, ((pixel    )&0x0F)<<4, ((pixel>>12)&0x0F)<<4    );
@@ -2667,12 +2668,13 @@ static UInt ColorToPixel(IMAGE_TYPE type, C Color &color) // convert color to pi
       case IMAGE_BC2     :
       case IMAGE_BC3     :
       case IMAGE_BC7     :
-      case IMAGE_PVRTC1_2:
-      case IMAGE_PVRTC1_4:
       case IMAGE_ETC1    :
       case IMAGE_ETC2    :
       case IMAGE_ETC2_A1 :
-      case IMAGE_ETC2_A8 : return color.r | (color.g<<8) | (color.b<<16) | (color.a<<24);
+      case IMAGE_ETC2_A8 :
+      case IMAGE_PVRTC1_2:
+      case IMAGE_PVRTC1_4:
+         return color.r | (color.g<<8) | (color.b<<16) | (color.a<<24);
 
       case IMAGE_B4G4R4X4: return ((color.r>>4)<< 8) | ((color.g>>4)<< 4) | (color.b>> 4) | 0xF000;
       case IMAGE_B4G4R4A4: return ((color.r>>4)<< 8) | ((color.g>>4)<< 4) | (color.b>> 4) | ((color.a>>4)<<12);
