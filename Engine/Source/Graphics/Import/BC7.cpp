@@ -94,28 +94,29 @@ static void CompressBC7Block(IntPtr elm_index, Data &data, Int thread_index)
 /******************************************************************************/
 Bool _CompressBC7(C Image &src, Image &dest)
 {
-   Bool ok=false;
    if(dest.hwType()==IMAGE_BC7)
    {
       Image temp; C Image *s=&src;
       if(s->hwType()!=IMAGE_R8G8B8A8 || s->w()!=dest.hwW() || s->h()!=dest.hwH())
       {
-         if(s->copyTry(temp, dest.hwW(), dest.hwH(), 1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1, FILTER_NO_STRETCH, true))s=&temp;else return false; // we need to cover the area for entire HW size, to process partial and Pow2Padded blocks too
+         if(s->copyTry(temp, dest.hwW(), dest.hwH(), 1, IMAGE_R8G8B8A8, (s->cube() && dest.cube()) ? IMAGE_SOFT_CUBE : IMAGE_SOFT, 1, FILTER_NO_STRETCH, true))s=&temp;else return false; // we need to cover the area for entire HW size, to process partial and Pow2Padded blocks too
       }
-      if(s->lockRead())
+      BC.init();
+      Int src_faces1=s->faces()-1;
+      REPD(face, dest.faces())
       {
-         if(dest.lock(LOCK_WRITE))
-         {
-            ok=true;
-            BC.init();
-            Data data(*s, dest); // !! call after 'BC.init' !!
-            BC.threads.process1(data.threads, CompressBC7Block, data, INT_MAX); // use all available threads, including this one
-            dest.unlock();
-         }
-         s->unlock();
+         if(!  s->lockRead(            0, (DIR_ENUM)Min(face, src_faces1)))              return false;
+         if(!dest.lock    (LOCK_WRITE, 0, (DIR_ENUM)    face             )){s->unlock(); return false;}
+
+         Data data(*s, dest); // !! call after 'BC.init' !!
+         BC.threads.process1(data.threads, CompressBC7Block, data, INT_MAX); // use all available threads, including this one
+
+         dest.unlock();
+           s->unlock();
       }
+      return true;
    }
-   return ok;
+   return false;
 }
 /******************************************************************************/
 }
