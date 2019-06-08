@@ -857,7 +857,67 @@ void Image::merge(Int x, Int y, C Vec4 &color)
    }
 }
 /******************************************************************************/
-static inline Vec4 GetColorF(C Byte *data, C Image &image, Bool _2d, Int x, Int y, Int z=0)
+Vec4 ImageColorF(CPtr data, IMAGE_TYPE hw_type)
+{
+   switch(hw_type)
+   {
+      case IMAGE_F32  : return Vec4(*(Flt *)data, 0, 0, 1);
+      case IMAGE_F32_2: return Vec4(*(Vec2*)data,    0, 1);
+      case IMAGE_F32_3: return Vec4(*(Vec *)data,       1);
+      case IMAGE_F32_4: return      *(Vec4*)data          ;
+
+      case IMAGE_F16  : return Vec4(((Half*)data)[0],                0,                0,                1); break;
+      case IMAGE_F16_2: return Vec4(((Half*)data)[0], ((Half*)data)[1],                0,                1); break;
+      case IMAGE_F16_3: return Vec4(((Half*)data)[0], ((Half*)data)[1], ((Half*)data)[2],                1); break;
+      case IMAGE_F16_4: return Vec4(((Half*)data)[0], ((Half*)data)[1], ((Half*)data)[2], ((Half*)data)[3]); break;
+
+      case IMAGE_A8: return Vec4(0, 0, 0, Flt(*(U8*)data)/0x000000FFu);
+      case IMAGE_L8: return Vec4(Vec(     Flt(*(U8*)data)/0x000000FFu), 1);
+      case IMAGE_I8: return Vec4(Vec(     Flt(*(U8*)data)/0x000000FFu), 1);
+
+      // 16
+   #if SUPPORT_DEPTH_TO_COLOR
+      case IMAGE_D16: if(GL)return Vec4(Vec((*(U16*)data)/Flt(0x0000FFFFu)*2-1), 1); // !! else fall through no break on purpose !!
+   #endif
+      case IMAGE_I16:
+         return Vec4(Vec((*(U16*)data)/Flt(0x0000FFFFu)), 1);
+
+      // 32
+   #if SUPPORT_DEPTH_TO_COLOR
+      case IMAGE_D32 :       return Vec4(Vec(GL ? (*(Flt*)data)*2-1 : *(Flt*)data), 1);
+    //case IMAGE_D32I: if(GL)return Vec4(Vec((*(U32*)data)/Dbl(0xFFFFFFFFu)*2-1), 1); // !! else fall through no break on purpose !!
+   #endif
+      case IMAGE_I32:
+         return Vec4(Vec((*(U32*)data)/Dbl(0xFFFFFFFFu)), 1); // Dbl required to get best precision
+
+      // 24
+   #if SUPPORT_DEPTH_TO_COLOR
+      case IMAGE_D24S8:
+      case IMAGE_D24X8: if(GL)return Vec4(Vec((*(U16*)(((Byte*)data)+1) | (((Byte*)data)[3]<<16))/Flt(0x00FFFFFFu)*2-1), 1); // !! else fall through no break on purpose !!
+   #endif
+      case IMAGE_I24:
+         return Vec4(Vec((*(U16*)data | (((Byte*)data)[2]<<16))/Flt(0x00FFFFFFu)), 1); // here Dbl is not required, this was tested
+
+      case IMAGE_L8A8: {VecB2 &c=*(VecB2*)data; Flt l=c.x/255.0f; return Vec4(l, l, l, c.y/255.0f);}
+
+      case IMAGE_B8G8R8A8: {VecB4 &c=*(VecB4*)data; return Vec4(c.z/255.0f, c.y/255.0f, c.x/255.0f, c.w/255.0f);}
+      case IMAGE_R8G8B8A8: {VecB4 &c=*(VecB4*)data; return Vec4(c.x/255.0f, c.y/255.0f, c.z/255.0f, c.w/255.0f);}
+      case IMAGE_B8G8R8X8: {VecB4 &c=*(VecB4*)data; return Vec4(c.z/255.0f, c.y/255.0f, c.x/255.0f,          1);}
+      case IMAGE_R8G8B8X8: {VecB4 &c=*(VecB4*)data; return Vec4(c.x/255.0f, c.y/255.0f, c.z/255.0f,          1);}
+      case IMAGE_B8G8R8  : {VecB  &c=*(VecB *)data; return Vec4(c.z/255.0f, c.y/255.0f, c.x/255.0f,          1);}
+      case IMAGE_R8G8B8  : {VecB  &c=*(VecB *)data; return Vec4(c.x/255.0f, c.y/255.0f, c.z/255.0f,          1);}
+      case IMAGE_R8G8    : {VecB2 &c=*(VecB2*)data; return Vec4(c.x/255.0f, c.y/255.0f,          0,          1);}
+      case IMAGE_R8      : {Byte   c=*(Byte *)data; return Vec4(c  /255.0f,          0,          0,          1);}
+
+      case IMAGE_R8_SIGN      : {Byte  &c=*(Byte *)data; return Vec4(SByteToSFlt(c  ),                0,               0 ,               1 );}
+      case IMAGE_R8G8_SIGN    : {VecB2 &c=*(VecB2*)data; return Vec4(SByteToSFlt(c.x), SByteToSFlt(c.y),               0 ,               1 );}
+      case IMAGE_R8G8B8A8_SIGN: {VecB4 &c=*(VecB4*)data; return Vec4(SByteToSFlt(c.x), SByteToSFlt(c.y), SByteToSFlt(c.z), SByteToSFlt(c.w));}
+
+      case IMAGE_R10G10B10A2: {UInt u=*(UInt*)data; return Vec4((u&0x3FF)/1023.0f, ((u>>10)&0x3FF)/1023.0f, ((u>>20)&0x3FF)/1023.0f, (u>>30)/3.0f);}
+   }
+   return 0;
+}
+static inline Vec4 GetColorF(CPtr data, C Image &image, Bool _2d, Int x, Int y, Int z=0)
 {
    switch(image.hwType())
    {
@@ -893,10 +953,10 @@ static inline Vec4 GetColorF(C Byte *data, C Image &image, Bool _2d, Int x, Int 
       // 24
    #if SUPPORT_DEPTH_TO_COLOR
       case IMAGE_D24S8:
-      case IMAGE_D24X8: if(GL)return Vec4(Vec((*(U16*)(data+1) | (data[3]<<16))/Flt(0x00FFFFFFu)*2-1), 1); // !! else fall through no break on purpose !!
+      case IMAGE_D24X8: if(GL)return Vec4(Vec((*(U16*)(((Byte*)data)+1) | (((Byte*)data)[3]<<16))/Flt(0x00FFFFFFu)*2-1), 1); // !! else fall through no break on purpose !!
    #endif
       case IMAGE_I24:
-         return Vec4(Vec((*(U16*)data | (data[2]<<16))/Flt(0x00FFFFFFu)), 1); // here Dbl is not required, this was tested
+         return Vec4(Vec((*(U16*)data | (((Byte*)data)[2]<<16))/Flt(0x00FFFFFFu)), 1); // here Dbl is not required, this was tested
 
       case IMAGE_L8A8: {VecB2 &c=*(VecB2*)data; Flt l=c.x/255.0f; return Vec4(l, l, l, c.y/255.0f);}
 
@@ -3200,13 +3260,12 @@ static INLINE void StoreColor(Image &image, Byte* &dest_data_y, Int x, Int y, In
 }
 Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_weight, Bool keep_edges, Flt sharp_smooth)C // this does not support compressed images
 {
-   if(this==&dest        )return true;
-   if(cube()!=dest.cube())return false;
-
-   REPD(f, faces())
+   if(this==&dest)return true;
+   Int src_faces1=faces()-1;
+   REPD(face, dest.faces())
    {
-      if(!   T.lockRead(        0, (DIR_ENUM)f))             return false;
-      if(!dest.lock(LOCK_WRITE, 0, (DIR_ENUM)f)){T.unlock(); return false;}
+      if(!   T.lockRead(            0, (DIR_ENUM)Min(face, src_faces1)))             return false;
+      if(!dest.lock    (LOCK_WRITE, 0, (DIR_ENUM)    face             )){T.unlock(); return false;}
 
       if(T.size3()==dest.size3()) // no resize
       {
