@@ -868,57 +868,58 @@ static void CompressBC3(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_
 static const Vec BCWeights=ColorLumWeight*0.65f;
 Bool CompressBC(C Image &src, Image &dest, Bool mtrl_base_1) // no need to store this in a separate CPP file, because its code size is small
 {
-   Bool ok=false;
    if(dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC2 || dest.hwType()==IMAGE_BC3)
    {
    #if 1
-      if(src.lockRead())
+      void (*compress_block)(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a)=((dest.hwType()==IMAGE_BC1) ? CompressBC1 :
+                                                                                                          (dest.hwType()==IMAGE_BC2) ? CompressBC2 :
+                                                                                                          (dest.hwType()==IMAGE_BC3) ? CompressBC3 : null);
+      Int  x_blocks=dest.hwW()/4, // operate on HW size to process partial and Pow2Padded blocks too
+           y_blocks=dest.hwH()/4,
+           x_mul   =((dest.hwType()==IMAGE_BC1) ? 8 : 16);
+      Vec4 rgba[16];
+      Vec  weight(1, 1, 0.5f); // #MaterialTextureChannelOrder - NrmX, NrmY, Spec, Alpha
+      Int  src_faces1=src.faces()-1;
+
+      REPD(face, dest.faces())
       {
-         if(dest.lock(LOCK_WRITE))
+         if(! src.lockRead(            0, (DIR_ENUM)Min(face, src_faces1)))               return false;
+         if(!dest.lock    (LOCK_WRITE, 0, (DIR_ENUM)    face             )){src.unlock(); return false;}
+
+         REPD( z, dest.d())
+         REPD(by, y_blocks)
          {
-            ok=true;
-            void (*compress_block)(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a)=((dest.hwType()==IMAGE_BC1) ? CompressBC1 :
-                                                                                                                (dest.hwType()==IMAGE_BC2) ? CompressBC2 :
-                                                                                                                (dest.hwType()==IMAGE_BC3) ? CompressBC3 : null);
-            Int  x_blocks=dest.hwW()/4, // operate on HW size to process partial and Pow2Padded blocks too
-                 y_blocks=dest.hwH()/4,
-                 x_mul   =((dest.hwType()==IMAGE_BC1) ? 8 : 16);
-            Vec4 rgba[16];
-            Vec  weight(1, 1, 0.5f); // #MaterialTextureChannelOrder - NrmX, NrmY, Spec, Alpha
-
-            REPD( z, dest.d())
-            REPD(by, y_blocks)
+            Int py=by*4, yo[4]; REPAO(yo)=Min(py+i, src.h()-1); // use clamping to avoid black borders
+            Byte *dest_data=dest.data() + by*dest.pitch() + z*dest.pitch2();
+            REPD(bx, x_blocks)
             {
-               Int py=by*4, yo[4]; REPAO(yo)=Min(py+i, src.h()-1); // use clamping to avoid black borders
-               Byte *dest_data=dest.data() + by*dest.pitch() + z*dest.pitch2();
-               REPD(bx, x_blocks)
+               Int px=bx*4, xo[4]; REPAO(xo)=Min(px+i, src.w()-1); // use clamping to avoid black borders
+               src.gather(rgba, xo, Elms(xo), yo, Elms(yo), &z, 1);
+               if(!mtrl_base_1)
                {
-                  Int px=bx*4, xo[4]; REPAO(xo)=Min(px+i, src.w()-1); // use clamping to avoid black borders
-                  src.gather(rgba, xo, Elms(xo), yo, Elms(yo), &z, 1);
-                  if(!mtrl_base_1)
-                  {
-                     Vec4 min, max; MinMax(rgba, 4*4, min, max);
-                  #if 1 // this gave better results
-                     weight=BCWeights + max.xyz + max.xyz-min.xyz; // max + delta = max + (max-min)
-                  #else
-                     weight=LinearToSRGB(ColorLumWeight2);
-                  #endif
-                  }
-                  compress_block(dest_data + bx*x_mul, rgba, &weight, true, true);
+                  Vec4 min, max; MinMax(rgba, 4*4, min, max);
+               #if 1 // this gave better results
+                  weight=BCWeights + max.xyz + max.xyz-min.xyz; // max + delta = max + (max-min)
+               #else
+                  weight=LinearToSRGB(ColorLumWeight2);
+               #endif
                }
+               compress_block(dest_data + bx*x_mul, rgba, &weight, true, true);
             }
-
-            dest.unlock();
          }
-         src.unlock();
+         dest.unlock();
+          src.unlock();
       }
+      return true;
    #elif 1 // Intel ISPC
       only BC1 now supported
+      need cube
       Image temp; C Image *s=&src;
       if(s->hwType()!=IMAGE_R8G8B8A8 || s->w()!=dest.hwW() || s->h()!=dest.hwH())
       {
-         if(s->copyTry(temp, dest.hwW(), dest.hwH(), 1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1, FILTER_NO_STRETCH, true))s=&temp;else return false; // we need to cover the area for entire HW size, to process partial and Pow2Padded blocks too
+         if(s->copyTry(temp, dest.hwW(), dest.hwH(), 1, IMAGE_R8G8B8A8, (s->cube() && dest.cube()) ? IMAGE_SOFT_CUBE : IMAGE_SOFT, 1, FILTER_NO_STRETCH, true))s=&temp;else return false; // we need to cover the area for entire HW size, to process partial and Pow2Padded blocks too
       }
+      Bool ok=false;
       if(s->lockRead())
       {
          if(dest.lock(LOCK_WRITE))
@@ -943,7 +944,9 @@ Bool CompressBC(C Image &src, Image &dest, Bool mtrl_base_1) // no need to store
          }
          s->unlock();
       }
+      return ok;
    #else
+      need cube
       if(src.d()==1) // use Driver compression if possible (faster and more accurate than Squish library)
       {
       #if DX9
@@ -993,6 +996,7 @@ Bool CompressBC(C Image &src, Image &dest, Bool mtrl_base_1) // no need to store
          }
       #endif
       }
+      Bool ok=false;
       if(src.lockRead())
       {
          if(dest.lock(LOCK_WRITE))
@@ -1033,9 +1037,10 @@ Bool CompressBC(C Image &src, Image &dest, Bool mtrl_base_1) // no need to store
          }
          src.unlock();
       }
+      return ok;
    #endif
    }
-   return ok;
+   return false;
 }
 /******************************************************************************/
 }
