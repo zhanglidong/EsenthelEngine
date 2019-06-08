@@ -1665,36 +1665,39 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
    if(!is()){dest.del(); return true;}
 
    // adjust settings
-   if(type<= 0)type=T.type();
-   if(mode<=-1)mode=T.mode();
-   if(h   <= 0)h   =T.h();
-   if(d   <= 0)d   =T.d();
-   if(w   <= 0)w   =(( cube() && !IsCube(IMAGE_MODE(mode))                       ) ? T.w()*6 // if converting from cube to non-cube                                      then use "w*6" size
-                   : (!cube() &&  IsCube(IMAGE_MODE(mode)) && aspect()>AvgF(1, 6)) ? T.w()/6 // if converting from non-cube to cube and we have all 6 faces in the image then use "w/6" size
-                   :                                                                 T.w()); // otherwise use "w" size
+   if(type<=0)type=T.type();
+   if(mode< 0)mode=T.mode();
+   // mip maps
+   if(mip_maps<0)
+   {
+      if(w==T.w() && h==T.h() && d==T.d()                       )mip_maps=T.mipMaps();else // same size
+      if(T.mipMaps()<TotalMipMaps(T.w(), T.h(), T.d(), T.type()))mip_maps=T.mipMaps();else // less than total
+      if(T.mipMaps()==1                                         )mip_maps=          1;else // use  only one
+                                                                 mip_maps=          0;     // auto-detect mip maps
+   }
+
+ C Image *src=this; Image temp_src;
+   if(src->cube() && !IsCube(IMAGE_MODE(mode))) // if converting from cube to non-cube
+   {
+      if(temp_src.fromCube(*src))src=&temp_src;else return false; // automatically convert to 6x1 images
+   }else
+   if(!src->cube() && IsCube((IMAGE_MODE)mode)) // if converting from non-cube to cube
+   {
+      return dest.toCube(*src, -1, (w>0) ? w : h, type, mode, mip_maps, filter);
+   }
+
+   // calculate dimensions after cube conversion
+   if(w<=0)w=src->w();
+   if(h<=0)h=src->h();
+   if(d<=0)d=src->d();
 
    // mip maps
-   Int src_total_mip_maps=TotalMipMaps(T.w(), T.h(), T.d(),          T.type()),
-      dest_total_mip_maps=TotalMipMaps(  w  ,   h  ,   d  , IMAGE_TYPE(type) );
-
-   if(mip_maps<=-1)
-   {
-      if(w==T.w() && h==T.h() && d==T.d())mip_maps=T.mipMaps();else // same size
-      if(T.mipMaps()< src_total_mip_maps )mip_maps=T.mipMaps();else // less than total
-      if(T.mipMaps()==1                  )mip_maps=          1;else // use  only one
-                                          mip_maps=          0;     // auto-detect mip maps
-   }
+   Int dest_total_mip_maps=TotalMipMaps(w, h, d, IMAGE_TYPE(type));
    if(mip_maps<=0)mip_maps=dest_total_mip_maps ; // if mip maps not specified then use full chain
    else       MIN(mip_maps,dest_total_mip_maps); // don't use more than maximum allowed
 
    // check if doesn't require conversion
    if(this==&dest && w==T.w() && h==T.h() && d==T.d() && type==T.type() && mip_maps==T.mipMaps() && mode==T.mode())return true;
-
-   // check for cubes
-   // FIXME CUBE's should be optimized, for case when both are IsCube
- C Image *src=this;
-   Image  temp_src; if(src->cube())if(temp_src.fromCube(*src, IMAGE_R8G8B8A8))src=&temp_src;else return false;
-   if(IsCube((IMAGE_MODE)mode))return dest.toCube(*src, h, type, (IMAGE_MODE)mode, filter);
 
    // convert
    {
