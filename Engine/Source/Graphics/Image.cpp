@@ -1770,7 +1770,7 @@ Bool Image::toCube(C Image &src, Int layout, Int size, Int type, Int mode, Int m
       if(layout< 0                )layout  =src.cubeLayout();
       if(size  < 0                )size    =((layout==CUBE_LAYOUT_CROSS) ? src.w()/4 : src.h());
       if(!IsCube(IMAGE_MODE(mode)))mode    =(IsSoft(src.mode()) ? IMAGE_SOFT_CUBE : IMAGE_CUBE);
-      if(mip_maps<0               )mip_maps=src.mipMaps();
+      if(mip_maps<0               )mip_maps=((src.mipMaps()==1) ? 1 : 0); // if source has 1 mip map, then create only 1, else create full
       Image temp;
       if(temp.createTry(size, size, 1, IMAGE_TYPE(type), IMAGE_MODE(mode), mip_maps))
       {
