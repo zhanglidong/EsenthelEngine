@@ -343,6 +343,19 @@ IMAGE_TYPE ImageTypeExcludeAlpha(IMAGE_TYPE type)
       case IMAGE_ETC2_A8: return IMAGE_ETC2;
    }
 }
+IMAGE_TYPE ImageTypeUncompressed(IMAGE_TYPE type)
+{
+   switch(type)
+   {
+      default: return ImageTI[type].compressed ? IMAGE_R8G8B8A8 : type;
+
+      case IMAGE_ETC1   :
+      case IMAGE_ETC2   :
+      case IMAGE_BC1    : // use since there's no other desktop compressed format without alpha
+    //case IMAGE_ETC2_A1: don't use since we have IMAGE_ETC2 already
+         return IMAGE_R8G8B8;
+   }
+}
 /******************************************************************************/
 #if GL
 UInt SourceGLFormat(IMAGE_TYPE type)
