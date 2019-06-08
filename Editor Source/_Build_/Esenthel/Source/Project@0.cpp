@@ -1780,7 +1780,8 @@ void DrawProject()
          if(ImportImage(reflection, name))
          {
             loaded=true;
-            reflection.toCube(reflection, NearestPow2(reflection.h()), IMAGE_BC1);
+            int res=NearestPow2(reflection.h());
+            reflection.copyTry(reflection, res, res, 1, IMAGE_BC1, IMAGE_CUBE, 1);
          }
       }
       return !faces.elms() || loaded;

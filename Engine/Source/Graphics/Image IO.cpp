@@ -543,7 +543,7 @@ Bool Image::ExportDX(C Str &name, GPU_API(D3DXIMAGE_FILEFORMAT, D3DX11_IMAGE_FIL
    {
     C Image *src=this;
       Image  temp;
-      if(src->cube()){temp.fromCube(*src, -1, IMAGE_SURF_SCRATCH); src=&temp;}
+      if(src->cube())if(temp.fromCube(*src))src=&temp;else return false;
 
    #if DX9
       if(src->type()==IMAGE_A8)
@@ -712,7 +712,7 @@ Bool Image::ImportDX(C Str &name, Int type, Int mode, Int mip_maps) // 'type, mo
                      {
                         setInfo(info.Width, info.Height, 0, type, IMAGE_SURF_SCRATCH);
                         locker.off();
-                        return toCube(T, -1, type);
+                        return toCube(T, -1, -1, type);
                      }
                   }
                   RELEASE(_surf);
@@ -787,7 +787,7 @@ Bool Image::ImportDX(C Str &name, Int type, Int mode, Int mip_maps) // 'type, mo
                {
                   setInfo(0, 0, 0, type, IMAGE_SURF_SCRATCH);
                   locker.off();
-                  return toCube(T, -1, (T.type()>=IMAGE_TYPES) ? IMAGE_R8G8B8A8 : -1);
+                  return toCube(T, -1, -1, (T.type()>=IMAGE_TYPES) ? IMAGE_R8G8B8A8 : -1);
                }
             }break;
          }

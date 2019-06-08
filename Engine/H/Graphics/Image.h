@@ -147,6 +147,14 @@ enum IMAGE_PRECISION : Byte // Image Precision
 inline IMAGE_PRECISION Min(IMAGE_PRECISION a, IMAGE_PRECISION b) {return (a<b) ? a : b;}
 inline IMAGE_PRECISION Max(IMAGE_PRECISION a, IMAGE_PRECISION b) {return (a>b) ? a : b;}
 #endif
+#if EE_PRIVATE
+enum CUBE_LAYOUT : Byte
+{
+   CUBE_LAYOUT_ONE  ,
+   CUBE_LAYOUT_CROSS,
+   CUBE_LAYOUT_6x1  , // Left, Front, Right, Back, Down, Up
+};
+#endif
 /******************************************************************************/
 struct ImageTypeInfo // Image Type Information
 {
@@ -245,9 +253,6 @@ struct Image // Image (Texture)
    Bool copyTry(Image &dest, Int w=-1, Int h=-1, Int d=-1, Int type=-1, Int mode=-1, Int mip_maps=-1, FILTER_TYPE filter=FILTER_BEST, Bool clamp=true, Bool alpha_weight=false, Bool keep_edges=false, Bool mtrl_base_1=false, Bool rgba_on_fail=true)C; // copy to 'dest', -1=keep original value, 'type'=IMAGE_TYPE, 'mode'=IMAGE_MODE (this method does not support IMAGE_3D), 'mip_maps'=number of mip-maps (0=autodetect), 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color, 'keep_edges'=if preserve the edges of the image when resizing, 'mtrl_base_1'=if this image is 'Material.base_1' texture, 'rgba_on_fail'=if try using uncompressed RGBA type if given 'type' is not supported, false on fail
    void copy   (Image &dest, Int w=-1, Int h=-1, Int d=-1, Int type=-1, Int mode=-1, Int mip_maps=-1, FILTER_TYPE filter=FILTER_BEST, Bool clamp=true, Bool alpha_weight=false, Bool keep_edges=false, Bool mtrl_base_1=false, Bool rgba_on_fail=true)C; // copy to 'dest', -1=keep original value, 'type'=IMAGE_TYPE, 'mode'=IMAGE_MODE (this method does not support IMAGE_3D), 'mip_maps'=number of mip-maps (0=autodetect), 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color, 'keep_edges'=if preserve the edges of the image when resizing, 'mtrl_base_1'=if this image is 'Material.base_1' texture, 'rgba_on_fail'=if try using uncompressed RGBA type if given 'type' is not supported, Exit  on fail
 
-   Bool   toCube(C Image &src, Int size=-1, Int type=-1, IMAGE_MODE mode=IMAGE_SOFT_CUBE, FILTER_TYPE filter=FILTER_BEST); // convert from 6x1 'src' image                 (containing in order : left, front, right, back, down, up views) to cube texture, 'size'=desired resolution of the image (-1=keep), 'type'=IMAGE_TYPE (-1=keep), 'mode'=IMAGE_MODE, 'filter'=what kind of filtering to use when source is of different size than the target
-   Bool fromCube(C Image &src,              Int type=-1, IMAGE_MODE mode=IMAGE_SOFT                                     ); // convert from 'src' cube texture to 6x1 image (containing in order : left, front, right, back, down, up views)                ,                                                   'type'=IMAGE_TYPE (-1=keep), 'mode'=IMAGE_MODE
-
    // lock
 #if EE_PRIVATE
    Byte* softData()  {return _data_all;} // get software image data without locking the image
@@ -266,6 +271,8 @@ struct Image // Image (Texture)
  C Image& unlock    (                                                                           )C; // unlock image                                , this needs to be called after  manual setting/getting pixels/colors on hardware images (IMAGE_SOFT doesn't need locking), if you want the mip maps to be updated according to any change applied during the lock then you must call 'updateMipMaps' after 'unlock'
 
    Image& updateMipMaps(FILTER_TYPE filter=FILTER_BEST, Bool clamp=true, Bool alpha_weight=false, Bool mtrl_base_1=false, Int mip_start=0); // update mip maps of the image, 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color, 'mtrl_base_1'=if this image is 'Material.base_1' texture, 'mip_start'=index of the mip map to start with (this mip map will be taken, and downsampled to following mip maps)
+
+   Image& blurCubeMipMaps(Flt angle_start, Flt angle_growth); // blur mip maps based on specified angle parameters, this method is only for Cube Images
 
    Image& freeOpenGLESData(); // this method is used only under OpenGL ES (on other platforms it is ignored), the method frees the software copy of the GPU data which increases available memory, however after calling this method the data can no longer be accessed on the CPU (can no longer be locked or saved to file)
 
@@ -374,6 +381,9 @@ struct Image // Image (Texture)
    Bool depthTexture()C;
    Bool compatible  (C Image &image)C;
 
+   CUBE_LAYOUT cubeLayout()C; // auto-detect cube layout
+   Bool   toCube(C Image &src, Int layout=-1, Int size=-1, Int              type=-1, Int mode=-1, Int mip_maps=-1, FILTER_TYPE filter=FILTER_BEST); // convert from 'src' image      to cube image, 'size'=desired resolution of the image (-1=keep), 'type'=IMAGE_TYPE (-1=keep), 'mode'=IMAGE_MODE (-1=auto), 'mip_maps'=number of mip-maps (0=autodetect), 'filter'=what kind of filtering to use when source is of different size than the target
+   Bool fromCube(C Image &src,                             Int uncompressed_type=-1                                                              ); // convert from 'src' cube image to 6x1  image,                                      'uncompressed_type'=IMAGE_TYPE to use if source is compressed
    Image& fastCrop(Int w, Int h, Int d); // crop by adjusting the internal dimension members only, this will work only if the new dimensions are smaller or equal than hardware dimensions and mip map count is equal to 1
 #endif
 
@@ -651,6 +661,8 @@ IMAGE_TYPE BytesToImageType(Int byte_pp); // get IMAGE_TYPE needed to store 'byt
 IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type); // convert 'type' to the most similar IMAGE_TYPE that has    alpha channel
 IMAGE_TYPE ImageTypeExcludeAlpha(IMAGE_TYPE type); // convert 'type' to the most similar IMAGE_TYPE that has no alpha channel
 
+IMAGE_TYPE ImageTypeUncompressed(IMAGE_TYPE type); // convert 'type' to the most similar IMAGE_TYPE that is not compressed
+
 Int  GetPVRTCQuality(           ); // get PVRTC compression quality, 0..4
 void SetPVRTCQuality(Int quality); // set PVRTC compression quality, 0..4
 
@@ -673,6 +685,7 @@ IMAGE_TYPE                            ImageFormatToType(GPU_API(D3DFORMAT, DXGI_
 Int                                   TotalMipMaps     (Int w, Int h, Int d, IMAGE_TYPE type);
 Bool                                  CompatibleLock   (LOCK_MODE cur, LOCK_MODE lock); // if 'lock' is okay to be applied when 'cur' is already applied
 void                                  InitSRGB         ();
+Vec4                                  ImageColorF      (CPtr data, IMAGE_TYPE hw_type);
 #if WINDOWS
    HICON CreateIcon(C Image &image, C VecI2 *cursor_hot_spot=null); // 'cursor_hot_spot'=if this is specified then the icon is treated as a mouse cursor with given hot spot, otherwise it's a normal icon
 #endif
