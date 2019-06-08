@@ -80,8 +80,8 @@ Bool Image::ExportWEBP(File &f, Flt rgb_quality, Flt alpha_quality)C
 #if SUPPORT_WEBP
  C Image *src=this;
    Image  temp;
-   if(src->cube  ()                ){    temp.fromCube(*src ,             IMAGE_B8G8R8A8, IMAGE_SOFT   );              src=&temp;}
-   if(src->hwType()!=IMAGE_B8G8R8A8){if(!src->copyTry ( temp, -1, -1, -1, IMAGE_B8G8R8A8, IMAGE_SOFT, 1))return false; src=&temp;}
+   if(src->cube  ()                )if(temp.fromCube(*src ,             IMAGE_B8G8R8A8               ))src=&temp;else return false;
+   if(src->hwType()!=IMAGE_B8G8R8A8)if(src->copyTry ( temp, -1, -1, -1, IMAGE_B8G8R8A8, IMAGE_SOFT, 1))src=&temp;else return false; // WEBP uses BGRA
 
    if(src->w()<=WEBP_MAX_DIMENSION
    && src->h()<=WEBP_MAX_DIMENSION)

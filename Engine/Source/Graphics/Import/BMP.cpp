@@ -113,9 +113,8 @@ Bool Image::ExportBMP(File &f)C
 {
    Image  temp;
  C Image *src=this;
-   IMAGE_TYPE uncompressed_type=src->type(); if(ImageTI[uncompressed_type].compressed)uncompressed_type=IMAGE_B8G8R8A8; // BMP uses BGRA order
-   if(src->cube      ()){   temp.fromCube(*src ,             uncompressed_type, IMAGE_SOFT   ); src=&temp;}
-   if(src->compressed()){if(src->copyTry ( temp, -1, -1, -1, uncompressed_type, IMAGE_SOFT, 1)) src=&temp;else return false;}
+   if(src->cube      ())if(temp.fromCube(*src ,             IMAGE_B8G8R8A8               ))src=&temp;else return false;
+   if(src->compressed())if(src->copyTry ( temp, -1, -1, -1, IMAGE_B8G8R8A8, IMAGE_SOFT, 1))src=&temp;else return false; // BMP uses BGRA
 
    Bool ok=false;
    if(src->lockRead())

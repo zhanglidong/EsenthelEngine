@@ -139,9 +139,8 @@ Bool Image::ExportTIF(File &f, Flt compression_level)C
 #if SUPPORT_TIF
    Image  temp;
  C Image *src=this;
-   IMAGE_TYPE uncompressed_type=src->type(); if(ImageTI[uncompressed_type].compressed)uncompressed_type=IMAGE_R8G8B8A8;
-   if(src->cube      ()){   temp.fromCube(*src ,             uncompressed_type, IMAGE_SOFT   ); src=&temp;}
-   if(src->compressed()){if(src->copyTry ( temp, -1, -1, -1, uncompressed_type, IMAGE_SOFT, 1)) src=&temp;else return false;}
+   if(src->cube      ())if(temp.fromCube(*src                                            ))src=&temp;else return false;
+   if(src->compressed())if(src->copyTry ( temp, -1, -1, -1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1))src=&temp;else return false;
 
    Bool ok=false;
    if(src->lockRead())

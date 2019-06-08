@@ -168,7 +168,7 @@ Bool Image::ExportJPG(File &f, Flt quality, Int sub_sample)C
    Image temp;
 
    if(!src->is  ())return false;
-   if( src->cube())if(temp.fromCube(*src, ImageTI[src->type()].compressed ? IMAGE_R8G8B8 : -1, IMAGE_SOFT))src=&temp;else return false;
+   if( src->cube())if(temp.fromCube(*src, IMAGE_R8G8B8))src=&temp;else return false; // JPEG doesn't have alpha
 
    if(src->hwType()!=IMAGE_L8 && src->hwType()!=IMAGE_A8 && src->hwType()!=IMAGE_I8
    && src->hwType()!=IMAGE_R8G8B8

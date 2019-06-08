@@ -81,7 +81,7 @@ Bool Image::ExportPNG(File &f, Flt compression_level)C
    Image  temp;
 
    if(!src->is  ())return false;
-   if( src->cube()){if(!temp.fromCube(*src, ImageTI[src->type()].compressed ? IMAGE_R8G8B8A8 : -1, IMAGE_SOFT))return false; src=&temp;}
+   if( src->cube())if(temp.fromCube(*src))src=&temp;else return false;
 
    Int bit_depth=0, color_type=0;
    switch(src->hwType())
