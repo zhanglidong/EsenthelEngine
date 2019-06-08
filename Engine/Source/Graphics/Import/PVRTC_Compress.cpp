@@ -17,13 +17,25 @@ extern Bool _CompressPVRTC(Int w, Int h, CPtr data, Int type, Int quality, Ptr &
 Bool _CompressPVRTC(C Image &src, Image &dest, Int quality)
 {
    Bool ok=false;
-   if((dest.hwType()==IMAGE_PVRTC1_2 || dest.hwType()==IMAGE_PVRTC1_4) && src.lockRead())
+   if(dest.hwType()==IMAGE_PVRTC1_2 || dest.hwType()==IMAGE_PVRTC1_4)
    {
-      if(dest.lock(LOCK_WRITE))
+      Image temp; if(temp.createTry(PaddedWidth(dest.w(), dest.h(), 0, dest.hwType()), PaddedHeight(dest.w(), dest.h(), 0, dest.hwType()), 1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1)) //  use R8G8B8A8 because PVRTEX operates on that format
       {
-         Image temp; if(temp.createTry(PaddedWidth(dest.w(), dest.h(), 0, dest.hwType()), PaddedHeight(dest.w(), dest.h(), 0, dest.hwType()), 1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1)) //  use R8G8B8A8 because PVRTEX operates on that format
+         ok=true;
+         if(quality<0)quality=((dest.hwType()==IMAGE_PVRTC1_2) ? GetPVRTCQuality() : 4); // for PVRTC1_2 default to specified settings, for others use best quality as it's not so slow for those types
+         switch(quality)
          {
-            ok=true;
+            case  0: quality=pvrtexture::ePVRTCFastest; break;
+            case  1: quality=pvrtexture::ePVRTCFast   ; break;
+            case  2: quality=pvrtexture::ePVRTCNormal ; break;
+            case  3: quality=pvrtexture::ePVRTCHigh   ; break;
+            default: quality=pvrtexture::ePVRTCBest   ; break;
+         }
+         Int src_faces1=src.faces()-1;
+         REPD(face, dest.faces())
+         {
+            if(! src.lockRead(            0, (DIR_ENUM)Min(face, src_faces1)))               return false;
+            if(!dest.lock    (LOCK_WRITE, 0, (DIR_ENUM)    face             )){src.unlock(); return false;}
 
             REPD(z, dest.d())
             {
@@ -34,22 +46,13 @@ Bool _CompressPVRTC(C Image &src, Image &dest, Int quality)
                // compress
                Ptr data=null;
                Int size=0;
-               if(quality<0)quality=((dest.hwType()==IMAGE_PVRTC1_2) ? GetPVRTCQuality() : 4); // for PVRTC1_2 default to specified settings, for others use best quality as it's not so slow for those types
-               switch(quality)
-               {
-                  case  0: quality=pvrtexture::ePVRTCFastest; break;
-                  case  1: quality=pvrtexture::ePVRTCFast   ; break;
-                  case  2: quality=pvrtexture::ePVRTCNormal ; break;
-                  case  3: quality=pvrtexture::ePVRTCHigh   ; break;
-                  default: quality=pvrtexture::ePVRTCBest   ; break;
-               }
                if(_CompressPVRTC(temp.w(), temp.h(), temp.data(), (dest.hwType()==IMAGE_PVRTC1_2) ? ePVRTPF_PVRTCI_2bpp_RGBA : ePVRTPF_PVRTCI_4bpp_RGBA, quality, data, size))
                {
                   if(size==temp.w()*temp.h()*ImageTI[dest.hwType()].bit_pp/8)
                   {
                      Byte  *dest_data=dest.data() + z*dest.pitch2();
                      Int        pitch=ImagePitch  (temp.w(), temp.h(), 0, dest.hwType()), // compressed pitch of 'data'
-                             blocks_y=ImageBlocksY(dest.w(), dest.h(), 0, dest.hwType());
+                              blocks_y=ImageBlocksY(dest.w(), dest.h(), 0, dest.hwType());
                      REPD(y, blocks_y)Copy(dest_data + y*dest.pitch(), (Byte*)data + y*pitch, dest.pitch(), pitch); // zero remaining Pow2Padded data to avoid garbage
                      Int written=blocks_y*dest.pitch(); Zero(dest_data+written, dest.pitch2()-written); // zero remaining Pow2Padded data to avoid garbage
                   }else ok=false;
@@ -57,10 +60,12 @@ Bool _CompressPVRTC(C Image &src, Image &dest, Int quality)
                }else ok=false;
                if(!ok)break;
             }
+
+            dest.unlock();
+             src.unlock();
+            if(!ok)break;
          }
-         dest.unlock();
       }
-      src.unlock();
    }
    return ok;
 }
