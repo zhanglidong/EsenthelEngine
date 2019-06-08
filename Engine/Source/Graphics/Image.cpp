@@ -1531,20 +1531,20 @@ static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'des
       case IMAGE_ETC2_A1: decompress_block=DecompressBlockETC2A1; decompress_block_pitch=DecompressBlockETC2A1; break;
       case IMAGE_ETC2_A8: decompress_block=DecompressBlockETC2A8; decompress_block_pitch=DecompressBlockETC2A8; break;
    }
-   Bool ok=false;
-   if(dest.is() || dest.createTry(src.w(), src.h(), src.d(), IMAGE_R8G8B8A8, IMAGE_SOFT, 1)) // use 'IMAGE_R8G8B8A8' because Decompress Block functions operate on 'Color'
+   if(dest.is() || dest.createTry(src.w(), src.h(), src.d(), IMAGE_R8G8B8A8, src.cube() ? IMAGE_SOFT_CUBE : IMAGE_SOFT, 1)) // use 'IMAGE_R8G8B8A8' because Decompress Block functions operate on 'Color'
       if(dest.size3()==src.size3())
-         if(dest.lock(LOCK_WRITE))
    {
-      if(src.lockRead())
+      Int src_faces1   =src.faces()-1,
+          full_blocks_x=         dest.w()/4,
+          full_blocks_y=         dest.h()/4,
+           all_blocks_x=DivCeil4(dest.w()),
+           all_blocks_y=DivCeil4(dest.h()),
+           x_mul       =ImageTI[src.hwType()].bit_pp*2; // *2 because (4*4 colors / 8 bits)
+      REPD(face, dest.faces())
       {
-         ok=true;
+         if(! src.lockRead(            0, (DIR_ENUM)Min(face, src_faces1)))return false;
+         if(!dest.lock    (LOCK_WRITE, 0, (DIR_ENUM)    face             )){src.unlock(); return false;}
 
-         Int full_blocks_x=         dest.w()/4,
-             full_blocks_y=         dest.h()/4,
-              all_blocks_x=DivCeil4(dest.w()),
-              all_blocks_y=DivCeil4(dest.h()),
-              x_mul       =ImageTI[src.hwType()].bit_pp*2; // *2 because (4*4 colors / 8 bits)
          REPD(z, dest.d())
          {
             Color color[4][4];
@@ -1590,11 +1590,12 @@ static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'des
                REPD(x, 4)dest.color3D(px+x, py+y, z, color[y][x]);
             }
          }
-         src.unlock();
+         dest.unlock();
+          src.unlock();
       }
-      dest.unlock();
+      return true;
    }
-   return ok;
+   return false;
 }
 /******************************************************************************/
 static Bool Compress(C Image &src, Image &dest, Bool mtrl_base_1=false) // assumes that 'src' and 'dest' are 2 different objects, 'src' is created as non-compressed, and 'dest' is created as compressed
@@ -1633,12 +1634,12 @@ static Bool CopyMipMaps(C Image &src, Image &dest) // this assumes that "&src !=
       {
          if(src.mipMaps()-i>=dest.mipMaps()) // if 'src' has all mip-maps needed in 'dest'
          {
-            Int faces=dest.faces();
+            Int dest_faces=dest.faces(), src_faces1=src.faces()-1;
             FREPD(mip , dest.mipMaps())
-             REPD(face, faces)
+             REPD(face, dest_faces)
             {
-               if(!src .lockRead(          i+mip, DIR_ENUM(face)))return false;
-               if(!dest.lock    (LOCK_WRITE, mip, DIR_ENUM(face))){src.unlock(); return false;}
+               if(!src .lockRead(          i+mip, (DIR_ENUM)Min(face, src_faces1)))return false;
+               if(!dest.lock    (LOCK_WRITE, mip, (DIR_ENUM)    face             )){src.unlock(); return false;}
                Int blocks_y=Min(ImageBlocksY(src .hwW(), src .hwH(), i+mip, src .hwType()),
                                 ImageBlocksY(dest.hwW(), dest.hwH(),   mip, dest.hwType()));
                REPD(z, dest.ld())
