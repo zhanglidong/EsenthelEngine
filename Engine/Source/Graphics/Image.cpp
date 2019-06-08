@@ -1732,7 +1732,7 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
             {
                if(src->size3()!=target.size3()) // resize needed
                {
-                  if(!resized_src.createTry(target.w(), target.h(), target.d(), src->hwType(), IMAGE_SOFT, 1))return false;
+                  if(!resized_src.createTry(target.w(), target.h(), target.d(), src->hwType(), (src->cube() && target.cube()) ? IMAGE_SOFT_CUBE : IMAGE_SOFT, 1))return false;
                   if(!src->copySoft(resized_src, filter, clamp, alpha_weight, keep_edges))return false; src=&resized_src; decompressed_src.del(); // we don't need 'decompressed_src' anymore so delete it to release memory
                }
                if(!Compress(*src, target, mtrl_base_1))return false;
@@ -1752,18 +1752,27 @@ void Image::copy(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mip_m
    if(!copyTry(dest, w, h, d, type, mode, mip_maps, filter, clamp, alpha_weight, keep_edges, mtrl_base_1, rgba_on_fail))Exit(MLTC(u"Can't copy Image", PL,u"Nie można skopiować Image"));
 }
 /******************************************************************************/
-Bool Image::toCube(C Image &src, Int size, Int type, IMAGE_MODE mode, FILTER_TYPE filter)
+CUBE_LAYOUT Image::cubeLayout()C
+{
+   const Flt one_aspect=1.0f, cross_aspect=4.0f/3, _6x_aspect=6.0f;
+   Flt aspect=T.aspect();
+   if( aspect>Avg(cross_aspect,   _6x_aspect))return CUBE_LAYOUT_6x1;
+ //if( aspect>Avg(  one_aspect, cross_aspect))return CUBE_LAYOUT_CROSS; TODO: not yet supported
+                                              return CUBE_LAYOUT_ONE;
+}
+Bool Image::toCube(C Image &src, Int layout, Int size, Int type, Int mode, Int mip_maps, FILTER_TYPE filter)
 {
    if(!src.cube() && src.is())
    {
-      if(type<=0      )type=src.type();
-      if(size< 0      )size=src.h   ();
-      if(!IsCube(mode))mode=IMAGE_SOFT_CUBE;
-      Bool  one=(src.aspect()<AvgF(1, 6)); // source is only 1 face, not "6*face"
+      if(type  <=0                )type    =src.type      ();
+      if(layout< 0                )layout  =src.cubeLayout();
+      if(size  < 0                )size    =((layout==CUBE_LAYOUT_CROSS) ? src.w()/4 : src.h());
+      if(!IsCube(IMAGE_MODE(mode)))mode    =(IsSoft(src.mode()) ? IMAGE_SOFT_CUBE : IMAGE_CUBE);
+      if(mip_maps<0               )mip_maps=src.mipMaps();
       Image temp;
-      if(temp.createTry(size, size, 1, IMAGE_TYPE(type), mode, 1))
+      if(temp.createTry(size, size, 1, IMAGE_TYPE(type), IMAGE_MODE(mode), mip_maps))
       {
-         if(one)
+         if(layout==CUBE_LAYOUT_ONE)
          {
             REP(6)if(!temp.injectMipMap(src, 0, DIR_ENUM(i), filter))return false;
          }else
@@ -1795,16 +1804,17 @@ Bool Image::toCube(C Image &src, Int size, Int type, IMAGE_MODE mode, FILTER_TYP
    return false;
 }
 /******************************************************************************/
-Bool Image::fromCube(C Image &src, Int type, IMAGE_MODE mode)
+Bool Image::fromCube(C Image &src, Int uncompressed_type)
 {
    if(src.cube())
    {
-      if(type<=0     )type=src.type();
-      if(IsCube(mode))mode=IMAGE_SOFT;
+      IMAGE_TYPE type=src.hwType(); // choose 'hwType' (instead of 'type') because this method is written for speed, to avoid unnecesary conversions
+      if(ImageTI[type].compressed) // a non-compressed type is needed, so we can easily copy each cube face into part of the 'temp' image (compressed types cannot be copied this way easily, example: PVRTC1 requires pow2 sizes and is very complex)
+         type=((InRange(uncompressed_type, ImageTI) && !ImageTI[uncompressed_type].compressed) ? IMAGE_TYPE(uncompressed_type) : ImageTypeUncompressed(type));
 
       // extract 6 faces
       Int   size=src.h();
-      Image temp; if(!temp.createTry(size*6, size, 1, ImageTI[type].compressed ? IMAGE_R8G8B8A8 : IMAGE_TYPE(type), ImageTI[type].compressed ? IMAGE_SOFT : mode, 1))return false;
+      Image temp; if(!temp.createTry(size*6, size, 1, type, IMAGE_SOFT, 1))return false;
       if(temp.lock(LOCK_WRITE))
       {
          Image face; // keep outside the loop in case we can reuse it
@@ -1832,7 +1842,8 @@ Bool Image::fromCube(C Image &src, Int type, IMAGE_MODE mode)
          }
 
          temp.unlock();
-         if(temp.copyTry(temp, -1, -1, -1, type, mode)){Swap(T, temp); return true;}
+       //if(!temp.copyTry(temp, -1, -1, -1, type, IMAGE_SOFT))return false; skip this step to avoid unnecessary operations, this method uses 'uncompressed_type' instead of 'type'
+         Swap(T, temp); return true;
       }
    }
    return false;
