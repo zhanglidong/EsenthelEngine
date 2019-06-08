@@ -1665,16 +1665,8 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
    if(!is()){dest.del(); return true;}
 
    // adjust settings
-   if(type<=0)type=T.type();
+   if(type<=0)type=T.type(); // get type before 'fromCube' because it may change it
    if(mode< 0)mode=T.mode();
-   // mip maps
-   if(mip_maps<0)
-   {
-      if(w==T.w() && h==T.h() && d==T.d()                       )mip_maps=T.mipMaps();else // same size
-      if(T.mipMaps()<TotalMipMaps(T.w(), T.h(), T.d(), T.type()))mip_maps=T.mipMaps();else // less than total
-      if(T.mipMaps()==1                                         )mip_maps=          1;else // use  only one
-                                                                 mip_maps=          0;     // auto-detect mip maps
-   }
 
  C Image *src=this; Image temp_src;
    if(src->cube() && !IsCube(IMAGE_MODE(mode))) // if converting from cube to non-cube
@@ -1692,6 +1684,13 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
    if(d<=0)d=src->d();
 
    // mip maps
+   if(mip_maps<0)
+   {
+      if(w==src->w() && h==src->h() && d==src->d()                             )mip_maps=src->mipMaps();else // same size
+      if(src->mipMaps()<TotalMipMaps(src->w(), src->h(), src->d(), src->type()))mip_maps=src->mipMaps();else // less than total
+      if(src->mipMaps()==1                                                     )mip_maps=             1;else // use  only one
+                                                                                mip_maps=             0;     // auto-detect mip maps
+   }
    Int dest_total_mip_maps=TotalMipMaps(w, h, d, IMAGE_TYPE(type));
    if(mip_maps<=0)mip_maps=dest_total_mip_maps ; // if mip maps not specified then use full chain
    else       MIN(mip_maps,dest_total_mip_maps); // don't use more than maximum allowed
