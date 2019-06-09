@@ -97,11 +97,11 @@ Bool _CompressBC7(C Image &src, Image &dest)
    if(dest.hwType()==IMAGE_BC7)
    {
       BC.init();
+      Int src_faces1=src.faces()-1;
       Image temp; // define outside loop to avoid overhead
       REPD(mip, Min(src.mipMaps(), dest.mipMaps()))
       {
-         Int src_faces1=src.faces()-1,
-             dest_mip_hwW=PaddedWidth (dest.hwW(), dest.hwH(), mip, dest.hwType()),
+         Int dest_mip_hwW=PaddedWidth (dest.hwW(), dest.hwH(), mip, dest.hwType()),
              dest_mip_hwH=PaddedHeight(dest.hwW(), dest.hwH(), mip, dest.hwType());
          // to directly read from 'src', we need to match requirements for compressor, which needs:
          Bool read_from_src=(src.hwType()==IMAGE_R8G8B8A8 // IMAGE_R8G8B8A8 hw type
@@ -114,9 +114,9 @@ Bool _CompressBC7(C Image &src, Image &dest)
             {
                if(!src.extractNonCompressedMipMapNoStretch(temp, dest_mip_hwW, dest_mip_hwH, 1, mip, (DIR_ENUM)Min(face, src_faces1), true))return false;
                if(temp.hwType()!=IMAGE_R8G8B8A8)if(!temp.copyTry(temp, -1, -1, -1, IMAGE_R8G8B8A8))return false;
-            }
-            if(read_from_src && ! src.lockRead(            mip, (DIR_ENUM)Min(face, src_faces1)))                                return false; // we have to lock only for 'src' because 'temp' is 1mip-1face-SOFT and doesn't need locking
-            if(                 !dest.lock    (LOCK_WRITE, mip, (DIR_ENUM)    face             )){if(read_from_src)src.unlock(); return false;}
+            }else
+            if(! src.lockRead(            mip, (DIR_ENUM)Min(face, src_faces1)))                                return false; // we have to lock only for 'src' because 'temp' is 1mip-1face-SOFT and doesn't need locking
+            if(!dest.lock    (LOCK_WRITE, mip, (DIR_ENUM)    face             )){if(read_from_src)src.unlock(); return false;}
 
             Data data(s, dest); // !! call after 'BC.init' !!
             BC.threads.process1(data.threads, CompressBC7Block, data, INT_MAX); // use all available threads, including this one
