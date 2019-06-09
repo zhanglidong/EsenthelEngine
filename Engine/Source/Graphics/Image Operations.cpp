@@ -101,7 +101,11 @@ Bool Image::injectMipMap(C Image &src, Int mip_map, DIR_ENUM cube_face, FILTER_T
             {
              C Byte *src =s->data() + z*s->pitch2();
                Byte *dest=   data() + z*   pitch2();
-               REPD(y, blocks_y)CopyFast(dest + y*pitch(), src + y*s->pitch(), Min(pitch(), s->pitch()));
+               if(T.pitch()==s->pitch())CopyFast(dest, src, Min(pitch2(), s->pitch2()));else
+               {
+                  Int pitch=Min(T.pitch(), s->pitch());
+                  REPD(y, blocks_y)CopyFast(dest + y*T.pitch(), src + y*s->pitch(), pitch);
+               }
             }
             s->unlock();
          }
