@@ -3018,9 +3018,11 @@ struct BlurCube
                      case DIR_LEFT   :  angle_delta-=-PI_2;  break;
                      default         : goto full;
                   }
-                  Flt dir_angle_x1=AngleNormalize(dir_angle_x+angle_delta), angle_min_x=dir_angle_x1-angle_eps, angle_max_x=dir_angle_x1+angle_eps;
-                  if(angle_min_x<=-PI_4)tex_rect1.min.x=        0;else if(angle_min_x>= PI_4)continue;else {Flt dir_min_x=Tan(angle_min_x), tex_min_x=dir_min_x*src_DirToCubeFace_mul+src_DirToCubeFace_add; tex_rect1.min.x=Max(        0,  CeilSpecial(tex_min_x));}
-                  if(angle_max_x>= PI_4)tex_rect1.max.x=src_res-1;else if(angle_max_x<=-PI_4)continue;else {Flt dir_max_x=Tan(angle_max_x), tex_max_x=dir_max_x*src_DirToCubeFace_mul+src_DirToCubeFace_add; tex_rect1.max.x=Min(src_res-1, FloorSpecial(tex_max_x));}
+                  {
+                     Flt dir_angle_x1=AngleNormalize(dir_angle_x+angle_delta), angle_min_x=dir_angle_x1-angle_eps, angle_max_x=dir_angle_x1+angle_eps;
+                     if(angle_min_x<=-PI_4)tex_rect1.min.x=        0;else if(angle_min_x>= PI_4)continue;else {Flt dir_min_x=Tan(angle_min_x), tex_min_x=dir_min_x*src_DirToCubeFace_mul+src_DirToCubeFace_add; tex_rect1.min.x=Max(        0,  CeilSpecial(tex_min_x));}
+                     if(angle_max_x>= PI_4)tex_rect1.max.x=src_res-1;else if(angle_max_x<=-PI_4)continue;else {Flt dir_max_x=Tan(angle_max_x), tex_max_x=dir_max_x*src_DirToCubeFace_mul+src_DirToCubeFace_add; tex_rect1.max.x=Min(src_res-1, FloorSpecial(tex_max_x));}
+                  }
                   if(tex_rect1.validX())
                   {
                      tex_rect1.setY(tex_rect.min.y, tex_rect.max.y);
