@@ -158,7 +158,7 @@ enum CUBE_LAYOUT : Byte
 /******************************************************************************/
 struct ImageTypeInfo // Image Type Information
 {
-  CChar8          *name      ; // type name
+   CChar8         *name      ; // type name
    Bool            compressed; // if the type is a compressed type
    Byte            byte_pp   , // bytes per pixel
                    bit_pp    , // bits  per pixel
