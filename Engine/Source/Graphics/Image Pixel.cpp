@@ -3352,16 +3352,19 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
       if(T.size3()==dest.size3()) // no resize
       {
          if(T.hwType()==dest.hwType()  // no retype
-         && T.  type()==dest.  type()) // check 'type' too in case we have to perform color adjustment
+         && (dest.type()==dest.hwType() || T.type()==dest.type())) // check 'type' too in case we have to perform color adjustment
          {
             Int valid_blocks_y=ImageBlocksY(T.w(), T.h(), 0, T.hwType()); // use "w(), h()" instead of "hwW(), hwH()" to copy only valid pixels
             REPD(z, T.d())
             {
              C Byte *s=T   .data() + z*T   .pitch2();
                Byte *d=dest.data() + z*dest.pitch2();
-               if(T.pitch()==dest.pitch() )CopyFast(d, s, Min(T.pitch2(), dest.pitch2()));
-               else REPD(y, valid_blocks_y)CopyFast(d + y*dest.pitch(), s + y*T.pitch(), Min(T.pitch(), dest.pitch()));
-               // TODO: we could zero remaining data to avoid garbage
+               if(T.pitch()==dest.pitch())CopyFast(d, s, Min(T.pitch2(), dest.pitch2()));else
+               {
+                  Int pitch=Min(T.pitch(), dest.pitch());
+                  REPD(y, valid_blocks_y)CopyFast(d + y*dest.pitch(), s + y*T.pitch(), pitch);
+                  // TODO: we could zero remaining data to avoid garbage
+               }
             }
          }else // retype
          {

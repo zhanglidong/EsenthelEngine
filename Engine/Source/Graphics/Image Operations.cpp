@@ -52,6 +52,7 @@ static Bool ExtractMipMap(C Image &src, Image &dest, Int w, Int h, Int d, Int mi
          {
             Int pitch=Min(src.pitch(), dest.pitch());
             REPD(y, blocks_y)CopyFast(dest_data + y*dest.pitch(), src_data + y*src.pitch(), pitch);
+            // TODO: we could zero remaining data to avoid garbage
          }
       }
 
