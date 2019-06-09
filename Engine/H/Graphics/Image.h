@@ -270,6 +270,9 @@ struct Image // Image (Texture)
    Image& unlock    (                                                                           ) ; // unlock image                                , this needs to be called after  manual setting/getting pixels/colors on hardware images (IMAGE_SOFT doesn't need locking), if you want the mip maps to be updated according to any change applied during the lock then you must call 'updateMipMaps' after 'unlock'
  C Image& unlock    (                                                                           )C; // unlock image                                , this needs to be called after  manual setting/getting pixels/colors on hardware images (IMAGE_SOFT doesn't need locking), if you want the mip maps to be updated according to any change applied during the lock then you must call 'updateMipMaps' after 'unlock'
 
+#if EE_PRIVATE
+   Bool updateMipMaps(C Image &src, Int src_mip, FILTER_TYPE filter=FILTER_BEST, Bool clamp=true, Bool alpha_weight=false, Bool mtrl_base_1=false, Int mip_start=0);
+#endif
    Image& updateMipMaps(FILTER_TYPE filter=FILTER_BEST, Bool clamp=true, Bool alpha_weight=false, Bool mtrl_base_1=false, Int mip_start=0); // update mip maps of the image, 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color, 'mtrl_base_1'=if this image is 'Material.base_1' texture, 'mip_start'=index of the mip map to start with (this mip map will be taken, and downsampled to following mip maps)
 
    Bool blurCubeMipMaps(Flt angle_start, Flt angle_growth, Threads *threads=null); // blur mip maps based on specified angle parameters, this method is only for Cube Images, false on fail

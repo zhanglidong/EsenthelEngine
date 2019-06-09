@@ -1735,8 +1735,10 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
                   if(!src->copySoft(resized_src, filter, clamp, alpha_weight, keep_edges))return false; src=&resized_src; decompressed_src.del(); // we don't need 'decompressed_src' anymore so delete it to release memory
                }
                if(!Compress(*src, target, mtrl_base_1))return false;
-               // FIXME in this case we have to use last 'src' mip Map as the base mip map to set 'target' mip maps, because now 'target' is compressed, and has lower quality, but 'src' has better, perform codes only if we actually need to set any mip maps
-               copied_mip_maps=src->mipMaps();
+               // in this case we have to use last 'src' mip map as the base mip map to set remaining 'target' mip maps, because now 'target' is compressed and has lower quality, while 'src' has better
+               Int mip_start=src->mipMaps()-1;
+               target.updateMipMaps(*src, mip_start, FILTER_BEST, clamp, alpha_weight, mtrl_base_1, mip_start);
+               copied_mip_maps=target.mipMaps(); // set all mip maps copied, to ignore 'updateMipMaps' below
             }else
             {
                if(!src->copySoft(target, filter, clamp, alpha_weight, keep_edges))return false;
@@ -2643,23 +2645,32 @@ Image& Image::freeOpenGLESData()
    return T;
 }
 /******************************************************************************/
-Image& Image::updateMipMaps(FILTER_TYPE filter, Bool clamp, Bool alpha_weight, Bool mtrl_base_1, Int mip_start)
+Bool Image::updateMipMaps(C Image &src, Int src_mip, FILTER_TYPE filter, Bool clamp, Bool alpha_weight, Bool mtrl_base_1, Int mip_start)
 {
-   MAX(mip_start, 0);
-   if (InRange(mip_start+1, mipMaps())) // if we can set the next one
+   if(mip_start<0)
    {
-      Image temp; // keep outside the loop in case we can reuse the image
-      REPD(f, faces())
+      src_mip -=mip_start; // use -= because if mip_start=-1 and src_mip=0 then it means that for mip #0 we're using src_mip=1
+      mip_start=0;
+   }
+   if(!InRange(mip_start+1, mipMaps()))return true ; // if we can set the next one
+   if(!InRange(src_mip, src.mipMaps()))return false; // if we can access the source
+   Bool  ok=true;
+   Int   src_faces1=src.faces()-1;
+   Image temp; // keep outside the loop in case we can reuse the image
+   REPD(face, faces())
+   {
+      ok&=src.extractMipMap(temp, ImageTI[type()].compressed ? ImageTypeUncompressed(type()) : type(), IMAGE_SOFT, src_mip, (DIR_ENUM)Min(face, src_faces1)); // use 'type' instead of 'hwType' (this is correct), use destination type instead of 'src.type' because we extract only one time, but inject several times
+      for(Int mip=mip_start; ++mip<mipMaps(); )
       {
-         extractMipMap(temp, ImageTI[type()].compressed ? IMAGE_R8G8B8A8 : type(), IMAGE_SOFT, mip_start, DIR_ENUM(f)); // use 'type' instead of 'hwType' (this is correct)
-         for(Int mip=mip_start; ++mip<mipMaps(); )
-         {
-            temp.downSample(filter, clamp, alpha_weight);
-            injectMipMap(temp, mip, DIR_ENUM(f), FILTER_BEST, clamp, mtrl_base_1);
-         }
+         temp.downSample(filter, clamp, alpha_weight);
+         ok&=injectMipMap(temp, mip, DIR_ENUM(face), FILTER_BEST, clamp, mtrl_base_1);
       }
    }
-   return T;
+   return ok;
+}
+Image& Image::updateMipMaps(FILTER_TYPE filter, Bool clamp, Bool alpha_weight, Bool mtrl_base_1, Int mip_start)
+{
+   updateMipMaps(T, mip_start, filter, clamp, alpha_weight, mtrl_base_1, mip_start); return T;
 }
 /******************************************************************************/
 // GET

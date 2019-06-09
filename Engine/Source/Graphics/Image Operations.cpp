@@ -97,7 +97,7 @@ Bool Image::injectMipMap(C Image &src, Int mip_map, DIR_ENUM cube_face, FILTER_T
          {
             ok=true;
             Int blocks_y=Min(ImageBlocksY(hwW(), hwH(), mip_map, hwType()), ImageBlocksY(s->hwW(), s->hwH(), 0, s->hwType()));
-            REPD(z, Min(ld(), s->d()))
+            REPD(z, Min(ld(), s->ld()))
             {
              C Byte *src =s->data() + z*s->pitch2();
                Byte *dest=   data() + z*   pitch2();
