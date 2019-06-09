@@ -21,37 +21,60 @@ static void Compress(Image &image, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_map
    image.copyTry(image, -1, -1, -1, type, mode, mip_maps);
 }
 /******************************************************************************/
+Bool Image::extractNonCompressedMipMapNoStretch(Image &dest, Int w, Int h, Int d, Int mip_map, DIR_ENUM cube_face, Bool clamp)C // assumes &T!=&dest
+{
+   if(dest.createTry(w, h, d, T.hwType(), IMAGE_SOFT, 1, false))
+   {
+      if(!   T.lockRead(mip_map, cube_face))return false;
+    //if(!dest.lock    (LOCK_WRITE        ))return false; not needed for SOFT
+
+      CopyNoStretch(T, dest, clamp);
+
+    //dest.unlock(); not needed for SOFT
+         T.unlock();
+      return true;
+   }
+   return false;
+}
+static Bool ExtractMipMap(C Image &src, Image &dest, Int w, Int h, Int d, Int mip_map, DIR_ENUM cube_face) // assumes &T!=&dest
+{
+   if(dest.createTry(w, h, d, src.hwType(), IMAGE_SOFT, 1, false))
+   {
+      if(! src.lockRead(mip_map, cube_face))return false;
+    //if(!dest.lock    (LOCK_WRITE        ))return false; not needed for SOFT
+
+      Int blocks_y=Min(ImageBlocksY(src.hwW(), src.hwH(), mip_map, src.hwType()), ImageBlocksY(dest.hwW(), dest.hwH(), 0, dest.hwType()));
+      REPD(z, Min(src.ld(), dest.ld()))
+      {
+       C Byte * src_data= src.data() + z* src.pitch2();
+         Byte *dest_data=dest.data() + z*dest.pitch2();
+         Int  copy_pitch=Min(src.pitch(), dest.pitch());
+         REPD(y, blocks_y)CopyFast(dest_data + y*dest.pitch(), src_data + y*src.pitch(), copy_pitch);
+      }
+
+    //dest.unlock(); not needed for SOFT
+       src.unlock();
+      return true;
+   }
+   return false;
+}
 Bool Image::extractMipMap(Image &dest, Int type, Int mode, Int mip_map, DIR_ENUM cube_face)C
 {
-   Bool  ok=false;
-   Image temp;
    if(InRange(mip_map, mipMaps()))
    {
       if(type<=0                 )type=T.type();
       if(mode< 0                 )mode=T.mode();
-      if(IsCube(IMAGE_MODE(mode)))mode=IMAGE_SOFT;
+      if(IsCube(IMAGE_MODE(mode)))mode=(IsSoft(IMAGE_MODE(mode)) ? IMAGE_SOFT : IMAGE_2D); // convert cube -> non-cube
 
-      if(temp.createTry(Max(1, w()>>mip_map), Max(1, h()>>mip_map), Max(1, d()>>mip_map), hwType(), IMAGE_SOFT, 1, false))
-      if(temp.lock(LOCK_WRITE))
+      Image temp, &img=((this==&dest) ? temp : dest);
+      if(ExtractMipMap(T, img, Max(1, w()>>mip_map), Max(1, h()>>mip_map), Max(1, d()>>mip_map), mip_map, cube_face) // extract
+      && img.copyTry  (img, -1, -1, -1, type, mode, 1)) // apply type/mode conversion if needed
       {
-         if(lockRead(mip_map, cube_face))
-         {
-            ok=true;
-            Int blocks_y=Min(ImageBlocksY(hwW(), hwH(), mip_map, hwType()), ImageBlocksY(temp.hwW(), temp.hwH(), 0, temp.hwType()));
-            REPD(z, temp.d())
-            {
-             C Byte *src =     data() + z*     pitch2();
-               Byte *dest=temp.data() + z*temp.pitch2();
-               REPD(y, blocks_y)CopyFast(dest + y*temp.pitch(), src + y*pitch(), Min(temp.pitch(), pitch()));
-            }
-            unlock();
-         }
-         temp.unlock();
+         if(&img!=&dest)Swap(dest, img); // swap if needed
+         return true;
       }
-      if(ok)ok=temp.copyTry(temp, -1, -1, -1, type, mode, 1);
    }
-   Swap(dest, temp);
-   return ok;
+   return false;
 }
 /******************************************************************************/
 Bool Image::injectMipMap(C Image &src, Int mip_map, DIR_ENUM cube_face, FILTER_TYPE filter, Bool clamp, Bool mtrl_base_1)

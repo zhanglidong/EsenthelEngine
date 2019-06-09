@@ -3258,6 +3258,62 @@ static INLINE void StoreColor(Image &image, Byte* &dest_data_y, Int x, Int y, In
    }
    image.color3DF(x, y, z, color);
 }
+void CopyNoStretch(C Image &src, Image &dest, Bool clamp) // assumes 'src,dest' are locked and non-compressed
+{
+   // FIXME
+   if(dest.hwType()==IMAGE_R8G8B8A8  // common case for encoding BC7
+   && dest.  type()==IMAGE_R8G8B8A8) // check 'type' too in case we have to perform color adjustment
+   {
+      Int x_blocks=dest.lw()/4,
+          y_blocks=dest.lh()/4;
+      REPD(z, dest.ld())
+      {
+         Byte *dest_z=dest.data() + z*dest.pitch2();
+         Int   zo    =(clamp ? Min(z, src.ld()-1) : z%src.ld());
+         REPD(by, y_blocks)
+         {
+            Int py=by*4, yo[4]; // pixel and offset
+            REPAO(yo)=(clamp ? Min(py+i, src.lh()-1) : (py+i)%src.lh());
+            Byte *dest_y=dest_z + py*dest.pitch();
+            REPD(bx, x_blocks)
+            {
+               Int px=bx*4, xo[4]; // pixel and offset
+               REPAO(xo)=(clamp ? Min(px+i, src.lw()-1) : (px+i)%src.lw());
+               Color col[4][4];
+               src.gather(col[0], xo, Elms(xo), yo, Elms(yo), &zo, 1);
+               Byte *dest_x=dest_y + px*SIZE(Color);
+               REP(4)CopyFast(dest_x + i*dest.pitch(), col[i], SIZE(Color)*4);
+            }
+         }
+
+         // process partial blocks
+         x_blocks*=4;
+         y_blocks*=4;
+
+         // process right side (excluding shared corner)
+         if(x_blocks!=dest.lw())
+            for(Int y=       0; y<y_blocks; y++)
+            for(Int x=x_blocks; x<dest.lw(); x++)dest.color3D(x, y, z, clamp ? src.color3D(Min(x, src.lw()-1), Min(y, src.lh()-1), zo) : src.color3D(x%src.lw(), y%src.lh(), zo));
+
+         // process bottom side (including shared corner)
+         //if(y_blocks!=dest.lh()) not needed since we're starting with Y's and this will be checked on its own
+            for(Int y=y_blocks; y<dest.lh(); y++)
+            for(Int x=       0; x<dest.lw(); x++)dest.color3D(x, y, z, clamp ? src.color3D(Min(x, src.lw()-1), Min(y, src.lh()-1), zo) : src.color3D(x%src.lw(), y%src.lh(), zo));
+      }
+   }else
+   if(src .highPrecision()
+   && dest.highPrecision()) // high precision requires FP
+   {
+      REPD(z, dest.ld())
+      REPD(y, dest.lh())
+      REPD(x, dest.lw())dest.color3DF(x, y, z, clamp ? src.color3DF(Min(x, src.lw()-1), Min(y, src.lh()-1), Min(z, src.ld()-1)) : src.color3DF(x%src.lw(), y%src.lh(), z%src.ld()));
+   }else
+   {
+      REPD(z, dest.ld())
+      REPD(y, dest.lh())
+      REPD(x, dest.lw())dest.color3D(x, y, z, clamp ? src.color3D(Min(x, src.lw()-1), Min(y, src.lh()-1), Min(z, src.ld()-1)) : src.color3D(x%src.lw(), y%src.lh(), z%src.ld()));
+   }
+}
 Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_weight, Bool keep_edges, Flt sharp_smooth)C // this does not support compressed images
 {
    if(this==&dest)return true;
@@ -3323,58 +3379,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
       }else
       if(filter==FILTER_NO_STRETCH)
       {
-         if(dest.hwType()==IMAGE_R8G8B8A8  // common case for encoding BC7
-         && dest.  type()==IMAGE_R8G8B8A8) // check 'type' too in case we have to perform color adjustment
-         {
-            Int x_blocks=dest.w()/4,
-                y_blocks=dest.h()/4;
-            REPD(z, dest.d())
-            {
-               Byte *dest_z=dest.data() + z*dest.pitch2();
-               Int   zo    =(clamp ? Min(z, T.d()-1) : z%T.d());
-               REPD(by, y_blocks)
-               {
-                  Int py=by*4, yo[4]; // pixel and offset
-                  REPAO(yo)=(clamp ? Min(py+i, T.h()-1) : (py+i)%T.h());
-                  Byte *dest_y=dest_z + py*dest.pitch();
-                  REPD(bx, x_blocks)
-                  {
-                     Int px=bx*4, xo[4]; // pixel and offset
-                     REPAO(xo)=(clamp ? Min(px+i, T.w()-1) : (px+i)%T.w());
-                     Color col[4][4];
-                     T.gather(col[0], xo, Elms(xo), yo, Elms(yo), &zo, 1);
-                     Byte *dest_x=dest_y + px*SIZE(Color);
-                     REP(4)CopyFast(dest_x + i*dest.pitch(), col[i], SIZE(Color)*4);
-                  }
-               }
-
-               // process partial blocks
-               x_blocks*=4;
-               y_blocks*=4;
-
-               // process right side (excluding shared corner)
-               if(x_blocks!=dest.w())
-                  for(Int y=       0; y<y_blocks; y++)
-                  for(Int x=x_blocks; x<dest.w(); x++)dest.color3D(x, y, z, clamp ? T.color3D(Min(x, w()-1), Min(y, h()-1), zo) : T.color3D(x%w(), y%h(), zo));
-
-               // process bottom side (including shared corner)
-             //if(y_blocks!=dest.h()) not needed since we're starting with Y's and this will be checked on its own
-                  for(Int y=y_blocks; y<dest.h(); y++)
-                  for(Int x=       0; x<dest.w(); x++)dest.color3D(x, y, z, clamp ? T.color3D(Min(x, w()-1), Min(y, h()-1), zo) : T.color3D(x%w(), y%h(), zo));
-            }
-         }else
-         if(T   .highPrecision()
-         && dest.highPrecision()) // high precision requires FP
-         {
-            REPD(z, dest.d())
-            REPD(y, dest.h())
-            REPD(x, dest.w())dest.color3DF(x, y, z, clamp ? T.color3DF(Min(x, w()-1), Min(y, h()-1), Min(z, d()-1)) : T.color3DF(x%w(), y%h(), z%d()));
-         }else
-         {
-            REPD(z, dest.d())
-            REPD(y, dest.h())
-            REPD(x, dest.w())dest.color3D(x, y, z, clamp ? T.color3D(Min(x, w()-1), Min(y, h()-1), Min(z, d()-1)) : T.color3D(x%w(), y%h(), z%d()));
-         }
+         CopyNoStretch(T, dest, clamp);
       }else // resize
       {
          if(!ImageTI[hwType()].a)alpha_weight=false; // disable 'alpha_weight' if the source doesn't have it

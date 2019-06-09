@@ -1600,7 +1600,7 @@ static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'des
    return false;
 }
 /******************************************************************************/
-static Bool Compress(C Image &src, Image &dest, Bool mtrl_base_1=false) // assumes that 'src' and 'dest' are 2 different objects, 'src' is created as non-compressed, and 'dest' is created as compressed
+static Bool Compress(C Image &src, Image &dest, Bool mtrl_base_1=false) // assumes that 'src' and 'dest' are 2 different objects, 'src' is created as non-compressed, and 'dest' is created as compressed, they have the same 'size3'
 {
    switch(dest.hwType())
    {
@@ -1723,7 +1723,7 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
          {
             if(!src->copySoft(target, FILTER_NONE, clamp, alpha_weight, keep_edges))return false; // do raw memory copy
             // FIXME mip maps
-            target.updateMipMaps(FILTER_BEST, clamp, alpha_weight, mtrl_base_1);
+            target.updateMipMaps(FILTER_BEST, clamp, alpha_weight, mtrl_base_1, src->mipMaps()-1);
          }else
          if(src->size3()==target.size3() && src->compressed() && !target.compressed()) // if match in size and just want to be decompressed
          {
@@ -1742,13 +1742,17 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
                   if(!src->copySoft(resized_src, filter, clamp, alpha_weight, keep_edges))return false; src=&resized_src; decompressed_src.del(); // we don't need 'decompressed_src' anymore so delete it to release memory
                }
                if(!Compress(*src, target, mtrl_base_1))return false;
+               // FIXME mip maps 
+               // FIXME in this case we have to use last 'src' mip Map as the base mip map to set 'target' mip maps, because now 'target' is compressed, and has lower quality, but 'src' has better, perform codes only if we actually need to set any mip maps
+               target.updateMipMaps(FILTER_BEST, clamp, alpha_weight, mtrl_base_1, src->mipMaps()-1);
             }else
             {
                if(!src->copySoft(target, filter, clamp, alpha_weight, keep_edges))return false;
+               // FIXME mip maps
+               target.updateMipMaps(FILTER_BEST, clamp, alpha_weight, mtrl_base_1, src->mipMaps()-1);
             }
-            // FIXME mip maps
-            target.updateMipMaps(FILTER_BEST, clamp, alpha_weight, mtrl_base_1);
          }
+         // !! can't access 'src' here because it may point to 'decompressed_src, resized_src' !!
       }
       if(&target!=&dest)Swap(dest, target);
       return true;

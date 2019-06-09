@@ -53,7 +53,7 @@ struct Data
 
    Data(C Image &src, Image &dest) : src(src), dest(dest)
    {
-      total_blocks=src.h()/4;
+      total_blocks=src.lh()/4;
       threads=Min(total_blocks, BC.threads.threads1()); // +1 because we will do processing on the caller thread too
       thread_blocks=total_blocks/threads;
    #if 0 // 3x slower and only small quality difference
@@ -70,8 +70,8 @@ static void CompressBC7Block(IntPtr elm_index, Data &data, Int thread_index)
    Int block_start=elm_index*data.thread_blocks, y_start=block_start*4;
    surf.ptr   =ConstCast(data.src.data()+y_start*data.src.pitch());
    surf.stride=data.src.pitch();
-   surf.width =data.src.w    ();
-   surf.height=((elm_index==data.threads-1) ? data.src.h()-y_start : data.thread_blocks*4); // last thread must process all remaining blocks
+   surf.width =data.src.lw   ();
+   surf.height=((elm_index==data.threads-1) ? data.src.lh()-y_start : data.thread_blocks*4); // last thread must process all remaining blocks
 #if 1 // Intel
    CompressBlocksBC7(&surf, data.dest.data() + block_start*data.dest.pitch(), &data.settings);
 #else // DirectX
@@ -96,23 +96,34 @@ Bool _CompressBC7(C Image &src, Image &dest)
 {
    if(dest.hwType()==IMAGE_BC7)
    {
-      Image temp; C Image *s=&src;
-      if(s->hwType()!=IMAGE_R8G8B8A8 || s->w()!=dest.hwW() || s->h()!=dest.hwH())
-      {
-         if(s->copyTry(temp, dest.hwW(), dest.hwH(), 1, IMAGE_R8G8B8A8, (s->cube() && dest.cube()) ? IMAGE_SOFT_CUBE : IMAGE_SOFT, 1, FILTER_NO_STRETCH, true))s=&temp;else return false; // we need to cover the area for entire HW size, to process partial and Pow2Padded blocks too
-      }
       BC.init();
-      Int src_faces1=s->faces()-1;
-      REPD(face, dest.faces())
+      Image temp; // define outside loop to avoid overhead
+      REPD(mip, Min(src.mipMaps(), dest.mipMaps()))
       {
-         if(!  s->lockRead(            0, (DIR_ENUM)Min(face, src_faces1)))              return false;
-         if(!dest.lock    (LOCK_WRITE, 0, (DIR_ENUM)    face             )){s->unlock(); return false;}
+         Int src_faces1=src.faces()-1,
+             dest_mip_hwW=PaddedWidth (dest.hwW(), dest.hwH(), mip, dest.hwType()),
+             dest_mip_hwH=PaddedHeight(dest.hwW(), dest.hwH(), mip, dest.hwType());
+         // to directly read from 'src', we need to match requirements for compressor, which needs:
+         Bool read_from_src=(src.hwType()==IMAGE_R8G8B8A8 // IMAGE_R8G8B8A8 hw type
+                         && PaddedWidth (src.hwW(), src.hwH(), mip, src.hwType())==dest_mip_hwW   // src mip width  must be exactly the same as dest mip width
+                         && PaddedHeight(src.hwW(), src.hwH(), mip, src.hwType())==dest_mip_hwH); // src mip height must be exactly the same as dest mip height
+       C Image &s=(read_from_src ? src : temp);
+         REPD(face, dest.faces())
+         {
+            if(!read_from_src)
+            {
+               if(!src.extractNonCompressedMipMapNoStretch(temp, dest_mip_hwW, dest_mip_hwH, 1, mip, (DIR_ENUM)Min(face, src_faces1), true))return false;
+               if(temp.hwType()!=IMAGE_R8G8B8A8)if(!temp.copyTry(temp, -1, -1, -1, IMAGE_R8G8B8A8))return false;
+            }
+            if(read_from_src && ! src.lockRead(            mip, (DIR_ENUM)Min(face, src_faces1)))                                return false; // we have to lock only for 'src' because 'temp' is 1mip-1face-SOFT and doesn't need locking
+            if(                 !dest.lock    (LOCK_WRITE, mip, (DIR_ENUM)    face             )){if(read_from_src)src.unlock(); return false;}
 
-         Data data(*s, dest); // !! call after 'BC.init' !!
-         BC.threads.process1(data.threads, CompressBC7Block, data, INT_MAX); // use all available threads, including this one
+            Data data(s, dest); // !! call after 'BC.init' !!
+            BC.threads.process1(data.threads, CompressBC7Block, data, INT_MAX); // use all available threads, including this one
 
-         dest.unlock();
-           s->unlock();
+                            dest.unlock();
+            if(read_from_src)src.unlock();
+         }
       }
       return true;
    }

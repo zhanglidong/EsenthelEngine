@@ -348,6 +348,9 @@ struct Image // Image (Texture)
    Bool   stats                (               Vec4 *min=null, Vec4 *max=null, Vec4 *avg=null, Vec4 *median=null, Vec4 *mode=null, Vec *avg_alpha_weight=null, C BoxI *box=null      )C; // get image statistics               , such as: minimum, maximum, average, median and mode color values, 'box'=optional box in which perform the operation (use null for entire image), false on fail
    Bool   statsSat             (               Flt  *min=null, Flt  *max=null, Flt  *avg=null, Flt  *median=null, Flt  *mode=null, Flt *avg_alpha_weight=null, C BoxI *box=null      )C; // get image statistics for saturation, such as: minimum, maximum, average, median and mode       values, 'box'=optional box in which perform the operation (use null for entire image), false on fail
    Bool   monochromatic        (                                                                                                                                                     )C; // check if image is monochromatic (all RGB values are the same)
+#if EE_PRIVATE
+   Bool   extractNonCompressedMipMapNoStretch(Image &dest, Int w, Int h, Int d, Int mip_map, DIR_ENUM cube_face=DIR_RIGHT, Bool clamp=true)C;
+#endif
    Bool   extractMipMap        (  Image &dest, Int type, Int mode, Int mip_map, DIR_ENUM cube_face=DIR_RIGHT                                                                         )C; // extract specified mipmap to   'dest' 0-th mipmap, false on fail, 'type'=IMAGE_TYPE (-1=keep), 'mode'=IMAGE_MODE (-1=keep)
    Bool    injectMipMap        (C Image &src ,                     Int mip_map, DIR_ENUM cube_face=DIR_RIGHT, FILTER_TYPE filter=FILTER_BEST, Bool clamp=true, Bool mtrl_base_1=false) ; //  inject specified mipmap from 'src'  0-th mipmap, false on fail, 'filter'=what kind of filtering to use when source is of different size than the target, 'clamp'=if use clamping when filtering pixels, 'mtrl_base_1'=if this image is 'Material.base_1' texture
    Image& downSample           (               FILTER_TYPE filter=FILTER_BEST, Bool clamp=true, Bool alpha_weight=false                                                              ) ; // downsample to half resolution size, 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color
@@ -683,9 +686,11 @@ UInt                                  ImageSize        (Int w, Int h, Int d,    
 GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) ImageTypeToFormat(Int                                   type  ); // convert from IMAGE_TYPE to API_FORMAT
 IMAGE_TYPE                            ImageFormatToType(GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) format); // convert from API_FORMAT to IMAGE_TYPE
 Int                                   TotalMipMaps     (Int w, Int h, Int d, IMAGE_TYPE type);
-Bool                                  CompatibleLock   (LOCK_MODE cur, LOCK_MODE lock); // if 'lock' is okay to be applied when 'cur' is already applied
-void                                  InitSRGB         ();
-Vec4                                  ImageColorF      (CPtr data, IMAGE_TYPE hw_type);
+
+Bool CompatibleLock(LOCK_MODE cur, LOCK_MODE lock); // if 'lock' is okay to be applied when 'cur' is already applied
+Vec4 ImageColorF(CPtr data, IMAGE_TYPE hw_type);
+void CopyNoStretch(C Image &src, Image &dest, Bool clamp); // assumes 'src,dest' are locked and non-compressed
+void InitSRGB();
 #if WINDOWS
    HICON CreateIcon(C Image &image, C VecI2 *cursor_hot_spot=null); // 'cursor_hot_spot'=if this is specified then the icon is treated as a mouse cursor with given hot spot, otherwise it's a normal icon
 #endif
