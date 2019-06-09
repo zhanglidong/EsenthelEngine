@@ -1512,7 +1512,7 @@ Image& Image::create(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
    return T;
 }
 /******************************************************************************/
-static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'dest' are 2 different objects, 'src' is compressed, and 'dest' not yet created
+static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'dest' are 2 different objects, 'src' is compressed, and 'dest' not compressed or not yet created
 {
    void (*decompress_block)(C Byte *b, Color (&block)[4][4]), (*decompress_block_pitch)(C Byte *b, Color *dest, Int pitch);
    switch(src.hwType())
@@ -1531,21 +1531,23 @@ static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'des
       case IMAGE_ETC2_A1: decompress_block=DecompressBlockETC2A1; decompress_block_pitch=DecompressBlockETC2A1; break;
       case IMAGE_ETC2_A8: decompress_block=DecompressBlockETC2A8; decompress_block_pitch=DecompressBlockETC2A8; break;
    }
-   if(dest.is() || dest.createTry(src.w(), src.h(), src.d(), IMAGE_R8G8B8A8, src.cube() ? IMAGE_SOFT_CUBE : IMAGE_SOFT, 1)) // use 'IMAGE_R8G8B8A8' because Decompress Block functions operate on 'Color'
+   if(dest.is() || dest.createTry(src.w(), src.h(), src.d(), IMAGE_R8G8B8A8, src.cube() ? IMAGE_SOFT_CUBE : IMAGE_SOFT, src.mipMaps())) // use 'IMAGE_R8G8B8A8' because Decompress Block functions operate on 'Color'
       if(dest.size3()==src.size3())
    {
-      Int src_faces1   =src.faces()-1,
-          full_blocks_x=         dest.w()/4,
-          full_blocks_y=         dest.h()/4,
-           all_blocks_x=DivCeil4(dest.w()),
-           all_blocks_y=DivCeil4(dest.h()),
-           x_mul       =ImageTI[src.hwType()].bit_pp*2; // *2 because (4*4 colors / 8 bits)
+      Int src_faces1=src.faces()-1,
+          x_mul     =ImageTI[src.hwType()].bit_pp*2; // *2 because (4*4 colors / 8 bits)
+      REPD(mip , Min(src.mipMaps(), dest.mipMaps()))
       REPD(face, dest.faces())
       {
-         if(! src.lockRead(            0, (DIR_ENUM)Min(face, src_faces1)))return false;
-         if(!dest.lock    (LOCK_WRITE, 0, (DIR_ENUM)    face             )){src.unlock(); return false;}
+         if(! src.lockRead(            mip, (DIR_ENUM)Min(face, src_faces1)))return false;
+         if(!dest.lock    (LOCK_WRITE, mip, (DIR_ENUM)    face             )){src.unlock(); return false;}
 
-         REPD(z, dest.d())
+         Int full_blocks_x=         dest.lw()/4,
+             full_blocks_y=         dest.lh()/4,
+              all_blocks_x=DivCeil4(dest.lw()),
+              all_blocks_y=DivCeil4(dest.lh());
+
+         REPD(z, dest.ld())
          {
             Color color[4][4];
             Int   done_x=0, done_y=0;
@@ -1720,12 +1722,14 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
          if(src->size3()==target.size3() && src->hwType()==target.hwType()) // if match in size and hardware type
          {
             if(!src->copySoft(target, FILTER_NONE, clamp, alpha_weight, keep_edges))return false; // do raw memory copy
+            // FIXME mip maps
+            target.updateMipMaps(FILTER_BEST, clamp, alpha_weight, mtrl_base_1);
          }else
-         if(src->size3()==target.size3() && src->compressed() && !target.compressed() // if match in size and just want to be decompressed
-         && (src->hwType()==IMAGE_BC1  || src->hwType()==IMAGE_BC2  || src->hwType()==IMAGE_BC3     || src->hwType()==IMAGE_BC7       // currently only BC
-          || src->hwType()==IMAGE_ETC1 || src->hwType()==IMAGE_ETC2 || src->hwType()==IMAGE_ETC2_A1 || src->hwType()==IMAGE_ETC2_A8)) //           and  ETC decompressors have this implemented
+         if(src->size3()==target.size3() && src->compressed() && !target.compressed()) // if match in size and just want to be decompressed
          {
             if(!Decompress(*src, target))return false;
+            // FIXME mip maps
+            target.updateMipMaps(FILTER_BEST, clamp, alpha_weight, mtrl_base_1, src->mipMaps()-1);
          }else
          {
             Image decompressed_src, resized_src;
@@ -1742,8 +1746,9 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
             {
                if(!src->copySoft(target, filter, clamp, alpha_weight, keep_edges))return false;
             }
+            // FIXME mip maps
+            target.updateMipMaps(FILTER_BEST, clamp, alpha_weight, mtrl_base_1);
          }
-         target.updateMipMaps(FILTER_BEST, clamp, alpha_weight, mtrl_base_1);
       }
       if(&target!=&dest)Swap(dest, target);
       return true;

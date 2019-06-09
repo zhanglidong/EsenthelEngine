@@ -689,21 +689,39 @@ void SetPVRTCQuality(Int quality) {       PVRTCQuality=Mid(quality, 0, 4);} // u
 /******************************************************************************/
 Bool DecompressPVRTC(C Image &src, Image &dest)
 {
-   Bool ok=false;
-   if((src.hwType()==IMAGE_PVRTC1_2 || src.hwType()==IMAGE_PVRTC1_4) && dest.createTry(src.hwW(), src.hwH(), src.d(), IMAGE_R8G8B8A8, IMAGE_SOFT, 1)) // use hwX and hwY because decompressor assumes that source and dest have equal sizes, R8G8B8A8 because 'pvrtcDecompress' operates on that format
+   if(src.hwType()==IMAGE_PVRTC1_2 || src.hwType()==IMAGE_PVRTC1_4)
+   if(dest.is() || dest.createTry(src.w(), src.h(), src.d(), IMAGE_R8G8B8A8, src.cube() ? IMAGE_SOFT_CUBE : IMAGE_SOFT, src.mipMaps())) // use 'IMAGE_R8G8B8A8' because 'pvrtcDecompress' operates on that format
+   if(dest.size3()==src.size3())
    {
-      if(src.lockRead())
+      Int   src_faces1=src.faces()-1;
+      Image temp; // define outside of loop so we can reuse it
+      REPD(mip, Min(src.mipMaps(), dest.mipMaps()))
       {
-         using namespace PVRTC;
-         ok=true;
+         Int src_mip_hwW=PaddedWidth (src.hwW(), src.hwH(), mip, src.hwType()),
+             src_mip_hwH=PaddedHeight(src.hwW(), src.hwH(), mip, src.hwType());
+         // to directly write to 'dest', we need to match requirements for decompressor, which needs:
+         Bool write_to_dest=(dest.hwType()==IMAGE_R8G8B8A8 // IMAGE_R8G8B8A8 type
+                          && PaddedWidth (dest.hwW(), dest.hwH(), mip, dest.hwType())==src_mip_hwW   // dest mip width  must be exactly the same as src mip width
+                          && PaddedHeight(dest.hwW(), dest.hwH(), mip, dest.hwType())==src_mip_hwH); // dest mip height must be exactly the same as src mip height
+         Image &target=(write_to_dest ? dest : temp);
+         if(!write_to_dest && !temp.createTry(src_mip_hwW, src_mip_hwH, Max(1, dest.d()>>mip), IMAGE_R8G8B8A8, IMAGE_SOFT, 1))return false;
+         REPD(face, dest.faces()) // use 'dest.faces' (not 'target.faces' because it may be 1 for 'temp', and not 'src.faces' because we need to write all to dest)
+         {
+            if(                 ! src.lockRead(            mip, (DIR_ENUM)Min(face, src_faces1)))return false;
+            if(write_to_dest && !dest.lock    (LOCK_WRITE, mip, (DIR_ENUM)    face             )){src.unlock(); return false;} // we have to lock only for 'dest' because 'temp' is 1mip-1face-SOFT and doesn't need locking
 
-         REPD(z, dest.d())pvrtcDecompress((PVRTuint8*)(src.data() + z*src.pitch2()), (Pixel32*)(dest.data() + z*dest.pitch2()), dest.w(), dest.h(), (src.hwType()==IMAGE_PVRTC1_2) ? 2 : 4);
+            using namespace PVRTC;
+            REPD(z, target.ld())pvrtcDecompress((PVRTuint8*)(src.data() + z*src.pitch2()), (Pixel32*)(target.data() + z*target.pitch2()), src_mip_hwW, src_mip_hwH, (src.hwType()==IMAGE_PVRTC1_2) ? 2 : 4);
 
-         src.unlock();
+            if(write_to_dest)dest.unlock();
+                              src.unlock();
+
+            if(!write_to_dest && !dest.injectMipMap(temp, mip, (DIR_ENUM)face, FILTER_NO_STRETCH))return false;
+         }
       }
-      dest.fastCrop(src.w(), src.h(), src.d());
+      return true;
    }
-   return ok;
+   return false;
 }
 /******************************************************************************/
 }
