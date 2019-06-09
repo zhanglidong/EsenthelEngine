@@ -3344,18 +3344,19 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
 {
    if(this==&dest)return true;
    Int src_faces1=faces()-1;
+   REPD(mip , Min(mipMaps(), dest.mipMaps()))
    REPD(face, dest.faces())
    {
-      if(!   T.lockRead(            0, (DIR_ENUM)Min(face, src_faces1)))             return false;
-      if(!dest.lock    (LOCK_WRITE, 0, (DIR_ENUM)    face             )){T.unlock(); return false;}
+      if(!   T.lockRead(            mip, (DIR_ENUM)Min(face, src_faces1)))             return false;
+      if(!dest.lock    (LOCK_WRITE, mip, (DIR_ENUM)    face             )){T.unlock(); return false;}
 
       if(T.size3()==dest.size3()) // no resize
       {
          if(T.hwType()==dest.hwType()  // no retype
          && (dest.type()==dest.hwType() || T.type()==dest.type())) // check 'type' too in case we have to perform color adjustment
          {
-            Int valid_blocks_y=ImageBlocksY(T.w(), T.h(), 0, T.hwType()); // use "w(), h()" instead of "hwW(), hwH()" to copy only valid pixels
-            REPD(z, T.d())
+            Int valid_blocks_y=ImageBlocksY(T.w(), T.h(), mip, T.hwType()); // use "w(), h()" instead of "hwW(), hwH()" to copy only valid pixels
+            REPD(z, T.ld())
             {
              C Byte *s=T   .data() + z*T   .pitch2();
                Byte *d=dest.data() + z*dest.pitch2();
@@ -3372,37 +3373,37 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
             && dest.hwType()==IMAGE_R8G8B8A8  // very common case for importing images
             && dest.  type()==IMAGE_R8G8B8A8) // check 'type' too in case we have to perform color adjustment
             {
-               REPD(z, T.d())
-               REPD(y, T.h())
+               REPD(z, T.ld())
+               REPD(y, T.lh())
                {
                 C VecB  *s=(VecB *)(T   .data() + y*T   .pitch() + z*T   .pitch2());
                   VecB4 *d=(VecB4*)(dest.data() + y*dest.pitch() + z*dest.pitch2());
-                  REPD(x, T.w()){(d++)->set(s->x, s->y, s->z, 255); s++;}
+                  REPD(x, T.lw()){(d++)->set(s->x, s->y, s->z, 255); s++;}
                }
             }else
             if(T   .hwType()==IMAGE_R8G8B8
             && dest.hwType()==IMAGE_B8G8R8A8  // very common case for importing images
             && dest.  type()==IMAGE_B8G8R8A8) // check 'type' too in case we have to perform color adjustment
             {
-               REPD(z, T.d())
-               REPD(y, T.h())
+               REPD(z, T.ld())
+               REPD(y, T.lh())
                {
                 C VecB  *s=(VecB *)(T   .data() + y*T   .pitch() + z*T   .pitch2());
                   VecB4 *d=(VecB4*)(dest.data() + y*dest.pitch() + z*dest.pitch2());
-                  REPD(x, T.w()){(d++)->set(s->z, s->y, s->x, 255); s++;}
+                  REPD(x, T.lw()){(d++)->set(s->z, s->y, s->x, 255); s++;}
                }
             }else
             if(T   .highPrecision()
             && dest.highPrecision()) // high precision requires FP
             {
-               REPD(z, T.d())
-               REPD(y, T.h())
-               REPD(x, T.w())dest.color3DF(x, y, z, T.color3DF(x, y, z));
+               REPD(z, T.ld())
+               REPD(y, T.lh())
+               REPD(x, T.lw())dest.color3DF(x, y, z, T.color3DF(x, y, z));
             }else
             {
-               REPD(z, T.d())
-               REPD(y, T.h())
-               REPD(x, T.w())dest.color3D(x, y, z, T.color3D(x, y, z));
+               REPD(z, T.ld())
+               REPD(y, T.lh())
+               REPD(x, T.lw())dest.color3D(x, y, z, T.color3D(x, y, z));
             }
          }
       }else
@@ -3415,30 +3416,30 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
          Bool t_high_prec=T.highPrecision(), high_prec=(t_high_prec || dest.highPrecision());
 
          // check for optimized downscale
-         if(dest.w()==Max(1, T.w()>>1)
-         && dest.h()==Max(1, T.h()>>1)
-         && dest.d()==Max(1, T.d()>>1) // 2x downsample
+         if(dest.lw()==Max(1, T.lw()>>1)
+         && dest.lh()==Max(1, T.lh()>>1)
+         && dest.ld()==Max(1, T.ld()>>1) // 2x downsample
          && !keep_edges
          && (Equal(sharp_smooth, 1) || filter==FILTER_NONE)
          )
          {
-            if(T.d()<=1) // 2D
+            if(T.ld()<=1) // 2D
             {
                switch(filter)
                {
-                  case FILTER_NONE: REPD(y, dest.h())
+                  case FILTER_NONE: REPD(y, dest.lh())
                   {
                      Int yc=y*2;
-                     if(high_prec)REPD(x, dest.w())dest.colorF(x, y, colorF(x*2, yc));
-                     else         REPD(x, dest.w())dest.color (x, y, color (x*2, yc));
+                     if(high_prec)REPD(x, dest.lw())dest.colorF(x, y, colorF(x*2, yc));
+                     else         REPD(x, dest.lw())dest.color (x, y, color (x*2, yc));
                   }goto finish;
 
-                  case FILTER_LINEAR: REPD(y, dest.h())
+                  case FILTER_LINEAR: REPD(y, dest.lh())
                   {
-                     Int yc[2]; yc[0]=y*2; yc[1]=(clamp ? Min(yc[0]+1, h()-1) : (yc[0]+1)%h()); // yc[0] is always OK
-                     REPD(x, dest.w())
+                     Int yc[2]; yc[0]=y*2; yc[1]=(clamp ? Min(yc[0]+1, lh()-1) : (yc[0]+1)%lh()); // yc[0] is always OK
+                     REPD(x, dest.lw())
                      {
-                        Int xc[2]; xc[0]=x*2; xc[1]=(clamp ? Min(xc[0]+1, w()-1) : (xc[0]+1)%w()); // xc[0] is always OK
+                        Int xc[2]; xc[0]=x*2; xc[1]=(clamp ? Min(xc[0]+1, lw()-1) : (xc[0]+1)%lw()); // xc[0] is always OK
                         if(high_prec)
                         {
                            Vec4 col, c[2][2]; gather(&c[0][0], xc, Elms(xc), yc, Elms(yc)); // [y][x]
@@ -3488,16 +3489,16 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
                   {
                      if(!high_prec)
                      {
-                        REPD(y, dest.h())
+                        REPD(y, dest.lh())
                         {
                            Int yc[8]; yc[3]=y*2; // 'y[3]' is always OK
-                           if(clamp){yc[0]=Max(yc[3]-3, 0  ); yc[1]=Max(yc[3]-2, 0  ); yc[2]=Max(yc[3]-1, 0  ); yc[4]=Min(yc[3]+1, h()-1); yc[5]=Min(yc[3]+2, h()-1); yc[6]=Min(yc[3]+3, h()-1); yc[7]=Min(yc[3]+4, h()-1);}
-                           else     {yc[0]=Mod(yc[3]-3, h()); yc[1]=Mod(yc[3]-2, h()); yc[2]=Mod(yc[3]-1, h()); yc[4]=   (yc[3]+1)%h()   ; yc[5]=   (yc[3]+2)%h()   ; yc[6]=   (yc[3]+3)%h()   ; yc[7]=   (yc[3]+4)%h()   ;}
-                           REPD(x, dest.w())
+                           if(clamp){yc[0]=Max(yc[3]-3, 0   ); yc[1]=Max(yc[3]-2, 0   ); yc[2]=Max(yc[3]-1, 0   ); yc[4]=Min(yc[3]+1, lh()-1); yc[5]=Min(yc[3]+2, lh()-1); yc[6]=Min(yc[3]+3, lh()-1); yc[7]=Min(yc[3]+4, lh()-1);}
+                           else     {yc[0]=Mod(yc[3]-3, lh()); yc[1]=Mod(yc[3]-2, lh()); yc[2]=Mod(yc[3]-1, lh()); yc[4]=   (yc[3]+1)%lh()   ; yc[5]=   (yc[3]+2)%lh()   ; yc[6]=   (yc[3]+3)%lh()   ; yc[7]=   (yc[3]+4)%lh()   ;}
+                           REPD(x, dest.lw())
                            {
                               Int xc[8]; xc[3]=x*2; // 'x[3]' is always OK
-                              if(clamp){xc[0]=Max(xc[3]-3, 0  ); xc[1]=Max(xc[3]-2, 0  ); xc[2]=Max(xc[3]-1, 0  ); xc[4]=Min(xc[3]+1, w()-1); xc[5]=Min(xc[3]+2, w()-1); xc[6]=Min(xc[3]+3, w()-1); xc[7]=Min(xc[3]+4, w()-1);}
-                              else     {xc[0]=Mod(xc[3]-3, w()); xc[1]=Mod(xc[3]-2, w()); xc[2]=Mod(xc[3]-1, w()); xc[4]=   (xc[3]+1)%w()   ; xc[5]=   (xc[3]+2)%w()   ; xc[6]=   (xc[3]+3)%w()   ; xc[7]=   (xc[3]+4)%w()   ;}
+                              if(clamp){xc[0]=Max(xc[3]-3, 0   ); xc[1]=Max(xc[3]-2, 0   ); xc[2]=Max(xc[3]-1, 0   ); xc[4]=Min(xc[3]+1, lw()-1); xc[5]=Min(xc[3]+2, lw()-1); xc[6]=Min(xc[3]+3, lw()-1); xc[7]=Min(xc[3]+4, lw()-1);}
+                              else     {xc[0]=Mod(xc[3]-3, lw()); xc[1]=Mod(xc[3]-2, lw()); xc[2]=Mod(xc[3]-1, lw()); xc[4]=   (xc[3]+1)%lw()   ; xc[5]=   (xc[3]+2)%lw()   ; xc[6]=   (xc[3]+3)%lw()   ; xc[7]=   (xc[3]+4)%lw()   ;}
                               Color col, c[8][8]; // [y][x]
                            #if 1 // read 8x8
                               gather(&c[0][0], xc, Elms(xc), yc, Elms(yc));
@@ -3621,16 +3622,16 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
 
                   case FILTER_CUBIC_FAST_SMOOTH: // used by 'transparentToNeighbor'
                   {
-                     REPD(y, dest.h())
+                     REPD(y, dest.lh())
                      {
                         Int yc[8]; yc[3]=y*2; // 'y[3]' is always OK
-                        if(clamp){yc[0]=Max(yc[3]-3, 0  ); yc[1]=Max(yc[3]-2, 0  ); yc[2]=Max(yc[3]-1, 0  ); yc[4]=Min(yc[3]+1, h()-1); yc[5]=Min(yc[3]+2, h()-1); yc[6]=Min(yc[3]+3, h()-1); yc[7]=Min(yc[3]+4, h()-1);}
-                        else     {yc[0]=Mod(yc[3]-3, h()); yc[1]=Mod(yc[3]-2, h()); yc[2]=Mod(yc[3]-1, h()); yc[4]=   (yc[3]+1)%h()   ; yc[5]=   (yc[3]+2)%h()   ; yc[6]=   (yc[3]+3)%h()   ; yc[7]=   (yc[3]+4)%h()   ;}
-                        REPD(x, dest.w())
+                        if(clamp){yc[0]=Max(yc[3]-3, 0   ); yc[1]=Max(yc[3]-2, 0   ); yc[2]=Max(yc[3]-1, 0   ); yc[4]=Min(yc[3]+1, lh()-1); yc[5]=Min(yc[3]+2, lh()-1); yc[6]=Min(yc[3]+3, lh()-1); yc[7]=Min(yc[3]+4, lh()-1);}
+                        else     {yc[0]=Mod(yc[3]-3, lh()); yc[1]=Mod(yc[3]-2, lh()); yc[2]=Mod(yc[3]-1, lh()); yc[4]=   (yc[3]+1)%lh()   ; yc[5]=   (yc[3]+2)%lh()   ; yc[6]=   (yc[3]+3)%lh()   ; yc[7]=   (yc[3]+4)%lh()   ;}
+                        REPD(x, dest.lw())
                         {
                            Int xc[8]; xc[3]=x*2; // 'x[3]' is always OK
-                           if(clamp){xc[0]=Max(xc[3]-3, 0  ); xc[1]=Max(xc[3]-2, 0  ); xc[2]=Max(xc[3]-1, 0  ); xc[4]=Min(xc[3]+1, w()-1); xc[5]=Min(xc[3]+2, w()-1); xc[6]=Min(xc[3]+3, w()-1); xc[7]=Min(xc[3]+4, w()-1);}
-                           else     {xc[0]=Mod(xc[3]-3, w()); xc[1]=Mod(xc[3]-2, w()); xc[2]=Mod(xc[3]-1, w()); xc[4]=   (xc[3]+1)%w()   ; xc[5]=   (xc[3]+2)%w()   ; xc[6]=   (xc[3]+3)%w()   ; xc[7]=   (xc[3]+4)%w()   ;}
+                           if(clamp){xc[0]=Max(xc[3]-3, 0   ); xc[1]=Max(xc[3]-2, 0   ); xc[2]=Max(xc[3]-1, 0   ); xc[4]=Min(xc[3]+1, lw()-1); xc[5]=Min(xc[3]+2, lw()-1); xc[6]=Min(xc[3]+3, lw()-1); xc[7]=Min(xc[3]+4, lw()-1);}
+                           else     {xc[0]=Mod(xc[3]-3, lw()); xc[1]=Mod(xc[3]-2, lw()); xc[2]=Mod(xc[3]-1, lw()); xc[4]=   (xc[3]+1)%lw()   ; xc[5]=   (xc[3]+2)%lw()   ; xc[6]=   (xc[3]+3)%lw()   ; xc[7]=   (xc[3]+4)%lw()   ;}
                            Vec rgb=0; Vec4 color=0, c[8][8]; // [y][x]
                            gather(&c[0][0], xc, Elms(xc), yc, Elms(yc));
                            REPD(x, 8)
@@ -3645,13 +3646,13 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
             {
                switch(filter)
                {
-                  case FILTER_NONE: REPD(z, dest.d())
+                  case FILTER_NONE: REPD(z, dest.ld())
                   {
-                     Int zc=z*2; REPD(y, dest.h())
+                     Int zc=z*2; REPD(y, dest.lh())
                      {
                         Int yc=y*2;
-                        if(high_prec)REPD(x, dest.w())dest.color3DF(x, y, z, color3DF(x*2, yc, zc));
-                        else         REPD(x, dest.w())dest.color3D (x, y, z, color3D (x*2, yc, zc));
+                        if(high_prec)REPD(x, dest.lw())dest.color3DF(x, y, z, color3DF(x*2, yc, zc));
+                        else         REPD(x, dest.lw())dest.color3D (x, y, z, color3D (x*2, yc, zc));
                      }
                   }goto finish;
 
@@ -3659,15 +3660,15 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
                   {
                      if(!high_prec)
                      {
-                        REPD(z, dest.d())
+                        REPD(z, dest.ld())
                         {
-                           Int zc[2]; zc[0]=z*2; zc[1]=(clamp ? Min(zc[0]+1, d()-1) : (zc[0]+1)%d()); // zc[0] is always OK
-                           REPD(y, dest.h())
+                           Int zc[2]; zc[0]=z*2; zc[1]=(clamp ? Min(zc[0]+1, ld()-1) : (zc[0]+1)%ld()); // zc[0] is always OK
+                           REPD(y, dest.lh())
                            {
-                              Int yc[2]; yc[0]=y*2; yc[1]=(clamp ? Min(yc[0]+1, h()-1) : (yc[0]+1)%h()); // yc[0] is always OK
-                              REPD(x, dest.w())
+                              Int yc[2]; yc[0]=y*2; yc[1]=(clamp ? Min(yc[0]+1, lh()-1) : (yc[0]+1)%lh()); // yc[0] is always OK
+                              REPD(x, dest.lw())
                               {
-                                 Int xc[2]; xc[0]=x*2; xc[1]=(clamp ? Min(xc[0]+1, w()-1) : (xc[0]+1)%w()); // xc[0] is always OK
+                                 Int xc[2]; xc[0]=x*2; xc[1]=(clamp ? Min(xc[0]+1, lw()-1) : (xc[0]+1)%lw()); // xc[0] is always OK
                                  Color col, c[2][2][2]; gather(&c[0][0][0], xc, Elms(xc), yc, Elms(yc), zc, Elms(zc)); // [z][y][x]
                                  if(!alpha_weight)
                                  {
@@ -3705,17 +3706,17 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
             Vec2 x_mul_add, y_mul_add, z_mul_add;
             if(keep_edges)
             {
-               x_mul_add.set(Flt(T.w()-1)/(dest.w()-1), 0);
-               y_mul_add.set(Flt(T.h()-1)/(dest.h()-1), 0);
-               z_mul_add.set(Flt(T.d()-1)/(dest.d()-1), 0);
+               x_mul_add.set(Flt(T.lw()-1)/(dest.lw()-1), 0);
+               y_mul_add.set(Flt(T.lh()-1)/(dest.lh()-1), 0);
+               z_mul_add.set(Flt(T.ld()-1)/(dest.ld()-1), 0);
             }else
             {
-               x_mul_add.x=Flt(T.w())/dest.w(); x_mul_add.y=x_mul_add.x*0.5f-0.5f;
-               y_mul_add.x=Flt(T.h())/dest.h(); y_mul_add.y=y_mul_add.x*0.5f-0.5f;
-               z_mul_add.x=Flt(T.d())/dest.d(); z_mul_add.y=z_mul_add.x*0.5f-0.5f;
+               x_mul_add.x=Flt(T.lw())/dest.lw(); x_mul_add.y=x_mul_add.x*0.5f-0.5f;
+               y_mul_add.x=Flt(T.lh())/dest.lh(); y_mul_add.y=y_mul_add.x*0.5f-0.5f;
+               z_mul_add.x=Flt(T.ld())/dest.ld(); z_mul_add.y=z_mul_add.x*0.5f-0.5f;
             }
             Vec size(x_mul_add.x, y_mul_add.x, z_mul_add.x); size*=sharp_smooth;
-            if(filter!=FILTER_NONE && (size.x>1 || size.y>1) && T.d()==1 && dest.d()==1) // if we're downsampling (any scale is higher than 1) then we must use more complex 'areaColor*' methods
+            if(filter!=FILTER_NONE && (size.x>1 || size.y>1) && T.ld()==1 && dest.ld()==1) // if we're downsampling (any scale is higher than 1) then we must use more complex 'areaColor*' methods
             {
                Vec4 (Image::*area_color)(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C; // pointer to class method
                switch(filter)
@@ -3730,10 +3731,10 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
                   case FILTER_CUBIC_SHARP      : area_color=&Image::areaColorCubicSharp     ; break;
                }
                Vec2 pos;
-               REPD(y, dest.h())
+               REPD(y, dest.lh())
                {
                   pos.y=y*y_mul_add.x+y_mul_add.y;
-                  REPD(x, dest.w())
+                  REPD(x, dest.lw())
                   {
                      pos.x=x*x_mul_add.x+x_mul_add.y;
                      dest.colorF(x, y, (T.*area_color)(pos, size.xy, clamp, alpha_weight));
@@ -3741,13 +3742,13 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
                }
             }else
             if((filter==FILTER_CUBIC || filter==FILTER_CUBIC_SHARP || filter==FILTER_BEST) // optimized Cubic/Best upscale
-            && T.d()==1)
+            && T.ld()==1)
             {
                Flt (*Func)(Flt x)=((filter==FILTER_CUBIC_SHARP) ? CubicSharp2 : CubicMed2); ASSERT(CUBIC_MED_SAMPLES==CUBIC_SHARP_SAMPLES && CUBIC_MED_RANGE==CUBIC_SHARP_RANGE && CUBIC_MED_SHARPNESS==CUBIC_SHARP_SHARPNESS);
-               REPD(z, dest.d())
+               REPD(z, dest.ld())
                {
                   Byte *dest_data_z=dest.data() + z*dest.pitch2();
-                  FREPD(y, dest.h())
+                  FREPD(y, dest.lh())
                   {
                      Byte *dest_data_y=dest_data_z + y*dest.pitch();
                      Flt   sy=y*y_mul_add.x+y_mul_add.y,
@@ -3775,7 +3776,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
                         REPD(x, CUBIC_MED_SAMPLES*2)REPD(y, x)Swap(c[y][x], c[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
 
                         Int x_offset=0;
-                        FREPD(x, dest.w())
+                        FREPD(x, dest.lw())
                         {
                            Flt sx=x*x_mul_add.x+x_mul_add.y;
                            Int xi2=Floor(sx); if(xi!=xi2)
@@ -3811,7 +3812,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
                         REPD(x, CUBIC_MED_SAMPLES*2)REPD(y, x)Swap(v[y][x], v[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
 
                         Int x_offset=0;
-                        FREPD(x, dest.w())
+                        FREPD(x, dest.lw())
                         {
                            Flt sx=x*x_mul_add.x+x_mul_add.y;
                            Int xi2=Floor(sx); if(xi!=xi2)
@@ -3842,13 +3843,13 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
                }
             }else
             if((filter==FILTER_CUBIC_FAST || filter==FILTER_CUBIC_FAST_SMOOTH || filter==FILTER_CUBIC_FAST_SHARP) // optimized CubicFast upscale
-            && T.d()==1)
+            && T.ld()==1)
             {
                Flt (*Func)(Flt x)=((filter==FILTER_CUBIC_FAST) ? CubicFast2 : (filter==FILTER_CUBIC_FAST_SMOOTH) ? CubicFastSmooth2 : CubicFastSharp2);
-               REPD(z, dest.d())
+               REPD(z, dest.ld())
                {
                   Byte *dest_data_z=dest.data() + z*dest.pitch2();
-                  FREPD(y, dest.h())
+                  FREPD(y, dest.lh())
                   {
                      Byte *dest_data_y=dest_data_z + y*dest.pitch();
                      Flt   sy=y*y_mul_add.x+y_mul_add.y,
@@ -3876,7 +3877,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
                         REPD(x, CUBIC_FAST_SAMPLES*2)REPD(y, x)Swap(c[y][x], c[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
 
                         Int x_offset=0;
-                        FREPD(x, dest.w())
+                        FREPD(x, dest.lw())
                         {
                            Flt sx=x*x_mul_add.x+x_mul_add.y;
                            Int xi2=Floor(sx); if(xi!=xi2)
@@ -3912,7 +3913,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
                         REPD(x, CUBIC_FAST_SAMPLES*2)REPD(y, x)Swap(v[y][x], v[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
 
                         Int x_offset=0;
-                        FREPD(x, dest.w())
+                        FREPD(x, dest.lw())
                         {
                            Flt sx=x*x_mul_add.x+x_mul_add.y;
                            Int xi2=Floor(sx); if(xi!=xi2)
@@ -3943,12 +3944,12 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
                }
             }else
             if(filter==FILTER_LINEAR // optimized Linear upscale, this is used for Texture Sharpness calculation
-            && T.d()==1)
+            && T.ld()==1)
             {
-               REPD(z, dest.d())
+               REPD(z, dest.ld())
                {
                   Byte *dest_data_z=dest.data() + z*dest.pitch2();
-                  FREPD(y, dest.h())
+                  FREPD(y, dest.lh())
                   {
                      Byte *dest_data_y=dest_data_z + y*dest.pitch();
                      Flt   sy=y*y_mul_add.x+y_mul_add.y,
@@ -3976,7 +3977,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
                         REPD(x, 2)REPD(y, x)Swap(c[y][x], c[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
 
                         Int x_offset=0;
-                        FREPD(x, dest.w())
+                        FREPD(x, dest.lw())
                         {
                            Flt sx=x*x_mul_add.x+x_mul_add.y;
                            Int xi2=Floor(sx); if(xi!=xi2)
@@ -4005,7 +4006,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
                         REPD(x, 2)REPD(y, x)Swap(v[y][x], v[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
 
                         Int x_offset=0;
-                        FREPD(x, dest.w())
+                        FREPD(x, dest.lw())
                         {
                            Flt sx=x*x_mul_add.x+x_mul_add.y;
                            Int xi2=Floor(sx); if(xi!=xi2)
@@ -4030,26 +4031,26 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
             }else
             if(NeedMultiChannel(T.type(), dest.type()))
             {
-               REPD(z, dest.d())
+               REPD(z, dest.ld())
                {
                   Flt sz=z*z_mul_add.x+z_mul_add.y;
-                  REPD(y, dest.h())
+                  REPD(y, dest.lh())
                   {
                      Flt sy=y*y_mul_add.x+y_mul_add.y;
-                     REPD(x, dest.w())
+                     REPD(x, dest.lw())
                      {
                         Flt  sx=x*x_mul_add.x+x_mul_add.y;
                         Vec4 color;
                         switch(filter)
                         {
-                           case FILTER_NONE             : color=((T.d()<=1) ? T.colorF               (RoundPos(sx), RoundPos(sy)                     ) : T.color3DF               (RoundPos(sx), RoundPos(sy), RoundPos(sz)       )); break;
-                           case FILTER_LINEAR           : color=((T.d()<=1) ? T.colorFLinear         (         sx ,          sy , clamp, alpha_weight) : T.color3DFLinear         (         sx ,          sy ,          sz , clamp)); break;
-                           case FILTER_CUBIC_FAST       : color=((T.d()<=1) ? T.colorFCubicFast      (         sx ,          sy , clamp, alpha_weight) : T.color3DFCubicFast      (         sx ,          sy ,          sz , clamp)); break;
-                           case FILTER_CUBIC_FAST_SMOOTH: color=((T.d()<=1) ? T.colorFCubicFastSmooth(         sx ,          sy , clamp, alpha_weight) : T.color3DFCubicFastSmooth(         sx ,          sy ,          sz , clamp)); break;
-                           case FILTER_CUBIC_FAST_SHARP : color=((T.d()<=1) ? T.colorFCubicFastSharp (         sx ,          sy , clamp, alpha_weight) : T.color3DFCubicFastSharp (         sx ,          sy ,          sz , clamp)); break;
+                           case FILTER_NONE             : color=((T.ld()<=1) ? T.colorF               (RoundPos(sx), RoundPos(sy)                     ) : T.color3DF               (RoundPos(sx), RoundPos(sy), RoundPos(sz)       )); break;
+                           case FILTER_LINEAR           : color=((T.ld()<=1) ? T.colorFLinear         (         sx ,          sy , clamp, alpha_weight) : T.color3DFLinear         (         sx ,          sy ,          sz , clamp)); break;
+                           case FILTER_CUBIC_FAST       : color=((T.ld()<=1) ? T.colorFCubicFast      (         sx ,          sy , clamp, alpha_weight) : T.color3DFCubicFast      (         sx ,          sy ,          sz , clamp)); break;
+                           case FILTER_CUBIC_FAST_SMOOTH: color=((T.ld()<=1) ? T.colorFCubicFastSmooth(         sx ,          sy , clamp, alpha_weight) : T.color3DFCubicFastSmooth(         sx ,          sy ,          sz , clamp)); break;
+                           case FILTER_CUBIC_FAST_SHARP : color=((T.ld()<=1) ? T.colorFCubicFastSharp (         sx ,          sy , clamp, alpha_weight) : T.color3DFCubicFastSharp (         sx ,          sy ,          sz , clamp)); break;
                            default                      : // FILTER_BEST
-                           case FILTER_CUBIC            : color=((T.d()<=1) ? T.colorFCubic          (         sx ,          sy , clamp, alpha_weight) : T.color3DFCubic          (         sx ,          sy ,          sz , clamp)); break;
-                           case FILTER_CUBIC_SHARP      : color=((T.d()<=1) ? T.colorFCubicSharp     (         sx ,          sy , clamp, alpha_weight) : T.color3DFCubicSharp     (         sx ,          sy ,          sz , clamp)); break;
+                           case FILTER_CUBIC            : color=((T.ld()<=1) ? T.colorFCubic          (         sx ,          sy , clamp, alpha_weight) : T.color3DFCubic          (         sx ,          sy ,          sz , clamp)); break;
+                           case FILTER_CUBIC_SHARP      : color=((T.ld()<=1) ? T.colorFCubicSharp     (         sx ,          sy , clamp, alpha_weight) : T.color3DFCubicSharp     (         sx ,          sy ,          sz , clamp)); break;
                         }
                         dest.color3DF(x, y, z, color);
                      }
@@ -4057,26 +4058,26 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
                }
             }else
             {
-               REPD(z, dest.d())
+               REPD(z, dest.ld())
                {
                   Flt sz=z*z_mul_add.x+z_mul_add.y;
-                  REPD(y, dest.h())
+                  REPD(y, dest.lh())
                   {
                      Flt sy=y*y_mul_add.x+y_mul_add.y;
-                     REPD(x, dest.w())
+                     REPD(x, dest.lw())
                      {
                         Flt sx=x*x_mul_add.x+x_mul_add.y,
                             pix;
                         switch(filter)
                         {
-                           case FILTER_NONE             : pix=((T.d()<=1) ? T.pixelF               (RoundPos(sx), RoundPos(sy)       ) : T.pixel3DF               (RoundPos(sx), RoundPos(sy), RoundPos(sz)       )); break;
-                           case FILTER_LINEAR           : pix=((T.d()<=1) ? T.pixelFLinear         (         sx ,          sy , clamp) : T.pixel3DFLinear         (         sx ,          sy ,          sz , clamp)); break;
-                           case FILTER_CUBIC_FAST       : pix=((T.d()<=1) ? T.pixelFCubicFast      (         sx ,          sy , clamp) : T.pixel3DFCubicFast      (         sx ,          sy ,          sz , clamp)); break;
-                           case FILTER_CUBIC_FAST_SMOOTH: pix=((T.d()<=1) ? T.pixelFCubicFastSmooth(         sx ,          sy , clamp) : T.pixel3DFCubicFastSmooth(         sx ,          sy ,          sz , clamp)); break;
-                           case FILTER_CUBIC_FAST_SHARP : pix=((T.d()<=1) ? T.pixelFCubicFastSharp (         sx ,          sy , clamp) : T.pixel3DFCubicFastSharp (         sx ,          sy ,          sz , clamp)); break;
+                           case FILTER_NONE             : pix=((T.ld()<=1) ? T.pixelF               (RoundPos(sx), RoundPos(sy)       ) : T.pixel3DF               (RoundPos(sx), RoundPos(sy), RoundPos(sz)       )); break;
+                           case FILTER_LINEAR           : pix=((T.ld()<=1) ? T.pixelFLinear         (         sx ,          sy , clamp) : T.pixel3DFLinear         (         sx ,          sy ,          sz , clamp)); break;
+                           case FILTER_CUBIC_FAST       : pix=((T.ld()<=1) ? T.pixelFCubicFast      (         sx ,          sy , clamp) : T.pixel3DFCubicFast      (         sx ,          sy ,          sz , clamp)); break;
+                           case FILTER_CUBIC_FAST_SMOOTH: pix=((T.ld()<=1) ? T.pixelFCubicFastSmooth(         sx ,          sy , clamp) : T.pixel3DFCubicFastSmooth(         sx ,          sy ,          sz , clamp)); break;
+                           case FILTER_CUBIC_FAST_SHARP : pix=((T.ld()<=1) ? T.pixelFCubicFastSharp (         sx ,          sy , clamp) : T.pixel3DFCubicFastSharp (         sx ,          sy ,          sz , clamp)); break;
                            default                      : // FILTER_BEST
-                           case FILTER_CUBIC            : pix=((T.d()<=1) ? T.pixelFCubic          (         sx ,          sy , clamp) : T.pixel3DFCubic          (         sx ,          sy ,          sz , clamp)); break;
-                           case FILTER_CUBIC_SHARP      : pix=((T.d()<=1) ? T.pixelFCubicSharp     (         sx ,          sy , clamp) : T.pixel3DFCubicSharp     (         sx ,          sy ,          sz , clamp)); break;
+                           case FILTER_CUBIC            : pix=((T.ld()<=1) ? T.pixelFCubic          (         sx ,          sy , clamp) : T.pixel3DFCubic          (         sx ,          sy ,          sz , clamp)); break;
+                           case FILTER_CUBIC_SHARP      : pix=((T.ld()<=1) ? T.pixelFCubicSharp     (         sx ,          sy , clamp) : T.pixel3DFCubicSharp     (         sx ,          sy ,          sz , clamp)); break;
                         }
                         dest.pixel3DF(x, y, z, pix);
                      }
