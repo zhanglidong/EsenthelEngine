@@ -716,7 +716,7 @@ Bool DecompressPVRTC(C Image &src, Image &dest)
             if(write_to_dest)dest.unlock();
                               src.unlock();
 
-            if(!write_to_dest && !dest.injectMipMap(temp, mip, (DIR_ENUM)face, FILTER_NO_STRETCH))return false;
+            if(!write_to_dest && !dest.injectMipMap(temp, mip, (DIR_ENUM)face, FILTER_NO_STRETCH, true))return false;
          }
       }
       return true;
