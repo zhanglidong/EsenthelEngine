@@ -3262,8 +3262,7 @@ void CopyNoStretch(C Image &src, Image &dest, Bool clamp) // assumes 'src,dest' 
 {
    Bool high_precision=(src .highPrecision()
                      && dest.highPrecision()); // high precision requires FP
-   if(src.hwType()==dest.hwType()  // no retype
-   && (dest.type()==dest.hwType() || src.type()==dest.type())) // check 'type' too in case we have to perform color adjustment
+   if(CanDoRawCopy(src, dest)) // no retype
    {
       Int w=Min(src.lw(), dest.lw()),
           h=Min(src.lh(), dest.lh()),
@@ -3352,8 +3351,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
 
       if(T.size3()==dest.size3()) // no resize
       {
-         if(T.hwType()==dest.hwType()  // no retype
-         && (dest.type()==dest.hwType() || T.type()==dest.type())) // check 'type' too in case we have to perform color adjustment
+         if(CanDoRawCopy(T, dest)) // no retype
          {
             Int valid_blocks_y=ImageBlocksY(T.w(), T.h(), mip, T.hwType()); // use "w(), h()" instead of "hwW(), hwH()" to copy only valid pixels
             REPD(z, T.ld())

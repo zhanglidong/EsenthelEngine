@@ -244,6 +244,12 @@ Bool CompatibleLock(LOCK_MODE cur, LOCK_MODE lock)
       case LOCK_READ      : return lock==LOCK_READ;
    }
 }
+Bool CanDoRawCopy(C Image &src, C Image &dest)
+{
+   return src.hwType()==dest.hwType()
+   && (  dest.  type()==dest.hwType() // check 'type' too in case we have to perform color adjustment
+   ||     src.  type()==dest.  type());
+}
 /******************************************************************************/
 GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) ImageTypeToFormat(Int                                   type  ) {return InRange(type, ImageTI) ? ImageTI[type].format : GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, 0);}
 IMAGE_TYPE                            ImageFormatToType(GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) format
@@ -1622,8 +1628,7 @@ static Bool Compress(C Image &src, Image &dest, Bool mtrl_base_1=false) // assum
 /******************************************************************************/
 static Int CopyMipMaps(C Image &src, Image &dest) // this assumes that "&src != &dest", returns how many mip-maps were copied
 {
-   if(dest.hwType()==src.hwType()
-   &&(dest.hwType()==dest.type() || src.type()==dest.type()) // check 'type' too in case we have to perform color adjustment
+   if(CanDoRawCopy(src, dest)
    && dest.w()<=src.w()
    && dest.h()<=src.h()
    && dest.d()<=src.d())
@@ -1717,7 +1722,7 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
       )copied_mip_maps=CopyMipMaps(*src, target);
       if(!copied_mip_maps)
       {
-         if(src->size3()==target.size3() && src->hwType()==target.hwType()) // if match in size and hardware type
+         if(src->size3()==target.size3() && CanDoRawCopy(*src, target)) // if match in size and hardware type
          {
             if(!src->copySoft(target, FILTER_NONE, clamp, alpha_weight, keep_edges))return false; // do raw memory copy
             copied_mip_maps=src->mipMaps();
