@@ -1620,10 +1620,10 @@ static Bool Compress(C Image &src, Image &dest, Bool mtrl_base_1=false) // assum
    return false;
 }
 /******************************************************************************/
-static Bool CopyMipMaps(C Image &src, Image &dest) // this assumes that "&src != &dest"
+static Int CopyMipMaps(C Image &src, Image &dest) // this assumes that "&src != &dest", returns how many mip-maps were copied
 {
    if(dest.hwType()==src.hwType()
-   && dest.  type()==src.  type() // check 'type' too in case we have to perform color adjustment
+   &&(dest.hwType()==dest.type() || src.type()==dest.type()) // check 'type' too in case we have to perform color adjustment
    && dest.w()<=src.w()
    && dest.h()<=src.h()
    && dest.d()<=src.d())
@@ -1634,32 +1634,30 @@ static Bool CopyMipMaps(C Image &src, Image &dest) // this assumes that "&src !=
           src_mip_d=Max(1, src.d()>>i);
       if( src_mip_w==dest.w() && src_mip_h==dest.h() && src_mip_d==dest.d()) // i-th 'src' mip-map is the same as first 'dest' mip-map
       {
-         if(src.mipMaps()-i>=dest.mipMaps()) // if 'src' has all mip-maps needed in 'dest'
+         Int mip_maps  =Min(src.mipMaps()-i, dest.mipMaps()), // how many to copy
+            dest_faces =dest.faces(),
+             src_faces1= src.faces()-1;
+         FREPD(mip ,  mip_maps )
+         FREPD(face, dest_faces)
          {
-            Int dest_faces=dest.faces(), src_faces1=src.faces()-1;
-            FREPD(mip , dest.mipMaps())
-             REPD(face, dest_faces)
+            if(!src .lockRead(          i+mip, (DIR_ENUM)Min(face, src_faces1)))return 0;
+            if(!dest.lock    (LOCK_WRITE, mip, (DIR_ENUM)    face             )){src.unlock(); return 0;}
+            Int blocks_y=Min(ImageBlocksY(src .hwW(), src .hwH(), i+mip, src .hwType()),
+                             ImageBlocksY(dest.hwW(), dest.hwH(),   mip, dest.hwType()));
+            REPD(z, dest.ld())
             {
-               if(!src .lockRead(          i+mip, (DIR_ENUM)Min(face, src_faces1)))return false;
-               if(!dest.lock    (LOCK_WRITE, mip, (DIR_ENUM)    face             )){src.unlock(); return false;}
-               Int blocks_y=Min(ImageBlocksY(src .hwW(), src .hwH(), i+mip, src .hwType()),
-                                ImageBlocksY(dest.hwW(), dest.hwH(),   mip, dest.hwType()));
-               REPD(z, dest.ld())
-               {
-                C Byte * src_data= src.data() + z* src.pitch2();
-                  Byte *dest_data=dest.data() + z*dest.pitch2();
-                  if(dest.pitch()==src.pitch())CopyFast(dest_data, src_data, Min(dest.pitch2(), src.pitch2()));
-                  else        REPD(y, blocks_y)CopyFast(dest_data + y*dest.pitch(), src_data + y*src.pitch(), Min(dest.pitch(), src.pitch()));
-               }
-               dest.unlock();
-               src .unlock();
+             C Byte * src_data= src.data() + z* src.pitch2();
+               Byte *dest_data=dest.data() + z*dest.pitch2();
+               if(dest.pitch()==src.pitch())CopyFast(dest_data, src_data, Min(dest.pitch2(), src.pitch2()));
+               else        REPD(y, blocks_y)CopyFast(dest_data + y*dest.pitch(), src_data + y*src.pitch(), Min(dest.pitch(), src.pitch()));
             }
-            return true;
+            dest.unlock();
+            src .unlock();
          }
-         break;
+         return mip_maps;
       }
    }
-   return false;
+   return 0;
 }
 /******************************************************************************/
 Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mip_maps, FILTER_TYPE filter, Bool clamp, Bool alpha_weight, Bool keep_edges, Bool mtrl_base_1, Bool rgba_on_fail)C
@@ -1707,29 +1705,24 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
       if(!target.createTry(w, h, d, IMAGE_TYPE(type), IMAGE_MODE(mode), mip_maps, rgba_on_fail))return false;
 
       // copy
-      if(
-      (src->size3()==target.size3() // if we use the same size (for which case 'filter' and 'keep_edges' are ignored)
+      Int copied_mip_maps=0;
+      if(src->size3()==target.size3() // if we use the same size (for which case 'filter' and 'keep_edges' are ignored)
       || (
             (filter==FILTER_BEST || filter==FILTER_DOWN) // we're going to use default filter for downsampling (which is typically used for mip-map generation)
          && !keep_edges                                  // we're not keeping the edges                        (which is typically used for mip-map generation)
          )
-      )
-      && CopyMipMaps(*src, target)) // and we were able to copy all mip-maps needed in the destination from source
-      {
-         // this does not require 'updateMipMaps'
-      }else
+      )copied_mip_maps=CopyMipMaps(*src, target);
+      if(!copied_mip_maps)
       {
          if(src->size3()==target.size3() && src->hwType()==target.hwType()) // if match in size and hardware type
          {
             if(!src->copySoft(target, FILTER_NONE, clamp, alpha_weight, keep_edges))return false; // do raw memory copy
-            // FIXME mip maps
-            target.updateMipMaps(FILTER_BEST, clamp, alpha_weight, mtrl_base_1, src->mipMaps()-1);
+            copied_mip_maps=src->mipMaps();
          }else
          if(src->size3()==target.size3() && src->compressed() && !target.compressed()) // if match in size and just want to be decompressed
          {
             if(!Decompress(*src, target))return false;
-            // FIXME mip maps
-            target.updateMipMaps(FILTER_BEST, clamp, alpha_weight, mtrl_base_1, src->mipMaps()-1);
+            copied_mip_maps=src->mipMaps();
          }else
          {
             Image decompressed_src, resized_src;
@@ -1742,18 +1735,17 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
                   if(!src->copySoft(resized_src, filter, clamp, alpha_weight, keep_edges))return false; src=&resized_src; decompressed_src.del(); // we don't need 'decompressed_src' anymore so delete it to release memory
                }
                if(!Compress(*src, target, mtrl_base_1))return false;
-               // FIXME mip maps 
                // FIXME in this case we have to use last 'src' mip Map as the base mip map to set 'target' mip maps, because now 'target' is compressed, and has lower quality, but 'src' has better, perform codes only if we actually need to set any mip maps
-               target.updateMipMaps(FILTER_BEST, clamp, alpha_weight, mtrl_base_1, src->mipMaps()-1);
+               copied_mip_maps=src->mipMaps();
             }else
             {
                if(!src->copySoft(target, filter, clamp, alpha_weight, keep_edges))return false;
-               // FIXME mip maps
-               target.updateMipMaps(FILTER_BEST, clamp, alpha_weight, mtrl_base_1, src->mipMaps()-1);
+               copied_mip_maps=src->mipMaps();
             }
          }
          // !! can't access 'src' here because it may point to 'decompressed_src, resized_src' !!
       }
+      target.updateMipMaps(FILTER_BEST, clamp, alpha_weight, mtrl_base_1, copied_mip_maps-1);
       if(&target!=&dest)Swap(dest, target);
       return true;
    }
