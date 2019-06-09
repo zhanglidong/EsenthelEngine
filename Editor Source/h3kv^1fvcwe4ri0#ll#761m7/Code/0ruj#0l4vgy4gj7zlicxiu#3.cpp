@@ -625,7 +625,13 @@ VecI ImageSize(C VecI &src, C VecI2 &custom, bool pow2)
 }
 bool EditToGameImage(Image &edit, Image &game, bool pow2, bool alpha_lum, ElmImage.TYPE type, int mode, int mip_maps, bool has_color, bool has_alpha, bool ignore_alpha, C VecI2 &custom_size=0, C int *force_type=null)
 {
-   VecI size=ImageSize(edit.size3(), custom_size, pow2);
+   VecI size=edit.size3();
+   if(!edit.cube() && IsCube((IMAGE_MODE)mode))switch(edit.cubeLayout())
+   {
+      case CUBE_LAYOUT_CROSS: size.x/=4; size.y/=3; break;
+      case CUBE_LAYOUT_6x1  : size.x/=6;            break;
+   }
+   size=ImageSize(size, custom_size, pow2);
 
    Image temp, *src=&edit;
 

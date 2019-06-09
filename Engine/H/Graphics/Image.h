@@ -128,11 +128,9 @@ enum IMAGE_MODE : Byte // Image Mode
    IMAGE_SHADOW_MAP  , // Hardware Shadow Map (Depth Texture)
 #endif
 };
-#if EE_PRIVATE
 Bool IsSoft(IMAGE_MODE mode); // if this is a software image     (IMAGE_SOFT, IMAGE_SOFT_CUBE)
 Bool IsHW  (IMAGE_MODE mode); // if this is a hardware image NOT (IMAGE_SOFT, IMAGE_SOFT_CUBE)
 Bool IsCube(IMAGE_MODE mode); // if this is a cube     image     (IMAGE_CUBE, IMAGE_SOFT_CUBE or IMAGE_RT_CUBE)
-#endif
 enum IMAGE_PRECISION : Byte // Image Precision
 {
    IMAGE_PRECISION_8  , // up to 8-bits
@@ -147,14 +145,12 @@ enum IMAGE_PRECISION : Byte // Image Precision
 inline IMAGE_PRECISION Min(IMAGE_PRECISION a, IMAGE_PRECISION b) {return (a<b) ? a : b;}
 inline IMAGE_PRECISION Max(IMAGE_PRECISION a, IMAGE_PRECISION b) {return (a>b) ? a : b;}
 #endif
-#if EE_PRIVATE
 enum CUBE_LAYOUT : Byte
 {
    CUBE_LAYOUT_ONE  ,
    CUBE_LAYOUT_CROSS, // 4x3 cross
    CUBE_LAYOUT_6x1  , // Left, Front, Right, Back, Down, Up
 };
-#endif
 /******************************************************************************/
 struct ImageTypeInfo // Image Type Information
 {
@@ -212,18 +208,16 @@ struct Image // Image (Texture)
    Bool  multiSample ()C {return _samples>1       ;} // if  this   is a multi sampled image
    Bool       partial()C {return _partial         ;} // if  'hwSize' is different than 'size'
    Int          faces()C;                            // get how many faces this image has (0=empty, 1=default, 6=cube)
-#if EE_PRIVATE
    Bool          soft()C {return IsSoft(mode())   ;} // if this is a software image     (IMAGE_SOFT, IMAGE_SOFT_CUBE)
    Bool            hw()C {return IsHW  (mode())   ;} // if this is a hardware image NOT (IMAGE_SOFT, IMAGE_SOFT_CUBE)
    Bool          cube()C {return IsCube(mode())   ;} // if this is a cube     image     (IMAGE_CUBE, IMAGE_SOFT_CUBE or IMAGE_RT_CUBE)
-   DIR_ENUM lCubeFace()C {return _lcf             ;} // get locked cube face
-#endif
 
-   Int  lMipMap()C {return _lmm   ;} // get index              of locked mip map
-   UInt  pitch ()C {return _pitch ;} // get width        pitch of locked mip map
-   UInt  pitch2()C {return _pitch2;} // get width*height pitch of locked mip map
-   Byte* data  ()  {return _data  ;} // get address            of locked data, memory accessed using this method should be interpreted according to 'hwType' (and not 'type')
- C Byte* data  ()C {return _data  ;} // get address            of locked data, memory accessed using this method should be interpreted according to 'hwType' (and not 'type')
+   Int      lMipMap  ()C {return _lmm   ;} // get index              of locked mip map
+   DIR_ENUM lCubeFace()C {return _lcf   ;} // get                       locked cube face
+   UInt     pitch    ()C {return _pitch ;} // get width        pitch of locked mip map
+   UInt     pitch2   ()C {return _pitch2;} // get width*height pitch of locked mip map
+   Byte*    data     ()  {return _data  ;} // get address            of locked data, memory accessed using this method should be interpreted according to 'hwType' (and not 'type')
+ C Byte*    data     ()C {return _data  ;} // get address            of locked data, memory accessed using this method should be interpreted according to 'hwType' (and not 'type')
 
    Flt                    aspect()C {return Flt(w())/h()                     ;} // get          aspect ratio of image "width/height"
    Flt                 invAspect()C {return Flt(h())/w()                     ;} // get inversed aspect ratio of image "height/width"
@@ -233,6 +227,8 @@ struct Image // Image (Texture)
    Bool               compressed()C {return ImageTI[_hw_type].   compressed  ;} // if  hardware type is compressed
    IMAGE_PRECISION     precision()C {return ImageTI[_hw_type].    precision  ;} // get image precision
    Bool            highPrecision()C {return ImageTI[_hw_type].highPrecision();} // if  any channel of the image uses more than 8 bits
+
+   CUBE_LAYOUT cubeLayout()C; // auto-detect cube layout based on image size
 
    // manage
    Image& del          (                                                                                             );                                                                       // delete
@@ -387,7 +383,6 @@ struct Image // Image (Texture)
    Bool depthTexture()C;
    Bool compatible  (C Image &image)C;
 
-   CUBE_LAYOUT cubeLayout()C; // auto-detect cube layout
    Bool   toCube(C Image &src, Int layout=-1, Int size=-1, Int              type=-1, Int mode=-1, Int mip_maps=-1, FILTER_TYPE filter=FILTER_BEST, Bool rgba_on_fail=true); // convert from 'src' image      to cube image, 'size'=desired resolution of the image (-1=keep), 'type'=IMAGE_TYPE (-1=keep), 'mode'=IMAGE_MODE (-1=auto), 'mip_maps'=number of mip-maps (0=autodetect), 'filter'=what kind of filtering to use when source is of different size than the target
    Bool fromCube(C Image &src,                             Int uncompressed_type=-1                                                                                      ); // convert from 'src' cube image to 6x1  image,                                      'uncompressed_type'=IMAGE_TYPE to use if source is compressed
    Image& fastCrop(Int w, Int h, Int d); // crop by adjusting the internal dimension members only, this will work only if the new dimensions are smaller or equal than hardware dimensions and mip map count is equal to 1

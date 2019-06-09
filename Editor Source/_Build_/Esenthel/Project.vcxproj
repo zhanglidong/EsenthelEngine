@@ -492,7 +492,7 @@
 			<RuntimeLibrary>MultiThreaded</RuntimeLibrary>
 			<EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
 			<FloatingPointModel>Fast</FloatingPointModel>
-			<AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-null-dereference -Wno-int-to-void-pointer-cast -std=c++11</AdditionalOptions>
+			<AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-dynamic-class-memaccess -std=c++17</AdditionalOptions>
 			<RuntimeTypeInfo>true</RuntimeTypeInfo>
 			<PrecompiledHeader>Use</PrecompiledHeader>
 			<WarningLevel>Level3</WarningLevel>
@@ -661,7 +661,7 @@
 			<FunctionLevelLinking>true</FunctionLevelLinking>
 			<EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
 			<FloatingPointModel>Fast</FloatingPointModel>
-			<AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-null-dereference -Wno-int-to-void-pointer-cast -std=c++11</AdditionalOptions>
+			<AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-dynamic-class-memaccess -std=c++17</AdditionalOptions>
 			<RuntimeTypeInfo>true</RuntimeTypeInfo>
 			<PrecompiledHeader>Use</PrecompiledHeader>
 			<WarningLevel>Level3</WarningLevel>
@@ -964,7 +964,7 @@
 			<RuntimeLibrary>MultiThreaded</RuntimeLibrary>
 			<EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
 			<FloatingPointModel>Fast</FloatingPointModel>
-			<AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-null-dereference -Wno-int-to-void-pointer-cast -std=c++11</AdditionalOptions>
+			<AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-dynamic-class-memaccess -std=c++17</AdditionalOptions>
 			<RuntimeTypeInfo>true</RuntimeTypeInfo>
 			<PrecompiledHeader>Use</PrecompiledHeader>
 			<WarningLevel>Level3</WarningLevel>
@@ -1008,7 +1008,7 @@
 			<RuntimeLibrary>MultiThreaded</RuntimeLibrary>
 			<EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
 			<FloatingPointModel>Fast</FloatingPointModel>
-			<AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-null-dereference -Wno-int-to-void-pointer-cast -std=c++11</AdditionalOptions>
+			<AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-dynamic-class-memaccess -std=c++17</AdditionalOptions>
 			<RuntimeTypeInfo>true</RuntimeTypeInfo>
 			<PrecompiledHeader>Use</PrecompiledHeader>
 			<WarningLevel>Level3</WarningLevel>
@@ -1316,7 +1316,7 @@
 			<FunctionLevelLinking>true</FunctionLevelLinking>
 			<EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
 			<FloatingPointModel>Fast</FloatingPointModel>
-			<AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-null-dereference -Wno-int-to-void-pointer-cast -std=c++11</AdditionalOptions>
+			<AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-dynamic-class-memaccess -std=c++17</AdditionalOptions>
 			<RuntimeTypeInfo>true</RuntimeTypeInfo>
 			<PrecompiledHeader>Use</PrecompiledHeader>
 			<WarningLevel>Level3</WarningLevel>
@@ -1360,7 +1360,7 @@
 			<FunctionLevelLinking>true</FunctionLevelLinking>
 			<EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
 			<FloatingPointModel>Fast</FloatingPointModel>
-			<AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-null-dereference -Wno-int-to-void-pointer-cast -std=c++11</AdditionalOptions>
+			<AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -Wno-null-dereference -Wno-int-to-void-pointer-cast -Wno-dynamic-class-memaccess -std=c++17</AdditionalOptions>
 			<RuntimeTypeInfo>true</RuntimeTypeInfo>
 			<PrecompiledHeader>Use</PrecompiledHeader>
 			<WarningLevel>Level3</WarningLevel>
