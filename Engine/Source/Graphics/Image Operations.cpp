@@ -48,8 +48,11 @@ static Bool ExtractMipMap(C Image &src, Image &dest, Int w, Int h, Int d, Int mi
       {
        C Byte * src_data= src.data() + z* src.pitch2();
          Byte *dest_data=dest.data() + z*dest.pitch2();
-         Int  copy_pitch=Min(src.pitch(), dest.pitch());
-         REPD(y, blocks_y)CopyFast(dest_data + y*dest.pitch(), src_data + y*src.pitch(), copy_pitch);
+         if(src.pitch()==dest.pitch())CopyFast(dest_data, src_data, Min(src.pitch2(), dest.pitch2()));else
+         {
+            Int pitch=Min(src.pitch(), dest.pitch());
+            REPD(y, blocks_y)CopyFast(dest_data + y*dest.pitch(), src_data + y*src.pitch(), pitch);
+         }
       }
 
     //dest.unlock(); not needed for SOFT
