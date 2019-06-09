@@ -1648,8 +1648,11 @@ static Int CopyMipMaps(C Image &src, Image &dest) // this assumes that "&src != 
             {
              C Byte * src_data= src.data() + z* src.pitch2();
                Byte *dest_data=dest.data() + z*dest.pitch2();
-               if(dest.pitch()==src.pitch())CopyFast(dest_data, src_data, Min(dest.pitch2(), src.pitch2()));
-               else        REPD(y, blocks_y)CopyFast(dest_data + y*dest.pitch(), src_data + y*src.pitch(), Min(dest.pitch(), src.pitch()));
+               if(dest.pitch()==src.pitch())CopyFast(dest_data, src_data, Min(dest.pitch2(), src.pitch2()));else
+               {
+                  Int pitch=Min(dest.pitch(), src.pitch());
+                  REPD(y, blocks_y)CopyFast(dest_data + y*dest.pitch(), src_data + y*src.pitch(), pitch);
+               }
             }
             dest.unlock();
             src .unlock();
@@ -1745,7 +1748,7 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
                copied_mip_maps=src->mipMaps();
             }
          }
-         // !! can't access 'src' here because it may point to 'decompressed_src, resized_src' !!
+         // !! can't access 'src' here because it may point to 'decompressed_src, resized_src' which are now invalid !!
       }
       target.updateMipMaps(FILTER_BEST, clamp, alpha_weight, mtrl_base_1, copied_mip_maps-1);
       if(&target!=&dest)Swap(dest, target);
