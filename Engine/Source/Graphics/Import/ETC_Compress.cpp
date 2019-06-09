@@ -65,11 +65,12 @@ namespace EE{
 Bool _CompressETC(C Image &src, Image &dest, Int quality, Bool perceptual)
 {
    Bool etc1=(dest.hwType()==IMAGE_ETC1);
-   if(src.d()==dest.d())
    if(etc1 || dest.hwType()==IMAGE_ETC2 || dest.hwType()==IMAGE_ETC2_A1 || dest.hwType()==IMAGE_ETC2_A8)
+ //if(dest.size3()==src.size3()) this check is not needed because the code below supports different sizes
    {
-      Image temp; C Image *s=&src;
-      if(etc1 && ETC1_ENC==ETC_LIB_ISPC)
+      Int src_faces1=src.faces()-1;
+      Image temp; // defined outside of loop to avoid overhead
+      REPD(mip, Min(src.mipMaps(), dest.mipMaps()))
       {
          if(s->hwType()!=IMAGE_R8G8B8A8 || s->w()!=dest.hwW() || s->h()!=dest.hwH()) // ISPC requires R8G8B8A8 format
          {
