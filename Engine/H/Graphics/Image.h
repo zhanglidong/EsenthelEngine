@@ -151,7 +151,7 @@ inline IMAGE_PRECISION Max(IMAGE_PRECISION a, IMAGE_PRECISION b) {return (a>b) ?
 enum CUBE_LAYOUT : Byte
 {
    CUBE_LAYOUT_ONE  ,
-   CUBE_LAYOUT_CROSS,
+   CUBE_LAYOUT_CROSS, // 4x3 cross
    CUBE_LAYOUT_6x1  , // Left, Front, Right, Back, Down, Up
 };
 #endif
