@@ -3260,8 +3260,35 @@ static INLINE void StoreColor(Image &image, Byte* &dest_data_y, Int x, Int y, In
 }
 void CopyNoStretch(C Image &src, Image &dest, Bool clamp) // assumes 'src,dest' are locked and non-compressed
 {
-   // FIXME
-   if(dest.hwType()==IMAGE_R8G8B8A8  // common case for encoding BC7
+   Bool high_precision=(src .highPrecision()
+                     && dest.highPrecision()); // high precision requires FP
+   if(src.hwType()==dest.hwType()  // no retype
+   && (dest.type()==dest.hwType() || src.type()==dest.type())) // check 'type' too in case we have to perform color adjustment
+   {
+      Int w=Min(src.lw(), dest.lw()),
+          h=Min(src.lh(), dest.lh()),
+          d=Min(src.ld(), dest.ld()),
+          copy_pitch=w*src.bytePP();
+      FREPD(z, d)
+      {
+         Byte *dest_z=dest.data() + z*dest.pitch2();
+       C Byte * src_z=src .data() + z*src .pitch2();
+         FREPD(y, h)
+         {
+            Byte *dest_y=dest_z + y*dest.pitch();
+          C Byte * src_y= src_z + y*src .pitch();
+            CopyFast(dest_y, src_y, copy_pitch);
+
+            if(high_precision)                                                      for(Int x=w; x<dest.lw(); x++)dest.color3DF(x, y, z, clamp ? src.color3DF(Min(x, src.lw()-1), Min(y, src.lh()-1), Min(z, src.ld()-1)) : src.color3DF(x%src.lw(), y%src.lh(), z%src.ld()));
+            else                                                                    for(Int x=w; x<dest.lw(); x++)dest.color3D (x, y, z, clamp ? src.color3D (Min(x, src.lw()-1), Min(y, src.lh()-1), Min(z, src.ld()-1)) : src.color3D (x%src.lw(), y%src.lh(), z%src.ld()));
+         }
+         if(high_precision)                           for(Int y=h; y<dest.lh(); y++)for(Int x=0; x<dest.lw(); x++)dest.color3DF(x, y, z, clamp ? src.color3DF(Min(x, src.lw()-1), Min(y, src.lh()-1), Min(z, src.ld()-1)) : src.color3DF(x%src.lw(), y%src.lh(), z%src.ld()));
+         else                                         for(Int y=h; y<dest.lh(); y++)for(Int x=0; x<dest.lw(); x++)dest.color3D (x, y, z, clamp ? src.color3D (Min(x, src.lw()-1), Min(y, src.lh()-1), Min(z, src.ld()-1)) : src.color3D (x%src.lw(), y%src.lh(), z%src.ld()));
+      }
+      if(high_precision)for(Int z=d; z<dest.ld(); z++)for(Int y=0; y<dest.lh(); y++)for(Int x=0; x<dest.lw(); x++)dest.color3DF(x, y, z, clamp ? src.color3DF(Min(x, src.lw()-1), Min(y, src.lh()-1), Min(z, src.ld()-1)) : src.color3DF(x%src.lw(), y%src.lh(), z%src.ld()));
+      else              for(Int z=d; z<dest.ld(); z++)for(Int y=0; y<dest.lh(); y++)for(Int x=0; x<dest.lw(); x++)dest.color3D (x, y, z, clamp ? src.color3D (Min(x, src.lw()-1), Min(y, src.lh()-1), Min(z, src.ld()-1)) : src.color3D (x%src.lw(), y%src.lh(), z%src.ld()));
+   }else
+ /*if(dest.hwType()==IMAGE_R8G8B8A8
    && dest.  type()==IMAGE_R8G8B8A8) // check 'type' too in case we have to perform color adjustment
    {
       Int x_blocks=dest.lw()/4,
@@ -3300,9 +3327,8 @@ void CopyNoStretch(C Image &src, Image &dest, Bool clamp) // assumes 'src,dest' 
             for(Int y=y_blocks; y<dest.lh(); y++)
             for(Int x=       0; x<dest.lw(); x++)dest.color3D(x, y, z, clamp ? src.color3D(Min(x, src.lw()-1), Min(y, src.lh()-1), zo) : src.color3D(x%src.lw(), y%src.lh(), zo));
       }
-   }else
-   if(src .highPrecision()
-   && dest.highPrecision()) // high precision requires FP
+   }else*/
+   if(high_precision)
    {
       REPD(z, dest.ld())
       REPD(y, dest.lh())
