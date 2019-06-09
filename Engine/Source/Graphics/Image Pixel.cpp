@@ -3381,7 +3381,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
                   REPD(x, T.lw()){(d++)->set(s->x, s->y, s->z, 255); s++;}
                }
             }else
-            if(T   .hwType()==IMAGE_R8G8B8
+          /*if(T   .hwType()==IMAGE_R8G8B8
             && dest.hwType()==IMAGE_B8G8R8A8  // very common case for importing images
             && dest.  type()==IMAGE_B8G8R8A8) // check 'type' too in case we have to perform color adjustment
             {
@@ -3392,7 +3392,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
                   VecB4 *d=(VecB4*)(dest.data() + y*dest.pitch() + z*dest.pitch2());
                   REPD(x, T.lw()){(d++)->set(s->z, s->y, s->x, 255); s++;}
                }
-            }else
+            }else*/
             if(T   .highPrecision()
             && dest.highPrecision()) // high precision requires FP
             {
