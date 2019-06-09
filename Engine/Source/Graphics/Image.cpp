@@ -1675,7 +1675,7 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
    }else
    if(!src->cube() && IsCube((IMAGE_MODE)mode)) // if converting from non-cube to cube
    {
-      return dest.toCube(*src, -1, (w>0) ? w : h, type, mode, mip_maps, filter);
+      return dest.toCube(*src, -1, (w>0) ? w : h, type, mode, mip_maps, filter, rgba_on_fail);
    }
 
    // calculate dimensions after cube conversion
@@ -1762,7 +1762,7 @@ CUBE_LAYOUT Image::cubeLayout()C
  //if( aspect>Avg(  one_aspect, cross_aspect))return CUBE_LAYOUT_CROSS; TODO: not yet supported
                                               return CUBE_LAYOUT_ONE;
 }
-Bool Image::toCube(C Image &src, Int layout, Int size, Int type, Int mode, Int mip_maps, FILTER_TYPE filter)
+Bool Image::toCube(C Image &src, Int layout, Int size, Int type, Int mode, Int mip_maps, FILTER_TYPE filter, Bool rgba_on_fail)
 {
    if(!src.cube() && src.is())
    {
@@ -1772,7 +1772,7 @@ Bool Image::toCube(C Image &src, Int layout, Int size, Int type, Int mode, Int m
       if(!IsCube(IMAGE_MODE(mode)))mode    =(IsSoft(src.mode()) ? IMAGE_SOFT_CUBE : IMAGE_CUBE);
       if(mip_maps<0               )mip_maps=((src.mipMaps()==1) ? 1 : 0); // if source has 1 mip map, then create only 1, else create full
       Image temp;
-      if(temp.createTry(size, size, 1, IMAGE_TYPE(type), IMAGE_MODE(mode), mip_maps))
+      if(temp.createTry(size, size, 1, IMAGE_TYPE(type), IMAGE_MODE(mode), mip_maps, rgba_on_fail))
       {
          if(layout==CUBE_LAYOUT_ONE)
          {

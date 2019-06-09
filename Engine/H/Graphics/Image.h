@@ -382,8 +382,8 @@ struct Image // Image (Texture)
    Bool compatible  (C Image &image)C;
 
    CUBE_LAYOUT cubeLayout()C; // auto-detect cube layout
-   Bool   toCube(C Image &src, Int layout=-1, Int size=-1, Int              type=-1, Int mode=-1, Int mip_maps=-1, FILTER_TYPE filter=FILTER_BEST); // convert from 'src' image      to cube image, 'size'=desired resolution of the image (-1=keep), 'type'=IMAGE_TYPE (-1=keep), 'mode'=IMAGE_MODE (-1=auto), 'mip_maps'=number of mip-maps (0=autodetect), 'filter'=what kind of filtering to use when source is of different size than the target
-   Bool fromCube(C Image &src,                             Int uncompressed_type=-1                                                              ); // convert from 'src' cube image to 6x1  image,                                      'uncompressed_type'=IMAGE_TYPE to use if source is compressed
+   Bool   toCube(C Image &src, Int layout=-1, Int size=-1, Int              type=-1, Int mode=-1, Int mip_maps=-1, FILTER_TYPE filter=FILTER_BEST, Bool rgba_on_fail=true); // convert from 'src' image      to cube image, 'size'=desired resolution of the image (-1=keep), 'type'=IMAGE_TYPE (-1=keep), 'mode'=IMAGE_MODE (-1=auto), 'mip_maps'=number of mip-maps (0=autodetect), 'filter'=what kind of filtering to use when source is of different size than the target
+   Bool fromCube(C Image &src,                             Int uncompressed_type=-1                                                                                      ); // convert from 'src' cube image to 6x1  image,                                      'uncompressed_type'=IMAGE_TYPE to use if source is compressed
    Image& fastCrop(Int w, Int h, Int d); // crop by adjusting the internal dimension members only, this will work only if the new dimensions are smaller or equal than hardware dimensions and mip map count is equal to 1
 #endif
 
