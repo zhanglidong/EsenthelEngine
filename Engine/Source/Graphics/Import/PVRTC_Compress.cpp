@@ -67,7 +67,7 @@ Bool _CompressPVRTC(C Image &src, Image &dest, Int quality)
 
             dest.unlock();
              src.unlock();
-            if(!ok)return false;
+            if(!ok)break;
          }
       }
    }
