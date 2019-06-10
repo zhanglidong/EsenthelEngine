@@ -827,7 +827,7 @@ Bool Image::ImportTry(File &f, Int type, Int mode, Int mip_maps)
    f.pos(pos); if(ImportDDS (f, type, mode, mip_maps))goto ok;
    f.pos(pos); if(ImportPSD (f))goto ok;
    f.pos(pos); if(ImportICO (f))goto ok;
-   // TGA format doesn't contain any special signatures, so we can't check it
+ //f.pos(pos); if(ImportTGA (f, type, mode, mip_maps))goto ok; TGA format doesn't contain any special signatures, so we can't check it
    del(); return false;
 ok:;
    return copyTry(T, -1, -1, -1, type, mode, mip_maps);
@@ -835,16 +835,13 @@ ok:;
 Bool Image::ImportTry(C Str &name, Int type, Int mode, Int mip_maps)
 {
    if(!name.is()){del(); return true;}
-
    File f; if(f.readTry(name))
    {
       if(ImportTry(f, type, mode, mip_maps))return true;
       CChar *ext=_GetExt(name);
-      if(Equal(ext, "tga") && f.pos(0) && ImportTGA(f))goto ok; // TGA format doesn't contain any special signatures, so check extension instead
+      if(Equal(ext, "tga") && f.pos(0) && ImportTGA(f, type, mode, mip_maps))return true; // TGA format doesn't contain any special signatures, so check extension instead
    }
    del(); return false;
-ok:;
-   return copyTry(T, -1, -1, -1, type, mode, mip_maps);
 }
 Image& Image::Import(File &f, Int type, Int mode, Int mip_maps)
 {
