@@ -449,11 +449,11 @@ Image& Image::mirrorX()
                REPD(y, mirror.h())
                REPD(x, mirror.w())mirror.color3D(x, y, z, src->color3D(mirror.w()-1-x, y, z));
             }
-            mirror.unlock();
+            mirror.unlock().updateMipMaps();
             ok=mirror.copyTry(mirror, w(), h(), d(), type(), mode(), mipMaps());
          }
          src->unlock();
-         if(ok)Swap(T, mirror.updateMipMaps());
+         if(ok)Swap(T, mirror);
       }
    }
    return T;
@@ -484,11 +484,11 @@ Image& Image::mirrorY()
                REPD(y, mirror.h())
                REPD(x, mirror.w())mirror.color3D(x, y, z, src->color3D(x, mirror.h()-1-y, z));
             }
-            mirror.unlock();
+            mirror.unlock().updateMipMaps();
             ok=mirror.copyTry(mirror, w(), h(), d(), type(), mode(), mipMaps());
          }
          src->unlock();
-         if(ok)Swap(T, mirror.updateMipMaps());
+         if(ok)Swap(T, mirror);
       }
    }
    return T;
@@ -1440,8 +1440,8 @@ Bool Image::averageX(Image &dest, Int range, Bool clamp, Threads *threads)C
 
    BlurContext bc(*src, clamp, threads); bc.setRange(range); bc.setAvgX(); bc.dest=&work; bc.blur();
 
-   work.unlock(); src->unlock();
-   if(work.type()==type && work.mode()==mode && work.mipMaps()==mip_maps){work.updateMipMaps(FILTER_BEST, clamp); if(&work!=&dest)Swap(work, dest); return true;} // if we have desired type mode and mip maps, then all we need is to update mip maps and possibly Swap if needed, remember that after Swap we should operate on 'dest' and not 'work'
+   work.unlock().updateMipMaps(FILTER_BEST, clamp); src->unlock();
+   if(work.type()==type && work.mode()==mode && work.mipMaps()==mip_maps){if(&work!=&dest)Swap(work, dest); return true;} // if we have desired type mode and mip maps, then all we need is to Swap if needed, remember that after Swap we should operate on 'dest' and not 'work'
    return work.copyTry(dest, -1, -1, -1, type, mode, mip_maps, FILTER_BEST, clamp);
 }
 Bool Image::averageY(Image &dest, Int range, Bool clamp, Threads *threads)C
@@ -1458,8 +1458,8 @@ Bool Image::averageY(Image &dest, Int range, Bool clamp, Threads *threads)C
 
    BlurContext bc(*src, clamp, threads); bc.setRange(range); bc.setAvgY(); bc.dest=&work; bc.blur();
 
-   work.unlock(); src->unlock();
-   if(work.type()==type && work.mode()==mode && work.mipMaps()==mip_maps){work.updateMipMaps(FILTER_BEST, clamp); if(&work!=&dest)Swap(work, dest); return true;} // if we have desired type mode and mip maps, then all we need is to update mip maps and possibly Swap if needed, remember that after Swap we should operate on 'dest' and not 'work'
+   work.unlock().updateMipMaps(FILTER_BEST, clamp); src->unlock();
+   if(work.type()==type && work.mode()==mode && work.mipMaps()==mip_maps){if(&work!=&dest)Swap(work, dest); return true;} // if we have desired type mode and mip maps, then all we need is to Swap if needed, remember that after Swap we should operate on 'dest' and not 'work'
    return work.copyTry(dest, -1, -1, -1, type, mode, mip_maps, FILTER_BEST, clamp);
 }
 Bool Image::averageZ(Image &dest, Int range, Bool clamp, Threads *threads)C
@@ -1476,8 +1476,8 @@ Bool Image::averageZ(Image &dest, Int range, Bool clamp, Threads *threads)C
 
    BlurContext bc(*src, clamp, threads); bc.setRange(range); bc.setAvgZ(); bc.dest=&work; bc.blur();
 
-   work.unlock(); src->unlock();
-   if(work.type()==type && work.mode()==mode && work.mipMaps()==mip_maps){work.updateMipMaps(FILTER_BEST, clamp); if(&work!=&dest)Swap(work, dest); return true;} // if we have desired type mode and mip maps, then all we need is to update mip maps and possibly Swap if needed, remember that after Swap we should operate on 'dest' and not 'work'
+   work.unlock().updateMipMaps(FILTER_BEST, clamp); src->unlock();
+   if(work.type()==type && work.mode()==mode && work.mipMaps()==mip_maps){if(&work!=&dest)Swap(work, dest); return true;} // if we have desired type mode and mip maps, then all we need is to Swap if needed, remember that after Swap we should operate on 'dest' and not 'work'
    return work.copyTry(dest, -1, -1, -1, type, mode, mip_maps, FILTER_BEST, clamp);
 }
 /******************************************************************************/
@@ -1495,8 +1495,8 @@ Bool Image::blurX(Image &dest, Flt range, Bool clamp, Threads *threads)C
 
    BlurContext bc(*src, clamp, threads); bc.setRange(range); bc.setX(); bc.dest=&work; bc.blur();
 
-   work.unlock(); src->unlock();
-   if(work.type()==type && work.mode()==mode && work.mipMaps()==mip_maps){work.updateMipMaps(FILTER_BEST, clamp); if(&work!=&dest)Swap(work, dest); return true;} // if we have desired type mode and mip maps, then all we need is to update mip maps and possibly Swap if needed, remember that after Swap we should operate on 'dest' and not 'work'
+   work.unlock().updateMipMaps(FILTER_BEST, clamp); src->unlock();
+   if(work.type()==type && work.mode()==mode && work.mipMaps()==mip_maps){if(&work!=&dest)Swap(work, dest); return true;} // if we have desired type mode and mip maps, then all we need is to Swap if needed, remember that after Swap we should operate on 'dest' and not 'work'
    return work.copyTry(dest, -1, -1, -1, type, mode, mip_maps, FILTER_BEST, clamp);
 }
 Bool Image::blurY(Image &dest, Flt range, Bool clamp, Threads *threads)C
@@ -1513,8 +1513,8 @@ Bool Image::blurY(Image &dest, Flt range, Bool clamp, Threads *threads)C
 
    BlurContext bc(*src, clamp, threads); bc.setRange(range); bc.setY(); bc.dest=&work; bc.blur();
 
-   work.unlock(); src->unlock();
-   if(work.type()==type && work.mode()==mode && work.mipMaps()==mip_maps){work.updateMipMaps(FILTER_BEST, clamp); if(&work!=&dest)Swap(work, dest); return true;} // if we have desired type mode and mip maps, then all we need is to update mip maps and possibly Swap if needed, remember that after Swap we should operate on 'dest' and not 'work'
+   work.unlock().updateMipMaps(FILTER_BEST, clamp); src->unlock();
+   if(work.type()==type && work.mode()==mode && work.mipMaps()==mip_maps){if(&work!=&dest)Swap(work, dest); return true;} // if we have desired type mode and mip maps, then all we need is to Swap if needed, remember that after Swap we should operate on 'dest' and not 'work'
    return work.copyTry(dest, -1, -1, -1, type, mode, mip_maps, FILTER_BEST, clamp);
 }
 Bool Image::blurZ(Image &dest, Flt range, Bool clamp, Threads *threads)C
@@ -1531,8 +1531,8 @@ Bool Image::blurZ(Image &dest, Flt range, Bool clamp, Threads *threads)C
 
    BlurContext bc(*src, clamp, threads); bc.setRange(range); bc.setZ(); bc.dest=&work; bc.blur();
 
-   work.unlock(); src->unlock();
-   if(work.type()==type && work.mode()==mode && work.mipMaps()==mip_maps){work.updateMipMaps(FILTER_BEST, clamp); if(&work!=&dest)Swap(work, dest); return true;} // if we have desired type mode and mip maps, then all we need is to update mip maps and possibly Swap if needed, remember that after Swap we should operate on 'dest' and not 'work'
+   work.unlock().updateMipMaps(FILTER_BEST, clamp); src->unlock();
+   if(work.type()==type && work.mode()==mode && work.mipMaps()==mip_maps){if(&work!=&dest)Swap(work, dest); return true;} // if we have desired type mode and mip maps, then all we need is to Swap if needed, remember that after Swap we should operate on 'dest' and not 'work'
    return work.copyTry(dest, -1, -1, -1, type, mode, mip_maps, FILTER_BEST, clamp);
 }
 /******************************************************************************/
@@ -1590,7 +1590,8 @@ Bool   Image::average(Image &dest, C VecI &range, Bool clamp, Threads *threads)C
    }
 
    Image &img=ConstCast(*bc.src); // at this point 'bc.src' points to non const image ('temp' or 'dest'), so we can use 'ConstCast'
-   if(img.type()==type && img.mode()==mode && img.mipMaps()==mip_maps){img.updateMipMaps(FILTER_BEST, clamp); if(&img!=&dest)Swap(img, dest); return true;} // if we have desired type mode and mip maps, then all we need is to update mip maps and possibly Swap if needed, remember that after Swap we should operate on 'dest' and not 'img'
+   img.updateMipMaps(FILTER_BEST, clamp);
+   if(img.type()==type && img.mode()==mode && img.mipMaps()==mip_maps){if(&img!=&dest)Swap(img, dest); return true;} // if we have desired type mode and mip maps, then all we need is to Swap if needed, remember that after Swap we should operate on 'dest' and not 'img'
    return img.copyTry(dest, -1, -1, -1, type, mode, mip_maps, FILTER_BEST, clamp);
 }
 Image& Image::blur(             C Vec &range, Bool clamp, Threads *threads) {blur(T, range, clamp, threads); return T;}
@@ -1647,7 +1648,8 @@ Bool   Image::blur(Image &dest, C Vec &range, Bool clamp, Threads *threads)C
    }
 
    Image &img=ConstCast(*bc.src); // at this point 'bc.src' points to non const image ('temp' or 'dest'), so we can use 'ConstCast'
-   if(img.type()==type && img.mode()==mode && img.mipMaps()==mip_maps){img.updateMipMaps(FILTER_BEST, clamp); if(&img!=&dest)Swap(img, dest); return true;} // if we have desired type mode and mip maps, then all we need is to update mip maps and possibly Swap if needed, remember that after Swap we should operate on 'dest' and not 'img'
+   img.updateMipMaps(FILTER_BEST, clamp);
+   if(img.type()==type && img.mode()==mode && img.mipMaps()==mip_maps){if(&img!=&dest)Swap(img, dest); return true;} // if we have desired type mode and mip maps, then all we need is to Swap if needed, remember that after Swap we should operate on 'dest' and not 'img'
    return img.copyTry(dest, -1, -1, -1, type, mode, mip_maps, FILTER_BEST, clamp);
 }
 /******************************************************************************/
