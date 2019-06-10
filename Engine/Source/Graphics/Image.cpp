@@ -1853,7 +1853,7 @@ Bool Image::fromCube(C Image &src, Int uncompressed_type)
                case 4: cube_face=DIR_DOWN   ; break;
                case 5: cube_face=DIR_UP     ; break;
             }
-            if(!src.extractMipMap(face, temp.hwType(), IMAGE_SOFT, 0, cube_face))return false; // extract face
+            if(!src.extractMipMap(face, temp.hwType(), IMAGE_SOFT, 0, cube_face))return false; // extract face, we need 'temp.hwType' so we can do fast copy to 'temp' below
             // copy non-compressed 2D face to non-compressed 6*2D
             if(!face.lockRead())return false;
             REPD(y, size)
