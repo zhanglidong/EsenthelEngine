@@ -1348,7 +1348,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          if(n.name=="Type")type=EditEnums::TYPE(n.asInt());
       }
    }
-   bool       ElmImage::ignoreAlpha()C {return mode==IMAGE_CUBE;}
+   bool       ElmImage::ignoreAlpha()C {return IsCube(mode);}
    bool       ElmImage::mipMaps()C {return FlagTest(flag, MIP_MAPS );}
    void ElmImage::mipMaps(bool on) {FlagSet(flag, MIP_MAPS , on);}
    bool       ElmImage::pow2()C {return FlagTest(flag, POW2     );}

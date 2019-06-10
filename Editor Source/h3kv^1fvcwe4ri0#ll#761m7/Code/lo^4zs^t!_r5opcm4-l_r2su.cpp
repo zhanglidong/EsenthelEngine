@@ -111,10 +111,10 @@ class ImporterClass
 
                // process textures only if they're added for the first time, otherwise delete them so they won't be saved
                uint       bt=CreateBaseTextures(base_0, base_1, col, alpha, bump, normal, spec, glow, true, flip_normal_y);
-               IMAGE_TYPE ct; ImageProps(    base_0, &    base_0_id, &ct, ForceHQMtrlBase0 ? FORCE_HQ : 0); if(Importer.includeTex(    base_0_id))                           base_0    .copyTry(base_0    , -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, false, false, false, false); else base_0    .del();
-                              ImageProps(    base_1, &    base_1_id, &ct, ForceHQMtrlBase1 ? FORCE_HQ : 0); if(Importer.includeTex(    base_1_id))                           base_1    .copyTry(base_1    , -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, false, false, false, true ); else base_1    .del();
-                              ImageProps(reflection, &reflection_id, &ct, IGNORE_ALPHA                   ); if(Importer.includeTex(reflection_id)){FixAlpha(reflection, ct); reflection.copyTry(reflection, -1, -1, -1, ct, IMAGE_CUBE                                          );}else reflection.del();
-                              ImageProps(     light, &     light_id, &ct, IGNORE_ALPHA                   ); if(Importer.includeTex(     light_id)){FixAlpha(light     , ct); light     .copyTry(light     , -1, -1, -1, ct, IMAGE_2D, 0                                         );}else light     .del();
+               IMAGE_TYPE ct; ImageProps(    base_0, &    base_0_id, &ct, ForceHQMtrlBase0 ? FORCE_HQ : 0); if(Importer.includeTex(    base_0_id))                           base_0    .copyTry(base_0    , -1, -1, -1, ct, IMAGE_2D  , 0, FILTER_BEST, false, false, false, false); else base_0    .del();
+                              ImageProps(    base_1, &    base_1_id, &ct, ForceHQMtrlBase1 ? FORCE_HQ : 0); if(Importer.includeTex(    base_1_id))                           base_1    .copyTry(base_1    , -1, -1, -1, ct, IMAGE_2D  , 0, FILTER_BEST, false, false, false, true ); else base_1    .del();
+                              ImageProps(reflection, &reflection_id, &ct, IGNORE_ALPHA                   ); if(Importer.includeTex(reflection_id)){FixAlpha(reflection, ct); reflection.copyTry(reflection, -1, -1, -1, ct, IMAGE_CUBE, 1                                         );}else reflection.del();
+                              ImageProps(     light, &     light_id, &ct, IGNORE_ALPHA                   ); if(Importer.includeTex(     light_id)){FixAlpha(light     , ct); light     .copyTry(light     , -1, -1, -1, ct, IMAGE_2D  , 0                                         );}else light     .del();
                mtrl._adjustParams(~bt, bt);
             }
          }
@@ -176,7 +176,7 @@ class ImporterClass
                   {
                      ImageEx &image=images(i);
                      src.copy(image.raw.writeMem());
-                     if(Elm *elm=Proj.findElm(image_id))if(ElmImage *data=elm.imageData())image.cube=(data.mode==IMAGE_CUBE);
+                     if(Elm *elm=Proj.findElm(image_id))if(ElmImage *data=elm.imageData())image.cube=IsCube(data.mode);
                   }
 
                   // check if any of the images were not imported

@@ -1634,7 +1634,7 @@ class ElmImage : ElmData
    VecI2      size=0; // -1=use existing, 0=default (use existing but adjust scale to keep aspect ratio if other value is modified)
    TimeStamp  mip_maps_time, pow2_time, alpha_lum_time, type_time, mode_time, size_time, file_time;
 
-   bool       ignoreAlpha()C {return mode==IMAGE_CUBE;}
+   bool       ignoreAlpha()C {return IsCube(mode);}
    bool       mipMaps    ()C {return FlagTest(flag, MIP_MAPS );}   void mipMaps (bool on) {FlagSet(flag, MIP_MAPS , on);}
    bool       pow2       ()C {return FlagTest(flag, POW2     );}   void pow2    (bool on) {FlagSet(flag, POW2     , on);}
    bool       alphaLum   ()C {return FlagTest(flag, ALPHA_LUM);}   void alphaLum(bool on) {FlagSet(flag, ALPHA_LUM, on);}

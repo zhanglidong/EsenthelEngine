@@ -854,12 +854,13 @@ Image& Image::Import(C Str &name, Int type, Int mode, Int mip_maps)
    return T;
 }
 /******************************************************************************/
-Bool Image::ImportCubeTry(C Image &right, C Image &left, C Image &up, C Image &down, C Image &forward, C Image &back, Int type, Int mip_maps, Bool resize_to_pow2, FILTER_TYPE filter)
+Bool Image::ImportCubeTry(C Image &right, C Image &left, C Image &up, C Image &down, C Image &forward, C Image &back, Int type, Bool soft, Int mip_maps, Bool resize_to_pow2, FILTER_TYPE filter)
 {
    Int size= Max(right  .w(), right  .h(), left.w(), left.h()) ;
    MAX(size, Max(up     .w(), up     .h(), down.w(), down.h()));
    MAX(size, Max(forward.w(), forward.h(), back.w(), back.h()));
-   if(createCubeTry(resize_to_pow2 ? NearestPow2(size) : size, IMAGE_TYPE((type<=0) ? right.type() : type), mip_maps))
+   if(resize_to_pow2)size=NearestPow2(size);
+   if(createTry(size, size, 1, IMAGE_TYPE((type<=0) ? right.type() : type), soft ? IMAGE_SOFT_CUBE : IMAGE_CUBE, mip_maps))
    {
       injectMipMap(right  , 0, DIR_RIGHT  , filter);
       injectMipMap(left   , 0, DIR_LEFT   , filter);
@@ -871,7 +872,7 @@ Bool Image::ImportCubeTry(C Image &right, C Image &left, C Image &up, C Image &d
    }
    del(); return false;
 }
-Bool Image::ImportCubeTry(C Str &right, C Str &left, C Str &up, C Str &down, C Str &forward, C Str &back, Int type, Int mip_maps, Bool resize_to_pow2, FILTER_TYPE filter)
+Bool Image::ImportCubeTry(C Str &right, C Str &left, C Str &up, C Str &down, C Str &forward, C Str &back, Int type, Bool soft, Int mip_maps, Bool resize_to_pow2, FILTER_TYPE filter)
 {
    Image r, l, u, d, f, b;
    if(r.ImportTry(right  , -1, IMAGE_SOFT, 1) // use OR to proceed if at least one was imported
@@ -879,13 +880,13 @@ Bool Image::ImportCubeTry(C Str &right, C Str &left, C Str &up, C Str &down, C S
    |  u.ImportTry(up     , -1, IMAGE_SOFT, 1)
    |  d.ImportTry(down   , -1, IMAGE_SOFT, 1)
    |  f.ImportTry(forward, -1, IMAGE_SOFT, 1)
-   |  b.ImportTry(back   , -1, IMAGE_SOFT, 1))return ImportCubeTry(r, l, u, d, f, b, type, mip_maps, resize_to_pow2, filter);
+   |  b.ImportTry(back   , -1, IMAGE_SOFT, 1))return ImportCubeTry(r, l, u, d, f, b, type, soft, mip_maps, resize_to_pow2, filter);
    del(); return false;
 }
-Image& Image::ImportCube(C Str &right, C Str &left, C Str &up, C Str &down, C Str &forward, C Str &back, Int type, Int mip_maps, Bool resize_to_pow2, FILTER_TYPE filter)
+Image& Image::ImportCube(C Str &right, C Str &left, C Str &up, C Str &down, C Str &forward, C Str &back, Int type, Bool soft, Int mip_maps, Bool resize_to_pow2, FILTER_TYPE filter)
 {
-   if(!ImportCubeTry(right, left, up, down, forward, back, type, mip_maps, resize_to_pow2, filter))Exit(MLT(S+"Can't import images as Cube Texture \""              +right+"\", \""+left+"\", \""+up+"\", \""+down+"\", \""+forward+"\", \""+back+'"',
-                                                                                                        PL,S+u"Nie można zaimportować obrazków jako Cube Texture \""+right+"\", \""+left+"\", \""+up+"\", \""+down+"\", \""+forward+"\", \""+back+'"'));
+   if(!ImportCubeTry(right, left, up, down, forward, back, type, soft, mip_maps, resize_to_pow2, filter))Exit(MLT(S+"Can't import images as Cube Texture \""              +right+"\", \""+left+"\", \""+up+"\", \""+down+"\", \""+forward+"\", \""+back+'"',
+                                                                                                              PL,S+u"Nie można zaimportować obrazków jako Cube Texture \""+right+"\", \""+left+"\", \""+up+"\", \""+down+"\", \""+forward+"\", \""+back+'"'));
    return T;
 }
 /******************************************************************************/

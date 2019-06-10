@@ -18,7 +18,7 @@ ImageEditor ImageEdit;
    int ImageEditor::ChannelsElms=Elms(Channels);
 /******************************************************************************/
    void ImageEditor::Render() {}
-      GuiObj* ImageEditor::GuiImage2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (image && image->mode()==IMAGE_CUBE) ? ::EE::GuiObj::test(gpc, pos, mouse_wheel) : null;}
+      GuiObj* ImageEditor::GuiImage2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (image && image->cube()) ? ::EE::GuiObj::test(gpc, pos, mouse_wheel) : null;}
       void    ImageEditor::GuiImage2::update(C GuiPC &gpc)
 {
          if(Gui.ms()==this && Ms.b(0))
@@ -200,9 +200,9 @@ ImageEditor ImageEdit;
       if(type    )type    ->name.set(S+"Type: "    + ImageTI[game_image ? game_image->type        () : IMAGE_NONE].name);
       if(mip_maps)mip_maps->name.set(S+"Mip Maps: "+        (game_image ? game_image->mipMaps     () : 0));
       if(mem_size)mem_size->name.set(S+"Size: "    +FileSize(game_image ? game_image->typeMemUsage() : 0)); // use 'typeMemUsage' because we need this only for stats
-      if(chn     )chn->visible(data() && data()->mode!=IMAGE_CUBE);
-      if(nos     )nos->visible(data() && data()->mode!=IMAGE_CUBE);
-      if(src     )src->visible(data() && data()->mode==IMAGE_CUBE);
+      if(chn     )chn->visible(data() && !IsCube(data()->mode));
+      if(nos     )nos->visible(data() && !IsCube(data()->mode));
+      if(src     )src->visible(data() &&  IsCube(data()->mode));
       REPAO(cube_faces).visible(src && src->visible() && source);
    }
    void ImageEditor::update(C GuiPC &gpc)
@@ -286,7 +286,7 @@ ImageEditor ImageEdit;
          if(images.elms())
       {
          Str import=images[0].file;
-         if(d->mode==IMAGE_CUBE)
+         if(IsCube(d->mode))
          {
             if(images.elms()>1) // multi
             {

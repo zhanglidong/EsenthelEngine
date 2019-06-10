@@ -399,7 +399,7 @@ bool HasColor(C Image &image) // if image is not monochromatic
    if(!ImageTI[image.type()].r && !ImageTI[image.type()].g && !ImageTI[image.type()].b)return false;
    if(image.type()==IMAGE_L8 || image.type()==IMAGE_L8A8)return false;
    Image temp; C Image *src=&image; if(ImageTI[src.hwType()].compressed)if(src.copyTry(temp, -1, -1, -1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1))src=&temp;else return true;
-   FREPD(face, (src.mode()==IMAGE_CUBE) ? 6 : 1)if(src.lockRead(0, DIR_ENUM(face)))
+   FREPD(face, src.faces())if(src.lockRead(0, DIR_ENUM(face)))
    {
       REPD(z, src.ld())
       REPD(y, src.lh())
@@ -452,14 +452,16 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type=null, uint f
       MD5   m;
       bool  bc1=true, bc2=true, // BC1 uses 1 bit alpha (0 or 255), BC2 uses 4 bit alpha
             force_alpha=(md5 && (flags&IGNORE_ALPHA) && ImageTI[image.type()].a); // if we want hash and we want to ignore alpha, and source had alpha, then we need to adjust as if it has full alpha, this is done because: ignoring alpha may save the image in format that doesn't support the alpha channel, however if the same image is later used for something else, and now wants to use that alpha channel, then it needs to be created as a different texture (with different hash)
-      FREPD(face, (image.mode()==IMAGE_CUBE) ? 6 : 1)
+      FREPD(face, image.faces())
       {
-         Image temp; C Image *src=&image;
+         Image temp; C Image *src=&image; int src_face=face;
          if((md5 && src.hwType()!=IMAGE_R8G8B8A8) // calculating hash requires RGBA format
          || (compress_type && ImageTI[src.hwType()].compressed) // checking compress_type requires color reads so copy to RGBA soft to make them faster
          || force_alpha) // forcing alpha requires modifying the alpha channel, so copy to 'temp' which we can modify
-            if(src->extractMipMap(temp, IMAGE_R8G8B8A8, IMAGE_SOFT, 0, DIR_ENUM(face)))src=&temp;else return;
-         if(src.lockRead(0, DIR_ENUM(face)))
+         {
+            if(!src->extractMipMap(temp, IMAGE_R8G8B8A8, IMAGE_SOFT, 0, DIR_ENUM(face)))return; src=&temp src_face=0;
+         }
+         if(src.lockRead(0, DIR_ENUM(src_face)))
          {
             if(force_alpha  ) REPD(z, temp.d())
                               REPD(y, temp.h())

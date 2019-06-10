@@ -7,7 +7,7 @@ class ImageEditor : PropWin
    {
       Camera cam;
 
-      virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override {return (image && image->mode()==IMAGE_CUBE) ? super.test(gpc, pos, mouse_wheel) : null;}
+      virtual GuiObj* test  (C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)override {return (image && image->cube()) ? super.test(gpc, pos, mouse_wheel) : null;}
       virtual void    update(C GuiPC &gpc)override
       {
          if(Gui.ms()==this && Ms.b(0))
@@ -236,9 +236,9 @@ class ImageEditor : PropWin
       if(type    )type    .name.set(S+"Type: "    + ImageTI[game_image ? game_image->type        () : IMAGE_NONE].name);
       if(mip_maps)mip_maps.name.set(S+"Mip Maps: "+        (game_image ? game_image->mipMaps     () : 0));
       if(mem_size)mem_size.name.set(S+"Size: "    +FileSize(game_image ? game_image->typeMemUsage() : 0)); // use 'typeMemUsage' because we need this only for stats
-      if(chn     )chn.visible(data() && data().mode!=IMAGE_CUBE);
-      if(nos     )nos.visible(data() && data().mode!=IMAGE_CUBE);
-      if(src     )src.visible(data() && data().mode==IMAGE_CUBE);
+      if(chn     )chn.visible(data() && !IsCube(data().mode));
+      if(nos     )nos.visible(data() && !IsCube(data().mode));
+      if(src     )src.visible(data() &&  IsCube(data().mode));
       REPAO(cube_faces).visible(src && src.visible() && source);
    }
 
@@ -328,7 +328,7 @@ class ImageEditor : PropWin
          if(images.elms())
       {
          Str import=images[0].file;
-         if(d.mode==IMAGE_CUBE)
+         if(IsCube(d.mode))
          {
             if(images.elms()>1) // multi
             {

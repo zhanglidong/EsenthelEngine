@@ -1734,7 +1734,7 @@ class ProjectEx : ProjectHierarchy
             if(ImportImage(image, name, -1, IMAGE_SOFT, 1, true))
             {
                loaded=true;
-               if(Elm *elm=findElm(image_id))if(ElmImage *data=elm.imageData())if(data.mode==IMAGE_CUBE)image.crop(image, i*image.w()/6, 0, image.w()/6, image.h()); // crop to i-th face for cubes, we need to check ElmImage for cube, and not 'image.mode' because Cube ELM_IMAGE are stored in 6x1 Soft in editPath
+               if(Elm *elm=findElm(image_id))if(ElmImage *data=elm.imageData())if(IsCube(data.mode))image.crop(image, i*image.w()/6, 0, image.w()/6, image.h()); // crop to i-th face for cubes, we need to check ElmImage for cube, and not 'image.mode' because Cube ELM_IMAGE are stored in 6x1 Soft in editPath
             }
          }
          if(loaded) // create only if any of the images were loaded, otherwise we don't need it
@@ -1748,7 +1748,7 @@ class ProjectEx : ProjectHierarchy
                   if( cur_reflection)cur_reflection->extractMipMap(image, -1, IMAGE_SOFT, 0, GetCubeDir(i)); // extract from existing reflection map
                }
             }
-            reflection.ImportCubeTry(images[2], images[0], images[5], images[4], images[1], images[3], IMAGE_BC1, 1, true); // create already as compressed because IMAGE_CUBE can be only on GPU, so this speeds up the process
+            reflection.ImportCubeTry(images[2], images[0], images[5], images[4], images[1], images[3], -1, true, 1, true);
          }
       }else
       if(faces.elms()) // if at least one face is specified
@@ -1758,7 +1758,7 @@ class ProjectEx : ProjectHierarchy
          {
             loaded=true;
             int res=NearestPow2(reflection.h());
-            reflection.copyTry(reflection, res, res, 1, IMAGE_BC1, IMAGE_CUBE, 1);
+            reflection.copyTry(reflection, res, res, 1, -1, IMAGE_SOFT_CUBE, 1);
          }
       }
       return !faces.elms() || loaded;
@@ -1770,7 +1770,11 @@ class ProjectEx : ProjectHierarchy
          ImageProps(reflection, &material.reflection_tex, null, IGNORE_ALPHA); material.reflection_map_time.getUTC(); // in order for 'reflection_tex' to sync, 'reflection_map_time' time must be changed
          if(reflection.is())
          {
-            if(includeTex(material.reflection_tex))saveTex(reflection, material.reflection_tex);
+            if(includeTex(material.reflection_tex))
+            {
+               reflection.copyTry(reflection, -1, -1, -1, IMAGE_BC1, IMAGE_CUBE, 1);
+               saveTex(reflection, material.reflection_tex);
+            }
             Server.setTex(material.reflection_tex);
          }
       }
