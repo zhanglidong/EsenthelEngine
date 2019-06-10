@@ -1745,7 +1745,7 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
                Image resized_src;
                if(!same_size) // resize needed
                {
-                  if(!resized_src.createTry(target.w(), target.h(), target.d(), src->hwType(), (src->cube() && target.cube()) ? IMAGE_SOFT_CUBE : IMAGE_SOFT, 1))return false; // resizing use only 1 mip map, and remaining set with 'updateMipMaps' below
+                  if(!resized_src.createTry(target.w(), target.h(), target.d(), src->hwType(), (src->cube() && target.cube()) ? IMAGE_SOFT_CUBE : IMAGE_SOFT, 1))return false; // for resize use only 1 mip map, and remaining set with 'updateMipMaps' below
                   if(!src->copySoft(resized_src, filter, clamp, alpha_weight, keep_edges))return false; src=&resized_src; decompressed_src.del(); // we don't need 'decompressed_src' anymore so delete it to release memory
                }
                if(!Compress(*src, target, mtrl_base_1))return false;
