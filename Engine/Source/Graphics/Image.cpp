@@ -1752,7 +1752,7 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
                // in this case we have to use last 'src' mip map as the base mip map to set remaining 'target' mip maps, because now 'target' is compressed and has lower quality, while 'src' has better
                Int mip_start=src->mipMaps()-1;
                target.updateMipMaps(*src, mip_start, FILTER_BEST, clamp, alpha_weight, mtrl_base_1, mip_start);
-               copied_mip_maps=target.mipMaps(); // set all mip maps copied, to ignore 'updateMipMaps' below
+               goto skip_mip_maps; // we've already set mip maps, so skip them
             }else
             {
                copied_mip_maps=(same_size ? src->mipMaps() : 1); // if resize is needed, copy/resize only 1 mip map, and remaining set with 'updateMipMaps' below
@@ -1764,6 +1764,7 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
       }
    finish:
       target.updateMipMaps(FILTER_BEST, clamp, alpha_weight, mtrl_base_1, copied_mip_maps-1);
+   skip_mip_maps:
       if(&target!=&dest)Swap(dest, target);
       return true;
    }
