@@ -2346,6 +2346,7 @@ Image& Image::maximum(Flt distance)
 Image& Image::transparentToNeighbor(Bool clamp, Flt step)
 {
 #if 1 // new method
+   if(!ImageTI[type()].a)return T;//true;
    Int    mips=TotalMipMaps(w(), h(), d(), IMAGE_F32_4); if(mips<=1)return T;//true;
    Image *src =this, temp; if(!src->highPrecision() || src->compressed())if(src->copyTry(temp, -1, -1, -1, IMAGE_F32_4, IMAGE_SOFT, 1))src=&temp;else return T;//false; // first we have to copy to IMAGE_F32_4 to make sure we have floating point, so that downsizing will not use ALPHA_LIMIT, this is absolutely critical
    Bool   ok  =false;
