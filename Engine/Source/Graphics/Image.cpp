@@ -1723,11 +1723,12 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
       )copied_mip_maps=CopyMipMaps(*src, target);
       if(!copied_mip_maps)
       {
+      /* This case is already handled in 'CopyMipMaps'
          if(same_size && CanDoRawCopy(*src, target)) // if match in size and hardware type
          {
             if(!src->copySoft(target, FILTER_NONE, clamp, alpha_weight, keep_edges))return false; // do raw memory copy
             copied_mip_maps=src->mipMaps();
-         }else
+         }else*/
          {
             // decompress
             Image decompressed_src; if(src->compressed())
