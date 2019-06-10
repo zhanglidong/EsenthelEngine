@@ -94,14 +94,14 @@ Bool Image::ImportDDS(File &f, Int type, Int mode, Int mip_maps)
    if(mode>=0 && mode!=IMAGE_2D && mode!=IMAGE_SOFT)return false; // if mode is specified, and not SOFT/2D then fail
    if(f.getUInt()==CC4('D','D','S',' '))
    {
-      DDS_HEADER header; if(IMAGE_TYPE t=header.load(f))
+      DDS_HEADER header; if(IMAGE_TYPE file_type=header.load(f))
       {
-         if(type    <=0)type    =t; if(type>=IMAGE_TYPES)type=IMAGE_R8G8B8A8;
+         if(type    <=0)type    =file_type; if(type>=IMAGE_TYPES)type=IMAGE_R8G8B8A8;
          if(mode    < 0)mode    =IMAGE_SOFT; // always default to SOFT like all other file formats
          if(mip_maps< 0)mip_maps=((header.MipMapCount>1 && mode==IMAGE_2D) ? 0 : 1);
 
-         if(t==type && createTry(header.Width, header.Height, 1, t, IMAGE_MODE(mode), mip_maps, false)  // if conversion is not required, then try desired values
-         ||            createTry(header.Width, header.Height, 1, t, IMAGE_SOFT      ,        1, false)) // otherwise import as soft
+         if(file_type==type && createTry(header.Width, header.Height, 1, file_type, IMAGE_MODE(mode), mip_maps, false)  // if conversion is not required, then try desired values
+         ||                    createTry(header.Width, header.Height, 1, file_type, IMAGE_SOFT      ,        1, false)) // otherwise import as soft
             if(lock(LOCK_WRITE))
          {
             Int pitch   =ImagePitch  (w(), h(), 0, hwType()), // use "w(), h()" instead of "hwW(), hwH()" because we want to read only valid pixels and zero others

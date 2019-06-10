@@ -412,8 +412,8 @@ static void SwapGreenAlpha(Font &font)
                image.color(x, y, c);
             }
             image.unlock();
+            image.updateMipMaps(FILTER_LINEAR); // for speed use linear filter
          }
-         image.updateMipMaps(FILTER_LINEAR); // for speed use linear filter
       }
    }
 }
