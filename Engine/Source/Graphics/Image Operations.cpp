@@ -2295,9 +2295,9 @@ Image& Image::minimum(Flt distance)
             }
             unlock();
          }
-         temp.unlock();
+         temp.unlock().updateMipMaps();
+         Swap(temp, T);
       }
-      Swap(temp.updateMipMaps(), T);
       Compress(T, type, mode, mip_maps);
    }
    return T;
@@ -2335,9 +2335,9 @@ Image& Image::maximum(Flt distance)
             }
             unlock();
          }
-         temp.unlock();
+         temp.unlock().updateMipMaps();
+         Swap(temp, T);
       }
-      Swap(temp.updateMipMaps(), T);
       Compress(T, type, mode, mip_maps);
    }
    return T;
