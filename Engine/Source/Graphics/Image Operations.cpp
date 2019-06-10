@@ -2385,7 +2385,11 @@ Image& Image::transparentToNeighbor(Bool clamp, Flt step)
       ok=true;
    error:;
       src->unlock();
-      if(ok)if(src==this)src->updateMipMaps(FILTER_BEST, clamp, true);else ok=src->copyTry(T, -1, -1, -1, type(), mode(), mipMaps(), FILTER_BEST, clamp, true);
+      if(ok)
+      {
+         src->updateMipMaps(FILTER_BEST, clamp, true);
+         ok=src->copyTry(T, -1, -1, -1, type(), mode(), mipMaps(), FILTER_BEST, clamp, true);
+      }
    }
    return T;//ok;
 #else // old method
