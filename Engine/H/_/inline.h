@@ -97,22 +97,12 @@ T1(TYPE) struct ClassFunc // various basic functions used by many classes
    static Bool LoadEmpty(Ptr elm                        ) {return ( (TYPE*)elm )->   load(          );}
    static void Unload   (Ptr elm                        ) {return ( (TYPE*)elm )-> unload(          );}
 
-   static inline Bool HasNew() {return New!=ClassFunc<Int>::New;}   static inline void (*GetNew())(Ptr elm) {return HasNew() ? New : null;}
-   static inline Bool HasDel() {return Del!=ClassFunc<Int>::Del;}   static inline void (*GetDel())(Ptr elm) {return HasDel() ? Del : null;}
+   static inline Bool HasNew() {return !std::is_trivially_default_constructible<TYPE>::value && New!=ClassFunc<Int>::New;} // check also if the '<TYPE>.New' function address is different than '<Int>.New' because 'is_trivially_default_constructible' is not enough for cases when constructor exists but is empty
+   static inline Bool HasDel() {return !std::is_trivially_destructible         <TYPE>::value && Del!=ClassFunc<Int>::Del;} // check also if the '<TYPE>.Del' function address is different than '<Int>.Del' because 'is_trivially_destructible'          is not enough for cases when  destructor exists but is empty
+
+   static inline void (*GetNew())(Ptr elm) {return HasNew() ? New : null;}
+   static inline void (*GetDel())(Ptr elm) {return HasDel() ? Del : null;}
 };
-// force empty new delete in case some compilers don't merge similar functions, this also helps in DEBUG mode which doesn't do merging
-#define EMPTY_NEW_DEL(TYPE) \
-   template<> inline Bool ClassFunc<TYPE>::HasNew() {return false;} \
-   template<> inline Bool ClassFunc<TYPE>::HasDel() {return false;}
-EMPTY_NEW_DEL(Bool )
-EMPTY_NEW_DEL(Char )  EMPTY_NEW_DEL(Char8 )
-EMPTY_NEW_DEL(SByte)  EMPTY_NEW_DEL(Byte  )
-EMPTY_NEW_DEL(Short)  EMPTY_NEW_DEL(UShort)
-EMPTY_NEW_DEL(Int  )  EMPTY_NEW_DEL(UInt  )
-EMPTY_NEW_DEL(Long )  EMPTY_NEW_DEL(ULong )
-EMPTY_NEW_DEL(Flt  )  EMPTY_NEW_DEL(Dbl   )
-EMPTY_NEW_DEL(Ptr  )
-#undef EMPTY_NEW_DEL
 /******************************************************************************/
 // SORT
 /******************************************************************************/
