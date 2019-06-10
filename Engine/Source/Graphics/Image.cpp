@@ -1853,7 +1853,7 @@ Bool Image::fromCube(C Image &src, Int uncompressed_type)
                case 4: cube_face=DIR_DOWN   ; break;
                case 5: cube_face=DIR_UP     ; break;
             }
-            if(!src.extractMipMap(face, temp.hwType(), IMAGE_SOFT, 0, cube_face))return false; // extract face, we need 'temp.hwType' so we can do fast copy to 'temp' below
+            if(!src.extractMipMap(face, temp.hwType(), 0, cube_face))return false; // extract face, we need 'temp.hwType' so we can do fast copy to 'temp' below
             // copy non-compressed 2D face to non-compressed 6*2D
             if(!face.lockRead())return false;
             REPD(y, size)
@@ -2677,7 +2677,7 @@ Bool Image::updateMipMaps(C Image &src, Int src_mip, FILTER_TYPE filter, Bool cl
    Image temp; // keep outside the loop in case we can reuse the image
    REPD(face, faces())
    {
-      ok&=src.extractMipMap(temp, ImageTI[type()].compressed ? ImageTypeUncompressed(type()) : type(), IMAGE_SOFT, src_mip, (DIR_ENUM)Min(face, src_faces1)); // use 'type' instead of 'hwType' (this is correct), use destination type instead of 'src.type' because we extract only one time, but inject several times
+      ok&=src.extractMipMap(temp, ImageTI[type()].compressed ? ImageTypeUncompressed(type()) : type(), src_mip, (DIR_ENUM)Min(face, src_faces1)); // use 'type' instead of 'hwType' (this is correct), use destination type instead of 'src.type' because we extract only one time, but inject several times
       for(Int mip=mip_start; ++mip<mipMaps(); )
       {
          temp.downSample(filter, clamp, alpha_weight);

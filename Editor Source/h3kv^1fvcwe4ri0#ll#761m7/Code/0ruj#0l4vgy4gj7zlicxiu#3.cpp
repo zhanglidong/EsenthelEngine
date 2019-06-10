@@ -459,7 +459,7 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type=null, uint f
          || (compress_type && ImageTI[src.hwType()].compressed) // checking compress_type requires color reads so copy to RGBA soft to make them faster
          || force_alpha) // forcing alpha requires modifying the alpha channel, so copy to 'temp' which we can modify
          {
-            if(!src->extractMipMap(temp, IMAGE_R8G8B8A8, IMAGE_SOFT, 0, DIR_ENUM(face)))return; src=&temp src_face=0;
+            if(!src->extractMipMap(temp, IMAGE_R8G8B8A8, 0, DIR_ENUM(face)))return; src=&temp src_face=0;
          }
          if(src.lockRead(0, DIR_ENUM(src_face)))
          {

@@ -36,9 +36,9 @@ Bool Image::extractNonCompressedMipMapNoStretch(Image &dest, Int w, Int h, Int d
    }
    return false;
 }
-static Bool ExtractMipMap(C Image &src, Image &dest, Int w, Int h, Int d, Int mip_map, DIR_ENUM cube_face) // assumes &T!=&dest
+static Bool ExtractMipMap(C Image &src, Image &dest, Int mip_map, DIR_ENUM cube_face) // assumes &T!=&dest
 {
-   if(dest.createTry(w, h, d, src.hwType(), IMAGE_SOFT, 1, false))
+   if(dest.createTry(Max(1, src.w()>>mip_map), Max(1, src.h()>>mip_map), Max(1, src.d()>>mip_map), src.hwType(), IMAGE_SOFT, 1, false))
    {
       if(! src.lockRead(mip_map, cube_face))return false;
     //if(!dest.lock    (LOCK_WRITE        ))return false; not needed for SOFT
@@ -62,19 +62,15 @@ static Bool ExtractMipMap(C Image &src, Image &dest, Int w, Int h, Int d, Int mi
    }
    return false;
 }
-Bool Image::extractMipMap(Image &dest, Int type, Int mode, Int mip_map, DIR_ENUM cube_face)C
+Bool Image::extractMipMap(Image &dest, Int type, Int mip_map, DIR_ENUM cube_face)C
 {
    if(InRange(mip_map, mipMaps()))
    {
-      if(type<=0                 )type=T.type();
-      if(mode< 0                 )mode=T.mode();
-      if(IsCube(IMAGE_MODE(mode)))mode=(IsSoft(IMAGE_MODE(mode)) ? IMAGE_SOFT : IMAGE_2D); // convert cube -> non-cube
-
       Image temp, &img=((this==&dest) ? temp : dest);
-      if(ExtractMipMap(T, img, Max(1, w()>>mip_map), Max(1, h()>>mip_map), Max(1, d()>>mip_map), mip_map, cube_face) // extract
-      && img.copyTry  (img, -1, -1, -1, type, mode, 1)) // apply type/mode conversion if needed
+      if(ExtractMipMap(T, img, mip_map, cube_face)) // extract
       {
          if(&img!=&dest)Swap(dest, img); // swap if needed
+         if(type>IMAGE_NONE && !dest.copyTry(dest, -1, -1, -1, type))return false; // apply conversion if needed
          return true;
       }
    }
@@ -1919,7 +1915,7 @@ Image& Image::fadeMipMaps()
          if(s<1)
          {
             Bool copy=compressed(); // if the image is compressed then operate on mip extracted to copy image
-            if(  copy)extractMipMap(temp, IMAGE_R8G8B8A8, IMAGE_SOFT, i);
+            if(  copy)extractMipMap(temp, IMAGE_R8G8B8A8, i);
             Image &image=(copy ? temp : T);
 
             if(image.lock(LOCK_READ_WRITE, copy ? 0 : i))
@@ -3189,8 +3185,8 @@ Bool ImageCompare::compare(C Image &a, C Image &b, Flt similar_dif, Bool alpha_w
          {
             Image temp_a, temp_b;
           C Image *sa=&a, *sb=&b;
-            if(!CanDecompress(sa->hwType())){if(!sa->extractMipMap(temp_a, IMAGE_R8G8B8A8, IMAGE_SOFT, a_mip))return false; sa=&temp_a; a_mip=0;}
-            if(!CanDecompress(sb->hwType())){if(!sb->extractMipMap(temp_b, IMAGE_R8G8B8A8, IMAGE_SOFT, b_mip))return false; sb=&temp_b; b_mip=0;}
+            if(!CanDecompress(sa->hwType())){if(!sa->extractMipMap(temp_a, IMAGE_R8G8B8A8, a_mip))return false; sa=&temp_a; a_mip=0;}
+            if(!CanDecompress(sb->hwType())){if(!sb->extractMipMap(temp_b, IMAGE_R8G8B8A8, b_mip))return false; sb=&temp_b; b_mip=0;}
             if(sa->lockRead(a_mip))
             {
                if(sb->lockRead(b_mip))

@@ -1745,7 +1745,7 @@ class ProjectEx : ProjectHierarchy
                Image &image=images[i]; if(!image.is())
                {
                   if(!cur_reflection)cur_reflection=texPath(material.reflection_tex); // load existing reflection map
-                  if( cur_reflection)cur_reflection->extractMipMap(image, -1, IMAGE_SOFT, 0, GetCubeDir(i)); // extract from existing reflection map
+                  if( cur_reflection)cur_reflection->extractMipMap(image, -1, 0, GetCubeDir(i)); // extract from existing reflection map
                }
             }
             reflection.ImportCubeTry(images[2], images[0], images[5], images[4], images[1], images[3], -1, true, 1, true);

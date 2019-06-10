@@ -278,7 +278,7 @@ class TexInfoGetter
    {
       if(image.mipMaps()>=2)
       {
-         Image mip; image.extractMipMap(mip, IMAGE_R8G8B8A8, IMAGE_SOFT, 1); // get 2nd mip-map
+         Image mip; image.extractMipMap(mip, IMAGE_R8G8B8A8, 1); // get 2nd mip-map
          mip.copy(mip, image.w(), image.h(), image.d(), -1, -1, 1, FILTER_LINEAR, false); // upscale smaller mip-map to full image size, use linear filtering because we simulate GPU filtering
          ImageCompare ic; if(ic.compare(image, mip))return ic.avg_dif2;
       }

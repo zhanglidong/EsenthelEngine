@@ -139,7 +139,7 @@ Bool Image::saveData(File &f)C
          {
           C Image *src=this;
             Int    src_mip=mip, src_face=face;
-            if(hwType()!=file_type){if(!extractMipMap(soft, file_type, IMAGE_SOFT, mip, DIR_ENUM(face)))return false; src=&soft; src_mip=0; src_face=0;} // if 'hwType' is different than of file, then convert to 'file_type' IMAGE_SOFT, after extracting the mip map its Pitch and BlocksY may be different than of calculated from base (for example non-power-of-2 images) so write zeros to file to match the expected size
+            if(hwType()!=file_type){if(!extractMipMap(soft, file_type, mip, DIR_ENUM(face)))return false; src=&soft; src_mip=0; src_face=0;} // if 'hwType' is different than of file, then convert to 'file_type' IMAGE_SOFT, after extracting the mip map its Pitch and BlocksY may be different than of calculated from base (for example non-power-of-2 images) so write zeros to file to match the expected size
 
             if(!src->lockRead(src_mip, DIR_ENUM(src_face)))return false;
             Int write_pitch   =Min(src->pitch()                                            , file_pitch   ),
