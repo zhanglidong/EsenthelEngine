@@ -1750,7 +1750,7 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
                   if(!src->copySoft(resized_src, filter, clamp, alpha_weight, keep_edges))return false; src=&resized_src; decompressed_src.del(); // we don't need 'decompressed_src' anymore so delete it to release memory
                }
                if(!Compress(*src, target, mtrl_base_1))return false;
-               // in this case we have to use last 'src' mip map as the base mip map to set remaining 'target' mip maps, because now 'target' is compressed and has lower quality, while 'src' has better
+               // in this case we have to use last 'src' mip map as the base mip map to set remaining 'target' mip maps, because now 'target' is compressed and has lower quality, while 'src' has better, this is also faster because we don't have to decompress initial mip map
                Int mip_start=src->mipMaps()-1;
                target.updateMipMaps(*src, mip_start, FILTER_BEST, clamp, alpha_weight, mtrl_base_1, mip_start);
                goto skip_mip_maps; // we've already set mip maps, so skip them
