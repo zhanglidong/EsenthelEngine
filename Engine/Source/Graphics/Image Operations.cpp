@@ -3135,13 +3135,18 @@ struct BlurCube
       }
    }
 };
+static Flt AngleRange(Flt start, Flt growth, Int i)
+{
+ //return start*Pow(i, growth);
+   return start*(Pow(growth, i)-1)/(growth-1);
+}
 Bool Image::blurCubeMipMaps(Flt angle_start, Flt angle_growth, Threads *threads)
 {
    if(cube() && mipMaps()>1)
    {
       Image *img=this, temp;
       if(img->mode()!=IMAGE_SOFT_CUBE || img->compressed())if(img->copyTry(temp, -1, -1, -1, ImageTypeUncompressed(img->type()), IMAGE_SOFT_CUBE))img=&temp;else return false;
-      for(Int i=1; i<img->mipMaps(); i++)BlurCube(*img, i-1, *img, i, angle_start*Pow(i, angle_growth), threads); // or angle_start*(Pow(2.0f, i)-1) with angle_growth somewhere
+      for(Int i=1; i<img->mipMaps(); i++)BlurCube(*img, i-1, *img, i, AngleRange(angle_start, angle_growth, i), threads);
       if(img!=this && !img->copyTry(T, -1, -1, -1, type(), mode()))return false; // convert to original type and mode
    }
    return true;
