@@ -98,7 +98,7 @@ Bool Image::ImportDDS(File &f, Int type, Int mode, Int mip_maps)
       {
          if(type    <=0)type    =file_type; if(type>=IMAGE_TYPES)type=IMAGE_R8G8B8A8;
          if(mode    < 0)mode    =IMAGE_SOFT; // always default to SOFT like all other file formats
-         if(mip_maps< 0)mip_maps=((header.MipMapCount>1 && mode==IMAGE_2D) ? 0 : 1);
+         if(mip_maps< 0)mip_maps=1; // Max((Int)header.MipMapCount, ); loading mip maps from DDS is not yet supported
 
          if(file_type==type && createTry(header.Width, header.Height, 1, file_type, IMAGE_MODE(mode), mip_maps, false)  // if conversion is not required, then try desired values
          ||                    createTry(header.Width, header.Height, 1, file_type, IMAGE_SOFT      ,        1, false)) // otherwise import as soft
@@ -121,17 +121,13 @@ Bool Image::ImportDDS(File &f, Int type, Int mode, Int mip_maps)
                unlock();
                if(f.ok())
                {
-                  if(type!=T.type() || mode!=T.mode())
-                  {
-                     if(!copyTry(T, -1, -1, -1, type, mode, mip_maps))goto error;
-                  }else updateMipMaps();
-                  return true;
+                  updateMipMaps();
+                  return copyTry(T, -1, -1, -1, type, mode, mip_maps);
                }
             }
          }
       }
    }
-error:
    del(); return false;
 }
 Bool Image::ImportDDS(C Str &name, Int type, Int mode, Int mip_maps)
