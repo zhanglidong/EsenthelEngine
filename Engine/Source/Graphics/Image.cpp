@@ -1728,19 +1728,24 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
             if(!src->copySoft(target, FILTER_NONE, clamp, alpha_weight, keep_edges))return false; // do raw memory copy
             copied_mip_maps=src->mipMaps();
          }else
-         if(same_size && src->compressed() && !target.compressed()) // if match in size and just want to be decompressed
          {
-            if(!Decompress(*src, target))return false;
-            copied_mip_maps=src->mipMaps();
-         }else
-         {
-            Image decompressed_src, resized_src;
-            if(src  ->compressed()){if(!Decompress(*src, decompressed_src))return false; src=&decompressed_src;} // take decompressed source
+            // decompress
+            Image decompressed_src; if(src->compressed())
+            {
+               if(same_size && !target.compressed()) // if match in size and just want to be decompressed
+               {
+                  if(!Decompress(*src, target))return false; // decompress directly to 'target'
+                  copied_mip_maps=src->mipMaps();
+                  goto finish;
+               }
+               if(!Decompress(*src, decompressed_src))return false; src=&decompressed_src; // take decompressed source
+            }
             if(target.compressed()) // target wants to be compressed
             {
+               Image resized_src;
                if(!same_size) // resize needed
                {
-                  if(!resized_src.createTry(target.w(), target.h(), target.d(), src->hwType(), (src->cube() && target.cube()) ? IMAGE_SOFT_CUBE : IMAGE_SOFT, 1))return false; // use only 1 mip map for resizing
+                  if(!resized_src.createTry(target.w(), target.h(), target.d(), src->hwType(), (src->cube() && target.cube()) ? IMAGE_SOFT_CUBE : IMAGE_SOFT, 1))return false; // resizing use only 1 mip map, and remaining set with 'updateMipMaps' below
                   if(!src->copySoft(resized_src, filter, clamp, alpha_weight, keep_edges))return false; src=&resized_src; decompressed_src.del(); // we don't need 'decompressed_src' anymore so delete it to release memory
                }
                if(!Compress(*src, target, mtrl_base_1))return false;
@@ -1753,9 +1758,11 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
                copied_mip_maps=(same_size ? src->mipMaps() : 1); // if resize is needed, copy/resize only 1 mip map, and remaining set with 'updateMipMaps' below
                if(!src->copySoft(target, filter, clamp, alpha_weight, keep_edges, copied_mip_maps))return false;
             }
+            // !! can't access 'src' here because it may point to 'resized_src' which is now invalid !!
          }
          // !! can't access 'src' here because it may point to 'decompressed_src, resized_src' which are now invalid !!
       }
+   finish:
       target.updateMipMaps(FILTER_BEST, clamp, alpha_weight, mtrl_base_1, copied_mip_maps-1);
       if(&target!=&dest)Swap(dest, target);
       return true;
