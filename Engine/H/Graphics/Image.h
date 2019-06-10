@@ -585,23 +585,25 @@ struct Image // Image (Texture)
 
    void discard();
 #if DX9
-   void clearHw      (C Color &color=TRANSPARENT                                                                                                           ) ; // hardware render target  clear
+   void clearHw      (C Color &color=TRANSPARENT                   ); // hardware render target  clear
 // there's no 'clearDS' on DX9
 #elif DX11
-   void clearHw      (C Vec4 &color=Vec4Zero                                                                                                               ) ; // hardware render target  clear
-   void clearDS      (  Byte  s    =0                                                                                                                      ) ; // hardware depth  stencil clear
+   void clearHw      (C Vec4 &color=Vec4Zero                       ); // hardware render target  clear
+   void clearDS      (  Byte  s    =0                              ); // hardware depth  stencil clear
 #else
 // there's no 'clearHw' on OpenGL
 // there's no 'clearDS' on OpenGL
 #endif
-   void clearFull    (C Vec4 &color=Vec4Zero, Bool restore_rt=false                                                                                        ) ; // clear full          area
-   void clearViewport(C Vec4 &color=Vec4Zero, Bool restore_rt=false                                                                                        ) ; // clear main viewport area
-   Bool copySoft     (  Image &dest, FILTER_TYPE filter=FILTER_BEST, Bool clamp=true, Bool alpha_weight=false, Bool keep_edges=false, Flt sharp_smooth=1.0f)C; // software             copy, 'sharp_smooth'=factor affecting sharpness/smoothness (0..Inf, the closer to 0.0 then the sharper result, the bigger than 1.0 then the more blurry result, default=1.0)
-   void copyMs       (  Image &dest, Bool restore_rt, Bool multi_sample, C RectI *rect    =null                                                            )C; // multi sample texture copy, 'multi_sample'=average samples when writing to single sample, or copy texture on a per sample basis, this is needed because multi-sampled textures can't be sampled smoothly in the shader, this assumes that both source and dest are of the same size
-   void copyMs       (  Image &dest, Bool restore_rt, Bool multi_sample, C Rect  &rect                                                                     )C; // multi sample texture copy, 'multi_sample'=average samples when writing to single sample, or copy texture on a per sample basis, this is needed because multi-sampled textures can't be sampled smoothly in the shader, this assumes that both source and dest are of the same size
-   void copyHw       (  Image &dest, Bool restore_rt,                    C RectI *rect_src=null, C RectI *rect_dest=null, Bool *flipped=null               )C; // hardware     texture copy
-   void copyHw       (  Image &dest, Bool restore_rt,                    C Rect  &rect                                                                     )C; // hardware     texture copy
-   Bool capture      (C Image &src);
+   void clearFull    (C Vec4 &color=Vec4Zero, Bool restore_rt=false); // clear full          area
+   void clearViewport(C Vec4 &color=Vec4Zero, Bool restore_rt=false); // clear main viewport area
+
+   Bool copySoft(Image &dest, FILTER_TYPE filter=FILTER_BEST, Bool clamp=true, Bool alpha_weight=false, Bool keep_edges=false, Int max_mip_maps=INT_MAX, Flt sharp_smooth=1.0f)C; // software             copy, 'sharp_smooth'=factor affecting sharpness/smoothness (0..Inf, the closer to 0.0 then the sharper result, the bigger than 1.0 then the more blurry result, default=1.0)
+   void copyMs  (Image &dest, Bool restore_rt, Bool multi_sample, C RectI *rect    =null                                                                                      )C; // multi sample texture copy, 'multi_sample'=average samples when writing to single sample, or copy texture on a per sample basis, this is needed because multi-sampled textures can't be sampled smoothly in the shader, this assumes that both source and dest are of the same size
+   void copyMs  (Image &dest, Bool restore_rt, Bool multi_sample, C Rect  &rect                                                                                               )C; // multi sample texture copy, 'multi_sample'=average samples when writing to single sample, or copy texture on a per sample basis, this is needed because multi-sampled textures can't be sampled smoothly in the shader, this assumes that both source and dest are of the same size
+   void copyHw  (Image &dest, Bool restore_rt,                    C RectI *rect_src=null, C RectI *rect_dest=null, Bool *flipped=null                                         )C; // hardware     texture copy
+   void copyHw  (Image &dest, Bool restore_rt,                    C Rect  &rect                                                                                               )C; // hardware     texture copy
+
+   Bool capture(C Image &src);
 #endif
 
 #if !EE_PRIVATE

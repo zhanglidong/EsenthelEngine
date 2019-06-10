@@ -3339,11 +3339,11 @@ void CopyNoStretch(C Image &src, Image &dest, Bool clamp) // assumes 'src,dest' 
       REPD(x, dest.lw())dest.color3D(x, y, z, clamp ? src.color3D(Min(x, src.lw()-1), Min(y, src.lh()-1), Min(z, src.ld()-1)) : src.color3D(x%src.lw(), y%src.lh(), z%src.ld()));
    }
 }
-Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_weight, Bool keep_edges, Flt sharp_smooth)C // this does not support compressed images
+Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_weight, Bool keep_edges, Int max_mip_maps, Flt sharp_smooth)C // this does not support compressed images
 {
    if(this==&dest)return true;
    Int src_faces1=faces()-1;
-   REPD(mip , Min(mipMaps(), dest.mipMaps()))
+   REPD(mip , Min(mipMaps(), dest.mipMaps(), max_mip_maps))
    REPD(face, dest.faces())
    {
       if(!   T.lockRead(            mip, (DIR_ENUM)Min(face, src_faces1)))             return false;
