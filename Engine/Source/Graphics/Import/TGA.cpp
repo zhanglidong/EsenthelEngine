@@ -220,8 +220,9 @@ Bool Image::ImportTGA(File &f, Int type, Int mode, Int mip_maps)
       case 8 : type=            IMAGE_L8                   ; break;
    }
 
-   if(createTry(Unaligned(header.ImageWidth), Unaligned(header.ImageHeight), 1, ImageTI[type].compressed ? IMAGE_B8G8R8A8 : IMAGE_TYPE(type), IMAGE_MODE(mode), ImageTI[type].compressed ? 1 : mip_maps) // TGA uses BGRA order
-   && lock(LOCK_WRITE))
+   Bool convert=ImageTI[type].compressed;
+   if(createTry(Unaligned(header.ImageWidth), Unaligned(header.ImageHeight), 1, convert ? IMAGE_B8G8R8A8 : IMAGE_TYPE(type), convert ? IMAGE_SOFT : IMAGE_MODE(mode), convert ? 1 : mip_maps)) // TGA uses BGRA order
+   if(lock(LOCK_WRITE))
    {
       Byte rleLeftover=255;
       FREPD(y, T.h())
@@ -234,13 +235,12 @@ Bool Image::ImportTGA(File &f, Int type, Int mode, Int mip_maps)
       if(mirror_x)mirrorX();
 
       unlock();
-      if(ImageTI[type].compressed)
+      if(f.ok())
       {
-         if(!copyTry(T, -1, -1, -1, type, -1, mip_maps))goto error;
-      }else updateMipMaps();
-      return true;
+         updateMipMaps();
+         return copyTry(T, -1, -1, -1, type, mode, mip_maps);
+      }
    }
-error:
    del(); return false;
 }
 /******************************************************************************/
