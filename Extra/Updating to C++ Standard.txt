@@ -26,6 +26,11 @@ Replace all C++17
 	Engine\Android\jni\Android.mk
 	Editor Data\Code\Android\Android.mk
 
+Replace all stdcpp17
+	Engine\EsenthelEngine.vcxproj
+	Project\Project.vcxproj
+	Editor Data\Code\Windows\Project.vcxproj
+
 Replace all <standard>17</standard>
 	Engine\Linux\nbproject\configurations.xml
 	Project\Linux\nbproject\configurations.xml
