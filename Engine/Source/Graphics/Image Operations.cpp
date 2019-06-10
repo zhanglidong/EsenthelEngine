@@ -3137,8 +3137,11 @@ struct BlurCube
 };
 static Flt AngleRange(Flt start, Flt growth, Int i)
 {
- //return start*Pow(i, growth);
-   return start*(Pow(growth, i)-1)/(growth-1); // sharper at the start, and more blurry at the end
+#if 1 // better - sharper at the start, and more blurry at the end
+   return start*(Pow(growth, i)-1)/(growth-1);
+#else
+   return start*Pow(i, growth);
+#endif
 }
 Bool Image::blurCubeMipMaps(Flt angle_start, Flt angle_growth, Threads *threads)
 {
