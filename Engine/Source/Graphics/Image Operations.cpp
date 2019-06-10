@@ -2371,7 +2371,7 @@ Image& Image::transparentToNeighbor(Bool clamp, Flt step)
             Vec2 y_mul_add; y_mul_add.x=Flt(m.h())/h(); y_mul_add.y=y_mul_add.x*0.5f-0.5f;
           //Vec2 z_mul_add; z_mul_add.x=Flt(m.d())/d(); z_mul_add.y=z_mul_add.x*0.5f-0.5f;
 
-            Vec4 c=m.colorFLinearTTNF32_4(x*x_mul_add.x + x_mul_add.y, y*y_mul_add.x + y_mul_add.y, clamp);
+            Vec4 c=m.colorFLinearTTNF32_4 (x*x_mul_add.x + x_mul_add.y, y*y_mul_add.x + y_mul_add.y, clamp);
           //Vec4 c=m.colorFCubicFastSmooth(x*x_mul_add.x + x_mul_add.y, y*y_mul_add.x + y_mul_add.y, clamp);
             if(c.w) // if we've found some valid color value
             {
