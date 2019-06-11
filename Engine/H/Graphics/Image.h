@@ -79,6 +79,16 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
 
    IMAGE_TYPES, // number of types
 #if EE_PRIVATE
+   IMAGE_R8G8B8A8_SRGB,
+   IMAGE_BC1_SRGB     ,
+   IMAGE_BC2_SRGB     ,
+   IMAGE_BC3_SRGB     ,
+   IMAGE_BC7_SRGB     ,
+
+   IMAGE_ETC2_SRGB   ,
+   IMAGE_ETC2_A1_SRGB,
+   IMAGE_ETC2_A8_SRGB,
+
    IMAGE_B4G4R4X4     ,
    IMAGE_B4G4R4A4     ,
    IMAGE_B5G5R5X1     ,
