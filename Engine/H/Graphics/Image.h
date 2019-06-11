@@ -697,6 +697,7 @@ IMAGE_TYPE                            ImageFormatToType(GPU_API(D3DFORMAT, DXGI_
 Int                                   TotalMipMaps     (Int w, Int h, Int d, IMAGE_TYPE type);
 
 IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type);
+IMAGE_TYPE ImageTypeRemoveSRGB(IMAGE_TYPE type);
 Bool CanDoRawCopy(C Image &src, C Image &dest);
 Bool CompatibleLock(LOCK_MODE cur, LOCK_MODE lock); // if 'lock' is okay to be applied when 'cur' is already applied
 Vec4 ImageColorF(CPtr data, IMAGE_TYPE hw_type);

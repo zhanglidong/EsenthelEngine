@@ -276,6 +276,23 @@ IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type)
          return IMAGE_R8G8B8A8_SRGB;
    }
 }
+IMAGE_TYPE ImageTypeRemoveSRGB(IMAGE_TYPE type)
+{
+   switch(type)
+   {
+      default                 : return type;
+      case IMAGE_R8G8B8A8_SRGB: return IMAGE_R8G8B8A8;
+      case IMAGE_BC1_SRGB     : return IMAGE_BC1;
+      case IMAGE_BC2_SRGB     : return IMAGE_BC2;
+      case IMAGE_BC3_SRGB     : return IMAGE_BC3;
+      case IMAGE_BC7_SRGB     : return IMAGE_BC7;
+      case IMAGE_ETC2_SRGB    : return IMAGE_ETC2;
+      case IMAGE_ETC2_A1_SRGB : return IMAGE_ETC2_A1;
+      case IMAGE_ETC2_A8_SRGB : return IMAGE_ETC2_A8;
+      case IMAGE_PVRTC1_2_SRGB: return IMAGE_PVRTC1_2;
+      case IMAGE_PVRTC1_4_SRGB: return IMAGE_PVRTC1_4;
+   }
+}
 /******************************************************************************/
 GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) ImageTypeToFormat(Int                                   type  ) {return InRange(type, ImageTI) ? ImageTI[type].format : GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, 0);}
 IMAGE_TYPE                            ImageFormatToType(GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) format
@@ -425,9 +442,12 @@ Bool CompatibleLock(LOCK_MODE cur, LOCK_MODE lock)
 }
 Bool CanDoRawCopy(C Image &src, C Image &dest)
 {
-   return src.hwType()==dest.hwType()
-   && (  dest.  type()==dest.hwType() // check 'type' too in case we have to perform color adjustment
-   ||     src.  type()==dest.  type());
+   IMAGE_TYPE src_hwType=ImageTypeRemoveSRGB( src.hwType()),
+             dest_hwType=ImageTypeRemoveSRGB(dest.hwType()),
+              src_type  =ImageTypeRemoveSRGB( src.  type()),
+             dest_type  =ImageTypeRemoveSRGB(dest.  type());
+   return src_hwType==dest_hwType
+     && (dest_type  ==dest_hwType || src_type==dest_type); // check 'type' too in case we have to perform color adjustment
 }
 /******************************************************************************/
 #if GL
