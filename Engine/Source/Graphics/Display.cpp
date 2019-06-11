@@ -1372,8 +1372,8 @@ again:
       EGLint width, height;
       eglQuerySurface(GLDisplay, MainContext.surface, EGL_WIDTH , &width );
       eglQuerySurface(GLDisplay, MainContext.surface, EGL_HEIGHT, &height);
-      Renderer._main   .forceInfo(width, height, 1, bit16 ? IMAGE_B5G6R5 : has_alpha ? IMAGE_R8G8B8A8 : IMAGE_R8G8B8X8, IMAGE_SURF)._samples=samples;
-      Renderer._main_ds.forceInfo(width, height, 1, ds_type                                                           , IMAGE_DS  )._samples=samples;
+      Renderer._main   .forceInfo(width, height, 1, bit16 ? IMAGE_B5G6R5 : has_alpha ? IMAGE_R8G8B8A8 : IMAGE_R8G8B8X8, IMAGE_SURF, samples);
+      Renderer._main_ds.forceInfo(width, height, 1, ds_type                                                           , IMAGE_DS  , samples);
       if(LogInit)LogN(S+"Renderer._main: "+Renderer._main.w()+'x'+Renderer._main.h()+", type: "+ImageTI[Renderer._main.hwType()].name+", ds_type: "+ImageTI[Renderer._main_ds.hwType()].name);
    #elif IOS
       if(MainContext.context=[[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3])_shader_model=SM_GL_ES_3;else
@@ -1416,9 +1416,9 @@ again:
       MainContext.lock();
       Byte samples=(attrs.antialias ? 4 : 1);
       int  width, height; emscripten_get_canvas_element_size(null, &width, &height);
-      Renderer._main   .forceInfo(width, height, 1, IMAGE_R8G8B8A8                           , IMAGE_SURF)._samples=samples;
-      Renderer._main_ds.forceInfo(width, height, 1, attrs.stencil ? IMAGE_D24S8 : IMAGE_D24X8, IMAGE_DS  )._samples=samples;
-#endif
+      Renderer._main   .forceInfo(width, height, 1, IMAGE_R8G8B8A8                           , IMAGE_SURF, samples);
+      Renderer._main_ds.forceInfo(width, height, 1, attrs.stencil ? IMAGE_D24S8 : IMAGE_D24X8, IMAGE_DS  , samples);
+   #endif
 
    if(!deviceName().is())
    {
@@ -2322,7 +2322,7 @@ Display::RESET_RESULT Display::modeTry(Int w, Int h, Int full)
       Bool cur_full=T.full(); T._full =f;
 
    #if WEB
-      Renderer._main.forceInfo(w, h, 1, Renderer._main.type(), Renderer._main.mode()); // '_main_ds' will be set in 'rtCreate'
+      Renderer._main.forceInfo(w, h, 1, Renderer._main.type(), Renderer._main.mode(), Renderer._main.samples()); // '_main_ds' will be set in 'rtCreate'
    #endif
       if(!findMode())return RESET_DEVICE_NOT_CREATED;
       if(cur_x==T.resW() && cur_y==T.resH() && cur_full==T.full())return RESET_OK; // new mode matches the current one, need to check again since 'findMode' may have adjusted the T.resW T.resH T.full values

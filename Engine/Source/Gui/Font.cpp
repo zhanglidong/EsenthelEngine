@@ -432,7 +432,6 @@ Bool Font::load(File &f)
    del();
    if(f.getUInt()==CC4_FONT)switch(f.decUIntV()) // version
    {
-      // always use IMAGE_DEFAULT for "loadData type_on_fail" because IMAGE_L8A8 is not supported on DX10+ and GL3+ and sub pixel requires all channels
       case 5:
       {
          f.getMulti(_sub_pixel, _height, _padd);

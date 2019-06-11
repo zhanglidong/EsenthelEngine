@@ -347,19 +347,6 @@ Image& Image::dither(IMAGE_TYPE type)
    return T;
 }
 /******************************************************************************/
-Image& Image::fastCrop(Int w, Int h, Int d)
-{
-   if(is() && mipMaps()==1)
-   {
-     _size.x=Min(Max(1, w), hwW());
-     _size.y=Min(Max(1, h), hwH());
-     _size.z=Min(Max(1, d), hwD());
-      if(soft())_lock_size=_size;
-      setPartial();
-   }
-   return T;
-}
-/******************************************************************************/
 void Image::crop(Image &dest, Int x, Int y, Int w, Int h)C
 {
    crop3D(dest, x, y, 0, w, h, d());

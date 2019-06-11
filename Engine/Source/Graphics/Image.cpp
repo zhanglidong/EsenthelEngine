@@ -819,13 +819,23 @@ Image& Image::setInfo(Int w, Int h, Int d, Int type, IMAGE_MODE mode)
    setPartial();
    return T;
 }
-Image& Image::forceInfo(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode)
+Image& Image::forceInfo(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int samples)
 {
   _hw_size.x=w;
   _hw_size.y=h;
   _hw_size.z=d;
   _hw_type  =type;
+  _samples  =samples;
    return setInfo(w, h, d, type, mode);
+}
+void Image::adjustInfo(Int w, Int h, Int d, IMAGE_TYPE type)
+{
+  _type=type;
+  _size.x=Min(Max(1, w), hwW());
+  _size.y=Min(Max(1, h), hwH());
+  _size.z=Min(Max(1, d), hwD());
+   if(soft())_lock_size=_size;
+   setPartial();
 }
 /******************************************************************************/
 void Image::setGLParams()

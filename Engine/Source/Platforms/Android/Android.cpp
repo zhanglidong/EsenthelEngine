@@ -257,7 +257,7 @@ static void UpdateSize(ANativeWindow &window)
    if(D.res()!=res && res.x>0 && res.y>0)
    {
       LOG(S+"Resize: "+res.x+", "+res.y);
-      Renderer._main.forceInfo(res.x, res.y, 1, Renderer._main.type(), Renderer._main.mode()); // '_main_ds' will be set in 'rtCreate'
+      Renderer._main.forceInfo(res.x, res.y, 1, Renderer._main.type(), Renderer._main.mode(), Renderer._main.samples()); // '_main_ds' will be set in 'rtCreate'
       D.modeSet(res.x, res.y);
    }
 }

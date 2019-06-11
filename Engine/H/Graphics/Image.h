@@ -394,7 +394,6 @@ struct Image // Image (Texture)
 
    Bool   toCube(C Image &src, Int layout=-1, Int size=-1, Int              type=-1, Int mode=-1, Int mip_maps=-1, FILTER_TYPE filter=FILTER_BEST, Bool rgba_on_fail=true); // convert from 'src' image      to cube image, 'size'=desired resolution of the image (-1=keep), 'type'=IMAGE_TYPE (-1=keep), 'mode'=IMAGE_MODE (-1=auto), 'mip_maps'=number of mip-maps (0=autodetect), 'filter'=what kind of filtering to use when source is of different size than the target
    Bool fromCube(C Image &src,                             Int uncompressed_type=-1                                                                                      ); // convert from 'src' cube image to 6x1  image,                                      'uncompressed_type'=IMAGE_TYPE to use if source is compressed
-   Image& fastCrop(Int w, Int h, Int d); // crop by adjusting the internal dimension members only, this will work only if the new dimensions are smaller or equal than hardware dimensions and mip map count is equal to 1
 #endif
 
    Bool raycast(C Vec &start, C Vec &move, C Matrix *image_matrix=null, Flt *hit_frac=null, Vec *hit_pos=null, Flt precision=1.0f)C; // perform ray casting from 'start' position along 'move' vector, return true if collision encountered with the image, by default the Image is on XY plane with its pixel values extending it towards the Z axis, 'image_matrix'=image transformation matrix, 'hit_frac'=fraction of the movement where collision occurs, 'hit_pos'=position where collision occurs, 'precision'=affects number of pixels to advance in a single step (lower value makes calculations faster but less precise)
@@ -583,7 +582,8 @@ struct Image // Image (Texture)
 #if EE_PRIVATE
    void     zero     () {Zero(T);}
    Image&   setInfo  (Int w, Int h, Int d, Int        type, IMAGE_MODE mode);
-   Image& forceInfo  (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode);
+   Image& forceInfo  (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int samples);
+   void  adjustInfo  (Int w, Int h, Int d, IMAGE_TYPE type);
    void   setPartial ();
    void   setGLParams();
    void   setGLFont  ();
@@ -696,6 +696,7 @@ GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) ImageTypeToFormat(Int                     
 IMAGE_TYPE                            ImageFormatToType(GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) format); // convert from API_FORMAT to IMAGE_TYPE
 Int                                   TotalMipMaps     (Int w, Int h, Int d, IMAGE_TYPE type);
 
+IMAGE_TYPE TypeOnFail(IMAGE_TYPE type);
 Bool CanDoRawCopy(C Image &src, C Image &dest);
 Bool CompatibleLock(LOCK_MODE cur, LOCK_MODE lock); // if 'lock' is okay to be applied when 'cur' is already applied
 Vec4 ImageColorF(CPtr data, IMAGE_TYPE hw_type);

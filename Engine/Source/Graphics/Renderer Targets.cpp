@@ -53,22 +53,27 @@ void RendererClass::createShadowMap()
        _shd_map.createTryEx(shd_map_w, shd_map_h, 1, IMAGE_D24S8, IMAGE_SHADOW_MAP, 1);
 
    if( _shd_map.is())
-   if(!_shd_map_null.createTryEx(_shd_map.w(), _shd_map.h(), 1, IMAGE_NULL, IMAGE_RT, 1, 1, IMAGE_B8G8R8A8))_shd_map.del();
+   if(!_shd_map_null.createTryEx(_shd_map.w(), _shd_map.h(), 1, IMAGE_NULL    , IMAGE_RT, 1))
+   if(!_shd_map_null.createTryEx(_shd_map.w(), _shd_map.h(), 1, IMAGE_B8G8R8A8, IMAGE_RT, 1))
+      _shd_map.del();
 #else
    if(!_shd_map.createTryEx(shd_map_w, shd_map_h, 1, IMAGE_D32  , IMAGE_SHADOW_MAP, 1)) // D32 shadow maps have no performance penalty (tested on GeForce 650m) so use them if possible
    if(!_shd_map.createTryEx(shd_map_w, shd_map_h, 1, IMAGE_D24X8, IMAGE_SHADOW_MAP, 1)) // we don't need stencil so avoid it in case it causes performance penalty
    if(!_shd_map.createTryEx(shd_map_w, shd_map_h, 1, IMAGE_D24S8, IMAGE_SHADOW_MAP, 1))
-   if(!_shd_map.createTryEx(shd_map_w, shd_map_h, 1, IMAGE_D16  , IMAGE_SHADOW_MAP, 1)){}
+       _shd_map.createTryEx(shd_map_w, shd_map_h, 1, IMAGE_D16  , IMAGE_SHADOW_MAP, 1);
 #endif
    if(!_shd_map.is())D._shd_map_size_actual=0;
 
    // cloud shadow maps
 #if DX9
-   if(!_cld_map.createTryEx(D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_A8      , IMAGE_RT, 1, 1, IMAGE_L8A8    ))
-       _cld_map.createTryEx(D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_B8G8R8A8, IMAGE_RT, 1, 1, IMAGE_R8G8B8A8);
+   if(!_cld_map.createTryEx(D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_A8      , IMAGE_RT, 1))
+   if(!_cld_map.createTryEx(D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_L8A8    , IMAGE_RT, 1))
+   if(!_cld_map.createTryEx(D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_B8G8R8A8, IMAGE_RT, 1))
+       _cld_map.createTryEx(D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_R8G8B8A8, IMAGE_RT, 1);
 #else
-   if(!_cld_map.createTryEx(D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_R8      , IMAGE_RT, 1, 1, IMAGE_R8G8))
-       _cld_map.createTry  (D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_R8G8B8A8, IMAGE_RT, 1);
+   if(!_cld_map.createTryEx(D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_R8      , IMAGE_RT, 1))
+   if(!_cld_map.createTryEx(D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_R8G8    , IMAGE_RT, 1))
+       _cld_map.createTryEx(D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_R8G8B8A8, IMAGE_RT, 1);
 #endif
 
    Sh.connectRT();
@@ -181,14 +186,16 @@ Bool RendererClass::rtCreate()
    if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24X8, IMAGE_DS   , 1, _main.samples()))
    if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D16  , IMAGE_DS   , 1, _main.samples()))return false;
 #else // other platforms have '_main_ds' linked with '_main' provided by the system
-  _main_ds.forceInfo(_main.w(), _main.h(), 1, _main_ds.type() ? _main_ds.type() : IMAGE_D24S8, IMAGE_DS)._samples=_main.samples(); // if we know the type then use it, otherwise assume the default IMAGE_D24S8
+  _main_ds.forceInfo(_main.w(), _main.h(), 1, _main_ds.type() ? _main_ds.type() : IMAGE_D24S8, IMAGE_DS, _main.samples()); // if we know the type then use it, otherwise assume the default IMAGE_D24S8
 #endif
 
    createShadowMap();
 
    // eye adaptation
-  _eye_adapt_scale_cur=0; if(!_eye_adapt_scale[0].createTryEx(1, 1, 1, IMAGE_F32, IMAGE_RT, 1, 1, IMAGE_F16)
-                          || !_eye_adapt_scale[1].createTryEx(1, 1, 1, IMAGE_F32, IMAGE_RT, 1, 1, IMAGE_F16))REPAO(_eye_adapt_scale).del();
+  _eye_adapt_scale_cur=0;
+   if(!(_eye_adapt_scale[0].createTryEx(1, 1, 1, IMAGE_F32, IMAGE_RT, 1) || _eye_adapt_scale[0].createTryEx(1, 1, 1, IMAGE_F16, IMAGE_RT, 1))
+   || !(_eye_adapt_scale[1].createTryEx(1, 1, 1, IMAGE_F32, IMAGE_RT, 1) || _eye_adapt_scale[1].createTryEx(1, 1, 1, IMAGE_F16, IMAGE_RT, 1)))
+      REPAO(_eye_adapt_scale).del(); // if any failed then delete both
 
    setMain();
 
