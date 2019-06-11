@@ -94,11 +94,11 @@ struct TGA
 
 	      case 32:
 	      {
-	         if(image.hwType()==IMAGE_R8G8B8A8 || image.hwType()==IMAGE_B8G8R8A8)
+	         if(image.hwType()==IMAGE_R8G8B8A8 || image.hwType()==IMAGE_R8G8B8A8_SRGB || image.hwType()==IMAGE_B8G8R8A8)
 	         {
 	            Byte *data=image.data() + x_offset*4 + y*image.pitch();
 	            f.get(data, width*4);
-	            if(image.hwType()==IMAGE_R8G8B8A8)REP(width)Swap(data[i*4+0], data[i*4+2]); // swap Red with Blue
+	            if(image.hwType()==IMAGE_R8G8B8A8 || image.hwType()==IMAGE_R8G8B8A8_SRGB)REP(width)Swap(data[i*4+0], data[i*4+2]); // swap Red with Blue
 	         }else
 	         FREPD(x, width)
 	         {

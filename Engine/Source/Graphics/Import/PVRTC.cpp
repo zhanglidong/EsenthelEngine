@@ -702,7 +702,7 @@ Bool DecompressPVRTC(C Image &src, Image &dest)
          Int src_mip_hwW=PaddedWidth (src.hwW(), src.hwH(), mip, src.hwType()),
              src_mip_hwH=PaddedHeight(src.hwW(), src.hwH(), mip, src.hwType());
          // to directly write to 'dest', we need to match requirements for decompressor, which needs:
-         Bool write_to_dest=(dest.hwType()==IMAGE_R8G8B8A8 // IMAGE_R8G8B8A8 type
+         Bool write_to_dest=((dest.hwType()==IMAGE_R8G8B8A8 || dest.hwType()==IMAGE_R8G8B8A8_SRGB) // IMAGE_R8G8B8A8 type
                           && PaddedWidth (dest.hwW(), dest.hwH(), mip, dest.hwType())==src_mip_hwW   // dest mip width  must be exactly the same as src mip width
                           && PaddedHeight(dest.hwW(), dest.hwH(), mip, dest.hwType())==src_mip_hwH); // dest mip height must be exactly the same as src mip height
          Image &target=(write_to_dest ? dest : temp);

@@ -174,7 +174,7 @@ struct SectionParams
       if(overlay=src.color_overlay)
       {
          if(overlay->compressed() || src.color_overlay_params.blur)
-            if(overlay->copyTry(overlay_image, -1, -1, -1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1))overlay=&overlay_image;else overlay=null;
+            if(overlay->copyTry(overlay_image, -1, -1, -1, ImageTypeUncompressed(overlay->type()), IMAGE_SOFT, 1))overlay=&overlay_image;else overlay=null;
          if(overlay)
          {
             overlay_image.blur(src.color_overlay_params.blur, src.color_overlay_params.blur_clamp, threads); // this will blur only if 'src.color_overlay_params.blur' in which case the "overlay==&overlay_image"
@@ -190,7 +190,7 @@ struct SectionParams
    {
       if(reflection=src.reflection)
       {
-         if(reflection->compressed() || reflection->cube())if(reflection->copyTry(reflection_image, -1, -1, -1, reflection->compressed() ? IMAGE_R8G8B8A8 : -1, IMAGE_SOFT, 1))reflection=&reflection_image;else reflection=null;
+         if(reflection->compressed() || reflection->cube())if(reflection->copyTry(reflection_image, -1, -1, -1, ImageTypeUncompressed(reflection->type()), IMAGE_SOFT, 1))reflection=&reflection_image;else reflection=null;
          if(reflection)
          {
             reflection->lockRead();
@@ -560,7 +560,7 @@ struct PanelImageCreate
          color_bottom=params.color_bottom.asVec4()*params.color.asVec4();
          color_left  =params.color_left  .asVec4();
          color_right =params.color_right .asVec4();
-   inner_glow_color  =params.inner_glow_color.asVec4();
+    inner_glow_color =params.inner_glow_color.asVec4();
 
          Flt cut_corner_amount=params.cut_corner_amount*0.5f*resolution, cut_corner_slope=Max(0, params.cut_corner_slope);
          corner_line[0][0].pos.set(            0,             0+cut_corner_amount); corner_line[0][0].normal.set( 1,  cut_corner_slope);
