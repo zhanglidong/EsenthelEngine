@@ -958,7 +958,7 @@ void Image::setGLFont()
 #endif
 }
 /******************************************************************************/
-Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Byte samples, IMAGE_TYPE type_on_fail, C Image *src)
+Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Byte samples, C Image *src)
 {
    // verify parameters
    if(w<=0 || h<=0 || d<=0 || type==IMAGE_NONE){del(); return !w && !h && !d;}
@@ -969,7 +969,6 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
 #endif
    || !InRange(type, IMAGE_ALL_TYPES))goto error; // type out of range
 
-   if(type_on_fail==type || !InRange(type_on_fail, IMAGE_ALL_TYPES))type_on_fail=IMAGE_NONE;
    MAX(samples, 1);
 
    {
@@ -990,11 +989,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
       Memt<Byte> temp;
    #endif
       // hardware size (do after calculating mip-maps)
-      VecI  hw_size        (PaddedWidth(w, h, 0, type        ), PaddedHeight(w, h, 0, type        ), d);
-      VecI2 hw_size_on_fail(PaddedWidth(w, h, 0, type_on_fail), PaddedHeight(w, h, 0, type_on_fail)   );
-      if(TotalMipMaps(hw_size_on_fail.x, hw_size_on_fail.y, d, type_on_fail)<mip_maps) // if the secondary type can't fit all required mip maps, then we need to increase it, this is needed in case the desired 'type' size is bumped up due to its requirements (like PVRTC) thus making its total number of mip maps bigger
-         hw_size_on_fail.set(PaddedWidth (hw_size.x, hw_size.y, 0, type_on_fail),
-                             PaddedHeight(hw_size.x, hw_size.y, 0, type_on_fail));
+      VecI hw_size(PaddedWidth(w, h, 0, type), PaddedHeight(w, h, 0, type), d);
       Bool pow2=false;
       switch(mode)
       {
@@ -1013,8 +1008,8 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
       }
       if(pow2)
       {
-         hw_size.x=CeilPow2(hw_size.x); hw_size_on_fail.x=CeilPow2(hw_size_on_fail.x);
-         hw_size.y=CeilPow2(hw_size.y); hw_size_on_fail.y=CeilPow2(hw_size_on_fail.y);
+         hw_size.x=CeilPow2(hw_size.x);
+         hw_size.y=CeilPow2(hw_size.y);
          hw_size.z=CeilPow2(hw_size.z);
       }
    #if DX11
@@ -1028,7 +1023,6 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
       #endif
             goto error;
 
-         type_on_fail=IMAGE_NONE; // no alternative types
       #if DX11
        C Byte *data=src->softData(); Int faces=src->faces();
          initial_data=res_data.setNum(mip_maps*faces).data();
@@ -1071,37 +1065,20 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
          }return true;
 
       #if DX9
-         case IMAGE_SURF_SCRATCH:                         if(samples==1 && OK(D3D->CreateOffscreenPlainSurface(hwW(), hwH(),                                         ImageTI[type        ].format, D3DPOOL_SCRATCH                              , &_surf, null))){setInfo(w, h, d, type, mode); return true;}
-            if(type_on_fail){_hw_size.xy=hw_size_on_fail; if(samples==1 && OK(D3D->CreateOffscreenPlainSurface(hwW(), hwH(),                                         ImageTI[type_on_fail].format, D3DPOOL_SCRATCH                              , &_surf, null))){setInfo(w, h, d, type, mode); return true;}} break;
-         case IMAGE_SURF_SYSTEM :                         if(samples==1 && OK(D3D->CreateOffscreenPlainSurface(hwW(), hwH(),                                         ImageTI[type        ].format, D3DPOOL_SYSTEMMEM                            , &_surf, null))){setInfo(w, h, d, type, mode); return true;}
-            if(type_on_fail){_hw_size.xy=hw_size_on_fail; if(samples==1 && OK(D3D->CreateOffscreenPlainSurface(hwW(), hwH(),                                         ImageTI[type_on_fail].format, D3DPOOL_SYSTEMMEM                            , &_surf, null))){setInfo(w, h, d, type, mode); return true;}} break;
-         case IMAGE_SURF        :                         if(samples==1 && OK(D3D->CreateOffscreenPlainSurface(hwW(), hwH(),                                         ImageTI[type        ].format, D3DPOOL_DEFAULT                              , &_surf, null))){setInfo(w, h, d, type, mode); return true;}
-            if(type_on_fail){_hw_size.xy=hw_size_on_fail; if(samples==1 && OK(D3D->CreateOffscreenPlainSurface(hwW(), hwH(),                                         ImageTI[type_on_fail].format, D3DPOOL_DEFAULT                              , &_surf, null))){setInfo(w, h, d, type, mode); return true;}} break;
-         case IMAGE_2D          :                         if(samples==1 && OK(D3D->CreateTexture              (hwW(), hwH(),        mip_maps, 0                    , ImageTI[type        ].format, D._no_gpu ? D3DPOOL_SCRATCH : D3DPOOL_MANAGED, &_txtr, null))){setInfo(w, h, d, type, mode); return true;}
-            if(type_on_fail){_hw_size.xy=hw_size_on_fail; if(samples==1 && OK(D3D->CreateTexture              (hwW(), hwH(),        mip_maps, 0                    , ImageTI[type_on_fail].format, D._no_gpu ? D3DPOOL_SCRATCH : D3DPOOL_MANAGED, &_txtr, null))){setInfo(w, h, d, type, mode); return true;}} break;
-         case IMAGE_3D          :                         if(samples==1 && OK(D3D->CreateVolumeTexture        (hwW(), hwH(), hwD(), mip_maps, 0                    , ImageTI[type        ].format, D._no_gpu ? D3DPOOL_SCRATCH : D3DPOOL_MANAGED, &_vol , null))){setInfo(w, h, d, type, mode); return true;}
-            if(type_on_fail){_hw_size.xy=hw_size_on_fail; if(samples==1 && OK(D3D->CreateVolumeTexture        (hwW(), hwH(), hwD(), mip_maps, 0                    , ImageTI[type_on_fail].format, D._no_gpu ? D3DPOOL_SCRATCH : D3DPOOL_MANAGED, &_vol , null))){setInfo(w, h, d, type, mode); return true;}} break;
-         case IMAGE_CUBE        :                         if(samples==1 && OK(D3D->CreateCubeTexture          (hwW(),               mip_maps, 0                    , ImageTI[type        ].format, D._no_gpu ? D3DPOOL_SCRATCH : D3DPOOL_MANAGED, &_cube, null))){setInfo(w, h, d, type, mode); return true;}
-            if(type_on_fail){_hw_size.xy=hw_size_on_fail; if(samples==1 && OK(D3D->CreateCubeTexture          (hwW(),               mip_maps, 0                    , ImageTI[type_on_fail].format, D._no_gpu ? D3DPOOL_SCRATCH : D3DPOOL_MANAGED, &_cube, null))){setInfo(w, h, d, type, mode); return true;}} break;
-         case IMAGE_RT_CUBE     :                         if(samples==1 && OK(D3D->CreateCubeTexture          (hwW(),                      1, D3DUSAGE_RENDERTARGET, ImageTI[type        ].format, D3DPOOL_DEFAULT                              , &_cube, null))){setInfo(w, h, d, type, mode); return true;}
-            if(type_on_fail){_hw_size.xy=hw_size_on_fail; if(samples==1 && OK(D3D->CreateCubeTexture          (hwW(),                      1, D3DUSAGE_RENDERTARGET, ImageTI[type_on_fail].format, D3DPOOL_DEFAULT                              , &_cube, null))){setInfo(w, h, d, type, mode); return true;}} break;
-         case IMAGE_DS_RT       :                         if(samples==1 && OK(D3D->CreateTexture              (hwW(), hwH(),               1, D3DUSAGE_DEPTHSTENCIL, ImageTI[type        ].format, D3DPOOL_DEFAULT                              , &_txtr, null))){setInfo(w, h, d, type, mode); return true;}  break;
-         case IMAGE_SHADOW_MAP  :                         if(samples==1 && OK(D3D->CreateTexture              (hwW(), hwH(),               1, D3DUSAGE_DEPTHSTENCIL, ImageTI[type        ].format, D3DPOOL_DEFAULT                              , &_txtr, null))){setInfo(w, h, d, type, mode); return true;}  break;
-
-         case IMAGE_DS:
-            if(OK(D3D->CreateDepthStencilSurface(hwW(), hwH(), ImageTI[type].format, (samples>1) ? D3DMULTISAMPLE_TYPE(samples) : D3DMULTISAMPLE_NONE, 0, false, &_surf, null))){setInfo(w, h, d, type, mode); return true;}
-         break;
+         case IMAGE_SURF_SCRATCH: if(samples==1 && OK(D3D->CreateOffscreenPlainSurface(hwW(), hwH(),                                         ImageTI[type].format, D3DPOOL_SCRATCH                              , &_surf, null))){setInfo(w, h, d, type, mode); return true;} break;
+         case IMAGE_SURF_SYSTEM : if(samples==1 && OK(D3D->CreateOffscreenPlainSurface(hwW(), hwH(),                                         ImageTI[type].format, D3DPOOL_SYSTEMMEM                            , &_surf, null))){setInfo(w, h, d, type, mode); return true;} break;
+         case IMAGE_SURF        : if(samples==1 && OK(D3D->CreateOffscreenPlainSurface(hwW(), hwH(),                                         ImageTI[type].format, D3DPOOL_DEFAULT                              , &_surf, null))){setInfo(w, h, d, type, mode); return true;} break;
+         case IMAGE_2D          : if(samples==1 && OK(D3D->CreateTexture              (hwW(), hwH(),        mip_maps, 0                    , ImageTI[type].format, D._no_gpu ? D3DPOOL_SCRATCH : D3DPOOL_MANAGED, &_txtr, null))){setInfo(w, h, d, type, mode); return true;} break;
+         case IMAGE_3D          : if(samples==1 && OK(D3D->CreateVolumeTexture        (hwW(), hwH(), hwD(), mip_maps, 0                    , ImageTI[type].format, D._no_gpu ? D3DPOOL_SCRATCH : D3DPOOL_MANAGED, &_vol , null))){setInfo(w, h, d, type, mode); return true;} break;
+         case IMAGE_CUBE        : if(samples==1 && OK(D3D->CreateCubeTexture          (hwW(),               mip_maps, 0                    , ImageTI[type].format, D._no_gpu ? D3DPOOL_SCRATCH : D3DPOOL_MANAGED, &_cube, null))){setInfo(w, h, d, type, mode); return true;} break;
+         case IMAGE_RT_CUBE     : if(samples==1 && OK(D3D->CreateCubeTexture          (hwW(),                      1, D3DUSAGE_RENDERTARGET, ImageTI[type].format, D3DPOOL_DEFAULT                              , &_cube, null))){setInfo(w, h, d, type, mode); return true;} break;
+         case IMAGE_DS_RT       : if(samples==1 && OK(D3D->CreateTexture              (hwW(), hwH(),               1, D3DUSAGE_DEPTHSTENCIL, ImageTI[type].format, D3DPOOL_DEFAULT                              , &_txtr, null))){setInfo(w, h, d, type, mode); return true;} break;
+         case IMAGE_SHADOW_MAP  : if(samples==1 && OK(D3D->CreateTexture              (hwW(), hwH(),               1, D3DUSAGE_DEPTHSTENCIL, ImageTI[type].format, D3DPOOL_DEFAULT                              , &_txtr, null))){setInfo(w, h, d, type, mode); return true;} break;
+         case IMAGE_DS          : if(              OK(D3D->CreateDepthStencilSurface  (hwW(), hwH(),                                         ImageTI[type].format, (samples>1) ? D3DMULTISAMPLE_TYPE(samples) : D3DMULTISAMPLE_NONE, 0, false, &_surf, null))){setInfo(w, h, d, type, mode); return true;} break;
 
          case IMAGE_RT:
-            if(samples>1)
-            {
-                                                             if(OK(D3D->CreateRenderTarget(hwW(), hwH(), ImageTI[type        ].format, D3DMULTISAMPLE_TYPE(samples), 0, false, &_surf, null))){setInfo(w, h, d, type, mode); clearHw(); return true;}
-               if(type_on_fail){_hw_size.xy=hw_size_on_fail; if(OK(D3D->CreateRenderTarget(hwW(), hwH(), ImageTI[type_on_fail].format, D3DMULTISAMPLE_TYPE(samples), 0, false, &_surf, null))){setInfo(w, h, d, type, mode); clearHw(); return true;}}
-            }else
-            {
-                                                             if(OK(D3D->CreateTexture(hwW(), hwH(), 1, D3DUSAGE_RENDERTARGET, ImageTI[type        ].format, D3DPOOL_DEFAULT, &_txtr, null))){setInfo(w, h, d, type, mode); clearHw(); return true;}
-               if(type_on_fail){_hw_size.xy=hw_size_on_fail; if(OK(D3D->CreateTexture(hwW(), hwH(), 1, D3DUSAGE_RENDERTARGET, ImageTI[type_on_fail].format, D3DPOOL_DEFAULT, &_txtr, null))){setInfo(w, h, d, type, mode); clearHw(); return true;}}
-            }
+            if(samples>1){if(OK(D3D->CreateRenderTarget(hwW(), hwH(),                           ImageTI[type].format, D3DMULTISAMPLE_TYPE(samples), 0, false, &_surf, null))){setInfo(w, h, d, type, mode); clearHw(); return true;}}
+            else         {if(OK(D3D->CreateTexture     (hwW(), hwH(), 1, D3DUSAGE_RENDERTARGET, ImageTI[type].format, D3DPOOL_DEFAULT                       , &_txtr, null))){setInfo(w, h, d, type, mode); clearHw(); return true;}}
          break;
       #elif DX11
          case IMAGE_2D:
@@ -1119,13 +1096,6 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             desc.SampleDesc.Quality=0;
             desc.ArraySize         =1;
             if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr))){setInfo(w, h, d, type, mode); return true;}
-            if(type_on_fail)
-            {
-               desc.Width =_hw_size.x=hw_size_on_fail.x;
-               desc.Height=_hw_size.y=hw_size_on_fail.y;
-               desc.Format=ImageTI[type_on_fail].format;
-               if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(w, h, d, type, mode); return true;}
-            }
          }break;
 
          case IMAGE_SURF_SCRATCH:
@@ -1145,13 +1115,6 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             desc.SampleDesc.Quality=0;
             desc.ArraySize         =1;
             if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr))){setInfo(w, h, d, type, mode); return true;}
-            if(type_on_fail)
-            {
-               desc.Width =_hw_size.x=hw_size_on_fail.x;
-               desc.Height=_hw_size.y=hw_size_on_fail.y;
-               desc.Format=ImageTI[type_on_fail].format;
-               if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(w, h, d, type, mode); return true;}
-            }
          }break;
 
          case IMAGE_RT:
@@ -1169,13 +1132,6 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             desc.SampleDesc.Quality=0;
             desc.ArraySize         =1;
             if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(w, h, d, type, mode); SyncLocker locker(D._lock); clearHw(); return true;} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
-            if(type_on_fail)
-            {
-               desc.Width =_hw_size.x=hw_size_on_fail.x;
-               desc.Height=_hw_size.y=hw_size_on_fail.y;
-               desc.Format=ImageTI[type_on_fail].format;
-               if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(w, h, d, type, mode); SyncLocker locker(D._lock); clearHw(); return true;} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
-            }
          }break;
 
          case IMAGE_3D:
@@ -1191,13 +1147,6 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             desc.MiscFlags         =0;
             desc.CPUAccessFlags    =0;
             if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture3D(&desc, initial_data, &_vol))){setInfo(w, h, d, type, mode); return true;}
-            if(type_on_fail)
-            {
-               desc.Width =_hw_size.x=hw_size_on_fail.x;
-               desc.Height=_hw_size.y=hw_size_on_fail.y;
-               desc.Format=ImageTI[type_on_fail].format;
-               if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture3D(&desc, null, &_vol))){setInfo(w, h, d, type, mode); return true;}
-            }
          }break;
 
          case IMAGE_CUBE:
@@ -1215,13 +1164,6 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             desc.SampleDesc.Quality=0;
             desc.ArraySize         =6;
             if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr))){setInfo(w, h, d, type, mode); return true;}
-            if(type_on_fail)
-            {
-               desc.Width =_hw_size.x=hw_size_on_fail.x;
-               desc.Height=_hw_size.y=hw_size_on_fail.y;
-               desc.Format=ImageTI[type_on_fail].format;
-               if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(w, h, d, type, mode); return true;}
-            }
          }break;
 
          case IMAGE_RT_CUBE:
@@ -1239,13 +1181,6 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             desc.SampleDesc.Quality=0;
             desc.ArraySize         =6;
             if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(w, h, d, type, mode); SyncLocker locker(D._lock); clearHw(); return true;} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
-            if(type_on_fail)
-            {
-               desc.Width =_hw_size.x=hw_size_on_fail.x;
-               desc.Height=_hw_size.y=hw_size_on_fail.y;
-               desc.Format=ImageTI[type_on_fail].format;
-               if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(w, h, d, type, mode); SyncLocker locker(D._lock); clearHw(); return true;} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
-            }
          }break;
 
          case IMAGE_DS:
@@ -1331,31 +1266,15 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                   glCompressedTexImage2D(GL_TEXTURE_2D, 0, format, hwW(), hwH(), 0, mip_size, temp.dataNull());
                }
 
-               if(glGetError()!=GL_NO_ERROR) // error
+               if(glGetError()==GL_NO_ERROR) // ok
                {
-                  if(!type_on_fail)goto error;
-                 _hw_size.xy=hw_size_on_fail;
-                 _hw_type   =type_on_fail;
-                  format    =ImageTI[hwType()].format;
-                  if(!compressed())
-                  {
-                     if(mode==IMAGE_RT)temp.setNumZero(CeilGL(memUsage()));else temp.del(); // clear render targets to zero at start (especially important for floating point RT's)
-                     glTexImage2D(GL_TEXTURE_2D, 0, format, hwW(), hwH(), 0, SourceGLFormat(hwType()), SourceGLType(hwType()), temp.dataNull());
-                  }else
-                  {
-                     Int mip_size=ImageMipSize(hwW(), hwH(), 0, hwType());
-                     if(WEB)temp.setNumZero(CeilGL(mip_size));else temp.del(); // for WEB, null can't be specified in 'glCompressedTexImage'
-                     glCompressedTexImage2D(GL_TEXTURE_2D, 0, format, hwW(), hwH(), 0, mip_size, temp.dataNull());
-                  }
-                  if(glGetError()!=GL_NO_ERROR)goto error; // error
+                  glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
+                  setInfo(w, h, d, type, mode);
+               #if GL_ES
+                  if(mode!=IMAGE_RT && !_data_all)Alloc(_data_all, CeilGL(memUsage())); // '_data_all' could've been created above
+               #endif
+                  return true;
                }
-
-               glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
-               setInfo(w, h, d, type, mode);
-            #if GL_ES
-               if(mode!=IMAGE_RT && !_data_all)Alloc(_data_all, CeilGL(memUsage())); // '_data_all' could've been created above
-            #endif
-               return true;
             }
          }break;
 
@@ -1400,23 +1319,15 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                if(!compressed())glTexImage3D(GL_TEXTURE_3D, 0, format, hwW(), hwH(), hwD(), 0, gl_format, gl_type, null);
                else   glCompressedTexImage3D(GL_TEXTURE_3D, 0, format, hwW(), hwH(), hwD(), 0, ImageMipSize(hwW(), hwH(), hwD(), 0, hwType()), null);
 
-               if(glGetError()!=GL_NO_ERROR) // error
+               if(glGetError()==GL_NO_ERROR) // ok
                {
-                  if(!type_on_fail)goto error;
-                 _hw_size.xy=hw_size_on_fail;
-                 _hw_type   =type_on_fail;
-                  format    =ImageTI[hwType()].format;
-                  if(!compressed())glTexImage3D(GL_TEXTURE_3D, 0, format, hwW(), hwH(), hwD(), 0, SourceGLFormat(hwType()), SourceGLType(hwType()), null);
-                  else   glCompressedTexImage3D(GL_TEXTURE_3D, 0, format, hwW(), hwH(), hwD(), 0, ImageMipSize(hwW(), hwH(), hwD(), 0, hwType()), null);
-                  if(glGetError()!=GL_NO_ERROR)goto error; // error
+                  glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
+                  setInfo(w, h, d, type, mode);
+               #if GL_ES
+                  if(!_data_all)Alloc(_data_all, CeilGL(memUsage())); // '_data_all' could've been created above
+               #endif
+            	   return true;
                }
-
-               glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
-               setInfo(w, h, d, type, mode);
-            #if GL_ES
-               if(!_data_all)Alloc(_data_all, CeilGL(memUsage())); // '_data_all' could've been created above
-            #endif
-            	return true;
             }
          }break;
 
@@ -1445,7 +1356,6 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                if(src && mode!=IMAGE_RT_CUBE && !(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA))Alloc(_data_all, CeilGL(src->memUsage())); Byte *dest=_data_all;
             #endif
 
-            again_cube:
                UInt format=ImageTI[hwType()].format, gl_format=SourceGLFormat(hwType()), gl_type=SourceGLType(hwType());
              C Byte *data=(src ? src->softData() : null); Int mip_maps=(src ? mipMaps() : 1); FREPD(m, mip_maps) // order important
                {
@@ -1458,13 +1368,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                      if(!compressed())glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+f, m, format, size.x, size.y, 0, gl_format, gl_type, data);
                      else   glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+f, m, format, size.x, size.y, 0, mip_size, data);
 
-                     if(!m && !f && glGetError()!=GL_NO_ERROR) // check for error only on the first mip and face
-                     {
-                        if(!type_on_fail)goto error;
-                       _hw_size.xy=hw_size_on_fail;
-                       _hw_type   =type_on_fail; type_on_fail=IMAGE_NONE; // disable trying this again
-                        goto again_cube;
-                     }
+                     if(!m && !f && glGetError()!=GL_NO_ERROR)goto error; // check for error only on the first mip and face
                      
                      if(src)
                      {
@@ -1588,7 +1492,14 @@ error:
 }
 Bool Image::createTry(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Bool rgba_on_fail)
 {
-   return createTryEx(w, h, d, type, mode, mip_maps, 1, rgba_on_fail ? IMAGE_DEFAULT : IMAGE_NONE);
+   if(createTryEx(w, h, d, type, mode, mip_maps, 1))return true;
+   if(rgba_on_fail && w>0 && h>0)if(IMAGE_TYPE type_on_fail=ImageTypeOnFail(type))
+      if(createTryEx(PaddedWidth(w, h, 0, type), PaddedHeight(w, h, 0, type), d, type_on_fail, mode, mip_maps, 1)) // we must allocate entire HW size for 'type' to have enough room for its data, for example 48x48 PVRTC requires 64x64 size 7 mip maps, while RGBA would give us 48x48 size 6 mip maps, this is to achieve consistent results (have the same sizes, and mip maps) and it's also a requirement for saving
+   {
+      adjustInfo(w, h, d, type);
+      return true;
+   }
+   return false;
 }
 Image& Image::create(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Bool rgba_on_fail)
 {

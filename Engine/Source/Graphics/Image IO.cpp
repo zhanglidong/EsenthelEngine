@@ -186,12 +186,12 @@ static Bool Load(Image &image, File &f, C ImageHeader &header, C Str &name)
    const Bool create_from_soft=DX11|GL; // if want to load into SOFT and then create HW from it, to avoid locking 'D._lock', only DX11, GL support this
    if(image.createTry(want.size.x, want.size.y, want.size.z, want.type, create_from_soft ? (IsCube(want.mode) ? IMAGE_SOFT_CUBE : IMAGE_SOFT) : want.mode, want.mip_maps)) // don't use 'want' after this call, instead operate on 'image' members
    {
-      const FILTER_TYPE filter=FILTER_BEST;
-      Image soft; // store outside the loop to avoid overhead
-const Bool   file_cube =IsCube(header.mode), fast_load=(image.soft() && image.hwType()==header.type && image.cube()==file_cube);
-const Int    file_faces=(file_cube ? 6 : 1);
-      Int   image_mip  =0; // how many mip-maps have already been set in the image
-      FREPD( file_mip, header.mip_maps) // iterate all mip maps in the file
+const FILTER_TYPE filter=FILTER_BEST;
+      Image       soft; // store outside the loop to avoid overhead
+const Bool        file_cube =IsCube(header.mode), fast_load=(image.soft() && image.hwType()==header.type && image.cube()==file_cube);
+const Int         file_faces=(file_cube ? 6 : 1);
+      Int         image_mip  =0; // how many mip-maps have already been set in the image
+      FREPD(file_mip, header.mip_maps) // iterate all mip maps in the file
       {
          VecI file_mip_size(Max(1, header.size.x>>file_mip), Max(1, header.size.y>>file_mip), Max(1, header.size.z>>file_mip));
          Bool      mip_fits=SizeFits(file_mip_size, image.size3()); // if this mip-map fits into the image
@@ -322,12 +322,13 @@ const Int    file_faces=(file_cube ? 6 : 1);
       if(image.mode()!=want.mode) // if created as SOFT, then convert to HW
       {
          Swap(soft, image); // can't create from self
-         if(!image.createTryEx(soft.w(), soft.h(), soft.d(), soft.type(), want.mode, soft.mipMaps(), soft.samples(), IMAGE_NONE, &soft))
+         if(!image.createTryEx(soft.w(), soft.h(), soft.d(), soft.type(), want.mode, soft.mipMaps(), soft.samples(), &soft))
          {
-            if(!type_on_fail || type_on_fail==soft.type() // no alternative type specified, or is the same one
-            || !soft .  copyTry  (soft, -1, -1, -1, type_on_fail)
-            || !image.createTryEx(soft.w(), soft.h(), soft.d(), soft.type(), want.mode, soft.mipMaps(), soft.samples(), IMAGE_NONE, &soft))return false;
-            image._type=want.type; // adjust wanted type, have to do it here, because there's no other way
+            IMAGE_TYPE type=soft.type(), type_on_fail=ImageTypeOnFail(type); if(!type_on_fail)return false; VecI size=soft.size3(); // remember params for adjust later
+            soft.adjustInfo(soft.hwW(), soft.hwH(), soft.d(), soft.type()); // adjust internal size to 'hwW', 'hwH' because we must allocate entire HW size for 'type' to have enough room for its data, for example 48x48 PVRTC requires 64x64 size 7 mip maps, while RGBA would give us 48x48 size 6 mip maps, this is to achieve consistent results (have the same sizes, and mip maps) and it's also a requirement for saving, doing this instead of using 'copyTry' with FILTER_NO_STRETCH allows for faster 'Decompress' (directly into 'target'), no need to explicitly specify mip maps instead of using -1 because they could change due to different sizes)
+            if(!soft .  copyTry  (soft, -1, -1, -1, type_on_fail) // we have to keep depth, soft mode, mip maps
+            || !image.createTryEx(soft.w(), soft.h(), soft.d(), soft.type(), want.mode, soft.mipMaps(), soft.samples(), &soft))return false;
+            image.adjustInfo(size.x, size.y, size.z, type);
          }
       }
 

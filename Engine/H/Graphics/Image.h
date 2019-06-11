@@ -242,7 +242,7 @@ struct Image // Image (Texture)
    // manage
    Image& del          (                                                                                             );                                                                       // delete
 #if EE_PRIVATE
-   Bool   createTryEx  (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Byte samples=1, IMAGE_TYPE type_on_fail=IMAGE_NONE, C Image *src=null);
+   Bool   createTryEx  (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Byte samples=1, C Image *src=null);
 #endif
    Bool   createTry    (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps=0, Bool rgba_on_fail=true);                                                                       // create                 image, 'mip_maps'=number of mip-maps (0=autodetect), 'rgba_on_fail'=if try using uncompressed RGBA type if given 'type' is not supported, false on fail
    Image& create       (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps=0, Bool rgba_on_fail=true);                                                                       // create                 image, 'mip_maps'=number of mip-maps (0=autodetect), 'rgba_on_fail'=if try using uncompressed RGBA type if given 'type' is not supported, Exit  on fail
