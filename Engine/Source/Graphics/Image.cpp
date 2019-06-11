@@ -653,33 +653,33 @@ Image& Image::setInfo(Int w, Int h, Int d, Int type, IMAGE_MODE mode)
       if(desc.Format==DXGI_FORMAT_R16_TYPELESS)
       {
          D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd); srvd.Format=DXGI_FORMAT_R16_UNORM;
-         if(desc.SampleDesc.Count<=1){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=1;}
-         else                        {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
+         if(multiSample()){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
+         else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
          D3D->CreateShaderResourceView(_txtr, &srvd, &_srv);
 
-         D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=DXGI_FORMAT_D16_UNORM; dsvd.ViewDimension=((desc.SampleDesc.Count>1) ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
+         D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=DXGI_FORMAT_D16_UNORM; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
                                                D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv );
          dsvd.Flags=D3D11_DSV_READ_ONLY_DEPTH; D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // D16 does not have stencil, this will work only on DX11.0 but not 10.0, 10.1
       }else
       if(desc.Format==DXGI_FORMAT_R32_TYPELESS)
       {
          D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd); srvd.Format=DXGI_FORMAT_R32_FLOAT;
-         if(desc.SampleDesc.Count<=1){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=1;}
-         else                        {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
+         if(multiSample()){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
+         else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
          D3D->CreateShaderResourceView(_txtr, &srvd, &_srv);
 
-         D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=DXGI_FORMAT_D32_FLOAT; dsvd.ViewDimension=((desc.SampleDesc.Count>1) ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
+         D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=DXGI_FORMAT_D32_FLOAT; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
                                                D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv );
          dsvd.Flags=D3D11_DSV_READ_ONLY_DEPTH; D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // D32 does not have stencil, this will work only on DX11.0 but not 10.0, 10.1
       }else
       if(desc.Format==DXGI_FORMAT_R24G8_TYPELESS)
       {
          D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd); srvd.Format=DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-         if(desc.SampleDesc.Count<=1){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=1;}
-         else                        {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
+         if(multiSample()){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
+         else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
          D3D->CreateShaderResourceView(_txtr, &srvd, &_srv);
 
-         D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=DXGI_FORMAT_D24_UNORM_S8_UINT; dsvd.ViewDimension=((desc.SampleDesc.Count>1) ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
+         D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=DXGI_FORMAT_D24_UNORM_S8_UINT; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
                                                                              D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv );
          dsvd.Flags=(D3D11_DSV_READ_ONLY_DEPTH|D3D11_DSV_READ_ONLY_STENCIL); D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // this will work only on DX11.0 but not 10.0, 10.1
       }else
