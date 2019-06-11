@@ -118,18 +118,18 @@ static Int CompareDesc(C ImageRC &image, C ImageRTDesc &desc)
    if(Int c=Compare(image.samples(), desc.samples))return c;
    return 0;
 }
-static inline Bool ImageRTCreate(ImageRC &image, C ImageRTDesc &desc)
+Bool ImageRC::create(C ImageRTDesc &desc)
 {
    Bool ok;
    if(ImageTI[desc._type].d) // if this is a depth buffer
    {
-             ok=image.createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_DS_RT, 1, desc.samples); // try first as a render target
+             ok=createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_DS_RT, 1, desc.samples); // try first as a render target
    #if DX9 || GL // for DX10+ IMAGE_DS_RT is the same as IMAGE_DS so don't bother checking it again
-      if(!ok)ok=image.createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_DS   , 1, desc.samples);
+      if(!ok)ok=createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_DS   , 1, desc.samples);
    #endif
    }else
    {
-      ok=image.createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_RT, 1, desc.samples);
+      ok=createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_RT, 1, desc.samples);
    }
    if(ok)Time.skipUpdate();
    return ok;
@@ -204,7 +204,7 @@ again:
    {
       case UNKNOWN:
       {
-         ImageRC temp; Bool ok=ImageRTCreate(temp, desc); // try to create first as a standalone variable (not in 'Renderer._rts') in case it fails so we don't have to remove it
+         ImageRC temp; Bool ok=temp.create(desc); // try to create first as a standalone variable (not in 'Renderer._rts') in case it fails so we don't have to remove it
          itcr[desc._type]=(ok ? SUCCESS : FAILED);
          if(ok){ImageRC &rt=Renderer._rts.NewAt(_last_index); Swap(rt, temp); Set(T, rt); return true;}
          // fail
@@ -218,7 +218,7 @@ again:
 
       case SUCCESS:
       {
-         ImageRC &rt=Renderer._rts.NewAt(_last_index); if(!ImageRTCreate(rt, desc))Exit(S+"Can't create Render Target "+desc.size.x+'x'+desc.size.y); // Exit because SUCCESS always assumes to succeed
+         ImageRC &rt=Renderer._rts.NewAt(_last_index); if(!rt.create(desc))Exit(S+"Can't create Render Target "+desc.size.x+'x'+desc.size.y); // Exit because SUCCESS always assumes to succeed
          Set(T, rt); return true;
       }break;
    }

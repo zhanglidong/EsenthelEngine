@@ -52,6 +52,7 @@ struct ImageRTDesc // Render Target Description
 };
 #endif
 /******************************************************************************/
+   Bool create(C ImageRTDesc &desc);
 struct ImageRTPtr // Render Target Pointer
 {
 #if EE_PRIVATE
