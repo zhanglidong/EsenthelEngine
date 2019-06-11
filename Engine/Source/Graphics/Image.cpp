@@ -154,6 +154,150 @@ const ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have 
    {"NULL"         , false,  0,  0,   0, 0, 0, 0,   0,0, 0, IMAGE_PRECISION_8 , GPU_API(D3DFORMAT(MAKEFOURCC('N','U','L','L')), DXGI_FORMAT_UNKNOWN          , 0                    )},
 }; ASSERT(IMAGE_ALL_TYPES==62);
 /******************************************************************************/
+IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type)
+{
+   switch(type)
+   {
+      default: return type;
+
+      case IMAGE_R8G8B8:
+      case IMAGE_R8G8  :
+      case IMAGE_R8    : return IMAGE_R8G8B8A8;
+
+    //case IMAGE_R8G8B8_SRGB: return IMAGE_R8G8B8A8_SRGB;
+
+      case IMAGE_L8 :
+      case IMAGE_I8 :
+      case IMAGE_I16:
+      case IMAGE_I24:
+      case IMAGE_I32: return IMAGE_L8A8;
+
+      case IMAGE_BC1     : return IMAGE_BC7     ; // BC1 has only 1-bit alpha which is not enough
+      case IMAGE_BC1_SRGB: return IMAGE_BC7_SRGB; // BC1 has only 1-bit alpha which is not enough
+
+      case IMAGE_F16  :
+      case IMAGE_F16_2:
+      case IMAGE_F16_3: return IMAGE_F16_4;
+
+      case IMAGE_F32  :
+      case IMAGE_F32_2:
+      case IMAGE_F32_3: return IMAGE_F32_4;
+
+      case IMAGE_ETC1   :
+      case IMAGE_ETC2   :
+      case IMAGE_ETC2_A1: return IMAGE_ETC2_A8; // ETC2_A1 has only 1-bit alpha which is not enough
+
+      case IMAGE_ETC2_SRGB   :
+      case IMAGE_ETC2_A1_SRGB: return IMAGE_ETC2_A8_SRGB; // ETC2_A1_SRGB has only 1-bit alpha which is not enough
+   }
+}
+IMAGE_TYPE ImageTypeExcludeAlpha(IMAGE_TYPE type)
+{
+   switch(type)
+   {
+      default: return type;
+
+    //case IMAGE_R8G8B8A8_SRGB: return IMAGE_R8G8B8_SRGB;
+      case IMAGE_R8G8B8A8: return IMAGE_R8G8B8;
+      case IMAGE_B8G8R8A8: return IMAGE_B8G8R8;
+
+      case IMAGE_L8A8: return IMAGE_L8;
+
+      case IMAGE_BC2:
+      case IMAGE_BC3:
+      case IMAGE_BC7: return IMAGE_BC1;
+
+      case IMAGE_BC2_SRGB:
+      case IMAGE_BC3_SRGB:
+      case IMAGE_BC7_SRGB: return IMAGE_BC1_SRGB;
+
+      case IMAGE_F16_4: return IMAGE_F16_3;
+      case IMAGE_F32_4: return IMAGE_F32_3;
+
+      case IMAGE_ETC2_A1:
+      case IMAGE_ETC2_A8: return IMAGE_ETC2;
+
+      case IMAGE_ETC2_A1_SRGB:
+      case IMAGE_ETC2_A8_SRGB: return IMAGE_ETC2_SRGB;
+   }
+}
+IMAGE_TYPE ImageTypeUncompressed(IMAGE_TYPE type)
+{
+   switch(type)
+   {
+      default: return type;
+
+      case IMAGE_BC1 : // use since there's no other desktop compressed format without alpha
+      case IMAGE_ETC1:
+      case IMAGE_ETC2:
+         return IMAGE_R8G8B8;
+
+      case IMAGE_BC2:
+      case IMAGE_BC3:
+      case IMAGE_BC7:
+      case IMAGE_ETC2_A1:
+      case IMAGE_ETC2_A8:
+      case IMAGE_PVRTC1_2:
+      case IMAGE_PVRTC1_4:
+         return IMAGE_R8G8B8A8;
+
+      case IMAGE_BC1_SRGB:
+      case IMAGE_ETC2_SRGB:
+       //return IMAGE_R8G8B8_SRGB;
+      case IMAGE_BC2_SRGB:
+      case IMAGE_BC3_SRGB:
+      case IMAGE_BC7_SRGB:
+      case IMAGE_ETC2_A1_SRGB:
+      case IMAGE_ETC2_A8_SRGB:
+      case IMAGE_PVRTC1_2_SRGB:
+      case IMAGE_PVRTC1_4_SRGB:
+         return IMAGE_R8G8B8A8_SRGB;
+   }
+}
+/******************************************************************************/
+GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) ImageTypeToFormat(Int                                   type  ) {return InRange(type, ImageTI) ? ImageTI[type].format : GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, 0);}
+IMAGE_TYPE                            ImageFormatToType(GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) format
+#if GL
+, IMAGE_TYPE type
+#endif
+)
+{
+   // check these which are listed multiple times (then return the preferred version), or not listed at all but known
+   switch(format)
+   {
+   #if DX9
+      case D3DFMT_UNKNOWN: return IMAGE_NONE;
+   #elif DX11
+      case DXGI_FORMAT_UNKNOWN: return IMAGE_NONE;
+
+      case DXGI_FORMAT_R16_TYPELESS  : return IMAGE_D16;
+      case DXGI_FORMAT_R24G8_TYPELESS: return IMAGE_D24S8;
+      case DXGI_FORMAT_R32_TYPELESS  : return IMAGE_D32;
+   #elif GL
+      case 0: return IMAGE_NONE;
+
+      #if GL_SWIZZLE
+         case GL_R8 : if(type==IMAGE_A8 || type==IMAGE_L8)return type; return IMAGE_R8;
+         case GL_RG8: if(type==IMAGE_L8A8                )return type; return IMAGE_R8G8;
+      #endif
+   #endif
+   }
+   FREPA(ImageTI)if(ImageTI[i].format==format)return IMAGE_TYPE(i);
+   return IMAGE_NONE;
+}
+/******************************************************************************/
+IMAGE_TYPE BytesToImageType(Int byte_pp)
+{
+   switch(byte_pp)
+   {
+      default: return IMAGE_NONE;
+      case  1: return IMAGE_I8;
+      case  2: return IMAGE_I16;
+      case  3: return IMAGE_I24;
+      case  4: return IMAGE_I32;
+   }
+}
+/******************************************************************************/
 Bool IsSoft(IMAGE_MODE mode)
 {
    switch(mode)
@@ -183,18 +327,6 @@ Bool IsCube(IMAGE_MODE mode)
       case IMAGE_CUBE     :
       case IMAGE_SOFT_CUBE:
       case IMAGE_RT_CUBE  : return true;
-   }
-}
-/******************************************************************************/
-IMAGE_TYPE BytesToImageType(Int byte_pp)
-{
-   switch(byte_pp)
-   {
-      default: return IMAGE_NONE;
-      case  1: return IMAGE_I8;
-      case  2: return IMAGE_I16;
-      case  3: return IMAGE_I24;
-      case  4: return IMAGE_I32;
    }
 }
 /******************************************************************************/
@@ -274,127 +406,6 @@ Bool CanDoRawCopy(C Image &src, C Image &dest)
    return src.hwType()==dest.hwType()
    && (  dest.  type()==dest.hwType() // check 'type' too in case we have to perform color adjustment
    ||     src.  type()==dest.  type());
-}
-/******************************************************************************/
-GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) ImageTypeToFormat(Int                                   type  ) {return InRange(type, ImageTI) ? ImageTI[type].format : GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, 0);}
-IMAGE_TYPE                            ImageFormatToType(GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) format
-#if GL
-, IMAGE_TYPE type
-#endif
-)
-{
-   // check these which are listed multiple times (then return the preferred version), or not listed at all but known
-   switch(format)
-   {
-   #if DX9
-      case D3DFMT_UNKNOWN: return IMAGE_NONE;
-   #elif DX11
-      case DXGI_FORMAT_UNKNOWN: return IMAGE_NONE;
-
-      case DXGI_FORMAT_R16_TYPELESS  : return IMAGE_D16;
-      case DXGI_FORMAT_R24G8_TYPELESS: return IMAGE_D24S8;
-      case DXGI_FORMAT_R32_TYPELESS  : return IMAGE_D32;
-   #elif GL
-      case 0: return IMAGE_NONE;
-
-      #if GL_SWIZZLE
-         case GL_R8 : if(type==IMAGE_A8 || type==IMAGE_L8)return type; return IMAGE_R8;
-         case GL_RG8: if(type==IMAGE_L8A8                )return type; return IMAGE_R8G8;
-      #endif
-   #endif
-   }
-   FREPA(ImageTI)if(ImageTI[i].format==format)return IMAGE_TYPE(i);
-   return IMAGE_NONE;
-}
-/******************************************************************************/
-IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type)
-{
-   switch(type)
-   {
-      default: return type;
-
-      case IMAGE_R8G8B8:
-      case IMAGE_R8G8  :
-      case IMAGE_R8    : return IMAGE_R8G8B8A8;
-
-      case IMAGE_L8 :
-      case IMAGE_I8 :
-      case IMAGE_I16:
-      case IMAGE_I24:
-      case IMAGE_I32: return IMAGE_L8A8;
-
-      case IMAGE_BC1     : return IMAGE_BC7     ; // BC1 has only 1-bit alpha which is not enough
-      case IMAGE_BC1_SRGB: return IMAGE_BC7_SRGB; // BC1 has only 1-bit alpha which is not enough
-
-      case IMAGE_F16  :
-      case IMAGE_F16_2:
-      case IMAGE_F16_3: return IMAGE_F16_4;
-
-      case IMAGE_F32  :
-      case IMAGE_F32_2:
-      case IMAGE_F32_3: return IMAGE_F32_4;
-
-      case IMAGE_ETC1   :
-      case IMAGE_ETC2   :
-      case IMAGE_ETC2_A1: return IMAGE_ETC2_A8; // ETC2_A1 has only 1-bit alpha which is not enough
-
-      case IMAGE_ETC2_SRGB   :
-      case IMAGE_ETC2_A1_SRGB: return IMAGE_ETC2_A8_SRGB; // ETC2_A1_SRGB has only 1-bit alpha which is not enough
-   }
-}
-IMAGE_TYPE ImageTypeExcludeAlpha(IMAGE_TYPE type)
-{
-   switch(type)
-   {
-      default: return type;
-
-      case IMAGE_R8G8B8A8: return IMAGE_R8G8B8;
-      case IMAGE_B8G8R8A8: return IMAGE_B8G8R8;
-
-      case IMAGE_L8A8: return IMAGE_L8;
-
-      case IMAGE_BC2:
-      case IMAGE_BC3:
-      case IMAGE_BC7: return IMAGE_BC1;
-
-      case IMAGE_BC2_SRGB:
-      case IMAGE_BC3_SRGB:
-      case IMAGE_BC7_SRGB: return IMAGE_BC1_SRGB;
-
-      case IMAGE_F16_4: return IMAGE_F16_3;
-      case IMAGE_F32_4: return IMAGE_F32_3;
-
-      case IMAGE_ETC2_A1:
-      case IMAGE_ETC2_A8: return IMAGE_ETC2;
-
-      case IMAGE_ETC2_A1_SRGB:
-      case IMAGE_ETC2_A8_SRGB: return IMAGE_ETC2_SRGB;
-   }
-}
-IMAGE_TYPE ImageTypeUncompressed(IMAGE_TYPE type)
-{
-   switch(type)
-   {
-      default: return ImageTI[type].compressed ? IMAGE_R8G8B8A8 : type;
-
-      case IMAGE_ETC1   :
-      case IMAGE_ETC2   :
-      case IMAGE_BC1    : // use since there's no other desktop compressed format without alpha
-    //case IMAGE_ETC2_A1: don't use since we have IMAGE_ETC2 already
-         return IMAGE_R8G8B8;
-
-      case IMAGE_BC1_SRGB:
-      case IMAGE_ETC2_SRGB:
-       //return IMAGE_R8G8B8_SRGB;
-      case IMAGE_BC2_SRGB:
-      case IMAGE_BC3_SRGB:
-      case IMAGE_BC7_SRGB:
-      case IMAGE_ETC2_A1_SRGB:
-      case IMAGE_ETC2_A8_SRGB:
-      case IMAGE_PVRTC1_2_SRGB:
-      case IMAGE_PVRTC1_4_SRGB:
-         return IMAGE_R8G8B8A8_SRGB;
-   }
 }
 /******************************************************************************/
 #if GL
@@ -498,7 +509,7 @@ UInt SourceGLType(IMAGE_TYPE type)
       case IMAGE_R8_SIGN      : return GL_BYTE;
 
       case IMAGE_B8G8R8A8:
-      case IMAGE_R8G8B8A8:
+      case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB:
       case IMAGE_R8G8B8  :
       case IMAGE_R8G8    :
       case IMAGE_R8      :
@@ -1594,8 +1605,8 @@ static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'des
          {
             Color color[4][4];
             Int   done_x=0, done_y=0;
-            if(dest.hwType()==IMAGE_R8G8B8A8  // decompress directly into 'dest'
-            && dest.  type()==IMAGE_R8G8B8A8) // check 'type' too in case we have to perform color adjustment
+            if((dest.hwType()==IMAGE_R8G8B8A8 || dest.hwType()==IMAGE_R8G8B8A8_SRGB)  // decompress directly into 'dest'
+            && (dest.  type()==IMAGE_R8G8B8A8 || dest.  type()==IMAGE_R8G8B8A8_SRGB)) // check 'type' too in case we have to perform color adjustment
             {
                // process full blocks only
              C Byte * src_data_z= src.data() + z* src.pitch2();
@@ -1838,7 +1849,7 @@ Bool Image::toCube(C Image &src, Int layout, Int size, Int type, Int mode, Int m
          }else
          {
           C Image *s=&src;
-            Image  decompressed; if(src.compressed()){if(!src.copyTry(decompressed, -1, -1, -1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1))return false; s=&decompressed;}
+            Image  decompressed; if(src.compressed()){if(!src.copyTry(decompressed, -1, -1, -1, ImageTypeUncompressed(src.type()), IMAGE_SOFT, 1))return false; s=&decompressed;}
             Image  face; // keep outside the loop in case we can reuse it
             REP(6)
             {
