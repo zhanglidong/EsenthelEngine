@@ -2783,7 +2783,7 @@ Bool Image::map()
    // on Android and Web 'Renderer._main' has 'setInfo' called externally in the main loop
    return true;
 #elif DESKTOP
-   forceInfo(D.resW(), D.resH(), 1, type() ? type() : IMAGE_DEFAULT, IMAGE_SURF); return true;
+   forceInfo(D.resW(), D.resH(), 1, type() ? type() : IMAGE_DEFAULT, IMAGE_SURF, samples()); return true;
 #endif
    return false;
 }
