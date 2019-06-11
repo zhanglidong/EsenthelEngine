@@ -165,7 +165,7 @@ Bool Image::saveData(File &f)C
 static INLINE Bool SizeFits (  Int   src,   Int   dest) {return src<dest*2;} // this is OK for src=7, dest=4 (7<4*2), but NOT OK for src=8, dest=4 (8<4*2)
 static INLINE Bool SizeFits1(  Int   src,   Int   dest) {return src>1 && SizeFits(src, dest);} // only if 'src>1', if we don't check this, then 1024x1024x1 src will fit into 16x16x1 dest because of Z=1
 static        Bool SizeFits (C VecI &src, C VecI &dest) {return SizeFits1(src.x, dest.x) || SizeFits1(src.y, dest.y) || SizeFits1(src.z, dest.z) || (src.x==1 && src.y==1 && src.z==1);}
-static Bool Load(Image &image, File &f, C ImageHeader &header, C Str &name, IMAGE_TYPE type_on_fail)
+static Bool Load(Image &image, File &f, C ImageHeader &header, C Str &name)
 {
    if(!f.ok())return false;
 
@@ -184,7 +184,7 @@ static Bool Load(Image &image, File &f, C ImageHeader &header, C Str &name, IMAG
    }
 
    const Bool create_from_soft=DX11|GL; // if want to load into SOFT and then create HW from it, to avoid locking 'D._lock', only DX11, GL support this
-   if(image.createTryEx(want.size.x, want.size.y, want.size.z, want.type, create_from_soft ? (IsCube(want.mode) ? IMAGE_SOFT_CUBE : IMAGE_SOFT) : want.mode, want.mip_maps, 1, type_on_fail)) // don't use 'want' after this call, instead operate on 'image' members
+   if(image.createTry(want.size.x, want.size.y, want.size.z, want.type, create_from_soft ? (IsCube(want.mode) ? IMAGE_SOFT_CUBE : IMAGE_SOFT) : want.mode, want.mip_maps)) // don't use 'want' after this call, instead operate on 'image' members
    {
       const FILTER_TYPE filter=FILTER_BEST;
       Image soft; // store outside the loop to avoid overhead
@@ -335,7 +335,7 @@ const Int    file_faces=(file_cube ? 6 : 1);
    }
    return false;
 }
-Bool Image::loadData(File &f, IMAGE_TYPE type_on_fail, ImageHeader *header, C Str &name)
+Bool Image::loadData(File &f, ImageHeader *header, C Str &name)
 {
    ImageHeader ih;
    switch(f.decUIntV())
@@ -357,7 +357,7 @@ Bool Image::loadData(File &f, IMAGE_TYPE type_on_fail, ImageHeader *header, C St
          Unaligned(ih.mode    , header4.mode);
         _Unaligned(ih.mip_maps, header4.mips);
          if(header)goto set_header;
-         if(Load(T, f, ih, name, type_on_fail))goto ok;
+         if(Load(T, f, ih, name))goto ok;
       }break;
 
       case 3:
@@ -369,7 +369,7 @@ Bool Image::loadData(File &f, IMAGE_TYPE type_on_fail, ImageHeader *header, C St
          ih.mode    =IMAGE_MODE   (f.getByte());
          ih.mip_maps=f.getByte();
          if(header)goto set_header;
-         if(Load(T, f, ih, name, type_on_fail))goto ok;
+         if(Load(T, f, ih, name))goto ok;
       }break;
 
       case 2:
@@ -384,7 +384,7 @@ Bool Image::loadData(File &f, IMAGE_TYPE type_on_fail, ImageHeader *header, C St
          ih.mip_maps=           f.getByte();
          if(header)goto set_header;
          if(old_type==6)f.skip(SIZE(Color)*256); // palette
-         if(createTryEx(ih.size.x, ih.size.y, ih.size.z, ih.type, ih.mode, ih.mip_maps, 1, type_on_fail))
+         if(createTry(ih.size.x, ih.size.y, ih.size.z, ih.type, ih.mode, ih.mip_maps))
          {
             Image soft;
             FREPD(mip ,  ih.mip_maps                 ) // iterate all mip maps
@@ -423,7 +423,7 @@ Bool Image::loadData(File &f, IMAGE_TYPE type_on_fail, ImageHeader *header, C St
          ih.mip_maps=           f.getByte();
          if(header)goto set_header;
          if(old_type==6)f.skip(SIZE(Color)*256); // palette
-         if(createTryEx(ih.size.x, ih.size.y, ih.size.z, ih.type, ih.mode, ih.mip_maps, 1, type_on_fail))
+         if(createTry(ih.size.x, ih.size.y, ih.size.z, ih.type, ih.mode, ih.mip_maps))
          {
             Image soft;
             FREPD(mip ,  ih.mip_maps                 ) // iterate all mip maps
@@ -464,7 +464,7 @@ Bool Image::loadData(File &f, IMAGE_TYPE type_on_fail, ImageHeader *header, C St
          ih.mode      =IMAGE_MODE(f.getByte()); if(ih.mode==1)ih.mode=IMAGE_SOFT;else if(ih.mode==0)ih.mode=IMAGE_2D; if(ih.mode==IMAGE_CUBE && ih.size.z==6)ih.size.z=1;
          if(header)goto set_header;
          if(old_type==6)f.skip(SIZE(Color)*256); // palette
-         if(createTryEx(ih.size.x, ih.size.y, ih.size.z, ih.type, ih.mode, ih.mip_maps, 1, type_on_fail))
+         if(createTry(ih.size.x, ih.size.y, ih.size.z, ih.type, ih.mode, ih.mip_maps))
          {
             Image soft;
             FREPD(mip ,  ih.mip_maps                 ) // iterate all mip maps
@@ -524,7 +524,7 @@ Bool Image::save(C Str &name)C
 }
 Bool Image::load(C Str &name)
 {
-   File f; if(f.readTry(name) && f.getUInt()==CC4_GFX)return loadData(f, IMAGE_DEFAULT, null, name);
+   File f; if(f.readTry(name) && f.getUInt()==CC4_GFX)return loadData(f, null, name);
    del(); return false;
 }
 void Image::operator=(C UID &id  ) {T=_EncodeFileName(id);}
@@ -894,7 +894,7 @@ Bool ImageLoadHeader(File &f, ImageHeader &header)
 {
    Image temp;
    Long  pos=f.pos(); // remember file position
-   Bool  ok =(f.getUInt()==CC4_GFX && temp.loadData(f, IMAGE_NONE, &header));
+   Bool  ok =(f.getUInt()==CC4_GFX && temp.loadData(f, &header));
    f.pos(pos); // reset file position
    if(ok)return true;
    header.zero(); return false;

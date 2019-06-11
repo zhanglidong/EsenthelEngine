@@ -512,8 +512,8 @@ struct Image // Image (Texture)
    void operator=(C Str  &name) ; // load, Exit  on fail
    void operator=(C UID  &id  ) ; // load, Exit  on fail
 #if EE_PRIVATE
-   Bool saveData (  File &f                                                                                )C; // save, false on fail
-   Bool loadData (  File &f, IMAGE_TYPE type_on_fail=IMAGE_DEFAULT, ImageHeader *header=null, C Str &name=S) ; // load, false on fail
+   Bool saveData (  File &f                                         )C; // save, false on fail
+   Bool loadData (  File &f, ImageHeader *header=null, C Str &name=S) ; // load, false on fail
 #endif
    Bool save     (C Str  &name)C; // save, false on fail
    Bool load     (C Str  &name) ; // load, false on fail
