@@ -254,6 +254,28 @@ IMAGE_TYPE ImageTypeUncompressed(IMAGE_TYPE type)
          return IMAGE_R8G8B8A8_SRGB;
    }
 }
+IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type)
+{
+   switch(type)
+   {
+      default: return IMAGE_DEFAULT;
+
+      case IMAGE_NONE   : // don't try if original is empty
+      case IMAGE_DEFAULT: // don't try the same type again
+         return IMAGE_NONE;
+
+      case IMAGE_BC1_SRGB     :
+      case IMAGE_BC2_SRGB     :
+      case IMAGE_BC3_SRGB     :
+      case IMAGE_BC7_SRGB     :
+      case IMAGE_ETC2_SRGB    :
+      case IMAGE_ETC2_A1_SRGB :
+      case IMAGE_ETC2_A8_SRGB :
+      case IMAGE_PVRTC1_2_SRGB:
+      case IMAGE_PVRTC1_4_SRGB:
+         return IMAGE_R8G8B8A8_SRGB;
+   }
+}
 /******************************************************************************/
 GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) ImageTypeToFormat(Int                                   type  ) {return InRange(type, ImageTI) ? ImageTI[type].format : GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, 0);}
 IMAGE_TYPE                            ImageFormatToType(GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) format
