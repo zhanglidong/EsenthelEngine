@@ -798,6 +798,7 @@ void BlendObject::scheduleDrawBlend(C VecD &pos) {if(Renderer.firstPass())BlendI
 /******************************************************************************/
 void MeshPart::draw(C MatrixM &matrix, C Vec &vel, C Vec &ang_vel)C
 {
+   DEBUG_ASSERT(Renderer()==RM_PREPARE, "'MeshPart.draw' called outside of RM_PREPARE");
    if(_draw_mask&Renderer._mesh_draw_mask)
    {
     C Variation &variation=getVariation();
@@ -883,6 +884,7 @@ void MeshPart::draw(C MatrixM &matrix, C Vec &vel, C Vec &ang_vel)C
 /******************************************************************************/
 void MeshPart::draw(C AnimatedSkeleton &anim_skel)C
 {
+   DEBUG_ASSERT(Renderer()==RM_PREPARE, "'MeshPart.draw' called outside of RM_PREPARE");
    if(_draw_mask&Renderer._mesh_draw_mask)
    {
     C Variation &variation=          getVariation();
@@ -942,6 +944,7 @@ void MeshPart::draw(C AnimatedSkeleton &anim_skel)C
 /******************************************************************************/
 void MeshPart::draw(C AnimatedSkeleton &anim_skel, C Material &material)C
 {
+   DEBUG_ASSERT(Renderer()==RM_PREPARE, "'MeshPart.draw' called outside of RM_PREPARE");
    if(_draw_mask&Renderer._mesh_draw_mask)
    {
     C Variation &variation=          getVariation();
@@ -1001,6 +1004,7 @@ void MeshPart::draw(C AnimatedSkeleton &anim_skel, C Material &material)C
 /******************************************************************************/
 void MeshPart::drawShadow(C MatrixM &matrix)C
 {
+   DEBUG_ASSERT(Renderer()==RM_SHADOW, "'MeshPart.drawShadow' called outside of RM_SHADOW");
    if(_draw_mask&Renderer._mesh_draw_mask)
    {
     C Variation &variation=getVariation(); if(Shader *shader=variation.shader[RM_SHADOW])
@@ -1018,6 +1022,7 @@ void MeshPart::drawShadow(C MatrixM &matrix)C
 /******************************************************************************/
 void MeshPart::drawShadow(C AnimatedSkeleton &anim_skel)C
 {
+   DEBUG_ASSERT(Renderer()==RM_SHADOW, "'MeshPart.drawShadow' called outside of RM_SHADOW");
    if(_draw_mask&Renderer._mesh_draw_mask)
    {
     C Variation &variation=getVariation(); if(Shader *shader=variation.shader[RM_SHADOW])
@@ -1030,6 +1035,7 @@ void MeshPart::drawShadow(C AnimatedSkeleton &anim_skel)C
 }
 void MeshPart::drawShadow(C AnimatedSkeleton &anim_skel, C Material &material)C
 {
+   DEBUG_ASSERT(Renderer()==RM_SHADOW, "'MeshPart.drawShadow' called outside of RM_SHADOW");
    if(_draw_mask&Renderer._mesh_draw_mask)
    {
     C Variation &variation=getVariation(); if(Shader *shader=variation.shader[RM_SHADOW])
@@ -1043,6 +1049,7 @@ void MeshPart::drawShadow(C AnimatedSkeleton &anim_skel, C Material &material)C
 /******************************************************************************/
 void MeshLod::draw(C MatrixM &matrix)C
 {
+   DEBUG_ASSERT(Renderer()==RM_PREPARE, "'MeshLod.draw' called outside of RM_PREPARE");
  C Vec &vel=VecZero, &ang_vel_shader=VecZero;
    Matrix view_matrix; SetViewMatrix(view_matrix, matrix);
 
@@ -1150,6 +1157,7 @@ void MeshLod::draw(C MatrixM &matrix)C
 /******************************************************************************/
 void MeshLod::draw(C MatrixM &matrix, C Vec &vel, C Vec &ang_vel)C
 {
+   DEBUG_ASSERT(Renderer()==RM_PREPARE, "'MeshLod.draw' called outside of RM_PREPARE");
    Matrix view_matrix; SetViewMatrix(view_matrix, matrix);
 
    switch(Renderer._cur_type)
@@ -1257,6 +1265,7 @@ void MeshLod::draw(C MatrixM &matrix, C Vec &vel, C Vec &ang_vel)C
 /******************************************************************************/
 void MeshLod::draw(C AnimatedSkeleton &anim_skel)C
 {
+   DEBUG_ASSERT(Renderer()==RM_PREPARE, "'MeshLod.draw' called outside of RM_PREPARE");
    SkeletonInstance      *solid_skeleton=null;
    SkeletonBlendInstance *blend_skeleton=null;
    switch(Renderer._cur_type)
@@ -1340,6 +1349,7 @@ void MeshLod::draw(C AnimatedSkeleton &anim_skel)C
 /******************************************************************************/
 void MeshLod::draw(C AnimatedSkeleton &anim_skel, C Material &material)C
 {
+   DEBUG_ASSERT(Renderer()==RM_PREPARE, "'MeshLod.draw' called outside of RM_PREPARE");
    SkeletonInstance      *solid_skeleton=null;
    SkeletonBlendInstance *blend_skeleton=null;
    switch(Renderer._cur_type)
@@ -1423,6 +1433,7 @@ void MeshLod::draw(C AnimatedSkeleton &anim_skel, C Material &material)C
 /******************************************************************************/
 void MeshLod::drawShadow(C MatrixM &matrix)C
 {
+   DEBUG_ASSERT(Renderer()==RM_SHADOW, "'MeshLod.drawShadow' called outside of RM_SHADOW");
    Matrix view_matrix; Bool matrix_set=false; // set matrix only when needed, because some meshes may not have shadows
    REPA(T)
    {
@@ -1445,6 +1456,7 @@ void MeshLod::drawShadow(C MatrixM &matrix)C
 /******************************************************************************/
 void MeshLod::drawShadow(C AnimatedSkeleton &anim_skel)C
 {
+   DEBUG_ASSERT(Renderer()==RM_SHADOW, "'MeshLod.drawShadow' called outside of RM_SHADOW");
    SkeletonInstance *shadow_skeleton=null; // set skeleton only when needed, because some meshes may not have shadows
    REPA(T)
    {
@@ -1462,6 +1474,7 @@ void MeshLod::drawShadow(C AnimatedSkeleton &anim_skel)C
 }
 void MeshLod::drawShadow(C AnimatedSkeleton &anim_skel, C Material &material)C
 {
+   DEBUG_ASSERT(Renderer()==RM_SHADOW, "'MeshLod.drawShadow' called outside of RM_SHADOW");
    SkeletonInstance *shadow_skeleton=null; // set skeleton only when needed, because some meshes may not have shadows
    REPA(T)
    {
@@ -1534,6 +1547,7 @@ void Mesh::drawShadow(C AnimatedSkeleton &anim_skel, C Material &material   )C {
 /******************************************************************************/
 void MeshPart::drawBlend(C Vec4 *color)C
 {
+   DEBUG_ASSERT(Renderer()==RM_BLEND, "'MeshPart.drawBlend' called outside of RM_BLEND");
    if(_draw_mask&Renderer._mesh_draw_mask)
    {
     C Variation &variation=getVariation();
@@ -1591,6 +1605,7 @@ void MeshPart::drawBoneHighlight(Int bone)C
 /******************************************************************************/
 void MeshPart::drawOverlay(C Image &image, C Color &color)C
 {
+   DEBUG_ASSERT(Renderer()==RM_OVERLAY, "'MeshPart.drawOverlay' called outside of RM_OVERLAY");
    if(_draw_mask&Renderer._mesh_draw_mask)
    {
     C Variation &variation=getVariation(); if(Shader *shader=variation.shader[RM_OVERLAY])
@@ -1614,6 +1629,7 @@ void MeshPart::drawOverlay(C Image &image, C Color &color)C
 /******************************************************************************/
 void MeshPart::drawOutline(C Color &color)C
 {
+   DEBUG_ASSERT(Renderer()==RM_OUTLINE, "'MeshPart.drawOutline' called outside of RM_OUTLINE");
    if(_draw_mask&Renderer._mesh_draw_mask)
    {
     C Variation &variation=getVariation(); if(Shader *shader=variation.shader[RM_OUTLINE])
@@ -1637,6 +1653,7 @@ void Mesh   ::drawOutline(C Color &color, C AnimatedSkeleton &anim_skel)C {anim_
 /******************************************************************************/
 void MeshPart::drawBehind(C Color &color_perp, C Color &color_parallel)C
 {
+   DEBUG_ASSERT(Renderer()==RM_BEHIND, "'MeshPart.drawBehind' called outside of RM_BEHIND");
    if(_draw_mask&Renderer._mesh_draw_mask)
    {
     C Variation &variation=getVariation(); if(Shader *shader=variation.shader[RM_BEHIND])
