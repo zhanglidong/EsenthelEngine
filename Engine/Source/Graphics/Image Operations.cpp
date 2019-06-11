@@ -3157,21 +3157,21 @@ Bool Image::blurCubeMipMaps(Flt angle_start, Flt angle_growth, Threads *threads)
 /******************************************************************************/
 static Bool CanDecompress(IMAGE_TYPE type)
 {
-   return type!=IMAGE_PVRTC1_2 && type!=IMAGE_PVRTC1_4;
+   return type!=IMAGE_PVRTC1_2 && type!=IMAGE_PVRTC1_4 && type!=IMAGE_PVRTC1_2_SRGB && type!=IMAGE_PVRTC1_4_SRGB;
 }
 void (*DecompressBlock(IMAGE_TYPE type))(C Byte *b, Color (&block)[4][4])
 {
    switch(type)
    {
-      default           : return null;
-      case IMAGE_BC1    : return DecompressBlockBC1   ; break;
-      case IMAGE_BC2    : return DecompressBlockBC2   ; break;
-      case IMAGE_BC3    : return DecompressBlockBC3   ; break;
-      case IMAGE_BC7    : return DecompressBlockBC7   ; break;
-      case IMAGE_ETC1   : return DecompressBlockETC1  ; break;
-      case IMAGE_ETC2   : return DecompressBlockETC2  ; break;
-      case IMAGE_ETC2_A1: return DecompressBlockETC2A1; break;
-      case IMAGE_ETC2_A8: return DecompressBlockETC2A8; break;
+      default           :                          return null;
+      case IMAGE_BC1    : case IMAGE_BC1_SRGB    : return DecompressBlockBC1   ; break;
+      case IMAGE_BC2    : case IMAGE_BC2_SRGB    : return DecompressBlockBC2   ; break;
+      case IMAGE_BC3    : case IMAGE_BC3_SRGB    : return DecompressBlockBC3   ; break;
+      case IMAGE_BC7    : case IMAGE_BC7_SRGB    : return DecompressBlockBC7   ; break;
+      case IMAGE_ETC1   :                          return DecompressBlockETC1  ; break;
+      case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   : return DecompressBlockETC2  ; break;
+      case IMAGE_ETC2_A1: case IMAGE_ETC2_A1_SRGB: return DecompressBlockETC2A1; break;
+      case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB: return DecompressBlockETC2A8; break;
    }
 }
 Bool ImageCompare::compare(C Image &a, C Image &b, Flt similar_dif, Bool alpha_weight, Int a_mip, Flt skip_dif)

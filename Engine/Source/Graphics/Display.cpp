@@ -1381,10 +1381,13 @@ again:
       {
         _shader_model=SM_GL_ES_2;
          // iOS has a bug in which it falsely returns success for creating ETC formats on OpenGL ES 2 even though they're not supported, so as a workaround, disable them completely
-         ConstCast(ImageTI[IMAGE_ETC1   ].format)=0;
-         ConstCast(ImageTI[IMAGE_ETC2   ].format)=0;
-         ConstCast(ImageTI[IMAGE_ETC2_A1].format)=0;
-         ConstCast(ImageTI[IMAGE_ETC2_A8].format)=0;
+         ConstCast(ImageTI[IMAGE_ETC1        ].format)=0;
+         ConstCast(ImageTI[IMAGE_ETC2        ].format)=0;
+         ConstCast(ImageTI[IMAGE_ETC2_SRGB   ].format)=0;
+         ConstCast(ImageTI[IMAGE_ETC2_A1     ].format)=0;
+         ConstCast(ImageTI[IMAGE_ETC2_A1_SRGB].format)=0;
+         ConstCast(ImageTI[IMAGE_ETC2_A8     ].format)=0;
+         ConstCast(ImageTI[IMAGE_ETC2_A8_SRGB].format)=0;
       }else Exit("Can't create a OpenGL ES 2.0 Context.");
       MainContext.context.multiThreaded=false; // disable multi-threaded rendering as enabled actually made things slower, TOOD: check again in the future !! if enabling then probably all contexts have to be enabled as well, secondary too, because VAO from VBO's on a secondary thread could fail, as in Dungeon Hero, needs checking !!
       MainContext.lock();

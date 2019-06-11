@@ -89,6 +89,9 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
    IMAGE_ETC2_A1_SRGB,
    IMAGE_ETC2_A8_SRGB,
 
+   IMAGE_PVRTC1_2_SRGB,
+   IMAGE_PVRTC1_4_SRGB,
+
    IMAGE_B4G4R4X4     ,
    IMAGE_B4G4R4A4     ,
    IMAGE_B5G5R5X1     ,
@@ -115,10 +118,6 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
    IMAGE_DEFAULT=IMAGE_R8G8B8A8, // this is the default format
 #endif
 #endif
-   // alternative names
-   IMAGE_DXT1=IMAGE_BC1,
-   IMAGE_DXT3=IMAGE_BC2,
-   IMAGE_DXT5=IMAGE_BC3,
 };
 enum IMAGE_MODE : Byte // Image Mode
 {

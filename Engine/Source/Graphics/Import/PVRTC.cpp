@@ -689,10 +689,12 @@ void SetPVRTCQuality(Int quality) {       PVRTCQuality=Mid(quality, 0, 4);} // u
 /******************************************************************************/
 Bool DecompressPVRTC(C Image &src, Image &dest)
 {
-   if(src.hwType()==IMAGE_PVRTC1_2 || src.hwType()==IMAGE_PVRTC1_4)
+   if(src.hwType()==IMAGE_PVRTC1_2 || src.hwType()==IMAGE_PVRTC1_2_SRGB
+   || src.hwType()==IMAGE_PVRTC1_4 || src.hwType()==IMAGE_PVRTC1_4_SRGB)
    if(dest.is() || dest.createTry(src.w(), src.h(), src.d(), IMAGE_R8G8B8A8, src.cube() ? IMAGE_SOFT_CUBE : IMAGE_SOFT, src.mipMaps())) // use 'IMAGE_R8G8B8A8' because 'pvrtcDecompress' operates on that format
    if(dest.size3()==src.size3())
    {
+      Byte  bits=((src.hwType()==IMAGE_PVRTC1_2 || src.hwType()==IMAGE_PVRTC1_2_SRGB) ? 2 : 4);
       Int   src_faces1=src.faces()-1;
       Image temp; // define outside of loop so we can reuse it
       REPD(mip, Min(src.mipMaps(), dest.mipMaps()))
@@ -711,7 +713,7 @@ Bool DecompressPVRTC(C Image &src, Image &dest)
             if(write_to_dest && !dest.lock    (LOCK_WRITE, mip, (DIR_ENUM)    face             )){src.unlock(); return false;} // we have to lock only for 'dest' because 'temp' is 1mip-1face-SOFT and doesn't need locking
 
             using namespace PVRTC;
-            REPD(z, target.ld())pvrtcDecompress((PVRTuint8*)(src.data() + z*src.pitch2()), (Pixel32*)(target.data() + z*target.pitch2()), src_mip_hwW, src_mip_hwH, (src.hwType()==IMAGE_PVRTC1_2) ? 2 : 4);
+            REPD(z, target.ld())pvrtcDecompress((PVRTuint8*)(src.data() + z*src.pitch2()), (Pixel32*)(target.data() + z*target.pitch2()), src_mip_hwW, src_mip_hwH, bits);
 
             if(write_to_dest)dest.unlock();
                               src.unlock();

@@ -23,11 +23,11 @@ struct DDS_PIXELFORMAT
       if(!(Flags&DDPF_FOURCC))FourCC=0;
       if(FourCC==CC4('D', 'X', '1', '0'))return IMAGE_NONE; // special DX10+ format
 
-      if(FourCC==CC4('D', 'X', 'T', '1'))return IMAGE_DXT1;
-      if(FourCC==CC4('D', 'X', 'T', '2'))return IMAGE_DXT3;
-      if(FourCC==CC4('D', 'X', 'T', '3'))return IMAGE_DXT3;
-      if(FourCC==CC4('D', 'X', 'T', '4'))return IMAGE_DXT5;
-      if(FourCC==CC4('D', 'X', 'T', '5'))return IMAGE_DXT5;
+      if(FourCC==CC4('D', 'X', 'T', '1'))return IMAGE_BC1;
+      if(FourCC==CC4('D', 'X', 'T', '2'))return IMAGE_BC2;
+      if(FourCC==CC4('D', 'X', 'T', '3'))return IMAGE_BC2;
+      if(FourCC==CC4('D', 'X', 'T', '4'))return IMAGE_BC3;
+      if(FourCC==CC4('D', 'X', 'T', '5'))return IMAGE_BC3;
 
       // fix 'RGBBitCount' for these formats, because it may be 0
       if(FourCC==111){RGBBitCount=16  ; return IMAGE_F16  ;}
@@ -77,8 +77,8 @@ struct DDS_HEADER
       {
          switch(type) // many DDS writers incorrectly setup 'PitchOrLinearSize', so we have to adjust it manually, according to https://docs.microsoft.com/en-us/windows/desktop/direct3ddds/dx-graphics-dds-pguide#dds-file-layout
          {
-            case IMAGE_BC1:                                 PitchOrLinearSize=DivCeil4(Width)* 8; break;
-            case IMAGE_BC2: case IMAGE_BC3: case IMAGE_BC7: PitchOrLinearSize=DivCeil4(Width)*16; break;
+            case IMAGE_BC1: case IMAGE_BC1_SRGB:                                                                           PitchOrLinearSize=DivCeil4(Width)* 8; break;
+            case IMAGE_BC2: case IMAGE_BC2_SRGB: case IMAGE_BC3: case IMAGE_BC3_SRGB: case IMAGE_BC7: case IMAGE_BC7_SRGB: PitchOrLinearSize=DivCeil4(Width)*16; break;
 
             default: PitchOrLinearSize=DivCeil8(Width*pf.RGBBitCount); break;
          }

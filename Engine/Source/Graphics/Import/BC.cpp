@@ -868,14 +868,15 @@ static void CompressBC3(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_
 static const Vec BCWeights=ColorLumWeight*0.65f;
 Bool CompressBC(C Image &src, Image &dest, Bool mtrl_base_1) // no need to store this in a separate CPP file, because its code size is small
 {
-   if(dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC2 || dest.hwType()==IMAGE_BC3)
+   if(dest.hwType()==IMAGE_BC1      || dest.hwType()==IMAGE_BC2      || dest.hwType()==IMAGE_BC3
+   || dest.hwType()==IMAGE_BC1_SRGB || dest.hwType()==IMAGE_BC2_SRGB || dest.hwType()==IMAGE_BC3_SRGB)
  //if(dest.size3()==src.size3()) this check is not needed because the code below supports different sizes
    {
    #if 1
-      void (*compress_block)(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a)=((dest.hwType()==IMAGE_BC1) ? CompressBC1 :
-                                                                                                          (dest.hwType()==IMAGE_BC2) ? CompressBC2 :
-                                                                                                          (dest.hwType()==IMAGE_BC3) ? CompressBC3 : null);
-      Int  x_mul     =((dest.hwType()==IMAGE_BC1) ? 8 : 16),
+      void (*compress_block)(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a)=((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB) ? CompressBC1 :
+                                                                                                          (dest.hwType()==IMAGE_BC2 || dest.hwType()==IMAGE_BC2_SRGB) ? CompressBC2 :
+                                                                                                          (dest.hwType()==IMAGE_BC3 || dest.hwType()==IMAGE_BC3_SRGB) ? CompressBC3 : null);
+      Int  x_mul     =((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB) ? 8 : 16),
            src_faces1=src.faces()-1;
       Vec4 rgba[16];
       Vec  weight(1, 1, 0.5f); // #MaterialTextureChannelOrder - NrmX, NrmY, Spec, Alpha
@@ -934,7 +935,7 @@ Bool CompressBC(C Image &src, Image &dest, Bool mtrl_base_1) // no need to store
             ok=true;
             Int x_blocks=dest.hwW()/4, // operate on HW size to process partial and Pow2Padded blocks too
                 y_blocks=dest.hwH()/4,
-                x_mul   =((dest.hwType()==IMAGE_BC1) ? 8 : 16);
+                x_mul   =((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB) ? 8 : 16);
             rgba_surface surf;
             surf.width =s->w    ();
             surf.height=s->h    ();
@@ -1011,9 +1012,9 @@ Bool CompressBC(C Image &src, Image &dest, Bool mtrl_base_1) // no need to store
             ok=true;
 
             Int flags=0;
-            if(dest.hwType()==IMAGE_BC1)flags|=squish::kDxt1;else
-            if(dest.hwType()==IMAGE_BC2)flags|=squish::kDxt3;else
-            if(dest.hwType()==IMAGE_BC3)flags|=squish::kDxt5;
+            if(dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB)flags|=squish::kDxt1;else
+            if(dest.hwType()==IMAGE_BC2 || dest.hwType()==IMAGE_BC2_SRGB)flags|=squish::kDxt3;else
+            if(dest.hwType()==IMAGE_BC3 || dest.hwType()==IMAGE_BC3_SRGB)flags|=squish::kDxt5;
 
             if(quality==0)flags|=squish::kColourRangeFit           ;else
             if(quality==1)flags|=squish::kColourClusterFit         ;else
@@ -1026,7 +1027,7 @@ Bool CompressBC(C Image &src, Image &dest, Bool mtrl_base_1) // no need to store
 
             Int x_blocks=dest.w()/4,
                 y_blocks=dest.h()/4,
-                x_mul   =((dest.hwType()==IMAGE_BC1) ? 8 : 16);
+                x_mul   =((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB) ? 8 : 16);
             REPD( z, dest.d())
             REPD(by, y_blocks)
             REPD(bx, x_blocks)

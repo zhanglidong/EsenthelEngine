@@ -896,7 +896,7 @@ Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int 
             if(has_alpha)image_type=ImageTypeIncludeAlpha(IMAGE_TYPE(image_type)); // convert image type to one with    alpha channel
             else         image_type=ImageTypeExcludeAlpha(IMAGE_TYPE(image_type)); // convert image type to one without alpha channel
          }
-         if(image_type==IMAGE_PVRTC1_2 || image_type==IMAGE_PVRTC1_4)size=NearestPow2(size.avgI()); // PVRTC1 must be square and pow2
+         if(image_type==IMAGE_PVRTC1_2 || image_type==IMAGE_PVRTC1_4 || image_type==IMAGE_PVRTC1_2_SRGB || image_type==IMAGE_PVRTC1_4_SRGB)size=NearestPow2(size.avgI()); // PVRTC1 must be square and pow2
 
          // final copy
          if(color.copyTry(color, size.x, size.y, 1, image_type, material.base_0->mode(), (material.base_0->mipMaps()>1) ? 0 : 1, filter, false))

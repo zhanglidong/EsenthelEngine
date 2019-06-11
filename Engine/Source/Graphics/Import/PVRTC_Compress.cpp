@@ -17,11 +17,12 @@ extern Bool _CompressPVRTC(Int w, Int h, CPtr data, Int type, Int quality, Ptr &
 Bool _CompressPVRTC(C Image &src, Image &dest, Int quality)
 {
    Bool ok=false;
-   if(dest.hwType()==IMAGE_PVRTC1_2 || dest.hwType()==IMAGE_PVRTC1_4)
+   if(dest.hwType()==IMAGE_PVRTC1_2 || dest.hwType()==IMAGE_PVRTC1_2_SRGB
+   || dest.hwType()==IMAGE_PVRTC1_4 || dest.hwType()==IMAGE_PVRTC1_4_SRGB)
  //if(dest.size3()==src.size3()) this check is not needed because the code below supports different sizes
    {
       ok=true;
-      if(quality<0)quality=((dest.hwType()==IMAGE_PVRTC1_2) ? GetPVRTCQuality() : 4); // for PVRTC1_2 default to specified settings, for others use best quality as it's not so slow for those types
+      if(quality<0)quality=((dest.hwType()==IMAGE_PVRTC1_2 || dest.hwType()==IMAGE_PVRTC1_2_SRGB) ? GetPVRTCQuality() : 4); // for PVRTC1_2 default to specified settings, for others use best quality as it's not so slow for those types
       switch(quality)
       {
          case  0: quality=pvrtexture::ePVRTCFastest; break;
@@ -50,7 +51,7 @@ Bool _CompressPVRTC(C Image &src, Image &dest, Int quality)
                // compress
                Ptr data=null;
                Int size=0;
-               if(_CompressPVRTC(temp.lw(), temp.lh(), temp.data(), (dest.hwType()==IMAGE_PVRTC1_2) ? ePVRTPF_PVRTCI_2bpp_RGBA : ePVRTPF_PVRTCI_4bpp_RGBA, quality, data, size))
+               if(_CompressPVRTC(temp.lw(), temp.lh(), temp.data(), (dest.hwType()==IMAGE_PVRTC1_2 || dest.hwType()==IMAGE_PVRTC1_2_SRGB) ? ePVRTPF_PVRTCI_2bpp_RGBA : ePVRTPF_PVRTCI_4bpp_RGBA, quality, data, size))
                {
                   if(size==temp.lw()*temp.lh()*ImageTI[dest.hwType()].bit_pp/8)
                   {

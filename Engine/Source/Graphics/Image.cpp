@@ -53,6 +53,8 @@ namespace EE{
 #define GL_COMPRESSED_SRGB8_ALPHA8_ETC2              0x9279
 #define GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG          0x8C02
 #define GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG          0x8C03
+#define GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT    0x8A56
+#define GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT    0x8A57
 #define GL_BGR                                       0x80E0
 #define GL_BGRA                                      0x80E1
 #define GL_UNSIGNED_INT_2_10_10_10_REV               0x8368
@@ -128,6 +130,9 @@ const ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have 
    {"ETC2_A1_SRGB"    , true ,  0,  4,   8, 8, 8, 1,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2)},
    {"ETC2_A8_SRGB"    , true ,  1,  8,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB8_ALPHA8_ETC2)},
 
+   {"PVRTC1_2_SRGB"   , true ,  0,  2,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT)},
+   {"PVRTC1_4_SRGB"   , true ,  0,  4,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT)},
+
    {"B4G4R4X4"     , false,  2, 16,   4, 4, 4, 0,   0,0, 3, IMAGE_PRECISION_8 , GPU_API(D3DFMT_X4R4G4B4                       , DXGI_FORMAT_UNKNOWN          , 0                    )},
    {"B4G4R4A4"     , false,  2, 16,   4, 4, 4, 4,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_A4R4G4B4                       , DXGI_FORMAT_UNKNOWN          , 0                    )},
    {"B5G5R5X1"     , false,  2, 16,   5, 5, 5, 0,   0,0, 3, IMAGE_PRECISION_8 , GPU_API(D3DFMT_X1R5G5B5                       , DXGI_FORMAT_UNKNOWN          , 0                    )},
@@ -147,7 +152,7 @@ const ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have 
    {"INTZ"         , false,  4, 32,   0, 0, 0, 0,  24,8, 2, IMAGE_PRECISION_24, GPU_API(D3DFORMAT(MAKEFOURCC('I','N','T','Z')), DXGI_FORMAT_UNKNOWN          , 0                    )},
    {"DF24"         , false,  4, 32,   0, 0, 0, 0,  24,0, 1, IMAGE_PRECISION_24, GPU_API(D3DFORMAT(MAKEFOURCC('D','F','2','4')), DXGI_FORMAT_UNKNOWN          , 0                    )}, // DF24 does not have stencil buffer
    {"NULL"         , false,  0,  0,   0, 0, 0, 0,   0,0, 0, IMAGE_PRECISION_8 , GPU_API(D3DFORMAT(MAKEFOURCC('N','U','L','L')), DXGI_FORMAT_UNKNOWN          , 0                    )},
-}; ASSERT(IMAGE_ALL_TYPES==60);
+}; ASSERT(IMAGE_ALL_TYPES==62);
 /******************************************************************************/
 Bool IsSoft(IMAGE_MODE mode)
 {
@@ -195,25 +200,25 @@ IMAGE_TYPE BytesToImageType(Int byte_pp)
 /******************************************************************************/
 Int PaddedWidth(Int w, Int h, Int mip, IMAGE_TYPE type)
 {
-   if(type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4)w=h=CeilPow2(Max(w, h)); // PVRTC1 must be square and power of 2
+   if(type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4 || type==IMAGE_PVRTC1_2_SRGB || type==IMAGE_PVRTC1_4_SRGB)w=h=CeilPow2(Max(w, h)); // PVRTC1 must be square and power of 2
    Int mw=Max(1, w>>mip);
    if(ImageTI[type].compressed)switch(type)
    {
-      case IMAGE_PVRTC1_2: return Max(Ceil8(mw), 16); // blocks are sized 8x4 pixels, min texture size is 16x8
-      case IMAGE_PVRTC1_4: return Max(Ceil4(mw),  8); // blocks are sized 4x4 pixels, min texture size is  8x8
-      default            : return     Ceil4(mw)     ; // blocks are sized 4x4 pixels, min texture size is  4x4
-   }                       return           mw      ;
+      case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB: return Max(Ceil8(mw), 16); // blocks are sized 8x4 pixels, min texture size is 16x8
+      case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB: return Max(Ceil4(mw),  8); // blocks are sized 4x4 pixels, min texture size is  8x8
+      default                                      : return     Ceil4(mw)     ; // blocks are sized 4x4 pixels, min texture size is  4x4
+   }                                                 return           mw      ;
 }
 Int PaddedHeight(Int w, Int h, Int mip, IMAGE_TYPE type)
 {
-   if(type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4)w=h=CeilPow2(Max(w, h)); // PVRTC1 must be square and power of 2
+   if(type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4 || type==IMAGE_PVRTC1_2_SRGB || type==IMAGE_PVRTC1_4_SRGB)w=h=CeilPow2(Max(w, h)); // PVRTC1 must be square and power of 2
    Int mh=Max(1, h>>mip);
    if(ImageTI[type].compressed)switch(type)
    {
-      case IMAGE_PVRTC1_2: return Max(Ceil4(mh), 8); // blocks are sized 8x4 pixels, min texture size is 16x8
-      case IMAGE_PVRTC1_4: return Max(Ceil4(mh), 8); // blocks are sized 4x4 pixels, min texture size is  8x8
-      default            : return     Ceil4(mh)    ; // blocks are sized 4x4 pixels, min texture size is  4x4
-   }                       return           mh     ;
+      case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB: return Max(Ceil4(mh), 8); // blocks are sized 8x4 pixels, min texture size is 16x8
+      case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB: return Max(Ceil4(mh), 8); // blocks are sized 4x4 pixels, min texture size is  8x8
+      default                                      : return     Ceil4(mh)    ; // blocks are sized 4x4 pixels, min texture size is  4x4
+   }                                                 return           mh     ;
 }
 Int ImagePitch(Int w, Int h, Int mip, IMAGE_TYPE type)
 {
@@ -242,7 +247,7 @@ UInt ImageSize(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_ma
 /******************************************************************************/
 Int TotalMipMaps(Int w, Int h, Int d, IMAGE_TYPE type)
 {
-   if(type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4){w=CeilPow2(w); h=CeilPow2(h);} // PVRTC1 format supports only Pow2 sizes
+   if(type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4 || type==IMAGE_PVRTC1_2_SRGB || type==IMAGE_PVRTC1_4_SRGB)w=h=CeilPow2(Max(w, h)); // PVRTC1 must be square and power of 2
    Int    total=0; for(Int i=Max(w, h, d); i>=1; i>>=1)total++;
    return total;
 }
@@ -318,7 +323,8 @@ IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type)
       case IMAGE_I24:
       case IMAGE_I32: return IMAGE_L8A8;
 
-      case IMAGE_BC1: return IMAGE_BC7; // BC1 has only 1-bit alpha which is not enough
+      case IMAGE_BC1     : return IMAGE_BC7     ; // BC1 has only 1-bit alpha which is not enough
+      case IMAGE_BC1_SRGB: return IMAGE_BC7_SRGB; // BC1 has only 1-bit alpha which is not enough
 
       case IMAGE_F16  :
       case IMAGE_F16_2:
@@ -331,6 +337,9 @@ IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type)
       case IMAGE_ETC1   :
       case IMAGE_ETC2   :
       case IMAGE_ETC2_A1: return IMAGE_ETC2_A8; // ETC2_A1 has only 1-bit alpha which is not enough
+
+      case IMAGE_ETC2_SRGB   :
+      case IMAGE_ETC2_A1_SRGB: return IMAGE_ETC2_A8_SRGB; // ETC2_A1_SRGB has only 1-bit alpha which is not enough
    }
 }
 IMAGE_TYPE ImageTypeExcludeAlpha(IMAGE_TYPE type)
@@ -348,11 +357,18 @@ IMAGE_TYPE ImageTypeExcludeAlpha(IMAGE_TYPE type)
       case IMAGE_BC3:
       case IMAGE_BC7: return IMAGE_BC1;
 
+      case IMAGE_BC2_SRGB:
+      case IMAGE_BC3_SRGB:
+      case IMAGE_BC7_SRGB: return IMAGE_BC1_SRGB;
+
       case IMAGE_F16_4: return IMAGE_F16_3;
       case IMAGE_F32_4: return IMAGE_F32_3;
 
       case IMAGE_ETC2_A1:
       case IMAGE_ETC2_A8: return IMAGE_ETC2;
+
+      case IMAGE_ETC2_A1_SRGB:
+      case IMAGE_ETC2_A8_SRGB: return IMAGE_ETC2_SRGB;
    }
 }
 IMAGE_TYPE ImageTypeUncompressed(IMAGE_TYPE type)
@@ -366,6 +382,18 @@ IMAGE_TYPE ImageTypeUncompressed(IMAGE_TYPE type)
       case IMAGE_BC1    : // use since there's no other desktop compressed format without alpha
     //case IMAGE_ETC2_A1: don't use since we have IMAGE_ETC2 already
          return IMAGE_R8G8B8;
+
+      case IMAGE_BC1_SRGB:
+      case IMAGE_ETC2_SRGB:
+       //return IMAGE_R8G8B8_SRGB;
+      case IMAGE_BC2_SRGB:
+      case IMAGE_BC3_SRGB:
+      case IMAGE_BC7_SRGB:
+      case IMAGE_ETC2_A1_SRGB:
+      case IMAGE_ETC2_A8_SRGB:
+      case IMAGE_PVRTC1_2_SRGB:
+      case IMAGE_PVRTC1_4_SRGB:
+         return IMAGE_R8G8B8A8_SRGB;
    }
 }
 /******************************************************************************/
@@ -1533,17 +1561,18 @@ static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'des
    {
       default: return false;
 
-      case IMAGE_PVRTC1_2:
-      case IMAGE_PVRTC1_4: return DecompressPVRTC(src, dest);
+      case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB:
+      case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB:
+         return DecompressPVRTC(src, dest);
 
-      case IMAGE_BC1    : decompress_block=DecompressBlockBC1   ; decompress_block_pitch=DecompressBlockBC1   ; break;
-      case IMAGE_BC2    : decompress_block=DecompressBlockBC2   ; decompress_block_pitch=DecompressBlockBC2   ; break;
-      case IMAGE_BC3    : decompress_block=DecompressBlockBC3   ; decompress_block_pitch=DecompressBlockBC3   ; break;
-      case IMAGE_BC7    : decompress_block=DecompressBlockBC7   ; decompress_block_pitch=DecompressBlockBC7   ; break;
-      case IMAGE_ETC1   : decompress_block=DecompressBlockETC1  ; decompress_block_pitch=DecompressBlockETC1  ; break;
-      case IMAGE_ETC2   : decompress_block=DecompressBlockETC2  ; decompress_block_pitch=DecompressBlockETC2  ; break;
-      case IMAGE_ETC2_A1: decompress_block=DecompressBlockETC2A1; decompress_block_pitch=DecompressBlockETC2A1; break;
-      case IMAGE_ETC2_A8: decompress_block=DecompressBlockETC2A8; decompress_block_pitch=DecompressBlockETC2A8; break;
+      case IMAGE_BC1    : case IMAGE_BC1_SRGB    : decompress_block=DecompressBlockBC1   ; decompress_block_pitch=DecompressBlockBC1   ; break;
+      case IMAGE_BC2    : case IMAGE_BC2_SRGB    : decompress_block=DecompressBlockBC2   ; decompress_block_pitch=DecompressBlockBC2   ; break;
+      case IMAGE_BC3    : case IMAGE_BC3_SRGB    : decompress_block=DecompressBlockBC3   ; decompress_block_pitch=DecompressBlockBC3   ; break;
+      case IMAGE_BC7    : case IMAGE_BC7_SRGB    : decompress_block=DecompressBlockBC7   ; decompress_block_pitch=DecompressBlockBC7   ; break;
+      case IMAGE_ETC1   :                          decompress_block=DecompressBlockETC1  ; decompress_block_pitch=DecompressBlockETC1  ; break;
+      case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   : decompress_block=DecompressBlockETC2  ; decompress_block_pitch=DecompressBlockETC2  ; break;
+      case IMAGE_ETC2_A1: case IMAGE_ETC2_A1_SRGB: decompress_block=DecompressBlockETC2A1; decompress_block_pitch=DecompressBlockETC2A1; break;
+      case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB: decompress_block=DecompressBlockETC2A8; decompress_block_pitch=DecompressBlockETC2A8; break;
    }
    if(dest.is() || dest.createTry(src.w(), src.h(), src.d(), IMAGE_R8G8B8A8, src.cube() ? IMAGE_SOFT_CUBE : IMAGE_SOFT, src.mipMaps())) // use 'IMAGE_R8G8B8A8' because Decompress Block functions operate on 'Color'
       if(dest.size3()==src.size3())
@@ -1618,18 +1647,18 @@ static Bool Compress(C Image &src, Image &dest, Bool mtrl_base_1=false) // assum
 {
    switch(dest.hwType())
    {
-      case IMAGE_BC1:
-      case IMAGE_BC2:
-      case IMAGE_BC3: return               CompressBC (src, dest, mtrl_base_1);
-      case IMAGE_BC7: return CompressBC7 ? CompressBC7(src, dest) : false;
+      case IMAGE_BC1: case IMAGE_BC1_SRGB:
+      case IMAGE_BC2: case IMAGE_BC2_SRGB:
+      case IMAGE_BC3: case IMAGE_BC3_SRGB: return               CompressBC (src, dest, mtrl_base_1);
+      case IMAGE_BC7: case IMAGE_BC7_SRGB: return CompressBC7 ? CompressBC7(src, dest) : false;
 
       case IMAGE_ETC1   :
-      case IMAGE_ETC2   :
-      case IMAGE_ETC2_A1:
-      case IMAGE_ETC2_A8: return CompressETC ? CompressETC(src, dest, -1, mtrl_base_1 ? false : true) : false;
+      case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   :
+      case IMAGE_ETC2_A1: case IMAGE_ETC2_A1_SRGB:
+      case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB: return CompressETC ? CompressETC(src, dest, -1, mtrl_base_1 ? false : true) : false;
 
-      case IMAGE_PVRTC1_2:
-      case IMAGE_PVRTC1_4: return CompressPVRTC ? CompressPVRTC(src, dest, -1) : false;
+      case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB:
+      case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB: return CompressPVRTC ? CompressPVRTC(src, dest, -1) : false;
    }
    return false;
 }

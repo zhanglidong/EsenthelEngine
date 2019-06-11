@@ -65,7 +65,7 @@ namespace EE{
 Bool _CompressETC(C Image &src, Image &dest, Int quality, Bool perceptual)
 {
    Bool etc1=(dest.hwType()==IMAGE_ETC1);
-   if(etc1 || dest.hwType()==IMAGE_ETC2 || dest.hwType()==IMAGE_ETC2_A1 || dest.hwType()==IMAGE_ETC2_A8)
+   if(etc1 || dest.hwType()==IMAGE_ETC2 || dest.hwType()==IMAGE_ETC2_A1 || dest.hwType()==IMAGE_ETC2_A8 || dest.hwType()==IMAGE_ETC2_SRGB || dest.hwType()==IMAGE_ETC2_A1_SRGB || dest.hwType()==IMAGE_ETC2_A8_SRGB)
  //if(dest.size3()==src.size3()) this check is not needed because the code below supports different sizes
    {
    #if ETC1_ENC==ETC_LIB_ISPC // ISPC
@@ -202,7 +202,7 @@ Bool _CompressETC(C Image &src, Image &dest, Int quality, Bool perceptual)
                            #endif
                            }break;
 
-                           case IMAGE_ETC2: s->gather(&rgb[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1); switch(quality)
+                           case IMAGE_ETC2: case IMAGE_ETC2_SRGB: s->gather(&rgb[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1); switch(quality)
                            {
                               case 0: ETCPACK::compressBlockETC2Fast                (rgb[0][0].c, null, temp[0][0].c, 4, 4, 0, 0, d[0], d[1], ETCPACK::ETC2PACKAGE_RGB_NO_MIPMAPS); break;
                               case 1: ETCPACK::compressBlockETC2FastPerceptual      (rgb[0][0].c,       temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
@@ -212,7 +212,7 @@ Bool _CompressETC(C Image &src, Image &dest, Int quality, Bool perceptual)
                            #endif
                            }break;
 
-                           case IMAGE_ETC2_A1:
+                           case IMAGE_ETC2_A1: case IMAGE_ETC2_A1_SRGB:
                            {
                               s->gather(&rgba[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
                               REPD(y, 4)
@@ -224,7 +224,7 @@ Bool _CompressETC(C Image &src, Image &dest, Int quality, Bool perceptual)
                               ETCPACK::compressBlockETC2Fast(rgb[0][0].c, &a[0][0], temp[0][0].c, 4, 4, 0, 0, d[0], d[1], ETCPACK::ETC2PACKAGE_RGBA1_NO_MIPMAPS);
                            }break;
 
-                           case IMAGE_ETC2_A8:
+                           case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB:
                            {
                               s->gather(&rgba[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
                               REPD(y, 4)

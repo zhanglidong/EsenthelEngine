@@ -252,18 +252,21 @@ void Font::setGLFont()
 /******************************************************************************/
 Bool Font::imageType(IMAGE_TYPE type)
 {
-   if(_sub_pixel && type!=IMAGE_B8G8R8A8 && type!=IMAGE_R8G8B8A8 && type!=IMAGE_BC2 && type!=IMAGE_BC3 && type!=IMAGE_BC7 && type!=IMAGE_ETC2_A8)return false; // sub pixel supports only these formats
+   if(_sub_pixel && type!=IMAGE_R8G8B8A8      && type!=IMAGE_BC2      && type!=IMAGE_BC3      && type!=IMAGE_BC7      && type!=IMAGE_ETC2_A8 && type!=IMAGE_B8G8R8A8
+                 && type!=IMAGE_R8G8B8A8_SRGB && type!=IMAGE_BC2_SRGB && type!=IMAGE_BC3_SRGB && type!=IMAGE_BC7_SRGB && type!=IMAGE_ETC2_A8_SRGB)return false; // sub pixel supports only these formats
    Bool changed=false;
    REPA(_images)
    {
       Image &image=_images[i];
 
-      Int w=image.w(),
-          h=image.h();
-      if(type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4)w=h=CeilPow2(Max(w, h)); // PVRTC1 requires square power of 2 anyway, so resize image to max size to gain some quality
-
-      Int mip_maps=((type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4) ? 1 : image.mipMaps()); // PVRTC has too low quality to enable mip-maps
-
+      Int w       =image.w(),
+          h       =image.h();
+      Int mip_maps=image.mipMaps();
+      if(type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4 || type==IMAGE_PVRTC1_2_SRGB || type==IMAGE_PVRTC1_4_SRGB)
+      {
+         w=h=CeilPow2(Max(w, h)); // PVRTC1 requires square power of 2 anyway, so resize image to max size to gain some quality
+         mip_maps=1; // PVRTC has too low quality to enable mip-maps
+      }
       if(image.type()!=type || image.w()!=w || image.h()!=h || image.mipMaps()!=mip_maps) // if change is needed
          if(image.copyTry(image, w, h, -1, type, -1, mip_maps))changed=true;
    }
@@ -926,7 +929,7 @@ struct FontCreate : Font::Params
         shadow_opacity=0; // disable shadows for sub pixels
       }
       Clamp(max_image_size, 0, 65536);
-      if(image_type==IMAGE_PVRTC1_2 || image_type==IMAGE_PVRTC1_4)mip_maps=1; // PVRTC has too low quality to enable mip-maps
+      if(image_type==IMAGE_PVRTC1_2 || image_type==IMAGE_PVRTC1_4 || image_type==IMAGE_PVRTC1_2_SRGB || image_type==IMAGE_PVRTC1_4_SRGB)mip_maps=1; // PVRTC has too low quality to enable mip-maps
 
       // drawing
       T.draw_border=1;

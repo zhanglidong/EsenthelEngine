@@ -94,7 +94,7 @@ static void CompressBC7Block(IntPtr elm_index, Data &data, Int thread_index)
 /******************************************************************************/
 Bool _CompressBC7(C Image &src, Image &dest)
 {
-   if(dest.hwType()==IMAGE_BC7)
+   if(dest.hwType()==IMAGE_BC7 || dest.hwType()==IMAGE_BC7_SRGB)
    {
       BC.init();
       Int src_faces1=src.faces()-1;
