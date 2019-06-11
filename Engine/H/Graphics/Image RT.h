@@ -23,20 +23,6 @@ enum IMAGERT_TYPE : Byte // Image Render Target Type, this describes a group of 
    IMAGERT_RGB_S  =IMAGERT_RGBA_S, // (         signed 32-bit total       no   Alpha)
 };
 /******************************************************************************/
-struct ImageRC : Image // Reference Counted Image
-{
-   ImageRC() {_ptr_num=0;}
-
-#if EE_PRIVATE
-   Bool available()C {return _ptr_num==0;} // if this image is not currently used
-#endif
-#if !EE_PRIVATE
-private:
-#endif
-   UInt _ptr_num;
-   NO_COPY_CONSTRUCTOR(ImageRC);
-};
-/******************************************************************************/
 #if EE_PRIVATE
 struct ImageRTDesc // Render Target Description
 {
@@ -52,7 +38,20 @@ struct ImageRTDesc // Render Target Description
 };
 #endif
 /******************************************************************************/
-   Bool create(C ImageRTDesc &desc);
+struct ImageRC : Image // Reference Counted Image
+{
+#if EE_PRIVATE
+   Bool create   (C ImageRTDesc &desc);
+   Bool available()C {return _ptr_num==0;} // if this image is not currently used
+#endif
+   ImageRC() {_ptr_num=0;}
+#if !EE_PRIVATE
+private:
+#endif
+   UInt _ptr_num;
+   NO_COPY_CONSTRUCTOR(ImageRC);
+};
+/******************************************************************************/
 struct ImageRTPtr // Render Target Pointer
 {
 #if EE_PRIVATE
