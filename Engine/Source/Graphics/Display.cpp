@@ -1709,6 +1709,7 @@ Bool Display::findMode()
       SwapChainDesc.BufferCount       =(sync ? 3 : 2); // if we're rendering to VR display, then it has its own swap chain, and it handles the most intense rendering, so we don't need to have more buffers here, so keep it low to reduce memory usage
       SwapChainDesc.BufferDesc.Width  =resW();
       SwapChainDesc.BufferDesc.Height =resH();
+      // !! using HDR may require 'DXGI_SWAP_EFFECT_FLIP_DISCARD' for non-exclusive !!
       SwapChainDesc.BufferDesc.Format =(GDI_COMPATIBLE ? DXGI_FORMAT_B8G8R8A8_UNORM : highMonitorPrecision() ? DXGI_FORMAT_R10G10B10A2_UNORM : DXGI_FORMAT_R8G8B8A8_UNORM);
       SwapChainDesc.SampleDesc.Count  =1;
       SwapChainDesc.SampleDesc.Quality=0;
