@@ -814,7 +814,7 @@ void Image::setInfo()
       D3D->CreateShaderResourceView(_vol, null, &_srv);
    }
 #elif GL
-   if(_txtr)switch(mode)
+   if(_txtr)switch(mode())
    {
       case IMAGE_2D          :
       case IMAGE_RT          :
@@ -1253,11 +1253,6 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             {
                T._mms    =mip_maps;
                T._samples=1;
-               T._size.x =w;
-               T._size.y =h;
-               T._size.z =1;
-               T._mode   =mode;
-               T._type   =type;
 
                glGetError (); // clear any previous errors
                setGLParams(); // call this first to bind the texture
@@ -1307,7 +1302,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                if(glGetError()==GL_NO_ERROR) // ok
                {
                   glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
-                  setInfo(w, h, d, type, mode);
+                  setInfo();
                #if GL_ES
                   if(mode!=IMAGE_RT && !_data_all)Alloc(_data_all, CeilGL(memUsage())); // '_data_all' could've been created above
                #endif
@@ -1323,11 +1318,6 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             {
                T._mms    =mip_maps;
                T._samples=1;
-               T._size.x =w;
-               T._size.y =h;
-               T._size.z =d;
-               T._mode   =mode;
-               T._type   =type;
 
                glGetError (); // clear any previous errors
                setGLParams(); // call this first to bind the texture
@@ -1360,7 +1350,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                if(glGetError()==GL_NO_ERROR) // ok
                {
                   glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
-                  setInfo(w, h, d, type, mode);
+                  setInfo();
                #if GL_ES
                   if(!_data_all)Alloc(_data_all, CeilGL(memUsage())); // '_data_all' could've been created above
                #endif
@@ -1377,11 +1367,6 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             {
                T._mms    =mip_maps;
                T._samples=1;
-               T._size.x =w;
-               T._size.y =h;
-               T._size.z =1;
-               T._mode   =mode;
-               T._type   =type;
 
                glGetError (); // clear any previous errors
                setGLParams(); // call this first to bind the texture
@@ -1421,7 +1406,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                if(glGetError()==GL_NO_ERROR) // ok
                {
                   glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
-                  setInfo(w, h, d, type, mode);
+                  setInfo();
                #if GL_ES
                   if(mode!=IMAGE_RT_CUBE && !_data_all)Alloc(_data_all, CeilGL(memUsage())); // '_data_all' could've been created above
                #endif
@@ -1437,11 +1422,6 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             {
                T._mms    =1;
                T._samples=1;
-               T._size.x =w;
-               T._size.y =h;
-               T._size.z =1;
-               T._mode   =mode;
-               T._type   =type;
              //LogN(S+"x:"+hwW()+", y:"+hwH()+", type:"+ImageTI[hwType()].name);
 
                glGetError(); // clear any previous errors
@@ -1451,7 +1431,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
 
                if(glGetError()==GL_NO_ERROR) // ok
                {
-                  setInfo(w, h, d, type, mode);
+                  setInfo();
                   return true;
                }
             }
@@ -1464,11 +1444,6 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             {
                T._mms    =1;
                T._samples=1;
-               T._size.x =w;
-               T._size.y =h;
-               T._size.z =1;
-               T._mode   =mode;
-               T._type   =type;
 
                glGetError(); // clear any previous errors
 
@@ -1483,7 +1458,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
 
                if(glGetError()==GL_NO_ERROR) // ok
                {
-                  setInfo(w, h, d, type, mode);
+                  setInfo();
                   return true;
                }
             }
@@ -1496,11 +1471,6 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             {
                T._mms    =1;
                T._samples=1;
-               T._size.x =w;
-               T._size.y =h;
-               T._size.z =1;
-               T._mode   =mode;
-               T._type   =type;
 
                glGetError(); // clear any previous errors
 
@@ -1517,7 +1487,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
 
                if(glGetError()==GL_NO_ERROR) // ok
                {
-                  setInfo(w, h, d, type, mode);
+                  setInfo();
                   return true;
                }
             }
