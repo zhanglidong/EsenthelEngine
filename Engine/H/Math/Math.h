@@ -562,6 +562,9 @@ inline  Byte SFltToUByte(Flt f) {return Mid(Round(f*(255.0f/2))+128,    0, 255);
 
 inline Flt SByteToSFlt(SByte b) {return -1+(b+128)*(2.0f/255);} // -128..127 -> -1..1
 inline Flt UByteToSFlt( Byte b) {return -1+ b     *(2.0f/255);} //    0..255 -> -1..1
+
+inline UInt FltToU10(Flt  f) {return Mid(RoundPos(f*1023), 0, 1023);} // 0..1 -> 0..1023, it's okay to clamp after converting to int for small values
+inline Flt  U10ToFlt(UInt u) {return u/1023.0f                     ;} // 0..1023 -> 0..1
 #endif
 /******************************************************************************/
 // TIME, DISTANCE, VELOCITY, ACCELERATION

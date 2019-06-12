@@ -448,7 +448,7 @@ static void SetPixelF(Byte *data, IMAGE_TYPE type, Flt pixel)
       case IMAGE_R8G8_SIGN    : {VecB2 &v=*(VecB2*)data; v.x=v.y=    SFltToSByte(pixel);         } break;
       case IMAGE_R8G8B8A8_SIGN: {VecB4 &v=*(VecB4*)data; v.x=v.y=v.z=SFltToSByte(pixel); v.w=255;} break;
 
-      case IMAGE_R10G10B10A2: {UInt v=Mid(RoundPos(pixel*0x3FF), 0, 0x3FF); (*(UInt*)data)=v|(v<<10)|(v<<20)|(3<<30);} break;
+      case IMAGE_R10G10B10A2: {UInt v=FltToU10(pixel); (*(UInt*)data)=v|(v<<10)|(v<<20)|(3<<30);} break;
 
       case IMAGE_R8 :
       case IMAGE_A8 :
@@ -548,7 +548,7 @@ static inline Flt GetPixelF(C Byte *data, C Image &image, Bool _2d, Int x, Int y
       case IMAGE_I24  :
          return (*(U16*)data | (data[2]<<16))/Flt(0x00FFFFFFu); // here Dbl is not required, this was tested
 
-      case IMAGE_R10G10B10A2: return ((*(UInt*)data)&0x3FF)/Flt(0x3FF);
+      case IMAGE_R10G10B10A2: return U10ToFlt((*(UInt*)data)&0x3FF);
 
       case IMAGE_R8_SIGN      :
       case IMAGE_R8G8_SIGN    :
@@ -777,7 +777,7 @@ static void SetColorF(Byte *data, IMAGE_TYPE type, C Vec4 &color)
       case IMAGE_R8G8_SIGN    : ( (VecB2*)data)->set(SFltToSByte(color.x), SFltToSByte(color.y)                                            ); break;
       case IMAGE_R8G8B8A8_SIGN: ( (VecB4*)data)->set(SFltToSByte(color.x), SFltToSByte(color.y), SFltToSByte(color.z), SFltToSByte(color.w)); break;
 
-      case IMAGE_R10G10B10A2: {(*(UInt*)data)=Mid(RoundPos(color.x*0x3FF), 0, 0x3FF)|(Mid(RoundPos(color.y*0x3FF), 0, 0x3FF)<<10)|(Mid(RoundPos(color.z*0x3FF), 0, 0x3FF)<<20)|(Mid(RoundPos(color.w*3), 0, 3)<<30);} break;
+      case IMAGE_R10G10B10A2: {(*(UInt*)data)=FltToU10(color.x)|(FltToU10(color.y)<<10)|(FltToU10(color.z)<<20)|(Mid(RoundPos(color.w*3), 0, 3)<<30);} break;
    }
 }
 static void SetColorF(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &color)
@@ -917,7 +917,7 @@ Vec4 ImageColorF(CPtr data, IMAGE_TYPE hw_type)
       case IMAGE_R8G8_SIGN    : {VecB2 &c=*(VecB2*)data; return Vec4(SByteToSFlt(c.x), SByteToSFlt(c.y),               0 ,               1 );}
       case IMAGE_R8G8B8A8_SIGN: {VecB4 &c=*(VecB4*)data; return Vec4(SByteToSFlt(c.x), SByteToSFlt(c.y), SByteToSFlt(c.z), SByteToSFlt(c.w));}
 
-      case IMAGE_R10G10B10A2: {UInt u=*(UInt*)data; return Vec4((u&0x3FF)/1023.0f, ((u>>10)&0x3FF)/1023.0f, ((u>>20)&0x3FF)/1023.0f, (u>>30)/3.0f);}
+      case IMAGE_R10G10B10A2: {UInt u=*(UInt*)data; return Vec4(U10ToFlt(u&0x3FF), U10ToFlt((u>>10)&0x3FF), U10ToFlt((u>>20)&0x3FF), (u>>30)/3.0f);}
    }
    return 0;
 }
@@ -977,7 +977,7 @@ static inline Vec4 GetColorF(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
       case IMAGE_R8G8_SIGN    : {VecB2 &c=*(VecB2*)data; return Vec4(SByteToSFlt(c.x), SByteToSFlt(c.y),               0 ,               1 );}
       case IMAGE_R8G8B8A8_SIGN: {VecB4 &c=*(VecB4*)data; return Vec4(SByteToSFlt(c.x), SByteToSFlt(c.y), SByteToSFlt(c.z), SByteToSFlt(c.w));}
 
-      case IMAGE_R10G10B10A2: {UInt u=*(UInt*)data; return Vec4((u&0x3FF)/1023.0f, ((u>>10)&0x3FF)/1023.0f, ((u>>20)&0x3FF)/1023.0f, (u>>30)/3.0f);}
+      case IMAGE_R10G10B10A2: {UInt u=*(UInt*)data; return Vec4(U10ToFlt(u&0x3FF), U10ToFlt((u>>10)&0x3FF), U10ToFlt((u>>20)&0x3FF), (u>>30)/3.0f);}
 
       case IMAGE_BC1    : case IMAGE_BC1_SRGB    :
       case IMAGE_BC2    : case IMAGE_BC2_SRGB    :
