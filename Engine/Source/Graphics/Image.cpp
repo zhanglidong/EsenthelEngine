@@ -504,20 +504,18 @@ UInt SourceGLFormat(IMAGE_TYPE type)
       case IMAGE_R8G8     :
       case IMAGE_R8G8_SIGN: return GL_RG;
 
-      case IMAGE_F16_3   :
-      case IMAGE_F32_3   :
-      case IMAGE_R8G8B8  :
-      case IMAGE_R8G8B8X8: return GL_RGB;
-
-      case IMAGE_R8G8B8_SRGB: return GL_SRGB;
+      case IMAGE_F16_3      :
+      case IMAGE_F32_3      :
+      case IMAGE_R8G8B8     :
+      case IMAGE_R8G8B8_SRGB: // must be GL_RGB and NOT GL_SRGB
+      case IMAGE_R8G8B8X8   : return GL_RGB;
 
       case IMAGE_F16_4        :
       case IMAGE_F32_4        :
       case IMAGE_R8G8B8A8     :
       case IMAGE_R8G8B8A8_SIGN:
+      case IMAGE_R8G8B8A8_SRGB: // must be GL_RGBA and NOT GL_SRGB_ALPHA
       case IMAGE_R10G10B10A2  : return GL_RGBA;
-
-      case IMAGE_R8G8B8A8_SRGB: return GL_SRGB_ALPHA;
 
       case IMAGE_B4G4R4X4:
       case IMAGE_B5G5R5X1:
