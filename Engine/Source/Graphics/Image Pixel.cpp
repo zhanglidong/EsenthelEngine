@@ -676,13 +676,13 @@ static void SetColor(Byte *data, IMAGE_TYPE type, C Color &color)
       case IMAGE_I24     : *(U16  *)data=0; data[2]=color.r; break;
       case IMAGE_I32     : *(U32  *)data=(color.r<<24); break;
 
-      case IMAGE_B4G4R4X4: *(U16*)data=((color.r>>4)<< 8) | ((color.g>>4)<< 4) | (color.b>> 4) | 0xF000; break;
-      case IMAGE_B4G4R4A4: *(U16*)data=((color.r>>4)<< 8) | ((color.g>>4)<< 4) | (color.b>> 4) | ((color.a>>4)<<12); break;
-      case IMAGE_B5G5R5X1: *(U16*)data=((color.r>>3)<<10) | ((color.g>>3)<< 5) | (color.b>> 3) | 0x8000; break;
-      case IMAGE_B5G5R5A1: *(U16*)data=((color.r>>3)<<10) | ((color.g>>3)<< 5) | (color.b>> 3) | ((color.a>>7)<<15); break;
-      case IMAGE_B5G6R5  : *(U16*)data=((color.r>>3)<<11) | ((color.g>>2)<< 5) | (color.b>> 3); break;
-      case IMAGE_B8G8R8X8: *(U32*)data=( color.r    <<16) | ( color.g    << 8) | (color.b    ) | 0xFF000000; break;
-      case IMAGE_R8G8B8X8: *(U32*)data=( color.r        ) | ( color.g    << 8) | (color.b<<16) | 0xFF000000; break;
+      case IMAGE_B4G4R4X4: *(U16*)data=((color.r>>4)<< 8) | ((color.g>>4)<<4) | (color.b>> 4) | 0xF000            ; break;
+      case IMAGE_B4G4R4A4: *(U16*)data=((color.r>>4)<< 8) | ((color.g>>4)<<4) | (color.b>> 4) | ((color.a>>4)<<12); break;
+      case IMAGE_B5G5R5X1: *(U16*)data=((color.r>>3)<<10) | ((color.g>>3)<<5) | (color.b>> 3) | 0x8000            ; break;
+      case IMAGE_B5G5R5A1: *(U16*)data=((color.r>>3)<<10) | ((color.g>>3)<<5) | (color.b>> 3) | ((color.a>>7)<<15); break;
+      case IMAGE_B5G6R5  : *(U16*)data=((color.r>>3)<<11) | ((color.g>>2)<<5) | (color.b>> 3)                     ; break;
+      case IMAGE_B8G8R8X8: *(U32*)data=( color.r    <<16) | ( color.g    <<8) | (color.b    ) | 0xFF000000        ; break;
+      case IMAGE_R8G8B8X8: *(U32*)data=( color.r        ) | ( color.g    <<8) | (color.b<<16) | 0xFF000000        ; break;
 
       case IMAGE_R8_SIGN      : *(SByte *)data=     (color.r>>1); break;
       case IMAGE_R8G8_SIGN    : ((VecSB2*)data)->set(color.r>>1, color.g>>1); break;
