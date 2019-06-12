@@ -88,7 +88,7 @@ Bool Image::ExportBMPRaw(File &f, Byte byte_pp, Bool ico)C // assumes that Image
       {
          case 1:
          {
-            if(bytePP()==1)f.put(data() + y*pitch(), T.w());else
+            if(bytePP()==1 && type()!=IMAGE_R8_SIGN)f.put(data() + y*pitch(), T.w());else
             FREPD(x, T.w())f.putByte(FltToByte(pixelF(x, y)));
          }break;
 

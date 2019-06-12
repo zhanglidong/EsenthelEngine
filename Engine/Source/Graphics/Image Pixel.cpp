@@ -444,9 +444,9 @@ static void SetPixelF(Byte *data, IMAGE_TYPE type, Flt pixel)
 
       case IMAGE_R8G8:          {VecB2 &v=*(VecB2*)data; v.x=v.y=FltToByte(pixel);} break;
 
-      case IMAGE_R8_SIGN      : {Byte  &v=*(Byte *)data; v  =        SFltToSByte(pixel);         } break;
-      case IMAGE_R8G8_SIGN    : {VecB2 &v=*(VecB2*)data; v.x=v.y=    SFltToSByte(pixel);         } break;
-      case IMAGE_R8G8B8A8_SIGN: {VecB4 &v=*(VecB4*)data; v.x=v.y=v.z=SFltToSByte(pixel); v.w=255;} break;
+      case IMAGE_R8_SIGN      : {SByte  &v=*(SByte *)data; v  =        SFltToSByte(pixel);         } break;
+      case IMAGE_R8G8_SIGN    : {VecSB2 &v=*(VecSB2*)data; v.x=v.y=    SFltToSByte(pixel);         } break;
+      case IMAGE_R8G8B8A8_SIGN: {VecSB4 &v=*(VecSB4*)data; v.x=v.y=v.z=SFltToSByte(pixel); v.w=127;} break;
 
       case IMAGE_R10G10B10A2: {UInt v=FltToU10(pixel); (*(UInt*)data)=v|(v<<10)|(v<<20)|(3<<30);} break;
 
@@ -553,7 +553,7 @@ static inline Flt GetPixelF(C Byte *data, C Image &image, Bool _2d, Int x, Int y
       case IMAGE_R8_SIGN      :
       case IMAGE_R8G8_SIGN    :
       case IMAGE_R8G8B8A8_SIGN:
-         return SByteToSFlt(*(U8*)data);
+         return SByteToSFlt(*(SByte*)data);
 
       case IMAGE_B4G4R4X4: return (((*(U16*)data)>> 8)&0x0F)/15.0f;
       case IMAGE_B4G4R4A4: return (((*(U16*)data)>> 8)&0x0F)/15.0f;
@@ -586,7 +586,7 @@ Flt Image::pixel3DF(Int x, Int y, Int z)C
    return 0;
 }
 /******************************************************************************/
-#if 1 // faster, but reaches max 254 values instead of 255
+#if 0 // faster, but reaches max 254 values instead of 255
 static inline Byte SByteToByte(SByte s) {return (s<=0) ? 0 : (s<<1);}
 #else
 static inline Byte SByteToByte(SByte s) {return (s<=0) ? 0 : (s*255+63)/127;}
@@ -619,7 +619,7 @@ static inline Color GetColor(C Byte *data, C Image &image, Bool _2d, Int x, Int 
       case IMAGE_B5G6R5     : {U16  d=*(U16 *)data; return Color(U5ToByte((d>>11)&0x1F), U6ToByte((d>> 5)&0x3F), U5ToByte((d    )&0x1F),             255);}
       case IMAGE_R10G10B10A2: {UInt d=*(UInt*)data; return Color(         (d>> 2)&0xFF ,          (d>>12)&0xFF ,          (d>>22)&0xFF , U2ToByte(d>>30));}
 
-      case IMAGE_R8_SIGN      : {  SByte   b=         *data; return Color(SByteToByte(b  ),                0,                0,              255);}
+      case IMAGE_R8_SIGN      : {  SByte   b=*(SByte *)data; return Color(SByteToByte(b  ),                0,                0,              255);}
       case IMAGE_R8G8_SIGN    : {C VecSB2 &v=*(VecSB2*)data; return Color(SByteToByte(v.x), SByteToByte(v.y),                0,              255);}
       case IMAGE_R8G8B8A8_SIGN: {C VecSB4 &v=*(VecSB4*)data; return Color(SByteToByte(v.x), SByteToByte(v.y), SByteToByte(v.z), SByteToByte(v.w));}
 
