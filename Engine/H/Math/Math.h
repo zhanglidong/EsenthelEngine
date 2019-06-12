@@ -563,6 +563,9 @@ inline  Byte SFltToUByte(Flt f) {return Mid(Round(f*(255.0f/2))+128,    0, 255);
 inline Flt SByteToSFlt(SByte b) {return -1+(b+128)*(2.0f/255);} // -128..127 -> -1..1
 inline Flt UByteToSFlt( Byte b) {return -1+ b     *(2.0f/255);} //    0..255 -> -1..1
 
+inline Byte FltToU2(Flt  f) {return Mid(RoundPos(f*3), 0, 3);} // 0..1 -> 0..3, it's okay to clamp after converting to int for small values
+inline Flt  U2ToFlt(Byte u) {return u/3.0f                  ;} // 0..3 -> 0..1
+
 inline UInt FltToU10(Flt  f) {return Mid(RoundPos(f*1023), 0, 1023);} // 0..1 -> 0..1023, it's okay to clamp after converting to int for small values
 inline Flt  U10ToFlt(UInt u) {return u/1023.0f                     ;} // 0..1023 -> 0..1
 
@@ -573,6 +576,9 @@ inline Byte U4ToByte(Byte x) {return (x*255/*+ 7*/)/ 15;} // 0..15  -> 0..255 (t
 inline Byte U5ToByte(Byte x) {return (x*255  +15  )/ 31;} // 0..31  -> 0..255 (this version exactly matches float with Round)
 inline Byte U6ToByte(Byte x) {return (x*255  +31  )/ 63;} // 0..63  -> 0..255 (this version exactly matches float with Round)
 inline Byte U7ToByte(Byte x) {return (x*255  +63  )/127;} // 0..127 -> 0..255 (this version exactly matches float with Round)
+
+inline Byte ByteToU2 (Byte x) {return (x>>6      )    ;} // 0..255 -> 0..3
+inline UInt ByteToU10(Byte x) {return (x*1023+127)/255;} // 0..255 -> 0..1023
 #endif
 /******************************************************************************/
 // TIME, DISTANCE, VELOCITY, ACCELERATION
