@@ -761,7 +761,7 @@ Image& Image::setInfo(Int w, Int h, Int d, Int type, IMAGE_MODE mode)
      _hw_size.x=desc.Width;
      _hw_size.y=desc.Height;
      _hw_size.z=1;
-     _hw_type  =ImageFormatToType(desc.Format);
+      if(IMAGE_TYPE hw_type=ImageFormatToType(desc.Format))T._hw_type=hw_type; // override only if detected, because Image could have been created with TYPELESS format which can't be directly decoded and IMAGE_NONE could be returned
 
       if(desc.Format==DXGI_FORMAT_R16_TYPELESS)
       {
@@ -810,7 +810,7 @@ Image& Image::setInfo(Int w, Int h, Int d, Int type, IMAGE_MODE mode)
      _hw_size.x=desc.Width;
      _hw_size.y=desc.Height;
      _hw_size.z=desc.Depth;
-     _hw_type  =ImageFormatToType(desc.Format);
+      if(IMAGE_TYPE hw_type=ImageFormatToType(desc.Format))T._hw_type=hw_type; // override only if detected, because Image could have been created with TYPELESS format which can't be directly decoded and IMAGE_NONE could be returned
       D3D->CreateShaderResourceView(_vol, null, &_srv);
    }
 #elif GL
@@ -1096,13 +1096,13 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
 
       // create
      _hw_size=hw_size;
+     _hw_type=type; // set before 'setInfo' because it affects 'byte_pp' (needed for DX11, GL)
       switch(mode)
       {
          case IMAGE_SOFT:
          case IMAGE_SOFT_CUBE:
          {
-           _hw_type=type; // set before 'setInfo' because it affects 'byte_pp'
-           _mms    =mip_maps;
+           _mms=mip_maps;
             setInfo(w, h, d, type, mode);
             Alloc(_data_all, memUsage());
             lockSoft(); // set default lock members to main mip map
@@ -1263,7 +1263,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                T._size.y =h;
                T._size.z =1;
                T._mode   =mode;
-               T._type   =T._hw_type=type;
+               T._type   =type;
 
                glGetError (); // clear any previous errors
                setGLParams(); // call this first to bind the texture
@@ -1333,7 +1333,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                T._size.y =h;
                T._size.z =d;
                T._mode   =mode;
-               T._type   =T._hw_type=type;
+               T._type   =type;
 
                glGetError (); // clear any previous errors
                setGLParams(); // call this first to bind the texture
@@ -1387,7 +1387,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                T._size.y =h;
                T._size.z =1;
                T._mode   =mode;
-               T._type   =T._hw_type=type;
+               T._type   =type;
 
                glGetError (); // clear any previous errors
                setGLParams(); // call this first to bind the texture
@@ -1447,7 +1447,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                T._size.y =h;
                T._size.z =1;
                T._mode   =mode;
-               T._type   =T._hw_type=type;
+               T._type   =type;
              //LogN(S+"x:"+hwW()+", y:"+hwH()+", type:"+ImageTI[hwType()].name);
 
                glGetError(); // clear any previous errors
@@ -1474,7 +1474,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                T._size.y =h;
                T._size.z =1;
                T._mode   =mode;
-               T._type   =T._hw_type=type;
+               T._type   =type;
 
                glGetError(); // clear any previous errors
 
@@ -1506,7 +1506,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                T._size.y =h;
                T._size.z =1;
                T._mode   =mode;
-               T._type   =T._hw_type=type;
+               T._type   =type;
 
                glGetError(); // clear any previous errors
 
