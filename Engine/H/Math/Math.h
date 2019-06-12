@@ -565,6 +565,14 @@ inline Flt UByteToSFlt( Byte b) {return -1+ b     *(2.0f/255);} //    0..255 -> 
 
 inline UInt FltToU10(Flt  f) {return Mid(RoundPos(f*1023), 0, 1023);} // 0..1 -> 0..1023, it's okay to clamp after converting to int for small values
 inline Flt  U10ToFlt(UInt u) {return u/1023.0f                     ;} // 0..1023 -> 0..1
+
+inline Byte U1ToByte(Bool x) {return  x*255            ;} // 0..1   -> 0..255
+inline Byte U2ToByte(Byte x) {return (x*255/*+ 1*/)/  3;} // 0..3   -> 0..255 (this version exactly matches float with Round, +1 is not needed in this case, function will return the same value with or without it)
+inline Byte U3ToByte(Byte x) {return (x*255+   3  )/  7;} // 0..7   -> 0..255 (this version exactly matches float with Round)
+inline Byte U4ToByte(Byte x) {return (x*255/*+ 7*/)/ 15;} // 0..15  -> 0..255 (this version exactly matches float with Round, +7 is not needed in this case, function will return the same value with or without it)
+inline Byte U5ToByte(Byte x) {return (x*255  +15  )/ 31;} // 0..31  -> 0..255 (this version exactly matches float with Round)
+inline Byte U6ToByte(Byte x) {return (x*255  +31  )/ 63;} // 0..63  -> 0..255 (this version exactly matches float with Round)
+inline Byte U7ToByte(Byte x) {return (x*255  +63  )/127;} // 0..127 -> 0..255 (this version exactly matches float with Round)
 #endif
 /******************************************************************************/
 // TIME, DISTANCE, VELOCITY, ACCELERATION

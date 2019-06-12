@@ -30,11 +30,7 @@ namespace EE{
 /******************************************************************************/
 Bool (*CompressBC7)(C Image &src, Image &dest);
 /******************************************************************************/
-static inline UInt B15(UInt x) {return (x*255/*+ 7*/)/15;} // scale from 0..15 to 0..255 byte range (this version exactly matches float with Round, +7 is not needed in this case, function will return the same value with or without it)
-static inline UInt B31(UInt x) {return (x*255  +15  )/31;} // scale from 0..31 to 0..255 byte range (this version exactly matches float with Round)
-static inline UInt B63(UInt x) {return (x*255  +31  )/63;} // scale from 0..63 to 0..255 byte range (this version exactly matches float with Round)
-
-static inline void Col565(Color &color, UShort u) {color.set(B31((u>>11)&0x1F), B63((u>>5)&0x3F), B31(u&0x1F), 255);}
+static inline void Col565(Color &color, UShort u) {color.set(U5ToByte((u>>11)&0x1F), U6ToByte((u>>5)&0x3F), U5ToByte(u&0x1F), 255);}
 
 static inline U64 GetU64(CPtr data) {return Unaligned(*(U64*)data);}
 /******************************************************************************/
@@ -121,7 +117,7 @@ void DecompressBlockBC2(C Byte *b, Color (&block)[4][4])
       Int i=x+(y<<2),         // pixel index
          ci=((cis>>(2*i))&3); // color index
       Color &col=color[ci];
-      block[y][x].set(col.r, col.g, col.b, B15((alpha>>(4*i))&15));
+      block[y][x].set(col.r, col.g, col.b, U4ToByte((alpha>>(4*i))&15));
    }
 }
 void DecompressBlockBC2(C Byte *b, Color *dest, Int pitch)
@@ -135,7 +131,7 @@ void DecompressBlockBC2(C Byte *b, Color *dest, Int pitch)
          Int i=x+(y<<2),         // pixel index
             ci=((cis>>(2*i))&3); // color index
          Color &col=color[ci];
-         dest[x].set(col.r, col.g, col.b, B15((alpha>>(4*i))&15));
+         dest[x].set(col.r, col.g, col.b, U4ToByte((alpha>>(4*i))&15));
       }
       dest=(Color*)((Byte*)dest+pitch);
    }
@@ -287,7 +283,7 @@ Color DecompressPixelBC2(C Byte *b, Int x, Int y)
       color[3].g=(color[0].g*1 + color[1].g*2 + 1)/3;
       color[3].b=(color[0].b*1 + color[1].b*2 + 1)/3;
    }
-          color[ci].a=B15((GetU64(b)>>(4*i))&15);
+          color[ci].a=U4ToByte((GetU64(b)>>(4*i))&15);
    return color[ci];
 }
 /******************************************************************************/

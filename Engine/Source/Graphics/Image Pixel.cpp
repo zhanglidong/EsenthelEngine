@@ -612,12 +612,12 @@ static inline Color GetColor(C Byte *data, C Image &image, Bool _2d, Int x, Int 
       case IMAGE_B8G8R8X8: {C VecB4 &v=*(VecB4*)data; return Color(  v.z, v.y, v.x,   255);}
       case IMAGE_R8G8B8X8: {C VecB4 &v=*(VecB4*)data; return Color(  v.x, v.y, v.z,   255);}
 
-      case IMAGE_B4G4R4X4   : {U16  d=*(U16 *)data; return Color(((d>> 8)&0x0F)<<4, ((d>> 4)&0x0F)<<4, ((d    )&0x0F)<<4,                   255);}
-      case IMAGE_B4G4R4A4   : {U16  d=*(U16 *)data; return Color(((d>> 8)&0x0F)<<4, ((d>> 4)&0x0F)<<4, ((d    )&0x0F)<<4, ((d>>12)&0x0F)<<4    );}
-      case IMAGE_B5G5R5X1   : {U16  d=*(U16 *)data; return Color(((d>>10)&0x1F)<<3, ((d>> 5)&0x1F)<<3, ((d    )&0x1F)<<3,                   255);}
-      case IMAGE_B5G5R5A1   : {U16  d=*(U16 *)data; return Color(((d>>10)&0x1F)<<3, ((d>> 5)&0x1F)<<3, ((d    )&0x1F)<<3,  (d&0x8000) ? 255 : 0);}
-      case IMAGE_B5G6R5     : {U16  d=*(U16 *)data; return Color(((d>>11)&0x1F)<<3, ((d>> 5)&0x3F)<<2, ((d    )&0x1F)<<3,                   255);}
-      case IMAGE_R10G10B10A2: {UInt d=*(UInt*)data; return Color( (d>> 2)&0xFF    ,  (d>>12)&0xFF    ,  (d>>22)&0xFF    ,  (d>>30)*255/3       );}
+      case IMAGE_B4G4R4X4   : {U16  d=*(U16 *)data; return Color(U4ToByte((d>> 8)&0x0F), U4ToByte((d>> 4)&0x0F), U4ToByte((d    )&0x0F),             255);}
+      case IMAGE_B4G4R4A4   : {U16  d=*(U16 *)data; return Color(U4ToByte((d>> 8)&0x0F), U4ToByte((d>> 4)&0x0F), U4ToByte((d    )&0x0F), U4ToByte(d>>12));}
+      case IMAGE_B5G5R5X1   : {U16  d=*(U16 *)data; return Color(U5ToByte((d>>10)&0x1F), U5ToByte((d>> 5)&0x1F), U5ToByte((d    )&0x1F),             255);}
+      case IMAGE_B5G5R5A1   : {U16  d=*(U16 *)data; return Color(U5ToByte((d>>10)&0x1F), U5ToByte((d>> 5)&0x1F), U5ToByte((d    )&0x1F), U1ToByte(d>>15));}
+      case IMAGE_B5G6R5     : {U16  d=*(U16 *)data; return Color(U5ToByte((d>>11)&0x1F), U6ToByte((d>> 5)&0x3F), U5ToByte((d    )&0x1F),             255);}
+      case IMAGE_R10G10B10A2: {UInt d=*(UInt*)data; return Color(         (d>> 2)&0xFF ,          (d>>12)&0xFF ,          (d>>22)&0xFF , U2ToByte(d>>30));}
 
       case IMAGE_R8_SIGN      : {  SByte   b=         *data; return Color(SByteToByte(b  ),                0,                0,              255);}
       case IMAGE_R8G8_SIGN    : {C VecSB2 &v=*(VecSB2*)data; return Color(SByteToByte(v.x), SByteToByte(v.y),                0,              255);}
