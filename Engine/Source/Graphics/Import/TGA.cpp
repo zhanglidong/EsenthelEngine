@@ -70,11 +70,11 @@ struct TGA
 
 	      case 24:
 	      {
-	         if(image.hwType()==IMAGE_R8G8B8 || image.hwType()==IMAGE_B8G8R8)
+	         if(image.hwType()==IMAGE_R8G8B8 || image.hwType()==IMAGE_R8G8B8_SRGB || image.hwType()==IMAGE_B8G8R8)
 	         {
 	            Byte *data=image.data() + x_offset*3 + y*image.pitch();
 	            f.get(data, width*3);
-	            if(image.hwType()==IMAGE_R8G8B8)REP(width)Swap(data[i*3+0], data[i*3+2]); // swap Red with Blue
+	            if(image.hwType()==IMAGE_R8G8B8 || image.hwType()==IMAGE_R8G8B8_SRGB)REP(width)Swap(data[i*3+0], data[i*3+2]); // swap Red with Blue
 	         }else
 	         if(image.hwType()==IMAGE_B8G8R8A8)
 	         {

@@ -80,6 +80,7 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
    IMAGE_TYPES, // number of types
 #if EE_PRIVATE
    IMAGE_R8G8B8A8_SRGB,
+   IMAGE_R8G8B8_SRGB  ,
    IMAGE_BC1_SRGB     ,
    IMAGE_BC2_SRGB     ,
    IMAGE_BC3_SRGB     ,
@@ -119,6 +120,7 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
 #endif
 #endif
 };
+Bool IsSRGB(IMAGE_TYPE type); // if this is a sRGB image
 enum IMAGE_MODE : Byte // Image Mode
 {
    IMAGE_2D       , // Hardware 2D   Texture
@@ -220,6 +222,7 @@ struct Image // Image (Texture)
    Bool          soft()C {return IsSoft(mode())   ;} // if this is a software image     (IMAGE_SOFT, IMAGE_SOFT_CUBE)
    Bool            hw()C {return IsHW  (mode())   ;} // if this is a hardware image NOT (IMAGE_SOFT, IMAGE_SOFT_CUBE)
    Bool          cube()C {return IsCube(mode())   ;} // if this is a cube     image     (IMAGE_CUBE, IMAGE_SOFT_CUBE or IMAGE_RT_CUBE)
+   Bool          sRGB()C {return IsSRGB(type())   ;} // if this is a sRGB     image
 
    Int      lMipMap  ()C {return _lmm   ;} // get index              of locked mip map
    DIR_ENUM lCubeFace()C {return _lcf   ;} // get                       locked cube face

@@ -120,6 +120,7 @@ const ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have 
    {null           , false,  0,  0,   0, 0, 0, 0,   0,0, 0, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, 0)},
 
    {"R8G8B8A8_SRGB", false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, GL_SRGB8_ALPHA8)},
+   {"R8G8B8_SRGB"  , false,  3, 24,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN            , GL_SRGB8)},
 
    {"BC1_SRGB"        , true ,  0,  4,   5, 6, 5, 1,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_BC1_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT)},
    {"BC2_SRGB"        , true ,  1,  8,   5, 6, 5, 4,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_BC2_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT)},
@@ -152,8 +153,28 @@ const ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have 
    {"INTZ"         , false,  4, 32,   0, 0, 0, 0,  24,8, 2, IMAGE_PRECISION_24, GPU_API(D3DFORMAT(MAKEFOURCC('I','N','T','Z')), DXGI_FORMAT_UNKNOWN          , 0                    )},
    {"DF24"         , false,  4, 32,   0, 0, 0, 0,  24,0, 1, IMAGE_PRECISION_24, GPU_API(D3DFORMAT(MAKEFOURCC('D','F','2','4')), DXGI_FORMAT_UNKNOWN          , 0                    )}, // DF24 does not have stencil buffer
    {"NULL"         , false,  0,  0,   0, 0, 0, 0,   0,0, 0, IMAGE_PRECISION_8 , GPU_API(D3DFORMAT(MAKEFOURCC('N','U','L','L')), DXGI_FORMAT_UNKNOWN          , 0                    )},
-}; ASSERT(IMAGE_ALL_TYPES==62);
+}; ASSERT(IMAGE_ALL_TYPES==63);
 /******************************************************************************/
+Bool IsSRGB(IMAGE_TYPE type)
+{
+   switch(type)
+   {
+      default: return false;
+
+      case IMAGE_R8G8B8_SRGB  :
+      case IMAGE_R8G8B8A8_SRGB:
+      case IMAGE_BC1_SRGB     :
+      case IMAGE_BC2_SRGB     :
+      case IMAGE_BC3_SRGB     :
+      case IMAGE_BC7_SRGB     :
+      case IMAGE_ETC2_SRGB    :
+      case IMAGE_ETC2_A1_SRGB :
+      case IMAGE_ETC2_A8_SRGB :
+      case IMAGE_PVRTC1_2_SRGB:
+      case IMAGE_PVRTC1_4_SRGB:
+         return true;
+   }
+}
 IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type)
 {
    switch(type)
@@ -164,7 +185,7 @@ IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type)
       case IMAGE_R8G8  :
       case IMAGE_R8    : return IMAGE_R8G8B8A8;
 
-    //case IMAGE_R8G8B8_SRGB: return IMAGE_R8G8B8A8_SRGB;
+      case IMAGE_R8G8B8_SRGB: return IMAGE_R8G8B8A8_SRGB;
 
       case IMAGE_L8 :
       case IMAGE_I8 :
@@ -197,9 +218,10 @@ IMAGE_TYPE ImageTypeExcludeAlpha(IMAGE_TYPE type)
    {
       default: return type;
 
-    //case IMAGE_R8G8B8A8_SRGB: return IMAGE_R8G8B8_SRGB;
       case IMAGE_R8G8B8A8: return IMAGE_R8G8B8;
       case IMAGE_B8G8R8A8: return IMAGE_B8G8R8;
+
+      case IMAGE_R8G8B8A8_SRGB: return IMAGE_R8G8B8_SRGB;
 
       case IMAGE_L8A8: return IMAGE_L8;
 
@@ -243,7 +265,8 @@ IMAGE_TYPE ImageTypeUncompressed(IMAGE_TYPE type)
 
       case IMAGE_BC1_SRGB:
       case IMAGE_ETC2_SRGB:
-       //return IMAGE_R8G8B8_SRGB;
+         return IMAGE_R8G8B8_SRGB;
+
       case IMAGE_BC2_SRGB:
       case IMAGE_BC3_SRGB:
       case IMAGE_BC7_SRGB:
@@ -254,7 +277,7 @@ IMAGE_TYPE ImageTypeUncompressed(IMAGE_TYPE type)
          return IMAGE_R8G8B8A8_SRGB;
    }
 }
-IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type)
+IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type) // this is for HW images, don't return IMAGE_R8G8B8
 {
    switch(type)
    {
@@ -281,6 +304,7 @@ IMAGE_TYPE ImageTypeRemoveSRGB(IMAGE_TYPE type)
    switch(type)
    {
       default                 : return type;
+      case IMAGE_R8G8B8_SRGB  : return IMAGE_R8G8B8;
       case IMAGE_R8G8B8A8_SRGB: return IMAGE_R8G8B8A8;
       case IMAGE_BC1_SRGB     : return IMAGE_BC1;
       case IMAGE_BC2_SRGB     : return IMAGE_BC2;
@@ -485,6 +509,8 @@ UInt SourceGLFormat(IMAGE_TYPE type)
       case IMAGE_R8G8B8  :
       case IMAGE_R8G8B8X8: return GL_RGB;
 
+      case IMAGE_R8G8B8_SRGB: return GL_SRGB;
+
       case IMAGE_F16_4        :
       case IMAGE_F32_4        :
       case IMAGE_R8G8B8A8     :
@@ -552,7 +578,7 @@ UInt SourceGLType(IMAGE_TYPE type)
 
       case IMAGE_B8G8R8A8:
       case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB:
-      case IMAGE_R8G8B8  :
+      case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB  :
       case IMAGE_R8G8    :
       case IMAGE_R8      :
       case IMAGE_A8      :

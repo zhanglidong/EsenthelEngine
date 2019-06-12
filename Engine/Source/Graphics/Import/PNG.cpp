@@ -90,7 +90,7 @@ Bool Image::ExportPNG(File &f, Flt compression_level)C
       case IMAGE_L8      :                           bit_depth= 8; color_type=PNG_COLOR_TYPE_GRAY      ; break;
       case IMAGE_A8      :                           bit_depth= 8; color_type=PNG_COLOR_TYPE_GRAY      ; break;
       case IMAGE_L8A8    :                           bit_depth= 8; color_type=PNG_COLOR_TYPE_GRAY_ALPHA; break;
-      case IMAGE_R8G8B8  :                           bit_depth= 8; color_type=PNG_COLOR_TYPE_RGB       ; break;
+      case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB  : bit_depth= 8; color_type=PNG_COLOR_TYPE_RGB       ; break;
       case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: bit_depth= 8; color_type=PNG_COLOR_TYPE_RGB_ALPHA ; break;
 
       case IMAGE_I24:

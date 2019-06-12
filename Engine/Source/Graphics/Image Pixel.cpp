@@ -439,7 +439,8 @@ static void SetPixelF(Byte *data, IMAGE_TYPE type, Flt pixel)
                                 {VecB4 &v=*(VecB4*)data; v.x=v.y=v.z=FltToByte(pixel); v.w=255;} break;
 
       case IMAGE_B8G8R8:
-      case IMAGE_R8G8B8:        {VecB  &v=*(VecB *)data; v.x=v.y=v.z=FltToByte(pixel);} break;
+      case IMAGE_R8G8B8:  case IMAGE_R8G8B8_SRGB:
+                                {VecB  &v=*(VecB *)data; v.x=v.y=v.z=FltToByte(pixel);} break;
 
       case IMAGE_R8G8:          {VecB2 &v=*(VecB2*)data; v.x=v.y=FltToByte(pixel);} break;
 
@@ -521,7 +522,7 @@ static inline Flt GetPixelF(C Byte *data, C Image &image, Bool _2d, Int x, Int y
 
       case IMAGE_R8      :
       case IMAGE_R8G8    :
-      case IMAGE_R8G8B8  :
+      case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB:
       case IMAGE_R8G8B8X8:
       case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB:
       case IMAGE_A8      :
@@ -597,7 +598,7 @@ static inline Color GetColor(C Byte *data, C Image &image, Bool _2d, Int x, Int 
    {
       case IMAGE_B8G8R8A8: {C Color &c=*(Color*)data; return Color(  c.b, c.g, c.r,   c.a);}
       case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB:  return*(Color*)data;
-      case IMAGE_R8G8B8  : {C VecB  &v=*(VecB *)data; return Color(  v.x, v.y, v.z,   255);}
+      case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB  : {C VecB  &v=*(VecB *)data; return Color(  v.x, v.y, v.z,   255);}
       case IMAGE_R8G8    : {C VecB2 &v=*(VecB2*)data; return Color(  v.x, v.y,   0,   255);}
       case IMAGE_R8      :                            return Color(*data,   0,   0,   255);
       case IMAGE_A8      :                            return Color(    0,   0,   0, *data);
@@ -664,7 +665,7 @@ static void SetColor(Byte *data, IMAGE_TYPE type, C Color &color)
       case IMAGE_B8G8R8A8: ((VecB4*)data)->set(color.b, color.g, color.r, color.a); break;
       case IMAGE_B8G8R8  : ((VecB *)data)->set(color.b, color.g, color.r); break;
       case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: *(Color*)data=color; break;
-      case IMAGE_R8G8B8  : ((VecB *)data)->set(color.r, color.g, color.b); break;
+      case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB  : ((VecB *)data)->set(color.r, color.g, color.b); break;
       case IMAGE_R8G8    : ((VecB2*)data)->set(color.r, color.g); break;
       case IMAGE_R8      : *        data=color.r; break;
       case IMAGE_A8      : *        data=color.a; break;
@@ -705,7 +706,7 @@ static void SetColor(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Color &c
    if(type==hw_type)normal: return SetColor(data, hw_type, color); // first check if types are the same, the most common case
    Color c; switch(type) // however if we want 'type' but we've got 'hw_type' then we have to adjust the color we're going to set. This will prevent setting different R G B values for type=IMAGE_L8 when hw_type=IMAGE_R8G8B8A8
    {
-      case IMAGE_R8G8B8:
+      case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB:
       case IMAGE_F16_3 :
       case IMAGE_F32_3 : c.set(color.r, color.g, color.b, 255); break;
 
@@ -765,7 +766,7 @@ static void SetColorF(Byte *data, IMAGE_TYPE type, C Vec4 &color)
 
       case IMAGE_B8G8R8A8:                           ((VecB4*)data)->set(FltToByte(color.z), FltToByte(color.y), FltToByte(color.x), FltToByte(color.w)); break;
       case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: ((VecB4*)data)->set(FltToByte(color.x), FltToByte(color.y), FltToByte(color.z), FltToByte(color.w)); break;
-      case IMAGE_R8G8B8  :                           ((VecB *)data)->set(FltToByte(color.x), FltToByte(color.y), FltToByte(color.z)                    ); break;
+      case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB  : ((VecB *)data)->set(FltToByte(color.x), FltToByte(color.y), FltToByte(color.z)                    ); break;
       case IMAGE_R8G8    :                           ((VecB2*)data)->set(FltToByte(color.x), FltToByte(color.y)                                        ); break;
       case IMAGE_R8      :                           *(Byte *)data  =    FltToByte(color.x)                                                             ; break;
       case IMAGE_B8G8R8  :                           ((VecB *)data)->set(FltToByte(color.z), FltToByte(color.y), FltToByte(color.x)                    ); break;
@@ -784,7 +785,7 @@ static void SetColorF(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &c
    if(type==hw_type)normal: return SetColorF(data, hw_type, color); // first check if types are the same, the most common case
    Vec4 c; switch(type) // however if we want 'type' but we've got 'hw_type' then we have to adjust the color we're going to set. This will prevent setting different R G B values for type=IMAGE_L8 when hw_type=IMAGE_R8G8B8A8
    {
-      case IMAGE_R8G8B8:
+      case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB:
       case IMAGE_F16_3 :
       case IMAGE_F32_3 : c.set(color.x, color.y, color.z, 1); break;
 
@@ -908,7 +909,7 @@ Vec4 ImageColorF(CPtr data, IMAGE_TYPE hw_type)
       case IMAGE_B8G8R8X8:                           {VecB4 &c=*(VecB4*)data; return Vec4(c.z/255.0f, c.y/255.0f, c.x/255.0f,          1);}
       case IMAGE_R8G8B8X8:                           {VecB4 &c=*(VecB4*)data; return Vec4(c.x/255.0f, c.y/255.0f, c.z/255.0f,          1);}
       case IMAGE_B8G8R8  :                           {VecB  &c=*(VecB *)data; return Vec4(c.z/255.0f, c.y/255.0f, c.x/255.0f,          1);}
-      case IMAGE_R8G8B8  :                           {VecB  &c=*(VecB *)data; return Vec4(c.x/255.0f, c.y/255.0f, c.z/255.0f,          1);}
+      case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(c.x/255.0f, c.y/255.0f, c.z/255.0f,          1);}
       case IMAGE_R8G8    :                           {VecB2 &c=*(VecB2*)data; return Vec4(c.x/255.0f, c.y/255.0f,          0,          1);}
       case IMAGE_R8      :                           {Byte   c=*(Byte *)data; return Vec4(c  /255.0f,          0,          0,          1);}
 
@@ -968,7 +969,7 @@ static inline Vec4 GetColorF(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
       case IMAGE_B8G8R8X8:                           {VecB4 &c=*(VecB4*)data; return Vec4(c.z/255.0f, c.y/255.0f, c.x/255.0f,          1);}
       case IMAGE_R8G8B8X8:                           {VecB4 &c=*(VecB4*)data; return Vec4(c.x/255.0f, c.y/255.0f, c.z/255.0f,          1);}
       case IMAGE_B8G8R8  :                           {VecB  &c=*(VecB *)data; return Vec4(c.z/255.0f, c.y/255.0f, c.x/255.0f,          1);}
-      case IMAGE_R8G8B8  :                           {VecB  &c=*(VecB *)data; return Vec4(c.x/255.0f, c.y/255.0f, c.z/255.0f,          1);}
+      case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(c.x/255.0f, c.y/255.0f, c.z/255.0f,          1);}
       case IMAGE_R8G8    :                           {VecB2 &c=*(VecB2*)data; return Vec4(c.x/255.0f, c.y/255.0f,          0,          1);}
       case IMAGE_R8      :                           {Byte   c=*(Byte *)data; return Vec4(c  /255.0f,          0,          0,          1);}
 
@@ -2895,7 +2896,7 @@ void Image::gather(Flt *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int
          FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; *pixels++=src.r/255.0f;}
       }break;
 
-      case IMAGE_R8G8B8: FREPD(y, y_offsets)
+      case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB: FREPD(y, y_offsets)
       {
        C VecB *color=(VecB*)(data()+y_offset[y]*pitch());
          FREPD(x, x_offsets){C VecB &src=color[x_offset[x]]; *pixels++=src.x/255.0f;}
@@ -2925,7 +2926,7 @@ void Image::gather(VecB *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
          FREPD(x, x_offsets)*colors++=color[x_offset[x]].v3;
       }break;
 
-      case IMAGE_R8G8B8: FREPD(y, y_offsets)
+      case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB: FREPD(y, y_offsets)
       {
        C VecB *color=(VecB*)(data()+y_offset[y]*pitch());
          FREPD(x, x_offsets)*colors++=color[x_offset[x]];
@@ -2955,7 +2956,7 @@ void Image::gather(Color *colors, Int *x_offset, Int x_offsets, Int *y_offset, I
          FREPD(x, x_offsets)*colors++=color[x_offset[x]];
       }break;
 
-      case IMAGE_R8G8B8: FREPD(y, y_offsets)
+      case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB: FREPD(y, y_offsets)
       {
        C VecB *color=(VecB*)(data()+y_offset[y]*pitch());
          FREPD(x, x_offsets){C VecB &src=color[x_offset[x]]; (colors++)->set(src.x, src.y, src.z);}
@@ -2985,7 +2986,7 @@ void Image::gather(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
          FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; (colors++)->set(src.r/255.0f, src.g/255.0f, src.b/255.0f, src.a/255.0f);}
       }break;
 
-      case IMAGE_R8G8B8: FREPD(y, y_offsets)
+      case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB: FREPD(y, y_offsets)
       {
        C VecB *color=(VecB*)(data()+y_offset[y]*pitch());
          FREPD(x, x_offsets){C VecB &src=color[x_offset[x]]; (colors++)->set(src.x/255.0f, src.y/255.0f, src.z/255.0f, 1);}
@@ -3072,7 +3073,7 @@ void Image::gather(Flt *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int
          }
       }break;
 
-      case IMAGE_R8G8B8: FREPD(z, z_offsets)
+      case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB: FREPD(z, z_offsets)
       {
        C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
          {
@@ -3112,7 +3113,7 @@ void Image::gather(VecB *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
          }
       }break;
 
-      case IMAGE_R8G8B8: FREPD(z, z_offsets)
+      case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB: FREPD(z, z_offsets)
       {
        C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
          {
@@ -3152,7 +3153,7 @@ void Image::gather(Color *colors, Int *x_offset, Int x_offsets, Int *y_offset, I
          }
       }break;
 
-      case IMAGE_R8G8B8: FREPD(z, z_offsets)
+      case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB: FREPD(z, z_offsets)
       {
        C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
          {
@@ -3192,7 +3193,7 @@ void Image::gather(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
          }
       }break;
 
-      case IMAGE_R8G8B8: FREPD(z, z_offsets)
+      case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB: FREPD(z, z_offsets)
       {
        C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
          {
@@ -3253,7 +3254,7 @@ static INLINE void StoreColor(Image &image, Byte* &dest_data_y, Int x, Int y, In
 
       case IMAGE_B8G8R8A8:                           ((VecB4*)dest_data_y)->set(FltToByte(color.z), FltToByte(color.y), FltToByte(color.x), FltToByte(color.w)); dest_data_y+=4; return;
       case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: *(Color*)dest_data_y=color; dest_data_y+=4; return;
-      case IMAGE_R8G8B8  :  dest_data_y[0]=FltToByte(color.x); dest_data_y[1]=FltToByte(color.y); dest_data_y[2]=FltToByte(color.z); dest_data_y+=3; return;
+      case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB  :  dest_data_y[0]=FltToByte(color.x); dest_data_y[1]=FltToByte(color.y); dest_data_y[2]=FltToByte(color.z); dest_data_y+=3; return;
       case IMAGE_L8      : *dest_data_y++=FltToByte(color.xyz.max()); return;
 
       case IMAGE_L8A8    : *dest_data_y++=FltToByte(color.xyz.max()); // !! no break/return on purpose so we can set Alpha channel below !!
@@ -3370,7 +3371,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
             }
          }else // retype
          {
-            if( T   .hwType()==IMAGE_R8G8B8
+            if((T   .hwType()==IMAGE_R8G8B8   || T   .hwType()==IMAGE_R8G8B8_SRGB)
             && (dest.hwType()==IMAGE_R8G8B8A8 || dest.hwType()==IMAGE_R8G8B8A8_SRGB)  // very common case for importing images
             && (dest.  type()==IMAGE_R8G8B8A8 || dest.  type()==IMAGE_R8G8B8A8_SRGB)) // check 'type' too in case we have to perform color adjustment
             {
@@ -3382,9 +3383,9 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
                   REPD(x, T.lw()){(d++)->set(s->x, s->y, s->z, 255); s++;}
                }
             }else
-            if(T   .hwType()==IMAGE_R8G8B8
-            && dest.hwType()==IMAGE_B8G8R8A8  // very common case for importing images to DX9 native texture format, or exporting to WEBP from RGB
-            && dest.  type()==IMAGE_B8G8R8A8) // check 'type' too in case we have to perform color adjustment
+            if((T   .hwType()==IMAGE_R8G8B8 || T.hwType()==IMAGE_R8G8B8_SRGB)
+            &&  dest.hwType()==IMAGE_B8G8R8A8  // very common case for importing images to DX9 native texture format, or exporting to WEBP from RGB
+            &&  dest.  type()==IMAGE_B8G8R8A8) // check 'type' too in case we have to perform color adjustment
             {
                REPD(z, T.ld())
                REPD(y, T.lh())
