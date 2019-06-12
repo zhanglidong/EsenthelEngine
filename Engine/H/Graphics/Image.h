@@ -583,13 +583,13 @@ struct Image // Image (Texture)
    explicit Image(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps=0); // create with specified parameters using 'create' method, Exit on fail, 'mip_maps'=number of mip-maps (0=autodetect)
 
 #if EE_PRIVATE
-   void     zero     () {Zero(T);}
-   Image&   setInfo  (Int w, Int h, Int d, Int        type, IMAGE_MODE mode);
-   Image& forceInfo  (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int samples);
-   void  adjustInfo  (Int w, Int h, Int d, IMAGE_TYPE type);
-   void   setPartial ();
-   void   setGLParams();
-   void   setGLFont  ();
+   void    zero     () {Zero(T);}
+   void    setInfo  ();
+   void  forceInfo  (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int samples);
+   void adjustInfo  (Int w, Int h, Int d, IMAGE_TYPE type);
+   void  setPartial ();
+   void  setGLParams();
+   void  setGLFont  ();
 
    Bool   map    ();
    void unmap    ();

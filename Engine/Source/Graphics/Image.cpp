@@ -709,7 +709,7 @@ void Image::setPartial()
    if(_partial=(w()!=hwW() || h()!=hwH() || d()!=hwD()))_part.set(Flt(w())/hwW(), Flt(h())/hwH(), Flt(d())/hwD());
    else                                                 _part=1;
 }
-Image& Image::setInfo(Int w, Int h, Int d, Int type, IMAGE_MODE mode)
+void Image::setInfo()
 {
 #if DX9
    D3DSURFACE_DESC desc;
@@ -797,9 +797,9 @@ Image& Image::setInfo(Int w, Int h, Int d, Int type, IMAGE_MODE mode)
          dsvd.Flags=(D3D11_DSV_READ_ONLY_DEPTH|D3D11_DSV_READ_ONLY_STENCIL); D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // this will work only on DX11.0 but not 10.0, 10.1
       }else
       {
-         if(mode==IMAGE_2D || mode==IMAGE_3D || mode==IMAGE_CUBE || mode==IMAGE_RT || mode==IMAGE_RT_CUBE || mode==IMAGE_DS || mode==IMAGE_DS_RT || mode==IMAGE_SHADOW_MAP)D3D->CreateShaderResourceView(_txtr, null, &_srv);
-         if(                  mode==IMAGE_RT    || mode==IMAGE_RT_CUBE   )D3D->CreateRenderTargetView(_txtr, null, &_rtv);
-         if(mode==IMAGE_DS || mode==IMAGE_DS_RT || mode==IMAGE_SHADOW_MAP)D3D->CreateDepthStencilView(_txtr, null, &_dsv);
+         if(mode()==IMAGE_2D || mode()==IMAGE_3D    || mode()==IMAGE_CUBE || mode()==IMAGE_RT || mode()==IMAGE_RT_CUBE || mode()==IMAGE_DS || mode()==IMAGE_DS_RT || mode()==IMAGE_SHADOW_MAP)D3D->CreateShaderResourceView(_txtr, null, &_srv);
+         if(                    mode()==IMAGE_RT    || mode()==IMAGE_RT_CUBE   )D3D->CreateRenderTargetView(_txtr, null, &_rtv);
+         if(mode()==IMAGE_DS || mode()==IMAGE_DS_RT || mode()==IMAGE_SHADOW_MAP)D3D->CreateDepthStencilView(_txtr, null, &_dsv);
       }
    }else
    if(_vol)
@@ -875,24 +875,17 @@ Image& Image::setInfo(Int w, Int h, Int d, Int type, IMAGE_MODE mode)
    }
 #endif
 
-  _size.x =          ((w   >0) ? w    : hwW   ());
-  _size.y =          ((h   >0) ? h    : hwH   ());
-  _size.z =          ((d   >0) ? d    : hwD   ());
-  _type   =IMAGE_TYPE((type>0) ? type : hwType());
-  _mode   =                      mode            ;
   _byte_pp=ImageTI[hwType()].byte_pp; // keep a copy for faster access
    if(is()){MAX(_mms, 1); MAX(_samples, 1);}
    setPartial();
-   return T;
 }
-Image& Image::forceInfo(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int samples)
+void Image::forceInfo(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int samples)
 {
-  _hw_size.x=w;
-  _hw_size.y=h;
-  _hw_size.z=d;
-  _hw_type  =type;
-  _samples  =samples;
-   return setInfo(w, h, d, type, mode);
+  _hw_size=_size.set(w, h, d);
+  _hw_type=_type=type;
+           _mode=mode;
+        _samples=samples;
+   setInfo();
 }
 void Image::adjustInfo(Int w, Int h, Int d, IMAGE_TYPE type)
 {
@@ -1095,34 +1088,35 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
       del();
 
       // create
-     _hw_size=hw_size;
-     _hw_type=type; // set before 'setInfo' because it affects 'byte_pp' (needed for DX11, GL)
+     _size.set(w, h, d); _hw_size=hw_size;
+     _type=type        ; _hw_type=type; // set before 'setInfo' because it affects 'byte_pp' (needed for DX11, GL)
+     _mode=mode        ;
       switch(mode)
       {
          case IMAGE_SOFT:
          case IMAGE_SOFT_CUBE:
          {
            _mms=mip_maps;
-            setInfo(w, h, d, type, mode);
+            setInfo();
             Alloc(_data_all, memUsage());
             lockSoft(); // set default lock members to main mip map
          }return true;
 
       #if DX9
-         case IMAGE_SURF_SCRATCH: if(samples==1 && OK(D3D->CreateOffscreenPlainSurface(hwW(), hwH(),                                         ImageTI[type].format, D3DPOOL_SCRATCH                              , &_surf, null))){setInfo(w, h, d, type, mode); return true;} break;
-         case IMAGE_SURF_SYSTEM : if(samples==1 && OK(D3D->CreateOffscreenPlainSurface(hwW(), hwH(),                                         ImageTI[type].format, D3DPOOL_SYSTEMMEM                            , &_surf, null))){setInfo(w, h, d, type, mode); return true;} break;
-         case IMAGE_SURF        : if(samples==1 && OK(D3D->CreateOffscreenPlainSurface(hwW(), hwH(),                                         ImageTI[type].format, D3DPOOL_DEFAULT                              , &_surf, null))){setInfo(w, h, d, type, mode); return true;} break;
-         case IMAGE_2D          : if(samples==1 && OK(D3D->CreateTexture              (hwW(), hwH(),        mip_maps, 0                    , ImageTI[type].format, D._no_gpu ? D3DPOOL_SCRATCH : D3DPOOL_MANAGED, &_txtr, null))){setInfo(w, h, d, type, mode); return true;} break;
-         case IMAGE_3D          : if(samples==1 && OK(D3D->CreateVolumeTexture        (hwW(), hwH(), hwD(), mip_maps, 0                    , ImageTI[type].format, D._no_gpu ? D3DPOOL_SCRATCH : D3DPOOL_MANAGED, &_vol , null))){setInfo(w, h, d, type, mode); return true;} break;
-         case IMAGE_CUBE        : if(samples==1 && OK(D3D->CreateCubeTexture          (hwW(),               mip_maps, 0                    , ImageTI[type].format, D._no_gpu ? D3DPOOL_SCRATCH : D3DPOOL_MANAGED, &_cube, null))){setInfo(w, h, d, type, mode); return true;} break;
-         case IMAGE_RT_CUBE     : if(samples==1 && OK(D3D->CreateCubeTexture          (hwW(),                      1, D3DUSAGE_RENDERTARGET, ImageTI[type].format, D3DPOOL_DEFAULT                              , &_cube, null))){setInfo(w, h, d, type, mode); return true;} break;
-         case IMAGE_DS_RT       : if(samples==1 && OK(D3D->CreateTexture              (hwW(), hwH(),               1, D3DUSAGE_DEPTHSTENCIL, ImageTI[type].format, D3DPOOL_DEFAULT                              , &_txtr, null))){setInfo(w, h, d, type, mode); return true;} break;
-         case IMAGE_SHADOW_MAP  : if(samples==1 && OK(D3D->CreateTexture              (hwW(), hwH(),               1, D3DUSAGE_DEPTHSTENCIL, ImageTI[type].format, D3DPOOL_DEFAULT                              , &_txtr, null))){setInfo(w, h, d, type, mode); return true;} break;
-         case IMAGE_DS          : if(              OK(D3D->CreateDepthStencilSurface  (hwW(), hwH(),                                         ImageTI[type].format, (samples>1) ? D3DMULTISAMPLE_TYPE(samples) : D3DMULTISAMPLE_NONE, 0, false, &_surf, null))){setInfo(w, h, d, type, mode); return true;} break;
+         case IMAGE_SURF_SCRATCH: if(samples==1 && OK(D3D->CreateOffscreenPlainSurface(hwW(), hwH(),                                         ImageTI[type].format, D3DPOOL_SCRATCH                              , &_surf, null))){setInfo(); return true;} break;
+         case IMAGE_SURF_SYSTEM : if(samples==1 && OK(D3D->CreateOffscreenPlainSurface(hwW(), hwH(),                                         ImageTI[type].format, D3DPOOL_SYSTEMMEM                            , &_surf, null))){setInfo(); return true;} break;
+         case IMAGE_SURF        : if(samples==1 && OK(D3D->CreateOffscreenPlainSurface(hwW(), hwH(),                                         ImageTI[type].format, D3DPOOL_DEFAULT                              , &_surf, null))){setInfo(); return true;} break;
+         case IMAGE_2D          : if(samples==1 && OK(D3D->CreateTexture              (hwW(), hwH(),        mip_maps, 0                    , ImageTI[type].format, D._no_gpu ? D3DPOOL_SCRATCH : D3DPOOL_MANAGED, &_txtr, null))){setInfo(); return true;} break;
+         case IMAGE_3D          : if(samples==1 && OK(D3D->CreateVolumeTexture        (hwW(), hwH(), hwD(), mip_maps, 0                    , ImageTI[type].format, D._no_gpu ? D3DPOOL_SCRATCH : D3DPOOL_MANAGED, &_vol , null))){setInfo(); return true;} break;
+         case IMAGE_CUBE        : if(samples==1 && OK(D3D->CreateCubeTexture          (hwW(),               mip_maps, 0                    , ImageTI[type].format, D._no_gpu ? D3DPOOL_SCRATCH : D3DPOOL_MANAGED, &_cube, null))){setInfo(); return true;} break;
+         case IMAGE_RT_CUBE     : if(samples==1 && OK(D3D->CreateCubeTexture          (hwW(),                      1, D3DUSAGE_RENDERTARGET, ImageTI[type].format, D3DPOOL_DEFAULT                              , &_cube, null))){setInfo(); return true;} break;
+         case IMAGE_DS_RT       : if(samples==1 && OK(D3D->CreateTexture              (hwW(), hwH(),               1, D3DUSAGE_DEPTHSTENCIL, ImageTI[type].format, D3DPOOL_DEFAULT                              , &_txtr, null))){setInfo(); return true;} break;
+         case IMAGE_SHADOW_MAP  : if(samples==1 && OK(D3D->CreateTexture              (hwW(), hwH(),               1, D3DUSAGE_DEPTHSTENCIL, ImageTI[type].format, D3DPOOL_DEFAULT                              , &_txtr, null))){setInfo(); return true;} break;
+         case IMAGE_DS          : if(              OK(D3D->CreateDepthStencilSurface  (hwW(), hwH(),                                         ImageTI[type].format, (samples>1) ? D3DMULTISAMPLE_TYPE(samples) : D3DMULTISAMPLE_NONE, 0, false, &_surf, null))){setInfo(); return true;} break;
 
          case IMAGE_RT:
-            if(samples>1){if(OK(D3D->CreateRenderTarget(hwW(), hwH(),                           ImageTI[type].format, D3DMULTISAMPLE_TYPE(samples), 0, false, &_surf, null))){setInfo(w, h, d, type, mode); clearHw(); return true;}}
-            else         {if(OK(D3D->CreateTexture     (hwW(), hwH(), 1, D3DUSAGE_RENDERTARGET, ImageTI[type].format, D3DPOOL_DEFAULT                       , &_txtr, null))){setInfo(w, h, d, type, mode); clearHw(); return true;}}
+            if(samples>1){if(OK(D3D->CreateRenderTarget(hwW(), hwH(),                           ImageTI[type].format, D3DMULTISAMPLE_TYPE(samples), 0, false, &_surf, null))){setInfo(); clearHw(); return true;}}
+            else         {if(OK(D3D->CreateTexture     (hwW(), hwH(), 1, D3DUSAGE_RENDERTARGET, ImageTI[type].format, D3DPOOL_DEFAULT                       , &_txtr, null))){setInfo(); clearHw(); return true;}}
          break;
       #elif DX11
          case IMAGE_2D:
@@ -1139,7 +1133,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             desc.SampleDesc.Count  =1;
             desc.SampleDesc.Quality=0;
             desc.ArraySize         =1;
-            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr))){setInfo(w, h, d, type, mode); return true;}
+            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr))){setInfo(); return true;}
          }break;
 
          case IMAGE_SURF_SCRATCH:
@@ -1158,7 +1152,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             desc.SampleDesc.Count  =1;
             desc.SampleDesc.Quality=0;
             desc.ArraySize         =1;
-            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr))){setInfo(w, h, d, type, mode); return true;}
+            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr))){setInfo(); return true;}
          }break;
 
          case IMAGE_RT:
@@ -1175,7 +1169,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             desc.SampleDesc.Count  =samples;
             desc.SampleDesc.Quality=0;
             desc.ArraySize         =1;
-            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(w, h, d, type, mode); SyncLocker locker(D._lock); clearHw(); return true;} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
+            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(); SyncLocker locker(D._lock); clearHw(); return true;} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
          }break;
 
          case IMAGE_3D:
@@ -1190,7 +1184,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             desc.BindFlags         =D3D11_BIND_SHADER_RESOURCE;
             desc.MiscFlags         =0;
             desc.CPUAccessFlags    =0;
-            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture3D(&desc, initial_data, &_vol))){setInfo(w, h, d, type, mode); return true;}
+            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture3D(&desc, initial_data, &_vol))){setInfo(); return true;}
          }break;
 
          case IMAGE_CUBE:
@@ -1207,7 +1201,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             desc.SampleDesc.Count  =1;
             desc.SampleDesc.Quality=0;
             desc.ArraySize         =6;
-            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr))){setInfo(w, h, d, type, mode); return true;}
+            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr))){setInfo(); return true;}
          }break;
 
          case IMAGE_RT_CUBE:
@@ -1224,7 +1218,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             desc.SampleDesc.Count  =samples;
             desc.SampleDesc.Quality=0;
             desc.ArraySize         =6;
-            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(w, h, d, type, mode); SyncLocker locker(D._lock); clearHw(); return true;} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
+            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(); SyncLocker locker(D._lock); clearHw(); return true;} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
          }break;
 
          case IMAGE_DS:
@@ -1243,9 +1237,9 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             desc.SampleDesc.Count  =samples;
             desc.SampleDesc.Quality=0;
             desc.ArraySize         =1;
-            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(w, h, d, type, mode); return true;}
+            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(); return true;}
             FlagDisable(desc.BindFlags, D3D11_BIND_SHADER_RESOURCE); // disable shader reading
-            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(w, h, d, type, mode); return true;}
+            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(); return true;}
          }break;
       #elif GL
          case IMAGE_2D          :
@@ -2736,9 +2730,9 @@ UInt Image::typeMemUsage()C {return ImageSize(hwW(), hwH(), hwD(),   type(), mod
 Bool Image::map()
 {
 #if DX9
-   del(); if(OK(D3D->GetRenderTarget(0, &T._surf))){setInfo(0, 0, 0, 0, IMAGE_SURF); return true;}
+   del(); if(OK(D3D->GetRenderTarget(0, &T._surf))){_mode=IMAGE_SURF; setInfo(); adjustInfo(hwW(), hwH(), hwD(), hwType()); return true;}
 #elif DX11
-   del(); if(OK(SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (Ptr*)&_txtr))){setInfo(0, 0, 0, 0, IMAGE_RT); return true;}
+   del(); if(OK(SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (Ptr*)&_txtr))){_mode=IMAGE_RT; setInfo(); adjustInfo(hwW(), hwH(), hwD(), hwType()); return true;}
 #elif DX12
    https://msdn.microsoft.com/en-us/library/windows/desktop/mt427784(v=vs.85).aspx
    In Direct3D 11, applications could call GetBuffer( 0, .. ) only once. Every call to Present implicitly changed the resource identity of the returned interface. Direct3D 12 no longer supports that implicit resource identity change, due to the CPU overhead required and the flexible resource descriptor design. As a result, the application must manually call GetBuffer for every each buffer created with the swapchain. The application must manually render to the next buffer in the sequence after calling Present. Applications are encouraged to create a cache of descriptors for each buffer, instead of re-creating many objects each Present.
@@ -2751,7 +2745,7 @@ Bool Image::map()
          glGetError(); // clear any previous errors
          glBindRenderbuffer(GL_RENDERBUFFER, _rb);
          [MainContext.context renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)view.layer];
-         setInfo(0, 0, 0, 0, IMAGE_SURF); // this has a valid '_rb' so it can detect the size and type
+        _mode=IMAGE_SURF; setInfo(); adjustInfo(hwW(), hwH(), hwD(), hwType()); // this has a valid '_rb' so it can detect the size and type
          D._res=size(); D.densityUpdate();
          return true;
       }

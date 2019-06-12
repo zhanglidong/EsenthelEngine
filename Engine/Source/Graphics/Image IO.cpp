@@ -608,6 +608,7 @@ Bool Image::ExportDX(C Str &name, GPU_API(D3DXIMAGE_FILEFORMAT, D3DX11_IMAGE_FIL
 Bool ImportDX    (C Str &name, Int type=-1, Int mode=-1, Int mip_maps=-1);                             // import using DirectX
 Bool Image::ImportDX(C Str &name, Int type, Int mode, Int mip_maps) // 'type, mode, mip_maps' params are only suggestions !!
 {
+   the codes are outdated
    del();
    if(name.is())
    {
