@@ -2056,6 +2056,26 @@ void Display::getCaps()
   _shader_tex_lod    =(FeatureLevel>=D3D_FEATURE_LEVEL_10_0);
   _mrt_const_bit_size=false;
   _mrt_post_process  =true ;
+
+   /*IDXGISwapChain4 *swap_chain4=null; SwapChain->QueryInterface(__uuidof(IDXGISwapChain4), (Ptr*)&swap_chain4); if(swap_chain4)
+   {
+      swap_chain4->SetColorSpace1();
+      swap_chain4->Release();
+   }*/
+   
+   IDXGIOutput *output=null; SwapChain->GetContainingOutput(&output); if(output)
+   {
+      IDXGIOutput6 *output6=null; output->QueryInterface(__uuidof(IDXGIOutput6), (Ptr*)&output6); if(output6)
+      {
+         DXGI_OUTPUT_DESC1 desc; if(OK(output6->GetDesc1(&desc)))
+         {
+            // get info about color space
+            // TODO: this could replace 'highMonitorPrecision', however on a computer that returns 8-bit, using 10-bit still gives better quality, so perhaps it's not yet ready
+         }
+         output6->Release();
+      }
+      output->Release();
+   }
 #elif GL
    CChar8 *ext=(CChar8*)glGetString(GL_EXTENSIONS);
       _max_tex_size    =2048; glGetIntegerv(GL_MAX_TEXTURE_SIZE          , &_max_tex_size    );

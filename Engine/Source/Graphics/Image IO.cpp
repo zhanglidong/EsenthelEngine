@@ -94,7 +94,7 @@ Bool Image::saveData(File &f)C
 
    f.putMulti(Byte(4), size3(), Byte(file_type), Byte(mode()), Byte(mipMaps())); // version
 
-   if(soft() && hwType()==file_type) // software with matching type, we can save without locking
+   if(soft() && CanDoRawCopy(hwType(), file_type)) // software with matching type, we can save without locking
    {
       if(hwSize3()==size3())f.put(softData(), memUsage());else // exact size, then we can save entire memory
       {
@@ -139,7 +139,7 @@ Bool Image::saveData(File &f)C
          {
           C Image *src=this;
             Int    src_mip=mip, src_face=face;
-            if(hwType()!=file_type){if(!extractMipMap(soft, file_type, mip, DIR_ENUM(face)))return false; src=&soft; src_mip=0; src_face=0;} // if 'hwType' is different than of file, then convert to 'file_type' IMAGE_SOFT, after extracting the mip map its Pitch and BlocksY may be different than of calculated from base (for example non-power-of-2 images) so write zeros to file to match the expected size
+            if(!CanDoRawCopy(hwType(), file_type)){if(!extractMipMap(soft, file_type, mip, DIR_ENUM(face)))return false; src=&soft; src_mip=0; src_face=0;} // if 'hwType' is different than of file, then convert to 'file_type' IMAGE_SOFT, after extracting the mip map its Pitch and BlocksY may be different than of calculated from base (for example non-power-of-2 images) so write zeros to file to match the expected size
 
             if(!src->lockRead(src_mip, DIR_ENUM(src_face)))return false;
             Int write_pitch   =Min(src->pitch()                                            , file_pitch   ),
@@ -188,7 +188,7 @@ static Bool Load(Image &image, File &f, C ImageHeader &header, C Str &name)
    {
 const FILTER_TYPE filter=FILTER_BEST;
       Image       soft; // store outside the loop to avoid overhead
-const Bool        file_cube =IsCube(header.mode), fast_load=(image.soft() && image.hwType()==header.type && image.cube()==file_cube);
+const Bool        file_cube =IsCube(header.mode), fast_load=(image.soft() && CanDoRawCopy(image.hwType(), header.type) && image.cube()==file_cube);
 const Int         file_faces=(file_cube ? 6 : 1);
       Int         image_mip  =0; // how many mip-maps have already been set in the image
       FREPD(file_mip, header.mip_maps) // iterate all mip maps in the file
@@ -254,7 +254,7 @@ const Int         file_faces=(file_cube ? 6 : 1);
                }
             }else
             {
-               Bool   temp=(image.hwType()!=header.type || file_mip_size!=image_mip_size); // we need to load the mip-map into temporary image first, if the hardware types don't match, or if the mip-map size doesn't match
+               Bool   temp=(!CanDoRawCopy(image.hwType(), header.type) || file_mip_size!=image_mip_size); // we need to load the mip-map into temporary image first, if the hardware types don't match, or if the mip-map size doesn't match
                Image *dest; Int dest_mip;
                mip_count=1;
                if(temp) // if need to use a temporary image

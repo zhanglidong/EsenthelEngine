@@ -464,6 +464,7 @@ Bool CompatibleLock(LOCK_MODE cur, LOCK_MODE lock)
       case LOCK_READ      : return lock==LOCK_READ;
    }
 }
+Bool CanDoRawCopy(IMAGE_TYPE a, IMAGE_TYPE b) {return ImageTypeRemoveSRGB(a)==ImageTypeRemoveSRGB(b);}
 Bool CanDoRawCopy(C Image &src, C Image &dest)
 {
    IMAGE_TYPE src_hwType=ImageTypeRemoveSRGB( src.hwType()),
