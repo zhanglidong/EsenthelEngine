@@ -36,37 +36,39 @@ namespace EE{
        && GL_TEXTURE_CUBE_MAP_NEGATIVE_Z-GL_TEXTURE_CUBE_MAP_POSITIVE_X==DIR_BACK);
 #endif
 
-#define GL_ETC1_RGB8                                 0x8D64
-#define GL_COMPRESSED_RGBA_S3TC_DXT1                 0x83F1
-#define GL_COMPRESSED_RGBA_S3TC_DXT3                 0x83F2
-#define GL_COMPRESSED_RGBA_S3TC_DXT5                 0x83F3
+#define GL_COMPRESSED_RGBA_S3TC_DXT1_EXT             0x83F1
+#define GL_COMPRESSED_RGBA_S3TC_DXT3_EXT             0x83F2
+#define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT             0x83F3
 #define GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT       0x8C4D
 #define GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT       0x8C4E
 #define GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT       0x8C4F
 #define GL_COMPRESSED_RGBA_BPTC_UNORM                0x8E8C
 #define GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM          0x8E8D
-#define GL_COMPRESSED_RGB8_ETC2                      0x9274
-#define GL_COMPRESSED_SRGB8_ETC2                     0x9275
-#define GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2  0x9276
-#define GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2 0x9277
-#define GL_COMPRESSED_RGBA8_ETC2                     0x9278
-#define GL_COMPRESSED_SRGB8_ALPHA8_ETC2              0x9279
+#define GL_ETC1_RGB8_OES                             0x8D64
 #define GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG          0x8C02
 #define GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG          0x8C03
 #define GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT    0x8A56
 #define GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT    0x8A57
-#define GL_BGR                                       0x80E0
-#define GL_BGRA                                      0x80E1
-#define GL_UNSIGNED_INT_2_10_10_10_REV               0x8368
+#define GL_HALF_FLOAT_OES                            0x8D61
 #define GL_ALPHA8                                    0x803C
 #define GL_LUMINANCE8                                0x8040
 #define GL_LUMINANCE8_ALPHA8                         0x8045
+#define GL_BGR                                       0x80E0
+#define GL_BGRA                                      0x80E1
+#define GL_TEXTURE_MAX_ANISOTROPY                    0x84FE
+
+/*
+#define GL_COMPRESSED_RGB8_ETC2                      0x9274
+#define GL_COMPRESSED_SRGB8_ETC2                     0x9275
+#define GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2  0x9276
+#define GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2 0x9277
+#define GL_COMPRESSED_RGBA8_ETC2_EAC                 0x9278
+#define GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC          0x9279
+#define GL_UNSIGNED_INT_2_10_10_10_REV               0x8368
 #define GL_LUMINANCE16                               0x8042
 #define GL_LUMINANCE                                 0x1909
 #define GL_LUMINANCE_ALPHA                           0x190A
-#define GL_TEXTURE_MAX_ANISOTROPY                    0x84FE
-#define GL_HALF_FLOAT_OES                            0x8D61
-#define GL_SRGB8_ALPHA8                              0x8C43
+#define GL_SRGB8_ALPHA8                              0x8C43*/
 
 #define GL_SWIZZLE (GL && !GL_ES) // Modern Desktop OpenGL (3.2) does not support GL_ALPHA8, GL_LUMINANCE8, GL_LUMINANCE8_ALPHA8, use swizzle instead
 /******************************************************************************/
@@ -88,9 +90,9 @@ const ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have 
    {"L8"         , false,  1,  8,   0, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , GPU_API(D3DFMT_L8  , DXGI_FORMAT_UNKNOWN , GL_SWIZZLE ? GL_R8  : GL_LUMINANCE8       )},
    {"L8A8"       , false,  2, 16,   0, 0, 0, 8,   0,0, 2, IMAGE_PRECISION_8 , GPU_API(D3DFMT_A8L8, DXGI_FORMAT_UNKNOWN , GL_SWIZZLE ? GL_RG8 : GL_LUMINANCE8_ALPHA8)},
 
-   {"BC1"        , true ,  0,  4,   5, 6, 5, 1,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_DXT1, DXGI_FORMAT_BC1_UNORM, GL_COMPRESSED_RGBA_S3TC_DXT1)},
-   {"BC2"        , true ,  1,  8,   5, 6, 5, 4,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_DXT3, DXGI_FORMAT_BC2_UNORM, GL_COMPRESSED_RGBA_S3TC_DXT3)},
-   {"BC3"        , true ,  1,  8,   5, 6, 5, 8,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_DXT5, DXGI_FORMAT_BC3_UNORM, GL_COMPRESSED_RGBA_S3TC_DXT5)},
+   {"BC1"        , true ,  0,  4,   5, 6, 5, 1,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_DXT1, DXGI_FORMAT_BC1_UNORM, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT)},
+   {"BC2"        , true ,  1,  8,   5, 6, 5, 4,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_DXT3, DXGI_FORMAT_BC2_UNORM, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT)},
+   {"BC3"        , true ,  1,  8,   5, 6, 5, 8,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_DXT5, DXGI_FORMAT_BC3_UNORM, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT)},
 
    {"I8"         , false,  1,  8,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN      , DXGI_FORMAT_UNKNOWN           , 0)},
    {"I16"        , false,  2, 16,  16, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_16, GPU_API(D3DFMT_UNKNOWN      , DXGI_FORMAT_UNKNOWN           , 0)},
@@ -108,10 +110,10 @@ const ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have 
    {"PVRTC1_2"   , true ,  0,  2,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG)},
    {"PVRTC1_4"   , true ,  0,  4,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG)},
 
-   {"ETC1"       , true ,  0,  4,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_ETC1_RGB8)},
+   {"ETC1"       , true ,  0,  4,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_ETC1_RGB8_OES)},
    {"ETC2"       , true ,  0,  4,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_RGB8_ETC2)},
    {"ETC2_A1"    , true ,  0,  4,   8, 8, 8, 1,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2)},
-   {"ETC2_A8"    , true ,  1,  8,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_RGBA8_ETC2)},
+   {"ETC2_A8"    , true ,  1,  8,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_RGBA8_ETC2_EAC)},
 
    {"BC7"        , true ,  1,  8,   7, 7, 7, 8,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_BC7_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM)},
 
@@ -129,7 +131,7 @@ const ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have 
 
    {"ETC2_SRGB"       , true ,  0,  4,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB8_ETC2)},
    {"ETC2_A1_SRGB"    , true ,  0,  4,   8, 8, 8, 1,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2)},
-   {"ETC2_A8_SRGB"    , true ,  1,  8,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB8_ALPHA8_ETC2)},
+   {"ETC2_A8_SRGB"    , true ,  1,  8,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC)},
 
    {"PVRTC1_2_SRGB"   , true ,  0,  2,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT)},
    {"PVRTC1_4_SRGB"   , true ,  0,  4,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT)},

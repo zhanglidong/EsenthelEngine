@@ -2058,13 +2058,18 @@ void Display::getCaps()
   _mrt_const_bit_size=false;
   _mrt_post_process  =true ;
 
+ /*D3D11_FEATURE_DATA_SHADER_MIN_PRECISION_SUPPORT min_prec;
+   if(OK(D3D->CheckFeatureSupport(D3D11_FEATURE_SHADER_MIN_PRECISION_SUPPORT, &min_prec, SIZE(min_prec)))) // check for hlsl half support
+   {
+   }*/
+
    /*IDXGISwapChain4 *swap_chain4=null; SwapChain->QueryInterface(__uuidof(IDXGISwapChain4), (Ptr*)&swap_chain4); if(swap_chain4)
    {
       swap_chain4->SetColorSpace1();
       swap_chain4->Release();
    }*/
    
-   IDXGIOutput *output=null; SwapChain->GetContainingOutput(&output); if(output)
+   /*IDXGIOutput *output=null; SwapChain->GetContainingOutput(&output); if(output)
    {
       IDXGIOutput6 *output6=null; output->QueryInterface(__uuidof(IDXGIOutput6), (Ptr*)&output6); if(output6)
       {
@@ -2076,7 +2081,7 @@ void Display::getCaps()
          output6->Release();
       }
       output->Release();
-   }
+   }*/
 #elif GL
    CChar8 *ext=(CChar8*)glGetString(GL_EXTENSIONS);
       _max_tex_size    =2048; glGetIntegerv(GL_MAX_TEXTURE_SIZE          , &_max_tex_size    );
