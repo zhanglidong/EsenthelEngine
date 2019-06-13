@@ -30,13 +30,13 @@ static const ImageRTType ImageRTTypes[]=
    {IMAGE_F32_3, IMAGE_F32_4, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8     }, // 4 IMAGERT_SRGB_F
 #endif
 
-   {IMAGE_DEFAULT                                                                               }, //  5 IMAGERT_RGBA
-   {IMAGE_R10G10B10A2  , IMAGE_DEFAULT                                                          }, //  6 IMAGERT_RGB
-   {IMAGE_R10G10B10A2  , IMAGE_F16_3, IMAGE_F16_4, IMAGE_DEFAULT                                }, //  7 IMAGERT_RGB_P
-   {IMAGE_F16_4        , IMAGE_DEFAULT                                                          }, //  8 IMAGERT_RGBA_H
-   {IMAGE_F16_3        , IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_DEFAULT                          }, //  9 IMAGERT_RGB_H
-   {IMAGE_F32_4        , IMAGE_F16_4, IMAGE_DEFAULT                                             }, // 10 IMAGERT_RGBA_F
-   {IMAGE_F32_3        , IMAGE_F32_4, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_DEFAULT}, // 11 IMAGERT_RGB_F
+   {IMAGE_DEFAULT                                                                             }, //  5 IMAGERT_RGBA
+   {IMAGE_R10G10B10A2, IMAGE_DEFAULT                                                          }, //  6 IMAGERT_RGB
+   {IMAGE_R10G10B10A2, IMAGE_F16_3, IMAGE_F16_4, IMAGE_DEFAULT                                }, //  7 IMAGERT_RGB_P
+   {IMAGE_F16_4      , IMAGE_DEFAULT                                                          }, //  8 IMAGERT_RGBA_H
+   {IMAGE_F16_3      , IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_DEFAULT                          }, //  9 IMAGERT_RGB_H
+   {IMAGE_F32_4      , IMAGE_F16_4, IMAGE_DEFAULT                                             }, // 10 IMAGERT_RGBA_F
+   {IMAGE_F32_3      , IMAGE_F32_4, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_DEFAULT}, // 11 IMAGERT_RGB_F
 
    {IMAGE_R8G8B8A8_SIGN, IMAGE_F16_4}, // 12 IMAGERT_RGBA_S
 
@@ -69,6 +69,7 @@ static const ImageRTType ImageRTTypes[]=
       IMAGE_R8G8_SIGN, IMAGE_R8G8B8A8_SIGN,
    #endif
       IMAGE_F16_2}, // 18 IMAGERT_TWO_S
+
    {
    #if DX9
       IMAGE_INTZ, /*IMAGE_RAWZ, */IMAGE_DF24, // read why IMAGE_RAWZ is disabled in 'RendererClass::rtCreate()'
