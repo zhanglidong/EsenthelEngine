@@ -63,7 +63,7 @@ void ColorTransHSB(Flt hue, Flt saturation, Flt brightness, Flt alpha)
 /******************************************************************************/
 void DisplayDraw::fxBegin()
 {
-   if(!Renderer._back   )Renderer._back   .get  (ImageRTDesc(Renderer._gui->w(), Renderer._gui->h(), IMAGERT_RGBA)); // Alpha is used for transparency
+   if(!Renderer._back   )Renderer._back   .get  (ImageRTDesc(Renderer._gui->w(), Renderer._gui->h(), IMAGERT_SRGBA)); // Alpha is used for transparency
    if(!Renderer._back_ds)Renderer._back_ds.getDS(Renderer._back->w(), Renderer._back->h(), Renderer._back->samples());
    Renderer._cur_main   =Renderer._back   .rc();
    Renderer._cur_main_ds=Renderer._back_ds.rc();

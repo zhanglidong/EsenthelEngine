@@ -103,7 +103,7 @@ static ImageRTPtr    LiveResize;
    {
       DrawState(); // do not surround 'DrawState' with '_lock' lock because it handles it on its own
       SyncLocker locker(D._lock);
-      if(LiveResize.find(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_RGB)))
+      if(LiveResize.find(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)))
       {
          Renderer._main.copyHw(*LiveResize, true); // doesn't use Alpha
       #if GL

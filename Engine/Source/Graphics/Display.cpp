@@ -2,6 +2,8 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
+#define USE_SRGB 0 // FIXME
+
 #define D3D_DEBUG     0
 #define FORCE_D3D9_3  0
 #define FORCE_D3D10_0 0
@@ -1145,12 +1147,20 @@ void Display::createDevice()
    if(!exclusive() && full()){if(!SetDisplayMode(2))Exit("Can't set fullscreen mode."); adjustWindow();}
 again:
    Factory->CreateSwapChain(D3D, &SwapChainDesc, &SwapChain);
-   if(!SwapChain && SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM; goto again;} // if failed with 10-bit then try again with 8-bit
+   if(!SwapChain)
+   {
+      if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with 8-bit
+      if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with 8-bit
+   }
    Factory->MakeWindowAssociation(App.Hwnd(), DXGI_MWA_NO_ALT_ENTER|DXGI_MWA_NO_WINDOW_CHANGES|DXGI_MWA_NO_PRINT_SCREEN); // this needs to be called after 'CreateSwapChain'
 #else
 again:
 	Factory->CreateSwapChainForCoreWindow(D3D, (IUnknown*)App._hwnd, &SwapChainDesc, null, &SwapChain);
-   if(!SwapChain && SwapChainDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM; goto again;} // if failed with 10-bit then try again with 8-bit
+   if(!SwapChain)
+   {
+      if(SwapChainDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with 8-bit
+      if(SwapChainDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with 8-bit
+   }
 #endif
    if(!SwapChain)Exit("Can't create Direct3D Swap Chain.");
  //if( SwapChain && Output && !SwapChainDesc.Windowed)SwapChain->SetFullscreenState(true, Output); // if we want a custom output then we need to apply it now, otherwise the fullscreen can occur on the main display
@@ -1643,6 +1653,14 @@ static Int DisplaySamples(Int samples)
 #endif
    return samples;
 }
+#if DX11
+static DXGI_FORMAT SwapChainFormat()
+{
+   return   GDI_COMPATIBLE ? (USE_SRGB ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : DXGI_FORMAT_B8G8R8A8_UNORM) // FIXME test this
+: D.highMonitorPrecision() ? (USE_SRGB ? DXGI_FORMAT_R16G16B16A16_FLOAT  : DXGI_FORMAT_R10G10B10A2_UNORM)
+                           : (USE_SRGB ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM);
+}
+#endif
 Bool Display::findMode()
 {
    SyncLocker locker(_lock);
@@ -1710,7 +1728,7 @@ Bool Display::findMode()
       SwapChainDesc.BufferDesc.Width  =resW();
       SwapChainDesc.BufferDesc.Height =resH();
       // !! using HDR may require 'DXGI_SWAP_EFFECT_FLIP_DISCARD' for non-exclusive !!
-      SwapChainDesc.BufferDesc.Format =(GDI_COMPATIBLE ? DXGI_FORMAT_B8G8R8A8_UNORM : highMonitorPrecision() ? DXGI_FORMAT_R10G10B10A2_UNORM : DXGI_FORMAT_R8G8B8A8_UNORM);
+      SwapChainDesc.BufferDesc.Format =SwapChainFormat();
       SwapChainDesc.SampleDesc.Count  =1;
       SwapChainDesc.SampleDesc.Quality=0;
       SwapChainDesc.BufferUsage       =DXGI_USAGE_RENDER_TARGET_OUTPUT|DXGI_USAGE_SHADER_INPUT|DXGI_USAGE_BACK_BUFFER;
@@ -1779,7 +1797,7 @@ Bool Display::findMode()
    #else // WINDOWS_NEW
       SwapChainDesc.Width =resW();
       SwapChainDesc.Height=resH();
-      SwapChainDesc.Format=(GDI_COMPATIBLE ? DXGI_FORMAT_B8G8R8A8_UNORM : highMonitorPrecision() ? DXGI_FORMAT_R10G10B10A2_UNORM : DXGI_FORMAT_R8G8B8A8_UNORM);
+      SwapChainDesc.Format=SwapChainFormat();
       SwapChainDesc.Stereo=false;
       SwapChainDesc.SampleDesc.Count  =1;
       SwapChainDesc.SampleDesc.Quality=0;
@@ -1828,7 +1846,8 @@ static Bool ResizeTarget()
 #if WINDOWS_OLD
 again:
    if(OK(SwapChain->ResizeTarget(&SwapChainDesc.BufferDesc)))return true;
-   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM; goto again;} // if failed with 10-bit then try again with 8-bit
+   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with 8-bit
+   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with 8-bit
 #endif
    return false;
 }
@@ -1837,10 +1856,12 @@ static Bool ResizeBuffers()
 again:
 #if WINDOWS_OLD
    if(OK(SwapChain->ResizeBuffers(SwapChainDesc.BufferCount, SwapChainDesc.BufferDesc.Width, SwapChainDesc.BufferDesc.Height, SwapChainDesc.BufferDesc.Format, SwapChainDesc.Flags)))return true;
-   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM; goto again;} // if failed with 10-bit then try again with 8-bit
+   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with 8-bit
+   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with 8-bit
 #else
-   if(OK(SwapChain->ResizeBuffers(SwapChainDesc.BufferCount, SwapChainDesc.           Width, SwapChainDesc.           Height, SwapChainDesc.           Format, SwapChainDesc.Flags)))return true;
-   if(SwapChainDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM; goto again;} // if failed with 10-bit then try again with 8-bit
+   if(OK(SwapChain->ResizeBuffers(SwapChainDesc.BufferCount, SwapChainDesc.Width, SwapChainDesc.Height, SwapChainDesc.Format, SwapChainDesc.Flags)))return true;
+   if(SwapChainDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with 8-bit
+   if(SwapChainDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with 8-bit
 #endif
    return false;
 }
@@ -2081,6 +2102,36 @@ void Display::getCaps()
          output6->Release();
       }
       output->Release();
+   }*/
+   /*void SetCS(Int cs)
+   {
+      Clamp(cs, 0, DXGI_COLOR_SPACE_YCBCR_FULL_GHLG_TOPLEFT_P2020);
+      IDXGISwapChain4 *swap_chain4=null; SwapChain->QueryInterface(__uuidof(IDXGISwapChain4), (Ptr*)&swap_chain4); if(swap_chain4)
+      {
+         OK(swap_chain4->SetColorSpace1((DXGI_COLOR_SPACE_TYPE)cs));
+         swap_chain4->Release();
+      }
+   }
+   void SetMeta()
+   {
+      IDXGISwapChain4 *swap_chain4=null; SwapChain->QueryInterface(__uuidof(IDXGISwapChain4), (Ptr*)&swap_chain4); if(swap_chain4)
+      {
+         DXGI_HDR_METADATA_HDR10 meta; Zero(meta);
+         meta.RedPrimary[0] = 0.680 * 50000;
+         meta.RedPrimary[1] = 0.320 * 50000;
+         meta.GreenPrimary[0] = 0.265 * 50000;
+         meta.GreenPrimary[1] = 0.690 * 50000;
+         meta.BluePrimary[0] = 0.150 * 50000;
+         meta.BluePrimary[1] = 0.060 * 50000;
+         meta.WhitePoint[0] = 0.3127 * 50000;
+         meta.WhitePoint[1] = 0.3290 * 50000;
+         meta.MaxMasteringLuminance = 1000 * 10000;
+         meta.MinMasteringLuminance = 0.001 * 10000;
+         meta.MaxContentLightLevel = 2000;
+         meta.MaxFrameAverageLightLevel = 500;
+         OK(swap_chain4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, SIZE(meta), &meta));
+         swap_chain4->Release();
+      }
    }*/
 #elif GL
    CChar8 *ext=(CChar8*)glGetString(GL_EXTENSIONS);

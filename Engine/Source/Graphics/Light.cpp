@@ -374,7 +374,7 @@ static void StartVol()
    Bool clear=false;
    if(!Renderer._vol)
    {
-      Renderer._vol.get(ImageRTDesc(Renderer.fxW()>>2, Renderer.fxH()>>2, IMAGERT_RGB)); // doesn't use Alpha
+      Renderer._vol.get(ImageRTDesc(Renderer.fxW()>>2, Renderer.fxH()>>2, IMAGERT_RGB)); // doesn't use Alpha, FIXME or IMAGERT_SRGB?
       clear=true;
       VL.load();
    }

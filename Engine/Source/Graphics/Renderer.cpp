@@ -237,7 +237,7 @@ ImageRTPtr RendererClass::getBackBuffer() // this may get called during renderin
 {
    if(Image *src=_cur[0])
    {
-      ImageRTPtr hlp(ImageRTDesc(src->w(), src->h(), IMAGERT_RGBA)); // here Alpha is used for storing opacity
+      ImageRTPtr hlp(ImageRTDesc(src->w(), src->h(), IMAGERT_SRGBA)); // here Alpha is used for storing opacity
       src->copyHw(*hlp, true);
       return hlp;
    }
@@ -269,7 +269,7 @@ INLINE Shader* GetBloom  (Bool dither                                           
 void RendererClass::bloom(Image &src, Image &dest, Bool dither)
 {
    const Int     shift=(D.bloomHalf() ? 1 : 2);
-   ImageRTDesc   rt_desc(fxW()>>shift, fxH()>>shift, IMAGERT_RGB);
+   ImageRTDesc   rt_desc(fxW()>>shift, fxH()>>shift, IMAGERT_SRGB);
    ImageRTPtrRef rt0(D.bloomHalf() ? _h0 : _q0); rt0.get(rt_desc);
    ImageRTPtrRef rt1(D.bloomHalf() ? _h1 : _q1); rt1.get(rt_desc); Bool discard=false; // we've already discarded in 'get' so no need to do it again
 
@@ -416,7 +416,7 @@ INLINE Shader* GetDof  (Bool dither, Bool realistic           ) {Shader* &s=Dof.
 void RendererClass::dof(Image &src, Image &dest, Bool dither)
 { // Depth of Field shader does not require stereoscopic processing because it just reads the depth buffer
    const Int   shift=1; // half
-   ImageRTDesc rt_desc(fxW()>>shift, fxH()>>shift, src.highPrecision() ? IMAGERT_RGBA_H : IMAGERT_RGBA); // here Alpha is used to store amount of Blur, use high precision if source is to don't lose smooth gradients when having full blur (especially visible on sky), IMAGERT_RGBA_H vs IMAGERT_RGBA has no significant difference on GeForce 1050Ti
+   ImageRTDesc rt_desc(fxW()>>shift, fxH()>>shift, src.highPrecision() ? IMAGERT_SRGBA_H : IMAGERT_SRGBA); // here Alpha is used to store amount of Blur, use high precision if source is to don't lose smooth gradients when having full blur (especially visible on sky), IMAGERT_SRGBA_H vs IMAGERT_SRGBA has no significant difference on GeForce 1050Ti
    ImageRTPtr  rt0(rt_desc),
                rt1(rt_desc);
 
@@ -447,7 +447,7 @@ void RendererClass::Combine()
    {
       ImageRTPtr resolve=_final; if(resolve->compatible(*_ds_1s))D.alpha(ALPHA_BLEND);else
       {
-         resolve.get(ImageRTDesc(_ds_1s->w(), _ds_1s->h(), IMAGERT_RGBA)); // resolve to a temp RT and apply that later, here Alpha is used for storing image opacity
+         resolve.get(ImageRTDesc(_ds_1s->w(), _ds_1s->h(), IMAGERT_SRGBA)); // resolve to a temp RT and apply that later, here Alpha is used for storing image opacity
          D.alpha(ALPHA_SETBLEND_SET); alpha_premultiplied=true;
       }
       set(resolve(), _ds_1s(), true, NEED_DEPTH_READ);
@@ -464,7 +464,7 @@ void RendererClass::Combine()
    }else
    if(_col->w()<_final->w()) // resolve first to small buffer
    {
-      ImageRTPtr resolve=_col; resolve.get(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA)); // here Alpha is used for storing image opacity
+      ImageRTPtr resolve=_col; resolve.get(ImageRTDesc(_col->w(), _col->h(), IMAGERT_SRGBA)); // here Alpha is used for storing image opacity
       set(resolve(), null, false); // request full viewport because we will need it below, when drawing black borders
       D.alpha(ALPHA_SETBLEND_SET); alpha_premultiplied=true;
       GetCombine()->draw(_col, &D.viewRect());
@@ -1664,12 +1664,13 @@ void RendererClass::behind()
    }
    BehindObjects.clear();
 }
+static const IMAGERT_TYPE IMAGERT_OUTLINE=IMAGERT_RGBA; // here Alpha is used for outline opacity FIXME or IMAGERT_SRGBA?
 void RendererClass::setOutline(C Color &color)
 {
   _SetHighlight(color);
    if(!_outline) // not initialized at all
    {
-     _outline_rt.get(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA, _col->samples())); // here Alpha is used for outline opacity
+     _outline_rt.get(ImageRTDesc(_col->w(), _col->h(), IMAGERT_OUTLINE, _col->samples())); // here Alpha is used for outline opacity
       set(_outline_rt(), _ds(), true);
       D.clearCol  ();
       D.alpha     (ALPHA_NONE);
@@ -1698,7 +1699,7 @@ void RendererClass::applyOutline()
    #if !DX11
       if(_outline_rt->multiSample()) // we need to resolve the multi-sampled surface first
       {
-         ImageRTPtr src=_outline_rt; _outline_rt.get(ImageRTDesc(src->w(), src->h(), IMAGERT_RGBA)); src->copyHw(*_outline_rt, false, D.viewRect()); // here Alpha is used for outline opacity
+         ImageRTPtr src=_outline_rt; _outline_rt.get(ImageRTDesc(src->w(), src->h(), IMAGERT_OUTLINE)); src->copyHw(*_outline_rt, false, D.viewRect()); // here Alpha is used for outline opacity
       }
    #endif
       Image *ds=_ds_1s(); // we've resolved multi-sample so have to use 1-sample
@@ -1726,7 +1727,7 @@ void RendererClass::applyOutline()
 
          case EDGE_DETECT_FAT: if(Sh.h_Outline && Sh.h_OutlineDS && Sh.h_OutlineApply)
          {
-            ImageRTPtr temp(ImageRTDesc(fxW(), fxH(), IMAGERT_RGBA)); // here Alpha is used for outline opacity
+            ImageRTPtr temp(ImageRTDesc(fxW(), fxH(), IMAGERT_OUTLINE)); // here Alpha is used for outline opacity
             set(temp(), null, true);
             D.alpha(ALPHA_NONE);
             ((temp->w()<_outline_rt->w()) ? Sh.h_OutlineDS : Sh.h_Outline)->draw(_outline_rt);
@@ -1801,9 +1802,9 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
          {
            _col->copyHw(*dest, false, D.viewRect());
             D.stencil(STENCIL_EDGE_SOFT_SET, STENCIL_REF_EDGE_SOFT); // have to use '_ds_1s' in write mode to be able to use stencil
-            ImageRTPtr edge (ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO )); set(edge (), _ds_1s(), true); D.clearCol(); Sh.h_MLAAEdge ->draw(_col ()); Sh.h_ImageCol[1]->set(_mlaa_area()); D.stencil(STENCIL_EDGE_SOFT_TEST);
-            ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA)); set(blend(), _ds_1s(), true); D.clearCol(); Sh.h_MLAABlend->draw( edge()); Sh.h_ImageCol[1]->set( blend    ()); edge.clear();
-                                                                               set(dest (), _ds_1s(), true);               Sh.h_MLAA     ->draw(_col ());                                      D.stencil(STENCIL_NONE          );
+            ImageRTPtr edge (ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO  )); set(edge (), _ds_1s(), true); D.clearCol(); Sh.h_MLAAEdge ->draw(_col ()); Sh.h_ImageCol[1]->set(_mlaa_area()); D.stencil(STENCIL_EDGE_SOFT_TEST);
+            ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_SRGBA)); set(blend(), _ds_1s(), true); D.clearCol(); Sh.h_MLAABlend->draw( edge()); Sh.h_ImageCol[1]->set( blend    ()); edge.clear();
+                                                                                set(dest (), _ds_1s(), true);               Sh.h_MLAA     ->draw(_col ());                                      D.stencil(STENCIL_NONE          );
             MaterialClear();
          }break;
       #endif
@@ -1816,9 +1817,9 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
          #endif
             D.stencil(STENCIL_EDGE_SOFT_SET, STENCIL_REF_EDGE_SOFT); // have to use '_ds_1s' in write mode to be able to use stencil
-            ImageRTPtr edge (ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO )); set(edge (), _ds_1s(), true); D.clearCol(); Sh.h_SMAAEdge ->draw(_col ()); Sh.h_ImageCol[1]->set(_smaa_area()); Sh.h_ImageCol[2]->set(_smaa_search()); Sh.h_ImageCol[2]->_sampler=&SamplerPoint; D.stencil(STENCIL_EDGE_SOFT_TEST);
-            ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA)); set(blend(), _ds_1s(), true); D.clearCol(); Sh.h_SMAABlend->draw( edge()); Sh.h_ImageCol[1]->set( blend()    ); edge.clear();                          Sh.h_ImageCol[2]->_sampler=         null; D.stencil(STENCIL_NONE          );
-                                                                               set(dest (),  null   , true);               Sh.h_SMAA     ->draw(_col ());
+            ImageRTPtr edge (ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO  )); set(edge (), _ds_1s(), true); D.clearCol(); Sh.h_SMAAEdge ->draw(_col ()); Sh.h_ImageCol[1]->set(_smaa_area()); Sh.h_ImageCol[2]->set(_smaa_search()); Sh.h_ImageCol[2]->_sampler=&SamplerPoint; D.stencil(STENCIL_EDGE_SOFT_TEST);
+            ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_SRGBA)); set(blend(), _ds_1s(), true); D.clearCol(); Sh.h_SMAABlend->draw( edge()); Sh.h_ImageCol[1]->set( blend()    ); edge.clear();                          Sh.h_ImageCol[2]->_sampler=         null; D.stencil(STENCIL_NONE          );
+                                                                                set(dest (),  null   , true);               Sh.h_SMAA     ->draw(_col ());
             MaterialClear();
          }break;
       }
@@ -1894,17 +1895,17 @@ void RendererClass::postProcess()
    }
    if(bloom) // bloom needs to be done before motion/dof especially because of per-pixel glow
    {
-      if(!--fxs)dest=_final;else dest.get(ImageRTDesc(size.x, size.y, IMAGERT_RGB)); // can't read and write to the same RT
+      if(!--fxs)dest=_final;else dest.get(ImageRTDesc(size.x, size.y, IMAGERT_SRGB)); // can't read and write to the same RT
       T.bloom(*_col, *dest, fx_dither); alpha_set=true; Swap(_col, dest); // Bloom sets Alpha
    }
    if(motion) // tests have shown that it's better to do Motion Blur before Depth of Field
    {
-      if(!--fxs)dest=_final;else dest.get(ImageRTDesc(size.x, size.y, IMAGERT_RGB)); // can't read and write to the same RT
+      if(!--fxs)dest=_final;else dest.get(ImageRTDesc(size.x, size.y, IMAGERT_SRGB)); // can't read and write to the same RT
       if(T.motionBlur(*_col, *dest, fx_dither))return; alpha_set=true; Swap(_col, dest); // Motion Blur sets Alpha
    }
    if(dof) // after Motion Blur
    {
-      if(!--fxs)dest=_final;else dest.get(ImageRTDesc(size.x, size.y, IMAGERT_RGB)); // can't read and write to the same RT
+      if(!--fxs)dest=_final;else dest.get(ImageRTDesc(size.x, size.y, IMAGERT_SRGB)); // can't read and write to the same RT
       T.dof(*_col, *dest, fx_dither); alpha_set=true; Swap(_col, dest); // DoF sets Alpha
    }
 
