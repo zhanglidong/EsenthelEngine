@@ -154,9 +154,28 @@ static Int CompareDesc(C ImageRC &image, C ImageRTDesc &desc)
    if(Int c=Compare(image.samples(), desc.samples))return c;
    return 0;
 }
+void ImageRC::zero   () {_srv_srgb=null; _rtv_srgb=null;} // don't zero '_ptr_num' here, because this is called in 'delThis', however ref count should be kept
+     ImageRC::ImageRC() {_ptr_num=0; zero();}
+void ImageRC::delThis() // delete only this class members without super
+{
+#if DX11
+   if(_srv_srgb || _rtv_srgb)
+   {
+      D.texClear(_srv_srgb);
+    //SyncLocker locker(D._lock); lock not needed for DX11 'Release'
+      if(D.created())
+      {
+         RELEASE(_srv_srgb);
+         RELEASE(_rtv_srgb);
+      }
+   }
+#endif
+   zero();
+}
 Bool ImageRC::create(C ImageRTDesc &desc)
 {
    Bool ok;
+   delThis(); // delete only this without super 'del', because it's possible this image already has what 'desc' is requesting, so 'createTryEx' could do nothing as long as we're not deleting it here first
    if(ImageTI[desc._type].d) // if this is a depth buffer
    {
              ok=createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_DS_RT, 1, desc.samples); // try first as a render target
@@ -166,6 +185,20 @@ Bool ImageRC::create(C ImageRTDesc &desc)
    }else
    {
       ok=createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_RT, 1, desc.samples);
+   #if DX11
+      if(ok && sRGB()) // try creating non-sRGB Resource Views
+      {
+         IMAGE_TYPE type=ImageTypeRemoveSRGB(hwType());
+         D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd);
+         D3D11_RENDER_TARGET_VIEW_DESC   rtvd; Zero(rtvd);
+         if(multiSample()){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS; rtvd.ViewDimension=D3D11_RTV_DIMENSION_TEXTURE2DMS;}
+         else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; rtvd.ViewDimension=D3D11_RTV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
+         srvd.Format=rtvd.Format=ImageTI[type].format;
+         // lock not needed for DX11 'D3D'
+         D3D->CreateShaderResourceView(_txtr, &srvd, &_srv_srgb);
+         D3D->CreateRenderTargetView  (_txtr, &rtvd, &_rtv_srgb);
+      }
+   #endif
    }
    if(ok)Time.skipUpdate();
    return ok;

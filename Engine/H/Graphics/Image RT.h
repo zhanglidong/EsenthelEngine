@@ -52,15 +52,24 @@ struct ImageRTDesc // Render Target Description
 /******************************************************************************/
 struct ImageRC : Image // Reference Counted Image
 {
+   void delThis();
 #if EE_PRIVATE
+   void zero     ();
    Bool create   (C ImageRTDesc &desc);
    Bool available()C {return _ptr_num==0;} // if this image is not currently used
 #endif
-   ImageRC() {_ptr_num=0;}
+   ImageRC();
+  ~ImageRC() {delThis();}
 #if !EE_PRIVATE
 private:
 #endif
    UInt _ptr_num;
+#if EE_PRIVATE && DX11
+   ID3D11ShaderResourceView *_srv_srgb;
+   ID3D11RenderTargetView   *_rtv_srgb;
+#else
+   Ptr  _srv_srgb, _rtv_srgb;
+#endif
    NO_COPY_CONSTRUCTOR(ImageRC);
 };
 /******************************************************************************/
