@@ -328,6 +328,19 @@ IMAGE_TYPE ImageTypeRemoveSRGB(IMAGE_TYPE type)
       case IMAGE_PVRTC1_4_SRGB: return IMAGE_PVRTC1_4;
    }
 }
+#if DX11
+static DXGI_FORMAT Typeless(IMAGE_TYPE type)
+{
+   switch(type)
+   {
+      default: return ImageTI[type].format;
+
+      // these are the only SRGB formats that are used for Render Targets
+      case IMAGE_R8G8B8A8:
+      case IMAGE_R8G8B8A8_SRGB: return DXGI_FORMAT_R8G8B8A8_TYPELESS;
+   }
+}
+#endif
 /******************************************************************************/
 GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) ImageTypeToFormat(Int                                   type  ) {return InRange(type, ImageTI) ? ImageTI[type].format : GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, 0);}
 IMAGE_TYPE                            ImageFormatToType(GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) format
@@ -776,43 +789,79 @@ void Image::setInfo()
      _hw_size.z=1;
       if(IMAGE_TYPE hw_type=ImageFormatToType(desc.Format))T._hw_type=hw_type; // override only if detected, because Image could have been created with TYPELESS format which can't be directly decoded and IMAGE_NONE could be returned
 
-      if(desc.Format==DXGI_FORMAT_R16_TYPELESS)
+      switch(desc.Format)
       {
-         D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd); srvd.Format=DXGI_FORMAT_R16_UNORM;
-         if(multiSample()){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
-         else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
-         D3D->CreateShaderResourceView(_txtr, &srvd, &_srv);
+         default:
+         {
+            if(mode()==IMAGE_2D || mode()==IMAGE_3D    || mode()==IMAGE_CUBE || mode()==IMAGE_RT || mode()==IMAGE_RT_CUBE || mode()==IMAGE_DS || mode()==IMAGE_DS_RT || mode()==IMAGE_SHADOW_MAP)D3D->CreateShaderResourceView(_txtr, null, &_srv);
+            if(                    mode()==IMAGE_RT    || mode()==IMAGE_RT_CUBE   )D3D->CreateRenderTargetView(_txtr, null, &_rtv);
+            if(mode()==IMAGE_DS || mode()==IMAGE_DS_RT || mode()==IMAGE_SHADOW_MAP)D3D->CreateDepthStencilView(_txtr, null, &_dsv);
+         }break;
 
-         D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=DXGI_FORMAT_D16_UNORM; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
-                                               D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv );
-         dsvd.Flags=D3D11_DSV_READ_ONLY_DEPTH; D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // D16 does not have stencil, this will work only on DX11.0 but not 10.0, 10.1
-      }else
-      if(desc.Format==DXGI_FORMAT_R32_TYPELESS)
-      {
-         D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd); srvd.Format=DXGI_FORMAT_R32_FLOAT;
-         if(multiSample()){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
-         else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
-         D3D->CreateShaderResourceView(_txtr, &srvd, &_srv);
+         case DXGI_FORMAT_R8G8B8A8_TYPELESS:
+         {
+            switch(mode())
+            {
+               case IMAGE_2D:
+               case IMAGE_3D:
+               case IMAGE_CUBE:
+               case IMAGE_RT:
+               case IMAGE_RT_CUBE:
+               case IMAGE_DS:
+               case IMAGE_DS_RT:
+               case IMAGE_SHADOW_MAP:
+               {
+                  D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd); srvd.Format=ImageTI[hwType()].format;
+                  if(mode()==IMAGE_3D){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE3D  ; srvd.Texture3D  .MipLevels=mipMaps();}else
+                  if(cube()          ){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURECUBE; srvd.TextureCube.MipLevels=mipMaps();}else
+                  if(!multiSample()  ){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D  .MipLevels=mipMaps();}else
+                                      {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
+                  D3D->CreateShaderResourceView(_txtr, &srvd, &_srv);
+               }break;
+            }
+            if(mode()==IMAGE_RT /*|| mode()==IMAGE_RT_CUBE*/)
+            {
+               D3D11_RENDER_TARGET_VIEW_DESC rtvd; Zero(rtvd); rtvd.Format=ImageTI[hwType()].format;
+               rtvd.ViewDimension=(multiSample() ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D);
+               D3D->CreateRenderTargetView(_txtr, &rtvd, &_rtv);
+            }
+         }break;
 
-         D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=DXGI_FORMAT_D32_FLOAT; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
-                                               D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv );
-         dsvd.Flags=D3D11_DSV_READ_ONLY_DEPTH; D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // D32 does not have stencil, this will work only on DX11.0 but not 10.0, 10.1
-      }else
-      if(desc.Format==DXGI_FORMAT_R24G8_TYPELESS)
-      {
-         D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd); srvd.Format=DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-         if(multiSample()){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
-         else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
-         D3D->CreateShaderResourceView(_txtr, &srvd, &_srv);
+         case DXGI_FORMAT_R16_TYPELESS:
+         {
+            D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd); srvd.Format=DXGI_FORMAT_R16_UNORM;
+            if(multiSample()){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
+            else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
+            D3D->CreateShaderResourceView(_txtr, &srvd, &_srv);
 
-         D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=DXGI_FORMAT_D24_UNORM_S8_UINT; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
-                                                                             D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv );
-         dsvd.Flags=(D3D11_DSV_READ_ONLY_DEPTH|D3D11_DSV_READ_ONLY_STENCIL); D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // this will work only on DX11.0 but not 10.0, 10.1
-      }else
-      {
-         if(mode()==IMAGE_2D || mode()==IMAGE_3D    || mode()==IMAGE_CUBE || mode()==IMAGE_RT || mode()==IMAGE_RT_CUBE || mode()==IMAGE_DS || mode()==IMAGE_DS_RT || mode()==IMAGE_SHADOW_MAP)D3D->CreateShaderResourceView(_txtr, null, &_srv);
-         if(                    mode()==IMAGE_RT    || mode()==IMAGE_RT_CUBE   )D3D->CreateRenderTargetView(_txtr, null, &_rtv);
-         if(mode()==IMAGE_DS || mode()==IMAGE_DS_RT || mode()==IMAGE_SHADOW_MAP)D3D->CreateDepthStencilView(_txtr, null, &_dsv);
+            D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=DXGI_FORMAT_D16_UNORM; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
+                                                  D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv );
+            dsvd.Flags=D3D11_DSV_READ_ONLY_DEPTH; D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // D16 does not have stencil, this will work only on DX11.0 but not 10.0, 10.1
+         }break;
+
+         case DXGI_FORMAT_R32_TYPELESS:
+         {
+            D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd); srvd.Format=DXGI_FORMAT_R32_FLOAT;
+            if(multiSample()){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
+            else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
+            D3D->CreateShaderResourceView(_txtr, &srvd, &_srv);
+
+            D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=DXGI_FORMAT_D32_FLOAT; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
+                                                  D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv );
+            dsvd.Flags=D3D11_DSV_READ_ONLY_DEPTH; D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // D32 does not have stencil, this will work only on DX11.0 but not 10.0, 10.1
+         }break;
+
+         case DXGI_FORMAT_R24G8_TYPELESS:
+         {
+            D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd); srvd.Format=DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+            if(multiSample()){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
+            else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
+            D3D->CreateShaderResourceView(_txtr, &srvd, &_srv);
+
+            D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=DXGI_FORMAT_D24_UNORM_S8_UINT; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
+                                                                                D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv );
+            dsvd.Flags=(D3D11_DSV_READ_ONLY_DEPTH|D3D11_DSV_READ_ONLY_STENCIL); D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // this will work only on DX11.0 but not 10.0, 10.1
+         }break;
       }
    }else
    if(_vol)
@@ -1134,125 +1183,133 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
       #elif DX11
          case IMAGE_2D:
          {
-            D3D11_TEXTURE2D_DESC desc;
-            desc.Width             =hwW();
-            desc.Height            =hwH();
-            desc.MipLevels         =mip_maps;
-            desc.Format            =ImageTI[type].format;
-            desc.Usage             =D3D11_USAGE_DEFAULT;
-            desc.BindFlags         =D3D11_BIND_SHADER_RESOURCE;
-            desc.MiscFlags         =0;
-            desc.CPUAccessFlags    =0;
-            desc.SampleDesc.Count  =1;
-            desc.SampleDesc.Quality=0;
-            desc.ArraySize         =1;
-            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr))){setInfo(); return true;}
+            D3D11_TEXTURE2D_DESC desc; desc.Format=ImageTI[type].format; if(desc.Format!=DXGI_FORMAT_UNKNOWN)
+            {
+               desc.Width             =hwW();
+               desc.Height            =hwH();
+               desc.MipLevels         =mip_maps;
+               desc.Usage             =D3D11_USAGE_DEFAULT;
+               desc.BindFlags         =D3D11_BIND_SHADER_RESOURCE;
+               desc.MiscFlags         =0;
+               desc.CPUAccessFlags    =0;
+               desc.SampleDesc.Count  =1;
+               desc.SampleDesc.Quality=0;
+               desc.ArraySize         =1;
+               if(OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr))){setInfo(); return true;}
+            }
          }break;
 
          case IMAGE_SURF_SCRATCH:
          case IMAGE_SURF_SYSTEM :
          case IMAGE_SURF        :
          {
-            D3D11_TEXTURE2D_DESC desc;
-            desc.Width             =hwW();
-            desc.Height            =hwH();
-            desc.MipLevels         =mip_maps;
-            desc.Format            =ImageTI[type].format;
-            desc.Usage             =D3D11_USAGE_STAGING;
-            desc.BindFlags         =0;
-            desc.MiscFlags         =0;
-            desc.CPUAccessFlags    =D3D11_CPU_ACCESS_READ|D3D11_CPU_ACCESS_WRITE;
-            desc.SampleDesc.Count  =1;
-            desc.SampleDesc.Quality=0;
-            desc.ArraySize         =1;
-            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr))){setInfo(); return true;}
+            D3D11_TEXTURE2D_DESC desc; desc.Format=ImageTI[type].format; if(desc.Format!=DXGI_FORMAT_UNKNOWN)
+            {
+               desc.Width             =hwW();
+               desc.Height            =hwH();
+               desc.MipLevels         =mip_maps;
+               desc.Usage             =D3D11_USAGE_STAGING;
+               desc.BindFlags         =0;
+               desc.MiscFlags         =0;
+               desc.CPUAccessFlags    =D3D11_CPU_ACCESS_READ|D3D11_CPU_ACCESS_WRITE;
+               desc.SampleDesc.Count  =1;
+               desc.SampleDesc.Quality=0;
+               desc.ArraySize         =1;
+               if(OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr))){setInfo(); return true;}
+            }
          }break;
 
          case IMAGE_RT:
          {
-            D3D11_TEXTURE2D_DESC desc;
-            desc.Width             =hwW();
-            desc.Height            =hwH();
-            desc.MipLevels         =mip_maps;
-            desc.Format            =ImageTI[type].format;
-            desc.Usage             =D3D11_USAGE_DEFAULT;
-            desc.BindFlags         =D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE;
-            desc.MiscFlags         =0;
-            desc.CPUAccessFlags    =0;
-            desc.SampleDesc.Count  =samples;
-            desc.SampleDesc.Quality=0;
-            desc.ArraySize         =1;
-            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(); SyncLocker locker(D._lock); clearHw(); return true;} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
+            D3D11_TEXTURE2D_DESC desc; desc.Format=Typeless(type); if(desc.Format!=DXGI_FORMAT_UNKNOWN)
+            {
+               desc.Width             =hwW();
+               desc.Height            =hwH();
+               desc.MipLevels         =mip_maps;
+               desc.Usage             =D3D11_USAGE_DEFAULT;
+               desc.BindFlags         =D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE;
+               desc.MiscFlags         =0;
+               desc.CPUAccessFlags    =0;
+               desc.SampleDesc.Count  =samples;
+               desc.SampleDesc.Quality=0;
+               desc.ArraySize         =1;
+               if(OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(); SyncLocker locker(D._lock); clearHw(); return true;} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
+            }
          }break;
 
          case IMAGE_3D:
          {
-            D3D11_TEXTURE3D_DESC desc;
-            desc.Width             =hwW();
-            desc.Height            =hwH();
-            desc.Depth             =hwD();
-            desc.MipLevels         =mip_maps;
-            desc.Format            =ImageTI[type].format;
-            desc.Usage             =D3D11_USAGE_DEFAULT;
-            desc.BindFlags         =D3D11_BIND_SHADER_RESOURCE;
-            desc.MiscFlags         =0;
-            desc.CPUAccessFlags    =0;
-            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture3D(&desc, initial_data, &_vol))){setInfo(); return true;}
+            D3D11_TEXTURE3D_DESC desc; desc.Format=ImageTI[type].format; if(desc.Format!=DXGI_FORMAT_UNKNOWN)
+            {
+               desc.Width         =hwW();
+               desc.Height        =hwH();
+               desc.Depth         =hwD();
+               desc.MipLevels     =mip_maps;
+               desc.Usage         =D3D11_USAGE_DEFAULT;
+               desc.BindFlags     =D3D11_BIND_SHADER_RESOURCE;
+               desc.MiscFlags     =0;
+               desc.CPUAccessFlags=0;
+               if(OK(D3D->CreateTexture3D(&desc, initial_data, &_vol))){setInfo(); return true;}
+            }
          }break;
 
          case IMAGE_CUBE:
          {
-            D3D11_TEXTURE2D_DESC desc;
-            desc.Width             =hwW();
-            desc.Height            =hwH();
-            desc.MipLevels         =mip_maps;
-            desc.Format            =ImageTI[type].format;
-            desc.Usage             =D3D11_USAGE_DEFAULT;
-            desc.BindFlags         =D3D11_BIND_SHADER_RESOURCE;
-            desc.MiscFlags         =D3D11_RESOURCE_MISC_TEXTURECUBE;
-            desc.CPUAccessFlags    =0;
-            desc.SampleDesc.Count  =1;
-            desc.SampleDesc.Quality=0;
-            desc.ArraySize         =6;
-            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr))){setInfo(); return true;}
+            D3D11_TEXTURE2D_DESC desc; desc.Format=ImageTI[type].format; if(desc.Format!=DXGI_FORMAT_UNKNOWN)
+            {
+               desc.Width             =hwW();
+               desc.Height            =hwH();
+               desc.MipLevels         =mip_maps;
+               desc.Usage             =D3D11_USAGE_DEFAULT;
+               desc.BindFlags         =D3D11_BIND_SHADER_RESOURCE;
+               desc.MiscFlags         =D3D11_RESOURCE_MISC_TEXTURECUBE;
+               desc.CPUAccessFlags    =0;
+               desc.SampleDesc.Count  =1;
+               desc.SampleDesc.Quality=0;
+               desc.ArraySize         =6;
+               if(OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr))){setInfo(); return true;}
+            }
          }break;
 
          case IMAGE_RT_CUBE:
          {
-            D3D11_TEXTURE2D_DESC desc;
-            desc.Width             =hwW();
-            desc.Height            =hwH();
-            desc.MipLevels         =mip_maps;
-            desc.Format            =ImageTI[type].format;
-            desc.Usage             =D3D11_USAGE_DEFAULT;
-            desc.BindFlags         =D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE;
-            desc.MiscFlags         =D3D11_RESOURCE_MISC_TEXTURECUBE;
-            desc.CPUAccessFlags    =0;
-            desc.SampleDesc.Count  =samples;
-            desc.SampleDesc.Quality=0;
-            desc.ArraySize         =6;
-            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(); SyncLocker locker(D._lock); clearHw(); return true;} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
+            D3D11_TEXTURE2D_DESC desc; desc.Format=Typeless(type); if(desc.Format!=DXGI_FORMAT_UNKNOWN)
+            {
+               desc.Width             =hwW();
+               desc.Height            =hwH();
+               desc.MipLevels         =mip_maps;
+               desc.Usage             =D3D11_USAGE_DEFAULT;
+               desc.BindFlags         =D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE;
+               desc.MiscFlags         =D3D11_RESOURCE_MISC_TEXTURECUBE;
+               desc.CPUAccessFlags    =0;
+               desc.SampleDesc.Count  =samples;
+               desc.SampleDesc.Quality=0;
+               desc.ArraySize         =6;
+               if(OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(); SyncLocker locker(D._lock); clearHw(); return true;} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
+            }
          }break;
 
          case IMAGE_DS:
          case IMAGE_DS_RT:
          case IMAGE_SHADOW_MAP:
          {
-            D3D11_TEXTURE2D_DESC desc;
-            desc.Width             =hwW();
-            desc.Height            =hwH();
-            desc.MipLevels         =mip_maps;
-            desc.Format            =ImageTI[type].format; if(desc.Format==DXGI_FORMAT_D24_UNORM_S8_UINT)desc.Format=DXGI_FORMAT_R24G8_TYPELESS;else if(desc.Format==DXGI_FORMAT_D32_FLOAT)desc.Format=DXGI_FORMAT_R32_TYPELESS;else if(desc.Format==DXGI_FORMAT_D16_UNORM)desc.Format=DXGI_FORMAT_R16_TYPELESS;
-            desc.Usage             =D3D11_USAGE_DEFAULT;
-            desc.BindFlags         =D3D11_BIND_DEPTH_STENCIL|D3D11_BIND_SHADER_RESOURCE;
-            desc.MiscFlags         =0;
-            desc.CPUAccessFlags    =0;
-            desc.SampleDesc.Count  =samples;
-            desc.SampleDesc.Quality=0;
-            desc.ArraySize         =1;
-            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(); return true;}
-            FlagDisable(desc.BindFlags, D3D11_BIND_SHADER_RESOURCE); // disable shader reading
-            if(desc.Format!=DXGI_FORMAT_UNKNOWN && OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(); return true;}
+            D3D11_TEXTURE2D_DESC desc; desc.Format=ImageTI[type].format; if(desc.Format!=DXGI_FORMAT_UNKNOWN)
+            {
+               if(desc.Format==DXGI_FORMAT_D24_UNORM_S8_UINT)desc.Format=DXGI_FORMAT_R24G8_TYPELESS;else if(desc.Format==DXGI_FORMAT_D32_FLOAT)desc.Format=DXGI_FORMAT_R32_TYPELESS;else if(desc.Format==DXGI_FORMAT_D16_UNORM)desc.Format=DXGI_FORMAT_R16_TYPELESS;
+               desc.Width             =hwW();
+               desc.Height            =hwH();
+               desc.MipLevels         =mip_maps;
+               desc.Usage             =D3D11_USAGE_DEFAULT;
+               desc.BindFlags         =D3D11_BIND_DEPTH_STENCIL|D3D11_BIND_SHADER_RESOURCE;
+               desc.MiscFlags         =0;
+               desc.CPUAccessFlags    =0;
+               desc.SampleDesc.Count  =samples;
+               desc.SampleDesc.Quality=0;
+               desc.ArraySize         =1;
+               if(OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(); return true;}
+               FlagDisable(desc.BindFlags, D3D11_BIND_SHADER_RESOURCE); // disable shader reading
+               if(OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(); return true;}
+            }
          }break;
       #elif GL
          case IMAGE_2D          :
