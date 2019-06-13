@@ -169,6 +169,7 @@ void Panel::draw(C Rect &rect)C
       r.min.x-=left_right_offset.x; r.min.y+=bottom_offset;
       r.max.x+=left_right_offset.x; r.max.y+=   top_offset;
    }
+
 #if !MOBILE // too slow
    if(blur_color.a)
    {
