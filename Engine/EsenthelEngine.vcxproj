@@ -7151,7 +7151,7 @@
     <None Include="Source\Platforms\Mac\MyWindow.mm" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\ThirdPartyLibs\BC7\Release\ispc_texcomp.lib">
+    <Library Include="..\ThirdPartyLibs\BC\Release\ispc_texcomp.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Emscripten'">true</ExcludedFromBuild>
@@ -7180,7 +7180,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX9|ARM'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Optimize DX9|ARM'">true</ExcludedFromBuild>
     </Library>
-    <Library Include="..\ThirdPartyLibs\BC7\x64\Release\ispc_texcomp.lib">
+    <Library Include="..\ThirdPartyLibs\BC\x64\Release\ispc_texcomp.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|Win32'">true</ExcludedFromBuild>

@@ -2348,10 +2348,10 @@
     <Library Include="..\ThirdPartyLibs\FBX\Windows\lib\x86\libfbxsdk-mt.lib">
       <Filter>H\_\Autodesk</Filter>
     </Library>
-    <Library Include="..\ThirdPartyLibs\BC7\Release\ispc_texcomp.lib">
+    <Library Include="..\ThirdPartyLibs\BC\Release\ispc_texcomp.lib">
       <Filter>H\_\Libs\32</Filter>
     </Library>
-    <Library Include="..\ThirdPartyLibs\BC7\x64\Release\ispc_texcomp.lib">
+    <Library Include="..\ThirdPartyLibs\BC\x64\Release\ispc_texcomp.lib">
       <Filter>H\_\Libs\64</Filter>
     </Library>
     <Library Include="..\ThirdPartyLibs\Flac\Windows\objs\Release\lib\FLAC.lib">
