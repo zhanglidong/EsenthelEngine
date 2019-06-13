@@ -1531,8 +1531,8 @@ Image& Image::create(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
 /******************************************************************************/
 static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'dest' are 2 different objects, 'src' is compressed, and 'dest' not compressed or not yet created
 {
-   void (*decompress_block)(C Byte *b, Color (&block)[4][4]), (*decompress_block_pitch)(C Byte *b, Color *dest, Int pitch);
-   // FIXME support BC6 using Flt/Half
+   void (*decompress_block     )(C Byte *b, Color (&block)[4][4])     , (*decompress_block_pitch     )(C Byte *b, Color *dest, Int pitch);
+   void (*decompress_block_VecH)(C Byte *b, VecH  (&block)[4][4])=null, (*decompress_block_pitch_VecH)(C Byte *b, VecH  *dest, Int pitch)=null;
    switch(src.hwType())
    {
       default: return false;
@@ -1544,13 +1544,14 @@ static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'des
       case IMAGE_BC1    : case IMAGE_BC1_SRGB    : decompress_block=DecompressBlockBC1   ; decompress_block_pitch=DecompressBlockBC1   ; break;
       case IMAGE_BC2    : case IMAGE_BC2_SRGB    : decompress_block=DecompressBlockBC2   ; decompress_block_pitch=DecompressBlockBC2   ; break;
       case IMAGE_BC3    : case IMAGE_BC3_SRGB    : decompress_block=DecompressBlockBC3   ; decompress_block_pitch=DecompressBlockBC3   ; break;
-      case IMAGE_BC6    :                          decompress_block=DecompressBlockBC6   ; decompress_block_pitch=DecompressBlockBC6   ; break;
+      case IMAGE_BC6    :                          decompress_block=DecompressBlockBC6   ; decompress_block_pitch=DecompressBlockBC6   ; decompress_block_VecH=DecompressBlockBC6; decompress_block_pitch_VecH=DecompressBlockBC6; break;
       case IMAGE_BC7    : case IMAGE_BC7_SRGB    : decompress_block=DecompressBlockBC7   ; decompress_block_pitch=DecompressBlockBC7   ; break;
       case IMAGE_ETC1   :                          decompress_block=DecompressBlockETC1  ; decompress_block_pitch=DecompressBlockETC1  ; break;
       case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   : decompress_block=DecompressBlockETC2  ; decompress_block_pitch=DecompressBlockETC2  ; break;
       case IMAGE_ETC2_A1: case IMAGE_ETC2_A1_SRGB: decompress_block=DecompressBlockETC2A1; decompress_block_pitch=DecompressBlockETC2A1; break;
       case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB: decompress_block=DecompressBlockETC2A8; decompress_block_pitch=DecompressBlockETC2A8; break;
    }
+   Bool hp=(decompress_block_VecH && dest.highPrecision()); // only if both 'src' and 'dest' are high precision
    if(dest.is() || dest.createTry(src.w(), src.h(), src.d(), (src.hwType()==IMAGE_BC6) ? IMAGE_F16_3 : IMAGE_R8G8B8A8, src.cube() ? IMAGE_SOFT_CUBE : IMAGE_SOFT, src.mipMaps())) // use 'IMAGE_R8G8B8A8' because Decompress Block functions operate on 'Color'
       if(dest.size3()==src.size3())
    {
@@ -1569,47 +1570,95 @@ static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'des
 
          REPD(z, dest.ld())
          {
-            Color color[4][4];
-            Int   done_x=0, done_y=0;
-            if((dest.hwType()==IMAGE_R8G8B8A8 || dest.hwType()==IMAGE_R8G8B8A8_SRGB)  // decompress directly into 'dest'
-            && (dest.  type()==IMAGE_R8G8B8A8 || dest.  type()==IMAGE_R8G8B8A8_SRGB)) // check 'type' too in case we have to perform color adjustment
+            Int done_x=0, done_y=0;
+            if(hp)
             {
-               // process full blocks only
-             C Byte * src_data_z= src.data() + z* src.pitch2();
-               Byte *dest_data_z=dest.data() + z*dest.pitch2();
-               REPD(by, full_blocks_y)
+               VecH color[4][4];
+               if(dest.hwType()==IMAGE_F16_3  // decompress directly into 'dest'
+               && dest.  type()==IMAGE_F16_3) // check 'type' too in case we have to perform color adjustment
                {
-                  const Int py=by*4; // pixel
-                C Byte * src_data_y= src_data_z + by* src.pitch();
-                  Byte *dest_data_y=dest_data_z + py*dest.pitch();
-                  REPD(bx, full_blocks_x)
+                  // process full blocks only
+                C Byte * src_data_z= src.data() + z* src.pitch2();
+                  Byte *dest_data_z=dest.data() + z*dest.pitch2();
+                  REPD(by, full_blocks_y)
                   {
-                     const Int px=bx*4; // pixel
-                     decompress_block_pitch(src_data_y + bx*x_mul, (Color*)(dest_data_y + px*4), dest.pitch());
+                     const Int py=by*4; // pixel
+                   C Byte * src_data_y= src_data_z + by* src.pitch();
+                     Byte *dest_data_y=dest_data_z + py*dest.pitch();
+                     REPD(bx, full_blocks_x)
+                     {
+                        const Int px=bx*4; // pixel
+                        decompress_block_pitch_VecH(src_data_y + bx*x_mul, (VecH*)(dest_data_y + px*SIZE(VecH)), dest.pitch());
+                     }
                   }
+                  done_x=full_blocks_x;
+                  done_y=full_blocks_y;
                }
-               done_x=full_blocks_x;
-               done_y=full_blocks_y;
-            }
 
-            // process right blocks (excluding the shared corner)
-            for(Int by=     0; by<done_y      ; by++)
-            for(Int bx=done_x; bx<all_blocks_x; bx++)
-            {
-               Int px=bx*4, py=by*4; // pixel
-               decompress_block(src.data() + bx*x_mul + by*src.pitch() + z*src.pitch2(), color);
-               REPD(y, 4)
-               REPD(x, 4)dest.color3D(px+x, py+y, z, color[y][x]);
-            }
+               Vec4 color4; color4.w=1;
 
-            // process bottom blocks (including the shared corner)
-            for(Int by=done_y; by<all_blocks_y; by++)
-            for(Int bx=     0; bx<all_blocks_x; bx++)
+               // process right blocks (excluding the shared corner)
+               for(Int by=     0; by<done_y      ; by++)
+               for(Int bx=done_x; bx<all_blocks_x; bx++)
+               {
+                  Int px=bx*4, py=by*4; // pixel
+                  decompress_block_VecH(src.data() + bx*x_mul + by*src.pitch() + z*src.pitch2(), color);
+                  REPD(y, 4)
+                  REPD(x, 4){color4.xyz=color[y][x]; dest.color3DF(px+x, py+y, z, color4);}
+               }
+
+               // process bottom blocks (including the shared corner)
+               for(Int by=done_y; by<all_blocks_y; by++)
+               for(Int bx=     0; bx<all_blocks_x; bx++)
+               {
+                  Int px=bx*4, py=by*4; // pixel
+                  decompress_block_VecH(src.data() + bx*x_mul + by*src.pitch() + z*src.pitch2(), color);
+                  REPD(y, 4)
+                  REPD(x, 4){color4.xyz=color[y][x]; dest.color3DF(px+x, py+y, z, color4);}
+               }
+            }else
             {
-               Int px=bx*4, py=by*4; // pixel
-               decompress_block(src.data() + bx*x_mul + by*src.pitch() + z*src.pitch2(), color);
-               REPD(y, 4)
-               REPD(x, 4)dest.color3D(px+x, py+y, z, color[y][x]);
+               Color color[4][4];
+               if((dest.hwType()==IMAGE_R8G8B8A8 || dest.hwType()==IMAGE_R8G8B8A8_SRGB)  // decompress directly into 'dest'
+               && (dest.  type()==IMAGE_R8G8B8A8 || dest.  type()==IMAGE_R8G8B8A8_SRGB)) // check 'type' too in case we have to perform color adjustment
+               {
+                  // process full blocks only
+                C Byte * src_data_z= src.data() + z* src.pitch2();
+                  Byte *dest_data_z=dest.data() + z*dest.pitch2();
+                  REPD(by, full_blocks_y)
+                  {
+                     const Int py=by*4; // pixel
+                   C Byte * src_data_y= src_data_z + by* src.pitch();
+                     Byte *dest_data_y=dest_data_z + py*dest.pitch();
+                     REPD(bx, full_blocks_x)
+                     {
+                        const Int px=bx*4; // pixel
+                        decompress_block_pitch(src_data_y + bx*x_mul, (Color*)(dest_data_y + px*SIZE(Color)), dest.pitch());
+                     }
+                  }
+                  done_x=full_blocks_x;
+                  done_y=full_blocks_y;
+               }
+
+               // process right blocks (excluding the shared corner)
+               for(Int by=     0; by<done_y      ; by++)
+               for(Int bx=done_x; bx<all_blocks_x; bx++)
+               {
+                  Int px=bx*4, py=by*4; // pixel
+                  decompress_block(src.data() + bx*x_mul + by*src.pitch() + z*src.pitch2(), color);
+                  REPD(y, 4)
+                  REPD(x, 4)dest.color3D(px+x, py+y, z, color[y][x]);
+               }
+
+               // process bottom blocks (including the shared corner)
+               for(Int by=done_y; by<all_blocks_y; by++)
+               for(Int bx=     0; bx<all_blocks_x; bx++)
+               {
+                  Int px=bx*4, py=by*4; // pixel
+                  decompress_block(src.data() + bx*x_mul + by*src.pitch() + z*src.pitch2(), color);
+                  REPD(y, 4)
+                  REPD(x, 4)dest.color3D(px+x, py+y, z, color[y][x]);
+               }
             }
          }
          dest.unlock();
