@@ -52,14 +52,14 @@ struct ImageRTDesc // Render Target Description
 /******************************************************************************/
 struct ImageRC : Image // Reference Counted Image
 {
-   void delThis();
 #if EE_PRIVATE
    void zero     ();
+   void delThis  ();
    Bool create   (C ImageRTDesc &desc);
    Bool available()C {return _ptr_num==0;} // if this image is not currently used
 #endif
    ImageRC();
-  ~ImageRC() {delThis();}
+  ~ImageRC();
 #if !EE_PRIVATE
 private:
 #endif

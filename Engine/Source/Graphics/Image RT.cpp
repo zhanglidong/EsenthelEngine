@@ -154,9 +154,10 @@ static Int CompareDesc(C ImageRC &image, C ImageRTDesc &desc)
    if(Int c=Compare(image.samples(), desc.samples))return c;
    return 0;
 }
-void ImageRC::zero   () {_srv_srgb=null; _rtv_srgb=null;} // don't zero '_ptr_num' here, because this is called in 'delThis', however ref count should be kept
-     ImageRC::ImageRC() {_ptr_num=0; zero();}
-void ImageRC::delThis() // delete only this class members without super
+void ImageRC:: zero   () {_srv_srgb=null; _rtv_srgb=null;} // don't zero '_ptr_num' here, because this is called in 'delThis', however ref count should be kept
+     ImageRC:: ImageRC() {_ptr_num=0; zero();}
+     ImageRC::~ImageRC() {delThis();}
+void ImageRC:: delThis() // delete only this class members without super
 {
 #if DX11
    if(_srv_srgb || _rtv_srgb)
