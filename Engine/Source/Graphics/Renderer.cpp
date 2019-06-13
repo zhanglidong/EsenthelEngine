@@ -1826,7 +1826,7 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
                   gamma=true;
          #endif
             D.stencil(STENCIL_EDGE_SOFT_SET, STENCIL_REF_EDGE_SOFT); // have to use '_ds_1s' in write mode to be able to use stencil
-            ImageRTPtr edge (ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO )); set(edge(), _ds_1s(), true); D.clearCol(); Sh.h_SMAAEdge[gamma]->draw(_col()); Sh.h_ImageCol[1]->set(_smaa_area()); Sh.h_ImageCol[2]->set(_smaa_search()); Sh.h_ImageCol[2]->_sampler=&SamplerPoint; D.stencil(STENCIL_EDGE_SOFT_TEST);
+            ImageRTPtr edge(ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO)); set(edge(), _ds_1s(), true); D.clearCol(); Sh.h_SMAAEdge[gamma]->draw(_col()); Sh.h_ImageCol[1]->set(_smaa_area()); Sh.h_ImageCol[2]->set(_smaa_search()); Sh.h_ImageCol[2]->_sampler=&SamplerPoint; D.stencil(STENCIL_EDGE_SOFT_TEST);
          #if USE_SRGB
             #if DX11
                if(_col->_srv_srgb)_col->swapSRV(); // restore
