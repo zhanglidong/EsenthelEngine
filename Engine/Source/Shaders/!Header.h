@@ -682,8 +682,8 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
 #endif
 };
 /******************************************************************************/
-#define SRGBToLinear Sqr  // simple and fast sRGB -> Linear conversion
-#define LinearToSRGB Sqrt // simple and fast Linear -> sRGB conversion
+#define SRGBToLinearFast Sqr  // simple and fast sRGB -> Linear conversion
+#define LinearToSRGBFast Sqrt // simple and fast Linear -> sRGB conversion
 /******************************************************************************/
 inline Int   Min(Int   x, Int   y                  ) {return min(x, y);}
 inline Half  Min(Half  x, Half  y                  ) {return min(x, y);}
@@ -949,7 +949,8 @@ inline void UpdateColorBySss(in out VecH color, VecH normal, uniform Half sub_su
    color*=(1-Abs(normal.z))*sub_surf_scatter+1;
 }
 /******************************************************************************/
-Flt SRGBLumOfSRGBColor(Vec s) {return LinearToSRGB(Dot(SRGBToLinear(s), ColorLumWeight2));}
+Flt LinearLumOfSRGBColor(Vec s) {return                  Dot(SRGBToLinearFast(s), ColorLumWeight2) ;}
+Flt   SRGBLumOfSRGBColor(Vec s) {return LinearToSRGBFast(Dot(SRGBToLinearFast(s), ColorLumWeight2));}
 /******************************************************************************/
 inline void AdjustPixelCenter(in out Vec4 vtx)
 {

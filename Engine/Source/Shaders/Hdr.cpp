@@ -25,8 +25,7 @@ Vec4 HdrDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
       lum=Max(sum*HdrWeight);
    #else
       // fast approximation, more precise but slower would be to call 'SRGBToLinear' for every pixel, or mark that 'Col' is a SRGB texture for step==0
-      Vec lin=SRGBToLinear(sum*0.25f);
-      lum=Dot(lin, ColorLumWeight2); // this gives us 'LinearLumOfSRGBColor'
+      lum=LinearLumOfSRGBColor(sum*0.25);
    #endif
    #if BRIGHT
       lum=Sqr(lum);
@@ -66,7 +65,7 @@ Vec4 Hdr_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 #if SIMPLE
    col.rgb*=lum;
 #else
-   col.rgb=LinearToSRGB(SRGBToLinear(col.rgb)*lum);
+   col.rgb=LinearToSRGBFast(SRGBToLinearFast(col.rgb)*lum);
 #endif
    return col;
 }
