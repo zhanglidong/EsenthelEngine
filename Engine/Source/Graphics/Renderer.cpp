@@ -1833,7 +1833,7 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
             #endif
          #endif
             ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA)); set(blend(), _ds_1s(), true); D.clearCol(); Sh.h_SMAABlend->draw(edge()); Sh.h_ImageCol[1]->set(blend()); edge.clear(); Sh.h_ImageCol[2]->_sampler=null; D.stencil(STENCIL_NONE);
-         #if !USE_SRGB // this we have to perform if we're not using sRGB, because if possible, we want to use it, as it will improve quality, making AA softer
+         #if !USE_SRGB // this we have to perform if we're NOT using sRGB, because if possible, we WANT to use it, as it will improve quality, making AA softer
             #if DX11
                Bool swap=(dest->_rtv_srgb && _col->_srv_srgb); if(swap){Swap(dest->_rtv, dest->_rtv_srgb); _col->swapSRV();}
             #endif
