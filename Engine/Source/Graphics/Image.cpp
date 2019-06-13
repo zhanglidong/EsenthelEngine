@@ -328,6 +328,24 @@ IMAGE_TYPE ImageTypeRemoveSRGB(IMAGE_TYPE type)
       case IMAGE_PVRTC1_4_SRGB: return IMAGE_PVRTC1_4;
    }
 }
+IMAGE_TYPE ImageTypeToggleSRGB(IMAGE_TYPE type)
+{
+   switch(type)
+   {
+      default                 : return type;
+      case IMAGE_R8G8B8_SRGB  : return IMAGE_R8G8B8  ;   case IMAGE_R8G8B8  : return IMAGE_R8G8B8_SRGB;
+      case IMAGE_R8G8B8A8_SRGB: return IMAGE_R8G8B8A8;   case IMAGE_R8G8B8A8: return IMAGE_R8G8B8A8_SRGB;
+      case IMAGE_BC1_SRGB     : return IMAGE_BC1     ;   case IMAGE_BC1     : return IMAGE_BC1_SRGB;
+      case IMAGE_BC2_SRGB     : return IMAGE_BC2     ;   case IMAGE_BC2     : return IMAGE_BC2_SRGB;
+      case IMAGE_BC3_SRGB     : return IMAGE_BC3     ;   case IMAGE_BC3     : return IMAGE_BC3_SRGB;
+      case IMAGE_BC7_SRGB     : return IMAGE_BC7     ;   case IMAGE_BC7     : return IMAGE_BC7_SRGB;
+      case IMAGE_ETC2_SRGB    : return IMAGE_ETC2    ;   case IMAGE_ETC2    : return IMAGE_ETC2_SRGB;
+      case IMAGE_ETC2_A1_SRGB : return IMAGE_ETC2_A1 ;   case IMAGE_ETC2_A1 : return IMAGE_ETC2_A1_SRGB;
+      case IMAGE_ETC2_A8_SRGB : return IMAGE_ETC2_A8 ;   case IMAGE_ETC2_A8 : return IMAGE_ETC2_A8_SRGB;
+      case IMAGE_PVRTC1_2_SRGB: return IMAGE_PVRTC1_2;   case IMAGE_PVRTC1_2: return IMAGE_PVRTC1_2_SRGB;
+      case IMAGE_PVRTC1_4_SRGB: return IMAGE_PVRTC1_4;   case IMAGE_PVRTC1_4: return IMAGE_PVRTC1_4_SRGB;
+   }
+}
 #if DX11
 static DXGI_FORMAT Typeless(IMAGE_TYPE type)
 {

@@ -701,6 +701,7 @@ IMAGE_TYPE                            ImageFormatToType(GPU_API(D3DFORMAT, DXGI_
 Int                                   TotalMipMaps     (Int w, Int h, Int d, IMAGE_TYPE type);
 
 IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type);
+IMAGE_TYPE ImageTypeToggleSRGB(IMAGE_TYPE type);
 IMAGE_TYPE ImageTypeRemoveSRGB(IMAGE_TYPE type);
 Bool CanDoRawCopy(IMAGE_TYPE a, IMAGE_TYPE b);
 Bool CanDoRawCopy(C Image &src, C Image &dest);

@@ -187,14 +187,13 @@ Bool ImageRC::create(C ImageRTDesc &desc)
    {
       ok=createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_RT, 1, desc.samples);
    #if DX11
-      if(ok && sRGB()) // try creating non-sRGB Resource Views
+      if(ok)if(IMAGE_TYPE type_srgb=ImageTypeToggleSRGB(type()))if(type_srgb!=type()) // try creating toggled sRGB Resource Views
       {
-         IMAGE_TYPE type=ImageTypeRemoveSRGB(hwType());
          D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd);
          D3D11_RENDER_TARGET_VIEW_DESC   rtvd; Zero(rtvd);
          if(multiSample()){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS; rtvd.ViewDimension=D3D11_RTV_DIMENSION_TEXTURE2DMS;}
          else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; rtvd.ViewDimension=D3D11_RTV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
-         srvd.Format=rtvd.Format=ImageTI[type].format;
+         srvd.Format=rtvd.Format=ImageTI[type_srgb].format;
          // lock not needed for DX11 'D3D'
          D3D->CreateShaderResourceView(_txtr, &srvd, &_srv_srgb);
          D3D->CreateRenderTargetView  (_txtr, &rtvd, &_rtv_srgb);
