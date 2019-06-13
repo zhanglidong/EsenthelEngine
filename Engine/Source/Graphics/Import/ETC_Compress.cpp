@@ -16,8 +16,8 @@
 #include "../../../../ThirdPartyLibs/begin.h"
 
 #if ETC1_ENC==ETC_LIB_ISPC
-   #ifndef ISPC_C__ESENTHEL_THIRDPARTYLIBS_BC7_ISPC_TEXCOMP_KERNEL_ISPC_H // this helps on Android where this header could have been already included due to files packed to one CPP file
-      #include "../../../../ThirdPartyLibs/BC7/ispc_texcomp/ispc_texcomp.h"
+   #ifndef ISPC_C__ESENTHEL_THIRDPARTYLIBS_BC_ISPC_TEXCOMP_KERNEL_ISPC_H // this helps on Android where this header could have been already included due to files packed to one CPP file
+      #include "../../../../ThirdPartyLibs/BC/ispc_texcomp/ispc_texcomp.h"
    #endif
 #endif
 

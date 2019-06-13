@@ -73,7 +73,7 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
    IMAGE_ETC2_A1, // Ericsson 4-bit lossy RGBA compression with 1-bit alpha (R,G,B,0 or 1), Soft, GL ES 3.0+
    IMAGE_ETC2_A8, // Ericsson 8-bit lossy RGBA compression with 8-bit alpha (R,G,B,A     ), Soft, GL ES 3.0+
 
-   IMAGE_BC7, // BC7 8-bit lossy RGBA high quality compression, Soft, DX11+, partial GL (compressing images to this format is available only on when 'SupportCompressBC7' was called in 'InitPre')
+   IMAGE_BC7, // BC7 8-bit lossy RGBA high quality compression, Soft, DX11+, partial GL (compressing images to this format is available only on when 'SupportCompressBC' was called in 'InitPre')
 
    IMAGE_R10G10B10A2, // 32-bit (R,G,B,A), Soft, DX9, DX10+, GL, GL ES 3.0+
 
@@ -84,7 +84,7 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
    IMAGE_BC1_SRGB     ,
    IMAGE_BC2_SRGB     ,
    IMAGE_BC3_SRGB     ,
-   IMAGE_BC6          , // BC6 8-bit lossy RGB 16-bit floating point compression, Soft, DX11+, partial GL (compressing images to this format is available only on when 'SupportCompressBC7' was called in 'InitPre')
+   IMAGE_BC6          , // BC6 8-bit lossy RGB 16-bit floating point compression, Soft, DX11+, partial GL (compressing images to this format is available only on when 'SupportCompressBC' was called in 'InitPre')
    IMAGE_BC7_SRGB     ,
 
    IMAGE_ETC2_SRGB   ,

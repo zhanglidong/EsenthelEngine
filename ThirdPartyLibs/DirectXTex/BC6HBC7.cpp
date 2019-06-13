@@ -665,7 +665,7 @@ namespace
     class D3DX_BC6H : private CBits< 16 >
     {
     public:
-        void Decode(_In_ bool bSigned, _Out_writes_(NUM_PIXELS_PER_BLOCK) HDRColorA* pOut) const;
+        void Decode(_In_ bool bSigned, VecH (&pOut)[4][4]) const;
         void Encode(_In_ bool bSigned, _In_reads_(NUM_PIXELS_PER_BLOCK) const HDRColorA* const pIn);
 
     private:
@@ -1631,10 +1631,8 @@ namespace
 }
 
 
-    void FillWithErrorColors(Color (&color)[4][4]) // ESENTHEL ADDED
-    {
-        REP(16)color[0][i]=(SET_DEBUG ? PURPLE : BLACK);
-    }
+    void FillWithErrorColors(VecH  (&color)[4][4]){REP(16)color[0][i].set(SET_DEBUG ? HalfOne : HalfZero, HalfZero, SET_DEBUG ? HalfOne : HalfZero);} // ESENTHEL ADDED
+    void FillWithErrorColors(Color (&color)[4][4]){REP(16)color[0][i]=(SET_DEBUG ? PURPLE : BLACK);} // ESENTHEL ADDED
     void FillWithErrorColors(_Out_writes_(NUM_PIXELS_PER_BLOCK) HDRColorA* pOut)
     {
         for (size_t i = 0; i < NUM_PIXELS_PER_BLOCK; ++i)
@@ -1654,10 +1652,8 @@ namespace
 // BC6H Compression
 //-------------------------------------------------------------------------------------
 _Use_decl_annotations_
-void D3DX_BC6H::Decode(bool bSigned, HDRColorA* pOut) const
+void D3DX_BC6H::Decode(bool bSigned, VecH (&pOut)[4][4]) const
 {
-    assert(pOut );
-
     size_t uStartBit = 0;
     uint8_t uMode = GetBits(uStartBit, 2);
     if(uMode != 0x00 && uMode != 0x01)
@@ -1784,13 +1780,7 @@ void D3DX_BC6H::Decode(bool bSigned, HDRColorA* pOut) const
             fc.g = FinishUnquantize((g1 * (BC67_WEIGHT_MAX - aWeights[uIndex]) + g2 * aWeights[uIndex] + BC67_WEIGHT_ROUND) >> BC67_WEIGHT_SHIFT, bSigned);
             fc.b = FinishUnquantize((b1 * (BC67_WEIGHT_MAX - aWeights[uIndex]) + b2 * aWeights[uIndex] + BC67_WEIGHT_ROUND) >> BC67_WEIGHT_SHIFT, bSigned);
 
-            HALF rgb[3];
-            fc.ToF16(rgb, bSigned);
-
-            pOut[i].r = XMConvertHalfToFloat( rgb[0] );
-            pOut[i].g = XMConvertHalfToFloat( rgb[1] );
-            pOut[i].b = XMConvertHalfToFloat( rgb[2] );
-            pOut[i].a = 1.0f;
+            fc.ToF16((HALF(&)[3])pOut[0][i], bSigned); // ESENTHEL CHANGED
         }
     }
     else
@@ -1807,10 +1797,7 @@ void D3DX_BC6H::Decode(bool bSigned, HDRColorA* pOut) const
         OutputDebugStringA( warnstr );
 #endif
         // Per the BC6H format spec, we must return opaque black
-        for(size_t i = 0; i < NUM_PIXELS_PER_BLOCK; ++i)
-        {
-            pOut[i] = HDRColorA(0.0f, 0.0f, 0.0f, 1.0f);
-        }
+        Zero(pOut); // ESENTHEL CHANGED
     }
 }
 
@@ -3415,19 +3402,17 @@ float D3DX_BC7::RoughMSE(EncodeParams* pEP, size_t uShape, size_t uIndexMode)
 // BC6H Compression
 //-------------------------------------------------------------------------------------
 _Use_decl_annotations_
-void DirectX::D3DXDecodeBC6HU(XMVECTOR *pColor, const uint8_t *pBC)
+void DirectX::D3DXDecodeBC6HU(VecH (&color)[4][4], const uint8_t *pBC) // ESENTHEL CHANGED
 {
-    assert(pColor && pBC);
     static_assert(sizeof(D3DX_BC6H) == 16, "D3DX_BC6H should be 16 bytes");
-    reinterpret_cast<const D3DX_BC6H*>(pBC)->Decode(false, reinterpret_cast<HDRColorA*>(pColor));
+    reinterpret_cast<const D3DX_BC6H*>(pBC)->Decode(false, color); // ESENTHEL CHANGED
 }
 
 _Use_decl_annotations_
-void DirectX::D3DXDecodeBC6HS(XMVECTOR *pColor, const uint8_t *pBC)
+void DirectX::D3DXDecodeBC6HS(VecH (&color)[4][4], const uint8_t *pBC) // ESENTHEL CHANGED
 {
-    assert( pColor && pBC );
     static_assert( sizeof(D3DX_BC6H) == 16, "D3DX_BC6H should be 16 bytes" );
-    reinterpret_cast< const D3DX_BC6H* >( pBC )->Decode(true, reinterpret_cast<HDRColorA*>(pColor));
+    reinterpret_cast< const D3DX_BC6H* >( pBC )->Decode(true, color); // ESENTHEL CHANGED
 }
 
 _Use_decl_annotations_

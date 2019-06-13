@@ -3,19 +3,19 @@
 
 #include "../../../../ThirdPartyLibs/begin.h"
 
-#define BC7_LIB_DIRECTX    1
-#define BC7_LIB_TEXGENPACK 2 // faster than BC7_LIB_DIRECTX
-#define BC7_DEC BC7_LIB_TEXGENPACK
+#define BC_LIB_DIRECTX    1
+#define BC_LIB_TEXGENPACK 2 // faster than BC_LIB_DIRECTX
+#define BC6_DEC BC_LIB_TEXGENPACK
+#define BC7_DEC BC_LIB_TEXGENPACK
 
-#if BC7_DEC==BC7_LIB_DIRECTX
+#if BC6_DEC==BC_LIB_DIRECTX || BC7_DEC==BC_LIB_DIRECTX
    #include "../../../../ThirdPartyLibs/DirectXMath/include.h"
-   #if !WINDOWS
-      #define register
-   #endif
+   #define register
    #include "../../../../ThirdPartyLibs/DirectXTex/BC.h"
  //#include "../../../../ThirdPartyLibs/DirectXTex/BC.cpp"
    #include "../../../../ThirdPartyLibs/DirectXTex/BC6HBC7.cpp"
-#elif BC7_DEC==BC7_LIB_TEXGENPACK
+#endif
+#if BC6_DEC==BC_LIB_TEXGENPACK || BC7_DEC==BC_LIB_TEXGENPACK
    namespace TGP
    {
       #pragma runtime_checks("", off)
@@ -28,7 +28,7 @@
 
 namespace EE{
 /******************************************************************************/
-Bool (*CompressBC7)(C Image &src, Image &dest);
+Bool (*CompressBC67)(C Image &src, Image &dest);
 /******************************************************************************/
 static inline void Col565(Color &color, UShort u) {color.set(U5ToByte((u>>11)&0x1F), U6ToByte((u>>5)&0x3F), U5ToByte(u&0x1F), 255);}
 
@@ -192,21 +192,51 @@ void DecompressBlockBC3(C Byte *b, Color *dest, Int pitch)
    }
 }
 /******************************************************************************/
+void DecompressBlockBC6(C Byte *b, VecH (&block)[4][4])
+{
+#if BC6_DEC==BC_LIB_DIRECTX
+   DirectX::D3DXDecodeBC6HU(block, b);
+#elif BC6_DEC==BC_LIB_TEXGENPACK
+   TGP::draw_block4x4_bptc_float(b, block);
+#else
+   Zero(block);
+#endif
+}
+void DecompressBlockBC6(C Byte *b, Color (&block)[4][4])
+{
+   VecH block_h[4][4];
+#if BC6_DEC==BC_LIB_DIRECTX
+   DirectX::D3DXDecodeBC6HU(block_h, b);
+#elif BC6_DEC==BC_LIB_TEXGENPACK
+   TGP::draw_block4x4_bptc_float(b, block_h);
+#else
+   Zero(block_h);
+#endif
+   REPD(y, 4)
+   REPD(x, 4)block[y][x]=(Color)block_h[y][x];
+}
+void DecompressBlockBC6(C Byte *b, Color *dest, Int pitch) {Color block[4][4]; DecompressBlockBC6(b, block); FREPD(y, 4){CopyFast(dest, block[y], SIZE(Color)*4); dest=(Color*)((Byte*)dest+pitch);}} // move in forward order so 'dest' can be increased by pitch
+void DecompressBlockBC6(C Byte *b, VecH  *dest, Int pitch) {VecH  block[4][4]; DecompressBlockBC6(b, block); FREPD(y, 4){CopyFast(dest, block[y], SIZE(VecH )*4); dest=(VecH *)((Byte*)dest+pitch);}} // move in forward order so 'dest' can be increased by pitch
+/******************************************************************************/
 void DecompressBlockBC7(C Byte *b, Color (&block)[4][4])
 {
-#if BC7_DEC==BC7_LIB_DIRECTX
+#if BC7_DEC==BC_LIB_DIRECTX
    DirectX::D3DXDecodeBC7(block, b);
-#elif BC7_DEC==BC7_LIB_TEXGENPACK
+#elif BC7_DEC==BC_LIB_TEXGENPACK
    TGP::draw_block4x4_bptc(b, (UInt*)block);
+#else
+   Zero(block);
 #endif
 }
 void DecompressBlockBC7(C Byte *b, Color *dest, Int pitch)
 {
    Color block[4][4];
-#if BC7_DEC==BC7_LIB_DIRECTX
+#if BC7_DEC==BC_LIB_DIRECTX
    DirectX::D3DXDecodeBC7(block, b);
-#elif BC7_DEC==BC7_LIB_TEXGENPACK
+#elif BC7_DEC==BC_LIB_TEXGENPACK
    TGP::draw_block4x4_bptc(b, (UInt*)block);
+#else
+   Zero(block);
 #endif
    FREPD(y, 4) // move in forward order so 'dest' can be increased by pitch
    {
@@ -330,6 +360,11 @@ Color DecompressPixelBC3(C Byte *b, Int x, Int y)
    return color[ci];
 }
 /******************************************************************************/
+VecH DecompressPixelBC6(C Byte *b, Int x, Int y)
+{
+   VecH   block[4][4]; DecompressBlockBC6(b, block);
+   return block[y][x];
+}
 Color DecompressPixelBC7(C Byte *b, Int x, Int y)
 {
    Color  block[4][4]; DecompressBlockBC7(b, block);

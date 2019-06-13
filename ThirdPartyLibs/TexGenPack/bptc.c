@@ -996,16 +996,13 @@ void block4x4_bptc_float_set_mode(unsigned char *bitstring, int flags) {
 		}
 }
 
-int draw_block4x4_bptc_float_shared(const unsigned char *bitstring, unsigned int *image_buffer, int signed_flag, int flags) {
+int draw_block4x4_bptc_float_shared(const unsigned char *bitstring, VecH *color, int signed_flag) {
 	Block block;
 	block.data0 = *(uint64_t *)&bitstring[0];
 	block.data1 = *(uint64_t *)&bitstring[8];
 	block.index = 0;
 	uint32_t mode = extract_bptc_float_mode(&block);
 	if (mode == - 1)
-		return 0;
-	// Allow compression tied to specific modes (according to flags).
-	if (!(flags & ((int)1 << mode)))
 		return 0;
 	int32_t r[4], g[4], b[4];
 	int partition_set_id = 0;
@@ -1507,16 +1504,17 @@ int draw_block4x4_bptc_float_shared(const unsigned char *bitstring, unsigned int
 			output |= pack_b16(interpolate_float(endpoint_start_b, endpoint_end_b, color_index[i],
 				color_index_bit_count) * 31 / 64);
 		}
-		*(uint64_t *)&image_buffer[i * 2] = output;
+
+		CopyFast(color, &output, SIZE(*color)); color++;
 	}
 	return 1;
 }
 
-int draw_block4x4_bptc_float(const unsigned char *bitstring, unsigned int *image_buffer, int flags) {
-	return draw_block4x4_bptc_float_shared(bitstring, image_buffer, 0, flags);
+int draw_block4x4_bptc_float(const unsigned char *bitstring, VecH (&color)[4][4]) {
+	return draw_block4x4_bptc_float_shared(bitstring, color[0], 0);
 }
 
-int draw_block4x4_bptc_signed_float(const unsigned char *bitstring, unsigned int *image_buffer, int flags) {
-	return draw_block4x4_bptc_float_shared(bitstring, image_buffer, 1, flags);
+int draw_block4x4_bptc_signed_float(const unsigned char *bitstring, VecH (&color)[4][4]) {
+	return draw_block4x4_bptc_float_shared(bitstring, color[0], 1);
 }
 

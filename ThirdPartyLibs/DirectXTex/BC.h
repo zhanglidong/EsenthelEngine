@@ -312,8 +312,8 @@ void D3DXDecodeBC4U(_Out_writes_(NUM_PIXELS_PER_BLOCK) XMVECTOR *pColor, _In_rea
 void D3DXDecodeBC4S(_Out_writes_(NUM_PIXELS_PER_BLOCK) XMVECTOR *pColor, _In_reads_(8) const uint8_t *pBC);
 void D3DXDecodeBC5U(_Out_writes_(NUM_PIXELS_PER_BLOCK) XMVECTOR *pColor, _In_reads_(16) const uint8_t *pBC);
 void D3DXDecodeBC5S(_Out_writes_(NUM_PIXELS_PER_BLOCK) XMVECTOR *pColor, _In_reads_(16) const uint8_t *pBC);
-void D3DXDecodeBC6HU(_Out_writes_(NUM_PIXELS_PER_BLOCK) XMVECTOR *pColor, _In_reads_(16) const uint8_t *pBC);
-void D3DXDecodeBC6HS(_Out_writes_(NUM_PIXELS_PER_BLOCK) XMVECTOR *pColor, _In_reads_(16) const uint8_t *pBC);
+void D3DXDecodeBC6HU(VecH (&color)[4][4], const uint8_t *pBC); // ESENTHEL CHANGED
+void D3DXDecodeBC6HS(VecH (&color)[4][4], const uint8_t *pBC); // ESENTHEL CHANGED
 void D3DXDecodeBC7(Color (&color)[4][4], const uint8_t *pBC); // ESENTHEL CHANGED
 
 void D3DXEncodeBC1(_Out_writes_(8) uint8_t *pBC, _In_reads_(NUM_PIXELS_PER_BLOCK) const XMVECTOR *pColor, const HDRColorA *pWeights, _In_ float threshold, _In_ DWORD flags); // ESENTHEL CHANGED

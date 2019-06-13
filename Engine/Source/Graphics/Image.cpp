@@ -43,6 +43,7 @@ namespace EE{
 #define GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT       0x8C4E
 #define GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT       0x8C4F
 #define GL_COMPRESSED_RGBA_BPTC_UNORM                0x8E8C
+#define GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT        0x8E8F
 #define GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM          0x8E8D
 #define GL_ETC1_RGB8_OES                             0x8D64
 #define GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG          0x8C02
@@ -127,6 +128,7 @@ const ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have 
    {"BC1_SRGB"        , true ,  0,  4,   5, 6, 5, 1,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_BC1_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT)},
    {"BC2_SRGB"        , true ,  1,  8,   5, 6, 5, 4,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_BC2_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT)},
    {"BC3_SRGB"        , true ,  1,  8,   5, 6, 5, 8,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_BC3_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT)},
+   {"BC6"             , true ,  1,  8,  16,16,16, 0,   0,0, 3, IMAGE_PRECISION_16, GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_BC6H_UF16     , GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT)},
    {"BC7_SRGB"        , true ,  1,  8,   7, 7, 7, 8,   0,0, 4, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_BC7_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM)},
 
    {"ETC2_SRGB"       , true ,  0,  4,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB8_ETC2)},
@@ -155,7 +157,7 @@ const ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have 
    {"INTZ"         , false,  4, 32,   0, 0, 0, 0,  24,8, 2, IMAGE_PRECISION_24, GPU_API(D3DFORMAT(MAKEFOURCC('I','N','T','Z')), DXGI_FORMAT_UNKNOWN          , 0                    )},
    {"DF24"         , false,  4, 32,   0, 0, 0, 0,  24,0, 1, IMAGE_PRECISION_24, GPU_API(D3DFORMAT(MAKEFOURCC('D','F','2','4')), DXGI_FORMAT_UNKNOWN          , 0                    )}, // DF24 does not have stencil buffer
    {"NULL"         , false,  0,  0,   0, 0, 0, 0,   0,0, 0, IMAGE_PRECISION_8 , GPU_API(D3DFORMAT(MAKEFOURCC('N','U','L','L')), DXGI_FORMAT_UNKNOWN          , 0                    )},
-}; ASSERT(IMAGE_ALL_TYPES==63);
+}; ASSERT(IMAGE_ALL_TYPES==64);
 /******************************************************************************/
 Bool IsSRGB(IMAGE_TYPE type)
 {
@@ -198,6 +200,7 @@ IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type)
       case IMAGE_BC1     : return IMAGE_BC7     ; // BC1 has only 1-bit alpha which is not enough
       case IMAGE_BC1_SRGB: return IMAGE_BC7_SRGB; // BC1 has only 1-bit alpha which is not enough
 
+      case IMAGE_BC6  :
       case IMAGE_F16  :
       case IMAGE_F16_2:
       case IMAGE_F16_3: return IMAGE_F16_4;
@@ -277,6 +280,9 @@ IMAGE_TYPE ImageTypeUncompressed(IMAGE_TYPE type)
       case IMAGE_PVRTC1_2_SRGB:
       case IMAGE_PVRTC1_4_SRGB:
          return IMAGE_R8G8B8A8_SRGB;
+
+      case IMAGE_BC6:
+         return IMAGE_F16_3;
    }
 }
 IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type) // this is for HW images, don't return IMAGE_R8G8B8
@@ -299,6 +305,9 @@ IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type) // this is for HW images, don't retu
       case IMAGE_PVRTC1_2_SRGB:
       case IMAGE_PVRTC1_4_SRGB:
          return IMAGE_R8G8B8A8_SRGB;
+
+      case IMAGE_BC6:
+         return IMAGE_F16_3;
    }
 }
 IMAGE_TYPE ImageTypeRemoveSRGB(IMAGE_TYPE type)
@@ -347,7 +356,8 @@ IMAGE_TYPE                            ImageFormatToType(GPU_API(D3DFORMAT, DXGI_
       #endif
    #endif
    }
-   FREPA(ImageTI)if(ImageTI[i].format==format)return IMAGE_TYPE(i);
+   FREPA(ImageTI) // !! it's important to go from the start in case some formats are listed more than once, return the first one (also this improves performance because most common formats are at the start) !!
+      if(ImageTI[i].format==format)return IMAGE_TYPE(i);
    return IMAGE_NONE;
 }
 /******************************************************************************/
@@ -1522,6 +1532,7 @@ Image& Image::create(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
 static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'dest' are 2 different objects, 'src' is compressed, and 'dest' not compressed or not yet created
 {
    void (*decompress_block)(C Byte *b, Color (&block)[4][4]), (*decompress_block_pitch)(C Byte *b, Color *dest, Int pitch);
+   // FIXME support BC6 using Flt/Half
    switch(src.hwType())
    {
       default: return false;
@@ -1533,13 +1544,14 @@ static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'des
       case IMAGE_BC1    : case IMAGE_BC1_SRGB    : decompress_block=DecompressBlockBC1   ; decompress_block_pitch=DecompressBlockBC1   ; break;
       case IMAGE_BC2    : case IMAGE_BC2_SRGB    : decompress_block=DecompressBlockBC2   ; decompress_block_pitch=DecompressBlockBC2   ; break;
       case IMAGE_BC3    : case IMAGE_BC3_SRGB    : decompress_block=DecompressBlockBC3   ; decompress_block_pitch=DecompressBlockBC3   ; break;
+      case IMAGE_BC6    :                          decompress_block=DecompressBlockBC6   ; decompress_block_pitch=DecompressBlockBC6   ; break;
       case IMAGE_BC7    : case IMAGE_BC7_SRGB    : decompress_block=DecompressBlockBC7   ; decompress_block_pitch=DecompressBlockBC7   ; break;
       case IMAGE_ETC1   :                          decompress_block=DecompressBlockETC1  ; decompress_block_pitch=DecompressBlockETC1  ; break;
       case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   : decompress_block=DecompressBlockETC2  ; decompress_block_pitch=DecompressBlockETC2  ; break;
       case IMAGE_ETC2_A1: case IMAGE_ETC2_A1_SRGB: decompress_block=DecompressBlockETC2A1; decompress_block_pitch=DecompressBlockETC2A1; break;
       case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB: decompress_block=DecompressBlockETC2A8; decompress_block_pitch=DecompressBlockETC2A8; break;
    }
-   if(dest.is() || dest.createTry(src.w(), src.h(), src.d(), IMAGE_R8G8B8A8, src.cube() ? IMAGE_SOFT_CUBE : IMAGE_SOFT, src.mipMaps())) // use 'IMAGE_R8G8B8A8' because Decompress Block functions operate on 'Color'
+   if(dest.is() || dest.createTry(src.w(), src.h(), src.d(), (src.hwType()==IMAGE_BC6) ? IMAGE_F16_3 : IMAGE_R8G8B8A8, src.cube() ? IMAGE_SOFT_CUBE : IMAGE_SOFT, src.mipMaps())) // use 'IMAGE_R8G8B8A8' because Decompress Block functions operate on 'Color'
       if(dest.size3()==src.size3())
    {
       Int src_faces1=src.faces()-1,
@@ -1614,8 +1626,10 @@ static Bool Compress(C Image &src, Image &dest, Bool mtrl_base_1=false) // assum
    {
       case IMAGE_BC1: case IMAGE_BC1_SRGB:
       case IMAGE_BC2: case IMAGE_BC2_SRGB:
-      case IMAGE_BC3: case IMAGE_BC3_SRGB: return               CompressBC (src, dest, mtrl_base_1);
-      case IMAGE_BC7: case IMAGE_BC7_SRGB: return CompressBC7 ? CompressBC7(src, dest) : false;
+      case IMAGE_BC3: case IMAGE_BC3_SRGB: return CompressBC(src, dest, mtrl_base_1);
+
+      case IMAGE_BC6:
+      case IMAGE_BC7: case IMAGE_BC7_SRGB: return CompressBC67 ? CompressBC67(src, dest) : false;
 
       case IMAGE_ETC1   :
       case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   :

@@ -56,9 +56,9 @@ inline C AnimEvent* Animation::findEvent(CChar8 *name                           
 inline C Param* Object::findParam(C Str &name)C {return ConstCast(T).findParam(name);}
 inline C Param& Object:: getParam(C Str &name)C {return ConstCast(T). getParam(name);}
 /******************************************************************************/
-extern Bool  _CompressBC7 (C Image &src, Image &dest);
-extern Bool (*CompressBC7)(C Image &src, Image &dest);
-inline void   SupportCompressBC7() {CompressBC7=_CompressBC7;}
+extern Bool  _CompressBC67 (C Image &src, Image &dest);
+extern Bool (*CompressBC67)(C Image &src, Image &dest);
+inline void   SupportCompressBC() {CompressBC67=_CompressBC67;}
 
 extern Bool  _CompressETC (C Image &src, Image &dest, Int quality=-1, Bool perceptual=true);
 extern Bool (*CompressETC)(C Image &src, Image &dest, Int quality   , Bool perceptual     );
@@ -68,7 +68,7 @@ extern Bool  _CompressPVRTC (C Image &src, Image &dest, Int quality=-1);
 extern Bool (*CompressPVRTC)(C Image &src, Image &dest, Int quality   );
 inline void   SupportCompressPVRTC() {if(WINDOWS_OLD || MAC || LINUX)CompressPVRTC=_CompressPVRTC;}
 
-inline void SupportCompressAll() {SupportCompressBC7(); SupportCompressETC(); SupportCompressPVRTC();}
+inline void SupportCompressAll() {SupportCompressBC(); SupportCompressETC(); SupportCompressPVRTC();}
 /******************************************************************************/
 // STRING / TEXT
 /******************************************************************************/

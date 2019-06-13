@@ -193,7 +193,7 @@ void StartEEManually(Ptr dll_module_instance); // this function imitates "WinMai
 
 void LoadEmbeddedPaks(Cipher *cipher); // load PAK files embedded in Application executable file, you can call this inside 'InitPre' function, 'cipher'=Cipher used for encrypting PAK files
 
-void SupportCompressBC7  (); // call this inside 'InitPre' function to add support for compressing IMAGE_BC7   formats                     , using this will however make your executable file bigger
+void SupportCompressBC   (); // call this inside 'InitPre' function to add support for compressing IMAGE_BC6/7 formats                     , using this will however make your executable file bigger
 void SupportCompressETC  (); // call this inside 'InitPre' function to add support for compressing IMAGE_ETC   formats                     , using this will however make your executable file bigger
 void SupportCompressPVRTC(); // call this inside 'InitPre' function to add support for compressing IMAGE_PVRTC formats on Desktop platforms, using this will however make your executable file bigger
 void SupportCompressAll  (); // call this inside 'InitPre' function to add support for compressing all         formats                     , using this will however make your executable file bigger

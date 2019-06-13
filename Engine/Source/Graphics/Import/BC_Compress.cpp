@@ -34,8 +34,7 @@ static struct BCThreads
    {
       if(!initialized)
       {
-         SyncLocker locker(lock);
-         if(!initialized)
+         SyncLocker locker(lock); if(!initialized)
          {
             threads.create(false, Cpu.threads()-1); // -1 because we will do processing on the caller thread too
             initialized=true; // enable at the end
@@ -46,34 +45,49 @@ static struct BCThreads
 /******************************************************************************/
 struct Data
 {
-   bc7_enc_settings settings;
- C Image           &src;
-   Image           &dest;
-   Int              total_blocks, thread_blocks, threads;
-
-   Data(C Image &src, Image &dest) : src(src), dest(dest)
+   union
    {
-      total_blocks=src.lh()/4;
+      bc6h_enc_settings bc6_settings;
+      bc7_enc_settings  bc7_settings;
+   };
+ C Image *src;
+   Image *dest;
+   Bool   bc6;
+   Int    thread_blocks, threads;
+
+   Data(Image &dest)
+   {
+      T.dest=&dest;
+      bc6=(dest.hwType()==IMAGE_BC6);
+      if(bc6)GetProfile_bc6h_basic(&bc6_settings);else
+      {
+      #if 0 // 3x slower and only small quality difference
+         GetProfile_alpha_slow(&bc7_settings);
+      #else
+         GetProfile_alpha_basic(&bc7_settings);
+      #endif
+      }
+   }
+   void init(C Image &src)
+   {
+      T.src=&src;
+      Int total_blocks=src.lh()/4;
       threads=Min(total_blocks, BC.threads.threads1()); // +1 because we will do processing on the caller thread too
       thread_blocks=total_blocks/threads;
-   #if 0 // 3x slower and only small quality difference
-      GetProfile_alpha_slow(&settings);
-   #else
-      GetProfile_alpha_basic(&settings);
-   #endif
    }
 };
 /******************************************************************************/
-static void CompressBC7Block(IntPtr elm_index, Data &data, Int thread_index)
+static void CompressBC67Block(IntPtr elm_index, Data &data, Int thread_index)
 {
    rgba_surface surf;
    Int block_start=elm_index*data.thread_blocks, y_start=block_start*4;
-   surf.ptr   =ConstCast(data.src.data()+y_start*data.src.pitch());
-   surf.stride=data.src.pitch();
-   surf.width =data.src.lw   ();
-   surf.height=((elm_index==data.threads-1) ? data.src.lh()-y_start : data.thread_blocks*4); // last thread must process all remaining blocks
+   surf.ptr   =ConstCast(data.src->data()+y_start*data.src->pitch());
+   surf.stride=data.src->pitch();
+   surf.width =data.src->lw   ();
+   surf.height=((elm_index==data.threads-1) ? data.src->lh()-y_start : data.thread_blocks*4); // last thread must process all remaining blocks
 #if 1 // Intel
-   CompressBlocksBC7(&surf, data.dest.data() + block_start*data.dest.pitch(), &data.settings);
+   if(data.bc6)CompressBlocksBC6H(&surf, data.dest->data() + block_start*data.dest->pitch(), &data.bc6_settings);
+   else        CompressBlocksBC7 (&surf, data.dest->data() + block_start*data.dest->pitch(), &data.bc7_settings);
 #else // DirectX
    REPD(by, surf.height/4)
    REPD(bx, surf.width /4)
@@ -86,17 +100,17 @@ static void CompressBC7Block(IntPtr elm_index, Data &data, Int thread_index)
          xo[i]=px+i;
          yo[i]=py+i+y_start;
       }
-      data.src.gather((Vec4*)&dx_rgba[0][0], xo, Elms(xo), yo, Elms(yo));
-      DirectX::D3DXEncodeBC7(data.dest.data() + bx*16 + (by+block_start)*data.dest.pitch(), &dx_rgba[0][0], 0);
+      data.src->gather((Vec4*)&dx_rgba[0][0], xo, Elms(xo), yo, Elms(yo));
+      DirectX::D3DXEncodeBC7(data.dest->data() + bx*16 + (by+block_start)*data.dest->pitch(), &dx_rgba[0][0], 0);
    }
 #endif
 }
 /******************************************************************************/
-Bool _CompressBC7(C Image &src, Image &dest)
+Bool _CompressBC67(C Image &src, Image &dest)
 {
-   if(dest.hwType()==IMAGE_BC7 || dest.hwType()==IMAGE_BC7_SRGB)
+   if(dest.hwType()==IMAGE_BC6 || dest.hwType()==IMAGE_BC7 || dest.hwType()==IMAGE_BC7_SRGB)
    {
-      BC.init();
+      BC.init(); Data data(dest);
       Int src_faces1=src.faces()-1;
       Image temp; // define outside loop to avoid overhead
       REPD(mip, Min(src.mipMaps(), dest.mipMaps()))
@@ -104,7 +118,7 @@ Bool _CompressBC7(C Image &src, Image &dest)
          Int dest_mip_hwW=PaddedWidth (dest.hwW(), dest.hwH(), mip, dest.hwType()),
              dest_mip_hwH=PaddedHeight(dest.hwW(), dest.hwH(), mip, dest.hwType());
          // to directly read from 'src', we need to match requirements for compressor, which needs:
-         Bool read_from_src=((src.hwType()==IMAGE_R8G8B8A8 || src.hwType()==IMAGE_R8G8B8A8_SRGB) // IMAGE_R8G8B8A8 hw type
+         Bool read_from_src=((data.bc6 ? src.hwType()==IMAGE_F16_4 : (src.hwType()==IMAGE_R8G8B8A8 || src.hwType()==IMAGE_R8G8B8A8_SRGB)) // IMAGE_F16_4/IMAGE_R8G8B8A8 hw type
                          && PaddedWidth (src.hwW(), src.hwH(), mip, src.hwType())==dest_mip_hwW   // src mip width  must be exactly the same as dest mip width
                          && PaddedHeight(src.hwW(), src.hwH(), mip, src.hwType())==dest_mip_hwH); // src mip height must be exactly the same as dest mip height
        C Image &s=(read_from_src ? src : temp);
@@ -113,13 +127,14 @@ Bool _CompressBC7(C Image &src, Image &dest)
             if(!read_from_src)
             {
                if(!src.extractNonCompressedMipMapNoStretch(temp, dest_mip_hwW, dest_mip_hwH, 1, mip, (DIR_ENUM)Min(face, src_faces1), true))return false;
-               if(temp.hwType()!=IMAGE_R8G8B8A8 && temp.hwType()!=IMAGE_R8G8B8A8_SRGB)if(!temp.copyTry(temp, -1, -1, -1, IMAGE_R8G8B8A8))return false;
+               if(data.bc6){if(temp.hwType()!=IMAGE_F16_4                                         )if(!temp.copyTry(temp, -1, -1, -1, IMAGE_F16_4   ))return false;}
+               else        {if(temp.hwType()!=IMAGE_R8G8B8A8 && temp.hwType()!=IMAGE_R8G8B8A8_SRGB)if(!temp.copyTry(temp, -1, -1, -1, IMAGE_R8G8B8A8))return false;}
             }else
             if(! src.lockRead(            mip, (DIR_ENUM)Min(face, src_faces1)))                                return false; // we have to lock only for 'src' because 'temp' is 1mip-1face-SOFT and doesn't need locking
             if(!dest.lock    (LOCK_WRITE, mip, (DIR_ENUM)    face             )){if(read_from_src)src.unlock(); return false;}
 
-            Data data(s, dest); // !! call after 'BC.init' !!
-            BC.threads.process1(data.threads, CompressBC7Block, data, INT_MAX); // use all available threads, including this one
+            data.init(s); // !! call after 'BC.init' !!
+            BC.threads.process1(data.threads, CompressBC67Block, data, INT_MAX); // use all available threads, including this one
 
                             dest.unlock();
             if(read_from_src)src.unlock();

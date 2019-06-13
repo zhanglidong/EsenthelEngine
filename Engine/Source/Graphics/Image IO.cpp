@@ -87,7 +87,7 @@ Bool Image::saveData(File &f)C
    if(mode()!=IMAGE_SOFT && mode()!=IMAGE_SOFT_CUBE && mode()!=IMAGE_2D && mode()!=IMAGE_3D && mode()!=IMAGE_CUBE)return false; // verify that mode is correct
 
    IMAGE_TYPE file_type=T.type(); // set image type as to be stored in the file
-   if((file_type==IMAGE_BC7 || file_type==IMAGE_BC7_SRGB                                                                                                                                                     ) && !CompressBC7
+   if((file_type==IMAGE_BC6 || file_type==IMAGE_BC7 || file_type==IMAGE_BC7_SRGB                                                                                                                             ) && !CompressBC67
    || (file_type==IMAGE_ETC1 || file_type==IMAGE_ETC2 || file_type==IMAGE_ETC2_A1 || file_type==IMAGE_ETC2_A8 || file_type==IMAGE_ETC2_SRGB || file_type==IMAGE_ETC2_A1_SRGB || file_type==IMAGE_ETC2_A8_SRGB) && !CompressETC
    || (file_type==IMAGE_PVRTC1_2 || file_type==IMAGE_PVRTC1_4 || file_type==IMAGE_PVRTC1_2_SRGB || file_type==IMAGE_PVRTC1_4_SRGB                                                                            ) && !CompressPVRTC
    )file_type=T.hwType(); // if compressing to format which isn't supported then store as current 'hwType'
