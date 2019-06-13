@@ -1209,6 +1209,29 @@ again:
       if(glewInit()!=GLEW_OK || !GLEW_VERSION_3_2)Exit("OpenGL 3.2 support not available.\nGraphics Driver not installed or better video card is required."); // 3.2 needed for 'glDrawElementsBaseVertex', 3.1 needed for instancing, 3.0 needed for 'glColorMaski', 'gl_ClipDistance', 'glClearBufferfv', 'glGenVertexArrays', 'glMapBufferRange', otherwise 2.0 is good enough
          glewSafe();
 
+   #if USE_SRGB
+      if(wglChoosePixelFormatARB)
+      {
+         const int pf_attribs[]=
+	      {
+		      WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+		      WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
+		      WGL_DOUBLE_BUFFER_ARB , GL_TRUE,
+		      WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, USE_SRGB,
+		      WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
+		      WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+		      WGL_COLOR_BITS_ARB  , 32,
+		      WGL_DEPTH_BITS_ARB  , 24,
+		      WGL_STENCIL_BITS_ARB,  8,
+		      NULL // end of list
+	      };
+	      int  pixel_formats[1]; // just need the first one
+	      UINT numFormatsAvailable=0;
+	      if(wglChoosePixelFormatARB(hDC, pf_attribs, null, Elms(pixel_formats), pixel_formats, &numFormatsAvailable))
+         if(numFormatsAvailable)
+	         Bool ok=SetPixelFormat(hDC, pixel_formats[0], &pfd);
+      }
+   #endif
       if(wglCreateContextAttribsARB)
       {
          const int attribs[]={WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
@@ -1486,6 +1509,9 @@ again:
    setSync();
 
    if(LogInit)LogN("FBO");
+#if USE_SRGB
+   glEnable(GL_FRAMEBUFFER_SRGB);
+#endif
                                glGenFramebuffers(1, &FBO); if(!FBO)Exit("Couldn't create OpenGL Frame Buffer Object (FBO)");
    if(D.notShaderModelGLES2()){glGenVertexArrays(1, &VAO); if(!VAO)Exit("Couldn't create OpenGL Vertex Arrays (VAO)");}
 
