@@ -57,6 +57,7 @@ struct ImageRC : Image // Reference Counted Image
    void delThis  ();
    Bool create   (C ImageRTDesc &desc);
    Bool available()C {return _ptr_num==0;} // if this image is not currently used
+   void swapSRV  ();
 #endif
    ImageRC();
   ~ImageRC();

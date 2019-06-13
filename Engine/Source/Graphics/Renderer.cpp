@@ -1820,7 +1820,7 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
             Bool gamma=false;
          #if USE_SRGB
             #if DX11
-               if(_col->_srv_srgb)Swap(_col->_srv_srgb, _col->_srv); // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
+               if(_col->_srv_srgb)_col->swapSRV(); // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
                else
             #endif
                   gamma=true;
@@ -1829,7 +1829,7 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
             ImageRTPtr edge (ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO )); set(edge (), _ds_1s(), true); D.clearCol(); Sh.h_SMAAEdge[gamma]->draw(_col ()); Sh.h_ImageCol[1]->set(_smaa_area()); Sh.h_ImageCol[2]->set(_smaa_search()); Sh.h_ImageCol[2]->_sampler=&SamplerPoint; D.stencil(STENCIL_EDGE_SOFT_TEST);
          #if USE_SRGB
             #if DX11
-               if(_col->_srv_srgb)Swap(_col->_srv_srgb, _col->_srv); // restore
+               if(_col->_srv_srgb)_col->swapSRV(); // restore
             #endif
          #endif
             ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA)); set(blend(), _ds_1s(), true); D.clearCol(); Sh.h_SMAABlend      ->draw( edge()); Sh.h_ImageCol[1]->set( blend()    ); edge.clear();                          Sh.h_ImageCol[2]->_sampler=         null; D.stencil(STENCIL_NONE          );

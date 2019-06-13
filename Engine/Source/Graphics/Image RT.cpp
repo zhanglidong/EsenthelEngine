@@ -203,6 +203,10 @@ Bool ImageRC::create(C ImageRTDesc &desc)
    if(ok)Time.skipUpdate();
    return ok;
 }
+void ImageRC::swapSRV()
+{
+   Swap(_srv, _srv_srgb); D.texClear(_srv_srgb); // we have to remove from tex cache, because if we're going to try to bind this as Render Target later, then DX automatically unbinds its SRV's, engine already clears cache in that case, however only for current '_srv' and not the secondary '_srv_srgb'
+}
 static inline void Set(ImageRTPtr &p, ImageRC &rt) // this is called only when "_ptr_num==0"
 {
    rt._ptr_num++; p._data=&rt; rt.discard();
