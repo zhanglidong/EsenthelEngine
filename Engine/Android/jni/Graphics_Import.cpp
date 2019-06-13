@@ -1,5 +1,5 @@
 ﻿#include "../../Source/Graphics/Import/BC.cpp"
-//#include "../../Source/Graphics/Import/BC7.cpp" - don't compile it here, instead specify this in "Android.mk" in case this is not used to don't link it at all
+//#include "../../Source/Graphics/Import/BC_Compress.cpp" - don't compile it here, instead specify this in "Android.mk" in case this is not used to don't link it at all
 #include "../../Source/Graphics/Import/BMP.cpp"
 #include "../../Source/Graphics/Import/DDS.cpp"
 #include "../../Source/Graphics/Import/ETC.cpp"

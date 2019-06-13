@@ -2087,9 +2087,6 @@
     <ClCompile Include="..\ThirdPartyLibs\GL\glew.cpp">
       <Filter>H\_\OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Graphics\Import\BC7.cpp">
-      <Filter>Source\Graphics\Import</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Graphics\Import\PVRTC_Compress.cpp">
       <Filter>Source\Graphics\Import</Filter>
     </ClCompile>
@@ -2107,6 +2104,9 @@
     </ClCompile>
     <ClCompile Include="Source\Misc\Printer.cpp">
       <Filter>Source\Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Import\BC_Compress.cpp">
+      <Filter>Source\Graphics\Import</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

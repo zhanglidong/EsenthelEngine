@@ -84,6 +84,7 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
    IMAGE_BC1_SRGB     ,
    IMAGE_BC2_SRGB     ,
    IMAGE_BC3_SRGB     ,
+   IMAGE_BC6          , // BC6 8-bit lossy RGB 16-bit floating point compression, Soft, DX11+, partial GL (compressing images to this format is available only on when 'SupportCompressBC7' was called in 'InitPre')
    IMAGE_BC7_SRGB     ,
 
    IMAGE_ETC2_SRGB   ,

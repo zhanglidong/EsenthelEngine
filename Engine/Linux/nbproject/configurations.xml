@@ -364,7 +364,7 @@
         <logicalFolder name="Import" displayName="Import" projectFiles="true">
           <itemPath>../Source/Graphics/Import/BC.cpp</itemPath>
           <itemPath>../Source/Graphics/Import/BC.h</itemPath>
-          <itemPath>../Source/Graphics/Import/BC7.cpp</itemPath>
+          <itemPath>../Source/Graphics/Import/BC_Compress.cpp</itemPath>
           <itemPath>../Source/Graphics/Import/BMP.cpp</itemPath>
           <itemPath>../Source/Graphics/Import/DDS.cpp</itemPath>
           <itemPath>../Source/Graphics/Import/ETC.cpp</itemPath>
@@ -1461,7 +1461,7 @@
       </item>
       <item path="../Source/Graphics/Import/BC.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../Source/Graphics/Import/BC7.cpp" ex="false" tool="1" flavor2="0">
+      <item path="../Source/Graphics/Import/BC_Compress.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../Source/Graphics/Import/BMP.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -2871,7 +2871,7 @@
       </item>
       <item path="../Source/Graphics/Import/BC.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../Source/Graphics/Import/BC7.cpp" ex="false" tool="1" flavor2="0">
+      <item path="../Source/Graphics/Import/BC_Compress.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../Source/Graphics/Import/BMP.cpp" ex="false" tool="1" flavor2="0">
       </item>

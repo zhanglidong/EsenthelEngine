@@ -948,7 +948,7 @@
 		378307C61A0710BE002383BF /* Image RT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378307C31A0710BE002383BF /* Image RT.cpp */; };
 		378591001F9DAE1500F8950C /* PVRTC_Compress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378590FD1F9DAE1300F8950C /* PVRTC_Compress.cpp */; };
 		378591011F9DAE1500F8950C /* ETC_Compress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378590FE1F9DAE1400F8950C /* ETC_Compress.cpp */; };
-		378591021F9DAE1500F8950C /* BC7.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378590FF1F9DAE1400F8950C /* BC7.cpp */; };
+		378591021F9DAE1500F8950C /* BC_Compress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378590FF1F9DAE1400F8950C /* BC_Compress.cpp */; };
 		378655F121D4AE7E00CD0D7F /* Printer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378655F021D4AE7E00CD0D7F /* Printer.cpp */; };
 		378655F221D4AE8700CD0D7F /* Printer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378655F021D4AE7E00CD0D7F /* Printer.cpp */; };
 		378655F321D4AE8800CD0D7F /* Printer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 378655F021D4AE7E00CD0D7F /* Printer.cpp */; };
@@ -1664,7 +1664,7 @@
 		378307C31A0710BE002383BF /* Image RT.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Image RT.cpp"; sourceTree = "<group>"; };
 		378590FD1F9DAE1300F8950C /* PVRTC_Compress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PVRTC_Compress.cpp; sourceTree = "<group>"; };
 		378590FE1F9DAE1400F8950C /* ETC_Compress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ETC_Compress.cpp; sourceTree = "<group>"; };
-		378590FF1F9DAE1400F8950C /* BC7.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BC7.cpp; sourceTree = "<group>"; };
+		378590FF1F9DAE1400F8950C /* BC_Compress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BC_Compress.cpp; sourceTree = "<group>"; };
 		378655F021D4AE7E00CD0D7F /* Printer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Printer.cpp; sourceTree = "<group>"; };
 		37877F101DD9AF9900A62A86 /* Import XPS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Import XPS.cpp"; sourceTree = "<group>"; };
 		378A34971A2575D20057DD1F /* Callback.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Callback.h; sourceTree = "<group>"; };
@@ -1702,7 +1702,7 @@
 		37B2FF8E19399A5200A63FAD /* libvpx_armv7.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvpx_armv7.a; path = ../ThirdPartyLibs/VP/Mac/libvpx_armv7.a; sourceTree = "<group>"; };
 		37BC9F521A1A157300B50C55 /* Hash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Hash.h; sourceTree = "<group>"; };
 		37BC9F541A1A158A00B50C55 /* Hash.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Hash.cpp; sourceTree = "<group>"; };
-		37CD66A91EB8007C00B31285 /* libispc_texcomp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libispc_texcomp.a; path = ../ThirdPartyLibs/BC7/Mac/libispc_texcomp.a; sourceTree = "<group>"; };
+		37CD66A91EB8007C00B31285 /* libispc_texcomp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libispc_texcomp.a; path = ../ThirdPartyLibs/BC/Mac/libispc_texcomp.a; sourceTree = "<group>"; };
 		37D2A26119E6591400F1092B /* libvpx_arm64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvpx_arm64.a; path = ../ThirdPartyLibs/VP/Mac/libvpx_arm64.a; sourceTree = "<group>"; };
 		37D4D6A51D05419E00F6A3D6 /* Oculus Rift.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Oculus Rift.cpp"; sourceTree = "<group>"; };
 		37D4D6A61D05419E00F6A3D6 /* OpenVR.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OpenVR.cpp; sourceTree = "<group>"; };
@@ -2080,7 +2080,7 @@
 			isa = PBXGroup;
 			children = (
 				377E23601ADC91550035617E /* BC.cpp */,
-				378590FF1F9DAE1400F8950C /* BC7.cpp */,
+				378590FF1F9DAE1400F8950C /* BC_Compress.cpp */,
 				377E23611ADC91550035617E /* BC.h */,
 				0BFCADC6148C1FEA00A3C772 /* BMP.cpp */,
 				0BFCADC7148C1FEA00A3C772 /* DDS.cpp */,
@@ -3733,7 +3733,7 @@
 				0BB718C4162EDD82003FC814 /* CE Editor IO.cpp in Sources */,
 				0BB718CA162EDD82003FC814 /* CE Editor Parser.cpp in Sources */,
 				0BB718CD162EDD82003FC814 /* CE Editor Sources.cpp in Sources */,
-				378591021F9DAE1500F8950C /* BC7.cpp in Sources */,
+				378591021F9DAE1500F8950C /* BC_Compress.cpp in Sources */,
 				0BB718D0162EDD82003FC814 /* CE Find.cpp in Sources */,
 				0BB718D3162EDD82003FC814 /* CE Item.cpp in Sources */,
 				0BB718D6162EDD82003FC814 /* CE Macro.cpp in Sources */,
@@ -4198,7 +4198,7 @@
 					../ThirdPartyLibs/Opus/Mac/Build/Release,
 					../ThirdPartyLibs/ZStd/Mac/build/Release,
 					"../ThirdPartyLibs/FDK-AAC/Mac/build/Release",
-					../ThirdPartyLibs/BC7/Mac,
+					../ThirdPartyLibs/BC/Mac,
 					../ThirdPartyLibs/PhysX/PhysX/Lib/osx64,
 					../ThirdPartyLibs/PhysX/PxShared/lib/osx64,
 					../ThirdPartyLibs/PhysX/Dummy/Apple,
@@ -4237,7 +4237,7 @@
 					../ThirdPartyLibs/Opus/Mac/Build/Release,
 					../ThirdPartyLibs/ZStd/Mac/build/Release,
 					"../ThirdPartyLibs/FDK-AAC/Mac/build/Release",
-					../ThirdPartyLibs/BC7/Mac,
+					../ThirdPartyLibs/BC/Mac,
 					../ThirdPartyLibs/PhysX/PhysX/Lib/osx64,
 					../ThirdPartyLibs/PhysX/PxShared/lib/osx64,
 					../ThirdPartyLibs/PhysX/Dummy/Apple,
