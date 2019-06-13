@@ -1819,10 +1819,19 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
          #endif
             Bool gamma=false;
          #if USE_SRGB
-            gamma=true; // FIXME this could be optimized on DX11: if(_col->sRGB())then use non-SRGB SRV
+            #if DX11
+               if(_col->_srv_srgb)Swap(_col->_srv_srgb, _col->_srv); // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
+               else
+            #endif
+                  gamma=true;
          #endif
             D.stencil(STENCIL_EDGE_SOFT_SET, STENCIL_REF_EDGE_SOFT); // have to use '_ds_1s' in write mode to be able to use stencil
             ImageRTPtr edge (ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO )); set(edge (), _ds_1s(), true); D.clearCol(); Sh.h_SMAAEdge[gamma]->draw(_col ()); Sh.h_ImageCol[1]->set(_smaa_area()); Sh.h_ImageCol[2]->set(_smaa_search()); Sh.h_ImageCol[2]->_sampler=&SamplerPoint; D.stencil(STENCIL_EDGE_SOFT_TEST);
+         #if USE_SRGB
+            #if DX11
+               if(_col->_srv_srgb)Swap(_col->_srv_srgb, _col->_srv); // restore
+            #endif
+         #endif
             ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA)); set(blend(), _ds_1s(), true); D.clearCol(); Sh.h_SMAABlend      ->draw( edge()); Sh.h_ImageCol[1]->set( blend()    ); edge.clear();                          Sh.h_ImageCol[2]->_sampler=         null; D.stencil(STENCIL_NONE          );
 // FIXME: try using non-SRGB srv/rtv to see if blending quality improves
                                                                                set(dest (),  null   , true);               Sh.h_SMAA           ->draw(_col ());
