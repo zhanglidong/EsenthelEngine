@@ -2761,15 +2761,20 @@ Display& Display::edgeSoften(EDGE_SOFTEN_MODE mode)
          }break;
       #endif
 
-         case EDGE_SOFTEN_SMAA: if(!Renderer._smaa_area)
+         case EDGE_SOFTEN_SMAA: if(!Sh.h_SMAAThreshold)
          {
-            Sh.h_SMAAEdge =Sh.find("SMAAEdgeColor"); // use 'SMAAEdgeColor' instead of 'SMAAEdgeLuma' to differentiate between different colors
-            Sh.h_SMAABlend=Sh.find("SMAABlend"    );
-            Sh.h_SMAA     =Sh.find("SMAA"         );
             Sh.h_SMAAThreshold=GetShaderParam("SMAAThreshold"); Sh.h_SMAAThreshold->set(D.smaaThreshold());
 
-            Renderer._smaa_area  .get("Img/SMAA Area.img");
-            Renderer._smaa_search.get("Img/SMAA Search.img");
+            if(Sh.h_SMAAEdge[0]=Sh.find("SMAAEdgeColor" )) // use 'SMAAEdgeColor' instead of 'SMAAEdgeLuma' to differentiate between different colors
+            if(Sh.h_SMAAEdge[1]=Sh.find("SMAAEdgeColorG")) // use 'SMAAEdgeColor' instead of 'SMAAEdgeLuma' to differentiate between different colors
+            if(Sh.h_SMAABlend  =Sh.find("SMAABlend"     ))
+            if(Sh.h_SMAA       =Sh.find("SMAA"          ))
+            if(Renderer._smaa_area  .get("Img/SMAA Area.img"))
+            if(Renderer._smaa_search.get("Img/SMAA Search.img"))
+               break; // all OK
+            // failed
+            Renderer._smaa_area  .clear();
+            Renderer._smaa_search.clear();
          }break;
       }
    }

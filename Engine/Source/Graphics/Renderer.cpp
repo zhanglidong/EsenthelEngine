@@ -922,7 +922,7 @@ Bool RendererClass::wantEdgeSoften()C
    #if SUPPORT_MLAA
       case EDGE_SOFTEN_MLAA: return Sh.h_MLAAEdge && Sh.h_MLAABlend && Sh.h_MLAA && _mlaa_area;
    #endif
-      case EDGE_SOFTEN_SMAA: return Sh.h_SMAAEdge && Sh.h_SMAABlend && Sh.h_SMAA && _smaa_area && _smaa_search;
+      case EDGE_SOFTEN_SMAA: return /*Sh.h_SMAAEdge[0] && Sh.h_SMAAEdge[1] && Sh.h_SMAABlend && Sh.h_SMAA && _smaa_area && */_smaa_search!=null; // check '_smaa_search' only, because it's set only if all loaded OK
    }
    return false;
 }
@@ -1817,7 +1817,7 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
          #endif
             D.stencil(STENCIL_EDGE_SOFT_SET, STENCIL_REF_EDGE_SOFT); // have to use '_ds_1s' in write mode to be able to use stencil
-            ImageRTPtr edge (ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO )); set(edge (), _ds_1s(), true); D.clearCol(); Sh.h_SMAAEdge ->draw(_col ()); Sh.h_ImageCol[1]->set(_smaa_area()); Sh.h_ImageCol[2]->set(_smaa_search()); Sh.h_ImageCol[2]->_sampler=&SamplerPoint; D.stencil(STENCIL_EDGE_SOFT_TEST);
+            ImageRTPtr edge (ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO )); set(edge (), _ds_1s(), true); D.clearCol(); Sh.h_SMAAEdge[0]/*FIXME*/ ->draw(_col ()); Sh.h_ImageCol[1]->set(_smaa_area()); Sh.h_ImageCol[2]->set(_smaa_search()); Sh.h_ImageCol[2]->_sampler=&SamplerPoint; D.stencil(STENCIL_EDGE_SOFT_TEST);
             ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA)); set(blend(), _ds_1s(), true); D.clearCol(); Sh.h_SMAABlend->draw( edge()); Sh.h_ImageCol[1]->set( blend()    ); edge.clear();                          Sh.h_ImageCol[2]->_sampler=         null; D.stencil(STENCIL_NONE          );
                                                                                set(dest (),  null   , true);               Sh.h_SMAA     ->draw(_col ());
             MaterialClear();

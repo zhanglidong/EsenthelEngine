@@ -3055,9 +3055,10 @@ Vec4 SMAAEdgeLuma_PS(NOPERSP Vec2 texcoord :TEXCOORD0,
    return Vec4(SMAALumaEdgeDetectionPS(texcoord, offset, Col), 0, 1);
 }
 Vec4 SMAAEdgeColor_PS(NOPERSP Vec2 texcoord :TEXCOORD0,
-                      NOPERSP Vec4 offset[3]:TEXCOORD1):COLOR
+                      NOPERSP Vec4 offset[3]:TEXCOORD1,
+                      uniform Bool gamma):COLOR
 {
-   return Vec4(SMAAColorEdgeDetectionPS(texcoord, offset, Col), 0, 1);
+   return Vec4(SMAAColorEdgeDetectionPS(texcoord, offset, Col, gamma), 0, 1);
 }
 Vec4 SMAABlend_PS(NOPERSP Vec2 texcoord :TEXCOORD0,
                   NOPERSP Vec2 pixcoord :TEXCOORD1,
@@ -3070,10 +3071,11 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
 {
    return SMAANeighborhoodBlendingPS(texcoord, offset, Col, Col1);
 }
-//TECHNIQUE(SMAAEdgeLuma , SMAAEdge_VS (), SMAAEdgeLuma_PS ());
-  TECHNIQUE(SMAAEdgeColor, SMAAEdge_VS (), SMAAEdgeColor_PS());
-  TECHNIQUE(SMAABlend    , SMAABlend_VS(), SMAABlend_PS    ());
-  TECHNIQUE(SMAA         , SMAA_VS     (), SMAA_PS         ());
+//TECHNIQUE(SMAAEdgeLuma  , SMAAEdge_VS (), SMAAEdgeLuma_PS ());
+  TECHNIQUE(SMAAEdgeColor , SMAAEdge_VS (), SMAAEdgeColor_PS(false));
+  TECHNIQUE(SMAAEdgeColorG, SMAAEdge_VS (), SMAAEdgeColor_PS(true ));
+  TECHNIQUE(SMAABlend     , SMAABlend_VS(), SMAABlend_PS    ());
+  TECHNIQUE(SMAA          , SMAA_VS     (), SMAA_PS         ());
 /******************************************************************************/
 #if 0
 @GROUP "Draw3DTex" // params: COLOR, alpha_test
@@ -3777,7 +3779,7 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
 @GROUP_END
 
 
-@GROUP "SMAAEdge"
+@GROUP "SMAAEdge" // params: GAMMA
    @SHARED
       #define SMAA_GLSL_3 1
       #include "Glsl.h"
@@ -3806,7 +3808,7 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
       #include "SMAA.h"
       void main()
       {
-         gl_FragColor.rg=SMAAColorEdgeDetectionPS(texcoord, offset, Col);
+         gl_FragColor.rg=SMAAColorEdgeDetectionPS(texcoord, offset, Col, GAMMA);
          gl_FragColor.b=0;
          gl_FragColor.a=1;
       }

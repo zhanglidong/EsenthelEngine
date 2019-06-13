@@ -251,9 +251,9 @@ struct MainShaderClass
       *h_MLAABlend,
       *h_MLAA     ,
    #endif
-      *h_SMAAEdge ,
-      *h_SMAABlend,
-      *h_SMAA     ,
+      *h_SMAAEdge[2], // [Gamma]
+      *h_SMAABlend  ,
+      *h_SMAA       ,
 
       // PARTICLE
       *h_Bilb                ,
