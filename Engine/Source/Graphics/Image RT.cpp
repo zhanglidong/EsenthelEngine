@@ -126,18 +126,15 @@ static const IMAGERT_TYPE GetImageRTTypeLookup[IMAGE_PRECISION_NUM][2]= // [prec
 IMAGERT_TYPE GetImageRTType(                 Bool       alpha, IMAGE_PRECISION     precision) {return GetImageRTTypeLookup[precision][alpha];}
 IMAGERT_TYPE GetImageRTType(IMAGE_TYPE type, Bool allow_alpha, IMAGE_PRECISION max_precision)
 {
-   if(type==IMAGE_R10G10B10A2)return IMAGERT_RGB; // because the implementation operates on Bool alpha (yes/no) and not how many alpha bits we want, then as result we may actually increase precision when operating on 'IMAGE_R10G10B10A2' with 'allow_alpha'=true, so treat this as a special case and always return IMAGERT_RGB
- C ImageTypeInfo &ti=ImageTI[type]; return GetImageRTType(ti.a && allow_alpha, Min(ti.precision, max_precision));
+ C ImageTypeInfo &ti=ImageTI[type]; return GetImageRTType(ti.a>=8 && allow_alpha, Min(ti.precision, max_precision)); // compare alpha as >=8 instead of >0 to treat types such as IMAGE_R10G10B10A2 as without alpha (this type is chosen for 10-bit color and ignoring alpha), because we could actually increase precision when operating on 'IMAGE_R10G10B10A2' with 'allow_alpha'=true
 }
 IMAGERT_TYPE GetImageRTType(IMAGE_TYPE type, Bool allow_alpha)
 {
-   if(type==IMAGE_R10G10B10A2)return IMAGERT_RGB; // because the implementation operates on Bool alpha (yes/no) and not how many alpha bits we want, then as result we may actually increase precision when operating on 'IMAGE_R10G10B10A2' with 'allow_alpha'=true, so treat this as a special case and always return IMAGERT_RGB
- C ImageTypeInfo &ti=ImageTI[type]; return GetImageRTType(ti.a && allow_alpha, ti.precision);
+ C ImageTypeInfo &ti=ImageTI[type]; return GetImageRTType(ti.a>=8 && allow_alpha, ti.precision); // compare alpha as >=8 instead of >0 to treat types such as IMAGE_R10G10B10A2 as without alpha (this type is chosen for 10-bit color and ignoring alpha), because we could actually increase precision when operating on 'IMAGE_R10G10B10A2' with 'allow_alpha'=true
 }
 IMAGERT_TYPE GetImageRTType(IMAGE_TYPE type)
 {
-   if(type==IMAGE_R10G10B10A2)return IMAGERT_RGB; // because the implementation operates on Bool alpha (yes/no) and not how many alpha bits we want, then as result we may actually increase precision when operating on 'IMAGE_R10G10B10A2', so treat this as a special case and always return IMAGERT_RGB
- C ImageTypeInfo &ti=ImageTI[type]; return GetImageRTType(ti.a>0, ti.precision);
+ C ImageTypeInfo &ti=ImageTI[type]; return GetImageRTType(ti.a>=8, ti.precision); // compare alpha as >=8 instead of >0 to treat types such as IMAGE_R10G10B10A2 as without alpha (this type is chosen for 10-bit color and ignoring alpha), because we could actually increase precision when operating on 'IMAGE_R10G10B10A2' with 'allow_alpha'=true
 }
 /******************************************************************************/
 void ResetImageTypeCreateResult()
