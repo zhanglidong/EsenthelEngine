@@ -3,13 +3,7 @@
 namespace EE{
 /******************************************************************************/
 #define USE_SRGB 0 // FIXME
-enum IMAGE_TYPE_CREATE_RESULT : Byte
-{
-   UNKNOWN,
-   FAILED ,
-   SUCCESS,
-};
-static IMAGE_TYPE_CREATE_RESULT ImageTypeCreateResult[2][IMAGE_ALL_TYPES]; // [MultiSample][IMAGE_TYPE]
+#define KNOWN_USAGE (DX9 || DX11)
 struct ImageRTType
 {
    IMAGE_TYPE types[6]; // 6 is max IMAGE_TYPE elms per ImageRTType
@@ -76,7 +70,7 @@ static const ImageRTType ImageRTTypes[]=
    #endif
       IMAGE_D24S8, IMAGE_D24X8, IMAGE_D32, IMAGE_D16}, // 19 IMAGERT_DS
 }; ASSERT(IMAGERT_SRGBA==0 && IMAGERT_SRGBA_H==1 && IMAGERT_SRGB_H==2 && IMAGERT_SRGBA_F==3 && IMAGERT_SRGB_F==4 && IMAGERT_RGBA==5 && IMAGERT_RGB==6 && IMAGERT_RGB_P==7 && IMAGERT_RGBA_H==8 && IMAGERT_RGB_H==9 && IMAGERT_RGBA_F==10 && IMAGERT_RGB_F==11 && IMAGERT_RGBA_S==12 && IMAGERT_F32==13 && IMAGERT_F16==14 && IMAGERT_ONE==15 && IMAGERT_ONE_S==16 && IMAGERT_TWO==17 && IMAGERT_TWO_S==18 && IMAGERT_DS==19 && IMAGERT_NUM==20 && Elms(ImageRTTypes)==IMAGERT_NUM);
-static ImageRTType ImageRTTypesOK[2][IMAGERT_NUM]; // [MultiSample][IMAGERT_NUM], this keeps info about result of creating different IMAGE_TYPE for 1-sample and multi-sample, this is because some formats may fail to create multi-sampled but succeed with 1-sample (for simplication this assumes that there will be only one type of multi-sample, like only 4x, but not 4x and 8x)
+
 static CChar8 *ImageRTName[]=
 {
    "SRGBA"  , // 0
@@ -102,6 +96,12 @@ static CChar8 *ImageRTName[]=
    "TWO_S" , // 18
    "DS"    , // 19
 }; ASSERT(IMAGERT_SRGBA==0 && IMAGERT_SRGBA_H==1 && IMAGERT_SRGB_H==2 && IMAGERT_SRGBA_F==3 && IMAGERT_SRGB_F==4 && IMAGERT_RGBA==5 && IMAGERT_RGB==6 && IMAGERT_RGB_P==7 && IMAGERT_RGBA_H==8 && IMAGERT_RGB_H==9 && IMAGERT_RGBA_F==10 && IMAGERT_RGB_F==11 && IMAGERT_RGBA_S==12 && IMAGERT_F32==13 && IMAGERT_F16==14 && IMAGERT_ONE==15 && IMAGERT_ONE_S==16 && IMAGERT_TWO==17 && IMAGERT_TWO_S==18 && IMAGERT_DS==19 && IMAGERT_NUM==20 && Elms(ImageRTName)==IMAGERT_NUM);
+
+#if KNOWN_USAGE
+static IMAGE_TYPE  ImageRTTypesOK[2][IMAGERT_NUM]; // [MultiSample][IMAGERT_NUM], this keeps info about result of creating different IMAGE_TYPE for 1-sample and multi-sample, this is because some formats may fail to create multi-sampled but succeed with 1-sample
+#else
+static ImageRTType ImageRTTypesOK[2][IMAGERT_NUM];
+#endif
 /******************************************************************************/
 // !! WARNING: The functions below are for SRGB ONLY !!
 static const IMAGERT_TYPE GetImageRTTypeLookup[IMAGE_PRECISION_NUM][2]= // [precision][alpha]
@@ -139,9 +139,22 @@ IMAGERT_TYPE GetImageRTType(IMAGE_TYPE type)
 /******************************************************************************/
 void ResetImageTypeCreateResult()
 {
-   Zero(ImageTypeCreateResult); ASSERT(UNKNOWN==0); // assume that all are UNKNOWN (zero)
+#if KNOWN_USAGE
+   REPD(rt_type, IMAGERT_NUM) // process all IMAGERT's
+   {
+    C ImageRTType &src=ImageRTTypes[rt_type]; REPD(ms, 2) // have to separately for multi-sampled
+      {
+         IMAGE_TYPE &dest=ImageRTTypesOK[ms][rt_type];
+         UInt flag=(ms ? ImageTypeInfo::USAGE_IMAGE_MS : (ImageTypeInfo::USAGE_IMAGE_RT|ImageTypeInfo::USAGE_IMAGE_DS)); // for multi-sampling 'ms' we need USAGE_IMAGE_MS (this implies multisampled RT or DS), otherwise RT or DS is enough
+         FREPA(src.types){IMAGE_TYPE type=src.types[i]; if(ImageTI[type].usage()&flag){dest=type; goto set;}} // find first matching
+         dest=IMAGE_NONE;
+      set:;
+      }
+   }
+#else
    CopyFast(ImageRTTypesOK[0], ImageRTTypes);
    CopyFast(ImageRTTypesOK[1], ImageRTTypes);
+#endif
 }
 static Int CompareDesc(C ImageRC &image, C ImageRTDesc &desc)
 {
@@ -252,11 +265,14 @@ Bool ImageRTPtr::find(C ImageRTDesc &desc)
 {
    clear(); // clear first so we can find the same Image if possible
 
-   Bool                       multi_sample          =(desc.samples>1);
-   IMAGE_TYPE_CREATE_RESULT (&itcr)[IMAGE_ALL_TYPES]=ImageTypeCreateResult[multi_sample];
-   ImageRTType               &types                 =ImageRTTypesOK       [multi_sample][desc.rt_type];
+   Bool multi_sample=(desc.samples>1);
+#if KNOWN_USAGE
+   ConstCast(desc._type)=ImageRTTypesOK[multi_sample][desc.rt_type];
+#else
+   ImageRTType    &types=ImageRTTypesOK[multi_sample][desc.rt_type];
 again:
    ConstCast(desc._type)=types.types[0];
+#endif
 
    Bool found; if(InRange(_last_index, Renderer._rts) && !CompareDesc(Renderer._rts[_last_index], desc))found=true; // in range and matches ("!CompareDesc" -> match)
    else found=Renderer._rts.binarySearch(desc, _last_index, CompareDesc);
@@ -271,29 +287,23 @@ again:
       for(Int i=_last_index-1;         i>=0             ; i--) {ImageRC &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){Set(T, rt); T._last_index=i; return true;}}
       for(Int i=_last_index+1; InRange(i, Renderer._rts); i++) {ImageRC &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){Set(T, rt); T._last_index=i; return true;}}
    }
-
-   switch(itcr[desc._type])
-   {
-      case UNKNOWN:
-      {
-         ImageRC temp; Bool ok=temp.create(desc); // try to create first as a standalone variable (not in 'Renderer._rts') in case it fails so we don't have to remove it
-         itcr[desc._type]=(ok ? SUCCESS : FAILED);
-         if(ok){ImageRC &rt=Renderer._rts.NewAt(_last_index); Swap(rt, temp); Set(T, rt); return true;}
-         // fail
-         if(desc._type!=IMAGE_NONE)
-         {
-            MoveFastN(&types.types[0], &types.types[1], ELMS(types.types)-1); // move all elements from index 1 and right, to the left by 1, to index 0..
-            types.types[ELMS(types.types)-1]=IMAGE_NONE; // set last type as none
-            if(types.types[0]!=IMAGE_NONE)goto again; // try the new type
-         }
-      }break;
-
-      case SUCCESS:
-      {
-         ImageRC &rt=Renderer._rts.NewAt(_last_index); if(!rt.create(desc))Exit(S+"Can't create Render Target "+desc.size.x+'x'+desc.size.y); // Exit because SUCCESS always assumes to succeed
-         Set(T, rt); return true;
-      }break;
+#if KNOWN_USAGE
+   if(desc._type) // check this after 'found' because in most cases we will already return from codes above
+   { // since we have KNOWN_USAGE, and a valid type, then we assume that this should always succeed
+      ImageRC &rt=Renderer._rts.NewAt(_last_index); if(rt.create(desc)){Set(T, rt); return true;}
+      Exit(S+"Can't create Render Target "+desc.size.x+'x'+desc.size.y+' '+ImageRTName[desc.rt_type]+", samples:"+desc.samples);
    }
+#else
+   ImageRC temp; // try to create first as a standalone variable (not in 'Renderer._rts') in case it fails so we don't have to remove it
+   if(temp.create(desc)){ImageRC &rt=Renderer._rts.NewAt(_last_index); Swap(rt, temp); Set(T, rt); return true;}
+   // fail
+   if(desc._type!=IMAGE_NONE) // try another type, and don't try this again
+   {
+      MoveFastN(&types.types[0], &types.types[1], ELMS(types.types)-1); // move all elements from index 1 and right, to the left by 1, to index 0..
+      types.types[ELMS(types.types)-1]=IMAGE_NONE; // set last type as none
+      if(types.types[0]!=IMAGE_NONE)goto again; // try the new type
+   }
+#endif
    return false;
 }
 /******************************************************************************/
