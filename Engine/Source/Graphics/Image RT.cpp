@@ -4,6 +4,7 @@ namespace EE{
 /******************************************************************************/
 #define USE_SRGB 0 // FIXME
 #define KNOWN_USAGE (DX9 || DX11)
+/******************************************************************************/
 struct ImageRTType
 {
    IMAGE_TYPE types[6]; // 6 is max IMAGE_TYPE elms per ImageRTType
