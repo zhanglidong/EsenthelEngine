@@ -166,31 +166,44 @@ enum CUBE_LAYOUT : Byte
 /******************************************************************************/
 struct ImageTypeInfo // Image Type Information
 {
-   CChar8         *name      ; // type name
-   Bool            compressed; // if the type is a compressed type
-   Byte            byte_pp   , // bytes per pixel
-                   bit_pp    , // bits  per pixel
-                   r         , // number of red     bits
-                   g         , // number of green   bits
-                   b         , // number of blue    bits
-                   a         , // number of alpha   bits
-                   d         , // number of depth   bits
-                   s         , // number of stencil bits
-                   channels  ; // number of channels
-   IMAGE_PRECISION precision ;
+   enum USAGE_FLAG
+   {
+      USAGE_VTX       =1<<0, // type can be used in a Vertex Buffer
+      USAGE_IMAGE_2D  =1<<1, // type can be used in a 2D   Image
+      USAGE_IMAGE_3D  =1<<2, // type can be used in a 3D   Image
+      USAGE_IMAGE_CUBE=1<<3, // type can be used in a Cube Image
+      USAGE_IMAGE_RT  =1<<4, // type can be used in a Render Target
+      USAGE_IMAGE_DS  =1<<5, // type can be used in a Depth Stencil Buffer
+      USAGE_IMAGE_MS  =1<<6, // type can be used in a Multi-Sampled Render Target or Depth Stencil (depending on USAGE_IMAGE_RT, USAGE_IMAGE_DS)
+   };
+
+   const CChar8         *name      ; // type name
+   const Bool            compressed; // if type is compressed
+   const Byte            byte_pp   , // bytes per pixel
+                         bit_pp    , // bits  per pixel
+                         r         , // number of red     bits
+                         g         , // number of green   bits
+                         b         , // number of blue    bits
+                         a         , // number of alpha   bits
+                         d         , // number of depth   bits
+                         s         , // number of stencil bits
+                         channels  ; // number of channels
+   const IMAGE_PRECISION precision ;
 
    Bool highPrecision()C {return precision>IMAGE_PRECISION_8;} // more than 8 bits
+   Byte usage        ()C {return _usage;} // get a combination of USAGE_FLAG, available only on DX11
 
 #if !EE_PRIVATE
 private:
 #endif
+   Byte _usage;
 #if EE_PRIVATE
-   mutable GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) format;
+   GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) format;
 #else
-   mutable UInt format;
+   UInt format;
 #endif
 };extern ImageTypeInfo
-   const ImageTI[]; // Image Type Info Array, allows obtaining information about specified IMAGE_TYPE, sample usage: ImageTI[IMAGE_R8G8B8A8].name -> "R8G8B8A8"
+   ImageTI[]; // Image Type Info Array, allows obtaining information about specified IMAGE_TYPE, sample usage: ImageTI[IMAGE_R8G8B8A8].name -> "R8G8B8A8"
 /******************************************************************************/
 struct Image // Image (Texture)
 {

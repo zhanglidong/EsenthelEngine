@@ -2122,6 +2122,21 @@ void Display::getCaps()
   _mrt_const_bit_size=false;
   _mrt_post_process  =true ;
 
+   REP(IMAGE_ALL_TYPES)
+   {
+      UInt usage=0; UINT fs; if(OK(D3D->CheckFormatSupport(ImageTI[i].format, &fs)))
+      {
+         if(fs&D3D11_FORMAT_SUPPORT_IA_VERTEX_BUFFER        )usage|=ImageTypeInfo::USAGE_VTX;
+         if(fs&D3D11_FORMAT_SUPPORT_TEXTURE2D               )usage|=ImageTypeInfo::USAGE_IMAGE_2D;
+         if(fs&D3D11_FORMAT_SUPPORT_TEXTURE3D               )usage|=ImageTypeInfo::USAGE_IMAGE_3D;
+         if(fs&D3D11_FORMAT_SUPPORT_TEXTURECUBE             )usage|=ImageTypeInfo::USAGE_IMAGE_CUBE;
+         if(fs&D3D11_FORMAT_SUPPORT_RENDER_TARGET           )usage|=ImageTypeInfo::USAGE_IMAGE_RT;
+         if(fs&D3D11_FORMAT_SUPPORT_DEPTH_STENCIL           )usage|=ImageTypeInfo::USAGE_IMAGE_DS;
+         if(fs&D3D11_FORMAT_SUPPORT_MULTISAMPLE_RENDERTARGET)usage|=ImageTypeInfo::USAGE_IMAGE_MS;
+      }
+      ImageTI[i]._usage=usage;
+   }
+
  /*D3D11_FEATURE_DATA_SHADER_MIN_PRECISION_SUPPORT min_prec;
    if(OK(D3D->CheckFeatureSupport(D3D11_FEATURE_SHADER_MIN_PRECISION_SUPPORT, &min_prec, SIZE(min_prec)))) // check for hlsl half support
    {
@@ -2200,6 +2215,25 @@ void Display::getCaps()
       glGetIntegerv(GL_MAX_VERTEX_UNIFORM_VECTORS  , &max_vs_vectors);
       glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_VECTORS, &max_ps_vectors);
       MeshBoneSplit=(Min(max_vs_vectors, max_ps_vectors)<768+256+256); // 768 for ObjMatrix, 256 for ObjVel, 256 extra
+   #endif
+   #if !GL_ES // on GL_ES glGetInternalformativ works only for GL_RENDERBUFFER
+      if(glGetInternalformativ)
+      {
+         glGetError(); // clear any previous errors
+         REP(IMAGE_ALL_TYPES)
+         {
+            GLint params[1]; UInt usage=0; GLenum internalformat=ImageTI[i].format;
+            // no ImageTypeInfo::USAGE_VTX ?
+            glGetInternalformativ(GL_TEXTURE_2D            , internalformat, GL_INTERNALFORMAT_SUPPORTED, Elms(params), params); if(glGetError()==GL_NO_ERROR && params[0])usage|=ImageTypeInfo::USAGE_IMAGE_2D;
+            glGetInternalformativ(GL_TEXTURE_3D            , internalformat, GL_INTERNALFORMAT_SUPPORTED, Elms(params), params); if(glGetError()==GL_NO_ERROR && params[0])usage|=ImageTypeInfo::USAGE_IMAGE_3D;
+            glGetInternalformativ(GL_TEXTURE_CUBE_MAP      , internalformat, GL_INTERNALFORMAT_SUPPORTED, Elms(params), params); if(glGetError()==GL_NO_ERROR && params[0])usage|=ImageTypeInfo::USAGE_IMAGE_CUBE;
+            glGetInternalformativ(GL_TEXTURE_2D            , internalformat, GL_COLOR_RENDERABLE        , Elms(params), params); if(glGetError()==GL_NO_ERROR && params[0])usage|=ImageTypeInfo::USAGE_IMAGE_RT;
+            glGetInternalformativ(GL_TEXTURE_2D            , internalformat, GL_DEPTH_RENDERABLE        , Elms(params), params); if(glGetError()==GL_NO_ERROR && params[0])usage|=ImageTypeInfo::USAGE_IMAGE_DS;
+            glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE, internalformat, GL_COLOR_RENDERABLE        , Elms(params), params); if(glGetError()==GL_NO_ERROR && params[0])usage|=ImageTypeInfo::USAGE_IMAGE_MS;
+            glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE, internalformat, GL_DEPTH_RENDERABLE        , Elms(params), params); if(glGetError()==GL_NO_ERROR && params[0])usage|=ImageTypeInfo::USAGE_IMAGE_MS;
+            ImageTI[i]._usage=usage;
+         }
+      }
    #endif
 #endif
 
