@@ -535,7 +535,7 @@ private:
 #if EE_PRIVATE
    // get
 #if DX9
-   Bool validUsage(UInt usage, D3DRESOURCETYPE res_type, Int image_type);
+   Bool validUsage(UInt usage, D3DRESOURCETYPE res_type, IMAGE_TYPE image_type);
 #endif
 
    // manage

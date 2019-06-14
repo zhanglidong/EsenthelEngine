@@ -469,7 +469,7 @@ void Display::screenChanged(Flt old_width, Flt old_height)
    }
 }
 #if DX9
-Bool Display::validUsage(UInt usage, D3DRESOURCETYPE res_type, Int image_type)
+Bool Display::validUsage(UInt usage, D3DRESOURCETYPE res_type, IMAGE_TYPE image_type)
 {
    if(D3DBase)
    {
@@ -1661,6 +1661,7 @@ static Int DisplaySamples(Int samples)
    if(D3DBase)
    {
       D3DFORMAT disp_format=D3DFMT_A8R8G8B8; if(!OK(D3DBase->CheckDeviceType(0, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, disp_format, D3DPP.Windowed)))disp_format=D3DFMT_X8R8G8B8;
+      MIN(samples, D3DMULTISAMPLE_16_SAMPLES); // there's no higher sample level on DX9
       for(; samples>1; samples--)
       {
          DWORD col_levels=0, ds_levels=0;
