@@ -3,7 +3,7 @@
 namespace EE{
 /******************************************************************************/
 #define USE_SRGB 0 // FIXME
-#define KNOWN_USAGE (DX9 || DX11)
+#define KNOWN_IMAGE_TYPE_USAGE (DX9 || DX11)
 /******************************************************************************/
 struct ImageRTType
 {
@@ -18,6 +18,7 @@ static const ImageRTType ImageRTTypes[]=
    {IMAGE_F32_4, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 3 IMAGERT_SRGBA_F
    {IMAGE_F32_3, IMAGE_F32_4, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB}, // 4 IMAGERT_SRGB_F
 #else
+   // FIXME maybe should copy from IMAGERT_RGB* below? would have to make also separate IMAGERT_SRGB and IMAGERT_SRGB_P, this is for DX9 and GLES2
    {IMAGE_R8G8B8A8                                                         }, // 0 IMAGERT_SRGBA
    {IMAGE_F16_4, IMAGE_R8G8B8A8                                            }, // 1 IMAGERT_SRGBA_H
    {IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8                               }, // 2 IMAGERT_SRGB_H
@@ -98,7 +99,7 @@ static CChar8 *ImageRTName[]=
    "DS"    , // 19
 }; ASSERT(IMAGERT_SRGBA==0 && IMAGERT_SRGBA_H==1 && IMAGERT_SRGB_H==2 && IMAGERT_SRGBA_F==3 && IMAGERT_SRGB_F==4 && IMAGERT_RGBA==5 && IMAGERT_RGB==6 && IMAGERT_RGB_P==7 && IMAGERT_RGBA_H==8 && IMAGERT_RGB_H==9 && IMAGERT_RGBA_F==10 && IMAGERT_RGB_F==11 && IMAGERT_RGBA_S==12 && IMAGERT_F32==13 && IMAGERT_F16==14 && IMAGERT_ONE==15 && IMAGERT_ONE_S==16 && IMAGERT_TWO==17 && IMAGERT_TWO_S==18 && IMAGERT_DS==19 && IMAGERT_NUM==20 && Elms(ImageRTName)==IMAGERT_NUM);
 
-#if KNOWN_USAGE
+#if KNOWN_IMAGE_TYPE_USAGE
 static IMAGE_TYPE  ImageRTTypesOK[2][IMAGERT_NUM]; // [MultiSample][IMAGERT_NUM], this keeps info about result of creating different IMAGE_TYPE for 1-sample and multi-sample, this is because some formats may fail to create multi-sampled but succeed with 1-sample
 #else
 static ImageRTType ImageRTTypesOK[2][IMAGERT_NUM];
@@ -140,7 +141,7 @@ IMAGERT_TYPE GetImageRTType(IMAGE_TYPE type)
 /******************************************************************************/
 void ResetImageTypeCreateResult()
 {
-#if KNOWN_USAGE
+#if KNOWN_IMAGE_TYPE_USAGE
    REPD(rt_type, IMAGERT_NUM) // process all IMAGERT's
    {
     C ImageRTType &src=ImageRTTypes[rt_type]; REPD(ms, 2) // have to separately for multi-sampled
@@ -267,7 +268,7 @@ Bool ImageRTPtr::find(C ImageRTDesc &desc)
    clear(); // clear first so we can find the same Image if possible
 
    Bool multi_sample=(desc.samples>1);
-#if KNOWN_USAGE
+#if KNOWN_IMAGE_TYPE_USAGE
    ConstCast(desc._type)=ImageRTTypesOK[multi_sample][desc.rt_type];
 #else
    ImageRTType    &types=ImageRTTypesOK[multi_sample][desc.rt_type];
@@ -288,9 +289,9 @@ again:
       for(Int i=_last_index-1;         i>=0             ; i--) {ImageRC &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){Set(T, rt); T._last_index=i; return true;}}
       for(Int i=_last_index+1; InRange(i, Renderer._rts); i++) {ImageRC &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){Set(T, rt); T._last_index=i; return true;}}
    }
-#if KNOWN_USAGE
+#if KNOWN_IMAGE_TYPE_USAGE
    if(desc._type) // check this after 'found' because in most cases we will already return from codes above
-   { // since we have KNOWN_USAGE, and a valid type, then we assume that this should always succeed
+   { // since we have KNOWN_IMAGE_TYPE_USAGE, and a valid type, then we assume that this should always succeed
       ImageRC &rt=Renderer._rts.NewAt(_last_index); if(rt.create(desc)){Set(T, rt); return true;}
       Exit(S+"Can't create Render Target "+desc.size.x+'x'+desc.size.y+' '+ImageRTName[desc.rt_type]+", samples:"+desc.samples);
    }
