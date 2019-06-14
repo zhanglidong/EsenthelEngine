@@ -1844,7 +1844,11 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
    else       MIN(mip_maps,dest_total_mip_maps); // don't use more than maximum allowed
 
    // check if doesn't require conversion
-   if(this==&dest && w==T.w() && h==T.h() && d==T.d() && type==T.type() && mip_maps==T.mipMaps() && mode==T.mode())return true;
+   if(this==&dest && w==T.w() && h==T.h() && d==T.d() && mode==T.mode() && mip_maps==T.mipMaps())
+   {
+      if(type==T.type())return true;
+      if(soft() && CanDoRawCopy(T.hwType(), (IMAGE_TYPE)type)){dest._hw_type=dest._type=(IMAGE_TYPE)type; return true;} // if software and can do a raw copy, then just adjust types
+   }
 
    // convert
    {
