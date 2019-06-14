@@ -1664,15 +1664,11 @@ static Int DisplaySamples(Int samples)
       MIN(samples, D3DMULTISAMPLE_16_SAMPLES); // there's no higher sample level on DX9
       for(; samples>1; samples--)
       {
-         DWORD col_levels=0, ds_levels=0;
-         if(samples<=D3DMULTISAMPLE_16_SAMPLES) // there's no higher sample level on DX9
-         {
-            DWORD levels=0;
-            if(OK(D3DBase->CheckDeviceMultiSampleType(0, D3DDEVTYPE_HAL, disp_format , D3DPP.Windowed, D3DMULTISAMPLE_TYPE(samples), &levels)))MAX(col_levels, levels);
-            if(OK(D3DBase->CheckDeviceMultiSampleType(0, D3DDEVTYPE_HAL, D3DFMT_D24S8, D3DPP.Windowed, D3DMULTISAMPLE_TYPE(samples), &levels)))MAX( ds_levels, levels);
-            if(OK(D3DBase->CheckDeviceMultiSampleType(0, D3DDEVTYPE_HAL, D3DFMT_D24X8, D3DPP.Windowed, D3DMULTISAMPLE_TYPE(samples), &levels)))MAX( ds_levels, levels);
-         }
-         if(col_levels && ds_levels)break; // if there are some quality levels, then accept this multi-sampling
+         DWORD col_levels=0, ds_levels=0, levels;
+         if(OK(D3DBase->CheckDeviceMultiSampleType(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, D3DFMT_A8R8G8B8, D3DPP.Windowed, D3DMULTISAMPLE_TYPE(samples), &levels)))MAX(col_levels, levels);
+         if(OK(D3DBase->CheckDeviceMultiSampleType(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, D3DFMT_D24S8   , D3DPP.Windowed, D3DMULTISAMPLE_TYPE(samples), &levels)))MAX( ds_levels, levels);
+         if(OK(D3DBase->CheckDeviceMultiSampleType(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, D3DFMT_D24X8   , D3DPP.Windowed, D3DMULTISAMPLE_TYPE(samples), &levels)))MAX( ds_levels, levels);
+         if(col_levels && ds_levels)break; // if there are some quality levels for both color and depth, then accept this multi-sampling
       }
    }
 #elif DX11
