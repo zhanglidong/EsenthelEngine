@@ -270,7 +270,7 @@ INLINE Shader* GetBloom  (Bool dither                                           
 void RendererClass::bloom(Image &src, Image &dest, Bool dither)
 {
    const Int     shift=(D.bloomHalf() ? 1 : 2);
-   ImageRTDesc   rt_desc(fxW()>>shift, fxH()>>shift, IMAGERT_SRGB);
+   ImageRTDesc   rt_desc(fxW()>>shift, fxH()>>shift, IMAGERT_SRGB); // using IMAGERT_SRGB will clip to 0..1 range
    ImageRTPtrRef rt0(D.bloomHalf() ? _h0 : _q0); rt0.get(rt_desc);
    ImageRTPtrRef rt1(D.bloomHalf() ? _h1 : _q1); rt1.get(rt_desc); Bool discard=false; // we've already discarded in 'get' so no need to do it again
 
@@ -1803,9 +1803,9 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
          {
            _col->copyHw(*dest, false, D.viewRect());
             D.stencil(STENCIL_EDGE_SOFT_SET, STENCIL_REF_EDGE_SOFT); // have to use '_ds_1s' in write mode to be able to use stencil
-            ImageRTPtr edge (ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO  )); set(edge (), _ds_1s(), true); D.clearCol(); Sh.h_MLAAEdge ->draw(_col ()); Sh.h_ImageCol[1]->set(_mlaa_area()); D.stencil(STENCIL_EDGE_SOFT_TEST);
-            ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_SRGBA)); set(blend(), _ds_1s(), true); D.clearCol(); Sh.h_MLAABlend->draw( edge()); Sh.h_ImageCol[1]->set( blend    ()); edge.clear();
-                                                                                set(dest (), _ds_1s(), true);               Sh.h_MLAA     ->draw(_col ());                                      D.stencil(STENCIL_NONE          );
+            ImageRTPtr edge (ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO )); set(edge (), _ds_1s(), true); D.clearCol(); Sh.h_MLAAEdge ->draw(_col ()); Sh.h_ImageCol[1]->set(_mlaa_area()); D.stencil(STENCIL_EDGE_SOFT_TEST);
+            ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA)); set(blend(), _ds_1s(), true); D.clearCol(); Sh.h_MLAABlend->draw( edge()); Sh.h_ImageCol[1]->set( blend    ()); edge.clear();
+                                                                               set(dest (), _ds_1s(), true);               Sh.h_MLAA     ->draw(_col ());                                      D.stencil(STENCIL_NONE          );
             MaterialClear();
          }break;
       #endif
@@ -1832,7 +1832,8 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
                if(_col->_srv_srgb)_col->swapSRV(); // restore
             #endif
          #endif
-            ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA)); set(blend(), _ds_1s(), true); D.clearCol(); Sh.h_SMAABlend->draw(edge()); Sh.h_ImageCol[1]->set(blend()); edge.clear(); Sh.h_ImageCol[2]->_sampler=null; D.stencil(STENCIL_NONE);
+            ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA)); // this does not store color, but intensities how much to blend in each axis
+            set(blend(), _ds_1s(), true); D.clearCol(); Sh.h_SMAABlend->draw(edge()); Sh.h_ImageCol[1]->set(blend()); edge.clear(); Sh.h_ImageCol[2]->_sampler=null; D.stencil(STENCIL_NONE);
          #if !USE_SRGB // this we have to perform if we're NOT using sRGB, because if possible, we WANT to use it, as it will improve quality, making AA softer
             #if DX11
                Bool swap=(dest->_rtv_srgb && _col->_srv_srgb); if(swap){Swap(dest->_rtv, dest->_rtv_srgb); _col->swapSRV();}
