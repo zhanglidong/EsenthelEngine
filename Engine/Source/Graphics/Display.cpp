@@ -33,7 +33,7 @@ Display D;
    static IDirect3DQuery9      *Query;
    static D3DPRESENT_PARAMETERS D3DPP;
 #elif DX11 // DirectX 10/11
-   #define GDI_COMPATIBLE 0 // requires DXGI_FORMAT_B8G8R8A8_UNORM
+   #define GDI_COMPATIBLE 0 // requires DXGI_FORMAT_B8G8R8A8_UNORM or DXGI_FORMAT_B8G8R8A8_UNORM_SRGB
    static Bool                  AllowTearing;
    static UInt                  PresentFlags;
           ID3D11Device         *D3D;
@@ -1149,8 +1149,9 @@ again:
    Factory->CreateSwapChain(D3D, &SwapChainDesc, &SwapChain);
    if(!SwapChain)
    {
-      if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with 8-bit
-      if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with 8-bit
+      if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT ; goto again;} // if failed with 32-bit then try again with 16-bit
+      if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with  8-bit
+      if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with  8-bit
    }
    Factory->MakeWindowAssociation(App.Hwnd(), DXGI_MWA_NO_ALT_ENTER|DXGI_MWA_NO_WINDOW_CHANGES|DXGI_MWA_NO_PRINT_SCREEN); // this needs to be called after 'CreateSwapChain'
 #else
@@ -1158,8 +1159,9 @@ again:
 	Factory->CreateSwapChainForCoreWindow(D3D, (IUnknown*)App._hwnd, &SwapChainDesc, null, &SwapChain);
    if(!SwapChain)
    {
-      if(SwapChainDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with 8-bit
-      if(SwapChainDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with 8-bit
+      if(SwapChainDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT){SwapChainDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT ; goto again;} // if failed with 32-bit then try again with 16-bit
+      if(SwapChainDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with  8-bit
+      if(SwapChainDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with  8-bit
    }
 #endif
    if(!SwapChain)Exit("Can't create Direct3D Swap Chain.");
@@ -1682,9 +1684,21 @@ static Int DisplaySamples(Int samples)
 #if DX11
 static DXGI_FORMAT SwapChainFormat()
 {
-   return   GDI_COMPATIBLE ? (USE_SRGB ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : DXGI_FORMAT_B8G8R8A8_UNORM) // FIXME test this
-: D.highMonitorPrecision() ? (USE_SRGB ? DXGI_FORMAT_R16G16B16A16_FLOAT  : DXGI_FORMAT_R10G10B10A2_UNORM)
-                           : (USE_SRGB ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM);
+   if(GDI_COMPATIBLE)return USE_SRGB ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : DXGI_FORMAT_B8G8R8A8_UNORM; // FIXME test this
+#if 0 // possibly this check is no longer needed, it's possible Windows supports windowed HDR natively now on HDR capable monitors
+   if(full() && exclusive()) // on Windows we need fullscreen and exclusive to be able to really enable it, without it, it will be only 8-bit
+#endif
+   {
+   #if USE_SRGB
+      if(D.monitorPrecision()>IMAGE_PRECISION_16)return DXGI_FORMAT_R32G32B32A32_FLOAT;
+      if(D.monitorPrecision()>IMAGE_PRECISION_8 )return DXGI_FORMAT_R16G16B16A16_FLOAT;
+      // can't use DXGI_FORMAT_R10G10B10A2_UNORM because it's non-sRGB
+   #else
+      // can't use DXGI_FORMAT_R32G32B32A32_FLOAT DXGI_FORMAT_R16G16B16A16_FLOAT because on Windows it means linear gamma
+      if(D.monitorPrecision()>IMAGE_PRECISION_8 )return DXGI_FORMAT_R10G10B10A2_UNORM;
+   #endif
+   }
+   return USE_SRGB ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
 }
 #endif
 Bool Display::findMode()
@@ -1872,8 +1886,9 @@ static Bool ResizeTarget()
 #if WINDOWS_OLD
 again:
    if(OK(SwapChain->ResizeTarget(&SwapChainDesc.BufferDesc)))return true;
-   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with 8-bit
-   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with 8-bit
+   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT ; goto again;} // if failed with 32-bit then try again with 16-bit
+   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with  8-bit
+   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with  8-bit
 #endif
    return false;
 }
@@ -1882,12 +1897,14 @@ static Bool ResizeBuffers()
 again:
 #if WINDOWS_OLD
    if(OK(SwapChain->ResizeBuffers(SwapChainDesc.BufferCount, SwapChainDesc.BufferDesc.Width, SwapChainDesc.BufferDesc.Height, SwapChainDesc.BufferDesc.Format, SwapChainDesc.Flags)))return true;
-   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with 8-bit
-   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with 8-bit
+   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT ; goto again;} // if failed with 32-bit then try again with 16-bit
+   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with  8-bit
+   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with  8-bit
 #else
    if(OK(SwapChain->ResizeBuffers(SwapChainDesc.BufferCount, SwapChainDesc.Width, SwapChainDesc.Height, SwapChainDesc.Format, SwapChainDesc.Flags)))return true;
-   if(SwapChainDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with 8-bit
-   if(SwapChainDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with 8-bit
+   if(SwapChainDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT){SwapChainDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT ; goto again;} // if failed with 32-bit then try again with 16-bit
+   if(SwapChainDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with  8-bit
+   if(SwapChainDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with  8-bit
 #endif
    return false;
 }
@@ -2525,8 +2542,7 @@ Display& Display::full(Bool full, Bool window_size)
    if(full!=T.full())toggle(window_size);
    return T;
 }
-Bool     Display::highMonitorPrecision()C {return monitorPrecision()>IMAGE_PRECISION_8 && full() && exclusive();} // on Windows we need fullscreen and exclusive to be able to really enable it, without it, it will be only 8-bit
-Display& Display::    monitorPrecision(IMAGE_PRECISION precision)
+Display& Display::monitorPrecision(IMAGE_PRECISION precision)
 {
    Clamp(precision, IMAGE_PRECISION_8, IMAGE_PRECISION(IMAGE_PRECISION_NUM-1));
    if(!created())_monitor_prec=precision;else

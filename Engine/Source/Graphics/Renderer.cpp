@@ -441,14 +441,14 @@ INLINE Shader* GetCombine       () {Shader* &s=Sh.h_Combine       ; if(SLOW_SHAD
 INLINE Shader* GetCombineMS     () {Shader* &s=Sh.h_CombineMS     ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("CombineMS"     ); return s;}
 INLINE Shader* GetCombineSS     () {Shader* &s=Sh.h_CombineSS     ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("CombineSS"     ); return s;}
 INLINE Shader* GetCombineSSAlpha() {Shader* &s=Sh.h_CombineSSAlpha; if(SLOW_SHADER_LOAD && !s)s=Sh.get("CombineSSAlpha"); return s;}
-void RendererClass::Combine()
+void RendererClass::Combine(IMAGE_PRECISION rt_prec)
 {
    Bool alpha_premultiplied=false;
    if(_ds->multiSample() && Sh.h_CombineMS) // '_col' could have been resolved already, so check '_ds' instead
    {
       ImageRTPtr resolve=_final; if(resolve->compatible(*_ds_1s))D.alpha(ALPHA_BLEND);else
       {
-         resolve.get(ImageRTDesc(_ds_1s->w(), _ds_1s->h(), IMAGERT_SRGBA)); // resolve to a temp RT and apply that later, here Alpha is used for storing image opacity
+         resolve.get(ImageRTDesc(_ds_1s->w(), _ds_1s->h(), GetImageRTType(true, rt_prec))); // resolve to a temp RT and apply that later, here Alpha is used for storing image opacity
          D.alpha(ALPHA_SETBLEND_SET); alpha_premultiplied=true;
       }
       set(resolve(), _ds_1s(), true, NEED_DEPTH_READ);
@@ -465,7 +465,7 @@ void RendererClass::Combine()
    }else
    if(_col->w()<_final->w()) // resolve first to small buffer
    {
-      ImageRTPtr resolve=_col; resolve.get(ImageRTDesc(_col->w(), _col->h(), IMAGERT_SRGBA)); // here Alpha is used for storing image opacity
+      ImageRTPtr resolve=_col; resolve.get(ImageRTDesc(_col->w(), _col->h(), GetImageRTType(true, rt_prec))); // here Alpha is used for storing image opacity
       set(resolve(), null, false); // request full viewport because we will need it below, when drawing black borders
       D.alpha(ALPHA_SETBLEND_SET); alpha_premultiplied=true;
       GetCombine()->draw(_col, &D.viewRect());
@@ -1913,24 +1913,32 @@ void RendererClass::postProcess()
    if( D._view_main.full && !_get_target && !combine && _col!=_final)_final->discard();
    if(!D._view_main.full)Sh.h_ColClamp->setConditional(colClamp(size)); // set ColClamp that may be needed for Bloom, DoF, MotionBlur, this is the viewport rect within texture, so reading will be clamped to what was rendered inside the viewport
 
+   IMAGE_PRECISION rt_prec=D.litColRTPrecision();
+   if(!_get_target) // if we're going to output to the monitor
+   {
+      IMAGE_PRECISION monitor_prec=D.monitorPrecision();
+      if(fx_dither && monitor_prec==IMAGE_PRECISION_8)monitor_prec=IMAGE_PRECISION_10; // if we allow dither and it will be used (only for 8-bit) then operate on little better (10-bit) precision from which we can generate the dither
+      MIN(rt_prec,    monitor_prec);
+   }
    if(eye_adapt)
    {
-      if(!--fxs)dest=_final;else dest.get(ImageRTDesc(size.x, size.y, GetImageRTType(_has_glow, D.litColRTPrecision()))); // can't read and write to the same RT, glow requires Alpha channel
+      if(!--fxs)dest=_final;else dest.get(ImageRTDesc(size.x, size.y, GetImageRTType(_has_glow, rt_prec))); // can't read and write to the same RT, glow requires Alpha channel
       T.adaptEye(*_col.rc(), *dest); Swap(_col, dest); // Eye Adaptation keeps Alpha
    }
+   IMAGERT_TYPE rt_type=GetImageRTType(false, rt_prec); // there's no need for alpha channel anymore after bloom
    if(bloom) // bloom needs to be done before motion/dof especially because of per-pixel glow
    {
-      if(!--fxs)dest=_final;else dest.get(ImageRTDesc(size.x, size.y, IMAGERT_SRGB)); // can't read and write to the same RT
+      if(!--fxs)dest=_final;else dest.get(ImageRTDesc(size.x, size.y, rt_type)); // can't read and write to the same RT
       T.bloom(*_col, *dest, fx_dither); alpha_set=true; Swap(_col, dest); // Bloom sets Alpha
    }
    if(motion) // tests have shown that it's better to do Motion Blur before Depth of Field
    {
-      if(!--fxs)dest=_final;else dest.get(ImageRTDesc(size.x, size.y, IMAGERT_SRGB)); // can't read and write to the same RT
+      if(!--fxs)dest=_final;else dest.get(ImageRTDesc(size.x, size.y, rt_type)); // can't read and write to the same RT
       if(T.motionBlur(*_col, *dest, fx_dither))return; alpha_set=true; Swap(_col, dest); // Motion Blur sets Alpha
    }
    if(dof) // after Motion Blur
    {
-      if(!--fxs)dest=_final;else dest.get(ImageRTDesc(size.x, size.y, IMAGERT_SRGB)); // can't read and write to the same RT
+      if(!--fxs)dest=_final;else dest.get(ImageRTDesc(size.x, size.y, rt_type)); // can't read and write to the same RT
       T.dof(*_col, *dest, fx_dither); alpha_set=true; Swap(_col, dest); // DoF sets Alpha
    }
 
@@ -1938,7 +1946,7 @@ void RendererClass::postProcess()
 
    if(combine)
    {
-      T.Combine(); alpha_set=true; // Combine sets Alpha
+      T.Combine(rt_prec); alpha_set=true; // Combine sets Alpha
    }
 
    if(!_get_target) // for '_get_target' leave the '_col' result for further processing

@@ -179,7 +179,7 @@ struct RendererClass // handles rendering
    void bloom         (Image   &src, Image &dest, Bool dither=false);
    Bool motionBlur    (Image   &src, Image &dest, Bool dither=false);
    void dof           (Image   &src, Image &dest, Bool dither=false);
-   void Combine       ();
+   void Combine       (IMAGE_PRECISION rt_prec);
 
    Bool reflection        ();
    void prepare           ();
