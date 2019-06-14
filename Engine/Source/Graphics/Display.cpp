@@ -473,9 +473,10 @@ Bool Display::validUsage(UInt usage, D3DRESOURCETYPE res_type, IMAGE_TYPE image_
 {
    if(D3DBase)
    {
-      D3DFORMAT format=ImageTypeToFormat(image_type);
-      return OK(D3DBase->CheckDeviceFormat(D3DADAPTER_DEFAULT, _no_gpu ? D3DDEVTYPE_NULLREF : D3DDEVTYPE_HAL, D3DFMT_A8R8G8B8, usage, res_type, format))
-          || OK(D3DBase->CheckDeviceFormat(D3DADAPTER_DEFAULT, _no_gpu ? D3DDEVTYPE_NULLREF : D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, usage, res_type, format));
+      D3DDEVTYPE dev_type=(_no_gpu ? D3DDEVTYPE_NULLREF : D3DDEVTYPE_HAL);
+      D3DFORMAT  format  =ImageTI[image_type].format;
+      return OK(D3DBase->CheckDeviceFormat(D3DADAPTER_DEFAULT, dev_type, D3DFMT_A8R8G8B8, usage, res_type, format))
+          || OK(D3DBase->CheckDeviceFormat(D3DADAPTER_DEFAULT, dev_type, D3DFMT_X8R8G8B8, usage, res_type, format));
    }
    return false;
 }
@@ -1660,7 +1661,6 @@ static Int DisplaySamples(Int samples)
 #if DX9
    if(D3DBase)
    {
-      D3DFORMAT disp_format=D3DFMT_A8R8G8B8; if(!OK(D3DBase->CheckDeviceType(0, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, disp_format, D3DPP.Windowed)))disp_format=D3DFMT_X8R8G8B8;
       MIN(samples, D3DMULTISAMPLE_16_SAMPLES); // there's no higher sample level on DX9
       for(; samples>1; samples--)
       {
@@ -1751,7 +1751,7 @@ Bool Display::findMode()
    D3DPP.BackBufferCount           =(sync() ? 2 : 1);
    D3DPP.BackBufferWidth           =resW();
    D3DPP.BackBufferHeight          =resH();
-   D3DPP.BackBufferFormat          =D3DFMT_A8R8G8B8; if(D3DBase && !OK(D3DBase->CheckDeviceType(0, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, D3DPP.BackBufferFormat, D3DPP.Windowed)))D3DPP.BackBufferFormat=D3DFMT_X8R8G8B8;
+   D3DPP.BackBufferFormat          =D3DFMT_A8R8G8B8;
    D3DPP.EnableAutoDepthStencil    =false;
    D3DPP.hDeviceWindow             =App.Hwnd();
    D3DPP.SwapEffect                =D3DSWAPEFFECT_DISCARD;
@@ -2109,6 +2109,24 @@ void Display::getCaps()
                       && validUsage(D3DUSAGE_QUERY_POSTPIXELSHADER_BLENDING, D3DRTYPE_TEXTURE, IMAGE_B8G8R8A8)
                       && validUsage(D3DUSAGE_QUERY_POSTPIXELSHADER_BLENDING, D3DRTYPE_TEXTURE, IMAGE_F32     )
                       && validUsage(D3DUSAGE_QUERY_POSTPIXELSHADER_BLENDING, D3DRTYPE_TEXTURE, IMAGE_F16_4   ));
+   REP(IMAGE_ALL_TYPES)
+   {
+      UInt usage=0;
+      // D3DUSAGE_QUERY_FILTER checks for filtering other than D3DTEXF_POINT (used to detect if texture is supported as there's no other way)
+      if(validUsage(D3DUSAGE_QUERY_FILTER, D3DRTYPE_TEXTURE      , (IMAGE_TYPE)i))usage|=ImageTypeInfo::USAGE_IMAGE_2D;
+      if(validUsage(D3DUSAGE_QUERY_FILTER, D3DRTYPE_VOLUMETEXTURE, (IMAGE_TYPE)i))usage|=ImageTypeInfo::USAGE_IMAGE_3D;
+      if(validUsage(D3DUSAGE_QUERY_FILTER, D3DRTYPE_CUBETEXTURE  , (IMAGE_TYPE)i))usage|=ImageTypeInfo::USAGE_IMAGE_CUBE;
+      if(validUsage(D3DUSAGE_RENDERTARGET, D3DRTYPE_TEXTURE      , (IMAGE_TYPE)i))usage|=ImageTypeInfo::USAGE_IMAGE_RT;
+      if(validUsage(D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_TEXTURE      , (IMAGE_TYPE)i))usage|=ImageTypeInfo::USAGE_IMAGE_DS;
+      if(usage&(ImageTypeInfo::USAGE_IMAGE_RT|ImageTypeInfo::USAGE_IMAGE_DS))
+         for(Int samples=D3DMULTISAMPLE_2_SAMPLES; samples<=D3DMULTISAMPLE_16_SAMPLES; samples++) // check all potential multi-sample modes
+      {
+         DWORD levels;
+         if(OK(D3DBase->CheckDeviceMultiSampleType(D3DADAPTER_DEFAULT, _no_gpu ? D3DDEVTYPE_NULLREF : D3DDEVTYPE_HAL, ImageTI[i].format, D3DPP.Windowed, D3DMULTISAMPLE_TYPE(samples), &levels)))
+            if(levels){usage|=ImageTypeInfo::USAGE_IMAGE_MS; break;} // if has any levels
+      }
+      ImageTI[i]._usage=usage;
+   }
 #elif DX11
    // values taken from - https://msdn.microsoft.com/en-us/library/windows/desktop/ff476876(v=vs.85).aspx
    DXGI_SWAP_CHAIN_DESC desc;

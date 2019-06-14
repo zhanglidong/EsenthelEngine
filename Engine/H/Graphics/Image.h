@@ -191,7 +191,7 @@ struct ImageTypeInfo // Image Type Information
    const IMAGE_PRECISION precision ;
 
    Bool highPrecision()C {return precision>IMAGE_PRECISION_8;} // more than 8 bits
-   Byte usage        ()C {return _usage;} // get a combination of USAGE_FLAG, available only on DX11
+   Byte usage        ()C {return _usage;} // get a combination of USAGE_FLAG, available only on DX9, DX11, OpenGL 4.2
 
 #if !EE_PRIVATE
 private:
