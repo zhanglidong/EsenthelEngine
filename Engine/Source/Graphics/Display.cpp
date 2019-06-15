@@ -2808,9 +2808,11 @@ Display& Display::edgeSoften(EDGE_SOFTEN_MODE mode)
    {
       T._edge_soften=mode; if(created())switch(mode) // techniques can be null if failed to load
       {
-         case EDGE_SOFTEN_FXAA: if(!Sh.h_FXAA)
+         case EDGE_SOFTEN_FXAA: if(!Sh.h_FXAA[1])
          {
-            Sh.h_FXAA=Sh.find("FXAA");
+            if(Sh.h_FXAA[0]=Sh.find("FXAA"))
+            if(Sh.h_FXAA[1]=Sh.find("FXAAG"))
+               break; // all OK
          }break;
 
       #if SUPPORT_MLAA

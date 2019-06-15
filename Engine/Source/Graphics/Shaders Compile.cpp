@@ -642,7 +642,8 @@ static void Compile(SHADER_MODEL model)
 
    // AA
 #if 0 // disable GLSL versions because neither Mac/Linux succeed in compiling them
-   glsl.New().set("FXAA", "FXAA"); 
+   REPD(g, 2) // gamma
+      glsl.New().set("FXAA", S+"FXAA"+(g?'G':'\0')).par("GAMMA", TextBool(g));
    REPD(g, 2) // gamma
       glsl.New().set("SMAAEdge" , S+"SMAAEdgeColor"+(g?'G':'\0')).par("GAMMA", TextBool(g));
       glsl.New().set("SMAABlend", "SMAABlend");

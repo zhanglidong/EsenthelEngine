@@ -918,11 +918,11 @@ Bool RendererClass::wantEdgeSoften()C
 {
    switch(D.edgeSoften())
    {
-      case EDGE_SOFTEN_FXAA: return Sh.h_FXAA!=null;
+      case EDGE_SOFTEN_FXAA: return /*Sh.h_FXAA[0]!=null &&*/ Sh.h_FXAA[1]!=null; // check 'h_FXAA[1]' only, because it's set only if all loaded OK
    #if SUPPORT_MLAA
       case EDGE_SOFTEN_MLAA: return Sh.h_MLAAEdge && Sh.h_MLAABlend && Sh.h_MLAA && _mlaa_area;
    #endif
-      case EDGE_SOFTEN_SMAA: return /*Sh.h_SMAAEdge[0] && Sh.h_SMAAEdge[1] && Sh.h_SMAABlend && Sh.h_SMAA && _smaa_area && */_smaa_search!=null; // check '_smaa_search' only, because it's set only if all loaded OK
+      case EDGE_SOFTEN_SMAA: return /*Sh.h_SMAAEdge[0] && Sh.h_SMAAEdge[1] && Sh.h_SMAABlend && Sh.h_SMAA && _smaa_area &&*/ _smaa_search!=null; // check '_smaa_search' only, because it's set only if all loaded OK
    }
    return false;
 }
@@ -1794,7 +1794,20 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
       {
          case EDGE_SOFTEN_FXAA:
          {
-            set(dest(), null, true); Sh.h_FXAA->draw(_col());
+            Bool gamma=false;
+         #if USE_SRGB
+            #if DX11
+               Bool swap=(_col->_srv_srgb && dest->_rtv_srgb); if(swap){dest->swapRTV(); _col->swapSRV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
+               else
+            #endif
+                  gamma=true;
+         #endif
+            set(dest(), null, true); Sh.h_FXAA[gamma]->draw(_col());
+         #if USE_SRGB
+            #if DX11
+               if(swap){dest->swapRTV(); _col->swapSRV();} // restore
+            #endif
+         #endif
          }break;
 
       #if SUPPORT_MLAA

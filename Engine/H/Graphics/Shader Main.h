@@ -245,7 +245,7 @@ struct MainShaderClass
       *h_Volume2[2], // [RedGreen as LumAlpha]
 
       // EDGE SOFTEN
-      *h_FXAA     ,
+      *h_FXAA[2], // [Gamma]
    #if SUPPORT_MLAA
       *h_MLAAEdge ,
       *h_MLAABlend,

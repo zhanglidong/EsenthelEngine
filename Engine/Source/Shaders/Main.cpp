@@ -2874,11 +2874,13 @@ TECHNIQUE(BloomD, Draw_VS(), Bloom_PS(true ));
 #include "FXAA_config.h"
 #include "FXAA.h"
 
-Vec4 FXAA_PS(NOPERSP Vec2 pos:TEXCOORD):COLOR
+Vec4 FXAA_PS(NOPERSP Vec2 pos:TEXCOORD,
+             uniform Bool gamma):COLOR
 {
-   return FxaaPixelShader(pos, 0, Col, Col, Col, ColSize.xy, 0, 0, 0, 0.475f, 0.15f, 0.0833f, 8.0, 0.125, 0.05, Vec4(1.0, -1.0, 0.25, -0.25));
+   return FxaaPixelShader(pos, 0, Col, Col, Col, ColSize.xy, 0, 0, 0, 0.475f, 0.15f, 0.0833f, 8.0, 0.125, 0.05, Vec4(1.0, -1.0, 0.25, -0.25), gamma);
 }
-TECHNIQUE(FXAA, Draw_VS(), FXAA_PS());
+TECHNIQUE(FXAA , Draw_VS(), FXAA_PS(false));
+TECHNIQUE(FXAAG, Draw_VS(), FXAA_PS(true ));
 /******************************************************************************
 // MLAA
 Copyright (C) 2011 Jorge Jimenez (jorge@iryoku.com)
@@ -3749,7 +3751,7 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
 @GROUP_END
 
 
-@GROUP "FXAA"
+@GROUP "FXAA" // params: GAMMA
    @SHARED
       #include "Glsl.h"
       VAR HP Vec2 IO_tex;
@@ -3772,7 +3774,7 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
       #include "FXAA.h"
       void main()
       {
-         gl_FragColor=FxaaPixelShader(IO_tex, 0.0, Col, Col, Col, ColSize.xy, 0.0, 0.0, 0.0, 0.475, 0.15, 0.0833, 8.0, 0.125, 0.05, Vec4(1.0, -1.0, 0.25, -0.25));
+         gl_FragColor=FxaaPixelShader(IO_tex, 0.0, Col, Col, Col, ColSize.xy, 0.0, 0.0, 0.0, 0.475, 0.15, 0.0833, 8.0, 0.125, 0.05, Vec4(1.0, -1.0, 0.25, -0.25), GAMMA);
       }
    @PS_END
 @GROUP_END
