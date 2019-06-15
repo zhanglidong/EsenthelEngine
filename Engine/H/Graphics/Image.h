@@ -95,6 +95,9 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
    IMAGE_PVRTC1_2_SRGB,
    IMAGE_PVRTC1_4_SRGB,
 
+   IMAGE_R11G11B10F,
+   IMAGE_R9G9B9E5F ,
+
    IMAGE_B4G4R4X4     ,
    IMAGE_B4G4R4A4     ,
    IMAGE_B5G5R5X1     ,

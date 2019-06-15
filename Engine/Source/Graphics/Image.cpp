@@ -139,6 +139,9 @@ ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have the sa
    {"PVRTC1_2_SRGB"   , true ,  0,  2,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT)},
    {"PVRTC1_4_SRGB"   , true ,  0,  4,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT)},
 
+   {"R11G11B10F", false,  4, 32,  11,11,10, 0,   0,0, 3, IMAGE_PRECISION_10, 0, GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_R11G11B10_FLOAT   , GL_R11F_G11F_B10F)},
+   {"R9G9B9E5F" , false,  4, 32,  14,14,14, 0,   0,0, 3, IMAGE_PRECISION_10, 0, GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_R9G9B9E5_SHAREDEXP, GL_RGB9_E5)},
+
    {"B4G4R4X4"     , false,  2, 16,   4, 4, 4, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_X4R4G4B4                       , DXGI_FORMAT_UNKNOWN          , 0                    )},
    {"B4G4R4A4"     , false,  2, 16,   4, 4, 4, 4,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_A4R4G4B4                       , DXGI_FORMAT_UNKNOWN          , 0                    )},
    {"B5G5R5X1"     , false,  2, 16,   5, 5, 5, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_X1R5G5B5                       , DXGI_FORMAT_UNKNOWN          , 0                    )},
@@ -158,7 +161,7 @@ ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have the sa
    {"INTZ"         , false,  4, 32,   0, 0, 0, 0,  24,8, 2, IMAGE_PRECISION_24, 0, GPU_API(D3DFORMAT(MAKEFOURCC('I','N','T','Z')), DXGI_FORMAT_UNKNOWN          , 0                    )},
    {"DF24"         , false,  4, 32,   0, 0, 0, 0,  24,0, 1, IMAGE_PRECISION_24, 0, GPU_API(D3DFORMAT(MAKEFOURCC('D','F','2','4')), DXGI_FORMAT_UNKNOWN          , 0                    )}, // DF24 does not have stencil buffer
    {"NULL"         , false,  0,  0,   0, 0, 0, 0,   0,0, 0, IMAGE_PRECISION_8 , 0, GPU_API(D3DFORMAT(MAKEFOURCC('N','U','L','L')), DXGI_FORMAT_UNKNOWN          , 0                    )},
-}; ASSERT(IMAGE_ALL_TYPES==65);
+}; ASSERT(IMAGE_ALL_TYPES==67);
 /******************************************************************************/
 Bool IsSRGB(IMAGE_TYPE type)
 {
@@ -555,6 +558,8 @@ UInt SourceGLFormat(IMAGE_TYPE type)
       case IMAGE_R8G8     :
       case IMAGE_R8G8_SIGN: return GL_RG;
 
+      case IMAGE_R11G11B10F :
+      case IMAGE_R9G9B9E5F  :
       case IMAGE_F16_3      :
       case IMAGE_F32_3      :
       case IMAGE_R8G8B8     :
@@ -613,6 +618,9 @@ UInt SourceGLType(IMAGE_TYPE type)
       case IMAGE_I32: return GL_UNSIGNED_INT  ;
 
       case IMAGE_R10G10B10A2: return GL_UNSIGNED_INT_2_10_10_10_REV;
+
+      case IMAGE_R11G11B10F: return GL_UNSIGNED_INT_10F_11F_11F_REV;
+      case IMAGE_R9G9B9E5F : return GL_UNSIGNED_INT_5_9_9_9_REV;
 
       case IMAGE_B4G4R4X4:
       case IMAGE_B4G4R4A4: return GL_UNSIGNED_SHORT_4_4_4_4;
