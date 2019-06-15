@@ -1170,7 +1170,6 @@ again:
    D3D11_QUERY_DESC query_desc={D3D11_QUERY_EVENT, 0};
    D3D->CreateQuery(&query_desc, &Query);
 #elif GL
-  _shader_model=(GL_ES ? SM_GL_ES_2 : SM_GL);
    if(FlagTest(App.flag, APP_ALLOW_NO_GPU)) // completely disable hardware on OpenGL because there's no way to know if it's available
    {
      _can_draw=false;
@@ -1246,6 +1245,7 @@ again:
             MainContext.lock();
          }
       }
+     _shader_model=SM_GL;
 
       // enumerate display modes
       MemtN<VecI2, 128> modes;
@@ -1287,6 +1287,7 @@ again:
       if(!MainContext.context)Exit("Can't create an OpenGL Context.");
       if(MAC_GL_MT)Bool mt_ok=(CGLEnable(MainContext.context, kCGLCEMPEngine)!=kCGLNoError);
       MainContext.lock();
+     _shader_model=SM_GL;
 
       OpenGLContext=[[NSOpenGLContext alloc] initWithCGLContextObj:MainContext.context];
       [OpenGLContext setView:OpenGLView];
@@ -1332,6 +1333,7 @@ again:
          #endif
          XSync(XDisplay, false); // Forcibly wait on any resulting X errors
          MainContext.lock();
+        _shader_model=SM_GL;
 
          glXSwapInterval=(glXSwapIntervalType)glXGetProcAddressARB((C GLubyte*)"glXSwapIntervalEXT"); // access it via 'glXGetProcAddressARB' because some people have linker errors "undefined reference to 'glXSwapIntervalEXT'
 
@@ -1353,18 +1355,17 @@ again:
       if(LogInit)LogN("EGL");
       GLDisplay=eglGetDisplay(EGL_DEFAULT_DISPLAY); if(!GLDisplay)Exit("Can't get EGL Display"); if(eglInitialize(GLDisplay, null, null)!=EGL_TRUE)Exit("Can't initialize EGL Display");
       Byte samples=1; IMAGE_TYPE ds_type=IMAGE_NONE;
-      FREPD(gl_ver, 2)
-         if(gl_ver || OSVerNumber().x>=18) // proceed only if we're trying GLES 2.0, or 3.0 AND AndroidAPI>=18 (which is the Android Version which started supporting 3.0), this is because Asus Transformer Prime TF201 succeeds with 3.0 context but it doesn't actually support it (TF201 has Android 4.1.1 which is API 16)
+      for(Int gl_ver=3; gl_ver>=3; gl_ver--) // start from OpenGL ES 3.0 (ES3)
       {
          EGLint ctx_attribs[]=
          {
-            EGL_CONTEXT_CLIENT_VERSION, (gl_ver==0) ? 3 : 2, // try OpenGL ES 3.0 context first, then fallback to 2.0
+            EGL_CONTEXT_CLIENT_VERSION, gl_ver,
             EGL_NONE // end of list
          };
          FREPD(d, 3) // depth   - process this with priority #1
          FREPD(s, 2) // stencil - process this with priority #2
          {
-            ds_type  =((d==0) ? ((s==0) ? IMAGE_D24S8 : IMAGE_D24X8) : (d==1) ? IMAGE_D32 : IMAGE_D16);
+            ds_type=((d==0) ? ((s==0) ? IMAGE_D24S8 : IMAGE_D24X8) : (d==1) ? IMAGE_D32 : IMAGE_D16);
             EGLint attribs[]=
             {
                EGL_SURFACE_TYPE   , EGL_WINDOW_BIT,
@@ -1388,7 +1389,7 @@ again:
                {
                   if(MainContext.context=eglCreateContext(GLDisplay, GLConfig, null, ctx_attribs))
                   {
-                     if(gl_ver==0)_shader_model=SM_GL_ES_3; // we succeeded with creating a 3.0 context
+                     if(gl_ver==3)_shader_model=SM_GL_ES_3; // we succeeded with creating a 3.0 context
                      goto context_ok;
                   }
                   MainContext.del();
@@ -1408,18 +1409,7 @@ again:
       if(LogInit)LogN(S+"Renderer._main: "+Renderer._main.w()+'x'+Renderer._main.h()+", type: "+ImageTI[Renderer._main.hwType()].name+", ds_type: "+ImageTI[Renderer._main_ds.hwType()].name);
    #elif IOS
       if(MainContext.context=[[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3])_shader_model=SM_GL_ES_3;else
-      if(MainContext.context=[[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2])
-      {
-        _shader_model=SM_GL_ES_2;
-         // iOS has a bug in which it falsely returns success for creating ETC formats on OpenGL ES 2 even though they're not supported, so as a workaround, disable them completely
-         ConstCast(ImageTI[IMAGE_ETC1        ].format)=0;
-         ConstCast(ImageTI[IMAGE_ETC2        ].format)=0;
-         ConstCast(ImageTI[IMAGE_ETC2_SRGB   ].format)=0;
-         ConstCast(ImageTI[IMAGE_ETC2_A1     ].format)=0;
-         ConstCast(ImageTI[IMAGE_ETC2_A1_SRGB].format)=0;
-         ConstCast(ImageTI[IMAGE_ETC2_A8     ].format)=0;
-         ConstCast(ImageTI[IMAGE_ETC2_A8_SRGB].format)=0;
-      }else Exit("Can't create a OpenGL ES 2.0 Context.");
+         Exit("Can't create an OpenGL Context.");
       MainContext.context.multiThreaded=false; // disable multi-threaded rendering as enabled actually made things slower, TOOD: check again in the future !! if enabling then probably all contexts have to be enabled as well, secondary too, because VAO from VBO's on a secondary thread could fail, as in Dungeon Hero, needs checking !!
       MainContext.lock();
    #elif WEB
@@ -1433,12 +1423,12 @@ again:
       attrs.preserveDrawingBuffer=false;
       attrs.enableExtensionsByDefault=true;
       attrs.preferLowPowerToHighPerformance=false;
-      for(Int gl_ver=2; gl_ver>=1; gl_ver--) // start from WebGL 2.0 (ES3) down to 1.0 (ES2)
+      for(Int gl_ver=2; gl_ver>=2; gl_ver--) // start from WebGL 2.0 (ES3)
       {
          attrs.majorVersion=gl_ver;
          if(MainContext.context=emscripten_webgl_create_context(null, &attrs))
          {
-           _shader_model=((gl_ver>=2) ? SM_GL_ES_3 : SM_GL_ES_2);
+            if(gl_ver==2)_shader_model=SM_GL_ES_3;
             goto context_ok;
          }
       }

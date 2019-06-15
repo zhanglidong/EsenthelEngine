@@ -202,9 +202,9 @@ private:
 #endif
    Byte _usage;
 #if EE_PRIVATE
-   GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) format;
+   const GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) format;
 #else
-   UInt format;
+   const UInt format;
 #endif
 };extern ImageTypeInfo
    ImageTI[]; // Image Type Info Array, allows obtaining information about specified IMAGE_TYPE, sample usage: ImageTI[IMAGE_R8G8B8A8].name -> "R8G8B8A8"
