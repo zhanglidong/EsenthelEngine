@@ -292,13 +292,13 @@ void OpenVRApi::draw()
          if(_overlay_visible) // this needs to be called per-frame
          {
             t.handle=(Ptr)_gui._txtr;
-            t.eColorSpace=vr::ColorSpace_Gamma; // TODO: support gamma correct sRGB rendering
+            t.eColorSpace=vr::ColorSpace_Auto; // TODO: support gamma correct sRGB rendering
 	        _overlay->SetOverlayTexture(_overlay_id, &t);
          }
       }
 
       t.handle=(Ptr)_render._txtr;
-      t.eColorSpace=vr::ColorSpace_Gamma; // TODO: support gamma correct sRGB rendering
+      t.eColorSpace=vr::ColorSpace_Auto; // TODO: support gamma correct sRGB rendering
 
       vr::VRTextureBounds_t rect;
    #if GL // for OpenGL need to flip vertically
@@ -324,14 +324,14 @@ void OpenVRApi::delImages()
 Bool OpenVRApi::createGuiImage()
 {
 #if SUPPORT_OPEN_VR
-   if(_gui.createTry(VR.guiRes().x, VR.guiRes().y, 1, IMAGE_R8G8B8A8, IMAGE_RT, 1))
+   if(_gui.createTry(VR.guiRes().x, VR.guiRes().y, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_RT, 1))
    {
       if(_overlay && _overlay_id!=vr::k_ulOverlayHandleInvalid)
       {
          vr::Texture_t t;
          t.handle=(Ptr)_gui._txtr;
          t.eType=GPU_API(vr::API_DirectX, vr::API_DirectX, vr::API_OpenGL);
-         t.eColorSpace=vr::ColorSpace_Gamma; // TODO: support gamma correct sRGB rendering
+         t.eColorSpace=vr::ColorSpace_Auto; // TODO: support gamma correct sRGB rendering
 	     _overlay->SetOverlayTexture(_overlay_id, &t);
          setOverlaySizeDepth();
       }
@@ -348,7 +348,7 @@ Bool OpenVRApi::createRenderImage()
       uint32_t w=0, h=0; _vr->GetRecommendedRenderTargetSize(&w, &h);
       Clamp(w*=2, 2, D.maxTexSize()); // *2 also makes sure that both eyes have the same width
       Clamp(h   , 1, D.maxTexSize());
-      return _render.createTry(w, h, 1, IMAGE_R8G8B8A8, IMAGE_RT, 1);
+      return _render.createTry(w, h, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_RT, 1);
    }
 #endif
    return false;

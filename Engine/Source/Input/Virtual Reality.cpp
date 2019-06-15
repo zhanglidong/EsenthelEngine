@@ -62,8 +62,8 @@ static struct VirtualRealityDummyApi : VirtualRealityApi
    virtual void   draw           ()  override {}
 
    virtual void          delImages()override {_render.del(); _gui.del();}
-   virtual Bool    createGuiImage ()override {return _gui   .createTry(VR.guiRes().x, VR.guiRes().y, 1, IMAGE_R8G8B8A8, IMAGE_RT, 1);}
-   virtual Bool createRenderImage ()override {return _render.createTry(1280, 720, 1, IMAGE_R8G8B8A8, IMAGE_RT, 1);}
+   virtual Bool    createGuiImage ()override {return _gui   .createTry(VR.guiRes().x, VR.guiRes().y, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_RT, 1);}
+   virtual Bool createRenderImage ()override {return _render.createTry(1280, 720, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_RT, 1);}
 
    virtual ImageRC* getNewRender ()override {return  _render.is() ? &_render : null;}
    virtual ImageRC* getNewGui    ()override {return  _gui   .is() ? &_gui    : null;}

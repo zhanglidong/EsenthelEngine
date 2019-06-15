@@ -1886,40 +1886,6 @@ Image& Image::lumFromAlphaAndLight(UInt light_dir, Flt density_factor)
    }
    return T;
 }
-/******************************************************************************
-Image& fadeMipMaps(); // fade out mip maps, the smaller the mip map the more faded it will be
-Image& Image::fadeMipMaps()
-{
-   if(mode()==IMAGE_2D)
-   {
-      Image temp;
-      FREP(mipMaps())
-      {
-         Flt s;
-         Int mip_size=Max(w()>>i, h()>>i);
-         if( mip_size>=256)s=1.00f;else
-         if( mip_size>=128)s=0.66f;else
-         if( mip_size>= 64)s=0.33f;else
-                           s=0.00f;
-         if(s<1)
-         {
-            Bool copy=compressed(); // if the image is compressed then operate on mip extracted to copy image
-            if(  copy)extractMipMap(temp, IMAGE_R8G8B8A8, i);
-            Image &image=(copy ? temp : T);
-
-            if(image.lock(LOCK_READ_WRITE, copy ? 0 : i))
-            {
-               REPD(y, image.lh())
-               REPD(x, image.lw())image.color(x, y, Lerp(Color(128, 128, 128, 128), image.color(x, y), s));
-               image.unlock();
-
-               if(copy)injectMipMap(temp, i);
-            }
-         }
-      }
-   }
-   return T;
-}
 /******************************************************************************/
 Image& Image::tile(Int range, Bool horizontally, Bool vertically)
 {

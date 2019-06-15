@@ -1352,7 +1352,7 @@ again:
    #elif ANDROID
       if(LogInit)LogN("EGL");
       GLDisplay=eglGetDisplay(EGL_DEFAULT_DISPLAY); if(!GLDisplay)Exit("Can't get EGL Display"); if(eglInitialize(GLDisplay, null, null)!=EGL_TRUE)Exit("Can't initialize EGL Display");
-      Bool has_alpha=false, bit16=false; Byte samples=1; IMAGE_TYPE ds_type=IMAGE_NONE;
+      Byte samples=1; IMAGE_TYPE ds_type=IMAGE_NONE;
       FREPD(gl_ver, 2)
          if(gl_ver || OSVerNumber().x>=18) // proceed only if we're trying GLES 2.0, or 3.0 AND AndroidAPI>=18 (which is the Android Version which started supporting 3.0), this is because Asus Transformer Prime TF201 succeeds with 3.0 context but it doesn't actually support it (TF201 has Android 4.1.1 which is API 16)
       {
@@ -1361,27 +1361,23 @@ again:
             EGL_CONTEXT_CLIENT_VERSION, (gl_ver==0) ? 3 : 2, // try OpenGL ES 3.0 context first, then fallback to 2.0
             EGL_NONE // end of list
          };
-         FREPD(c, 2) // colors  (process this as 1st in loop as it's most  important)
-         FREPD(d, 3) // depth   (process this as 2nd in loop as it's more  important)
-         FREPD(s, 2) // stencil (process this as 3rd in loop as it's less  important)
-         FREPD(a, 2) // alpha   (process this as 4th in loop as it's least important)
+         FREPD(d, 3) // depth   - process this with priority #1
+         FREPD(s, 2) // stencil - process this with priority #2
          {
-            has_alpha=(c==0 && a==0);
-            bit16    =(c==1);
             ds_type  =((d==0) ? ((s==0) ? IMAGE_D24S8 : IMAGE_D24X8) : (d==1) ? IMAGE_D32 : IMAGE_D16);
             EGLint attribs[]=
             {
                EGL_SURFACE_TYPE   , EGL_WINDOW_BIT,
                EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-               EGL_BLUE_SIZE      , (c==0) ?  8 : 5,
-               EGL_GREEN_SIZE     , (c==0) ?  8 : 6,
-               EGL_RED_SIZE       , (c==0) ?  8 : 5,
-               EGL_ALPHA_SIZE     , has_alpha ? 8 : 0,
+               EGL_BLUE_SIZE      , 8,
+               EGL_GREEN_SIZE     , 8,
+               EGL_RED_SIZE       , 8,
+               EGL_ALPHA_SIZE     , 8,
                EGL_DEPTH_SIZE     , (d==0) ? 24 : (d==1) ? 32 : 16,
                EGL_STENCIL_SIZE   , (s==0) ?  8 : 0,
                EGL_NONE // end of list
             };
-            if(LogInit)LogN(S+"Trying config GL:"+gl_ver+", C:"+c+", D:"+d+", S:"+s+", A:"+a);
+            if(LogInit)LogN(S+"Trying config GL:"+gl_ver+", D:"+d+", S:"+s);
             EGLint num_configs=0;
             if(eglChooseConfig(GLDisplay, attribs, &GLConfig, 1, &num_configs)==EGL_TRUE)
                if(num_configs>=1)
@@ -1407,8 +1403,8 @@ again:
       EGLint width, height;
       eglQuerySurface(GLDisplay, MainContext.surface, EGL_WIDTH , &width );
       eglQuerySurface(GLDisplay, MainContext.surface, EGL_HEIGHT, &height);
-      Renderer._main   .forceInfo(width, height, 1, bit16 ? IMAGE_B5G6R5 : has_alpha ? IMAGE_R8G8B8A8 : IMAGE_R8G8B8X8, IMAGE_SURF, samples);
-      Renderer._main_ds.forceInfo(width, height, 1, ds_type                                                           , IMAGE_DS  , samples);
+      Renderer._main   .forceInfo(width, height, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_SURF, samples);
+      Renderer._main_ds.forceInfo(width, height, 1, ds_type            , IMAGE_DS  , samples);
       if(LogInit)LogN(S+"Renderer._main: "+Renderer._main.w()+'x'+Renderer._main.h()+", type: "+ImageTI[Renderer._main.hwType()].name+", ds_type: "+ImageTI[Renderer._main_ds.hwType()].name);
    #elif IOS
       if(MainContext.context=[[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3])_shader_model=SM_GL_ES_3;else
@@ -1451,7 +1447,7 @@ again:
       MainContext.lock();
       Byte samples=(attrs.antialias ? 4 : 1);
       int  width, height; emscripten_get_canvas_element_size(null, &width, &height);
-      Renderer._main   .forceInfo(width, height, 1, IMAGE_R8G8B8A8                           , IMAGE_SURF, samples);
+      Renderer._main   .forceInfo(width, height, 1, IMAGE_R8G8B8A8_SRGB                      , IMAGE_SURF, samples);
       Renderer._main_ds.forceInfo(width, height, 1, attrs.stencil ? IMAGE_D24S8 : IMAGE_D24X8, IMAGE_DS  , samples);
    #endif
 

@@ -36,11 +36,11 @@ Bool Image::ImportWEBP(File &f)
                IMAGE_TYPE type;
                if(bitstream->has_alpha)
                {
-                  type                     =IMAGE_R8G8B8A8;
+                  type                     =IMAGE_R8G8B8A8_SRGB;
                   output_buffer->colorspace=MODE_RGBA;
                }else
                {
-                  type                     =IMAGE_R8G8B8;
+                  type                     =IMAGE_R8G8B8_SRGB;
                   output_buffer->colorspace=MODE_RGB;
                }
                if(createSoftTry(bitstream->width, bitstream->height, 1, type))

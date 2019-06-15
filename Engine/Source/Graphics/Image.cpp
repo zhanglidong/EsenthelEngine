@@ -1648,7 +1648,7 @@ static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'des
       case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB: decompress_block=DecompressBlockETC2A8; decompress_block_pitch=DecompressBlockETC2A8; break;
    }
    Bool hp=(decompress_block_VecH && dest.highPrecision()); // only if both 'src' and 'dest' are high precision
-   if(dest.is() || dest.createTry(src.w(), src.h(), src.d(), (src.hwType()==IMAGE_BC6) ? IMAGE_F16_3 : IMAGE_R8G8B8A8, src.cube() ? IMAGE_SOFT_CUBE : IMAGE_SOFT, src.mipMaps())) // use 'IMAGE_R8G8B8A8' because Decompress Block functions operate on 'Color'
+   if(dest.is() || dest.createTry(src.w(), src.h(), src.d(), (src.hwType()==IMAGE_BC6) ? IMAGE_F16_3 : src.sRGB() ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, src.cube() ? IMAGE_SOFT_CUBE : IMAGE_SOFT, src.mipMaps())) // use 'IMAGE_R8G8B8A8' because Decompress Block functions operate on 'Color'
       if(dest.size3()==src.size3())
    {
       Int src_faces1=src.faces()-1,

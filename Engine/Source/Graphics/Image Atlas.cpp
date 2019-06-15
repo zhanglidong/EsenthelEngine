@@ -72,7 +72,7 @@ Bool ImageAtlas::create(C MemPtr<Source> &images, IMAGE_TYPE image_type, Int mip
 
    // write parts to images
    T.parts .setNum(ias        .elms());
-   T.images.setNum(image_sizes.elms()); REPA(T.images)if(T.images[i].createTry(image_sizes[i].x, image_sizes[i].y, 1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1))T.images[i].clear();else goto error;
+   T.images.setNum(image_sizes.elms()); REPA(T.images)if(T.images[i].createTry(image_sizes[i].x, image_sizes[i].y, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))T.images[i].clear();else goto error;
    REPA(ias)
    {
     C RectIndex    &pack=packed[i];

@@ -137,7 +137,7 @@ EAGLView* GetUIView()
       layer.opaque=true;
       layer.drawableProperties=[NSDictionary dictionaryWithObjectsAndKeys:
          [NSNumber numberWithBool:false], kEAGLDrawablePropertyRetainedBacking, // discard framebuffer contents after drawing frame, for better performance
-         kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat, // use RGBA8 format
+         kEAGLColorFormatSRGBA8, kEAGLDrawablePropertyColorFormat, // use SRGBA8 format
          nil];
 
       initialized=false;

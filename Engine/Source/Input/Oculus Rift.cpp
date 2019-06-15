@@ -96,7 +96,7 @@ static struct ovrTexture
 
       // TODO: support gamma correct sRGB rendering
       image._size=image._hw_size.set(w, h, 1);
-      image._type=image._hw_type=IMAGE_R8G8B8A8;
+      image._type=image._hw_type=IMAGE_R8G8B8A8_SRGB;
       image._mode=IMAGE_RT;
       image._mms=1;
       image._samples=1;
@@ -125,12 +125,12 @@ static struct ovrTexture
             ovrD3D11Texture &tex=(ovrD3D11Texture&)texture_set->Textures[i];
 
             D3D11_RENDER_TARGET_VIEW_DESC rtvd; Zero(rtvd);
-            rtvd.Format       =DXGI_FORMAT_R8G8B8A8_UNORM;
+            rtvd.Format       =DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
             rtvd.ViewDimension=D3D11_RTV_DIMENSION_TEXTURE2D;
             if(!OK(D3D->CreateRenderTargetView(tex.D3D11.pTexture, &rtvd, &rtv[i])))goto error;
 
             D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd);
-            srvd.Format             =DXGI_FORMAT_R8G8B8A8_UNORM;
+            srvd.Format             =DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
             srvd.ViewDimension      =D3D11_SRV_DIMENSION_TEXTURE2D;
             srvd.Texture2D.MipLevels=1;
             if(!OK(D3D->CreateShaderResourceView(tex.D3D11.pTexture, &srvd, &srv[i])))goto error;

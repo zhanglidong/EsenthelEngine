@@ -517,7 +517,7 @@ struct PanelImageCreate
       {
          REPA(temp_images)if(temp_images[i].src==image){image=&temp_images[i].soft; goto found;} // goto found and lock it, because it's always unlocked in the codes below
          ImageSrc &temp=temp_images.New(); temp.src=image;
-         if(image->copyTry(temp.soft, -1, -1, -1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1))image=&temp.soft;else image=null;
+         if(image->copyTry(temp.soft, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))image=&temp.soft;else image=null;
       }
    found:
       return (image && image->lockRead()) ? image : null;
@@ -534,7 +534,7 @@ struct PanelImageCreate
    }
    Bool create()
    {
-      if(image   .createSoftTry(resolution*params.width, resolution*params.height, 1, IMAGE_R8G8B8A8)
+      if(image   .createSoftTry(resolution*params.width, resolution*params.height, 1, IMAGE_R8G8B8A8_SRGB)
       && map     .createSoftTry(image.w(), image.h(), 1, IMAGE_F32  )
       && dist_map.createSoftTry(image.w(), image.h(), 1, IMAGE_F32_4))
       {

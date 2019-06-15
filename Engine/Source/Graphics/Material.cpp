@@ -553,12 +553,12 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image &alp
    UInt  ret=0;
    Image dest_0, dest_1;
    {
-      Image      col_temp; C Image *     col_src=&     col; if(     col_src->compressed())if(     col_src->copyTry(     col_temp, -1, -1, -1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1))     col_src=&     col_temp;else goto error;
-      Image    alpha_temp; C Image *   alpha_src=&   alpha; if(   alpha_src->compressed())if(   alpha_src->copyTry(   alpha_temp, -1, -1, -1, IMAGE_L8A8    , IMAGE_SOFT, 1))   alpha_src=&   alpha_temp;else goto error;
-      Image     bump_temp; C Image *    bump_src=&    bump; if(    bump_src->compressed())if(    bump_src->copyTry(    bump_temp, -1, -1, -1, IMAGE_L8      , IMAGE_SOFT, 1))    bump_src=&    bump_temp;else goto error;
-      Image   normal_temp; C Image *  normal_src=&  normal; if(  normal_src->compressed())if(  normal_src->copyTry(  normal_temp, -1, -1, -1, IMAGE_R8G8    , IMAGE_SOFT, 1))  normal_src=&  normal_temp;else goto error;
-      Image specular_temp; C Image *specular_src=&specular; if(specular_src->compressed())if(specular_src->copyTry(specular_temp, -1, -1, -1, IMAGE_L8      , IMAGE_SOFT, 1))specular_src=&specular_temp;else goto error;
-      Image     glow_temp; C Image *    glow_src=&    glow; if(    glow_src->compressed())if(    glow_src->copyTry(    glow_temp, -1, -1, -1, IMAGE_L8A8    , IMAGE_SOFT, 1))    glow_src=&    glow_temp;else goto error;
+      Image      col_temp; C Image *     col_src=&     col; if(     col_src->compressed())if(     col_src->copyTry(     col_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))     col_src=&     col_temp;else goto error;
+      Image    alpha_temp; C Image *   alpha_src=&   alpha; if(   alpha_src->compressed())if(   alpha_src->copyTry(   alpha_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))   alpha_src=&   alpha_temp;else goto error;
+      Image     bump_temp; C Image *    bump_src=&    bump; if(    bump_src->compressed())if(    bump_src->copyTry(    bump_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))    bump_src=&    bump_temp;else goto error;
+      Image   normal_temp; C Image *  normal_src=&  normal; if(  normal_src->compressed())if(  normal_src->copyTry(  normal_temp, -1, -1, -1, IMAGE_R8G8         , IMAGE_SOFT, 1))  normal_src=&  normal_temp;else goto error;
+      Image specular_temp; C Image *specular_src=&specular; if(specular_src->compressed())if(specular_src->copyTry(specular_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))specular_src=&specular_temp;else goto error;
+      Image     glow_temp; C Image *    glow_src=&    glow; if(    glow_src->compressed())if(    glow_src->copyTry(    glow_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))    glow_src=&    glow_temp;else goto error;
 
       // set alpha
       // 1. Glow  Map shouldn't be stored in #1 texture because of difficulties when drawing multi-materials
@@ -618,7 +618,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image &alp
              h=Max(col_src->h(), bump_src->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
          Image  col_temp; C Image *cs= col_src; if(cs->is() && (cs->w()!=w || cs->h()!=h))if(cs->copyTry( col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, false))cs=& col_temp;else goto error;
          Image bump_temp; C Image *bs=bump_src; if(bs->is() && (bs->w()!=w || bs->h()!=h))if(bs->copyTry(bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, false))bs=&bump_temp;else goto error;
-         dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8A8);
+         dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8A8_SRGB);
          if(!cs->is() || cs->lockRead())
          {
             if(!bs->is() || bs->lockRead())
@@ -635,7 +635,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image &alp
              h=Max(col_src->h(), alpha_src->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
          Image   col_temp; C Image *cs=  col_src; if(cs->is() && (cs->w()!=w || cs->h()!=h))if(cs->copyTry(  col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, false))cs=&  col_temp;else goto error;
          Image alpha_temp; C Image *as=alpha_src; if(as->is() && (as->w()!=w || as->h()!=h))if(as->copyTry(alpha_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, false))as=&alpha_temp;else goto error;
-         dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8A8);
+         dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8A8_SRGB);
          if(!cs->is() || cs->lockRead())
          {
             if(!as->is() || as->lockRead())
@@ -719,9 +719,9 @@ void CreateDetailTexture(Image &detail, C Image &col, C Image &bump, C Image &no
 {
    Image dest;
    {
-      Image    col_temp; C Image *   col_src=&   col; if(   col_src->compressed())if(   col_src->copyTry(   col_temp, -1, -1, -1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1))   col_src=&   col_temp;else goto error;
-      Image   bump_temp; C Image *  bump_src=&  bump; if(  bump_src->compressed())if(  bump_src->copyTry(  bump_temp, -1, -1, -1, IMAGE_L8      , IMAGE_SOFT, 1))  bump_src=&  bump_temp;else goto error;
-      Image normal_temp; C Image *normal_src=&normal; if(normal_src->compressed())if(normal_src->copyTry(normal_temp, -1, -1, -1, IMAGE_R8G8    , IMAGE_SOFT, 1))normal_src=&normal_temp;else goto error;
+      Image    col_temp; C Image *   col_src=&   col; if(   col_src->compressed())if(   col_src->copyTry(   col_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))   col_src=&   col_temp;else goto error;
+      Image   bump_temp; C Image *  bump_src=&  bump; if(  bump_src->compressed())if(  bump_src->copyTry(  bump_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))  bump_src=&  bump_temp;else goto error;
+      Image normal_temp; C Image *normal_src=&normal; if(normal_src->compressed())if(normal_src->copyTry(normal_temp, -1, -1, -1, IMAGE_R8G8         , IMAGE_SOFT, 1))normal_src=&normal_temp;else goto error;
 
       Int w=Max(col_src->w(), bump_src->w(), normal_src->w()),
           h=Max(col_src->h(), bump_src->h(), normal_src->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
@@ -809,7 +809,7 @@ Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int 
       }
 
       Image color; // operate on temp variable in case 'base_0' argument is set to other images used in this func
-      if(material.base_0->copyTry(color, size.x, size.y, 1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1, filter, false)) // create new color map
+      if(material.base_0->copyTry(color, size.x, size.y, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1, filter, false)) // create new color map
       {
          Image b1; // 'base_1' resized to 'color' resolution
          MAX(light_power, 0);

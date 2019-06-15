@@ -87,8 +87,8 @@ Bool Image::ImportTIF(File &f)
          switch(samples)
          {
             case 1: if(photometric==PHOTOMETRIC_MINISBLACK)if(bits==8)type=IMAGE_L8;else if(bits==16)type=IMAGE_I16;else if(bits==24)type=IMAGE_I24;else if(bits==32)type=IMAGE_I32; break;
-            case 3: if(photometric==PHOTOMETRIC_RGB)if(bits==8)type=IMAGE_R8G8B8  ; break;
-            case 4: if(photometric==PHOTOMETRIC_RGB)if(bits==8)type=IMAGE_R8G8B8A8; break;
+            case 3: if(photometric==PHOTOMETRIC_RGB)if(bits==8)type=IMAGE_R8G8B8_SRGB  ; break;
+            case 4: if(photometric==PHOTOMETRIC_RGB)if(bits==8)type=IMAGE_R8G8B8A8_SRGB; break;
          }
          if(type && createSoftTry(w, h, 1, type))
          {
@@ -119,7 +119,7 @@ Bool Image::ImportTIF(File &f)
          }
       }
       if(!ok)
-         if(createSoftTry(w, h, 1, IMAGE_R8G8B8A8))
+         if(createSoftTry(w, h, 1, IMAGE_R8G8B8A8_SRGB))
             if(TIFFReadRGBAImageOriented(tif, w, h, (uint32*)data(), ORIENTATION_TOPLEFT, 0))
       {
          ok=true;
