@@ -122,13 +122,13 @@ ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have the sa
 
    {null           , false,  0,  0,   0, 0, 0, 0,   0,0, 0, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, 0)},
 
-   {"B8G8R8A8_SRGB", false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_B8G8R8A8_UNORM_SRGB, 0)},
-   {"R8G8B8A8_SRGB", false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, GL_SRGB8_ALPHA8)},
-   {"R8G8B8_SRGB"  , false,  3, 24,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN            , GL_SRGB8)},
+   {"B8G8R8A8_SRGB", false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_A8R8G8B8, DXGI_FORMAT_B8G8R8A8_UNORM_SRGB, 0)},
+   {"R8G8B8A8_SRGB", false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_A8B8G8R8, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, GL_SRGB8_ALPHA8)},
+   {"R8G8B8_SRGB"  , false,  3, 24,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_UNKNOWN , DXGI_FORMAT_UNKNOWN            , GL_SRGB8)},
 
-   {"BC1_SRGB"        , true ,  0,  4,   5, 6, 5, 1,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_BC1_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT)},
-   {"BC2_SRGB"        , true ,  1,  8,   5, 6, 5, 4,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_BC2_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT)},
-   {"BC3_SRGB"        , true ,  1,  8,   5, 6, 5, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_BC3_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT)},
+   {"BC1_SRGB"        , true ,  0,  4,   5, 6, 5, 1,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_DXT1   , DXGI_FORMAT_BC1_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT)},
+   {"BC2_SRGB"        , true ,  1,  8,   5, 6, 5, 4,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_DXT3   , DXGI_FORMAT_BC2_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT)},
+   {"BC3_SRGB"        , true ,  1,  8,   5, 6, 5, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_DXT5   , DXGI_FORMAT_BC3_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT)},
    {"BC6"             , true ,  1,  8,  16,16,16, 0,   0,0, 3, IMAGE_PRECISION_16, 0, GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_BC6H_UF16     , GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT)},
    {"BC7_SRGB"        , true ,  1,  8,   7, 7, 7, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_BC7_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM)},
 
@@ -803,6 +803,8 @@ void Image::setInfo()
             T._base= null;
 
    if(_base)T._mms=_base->GetLevelCount();
+   if(ImageTypeRemoveSRGB(type())==hwType())_hw_type=type();
+  _srgb=T.sRGB();
 #elif DX11
    // lock not needed for DX11 'D3D'
    if(_txtr)
@@ -2854,7 +2856,7 @@ UInt Image::typeMemUsage()C {return ImageSize(hwW(), hwH(), hwD(),   type(), mod
 Bool Image::map()
 {
 #if DX9
-   del(); if(OK(D3D->GetRenderTarget(0, &T._surf))){_mode=IMAGE_SURF; setInfo(); adjustInfo(hwW(), hwH(), hwD(), hwType()); return true;}
+   del(); if(OK(D3D->GetRenderTarget(0, &T._surf))){_mode=IMAGE_SURF; setInfo(); if(USE_SRGB){_hw_type=ImageTypeToggleSRGB(hwType()); _srgb=true;} adjustInfo(hwW(), hwH(), hwD(), hwType()); return true;}
 #elif DX11
    del(); if(OK(SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (Ptr*)&_txtr))){_mode=IMAGE_RT; setInfo(); adjustInfo(hwW(), hwH(), hwD(), hwType()); return true;}
 #elif DX12
