@@ -2,7 +2,6 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
-#define USE_SRGB 0 // FIXME
 #define KNOWN_IMAGE_TYPE_USAGE (DX9 || DX11)
 /******************************************************************************/
 struct ImageRTType

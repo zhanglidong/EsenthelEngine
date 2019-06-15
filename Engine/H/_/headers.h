@@ -59,6 +59,8 @@
       #error Unsupported platform detected
    #endif
 
+   #define USE_SRGB (!DX9) // currently Nvidia Drivers have broken DX9 support for sRGB
+
    #define GL_ES (GL && (IOS || ANDROID || WEB))
 
    #define GL_LOCK (GL && 0) // if surround all GL calls with a lock

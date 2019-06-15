@@ -2,8 +2,6 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
-#define USE_SRGB 0 // FIXME
-
 #define D3D_DEBUG     0
 #define FORCE_D3D9_3  0
 #define FORCE_D3D10_0 0

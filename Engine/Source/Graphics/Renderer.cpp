@@ -2,7 +2,6 @@
 #include "stdafx.h"
 #include "../Shaders/!Header CPU.h"
 namespace EE{
-#define USE_SRGB 0 // FIXME
 #define SVEL_CLEAR Vec4Zero
 #define  VEL_CLEAR Vec4(0.5f, 0.5f, 0.5f, 0)
 #define SNRM_CLEAR Vec4(0   , 0   , -1, 0) // set Z to 0   to set VecZero normals, however Z set to -1 makes ambient occlusion more precise when it uses normals (because ambient occlusion will not work good on the VecZero normals)

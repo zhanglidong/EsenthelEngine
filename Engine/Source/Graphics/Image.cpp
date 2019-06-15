@@ -2858,7 +2858,12 @@ UInt Image::typeMemUsage()C {return ImageSize(hwW(), hwH(), hwD(),   type(), mod
 Bool Image::map()
 {
 #if DX9
-   del(); if(OK(D3D->GetRenderTarget(0, &T._surf))){_mode=IMAGE_SURF; setInfo(); if(USE_SRGB){_hw_type=ImageTypeToggleSRGB(hwType()); _srgb=true;} adjustInfo(hwW(), hwH(), hwD(), hwType()); return true;}
+   del(); if(OK(D3D->GetRenderTarget(0, &T._surf)))
+   {
+     _mode=IMAGE_SURF; setInfo();
+      if(USE_SRGB){_hw_type=ImageTypeToggleSRGB(hwType()); _srgb=true;} // on DX9 non-sRGB formats are the same as sRGB, so there's no way to detect them, instead force it manually
+      adjustInfo(hwW(), hwH(), hwD(), hwType()); return true;
+   }
 #elif DX11
    del(); if(OK(SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (Ptr*)&_txtr))){_mode=IMAGE_RT; setInfo(); adjustInfo(hwW(), hwH(), hwD(), hwType()); return true;}
 #elif DX12
