@@ -123,6 +123,7 @@ struct TextStyle;
 struct TextInput;
 struct ShaderParam;
 struct ShaderParamChange;
+struct ShaderImage;
 struct ShaderBase;
 struct Shader;
 struct ShaderFile;

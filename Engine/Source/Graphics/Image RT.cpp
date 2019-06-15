@@ -12,13 +12,13 @@ struct ImageRTType
 static const ImageRTType ImageRTTypes[]=
 {
 #if USE_SRGB
-   {IMAGE_R8G8B8A8_SRGB                                                    }, // 0 IMAGERT_SRGBA
-   {IMAGE_R8G8B8A8_SRGB                                                    }, // 1 IMAGERT_SRGB
-   {IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 2 IMAGERT_SRGB_P
-   {IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                                       }, // 3 IMAGERT_SRGBA_H
-   {IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 4 IMAGERT_SRGB_H
-   {IMAGE_F32_4, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 5 IMAGERT_SRGBA_F
-   {IMAGE_F32_3, IMAGE_F32_4, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB}, // 6 IMAGERT_SRGB_F
+   {IMAGE_DEFAULT_SRGB                                                    }, // 0 IMAGERT_SRGBA
+   {IMAGE_DEFAULT_SRGB                                                    }, // 1 IMAGERT_SRGB
+   {IMAGE_F16_3, IMAGE_F16_4, IMAGE_DEFAULT_SRGB                          }, // 2 IMAGERT_SRGB_P
+   {IMAGE_F16_4, IMAGE_DEFAULT_SRGB                                       }, // 3 IMAGERT_SRGBA_H
+   {IMAGE_F16_3, IMAGE_F16_4, IMAGE_DEFAULT_SRGB                          }, // 4 IMAGERT_SRGB_H
+   {IMAGE_F32_4, IMAGE_F16_4, IMAGE_DEFAULT_SRGB                          }, // 5 IMAGERT_SRGBA_F
+   {IMAGE_F32_3, IMAGE_F32_4, IMAGE_F16_3, IMAGE_F16_4, IMAGE_DEFAULT_SRGB}, // 6 IMAGERT_SRGB_F
 #else
    {IMAGE_DEFAULT                                                                             }, // 0 IMAGERT_SRGBA
    {IMAGE_R10G10B10A2, IMAGE_DEFAULT                                                          }, // 1 IMAGERT_SRGB

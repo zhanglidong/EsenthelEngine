@@ -179,6 +179,7 @@ Bool Image::ExportJPG(File &f, Flt quality, Int sub_sample)C
    && src->hwType()!=IMAGE_R8G8B8X8
    && src->hwType()!=IMAGE_B8G8R8
    && src->hwType()!=IMAGE_B8G8R8A8
+   && src->hwType()!=IMAGE_B8G8R8A8_SRGB
    && src->hwType()!=IMAGE_B8G8R8X8
 #endif
    )
@@ -204,6 +205,7 @@ Bool Image::ExportJPG(File &f, Flt quality, Int sub_sample)C
          case IMAGE_R8G8B8X8     : cinfo.in_color_space=JCS_EXT_RGBX; cinfo.input_components=4; break;
          case IMAGE_B8G8R8       : cinfo.in_color_space=JCS_EXT_BGR ; cinfo.input_components=3; break;
          case IMAGE_B8G8R8A8     :
+         case IMAGE_B8G8R8A8_SRGB:
          case IMAGE_B8G8R8X8     : cinfo.in_color_space=JCS_EXT_BGRX; cinfo.input_components=4; break;
       #endif
       }

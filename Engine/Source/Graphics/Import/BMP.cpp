@@ -100,7 +100,7 @@ Bool Image::ExportBMPRaw(File &f, Byte byte_pp, Bool ico)C // assumes that Image
 
          case 4:
          {
-            if(hwType()==IMAGE_B8G8R8A8)f.put(data()+y*pitch(), T.w()*4);else // BMP uses BGRA order
+            if(hwType()==IMAGE_B8G8R8A8 || hwType()==IMAGE_B8G8R8A8_SRGB)f.put(data()+y*pitch(), T.w()*4);else // BMP uses BGRA order
             FREPD(x, T.w()){Color c=color(x, y); Swap(c.r, c.b); f<<c;}
          }break;
       }

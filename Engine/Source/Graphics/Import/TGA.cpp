@@ -76,7 +76,7 @@ struct TGA
 	            f.get(data, width*3);
 	            if(image.hwType()==IMAGE_R8G8B8 || image.hwType()==IMAGE_R8G8B8_SRGB)REP(width)Swap(data[i*3+0], data[i*3+2]); // swap Red with Blue
 	         }else
-	         if(image.hwType()==IMAGE_B8G8R8A8)
+	         if(image.hwType()==IMAGE_B8G8R8A8 || image.hwType()==IMAGE_B8G8R8A8_SRGB)
 	         {
 	            VecB4 *data=(VecB4*)(image.data() + x_offset*4 + y*image.pitch());
 	            FREPD(x, width)
@@ -94,7 +94,7 @@ struct TGA
 
 	      case 32:
 	      {
-	         if(image.hwType()==IMAGE_R8G8B8A8 || image.hwType()==IMAGE_R8G8B8A8_SRGB || image.hwType()==IMAGE_B8G8R8A8)
+	         if(image.hwType()==IMAGE_R8G8B8A8 || image.hwType()==IMAGE_R8G8B8A8_SRGB || image.hwType()==IMAGE_B8G8R8A8 || image.hwType()==IMAGE_B8G8R8A8_SRGB)
 	         {
 	            Byte *data=image.data() + x_offset*4 + y*image.pitch();
 	            f.get(data, width*4);
@@ -280,7 +280,7 @@ Bool Image::ExportTGA(File &f)C
 
 	      case 4:
 	      {
-	         if(src->hwType()==IMAGE_B8G8R8A8)f.put(src->data() + y*src->pitch(), src->w()*4);else
+	         if(src->hwType()==IMAGE_B8G8R8A8 || src->hwType()==IMAGE_B8G8R8A8_SRGB)f.put(src->data() + y*src->pitch(), src->w()*4);else
 	         FREPD(x, src->w()){Color c=src->color(x, y); Swap(c.r, c.b); f<<c;}
 		   }break;
       }

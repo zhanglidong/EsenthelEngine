@@ -122,6 +122,7 @@ ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have the sa
 
    {null           , false,  0,  0,   0, 0, 0, 0,   0,0, 0, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN, 0)},
 
+   {"B8G8R8A8_SRGB", false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_B8G8R8A8_UNORM_SRGB, 0)},
    {"R8G8B8A8_SRGB", false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, GL_SRGB8_ALPHA8)},
    {"R8G8B8_SRGB"  , false,  3, 24,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(D3DFMT_UNKNOWN, DXGI_FORMAT_UNKNOWN            , GL_SRGB8)},
 
@@ -157,7 +158,7 @@ ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have the sa
    {"INTZ"         , false,  4, 32,   0, 0, 0, 0,  24,8, 2, IMAGE_PRECISION_24, 0, GPU_API(D3DFORMAT(MAKEFOURCC('I','N','T','Z')), DXGI_FORMAT_UNKNOWN          , 0                    )},
    {"DF24"         , false,  4, 32,   0, 0, 0, 0,  24,0, 1, IMAGE_PRECISION_24, 0, GPU_API(D3DFORMAT(MAKEFOURCC('D','F','2','4')), DXGI_FORMAT_UNKNOWN          , 0                    )}, // DF24 does not have stencil buffer
    {"NULL"         , false,  0,  0,   0, 0, 0, 0,   0,0, 0, IMAGE_PRECISION_8 , 0, GPU_API(D3DFORMAT(MAKEFOURCC('N','U','L','L')), DXGI_FORMAT_UNKNOWN          , 0                    )},
-}; ASSERT(IMAGE_ALL_TYPES==64);
+}; ASSERT(IMAGE_ALL_TYPES==65);
 /******************************************************************************/
 Bool IsSRGB(IMAGE_TYPE type)
 {
@@ -165,8 +166,9 @@ Bool IsSRGB(IMAGE_TYPE type)
    {
       default: return false;
 
-      case IMAGE_R8G8B8_SRGB  :
+      case IMAGE_B8G8R8A8_SRGB:
       case IMAGE_R8G8B8A8_SRGB:
+      case IMAGE_R8G8B8_SRGB  :
       case IMAGE_BC1_SRGB     :
       case IMAGE_BC2_SRGB     :
       case IMAGE_BC3_SRGB     :
@@ -188,6 +190,8 @@ IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type)
       case IMAGE_R8G8B8:
       case IMAGE_R8G8  :
       case IMAGE_R8    : return IMAGE_R8G8B8A8;
+
+    //case IMAGE_B8G8R8_SRGB: return IMAGE_B8G8R8A8_SRGB;
 
       case IMAGE_R8G8B8_SRGB: return IMAGE_R8G8B8A8_SRGB;
 
@@ -227,6 +231,7 @@ IMAGE_TYPE ImageTypeExcludeAlpha(IMAGE_TYPE type)
       case IMAGE_B8G8R8A8: return IMAGE_B8G8R8;
 
       case IMAGE_R8G8B8A8_SRGB: return IMAGE_R8G8B8_SRGB;
+      case IMAGE_B8G8R8A8_SRGB: return IMAGE_R8G8B8_SRGB; //IMAGE_B8G8R8_SRGB;
 
       case IMAGE_L8A8: return IMAGE_L8;
 
@@ -315,8 +320,9 @@ IMAGE_TYPE ImageTypeRemoveSRGB(IMAGE_TYPE type)
    switch(type)
    {
       default                 : return type;
-      case IMAGE_R8G8B8_SRGB  : return IMAGE_R8G8B8;
+      case IMAGE_B8G8R8A8_SRGB: return IMAGE_B8G8R8A8;
       case IMAGE_R8G8B8A8_SRGB: return IMAGE_R8G8B8A8;
+      case IMAGE_R8G8B8_SRGB  : return IMAGE_R8G8B8;
       case IMAGE_BC1_SRGB     : return IMAGE_BC1;
       case IMAGE_BC2_SRGB     : return IMAGE_BC2;
       case IMAGE_BC3_SRGB     : return IMAGE_BC3;
@@ -333,8 +339,9 @@ IMAGE_TYPE ImageTypeToggleSRGB(IMAGE_TYPE type)
    switch(type)
    {
       default                 : return type;
-      case IMAGE_R8G8B8_SRGB  : return IMAGE_R8G8B8  ;   case IMAGE_R8G8B8  : return IMAGE_R8G8B8_SRGB;
+      case IMAGE_B8G8R8A8_SRGB: return IMAGE_B8G8R8A8;   case IMAGE_B8G8R8A8: return IMAGE_B8G8R8A8_SRGB;
       case IMAGE_R8G8B8A8_SRGB: return IMAGE_R8G8B8A8;   case IMAGE_R8G8B8A8: return IMAGE_R8G8B8A8_SRGB;
+      case IMAGE_R8G8B8_SRGB  : return IMAGE_R8G8B8  ;   case IMAGE_R8G8B8  : return IMAGE_R8G8B8_SRGB;
       case IMAGE_BC1_SRGB     : return IMAGE_BC1     ;   case IMAGE_BC1     : return IMAGE_BC1_SRGB;
       case IMAGE_BC2_SRGB     : return IMAGE_BC2     ;   case IMAGE_BC2     : return IMAGE_BC2_SRGB;
       case IMAGE_BC3_SRGB     : return IMAGE_BC3     ;   case IMAGE_BC3     : return IMAGE_BC3_SRGB;
@@ -354,8 +361,8 @@ static DXGI_FORMAT Typeless(IMAGE_TYPE type)
       default: return ImageTI[type].format;
 
       // these are the only SRGB formats that are used for Render Targets
-      case IMAGE_R8G8B8A8:
-      case IMAGE_R8G8B8A8_SRGB: return DXGI_FORMAT_R8G8B8A8_TYPELESS;
+      case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: return DXGI_FORMAT_R8G8B8A8_TYPELESS;
+      case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: return DXGI_FORMAT_B8G8R8A8_TYPELESS;
    }
 }
 #endif
@@ -569,6 +576,7 @@ UInt SourceGLFormat(IMAGE_TYPE type)
 
       case IMAGE_B4G4R4A4:
       case IMAGE_B5G5R5A1:
+      case IMAGE_B8G8R8A8_SRGB: // must be GL_BGRA and NOT GL_SBGR_ALPHA
       case IMAGE_B8G8R8A8: return GL_BGRA;
 
       case IMAGE_D24S8: return GL_DEPTH_STENCIL;
@@ -618,7 +626,7 @@ UInt SourceGLType(IMAGE_TYPE type)
       case IMAGE_R8G8_SIGN    :
       case IMAGE_R8_SIGN      : return GL_BYTE;
 
-      case IMAGE_B8G8R8A8:
+      case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB:
       case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB:
       case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB  :
       case IMAGE_R8G8    :
@@ -817,6 +825,7 @@ void Image::setInfo()
          }break;
 
          case DXGI_FORMAT_R8G8B8A8_TYPELESS:
+         case DXGI_FORMAT_B8G8R8A8_TYPELESS:
          {
             switch(mode())
             {

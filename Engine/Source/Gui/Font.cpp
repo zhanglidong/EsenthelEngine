@@ -252,8 +252,8 @@ void Font::setGLFont()
 /******************************************************************************/
 Bool Font::imageType(IMAGE_TYPE type)
 {
-   if(_sub_pixel && type!=IMAGE_R8G8B8A8      && type!=IMAGE_BC2      && type!=IMAGE_BC3      && type!=IMAGE_BC7      && type!=IMAGE_ETC2_A8 && type!=IMAGE_B8G8R8A8
-                 && type!=IMAGE_R8G8B8A8_SRGB && type!=IMAGE_BC2_SRGB && type!=IMAGE_BC3_SRGB && type!=IMAGE_BC7_SRGB && type!=IMAGE_ETC2_A8_SRGB)return false; // sub pixel supports only these formats
+   if(_sub_pixel && type!=IMAGE_R8G8B8A8      && type!=IMAGE_B8G8R8A8      && type!=IMAGE_BC2      && type!=IMAGE_BC3      && type!=IMAGE_BC7      && type!=IMAGE_ETC2_A8
+                 && type!=IMAGE_R8G8B8A8_SRGB && type!=IMAGE_B8G8R8A8_SRGB && type!=IMAGE_BC2_SRGB && type!=IMAGE_BC3_SRGB && type!=IMAGE_BC7_SRGB && type!=IMAGE_ETC2_A8_SRGB)return false; // sub pixel supports only these formats
    Bool changed=false;
    REPA(_images)
    {

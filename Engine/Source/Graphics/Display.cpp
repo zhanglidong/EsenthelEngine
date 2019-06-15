@@ -30,6 +30,9 @@ Display D;
 #if DX9 // DirectX 9
    static IDirect3D9           *D3DBase;
           IDirect3DDevice9     *D3D;
+#if USE_SRGB
+   static IDirect3DSwapChain9  *SwapChain;
+#endif
    static IDirect3DQuery9      *Query;
    static D3DPRESENT_PARAMETERS D3DPP;
 #elif DX11 // DirectX 10/11
@@ -824,9 +827,12 @@ void Display::del()
          _modes.del();
 
 #if DX9
-   RELEASE(Query  );
-   RELEASE(D3D    );
-   RELEASE(D3DBase);
+   RELEASE(Query    );
+#if USE_SRGB
+   RELEASE(SwapChain);
+#endif
+   RELEASE(D3D      );
+   RELEASE(D3DBase  );
 #elif DX11
    if(SwapChain)SwapChain->SetFullscreenState(false, null); // full screen state must be first disabled, according to http://msdn.microsoft.com/en-us/library/windows/desktop/bb205075(v=vs.85).aspx#Destroying
    RELEASE(SwapChain);
@@ -1036,6 +1042,9 @@ void Display::createDevice()
      _device_mem=DeviceMemory(D3DADAPTER_DEFAULT);
     //if(_device_mem<0)_device_mem=D3D->GetAvailableTextureMem(); // this is the total memory, including system memory (for example 4GB is returned when having only 2GB GPU)
       D3D->CreateQuery(D3DQUERYTYPE_EVENT, &Query);
+   #if USE_SRGB
+      D3D->GetSwapChain(0, &SwapChain); if(!SwapChain)Exit("Can't get SwapChain");
+   #endif
    }
 #elif DX11
    UInt flags=(D3D_DEBUG ? D3D11_CREATE_DEVICE_DEBUG : 0); // DO NOT include D3D11_CREATE_DEVICE_SINGLETHREADED to allow multi-threaded resource creation - https://docs.microsoft.com/en-us/windows/desktop/direct3d11/overviews-direct3d-11-render-multi-thread
@@ -2316,7 +2325,11 @@ Bool Display::flip()
    {
    #if DX9
       end();
+   #if USE_SRGB
+      Bool ok=OK(SwapChain->Present(null, null, null, null, USE_SRGB ? D3DPRESENT_LINEAR_CONTENT : 0));
+   #else
       Bool ok=OK(D3D->Present(null, null, null, null));
+   #endif
       begin();
       return ok;
    #elif DX11
@@ -2600,6 +2613,9 @@ Display& Display::monitorPrecision(IMAGE_PRECISION precision)
 }
 Display& Display::exclusive(Bool exclusive)
 {
+#if DX9 && USE_SRGB // on DX9 when using sRGB we can't use exclusive mode, because we need D3DPRESENT_LINEAR_CONTENT which is available only in Windowed mode
+   exclusive=false;
+#endif
    if(_exclusive!=exclusive)
    {
      _exclusive=exclusive;

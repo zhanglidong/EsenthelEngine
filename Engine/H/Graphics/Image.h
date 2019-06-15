@@ -79,6 +79,7 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
 
    IMAGE_TYPES, // number of types
 #if EE_PRIVATE
+   IMAGE_B8G8R8A8_SRGB,
    IMAGE_R8G8B8A8_SRGB,
    IMAGE_R8G8B8_SRGB  ,
    IMAGE_BC1_SRGB     ,
@@ -115,9 +116,9 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
    IMAGE_NULL ,
    IMAGE_ALL_TYPES, // number of all types
 #if DX9
-   IMAGE_DEFAULT=IMAGE_B8G8R8A8, // default format for DX9 is BGRA (RGBA may not be supported)
+   IMAGE_DEFAULT=IMAGE_B8G8R8A8, IMAGE_DEFAULT_SRGB=IMAGE_B8G8R8A8_SRGB, // default format for DX9 is BGRA (RGBA may not be supported)
 #else
-   IMAGE_DEFAULT=IMAGE_R8G8B8A8, // this is the default format
+   IMAGE_DEFAULT=IMAGE_R8G8B8A8, IMAGE_DEFAULT_SRGB=IMAGE_R8G8B8A8_SRGB, // this is the default format
 #endif
 #endif
 };
@@ -652,7 +653,7 @@ private:
    GPU_API(IDirect3DTexture9       *_txtr, ID3D11ShaderResourceView *_srv , union{UInt _w_s ; Ptr _w_s_ptr ;});
    GPU_API(IDirect3DVolumeTexture9 *_vol , ID3D11RenderTargetView   *_rtv , union{UInt _w_t ; Ptr _w_t_ptr ;});
    GPU_API(IDirect3DCubeTexture9   *_cube, ID3D11DepthStencilView   *_dsv , union{UInt _w_r ; Ptr _w_r_ptr ;});
-   GPU_API(Ptr                      _rdsv, ID3D11DepthStencilView   *_rdsv, union{            Ptr _rdsv    ;});
+   GPU_API(union{Bool _srgb; Ptr _srgbp;}, ID3D11DepthStencilView   *_rdsv, union{            Ptr _rdsv    ;});
 #else
    Ptr        _ptr[6];
 #endif

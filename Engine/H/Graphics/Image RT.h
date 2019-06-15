@@ -1,13 +1,13 @@
 /******************************************************************************/
 enum IMAGERT_TYPE : Byte // Image Render Target Type, this describes a group of Image Types
 { // P=10bit, H=16bit, F=32bit, S=Signed
-   IMAGERT_SRGBA  , // IMAGE_R8G8B8A8_SRGB                                                                  (         32-bit total       with Alpha)
-   IMAGERT_SRGB   , // IMAGE_R8G8B8A8_SRGB                                                                  (         32-bit total       no   Alpha)
-   IMAGERT_SRGB_P , // IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                                        (at least 10-bit per channel no   Alpha)
-   IMAGERT_SRGBA_H, // IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                                                     (at least 16-bit per channel with Alpha)
-   IMAGERT_SRGB_H , // IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                                        (at least 16-bit per channel no   Alpha)
-   IMAGERT_SRGBA_F, // IMAGE_F32_4, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                                        (at least 32-bit per channel with Alpha)
-   IMAGERT_SRGB_F , // IMAGE_F32_3, IMAGE_F32_4, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB              (at least 32-bit per channel no   Alpha)
+   IMAGERT_SRGBA  , // IMAGE_DEFAULT_SRGB                                                                   (         32-bit total       with Alpha)
+   IMAGERT_SRGB   , // IMAGE_DEFAULT_SRGB                                                                   (         32-bit total       no   Alpha)
+   IMAGERT_SRGB_P , // IMAGE_F16_3, IMAGE_F16_4, IMAGE_DEFAULT_SRGB                                         (at least 10-bit per channel no   Alpha)
+   IMAGERT_SRGBA_H, // IMAGE_F16_4, IMAGE_DEFAULT_SRGB                                                      (at least 16-bit per channel with Alpha)
+   IMAGERT_SRGB_H , // IMAGE_F16_3, IMAGE_F16_4, IMAGE_DEFAULT_SRGB                                         (at least 16-bit per channel no   Alpha)
+   IMAGERT_SRGBA_F, // IMAGE_F32_4, IMAGE_F16_4, IMAGE_DEFAULT_SRGB                                         (at least 32-bit per channel with Alpha)
+   IMAGERT_SRGB_F , // IMAGE_F32_3, IMAGE_F32_4, IMAGE_F16_3, IMAGE_F16_4, IMAGE_DEFAULT_SRGB               (at least 32-bit per channel no   Alpha)
 
    IMAGERT_RGBA   , // IMAGE_DEFAULT                                                                        (         32-bit total       with Alpha)
    IMAGERT_RGB    , // IMAGE_R10G10B10A2, IMAGE_DEFAULT                                                     (         32-bit total       no   Alpha)

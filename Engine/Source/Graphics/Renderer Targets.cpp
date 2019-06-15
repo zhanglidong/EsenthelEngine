@@ -1,6 +1,9 @@
 /******************************************************************************/
 #include "stdafx.h"
 namespace EE{
+#if DX9
+static Byte RT0SRGB; // use Byte because we're setting ~0
+#endif
 /******************************************************************************
 
    RT       : Width      , Height     , Type                                                                     , Samples    , Comments
@@ -55,7 +58,7 @@ void RendererClass::createShadowMap()
    if( _shd_map.is())
    if(!_shd_map_null.createTryEx(_shd_map.w(), _shd_map.h(), 1, IMAGE_NULL    , IMAGE_RT, 1))
    if(!_shd_map_null.createTryEx(_shd_map.w(), _shd_map.h(), 1, IMAGE_B8G8R8A8, IMAGE_RT, 1))
-      _shd_map.del();
+       _shd_map.del();
 #else
    if(!_shd_map.createTryEx(shd_map_w, shd_map_h, 1, IMAGE_D32  , IMAGE_SHADOW_MAP, 1)) // D32 shadow maps have no performance penalty (tested on GeForce 650m) so use them if possible
    if(!_shd_map.createTryEx(shd_map_w, shd_map_h, 1, IMAGE_D24X8, IMAGE_SHADOW_MAP, 1)) // we don't need stencil so avoid it in case it causes performance penalty
@@ -162,7 +165,9 @@ Bool RendererClass::rtCreate()
 
    rtDel();
    ResetImageTypeCreateResult();
-
+#if DX9
+   RT0SRGB=~0;
+#endif
    if(!D.canDraw())return true; // don't bother with render targets if the device can't draw (can happen when using 'APP_ALLOW_NO_GPU')
 
    if(!mapMain())return false;
@@ -342,6 +347,7 @@ void RendererClass::setCube(Image &cube, Image *ds, DIR_ENUM dir)
      _cur   [0]=&cube;
      _cur_id[0]= surf;
       D3D->SetRenderTarget(0, surf);
+      D3D->SetRenderState (D3DRS_SRGBWRITEENABLE, RT0SRGB=cube._srgb);
       RELEASE(surf);
 
       IDirect3DSurface9 *ids=(ds ? ds->_surf : null);
@@ -428,7 +434,7 @@ void RendererClass::set(Image *t0, Image *t1, Image *t2, Image *t3, Image *ds, B
       if(_cur_id[1]){_cur[1]=null; changed|=RTN; D3D->SetRenderTarget(1, _cur_id[1]=null);}
    }
 
-   if(_cur_id[0]!=id0){_cur[0]=t0; changed|=RT0; D3D->SetRenderTarget       (0, _cur_id[0]=id0);}
+   if(_cur_id[0]!=id0){_cur[0]=t0; changed|=RT0; D3D->SetRenderTarget       (0, _cur_id[0]=id0); if(t0){Byte srgb=t0->_srgb; if(RT0SRGB!=srgb)D3D->SetRenderState(D3DRS_SRGBWRITEENABLE, RT0SRGB=srgb);}}
    if(_cur_id[1]!=id1){_cur[1]=t1; changed|=RTN; D3D->SetRenderTarget       (1, _cur_id[1]=id1);}
    if(_cur_id[2]!=id2){_cur[2]=t2; changed|=RTN; D3D->SetRenderTarget       (2, _cur_id[2]=id2);}
    if(_cur_id[3]!=id3){_cur[3]=t3; changed|=RTN; D3D->SetRenderTarget       (3, _cur_id[3]=id3);}

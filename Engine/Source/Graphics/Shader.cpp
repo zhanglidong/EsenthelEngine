@@ -24,6 +24,7 @@ namespace EE{
 /******************************************************************************/
 #if DX9
 static IDirect3DBaseTexture9    *Tex[MAX_DX9_TEXTURES];
+static Byte                      TexSRGB[MAX_DX9_TEXTURES]; // use Byte because we're setting ~0
 #elif DX11
 static ID3D11ShaderResourceView *VSTex[MAX_TEXTURES], *HSTex[MAX_TEXTURES], *DSTex[MAX_TEXTURES], *PSTex[MAX_TEXTURES];
 #elif GL
@@ -47,10 +48,18 @@ INLINE void DisplayState::texDS(Int index, GPU_API(IDirect3DBaseTexture9*, ID3D1
    if(DSTex[index]!=tex)D3DC->DSSetShaderResources(index, 1, &(DSTex[index]=tex));
 #endif
 }
-INLINE void DisplayState::texPS(Int index, GPU_API(IDirect3DBaseTexture9*, ID3D11ShaderResourceView*, UInt) tex)
+INLINE void DisplayState::texPS(Int index, GPU_API(C ShaderImage&, ID3D11ShaderResourceView*, UInt) tex)
 {
 #if DX9
-   if(Tex[index]!=tex || FORCE_TEX)D3D->SetTexture(index, Tex[index]=tex);
+   IDirect3DBaseTexture9 *base;
+   if(C Image *image=tex.get())
+   {
+      base=image->_base;
+      // set sampler only if we have a texture
+      if(tex._sampler)tex._sampler->set(index);
+      Byte srgb=image->_srgb; if(TexSRGB[index]!=srgb || FORCE_TEX)D3D->SetSamplerState(index, D3DSAMP_SRGBTEXTURE, TexSRGB[index]=srgb);
+   }else base=null;
+   if(Tex[index]!=base || FORCE_TEX)D3D->SetTexture(index, Tex[index]=base);
 #elif DX11
    if(PSTex[index]!=tex || FORCE_TEX)D3DC->PSSetShaderResources(index, 1, &(PSTex[index]=tex));
 #endif
@@ -933,7 +942,7 @@ void Shader9::commit()
 }
 void Shader9::commitTex()
 {
-   REPA(textures){C Texture &t=textures[i]; D.texPS(t.index, t.image->getBase()); if(t.image->_sampler)t.image->_sampler->set(t.index);}
+   REPA(textures){C Texture &t=textures[i]; D.texPS(t.index, *t.image);}
 }
 void Shader9::start() // same as 'begin' but without committing constants and textures
 {
@@ -950,7 +959,7 @@ void Shader9::begin()
 
    D3D->SetVertexShader(vs);
    D3D->SetPixelShader (ps);
-   REPA(textures    ){C Texture &t=    textures[i]; D.texPS(t.index, t.image->getBase()); if(t.image->_sampler)t.image->_sampler->set(t.index);}
+   REPA(textures    ){C Texture &t=    textures[i]; D.texPS(t.index, *t.image);}
    REPA(vs_constants){ Constant &c=vs_constants[i]; SetVSConstant(c); *c.changed=false;}
    REPA(ps_constants){ Constant &c=ps_constants[i]; SetPSConstant(c); *c.changed=false;}
 }
@@ -1439,7 +1448,8 @@ void DisplayState::clearShader()
 {
    // set ~0 for pointers because that's the most unlikely value that they would have
 #if DX9
-   SetMem(Tex, ~0);
+   SetMem(Tex    , ~0);
+   SetMem(TexSRGB, ~0);
    #if CACHE_DX9_CONSTANTS
       Zero(VSConstantMem);
       Zero(PSConstantMem);
