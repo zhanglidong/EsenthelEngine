@@ -60,6 +60,7 @@
    #endif
 
    #define USE_SRGB (!DX9) // currently Nvidia Drivers have broken DX9 support for sRGB
+   #define CAN_SWAP_SRGB DX11
 
    #define GL_ES (GL && (IOS || ANDROID || WEB))
 

@@ -153,14 +153,6 @@ void ResetImageTypeCreateResult()
    CopyFast(ImageRTTypesOK[1], ImageRTTypes);
 #endif
 }
-static Int CompareDesc(C ImageRC &image, C ImageRTDesc &desc)
-{
-   if(Int c=Compare(image.w      (), desc.size.x ))return c;
-   if(Int c=Compare(image.h      (), desc.size.y ))return c;
-   if(Int c=Compare(image.type   (), desc._type  ))return c;
-   if(Int c=Compare(image.samples(), desc.samples))return c;
-   return 0;
-}
 void ImageRC:: zero   () {_srv_srgb=null; _rtv_srgb=null;} // don't zero '_ptr_num' here, because this is called in 'delThis', however ref count should be kept
      ImageRC:: ImageRC() {_ptr_num=0; zero();}
      ImageRC::~ImageRC() {delThis();}
@@ -210,16 +202,41 @@ Bool ImageRC::create(C ImageRTDesc &desc)
    if(ok)Time.skipUpdate();
    return ok;
 }
+/******************************************************************************/
 void ImageRC::swapSRV()
 {
 #if DX11
    Swap(_srv, _srv_srgb); D.texClear(_srv_srgb); // we have to remove from tex cache, because if we're going to try to bind this as Render Target later, then DX automatically unbinds its SRV's, engine already clears cache in that case, however only for current '_srv' and not the secondary '_srv_srgb'
 #endif
 }
-static inline void Set(ImageRTPtr &p, ImageRC &rt) // this is called only when "_ptr_num==0"
+void ImageRC::swapRTV()
 {
+#if DX11
+   Swap(_rtv, _rtv_srgb);
+#endif
+}
+static Int CompareDesc(C ImageRC &image, C ImageRTDesc &desc)
+{
+   if(Int c=Compare(image.w      (), desc.size.x ))return c;
+   if(Int c=Compare(image.h      (), desc.size.y ))return c;
+   if(Int c=Compare(image.hwType (), desc._type  ))return c; // !! have to compare 'hwType' instead of 'type', because 'hwType' is always non-sRGB (same as 'desc._type') while 'type' can be sRGB-toggled in 'swapSRGB' !!
+   if(Int c=Compare(image.samples(), desc.samples))return c;
+   return 0;
+}
+void ImageRC::swapSRGB()
+{
+#if DX11
+   swapSRV(); swapRTV(); _type=ImageTypeToggleSRGB(type()); // !! have to toggle 'type' and not 'hwType' because 'CompareDesc' and 'Set' expect that !!
+#endif
+}
+static void Set(ImageRTPtr &p, ImageRC &rt, Bool want_srgb) // this is called only when "_ptr_num==0"
+{
+#if CAN_SWAP_SRGB
+   if(want_srgb!=IsSRGB(rt.type()))rt.swapSRGB(); // !! explicitly check 'type' and not 'hwType' and not 'rt.sRGB', because 'hwType' is always non-sRGB (same as 'desc._type') while 'type' can be sRGB toggled in 'swapSRGB' !!
+#endif
    rt._ptr_num++; p._data=&rt; rt.discard();
 }
+/******************************************************************************/
 ImageRTPtr& ImageRTPtr::clear()
 {
    if(_data)
@@ -271,6 +288,15 @@ again:
    ConstCast(desc._type)=types.types[0];
 #endif
 
+   Bool want_srgb=false;
+#if CAN_SWAP_SRGB // try to create non-sRGB, and later swap sRGB views, this allows to potentially reduce amount of needed Render Targets, since they can reuse each other memory (instead of using 1 RGB and 1 sRGB, we can just allocate 1 RGB, and swap its views if needed)
+   IMAGE_TYPE non_srgb=ImageTypeRemoveSRGB(desc._type); if(desc._type!=non_srgb) // if we're requesting sRGB
+   {
+      ConstCast(desc._type)=non_srgb; // request non-sRGB
+      want_srgb=true; // and remember that we want sRGB
+   }
+#endif
+
    Bool found; if(InRange(_last_index, Renderer._rts) && !CompareDesc(Renderer._rts[_last_index], desc))found=true; // in range and matches ("!CompareDesc" -> match)
    else found=Renderer._rts.binarySearch(desc, _last_index, CompareDesc);
 
@@ -278,21 +304,21 @@ again:
    {
       // check '_last_index' first
       ImageRC &rt=Renderer._rts[_last_index];
-      if(rt.available()){Set(T, rt); return true;}
+      if(rt.available()){Set(T, rt, want_srgb); return true;}
 
       // check all neighbors with the same desc
-      for(Int i=_last_index-1;         i>=0             ; i--) {ImageRC &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){Set(T, rt); T._last_index=i; return true;}}
-      for(Int i=_last_index+1; InRange(i, Renderer._rts); i++) {ImageRC &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){Set(T, rt); T._last_index=i; return true;}}
+      for(Int i=_last_index-1;         i>=0             ; i--) {ImageRC &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){T._last_index=i; Set(T, rt, want_srgb); return true;}}
+      for(Int i=_last_index+1; InRange(i, Renderer._rts); i++) {ImageRC &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){T._last_index=i; Set(T, rt, want_srgb); return true;}}
    }
 #if KNOWN_IMAGE_TYPE_USAGE
    if(desc._type) // check this after 'found' because in most cases we will already return from codes above
    { // since we have KNOWN_IMAGE_TYPE_USAGE, and a valid type, then we assume that this should always succeed
-      ImageRC &rt=Renderer._rts.NewAt(_last_index); if(rt.create(desc)){Set(T, rt); return true;}
+      ImageRC &rt=Renderer._rts.NewAt(_last_index); if(rt.create(desc)){Set(T, rt, want_srgb); return true;}
       Exit(S+"Can't create Render Target "+desc.size.x+'x'+desc.size.y+' '+ImageRTName[desc.rt_type]+", samples:"+desc.samples);
    }
 #else
    ImageRC temp; // try to create first as a standalone variable (not in 'Renderer._rts') in case it fails so we don't have to remove it
-   if(temp.create(desc)){ImageRC &rt=Renderer._rts.NewAt(_last_index); Swap(rt, temp); Set(T, rt); return true;}
+   if(temp.create(desc)){ImageRC &rt=Renderer._rts.NewAt(_last_index); Swap(rt, temp); Set(T, rt, want_srgb); return true;}
    // fail
    if(desc._type!=IMAGE_NONE) // try another type, and don't try this again
    {
