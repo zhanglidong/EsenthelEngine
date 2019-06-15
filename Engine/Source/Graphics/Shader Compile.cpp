@@ -2091,7 +2091,7 @@ Bool ShaderFile::load(C Str &name)
                               || sp._elements     != elements     )ExitParam(temp_str, name); // check number of elements
                               LoadTranslation(translation, f, sp._elements);                  // translation
                               Int offset=translation[0].gpu_offset; REPAO(translation).gpu_offset-=offset; // apply offset
-                              if(f.getBool())f.skip(sp._gpu_data_size);                       // ignore default value
+                              if(f.getBool())f.skip(gpu_data_size);                           // ignore default value
 
                               // check translation
                               if(                  translation.elms()!=sp._full_translation.elms())ExitParam(temp_str, name);

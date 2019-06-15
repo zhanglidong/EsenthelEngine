@@ -318,7 +318,7 @@ BUFFER_I(Viewport, SBI_VIEWPORT)
 #endif
 BUFFER_END
 
-BUFFER(Blend)
+BUFFER(Constants)
    const Vec2 BlendOfs4[4]=
    {
       Vec2( 0.5f, -1.5f),
@@ -421,6 +421,18 @@ BUFFER(Blend)
       Vec2(-0.5f,  3.5f),
       Vec2( 1.5f,  3.5f),
    };*/
+   #define V(x) (Flt(x-32)/32/256) // gives -1..1 / 256 range
+   const Flt OrderDither[64]=
+   {
+      V( 0), V(32), V( 8), V(40), V( 2), V(34), V(10), V(42),
+      V(48), V(16), V(56), V(24), V(50), V(18), V(58), V(26),
+      V(12), V(44), V( 4), V(36), V(14), V(46), V( 6), V(38),
+      V(60), V(28), V(52), V(20), V(62), V(30), V(54), V(22),
+      V( 3), V(35), V(11), V(43), V( 1), V(33), V( 9), V(41),
+      V(51), V(19), V(59), V(27), V(49), V(17), V(57), V(25),
+      V(15), V(47), V( 7), V(39), V(13), V(45), V( 5), V(37),
+      V(63), V(31), V(55), V(23), V(61), V(29), V(53), V(21),
+   };
 BUFFER_END
 
 BUFFER(Step)
@@ -1150,7 +1162,7 @@ inline Flt AccumulatedDensity(Flt density, Flt range) {return 1-Pow(1-density, r
 /******************************************************************************/
 inline Half DitherValue(Vec4 pixel) // returns range -0.5 .. 0.5
 {
-#if 0 // low, but good for 6-7 bit panels
+#if 0 // low
    return Frac(Dot(pixel.xy, Vec2(1.0f, 0.5f)/3))-0.5f;
 #elif 0 // medium
    return Frac(Dot(pixel.xy, Vec2(3, 1)/8))-0.5f;
@@ -1160,13 +1172,7 @@ inline Half DitherValue(Vec4 pixel) // returns range -0.5 .. 0.5
 }
 inline VecH DitherValueColor(Vec4 pixel)
 {
-#if 1 // mono
-   return DitherValue(pixel)/256; // normally we should divide by 255, however we choose 256 so -0.5 .. 0.5 don't accidentally bump by 1 byte color value
-#else // chroma noise, slower but higher quality
-   Flt d=pixel.x*1.6f + pixel.y; // Dot(pixel, Vec2(1.6f, 1));
-   Vec f=Frac(d*Vec(0.225f, 0.252f, 0.254f));
-   return f/256 - 0.5f/256; // (f-0.5f)/256 - normally we should divide by 255, however we choose 256 so -0.5 .. 0.5 don't accidentally bump by 1 byte color value
-#endif
+   return DitherValue(pixel)/256;
 }
 /******************************************************************************/
 // RGB <-> HSB
