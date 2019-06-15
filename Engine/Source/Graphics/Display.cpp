@@ -1210,7 +1210,7 @@ again:
       if(glewInit()!=GLEW_OK || !GLEW_VERSION_3_2)Exit("OpenGL 3.2 support not available.\nGraphics Driver not installed or better video card is required."); // 3.2 needed for 'glDrawElementsBaseVertex', 3.1 needed for instancing, 3.0 needed for 'glColorMaski', 'gl_ClipDistance', 'glClearBufferfv', 'glGenVertexArrays', 'glMapBufferRange', otherwise 2.0 is good enough
          glewSafe();
 
-   #if USE_SRGB
+   #if LINEAR_GAMMA
       if(wglChoosePixelFormatARB)
       {
          const int pf_attribs[]=
@@ -1218,7 +1218,7 @@ again:
 		      WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
 		      WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
 		      WGL_DOUBLE_BUFFER_ARB , GL_TRUE,
-		      WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, USE_SRGB,
+		      WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, LINEAR_GAMMA,
 		      WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
 		      WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
 		      WGL_COLOR_BITS_ARB  , 32,
@@ -1510,7 +1510,7 @@ again:
    setSync();
 
    if(LogInit)LogN("FBO");
-#if USE_SRGB
+#if LINEAR_GAMMA
    glEnable(GL_FRAMEBUFFER_SRGB);
 #endif
                                glGenFramebuffers(1, &FBO); if(!FBO)Exit("Couldn't create OpenGL Frame Buffer Object (FBO)");
@@ -1679,12 +1679,12 @@ static Int DisplaySamples(Int samples)
 #if DX11
 static DXGI_FORMAT SwapChainFormat()
 {
-   if(GDI_COMPATIBLE)return USE_SRGB ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : DXGI_FORMAT_B8G8R8A8_UNORM; // FIXME test this
+   if(GDI_COMPATIBLE)return LINEAR_GAMMA ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : DXGI_FORMAT_B8G8R8A8_UNORM; // FIXME test this
 #if 0 // possibly this check is no longer needed, it's possible Windows supports windowed HDR natively now on HDR capable monitors
    if(full() && exclusive()) // on Windows we need fullscreen and exclusive to be able to really enable it, without it, it will be only 8-bit
 #endif
    {
-   #if USE_SRGB
+   #if LINEAR_GAMMA
       if(D.monitorPrecision()>IMAGE_PRECISION_16)return DXGI_FORMAT_R32G32B32A32_FLOAT;
       if(D.monitorPrecision()>IMAGE_PRECISION_8 )return DXGI_FORMAT_R16G16B16A16_FLOAT;
       // can't use DXGI_FORMAT_R10G10B10A2_UNORM because it's non-sRGB
@@ -1693,7 +1693,7 @@ static DXGI_FORMAT SwapChainFormat()
       if(D.monitorPrecision()>IMAGE_PRECISION_8 )return DXGI_FORMAT_R10G10B10A2_UNORM;
    #endif
    }
-   return USE_SRGB ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
+   return LINEAR_GAMMA ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
 }
 #endif
 Bool Display::findMode()

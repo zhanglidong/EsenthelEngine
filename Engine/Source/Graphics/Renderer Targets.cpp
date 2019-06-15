@@ -1,7 +1,7 @@
 /******************************************************************************/
 #include "stdafx.h"
 namespace EE{
-#if DX9 && USE_SRGB
+#if DX9 && LINEAR_GAMMA
 static Byte RT0SRGB; // use Byte because we're setting ~0
 #endif
 /******************************************************************************
@@ -165,7 +165,7 @@ Bool RendererClass::rtCreate()
 
    rtDel();
    ResetImageTypeCreateResult();
-#if DX9 && USE_SRGB
+#if DX9 && LINEAR_GAMMA
    RT0SRGB=~0;
 #endif
    if(!D.canDraw())return true; // don't bother with render targets if the device can't draw (can happen when using 'APP_ALLOW_NO_GPU')
@@ -347,7 +347,7 @@ void RendererClass::setCube(Image &cube, Image *ds, DIR_ENUM dir)
      _cur   [0]=&cube;
      _cur_id[0]= surf;
       D3D->SetRenderTarget(0, surf);
-   #if USE_SRGB
+   #if LINEAR_GAMMA
       D3D->SetRenderState(D3DRS_SRGBWRITEENABLE, RT0SRGB=cube._srgb);
    #endif
       RELEASE(surf);
@@ -437,7 +437,7 @@ void RendererClass::set(Image *t0, Image *t1, Image *t2, Image *t3, Image *ds, B
    }
 
    if(_cur_id[0]!=id0){_cur[0]=t0; changed|=RT0; D3D->SetRenderTarget       (0, _cur_id[0]=id0);
-   #if USE_SRGB
+   #if LINEAR_GAMMA
       if(t0){Byte srgb=t0->_srgb; if(RT0SRGB!=srgb)D3D->SetRenderState(D3DRS_SRGBWRITEENABLE, RT0SRGB=srgb);}
    #endif
    }

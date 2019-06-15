@@ -811,7 +811,7 @@ void Image::setInfo()
             T._base= null;
 
    if(_base)T._mms=_base->GetLevelCount();
-   #if USE_SRGB
+   #if LINEAR_GAMMA
       if(ImageTypeRemoveSRGB(type())==hwType())_hw_type=type();
      _srgb=T.sRGB();
    #endif
@@ -2869,7 +2869,7 @@ Bool Image::map()
    del(); if(OK(D3D->GetRenderTarget(0, &T._surf)))
    {
      _mode=IMAGE_SURF; setInfo();
-      if(USE_SRGB){_hw_type=ImageTypeToggleSRGB(hwType()); _srgb=true;} // on DX9 non-sRGB formats are the same as sRGB, so there's no way to detect them, instead force it manually
+      if(LINEAR_GAMMA){_hw_type=ImageTypeToggleSRGB(hwType()); _srgb=true;} // on DX9 non-sRGB formats are the same as sRGB, so there's no way to detect them, instead force it manually
       adjustInfo(hwW(), hwH(), hwD(), hwType()); return true;
    }
 #elif DX11

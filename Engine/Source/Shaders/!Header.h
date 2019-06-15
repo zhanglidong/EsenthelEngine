@@ -36,7 +36,7 @@
 #define DX9  (MODEL==SM_3)
 #define DX11 (MODEL>=SM_4)
 
-#define USE_SRGB (!DX9)
+#define LINEAR_GAMMA (!DX9)
 
 #if   MODEL==SM_GL
    #define TECHNIQUE(name, vs, ps)   technique name{pass p0{VertexShader=compile glslv  vs; PixelShader=compile glslf  ps;}}
@@ -1176,9 +1176,9 @@ inline Half DitherValue(Vec2 pixel)
 }
 inline void ApplyDither(inout VecH col, Vec2 pixel)
 {
-   if(USE_SRGB)col=LinearToSRGBFast(col);
+   if(LINEAR_GAMMA)col=LinearToSRGBFast(col);
    col+=DitherValue(pixel)*(1.5/256);
-   if(USE_SRGB)col=SRGBToLinearFast(col);
+   if(LINEAR_GAMMA)col=SRGBToLinearFast(col);
 }
 /******************************************************************************/
 // RGB <-> HSB

@@ -58,7 +58,7 @@ INLINE void DisplayState::texPS(Int index, GPU_API(C ShaderImage&, ID3D11ShaderR
       if(Tex[index]!=base || FORCE_TEX)
       {
          D3D->SetTexture(index, Tex[index]=base);
-      #if USE_SRGB
+      #if LINEAR_GAMMA
          Byte srgb=image->_srgb; if(TexSRGB[index]!=srgb || FORCE_TEX)D3D->SetSamplerState(index, D3DSAMP_SRGBTEXTURE, TexSRGB[index]=srgb);
       #endif
       }

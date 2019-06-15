@@ -10,7 +10,7 @@ struct ImageRTType
 };
 static const ImageRTType ImageRTTypes[]=
 {
-#if USE_SRGB
+#if LINEAR_GAMMA
    {IMAGE_DEFAULT_SRGB                                                    }, // 0 IMAGERT_SRGBA
    {IMAGE_DEFAULT_SRGB                                                    }, // 1 IMAGERT_SRGB   (can't use IMAGE_R10G10B10A2 because it's not sRGB and will have low quality in dark colors, can't use IMAGE_R11G11B10F because it's broken, ColLight looks like no light, can't use IMAGE_R9G9B9E5F because it's not supported for RT)
    {IMAGE_F16_3, IMAGE_F16_4, IMAGE_DEFAULT_SRGB                          }, // 2 IMAGERT_SRGB_P (can't use IMAGE_R10G10B10A2 because it's not sRGB and will have low quality in dark colors, can't use IMAGE_R11G11B10F because it's broken, ColLight looks like no light, can't use IMAGE_R9G9B9E5F because it's not supported for RT)
