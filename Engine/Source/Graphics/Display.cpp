@@ -3558,7 +3558,7 @@ void Display::setFade(Flt seconds, Bool previous_frame)
          if(Renderer._main.is())
          {
             SyncLocker locker(_lock);
-            Renderer._fade.get(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_RGB)); // doesn't use Alpha
+            Renderer._fade.get(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha
             Renderer._main.copyHw(*Renderer._fade, true, null, null, &_fade_flipped);
            _fade_get =false  ;
            _fade_step=0      ;
@@ -3592,7 +3592,7 @@ void Display::fadeDraw()
    {
      _fade_get =false;
      _fade_step=0    ;
-      Renderer._fade.get(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_RGB)); // doesn't use Alpha
+      Renderer._fade.get(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha
       Renderer._main.copyHw(*Renderer._fade, true, null, null, &_fade_flipped);
    }
 }

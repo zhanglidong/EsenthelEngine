@@ -13,31 +13,34 @@ static const ImageRTType ImageRTTypes[]=
 {
 #if USE_SRGB
    {IMAGE_R8G8B8A8_SRGB                                                    }, // 0 IMAGERT_SRGBA
-   {IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                                       }, // 1 IMAGERT_SRGBA_H
-   {IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 2 IMAGERT_SRGB_H
-   {IMAGE_F32_4, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 3 IMAGERT_SRGBA_F
-   {IMAGE_F32_3, IMAGE_F32_4, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB}, // 4 IMAGERT_SRGB_F
+   {IMAGE_R8G8B8A8_SRGB                                                    }, // 1 IMAGERT_SRGB
+   {IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 2 IMAGERT_SRGB_P
+   {IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                                       }, // 3 IMAGERT_SRGBA_H
+   {IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 4 IMAGERT_SRGB_H
+   {IMAGE_F32_4, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 5 IMAGERT_SRGBA_F
+   {IMAGE_F32_3, IMAGE_F32_4, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB}, // 6 IMAGERT_SRGB_F
 #else
-   // FIXME maybe should copy from IMAGERT_RGB* below? would have to make also separate IMAGERT_SRGB and IMAGERT_SRGB_P, this is for DX9 and GLES2
-   {IMAGE_R8G8B8A8                                                         }, // 0 IMAGERT_SRGBA
-   {IMAGE_F16_4, IMAGE_R8G8B8A8                                            }, // 1 IMAGERT_SRGBA_H
-   {IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8                               }, // 2 IMAGERT_SRGB_H
-   {IMAGE_F32_4, IMAGE_F16_4, IMAGE_R8G8B8A8                               }, // 3 IMAGERT_SRGBA_F
-   {IMAGE_F32_3, IMAGE_F32_4, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8     }, // 4 IMAGERT_SRGB_F
+   {IMAGE_DEFAULT                                                                             }, // 0 IMAGERT_SRGBA
+   {IMAGE_R10G10B10A2, IMAGE_DEFAULT                                                          }, // 1 IMAGERT_SRGB
+   {IMAGE_R10G10B10A2, IMAGE_F16_3, IMAGE_F16_4, IMAGE_DEFAULT                                }, // 2 IMAGERT_SRGB_P
+   {IMAGE_F16_4      , IMAGE_DEFAULT                                                          }, // 3 IMAGERT_SRGBA_H
+   {IMAGE_F16_3      , IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_DEFAULT                          }, // 4 IMAGERT_SRGB_H
+   {IMAGE_F32_4      , IMAGE_F16_4, IMAGE_DEFAULT                                             }, // 5 IMAGERT_SRGBA_F
+   {IMAGE_F32_3      , IMAGE_F32_4, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_DEFAULT}, // 6 IMAGERT_SRGB_F
 #endif
 
-   {IMAGE_DEFAULT                                                                             }, //  5 IMAGERT_RGBA
-   {IMAGE_R10G10B10A2, IMAGE_DEFAULT                                                          }, //  6 IMAGERT_RGB
-   {IMAGE_R10G10B10A2, IMAGE_F16_3, IMAGE_F16_4, IMAGE_DEFAULT                                }, //  7 IMAGERT_RGB_P
-   {IMAGE_F16_4      , IMAGE_DEFAULT                                                          }, //  8 IMAGERT_RGBA_H
-   {IMAGE_F16_3      , IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_DEFAULT                          }, //  9 IMAGERT_RGB_H
-   {IMAGE_F32_4      , IMAGE_F16_4, IMAGE_DEFAULT                                             }, // 10 IMAGERT_RGBA_F
-   {IMAGE_F32_3      , IMAGE_F32_4, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_DEFAULT}, // 11 IMAGERT_RGB_F
+   {IMAGE_DEFAULT                                                                             }, //  7 IMAGERT_RGBA
+   {IMAGE_R10G10B10A2, IMAGE_DEFAULT                                                          }, //  8 IMAGERT_RGB
+   {IMAGE_R10G10B10A2, IMAGE_F16_3, IMAGE_F16_4, IMAGE_DEFAULT                                }, //  9 IMAGERT_RGB_P
+   {IMAGE_F16_4      , IMAGE_DEFAULT                                                          }, // 10 IMAGERT_RGBA_H
+   {IMAGE_F16_3      , IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_DEFAULT                          }, // 11 IMAGERT_RGB_H
+   {IMAGE_F32_4      , IMAGE_F16_4, IMAGE_DEFAULT                                             }, // 12 IMAGERT_RGBA_F
+   {IMAGE_F32_3      , IMAGE_F32_4, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_DEFAULT}, // 13 IMAGERT_RGB_F
 
-   {IMAGE_R8G8B8A8_SIGN, IMAGE_F16_4}, // 12 IMAGERT_RGBA_S
+   {IMAGE_R8G8B8A8_SIGN, IMAGE_F16_4}, // 14 IMAGERT_RGBA_S
 
-   {IMAGE_F32, IMAGE_F16}, // 13 IMAGERT_F32
-   {IMAGE_F16, IMAGE_F32}, // 14 IMAGERT_F16
+   {IMAGE_F32, IMAGE_F16}, // 15 IMAGERT_F32
+   {IMAGE_F16, IMAGE_F32}, // 16 IMAGERT_F16
 
    {
    #if DX9
@@ -45,7 +48,7 @@ static const ImageRTType ImageRTTypes[]=
    #else
       IMAGE_R8, IMAGE_R8G8,
    #endif
-      IMAGE_DEFAULT}, // 15 IMAGERT_ONE
+      IMAGE_DEFAULT}, // 17 IMAGERT_ONE
    {
    #if !DX9
       IMAGE_R8_SIGN, IMAGE_R8G8_SIGN,
@@ -54,50 +57,52 @@ static const ImageRTType ImageRTTypes[]=
    #if !DX9
       IMAGE_R8G8B8A8_SIGN,
    #endif
-      IMAGE_F32}, // 16 IMAGERT_ONE_S
+      IMAGE_F32}, // 18 IMAGERT_ONE_S
    {
    #if !DX9
       IMAGE_R8G8,
    #endif
-      IMAGE_DEFAULT}, // 17 IMAGERT_TWO
+      IMAGE_DEFAULT}, // 19 IMAGERT_TWO
    {
    #if !DX9
       IMAGE_R8G8_SIGN, IMAGE_R8G8B8A8_SIGN,
    #endif
-      IMAGE_F16_2}, // 18 IMAGERT_TWO_S
+      IMAGE_F16_2}, // 20 IMAGERT_TWO_S
 
    {
    #if DX9
       IMAGE_INTZ, /*IMAGE_RAWZ, */IMAGE_DF24, // read why IMAGE_RAWZ is disabled in 'RendererClass::rtCreate()'
    #endif
-      IMAGE_D24S8, IMAGE_D24X8, IMAGE_D32, IMAGE_D16}, // 19 IMAGERT_DS
-}; ASSERT(IMAGERT_SRGBA==0 && IMAGERT_SRGBA_H==1 && IMAGERT_SRGB_H==2 && IMAGERT_SRGBA_F==3 && IMAGERT_SRGB_F==4 && IMAGERT_RGBA==5 && IMAGERT_RGB==6 && IMAGERT_RGB_P==7 && IMAGERT_RGBA_H==8 && IMAGERT_RGB_H==9 && IMAGERT_RGBA_F==10 && IMAGERT_RGB_F==11 && IMAGERT_RGBA_S==12 && IMAGERT_F32==13 && IMAGERT_F16==14 && IMAGERT_ONE==15 && IMAGERT_ONE_S==16 && IMAGERT_TWO==17 && IMAGERT_TWO_S==18 && IMAGERT_DS==19 && IMAGERT_NUM==20 && Elms(ImageRTTypes)==IMAGERT_NUM);
+      IMAGE_D24S8, IMAGE_D24X8, IMAGE_D32, IMAGE_D16}, // 21 IMAGERT_DS
+}; ASSERT(IMAGERT_SRGBA==0 && IMAGERT_SRGB==1 && IMAGERT_SRGB_P==2 && IMAGERT_SRGBA_H==3 && IMAGERT_SRGB_H==4 && IMAGERT_SRGBA_F==5 && IMAGERT_SRGB_F==6 && IMAGERT_RGBA==7 && IMAGERT_RGB==8 && IMAGERT_RGB_P==9 && IMAGERT_RGBA_H==10 && IMAGERT_RGB_H==11 && IMAGERT_RGBA_F==12 && IMAGERT_RGB_F==13 && IMAGERT_RGBA_S==14 && IMAGERT_F32==15 && IMAGERT_F16==16 && IMAGERT_ONE==17 && IMAGERT_ONE_S==18 && IMAGERT_TWO==19 && IMAGERT_TWO_S==20 && IMAGERT_DS==21 && IMAGERT_NUM==22 && Elms(ImageRTTypes)==IMAGERT_NUM);
 
 static CChar8 *ImageRTName[]=
 {
    "SRGBA"  , // 0
-   "SRGBA_H", // 1
-   "SRGB_H" , // 2
-   "SRGBA_F", // 3
-   "SRGB_F" , // 4
+   "SRGB"   , // 1
+   "SRGB_P" , // 2
+   "SRGBA_H", // 3
+   "SRGB_H" , // 4
+   "SRGBA_F", // 5
+   "SRGB_F" , // 6
 
-   "RGBA"  , // 5
-   "RGB"   , // 6
-   "RGB_P" , // 7
-   "RGBA_H", // 8
-   "RGB_H" , // 9
-   "RGBA_F", // 10
-   "RGB_F" , // 11
+   "RGBA"  , // 7
+   "RGB"   , // 8
+   "RGB_P" , // 9
+   "RGBA_H", // 10
+   "RGB_H" , // 11
+   "RGBA_F", // 12
+   "RGB_F" , // 13
 
-   "RGBA_S", // 12
-   "F32"   , // 13
-   "F16"   , // 14
-   "ONE"   , // 15
-   "ONE_S" , // 16
-   "TWO"   , // 17
-   "TWO_S" , // 18
-   "DS"    , // 19
-}; ASSERT(IMAGERT_SRGBA==0 && IMAGERT_SRGBA_H==1 && IMAGERT_SRGB_H==2 && IMAGERT_SRGBA_F==3 && IMAGERT_SRGB_F==4 && IMAGERT_RGBA==5 && IMAGERT_RGB==6 && IMAGERT_RGB_P==7 && IMAGERT_RGBA_H==8 && IMAGERT_RGB_H==9 && IMAGERT_RGBA_F==10 && IMAGERT_RGB_F==11 && IMAGERT_RGBA_S==12 && IMAGERT_F32==13 && IMAGERT_F16==14 && IMAGERT_ONE==15 && IMAGERT_ONE_S==16 && IMAGERT_TWO==17 && IMAGERT_TWO_S==18 && IMAGERT_DS==19 && IMAGERT_NUM==20 && Elms(ImageRTName)==IMAGERT_NUM);
+   "RGBA_S", // 14
+   "F32"   , // 15
+   "F16"   , // 16
+   "ONE"   , // 17
+   "ONE_S" , // 18
+   "TWO"   , // 19
+   "TWO_S" , // 20
+   "DS"    , // 21
+}; ASSERT(IMAGERT_SRGBA==0 && IMAGERT_SRGB==1 && IMAGERT_SRGB_P==2 && IMAGERT_SRGBA_H==3 && IMAGERT_SRGB_H==4 && IMAGERT_SRGBA_F==5 && IMAGERT_SRGB_F==6 && IMAGERT_RGBA==7 && IMAGERT_RGB==8 && IMAGERT_RGB_P==9 && IMAGERT_RGBA_H==10 && IMAGERT_RGB_H==11 && IMAGERT_RGBA_F==12 && IMAGERT_RGB_F==13 && IMAGERT_RGBA_S==14 && IMAGERT_F32==15 && IMAGERT_F16==16 && IMAGERT_ONE==17 && IMAGERT_ONE_S==18 && IMAGERT_TWO==19 && IMAGERT_TWO_S==20 && IMAGERT_DS==21 && IMAGERT_NUM==22 && Elms(ImageRTName)==IMAGERT_NUM);
 
 #if KNOWN_IMAGE_TYPE_USAGE
 static IMAGE_TYPE  ImageRTTypesOK[2][IMAGERT_NUM]; // [MultiSample][IMAGERT_NUM], this keeps info about result of creating different IMAGE_TYPE for 1-sample and multi-sample, this is because some formats may fail to create multi-sampled but succeed with 1-sample
@@ -109,21 +114,12 @@ static ImageRTType ImageRTTypesOK[2][IMAGERT_NUM];
 static const IMAGERT_TYPE GetImageRTTypeLookup[IMAGE_PRECISION_NUM][2]= // [precision][alpha]
 {
    // no alpha   ,     alpha
-#if USE_SRGB
    {IMAGERT_SRGB  , IMAGERT_SRGBA  }, // 0 IMAGE_PRECISION_8
    {IMAGERT_SRGB_P, IMAGERT_SRGBA_P}, // 1 IMAGE_PRECISION_10
    {IMAGERT_SRGB_H, IMAGERT_SRGBA_H}, // 2 IMAGE_PRECISION_16
    {IMAGERT_SRGB_F, IMAGERT_SRGBA_F}, // 3 IMAGE_PRECISION_24
    {IMAGERT_SRGB_F, IMAGERT_SRGBA_F}, // 4 IMAGE_PRECISION_32
    {IMAGERT_SRGB_F, IMAGERT_SRGBA_F}, // 5 IMAGE_PRECISION_64
-#else
-   {IMAGERT_RGB  , IMAGERT_RGBA  }, // 0 IMAGE_PRECISION_8
-   {IMAGERT_RGB_P, IMAGERT_RGBA_P}, // 1 IMAGE_PRECISION_10
-   {IMAGERT_RGB_H, IMAGERT_RGBA_H}, // 2 IMAGE_PRECISION_16
-   {IMAGERT_RGB_F, IMAGERT_RGBA_F}, // 3 IMAGE_PRECISION_24
-   {IMAGERT_RGB_F, IMAGERT_RGBA_F}, // 4 IMAGE_PRECISION_32
-   {IMAGERT_RGB_F, IMAGERT_RGBA_F}, // 5 IMAGE_PRECISION_64
-#endif
 }; ASSERT(IMAGE_PRECISION_8==0 && IMAGE_PRECISION_10==1 && IMAGE_PRECISION_16==2 && IMAGE_PRECISION_24==3 && IMAGE_PRECISION_32==4 && IMAGE_PRECISION_64==5 && IMAGE_PRECISION_NUM==6);
 IMAGERT_TYPE GetImageRTType(                 Bool       alpha, IMAGE_PRECISION     precision) {return GetImageRTTypeLookup[precision][alpha];}
 IMAGERT_TYPE GetImageRTType(IMAGE_TYPE type, Bool allow_alpha, IMAGE_PRECISION max_precision)
