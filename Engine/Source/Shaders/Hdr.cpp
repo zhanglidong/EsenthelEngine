@@ -57,7 +57,7 @@ Vec4 HdrUpdate_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
    lum=Sqrt(lum); // we've applied 'Sqr' above, so revert it back
 #endif
 
-   lum=Pow(lum, HdrExp); //lum=Sqrt(lum); // if further from the target brightness, apply the smaller scale
+   lum=Pow(lum, HdrExp); //lum=Sqrt(lum); // if further from the target brightness, apply the smaller scale. When using a smaller 'HdrExp' then scale will be stretched towards "1" (meaning smaller changes), using exp=0.5 gives Sqrt(lum)
 
    lum=HdrBrightness/Max(lum, EPS_COL); // desired scale
 
