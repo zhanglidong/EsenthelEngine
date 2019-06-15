@@ -444,12 +444,12 @@ Vec4 Blur_PS(NOPERSP Vec2 inTex:TEXCOORD,
    // Input: Col  - color
    //        Col1 - 2 blur ranges (XY, ZW)
 
-   Vec4 blur=TexLod(Col1, inTex); // use linear filtering because 'Col1' may be smaller
+   VecH4 blur=TexLod(Col1, inTex); // use linear filtering because 'Col1' may be smaller
 #if !SIGNED_VEL_RT
-   blur=((Abs(blur-0.5f)<=1.0f/255) ? Vec4(0, 0, 0, 0) : blur*2-1); // this performs comparisons for all channels separately, force 0 when source value is close to 0.5, otherwise scale to -1..1
+   blur=((Abs(blur-0.5f)<=1.0f/255) ? VecH4(0, 0, 0, 0) : blur*2-1); // this performs comparisons for all channels separately, force 0 when source value is close to 0.5, otherwise scale to -1..1
 #endif
 
-   Vec4 color=Vec4(TexLod(Col, inTex).rgb, 1); // force full alpha so back buffer effects can work ok, can't use 'TexPoint' because 'Col' can be supersampled
+   VecH4 color=VecH4(TexLod(Col, inTex).rgb, 1); // force full alpha so back buffer effects can work ok, can't use 'TexPoint' because 'Col' can be supersampled
 
    BRANCH if(any(blur)) // we can use 'any' here because small values got clipped out already in 'SetDirs'
    {
@@ -495,7 +495,7 @@ Vec4 Blur_PS(NOPERSP Vec2 inTex:TEXCOORD,
    #endif
    }
 
-   if(dither)color.rgb+=DitherValueColor(pixel);
+   if(dither)ApplyDither(color.rgb, pixel.xy);
    return color;
 }
 /******************************************************************************/

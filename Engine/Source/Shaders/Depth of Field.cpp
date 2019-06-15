@@ -207,16 +207,16 @@ Vec4 Dof_PS(NOPERSP Vec2 inTex:TEXCOORD,
 #if SHOW_BLUR
    b=1-Abs(b); return Vec4(b, b, b, 1);
 #endif
-   Vec4 focus=TexLod(Col , inTex), // can't use 'TexPoint' because 'Col' can be supersampled
-        blur =TexLod(Col1, inTex), // use linear filtering because 'Col1' may be smaller RT
-        col;
+   VecH4 focus=TexLod(Col , inTex), // can't use 'TexPoint' because 'Col' can be supersampled
+         blur =TexLod(Col1, inTex), // use linear filtering because 'Col1' may be smaller RT
+         col;
      #if SHOW_SMOOTH_BLUR
         col.rgb=blur.a;
      #else
         col.rgb=Lerp(focus.rgb, blur.rgb, FinalBlur(b, blur.a));
      #endif
         col.a=1; // force full alpha so back buffer effects can work ok
-   if(dither)col.rgb+=DitherValueColor(pixel);
+   if(dither)ApplyDither(col.rgb, pixel.xy);
    return col;
 }
 /******************************************************************************/

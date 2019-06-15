@@ -36,6 +36,8 @@
 #define DX9  (MODEL==SM_3)
 #define DX11 (MODEL>=SM_4)
 
+#define USE_SRGB (!DX9)
+
 #if   MODEL==SM_GL
    #define TECHNIQUE(name, vs, ps)   technique name{pass p0{VertexShader=compile glslv  vs; PixelShader=compile glslf  ps;}}
 #elif MODEL==SM_3
@@ -1160,19 +1162,23 @@ inline Flt  Gaussian(Flt  x) {return exp(-x*x);}
 inline Flt     VisibleOpacity(Flt density, Flt range) {return   Pow(1-density, range);} // calculate visible     opacity (0..1) having 'density' environment density (0..1), and 'range' (0..Inf)
 inline Flt AccumulatedDensity(Flt density, Flt range) {return 1-Pow(1-density, range);} // calculate accumulated density (0..1) having 'density' environment density (0..1), and 'range' (0..Inf)
 /******************************************************************************/
-inline Half DitherValue(Vec4 pixel) // returns range -0.5 .. 0.5
+inline Half DitherValue(Vec2 pixel)
 {
 #if 0 // low
-   return Frac(Dot(pixel.xy, Vec2(1.0f, 0.5f)/3))-0.5f;
+   return Frac(Dot(pixel, Vec2(1.0f, 0.5f)/3))-0.5f;
 #elif 0 // medium
-   return Frac(Dot(pixel.xy, Vec2(3, 1)/8))-0.5f;
+   return Frac(Dot(pixel, Vec2(3, 1)/8))-0.5f;
 #elif 1 // good
-   return Frac(Dot(pixel.xy, Vec2(1.6f, 1)*0.25f))-0.5f;
+   return Frac(Dot(pixel, Vec2(1.6f, 1)*0.25f))-0.5f; // -0.5 .. 0.5 range
+#else
+   VecI2 xy=Trunc(pixel)%8; return OrderDither[xy.x + xy.y*8]; // -1..1 / 256 range
 #endif
 }
-inline VecH DitherValueColor(Vec4 pixel)
+inline void ApplyDither(inout VecH col, Vec2 pixel)
 {
-   return DitherValue(pixel)/256;
+   if(USE_SRGB)col=LinearToSRGBFast(col);
+   col+=DitherValue(pixel)*(1.5/256);
+   if(USE_SRGB)col=SRGBToLinearFast(col);
 }
 /******************************************************************************/
 // RGB <-> HSB

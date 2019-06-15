@@ -451,7 +451,7 @@ Vec4 DrawTexXC_PS(NOPERSP Vec2 inTex:TEXCOORD,
           uniform Bool dither=false):COLOR
 {
    VecH4 col=Tex(Col, inTex).x*Color[0]+Color[1];
-   if(dither)col.rgb+=DitherValueColor(pixel);
+   if(dither)ApplyDither(col.rgb, pixel.xy);
    return col;
 }
 Vec4 DrawTexWC_PS(NOPERSP Vec2 inTex:TEXCOORD,
@@ -459,7 +459,7 @@ Vec4 DrawTexWC_PS(NOPERSP Vec2 inTex:TEXCOORD,
           uniform Bool dither=false):COLOR
 {
    VecH4 col=Tex(Col, inTex).w*Color[0]+Color[1];
-   if(dither)col.rgb+=DitherValueColor(pixel);
+   if(dither)ApplyDither(col.rgb, pixel.xy);
    return col;
 }
 TECHNIQUE(DrawTexXC , Draw_VS(), DrawTexXC_PS());
@@ -474,7 +474,7 @@ Vec4 DrawTexCubicFast_PS(NOPERSP Vec2 inTex:TEXCOORD,
 {
    VecH4 col=TexCubicFast(inTex);
    if(color)col=col*Color[0]+Color[1];
-   if(dither)col.rgb+=DitherValueColor(pixel);
+   if(dither)ApplyDither(col.rgb, pixel.xy);
    return col;
 }
 Vec4 DrawTexCubicFastRGB_PS(NOPERSP Vec2 inTex:TEXCOORD,
@@ -482,7 +482,7 @@ Vec4 DrawTexCubicFastRGB_PS(NOPERSP Vec2 inTex:TEXCOORD,
                     uniform Bool dither=false):COLOR
 {
    VecH col=TexCubicFastRGB(inTex);
-   if(dither)col.rgb+=DitherValueColor(pixel);
+   if(dither)ApplyDither(col.rgb, pixel.xy);
    return Vec4(col, 1);
 }
 TECHNIQUE(DrawTexCubicFast    , Draw2DTex_VS(), DrawTexCubicFast_PS(false, false));
@@ -499,7 +499,7 @@ Vec4 DrawTexCubic_PS(NOPERSP Vec2 inTex:TEXCOORD,
 {
    VecH4 col=TexCubic(inTex);
    if(color)col=col*Color[0]+Color[1];
-   if(dither)col.rgb+=DitherValueColor(pixel);
+   if(dither)ApplyDither(col.rgb, pixel.xy);
    return col;
 }
 Vec4 DrawTexCubicRGB_PS(NOPERSP Vec2 inTex:TEXCOORD,
@@ -507,7 +507,7 @@ Vec4 DrawTexCubicRGB_PS(NOPERSP Vec2 inTex:TEXCOORD,
                         uniform Bool dither=false  ):COLOR
 {
    VecH col=TexCubicRGB(inTex);
-   if(dither)col.rgb+=DitherValueColor(pixel);
+   if(dither)ApplyDither(col.rgb, pixel.xy);
    return Vec4(col, 1);
 }
 TECHNIQUE(DrawTexCubic    , Draw2DTex_VS(), DrawTexCubic_PS(false, false));
@@ -1417,8 +1417,8 @@ TECHNIQUE(EdgeDetectApply, Draw_VS(), EdgeDetectApply_PS());
 Vec4 Dither_PS(NOPERSP Vec2 inTex:TEXCOORD,
                NOPERSP PIXEL):COLOR
 {
-   Vec4 col=Vec4(TexLod(Col, inTex).rgb, 1); // force full alpha so back buffer effects can work ok, can't use 'TexPoint' because 'Col' can be of different size
-   col.rgb+=DitherValueColor(pixel);
+   VecH4 col=VecH4(TexLod(Col, inTex).rgb, 1); // force full alpha so back buffer effects can work ok, can't use 'TexPoint' because 'Col' can be of different size
+   ApplyDither(col.rgb, pixel.xy);
    return col;
 }
 TECHNIQUE(Dither, Draw_VS(), Dither_PS());
@@ -1608,7 +1608,6 @@ void Sky_VS(VtxInput vtx,
       outColCloud=CL[0].color; outColCloud.a*=Sat(CloudAlpha(vtx.pos().y));
    }
 }
-
 Vec4 Sky_PS(PIXEL,
             Vec   inPos     :TEXCOORD0,
             Vec   inTex     :TEXCOORD1,
@@ -1636,7 +1635,7 @@ Vec4 Sky_PS(PIXEL,
       VecH4 tex=Tex(Col, uv*CL[0].scale + CL[0].position)*inColCloud;
       col.rgb=Lerp(col.rgb, tex.rgb, tex.a);
    }
-   if(dither)col.rgb+=DitherValueColor(pixel);
+   if(dither)ApplyDither(col.rgb, pixel.xy);
    return col;
 }
 #if MODEL>=SM_4
@@ -1656,7 +1655,7 @@ Vec4 Sky1_PS(PIXEL,
    UNROLL for(Int i=0; i<MS_SAMPLES; i++){Flt dist=TexDepthMS(pixel.xy, i)/pos_scale; alpha+=Sat(dist*SkyFracMulAdd.x + SkyFracMulAdd.y);}
    alpha/=MS_SAMPLES;
    VecH4 col=SkyTex(inTex, inTexStar, inCol, alpha, per_vertex, density, textures, stars);
-   if(dither)col.rgb+=DitherValueColor(pixel);
+   if(dither)ApplyDither(col.rgb, pixel.xy);
    return col;
 }
 Vec4 Sky2_PS(PIXEL,
@@ -2845,15 +2844,15 @@ TECHNIQUE(BloomGDSCS , BloomDS_VS(true , true , false), BloomDS_PS(true , true ,
 TECHNIQUE(BloomGDSHS , BloomDS_VS(true , false, true ), BloomDS_PS(true , false, true , true ));
 TECHNIQUE(BloomGDSCHS, BloomDS_VS(true , true , true ), BloomDS_PS(true , true , true , true ));
 /******************************************************************************/
-Vec4 Bloom_PS(NOPERSP Vec2 inTex:TEXCOORD,
-              NOPERSP PIXEL              ,
-              uniform Bool dither        ):COLOR // Saturation of the result is not needed because we're rendering to 1 byte per channel RT
+VecH4 Bloom_PS(NOPERSP Vec2 inTex:TEXCOORD,
+               NOPERSP PIXEL              ,
+               uniform Bool dither        ):COLOR // Saturation of the result is not needed because we're rendering to 1 byte per channel RT
 {
    // final=src*original + Sat((src-cut)*scale)
    VecH col=TexLod(Col , inTex).rgb*BloomParams.x // can't use 'TexPoint' because 'Col'  can be supersampled
            +TexLod(Col1, inTex).rgb;              // can't use 'TexPoint' because 'Col1' can be smaller
-   if(dither)col+=DitherValueColor(pixel);
-   return Vec4(col, 1); // force full alpha so back buffer effects can work ok
+   if(dither)ApplyDither(col.rgb, pixel.xy);
+   return VecH4(col, 1); // force full alpha so back buffer effects can work ok
 }
 TECHNIQUE(Bloom , Draw_VS(), Bloom_PS(false));
 TECHNIQUE(BloomD, Draw_VS(), Bloom_PS(true ));
