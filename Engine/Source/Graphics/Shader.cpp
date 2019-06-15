@@ -55,11 +55,19 @@ INLINE void DisplayState::texPS(Int index, GPU_API(C ShaderImage&, ID3D11ShaderR
    if(C Image *image=tex.get())
    {
       base=image->_base;
-      // set sampler only if we have a texture
+      if(Tex[index]!=base || FORCE_TEX)
+      {
+         D3D->SetTexture(index, Tex[index]=base);
+      #if USE_SRGB
+         Byte srgb=image->_srgb; if(TexSRGB[index]!=srgb || FORCE_TEX)D3D->SetSamplerState(index, D3DSAMP_SRGBTEXTURE, TexSRGB[index]=srgb);
+      #endif
+      }
       if(tex._sampler)tex._sampler->set(index);
-      Byte srgb=image->_srgb; if(TexSRGB[index]!=srgb || FORCE_TEX)D3D->SetSamplerState(index, D3DSAMP_SRGBTEXTURE, TexSRGB[index]=srgb);
-   }else base=null;
-   if(Tex[index]!=base || FORCE_TEX)D3D->SetTexture(index, Tex[index]=base);
+   }else
+   {
+      base=null;
+      if(Tex[index]!=base || FORCE_TEX)D3D->SetTexture(index, Tex[index]=base);
+   }
 #elif DX11
    if(PSTex[index]!=tex || FORCE_TEX)D3DC->PSSetShaderResources(index, 1, &(PSTex[index]=tex));
 #endif

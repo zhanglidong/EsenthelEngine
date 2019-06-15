@@ -803,8 +803,10 @@ void Image::setInfo()
             T._base= null;
 
    if(_base)T._mms=_base->GetLevelCount();
-   if(ImageTypeRemoveSRGB(type())==hwType())_hw_type=type();
-  _srgb=T.sRGB();
+   #if USE_SRGB
+      if(ImageTypeRemoveSRGB(type())==hwType())_hw_type=type();
+     _srgb=T.sRGB();
+   #endif
 #elif DX11
    // lock not needed for DX11 'D3D'
    if(_txtr)
