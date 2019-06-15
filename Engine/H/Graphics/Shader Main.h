@@ -94,6 +94,7 @@ struct MainShaderClass
       *h_NightShadeColor,
 
       *h_HdrBrightness,
+      *h_HdrExp,
       *h_HdrMaxDark,
       *h_HdrMaxBright,
       *h_HdrWeight,
@@ -380,9 +381,10 @@ struct VolumetricLights
 struct HDR
 {
    ShaderFile *shader;
-   Shader     *h_HdrDS[2] , // [Step]
+   Shader     *h_HdrDS0[2], // [Gamma]
+              *h_HdrDS1   ,
               *h_HdrUpdate,
-              *h_Hdr      ;
+              *h_Hdr[2]   ; // [Gamma]
 
    void load();
 }extern

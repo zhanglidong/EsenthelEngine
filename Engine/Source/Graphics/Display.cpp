@@ -723,6 +723,7 @@ Display::Display() : _monitors(Compare, Create, null, 4)
 
   _eye_adapt           =false;
   _eye_adapt_brightness=0.37f;
+  _eye_adapt_exp       =0.5f;
   _eye_adapt_max_dark  =0.5f;
   _eye_adapt_max_bright=2.0f;
   _eye_adapt_speed     =6.5f;
@@ -3200,12 +3201,13 @@ Display& Display::dofFocus    (Flt      z        ) {                            
 Display& Display::dofRange    (Flt      range    ) {                                            _dof_range    =Max(range    , 0); return T;}
 Display& Display::dofIntensity(Flt      intensity) {                                            _dof_intensity=Max(intensity, 0); return T;}
 /******************************************************************************/
-Display& Display::eyeAdaptation          (  Bool on        ) {                                                          _eye_adapt           =on        ;                                                                            return T;}
-Display& Display::eyeAdaptationBrightness(  Flt  brightness) {MAX(brightness, 0); if(_eye_adapt_brightness!=brightness){_eye_adapt_brightness=brightness; if(Sh.h_HdrBrightness)Sh.h_HdrBrightness->set(eyeAdaptationBrightness());} return T;}
-Display& Display::eyeAdaptationMaxDark   (  Flt  max_dark  ) {MAX(max_dark  , 0); if(_eye_adapt_max_dark  !=max_dark  ){_eye_adapt_max_dark  =max_dark  ; if(Sh.h_HdrMaxDark   )Sh.h_HdrMaxDark   ->set(eyeAdaptationMaxDark   ());} return T;}
-Display& Display::eyeAdaptationMaxBright (  Flt  max_bright) {MAX(max_bright, 0); if(_eye_adapt_max_bright!=max_bright){_eye_adapt_max_bright=max_bright; if(Sh.h_HdrMaxBright )Sh.h_HdrMaxBright ->set(eyeAdaptationMaxBright ());} return T;}
-Display& Display::eyeAdaptationSpeed     (  Flt  speed     ) {MAX(speed     , 1); if(_eye_adapt_speed     !=speed     ){_eye_adapt_speed     =speed     ;                                                                          } return T;}
-Display& Display::eyeAdaptationWeight    (C Vec &weight    ) {                    if(_eye_adapt_weight    !=weight    ){_eye_adapt_weight    =weight    ; if(Sh.h_HdrWeight    )Sh.h_HdrWeight    ->set(eyeAdaptationWeight()/4  );} return T;}
+Display& Display::eyeAdaptation          (  Bool on        ) {                                                            _eye_adapt           =on        ;                                                                            return T;}
+Display& Display::eyeAdaptationBrightness(  Flt  brightness) {MAX  (brightness, 0); if(_eye_adapt_brightness!=brightness){_eye_adapt_brightness=brightness; if(Sh.h_HdrBrightness)Sh.h_HdrBrightness->set(eyeAdaptationBrightness());} return T;}
+Display& Display::eyeAdaptationExp       (  Flt  exp       ) {Clamp(exp, 0.1f , 1); if(_eye_adapt_exp       !=exp       ){_eye_adapt_exp       =exp       ; if(Sh.h_HdrExp       )Sh.h_HdrExp       ->set(eyeAdaptationExp       ());} return T;}
+Display& Display::eyeAdaptationMaxDark   (  Flt  max_dark  ) {MAX  (max_dark  , 0); if(_eye_adapt_max_dark  !=max_dark  ){_eye_adapt_max_dark  =max_dark  ; if(Sh.h_HdrMaxDark   )Sh.h_HdrMaxDark   ->set(eyeAdaptationMaxDark   ());} return T;}
+Display& Display::eyeAdaptationMaxBright (  Flt  max_bright) {MAX  (max_bright, 0); if(_eye_adapt_max_bright!=max_bright){_eye_adapt_max_bright=max_bright; if(Sh.h_HdrMaxBright )Sh.h_HdrMaxBright ->set(eyeAdaptationMaxBright ());} return T;}
+Display& Display::eyeAdaptationSpeed     (  Flt  speed     ) {MAX  (speed     , 1); if(_eye_adapt_speed     !=speed     ){_eye_adapt_speed     =speed     ;                                                                          } return T;}
+Display& Display::eyeAdaptationWeight    (C Vec &weight    ) {                      if(_eye_adapt_weight    !=weight    ){_eye_adapt_weight    =weight    ; if(Sh.h_HdrWeight    )Sh.h_HdrWeight    ->set(eyeAdaptationWeight()/4  );} return T;}
 Display& Display::resetEyeAdaptation     (  Flt  brightness)
 {
    if(Renderer._eye_adapt_scale[0].is())

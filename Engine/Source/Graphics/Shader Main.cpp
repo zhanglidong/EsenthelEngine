@@ -355,6 +355,7 @@ void MainShaderClass::getTechniques()
                    h_NightShadeColor=GetShaderParam("NightShadeColor");      h_NightShadeColor->set(D.nightShadeColor());
 
    h_HdrBrightness=GetShaderParam("HdrBrightness"); h_HdrBrightness->set(D.eyeAdaptationBrightness());
+   h_HdrExp       =GetShaderParam("HdrExp"       ); h_HdrExp       ->set(D.eyeAdaptationExp       ());
    h_HdrMaxDark   =GetShaderParam("HdrMaxDark"   ); h_HdrMaxDark   ->set(D.eyeAdaptationMaxDark   ());
    h_HdrMaxBright =GetShaderParam("HdrMaxBright" ); h_HdrMaxBright ->set(D.eyeAdaptationMaxBright ());
    h_HdrWeight    =GetShaderParam("HdrWeight"    ); h_HdrWeight    ->set(D.eyeAdaptationWeight()/4  );
@@ -635,9 +636,12 @@ void HDR::load()
 {
    if(!shader)if(shader=ShaderFiles("Hdr"))
    {
-      REPD(s, 2)h_HdrDS[s] =shader->get(S8+"HdrDS"+s  );
-                h_HdrUpdate=shader->get(   "HdrUpdate");
-                h_Hdr      =shader->get(   "Hdr"      );
+      h_HdrDS0[0]=shader->get("HdrDS0"   );
+      h_HdrDS0[1]=shader->get("HdrDS0G"  );
+      h_HdrDS1   =shader->get("HdrDS1"   );
+      h_HdrUpdate=shader->get("HdrUpdate");
+      h_Hdr[0]   =shader->get("Hdr"      );
+      h_Hdr[1]   =shader->get("HdrG"     );
    }   
 }
 /******************************************************************************/
