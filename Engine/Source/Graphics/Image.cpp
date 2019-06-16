@@ -734,9 +734,9 @@ void Image::setInfo()
       {
          default:
          {
-            if(mode()==IMAGE_2D || mode()==IMAGE_3D    || mode()==IMAGE_CUBE || mode()==IMAGE_RT || mode()==IMAGE_RT_CUBE || mode()==IMAGE_DS || mode()==IMAGE_DS_RT || mode()==IMAGE_SHADOW_MAP)D3D->CreateShaderResourceView(_txtr, null, &_srv);
-            if(                    mode()==IMAGE_RT    || mode()==IMAGE_RT_CUBE   )D3D->CreateRenderTargetView(_txtr, null, &_rtv);
-            if(mode()==IMAGE_DS || mode()==IMAGE_DS_RT || mode()==IMAGE_SHADOW_MAP)D3D->CreateDepthStencilView(_txtr, null, &_dsv);
+            if(mode()==IMAGE_2D || mode()==IMAGE_3D    || mode()==IMAGE_CUBE || mode()==IMAGE_RT || mode()==IMAGE_RT_CUBE || mode()==IMAGE_DS_RT || mode()==IMAGE_SHADOW_MAP)D3D->CreateShaderResourceView(_txtr, null, &_srv);
+            if(mode()==IMAGE_RT    || mode()==IMAGE_RT_CUBE   )D3D->CreateRenderTargetView(_txtr, null, &_rtv);
+            if(mode()==IMAGE_DS_RT || mode()==IMAGE_SHADOW_MAP)D3D->CreateDepthStencilView(_txtr, null, &_dsv);
          }break;
 
          case DXGI_FORMAT_R8G8B8A8_TYPELESS:
@@ -749,7 +749,6 @@ void Image::setInfo()
                case IMAGE_CUBE:
                case IMAGE_RT:
                case IMAGE_RT_CUBE:
-               case IMAGE_DS:
                case IMAGE_DS_RT:
                case IMAGE_SHADOW_MAP:
                {
@@ -822,7 +821,6 @@ void Image::setInfo()
    {
       case IMAGE_2D        :
       case IMAGE_RT        :
-      case IMAGE_DS        :
       case IMAGE_DS_RT     :
       case IMAGE_SHADOW_MAP:
       {
@@ -1154,7 +1152,6 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             }
          }break;
 
-         case IMAGE_DS:
          case IMAGE_DS_RT:
          case IMAGE_SHADOW_MAP:
          {
@@ -1357,28 +1354,6 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             }
          }break;
 
-         case IMAGE_DS:
-         {
-            glGenRenderbuffers(1, &_rb);
-            if(_rb)
-            {
-               T._mms    =1;
-               T._samples=1;
-             //LogN(S+"x:"+hwW()+", y:"+hwH()+", type:"+ImageTI[hwType()].name);
-
-               glGetError(); // clear any previous errors
-
-               glBindRenderbuffer   (GL_RENDERBUFFER, _rb);
-               glRenderbufferStorage(GL_RENDERBUFFER, ImageTI[hwType()].format, hwW(), hwH());
-
-               if(glGetError()==GL_NO_ERROR) // ok
-               {
-                  setInfo();
-                  return true;
-               }
-            }
-         }break;
-
          case IMAGE_DS_RT:
          {
             glGenTextures(1, &_txtr);
@@ -1426,6 +1401,28 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, REVERSE_DEPTH ? GL_GEQUAL : GL_LEQUAL);
 
                glTexImage2D(GL_TEXTURE_2D, 0, ImageTI[hwType()].format, hwW(), hwH(), 0, SourceGLFormat(hwType()), SourceGLType(hwType()), null);
+
+               if(glGetError()==GL_NO_ERROR) // ok
+               {
+                  setInfo();
+                  return true;
+               }
+            }
+         }break;
+
+         case IMAGE_GL_RB:
+         {
+            glGenRenderbuffers(1, &_rb);
+            if(_rb)
+            {
+               T._mms    =1;
+               T._samples=1;
+             //LogN(S+"x:"+hwW()+", y:"+hwH()+", type:"+ImageTI[hwType()].name);
+
+               glGetError(); // clear any previous errors
+
+               glBindRenderbuffer   (GL_RENDERBUFFER, _rb);
+               glRenderbufferStorage(GL_RENDERBUFFER, ImageTI[hwType()].format, hwW(), hwH());
 
                if(glGetError()==GL_NO_ERROR) // ok
                {
@@ -1923,7 +1920,7 @@ Bool Image::lock(LOCK_MODE lock, Int mip_map, DIR_ENUM cube_face)
             {
             #if DX11
                case IMAGE_RT:
-               case IMAGE_DS: case IMAGE_DS_RT:
+               case IMAGE_DS_RT:
                case IMAGE_2D: if(_txtr)
                {
                   Int blocks_y=ImageBlocksY(hwW(), hwH(), mip_map, hwType()),
@@ -2225,7 +2222,7 @@ Image& Image::unlock()
          #if DX11
             case IMAGE_RT:
             case IMAGE_2D:
-            case IMAGE_DS: case IMAGE_DS_RT:
+            case IMAGE_DS_RT:
             {
                if(_lock_mode!=LOCK_READ && D3DC)D3DC->UpdateSubresource(_txtr, D3D11CalcSubresource(lMipMap(), 0, mipMaps()), null, data(), pitch(), pitch2());
               _lock_size.zero();
@@ -2400,7 +2397,7 @@ Bool Image::setFrom(CPtr data, Int data_pitch, Int mip_map, DIR_ENUM cube_face)
          {
             case IMAGE_RT:
             case IMAGE_2D:
-            case IMAGE_DS: case IMAGE_DS_RT:
+            case IMAGE_DS_RT:
             {
                D3DC->UpdateSubresource(_txtr, D3D11CalcSubresource(mip_map, 0, mipMaps()), null, data, data_pitch, data_pitch2);
             }return true;
@@ -2948,7 +2945,7 @@ Bool Image::depthTexture()C
 #if GL
    return mode()==IMAGE_DS_RT;
 #else
-   return _dsv && _srv; // on DX10+ IMAGE_DS and IMAGE_DS_RT is the same
+   return _dsv && _srv;
 #endif
 }
 Bool Image::compatible(C Image &image)C

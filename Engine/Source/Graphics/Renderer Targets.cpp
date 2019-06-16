@@ -150,16 +150,16 @@ Bool RendererClass::rtCreate()
 #if DX11
    if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24S8, IMAGE_DS_RT, 1, _main.samples()))return false;
 #elif IOS // on iOS we have access to '_main' so let's keep '_main_ds' the same
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24S8, IMAGE_DS_RT, 1, _main.samples()))
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D32  , IMAGE_DS_RT, 1, _main.samples()))
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24X8, IMAGE_DS_RT, 1, _main.samples()))
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D16  , IMAGE_DS_RT, 1, _main.samples()))
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24S8, IMAGE_DS   , 1, _main.samples()))
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D32  , IMAGE_DS   , 1, _main.samples()))
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24X8, IMAGE_DS   , 1, _main.samples()))
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D16  , IMAGE_DS   , 1, _main.samples()))return false;
+   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24S8, IMAGE_DS_RT   , 1, _main.samples()))
+   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D32  , IMAGE_DS_RT   , 1, _main.samples()))
+   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24X8, IMAGE_DS_RT   , 1, _main.samples()))
+   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D16  , IMAGE_DS_RT   , 1, _main.samples()))
+   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24S8, IMAGE_GL_RB, 1, _main.samples()))
+   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D32  , IMAGE_GL_RB, 1, _main.samples()))
+   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24X8, IMAGE_GL_RB, 1, _main.samples()))
+   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D16  , IMAGE_GL_RB, 1, _main.samples()))return false;
 #else // other platforms have '_main_ds' linked with '_main' provided by the system
-  _main_ds.forceInfo(_main.w(), _main.h(), 1, _main_ds.type() ? _main_ds.type() : IMAGE_D24S8, IMAGE_DS, _main.samples()); // if we know the type then use it, otherwise assume the default IMAGE_D24S8
+  _main_ds.forceInfo(_main.w(), _main.h(), 1, _main_ds.type() ? _main_ds.type() : IMAGE_D24S8, IMAGE_GL_RB, _main.samples()); // if we know the type then use it, otherwise assume the default IMAGE_D24S8
 #endif
 
    createShadowMap();

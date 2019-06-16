@@ -153,8 +153,8 @@ Bool ImageRC::create(C ImageRTDesc &desc)
    if(ImageTI[desc._type].d) // if this is a depth buffer
    {
              ok=createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_DS_RT, 1, desc.samples); // try first as a render target
-   #if GL // for DX10+ IMAGE_DS_RT is the same as IMAGE_DS so don't bother checking it again
-      if(!ok)ok=createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_DS   , 1, desc.samples);
+   #if GL
+      if(!ok)ok=createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_GL_RB, 1, desc.samples);
    #endif
    }else
    {
