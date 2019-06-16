@@ -2,7 +2,7 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
-#pragma pack(push, 1)
+#pragma pack(push, 1) // 'Unaligned' are not needed because members are already aligned to their native types in this case
 struct ICONDIR
 {
    UShort reserved, type, images;
@@ -19,23 +19,23 @@ Bool Image::ImportICO(File &f)
 {
    Long    pos=f.pos(); // remember current position in case we're not at the start
    ICONDIR dir; f>>dir;
-   if(!Unaligned(dir.reserved) && Unaligned(dir.images)<=256 && (Unaligned(dir.type)==1 || Unaligned(dir.type)==2))
+   if(!dir.reserved && dir.images<=256 && (dir.type==1 || dir.type==2))
    {
-      Bool ico=(Unaligned(dir.type)==1), cur=(Unaligned(dir.type)==2);
+      Bool ico=(dir.type==1), cur=(dir.type==2);
       Int  best_x, best_y, best_col;
       UInt best_offset=0, best_size, end=0;
-      REP(Unaligned(dir.images))
+      REP(dir.images)
       {
          ICONDIRENTRY entry; f>>entry;
-         if(Unaligned(entry.size)>=f.size() || Unaligned(entry.offset)>f.size() || Unaligned(entry.reserved))goto error;
-         Int x=(Unaligned(entry.width ) ? Unaligned(entry.width ) : 256),
-             y=(Unaligned(entry.height) ? Unaligned(entry.height) : 256),
-             col=(ico ? Unaligned(entry.hot_y) : Unaligned(entry.colors) ? Unaligned(entry.colors) : 256);
-         MAX(end, Unaligned(entry.offset)+Unaligned(entry.size));
-         if(!best_offset || (x>best_x || y>best_y) || (x==best_x && y==best_x && (col>best_col || (col==best_col && Unaligned(entry.size)>best_size)))) // if we've encountered same size and colors then use the one of bigger raw size
+         if(entry.size>=f.size() || entry.offset>f.size() || entry.reserved)goto error;
+         Int x=(entry.width  ? entry.width  : 256),
+             y=(entry.height ? entry.height : 256),
+             col=(ico ? entry.hot_y : entry.colors ? entry.colors : 256);
+         MAX(end, entry.offset+entry.size);
+         if(!best_offset || (x>best_x || y>best_y) || (x==best_x && y==best_x && (col>best_col || (col==best_col && entry.size>best_size)))) // if we've encountered same size and colors then use the one of bigger raw size
          {
-            best_offset=Unaligned(entry.offset);
-            best_size  =Unaligned(entry.size  );
+            best_offset=entry.offset;
+            best_size  =entry.size;
             best_x     =x;
             best_y     =y;
             best_col   =col;
@@ -79,7 +79,7 @@ Bool Image::ExportICO(File &f)C
          VecI2 size=src->size();
          if(size.x>48)size=size*48/size.x;
          if(size.y>48)size=size*48/size.y;
-         Image xp; if(src->copyTry(xp, Max(1, size.x), Max(1, size.y), 1, IMAGE_B8G8R8A8, IMAGE_SOFT, 1, FILTER_BEST, true, true)) // ICO uses BGRA
+         Image xp; if(src->copyTry(xp, Max(1, size.x), Max(1, size.y), 1, IMAGE_B8G8R8A8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, true, true)) // ICO uses BGRA
          {
             if(xp.ExportBMPRaw(mip.data.writeMem(), 4, true))
             {
@@ -98,17 +98,17 @@ Bool Image::ExportICO(File &f)C
    }
 
    Int images=0; FREPA(mips)if(mips[i].data.is())images++; if(!images)return false;
-   ICONDIR        dir; _Unaligned(dir.reserved, 0); _Unaligned(dir.type, 1); _Unaligned(dir.images, images); f<<dir;
-   ICONDIRENTRY entry; _Unaligned(entry.colors, 0); _Unaligned(entry.reserved, 0); _Unaligned(entry.hot_x, 1); _Unaligned(entry.hot_y, 32);
+   ICONDIR        dir; dir.reserved=0; dir.type      =1; dir.images=images; f<<dir;
+   ICONDIRENTRY entry; entry.colors=0; entry.reserved=0; entry.hot_x=1; entry.hot_y=32;
    UInt offset=SIZE(ICONDIR)+SIZE(ICONDIRENTRY)*images;
    FREPA(mips)
    {
       Mip &mip=mips[i]; if(mip.data.is())
       {
-        _Unaligned(entry.width , (mip.size.x>=256) ? 0 : mip.size.x);
-        _Unaligned(entry.height, (mip.size.y>=256) ? 0 : mip.size.y);
-        _Unaligned(entry.size  , mip.data.size());
-        _Unaligned(entry.offset, offset);
+         entry.width =((mip.size.x>=256) ? 0 : mip.size.x);
+         entry.height=((mip.size.y>=256) ? 0 : mip.size.y);
+         entry.size  =mip.data.size();
+         entry.offset=offset;
          f<<entry; 
          offset+=mip.data.size();
       }

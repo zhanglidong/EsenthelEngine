@@ -27,16 +27,27 @@ Bool Image::ImportBMPRaw(File &f, Bool ico)
    {
       if(ico)Unaligned(bmih.height, Unaligned(bmih.height)/2); // ICO files have height 2x bigger
       MemtN<Color, 256> palette; if(Unaligned(bmih.bitCount)==8){f.getN(palette.setNum(256).data(), 256); REPA(palette)Swap(palette[i].r, palette[i].b); if(ico)REPAO(palette).a=(i ? 255 : 0);} // load palette, setup alpha for ICO
-      if(createSoftTry(Unaligned(bmih.width), Unaligned(bmih.height), 1, (Unaligned(bmih.bitCount)==24) ? IMAGE_R8G8B8_SRGB : (Unaligned(bmih.bitCount)==32) ? IMAGE_B8G8R8A8_SRGB : ico ? IMAGE_B8G8R8A8_SRGB : IMAGE_R8G8B8_SRGB)) // ICO has alpha channel, BMP uses BGRA order
+      if(createSoftTry(Unaligned(bmih.width), Unaligned(bmih.height), 1, (Unaligned(bmih.bitCount)==24) ? IMAGE_R8G8B8_SRGB : (Unaligned(bmih.bitCount)==32) ? IMAGE_R8G8B8A8_SRGB : ico ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8_SRGB)) // ICO has alpha channel, BMP uses BGRA order, we could use IMAGE_B8G8R8A8_SRGB, however it's an engine private type and can't be saved
       {
          Int zeros=Ceil4(pitch())-pitch();
          REPD(y, T.h())
          {
+            Byte *data=T.data() + y*pitch();
             switch(Unaligned(bmih.bitCount))
             {
-               case  8: FREPD(x, T.w())color(x, y, palette[f.getByte()]);                                                  break;
-               case 24: {Byte *data=T.data() + y*pitch(); f.get(data, T.w()*3); REP(T.w())Swap(data[i*3+0], data[i*3+2]);} break; // FREPD(x, T.w()){Color c; f>>c.b; f>>c.g; f>>c.r; c.a=255; color(x, y, c);}
-               case 32: {Byte *data=T.data() + y*pitch(); f.get(data, T.w()*4);                                          } break; // FREPD(x, T.w()){Color c; f>>c.b; f>>c.g; f>>c.r; f>>c.a ; color(x, y, c);}
+               case 8: FREPD(x, T.w())color(x, y, palette[f.getByte()]); break;
+
+               case 24:
+               {
+                  f.get(data, T.w()*3);
+                  switch(type()){case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB: REP(T.w())Swap(data[i*3+0], data[i*3+2]); break;} // swap Red with Blue
+               }break;
+
+               case 32:
+               {
+                  f.get(data, T.w()*4);
+                  switch(type()){case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: REP(T.w())Swap(data[i*4+0], data[i*4+2]); break;} // swap Red with Blue
+               }break;
             }
             f.skip(zeros);
          }
@@ -113,7 +124,7 @@ Bool Image::ExportBMP(File &f)C
 {
    Image  temp;
  C Image *src=this;
-   IMAGE_TYPE type=(ImageTI[T.type()].a ? IMAGE_B8G8R8A8 : IMAGE_B8G8R8); // BMP uses BGRA
+   IMAGE_TYPE type=(ImageTI[T.type()].a ? IMAGE_B8G8R8A8_SRGB : IMAGE_B8G8R8/*_SRGB*/); // BMP uses BGRA
    if(src->cube      ())if(temp.fromCube(*src ,             type               ))src=&temp;else return false;
    if(src->compressed())if(src->copyTry ( temp, -1, -1, -1, type, IMAGE_SOFT, 1))src=&temp;else return false;
 

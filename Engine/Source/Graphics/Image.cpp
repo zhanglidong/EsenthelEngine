@@ -284,6 +284,8 @@ IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type) // this is for HW images, don't retu
       case IMAGE_R8G8B8A8_SRGB:
          return IMAGE_NONE;
 
+      case IMAGE_B8G8R8A8_SRGB:
+      case IMAGE_R8G8B8_SRGB  :
       case IMAGE_BC1_SRGB     :
       case IMAGE_BC2_SRGB     :
       case IMAGE_BC3_SRGB     :
