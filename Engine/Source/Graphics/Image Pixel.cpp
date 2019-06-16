@@ -3363,24 +3363,48 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
             && (dest.hwType()==IMAGE_R8G8B8A8 || dest.hwType()==IMAGE_R8G8B8A8_SRGB)  // very common case for importing images
             && (dest.  type()==IMAGE_R8G8B8A8 || dest.  type()==IMAGE_R8G8B8A8_SRGB)) // check 'type' too in case we have to perform color adjustment
             {
-               REPD(z, T.ld())
-               REPD(y, T.lh())
+               FREPD(z, T.ld())
                {
-                C VecB  *s=(VecB *)(T   .data() + y*T   .pitch() + z*T   .pitch2());
-                  VecB4 *d=(VecB4*)(dest.data() + y*dest.pitch() + z*dest.pitch2());
-                  REPD(x, T.lw()){(d++)->set(s->x, s->y, s->z, 255); s++;}
+                C Byte *sz=T   .data() + z*T   .pitch2();
+                  Byte *dz=dest.data() + z*dest.pitch2();
+                  FREPD(y, T.lh())
+                  {
+                   C VecB  *s=(VecB *)(sz + y*T   .pitch());
+                     VecB4 *d=(VecB4*)(dz + y*dest.pitch());
+                     REPD(x, T.lw()){(d++)->set(s->x, s->y, s->z, 255); s++;}
+                  }
                }
             }else
             if((T   .hwType()==IMAGE_R8G8B8   || T   .hwType()==IMAGE_R8G8B8_SRGB  )
             && (dest.hwType()==IMAGE_B8G8R8A8 || dest.hwType()==IMAGE_B8G8R8A8_SRGB)  // very common case for exporting to WEBP from RGB
             && (dest.  type()==IMAGE_B8G8R8A8 || dest.  type()==IMAGE_B8G8R8A8_SRGB)) // check 'type' too in case we have to perform color adjustment
             {
-               REPD(z, T.ld())
-               REPD(y, T.lh())
+               FREPD(z, T.ld())
                {
-                C VecB  *s=(VecB *)(T   .data() + y*T   .pitch() + z*T   .pitch2());
-                  VecB4 *d=(VecB4*)(dest.data() + y*dest.pitch() + z*dest.pitch2());
-                  REPD(x, T.lw()){(d++)->set(s->z, s->y, s->x, 255); s++;}
+                C Byte *sz=T   .data() + z*T   .pitch2();
+                  Byte *dz=dest.data() + z*dest.pitch2();
+                  FREPD(y, T.lh())
+                  {
+                   C VecB  *s=(VecB *)(sz + y*T   .pitch());
+                     VecB4 *d=(VecB4*)(dz + y*dest.pitch());
+                     REPD(x, T.lw()){(d++)->set(s->z, s->y, s->x, 255); s++;}
+                  }
+               }
+            }else
+            if((T   .hwType()==IMAGE_R8G8B8A8 || T   .hwType()==IMAGE_R8G8B8A8_SRGB)
+            && (dest.hwType()==IMAGE_B8G8R8A8 || dest.hwType()==IMAGE_B8G8R8A8_SRGB)  // very common case for exporting to WEBP from RGBA
+            && (dest.  type()==IMAGE_B8G8R8A8 || dest.  type()==IMAGE_B8G8R8A8_SRGB)) // check 'type' too in case we have to perform color adjustment
+            {
+               FREPD(z, T.ld())
+               {
+                C Byte *sz=T   .data() + z*T   .pitch2();
+                  Byte *dz=dest.data() + z*dest.pitch2();
+                  FREPD(y, T.lh())
+                  {
+                   C VecB4 *s=(VecB4*)(sz + y*T   .pitch());
+                     VecB4 *d=(VecB4*)(dz + y*dest.pitch());
+                     REPD(x, T.lw()){(d++)->set(s->z, s->y, s->x, s->w); s++;}
+                  }
                }
             }else
             if(T   .highPrecision()
