@@ -36,19 +36,18 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
 {
    IMAGE_NONE, // none
 
-   IMAGE_B8G8R8A8, // 32-bit (R,G,B,A), Soft, DX10+
-   IMAGE_R8G8B8A8, // 32-bit (R,G,B,A), Soft, DX10+, GL, GL ES
-   IMAGE_R8G8B8  , // 24-bit (R,G,B,1), Soft
-   IMAGE_R8G8    , // 16-bit (R,G,0,1), Soft, DX10+, GL, GL ES
-   IMAGE_R8      , //  8-bit (R,0,0,1), Soft, DX10+, GL, GL ES
+   IMAGE_R8G8B8A8     , // 32-bit (R,G,B,A), linear gamma, Soft, DX10+, GL, GL ES
+   IMAGE_R8G8B8A8_SRGB, // 32-bit (R,G,B,A), sRGB   gamma, Soft, DX10+, GL, GL ES
+   IMAGE_R8G8B8       , // 24-bit (R,G,B,1), linear gamma, Soft
+   IMAGE_R8G8B8_SRGB  , // 24-bit (R,G,B,1), sRGB   gamma, Soft
+   IMAGE_R8G8         , // 16-bit (R,G,0,1), linear gamma, Soft, DX10+, GL, GL ES
+   IMAGE_R8           , //  8-bit (R,0,0,1), linear gamma, Soft, DX10+, GL, GL ES
 
    IMAGE_A8  , //  8-bit           alpha (0,0,0,A), Soft, DX10+, GL, GL ES
    IMAGE_L8  , //  8-bit luminance       (L,L,L,1), Soft,        GL, GL ES
    IMAGE_L8A8, // 16-bit luminance alpha (L,L,L,A), Soft,        GL, GL ES
 
-   IMAGE_BC1, // BC1/DXT1 4-bit lossy RGBA compression with 1-bit  alpha            , Soft, DX10+, GL, partial Android
-   IMAGE_BC2, // BC2/DXT3 8-bit lossy RGBA compression with sharp  alpha transitions, Soft, DX10+, GL, partial Android
-   IMAGE_BC3, // BC3/DXT5 8-bit lossy RGBA compression with smooth alpha transitions, Soft, DX10+, GL, partial Android
+   IMAGE_R10G10B10A2, // 32-bit (R,G,B,A), Soft, DX10+, GL, GL ES
 
    IMAGE_I8   , //      8-bit integer              , Soft
    IMAGE_I16  , //     16-bit integer              , Soft
@@ -63,52 +62,55 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
    IMAGE_F16_4, // 4 x 16-bit float ( 64-bit total), Soft, DX10+, GL, GL ES
    IMAGE_F32_4, // 4 x 32-bit float (128-bit total), Soft, DX10+, GL, GL ES
 
-   // compressed formats for iOS (compressing images to these formats is available only on Desktop platforms when 'SupportCompressPVRTC' was called in 'InitPre', decompressing these formats is available on all platforms, for GPU's that don't support these formats natively, the engine will keep them as R8G8B8A8 in the memory, decompression and especially compression may be slow, formats are recommended to be used only on iOS)
-   IMAGE_PVRTC1_2, // PVRTC1 2-bit lossy RGBA compression, Soft, iOS, partial Android
-   IMAGE_PVRTC1_4, // PVRTC1 4-bit lossy RGBA compression, Soft, iOS, partial Android
+   // compressed format for Desktop
+   IMAGE_BC1     , // BC1/DXT1 4-bit lossy RGBA compression with 1-bit  alpha            , linear gamma, Soft, DX10+, GL, partial Android
+   IMAGE_BC1_SRGB, // BC1/DXT1 4-bit lossy RGBA compression with 1-bit  alpha            , sRGB   gamma, Soft, DX10+, GL, partial Android
+   IMAGE_BC2     , // BC2/DXT3 8-bit lossy RGBA compression with sharp  alpha transitions, linear gamma, Soft, DX10+, GL, partial Android
+   IMAGE_BC2_SRGB, // BC2/DXT3 8-bit lossy RGBA compression with sharp  alpha transitions, sRGB   gamma, Soft, DX10+, GL, partial Android
+   IMAGE_BC3     , // BC3/DXT5 8-bit lossy RGBA compression with smooth alpha transitions, linear gamma, Soft, DX10+, GL, partial Android
+   IMAGE_BC3_SRGB, // BC3/DXT5 8-bit lossy RGBA compression with smooth alpha transitions, sRGB   gamma, Soft, DX10+, GL, partial Android
+   IMAGE_BC6     , // BC6      8-bit lossy RGB 16-bit floating point compression         , linear gamma, Soft, DX11+, partial GL (compressing images to this format is available only on when 'SupportCompressBC' was called in 'InitPre')
+   IMAGE_BC7     , // BC7      8-bit lossy RGBA         high quality compression         , linear gamma, Soft, DX11+, partial GL (compressing images to this format is available only on when 'SupportCompressBC' was called in 'InitPre')
+   IMAGE_BC7_SRGB, // BC7      8-bit lossy RGBA         high quality compression         , sRGB   gamma, Soft, DX11+, partial GL (compressing images to this format is available only on when 'SupportCompressBC' was called in 'InitPre')
 
    // compressed format for Android (compressing images to these formats is available only on when 'SupportCompressETC' was called in 'InitPre', decompressing these formats is available on all platforms, for GPU's that don't support these formats natively, the engine will keep them as R8G8B8A8 in the memory, decompression and especially compression may be slow, formats are recommended to be used only on Android)
-   IMAGE_ETC1   , // Ericsson 4-bit lossy RGB  compression with no    alpha (R,G,B,1     ), Soft, Android
-   IMAGE_ETC2   , // Ericsson 4-bit lossy RGB  compression with no    alpha (R,G,B,1     ), Soft, GL ES
-   IMAGE_ETC2_A1, // Ericsson 4-bit lossy RGBA compression with 1-bit alpha (R,G,B,0 or 1), Soft, GL ES
-   IMAGE_ETC2_A8, // Ericsson 8-bit lossy RGBA compression with 8-bit alpha (R,G,B,A     ), Soft, GL ES
+   IMAGE_ETC2        , // Ericsson 4-bit lossy RGB  compression with no    alpha (R,G,B,1     ), linear gamma, Soft, GL ES
+   IMAGE_ETC2_SRGB   , // Ericsson 4-bit lossy RGB  compression with no    alpha (R,G,B,1     ), sRGB   gamma, Soft, GL ES
+   IMAGE_ETC2_A1     , // Ericsson 4-bit lossy RGBA compression with 1-bit alpha (R,G,B,0 or 1), linear gamma, Soft, GL ES
+   IMAGE_ETC2_A1_SRGB, // Ericsson 4-bit lossy RGBA compression with 1-bit alpha (R,G,B,0 or 1), sRGB   gamma, Soft, GL ES
+   IMAGE_ETC2_A8     , // Ericsson 8-bit lossy RGBA compression with 8-bit alpha (R,G,B,A     ), linear gamma, Soft, GL ES
+   IMAGE_ETC2_A8_SRGB, // Ericsson 8-bit lossy RGBA compression with 8-bit alpha (R,G,B,A     ), sRGB   gamma, Soft, GL ES
 
-   IMAGE_BC7, // BC7 8-bit lossy RGBA high quality compression, Soft, DX11+, partial GL (compressing images to this format is available only on when 'SupportCompressBC' was called in 'InitPre')
-
-   IMAGE_R10G10B10A2, // 32-bit (R,G,B,A), Soft, DX10+, GL, GL ES
+   // compressed formats for iOS (compressing images to these formats is available only on Desktop platforms when 'SupportCompressPVRTC' was called in 'InitPre', decompressing these formats is available on all platforms, for GPU's that don't support these formats natively, the engine will keep them as R8G8B8A8 in the memory, decompression and especially compression may be slow, formats are recommended to be used only on iOS)
+   IMAGE_PVRTC1_2     , // PVRTC1 2-bit lossy RGBA compression, linear gamma, Soft, iOS, partial Android
+   IMAGE_PVRTC1_2_SRGB, // PVRTC1 2-bit lossy RGBA compression, sRGB   gamma, Soft, iOS, partial Android
+   IMAGE_PVRTC1_4     , // PVRTC1 4-bit lossy RGBA compression, linear gamma, Soft, iOS, partial Android
+   IMAGE_PVRTC1_4_SRGB, // PVRTC1 4-bit lossy RGBA compression, sRGB   gamma, Soft, iOS, partial Android
 
    IMAGE_TYPES, // number of types
-   IMAGE_R8G8B8A8_SRGB,
 #if EE_PRIVATE
-   IMAGE_B8G8R8A8_SRGB,
-   IMAGE_R8G8B8_SRGB  ,
-   IMAGE_BC1_SRGB     ,
-   IMAGE_BC2_SRGB     ,
-   IMAGE_BC3_SRGB     ,
-   IMAGE_BC6          , // BC6 8-bit lossy RGB 16-bit floating point compression, Soft, DX11+, partial GL (compressing images to this format is available only on when 'SupportCompressBC' was called in 'InitPre')
-   IMAGE_BC7_SRGB     ,
-
-   IMAGE_ETC2_SRGB   ,
-   IMAGE_ETC2_A1_SRGB,
-   IMAGE_ETC2_A8_SRGB,
-
-   IMAGE_PVRTC1_2_SRGB,
-   IMAGE_PVRTC1_4_SRGB,
-
-   IMAGE_R11G11B10F,
-   IMAGE_R9G9B9E5F ,
-
-   IMAGE_B4G4R4A4     ,
-   IMAGE_B5G5R5A1     ,
-   IMAGE_B5G6R5       ,
-   IMAGE_B8G8R8       ,
    IMAGE_R8G8B8A8_SIGN, // 32-bit (R,G,B,A), Soft, DX10+, GL, GL ES
    IMAGE_R8G8_SIGN    , // 16-bit (R,G,0,1), Soft, DX10+, GL, GL ES
    IMAGE_R8_SIGN      , //  8-bit (R,0,0,1), Soft, DX10+, GL, GL ES
+
+   IMAGE_B8G8R8A8     , // 32-bit (R,G,B,A), Soft, DX10+
+   IMAGE_B8G8R8A8_SRGB,
+   IMAGE_B8G8R8       ,
+
+   IMAGE_B5G6R5  ,
+   IMAGE_B5G5R5A1,
+   IMAGE_B4G4R4A4,
+
    IMAGE_D16  ,
    IMAGE_D24X8,
    IMAGE_D24S8,
    IMAGE_D32  ,
+
+   IMAGE_ETC1, // Ericsson 4-bit lossy RGB compression with no alpha (R,G,B,1), linear gamma, Soft, Android
+
+   IMAGE_R11G11B10F,
+   IMAGE_R9G9B9E5F ,
+
    IMAGE_ALL_TYPES, // number of all types
 #endif
 };
