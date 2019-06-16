@@ -148,12 +148,12 @@ Bool RendererClass::rtCreate()
 
    // depth
 #if DX11
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24S8, IMAGE_DS_RT, 1, _main.samples()))return false;
+   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24S8, IMAGE_DS, 1, _main.samples()))return false;
 #elif IOS // on iOS we have access to '_main' so let's keep '_main_ds' the same
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24S8, IMAGE_DS_RT   , 1, _main.samples()))
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D32  , IMAGE_DS_RT   , 1, _main.samples()))
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24X8, IMAGE_DS_RT   , 1, _main.samples()))
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D16  , IMAGE_DS_RT   , 1, _main.samples()))
+   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24S8, IMAGE_DS, 1, _main.samples()))
+   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D32  , IMAGE_DS, 1, _main.samples()))
+   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24X8, IMAGE_DS, 1, _main.samples()))
+   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D16  , IMAGE_DS, 1, _main.samples()))
    if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24S8, IMAGE_GL_RB, 1, _main.samples()))
    if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D32  , IMAGE_GL_RB, 1, _main.samples()))
    if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24X8, IMAGE_GL_RB, 1, _main.samples()))

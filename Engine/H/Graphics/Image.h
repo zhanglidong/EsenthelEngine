@@ -122,13 +122,13 @@ enum IMAGE_MODE : Byte // Image Mode
    IMAGE_SOFT_CUBE, // Software Cube Image   (this type is used for software processing only - it can't be drawn on the screen)
    IMAGE_RT       , // Hardware RenderTarget (only this mode can be used as custom rendering destination for 'Renderer.target', after you have rendered to this image you can treat it as typical IMAGE_2D texture)
 #if EE_PRIVATE
-   IMAGE_RT_CUBE     , // Hardware RenderTarget Cube
-   IMAGE_DS_RT       , // Hardware Depth Stencil Buffer RenderTarget
-   IMAGE_SHADOW_MAP  , // Hardware Shadow Map (Depth Texture)
+   IMAGE_RT_CUBE   , // Hardware RenderTarget Cube
+   IMAGE_DS        , // Hardware Depth Stencil
+   IMAGE_SHADOW_MAP, // Hardware Shadow Map (Depth Texture)
 #if DX11
-   IMAGE_STAGING     , // DirectX Image used for copying data between CPU<->GPU
+   IMAGE_STAGING   , // DirectX Image used for copying data between CPU<->GPU
 #elif GL
-   IMAGE_GL_RB       , // OpenGL Render Buffer (can be color or depth stencil)
+   IMAGE_GL_RB     , // OpenGL Render Buffer (can be color or depth stencil)
 #endif
 #endif
 };

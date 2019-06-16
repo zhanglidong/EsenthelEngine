@@ -152,7 +152,7 @@ Bool ImageRC::create(C ImageRTDesc &desc)
    delThis(); // delete only this without super 'del', because it's possible this image already has what 'desc' is requesting, so 'createTryEx' could do nothing as long as we're not deleting it here first
    if(ImageTI[desc._type].d) // if this is a depth buffer
    {
-             ok=createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_DS_RT, 1, desc.samples); // try first as a render target
+             ok=createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_DS   , 1, desc.samples); // try first as a render target
    #if GL
       if(!ok)ok=createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_GL_RB, 1, desc.samples);
    #endif

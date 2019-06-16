@@ -103,7 +103,7 @@ static void SetTexture(Int index, C Image *image, ShaderImage::Sampler *sampler)
       {
          case IMAGE_2D:
          case IMAGE_RT:
-         case IMAGE_DS_RT:
+         case IMAGE_DS:
          case IMAGE_SHADOW_MAP:
          {
             TexBind(GL_TEXTURE_2D, image->_txtr);
@@ -142,7 +142,7 @@ static void SetTexture(Int index, C Image *image, ShaderImage::Sampler *sampler)
    {
       case IMAGE_2D:
       case IMAGE_RT:
-      case IMAGE_DS_RT:
+      case IMAGE_DS:
       case IMAGE_SHADOW_MAP:
       {
          UInt s, t;
