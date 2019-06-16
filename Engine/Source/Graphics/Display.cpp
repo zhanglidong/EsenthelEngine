@@ -2958,7 +2958,7 @@ void Display::clearCol(C Vec4 &color)
       if(D._clip_real)glDisable(GL_SCISSOR_TEST); // scissor test affects clear on OpenGL so we need to temporarily disable it to have the same functionality as in DirectX
       if(D._view_active.full)
       {
-         glClearColor(color.x, color.y, color.z, color.w); // Values specified by glClearColor are clamped to the range [0,1] - https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glClearColor.xhtml
+         glClearColor(color.x, color.y, color.z, color.w); // Values specified by 'glClearColor' are clamped to the range [0,1] - https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glClearColor.xhtml
          glClear(GL_COLOR_BUFFER_BIT);
       }else
       {

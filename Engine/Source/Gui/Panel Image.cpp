@@ -1144,15 +1144,15 @@ struct PanelImageCreate
             if(section.inner_border_color.a && dist>=params.border_size &&    dist<params.border_size*2)col=Blend(col, sp.inner_border_color);else
             if(section. prev_border_color.a && section_i && dist_sect>=sps[1].size-params.border_size  )col=Blend(col, sp. prev_border_color);
 
-         #if DEBUG
+         /*#if DEBUG
             if(Kb.b(KB_X))col=ColorBrightness(dist_x     ).asVec4();
             if(Kb.b(KB_Y))col=ColorBrightness(dist_y     ).asVec4();
             if(Kb.b(KB_I))col=ColorBrightness(dist_sect  ).asVec4();
             if(Kb.b(KB_D))col=ColorBrightness(dist_global).asVec4();
             if(Kb.b(KB_H))col=ColorBrightness(depth      ).asVec4();
-         #endif
+         #endif*/
          }
-         image.color(x, y, col);
+         image.colorF(x, y, col);
       }
    }
    void afterColor(FILTER_TYPE filter)

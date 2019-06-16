@@ -186,7 +186,7 @@ void   VirtualReality::drawMain () // remember that we're rendering left eye, so
    #endif
       render->drawPart(Fit(_left_eye_tex_aspect, D.rect(), FIT_FILL), _left_eye_tex_rect);
       D.alpha(alpha);
-   }else D.clearCol(); // clear because gui may not cover the entire window
+   }else D.clearCol(); // clear because Gui may not cover the entire window
 
    if(draw_2d)if(Image *image=getLastGui())
    {

@@ -102,7 +102,6 @@ struct Motion;
 // GRAPHICS
 /******************************************************************************/
 struct Color;
-struct Color2;
 struct Image;
 struct ImageHeader;
 struct Video;

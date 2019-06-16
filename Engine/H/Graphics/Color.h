@@ -61,24 +61,6 @@ const Color
    BROWN (128,  64,   0),
    TRANSPARENT(0, 0, 0, 0);
 
-struct Color2
-{
-   Color color[2];
-
-   Color2& zero(                                               ) {color[0].zero(); color[1].zero();               return T;}
-   Color2& set (Byte red, Byte green, Byte blue, Byte alpha=255) {color[0]=color[1].set(red, green, blue, alpha); return T;}
-   Color2& set (Byte lum,                        Byte alpha=255) {color[0]=color[1].set(lum,              alpha); return T;}
-
-   Color& operator[](Int i)  {return color[i];}
- C Color& operator[](Int i)C {return color[i];}
-
-   Bool anyAlpha()C {return (color[0].a+color[1].a)!=0;}
-
-   Color2(                      ) {}
-   Color2(C Color &col          ) {color[0]=color[1]=col;}
-   Color2(C Color &a, C Color &b) {color[0]=a; color[1]=b;}
-};
-
 // these weights should be applied to Color in linear space
 const Vec ColorLumWeight (0.2126f, 0.7152f, 0.0722f), // ITU BT.709 - https://en.wikipedia.org/wiki/Rec._709
           ColorLumWeight2(0.2990f, 0.5870f, 0.1140f); // ITU BT.601 - https://en.wikipedia.org/wiki/Rec._601
