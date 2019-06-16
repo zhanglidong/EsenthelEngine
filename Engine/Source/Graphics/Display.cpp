@@ -2926,39 +2926,28 @@ Flt Display::viewQuadDist()C
 /******************************************************************************/
 // CLEAR
 /******************************************************************************/
-#define CLEAR_DEPTH_VALUE (!REVERSE_DEPTH) // Warning: for GL this is set at app startup and not here
+#define CLEAR_DEPTH_VALUE (!REVERSE_DEPTH) // Warning: for GL this is set at app startup using 'glClearDepth' and not here
 void Display::clear(C Color &srgb_color)
 {
    clearCol(srgb_color);
    clearDS (          );
 }
-void Display::clearCol(C Color &srgb_color) {return clearCol(SRGBToLinear(srgb_color));}
-#if DX11
-void Display::clearCol(C Vec4 &color)
+void Display::clearCol(C Color &srgb_color) {return clearCol(LINEAR_GAMMA ? SRGBToLinear(srgb_color) : srgb_color.asVec4());}
+void Display::clearCol(C Vec4  &     color)
 {
    if(Renderer._cur[0])
    {
+   #if DX11
       if(D._view_active.full)Renderer._cur[0]->clearHw(color);else
       {
          Bool clip=D._clip_allow; D.clipAllow(false); ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Sh.clear(color);
                                   D.clipAllow(clip );                  D.alpha(alpha     );
       }
-   }
-}
-void Display::clearCol(Int i, C Vec4 &color) {RANGE_ASSERT(i, Renderer._cur); if(Image *image=Renderer._cur[i])image->clearHw(color);}
-// DX10+ 'clearDepth' always clears full depth buffer (viewport is ignored)
-void Display::clearDepth  (      ) {if(Renderer._cur_ds)D3DC->ClearDepthStencilView(Renderer._cur_ds->_dsv, D3D11_CLEAR_DEPTH                                                                  , CLEAR_DEPTH_VALUE, 0);}
-void Display::clearDS     (Byte s) {if(Renderer._cur_ds)D3DC->ClearDepthStencilView(Renderer._cur_ds->_dsv, D3D11_CLEAR_DEPTH|(ImageTI[Renderer._cur_ds->hwType()].s ? D3D11_CLEAR_STENCIL : 0), CLEAR_DEPTH_VALUE, s);}
-void Display::clearStencil(Byte s) {if(Renderer._cur_ds)D3DC->ClearDepthStencilView(Renderer._cur_ds->_dsv,                                                            D3D11_CLEAR_STENCIL     , CLEAR_DEPTH_VALUE, s);}
-#elif GL
-void Display::clearCol(C Vec4 &color)
-{
-   if(Renderer._cur[0])
-   {
+   #elif GL
       if(D._clip_real)glDisable(GL_SCISSOR_TEST); // scissor test affects clear on OpenGL so we need to temporarily disable it to have the same functionality as in DirectX
       if(D._view_active.full)
       {
-         glClearColor(color.x, color.y, color.z, color.w); // Values specified by 'glClearColor' are clamped to the range [0,1] - https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glClearColor.xhtml
+         glClearColor(color.x, color.y, color.z, color.w); // even though doc states that values are clamped to the range [0,1] - https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glClearColor.xhtml tests on Windows show they're not clamped, which is good because we might need it
          glClear(GL_COLOR_BUFFER_BIT);
       }else
       {
@@ -2966,10 +2955,25 @@ void Display::clearCol(C Vec4 &color)
                           D.alpha(alpha     );
       }
       if(D._clip_real)glEnable(GL_SCISSOR_TEST);
+   #endif
    }
 }
-// 'glClearBufferfv' always clears full RT (viewport is ignored)
-void Display::clearCol(Int i, C Vec4 &color) {RANGE_ASSERT(i, Renderer._cur); if(Renderer._cur[i])glClearBufferfv(GL_COLOR, i, color.c);}
+
+void Display::clearCol(Int i, C Vec4 &color)
+{
+   RANGE_ASSERT(i, Renderer._cur);
+#if DX11
+   if(Image *image=Renderer._cur[i])image->clearHw(color);
+#elif GL
+   if(Renderer._cur[i])glClearBufferfv(GL_COLOR, i, color.c); // 'glClearBufferfv' always clears full RT (viewport is ignored)
+#endif
+}
+#if DX11
+// DX10+ 'clearDepth' always clears full depth buffer (viewport is ignored)
+void Display::clearDepth  (      ) {if(Renderer._cur_ds)D3DC->ClearDepthStencilView(Renderer._cur_ds->_dsv, D3D11_CLEAR_DEPTH                                                                  , CLEAR_DEPTH_VALUE, 0);}
+void Display::clearDS     (Byte s) {if(Renderer._cur_ds)D3DC->ClearDepthStencilView(Renderer._cur_ds->_dsv, D3D11_CLEAR_DEPTH|(ImageTI[Renderer._cur_ds->hwType()].s ? D3D11_CLEAR_STENCIL : 0), CLEAR_DEPTH_VALUE, s);}
+void Display::clearStencil(Byte s) {if(Renderer._cur_ds)D3DC->ClearDepthStencilView(Renderer._cur_ds->_dsv,                                                            D3D11_CLEAR_STENCIL     , CLEAR_DEPTH_VALUE, s);}
+#elif GL
 // GL 'clearDepth' always clears full depth buffer (viewport is ignored)
 // Don't check for '_cur_ds_id' because this can be 0 for RenderBuffers
 void Display::clearDepth  (      ) {if(Renderer._cur_ds){if(D._clip_real)glDisable(GL_SCISSOR_TEST);                    glClear(GL_DEPTH_BUFFER_BIT                                                                ); if(D._clip_real)glEnable(GL_SCISSOR_TEST);}}

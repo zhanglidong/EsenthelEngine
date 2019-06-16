@@ -2852,14 +2852,8 @@ void Image::clearFull(C Vec4 &color, Bool restore_rt)
       restore_viewport=!D._view_active.full;
    }
 
-   if(color.min()>=0 && color.max()<=1)
-   {
-      Renderer.set(this, null, false); D.clearCol(color);
-   }else
-   {
-      Renderer.set(this, null, false); Bool clip=D._clip_allow; D.clipAllow(false); ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Sh.clear(color);
-                                                                D.clipAllow(clip );                  D.alpha(alpha     );
-   }
+   Renderer.set(this, null, false); 
+   D.clearCol(color);
 
    if(restore_rt)Renderer.set(rt[0], rt[1], rt[2], rt[3], ds, restore_viewport);
 #endif
@@ -2878,11 +2872,7 @@ void Image::clearViewport(C Vec4 &color, Bool restore_rt)
       }
 
       Renderer.set(this, null, true);
-      if(color.min()>=0 && color.max()<=1)D.clearCol(color);else
-      {
-         Bool clip=D._clip_allow; D.clipAllow(false); ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Sh.clear(color);
-                                  D.clipAllow(clip );                  D.alpha(alpha     );
-      }
+      D.clearCol(color);
 
       if(restore_rt)Renderer.set(rt[0], rt[1], rt[2], rt[3], ds, restore_viewport);
    }
