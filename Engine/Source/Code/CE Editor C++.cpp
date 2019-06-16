@@ -1507,7 +1507,7 @@ Bool CodeEditor::generateVSProj(Int version)
             Bool      keep     =(condition && Contains(condition->value, "Emscripten"));
             if(!keep) // keep default value
             {
-               Bool winXP=(condition && ContainsAll(condition->value, "DX9 Win32", false, true)); // only DX9 Win32 is for WinXP
+               Bool winXP=(condition && Contains(condition->value, "Win32", false, true) && ContainsAny(condition->value, u"GL DX9", false, true)); // only Win32 DX9/GL is for WinXP
                XmlNode &PlatformToolset=prop->getNode("PlatformToolset");
                PlatformToolset.data.setNum(1)[0]=(winXP ? platform_toolset_xp : platform_toolset);
             }
@@ -2823,7 +2823,7 @@ void CodeEditor::build(BUILD_MODE mode)
          if(build_exe_type==EXE_NEW)config+=" DX11";else
                                     config+=" DX11"; // config_api
 
-         Str platform=((build_exe_type==EXE_WEB) ? "4) Web" : config_32_bit ? "2) 32 bit" : "1) 64 bit");
+         Str platform=((build_exe_type==EXE_WEB) ? "3) Web" : /*config_32_bit ? "2) 32 bit" :*/ "1) 64 bit");
 
          if(build_exe_type==EXE_WEB) // currently WEB compilation is available only through VC++ 2010
          {
