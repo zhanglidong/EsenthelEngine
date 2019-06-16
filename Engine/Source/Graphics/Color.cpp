@@ -8,6 +8,8 @@ static Color ColorArray[]=
    YELLOW, CYAN , PURPLE,
    ORANGE, TURQ , BROWN ,
 };
+       Flt  ByteSRGBToLinearArray[256];
+static Byte LinearToByteSRGBArray[3139]; // 3139=smallest array size which preserves "LinearToByteSRGB(ByteSRGBToLinear(s))==s"
 /******************************************************************************/
 Color::Color(C Vec &color)
 {
@@ -391,10 +393,72 @@ Flt LinearToSRGB(Flt l) {return (l<=0.0031308f) ? l*12.92f : Pow(l, 1/2.4f)*1.05
 Vec SRGBToLinear(C Vec &s) {return Vec(SRGBToLinear(s.x), SRGBToLinear(s.y), SRGBToLinear(s.z));}
 Vec LinearToSRGB(C Vec &l) {return Vec(LinearToSRGB(l.x), LinearToSRGB(l.y), LinearToSRGB(l.z));}
 
+Vec4 SRGBToLinear(C Color &c) {return Vec4(ByteSRGBToLinear(c.r), ByteSRGBToLinear(c.g), ByteSRGBToLinear(c.b), ByteToFlt(c.a));}
+
 Flt LinearLumOfLinearColor(C Vec &l) {return              Dot(      l        , ColorLumWeight2) ;}
 Flt LinearLumOfSRGBColor  (C Vec &s) {return              Dot(SRGBToLinear(s), ColorLumWeight2) ;}
 Flt   SRGBLumOfLinearColor(C Vec &l) {return LinearToSRGB(Dot(      l        , ColorLumWeight2));}
 Flt   SRGBLumOfSRGBColor  (C Vec &s) {return LinearToSRGB(Dot(SRGBToLinear(s), ColorLumWeight2));}
+/******************************************************************************/
+// SRGB
+/******************************************************************************/
+static Byte LinearToByteSRGB(Flt l) {return LinearToByteSRGBArray[Mid(RoundPos(l*(Elms(LinearToByteSRGBArray)-1)), 0, Elms(LinearToByteSRGBArray)-1)];}
+
+void InitSRGB()
+{
+   REPAO(ByteSRGBToLinearArray)=SRGBToLinear(i/255.0f);
+   REPAO(LinearToByteSRGBArray)=FltToByte(LinearToSRGB(i/Flt(Elms(LinearToByteSRGBArray)-1)));
+
+#if DEBUG && 0 // do some debug checks
+   FREP(Elms(ByteSRGBToLinearArray)-1)DYNAMIC_ASSERT(ByteSRGBToLinearArray[i]<=ByteSRGBToLinearArray[i+1], "ByteSRGBToLinearArray[i] > ByteSRGBToLinearArray[i+1]");
+   FREP(Elms(LinearToByteSRGBArray)-1)DYNAMIC_ASSERT(LinearToByteSRGBArray[i]<=LinearToByteSRGBArray[i+1], "LinearToByteSRGBArray[i] > LinearToByteSRGBArray[i+1]");
+   FREP(                          256)DYNAMIC_ASSERT(LinearToByteSRGB(ByteSRGBToLinear(i))==i            , "LinearToByteSRGB(ByteSRGBToLinear(s))!=s");
+#endif
+}
+#if 0 // approximate functions
+/*
+   Error was calculated using:
+   Flt d0=0; Int d1=0;
+   REP(256)
+   {
+      Flt  f=i/255.0f,
+           l1=ByteSRGBToLinear  (i),
+           l2=SRGBToLinearApprox(i);
+      Byte s1=LinearToByteSRGB  (f),
+           s2=LinearToSRGBApprox(f);
+      d0+=Abs(l1-l2);
+      d1+=Abs(s1-s2);
+   }
+   Exit(S+d0/256+' '+d1/255.0f/256);
+*/
+#define SRGB_MODE 0
+static Flt SRGBToLinearApprox(Byte s)
+{
+   Flt f=s/255.0f;
+#if   SRGB_MODE==0 // average error = 0.023
+   return Sqr(f);
+#elif SRGB_MODE==1 // average error = 0.004
+   return Pow(f, 2.2f);
+#else              // average error = 0.001
+   return f*(f*(f*0.305306011f+0.682171111f)+0.012522878f);
+#endif
+}
+static Byte LinearToSRGBApprox(Flt l)
+{
+   if(l<=0)return 0;
+#if   SRGB_MODE==0 // average error = 0.023
+   Flt s=SqrtFast(l);
+#elif SRGB_MODE==1 // average error = 0.004
+   Flt s=Pow(l, 1/2.2f);
+#else              // average error = 0.001
+   Flt s1=SqrtFast(l),
+       s2=SqrtFast(s1),
+       s3=SqrtFast(s2),
+       s =0.585122381f*s1 + 0.783140355f * s2 - 0.368262736f*s3;
+#endif
+   return Min(RoundPos(s*255.0f), 255);
+}
+#endif
 /******************************************************************************/
 #if WINDOWS_OLD && DX11
    #include <Icm.h>

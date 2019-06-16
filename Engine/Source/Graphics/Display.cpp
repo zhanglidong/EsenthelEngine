@@ -2927,14 +2927,14 @@ Flt Display::viewQuadDist()C
 // CLEAR
 /******************************************************************************/
 #define CLEAR_DEPTH_VALUE (!REVERSE_DEPTH) // Warning: for GL this is set at app startup and not here
-#if DX11
-void Display::clear(C Color &color)
+void Display::clear(C Color &srgb_color)
 {
-   clearCol(color);
-   clearDS (     );
+   clearCol(srgb_color);
+   clearDS (          );
 }
-void Display::clearCol(C Color &color) {return clearCol(color.asVec4());}
-void Display::clearCol(C Vec4  &color)
+void Display::clearCol(C Color &srgb_color) {return clearCol(SRGBToLinear(srgb_color));}
+#if DX11
+void Display::clearCol(C Vec4 &color)
 {
    if(Renderer._cur[0])
    {
@@ -2951,13 +2951,7 @@ void Display::clearDepth  (      ) {if(Renderer._cur_ds)D3DC->ClearDepthStencilV
 void Display::clearDS     (Byte s) {if(Renderer._cur_ds)D3DC->ClearDepthStencilView(Renderer._cur_ds->_dsv, D3D11_CLEAR_DEPTH|(ImageTI[Renderer._cur_ds->hwType()].s ? D3D11_CLEAR_STENCIL : 0), CLEAR_DEPTH_VALUE, s);}
 void Display::clearStencil(Byte s) {if(Renderer._cur_ds)D3DC->ClearDepthStencilView(Renderer._cur_ds->_dsv,                                                            D3D11_CLEAR_STENCIL     , CLEAR_DEPTH_VALUE, s);}
 #elif GL
-void Display::clear(C Color &color)
-{
-   clearCol(color);
-   clearDS (     );
-}
-void Display::clearCol(C Color &color) {return clearCol(color.asVec4());}
-void Display::clearCol(C Vec4  &color)
+void Display::clearCol(C Vec4 &color)
 {
    if(Renderer._cur[0])
    {

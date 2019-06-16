@@ -131,11 +131,17 @@ Vec SRGBToLinear(C Vec &s); // convert 0..1 srgb   to 0..1 linear
 Flt LinearToSRGB(  Flt  l); // convert 0..1 linear to 0..1 srgb
 Vec LinearToSRGB(C Vec &l); // convert 0..1 linear to 0..1 srgb
 
+Vec4 SRGBToLinear(C Color &c); // // convert 0..255 srgb to 0..1 linear
+
 Flt LinearLumOfLinearColor(C Vec &l); // get linear photometric luminance (as perceived by human eye) of linear color
 Flt LinearLumOfSRGBColor  (C Vec &s); // get linear photometric luminance (as perceived by human eye) of srgb   color
 Flt   SRGBLumOfLinearColor(C Vec &l); // get srgb   photometric luminance (as perceived by human eye) of linear color
 Flt   SRGBLumOfSRGBColor  (C Vec &s); // get srgb   photometric luminance (as perceived by human eye) of srgb   color
 #if EE_PRIVATE
+extern Flt ByteSRGBToLinearArray[256];
+inline Flt ByteSRGBToLinear(Byte s) {return ByteSRGBToLinearArray[s];}
+
+void InitSRGB();
 Str GetColorProfilePath();
 #endif
 /******************************************************************************/

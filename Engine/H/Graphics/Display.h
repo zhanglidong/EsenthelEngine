@@ -398,14 +398,14 @@ struct Display : DisplayState, DisplayDraw // Display Control
 #endif
 
    // Clear Screen
-   static void clear     (C Color &color=TRANSPARENT); // clear screen viewport to 'color' and clear depth buffer
-   static void clearCol  (C Color &color=TRANSPARENT); // clear screen viewport to 'color'
-   static void clearDepth(                          ); // clear                                      depth buffer
+   static void clear     (C Color &srgb_color=TRANSPARENT); // clear screen viewport to 'srgb_color' and clear depth buffer
+   static void clearCol  (C Color &srgb_color            ); // clear screen viewport to 'srgb_color'
+   static void clearCol  (C Vec4  &     color=Vec4Zero   ); // clear screen viewport to      'color'
+   static void clearDepth(                               ); // clear                                           depth buffer
 #if EE_PRIVATE
-   static void clearDS     (Byte s=0                ); // clear depth buffer and stencil (if available)
-   static void clearStencil(Byte s=0                ); // clear                  stencil
-   static void clearCol    (       C Vec4  &color   ); // clear screen viewport to 'color'
-   static void clearCol    (Int i, C Vec4  &color   ); // clear i-th full (not viewport) RT to 'color'
+   static void clearDS     (Byte s=0            ); // clear depth buffer and stencil (if available)
+   static void clearStencil(Byte s=0            ); // clear                  stencil
+   static void clearCol    (Int i, C Vec4 &color); // clear i-th full (not viewport) RT to 'color'
 #endif
 
    // operations
