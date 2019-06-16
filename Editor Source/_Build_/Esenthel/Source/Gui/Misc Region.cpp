@@ -35,8 +35,6 @@ MiscRegion Misc;
    void MiscRegion::ConfigRelease(MiscRegion &mr) {CodeEdit.configDebug(false);}
    void MiscRegion::Config32(MiscRegion &mr) {CodeEdit.config32Bit(true );}
    void MiscRegion::Config64(MiscRegion &mr) {CodeEdit.config32Bit(false);}
-   void MiscRegion::ConfigDX9(MiscRegion &mr) {CodeEdit.configDX9  (true );}
-   void MiscRegion::ConfigDX11(MiscRegion &mr) {CodeEdit.configDX9  (false);}
    void MiscRegion::ConfigEXE(MiscRegion &mr) {CodeEdit.configEXE  (Edit::EXE_EXE  );}
    void MiscRegion::ConfigDLL(MiscRegion &mr) {CodeEdit.configEXE  (Edit::EXE_DLL  );}
    void MiscRegion::ConfigLIB(MiscRegion &mr) {CodeEdit.configEXE  (Edit::EXE_LIB  );}
@@ -224,12 +222,12 @@ MiscRegion Misc;
          build_menu.New().create("Release", ConfigRelease, T).flag(MENU_TOGGLABLE);
          build_menu++;
       #if WINDOWS
-         build_menu.New().create("64-bit", Config64, T).flag(MENU_TOGGLABLE);
+       /*build_menu.New().create("64-bit", Config64, T).flag(MENU_TOGGLABLE);
          build_menu.New().create("32-bit", Config32, T).flag(MENU_TOGGLABLE);
-         build_menu++;
-         build_menu.New().create("DirectX 11", ConfigDX11, T).flag(MENU_TOGGLABLE);
+         build_menu++;*/
+       /*build_menu.New().create("DirectX 11", ConfigDX11, T).flag(MENU_TOGGLABLE);
          build_menu.New().create("DirectX 9" , ConfigDX9 , T).flag(MENU_TOGGLABLE);
-         build_menu++;
+         build_menu++; */
       #endif
          build_menu.New().create("Windows EXE"      , ConfigEXE  , T).flag(MENU_TOGGLABLE);
          build_menu.New().create("Windows DLL"      , ConfigDLL  , T).flag(MENU_TOGGLABLE);
@@ -267,7 +265,7 @@ MiscRegion Misc;
       Gui+=move_misc.create(Rect_LU(0, 0, h, h)).func(Move, T).hide().focusable(false).desc("Move bar around the screen"); move_misc.image="Gui/Misc/move.img"; move_misc.mode=BUTTON_CONTINUOUS;
       CodeEdit.configChangedDebug();
       CodeEdit.configChanged32Bit();
-      CodeEdit.configChangedDX9  ();
+      CodeEdit.configChangedAPI  ();
       CodeEdit.configChangedEXE  ();
       CodeEdit.visibleChangedOptions      ();
       CodeEdit.visibleChangedOpenedFiles  ();

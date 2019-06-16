@@ -52,10 +52,9 @@ AppPropsEditor AppPropsEdit;
       Misc.build.menu("32-bit",  config32Bit(), QUIET);
       Misc.build.menu("64-bit", !config32Bit(), QUIET);
    }
-   void CodeView::configChangedDX9()
+   void CodeView::configChangedAPI()
 {
-      Misc.build.menu("DirectX 11", !configDX9(), QUIET);
-      Misc.build.menu("DirectX 9" ,  configDX9(), QUIET);
+      //Misc.build.menu("DirectX 11", configAPI(), QUIET);
    }
    void CodeView::configChangedEXE()
 {

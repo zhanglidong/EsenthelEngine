@@ -1050,10 +1050,10 @@ class EditorServer : Edit.EditorServer
                   f.reset().putByte(Edit.EI_BUILD_32BIT).putBool(true); f.pos(0); connection.send(f);
                }break;
 
-               case Edit.EI_BUILD_DX9:
+               case Edit.EI_BUILD_API:
                {
-                  File &f=connection.data; CodeEdit.configDX9(f.getBool());
-                  f.reset().putByte(Edit.EI_BUILD_DX9).putBool(true); f.pos(0); connection.send(f);
+                  File &f=connection.data; CodeEdit.configAPI(f.getByte());
+                  f.reset().putByte(Edit.EI_BUILD_API).putBool(true); f.pos(0); connection.send(f);
                }break;
 
                case Edit.EI_BUILD_EXE:

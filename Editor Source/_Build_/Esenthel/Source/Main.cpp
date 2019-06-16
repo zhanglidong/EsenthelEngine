@@ -32,11 +32,7 @@ void ScreenChanged(flt old_width, flt old_height)
     CopyElms.resize();
   GameScreenChanged();
       ResizeInstall();
-}
-bool DisplayReset()
-{
-   SetKbExclusive(); // call because it depends on fullscreen mode
-   return true;
+     SetKbExclusive(); // call because it depends on fullscreen mode
 }
 void SetShader()
 {
@@ -173,7 +169,6 @@ void InitPre()
       D.secondaryOpenGLContexts(Cpu.threads()*3); // worker threads + importer threads + manually called threads
       D.drawNullMaterials(true);
       D.set_shader=SetShader;
-      D.reset=DisplayReset;
       D.mode(App.desktopW()*0.8f, App.desktopH()*0.8f);
       D.highPrecNrmCalc(true);
    #if !DEBUG

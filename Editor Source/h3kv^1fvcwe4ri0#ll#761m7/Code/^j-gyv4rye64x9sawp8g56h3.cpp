@@ -24,10 +24,9 @@ class CodeView : Region, Edit.CodeEditorInterface
       Misc.build.menu("32-bit",  config32Bit(), QUIET);
       Misc.build.menu("64-bit", !config32Bit(), QUIET);
    }
-   virtual void configChangedDX9()override
+   virtual void configChangedAPI()override
    {
-      Misc.build.menu("DirectX 11", !configDX9(), QUIET);
-      Misc.build.menu("DirectX 9" ,  configDX9(), QUIET);
+      //Misc.build.menu("DirectX 11", configAPI(), QUIET);
    }
    virtual void configChangedEXE()override
    {

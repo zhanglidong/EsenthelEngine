@@ -6,7 +6,6 @@ extern Threads     WorkerThreads, BuilderThreads, BackgroundThreads;
 extern Str         CmdLine;
 /******************************************************************************/
 void ScreenChanged(flt old_width=D.w(), flt old_height=D.h());
-bool DisplayReset();
 void SetShader();
 void Drop(Memc<Str> &names, GuiObj *obj, C Vec2 &screen_pos);
 bool SaveChanges(void (*after_save_close)(bool all_saved, ptr user), ptr user=null);

@@ -6,7 +6,7 @@ class CodeView : Region, Edit::CodeEditorInterface
 
    virtual void configChangedDebug()override;
    virtual void configChanged32Bit()override;
-   virtual void configChangedDX9()override;
+   virtual void configChangedAPI()override;
    virtual void configChangedEXE()override;
    virtual void visibleChangedOptions      ()override;
    virtual void visibleChangedOpenedFiles  ()override;

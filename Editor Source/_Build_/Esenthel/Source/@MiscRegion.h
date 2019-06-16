@@ -47,8 +47,7 @@ class MiscRegion : Region
    static void ConfigRelease(MiscRegion &mr);
    static void Config32     (MiscRegion &mr);
    static void Config64     (MiscRegion &mr);
-   static void ConfigDX9    (MiscRegion &mr);
-   static void ConfigDX11   (MiscRegion &mr);
+ //static void ConfigDX11   (MiscRegion &mr) {CodeEdit.configAPI  (..);}
    static void ConfigEXE    (MiscRegion &mr);
    static void ConfigDLL    (MiscRegion &mr);
    static void ConfigLIB    (MiscRegion &mr);
