@@ -11,8 +11,7 @@ Memx<ImportTerrainTask> ImportTerrainTasks;
              void ImportTerrainClass::GuiImage2::load(C Str &name)
       {
          image_sw.ImportTry(name, mono ? IMAGE_F32 : IMAGE_R8G8B8A8, IMAGE_SOFT, 1);
-         Image *src=&image_sw, temp; if(mono)if(src->copyTry(temp, 128, 128, 1, IMAGE_L8, IMAGE_SOFT, 1))src=&temp; // in case src is F32
-         src->copyTry(image_hw, 128, 128, 1, src->type(), IMAGE_2D, 1);
+         image_sw.copyTry(image_hw, 128, 128, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_2D, 1);
       }
       ::ImportTerrainClass::GuiImage2& ImportTerrainClass::GuiImage2::create(C Rect &rect, bool mono)
       {
@@ -36,10 +35,10 @@ Memx<ImportTerrainTask> ImportTerrainTasks;
             {
                if(channel>=0)switch(channel)
                {
-                  case 0: VI.shader(ShaderFiles("Main")->get("DrawTexX")); break;
-                  case 1: VI.shader(ShaderFiles("Main")->get("DrawTexY")); break;
-                  case 2: VI.shader(ShaderFiles("Main")->get("DrawTexZ")); break;
-                  case 3: VI.shader(ShaderFiles("Main")->get("DrawTexW")); break;
+                  case 0: VI.shader(ShaderFiles("Main")->get("DrawTexX" )); break; // 'image_hw' is sRGB
+                  case 1: VI.shader(ShaderFiles("Main")->get("DrawTexY" )); break; // 'image_hw' is sRGB
+                  case 2: VI.shader(ShaderFiles("Main")->get("DrawTexZ" )); break; // 'image_hw' is sRGB
+                  case 3: VI.shader(ShaderFiles("Main")->get("DrawTexWG")); break;
                }
                ALPHA_MODE alpha=D.alpha(ALPHA_NONE); image_hw.drawFit(rect);
                                 D.alpha(alpha     );

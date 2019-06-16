@@ -321,24 +321,42 @@ void Draw2DTex_VS(VtxInput vtx,
 Vec4 Draw2DTex_PS (NOPERSP Vec2 inTex:TEXCOORD):COLOR {return      Tex(Col, inTex);}
 Vec4 Draw2DTexC_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return      Tex(Col, inTex)*Color[0]+Color[1];}
 Vec4 Draw2DTexA_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(Tex(Col, inTex).rgb, Step);}
-Vec4 DrawTexX_PS  (NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(Tex(Col, inTex).xxx, 1);}
-Vec4 DrawTexY_PS  (NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(Tex(Col, inTex).yyy, 1);}
-Vec4 DrawTexZ_PS  (NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(Tex(Col, inTex).zzz, 1);}
-Vec4 DrawTexW_PS  (NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(Tex(Col, inTex).www, 1);}
+
+Vec4 DrawTexX_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(Tex(Col, inTex).xxx, 1);}
+Vec4 DrawTexY_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(Tex(Col, inTex).yyy, 1);}
+Vec4 DrawTexZ_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(Tex(Col, inTex).zzz, 1);}
+Vec4 DrawTexW_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(Tex(Col, inTex).www, 1);}
+
+// these functions are used in Editor for previewing material textures, so use slow high precision versions to visually match original
+Vec4 DrawTexXG_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(SRGBToLinear(Tex(Col, inTex).x).xxx, 1);}
+Vec4 DrawTexYG_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(SRGBToLinear(Tex(Col, inTex).y).xxx, 1);}
+Vec4 DrawTexZG_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(SRGBToLinear(Tex(Col, inTex).z).xxx, 1);}
+Vec4 DrawTexWG_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(SRGBToLinear(Tex(Col, inTex).w).xxx, 1);}
+
 Vec4 DrawTexNrm_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    Vec nrm; nrm.xy=Tex(Col, inTex).xy*2-1; // #MaterialTextureChannelOrder
             nrm.z =CalcZ(nrm.xy);
             nrm   =Normalize(nrm)*0.5f+0.5f;
+         #if LINEAR_GAMMA
+            nrm   =SRGBToLinear(nrm);
+         #endif
    return Vec4(nrm, 1);
 }
 
 TECHNIQUE(Draw2DTex , Draw2DTex_VS(),  Draw2DTex_PS());
 TECHNIQUE(Draw2DTexC, Draw2DTex_VS(), Draw2DTexC_PS());
-TECHNIQUE(DrawTexX  , Draw2DTex_VS(),   DrawTexX_PS());
-TECHNIQUE(DrawTexY  , Draw2DTex_VS(),   DrawTexY_PS());
-TECHNIQUE(DrawTexZ  , Draw2DTex_VS(),   DrawTexZ_PS());
-TECHNIQUE(DrawTexW  , Draw2DTex_VS(),   DrawTexW_PS());
+
+TECHNIQUE(DrawTexX, Draw2DTex_VS(), DrawTexX_PS());
+TECHNIQUE(DrawTexY, Draw2DTex_VS(), DrawTexY_PS());
+TECHNIQUE(DrawTexZ, Draw2DTex_VS(), DrawTexZ_PS());
+TECHNIQUE(DrawTexW, Draw2DTex_VS(), DrawTexW_PS());
+
+TECHNIQUE(DrawTexXG, Draw2DTex_VS(), DrawTexXG_PS());
+TECHNIQUE(DrawTexYG, Draw2DTex_VS(), DrawTexYG_PS());
+TECHNIQUE(DrawTexZG, Draw2DTex_VS(), DrawTexZG_PS());
+TECHNIQUE(DrawTexWG, Draw2DTex_VS(), DrawTexWG_PS());
+
 TECHNIQUE(DrawTexNrm, Draw2DTex_VS(), DrawTexNrm_PS());
 TECHNIQUE(Draw      ,      Draw_VS(),  Draw2DTex_PS());
 TECHNIQUE(DrawC     ,      Draw_VS(), Draw2DTexC_PS());
@@ -454,18 +472,8 @@ Vec4 DrawTexXC_PS(NOPERSP Vec2 inTex:TEXCOORD,
    if(dither)ApplyDither(col.rgb, pixel.xy);
    return col;
 }
-Vec4 DrawTexWC_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                  NOPERSP PIXEL,
-          uniform Bool dither=false):COLOR
-{
-   VecH4 col=Tex(Col, inTex).w*Color[0]+Color[1];
-   if(dither)ApplyDither(col.rgb, pixel.xy);
-   return col;
-}
 TECHNIQUE(DrawTexXC , Draw_VS(), DrawTexXC_PS());
-TECHNIQUE(DrawTexWC , Draw_VS(), DrawTexWC_PS());
 TECHNIQUE(DrawTexXCD, Draw_VS(), DrawTexXC_PS(true));
-TECHNIQUE(DrawTexWCD, Draw_VS(), DrawTexWC_PS(true));
 /******************************************************************************/
 Vec4 DrawTexCubicFast_PS(NOPERSP Vec2 inTex:TEXCOORD,
                          NOPERSP PIXEL,

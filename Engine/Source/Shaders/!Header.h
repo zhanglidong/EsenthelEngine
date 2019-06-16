@@ -650,6 +650,12 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
 /******************************************************************************/
 #define SRGBToLinearFast Sqr  // simple and fast sRGB -> Linear conversion
 #define LinearToSRGBFast Sqrt // simple and fast Linear -> sRGB conversion
+
+Half SRGBToLinear(Half s) {return (s<=0.04045  ) ? s/12.92 : Pow((s+0.055)/1.055, 2.4);} // convert 0..1 srgb   to 0..1 linear
+Half LinearToSRGB(Half l) {return (l<=0.0031308) ? l*12.92 : Pow(l, 1/2.4)*1.055-0.055;} // convert 0..1 linear to 0..1 srgb
+
+VecH SRGBToLinear(VecH s) {return VecH(SRGBToLinear(s.x), SRGBToLinear(s.y), SRGBToLinear(s.z));}
+VecH LinearToSRGB(VecH l) {return VecH(LinearToSRGB(l.x), LinearToSRGB(l.y), LinearToSRGB(l.z));}
 /******************************************************************************/
 inline Int   Min(Int   x, Int   y                  ) {return min(x, y);}
 inline Half  Min(Half  x, Half  y                  ) {return min(x, y);}

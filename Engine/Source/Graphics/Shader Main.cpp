@@ -358,8 +358,13 @@ void MainShaderClass::getTechniques()
    h_DrawTexX   =get("DrawTexX");
    h_DrawTexXC  =get("DrawTexXC");
    h_DrawTexXCD =get("DrawTexXCD");
+ //h_DrawTexY   =get("DrawTexY"); used by Editor
  //h_DrawTexZ   =get("DrawTexZ"); used by Editor
  //h_DrawTexW   =get("DrawTexW"); used by Editor
+ //h_DrawTexXG  =get("DrawTexXG"); used by Editor
+ //h_DrawTexYG  =get("DrawTexYG"); used by Editor
+ //h_DrawTexZG  =get("DrawTexZG"); used by Editor
+ //h_DrawTexWG  =get("DrawTexWG"); used by Editor
  //h_DrawTexNrm =get("DrawTexNrm"); used by Editor
    h_DrawMask   =get("DrawMask");
 

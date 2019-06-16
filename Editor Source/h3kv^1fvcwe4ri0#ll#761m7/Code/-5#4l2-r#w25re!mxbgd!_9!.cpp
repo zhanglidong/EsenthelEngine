@@ -63,7 +63,7 @@ class ImageEditor : PropWin
                      D.alignScreenToPixel(r);
                   }
                   ALPHA_MODE alpha=D.alpha(ImageEdit.channels ? ALPHA_NONE : ALPHA_BLEND);
-                  if(ImageEdit.channels==2)VI.shader(ShaderFiles("Main").get("DrawTexW"));
+                  if(ImageEdit.channels==2)VI.shader(ShaderFiles("Main").get("DrawTexWG"));
                   image->drawFit(color, color_add, r);
                   D.alpha(alpha);
                }

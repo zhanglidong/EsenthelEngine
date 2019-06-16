@@ -110,8 +110,8 @@ ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have the sa
 
    {null           , false,  0,  0,   0, 0, 0, 0,   0,0, 0, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, 0)},
 
-   {"B8G8R8A8_SRGB", false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_B8G8R8A8_UNORM_SRGB, 0)},
    {"R8G8B8A8_SRGB", false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, GL_SRGB8_ALPHA8)},
+   {"B8G8R8A8_SRGB", false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_B8G8R8A8_UNORM_SRGB, 0)},
    {"R8G8B8_SRGB"  , false,  3, 24,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN            , GL_SRGB8)},
 
    {"BC1_SRGB"        , true ,  0,  4,   5, 6, 5, 1,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC1_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT)},

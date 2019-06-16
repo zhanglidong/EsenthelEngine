@@ -78,9 +78,9 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
    IMAGE_R10G10B10A2, // 32-bit (R,G,B,A), Soft, DX10+, GL, GL ES
 
    IMAGE_TYPES, // number of types
+   IMAGE_R8G8B8A8_SRGB,
 #if EE_PRIVATE
    IMAGE_B8G8R8A8_SRGB,
-   IMAGE_R8G8B8A8_SRGB,
    IMAGE_R8G8B8_SRGB  ,
    IMAGE_BC1_SRGB     ,
    IMAGE_BC2_SRGB     ,
