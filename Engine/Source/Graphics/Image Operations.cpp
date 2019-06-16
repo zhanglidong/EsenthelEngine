@@ -3244,7 +3244,7 @@ HICON CreateIcon(C Image &image, C VecI2 *cursor_hot_spot)
 {
    HICON icon=null;
    Image temp; C Image *src=&image;
-   if(src->compressed())if(src->copyTry(temp, -1, -1, 1, IMAGE_B8G8R8A8, IMAGE_SOFT, 1))src=&temp;else src=null;
+   if(src->compressed())if(src->copyTry(temp, -1, -1, 1, IMAGE_B8G8R8A8_SRGB, IMAGE_SOFT, 1))src=&temp;else src=null;
    if(src && src->is() && src->lockRead())
    {
       BITMAPV5HEADER bi; Zero(bi);

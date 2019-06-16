@@ -262,7 +262,7 @@ Application& Application::icon(C Image &icon)
    if(XDisplay && hwnd() && _NET_WM_ICON)
    {
       Image temp; C Image *src=(icon.is() ? &icon : null);
-      if(src && src->compressed())if(src->copyTry(temp, -1, -1, 1, IMAGE_B8G8R8A8, IMAGE_SOFT, 1))src=&temp;else src=null;
+      if(src && src->compressed())if(src->copyTry(temp, -1, -1, 1, IMAGE_B8G8R8A8_SRGB, IMAGE_SOFT, 1))src=&temp;else src=null;
       if(src && src->is() && src->lockRead())
       {
          Memt<long> data; data.setNum(2+src->w()*src->h());
@@ -286,7 +286,7 @@ Application& Application::icon(C Image &icon)
    }else
    {
       // remember it so it will be set later
-      icon.copyTry(_icon, -1, -1, 1, IMAGE_B8G8R8A8, IMAGE_SOFT, 1);
+      icon.copyTry(_icon, -1, -1, 1, IMAGE_B8G8R8A8_SRGB, IMAGE_SOFT, 1);
    }
 #endif
    return T;

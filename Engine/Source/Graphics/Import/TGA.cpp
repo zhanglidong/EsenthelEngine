@@ -45,67 +45,43 @@ struct TGA
 	   {
 	      case 8:
 	      {
-            if(palette.elms())FREPD(x, width)
-            {
-               Byte pixel; f>>pixel;
-               image.color(x+x_offset, y, InRange(pixel, palette) ? palette[pixel] : TRANSPARENT);
-            }else
+            if(palette.elms()   )FREPD(x, width){Byte pixel; f>>pixel; image.color(x+x_offset, y, InRange(pixel, palette) ? palette[pixel] : TRANSPARENT);}else
 	         if(image.bytePP()==1)f.get(image.data() + x_offset + y*image.pitch(), width);else
-	         FREPD(x, width)
-	         {
-	            Byte pixel; f>>pixel;
-	            image.color(x+x_offset, y, Color(pixel, pixel, pixel));
-	         }
+                                 FREPD(x, width){Byte pixel; f>>pixel; image.color(x+x_offset, y, Color(pixel, pixel, pixel));}
 	      }break;
 
-	      case 15:
-	      case 16:
+	      case 15: case 16: FREPD(x, width){UShort pixel; f>>pixel; image.color(x+x_offset, y, Color((pixel>>7)&0xF8, (pixel>>2)&0xF8, (pixel&0x1F)<<3));} break;
+
+	      case 24: switch(image.hwType())
 	      {
-	         FREPD(x, width)
+            case IMAGE_B8G8R8:                         {Byte *data=image.data() + x_offset*3 + y*image.pitch(); f.get(data, width*3);                                          } break;
+	         case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB: {Byte *data=image.data() + x_offset*3 + y*image.pitch(); f.get(data, width*3); REP(width)Swap(data[i*3+0], data[i*3+2]);} break; // swap Red with Blue
+
+	         case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB:
 	         {
-	            UShort pixel; f>>pixel;
-	            image.color(x+x_offset, y, Color((pixel>>7)&0xF8, (pixel>>2)&0xF8, (pixel&0x1F)<<3));
-	         }
+	            VecB4 *data=(VecB4*)(image.data() + x_offset*4 + y*image.pitch()); C VecB *src=(VecB*)data; f.get(data, width*3); // read 3-byte to 4-byte memory
+               // unpack from 3-byte to 4-byte
+               data+=width; src+=width; // have to start from the end to don't overwrite source
+	            REP(width){--data; --src; data->set(src->x, src->y, src->z, 255);}
+	         }break;
+
+	         case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB:
+	         {
+	            VecB4 *data=(VecB4*)(image.data() + x_offset*4 + y*image.pitch()); C VecB *src=(VecB*)data; f.get(data, width*3); // read 3-byte to 4-byte memory
+               // unpack from 3-byte to 4-byte
+               data+=width; src+=width; // have to start from the end to don't overwrite source
+	            REP(width){--data; --src; data->set(src->z, src->y, src->x, 255);} // swap Red with Blue
+	         }break;
+
+	         default: FREPD(x, width){VecB pixel; f>>pixel; image.color(x+x_offset, y, Color(pixel.z, pixel.y, pixel.x, 255));} break;
 		   }break;
 
-	      case 24:
-	      {
-	         if(image.hwType()==IMAGE_R8G8B8 || image.hwType()==IMAGE_R8G8B8_SRGB || image.hwType()==IMAGE_B8G8R8)
-	         {
-	            Byte *data=image.data() + x_offset*3 + y*image.pitch();
-	            f.get(data, width*3);
-	            if(image.hwType()==IMAGE_R8G8B8 || image.hwType()==IMAGE_R8G8B8_SRGB)REP(width)Swap(data[i*3+0], data[i*3+2]); // swap Red with Blue
-	         }else
-	         if(image.hwType()==IMAGE_B8G8R8A8 || image.hwType()==IMAGE_B8G8R8A8_SRGB)
-	         {
-	            VecB4 *data=(VecB4*)(image.data() + x_offset*4 + y*image.pitch());
-	            FREPD(x, width)
-	            {
-	               Byte pixel[3]; f>>pixel;
-	               (data++)->set(pixel[0], pixel[1], pixel[2], 255);
-	            }
-	         }else
-	         FREPD(x, width)
-	         {
-	            Byte pixel[3]; f>>pixel;
-	            image.color(x+x_offset, y, Color(pixel[2], pixel[1], pixel[0], 255));
-	         }
-		   }break;
-
-	      case 32:
-	      {
-	         if(image.hwType()==IMAGE_R8G8B8A8 || image.hwType()==IMAGE_R8G8B8A8_SRGB || image.hwType()==IMAGE_B8G8R8A8 || image.hwType()==IMAGE_B8G8R8A8_SRGB)
-	         {
-	            Byte *data=image.data() + x_offset*4 + y*image.pitch();
-	            f.get(data, width*4);
-	            if(image.hwType()==IMAGE_R8G8B8A8 || image.hwType()==IMAGE_R8G8B8A8_SRGB)REP(width)Swap(data[i*4+0], data[i*4+2]); // swap Red with Blue
-	         }else
-	         FREPD(x, width)
-	         {
-	            VecB4 pixel; f>>pixel;
-	            image.color(x+x_offset, y, Color(pixel.z, pixel.y, pixel.x, pixel.w));
-	         }
-		   }break;
+	      case 32: switch(image.hwType())
+         {
+            case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: {Byte *data=image.data() + x_offset*4 + y*image.pitch(); f.get(data, width*4);                                          } break;
+            case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: {Byte *data=image.data() + x_offset*4 + y*image.pitch(); f.get(data, width*4); REP(width)Swap(data[i*4+0], data[i*4+2]);} break; // swap Red with Blue
+            default: FREPD(x, width){VecB4 pixel; f>>pixel; image.color(x+x_offset, y, Color(pixel.z, pixel.y, pixel.x, pixel.w));} break;
+         }break;
 	   }
    }
    Byte readCompressed(Image &image, File &f, Int y, Byte rleLeftover)
@@ -216,7 +192,7 @@ Bool Image::ImportTGA(File &f, Int type, Int mode, Int mip_maps)
       case 15:
       case 16: type=(tga.mono ? IMAGE_I16 : IMAGE_R8G8B8_SRGB  ); break;
       case 24: type=(tga.mono ? IMAGE_I24 : IMAGE_R8G8B8_SRGB  ); break;
-      case 32: type=(tga.mono ? IMAGE_I32 : IMAGE_B8G8R8A8_SRGB); break; // TGA uses BGRA order
+      case 32: type=(tga.mono ? IMAGE_I32 : IMAGE_R8G8B8A8_SRGB); break; // TGA uses BGRA order, and we could use IMAGE_B8G8R8A8_SRGB however it's an engine private type
       case 8 : type=            IMAGE_L8                        ; break;
    }
 

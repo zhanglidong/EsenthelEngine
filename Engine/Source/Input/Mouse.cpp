@@ -133,7 +133,7 @@ Bool MouseCursor::create(C Image &image, C VecI2 &hot_spot)
    if(XDisplay)
    {
       Image temp; C Image *src=&image;
-      if(src->compressed())if(src->copyTry(temp, -1, -1, 1, IMAGE_B8G8R8A8, IMAGE_SOFT, 1))src=&temp;else src=null;
+      if(src->compressed())if(src->copyTry(temp, -1, -1, 1, IMAGE_B8G8R8A8_SRGB, IMAGE_SOFT, 1))src=&temp;else src=null;
       if(src && src->lockRead())
       {
          if(XcursorImage *image=XcursorImageCreate(src->w(), src->h()))

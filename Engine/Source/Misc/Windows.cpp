@@ -92,7 +92,7 @@ struct WindowCaptureEx
                
                if(bitmap && BitBlt(dc, 0, 0, size.x, size.y, src_dc, 0, 0, SRCCOPY))
                {
-                  if(image.hwType()!=IMAGE_B8G8R8A8 || image.size()!=size || image.d()!=1 || image.pitch()!=image.w()*image.bytePP())image.createSoftTry(size.x, size.y, 1, IMAGE_B8G8R8A8);
+                  if(image.hwType()!=IMAGE_B8G8R8A8_SRGB || image.size()!=size || image.d()!=1 || image.pitch()!=image.w()*image.bytePP())image.createSoftTry(size.x, size.y, 1, IMAGE_B8G8R8A8_SRGB);
                   if(image.is() && image.lock(LOCK_WRITE))
                   {
                      BITMAPINFO bi; Zero(bi);

@@ -4,24 +4,70 @@ namespace EE{
 /******************************************************************************/
 #define CC4_GFX CC4('G','F','X',0)
 /******************************************************************************/
+static IMAGE_TYPE OldImageType2(Byte type)
+{
+   switch(type)
+   {
+      default: return IMAGE_NONE;
+
+      case 1: return IMAGE_B8G8R8A8_SRGB;
+      case 2: return IMAGE_R8G8B8A8_SRGB;
+      case 3: return IMAGE_R8G8B8_SRGB;
+      case 4: return IMAGE_R8G8;
+      case 5: return IMAGE_R8;
+
+      case 6: return IMAGE_A8;
+      case 7: return IMAGE_L8;
+      case 8: return IMAGE_L8A8;
+
+      case  9: return IMAGE_BC1_SRGB;
+      case 10: return IMAGE_BC2_SRGB;
+      case 11: return IMAGE_BC3_SRGB;
+
+      case 12: return IMAGE_I8;
+      case 13: return IMAGE_I16;
+      case 14: return IMAGE_I24;
+      case 15: return IMAGE_I32;
+      case 16: return IMAGE_F16;
+      case 17: return IMAGE_F32;
+      case 18: return IMAGE_F16_2;
+      case 19: return IMAGE_F32_2;
+      case 20: return IMAGE_F16_3;
+      case 21: return IMAGE_F32_3;
+      case 22: return IMAGE_F16_4;
+      case 23: return IMAGE_F32_4;
+
+      case 24: return IMAGE_PVRTC1_2_SRGB;
+      case 25: return IMAGE_PVRTC1_4_SRGB;
+
+      case 26: return IMAGE_ETC1;
+      case 27: return IMAGE_ETC2_SRGB;
+      case 28: return IMAGE_ETC2_A1_SRGB;
+      case 29: return IMAGE_ETC2_A8_SRGB;
+
+      case 30: return IMAGE_BC7_SRGB;
+
+      case 31: return IMAGE_R10G10B10A2;
+   }
+}
 static IMAGE_TYPE OldImageType1(Byte type)
 {
    switch(type)
    {
       default: return IMAGE_NONE;
 
-      case  1: return IMAGE_B8G8R8A8;
-      case  2: return IMAGE_R8G8B8A8;
-      case  3: return IMAGE_R8G8B8  ;
-      case  4: return IMAGE_R8G8    ;
-      case  5: return IMAGE_R8      ;
+      case  1: return IMAGE_B8G8R8A8_SRGB;
+      case  2: return IMAGE_R8G8B8A8_SRGB;
+      case  3: return IMAGE_R8G8B8_SRGB;
+      case  4: return IMAGE_R8G8;
+      case  5: return IMAGE_R8;
 
-      case  6: return IMAGE_A8  ;
-      case  7: return IMAGE_L8  ;
+      case  6: return IMAGE_A8;
+      case  7: return IMAGE_L8;
       case  8: return IMAGE_L8A8;
 
-      case  9: return IMAGE_BC2;
-      case 10: return IMAGE_BC3;
+      case  9: return IMAGE_BC2_SRGB;
+      case 10: return IMAGE_BC3_SRGB;
 
       case 11: return IMAGE_I8;
       case 12: return IMAGE_I16;
@@ -36,8 +82,8 @@ static IMAGE_TYPE OldImageType1(Byte type)
       case 21: return IMAGE_F16_4;
       case 22: return IMAGE_F32_4;
 
-      case 23: return IMAGE_PVRTC1_2;
-      case 24: return IMAGE_PVRTC1_4;
+      case 23: return IMAGE_PVRTC1_2_SRGB;
+      case 24: return IMAGE_PVRTC1_4_SRGB;
 
       case 25: return IMAGE_ETC1;
    }
@@ -48,22 +94,22 @@ static IMAGE_TYPE OldImageType0(Byte type)
    {
       default: return IMAGE_NONE;
 
-      case  1: return IMAGE_B8G8R8A8;
-      case  2: return IMAGE_B8G8R8A8; // IMAGE_X8R8G8B8
-      case  3: return IMAGE_R8G8B8  ;
-      case  4: return IMAGE_NONE    ; // IMAGE_A1R5G5B5
-      case  5: return IMAGE_NONE    ; // IMAGE_R5G6B5
+      case  1: return IMAGE_B8G8R8A8_SRGB;
+      case  2: return IMAGE_B8G8R8A8_SRGB; // IMAGE_X8R8G8B8
+      case  3: return IMAGE_R8G8B8_SRGB;
+      case  4: return IMAGE_NONE; // IMAGE_A1R5G5B5
+      case  5: return IMAGE_NONE; // IMAGE_R5G6B5
 
       case  6: return IMAGE_NONE; // IMAGE_P8
-      case  7: return IMAGE_A8  ;
-      case  8: return IMAGE_A8  ; // IMAGE_A8W
-      case  9: return IMAGE_L8  ;
-      case 10: return IMAGE_I16 ; // IMAGE_L16
+      case  7: return IMAGE_A8;
+      case  8: return IMAGE_A8; // IMAGE_A8W
+      case  9: return IMAGE_L8;
+      case 10: return IMAGE_I16; // IMAGE_L16
       case 11: return IMAGE_NONE; // IMAGE_A4L4
       case 12: return IMAGE_L8A8;
 
-      case 13: return IMAGE_BC2;
-      case 14: return IMAGE_BC3;
+      case 13: return IMAGE_BC2_SRGB;
+      case 14: return IMAGE_BC3_SRGB;
 
       case 15: return IMAGE_I8   ;
       case 16: return IMAGE_I16  ;
@@ -82,6 +128,12 @@ static IMAGE_TYPE OldImageType0(Byte type)
 /******************************************************************************/
 // SAVE / LOAD
 /******************************************************************************/
+static Byte NewImageTypeToOld(IMAGE_TYPE type) // FIXME remove this
+{
+   type=ImageTypeRemoveSRGB(type);
+   FREP(256)if(ImageTypeRemoveSRGB(OldImageType2(i))==type)return i;
+   return 0;
+}
 Bool Image::saveData(File &f)C
 {
    if(mode()!=IMAGE_SOFT && mode()!=IMAGE_SOFT_CUBE && mode()!=IMAGE_2D && mode()!=IMAGE_3D && mode()!=IMAGE_CUBE)return false; // verify that mode is correct
@@ -92,7 +144,8 @@ Bool Image::saveData(File &f)C
    || (file_type==IMAGE_PVRTC1_2 || file_type==IMAGE_PVRTC1_4 || file_type==IMAGE_PVRTC1_2_SRGB || file_type==IMAGE_PVRTC1_4_SRGB                                                                            ) && !CompressPVRTC
    )file_type=T.hwType(); // if compressing to format which isn't supported then store as current 'hwType'
 
-   f.putMulti(Byte(4), size3(), Byte(file_type), Byte(mode()), Byte(mipMaps())); // version
+   // FIXME when saving remove 'NewImageTypeToOld', use ver 0 and convert loadData to loadOldData? adjust Font and ImageAtlas
+   f.putMulti(Byte(4), size3(), Byte(NewImageTypeToOld(file_type)), Byte(mode()), Byte(mipMaps())); // version
 
    if(soft() && CanDoRawCopy(hwType(), file_type)) // software with matching type, we can save without locking
    {
@@ -354,7 +407,7 @@ Bool Image::loadData(File &f, ImageHeader *header, C Str &name)
          #pragma pack(pop)
          f>>header4;
          Unaligned(ih.size    , header4.size);
-         Unaligned(ih.type    , header4.type);
+         Unaligned(ih.type    , header4.type); ih.type=OldImageType2(ih.type); DYNAMIC_ASSERT(header4.type==NewImageTypeToOld(ih.type), "type mismatch"); // FIXME
          Unaligned(ih.mode    , header4.mode);
         _Unaligned(ih.mip_maps, header4.mips);
          if(header)goto set_header;
