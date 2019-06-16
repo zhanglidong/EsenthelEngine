@@ -1361,9 +1361,9 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    void ElmImage::hasAlpha(bool on) {FlagSet(flag, HAS_ALPHA, on);}
    bool       ElmImage::hasAlpha2()C {return hasAlpha() || alphaLum();}
    bool       ElmImage::hasAlpha3()C {return ignoreAlpha() ? false : hasAlpha2();}
-   IMAGE_TYPE ElmImage::androidType()C {return (type==COMPRESSED || type==COMPRESSED2) ? hasAlpha3() ? IMAGE_ETC2_A8 : ((AndroidETC2 || type==COMPRESSED2) ? IMAGE_ETC2 : IMAGE_ETC1) : IMAGE_NONE;}
-   IMAGE_TYPE     ElmImage::iOSType()C {return (type==COMPRESSED || type==COMPRESSED2) ?               IMAGE_PVRTC1_4                                                                 : IMAGE_NONE;}
-   IMAGE_TYPE     ElmImage::webType()C {return (!WebBC7 && (type==COMPRESSED || type==COMPRESSED2) && hasAlpha3()) ? IMAGE_BC3 :                                                        IMAGE_NONE;}
+   IMAGE_TYPE ElmImage::androidType()C {return (type==COMPRESSED || type==COMPRESSED2) ? hasAlpha3() ? IMAGE_ETC2_A8_SRGB : IMAGE_ETC2_SRGB : IMAGE_NONE;}
+   IMAGE_TYPE     ElmImage::iOSType()C {return (type==COMPRESSED || type==COMPRESSED2) ?               IMAGE_PVRTC1_4_SRGB                  : IMAGE_NONE;}
+   IMAGE_TYPE     ElmImage::webType()C {return (!WebBC7 && (type==COMPRESSED || type==COMPRESSED2) && hasAlpha3()) ? IMAGE_BC3_SRGB         : IMAGE_NONE;}
    bool ElmImage::equal(C ElmImage &src)C {return ::ElmData::equal(src) && mip_maps_time==src.mip_maps_time && pow2_time==src.pow2_time && alpha_lum_time==src.alpha_lum_time && type_time==src.type_time && mode_time==src.mode_time && size_time==src.size_time && file_time==src.file_time;}
    bool ElmImage::newer(C ElmImage &src)C {return ::ElmData::newer(src) || mip_maps_time> src.mip_maps_time || pow2_time> src.pow2_time || alpha_lum_time> src.alpha_lum_time || type_time> src.type_time || mode_time> src.mode_time || size_time> src.size_time || file_time> src.file_time;}
    bool ElmImage::mayContain(C UID &id)C {return false;}
@@ -1673,9 +1673,9 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    ElmIcon& ElmIcon::hasColor(bool on) {FlagSet(flag, HAS_COLOR, on); return T;}
    bool          ElmIcon::hasAlpha(             )C {return FlagTest(flag, HAS_ALPHA);}
    ElmIcon& ElmIcon::hasAlpha(bool on) {FlagSet(flag, HAS_ALPHA, on); return T;}
-   IMAGE_TYPE ElmIcon::androidType(Project *proj)C {ElmImage::TYPE type=T.type(proj); return (type==ElmImage::COMPRESSED || type==ElmImage::COMPRESSED2) ? hasAlpha() ? IMAGE_ETC2_A8 : ((AndroidETC2 || type==ElmImage::COMPRESSED2) ? IMAGE_ETC2 : IMAGE_ETC1) : IMAGE_NONE;}
-   IMAGE_TYPE     ElmIcon::iOSType(Project *proj)C {ElmImage::TYPE type=T.type(proj); return (type==ElmImage::COMPRESSED || type==ElmImage::COMPRESSED2) ?              IMAGE_PVRTC1_4                                                                          : IMAGE_NONE;}
-   IMAGE_TYPE     ElmIcon::webType(Project *proj)C {ElmImage::TYPE type=T.type(proj); return (!WebBC7 && (type==ElmImage::COMPRESSED || type==ElmImage::COMPRESSED2) && hasAlpha()) ? IMAGE_BC3 :                                                                 IMAGE_NONE;}
+   IMAGE_TYPE ElmIcon::androidType(Project *proj)C {ElmImage::TYPE type=T.type(proj); return (type==ElmImage::COMPRESSED || type==ElmImage::COMPRESSED2) ? hasAlpha() ? IMAGE_ETC2_A8_SRGB : IMAGE_ETC2_SRGB : IMAGE_NONE;}
+   IMAGE_TYPE     ElmIcon::iOSType(Project *proj)C {ElmImage::TYPE type=T.type(proj); return (type==ElmImage::COMPRESSED || type==ElmImage::COMPRESSED2) ?              IMAGE_PVRTC1_4_SRGB                  : IMAGE_NONE;}
+   IMAGE_TYPE     ElmIcon::webType(Project *proj)C {ElmImage::TYPE type=T.type(proj); return (!WebBC7 && (type==ElmImage::COMPRESSED || type==ElmImage::COMPRESSED2) && hasAlpha()) ? IMAGE_BC3_SRGB         : IMAGE_NONE;}
    bool ElmIcon::equal(C ElmIcon &src)C {return ::ElmData::equal(src) && icon_settings_time==src.icon_settings_time && obj_time==src.obj_time && file_time==src.file_time && anim_id_time==src.anim_id_time && anim_pos_time==src.anim_pos_time && variation_time==src.variation_time;}
    bool ElmIcon::newer(C ElmIcon &src)C {return ::ElmData::newer(src) || icon_settings_time> src.icon_settings_time || obj_time> src.obj_time || file_time> src.file_time || anim_id_time> src.anim_id_time || anim_pos_time> src.anim_pos_time || variation_time> src.variation_time;}
    bool ElmIcon::mayContain(C UID &id)C {return id==icon_settings_id || id==obj_id || id==anim_id;}

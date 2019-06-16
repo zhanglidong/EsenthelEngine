@@ -866,7 +866,6 @@ cchar8 *FormatSuffixes[]=
 {
    "_BC1",
    "_BC3", // for Web
-   "_ETC1",
    "_ETC2",
    "_ETC2_A8",
    "_PVRTC1_2",
@@ -880,15 +879,15 @@ cchar8* FormatSuffix(IMAGE_TYPE type)
    {
       default: return null;
 
-      case IMAGE_BC1: return "_BC1";
-      case IMAGE_BC3: return "_BC3";
+      // we can return the same suffix for non-sRGB and sRGB because depending on sRGB they will already have different hash
+      case IMAGE_BC1: case IMAGE_BC1_SRGB: return "_BC1";
+      case IMAGE_BC3: case IMAGE_BC3_SRGB: return "_BC3";
 
-      case IMAGE_ETC1   : return "_ETC1";
-      case IMAGE_ETC2   : return "_ETC2";
-      case IMAGE_ETC2_A8: return "_ETC2_A8";
+      case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   : return "_ETC2";
+      case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB: return "_ETC2_A8";
 
-      case IMAGE_PVRTC1_2: return "_PVRTC1_2";
-      case IMAGE_PVRTC1_4: return "_PVRTC1_4";
+      case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB: return "_PVRTC1_2";
+      case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB: return "_PVRTC1_4";
    }
 }
 Str8 ImageDownSizeSuffix(int size)

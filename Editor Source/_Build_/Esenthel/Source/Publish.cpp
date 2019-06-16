@@ -381,7 +381,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
             IMAGE_TYPE dest_type=IMAGE_NONE;
             if(android || iOS) // convert for mobile, desktop/web already has IMAGE_BC1 chosen
             {
-               dest_type=(android ? (AndroidETC2 ? IMAGE_ETC2 : IMAGE_ETC1) : IMAGE_PVRTC1_4);
+               dest_type=(android ? IMAGE_ETC2_SRGB : IMAGE_PVRTC1_4_SRGB);
                mini_map_formats_path=Proj.formatPath(elm->id, FormatSuffix(dest_type));
                mini_map_formats_path.tailSlash(true);
                FCreateDirs(mini_map_formats_path);
@@ -528,7 +528,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
          if(elm->type==ELM_IMAGE_ATLAS) // image atlas
             if(android || iOS || (web && !WebBC7)) // desktop platform already has the best format chosen during image atlas creation
                if(ElmImageAtlas *data=elm->imageAtlasData())
-                  if(IMAGE_TYPE dest_type=(android ? IMAGE_ETC2_A8 : iOS ? IMAGE_PVRTC1_4 : IMAGE_BC3)) // we assume that atlas images contain transparency
+                  if(IMAGE_TYPE dest_type=(android ? IMAGE_ETC2_A8_SRGB : iOS ? IMAGE_PVRTC1_4_SRGB : IMAGE_BC3_SRGB)) // we assume that atlas images contain transparency
          {
             Str src_name=pfd.data.name,
                dest_name=Proj.formatPath(elm->id, FormatSuffix(dest_type));
@@ -556,7 +556,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
          if(elm->type==ELM_PANEL_IMAGE) // panel image
             if(android || iOS || (web && !WebBC7)) // desktop platform already has the best format chosen during image atlas creation
                if(ElmPanelImage *data=elm->panelImageData())
-                  if(IMAGE_TYPE dest_type=(android ? IMAGE_ETC2_A8 : iOS ? IMAGE_PVRTC1_4 : IMAGE_BC3)) // we assume that atlas images contain transparency
+                  if(IMAGE_TYPE dest_type=(android ? IMAGE_ETC2_A8_SRGB : iOS ? IMAGE_PVRTC1_4_SRGB : IMAGE_BC3_SRGB)) // we assume that atlas images contain transparency
          {
             Str src_name=pfd.data.name,
                dest_name=Proj.formatPath(elm->id, FormatSuffix(dest_type));
@@ -581,8 +581,8 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
 
          // change type
          int change_type=-1;
-         if(android)change_type=(tex.uses_alpha ? IMAGE_ETC2_A8 : (AndroidETC2 || tex.keep_hq) ? IMAGE_ETC2     : IMAGE_ETC1    );else
-         if(iOS    )change_type=(                                                 tex.keep_hq  ? IMAGE_PVRTC1_4 : IMAGE_PVRTC1_2);else
+         if(android)change_type=(tex.uses_alpha ? IMAGE_ETC2_A8  : IMAGE_ETC2    );else
+         if(iOS    )change_type=(tex.keep_hq    ? IMAGE_PVRTC1_4 : IMAGE_PVRTC1_2);else
          if(web    )change_type=(WebBC7 ? ((tex.uses_alpha || tex.keep_hq) ?        -1 : IMAGE_BC1)      // texture could have alpha, however if we're not using it, then reduce to BC1 because it's only 4-bit per pixel
                                         :   tex.uses_alpha                 ? IMAGE_BC3 : IMAGE_BC1);else // if BC7 not supported for Web, then use BC3
        //if(!tex.uses_alpha && !tex.keep_hq )change_type=IMAGE_BC1;else // texture could have alpha, however if we're not using it, then reduce to BC1 because it's only 4-bit per pixel, actually don't do this because it would require calling 'ImageLoadHeader' which is an IO operation and could be slow for many textures
@@ -1032,7 +1032,12 @@ void DrawPublish()
    }
    bool ImageConvert::SkipOptimize(int &type, DateTime &time) // skip formats which are slow to convert
    {
-      if(PublishSkipOptimize())if(type==IMAGE_BC7 || type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4 || type==IMAGE_ETC1 || type==IMAGE_ETC2 || type==IMAGE_ETC2_A1 || type==IMAGE_ETC2_A8){type=-1; time.decDay(); return true;} // use default type and set previous date, so the file will be regenerated next time
+      if(PublishSkipOptimize())
+         if(type==IMAGE_BC6 || type==IMAGE_BC7      || type==IMAGE_PVRTC1_2      || type==IMAGE_PVRTC1_4      || type==IMAGE_ETC2      || type==IMAGE_ETC2_A1      || type==IMAGE_ETC2_A8
+                            || type==IMAGE_BC7_SRGB || type==IMAGE_PVRTC1_2_SRGB || type==IMAGE_PVRTC1_4_SRGB || type==IMAGE_ETC2_SRGB || type==IMAGE_ETC2_A1_SRGB || type==IMAGE_ETC2_A8_SRGB)
+      {
+         type=-1; time.decDay(); return true; // use default type and set previous date, so the file will be regenerated next time
+      }
       return false;
    }
    void ImageConvert::process(C bool *stop)C

@@ -37,7 +37,6 @@ const bool          MiscOnTop=false,
                     TolerantSecondaryServer=false, // will ignore DeviceID when getting confirmation from secondary authentication server
                     SupportBC7           =true , // if support BC7 compression
                     WebBC7               =false, // if support BC7 compression for Web TODO: enable this once browsers start supporting BC7
-                    AndroidETC2          =true , // if use ETC2 instead of ETC1 for Android
                     ForceHQMtrlBase0     =false, // if always use high quality compression for Material Base0  Texture (RGBA/RGB Bump)
                     ForceHQMtrlBase1     =true , // if always use high quality compression for Material Base1  Texture (NxNySpecAlpha), set to true because normals need this (without this, they get very blocky due to low quality)
                     ForceHQMtrlDetail    =true , // if always use high quality compression for Material Detail Texture (NxNyColBump  ), set to true because normals need this (without this, they get very blocky due to low quality)
