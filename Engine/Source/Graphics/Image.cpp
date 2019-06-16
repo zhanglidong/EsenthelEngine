@@ -820,14 +820,11 @@ void Image::setInfo()
 #elif GL
    if(_txtr)switch(mode())
    {
-      case IMAGE_2D          :
-      case IMAGE_RT          :
-      case IMAGE_SURF_SCRATCH:
-      case IMAGE_SURF_SYSTEM :
-      case IMAGE_SURF        :
-      case IMAGE_DS          :
-      case IMAGE_DS_RT       :
-      case IMAGE_SHADOW_MAP  :
+      case IMAGE_2D        :
+      case IMAGE_RT        :
+      case IMAGE_DS        :
+      case IMAGE_DS_RT     :
+      case IMAGE_SHADOW_MAP:
       {
       #if !GL_ES // texture info is unavailable on OpenGL ES, so just trust in what we've set
          Int format;
@@ -911,16 +908,13 @@ void Image::setGLParams()
    {
       Bool mip_maps=(mipMaps()>1), filterable=true;
    #if GL_ES
-      filterable=(ImageTI[hwType()].precision<IMAGE_PRECISION_32); // GLES2/3 don't support filtering F32 textures, without this check reading from F32 textures will fail - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml
+      filterable=(ImageTI[hwType()].precision<IMAGE_PRECISION_32); // GLES3 doesn't support filtering F32 textures, without this check reading from F32 textures will fail - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml
    #endif
       UInt target;
       switch(mode())
       {
-         case IMAGE_2D          :
-         case IMAGE_RT          :
-         case IMAGE_SURF_SCRATCH:
-         case IMAGE_SURF_SYSTEM :
-         case IMAGE_SURF        : target=GL_TEXTURE_2D; break;
+         case IMAGE_2D:
+         case IMAGE_RT: target=GL_TEXTURE_2D; break;
 
          case IMAGE_3D: target=GL_TEXTURE_3D; break;
 
@@ -978,11 +972,8 @@ void Image::setGLFont()
 #endif
    if(D.created() && _txtr && mipMaps()>1)switch(mode())
    {
-      case IMAGE_2D          :
-      case IMAGE_RT          :
-      case IMAGE_SURF_SCRATCH:
-      case IMAGE_SURF_SYSTEM :
-      case IMAGE_SURF        :
+      case IMAGE_2D:
+      case IMAGE_RT:
       {
          D.texBind      (GL_TEXTURE_2D, _txtr);
          glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -D.fontSharpness());
@@ -1093,26 +1084,6 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
             }
          }break;
 
-         case IMAGE_SURF_SCRATCH:
-         case IMAGE_SURF_SYSTEM :
-         case IMAGE_SURF        :
-         {
-            D3D11_TEXTURE2D_DESC desc; desc.Format=ImageTI[type].format; if(desc.Format!=DXGI_FORMAT_UNKNOWN)
-            {
-               desc.Width             =hwW();
-               desc.Height            =hwH();
-               desc.MipLevels         =mip_maps;
-               desc.Usage             =D3D11_USAGE_STAGING;
-               desc.BindFlags         =0;
-               desc.MiscFlags         =0;
-               desc.CPUAccessFlags    =D3D11_CPU_ACCESS_READ|D3D11_CPU_ACCESS_WRITE;
-               desc.SampleDesc.Count  =1;
-               desc.SampleDesc.Quality=0;
-               desc.ArraySize         =1;
-               if(OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr))){setInfo(); return true;}
-            }
-         }break;
-
          case IMAGE_RT:
          {
             D3D11_TEXTURE2D_DESC desc; desc.Format=Typeless(type); if(desc.Format!=DXGI_FORMAT_UNKNOWN)
@@ -1205,12 +1176,27 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                if(OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(); return true;}
             }
          }break;
+
+         case IMAGE_STAGING:
+         {
+            D3D11_TEXTURE2D_DESC desc; desc.Format=ImageTI[type].format; if(desc.Format!=DXGI_FORMAT_UNKNOWN)
+            {
+               desc.Width             =hwW();
+               desc.Height            =hwH();
+               desc.MipLevels         =mip_maps;
+               desc.Usage             =D3D11_USAGE_STAGING;
+               desc.BindFlags         =0;
+               desc.MiscFlags         =0;
+               desc.CPUAccessFlags    =D3D11_CPU_ACCESS_READ|D3D11_CPU_ACCESS_WRITE;
+               desc.SampleDesc.Count  =1;
+               desc.SampleDesc.Quality=0;
+               desc.ArraySize         =1;
+               if(OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr))){setInfo(); return true;}
+            }
+         }break;
       #elif GL
-         case IMAGE_2D          :
-         case IMAGE_RT          :
-         case IMAGE_SURF_SCRATCH:
-         case IMAGE_SURF_SYSTEM :
-         case IMAGE_SURF        :
+         case IMAGE_2D:
+         case IMAGE_RT:
          {
             glGenTextures(1, &_txtr);
             if(_txtr)
@@ -1947,7 +1933,7 @@ Bool Image::lock(LOCK_MODE lock, Int mip_map, DIR_ENUM cube_face)
                   if(lock==LOCK_WRITE)Alloc(_data, pitch2);else
                   {
                      // get from GPU
-                     Image temp; if(temp.createTry(PaddedWidth(hwW(), hwH(), mip_map, hwType()), PaddedHeight(hwW(), hwH(), mip_map, hwType()), 1, hwType(), IMAGE_SURF, 1, false))
+                     Image temp; if(temp.createTry(PaddedWidth(hwW(), hwH(), mip_map, hwType()), PaddedHeight(hwW(), hwH(), mip_map, hwType()), 1, hwType(), IMAGE_STAGING, 1, false))
                      {
                         D3DC->CopySubresourceRegion(temp._txtr, D3D11CalcSubresource(0, 0, temp.mipMaps()), 0, 0, 0, _txtr, D3D11CalcSubresource(mip_map, 0, mipMaps()), null);
                         if(temp.lockRead())
@@ -1968,26 +1954,6 @@ Bool Image::lock(LOCK_MODE lock, Int mip_map, DIR_ENUM cube_face)
                     _lock_count =1;
                     _pitch      =pitch;
                     _pitch2     =pitch2;
-                     return true;
-                  }
-               }break;
-
-               case IMAGE_SURF_SCRATCH:
-               case IMAGE_SURF_SYSTEM :
-               case IMAGE_SURF        : if(_txtr)
-               {
-                  D3D11_MAPPED_SUBRESOURCE map; if(OK(D3DC->Map(_txtr, D3D11CalcSubresource(mip_map, 0, mipMaps()), (lock==LOCK_READ) ? D3D11_MAP_READ : (lock==LOCK_WRITE) ? D3D11_MAP_WRITE : D3D11_MAP_READ_WRITE, 0, &map))) // staging does not support D3D11_MAP_WRITE_DISCARD
-                  {
-                    _lock_size.x=Max(1, w()>>mip_map);
-                    _lock_size.y=Max(1, h()>>mip_map);
-                    _lock_size.z=1;
-                    _lmm        =mip_map;
-                  //_lcf        =0;
-                    _lock_mode  =lock;
-                    _lock_count =1;
-                    _data       =(Byte*)map.pData;
-                    _pitch      =       map.  RowPitch;
-                    _pitch2     =       map.DepthPitch;
                      return true;
                   }
                }break;
@@ -2053,7 +2019,7 @@ Bool Image::lock(LOCK_MODE lock, Int mip_map, DIR_ENUM cube_face)
                   if(lock==LOCK_WRITE)Alloc(_data, pitch2);else
                   {
                      // get from GPU
-                     Image temp; if(temp.createTry(PaddedWidth(hwW(), hwH(), mip_map, hwType()), PaddedHeight(hwW(), hwH(), mip_map, hwType()), 1, hwType(), IMAGE_SURF, 1, false))
+                     Image temp; if(temp.createTry(PaddedWidth(hwW(), hwH(), mip_map, hwType()), PaddedHeight(hwW(), hwH(), mip_map, hwType()), 1, hwType(), IMAGE_STAGING, 1, false))
                      {
                         D3DC->CopySubresourceRegion(temp._txtr, D3D11CalcSubresource(0, 0, temp.mipMaps()), 0, 0, 0, _txtr, D3D11CalcSubresource(mip_map, cube_face, mipMaps()), null);
                         if(temp.lockRead())
@@ -2077,13 +2043,28 @@ Bool Image::lock(LOCK_MODE lock, Int mip_map, DIR_ENUM cube_face)
                      return true;
                   }
                }break;
+
+               case IMAGE_STAGING: if(_txtr)
+               {
+                  D3D11_MAPPED_SUBRESOURCE map; if(OK(D3DC->Map(_txtr, D3D11CalcSubresource(mip_map, 0, mipMaps()), (lock==LOCK_READ) ? D3D11_MAP_READ : (lock==LOCK_WRITE) ? D3D11_MAP_WRITE : D3D11_MAP_READ_WRITE, 0, &map))) // staging does not support D3D11_MAP_WRITE_DISCARD
+                  {
+                    _lock_size.x=Max(1, w()>>mip_map);
+                    _lock_size.y=Max(1, h()>>mip_map);
+                    _lock_size.z=1;
+                    _lmm        =mip_map;
+                  //_lcf        =0;
+                    _lock_mode  =lock;
+                    _lock_count =1;
+                    _data       =(Byte*)map.pData;
+                    _pitch      =       map.  RowPitch;
+                    _pitch2     =       map.DepthPitch;
+                     return true;
+                  }
+               }break;
             #elif GL
-               case IMAGE_2D          :
-               case IMAGE_RT          :
-               case IMAGE_SURF_SCRATCH:
-               case IMAGE_SURF_SYSTEM :
-               case IMAGE_SURF        :
-               case IMAGE_DS_RT       : if(_txtr)
+               case IMAGE_2D   :
+               case IMAGE_RT   :
+               case IMAGE_DS_RT: if(_txtr)
                {
                   Int pitch =softPitch   (              mip_map          ),
                       pitch2=ImageBlocksY(hwW(), hwH(), mip_map, hwType())*pitch;
@@ -2256,20 +2237,6 @@ Image& Image::unlock()
                Free(_data);
             }break;
 
-            case IMAGE_SURF_SCRATCH:
-            case IMAGE_SURF_SYSTEM :
-            case IMAGE_SURF        :
-            {
-               if(D3DC)D3DC->Unmap(_txtr, D3D11CalcSubresource(lMipMap(), 0, mipMaps()));
-              _lock_size.zero();
-              _lmm      =0;
-            //_lcf      =0;
-              _lock_mode=LOCK_NONE;
-              _pitch    =0;
-              _pitch2   =0;
-              _data     =null;
-            }break;
-
             case IMAGE_3D:
             {
                if(_lock_mode!=LOCK_READ && D3DC)D3DC->UpdateSubresource(_vol, D3D11CalcSubresource(lMipMap(), 0, mipMaps()), null, data(), pitch(), pitch2());
@@ -2293,13 +2260,22 @@ Image& Image::unlock()
               _pitch2   =0;
                Free(_data);
             }break;
+
+            case IMAGE_STAGING:
+            {
+               if(D3DC)D3DC->Unmap(_txtr, D3D11CalcSubresource(lMipMap(), 0, mipMaps()));
+              _lock_size.zero();
+              _lmm      =0;
+            //_lcf      =0;
+              _lock_mode=LOCK_NONE;
+              _pitch    =0;
+              _pitch2   =0;
+              _data     =null;
+            }break;
          #elif GL
-            case IMAGE_2D          :
-            case IMAGE_RT          :
-            case IMAGE_SURF_SCRATCH:
-            case IMAGE_SURF_SYSTEM :
-            case IMAGE_SURF        :
-            case IMAGE_DS_RT       :
+            case IMAGE_2D   :
+            case IMAGE_RT   :
+            case IMAGE_DS_RT:
             {
                if(_lock_mode!=LOCK_READ && D.created())
                {
@@ -2446,12 +2422,9 @@ Bool Image::setFrom(CPtr data, Int data_pitch, Int mip_map, DIR_ENUM cube_face)
           hw_pitch2  =hw_pitch*hw_blocks_y;
       if( hw_pitch==data_pitch && InRange(mip_map, mipMaps()) && InRange(cube_face, 6) && D.created())switch(mode())
       {
-         case IMAGE_2D          :
-         case IMAGE_RT          :
-         case IMAGE_SURF_SCRATCH:
-         case IMAGE_SURF_SYSTEM :
-         case IMAGE_SURF        :
-         case IMAGE_DS_RT       :
+         case IMAGE_2D   :
+         case IMAGE_RT   :
+         case IMAGE_DS_RT:
          { // OpenGL has per-thread context states, which means we don't need to be locked during following calls, this is important as following calls can be slow
                                 D.texBind(GL_TEXTURE_2D, _txtr);
             if(!compressed())glTexImage2D(GL_TEXTURE_2D, mip_map, ImageTI[hwType()].format, Max(1, hwW()>>mip_map), Max(1, hwH()>>mip_map), 0, SourceGLFormat(hwType()), SourceGLType(hwType()), data);
@@ -2570,7 +2543,7 @@ Bool Image::map()
          glGetError(); // clear any previous errors
          glBindRenderbuffer(GL_RENDERBUFFER, _rb);
          [MainContext.context renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)view.layer];
-        _mode=IMAGE_SURF; setInfo(); adjustInfo(hwW(), hwH(), hwD(), hwType()); // this has a valid '_rb' so it can detect the size and type
+        _mode=IMAGE_GL_RB; setInfo(); adjustInfo(hwW(), hwH(), hwD(), hwType()); // this has a valid '_rb' so it can detect the size and type
          D._res=size(); D.densityUpdate();
          return true;
       }
@@ -2579,7 +2552,7 @@ Bool Image::map()
    // on Android and Web 'Renderer._main' has 'setInfo' called externally in the main loop
    return true;
 #elif DESKTOP
-   forceInfo(D.resW(), D.resH(), 1, type() ? type() : IMAGE_R8G8B8A8_SRGB, IMAGE_SURF, samples()); return true;
+   forceInfo(D.resW(), D.resH(), 1, type() ? type() : IMAGE_R8G8B8A8_SRGB, IMAGE_GL_RB, samples()); return true;
 #endif
    return false;
 }
@@ -2932,7 +2905,7 @@ Bool Image::capture(C Image &src)
             return true;
          }
       }else
-      if(createTry(PaddedWidth(src.hwW(), src.hwH(), 0, src.hwType()), PaddedHeight(src.hwW(), src.hwH(), 0, src.hwType()), 1, src.hwType(), IMAGE_SURF, 1, false))
+      if(createTry(PaddedWidth(src.hwW(), src.hwH(), 0, src.hwType()), PaddedHeight(src.hwW(), src.hwH(), 0, src.hwType()), 1, src.hwType(), IMAGE_STAGING, 1, false))
       {
          D3DC->CopySubresourceRegion(_txtr, D3D11CalcSubresource(0, 0, mipMaps()), 0, 0, 0, src._txtr, D3D11CalcSubresource(0, 0, src.mipMaps()), null);
          return true;

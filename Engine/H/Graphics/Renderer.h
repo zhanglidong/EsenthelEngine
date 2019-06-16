@@ -7,7 +7,7 @@
 /******************************************************************************/
 enum RENDER_TYPE // Rendering Type, please check documentation for more info
 {
-   RT_DEFERRED, // full             bump mapping, multiple lights           , full shadows, full    special effects, good for complex scenes with          many lights, unavailable in OpenGL ES 2
+   RT_DEFERRED, // full             bump mapping, multiple lights           , full shadows, full    special effects, good for complex scenes with          many lights
    RT_FORWARD , // only flat/normal bump mapping, multiple lights           , full shadows, limited special effects, good for simple  scenes with low number of lights (ideally 1 directional light only)
    RT_SIMPLE  , // only flat        bump mapping, only 1 light (directional), no shadows  , limited special effects, good for editors - fastest rendering
    RT_NUM     , // number of Rendering Types

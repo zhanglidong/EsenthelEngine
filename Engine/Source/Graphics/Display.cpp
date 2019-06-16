@@ -1164,7 +1164,7 @@ again:
             EGLint attribs[]=
             {
                EGL_SURFACE_TYPE   , EGL_WINDOW_BIT,
-               EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+               EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR, // depends on 'gl_ver'
                EGL_BLUE_SIZE      , 8,
                EGL_GREEN_SIZE     , 8,
                EGL_RED_SIZE       , 8,
@@ -1199,8 +1199,8 @@ again:
       EGLint width, height;
       eglQuerySurface(GLDisplay, MainContext.surface, EGL_WIDTH , &width );
       eglQuerySurface(GLDisplay, MainContext.surface, EGL_HEIGHT, &height);
-      Renderer._main   .forceInfo(width, height, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_SURF, samples);
-      Renderer._main_ds.forceInfo(width, height, 1, ds_type            , IMAGE_DS  , samples);
+      Renderer._main   .forceInfo(width, height, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_GL_RB, samples);
+      Renderer._main_ds.forceInfo(width, height, 1, ds_type            , IMAGE_DS   , samples);
       if(LogInit)LogN(S+"Renderer._main: "+Renderer._main.w()+'x'+Renderer._main.h()+", type: "+ImageTI[Renderer._main.hwType()].name+", ds_type: "+ImageTI[Renderer._main_ds.hwType()].name);
    #elif IOS
       if(MainContext.context=[[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3])_shader_model=SM_GL_ES_3;else
@@ -1232,8 +1232,8 @@ again:
       MainContext.lock();
       Byte samples=(attrs.antialias ? 4 : 1);
       int  width, height; emscripten_get_canvas_element_size(null, &width, &height);
-      Renderer._main   .forceInfo(width, height, 1, IMAGE_R8G8B8A8_SRGB                      , IMAGE_SURF, samples);
-      Renderer._main_ds.forceInfo(width, height, 1, attrs.stencil ? IMAGE_D24S8 : IMAGE_D24X8, IMAGE_DS  , samples);
+      Renderer._main   .forceInfo(width, height, 1, IMAGE_R8G8B8A8_SRGB                      , IMAGE_GL_RB, samples);
+      Renderer._main_ds.forceInfo(width, height, 1, attrs.stencil ? IMAGE_D24S8 : IMAGE_D24X8, IMAGE_DS   , samples);
    #endif
 
    if(!deviceName().is())

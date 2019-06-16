@@ -48,7 +48,7 @@ namespace EE{
    #elif ANDROID // tested on Note 4
       #define MEM        (32*1024)
       #define BUFFERS    1
-      #define GL_VI_LOCK GL_LOCK_SUB_RESET_PART_FROM // perf. similar to GL_LOCK_MAP (however on GLES2 map is not supported and defaults to slow GL_LOCK_SUB)
+      #define GL_VI_LOCK GL_LOCK_SUB_RESET_PART_FROM
    #elif IOS // tested on iPad Mini 2
       #define MEM        (8*1024)
       #define BUFFERS    1024

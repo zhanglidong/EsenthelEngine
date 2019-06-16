@@ -519,7 +519,7 @@ void RendererClass::Combine(IMAGE_PRECISION rt_prec)
          #if DX11
             SamplerLinearClamp.setPS(SSI_DEFAULT);
          #elif GL
-            if(!GL_ES || ImageTI[_col->hwType()].precision<IMAGE_PRECISION_32) // GLES2/3 don't support filtering F32 textures, without this check reading from F32 textures will fail - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml
+            if(!GL_ES || ImageTI[_col->hwType()].precision<IMAGE_PRECISION_32) // GLES3 doesn't support filtering F32 textures, without this check reading from F32 textures will fail - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml
                {D.texBind(GL_TEXTURE_2D, _col->_txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);}
          #endif
       }
@@ -1046,7 +1046,7 @@ start:
       {
          const Bool merged_clear=D._view_main.full // use when possible, should improve performance on tile-based renderers
                            #if GL && WINDOWS
-                              && glClearBufferfv!=null // on Desktop GL we need this function to make "D.clearCol(Int i, .." work, on GLES3 it's always available, on GLES2 it's not but it doesn't have deferred renderer either
+                              && glClearBufferfv!=null // on Desktop GL we need this function to make "D.clearCol(Int i, .." work, on GLES3 it's always available
                            #endif
                    , clear_nrm  =(NRM_CLEAR_START && ClearNrm()),
                      clear_vel  =false; // this is not needed because "ClearSkyVel" is used later, performance tests suggested it's better don't clear unless necessary, instead 'Image.discard' is used and improves performance (at least on Mobile)
@@ -1966,7 +1966,7 @@ void RendererClass::postProcess()
             #if DX11
                SamplerLinearClamp.setPS(SSI_DEFAULT);
             #elif GL
-               if(!GL_ES || ImageTI[_col->hwType()].precision<IMAGE_PRECISION_32) // GLES2/3 don't support filtering F32 textures, without this check reading from F32 textures will fail - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml
+               if(!GL_ES || ImageTI[_col->hwType()].precision<IMAGE_PRECISION_32) // GLES3 doesn't support filtering F32 textures, without this check reading from F32 textures will fail - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml
                   {D.texBind(GL_TEXTURE_2D, _col->_txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);}
             #endif
             }

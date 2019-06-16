@@ -116,19 +116,21 @@ Bool IsSRGB(IMAGE_TYPE type); // if this is a sRGB image
 enum IMAGE_MODE : Byte // Image Mode
 {
    IMAGE_2D       , // Hardware 2D   Texture
-   IMAGE_3D       , // Hardware 3D   Texture (not supported on OpenGL ES 2)
+   IMAGE_3D       , // Hardware 3D   Texture
    IMAGE_CUBE     , // Hardware Cube Texture
    IMAGE_SOFT     , // Software      Image   (this type is used for software processing only - it can't be drawn on the screen)
    IMAGE_SOFT_CUBE, // Software Cube Image   (this type is used for software processing only - it can't be drawn on the screen)
-   IMAGE_RT       , // Hardware RenderTarget (only this mode can be used as custom rendering destination for 'Renderer.target', after you have rendered to this image you can treat it as typical IMAGE_2D texture, except that you can't lock it)
+   IMAGE_RT       , // Hardware RenderTarget (only this mode can be used as custom rendering destination for 'Renderer.target', after you have rendered to this image you can treat it as typical IMAGE_2D texture)
 #if EE_PRIVATE
-   IMAGE_SURF_SCRATCH, // System   Surface from scratch
-   IMAGE_SURF_SYSTEM , // System   Surface
-   IMAGE_SURF        , // Hardware Surface
    IMAGE_RT_CUBE     , // Hardware RenderTarget Cube
    IMAGE_DS          , // Hardware Depth Stencil Buffer
    IMAGE_DS_RT       , // Hardware Depth Stencil Buffer RenderTarget
    IMAGE_SHADOW_MAP  , // Hardware Shadow Map (Depth Texture)
+#if DX11
+   IMAGE_STAGING     , // DirectX Image used for copying data between CPU<->GPU
+#elif GL
+   IMAGE_GL_RB       , // OpenGL render buffer
+#endif
 #endif
 };
 Bool IsSoft(IMAGE_MODE mode); // if this is a software image     (IMAGE_SOFT, IMAGE_SOFT_CUBE)

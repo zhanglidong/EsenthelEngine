@@ -746,14 +746,10 @@ static Str8 GLSLVSShader(Str8 code)
       +   "#define MP\n"
       +   "#define HP\n"
       +"#endif\n"
-      +"#if __VERSION__>=300\n" // this includes desktop GL3.3(330) and GLES3(300)
-      +   (texture2DLod ? "#define texture2DLod textureLod\n" : "") // 'texture2DLod' is actually 'textureLod' on GL3
-      +   (texture3DLod ? "#define texture3DLod textureLod\n" : "") // 'texture3DLod' is actually 'textureLod' on GL3
-      +   "#define attribute in\n"
-      +   "#define varying out\n"
-      +"#else\n"
-      +   "#define gl_InstanceID 0\n" // instancing not supported on <GL3
-      +"#endif\n"
+      +(texture2DLod ? "#define texture2DLod textureLod\n" : "") // 'texture2DLod' is actually 'textureLod' on GL3
+      +(texture3DLod ? "#define texture3DLod textureLod\n" : "") // 'texture3DLod' is actually 'textureLod' on GL3
+      +"#define attribute in\n"
+      +"#define varying out\n"
       +code;
 }
 static Str8 GLSLPSShader(Str8 code, Bool force_hp)
@@ -812,35 +808,23 @@ static Str8 GLSLPSShader(Str8 code, Bool force_hp)
       +   (force_hp        ? "precision HP sampler2D;\n"       : "") // may be needed for depth textures
       +   (sampler2DShadow ? "precision LP sampler2DShadow;\n" : "")
       +   (sampler3D       ? "precision LP sampler3D;\n"       : "")
-      +   "#if __VERSION__<300\n"
-      +      (texture2DLod ? "#define texture2DLod texture2DLodEXT\n" : "") // 'texture2DLod' is actually 'texture2DLodEXT' on GLES2
-      +      (shadow2DProj ? "#define shadow2DProj shadow2DProjEXT\n" : "") // 'shadow2DProj' is actually 'shadow2DProjEXT' on GLES2
-      +   "#endif\n"
       +"#else\n"
       +   "#define LP\n"
       +   "#define MP\n"
       +   "#define HP\n"
       +"#endif\n"
-      +"#if __VERSION__>=300\n" // this includes desktop GL3.3(330) and GLES3(300)
-      +   (texture2D    ? "#define texture2D texture\n"        : "") // 'texture2D'    is actually 'texture'     on GL3
-      +   (texture2DLod ? "#define texture2DLod textureLod\n"  : "") // 'texture2DLod' is actually 'textureLod'  on GL3
-      +   (texture3D    ? "#define texture3D texture\n"        : "") // 'texture3D'    is actually 'texture'     on GL3
-      +   (texture3DLod ? "#define texture3DLod textureLod\n"  : "") // 'texture3DLod' is actually 'textureLod'  on GL3
-      +   (textureCube  ? "#define textureCube texture\n"      : "") // 'textureCube'  is actually 'texture'     on GL3
-      +   (shadow2D     ? "#define shadow2D texture\n"         : "") // 'shadow2D'     is actually 'texture'     on GL3
-      +   (shadow2DProj ? "#define shadow2DProj textureProj\n" : "") // 'shadow2DProj' is actually 'textureProj' on GL3
-      +   (rt0 ? "layout(location=0) out HP vec4 RT0;\n" : "")
-      +   (rt1 ? "layout(location=1) out HP vec4 RT1;\n" : "")
-      +   (rt2 ? "layout(location=2) out HP vec4 RT2;\n" : "")
-      +   (rt3 ? "layout(location=3) out HP vec4 RT3;\n" : "")
-      +   "#define varying in\n"
-      +"#else\n"
-      +   (rt0 ? "#define RT0 gl_FragData[0]\n" : "")
-      +   (rt1 ? "#define RT1 gl_FragData[1]\n" : "")
-      +   (rt2 ? "#define RT2 gl_FragData[2]\n" : "")
-      +   (rt3 ? "#define RT3 gl_FragData[3]\n" : "")
-      +   "#define gl_InstanceID 0\n" // instancing not supported on <GL3
-      +"#endif\n"
+      +(texture2D    ? "#define texture2D texture\n"        : "") // 'texture2D'    is actually 'texture'     on GL3
+      +(texture2DLod ? "#define texture2DLod textureLod\n"  : "") // 'texture2DLod' is actually 'textureLod'  on GL3
+      +(texture3D    ? "#define texture3D texture\n"        : "") // 'texture3D'    is actually 'texture'     on GL3
+      +(texture3DLod ? "#define texture3DLod textureLod\n"  : "") // 'texture3DLod' is actually 'textureLod'  on GL3
+      +(textureCube  ? "#define textureCube texture\n"      : "") // 'textureCube'  is actually 'texture'     on GL3
+      +(shadow2D     ? "#define shadow2D texture\n"         : "") // 'shadow2D'     is actually 'texture'     on GL3
+      +(shadow2DProj ? "#define shadow2DProj textureProj\n" : "") // 'shadow2DProj' is actually 'textureProj' on GL3
+      +(rt0 ? "layout(location=0) out HP vec4 RT0;\n" : "")
+      +(rt1 ? "layout(location=1) out HP vec4 RT1;\n" : "")
+      +(rt2 ? "layout(location=2) out HP vec4 RT2;\n" : "")
+      +(rt3 ? "layout(location=3) out HP vec4 RT3;\n" : "")
+      +"#define varying in\n"
       +code;
 }
 static Str8 GetVarName(C Str8 &text, Int offset)

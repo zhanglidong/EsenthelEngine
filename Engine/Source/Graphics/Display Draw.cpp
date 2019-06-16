@@ -191,7 +191,7 @@ void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
    #if DX11
     //SamplerLinearClamp.setPS(SSI_DEFAULT);
    #elif GL
-      if(!GL_ES || ImageTI[hwType()].precision<IMAGE_PRECISION_32) // GLES2/3 don't support filtering F32 textures, without this check reading from F32 textures will fail - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml
+      if(!GL_ES || ImageTI[hwType()].precision<IMAGE_PRECISION_32) // GLES3 doesn't support filtering F32 textures, without this check reading from F32 textures will fail - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml
          {D.texBind(GL_TEXTURE_2D, _txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);}
    #endif
    }
@@ -242,7 +242,7 @@ void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_
    #if DX11
     //SamplerLinearClamp.setPS(SSI_DEFAULT);
    #elif GL
-      if(!GL_ES || ImageTI[hwType()].precision<IMAGE_PRECISION_32) // GLES2/3 don't support filtering F32 textures, without this check reading from F32 textures will fail - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml
+      if(!GL_ES || ImageTI[hwType()].precision<IMAGE_PRECISION_32) // GLES3 doesn't support filtering F32 textures, without this check reading from F32 textures will fail - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml
          {D.texBind(GL_TEXTURE_2D, _txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);}
    #endif
    }

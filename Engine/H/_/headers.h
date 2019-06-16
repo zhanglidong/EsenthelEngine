@@ -273,14 +273,10 @@
          #include <GL/glext.h>
          #include <GL/glx.h>
       #elif ANDROID // Android OpenGL ES
-      	#include <EGL/egl.h>
-         #if __ANDROID_API__>=18 // GL ES 3.0 headers available only on API 18 and newer
-            #include <GLES3/gl3.h>
-            #include <GLES3/gl3ext.h>
-         #else
-            #include <GLES2/gl2.h>
-            #include <GLES2/gl2ext.h>
-         #endif
+         #include <EGL/egl.h>
+         #include <EGL/eglext.h>
+         #include <GLES3/gl3.h>
+         #include <GLES3/gl3ext.h>
       #elif IOS // iOS OpenGL ES
          #include <UIKit/UIKit.h>
          #include <QuartzCore/QuartzCore.h>

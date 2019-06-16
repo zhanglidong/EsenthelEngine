@@ -425,11 +425,7 @@ void MainShaderClass::getTechniques()
    REPD(m, (D.shaderModel()>=SM_4_1) ? 3 : (D.shaderModel()>=SM_4) ? 2 : 1)
    REPD(p, 2)h_LinearizeDepth[p][m]=get(S8+"LinearizeDepth"+(p?'P':'\0')+m);
 
-#if GL_ES
-   h_SetDepth=find("SetDepth"); // GL ES 2.0 may fail because of depth writing
-#else
-   h_SetDepth=get ("SetDepth");
-#endif
+   h_SetDepth=get("SetDepth");
 
    if(D.shaderModel()>=SM_4)
    {

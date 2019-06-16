@@ -753,7 +753,7 @@ UInt ShaderVSGL::create(Bool clean, Str *messages)
          Str8 code; temp.getStr(code); // read code
          SetMaxMatrix(code);
       #if GL_ES
-         for(; CChar8 *gl=TextPos(code, "gl_ClipDistance"); ){Char8 *t=(Char8*)gl; t[0]=t[1]='/';} // VS plane clipping not available on GLES 2 and 3
+         for(; CChar8 *gl=TextPos(code, "gl_ClipDistance"); ){Char8 *t=(Char8*)gl; t[0]=t[1]='/';} // VS plane clipping not available on GLES 3
       #endif
          CChar8 *srcs[]={GLSLVersion(), code}; // version must be first
          glShaderSource(vs, Elms(srcs), srcs, null); glCompileShader(vs); // compile
