@@ -9,7 +9,7 @@ namespace Edit{
 /******************************************************************************/
 #define MERGE_HEADERS 0 // this made almost no difference on an SSD Disk
 /******************************************************************************/
-// TODO: VSRun doesn't include build configuration, debug/release, dx9/dx10+, 32/64bit
+// TODO: VSRun doesn't include build configuration, Debug/Release, DX10+/GL, 32/64bit
   void CodeEditor::VS     (C Str &command,   Bool console,   Bool hidden              ) {if(console ? !build_process.create(devenv_path, command, hidden) : !Run(devenv_path, command, hidden))Error(S+"Error launching:\n\""+devenv_path+'"');}
 //void CodeEditor::VSClean(C Str &project                                             ) {VS(S+"\""+NormalizePath(MakeFullPath(project))+"\" /Clean", true, true);} unused
   void CodeEditor::VSBuild(C Str &project, C Str &config , C Str &platform, C Str &out) {VS(VSBuildParams(project, config, platform, out), true, true);}
@@ -316,7 +316,7 @@ Bool CodeEditor::verifyBuildPath()
       case EXE_IOS  : build_exe=build_path+build_project_name+".app"; break;
       case EXE_APK  : build_exe=build_path+"Android/bin/"+build_project_name; break;
       case EXE_LINUX: build_exe=build_path+CleanNameForMakefile(build_project_name); break;
-      case EXE_WEB  : build_exe=build_path+"Emscripten/"+(build_debug ? "Debug DX9/" : "Release DX9/")+build_project_name+".html"; break; // warning: this must match codes below if(build_exe_type==EXE_WEB)config+=" DX9";
+      case EXE_WEB  : build_exe=build_path+"Emscripten/"+(build_debug ? "Debug DX11/" : "Release DX11/")+build_project_name+".html"; break; // warning: this must match codes below if(build_exe_type==EXE_WEB)config+=" DX11";
    }
    return true;
 }
@@ -2819,9 +2819,9 @@ void CodeEditor::build(BUILD_MODE mode)
          Str config=(build_debug ? "Debug" : "Release");
          if(build_exe_type==EXE_NEW)config+=" Universal";
 
-         if(build_exe_type==EXE_WEB)config+=" DX9" ;else // always use the same config for WEB because it uses WebGL, warning: this must match codes above: (build_debug ? "Debug DX9/" : "Release DX9/")
-         if(build_exe_type==EXE_NEW)config+=" DX11";else // always use the same config for WEB because it uses WebGL, warning: this must match codes above: (build_debug ? "Debug DX9/" : "Release DX9/")
-                                    config+=(config_dx9 ? " DX9" : " DX11");
+         if(build_exe_type==EXE_WEB)config+=" DX11";else // always use the same config for WEB because it uses WebGL, warning: this must match codes above: (build_debug ? "Debug DX11/" : "Release DX11/")
+         if(build_exe_type==EXE_NEW)config+=" DX11";else
+                                    config+=" DX11"; // config_api
 
          Str platform=((build_exe_type==EXE_WEB) ? "4) Web" : config_32_bit ? "2) 32 bit" : "1) 64 bit");
 
@@ -2977,10 +2977,10 @@ void CodeEditor::config32Bit(Bool bit32)
    T.config_32_bit=bit32;
    cei().configChanged32Bit();
 }
-void CodeEditor::configDX9(Bool dx9)
+void CodeEditor::configAPI(Byte api)
 {
-   T.config_dx9=dx9;
-   cei().configChangedDX9();
+   T.config_api=api;
+   cei().configChangedAPI();
 }
 void CodeEditor::configEXE(EXE_TYPE exe)
 {

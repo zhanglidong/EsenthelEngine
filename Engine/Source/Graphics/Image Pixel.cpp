@@ -432,8 +432,6 @@ static void SetPixelF(Byte *data, IMAGE_TYPE type, Flt pixel)
       case IMAGE_F16_3: {U16 *d=(U16*)data; d[0]=d[1]=d[2]=     Half(pixel).data;} break;
       case IMAGE_F16_4: {U16 *d=(U16*)data; d[0]=d[1]=d[2]=d[3]=Half(pixel).data;} break;
 
-      case IMAGE_R8G8B8X8:
-      case IMAGE_B8G8R8X8:
       case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB:
       case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB:
                                 {VecB4 &v=*(VecB4*)data; v.x=v.y=v.z=FltToByte(pixel); v.w=255;} break;
@@ -518,14 +516,12 @@ static inline Flt GetPixelF(C Byte *data, C Image &image, Bool _2d, Int x, Int y
       case IMAGE_F16_4: return *(Half*)data;
 
       case IMAGE_B8G8R8  :
-      case IMAGE_B8G8R8X8:
       case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB:
          return ((VecB4*)data)->z/Flt(0xFF);
 
       case IMAGE_R8      :
       case IMAGE_R8G8    :
       case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB:
-      case IMAGE_R8G8B8X8:
       case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB:
       case IMAGE_A8      :
       case IMAGE_L8      :
@@ -557,9 +553,7 @@ static inline Flt GetPixelF(C Byte *data, C Image &image, Bool _2d, Int x, Int y
       case IMAGE_R8G8B8A8_SIGN:
          return SByteToSFlt(*(SByte*)data);
 
-      case IMAGE_B4G4R4X4: return (((*(U16*)data)>> 8)&0x0F)/15.0f;
       case IMAGE_B4G4R4A4: return (((*(U16*)data)>> 8)&0x0F)/15.0f;
-      case IMAGE_B5G5R5X1: return (((*(U16*)data)>>10)&0x1F)/31.0f;
       case IMAGE_B5G5R5A1: return (((*(U16*)data)>>10)&0x1F)/31.0f;
       case IMAGE_B5G6R5  : return (((*(U16*)data)>>11)&0x1F)/31.0f;
 
@@ -613,12 +607,8 @@ static inline Color GetColor(C Byte *data, C Image &image, Bool _2d, Int x, Int 
       case IMAGE_I24     : {  Byte   b=data[2];       return Color(    b,   b,   b,   255);}
       case IMAGE_I32     : {  Byte   b=data[3];       return Color(    b,   b,   b,   255);}
       case IMAGE_B8G8R8  : {C VecB  &v=*(VecB *)data; return Color(  v.z, v.y, v.x,   255);}
-      case IMAGE_B8G8R8X8: {C VecB4 &v=*(VecB4*)data; return Color(  v.z, v.y, v.x,   255);}
-      case IMAGE_R8G8B8X8: {C VecB4 &v=*(VecB4*)data; return Color(  v.x, v.y, v.z,   255);}
 
-      case IMAGE_B4G4R4X4   : {U16  d=*(U16 *)data; return Color(U4ToByte((d>> 8)&0x0F), U4ToByte((d>> 4)&0x0F), U4ToByte((d    )&0x0F),             255);}
       case IMAGE_B4G4R4A4   : {U16  d=*(U16 *)data; return Color(U4ToByte((d>> 8)&0x0F), U4ToByte((d>> 4)&0x0F), U4ToByte((d    )&0x0F), U4ToByte(d>>12));}
-      case IMAGE_B5G5R5X1   : {U16  d=*(U16 *)data; return Color(U5ToByte((d>>10)&0x1F), U5ToByte((d>> 5)&0x1F), U5ToByte((d    )&0x1F),             255);}
       case IMAGE_B5G5R5A1   : {U16  d=*(U16 *)data; return Color(U5ToByte((d>>10)&0x1F), U5ToByte((d>> 5)&0x1F), U5ToByte((d    )&0x1F), U1ToByte(d>>15));}
       case IMAGE_B5G6R5     : {U16  d=*(U16 *)data; return Color(U5ToByte((d>>11)&0x1F), U6ToByte((d>> 5)&0x3F), U5ToByte((d    )&0x1F),             255);}
       case IMAGE_R10G10B10A2: {UInt d=*(UInt*)data; return Color(         (d>> 2)&0xFF ,          (d>>12)&0xFF ,          (d>>22)&0xFF , U2ToByte(d>>30));}
@@ -682,13 +672,9 @@ static void SetColor(Byte *data, IMAGE_TYPE type, C Color &color)
       case IMAGE_I24     : *(U16  *)data=0; data[2]=color.r; break;
       case IMAGE_I32     : *(U32  *)data=(color.r<<24); break;
 
-      case IMAGE_B4G4R4X4: *(U16*)data=((color.r>>4)<< 8) | ((color.g>>4)<<4) | (color.b>> 4) | 0xF000            ; break;
       case IMAGE_B4G4R4A4: *(U16*)data=((color.r>>4)<< 8) | ((color.g>>4)<<4) | (color.b>> 4) | ((color.a>>4)<<12); break;
-      case IMAGE_B5G5R5X1: *(U16*)data=((color.r>>3)<<10) | ((color.g>>3)<<5) | (color.b>> 3) | 0x8000            ; break;
       case IMAGE_B5G5R5A1: *(U16*)data=((color.r>>3)<<10) | ((color.g>>3)<<5) | (color.b>> 3) | ((color.a>>7)<<15); break;
       case IMAGE_B5G6R5  : *(U16*)data=((color.r>>3)<<11) | ((color.g>>2)<<5) | (color.b>> 3)                     ; break;
-      case IMAGE_B8G8R8X8: *(U32*)data=( color.r    <<16) | ( color.g    <<8) | (color.b    ) | 0xFF000000        ; break;
-      case IMAGE_R8G8B8X8: *(U32*)data=( color.r        ) | ( color.g    <<8) | (color.b<<16) | 0xFF000000        ; break;
 
       case IMAGE_R8_SIGN      : *(SByte *)data=     (color.r>>1); break;
       case IMAGE_R8G8_SIGN    : ((VecSB2*)data)->set(color.r>>1, color.g>>1); break;
@@ -776,8 +762,6 @@ static void SetColorF(Byte *data, IMAGE_TYPE type, C Vec4 &color)
       case IMAGE_R8G8    :                           ((VecB2*)data)->set(FltToByte(color.x), FltToByte(color.y)                                        ); break;
       case IMAGE_R8      :                           *(Byte *)data  =    FltToByte(color.x)                                                             ; break;
       case IMAGE_B8G8R8  :                           ((VecB *)data)->set(FltToByte(color.z), FltToByte(color.y), FltToByte(color.x)                    ); break;
-      case IMAGE_B8G8R8X8:                           ((VecB4*)data)->set(FltToByte(color.z), FltToByte(color.y), FltToByte(color.x),                255); break;
-      case IMAGE_R8G8B8X8:                           ((VecB4*)data)->set(FltToByte(color.x), FltToByte(color.y), FltToByte(color.z),                255); break;
 
       case IMAGE_R8_SIGN      : (*(Byte *)data)=     SFltToSByte(color.x)                                                                   ; break;
       case IMAGE_R8G8_SIGN    : ( (VecB2*)data)->set(SFltToSByte(color.x), SFltToSByte(color.y)                                            ); break;
@@ -912,8 +896,6 @@ Vec4 ImageColorF(CPtr data, IMAGE_TYPE hw_type)
 
       case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(c.z/255.0f, c.y/255.0f, c.x/255.0f, c.w/255.0f);}
       case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(c.x/255.0f, c.y/255.0f, c.z/255.0f, c.w/255.0f);}
-      case IMAGE_B8G8R8X8:                           {VecB4 &c=*(VecB4*)data; return Vec4(c.z/255.0f, c.y/255.0f, c.x/255.0f,          1);}
-      case IMAGE_R8G8B8X8:                           {VecB4 &c=*(VecB4*)data; return Vec4(c.x/255.0f, c.y/255.0f, c.z/255.0f,          1);}
       case IMAGE_B8G8R8  :                           {VecB  &c=*(VecB *)data; return Vec4(c.z/255.0f, c.y/255.0f, c.x/255.0f,          1);}
       case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(c.x/255.0f, c.y/255.0f, c.z/255.0f,          1);}
       case IMAGE_R8G8    :                           {VecB2 &c=*(VecB2*)data; return Vec4(c.x/255.0f, c.y/255.0f,          0,          1);}
@@ -972,8 +954,6 @@ static inline Vec4 GetColorF(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
 
       case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(c.z/255.0f, c.y/255.0f, c.x/255.0f, c.w/255.0f);}
       case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(c.x/255.0f, c.y/255.0f, c.z/255.0f, c.w/255.0f);}
-      case IMAGE_B8G8R8X8:                           {VecB4 &c=*(VecB4*)data; return Vec4(c.z/255.0f, c.y/255.0f, c.x/255.0f,          1);}
-      case IMAGE_R8G8B8X8:                           {VecB4 &c=*(VecB4*)data; return Vec4(c.x/255.0f, c.y/255.0f, c.z/255.0f,          1);}
       case IMAGE_B8G8R8  :                           {VecB  &c=*(VecB *)data; return Vec4(c.z/255.0f, c.y/255.0f, c.x/255.0f,          1);}
       case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(c.x/255.0f, c.y/255.0f, c.z/255.0f,          1);}
       case IMAGE_R8G8    :                           {VecB2 &c=*(VecB2*)data; return Vec4(c.x/255.0f, c.y/255.0f,          0,          1);}
@@ -3392,7 +3372,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
                }
             }else
             if((T   .hwType()==IMAGE_R8G8B8   || T   .hwType()==IMAGE_R8G8B8_SRGB  )
-            && (dest.hwType()==IMAGE_B8G8R8A8 || dest.hwType()==IMAGE_B8G8R8A8_SRGB)  // very common case for importing images to DX9 native texture format, or exporting to WEBP from RGB
+            && (dest.hwType()==IMAGE_B8G8R8A8 || dest.hwType()==IMAGE_B8G8R8A8_SRGB)  // very common case for exporting to WEBP from RGB
             && (dest.  type()==IMAGE_B8G8R8A8 || dest.  type()==IMAGE_B8G8R8A8_SRGB)) // check 'type' too in case we have to perform color adjustment
             {
                REPD(z, T.ld())

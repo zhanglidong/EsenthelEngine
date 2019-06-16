@@ -6,13 +6,13 @@ namespace EE{
    There are 3 types of shaders:
 
       2D Shaders - lines, images, text, rectangles, circles, ...
-         vertex position affected by Coords (in DX9 Coords are adjusted by pixel center)
+         vertex position affected by Coords
 
       3D Shaders - 3d models
-         vertex position affected by 'ProjMatrix' (in DX9 'ProjMatrix' is adjusted by pixel center)
+         vertex position affected by 'ProjMatrix'
 
       PostProcess Shaders - bloom, ambient occlusion, motion blur, depth of field, sun rays, ..
-         vertex position calculated completely on the CPU (in DX9 adjusted by pixel center in the shader)
+         vertex position calculated completely on the CPU
 
 /******************************************************************************/
 // SETTINGS
@@ -143,17 +143,15 @@ inline Vec2 PosToScreen(Vec4 pos)
    return (pos.xy/pos.w) * Viewport.PosToScreen.xy        + Viewport.PosToScreen.zw                     ;
 }
 /******************************************************************************/
-Display::Viewport& Display::Viewport::setViewport(Bool allow_proj_matrix_update)
+Display::Viewport& Display::Viewport::setViewport()
 {
-#if DX9
-   D.viewport(recti, allow_proj_matrix_update);
-#elif DX11
-   D.viewport(recti, allow_proj_matrix_update);
+#if DX11
+   D.viewport(recti);
 #elif GL
    if(D.mainFBO())
    {
-      RectI r; r.setX(recti.min.x, recti.max.x); r.min.y=Renderer.resH()-recti.max.y; r.max.y=r.min.y+recti.h(); D.viewport(r, allow_proj_matrix_update);
-   }else D.viewport(recti, allow_proj_matrix_update);
+      RectI r; r.setX(recti.min.x, recti.max.x); r.min.y=Renderer.resH()-recti.max.y; r.max.y=r.min.y+recti.h(); D.viewport(r);
+   }else D.viewport(recti);
 #endif
    return T;
 }
@@ -187,7 +185,7 @@ Display::Viewport& Display::Viewport::setShader(Flt *offset)
    v.ScreenToPosXY[0]=                     v_ft/v.size;
    v.ScreenToPosXY[1]=-(v_min/v.size+0.5f)*v_ft;
 
-#if DX9 || DX11
+#if DX11
    v.PosToScreen[0]=Vec2(0.5f, -0.5f)*v.size;
    v.PosToScreen[1]=            0.5f *v.size + v_min;
 #elif GL

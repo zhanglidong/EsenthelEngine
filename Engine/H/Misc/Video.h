@@ -52,7 +52,7 @@ struct Video // Video Decoder
    Int         bitRate  ()C {return _br               ;} // get video bit rate
    Flt         fps      ()C {return _fps              ;} // get video frames per second
 
- C Image& image()C; // get video as image, this will be valid only if the video was created with 'mode'=IMAGE, you may no longer use this image once the video got deleted
+ C Image& image()C {return _tex;} // get video as image, this will be valid only if the video was created with 'mode'=IMAGE, you may no longer use this image once the video got deleted
 
    // update
    Bool update(Flt time); // update to 'time' video time, returns false when finished playing, some codecs don't support random seeking, only continuous playback is supported
@@ -90,7 +90,7 @@ private:
    Int         _w, _h, _br;
    Flt         _time, _time_past, _fps;
    File        _file;
-   Image       _lum, _u, _v, _tex, *_tex_ptr;
+   Image       _lum, _u, _v, _tex;
 #if EE_PRIVATE
    VideoCodec *_d;
 #else
@@ -101,12 +101,4 @@ private:
 };
 /******************************************************************************/
 CChar8* CodecName(VIDEO_CODEC codec);
-#if EE_PRIVATE
-#if DX9
-extern Memx<Image> VideoTextures;
-
-void VideoTexturesLost ();
-void VideoTexturesReset();
-#endif
-#endif
 /******************************************************************************/

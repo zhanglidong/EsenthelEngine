@@ -70,7 +70,7 @@ Int MeshRender::vtxOfs(UInt elm)C
 MeshRender& MeshRender::del()
 {
 #if GL
-   if(D.notShaderModelGLES2() && _vao) // delete VAO
+   if(_vao) // delete VAO
    {
       SafeSyncLocker lock(D._lock);
       if(_vao)
@@ -94,47 +94,44 @@ MeshRender& MeshRender::del()
 Bool MeshRender::setVF()
 {
 #if GL
-   if(D.notShaderModelGLES2()) // create VAO
+   // create VAO
+   if(D.created())
    {
-      if(D.created())
+   #if VAO_EXCLUSIVE
+      if(!App.mainThread())_vao_reset=true;else // if this is not the main thread, then we have to reset it later
+   #endif
       {
-      #if VAO_EXCLUSIVE
-         if(!App.mainThread())_vao_reset=true;else // if this is not the main thread, then we have to reset it later
-      #endif
+         VtxFormatGL *temp=VtxFormats(VtxFormatKey(_flag, storageCompress() ? VTX_COMPRESS_NRM_TAN_BIN : 0))->vf; if(!temp)return false;
+         if(!_vao)
          {
-            VtxFormatGL *temp=VtxFormats(VtxFormatKey(_flag, storageCompress() ? VTX_COMPRESS_NRM_TAN_BIN : 0))->vf; if(!temp)return false;
-            if(!_vao)
-            {
-               SyncLocker lock(D._lock);
-            #if VAO_EXCLUSIVE
-               if(VAOs.elms())_vao=VAOs.pop();else // re-use if we have any
-            #endif
-               {
-                  glGenVertexArrays(1, &_vao); // create new one
-                  if(!_vao)return false;
-               }
-            }
-            glBindVertexArray(_vao);
-           _vb.set(); // these must be set after 'glBindVertexArray' and before 'enableSet'
-           _ib.set(); // these must be set after 'glBindVertexArray' and before 'enableSet'
-            REP(GL_VTX_NUM)glDisableVertexAttribArray(i); // first disable all, in case this VAO was set with other data before
-            temp->enableSet(); // enable and set new data with VB and IB already set
+            SyncLocker lock(D._lock);
          #if VAO_EXCLUSIVE
-           _vao_reset=false; // we've just set it now, so clear reset
-         #else
-            glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread, no need to flush on exclusive mode, because there all VAO's are used only on the main thread
+            if(VAOs.elms())_vao=VAOs.pop();else // re-use if we have any
          #endif
-         #if 0 // !! Don't do this, instead every time we want to bind some IB we use 'BindIndexBuffer' which disables VAO, also this method 'setVF' requires to have VAO already bound at the end so we don't have to bind it again in 'MeshRender.set' !!
-            glBindVertexArray(0); // disable VAO so binding IB will not modify this VAO
-         #endif
+            {
+               glGenVertexArrays(1, &_vao); // create new one
+               if(!_vao)return false;
+            }
          }
-         return true; // return success in both cases (!mainThread=reset later, and mainThread=created VAO)
+         glBindVertexArray(_vao);
+        _vb.set(); // these must be set after 'glBindVertexArray' and before 'enableSet'
+        _ib.set(); // these must be set after 'glBindVertexArray' and before 'enableSet'
+         REP(GL_VTX_NUM)glDisableVertexAttribArray(i); // first disable all, in case this VAO was set with other data before
+         temp->enableSet(); // enable and set new data with VB and IB already set
+      #if VAO_EXCLUSIVE
+        _vao_reset=false; // we've just set it now, so clear reset
+      #else
+         glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread, no need to flush on exclusive mode, because there all VAO's are used only on the main thread
+      #endif
+      #if 0 // !! Don't do this, instead every time we want to bind some IB we use 'BindIndexBuffer' which disables VAO, also this method 'setVF' requires to have VAO already bound at the end so we don't have to bind it again in 'MeshRender.set' !!
+         glBindVertexArray(0); // disable VAO so binding IB will not modify this VAO
+      #endif
       }
-   }else
-#endif
-   {
-     _vf=VtxFormats(VtxFormatKey(_flag, storageCompress() ? VTX_COMPRESS_NRM_TAN_BIN : 0))->vf;
+      return true; // return success in both cases (!mainThread=reset later, and mainThread=created VAO)
    }
+#else
+  _vf=VtxFormats(VtxFormatKey(_flag, storageCompress() ? VTX_COMPRESS_NRM_TAN_BIN : 0))->vf;
+#endif
    return _vf!=null;
 }
 Bool MeshRender::create(Int vtxs, Int tris, UInt flag, Bool compress)
@@ -145,11 +142,11 @@ Bool MeshRender::create(Int vtxs, Int tris, UInt flag, Bool compress)
    if((same_format && _vb.vtxs()==vtxs && !_vb._lock_mode) || _vb.create(vtxs  , flag         , compress_flag)) // do a separate check for '_vb' because its faster than 'create' method which may do some more checks for vtx size
    if(                                                        _ib.create(tris*3, vtxs<=0x10000               ))
    {
-      T._storage=(compress ? MSHR_COMPRESS : 0)|(D.meshStorageSigned() ? MSHR_SIGNED : 0)|(D.meshBoneSplit() ? MSHR_BONE_SPLIT : 0);
+      T._storage=(compress ? MSHR_COMPRESS : 0)|(MSHR_SIGNED)|(D.meshBoneSplit() ? MSHR_BONE_SPLIT : 0);
       T._tris   =tris;
       T._flag   =flag;
       Free(_bone_split); _bone_splits=0;
-      if(GL && D.notShaderModelGLES2())return setVF(); // set VAO
+      if(GL)return setVF(); // set VAO
       return same_format || setVF(); // skip setting VF if we already have same format
    }
    del(); return false;
@@ -562,7 +559,7 @@ Bool MeshRender::create(C MeshRender &src)
      _storage=src._storage;
      _tris   =src._tris   ;
      _flag   =src._flag   ;
-      if(GL && D.notShaderModelGLES2())setVF();else _vf=src._vf; // VAO
+      if(GL)setVF();else _vf=src._vf; // VAO
 
       // copy splits
       Alloc(_bone_split,     _bone_splits= src._bone_splits);
@@ -571,58 +568,6 @@ Bool MeshRender::create(C MeshRender &src)
    }
    return false;
 }
-#if 0 // DX9
-ID3DXMesh* MeshRender::createDx9Mesh()
-{
-   Bool       ok  =false;
-   ID3DXMesh *mesh=null;
-
-   D._lock.on();
-   if(Ptr src_vtx=vtxLock(LOCK_READ))
-   {
-      if(Ptr src_ind=indLock(LOCK_READ))
-      {
-         D3DVERTEXELEMENT9 ve[MAXD3DDECLLENGTH+1];
-         if(SetVtxFormatFromVtxDecl(_vf, ve))
-         {
-            if(OK(D3DXCreateMesh(tris(), vtxs(), D3DXMESH_32BIT|D3DXMESH_SYSTEMMEM, ve, D3D, &mesh)))
-            {
-               DWORD *dest_id;
-               Ptr    dest_vtx, dest_ind;
-               if(OK(mesh->LockVertexBuffer(0, &dest_vtx)))
-               {
-                  if(OK(mesh->LockIndexBuffer(0, &dest_ind)))
-                  {
-                     if(OK(mesh->LockAttributeBuffer(0, &dest_id)))
-                     {
-                        // copy data
-                        D._lock.off();
-                                       CopyFast  (dest_vtx, src_vtx, mesh->GetNumVertices()*mesh->GetNumBytesPerVertex()); // vtx
-                        if(_ib.bit16())Copy16To32(dest_ind, src_ind, mesh->GetNumFaces   ()*3                           ); // tri
-                        else           Copy32To32(dest_ind, src_ind, mesh->GetNumFaces   ()*3                           ); // tri
-                        FREP(_bone_splits)REPD(j, _bone_split[i].tris)*dest_id++=i;                                        // id
-                        D._lock.on();
-
-                        ok=true;
-
-                        mesh->UnlockAttributeBuffer();
-                     }
-                     mesh->UnlockIndexBuffer();
-                  }
-                  mesh->UnlockVertexBuffer();
-               }
-            }
-         }
-         indUnlock();
-      }
-      vtxUnlock();
-   }
-   if(!ok)RELEASE(mesh);
-   D._lock.off();
-
-   return mesh;
-}
-#endif
 /******************************************************************************/
 C Byte* MeshRender::vtxLockedElm(UInt elm)C
 {
@@ -1018,8 +963,8 @@ void MeshRender::transform(Matrix &matrix)
 void MeshRender::adjustToPlatform()
 {
    const Bool bone_split       =D.meshBoneSplit();
-         Bool change_signed    =(storageCompress() && T.storageSigned   ()!=D.meshStorageSigned() && (_flag&(VTX_NRM|VTX_TAN))),
-              change_bone_split=(_bone_split       && T.storageBoneSplit()!=bone_split            && (_flag&(VTX_MATRIX     )));
+         Bool change_signed    =(storageCompress() && T.storageSigned   ()!=true       && (_flag&(VTX_NRM|VTX_TAN))),
+              change_bone_split=(_bone_split       && T.storageBoneSplit()!=bone_split && (_flag&(VTX_MATRIX     )));
 
    if(change_signed || change_bone_split)
    {
@@ -1074,8 +1019,8 @@ void MeshRender::adjustToPlatform()
 
          vtxUnlock();
 
-         FlagSet(_storage, MSHR_SIGNED    , D.meshStorageSigned());
-         FlagSet(_storage, MSHR_BONE_SPLIT, bone_split           );
+         FlagSet(_storage, MSHR_SIGNED    , true      );
+         FlagSet(_storage, MSHR_BONE_SPLIT, bone_split);
       }
    }
 }
@@ -1126,8 +1071,6 @@ void MeshRender::includeUsedBones(Bool (&bones)[256])C
 C MeshRender& MeshRender::set()C
 {
 #if GL
-   if(D.notShaderModelGLES2()) // VAO
-   {
    #if VAO_EXCLUSIVE
       if(_vao_reset)
       {
@@ -1135,9 +1078,9 @@ C MeshRender& MeshRender::set()C
       }else // 'setVF' will already 'glBindVertexArray' the VAO
    #endif
          glBindVertexArray(_vao);
-   }else
+#else
+  _vb.set(); _ib.set(); D.vf(_vf);
 #endif
-      {_vb.set(); _ib.set(); D.vf(_vf);} // OpenGL requires setting VF after VBO
    return T;
 }
 /******************************************************************************/

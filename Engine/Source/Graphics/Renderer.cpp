@@ -11,12 +11,8 @@ inline Bool ClearNrm() {return D.aoWant() && D.ambientNormal() || Renderer.stage
 /******************************************************************************
 
    Graphics API differences:
-      Reading and Writing to the same Render Target           - Yes: DX9, GL          No: DX10+
-      null Color Render Target                                - Yes: DX10+, GL        No: DX9 (Render Target always must be specified, IMAGE_NULL IMAGE_TYPE is used instead, which driver interprets as empty render target - video memory shouldn't be allocated)
-      Depth Textures                                          - Yes: DX10+, GL        Limited: DX9 (only INTZ - GeForce>=8 Radeon>=4000, RAWZ - GeForce 6 and 7, DF24 Radeon x1000..3000) do not work with Multi-Sampling
-      Deferred Multi-Sampling                                 - Yes: DX>=10.1         No: DX9, DX10.0, GL
-      Lost/Reset of D3DPOOL_DEFAULT (IMAGE_RT, dynamic VB/IB) - Yes: DX9              No: DX10+, GL
-      Multiple Render Targets                                 - Yes: DX9, DX10+, GL   No: GLES2
+      Reading and Writing to the same Render Target - Yes: GL         No: DX10+
+      Deferred Multi-Sampling                       - Yes: DX>=10.1   No: DX10.0, GL
 
    TODO: remove RT_SIMPLE, simplePrecision, simpleVertexFog
 
@@ -73,10 +69,7 @@ RendererClass::RendererClass() : ambient_color(null), highlight(null), material_
   _shader_param_changes=null;
    SetVariation(0);
 
-#if DX9
-  _cull_mode[0]=D3DCULL_NONE;
-  _cull_mode[1]=D3DCULL_CCW ;
-#elif DX11
+#if DX11
   _cull_mode[0]=0;
   _cull_mode[1]=1;
 #endif
@@ -152,9 +145,7 @@ void RendererClass::mode(RENDER_MODE mode)
    T._palette_mode    =(mode==RM_PALETTE || mode==RM_PALETTE1);
    T._mesh_shader_vel =(_vel && (mode==RM_SOLID || mode==RM_BLEND));
    T._solid_mode_index=((_cur_type==RT_SIMPLE) ? RM_SIMPLE : mirror() ? RM_SOLID_M : RM_SOLID);
-#if DX9
-   T._cull_mode[1]    =((mirror() && mode!=RM_SHADOW) ? D3DCULL_CW : D3DCULL_CCW);
-#elif DX11
+#if DX11
    T._cull_mode[1]    =((mirror() && mode!=RM_SHADOW) ? 2 : 1);
 #elif GL
    D.cullGL();
@@ -202,9 +193,6 @@ void RendererClass::linearizeDepth(Image &dest, Image &depth)
    D.alpha(ALPHA_NONE);
    set(&dest, null, true);
 
-#if DX9
-   if(depth.type()==IMAGE_RAWZ)Sh.h_LinearizeDepthRAWZ[FovPerspective(D.viewFovMode())]->draw(depth);else // 1s->1s
-#endif
    if(!depth.multiSample() || depth.size()!=dest.size())Sh.h_LinearizeDepth[FovPerspective(D.viewFovMode())][0]->draw(depth);else // 1s->1s, if we're resizing then we also need to use the simple version
    if(!dest .multiSample()                             )Sh.h_LinearizeDepth[FovPerspective(D.viewFovMode())][1]->draw(depth);else // ms->1s
                                                         Sh.h_LinearizeDepth[FovPerspective(D.viewFovMode())][2]->draw(depth);     // ms->ms
@@ -218,18 +206,10 @@ void RendererClass::setDepthForDebugDrawing()
      _set_depth_needed=false;
       if(_ds_1s)if(Shader *shader=Sh.h_SetDepth)
       {
-      #if DX9
-         D.colWrite(0); // DX9 always requires a RT set
-      #else
          Image *rt=_cur[0]; set(null, _cur_ds, true);
-      #endif
          ALPHA_MODE alpha=D.alpha(ALPHA_NONE); D.depthLock  (true); D.depthFunc(FUNC_ALWAYS); shader->draw(_ds_1s);
                           D.alpha(alpha     ); D.depthUnlock(    ); D.depthFunc(FUNC_LESS  );
-      #if DX9
-         D.colWrite(COL_WRITE_RGBA);
-      #else
          set(rt, _cur_ds, true);
-      #endif
       }
    }
 }
@@ -250,18 +230,17 @@ void RendererClass::adaptEye(ImageRC &src, Image &dest)
    VecI2    size=RoundPos(fx()*(D.viewRect().size()/D.size2())); // calculate viewport size in pixels
    Int  max_size=size.min()/4;
    Int  s=1, num=1; for(;;){Int next_size=s*4; if(next_size>max_size)break; s=next_size; num++;} // go from 1 up to 'max_size', inrease *4 in each step
-   const Bool gamma=!LINEAR_GAMMA;
    FREP(num) // now go backwards, from up to 'max_size' to 1 inclusive
    {
       ImageRTPtr next=temp; next.get(ImageRTDesc(s, s, IMAGERT_F32)); s/=4; // we could use 16-bit as according to calculations, the max error for 1920x1080, starting with 256x256 as first step and going down to 1x1, with average luminance of 1.0 (255 byte) is 0.00244140625 at the final stage, which gives 410 possible colors, however we may use some special tricks in the shader that requires higher precision (for example BRIGHT with Sqr and Sqrt later, or use Linear/sRGB)
       set(next(), null, false);
-      if(i)Hdr.h_HdrDS1       ->draw(temp());
-      else Hdr.h_HdrDS0[gamma]->draw(temp(), null, D.screenToUV(D.viewRect()));
+      if(i)Hdr.h_HdrDS[1]->draw(temp());
+      else Hdr.h_HdrDS[0]->draw(temp(), null, D.screenToUV(D.viewRect()));
       temp=next;
    }
    Sh.h_Step    ->set(Pow(Mid(1/D.eyeAdaptationSpeed(), EPS, 1.0f), Time.d())); // can use EPS and not EPS_GPU because we're using Pow here and not on GPU
-   Sh.h_ImageLum->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.h_HdrUpdate ->draw(temp());
-   Sh.h_ImageLum->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.h_Hdr[gamma]->draw(src   );
+   Sh.h_ImageLum->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.h_HdrUpdate->draw(temp());
+   Sh.h_ImageLum->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.h_Hdr      ->draw(src   );
    MaterialClear();
 }
 INLINE Shader* GetBloomDS(Bool glow, Bool viewport_clamp, Bool half, Bool saturate) {Shader* &s=Sh.h_BloomDS[glow][viewport_clamp][half][saturate]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow, viewport_clamp, half, saturate); return s;}
@@ -503,9 +482,7 @@ void RendererClass::Combine(IMAGE_PRECISION rt_prec)
             {
                upscale_none=true;
                pixels=1; // 1 for borders
-            #if DX9
-               Sh.h_ImageCol[0]->_sampler=&SamplerPoint;
-            #elif DX11
+            #if DX11
                SamplerPoint.setPS(SSI_DEFAULT);
             #elif GL // in GL 'ShaderImage.Sampler' does not affect filtering, so modify it manually
                D.texBind(GL_TEXTURE_2D, _col->_txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -539,9 +516,7 @@ void RendererClass::Combine(IMAGE_PRECISION rt_prec)
       shader->draw(_col);
       if(upscale_none)
       {
-         #if DX9
-            Sh.h_ImageCol[0]->_sampler=null;
-         #elif DX11
+         #if DX11
             SamplerLinearClamp.setPS(SSI_DEFAULT);
          #elif GL
             if(!GL_ES || ImageTI[_col->hwType()].precision<IMAGE_PRECISION_32) // GLES2/3 don't support filtering F32 textures, without this check reading from F32 textures will fail - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml
@@ -552,17 +527,6 @@ void RendererClass::Combine(IMAGE_PRECISION rt_prec)
    }
 }
 /******************************************************************************/
-inline void TexLod(Int lod)
-{
-#if DX9
-   REP(16)D3D->SetSamplerState(i, D3DSAMP_MAXMIPLEVEL, lod); // this is 'D3D11_SAMPLER_DESC.MinLOD'
-#elif DX11
-   // handled in 'CreateAnisotropicSampler'
-#endif
-}
-inline void TexLodLimit() {if(D.texLod())TexLod(D.texLod());} // this   sets the 'D.texLod' into device settings, it's handled only during rendering to affect only 3D graphics and not the 2D interface (DX11 version operates on 'AnisotropicSampler' which is used only in 3D graphics)
-inline void TexLodFull () {if(D.texLod())TexLod(         0);} // this resets the                 device settings to have full quality (all LOD's)
-
 void RendererClass::cleanup()
 {
   _ds          .clear();
@@ -697,7 +661,6 @@ RendererClass& RendererClass::operator()(void (&render)())
       Dbl t; Flt temp, water;
       if(_t_measure){D.finish(); t=Time.curTime(); temp=water=0; _t_measures[0]++;}
 
-      TexLodLimit();
       if(reflection())goto finished; MEASURE(_t_reflection[1])
 
       prepare(); MEASURE(_t_prepare[1])
@@ -757,7 +720,7 @@ RendererClass& RendererClass::operator()(void (&render)())
 
          case RS_AO: if(_ao)
          {
-            set(_final(), null, true); D.alpha(ALPHA_NONE); VI.shader(GPU_API(Sh.h_DrawTexW, Sh.h_DrawTexX, Sh.h_DrawTexX)); _ao->drawFs(FIT_FULL, FILTER_LINEAR); // DX9 uses A8 while others use R8 RT
+            set(_final(), null, true); D.alpha(ALPHA_NONE); VI.shader(Sh.h_DrawTexX); _ao->drawFs(FIT_FULL, FILTER_LINEAR);
             goto finished;
          }break;
 
@@ -768,7 +731,7 @@ RendererClass& RendererClass::operator()(void (&render)())
                set(_lum_1s(), null, true); D.alpha(ALPHA_ADD);
                Sh.h_Color[0]->set(Vec4(D.ambientColor(), 0));
                Sh.h_Color[1]->set(Vec4Zero                 );
-               Sh.GPU_API(h_DrawTexWC, h_DrawTexXC, h_DrawTexXC)->draw(_ao); // DX9 uses A8 while others use R8 RT
+               Sh.h_DrawTexXC->draw(_ao);
             }
             if(set(_lum_1s))goto finished;
          }break;
@@ -778,10 +741,7 @@ RendererClass& RendererClass::operator()(void (&render)())
 
       MEASURE(temp)
 
-      TexLodFull();
       sky(); MEASURE(_t_sky[1])
-      TexLodLimit();
-
       blend(); MEASURE(_t_blend[1])
     /*if(stage)switch(stage)
       {
@@ -794,7 +754,6 @@ RendererClass& RendererClass::operator()(void (&render)())
       outline( );
 
       // 2D
-      TexLodFull   ();
       finalizeGlow (); // !! assume that nothing below can trigger glow on the scene !!
       applyOutline ();
       edgeSoften   (); MEASURE(temp)
@@ -808,7 +767,6 @@ RendererClass& RendererClass::operator()(void (&render)())
 
    // cleanup
    {
-      TexLodFull();
      _render=null; // this specifies that we're outside of Rendering
      _final.clear();
       D.alpha(ALPHA_BLEND); mode(RM_SIMPLE);
@@ -1067,9 +1025,9 @@ start:
 #if SUPPORT_EARLY_Z
    if(HasEarlyZInstances())
    {
-      set(GPU_API(_col(), null, null), _ds(), true); // DX9 always requires a RT to be set
+      set(null, _ds(), true);
       D.clearDS(); clear_ds=false; // already cleared so no need anymore
-      D.set3D(); if(DX9)D.colWrite(0);
+      D.set3D();
 
    early_z:
       setEyeViewport();
@@ -1077,7 +1035,7 @@ start:
       if(++_eye<_eye_num)goto early_z;
 
       ClearEarlyZInstances();
-      D.set2D(); if(DX9)D.colWrite(COL_WRITE_RGBA);
+      D.set2D();
    }
 #endif
 
@@ -1201,7 +1159,7 @@ void RendererClass::solid()
                D.depth2DOn();
                Sh.h_Color[0]->set(Vec4(1, 1, 1, 0));
                Sh.h_Color[1]->set(Vec4(0, 0, 0, 1));
-               Sh.GPU_API(h_DrawTexWC, h_DrawTexXC, h_DrawTexXC)->draw(_ao); // DX9 uses A8 while others use R8 RT
+               Sh.h_DrawTexXC->draw(_ao);
                D.depth2DOff();
             }
          }
@@ -1287,8 +1245,8 @@ void RendererClass::overlay()
 {
    D.stencilRef(STENCIL_REF_TERRAIN); // set in case draw codes will use stencil
 
-   if(_cur_type==RT_DEFERRED && D._mrt_post_process && D.bumpMode()!=BUMP_FLAT){set(_col(), _nrm(), null, null, _ds(), true, WANT_DEPTH_READ); D.colWrite(COL_WRITE_RGB, 1);} // if we can blend normals
-   else                                                                         set(_col(),                     _ds(), true, WANT_DEPTH_READ);
+   if(_cur_type==RT_DEFERRED && D.bumpMode()!=BUMP_FLAT){set(_col(), _nrm(), null, null, _ds(), true, WANT_DEPTH_READ); D.colWrite(COL_WRITE_RGB, 1);} // if we can blend normals
+   else                                                  set(_col(),                     _ds(), true, WANT_DEPTH_READ);
    setDSLookup(); // 'setDSLookup' after 'set'
    D.alpha(ALPHA_BLEND_FACTOR);
    D.set3D(); D.depthWrite(false); D.bias(BIAS_OVERLAY); D.depthFunc(FUNC_LESS_EQUAL); D.depth(true); mode(RM_OVERLAY); // overlay requires BIAS because we may use 'MeshOverlay' which generates triangles by clipping existing ones
@@ -1493,17 +1451,15 @@ Bool RendererClass::waterPostLight()
       // now we have to modify the depth buffer
       if((!Water._swapped_ds || !swapDS1S(_water_ds)) && Sh.h_SetDepth) // if we haven't swapped before, or swap back failed, then we have to apply '_water_ds' on top of existing '_ds_1s', otherwise we just swap back '_water_ds' because it had the stencil values
       {
-         if(!DX9)set(null, _ds_1s(), true);else{set(_col(), _ds_1s(), true); D.colWrite(0);} // DX9 always requires RT
+         set(null, _ds_1s(), true);
          D.depthLock(true); Sh.h_SetDepth->draw(_water_ds); // keep FUNC_LESS to modify only those that are closer
          D.depthUnlock();
-         if(DX9)D.colWrite(COL_WRITE_RGBA);
       }
       if(_ds!=_ds_1s && Sh.h_SetDepth) // multi-sample
       {
-         if(!DX9)set(null, _ds(), true);else{set(_col(), _ds(), true); D.colWrite(0);} // DX9 always requires RT
+         set(null, _ds(), true);
          D.depthLock(true); Sh.h_SetDepth->draw(_water_ds); // keep FUNC_LESS to modify only those that are closer
          D.depthUnlock();
-         if(DX9)D.colWrite(COL_WRITE_RGBA);
       }
 
       if(stage)switch(stage)
@@ -1572,7 +1528,7 @@ void RendererClass::blend()
          D.alpha(ALPHA_ADD);
          Sh.h_Color[0]->set(Vec4(D.ambientColor(), 0));
          Sh.h_Color[1]->set(Vec4Zero                 );
-         Sh.GPU_API(h_DrawTexWC, h_DrawTexXC, h_DrawTexXC)->draw(_ao); // DX9 uses A8 while others use R8 RT
+         Sh.h_DrawTexXC->draw(_ao);
       }
       PrepareFur();
    }
@@ -1972,7 +1928,7 @@ void RendererClass::postProcess()
             if(_col->size()==_final->size()){_col->copyMs(*_final, false, true, D.viewRect()); _col=_final;}else resolveMultiSample(); // if the size is the same then we can resolve directly into the '_final', otherwise resolve first to temp RT and copy will be done below
          }
          if(_col!=_final) // if after resolve this is still not equal, then
-      #elif DX9 || GL // in DX9, GL we can't read from '_main'
+      #elif GL // in GL we can't read from '_main'
          if(_col==&_main || _col->multiSample())_col->copyHw(*_final, false, D.viewRect());else
       #endif
          {
@@ -1984,9 +1940,7 @@ void RendererClass::postProcess()
             {
                case FILTER_NONE:
                {
-               #if DX9
-                  Sh.h_ImageCol[0]->_sampler=&SamplerPoint;
-               #elif DX11
+               #if DX11
                   SamplerPoint.setPS(SSI_DEFAULT);
                #elif GL // in GL 'ShaderImage.Sampler' does not affect filtering, so modify it manually
                   D.texBind(GL_TEXTURE_2D, _col->_txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -2009,9 +1963,7 @@ void RendererClass::postProcess()
             shader->draw(_col); alpha_set=true;
             if(upscale && D.densityFilter()==FILTER_NONE)
             {
-            #if DX9
-               Sh.h_ImageCol[0]->_sampler=null;
-            #elif DX11
+            #if DX11
                SamplerLinearClamp.setPS(SSI_DEFAULT);
             #elif GL
                if(!GL_ES || ImageTI[_col->hwType()].precision<IMAGE_PRECISION_32) // GLES2/3 don't support filtering F32 textures, without this check reading from F32 textures will fail - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml

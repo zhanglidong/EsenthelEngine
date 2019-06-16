@@ -2,12 +2,12 @@
 #include "stdafx.h"
 /******************************************************************************
              -----FPS------   optimizeTimeSeconds
-Method       GL   DX9  DX10+
-DirectX           31.1 25.6          0.014
-Forsyth           29.1 23.6          0.028
-ForsythSorted          23.4          0.030
-Forsyth2               23.2          0.022
-Tipsify                20.9          0.005
+Method       GL   DX10+
+DirectX           25.6          0.014
+Forsyth           23.6          0.028
+ForsythSorted     23.4          0.030
+Forsyth2          23.2          0.022
+Tipsify           20.9          0.005
 /******************************************************************************/
 #define VTX_CACHE_SIZE 64
 

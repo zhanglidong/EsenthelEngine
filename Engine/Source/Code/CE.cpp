@@ -811,7 +811,7 @@ CodeEditor::CodeEditor()
    curposi=0;
    symbols_loaded=false;
    menu_on_top=false;
-   config_debug=true; config_dx9=false; config_32_bit=false;
+   config_debug=true; config_api=0; config_32_bit=false;
    cei(cei_temp);
    parent=null;
 #if MAC
@@ -1850,8 +1850,8 @@ void     CodeEditorInterface::configDebug(Bool     debug) {       CE.configDebug
 Bool     CodeEditorInterface::configDebug(              ) {return CE.config_debug      ;}
 void     CodeEditorInterface::config32Bit(Bool     bit32) {       CE.config32Bit(bit32);}
 Bool     CodeEditorInterface::config32Bit(              ) {return CE.config_32_bit     ;}
-void     CodeEditorInterface::configDX9  (Bool     dx9  ) {       CE.configDX9  (dx9  );}
-Bool     CodeEditorInterface::configDX9  (              ) {return CE.config_dx9        ;}
+void     CodeEditorInterface::configAPI  (Byte     api  ) {       CE.configAPI  (api  );}
+Byte     CodeEditorInterface::configAPI  (              ) {return CE.config_api        ;}
 void     CodeEditorInterface::configEXE  (EXE_TYPE exe  ) {       CE.configEXE  (exe  );}
 EXE_TYPE CodeEditorInterface::configEXE  (              ) {return CE.config_exe        ;}
 

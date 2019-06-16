@@ -39,7 +39,6 @@ struct MainShaderClass
       *h_ColSize    ,
       *h_ColClamp   ,
       *h_RTSizeI    ,
-      *h_PixelOffset,
       *h_Coords     ,
       *h_Viewport   ,
       *h_DepthWeightScale,
@@ -68,7 +67,6 @@ struct MainShaderClass
 
       *h_VtxSkinning ,
       *h_VtxHeightmap,
-      *h_VtxNrmMulAdd,
 
       *h_FontShadow  ,
       *h_FontContrast,
@@ -149,13 +147,8 @@ struct MainShaderClass
       *h_Draw2DDepthTex   [2], // [AlphaTest]
       *h_Draw2DDepthTexCol[2], // [AlphaTest]
       *h_DrawTexX            ,
-    //*h_DrawTexZ            ,
-      *h_DrawTexW            ,
       *h_DrawTexXC           ,
-      *h_DrawTexWC           ,
       *h_DrawTexXCD          ,
-      *h_DrawTexWCD          ,
-    //*h_DrawTexNrm          ,
       *h_Simple              ,
 
       *h_DrawMask,
@@ -182,9 +175,7 @@ struct MainShaderClass
       *h_BlurX[2], // [High]
       *h_BlurY[2], // [High]
     /**h_BlurX_X,
-      *h_BlurX_W,
-      *h_BlurY_X,
-      *h_BlurY_W,*/
+      *h_BlurY_X,*/
 
       // MAX
       *h_MaxX,
@@ -212,9 +203,6 @@ struct MainShaderClass
       *h_DetectMSCol    ,
     //*h_DetectMSNrm    ,
 
-   #if DX9
-      *h_LinearizeDepthRAWZ[2], // [Perspective]
-   #endif
       *h_LinearizeDepth[2][3], // [Perspective] [MultiSample]
       *h_ResolveDepth,
       *h_SetDepth,
@@ -381,10 +369,9 @@ struct VolumetricLights
 struct HDR
 {
    ShaderFile *shader;
-   Shader     *h_HdrDS0[2], // [Gamma]
-              *h_HdrDS1   ,
+   Shader     *h_HdrDS[2], // [Step]
               *h_HdrUpdate,
-              *h_Hdr[2]   ; // [Gamma]
+              *h_Hdr;
 
    void load();
 }extern

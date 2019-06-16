@@ -27,7 +27,7 @@ Bool Image::ImportBMPRaw(File &f, Bool ico)
    {
       if(ico)Unaligned(bmih.height, Unaligned(bmih.height)/2); // ICO files have height 2x bigger
       MemtN<Color, 256> palette; if(Unaligned(bmih.bitCount)==8){f.getN(palette.setNum(256).data(), 256); REPA(palette)Swap(palette[i].r, palette[i].b); if(ico)REPAO(palette).a=(i ? 255 : 0);} // load palette, setup alpha for ICO
-      if(createSoftTry(Unaligned(bmih.width), Unaligned(bmih.height), 1, (Unaligned(bmih.bitCount)==24) ? IMAGE_R8G8B8 : (Unaligned(bmih.bitCount)==32) ? IMAGE_B8G8R8A8 : ico ? IMAGE_B8G8R8A8 : IMAGE_R8G8B8)) // ICO has alpha channel, BMP uses BGRA order
+      if(createSoftTry(Unaligned(bmih.width), Unaligned(bmih.height), 1, (Unaligned(bmih.bitCount)==24) ? IMAGE_R8G8B8_SRGB : (Unaligned(bmih.bitCount)==32) ? IMAGE_B8G8R8A8_SRGB : ico ? IMAGE_B8G8R8A8_SRGB : IMAGE_R8G8B8_SRGB)) // ICO has alpha channel, BMP uses BGRA order
       {
          Int zeros=Ceil4(pitch())-pitch();
          REPD(y, T.h())

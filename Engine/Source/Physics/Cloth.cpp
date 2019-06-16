@@ -523,11 +523,7 @@ void Cloth::update()
 /******************************************************************************/
 void Cloth::_drawPhysical()C
 {
-#if DX9
-  _vtx_buf.set();
-  _cloth_mesh->_ind_buf.set();
-   D3D->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, _vtx_buf.vtxs(), 0, _cloth_mesh->_phys.tris());
-#elif DX11
+#if DX11
   _vtx_buf.set();
   _cloth_mesh->_ind_buf.set();
    D3DC->DrawIndexed(_cloth_mesh->_ind_buf._ind_num, 0, 0);
@@ -548,7 +544,6 @@ void Cloth::drawSkinnedOutline(C AnimatedSkeleton &anim_skel, C Color &color)C
       D.depth(true);
       mtrl.setOutline(); D.cull(mtrl.cull);
       shader->begin(); _cloth_mesh->_skin.set().draw();
-      ShaderEnd();
    }
 }
 INLINE void ClothInstances::add(C Cloth &cloth, Shader &shader, C Material &material)
@@ -618,10 +613,7 @@ void Cloth::drawPhysicalOutline(C Color &color)C
       SetDefaultVAO(); D.vf(VI._vf3D_cloth.vf); // OpenGL requires setting 1)VAO 2)VB+IB 3)VF
       D.cull (mtrl.cull); mtrl.setOutline();
 
-      SetVtxNrmMulAdd(false);
       shader->begin(); _drawPhysical();
-      ShaderEnd();
-      SetVtxNrmMulAdd(true);
    }
 }
 /******************************************************************************/

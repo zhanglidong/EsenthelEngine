@@ -16,13 +16,7 @@ private:
 #if EE_PRIVATE
    struct Sampler
    {
-   #if DX9
-      D3DTEXTUREFILTERTYPE filter [2];
-      D3DTEXTUREADDRESS    address[3];
-
-      void set(Int index);
-      void del() {}
-   #elif DX11
+   #if DX11
       ID3D11SamplerState *state;
 
       Bool is()C {return state!=null;}
@@ -47,10 +41,8 @@ private:
    };
    Sampler *_sampler;
 
-   #if DX9
-      INLINE IDirect3DBaseTexture9   * getBase()C {return _image ? _image->_base : null;}
-   #elif DX11
-      INLINE ID3D11ShaderResourceView* getSRV ()C {return _image ? _image->_srv  : null;}
+   #if DX11
+      INLINE ID3D11ShaderResourceView* getSRV()C {return _image ? _image->_srv  : null;}
    #endif
 #else
    Ptr    _sampler;
@@ -123,7 +115,7 @@ struct ShaderParam // Shader Parameter
    Mems<Translation> _full_translation, _optimized_translation;
 
    Bool is()C {return _cpu_data_size>0;}
-   Int  fullConstantCount()C {return Ceil16(_gpu_data_size)/16;} // number of Vec4's, SIZE(Vec4)==16, DX9 constants operate on Vec4, DX10+ does not use this, for OpenGL this will work only for Vec4's
+   Int  fullConstantCount()C {return Ceil16(_gpu_data_size)/16;} // number of Vec4's, SIZE(Vec4)==16, DX10+ does not use this, for OpenGL this will work only for Vec4's
 
    INLINE void setChanged() {*_changed=true;}
           void optimize();
@@ -162,8 +154,8 @@ struct ShaderBuffer // Constant Buffer
 {
    struct Buffer
    {
-      GPU_API(Ptr, ID3D11Buffer*, Ptr) buffer; // keep this is first member because it's used most often
-      Int                              size  ;
+      GPU_API(ID3D11Buffer*, Ptr) buffer; // keep this is first member because it's used most often
+      Int                         size  ;
 
       void del   ();
       void create(Int size);
@@ -221,29 +213,6 @@ struct ShaderShader
 #endif
 };
 #if EE_PRIVATE
-/******************************************************************************/
-#if WINDOWS_OLD
-STRUCT(ShaderVS9 , ShaderShader)
-//{
-   IDirect3DVertexShader9 *vs;
-
-   IDirect3DVertexShader9* create();
-
-  ~ShaderVS9();
-   ShaderVS9() {vs=null;}
-   NO_COPY_CONSTRUCTOR(ShaderVS9);
-};
-STRUCT(ShaderPS9 , ShaderShader)
-//{
-   IDirect3DPixelShader9 *ps;
-
-   IDirect3DPixelShader9* create();
-
-  ~ShaderPS9();
-   ShaderPS9() {ps=null;}
-   NO_COPY_CONSTRUCTOR(ShaderPS9);
-};
-#endif
 /******************************************************************************/
 #if WINDOWS
 STRUCT(ShaderVS11 , ShaderShader)
@@ -311,45 +280,6 @@ STRUCT(ShaderPSGL , ShaderShader)
    NO_COPY_CONSTRUCTOR(ShaderPSGL);
 };
 /******************************************************************************/
-#if WINDOWS_OLD
-struct Shader9
-{
-   struct Texture
-   {
-      Int          index;
-      ShaderImage *image;
-
-      void set(Int index, ShaderImage &image) {T.index=index; T.image=&image;}
-   };
-   const_mem_addr struct Constant
-   {
-      Int          start, count, *final_count; // 'final_count'=points to either 'Constant.count' or 'ShaderParam._constant_count' (for example 'ShaderParam ViewMatrix _constant_count' can be limited depending on 'SetMatrixCount')
-      Ptr          data;
-      Bool        *changed;
-      ShaderParam *sp;
-
-      void set(Int start, Int count, Ptr data, ShaderParam &sp) {T.start=start; T.count=count; T.final_count=&T.count; T.data=data; T.changed=sp._changed; T.sp=&sp;}
-   };
-
-   IDirect3DVertexShader9 *vs;
-   IDirect3DPixelShader9  *ps;
-   Str8           name;
-   Int            vs_index, ps_index;
-   Mems<Texture > textures;
-   Mems<Constant> vs_constants, ps_constants;
-
-   Bool validate (ShaderFile &shader, Str *messages=null);
-   void commit   ();
-   void commitTex();
-   void start    ();
-   void begin    ();
-   Bool save     (File &f, C Map<Str8, ShaderParam>   &params, C Memc <ShaderImage*     > &images)C;
-   Bool load     (File &f, C MemtN<ShaderParam*, 256> &params, C MemtN<ShaderImage*, 256> &images);
-
-   Shader9();
-};
-#endif
-/******************************************************************************/
 #if WINDOWS
 struct Shader11
 {
@@ -409,7 +339,7 @@ struct ShaderGL
       Ptr          data;
       Bool        *changed;
       ShaderParam *sp;
-      GPU_API(Ptr, Ptr, glUniformPtr) uniform;
+      GPU_API(Ptr, glUniformPtr) uniform;
 
       void set(Int index, Int count, Ptr data, ShaderParam &sp) {T.index=index; T.count=count; T.final_count=&T.count; T.data=data; T.changed=sp._changed; T.sp=&sp;}
    };
@@ -467,7 +397,7 @@ struct ShaderBase
 
    ShaderBase() {unlink();}
 };
-struct Shader : ShaderBase, GPU_API(Shader9, Shader11, ShaderGL)
+struct Shader : ShaderBase, GPU_API(Shader11, ShaderGL)
 {
 #else
 struct Shader
@@ -504,12 +434,7 @@ struct ShaderFile // Shader File
 private:
 #endif
 #if EE_PRIVATE
-   #if DX9
-      Mems<ShaderVS9   > _vs;
-      Mems<ShaderShader> _hs;
-      Mems<ShaderShader> _ds;
-      Mems<ShaderPS9   > _ps;
-   #elif DX11
+   #if DX11
       Mems<ShaderVS11> _vs;
       Mems<ShaderHS11> _hs;
       Mems<ShaderDS11> _ds;
@@ -556,7 +481,7 @@ struct BLST // Blend Light Shader Techniques
    Shader *dir[7];
 };
 /******************************************************************************/
-extern GPU_API(Shader9, Shader11, ShaderGL) *ShaderCur;
+extern GPU_API(Shader11, ShaderGL) *ShaderCur;
 extern ThreadSafeMap<FRSTKey, FRST        > Frsts        ; // Forward Rendering Shader Techniques
 extern ThreadSafeMap<BLSTKey, BLST        > Blsts        ; // Blend   Light     Shader Techniques
 extern ThreadSafeMap<Str8   , ShaderImage > ShaderImages ; // Shader Images
@@ -618,12 +543,6 @@ T1(TYPE) inline void SPSet(CChar8 *name, C TYPE    &data            ) {if(Shader
 #if EE_PRIVATE
 ShaderBuffer* FindShaderBuffer(CChar8 *name);
 ShaderBuffer*  GetShaderBuffer(CChar8 *name);
-
-   #if DX9
-             void ShaderEnd();
-   #else
-      INLINE void ShaderEnd() {}
-   #endif
 #endif
 
 // compile

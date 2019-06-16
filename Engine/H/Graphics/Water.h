@@ -51,7 +51,7 @@ struct WaterMtrl // Water Material
 #if !EE_PRIVATE
 private:
 #endif
-   ImagePtr _color_map, _normal_map, _reflection_map, _bump;
+   ImagePtr _color_map, _normal_map, _reflection_map;
 };
 /******************************************************************************/
 DECLARE_CACHE(WaterMtrl, WaterMtrls, WaterMtrlPtr); // Water Material Cache
@@ -106,7 +106,6 @@ private:
    Quad         _quad;
    PlaneM       _under_plane;
    MeshRender   _mshr;
-   Image        _bump_temp;
    WaterMtrlPtr _under_mtrl;
    RENDER_TYPE  _reflect_renderer;
 

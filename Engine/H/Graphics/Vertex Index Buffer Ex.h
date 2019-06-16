@@ -30,9 +30,7 @@ struct VtxFormatKey
    VtxFormatKey() {}
    VtxFormatKey(UInt flag, UInt compress) {T.flag=flag; T.compress=compress;}
 };
-#if DX9
-Bool SetVtxFormatFromVtxDecl(IDirect3DVertexDeclaration9 *vf, D3DVERTEXELEMENT9 (&ve)[MAX_FVF_DECL_SIZE]);
-#elif GL
+#if GL
 enum GL_VTX_SEMANTIC : Byte // !! must be in sync with all "ATTR*" mentions in the engine !!
 {
    GL_VTX_POS     , // 0
@@ -84,9 +82,7 @@ struct VtxFormat // Vertex Format
    VtxFormat& del();
 
 #if EE_PRIVATE
-   #if DX9
-      Bool create(D3DVERTEXELEMENT9 ve[]);
-   #elif DX11
+   #if DX11
       Bool create(D3D11_INPUT_ELEMENT_DESC ve[], Int elms);
    #elif GL
       Bool create(C MemPtrN<VtxFormatGL::Elm, 32> &elms);
@@ -106,7 +102,7 @@ struct VtxFormat // Vertex Format
 private:
 #endif
 #if EE_PRIVATE
-   GPU_API(IDirect3DVertexDeclaration9, ID3D11InputLayout, VtxFormatGL) *vf;
+   GPU_API(ID3D11InputLayout, VtxFormatGL) *vf;
 #else
    Ptr vf;
 #endif
@@ -146,9 +142,7 @@ struct VtxBuf // Vertex Buffer
    void freeOpenGLESData(); // this method is used only under OpenGL ES (on other platforms it is ignored), the method frees the software copy of the GPU data which increases available memory, however after calling this method the data can no longer be accessed on the CPU (can no longer be locked or saved to file)
 
    // draw
-   #if DX9
-      void set(Int stream=0)C {D3D->SetStreamSource(stream, _buf, 0, _vtx_size);}
-   #elif DX11
+   #if DX11
       void set(Int stream=0)C {UInt stride=_vtx_size, offset=0; D3DC->IASetVertexBuffers(stream, 1, &_buf, &stride, &offset);}
    #elif GL
       void set(Int stream=0)C {glBindBuffer(GL_ARRAY_BUFFER, _buf);}
@@ -170,7 +164,7 @@ private:
    Int       _vtx_size, _vtx_num, _lock_count;
    Byte     *_data;
 #if EE_PRIVATE
-   GPU_API(IDirect3DVertexBuffer9 *_buf, ID3D11Buffer *_buf, union{UInt _buf; Ptr buf_ptr;});
+   GPU_API(ID3D11Buffer *_buf, union{UInt _buf; Ptr buf_ptr;});
 #else
    Ptr       _buf;
 #endif
@@ -206,9 +200,7 @@ struct IndBuf // Index Buffer
    void freeOpenGLESData(); // this method is used only under OpenGL ES (on other platforms it is ignored), the method frees the software copy of the GPU data which increases available memory, however after calling this method the data can no longer be accessed on the CPU (can no longer be locked or saved to file)
 
    // draw
-   #if DX9
-      void set()C {D3D->SetIndices(_buf);}
-   #elif DX11
+   #if DX11
       void set()C {D3DC->IASetIndexBuffer(_buf, _bit16 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT, 0);}
    #elif GL
       void set()C {glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buf);}
@@ -230,7 +222,7 @@ private:
    Int       _ind_num, _lock_count;
    Byte     *_data;
 #if EE_PRIVATE
-   GPU_API(IDirect3DIndexBuffer9 *_buf, ID3D11Buffer *_buf, union{UInt _buf; Ptr buf_ptr;});
+   GPU_API(ID3D11Buffer *_buf, union{UInt _buf; Ptr buf_ptr;});
 #else
    Ptr       _buf;
 #endif
@@ -242,7 +234,7 @@ void InitVtxInd();
 void ShutVtxInd();
 
 #if GL
-   INLINE void SetDefaultVAO() {if(D.notShaderModelGLES2())glBindVertexArray(VAO);}
+   INLINE void SetDefaultVAO() {glBindVertexArray(VAO);}
 #else
    INLINE void SetDefaultVAO() {}
 #endif

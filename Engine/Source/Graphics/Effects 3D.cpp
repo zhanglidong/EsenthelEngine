@@ -17,18 +17,12 @@ void DrawVelocityBlur(Flt power, C Ball &ball)
 
       SetOneMatrix();
       Sh.h_Step->set(power);
-   #if DX9
-      D.colWrite(0); // disable color writes, we want to write only to velocity RT and not color RT, #BlendRT
-   #endif
       D .depthWrite(false); Renderer.needDepthTest(); // !! 'needDepthTest' after 'depthWrite' !!
       D .alpha     (ALPHA_NONE);
       D .stencil   (STENCIL_NONE);
       VI.shader    (Mtn.h_Explosion);
       VI.cull      (true); ball.drawVI(true);
       VI.end       (    );
-   #if DX9
-      D.colWrite(COL_WRITE_RGBA); // restore color writes
-   #endif
    }
 }
 /******************************************************************************/

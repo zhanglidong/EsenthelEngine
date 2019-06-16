@@ -2,7 +2,7 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
-#define KNOWN_IMAGE_TYPE_USAGE (DX9 || DX11)
+#define KNOWN_IMAGE_TYPE_USAGE (DX11)
 /******************************************************************************/
 struct ImageRTType
 {
@@ -11,68 +11,42 @@ struct ImageRTType
 static const ImageRTType ImageRTTypes[]=
 {
 #if LINEAR_GAMMA
-   {IMAGE_DEFAULT_SRGB                                                    }, // 0 IMAGERT_SRGBA
-   {IMAGE_DEFAULT_SRGB                                                    }, // 1 IMAGERT_SRGB   (can't use IMAGE_R10G10B10A2 because it's not sRGB and will have low quality in dark colors, can't use IMAGE_R11G11B10F because it's broken, ColLight looks like no light, can't use IMAGE_R9G9B9E5F because it's not supported for RT)
-   {IMAGE_F16_3, IMAGE_F16_4, IMAGE_DEFAULT_SRGB                          }, // 2 IMAGERT_SRGB_P (can't use IMAGE_R10G10B10A2 because it's not sRGB and will have low quality in dark colors, can't use IMAGE_R11G11B10F because it's broken, ColLight looks like no light, can't use IMAGE_R9G9B9E5F because it's not supported for RT)
-   {IMAGE_F16_4, IMAGE_DEFAULT_SRGB                                       }, // 3 IMAGERT_SRGBA_H
-   {IMAGE_F16_3, IMAGE_F16_4, IMAGE_DEFAULT_SRGB                          }, // 4 IMAGERT_SRGB_H
-   {IMAGE_F32_4, IMAGE_F16_4, IMAGE_DEFAULT_SRGB                          }, // 5 IMAGERT_SRGBA_F
-   {IMAGE_F32_3, IMAGE_F32_4, IMAGE_F16_3, IMAGE_F16_4, IMAGE_DEFAULT_SRGB}, // 6 IMAGERT_SRGB_F
+   {IMAGE_R8G8B8A8_SRGB                                                    }, // 0 IMAGERT_SRGBA
+   {IMAGE_R8G8B8A8_SRGB                                                    }, // 1 IMAGERT_SRGB   (can't use IMAGE_R10G10B10A2 because it's not sRGB and will have low quality in dark colors, can't use IMAGE_R11G11B10F because it's broken, ColLight looks like no light, can't use IMAGE_R9G9B9E5F because it's not supported for RT)
+   {IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 2 IMAGERT_SRGB_P (can't use IMAGE_R10G10B10A2 because it's not sRGB and will have low quality in dark colors, can't use IMAGE_R11G11B10F because it's broken, ColLight looks like no light, can't use IMAGE_R9G9B9E5F because it's not supported for RT)
+   {IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                                       }, // 3 IMAGERT_SRGBA_H
+   {IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 4 IMAGERT_SRGB_H
+   {IMAGE_F32_4, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 5 IMAGERT_SRGBA_F
+   {IMAGE_F32_3, IMAGE_F32_4, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB}, // 6 IMAGERT_SRGB_F
 #else
-   {IMAGE_DEFAULT                                                                             }, // 0 IMAGERT_SRGBA
-   {IMAGE_R10G10B10A2, IMAGE_DEFAULT                                                          }, // 1 IMAGERT_SRGB
-   {IMAGE_R10G10B10A2, IMAGE_F16_3, IMAGE_F16_4, IMAGE_DEFAULT                                }, // 2 IMAGERT_SRGB_P
-   {IMAGE_F16_4      , IMAGE_DEFAULT                                                          }, // 3 IMAGERT_SRGBA_H
-   {IMAGE_F16_3      , IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_DEFAULT                          }, // 4 IMAGERT_SRGB_H
-   {IMAGE_F32_4      , IMAGE_F16_4, IMAGE_DEFAULT                                             }, // 5 IMAGERT_SRGBA_F
-   {IMAGE_F32_3      , IMAGE_F32_4, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_DEFAULT}, // 6 IMAGERT_SRGB_F
+   {IMAGE_R8G8B8A8                                                                             }, // 0 IMAGERT_SRGBA
+   {IMAGE_R10G10B10A2, IMAGE_R8G8B8A8                                                          }, // 1 IMAGERT_SRGB
+   {IMAGE_R10G10B10A2, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8                                }, // 2 IMAGERT_SRGB_P
+   {IMAGE_F16_4      , IMAGE_R8G8B8A8                                                          }, // 3 IMAGERT_SRGBA_H
+   {IMAGE_F16_3      , IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_R8G8B8A8                          }, // 4 IMAGERT_SRGB_H
+   {IMAGE_F32_4      , IMAGE_F16_4, IMAGE_R8G8B8A8                                             }, // 5 IMAGERT_SRGBA_F
+   {IMAGE_F32_3      , IMAGE_F32_4, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_R8G8B8A8}, // 6 IMAGERT_SRGB_F
 #endif
 
-   {IMAGE_DEFAULT                                                                             }, //  7 IMAGERT_RGBA
-   {IMAGE_R10G10B10A2, IMAGE_DEFAULT                                                          }, //  8 IMAGERT_RGB
-   {IMAGE_R10G10B10A2, IMAGE_F16_3, IMAGE_F16_4, IMAGE_DEFAULT                                }, //  9 IMAGERT_RGB_P
-   {IMAGE_F16_4      , IMAGE_DEFAULT                                                          }, // 10 IMAGERT_RGBA_H
-   {IMAGE_F16_3      , IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_DEFAULT                          }, // 11 IMAGERT_RGB_H
-   {IMAGE_F32_4      , IMAGE_F16_4, IMAGE_DEFAULT                                             }, // 12 IMAGERT_RGBA_F
-   {IMAGE_F32_3      , IMAGE_F32_4, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_DEFAULT}, // 13 IMAGERT_RGB_F
+   {IMAGE_R8G8B8A8                                                                             }, //  7 IMAGERT_RGBA
+   {IMAGE_R10G10B10A2, IMAGE_R8G8B8A8                                                          }, //  8 IMAGERT_RGB
+   {IMAGE_R10G10B10A2, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8                                }, //  9 IMAGERT_RGB_P
+   {IMAGE_F16_4      , IMAGE_R8G8B8A8                                                          }, // 10 IMAGERT_RGBA_H
+   {IMAGE_F16_3      , IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_R8G8B8A8                          }, // 11 IMAGERT_RGB_H
+   {IMAGE_F32_4      , IMAGE_F16_4, IMAGE_R8G8B8A8                                             }, // 12 IMAGERT_RGBA_F
+   {IMAGE_F32_3      , IMAGE_F32_4, IMAGE_F16_3, IMAGE_F16_4, IMAGE_R10G10B10A2, IMAGE_R8G8B8A8}, // 13 IMAGERT_RGB_F
 
    {IMAGE_R8G8B8A8_SIGN, IMAGE_F16_4}, // 14 IMAGERT_RGBA_S
 
    {IMAGE_F32, IMAGE_F16}, // 15 IMAGERT_F32
    {IMAGE_F16, IMAGE_F32}, // 16 IMAGERT_F16
 
-   {
-   #if DX9
-      IMAGE_A8, IMAGE_L8A8,
-   #else
-      IMAGE_R8, IMAGE_R8G8,
-   #endif
-      IMAGE_DEFAULT}, // 17 IMAGERT_ONE
-   {
-   #if !DX9
-      IMAGE_R8_SIGN, IMAGE_R8G8_SIGN,
-   #endif
-      IMAGE_F16,
-   #if !DX9
-      IMAGE_R8G8B8A8_SIGN,
-   #endif
-      IMAGE_F32}, // 18 IMAGERT_ONE_S
-   {
-   #if !DX9
-      IMAGE_R8G8,
-   #endif
-      IMAGE_DEFAULT}, // 19 IMAGERT_TWO
-   {
-   #if !DX9
-      IMAGE_R8G8_SIGN, IMAGE_R8G8B8A8_SIGN,
-   #endif
-      IMAGE_F16_2}, // 20 IMAGERT_TWO_S
+   {IMAGE_R8     , IMAGE_R8G8     ,            IMAGE_R8G8B8A8                  }, // 17 IMAGERT_ONE
+   {IMAGE_R8_SIGN, IMAGE_R8G8_SIGN, IMAGE_F16, IMAGE_R8G8B8A8_SIGN, IMAGE_F32  }, // 18 IMAGERT_ONE_S
+   {               IMAGE_R8G8     ,            IMAGE_R8G8B8A8                  }, // 19 IMAGERT_TWO
+   {               IMAGE_R8G8_SIGN,            IMAGE_R8G8B8A8_SIGN, IMAGE_F16_2}, // 20 IMAGERT_TWO_S
 
-   {
-   #if DX9
-      IMAGE_INTZ, /*IMAGE_RAWZ, */IMAGE_DF24, // read why IMAGE_RAWZ is disabled in 'RendererClass::rtCreate()'
-   #endif
-      IMAGE_D24S8, IMAGE_D24X8, IMAGE_D32, IMAGE_D16}, // 21 IMAGERT_DS
+   {IMAGE_D24S8, IMAGE_D24X8, IMAGE_D32, IMAGE_D16}, // 21 IMAGERT_DS
 }; ASSERT(IMAGERT_SRGBA==0 && IMAGERT_SRGB==1 && IMAGERT_SRGB_P==2 && IMAGERT_SRGBA_H==3 && IMAGERT_SRGB_H==4 && IMAGERT_SRGBA_F==5 && IMAGERT_SRGB_F==6 && IMAGERT_RGBA==7 && IMAGERT_RGB==8 && IMAGERT_RGB_P==9 && IMAGERT_RGBA_H==10 && IMAGERT_RGB_H==11 && IMAGERT_RGBA_F==12 && IMAGERT_RGB_F==13 && IMAGERT_RGBA_S==14 && IMAGERT_F32==15 && IMAGERT_F16==16 && IMAGERT_ONE==17 && IMAGERT_ONE_S==18 && IMAGERT_TWO==19 && IMAGERT_TWO_S==20 && IMAGERT_DS==21 && IMAGERT_NUM==22 && Elms(ImageRTTypes)==IMAGERT_NUM);
 
 static CChar8 *ImageRTName[]=
@@ -179,7 +153,7 @@ Bool ImageRC::create(C ImageRTDesc &desc)
    if(ImageTI[desc._type].d) // if this is a depth buffer
    {
              ok=createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_DS_RT, 1, desc.samples); // try first as a render target
-   #if DX9 || GL // for DX10+ IMAGE_DS_RT is the same as IMAGE_DS so don't bother checking it again
+   #if GL // for DX10+ IMAGE_DS_RT is the same as IMAGE_DS so don't bother checking it again
       if(!ok)ok=createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_DS   , 1, desc.samples);
    #endif
    }else

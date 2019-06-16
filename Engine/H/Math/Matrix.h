@@ -474,12 +474,12 @@ STRUCT(Matrix , Matrix3) // Matrix 4x3 (orientation + scale + position)
    const MatrixIdentity; // identity
 #if EE_PRIVATE
 
-#define MAX_MATRIX_DX9   60 // max available Object Matrixes in DirectX  9  Hardware GPU ( 60 Matrix * 3 Vec4 = 180 Vec4's)
+#define MAX_MATRIX_GL    60 // max available Object Matrixes in OpenGL      Hardware GPU ( 60 Matrix * 3 Vec4 = 180 Vec4's)
 #define MAX_MATRIX_DX10 256 // max available Object Matrixes in DirectX 10+ Hardware GPU (256 Matrix * 3 Vec4 = 768 Vec4's)
 #define MAX_MATRIX_SW   256 // max available Object Matrixes in             Software CPU (256 Matrix * 3 Vec4 = 768 Vec4's)
 #define MAX_MATRIX_HWMIN 60 // max available Object Matrixes in worst       Hardware GPU ( 60 Matrix * 3 Vec4 = 180 Vec4's)
 
-#define MAY_NEED_BONE_SPLITS (DX9 || GL)
+#define MAY_NEED_BONE_SPLITS (GL)
 
 extern    MatrixM ObjMatrix              , // object matrix
                   CamMatrix              , // camera, this is always set, even when drawing shadows
@@ -810,7 +810,6 @@ struct Matrix4 // Matrix 4x4
 #if EE_PRIVATE
 extern Matrix4 ProjMatrix; // Projection Matrix
 extern Flt     ProjMatrixEyeOffset[2];
-extern Vec2    PixelOffset;
 #endif
 /******************************************************************************/
 #if EE_PRIVATE

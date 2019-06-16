@@ -753,7 +753,7 @@ void FogBoxI_VS(VtxInput vtx,
    outMat[2]=Normalize(MatrixZ(ViewMatrix[0])); outSize.z=Length(MatrixZ(ViewMatrix[0]));
                                                 outSize.w=Max(outSize.xyz);
 
-   outVtx  =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); AdjustPixelCenter(outVtx); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   outVtx  =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
    outTex  =vtx.tex();
    outPosXY=ScreenToPosXY(outTex);
 }
@@ -858,7 +858,7 @@ void FogBallI_VS(VtxInput vtx,
              out Flt  outSize :TEXCOORD2,
              out Vec4 outVtx  :POSITION )
 {
-   outVtx  =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); AdjustPixelCenter(outVtx); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   outVtx  =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
    outTex  =vtx.tex();
    outPosXY=ScreenToPosXY(outTex);
    outSize =Length(MatrixX(ViewMatrix[0]));
@@ -1154,6 +1154,11 @@ Vec4 BlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
                  +TexLod(Col, inTex+ColSize.xy*Vec2(0, -4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).rgb*(WEIGHT6_4  +WEIGHT6_5), 0);
 }
 
+TECHNIQUE(BlurX , Draw_VS(), BlurX_PS(4));
+TECHNIQUE(BlurXH, Draw_VS(), BlurX_PS(6));
+TECHNIQUE(BlurY , Draw_VS(), BlurY_PS(4));
+TECHNIQUE(BlurYH, Draw_VS(), BlurY_PS(6));
+
 Vec4 BlurX_X_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    // use linear filtering because texcoords aren't rounded
@@ -1164,17 +1169,6 @@ Vec4 BlurX_X_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
          +TexLod(Col, inTex+ColSize.xy*Vec2( 4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).x*(WEIGHT6_4  +WEIGHT6_5)
          +TexLod(Col, inTex+ColSize.xy*Vec2(-4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).x*(WEIGHT6_4  +WEIGHT6_5);
 }
-Vec4 BlurX_W_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
-{
-   // use linear filtering because texcoords aren't rounded
-   return TexLod(Col, inTex+ColSize.xy*Vec2( 0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).w*(WEIGHT6_0/2+WEIGHT6_1)
-         +TexLod(Col, inTex+ColSize.xy*Vec2(-0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).w*(WEIGHT6_0/2+WEIGHT6_1)
-         +TexLod(Col, inTex+ColSize.xy*Vec2( 2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).w*(WEIGHT6_2  +WEIGHT6_3)
-         +TexLod(Col, inTex+ColSize.xy*Vec2(-2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).w*(WEIGHT6_2  +WEIGHT6_3)
-         +TexLod(Col, inTex+ColSize.xy*Vec2( 4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).w*(WEIGHT6_4  +WEIGHT6_5)
-         +TexLod(Col, inTex+ColSize.xy*Vec2(-4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).w*(WEIGHT6_4  +WEIGHT6_5);
-}
-
 Vec4 BlurY_X_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    // use linear filtering because texcoords aren't rounded
@@ -1185,25 +1179,9 @@ Vec4 BlurY_X_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
          +TexLod(Col, inTex+ColSize.xy*Vec2(0,  4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).x*(WEIGHT6_4  +WEIGHT6_5)
          +TexLod(Col, inTex+ColSize.xy*Vec2(0, -4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).x*(WEIGHT6_4  +WEIGHT6_5);
 }
-Vec4 BlurY_W_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
-{
-   // use linear filtering because texcoords aren't rounded
-   return TexLod(Col, inTex+ColSize.xy*Vec2(0,  0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).w*(WEIGHT6_0/2+WEIGHT6_1)
-         +TexLod(Col, inTex+ColSize.xy*Vec2(0, -0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).w*(WEIGHT6_0/2+WEIGHT6_1)
-         +TexLod(Col, inTex+ColSize.xy*Vec2(0,  2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).w*(WEIGHT6_2  +WEIGHT6_3)
-         +TexLod(Col, inTex+ColSize.xy*Vec2(0, -2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).w*(WEIGHT6_2  +WEIGHT6_3)
-         +TexLod(Col, inTex+ColSize.xy*Vec2(0,  4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).w*(WEIGHT6_4  +WEIGHT6_5)
-         +TexLod(Col, inTex+ColSize.xy*Vec2(0, -4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).w*(WEIGHT6_4  +WEIGHT6_5);
-}
-TECHNIQUE(BlurX , Draw_VS(), BlurX_PS(4));
-TECHNIQUE(BlurXH, Draw_VS(), BlurX_PS(6));
-TECHNIQUE(BlurY , Draw_VS(), BlurY_PS(4));
-TECHNIQUE(BlurYH, Draw_VS(), BlurY_PS(6));
 
 TECHNIQUE(BlurX_X, Draw_VS(), BlurX_X_PS());
-TECHNIQUE(BlurX_W, Draw_VS(), BlurX_W_PS());
 TECHNIQUE(BlurY_X, Draw_VS(), BlurY_X_PS());
-TECHNIQUE(BlurY_W, Draw_VS(), BlurY_W_PS());
 /******************************************************************************/
 // MAX
 /******************************************************************************/
@@ -1324,7 +1302,7 @@ void Wave_VS(VtxInput vtx,
 {
    outTex.x=vtx.tex().x*Color[0].x + vtx.tex().y*Color[0].y + Color[0].z;
    outTex.y=vtx.tex().x*Color[1].x + vtx.tex().y*Color[1].y + Color[1].z;
-   outVtx  =vtx.pos4(); AdjustPixelCenter(outVtx);
+   outVtx  =vtx.pos4();
 }
 TECHNIQUE(Wave, Wave_VS(), Draw2DTex_PS());
 /******************************************************************************/
@@ -1403,11 +1381,11 @@ Vec4 EdgeDetect_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 Vec4 EdgeDetectApply_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    const Int samples=6;
-         Flt color  =TexPoint(Col, inTex).API(a, r, r); // DX9 uses A8 while others use R8 RT
+         Flt color  =TexPoint(Col, inTex).x;
    for(Int i=0; i<samples; i++)
    {
       Vec2 t=inTex+BlendOfs6[i]*ColSize.xy;
-      color+=TexLod(Col, t).API(a, r, r); // DX9 uses A8 while others use R8 RT, use linear filtering because texcoords aren't rounded
+      color+=TexLod(Col, t).x; // use linear filtering because texcoords aren't rounded
    }
    return color/(samples+1);
 }
@@ -1446,7 +1424,7 @@ Vec4 Combine_PS(NOPERSP Vec2 inTex:TEXCOORD,
       || Max(TexLod(Col, inTex+ColSize.xy*Vec2( 1,    -1)).rgb)<=0.15f)return col; // there can be bloom around solid pixels, so allow some tolerance
    }else
 #endif
-   if(sample==1)col.w=TexLod(Col1, inTex).API(a, r, r); // super sample, DX9 uses A8 while others use R8 RT, use linear filtering because Col can be of different size
+   if(sample==1)col.w=TexLod(Col1, inTex).x; // super sample, use linear filtering because Col can be of different size
    else         col.w=DEPTH_FOREGROUND(TexDepthRawPoint(inTex)); // single sample
 
    // support blended graphics (pixels with colors but without depth)
@@ -1490,14 +1468,8 @@ TECHNIQUE(DetectMSNrm, DrawPixel_VS(), DetectMSNrm_PS());*/
 #endif
 
 void SetDepth_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                  #if MODEL==SM_3
-                     out Vec4 ret  :COLOR   ,
-                  #endif
                      out Flt  depth:DEPTH   )
 {
-#if MODEL==SM_3
-   ret=0;
-#endif
    depth=TexLod(Col, inTex).x; // use linear filtering because this can be used for different size RT
 }
 TECHNIQUE(SetDepth, Draw_VS(), SetDepth_PS());
@@ -1534,18 +1506,6 @@ TECHNIQUE    (LinearizeDepth1 , DrawPixel_VS(), LinearizeDepth1_PS(false));
 TECHNIQUE    (LinearizeDepthP1, DrawPixel_VS(), LinearizeDepth1_PS(true ));
 TECHNIQUE_4_1(LinearizeDepth2 , DrawPixel_VS(), LinearizeDepth2_PS(false));
 TECHNIQUE_4_1(LinearizeDepthP2, DrawPixel_VS(), LinearizeDepth2_PS(true ));
-#endif
-
-#if DX9
-Vec4 LinearizeDepthRAWZ_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                           uniform Bool perspective   ):COLOR
-{
-   Vec rawval=Floor(255.0f*TexPoint(Col, inTex).arg+0.5f);
-   Flt w     =Dot  (rawval, Vec(0.996093809371817670572857294849, 0.0038909914428586627756752238080039, 1.5199185323666651467481343000015e-5)/255.0);
-   return LinearizeDepth(w, perspective);
-}
-TECHNIQUE(LinearizeDepthRAWZ , Draw_VS(), LinearizeDepthRAWZ_PS(false));
-TECHNIQUE(LinearizeDepthRAWZP, Draw_VS(), LinearizeDepthRAWZ_PS(true ));
 #endif
 
 Vec4 DrawDepth_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
@@ -1842,7 +1802,7 @@ Vec4 SunRaysMask_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       Flt  z=TexDepthRawLinear(inTex);
       Half m=(DEPTH_BACKGROUND(z) || Length2(GetPos(LinearizeDepth(z), inPosXY))>=Sqr(Viewport.range));
    #endif
-      return m*TexLod(Col, inTex).API(a, r, r); // DX9 uses A8 while others use R8 RT, use linear filtering because Col can be of different size
+      return m*TexLod(Col, inTex).x; // use linear filtering because Col can be of different size
    }else // can use point filtering here
    {
    #if REVERSE_DEPTH // we can use the simple version for REVERSE_DEPTH
@@ -1858,11 +1818,11 @@ TECHNIQUE(SunRaysMask1, DrawPosXY_VS(), SunRaysMask_PS(true ));
 /*Vec4 SunRaysSoft_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    const Int samples=6;
-         Flt color  =TexLod(Col, inTex).API(a, r, r); // DX9 uses A8 while others use R8 RT, use linear filtering because Col can be of different size
+         Flt color  =TexLod(Col, inTex).x; // use linear filtering because Col can be of different size
    for(Int i=0; i<samples; i++)
    {
       Vec2 t=inTex+BlendOfs6[i]*ColSize.xy;
-      color+=TexLod(Col, t).API(a, r, r); // DX9 uses A8 while others use R8 RT, use linear filtering because texcoords aren't rounded
+      color+=TexLod(Col, t).x; // use linear filtering because texcoords aren't rounded
    }
    return Vec4(color/(samples+1)*Color[0].rgb, 0);
 }
@@ -1931,7 +1891,7 @@ Vec4 SunRays_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       UNROLL for(Int i=0; i<steps; i++)
       {
          Vec2 t=Lerp(inTex, sun_pos, i/Flt(steps)); // /(steps) worked better than /(steps-1)
-         if(high)light+=TexLod(Col, t).API(a, r, r); // pos and clouds combined together, DX9 uses A8 while others use R8 RT, use linear filtering because texcoords aren't rounded
+         if(high)light+=TexLod(Col, t).x; // pos and clouds combined together, use linear filtering because texcoords aren't rounded
          else    light+=DEPTH_BACKGROUND(TexDepthRawPoint(t)); // use simpler version here unlike in 'SunRaysPre_PS' because this one is called for each step for each pixel
       }
       col.rgb=(light*power/steps)*Sun.color;
@@ -2018,7 +1978,7 @@ Vec4 ShdBlur_PS(NOPERSP Vec2 inTex:TEXCOORD,
                 uniform Int  samples       ):COLOR
 {
    Flt  weight=0.25f,
-        color =TexPoint(Col, inTex).API(a, r, r)*weight, // DX9 uses A8 while others use R8 RT
+        color =TexPoint(Col, inTex).x*weight,
         z     =TexDepthPoint(inTex);
    Vec2 dw_mad=DepthWeightMAD(z);
    UNROLL for(Int i=0; i<samples; i++)
@@ -2033,7 +1993,7 @@ Vec4 ShdBlur_PS(NOPERSP Vec2 inTex:TEXCOORD,
     //if(samples==13)t=ColSize.xy*BlendOfs13[i]+inTex;
       // use linear filtering because texcoords are not rounded
       Flt w=DepthWeight(z-TexDepthLinear(t), dw_mad);
-      color +=w*TexLod(Col, t).API(a, r, r); // DX9 uses A8 while others use R8 RT, use linear filtering because texcoords aren't rounded
+      color +=w*TexLod(Col, t).x; // use linear filtering because texcoords aren't rounded
       weight+=w;
    }
    return color/weight;
@@ -2042,7 +2002,7 @@ Vec4 ShdBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
                  uniform Int  range         ):COLOR
 {
    Flt  weight=0.5f,
-        color =TexPoint(Col, inTex).API(a, r, r)*weight, // DX9 uses A8 while others use R8 RT
+        color =TexPoint(Col, inTex).x*weight,
         z     =TexDepthPoint(inTex);
    Vec2 dw_mad=DepthWeightMAD(z), t; t.y=inTex.y;
    UNROLL for(Int i=-range; i<=range; i++)if(i)
@@ -2050,7 +2010,7 @@ Vec4 ShdBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
       // use linear filtering because texcoords are not rounded
       t.x=ColSize.x*(2*i+((i>0) ? -0.5f : 0.5f))+inTex.x;
       Flt w=DepthWeight(z-TexDepthLinear(t), dw_mad);
-      color +=w*TexLod(Col, t).API(a, r, r); // DX9 uses A8 while others use R8 RT, use linear filtering because texcoords aren't rounded
+      color +=w*TexLod(Col, t).x; // use linear filtering because texcoords aren't rounded
       weight+=w;
    }
    return color/weight;
@@ -2059,7 +2019,7 @@ Vec4 ShdBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
                  uniform Int  range         ):COLOR
 {
    Flt  weight=0.5f,
-        color =TexPoint(Col, inTex).API(a, r, r)*weight, // DX9 uses A8 while others use R8 RT
+        color =TexPoint(Col, inTex).x*weight,
         z     =TexDepthPoint(inTex);
    Vec2 dw_mad=DepthWeightMAD(z), t; t.x=inTex.x;
    UNROLL for(Int i=-range; i<=range; i++)if(i)
@@ -2067,7 +2027,7 @@ Vec4 ShdBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
       // use linear filtering because texcoords are not rounded
       t.y=ColSize.y*(2*i+((i>0) ? -0.5f : 0.5f))+inTex.y;
       Flt w=DepthWeight(z-TexDepthLinear(t), dw_mad);
-      color +=w*TexLod(Col, t).API(a, r, r); // DX9 uses A8 while others use R8 RT, use linear filtering because texcoords aren't rounded
+      color +=w*TexLod(Col, t).x; // use linear filtering because texcoords aren't rounded
       weight+=w;
    }
    return color/weight;
@@ -2098,7 +2058,7 @@ Vec4 LightDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                  uniform Bool quality          ):COLOR
 {
    // shadow
-   Half shd; if(shadow)shd=TexPoint(Col, inTex).API(a, r, r); // DX9 uses A8 while others use R8 RT
+   Half shd; if(shadow)shd=TexPoint(Col, inTex).x;
 
    // diffuse
    VecH4 nrm=GetNormal   (inTex, quality);
@@ -2148,7 +2108,7 @@ Vec4 LightPnt_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    // shadow
    Half shd; if(shadow)
    {
-      shd=ShadowFinal(TexPoint(Col, inTex).API(a, r, r)); // DX9 uses A8 while others use R8 RT
+      shd=ShadowFinal(TexPoint(Col, inTex).x);
       clip(shd-EPS_COL);
    }
 
@@ -2212,7 +2172,7 @@ Vec4 LightSqr_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    // shadow
    Half shd; if(shadow)
    {
-      shd=ShadowFinal(TexPoint(Col, inTex).API(a, r, r)); // DX9 uses A8 while others use R8 RT
+      shd=ShadowFinal(TexPoint(Col, inTex).x);
       clip(shd-EPS_COL);
    }
 
@@ -2277,7 +2237,7 @@ Vec4 LightCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    // shadow
    Half shd; if(shadow)
    {
-      shd=ShadowFinal(TexPoint(Col, inTex).API(a, r, r)); // DX9 uses A8 while others use R8 RT
+      shd=ShadowFinal(TexPoint(Col, inTex).x);
       clip(shd-EPS_COL);
    }
 
@@ -2403,7 +2363,7 @@ Vec4 ColLight_PS(NOPERSP Vec2 inTex:TEXCOORD   ,
                  uniform Bool   cel_shade=false,
                  uniform Bool night_shade=false):COLOR
 {
-   Flt ao; Vec ambient; if(ao_do){ao=TexLod(Det, inTex).API(a, r, r); ambient=AmbColor*ao;} // use 'TexLod' because AO can be of different size and we need to use tex filtering, DX9 uses A8 while others use R8 RT
+   Flt ao; Vec ambient; if(ao_do){ao=TexLod(Det, inTex).x; ambient=AmbColor*ao;} // use 'TexLod' because AO can be of different size and we need to use tex filtering
 #if MODEL>=SM_4
    VecI p=VecI(pixel.xy, 0);
    if(multi_sample)
@@ -2589,10 +2549,6 @@ void Particle_VS(VtxInput vtx,
              outTex  /=ParticleFrames                              ;
    #endif
    }
-#if DX9 || GL // DX10+ should support all sizes, Image.partial
-                        outTex    *=ColSize.xy;
-   if(anim==ANIM_SMOOTH)outAnim.xy*=ColSize.xy;
-#endif
    outVtx=Project(pos);
 }
 /******************************************************************************/
@@ -2697,7 +2653,7 @@ void Decal_VS(VtxInput vtx,
 
    if(fullscreen)
    {
-      outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); AdjustPixelCenter(outVtx); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+      outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
    }else
    {
       outVtx=Project(TransformPos(vtx.pos()));
@@ -2776,7 +2732,7 @@ void BloomDS_VS(VtxInput vtx,
         uniform Bool half           )
 {
    outTex=vtx.tex (); if(glow)outTex-=ColSize.xy*Vec2(half ? 0.5f : 1.5f, half ? 0.5f : 1.5f);
-   outVtx=vtx.pos4(); AdjustPixelCenter(outVtx);
+   outVtx=vtx.pos4();
 }
 inline VecH BloomColor(VecH color, uniform Bool saturate)
 {
@@ -2906,7 +2862,7 @@ void MLAA_VS(VtxInput vtx,
          out Vec4 outTexOffset[2]:TEXCOORD1,
          out Vec4 outVtx         :POSITION )
 {
-   outVtx         =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); AdjustPixelCenter(outVtx); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   outVtx         =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
    outTex         =vtx.tex();
    outTexOffset[0]=ColSize.xyxy*Vec4(-1, 0, 0,-1)+outTex.xyxy;
    outTexOffset[1]=ColSize.xyxy*Vec4( 1, 0, 0, 1)+outTex.xyxy;
@@ -3027,7 +2983,7 @@ void SMAAEdge_VS(VtxInput vtx,
              out Vec4 offset[3]:TEXCOORD1,
              out Vec4 position :POSITION )
 {
-   position=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); AdjustPixelCenter(position); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   position=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
    texcoord=vtx.tex();
    SMAAEdgeDetectionVS(texcoord, offset);
 }
@@ -3037,7 +2993,7 @@ void SMAABlend_VS(VtxInput vtx,
               out Vec4 offset[3]:TEXCOORD2,
               out Vec4 position :POSITION )
 {
-   position=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); AdjustPixelCenter(position); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   position=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
    texcoord=vtx.tex();
    SMAABlendingWeightCalculationVS(texcoord, pixcoord, offset);
 }
@@ -3046,7 +3002,7 @@ void SMAA_VS(VtxInput vtx,
          out Vec4 offset  :TEXCOORD1,
          out Vec4 position:POSITION )
 {
-   position=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); AdjustPixelCenter(position); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   position=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
    texcoord=vtx.tex();
    SMAANeighborhoodBlendingVS(texcoord, offset);
 }
@@ -3596,7 +3552,6 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
                IO_tex1.y+=y;
                IO_tex1  /=ParticleFrames;
                IO_tex1.x+=f1-y;
-               IO_tex1  *=ColSize.xy; // Image.partial
             }
             #endif
             f/=ParticleFrames.x;
@@ -3606,7 +3561,6 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
             IO_tex.x+=f-y;
          }
          #endif
-         IO_tex*=ColSize.xy; // Image.partial
          O_vtx=Project(pos);
       }
    @VS_END

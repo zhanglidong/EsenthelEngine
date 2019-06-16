@@ -5,13 +5,6 @@
 #include "../Shaders/!Header CPU.h"
 namespace EE{
 /******************************************************************************/
-#if DX9
-void SetVtxNrmMulAdd(Bool compressed)
-{
-   Sh.h_VtxNrmMulAdd->set(compressed ? Vec2(2, -1) : Vec2(1, 0));
-}
-#endif
-/******************************************************************************/
 void SetAngVelShader(Vec &ang_vel_shader, C Vec &ang_vel, C Matrix3 &matrix)
 { // TODO: can this be done in the shader?
    ang_vel_shader.fromDivNormalized(ang_vel, matrix)*=D.motionScale()/matrix.x.length(); // this is equal to dividing by normalized matrix, v/=matrix.normalize(), as a faster approximation because we use only 'x.length' ignoring y and z, yes in this case it should be 'length' and not 'length2'
@@ -369,18 +362,12 @@ void MeshRender::draw()C
       drawFull();
    }else
    {
-      Int vtx_offset=0,
-          ind_offset=0;
+      Int ind_offset=0;
       FREP(_bone_splits)
       {
          BoneSplit &bs=_bone_split[i];
          SetMatrixVelSplit(bs.split_to_real, bs.bones); ShaderCur->commit(); // commit matrix changes to the shader
-      #if DX9
-         D3D->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, vtx_offset, bs.vtxs, ind_offset, bs.tris);
-      #else
          drawRange(bs.tris, ind_offset);
-      #endif
-         vtx_offset+=bs.vtxs  ;
          ind_offset+=bs.tris*3;
       }
       SetMatrixVelRestore(); ShaderCur->commit(); // restore default matrix set (in case just after bone_split there would be a part without bone_split), commit matrix changes to the shader
@@ -393,18 +380,12 @@ void MeshRender::drawFur()C
       drawFull();
    }else
    {
-      Int vtx_offset=0,
-          ind_offset=0;
+      Int ind_offset=0;
       FREP(_bone_splits)
       {
          BoneSplit &bs=_bone_split[i];
          SetMatrixFurVelSplit(bs.split_to_real, bs.bones); ShaderCur->commit(); // commit matrix changes to the shader
-      #if DX9
-         D3D->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, vtx_offset, bs.vtxs, ind_offset, bs.tris);
-      #else
          drawRange(bs.tris, ind_offset);
-      #endif
-         vtx_offset+=bs.vtxs  ;
          ind_offset+=bs.tris*3;
       }
       SetMatrixFurVelRestore(); ShaderCur->commit(); // restore default matrix set (in case just after bone_split there would be a part without bone_split), commit matrix changes to the shader
@@ -1573,7 +1554,6 @@ void MeshPart::drawBlend(C Vec4 *color)C
             MaterialClear();
          }
          s->begin(); render.set().draw();
-         ShaderEnd();
          D.stencil(STENCIL_NONE);
       }
    }
@@ -1597,7 +1577,6 @@ void MeshPart::drawBoneHighlight(Int bone)C
       D.alpha     (ALPHA_NONE);
       material.setBlendForce();
       s->begin(); render.set().drawBoneHighlight(bone, s);
-      ShaderEnd();
    }
 }
 /******************************************************************************/
@@ -1619,7 +1598,6 @@ void MeshPart::drawOverlay(C Image &image, C Color &color)C
          Sh.h_Color   [0]->set(color);
          Sh.h_ImageCol[0]->set(image);
          shader->begin (); render.set().draw();
-         ShaderEnd     ();
          MaterialClear ();
       }
    }
@@ -1640,7 +1618,6 @@ void MeshPart::drawOutline(C Color &color)C
          D.depth(true);
          D.cull (material.cull); material.setOutline();
          shader->begin(); render.set().draw();
-         ShaderEnd();
       }
    }
 }
@@ -1664,7 +1641,6 @@ void MeshPart::drawBehind(C Color &color_perp, C Color &color_parallel)C
          Sh.h_Color[0]->set(color_perp    );
          Sh.h_Color[1]->set(color_parallel);
          shader->begin(); render.set().draw();
-         ShaderEnd();
       }
    }
 }

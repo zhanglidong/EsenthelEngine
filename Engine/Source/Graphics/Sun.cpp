@@ -149,7 +149,7 @@ void AstroPrepare()
       && !(Fog.draw && Fog.affect_sky && VisibleOpacity(Fog.density, D.viewRange())<=EPS_COL) // if fog is too dense then don't draw sun rays
       )
       {
-         if(Sun.rays_mode==SUN_RAYS_HIGH && D._mrt_post_process && D._max_rt>=2)
+         if(Sun.rays_mode==SUN_RAYS_HIGH && D._max_rt>=2)
          {
             Renderer._sky_coverage.get(ImageRTDesc(Renderer._col->w(), Renderer._col->h(), IMAGERT_ONE, Renderer._col->samples()));
             Renderer._sky_coverage->clearViewport(1); // set full initially, which we will decrease with clouds and finally depth tests
@@ -212,14 +212,12 @@ Bool AstroDrawRays()
             if(!Sh.h_BlurX_X)
             {
                Sh.h_BlurX_X=Sh.get("BlurX_X");
-               Sh.h_BlurX_W=Sh.get("BlurX_W");
                Sh.h_BlurY_X=Sh.get("BlurY_X");
-               Sh.h_BlurY_W=Sh.get("BlurY_W");
             }
             D.alpha(ALPHA_NONE);
             rt1.get(ImageRTDesc(Renderer.fxW()>>shift, Renderer.fxH()>>shift, IMAGERT_ONE));
-            Renderer.set(rt1(), null, false); Sh.GPU_API(h_BlurX_W, h_BlurX_X, h_BlurX_X)->draw(rt0(), &D.viewRect()); // DX9 uses A8 while others use R8 RT
-            Renderer.set(rt0(), null, false); Sh.GPU_API(h_BlurY_W, h_BlurY_X, h_BlurY_X)->draw(rt1(), &D.viewRect()); // DX9 uses A8 while others use R8 RT
+            Renderer.set(rt1(), null, false); Sh.h_BlurX_X->draw(rt0(), &D.viewRect());
+            Renderer.set(rt0(), null, false); Sh.h_BlurY_X->draw(rt1(), &D.viewRect());
          }*/
          Renderer.set(Renderer._col(), null, true);
          D.alpha(ALPHA_ADD);
@@ -228,8 +226,8 @@ Bool AstroDrawRays()
          Bool dither=(D.dither() && !Renderer._col->highPrecision()); // don't do dithering for high precision RT
          Shader *shader;
        //if(Sun.rays_soft && shift==1)shader=Sh.h_SunRaysSoft;else
-         if(dither                   )shader=Sh.GPU_API(h_DrawTexWCD, h_DrawTexXCD, h_DrawTexXCD);else // DX9 uses A8 while others use R8 RT
-                                      shader=Sh.GPU_API(h_DrawTexWC , h_DrawTexXC , h_DrawTexXC );     // DX9 uses A8 while others use R8 RT
+         if(dither                   )shader=Sh.h_DrawTexXCD;else
+                                      shader=Sh.h_DrawTexXC ;
          REPS(Renderer._eye, Renderer._eye_num)shader->draw(rt0, Renderer._stereo ? &D._view_eye_rect[Renderer._eye] : &D.viewRect());
       }
       Renderer._sky_coverage.clear();

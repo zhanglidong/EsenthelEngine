@@ -23,11 +23,11 @@ struct DDS_PIXELFORMAT
       if(!(Flags&DDPF_FOURCC))FourCC=0;
       if(FourCC==CC4('D', 'X', '1', '0'))return IMAGE_NONE; // special DX10+ format
 
-      if(FourCC==CC4('D', 'X', 'T', '1'))return IMAGE_BC1;
-      if(FourCC==CC4('D', 'X', 'T', '2'))return IMAGE_BC2;
-      if(FourCC==CC4('D', 'X', 'T', '3'))return IMAGE_BC2;
-      if(FourCC==CC4('D', 'X', 'T', '4'))return IMAGE_BC3;
-      if(FourCC==CC4('D', 'X', 'T', '5'))return IMAGE_BC3;
+      if(FourCC==CC4('D', 'X', 'T', '1'))return IMAGE_BC1_SRGB;
+      if(FourCC==CC4('D', 'X', 'T', '2'))return IMAGE_BC2_SRGB;
+      if(FourCC==CC4('D', 'X', 'T', '3'))return IMAGE_BC2_SRGB;
+      if(FourCC==CC4('D', 'X', 'T', '4'))return IMAGE_BC3_SRGB;
+      if(FourCC==CC4('D', 'X', 'T', '5'))return IMAGE_BC3_SRGB;
 
       // fix 'RGBBitCount' for these formats, because it may be 0
       if(FourCC==111){RGBBitCount=16  ; return IMAGE_F16  ;}
@@ -43,20 +43,16 @@ struct DDS_PIXELFORMAT
          if(RGBBitCount==16 && RBitMask==0x000000FF && GBitMask==0x00000000 && BBitMask==0x00000000 && ABitMask==0x0000FF00)return IMAGE_L8A8;
          if(RGBBitCount==16 && RBitMask==0x0000FFFF && GBitMask==0x00000000 && BBitMask==0x00000000 && ABitMask==0x00000000)return IMAGE_I16;
       }
-      if(RGBBitCount==32 && RBitMask==0x00FF0000 && GBitMask==0x0000FF00 && BBitMask==0x000000FF && ABitMask==0xFF000000)return IMAGE_B8G8R8A8;
-      if(RGBBitCount==32 && RBitMask==0x000000FF && GBitMask==0x0000FF00 && BBitMask==0x00FF0000 && ABitMask==0xFF000000)return IMAGE_R8G8B8A8;
-      if(RGBBitCount==24 && RBitMask==0x000000FF && GBitMask==0x0000FF00 && BBitMask==0x00FF0000 && ABitMask==0x00000000)return IMAGE_R8G8B8;
+      if(RGBBitCount==32 && RBitMask==0x00FF0000 && GBitMask==0x0000FF00 && BBitMask==0x000000FF && ABitMask==0xFF000000)return IMAGE_B8G8R8A8_SRGB;
+      if(RGBBitCount==32 && RBitMask==0x000000FF && GBitMask==0x0000FF00 && BBitMask==0x00FF0000 && ABitMask==0xFF000000)return IMAGE_R8G8B8A8_SRGB;
+      if(RGBBitCount==24 && RBitMask==0x000000FF && GBitMask==0x0000FF00 && BBitMask==0x00FF0000 && ABitMask==0x00000000)return IMAGE_R8G8B8_SRGB;
       if(RGBBitCount==16 && RBitMask==0x000000FF && GBitMask==0x0000FF00 && BBitMask==0x00000000 && ABitMask==0x00000000)return IMAGE_R8G8;
       if(RGBBitCount== 8 && RBitMask==0x000000FF && GBitMask==0x00000000 && BBitMask==0x00000000 && ABitMask==0x00000000)return IMAGE_R8;
       if(RGBBitCount== 8 && RBitMask==0x00000000 && GBitMask==0x00000000 && BBitMask==0x00000000 && ABitMask==0x000000FF)return IMAGE_A8;
-      if(RGBBitCount==16 && RBitMask==0x00000F00 && GBitMask==0x000000F0 && BBitMask==0x0000000F && ABitMask==0x00000000)return IMAGE_B4G4R4X4;
       if(RGBBitCount==16 && RBitMask==0x00000F00 && GBitMask==0x000000F0 && BBitMask==0x0000000F && ABitMask==0x0000F000)return IMAGE_B4G4R4A4;
-      if(RGBBitCount==16 && RBitMask==0x00007C00 && GBitMask==0x000003E0 && BBitMask==0x0000001F && ABitMask==0x00000000)return IMAGE_B5G5R5X1;
       if(RGBBitCount==16 && RBitMask==0x00007C00 && GBitMask==0x000003E0 && BBitMask==0x0000001F && ABitMask==0x00008000)return IMAGE_B5G5R5A1;
       if(RGBBitCount==16 && RBitMask==0x0000F800 && GBitMask==0x000007E0 && BBitMask==0x0000001F && ABitMask==0x00000000)return IMAGE_B5G6R5;
       if(RGBBitCount==24 && RBitMask==0x00FF0000 && GBitMask==0x0000FF00 && BBitMask==0x000000FF && ABitMask==0x00000000)return IMAGE_B8G8R8;
-      if(RGBBitCount==32 && RBitMask==0x00FF0000 && GBitMask==0x0000FF00 && BBitMask==0x000000FF && ABitMask==0x00000000)return IMAGE_B8G8R8X8;
-      if(RGBBitCount==32 && RBitMask==0x000000FF && GBitMask==0x0000FF00 && BBitMask==0x00FF0000 && ABitMask==0x00000000)return IMAGE_R8G8B8X8;
       if(RGBBitCount==32 && RBitMask==0x000003FF && GBitMask==0x000FFC00 && BBitMask==0x3FF00000 && ABitMask==0xC0000000)return IMAGE_R10G10B10A2;
       return IMAGE_NONE;
    }
@@ -138,8 +134,6 @@ Bool Image::ImportDDS(C Str &name, Int type, Int mode, Int mip_maps)
 Bool Image::ImportDDS(C Str  &name) {return ImportDDS(name, -1);}
 Bool Image::ImportDDS(  File &f   ) {return ImportDDS(f   , -1);}
 /******************************************************************************/
-//Bool ExportDX    (C Str &name, GPU_API(D3DXIMAGE_FILEFORMAT, D3DX11_IMAGE_FILE_FORMAT, UInt) format)C; // export using DirectX
-//Bool Image::ExportDDS(C Str &name)C {return ExportDX(name, GPU_API(D3DXIFF_DDS, D3DX11_IFF_DDS, 0));}
 Bool Image::ExportDDS(C Str &name)C {return false;}
 /******************************************************************************/
 }

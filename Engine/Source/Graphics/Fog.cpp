@@ -95,7 +95,6 @@ void FogDraw(C OBox &obox, Flt density, C Vec &color)
          D .depthWrite(false);
          D .cull      (true );
          Sh.h_FogBox->begin(); MshrBox.set().drawFull();
-         ShaderEnd();
       }
    }
 }
@@ -132,7 +131,6 @@ void FogDraw(C Ball &ball, Flt density, C Vec &color)
          D .depthWrite(false);
          D .cull      (true );
          Sh.h_FogBall->begin(); MshrBall.set().drawFull();
-         ShaderEnd();
       }
    }
 }
@@ -177,7 +175,6 @@ void HeightFogDraw(C OBox &obox, Flt density, C Vec &color)
          D .depthWrite(false);
          D .cull      (true );
          Sh.h_FogHgt->begin(); MshrBox.set().drawFull();
-         ShaderEnd();
       }
    }
 }

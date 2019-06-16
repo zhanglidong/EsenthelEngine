@@ -17,31 +17,19 @@
 /******************************************************************************/
 // Here are listed enums for different Shader Models:
 #define SM_GL  0 //            (OpenGL     )
-#define SM_3   1 // Model 3.0  (DirectX  9 )
-#define SM_4   2 // Model 4.0+ (DirectX 10+) D3D_FEATURE_LEVEL_10_0+
+#define SM_4   1 // Model 4.0+ (DirectX 10+) D3D_FEATURE_LEVEL_10_0+
 
 #ifndef MODEL // MODEL is a macro automatically defined by the engine, set to one of the SM_ values above
    #define MODEL SM_4 // this line only makes Visual Studio properly highlight SM_4 parts of the codes when editing a shader file in Visual Studio
 #endif
 
-#if   MODEL==SM_3
-   #define API(dx9, dx10, gl) dx9
-#elif MODEL>=SM_4
-   #define API(dx9, dx10, gl) dx10
-#elif MODEL==SM_GL
-   #define API(dx9, dx10, gl) gl
-#endif
-
 #define GL   (MODEL==SM_GL)
-#define DX9  (MODEL==SM_3)
 #define DX11 (MODEL>=SM_4)
 
-#define LINEAR_GAMMA (!DX9)
+#define LINEAR_GAMMA 1
 
 #if   MODEL==SM_GL
    #define TECHNIQUE(name, vs, ps)   technique name{pass p0{VertexShader=compile glslv  vs; PixelShader=compile glslf  ps;}}
-#elif MODEL==SM_3
-   #define TECHNIQUE(name, vs, ps)   technique name{pass p0{VertexShader=compile vs_3_0 vs; PixelShader=compile ps_3_0 ps;}}
 #elif MODEL==SM_4
    #define TECHNIQUE(name, vs, ps)   technique10 name{pass p0{SetVertexShader(CompileShader(vs_4_0, vs)); SetPixelShader(CompileShader(ps_4_0, ps));}}
 #endif
@@ -54,15 +42,13 @@
 
 #if   MODEL==SM_GL
    #define TECHNIQUE_TESSELATION(name, vs, ps, hs, ds)   TECHNIQUE(name, vs, ps) // tesselation not supported in OpenGL
-#elif MODEL==SM_3
-   #define TECHNIQUE_TESSELATION(name, vs, ps, hs, ds)   TECHNIQUE(name, vs, ps) // tesselation not supported in SM_3
 #elif MODEL>=SM_4
    #define TECHNIQUE_TESSELATION(name, vs, ps, hs, ds)   technique11 name{pass p0{SetVertexShader(CompileShader(vs_4_0, vs)); SetPixelShader(CompileShader(ps_4_0, ps)); SetHullShader(CompileShader(hs_5_0, hs)); SetDomainShader(CompileShader(ds_5_0, ds));}}
 #endif
 /******************************************************************************/
 // MODIFIERS
 /******************************************************************************/
-#if MODEL>=SM_3 // SM_3 and SM_4
+#if MODEL>=SM_4 // SM_4+
    #define FLOW    1
    #define FLATTEN [flatten]     // will make a conditional statement flattened, use before 'if'        statement
    #define BRANCH  [branch ]     // will make a conditional statement branched , use before 'if'        statement
@@ -80,7 +66,7 @@
 /******************************************************************************/
 // DATA TYPES
 /******************************************************************************/
-#pragma pack_matrix(column_major) // always use "Column Major" matrix packing, TODO: should we use 'row_major ' "Row Major" and replace float4x3 with float3x4 and adjust operations on 'GpuMatrix'? first check if that can fit in DX9 Deferred shader, however it's possible Matrix can no longer be able to access vectors using [i], and "Transform(Vec v, Matrix m)" would need to be adjusted among others, possibly "v*m or mul(v,m)" replaced with "m*v or mul(m,v)"
+#pragma pack_matrix(column_major) // always use "Column Major" matrix packing, TODO: should we use 'row_major ' "Row Major" and replace float4x3 with float3x4 and adjust operations on 'GpuMatrix'? first check if that can fit in Deferred shader, however it's possible Matrix can no longer be able to access vectors using [i], and "Transform(Vec v, Matrix m)" would need to be adjusted among others, possibly "v*m or mul(v,m)" replaced with "m*v or mul(m,v)"
 
 #define Bool     bool
 #define Int      int
@@ -133,11 +119,6 @@
 
    #define        SAMPLER(name, index) sampler                name : register(s##index) //        sampler
    #define SHADOW_SAMPLER(name, index) SamplerComparisonState name : register(s##index) // shadow sampler
-#elif DX9
-   #define Image       sampler2D
-   #define Image3D     sampler3D
-   #define ImageCube   samplerCUBE
-   #define ImageShadow sampler2D
 #elif GL
    #define Image       sampler2D
    #define Image3D     sampler3D
@@ -156,15 +137,6 @@
    #define BUFFER(name)                                                    // constant buffers (not available in OpenGL)
    #define BUFFER_I(name, index)                                           // constant buffers (not available in OpenGL)
    #define BUFFER_END                                                      // constant buffers (not available in OpenGL)
-#elif MODEL==SM_3
-   #define PIXEL                 Vec4 pixel:VPOS                           // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (D.resW, D.resH)
-   #define IF_IS_FRONT           Flt  front:VFACE,                         // face front side  , its sign (<0 or >0) specifies primitives back or front facing
-   #define IF_IS_CLIP                                                      // clip plane distance         (not needed    in SM 3.0)
-   #define CLIP(pos)                                                       // perform user plane clipping (not needed    in SM 3.0)
-   #define PIXEL_TO_SCREEN       PixelToScreen(pixel)                      // PixelToScreen is faster and more accurate than PosToScreen
-   #define BUFFER(name)                                                    // constant buffers            (not available in SM 3.0)
-   #define BUFFER_I(name, index)                                           // constant buffers            (not available in SM 3.0)
-   #define BUFFER_END                                                      // constant buffers            (not available in SM 3.0)
 #elif MODEL==SM_4
    #define PIXEL                     Vec4 pixel :SV_Position               // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (D.resW, D.resH)
    #define IF_IS_FRONT               Bool front :SV_IsFrontFace ,          // face front side
@@ -266,7 +238,7 @@
    #define TexClamp(    image, uv )   image.Sample     (SamplerLinearClamp, uv    )
    #define TexLodClamp( image, uv )   image.SampleLevel(SamplerLinearClamp, uv , 0)
    #define Tex3DLodWrap(image, uvw)   image.SampleLevel(SamplerLinearWrap , uvw, 0)
-#elif MODEL==SM_3 || MODEL==SM_GL
+#elif MODEL==SM_GL
    #define Tex(    image, uv )   tex2D  (image, uv ) // access a 2D   texture
    #define Tex3D(  image, uvw)   tex3D  (image, uvw) // access a 3D   texture
    #define TexCube(image, uvw)   texCUBE(image, uvw) // access a Cube texture
@@ -282,15 +254,7 @@
    #define TexLodClamp( image, uv )   TexLod  (image, uv )
    #define Tex3DLodWrap(image, uvw)   Tex3DLod(image, uvw)
 
-   #if MODEL==SM_3
-      #if REVERSE_DEPTH // there's no way to set comparison function for HW shadow mapping on DX9, so simple workaround is to reverse the result
-         #define TexShadow(image, uvw)   (1-tex2Dlod(image, Vec4(uvw, 0)).x)
-      #else
-         #define TexShadow(image, uvw)      tex2Dlod(image, Vec4(uvw, 0)).x
-      #endif
-   #elif MODEL==SM_GL
-      #define TexShadow(image, uvw)   tex2Dproj(image, Vec4(uvw.xy, uvw.z*0.5f+0.5f, 1)) // adjust OpenGL depth scale (z' = z*0.5 + 0.5), have to use 'tex2Dproj' because on Windows GL 'tex2Dlod' doesn't work here, perhaps it's a problem with CG that converts HLSL to GLSL, can't return .x because it's not Vec4 but a Flt already (since we're using 'sampler2DShadow')
-   #endif
+   #define TexShadow(image, uvw)   tex2Dproj(image, Vec4(uvw.xy, uvw.z*0.5f+0.5f, 1)) // adjust OpenGL depth scale (z' = z*0.5 + 0.5), have to use 'tex2Dproj' because on Windows GL 'tex2Dlod' doesn't work here, perhaps it's a problem with CG that converts HLSL to GLSL, can't return .x because it's not Vec4 but a Flt already (since we're using 'sampler2DShadow')
 #endif
 
 #define TexDepthRawPoint( uv)                       TexPoint (Depth  , uv).x
@@ -315,9 +279,6 @@ BUFFER_I(Viewport, SBI_VIEWPORT)
    Vec4          Coords  ;
    ViewportClass Viewport;
    Vec2          RTSizeI ;
-#if DX9
-   Vec2          PixelOffset;
-#endif
 BUFFER_END
 
 BUFFER(Constants)
@@ -475,9 +436,6 @@ BUFFER_END
 BUFFER_I(Mesh, SBI_MESH)
    Flt   VtxHeightmap;
    Flt   VtxSkinning ;
-#if DX9
-   VecH2 VtxNrmMulAdd;
-#endif
    VecH4 Highlight; // this can be modified by engine's 'SetHighlight' function
    VecH  ObjAngVel; // object angular velocity, pre-multiplied by 'D.motionScale', TODO: in the future merge this with 'ObjVel' as half3x2/half2x3 (also for GLSL and adjust everything related to 'ObjVel' in shaders and on CPU side, #VelAngVel)
 BUFFER_END
@@ -662,15 +620,9 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    VecH4 _color   :COLOR1      ;
 #endif
 
-#if DX9
-   VecH  nrm      (                                                ) {return                                                               _nrm    *VtxNrmMulAdd.x+VtxNrmMulAdd.y ;} // vertex normal
-   VecH  tan      (VecH nrm          , uniform Bool heightmap=false) {return heightmap ? VecH(1-nrm.x*nrm.x, -nrm.y*nrm.x, -nrm.z*nrm.x) : _tan.xyz*VtxNrmMulAdd.x+VtxNrmMulAdd.y ;} // vertex tangent, for heightmap: PointOnPlane(Vec(1,0,0), nrm()), Vec(1,0,0)-nrm*nrm.x, which gives a perpendicular however not Normalized !!
-   VecH  bin      (VecH nrm, VecH tan, uniform Bool heightmap=false) {return heightmap ? Cross(nrm, tan) :                Cross(nrm, tan)*(_tan.w  *VtxNrmMulAdd.x+VtxNrmMulAdd.y);} // binormal from transformed normal and tangent
-#else
    VecH  nrm      (                                                ) {return _nrm                                                                  ;} // vertex normal
    VecH  tan      (VecH nrm          , uniform Bool heightmap=false) {return heightmap ? VecH(1-nrm.x*nrm.x, -nrm.y*nrm.x, -nrm.z*nrm.x) : _tan.xyz;} // vertex tangent, for heightmap: PointOnPlane(Vec(1,0,0), nrm()), Vec(1,0,0)-nrm*nrm.x, which gives a perpendicular however not Normalized !!
    VecH  bin      (VecH nrm, VecH tan, uniform Bool heightmap=false) {return heightmap ? Cross(nrm, tan) : Cross(nrm, tan)*_tan.w                  ;} // binormal from transformed normal and tangent
-#endif
    Vec2  pos2     (                                                ) {return _pos.xy                                                               ;} // vertex position
    Vec   pos      (                                                ) {return _pos.xyz                                                              ;} // vertex position
    Vec4  pos4     (                                                ) {return _pos                                                                  ;} // vertex position in Vec4(pos.xyz, 1) format
@@ -966,13 +918,6 @@ inline void UpdateColorBySss(in out VecH color, VecH normal, uniform Half sub_su
 Flt LinearLumOfSRGBColor(Vec s) {return                  Dot(SRGBToLinearFast(s), ColorLumWeight2) ;}
 Flt   SRGBLumOfSRGBColor(Vec s) {return LinearToSRGBFast(Dot(SRGBToLinearFast(s), ColorLumWeight2));}
 /******************************************************************************/
-inline void AdjustPixelCenter(in out Vec4 vtx)
-{
-#if DX9
-   vtx.xy+=PixelOffset;
-#endif
-}
-/******************************************************************************/
 inline Vec2 UVClamp(Vec2 screen, uniform Bool do_clamp=true)
 {
    return do_clamp ? Mid(screen, ColClamp.xy, ColClamp.zw) : screen;
@@ -998,9 +943,6 @@ inline Vec2 PosToScreen(Vec4 pos)
 /******************************************************************************/
 inline Vec2 PixelToScreen(Vec4 pixel)
 {
-#if DX9
-   pixel.xy+=0.5f;
-#endif
           pixel.xy/=RTSizeI;
    return pixel.xy;
 }
@@ -1058,14 +1000,14 @@ inline Vec GetPosMS(VecI2 pixel, UInt sample, Vec2 pos_xy) {return GetPos(TexDep
 void DrawPixel_VS(VtxInput vtx,
               out Vec4 outVtx:POSITION)
 {
-   outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); AdjustPixelCenter(outVtx); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
 void Draw_VS(VtxInput vtx,
          out Vec2 outTex:TEXCOORD0,
          out Vec4 outVtx:POSITION )
 {
    outTex=vtx.tex();
-   outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); AdjustPixelCenter(outVtx); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
 void DrawPosXY_VS(VtxInput vtx,
               out Vec2 outTex  :TEXCOORD0,
@@ -1074,7 +1016,7 @@ void DrawPosXY_VS(VtxInput vtx,
 {
    outTex  =vtx.tex();
    outPosXY=ScreenToPosXY(outTex);
-   outVtx  =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); AdjustPixelCenter(outVtx); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   outVtx  =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
 /******************************************************************************/
 inline Half DistPointPlaneRay(VecH2 p,                  VecH2 plane_normal, VecH2 ray) {Half rd=Dot(ray, plane_normal); return rd ? Dot           (p,            plane_normal)/rd : 0;}
@@ -1400,8 +1342,6 @@ inline Vec GetDetail(Vec2 tex)
 /******************************************************************************/
 #if   MODEL==SM_GL
    inline void BackFlip(in out VecH dir, Bool front) {if(front<=0)dir*=AllowBackFlip;} // keep this as "front<=0" instead of "!front" because Mac OpenGL drivers for Intel fail to compile this correctly, resulting in reversed lighting
-#elif MODEL==SM_3
-   inline void BackFlip(in out VecH dir, Flt  front) {if(front< 0)dir*=AllowBackFlip;}
 #else
    inline void BackFlip(in out VecH dir, Bool front) {if(!front  )dir*=AllowBackFlip;}
 #endif
@@ -1584,9 +1524,6 @@ inline Vec ShadowPointTransform(Vec pos)
 /******************************************************************************/
 inline VecH2 ShadowJitter(Vec2 pixel)
 {
-#if DX9
-   pixel-=0.5f; // yes this is needed
-#endif
     VecH2 offset;
           offset=Frac(pixel*0.5f)*2 - 0.5f;
           offset.y+=    offset.x;
@@ -1601,7 +1538,7 @@ inline Half CompareDepth(Vec pos, Vec2 jitter_value, uniform Bool jitter)
 }
 inline Half CompareDepth2(Vec pos) // 'ShdMap1' is not a Shadow Map Depth Buffer but a Shadow Intensity Color RT
 {
-   return Tex(ShdMap1, pos.xy).API(a, r, r); // DX9 uses A8 while others use R8 RT
+   return Tex(ShdMap1, pos.xy).x;
 }
 /******************************************************************************/
 inline Half ShadowDirValue(Vec pos, Vec2 jitter_value, uniform Bool jitter, uniform Int num, uniform Bool cloud)

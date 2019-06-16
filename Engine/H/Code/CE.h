@@ -125,8 +125,8 @@ struct CodeEditorInterface
    Bool     configDebug(              );
    void     config32Bit(Bool     bit32);
    Bool     config32Bit(              );
-   void     configDX9  (Bool     dx9  );
-   Bool     configDX9  (              );
+   void     configAPI  (Byte     api  );
+   Byte     configAPI  (              );
    void     configEXE  (EXE_TYPE exe  );
    EXE_TYPE configEXE  (              );
 
@@ -137,7 +137,7 @@ struct CodeEditorInterface
 
    virtual void configChangedDebug() {}
    virtual void configChanged32Bit() {}
-   virtual void configChangedDX9  () {}
+   virtual void configChangedAPI  () {}
    virtual void configChangedEXE  () {}
 
    virtual UID projectID() {return UIDZero;} // get active Project ID
@@ -256,7 +256,8 @@ const_mem_addr struct CodeEditor
    Memx<Source> sources;
    Button       b_close;
    WindowIO     load_source;
-   Bool         config_debug, config_32_bit, config_dx9, symbols_loaded, menu_on_top;
+   Bool         config_debug, config_32_bit, symbols_loaded, menu_on_top;
+   Byte         config_api;
    EXE_TYPE     config_exe;
    Str          ee_h_path;
    TextStyle    ts, ts_small, ts_cjk;
@@ -700,7 +701,7 @@ const_mem_addr struct CodeEditor
 
    void configDebug(Bool     debug);
    void config32Bit(Bool     bit32);
-   void configDX9  (Bool     dx9  );
+   void configAPI  (Byte     api  );
    void configEXE  (EXE_TYPE exe  );
 
    void createFuncList      ();

@@ -1,6 +1,6 @@
 ﻿/******************************************************************************/
 #include "stdafx.h"
-#define SUPPORT_OPEN_VR ((WINDOWS_OLD && !DX9) || MAC || LINUX) // DX9 not supported
+#define SUPPORT_OPEN_VR (WINDOWS_OLD || MAC || LINUX)
 #if     SUPPORT_OPEN_VR
    #if LINUX
       #define COMPILER_GCC // needs to be defined for Linux otherwise "openvr.h" will complain about unsupported platform
@@ -280,7 +280,7 @@ void OpenVRApi::draw()
       if(!VR._has_render)_render.clearFull(Vec4Zero, true); // if render was not set, then clear
 
       vr::Texture_t t;
-      t.eType=GPU_API(vr::API_DirectX, vr::API_DirectX, vr::API_OpenGL);
+      t.eType=GPU_API(vr::API_DirectX, vr::API_OpenGL);
 
       if(_overlay && _overlay_id!=vr::k_ulOverlayHandleInvalid)
       {
@@ -330,7 +330,7 @@ Bool OpenVRApi::createGuiImage()
       {
          vr::Texture_t t;
          t.handle=(Ptr)_gui._txtr;
-         t.eType=GPU_API(vr::API_DirectX, vr::API_DirectX, vr::API_OpenGL);
+         t.eType=GPU_API(vr::API_DirectX, vr::API_OpenGL);
          t.eColorSpace=vr::ColorSpace_Auto; // TODO: support gamma correct sRGB rendering
 	     _overlay->SetOverlayTexture(_overlay_id, &t);
          setOverlaySizeDepth();

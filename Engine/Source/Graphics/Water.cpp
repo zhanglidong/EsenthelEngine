@@ -35,55 +35,7 @@ WaterMtrl::WaterMtrl()
 }
 WaterMtrl& WaterMtrl::    normalMap(C ImagePtr &image) {T.    _normal_map=image; return T;}
 WaterMtrl& WaterMtrl::reflectionMap(C ImagePtr &image) {T._reflection_map=image; return T;}
-WaterMtrl& WaterMtrl::     colorMap(C ImagePtr &image)
-{
-   T._color_map=image;
-
-  _bump=null;
-   if(image && image->is())
-   {
-   #if DX9
-      if(D.validUsage(D3DUSAGE_QUERY_VERTEXTEXTURE, D3DRTYPE_TEXTURE, image->hwType())) // if can use existing format
-      {
-   #endif
-        _bump=image;
-   #if DX9
-      }else
-      if(this==&Water) // check if can convert to supported format (this can be donly only for 'Water')
-      {
-         IMAGE_TYPE type=IMAGE_NONE;
-         if(D.validUsage(D3DUSAGE_QUERY_VERTEXTEXTURE, D3DRTYPE_TEXTURE, IMAGE_L8 ))type=IMAGE_L8 ;else
-         if(D.validUsage(D3DUSAGE_QUERY_VERTEXTEXTURE, D3DRTYPE_TEXTURE, IMAGE_A8 ))type=IMAGE_A8 ;else
-         if(D.validUsage(D3DUSAGE_QUERY_VERTEXTEXTURE, D3DRTYPE_TEXTURE, IMAGE_F32))type=IMAGE_F32;
-         if(type)
-         {
-            Image temp, *src=image(); if(src->compressed())if(src->copyTry(temp, -1, -1, -1, IMAGE_A8, IMAGE_SOFT, 1))src=&temp;
-            if(!src->compressed() && Water._bump_temp.createTry(src->w(), src->h(), 1, type, IMAGE_2D, 1, false))
-            if( src->lock(LOCK_READ))
-            {
-               if(Water._bump_temp.lock(LOCK_WRITE))
-               {
-                  if(Water._bump_temp.hwType()==IMAGE_L8 || Water._bump_temp.hwType()==IMAGE_A8)
-                  {
-                     REPD(y, Water._bump_temp.h())
-                     REPD(x, Water._bump_temp.w())Water._bump_temp.pixB(x, y)=src->color(x, y).a;
-                  }else
-                  if(Water._bump_temp.hwType()==IMAGE_F32)
-                  {
-                     REPD(y, Water._bump_temp.h())
-                     REPD(x, Water._bump_temp.w())Water._bump_temp.pixF(x, y)=src->colorF(x, y).w;
-                  }
-                 _bump=&Water._bump_temp.unlock().updateMipMaps(FILTER_BEST, false);
-               }
-               src->unlock();
-            }
-         }
-      }
-   #endif
-   }
-   if(!_bump || _bump==image)Water._bump_temp.del();
-   return T;
-}
+WaterMtrl& WaterMtrl::     colorMap(C ImagePtr &image) {T.     _color_map=image; return T;}
 WaterMtrl& WaterMtrl::reset()
 {
    T=WaterMtrl();
@@ -99,18 +51,12 @@ void WaterMtrl::set()
    // Col[1], Col[2], Det[0] reserved for 'setImages'
    Sh.h_ImageCol[0]->set(     _color_map());
    Sh.h_ImageNrm[0]->set(    _normal_map());
-#if DX9
-   Sh.h_ImageNrm[1]->set(    _bump      ());
-#endif
    Sh.h_ImageRfl[0]->set(_reflection_map());
 
    if(WaterMtrlLast!=this)
    {
       WaterMtrlLast=this;
 
-   #if DX9
-      if(_bump)SPSet("WaterBumpDot", (_bump->hwType()==IMAGE_L8 || _bump->hwType()==IMAGE_F32) ? Vec4(1, 0, 0, 0) : Vec4(0, 0, 0, 1));
-   #endif
       // TODO: optimize (struct Water)
       SPSet("WaterScaleDif"    , scale_color  );
       SPSet("WaterScaleNrm"    , scale_normal );
@@ -195,8 +141,7 @@ WaterClass::WaterClass()
 }
 void WaterClass::del()
 {
-  _mshr     .del();
-  _bump_temp.del();
+  _mshr.del();
 }
 void WaterClass::create()
 {
@@ -367,21 +312,10 @@ void WaterClass::begin()
          // set RT's and depth buffer
          if(Shader *shader=Sh.h_SetDepth) // if we can copy depth buffer from existing solid's, then do it, to prevent drawing water pixels if they're occluded
          {
-         #if DX9
-            Renderer.set(Renderer._water_col(), Renderer._water_nrm(), null, null, Renderer._water_ds(), true); // DX9 always requires a RT set
-            D.colWrite(0, 0);
-            D.colWrite(0, 1);
-         #else
             Renderer.set(null, Renderer._water_ds(), true);
-         #endif
             D.depthLock  (true); D.depthFunc(FUNC_ALWAYS); D.stencil(STENCIL_ALWAYS_SET, 0); shader->draw(Renderer._ds_1s);
             D.depthUnlock(    ); D.depthFunc(FUNC_LESS  ); D.stencil(STENCIL_NONE         );
-         #if DX9
-            D.colWrite(COL_WRITE_RGBA, 0);
-            D.colWrite(COL_WRITE_RGBA, 1);
-         #else
           //Renderer.set(Renderer._water_col(), Renderer._water_nrm(), null, null, Renderer._water_ds(), true); don't set, instead swap first and set later
-         #endif
            _swapped_ds=Renderer.swapDS1S(Renderer._water_ds); // try to swap DS to put existing stencil values into '_water_ds' because we will write water depths onto '_water_ds' and we want to use it later instead of '_ds_1s' so we want all stencil values to be kept
             Renderer.set(Renderer._water_col(), Renderer._water_nrm(), null, null, Renderer._water_ds(), true);
          }else // if we can't copy then just clear it
@@ -475,7 +409,7 @@ void WaterClass::endImages()
 Bool WaterClass::ocean()
 {
    #define EPS_WAVE_SCALE 0.001f // 1 mm
-   return _bump && wave_scale>EPS_WAVE_SCALE;
+   return _color_map && wave_scale>EPS_WAVE_SCALE;
 }
 Shader* WaterClass::shader()
 {
@@ -506,7 +440,6 @@ void WaterClass::drawSurfaces()
             SPSet("WaterPlnNrm" , plane.normal*CamMatrixInv.orn());
             SPSet("WaterYMulAdd", _y_mul_add                     );
             shader->begin(); _mshr.set().drawFull();
-            ShaderEnd();
          }else
          {
             VI.shader(shader);
@@ -643,7 +576,6 @@ void WaterMesh::draw()C
             Water  .begin();
             mtrl  ->set  ();
             shader->begin(); _mshr.set().drawFull();
-            ShaderEnd();
          }
       }break;
 

@@ -75,7 +75,7 @@ void Decal::drawStatic(Flt alpha)C
                shader->draw(_material->base_0());
             }else
             {
-               shader->begin(); D.cull(true); D.depth(true); D.depthWrite(false); MshrBox.set().drawFull(); ShaderEnd();
+               shader->begin(); D.cull(true); D.depth(true); D.depthWrite(false); MshrBox.set().drawFull();
             }
 
           //if(cwrt)D.colWrite(cwrt_old, 1);
@@ -111,7 +111,7 @@ void Decal::drawAnimated(C Matrix &object_world_matrix, Flt alpha)C
                shader->draw(_material->base_0());
             }else
             {
-               shader->begin(); D.cull(true); D.depth(true); D.depthWrite(false); MshrBox.set().drawFull(); ShaderEnd();
+               shader->begin(); D.cull(true); D.depth(true); D.depthWrite(false); MshrBox.set().drawFull();
             }
 
           //if(cwrt)D.colWrite(cwrt_old, 1);

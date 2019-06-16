@@ -2,14 +2,15 @@
 #include "!Header.h"
 #include "Hdr.h"
 
+// shader expects linear gamma
+
 #define BRIGHT    0 // if apply adjustment for scenes where half pixels are bright, and other half are dark, in that case prefer focus on brighter, to avoid making already bright pixels too bright
 #define GEOMETRIC 0 // don't use geometric mean, because of cases when bright sky is mostly occluded by dark objects, then entire scene will get brighter, making the sky look too bright and un-realistic
 /******************************************************************************/
 // HDR
 /******************************************************************************/
 Vec4 HdrDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
-              uniform Int  step          ,
-              uniform Bool gamma=false   ):COLOR // if 'src' has non-linear gamma
+              uniform Int  step          ):COLOR
 {
    Vec2 tex_min=inTex-ColSize.xy,
         tex_max=inTex+ColSize.xy;
@@ -20,9 +21,6 @@ Vec4 HdrDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
              +TexLod(Col, Vec2(tex_max.x, tex_min.y)).rgb
              +TexLod(Col, Vec2(tex_min.x, tex_max.y)).rgb
              +TexLod(Col, Vec2(tex_max.x, tex_max.y)).rgb;
-
-      if(gamma) // convert from gamma to linear
-         sum=SRGBToLinearFast(sum)/4; // SRGBToLinearFast(sum/4)*4
 
       Flt lum=Dot(sum, HdrWeight);
 
@@ -65,31 +63,21 @@ Vec4 HdrUpdate_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
    return Lerp(lum, TexPoint(Lum, Vec2(0, 0)).x, Step);
 }
 /******************************************************************************/
-Vec4 Hdr_PS(NOPERSP Vec2 inTex:TEXCOORD,
-            uniform Bool gamma         ):COLOR // if 'src' has non-linear gamma
+Vec4 Hdr_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    Vec4 col=TexLod  (Col, inTex); // can't use 'TexPoint' because 'Col' can be supersampled
    Flt  lum=TexPoint(Lum, Vec2(0, 0)).x;
 
-#if 0 // slow
-   if(gamma)col.rgb=SRGBToLinearFast(col.rgb);
    col.rgb*=lum;
-   if(gamma)col.rgb=LinearToSRGBFast(col.rgb);
-#else
-   if(gamma)lum=LinearToSRGBFast(lum);
-   col.rgb*=lum;
-#endif
 
    return col;
 }
 /******************************************************************************/
 // TECHNIQUES
 /******************************************************************************/
-TECHNIQUE(HdrDS0 , Draw_VS(), HdrDS_PS(0));
-TECHNIQUE(HdrDS0G, Draw_VS(), HdrDS_PS(0, true));
-TECHNIQUE(HdrDS1 , Draw_VS(), HdrDS_PS(1));
+TECHNIQUE(HdrDS0, Draw_VS(), HdrDS_PS(0));
+TECHNIQUE(HdrDS1, Draw_VS(), HdrDS_PS(1));
 
 TECHNIQUE(HdrUpdate, Draw_VS(), HdrUpdate_PS());
-TECHNIQUE(Hdr      , Draw_VS(),       Hdr_PS(false));
-TECHNIQUE(HdrG     , Draw_VS(),       Hdr_PS(true ));
+TECHNIQUE(Hdr      , Draw_VS(),       Hdr_PS());
 /******************************************************************************/

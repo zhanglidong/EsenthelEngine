@@ -11,15 +11,8 @@
    /******************************************************************************/
    // SELECT WHICH LIBRARIES TO USE
    /******************************************************************************/
-   // Renderer - Define "DX9" for DirectX 9, "DX11" for DirectX 10/11, "DX12" for DirectX 12, "METAL" for Metal, "VULKAN" for Vulkan, "GL" or nothing for OpenGL
+   // Renderer - Define "DX11" for DirectX 10/11, "DX12" for DirectX 12, "METAL" for Metal, "VULKAN" for Vulkan, "GL" or nothing for OpenGL
    // defines are specified through Project Settings
-   #ifdef DX9
-      #undef  DX9
-      #define DX9 1
-   #else
-      #define DX9 0
-   #endif
-
    #ifdef DX11
       #undef  DX11
       #define DX11 1
@@ -48,18 +41,18 @@
       #define VULKAN 0
    #endif
 
-   #if defined GL || !(DX9 || DX11 || DX12 || METAL || VULKAN)
+   #if defined GL || !(DX11 || DX12 || METAL || VULKAN)
       #undef  GL
       #define GL 1
    #else
       #define GL 0
    #endif
 
-   #if (DX9+DX11+DX12+METAL+VULKAN+GL)!=1
+   #if (DX11+DX12+METAL+VULKAN+GL)!=1
       #error Unsupported platform detected
    #endif
 
-   #define LINEAR_GAMMA (!DX9) // currently Nvidia Drivers have broken DX9 support for sRGB
+   #define LINEAR_GAMMA 1
    #define CAN_SWAP_SRGB DX11
 
    #define GL_ES (GL && (IOS || ANDROID || WEB))
@@ -68,12 +61,10 @@
 
    #define SLOW_SHADER_LOAD GL // Only OpenGL has slow shader loads because it compiles on the fly from text instead of binary
 
-   #if DX9
-      #define GPU_API(dx9, dx11, gl) dx9
-   #elif DX11
-      #define GPU_API(dx9, dx11, gl) dx11
+   #if DX11
+      #define GPU_API(dx11, gl) dx11
    #elif GL
-      #define GPU_API(dx9, dx11, gl) gl
+      #define GPU_API(dx11, gl) gl
    #endif
 
    #if GL_ES
@@ -109,7 +100,7 @@
    #include "../../../ThirdPartyLibs/begin.h"
 
    #if WINDOWS // Windows
-      #define SUPPORT_WINDOWS_XP (!X64 && DX9) // 0=minor performance improvements in some parts of the engine, but no WindowsXP support, 1=some extra checks in the codes but with WindowsXP support
+      #define SUPPORT_WINDOWS_XP (!X64 && GL) // 0=minor performance improvements in some parts of the engine, but no WindowsXP support, 1=some extra checks in the codes but with WindowsXP support
       #if WINDOWS_OLD
          #if SUPPORT_WINDOWS_XP // https://msdn.microsoft.com/en-us/library/windows/desktop/aa383745.aspx (this can be used for compilation testing if we don't use any functions not available on WindowsXP, however we can use defines and enums)
             #define _WIN32_WINNT 0x0502 // _WIN32_WINNT_WS03 , don't use any API's newer than WindowsXP SP2
@@ -258,10 +249,8 @@
    #endif
 
    // Renderer
-   #define MAX_FVF_DECL_SIZE (MAXD3DDECLLENGTH+1) // +1 for END
-   #if DX9|DX11 // DirectX 9, 11
+   #if DX11 // DirectX 11
       #include "../../../ThirdPartyLibs/DirectX/dxgi1_6.h"
-      #include "../../../ThirdPartyLibs/DirectX/d3d9.h"
       #include "../../../ThirdPartyLibs/DirectX/d3d11_4.h"
       #if DX11
          #include "../../../ThirdPartyLibs/DirectX/d3dcompiler.h"
@@ -273,8 +262,7 @@
          #include "../../../ThirdPartyLibs/GL/glew.h"
          #include "../../../ThirdPartyLibs/GL/wglew.h"
          // if we're compiling OpenGL on windows, then include DirectX headers as well, to support some basic DirectX functions
-         #include "../../../ThirdPartyLibs/DirectX/d3d9.h"
-         #include "../../../ThirdPartyLibs/DirectX/d3d11_3.h"
+         #include "../../../ThirdPartyLibs/DirectX/d3d11_4.h"
       #elif MAC
          #include <OpenGL/gl3.h>
          #include <OpenGL/gl3ext.h>

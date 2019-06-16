@@ -2714,13 +2714,7 @@ UID DeviceID(Bool per_user)
    if(!D.deviceName().is()) // display device name may be not available yet
    {
       SafeSyncLocker locker(D._lock);
-   #if WINDOWS_OLD
-      if(IDirect3D9 *d3d=Direct3DCreate9(D3D_SDK_VERSION))
-      {
-         D3DADAPTER_IDENTIFIER9 id; if(OK(d3d->GetAdapterIdentifier(D3DADAPTER_DEFAULT, 0, &id)))D._device_name=id.Description;
-         RELEASE(d3d);
-      }
-   #elif WINDOWS_NEW
+   #if WINDOWS
       IDXGIFactory1 *factory=null; CreateDXGIFactory1(__uuidof(IDXGIFactory1), (Ptr*)&factory); if(factory)
       {
          IDXGIAdapter *adapter=null; factory->EnumAdapters(0, &adapter); if(adapter)

@@ -70,12 +70,7 @@ struct MeshRender // Mesh Renderable (Hardware: contains Vertexes + Triangles)
    void includeUsedBones(Bool (&bones)[256])C;
 
    // draw
-#if DX9
-   void drawFull     (                         )C {D3D->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, vtxs(),           0, tris());}
-   void drawRange    (Int tris                 )C {D3D->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, vtxs(),           0, tris  );}
-   void drawRange    (Int tris, Int start_index)C {D3D->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, vtxs(), start_index, tris  );}
-   void drawInstanced(Int instances            )C {}
-#elif DX11
+#if DX11
    void drawFull     (                         )C {D3DC->DrawIndexed         (_ib._ind_num,           0, 0);}
    void drawRange    (Int tris                 )C {D3DC->DrawIndexed         (tris*3      ,           0, 0);}
    void drawRange    (Int tris, Int start_index)C {D3DC->DrawIndexed         (tris*3      , start_index, 0);}
@@ -145,7 +140,7 @@ private:
    UInt   _flag;
 #if EE_PRIVATE
    BoneSplit *_bone_split;
-   GPU_API(IDirect3DVertexDeclaration9 *_vf, ID3D11InputLayout *_vf, union{UInt _vao; VtxFormatGL *_vf;});
+   GPU_API(ID3D11InputLayout *_vf, union{UInt _vao; VtxFormatGL *_vf;});
 #else
    Ptr    _bone_split, _vf;
 #endif

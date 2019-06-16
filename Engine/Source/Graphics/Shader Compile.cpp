@@ -3,18 +3,13 @@
 #include "../Shaders/!Header CPU.h"
 /******************************************************************************
 
-   If in the future compilation no longer is based on D3DX9 then remove:
-      ThirdPartyLibs\D3DX9
+   If in the future compilation no longer is based on D3DX then remove:
       ThirdPartyLibs\D3DX11
 
 /******************************************************************************/
 #if WINDOWS
 #define THIS void
-#undef  MAX_FVF_DECL_SIZE
 #include "../../../ThirdPartyLibs/begin.h"
-#if WINDOWS_OLD
-#include "../../../ThirdPartyLibs/D3DX9/d3dx9shader.h"
-#endif
 #include "../../../ThirdPartyLibs/D3DX11/inc/d3dx11effect.h"
 #include "../../../ThirdPartyLibs/end.h"
 #endif
@@ -22,14 +17,13 @@ namespace EE{
 /******************************************************************************/
 #define CC4_SHDR CC4('S','H','D','R')
 /******************************************************************************/
-enum SHADER_TYPE
+enum SHADER_TYPE : Byte // !! these enums are saved !!
 {
    SHADER_GL  ,
    SHADER_DX9 ,
    SHADER_DX11,
 };
 /******************************************************************************/
-#define FLAGS_DX9     (1 ? (D3DXSHADER_OPTIMIZATION_LEVEL3|D3DXSHADER_NO_PRESHADER|D3DXSHADER_ENABLE_BACKWARDS_COMPATIBILITY) : (D3DXSHADER_OPTIMIZATION_LEVEL0|D3DXSHADER_NO_PRESHADER|D3DXSHADER_ENABLE_BACKWARDS_COMPATIBILITY)) // D3DXSHADER_SKIPOPTIMIZATION made "Ambient Occlusion" shader don't compile
 #define FLAGS_DX11    (D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY|D3DCOMPILE_OPTIMIZATION_LEVEL3|D3DCOMPILE_NO_PRESHADER)
 #define SHOW_GLSL_SRC 0
 
@@ -49,23 +43,6 @@ enum SHADER_TYPE
    #define COMPRESS_GL_MT    true
 /******************************************************************************/
 #pragma pack(push, 1)
-struct ConstantIndex9
-{
-   Byte   count;
-   UShort start, offset, src_index;
-
-         void set(Int start, Int count, Int offset, Int src_index) {_Unaligned(T.start, start); _Unaligned(T.count, count); _Unaligned(T.offset, offset); _Unaligned(T.src_index, src_index); DYNAMIC_ASSERT(T.start==start && T.count==count && T.offset==offset && T.src_index==src_index, S+"Constant index out of range: "+start+", "+count+", "+offset+", "+src_index);}
-   ConstantIndex9(Int start, Int count, Int offset, Int src_index) {set(start, count, offset, src_index);}
-   ConstantIndex9() {}
-};
-struct TextureIndex9
-{
-   UShort bind_index, src_index;
-
-        void set(Int bind_index, Int src_index) {_Unaligned(T.bind_index, bind_index); _Unaligned(T.src_index, src_index); DYNAMIC_ASSERT(T.bind_index==bind_index && T.src_index==src_index, "Constant index out of range");}
-   TextureIndex9(Int bind_index, Int src_index) {set(bind_index, src_index);}
-   TextureIndex9() {}
-};
 struct ConstantIndex
 {
    Byte  bind_index;
@@ -77,9 +54,6 @@ struct ConstantIndex
 };
 #pragma pack(pop)
 
-#if WINDOWS_OLD
-static Int Compare(C Shader9::Constant &a, C Shader9::Constant &b) {return Compare(a.start, b.start);}
-#endif
 static Int Compare(C ShaderBufferParams &a, C ShaderBufferParams &b) {return ComparePtr(a.buffer, b.buffer);} // sort by buffer pointer, because that's the only thing we can access from 'Shader.Constant'
 static Int Compare(C ShaderBufferParams &a,   ShaderBuffer*C     &b) {return ComparePtr(a.buffer, b       );} // sort by buffer pointer, because that's the only thing we can access from 'Shader.Constant'
 static Int Compare(  ShaderImage*C      &a,   ShaderImage*C      &b) {return ComparePtr(a       , b       );} // sort by image  pointer, because that's the only thing we can access from 'Shader.Texture'
@@ -111,53 +85,6 @@ struct ShaderPath
 {
    Char path[MAX_LONG_PATH];
 };
-/******************************************************************************/
-#if WINDOWS_OLD
-struct Include9 : ID3DXInclude // 'Include9' should not have 'root' because unlike DX10 we're loading first file from path, and not from memory, also on DX9 'pParentData' is buggy and sometimes gives null
-{
-   Memc<Str> paths; // use this because 'pParentData' can be null
-
-   HRESULT __stdcall Open(D3DXINCLUDE_TYPE IncludeType, LPCSTR pFileName, LPCVOID pParentData, LPCVOID *ppData, UINT *pBytes)
-   {
-     *ppData=null;
-     *pBytes=0;
-
-      File f;
-      Str  path=GetPath(pFileName);
-      if(!FullPath(path))
-         if(ShaderPath *parent=(pParentData ? (ShaderPath*)pParentData-1 : null))
-            path=NormalizePath(Str(parent->path).tailSlash(true)+path);
-         else // if DX9 fails to provide 'pParentData' we must use previously detected paths
-      {
-         REPA(paths)if(f.readStdTry(paths[i]+pFileName)){path=GetPath(paths[i]+pFileName); break;}
-      }
-
-      if(f.is() || f.readStdTry(path.tailSlash(true)+GetBase(pFileName)))
-      {
-         Byte *data=Alloc<Byte>(SIZEU(ShaderPath)+f.size());
-         Set(((ShaderPath*)data)->path, path);
-         paths.include(path.tailSlash(true));
-         data+=SIZE(ShaderPath);
-         f.get(data, f.size());
-        *ppData=data;
-        *pBytes=f.size();
-         return S_OK;
-      }
-      return -1;
-   }
-   HRESULT __stdcall Close(LPCVOID pData)
-   {
-      if(pData)
-      {
-         Byte *data=((Byte*)pData)-SIZE(ShaderPath);
-         Free( data);
-      }
-      return S_OK;
-   }
-
-   Include9(C Str &src) {}
-};
-#endif
 /******************************************************************************/
 struct Include11 : ID3DInclude
 {
@@ -204,16 +131,6 @@ struct Include11 : ID3DInclude
 /******************************************************************************/
 // ERRORS
 /******************************************************************************/
-#if WINDOWS_OLD
-static void Error(ID3DXBuffer* &error, Str *messages)
-{
-   if(error)
-   {
-      if(messages)messages->line()+=(Char8*)error->GetBufferPointer();
-      RELEASE(error);
-   }
-}
-#endif
 #if WINDOWS
 static void Error(ID3D10Blob* &error, Str *messages)
 {
@@ -225,133 +142,7 @@ static void Error(ID3D10Blob* &error, Str *messages)
 }
 #endif
 /******************************************************************************/
-// EFFECT CREATION
-/******************************************************************************/
-#if WINDOWS_OLD
-static ID3DXEffect* CreateEffect9(C Str &src, C MemPtr<ShaderMacro> &macros, Str *messages)
-{
-#if DX9
-   ID3DXEffect         *effect  =null;
-   ID3DXBuffer         *buffer  =null, *error=null;
-   ID3DXEffectCompiler *compiler=null;
-
-   if(messages)messages->clear();
-   Mems<D3DXMACRO> d3d_macros; d3d_macros.setNum(macros.elms()+1);
-   FREPA(macros){D3DXMACRO &m=d3d_macros[i]; m.Name=macros[i].name; m.Definition=macros[i].definition;} Zero(d3d_macros.last());
-
-   Include9 include(src); // let this exist in case 'CompileEffect' uses it
-   D3DXCreateEffectCompilerFromFile(src, d3d_macros.data(), &include, FLAGS_DX9, &compiler, &error); Error(error, messages);
-   if(compiler)
-   {
-      compiler->CompileEffect(FLAGS_DX9, &buffer, &error); Error(error, messages);
-      RELEASE(compiler);
-   }
-
-   if(buffer)
-   {
-      {
-         SyncLocker lock(D._lock);
-         D3DXCreateEffect(GetD3D9(), buffer->GetBufferPointer(), buffer->GetBufferSize(), null, null, 0, null, &effect, &error); Error(error, messages);
-      }
-      RELEASE(buffer);
-      if(!effect && messages)messages->line()+="Compilation succeeded but creating effect (D3DXCreateEffect) failed.";
-   }
-
-   return effect;
-#elif DX11
-   if(messages)messages->clear();
-
-   File f; if(!f.readTry(src)){if(messages)messages->line()+="Failed to open file."; return false;}
-   Mems<Byte> data; data.setNum(f.size()); if(!f.get(data.data(), f.size())){if(messages)messages->line()+="Failed to read from file."; return false;} f.del(); // release the file handle after reading
-
-   Mems<D3D_SHADER_MACRO> d3d_macros; d3d_macros.setNum(macros.elms()+1);
-   FREPA(macros){D3D_SHADER_MACRO &m=d3d_macros[i]; m.Name=macros[i].name; m.Definition=macros[i].definition;} Zero(d3d_macros.last());
-
-   ID3D10Blob *buffer=null, *error=null;
-   D3DCompile(data.data(), data.elms(), null, d3d_macros.data(), &Include11(src), null, "fx_2_0", FLAGS_DX11, 0, &buffer, &error); Error(error, messages);
-
-   ID3DXEffect *effect=null;
-   if(buffer)
-   {
-      {
-         ID3DXBuffer *error=null;
-         SyncLocker lock(D._lock);
-         D3DXCreateEffect(GetD3D9(), buffer->GetBufferPointer(), buffer->GetBufferSize(), null, null, 0, null, &effect, &error); Error(error, messages);
-      }
-      RELEASE(buffer);
-      if(!effect && messages)messages->line()+="Compilation succeeded but creating effect (D3DXCreateEffect) failed.";
-   }
-   return effect;
-#else
-   return null;
-#endif
-}
-#endif
-/******************************************************************************/
 // TRANSLATION
-/******************************************************************************/
-#if WINDOWS_OLD
-static void AddTranslation9(ShaderParam &sp, ID3DXEffect *effect, D3DXHANDLE par, C D3DXPARAMETER_DESC &par_desc)
-{
-   if(par_desc.Class==D3DXPC_SCALAR || par_desc.Class==D3DXPC_VECTOR) // for example Flt f,f[]; Vec2 v,v[]; Vec v,v[]; Vec4 v,v[];
-   {
-      if(par_desc.Rows!=1)Exit("Shader Param Rows!=1");
-      if(par_desc.Type==D3DXPT_FLOAT)// || par_desc.Type==D3DXPT_INT || par_desc.Type==D3DXPT_BOOL)
-      {
-         FREP(Max(1, par_desc.Elements)) // array size
-         {
-            sp._full_translation.New().set(sp._cpu_data_size, sp._gpu_data_size, SIZE(Flt)*par_desc.Columns);
-            sp._cpu_data_size+=SIZE(Flt )*par_desc.Columns;
-            sp._gpu_data_size+=SIZE(Vec4);
-         }
-      }else Exit(S+"Unhandled Shader Parameter Type for \""+par_desc.Name+'"');
-   }else
-   if(par_desc.Class==D3DXPC_MATRIX_COLUMNS)
-   {
-      Exit("Need to test D3DXPC_MATRIX_COLUMNS translation");
-      if(par_desc.Rows   >4)Exit("Shader Param Matrix Rows>4");
-      if(par_desc.Columns>4)Exit("Shader Param Matrix Cols>4");
-      if(par_desc.Type!=D3DXPT_FLOAT)Exit(S+"Unhandled Shader Parameter Type for \""+par_desc.Name+'"');
-      FREP(Max(1, par_desc.Elements)) // array size
-      {
-         FREPD(y, par_desc.Columns)
-         FREPD(x, par_desc.Rows   )sp._full_translation.New().set(sp._cpu_data_size+SIZE(Flt)*(y+x*par_desc.Columns), sp._gpu_data_size+SIZE(Flt)*(x+y*4), SIZE(Flt));
-         sp._cpu_data_size+=SIZE(Flt)*par_desc.Rows*par_desc.Columns;
-         sp._gpu_data_size+=SIZE(Flt)*            4*par_desc.Columns;
-      }
-   }else
-   if(par_desc.Class==D3DXPC_MATRIX_ROWS)
-   {
-      if(par_desc.Rows   >4)Exit("Shader Param Matrix Rows>4");
-      if(par_desc.Columns>4)Exit("Shader Param Matrix Cols>4");
-      if(par_desc.Type!=D3DXPT_FLOAT)Exit(S+"Unhandled Shader Parameter Type for \""+par_desc.Name+'"');
-      FREP(Max(1, par_desc.Elements)) // array size
-      {
-         FREPD(y, par_desc.Columns)
-         FREPD(x, par_desc.Rows   )sp._full_translation.New().set(sp._cpu_data_size+SIZE(Flt)*(y+x*par_desc.Columns), sp._gpu_data_size+SIZE(Flt)*(x+y*4), SIZE(Flt));
-         sp._cpu_data_size+=SIZE(Flt)*par_desc.Rows*par_desc.Columns;
-         sp._gpu_data_size+=SIZE(Flt)*            4*par_desc.Columns;
-      }
-   }else
-   if(par_desc.Class==D3DXPC_STRUCT)
-   {
-      FREP(Max(1, par_desc.Elements)) // array size
-      {
-         D3DXHANDLE elm=(par_desc.Elements ? effect->GetParameterElement(par, i) : par);
-         FREP(par_desc.StructMembers) // number of members
-         {
-            D3DXHANDLE         child=effect->GetParameter(elm, i);
-            D3DXPARAMETER_DESC par_desc;
-            effect->GetParameterDesc(child, &par_desc);
-            AddTranslation9(sp, effect, child, par_desc);
-         }
-      }
-   }else
-   {
-      Exit("Unrecognized Shader Parameter Class");
-   }
-}
-#endif
 /******************************************************************************/
 #if DX11
 static void AddTranslation11(ShaderParam &sp, ID3DX11EffectVariable *par, C D3DX11_EFFECT_VARIABLE_DESC &var_desc, C D3DX11_EFFECT_TYPE_DESC &par_desc)
@@ -402,69 +193,8 @@ static void AddTranslation11(ShaderParam &sp, ID3DX11EffectVariable *par, C D3DX
 }
 #endif
 /******************************************************************************/
-#if WINDOWS_OLD
-static void AddRegisters(Mems<Shader9::Constant> &constants, ShaderParam &sp, LPD3DXCONSTANTTABLE ct, D3DXHANDLE constant, C D3DXCONSTANT_DESC &desc, Int &gpu_data_offset)
-{
-   if(desc.Class==D3DXPC_SCALAR || desc.Class==D3DXPC_VECTOR) // for example: Flt f,f[]; Vec2 v,v[]; Vec v,v[]; Vec4 v,v[];
-   {
-      if(desc.RegisterCount)constants.New().set(desc.RegisterIndex, desc.RegisterCount, sp._data+gpu_data_offset, sp);
-      gpu_data_offset+=desc.Elements*SIZE(Vec4); // array size
-   }else
-   if(desc.Class==D3DXPC_MATRIX_COLUMNS)
-   {
-      if(desc.RegisterCount)constants.New().set(desc.RegisterIndex, desc.RegisterCount, sp._data+gpu_data_offset, sp);
-      gpu_data_offset+=desc.Elements*SIZE(Vec4)*desc.Columns; // array size
-   }else
-   if(desc.Class==D3DXPC_STRUCT)
-   {
-      FREP(desc.Elements) // array size
-      {
-         D3DXHANDLE elm=ct->GetConstantElement(constant, i);
-         FREP(desc.StructMembers) // members count
-         {
-            D3DXHANDLE        child=ct->GetConstant(elm, i);
-            D3DXCONSTANT_DESC desc[16];
-            UINT              count=Elms(desc);
-            ct->GetConstantDesc(child, desc, &count); if(count!=1)Exit("count!=1");
-            AddRegisters(constants, sp, ct, child, desc[0], gpu_data_offset);
-         }
-      }
-   }else
-   {
-      Exit("Unrecognized Shader Parameter Class");
-   }
-}
-#endif
-/******************************************************************************/
 // SAVE
 /******************************************************************************/
-#if WINDOWS_OLD
-static Bool ShaderSave(C Str &name, C Map<Str8, ShaderParam> &params, C Memc<ShaderImage*> &images, C Memc<ShaderVS9> &vs, C Memc<ShaderPS9> &ps, C Memc<Shader9> &techs)
-{
-   File f; if(f.writeTry(name))
-   {
-      f.putUInt (CC4_SHDR  ); // cc4
-      f.putByte (SHADER_DX9); // type
-      f.cmpUIntV(0         ); // version
-
-      // params
-      f.cmpUIntV(params.elms());
-      FREPAO(    params).save(f, params.key(i));
-
-      // images
-      f.cmpUIntV(images.elms());
-      FREPA(images)f.putStr(Name(*images[i]));
-
-      if(vs    .save(f)) // shaders
-      if(ps    .save(f))
-      if(techs .save(f, params, images)) // techniques
-         if(f.flushOK())return true;
-
-      f.del(); FDelFile(name);
-   }
-   return false;
-}
-#endif
 #if DX11
 static Bool ShaderSave(C Str &name, C Memc<ShaderBufferParams> &buffers, C Memc<ShaderImage*> &images, C Memc<ShaderVS11> &vs, C Memc<ShaderHS11> &hs, C Memc<ShaderDS11> &ds, C Memc<ShaderPS11> &ps, C Memc<Shader11> &techs)
 {
@@ -530,159 +260,11 @@ static Bool ShaderSave(C Str &name, C Map<Str8, ShaderParam> &params, C Memc<Sha
 /******************************************************************************/
 // COMPILE
 /******************************************************************************/
-#if WINDOWS_OLD
-static Int Compare(C Shader9  &a, C Shader9  &b) {return CompareCS(a.name, b.name);}
-#endif
 #if WINDOWS
 static Int Compare(C Shader11 &a, C Shader11 &b) {return CompareCS(a.name, b.name);}
 #endif
 static Int Compare(C ShaderGL &a, C ShaderGL &b) {return CompareCS(a.name, b.name);}
 static Int Compare(C ShaderGL &a, C Str8     &b) {return CompareCS(a.name, b     );}
-/******************************************************************************/
-static Bool ShaderCompile9(C Str &src, C Str &dest, C MemPtr<ShaderMacro> &macros, Str *messages)
-{
-#if WINDOWS_OLD
-   if(ID3DXEffect *effect=CreateEffect9(src, macros, messages))
-   {
-      ShaderFile             shader;
-      Map<Str8, ShaderParam> params(CompareCS);
-      Memc<ShaderImage*>     images;
-      Memc<ShaderVS9>        vs    ;
-      Memc<ShaderPS9>        ps    ;
-      Memc<Shader9>          techs ;
-
-      D3DXEFFECT_DESC desc; effect->GetDesc(&desc);
-
-      // build list of images and parameters
-      FREP(desc.Parameters)if(D3DXHANDLE par=effect->GetParameter(null, i))
-      {
-         D3DXPARAMETER_DESC par_desc; effect->GetParameterDesc(par, &par_desc);
-
-         if(par_desc.Class==D3DXPC_OBJECT)
-         {
-            switch(par_desc.Type)
-            {
-             //case D3DXPT_TEXTURE: break;
-
-               case D3DXPT_SAMPLER:
-               case D3DXPT_SAMPLER1D:
-               case D3DXPT_SAMPLER2D:
-               case D3DXPT_SAMPLER3D:
-               case D3DXPT_SAMPLERCUBE:
-                  images.add(ShaderImages(Str8Temp(par_desc.Name))); break;
-            }
-         }else
-         {
-            ShaderParam &sp=*params(Str8Temp(par_desc.Name));
-            if(sp.is())Exit(S+"Shader parameter \""+par_desc.Name+"\" listed more than once");else // if wasn't yet created
-            {
-               sp._owns_data=true;
-               sp._elements =par_desc.Elements;
-
-               AddTranslation9(sp, effect, par, par_desc);
-               sp.optimize(); // required for setting default value
-
-               if(sp._cpu_data_size!=par_desc.Bytes)Exit("Incorrect Shader Param Size.\nPlease contact Developer.");
-               if(sp._gpu_data_size<SIZE(Vec4))Exit("Shader Param Size < SIZE(Vec4)"); // some functions assume that '_gpu_data_size' is at least as big as 'Vec4' to set values without checking for size
-
-               // alloc data
-               AllocZero(sp._data, sp._gpu_data_size);
-              *Alloc    (sp._changed)=true;
-                         sp._constant_count=sp.fullConstantCount();
-
-               // set default value
-               Vec4 temp[1024]; if(OK(effect->GetValue(par, temp, SIZE(temp))))sp.set(Ptr(temp), sp._cpu_data_size);
-            }
-         }
-      }
-      images.sort(Compare); // once we have all images for this file, sort them, so we can use binary search later while saving techniques when looking for image indexes
-
-      // build list of techniques
-      IDirect3DDevice9 *d3d=GetD3D9();
-      FREP(desc.Techniques)
-      {
-         D3DXHANDLE         tech_handle=effect->GetTechnique    (i);
-         D3DXTECHNIQUE_DESC tech_desc;  effect->GetTechniqueDesc(                tech_handle    , &tech_desc); if(tech_desc.Passes!=1)Exit("Technique pass count!=1");
-         D3DXPASS_DESC      pass_desc;  effect->GetPassDesc     (effect->GetPass(tech_handle, 0), &pass_desc);
-         Mems<Byte>         vs_data, ps_data;
-
-         Shader9 &tech=techs.New(); tech.name=tech_desc.Name;
-
-         // get shader data
-         {
-            SyncLocker lock(D._lock);
-            UInt size;
-            IDirect3DVertexShader9 *vs=null; if(!OK(d3d->CreateVertexShader(pass_desc.pVertexShaderFunction, &vs)))Exit(S+"Can't create Vertex Shader from Shader file \""+src+"\" to file \""+dest+"\"");
-            IDirect3DPixelShader9  *ps=null; if(!OK(d3d->CreatePixelShader (pass_desc. pPixelShaderFunction, &ps)))Exit(S+ "Can't create Pixel Shader from Shader file \""+src+"\" to file \""+dest+"\"");
-            vs->GetFunction(null, &size); vs->GetFunction(vs_data.setNum(size).data(), &size); RELEASE(vs);
-            ps->GetFunction(null, &size); ps->GetFunction(ps_data.setNum(size).data(), &size); RELEASE(ps);
-         }
-
-         // store shaders
-         if(vs_data.elms()){FREPA(vs)if(vs[i].data.elms()==vs_data.elms() && EqualMem(vs[i].data.data(), vs_data.data(), vs_data.elms())){tech.vs_index=i; break;} if(tech.vs_index<0){tech.vs_index=vs.elms(); Swap(vs.New().data, vs_data);}}
-         if(ps_data.elms()){FREPA(ps)if(ps[i].data.elms()==ps_data.elms() && EqualMem(ps[i].data.data(), ps_data.data(), ps_data.elms())){tech.ps_index=i; break;} if(tech.ps_index<0){tech.ps_index=ps.elms(); Swap(ps.New().data, ps_data);}}
-
-         FREPD(shader, 2) // vs + ps
-         {
-            LPD3DXCONSTANTTABLE ct=null; D3DXGetShaderConstantTable(shader ? pass_desc.pPixelShaderFunction : pass_desc.pVertexShaderFunction, &ct);
-            if(ct)
-            {
-               Mems<Shader9::Constant> &constants=(shader ? tech.ps_constants : tech.vs_constants);
-               D3DXCONSTANTTABLE_DESC desc; ct->GetDesc(&desc);
-               FREP(desc.Constants)
-               {
-                  D3DXHANDLE        constant=ct->GetConstant(null, i);
-                  D3DXCONSTANT_DESC const_desc[16];
-                  UINT              count=Elms(const_desc);
-                  ct->GetConstantDesc(constant, const_desc, &count); if(count!=1)Exit("count!=1");
-
-                  switch(const_desc[0].RegisterSet)
-                  {
-                     case D3DXRS_SAMPLER:
-                     {
-                        Int index=(shader ? const_desc[0].RegisterIndex : D3DVERTEXTEXTURESAMPLER0+const_desc[0].RegisterIndex);
-                        if(!InRange(index, MAX_DX9_TEXTURES))Exit(S+"Texture index: "+index+", is too big");
-                        tech.textures.New().set(index, *ShaderImages(Str8Temp(const_desc[0].Name)));
-                     }break;
-
-                     case D3DXRS_FLOAT4:
-                     {
-                        if(ShaderParam *sp=params.find(Str8Temp(const_desc[0].Name)))
-                        {
-                           Int gpu_data_offset=0;
-                           AddRegisters(constants, *sp, ct, constant, const_desc[0], gpu_data_offset);
-                        }else
-                        {
-                           Exit(S+"Technique \""+tech_desc.Name+"\" uses \""+const_desc[0].Name+"\" parameter which was not found in the parameter list.");
-                        }
-                     }break;
-
-                     default: Exit(S+"Shader Param \""+const_desc[0].Name+"\"is of unsupported type.\nPlease change to float based."); break;
-                  }
-               }
-               RELEASE(ct);
-
-               // join registers
-               constants.sort(Compare);
-               REPA(constants)if(i)
-               {
-                  Shader9::Constant &p=constants[i-1],
-                                    &n=constants[i  ];
-                  if(p.start+p.count==n.start && (Vec4*)p.data+p.count==n.data && p.changed==n.changed) {p.count+=n.count; constants.remove(i, true);}
-               }
-            }
-         }
-      }
-
-      {SyncLocker lock(D._lock); RELEASE(effect);}
-
-      techs.sort(Compare);
-
-      return ShaderSave(dest, params, images, vs, ps, techs);
-   }
-#endif
-   return false;
-}
 /******************************************************************************/
 static Bool ShaderCompile11(C Str &src, C Str &dest, C MemPtr<ShaderMacro> &macros, Str *messages)
 {
@@ -1700,15 +1282,12 @@ Bool ShaderCompileTry(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<Shad
    {
       case SM_UNKNOWN: return false;
 
-      case SM_GL_ES_2:
       case SM_GL_ES_3:
       case SM_GL     : temp.New().set("MODEL", "SM_GL"); break;
 
-      case SM_3      : temp.New().set("MODEL", "SM_3" ); break;
       default        : temp.New().set("MODEL", "SM_4" ); break;
    }
-   if(model>=SM_GL_ES_2 && model<=SM_GL)return ShaderCompileGL(src, dest, temp, messages, stg);
-   if(                     model==SM_3 )return ShaderCompile9 (src, dest, temp, messages);
+   if(model>=SM_GL_ES_3 && model<=SM_GL)return ShaderCompileGL(src, dest, temp, messages, stg);
    if(                     model>=SM_4 )return ShaderCompile11(src, dest, temp, messages);
    return false;
 }
@@ -1718,14 +1297,11 @@ void ShaderCompile(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderM
    Str messages;
    if(!ShaderCompileTry(src, dest, model, macros, stg, &messages))
    {
-   #if !WINDOWS
-      if(model==SM_3)Exit("Can't compile DX9 Shaders when not using Windows engine version");
-   #endif
    #if !DX11
       if(model>=SM_4)Exit("Can't compile DX10+ Shaders when not using DX10+ engine version");
    #endif
-   #if DX9 || DX11
-      if(model>=SM_GL_ES_2 && model<=SM_GL)Exit("Can't compile OpenGL Shaders when not using OpenGL engine version");
+   #if !GL
+      if(model>=SM_GL_ES_3 && model<=SM_GL)Exit("Can't compile OpenGL Shaders when not using OpenGL engine version");
    #endif
       Exit(S+"Error compiling shader\n\""+src+"\"\nto file\n\""+dest+"\"."+(messages.is() ? S+"\n\nCompilation Messages:\n"+messages : S));
    }
@@ -1734,72 +1310,6 @@ Bool ShaderCompileTry(Str src, Str dest, SHADER_MODEL model, C MemPtr<ShaderMacr
 void ShaderCompile   (Str src, Str dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros               ) {       ShaderCompile   (src, dest, model, macros, null          );}
 /******************************************************************************/
 // IO
-/******************************************************************************/
-#if WINDOWS_OLD
-Bool Shader9::save(File &f, C Map<Str8, ShaderParam> &params, C Memc<ShaderImage*> &images)C
-{
-   // name
-   f.putStr(name).putMulti(vs_index, ps_index);
-
-   // textures
-   f.cmpUIntV(textures.elms()); FREPA(textures)f<<TextureIndex9(textures[i].index, GetIndex(images, textures[i].image));
-
-   // constants
-   f.cmpUIntV(vs_constants.elms());
-   FREPA(     vs_constants)
-   {
-    C Constant &c=vs_constants[i]; f<<ConstantIndex9(c.start, c.count, UIntPtr(c.data)-UIntPtr(c.sp->_data), GetIndex(params, c.sp));
-   }
-   f.cmpUIntV(ps_constants.elms());
-   FREPA(     ps_constants)
-   {
-    C Constant &c=ps_constants[i]; f<<ConstantIndex9(c.start, c.count, UIntPtr(c.data)-UIntPtr(c.sp->_data), GetIndex(params, c.sp));
-   }
-   return f.ok();
-}
-#if DX9
-Bool Shader9::load(File &f, C MemtN<ShaderParam*, 256> &params, C MemtN<ShaderImage*, 256> &images)
-{
-   // name
-   f.getStr(name).getMulti(vs_index, ps_index);
-
-   // textures
-   textures.setNum(f.decUIntV()); FREPA(textures)
-   {
-      Texture &t=textures[i]; TextureIndex9 ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_DX9_TEXTURES))Exit(S+"Texture index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);
-   }
-
-   // constants
-   vs_constants.setNum(f.decUIntV()); FREPA(vs_constants)
-   {
-      Constant &c=vs_constants[i]; ConstantIndex9 ci; f>>ci; 
-      c.sp   =Get(ci.src_index, params); c.changed=c.sp->_changed;
-      c.start=ci.start;
-      c.count=ci.count;
-      c.data =c.sp->_data+ci.offset;
-      c.final_count=((c.count<c.sp->fullConstantCount()) ? &c.count : &c.sp->_constant_count); // if this constant is not using full 'ShaderParam' size then keep its own count, otherwise point to the 'ShaderParam' count in case it can get decreased later (for example 'ViewMatrix' after 'SetMatrixCount'), use 'fullConstantCount' instead of '_constant_count' in case it already got modified
-   #if CACHE_DX9_CONSTANTS
-      DYNAMIC_ASSERT(c.start+c.count<=MAX_DX9_SHADER_CONSTANT/SIZE(Vec4), "Shader Constant out of range");
-   #endif
-   }
-   ps_constants.setNum(f.decUIntV()); FREPA(ps_constants)
-   {
-      Constant &c=ps_constants[i]; ConstantIndex9 ci; f>>ci; 
-      c.sp   =Get(ci.src_index, params); c.changed=c.sp->_changed;
-      c.start=ci.start;
-      c.count=ci.count;
-      c.data =c.sp->_data+ci.offset;
-      c.final_count=((c.count<c.sp->fullConstantCount()) ? &c.count : &c.sp->_constant_count); // if this constant is not using full 'ShaderParam' size then keep its own count, otherwise point to the 'ShaderParam' count in case it can get decreased later (for example 'ViewMatrix' after 'SetMatrixCount'), use 'fullConstantCount' instead of '_constant_count' in case it already got modified
-   #if CACHE_DX9_CONSTANTS
-      DYNAMIC_ASSERT(c.start+c.count<=MAX_DX9_SHADER_CONSTANT/SIZE(Vec4), "Shader Constant out of range");
-   #endif
-   }
-
-   if(f.ok())return true;
-   /*del();*/ return false;
-}
-#endif
-#endif
 /******************************************************************************/
 #if DX11
 static void SaveBuffers(File &f, C Mems<Shader11::Buffer> &constants, C Memc<ShaderBufferParams> &file_buffers, MemtN<UShort, 256> &all)
@@ -1988,60 +1498,7 @@ Bool ShaderFile::load(C Str &name)
       {
          switch(f.getByte()) // type
          {
-         #if DX9
-            case SHADER_DX9:
-            {
-               switch(f.decUIntV()) // version
-               {
-                  case 0:
-                  {
-                     // params
-                     MemtN<ShaderParam*, 256> params; params.setNum(f.decUIntV());
-                     ShaderParams.lock();
-                     FREPA(params)
-                     {
-                        f.getStr(temp_str); ShaderParam &sp=*ShaderParams(temp_str); params[i]=&sp;
-                        if(!sp.is()) // wasn't yet created
-                        {
-                           sp._owns_data=true;
-                           f.getMulti(sp._cpu_data_size, sp._gpu_data_size, sp._elements); // info
-                           LoadTranslation(sp._full_translation, f, sp._elements);         // translation
-                           Alloc(sp._data, sp._gpu_data_size);                             // data
-                           Alloc(sp._changed                );
-                                 sp._constant_count=sp.fullConstantCount();
-                           if(f.getBool())f.get   (sp._data, sp._gpu_data_size); // load default value
-                           else           ZeroFast(sp._data, sp._gpu_data_size); // zero default value
-                           sp.optimize();
-                        }else // verify if it's identical to previously created
-                        {
-                           Memt<ShaderParam::Translation> translation;
-                           Int cpu_data_size, gpu_data_size, elements; f.getMulti(cpu_data_size, gpu_data_size, elements);
-                           if(sp._cpu_data_size!=cpu_data_size                            // check cpu size
-                           || sp._gpu_data_size!=gpu_data_size                            // check gpu size
-                           || sp._elements     !=elements     )ExitParam(temp_str, name); // check number of elements
-                           LoadTranslation(translation, f, sp._elements);                 // translation
-                           if(f.getBool())f.skip(sp._gpu_data_size);                      // ignore default value
-
-                           // check translation
-                           if(                  translation.elms()!=sp._full_translation.elms())ExitParam(temp_str, name);
-                           FREPA(translation)if(translation[i]    !=sp._full_translation[i]    )ExitParam(temp_str, name);
-                        }
-                     }
-                     ShaderParams.unlock();
-
-                     // images
-                     MemtN<ShaderImage*, 256> images; images.setNum(f.decUIntV());
-                     FREPA(images){f.getStr(temp_str); images[i]=ShaderImages(temp_str);}
-
-                     // shaders
-                     if(_vs     .load(f))
-                     if(_ps     .load(f))
-                     if(_shaders.load(f, params, images))
-                        if(f.ok())return true;
-                  }break;
-               }
-            }break;
-         #elif DX11
+         #if DX11
             case SHADER_DX11:
             {
                switch(f.decUIntV()) // version

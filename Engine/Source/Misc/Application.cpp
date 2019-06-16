@@ -367,7 +367,7 @@ void Application::setActive(Bool active)
       #endif
 
          // OpenGL || DX non-exclusive
-      #if DX9 || DX11
+      #if DX11
          if(!D.exclusive())
       #endif
          {

@@ -10,7 +10,6 @@ BUFFER(WaterSurface)
         WaterFresnelRough;
    Vec  WaterFresnelColor;
    Vec  WaterCol;
-   Vec4 WaterBumpDot;
 BUFFER_END
 
 BUFFER(Water)

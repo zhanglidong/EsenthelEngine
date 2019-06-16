@@ -155,9 +155,7 @@ void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
     //case FILTER_LINEAR: VI.shader(null); break;
 
       case FILTER_NONE:
-      #if DX9
-         Sh.h_ImageCol[0]->_sampler=&SamplerPoint;
-      #elif DX11
+      #if DX11
          VI.shader(Sh.h_DrawTexPoint);
        //SamplerPoint.setPS(SSI_DEFAULT);
       #elif GL // in GL 'ShaderImage.Sampler' does not affect filtering, so modify it manually
@@ -190,9 +188,7 @@ void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
    VI.end();
    if(filter==FILTER_NONE)
    {
-   #if DX9
-      Sh.h_ImageCol[0]->_sampler=null;
-   #elif DX11
+   #if DX11
     //SamplerLinearClamp.setPS(SSI_DEFAULT);
    #elif GL
       if(!GL_ES || ImageTI[hwType()].precision<IMAGE_PRECISION_32) // GLES2/3 don't support filtering F32 textures, without this check reading from F32 textures will fail - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml
@@ -208,9 +204,7 @@ void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_
     //case FILTER_LINEAR: VI.shader(null); break;
 
       case FILTER_NONE:
-      #if DX9
-         Sh.h_ImageCol[0]->_sampler=&SamplerPoint;
-      #elif DX11
+      #if DX11
          VI.shader(Sh.h_DrawTexPointC);
        //SamplerPoint.setPS(SSI_DEFAULT);
       #elif GL // in GL 'ShaderImage.Sampler' does not affect filtering, so modify it manually
@@ -245,9 +239,7 @@ void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_
    VI.end();
    if(filter==FILTER_NONE)
    {
-   #if DX9
-      Sh.h_ImageCol[0]->_sampler=null;
-   #elif DX11
+   #if DX11
     //SamplerLinearClamp.setPS(SSI_DEFAULT);
    #elif GL
       if(!GL_ES || ImageTI[hwType()].precision<IMAGE_PRECISION_32) // GLES2/3 don't support filtering F32 textures, without this check reading from F32 textures will fail - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml
@@ -281,7 +273,7 @@ void Image::drawOutline(C Color &color, C Rect &rect, Flt tex_range)
    }
 }
 /******************************************************************************/
-#define DEFAULT_FILTER (MOBILE ? FILTER_LINEAR : DX9 ? FILTER_CUBIC_FAST : FILTER_CUBIC)
+#define DEFAULT_FILTER (MOBILE ? FILTER_LINEAR : FILTER_CUBIC)
 void Image::drawFs(                                    FIT_MODE fit, Int filter)C {drawFilter(                  T.fit(D.rect(), fit), (filter>=0) ? FILTER_TYPE(filter) : DEFAULT_FILTER);}
 void Image::drawFs(C Color &color, C Color &color_add, FIT_MODE fit, Int filter)C {drawFilter(color, color_add, T.fit(D.rect(), fit), (filter>=0) ? FILTER_TYPE(filter) : DEFAULT_FILTER);}
 /******************************************************************************/
@@ -890,9 +882,6 @@ void Image::drawCubeFace(C Color &color, C Color &color_add, C Rect &rect, DIR_E
 /******************************************************************************/
 void Image::draw3D(C Color &color, Flt size, Flt angle, C Vec &pos, ALPHA_MODE alpha)C
 {
-#if DX9 || GL // DX10+ should support all sizes
-   Sh.h_ColSize->set(_part.xy);
-#endif
    D .alpha  (alpha);
    VI.image  (this );
    VI.setType(VI_3D_BILB, VI_STRIP);
@@ -981,13 +970,11 @@ void Image::drawVolume(C Color &color, C Color &color_add, C OBox &obox, Flt vox
          && v.inside.z>=-v.size.z+e && v.inside.z<=v.size.z-e)Sh.h_Volume2[LA]->begin();
          else                                                 Sh.h_Volume1[LA]->begin();
          MshrBoxR.set().drawFull();
-         ShaderEnd();
       }else
       {
          D .depth     (true );
          D .depthWrite(false);
          Sh.h_Volume0[LA]->begin(); MshrBox.set().drawFull();
-         ShaderEnd();
       }
 
       Sh.h_ImageVol[0]->_sampler=null;

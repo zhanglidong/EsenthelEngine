@@ -384,7 +384,7 @@ struct EditorInterface
    // build settings
    Bool buildDebug(Bool     debug   ); // set build debug/release    configuration (true=debug   , false=release )
    Bool build32Bit(Bool     bit32   ); // set build    32/64 bit     configuration (true=32      , false=64      )
-   Bool buildDX9  (Bool     dx9     ); // set build   DX9/DX10+      configuration (true=DX9     , false=DX10+   )
+   Bool buildAPI  (Byte     api     ); // set build    API           configuration
    Bool buildExe  (EXE_TYPE type    ); // set build executable type  configuration
    Bool buildPaths(Bool     relative); // set build export     paths configuration (true=relative, false=absolute)
 
@@ -503,7 +503,7 @@ enum EDITOR_INTERFACE_COMMANDS
 
    EI_BUILD_DEBUG,
    EI_BUILD_32BIT,
-   EI_BUILD_DX9  ,
+   EI_BUILD_API  ,
    EI_BUILD_EXE  ,
    EI_BUILD_PATHS,
 

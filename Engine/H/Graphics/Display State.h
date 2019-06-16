@@ -72,30 +72,28 @@ struct DisplayState // Display States Control, this class methods can be called 
    static Bool       lineSmooth (Bool       on       );                  // set line smoothing (anti-aliasing) and return previous state, enabling this option can significantly reduce performance of drawing lines, default=false
 
 #if EE_PRIVATE
-   #define COL_WRITE_R GPU_API(D3DCOLORWRITEENABLE_RED  , D3D11_COLOR_WRITE_ENABLE_RED  , 0x1)
-   #define COL_WRITE_G GPU_API(D3DCOLORWRITEENABLE_GREEN, D3D11_COLOR_WRITE_ENABLE_GREEN, 0x2)
-   #define COL_WRITE_B GPU_API(D3DCOLORWRITEENABLE_BLUE , D3D11_COLOR_WRITE_ENABLE_BLUE , 0x4)
-   #define COL_WRITE_A GPU_API(D3DCOLORWRITEENABLE_ALPHA, D3D11_COLOR_WRITE_ENABLE_ALPHA, 0x8)
+   #define COL_WRITE_R GPU_API(D3D11_COLOR_WRITE_ENABLE_RED  , 0x1)
+   #define COL_WRITE_G GPU_API(D3D11_COLOR_WRITE_ENABLE_GREEN, 0x2)
+   #define COL_WRITE_B GPU_API(D3D11_COLOR_WRITE_ENABLE_BLUE , 0x4)
+   #define COL_WRITE_A GPU_API(D3D11_COLOR_WRITE_ENABLE_ALPHA, 0x8)
 
-      #define FUNC_NEVER      GPU_API(D3DCMP_NEVER       , D3D11_COMPARISON_NEVER        , GL_NEVER  )
-      #define FUNC_ALWAYS     GPU_API(D3DCMP_ALWAYS      , D3D11_COMPARISON_ALWAYS       , GL_ALWAYS )
+      #define FUNC_NEVER      GPU_API(D3D11_COMPARISON_NEVER        , GL_NEVER  )
+      #define FUNC_ALWAYS     GPU_API(D3D11_COMPARISON_ALWAYS       , GL_ALWAYS )
    #if REVERSE_DEPTH
-      #define FUNC_LESS       GPU_API(D3DCMP_GREATER     , D3D11_COMPARISON_GREATER      , GL_GREATER)
-      #define FUNC_LESS_EQUAL GPU_API(D3DCMP_GREATEREQUAL, D3D11_COMPARISON_GREATER_EQUAL, GL_GEQUAL )
-      #define FUNC_GREATER    GPU_API(D3DCMP_LESS        , D3D11_COMPARISON_LESS         , GL_LESS   )
+      #define FUNC_LESS       GPU_API(D3D11_COMPARISON_GREATER      , GL_GREATER)
+      #define FUNC_LESS_EQUAL GPU_API(D3D11_COMPARISON_GREATER_EQUAL, GL_GEQUAL )
+      #define FUNC_GREATER    GPU_API(D3D11_COMPARISON_LESS         , GL_LESS   )
    #else
-      #define FUNC_LESS       GPU_API(D3DCMP_LESS        , D3D11_COMPARISON_LESS         , GL_LESS   )
-      #define FUNC_LESS_EQUAL GPU_API(D3DCMP_LESSEQUAL   , D3D11_COMPARISON_LESS_EQUAL   , GL_LEQUAL )
-      #define FUNC_GREATER    GPU_API(D3DCMP_GREATER     , D3D11_COMPARISON_GREATER      , GL_GREATER)
+      #define FUNC_LESS       GPU_API(D3D11_COMPARISON_LESS         , GL_LESS   )
+      #define FUNC_LESS_EQUAL GPU_API(D3D11_COMPARISON_LESS_EQUAL   , GL_LEQUAL )
+      #define FUNC_GREATER    GPU_API(D3D11_COMPARISON_GREATER      , GL_GREATER)
    #endif
 
    #define COL_WRITE_RGB  (COL_WRITE_R|COL_WRITE_G|COL_WRITE_B            )
    #define COL_WRITE_RGBA (COL_WRITE_R|COL_WRITE_G|COL_WRITE_B|COL_WRITE_A)
 
-   #define MAX_DX9_TEXTURES             261  // D3DVERTEXTEXTURESAMPLER3+1
-   #define MAX_DX9_SHADER_CONSTANT (4096+32) // memory size (not number of constants), should be 4096 (256 Vec4's), however for unknown reason some shaders use more
-   #define MAX_TEXTURES                  20  // keep this low because of 'texClear'
-   #define MAX_SHADER_BUFFERS            16
+   #define MAX_TEXTURES       20  // keep this low because of 'texClear'
+   #define MAX_SHADER_BUFFERS 16
 
    void setDeviceSettings();
    void clearShader      ();
@@ -109,7 +107,6 @@ struct DisplayState // Display States Control, this class methods can be called 
    static void cull         (Bool      on    );
    static void cullGL       (                );
    static void alphaFactor  (C Color  &factor);
-   static void clipForce    (C RectI  &rect  );
    static void clipAllow    (C RectI  &rect  );
    static void clipAllow    (Bool      on    );
    static void clipPlane    (Bool      on    );
@@ -117,14 +114,13 @@ struct DisplayState // Display States Control, this class methods can be called 
    static void colWrite     (Byte      color_mask, Byte index=0);
    static void colWriteAllow(Byte      color_mask);
    static void sampleMask   (UInt      mask  );
-   static void viewportForce(C RectI  &rect  );
-   static void viewport     (C RectI  &rect, Bool allow_proj_matrix_update=true);
-   static void vf           (GPU_API(IDirect3DVertexDeclaration9, ID3D11InputLayout, VtxFormatGL) *vf);
-   static void texVS        (Int index, GPU_API(IDirect3DBaseTexture9*, ID3D11ShaderResourceView*, UInt) tex);
-   static void texHS        (Int index, GPU_API(IDirect3DBaseTexture9*, ID3D11ShaderResourceView*, UInt) tex);
-   static void texDS        (Int index, GPU_API(IDirect3DBaseTexture9*, ID3D11ShaderResourceView*, UInt) tex);
-   static void texPS        (Int index, GPU_API(C ShaderImage        &, ID3D11ShaderResourceView*, UInt) tex);
-   static void texClear     (           GPU_API(IDirect3DBaseTexture9*, ID3D11ShaderResourceView*, UInt) tex);
+   static void viewport     (C RectI  &rect  );
+   static void vf           (GPU_API(ID3D11InputLayout, VtxFormatGL) *vf);
+   static void texVS        (Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex);
+   static void texHS        (Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex);
+   static void texDS        (Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex);
+   static void texPS        (Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex);
+   static void texClear     (           GPU_API(ID3D11ShaderResourceView*, UInt) tex);
    static void texBind      (UInt mode, UInt tex); // needs to be called on OpenGL instead of calling 'glBindTexture'
    static void bias         (BIAS_MODE    bias);
    static void stencil      (STENCIL_MODE mode);
@@ -157,7 +153,7 @@ private:
    Color      _alpha_factor;
    Vec4       _alpha_factor_v4, _clip_plane;
 #if EE_PRIVATE
-   GPU_API(IDirect3DVertexDeclaration9, ID3D11InputLayout, VtxFormatGL) *_vf;
+   GPU_API(ID3D11InputLayout, VtxFormatGL) *_vf;
 #else
    Ptr        _vf;
 #endif

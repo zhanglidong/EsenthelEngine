@@ -2211,9 +2211,6 @@
     <CustomBuild Include="..\ThirdPartyLibs\DirectX\x64\d3d12.lib">
       <Filter>H\_\DirectX\64</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x64\d3d9.lib">
-      <Filter>H\_\DirectX\64</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\ThirdPartyLibs\DirectX\x64\d3dcompiler.lib">
       <Filter>H\_\DirectX\64</Filter>
     </CustomBuild>
@@ -2294,9 +2291,6 @@
     </CustomBuild>
     <CustomBuild Include="..\ThirdPartyLibs\SQLite\Windows\x64\Release\SQLite.lib">
       <Filter>H\_\Libs\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x86\d3d9.lib">
-      <Filter>H\_\DirectX\32</Filter>
     </CustomBuild>
     <CustomBuild Include="..\ThirdPartyLibs\DirectX\x86\d3d10.lib">
       <Filter>H\_\DirectX\32</Filter>
@@ -2396,9 +2390,6 @@
     <Library Include="..\ThirdPartyLibs\Opus\Windows\x64\Release\silk_float.lib">
       <Filter>H\_\Libs\64</Filter>
     </Library>
-    <Library Include="..\ThirdPartyLibs\D3DX9\2010 Feb\x64\d3dx9.lib">
-      <Filter>H\_\DirectX\64</Filter>
-    </Library>
     <Library Include="..\ThirdPartyLibs\D3DX11\Bin\Windows10\Win32\Release\Effects11.lib">
       <Filter>H\_\DirectX\32\Universal</Filter>
     </Library>
@@ -2464,9 +2455,6 @@
     </Library>
     <Library Include="..\ThirdPartyLibs\Zlib\Windows\ARM\ReleaseWithoutAsm\Zlib.lib">
       <Filter>H\_\Libs\ARM</Filter>
-    </Library>
-    <Library Include="..\ThirdPartyLibs\D3DX9\2010 Feb\x86\d3dx9.lib">
-      <Filter>H\_\DirectX\32</Filter>
     </Library>
     <Library Include="..\ThirdPartyLibs\DirectX\old\x86\X3DAudio.lib">
       <Filter>H\_\DirectX\32</Filter>

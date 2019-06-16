@@ -205,10 +205,6 @@ struct RendererClass // handles rendering
    void cleanup           ();
 
    // render target methods
-#if DX9
-   void setCube(Image &cube, Image *ds, DIR_ENUM dir); // set cube render target
-#endif
-
 #if DX11 // needed on DX11 because it doesn't allow reading and writing to RT's and Depth Buffer at the same time
    static void setDSLookup  (); // !! needs to be called after 'set' !! this needs to be called if we plan to call methods below
    static void setDS        (ID3D11DepthStencilView *dsv);
@@ -280,7 +276,7 @@ private:
    void        (*_render)();
  C Memc<ShaderParamChange> *_shader_param_changes;
    ImageRC       _main, _main_ds,
-                 _shd_map, _cld_map, _shd_map_null,
+                 _shd_map, _cld_map,
                  _eye_adapt_scale[2],
                 *_cur_main, *_cur_main_ds;
    Image        *_cur[4], *_cur_ds;
@@ -292,9 +288,9 @@ private:
                  _vol, _ao, _fade, _back, _back_ds, _mirror_rt, _outline_rt, _sky_coverage, _final;
    Memx<ImageRC> _rts;
 #if EE_PRIVATE
-   GPU_API(IDirect3DSurface9 *_cur_id[4]    , ID3D11RenderTargetView *_cur_id[4]    , union{UInt _cur_id[4]    ; Ptr _cur_id_ptr[4]    ;});
-   GPU_API(IDirect3DSurface9 *_cur_ds_id    , ID3D11DepthStencilView *_cur_ds_id    , union{UInt _cur_ds_id    ; Ptr _cur_ds_id_ptr    ;});
-   GPU_API(Ptr                _cur_ds_ids[3], ID3D11DepthStencilView *_cur_ds_ids[3], union{UInt _cur_ds_ids[3]; Ptr _cur_ds_ids_ptr[3];}); ASSERT(DEPTH_READ_NUM==3); // [DEPTH_READ_NUM]
+   GPU_API(ID3D11RenderTargetView *_cur_id[4]    , union{UInt _cur_id[4]    ; Ptr _cur_id_ptr[4]    ;});
+   GPU_API(ID3D11DepthStencilView *_cur_ds_id    , union{UInt _cur_ds_id    ; Ptr _cur_ds_id_ptr    ;});
+   GPU_API(ID3D11DepthStencilView *_cur_ds_ids[3], union{UInt _cur_ds_ids[3]; Ptr _cur_ds_ids_ptr[3];}); ASSERT(DEPTH_READ_NUM==3); // [DEPTH_READ_NUM]
 #else
    Ptr           _cur_id[4], _cur_ds_id, _cur_ds_ids[3];
 #endif
@@ -311,12 +307,6 @@ private:
 extern MeshRender MshrBox, MshrBoxR, MshrBall;
 
 Flt DepthError(Dbl from, Dbl range, Dbl z, Bool perspective, Int bits);
-
-#if DX9
-          void SetVtxNrmMulAdd(Bool compressed);
-#else
-   INLINE void SetVtxNrmMulAdd(Bool compressed) {}
-#endif
 
 INLINE Bool ReuseDefaultMaterialForNonSkinnedShadowShader(Shader *shader) {return shader==Renderer._shader_shd_map     ;} // this is the most common shadow shader, for which we don't use any material properties (except culling) so we can put all instances to default materials to reduce overhead
 INLINE Bool ReuseDefaultMaterialForSkinnedShadowShader   (Shader *shader) {return shader==Renderer._shader_shd_map_skin;} // this is the most common shadow shader, for which we don't use any material properties (except culling) so we can put all instances to default materials to reduce overhead

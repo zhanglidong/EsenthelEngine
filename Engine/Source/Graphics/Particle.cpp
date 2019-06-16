@@ -1,21 +1,6 @@
 /******************************************************************************/
 #include "stdafx.h"
 namespace EE{
-/******************************************************************************
-
-   For Android OpenGL ES 2.0 'D._sampler_address' is forced to 'GL_CLAMP_TO_EDGE' because particles don't need 'GL_REPEAT',
-      and according to GLES2.0 docs https://www.khronos.org/opengles/sdk/docs/man/xhtml/glTexParameter.xml
-
-   "Similarly, if the width or height of a texture image are not powers of two and either the GL_TEXTURE_MIN_FILTER
-      is set to one of the functions that requires mipmaps or the GL_TEXTURE_WRAP_S or GL_TEXTURE_WRAP_T is not set
-      to GL_CLAMP_TO_EDGE, then the texture image unit will return (R, G, B, A) = (0, 0, 0, 1)."
-
-   This means that if tex is not pow2 size, then it will return (0,0,0,1) color when GL_REPEAT is used.
-
-   Afterwards we're restoring to 'GL_REPEAT' because particles are always drawn after 'D.sampler3D' which sets 'GL_REPEAT'.
-
-   iOS also operates on GLES2.0 however its GPU's don't need this.
-
 /******************************************************************************/
 #define CC4_PRTC CC4('P','R','T','C')
 
@@ -69,12 +54,6 @@ Bool DrawParticleBegin(C Image &image, Byte glow, Bool motion_affects_alpha)
    VI.image     (&image );
    VI.shader    ( shader);
    VI.setFirst  ( VI_3D_BILB, VI_QUAD_IND);
-#if DX9 || GL // DX10+ should support all sizes
-   Sh.h_ColSize->set(image._part.xy);
-#endif
-#if GL_ES && ANDROID // check the comments at the top why this is called
-   D._sampler_address=GL_CLAMP_TO_EDGE;
-#endif
    MaterialClear(); // because of alpha factor
    return true;
 }
@@ -95,9 +74,6 @@ void DrawParticleAdd(C Color &color, Flt opacity, Flt radius, Flt angle, C Vec &
 void DrawParticleEnd()
 {
    VI.end();
-#if GL_ES && ANDROID
-   D._sampler_address=GL_REPEAT;
-#endif
 }
 /******************************************************************************/
 Bool DrawAnimatedParticleBegin(C Image &image, Byte glow, Bool motion_affects_alpha, Int x_frames, Int y_frames)
@@ -118,12 +94,6 @@ Bool DrawAnimatedParticleBegin(C Image &image, Byte glow, Bool motion_affects_al
    VI.shader    ( shader);
    VI.setFirst  ( VI_3D_BILB_ANIM, VI_QUAD_IND);
    Sh.h_ParticleFrames->set(VecI2(x_frames, y_frames));
-#if DX9 || GL // DX10+ should support all sizes
-   Sh.h_ColSize->set(image._part.xy);
-#endif
-#if GL_ES && ANDROID // check the comments at the top why this is called
-   D._sampler_address=GL_CLAMP_TO_EDGE;
-#endif
    MaterialClear(); // because of alpha factor
    return true;
 }
@@ -145,9 +115,6 @@ void DrawAnimatedParticleAdd(C Color &color, Flt opacity, Flt radius, Flt angle,
 void DrawAnimatedParticleEnd()
 {
    VI.end();
-#if GL_ES && ANDROID
-   D._sampler_address=GL_REPEAT;
-#endif
 }
 /******************************************************************************/
 Flt ParticleOpacity(Flt particle_life, Flt particle_life_max, Bool particles_smooth_fade)
@@ -730,7 +697,7 @@ RawParticles& RawParticles::set(C Particle *particle, Int particles)
    if( particles>_max_particles) // re-create buffers
    {
      _max_particles=particles;
-     _vb.createNum(SIZE(Vtx3DBilb), particles*4, false); // non-dynamic was always faster (DX9: 140/15 fps, DX10+: 96/15 fps, GL: 96/84 fps, GL ES: ?)
+     _vb.createNum(SIZE(Vtx3DBilb), particles*4, false); // non-dynamic was always faster (DX10+: 96/15 fps, GL: 96/84 fps, GL ES: ?)
 
       // indexes
       if(_vb.vtxs()<=0x10000)_ib.del();else // use 'IndBuf16384Quads'
@@ -799,12 +766,6 @@ void RawParticles::draw()C
       D .depth     (true );
       D .cull      (false);
       Sh.h_ImageCol[0]->set(image());
-   #if DX9 || GL // DX10+ should support all sizes
-      Sh.h_ColSize->set(image->_part.xy);
-   #endif
-   #if GL_ES && ANDROID // check the comments at the top why this is called
-      D._sampler_address=GL_CLAMP_TO_EDGE;
-   #endif
 
       // set
     C IndBuf &ib=(T._ib.is() ? T._ib : IndBuf16384Quads);
@@ -812,16 +773,10 @@ void RawParticles::draw()C
 
       // draw
       shader->begin();
-   #if DX9
-      D3D->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, _vb._vtx_num, 0, _particles*2);
-   #elif DX11
+   #if DX11
       D3DC->DrawIndexed(_particles*(2*3), 0, 0);
    #elif GL
       glDrawElements(GL_TRIANGLES, _particles*(2*3), ib.bit16() ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, null);
-   #endif
-      ShaderEnd();
-   #if GL_ES && ANDROID
-      D._sampler_address=GL_REPEAT;
    #endif
 
       // we've changed textures and set alpha factor so we need to clear material

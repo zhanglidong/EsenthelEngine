@@ -103,10 +103,8 @@ enum FOV_MODE : Byte // Field of View mode, determines calculating actual fov va
 enum SHADER_MODEL : Byte
 {
    SM_UNKNOWN, // unknown
-   SM_GL_ES_2, //           (OpenGL ES 2.0     )
    SM_GL_ES_3, //           (OpenGL ES 3.0     )
    SM_GL     , //           (OpenGL for Desktop)
-   SM_3      , // Model 3.0 (DirectX  9        )
    SM_4      , // Model 4.0 (DirectX 10        )
    SM_4_1    , // Model 4.1 (DirectX 10.1      )
    SM_5      , // Model 5.0 (DirectX 11        )
@@ -119,9 +117,6 @@ inline Bool FovHorizontal (FOV_MODE mode) {return mode==FOV_X || mode==FOV_ORTHO
 /******************************************************************************/
 struct Display : DisplayState, DisplayDraw // Display Control
 {
-   Bool (*lost )(), // pointer to custom function (may be null) called when display is lost , it must return true on success and false on fail
-        (*reset)(); // pointer to custom function (may be null) called when display is reset, it must return true on success and false on fail
-
    void (*screen_changed)(Flt old_width, Flt old_height); // pointer to custom function (may be null) called when screen proportions have changed
 
    Flt (*shadow_step)(Int i, Int num); // pointer to custom function (may be null) which allows to manually specify the fraction range of the i-th out of 'num' shadow map splits
@@ -170,8 +165,6 @@ struct Display : DisplayState, DisplayDraw // Display Control
    Bool     densityFast      (Byte             density     );
    void     densityUpdate    (                             );
    void     gammaSet         (                             );
-                                                                Bool              shaderModelGLES2()C {return   GL_ES  && shaderModel()==SM_GL_ES_2;} // if shaderModel()==SM_GL_ES_2
-                                                                Bool           notShaderModelGLES2()C {return (!GL_ES) || shaderModel()!=SM_GL_ES_2;} // if shaderModel()!=SM_GL_ES_2
                                                                 Bool             densityUsed      ()C {return _density!=127  ;} // get if Density is != 1.0
                                                                 Bool             densityUpsample  ()C {return _density> 127  ;} // get if Density is >  1.0
                                                                 Byte             densityByte      ()C {return _density       ;} // get    Density Byte
@@ -179,9 +172,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
                                                                 Bool             highPrecNrmCalcIs()C {return highPrecNrmCalc() && !highPrecNrmRT();}
                                                                 void             aspectRatioEx    (Bool force=true, Bool quiet=false);
                                                                 Int              maxShaderMatrixes()C; // max number of matrixes that can be set in shaders
-                                                                Bool             meshStorageSigned()C; // if supports signed storage for mesh vtx components
                                                                 Bool             meshBoneSplit    ()C; // if requires usage of Bone Splits for meshes with big amount of bones
-                                                                Bool             hwInstancing     ()C; // if hardware instancing is supported
                                                                 Bool             signedNrmRT      ()C; // if Normal   Render Target is signed
                                                                 Bool             signedVelRT      ()C; // if Velocity Render Target is signed
 #endif
@@ -413,12 +404,8 @@ struct Display : DisplayState, DisplayDraw // Display Control
 #if EE_PRIVATE
    static void clearDS     (Byte s=0                ); // clear depth buffer and stencil (if available)
    static void clearStencil(Byte s=0                ); // clear                  stencil
-#if DX9
-   static void clearCol    (Int i, C Color &color   ); // clear i-th full (not viewport) RT to 'color'
-#else
    static void clearCol    (       C Vec4  &color   ); // clear screen viewport to 'color'
    static void clearCol    (Int i, C Vec4  &color   ); // clear i-th full (not viewport) RT to 'color'
-#endif
 #endif
 
    // operations
@@ -455,7 +442,7 @@ private:
       Viewport& setFov       (); // this needs to be called after 'setRect'
       Viewport& setFov       (                                     C Vec2 &fov, FOV_MODE fov_mode);
       Viewport& set          (C RectI &recti, Flt from, Flt range, C Vec2 &fov, FOV_MODE fov_mode);
-      Viewport& setViewport  (Bool allow_proj_matrix_update=true);
+      Viewport& setViewport  ();
       Viewport& setShader    (Flt *offset=null);
       Viewport& setProjMatrix(Bool set_frustum);
    #endif
@@ -491,8 +478,8 @@ private:
    Bool              _full, _sync, _exclusive, _hp_col_rt, _hp_nrm_rt, _hp_lum_rt, _hp_nrm_calc, _dither, _bend_leafs, _particles_soft, _particles_smooth, _tex_mip_filter, _tex_macro, _tex_detail_lod, _eye_adapt, _bloom_sat, _bloom_max, _bloom_half, _bloom_samples,
                      _tesselation, _tesselation_heightmap, _tesselation_allow,
                      _bloom_allow, _glow_allow, _amb_jitter, _amb_normal, _shd_jitter, _shd_reduce, _grass_shadow, _grass_mirror, _vol_light, _vol_add, _dof_foc_mode, _outline_sky, _color_palette_allow,
-                     _gamma_all, _tex_pow2_3d, _tex_pow2_cube, _mrt_const_bit_size, _mrt_post_process, _view_square_pixel, _initialized, _resetting, _began, _no_gpu, _can_draw, _fade_get, _fade_flipped, _allow_stereo, _draw_null_mtrl, _mtrl_blend, _shader_tex_lod;
-   Byte              _tex_pow2, _density, _samples, _max_tex_filter, _max_vtx_attribs, _bloom_blurs, _max_rt,
+                     _gamma_all, _view_square_pixel, _initialized, _resetting, _no_gpu, _can_draw, _fade_get, _fade_flipped, _allow_stereo, _draw_null_mtrl, _mtrl_blend;
+   Byte              _density, _samples, _max_tex_filter, _max_vtx_attribs, _bloom_blurs, _max_rt,
                      _amb_soft, _amb_res,
                      _shd_soft, _shd_map_num,
                      _mtn_res,
@@ -534,11 +521,6 @@ private:
    Map<Ptr, Monitor> _monitors;
 
 #if EE_PRIVATE
-   // get
-#if DX9
-   Bool validUsage(UInt usage, D3DRESOURCETYPE res_type, IMAGE_TYPE image_type);
-#endif
-
    // manage
    void init        ();
    void del         ();
@@ -552,8 +534,6 @@ private:
    {
       RESET_OK                  ,
       RESET_DEVICE_NOT_CREATED  ,
-      RESET_CUSTOM_LOST_FAILED  ,
-      RESET_CUSTOM_RESET_FAILED ,
       RESET_DEVICE_RESET_FAILED ,
       RESET_RENDER_TARGET_FAILED,
    };
@@ -569,8 +549,6 @@ private:
           void getCaps       ();
           void after         (Bool resize_callback);
           Bool initialized   ()C {return _initialized;}
-   static void end           ();
-   static void begin         ();
    static Bool flip          ();
    static void flush         ();
    static void finish        ();
@@ -595,9 +573,7 @@ private:
 /******************************************************************************/
 #if EE_PRIVATE
 
-#if DX9
-   extern IDirect3DDevice9 *D3D;
-#elif DX11
+#if DX11
    extern ID3D11Device         *D3D;
    extern ID3D11DeviceContext  *D3DC;
    extern ID3D11DeviceContext1 *D3DC1;
@@ -651,9 +627,7 @@ private:
    Bool     SetDisplayMode(Int mode=1); // 0=always off (use at shutdown), 1=if want full and app is active, 2=if want full (use at init)
    void RequestDisplayMode(Int w, Int h, Int full);
 
-#if WINDOWS_OLD
-   IDirect3DDevice9* GetD3D9();
-#elif WINDOWS_NEW
+#if WINDOWS_NEW
    extern Flt ScreenScale;
 
    Int DipsToPixels(Flt dips);

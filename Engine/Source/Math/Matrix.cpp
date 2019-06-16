@@ -25,9 +25,6 @@ const MatrixM MatrixMIdentity(1);
 static Vec           GObjVel   [MAX_MATRIX_SW], GFurVel[MAX_MATRIX_SW];
 static GpuMatrix     GObjMatrix[MAX_MATRIX_SW];
 #endif
-#if DX9
-       Vec2          PixelOffset;
-#endif
 /******************************************************************************/
 Matrix3& Matrix3::operator*=(Flt f)
 {
@@ -3431,25 +3428,11 @@ void SetMatrix(C MatrixM &matrix, C Vec &vel, C Vec &ang_vel)
    SetFastAngVel (ang_vel_shader);
 }
 /******************************************************************************/
-void SetProjMatrix() // this needs to be additionally called when changing 'PixelOffset' on DX9, or switching between '_main' and some other RT on OpenGL
+void SetProjMatrix() // this needs to be additionally called when switching between '_main' and some other RT on OpenGL
 {
    if(Sh.h_ProjMatrix)
    {
-   #if DX9 // in DirectX 9 adjust projection 2D offset to match DirectX 10+ and OpenGL
-      Matrix4 m=ProjMatrix;
-
-      m.x  .x+=m.x  .w*PixelOffset.x;
-      m.y  .x+=m.y  .w*PixelOffset.x;
-      m.z  .x+=m.z  .w*PixelOffset.x;
-      m.pos.x+=m.pos.w*PixelOffset.x;
-
-      m.x  .y+=m.x  .w*PixelOffset.y;
-      m.y  .y+=m.y  .w*PixelOffset.y;
-      m.z  .y+=m.z  .w*PixelOffset.y;
-      m.pos.y+=m.pos.w*PixelOffset.y;
-
-      Sh.h_ProjMatrix->set(m);
-   #elif GL
+   #if GL
       if(D.mainFBO())Sh.h_ProjMatrix->set(ProjMatrix);else
       {
          Matrix4 m=ProjMatrix; CHS(m.y.y); Sh.h_ProjMatrix->set(m); // in OpenGL when drawing to a RenderTarget the 'dest.pos.y' must be flipped
@@ -3465,23 +3448,10 @@ void SetProjMatrix(Flt proj_offset)
    {
       Matrix4 m=ProjMatrix;
 
-   #if DX9 // in DirectX 9 adjust projection matrix 2D offset to match DirectX 10+ and OpenGL
-      Flt o=PixelOffset.x+proj_offset;
-      m.x  .x+=m.x  .w*o;
-      m.y  .x+=m.y  .w*o;
-      m.z  .x+=m.z  .w*o;
-      m.pos.x+=m.pos.w*o;
-
-      m.x  .y+=m.x  .w*PixelOffset.y;
-      m.y  .y+=m.y  .w*PixelOffset.y;
-      m.z  .y+=m.z  .w*PixelOffset.y;
-      m.pos.y+=m.pos.w*PixelOffset.y;
-   #else
       m.x  .x+=m.x  .w*proj_offset;
       m.y  .x+=m.y  .w*proj_offset;
       m.z  .x+=m.z  .w*proj_offset;
       m.pos.x+=m.pos.w*proj_offset;
-   #endif
 
     //Flt cam_offset; m.pos.x+=m.x.x*cam_offset; // this matches "m=Matrix().setPos(cam_offset, 0, 0)*m"
 

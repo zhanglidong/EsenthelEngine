@@ -74,28 +74,7 @@ void MainShaderClass::del()
 }
 void MainShaderClass::createSamplers()
 {
-#if DX9
-   REPAO(SamplerPoint.filter )=D3DTEXF_POINT;
-   REPAO(SamplerPoint.address)=D3DTADDRESS_CLAMP;
-
-   REPAO(SamplerLinearWrap.filter )=D3DTEXF_LINEAR;
-   REPAO(SamplerLinearWrap.address)=D3DTADDRESS_WRAP;
-
-   REPAO(SamplerLinearWCC.filter )=D3DTEXF_LINEAR;
-   REPAO(SamplerLinearWCC.address)=D3DTADDRESS_CLAMP; SamplerLinearWCC.address[0]=D3DTADDRESS_WRAP;
-
-   REPAO(SamplerLinearCWC.filter )=D3DTEXF_LINEAR;
-   REPAO(SamplerLinearCWC.address)=D3DTADDRESS_CLAMP; SamplerLinearCWC.address[1]=D3DTADDRESS_WRAP;
-
-   REPAO(SamplerLinearCWW.filter )=D3DTEXF_LINEAR;
-   REPAO(SamplerLinearCWW.address)=D3DTADDRESS_WRAP; SamplerLinearCWW.address[0]=D3DTADDRESS_CLAMP;
-
-   REPAO(SamplerLinearClamp.filter )=D3DTEXF_LINEAR;
-   REPAO(SamplerLinearClamp.address)=D3DTADDRESS_CLAMP;
-
-   REPAO(SamplerFont.filter )=D3DTEXF_LINEAR;
-   REPAO(SamplerFont.address)=D3DTADDRESS_CLAMP;
-#elif DX11
+#if DX11
    D3D11_SAMPLER_DESC sd; Zero(sd);
    sd.MipLODBias    =0;
    sd.MaxAnisotropy =1;
@@ -177,7 +156,6 @@ void MainShaderClass::create()
    compile();
 
    if(D.shaderModel()>=SM_4)path="Shader\\4\\" ;else
-   if(D.shaderModel()>=SM_3)path="Shader\\3\\" ;else
                             path="Shader\\GL\\";
 
    shader=ShaderFiles("Main"); if(!shader)Exit("Can't load the Main Shader");
@@ -302,9 +280,6 @@ void MainShaderClass::getTechniques()
    h_Coords          =GetShaderParam("Coords"  );
    h_Viewport        =GetShaderParam("Viewport");
    h_DepthWeightScale=GetShaderParam("DepthWeightScale");
-#if DX9
-   h_PixelOffset=GetShaderParam("PixelOffset");
-#endif
 
    h_CamAngVel =GetShaderParam("CamAngVel" );
    h_ObjAngVel =GetShaderParam("ObjAngVel" );
@@ -335,9 +310,6 @@ void MainShaderClass::getTechniques()
 
    h_VtxSkinning =GetShaderParam("VtxSkinning" );
    h_VtxHeightmap=GetShaderParam("VtxHeightmap");
-#if DX9 // required
-   h_VtxNrmMulAdd=GetShaderParam("VtxNrmMulAdd"); SetVtxNrmMulAdd(true);
-#endif
 
    h_LightMapScale   =GetShaderParam("LightMapScale");
    h_LightMapColAdd  =GetShaderParam("LightMapColAdd");
@@ -384,12 +356,10 @@ void MainShaderClass::getTechniques()
    h_PaletteDraw=get("PaletteDraw");
    h_Simple     =get("Simple");
    h_DrawTexX   =get("DrawTexX");
- //h_DrawTexZ   =get("DrawTexZ"); used by Editor
-   h_DrawTexW   =get("DrawTexW");
    h_DrawTexXC  =get("DrawTexXC");
-   h_DrawTexWC  =get("DrawTexWC");
    h_DrawTexXCD =get("DrawTexXCD");
-   h_DrawTexWCD =get("DrawTexWCD");
+ //h_DrawTexZ   =get("DrawTexZ"); used by Editor
+ //h_DrawTexW   =get("DrawTexW"); used by Editor
  //h_DrawTexNrm =get("DrawTexNrm"); used by Editor
    h_DrawMask   =get("DrawMask");
 
@@ -447,9 +417,6 @@ void MainShaderClass::getTechniques()
    }
 
    // DEPTH
-#if DX9
-   REPD(p, 2)h_LinearizeDepthRAWZ[p]=get(S8+"LinearizeDepthRAWZ"+(p?'P':'\0'));
-#endif
    REPD(m, (D.shaderModel()>=SM_4_1) ? 3 : (D.shaderModel()>=SM_4) ? 2 : 1)
    REPD(p, 2)h_LinearizeDepth[p][m]=get(S8+"LinearizeDepth"+(p?'P':'\0')+m);
 
@@ -636,12 +603,10 @@ void HDR::load()
 {
    if(!shader)if(shader=ShaderFiles("Hdr"))
    {
-      h_HdrDS0[0]=shader->get("HdrDS0"   );
-      h_HdrDS0[1]=shader->get("HdrDS0G"  );
-      h_HdrDS1   =shader->get("HdrDS1"   );
+      h_HdrDS[0] =shader->get("HdrDS0"   );
+      h_HdrDS[1] =shader->get("HdrDS1"   );
       h_HdrUpdate=shader->get("HdrUpdate");
-      h_Hdr[0]   =shader->get("Hdr"      );
-      h_Hdr[1]   =shader->get("HdrG"     );
+      h_Hdr      =shader->get("Hdr"      );
    }   
 }
 /******************************************************************************/

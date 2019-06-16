@@ -1,9 +1,6 @@
 /******************************************************************************/
 #include "stdafx.h"
 namespace EE{
-#if DX9 && LINEAR_GAMMA
-static Byte RT0SRGB; // use Byte because we're setting ~0
-#endif
 /******************************************************************************
 
    RT       : Width      , Height     , Type                                                                     , Samples    , Comments
@@ -49,35 +46,16 @@ void RendererClass::createShadowMap()
    D._shd_map_size_actual=Max(0, Min(D.shadowMapSize()*3, D.maxTexSize())/3);
    Int shd_map_w=D.shadowMapSizeActual()*2,
        shd_map_h=D.shadowMapSizeActual()*3;
-#if DX9
-  _shd_map_null.del();
-   if(!_shd_map.createTryEx(shd_map_w, shd_map_h, 1, IMAGE_D32  , IMAGE_SHADOW_MAP, 1)) // on GeForce 650m this is not available, but try anyway
-   if(!_shd_map.createTryEx(shd_map_w, shd_map_h, 1, IMAGE_D24X8, IMAGE_SHADOW_MAP, 1)) // we don't need stencil so avoid it in case it causes performance penalty
-       _shd_map.createTryEx(shd_map_w, shd_map_h, 1, IMAGE_D24S8, IMAGE_SHADOW_MAP, 1);
-
-   if( _shd_map.is())
-   if(!_shd_map_null.createTryEx(_shd_map.w(), _shd_map.h(), 1, IMAGE_NULL    , IMAGE_RT, 1))
-   if(!_shd_map_null.createTryEx(_shd_map.w(), _shd_map.h(), 1, IMAGE_B8G8R8A8, IMAGE_RT, 1))
-       _shd_map.del();
-#else
    if(!_shd_map.createTryEx(shd_map_w, shd_map_h, 1, IMAGE_D32  , IMAGE_SHADOW_MAP, 1)) // D32 shadow maps have no performance penalty (tested on GeForce 650m) so use them if possible
    if(!_shd_map.createTryEx(shd_map_w, shd_map_h, 1, IMAGE_D24X8, IMAGE_SHADOW_MAP, 1)) // we don't need stencil so avoid it in case it causes performance penalty
    if(!_shd_map.createTryEx(shd_map_w, shd_map_h, 1, IMAGE_D24S8, IMAGE_SHADOW_MAP, 1))
        _shd_map.createTryEx(shd_map_w, shd_map_h, 1, IMAGE_D16  , IMAGE_SHADOW_MAP, 1);
-#endif
    if(!_shd_map.is())D._shd_map_size_actual=0;
 
    // cloud shadow maps
-#if DX9
-   if(!_cld_map.createTryEx(D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_A8      , IMAGE_RT, 1))
-   if(!_cld_map.createTryEx(D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_L8A8    , IMAGE_RT, 1))
-   if(!_cld_map.createTryEx(D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_B8G8R8A8, IMAGE_RT, 1))
-       _cld_map.createTryEx(D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_R8G8B8A8, IMAGE_RT, 1);
-#else
    if(!_cld_map.createTryEx(D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_R8      , IMAGE_RT, 1))
    if(!_cld_map.createTryEx(D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_R8G8    , IMAGE_RT, 1))
        _cld_map.createTryEx(D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_R8G8B8A8, IMAGE_RT, 1);
-#endif
 
    Sh.connectRT();
    D.shadowJitterSet();
@@ -146,12 +124,11 @@ void RendererClass::rtDel()
   _gui_ds=_cur_main_ds=&_main_ds;
 
    unmapMain();
-#if DX9 || DX11 || IOS // only on these platforms we're creating custom '_main_ds', on other platforms the system creates it, so we're not deleting (to keep the info about IMAGE_TYPE and samples)
+#if DX11 || IOS // only on these platforms we're creating custom '_main_ds', on other platforms the system creates it, so we're not deleting (to keep the info about IMAGE_TYPE and samples)
   _main_ds.del();
 #endif
-  _cld_map     .del();
-  _shd_map     .del();
-  _shd_map_null.del();
+  _cld_map.del();
+  _shd_map.del();
    REPAO(_eye_adapt_scale).del();
   _rts.clear();
    REPAO(_cur       )=null; _cur_ds   =null;
@@ -165,21 +142,12 @@ Bool RendererClass::rtCreate()
 
    rtDel();
    ResetImageTypeCreateResult();
-#if DX9 && LINEAR_GAMMA
-   RT0SRGB=~0;
-#endif
    if(!D.canDraw())return true; // don't bother with render targets if the device can't draw (can happen when using 'APP_ALLOW_NO_GPU')
 
    if(!mapMain())return false;
 
    // depth
-#if DX9
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_INTZ , IMAGE_DS_RT, 1, _main.samples()))
- //if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_RAWZ , IMAGE_DS_RT, 1, _main.samples())) disable for now because all shader depth reads use standard depth format while RAWZ requires a special shader, enabling would require converting to IMAGE_F32 that mimics standard depth buffer, however that would destroy stencil and we would have to use 2 separate Images
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_DF24 , IMAGE_DS_RT, 1, _main.samples()))
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24S8, IMAGE_DS   , 1, _main.samples()))
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24X8, IMAGE_DS   , 1, _main.samples()))return false;
-#elif DX11
+#if DX11
    if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24S8, IMAGE_DS_RT, 1, _main.samples()))return false;
 #elif IOS // on iOS we have access to '_main' so let's keep '_main_ds' the same
    if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24S8, IMAGE_DS_RT, 1, _main.samples()))
@@ -325,48 +293,6 @@ static inline Bool EqualDS(C Image *a, C Image *b, UInt a_txtr)
 }
 static Bool EqualTxtr(C Image *a, C Image *b) {return (a ? a->_txtr : 0)==(b ? b->_txtr : 0);} // simpler version that checks texture ID's only, this can be used for #1+ RT's which never use RenderBuffers but only textures
 #endif
-#if DX9
-void RendererClass::setCube(Image &cube, Image *ds, DIR_ENUM dir)
-{
-   if(cube._cube)
-   {
-   #if GL
-      Bool was_main_fbo=D.mainFBO();
-   #endif
-      D3DCUBEMAP_FACES cf;
-      switch(dir)
-      {
-         case DIR_LEFT : cf=D3DCUBEMAP_FACE_NEGATIVE_X; break;
-         case DIR_RIGHT: cf=D3DCUBEMAP_FACE_POSITIVE_X; break;
-         case DIR_DOWN : cf=D3DCUBEMAP_FACE_NEGATIVE_Y; break;
-         case DIR_UP   : cf=D3DCUBEMAP_FACE_POSITIVE_Y; break;
-         case DIR_BACK : cf=D3DCUBEMAP_FACE_NEGATIVE_Z; break;
-         default       : cf=D3DCUBEMAP_FACE_POSITIVE_Z; break;
-      }
-      IDirect3DSurface9 *surf=null; cube._cube->GetCubeMapSurface(cf, 0, &surf);
-     _cur   [0]=&cube;
-     _cur_id[0]= surf;
-      D3D->SetRenderTarget(0, surf);
-   #if LINEAR_GAMMA
-      D3D->SetRenderState(D3DRS_SRGBWRITEENABLE, RT0SRGB=cube._srgb);
-   #endif
-      RELEASE(surf);
-
-      IDirect3DSurface9 *ids=(ds ? ds->_surf : null);
-      if(_cur_ds_id!=ids){_cur_ds=ds; D3D->SetDepthStencilSurface(_cur_ds_id=ids);}
-
-     _res.set(cube.w(), cube.h());
-      if(Sh.h_RTSizeI)Sh.h_RTSizeI->set(Vec2(_res));
-   #if DX9
-      D.viewportForce(RectI(0, 0, resW(), resH())); // DX9 automatically sets full viewport on RT change, force current viewport values
-   #elif GL
-      if(was_main_fbo!=D.mainFBO())SwitchedFBO();
-   #endif
-      D._view_active.setRect(RectI(0, 0, resW(), resH())).setViewport(); // set full viewport
-      D.clipAllow(_cur[0]==_cur_main);
-   }
-}
-#endif
 #define R Renderer
 #if DX11
 void RendererClass::setDSLookup()
@@ -414,38 +340,8 @@ void RendererClass::needDepthTest() {setDS(R._cur_ds_ids[NO_DEPTH_READ]);}
 #undef R
 void RendererClass::set(Image *t0, Image *t1, Image *t2, Image *t3, Image *ds, Bool custom_viewport, DEPTH_READ_MODE depth_read_mode)
 {
-   Int changed=0;
-#if DX9
-   enum
-   {
-      RT0=0x1,
-      RTN=0x2,
-      DS =0x4,
-   };
-   IDirect3DSurface9 *id0=(t0 ? t0->_surf : null),
-                     *id1=(t1 ? t1->_surf : null),
-                     *id2=(t2 ? t2->_surf : null),
-                     *id3=(t3 ? t3->_surf : null),
-                     *ids=(ds ? ds->_surf : null);
-
-   // a render target can't be attached to multiple slots, so that's why 1-2-3 slots need first to be detached
-   if(_cur_id[1]!=id1 || _cur_id[2]!=id2 || _cur_id[3]!=id3)
-   {
-      if(_cur_id[3]){_cur[3]=null; changed|=RTN; D3D->SetRenderTarget(3, _cur_id[3]=null);}
-      if(_cur_id[2]){_cur[2]=null; changed|=RTN; D3D->SetRenderTarget(2, _cur_id[2]=null);}
-      if(_cur_id[1]){_cur[1]=null; changed|=RTN; D3D->SetRenderTarget(1, _cur_id[1]=null);}
-   }
-
-   if(_cur_id[0]!=id0){_cur[0]=t0; changed|=RT0; D3D->SetRenderTarget       (0, _cur_id[0]=id0);
-   #if LINEAR_GAMMA
-      if(t0){Byte srgb=t0->_srgb; if(RT0SRGB!=srgb)D3D->SetRenderState(D3DRS_SRGBWRITEENABLE, RT0SRGB=srgb);}
-   #endif
-   }
-   if(_cur_id[1]!=id1){_cur[1]=t1; changed|=RTN; D3D->SetRenderTarget       (1, _cur_id[1]=id1);}
-   if(_cur_id[2]!=id2){_cur[2]=t2; changed|=RTN; D3D->SetRenderTarget       (2, _cur_id[2]=id2);}
-   if(_cur_id[3]!=id3){_cur[3]=t3; changed|=RTN; D3D->SetRenderTarget       (3, _cur_id[3]=id3);}
-   if(_cur_ds_id!=ids){_cur_ds=ds; changed|=DS ; D3D->SetDepthStencilSurface(   _cur_ds_id=ids);}
-#elif DX11
+   Bool changed=false;
+#if DX11
    ID3D11RenderTargetView *id0=(t0 ? t0->_rtv : null),
                           *id1=(t1 ? t1->_rtv : null),
                           *id2=(t2 ? t2->_rtv : null),
@@ -499,8 +395,7 @@ void RendererClass::set(Image *t0, Image *t1, Image *t2, Image *t3, Image *ds, B
       {
          D.fbo(0); // set default frame buffer
         _cur_ds_id=0; // main FBO always has 0 depth txtr ID
-      #if GL_ES // do this only on GLES, because on desktop it requires GL 4.3 TODO:
-         if(D.notShaderModelGLES2()) // this check is needed because on GLES2 we don't have 'glInvalidateFramebuffer'
+         if(glInvalidateFramebuffer) // requires GL 4.3, GL ES 3.0
          {
             // discard, for main FBO we need to setup different values - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glInvalidateFramebuffer.xhtml
             GLenum attachment[3]; GLsizei attachments=0; // RT0+Depth+Stencil
@@ -508,7 +403,6 @@ void RendererClass::set(Image *t0, Image *t1, Image *t2, Image *t3, Image *ds, B
             if(_main_ds._discard){_main_ds._discard=false; attachment[attachments++]=GL_DEPTH; if(ImageTI[_main_ds.hwType()].s)attachment[attachments++]=GL_STENCIL;}
             if(attachments)glInvalidateFramebuffer(GL_FRAMEBUFFER, attachments, attachment);
          }
-      #endif
       }else
    #endif
       {
@@ -547,21 +441,20 @@ void RendererClass::set(Image *t0, Image *t1, Image *t2, Image *t3, Image *ds, B
 	                       glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, t0->_rb     );
          }
 
-         if(D.notShaderModelGLES2()) // this check is needed because on GLES2 we don't have MRT, and there's no 'glInvalidateFramebuffer'
+         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, t1 ? t1->_txtr : 0, 0);
+         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, t2 ? t2->_txtr : 0, 0);
+         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, t3 ? t3->_txtr : 0, 0);
+
+         GLenum buffers[]={GLenum(t0 ? GL_COLOR_ATTACHMENT0 : GL_NONE),
+                           GLenum(t1 ? GL_COLOR_ATTACHMENT1 : GL_NONE),
+                           GLenum(t2 ? GL_COLOR_ATTACHMENT2 : GL_NONE),
+                           GLenum(t3 ? GL_COLOR_ATTACHMENT3 : GL_NONE)};
+         glDrawBuffers(Elms(buffers), buffers);
+         glReadBuffer (buffers[0]);
+
+         // discard
+         if(glInvalidateFramebuffer) // requires GL 4.3, GL ES 3.0
          {
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, t1 ? t1->_txtr : 0, 0);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, t2 ? t2->_txtr : 0, 0);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, t3 ? t3->_txtr : 0, 0);
-
-            GLenum buffers[]={GLenum(t0 ? GL_COLOR_ATTACHMENT0 : GL_NONE),
-                              GLenum(t1 ? GL_COLOR_ATTACHMENT1 : GL_NONE),
-                              GLenum(t2 ? GL_COLOR_ATTACHMENT2 : GL_NONE),
-                              GLenum(t3 ? GL_COLOR_ATTACHMENT3 : GL_NONE)};
-            glDrawBuffers(Elms(buffers), buffers);
-            glReadBuffer (buffers[0]);
-
-            // discard
-         #if GL_ES // do this only on GLES, because on desktop it requires GL 4.3 TODO:
             GLenum attachment[ELMS(_cur)+1]; GLsizei attachments=0; // RT's+DS
             if(t0     &&     t0->_discard){    t0->_discard=false; attachment[attachments++]=GL_COLOR_ATTACHMENT0;}
             if(t1     &&     t1->_discard){    t1->_discard=false; attachment[attachments++]=GL_COLOR_ATTACHMENT1;}
@@ -569,7 +462,6 @@ void RendererClass::set(Image *t0, Image *t1, Image *t2, Image *t3, Image *ds, B
             if(t3     &&     t3->_discard){    t3->_discard=false; attachment[attachments++]=GL_COLOR_ATTACHMENT3;}
             if(set_ds && set_ds->_discard){set_ds->_discard=false; attachment[attachments++]=(ImageTI[set_ds->hwType()].s ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT);}
             if(attachments)glInvalidateFramebuffer(GL_FRAMEBUFFER, attachments, attachment);
-         #endif
          }
 
       #if DEBUG
@@ -619,26 +511,19 @@ void RendererClass::set(Image *t0, Image *t1, Image *t2, Image *t3, Image *ds, B
          if(Sh.h_RTSizeI)Sh.h_RTSizeI->setConditional(_res);
       }
 
-   #if DX9
-      if(changed&RT0) // DX9 automatically performs some changes on RT #0 change (but not on the others, this was tested)
-      {
-         RectI full(0, 0, resW(), resH());
-         D.viewportForce(full); // DX9 automatically sets full viewport, so we need to adjust cached viewport values to math those of the DX9
-         D.    clipForce(full); // DX9 automatically sets full clipping (scissor rect)
-      }
-   #elif GL
+   #if GL
       if(was_main_fbo!=main_fbo)SwitchedFBO();
    #endif
       D._view_active.setRect(custom_viewport ? screenToPixelI(D.viewRect()) : RectI(0, 0, resW(), resH())).setViewport();
       D.clipAllow(_cur[0]==_cur_main);
-      D.validateCoords(); // viewport was changed, also for DX9 (pixel offset) and OpenGL (flip Y 2D coords when Rendering To Texture)
+      D.validateCoords(); // viewport was changed, also for OpenGL (flip Y 2D coords when Rendering To Texture)
    }else // render targets weren't changed, so set viewport only
    {
       RectI rect(custom_viewport ? screenToPixelI(D.viewRect()) : RectI(0, 0, resW(), resH()));
       if(   rect!=D._view_active.recti) // over here we can do a quick != check first, because the Render Targets haven't changed (Renderer.resW(), resH() is the same, and that affects 'setRect')
       {
          D._view_active.setRect(rect).setViewport();
-         D.validateCoords(); // viewport was changed, also for DX9 (pixel offset) and OpenGL (flip Y 2D coords when Rendering To Texture)
+         D.validateCoords(); // viewport was changed, also for OpenGL (flip Y 2D coords when Rendering To Texture)
       }
    }
 }
@@ -647,7 +532,7 @@ void RendererClass::setMainViewport()
 {
    if(_stereo)
    {
-      D._view_active.setRect(Renderer.screenToPixelI(D._view_rect)).setViewport(false).setShader();
+      D._view_active.setRect(Renderer.screenToPixelI(D._view_rect)).setViewport().setShader();
       SetProjMatrix();
       SetCam(ActiveCam.matrix, false);
       D.validateCoords();
@@ -658,7 +543,7 @@ void RendererClass::setEyeViewport()
 {
    if(_stereo)
    {
-      D._view_active.setRect(Renderer.screenToPixelI(D._view_eye_rect[_eye])).setViewport(false).setShader(&ProjMatrixEyeOffset[_eye]); // 'setShader' needed for 'PosToScreen' and 'fur'
+      D._view_active.setRect(Renderer.screenToPixelI(D._view_eye_rect[_eye])).setViewport().setShader(&ProjMatrixEyeOffset[_eye]); // 'setShader' needed for 'PosToScreen' and 'fur'
       SetProjMatrix(ProjMatrixEyeOffset[_eye]);
       SetCam(EyeMatrix[_eye], false);
       D.validateCoords(_eye);
@@ -748,11 +633,11 @@ Bool RendererClass::screenShot(C Str &name, Bool alpha)
    Image temp;
    if(alpha) // with alpha
    {
-      if(capture(temp, -1, -1, IMAGE_DEFAULT, IMAGE_SOFT, 1, true))return temp.Export(name);
+      if(capture(temp, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1, true))return temp.Export(name);
    }else
    if(temp.capture(_main)) // no alpha
    {
-      if(ImageTI[temp.type()].a)temp.copyTry(temp, -1, -1, -1, IMAGE_R8G8B8, IMAGE_SOFT, 1); // if captured image has alpha channel then let's remove it
+      if(ImageTI[temp.type()].a)temp.copyTry(temp, -1, -1, -1, IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1); // if captured image has alpha channel then let's remove it
       return temp.Export(name);
    }
    return false;

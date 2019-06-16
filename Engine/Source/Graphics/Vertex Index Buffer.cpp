@@ -16,7 +16,7 @@ namespace EE{
 
 /******************************************************************************/
 // define following using defines instead of enum, so they can be used in preprocessor
-#if DX9 || DX11 || DX12
+#if DX11 || DX12
    #define MEM     (32*1024)
    #define BUFFERS 1
 #elif GL
@@ -113,7 +113,7 @@ namespace EE{
 #if GL
    #define GL_RING (GL_VI_LOCK==GL_LOCK_SUB_RING || GL_VI_LOCK==GL_LOCK_SUB_RING_RESET || GL_VI_LOCK==GL_LOCK_SUB_RING_RESET_FROM || GL_VI_LOCK==GL_LOCK_MAP_RING)
 
-   static INLINE Bool IsMap(Bool dynamic) {return GL_VI_LOCK>=GL_LOCK_MAP && D.notShaderModelGLES2() && dynamic;}
+   static INLINE Bool IsMap(Bool dynamic) {return GL_VI_LOCK>=GL_LOCK_MAP && dynamic;}
 #endif
 
 #if BUFFERS>1
@@ -201,31 +201,7 @@ VecB4 TBNToSByte4(C Vec *tan, C Vec *bin, C Vec *nrm)
 /******************************************************************************/
 // VERTEX FORMAT
 /******************************************************************************/
-#if DX9
-static inline void Set(D3DVERTEXELEMENT9 &ve, Int offset, Byte type, Byte usage, Byte index=0)
-{
-   ve.Stream=0;
-   ve.Offset=offset;
-   ve.Type  =type;
-   ve.Method=D3DDECLMETHOD_DEFAULT;
-   ve.Usage =usage;
-   ve.UsageIndex=index;
-}
-static inline void End(D3DVERTEXELEMENT9 &ve)
-{
-   ve.Stream=0xFF;
-   ve.Offset=0;
-   ve.Type  =D3DDECLTYPE_UNUSED;
-   ve.Method=0;
-   ve.Usage =0;
-   ve.UsageIndex=0;
-}
-Bool SetVtxFormatFromVtxDecl(IDirect3DVertexDeclaration9 *vf, D3DVERTEXELEMENT9 (&ve)[MAX_FVF_DECL_SIZE])
-{
-   UINT elements=0;
-   return vf ? OK(vf->GetDeclaration(ve, &elements)) : false;
-}
-#elif DX11
+#if DX11
 static inline void Set(D3D11_INPUT_ELEMENT_DESC &ve, Int offset, DXGI_FORMAT format, CChar8 *name, Byte index=0)
 {
    ve.AlignedByteOffset=offset;
@@ -244,7 +220,7 @@ VtxFormat& VtxFormat::del()
    {
       SafeSyncLocker lock(D._lock);
       if(D._vf==vf)D.vf(null);
-   #if DX9 || DX11
+   #if DX11
       if(vf){if(D.created())vf->Release(); vf=null;} // clear while in lock
    #elif GL
       Delete(vf);
@@ -252,15 +228,7 @@ VtxFormat& VtxFormat::del()
    }
    return T;
 }
-#if DX9
-Bool VtxFormat::create(D3DVERTEXELEMENT9 ve[])
-{
-   SyncLocker locker(D._lock);
-   del();
-   if(D3D)return OK(D3D->CreateVertexDeclaration(ve, &vf));
-   return false;
-}
-#elif DX11
+#if DX11
 // following 'VS_Code' is a byte code of a vertex shader from "DX10+ Input Layout.cpp", look around the sources for 'VS_Code' name on how to obtain the code (the code needs to be updated everytime VtxInput is changed)
 static Byte VS_Code[784]={68,88,66,67,63,223,95,34,222,170,1,4,254,68,111,21,173,124,17,124,1,0,0,0,16,3,0,0,5,0,0,0,52,0,0,0,128,0,0,0,28,2,0,0,80,2,0,0,148,2,0,0,82,68,69,70,68,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,28,0,0,0,0,4,254,255,0,145,0,0,28,0,0,0,77,105,99,114,111,115,111,102,116,32,40,82,41,32,72,76,83,76,32,83,104,97,100,101,114,32,67,111,109,112,105,108,101,114,32,49,48,46,49,0,73,83,71,78,148,1,0,0,13,0,0,0,8,0,0,0,64,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,15,15,0,0,64,1,0,0,1,0,0,0,0,0,0,0,3,0,0,0,1,0,0,0,7,0,0,0,73,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,2,0,0,0,7,0,0,0,80,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,3,0,0,0,15,0,0,0,88,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,4,0,0,0,3,0,0,0,88,1,0,0,1,0,0,0,0,0,0,0,3,0,0,0,5,0,0,0,3,0,0,0,88,1,0,0,2,0,0,0,0,0,0,0,3,0,0,0,6,0,0,0,3,0,0,0,97,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,7,0,0,0,1,0,0,0,103,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,8,0,0,0,15,0,0,0,116,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,9,0,0,0,15,0,0,0,128,1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,10,0,0,0,15,0,0,0,128,1,0,0,1,0,0,0,0,0,0,0,3,0,0,0,11,0,0,0,15,0,0,0,134,1,0,0,0,0,0,0,8,0,0,0,1,0,0,0,12,0,0,0,1,0,0,0,80,79,83,73,84,73,79,78,0,78,79,82,77,65,76,0,84,65,78,71,69,78,84,0,84,69,88,67,79,79,82,68,0,80,83,73,90,69,0,66,76,69,78,68,73,78,68,73,67,69,83,0,66,76,69,78,68,87,69,73,71,72,84,0,67,79,76,79,82,0,83,86,95,73,110,115,116,97,110,99,101,73,68,0,79,83,71,78,44,0,0,0,1,0,0,0,8,0,0,0,32,0,0,0,0,0,0,0,1,0,0,0,3,0,0,0,0,0,0,0,15,0,0,0,83,86,95,80,111,115,105,116,105,111,110,0,83,72,68,82,60,0,0,0,64,0,1,0,15,0,0,0,95,0,0,3,242,16,16,0,0,0,0,0,103,0,0,4,242,32,16,0,0,0,0,0,1,0,0,0,54,0,0,5,242,32,16,0,0,0,0,0,70,30,16,0,0,0,0,0,62,0,0,1,83,84,65,84,116,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 Bool VtxFormat::create(D3D11_INPUT_ELEMENT_DESC ve[], Int elms)
@@ -288,7 +256,7 @@ GL_VTX_SEMANTIC VtxSemanticToIndex(Int semantic)
 }
 void BindIndexBuffer(UInt buf)
 {
-   if(D.notShaderModelGLES2())glBindVertexArray(0); // !! have to clear VAO before calling "glBindBuffer(GL_ELEMENT_ARRAY_BUFFER" to make sure it won't modify it, not needed for 'GL_ARRAY_BUFFER' because those are bound only with 'glVertexAttribPointer' !!
+   glBindVertexArray(0); // !! have to clear VAO before calling "glBindBuffer(GL_ELEMENT_ARRAY_BUFFER" to make sure it won't modify it, not needed for 'GL_ARRAY_BUFFER' because those are bound only with 'glVertexAttribPointer' !!
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buf);
 }
 void VtxFormatGL::del()
@@ -338,22 +306,20 @@ void VtxFormatGL::enableSet()C
 }
 void VtxFormatGL::bind(C VtxBuf &vb) // this is called only on the main thread
 {
-   if(D.notShaderModelGLES2()) // VAO
+   // VAO
+#if GL_LOCK
+   SyncLocker lock(D._lock);
+#endif
+   if(!vao)
    {
-   #if GL_LOCK
-      SyncLocker lock(D._lock);
-   #endif
-      if(!vao)
-      {
-         glGenVertexArrays(1, &vao);
-         if(!vao)Exit("Can't create VAO");
-      }
-      glBindVertexArray(vao);
-      // no need to do any disabling, because once vtx format is created, its members are always the same, we just need to 'enableSet' to the new VBO
-      vb.set(); // have to call this first
-      enableSet();
-      glBindVertexArray(0); // disable VAO so binding IB will not modify this VAO, this is not strictly needed, because all IB bindings use either 'BindIndexBuffer' which clears VAO, or are done during drawing when correct VAO is already set, but leave it just in case
+      glGenVertexArrays(1, &vao);
+      if(!vao)Exit("Can't create VAO");
    }
+   glBindVertexArray(vao);
+   // no need to do any disabling, because once vtx format is created, its members are always the same, we just need to 'enableSet' to the new VBO
+   vb.set(); // have to call this first
+   enableSet();
+   glBindVertexArray(0); // disable VAO so binding IB will not modify this VAO, this is not strictly needed, because all IB bindings use either 'BindIndexBuffer' which clears VAO, or are done during drawing when correct VAO is already set, but leave it just in case
 }
 Bool VtxFormat::create(C MemPtrN<VtxFormatGL::Elm, 32> &elms) {if(!vf)New(vf); return vf->create(elms);}
 void VtxFormat::bind(C VtxBuf &vb) {if(vf)vf->bind(vb);}
@@ -361,48 +327,15 @@ void VtxFormat::bind(C VtxBuf &vb) {if(vf)vf->bind(vb);}
 Bool VtxFormat::create(UInt flag, UInt compress)
 {
    // TODO: use R10G10B10A2 for compressed Nrm and Tan, however there's no signed format for that, so probably have to forget it
-#if DX9
-   D3DVERTEXELEMENT9 ve[MAX_FVF_DECL_SIZE];
-   Int i=0, ofs=0;
-
-                                     if(flag& VTX_POS     ){Set(ve[i++], ofs, D3DDECLTYPE_FLOAT3   , D3DDECLUSAGE_POSITION    , 0); ofs+=SIZE(Vec  );}
-
-   if(compress&VTX_COMPRESS_NRM    ){if(flag& VTX_NRM     ){Set(ve[i++], ofs, D3DDECLTYPE_UBYTE4N  , D3DDECLUSAGE_NORMAL         ); ofs+=SIZE(VecB4);}}
-   else                             {if(flag& VTX_NRM     ){Set(ve[i++], ofs, D3DDECLTYPE_FLOAT3   , D3DDECLUSAGE_NORMAL         ); ofs+=SIZE(Vec  );}}
-
-   if(compress&VTX_COMPRESS_TAN_BIN){if(flag&VTX_TAN_BIN  ){Set(ve[i++], ofs, D3DDECLTYPE_UBYTE4N  , D3DDECLUSAGE_TANGENT        ); ofs+=SIZE(VecB4);}}
-   else                             {if(flag&VTX_TAN      ){Set(ve[i++], ofs, D3DDECLTYPE_FLOAT3   , D3DDECLUSAGE_TANGENT        ); ofs+=SIZE(Vec  );}
-                                     if(flag&VTX_BIN      ){Set(ve[i++], ofs, D3DDECLTYPE_FLOAT3   , D3DDECLUSAGE_BINORMAL       ); ofs+=SIZE(Vec  );}}
-
-                                     if(flag& VTX_HLP     ){Set(ve[i++], ofs, D3DDECLTYPE_FLOAT3   , D3DDECLUSAGE_POSITION    , 1); ofs+=SIZE(Vec  );}
-
-   if(compress&VTX_COMPRESS_TEX_8  ){if(flag& VTX_TEX0    ){Set(ve[i++], ofs, D3DDECLTYPE_UBYTE4N  , D3DDECLUSAGE_TEXCOORD    , 0); ofs+=SIZE(VecB4);}
-                                     if(flag& VTX_TEX1    ){Set(ve[i++], ofs, D3DDECLTYPE_UBYTE4N  , D3DDECLUSAGE_TEXCOORD    , 1); ofs+=SIZE(VecB4);}
-                                     if(flag& VTX_TEX2    ){Set(ve[i++], ofs, D3DDECLTYPE_UBYTE4N  , D3DDECLUSAGE_TEXCOORD    , 2); ofs+=SIZE(VecB4);}}else
-   if(compress&VTX_COMPRESS_TEX    ){if(flag& VTX_TEX0    ){Set(ve[i++], ofs, D3DDECLTYPE_FLOAT16_2, D3DDECLUSAGE_TEXCOORD    , 0); ofs+=SIZE(VecH2);}
-                                     if(flag& VTX_TEX1    ){Set(ve[i++], ofs, D3DDECLTYPE_FLOAT16_2, D3DDECLUSAGE_TEXCOORD    , 1); ofs+=SIZE(VecH2);}
-                                     if(flag& VTX_TEX2    ){Set(ve[i++], ofs, D3DDECLTYPE_FLOAT16_2, D3DDECLUSAGE_TEXCOORD    , 2); ofs+=SIZE(VecH2);}}else
-                                    {if(flag& VTX_TEX0    ){Set(ve[i++], ofs, D3DDECLTYPE_FLOAT2   , D3DDECLUSAGE_TEXCOORD    , 0); ofs+=SIZE(Vec2 );}
-                                     if(flag& VTX_TEX1    ){Set(ve[i++], ofs, D3DDECLTYPE_FLOAT2   , D3DDECLUSAGE_TEXCOORD    , 1); ofs+=SIZE(Vec2 );}
-                                     if(flag& VTX_TEX2    ){Set(ve[i++], ofs, D3DDECLTYPE_FLOAT2   , D3DDECLUSAGE_TEXCOORD    , 2); ofs+=SIZE(Vec2 );}}
-
-                                     if(flag& VTX_MATRIX  ){Set(ve[i++], ofs, D3DDECLTYPE_UBYTE4   , D3DDECLUSAGE_BLENDINDICES   ); ofs+=SIZE(VecB4);}
-                                     if(flag& VTX_BLEND   ){Set(ve[i++], ofs, D3DDECLTYPE_UBYTE4N  , D3DDECLUSAGE_BLENDWEIGHT    ); ofs+=SIZE(VecB4);}
-                                     if(flag& VTX_SIZE    ){Set(ve[i++], ofs, D3DDECLTYPE_FLOAT1   , D3DDECLUSAGE_PSIZE          ); ofs+=SIZE(Flt  );}
-                                     if(flag& VTX_MATERIAL){Set(ve[i++], ofs, D3DDECLTYPE_UBYTE4N  , D3DDECLUSAGE_COLOR       , 0); ofs+=SIZE(VecB4);}
-                                     if(flag& VTX_COLOR   ){Set(ve[i++], ofs, D3DDECLTYPE_UBYTE4N  , D3DDECLUSAGE_COLOR       , 1); ofs+=SIZE(Color);}
-                                                            End(ve[i  ]);
-   return create(ve);
-#elif DX11
+#if DX11
    D3D11_INPUT_ELEMENT_DESC ve[D3D11_IA_VERTEX_INPUT_STRUCTURE_ELEMENT_COUNT];
-   const DXGI_FORMAT        nrm_tan=(D.meshStorageSigned() ? DXGI_FORMAT_R8G8B8A8_SNORM : DXGI_FORMAT_R8G8B8A8_UNORM);
    Int i=0, ofs=0;
                                      Set(ve[i++], ofs, DXGI_FORMAT_R32G32B32_FLOAT, "POSITION"    , 0); if(flag&VTX_POS     )ofs+=SIZE(Vec  );
 
-   if(compress&VTX_COMPRESS_NRM    ){Set(ve[i++], ofs, nrm_tan                    , "NORMAL"      , 0); if(flag&VTX_NRM     )ofs+=SIZE(VecB4);}
+   if(compress&VTX_COMPRESS_NRM    ){Set(ve[i++], ofs, DXGI_FORMAT_R8G8B8A8_SNORM , "NORMAL"      , 0); if(flag&VTX_NRM     )ofs+=SIZE(VecB4);}
    else                             {Set(ve[i++], ofs, DXGI_FORMAT_R32G32B32_FLOAT, "NORMAL"      , 0); if(flag&VTX_NRM     )ofs+=SIZE(Vec  );}
 
-   if(compress&VTX_COMPRESS_TAN_BIN){Set(ve[i++], ofs, nrm_tan                    , "TANGENT"     , 0); if(flag&VTX_TAN_BIN )ofs+=SIZE(VecB4);}
+   if(compress&VTX_COMPRESS_TAN_BIN){Set(ve[i++], ofs, DXGI_FORMAT_R8G8B8A8_SNORM , "TANGENT"     , 0); if(flag&VTX_TAN_BIN )ofs+=SIZE(VecB4);}
    else                             {Set(ve[i++], ofs, DXGI_FORMAT_R32G32B32_FLOAT, "TANGENT"     , 0); if(flag&VTX_TAN     )ofs+=SIZE(Vec  );
                                      Set(ve[i++], ofs, DXGI_FORMAT_R32G32B32_FLOAT, "BINORMAL"    , 0); if(flag&VTX_BIN     )ofs+=SIZE(Vec  );}
 
@@ -465,11 +398,11 @@ VtxBuf& VtxBuf::del()
    unlock();
    if(_buf)
    {
-   #if DX9 || GL_LOCK // lock not needed for DX11 'Release'
+   #if GL_LOCK // lock not needed for DX11 'Release'
       SafeSyncLocker lock(D._lock);
    #endif
 
-	#if DX9 || DX11
+	#if DX11
       if(_buf){if(D.created())_buf->Release(); _buf=null;} // clear while in lock
    #elif GL
       if(D.created())glDeleteBuffers(1, &_buf); _buf=0; // clear while in lock
@@ -483,11 +416,11 @@ IndBuf& IndBuf::del()
    unlock();
    if(_buf)
    {
-   #if DX9 || GL_LOCK // lock not needed for DX11 'Release'
+   #if GL_LOCK // lock not needed for DX11 'Release'
       SafeSyncLocker lock(D._lock);
    #endif
 
-   #if DX9 || DX11
+   #if DX11
       if(_buf){if(D.created())_buf->Release(); _buf=null;} // clear while in lock
    #elif GL
       if(D.created())glDeleteBuffers(1, &_buf); _buf=0; // clear while in lock
@@ -506,7 +439,7 @@ Bool VtxBuf::createRaw(Int memory_size, Bool dynamic, CPtr data)
 
    if(memory_size<=0){del(); return !memory_size;}
 
-#if DX9 || GL_LOCK // lock not needed for DX11 'D3D'
+#if GL_LOCK // lock not needed for DX11 'D3D'
    SyncLocker locker(D._lock);
 #endif
 
@@ -515,10 +448,7 @@ Bool VtxBuf::createRaw(Int memory_size, Bool dynamic, CPtr data)
    if(D.created())
    {
       T._dynamic=dynamic;
-   #if DX9
-      if(OK(D3D->CreateVertexBuffer(memory_size, dynamic ? D3DUSAGE_DYNAMIC|D3DUSAGE_WRITEONLY : 0, 0, dynamic ? D3DPOOL_DEFAULT : D3DPOOL_MANAGED, &_buf, null)))
-         if(!data || setFrom(data, memory_size))return true;
-   #elif DX11
+   #if DX11
       D3D11_BUFFER_DESC desc;
       desc.ByteWidth          =memory_size;
       desc.Usage              =(dynamic ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT);
@@ -558,7 +488,7 @@ Bool IndBuf::create(Int indexes, Bool bit16, Bool dynamic, CPtr data)
 
    if(indexes<=0){del(); return !indexes;}
 
-#if DX9 || GL_LOCK // lock not needed for DX11 'D3D'
+#if GL_LOCK // lock not needed for DX11 'D3D'
    SyncLocker locker(D._lock);
 #endif
 
@@ -568,14 +498,7 @@ Bool IndBuf::create(Int indexes, Bool bit16, Bool dynamic, CPtr data)
    {
       T._dynamic=dynamic;
       Int memory_size=indexes*(bit16 ? 2 : 4);
-   #if DX9
-      if(OK(D3D->CreateIndexBuffer(memory_size, dynamic ? D3DUSAGE_DYNAMIC|D3DUSAGE_WRITEONLY : 0, bit16 ? D3DFMT_INDEX16 : D3DFMT_INDEX32, dynamic ? D3DPOOL_DEFAULT : D3DPOOL_MANAGED, &_buf, null)))
-      {
-         T._bit16  =bit16  ;
-         T._ind_num=indexes;
-         if(!data || setFrom(data))return true;
-      }
-   #elif DX11
+   #if DX11
       D3D11_BUFFER_DESC desc;
       desc.ByteWidth     =memory_size;
       desc.Usage         =(dynamic ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT);
@@ -695,9 +618,7 @@ Byte* VtxBuf::lockDynamic()
 {
    DEBUG_ASSERT(_buf && !_lock_mode && _dynamic, "VtxBuf.lockDynamic");
    LOCK_MODE lock=(VI._vtx_drawing ? LOCK_APPEND : LOCK_WRITE);
-#if DX9
-   Ptr data=null; _buf->Lock(0, 0, &data, (lock==LOCK_WRITE) ? D3DLOCK_DISCARD : D3DLOCK_NOOVERWRITE); T._data=(Byte*)data;
-#elif DX11
+#if DX11
    D3D11_MAPPED_SUBRESOURCE map;
    if(OK(D3DC->Map(_buf, 0, (lock==LOCK_WRITE) ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_WRITE_NO_OVERWRITE, 0, &map)))_data=(Byte*)map.pData;
 #elif GL
@@ -721,9 +642,7 @@ Byte* VtxBuf::lockDynamic()
 void VtxBuf::unlockDynamic()
 {
    DEBUG_ASSERT((_lock_mode==LOCK_WRITE || _lock_mode==LOCK_APPEND) && _lock_count==1 && _dynamic, "VtxBuf.unlockDynamic");
-#if DX9
-  _buf->Unlock(); _data=null;
-#elif DX11
+#if DX11
    D3DC->Unmap(_buf, 0); _data=null;
 #elif GL
    glBindBuffer(GL_ARRAY_BUFFER, _buf);
@@ -756,10 +675,7 @@ Byte* VtxBuf::lock(LOCK_MODE lock)
       SyncLocker locker(D._lock);
       if(!_lock_mode) // first lock
       {
-      #if DX9
-         Ptr data=null; _buf->Lock(0, 0, &data, (lock==LOCK_WRITE) ? D3DLOCK_DISCARD : (lock==LOCK_APPEND) ? D3DLOCK_NOOVERWRITE : (lock==LOCK_READ) ? D3DLOCK_READONLY : 0);
-         T._data=(Byte*)data;
-      #elif DX11
+      #if DX11
          if(_dynamic)
          {
             if(lock==LOCK_WRITE || lock==LOCK_APPEND)
@@ -854,10 +770,7 @@ Ptr IndBuf::lock(LOCK_MODE lock)
       SyncLocker locker(D._lock);
       if(!_lock_mode) // first lock
       {
-      #if DX9
-         Ptr data=null; _buf->Lock(0, 0, &data, (lock==LOCK_WRITE) ? D3DLOCK_DISCARD : (lock==LOCK_APPEND) ? D3DLOCK_NOOVERWRITE : (lock==LOCK_READ) ? D3DLOCK_READONLY : 0);
-         T._data=(Byte*)data;
-      #elif DX11
+      #if DX11
          if(_dynamic)
          {
             if(lock==LOCK_WRITE || lock==LOCK_APPEND)
@@ -953,9 +866,7 @@ void VtxBuf::unlock()
       SafeSyncLocker lock(D._lock);
       if(_lock_count>0)if(!--_lock_count)
       {
-      #if DX9
-         if(D.created())_buf->Unlock(); _data=null;
-      #elif DX11
+      #if DX11
          if(_dynamic)
          {
             if(D3DC)D3DC->Unmap(_buf, 0); _data=null;
@@ -994,9 +905,7 @@ void IndBuf::unlock()
       SafeSyncLocker lock(D._lock);
       if(_lock_count>0)if(!--_lock_count)
       {
-      #if DX9
-         if(D.created())_buf->Unlock(); _data=null;
-      #elif DX11
+      #if DX11
          if(_dynamic)
          {
             if(D3DC)D3DC->Unmap(_buf, 0); _data=null;
@@ -1146,7 +1055,7 @@ IndBuf& IndBuf::setQuad(Int i, Int v0, Int v1, Int v2, Int v3)
 // VERTEX INDEX BUFFER
 /******************************************************************************/
 VtxIndBuf::VtxIndBuf() {}
-void VtxIndBuf::lost()
+void VtxIndBuf::del()
 {
    unlockVtx(); _vb.del();
  //unlockInd(); _ib.del();
@@ -1154,45 +1063,6 @@ void VtxIndBuf::lost()
    REPAO(VB).del();
  //REPAO(IB).del();
 #endif
-}
-void VtxIndBuf::reset()
-{
-  _mem_max=MEM;
-  _vtx_queued=_vtx_drawing=_vtx_drawing_raw=0;
-//_ind_queued=0;
-   if(_vb.createRaw(MEM          ,       true))
- //if(_ib.create   (MEM/SIZE(U16), true, true)) // divide by size of 1 index
-   {
-   #if BUFFERS>1
-      REPAO(VB).createRaw(MEM          ,       true);
-    //REPAO(IB).create   (MEM/SIZE(U16), true, true);
-   #endif
-      clear();
-
-     _vf2D_flat     .bind(_vb);
-     _vf2D_col      .bind(_vb);
-     _vf2D_tex      .bind(_vb);
-     _vf2D_tex_col  .bind(_vb);
-     _vf2D_tex2     .bind(_vb);
-     _vf2D_font     .bind(_vb);
-     _vf3D_flat     .bind(_vb);
-     _vf3D_col      .bind(_vb);
-     _vf3D_tex      .bind(_vb);
-     _vf3D_tex_col  .bind(_vb);
-     _vf3D_bilb     .bind(_vb);
-     _vf3D_bilb_anim.bind(_vb);
-     _vf3D_laser    .bind(_vb);
-     _vf3D_cloth    .bind(_vb);
-     _vf3D_simple   .bind(_vb);
-     _vf3D_standard .bind(_vb);
-     _vf3D_full     .bind(_vb);
-      return;
-   }
-   Exit("Can't create Vertex/Index Buffer");
-}
-void VtxIndBuf::del()
-{
-   lost();
 
   _vf2D_flat     .del();
   _vf2D_col      .del();
@@ -1216,143 +1086,7 @@ void VtxIndBuf::create()
 {
 #pragma warning(push)
 #pragma warning(disable:4838)
-#if DX9
-   {
-      D3DVERTEXELEMENT9 ve[]={
-         {0, OFFSET(Vtx2DFlat, pos), D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-      D3DDECL_END()}; _vf2D_flat.create(ve);
-   }
-   {
-      D3DVERTEXELEMENT9 ve[]={
-         {0, OFFSET(Vtx2DCol, pos  ), D3DDECLTYPE_FLOAT2 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-         {0, OFFSET(Vtx2DCol, color), D3DDECLTYPE_UBYTE4N, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR   , 1},
-      D3DDECL_END()}; _vf2D_col.create(ve);
-   }
-   {
-      D3DVERTEXELEMENT9 ve[]={
-         {0, OFFSET(Vtx2DTex, pos), D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-         {0, OFFSET(Vtx2DTex, tex), D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
-      D3DDECL_END()}; _vf2D_tex.create(ve);
-   }
-   {
-      D3DVERTEXELEMENT9 ve[]={
-         {0, OFFSET(Vtx2DTexCol, pos  ), D3DDECLTYPE_FLOAT2 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-         {0, OFFSET(Vtx2DTexCol, tex  ), D3DDECLTYPE_FLOAT2 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
-         {0, OFFSET(Vtx2DTexCol, color), D3DDECLTYPE_UBYTE4N, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR   , 1},
-      D3DDECL_END()}; _vf2D_tex_col.create(ve);
-   }
-   {
-      D3DVERTEXELEMENT9 ve[]={
-         {0, OFFSET(Vtx2DTex2, pos   ), D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-         {0, OFFSET(Vtx2DTex2, tex[0]), D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
-         {0, OFFSET(Vtx2DTex2, tex[1]), D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 1},
-      D3DDECL_END()}; _vf2D_tex2.create(ve);
-   }
-   {
-      D3DVERTEXELEMENT9 ve[]={
-         {0, OFFSET(Vtx2DFont, pos  ), D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-         {0, OFFSET(Vtx2DFont, tex  ), D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
-         {0, OFFSET(Vtx2DFont, shade), D3DDECLTYPE_FLOAT1, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_PSIZE   , 0},
-      D3DDECL_END()}; _vf2D_font.create(ve);
-   }
-   {
-      D3DVERTEXELEMENT9 ve[]={
-         {0, OFFSET(Vtx3DFlat, pos), D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-      D3DDECL_END()}; _vf3D_flat.create(ve);
-   }
-   {
-      D3DVERTEXELEMENT9 ve[]={
-         {0, OFFSET(Vtx3DCol, pos  ), D3DDECLTYPE_FLOAT3 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-         {0, OFFSET(Vtx3DCol, color), D3DDECLTYPE_UBYTE4N, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR   , 1},
-      D3DDECL_END()}; _vf3D_col.create(ve);
-   }
-   {
-      D3DVERTEXELEMENT9 ve[]={
-         {0, OFFSET(Vtx3DTex, pos), D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-         {0, OFFSET(Vtx3DTex, tex), D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
-      D3DDECL_END()}; _vf3D_tex.create(ve);
-   }
-   {
-      D3DVERTEXELEMENT9 ve[]={
-         {0, OFFSET(Vtx3DTexCol, pos  ), D3DDECLTYPE_FLOAT3 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-         {0, OFFSET(Vtx3DTexCol, tex  ), D3DDECLTYPE_FLOAT2 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
-         {0, OFFSET(Vtx3DTexCol, color), D3DDECLTYPE_UBYTE4N, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR   , 1},
-      D3DDECL_END()}; _vf3D_tex_col.create(ve);
-   }
-   {
-      D3DVERTEXELEMENT9 ve[]={
-         {0, OFFSET(Vtx3DBilb, pos      ), D3DDECLTYPE_FLOAT3   , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-      #if GPU_HALF_SUPPORTED
-         {0, OFFSET(Vtx3DBilb, vel_angle), D3DDECLTYPE_FLOAT16_4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TANGENT , 0},
-      #else
-         {0, OFFSET(Vtx3DBilb, vel_angle), D3DDECLTYPE_FLOAT4   , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TANGENT , 0},
-      #endif
-         {0, OFFSET(Vtx3DBilb, tex      ), D3DDECLTYPE_UBYTE4N  , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
-         {0, OFFSET(Vtx3DBilb, size     ), D3DDECLTYPE_FLOAT1   , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_PSIZE   , 0},
-         {0, OFFSET(Vtx3DBilb, color    ), D3DDECLTYPE_UBYTE4N  , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR   , 1},
-      D3DDECL_END()}; _vf3D_bilb.create(ve);
-   }
-   {
-      D3DVERTEXELEMENT9 ve[]={
-         {0, OFFSET(Vtx3DBilbAnim, pos      ), D3DDECLTYPE_FLOAT3   , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-      #if GPU_HALF_SUPPORTED
-         {0, OFFSET(Vtx3DBilbAnim, vel_angle), D3DDECLTYPE_FLOAT16_4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TANGENT , 0},
-      #else
-         {0, OFFSET(Vtx3DBilbAnim, vel_angle), D3DDECLTYPE_FLOAT4   , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TANGENT , 0},
-      #endif
-         {0, OFFSET(Vtx3DBilbAnim, tex      ), D3DDECLTYPE_UBYTE4N  , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
-         {0, OFFSET(Vtx3DBilbAnim, size     ), D3DDECLTYPE_FLOAT1   , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_PSIZE   , 0},
-         {0, OFFSET(Vtx3DBilbAnim, color    ), D3DDECLTYPE_UBYTE4N  , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR   , 1},
-         {0, OFFSET(Vtx3DBilbAnim, frame    ), D3DDECLTYPE_FLOAT1   , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 1},
-      D3DDECL_END()}; _vf3D_bilb_anim.create(ve);
-   }
-   {
-      D3DVERTEXELEMENT9 ve[]={
-         {0, OFFSET(Vtx3DLaser, pos), D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-         {0, OFFSET(Vtx3DLaser, nrm), D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL  , 0},
-      D3DDECL_END()}; _vf3D_laser.create(ve);
-   }
-   {
-      D3DVERTEXELEMENT9 ve[]={
-         {0, OFFSET(Cloth::Vtx, pos), D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-         {0, OFFSET(Cloth::Vtx, nrm), D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL  , 0},
-         {0, OFFSET(Cloth::Vtx, tex), D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
-      D3DDECL_END()}; _vf3D_cloth.create(ve);
-   }
-   {
-      D3DVERTEXELEMENT9 ve[]={
-         {0, OFFSET(Vtx3DSimple, pos  ), D3DDECLTYPE_FLOAT3 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-         {0, OFFSET(Vtx3DSimple, nrm  ), D3DDECLTYPE_FLOAT3 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL  , 0},
-         {0, OFFSET(Vtx3DSimple, tex  ), D3DDECLTYPE_FLOAT2 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
-         {0, OFFSET(Vtx3DSimple, color), D3DDECLTYPE_UBYTE4N, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR   , 1},
-      D3DDECL_END()}; _vf3D_simple.create(ve);
-   }
-   {
-      D3DVERTEXELEMENT9 ve[]={
-         {0, OFFSET(Vtx3DStandard, pos  ), D3DDECLTYPE_FLOAT3 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-         {0, OFFSET(Vtx3DStandard, nrm  ), D3DDECLTYPE_FLOAT3 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL  , 0},
-         {0, OFFSET(Vtx3DStandard, tan  ), D3DDECLTYPE_FLOAT4 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TANGENT , 0},
-         {0, OFFSET(Vtx3DStandard, tex  ), D3DDECLTYPE_FLOAT2 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
-         {0, OFFSET(Vtx3DStandard, color), D3DDECLTYPE_UBYTE4N, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR   , 1},
-      D3DDECL_END()}; _vf3D_standard.create(ve);
-   }
-   {
-      D3DVERTEXELEMENT9 ve[]={
-         {0, OFFSET(Vtx3DFull, pos     ), D3DDECLTYPE_FLOAT3 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION    , 0},
-         {0, OFFSET(Vtx3DFull, hlp     ), D3DDECLTYPE_FLOAT3 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION    , 1},
-         {0, OFFSET(Vtx3DFull, nrm     ), D3DDECLTYPE_FLOAT3 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL      , 0},
-         {0, OFFSET(Vtx3DFull, tan     ), D3DDECLTYPE_FLOAT4 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TANGENT     , 0},
-         {0, OFFSET(Vtx3DFull, tex0    ), D3DDECLTYPE_FLOAT2 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD    , 0},
-         {0, OFFSET(Vtx3DFull, tex1    ), D3DDECLTYPE_FLOAT2 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD    , 1},
-         {0, OFFSET(Vtx3DFull, tex2    ), D3DDECLTYPE_FLOAT2 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD    , 2},
-         {0, OFFSET(Vtx3DFull, color   ), D3DDECLTYPE_UBYTE4N, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR       , 1},
-         {0, OFFSET(Vtx3DFull, material), D3DDECLTYPE_UBYTE4N, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR       , 0},
-         {0, OFFSET(Vtx3DFull, matrix  ), D3DDECLTYPE_UBYTE4 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_BLENDINDICES, 0},
-         {0, OFFSET(Vtx3DFull, blend   ), D3DDECLTYPE_UBYTE4N, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_BLENDWEIGHT , 0},
-         {0, OFFSET(Vtx3DFull, size    ), D3DDECLTYPE_FLOAT1 , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_PSIZE       , 0},
-      D3DDECL_END()}; _vf3D_full.create(ve);
-   }
-#elif DX11
+#if DX11
    {
       D3D11_INPUT_ELEMENT_DESC ve[]=
       {
@@ -1790,7 +1524,38 @@ void VtxIndBuf::create()
 #endif
 #pragma warning(pop)
 
-   reset();
+  _mem_max=MEM;
+  _vtx_queued=_vtx_drawing=_vtx_drawing_raw=0;
+//_ind_queued=0;
+   if(_vb.createRaw(MEM          ,       true))
+ //if(_ib.create   (MEM/SIZE(U16), true, true)) // divide by size of 1 index
+   {
+   #if BUFFERS>1
+      REPAO(VB).createRaw(MEM          ,       true);
+    //REPAO(IB).create   (MEM/SIZE(U16), true, true);
+   #endif
+      clear();
+
+     _vf2D_flat     .bind(_vb);
+     _vf2D_col      .bind(_vb);
+     _vf2D_tex      .bind(_vb);
+     _vf2D_tex_col  .bind(_vb);
+     _vf2D_tex2     .bind(_vb);
+     _vf2D_font     .bind(_vb);
+     _vf3D_flat     .bind(_vb);
+     _vf3D_col      .bind(_vb);
+     _vf3D_tex      .bind(_vb);
+     _vf3D_tex_col  .bind(_vb);
+     _vf3D_bilb     .bind(_vb);
+     _vf3D_bilb_anim.bind(_vb);
+     _vf3D_laser    .bind(_vb);
+     _vf3D_cloth    .bind(_vb);
+     _vf3D_simple   .bind(_vb);
+     _vf3D_standard .bind(_vb);
+     _vf3D_full     .bind(_vb);
+      return;
+   }
+   Exit("Can't create Vertex/Index Buffer");
 }
 /******************************************************************************/
 #if BUFFERS<=1
@@ -1859,7 +1624,7 @@ void VtxIndBuf::setType(VI_TYPE vtx_type, UInt flag)
 
 #if GL
    #if BUFFERS<=1
-      if(D.notShaderModelGLES2())glBindVertexArray(vf->vf->vao); // !! OpenGL requires setting VAO before VB and IB !! calling 'glBindVertexArray' on GLES2 would crash
+      glBindVertexArray(vf->vf->vao); // !! OpenGL requires setting VAO before VB and IB !!
    #else
       SetDefaultVAO(); // when using multiple buffers we need to set default 'VAO' because we will use 'D.vf' later, for which we need 'VAO' only
    #endif
@@ -1873,24 +1638,23 @@ void VtxIndBuf::setType(VI_TYPE vtx_type, UInt flag)
    if(VI._quad_ind   =FlagTest(flag, VI_QUAD_IND))IndBuf16384Quads.set(); // !! set after 'glBindVertexArray' !!
    if(flag&VI_LINE)
    {
-      if(flag&VI_STRIP){VI._prim_type=GPU_API(D3DPT_LINESTRIP, D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP, GL_LINE_STRIP); VI._ind_div=1; VI._ind_sub=1;}
-      else             {VI._prim_type=GPU_API(D3DPT_LINELIST , D3D11_PRIMITIVE_TOPOLOGY_LINELIST , GL_LINES     ); VI._ind_div=2; VI._ind_sub=0;}
+      if(flag&VI_STRIP){VI._prim_type=GPU_API(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP, GL_LINE_STRIP); VI._ind_div=1; VI._ind_sub=1;}
+      else             {VI._prim_type=GPU_API(D3D11_PRIMITIVE_TOPOLOGY_LINELIST , GL_LINES     ); VI._ind_div=2; VI._ind_sub=0;}
    }else
    {
-      if(flag&VI_STRIP){VI._prim_type=GPU_API(D3DPT_TRIANGLESTRIP, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, GL_TRIANGLE_STRIP); VI._ind_div=1; VI._ind_sub=2;}
-      else             {VI._prim_type=GPU_API(D3DPT_TRIANGLELIST , D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST , GL_TRIANGLES     ); VI._ind_div=3; VI._ind_sub=0;}
+      if(flag&VI_STRIP){VI._prim_type=GPU_API(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, GL_TRIANGLE_STRIP); VI._ind_div=1; VI._ind_sub=2;}
+      else             {VI._prim_type=GPU_API(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST , GL_TRIANGLES     ); VI._ind_div=3; VI._ind_sub=0;}
    }
 
-   SetVtxNrmMulAdd(false);
 #if BUFFERS<=1
-   if(!GL || D.shaderModelGLES2()) // for GL we juse use VAO which already sets VB and VF (because VB's are bound to VAO during 'VI.reset')
+   if(!GL) // for GL we just use VAO which already sets VB and VF (because VB's are bound to VAO during 'VI.create')
    {
       VI._vb.set(); // OpenGL requires setting VB after VAO but before VF, DX10+ requires calling this after setting '_vtx_size'
     //VI._ib.set(); we don't use index buffers here, all possible index buffers are set elsewhere ('IndBuf16384Quads' is above, and custom are in 'flushIndexed')
       D.vf(vf->vf);
    }
 #else
-   #if DX9 || DX11
+   #if DX11
       D.vf(vf->vf);
    #elif GL
       VF=vf->vf; // remember for future use
@@ -1932,8 +1696,6 @@ void VtxIndBuf::clear()
       }
       VI._user_flag=0; // clear the user flag
    }
-
-   SetVtxNrmMulAdd(true);
 }
 void VtxIndBuf::setFirst(VI_TYPE vtx_type, UInt flag)
 {
@@ -2029,9 +1791,7 @@ void VtxIndBuf::flush()
          if(VI._quad_ind) // this is always TRIANGLELIST
          {
             UInt quads=Unsigned(VI._vtx_queued)/4;
-         #if DX9
-            D3D->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, VI._vtx_drawing, 0, VI._vtx_queued, 0, quads*2); VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;
-         #elif DX11
+         #if DX11
           //if(VI._prim_type!=D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST)SetPrimitiveTopology(VI._prim_type); must be after 'shader->begin', not needed since 'quad_ind' always uses TRIANGLELIST mode
             D3DC->DrawIndexed(quads*(2*3), 0, VI._vtx_drawing); VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;
          #elif GL_ES
@@ -2041,9 +1801,7 @@ void VtxIndBuf::flush()
          #endif
          }else
          {
-         #if DX9
-            D3D->DrawPrimitive(VI._prim_type, VI._vtx_drawing, Max(0, VI._vtx_queued/VI._ind_div-VI._ind_sub)); VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;
-         #elif DX11
+         #if DX11
             if(VI._prim_type!=D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST)SetPrimitiveTopology(VI._prim_type); // must be after 'shader->begin'
             D3DC->Draw(VI._vtx_queued, VI._vtx_drawing); VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;
          #elif GL_ES
@@ -2052,7 +1810,6 @@ void VtxIndBuf::flush()
             glDrawArrays(VI._prim_type, VI._vtx_drawing, VI._vtx_queued); if(GL_RING){VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;}
          #endif
          }
-         ShaderEnd();
       }
       VI._vtx_queued=0;
    }
@@ -2065,9 +1822,7 @@ void VtxIndBuf::flushIndexed(IndBuf &ib, Int ind_num)
       if(UInt(ind_num)<=UInt(ib._ind_num) && VI._shader) // inclusive 'InRange'
       {
          ib.set(); VI._shader->begin();
-      #if DX9
-         D3D->DrawIndexedPrimitive(VI._prim_type, VI._vtx_drawing, 0, VI._vtx_queued, 0, ind_num/VI._ind_div); VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;
-      #elif DX11
+      #if DX11
          if(VI._prim_type!=D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST)SetPrimitiveTopology(VI._prim_type); // must be after 'shader->begin'
          D3DC->DrawIndexed(ind_num, 0, VI._vtx_drawing); VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;
       #elif GL_ES
@@ -2075,7 +1830,6 @@ void VtxIndBuf::flushIndexed(IndBuf &ib, Int ind_num)
       #elif GL
          glDrawElementsBaseVertex(VI._prim_type, ind_num, ib.bit16() ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, null, VI._vtx_drawing); if(GL_RING){VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;}
       #endif
-         ShaderEnd();
       }
       VI._vtx_queued=0;
    }

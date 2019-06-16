@@ -316,10 +316,7 @@ static void DrawShadowMap(DIR_ENUM dir, C MatrixM &cam_matrix, UInt flag, Flt vi
       else       Frustum.set(D._view_active.range, D._view_active.fov,      cam_matrix);
 
       if(flag&SM_FRUSTUM)if(!FrustumMain(Frustum))return; // check if shadow frustum is visible (lies in main camera view frustum)
-      D._view_active.setViewport(false).setProjMatrix(false);
-   #if DX9 // on DX10+ and OpenGL clearing depth buffer clears it fully, so it can't be divided into steps
-      if(CurrentLight.type!=LIGHT_DIR)D.clearDepth(); // depth buffer is cleared separately for local lights, directional light always uses all parts so it can be cleared all at once
-   #endif
+      D._view_active.setViewport().setProjMatrix(false);
 
       // set matrix converting from shadow map to main camera space (required for tesselation - adaptive tesselation factors)
       Matrix temp; cam_matrix.divNormalized(ActiveCam.matrix, temp); // temp = cam_matrix/ActiveCam.matrix
@@ -333,23 +330,17 @@ static void DrawShadowMap(DIR_ENUM dir, C MatrixM &cam_matrix, UInt flag, Flt vi
          Int    x =HsmX(dir),
                 y =HsmY(dir);
          Image *rt=Renderer._cur[0], *rtz=Renderer._cur_ds;
-      #if DX9
-         Byte col_write=D._col_write[0]; D.colWrite(COL_WRITE_RGBA); // restore color writing
-      #endif
          Renderer      .set      (&Renderer._cld_map, null, false);
-         D._view_active.set      (RectI(x*D.cloudsMapSize(), y*D.cloudsMapSize(), (x+1)*D.cloudsMapSize(), (y+1)*D.cloudsMapSize()), view_from, view_range, fov, fov_mode).setViewport(false).setProjMatrix(false); // viewport
+         D._view_active.set      (RectI(x*D.cloudsMapSize(), y*D.cloudsMapSize(), (x+1)*D.cloudsMapSize(), (y+1)*D.cloudsMapSize()), view_from, view_range, fov, fov_mode).setViewport().setProjMatrix(false); // viewport
          SetCam                  (cam_matrix, true); // camera and frustum
          Clouds        .shadowMap();
          Renderer      .set      (rt, rtz, false);
-      #if DX9
-         D.colWrite(col_write);
-      #endif
       }
    }
 #else
    {
-                         Renderer      .setCube   (Renderer._shd_map_null, &Renderer._shd_map, dir);
-                         D._view_active.set       (RectI(0, 0, Renderer.resW(), Renderer.resH()), view_from, view_range, fov, fov_mode).setViewport(false).setProjMatrix(false); // viewport
+                         Renderer      .setCube   (null, &Renderer._shd_map, dir);
+                         D._view_active.set       (RectI(0, 0, Renderer.resW(), Renderer.resH()), view_from, view_range, fov, fov_mode).setViewport().setProjMatrix(false); // viewport
                          SetCam                   (cam_matrix, true); // camera and frustum
       if(flag&SM_FRUSTUM)if(!FrustumMain          (Frustum))return;
                          Sh            .clear     (Vec4(D._view_active.range*2));
@@ -361,7 +352,7 @@ static void DrawShadowMap(DIR_ENUM dir, C MatrixM &cam_matrix, UInt flag, Flt vi
       if((flag&SM_CLOUDS) && Renderer._cld_map.is())
       {
          Renderer      .setCube  (Renderer._cld_map, null, dir);
-         D._view_active.set      (RectI(0, 0, Renderer.resW(), Renderer.resH()), view_from, view_range, fov, fov_mode).setViewport(false).setProjMatrix(false); // viewport
+         D._view_active.set      (RectI(0, 0, Renderer.resW(), Renderer.resH()), view_from, view_range, fov, fov_mode).setViewport().setProjMatrix(false); // viewport
          SetCam                  (cam_matrix, true); // camera and frustum
          Clouds        .shadowMap();
       }
@@ -500,14 +491,8 @@ static Bool ShadowMap(LightDir &light)
    RENDER_MODE mode=Renderer(); Renderer.mode(RM_SHADOW);
    D.alpha(ALPHA_NONE); // disable alpha
 
-#if DX9
-   Renderer.set(&Renderer._shd_map_null, &Renderer._shd_map, false); // on DX9 there always needs to be a RT set
-   D.clearDepth( ); // clear all shadow map parts at once, because for directional lights we'll use them all anyway
-   D.colWrite  (0); // disable color writes
-#else
    Renderer.set(null, &Renderer._shd_map, false);
    D.clearDepth(); // clear all shadow map parts at once, because for directional lights we'll use them all anyway
-#endif
 
    Bool cloud_shd=false,
         cloud_vol=false;
@@ -755,9 +740,6 @@ static Bool ShadowMap(LightDir &light)
 
    // restore settings
    Renderer.mode(mode);
-#if DX9
-   D.colWrite(COL_WRITE_RGBA); // restore color writes
-#endif
    RestoreShadowMapSettings();
    D.clip(clip ? &clip_rect : null); // no need to reset 'D.clipAllow' because it will be reset in the nearest RT change
 
@@ -768,14 +750,8 @@ static void ShadowMap(Flt range, VecD &pos)
 {
    RENDER_MODE mode=Renderer(); Renderer.mode(RM_SHADOW);
    D.alpha(ALPHA_NONE); // disable alpha
-
-#if DX9
-   Renderer.set(&Renderer._shd_map_null, &Renderer._shd_map, false); // on DX9 there always needs to be a RT set
-   D.colWrite(0); // disable color writes
-#else
    Renderer.set(null, &Renderer._shd_map, false);
    D.clearDepth(); // clear all at once, must be done here because DX10+ and GL depth clear always clears full depth buffer
-#endif
 
    Int border=0;
 #if FLAT_SHADOW_MAP
@@ -827,9 +803,6 @@ static void ShadowMap(Flt range, VecD &pos)
 
    // restore settings
    Renderer.mode(mode); // restore rendering mode to correctly restore viewport
-#if DX9
-   D.colWrite(COL_WRITE_RGBA); // restore color writes
-#endif
    RestoreShadowMapSettings();
 }
 /******************************************************************************/
@@ -837,14 +810,8 @@ static void ShadowMap(LightCone &light)
 {
    RENDER_MODE mode=Renderer(); Renderer.mode(RM_SHADOW);
    D.alpha(ALPHA_NONE); // disable alpha
-
-#if DX9
-   Renderer.set(&Renderer._shd_map_null, &Renderer._shd_map, false); // on DX9 there always needs to be a RT set
-   D.colWrite(0); // disable color writes
-#else
    Renderer.set(null, &Renderer._shd_map, false);
    D.clearDepth(); // clear all at once, must be done here because DX10+ and GL depth clear always clears full depth buffer
-#endif
 
    Int map_size=D.shadowMapSizeActual(), border=0;
 #if FLAT_SHADOW_MAP
@@ -881,9 +848,6 @@ static void ShadowMap(LightCone &light)
 
    // restore settings
    Renderer.mode(mode); // restore rendering mode to correctly restore viewport
-#if DX9
-   D.colWrite(COL_WRITE_RGBA); // restore color writes
-#endif
    RestoreShadowMapSettings();
 }
 /******************************************************************************/

@@ -1381,14 +1381,14 @@ Bool EditorInterface::build32Bit(Bool bit32)
    }
    return false;
 }
-Bool EditorInterface::buildDX9(Bool dx9)
+Bool EditorInterface::buildAPI(Byte api)
 {
    if(connected())
    {
-      File &f=_conn.data.reset(); f.putByte(EI_BUILD_DX9).putBool(dx9).pos(0);
+      File &f=_conn.data.reset(); f.putByte(EI_BUILD_API).putByte(api).pos(0);
       if(_conn.send(f))
       if(_conn.receive(CLIENT_WAIT_TIME))
-      if(f.getByte()==EI_BUILD_DX9)return f.getBool();
+      if(f.getByte()==EI_BUILD_API)return f.getBool();
       disconnect();
    }
    return false;

@@ -244,8 +244,6 @@ struct VtxIndBuf // Vertex Index Buffer - used for buffered drawing
 
           void del     ();
           void create  ();
-          void lost    ();
-          void reset   ();
    static void clear   ();
    static void setType (VI_TYPE vtx_type, UInt flag=0);
    static void setFirst(VI_TYPE vtx_type, UInt flag=0);
@@ -276,7 +274,7 @@ private:
    VtxFormat  _vf2D_flat, _vf2D_col, _vf2D_tex, _vf2D_tex_col, _vf2D_tex2, _vf2D_font, _vf3D_flat, _vf3D_col, _vf3D_tex, _vf3D_tex_col, _vf3D_bilb, _vf3D_bilb_anim, _vf3D_laser, _vf3D_cloth, _vf3D_simple, _vf3D_standard, _vf3D_full;
    VtxBuf     _vb;
 #if EE_PRIVATE
-   GPU_API(D3DPRIMITIVETYPE, D3D11_PRIMITIVE_TOPOLOGY, UInt) _prim_type;
+   GPU_API(D3D11_PRIMITIVE_TOPOLOGY, UInt) _prim_type;
 #else
    UInt       _prim_type;
 #endif

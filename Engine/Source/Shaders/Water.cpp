@@ -65,11 +65,7 @@ void Surface_VS
    if(waves)
    {
       Flt dist_scale=LerpRS(Sqr(150.0f), Sqr(100.0f), Length2(outPos)),
-      #if DX9
-          bump      =Dot(TexLod(Nrm1, outTexB.xy)+TexLod(Nrm1, outTexB.zw), WaterBumpDot);
-      #else
           bump      =TexLod(Col, outTexB.xy).a+TexLod(Col, outTexB.zw).a;
-      #endif
           bump      =bump-1; // Avg(a,b)*2-1 = (a+b)-1
           outPos   +=(WaterPlnNrm*WaterWave)*bump*dist_scale;
    }else

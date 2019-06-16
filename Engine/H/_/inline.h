@@ -1909,33 +1909,19 @@ T1(TYPE)  ListColumn::ListColumn(Str (*data_to_text)(C TYPE &data), Flt width, C
 #if EE_PRIVATE
 INLINE Int Display::maxShaderMatrixes()C
 {
-#if DX9
-   return MAX_MATRIX_DX9;
-#elif DX11
+#if DX11
    return MAX_MATRIX_DX10;
 #elif GL
    #if VARIABLE_MAX_MATRIX
-      return MeshBoneSplit ? MAX_MATRIX_DX9 : MAX_MATRIX_DX10;
+      return MeshBoneSplit ? MAX_MATRIX_GL : MAX_MATRIX_DX10;
    #else
-      return MAX_MATRIX_DX9;
+      return MAX_MATRIX_GL;
    #endif
-#endif
-}
-INLINE Bool Display::meshStorageSigned()C
-{
-#if DX9
-   return false;
-#elif DX11
-   return true;
-#elif GL
-   return true;
 #endif
 }
 INLINE Bool Display::meshBoneSplit()C
 {
-#if DX9
-   return true;
-#elif DX11
+#if DX11
    return false;
 #elif GL
    #if VARIABLE_MAX_MATRIX
@@ -1945,21 +1931,9 @@ INLINE Bool Display::meshBoneSplit()C
    #endif
 #endif
 }
-INLINE Bool Display::hwInstancing()C
-{
-#if DX9
-   return false;
-#elif DX11
-   return true;
-#elif GL
-   return notShaderModelGLES2(); // GL 3.1 or GLES 3+
-#endif
-}
 INLINE Bool Display::signedNrmRT()C // #SIGNED_NRM_RT
 {
-#if DX9
-   return false;
-#elif DX11
+#if DX11
    return true;
 #elif GL
    return false;
@@ -1967,9 +1941,7 @@ INLINE Bool Display::signedNrmRT()C // #SIGNED_NRM_RT
 }
 INLINE Bool Display::signedVelRT()C // #SIGNED_VEL_RT
 {
-#if DX9
-   return false;
-#elif DX11
+#if DX11
    return true;
 #elif GL
    return false;

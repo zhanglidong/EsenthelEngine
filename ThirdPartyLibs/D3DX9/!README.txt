@@ -1,1 +1,0 @@
-Use "2010 FEB" because "2010 Jun" crashes for some reason when compiling shaders

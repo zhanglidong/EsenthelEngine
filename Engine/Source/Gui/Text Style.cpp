@@ -493,9 +493,7 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
 
          // texture bias
          {
-         #if DX9
-            U32 bias=(U32&)D._font_sharpness; bias^=SIGN_BIT; D3D->SetSamplerState(0, D3DSAMP_MIPMAPLODBIAS, bias);
-         #elif DX11
+         #if DX11
             // bias is set using 'SamplerFont' which is accessed in 'Font' shader
          #elif GL
             // bias is set using Font.setGLFont and Image.setGLFont
@@ -629,9 +627,7 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
 
          // texture bias
          {
-         #if DX9
-            D3D->SetSamplerState(0, D3DSAMP_MIPMAPLODBIAS, 0);
-         #elif DX11
+         #if DX11
             // bias is set using 'SamplerFont' which is accessed in 'Font' shader
          #elif GL
             // bias is set using 'Font.setGLFont' and 'Image.setGLFont'

@@ -7,9 +7,6 @@ namespace EE{
 #define MULTI_MATERIAL 1
 #define FORCE_LOG      0
 
-#if WINDOWS // DirectX 9
-   #define COMPILE_3 0
-#endif
 #if DX11   // DirectX 10+
    #define COMPILE_4 0
 #endif
@@ -60,7 +57,7 @@ Str8 TechNameFurBase   (Int skin, Int size, Int diffuse) {return S8+"Base"+skin+
 Str8 TechNameFurSoft   (Int skin, Int size, Int diffuse) {return S8+"Soft"+skin+size+diffuse;}
 Str8 TechNameTattoo    (Int skin, Int tess             ) {return S8+"T"+skin+tess;}
 /******************************************************************************/
-#if COMPILE_3 || COMPILE_4 || COMPILE_GL
+#if COMPILE_4 || COMPILE_GL
 /******************************************************************************/
 // SHADER TECHNIQUE DECLARATIONS
 /******************************************************************************/
@@ -238,14 +235,11 @@ struct ShaderCompiler
       if(!ok || DEBUG || FORCE_LOG)if(messages.is())LogN(S+"Shader\n\""+src+"\"\nto file\n\""+dest+"\"\n"+messages);
       if(!ok)
       {
-      #if !WINDOWS
-         if(model==SM_3)Exit("Can't compile DX9 Shaders when not using Windows engine version");
-      #endif
       #if !DX11
          if(model>=SM_4)Exit("Can't compile DX10+ Shaders when not using DX10+ engine version");
       #endif
-      #if DX9 || DX11
-         if(model>=SM_GL_ES_2 && model<=SM_GL)Exit("Can't compile OpenGL Shaders when not using OpenGL engine version");
+      #if !GL
+         if(model>=SM_GL_ES_3 && model<=SM_GL)Exit("Can't compile OpenGL Shaders when not using OpenGL engine version");
       #endif
          Exit(S+"Error compiling shader\n\""+src+"\"\nto file\n\""+dest+"\"."+(messages.is() ? S+"\n\nCompilation Messages:\n"+messages : S));
       }
@@ -285,11 +279,9 @@ static void Compile(SHADER_MODEL model)
    {
       case SM_UNKNOWN: return;
 
-      case SM_GL_ES_2:
       case SM_GL_ES_3:
       case SM_GL     : dest_path+="Shader\\GL\\"; break;
 
-      case SM_3      : dest_path+="Shader\\3\\" ; break;
       default        : dest_path+="Shader\\4\\" ; break;
    }
    FCreateDirs(dest_path);
@@ -834,14 +826,11 @@ static void ThreadCompile(ShaderCompiler &shader_compiler, Ptr user, Int thread_
 /******************************************************************************/
 void MainShaderClass::compile()
 {
-#if COMPILE_3 || COMPILE_4 || COMPILE_GL
+#if COMPILE_4 || COMPILE_GL
    App.stayAwake(AWAKE_SYSTEM);
 
 #if COMPILE_GL
    Compile(SM_GL);
-#endif
-#if COMPILE_3
-   Compile(SM_3);
 #endif
 #if COMPILE_4
    Compile(SM_4);

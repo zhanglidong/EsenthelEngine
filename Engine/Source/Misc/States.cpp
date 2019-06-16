@@ -3,7 +3,7 @@
 namespace EE{
 /******************************************************************************/
 // this cannot be done on OpenGL (on Windows it was tested, even with 'glFlush' significant stuttering occured, like previous frames were rendered sometimes)
-#define MT_FLIP (DX9 || DX11 || DX12) // if use Multi-Threaded flipping which performs 'D.flip' on the secondary thread, allowing the CPU 'Update' to run while flipping is still executing, this will improve performance only if the 'Update' is time consuming, however the performance benefit will not be full if the user tries to modify the GPU data (by using 'D._lock', which will have to wait until flip has finished)
+#define MT_FLIP (DX11 || DX12) // if use Multi-Threaded flipping which performs 'D.flip' on the secondary thread, allowing the CPU 'Update' to run while flipping is still executing, this will improve performance only if the 'Update' is time consuming, however the performance benefit will not be full if the user tries to modify the GPU data (by using 'D._lock', which will have to wait until flip has finished)
 #define MT_SPIN 0 // spin is ~2x faster (0.000015s vs 0.000030s), however may cause slow downs if other threads catch sync lock before 'DisplayFlipThread' does
 /******************************************************************************/
 static Bool      DisplayFlipOk=true;
@@ -186,13 +186,7 @@ Bool DrawState()
                if(Renderer._t_measure)D.finish();
             }
 
-         if(!DisplayFlipOk)
-         {
-            DisplayFlipOk=true;
-         #if DX9
-            D.Reset();
-         #endif
-         }
+         if(!DisplayFlipOk)DisplayFlipOk=true;
       }
 
       Dbl cur_time=Time.curTime();

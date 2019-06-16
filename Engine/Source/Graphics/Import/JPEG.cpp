@@ -105,7 +105,7 @@ Bool Image::ImportJPG(File &f)
 
       if(cinfo.output_components==1 && cinfo.out_color_space==JCS_GRAYSCALE
       || cinfo.output_components==3 && cinfo.out_color_space==JCS_RGB)
-         if(createSoftTry(cinfo.output_width, cinfo.output_height, 1, (cinfo.output_components==1) ? IMAGE_L8 : IMAGE_R8G8B8))
+         if(createSoftTry(cinfo.output_width, cinfo.output_height, 1, (cinfo.output_components==1) ? IMAGE_L8 : IMAGE_R8G8B8_SRGB))
       {
          created=true;
          for(; cinfo.output_scanline<cinfo.output_height; ){JSAMPROW row=T.data()+cinfo.output_scanline*pitch(); jpeg_read_scanlines(&cinfo, &row, 1);}
@@ -176,11 +176,9 @@ Bool Image::ExportJPG(File &f, Flt quality, Int sub_sample)C
 #if JCS_EXTENSIONS
    && src->hwType()!=IMAGE_R8G8B8A8
    && src->hwType()!=IMAGE_R8G8B8A8_SRGB
-   && src->hwType()!=IMAGE_R8G8B8X8
    && src->hwType()!=IMAGE_B8G8R8
    && src->hwType()!=IMAGE_B8G8R8A8
    && src->hwType()!=IMAGE_B8G8R8A8_SRGB
-   && src->hwType()!=IMAGE_B8G8R8X8
 #endif
    )
       if(src->copyTry(temp, -1, -1, -1, (src->type()==IMAGE_I16) ? IMAGE_L8 : IMAGE_R8G8B8, IMAGE_SOFT, 1))src=&temp;else return false;
@@ -201,12 +199,10 @@ Bool Image::ExportJPG(File &f, Flt quality, Int sub_sample)C
          case IMAGE_R8G8B8_SRGB: cinfo.in_color_space=JCS_RGB      ; cinfo.input_components=3; break;
       #if JCS_EXTENSIONS
          case IMAGE_R8G8B8A8     :
-         case IMAGE_R8G8B8A8_SRGB:
-         case IMAGE_R8G8B8X8     : cinfo.in_color_space=JCS_EXT_RGBX; cinfo.input_components=4; break;
+         case IMAGE_R8G8B8A8_SRGB: cinfo.in_color_space=JCS_EXT_RGBX; cinfo.input_components=4; break;
          case IMAGE_B8G8R8       : cinfo.in_color_space=JCS_EXT_BGR ; cinfo.input_components=3; break;
          case IMAGE_B8G8R8A8     :
-         case IMAGE_B8G8R8A8_SRGB:
-         case IMAGE_B8G8R8X8     : cinfo.in_color_space=JCS_EXT_BGRX; cinfo.input_components=4; break;
+         case IMAGE_B8G8R8A8_SRGB: cinfo.in_color_space=JCS_EXT_BGRX; cinfo.input_components=4; break;
       #endif
       }
       cinfo.image_width =src->w();

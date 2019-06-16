@@ -211,17 +211,17 @@ Bool Image::ImportTGA(File &f, Int type, Int mode, Int mip_maps)
    Bool mirror_x=FlagTest(Unaligned(header.ImagDesc), 16),
         mirror_y=FlagTest(Unaligned(header.ImagDesc), 32);
 
-   if(type<=0)if(map)type=IMAGE_R8G8B8;else switch(Unaligned(header.PixelDepth))
+   if(type<=0)if(map)type=IMAGE_R8G8B8_SRGB;else switch(Unaligned(header.PixelDepth))
    {
       case 15:
-      case 16: type=(tga.mono ? IMAGE_I16 : IMAGE_R8G8B8  ); break;
-      case 24: type=(tga.mono ? IMAGE_I24 : IMAGE_R8G8B8  ); break;
-      case 32: type=(tga.mono ? IMAGE_I32 : IMAGE_B8G8R8A8); break; // TGA uses BGRA order
-      case 8 : type=            IMAGE_L8                   ; break;
+      case 16: type=(tga.mono ? IMAGE_I16 : IMAGE_R8G8B8_SRGB  ); break;
+      case 24: type=(tga.mono ? IMAGE_I24 : IMAGE_R8G8B8_SRGB  ); break;
+      case 32: type=(tga.mono ? IMAGE_I32 : IMAGE_B8G8R8A8_SRGB); break; // TGA uses BGRA order
+      case 8 : type=            IMAGE_L8                        ; break;
    }
 
    Bool convert=ImageTI[type].compressed;
-   if(createTry(Unaligned(header.ImageWidth), Unaligned(header.ImageHeight), 1, convert ? IMAGE_B8G8R8A8 : IMAGE_TYPE(type), convert ? IMAGE_SOFT : IMAGE_MODE(mode), convert ? 1 : mip_maps)) // TGA uses BGRA order
+   if(createTry(Unaligned(header.ImageWidth), Unaligned(header.ImageHeight), 1, convert ? IMAGE_B8G8R8A8_SRGB : IMAGE_TYPE(type), convert ? IMAGE_SOFT : IMAGE_MODE(mode), convert ? 1 : mip_maps)) // TGA uses BGRA order
    if(lock(LOCK_WRITE))
    {
       Byte rleLeftover=255;

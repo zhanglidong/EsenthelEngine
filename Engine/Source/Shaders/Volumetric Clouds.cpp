@@ -45,14 +45,9 @@ void Clouds_VS(VtxInput vtx,
            out Vec4 outVtx:POSITION)
 {
    dir=Transform3(Vec(ScreenToPosXY(vtx.tex()), 1), CamMatrix); // world-space position
-   outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); AdjustPixelCenter(outVtx); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
-#if DX9
-   Vec4
-#else
-   Vec2
-#endif
-   Clouds_PS(NOPERSP Vec dir:TEXCOORD):COLOR // 'dir'=world-space position
+Vec2 Clouds_PS(NOPERSP Vec dir:TEXCOORD):COLOR // 'dir'=world-space position
 {
    Flt a=Sat(dir.y*8); // alternatively, 'a' could be calculated as "a=Sat(max_from-from)"
 #if FLOW
@@ -90,10 +85,8 @@ void Clouds_VS(VtxInput vtx,
 
          sample.y=Sat(sample.y);
       }*/
-   #elif !DX9
-      Vec2 sample=Tex3DLod(Vol, pos).rg;
    #else
-      Vec2 sample=Tex3DLod(Vol, pos).ra;
+      Vec2 sample=Tex3DLod(Vol, pos).rg;
    #endif
 
       Flt alpha=sample.y*(1-col.y);
@@ -106,11 +99,7 @@ void Clouds_VS(VtxInput vtx,
 
    col.x/=col.y+EPS; // NaN
    col.y*=a;
-#if DX9
-   return Vec4(col, 0, 0);
-#else
    return col;
-#endif
 }
 /******************************************************************************/
 // SHADOW MAP
@@ -125,16 +114,11 @@ void CloudsMap_VS(VtxInput vtx,
          +CamMatrix[1]*(vtx.pos2().y/ProjMatrix[1][1]); // ProjMatrix.y.y which is 1/fov.y
    outDir=CamMatrix[2];
 
-   outVtx=vtx.pos4(); AdjustPixelCenter(outVtx);
+   outVtx=vtx.pos4();
 }
-#if DX9
-   Vec4 
-#else
-   Flt
-#endif
-   CloudsMap_PS(NOPERSP Vec pos:TEXCOORD0, // world-space position, relative to main camera
-                NOPERSP Vec dir:TEXCOORD1  // world-space direction
-               ):COLOR
+Flt CloudsMap_PS(NOPERSP Vec pos:TEXCOORD0, // world-space position, relative to main camera
+                 NOPERSP Vec dir:TEXCOORD1  // world-space direction
+                ):COLOR
 {
 /* clouds = -Cloud.curve*x*x + Cloud.height
    ray    = pos + dir*t
@@ -177,10 +161,8 @@ void CloudsMap_VS(VtxInput vtx,
    {
    #if MODEL>=SM_4
       Flt alpha=Vol.SampleLevel(SamplerLinearCWW, pos, 0).g;
-   #elif !DX9
-      Flt alpha=Tex3DLod(Vol, pos).g;
    #else
-      Flt alpha=Tex3DLod(Vol, pos).a;
+      Flt alpha=Tex3DLod(Vol, pos).g;
    #endif
 
       density+=alpha*(1-density);
@@ -198,7 +180,7 @@ void CloudsDraw_VS(VtxInput vtx,
 {
    outTex=vtx.tex();
    outPos=Vec(ScreenToPosXY(vtx.tex()), 1);
-   outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); AdjustPixelCenter(outVtx); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
 Vec4 CloudsDraw_PS(NOPERSP Vec2 inTex:TEXCOORD0,
                    NOPERSP Vec  inPos:TEXCOORD1):COLOR

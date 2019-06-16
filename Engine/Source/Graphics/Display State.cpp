@@ -9,7 +9,7 @@ namespace EE{
 /******************************************************************************/
 #define DEPTH_VALUE(x) (REVERSE_DEPTH ? -(x) : (x))
 
-#if DX9 || GL
+#if GL
    #define DEPTH_BIAS_SHADOW  DEPTH_VALUE( 0.0f           )
    #define DEPTH_BIAS_OVERLAY DEPTH_VALUE(-1.0f/(1ull<<24)) // 24-bit depth buffer
 #elif DX11
@@ -20,9 +20,7 @@ namespace EE{
 #define SLOPE_SCALED_DEPTH_BIAS_SHADOW  DEPTH_VALUE(SQRT2)
 #define SLOPE_SCALED_DEPTH_BIAS_OVERLAY DEPTH_VALUE(-1.0f)
 /******************************************************************************/
-#if DX9
-static Bool AllowLineSmooth;
-#elif DX11
+#if DX11
 struct BlendState
 {
    ID3D11BlendState *state;
@@ -152,13 +150,7 @@ DisplayState::DisplayState()
 void DisplayState::depthUnlock(       ) {           D._depth_lock=false;}
 void DisplayState::depthLock  (Bool on) {depth(on); D._depth_lock=true ;}
 /******************************************************************************/
-#if DX9
-void DisplayState::depth     (Bool on  ) {                          if(D._depth      !=on && !D._depth_lock)D3D->SetRenderState(D3DRS_ZENABLE     , D._depth      =on  );}
-Bool DisplayState::depthWrite(Bool on  ) {Bool last=D._depth_write; if(D._depth_write!=on                  )D3D->SetRenderState(D3DRS_ZWRITEENABLE, D._depth_write=on  ); return last;}
-void DisplayState::depthFunc (UInt func) {                          if(D._depth_func !=func                )D3D->SetRenderState(D3DRS_ZFUNC       , D._depth_func =func);}
-void DisplayState::stencilRef(Byte ref ) {                          if(D._stencil_ref!=ref                 )D3D->SetRenderState(D3DRS_STENCILREF  , D._stencil_ref=ref );}
-void DisplayState::stencil   (STENCIL_MODE mode, Byte ref) {stencil(mode); stencilRef(ref);}
-#elif DX11
+#if DX11
    #define D3D11_COMPARISON_FIRST D3D11_COMPARISON_NEVER
 static void SetDS() {DS[D._stencil][D._depth][D._depth_write][D._depth_func-D3D11_COMPARISON_FIRST].set();}
 void DisplayState::depth     (Bool on  ) {                          if(D._depth      !=on && !D._depth_lock   ){D._depth      =on  ;                  SetDS();}}
@@ -241,132 +233,7 @@ void DisplayState::depth2DOff()
 /******************************************************************************/
 void DisplayState::stencil(STENCIL_MODE stencil)
 {
-#if DX9
-   if(D._stencil!=stencil)
-   {
-      D._stencil=stencil;
-      if(!stencil)
-      {
-         D3D->SetRenderState(D3DRS_STENCILENABLE, false);
-      }else
-      {
-         D3D->SetRenderState(D3DRS_STENCILENABLE, true);
-
-         if(LastStencilMode!=stencil)switch(LastStencilMode=stencil)
-         {
-            case STENCIL_ALWAYS_SET:
-               D3D->SetRenderState(D3DRS_STENCILMASK     , ~0                  );
-               D3D->SetRenderState(D3DRS_STENCILWRITEMASK, ~0                  );
-               D3D->SetRenderState(D3DRS_STENCILFUNC     , D3DCMP_ALWAYS       );
-               D3D->SetRenderState(D3DRS_CCW_STENCILFUNC , D3DCMP_ALWAYS       );
-               D3D->SetRenderState(D3DRS_STENCILZFAIL    , D3DSTENCILOP_KEEP   );
-               D3D->SetRenderState(D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_KEEP   );
-               D3D->SetRenderState(D3DRS_STENCILPASS     , D3DSTENCILOP_REPLACE);
-               D3D->SetRenderState(D3DRS_CCW_STENCILPASS , D3DSTENCILOP_REPLACE);
-            break;
-
-            case STENCIL_TERRAIN_TEST:
-               D3D->SetRenderState(D3DRS_STENCILMASK     , STENCIL_REF_TERRAIN);
-               D3D->SetRenderState(D3DRS_STENCILWRITEMASK, 0                  );
-               D3D->SetRenderState(D3DRS_STENCILFUNC     , D3DCMP_EQUAL       );
-               D3D->SetRenderState(D3DRS_CCW_STENCILFUNC , D3DCMP_EQUAL       );
-               D3D->SetRenderState(D3DRS_STENCILZFAIL    , D3DSTENCILOP_KEEP  );
-               D3D->SetRenderState(D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_KEEP  );
-               D3D->SetRenderState(D3DRS_STENCILPASS     , D3DSTENCILOP_KEEP  );
-               D3D->SetRenderState(D3DRS_CCW_STENCILPASS , D3DSTENCILOP_KEEP  );
-            break;
-
-            case STENCIL_MSAA_SET:
-               D3D->SetRenderState(D3DRS_STENCILMASK     , STENCIL_REF_MSAA    );
-               D3D->SetRenderState(D3DRS_STENCILWRITEMASK, STENCIL_REF_MSAA    );
-               D3D->SetRenderState(D3DRS_STENCILFUNC     , D3DCMP_ALWAYS       );
-               D3D->SetRenderState(D3DRS_CCW_STENCILFUNC , D3DCMP_ALWAYS       );
-               D3D->SetRenderState(D3DRS_STENCILZFAIL    , D3DSTENCILOP_KEEP   );
-               D3D->SetRenderState(D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_KEEP   );
-               D3D->SetRenderState(D3DRS_STENCILPASS     , D3DSTENCILOP_REPLACE);
-               D3D->SetRenderState(D3DRS_CCW_STENCILPASS , D3DSTENCILOP_REPLACE);
-            break;
-
-            case STENCIL_MSAA_TEST:
-               D3D->SetRenderState(D3DRS_STENCILMASK     , STENCIL_REF_MSAA );
-               D3D->SetRenderState(D3DRS_STENCILWRITEMASK, 0                );
-               D3D->SetRenderState(D3DRS_STENCILFUNC     , D3DCMP_EQUAL     );
-               D3D->SetRenderState(D3DRS_CCW_STENCILFUNC , D3DCMP_EQUAL     );
-               D3D->SetRenderState(D3DRS_STENCILZFAIL    , D3DSTENCILOP_KEEP);
-               D3D->SetRenderState(D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_KEEP);
-               D3D->SetRenderState(D3DRS_STENCILPASS     , D3DSTENCILOP_KEEP);
-               D3D->SetRenderState(D3DRS_CCW_STENCILPASS , D3DSTENCILOP_KEEP);
-            break;
-
-            case STENCIL_EDGE_SOFT_SET:
-               D3D->SetRenderState(D3DRS_STENCILMASK     , STENCIL_REF_EDGE_SOFT);
-               D3D->SetRenderState(D3DRS_STENCILWRITEMASK, STENCIL_REF_EDGE_SOFT);
-               D3D->SetRenderState(D3DRS_STENCILFUNC     , D3DCMP_ALWAYS        );
-               D3D->SetRenderState(D3DRS_CCW_STENCILFUNC , D3DCMP_ALWAYS        );
-               D3D->SetRenderState(D3DRS_STENCILZFAIL    , D3DSTENCILOP_KEEP    );
-               D3D->SetRenderState(D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_KEEP    );
-               D3D->SetRenderState(D3DRS_STENCILPASS     , D3DSTENCILOP_REPLACE );
-               D3D->SetRenderState(D3DRS_CCW_STENCILPASS , D3DSTENCILOP_REPLACE );
-            break;
-
-            case STENCIL_EDGE_SOFT_TEST:
-               D3D->SetRenderState(D3DRS_STENCILMASK     , STENCIL_REF_EDGE_SOFT);
-               D3D->SetRenderState(D3DRS_STENCILWRITEMASK, 0                    );
-               D3D->SetRenderState(D3DRS_STENCILFUNC     , D3DCMP_EQUAL         );
-               D3D->SetRenderState(D3DRS_CCW_STENCILFUNC , D3DCMP_EQUAL         );
-               D3D->SetRenderState(D3DRS_STENCILZFAIL    , D3DSTENCILOP_KEEP    );
-               D3D->SetRenderState(D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_KEEP    );
-               D3D->SetRenderState(D3DRS_STENCILPASS     , D3DSTENCILOP_KEEP    );
-               D3D->SetRenderState(D3DRS_CCW_STENCILPASS , D3DSTENCILOP_KEEP    );
-            break;
-
-            case STENCIL_WATER_SET:
-               D3D->SetRenderState(D3DRS_STENCILMASK     , STENCIL_REF_WATER   );
-               D3D->SetRenderState(D3DRS_STENCILWRITEMASK, STENCIL_REF_WATER   );
-               D3D->SetRenderState(D3DRS_STENCILFUNC     , D3DCMP_ALWAYS       );
-               D3D->SetRenderState(D3DRS_CCW_STENCILFUNC , D3DCMP_ALWAYS       );
-               D3D->SetRenderState(D3DRS_STENCILZFAIL    , D3DSTENCILOP_KEEP   );
-               D3D->SetRenderState(D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_KEEP   );
-               D3D->SetRenderState(D3DRS_STENCILPASS     , D3DSTENCILOP_REPLACE);
-               D3D->SetRenderState(D3DRS_CCW_STENCILPASS , D3DSTENCILOP_REPLACE);
-            break;
-
-            case STENCIL_WATER_TEST:
-               D3D->SetRenderState(D3DRS_STENCILMASK     , STENCIL_REF_WATER);
-               D3D->SetRenderState(D3DRS_STENCILWRITEMASK, 0                );
-               D3D->SetRenderState(D3DRS_STENCILFUNC     , D3DCMP_EQUAL     );
-               D3D->SetRenderState(D3DRS_CCW_STENCILFUNC , D3DCMP_EQUAL     );
-               D3D->SetRenderState(D3DRS_STENCILZFAIL    , D3DSTENCILOP_KEEP);
-               D3D->SetRenderState(D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_KEEP);
-               D3D->SetRenderState(D3DRS_STENCILPASS     , D3DSTENCILOP_KEEP);
-               D3D->SetRenderState(D3DRS_CCW_STENCILPASS , D3DSTENCILOP_KEEP);
-            break;
-
-            case STENCIL_OUTLINE_SET:
-               D3D->SetRenderState(D3DRS_STENCILMASK     , STENCIL_REF_OUTLINE );
-               D3D->SetRenderState(D3DRS_STENCILWRITEMASK, STENCIL_REF_OUTLINE );
-               D3D->SetRenderState(D3DRS_STENCILFUNC     , D3DCMP_ALWAYS       );
-               D3D->SetRenderState(D3DRS_CCW_STENCILFUNC , D3DCMP_ALWAYS       );
-               D3D->SetRenderState(D3DRS_STENCILZFAIL    , D3DSTENCILOP_KEEP   );
-               D3D->SetRenderState(D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_KEEP   );
-               D3D->SetRenderState(D3DRS_STENCILPASS     , D3DSTENCILOP_REPLACE);
-               D3D->SetRenderState(D3DRS_CCW_STENCILPASS , D3DSTENCILOP_REPLACE);
-            break;
-
-            case STENCIL_OUTLINE_TEST:
-               D3D->SetRenderState(D3DRS_STENCILMASK     , STENCIL_REF_OUTLINE);
-               D3D->SetRenderState(D3DRS_STENCILWRITEMASK, 0                  );
-               D3D->SetRenderState(D3DRS_STENCILFUNC     , D3DCMP_EQUAL       );
-               D3D->SetRenderState(D3DRS_CCW_STENCILFUNC , D3DCMP_EQUAL       );
-               D3D->SetRenderState(D3DRS_STENCILZFAIL    , D3DSTENCILOP_KEEP  );
-               D3D->SetRenderState(D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_KEEP  );
-               D3D->SetRenderState(D3DRS_STENCILPASS     , D3DSTENCILOP_KEEP  );
-               D3D->SetRenderState(D3DRS_CCW_STENCILPASS , D3DSTENCILOP_KEEP  );
-            break;
-         }
-      }
-   }
-#elif DX11
+#if DX11
    if(D._stencil!=stencil){D._stencil=stencil; SetDS();}
 #elif GL
    if(D._stencil!=stencil)
@@ -438,36 +305,7 @@ void DisplayState::stencil(STENCIL_MODE stencil)
 /******************************************************************************/
 // RASTERIZER
 /******************************************************************************/
-#if DX9
-Bool DisplayState::lineSmooth(Bool      on  ) {Bool old=D._line_smooth; if(D._line_smooth!=on){D._line_smooth=on; if(D3D && AllowLineSmooth)D3D->SetRenderState(D3DRS_ANTIALIASEDLINEENABLE, on);} return old;}
-void DisplayState::wire      (Bool      on  ) {if(D._wire!=on)D3D->SetRenderState(D3DRS_FILLMODE, (D._wire=on) ? D3DFILL_WIREFRAME : D3DFILL_SOLID);}
-void DisplayState::cull      (Bool      on  ) {if(D._cull!=on)D3D->SetRenderState(D3DRS_CULLMODE, Renderer._cull_mode[D._cull=on]);}
-void DisplayState::bias      (BIAS_MODE bias)
-{
-   if(D._bias!=bias)switch(D._bias=bias)
-   {
-      case BIAS_ZERO:
-      {
-         D3D->SetRenderState(D3DRS_DEPTHBIAS          , 0);
-         D3D->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, 0);
-      }break;
-
-      case BIAS_SHADOW:
-      {
-         Flt f;
-         f=             DEPTH_BIAS_SHADOW; D3D->SetRenderState(D3DRS_DEPTHBIAS          , (UInt&)f);
-         f=SLOPE_SCALED_DEPTH_BIAS_SHADOW; D3D->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, (UInt&)f);
-      }break;
-
-      case BIAS_OVERLAY:
-      {
-         Flt f;
-         f=             DEPTH_BIAS_OVERLAY; D3D->SetRenderState(D3DRS_DEPTHBIAS          , (UInt&)f);
-         f=SLOPE_SCALED_DEPTH_BIAS_OVERLAY; D3D->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, (UInt&)f);
-      }break;
-   }
-}
-#elif DX11
+#if DX11
 static void SetRS() {RS[Renderer._cull_mode[D._cull]][D._bias][D._line_smooth][D._wire][D._clip_real].set();}
 Bool DisplayState::lineSmooth(Bool      on  ) {Bool old=D._line_smooth; if(D._line_smooth!=on){D._line_smooth=on; if(D3DC)SetRS();} return old;}
 void DisplayState::wire      (Bool      on  ) {if(D._wire!=on  ){D._wire=on  ; SetRS();}}
@@ -529,9 +367,7 @@ static void SetClip()
    if(D._clip_real!=(D._clip && D._clip_allow))
    {
       D._clip_real^=1;
-   #if DX9
-      D3D->SetRenderState(D3DRS_SCISSORTESTENABLE, D._clip_real);
-   #elif DX11
+   #if DX11
       SetRS();
    #elif GL
       if(D._clip_real)glEnable(GL_SCISSOR_TEST);else glDisable(GL_SCISSOR_TEST);
@@ -547,10 +383,7 @@ static void SetClipRect(C RectI &rect)
    if(D._clip_recti!=rect)
    {
       D._clip_recti=rect; // !! Warning: for GL this is actually RectI(pos, size)
-   #if DX9
-      RECT rectangle; rectangle.left=rect.min.x; rectangle.right=rect.max.x; rectangle.top=rect.min.y; rectangle.bottom=rect.max.y;
-      D3D->SetScissorRect(&rectangle);
-   #elif DX11
+   #if DX11
       D3D11_RECT rectangle; rectangle.left=rect.min.x; rectangle.right=rect.max.x; rectangle.top=rect.min.y; rectangle.bottom=rect.max.y;
       D3DC->RSSetScissorRects(1, &rectangle);
    #elif GL
@@ -565,8 +398,7 @@ static void SetClipRect()
    if(recti.max.x<=recti.min.x || recti.max.y<=recti.min.y)recti.zero(); // if the rectangle is invalid then zero it, to prevent negative sizes in case drivers can't handle them properly
    SetClipRect(recti);
 }
-void DisplayState::clipForce(C RectI &rect) {D._clip_recti=rect;} // called only for DX9
-void DisplayState::clip     (C Rect  *rect)
+void DisplayState::clip(C Rect *rect)
 {
    if(rect)
    {
@@ -591,7 +423,7 @@ void DisplayState::clipAllow(C RectI &rect) // this gets called during shadow re
 }
 void DisplayState::clipAllow(Bool on) // this gets called when a render target has changed
 {
- //if(D._clip_allow!=on) we must always do below, because: we may have a different sized RT now, and need to recalculate clip rect. DX9 could have reset clip rect when changing RT's, for GL we may have changed between D.mainFBO for which we need different orientation of the clip rect
+ //if(D._clip_allow!=on) we must always do below, because: we may have a different sized RT now, and need to recalculate clip rect. for GL we may have changed between D.mainFBO for which we need different orientation of the clip rect
    {
       D._clip_allow=on; SetClip();
       if(D._clip_real)SetClipRect(); // call after 'SetClip' because we need '_clip_real'
@@ -600,9 +432,7 @@ void DisplayState::clipAllow(Bool on) // this gets called when a render target h
 /******************************************************************************/
 void DisplayState::clipPlane(Bool on)
 {
-#if DX9
-   D3D->SetRenderState(D3DRS_CLIPPLANEENABLE, on);
-#elif DX11
+#if DX11
    D._clip_plane_allow=on;
    Sh.h_ClipPlane->set(on ? D._clip_plane : Vec4(0, 0, 0, 1));
 #elif GL && defined GL_CLIP_DISTANCE0
@@ -613,11 +443,7 @@ void DisplayState::clipPlane(C PlaneM &plane)
 {
    VecD pos=plane.pos   *CamMatrixInv;
    Vec  nrm=plane.normal*CamMatrixInv.orn();
-#if DX9
-   Vec4    clip_plane(nrm, -Dot(pos, nrm));
-   Matrix4 m=ProjMatrix; m.inverse().transpose(); clip_plane*=m;
-   D3D->SetClipPlane(0, clip_plane.c);
-#elif DX11
+#if DX11
    D._clip_plane.set(nrm, -Dot(pos, nrm));
    clipPlane(D._clip_plane_allow);
 #elif GL
@@ -631,167 +457,7 @@ void DisplayState::clipPlane(C PlaneM &plane)
 ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
 {
    ALPHA_MODE prev=D.alpha();
-#if DX9
-   if(D._alpha!=alpha)switch(D._alpha=alpha)
-   {
-      case ALPHA_NONE:
-         D3D->SetRenderState(D3DRS_ALPHABLENDENABLE        , false);
-         D3D->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, false);
-      break;
-
-      case ALPHA_BLEND:
-         // final_alpha = 1-(1-src_alpha)*(1-dest_alpha)
-         // final_alpha = 1 - (1 - src_alpha - dest_alpha + src_alpha*dest_alpha)
-         // final_alpha = 1 - 1 + src_alpha + dest_alpha - src_alpha*dest_alpha
-         // final_alpha = src_alpha + dest_alpha - src_alpha*dest_alpha
-         // final_alpha = src_alpha*(1-dest_alpha) + dest_alpha
-         D3D->SetRenderState(D3DRS_ALPHABLENDENABLE        , true);
-         D3D->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, true);
-         D3D->SetRenderState(D3DRS_BLENDOP  , D3DBLENDOP_ADD      );
-         D3D->SetRenderState(D3DRS_SRCBLEND , D3DBLEND_SRCALPHA   );
-         D3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-         D3D->SetRenderState(D3DRS_BLENDOPALPHA  , D3DBLENDOP_ADD       );
-         D3D->SetRenderState(D3DRS_SRCBLENDALPHA , D3DBLEND_INVDESTALPHA);
-         D3D->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_ONE         );
-      break;
-      case ALPHA_BLEND_DEC:
-         D3D->SetRenderState(D3DRS_ALPHABLENDENABLE        , true);
-         D3D->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, true);
-         D3D->SetRenderState(D3DRS_BLENDOP  , D3DBLENDOP_ADD      );
-         D3D->SetRenderState(D3DRS_SRCBLEND , D3DBLEND_SRCALPHA   );
-         D3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-         D3D->SetRenderState(D3DRS_BLENDOPALPHA  , D3DBLENDOP_ADD      );
-         D3D->SetRenderState(D3DRS_SRCBLENDALPHA , D3DBLEND_ZERO       );
-         D3D->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_INVSRCALPHA);
-      break;
-
-      case ALPHA_ADD:
-         D3D->SetRenderState(D3DRS_ALPHABLENDENABLE        , true );
-         D3D->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, false);
-         D3D->SetRenderState(D3DRS_BLENDOP  , D3DBLENDOP_ADD);
-         D3D->SetRenderState(D3DRS_SRCBLEND , D3DBLEND_ONE  );
-         D3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE  );
-      break;
-      case ALPHA_MUL:
-         D3D->SetRenderState(D3DRS_ALPHABLENDENABLE        , true );
-         D3D->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, false);
-         D3D->SetRenderState(D3DRS_BLENDOP  , D3DBLENDOP_ADD    );
-         D3D->SetRenderState(D3DRS_SRCBLEND , D3DBLEND_DESTCOLOR);
-         D3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ZERO     );
-      break;
-
-      case ALPHA_MERGE:
-         D3D->SetRenderState(D3DRS_ALPHABLENDENABLE        , true);
-         D3D->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, true);
-         D3D->SetRenderState(D3DRS_BLENDOP  , D3DBLENDOP_ADD);
-         D3D->SetRenderState(D3DRS_SRCBLEND , D3DBLEND_ONE  );
-         D3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-         D3D->SetRenderState(D3DRS_BLENDOPALPHA  , D3DBLENDOP_ADD       );
-         D3D->SetRenderState(D3DRS_SRCBLENDALPHA , D3DBLEND_INVDESTALPHA);
-         D3D->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_ONE         );
-      break;
-      case ALPHA_ADDBLEND_KEEP:
-         D3D->SetRenderState(D3DRS_ALPHABLENDENABLE        , true);
-         D3D->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, true);
-         D3D->SetRenderState(D3DRS_BLENDOP  , D3DBLENDOP_ADD   );
-         D3D->SetRenderState(D3DRS_SRCBLEND , D3DBLEND_SRCALPHA);
-         D3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE     );
-         D3D->SetRenderState(D3DRS_BLENDOPALPHA  , D3DBLENDOP_ADD);
-         D3D->SetRenderState(D3DRS_SRCBLENDALPHA , D3DBLEND_ZERO );
-         D3D->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_ONE  );
-      break;
-      case ALPHA_ADD_KEEP:
-         D3D->SetRenderState(D3DRS_ALPHABLENDENABLE        , true);
-         D3D->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, true);
-         D3D->SetRenderState(D3DRS_BLENDOP  , D3DBLENDOP_ADD);
-         D3D->SetRenderState(D3DRS_SRCBLEND , D3DBLEND_ONE  );
-         D3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE  );
-         D3D->SetRenderState(D3DRS_BLENDOPALPHA  , D3DBLENDOP_ADD);
-         D3D->SetRenderState(D3DRS_SRCBLENDALPHA , D3DBLEND_ZERO );
-         D3D->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_ONE  );
-      break;
-
-      case ALPHA_BLEND_FACTOR:
-         D3D->SetRenderState(D3DRS_ALPHABLENDENABLE        , true);
-         D3D->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, true);
-         D3D->SetRenderState(D3DRS_BLENDOP  , D3DBLENDOP_ADD      );
-         D3D->SetRenderState(D3DRS_SRCBLEND , D3DBLEND_SRCALPHA   );
-         D3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-         D3D->SetRenderState(D3DRS_BLENDOPALPHA  , D3DBLENDOP_ADD      );
-         D3D->SetRenderState(D3DRS_SRCBLENDALPHA , D3DBLEND_BLENDFACTOR);
-         D3D->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_INVSRCALPHA);
-      break;
-      case ALPHA_ADD_FACTOR:
-         D3D->SetRenderState(D3DRS_ALPHABLENDENABLE        , true);
-         D3D->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, true);
-         D3D->SetRenderState(D3DRS_BLENDOP  , D3DBLENDOP_ADD);
-         D3D->SetRenderState(D3DRS_SRCBLEND , D3DBLEND_ONE  );
-         D3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE  );
-         D3D->SetRenderState(D3DRS_BLENDOPALPHA  , D3DBLENDOP_ADD      );
-         D3D->SetRenderState(D3DRS_SRCBLENDALPHA , D3DBLEND_BLENDFACTOR);
-         D3D->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_ONE        );
-      break;
-      case ALPHA_SETBLEND_SET:
-         D3D->SetRenderState(D3DRS_ALPHABLENDENABLE        , true);
-         D3D->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, true);
-         D3D->SetRenderState(D3DRS_BLENDOP  , D3DBLENDOP_ADD   );
-         D3D->SetRenderState(D3DRS_SRCBLEND , D3DBLEND_SRCALPHA);
-         D3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ZERO    );
-         D3D->SetRenderState(D3DRS_BLENDOPALPHA  , D3DBLENDOP_ADD);
-         D3D->SetRenderState(D3DRS_SRCBLENDALPHA , D3DBLEND_ONE  );
-         D3D->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_ZERO );
-      break;
-      case ALPHA_FACTOR:
-         D3D->SetRenderState(D3DRS_ALPHABLENDENABLE        , true );
-         D3D->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, false);
-         D3D->SetRenderState(D3DRS_BLENDOP  , D3DBLENDOP_ADD         );
-         D3D->SetRenderState(D3DRS_SRCBLEND , D3DBLEND_BLENDFACTOR   );
-         D3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVBLENDFACTOR);
-      break;
-
-      case ALPHA_INVERT:
-         D3D->SetRenderState(D3DRS_ALPHABLENDENABLE        , true );
-         D3D->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, false);
-         D3D->SetRenderState(D3DRS_BLENDOP  , D3DBLENDOP_ADD       );
-         D3D->SetRenderState(D3DRS_SRCBLEND , D3DBLEND_INVDESTCOLOR);
-         D3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ZERO        );
-      break;
-
-      case ALPHA_FONT:
-         // final = font_color.rgb * alpha.rgb + (1-alpha.rgb)*dest
-         // src_color (PS output) = alpha.rgb
-         // blend_factor          = font_color.rgb
-         //  src_blend            = blend_factor
-         // dest_blend            = inv_src_color
-         D3D->SetRenderState(D3DRS_ALPHABLENDENABLE        , true );
-         D3D->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, false);
-         D3D->SetRenderState(D3DRS_BLENDOP  , D3DBLENDOP_ADD      );
-         D3D->SetRenderState(D3DRS_SRCBLEND , D3DBLEND_BLENDFACTOR);
-         D3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCCOLOR);
-      break;
-      case ALPHA_FONT_DEC:
-         D3D->SetRenderState(D3DRS_ALPHABLENDENABLE        , true);
-         D3D->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, true);
-         D3D->SetRenderState(D3DRS_BLENDOP  , D3DBLENDOP_ADD      );
-         D3D->SetRenderState(D3DRS_SRCBLEND , D3DBLEND_BLENDFACTOR);
-         D3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCCOLOR);
-         D3D->SetRenderState(D3DRS_BLENDOPALPHA  , D3DBLENDOP_ADD      );
-         D3D->SetRenderState(D3DRS_SRCBLENDALPHA , D3DBLEND_ZERO       );
-         D3D->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_INVSRCALPHA);
-      break;
-
-      case ALPHA_NONE_ADD:
-         D3D->SetRenderState(D3DRS_ALPHABLENDENABLE        , true);
-         D3D->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, true);
-         D3D->SetRenderState(D3DRS_BLENDOP  , D3DBLENDOP_ADD);
-         D3D->SetRenderState(D3DRS_SRCBLEND , D3DBLEND_ONE  );
-         D3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ZERO );
-         D3D->SetRenderState(D3DRS_BLENDOPALPHA  , D3DBLENDOP_ADD);
-         D3D->SetRenderState(D3DRS_SRCBLENDALPHA , D3DBLEND_ONE  );
-         D3D->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_ONE  );
-      break;
-   }
-#elif DX11
+#if DX11
    if(D._alpha!=alpha)BS[D._alpha=alpha].set();
 #elif GL
    if(D._alpha!=alpha)switch(D._alpha=alpha)
@@ -890,9 +556,7 @@ void DisplayState::alphaFactor(C Color &factor)
    if(D._alpha_factor!=factor)
    {
       D._alpha_factor=factor;
-	#if DX9
-      D3D->SetRenderState(D3DRS_BLENDFACTOR, VecB4(factor.b, factor.g, factor.r, factor.a).u);
-	#elif DX11
+	#if DX11
       D._alpha_factor_v4=factor.asVec4();
       BS[D._alpha].set();
    #elif GL
@@ -904,21 +568,7 @@ void DisplayState::alphaFactor(C Color &factor)
 void DisplayState::colWrite(Byte color_mask, Byte index)
 {
    RANGE_ASSERT(index, D._col_write);
-#if DX9
-   if(D._col_write[index]!=color_mask)
-   {
-      D3DRENDERSTATETYPE out;
-      switch(index)
-      {
-         case  0: out=D3DRS_COLORWRITEENABLE ; break;
-         case  1: out=D3DRS_COLORWRITEENABLE1; break;
-         case  2: out=D3DRS_COLORWRITEENABLE2; break;
-         case  3: out=D3DRS_COLORWRITEENABLE3; break;
-         default: return;
-      }
-      D3D->SetRenderState(out, D._col_write[index]=color_mask);
-   }
-#elif DX11
+#if DX11
    // color writes are not supported on DX10+ implementation
 #elif GL
    if(D._col_write[index]!=color_mask)
@@ -958,36 +608,12 @@ void DisplayState::sampleMask(UInt mask)
 }
 #endif
 /******************************************************************************/
-void DisplayState::viewportForce(C RectI &rect) // this is only for DX9
+void DisplayState::viewport(C RectI &rect)
 {
    if(D._viewport!=rect)
    {
       D._viewport=rect;
-   #if DX9
-      if(Sh.h_PixelOffset)
-      {
-         Sh.h_PixelOffset->set(PixelOffset.set(-1.0f/rect.w(), 1.0f/rect.h()));
-         SetProjMatrix(); // because 'ProjMatrix' in the shader is based on 'PixelOffset' in DX9, after changing it we need to update the 'ProjMatrix' shader value
-      }
-   #endif
-   }
-}
-void DisplayState::viewport(C RectI &rect, Bool allow_proj_matrix_update)
-{
-   if(D._viewport!=rect)
-   {
-      D._viewport=rect;
-   #if DX9
-      D3DVIEWPORT9 vp;
-      vp.X=D._viewport.min.x; vp.Width =D._viewport.w(); vp.MinZ=0;
-      vp.Y=D._viewport.min.y; vp.Height=D._viewport.h(); vp.MaxZ=1;
-      D3D->SetViewport(&vp);
-      if(Sh.h_PixelOffset)
-      {
-         Sh.h_PixelOffset->set(PixelOffset.set(-1.0f/vp.Width, 1.0f/vp.Height));
-         if(allow_proj_matrix_update)SetProjMatrix(); // because 'ProjMatrix' in the shader is based on 'PixelOffset' in DX9, after changing it we need to update the 'ProjMatrix' shader value, however set this only if we allow to do so, for example we can disallow this if we're going to update it manually after changing some other settings first
-      }
-   #elif DX11
+   #if DX11
       D3D11_VIEWPORT vp;
       vp.TopLeftX=D._viewport.min.x; vp.Width =D._viewport.w(); vp.MinDepth=0;
       vp.TopLeftY=D._viewport.min.y; vp.Height=D._viewport.h(); vp.MaxDepth=1;
@@ -998,11 +624,9 @@ void DisplayState::viewport(C RectI &rect, Bool allow_proj_matrix_update)
    }
 }
 /******************************************************************************/
-void DisplayState::vf(GPU_API(IDirect3DVertexDeclaration9, ID3D11InputLayout, VtxFormatGL) *vf)
+void DisplayState::vf(GPU_API(ID3D11InputLayout, VtxFormatGL) *vf)
 {
-#if DX9
-   if(D._vf!=vf)D3D->SetVertexDeclaration(D._vf=vf);
-#elif DX11
+#if DX11
    if(D._vf!=vf)D3DC->IASetInputLayout(D._vf=vf);
 #elif GL
  // !! when using VAO's, this can be called only after setting the default 'VAO', because we use 'disable' expecting previous 'vf' to be in the same VAO !!
@@ -1017,21 +641,7 @@ void DisplayState::vf(GPU_API(IDirect3DVertexDeclaration9, ID3D11InputLayout, Vt
 void DisplayState::sampler2D()
 {
    D._sampler2D=true;
-#if DX9
-   D._sampler_filter[0]=D3DTEXF_LINEAR;
-   D._sampler_filter[1]=D3DTEXF_LINEAR;
-   D._sampler_filter[2]=D3DTEXF_LINEAR;
-   D._sampler_address  =D3DTADDRESS_CLAMP;
-   REP(16)
-   {
-      D3D->SetSamplerState(i, D3DSAMP_MINFILTER, D._sampler_filter[0]);
-      D3D->SetSamplerState(i, D3DSAMP_MAGFILTER, D._sampler_filter[1]);
-      D3D->SetSamplerState(i, D3DSAMP_MIPFILTER, D._sampler_filter[2]);
-      D3D->SetSamplerState(i, D3DSAMP_ADDRESSU , D._sampler_address  );
-      D3D->SetSamplerState(i, D3DSAMP_ADDRESSV , D._sampler_address  );
-      D3D->SetSamplerState(i, D3DSAMP_ADDRESSW , D._sampler_address  );
-   }
-#elif DX11
+#if DX11
    SamplerLinearClamp.setPS(SSI_DEFAULT);
 #elif GL
  //D._sampler_filter[0]=GL_LINEAR; unused
@@ -1043,35 +653,7 @@ void DisplayState::sampler2D()
 void DisplayState::sampler3D()
 {
    D._sampler2D=false;
-#if DX9
-   switch(D.texFilter())
-   {
-      case  0: D._sampler_filter[0]=D3DTEXF_LINEAR     ; break;
-      case  1: D._sampler_filter[0]=D3DTEXF_LINEAR     ; break;
-      default: D._sampler_filter[0]=D3DTEXF_ANISOTROPIC; break;
-   }
-
-   switch(D.texFilter())
-   {
-      case  0: D._sampler_filter[1]=D3DTEXF_POINT ; break;
-      default: D._sampler_filter[1]=D3DTEXF_LINEAR; break;
-   }
-
-   UInt           aniso=Max(D.texFilter(), 1);
-   D._sampler_filter[2]=(D.texMipFilter() ? D3DTEXF_LINEAR : D3DTEXF_POINT);
-   D._sampler_address  =D3DTADDRESS_WRAP;
-
-   REP(16)
-   {
-      D3D->SetSamplerState(i, D3DSAMP_MINFILTER    , D._sampler_filter[0]);
-      D3D->SetSamplerState(i, D3DSAMP_MAGFILTER    , D._sampler_filter[1]);
-      D3D->SetSamplerState(i, D3DSAMP_MIPFILTER    , D._sampler_filter[2]);
-      D3D->SetSamplerState(i, D3DSAMP_MAXANISOTROPY, aniso);
-      D3D->SetSamplerState(i, D3DSAMP_ADDRESSU     , D._sampler_address);
-      D3D->SetSamplerState(i, D3DSAMP_ADDRESSV     , D._sampler_address);
-      D3D->SetSamplerState(i, D3DSAMP_ADDRESSW     , D._sampler_address);
-   }
-#elif DX11
+#if DX11
    SamplerAnisotropic.setPS(SSI_DEFAULT);
 #elif GL
  /*switch(D.texFilter()) unused
@@ -1117,20 +699,7 @@ void DisplayState::setDeviceSettings()
    sampler2D();
    DisplayState old=T;
 
-#if DX9
-   D3D->SetRenderState(D3DRS_DITHERENABLE       , true);
-   D3D->SetRenderState(D3DRS_TWOSIDEDSTENCILMODE, true);
-   D3D->SetRenderState(D3DRS_STENCILFAIL        , D3DSTENCILOP_KEEP);
-   D3D->SetRenderState(D3DRS_CCW_STENCILFAIL    , D3DSTENCILOP_KEEP);
-   REP(4)
-   {
-      D3D->SetSamplerState(D3DVERTEXTEXTURESAMPLER0+i, D3DSAMP_MINFILTER, D3DTEXF_LINEAR  );
-      D3D->SetSamplerState(D3DVERTEXTEXTURESAMPLER0+i, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR  );
-      D3D->SetSamplerState(D3DVERTEXTEXTURESAMPLER0+i, D3DSAMP_ADDRESSU , D3DTADDRESS_WRAP);
-      D3D->SetSamplerState(D3DVERTEXTEXTURESAMPLER0+i, D3DSAMP_ADDRESSV , D3DTADDRESS_WRAP);
-      D3D->SetSamplerState(D3DVERTEXTEXTURESAMPLER0+i, D3DSAMP_ADDRESSW , D3DTADDRESS_WRAP);
-   }
-#elif DX11
+#if DX11
    SamplerLinearWrap .set(SSI_DEFAULT); SamplerLinearClamp.setPS(SSI_DEFAULT); // use linear wrap everywhere (needed for example in Vertex Shaders for Water), but use linear clamp for PS as it's the default 2D sampler used everywhere except 3D
    SamplerPoint      .set(SSI_POINT);
    SamplerLinearWrap .set(SSI_LINEAR_WRAP);
@@ -1179,7 +748,7 @@ void DisplayState::setDeviceSettings()
 
   _viewport.set(0, -1); viewport(old._viewport);
 
-                   stencil   ( STENCIL_ALWAYS_SET           ); // required for DX9 and GL because of 'LastStencilMode'
+                   stencil   ( STENCIL_ALWAYS_SET           ); // required for GL because of 'LastStencilMode'
                    stencil   ( STENCIL_TERRAIN_TEST         );
                    stencil   ((STENCIL_MODE)old._stencil    );
   _stencil_ref^=1; stencilRef(              old._stencil_ref);
@@ -1200,9 +769,7 @@ void DisplayState::create()
    if(LogInit)LogN("DisplayState.create");
    clearShader();
 
-#if DX9
-   AllowLineSmooth=!Contains(D.deviceName(), "Intel", false, true); // Intel produces "fat" lines on DX9
-#elif DX11
+#if DX11
    {
       D3D11_BLEND_DESC desc; Zero(desc);
       desc.AlphaToCoverageEnable =false;

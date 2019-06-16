@@ -155,7 +155,7 @@ void LayeredClouds::draw()
       REPS(Renderer._eye, Renderer._eye_num)
       {
          Renderer.setEyeViewport();
-         shader->begin(); _mshr.set().drawFull(); ShaderEnd();
+         shader->begin(); _mshr.set().drawFull();
       }
       D.sampler2D ();
       D.depthWrite(true);
@@ -327,15 +327,7 @@ void VolumetricCloud::setImageRow(Int z)
 
       Byte l=FltToByte(light); // no need to mul 'light' by 'brightness' because light and AO were already multiplied by it
 
-   #if DX9
-      switch(_image.bytePP())
-      {
-         case 2:                             image_data[0]=l; image_data[1]=a; break; // L8A8
-         case 4: image_data[2]=image_data[1]=image_data[0]=l; image_data[3]=a; break; // B8G8R8A8/R8G8B8A8
-      }
-   #else
       image_data[0]=l; image_data[1]=a; // R8G8/R8G8B8A8
-   #endif
       image_data+=image_add;
       voxel=(Voxel*)((Byte*)voxel+voxel_add);
    }
@@ -482,7 +474,7 @@ void VolumetricCloud::createEx      (Int width, Int height, Int depth, Flt frequ
 {
    del();
    if(width>0 && height>0 && depth>0)
-      if(_image.create3DTry(height, width, depth, DX9 ? IMAGE_L8A8 : IMAGE_R8G8, 1))
+      if(_image.create3DTry(height, width, depth, IMAGE_R8G8, 1))
    {
      _image.clear();
      _object=object;

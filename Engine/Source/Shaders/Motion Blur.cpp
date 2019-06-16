@@ -39,12 +39,9 @@ void Explosion_VS(VtxInput vtx,
    outPos=TransformPos(vtx.pos());
    outVtx=Project     ( outPos  );
 }
-void Explosion_PS(Vec  inPos:TEXCOORD0,
-                  Vec  inVel:TEXCOORD1,
-           #if MODEL==SM_3
-              out Vec4 outCol:COLOR0,
-           #endif
-              out Vec4 outVel:COLOR1) // #BlendRT
+void Explosion_PS(Vec   inPos:TEXCOORD0,
+                  Vec   inVel:TEXCOORD1,
+              out Vec4 outVel:COLOR1   ) // #BlendRT
 {
    // there's no NaN because inPos.z is always >0 in PixelShader
    inVel/=inPos.z;
@@ -53,9 +50,6 @@ void Explosion_PS(Vec  inPos:TEXCOORD0,
 #endif
    outVel.xyz=inVel.xyz;
    outVel.w  =0;
-#if MODEL==SM_3
-   outCol=0; // must write on DX9 otherwise compilation will fail
-#endif
 }
 /******************************************************************************/
 void ClearSkyVel_VS(VtxInput vtx,
@@ -85,7 +79,7 @@ void Convert_VS(VtxInput vtx,
               outTex  =vtx.tex();
               outPos  =outTex*MotionUVMulAdd.xy+MotionUVMulAdd.zw;
    if(mode==0)outPosXY=ScreenToPosXY(outTex);
-              outVtx  =vtx.pos4(); AdjustPixelCenter(outVtx);
+              outVtx  =vtx.pos4();
 }
 Vec4 Convert_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                 NOPERSP Vec2 inPos  :TEXCOORD1, // position relative to viewport center scaled from UV to ScreenPos

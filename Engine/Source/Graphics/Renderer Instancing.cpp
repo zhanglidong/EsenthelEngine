@@ -26,7 +26,7 @@
 TODO: most of (highlight, shader_param_changes, stencil) instance parameters are never used, can we do something about it? to remove overhead and memory usage
 TODO: on stereo rendering some pixels are wasted, use a stencil mask, see - http://media.steampowered.com/apps/valve/2015/Alex_Vlachos_Advanced_VR_Rendering_GDC2015.pdf
 /******************************************************************************/
-#define MAX_MATRIX_INSTANCE (GL ? MAX_MATRIX_DX9 : MAX_MATRIX_DX10) // if instancing is supported then we have all possible matrixes
+#define MAX_MATRIX_INSTANCE (DX11 ? MAX_MATRIX_DX10 : MAX_MATRIX_GL) // if instancing is supported then we have all possible matrixes
 /******************************************************************************/
 namespace EE{
 /******************************************************************************/
@@ -192,7 +192,6 @@ void DrawEarlyZInstances()
          }
       }
    }
-   ShaderEnd();
    EndPrecomputedViewMatrix();
 }
 void ClearEarlyZInstances()
@@ -209,7 +208,6 @@ static INLINE void DrawSolidInstances(Bool forward)
    SetViewOffset();
    BeginPrecomputedViewMatrix();
 
-   const Bool instancing=D.hwInstancing();
    D.depth(true);
 
    // solid
@@ -239,7 +237,7 @@ static INLINE void DrawSolidInstances(Bool forward)
             variation->unlinkSolid();
          #endif
           C MeshRender &render=mesh.render.set();
-          C Bool        instancing_mesh=(instancing && !(render.flag()&VTX_SKIN)); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
+          C Bool        instancing_mesh=!(render.flag()&VTX_SKIN); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
             Sh.h_VtxHeightmap->setConditional(mesh._vtx_heightmap);
 
             for(SolidShaderMaterialMeshInstance *instance=&SolidShaderMaterialMeshInstances[shader_material_mesh->first_instance]; ; )
@@ -289,7 +287,6 @@ static INLINE void DrawSolidInstances(Bool forward)
          }
 
          SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
-         ShaderEnd(); // needs to be called after every 'commitTex'
                                        if(shader_material->next_shader_material<0)break;
          shader_material=&ShaderMaterials[shader_material->next_shader_material];
       }
@@ -320,7 +317,6 @@ static INLINE void DrawSolidInstances(Bool forward)
                instance=&SkeletonSolidShaderMaterialMeshInstances[instance->next_instance];
             }
             SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
-            ShaderEnd(); // needs to be called after every 'commitTex'
                                                        if(skel_shader_material->next_skeleton_shader_material<0)break;
             skel_shader_material=&SkeletonShaderMaterials[skel_shader_material->next_skeleton_shader_material];
          }
@@ -332,9 +328,8 @@ static INLINE void DrawSolidInstances(Bool forward)
    // cloth
    if(SolidClothInstances.elms())
    {
-      SetOneMatrix   ();
-      SetFastAngVel  ();
-      SetVtxNrmMulAdd(false);
+      SetOneMatrix ();
+      SetFastAngVel();
 
       {
          SetDefaultVAO(); D.vf(VI._vf3D_cloth.vf); // OpenGL requires setting 1)VAO 2)VB+IB 3)VF
@@ -346,11 +341,8 @@ static INLINE void DrawSolidInstances(Bool forward)
             SetFastVel  (ci.vel      );
            _SetHighlight(ci.highlight);
             shader.begin(); ci.cloth->_drawPhysical();
-            ShaderEnd();
          }
       }
-
-      SetVtxNrmMulAdd(true);
    }
 
    BeginPrecomputedViewMatrix();
@@ -389,7 +381,7 @@ static INLINE void DrawSolidInstances(Bool forward)
           C MeshPart::Variation &variation= shader_material_mesh->Variation(); variation.unlinkSolid();
          #endif
          #if MULTI_MATERIAL_INSTANCING
-          C Bool                 instancing_mesh=(instancing && !(render.flag()&VTX_SKIN)); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
+          C Bool                 instancing_mesh=!(render.flag()&VTX_SKIN); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
          #endif
             Sh.h_VtxHeightmap->setConditional(mesh._vtx_heightmap);
 
@@ -441,7 +433,6 @@ static INLINE void DrawSolidInstances(Bool forward)
          }
 
          SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
-         ShaderEnd(); // needs to be called after every 'commitTex'
                                        if(shader_material->next_shader_material<0)break;
          shader_material=&ShaderMaterials[shader_material->next_shader_material];
       }
@@ -533,7 +524,7 @@ void DrawAmbientInstances()
       material.setAmbient(); D.cull(material.cull);
       SetViewMatrix        (instance.view_matrix         ); Sh.h_ViewMatrix->setChanged();
       SetShaderParamChanges(instance.shader_param_changes);
-      shader.begin(); mesh.render.set().drawFull(); ShaderEnd();
+      shader.begin(); mesh.render.set().drawFull();
       SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
    }
 
@@ -555,7 +546,7 @@ void DrawAmbientInstances()
       material.setAmbient(); D.cull(material.cull);
       instance.anim_skel->setMatrix();
       SetShaderParamChanges(instance.shader_param_changes);
-      shader.begin(); mesh.render.set().draw(); ShaderEnd(); // for skeleton have to use 'draw' instead of 'drawFull'
+      shader.begin(); mesh.render.set().draw(); // for skeleton have to use 'draw' instead of 'drawFull'
       SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
    }
 #endif
@@ -587,8 +578,6 @@ void DrawShadowInstances()
 {
    // this doesn't require 'ViewOffset' and 'BeginPrecomputedViewMatrix' because shadows are drawn only 1 time, and not for each eye
 
-   const Bool instancing=D.hwInstancing();
-
    // solid
    SetMatrixCount();
    DisableSkinning();
@@ -614,7 +603,7 @@ void DrawShadowInstances()
          {
           C MeshPart   &mesh  =*shader_material_mesh->mesh;
           C MeshRender &render= mesh.render.set();
-          C Bool        instancing_mesh=(instancing && !(render.flag()&VTX_SKIN)); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
+          C Bool        instancing_mesh=!(render.flag()&VTX_SKIN); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
          #if SUPPORT_MATERIAL_CHANGE_IN_RENDERING
             mesh.unlinkShadow();
          #else
@@ -650,7 +639,6 @@ void DrawShadowInstances()
          }
 
          SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
-         ShaderEnd(); // needs to be called after every 'commitTex'
                                        if(shader_material->next_shader_material<0)break;
          shader_material=&ShaderMaterials[shader_material->next_shader_material];
       }
@@ -677,7 +665,6 @@ void DrawShadowInstances()
                instance=&SkeletonShadowShaderMaterialMeshInstances[instance->next_instance];
             }
             SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
-            ShaderEnd(); // needs to be called after every 'commitTex'
                                                        if(skel_shader_material->next_skeleton_shader_material<0)break;
             skel_shader_material=&SkeletonShaderMaterials[skel_shader_material->next_skeleton_shader_material];
          }
@@ -701,8 +688,7 @@ void DrawShadowInstances()
    // physical
    if(ShadowClothInstances.elms())
    {
-      SetOneMatrix   ();
-      SetVtxNrmMulAdd(false);
+      SetOneMatrix();
 
       // cloth
       {
@@ -713,12 +699,9 @@ void DrawShadowInstances()
             Shader   &shader  = ci.shader  ->asShader();
           C Material &material=*ci.material; material.setShadow(); D.cull(material.cull);
             shader.begin(); ci.cloth->_drawPhysical();
-            ShaderEnd();
          }
          ShadowClothInstances.clear();
       }
-
-      SetVtxNrmMulAdd(true);
    }
 }
 /******************************************************************************/
@@ -745,8 +728,7 @@ void DrawBlendInstances()
    SetViewOffset();
    EyeCache ec;
 
-   const ALPHA_MODE alpha     =(Renderer.fastCombine() ? ALPHA_BLEND : ALPHA_BLEND_FACTOR);
-   const Bool       instancing=D.hwInstancing();
+   const ALPHA_MODE alpha=(Renderer.fastCombine() ? ALPHA_BLEND : ALPHA_BLEND_FACTOR);
    D.depth(true );
    D.alpha(alpha);
    REPA(BlendInstances) // go from back to start
@@ -767,7 +749,7 @@ void DrawBlendInstances()
             D.stencil            (object->s.stencil_mode);
             SetShaderParamChanges(object->s.shader_param_changes);
             SetViewMatrix        (object->s.view_matrix); Sh.h_ViewMatrix->setChanged();
-            const Bool instancing_mesh=(instancing && !(render.flag()&VTX_SKIN)); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
+            const Bool instancing_mesh=!(render.flag()&VTX_SKIN); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
             Int instances=1;
             for(; i; ) // if there's next one
             {
@@ -806,7 +788,7 @@ void DrawBlendInstances()
                      }
                   }else // we have the same shader, but different material/mesh/params
                   {
-                     SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.drawFull(); ShaderEnd(); // draw what we have, 'ShaderEnd' needs to be called after every 'commitTex'
+                     SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.drawFull(); // draw what we have
                      SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
                      object=&next; goto solid_shader;
                   }
@@ -814,7 +796,6 @@ void DrawBlendInstances()
             }
             SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.drawFull();
             SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
-            ShaderEnd(); // needs to be called after every 'commitTex'
          }break;
 
          case BlendInstance::SOLID_BLST:
@@ -832,7 +813,7 @@ void DrawBlendInstances()
             SetViewMatrix        (object->s.view_matrix); Sh.h_ViewMatrix->setChanged();
             SetFastVel           (object->s.vel);
             SetFastAngVel        (object->s.ang_vel_shader);
-            const Bool instancing_mesh=(instancing && !(render.flag()&VTX_SKIN)); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
+            const Bool instancing_mesh=!(render.flag()&VTX_SKIN); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
             Int instances=1;
             for(; i; ) // if there's next one
             {
@@ -885,7 +866,7 @@ void DrawBlendInstances()
                      }
                   }else // we have the same shader, but different material/mesh/params
                   {
-                     SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.drawFull(); ShaderEnd(); // draw what we have, 'ShaderEnd' needs to be called after every 'commitTex'
+                     SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.drawFull(); // draw what we have
                      SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
                      object=&next; goto solid_blst_shader;
                   }
@@ -893,7 +874,6 @@ void DrawBlendInstances()
             }
             SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.drawFull();
             SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
-            ShaderEnd(); // needs to be called after every 'commitTex'
          }break;
 
          case BlendInstance::SOLID_FUR:
@@ -914,7 +894,6 @@ void DrawBlendInstances()
           C MeshRender &render  = object->s.mesh->render.set();
             shader.begin(); DrawFur(render, shader, scale);
             SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
-            ShaderEnd();
          }break;
 
          case BlendInstance::SKELETON:
@@ -947,7 +926,6 @@ void DrawBlendInstances()
                      instance=&SkeletonBlendShaderMaterialMeshInstances[instance->next_instance];
                   }
                   SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
-                  ShaderEnd(); // needs to be called after every 'commitTex'
                                                                   if(skel_shader_material->next_skeleton_shader_material<0)break;
                   skel_shader_material=&SkeletonBlendShaderMaterials[skel_shader_material->next_skeleton_shader_material];
                }

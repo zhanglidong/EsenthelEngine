@@ -134,7 +134,6 @@ ASSERT(SIZE(Char)==2); // size of Char must be 2 bytes
 #define SUPPORT_EARLY_Z              (!MOBILE) // disable on Mobile because it's discouraged by PowerVR, Mali, ..
 #define SUPPORT_MATERIAL_AMBIENT             1
 #define COUNT_MATERIAL_USAGE                 0 // never use "DEBUG" here, because it affects Material class size/members, which needs to remain constant
-#define CACHE_DX9_CONSTANTS                  0 // enabling didn't make any performance difference, so disable to reduce memory usage
 #define SUPPORT_MATERIAL_CHANGE_IN_RENDERING 0
 #define SUPPORT_MLAA                         0
 

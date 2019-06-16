@@ -32,36 +32,36 @@ enum LOCK_MODE : Byte
 #endif
 };
 /******************************************************************************/
-enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is available (Soft: Software, DX9: DirectX 9, DX10: DirectX 10, DX11: DirectX 11, GL: Desktop OpenGL, partial: may be supported on some devices but not all of them)
+enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is available (Soft: Software, DX10: DirectX 10, DX11: DirectX 11, GL: Desktop OpenGL, partial: may be supported on some devices but not all of them)
 {
    IMAGE_NONE, // none
 
-   IMAGE_B8G8R8A8, // 32-bit (R,G,B,A), Soft, DX9, DX10+
-   IMAGE_R8G8B8A8, // 32-bit (R,G,B,A), Soft,      DX10+, GL, GL ES 2.0+
+   IMAGE_B8G8R8A8, // 32-bit (R,G,B,A), Soft, DX10+
+   IMAGE_R8G8B8A8, // 32-bit (R,G,B,A), Soft, DX10+, GL, GL ES
    IMAGE_R8G8B8  , // 24-bit (R,G,B,1), Soft
-   IMAGE_R8G8    , // 16-bit (R,G,0,1), Soft,      DX10+, GL, GL ES 3.0+
-   IMAGE_R8      , //  8-bit (R,0,0,1), Soft,      DX10+, GL, GL ES 3.0+
+   IMAGE_R8G8    , // 16-bit (R,G,0,1), Soft, DX10+, GL, GL ES
+   IMAGE_R8      , //  8-bit (R,0,0,1), Soft, DX10+, GL, GL ES
 
-   IMAGE_A8  , //  8-bit           alpha (0,0,0,A), Soft, DX9, DX10+, GL, GL ES 2.0+
-   IMAGE_L8  , //  8-bit luminance       (L,L,L,1), Soft, DX9       , GL, GL ES 2.0+
-   IMAGE_L8A8, // 16-bit luminance alpha (L,L,L,A), Soft, DX9       , GL, GL ES 2.0+
+   IMAGE_A8  , //  8-bit           alpha (0,0,0,A), Soft, DX10+, GL, GL ES
+   IMAGE_L8  , //  8-bit luminance       (L,L,L,1), Soft,        GL, GL ES
+   IMAGE_L8A8, // 16-bit luminance alpha (L,L,L,A), Soft,        GL, GL ES
 
-   IMAGE_BC1, // BC1/DXT1 4-bit lossy RGBA compression with 1-bit  alpha            , Soft, DX9, DX10+, GL, partial Android
-   IMAGE_BC2, // BC2/DXT3 8-bit lossy RGBA compression with sharp  alpha transitions, Soft, DX9, DX10+, GL, partial Android
-   IMAGE_BC3, // BC3/DXT5 8-bit lossy RGBA compression with smooth alpha transitions, Soft, DX9, DX10+, GL, partial Android
+   IMAGE_BC1, // BC1/DXT1 4-bit lossy RGBA compression with 1-bit  alpha            , Soft, DX10+, GL, partial Android
+   IMAGE_BC2, // BC2/DXT3 8-bit lossy RGBA compression with sharp  alpha transitions, Soft, DX10+, GL, partial Android
+   IMAGE_BC3, // BC3/DXT5 8-bit lossy RGBA compression with smooth alpha transitions, Soft, DX10+, GL, partial Android
 
    IMAGE_I8   , //      8-bit integer              , Soft
    IMAGE_I16  , //     16-bit integer              , Soft
    IMAGE_I24  , //     24-bit integer              , Soft
    IMAGE_I32  , //     32-bit integer              , Soft
-   IMAGE_F16  , //     16-bit float                , Soft, DX9, DX10+, GL, GL ES 3.0+
-   IMAGE_F32  , //     32-bit float                , Soft, DX9, DX10+, GL, GL ES 3.0+
-   IMAGE_F16_2, // 2 x 16-bit float ( 32-bit total), Soft, DX9, DX10+, GL, GL ES 3.0+
-   IMAGE_F32_2, // 2 x 32-bit float ( 64-bit total), Soft, DX9, DX10+, GL, GL ES 3.0+
-   IMAGE_F16_3, // 3 x 16-bit float ( 48-bit total), Soft              GL, GL ES 3.0+
-   IMAGE_F32_3, // 3 x 32-bit float ( 96-bit total), Soft,      DX10+, GL, GL ES 3.0+
-   IMAGE_F16_4, // 4 x 16-bit float ( 64-bit total), Soft, DX9, DX10+, GL, GL ES 3.0+
-   IMAGE_F32_4, // 4 x 32-bit float (128-bit total), Soft, DX9, DX10+, GL, GL ES 3.0+
+   IMAGE_F16  , //     16-bit float                , Soft, DX10+, GL, GL ES
+   IMAGE_F32  , //     32-bit float                , Soft, DX10+, GL, GL ES
+   IMAGE_F16_2, // 2 x 16-bit float ( 32-bit total), Soft, DX10+, GL, GL ES
+   IMAGE_F32_2, // 2 x 32-bit float ( 64-bit total), Soft, DX10+, GL, GL ES
+   IMAGE_F16_3, // 3 x 16-bit float ( 48-bit total), Soft         GL, GL ES
+   IMAGE_F32_3, // 3 x 32-bit float ( 96-bit total), Soft, DX10+, GL, GL ES
+   IMAGE_F16_4, // 4 x 16-bit float ( 64-bit total), Soft, DX10+, GL, GL ES
+   IMAGE_F32_4, // 4 x 32-bit float (128-bit total), Soft, DX10+, GL, GL ES
 
    // compressed formats for iOS (compressing images to these formats is available only on Desktop platforms when 'SupportCompressPVRTC' was called in 'InitPre', decompressing these formats is available on all platforms, for GPU's that don't support these formats natively, the engine will keep them as R8G8B8A8 in the memory, decompression and especially compression may be slow, formats are recommended to be used only on iOS)
    IMAGE_PVRTC1_2, // PVRTC1 2-bit lossy RGBA compression, Soft, iOS, partial Android
@@ -69,13 +69,13 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
 
    // compressed format for Android (compressing images to these formats is available only on when 'SupportCompressETC' was called in 'InitPre', decompressing these formats is available on all platforms, for GPU's that don't support these formats natively, the engine will keep them as R8G8B8A8 in the memory, decompression and especially compression may be slow, formats are recommended to be used only on Android)
    IMAGE_ETC1   , // Ericsson 4-bit lossy RGB  compression with no    alpha (R,G,B,1     ), Soft, Android
-   IMAGE_ETC2   , // Ericsson 4-bit lossy RGB  compression with no    alpha (R,G,B,1     ), Soft, GL ES 3.0+
-   IMAGE_ETC2_A1, // Ericsson 4-bit lossy RGBA compression with 1-bit alpha (R,G,B,0 or 1), Soft, GL ES 3.0+
-   IMAGE_ETC2_A8, // Ericsson 8-bit lossy RGBA compression with 8-bit alpha (R,G,B,A     ), Soft, GL ES 3.0+
+   IMAGE_ETC2   , // Ericsson 4-bit lossy RGB  compression with no    alpha (R,G,B,1     ), Soft, GL ES
+   IMAGE_ETC2_A1, // Ericsson 4-bit lossy RGBA compression with 1-bit alpha (R,G,B,0 or 1), Soft, GL ES
+   IMAGE_ETC2_A8, // Ericsson 8-bit lossy RGBA compression with 8-bit alpha (R,G,B,A     ), Soft, GL ES
 
    IMAGE_BC7, // BC7 8-bit lossy RGBA high quality compression, Soft, DX11+, partial GL (compressing images to this format is available only on when 'SupportCompressBC' was called in 'InitPre')
 
-   IMAGE_R10G10B10A2, // 32-bit (R,G,B,A), Soft, DX9, DX10+, GL, GL ES 3.0+
+   IMAGE_R10G10B10A2, // 32-bit (R,G,B,A), Soft, DX10+, GL, GL ES
 
    IMAGE_TYPES, // number of types
 #if EE_PRIVATE
@@ -98,31 +98,18 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
    IMAGE_R11G11B10F,
    IMAGE_R9G9B9E5F ,
 
-   IMAGE_B4G4R4X4     ,
    IMAGE_B4G4R4A4     ,
-   IMAGE_B5G5R5X1     ,
    IMAGE_B5G5R5A1     ,
    IMAGE_B5G6R5       ,
    IMAGE_B8G8R8       ,
-   IMAGE_B8G8R8X8     ,
-   IMAGE_R8G8B8X8     ,
-   IMAGE_R8G8B8A8_SIGN, // 32-bit (R,G,B,A), Soft, partial DX9, DX10+, GL, GL ES 3.0+
-   IMAGE_R8G8_SIGN    , // 16-bit (R,G,0,1), Soft, partial DX9, DX10+, GL, GL ES 3.0+
-   IMAGE_R8_SIGN      , //  8-bit (R,0,0,1), Soft,              DX10+, GL, GL ES 3.0+
+   IMAGE_R8G8B8A8_SIGN, // 32-bit (R,G,B,A), Soft, DX10+, GL, GL ES
+   IMAGE_R8G8_SIGN    , // 16-bit (R,G,0,1), Soft, DX10+, GL, GL ES
+   IMAGE_R8_SIGN      , //  8-bit (R,0,0,1), Soft, DX10+, GL, GL ES
    IMAGE_D16  ,
    IMAGE_D24X8,
    IMAGE_D24S8,
    IMAGE_D32  ,
-   IMAGE_RAWZ ,
-   IMAGE_INTZ ,
-   IMAGE_DF24 ,
-   IMAGE_NULL ,
    IMAGE_ALL_TYPES, // number of all types
-#if DX9
-   IMAGE_DEFAULT=IMAGE_B8G8R8A8, IMAGE_DEFAULT_SRGB=IMAGE_B8G8R8A8_SRGB, // default format for DX9 is BGRA (RGBA may not be supported)
-#else
-   IMAGE_DEFAULT=IMAGE_R8G8B8A8, IMAGE_DEFAULT_SRGB=IMAGE_R8G8B8A8_SRGB, // this is the default format
-#endif
 #endif
 };
 Bool IsSRGB(IMAGE_TYPE type); // if this is a sRGB image
@@ -133,7 +120,7 @@ enum IMAGE_MODE : Byte // Image Mode
    IMAGE_CUBE     , // Hardware Cube Texture
    IMAGE_SOFT     , // Software      Image   (this type is used for software processing only - it can't be drawn on the screen)
    IMAGE_SOFT_CUBE, // Software Cube Image   (this type is used for software processing only - it can't be drawn on the screen)
-   IMAGE_RT       , // Hardware RenderTarget (only this mode can be used as custom rendering destination for 'Renderer.target', after you have rendered to this image you can treat it as typical IMAGE_2D texture, except that you can't lock it) !! Images of this mode must be deleted in a custom function set into 'D.lost' !!
+   IMAGE_RT       , // Hardware RenderTarget (only this mode can be used as custom rendering destination for 'Renderer.target', after you have rendered to this image you can treat it as typical IMAGE_2D texture, except that you can't lock it)
 #if EE_PRIVATE
    IMAGE_SURF_SCRATCH, // System   Surface from scratch
    IMAGE_SURF_SYSTEM , // System   Surface
@@ -195,14 +182,14 @@ struct ImageTypeInfo // Image Type Information
    const IMAGE_PRECISION precision ;
 
    Bool highPrecision()C {return precision>IMAGE_PRECISION_8;} // more than 8 bits
-   Byte usage        ()C {return _usage;} // get a combination of USAGE_FLAG, available only on DX9, DX11, OpenGL 4.2
+   Byte usage        ()C {return _usage;} // get a combination of USAGE_FLAG, available only on DX11, OpenGL 4.2
 
 #if !EE_PRIVATE
 private:
 #endif
    Byte _usage;
 #if EE_PRIVATE
-   const GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) format;
+   const GPU_API(DXGI_FORMAT, UInt) format;
 #else
    const UInt format;
 #endif
@@ -614,10 +601,7 @@ struct Image // Image (Texture)
    void duplicate(C Image &src);
 
    void discard();
-#if DX9
-   void clearHw      (C Color &color=TRANSPARENT                   ); // hardware render target  clear
-// there's no 'clearDS' on DX9
-#elif DX11
+#if DX11
    void clearHw      (C Vec4 &color=Vec4Zero                       ); // hardware render target  clear
    void clearDS      (  Byte  s    =0                              ); // hardware depth  stencil clear
 #else
@@ -651,12 +635,12 @@ private:
    Vec        _part;
    Byte      *_data, *_data_all;
 #if EE_PRIVATE
-   GPU_API(IDirect3DSurface9       *_surf, ID3D11Texture2D          *_txtr, union{UInt _txtr; Ptr _txtr_ptr;});
-   GPU_API(IDirect3DBaseTexture9   *_base, ID3D11Texture3D          *_vol , union{UInt _rb  ; Ptr _rb_ptr  ;});
-   GPU_API(IDirect3DTexture9       *_txtr, ID3D11ShaderResourceView *_srv , union{UInt _w_s ; Ptr _w_s_ptr ;});
-   GPU_API(IDirect3DVolumeTexture9 *_vol , ID3D11RenderTargetView   *_rtv , union{UInt _w_t ; Ptr _w_t_ptr ;});
-   GPU_API(IDirect3DCubeTexture9   *_cube, ID3D11DepthStencilView   *_dsv , union{UInt _w_r ; Ptr _w_r_ptr ;});
-   GPU_API(union{Bool _srgb; Ptr _srgbp;}, ID3D11DepthStencilView   *_rdsv, union{            Ptr _rdsv    ;});
+   GPU_API(ID3D11Texture2D          *_txtr, union{UInt _txtr; Ptr _txtr_ptr;});
+   GPU_API(ID3D11Texture3D          *_vol , union{UInt _rb  ; Ptr _rb_ptr  ;});
+   GPU_API(ID3D11ShaderResourceView *_srv , union{UInt _w_s ; Ptr _w_s_ptr ;});
+   GPU_API(ID3D11RenderTargetView   *_rtv , union{UInt _w_t ; Ptr _w_t_ptr ;});
+   GPU_API(ID3D11DepthStencilView   *_dsv , union{UInt _w_r ; Ptr _w_r_ptr ;});
+   GPU_API(ID3D11DepthStencilView   *_rdsv, union{            Ptr _rdsv    ;});
 #else
    Ptr        _ptr[6];
 #endif
@@ -706,16 +690,16 @@ Vec      CubeFaceToDir(Flt x, Flt y, Int res, DIR_ENUM cube_face); // convert im
 #if EE_PRIVATE
 extern const ImagePtr ImageNull;
 
-Int                                   PaddedWidth      (Int w, Int h,        Int mip, IMAGE_TYPE type);
-Int                                   PaddedHeight     (Int w, Int h,        Int mip, IMAGE_TYPE type);
-Int                                   ImagePitch       (Int w, Int h,        Int mip, IMAGE_TYPE type);
-Int                                   ImageBlocksY     (Int w, Int h,        Int mip, IMAGE_TYPE type);
-Int                                   ImageMipSize     (Int w, Int h,        Int mip, IMAGE_TYPE type);
-Int                                   ImageMipSize     (Int w, Int h, Int d, Int mip, IMAGE_TYPE type);
-UInt                                  ImageSize        (Int w, Int h, Int d,          IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps);
-GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) ImageTypeToFormat(Int                                   type  ); // convert from IMAGE_TYPE to API_FORMAT
-IMAGE_TYPE                            ImageFormatToType(GPU_API(D3DFORMAT, DXGI_FORMAT, UInt) format); // convert from API_FORMAT to IMAGE_TYPE
-Int                                   TotalMipMaps     (Int w, Int h, Int d, IMAGE_TYPE type);
+Int                        PaddedWidth      (Int w, Int h,        Int mip, IMAGE_TYPE type);
+Int                        PaddedHeight     (Int w, Int h,        Int mip, IMAGE_TYPE type);
+Int                        ImagePitch       (Int w, Int h,        Int mip, IMAGE_TYPE type);
+Int                        ImageBlocksY     (Int w, Int h,        Int mip, IMAGE_TYPE type);
+Int                        ImageMipSize     (Int w, Int h,        Int mip, IMAGE_TYPE type);
+Int                        ImageMipSize     (Int w, Int h, Int d, Int mip, IMAGE_TYPE type);
+UInt                       ImageSize        (Int w, Int h, Int d,          IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps);
+GPU_API(DXGI_FORMAT, UInt) ImageTypeToFormat(Int type); // convert from IMAGE_TYPE to API_FORMAT
+IMAGE_TYPE                 ImageFormatToType(GPU_API(DXGI_FORMAT, UInt) format); // convert from API_FORMAT to IMAGE_TYPE
+Int                        TotalMipMaps     (Int w, Int h, Int d, IMAGE_TYPE type);
 
 IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type);
 IMAGE_TYPE ImageTypeToggleSRGB(IMAGE_TYPE type);

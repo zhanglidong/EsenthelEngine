@@ -46,9 +46,7 @@ struct VS_PS
    Vec2    tex_l   :TEXCOORD7;
    VecH4   material:COLOR0   ;
    VecH    col     :COLOR1   ;
-#if   DX9
-   Half    fade_out:COLOR0   ; // can't use TEXCOORD8 on DX9
-#elif GL
+#if GL
    #define fade_out material.x // can't use TEXCOORD8 and can't reuse COLOR0 on GL
 #else
    Half    fade_out:TEXCOORD8;

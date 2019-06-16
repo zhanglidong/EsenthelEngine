@@ -1287,7 +1287,7 @@ struct Builder
    NOINLINE void downSampleNormals(Int res, Int step, Int edge_step)
    {
    #if VTX_COMPRESS
-      const Bool  storage_signed=D.meshStorageSigned();
+      const Bool  storage_signed=true;
       const Int   ofs=step/2, edge_ofs=(edge_step+1)/2, edge_soft_range=edge_ofs*3, res_step=res-step, res1=res-1; // use "(edge_step+1)/2" which gives same results as "Max(1, edge_step/2)" for pow2 but faster
       // first store results into 'temp', if we would store directly in 'vtx_nrm' then one softening would affect all others
             VecB4 temp[MAX_HM_RES/2-1][MAX_HM_RES/2], // !! since we don't use this for processing edges, then we can allocate 2 elements less "(MAX_HM_RES/2+1)-2" = "MAX_HM_RES/2-1", however for [y][x] X dimension use "MAX_HM_RES/2" to get Pow2 size and faster addressing
@@ -1564,7 +1564,7 @@ NOINLINE Bool Heightmap::buildEx2(Mesh &mesh, Int quality, Flt tex_scale, UInt f
    );
    Flt min_y= FLT_MAX,
        max_y=-FLT_MAX;
-   VecB4 (*const NrmToByte4)(C Vec &v)=(D.meshStorageSigned() ? NrmToSByte4 : NrmToUByte4);
+   VecB4 (*const NrmToByte4)(C Vec &v)=(true ? NrmToSByte4 : NrmToUByte4);
 
    // set per-vertex data and calculate min/max height
    for(Int y=0; y<res; y+=step)

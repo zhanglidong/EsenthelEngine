@@ -727,7 +727,7 @@ Bool PSD::ProccessBuffer(Byte *pData, Image &dest)
          {
             // pData holds the indices of loop through the palette and set the correct RGB, 8bpp are supported
             if(colour_mode_data.ColourData && colour_mode_data.nLength==768 && mnColourCount>0)
-            if(dest.createSoftTry(nWidth, nHeight, 1, IMAGE_R8G8B8))
+            if(dest.createSoftTry(nWidth, nHeight, 1, IMAGE_R8G8B8_SRGB))
             {
                for(; nCounter<nTotalBytes; ++nCounter)
                {
@@ -745,7 +745,7 @@ Bool PSD::ProccessBuffer(Byte *pData, Image &dest)
 
          case 3: // RGB(A), there can be more than 4 channels !!
          {
-            if(dest.createSoftTry(nWidth, nHeight, 1, (header_info.nChannels>=4) ? IMAGE_R8G8B8A8 : IMAGE_R8G8B8))
+            if(dest.createSoftTry(nWidth, nHeight, 1, (header_info.nChannels>=4) ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8_SRGB))
             {
                for(; nCounter<nTotalBytes; nCounter=nCounter + header_info.nChannels * bytesPerPixelPerChannel)
                {
@@ -770,7 +770,7 @@ Bool PSD::ProccessBuffer(Byte *pData, Image &dest)
 
          case 4: // CMYK
          {
-            if(dest.createSoftTry(nWidth, nHeight, 1, IMAGE_R8G8B8))
+            if(dest.createSoftTry(nWidth, nHeight, 1, IMAGE_R8G8B8_SRGB))
             {
                for(; nCounter<nTotalBytes; nCounter+=header_info.nChannels*bytesPerPixelPerChannel)
                {
@@ -804,7 +804,7 @@ Bool PSD::ProccessBuffer(Byte *pData, Image &dest)
 
          case 9: // LAB
          {
-            if(dest.createSoftTry(nWidth, nHeight, 1, (header_info.nChannels==4) ? IMAGE_R8G8B8A8 : IMAGE_R8G8B8))
+            if(dest.createSoftTry(nWidth, nHeight, 1, (header_info.nChannels==4) ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8_SRGB))
             {
                Dbl L_coef=max_value/100.0,
                    a_coef=max_value/256.0,

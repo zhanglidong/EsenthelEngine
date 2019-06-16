@@ -124,7 +124,7 @@ Bool Image::ImportTIF(File &f)
       {
          ok=true;
          if(photometric!=PHOTOMETRIC_PALETTE) // keep palette as RGBA
-            if(samples==1 || samples==3)ok=copyTry(T, -1, -1, -1, (samples==1) ? IMAGE_L8 : IMAGE_R8G8B8);
+            if(samples==1 || samples==3)ok=copyTry(T, -1, -1, -1, (samples==1) ? IMAGE_L8 : IMAGE_R8G8B8_SRGB);
       }
       TIFFClose(tif);
       f.pos(tf.end); // set position at the end of the read data, we have to do this because file pointer may not necessary be at the end, also don't use just 'f.size' in case there is some data after TIFF

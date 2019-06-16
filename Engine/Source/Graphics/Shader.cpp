@@ -22,61 +22,38 @@ namespace EE{
 #define ALLOW_PARTIAL_BUFFERS 0 // using partial buffers (1) actually made things slower, 100fps(1) vs 102fps(0), so use default value (0), TODO: check on newer hardware
 #define BUFFER_DYNAMIC        0 // for ALLOW_PARTIAL_BUFFERS=0, using 1 made no difference in performance, so use 0 to reduce API calls. But for ALLOW_PARTIAL_BUFFERS=1 using 1 was slower
 /******************************************************************************/
-#if DX9
-static IDirect3DBaseTexture9    *Tex[MAX_DX9_TEXTURES];
-static Byte                      TexSRGB[MAX_DX9_TEXTURES]; // use Byte because we're setting ~0
-#elif DX11
+#if DX11
 static ID3D11ShaderResourceView *VSTex[MAX_TEXTURES], *HSTex[MAX_TEXTURES], *DSTex[MAX_TEXTURES], *PSTex[MAX_TEXTURES];
 #elif GL
 static UInt                      Tex[MAX_TEXTURES];
 #endif
-INLINE void DisplayState::texVS(Int index, GPU_API(IDirect3DBaseTexture9*, ID3D11ShaderResourceView*, UInt) tex)
+INLINE void DisplayState::texVS(Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex)
 {
 #if DX11
    if(VSTex[index]!=tex)D3DC->VSSetShaderResources(index, 1, &(VSTex[index]=tex));
 #endif
 }
-INLINE void DisplayState::texHS(Int index, GPU_API(IDirect3DBaseTexture9*, ID3D11ShaderResourceView*, UInt) tex)
+INLINE void DisplayState::texHS(Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex)
 {
 #if DX11
    if(HSTex[index]!=tex)D3DC->HSSetShaderResources(index, 1, &(HSTex[index]=tex));
 #endif
 }
-INLINE void DisplayState::texDS(Int index, GPU_API(IDirect3DBaseTexture9*, ID3D11ShaderResourceView*, UInt) tex)
+INLINE void DisplayState::texDS(Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex)
 {
 #if DX11
    if(DSTex[index]!=tex)D3DC->DSSetShaderResources(index, 1, &(DSTex[index]=tex));
 #endif
 }
-INLINE void DisplayState::texPS(Int index, GPU_API(C ShaderImage&, ID3D11ShaderResourceView*, UInt) tex)
+INLINE void DisplayState::texPS(Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex)
 {
-#if DX9
-   IDirect3DBaseTexture9 *base;
-   if(C Image *image=tex.get())
-   {
-      base=image->_base;
-      if(Tex[index]!=base || FORCE_TEX)
-      {
-         D3D->SetTexture(index, Tex[index]=base);
-      #if LINEAR_GAMMA
-         Byte srgb=image->_srgb; if(TexSRGB[index]!=srgb || FORCE_TEX)D3D->SetSamplerState(index, D3DSAMP_SRGBTEXTURE, TexSRGB[index]=srgb);
-      #endif
-      }
-      if(tex._sampler)tex._sampler->set(index);
-   }else
-   {
-      base=null;
-      if(Tex[index]!=base || FORCE_TEX)D3D->SetTexture(index, Tex[index]=base);
-   }
-#elif DX11
+#if DX11
    if(PSTex[index]!=tex || FORCE_TEX)D3DC->PSSetShaderResources(index, 1, &(PSTex[index]=tex));
 #endif
 }
-void DisplayState::texClear(GPU_API(IDirect3DBaseTexture9*, ID3D11ShaderResourceView*, UInt) tex)
+void DisplayState::texClear(GPU_API(ID3D11ShaderResourceView*, UInt) tex)
 {
-#if DX9
-   if(tex)REPA(Tex)if(Tex[i]==tex)Tex[i]=null;
-#elif DX11
+#if DX11
    if(tex)REPA(PSTex)if(PSTex[i]==tex)PSTex[i]=null;
 #elif GL
    if(tex)REPA(Tex)if(Tex[i]==tex)Tex[i]=~0;
@@ -215,10 +192,7 @@ static INLINE void BufPS(Int index, ID3D11Buffer *buf) {if(ps_buf[index]!=buf ||
 /******************************************************************************/
 Cache<ShaderFile> ShaderFiles("Shader");
 
-static Byte RestoreSamplerIndex[256],
-            RestoreSamplers;
-
-GPU_API(Shader9, Shader11, ShaderGL) *ShaderCur;
+GPU_API(Shader11, ShaderGL) *ShaderCur;
 /******************************************************************************/
 INLINE static void COPY(Ptr dest, CPtr src, UInt size)
 {
@@ -231,17 +205,7 @@ INLINE static void COPY(Ptr dest, CPtr src, UInt size)
 /******************************************************************************/
 ThreadSafeMap<Str8, ShaderImage> ShaderImages(CompareCS);
 /******************************************************************************/
-#if DX9
-void ShaderImage::Sampler::set(Int index)
-{
-   RestoreSamplerIndex[RestoreSamplers++]=index;
-   D3D->SetSamplerState(index, D3DSAMP_MINFILTER, filter [0]);
-   D3D->SetSamplerState(index, D3DSAMP_MAGFILTER, filter [1]);
-   D3D->SetSamplerState(index, D3DSAMP_ADDRESSU , address[0]);
-   D3D->SetSamplerState(index, D3DSAMP_ADDRESSV , address[1]);
-   D3D->SetSamplerState(index, D3DSAMP_ADDRESSW , address[2]);
-}
-#elif DX11
+#if DX11
 void ShaderImage::Sampler::del()
 {
    if(state)
@@ -471,7 +435,7 @@ void ShaderParam::set(C Color &color      ) {setChanged(); (*(Vec4*)_data).set(c
 void ShaderParam::set(C Vec   *v, Int elms)
 {
    setChanged();
-#if DX9 || DX11
+#if DX11
    Vec4 *gpu=(Vec4*)_data;
    REP(Min(elms, (_gpu_data_size+SIZEU(Flt))/SIZEU(Vec4)))gpu[i].xyz=v[i]; // add SIZE(Flt) because '_gpu_data_size' may be SIZE(Vec) and div by SIZE(Vec4) would return 0 even though one Vec would fit (elements are aligned by 'Vec4' but we're writing only 'Vec')
 #elif GL
@@ -482,7 +446,7 @@ void ShaderParam::set(C Vec4 *v, Int elms) {setChanged(); COPY(_data, v, Min(_gp
 
 void ShaderParam::set(C Matrix3 &matrix)
 {
-#if DX9 || DX11
+#if DX11
    if(_gpu_data_size>=SIZE(Vec4)+SIZE(Vec4)+SIZE(Vec)) // do not test for 'SIZE(Matrix)' !! because '_gpu_data_size' may be SIZE(Matrix) minus last Flt, because it's not really used (this happens on DX10+)
    {
       setChanged();
@@ -561,7 +525,7 @@ void ShaderParam::set(CPtr data, Int size) // !! Warning: 'size' is ignored here
 
 void ShaderParam::set(C Vec &v, Int elm)
 {
-#if DX9 || DX11
+#if DX11
    if(_gpu_data_size>=SIZE(Vec4)*elm+SIZE(Vec)) // elements are aligned by 'Vec4' but we're writing only 'Vec'
    {
       setChanged();
@@ -703,7 +667,7 @@ void ShaderParam::setConditional(C Rect &r)
 
 void ShaderParam::setConditional(C Vec &v, Int elm)
 {
-#if DX9 || DX11
+#if DX11
    if(_gpu_data_size>=SIZE(Vec4)*elm+SIZE(Vec)) // elements are aligned by 'Vec4' but we're writing only 'Vec'
    {
       Vec &dest=((Vec4*)_data)[elm].xyz;
@@ -722,11 +686,6 @@ void ShaderParam::setSafe(C Vec4 &v) {setChanged(); COPY(_data, &v, Min(_gpu_dat
 /******************************************************************************/
 // SHADERS
 /******************************************************************************/
-#if WINDOWS_OLD
-ShaderVS9::~ShaderVS9() {if(vs){SyncLocker locker(D._lock); if(vs){if(D.created())vs->Release(); vs=null;}}} // clear while in lock
-ShaderPS9::~ShaderPS9() {if(ps){SyncLocker locker(D._lock); if(ps){if(D.created())ps->Release(); ps=null;}}} // clear while in lock
-#endif
-
 #if DX11
 // lock not needed for DX11 'Release'
 ShaderVS11::~ShaderVS11() {if(vs){/*SyncLocker locker(D._lock); if(vs)*/{if(D.created())vs->Release(); vs=null;}}} // clear while in lock
@@ -743,10 +702,7 @@ ShaderVSGL::~ShaderVSGL() {if(vs){if(D.created())glDeleteShader(vs); vs=0;}} // 
 ShaderPSGL::~ShaderPSGL() {if(ps){if(D.created())glDeleteShader(ps); ps=0;}} // clear while in lock
 #endif
 
-#if DX9
-IDirect3DVertexShader9* ShaderVS9::create() {if(!vs && data.elms()){SyncLocker locker(D._lock); if(!vs && data.elms() && D3D){D3D->CreateVertexShader((DWORD*)data.data(), &vs); clean();}} return vs;}
-IDirect3DPixelShader9 * ShaderPS9::create() {if(!ps && data.elms()){SyncLocker locker(D._lock); if(!ps && data.elms() && D3D){D3D->CreatePixelShader ((DWORD*)data.data(), &ps); clean();}} return ps;}
-#elif DX11
+#if DX11
 // lock not needed for DX11 'D3D', however we need a lock because this may get called from multiple threads at the same time, but we can use another lock to allow processing during rendering (when D._lock is locked)
 static SyncLock ShaderLock; // use custom lock instead of 'D._lock' to allow shader creation while rendering
 ID3D11VertexShader* ShaderVS11::create() {if(!vs && data.elms()){SyncLocker locker(ShaderLock); if(!vs && data.elms() && D3D){D3D->CreateVertexShader(data.data(), data.elms(), null, &vs); clean();}} return vs;}
@@ -831,23 +787,6 @@ UInt ShaderPSGL::create(Bool clean, Str *messages)
          File  src, temp; src.readMem(data.data(), data.elms()); Decompress(src, temp, true); temp.pos(0); // decompress shader
          Str8 code; temp.getStr(code); // read code
          SetMaxMatrix(code);
-      #if GL_ES
-       //for(Char8 *gl=(Char8*)code(); gl=(Char8*)TextPos(gl, "gl_FragDepth", true, true); )gl[0]=gl[1]='/'; // 'gl_FragDepth' is not supported in GL_ES 2
-
-         if(!D._shader_tex_lod) // if shader Tex Lod is not supported then have to replace it with normal tex reads, do this by inserting define texture2DLodEXT->texture2D, however have to do this after all extensions
-         {
-            Char8 last='\n'; // allow inserting at the start
-            FREPA(code)
-            {
-               if(last=='\n' && !Starts(code()+i, "#extension ", true)) // have to check for "#extension" and not "#", because "precision" can be used within # blocks
-               {
-                  code.insert(i, "#define texture2DLodEXT(img, uv, i) texture2D(img, uv)\n");
-                  break;
-               }
-               last=code[i];
-            }
-         }
-      #endif
 
          // if MRT is not supported then disable it in the shader codes, replace "\nRT.." instead of "RT=" because it can be also "RT.xyz=", check for new line because we also do "layout(location=1) out HP vec4 RT1;" and "#define RT1 gl_FragData[1]"
          if(D._max_rt<2)for(Char8 *gl=(Char8*)code(); gl=(Char8*)TextPos(gl, "\nRT1", true, true); )gl[1]=gl[2]='/'; // start replacing with index=1, to keep '\n' and change RT into //
@@ -892,15 +831,6 @@ Str ShaderPSGL::source()
 /******************************************************************************/
 // SHADER TECHNIQUE
 /******************************************************************************/
-#if WINDOWS_OLD
-Shader9::Shader9()
-{
-   vs_index=
-   ps_index=-1;
-   vs=null;
-   ps=null;
-}
-#endif
 #if WINDOWS
 Shader11::Shader11()
 {
@@ -915,76 +845,7 @@ Shader11::Shader11()
 }
 #endif
 /******************************************************************************/
-#if DX9
-// these members must have native alignment because we use them in atomic operations for set on multiple threads
-ALIGN_ASSERT(Shader9, vs);
-ALIGN_ASSERT(Shader9, ps);
-Bool Shader9::validate(ShaderFile &shader, Str *messages) // this function should be multi-threaded safe
-{
-   if(!vs && InRange(vs_index, shader._vs))AtomicSet(vs, shader._vs[vs_index].create());
-   if(!ps && InRange(ps_index, shader._ps))AtomicSet(ps, shader._ps[ps_index].create());
-   return vs && ps;
-}
-#if CACHE_DX9_CONSTANTS
-static Byte VSConstantMem[MAX_DX9_SHADER_CONSTANT];
-static Byte PSConstantMem[MAX_DX9_SHADER_CONSTANT];
-static INLINE Bool SetConstantMem(Byte *mem, C Shader9::Constant &c)
-{
-   Ptr dest=mem+c.start*SIZE(Vec4); Int size=*c.final_count*SIZE(Vec4);
-   if(EqualMem(dest, c.data, size))return false;
-      CopyFast(dest, c.data, size);return true ;
-}
-static INLINE void SetVSConstant(C Shader9::Constant &c) {if(SetConstantMem(VSConstantMem, c))D3D->SetVertexShaderConstantF(c.start, (Flt*)c.data, *c.final_count);}
-static INLINE void SetPSConstant(C Shader9::Constant &c) {if(SetConstantMem(PSConstantMem, c))D3D-> SetPixelShaderConstantF(c.start, (Flt*)c.data, *c.final_count);}
-#else
-static INLINE void SetVSConstant(C Shader9::Constant &c) {D3D->SetVertexShaderConstantF(c.start, (Flt*)c.data, *c.final_count);}
-static INLINE void SetPSConstant(C Shader9::Constant &c) {D3D-> SetPixelShaderConstantF(c.start, (Flt*)c.data, *c.final_count);}
-#endif
-void Shader9::commit()
-{
-   REPA(vs_constants){Constant &c=vs_constants[i]; if(*c.changed)SetVSConstant(c);}
-   REPA(ps_constants){Constant &c=ps_constants[i]; if(*c.changed)SetPSConstant(c);}
-   // reset 'changed' after all commits, in case constants point to parts of shader params (in such case setting one part, and clearing changed, would prevent from setting other parts of the same shader param)
-   REPA(vs_constants)(*vs_constants[i].changed)=false;
-   REPA(ps_constants)(*ps_constants[i].changed)=false;
-}
-void Shader9::commitTex()
-{
-   REPA(textures){C Texture &t=textures[i]; D.texPS(t.index, *t.image);}
-}
-void Shader9::start() // same as 'begin' but without committing constants and textures
-{
-   ShaderCur=this;
-
-   D3D->SetVertexShader(vs);
-   D3D->SetPixelShader (ps);
-   REPA(vs_constants)*vs_constants[i].changed=true; // mark all as changed to make sure next 'commit' will set them
-   REPA(ps_constants)*ps_constants[i].changed=true; // mark all as changed to make sure next 'commit' will set them
-}
-void Shader9::begin()
-{
-   ShaderCur=this;
-
-   D3D->SetVertexShader(vs);
-   D3D->SetPixelShader (ps);
-   REPA(textures    ){C Texture &t=    textures[i]; D.texPS(t.index, *t.image);}
-   REPA(vs_constants){ Constant &c=vs_constants[i]; SetVSConstant(c); *c.changed=false;}
-   REPA(ps_constants){ Constant &c=ps_constants[i]; SetPSConstant(c); *c.changed=false;}
-}
-void ShaderEnd()
-{
-   for(; RestoreSamplers; )
-   {
-      Byte index=RestoreSamplerIndex[--RestoreSamplers];
-      D3D->SetSamplerState(index, D3DSAMP_MINFILTER, D._sampler_filter[0]);
-      D3D->SetSamplerState(index, D3DSAMP_MAGFILTER, D._sampler_filter[1]);
-      D3D->SetSamplerState(index, D3DSAMP_MIPFILTER, D._sampler_filter[2]);
-      D3D->SetSamplerState(index, D3DSAMP_ADDRESSU , D._sampler_address  );
-      D3D->SetSamplerState(index, D3DSAMP_ADDRESSV , D._sampler_address  );
-      D3D->SetSamplerState(index, D3DSAMP_ADDRESSW , D._sampler_address  );
-   }
-}
-#elif DX11
+#if DX11
 // these members must have native alignment because we use them in atomic operations for set on multiple threads
 ALIGN_ASSERT(Shader11, vs);
 ALIGN_ASSERT(Shader11, hs);
@@ -1455,14 +1316,7 @@ void Shader::draw(C Image *image, C Rect *rect, C Rect &tex)
 void DisplayState::clearShader()
 {
    // set ~0 for pointers because that's the most unlikely value that they would have
-#if DX9
-   SetMem(Tex    , ~0);
-   SetMem(TexSRGB, ~0);
-   #if CACHE_DX9_CONSTANTS
-      Zero(VSConstantMem);
-      Zero(PSConstantMem);
-   #endif
-#elif DX11
+#if DX11
    SetMem(VSTex, ~0);
    SetMem(HSTex, ~0);
    SetMem(DSTex, ~0);

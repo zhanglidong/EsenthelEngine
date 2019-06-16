@@ -926,22 +926,22 @@ void CodeEditorData()
 
 TaskBase CompileEngineWindowsTB[]=
 {
-   {null, null, CompileEngineWindows32DX9},
-   {null, null, CompileEngineWindows64DX9},
-   {null, null, CompileEngineWindows32DX11},
+ //{null, null, CompileEngineWindows32DX9},
+ //{null, null, CompileEngineWindows64DX9},
+ //{null, null, CompileEngineWindows32DX11},
    {null, null, CompileEngineWindows64DX11},
    {null, null, CompileEngineWindowsUniversal64DX11},
-   {null, null, CompileEngineWindowsUniversal32DX11},
+ //{null, null, CompileEngineWindowsUniversal32DX11},
    {null, null, CompileEngineWindowsUniversalArm32DX11},
 };
 TaskBase CompileEngineDebugWindowsTB[]=
 {
-   {null, null, CompileEngineDebugWindows32DX9},
-   {null, null, CompileEngineDebugWindows64DX9},
-   {null, null, CompileEngineDebugWindows32DX11},
+ //{null, null, CompileEngineDebugWindows32DX9},
+ //{null, null, CompileEngineDebugWindows64DX9},
+ //{null, null, CompileEngineDebugWindows32DX11},
    {null, null, CompileEngineDebugWindows64DX11},
    {null, null, CompileEngineDebugWindowsUniversal64DX11},
-   {null, null, CompileEngineDebugWindowsUniversal32DX11},
+ //{null, null, CompileEngineDebugWindowsUniversal32DX11},
    {null, null, CompileEngineDebugWindowsUniversalArm32DX11},
 };
 TaskBase CompileEngineAppleTB[]=
@@ -964,7 +964,7 @@ void CompileEngineDebugApple  () {FREPAO(CompileEngineDebugAppleTB  ).queue();}
 TaskBase CompileEditorWindowsTB[]=
 {
    {null, null, CompileEditorWindows64DX11},
-   {null, null, CompileEditorWindows32DX9 },
+ //{null, null, CompileEditorWindows32DX9 },
 };
 void CompileEditorWindows() {FREPAO(CompileEditorWindowsTB).queue();}
 /******************************************************************************/

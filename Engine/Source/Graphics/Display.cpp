@@ -13,7 +13,7 @@ namespace EE{
    #pragma message("!! Warning: Use this only for debugging !!")
 #endif
 
-#define FORCE_MAIN_DISPLAY (DX9 || WINDOWS && GL) // for DX9 and WindowsOpenGL we need to use the main screen
+#define FORCE_MAIN_DISPLAY (WINDOWS && GL) // for WindowsOpenGL we need to use the main screen
 
 #if 0
    #define LOG(x) LogN(x)
@@ -25,12 +25,7 @@ namespace EE{
 /******************************************************************************/
 Display D;
 
-#if DX9 // DirectX 9
-   static IDirect3D9           *D3DBase;
-          IDirect3DDevice9     *D3D;
-   static IDirect3DQuery9      *Query;
-   static D3DPRESENT_PARAMETERS D3DPP;
-#elif DX11 // DirectX 10/11
+#if DX11 // DirectX 10/11
    #define GDI_COMPATIBLE 0 // requires DXGI_FORMAT_B8G8R8A8_UNORM or DXGI_FORMAT_B8G8R8A8_UNORM_SRGB
    static Bool                  AllowTearing;
    static UInt                  PresentFlags;
@@ -466,28 +461,13 @@ void Display::screenChanged(Flt old_width, Flt old_height)
       if(screen_changed)screen_changed(old_width, old_height);
    }
 }
-#if DX9
-Bool Display::validUsage(UInt usage, D3DRESOURCETYPE res_type, IMAGE_TYPE image_type)
-{
-   if(D3DBase)
-   {
-      D3DDEVTYPE dev_type=(_no_gpu ? D3DDEVTYPE_NULLREF : D3DDEVTYPE_HAL);
-      D3DFORMAT  format  =ImageTI[image_type].format;
-      return OK(D3DBase->CheckDeviceFormat(D3DADAPTER_DEFAULT, dev_type, D3DFMT_A8R8G8B8, usage, res_type, format))
-          || OK(D3DBase->CheckDeviceFormat(D3DADAPTER_DEFAULT, dev_type, D3DFMT_X8R8G8B8, usage, res_type, format));
-   }
-   return false;
-}
-#endif
 Str8 Display::shaderModelName()C
 {
    switch(shaderModel())
    {
       default        : return "Unknown"; // SM_UNKNOWN
-      case SM_GL_ES_2: return "GL ES 2";
       case SM_GL_ES_3: return "GL ES 3";
       case SM_GL     : return "GL";
-      case SM_3      : return "3";
       case SM_4      : return "4";
       case SM_4_1    : return "4.1";
       case SM_5      : return "5";
@@ -495,9 +475,7 @@ Str8 Display::shaderModelName()C
 }
 Str8 Display::apiName()C
 {
-#if DX9
-   return "DirectX 9";
-#elif DX11
+#if DX11
    return "DirectX 11";
 #elif DX12
    return "DirectX 12";
@@ -665,7 +643,6 @@ Display::Display() : _monitors(Compare, Create, null, 4)
 
   _initialized=false;
   _resetting  =false;
-  _began      =false;
 
   _allow_stereo=true;
   _density=127;
@@ -812,7 +789,6 @@ void Display::del()
   _initialized=false;
 
              gamma(0); // reset gamma when closing app
-                end();
        VR.delImages();
            ShutFont();
          ShutVtxInd();
@@ -822,11 +798,7 @@ void Display::del()
          Images.del();
          _modes.del();
 
-#if DX9
-   RELEASE(Query    );
-   RELEASE(D3D      );
-   RELEASE(D3DBase  );
-#elif DX11
+#if DX11
    if(SwapChain)SwapChain->SetFullscreenState(false, null); // full screen state must be first disabled, according to http://msdn.microsoft.com/en-us/library/windows/desktop/bb205075(v=vs.85).aspx#Destroying
    RELEASE(SwapChain);
    RELEASE(Output);
@@ -855,188 +827,11 @@ void Display::del()
 #endif
 }
 /******************************************************************************/
-#if DX9
-// codes used for detecting GPU VRAM
-#define DDENUM_ATTACHEDSECONDARYDEVICES 0x00000001L
-typedef BOOL (FAR PASCAL*LPDDENUMCALLBACKEXA)(GUID FAR *, LPSTR, LPSTR, LPVOID, HMONITOR);
-typedef HRESULT (WINAPI*LPDIRECTDRAWENUMERATEEXA)(LPDDENUMCALLBACKEXA lpCallback, LPVOID lpContext, DWORD dwFlags);
-typedef BOOL (WINAPI*PfnCoSetProxyBlanket)(IUnknown* pProxy, DWORD dwAuthnSvc, DWORD dwAuthzSvc, OLECHAR* pServerPrincName, DWORD dwAuthnLevel, DWORD dwImpLevel, RPC_AUTH_IDENTITY_HANDLE pAuthInfo, DWORD dwCapabilities);
-struct Match
-{
-   HMONITOR monitor;
-   Char8    driver_name[512];
-   Bool     found;
-
-   Match(HMONITOR monitor) : monitor(monitor) {found=false; driver_name[0]=0;}
-};
-static BOOL WINAPI DDEnumCallbackEx(GUID FAR *lpGUID, LPSTR lpDriverDescription, LPSTR lpDriverName, LPVOID lpContext, HMONITOR hm)
-{
-   Match &match=*(Match*)lpContext;
-   if(match.monitor==hm)
-   {
-          match.found=true;
-      Set(match.driver_name, lpDriverName);
-      return false; // stop enumerating
-   }
-   return true; // keep looking
-}
-static Bool GetDeviceIDFromHMonitor(HMONITOR hm, WCHAR *strDeviceID, int cchDeviceID)
-{
-   DLL ddraw;
-   if( ddraw.createFile(u"Ddraw.dll"))
-      if(LPDIRECTDRAWENUMERATEEXA DirectDrawEnumerateEx=(LPDIRECTDRAWENUMERATEEXA)ddraw.getFunc("DirectDrawEnumerateExA"))
-   {
-      Match match(hm); DirectDrawEnumerateEx(DDEnumCallbackEx, &match, DDENUM_ATTACHEDSECONDARYDEVICES);
-      if(match.found)
-      {
-         DISPLAY_DEVICEA dispdev; Zero(dispdev); dispdev.cb=SIZE(dispdev);
-         for(Int i=0; EnumDisplayDevicesA(null, i, &dispdev, 0); i++)
-            if(!(dispdev.StateFlags&DISPLAY_DEVICE_MIRRORING_DRIVER   )  // skip devices that are monitors that echo another display
-            &&  (dispdev.StateFlags&DISPLAY_DEVICE_ATTACHED_TO_DESKTOP) // process only devices that are attached
-            &&  Equal(match.driver_name, dispdev.DeviceName))
-         {
-            MultiByteToWideChar(CP_ACP, 0, dispdev.DeviceID, -1, strDeviceID, cchDeviceID);
-            return true;
-         }
-      }
-   }
-   return false;
-}
-static Long DeviceMemory(Int adapter_index)
-{
-   Long size=-1;
-   if(HMONITOR monitor=D3DBase->GetAdapterMonitor(adapter_index))
-   {
-      WCHAR strInputDeviceID[1024];
-      if(GetDeviceIDFromHMonitor(monitor, strInputDeviceID, Elms(strInputDeviceID)))
-      {
-         IWbemLocator *pIWbemLocator=null; CoCreateInstance(__uuidof(WbemLocator), null, CLSCTX_INPROC_SERVER, __uuidof(IWbemLocator), (Ptr*)&pIWbemLocator);
-         if(           pIWbemLocator)
-         {
-            // Using the locator, connect to WMI in the given namespace
-            if(BSTR Namespace=SysAllocString(L"root\\cimv2"))
-            {
-               IWbemServices *pIWbemServices=null; pIWbemLocator->ConnectServer(Namespace, null, null, null, 0, null, null, &pIWbemServices);
-               if(            pIWbemServices)
-               {
-                  if(BSTR Win32_VideoController=SysAllocString(L"Win32_VideoController"))
-                  {
-                     CoSetProxyBlanket(pIWbemServices, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, null, RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, null, EOAC_NONE); // Switch security level to IMPERSONATE
-                     IEnumWbemClassObject *pEnumVideoControllers=null; pIWbemServices->CreateInstanceEnum(Win32_VideoController, 0, null, &pEnumVideoControllers);
-                     if(                   pEnumVideoControllers)
-                     {
-                        if(BSTR PNPDeviceID=SysAllocString(L"PNPDeviceID"))
-                        {
-                           if(BSTR AdapterRAM=SysAllocString(L"AdapterRAM"))
-                           {
-                              IWbemClassObject *video_controllers[16]={0};
-                              DWORD returned=0;
-                              Bool  found=false;
-                              pEnumVideoControllers->Reset(); // Get the first one in the list
-                              if(OK(pEnumVideoControllers->Next(5000, Elms(video_controllers), video_controllers, &returned))) // 5 second timeout
-                                 FREP(returned)if(IWbemClassObject *controller=video_controllers[i])
-                              {
-                                 if(!found)
-                                 {
-                                    VARIANT var; if(OK(controller->Get(PNPDeviceID, 0, &var, null, null)))
-                                    {
-                                       if(wcsstr(var.bstrVal, strInputDeviceID))found=true;
-                                       VariantClear(&var);
-                                       if(found && OK(controller->Get(AdapterRAM, 0, &var, null, null)))
-                                       {
-                                          size=var.ulVal;
-                                          VariantClear(&var);
-                                       }
-                                    }
-                                 }
-                                 controller->Release();
-                              }
-                              SysFreeString(AdapterRAM);
-                           }
-                           SysFreeString(PNPDeviceID);
-                        }
-                        pEnumVideoControllers->Release();
-                     }
-                     SysFreeString(Win32_VideoController);
-                  }
-                  pIWbemServices->Release();
-               }
-               SysFreeString(Namespace);
-            }
-            pIWbemLocator->Release();
-         }
-      }
-   }
-   return size;
-}
-#endif
 void Display::createDevice()
 {
    if(LogInit)LogN("Display.createDevice");
    SyncLocker locker(_lock);
-#if DX9
-   if(!(D3DBase=Direct3DCreate9(D3D_SDK_VERSION)))Exit(MLTC(u"Direct3D not found.\nPlease install the newest DirectX.", PL,u"Direct3D nie odnaleziony.\nProszę zainstalować najnowszy DirectX."));
-
-   // get device description
-   if(!deviceName().is()){D3DADAPTER_IDENTIFIER9 id; if(OK(D3DBase->GetAdapterIdentifier(D3DADAPTER_DEFAULT, 0, &id)))_device_name=id.Description;}
-
-   // check required capabilites
-   D3DCAPS9 caps; D3DBase->GetDeviceCaps(0, D3DDEVTYPE_HAL, &caps);
-   if(caps.PrimitiveMiscCaps&D3DPMISCCAPS_NULLREFERENCE)Exit(MLTC(u"Video Card supporting minimum requirements not found.", PL,u"Nie odnaleziono karty graficznej spełniającej minimalne wymagania."));
-   Int vs_ver  =D3DSHADER_VERSION_MAJOR(caps.VertexShaderVersion),
-       ps_ver  =D3DSHADER_VERSION_MAJOR(caps. PixelShaderVersion);
-  _shader_model=((ps_ver>=3) ? SM_3 : SM_UNKNOWN);
-
-   if(shaderModel()<SM_3)if(!(App.flag&APP_ALLOW_NO_GPU))Exit(MLTC(u"Minimum Shader Model 3.0 required.\nA better video card or installing drivers is required.",
-                                                               PL, u"Minimum Shader Model 3.0 wymagany.\nWymagana jest lepsza kart graficzna lub doinstalowanie sterowników."));
-
-   // set create options
-   UInt flag=D3DCREATE_SOFTWARE_VERTEXPROCESSING;
-   if((caps.DevCaps&D3DDEVCAPS_HWTRANSFORMANDLIGHT) && vs_ver>=ps_ver) // use hardware vertex processing only if HW T&L and VS ver matches PS ver (in HW)
-   {
-   #if 1
-      flag=D3DCREATE_MIXED_VERTEXPROCESSING; // this was tested and results in better performance for dynamic vertex buffers than D3DCREATE_HARDWARE_VERTEXPROCESSING, TODO: however https://msdn.microsoft.com/en-us/library/windows/desktop/bb172527(v=vs.85).aspx mentions that on Win10 this should be avoided, however tests are inconclusive, check again in the future using "Tests/Vertex Buffering.cpp"
-   #else
-      flag=D3DCREATE_HARDWARE_VERTEXPROCESSING;
-      if(caps.DevCaps&D3DDEVCAPS_PUREDEVICE)flag|=D3DCREATE_PUREDEVICE; // this requires D3DCREATE_HARDWARE_VERTEXPROCESSING
-   #endif
-   }
- //if(App.flag&APP_DX_THREAD_SAFE)flag|=D3DCREATE_MULTITHREADED               ;
- //if(App.flag&APP_DX_MANAGEMENT )flag|=D3DCREATE_DISABLE_DRIVER_MANAGEMENT_EX;
-                                  flag|=D3DCREATE_FPU_PRESERVE                ;
-
-   // enumerate display modes
-	MemtN<VecI2, 128> modes;
-   for(Int i=0; ; i++)
-   {
-      DEVMODE mode; Zero(mode); mode.dmSize=SIZE(mode);
-      if(!EnumDisplaySettings(null, i, &mode))break;
-      modes.include(VecI2(mode.dmPelsWidth, mode.dmPelsHeight));
-   }
-  _modes=modes;
-  _modes.sort(Compare);
-
-   // init
-   if(!findMode())Exit("Valid display mode not found.");
-   if(!exclusive() && full()){if(!SetDisplayMode(2))Exit("Can't set fullscreen mode."); adjustWindow();}
-   if(OK(D3DBase->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, App.Hwnd(), flag, &D3DPP, &D3D)))
-   {
-     _can_draw=true;
-     _no_gpu  =false;
-   }else
-   {
-     _can_draw    =false;
-     _no_gpu      =true;
-     _shader_model=SM_3;
-      if((App.flag&APP_ALLOW_NO_GPU) ? !OK(D3DBase->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_NULLREF, App.Hwnd(), flag, &D3DPP, &D3D)) : true)Exit(MLTC(u"Can't create Direct3D Device.", PL,u"Nie można utworzyć Direct3D."));
-   }
-   if(D3D)
-   {
-     _device_mem=DeviceMemory(D3DADAPTER_DEFAULT);
-    //if(_device_mem<0)_device_mem=D3D->GetAvailableTextureMem(); // this is the total memory, including system memory (for example 4GB is returned when having only 2GB GPU)
-      D3D->CreateQuery(D3DQUERYTYPE_EVENT, &Query);
-   }
-#elif DX11
+#if DX11
    UInt flags=(D3D_DEBUG ? D3D11_CREATE_DEVICE_DEBUG : 0); // DO NOT include D3D11_CREATE_DEVICE_SINGLETHREADED to allow multi-threaded resource creation - https://docs.microsoft.com/en-us/windows/desktop/direct3d11/overviews-direct3d-11-render-multi-thread
 
    // ADAPTER = GPU
@@ -1465,21 +1260,6 @@ again:
    }
    if(LogInit)LogN("Secondary Contexts OK");
 
-   if(D.shaderModelGLES2()) // GLES2 requires internalFormat to be as follows, without it WebGL1 will fail - https://www.khronos.org/registry/OpenGL-Refpages/es2.0/xhtml/glTexImage2D.xml
-   {
-      #define GL_LUMINANCE       0x1909
-      #define GL_LUMINANCE_ALPHA 0x190A
-      ConstCast(ImageTI[IMAGE_R8G8B8A8].format)=GL_RGBA;
-      ConstCast(ImageTI[IMAGE_R8G8B8  ].format)=GL_RGB;
-      ConstCast(ImageTI[IMAGE_L8A8    ].format)=GL_LUMINANCE_ALPHA;
-      ConstCast(ImageTI[IMAGE_L8      ].format)=GL_LUMINANCE;
-      ConstCast(ImageTI[IMAGE_A8      ].format)=GL_ALPHA;
-      ConstCast(ImageTI[IMAGE_F32_4   ].format)=GL_RGBA;
-      ConstCast(ImageTI[IMAGE_F32_3   ].format)=GL_RGB;
-      ConstCast(ImageTI[IMAGE_F16_4   ].format)=GL_RGBA;
-      ConstCast(ImageTI[IMAGE_F16_3   ].format)=GL_RGB;
-   }
-
    if(LogInit)
    {
       LogN(S+"Device Name: "      +_device_name);
@@ -1500,8 +1280,8 @@ again:
 #if LINEAR_GAMMA
    glEnable(GL_FRAMEBUFFER_SRGB);
 #endif
-                               glGenFramebuffers(1, &FBO); if(!FBO)Exit("Couldn't create OpenGL Frame Buffer Object (FBO)");
-   if(D.notShaderModelGLES2()){glGenVertexArrays(1, &VAO); if(!VAO)Exit("Couldn't create OpenGL Vertex Arrays (VAO)");}
+   glGenFramebuffers(1, &FBO); if(!FBO)Exit("Couldn't create OpenGL Frame Buffer Object (FBO)");
+   glGenVertexArrays(1, &VAO); if(!VAO)Exit("Couldn't create OpenGL Vertex Arrays (VAO)");
 
 	#if WINDOWS
       if(full()){if(!SetDisplayMode(2))Exit("Can't set fullscreen mode."); adjustWindow();}
@@ -1567,7 +1347,6 @@ if(LogInit)LogN("Display.create");
            colorPalette(ImagePtr().get("Img/color palette.img"));
         VR.createImages(); // !! call this before 'after', because VR gui image may affect aspect ratio of display !!
                   after(false);
-                  begin();
              Gui.create();
 
    // set default settings
@@ -1589,9 +1368,7 @@ if(LogInit)LogN("Display.create");
 /******************************************************************************/
 Bool Display::created()
 {
-#if DX9
-   return D3D!=null;
-#elif DX11
+#if DX11
    return D3DC!=null;
 #elif GL
    return MainContext.is();
@@ -1643,20 +1420,7 @@ static Int DisplaySamples(Int samples)
 {
    Clamp(samples, 1, 16);
    if(Renderer.anyDeferred() && D.deferredMSUnavailable())samples=1;
-#if DX9
-   if(D3DBase)
-   {
-      MIN(samples, D3DMULTISAMPLE_16_SAMPLES); // there's no higher sample level on DX9
-      for(; samples>1; samples--)
-      {
-         DWORD col_levels=0, ds_levels=0, levels;
-         if(OK(D3DBase->CheckDeviceMultiSampleType(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, D3DFMT_A8R8G8B8, D3DPP.Windowed, D3DMULTISAMPLE_TYPE(samples), &levels)))MAX(col_levels, levels);
-         if(OK(D3DBase->CheckDeviceMultiSampleType(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, D3DFMT_D24S8   , D3DPP.Windowed, D3DMULTISAMPLE_TYPE(samples), &levels)))MAX( ds_levels, levels);
-         if(OK(D3DBase->CheckDeviceMultiSampleType(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, D3DFMT_D24X8   , D3DPP.Windowed, D3DMULTISAMPLE_TYPE(samples), &levels)))MAX( ds_levels, levels);
-         if(col_levels && ds_levels)break; // if there are some quality levels for both color and depth, then accept this multi-sampling
-      }
-   }
-#elif DX11
+#if DX11
    if(samples>1)samples=4; // only 4 samples are supported in DX10+ implementation
 #else
    samples=1; // other implementations don't support multi-sampling
@@ -1726,21 +1490,7 @@ Bool Display::findMode()
    }
 #endif
 
-#if DX9
-   Zero(D3DPP);
-   D3DPP.Windowed                  =(!exclusive() || !T.full()); // !! set this first !!
-   D3DPP.BackBufferCount           =(sync() ? 2 : 1);
-   D3DPP.BackBufferWidth           =resW();
-   D3DPP.BackBufferHeight          =resH();
-   D3DPP.BackBufferFormat          =D3DFMT_A8R8G8B8;
-   D3DPP.EnableAutoDepthStencil    =false;
-   D3DPP.hDeviceWindow             =App.Hwnd();
-   D3DPP.SwapEffect                =D3DSWAPEFFECT_DISCARD;
-   D3DPP.MultiSampleQuality        =0;
-   D3DPP.MultiSampleType           =D3DMULTISAMPLE_NONE;
-   D3DPP.PresentationInterval      =( sync()                         ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE);
-   D3DPP.FullScreen_RefreshRateInHz=((_freq_want && !D3DPP.Windowed) ? _freq_want              : D3DPRESENT_RATE_DEFAULT      ); // set custom frequency only if desired and in true full-screen
-#elif DX11
+#if DX11
    Zero(SwapChainDesc);
    Bool sync=ActualSync();
    #if WINDOWS_OLD
@@ -1843,8 +1593,6 @@ CChar8* Display::AsText(RESET_RESULT result)
    {
       case RESET_OK                  : return "RESET_OK";
       case RESET_DEVICE_NOT_CREATED  : return "RESET_DEVICE_NOT_CREATED";
-      case RESET_CUSTOM_LOST_FAILED  : return "RESET_CUSTOM_LOST_FAILED";
-      case RESET_CUSTOM_RESET_FAILED : return "RESET_CUSTOM_RESET_FAILED";
       case RESET_DEVICE_RESET_FAILED : return "RESET_DEVICE_RESET_FAILED";
       case RESET_RENDER_TARGET_FAILED: return "RESET_RENDER_TARGET_FAILED";
       default                        : return "RESET_UNKNOWN";
@@ -1856,9 +1604,6 @@ void Display::ResetFailed(RESET_RESULT New, RESET_RESULT old)
      ((New==old) ? S+"Can't set display mode: "+AsText(New)
                  : S+"Can't set new display mode: "+AsText(New)
                   +"\nCan't set old display mode: "+AsText(old))
-   #if DX9
-      +((New==RESET_DEVICE_RESET_FAILED || old==RESET_DEVICE_RESET_FAILED) ? "\nDid you forget to delete IMAGE_RT Image in D.lost on DX9?" : "")
-   #endif
        );
 }
 
@@ -1900,114 +1645,79 @@ Display::RESET_RESULT Display::ResetTry()
 
    if(!created())result=RESET_DEVICE_NOT_CREATED;else
    {
-      Bool begin_end=_began;
-      if(  begin_end)end();
       Renderer.rtDel();
-   #if DX9
-      VI.lost(); // dynamic buffers
-      VideoTexturesLost(); // video textures (render targets)
-      RELEASE(Query);
-   #endif
 
-      if(lost && !lost())result=RESET_CUSTOM_LOST_FAILED;else
-      {
-         Bool ok=true;
-      #if WINDOWS
-         #if (DX9 || DX11) && !WINDOWS_NEW // on WindowsNew we can't change mode here, we need to set according to what we've got, instead 'RequestDisplayMode' can be called
-            if(!exclusive())ok=SetDisplayMode();
-         #endif
-
-         #if DX9
-            if(ok)
-            {
-            reset:;
-               ok=OK(D3D->Reset(&D3DPP));
-               if(!ok && WindowActive()!=App.hwnd()) // if reset failed and we're not focused then wait a little and try again (this is important when using 'BackgroundLoader' and pressing Ctrl+Alt+Del, device is lost, fails to reset and secondary thread fails to load data)
-               {
-                  Time.wait(100);
-                  goto reset;
-               }
-               setDeviceSettings();
-            }
-         #elif DX11
-            #if WINDOWS_OLD
-               if(ok&=OK(SwapChain->SetFullscreenState(!SwapChainDesc.Windowed, SwapChainDesc.Windowed ? null : Output)))
-               if(ok&=ResizeTarget())
-            #elif 0 // both 'SetFullscreenState' and 'ResizeTarget' fail on WINDOWS_NEW, instead, 'TryEnterFullScreenMode', 'ExitFullScreenMode', 'TryResizeView' are used
-               DXGI_MODE_DESC mode; Zero(mode);
-               mode.Format =SwapChainDesc.Format;
-               mode.Width  =SwapChainDesc.Width;
-               mode.Height =SwapChainDesc.Height;
-               mode.Scaling=DXGI_MODE_SCALING_UNSPECIFIED;
-               if(_freq_want && full()) // set custom frequency only if desired and in full-screen
-               {
-                  mode.RefreshRate.Numerator  =_freq_want;
-                  mode.RefreshRate.Denominator=1;
-               }
-               if(ok&=OK(SwapChain->SetFullscreenState(full(), null)))
-               if(ok&=OK(SwapChain->ResizeTarget(&mode)))
-            #endif
-            {
-               // 'ResizeTarget' may select a different resolution than requested for fullscreen mode, so check what we've got
-            #if WINDOWS_OLD
-               if(!SwapChainDesc.Windowed)
-            #else
-               if(0) // if(full()) this shouldn't be performed for WINDOWS_NEW because for this we're not setting a custom display mode, but instead we're setting to what we've got
-            #endif
-               {
-                  IDXGIOutput *output=null; SwapChain->GetContainingOutput(&output); if(output)
-                  {
-                     DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)))
-                     {
-                       _res.set(desc.DesktopCoordinates.right-desc.DesktopCoordinates.left, desc.DesktopCoordinates.bottom-desc.DesktopCoordinates.top);
-                     #if WINDOWS_OLD
-                        SwapChainDesc.BufferDesc.Width =resW();
-                        SwapChainDesc.BufferDesc.Height=resH();
-                     #else
-                        // for WINDOWS_NEW this should adjust '_res' based on relative rotation
-                        SwapChainDesc.Width =resW();
-                        SwapChainDesc.Height=resH();
-                     #endif
-                        densityUpdate();
-                     }
-                     output->Release();
-                  }
-               }
-               ok&=ResizeBuffers();
-            }
-         #elif GL
-            if(ok)ok=SetDisplayMode();
-         #endif
-      #elif MAC || LINUX
-         ok=SetDisplayMode();
-      #else
-         ok=true;
+      Bool ok=true;
+   #if WINDOWS
+      #if (DX11) && !WINDOWS_NEW // on WindowsNew we can't change mode here, we need to set according to what we've got, instead 'RequestDisplayMode' can be called
+         if(!exclusive())ok=SetDisplayMode();
       #endif
 
-         getCaps();
-         if(!ok                 )result=RESET_DEVICE_RESET_FAILED ;else
-         if(!Renderer.rtCreate())result=RESET_RENDER_TARGET_FAILED;else
-         {
-         #if DX9
-            D3D->CreateQuery(D3DQUERYTYPE_EVENT, &Query);
-            VI.reset(); // dynamic buffers
-         #endif
-
-            adjustWindow(); // !! call before 'after' so current monitor can be detected properly based on window position which affects the aspect ratio in 'after' !!
-            after(true);
-            begin(); // we need begin if 'begin_end' was enabled and also always for the following code
+      #if DX11
+         #if WINDOWS_OLD
+            if(ok&=OK(SwapChain->SetFullscreenState(!SwapChainDesc.Windowed, SwapChainDesc.Windowed ? null : Output)))
+            if(ok&=ResizeTarget())
+         #elif 0 // both 'SetFullscreenState' and 'ResizeTarget' fail on WINDOWS_NEW, instead, 'TryEnterFullScreenMode', 'ExitFullScreenMode', 'TryResizeView' are used
+            DXGI_MODE_DESC mode; Zero(mode);
+            mode.Format =SwapChainDesc.Format;
+            mode.Width  =SwapChainDesc.Width;
+            mode.Height =SwapChainDesc.Height;
+            mode.Scaling=DXGI_MODE_SCALING_UNSPECIFIED;
+            if(_freq_want && full()) // set custom frequency only if desired and in full-screen
             {
-               resetEyeAdaptation(); // make sure we're inside begin because this potentially may use drawing
-            #if DX9
-               VideoTexturesReset(); // video textures (render targets), make sure we're inside begin
-            #endif
+               mode.RefreshRate.Numerator  =_freq_want;
+               mode.RefreshRate.Denominator=1;
             }
-            if(!begin_end)end(); // leave in the same state as before the reset
-
-            Time.skipUpdate(2); // when resetting display skip 2 frames, because the slow down can occur for this long
-            if(reset && !reset())result=RESET_CUSTOM_RESET_FAILED;
-            else                 result=RESET_OK;
+            if(ok&=OK(SwapChain->SetFullscreenState(full(), null)))
+            if(ok&=OK(SwapChain->ResizeTarget(&mode)))
+         #endif
+         {
+            // 'ResizeTarget' may select a different resolution than requested for fullscreen mode, so check what we've got
+         #if WINDOWS_OLD
+            if(!SwapChainDesc.Windowed)
+         #else
+            if(0) // if(full()) this shouldn't be performed for WINDOWS_NEW because for this we're not setting a custom display mode, but instead we're setting to what we've got
+         #endif
+            {
+               IDXGIOutput *output=null; SwapChain->GetContainingOutput(&output); if(output)
+               {
+                  DXGI_OUTPUT_DESC desc; if(OK(output->GetDesc(&desc)))
+                  {
+                    _res.set(desc.DesktopCoordinates.right-desc.DesktopCoordinates.left, desc.DesktopCoordinates.bottom-desc.DesktopCoordinates.top);
+                  #if WINDOWS_OLD
+                     SwapChainDesc.BufferDesc.Width =resW();
+                     SwapChainDesc.BufferDesc.Height=resH();
+                  #else
+                     // for WINDOWS_NEW this should adjust '_res' based on relative rotation
+                     SwapChainDesc.Width =resW();
+                     SwapChainDesc.Height=resH();
+                  #endif
+                     densityUpdate();
+                  }
+                  output->Release();
+               }
+            }
+            ok&=ResizeBuffers();
          }
+      #elif GL
+         if(ok)ok=SetDisplayMode();
+      #endif
+   #elif MAC || LINUX
+      ok=SetDisplayMode();
+   #else
+      ok=true;
+   #endif
+
+      getCaps();
+      if(!ok                 )result=RESET_DEVICE_RESET_FAILED ;else
+      if(!Renderer.rtCreate())result=RESET_RENDER_TARGET_FAILED;else
+      {
+         adjustWindow(); // !! call before 'after' so current monitor can be detected properly based on window position which affects the aspect ratio in 'after' !!
+         after(true);
+         resetEyeAdaptation(); // this potentially may use drawing
+
+         Time.skipUpdate(2); // when resetting display skip 2 frames, because the slow down can occur for this long
+         result=RESET_OK;
       }
    }
 
@@ -2074,53 +1784,13 @@ void Display::getGamma()
 void Display::getCaps()
 {
    if(LogInit)LogN("Display.getCaps");
-#if DX9
-   D3DDISPLAYMODE DM  ; D3D->GetDisplayMode(0, &DM);
-   D3DCAPS9       caps; D3D->GetDeviceCaps ( &caps);
-  _freq_got          =DM.RefreshRate;
-  _max_rt            =Mid(caps.NumSimultaneousRTs, 1, 255);
-  _max_tex_filter    =Mid(caps.MaxAnisotropy     , 1, 255);
-  _max_tex_size      =Min(Int(caps.MaxTextureWidth), Int(caps.MaxTextureHeight));
-  _tex_pow2          =(FlagTest(caps.TextureCaps, D3DPTEXTURECAPS_NONPOW2CONDITIONAL) ? 1 : FlagTest(caps.TextureCaps, D3DPTEXTURECAPS_POW2) ? 2 : 0); // 0=non-pow2 supported, 1=non-pow2 conditional, 2=non-pow2 not supported (pow2 required)
-  _tex_pow2_3d       = FlagTest(caps.TextureCaps, D3DPTEXTURECAPS_VOLUMEMAP_POW2);
-  _tex_pow2_cube     = FlagTest(caps.TextureCaps, D3DPTEXTURECAPS_CUBEMAP_POW2  );
-  _shader_tex_lod    =(D3DSHADER_VERSION_MAJOR(caps.PixelShaderVersion)>=3);
-  _mrt_const_bit_size=((caps.PrimitiveMiscCaps&D3DPMISCCAPS_MRTINDEPENDENTBITDEPTHS   )==0);
-  _mrt_post_process  =((caps.PrimitiveMiscCaps&D3DPMISCCAPS_MRTPOSTPIXELSHADERBLENDING)!=0
-                      && validUsage(D3DUSAGE_QUERY_POSTPIXELSHADER_BLENDING, D3DRTYPE_TEXTURE, IMAGE_B8G8R8A8)
-                      && validUsage(D3DUSAGE_QUERY_POSTPIXELSHADER_BLENDING, D3DRTYPE_TEXTURE, IMAGE_F32     )
-                      && validUsage(D3DUSAGE_QUERY_POSTPIXELSHADER_BLENDING, D3DRTYPE_TEXTURE, IMAGE_F16_4   ));
-   REP(IMAGE_ALL_TYPES)
-   {
-      UInt usage=0;
-      // D3DUSAGE_QUERY_FILTER checks for filtering other than D3DTEXF_POINT (used to detect if texture is supported as there's no other way)
-      if(validUsage(D3DUSAGE_QUERY_FILTER, D3DRTYPE_TEXTURE      , (IMAGE_TYPE)i))usage|=ImageTypeInfo::USAGE_IMAGE_2D;
-      if(validUsage(D3DUSAGE_QUERY_FILTER, D3DRTYPE_VOLUMETEXTURE, (IMAGE_TYPE)i))usage|=ImageTypeInfo::USAGE_IMAGE_3D;
-      if(validUsage(D3DUSAGE_QUERY_FILTER, D3DRTYPE_CUBETEXTURE  , (IMAGE_TYPE)i))usage|=ImageTypeInfo::USAGE_IMAGE_CUBE;
-      if(validUsage(D3DUSAGE_RENDERTARGET, D3DRTYPE_TEXTURE      , (IMAGE_TYPE)i))usage|=ImageTypeInfo::USAGE_IMAGE_RT;
-      if(validUsage(D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_TEXTURE      , (IMAGE_TYPE)i))usage|=ImageTypeInfo::USAGE_IMAGE_DS;
-      if(usage&(ImageTypeInfo::USAGE_IMAGE_RT|ImageTypeInfo::USAGE_IMAGE_DS))
-         for(Int samples=D3DMULTISAMPLE_2_SAMPLES; samples<=D3DMULTISAMPLE_16_SAMPLES; samples++) // check all potential multi-sample modes
-      {
-         DWORD levels;
-         if(OK(D3DBase->CheckDeviceMultiSampleType(D3DADAPTER_DEFAULT, _no_gpu ? D3DDEVTYPE_NULLREF : D3DDEVTYPE_HAL, ImageTI[i].format, D3DPP.Windowed, D3DMULTISAMPLE_TYPE(samples), &levels)))
-            if(levels){usage|=ImageTypeInfo::USAGE_IMAGE_MS; break;} // if has any levels
-      }
-      ImageTI[i]._usage=usage;
-   }
-#elif DX11
+#if DX11
    // values taken from - https://msdn.microsoft.com/en-us/library/windows/desktop/ff476876(v=vs.85).aspx
    DXGI_SWAP_CHAIN_DESC desc;
    SwapChain->GetDesc(&desc); _freq_got=(desc.BufferDesc.RefreshRate.Denominator ? RoundPos(Flt(desc.BufferDesc.RefreshRate.Numerator)/desc.BufferDesc.RefreshRate.Denominator) : 0);
-  _max_rt            =((FeatureLevel>=D3D_FEATURE_LEVEL_10_0) ? 8 : (FeatureLevel>=D3D_FEATURE_LEVEL_9_3) ? 4 : 1);
-  _max_tex_filter    =((FeatureLevel>=D3D_FEATURE_LEVEL_9_2 ) ? 16 : 2);
-  _max_tex_size      =((FeatureLevel>=D3D_FEATURE_LEVEL_11_0) ? 16384 : (FeatureLevel>=D3D_FEATURE_LEVEL_10_0) ? 8192 : (FeatureLevel>=D3D_FEATURE_LEVEL_9_3) ? 4096 : 2048);
-  _tex_pow2          = // 0=non-pow2 supported, 1=non-pow2 conditional, 2=non-pow2 not supported (pow2 required)
-  _tex_pow2_3d       =
-  _tex_pow2_cube     =(FeatureLevel<=D3D_FEATURE_LEVEL_9_3);
-  _shader_tex_lod    =(FeatureLevel>=D3D_FEATURE_LEVEL_10_0);
-  _mrt_const_bit_size=false;
-  _mrt_post_process  =true ;
+  _max_rt        =((FeatureLevel>=D3D_FEATURE_LEVEL_10_0) ? 8 : (FeatureLevel>=D3D_FEATURE_LEVEL_9_3) ? 4 : 1);
+  _max_tex_filter=((FeatureLevel>=D3D_FEATURE_LEVEL_9_2 ) ? 16 : 2);
+  _max_tex_size  =((FeatureLevel>=D3D_FEATURE_LEVEL_11_0) ? 16384 : (FeatureLevel>=D3D_FEATURE_LEVEL_10_0) ? 8192 : (FeatureLevel>=D3D_FEATURE_LEVEL_9_3) ? 4096 : 2048);
 
    REP(IMAGE_ALL_TYPES)
    {
@@ -2192,24 +1862,13 @@ void Display::getCaps()
       }
    }*/
 #elif GL
-   CChar8 *ext=(CChar8*)glGetString(GL_EXTENSIONS);
+ //CChar8 *ext=(CChar8*)glGetString(GL_EXTENSIONS);
       _max_tex_size    =2048; glGetIntegerv(GL_MAX_TEXTURE_SIZE          , &_max_tex_size    );
    int aniso           =  16; glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY, & aniso           ); _max_tex_filter =Mid(aniso         , 1, 255);
    int max_vtx_attrib  =   0; glGetIntegerv(GL_MAX_VERTEX_ATTRIBS        , & max_vtx_attrib  ); _max_vtx_attribs=Mid(max_vtx_attrib, 0, 255);
-   if(shaderModelGLES2())_max_rt=1;else // we don't support MRT on GLES2 (there's no 'glDrawBuffers' function)
-   {
-      int max_draw_buffers=1; glGetIntegerv(GL_MAX_DRAW_BUFFERS     , &max_draw_buffers);
-      int max_col_attach  =1; glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &max_col_attach  ); _max_rt=Mid(Min(max_draw_buffers, max_col_attach), 1, 255);
-   }
+   int max_draw_buffers=   1; glGetIntegerv(GL_MAX_DRAW_BUFFERS          , & max_draw_buffers);
+   int max_col_attach  =   1; glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS     , & max_col_attach  ); _max_rt=Mid(Min(max_draw_buffers, max_col_attach), 1, 255);
 
-   Bool npot=(notShaderModelGLES2() || Contains(ext, "GL_OES_texture_npot", false, true));
-  _tex_pow2     =((npot || Contains(ext, "GL_NV_texture_npot_2D_mipmap", false, true)) ? 0 : 1); // 0=non-pow2 supported, 1=non-pow2 conditional, 2=non-pow2 not supported (pow2 required)
-  _tex_pow2_3d  = !npot;
-  _tex_pow2_cube= !npot;
-
-  _shader_tex_lod    =(notShaderModelGLES2() || Contains(ext, "GL_ARB_shader_texture_lod", false, true) || Contains(ext, "GL_EXT_shader_texture_lod", false, true));
-  _mrt_const_bit_size=false;
-  _mrt_post_process  =true ;
    #if VARIABLE_MAX_MATRIX
       int max_vs_vectors=0, max_ps_vectors=0;
       glGetIntegerv(GL_MAX_VERTEX_UNIFORM_VECTORS  , &max_vs_vectors);
@@ -2253,7 +1912,6 @@ void Display::getCaps()
   
    if(!Physics.precision())Physics.precision(0); // adjust physics precision when possibility of screen refresh rate change
    densityUpdate(); // max texture size affects max allowed density
-   if(_mrt_const_bit_size)_hp_col_rt=_hp_nrm_rt=false; // no need to disable '_hp_lum_rt' and '_lit_col_rt_prec' because those RT's are not used as MRT
   _samples=DisplaySamples(_samples);
 
    if(Renderer.anyDeferred() && deferredUnavailable())
@@ -2275,36 +1933,11 @@ void Display::after(Bool resize_callback)
    aspectRatioEx(true, !resize_callback);
 }
 /******************************************************************************/
-void Display::begin()
-{
-#if DX9
-   if(D3D)
-   {
-      D3D->BeginScene();
-      D._began=true;
-   }
-#endif
-}
-void Display::end()
-{
-#if DX9
-   if(D3D)
-   {
-      D3D->EndScene();
-      D._began=false;
-   }
-#endif
-}
 Bool Display::flip()
 {
    if(created())
    {
-   #if DX9
-      end();
-      Bool ok=OK(D3D->Present(null, null, null, null));
-      begin();
-      return ok;
-   #elif DX11
+   #if DX11
       Bool sync=ActualSync(); if(!OK(SwapChain->Present(sync, sync ? 0 : PresentFlags)))return false; // we can use 'DXGI_PRESENT_ALLOW_TEARING' only when "sync==false", do this extra check here, because 'ActualSync' depends on VR which may disconnect after 'SwapChain' was created and 'PresentFlags' already set
       if(SwapChainDesc.SwapEffect!=DXGI_SWAP_EFFECT_DISCARD) // when using swap chain flip mode, 'Present' clears the backbuffer from 'OMSetRenderTargets', so reset it
          D3DC->OMSetRenderTargets(Elms(Renderer._cur_id), Renderer._cur_id, Renderer._cur_ds_id);
@@ -2331,13 +1964,7 @@ void Display::flush()
 {
    if(created())
    {
-   #if DX9
-      if(Query)
-      {
-         Query->Issue(D3DISSUE_END);
-         while(S_FALSE==Query->GetData(null, 0, D3DGETDATA_FLUSH));
-      }
-   #elif DX11
+   #if DX11
       D3DC->Flush();
    #elif GL
       glFlush();
@@ -2348,13 +1975,7 @@ void Display::finish()
 {
    if(created())
    {
-   #if DX9
-      if(Query)
-      {
-         Query->Issue(D3DISSUE_END);
-         while(S_FALSE==Query->GetData(null, 0, D3DGETDATA_FLUSH));
-      }
-   #elif DX11
+   #if DX11
       if(Query)
       {
          D3DC->End(Query);
@@ -2588,7 +2209,7 @@ Display& Display::exclusive(Bool exclusive)
    if(_exclusive!=exclusive)
    {
      _exclusive=exclusive;
-   #if WINDOWS_OLD && (DX9 || DX11)
+   #if WINDOWS_OLD && (DX11)
       if(created() && full())
       {
       #if DX11 // on DX11 have to disable 'SetFullscreenState' first, otherwise custom resolutions may get reverted to desktop resolution
@@ -2622,10 +2243,7 @@ void Display::validateCoords(Int eye)
          coords_add.y+=Flt(_view_active.recti.min.y+_view_active.recti.max.y-Renderer.resH())/_view_active.recti.h();
       }
 
-   #if DX9
-      coords_add.x-=1.0f/_view_active.recti.w();
-      coords_add.y+=1.0f/_view_active.recti.h();
-   #elif GL
+   #if GL
       if(!mainFBO()) // in OpenGL when drawing to custom RenderTarget the 'dest.pos.y' must be flipped
       {
          CHS(coords_mul.y);
@@ -2710,27 +2328,11 @@ Display& Display::samples(Byte samples)
    return T;
 }
 /******************************************************************************/
-Display& Display::highPrecColRT(Bool on)
-{
-   if(created() && _mrt_const_bit_size)on=false;
-   if(_hp_col_rt!=on){_hp_col_rt=on; Renderer.rtClean();}
-   return T;
-}
-Display& Display::highPrecNrmRT(Bool on)
-{
-   if(created() && _mrt_const_bit_size)on=false;
-   if(_hp_nrm_rt!=on){_hp_nrm_rt=on; Renderer.rtClean();}
-   return T;
-}
-Display& Display::highPrecLumRT(Bool on)
-{
-   // this does not require '_mrt_const_bit_size' because it's always used as a single RT and not one of many
-   if(_hp_lum_rt!=on){_hp_lum_rt=on; Renderer.rtClean();}
-   return T;
-}
+Display& Display::highPrecColRT(Bool on) {if(_hp_col_rt!=on){_hp_col_rt=on; Renderer.rtClean();} return T;}
+Display& Display::highPrecNrmRT(Bool on) {if(_hp_nrm_rt!=on){_hp_nrm_rt=on; Renderer.rtClean();} return T;}
+Display& Display::highPrecLumRT(Bool on) {if(_hp_lum_rt!=on){_hp_lum_rt=on; Renderer.rtClean();} return T;}
 Display& Display::litColRTPrecision(IMAGE_PRECISION precision)
 {
-   // this does not require '_mrt_const_bit_size' because it's always used as a single RT and not one of many
    Clamp(precision, IMAGE_PRECISION_8, IMAGE_PRECISION(IMAGE_PRECISION_NUM-1));
    if(_lit_col_rt_prec!=precision){_lit_col_rt_prec=precision; Renderer.rtClean();}
    return T;
@@ -2742,7 +2344,7 @@ void Display::setSync()
    SyncLocker locker(_lock);
    if(created())
    {
-   #if DX9 || DX11
+   #if DX11
       if(findMode())Reset();
    #elif GL
          Bool sync=(T.sync() && !VR.active()); // if using VR then we have to disable screen sync, because HMD will handle this according to its own refresh rate
@@ -2836,7 +2438,7 @@ Display& Display::smaaThreshold(Flt threshold)
 {
    SAT(threshold); _smaa_threshold=threshold; if(Sh.h_SMAAThreshold)Sh.h_SMAAThreshold->setConditional(_smaa_threshold); return T;
 }
-Int      Display::secondaryOpenGLContexts(             )C {return GPU_API(0, 0, SecondaryContexts.elms());}
+Int      Display::secondaryOpenGLContexts(             )C {return GPU_API(0, SecondaryContexts.elms());}
 Display& Display::secondaryOpenGLContexts(Byte contexts)
 {
 #if GL && HAS_THREADS
@@ -2934,9 +2536,7 @@ Display& Display::texFilter(Byte filter)
       T._tex_filter=filter;
       if(created())
       {
-      #if DX9
-         // texture filtering is set during rendering
-      #elif DX11
+      #if DX11
          CreateAnisotropicSampler();
       #elif GL
          Images.lock  (); REPA(Images)Images.lockedData(i).setGLParams();
@@ -2953,9 +2553,7 @@ Display& Display::texMipFilter(Bool on)
       T._tex_mip_filter=on;
       if(created())
       {
-      #if DX9
-         // texture filtering is set during rendering
-      #elif DX11
+      #if DX11
          CreateAnisotropicSampler();
       #elif GL
          Images.lock  (); REPA(Images)Images.lockedData(i).setGLParams();
@@ -2988,9 +2586,7 @@ Display& Display::fontSharpness(Flt value)
       T._font_sharpness=value;
       if(created())
       {
-      #if DX9
-         // sampler is set when drawing font
-      #elif DX11
+      #if DX11
          CreateFontSampler();
       #elif GL
          Fonts.  lock(); REPA(Fonts)Fonts.lockedData(i).setGLFont();
@@ -3008,9 +2604,7 @@ void     Display::gammaSet()
    {
       Flt  exp_want=ScaleFactor(gamma()*-0.5f);
       Bool separate=false; // if we can set gamma separately for the system (all monitors) and monitor in use
-   #if DX9
-      separate=!D3DPP.Windowed; // 'SetGammaRamp' will succeed only in true full screen
-   #elif DX11
+   #if DX11
       #if WINDOWS_OLD
          separate=!SwapChainDesc.Windowed; // 'SetGammaControl' will succeed only in true full screen
       #else
@@ -3062,17 +2656,7 @@ void     Display::gammaSet()
       if(separate)
       {
          exp=exp_want;
-      #if DX9
-         D3DGAMMARAMP gr;
-         REP(256)
-         {
-            gr.red  [i]=RoundU(Pow(_gamma_array[0][i]/65535.0f, exp)*0xFFFF);
-            gr.green[i]=RoundU(Pow(_gamma_array[1][i]/65535.0f, exp)*0xFFFF);
-            gr.blue [i]=RoundU(Pow(_gamma_array[2][i]/65535.0f, exp)*0xFFFF);
-         }
-         SyncLocker locker(_lock);
-         D3D->SetGammaRamp(0, D3DSGR_CALIBRATE, &gr);
-      #elif DX11
+      #if DX11
          SyncLocker locker(_lock);
          IDXGIOutput *output=null; SwapChain->GetContainingOutput(&output); if(output)
          {
@@ -3302,7 +2886,7 @@ void Display::viewUpdate()
    if(created())
    {
      _view_active=_view_main;
-      if(_lock.owned())_view_active.setViewport(false); // set actual viewport only if we own the lock, this is because this method can be called outside of 'Draw' where we don't have the lock, however to avoid locking which could affect performance (for example GPU still owning the lock on other thread, for example for flipping back buffer, we would have to wait until it finished), we can skip setting the viewport because drawing is not allowed in update anyway. To counteract this skip here, instead we always reset the viewport at the start of Draw in 'DrawState'
+      if(_lock.owned())_view_active.setViewport(); // set actual viewport only if we own the lock, this is because this method can be called outside of 'Draw' where we don't have the lock, however to avoid locking which could affect performance (for example GPU still owning the lock on other thread, for example for flipping back buffer, we would have to wait until it finished), we can skip setting the viewport because drawing is not allowed in update anyway. To counteract this skip here, instead we always reset the viewport at the start of Draw in 'DrawState'
      _view_active.setShader().setProjMatrix(true);
    }
 
@@ -3343,15 +2927,7 @@ Flt Display::viewQuadDist()C
 // CLEAR
 /******************************************************************************/
 #define CLEAR_DEPTH_VALUE (!REVERSE_DEPTH) // Warning: for GL this is set at app startup and not here
-#if DX9
-// DX9 'clearDepth' clears partial depth buffer (only this covered by active viewport)
-void Display::clear       (       C Color &color) {UInt flag=D3DCLEAR_TARGET; if(Renderer._cur_ds){     flag|=D3DCLEAR_ZBUFFER; if(ImageTI[Renderer._cur_ds->hwType()].s)flag|=D3DCLEAR_STENCIL;} D3D->Clear(0, null, flag            , VecB4(color.b, color.g, color.r, color.a).u, CLEAR_DEPTH_VALUE, 0); } // call will fail if D3DCLEAR_ZBUFFER/D3DCLEAR_STENCIL is specified but not available
-void Display::clearCol    (       C Color &color) {                                                                                                                                               D3D->Clear(0, null, D3DCLEAR_TARGET , VecB4(color.b, color.g, color.r, color.a).u, CLEAR_DEPTH_VALUE, 0); }
-void Display::clearDepth  (                     ) {                                                                                                                                               D3D->Clear(0, null, D3DCLEAR_ZBUFFER,                                           0, CLEAR_DEPTH_VALUE, 0); }
-void Display::clearDS     (         Byte   s    ) {                           if(Renderer._cur_ds){UInt flag =D3DCLEAR_ZBUFFER; if(ImageTI[Renderer._cur_ds->hwType()].s)flag|=D3DCLEAR_STENCIL;  D3D->Clear(0, null, flag            ,                                           0, CLEAR_DEPTH_VALUE, s);}} // call will fail if                  D3DCLEAR_STENCIL is specified but not available
-void Display::clearStencil(         Byte   s    ) {                                                                                                                                               D3D->Clear(0, null, D3DCLEAR_STENCIL,                                           0, CLEAR_DEPTH_VALUE, s); }
-void Display::clearCol    (Int i, C Color &color) {RANGE_ASSERT(i, Renderer._cur); if(Image *image=Renderer._cur[i])image->clearHw(color);}
-#elif DX11
+#if DX11
 void Display::clear(C Color &color)
 {
    clearCol(color);
@@ -3399,13 +2975,7 @@ void Display::clearCol(C Vec4  &color)
    }
 }
 // 'glClearBufferfv' always clears full RT (viewport is ignored)
-void Display::clearCol(Int i, C Vec4 &color)
-{
-   if(D.notShaderModelGLES2())
-   {
-      RANGE_ASSERT(i, Renderer._cur); if(Renderer._cur[i])glClearBufferfv(GL_COLOR, i, color.c);
-   }
-}
+void Display::clearCol(Int i, C Vec4 &color) {RANGE_ASSERT(i, Renderer._cur); if(Renderer._cur[i])glClearBufferfv(GL_COLOR, i, color.c);}
 // GL 'clearDepth' always clears full depth buffer (viewport is ignored)
 // Don't check for '_cur_ds_id' because this can be 0 for RenderBuffers
 void Display::clearDepth  (      ) {if(Renderer._cur_ds){if(D._clip_real)glDisable(GL_SCISSOR_TEST);                    glClear(GL_DEPTH_BUFFER_BIT                                                                ); if(D._clip_real)glEnable(GL_SCISSOR_TEST);}}
@@ -3597,56 +3167,7 @@ Display& Display::colorPalette     (C ImagePtr &palette) {SetPalette(0, palette)
 Display& Display::colorPalette1    (C ImagePtr &palette) {SetPalette(1, palette);    return T;}
 Display& Display::colorPaletteAllow(  Bool      on     ) {D._color_palette_allow=on; return T;}
 /******************************************************************************/
-// DIRECTX TEMPORARY DEVICE FOR DATA PROCESSING
-/******************************************************************************/
-#if WINDOWS_OLD
-IDirect3DDevice9* GetD3D9()
-{
-#if DX9
-   return D3D;
-#else
-   SyncLocker locker(D._lock);
-   static IDirect3DDevice9 *dev=null;
-   if(!dev)
-   {
-      if(IDirect3D9 *d3d=Direct3DCreate9(D3D_SDK_VERSION))
-      {
-         D3DPRESENT_PARAMETERS d3dpp; Zero(d3dpp);
-         d3dpp.BackBufferWidth =0*D.resW();
-         d3dpp.BackBufferHeight=0*D.resH();
-         d3dpp.BackBufferCount =0*1;
-         d3dpp.BackBufferFormat=D3DFMT_A8R8G8B8;
-         
-         d3dpp.SwapEffect=D3DSWAPEFFECT_DISCARD;
-         d3dpp.hDeviceWindow=App.Hwnd();
-         d3dpp.Windowed=true;
-         d3dpp.EnableAutoDepthStencil=false;
-         d3dpp.Flags=0;
-         d3dpp.FullScreen_RefreshRateInHz=D3DPRESENT_RATE_DEFAULT;
-         d3dpp.PresentationInterval=D3DPRESENT_INTERVAL_IMMEDIATE;
-
-         d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, App.Hwnd(), D3DCREATE_FPU_PRESERVE|D3DCREATE_NOWINDOWCHANGES|D3DCREATE_MIXED_VERTEXPROCESSING, &d3dpp, &dev);
-      }
-      if(!dev)Exit("Can't create DirectX 9 Device.\nTry using DX9 Engine version.");
-   }
-   return dev;
-#endif
-}
-/******************************************************************************
-ID3D10Device* GetD3D10()
-{
-   static ID3D10Device *dev=null;
-#if DX11
-   SyncLocker locker(D._lock);
-           D3D10CreateDevice(null, D3D10_DRIVER_TYPE_HARDWARE , null, 0, D3D10_SDK_VERSION, &dev);
-   if(!dev)D3D10CreateDevice(null, D3D10_DRIVER_TYPE_WARP     , null, 0, D3D10_SDK_VERSION, &dev);
-   if(!dev)D3D10CreateDevice(null, D3D10_DRIVER_TYPE_REFERENCE, null, 0, D3D10_SDK_VERSION, &dev);
-#endif
-   if(!dev)Exit("Can't create DirectX 10 Device.\nTry using DX10 Engine version.");
-   return dev;
-}
-/******************************************************************************/
-#elif WINDOWS_NEW
+#if WINDOWS_NEW
 Int DipsToPixels(Flt dips) {return Round(dips*ScreenScale);}
 Flt PixelsToDips(Int pix ) {return       pix /ScreenScale ;}
 #endif

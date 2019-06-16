@@ -354,7 +354,6 @@ void MeshOverlay::draw(Flt alpha)C
    {
       setParams(alpha);
      _shader->begin(); C MeshRender &mshr=getDrawLod(ObjMatrix); mshr.set().drawFull();
-      ShaderEnd();
    }
 }
 void MeshOverlay::draw(C MatrixM &matrix, Flt alpha)C
@@ -364,7 +363,6 @@ void MeshOverlay::draw(C MatrixM &matrix, Flt alpha)C
       SetOneMatrix(matrix);
       setParams(alpha);
      _shader->begin(); C MeshRender &mshr=getDrawLod(matrix); mshr.set().drawFull();
-      ShaderEnd();
    }
 }
 void MeshOverlay::draw(C AnimatedSkeleton &anim_skel, Flt alpha)C
@@ -374,7 +372,6 @@ void MeshOverlay::draw(C AnimatedSkeleton &anim_skel, Flt alpha)C
       anim_skel.setMatrix();
       setParams(alpha);
      _shader->begin(); C MeshRender &mshr=getDrawLod(anim_skel.matrix()); mshr.set(); mshr.draw();
-      ShaderEnd();
    }
 }
 /******************************************************************************/

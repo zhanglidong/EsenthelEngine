@@ -1,7 +1,3 @@
-/******************************************************************************
-
-   DX9 requires deletion of IMAGE_RT on Display.lost
-
 /******************************************************************************/
 #include "stdafx.h"
 
@@ -30,10 +26,6 @@
 #include "../../../ThirdPartyLibs/end.h"
 /******************************************************************************/
 namespace EE{
-/******************************************************************************/
-#if DX9
-Memx<Image> VideoTextures;
-#endif
 /******************************************************************************/
 #if SUPPORT_THEORA
 struct Theora : VideoCodec
@@ -291,7 +283,6 @@ void Video::zero()
   _time_past=0;
   _fps      =0;
   _d        =null;
-  _tex_ptr  =null;
 }
 Video::Video() {zero();}
 void Video::release()
@@ -306,9 +297,6 @@ void Video::del()
   _u   .del();
   _v   .del();
   _tex .del();
-#if DX9
-   if(_tex_ptr){VideoTextures.removeData(_tex_ptr); _tex_ptr=null;}
-#endif
    zero();
 }
 Bool Video::create(C Str &name, Bool loop, MODE mode)
@@ -348,9 +336,6 @@ Bool Video::create(C Str &name, Bool loop, MODE mode)
       {
         _loop=loop;
         _mode=mode;
-      #if DX9
-         if(_mode==IMAGE)_tex_ptr=&VideoTextures.New(); // needed only for IMAGE because only this mode uses IMAGE_RT
-      #endif
          return true;
       }
    }
@@ -362,20 +347,15 @@ CChar8* Video::codecName()C {return CodecName(codec());}
 /******************************************************************************/
 Bool Video::frameToImage(Int w, Int h, Int w2, Int h2, CPtr lum_data, CPtr u_data, CPtr v_data, Int lum_pitch, Int u_pitch, Int v_pitch)
 {
-#if DX9
-   #define VIDEO_IMAGE_TYPE IMAGE_L8
-#else
-   #define VIDEO_IMAGE_TYPE IMAGE_R8
-#endif
    if(_mode==ALPHA)
    {
-      if(_lum.w()!=w || _lum.h()!=h)if(!_lum.create2DTry(w, h, VIDEO_IMAGE_TYPE, 1, false))return false;
+      if(_lum.w()!=w || _lum.h()!=h)if(!_lum.create2DTry(w, h, IMAGE_R8, 1, false))return false;
      _lum.setFrom(lum_data, lum_pitch);
    }else
    {
-      if(_lum.w()!=w  || _lum.h()!=h ){if(!_lum.create2DTry(w , h , VIDEO_IMAGE_TYPE, 1, false))return false; if(!Sh.h_YUV)AtomicSet(Sh.h_YUV, Sh.get("YUV"));}
-      if(_u  .w()!=w2 || _u  .h()!=h2) if(!_u  .create2DTry(w2, h2, VIDEO_IMAGE_TYPE, 1, false))return false;
-      if(_v  .w()!=w2 || _v  .h()!=h2) if(!_v  .create2DTry(w2, h2, VIDEO_IMAGE_TYPE, 1, false))return false;
+      if(_lum.w()!=w  || _lum.h()!=h ){if(!_lum.create2DTry(w , h , IMAGE_R8, 1, false))return false; if(!Sh.h_YUV)AtomicSet(Sh.h_YUV, Sh.get("YUV"));}
+      if(_u  .w()!=w2 || _u  .h()!=h2) if(!_u  .create2DTry(w2, h2, IMAGE_R8, 1, false))return false;
+      if(_v  .w()!=w2 || _v  .h()!=h2) if(!_v  .create2DTry(w2, h2, IMAGE_R8, 1, false))return false;
 
      _lum.setFrom(lum_data, lum_pitch);
      _u  .setFrom(  u_data,   u_pitch);
@@ -383,23 +363,15 @@ Bool Video::frameToImage(Int w, Int h, Int w2, Int h2, CPtr lum_data, CPtr u_dat
 
       if(_mode==IMAGE) // if want to create a texture
       {
-      #if DX9
-         Image *tex= _tex_ptr;
-      #else
-         Image *tex=&_tex;
-      #endif
-         if(tex)
-         {
-            if(tex->w()!=w || tex->h()!=h)tex->create(w, h, 1, IMAGE_DEFAULT, IMAGE_RT, 1);
+         if(_tex.w()!=w || _tex.h()!=h)_tex.create(w, h, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_RT, 1);
 
-            SyncLocker locker(D._lock); // needed for drawing in case this is called outside of Draw
-            Image *rt[Elms(Renderer._cur)], *rtz=Renderer._cur_ds; REPAO(rt)=Renderer._cur[i];
-            Renderer.set(tex, null, false);
-            ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
-            draw(D.rect()); // use specified rectangle without fitting via 'drawFs' or 'drawFit'
-            D.alpha(alpha);
-            Renderer.set(rt[0], rt[1], rt[2], rt[3], rtz, true);
-         }
+         SyncLocker locker(D._lock); // needed for drawing in case this is called outside of Draw
+         Image *rt[Elms(Renderer._cur)], *rtz=Renderer._cur_ds; REPAO(rt)=Renderer._cur[i];
+         Renderer.set(&_tex, null, false);
+         ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
+         draw(D.rect()); // use specified rectangle without fitting via 'drawFs' or 'drawFit'
+         D.alpha(alpha);
+         Renderer.set(rt[0], rt[1], rt[2], rt[3], rtz, true);
       }
    }
    return true;
@@ -430,14 +402,6 @@ Bool Video::nextFrame()
       }
    }
    return false;
-}
-/******************************************************************************/
-C Image& Video::image()C
-{
-#if DX9
-   if(_tex_ptr)return *_tex_ptr;
-#endif
-   return _tex;
 }
 /******************************************************************************/
 Bool Video::update(Flt time)
@@ -491,26 +455,6 @@ CChar8* CodecName(VIDEO_CODEC codec)
       case VIDEO_VP9    : return "VP9";
    }
 }
-/******************************************************************************/
-#if DX9
-void VideoTexturesLost()
-{
-   REPA(VideoTextures)
-   {
-      Image &image=VideoTextures[i];
-      image.copyTry(image, -1, -1, -1, -1, IMAGE_2D); // replace with 2D texture so it can be used to draw on the IMAGE_RT later
-   }
-}
-void VideoTexturesReset()
-{
-   REPA(VideoTextures)
-   {
-      Image &image=VideoTextures[i];
-      Image temp; Swap(temp, image);
-      if(image.createTry(temp.w(), temp.h(), 1, temp.type(), IMAGE_RT, 1))temp.copyHw(image, true);
-   }
-}
-#endif
 /******************************************************************************/
 }
 /******************************************************************************/
