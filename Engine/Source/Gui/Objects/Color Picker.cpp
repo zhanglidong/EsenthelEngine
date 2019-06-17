@@ -187,7 +187,7 @@ void ColorPicker::Hue::draw(C GuiPC &gpc)
       ColorPicker &cp  =*(ColorPicker*)user;
       Rect         rect=T.rect()+gpc.offset;
 
-      Int   steps=6;
+      Int   steps=3*(LINEAR_GAMMA ? 24 : 2);
       Flt   y    =rect.min.y;
       Color prev =RED;
       FREP(steps)
