@@ -494,7 +494,7 @@ static inline Flt GetPixelF(C Byte *data, C Image &image, Bool _2d, Int x, Int y
       case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   :
       case IMAGE_ETC2_A1: case IMAGE_ETC2_A1_SRGB:
       case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB:
-         return (_2d ? DecompressPixel(image, x, y) : DecompressPixel(image, x, y, z)).r/255.0f;
+         return ByteToFlt((_2d ? DecompressPixel(image, x, y) : DecompressPixel(image, x, y, z)).r);
    }
    return 0;
 }
@@ -609,15 +609,15 @@ static void SetColor(Byte *data, IMAGE_TYPE type, C Color &color)
 
       case IMAGE_R10G10B10A2: *(U32*)data=ByteToU10(color.r) | (ByteToU10(color.g)<<10) | (ByteToU10(color.b)<<20) | (ByteToU2(color.a)<<30); break;
 
-      case IMAGE_F32  : *(Flt *)data =     color.r/255.0f; break;
-      case IMAGE_F32_2: ((Vec2*)data)->set(color.r/255.0f, color.g/255.0f); break;
-      case IMAGE_F32_3: ((Vec *)data)->set(color.r/255.0f, color.g/255.0f, color.b/255.0f); break;
-      case IMAGE_F32_4: ((Vec4*)data)->set(color.r/255.0f, color.g/255.0f, color.b/255.0f, color.a/255.0f); break;
+      case IMAGE_F32  : *(Flt *)data =     ByteToFlt(color.r); break;
+      case IMAGE_F32_2: ((Vec2*)data)->set(ByteToFlt(color.r), ByteToFlt(color.g)); break;
+      case IMAGE_F32_3: ((Vec *)data)->set(ByteToFlt(color.r), ByteToFlt(color.g), ByteToFlt(color.b)); break;
+      case IMAGE_F32_4: ((Vec4*)data)->set(ByteToFlt(color.r), ByteToFlt(color.g), ByteToFlt(color.b), ByteToFlt(color.a)); break;
 
-      case IMAGE_F16  : *(Half *)data =     color.r/255.0f; break;
-      case IMAGE_F16_2: ((VecH2*)data)->set(color.r/255.0f, color.g/255.0f); break;
-      case IMAGE_F16_3: ((VecH *)data)->set(color.r/255.0f, color.g/255.0f, color.b/255.0f); break;
-      case IMAGE_F16_4: ((VecH4*)data)->set(color.r/255.0f, color.g/255.0f, color.b/255.0f, color.a/255.0f); break;
+      case IMAGE_F16  : *(Half *)data =     ByteToFlt(color.r); break;
+      case IMAGE_F16_2: ((VecH2*)data)->set(ByteToFlt(color.r), ByteToFlt(color.g)); break;
+      case IMAGE_F16_3: ((VecH *)data)->set(ByteToFlt(color.r), ByteToFlt(color.g), ByteToFlt(color.b)); break;
+      case IMAGE_F16_4: ((VecH4*)data)->set(ByteToFlt(color.r), ByteToFlt(color.g), ByteToFlt(color.b), ByteToFlt(color.a)); break;
    }
 }
 static void SetColor(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Color &color)

@@ -8,8 +8,10 @@ static Color ColorArray[]=
    YELLOW, CYAN , PURPLE,
    ORANGE, TURQ , BROWN ,
 };
-       Flt  ByteSRGBToLinearArray[256];
+       Flt  ByteSRGBToLinearArray[ 256];
+       Flt  LinearByteToSRGBArray[ 256];
 static Byte LinearToByteSRGBArray[3139]; // 3139=smallest array size which preserves "LinearToByteSRGB(ByteSRGBToLinear(s))==s"
+static Byte SRGBToLinearByteArray[ 554]; //  554=smallest array size which preserves "SRGBToLinearByte(LinearByteToSRGB(l))==l"
 /******************************************************************************/
 Color::Color(C Vec &color)
 {
@@ -394,7 +396,11 @@ Flt LinearToSRGB(Flt l) {return (l<=0.0031308f) ? l*12.92f : Pow(l, 1/2.4f)*1.05
 Vec SRGBToLinear(C Vec &s) {return Vec(SRGBToLinear(s.x), SRGBToLinear(s.y), SRGBToLinear(s.z));}
 Vec LinearToSRGB(C Vec &l) {return Vec(LinearToSRGB(l.x), LinearToSRGB(l.y), LinearToSRGB(l.z));}
 
-Vec4 SRGBToLinear(C Color &c) {return Vec4(ByteSRGBToLinear(c.r), ByteSRGBToLinear(c.g), ByteSRGBToLinear(c.b), ByteToFlt(c.a));}
+Vec4 SRGBToLinear(C Vec4 &s) {return Vec4(SRGBToLinear(s.x), SRGBToLinear(s.y), SRGBToLinear(s.z), s.w);}
+Vec4 LinearToSRGB(C Vec4 &l) {return Vec4(LinearToSRGB(l.x), LinearToSRGB(l.y), LinearToSRGB(l.z), l.w);}
+
+Vec4 SRGBToLinear(C Color &s) {return Vec4(ByteSRGBToLinear(s.r), ByteSRGBToLinear(s.g), ByteSRGBToLinear(s.b), ByteToFlt(s.a));}
+Vec4 LinearToSRGB(C Color &l) {return Vec4(LinearByteToSRGB(l.r), LinearByteToSRGB(l.g), LinearByteToSRGB(l.b), ByteToFlt(l.a));}
 
 Flt LinearLumOfLinearColor(C Vec &l) {return              Dot(      l        , ColorLumWeight2) ;}
 Flt LinearLumOfSRGBColor  (C Vec &s) {return              Dot(SRGBToLinear(s), ColorLumWeight2) ;}
@@ -404,6 +410,7 @@ Flt   SRGBLumOfSRGBColor  (C Vec &s) {return LinearToSRGB(Dot(SRGBToLinear(s), C
 // SRGB
 /******************************************************************************/
 Byte  LinearToByteSRGB(  Flt   l) {return LinearToByteSRGBArray[Mid(RoundPos(l*(Elms(LinearToByteSRGBArray)-1)), 0, Elms(LinearToByteSRGBArray)-1)];}
+Byte  SRGBToLinearByte(  Flt   s) {return SRGBToLinearByteArray[Mid(RoundPos(s*(Elms(SRGBToLinearByteArray)-1)), 0, Elms(SRGBToLinearByteArray)-1)];}
 VecB  LinearToSVecB   (C Vec  &l) {return VecB (LinearToByteSRGB(l.x), LinearToByteSRGB(l.y), LinearToByteSRGB(l.z));}
 Color LinearToSColor  (C Vec  &l) {return Color(LinearToByteSRGB(l.x), LinearToByteSRGB(l.y), LinearToByteSRGB(l.z));}
 Color LinearToSColor  (C Vec4 &l) {return Color(LinearToByteSRGB(l.x), LinearToByteSRGB(l.y), LinearToByteSRGB(l.z), FltToByte(l.w));}
@@ -411,12 +418,22 @@ Color LinearToSColor  (C Vec4 &l) {return Color(LinearToByteSRGB(l.x), LinearToB
 void InitSRGB()
 {
    REPAO(ByteSRGBToLinearArray)=SRGBToLinear(i/255.0f);
+   REPAO(LinearByteToSRGBArray)=LinearToSRGB(i/255.0f);
    REPAO(LinearToByteSRGBArray)=FltToByte(LinearToSRGB(i/Flt(Elms(LinearToByteSRGBArray)-1)));
+   REPAO(SRGBToLinearByteArray)=FltToByte(SRGBToLinear(i/Flt(Elms(SRGBToLinearByteArray)-1)));
+
+#if 0 // code used for finding minimum array size
+   Elms_SRGBToLinearByteArray_=0;
+again:
+   FREP(Elms_SRGBToLinearByteArray_)SRGBToLinearByteArray[i]=FltToByte(SRGBToLinear(i/Flt(Elms_SRGBToLinearByteArray_-1)));
+   FREP(256)if(SRGBToLinearByte(LinearByteToSRGB(i))!=i){Elms_SRGBToLinearByteArray_++; goto again;}
+#endif
 
 #if DEBUG && 0 // do some debug checks
    FREP(Elms(ByteSRGBToLinearArray)-1)DYNAMIC_ASSERT(ByteSRGBToLinearArray[i]<=ByteSRGBToLinearArray[i+1], "ByteSRGBToLinearArray[i] > ByteSRGBToLinearArray[i+1]");
    FREP(Elms(LinearToByteSRGBArray)-1)DYNAMIC_ASSERT(LinearToByteSRGBArray[i]<=LinearToByteSRGBArray[i+1], "LinearToByteSRGBArray[i] > LinearToByteSRGBArray[i+1]");
    FREP(                          256)DYNAMIC_ASSERT(LinearToByteSRGB(ByteSRGBToLinear(i))==i            , "LinearToByteSRGB(ByteSRGBToLinear(s))!=s");
+   FREP(                          256)DYNAMIC_ASSERT(SRGBToLinearByte(LinearByteToSRGB(i))==i            , "SRGBToLinearByte(LinearByteToSRGB(s))!=s");
 #endif
 }
 #if 0 // approximate functions

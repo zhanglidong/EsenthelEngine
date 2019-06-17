@@ -105,12 +105,14 @@ Vec4              Blend(C Vec4  &base, C Vec4  &color); // return 'color'       
 Vec4 PremultipliedBlend(C Vec4  &base, C Vec4  &color); // return 'color'            blended on top of 'base' where 'color' RGB are already premultiplied by Alpha
 Vec4      AdditiveBlend(C Vec4  &base, C Vec4  &color); // return 'color' additively blended on top of 'base'
 
-Flt SRGBToLinear(  Flt  s); // convert 0..1 srgb   to 0..1 linear
-Vec SRGBToLinear(C Vec &s); // convert 0..1 srgb   to 0..1 linear
-Flt LinearToSRGB(  Flt  l); // convert 0..1 linear to 0..1 srgb
-Vec LinearToSRGB(C Vec &l); // convert 0..1 linear to 0..1 srgb
-
-Vec4 SRGBToLinear(C Color &c); // // convert 0..255 srgb to 0..1 linear
+Flt  SRGBToLinear(  Flt    s); // convert 0..1   srgb   to 0..1 linear
+Vec  SRGBToLinear(C Vec   &s); // convert 0..1   srgb   to 0..1 linear
+Vec4 SRGBToLinear(C Vec4  &s); // convert 0..1   srgb   to 0..1 linear (except alpha)
+Vec4 SRGBToLinear(C Color &s); // convert 0..255 srgb   to 0..1 linear
+Flt  LinearToSRGB(  Flt    l); // convert 0..1   linear to 0..1 srgb
+Vec  LinearToSRGB(C Vec   &l); // convert 0..1   linear to 0..1 srgb
+Vec4 LinearToSRGB(C Vec4  &l); // convert 0..1   linear to 0..1 srgb (except alpha)
+Vec4 LinearToSRGB(C Color &l); // convert 0..255 linear to 0..1 srgb
 
 Flt LinearLumOfLinearColor(C Vec &l); // get linear photometric luminance (as perceived by human eye) of linear color
 Flt LinearLumOfSRGBColor  (C Vec &s); // get linear photometric luminance (as perceived by human eye) of srgb   color
@@ -120,8 +122,11 @@ Flt   SRGBLumOfSRGBColor  (C Vec &s); // get srgb   photometric luminance (as pe
 INLINE Vec4 SRGBToDisplay(C Color &srgb) {return LINEAR_GAMMA ? SRGBToLinear(srgb) : (Vec4)srgb;}
 
 extern Flt   ByteSRGBToLinearArray[256];
+extern Flt   LinearByteToSRGBArray[256];
 INLINE Flt   ByteSRGBToLinear(  Byte  s) {return ByteSRGBToLinearArray[s];}
+INLINE Flt   LinearByteToSRGB(  Byte  l) {return LinearByteToSRGBArray[l];}
        Byte  LinearToByteSRGB(  Flt   l);
+       Byte  SRGBToLinearByte(  Flt   s);
        VecB  LinearToSVecB   (C Vec  &l);
        Color LinearToSColor  (C Vec  &l);
        Color LinearToSColor  (C Vec4 &l);

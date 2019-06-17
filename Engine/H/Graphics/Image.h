@@ -303,6 +303,8 @@ struct Image // Image (Texture)
    Color color (Int x, Int y)C;   void color (Int x, Int y, C Color &color); // get/set color Byte color (these methods may not support all compressed types, instead try using 'copy' method first)
    Vec4  colorF(Int x, Int y)C;   void colorF(Int x, Int y, C Vec4  &color); // get/set color Flt  color (these methods may not support all compressed types, instead try using 'copy' method first)
 
+   Vec4 colorSRGBF(Int x, Int y)C;   void colorSRGBF(Int x, Int y, C Vec4 &color); // get/set sRGB color Flt color (these methods may not support all compressed types, instead try using 'copy' method first)
+
    void blend(Int x, Int y, C Vec4 &color); // apply 'color' pixel using ALPHA_BLEND formula
    void merge(Int x, Int y, C Vec4 &color); // apply 'color' pixel using ALPHA_MERGE formula
 
@@ -323,11 +325,15 @@ struct Image // Image (Texture)
    Vec4 colorFLinearTTNF32_4(Flt x, Flt y, Bool clamp)C; // optimized version specifically for 'transparentToNeighbor', 'clamp'=if use clamping when filtering pixels
 #endif
 
+   Vec4 colorSRGBFCubicFast(Flt x, Flt y, Bool clamp=true, Bool alpha_weight=false)C; // get sRGB color Vec4 with Cubic Fast interpolation, 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
+
    // pixel 3D
    UInt  pixel3D (Int x, Int y, Int z)C;   void pixel3D (Int x, Int y, Int z,   UInt   pixel); // get/set pixel 3D UInt value (these methods may not support all compressed types, instead try using 'copy' method first)
    Flt   pixel3DF(Int x, Int y, Int z)C;   void pixel3DF(Int x, Int y, Int z,   Flt    pixel); // get/set pixel 3D Flt  value (these methods may not support all compressed types, instead try using 'copy' method first)
    Color color3D (Int x, Int y, Int z)C;   void color3D (Int x, Int y, Int z, C Color &color); // get/set color 3D Byte color (these methods may not support all compressed types, instead try using 'copy' method first)
    Vec4  color3DF(Int x, Int y, Int z)C;   void color3DF(Int x, Int y, Int z, C Vec4  &color); // get/set color 3D Flt  color (these methods may not support all compressed types, instead try using 'copy' method first)
+
+   Vec4 color3DSRGBF(Int x, Int y, Int z)C;   void color3DSRGBF(Int x, Int y, Int z, C Vec4 &color); // get/set sRGB color 3D Flt color (these methods may not support all compressed types, instead try using 'copy' method first)
 
    Flt pixel3DFLinear         (Flt x, Flt y, Flt z, Bool clamp=true)C; // get 3D pixel Flt with Linear            interpolation, 'clamp'=if use clamping when filtering pixels, (these methods may not support all compressed types, instead try using 'copy' method first)
    Flt pixel3DFCubicFast      (Flt x, Flt y, Flt z, Bool clamp=true)C; // get 3D pixel Flt with Cubic Fast        interpolation, 'clamp'=if use clamping when filtering pixels, (these methods may not support all compressed types, instead try using 'copy' method first)
@@ -453,14 +459,15 @@ struct Image // Image (Texture)
  C Vec4 & pixF4(Int x, Int y, Int z)C {return *(Vec4 *)(_data + x*SIZE(Vec4 ) + y*_pitch + z*_pitch2);}   C Vec4 & pixF4(C VecI &v)C {return pixF4(v.x, v.y, v.z);}
 
    // !! warning: 'gather' methods are written for speed and not safety, they assume that image is locked and that offsets are in range, these methods set 'pixels/colors' array from image values, coordinates are specified in the 'offset' parameters !!
-   void gather(Flt   *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
-   void gather(VecB  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
-   void gather(Color *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
-   void gather(Vec4  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
-   void gather(Flt   *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
-   void gather(VecB  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
-   void gather(Color *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
-   void gather(Vec4  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
+   void gather    (Flt   *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
+   void gather    (VecB  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
+   void gather    (Color *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
+   void gather    (Vec4  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
+   void gatherSRGB(Vec4  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
+   void gather    (Flt   *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
+   void gather    (VecB  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
+   void gather    (Color *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
+   void gather    (Vec4  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
 
    // fit
    Rect fit        (C Rect &rect, FIT_MODE fit=FIT_FULL)C {return Fit(   aspect(), rect, fit);} // get rectangle that can be used for drawing of the image to the 'rect' destination while preserving image proportions according to specified 'fit' mode
