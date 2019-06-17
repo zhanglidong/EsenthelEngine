@@ -134,6 +134,7 @@
       #define UpdateWindow WindowsUpdateWindow
       #define TimeStamp    WindowsTimeStamp
       #define LOCK_WRITE   WindowsLOCK_WRITE
+      #define Font         WindowsFont
       #define FontPtr      WindowsFontPtr
       #define _ALLOW_RTCc_IN_STL
 
@@ -308,6 +309,7 @@
       #undef UpdateWindow
       #undef TimeStamp
       #undef LOCK_WRITE
+      #undef Font
       #undef FontPtr
       #undef RGB
       #undef ReplaceText

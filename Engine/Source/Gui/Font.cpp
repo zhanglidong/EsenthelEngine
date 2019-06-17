@@ -275,7 +275,7 @@ Bool Font::imageType(IMAGE_TYPE type)
 }
 void Font::toSoft()
 {
-   IMAGE_TYPE type=(_sub_pixel ? IMAGE_R8G8B8A8 : IMAGE_L8A8);
+   IMAGE_TYPE type=(_sub_pixel ? IMAGE_R8G8B8A8_SRGB : IMAGE_L8A8);
    REPA(_images)
    {
       Image &image=_images[i];
@@ -709,7 +709,7 @@ struct SystemFontDrawContext
    #if USE_FREE_TYPE
       if(!image.is())
       {
-         image.createSoft(w, h, 1, IMAGE_R8G8B8A8);
+         image.createSoft(w, h, 1, IMAGE_R8G8B8A8_SRGB);
          if(!FT_Init_FreeType(&library))
          {
             FT_Library_SetLcdFilter(library, FT_LCD_FILTER_DEFAULT);
@@ -732,7 +732,7 @@ struct SystemFontDrawContext
    #elif WINDOWS_OLD
       if(!bitmap)
       {
-         image.createSoft(w, h, 1, IMAGE_B8G8R8A8);
+         image.createSoft(w, h, 1, IMAGE_R8G8B8A8_SRGB);
 
          BITMAPV5HEADER bi; Zero(bi);
          bi.bV5Size    =SIZE(bi);
@@ -741,9 +741,9 @@ struct SystemFontDrawContext
          bi.bV5Planes  =1;
          bi.bV5BitCount=32;
          bi.bV5Compression=BI_BITFIELDS;
-         bi.bV5RedMask  =0x00FF0000;
+         bi.bV5RedMask  =0x000000FF;
          bi.bV5GreenMask=0x0000FF00;
-         bi.bV5BlueMask =0x000000FF;
+         bi.bV5BlueMask =0x00FF0000;
          bi.bV5AlphaMask=0xFF000000;
 
          bitmap=CreateDIBSection(null, (BITMAPINFO*)&bi, DIB_RGB_COLORS, (Ptr*)&data, null, 0);
@@ -756,8 +756,8 @@ struct SystemFontDrawContext
    #elif MAC
       if(!context)
       {
-         if(!image       .is())       image.createSoft(w, h, 1, IMAGE_R8G8B8A8);
-         if(!bitmap_image.is())bitmap_image.createSoft(w, h, 1, IMAGE_R8G8B8A8);
+         if(!image       .is())       image.createSoft(w, h, 1, IMAGE_R8G8B8A8_SRGB);
+         if(!bitmap_image.is())bitmap_image.createSoft(w, h, 1, IMAGE_R8G8B8A8_SRGB);
          if(!bitmap)
          {
             unsigned char *image_data=bitmap_image.data();
@@ -910,7 +910,7 @@ struct FontCreate : Font::Params
    VecI2                            draw_size; // size of the buffer used for drawing
    Memc<FontChar>                   chars; // chars to create
    Int                              processed;   Int leftToProcess()C {return Max(0, chars.elms()-processed-SPECIAL_CHARS);} // skip special chars
-   IMAGE_TYPE                       imageTypeTemp()C {return (mode==Font::SUB_PIXEL) ? IMAGE_R8G8B8A8 : IMAGE_L8A8;}
+   IMAGE_TYPE                       imageTypeTemp()C {return (mode==Font::SUB_PIXEL) ? IMAGE_R8G8B8A8_SRGB : IMAGE_L8A8;}
    SystemFont                       font;
    MemtN<SystemFontDrawContext, 16> dcs;
 
@@ -923,7 +923,7 @@ struct FontCreate : Font::Params
       scaled_size=RoundU(size*scale);
       if(mode==Font::SUB_PIXEL)
       {
-         image_type=IMAGE_R8G8B8A8;
+         image_type=IMAGE_R8G8B8A8_SRGB;
            mip_maps=1;
         shadow_opacity=0; // disable shadows for sub pixels
       }

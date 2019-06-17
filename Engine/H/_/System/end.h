@@ -1,6 +1,7 @@
 /******************************************************************************/
 #ifdef _WIN32 // WINDOWS
    #undef LOCK_WRITE
+   #undef WindowsFont
    #undef WindowsFontPtr
    #undef GetComputerName
    #undef TRANSPARENT
