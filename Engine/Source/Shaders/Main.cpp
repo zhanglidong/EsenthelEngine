@@ -670,7 +670,7 @@ void Simple_VS(VtxInput vtx,
            out Vec4  outVtx:POSITION)
 {
    outTex=vtx.tex();
-   outCol=vtx.color();
+   outCol=vtx.colorF();
    outVtx=Project(TransformPos(vtx.pos()));
 }
 Vec4 Simple_PS(Vec2  inTex:TEXCOORD,
@@ -2468,7 +2468,7 @@ void Particle_VS(VtxInput vtx,
          uniform Bool  stretch_alpha    )
 {
    outTex=vtx.tex();
-   outCol=vtx.color();
+   outCol=vtx.colorF();
 
    Flt  size  =vtx.size(),
         angle =vtx._tan.w;
@@ -3049,7 +3049,7 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
 
          VAR HP Vec2 IO_tex;
       #if COLOR!=0
-         VAR LP Vec4 IO_col;
+         VAR MP Vec4 IO_col;
       #endif
    @SHARED_END
 
@@ -3072,7 +3072,7 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
 
       void main()
       {
-         LP Vec4 col=Tex(Col, IO_tex);
+         MP Vec4 col=Tex(Col, IO_tex);
       #if alpha_test!=0
          if(col.a<0.5)discard;
       #endif
@@ -3149,11 +3149,11 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
 
       void main()
       {
-         LP Vec4 tex=Tex(Col, IO_tex);
+         MP Vec4 tex=Tex(Col, IO_tex);
          MP Flt  a  =tex.g,
                  s  =tex.a*FontShadow,
                  final_alpha=a+s-s*a;
-         LP Flt  final_color=Lerp(FontShade, 1.0, Sat(IO_shade))*a/(final_alpha+EPS);
+         MP Flt  final_color=Lerp(FontShade, 1.0, Sat(IO_shade))*a/(final_alpha+EPS);
 
          gl_FragColor.rgb=Color[0].rgb*final_color;
          gl_FragColor.a  =Color[0].a  *final_alpha;
@@ -3372,7 +3372,7 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
    @PS
       #include "Glsl PS.h"
 
-      PAR LP Vec BloomParams;
+      PAR MP Vec BloomParams;
 
       void main()
       {
@@ -3489,11 +3489,11 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
       #define ANIM_YES    1
       #define ANIM_SMOOTH 2
 
-      VAR LP Vec4 IO_col;
+      VAR MP Vec4 IO_col;
       VAR HP Vec2 IO_tex;
       #if anim==ANIM_SMOOTH
          VAR HP Vec2 IO_tex1;
-         VAR LP Flt  IO_tex_blend;
+         VAR MP Flt  IO_tex_blend;
       #endif
    @SHARED_END
 
@@ -3506,8 +3506,8 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
 
       void main()
       {
-         IO_tex=vtx_tex  ();
-         IO_col=vtx_color();
+         IO_tex=vtx_tex   ();
+         IO_col=vtx_colorF();
 
          MP Flt  size  =vtx_size(),
                  angle =vtx_tanW();
@@ -3540,7 +3540,7 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
          // sky
          MP Vec mp_pos =pos;
          MP Flt d      =Length(mp_pos);
-         LP Flt opacity=Sat(d*SkyFracMulAdd.x + SkyFracMulAdd.y);
+         MP Flt opacity=Sat(d*SkyFracMulAdd.x + SkyFracMulAdd.y);
          if(palette!=0)IO_col  *=opacity; // in RM_PALETTE each component
          else          IO_col.a*=opacity; // in RM_BLEND   only alpha
 
@@ -3578,7 +3578,7 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
 
       void main()
       {
-         LP Vec4 tex=          Tex(Col, IO_tex );
+         MP Vec4 tex=          Tex(Col, IO_tex );
       #if anim==ANIM_SMOOTH
                  tex=Lerp(tex, Tex(Col, IO_tex1), IO_tex_blend);
       #endif
@@ -3598,7 +3598,7 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
       PAR HP Flt  SkyDnsExp      ; // need high precision
       PAR MP Flt  SkyHorExp      ,
                   SkyBoxBlend    ;
-      PAR LP Vec4 SkyHorCol      ,
+      PAR MP Vec4 SkyHorCol      ,
                   SkySkyCol      ;
       PAR MP Vec2 SkyDnsMulAdd   ,
                   SkySunHighlight;
@@ -3608,7 +3608,7 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
 
       struct CloudLayer
       {
-         LP Vec4 color;
+         MP Vec4 color;
          MP Vec2 scale;
          HP Vec2 position;
       };
@@ -3618,9 +3618,9 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
 
       PAR CloudLayer CL[1];
 
-      inline LP Vec4 SkyColor(MP Flt y)
+      inline MP Vec4 SkyColor(MP Flt y)
       {
-         LP Flt hor=Pow(1.0-Sat(y), SkyHorExp);
+         MP Flt hor=Pow(1.0-Sat(y), SkyHorExp);
          return Lerp(SkySkyCol, SkyHorCol, hor);
       }
 
@@ -3629,11 +3629,11 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
          VAR MP Vec  IO_tex_star;
       #endif
       #if per_vertex!=0
-         VAR LP Vec4 IO_col;
+         VAR MP Vec4 IO_col;
       #endif
       #if clouds!=0
          VAR HP Vec  IO_tex_cloud;
-         VAR LP Vec4 IO_col_cloud;
+         VAR MP Vec4 IO_col_cloud;
       #endif
    @SHARED_END
 
@@ -3668,19 +3668,19 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
 
       PAR ImageCube Cub;
 
-      inline LP Vec SkyTex()
+      inline MP Vec SkyTex()
       {
          if(textures==2)return Vec(Lerp(TexCube(Rfl, IO_tex).rgb, TexCube(Cub, IO_tex).rgb, SkyBoxBlend));else
          if(textures==1)return Vec(     TexCube(Rfl, IO_tex).rgb                                        );else
          {
-            LP Vec4 col;
+            MP Vec4 col;
             #if per_vertex==0
             {
                MP Vec tex=Normalize(IO_tex);
                       col=SkyColor (tex.y );
 
                MP Flt cos      =Dot(SkySunPos, tex);
-               LP Flt highlight=1.0+Sqr(cos)*((cos>0.0) ? SkySunHighlight.x : SkySunHighlight.y); // rayleigh
+               MP Flt highlight=1.0+Sqr(cos)*((cos>0.0) ? SkySunHighlight.x : SkySunHighlight.y); // rayleigh
                col.rgb*=highlight;
             }
             #else
@@ -3697,11 +3697,11 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
 
       void main()
       {
-         LP Vec col=SkyTex();
+         MP Vec col=SkyTex();
          #if clouds!=0
          {
             HP Vec2 uv=Normalize(IO_tex_cloud).xz;
-            LP Vec4 tex=Tex(Col, uv*CL[0].scale+CL[0].position)*IO_col_cloud;
+            MP Vec4 tex=Tex(Col, uv*CL[0].scale+CL[0].position)*IO_col_cloud;
             col.rgb=Lerp(col.rgb, tex.rgb, tex.a);
          }
          #endif

@@ -18,6 +18,8 @@
 
 #define REVERSE_DEPTH false
 
+#define LINEAR_GAMMA true
+
 #define Sat(x) Mid(x, 0.0, 1.0)
 
 MP Flt Sum(MP Vec2 v) {return v.x+v.y        ;}
@@ -40,3 +42,12 @@ MP Vec2 Rotate(MP Vec2 vec, MP Vec2 cos_sin)
 
 MP Flt LerpR (MP Flt from, MP Flt to, MP Flt v) {return     (v-from)/(to-from) ;}
 MP Flt LerpRS(MP Flt from, MP Flt to, MP Flt v) {return Sat((v-from)/(to-from));}
+
+#define SRGBToLinearFast Sqr
+#define LinearToSRGBFast Sqrt
+
+MP Flt SRGBToLinear(MP Flt s) {return (s<=0.04045  ) ? s/12.92 : Pow((s+0.055)/1.055, 2.4);} // convert 0..1 srgb   to 0..1 linear
+MP Flt LinearToSRGB(MP Flt l) {return (l<=0.0031308) ? l*12.92 : Pow(l, 1/2.4)*1.055-0.055;} // convert 0..1 linear to 0..1 srgb
+
+MP Vec SRGBToLinear(MP Vec s) {return MP Vec(SRGBToLinear(s.x), SRGBToLinear(s.y), SRGBToLinear(s.z));}
+MP Vec LinearToSRGB(MP Vec l) {return MP Vec(LinearToSRGB(l.x), LinearToSRGB(l.y), LinearToSRGB(l.z));}

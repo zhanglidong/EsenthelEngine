@@ -54,7 +54,7 @@ void VS
    if(textures   )O.tex  =vtx.tex (heightmap);
    if(light_map  )O.tex_l=vtx.tex1();
                   O.col  =MaterialColor();
-   if(color      )O.col *=vtx.color();
+   if(color      )O.col *=vtx.colorF();
    if(fx==FX_LEAF)
    {
       if(bump_mode> SBUMP_FLAT)BendLeaf(vtx.hlp(), pos, nrm, tan);else
@@ -255,8 +255,8 @@ CUSTOM_TECHNIQUE
       #define ALPHA_CLIP 0.5
       #define use_vel alpha_test
 
-         VAR LP Vec4 IO_col;
-         VAR LP Vec  IO_col_add;
+         VAR MP Vec4 IO_col;
+         VAR MP Vec  IO_col_add;
       #if textures>=1
          VAR HP Vec2 IO_tex;
       #endif
@@ -294,8 +294,8 @@ CUSTOM_TECHNIQUE
       #if light_map==1
          IO_tex_l=vtx_tex1();
       #endif
-                     IO_col =MaterialColor();
-         if(COLOR!=0)IO_col*=    vtx_color();
+                     IO_col =MaterialColor ();
+         if(COLOR!=0)IO_col*=    vtx_colorF();
       #if fx==FX_GRASS
          IO_col.a*=1.0-GrassFadeOut();
       #elif fx==FX_LEAF
@@ -330,12 +330,12 @@ CUSTOM_TECHNIQUE
          {
             if(bump_mode>=SBUMP_FLAT)
             {
-               LP Flt d  =Max(Dot(nrm, Light_dir.dir), 0.0);
-               LP Vec lum=Light_dir.color.rgb*d + AmbColor;
+               MP Flt d  =Max(Dot(nrm, Light_dir.dir), 0.0);
+               MP Vec lum=Light_dir.color.rgb*d + AmbColor;
                IO_col.rgb*=lum;
             }
 
-            LP Flt fog_rev=Sat(Length2(IO_pos)*VertexFogMulAdd.x+VertexFogMulAdd.y);
+            MP Flt fog_rev=Sat(Length2(IO_pos)*VertexFogMulAdd.x+VertexFogMulAdd.y);
             IO_col.rgb*=                                        fog_rev ;
             IO_col_add =Lerp(VertexFogColor.rgb, Highlight.rgb, fog_rev);
          }
@@ -347,10 +347,10 @@ CUSTOM_TECHNIQUE
 
             MP Vec mp_pos =IO_pos;
             MP Flt d      =Length(mp_pos);
-            LP Flt opacity=Sat(d*SkyFracMulAdd.x + SkyFracMulAdd.y);
+            MP Flt opacity=Sat(d*SkyFracMulAdd.x + SkyFracMulAdd.y);
             IO_col.a*=opacity;
 
-            LP Flt fog_rev=      VisibleOpacity(FogDensity(), d);
+            MP Flt fog_rev=      VisibleOpacity(FogDensity(), d);
             IO_col.rgb*=                                fog_rev ;
             IO_col_add =Lerp(FogColor(), Highlight.rgb, fog_rev);
          }
@@ -377,14 +377,14 @@ CUSTOM_TECHNIQUE
       void main()
       {
          MP Vec  nrm;
-         LP Vec4 col=IO_col;
+         MP Vec4 col=IO_col;
 
          #if   textures==0
             #if per_pixel!=0 && bump_mode>=SBUMP_FLAT
                nrm=Normalize(IO_nrm);
             #endif
          #elif textures==1
-            LP Vec4 tex_col=Tex(Col, IO_tex);
+            MP Vec4 tex_col=Tex(Col, IO_tex);
             #if alpha_test
                if(tex_col.a<ALPHA_CLIP)discard;
             #endif
@@ -397,7 +397,7 @@ CUSTOM_TECHNIQUE
                nrm=Normalize(IO_nrm);
             #endif
          #elif textures==2
-            LP Vec4 tex_nrm=Tex(Nrm, IO_tex); // #MaterialTextureChannelOrder
+            MP Vec4 tex_nrm=Tex(Nrm, IO_tex); // #MaterialTextureChannelOrder
             #if alpha_test
                if(tex_nrm.a<ALPHA_CLIP)discard;
             #endif
@@ -428,11 +428,11 @@ CUSTOM_TECHNIQUE
 
          #if per_pixel!=0 && bump_mode>=SBUMP_FLAT
          {
-            LP Vec total_lum=AmbColor;
+            MP Vec total_lum=AmbColor;
             if(fx!=FX_GRASS && fx!=FX_LEAF && fx!=FX_LEAFS)BackFlip(nrm);
 
             // directional light
-            LP Flt d  =Max(Dot(nrm, Light_dir.dir), 0.0);
+            MP Flt d  =Max(Dot(nrm, Light_dir.dir), 0.0);
             total_lum+=Light_dir.color.rgb*d;
 
             col.rgb*=total_lum;

@@ -25,7 +25,7 @@ void VS
    if(textures )outTex   =vtx.tex ();
    if(light_map)outTexL  =vtx.tex1();
                 outColor =MaterialColor();
-   if(color    )outColor*=vtx.color();
+   if(color    )outColor*=vtx.colorF();
 
    Vec pos; VecH nrm;
    if(!skin)
@@ -89,7 +89,7 @@ CUSTOM_TECHNIQUE // this is defined in C++ as a macro
       #include "Glsl Material.h"
       #include "Glsl Light.h"
 
-         VAR LP Vec4 IO_col;
+         VAR MP Vec4 IO_col;
       #if textures>0
          VAR HP Vec2 IO_tex;
       #endif
@@ -117,7 +117,7 @@ CUSTOM_TECHNIQUE // this is defined in C++ as a macro
       #endif
          IO_col=MaterialColor();
       #if COLOR!=0
-         IO_col*=vtx_color();
+         IO_col*=vtx_colorF();
       #endif
 
       #if skin==0
@@ -138,7 +138,7 @@ CUSTOM_TECHNIQUE // this is defined in C++ as a macro
 
          MP Vec mp_pos =pos;
          MP Flt d      =Length(mp_pos);
-         LP Flt opacity=Sat(d*SkyFracMulAdd.x + SkyFracMulAdd.y);
+         MP Flt opacity=Sat(d*SkyFracMulAdd.x + SkyFracMulAdd.y);
          IO_col.a*=opacity;
 
       #if rflct!=0
@@ -153,13 +153,13 @@ CUSTOM_TECHNIQUE // this is defined in C++ as a macro
 
       void main()
       {
-         LP Vec4 col=IO_col;
+         MP Vec4 col=IO_col;
 
       #if textures==1
          col*=Tex(Col, IO_tex);
       #elif textures==2
-         LP Vec4 tex_nrm=Tex(Nrm, IO_tex); // #MaterialTextureChannelOrder
-         LP Vec4 tex_col=Tex(Col, IO_tex); tex_col.a=tex_nrm.a; col*=tex_col;
+         MP Vec4 tex_nrm=Tex(Nrm, IO_tex); // #MaterialTextureChannelOrder
+         MP Vec4 tex_col=Tex(Col, IO_tex); tex_col.a=tex_nrm.a; col*=tex_col;
       #endif
 
       #if light_map!=0

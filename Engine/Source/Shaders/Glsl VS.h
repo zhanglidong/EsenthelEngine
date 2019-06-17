@@ -13,8 +13,8 @@ ATTR HP Vec2 ATTR11; // tex2
 ATTR MP Flt  ATTR10; // size
 ATTR MP Vec  ATTR5 ; // bone, should be MP VecI but won't compile
 ATTR MP Vec  ATTR6 ; // weight
-ATTR LP Vec4 ATTR8 ; // material
-ATTR LP Vec4 ATTR7 ; // color
+ATTR MP Vec4 ATTR8 ; // material
+ATTR MP Vec4 ATTR7 ; // color
 
 MP Vec  vtx_nrm      () {return ATTR1 ;}
 MP Vec  vtx_tan      () {return ATTR2.xyz;}
@@ -28,13 +28,21 @@ HP Vec2 vtx_texHM    () {return ATTR0.xz*Vec2(VtxHeightmap, -VtxHeightmap);}
 HP Vec2 vtx_tex1     () {return ATTR4 ;}
 HP Vec2 vtx_tex2     () {return ATTR11;}
 MP VecI vtx_bone     () {return Bool(VtxSkinning) ? VecI(ATTR5) : VecI(0, 0, 0);}
-#ifdef GL_ES // GLSL may not support "#if GL_ES" if GL_ES is not defined
-MP Vec  vtx_weight   () {MP Flt w=ATTR6.x/(ATTR6.x+ATTR6.y); return Vec(w, 1.0-w, 0.0);} // use only 2 weights on OpenGL ES
-#else
 MP Vec  vtx_weight   () {return ATTR6;}
+MP Vec4 vtx_material () {return ATTR8;}
+MP Vec  vtx_material3() {return ATTR8.xyz;}
+MP Flt  vtx_size     () {return ATTR10;}
+
+#if LINEAR_GAMMA
+MP Vec4 vtx_color  () {return MP Vec4(SRGBToLinear    (ATTR7.rgb), ATTR7.a);} // sRGB   vertex color (precise)
+MP Vec  vtx_color3 () {return         SRGBToLinear    (ATTR7.rgb)          ;} // sRGB   vertex color (precise)
+MP Vec4 vtx_colorF () {return MP Vec4(SRGBToLinearFast(ATTR7.rgb), ATTR7.a);} // sRGB   vertex color (fast)
+MP Vec  vtx_colorF3() {return         SRGBToLinearFast(ATTR7.rgb)          ;} // sRGB   vertex color (fast)
+#else
+MP Vec4 vtx_color  () {return ATTR7                                        ;} // sRGB   vertex color (precise)
+MP Vec  vtx_color3 () {return ATTR7.rgb                                    ;} // sRGB   vertex color (precise)
+MP Vec4 vtx_colorF () {return ATTR7                                        ;} // sRGB   vertex color (fast)
+MP Vec  vtx_colorF3() {return ATTR7.rgb                                    ;} // sRGB   vertex color (fast)
 #endif
-LP Vec4 vtx_color    () {return ATTR7    ;}
-LP Vec  vtx_color3   () {return ATTR7.rgb;}
-LP Vec4 vtx_material () {return ATTR8    ;}
-LP Vec  vtx_material3() {return ATTR8.xyz;}
-MP Flt  vtx_size     () {return ATTR10   ;}
+MP Vec4 vtx_colorL () {return ATTR7                                        ;} // linear vertex color
+MP Vec  vtx_colorL3() {return ATTR7.rgb                                    ;} // linear vertex color

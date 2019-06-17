@@ -712,7 +712,7 @@ static struct FromTo
 /*
  "= MP Vec(..)" code is not supported on Mali (Samsung Galaxy S2)
 
- LP, MP, HP always point to lowp, mediump, highp
+ MP, HP always point to mediump, highp (LP lowp is no longer used)
 
 https://github.com/mattdesl/lwjgl-basics/wiki/GLSL-Versions
 
@@ -736,13 +736,11 @@ static Str8 GLSLVSShader(Str8 code)
         texture3DLod=Contains(code, "texture3DLod", true, true);
    return S
       +"#ifdef GL_ES\n" // GLSL may not support "#if GL_ES" if GL_ES is not defined
-      +   "#define LP lowp\n"
       +   "#define MP mediump\n"
       +   "#define HP highp\n"
       +   "precision HP float;\n"
       +   "precision HP int;\n"
       +"#else\n"
-      +   "#define LP\n"
       +   "#define MP\n"
       +   "#define HP\n"
       +"#endif\n"
@@ -800,16 +798,14 @@ static Str8 GLSLPSShader(Str8 code, Bool force_hp)
       +(dd ? "#extension GL_OES_standard_derivatives:enable\n" : "") // without this, pixel/fragment shaders using ddx/ddy will not work on Mobile GLES2
       // set things after extensions
       +"#ifdef GL_ES\n" // GLSL may not support "#if GL_ES" if GL_ES is not defined
-      +   "#define LP lowp\n"
       +   "#define MP mediump\n"
       +   "#define HP highp\n"
       +   (force_hp        ? "precision HP float;\n"           : "precision MP float;\n")
       +   (force_hp        ? "precision HP int;\n"             : "precision MP int;\n")
       +   (force_hp        ? "precision HP sampler2D;\n"       : "") // may be needed for depth textures
-      +   (sampler2DShadow ? "precision LP sampler2DShadow;\n" : "")
-      +   (sampler3D       ? "precision LP sampler3D;\n"       : "")
+      +   (sampler2DShadow ? "precision MP sampler2DShadow;\n" : "")
+      +   (sampler3D       ? "precision MP sampler3D;\n"       : "")
       +"#else\n"
-      +   "#define LP\n"
       +   "#define MP\n"
       +   "#define HP\n"
       +"#endif\n"
@@ -852,8 +848,7 @@ static void SpecifyCGPrecisionModifiers(Str8 &vs_code, Str8 &ps_code, Bool vs_hp
          Int uniform_pos =TextPosIN(code, "uniform", uniform_index, true, true); if(uniform_pos<0)break; // find all "uniform" occurences (like "uniform float Var", "uniform MaterialClass Material")
          Int uniform_type=uniform_pos+8; // Length("uniform ")->8
          if(!Starts(code()+uniform_type, "HP"       , true, true)
-         && !Starts(code()+uniform_type, "MP"       , true, true)
-         && !Starts(code()+uniform_type, "LP"       , true, true)  // if precision was not yet specified
+         && !Starts(code()+uniform_type, "MP"       , true, true)  // if precision was not yet specified
          && !Starts(code()+uniform_type, "sampler1D", true, true)
          && !Starts(code()+uniform_type, "sampler2D", true, true)
          && !Starts(code()+uniform_type, "sampler3D", true, true)) // not a sampler

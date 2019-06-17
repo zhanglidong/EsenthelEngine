@@ -589,74 +589,6 @@ SHADOW_SAMPLER(SamplerShadowMap  , SSI_SHADOW      );
        SAMPLER(SamplerFont       , SSI_FONT        );
 #endif
 /******************************************************************************/
-struct VtxInput // Vertex Input, use this class to access vertex data in vertex shaders
-{
-#if MODEL==SM_GL
-   // !! must be in sync with GL_VTX_SEMANTIC !!
-   Vec4  _pos     :ATTR0 ;
-   VecH  _hlp     :ATTR9 ;
-   VecH  _nrm     :ATTR1 ;
-   VecH4 _tan     :ATTR2 ;
-   Vec2  _tex     :ATTR3 ;
-   Vec2  _tex1    :ATTR4 ;
-   Vec2  _tex2    :ATTR11;
-   Half  _size    :ATTR10;
-   Vec4  _bone    :ATTR5 ;
-   VecH4 _weight  :ATTR6 ;
-   VecH4 _material:ATTR8 ;
-   VecH4 _color   :ATTR7 ;
-#else
-   Vec4  _pos     :POSITION0   ;
-   VecH  _hlp     :POSITION1   ;
-   VecH  _nrm     :NORMAL      ;
-   VecH4 _tan     :TANGENT     ;
-   Vec2  _tex     :TEXCOORD0   ;
-   Vec2  _tex1    :TEXCOORD1   ;
-   Vec2  _tex2    :TEXCOORD2   ;
-   Half  _size    :PSIZE       ;
-   VecU4 _bone    :BLENDINDICES;
-   VecH4 _weight  :BLENDWEIGHT ;
-   VecH4 _material:COLOR0      ;
-   VecH4 _color   :COLOR1      ;
-#endif
-
-   VecH  nrm      (                                                ) {return _nrm                                                                  ;} // vertex normal
-   VecH  tan      (VecH nrm          , uniform Bool heightmap=false) {return heightmap ? VecH(1-nrm.x*nrm.x, -nrm.y*nrm.x, -nrm.z*nrm.x) : _tan.xyz;} // vertex tangent, for heightmap: PointOnPlane(Vec(1,0,0), nrm()), Vec(1,0,0)-nrm*nrm.x, which gives a perpendicular however not Normalized !!
-   VecH  bin      (VecH nrm, VecH tan, uniform Bool heightmap=false) {return heightmap ? Cross(nrm, tan) : Cross(nrm, tan)*_tan.w                  ;} // binormal from transformed normal and tangent
-   Vec2  pos2     (                                                ) {return _pos.xy                                                               ;} // vertex position
-   Vec   pos      (                                                ) {return _pos.xyz                                                              ;} // vertex position
-   Vec4  pos4     (                                                ) {return _pos                                                                  ;} // vertex position in Vec4(pos.xyz, 1) format
-   VecH  hlp      (                                                ) {return _hlp                                                                  ;} // helper position
-   VecH  tan      (                                                ) {return _tan.xyz                                                              ;} // helper position
-   Vec2  tex      (                    uniform Bool heightmap=false) {return heightmap ? _pos.xz*Vec2(VtxHeightmap, -VtxHeightmap) : _tex          ;} // tex coords 0
-   Vec2  tex1     (                                                ) {return                                                         _tex1         ;} // tex coords 1
-   Vec2  tex2     (                                                ) {return                                                         _tex2         ;} // tex coords 2
-   VecI  bone     (                                                ) {return  VtxSkinning ? _bone.xyz : VecI(0, 0, 0)                              ;} // bone matrix indexes
-   VecH  weight   (                                                ) {return _weight.xyz                                                           ;} // bone matrix weights
-   VecH4 color    (                                                ) {return _color                                                                ;} // vertex color
-   VecH  color3   (                                                ) {return _color.rgb                                                            ;} // vertex color
-   VecH4 material (                                                ) {return _material                                                             ;} // material    weights
-   VecH  material3(                                                ) {return _material.xyz                                                         ;} // material    weights
-   Half  size     (                                                ) {return _size                                                                 ;} // point size
-
-#if MODEL>=SM_4
-   uint _instance:SV_InstanceID;
-   uint  instance() {return _instance;}
-#elif MODEL==SM_GL
-   uint _instance:ATTR15; // we can't use "gl_InstanceID/SV_InstanceID", so instead use ATTR15, which will generate "attribute ivec4 ATTR15;" and "int(ATTR15.x)" which we'll replace with "gl_InstanceID"
-   uint  instance() {return _instance;}
-#endif
-};
-/******************************************************************************/
-#define SRGBToLinearFast Sqr  // simple and fast sRGB -> Linear conversion
-#define LinearToSRGBFast Sqrt // simple and fast Linear -> sRGB conversion
-
-Half SRGBToLinear(Half s) {return (s<=0.04045  ) ? s/12.92 : Pow((s+0.055)/1.055, 2.4);} // convert 0..1 srgb   to 0..1 linear
-Half LinearToSRGB(Half l) {return (l<=0.0031308) ? l*12.92 : Pow(l, 1/2.4)*1.055-0.055;} // convert 0..1 linear to 0..1 srgb
-
-VecH SRGBToLinear(VecH s) {return VecH(SRGBToLinear(s.x), SRGBToLinear(s.y), SRGBToLinear(s.z));}
-VecH LinearToSRGB(VecH l) {return VecH(LinearToSRGB(l.x), LinearToSRGB(l.y), LinearToSRGB(l.z));}
-/******************************************************************************/
 inline Int   Min(Int   x, Int   y                  ) {return min(x, y);}
 inline Half  Min(Half  x, Half  y                  ) {return min(x, y);}
 inline Flt   Min(Flt   x, Flt   y                  ) {return min(x, y);}
@@ -921,9 +853,6 @@ inline void UpdateColorBySss(in out VecH color, VecH normal, uniform Half sub_su
    color*=(1-Abs(normal.z))*sub_surf_scatter+1;
 }
 /******************************************************************************/
-Flt LinearLumOfSRGBColor(Vec s) {return                  Dot(SRGBToLinearFast(s), ColorLumWeight2) ;}
-Flt   SRGBLumOfSRGBColor(Vec s) {return LinearToSRGBFast(Dot(SRGBToLinearFast(s), ColorLumWeight2));}
-/******************************************************************************/
 inline Vec2 UVClamp(Vec2 screen, uniform Bool do_clamp=true)
 {
    return do_clamp ? Mid(screen, ColClamp.xy, ColClamp.zw) : screen;
@@ -1002,6 +931,92 @@ inline Vec GetPosLinear(Vec2 tex, Vec2 pos_xy) {return GetPos(TexDepthLinear(tex
 #if MODEL>=SM_4
 inline Vec GetPosMS(VecI2 pixel, UInt sample, Vec2 pos_xy) {return GetPos(TexDepthMS(pixel, sample), pos_xy);}
 #endif
+/******************************************************************************/
+// sRGB
+/******************************************************************************/
+#define SRGBToLinearFast Sqr  // simple and fast sRGB -> Linear conversion
+#define LinearToSRGBFast Sqrt // simple and fast Linear -> sRGB conversion
+
+Half SRGBToLinear(Half s) {return (s<=0.04045  ) ? s/12.92 : Pow((s+0.055)/1.055, 2.4);} // convert 0..1 srgb   to 0..1 linear
+Half LinearToSRGB(Half l) {return (l<=0.0031308) ? l*12.92 : Pow(l, 1/2.4)*1.055-0.055;} // convert 0..1 linear to 0..1 srgb
+
+VecH SRGBToLinear(VecH s) {return VecH(SRGBToLinear(s.x), SRGBToLinear(s.y), SRGBToLinear(s.z));}
+VecH LinearToSRGB(VecH l) {return VecH(LinearToSRGB(l.x), LinearToSRGB(l.y), LinearToSRGB(l.z));}
+
+Half LinearLumOfSRGBColor(VecH s) {return                  Dot(SRGBToLinearFast(s), ColorLumWeight2) ;}
+Half   SRGBLumOfSRGBColor(VecH s) {return LinearToSRGBFast(Dot(SRGBToLinearFast(s), ColorLumWeight2));}
+/******************************************************************************/
+struct VtxInput // Vertex Input, use this class to access vertex data in vertex shaders
+{
+#if MODEL==SM_GL
+   // !! must be in sync with GL_VTX_SEMANTIC !!
+   Vec4  _pos     :ATTR0 ;
+   VecH  _hlp     :ATTR9 ;
+   VecH  _nrm     :ATTR1 ;
+   VecH4 _tan     :ATTR2 ;
+   Vec2  _tex     :ATTR3 ;
+   Vec2  _tex1    :ATTR4 ;
+   Vec2  _tex2    :ATTR11;
+   Half  _size    :ATTR10;
+   Vec4  _bone    :ATTR5 ;
+   VecH4 _weight  :ATTR6 ;
+   VecH4 _material:ATTR8 ;
+   VecH4 _color   :ATTR7 ;
+#else
+   Vec4  _pos     :POSITION0   ;
+   VecH  _hlp     :POSITION1   ;
+   VecH  _nrm     :NORMAL      ;
+   VecH4 _tan     :TANGENT     ;
+   Vec2  _tex     :TEXCOORD0   ;
+   Vec2  _tex1    :TEXCOORD1   ;
+   Vec2  _tex2    :TEXCOORD2   ;
+   Half  _size    :PSIZE       ;
+   VecU4 _bone    :BLENDINDICES;
+   VecH4 _weight  :BLENDWEIGHT ;
+   VecH4 _material:COLOR0      ;
+   VecH4 _color   :COLOR1      ;
+#endif
+
+   VecH  nrm      (                                                ) {return _nrm                                                                  ;} // vertex normal
+   VecH  tan      (VecH nrm          , uniform Bool heightmap=false) {return heightmap ? VecH(1-nrm.x*nrm.x, -nrm.y*nrm.x, -nrm.z*nrm.x) : _tan.xyz;} // vertex tangent, for heightmap: PointOnPlane(Vec(1,0,0), nrm()), Vec(1,0,0)-nrm*nrm.x, which gives a perpendicular however not Normalized !!
+   VecH  bin      (VecH nrm, VecH tan, uniform Bool heightmap=false) {return heightmap ? Cross(nrm, tan) : Cross(nrm, tan)*_tan.w                  ;} // binormal from transformed normal and tangent
+   Vec2  pos2     (                                                ) {return _pos.xy                                                               ;} // vertex position
+   Vec   pos      (                                                ) {return _pos.xyz                                                              ;} // vertex position
+   Vec4  pos4     (                                                ) {return _pos                                                                  ;} // vertex position in Vec4(pos.xyz, 1) format
+   VecH  hlp      (                                                ) {return _hlp                                                                  ;} // helper position
+   VecH  tan      (                                                ) {return _tan.xyz                                                              ;} // helper position
+   Vec2  tex      (                    uniform Bool heightmap=false) {return heightmap ? _pos.xz*Vec2(VtxHeightmap, -VtxHeightmap) : _tex          ;} // tex coords 0
+   Vec2  tex1     (                                                ) {return                                                         _tex1         ;} // tex coords 1
+   Vec2  tex2     (                                                ) {return                                                         _tex2         ;} // tex coords 2
+   VecI  bone     (                                                ) {return  VtxSkinning ? _bone.xyz : VecI(0, 0, 0)                              ;} // bone matrix indexes
+   VecH  weight   (                                                ) {return _weight.xyz                                                           ;} // bone matrix weights
+   VecH4 material (                                                ) {return _material                                                             ;} // material    weights
+   VecH  material3(                                                ) {return _material.xyz                                                         ;} // material    weights
+   Half  size     (                                                ) {return _size                                                                 ;} // point size
+
+   // need to apply gamma correction in the shader because R8G8B8A8_SRGB can't be specified in vertex buffer
+#if LINEAR_GAMMA
+   VecH4 color  () {return VecH4(SRGBToLinear    (_color.rgb), _color.a);} // sRGB   vertex color (precise)
+   VecH  color3 () {return       SRGBToLinear    (_color.rgb)           ;} // sRGB   vertex color (precise)
+   VecH4 colorF () {return VecH4(SRGBToLinearFast(_color.rgb), _color.a);} // sRGB   vertex color (fast)
+   VecH  colorF3() {return       SRGBToLinearFast(_color.rgb)           ;} // sRGB   vertex color (fast)
+#else
+   VecH4 color  () {return _color                                       ;} // sRGB   vertex color (precise)
+   VecH  color3 () {return _color.rgb                                   ;} // sRGB   vertex color (precise)
+   VecH4 colorF () {return _color                                       ;} // sRGB   vertex color (fast)
+   VecH  colorF3() {return _color.rgb                                   ;} // sRGB   vertex color (fast)
+#endif
+   VecH4 colorL () {return _color                                       ;} // linear vertex color
+   VecH  colorL3() {return _color.rgb                                   ;} // linear vertex color
+
+#if MODEL>=SM_4
+   uint _instance:SV_InstanceID;
+   uint  instance() {return _instance;}
+#elif MODEL==SM_GL
+   uint _instance:ATTR15; // we can't use "gl_InstanceID/SV_InstanceID", so instead use ATTR15, which will generate "attribute ivec4 ATTR15;" and "int(ATTR15.x)" which we'll replace with "gl_InstanceID"
+   uint  instance() {return _instance;}
+#endif
+};
 /******************************************************************************/
 void DrawPixel_VS(VtxInput vtx,
               out Vec4 outVtx:POSITION)

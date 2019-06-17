@@ -1,4 +1,4 @@
-inline HP Flt  LinearizeDepth(HP Flt w, Bool perspective)
+inline HP Flt LinearizeDepth(HP Flt w, Bool perspective)
 {
    HP Flt a=ProjMatrix[2][2], // ProjMatrix.z  .z !! for GL we need to swap [][] order !!
           b=ProjMatrix[2][3]; // ProjMatrix.pos.z !! for GL we need to swap [][] order !!

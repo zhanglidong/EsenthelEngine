@@ -4,7 +4,7 @@
 PAR HP Vec2    GrassRangeMulAdd; // must be HP
 PAR HP Vec2    SkyFracMulAdd; // better do HP because we can operate on large view ranges
 PAR HP Vec2    VertexFogMulAdd; // must be HP
-PAR LP Vec     VertexFogColor;
+PAR MP Vec     VertexFogColor;
 PAR MP Vec4    FogColor_Density;
 PAR HP Vec4    ClipPlane;
 //PAR  Matrix  ViewMatrix[MAX_MATRIX]; Adreno 220 Android 2.3 complains about insufficient vertex uniform vectors, this also causes bug in Windows Nvidia GeForce GTX 460 where full array of matrixes is not always detected as used in the shader when skinning is present
@@ -17,7 +17,7 @@ PAR HP Matrix4(ProjMatrix);
 MP Vec ViewMatrixY  () {MP Int i=gl_InstanceID*3; return Vec(ViewMatrix[i].y, ViewMatrix[i+1].y, ViewMatrix[i+2].y);}
 HP Vec ViewMatrixPos() {MP Int i=gl_InstanceID*3; return Vec(ViewMatrix[i].w, ViewMatrix[i+1].w, ViewMatrix[i+2].w);}
 
-LP Vec FogColor  () {return FogColor_Density.rgb;}
+MP Vec FogColor  () {return FogColor_Density.rgb;}
 MP Flt FogDensity() {return FogColor_Density.a  ;}
 
 /*#if 0
@@ -56,15 +56,9 @@ MP Vec TransformDir(MP Vec v, MP Int i) // i-th matrix
               Dot(v, m1),
               Dot(v, m2));
 }
-#ifdef GL_ES // GLSL may not support "#if GL_ES" if GL_ES is not defined
-   HP Vec TransformPos(HP Vec v, MP VecI bone, HP Vec weight) {return weight.x*TransformPos(v, bone.x) + weight.y*TransformPos(v, bone.y);} // use only 2 weights on OpenGL ES
-   MP Vec TransformDir(MP Vec v, MP VecI bone, MP Vec weight) {return weight.x*TransformDir(v, bone.x) + weight.y*TransformDir(v, bone.y);} // use only 2 weights on OpenGL ES
-   MP Vec GetBoneVel  (          MP VecI bone, MP Vec weight) {return weight.x*      ObjVel[   bone.x] + weight.y*      ObjVel[   bone.y];} // use only 2 weights on OpenGL ES
-#else
-   HP Vec TransformPos(HP Vec v, MP VecI bone, HP Vec weight) {return weight.x*TransformPos(v, bone.x) + weight.y*TransformPos(v, bone.y) + weight.z*TransformPos(v, bone.z);}
-   MP Vec TransformDir(MP Vec v, MP VecI bone, MP Vec weight) {return weight.x*TransformDir(v, bone.x) + weight.y*TransformDir(v, bone.y) + weight.z*TransformDir(v, bone.z);}
-   MP Vec GetBoneVel  (          MP VecI bone, MP Vec weight) {return weight.x*      ObjVel[   bone.x] + weight.y*      ObjVel[   bone.y] + weight.z*      ObjVel[   bone.z];}
-#endif
+HP Vec TransformPos(HP Vec v, MP VecI bone, HP Vec weight) {return weight.x*TransformPos(v, bone.x) + weight.y*TransformPos(v, bone.y) + weight.z*TransformPos(v, bone.z);}
+MP Vec TransformDir(MP Vec v, MP VecI bone, MP Vec weight) {return weight.x*TransformDir(v, bone.x) + weight.y*TransformDir(v, bone.y) + weight.z*TransformDir(v, bone.z);}
+MP Vec GetBoneVel  (          MP VecI bone, MP Vec weight) {return weight.x*      ObjVel[   bone.x] + weight.y*      ObjVel[   bone.y] + weight.z*      ObjVel[   bone.z];}
 //#endif
 HP Vec4 Project(HP Vec v) {return Transform(v, ProjMatrix);}
 

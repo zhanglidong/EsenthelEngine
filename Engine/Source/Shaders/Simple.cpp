@@ -60,8 +60,8 @@ void VS
    }*/
    if(color)
    {
-      if(materials<=1/* || !mtrl_blend*/)O.col.rgb*=vtx.color3();
-      else                               O.col.rgb =vtx.color3();
+      if(materials<=1/* || !mtrl_blend*/)O.col.rgb*=vtx.colorF3();
+      else                               O.col.rgb =vtx.colorF3();
    }
 
    if(heightmap && textures && materials==1)O.tex*=MaterialTexScale();
@@ -316,10 +316,10 @@ CUSTOM_TECHNIQUE
       #define MULTI_TEXCOORD 1
 
       #if materials<=1 /*|| mtrl_blend==0*/ || COLOR!=0 || per_pixel==0
-         VAR LP Vec IO_col;
+         VAR MP Vec IO_col;
       #endif
       #if per_pixel==0
-         VAR LP Vec IO_col_add;
+         VAR MP Vec IO_col_add;
       #else
          VAR MP Vec IO_nrm;
       #endif
@@ -327,7 +327,7 @@ CUSTOM_TECHNIQUE
          VAR MP Flt IO_fade_out;
       #endif
       #if materials>1
-         VAR LP Vec4 IO_material;
+         VAR MP Vec4 IO_material;
       #endif
       #if textures>=1
          VAR HP Vec2 IO_tex;
@@ -397,8 +397,8 @@ CUSTOM_TECHNIQUE
          #endif*/
       #endif
       #if COLOR!=0
-         if(materials<=1/* || mtrl_blend==0*/)IO_col.rgb*=vtx_color3();
-         else                                 IO_col.rgb =vtx_color3();
+         if(materials<=1/* || mtrl_blend==0*/)IO_col.rgb*=vtx_colorF3();
+         else                                 IO_col.rgb =vtx_colorF3();
       #endif
 
       #if fx==FX_GRASS
@@ -434,14 +434,14 @@ CUSTOM_TECHNIQUE
 
             #if bump_mode>=SBUMP_FLAT
             {
-               LP Flt d  =Max(Dot(nrm, Light_dir.dir), 0.0);
-               LP Vec lum=Light_dir.color.rgb*d + AmbColor;
+               MP Flt d  =Max(Dot(nrm, Light_dir.dir), 0.0);
+               MP Vec lum=Light_dir.color.rgb*d + AmbColor;
                if(materials<=1 && fx!=FX_BONE)lum+=MaterialAmbient();
                IO_col.rgb*=lum;
             }
             #endif
 
-            LP Flt fog_rev=Sat(Length2(O_pos)*VertexFogMulAdd.x+VertexFogMulAdd.y);
+            MP Flt fog_rev=Sat(Length2(O_pos)*VertexFogMulAdd.x+VertexFogMulAdd.y);
             IO_col.rgb*=                                        fog_rev ;
             IO_col_add =Lerp(VertexFogColor.rgb, Highlight.rgb, fog_rev);
          }
@@ -456,7 +456,7 @@ CUSTOM_TECHNIQUE
 
       void main()
       {
-         LP Vec col;
+         MP Vec col;
       #if materials<=1 /*|| mtrl_blend==0*/ || COLOR!=0 || per_pixel==0
          col=IO_col.rgb;
       #endif
@@ -466,9 +466,9 @@ CUSTOM_TECHNIQUE
             glow=MaterialGlow();
          #else
             #if textures==1
-               LP Vec4 tex_col=Tex(Col, IO_tex);
+               MP Vec4 tex_col=Tex(Col, IO_tex);
                #if alpha_test!=0
-                  LP Flt alpha=tex_col.a;
+                  MP Flt alpha=tex_col.a;
                   #if fx==FX_GRASS
                      alpha-=IO_fade_out;
                   #endif
@@ -476,9 +476,9 @@ CUSTOM_TECHNIQUE
                #endif
                glow=MaterialGlow();
             #elif textures==2
-               LP Vec4 tex_nrm=Tex(Nrm, IO_tex); // #MaterialTextureChannelOrder
+               MP Vec4 tex_nrm=Tex(Nrm, IO_tex); // #MaterialTextureChannelOrder
                #if alpha_test!=0
-                  LP Flt alpha=tex_nrm.a;
+                  MP Flt alpha=tex_nrm.a;
                   #if fx==FX_GRASS
                      alpha-=IO_fade_out;
                   #endif
@@ -510,9 +510,9 @@ CUSTOM_TECHNIQUE
          #endif
       #else // materials>1
          glow=0.0;
-         LP Vec tex;
+         MP Vec tex;
          #if mtrl_blend!=0
-            LP Vec4 col0, col1, col2, col3;
+            MP Vec4 col0, col1, col2, col3;
             #if MULTI_TEXCOORD!=0
                   col0=Tex(Col , IO_tex );
                   col1=Tex(Col1, IO_tex1);
@@ -571,8 +571,8 @@ CUSTOM_TECHNIQUE
             #if bump_mode==SBUMP_FLAT
             {
                MP Vec nrm=Normalize(IO_nrm); if(fx!=FX_GRASS && fx!=FX_LEAF && fx!=FX_LEAFS)BackFlip(nrm);
-               LP Flt d  =Max(Dot(nrm, Light_dir.dir), 0.0);
-               LP Vec lum=Light_dir.color.rgb*d + AmbColor;
+               MP Flt d  =Max(Dot(nrm, Light_dir.dir), 0.0);
+               MP Vec lum=Light_dir.color.rgb*d + AmbColor;
                if(materials<=1 && fx!=FX_BONE)lum+=MaterialAmbient();
                col*=lum;
             }
