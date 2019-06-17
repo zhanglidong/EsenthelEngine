@@ -741,6 +741,88 @@ void Image::color3DF(Int x, Int y, Int z, C Vec4 &color)
       SetColorF(data() + x*bytePP() + y*pitch() + z*pitch2(), type(), hwType(), color);
 }
 /******************************************************************************/
+static void SetColorSRGBF(Byte *data, IMAGE_TYPE type, C Vec4 &color)
+{
+   switch(type)
+   {
+      case IMAGE_F32  : (*(Flt *)data)=    SRGBToLinear(color.x  ); break;
+      case IMAGE_F32_2: (*(Vec2*)data).set(SRGBToLinear(color.x  ), SRGBToLinear(color.y)); break;
+      case IMAGE_F32_3: (*(Vec *)data)=    SRGBToLinear(color.xyz); break;
+      case IMAGE_F32_4: (*(Vec4*)data)=    SRGBToLinear(color    ); break;
+
+      case IMAGE_F16  : (*(Half *)data)=    SRGBToLinear(color.x  ); break;
+      case IMAGE_F16_2: (*(VecH2*)data).set(SRGBToLinear(color.x  ), SRGBToLinear(color.y)); break;
+      case IMAGE_F16_3: (*(VecH *)data)=    SRGBToLinear(color.xyz); break;
+      case IMAGE_F16_4: (*(VecH4*)data)=    SRGBToLinear(color    ); break;
+
+      case IMAGE_A8: (*(U8 *)data)= FltToByte      (color.w        ); break; // it's okay to clamp int for small values
+      case IMAGE_L8: (*(U8 *)data)=SRGBToLinearByte(color.xyz.max()); break; // it's okay to clamp int for small values
+      case IMAGE_I8: (*(U8 *)data)=SRGBToLinearByte(color.x        ); break; // it's okay to clamp int for small values
+
+      case IMAGE_I16: (*(U16*)data)=RoundU(Sat(SRGBToLinear(color.x))*0x0000FFFFu); break; // it's better to clamp flt for bigger values
+      case IMAGE_I32: (*(U32*)data)=RoundU(Sat(SRGBToLinear(color.x))*0xFFFFFFFFu); break; // it's better to clamp flt for bigger values
+      case IMAGE_I24: {  U32  c    =RoundU(Sat(SRGBToLinear(color.x))*0x00FFFFFFu); (*(U16*)data)=c; data[2]=(c>>16);} break; // it's better to clamp flt for bigger values
+
+      case IMAGE_L8A8: ((VecB2*)data)->set(SRGBToLinearByte(color.xyz.max()), FltToByte(color.w)); break;
+
+      case IMAGE_B8G8R8A8_SRGB: ((VecB4*)data)->set(FltToByte(color.z), FltToByte(color.y), FltToByte(color.x), FltToByte(color.w)); break;
+      case IMAGE_R8G8B8A8_SRGB: ((VecB4*)data)->set(FltToByte(color.x), FltToByte(color.y), FltToByte(color.z), FltToByte(color.w)); break;
+      case IMAGE_R8G8B8_SRGB  : ((VecB *)data)->set(FltToByte(color.x), FltToByte(color.y), FltToByte(color.z)                    ); break;
+
+      case IMAGE_B8G8R8A8: ((VecB4*)data)->set(SRGBToLinearByte(color.z), SRGBToLinearByte(color.y), SRGBToLinearByte(color.x), FltToByte(color.w)); break;
+      case IMAGE_R8G8B8A8: ((VecB4*)data)->set(SRGBToLinearByte(color.x), SRGBToLinearByte(color.y), SRGBToLinearByte(color.z), FltToByte(color.w)); break;
+      case IMAGE_R8G8B8  : ((VecB *)data)->set(SRGBToLinearByte(color.x), SRGBToLinearByte(color.y), SRGBToLinearByte(color.z)                    ); break;
+      case IMAGE_R8G8    : ((VecB2*)data)->set(SRGBToLinearByte(color.x), SRGBToLinearByte(color.y)                                               ); break;
+      case IMAGE_R8      : *(Byte *)data  =    SRGBToLinearByte(color.x)                                                                           ; break;
+      case IMAGE_B8G8R8  : ((VecB *)data)->set(SRGBToLinearByte(color.z), SRGBToLinearByte(color.y), SRGBToLinearByte(color.x)                    ); break;
+
+    /*case IMAGE_R8_SIGN      : (*(Byte *)data)=     SFltToSByte(SRGBToLinear(color.x))                                                                                               ; break; TODO:
+      case IMAGE_R8G8_SIGN    : ( (VecB2*)data)->set(SFltToSByte(SRGBToLinear(color.x)), SFltToSByte(SRGBToLinear(color.y))                                                          ); break;
+      case IMAGE_R8G8B8A8_SIGN: ( (VecB4*)data)->set(SFltToSByte(SRGBToLinear(color.x)), SFltToSByte(SRGBToLinear(color.y)), SFltToSByte(SRGBToLinear(color.z)), SFltToSByte(color.w)); break;*/
+
+      case IMAGE_R10G10B10A2: {(*(UInt*)data)=FltToU10(SRGBToLinear(color.x))|(FltToU10(SRGBToLinear(color.y))<<10)|(FltToU10(SRGBToLinear(color.z))<<20)|(FltToU2(color.w)<<30);} break;
+   }
+}
+static void SetColorSRGBF(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &color)
+{
+   if(type==hw_type)normal: return SetColorSRGBF(data, hw_type, color); // first check if types are the same, the most common case
+   Vec4 c; switch(type) // however if we want 'type' but we've got 'hw_type' then we have to adjust the color we're going to set. This will prevent setting different R G B values for type=IMAGE_L8 when hw_type=IMAGE_R8G8B8A8
+   {
+      case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB:
+      case IMAGE_F16_3 :
+      case IMAGE_F32_3 : c.set(color.x, color.y, color.z, 1); break;
+
+      case IMAGE_R8G8 :
+      case IMAGE_F16_2:
+      case IMAGE_F32_2: c.set(color.x, color.y, 0, 1); break;
+
+      case IMAGE_R8 :
+      case IMAGE_I8 :
+      case IMAGE_I16:
+      case IMAGE_I24:
+      case IMAGE_I32:
+      case IMAGE_F16:
+      case IMAGE_F32: c.set(color.x, 0, 0, 1); break;
+
+      case IMAGE_A8  :                         c.set(0, 0, 0, color.w);  break;
+      case IMAGE_L8  : {Flt l=color.xyz.max(); c.set(l, l, l,       1);} break;
+      case IMAGE_L8A8: {Flt l=color.xyz.max(); c.set(l, l, l, color.w);} break;
+
+      default: goto normal;
+   }
+   SetColorSRGBF(data, hw_type, c);
+}
+void Image::colorSRGBF(Int x, Int y, C Vec4 &color)
+{
+   if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+      SetColorSRGBF(data() + x*bytePP() + y*pitch(), type(), hwType(), color);
+}
+void Image::color3DSRGBF(Int x, Int y, Int z, C Vec4 &color)
+{
+   if(InRange(x, lw()) && InRange(y, lh()) && InRange(z, ld())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+      SetColorSRGBF(data() + x*bytePP() + y*pitch() + z*pitch2(), type(), hwType(), color);
+}
+/******************************************************************************/
 static inline void ApplyBlend(Vec4 &src, C Vec4 &color) {src=Blend(src, color);}
 void Image::blend(Int x, Int y, C Vec4 &color)
 {
@@ -793,14 +875,14 @@ Vec4 ImageColorF(CPtr data, IMAGE_TYPE hw_type)
       case IMAGE_F32_3: return Vec4(*(Vec *)data,       1);
       case IMAGE_F32_4: return      *(Vec4*)data          ;
 
-      case IMAGE_F16  : return Vec4(((Half*)data)[0],                0,                0,                1); break;
-      case IMAGE_F16_2: return Vec4(((Half*)data)[0], ((Half*)data)[1],                0,                1); break;
-      case IMAGE_F16_3: return Vec4(((Half*)data)[0], ((Half*)data)[1], ((Half*)data)[2],                1); break;
-      case IMAGE_F16_4: return Vec4(((Half*)data)[0], ((Half*)data)[1], ((Half*)data)[2], ((Half*)data)[3]); break;
+      case IMAGE_F16  : return Vec4(((Half*)data)[0],                0,                0,                1);
+      case IMAGE_F16_2: return Vec4(((Half*)data)[0], ((Half*)data)[1],                0,                1);
+      case IMAGE_F16_3: return Vec4(((Half*)data)[0], ((Half*)data)[1], ((Half*)data)[2],                1);
+      case IMAGE_F16_4: return Vec4(((Half*)data)[0], ((Half*)data)[1], ((Half*)data)[2], ((Half*)data)[3]);
 
-      case IMAGE_A8: return Vec4(0, 0, 0, Flt(*(U8*)data)/0x000000FFu);
-      case IMAGE_L8: return Vec4(Vec(     Flt(*(U8*)data)/0x000000FFu), 1);
-      case IMAGE_I8: return Vec4(Vec(     Flt(*(U8*)data)/0x000000FFu), 1);
+      case IMAGE_A8: return Vec4(0, 0, 0, ByteToFlt(*(U8*)data));
+      case IMAGE_L8: return Vec4(Vec(     ByteToFlt(*(U8*)data)), 1);
+      case IMAGE_I8: return Vec4(Vec(     ByteToFlt(*(U8*)data)), 1);
 
       // 16
    #if SUPPORT_DEPTH_TO_COLOR
@@ -825,21 +907,21 @@ Vec4 ImageColorF(CPtr data, IMAGE_TYPE hw_type)
       case IMAGE_I24:
          return Vec4(Vec((*(U16*)data | (((Byte*)data)[2]<<16))/Flt(0x00FFFFFFu)), 1); // here Dbl is not required, this was tested
 
-      case IMAGE_L8A8: {VecB2 &c=*(VecB2*)data; Flt l=c.x/255.0f; return Vec4(l, l, l, c.y/255.0f);}
+      case IMAGE_L8A8: {VecB2 &c=*(VecB2*)data; Flt l=ByteToFlt(c.x); return Vec4(l, l, l, ByteToFlt(c.y));}
 
       case IMAGE_B8G8R8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteSRGBToLinear(c.z), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.x), ByteToFlt(c.w));}
       case IMAGE_R8G8B8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteSRGBToLinear(c.x), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.z), ByteToFlt(c.w));}
       case IMAGE_R8G8B8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(ByteSRGBToLinear(c.x), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.z),              1);}
       
-      case IMAGE_B8G8R8A8: {VecB4 &c=*(VecB4*)data; return Vec4(c.z/255.0f, c.y/255.0f, c.x/255.0f, c.w/255.0f);}
-      case IMAGE_R8G8B8A8: {VecB4 &c=*(VecB4*)data; return Vec4(c.x/255.0f, c.y/255.0f, c.z/255.0f, c.w/255.0f);}
-      case IMAGE_B8G8R8  : {VecB  &c=*(VecB *)data; return Vec4(c.z/255.0f, c.y/255.0f, c.x/255.0f,          1);}
-      case IMAGE_R8G8B8  : {VecB  &c=*(VecB *)data; return Vec4(c.x/255.0f, c.y/255.0f, c.z/255.0f,          1);}
-      case IMAGE_R8G8    : {VecB2 &c=*(VecB2*)data; return Vec4(c.x/255.0f, c.y/255.0f,          0,          1);}
-      case IMAGE_R8      : {Byte   c=*(Byte *)data; return Vec4(c  /255.0f,          0,          0,          1);}
+      case IMAGE_B8G8R8A8: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.z), ByteToFlt(c.y), ByteToFlt(c.x), ByteToFlt(c.w));}
+      case IMAGE_R8G8B8A8: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z), ByteToFlt(c.w));}
+      case IMAGE_B8G8R8  : {VecB  &c=*(VecB *)data; return Vec4(ByteToFlt(c.z), ByteToFlt(c.y), ByteToFlt(c.x),              1);}
+      case IMAGE_R8G8B8  : {VecB  &c=*(VecB *)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z),              1);}
+      case IMAGE_R8G8    : {VecB2 &c=*(VecB2*)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y),              0,              1);}
+      case IMAGE_R8      : {Byte   c=*(Byte *)data; return Vec4(ByteToFlt(c  ),              0,              0,              1);}
 
-      case IMAGE_R8_SIGN      : {Byte  &c=*(Byte *)data; return Vec4(SByteToSFlt(c  ),                0,               0 ,               1 );}
-      case IMAGE_R8G8_SIGN    : {VecB2 &c=*(VecB2*)data; return Vec4(SByteToSFlt(c.x), SByteToSFlt(c.y),               0 ,               1 );}
+      case IMAGE_R8_SIGN      : {Byte  &c=*(Byte *)data; return Vec4(SByteToSFlt(c  ),                0,                0,                1);}
+      case IMAGE_R8G8_SIGN    : {VecB2 &c=*(VecB2*)data; return Vec4(SByteToSFlt(c.x), SByteToSFlt(c.y),                0,                1);}
       case IMAGE_R8G8B8A8_SIGN: {VecB4 &c=*(VecB4*)data; return Vec4(SByteToSFlt(c.x), SByteToSFlt(c.y), SByteToSFlt(c.z), SByteToSFlt(c.w));}
 
       case IMAGE_R10G10B10A2: {UInt u=*(UInt*)data; return Vec4(U10ToFlt(u&0x3FF), U10ToFlt((u>>10)&0x3FF), U10ToFlt((u>>20)&0x3FF), U2ToFlt(u>>30));}
@@ -855,14 +937,14 @@ static inline Vec4 GetColorF(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
       case IMAGE_F32_3: return Vec4(*(Vec *)data,       1);
       case IMAGE_F32_4: return      *(Vec4*)data          ;
 
-      case IMAGE_F16  : return Vec4(((Half*)data)[0],                0,                0,                1); break;
-      case IMAGE_F16_2: return Vec4(((Half*)data)[0], ((Half*)data)[1],                0,                1); break;
-      case IMAGE_F16_3: return Vec4(((Half*)data)[0], ((Half*)data)[1], ((Half*)data)[2],                1); break;
-      case IMAGE_F16_4: return Vec4(((Half*)data)[0], ((Half*)data)[1], ((Half*)data)[2], ((Half*)data)[3]); break;
+      case IMAGE_F16  : return Vec4(((Half*)data)[0],                0,                0,                1);
+      case IMAGE_F16_2: return Vec4(((Half*)data)[0], ((Half*)data)[1],                0,                1);
+      case IMAGE_F16_3: return Vec4(((Half*)data)[0], ((Half*)data)[1], ((Half*)data)[2],                1);
+      case IMAGE_F16_4: return Vec4(((Half*)data)[0], ((Half*)data)[1], ((Half*)data)[2], ((Half*)data)[3]);
 
-      case IMAGE_A8: return Vec4(0, 0, 0, Flt(*(U8*)data)/0x000000FFu);
-      case IMAGE_L8: return Vec4(Vec(     Flt(*(U8*)data)/0x000000FFu), 1);
-      case IMAGE_I8: return Vec4(Vec(     Flt(*(U8*)data)/0x000000FFu), 1);
+      case IMAGE_A8: return Vec4(0, 0, 0, ByteToFlt(*(U8*)data));
+      case IMAGE_L8: return Vec4(Vec(     ByteToFlt(*(U8*)data)), 1);
+      case IMAGE_I8: return Vec4(Vec(     ByteToFlt(*(U8*)data)), 1);
 
       // 16
    #if SUPPORT_DEPTH_TO_COLOR
@@ -887,21 +969,21 @@ static inline Vec4 GetColorF(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
       case IMAGE_I24:
          return Vec4(Vec((*(U16*)data | (((Byte*)data)[2]<<16))/Flt(0x00FFFFFFu)), 1); // here Dbl is not required, this was tested
 
-      case IMAGE_L8A8: {VecB2 &c=*(VecB2*)data; Flt l=c.x/255.0f; return Vec4(l, l, l, c.y/255.0f);}
+      case IMAGE_L8A8: {VecB2 &c=*(VecB2*)data; Flt l=ByteToFlt(c.x); return Vec4(l, l, l, ByteToFlt(c.y));}
 
       case IMAGE_B8G8R8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteSRGBToLinear(c.z), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.x), ByteToFlt(c.w));}
       case IMAGE_R8G8B8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteSRGBToLinear(c.x), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.z), ByteToFlt(c.w));}
       case IMAGE_R8G8B8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(ByteSRGBToLinear(c.x), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.z),              1);}
 
-      case IMAGE_B8G8R8A8: {VecB4 &c=*(VecB4*)data; return Vec4(c.z/255.0f, c.y/255.0f, c.x/255.0f, c.w/255.0f);}
-      case IMAGE_R8G8B8A8: {VecB4 &c=*(VecB4*)data; return Vec4(c.x/255.0f, c.y/255.0f, c.z/255.0f, c.w/255.0f);}
-      case IMAGE_B8G8R8  : {VecB  &c=*(VecB *)data; return Vec4(c.z/255.0f, c.y/255.0f, c.x/255.0f,          1);}
-      case IMAGE_R8G8B8  : {VecB  &c=*(VecB *)data; return Vec4(c.x/255.0f, c.y/255.0f, c.z/255.0f,          1);}
-      case IMAGE_R8G8    : {VecB2 &c=*(VecB2*)data; return Vec4(c.x/255.0f, c.y/255.0f,          0,          1);}
-      case IMAGE_R8      : {Byte   c=*(Byte *)data; return Vec4(c  /255.0f,          0,          0,          1);}
+      case IMAGE_B8G8R8A8: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.z), ByteToFlt(c.y), ByteToFlt(c.x), ByteToFlt(c.w));}
+      case IMAGE_R8G8B8A8: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z), ByteToFlt(c.w));}
+      case IMAGE_B8G8R8  : {VecB  &c=*(VecB *)data; return Vec4(ByteToFlt(c.z), ByteToFlt(c.y), ByteToFlt(c.x),              1);}
+      case IMAGE_R8G8B8  : {VecB  &c=*(VecB *)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z),              1);}
+      case IMAGE_R8G8    : {VecB2 &c=*(VecB2*)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y),              0,              1);}
+      case IMAGE_R8      : {Byte   c=*(Byte *)data; return Vec4(ByteToFlt(c  ),              0,              0,              1);}
 
-      case IMAGE_R8_SIGN      : {Byte  &c=*(Byte *)data; return Vec4(SByteToSFlt(c  ),                0,               0 ,               1 );}
-      case IMAGE_R8G8_SIGN    : {VecB2 &c=*(VecB2*)data; return Vec4(SByteToSFlt(c.x), SByteToSFlt(c.y),               0 ,               1 );}
+      case IMAGE_R8_SIGN      : {Byte  &c=*(Byte *)data; return Vec4(SByteToSFlt(c  ),                0,                0,                1);}
+      case IMAGE_R8G8_SIGN    : {VecB2 &c=*(VecB2*)data; return Vec4(SByteToSFlt(c.x), SByteToSFlt(c.y),                0,                1);}
       case IMAGE_R8G8B8A8_SIGN: {VecB4 &c=*(VecB4*)data; return Vec4(SByteToSFlt(c.x), SByteToSFlt(c.y), SByteToSFlt(c.z), SByteToSFlt(c.w));}
 
       case IMAGE_R10G10B10A2: {UInt u=*(UInt*)data; return Vec4(U10ToFlt(u&0x3FF), U10ToFlt((u>>10)&0x3FF), U10ToFlt((u>>20)&0x3FF), U2ToFlt(u>>30));}
@@ -939,6 +1021,83 @@ Vec4 Image::color3DF(Int x, Int y, Int z)C
 {
    if(InRange(x, lw()) && InRange(y, lh()) && InRange(z, ld())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
       return GetColorF(data() + x*bytePP() + y*pitch() + z*pitch2(), T, false, x, y, z);
+   return 0;
+}
+/******************************************************************************/
+static inline Vec4 GetColorSRGBF(CPtr data, C Image &image, Bool _2d, Int x, Int y, Int z=0)
+{
+   switch(image.hwType())
+   {
+      case IMAGE_F32  : return Vec4(LinearToSRGB(*(Flt *)data)    ,                             0, 0, 1);
+      case IMAGE_F32_2: return Vec4(LinearToSRGB(((Flt *)data)[0]), LinearToSRGB(((Flt*)data)[1]), 0, 1);
+      case IMAGE_F32_3: return Vec4(LinearToSRGB(*(Vec *)data)                                      , 1);
+      case IMAGE_F32_4: return      LinearToSRGB(*(Vec4*)data);
+
+      case IMAGE_F16  : return Vec4(LinearToSRGB(((Half *)data)[0]),                              0, 0, 1);
+      case IMAGE_F16_2: return Vec4(LinearToSRGB(((Half *)data)[0]), LinearToSRGB(((Half*)data)[1]), 0, 1);
+      case IMAGE_F16_3: return Vec4(LinearToSRGB(*(VecH *)data)                                       , 1);
+      case IMAGE_F16_4: return      LinearToSRGB(*(VecH4*)data);
+
+      case IMAGE_A8: return Vec4(0, 0, 0,   ByteToFlt(*(U8*)data));
+      case IMAGE_L8: return Vec4(Vec(LinearByteToSRGB(*(U8*)data)), 1);
+      case IMAGE_I8: return Vec4(Vec(LinearByteToSRGB(*(U8*)data)), 1);
+
+      case IMAGE_I16: return Vec4(Vec(LinearToSRGB((*(U16*)data)/Flt(0x0000FFFFu))), 1);
+      case IMAGE_I32: return Vec4(Vec(LinearToSRGB((*(U32*)data)/Dbl(0xFFFFFFFFu))), 1); // Dbl required to get best precision
+      case IMAGE_I24: return Vec4(Vec(LinearToSRGB((*(U16*)data | (((Byte*)data)[2]<<16))/Flt(0x00FFFFFFu))), 1); // here Dbl is not required, this was tested
+
+      case IMAGE_L8A8: {VecB2 &c=*(VecB2*)data; Flt l=LinearByteToSRGB(c.x); return Vec4(l, l, l, ByteToFlt(c.y));}
+
+      case IMAGE_B8G8R8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.z), ByteToFlt(c.y), ByteToFlt(c.x), ByteToFlt(c.w));}
+      case IMAGE_R8G8B8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z), ByteToFlt(c.w));}
+      case IMAGE_R8G8B8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z),              1);}
+
+      case IMAGE_B8G8R8A8: {VecB4 &c=*(VecB4*)data; return Vec4(LinearByteToSRGB(c.z), LinearByteToSRGB(c.y), LinearByteToSRGB(c.x), ByteToFlt(c.w));}
+      case IMAGE_R8G8B8A8: {VecB4 &c=*(VecB4*)data; return Vec4(LinearByteToSRGB(c.x), LinearByteToSRGB(c.y), LinearByteToSRGB(c.z), ByteToFlt(c.w));}
+      case IMAGE_B8G8R8  : {VecB  &c=*(VecB *)data; return Vec4(LinearByteToSRGB(c.z), LinearByteToSRGB(c.y), LinearByteToSRGB(c.x),              1);}
+      case IMAGE_R8G8B8  : {VecB  &c=*(VecB *)data; return Vec4(LinearByteToSRGB(c.x), LinearByteToSRGB(c.y), LinearByteToSRGB(c.z),              1);}
+      case IMAGE_R8G8    : {VecB2 &c=*(VecB2*)data; return Vec4(LinearByteToSRGB(c.x), LinearByteToSRGB(c.y),                     0,              1);}
+      case IMAGE_R8      : {Byte   c=*(Byte *)data; return Vec4(LinearByteToSRGB(c  ),                     0,                     0,              1);}
+
+    /*case IMAGE_R8_SIGN      : {Byte  &c=*(Byte *)data; return Vec4(LinearToSRGB(SByteToSFlt(c  )),                              0,                              0,                1);} TODO:
+      case IMAGE_R8G8_SIGN    : {VecB2 &c=*(VecB2*)data; return Vec4(LinearToSRGB(SByteToSFlt(c.x)), LinearToSRGB(SByteToSFlt(c.y)),                              0,                1);}
+      case IMAGE_R8G8B8A8_SIGN: {VecB4 &c=*(VecB4*)data; return Vec4(LinearToSRGB(SByteToSFlt(c.x)), LinearToSRGB(SByteToSFlt(c.y)), LinearToSRGB(SByteToSFlt(c.z)), SByteToSFlt(c.w));}*/
+
+      case IMAGE_R10G10B10A2: {UInt u=*(UInt*)data; return Vec4(LinearToSRGB(U10ToFlt(u&0x3FF)), LinearToSRGB(U10ToFlt((u>>10)&0x3FF)), LinearToSRGB(U10ToFlt((u>>20)&0x3FF)), U2ToFlt(u>>30));}
+
+      case IMAGE_BC6    : return Vec4(LinearToSRGB(DecompressPixelBC6(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3)), 1);
+
+      case IMAGE_BC1    :
+      case IMAGE_BC2    :
+      case IMAGE_BC3    :
+      case IMAGE_BC7    :
+      case IMAGE_ETC1   :
+      case IMAGE_ETC2   :
+      case IMAGE_ETC2_A1:
+      case IMAGE_ETC2_A8:
+         return LinearToSRGB(_2d ? DecompressPixel(image, x, y) : DecompressPixel(image, x, y, z));
+
+      case IMAGE_BC1_SRGB    :
+      case IMAGE_BC2_SRGB    :
+      case IMAGE_BC3_SRGB    :
+      case IMAGE_BC7_SRGB    :
+      case IMAGE_ETC2_SRGB   :
+      case IMAGE_ETC2_A1_SRGB:
+      case IMAGE_ETC2_A8_SRGB:
+         return _2d ? DecompressPixel(image, x, y) : DecompressPixel(image, x, y, z);
+   }
+   return 0;
+}
+Vec4 Image::colorSRGBF(Int x, Int y)C
+{
+   if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+      return GetColorSRGBF(data() + x*bytePP() + y*pitch(), T, true, x, y);
+   return 0;
+}
+Vec4 Image::color3DSRGBF(Int x, Int y, Int z)C
+{
+   if(InRange(x, lw()) && InRange(y, lh()) && InRange(z, ld())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+      return GetColorSRGBF(data() + x*bytePP() + y*pitch() + z*pitch2(), T, false, x, y, z);
    return 0;
 }
 /******************************************************************************/
