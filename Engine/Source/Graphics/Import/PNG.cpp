@@ -55,7 +55,7 @@ Bool Image::ImportPNG(File &f)
       {
          default                       : goto error;
          case PNG_COLOR_TYPE_GRAY      : if(channels!=1 || (bit_depth!=8 && bit_depth!=16))goto error; createSoftTry(width, height, 1, (bit_depth==8) ? IMAGE_L8 : IMAGE_I16); break;
-         case PNG_COLOR_TYPE_GRAY_ALPHA: if(channels!=2 ||  bit_depth!=8                  )goto error; createSoftTry(width, height, 1,                  IMAGE_L8A8          ); break;
+         case PNG_COLOR_TYPE_GRAY_ALPHA: if(channels!=2 ||  bit_depth!=8                  )goto error; createSoftTry(width, height, 1,                  IMAGE_L8A8_SRGB     ); break;
          case PNG_COLOR_TYPE_RGB       : if(channels!=3 ||  bit_depth!=8                  )goto error; createSoftTry(width, height, 1,                  IMAGE_R8G8B8_SRGB   ); break;
          case PNG_COLOR_TYPE_RGB_ALPHA : if(channels!=4 ||  bit_depth!=8                  )goto error; createSoftTry(width, height, 1,                  IMAGE_R8G8B8A8_SRGB ); break;
       }
@@ -89,7 +89,7 @@ Bool Image::ExportPNG(File &f, Flt compression_level)C
       case IMAGE_I16     :                           bit_depth=16; color_type=PNG_COLOR_TYPE_GRAY      ; break;
       case IMAGE_L8      :                           bit_depth= 8; color_type=PNG_COLOR_TYPE_GRAY      ; break;
       case IMAGE_A8      :                           bit_depth= 8; color_type=PNG_COLOR_TYPE_GRAY      ; break;
-      case IMAGE_L8A8    :                           bit_depth= 8; color_type=PNG_COLOR_TYPE_GRAY_ALPHA; break;
+      case IMAGE_L8A8    : case IMAGE_L8A8_SRGB    : bit_depth= 8; color_type=PNG_COLOR_TYPE_GRAY_ALPHA; break;
       case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB  : bit_depth= 8; color_type=PNG_COLOR_TYPE_RGB       ; break;
       case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: bit_depth= 8; color_type=PNG_COLOR_TYPE_RGB_ALPHA ; break;
 

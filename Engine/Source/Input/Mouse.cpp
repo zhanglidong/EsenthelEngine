@@ -309,7 +309,7 @@ ok:;
 #endif
 #if LINUX
    // create empty cursor
-   Image temp(1, 1, 1, IMAGE_L8A8, IMAGE_SOFT, 1); temp.color(0, 0, TRANSPARENT);
+   Image temp(1, 1, 1, IMAGE_L8A8_SRGB, IMAGE_SOFT, 1); temp.color(0, 0, TRANSPARENT);
    MsCurEmpty.create(temp);
 
    // create window for grabbing

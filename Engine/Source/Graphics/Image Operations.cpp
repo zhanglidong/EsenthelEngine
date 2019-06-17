@@ -1683,6 +1683,7 @@ Image& Image::noise(Byte red, Byte green, Byte blue, Byte alpha)
       {
          case IMAGE_L8  :
          case IMAGE_L8A8:
+         case IMAGE_L8A8_SRGB:
          {
             Byte noise=Max(red, green, blue);
             REPD(z, T.d())
@@ -1753,136 +1754,6 @@ Image& Image::HSBToRGB()
       }
       unlock().updateMipMaps();
       Compress(T, type, mode, mip_maps);
-   }
-   return T;
-}
-/******************************************************************************
-Image& Image::lumFromAlphaAndLight(UInt light_dir, Flt density_factor)
-{
-   IMAGE_MODE mode=T.mode();
-   if(type()!=IMAGE_L8A8)
-   {
-      Image temp;
-      if(temp.createTry(w(), h(), d(), IMAGE_L8A8, mode      , mipMaps(), false)
-      || temp.createTry(w(), h(), d(), IMAGE_L8A8, IMAGE_SOFT, 1        , false)) // DX10+ doesn't support L8A8 so create in software
-         if(temp.lock(LOCK_WRITE))
-            if(lockRead())
-      {
-         REPD(z, T.d())
-         REPD(y, T.h())
-         REPD(x, T.w())temp.color3D(x, y, z, Color(0, 0, 0, color3D(x, y, z).a));
-         Swap(unlock(), temp.unlock());
-      }
-   }
-   if(hwType()==IMAGE_L8A8)
-   {
-      if(lock())
-      {
-         Int   X=w(),
-               Y=h(),
-               Z=d();
-         UInt _Y=pitch (),
-              _Z=pitch2();
-         Flt   a_mul=density_factor/255;
-
-         if(!light_dir)
-         {
-            REPD(z, Z)
-            REPD(y, Y)
-            REPD(x, X)_data[(x*2) + y*_Y + z*_Z]=0;
-         }else
-         if(light_dir==(DIRF_LEFT|DIRF_RIGHT|DIRF_DOWN|DIRF_UP|DIRF_BACK|DIRF_FORWARD))
-         {
-            REPD(z, Z)
-            REPD(y, Y)
-            REPD(x, X)_data[(x*2) + y*_Y + z*_Z]=255;
-         }else
-         if(IsPow2(X) && IsPow2(Y) && IsPow2(Z))
-         {
-            UInt X1=X-1,
-                 Y1=Y-1,
-                 Z1=Z-1;
-            switch(light_dir)
-            {
-               #define A(x, y, z) (((x)<<1) + (y)*_Y + (z)*_Z)
-               // down
-               case DIRF_LEFT |DIRF_DOWN|DIRF_FORWARD: REPD(z,Z)REPD(x,X){Flt l=255;  REPD(y,Y){UInt i=A((x+y)&X1, y, (z-y)&Z1); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case            DIRF_DOWN|DIRF_FORWARD: REPD(z,Z)REPD(x,X){Flt l=255;  REPD(y,Y){UInt i=A( x      , y, (z-y)&Z1); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_RIGHT|DIRF_DOWN|DIRF_FORWARD: REPD(z,Z)REPD(x,X){Flt l=255;  REPD(y,Y){UInt i=A((x-y)&X1, y, (z-y)&Z1); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_LEFT |DIRF_DOWN             : REPD(z,Z)REPD(x,X){Flt l=255;  REPD(y,Y){UInt i=A((x+y)&X1, y,  z      ); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case            DIRF_DOWN             : REPD(z,Z)REPD(x,X){Flt l=255;  REPD(y,Y){UInt i=A( x      , y,  z      ); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_RIGHT|DIRF_DOWN             : REPD(z,Z)REPD(x,X){Flt l=255;  REPD(y,Y){UInt i=A((x-y)&X1, y,  z      ); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_LEFT |DIRF_DOWN|DIRF_BACK   : REPD(z,Z)REPD(x,X){Flt l=255;  REPD(y,Y){UInt i=A((x+y)&X1, y, (z+y)&Z1); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case            DIRF_DOWN|DIRF_BACK   : REPD(z,Z)REPD(x,X){Flt l=255;  REPD(y,Y){UInt i=A( x      , y, (z+y)&Z1); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_RIGHT|DIRF_DOWN|DIRF_BACK   : REPD(z,Z)REPD(x,X){Flt l=255;  REPD(y,Y){UInt i=A((x-y)&X1, y, (z+y)&Z1); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               // up
-               case DIRF_LEFT |DIRF_UP  |DIRF_FORWARD: REPD(z,Z)REPD(x,X){Flt l=255; FREPD(y,Y){UInt i=A((x-y)&X1, y, (z+y)&Z1); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case            DIRF_UP  |DIRF_FORWARD: REPD(z,Z)REPD(x,X){Flt l=255; FREPD(y,Y){UInt i=A( x      , y, (z+y)&Z1); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_RIGHT|DIRF_UP  |DIRF_FORWARD: REPD(z,Z)REPD(x,X){Flt l=255; FREPD(y,Y){UInt i=A((x+y)&X1, y, (z+y)&Z1); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_LEFT |DIRF_UP               : REPD(z,Z)REPD(x,X){Flt l=255; FREPD(y,Y){UInt i=A((x-y)&X1, y,  z      ); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case            DIRF_UP               : REPD(z,Z)REPD(x,X){Flt l=255; FREPD(y,Y){UInt i=A( x      , y,  z      ); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_RIGHT|DIRF_UP               : REPD(z,Z)REPD(x,X){Flt l=255; FREPD(y,Y){UInt i=A((x+y)&X1, y,  z      ); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_LEFT |DIRF_UP  |DIRF_BACK   : REPD(z,Z)REPD(x,X){Flt l=255; FREPD(y,Y){UInt i=A((x-y)&X1, y, (z-y)&Z1); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case            DIRF_UP  |DIRF_BACK   : REPD(z,Z)REPD(x,X){Flt l=255; FREPD(y,Y){UInt i=A( x      , y, (z-y)&Z1); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_RIGHT|DIRF_UP  |DIRF_BACK   : REPD(z,Z)REPD(x,X){Flt l=255; FREPD(y,Y){UInt i=A((x+y)&X1, y, (z-y)&Z1); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               // horizontal
-               case DIRF_LEFT                        : REPD(z,Z)REPD(y,Y){Flt l=255;  REPD(x,X){UInt i=A( x      , y,  z      ); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_LEFT           |DIRF_FORWARD: REPD(z,Z)REPD(y,Y){Flt l=255;  REPD(x,X){UInt i=A( x      , y, (z-x)&Z1); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_LEFT           |DIRF_BACK   : REPD(z,Z)REPD(y,Y){Flt l=255;  REPD(x,X){UInt i=A( x      , y, (z+x)&Z1); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_RIGHT                       : REPD(z,Z)REPD(y,Y){Flt l=255; FREPD(x,X){UInt i=A( x      , y,  z      ); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_RIGHT          |DIRF_FORWARD: REPD(z,Z)REPD(y,Y){Flt l=255; FREPD(x,X){UInt i=A( x      , y, (z+x)&Z1); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_RIGHT          |DIRF_BACK   : REPD(z,Z)REPD(y,Y){Flt l=255; FREPD(x,X){UInt i=A( x      , y, (z-x)&Z1); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               #undef A
-            }
-         }else
-         {
-            switch(light_dir)
-            {
-               #define A(x, y, z) ((Mod(x,X)<<1) + (y)*_Y + Mod(z,Z)*_Z)
-               case DIRF_LEFT |DIRF_DOWN|DIRF_FORWARD: REPD(z,Z)REPD(x,X){Flt l=255;  REPD(y,Y){UInt i=A(x+y, y, z-y); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case            DIRF_DOWN|DIRF_FORWARD: REPD(z,Z)REPD(x,X){Flt l=255;  REPD(y,Y){UInt i=A(x  , y, z-y); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_RIGHT|DIRF_DOWN|DIRF_FORWARD: REPD(z,Z)REPD(x,X){Flt l=255;  REPD(y,Y){UInt i=A(x-y, y, z-y); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_LEFT |DIRF_DOWN             : REPD(z,Z)REPD(x,X){Flt l=255;  REPD(y,Y){UInt i=A(x+y, y, z  ); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case            DIRF_DOWN             : REPD(z,Z)REPD(x,X){Flt l=255;  REPD(y,Y){UInt i=A(x  , y, z  ); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_RIGHT|DIRF_DOWN             : REPD(z,Z)REPD(x,X){Flt l=255;  REPD(y,Y){UInt i=A(x-y, y, z  ); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_LEFT |DIRF_DOWN|DIRF_BACK   : REPD(z,Z)REPD(x,X){Flt l=255;  REPD(y,Y){UInt i=A(x+y, y, z+y); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case            DIRF_DOWN|DIRF_BACK   : REPD(z,Z)REPD(x,X){Flt l=255;  REPD(y,Y){UInt i=A(x  , y, z+y); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_RIGHT|DIRF_DOWN|DIRF_BACK   : REPD(z,Z)REPD(x,X){Flt l=255;  REPD(y,Y){UInt i=A(x-y, y, z+y); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               // up
-               case DIRF_LEFT |DIRF_UP  |DIRF_FORWARD: REPD(z,Z)REPD(x,X){Flt l=255; FREPD(y,Y){UInt i=A(x-y, y, z+y); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case            DIRF_UP  |DIRF_FORWARD: REPD(z,Z)REPD(x,X){Flt l=255; FREPD(y,Y){UInt i=A(x  , y, z+y); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_RIGHT|DIRF_UP  |DIRF_FORWARD: REPD(z,Z)REPD(x,X){Flt l=255; FREPD(y,Y){UInt i=A(x+y, y, z+y); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_LEFT |DIRF_UP               : REPD(z,Z)REPD(x,X){Flt l=255; FREPD(y,Y){UInt i=A(x-y, y, z  ); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case            DIRF_UP               : REPD(z,Z)REPD(x,X){Flt l=255; FREPD(y,Y){UInt i=A(x  , y, z  ); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_RIGHT|DIRF_UP               : REPD(z,Z)REPD(x,X){Flt l=255; FREPD(y,Y){UInt i=A(x+y, y, z  ); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_LEFT |DIRF_UP  |DIRF_BACK   : REPD(z,Z)REPD(x,X){Flt l=255; FREPD(y,Y){UInt i=A(x-y, y, z-y); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case            DIRF_UP  |DIRF_BACK   : REPD(z,Z)REPD(x,X){Flt l=255; FREPD(y,Y){UInt i=A(x  , y, z-y); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_RIGHT|DIRF_UP  |DIRF_BACK   : REPD(z,Z)REPD(x,X){Flt l=255; FREPD(y,Y){UInt i=A(x+y, y, z-y); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               // horizontal
-               case DIRF_LEFT                        : REPD(z,Z)REPD(y,Y){Flt l=255;  REPD(x,X){UInt i=A(x  , y, z  ); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_LEFT           |DIRF_FORWARD: REPD(z,Z)REPD(y,Y){Flt l=255;  REPD(x,X){UInt i=A(x  , y, z-x); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_LEFT           |DIRF_BACK   : REPD(z,Z)REPD(y,Y){Flt l=255;  REPD(x,X){UInt i=A(x  , y, z+x); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_RIGHT                       : REPD(z,Z)REPD(y,Y){Flt l=255; FREPD(x,X){UInt i=A(x  , y, z  ); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_RIGHT          |DIRF_FORWARD: REPD(z,Z)REPD(y,Y){Flt l=255; FREPD(x,X){UInt i=A(x  , y, z+x); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               case DIRF_RIGHT          |DIRF_BACK   : REPD(z,Z)REPD(y,Y){Flt l=255; FREPD(x,X){UInt i=A(x  , y, z-x); _data[i]=Round(l); l*=1-Sat(_data[i+1]*a_mul);}} break;
-               #undef A
-            }
-         }
-         unlock().updateMipMaps();
-      }
-      if(T.mode()!=mode)
-      {
-         Image temp;
-         if(temp.createTry(w(), h(), d(), type(), mode, 1))
-            if(temp.lock(LOCK_WRITE))
-               if(lockRead())
-         {
-            REPD(z, T.d())
-            REPD(y, T.h())
-            REPD(x, T.w())temp.color3D(x, y, z, color3D(x, y, z));
-            Swap(unlock(), temp.unlock());
-         }
-      }
    }
    return T;
 }
@@ -2198,7 +2069,7 @@ error:
 /******************************************************************************/
 Bool Image::monochromatic()C
 {
-   if(ImageTI[type()].channels==1 || type()==IMAGE_L8A8)return true;
+   if(ImageTI[type()].channels==1 || type()==IMAGE_L8A8 || type()==IMAGE_L8A8_SRGB)return true;
 
  C Image *src =this; Image temp; if(compressed())if(src->copyTry(temp, -1, -1, -1, ImageTypeUncompressed(type()), IMAGE_SOFT, 1))src=&temp;else return false;
    Bool   mono=true;
@@ -2557,8 +2428,8 @@ Image& Image::applyShadow(C Image &shadow, C Color &shadow_color, C VecI2 &offse
             case IMAGE_I8 :
             case IMAGE_I16:
             case IMAGE_I24:
-            case IMAGE_I32: image_type=IMAGE_L8A8    ; break;
-            default       : image_type=IMAGE_R8G8B8A8; break;
+            case IMAGE_I32: image_type=IMAGE_L8A8_SRGB    ; break;
+            default       : image_type=IMAGE_R8G8B8A8_SRGB; break;
          }
       }
       if(!ImageTI[image_type].a)return T; // no alpha available

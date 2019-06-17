@@ -1082,7 +1082,7 @@ static void GetNotificationIcon(Image &image, DateTime &modify_time_utc, C Image
       if(!modify_time_utc.valid())modify_time_utc.getUTC();
    }else
    {
-      icon.copy(image, -1, -1, -1, IMAGE_L8A8, IMAGE_SOFT, 1, FILTER_BEST, true, true); // convert to grey
+      icon.copy(image, -1, -1, -1, IMAGE_L8A8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, true, true); // convert to grey
       modify_time_utc=icon_time;
    }
 }

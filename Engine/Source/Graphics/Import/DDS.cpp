@@ -40,7 +40,7 @@ struct DDS_PIXELFORMAT
       if(Flags&DDPF_LUMINANCE)
       {
          if(RGBBitCount== 8 && RBitMask==0x000000FF && GBitMask==0x00000000 && BBitMask==0x00000000 && ABitMask==0x00000000)return IMAGE_L8;
-         if(RGBBitCount==16 && RBitMask==0x000000FF && GBitMask==0x00000000 && BBitMask==0x00000000 && ABitMask==0x0000FF00)return IMAGE_L8A8;
+         if(RGBBitCount==16 && RBitMask==0x000000FF && GBitMask==0x00000000 && BBitMask==0x00000000 && ABitMask==0x0000FF00)return IMAGE_L8A8_SRGB;
          if(RGBBitCount==16 && RBitMask==0x0000FFFF && GBitMask==0x00000000 && BBitMask==0x00000000 && ABitMask==0x00000000)return IMAGE_I16;
       }
       if(RGBBitCount==32 && RBitMask==0x00FF0000 && GBitMask==0x0000FF00 && BBitMask==0x000000FF && ABitMask==0xFF000000)return IMAGE_B8G8R8A8_SRGB;

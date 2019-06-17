@@ -275,7 +275,7 @@ Bool Font::imageType(IMAGE_TYPE type)
 }
 void Font::toSoft()
 {
-   IMAGE_TYPE type=(_sub_pixel ? IMAGE_R8G8B8A8_SRGB : IMAGE_L8A8);
+   IMAGE_TYPE type=(_sub_pixel ? IMAGE_R8G8B8A8_SRGB : IMAGE_L8A8_SRGB);
    REPA(_images)
    {
       Image &image=_images[i];
@@ -404,7 +404,7 @@ static void SwapGreenAlpha(Font &font)
 {
    if(!font._sub_pixel)REPA(font._images)
    {
-      Image &image=font._images[i]; if(image.copyTry(image, -1, -1, -1, IMAGE_L8A8, -1, -1, FILTER_NONE)) // disable filtering here as it will be done below
+      Image &image=font._images[i]; if(image.copyTry(image, -1, -1, -1, IMAGE_L8A8_SRGB, -1, -1, FILTER_NONE)) // disable filtering here as it will be done below
       {
          if(image.lock())
          {
@@ -910,7 +910,7 @@ struct FontCreate : Font::Params
    VecI2                            draw_size; // size of the buffer used for drawing
    Memc<FontChar>                   chars; // chars to create
    Int                              processed;   Int leftToProcess()C {return Max(0, chars.elms()-processed-SPECIAL_CHARS);} // skip special chars
-   IMAGE_TYPE                       imageTypeTemp()C {return (mode==Font::SUB_PIXEL) ? IMAGE_R8G8B8A8_SRGB : IMAGE_L8A8;}
+   IMAGE_TYPE                       imageTypeTemp()C {return (mode==Font::SUB_PIXEL) ? IMAGE_R8G8B8A8_SRGB : IMAGE_L8A8_SRGB;}
    SystemFont                       font;
    MemtN<SystemFontDrawContext, 16> dcs;
 

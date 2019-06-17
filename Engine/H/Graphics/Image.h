@@ -43,9 +43,10 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
    IMAGE_R8G8         , // 16-bit (R,G,0,1), linear gamma, Soft, DX10+, GL, GL ES
    IMAGE_R8           , //  8-bit (R,0,0,1), linear gamma, Soft, DX10+, GL, GL ES
 
-   IMAGE_A8  , //  8-bit           alpha (0,0,0,A), Soft, DX10+, GL, GL ES
-   IMAGE_L8  , //  8-bit luminance       (L,L,L,1), Soft,        GL, GL ES
-   IMAGE_L8A8, // 16-bit luminance alpha (L,L,L,A), Soft,        GL, GL ES
+   IMAGE_A8       , //  8-bit           alpha (0,0,0,A),               Soft, DX10+, GL, GL ES
+   IMAGE_L8       , //  8-bit luminance       (L,L,L,1), linear gamma, Soft,        GL, GL ES
+   IMAGE_L8A8     , // 16-bit luminance alpha (L,L,L,A), linear gamma, Soft,        GL, GL ES
+   IMAGE_L8A8_SRGB, // 16-bit luminance alpha (L,L,L,A), sRGB   gamma, Soft
 
    IMAGE_R10G10B10A2, // 32-bit (R,G,B,A), linear gamma, Soft, DX10+, GL, GL ES
 
