@@ -1,6 +1,7 @@
 /******************************************************************************/
 #ifdef _WIN32 // WINDOWS
    #define LOCK_WRITE WindowsLOCK_WRITE
+   #define FontPtr    WindowsFontPtr
 #elif defined __APPLE__ // APPLE
    #define Ptr       ApplePtr
    #define Point     ApplePoint
