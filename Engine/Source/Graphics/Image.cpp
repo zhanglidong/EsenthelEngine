@@ -527,15 +527,15 @@ UInt SourceGLFormat(IMAGE_TYPE type)
       case IMAGE_I24:
       case IMAGE_I32: return GL_LUMINANCE;
 
-#if GL_SWIZZLE
+   #if GL_SWIZZLE
       case IMAGE_A8  : return GL_RED;
       case IMAGE_L8  : return GL_RED;
       case IMAGE_L8A8: return GL_RG;
-#else
+   #else
       case IMAGE_A8  : return GL_ALPHA;
       case IMAGE_L8  : return GL_LUMINANCE;
       case IMAGE_L8A8: return GL_LUMINANCE_ALPHA;
-#endif
+   #endif
 
       case IMAGE_F16    :
       case IMAGE_F32    :
