@@ -223,7 +223,7 @@ void ReceiptPrinter::barcode128(C Str8 &code)
 /******************************************************************************/
 static inline Bool ColToBit(C Vec4 &c)
 {
-   return (1-SRGBLumOfSRGBColor(c.xyz))*c.w>=0.5f;
+   return (1-SRGBLumOfLinearColor(c.xyz))*c.w>=0.5f;
 }
 Bool ReceiptPrinter::operator+=(C Image &img)
 {
