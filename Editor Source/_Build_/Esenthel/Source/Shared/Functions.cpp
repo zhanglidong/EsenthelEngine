@@ -328,23 +328,21 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type, uint flags)
       if(!image.is())return;
       MD5   m;
       bool  bc1=true, bc2=true, // BC1 uses 1 bit alpha (0 or 255), BC2 uses 4 bit alpha
-            force_alpha=(md5 && (flags&IGNORE_ALPHA) && ImageTI[image.type()].a); // if we want hash and we want to ignore alpha, and source had alpha, then we need to adjust as if it has full alpha, this is done because: ignoring alpha may save the image in format that doesn't support the alpha channel, however if the same image is later used for something else, and now wants to use that alpha channel, then it needs to be created as a different texture (with different hash)
+            force_alpha=(md5 && (flags&IGNORE_ALPHA) && ImageTI[image.type()].a), // if we want hash and we want to ignore alpha, and source had alpha, then we need to adjust as if it has full alpha, this is done because: ignoring alpha may save the image in format that doesn't support the alpha channel, however if the same image is later used for something else, and now wants to use that alpha channel, then it needs to be created as a different texture (with different hash)
+            extract=((md5 && (image.hwType()!=IMAGE_R8G8B8A8 && image.hwType()!=IMAGE_R8G8B8A8_SRGB)) // calculating hash requires RGBA format
+                  || (compress_type && ImageTI[image.hwType()].compressed) // checking compress_type requires color reads so copy to RGBA soft to make them faster
+                  || force_alpha); // forcing alpha requires modifying the alpha channel, so copy to 'temp' which we can modify
+      Image temp; C Image *src=(extract ? &temp : &image);
       FREPD(face, image.faces())
       {
-         Image temp; C Image *src=&image; int src_face=face;
-         if((md5 && (src->hwType()!=IMAGE_R8G8B8A8 && src->hwType()!=IMAGE_R8G8B8A8_SRGB)) // calculating hash requires RGBA format
-         || (compress_type && ImageTI[src->hwType()].compressed) // checking compress_type requires color reads so copy to RGBA soft to make them faster
-         || force_alpha) // forcing alpha requires modifying the alpha channel, so copy to 'temp' which we can modify
-         {
-            if(!src->extractMipMap(temp, IMAGE_R8G8B8A8, 0, DIR_ENUM(face)))return; src=&temp; src_face=0;
-         }
-         if(src->lockRead(0, DIR_ENUM(src_face)))
+         int src_face=face; if(extract)if(image.extractMipMap(temp, IMAGE_R8G8B8A8, 0, DIR_ENUM(face)))src_face=0;else return; // error
+         if( src->lockRead(0, DIR_ENUM(src_face)))
          {
             if(force_alpha  ) REPD(z, temp.d())
                               REPD(y, temp.h())
                               REPD(x, temp.w())temp.pixC(x, y, z).a=255; // set before calculating hash
             if(md5          )FREPD(z,  src->d())
-                             FREPD(y,  src->h())m.update(src->data() + y*src->pitch() + z*src->pitch2(), src->w()*4);
+                             FREPD(y,  src->h())m.update(src->data() + y*src->pitch() + z*src->pitch2(), src->w()*src->bytePP());
             if(compress_type) REPD(z,  src->d())
                               REPD(y,  src->h())
                               REPD(x,  src->w())

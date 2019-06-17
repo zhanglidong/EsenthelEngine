@@ -2073,16 +2073,21 @@ Bool Image::monochromatic()C
    if(!type_info.r && !type_info.g && !type_info.b
    ||  type()==IMAGE_L8 || type()==IMAGE_L8A8 || type()==IMAGE_L8A8_SRGB)return true;
 
- C Image *src=this; Image temp; if(compressed())if(src->copyTry(temp, -1, -1, -1, ImageTypeUncompressed(type()), cube() ? IMAGE_SOFT_CUBE : IMAGE_SOFT, 1))src=&temp;else return false;
-   REPD(face, src->faces())if(src->lockRead(0, DIR_ENUM(face)))
+   Bool  extract=compressed(); IMAGE_TYPE type=ImageTypeUncompressed(T.type());
+   Image temp; C Image *src=(extract ? &temp : this);
+   REPD(face, faces()) // 'faces' and not 'src.faces' because that could be empty
    {
-      REPD(z, src->ld())
-      REPD(y, src->lh())
-      REPD(x, src->lw())
+      int src_face=face; if(extract)if(extractMipMap(temp, type, 0, DIR_ENUM(face)))src_face=0;else return false; // error
+      if( src->lockRead(0, DIR_ENUM(src_face)))
       {
-         Color c=src->color3D(x, y, z); if(c.r!=c.g || c.r!=c.b){src->unlock(); return false;}
+         REPD(z, src->ld())
+         REPD(y, src->lh())
+         REPD(x, src->lw())
+         {
+            Color c=src->color3D(x, y, z); if(c.r!=c.g || c.r!=c.b){src->unlock(); return false;}
+         }
+         src->unlock();
       }
-      src->unlock();
    }
    return true;
 }
