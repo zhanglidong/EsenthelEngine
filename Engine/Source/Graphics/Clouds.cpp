@@ -14,10 +14,10 @@ LayeredClouds::LayeredClouds()
 {
    draw_in_mirror=false;
    merge_with_sky=MOBILE;
-   layer[0].color=WHITE; layer[0].scale=1.0f/2.8f; layer[0].position.set(0.00f, 0.0f); layer[0].velocity=0.010f;
-   layer[1].color=WHITE; layer[1].scale=1.0f/2.4f; layer[1].position.set(0.25f, 0.2f); layer[1].velocity=0.008f;
-   layer[2].color=WHITE; layer[2].scale=1.0f/2.0f; layer[2].position.set(0.50f, 0.1f); layer[2].velocity=0.006f;
-   layer[3].color=WHITE; layer[3].scale=1.0f/1.6f; layer[3].position.set(0.75f, 0.8f); layer[3].velocity=0.004f;
+   layer[0].color=1; layer[0].scale=1.0f/2.8f; layer[0].position.set(0.00f, 0.0f); layer[0].velocity=0.010f;
+   layer[1].color=1; layer[1].scale=1.0f/2.4f; layer[1].position.set(0.25f, 0.2f); layer[1].velocity=0.008f;
+   layer[2].color=1; layer[2].scale=1.0f/2.0f; layer[2].position.set(0.50f, 0.1f); layer[2].velocity=0.006f;
+   layer[3].color=1; layer[3].scale=1.0f/1.6f; layer[3].position.set(0.75f, 0.8f); layer[3].velocity=0.004f;
    frac(0.9f);
   _scale_y=1.05f; // set manually instead of calling method to avoid accessing shader param map, which could crash if not yet initialized
   _rmc    =4    ; // set manually instead of calling method to avoid accessing shader param map, which could crash if not yet initialized
@@ -105,7 +105,7 @@ void LayeredClouds::commit()
    REP(_layers)
    {
       GpuCloudLayer cl;
-      cl.color   =layer[i].color.asVec4();
+      cl.color   =layer[i].color;
       cl.scale   =layer[i].scale/LCScale;
    #if MOBILE
       cl.position=Frac(layer[i].position); // mobile devices can have low precision for tex coords, so use fraction to always keep in 0..1 range

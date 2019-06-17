@@ -245,7 +245,7 @@ static void ColorAlpha(ColorPicker &cp, C Str &text) {Flt val=TextFlt(text); if(
 static void ColorHue  (ColorPicker &cp, C Str &text) {Flt val=TextFlt(text); if(!cp._real)val/=255; cp._setHSB  (Vec(val       , cp._hsb.y , cp._hsb.z )); cp.toGui(true , false, false       );} // update RGB, RGBA
 static void ColorSat  (ColorPicker &cp, C Str &text) {Flt val=TextFlt(text); if(!cp._real)val/=255; cp._setHSB  (Vec(cp._hsb.x , val       , cp._hsb.z )); cp.toGui(true , false, false       );} // update RGB, RGBA
 static void ColorLum  (ColorPicker &cp, C Str &text) {Flt val=TextFlt(text); if(!cp._real)val/=255; cp._setHSB  (Vec(cp._hsb.x , cp._hsb.y , val       )); cp.toGui(true , false, false       );} // update RGB, RGBA
-static void ColorRGBA (ColorPicker &cp, C Str &text) {Color c; c.fromHex(text);                     cp._set     (c.asVec4()                             ); cp.toGui(true , true , true , false);} // update RGB, HSB, ALPHA
+static void ColorRGBA (ColorPicker &cp, C Str &text) {Color c; c.fromHex(text);                     cp._set     (c                                      ); cp.toGui(true , true , true , false);} // update RGB, HSB, ALPHA
 
 static Str ColorRed  (C ColorPicker &cp) {return cp._real ? TextFlt(cp._rgba.x) : TextInt(Round(255*cp._rgba.x));}
 static Str ColorGreen(C ColorPicker &cp) {return cp._real ? TextFlt(cp._rgba.y) : TextInt(Round(255*cp._rgba.y));}

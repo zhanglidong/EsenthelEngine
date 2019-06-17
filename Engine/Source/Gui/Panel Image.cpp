@@ -107,16 +107,16 @@ struct SectionParams
 
    void setColors(C PanelImageParams::Section &src)
    {
-      color_top   =src.color_top   .asVec4();
-      color_bottom=src.color_bottom.asVec4();
-      color_left  =src.color_left  .asVec4();
-      color_right =src.color_right .asVec4();
-      outer_color =src.outer_color .asVec4();
-      inner_color =src.inner_color .asVec4();
-      outer_border_color=src.outer_border_color.asVec4();
-      inner_border_color=src.inner_border_color.asVec4();
-       prev_border_color=src. prev_border_color.asVec4();
-      Vec4 src_color=src.color.asVec4(); outer_color*=src_color; inner_color*=src_color;
+      color_top   =src.color_top;
+      color_bottom=src.color_bottom;
+      color_left  =src.color_left;
+      color_right =src.color_right;
+      outer_color =src.outer_color;
+      inner_color =src.inner_color;
+      outer_border_color=src.outer_border_color;
+      inner_border_color=src.inner_border_color;
+       prev_border_color=src. prev_border_color;
+      Vec4 src_color=src.color; outer_color*=src_color; inner_color*=src_color;
    }
    void setColorY(Flt section_frac, C Vec4 &global_color_y, Vec4 &section_color_y)
    {
@@ -556,11 +556,11 @@ struct PanelImageCreate
          }
          top_offset=-(last.size_top-last.size)*0.5f*resolution;
 
-         color_top   =params.color_top   .asVec4()*params.color.asVec4();
-         color_bottom=params.color_bottom.asVec4()*params.color.asVec4();
-         color_left  =params.color_left  .asVec4();
-         color_right =params.color_right .asVec4();
-    inner_glow_color =params.inner_glow_color.asVec4();
+         color_top   =params.color_top   ; color_top   *=params.color;
+         color_bottom=params.color_bottom; color_bottom*=params.color;
+         color_left  =params.color_left;
+         color_right =params.color_right;
+    inner_glow_color =params.inner_glow_color;
 
          Flt cut_corner_amount=params.cut_corner_amount*0.5f*resolution, cut_corner_slope=Max(0, params.cut_corner_slope);
          corner_line[0][0].pos.set(            0,             0+cut_corner_amount); corner_line[0][0].normal.set( 1,  cut_corner_slope);

@@ -73,9 +73,7 @@ struct MainShaderClass
       *h_FontShade   ,
       *h_FontDepth   ,
 
-      *h_LightMapScale   ,
-      *h_LightMapColAdd  ,
-      *h_LightMapSpecular,
+      *h_LightMapScale,
 
       *h_GrassRangeMulAdd,
       *h_BendFactor,

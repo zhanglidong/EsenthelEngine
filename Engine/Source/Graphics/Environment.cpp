@@ -104,7 +104,7 @@ void Environment::Clouds::get()
    {
     C LayeredClouds::Layer &src =::Clouds.layered.layer [i];
                      Layer &dest=                 layers[i];
-      dest.scale=src.scale; dest.velocity=src.velocity; dest.color=src.color.asVec4(); dest.image=src.image;
+      dest.scale=src.scale; dest.velocity=src.velocity; dest.color=src.color; dest.image=src.image;
    }
    on=(::Clouds.layered.layers()>0);
    vertical_scale   =::Clouds.layered.scaleY();
@@ -255,7 +255,7 @@ void Environment::Sun::get()
    pos            =::Sun.pos;
    light_color    =::Sun.light_color;
     rays_color    =::Sun. rays_color;
-   image_color    =::Sun.image_color.asVec4();
+   image_color    =::Sun.image_color;
    image          =::Sun.image;
 }
 void Environment::Sun::reset()

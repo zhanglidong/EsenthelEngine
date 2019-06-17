@@ -311,9 +311,7 @@ void MainShaderClass::getTechniques()
    h_VtxSkinning =GetShaderParam("VtxSkinning" );
    h_VtxHeightmap=GetShaderParam("VtxHeightmap");
 
-   h_LightMapScale   =GetShaderParam("LightMapScale");
-   h_LightMapColAdd  =GetShaderParam("LightMapColAdd");
-   h_LightMapSpecular=GetShaderParam("LightMapSpecular");
+   h_LightMapScale=GetShaderParam("LightMapScale");
 
    h_GrassRangeMulAdd=GetShaderParam("GrassRangeMulAdd");
    h_BendFactor      =GetShaderParam("BendFactor");

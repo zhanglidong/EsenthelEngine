@@ -85,7 +85,7 @@ struct LightCone // Cone Light
    Vec      color  ; // color             , (0,0,0) .. (1,1,1)
    PyramidM pyramid; // pyramid           , determines orientation of the light
 
-   void add(Flt shadow_opacity=1.0f, CPtr light_src=null, Image *image=null, Flt image_scale=1, C Color &image_add=TRANSPARENT, Flt image_specular=0); // add light to scene, this needs to be called only in RM_PREPARE mode, 'shadow_opacity'=opacity of shadows (0..1) where value 0 disables shadowing, value 1 sets full shadows, and values between allow for manual blending the shadows, 'light_src'=custom pointer to light source (which can be later accessed from "CurrentLight.src"), 'image'=dynamic lightmap, 'image_add'=add color to dynamic lightmap, 'image_scale'=scale dynamic lightmap, 'image_specular'=specular of dynamic lightmap
+   void add(Flt shadow_opacity=1.0f, CPtr light_src=null, Image *image=null, Flt image_scale=1); // add light to scene, this needs to be called only in RM_PREPARE mode, 'shadow_opacity'=opacity of shadows (0..1) where value 0 disables shadowing, value 1 sets full shadows, and values between allow for manual blending the shadows, 'light_src'=custom pointer to light source (which can be later accessed from "CurrentLight.src"), 'image'=dynamic lightmap, 'image_scale'=scale dynamic lightmap
 
    LightCone() {}
    LightCone(Flt length, C VecD &pos, C Vec &dir, C Vec &color=Vec(1, 1, 1), Flt vol=0, Flt vol_max=0.5f);
@@ -101,9 +101,7 @@ struct Light
    LIGHT_TYPE type          ; // light type
    Bool       shadow        ; // if shadowing enabled
    Flt        shadow_opacity; // opacity of shadows
-   Color      image_add     ; // dynamic lightmap color add
-   Flt        image_specular, // dynamic lightmap specular
-              image_scale   ; // dynamic lightmap scale
+   Flt        image_scale   ; // dynamic lightmap scale
    Rect       rect          ; // on screen rectangle affected by light
    CPtr       src           ; // custom pointer to light source
    Image     *image         ; // dynamic lightmap

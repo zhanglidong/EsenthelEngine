@@ -2090,7 +2090,7 @@ Vec4 MemberDesc::asColor(CPtr data)C
             case DATA_COLOR: switch(size)
             {
                case SIZE(VecB ): return Vec4(Vec(*(VecB *)data)/255.0f, 1);
-               case SIZE(Color): return          ((Color*)data)->asVec4();
+               case SIZE(Color): return          *(Color*)data;
                case SIZE(VecH ): return     Vec4(*(VecH *)data, 1);
                case SIZE(VecH4): return          *(VecH4*)data;
                case SIZE(Vec  ): return     Vec4(*(Vec  *)data, 1);

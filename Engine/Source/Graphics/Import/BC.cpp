@@ -213,7 +213,7 @@ void DecompressBlockBC6(C Byte *b, Color (&block)[4][4])
    Zero(block_h);
 #endif
    REPD(y, 4)
-   REPD(x, 4)block[y][x]=(Color)block_h[y][x];
+   REPD(x, 4)block[y][x]=(Vec)block_h[y][x];
 }
 void DecompressBlockBC6(C Byte *b, Color *dest, Int pitch) {Color block[4][4]; DecompressBlockBC6(b, block); FREPD(y, 4){CopyFast(dest, block[y], SIZE(Color)*4); dest=(Color*)((Byte*)dest+pitch);}} // move in forward order so 'dest' can be increased by pitch
 void DecompressBlockBC6(C Byte *b, VecH  *dest, Int pitch) {VecH  block[4][4]; DecompressBlockBC6(b, block); FREPD(y, 4){CopyFast(dest, block[y], SIZE(VecH )*4); dest=(VecH *)((Byte*)dest+pitch);}} // move in forward order so 'dest' can be increased by pitch

@@ -42,14 +42,14 @@ WorldManager& WorldManager::terrainAddOverlay(C MaterialPtr &material, C Matrix 
    return T;
 }
 /******************************************************************************/
-WorldManager& WorldManager::terrainAddDecal(C Color &color, C MaterialPtr &material, C Matrix &decal_matrix, Flt time_to_fade_out)
+WorldManager& WorldManager::terrainAddDecal(C Vec4 &color, C MaterialPtr &material, C Matrix &decal_matrix, Flt time_to_fade_out)
 {
    if(material)
    {
       Decal2 &decal=_decals.New();
       decal.time        =time_to_fade_out;
       decal.terrain_only=true;
-      decal.color       =color.asVec4();
+      decal.color       =color;
       decal.matrix      =decal_matrix;
       decal.material    (material);
    }

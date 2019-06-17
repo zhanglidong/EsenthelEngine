@@ -25,6 +25,20 @@ Color::Color(C Vec4 &color)
    b=FltToByte(color.z);
    a=FltToByte(color.w);
 }
+Color::operator Vec()C
+{
+   return Vec(r/255.0f,
+              g/255.0f,
+              b/255.0f);
+}
+Color::operator Vec4()C
+{
+   return Vec4(r/255.0f,
+               g/255.0f,
+               b/255.0f,
+               a/255.0f);
+}
+/******************************************************************************/
 Color::Color(C VecB &color)
 {
    r=color.x;
@@ -42,19 +56,6 @@ Color::Color(C VecB4 &color)
 #else
    u=color.u;
 #endif
-}
-Vec Color::asVec()C
-{
-   return Vec(r/255.0f,
-              g/255.0f,
-              b/255.0f);
-}
-Vec4 Color::asVec4()C
-{
-   return Vec4(r/255.0f,
-               g/255.0f,
-               b/255.0f,
-               a/255.0f);
 }
 StrO Color::asText()C {StrO s; s.reserve(18); s+=r; s+=", "; s+=g; s+=", "; s+=b; s+=", "; s+=a; return s;} // 18 because of 4x"255" + 3x", " = 4*3 + 3*2 = 12 + 6 = 18
 StrO Color::asHex ()C {ASSERT(SIZE(T)==4); return TextHexMem(this, SIZE(T), false);}
@@ -213,7 +214,7 @@ Color ColorHue(Flt hue)
 }
 Color ColorHue(C Color &color, Flt hue)
 {
-   Vec  hsb=RgbToHsb(color.asVec());
+   Vec  hsb=RgbToHsb(color);
    Color  c=ColorHSB(hsb.x+hue, hsb.y, hsb.z); c.a=color.a;
    return c;
 }

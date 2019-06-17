@@ -219,7 +219,7 @@ struct Simplify // must be used for a single 'simplify', after that it cannot be
          tex0=vtx.tex0;
          tex1=vtx.tex1;
          tex2=vtx.tex2;
-         color=vtx.color.asVec4();
+         color=vtx.color;
          material=vtx.material; material/=255;
          matrix=vtx.matrix;
          blend=vtx.blend;

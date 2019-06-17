@@ -176,17 +176,15 @@ Flt LightPoint::range()C
    return Sqrt(power/(4.0f/255));
 }
 /******************************************************************************/
-void LightDir  ::add(Bool shadow        , CPtr light_src                                                                       ) {           if(color.max()          >EPS_COL                       && Renderer.firstPass()){Lights.New().set(T,       shadow        , light_src);}}
-void LightPoint::add(Flt  shadow_opacity, CPtr light_src                                                                       ) {Rect rect; if(color.max()*power    >EPS_COL && toScreenRect(rect) && Renderer.firstPass()){Lights.New().set(T, rect, shadow_opacity, light_src);}}
-void LightSqr  ::add(Flt  shadow_opacity, CPtr light_src                                                                       ) {Rect rect; if(color.max()*range    >EPS_COL && toScreenRect(rect) && Renderer.firstPass()){Lights.New().set(T, rect, shadow_opacity, light_src);}}
-void LightCone ::add(Flt  shadow_opacity, CPtr light_src, Image *image, Flt image_scale, C Color &image_add, Flt image_specular) {Rect rect; if(color.max()*pyramid.h>EPS_COL && toScreenRect(rect) && Renderer.firstPass())
+void LightDir  ::add(Bool shadow        , CPtr light_src                               ) {           if(color.max()          >EPS_COL                       && Renderer.firstPass()){Lights.New().set(T,       shadow        , light_src);}}
+void LightPoint::add(Flt  shadow_opacity, CPtr light_src                               ) {Rect rect; if(color.max()*power    >EPS_COL && toScreenRect(rect) && Renderer.firstPass()){Lights.New().set(T, rect, shadow_opacity, light_src);}}
+void LightSqr  ::add(Flt  shadow_opacity, CPtr light_src                               ) {Rect rect; if(color.max()*range    >EPS_COL && toScreenRect(rect) && Renderer.firstPass()){Lights.New().set(T, rect, shadow_opacity, light_src);}}
+void LightCone ::add(Flt  shadow_opacity, CPtr light_src, Image *image, Flt image_scale) {Rect rect; if(color.max()*pyramid.h>EPS_COL && toScreenRect(rect) && Renderer.firstPass())
    {
       Light &l=Lights.New();
       l.set(T, rect, shadow_opacity, light_src);
-      l.image         =image;
-      l.image_scale   =image_scale;
-      l.image_add     =image_add;
-      l.image_specular=image_specular;
+      l.image      =image;
+      l.image_scale=image_scale;
    }
 }
 /******************************************************************************/
@@ -1198,10 +1196,8 @@ void Light::draw()
          }
          if(CurrentLight.image)
          {
-            Sh.h_LightMapScale   ->set(CurrentLight.image_scale   );
-            Sh.h_LightMapColAdd  ->set(CurrentLight.image_add     );
-            Sh.h_LightMapSpecular->set(CurrentLight.image_specular);
-            Sh.h_ImageCol[1]     ->set(CurrentLight.image         );
+            Sh.h_LightMapScale->set(CurrentLight.image_scale);
+            Sh.h_ImageCol[1]  ->set(CurrentLight.image      );
          }
          Bool clear=SetLum();
          if(!Renderer._ds->multiSample()) // 1-sample

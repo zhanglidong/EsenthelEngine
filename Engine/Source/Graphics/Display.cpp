@@ -2932,7 +2932,7 @@ void Display::clear(C Color &srgb_color)
    clearCol(srgb_color);
    clearDS (          );
 }
-void Display::clearCol(C Color &srgb_color) {return clearCol(LINEAR_GAMMA ? SRGBToLinear(srgb_color) : srgb_color.asVec4());}
+void Display::clearCol(C Color &srgb_color) {return clearCol(SRGBToDisplay(srgb_color));}
 void Display::clearCol(C Vec4  &     color)
 {
    if(Renderer._cur[0])

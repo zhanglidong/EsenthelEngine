@@ -3,7 +3,7 @@ struct LayeredClouds
 {
    struct Layer // Cloud Layer
    {
-      Color    color   ; // texture color   ,          , default=WHITE
+      Vec4     color   ; // texture color   ,          , default=(1, 1, 1, 1)
       Flt      scale   ; // texture scale   ,    0..Inf, default={0.35, 0.41, 0.50, 0.62}
       Vec2     position, // texture position, -Inf..Inf,
                velocity; // texture velocity, -Inf..Inf, default={0.010, 0.008, 0.006, 0.004}
@@ -15,10 +15,10 @@ struct LayeredClouds
    Layer layer[4]      ; // layer array
 
    // set / get
-   LayeredClouds& set            (Byte active_layers, C ImagePtr &image=null);   Int  layers         ()C {return _layers ;} // set/get number of active layers 0..4, if 'image'!=null layers will have 'image' set as their texture
-   LayeredClouds& frac           (Flt  frac                                 );   Flt  frac           ()C {return _frac   ;} // set/get cloud viewport fraction  , 0..1  , default=0.9 , fraction of the Viewport range where clouds start (1 is the fastest)
-   LayeredClouds& scaleY         (Flt  scale                                );   Flt  scaleY         ()C {return _scale_y;} // set/get y scaling                , 1..2  , default=1.05, setting this value higher than 1 helps covering the empty gap between flat ground and the clouds
-   LayeredClouds& rayMaskContrast(Flt  contrast                             );   Flt  rayMaskContrast()C {return _rmc    ;} // set/get sun rays masking contrast, 1..Inf, default=4   , this is used when "Sun.rays_mode==SUN_RAYS_HIGH"
+   LayeredClouds& set            (Byte active_layers, C ImagePtr &image=null);   Int layers         ()C {return _layers ;} // set/get number of active layers 0..4, if 'image'!=null layers will have 'image' set as their texture
+   LayeredClouds& frac           (Flt  frac                                 );   Flt frac           ()C {return _frac   ;} // set/get cloud viewport fraction  , 0..1  , default=0.9 , fraction of the Viewport range where clouds start (1 is the fastest)
+   LayeredClouds& scaleY         (Flt  scale                                );   Flt scaleY         ()C {return _scale_y;} // set/get Y scaling                , 1..2  , default=1.05, setting this value higher than 1 helps covering the empty gap between flat ground and the clouds
+   LayeredClouds& rayMaskContrast(Flt  contrast                             );   Flt rayMaskContrast()C {return _rmc    ;} // set/get sun rays masking contrast, 1..Inf, default=4   , this is used when "Sun.rays_mode==SUN_RAYS_HIGH"
 
    void update(); // update layers, this needs to be called once per frame to update the cloud texture animation movement (move the layer texture positions according to velocities)
 

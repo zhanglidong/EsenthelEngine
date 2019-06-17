@@ -222,8 +222,8 @@ struct WorldManager // World Manager
    Obj* findObjById(C UID &obj_id, Int obj_type=-1); // find world object by its Unique ID (this is the ID of the world object itself, and not its base object or class), 'obj_type'=OBJ_TYPE of the object (or if you don't know it, then use -1), null on fail (if not found)
 
    // terrain
-   WorldManager& terrainAddDecal  (C Color &color, C MaterialPtr &material, C Matrix &  decal_matrix, Flt time_to_fade_out=10); // add a Decal       to current World's terrain
-   WorldManager& terrainAddOverlay(                C MaterialPtr &material, C Matrix &overlay_matrix, Flt time_to_fade_out=10); // add a MeshOverlay to current World's terrain
+   WorldManager& terrainAddDecal  (C Vec4 &color, C MaterialPtr &material, C Matrix &  decal_matrix, Flt time_to_fade_out=10); // add a Decal       to current World's terrain
+   WorldManager& terrainAddOverlay(               C MaterialPtr &material, C Matrix &overlay_matrix, Flt time_to_fade_out=10); // add a MeshOverlay to current World's terrain
 
    // path
    AreaPath2D* path2DGet     (C VecI2 &xz ); // get pointer to Area paths at given Area coordinates, returns null when path's don't exist at specified coordinates

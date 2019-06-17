@@ -417,21 +417,21 @@ void ShaderParam::initAsElement(ShaderParam &parent, Int index)
    REPA(_optimized_translation)MAX(_gpu_data_size, _optimized_translation[i].gpu_offset+_optimized_translation[i].elm_size);
 }
 /******************************************************************************/
-void ShaderParam::set(  Bool   b          ) {setChanged();  *(Flt *)_data=b;}
-void ShaderParam::set(  Int    i          ) {setChanged();  *(Flt *)_data=i;}
-void ShaderParam::set(  Flt    f          ) {setChanged();  *(Flt *)_data=f;}
-void ShaderParam::set(  Dbl    d          ) {setChanged();  *(Flt *)_data=d;}
-void ShaderParam::set(C Vec2  &v          ) {setChanged();  *(Vec2*)_data=v;}
-void ShaderParam::set(C VecD2 &v          ) {setChanged();  *(Vec2*)_data=v;}
-void ShaderParam::set(C VecI2 &v          ) {setChanged();  *(Vec2*)_data=v;}
-void ShaderParam::set(C Vec   &v          ) {setChanged();  *(Vec *)_data=v;}
-void ShaderParam::set(C VecD  &v          ) {setChanged();  *(Vec *)_data=v;}
-void ShaderParam::set(C VecI  &v          ) {setChanged();  *(Vec *)_data=v;}
-void ShaderParam::set(C Vec4  &v          ) {setChanged();  *(Vec4*)_data=v;}
-void ShaderParam::set(C VecD4 &v          ) {setChanged();  *(Vec4*)_data=v;}
-void ShaderParam::set(C VecI4 &v          ) {setChanged();  *(Vec4*)_data=v;}
-void ShaderParam::set(C Rect  &rect       ) {setChanged();  *(Rect*)_data=rect;}
-void ShaderParam::set(C Color &color      ) {setChanged(); (*(Vec4*)_data).set(color.r/255.0f, color.g/255.0f, color.b/255.0f, color.a/255.0f);}
+void ShaderParam::set(  Bool   b          ) {setChanged(); *(Flt *)_data=b;}
+void ShaderParam::set(  Int    i          ) {setChanged(); *(Flt *)_data=i;}
+void ShaderParam::set(  Flt    f          ) {setChanged(); *(Flt *)_data=f;}
+void ShaderParam::set(  Dbl    d          ) {setChanged(); *(Flt *)_data=d;}
+void ShaderParam::set(C Vec2  &v          ) {setChanged(); *(Vec2*)_data=v;}
+void ShaderParam::set(C VecD2 &v          ) {setChanged(); *(Vec2*)_data=v;}
+void ShaderParam::set(C VecI2 &v          ) {setChanged(); *(Vec2*)_data=v;}
+void ShaderParam::set(C Vec   &v          ) {setChanged(); *(Vec *)_data=v;}
+void ShaderParam::set(C VecD  &v          ) {setChanged(); *(Vec *)_data=v;}
+void ShaderParam::set(C VecI  &v          ) {setChanged(); *(Vec *)_data=v;}
+void ShaderParam::set(C Vec4  &v          ) {setChanged(); *(Vec4*)_data=v;}
+void ShaderParam::set(C VecD4 &v          ) {setChanged(); *(Vec4*)_data=v;}
+void ShaderParam::set(C VecI4 &v          ) {setChanged(); *(Vec4*)_data=v;}
+void ShaderParam::set(C Rect  &rect       ) {setChanged(); *(Rect*)_data=rect;}
+void ShaderParam::set(C Color &color      ) {setChanged(); *(Vec4*)_data=SRGBToDisplay(color);}
 void ShaderParam::set(C Vec   *v, Int elms)
 {
    setChanged();

@@ -95,14 +95,14 @@ Vec Param::asVec()C
 {
    switch(type)
    {
-      case PARAM_BOOL    : return         value.b         ;
-      case PARAM_INT     : return         value.i         ;
-      case PARAM_FLT     : return         value.f         ;
-      case PARAM_VEC2    : return     Vec(value.v2, 0    );
-      case PARAM_VEC     : return         value.v         ;
-      case PARAM_VEC4    : return         value.v4.xyz    ;
-      case PARAM_COLOR   : return         value.c .asVec();
-      case PARAM_STR     : return TextVec(value.s        );
+      case PARAM_BOOL    : return         value.b     ;
+      case PARAM_INT     : return         value.i     ;
+      case PARAM_FLT     : return         value.f     ;
+      case PARAM_VEC2    : return     Vec(value.v2, 0);
+      case PARAM_VEC     : return         value.v     ;
+      case PARAM_VEC4    : return         value.v4.xyz;
+      case PARAM_COLOR   : return         value.c     ;
+      case PARAM_STR     : return TextVec(value.s    );
     //case PARAM_ENUM    : return asEnum();
     //case PARAM_ID      : return
     //case PARAM_ID_ARRAY: return
@@ -119,7 +119,7 @@ Vec4 Param::asVec4()C
       case PARAM_VEC2    : return     Vec4(value.v2, 0, 0);
       case PARAM_VEC     : return     Vec4(value.v    , 0);
       case PARAM_VEC4    : return          value.v4       ;
-      case PARAM_COLOR   : return          value.c .asVec4();
+      case PARAM_COLOR   : return          value.c        ;
       case PARAM_STR     : return TextVec4(value.s);
     //case PARAM_ENUM    : return asEnum();
     //case PARAM_ID      : return

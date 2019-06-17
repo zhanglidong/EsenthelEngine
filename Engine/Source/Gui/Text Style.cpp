@@ -701,9 +701,9 @@ struct FontDraw
    void setCode(C TextCodeData *code, C TextStyleParams &text_style)
    {
       flush();
-    //if(sub_pixel){Color c=((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color )        ; D.alphaFactor(c); c.r=c.g=c.b=c.a; VI.color(c);}else
-                   {color =((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color ).asVec4();
-                    shadow=((code && code->shadow_mode!=TextCodeData::DEFAULT) ? code->shadow : text_style.shadow)/255.0f  ;}
+    //if(sub_pixel){Color c=((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color )      ; D.alphaFactor(c); c.r=c.g=c.b=c.a; VI.color(c);}else
+                   {color =((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color )       ; // FIXME 
+                    shadow=((code && code->shadow_mode!=TextCodeData::DEFAULT) ? code->shadow : text_style.shadow)/255.0f;}
    }
    void flush()
    {

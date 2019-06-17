@@ -22,11 +22,8 @@ struct Color // 4-Byte Color
    Bool any()C {return u!=0        ;} // if any component is non-zero
    Int  lum()C {return Max(r, g, b);} // get luminance
 
-   Vec  asVec ()C; // return as Color in Vec  format (x=red, y=green, z=blue)
-   Vec4 asVec4()C; // return as Color in Vec4 format (x=red, y=green, z=blue, w=alpha)
-
-   operator Vec ()C {return asVec ();} // cast to Vec
-   operator Vec4()C {return asVec4();} // cast to Vec4
+   operator Vec ()C; // cast to Vec  format (x=red, y=green, z=blue)
+   operator Vec4()C; // cast to Vec4 format (x=red, y=green, z=blue, w=alpha)
 
    Str asText()C; // return as text in following format "r, g, b, a" (using     decimal numbers)
    Str asHex ()C; // return as text in following format "rrggbbaa"   (using hexadecimal numbers)
@@ -120,6 +117,8 @@ Flt LinearLumOfSRGBColor  (C Vec &s); // get linear photometric luminance (as pe
 Flt   SRGBLumOfLinearColor(C Vec &l); // get srgb   photometric luminance (as perceived by human eye) of linear color
 Flt   SRGBLumOfSRGBColor  (C Vec &s); // get srgb   photometric luminance (as perceived by human eye) of srgb   color
 #if EE_PRIVATE
+INLINE Vec4 SRGBToDisplay(C Color &srgb) {return LINEAR_GAMMA ? SRGBToLinear(srgb) : (Vec4)srgb;}
+
 extern Flt ByteSRGBToLinearArray[256];
 inline Flt ByteSRGBToLinear(Byte s) {return ByteSRGBToLinearArray[s];}
 

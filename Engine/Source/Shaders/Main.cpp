@@ -2055,9 +2055,7 @@ Vec4 ShdBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
 // LIGHT
 /******************************************************************************/
 BUFFER(LightMap)
-   Flt LightMapScale =1,
-       LightMapSpecular;
-   Vec LightMapColAdd  ;
+   Flt LightMapScale=1;
 BUFFER_END
 
 Vec4 LightDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
@@ -2267,7 +2265,7 @@ Vec4 LightCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    if(image)
    {
       VecH map_col=Tex(Col1, dir.xy*(LightMapScale*0.5f)+0.5f).rgb;
-      return Vec4(Light_cone.color.rgb*lum*(map_col+LightMapColAdd), Light_cone.color.a*specular + LightMapSpecular*Max(map_col.rgb)*power);
+      return Vec4(Light_cone.color.rgb*lum*map_col, Light_cone.color.a*specular);
    }else
    {
       return Vec4(Light_cone.color.rgb*lum, Light_cone.color.a*specular);
@@ -2303,7 +2301,7 @@ Vec4 LightConeM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
    if(image)
    {
       VecH map_col=Tex(Col1, dir.xy*(LightMapScale*0.5f)+0.5f).rgb;
-      return Vec4(Light_cone.color.rgb*lum*(map_col+LightMapColAdd), Light_cone.color.a*specular + LightMapSpecular*Max(map_col.rgb)*power);
+      return Vec4(Light_cone.color.rgb*lum*map_col, Light_cone.color.a*specular);
    }else
    {
       return Vec4(Light_cone.color.rgb*lum, Light_cone.color.a*specular);

@@ -197,7 +197,7 @@ ObjClassEditor ObjClassEdit;
                case PARAM_VEC  : val_textline.set  (multi_val ? MultipleName : src.asText(), QUIET); break;
                case PARAM_VEC4 : val_textline.set  (multi_val ? MultipleName : src.asText(), QUIET); break;
                case PARAM_STR  : val_textline.set  (multi_val ? MultipleName : src.asText(), QUIET); break;
-               case PARAM_COLOR: if(!cp.is())cp.create("Parameter Color").func(ChangedColor, T).hide(); cp.set(multi_val ? Vec4(1) : src.value.c.asVec4(), QUIET); break;
+               case PARAM_COLOR: if(!cp.is())cp.create("Parameter Color").func(ChangedColor, T).hide(); cp.set(multi_val ? Vec4(1) : (Vec4)src.value.c, QUIET); break;
 
                case PARAM_ID:
                {
