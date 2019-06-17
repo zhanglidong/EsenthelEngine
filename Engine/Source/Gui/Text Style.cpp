@@ -523,8 +523,8 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
                contrast=Lerp(1.0f, contrast, lum/255.0f);
             }
          }
-         Sh.h_FontContrast->set(contrast    );
-         Sh.h_FontShade   ->set(shade/255.0f);
+         Sh.h_FontContrast->set(contrast);
+         Sh.h_FontShade   ->set(LINEAR_GAMMA ? ByteSRGBToLinear(shade) : ByteToFlt(shade));
          SetCode(cur_code, T, sub_pixel);
 
          // font depth
