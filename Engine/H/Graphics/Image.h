@@ -695,6 +695,8 @@ Vec      CubeFaceToDir(Flt x, Flt y, Int res, DIR_ENUM cube_face); // convert im
 #if EE_PRIVATE
 extern const ImagePtr ImageNull;
 
+#define IGNORE_LP_SRGB 1 // if ignore gamma correction between low precision formats
+
 Int                        PaddedWidth      (Int w, Int h,        Int mip, IMAGE_TYPE type);
 Int                        PaddedHeight     (Int w, Int h,        Int mip, IMAGE_TYPE type);
 Int                        ImagePitch       (Int w, Int h,        Int mip, IMAGE_TYPE type);

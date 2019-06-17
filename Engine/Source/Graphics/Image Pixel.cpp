@@ -3338,9 +3338,15 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
             }
          }else // retype
          {
+            // RGB -> RGBA, very common case for importing images
+         #if IGNORE_LP_SRGB
             if((T   .hwType()==IMAGE_R8G8B8   || T   .hwType()==IMAGE_R8G8B8_SRGB  )
-            && (dest.hwType()==IMAGE_R8G8B8A8 || dest.hwType()==IMAGE_R8G8B8A8_SRGB)  // very common case for importing images
+            && (dest.hwType()==IMAGE_R8G8B8A8 || dest.hwType()==IMAGE_R8G8B8A8_SRGB)
             && (dest.  type()==IMAGE_R8G8B8A8 || dest.  type()==IMAGE_R8G8B8A8_SRGB)) // check 'type' too in case we have to perform color adjustment
+         #else
+            if(T.hwType()==IMAGE_R8G8B8      && dest.hwType()==IMAGE_R8G8B8A8      && dest.type()==IMAGE_R8G8B8A8       // check 'type' too in case we have to perform color adjustment
+            || T.hwType()==IMAGE_R8G8B8_SRGB && dest.hwType()==IMAGE_R8G8B8A8_SRGB && dest.type()==IMAGE_R8G8B8A8_SRGB) // check 'type' too in case we have to perform color adjustment
+         #endif
             {
                FREPD(z, T.ld())
                {
@@ -3354,9 +3360,15 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
                   }
                }
             }else
+            // RGB -> BGRA, very common case for exporting to WEBP from RGB
+         #if IGNORE_LP_SRGB
             if((T   .hwType()==IMAGE_R8G8B8   || T   .hwType()==IMAGE_R8G8B8_SRGB  )
-            && (dest.hwType()==IMAGE_B8G8R8A8 || dest.hwType()==IMAGE_B8G8R8A8_SRGB)  // very common case for exporting to WEBP from RGB
+            && (dest.hwType()==IMAGE_B8G8R8A8 || dest.hwType()==IMAGE_B8G8R8A8_SRGB)
             && (dest.  type()==IMAGE_B8G8R8A8 || dest.  type()==IMAGE_B8G8R8A8_SRGB)) // check 'type' too in case we have to perform color adjustment
+         #else
+            if(T.hwType()==IMAGE_R8G8B8      && dest.hwType()==IMAGE_B8G8R8A8      && dest.type()==IMAGE_B8G8R8A8       // check 'type' too in case we have to perform color adjustment
+            || T.hwType()==IMAGE_R8G8B8_SRGB && dest.hwType()==IMAGE_B8G8R8A8_SRGB && dest.type()==IMAGE_B8G8R8A8_SRGB) // check 'type' too in case we have to perform color adjustment
+         #endif
             {
                FREPD(z, T.ld())
                {
@@ -3370,9 +3382,15 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, Bool clamp, Bool alpha_wei
                   }
                }
             }else
+            // RGBA -> BGRA, very common case for exporting to WEBP from RGBA
+         #if IGNORE_LP_SRGB
             if((T   .hwType()==IMAGE_R8G8B8A8 || T   .hwType()==IMAGE_R8G8B8A8_SRGB)
-            && (dest.hwType()==IMAGE_B8G8R8A8 || dest.hwType()==IMAGE_B8G8R8A8_SRGB)  // very common case for exporting to WEBP from RGBA
+            && (dest.hwType()==IMAGE_B8G8R8A8 || dest.hwType()==IMAGE_B8G8R8A8_SRGB)
             && (dest.  type()==IMAGE_B8G8R8A8 || dest.  type()==IMAGE_B8G8R8A8_SRGB)) // check 'type' too in case we have to perform color adjustment
+         #else
+            if(T.hwType()==IMAGE_R8G8B8A8      && dest.hwType()==IMAGE_B8G8R8A8      && dest.type()==IMAGE_B8G8R8A8       // check 'type' too in case we have to perform color adjustment
+            || T.hwType()==IMAGE_R8G8B8A8_SRGB && dest.hwType()==IMAGE_B8G8R8A8_SRGB && dest.type()==IMAGE_B8G8R8A8_SRGB) // check 'type' too in case we have to perform color adjustment
+         #endif
             {
                FREPD(z, T.ld())
                {

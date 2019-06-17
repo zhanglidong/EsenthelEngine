@@ -493,18 +493,26 @@ Bool CompatibleLock(LOCK_MODE cur, LOCK_MODE lock)
       case LOCK_READ      : return lock==LOCK_READ;
    }
 }
+static inline IMAGE_TYPE Type(IMAGE_TYPE t) {return IGNORE_LP_SRGB ? ImageTypeRemoveSRGB(t) : t;}
 Bool HighPrecision(IMAGE_TYPE src, IMAGE_TYPE dest)
 {
-   return ImageTI[src].highPrecision() && ImageTI[dest].highPrecision() // both are high precision
-       || IsSRGB (src)!=IsSRGB(dest); // or gamma is different
+   Bool src_hp=ImageTI[ src].highPrecision(),
+       dest_hp=ImageTI[dest].highPrecision();
+   return src_hp && dest_hp // both are high precision
+
+       || IsSRGB(src)!=IsSRGB(dest) // or gamma is different
+       #if IGNORE_LP_SRGB
+          && (src_hp || dest_hp) // and at least one is high precision
+       #endif
+       ;
 }
-Bool CanDoRawCopy(IMAGE_TYPE src, IMAGE_TYPE dest) {return ImageTypeRemoveSRGB(src)==ImageTypeRemoveSRGB(dest);}
+Bool CanDoRawCopy(IMAGE_TYPE src, IMAGE_TYPE dest) {return Type(src)==Type(dest);}
 Bool CanDoRawCopy(C Image   &src, C Image   &dest)
 {
-   IMAGE_TYPE src_hwType=ImageTypeRemoveSRGB( src.hwType()),
-             dest_hwType=ImageTypeRemoveSRGB(dest.hwType()),
-              src_type  =ImageTypeRemoveSRGB( src.  type()),
-             dest_type  =ImageTypeRemoveSRGB(dest.  type());
+   IMAGE_TYPE src_hwType=Type( src.hwType()),
+             dest_hwType=Type(dest.hwType()),
+              src_type  =Type( src.  type()),
+             dest_type  =Type(dest.  type());
    return src_hwType==dest_hwType
      && (dest_type  ==dest_hwType || src_type==dest_type); // check 'type' too in case we have to perform color adjustment
 }
