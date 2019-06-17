@@ -241,7 +241,7 @@ TexInfoGetter TIG;
       if(GetThreadId()==TIG.thread_id) // process only inside 'TIG'
       {
          header.mode=IMAGE_SOFT;
-       //if(ImageTI[header.type].compressed)header.type=IMAGE_R8G8B8A8; no need to do that, because there are only one decompressions per mip-map (1. extracting 2nd mip map to RGBA, 2. comparing 1st mip map with upscaled), doing this would only increase memory usage
+       //if(ImageTI[header.type].compressed)header.type=ImageTypeUncompressed(header.type); no need to do that, because there are only one decompressions per mip-map (1. extracting 2nd mip map to RGBA, 2. comparing 1st mip map with upscaled), doing this would only increase memory usage
          MIN(header.mip_maps, 2); // we need only 2 mip maps
       }
       return 0;

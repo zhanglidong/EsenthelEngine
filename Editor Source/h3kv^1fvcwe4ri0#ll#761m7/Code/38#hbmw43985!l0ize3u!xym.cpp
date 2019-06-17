@@ -28,7 +28,7 @@ class ProjectUpdate
       f.del();
 
       // convert
-      if(!UpdateMtrlTex(img, img)){Error("Can't convert texture"); goto error;}
+      if(!UpdateMtrlBase1Tex(img, img)){Error("Can't convert texture"); goto error;}
 
       // save
       if(IsServer) // server

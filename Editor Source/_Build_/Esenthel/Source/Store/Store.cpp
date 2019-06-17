@@ -1487,7 +1487,7 @@ StoreClass AppStore;
                Str name=names[i], ext=GetExt(name);
                if(ExtType(ext)==EXT_IMAGE)
                {
-                  Image temp; if(temp.ImportTry(name, IMAGE_R8G8B8)) // ignore alpha channel
+                  Image temp; if(temp.ImportTry(name, IMAGE_R8G8B8_SRGB)) // ignore alpha channel
                   {
                      File src;
                      if(ext=="jpeg")ext="jpg";

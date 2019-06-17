@@ -345,7 +345,7 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
                EditMaterial edit; edit.create(game); // create from material
 
                // set textures
-               Image base_1, detail_map; if(game.base_1)UpdateMtrlTex(*game.base_1, base_1); if(game.detail_map)UpdateMtrlTex(*game.detail_map, detail_map);
+               Image base_1, detail_map; if(game.base_1)UpdateMtrlBase1Tex(*game.base_1, base_1); if(game.detail_map)UpdateMtrlBase1Tex(*game.detail_map, detail_map);
                if(game.        base_0)ImageProps(*game.        base_0, &edit.    base_0_tex, null,  ForceHQMtrlBase0  ? FORCE_HQ : 0              );else edit.    base_0_tex.zero();
                if(game.        base_1)ImageProps(              base_1, &edit.    base_1_tex, null,  ForceHQMtrlBase1  ? FORCE_HQ : 0              );else edit.    base_1_tex.zero();
                if(game.    detail_map)ImageProps(          detail_map, &edit.    detail_tex, null, (ForceHQMtrlDetail ? FORCE_HQ : 0)|IGNORE_ALPHA);else edit.    detail_tex.zero();

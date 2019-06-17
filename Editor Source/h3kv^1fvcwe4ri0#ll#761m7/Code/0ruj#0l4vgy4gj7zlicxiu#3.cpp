@@ -396,31 +396,18 @@ bool HasAlpha(C Image &image) // if image has alpha channel
 }
 bool HasColor(C Image &image) // if image is not monochromatic
 {
-   if(!ImageTI[image.type()].r && !ImageTI[image.type()].g && !ImageTI[image.type()].b)return false;
-   if(image.type()==IMAGE_L8 || image.type()==IMAGE_L8A8)return false;
-   Image temp; C Image *src=&image; if(ImageTI[src.hwType()].compressed)if(src.copyTry(temp, -1, -1, -1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1))src=&temp;else return true;
-   FREPD(face, src.faces())if(src.lockRead(0, DIR_ENUM(face)))
-   {
-      REPD(z, src.ld())
-      REPD(y, src.lh())
-      REPD(x, src.lw())
-      {
-         Color c=src.color3D(x, y, z); if(Abs(c.r-c.g)>1 || Abs(c.r-c.b)>1){src.unlock(); return true;}
-      }
-      src.unlock();
-   }
-   return false;
+   return !image.monochromatic();
 }
 bool NeedFixAlpha(Image &image, IMAGE_TYPE type, bool always=false)
 {
-   return ((image.type()!=IMAGE_BC1 && type==IMAGE_BC1) || always) // if we're converting from non-BC1 to BC1, then since BC1 will make black pixels for alpha<128, we need to force full alpha (ETC2_A1 does that too, however if we didn't want it, we can just use ETC2)
-       && ImageTI[image.type()].a;                                 // no point in chaning alpha if the source doesn't have it
+   return (((image.type()!=IMAGE_BC1 && image.type()!=IMAGE_BC1_SRGB) && (type==IMAGE_BC1 || type==IMAGE_BC1_SRGB)) || always) // if we're converting from non-BC1 to BC1, then since BC1 will make black pixels for alpha<128, we need to force full alpha (ETC2_A1 does that too, however if we didn't want it, we can just use ETC2)
+       && ImageTI[image.type()].a; // no point in changing alpha if the source doesn't have it
 }
 bool FixAlpha(Image &image, IMAGE_TYPE type, bool always=false) // returns if any change was made
 {
    if(NeedFixAlpha(image, type, always))
    {
-      if(ImageTI[image.hwType()].compressed)return image.copyTry(image, -1, -1, -1, IMAGE_R8G8B8, IMAGE_SOFT, 1);
+      if(image.compressed())return image.copyTry(image, -1, -1, -1, ImageTypeExcludeAlpha(ImageTypeUncompressed(image.type())), IMAGE_SOFT, 1);
       if(image.lock())
       {
          REPD(y, image.h())
@@ -455,7 +442,7 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type=null, uint f
       FREPD(face, image.faces())
       {
          Image temp; C Image *src=&image; int src_face=face;
-         if((md5 && src.hwType()!=IMAGE_R8G8B8A8) // calculating hash requires RGBA format
+         if((md5 && (src.hwType()!=IMAGE_R8G8B8A8 && src.hwType()!=IMAGE_R8G8B8A8_SRGB)) // calculating hash requires RGBA format
          || (compress_type && ImageTI[src.hwType()].compressed) // checking compress_type requires color reads so copy to RGBA soft to make them faster
          || force_alpha) // forcing alpha requires modifying the alpha channel, so copy to 'temp' which we can modify
          {
@@ -490,7 +477,7 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type=null, uint f
 void LoadTexture(C Project &proj, C UID &tex_id, Image &image, C VecI2 &size=-1)
 {
    ImagePtr src=proj.texPath(tex_id);
-   if(src)src->copyTry(image, size.x, size.y, 1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1);else image.del(); // always copy, because: src texture will always be compressed, also soft doesn't require locking
+   if(src)src->copyTry(image, size.x, size.y, 1, ImageTypeUncompressed(src->type()), IMAGE_SOFT, 1);else image.del(); // always copy, because: src texture will always be compressed, also soft doesn't require locking
 }
 void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, Image *col, Image *alpha, Image *bump, Image *normal, Image *specular, Image *glow, C VecI2 &size=-1)
 {
@@ -500,7 +487,7 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, Image *c
       if(col || bump)
       {
          Image b0; LoadTexture(proj, base_0, b0, size);
-         if(col )col .createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8);
+         if(col )col .createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
          if(bump)bump.createSoft(b0.w(), b0.h(), 1, IMAGE_L8);
          REPD(y, b0.h())
          REPD(x, b0.w())
@@ -550,7 +537,7 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, Image *c
       if(col || alpha)
       {
          Image b0; LoadTexture(proj, base_0, b0, size);
-         if(col  )col  .createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8);
+         if(col  )col  .createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
          if(alpha)alpha.createSoft(b0.w(), b0.h(), 1, IMAGE_L8);
          REPD(y, b0.h())
          REPD(x, b0.w())
@@ -650,17 +637,17 @@ bool EditToGameImage(Image &edit, Image &game, bool pow2, bool alpha_lum, ElmIma
    {
       if(mip_maps<0)mip_maps=((src.mipMaps()==1) ? 1 : 0); // source will have now only one mip-map so we can't use "-1", auto-detect instead
       if(mode    <0)mode    =src.mode();                   // source will now be as IMAGE_SOFT      so we can't use "-1", auto-detect instead
-      if(src.copyTry(temp, -1, -1, -1, IMAGE_R8G8B8, IMAGE_SOFT, 1))src=&temp;
+      if(src.copyTry(temp, -1, -1, -1, IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1))src=&temp;
    }
 
    IMAGE_TYPE    dest_type;
    if(force_type)dest_type=IMAGE_TYPE(*force_type);else
    if(type==ElmImage.ALPHA)dest_type=IMAGE_A8;else
-   if(type==ElmImage.FULL )dest_type=(has_color ? IMAGE_R8G8B8A8 : has_alpha ? IMAGE_L8A8 : IMAGE_L8);else
+   if(type==ElmImage.FULL )dest_type=(has_color ? IMAGE_R8G8B8A8_SRGB : has_alpha ? IMAGE_L8A8_SRGB : IMAGE_L8_SRGB);else
                            ImageProps(*src, null, &dest_type, (ignore_alpha ? IGNORE_ALPHA : 0) | ((type==ElmImage.COMPRESSED2) ? FORCE_HQ : 0));
 
-   if(src.type()==IMAGE_L8 && dest_type==IMAGE_A8
-   || src.type()==IMAGE_A8 && dest_type==IMAGE_L8)
+   if((src.type()==IMAGE_L8 || src.type()==IMAGE_L8_SRGB) &&  dest_type==IMAGE_A8
+   ||  src.type()==IMAGE_A8                               && (dest_type==IMAGE_L8 || dest_type==IMAGE_L8_SRGB))
    {
       Image temp2; if(temp2.createSoftTry(src.w(), src.h(), src.d(), dest_type) && src.lockRead())
       {
@@ -695,7 +682,7 @@ void DrawPanelImage(C PanelImage &pi, C Rect &rect, bool draw_lines=false)
    }
 }
 /******************************************************************************/
-bool UpdateMtrlTex(C Image &src, Image &dest)
+bool UpdateMtrlBase1Tex(C Image &src, Image &dest)
 {
    Image temp; if(src.copyTry(temp, -1, -1, -1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1))
    {
@@ -729,7 +716,7 @@ bool ImportImage(Image &image, C Str &name, int type=-1, int mode=-1, int mip_ma
 {
    if(image.ImportTry(name, type, mode, mip_maps))
    {
-      if(image.compressed() && decompress && !image.copyTry(image, -1, -1, -1, IMAGE_R8G8B8A8))return false;
+      if(image.compressed() && decompress && !image.copyTry(image, -1, -1, -1, ImageTypeUncompressed(image.type())))return false;
       return true;
    }
  /*if(name.is())

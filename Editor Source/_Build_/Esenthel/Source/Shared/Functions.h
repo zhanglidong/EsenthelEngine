@@ -146,7 +146,7 @@ VecI ImageSize(C VecI &src, C VecI2 &custom, bool pow2);
 bool EditToGameImage(Image &edit, Image &game, bool pow2, bool alpha_lum, ElmImage::TYPE type, int mode, int mip_maps, bool has_color, bool has_alpha, bool ignore_alpha, C VecI2 &custom_size=0, C int *force_type=null);
 bool EditToGameImage(Image &edit, Image &game, C ElmImage &data, C int *force_type=null);
 void DrawPanelImage(C PanelImage &pi, C Rect &rect, bool draw_lines=false);
-bool UpdateMtrlTex(C Image &src, Image &dest);
+bool UpdateMtrlBase1Tex(C Image &src, Image &dest);
 void AdjustMaterialParams(EditMaterial &edit, Material &game, uint old_base_tex, uint new_base_tex);
 bool ImportImage(Image &image, C Str &name, int type=-1, int mode=-1, int mip_maps=-1, bool decompress=false);
 bool ValidChar(char c);

@@ -410,7 +410,7 @@ ImporterClass Importer;
                   // if actually has some images
                   if(size>0)
                   {
-                     Image dest; if(dest.createSoftTry(size*6, size, 1, IMAGE_R8G8B8A8)) // create soft RGBA so we can use simple mem copy
+                     Image dest; if(dest.createSoftTry(size*6, size, 1, IMAGE_R8G8B8A8_SRGB)) // create soft RGBA so we can use simple mem copy
                      {
                         // clear to zero in case some images are not found
                         dest.clear();
@@ -462,7 +462,7 @@ ImporterClass Importer;
 
             case ELM_MINI_MAP:
             {
-               ImageEx image; if(ImportImage(image, file, IMAGE_R8G8B8A8, IMAGE_SOFT, 1))
+               ImageEx image; if(ImportImage(image, file, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))
                {
                   Swap(images.New(), image);
                   return true;
@@ -1112,8 +1112,8 @@ ImporterClass Importer;
                   RectI images=ver->images.last(); REPA(ver->images)images|=ver->images[i];
                   VecI2 images_size=image_size*(images.size()+1);
                   Image &all=import.images[0], single, temp;
-                  if(all.copyTry(all, images_size.x, images_size.y, 1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1)
-                  && single.createSoftTry(image_size, image_size, 1, IMAGE_R8G8B8A8))
+                  if(all.copyTry(all, images_size.x, images_size.y, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1)
+                  && single.createSoftTry(image_size, image_size, 1, IMAGE_R8G8B8A8_SRGB))
                   {
                      ver->changed=true;
                      ver->time.getUTC(); // update time of mini map
@@ -1125,7 +1125,7 @@ ImporterClass Importer;
                             oy=(            images.max.y-image_pos.y)*image_size;
                         REPD(y, single.h())
                         REPD(x, single.w())single.pixel(x, y, all.pixel(x+ox, y+oy));
-                        if(single.copyTry(temp, -1, -1, -1, IMAGE_BC1, IMAGE_2D, 1))
+                        if(single.copyTry(temp, -1, -1, -1, IMAGE_BC1_SRGB, IMAGE_2D, 1))
                         {
                            temp.save(Proj.gamePath(elm->id).tailSlash(true)+image_pos);
                            Synchronizer.setMiniMapImage(elm->id, image_pos);

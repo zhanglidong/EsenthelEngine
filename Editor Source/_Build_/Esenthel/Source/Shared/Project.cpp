@@ -582,7 +582,7 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
       {
          case IMAGE_R8    : case IMAGE_I8: case IMAGE_I16: case IMAGE_I24: case IMAGE_I32: return IMAGE_F32;
          case IMAGE_R8G8  :                                                                return IMAGE_F32_2;
-         case IMAGE_R8G8B8:                                                                return IMAGE_F32_3;
+         case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB:                                        return IMAGE_F32_3;
          default          :                                                                return IMAGE_F32_4;
       }
    }
@@ -1652,7 +1652,7 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
          {
             VecI2 old_size=image.size();
             if(image.is())image.crop(image, 0, 0, Max(image.w(), size.x), Max(image.h(), size.y));
-            else         {image.createSoftTry(size.x, size.y, 1, (hp || single.highPrecision()) ? IMAGE_F32_4 : IMAGE_R8G8B8A8); image.clear();}
+            else         {image.createSoftTry(size.x, size.y, 1, (hp || single.highPrecision()) ? IMAGE_F32_4 : IMAGE_R8G8B8A8_SRGB); image.clear();}
             if(background!=TRANSPARENT)
                REPD(y, image.h())
                REPD(x, image.w())if(x>=old_size.x || y>=old_size.y)image.color(x, y, background);

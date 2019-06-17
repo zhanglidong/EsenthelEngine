@@ -542,7 +542,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
          if(elm->type==ELM_FONT) // font
             if(android || iOS || (web && !WebBC7)) // desktop platform already has the best format chosen during font creation
                if(ElmFont *data=elm->fontData())
-                  if(IMAGE_TYPE dest_type=((android || iOS) ? IMAGE_ETC2_A8 : IMAGE_BC3)) // for Android/iOS GL_ES 3.0+ use IMAGE_ETC2_A8, don't use IMAGE_PVRTC1_2/IMAGE_PVRTC1_4 because the quality is too low
+                  if(IMAGE_TYPE dest_type=((android || iOS) ? IMAGE_ETC2_A8_SRGB : IMAGE_BC3_SRGB)) // for Android/iOS GL_ES 3.0+ use IMAGE_ETC2_A8, don't use IMAGE_PVRTC1_2/IMAGE_PVRTC1_4 because the quality is too low
          {
             Str src_name=pfd.data.name,
                dest_name=Proj.formatPath(elm->id, FormatSuffix(dest_type));
@@ -587,6 +587,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                                         :   tex.uses_alpha                 ? IMAGE_BC3 : IMAGE_BC1);else // if BC7 not supported for Web, then use BC3
        //if(!tex.uses_alpha && !tex.keep_hq )change_type=IMAGE_BC1;else // texture could have alpha, however if we're not using it, then reduce to BC1 because it's only 4-bit per pixel, actually don't do this because it would require calling 'ImageLoadHeader' which is an IO operation and could be slow for many textures
             {}
+         if(change_type>=0 && !tex.mtrl_base_1)change_type=imageytypesrgb;
 
          // change size
          int max_size=INT_MAX; //((tex.max_size>0) ? tex.max_size : INT_MAX);
@@ -1043,11 +1044,11 @@ void DrawPublish()
    void ImageConvert::process(C bool *stop)C
    {
       DateTime time=T.time; if(!time.valid())time=FileInfo(src).modify_time_utc; // 'time' could've been empty if the file didn't exist yet at the moment of setting up this object (this can happen for dynamically generated textures)
-      int type=T.type; bool skip=SkipOptimize(type, time);
-      SyncLockerEx locker(Lock, type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4); // PVRTC texture compression is already multi-threaded and uses a lot of memory, so allow only one at a time
+      int type=T.type; bool skip=SkipOptimize(type, time), pvrtc=(type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4 || type==IMAGE_PVRTC1_2_SRGB || type==IMAGE_PVRTC1_4_SRGB);
+      SyncLockerEx locker(Lock, pvrtc); // PVRTC texture compression is already multi-threaded and uses a lot of memory, so allow only one at a time
       if(stop && *stop)return;
       skip|=SkipOptimize(type, time); // call this again after the 'locker' got unlocked
-      PublishPVRTC pvrtc(type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4);
+      PublishPVRTC pub_pvrtc(pvrtc);
       switch(family)
       {
          case ELM_IMAGE:
@@ -1065,7 +1066,7 @@ void DrawPublish()
                FREPA(atlas.images)
                {
                   Image &image=atlas.images[i];
-                  VecI2   size=image.size(), old=size; if(type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4)size=CeilPow2(size.max()); // image must be square for PVRTC. Unlike for regular textures, for atlases it's better to use 'CeilPow2', to make sure we don't make textures much smaller than original.
+                  VecI2   size=image.size(), old=size; if(pvrtc)size=CeilPow2(size.max()); // image must be square for PVRTC. Unlike for regular textures, for atlases it's better to use 'CeilPow2', to make sure we don't make textures much smaller than original.
                   if(image.copyTry(image, size.x, size.y, -1, type, mode, mip_maps, FILTER_BEST, clamp, true))
                   {
                   #if 0 // don't do any adjustments because we may want to detect image proportions based on 'trimmed_size' (Esenthel RTS does that)
@@ -1101,7 +1102,7 @@ void DrawPublish()
          {
             PanelImage panel_image; if(panel_image.load(src))
             {
-               VecI2 size=panel_image.image.size(); if(type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4)size=CeilPow2(size.max()); // image must be square for PVRTC. Unlike for regular textures, for panel images it's better to use 'CeilPow2', to make sure we don't make textures much smaller than original.
+               VecI2 size=panel_image.image.size(); if(pvrtc)size=CeilPow2(size.max()); // image must be square for PVRTC. Unlike for regular textures, for panel images it's better to use 'CeilPow2', to make sure we don't make textures much smaller than original.
                panel_image.image.copyTry(panel_image.image, size.x, size.y, -1, type, -1, -1, FILTER_BEST, true, true);
                File f; if(panel_image.save(f.writeMem())){f.pos(0); SafeOverwrite(f, dest, &time);} // save using specified time
             }
@@ -1117,7 +1118,7 @@ void DrawPublish()
             if(C ImagePtr &image=src)
             {
                Image temp, *s=image();
-               VecI  size=s->size3(); if(type==IMAGE_PVRTC1_2 || type==IMAGE_PVRTC1_4)size.xy=NearestPow2(size.xy.avgI()); // image must be square for PVRTC
+               VecI  size=s->size3(); if(pvrtc)size.xy=NearestPow2(size.xy.avgI()); // image must be square for PVRTC
                if(downsize) // downsize
                {
                   size.x=Max(1, size.x>>downsize);
@@ -1133,10 +1134,10 @@ void DrawPublish()
                int mip_maps=T.mip_maps, mode=T.mode;
                if(ignore_alpha && NeedFixAlpha(*s, IMAGE_TYPE(type))) // if we won't need alpha
                {
-                  if(mip_maps<0)mip_maps=((s->mipMaps()==1) ? 1 : 0); // source will have now only one mip-map so we can't use "-1", auto-detect instead
-                  if(mode    <0)mode    =s->mode();                   // source will now be as IMAGE_SOFT      so we can't use "-1", auto-detect instead
-                  if(type    <0)type    =s->type();                   // source will now be as IMAGE_R8G8B8    so we can't use "-1", auto-detect instead
-                  if(s->copyTry(temp, -1, -1, -1, IMAGE_R8G8B8, IMAGE_SOFT, 1))s=&temp;
+                  if(mip_maps<0)mip_maps=((s->mipMaps()==1) ? 1 : 0); // source will have now only one mip-map   so we can't use "-1", auto-detect instead
+                  if(mode    <0)mode    =s->mode();                   // source will now be as IMAGE_SOFT        so we can't use "-1", auto-detect instead
+                  if(type    <0)type    =s->type();                   // source will now be as IMAGE_R8G8B8_SRGB so we can't use "-1", auto-detect instead
+                  if(s->copyTry(temp, -1, -1, -1, IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1))s=&temp;
                }
                if(s->copyTry(temp, size.x, size.y, size.z, type, mode, mip_maps, FILTER_BEST, clamp, false, false, mtrl_base_1))
                {

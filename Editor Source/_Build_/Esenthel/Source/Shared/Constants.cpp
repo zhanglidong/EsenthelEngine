@@ -248,7 +248,7 @@ const Pose PoseIdentity;
    {
       flip_normal_y=false;
       tex=0;
-      return color   .createSoftTry(size.x, size.y, 1, IMAGE_R8G8B8)
+      return color   .createSoftTry(size.x, size.y, 1, IMAGE_R8G8B8_SRGB)
           && alpha   .createSoftTry(size.x, size.y, 1, IMAGE_I8)
           && bump    .createSoftTry(size.x, size.y, 1, IMAGE_I8)
           && normal  .createSoftTry(size.x, size.y, 1, IMAGE_R8G8B8)
@@ -294,7 +294,7 @@ const Pose PoseIdentity;
       if(image.is())
       {
          RectI rect=Round(frac*Vec2(image.size()));
-         Image temp; if(temp.createSoftTry(rect.w(), rect.h(), 1, image.compressed() ? IMAGE_R8G8B8A8 : image.type())) // crop manually because we need to use Mod
+         Image temp; if(temp.createSoftTry(rect.w(), rect.h(), 1, ImageTypeUncompressed(image.type()))) // crop manually because we need to use Mod
          {
             if(image.lockRead())
             {

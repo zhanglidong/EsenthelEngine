@@ -60,7 +60,7 @@ ImageAtlasEditor ImageAtlasEdit;
             }
          }
          source.sort(CompareSource);
-         if(!atlas.create(source, SupportBC7 ? IMAGE_BC7 : IMAGE_BC3, data->mip_maps ? 0 : 1))Gui.msgBox(S, "Error creating Image Atlas");else
+         if(!atlas.create(source, SupportBC7 ? IMAGE_BC7_SRGB : IMAGE_BC3_SRGB, data->mip_maps ? 0 : 1))Gui.msgBox(S, "Error creating Image Atlas");else
          {
             Save(atlas, Proj.gamePath(*elm)); Proj.savedGame(*elm);
             setChanged(true);

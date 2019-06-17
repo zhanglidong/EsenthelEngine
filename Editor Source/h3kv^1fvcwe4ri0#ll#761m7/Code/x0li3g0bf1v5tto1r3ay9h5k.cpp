@@ -363,8 +363,8 @@ class IconEditor : PropWin
       if(data)
       {
          Image col, soft;
-         D.edgeSoften(EDGE_SOFTEN_NONE); Renderer(IconEditor.Render); Renderer.capture(col , -1, -1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1, true );
-         D.edgeSoften(EDGE_SOFTEN_SMAA); Renderer(IconEditor.Render); Renderer.capture(soft, -1, -1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1, false); // skip alpha for 'soft' to improve performance
+         D.edgeSoften(EDGE_SOFTEN_NONE); Renderer(IconEditor.Render); Renderer.capture(col , -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1, true );
+         D.edgeSoften(EDGE_SOFTEN_SMAA); Renderer(IconEditor.Render); Renderer.capture(soft, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1, false); // skip alpha for 'soft' to improve performance
          col .crop(col , 0, 0, view_size.x, view_size.y);
          soft.crop(soft, 0, 0, view_size.x, view_size.y);
 

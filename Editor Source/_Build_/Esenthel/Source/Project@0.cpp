@@ -1795,7 +1795,7 @@ void DrawProject()
          {
             if(includeTex(material.reflection_tex))
             {
-               reflection.copyTry(reflection, -1, -1, -1, IMAGE_BC1, IMAGE_CUBE, 1);
+               reflection.copyTry(reflection, -1, -1, -1, IMAGE_BC1_SRGB, IMAGE_CUBE, 1);
                saveTex(reflection, material.reflection_tex);
             }
             Server.setTex(material.reflection_tex);

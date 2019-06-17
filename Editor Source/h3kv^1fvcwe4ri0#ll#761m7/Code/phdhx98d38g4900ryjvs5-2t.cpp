@@ -125,11 +125,11 @@ class MiniMapEditor : PropWin
 
          if(final)
          {
-            Image image; if(!Renderer.capture(image, -1, -1, IMAGE_R8G8B8, IMAGE_SOFT)){Gui.msgBox(S, "Error capturing screen data"); SetProjectState();}else
+            Image image; if(!Renderer.capture(image, -1, -1, IMAGE_R8G8B8_SRGB, IMAGE_SOFT)){Gui.msgBox(S, "Error capturing screen data"); SetProjectState();}else
             {
                image.crop(image, border, border, res, res);
                if(downsample)image.downSample();
-               image.copyTry(image, -1, -1, -1, IMAGE_BC1, IMAGE_2D, 1);
+               image.copyTry(image, -1, -1, -1, IMAGE_BC1_SRGB, IMAGE_2D, 1);
                image.save(Proj.gamePath(MiniMapEdit.elm_id).tailSlash(true)+image_pos);
                if(MiniMapVer *ver=T.ver())
                {

@@ -227,7 +227,7 @@ class ImageEditor : PropWin
    {
       gui_image.image=((data() && data().mode==IMAGE_SOFT) ? &image_2d : game_image); REPAO(cube_faces).image=gui_image.image;
       image_2d.del();
-      if(gui_image.image==&image_2d && game_image)game_image->copyTry(image_2d, -1, -1, 1, IMAGE_R8G8B8A8, IMAGE_2D);
+      if(gui_image.image==&image_2d && game_image)game_image->copyTry(image_2d, -1, -1, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_2D);
    }
    void setInfo()
    {
