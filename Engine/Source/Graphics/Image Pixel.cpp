@@ -1290,6 +1290,52 @@ Vec4 Image::colorFCubicFast(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
    }
    return 0;
 }
+Vec4 Image::colorSRGBFCubicFast(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
+{
+   if(lw() && lh())
+   {
+      Int xo[4]; xo[0]=Floor(x); x-=xo[0]; xo[0]--;
+      Int yo[4]; yo[0]=Floor(y); y-=yo[0]; yo[0]--;
+      if(clamp)
+      {
+         xo[1]=Mid(xo[0]+1, 0, lw()-1); xo[2]=Mid(xo[0]+2, 0, lw()-1); xo[3]=Mid(xo[0]+3, 0, lw()-1); Clamp(xo[0], 0, lw()-1);
+         yo[1]=Mid(yo[0]+1, 0, lh()-1); yo[2]=Mid(yo[0]+2, 0, lh()-1); yo[3]=Mid(yo[0]+3, 0, lh()-1); Clamp(yo[0], 0, lh()-1);
+      }else
+      {
+         xo[0]=Mod(xo[0], lw()); xo[1]=(xo[0]+1)%lw(); xo[2]=(xo[0]+2)%lw(); xo[3]=(xo[0]+3)%lw();
+         yo[0]=Mod(yo[0], lh()); yo[1]=(yo[0]+1)%lh(); yo[2]=(yo[0]+2)%lh(); yo[3]=(yo[0]+3)%lh();
+      }
+
+      Vec4 c[4][4]; gatherSRGB(&c[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
+      Vec  rgb   =0;
+      Vec4 color =0;
+      Flt  weight=0, w,
+           x0w=Sqr(x+1), x1w=Sqr(x), x2w=Sqr(x-1), x3w=Sqr(x-2),
+           y0w=Sqr(y+1), y1w=Sqr(y), y2w=Sqr(y-1), y3w=Sqr(y-2);
+      w=x0w+y0w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[0][0], w, alpha_weight); weight+=w;}
+      w=x1w+y0w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[0][1], w, alpha_weight); weight+=w;}
+      w=x2w+y0w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[0][2], w, alpha_weight); weight+=w;}
+      w=x3w+y0w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[0][3], w, alpha_weight); weight+=w;}
+
+      w=x0w+y1w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[1][0], w, alpha_weight); weight+=w;}
+      w=x1w+y1w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[1][1], w, alpha_weight); weight+=w;}
+      w=x2w+y1w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[1][2], w, alpha_weight); weight+=w;}
+      w=x3w+y1w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[1][3], w, alpha_weight); weight+=w;}
+
+      w=x0w+y2w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[2][0], w, alpha_weight); weight+=w;}
+      w=x1w+y2w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[2][1], w, alpha_weight); weight+=w;}
+      w=x2w+y2w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[2][2], w, alpha_weight); weight+=w;}
+      w=x3w+y2w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[2][3], w, alpha_weight); weight+=w;}
+
+      w=x0w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[3][0], w, alpha_weight); weight+=w;}
+      w=x1w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[3][1], w, alpha_weight); weight+=w;}
+      w=x2w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[3][2], w, alpha_weight); weight+=w;}
+      w=x3w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[3][3], w, alpha_weight); weight+=w;}
+      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      return color;
+   }
+   return 0;
+}
 Vec4 Image::colorFCubicFastSmooth(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
 {
    if(lw() && lh())
@@ -2693,70 +2739,6 @@ Vec4 Image::areaColorCubicOrtho(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alph
    return 0;
 }
 /******************************************************************************
-Vec4 Image::areaColorCubicSharpGammaCorrect(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C
-{
-   if(lw() && lh())
-   {
-      // f=(p-center)/size
-      const Vec2 size_2(Max(2, size.x*2), Max(2, size.y*2));
-      Vec2 x_mul_add; x_mul_add.x=2/size_2.x; x_mul_add.y=-pos.x*x_mul_add.x;
-      Vec2 y_mul_add; y_mul_add.x=2/size_2.y; y_mul_add.y=-pos.y*y_mul_add.x;
-
-      // ceil is used for min, and floor used for max, because these are coordinates at which the weight function is zero, so we need to process next/previous pixels because they will be the first ones with some weight
-      Int x0=CeilSpecial(pos.x-size_2.x), x1=FloorSpecial(pos.x+size_2.x),
-          y0=CeilSpecial(pos.y-size_2.y), y1=FloorSpecial(pos.y+size_2.y);
-
-      Flt  weight=0; // this is always non-zero
-      Vec  rgb   =0;
-      Vec4 color =0;
-
-      Vec  lin_srgb   =0;
-      Vec4 lin_scolor =0;
-
-      Flt  lin_weight=0;
-      Vec  lin_rgb   =0;
-      Vec4 lin_color =0;
-
-      for(Int y=y0; y<=y1; y++)
-      {
-         Flt fy2=Sqr(y*y_mul_add.x + y_mul_add.y); Int yi=(clamp ? Mid(y, 0, lh()-1) : Mod(y, lh()));
-         for(Int x=x0; x<=x1; x++)
-         {
-            Flt fx2=Sqr(x*x_mul_add.x + x_mul_add.y), w=fx2+fy2;
-            if(w<4) // Cubic returns 0 for values >=2, since we use Sqr, check for 4
-            {
-               Flt W=CubicSharpFast2(w); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw()));
-               Vec4 c=colorF(xi, yi);
-               Add(color, rgb, c, W, alpha_weight); weight+=W;
-               if(w<1)
-               {
-                  w=Linear(SqrtFast(w));
-                  Add(lin_scolor, lin_srgb, c, w, alpha_weight);
-                  //c.x=SRGBToLinear(c.x);
-                  //c.y=SRGBToLinear(c.y);
-                  //c.z=SRGBToLinear(c.z);
-                  c.x=Pow(c.x, 1.18f);
-                  c.y=Pow(c.y, 1.18f);
-                  c.z=Pow(c.z, 1.18f);
-                  Add(lin_color, lin_rgb, c, w, alpha_weight); lin_weight+=w;
-               }
-            }
-         }
-      }
-      Normalize(color, rgb, weight, alpha_weight, highPrecision());
-      Normalize(lin_scolor, lin_srgb, lin_weight, alpha_weight, highPrecision());
-      Normalize(lin_color, lin_rgb, lin_weight, alpha_weight, highPrecision());
-      //lin_color.x=LinearToSRGB(lin_color.x);
-      //lin_color.y=LinearToSRGB(lin_color.y);
-      //lin_color.z=LinearToSRGB(lin_color.z);
-      lin_color.x=Pow(lin_color.x, 1.0f/1.18f);
-      lin_color.y=Pow(lin_color.y, 1.0f/1.18f);
-      lin_color.z=Pow(lin_color.z, 1.0f/1.18f);
-      return lin_color+color-lin_scolor;
-   }
-   return 0;
-}
-/******************************************************************************
 Vec4 Image::areaColorLanczosOrtho(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C
 {
    if(lw() && lh())
@@ -2825,19 +2807,19 @@ void Image::gather(Flt *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int
       case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: FREPD(y, y_offsets)
       {
        C Color *color=(Color*)(data()+y_offset[y]*pitch());
-         FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; *pixels++=src.b/255.0f;}
+         FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; *pixels++=ByteToFlt(src.b);}
       }break;
 
       case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: FREPD(y, y_offsets)
       {
        C Color *color=(Color*)(data()+y_offset[y]*pitch());
-         FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; *pixels++=src.r/255.0f;}
+         FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; *pixels++=ByteToFlt(src.r);}
       }break;
 
       case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB: FREPD(y, y_offsets)
       {
        C VecB *color=(VecB*)(data()+y_offset[y]*pitch());
-         FREPD(x, x_offsets){C VecB &src=color[x_offset[x]]; *pixels++=src.x/255.0f;}
+         FREPD(x, x_offsets){C VecB &src=color[x_offset[x]]; *pixels++=ByteToFlt(src.x);}
       }break;
 
       default:
@@ -2915,32 +2897,32 @@ void Image::gather(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
       case IMAGE_B8G8R8A8: FREPD(y, y_offsets)
       {
        C Color *color=(Color*)(data()+y_offset[y]*pitch());
-         FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; (colors++)->set(src.b/255.0f, src.g/255.0f, src.r/255.0f, src.a/255.0f);}
+         FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; (colors++)->set(ByteToFlt(src.b), ByteToFlt(src.g), ByteToFlt(src.r), ByteToFlt(src.a));}
       }break;
 
       case IMAGE_R8G8B8A8: FREPD(y, y_offsets)
       {
        C Color *color=(Color*)(data()+y_offset[y]*pitch());
-         FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; (colors++)->set(src.r/255.0f, src.g/255.0f, src.b/255.0f, src.a/255.0f);}
+         FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; (colors++)->set(ByteToFlt(src.r), ByteToFlt(src.g), ByteToFlt(src.b), ByteToFlt(src.a));}
       }break;
 
       case IMAGE_R8G8B8: FREPD(y, y_offsets)
       {
        C VecB *color=(VecB*)(data()+y_offset[y]*pitch());
-         FREPD(x, x_offsets){C VecB &src=color[x_offset[x]]; (colors++)->set(src.x/255.0f, src.y/255.0f, src.z/255.0f, 1);}
+         FREPD(x, x_offsets){C VecB &src=color[x_offset[x]]; (colors++)->set(ByteToFlt(src.x), ByteToFlt(src.y), ByteToFlt(src.z), 1);}
       }break;
 
       // sRGB
       case IMAGE_B8G8R8A8_SRGB: FREPD(y, y_offsets)
       {
        C Color *color=(Color*)(data()+y_offset[y]*pitch());
-         FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; (colors++)->set(ByteSRGBToLinear(src.b), ByteSRGBToLinear(src.g), ByteSRGBToLinear(src.r), src.a/255.0f);}
+         FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; (colors++)->set(ByteSRGBToLinear(src.b), ByteSRGBToLinear(src.g), ByteSRGBToLinear(src.r), ByteToFlt(src.a));}
       }break;
 
       case IMAGE_R8G8B8A8_SRGB: FREPD(y, y_offsets)
       {
        C Color *color=(Color*)(data()+y_offset[y]*pitch());
-         FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; (colors++)->set(ByteSRGBToLinear(src.r), ByteSRGBToLinear(src.g), ByteSRGBToLinear(src.b), src.a/255.0f);}
+         FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; (colors++)->set(ByteSRGBToLinear(src.r), ByteSRGBToLinear(src.g), ByteSRGBToLinear(src.b), ByteToFlt(src.a));}
       }break;
 
       case IMAGE_R8G8B8_SRGB: FREPD(y, y_offsets)
@@ -2966,6 +2948,67 @@ void Image::gather(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
       {
          FREPD(y, y_offsets)
          FREPD(x, x_offsets)*colors++=colorF(x_offset[x], y_offset[y]);
+      }break;
+   }
+}
+void Image::gatherSRGB(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C
+{
+   switch(hwType())
+   {
+      case IMAGE_B8G8R8A8: FREPD(y, y_offsets)
+      {
+       C Color *color=(Color*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; (colors++)->set(LinearByteToSRGB(src.b), LinearByteToSRGB(src.g), LinearByteToSRGB(src.r), ByteToFlt(src.a));}
+      }break;
+
+      case IMAGE_R8G8B8A8: FREPD(y, y_offsets)
+      {
+       C Color *color=(Color*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; (colors++)->set(LinearByteToSRGB(src.r), LinearByteToSRGB(src.g), LinearByteToSRGB(src.b), ByteToFlt(src.a));}
+      }break;
+
+      case IMAGE_R8G8B8: FREPD(y, y_offsets)
+      {
+       C VecB *color=(VecB*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets){C VecB &src=color[x_offset[x]]; (colors++)->set(LinearByteToSRGB(src.x), LinearByteToSRGB(src.y), LinearByteToSRGB(src.z), 1);}
+      }break;
+
+      // sRGB
+      case IMAGE_B8G8R8A8_SRGB: FREPD(y, y_offsets)
+      {
+       C Color *color=(Color*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; (colors++)->set(ByteToFlt(src.b), ByteToFlt(src.g), ByteToFlt(src.r), ByteToFlt(src.a));}
+      }break;
+
+      case IMAGE_R8G8B8A8_SRGB: FREPD(y, y_offsets)
+      {
+       C Color *color=(Color*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; (colors++)->set(ByteToFlt(src.r), ByteToFlt(src.g), ByteToFlt(src.b), ByteToFlt(src.a));}
+      }break;
+
+      case IMAGE_R8G8B8_SRGB: FREPD(y, y_offsets)
+      {
+       C VecB *color=(VecB*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets){C VecB &src=color[x_offset[x]]; (colors++)->set(ByteToFlt(src.x), ByteToFlt(src.y), ByteToFlt(src.z), 1);}
+      }break;
+
+      // Flt
+      case IMAGE_F32_4: FREPD(y, y_offsets)
+      {
+       C Vec4 *color=(Vec4*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets)*colors++=LinearToSRGB(color[x_offset[x]]);
+      }break;
+
+      case IMAGE_F32_3: FREPD(y, y_offsets)
+      {
+       C Vec *color=(Vec*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets)(colors++)->set(LinearToSRGB(color[x_offset[x]]), 1);
+      }break;
+
+      default:
+      {
+         FREPD(y, y_offsets)
+         FREPD(x, x_offsets)*colors++=colorSRGBF(x_offset[x], y_offset[y]);
       }break;
    }
 }
@@ -3018,7 +3061,7 @@ void Image::gather(Flt *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int
        C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
          {
           C Color *color_y=(Color*)(data_z+y_offset[y]*pitch());
-            FREPD(x, x_offsets){C Color &src=color_y[x_offset[x]]; *pixels++=src.b/255.0f;}
+            FREPD(x, x_offsets){C Color &src=color_y[x_offset[x]]; *pixels++=ByteToFlt(src.b);}
          }
       }break;
 
@@ -3027,7 +3070,7 @@ void Image::gather(Flt *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int
        C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
          {
           C Color *color_y=(Color*)(data_z+y_offset[y]*pitch());
-            FREPD(x, x_offsets){C Color &src=color_y[x_offset[x]]; *pixels++=src.r/255.0f;}
+            FREPD(x, x_offsets){C Color &src=color_y[x_offset[x]]; *pixels++=ByteToFlt(src.r);}
          }
       }break;
 
@@ -3036,7 +3079,7 @@ void Image::gather(Flt *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int
        C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
          {
           C VecB *color_y=(VecB*)(data_z+y_offset[y]*pitch());
-            FREPD(x, x_offsets){C VecB &src=color_y[x_offset[x]]; *pixels++=src.x/255.0f;}
+            FREPD(x, x_offsets){C VecB &src=color_y[x_offset[x]]; *pixels++=ByteToFlt(src.x);}
          }
       }break;
 
@@ -3138,7 +3181,7 @@ void Image::gather(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
        C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
          {
           C Color *color_y=(Color*)(data_z+y_offset[y]*pitch());
-            FREPD(x, x_offsets){C Color &src=color_y[x_offset[x]]; (colors++)->set(src.b/255.0f, src.g/255.0f, src.r/255.0f, src.a/255.0f);}
+            FREPD(x, x_offsets){C Color &src=color_y[x_offset[x]]; (colors++)->set(ByteToFlt(src.b), ByteToFlt(src.g), ByteToFlt(src.r), ByteToFlt(src.a));}
          }
       }break;
 
@@ -3147,7 +3190,7 @@ void Image::gather(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
        C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
          {
           C Color *color_y=(Color*)(data_z+y_offset[y]*pitch());
-            FREPD(x, x_offsets){C Color &src=color_y[x_offset[x]]; (colors++)->set(src.r/255.0f, src.g/255.0f, src.b/255.0f, src.a/255.0f);}
+            FREPD(x, x_offsets){C Color &src=color_y[x_offset[x]]; (colors++)->set(ByteToFlt(src.r), ByteToFlt(src.g), ByteToFlt(src.b), ByteToFlt(src.a));}
          }
       }break;
 
@@ -3156,7 +3199,7 @@ void Image::gather(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
        C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
          {
           C VecB *color_y=(VecB*)(data_z+y_offset[y]*pitch());
-            FREPD(x, x_offsets){C VecB &src=color_y[x_offset[x]]; (colors++)->set(src.x/255.0f, src.y/255.0f, src.z/255.0f, 1);}
+            FREPD(x, x_offsets){C VecB &src=color_y[x_offset[x]]; (colors++)->set(ByteToFlt(src.x), ByteToFlt(src.y), ByteToFlt(src.z), 1);}
          }
       }break;
 
@@ -3166,7 +3209,7 @@ void Image::gather(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
        C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
          {
           C Color *color_y=(Color*)(data_z+y_offset[y]*pitch());
-            FREPD(x, x_offsets){C Color &src=color_y[x_offset[x]]; (colors++)->set(ByteSRGBToLinear(src.b), ByteSRGBToLinear(src.g), ByteSRGBToLinear(src.r), src.a/255.0f);}
+            FREPD(x, x_offsets){C Color &src=color_y[x_offset[x]]; (colors++)->set(ByteSRGBToLinear(src.b), ByteSRGBToLinear(src.g), ByteSRGBToLinear(src.r), ByteToFlt(src.a));}
          }
       }break;
 
@@ -3175,7 +3218,7 @@ void Image::gather(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
        C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
          {
           C Color *color_y=(Color*)(data_z+y_offset[y]*pitch());
-            FREPD(x, x_offsets){C Color &src=color_y[x_offset[x]]; (colors++)->set(ByteSRGBToLinear(src.r), ByteSRGBToLinear(src.g), ByteSRGBToLinear(src.b), src.a/255.0f);}
+            FREPD(x, x_offsets){C Color &src=color_y[x_offset[x]]; (colors++)->set(ByteSRGBToLinear(src.r), ByteSRGBToLinear(src.g), ByteSRGBToLinear(src.b), ByteToFlt(src.a));}
          }
       }break;
 
