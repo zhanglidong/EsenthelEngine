@@ -193,7 +193,7 @@ Bool Image::ImportTGA(File &f, Int type, Int mode, Int mip_maps)
       case 16: type=(tga.mono ? IMAGE_I16 : IMAGE_R8G8B8_SRGB  ); break;
       case 24: type=(tga.mono ? IMAGE_I24 : IMAGE_R8G8B8_SRGB  ); break;
       case 32: type=(tga.mono ? IMAGE_I32 : IMAGE_R8G8B8A8_SRGB); break; // TGA uses BGRA order, we could use IMAGE_B8G8R8A8_SRGB, however it's an engine private type and can't be saved
-      case 8 : type=            IMAGE_L8                        ; break;
+      case 8 : type=            IMAGE_L8_SRGB                   ; break;
    }
 
    Bool convert=ImageTI[type].compressed;

@@ -17,7 +17,7 @@ static IMAGE_TYPE OldImageType2(Byte type)
       case 5: return IMAGE_R8;
 
       case 6: return IMAGE_A8;
-      case 7: return IMAGE_L8;
+      case 7: return IMAGE_L8_SRGB;
       case 8: return IMAGE_L8A8_SRGB;
 
       case  9: return IMAGE_BC1_SRGB;
@@ -63,7 +63,7 @@ static IMAGE_TYPE OldImageType1(Byte type)
       case  5: return IMAGE_R8;
 
       case  6: return IMAGE_A8;
-      case  7: return IMAGE_L8;
+      case  7: return IMAGE_L8_SRGB;
       case  8: return IMAGE_L8A8_SRGB;
 
       case  9: return IMAGE_BC2_SRGB;
@@ -103,7 +103,7 @@ static IMAGE_TYPE OldImageType0(Byte type)
       case  6: return IMAGE_NONE; // IMAGE_P8
       case  7: return IMAGE_A8;
       case  8: return IMAGE_A8; // IMAGE_A8W
-      case  9: return IMAGE_L8;
+      case  9: return IMAGE_L8_SRGB;
       case 10: return IMAGE_I16; // IMAGE_L16
       case 11: return IMAGE_NONE; // IMAGE_A4L4
       case 12: return IMAGE_L8A8_SRGB;

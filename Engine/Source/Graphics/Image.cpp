@@ -78,6 +78,7 @@ ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have the sa
 
    {"A8"           , false,  1,  8,   0, 0, 0, 8,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_A8_UNORM, GL_SWIZZLE ? GL_R8  : GL_ALPHA8           )},
    {"L8"           , false,  1,  8,   0, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN , GL_SWIZZLE ? GL_R8  : GL_LUMINANCE8       )},
+   {"L8_SRGB"      , false,  1,  8,   0, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN , 0)},
    {"L8A8"         , false,  2, 16,   0, 0, 0, 8,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN , GL_SWIZZLE ? GL_RG8 : GL_LUMINANCE8_ALPHA8)},
    {"L8A8_SRGB"    , false,  2, 16,   0, 0, 0, 8,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN , 0)},
 
@@ -152,6 +153,7 @@ Bool IsSRGB(IMAGE_TYPE type)
       case IMAGE_B8G8R8A8_SRGB:
       case IMAGE_R8G8B8A8_SRGB:
       case IMAGE_R8G8B8_SRGB  :
+      case IMAGE_L8_SRGB      :
       case IMAGE_L8A8_SRGB    :
       case IMAGE_BC1_SRGB     :
       case IMAGE_BC2_SRGB     :
@@ -185,7 +187,7 @@ IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type)
       case IMAGE_I24:
       case IMAGE_I32: return IMAGE_L8A8;
 
-    //case IMAGE_L8_SRGB: return IMAGE_L8A8_SRGB;
+      case IMAGE_L8_SRGB: return IMAGE_L8A8_SRGB;
 
       case IMAGE_BC1     : return IMAGE_BC7     ; // BC1 has only 1-bit alpha which is not enough
       case IMAGE_BC1_SRGB: return IMAGE_BC7_SRGB; // BC1 has only 1-bit alpha which is not enough
@@ -221,7 +223,7 @@ IMAGE_TYPE ImageTypeExcludeAlpha(IMAGE_TYPE type)
 
       case IMAGE_L8A8: return IMAGE_L8;
 
-    //case IMAGE_L8A8_SRGB: return IMAGE_L8_SRGB;
+      case IMAGE_L8A8_SRGB: return IMAGE_L8_SRGB;
 
       case IMAGE_BC2:
       case IMAGE_BC3:
@@ -291,6 +293,7 @@ IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type) // this is for HW images, don't retu
 
       case IMAGE_B8G8R8A8_SRGB:
       case IMAGE_R8G8B8_SRGB  :
+      case IMAGE_L8_SRGB      :
       case IMAGE_L8A8_SRGB    :
       case IMAGE_BC1_SRGB     :
       case IMAGE_BC2_SRGB     :
@@ -315,6 +318,7 @@ IMAGE_TYPE ImageTypeRemoveSRGB(IMAGE_TYPE type)
       case IMAGE_B8G8R8A8_SRGB: return IMAGE_B8G8R8A8;
       case IMAGE_R8G8B8A8_SRGB: return IMAGE_R8G8B8A8;
       case IMAGE_R8G8B8_SRGB  : return IMAGE_R8G8B8;
+      case IMAGE_L8_SRGB      : return IMAGE_L8;
       case IMAGE_L8A8_SRGB    : return IMAGE_L8A8;
       case IMAGE_BC1_SRGB     : return IMAGE_BC1;
       case IMAGE_BC2_SRGB     : return IMAGE_BC2;
@@ -335,6 +339,7 @@ IMAGE_TYPE ImageTypeToggleSRGB(IMAGE_TYPE type)
       case IMAGE_B8G8R8A8_SRGB: return IMAGE_B8G8R8A8;   case IMAGE_B8G8R8A8: return IMAGE_B8G8R8A8_SRGB;
       case IMAGE_R8G8B8A8_SRGB: return IMAGE_R8G8B8A8;   case IMAGE_R8G8B8A8: return IMAGE_R8G8B8A8_SRGB;
       case IMAGE_R8G8B8_SRGB  : return IMAGE_R8G8B8  ;   case IMAGE_R8G8B8  : return IMAGE_R8G8B8_SRGB;
+      case IMAGE_L8_SRGB      : return IMAGE_L8      ;   case IMAGE_L8      : return IMAGE_L8_SRGB;
       case IMAGE_L8A8_SRGB    : return IMAGE_L8A8    ;   case IMAGE_L8A8    : return IMAGE_L8A8_SRGB;
       case IMAGE_BC1_SRGB     : return IMAGE_BC1     ;   case IMAGE_BC1     : return IMAGE_BC1_SRGB;
       case IMAGE_BC2_SRGB     : return IMAGE_BC2     ;   case IMAGE_BC2     : return IMAGE_BC2_SRGB;

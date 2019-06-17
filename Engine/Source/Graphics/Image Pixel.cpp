@@ -377,7 +377,7 @@ static void SetPixelF(Byte *data, IMAGE_TYPE type, Flt pixel)
 
       case IMAGE_R8 :
       case IMAGE_A8 :
-      case IMAGE_L8 :
+      case IMAGE_L8 : case IMAGE_L8_SRGB:
       case IMAGE_I8 : (*(U8 *)data)=FltToByte( pixel)             ; break; // it's okay   to clamp int for small  values
       case IMAGE_I16: (*(U16*)data)=RoundU(Sat(pixel)*0x0000FFFFu); break; // it's better to clamp flt for bigger values
       case IMAGE_I32: (*(U32*)data)=RoundU(Sat(pixel)*0xFFFFFFFFu); break; // it's better to clamp flt for bigger values
@@ -451,7 +451,7 @@ static inline Flt GetPixelF(C Byte *data, C Image &image, Bool _2d, Int x, Int y
       case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB:
       case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB:
       case IMAGE_A8      :
-      case IMAGE_L8      :
+      case IMAGE_L8      : case IMAGE_L8_SRGB:
       case IMAGE_L8A8    : case IMAGE_L8A8_SRGB:
       case IMAGE_I8      :
          return (*(U8*)data)/Flt(0x000000FFu);
@@ -527,7 +527,7 @@ static inline Color GetColor(C Byte *data, C Image &image, Bool _2d, Int x, Int 
       case IMAGE_R8G8    :                           {C VecB2 &v=*(VecB2*)data; return Color(  v.x, v.y,   0,   255);}
       case IMAGE_R8      :                                                      return Color(*data,   0,   0,   255);
       case IMAGE_A8      :                                                      return Color(    0,   0,   0, *data);
-      case IMAGE_L8      :                           {  Byte   b=*data;         return Color(    b,   b,   b,   255);}
+      case IMAGE_L8      : case IMAGE_L8_SRGB  :     {  Byte   b=*data;         return Color(    b,   b,   b,   255);}
       case IMAGE_L8A8    : case IMAGE_L8A8_SRGB:     {C VecB2 &v=*(VecB2*)data; return Color(  v.x, v.x, v.x,   v.y);}
       case IMAGE_I8      :                           {  Byte   b=data[0];       return Color(    b,   b,   b,   255);}
       case IMAGE_I16     :                           {  Byte   b=data[1];       return Color(    b,   b,   b,   255);}
@@ -590,14 +590,14 @@ static void SetColor(Byte *data, IMAGE_TYPE type, C Color &color)
       case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB  : ((VecB *)data)->set(color.r, color.g, color.b); break;
       case IMAGE_R8G8    :                           ((VecB2*)data)->set(color.r, color.g); break;
       case IMAGE_L8A8    : case IMAGE_L8A8_SRGB    : ((VecB2*)data)->set(color.lum(), color.a); break;
+      case IMAGE_L8      : case IMAGE_L8_SRGB      : *        data=color.lum(); break;
 
-      case IMAGE_R8      : *        data=color.r; break;
-      case IMAGE_A8      : *        data=color.a; break;
-      case IMAGE_L8      : *        data=color.lum(); break;
-      case IMAGE_I8      : *        data=color.r; break;
-      case IMAGE_I16     : *(U16  *)data=(color.r<<8); break;
-      case IMAGE_I24     : *(U16  *)data=0; data[2]=color.r; break;
-      case IMAGE_I32     : *(U32  *)data=(color.r<<24); break;
+      case IMAGE_R8      : *      data=color.r; break;
+      case IMAGE_A8      : *      data=color.a; break;
+      case IMAGE_I8      : *      data=color.r; break;
+      case IMAGE_I16     : *(U16*)data=(color.r<<8); break;
+      case IMAGE_I24     : *(U16*)data=0; data[2]=color.r; break;
+      case IMAGE_I32     : *(U32*)data=(color.r<<24); break;
 
       case IMAGE_B4G4R4A4: *(U16*)data=((color.r>>4)<< 8) | ((color.g>>4)<<4) | (color.b>> 4) | ((color.a>>4)<<12); break;
       case IMAGE_B5G5R5A1: *(U16*)data=((color.r>>3)<<10) | ((color.g>>3)<<5) | (color.b>> 3) | ((color.a>>7)<<15); break;
@@ -642,7 +642,7 @@ static void SetColor(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Color &c
       case IMAGE_F32: c.set(color.r, 0, 0, 255); break;
 
       case IMAGE_A8  :                       c.set(0, 0, 0    , color.a); break;
-      case IMAGE_L8  :                       c.set(color.lum(),     255); break;
+      case IMAGE_L8  : case IMAGE_L8_SRGB  : c.set(color.lum(),     255); break;
       case IMAGE_L8A8: case IMAGE_L8A8_SRGB: c.set(color.lum(), color.a); break;
 
       default: goto normal;
@@ -674,12 +674,15 @@ static void SetColorF(Byte *data, IMAGE_TYPE type, C Vec4 &color)
       case IMAGE_F16_3: (*(VecH *)data)=color.xyz; break;
       case IMAGE_F16_4: (*(VecH4*)data)=color    ; break;
 
-      case IMAGE_A8 : (*(U8 *)data)=FltToByte( color.w             ); break; // it's okay   to clamp int for small  values
-      case IMAGE_L8 : (*(U8 *)data)=FltToByte( color.xyz.max()     ); break; // it's okay   to clamp int for small  values
-      case IMAGE_I8 : (*(U8 *)data)=FltToByte( color.x             ); break; // it's okay   to clamp int for small  values
+      case IMAGE_A8 : (*(U8*)data)=FltToByte(color.w); break; // it's okay to clamp int for small values
+      case IMAGE_I8 : (*(U8*)data)=FltToByte(color.x); break; // it's okay to clamp int for small values
+
       case IMAGE_I16: (*(U16*)data)=RoundU(Sat(color.x)*0x0000FFFFu); break; // it's better to clamp flt for bigger values
       case IMAGE_I32: (*(U32*)data)=RoundU(Sat(color.x)*0xFFFFFFFFu); break; // it's better to clamp flt for bigger values
       case IMAGE_I24: {  U32  c    =RoundU(Sat(color.x)*0x00FFFFFFu); (*(U16*)data)=c; data[2]=(c>>16);} break; // it's better to clamp flt for bigger values
+
+      case IMAGE_L8     : (*(U8*)data)=   FltToByte    (color.xyz.max()); break; // it's okay to clamp int for small values
+      case IMAGE_L8_SRGB: (*(U8*)data)=LinearToByteSRGB(color.xyz.max()); break; // it's okay to clamp int for small values
 
       case IMAGE_L8A8     : ((VecB2*)data)->set(   FltToByte    (color.xyz.max()), FltToByte(color.w)); break;
       case IMAGE_L8A8_SRGB: ((VecB2*)data)->set(LinearToByteSRGB(color.xyz.max()), FltToByte(color.w)); break;
@@ -724,7 +727,7 @@ static void SetColorF(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &c
       case IMAGE_F32: c.set(color.x, 0, 0, 1); break;
 
       case IMAGE_A8  :                                               c.set(0, 0, 0, color.w);  break;
-      case IMAGE_L8  :                       {Flt l=color.xyz.max(); c.set(l, l, l,       1);} break;
+      case IMAGE_L8  : case IMAGE_L8_SRGB  : {Flt l=color.xyz.max(); c.set(l, l, l,       1);} break;
       case IMAGE_L8A8: case IMAGE_L8A8_SRGB: {Flt l=color.xyz.max(); c.set(l, l, l, color.w);} break;
 
       default: goto normal;
@@ -756,13 +759,15 @@ static void SetColorSRGBF(Byte *data, IMAGE_TYPE type, C Vec4 &color)
       case IMAGE_F16_3: (*(VecH *)data)=    SRGBToLinear(color.xyz); break;
       case IMAGE_F16_4: (*(VecH4*)data)=    SRGBToLinear(color    ); break;
 
-      case IMAGE_A8: (*(U8 *)data)= FltToByte      (color.w        ); break; // it's okay to clamp int for small values
-      case IMAGE_L8: (*(U8 *)data)=SRGBToLinearByte(color.xyz.max()); break; // it's okay to clamp int for small values
-      case IMAGE_I8: (*(U8 *)data)=SRGBToLinearByte(color.x        ); break; // it's okay to clamp int for small values
+      case IMAGE_A8: (*(U8*)data)= FltToByte      (color.w); break; // it's okay to clamp int for small values
+      case IMAGE_I8: (*(U8*)data)=SRGBToLinearByte(color.x); break; // it's okay to clamp int for small values
 
       case IMAGE_I16: (*(U16*)data)=RoundU(Sat(SRGBToLinear(color.x))*0x0000FFFFu); break; // it's better to clamp flt for bigger values
       case IMAGE_I32: (*(U32*)data)=RoundU(Sat(SRGBToLinear(color.x))*0xFFFFFFFFu); break; // it's better to clamp flt for bigger values
       case IMAGE_I24: {  U32  c    =RoundU(Sat(SRGBToLinear(color.x))*0x00FFFFFFu); (*(U16*)data)=c; data[2]=(c>>16);} break; // it's better to clamp flt for bigger values
+
+      case IMAGE_L8     : (*(U8*)data)=SRGBToLinearByte(color.xyz.max()); break; // it's okay to clamp int for small values
+      case IMAGE_L8_SRGB: (*(U8*)data)= FltToByte      (color.xyz.max()); break; // it's okay to clamp int for small values
 
       case IMAGE_L8A8     : ((VecB2*)data)->set(SRGBToLinearByte(color.xyz.max()), FltToByte(color.w)); break;
       case IMAGE_L8A8_SRGB: ((VecB2*)data)->set( FltToByte      (color.xyz.max()), FltToByte(color.w)); break;
@@ -807,7 +812,7 @@ static void SetColorSRGBF(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec
       case IMAGE_F32: c.set(color.x, 0, 0, 1); break;
 
       case IMAGE_A8  :                                               c.set(0, 0, 0, color.w);  break;
-      case IMAGE_L8  :                       {Flt l=color.xyz.max(); c.set(l, l, l,       1);} break;
+      case IMAGE_L8  : case IMAGE_L8_SRGB  : {Flt l=color.xyz.max(); c.set(l, l, l,       1);} break;
       case IMAGE_L8A8: case IMAGE_L8A8_SRGB: {Flt l=color.xyz.max(); c.set(l, l, l, color.w);} break;
 
       default: goto normal;
@@ -883,7 +888,6 @@ Vec4 ImageColorF(CPtr data, IMAGE_TYPE hw_type)
       case IMAGE_F16_4: return Vec4(((Half*)data)[0], ((Half*)data)[1], ((Half*)data)[2], ((Half*)data)[3]);
 
       case IMAGE_A8: return Vec4(0, 0, 0, ByteToFlt(*(U8*)data));
-      case IMAGE_L8: return Vec4(Vec(     ByteToFlt(*(U8*)data)), 1);
       case IMAGE_I8: return Vec4(Vec(     ByteToFlt(*(U8*)data)), 1);
 
       // 16
@@ -908,6 +912,9 @@ Vec4 ImageColorF(CPtr data, IMAGE_TYPE hw_type)
    #endif
       case IMAGE_I24:
          return Vec4(Vec((*(U16*)data | (((Byte*)data)[2]<<16))/Flt(0x00FFFFFFu)), 1); // here Dbl is not required, this was tested
+
+      case IMAGE_L8     : return Vec4(Vec(    ByteToFlt   (*(U8*)data)), 1);
+      case IMAGE_L8_SRGB: return Vec4(Vec(ByteSRGBToLinear(*(U8*)data)), 1);
 
       case IMAGE_L8A8     : {VecB2 &c=*(VecB2*)data; Flt l=    ByteToFlt   (c.x); return Vec4(l, l, l, ByteToFlt(c.y));}
       case IMAGE_L8A8_SRGB: {VecB2 &c=*(VecB2*)data; Flt l=ByteSRGBToLinear(c.x); return Vec4(l, l, l, ByteToFlt(c.y));}
@@ -946,7 +953,6 @@ static inline Vec4 GetColorF(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
       case IMAGE_F16_4: return Vec4(((Half*)data)[0], ((Half*)data)[1], ((Half*)data)[2], ((Half*)data)[3]);
 
       case IMAGE_A8: return Vec4(0, 0, 0, ByteToFlt(*(U8*)data));
-      case IMAGE_L8: return Vec4(Vec(     ByteToFlt(*(U8*)data)), 1);
       case IMAGE_I8: return Vec4(Vec(     ByteToFlt(*(U8*)data)), 1);
 
       // 16
@@ -971,6 +977,9 @@ static inline Vec4 GetColorF(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
    #endif
       case IMAGE_I24:
          return Vec4(Vec((*(U16*)data | (((Byte*)data)[2]<<16))/Flt(0x00FFFFFFu)), 1); // here Dbl is not required, this was tested
+
+      case IMAGE_L8     : return Vec4(Vec(    ByteToFlt   (*(U8*)data)), 1);
+      case IMAGE_L8_SRGB: return Vec4(Vec(ByteSRGBToLinear(*(U8*)data)), 1);
 
       case IMAGE_L8A8     : {VecB2 &c=*(VecB2*)data; Flt l=    ByteToFlt   (c.x); return Vec4(l, l, l, ByteToFlt(c.y));}
       case IMAGE_L8A8_SRGB: {VecB2 &c=*(VecB2*)data; Flt l=ByteSRGBToLinear(c.x); return Vec4(l, l, l, ByteToFlt(c.y));}
@@ -1043,12 +1052,14 @@ static inline Vec4 GetColorSRGBF(CPtr data, C Image &image, Bool _2d, Int x, Int
       case IMAGE_F16_4: return      LinearToSRGB(*(VecH4*)data);
 
       case IMAGE_A8: return Vec4(0, 0, 0,   ByteToFlt(*(U8*)data));
-      case IMAGE_L8: return Vec4(Vec(LinearByteToSRGB(*(U8*)data)), 1);
       case IMAGE_I8: return Vec4(Vec(LinearByteToSRGB(*(U8*)data)), 1);
 
       case IMAGE_I16: return Vec4(Vec(LinearToSRGB((*(U16*)data)/Flt(0x0000FFFFu))), 1);
       case IMAGE_I32: return Vec4(Vec(LinearToSRGB((*(U32*)data)/Dbl(0xFFFFFFFFu))), 1); // Dbl required to get best precision
       case IMAGE_I24: return Vec4(Vec(LinearToSRGB((*(U16*)data | (((Byte*)data)[2]<<16))/Flt(0x00FFFFFFu))), 1); // here Dbl is not required, this was tested
+
+      case IMAGE_L8     : return Vec4(Vec(LinearByteToSRGB(*(U8*)data)), 1);
+      case IMAGE_L8_SRGB: return Vec4(Vec(      ByteToFlt (*(U8*)data)), 1);
 
       case IMAGE_L8A8     : {VecB2 &c=*(VecB2*)data; Flt l=LinearByteToSRGB(c.x); return Vec4(l, l, l, ByteToFlt(c.y));}
       case IMAGE_L8A8_SRGB: {VecB2 &c=*(VecB2*)data; Flt l=      ByteToFlt (c.x); return Vec4(l, l, l, ByteToFlt(c.y));}
@@ -2949,7 +2960,7 @@ void Image::gather(Flt *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int
 
       case IMAGE_R8:
       case IMAGE_A8:
-      case IMAGE_L8:
+      case IMAGE_L8: case IMAGE_L8_SRGB:
       case IMAGE_I8: FREPD(y, y_offsets)
       {
        C Byte *pixel=data()+y_offset[y]*pitch();
@@ -3204,7 +3215,7 @@ void Image::gather(Flt *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int
 
       case IMAGE_R8:
       case IMAGE_A8:
-      case IMAGE_L8:
+      case IMAGE_L8: case IMAGE_L8_SRGB:
       case IMAGE_I8: FREPD(z, z_offsets)
       {
        C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)

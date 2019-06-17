@@ -86,7 +86,7 @@ Bool Image::ImportTIF(File &f)
          IMAGE_TYPE type=IMAGE_NONE;
          switch(samples)
          {
-            case 1: if(photometric==PHOTOMETRIC_MINISBLACK)if(bits==8)type=IMAGE_L8;else if(bits==16)type=IMAGE_I16;else if(bits==24)type=IMAGE_I24;else if(bits==32)type=IMAGE_I32; break;
+            case 1: if(photometric==PHOTOMETRIC_MINISBLACK)if(bits==8)type=IMAGE_L8_SRGB;else if(bits==16)type=IMAGE_I16;else if(bits==24)type=IMAGE_I24;else if(bits==32)type=IMAGE_I32; break;
             case 3: if(photometric==PHOTOMETRIC_RGB)if(bits==8)type=IMAGE_R8G8B8_SRGB  ; break;
             case 4: if(photometric==PHOTOMETRIC_RGB)if(bits==8)type=IMAGE_R8G8B8A8_SRGB; break;
          }
@@ -124,7 +124,7 @@ Bool Image::ImportTIF(File &f)
       {
          ok=true;
          if(photometric!=PHOTOMETRIC_PALETTE) // keep palette as RGBA
-            if(samples==1 || samples==3)ok=copyTry(T, -1, -1, -1, (samples==1) ? IMAGE_L8 : IMAGE_R8G8B8_SRGB);
+            if(samples==1 || samples==3)ok=copyTry(T, -1, -1, -1, (samples==1) ? IMAGE_L8_SRGB : IMAGE_R8G8B8_SRGB);
       }
       TIFFClose(tif);
       f.pos(tf.end); // set position at the end of the read data, we have to do this because file pointer may not necessary be at the end, also don't use just 'f.size' in case there is some data after TIFF

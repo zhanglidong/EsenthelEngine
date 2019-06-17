@@ -711,7 +711,7 @@ Bool PSD::ProccessBuffer(Byte *pData, Image &dest)
          case 1: // Grayscale
          case 8: // Duotone
          {
-            if(dest.createSoftTry(nWidth, nHeight, 1, (header_info.nBitsPerPixel==32) ? IMAGE_I32 : (header_info.nBitsPerPixel==24) ? IMAGE_I24 : (header_info.nBitsPerPixel==16) ? IMAGE_I16 : IMAGE_L8))
+            if(dest.createSoftTry(nWidth, nHeight, 1, (header_info.nBitsPerPixel==32) ? IMAGE_I32 : (header_info.nBitsPerPixel==24) ? IMAGE_I24 : (header_info.nBitsPerPixel==16) ? IMAGE_I16 : IMAGE_L8_SRGB))
             {
                for(; nCounter<nTotalBytes; nCounter+=header_info.nChannels*bytesPerPixelPerChannel)
                {
@@ -790,7 +790,7 @@ Bool PSD::ProccessBuffer(Byte *pData, Image &dest)
          case 7: // Multichannel
          {
             if(header_info.nChannels==1) // for now support just one channel
-            if(dest.createSoftTry(nWidth, nHeight, 1, IMAGE_L8))
+            if(dest.createSoftTry(nWidth, nHeight, 1, IMAGE_L8_SRGB))
             {
                for(; nCounter<nTotalBytes; nCounter+=header_info.nChannels*bytesPerPixelPerChannel)
                {

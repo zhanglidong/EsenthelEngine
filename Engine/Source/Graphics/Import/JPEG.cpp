@@ -105,7 +105,7 @@ Bool Image::ImportJPG(File &f)
 
       if(cinfo.output_components==1 && cinfo.out_color_space==JCS_GRAYSCALE
       || cinfo.output_components==3 && cinfo.out_color_space==JCS_RGB)
-         if(createSoftTry(cinfo.output_width, cinfo.output_height, 1, (cinfo.output_components==1) ? IMAGE_L8 : IMAGE_R8G8B8_SRGB))
+         if(createSoftTry(cinfo.output_width, cinfo.output_height, 1, (cinfo.output_components==1) ? IMAGE_L8_SRGB : IMAGE_R8G8B8_SRGB))
       {
          created=true;
          for(; cinfo.output_scanline<cinfo.output_height; ){JSAMPROW row=T.data()+cinfo.output_scanline*pitch(); jpeg_read_scanlines(&cinfo, &row, 1);}
@@ -170,7 +170,7 @@ Bool Image::ExportJPG(File &f, Flt quality, Int sub_sample)C
    if(!src->is  ())return false;
    if( src->cube())if(temp.fromCube(*src, IMAGE_R8G8B8))src=&temp;else return false; // JPEG doesn't have alpha
 
-   if(src->hwType()!=IMAGE_L8 && src->hwType()!=IMAGE_A8 && src->hwType()!=IMAGE_I8
+   if(src->hwType()!=IMAGE_L8 && src->hwType()!=IMAGE_L8_SRGB && src->hwType()!=IMAGE_A8 && src->hwType()!=IMAGE_I8
    && src->hwType()!=IMAGE_R8G8B8
    && src->hwType()!=IMAGE_R8G8B8_SRGB
 #if JCS_EXTENSIONS
@@ -181,7 +181,7 @@ Bool Image::ExportJPG(File &f, Flt quality, Int sub_sample)C
    && src->hwType()!=IMAGE_B8G8R8A8_SRGB
 #endif
    )
-      if(src->copyTry(temp, -1, -1, -1, (src->type()==IMAGE_I16) ? IMAGE_L8 : IMAGE_R8G8B8, IMAGE_SOFT, 1))src=&temp;else return false;
+      if(src->copyTry(temp, -1, -1, -1, (src->type()==IMAGE_I16) ? IMAGE_L8_SRGB : IMAGE_R8G8B8, IMAGE_SOFT, 1))src=&temp;else return false;
 
    if(src->lockRead())
    {
@@ -193,6 +193,7 @@ Bool Image::ExportJPG(File &f, Flt quality, Int sub_sample)C
       switch(src->hwType())
       {
          case IMAGE_L8         :
+         case IMAGE_L8_SRGB    :
          case IMAGE_A8         :
          case IMAGE_I8         : cinfo.in_color_space=JCS_GRAYSCALE; cinfo.input_components=1; break;
          case IMAGE_R8G8B8     :

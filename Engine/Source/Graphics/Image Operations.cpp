@@ -1681,8 +1681,9 @@ Image& Image::noise(Byte red, Byte green, Byte blue, Byte alpha)
    {
       switch(T.type())
       {
-         case IMAGE_L8  :
-         case IMAGE_L8A8:
+         case IMAGE_L8       :
+         case IMAGE_L8_SRGB  :
+         case IMAGE_L8A8     :
          case IMAGE_L8A8_SRGB:
          {
             Byte noise=Max(red, green, blue);
@@ -2071,7 +2072,7 @@ Bool Image::monochromatic()C
 {
  C ImageTypeInfo &type_info=ImageTI[type()];
    if(!type_info.r && !type_info.g && !type_info.b
-   ||  type()==IMAGE_L8 || type()==IMAGE_L8A8 || type()==IMAGE_L8A8_SRGB)return true;
+   ||  type()==IMAGE_L8 || type()==IMAGE_L8_SRGB || type()==IMAGE_L8A8 || type()==IMAGE_L8A8_SRGB)return true;
 
    Bool  extract=compressed(); IMAGE_TYPE type=ImageTypeUncompressed(T.type());
    Image temp; C Image *src=(extract ? &temp : this);
@@ -2429,7 +2430,7 @@ Image& Image::applyShadow(C Image &shadow, C Color &shadow_color, C VecI2 &offse
             switch(type) // if not then manually specify the type
          {
             case IMAGE_A8 :
-            case IMAGE_L8 :
+            case IMAGE_L8 : case IMAGE_L8_SRGB:
             case IMAGE_I8 :
             case IMAGE_I16:
             case IMAGE_I24:
