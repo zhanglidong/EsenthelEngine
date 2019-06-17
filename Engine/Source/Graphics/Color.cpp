@@ -403,7 +403,10 @@ Flt   SRGBLumOfSRGBColor  (C Vec &s) {return LinearToSRGB(Dot(SRGBToLinear(s), C
 /******************************************************************************/
 // SRGB
 /******************************************************************************/
-static Byte LinearToByteSRGB(Flt l) {return LinearToByteSRGBArray[Mid(RoundPos(l*(Elms(LinearToByteSRGBArray)-1)), 0, Elms(LinearToByteSRGBArray)-1)];}
+Byte  LinearToByteSRGB(  Flt   l) {return LinearToByteSRGBArray[Mid(RoundPos(l*(Elms(LinearToByteSRGBArray)-1)), 0, Elms(LinearToByteSRGBArray)-1)];}
+VecB  LinearToSVecB   (C Vec  &l) {return VecB (LinearToByteSRGB(l.x), LinearToByteSRGB(l.y), LinearToByteSRGB(l.z));}
+Color LinearToSColor  (C Vec  &l) {return Color(LinearToByteSRGB(l.x), LinearToByteSRGB(l.y), LinearToByteSRGB(l.z));}
+Color LinearToSColor  (C Vec4 &l) {return Color(LinearToByteSRGB(l.x), LinearToByteSRGB(l.y), LinearToByteSRGB(l.z), FltToByte(l.w));}
 
 void InitSRGB()
 {

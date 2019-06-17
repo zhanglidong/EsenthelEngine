@@ -119,8 +119,12 @@ Flt   SRGBLumOfSRGBColor  (C Vec &s); // get srgb   photometric luminance (as pe
 #if EE_PRIVATE
 INLINE Vec4 SRGBToDisplay(C Color &srgb) {return LINEAR_GAMMA ? SRGBToLinear(srgb) : (Vec4)srgb;}
 
-extern Flt ByteSRGBToLinearArray[256];
-inline Flt ByteSRGBToLinear(Byte s) {return ByteSRGBToLinearArray[s];}
+extern Flt   ByteSRGBToLinearArray[256];
+INLINE Flt   ByteSRGBToLinear(  Byte  s) {return ByteSRGBToLinearArray[s];}
+       Byte  LinearToByteSRGB(  Flt   l);
+       VecB  LinearToSVecB   (C Vec  &l);
+       Color LinearToSColor  (C Vec  &l);
+       Color LinearToSColor  (C Vec4 &l);
 
 void InitSRGB();
 Str GetColorProfilePath();

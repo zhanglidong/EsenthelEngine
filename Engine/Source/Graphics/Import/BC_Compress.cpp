@@ -118,7 +118,7 @@ Bool _CompressBC67(C Image &src, Image &dest)
          Int dest_mip_hwW=PaddedWidth (dest.hwW(), dest.hwH(), mip, dest.hwType()),
              dest_mip_hwH=PaddedHeight(dest.hwW(), dest.hwH(), mip, dest.hwType());
          // to directly read from 'src', we need to match requirements for compressor, which needs:
-         Bool read_from_src=((data.bc6 ? src.hwType()==IMAGE_F16_4 : (src.hwType()==IMAGE_R8G8B8A8 || src.hwType()==IMAGE_R8G8B8A8_SRGB)) // IMAGE_F16_4/IMAGE_R8G8B8A8 hw type
+         Bool read_from_src=((data.bc6 ? src.hwType()==IMAGE_F16_4 : (src.hwType()==IMAGE_R8G8B8A8 || src.hwType()==IMAGE_R8G8B8A8_SRGB)) // IMAGE_F16_4 for BC6 / IMAGE_R8G8B8A8 for BC7
                          && PaddedWidth (src.hwW(), src.hwH(), mip, src.hwType())==dest_mip_hwW   // src mip width  must be exactly the same as dest mip width
                          && PaddedHeight(src.hwW(), src.hwH(), mip, src.hwType())==dest_mip_hwH); // src mip height must be exactly the same as dest mip height
        C Image &s=(read_from_src ? src : temp);

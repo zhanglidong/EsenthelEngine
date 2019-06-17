@@ -248,6 +248,8 @@ struct Image // Image (Texture)
    IMAGE_PRECISION     precision()C {return ImageTI[_hw_type].    precision  ;} // get image precision
    Bool            highPrecision()C {return ImageTI[_hw_type].highPrecision();} // if  any channel of the image uses more than 8 bits
 
+   Bool            highPrecisionOrSRGB()C {return highPrecision() || sRGB();}
+
    CUBE_LAYOUT cubeLayout()C; // auto-detect cube layout based on image size
 
    // manage
@@ -707,8 +709,10 @@ Int                        TotalMipMaps     (Int w, Int h, Int d, IMAGE_TYPE typ
 IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type);
 IMAGE_TYPE ImageTypeToggleSRGB(IMAGE_TYPE type);
 IMAGE_TYPE ImageTypeRemoveSRGB(IMAGE_TYPE type);
-Bool CanDoRawCopy(IMAGE_TYPE a, IMAGE_TYPE b);
-Bool CanDoRawCopy(C Image &src, C Image &dest);
+       Bool HighPrecision(IMAGE_TYPE src, IMAGE_TYPE dest);
+inline Bool HighPrecision(C Image   &src, C Image   &dest) {return HighPrecision(src.hwType(), dest.hwType());}
+       Bool CanDoRawCopy (IMAGE_TYPE src, IMAGE_TYPE dest);
+       Bool CanDoRawCopy (C Image   &src, C Image   &dest);
 Bool CompatibleLock(LOCK_MODE cur, LOCK_MODE lock); // if 'lock' is okay to be applied when 'cur' is already applied
 Vec4 ImageColorF(CPtr data, IMAGE_TYPE hw_type);
 void CopyNoStretch(C Image &src, Image &dest, Bool clamp); // assumes 'src,dest' are locked and non-compressed

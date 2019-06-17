@@ -493,8 +493,13 @@ Bool CompatibleLock(LOCK_MODE cur, LOCK_MODE lock)
       case LOCK_READ      : return lock==LOCK_READ;
    }
 }
-Bool CanDoRawCopy(IMAGE_TYPE a, IMAGE_TYPE b) {return ImageTypeRemoveSRGB(a)==ImageTypeRemoveSRGB(b);}
-Bool CanDoRawCopy(C Image &src, C Image &dest)
+Bool HighPrecision(IMAGE_TYPE src, IMAGE_TYPE dest)
+{
+   return ImageTI[src].highPrecision() && ImageTI[dest].highPrecision() // both are high precision
+       || IsSRGB (src)!=IsSRGB(dest); // or gamma is different
+}
+Bool CanDoRawCopy(IMAGE_TYPE src, IMAGE_TYPE dest) {return ImageTypeRemoveSRGB(src)==ImageTypeRemoveSRGB(dest);}
+Bool CanDoRawCopy(C Image   &src, C Image   &dest)
 {
    IMAGE_TYPE src_hwType=ImageTypeRemoveSRGB( src.hwType()),
              dest_hwType=ImageTypeRemoveSRGB(dest.hwType()),
@@ -1478,7 +1483,6 @@ static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'des
       case IMAGE_ETC2_A1: case IMAGE_ETC2_A1_SRGB: decompress_block=DecompressBlockETC2A1; decompress_block_pitch=DecompressBlockETC2A1; break;
       case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB: decompress_block=DecompressBlockETC2A8; decompress_block_pitch=DecompressBlockETC2A8; break;
    }
-   Bool hp=(decompress_block_VecH && dest.highPrecision()); // only if both 'src' and 'dest' are high precision
    if(dest.is() || dest.createTry(src.w(), src.h(), src.d(), (src.hwType()==IMAGE_BC6) ? IMAGE_F16_3 : src.sRGB() ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, src.cube() ? IMAGE_SOFT_CUBE : IMAGE_SOFT, src.mipMaps())) // use 'IMAGE_R8G8B8A8' because Decompress Block functions operate on 'Color'
       if(dest.size3()==src.size3())
    {
@@ -1498,7 +1502,7 @@ static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'des
          REPD(z, dest.ld())
          {
             Int done_x=0, done_y=0;
-            if(hp)
+            if(decompress_block_VecH)
             {
                VecH color[4][4];
                if(dest.hwType()==IMAGE_F16_3  // decompress directly into 'dest'
