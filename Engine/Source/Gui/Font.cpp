@@ -695,7 +695,7 @@ struct SystemFontDrawContext
       face   =null;
    #elif WINDOWS_OLD
       main  =             GetDC(null);
-      dc    =CreateCompatibleDC(main); 
+      dc    =CreateCompatibleDC(main);
       bitmap=null;
       data  =null;
    #elif MAC
