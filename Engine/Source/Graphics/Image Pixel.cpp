@@ -2814,7 +2814,7 @@ Vec4 Image::color3DFLanczosOrtho(Flt x, Flt y, Flt z, Bool clamp)C
 /******************************************************************************/
 // AREA
 /******************************************************************************/
-Vec4 Image::areaColorAverage(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C
+Vec4 Image::areaColorFAverage(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C
 {
    if(lw() && lh())
    {
@@ -2832,7 +2832,7 @@ Vec4 Image::areaColorAverage(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_w
          xo[1]=Mod(recti.max.x, lw()); yo[1]=Mod(recti.max.y, lh());
       }
 
-      if(recti.min==recti.max)return colorL(xo[0], yo[0]); // if coordinates are the same, then return this pixel
+      if(recti.min==recti.max)return colorF(xo[0], yo[0]); // if coordinates are the same, then return this pixel
 
       // calculate blending factors
       Flt l=1+recti.min.x-rect.min.x, r=1+rect.max.x-recti.max.x, // l=1-(rect.min.x-recti.min.x), r=1-(recti.max.x-rect.max.x)
@@ -2843,14 +2843,14 @@ Vec4 Image::areaColorAverage(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_w
 
       // add inside
       for(Int                                                y=recti.min.y+1; y<recti.max.y; y++)
-      for(Int yo=(clamp ? Mid(y, 0, lh()-1) : Mod(y, lh())), x=recti.min.x+1; x<recti.max.x; x++)Add(color, rgb, colorL(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw()), yo), alpha_weight);
+      for(Int yo=(clamp ? Mid(y, 0, lh()-1) : Mod(y, lh())), x=recti.min.x+1; x<recti.max.x; x++)Add(color, rgb, colorF(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw()), yo), alpha_weight);
 
       // add sides
       if(recti.min.y==recti.max.y)
       for(Int x=recti.min.x+1; x<recti.max.x; x++)
       {
          Int xo=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw()));
-         Add(color, rgb, colorL(xo, yo[0]), alpha_weight);
+         Add(color, rgb, colorF(xo, yo[0]), alpha_weight);
       }else
       for(Int x=recti.min.x+1; x<recti.max.x; x++)
       {
@@ -2864,7 +2864,7 @@ Vec4 Image::areaColorAverage(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_w
       for(Int y=recti.min.y+1; y<recti.max.y; y++)
       {
          Int yo=(clamp ? Mid(y, 0, lh()-1) : Mod(y, lh()));
-         Add(color, rgb, colorL(xo[0], yo), alpha_weight);
+         Add(color, rgb, colorF(xo[0], yo), alpha_weight);
       }else
       for(Int y=recti.min.y+1; y<recti.max.y; y++)
       {
@@ -2901,7 +2901,38 @@ Vec4 Image::areaColorAverage(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_w
    return 0;
 }
 /******************************************************************************/
-Vec4 Image::areaColorLinear(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C // this is orthogonal
+Vec4 Image::areaColorFLinear(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C // this is orthogonal
+{
+   if(lw() && lh())
+   {
+      // f=(p-center)/size
+      const Vec2 s(Max(1, size.x*0.75f), Max(1, size.y*0.75f)); // 0.5 is too sharp, 1.0 is too blurry, 0.75 is best and gives same results as Avg(a,b)
+      Vec2 x_mul_add; x_mul_add.x=1/s.x; x_mul_add.y=-pos.x*x_mul_add.x;
+      Vec2 y_mul_add; y_mul_add.x=1/s.y; y_mul_add.y=-pos.y*y_mul_add.x;
+
+      // ceil is used for min, and floor used for max, because these are coordinates at which the weight function is zero, so we need to process next/previous pixels because they will be the first ones with some weight
+      Int x0=CeilSpecial(pos.x-s.x), x1=FloorSpecial(pos.x+s.x),
+          y0=CeilSpecial(pos.y-s.y), y1=FloorSpecial(pos.y+s.y);
+
+      Flt  weight=0; // this is always non-zero
+      Vec  rgb   =0;
+      Vec4 color =0;
+      for(Int y=y0; y<=y1; y++)
+      {
+         Flt fy=y*y_mul_add.x + y_mul_add.y; fy=Linear(fy); Int yi=(clamp ? Mid(y, 0, lh()-1) : Mod(y, lh()));
+         for(Int x=x0; x<=x1; x++)
+         {
+            Flt fx=x*x_mul_add.x + x_mul_add.y; fx=Linear(fx); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw()));
+            fx*=fy;
+            Add(color, rgb, colorF(xi, yi), fx, alpha_weight); weight+=fx;
+         }
+      }
+      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      return color;
+   }
+   return 0;
+}
+Vec4 Image::areaColorLLinear(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C // this is orthogonal
 {
    if(lw() && lh())
    {
@@ -2933,7 +2964,40 @@ Vec4 Image::areaColorLinear(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_we
    return 0;
 }
 /******************************************************************************/
-Vec4 Image::areaColorCubicFast(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C
+Vec4 Image::areaColorFCubicFast(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C
+{
+   if(lw() && lh())
+   {
+      // f=(p-center)/size
+      const Vec2 size_a(Max(CUBIC_FAST_RANGE, size.x*CUBIC_FAST_RANGE), Max(CUBIC_FAST_RANGE, size.y*CUBIC_FAST_RANGE));
+      Vec2 x_mul_add; x_mul_add.x=CUBIC_FAST_RANGE/size_a.x; x_mul_add.y=-pos.x*x_mul_add.x;
+      Vec2 y_mul_add; y_mul_add.x=CUBIC_FAST_RANGE/size_a.y; y_mul_add.y=-pos.y*y_mul_add.x;
+
+      // ceil is used for min, and floor used for max, because these are coordinates at which the weight function is zero, so we need to process next/previous pixels because they will be the first ones with some weight
+      Int x0=CeilSpecial(pos.x-size_a.x), x1=FloorSpecial(pos.x+size_a.x),
+          y0=CeilSpecial(pos.y-size_a.y), y1=FloorSpecial(pos.y+size_a.y);
+
+      Flt  weight=0; // this is always non-zero
+      Vec  rgb   =0;
+      Vec4 color =0;
+      for(Int y=y0; y<=y1; y++)
+      {
+         Flt fy2=Sqr(y*y_mul_add.x + y_mul_add.y); Int yi=(clamp ? Mid(y, 0, lh()-1) : Mod(y, lh()));
+         for(Int x=x0; x<=x1; x++)
+         {
+            Flt fx2=Sqr(x*x_mul_add.x + x_mul_add.y), w=fx2+fy2;
+            if(w<Sqr(CUBIC_FAST_RANGE))
+            {
+               w=CubicFast2(w); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorF(xi, yi), w, alpha_weight); weight+=w;
+            }
+         }
+      }
+      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      return color;
+   }
+   return 0;
+}
+Vec4 Image::areaColorLCubicFast(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C
 {
    if(lw() && lh())
    {
@@ -2966,7 +3030,41 @@ Vec4 Image::areaColorCubicFast(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha
    }
    return 0;
 }
-Vec4 Image::areaColorCubicFastSmooth(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C
+/******************************************************************************/
+Vec4 Image::areaColorFCubicFastSmooth(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C
+{
+   if(lw() && lh())
+   {
+      // f=(p-center)/size
+      const Vec2 size_a(Max(CUBIC_FAST_RANGE, size.x*CUBIC_FAST_RANGE), Max(CUBIC_FAST_RANGE, size.y*CUBIC_FAST_RANGE));
+      Vec2 x_mul_add; x_mul_add.x=CUBIC_FAST_RANGE/size_a.x; x_mul_add.y=-pos.x*x_mul_add.x;
+      Vec2 y_mul_add; y_mul_add.x=CUBIC_FAST_RANGE/size_a.y; y_mul_add.y=-pos.y*y_mul_add.x;
+
+      // ceil is used for min, and floor used for max, because these are coordinates at which the weight function is zero, so we need to process next/previous pixels because they will be the first ones with some weight
+      Int x0=CeilSpecial(pos.x-size_a.x), x1=FloorSpecial(pos.x+size_a.x),
+          y0=CeilSpecial(pos.y-size_a.y), y1=FloorSpecial(pos.y+size_a.y);
+
+      Flt  weight=0; // this is always non-zero
+      Vec  rgb   =0;
+      Vec4 color =0;
+      for(Int y=y0; y<=y1; y++)
+      {
+         Flt fy2=Sqr(y*y_mul_add.x + y_mul_add.y); Int yi=(clamp ? Mid(y, 0, lh()-1) : Mod(y, lh()));
+         for(Int x=x0; x<=x1; x++)
+         {
+            Flt fx2=Sqr(x*x_mul_add.x + x_mul_add.y), w=fx2+fy2;
+            if(w<Sqr(CUBIC_FAST_RANGE))
+            {
+               w=CubicFastSmooth2(w); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorF(xi, yi), w, alpha_weight); weight+=w;
+            }
+         }
+      }
+      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      return color;
+   }
+   return 0;
+}
+Vec4 Image::areaColorLCubicFastSmooth(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C
 {
    if(lw() && lh())
    {
@@ -2999,7 +3097,8 @@ Vec4 Image::areaColorCubicFastSmooth(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool
    }
    return 0;
 }
-Vec4 Image::areaColorCubicFastSharp(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C
+/******************************************************************************/
+Vec4 Image::areaColorFCubicFastSharp(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C
 {
    if(lw() && lh())
    {
@@ -3023,7 +3122,7 @@ Vec4 Image::areaColorCubicFastSharp(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool 
             Flt fx2=Sqr(x*x_mul_add.x + x_mul_add.y), w=fx2+fy2;
             if(w<Sqr(CUBIC_FAST_RANGE))
             {
-               w=CubicFastSharp2(w); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorL(xi, yi), w, alpha_weight); weight+=w;
+               w=CubicFastSharp2(w); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorF(xi, yi), w, alpha_weight); weight+=w;
             }
          }
       }
@@ -3032,7 +3131,7 @@ Vec4 Image::areaColorCubicFastSharp(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool 
    }
    return 0;
 }
-Vec4 Image::areaColorCubic(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C
+Vec4 Image::areaColorFCubic(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C
 {
    if(lw() && lh())
    {
@@ -3056,7 +3155,7 @@ Vec4 Image::areaColorCubic(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_wei
             Flt fx2=Sqr(x*x_mul_add.x + x_mul_add.y), w=fx2+fy2;
             if(w<Sqr(CUBIC_MED_RANGE))
             {
-               w=CubicMed2(w*Sqr(CUBIC_MED_SHARPNESS)); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorL(xi, yi), w, alpha_weight); weight+=w;
+               w=CubicMed2(w*Sqr(CUBIC_MED_SHARPNESS)); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorF(xi, yi), w, alpha_weight); weight+=w;
             }
          }
       }
@@ -3065,7 +3164,7 @@ Vec4 Image::areaColorCubic(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_wei
    }
    return 0;
 }
-Vec4 Image::areaColorCubicSharp(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C
+Vec4 Image::areaColorFCubicSharp(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C
 {
    if(lw() && lh())
    {
@@ -3089,7 +3188,7 @@ Vec4 Image::areaColorCubicSharp(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alph
             Flt fx2=Sqr(x*x_mul_add.x + x_mul_add.y), w=fx2+fy2;
             if(w<Sqr(CUBIC_SHARP_RANGE))
             {
-               w=CubicSharp2(w*Sqr(CUBIC_SHARP_SHARPNESS)); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorL(xi, yi), w, alpha_weight); weight+=w;
+               w=CubicSharp2(w*Sqr(CUBIC_SHARP_SHARPNESS)); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorF(xi, yi), w, alpha_weight); weight+=w;
             }
          }
       }
@@ -3123,7 +3222,7 @@ Vec4 Image::areaColorCubicOrtho(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alph
             Flt fx2=Sqr(x*x_mul_add.x + x_mul_add.y), w=fx2+fy2;
             if(w<4) // Cubic returns 0 for values >=2, since we use Sqr, check for 4
             {
-               w=CubicSmoothFast2(w); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorL(xi, yi), w, alpha_weight); weight+=w;
+               w=CubicSmoothFast2(w); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorF(xi, yi), w, alpha_weight); weight+=w;
             }
          }
       }
@@ -3155,7 +3254,7 @@ Vec4 Image::areaColorCubicOrtho(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alph
          {
             Flt fx=x*x_mul_add.x + x_mul_add.y; fx=CubicFastSharp(fx); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw()));
             fx*=fy;
-            Add(color, rgb, colorL(xi, yi), fx, alpha_weight); weight+=fx;
+            Add(color, rgb, colorF(xi, yi), fx, alpha_weight); weight+=fx;
          }
       }
       Normalize(color, rgb, weight, alpha_weight, highPrecision());
@@ -3187,7 +3286,7 @@ Vec4 Image::areaColorLanczosOrtho(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool al
          {
             Flt fx=x*x_mul_add.x + x_mul_add.y; fx=LanczosSharp(fx); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw()));
             fx*=fy;
-            Add(color, rgb, colorL(xi, yi), fx, alpha_weight); weight+=fx;
+            Add(color, rgb, colorF(xi, yi), fx, alpha_weight); weight+=fx;
          }
       }
       Normalize(color, rgb, weight, alpha_weight, highPrecision());
@@ -4163,7 +4262,9 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
       {
          if(!ImageTI[hwType()].a)alpha_weight=false; // disable 'alpha_weight' if the source doesn't have it
 
-      /* When downsampling, we always operate in linear gamma (to preserve brightness - that's why 'areaColor*' functions operate in linear gamma) and always end up with linear gamma result
+      /* When downsampling, some filters operate in linear gamma (to preserve brightness) and end up with linear gamma result
+            (However some sharpening filters don't do this, because serious artifacts occur)
+
          Vec4 linear_color;
          if(ignore_gamma) // we don't want to convert gamma
          {
@@ -4174,7 +4275,6 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
          However if dest is sRGB then 'dest.colorL' will already call 'LinearToSRGB' inside (potentially faster for Byte types).
          So if 'src_srgb' and we have to do 'LinearToSRGB', and dest is sRGB then we can just skip 'ignore_gamma' and call 'dest.colorL' */
          Bool ignore_gamma_ds=(ignore_gamma && !(src_srgb && dest_srgb)); // if both are sRGB then disable 'ignore_gamma_ds'
-         // FIXME test this
 
          // check for optimized downscale
          if(dest.lw()==Max(1, T.lw()>>1)
