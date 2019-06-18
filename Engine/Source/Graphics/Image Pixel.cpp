@@ -3968,7 +3968,7 @@ static INLINE void StoreColor(Image &image, Byte* &dest_data_y, C Vec4 &color)
 }
 void CopyNoStretch(C Image &src, Image &dest, Bool clamp, Bool ignore_gamma) // assumes 'src,dest' are locked and non-compressed
 {
-   Bool high_precision=HighPrecision(src, dest); // high precision requires FP
+   Bool high_precision=(src.highPrecision() && dest.highPrecision()); // high precision requires FP
    if(CanDoRawCopy(src, dest, ignore_gamma)) // no retype
    {
       Int w=Min(src.lw(), dest.lw()),
@@ -4049,10 +4049,11 @@ void CopyNoStretch(C Image &src, Image &dest, Bool clamp, Bool ignore_gamma) // 
 Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_maps, Flt sharp_smooth)C // this does not support compressed images
 {
    if(this==&dest)return true;
+   Bool clamp=IcClamp(flags), alpha_weight=FlagTest(flags, IC_ALPHA_WEIGHT), keep_edges=FlagTest(flags, IC_KEEP_EDGES),
+        ignore_gamma=IgnoreGamma(flags, T.hwType(), dest.hwType()),
+        src_srgb=sRGB(), dest_srgb=dest.sRGB(),
+        src_high_prec=highPrecision(), high_prec=((src_high_prec && dest.highPrecision()) || !ignore_gamma);
    Int  src_faces1=faces()-1;
-   Bool src_srgb=sRGB(), dest_srgb=dest.sRGB(),
-        clamp=IcClamp(flags), alpha_weight=FlagTest(flags, IC_ALPHA_WEIGHT), keep_edges=FlagTest(flags, IC_KEEP_EDGES),
-        ignore_gamma=IgnoreGamma(flags, T.hwType(), dest.hwType());
 
    REPD(mip , Min(mipMaps(), dest.mipMaps(), max_mip_maps))
    REPD(face, dest.faces())
@@ -4142,7 +4143,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                REPD(y, T.lh())
                REPD(x, T.lw())dest.color3DL(x, y, z, T.color3DL(x, y, z));
             }else
-            if(HighPrecision(T, dest)) // high precision requires FP
+            if(high_prec) // high precision requires FP
             {
                REPD(z, T.ld())
                REPD(y, T.lh())
@@ -4161,7 +4162,6 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
       }else // resize
       {
          if(!ImageTI[hwType()].a)alpha_weight=false; // disable 'alpha_weight' if the source doesn't have it
-         Bool t_high_prec=T.highPrecision(), high_prec=HighPrecision(T, dest);
 
          /* When downsampling, we always operate in linear gamma (to preserve brightness - that's why 'areaColor*' functions operate in linear gamma) and always end up with linear gamma result
             Vec4 linear_color;
@@ -4181,7 +4181,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
          )
          {
             if(filter!=FILTER_NONE) // this is not needed for FILTER_NONE because we just copy without blending based on 'ignore_gamma'
-               high_prec|=src_srgb|!ignore_gamma; // when down-sampling, always use high precision if source is sRGB (not linear, because when down-sampling we always convert source to linear gamma, to preserve brightness), or we need to convert gamma.
+               high_prec|=src_srgb; // when down-sampling, always use high precision if source is sRGB (not linear, because when down-sampling we always convert source to linear gamma, to preserve brightness)
             if(T.ld()<=1) // 2D
             {
                switch(filter)
@@ -4401,7 +4401,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                            gatherL(&c[0][0], xc, Elms(xc), yc, Elms(yc));
                            REPD(x, 8)
                            REPD(y, 8)if(Flt w=CFSMW8[y][x])Add(color, rgb, c[y][x], w, alpha_weight);
-                           Normalize(color, rgb, alpha_weight, t_high_prec);
+                           Normalize(color, rgb, alpha_weight, src_high_prec);
                            if(ignore_gamma) // we don't want to convert gamma
                            {
                               if(src_srgb)color.xyz=LinearToSRGB(color.xyz); // source is sRGB however we have linear color, so convert it back to sRGB
@@ -4579,7 +4579,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                                  }
                               }
                            }
-                           Normalize(color, rgb, weight, alpha_weight, t_high_prec);
+                           Normalize(color, rgb, weight, alpha_weight, src_high_prec);
                            StoreColor(dest, dest_data_y, color);
                         }
                      }else
@@ -4680,7 +4680,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                                  }
                               }
                            }
-                           Normalize(color, rgb, weight, alpha_weight, t_high_prec);
+                           Normalize(color, rgb, weight, alpha_weight, src_high_prec);
                            StoreColor(dest, dest_data_y, color);
                         }
                      }else
@@ -4773,7 +4773,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                               Int xc=(x+x_offset)&1;
                               REPAD(y, yo)Add(color, rgb, c[xc][y], xw[x]*yw[y], alpha_weight);
                            }
-                           Normalize(color, rgb, alpha_weight, t_high_prec);
+                           Normalize(color, rgb, alpha_weight, src_high_prec);
                            StoreColor(dest, dest_data_y, color);
                         }
                      }else

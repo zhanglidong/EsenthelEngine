@@ -546,18 +546,6 @@ Bool CompatibleLock(LOCK_MODE cur, LOCK_MODE lock)
       case LOCK_READ      : return lock==LOCK_READ;
    }
 }
-Bool HighPrecision(IMAGE_TYPE src, IMAGE_TYPE dest)
-{
-   Bool src_hp=ImageTI[ src].highPrecision(),
-       dest_hp=ImageTI[dest].highPrecision();
-   return src_hp && dest_hp // both are high precision
-
-       || IsSRGB(src)!=IsSRGB(dest) // or gamma is different
-       #if IGNORE_LP_SRGB // FIXME
-          && (src_hp || dest_hp) // and at least one is high precision
-       #endif
-       ;
-}
 Bool IgnoreGamma(UInt flags, IMAGE_TYPE src, IMAGE_TYPE dest)
 {
    if(IsSRGB(src)==IsSRGB(dest))return true; // if gamma is the same, then we can ignore it
