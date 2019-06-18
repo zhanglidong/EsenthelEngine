@@ -729,8 +729,6 @@ Vec      CubeFaceToDir(Flt x, Flt y, Int res, DIR_ENUM cube_face); // convert im
 #if EE_PRIVATE
 extern const ImagePtr ImageNull;
 
-#define IGNORE_LP_SRGB 1 // if ignore gamma correction between low precision formats
-
 Int                        PaddedWidth      (Int w, Int h,        Int mip, IMAGE_TYPE type);
 Int                        PaddedHeight     (Int w, Int h,        Int mip, IMAGE_TYPE type);
 Int                        ImagePitch       (Int w, Int h,        Int mip, IMAGE_TYPE type);
@@ -743,13 +741,14 @@ IMAGE_TYPE                 ImageFormatToType(GPU_API(DXGI_FORMAT, UInt) format);
 Int                        TotalMipMaps     (Int w, Int h, Int d, IMAGE_TYPE type);
 
 IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type);
+       Bool IgnoreGamma(UInt flags, IMAGE_TYPE src, IMAGE_TYPE dest);
        Bool HighPrecision(IMAGE_TYPE src, IMAGE_TYPE dest);
 inline Bool HighPrecision(C Image   &src, C Image   &dest) {return HighPrecision(src.hwType(), dest.hwType());}
-       Bool CanDoRawCopy (IMAGE_TYPE src, IMAGE_TYPE dest);
-       Bool CanDoRawCopy (C Image   &src, C Image   &dest);
+       Bool CanDoRawCopy (IMAGE_TYPE src, IMAGE_TYPE dest, Bool ignore_gamma=false);
+       Bool CanDoRawCopy (C Image   &src, C Image   &dest, Bool ignore_gamma=false);
 Bool CompatibleLock(LOCK_MODE cur, LOCK_MODE lock); // if 'lock' is okay to be applied when 'cur' is already applied
 Vec4 ImageColorL(CPtr data, IMAGE_TYPE hw_type);
-void CopyNoStretch(C Image &src, Image &dest, Bool clamp); // assumes 'src,dest' are locked and non-compressed
+void CopyNoStretch(C Image &src, Image &dest, Bool clamp, Bool ignore_gamma=false); // assumes 'src,dest' are locked and non-compressed
 #if WINDOWS
    HICON CreateIcon(C Image &image, C VecI2 *cursor_hot_spot=null); // 'cursor_hot_spot'=if this is specified then the icon is treated as a mouse cursor with given hot spot, otherwise it's a normal icon
 #endif

@@ -3966,10 +3966,10 @@ static INLINE void StoreColor(Image &image, Byte* &dest_data_y, C Vec4 &color)
    SetColorF(dest_data_y, image.type(), image.hwType(), color);
    dest_data_y+=image.bytePP();
 }
-void CopyNoStretch(C Image &src, Image &dest, Bool clamp) // assumes 'src,dest' are locked and non-compressed
+void CopyNoStretch(C Image &src, Image &dest, Bool clamp, Bool ignore_gamma) // assumes 'src,dest' are locked and non-compressed
 {
    Bool high_precision=HighPrecision(src, dest); // high precision requires FP
-   if(CanDoRawCopy(src, dest)) // no retype
+   if(CanDoRawCopy(src, dest, ignore_gamma)) // no retype
    {
       Int w=Min(src.lw(), dest.lw()),
           h=Min(src.lh(), dest.lh()),
@@ -4050,7 +4050,10 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
 {
    if(this==&dest)return true;
    Int  src_faces1=faces()-1;
-   Bool clamp     =IcClamp(flags), alpha_weight=FlagTest(flags, IC_ALPHA_WEIGHT), keep_edges=FlagTest(flags, IC_KEEP_EDGES);
+   Bool src_srgb=sRGB(), dest_srgb=dest.sRGB(),
+        clamp=IcClamp(flags), alpha_weight=FlagTest(flags, IC_ALPHA_WEIGHT), keep_edges=FlagTest(flags, IC_KEEP_EDGES),
+        ignore_gamma   =IgnoreGamma(flags, T.hwType(), dest.hwType()),
+        ignore_gamma_ds=((FlagTest(flags, IC_IGNORE_GAMMA)-FlagTest(flags, IC_CONVERT_GAMMA))>0); // when downsampling, prefer gamma conversion (to preserve brightness - that's why 'areaColor*' functions operate in linear gamma), skip gamma conversion only if explicitly specified FIXME
    REPD(mip , Min(mipMaps(), dest.mipMaps(), max_mip_maps))
    REPD(face, dest.faces())
    {
@@ -4059,7 +4062,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
 
       if(T.size3()==dest.size3()) // no resize
       {
-         if(CanDoRawCopy(T, dest)) // no retype
+         if(CanDoRawCopy(T, dest, ignore_gamma)) // no retype
          {
             Int valid_blocks_y=ImageBlocksY(T.w(), T.h(), mip, T.hwType()); // use "w(), h()" instead of "hwW(), hwH()" to copy only valid pixels
             REPD(z, T.ld())
@@ -4075,15 +4078,19 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
             }
          }else // retype
          {
+            IMAGE_TYPE src_hwType=   T.hwType(),//src_type=   T.type(),
+                      dest_hwType=dest.hwType(), dest_type=dest.type();
+            if(ignore_gamma)
+            {
+                src_hwType=ImageTypeExcludeSRGB( src_hwType);
+               dest_hwType=ImageTypeExcludeSRGB(dest_hwType);
+              //src_type  =ImageTypeExcludeSRGB( src_type  );
+               dest_type  =ImageTypeExcludeSRGB(dest_type  );
+            }
+
             // RGB -> RGBA, very common case for importing images
-         #if IGNORE_LP_SRGB
-            if((T   .hwType()==IMAGE_R8G8B8   || T   .hwType()==IMAGE_R8G8B8_SRGB  )
-            && (dest.hwType()==IMAGE_R8G8B8A8 || dest.hwType()==IMAGE_R8G8B8A8_SRGB)
-            && (dest.  type()==IMAGE_R8G8B8A8 || dest.  type()==IMAGE_R8G8B8A8_SRGB)) // check 'type' too in case we have to perform color adjustment
-         #else
-            if(T.hwType()==IMAGE_R8G8B8      && dest.hwType()==IMAGE_R8G8B8A8      && dest.type()==IMAGE_R8G8B8A8       // check 'type' too in case we have to perform color adjustment
-            || T.hwType()==IMAGE_R8G8B8_SRGB && dest.hwType()==IMAGE_R8G8B8A8_SRGB && dest.type()==IMAGE_R8G8B8A8_SRGB) // check 'type' too in case we have to perform color adjustment
-         #endif
+            if(src_hwType==IMAGE_R8G8B8      && dest_hwType==IMAGE_R8G8B8A8      && dest_type==IMAGE_R8G8B8A8       // check 'type' too in case we have to perform color adjustment
+            || src_hwType==IMAGE_R8G8B8_SRGB && dest_hwType==IMAGE_R8G8B8A8_SRGB && dest_type==IMAGE_R8G8B8A8_SRGB) // check 'type' too in case we have to perform color adjustment
             {
                FREPD(z, T.ld())
                {
@@ -4098,14 +4105,8 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                }
             }else
             // RGB -> BGRA, very common case for exporting to WEBP from RGB
-         #if IGNORE_LP_SRGB
-            if((T   .hwType()==IMAGE_R8G8B8   || T   .hwType()==IMAGE_R8G8B8_SRGB  )
-            && (dest.hwType()==IMAGE_B8G8R8A8 || dest.hwType()==IMAGE_B8G8R8A8_SRGB)
-            && (dest.  type()==IMAGE_B8G8R8A8 || dest.  type()==IMAGE_B8G8R8A8_SRGB)) // check 'type' too in case we have to perform color adjustment
-         #else
-            if(T.hwType()==IMAGE_R8G8B8      && dest.hwType()==IMAGE_B8G8R8A8      && dest.type()==IMAGE_B8G8R8A8       // check 'type' too in case we have to perform color adjustment
-            || T.hwType()==IMAGE_R8G8B8_SRGB && dest.hwType()==IMAGE_B8G8R8A8_SRGB && dest.type()==IMAGE_B8G8R8A8_SRGB) // check 'type' too in case we have to perform color adjustment
-         #endif
+            if(src_hwType==IMAGE_R8G8B8      && dest_hwType==IMAGE_B8G8R8A8      && dest_type==IMAGE_B8G8R8A8       // check 'type' too in case we have to perform color adjustment
+            || src_hwType==IMAGE_R8G8B8_SRGB && dest_hwType==IMAGE_B8G8R8A8_SRGB && dest_type==IMAGE_B8G8R8A8_SRGB) // check 'type' too in case we have to perform color adjustment
             {
                FREPD(z, T.ld())
                {
@@ -4120,14 +4121,8 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                }
             }else
             // RGBA -> BGRA, very common case for exporting to WEBP from RGBA
-         #if IGNORE_LP_SRGB
-            if((T   .hwType()==IMAGE_R8G8B8A8 || T   .hwType()==IMAGE_R8G8B8A8_SRGB)
-            && (dest.hwType()==IMAGE_B8G8R8A8 || dest.hwType()==IMAGE_B8G8R8A8_SRGB)
-            && (dest.  type()==IMAGE_B8G8R8A8 || dest.  type()==IMAGE_B8G8R8A8_SRGB)) // check 'type' too in case we have to perform color adjustment
-         #else
-            if(T.hwType()==IMAGE_R8G8B8A8      && dest.hwType()==IMAGE_B8G8R8A8      && dest.type()==IMAGE_B8G8R8A8       // check 'type' too in case we have to perform color adjustment
-            || T.hwType()==IMAGE_R8G8B8A8_SRGB && dest.hwType()==IMAGE_B8G8R8A8_SRGB && dest.type()==IMAGE_B8G8R8A8_SRGB) // check 'type' too in case we have to perform color adjustment
-         #endif
+            if(src_hwType==IMAGE_R8G8B8A8      && dest_hwType==IMAGE_B8G8R8A8      && dest_type==IMAGE_B8G8R8A8       // check 'type' too in case we have to perform color adjustment
+            || src_hwType==IMAGE_R8G8B8A8_SRGB && dest_hwType==IMAGE_B8G8R8A8_SRGB && dest_type==IMAGE_B8G8R8A8_SRGB) // check 'type' too in case we have to perform color adjustment
             {
                FREPD(z, T.ld())
                {
@@ -4140,6 +4135,12 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                      REPD(x, T.lw()){(d++)->set(s->z, s->y, s->x, s->w); s++;}
                   }
                }
+            }else
+            if(!ignore_gamma)
+            {
+               REPD(z, T.ld())
+               REPD(y, T.lh())
+               REPD(x, T.lw())dest.color3DL(x, y, z, T.color3DL(x, y, z));
             }else
             if(HighPrecision(T, dest)) // high precision requires FP
             {
@@ -4156,7 +4157,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
       }else
       if(filter==FILTER_NO_STRETCH)
       {
-         CopyNoStretch(T, dest, clamp);
+         CopyNoStretch(T, dest, clamp, ignore_gamma);
       }else // resize
       {
          if(!ImageTI[hwType()].a)alpha_weight=false; // disable 'alpha_weight' if the source doesn't have it
@@ -4170,6 +4171,8 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
          && (Equal(sharp_smooth, 1) || filter==FILTER_NONE)
          )
          {
+            if(filter!=FILTER_NONE) // this is not needed for FILTER_NONE because we just copy without blending based on 'ignore_gamma'
+               high_prec|=src_srgb; // when down-sampling, always use high precision if source is sRGB (not linear), because when down-sampling we always convert source to linear gamma, to preserve brightness
             if(T.ld()<=1) // 2D
             {
                switch(filter)
@@ -4177,8 +4180,9 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                   case FILTER_NONE: REPD(y, dest.lh())
                   {
                      Int yc=y*2;
-                     if(high_prec)REPD(x, dest.lw())dest.colorF(x, y, colorF(x*2, yc));
-                     else         REPD(x, dest.lw())dest.color (x, y, color (x*2, yc));
+                     if(!ignore_gamma)REPD(x, dest.lw())dest.colorL(x, y, colorL(x*2, yc));else
+                     if( high_prec   )REPD(x, dest.lw())dest.colorF(x, y, colorF(x*2, yc));else
+                                      REPD(x, dest.lw())dest.color (x, y, color (x*2, yc));
                   }goto finish;
 
                   case FILTER_LINEAR: REPD(y, dest.lh())
@@ -4189,7 +4193,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                         Int xc[2]; xc[0]=x*2; xc[1]=(clamp ? Min(xc[0]+1, lw()-1) : (xc[0]+1)%lw()); // xc[0] is always OK
                         if(high_prec)
                         {
-                           Vec4 col, c[2][2]; gather(&c[0][0], xc, Elms(xc), yc, Elms(yc)); // [y][x]
+                           Vec4 col, c[2][2]; gatherL(&c[0][0], xc, Elms(xc), yc, Elms(yc)); // [y][x]
                            if(!alpha_weight)
                            {
                               col.w=Avg(c[0][0].w, c[0][1].w, c[1][0].w, c[1][1].w);
@@ -4206,6 +4210,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                               col.y=(c[0][0].y*c[0][0].w + c[0][1].y*c[0][1].w + c[1][0].y*c[1][0].w + c[1][1].y*c[1][1].w)/a;
                               col.z=(c[0][0].z*c[0][0].w + c[0][1].z*c[0][1].w + c[1][0].z*c[1][0].w + c[1][1].z*c[1][1].w)/a;
                            }
+// FIXME
                            dest.colorF(x, y, col);
                         }else
                         {
@@ -4234,6 +4239,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                   case FILTER_BEST:
                   case FILTER_CUBIC_FAST_SHARP: ASSERT(FILTER_DOWN==FILTER_CUBIC_FAST_SHARP);
                   {
+// FIXME
                      if(!high_prec)
                      {
                         REPD(y, dest.lh())
@@ -4380,10 +4386,11 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                            if(clamp){xc[0]=Max(xc[3]-3, 0   ); xc[1]=Max(xc[3]-2, 0   ); xc[2]=Max(xc[3]-1, 0   ); xc[4]=Min(xc[3]+1, lw()-1); xc[5]=Min(xc[3]+2, lw()-1); xc[6]=Min(xc[3]+3, lw()-1); xc[7]=Min(xc[3]+4, lw()-1);}
                            else     {xc[0]=Mod(xc[3]-3, lw()); xc[1]=Mod(xc[3]-2, lw()); xc[2]=Mod(xc[3]-1, lw()); xc[4]=   (xc[3]+1)%lw()   ; xc[5]=   (xc[3]+2)%lw()   ; xc[6]=   (xc[3]+3)%lw()   ; xc[7]=   (xc[3]+4)%lw()   ;}
                            Vec rgb=0; Vec4 color=0, c[8][8]; // [y][x]
-                           gather(&c[0][0], xc, Elms(xc), yc, Elms(yc));
+                           gatherL(&c[0][0], xc, Elms(xc), yc, Elms(yc));
                            REPD(x, 8)
                            REPD(y, 8)if(Flt w=CFSMW8[y][x])Add(color, rgb, c[y][x], w, alpha_weight);
                            Normalize(color, rgb, alpha_weight, t_high_prec);
+// FIXME
                            dest.colorF(x, y, color);
                         }
                      }
@@ -4484,10 +4491,17 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                   REPD(x, dest.lw())
                   {
                      pos.x=x*x_mul_add.x+x_mul_add.y;
-                     dest.colorF(x, y, (T.*area_color)(pos, size.xy, clamp, alpha_weight));
+                     Vec4 linear_color=(T.*area_color)(pos, size.xy, clamp, alpha_weight); // 'areaColor*' is linear
+                     if(ignore_gamma_ds)
+                     { // we don't want to convert gamma
+// FIXME
+                        if(src_srgb)linear_color.xyz=LinearToSRGB(linear_color.xyz); // source is sRGB however we have 'linear_color', so convert it back to sRGB
+                           dest.colorF(x, y, linear_color);
+                     }else dest.colorL(x, y, linear_color); // write 'linear_color', 'colorL' will perform gamma conversion
                   }
                }
             }else
+// FIXME all below
             if((filter==FILTER_CUBIC || filter==FILTER_CUBIC_SHARP || filter==FILTER_BEST) // optimized Cubic/Best upscale
             && T.ld()==1)
             {

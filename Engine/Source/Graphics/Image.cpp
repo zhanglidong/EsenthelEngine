@@ -546,7 +546,6 @@ Bool CompatibleLock(LOCK_MODE cur, LOCK_MODE lock)
       case LOCK_READ      : return lock==LOCK_READ;
    }
 }
-static inline IMAGE_TYPE Type(IMAGE_TYPE t) {return IGNORE_LP_SRGB ? ImageTypeExcludeSRGB(t) : t;}
 Bool HighPrecision(IMAGE_TYPE src, IMAGE_TYPE dest)
 {
    Bool src_hp=ImageTI[ src].highPrecision(),
@@ -554,18 +553,37 @@ Bool HighPrecision(IMAGE_TYPE src, IMAGE_TYPE dest)
    return src_hp && dest_hp // both are high precision
 
        || IsSRGB(src)!=IsSRGB(dest) // or gamma is different
-       #if IGNORE_LP_SRGB
+       #if IGNORE_LP_SRGB // FIXME
           && (src_hp || dest_hp) // and at least one is high precision
        #endif
        ;
 }
-Bool CanDoRawCopy(IMAGE_TYPE src, IMAGE_TYPE dest) {return Type(src)==Type(dest);}
-Bool CanDoRawCopy(C Image   &src, C Image   &dest)
+Bool IgnoreGamma(UInt flags, IMAGE_TYPE src, IMAGE_TYPE dest)
 {
-   IMAGE_TYPE src_hwType=Type( src.hwType()),
-             dest_hwType=Type(dest.hwType()),
-              src_type  =Type( src.  type()),
-             dest_type  =Type(dest.  type());
+   if(IsSRGB(src)==IsSRGB(dest))return true; // if gamma is the same, then we can ignore it
+   if(Int ignore=FlagTest(flags, IC_IGNORE_GAMMA)-FlagTest(flags, IC_CONVERT_GAMMA))return ignore>0; // if none or both flag specified then continue below (auto-detect)
+   return !ImageTI[src].highPrecision() && !ImageTI[dest].highPrecision(); // auto-detect, ignore only if both types are low-precision
+}
+Bool CanDoRawCopy(IMAGE_TYPE src, IMAGE_TYPE dest, Bool ignore_gamma)
+{
+   if(ignore_gamma)
+   {
+      src =ImageTypeExcludeSRGB(src );
+      dest=ImageTypeExcludeSRGB(dest);
+   }
+   return src==dest;
+}
+Bool CanDoRawCopy(C Image &src, C Image &dest, Bool ignore_gamma)
+{
+   IMAGE_TYPE src_hwType= src.hwType(),  src_type= src.type(),
+             dest_hwType=dest.hwType(), dest_type=dest.type();
+   if(ignore_gamma)
+   {
+       src_hwType=ImageTypeExcludeSRGB( src_hwType);
+      dest_hwType=ImageTypeExcludeSRGB(dest_hwType);
+       src_type  =ImageTypeExcludeSRGB( src_type  );
+      dest_type  =ImageTypeExcludeSRGB(dest_type  );
+   }
    return src_hwType==dest_hwType
      && (dest_type  ==dest_hwType || src_type==dest_type); // check 'type' too in case we have to perform color adjustment
 }
@@ -1683,9 +1701,9 @@ static Bool Compress(C Image &src, Image &dest, Bool mtrl_base_1=false) // assum
    return false;
 }
 /******************************************************************************/
-static Int CopyMipMaps(C Image &src, Image &dest) // this assumes that "&src != &dest", returns how many mip-maps were copied
+static Int CopyMipMaps(C Image &src, Image &dest, Bool ignore_gamma) // this assumes that "&src != &dest", returns how many mip-maps were copied
 {
-   if(CanDoRawCopy(src, dest)
+   if(CanDoRawCopy(src, dest, ignore_gamma)
    && dest.w()<=src.w()
    && dest.h()<=src.h()
    && dest.d()<=src.d())
@@ -1762,11 +1780,13 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
    if(mip_maps<=0)mip_maps=dest_total_mip_maps ; // if mip maps not specified then use full chain
    else       MIN(mip_maps,dest_total_mip_maps); // don't use more than maximum allowed
 
+   Bool ignore_gamma=IgnoreGamma(flags, src->type(), IMAGE_TYPE(type));
+
    // check if doesn't require conversion
    if(this==&dest && w==T.w() && h==T.h() && d==T.d() && mode==T.mode() && mip_maps==T.mipMaps())
    {
       if(type==T.type())return true;
-      if(soft() && CanDoRawCopy(T.hwType(), (IMAGE_TYPE)type)){dest._hw_type=dest._type=(IMAGE_TYPE)type; return true;} // if software and can do a raw copy, then just adjust types
+      if(soft() && CanDoRawCopy(T.hwType(), (IMAGE_TYPE)type, ignore_gamma)){dest._hw_type=dest._type=(IMAGE_TYPE)type; return true;} // if software and can do a raw copy, then just adjust types
    }
 
    // convert
@@ -1783,11 +1803,11 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
             (filter==FILTER_BEST || filter==FILTER_DOWN) // we're going to use default filter for downsampling (which is typically used for mip-map generation)
          && !FlagTest(flags, IC_KEEP_EDGES)              // we're not keeping the edges                        (which is typically used for mip-map generation)
          )
-      )copied_mip_maps=CopyMipMaps(*src, target);
+      )copied_mip_maps=CopyMipMaps(*src, target, ignore_gamma);
       if(!copied_mip_maps)
       {
       /* This case is already handled in 'CopyMipMaps'
-         if(same_size && CanDoRawCopy(*src, target)) // if match in size and hardware type
+         if(same_size && CanDoRawCopy(*src, target, ignore_gamma)) // if match in size and hardware type
          {
             if(!src->copySoft(target, FILTER_NONE, clamp, alpha_weight, keep_edges))return false; // do raw memory copy
             copied_mip_maps=src->mipMaps();
