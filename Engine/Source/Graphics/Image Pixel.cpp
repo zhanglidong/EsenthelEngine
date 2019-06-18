@@ -4595,18 +4595,18 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
             Vec size(x_mul_add.x, y_mul_add.x, z_mul_add.x); size*=sharp_smooth;
             if(filter!=FILTER_NONE && (size.x>1 || size.y>1) && T.ld()==1 && dest.ld()==1) // if we're downsampling (any scale is higher than 1) then we must use more complex 'areaColor*' methods
             {
-               // !! Downsampling operates on Linear Gamma !!
+               Bool linear_gamma; // some down-sampling filters operate on linear gamma here
                Vec4 (Image::*area_color)(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C; // pointer to class method
                switch(filter)
                {
-                //case FILTER_AVERAGE          : area_color=&Image::areaColorAverage        ; break;
-                  case FILTER_LINEAR           : area_color=&Image::areaColorLinear         ; break;
-                  case FILTER_CUBIC_FAST       : area_color=&Image::areaColorCubicFast      ; break;
-                  case FILTER_CUBIC_FAST_SMOOTH: area_color=&Image::areaColorCubicFastSmooth; break;
-                  default                      : // FILTER_BEST
-                  case FILTER_CUBIC_FAST_SHARP : area_color=&Image::areaColorCubicFastSharp ; break; ASSERT(FILTER_DOWN==FILTER_CUBIC_FAST_SHARP);
-                  case FILTER_CUBIC            : area_color=&Image::areaColorCubic          ; break;
-                  case FILTER_CUBIC_SHARP      : area_color=&Image::areaColorCubicSharp     ; break;
+                //case FILTER_AVERAGE          : linear_gamma=false; area_color=&Image::areaColorFAverage        ; break;
+                  case FILTER_LINEAR           : linear_gamma=true ; area_color=&Image::areaColorLLinear         ; break;
+                  case FILTER_CUBIC_FAST       : linear_gamma=true ; area_color=&Image::areaColorLCubicFast      ; break;
+                  case FILTER_CUBIC_FAST_SMOOTH: linear_gamma=true ; area_color=&Image::areaColorLCubicFastSmooth; break;
+                  default                      : ASSERT(FILTER_DOWN==FILTER_CUBIC_FAST_SHARP); // FILTER_BEST
+                  case FILTER_CUBIC_FAST_SHARP : linear_gamma=false; area_color=&Image::areaColorFCubicFastSharp ; break; // FILTER_CUBIC_FAST_SHARP is not suitable for linear gamma
+                  case FILTER_CUBIC            : linear_gamma=false; area_color=&Image::areaColorFCubic          ; break; // FILTER_CUBIC            is not suitable for linear gamma
+                  case FILTER_CUBIC_SHARP      : linear_gamma=false; area_color=&Image::areaColorFCubicSharp     ; break; // FILTER_CUBIC_SHARP      is not suitable for linear gamma
                }
                Vec2 pos;
                REPD(y, dest.lh())
@@ -4615,12 +4615,19 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                   REPD(x, dest.lw())
                   {
                      pos.x=x*x_mul_add.x+x_mul_add.y;
-                     Vec4 linear_color=(T.*area_color)(pos, size.xy, clamp, alpha_weight); // 'areaColor*' is linear
-                     if(ignore_gamma_ds) // we don't want to convert gamma
+                     Vec4 color=(T.*area_color)(pos, size.xy, clamp, alpha_weight);
+                     if(linear_gamma)
                      {
-                        if(src_srgb)linear_color.xyz=LinearToSRGB(linear_color.xyz); // source is sRGB however we have 'linear_color', so convert it back to sRGB
-                           dest.colorF(x, y, linear_color);
-                     }else dest.colorL(x, y, linear_color); // write 'linear_color', 'colorL' will perform gamma conversion
+                        if(ignore_gamma_ds) // we don't want to convert gamma
+                        {
+                           if(src_srgb)color.xyz=LinearToSRGB(color.xyz); // source is sRGB however we have linear color, so convert it back to sRGB
+                              dest.colorF(x, y, color);
+                        }else dest.colorL(x, y, color); // write linear color, 'colorL' will perform gamma conversion
+                     }else
+                     if(ignore_gamma)dest.colorF(x, y, color);else
+                     {
+                        FIXME
+                     }
                   }
                }
             }else
