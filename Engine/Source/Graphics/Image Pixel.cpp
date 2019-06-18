@@ -676,8 +676,8 @@ static void SetColorF(Byte *data, IMAGE_TYPE type, C Vec4 &color)
       case IMAGE_F16_3: (*(VecH *)data)=color.xyz; break;
       case IMAGE_F16_4: (*(VecH4*)data)=color    ; break;
 
-      case IMAGE_A8 : (*(U8*)data)=FltToByte(color.w); break; // it's okay to clamp int for small values
-      case IMAGE_I8 : (*(U8*)data)=FltToByte(color.x); break; // it's okay to clamp int for small values
+      case IMAGE_A8: (*(U8*)data)=FltToByte(color.w); break; // it's okay to clamp int for small values
+      case IMAGE_I8: (*(U8*)data)=FltToByte(color.x); break; // it's okay to clamp int for small values
 
       case IMAGE_I16: (*(U16*)data)=RoundU(Sat(color.x)*0x0000FFFFu); break; // it's better to clamp flt for bigger values
       case IMAGE_I32: (*(U32*)data)=RoundU(Sat(color.x)*0xFFFFFFFFu); break; // it's better to clamp flt for bigger values
@@ -773,16 +773,16 @@ static void SetColorL(Byte *data, IMAGE_TYPE type, C Vec4 &color)
       case IMAGE_L8A8     : ((VecB2*)data)->set(   FltToByte    (color.xyz.max()), FltToByte(color.w)); break;
       case IMAGE_L8A8_SRGB: ((VecB2*)data)->set(LinearToByteSRGB(color.xyz.max()), FltToByte(color.w)); break;
 
-      case IMAGE_B8G8R8A8_SRGB: ((VecB4*)data)->set(LinearToByteSRGB(color.z), LinearToByteSRGB(color.y), LinearToByteSRGB(color.x), FltToByte(color.w)); break;
-      case IMAGE_R8G8B8A8_SRGB: ((VecB4*)data)->set(LinearToByteSRGB(color.x), LinearToByteSRGB(color.y), LinearToByteSRGB(color.z), FltToByte(color.w)); break;
-      case IMAGE_R8G8B8_SRGB  : ((VecB *)data)->set(LinearToByteSRGB(color.x), LinearToByteSRGB(color.y), LinearToByteSRGB(color.z)                    ); break;
-
       case IMAGE_B8G8R8A8: ((VecB4*)data)->set(FltToByte(color.z), FltToByte(color.y), FltToByte(color.x), FltToByte(color.w)); break;
       case IMAGE_R8G8B8A8: ((VecB4*)data)->set(FltToByte(color.x), FltToByte(color.y), FltToByte(color.z), FltToByte(color.w)); break;
       case IMAGE_R8G8B8  : ((VecB *)data)->set(FltToByte(color.x), FltToByte(color.y), FltToByte(color.z)                    ); break;
       case IMAGE_R8G8    : ((VecB2*)data)->set(FltToByte(color.x), FltToByte(color.y)                                        ); break;
       case IMAGE_R8      : *(Byte *)data  =    FltToByte(color.x)                                                             ; break;
       case IMAGE_B8G8R8  : ((VecB *)data)->set(FltToByte(color.z), FltToByte(color.y), FltToByte(color.x)                    ); break;
+
+      case IMAGE_B8G8R8A8_SRGB: ((VecB4*)data)->set(LinearToByteSRGB(color.z), LinearToByteSRGB(color.y), LinearToByteSRGB(color.x), FltToByte(color.w)); break;
+      case IMAGE_R8G8B8A8_SRGB: ((VecB4*)data)->set(LinearToByteSRGB(color.x), LinearToByteSRGB(color.y), LinearToByteSRGB(color.z), FltToByte(color.w)); break;
+      case IMAGE_R8G8B8_SRGB  : ((VecB *)data)->set(LinearToByteSRGB(color.x), LinearToByteSRGB(color.y), LinearToByteSRGB(color.z)                    ); break;
 
       case IMAGE_R8_SIGN      : (*(Byte *)data)=     SFltToSByte(color.x)                                                                   ; break;
       case IMAGE_R8G8_SIGN    : ( (VecB2*)data)->set(SFltToSByte(color.x), SFltToSByte(color.y)                                            ); break;
@@ -864,16 +864,16 @@ static void SetColorS(Byte *data, IMAGE_TYPE type, C Vec4 &color)
       case IMAGE_L8A8     : ((VecB2*)data)->set(SRGBToLinearByte(color.xyz.max()), FltToByte(color.w)); break;
       case IMAGE_L8A8_SRGB: ((VecB2*)data)->set( FltToByte      (color.xyz.max()), FltToByte(color.w)); break;
 
-      case IMAGE_B8G8R8A8_SRGB: ((VecB4*)data)->set(FltToByte(color.z), FltToByte(color.y), FltToByte(color.x), FltToByte(color.w)); break;
-      case IMAGE_R8G8B8A8_SRGB: ((VecB4*)data)->set(FltToByte(color.x), FltToByte(color.y), FltToByte(color.z), FltToByte(color.w)); break;
-      case IMAGE_R8G8B8_SRGB  : ((VecB *)data)->set(FltToByte(color.x), FltToByte(color.y), FltToByte(color.z)                    ); break;
-
       case IMAGE_B8G8R8A8: ((VecB4*)data)->set(SRGBToLinearByte(color.z), SRGBToLinearByte(color.y), SRGBToLinearByte(color.x), FltToByte(color.w)); break;
       case IMAGE_R8G8B8A8: ((VecB4*)data)->set(SRGBToLinearByte(color.x), SRGBToLinearByte(color.y), SRGBToLinearByte(color.z), FltToByte(color.w)); break;
       case IMAGE_R8G8B8  : ((VecB *)data)->set(SRGBToLinearByte(color.x), SRGBToLinearByte(color.y), SRGBToLinearByte(color.z)                    ); break;
       case IMAGE_R8G8    : ((VecB2*)data)->set(SRGBToLinearByte(color.x), SRGBToLinearByte(color.y)                                               ); break;
       case IMAGE_R8      : *(Byte *)data  =    SRGBToLinearByte(color.x)                                                                           ; break;
       case IMAGE_B8G8R8  : ((VecB *)data)->set(SRGBToLinearByte(color.z), SRGBToLinearByte(color.y), SRGBToLinearByte(color.x)                    ); break;
+
+      case IMAGE_B8G8R8A8_SRGB: ((VecB4*)data)->set(FltToByte(color.z), FltToByte(color.y), FltToByte(color.x), FltToByte(color.w)); break;
+      case IMAGE_R8G8B8A8_SRGB: ((VecB4*)data)->set(FltToByte(color.x), FltToByte(color.y), FltToByte(color.z), FltToByte(color.w)); break;
+      case IMAGE_R8G8B8_SRGB  : ((VecB *)data)->set(FltToByte(color.x), FltToByte(color.y), FltToByte(color.z)                    ); break;
 
     /*case IMAGE_R8_SIGN      : (*(Byte *)data)=     SFltToSByte(SRGBToLinear(color.x))                                                                                               ; break; TODO:
       case IMAGE_R8G8_SIGN    : ( (VecB2*)data)->set(SFltToSByte(SRGBToLinear(color.x)), SFltToSByte(SRGBToLinear(color.y))                                                          ); break;
@@ -930,8 +930,7 @@ void Image::blend(Int x, Int y, C Vec4 &color)
 {
    if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
    {
-      Vec4 src;
-      Byte *data=T.data() + x*bytePP() + y*pitch();
+      Vec4 src; Byte *data=T.data() + x*bytePP() + y*pitch();
       switch(hwType())
       {
          case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: {Color &c=*(Color*)data; src=c; ApplyBlend(src, color); c=src;} break;
@@ -944,8 +943,7 @@ void Image::blend(Int x, Int y, C Vec4 &color)
 {
    if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
    {
-      Vec4 src;
-      Byte *data=T.data() + x*bytePP() + y*pitch();
+      Vec4 src; Byte *data=T.data() + x*bytePP() + y*pitch();
       switch(hwType())
       {
          case IMAGE_R8G8B8A8     : {Color &c=*(Color*)data; src=             c ; ApplyBlend(src, color); c=               src ;} break;
@@ -961,8 +959,7 @@ void Image::merge(Int x, Int y, C Vec4 &color)
 {
    if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
    {
-      Vec4 src;
-      Byte *data=T.data() + x*bytePP() + y*pitch();
+      Vec4 src; Byte *data=T.data() + x*bytePP() + y*pitch();
       switch(hwType())
       {
          case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: {Color &c=*(Color*)data; src=c; ApplyMerge(src, color); c=src;} break;
@@ -975,8 +972,7 @@ void Image::merge(Int x, Int y, C Vec4 &color)
 {
    if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
    {
-      Vec4 src;
-      Byte *data=T.data() + x*bytePP() + y*pitch();
+      Vec4 src; Byte *data=T.data() + x*bytePP() + y*pitch();
       switch(hwType())
       {
          case IMAGE_R8G8B8A8     : {Color &c=*(Color*)data; src=             c ; ApplyMerge(src, color); c=               src ;} break;
