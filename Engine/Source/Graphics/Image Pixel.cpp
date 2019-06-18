@@ -4132,6 +4132,12 @@ void CopyNoStretch(C Image &src, Image &dest, Bool clamp, Bool ignore_gamma) // 
             for(Int x=       0; x<dest.lw(); x++)dest.color3D(x, y, z, clamp ? src.color3D(Min(x, src.lw()-1), Min(y, src.lh()-1), zo) : src.color3D(x%src.lw(), y%src.lh(), zo));
       }
    }else*/
+   if(!ignore_gamma)
+   {
+      REPD(z, dest.ld())
+      REPD(y, dest.lh())
+      REPD(x, dest.lw())dest.color3DL(x, y, z, clamp ? src.color3DL(Min(x, src.lw()-1), Min(y, src.lh()-1), Min(z, src.ld()-1)) : src.color3DL(x%src.lw(), y%src.lh(), z%src.ld()));
+   }else
    if(high_precision)
    {
       REPD(z, dest.ld())
