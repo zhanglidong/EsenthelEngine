@@ -662,7 +662,7 @@ void Image::color3D(Int x, Int y, Int z, C Color &color)
       SetColor(data() + x*bytePP() + y*pitch() + z*pitch2(), type(), hwType(), color);
 }
 /******************************************************************************/
-static void SetColorF(Byte *data, IMAGE_TYPE type, C Vec4 &color)
+static void _SetColorF(Byte *data, IMAGE_TYPE type, C Vec4 &color)
 {
    switch(type)
    {
@@ -702,7 +702,7 @@ static void SetColorF(Byte *data, IMAGE_TYPE type, C Vec4 &color)
 }
 static void SetColorF(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &color)
 {
-   if(type==hw_type)normal: return SetColorF(data, hw_type, color); // first check if types are the same, the most common case
+   if(type==hw_type)normal: return _SetColorF(data, hw_type, color); // first check if types are the same, the most common case
    Vec4 c; switch(type) // however if we want 'type' but we've got 'hw_type' then we have to adjust the color we're going to set. This will prevent setting different R G B values for type=IMAGE_L8 when hw_type=IMAGE_R8G8B8A8
    {
       case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB:
@@ -730,7 +730,7 @@ static void SetColorF(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &c
 
       default: goto normal;
    }
-   SetColorF(data, hw_type, c);
+  _SetColorF(data, hw_type, c);
 }
 void Image::colorF(Int x, Int y, C Vec4 &color)
 {
@@ -743,7 +743,7 @@ void Image::color3DF(Int x, Int y, Int z, C Vec4 &color)
       SetColorF(data() + x*bytePP() + y*pitch() + z*pitch2(), type(), hwType(), color);
 }
 /******************************************************************************/
-static void SetColorL(Byte *data, IMAGE_TYPE type, C Vec4 &color)
+static void _SetColorL(Byte *data, IMAGE_TYPE type, C Vec4 &color)
 {
    switch(type)
    {
@@ -793,7 +793,7 @@ static void SetColorL(Byte *data, IMAGE_TYPE type, C Vec4 &color)
 }
 static void SetColorL(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &color)
 {
-   if(type==hw_type)normal: return SetColorL(data, hw_type, color); // first check if types are the same, the most common case
+   if(type==hw_type)normal: return _SetColorL(data, hw_type, color); // first check if types are the same, the most common case
    Vec4 c; switch(type) // however if we want 'type' but we've got 'hw_type' then we have to adjust the color we're going to set. This will prevent setting different R G B values for type=IMAGE_L8 when hw_type=IMAGE_R8G8B8A8
    {
       case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB:
@@ -821,7 +821,7 @@ static void SetColorL(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &c
 
       default: goto normal;
    }
-   SetColorL(data, hw_type, c);
+  _SetColorL(data, hw_type, c);
 }
 void Image::colorL(Int x, Int y, C Vec4 &color)
 {
@@ -834,7 +834,7 @@ void Image::color3DL(Int x, Int y, Int z, C Vec4 &color)
       SetColorL(data() + x*bytePP() + y*pitch() + z*pitch2(), type(), hwType(), color);
 }
 /******************************************************************************/
-static void SetColorS(Byte *data, IMAGE_TYPE type, C Vec4 &color)
+static void _SetColorS(Byte *data, IMAGE_TYPE type, C Vec4 &color)
 {
    switch(type)
    {
@@ -884,7 +884,7 @@ static void SetColorS(Byte *data, IMAGE_TYPE type, C Vec4 &color)
 }
 static void SetColorS(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &color)
 {
-   if(type==hw_type)normal: return SetColorS(data, hw_type, color); // first check if types are the same, the most common case
+   if(type==hw_type)normal: return _SetColorS(data, hw_type, color); // first check if types are the same, the most common case
    Vec4 c; switch(type) // however if we want 'type' but we've got 'hw_type' then we have to adjust the color we're going to set. This will prevent setting different R G B values for type=IMAGE_L8 when hw_type=IMAGE_R8G8B8A8
    {
       case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB:
@@ -912,7 +912,7 @@ static void SetColorS(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &c
 
       default: goto normal;
    }
-   SetColorS(data, hw_type, c);
+  _SetColorS(data, hw_type, c);
 }
 void Image::colorS(Int x, Int y, C Vec4 &color)
 {
@@ -4148,11 +4148,14 @@ void CopyNoStretch(C Image &src, Image &dest, Bool clamp, Bool ignore_gamma) // 
 Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_maps, Flt sharp_smooth)C // this does not support compressed images
 {
    if(this==&dest)return true;
-   Bool clamp=IcClamp(flags), alpha_weight=FlagTest(flags, IC_ALPHA_WEIGHT), keep_edges=FlagTest(flags, IC_KEEP_EDGES),
-        ignore_gamma=IgnoreGamma(flags, T.hwType(), dest.hwType()),
-        src_srgb=sRGB(), dest_srgb=dest.sRGB(),
-        src_high_prec=highPrecision(), high_prec=((src_high_prec && dest.highPrecision()) || !ignore_gamma);
-   Int  src_faces1=faces()-1;
+
+   const Bool clamp=IcClamp(flags), keep_edges=FlagTest(flags, IC_KEEP_EDGES),
+              alpha_weight=(FlagTest(flags, IC_ALPHA_WEIGHT) && ImageTI[type()].a), // only if source has alpha
+              ignore_gamma=IgnoreGamma(flags, T.hwType(), dest.hwType()),
+              src_srgb=sRGB(), dest_srgb=dest.sRGB(),
+              src_high_prec=highPrecision(), high_prec=((src_high_prec && dest.highPrecision()) || !ignore_gamma);
+   const Int  src_faces1=faces()-1;
+   const auto SetColor=(ignore_gamma ? SetColorF : src_srgb ? SetColorS : SetColorL); // pointer to function, when resizing we operate on source native gamma, so if source is sRGB then we're setting sRGB color, and if linear then linear
 
    REPD(mip , Min(mipMaps(), dest.mipMaps(), max_mip_maps))
    REPD(face, dest.faces())
@@ -4260,8 +4263,6 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
          CopyNoStretch(T, dest, clamp, ignore_gamma);
       }else // resize
       {
-         if(!ImageTI[hwType()].a)alpha_weight=false; // disable 'alpha_weight' if the source doesn't have it
-
       /* When downsampling, some filters operate in linear gamma (to preserve brightness) and end up with linear gamma result
             (However some sharpening filters don't do this, because serious artifacts occur)
 
@@ -4296,16 +4297,18 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                                       REPD(x, dest.lw())dest.color (x, y, color (x*2, yc));
                   }goto finish;
 
-                  case FILTER_LINEAR:
+                  case FILTER_LINEAR: // this operates on linear gamma
                   {
-                     high_prec|=src_srgb; // for FILTER_LINEAR down-sampling always operate on linear gamma to preserve brightness, so if source is not linear (sRGB) then we need high precision
-                     REPD(y, dest.lh())
+                     const Bool hp=high_prec|src_srgb, // for FILTER_LINEAR down-sampling always operate on linear gamma to preserve brightness, so if source is not linear (sRGB) then we need high precision
+                                manual_linear_to_srgb=(ignore_gamma_ds && src_srgb); // source is sRGB however we have linear color, so convert it back to sRGB
+                     const auto set_color=(ignore_gamma_ds ? SetColorF : SetColorL); // pointer to function
+                     Byte *dest_data_y=dest.data(); FREPD(y, dest.lh()) // iterate forward so we can increase pointers
                      {
                         Int yc[2]; yc[0]=y*2; yc[1]=(clamp ? Min(yc[0]+1, lh()-1) : (yc[0]+1)%lh()); // yc[0] is always OK
-                        REPD(x, dest.lw())
+                        Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
                         {
                            Int xc[2]; xc[0]=x*2; xc[1]=(clamp ? Min(xc[0]+1, lw()-1) : (xc[0]+1)%lw()); // xc[0] is always OK
-                           if(high_prec)
+                           if(hp)
                            {
                               Vec4 col, c[2][2]; gatherL(&c[0][0], xc, Elms(xc), yc, Elms(yc)); // [y][x]
                               if(!alpha_weight)
@@ -4324,11 +4327,8 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                                  col.y=(c[0][0].y*c[0][0].w + c[0][1].y*c[0][1].w + c[1][0].y*c[1][0].w + c[1][1].y*c[1][1].w)/a;
                                  col.z=(c[0][0].z*c[0][0].w + c[0][1].z*c[0][1].w + c[1][0].z*c[1][0].w + c[1][1].z*c[1][1].w)/a;
                               }
-                              if(ignore_gamma_ds) // we don't want to convert gamma
-                              {
-                                 if(src_srgb)col.xyz=LinearToSRGB(col.xyz); // source is sRGB however we have linear color, so convert it back to sRGB
-                                    dest.colorF(x, y, col);
-                              }else dest.colorL(x, y, col); // write linear color, 'colorL' will perform gamma conversion
+                              if(manual_linear_to_srgb)col.xyz=LinearToSRGB(col.xyz);
+                              set_color(dest_data_x, dest.type(), dest.hwType(), col);
                            }else
                            {
                               Color col, c[2][2]; gather(&c[0][0], xc, Elms(xc), yc, Elms(yc)); // [y][x]
@@ -4350,12 +4350,14 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                               }
                               dest.color(x, y, col);
                            }
+                           dest_data_x+=dest.bytePP();
                         }
+                        dest_data_y+=dest.pitch();
                      }
                   }goto finish;
 
                   case FILTER_BEST:
-                  case FILTER_CUBIC_FAST_SHARP: ASSERT(FILTER_DOWN==FILTER_CUBIC_FAST_SHARP);
+                  case FILTER_CUBIC_FAST_SHARP: ASSERT(FILTER_DOWN==FILTER_CUBIC_FAST_SHARP); // this operates on source native gamma
                   {
                    //high_prec|=src_srgb; FILTER_CUBIC_FAST_SHARP is not suitable for linear gamma (artifacts happen due to sharpening)
                      if(!high_prec)
@@ -4491,14 +4493,17 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                      } // if(!high_prec)
                   }break;
 
-                  case FILTER_CUBIC_FAST_SMOOTH: // used by 'transparentToNeighbor'
+                  case FILTER_CUBIC_FAST_SMOOTH: // used by 'transparentToNeighbor', this operates on linear gamma
                   {
-                     REPD(y, dest.lh())
+                   //high_prec|=src_srgb; not needed since we always do high prec here
+                     const Bool manual_linear_to_srgb=(ignore_gamma_ds && src_srgb); // source is sRGB however we have linear color, so convert it back to sRGB
+                     const auto set_color=(ignore_gamma_ds ? SetColorF : SetColorL); // pointer to function
+                     Byte *dest_data_y=dest.data(); FREPD(y, dest.lh()) // iterate forward so we can increase pointers
                      {
                         Int yc[8]; yc[3]=y*2; // 'y[3]' is always OK
                         if(clamp){yc[0]=Max(yc[3]-3, 0   ); yc[1]=Max(yc[3]-2, 0   ); yc[2]=Max(yc[3]-1, 0   ); yc[4]=Min(yc[3]+1, lh()-1); yc[5]=Min(yc[3]+2, lh()-1); yc[6]=Min(yc[3]+3, lh()-1); yc[7]=Min(yc[3]+4, lh()-1);}
                         else     {yc[0]=Mod(yc[3]-3, lh()); yc[1]=Mod(yc[3]-2, lh()); yc[2]=Mod(yc[3]-1, lh()); yc[4]=   (yc[3]+1)%lh()   ; yc[5]=   (yc[3]+2)%lh()   ; yc[6]=   (yc[3]+3)%lh()   ; yc[7]=   (yc[3]+4)%lh()   ;}
-                        REPD(x, dest.lw())
+                        Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
                         {
                            Int xc[8]; xc[3]=x*2; // 'x[3]' is always OK
                            if(clamp){xc[0]=Max(xc[3]-3, 0   ); xc[1]=Max(xc[3]-2, 0   ); xc[2]=Max(xc[3]-1, 0   ); xc[4]=Min(xc[3]+1, lw()-1); xc[5]=Min(xc[3]+2, lw()-1); xc[6]=Min(xc[3]+3, lw()-1); xc[7]=Min(xc[3]+4, lw()-1);}
@@ -4508,12 +4513,11 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                            REPD(x, 8)
                            REPD(y, 8)if(Flt w=CFSMW8[y][x])Add(color, rgb, c[y][x], w, alpha_weight);
                            Normalize(color, rgb, alpha_weight, src_high_prec);
-                           if(ignore_gamma_ds) // we don't want to convert gamma
-                           {
-                              if(src_srgb)color.xyz=LinearToSRGB(color.xyz); // source is sRGB however we have linear color, so convert it back to sRGB
-                                 dest.colorF(x, y, color);
-                           }else dest.colorL(x, y, color); // write linear color, 'colorL' will perform gamma conversion
+                           if(manual_linear_to_srgb)color.xyz=LinearToSRGB(color.xyz);
+                           set_color(dest_data_x, dest.type(), dest.hwType(), color);
+                           dest_data_x+=dest.bytePP();
                         }
+                        dest_data_y+=dest.pitch();
                      }
                   }goto finish;
                } // switch(filter)
@@ -4532,10 +4536,10 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                      }
                   }goto finish;
 
-                  case FILTER_LINEAR:
+                  case FILTER_LINEAR: // this operates on linear gamma
                   {
-                     high_prec|=src_srgb; // for FILTER_LINEAR down-sampling always operate on linear gamma to preserve brightness, so if source is not linear (sRGB) then we need high precision
-                     if(!high_prec)
+                     const Bool hp=high_prec|src_srgb; // for FILTER_LINEAR down-sampling always operate on linear gamma to preserve brightness, so if source is not linear (sRGB) then we need high precision
+                     if(!hp)
                      {
                         REPD(z, dest.ld())
                         {
@@ -4608,30 +4612,32 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                   case FILTER_CUBIC            : linear_gamma=false; area_color=&Image::areaColorFCubic          ; break; // FILTER_CUBIC            is not suitable for linear gamma
                   case FILTER_CUBIC_SHARP      : linear_gamma=false; area_color=&Image::areaColorFCubicSharp     ; break; // FILTER_CUBIC_SHARP      is not suitable for linear gamma
                }
+               Bool manual_linear_to_srgb=false;
+               auto set_color=SetColor; // pointer to function
+               if(linear_gamma)
+               {
+                  if(ignore_gamma_ds) // we don't want to convert gamma
+                  {
+                     if(src_srgb)manual_linear_to_srgb=true; // source is sRGB however we have linear color, so convert it back to sRGB
+                        set_color=SetColorF;
+                  }else set_color=SetColorL; // write linear color, 'SetColorL' will perform gamma conversion
+               }
                Vec2 pos;
-               REPD(y, dest.lh())
+               Byte *dest_data_y=dest.data(); FREPD(y, dest.lh()) // iterate forward so we can increase pointers
                {
                   pos.y=y*y_mul_add.x+y_mul_add.y;
-                  REPD(x, dest.lw())
+                  Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
                   {
                      pos.x=x*x_mul_add.x+x_mul_add.y;
                      Vec4 color=(T.*area_color)(pos, size.xy, clamp, alpha_weight);
-                     if(linear_gamma)
-                     {
-                        if(ignore_gamma_ds) // we don't want to convert gamma
-                        {
-                           if(src_srgb)color.xyz=LinearToSRGB(color.xyz); // source is sRGB however we have linear color, so convert it back to sRGB
-                              dest.colorF(x, y, color);
-                        }else dest.colorL(x, y, color); // write linear color, 'colorL' will perform gamma conversion
-                     }else
-                     if(ignore_gamma)dest.colorF(x, y, color);else
-                     {
-                        FIXME
-                     }
+                     if(manual_linear_to_srgb)color.xyz=LinearToSRGB(color.xyz);
+                     set_color(dest_data_x, dest.type(), dest.hwType(), color);
+                     dest_data_x+=dest.bytePP();
                   }
+                  dest_data_y+=dest.pitch();
                }
             }else
-            // !! Codes below operate on Source Image Native Gamma !! because upscaling sRGB images looks better if they're not sRGB, and linear images need linear anyway
+            // !! Codes below operate on Source Image Native Gamma !! because upscaling sRGB images looks better if they're not sRGB, and linear images (such as normal maps) need linear anyway
             if((filter==FILTER_CUBIC || filter==FILTER_CUBIC_SHARP || filter==FILTER_BEST) // optimized Cubic/Best upscale
             && T.ld()==1)
             {
@@ -4694,7 +4700,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                               }
                            }
                            Normalize(color, rgb, weight, alpha_weight, src_high_prec);
-// FIXME all below
+//FIXME all below
                            StoreColor(dest, dest_data_y, color);
                         }
                      }else

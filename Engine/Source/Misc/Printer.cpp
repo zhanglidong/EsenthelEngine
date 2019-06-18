@@ -221,9 +221,9 @@ void ReceiptPrinter::barcode128(C Str8 &code)
 /******************************************************************************/
 // IMAGE
 /******************************************************************************/
-static inline Bool ColToBit(C Vec4 &c)
+static inline Bool SRGBToBit(C Vec4 &c)
 {
-   return (1-SRGBLumOfLinearColor(c.xyz))*c.w>=0.5f;
+   return (1-SRGBLumOfSRGBColor(c.xyz))*c.w>=0.5f;
 }
 Bool ReceiptPrinter::operator+=(C Image &img)
 {
@@ -252,7 +252,7 @@ Bool ReceiptPrinter::operator+=(C Image &img)
          {
             Byte b=0; REP(8)
             {
-               if(ColToBit(src->colorF(x, y)))b|=(1<<i);
+               if(SRGBToBit(src->colorS(x, y)))b|=(1<<i);
                x++;
             }
             data.alwaysAppend(b);
@@ -271,7 +271,7 @@ Bool ReceiptPrinter::operator+=(C Image &img)
          FREPD(x, src->lw())
          FREPD(sy, 3)
          {
-            Byte b=0; FREP(8)if(ColToBit(src->colorF(x, y+7-i + sy*8)))b|=(1<<i);
+            Byte b=0; FREP(8)if(SRGBToBit(src->colorS(x, y+7-i + sy*8)))b|=(1<<i);
             data.alwaysAppend(b);
          }
          data+='\n';
@@ -412,7 +412,7 @@ Bool LabelPrinter::image(C VecI2 &pos, C Image &img)
       {
          Byte b=0; REP(8)
          {
-            if(ColToBit(src->colorF(x, y)))b|=(1<<i);
+            if(SRGBToBit(src->colorS(x, y)))b|=(1<<i);
             x++;
          }
          data.alwaysAppend(b);
