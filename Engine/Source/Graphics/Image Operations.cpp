@@ -2934,7 +2934,7 @@ struct BlurCube
             SyncLocker locker(lock); if(src.lockRead(src_mip, f))
             {
                Vec2 tex(dir_f.x*src_DirToCubeFace_mul+src_DirToCubeFace_add, -dir_f.y*src_DirToCubeFace_mul+src_DirToCubeFace_add);
-               col=src.areaColorLinear(tex, src_area_size);
+               col=src.areaColorLLinear(tex, src_area_size);
                src.unlock();
             }
          }
