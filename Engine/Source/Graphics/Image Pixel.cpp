@@ -4298,7 +4298,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
 
                   case FILTER_LINEAR:
                   {
-                     high_prec|=src_srgb; // when down-sampling, use high precision if source is sRGB (not linear, because we convert source to linear gamma, to preserve brightness)
+                     high_prec|=src_srgb; // for FILTER_LINEAR down-sampling always operate on linear gamma to preserve brightness, so if source is not linear (sRGB) then we need high precision
                      REPD(y, dest.lh())
                      {
                         Int yc[2]; yc[0]=y*2; yc[1]=(clamp ? Min(yc[0]+1, lh()-1) : (yc[0]+1)%lh()); // yc[0] is always OK
@@ -4357,7 +4357,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                   case FILTER_BEST:
                   case FILTER_CUBIC_FAST_SHARP: ASSERT(FILTER_DOWN==FILTER_CUBIC_FAST_SHARP);
                   {
-// FIXME
+                   //high_prec|=src_srgb; FILTER_CUBIC_FAST_SHARP is not suitable for linear gamma (artifacts happen due to sharpening)
                      if(!high_prec)
                      {
                         REPD(y, dest.lh())
@@ -4534,7 +4534,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
 
                   case FILTER_LINEAR:
                   {
-                     high_prec|=src_srgb; // when down-sampling, use high precision if source is sRGB (not linear, because we convert source to linear gamma, to preserve brightness)
+                     high_prec|=src_srgb; // for FILTER_LINEAR down-sampling always operate on linear gamma to preserve brightness, so if source is not linear (sRGB) then we need high precision
                      if(!high_prec)
                      {
                         REPD(z, dest.ld())
