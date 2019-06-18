@@ -203,6 +203,22 @@ private:
 };extern ImageTypeInfo
    ImageTI[]; // Image Type Info Array, allows obtaining information about specified IMAGE_TYPE, sample usage: ImageTI[IMAGE_R8G8B8A8].name -> "R8G8B8A8"
 /******************************************************************************/
+enum IMAGE_COPY_FLAG
+{
+   IC_CLAMP        =   0, // perform UVW coordinate clamping when filtering pixels
+   IC_WRAP         =1<<0, // perform UVW coordinate wrapping when filtering pixels
+   IC_ALPHA_WEIGHT =1<<1, // if use pixel's alpha for weight of pixel's color
+   IC_KEEP_EDGES   =1<<2, // if preserve the edges of the image when resizing
+   IC_NO_ALT_TYPE  =1<<3, // don't try using alternative IMAGE_TYPE if a specified is not supported
+   IC_CONVERT_GAMMA=1<<4, // make sure gamma conversion is performed
+   IC_IGNORE_GAMMA =1<<5, // make sure gamma conversion is ignored
+   IC_MTRL_BASE1   =1<<6, // if this image is 'Material.base_1' texture
+};
+#if EE_PRIVATE
+   inline Bool IcWrap (UInt flag) {return  FlagTest(flag, IC_WRAP);}
+   inline Bool IcClamp(UInt flag) {return !FlagTest(flag, IC_WRAP);}
+#endif
+/******************************************************************************/
 struct Image // Image (Texture)
 {
    // get

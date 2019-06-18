@@ -314,12 +314,12 @@ IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type) // this is for HW images, don't retu
       case IMAGE_PVRTC1_4_SRGB:
          return IMAGE_R8G8B8A8_SRGB;
 
-      case IMAGE_F32_3_SRGB:
-      case IMAGE_F32_4_SRGB:
-         return IMAGE_R8G8B8A8_SRGB; // TODO: we could return IMAGE_F32_3/IMAGE_F32_4 but we would have to make sure gamma conversion is performed
+      // Warning: these require IC_CONVERT_GAMMA
+      case IMAGE_F32_3_SRGB: return IMAGE_F32_3;
+      case IMAGE_F32_4_SRGB: return IMAGE_F32_4;
 
       case IMAGE_BC6:
-         return IMAGE_F16_3;
+         return IMAGE_F16_4; // IMAGE_F16_3 is not supported on DX and may not be supported on other API's
    }
 }
 IMAGE_TYPE ImageTypeRemoveSRGB(IMAGE_TYPE type)

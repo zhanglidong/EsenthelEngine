@@ -379,7 +379,7 @@ const Int         file_faces=(file_cube ? 6 : 1);
          {
             IMAGE_TYPE type=soft.type(), type_on_fail=ImageTypeOnFail(type); if(!type_on_fail)return false; VecI size=soft.size3(); // remember params for adjust later
             soft.adjustInfo(soft.hwW(), soft.hwH(), soft.d(), soft.type()); // adjust internal size to 'hwW', 'hwH' because we must allocate entire HW size for 'type' to have enough room for its data, for example 48x48 PVRTC requires 64x64 size 7 mip maps, while RGBA would give us 48x48 size 6 mip maps, this is to achieve consistent results (have the same sizes, and mip maps) and it's also a requirement for saving, doing this instead of using 'copyTry' with FILTER_NO_STRETCH allows for faster 'Decompress' (directly into 'target'), no need to explicitly specify mip maps instead of using -1 because they could change due to different sizes)
-            if(!soft .  copyTry  (soft, -1, -1, -1, type_on_fail) // we have to keep depth, soft mode, mip maps
+            if(!soft .  copyTry  (soft, -1, -1, -1, type_on_fail, -1, -1, FILTER_BEST, IC_CONVERT_GAMMA) // we have to keep depth, soft mode, mip maps, make sure gamma conversion is performed
             || !image.createTryEx(soft.w(), soft.h(), soft.d(), soft.type(), want.mode, soft.mipMaps(), soft.samples(), &soft))return false;
             image.adjustInfo(size.x, size.y, size.z, type);
          }

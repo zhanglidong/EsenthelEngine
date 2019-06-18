@@ -166,7 +166,7 @@ struct SectionParams
       if(overlay=src.depth_overlay)
       {
          if(overlay->compressed() || src.depth_overlay_params.blur)
-            if(overlay->copyTry(overlay_image, -1, -1, -1, ImageTI[overlay->hwType()].a ? IMAGE_F32_4 : IMAGE_F32, IMAGE_SOFT, 1))overlay=&overlay_image;else overlay=null;
+            if(overlay->copyTry(overlay_image, -1, -1, -1, ImageTI[overlay->hwType()].a ? IMAGE_F32_4 : IMAGE_F32, IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))overlay=&overlay_image;else overlay=null;
          if(overlay)
          {
             overlay_image.blur(src.depth_overlay_params.blur, src.depth_overlay_params.blur_clamp, threads); // this will blur only if 'src.depth_overlay_params.blur' in which case the "overlay==&overlay_image"
@@ -941,8 +941,8 @@ struct PanelImageCreate
             // apply depth overlay
             if(sp.overlay)
             {
-               Vec4 ovr=sp.overlay->GET_COLOR(x*sp.overlay_uv_scale+sp.overlay_uv_offset.x,
-                                              y*sp.overlay_uv_scale+sp.overlay_uv_offset.y, false);
+               Vec4 ovr=sp.overlay->colorFCubicFast(x*sp.overlay_uv_scale+sp.overlay_uv_offset.x,
+                                                    y*sp.overlay_uv_scale+sp.overlay_uv_offset.y, false);
                ovr.xyz=ovr.xyz.max();
                ovr.w *=sp.overlay_intensity;
                switch(section.depth_overlay_params.mode)

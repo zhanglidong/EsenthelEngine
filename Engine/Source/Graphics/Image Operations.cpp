@@ -2178,7 +2178,7 @@ Image& Image::transparentToNeighbor(Bool clamp, Flt step)
 #if 1 // new method
    if(!ImageTI[type()].a)return T;//true;
    Int    mips=TotalMipMaps(w(), h(), d(), IMAGE_F32_4); if(mips<=1)return T;//true;
-   Image *src =this, temp; if(!src->highPrecision() || src->compressed())if(src->copyTry(temp, -1, -1, -1, IMAGE_F32_4, IMAGE_SOFT, 1))src=&temp;else return T;//false; // first we have to copy to IMAGE_F32_4 to make sure we have floating point, so that downsizing will not use ALPHA_LIMIT, this is absolutely critical
+   Image *src =this, temp; if(!src->highPrecision() || src->compressed())if(src->copyTry(temp, -1, -1, -1, IMAGE_F32_4, IMAGE_SOFT, 1, FILTER_BEST, IC_IGNORE_GAMMA))src=&temp;else return T;//false; // first we have to copy to IMAGE_F32_4 to make sure we have floating point, so that downsizing will not use ALPHA_LIMIT, this is absolutely critical
    Bool   ok  =false;
    if(src->lock())
    {
@@ -2188,7 +2188,7 @@ Image& Image::transparentToNeighbor(Bool clamp, Flt step)
       FREPA(mip)
       {
          size>>=1;
-         if(!s->copyTry(mip[i], size.x, size.y, size.z, IMAGE_F32_4, IMAGE_SOFT, 1, FILTER_CUBIC_FAST_SMOOTH, clamp, true))goto error; // we need a non-sharpening filter and one that spreads in all directions (more than 2x2 samples)
+         if(!s->copyTry(mip[i], size.x, size.y, size.z, IMAGE_F32_4, IMAGE_SOFT, 1, FILTER_CUBIC_FAST_SMOOTH, (clamp?IC_CLAMP:IC_WRAP)|IC_ALPHA_WEIGHT|IC_IGNORE_GAMMA))goto error; // we need a non-sharpening filter and one that spreads in all directions (more than 2x2 samples)
          s=&mip[i];
       }
 
@@ -2219,7 +2219,7 @@ Image& Image::transparentToNeighbor(Bool clamp, Flt step)
       if(ok)
       {
          src->updateMipMaps(FILTER_BEST, clamp, true);
-         ok=src->copyTry(T, -1, -1, -1, type(), mode(), mipMaps(), FILTER_BEST, clamp, true);
+         ok=src->copyTry(T, -1, -1, -1, type(), mode(), mipMaps(), FILTER_BEST, (clamp?IC_CLAMP:IC_WRAP)|IC_ALPHA_WEIGHT|IC_IGNORE_GAMMA);
       }
    }
    return T;//ok;
