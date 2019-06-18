@@ -713,6 +713,10 @@ IMAGE_TYPE BytesToImageType(Int byte_pp); // get IMAGE_TYPE needed to store 'byt
 IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type); // convert 'type' to the most similar IMAGE_TYPE that has    alpha channel
 IMAGE_TYPE ImageTypeExcludeAlpha(IMAGE_TYPE type); // convert 'type' to the most similar IMAGE_TYPE that has no alpha channel
 
+IMAGE_TYPE ImageTypeToggleSRGB (IMAGE_TYPE type); // convert 'type' to the most similar IMAGE_TYPE that has different sRGB
+IMAGE_TYPE ImageTypeIncludeSRGB(IMAGE_TYPE type); // convert 'type' to the most similar IMAGE_TYPE that has           sRGB
+IMAGE_TYPE ImageTypeExcludeSRGB(IMAGE_TYPE type); // convert 'type' to the most similar IMAGE_TYPE that has no        sRGB
+
 IMAGE_TYPE ImageTypeUncompressed(IMAGE_TYPE type); // convert 'type' to the most similar IMAGE_TYPE that is not compressed
 
 Int  GetPVRTCQuality(           ); // get PVRTC compression quality, 0..4
@@ -739,8 +743,6 @@ IMAGE_TYPE                 ImageFormatToType(GPU_API(DXGI_FORMAT, UInt) format);
 Int                        TotalMipMaps     (Int w, Int h, Int d, IMAGE_TYPE type);
 
 IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type);
-IMAGE_TYPE ImageTypeToggleSRGB(IMAGE_TYPE type);
-IMAGE_TYPE ImageTypeRemoveSRGB(IMAGE_TYPE type);
        Bool HighPrecision(IMAGE_TYPE src, IMAGE_TYPE dest);
 inline Bool HighPrecision(C Image   &src, C Image   &dest) {return HighPrecision(src.hwType(), dest.hwType());}
        Bool CanDoRawCopy (IMAGE_TYPE src, IMAGE_TYPE dest);

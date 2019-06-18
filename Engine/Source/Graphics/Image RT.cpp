@@ -264,7 +264,7 @@ again:
 
    Bool want_srgb=false;
 #if CAN_SWAP_SRGB // try to create non-sRGB, and later swap sRGB views, this allows to potentially reduce amount of needed Render Targets, since they can reuse each other memory (instead of using 1 RGB and 1 sRGB, we can just allocate 1 RGB, and swap its views if needed)
-   IMAGE_TYPE non_srgb=ImageTypeRemoveSRGB(desc._type); if(desc._type!=non_srgb) // if we're requesting sRGB
+   IMAGE_TYPE non_srgb=ImageTypeExcludeSRGB(desc._type); if(desc._type!=non_srgb) // if we're requesting sRGB
    {
       ConstCast(desc._type)=non_srgb; // request non-sRGB
       want_srgb=true; // and remember that we want sRGB

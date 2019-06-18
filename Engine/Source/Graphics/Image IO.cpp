@@ -130,8 +130,8 @@ static IMAGE_TYPE OldImageType0(Byte type)
 /******************************************************************************/
 static Byte NewImageTypeToOld(IMAGE_TYPE type) // FIXME remove this
 {
-   type=ImageTypeRemoveSRGB(type);
-   FREP(256)if(ImageTypeRemoveSRGB(OldImageType2(i))==type)return i;
+   type=ImageTypeExcludeSRGB(type);
+   FREP(256)if(ImageTypeExcludeSRGB(OldImageType2(i))==type)return i;
    return 0;
 }
 Bool Image::saveData(File &f)C

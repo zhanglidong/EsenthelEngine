@@ -319,10 +319,33 @@ IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type) // this is for HW images, don't retu
       case IMAGE_F32_4_SRGB: return IMAGE_F32_4;
 
       case IMAGE_BC6:
-         return IMAGE_F16_4; // IMAGE_F16_3 is not supported on DX and may not be supported on other API's
+         return IMAGE_F16_4; // IMAGE_F16_3 is not supported on DX11 and may not be supported on other API's
    }
 }
-IMAGE_TYPE ImageTypeRemoveSRGB(IMAGE_TYPE type)
+IMAGE_TYPE ImageTypeIncludeSRGB(IMAGE_TYPE type)
+{
+   switch(type)
+   {
+      default            : return type;
+      case IMAGE_B8G8R8A8: return IMAGE_B8G8R8A8_SRGB;
+      case IMAGE_R8G8B8A8: return IMAGE_R8G8B8A8_SRGB;
+      case IMAGE_R8G8B8  : return IMAGE_R8G8B8_SRGB;
+      case IMAGE_L8      : return IMAGE_L8_SRGB;
+      case IMAGE_L8A8    : return IMAGE_L8A8_SRGB;
+      case IMAGE_F32_3   : return IMAGE_F32_3_SRGB;
+      case IMAGE_F32_4   : return IMAGE_F32_4_SRGB;
+      case IMAGE_BC1     : return IMAGE_BC1_SRGB;
+      case IMAGE_BC2     : return IMAGE_BC2_SRGB;
+      case IMAGE_BC3     : return IMAGE_BC3_SRGB;
+      case IMAGE_BC7     : return IMAGE_BC7_SRGB;
+      case IMAGE_ETC2    : return IMAGE_ETC2_SRGB;
+      case IMAGE_ETC2_A1 : return IMAGE_ETC2_A1_SRGB;
+      case IMAGE_ETC2_A8 : return IMAGE_ETC2_A8_SRGB;
+      case IMAGE_PVRTC1_2: return IMAGE_PVRTC1_2_SRGB;
+      case IMAGE_PVRTC1_4: return IMAGE_PVRTC1_4_SRGB;
+   }
+}
+IMAGE_TYPE ImageTypeExcludeSRGB(IMAGE_TYPE type)
 {
    switch(type)
    {
@@ -523,7 +546,7 @@ Bool CompatibleLock(LOCK_MODE cur, LOCK_MODE lock)
       case LOCK_READ      : return lock==LOCK_READ;
    }
 }
-static inline IMAGE_TYPE Type(IMAGE_TYPE t) {return IGNORE_LP_SRGB ? ImageTypeRemoveSRGB(t) : t;}
+static inline IMAGE_TYPE Type(IMAGE_TYPE t) {return IGNORE_LP_SRGB ? ImageTypeExcludeSRGB(t) : t;}
 Bool HighPrecision(IMAGE_TYPE src, IMAGE_TYPE dest)
 {
    Bool src_hp=ImageTI[ src].highPrecision(),
