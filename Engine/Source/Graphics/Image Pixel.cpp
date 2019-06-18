@@ -14,10 +14,6 @@
 
    Upscaling should be done in sRGB Gamma space to allow for smooth gradients - looks much better !!
 
-   After many tests for creating mip maps REP(3)image.downSample(FILTER_DOWN);
-      it was noticed that doing Gamma Correct filtering does not improve quality significantly, as FILTER_DOWN has sharpening filter which already makes it look good.
-      Using Gamma Correct filtering made bigger difference for image.resize(image.w()/8, image.h()/8) though
-
 /******************************************************************************/
 #include "stdafx.h"
 namespace EE{
