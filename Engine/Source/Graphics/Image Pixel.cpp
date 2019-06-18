@@ -4055,16 +4055,6 @@ static Bool NeedMultiChannel(IMAGE_TYPE src, IMAGE_TYPE dest)
 {
    return ImageTI[src].channels>1 || src!=dest;
 }
-static INLINE void StorePixel(Image &image, Byte* &dest_data_y, Flt pixel)
-{
-   SetPixelF(dest_data_y, image.hwType(), pixel);
-   dest_data_y+=image.bytePP();
-}
-static INLINE void StoreColor(Image &image, Byte* &dest_data_y, C Vec4 &color)
-{
-   SetColorF(dest_data_y, image.type(), image.hwType(), color);
-   dest_data_y+=image.bytePP();
-}
 void CopyNoStretch(C Image &src, Image &dest, Bool clamp, Bool ignore_gamma) // assumes 'src,dest' are locked and non-compressed
 {
    Bool high_precision=(src.highPrecision() && dest.highPrecision()); // high precision requires FP
@@ -4642,12 +4632,11 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
             && T.ld()==1)
             {
                Flt (*Func)(Flt x)=((filter==FILTER_CUBIC_SHARP) ? CubicSharp2 : CubicMed2); ASSERT(CUBIC_MED_SAMPLES==CUBIC_SHARP_SAMPLES && CUBIC_MED_RANGE==CUBIC_SHARP_RANGE && CUBIC_MED_SHARPNESS==CUBIC_SHARP_SHARPNESS);
-               REPD(z, dest.ld())
+               Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
                {
-                  Byte *dest_data_z=dest.data() + z*dest.pitch2();
-                  FREPD(y, dest.lh())
+                  Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
                   {
-                     Byte *dest_data_y=dest_data_z + y*dest.pitch();
+                     Byte *dest_data_x=dest_data_y;
                      Flt   sy=y*y_mul_add.x+y_mul_add.y,
                            sx=/*x*x_mul_add.x+*/x_mul_add.y; // 'x' is zero at this step so ignore it
                      Int   xo[CUBIC_MED_SAMPLES*2], yo[CUBIC_MED_SAMPLES*2], xi=Floor(sx), yi=Floor(sy);
@@ -4673,7 +4662,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                         REPD(x, CUBIC_MED_SAMPLES*2)REPD(y, x)Swap(c[y][x], c[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
 
                         Int x_offset=0;
-                        FREPD(x, dest.lw())
+                        FREPD(x, dest.lw()) // iterate forward so we can increase pointers
                         {
                            Flt sx=x*x_mul_add.x+x_mul_add.y;
                            Int xi2=Floor(sx); if(xi!=xi2)
@@ -4700,8 +4689,8 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                               }
                            }
                            Normalize(color, rgb, weight, alpha_weight, src_high_prec);
-//FIXME all below
-                           StoreColor(dest, dest_data_y, color);
+                           SetColor(dest_data_x, dest.type(), dest.hwType(), color);
+                           dest_data_x+=dest.bytePP();
                         }
                      }else
                      {
@@ -4710,7 +4699,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                         REPD(x, CUBIC_MED_SAMPLES*2)REPD(y, x)Swap(v[y][x], v[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
 
                         Int x_offset=0;
-                        FREPD(x, dest.lw())
+                        FREPD(x, dest.lw()) // iterate forward so we can increase pointers
                         {
                            Flt sx=x*x_mul_add.x+x_mul_add.y;
                            Int xi2=Floor(sx); if(xi!=xi2)
@@ -4734,22 +4723,24 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                                  }
                               }
                            }
-                           StorePixel(dest, dest_data_y, value/weight);
+                           SetPixelF(dest_data_x, dest.hwType(), value/weight);
+                           dest_data_x+=dest.bytePP();
                         }
                      }
+                     dest_data_y+=dest.pitch();
                   }
+                  dest_data_z+=dest.pitch2();
                }
             }else
             if((filter==FILTER_CUBIC_FAST || filter==FILTER_CUBIC_FAST_SMOOTH || filter==FILTER_CUBIC_FAST_SHARP) // optimized CubicFast upscale
             && T.ld()==1)
             {
                Flt (*Func)(Flt x)=((filter==FILTER_CUBIC_FAST) ? CubicFast2 : (filter==FILTER_CUBIC_FAST_SMOOTH) ? CubicFastSmooth2 : CubicFastSharp2);
-               REPD(z, dest.ld())
+               Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
                {
-                  Byte *dest_data_z=dest.data() + z*dest.pitch2();
-                  FREPD(y, dest.lh())
+                  Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
                   {
-                     Byte *dest_data_y=dest_data_z + y*dest.pitch();
+                     Byte *dest_data_x=dest_data_y;
                      Flt   sy=y*y_mul_add.x+y_mul_add.y,
                            sx=/*x*x_mul_add.x+*/x_mul_add.y; // 'x' is zero at this step so ignore it
                      Int   xo[CUBIC_FAST_SAMPLES*2], yo[CUBIC_FAST_SAMPLES*2], xi=Floor(sx), yi=Floor(sy);
@@ -4775,7 +4766,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                         REPD(x, CUBIC_FAST_SAMPLES*2)REPD(y, x)Swap(c[y][x], c[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
 
                         Int x_offset=0;
-                        FREPD(x, dest.lw())
+                        FREPD(x, dest.lw()) // iterate forward so we can increase pointers
                         {
                            Flt sx=x*x_mul_add.x+x_mul_add.y;
                            Int xi2=Floor(sx); if(xi!=xi2)
@@ -4802,7 +4793,8 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                               }
                            }
                            Normalize(color, rgb, weight, alpha_weight, src_high_prec);
-                           StoreColor(dest, dest_data_y, color);
+                           SetColor(dest_data_x, dest.type(), dest.hwType(), color);
+                           dest_data_x+=dest.bytePP();
                         }
                      }else
                      {
@@ -4811,7 +4803,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                         REPD(x, CUBIC_FAST_SAMPLES*2)REPD(y, x)Swap(v[y][x], v[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
 
                         Int x_offset=0;
-                        FREPD(x, dest.lw())
+                        FREPD(x, dest.lw()) // iterate forward so we can increase pointers
                         {
                            Flt sx=x*x_mul_add.x+x_mul_add.y;
                            Int xi2=Floor(sx); if(xi!=xi2)
@@ -4835,21 +4827,23 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                                  }
                               }
                            }
-                           StorePixel(dest, dest_data_y, value/weight);
+                           SetPixelF(dest_data_x, dest.hwType(), value/weight);
+                           dest_data_x+=dest.bytePP();
                         }
                      }
+                     dest_data_y+=dest.pitch();
                   }
+                  dest_data_z+=dest.pitch2();
                }
             }else
             if(filter==FILTER_LINEAR // optimized Linear upscale, this is used for Texture Sharpness calculation
             && T.ld()==1)
             {
-               REPD(z, dest.ld())
+               Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
                {
-                  Byte *dest_data_z=dest.data() + z*dest.pitch2();
-                  FREPD(y, dest.lh())
+                  Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
                   {
-                     Byte *dest_data_y=dest_data_z + y*dest.pitch();
+                     Byte *dest_data_x=dest_data_y;
                      Flt   sy=y*y_mul_add.x+y_mul_add.y,
                            sx=/*x*x_mul_add.x+*/x_mul_add.y; // 'x' is zero at this step so ignore it
                      Int   xo[2], yo[2], xi=Floor(sx), yi=Floor(sy);
@@ -4875,7 +4869,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                         REPD(x, 2)REPD(y, x)Swap(c[y][x], c[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
 
                         Int x_offset=0;
-                        FREPD(x, dest.lw())
+                        FREPD(x, dest.lw()) // iterate forward so we can increase pointers
                         {
                            Flt sx=x*x_mul_add.x+x_mul_add.y;
                            Int xi2=Floor(sx); if(xi!=xi2)
@@ -4895,7 +4889,8 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                               REPAD(y, yo)Add(color, rgb, c[xc][y], xw[x]*yw[y], alpha_weight);
                            }
                            Normalize(color, rgb, alpha_weight, src_high_prec);
-                           StoreColor(dest, dest_data_y, color);
+                           SetColor(dest_data_x, dest.type(), dest.hwType(), color);
+                           dest_data_x+=dest.bytePP();
                         }
                      }else
                      {
@@ -4904,7 +4899,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                         REPD(x, 2)REPD(y, x)Swap(v[y][x], v[x][y]); // convert [y][x] -> [x][y] so we can use later 'gather' to read a single column with new x
 
                         Int x_offset=0;
-                        FREPD(x, dest.lw())
+                        FREPD(x, dest.lw()) // iterate forward so we can increase pointers
                         {
                            Flt sx=x*x_mul_add.x+x_mul_add.y;
                            Int xi2=Floor(sx); if(xi!=xi2)
@@ -4921,21 +4916,24 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                               Int xc=(x+x_offset)&1;
                               REPAD(y, yo)value+=v[xc][y]*xw[x]*yw[y];
                            }
-                           StorePixel(dest, dest_data_y, value);
+                           SetPixelF(dest_data_x, dest.hwType(), value);
+                           dest_data_x+=dest.bytePP();
                         }
                      }
+                     dest_data_y+=dest.pitch();
                   }
+                  dest_data_z+=dest.pitch2();
                }
             }else
             if(NeedMultiChannel(T.type(), dest.type()))
             {
-               REPD(z, dest.ld())
+               Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
                {
                   Flt sz=z*z_mul_add.x+z_mul_add.y;
-                  REPD(y, dest.lh())
+                  Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
                   {
                      Flt sy=y*y_mul_add.x+y_mul_add.y;
-                     REPD(x, dest.lw())
+                     Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
                      {
                         Flt  sx=x*x_mul_add.x+x_mul_add.y;
                         Vec4 color;
@@ -4950,19 +4948,22 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                            case FILTER_CUBIC            : color=((T.ld()<=1) ? T.colorFCubic          (         sx ,          sy , clamp, alpha_weight) : T.color3DFCubic          (         sx ,          sy ,          sz , clamp)); break;
                            case FILTER_CUBIC_SHARP      : color=((T.ld()<=1) ? T.colorFCubicSharp     (         sx ,          sy , clamp, alpha_weight) : T.color3DFCubicSharp     (         sx ,          sy ,          sz , clamp)); break;
                         }
-                        dest.color3DF(x, y, z, color);
+                        SetColor(dest_data_x, dest.type(), dest.hwType(), color);
+                        dest_data_x+=dest.bytePP();
                      }
+                     dest_data_y+=dest.pitch();
                   }
+                  dest_data_z+=dest.pitch2();
                }
             }else
             {
-               REPD(z, dest.ld())
+               Byte *dest_data_z=dest.data(); FREPD(z, dest.ld()) // iterate forward so we can increase pointers
                {
                   Flt sz=z*z_mul_add.x+z_mul_add.y;
-                  REPD(y, dest.lh())
+                  Byte *dest_data_y=dest_data_z; FREPD(y, dest.lh()) // iterate forward so we can increase pointers
                   {
                      Flt sy=y*y_mul_add.x+y_mul_add.y;
-                     REPD(x, dest.lw())
+                     Byte *dest_data_x=dest_data_y; FREPD(x, dest.lw()) // iterate forward so we can increase pointers
                      {
                         Flt sx=x*x_mul_add.x+x_mul_add.y,
                             pix;
@@ -4977,9 +4978,12 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                            case FILTER_CUBIC            : pix=((T.ld()<=1) ? T.pixelFCubic          (         sx ,          sy , clamp) : T.pixel3DFCubic          (         sx ,          sy ,          sz , clamp)); break;
                            case FILTER_CUBIC_SHARP      : pix=((T.ld()<=1) ? T.pixelFCubicSharp     (         sx ,          sy , clamp) : T.pixel3DFCubicSharp     (         sx ,          sy ,          sz , clamp)); break;
                         }
-                        dest.pixel3DF(x, y, z, pix);
+                        SetPixelF(dest_data_x, dest.hwType(), pix);
+                        dest_data_x+=dest.bytePP();
                      }
+                     dest_data_y+=dest.pitch();
                   }
+                  dest_data_z+=dest.pitch2();
                }
             }
          }
