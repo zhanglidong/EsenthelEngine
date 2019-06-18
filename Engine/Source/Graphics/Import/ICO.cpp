@@ -128,7 +128,7 @@ Bool Image::ExportICO(C Str &name)C
    return false;
 }
 /******************************************************************************/
-static void ICNSEncodeRLE24(File &f, C Byte *data, Int size) // Code based on LibICNS - http://icns.sourceforge.net/, assumes that 'data' is in IMAGE_R8G8B8A8 format
+static void ICNSEncodeRLE24(File &f, C Byte *data, Int size) // Code based on LibICNS - http://icns.sourceforge.net/, assumes that 'data' is in IMAGE_R8G8B8A8_SRGB format
 {
    // Assumptions of what icns rle data is all about:
    // A) Each channel is encoded indepenent of the next.
@@ -328,8 +328,8 @@ Bool Image::ExportICNS(File &f)C // ICNS stores data using RLE, PNG or JPEG 2000
          Int    size=src->w(); if(size>128)size=128;else if(size==64)size=48; // RLE doesn't support sizes >128 and 64
        C Image *s=src;
          Image  rle; 
-         if((s->hwType()!=IMAGE_R8G8B8A8 && s->hwType()!=IMAGE_R8G8B8A8_SRGB) || s->w()!=size || s->size()!=s->hwSize()) // 'ICNSEncodeRLE24' requires IMAGE_R8G8B8A8 without any hw padding
-            if(s->copyTry(rle, size, size, 1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1, FILTER_BEST, IC_CLAMP|IC_ALPHA_WEIGHT))s=&rle;else continue;
+         if((s->hwType()!=IMAGE_R8G8B8A8 && s->hwType()!=IMAGE_R8G8B8A8_SRGB) || s->w()!=size || s->size()!=s->hwSize()) // 'ICNSEncodeRLE24' requires IMAGE_R8G8B8A8_SRGB without any hw padding
+            if(s->copyTry(rle, size, size, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, IC_CLAMP|IC_ALPHA_WEIGHT))s=&rle;else continue;
          if(s->lockRead())
          {
             mip.png=false;

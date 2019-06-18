@@ -130,6 +130,7 @@ ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have the sa
    {"B8G8R8A8"     , false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_B8G8R8A8_UNORM     , 0)},
    {"B8G8R8A8_SRGB", false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_B8G8R8A8_UNORM_SRGB, 0)},
    {"B8G8R8"       , false,  3, 24,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN            , 0)},
+   {"B8G8R8_SRGB"  , false,  3, 24,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN            , 0)},
 
    {"B5G6R5"       , false,  2, 16,   5, 6, 5, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_B5G6R5_UNORM  , 0)},
    {"B5G5R5A1"     , false,  2, 16,   5, 5, 5, 1,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_B5G5R5A1_UNORM, 0)},
@@ -144,7 +145,7 @@ ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have the sa
 
    {"R11G11B10F"   , false,  4, 32,  11,11,10, 0,   0,0, 3, IMAGE_PRECISION_10, 0, GPU_API(DXGI_FORMAT_R11G11B10_FLOAT   , GL_R11F_G11F_B10F)},
    {"R9G9B9E5F"    , false,  4, 32,  14,14,14, 0,   0,0, 3, IMAGE_PRECISION_10, 0, GPU_API(DXGI_FORMAT_R9G9B9E5_SHAREDEXP, GL_RGB9_E5)},
-}; ASSERT(IMAGE_ALL_TYPES==63);
+}; ASSERT(IMAGE_ALL_TYPES==64);
 /******************************************************************************/
 Bool IsSRGB(IMAGE_TYPE type)
 {
@@ -153,6 +154,7 @@ Bool IsSRGB(IMAGE_TYPE type)
       default: return false;
 
       case IMAGE_B8G8R8A8_SRGB:
+      case IMAGE_B8G8R8_SRGB  :
       case IMAGE_R8G8B8A8_SRGB:
       case IMAGE_R8G8B8_SRGB  :
       case IMAGE_L8_SRGB      :
@@ -181,7 +183,7 @@ IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type)
       case IMAGE_R8G8  :
       case IMAGE_R8    : return IMAGE_R8G8B8A8;
 
-    //case IMAGE_B8G8R8_SRGB: return IMAGE_B8G8R8A8_SRGB;
+      case IMAGE_B8G8R8_SRGB: return IMAGE_B8G8R8A8_SRGB;
 
       case IMAGE_R8G8B8_SRGB: return IMAGE_R8G8B8A8_SRGB;
 
@@ -225,7 +227,7 @@ IMAGE_TYPE ImageTypeExcludeAlpha(IMAGE_TYPE type)
       case IMAGE_B8G8R8A8: return IMAGE_B8G8R8;
 
       case IMAGE_R8G8B8A8_SRGB: return IMAGE_R8G8B8_SRGB;
-      case IMAGE_B8G8R8A8_SRGB: return IMAGE_R8G8B8_SRGB; //IMAGE_B8G8R8_SRGB;
+      case IMAGE_B8G8R8A8_SRGB: return IMAGE_B8G8R8_SRGB;
 
       case IMAGE_L8A8: return IMAGE_L8;
 
@@ -288,7 +290,7 @@ IMAGE_TYPE ImageTypeUncompressed(IMAGE_TYPE type)
          return IMAGE_F16_3;
    }
 }
-IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type) // this is for HW images, don't return IMAGE_R8G8B8
+IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type) // this is for HW images, don't return IMAGE_R8G8B8 / IMAGE_R8G8B8_SRGB
 {
    switch(type)
    {
@@ -300,6 +302,7 @@ IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type) // this is for HW images, don't retu
          return IMAGE_NONE;
 
       case IMAGE_B8G8R8A8_SRGB:
+      case IMAGE_B8G8R8_SRGB  :
       case IMAGE_R8G8B8_SRGB  :
       case IMAGE_L8_SRGB      :
       case IMAGE_L8A8_SRGB    :
@@ -328,6 +331,7 @@ IMAGE_TYPE ImageTypeIncludeSRGB(IMAGE_TYPE type)
    {
       default            : return type;
       case IMAGE_B8G8R8A8: return IMAGE_B8G8R8A8_SRGB;
+      case IMAGE_B8G8R8  : return IMAGE_B8G8R8_SRGB;
       case IMAGE_R8G8B8A8: return IMAGE_R8G8B8A8_SRGB;
       case IMAGE_R8G8B8  : return IMAGE_R8G8B8_SRGB;
       case IMAGE_L8      : return IMAGE_L8_SRGB;
@@ -351,6 +355,7 @@ IMAGE_TYPE ImageTypeExcludeSRGB(IMAGE_TYPE type)
    {
       default                 : return type;
       case IMAGE_B8G8R8A8_SRGB: return IMAGE_B8G8R8A8;
+      case IMAGE_B8G8R8_SRGB  : return IMAGE_B8G8R8;
       case IMAGE_R8G8B8A8_SRGB: return IMAGE_R8G8B8A8;
       case IMAGE_R8G8B8_SRGB  : return IMAGE_R8G8B8;
       case IMAGE_L8_SRGB      : return IMAGE_L8;
@@ -374,6 +379,7 @@ IMAGE_TYPE ImageTypeToggleSRGB(IMAGE_TYPE type)
    {
       default                 : return type;
       case IMAGE_B8G8R8A8_SRGB: return IMAGE_B8G8R8A8;   case IMAGE_B8G8R8A8: return IMAGE_B8G8R8A8_SRGB;
+      case IMAGE_B8G8R8_SRGB  : return IMAGE_B8G8R8  ;   case IMAGE_B8G8R8  : return IMAGE_B8G8R8_SRGB;
       case IMAGE_R8G8B8A8_SRGB: return IMAGE_R8G8B8A8;   case IMAGE_R8G8B8A8: return IMAGE_R8G8B8A8_SRGB;
       case IMAGE_R8G8B8_SRGB  : return IMAGE_R8G8B8  ;   case IMAGE_R8G8B8  : return IMAGE_R8G8B8_SRGB;
       case IMAGE_L8_SRGB      : return IMAGE_L8      ;   case IMAGE_L8      : return IMAGE_L8_SRGB;
@@ -620,8 +626,9 @@ UInt SourceGLFormat(IMAGE_TYPE type)
       case IMAGE_R8G8B8A8_SRGB: // must be GL_RGBA and NOT GL_SRGB_ALPHA
       case IMAGE_R10G10B10A2  : return GL_RGBA;
 
-      case IMAGE_B5G6R5  :
-      case IMAGE_B8G8R8  : return GL_BGR;
+      case IMAGE_B5G6R5:
+      case IMAGE_B8G8R8_SRGB: // must be GL_BGR and NOT GL_SBGR
+      case IMAGE_B8G8R8: return GL_BGR;
 
       case IMAGE_B4G4R4A4:
       case IMAGE_B5G5R5A1:
@@ -682,9 +689,10 @@ UInt SourceGLType(IMAGE_TYPE type)
       case IMAGE_R8G8    :
       case IMAGE_R8      :
       case IMAGE_A8      :
-      case IMAGE_L8      :
-      case IMAGE_L8A8    :
-      case IMAGE_B8G8R8  : return GL_UNSIGNED_BYTE;
+      case IMAGE_L8      : case IMAGE_L8_SRGB      :
+      case IMAGE_L8A8    : case IMAGE_L8A8_SRGB    :
+      case IMAGE_B8G8R8  : case IMAGE_B8G8R8_SRGB  :
+         return GL_UNSIGNED_BYTE;
 
       default: return 0;
    }

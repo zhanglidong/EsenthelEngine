@@ -52,7 +52,7 @@ struct DDS_PIXELFORMAT
       if(RGBBitCount==16 && RBitMask==0x00000F00 && GBitMask==0x000000F0 && BBitMask==0x0000000F && ABitMask==0x0000F000)return IMAGE_B4G4R4A4;
       if(RGBBitCount==16 && RBitMask==0x00007C00 && GBitMask==0x000003E0 && BBitMask==0x0000001F && ABitMask==0x00008000)return IMAGE_B5G5R5A1;
       if(RGBBitCount==16 && RBitMask==0x0000F800 && GBitMask==0x000007E0 && BBitMask==0x0000001F && ABitMask==0x00000000)return IMAGE_B5G6R5;
-      if(RGBBitCount==24 && RBitMask==0x00FF0000 && GBitMask==0x0000FF00 && BBitMask==0x000000FF && ABitMask==0x00000000)return IMAGE_B8G8R8;
+      if(RGBBitCount==24 && RBitMask==0x00FF0000 && GBitMask==0x0000FF00 && BBitMask==0x000000FF && ABitMask==0x00000000)return IMAGE_B8G8R8_SRGB;
       if(RGBBitCount==32 && RBitMask==0x000003FF && GBitMask==0x000FFC00 && BBitMask==0x3FF00000 && ABitMask==0xC0000000)return IMAGE_R10G10B10A2;
       return IMAGE_NONE;
    }

@@ -100,6 +100,7 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
    IMAGE_B8G8R8A8     , // 32-bit (R,G,B,A), Soft, DX10+
    IMAGE_B8G8R8A8_SRGB,
    IMAGE_B8G8R8       ,
+   IMAGE_B8G8R8_SRGB  ,
 
    IMAGE_B5G6R5  ,
    IMAGE_B5G5R5A1,

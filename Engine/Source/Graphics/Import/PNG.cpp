@@ -98,7 +98,7 @@ Bool Image::ExportPNG(File &f, Flt compression_level)C
       case IMAGE_F16:
       case IMAGE_F32: if(!src->copyTry(temp, -1, -1, 1, IMAGE_I16, IMAGE_SOFT, 1))return false; src=&temp; bit_depth=16; color_type=PNG_COLOR_TYPE_GRAY; break;
 
-      default: if(!src->copyTry(temp, -1, -1, 1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1))return false; src=&temp; bit_depth=8; color_type=PNG_COLOR_TYPE_RGB_ALPHA; break;
+      default: if(!src->copyTry(temp, -1, -1, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))return false; src=&temp; bit_depth=8; color_type=PNG_COLOR_TYPE_RGB_ALPHA; break;
    }
 
    if(src->lockRead())

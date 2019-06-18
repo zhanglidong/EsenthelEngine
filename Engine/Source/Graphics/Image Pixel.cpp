@@ -363,7 +363,7 @@ static void SetPixelF(Byte *data, IMAGE_TYPE type, Flt pixel)
       case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB:
                                 {VecB4 &v=*(VecB4*)data; v.x=v.y=v.z=FltToByte(pixel); v.w=255;} break;
 
-      case IMAGE_B8G8R8:
+      case IMAGE_B8G8R8: case IMAGE_B8G8R8_SRGB:
       case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB:
                                 {VecB  &v=*(VecB *)data; v.x=v.y=v.z=FltToByte(pixel);} break;
 
@@ -440,7 +440,7 @@ static inline Flt GetPixelF(C Byte *data, C Image &image, Bool _2d, Int x, Int y
       case IMAGE_F16_3: return *(Half*)data;
       case IMAGE_F16_4: return *(Half*)data;
 
-      case IMAGE_B8G8R8  :
+      case IMAGE_B8G8R8  : case IMAGE_B8G8R8_SRGB  :
       case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB:
          return ((VecB4*)data)->z/Flt(0xFF);
 
@@ -531,7 +531,7 @@ static inline Color GetColor(C Byte *data, C Image &image, Bool _2d, Int x, Int 
       case IMAGE_I16     :                           {  Byte   b=data[1];       return Color(    b,   b,   b,   255);}
       case IMAGE_I24     :                           {  Byte   b=data[2];       return Color(    b,   b,   b,   255);}
       case IMAGE_I32     :                           {  Byte   b=data[3];       return Color(    b,   b,   b,   255);}
-      case IMAGE_B8G8R8  :                           {C VecB  &v=*(VecB *)data; return Color(  v.z, v.y, v.x,   255);}
+      case IMAGE_B8G8R8  : case IMAGE_B8G8R8_SRGB:   {C VecB  &v=*(VecB *)data; return Color(  v.z, v.y, v.x,   255);}
 
       case IMAGE_B4G4R4A4   : {U16  d=*(U16 *)data; return Color(U4ToByte((d>> 8)&0x0F), U4ToByte((d>> 4)&0x0F), U4ToByte((d    )&0x0F), U4ToByte(d>>12));}
       case IMAGE_B5G5R5A1   : {U16  d=*(U16 *)data; return Color(U5ToByte((d>>10)&0x1F), U5ToByte((d>> 5)&0x1F), U5ToByte((d    )&0x1F), U1ToByte(d>>15));}
@@ -584,7 +584,7 @@ static void SetColor(Byte *data, IMAGE_TYPE type, C Color &color)
    switch(type)
    {
       case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: ((VecB4*)data)->set(color.b, color.g, color.r, color.a); break;
-      case IMAGE_B8G8R8  :                           ((VecB *)data)->set(color.b, color.g, color.r); break;
+      case IMAGE_B8G8R8  : case IMAGE_B8G8R8_SRGB  : ((VecB *)data)->set(color.b, color.g, color.r); break;
       case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: *(Color*)data=color; break;
       case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB  : ((VecB *)data)->set(color.r, color.g, color.b); break;
       case IMAGE_R8G8    :                           ((VecB2*)data)->set(color.r, color.g); break;
@@ -624,6 +624,7 @@ static void SetColor(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Color &c
    if(type==hw_type)normal: return SetColor(data, hw_type, color); // first check if types are the same, the most common case
    Color c; switch(type) // however if we want 'type' but we've got 'hw_type' then we have to adjust the color we're going to set. This will prevent setting different R G B values for type=IMAGE_L8 when hw_type=IMAGE_R8G8B8A8
    {
+      case IMAGE_B8G8R8: case IMAGE_B8G8R8_SRGB:
       case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB:
       case IMAGE_F16_3 :
       case IMAGE_F32_3 : case IMAGE_F32_3_SRGB:
@@ -691,7 +692,7 @@ static void _SetColorF(Byte *data, IMAGE_TYPE type, C Vec4 &color)
       case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB  : ((VecB *)data)->set(FltToByte(color.x), FltToByte(color.y), FltToByte(color.z)                    ); break;
       case IMAGE_R8G8    :                           ((VecB2*)data)->set(FltToByte(color.x), FltToByte(color.y)                                        ); break;
       case IMAGE_R8      :                           *(Byte *)data  =    FltToByte(color.x)                                                             ; break;
-      case IMAGE_B8G8R8  :                           ((VecB *)data)->set(FltToByte(color.z), FltToByte(color.y), FltToByte(color.x)                    ); break;
+      case IMAGE_B8G8R8  : case IMAGE_B8G8R8_SRGB  : ((VecB *)data)->set(FltToByte(color.z), FltToByte(color.y), FltToByte(color.x)                    ); break;
 
       case IMAGE_R8_SIGN      : (*(Byte *)data)=     SFltToSByte(color.x)                                                                   ; break;
       case IMAGE_R8G8_SIGN    : ( (VecB2*)data)->set(SFltToSByte(color.x), SFltToSByte(color.y)                                            ); break;
@@ -705,6 +706,7 @@ static void SetColorF(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &c
    if(type==hw_type)normal: return _SetColorF(data, hw_type, color); // first check if types are the same, the most common case
    Vec4 c; switch(type) // however if we want 'type' but we've got 'hw_type' then we have to adjust the color we're going to set. This will prevent setting different R G B values for type=IMAGE_L8 when hw_type=IMAGE_R8G8B8A8
    {
+      case IMAGE_B8G8R8: case IMAGE_B8G8R8_SRGB:
       case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB:
       case IMAGE_F16_3 :
       case IMAGE_F32_3 : case IMAGE_F32_3_SRGB:
@@ -782,6 +784,7 @@ static void _SetColorL(Byte *data, IMAGE_TYPE type, C Vec4 &color)
 
       case IMAGE_B8G8R8A8_SRGB: ((VecB4*)data)->set(LinearToByteSRGB(color.z), LinearToByteSRGB(color.y), LinearToByteSRGB(color.x), FltToByte(color.w)); break;
       case IMAGE_R8G8B8A8_SRGB: ((VecB4*)data)->set(LinearToByteSRGB(color.x), LinearToByteSRGB(color.y), LinearToByteSRGB(color.z), FltToByte(color.w)); break;
+      case IMAGE_B8G8R8_SRGB  : ((VecB *)data)->set(LinearToByteSRGB(color.z), LinearToByteSRGB(color.y), LinearToByteSRGB(color.x)                    ); break;
       case IMAGE_R8G8B8_SRGB  : ((VecB *)data)->set(LinearToByteSRGB(color.x), LinearToByteSRGB(color.y), LinearToByteSRGB(color.z)                    ); break;
 
       case IMAGE_R8_SIGN      : (*(Byte *)data)=     SFltToSByte(color.x)                                                                   ; break;
@@ -796,6 +799,7 @@ static void SetColorL(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &c
    if(type==hw_type)normal: return _SetColorL(data, hw_type, color); // first check if types are the same, the most common case
    Vec4 c; switch(type) // however if we want 'type' but we've got 'hw_type' then we have to adjust the color we're going to set. This will prevent setting different R G B values for type=IMAGE_L8 when hw_type=IMAGE_R8G8B8A8
    {
+      case IMAGE_B8G8R8: case IMAGE_B8G8R8_SRGB:
       case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB:
       case IMAGE_F16_3 :
       case IMAGE_F32_3 : case IMAGE_F32_3_SRGB:
@@ -873,6 +877,7 @@ static void _SetColorS(Byte *data, IMAGE_TYPE type, C Vec4 &color)
 
       case IMAGE_B8G8R8A8_SRGB: ((VecB4*)data)->set(FltToByte(color.z), FltToByte(color.y), FltToByte(color.x), FltToByte(color.w)); break;
       case IMAGE_R8G8B8A8_SRGB: ((VecB4*)data)->set(FltToByte(color.x), FltToByte(color.y), FltToByte(color.z), FltToByte(color.w)); break;
+      case IMAGE_B8G8R8_SRGB  : ((VecB *)data)->set(FltToByte(color.z), FltToByte(color.y), FltToByte(color.x)                    ); break;
       case IMAGE_R8G8B8_SRGB  : ((VecB *)data)->set(FltToByte(color.x), FltToByte(color.y), FltToByte(color.z)                    ); break;
 
     /*case IMAGE_R8_SIGN      : (*(Byte *)data)=     SFltToSByte(SRGBToLinear(color.x))                                                                                               ; break; TODO:
@@ -887,6 +892,7 @@ static void SetColorS(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &c
    if(type==hw_type)normal: return _SetColorS(data, hw_type, color); // first check if types are the same, the most common case
    Vec4 c; switch(type) // however if we want 'type' but we've got 'hw_type' then we have to adjust the color we're going to set. This will prevent setting different R G B values for type=IMAGE_L8 when hw_type=IMAGE_R8G8B8A8
    {
+      case IMAGE_B8G8R8: case IMAGE_B8G8R8_SRGB:
       case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB:
       case IMAGE_F16_3 :
       case IMAGE_F32_3 : case IMAGE_F32_3_SRGB:
@@ -1029,7 +1035,7 @@ static inline Vec4 GetColorF(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
 
       case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.z), ByteToFlt(c.y), ByteToFlt(c.x), ByteToFlt(c.w));}
       case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z), ByteToFlt(c.w));}
-      case IMAGE_B8G8R8  :                           {VecB  &c=*(VecB *)data; return Vec4(ByteToFlt(c.z), ByteToFlt(c.y), ByteToFlt(c.x),              1);}
+      case IMAGE_B8G8R8  : case IMAGE_B8G8R8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(ByteToFlt(c.z), ByteToFlt(c.y), ByteToFlt(c.x),              1);}
       case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z),              1);}
       case IMAGE_R8G8    :                           {VecB2 &c=*(VecB2*)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y),              0,              1);}
       case IMAGE_R8      :                           {Byte   c=*(Byte *)data; return Vec4(ByteToFlt(c  ),              0,              0,              1);}
@@ -1125,6 +1131,7 @@ Vec4 ImageColorL(CPtr data, IMAGE_TYPE hw_type)
 
       case IMAGE_B8G8R8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteSRGBToLinear(c.z), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.x), ByteToFlt(c.w));}
       case IMAGE_R8G8B8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteSRGBToLinear(c.x), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.z), ByteToFlt(c.w));}
+      case IMAGE_B8G8R8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(ByteSRGBToLinear(c.z), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.x),              1);}
       case IMAGE_R8G8B8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(ByteSRGBToLinear(c.x), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.z),              1);}
       
       case IMAGE_R8_SIGN      : {Byte  &c=*(Byte *)data; return Vec4(SByteToSFlt(c  ),                0,                0,                1);}
@@ -1193,6 +1200,7 @@ static inline Vec4 GetColorL(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
 
       case IMAGE_B8G8R8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteSRGBToLinear(c.z), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.x), ByteToFlt(c.w));}
       case IMAGE_R8G8B8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteSRGBToLinear(c.x), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.z), ByteToFlt(c.w));}
+      case IMAGE_B8G8R8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(ByteSRGBToLinear(c.z), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.x),              1);}
       case IMAGE_R8G8B8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(ByteSRGBToLinear(c.x), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.z),              1);}
 
       case IMAGE_R8_SIGN      : {Byte  &c=*(Byte *)data; return Vec4(SByteToSFlt(c  ),                0,                0,                1);}
@@ -1276,6 +1284,7 @@ static inline Vec4 GetColorS(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
 
       case IMAGE_B8G8R8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.z), ByteToFlt(c.y), ByteToFlt(c.x), ByteToFlt(c.w));}
       case IMAGE_R8G8B8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z), ByteToFlt(c.w));}
+      case IMAGE_B8G8R8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(ByteToFlt(c.z), ByteToFlt(c.y), ByteToFlt(c.x),              1);}
       case IMAGE_R8G8B8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z),              1);}
 
     /*case IMAGE_R8_SIGN      : {Byte  &c=*(Byte *)data; return Vec4(LinearToSRGB(SByteToSFlt(c  )),                              0,                              0,                1);} TODO:

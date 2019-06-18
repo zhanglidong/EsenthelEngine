@@ -105,7 +105,7 @@ Bool Image::ExportBMPRaw(File &f, Byte byte_pp, Bool ico)C // assumes that Image
 
          case 3:
          {
-            if(hwType()==IMAGE_B8G8R8)f.put(data()+y*pitch(), T.w()*3);else
+            if(hwType()==IMAGE_B8G8R8 || hwType()==IMAGE_B8G8R8_SRGB)f.put(data()+y*pitch(), T.w()*3);else
             FREPD(x, T.w()){Color c=color(x, y); Byte pixel[3]={c.b, c.g, c.r}; f<<pixel;}
          }break;
 
@@ -124,7 +124,7 @@ Bool Image::ExportBMP(File &f)C
 {
    Image  temp;
  C Image *src=this;
-   IMAGE_TYPE type=(ImageTI[T.type()].a ? IMAGE_B8G8R8A8_SRGB : IMAGE_B8G8R8/*_SRGB*/); // BMP uses BGRA
+   IMAGE_TYPE type=(ImageTI[T.type()].a ? IMAGE_B8G8R8A8_SRGB : IMAGE_B8G8R8_SRGB); // BMP uses BGRA
    if(src->cube      ())if(temp.fromCube(*src ,             type               ))src=&temp;else return false;
    if(src->compressed())if(src->copyTry ( temp, -1, -1, -1, type, IMAGE_SOFT, 1))src=&temp;else return false;
 

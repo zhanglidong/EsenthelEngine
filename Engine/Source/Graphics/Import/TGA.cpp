@@ -54,7 +54,7 @@ struct TGA
 
 	      case 24: switch(image.hwType())
 	      {
-            case IMAGE_B8G8R8:                         {Byte *data=image.data() + x_offset*3 + y*image.pitch(); f.get(data, width*3);                                          } break;
+            case IMAGE_B8G8R8: case IMAGE_B8G8R8_SRGB: {Byte *data=image.data() + x_offset*3 + y*image.pitch(); f.get(data, width*3);                                          } break;
 	         case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB: {Byte *data=image.data() + x_offset*3 + y*image.pitch(); f.get(data, width*3); REP(width)Swap(data[i*3+0], data[i*3+2]);} break; // swap Red with Blue
 
 	         case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB:
@@ -224,8 +224,8 @@ Bool Image::ExportTGA(File &f)C
 {
    Image  temp;
  C Image *src=this;
-   if(src->cube      ())if(temp.fromCube(*src ,             IMAGE_B8G8R8A8               ))src=&temp;else return false;
-   if(src->compressed())if(src->copyTry ( temp, -1, -1, -1, IMAGE_B8G8R8A8, IMAGE_SOFT, 1))src=&temp;else return false; // TGA uses BGRA
+   if(src->cube      ())if(temp.fromCube(*src ,             IMAGE_B8G8R8A8_SRGB               ))src=&temp;else return false;
+   if(src->compressed())if(src->copyTry ( temp, -1, -1, -1, IMAGE_B8G8R8A8_SRGB, IMAGE_SOFT, 1))src=&temp;else return false; // TGA uses BGRA
 
    Bool ok=false;
    if(src->lockRead())
@@ -250,7 +250,7 @@ Bool Image::ExportTGA(File &f)C
 
          case 3:
          {
-	         if(src->hwType()==IMAGE_B8G8R8)f.put(src->data() + y*src->pitch(), src->w()*3);else
+	         if(src->hwType()==IMAGE_B8G8R8 || src->hwType()==IMAGE_B8G8R8_SRGB)f.put(src->data() + y*src->pitch(), src->w()*3);else
 	         FREPD(x, src->w()){Color c=src->color(x, y); Byte pixel[3]={c.b, c.g, c.r}; f<<pixel;}
          }break;
 
