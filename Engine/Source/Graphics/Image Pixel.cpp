@@ -4284,8 +4284,6 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
          && (Equal(sharp_smooth, 1) || filter==FILTER_NONE)
          )
          {
-            if(filter!=FILTER_NONE) // this is not needed for FILTER_NONE because we just copy without blending based on 'ignore_gamma'
-               high_prec|=src_srgb; // when down-sampling, always use high precision if source is sRGB (not linear, because when down-sampling we always convert source to linear gamma, to preserve brightness)
             if(T.ld()<=1) // 2D
             {
                switch(filter)
@@ -4298,56 +4296,60 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                                       REPD(x, dest.lw())dest.color (x, y, color (x*2, yc));
                   }goto finish;
 
-                  case FILTER_LINEAR: REPD(y, dest.lh())
+                  case FILTER_LINEAR:
                   {
-                     Int yc[2]; yc[0]=y*2; yc[1]=(clamp ? Min(yc[0]+1, lh()-1) : (yc[0]+1)%lh()); // yc[0] is always OK
-                     REPD(x, dest.lw())
+                     high_prec|=src_srgb; // when down-sampling, use high precision if source is sRGB (not linear, because we convert source to linear gamma, to preserve brightness)
+                     REPD(y, dest.lh())
                      {
-                        Int xc[2]; xc[0]=x*2; xc[1]=(clamp ? Min(xc[0]+1, lw()-1) : (xc[0]+1)%lw()); // xc[0] is always OK
-                        if(high_prec)
+                        Int yc[2]; yc[0]=y*2; yc[1]=(clamp ? Min(yc[0]+1, lh()-1) : (yc[0]+1)%lh()); // yc[0] is always OK
+                        REPD(x, dest.lw())
                         {
-                           Vec4 col, c[2][2]; gatherL(&c[0][0], xc, Elms(xc), yc, Elms(yc)); // [y][x]
-                           if(!alpha_weight)
+                           Int xc[2]; xc[0]=x*2; xc[1]=(clamp ? Min(xc[0]+1, lw()-1) : (xc[0]+1)%lw()); // xc[0] is always OK
+                           if(high_prec)
                            {
-                              col.w=Avg(c[0][0].w, c[0][1].w, c[1][0].w, c[1][1].w);
-                           linear_rgb_f:
-                              col.x=Avg(c[0][0].x, c[0][1].x, c[1][0].x, c[1][1].x);
-                              col.y=Avg(c[0][0].y, c[0][1].y, c[1][0].y, c[1][1].y);
-                              col.z=Avg(c[0][0].z, c[0][1].z, c[1][0].z, c[1][1].z);
+                              Vec4 col, c[2][2]; gatherL(&c[0][0], xc, Elms(xc), yc, Elms(yc)); // [y][x]
+                              if(!alpha_weight)
+                              {
+                                 col.w=Avg(c[0][0].w, c[0][1].w, c[1][0].w, c[1][1].w);
+                              linear_rgb_f:
+                                 col.x=Avg(c[0][0].x, c[0][1].x, c[1][0].x, c[1][1].x);
+                                 col.y=Avg(c[0][0].y, c[0][1].y, c[1][0].y, c[1][1].y);
+                                 col.z=Avg(c[0][0].z, c[0][1].z, c[1][0].z, c[1][1].z);
+                              }else
+                              {
+                                 Flt a=c[0][0].w+c[0][1].w+c[1][0].w+c[1][1].w;
+                                 if(!a){col.w=0; goto linear_rgb_f;}
+                                 col.w=a/4;
+                                 col.x=(c[0][0].x*c[0][0].w + c[0][1].x*c[0][1].w + c[1][0].x*c[1][0].w + c[1][1].x*c[1][1].w)/a;
+                                 col.y=(c[0][0].y*c[0][0].w + c[0][1].y*c[0][1].w + c[1][0].y*c[1][0].w + c[1][1].y*c[1][1].w)/a;
+                                 col.z=(c[0][0].z*c[0][0].w + c[0][1].z*c[0][1].w + c[1][0].z*c[1][0].w + c[1][1].z*c[1][1].w)/a;
+                              }
+                              if(ignore_gamma_ds) // we don't want to convert gamma
+                              {
+                                 if(src_srgb)col.xyz=LinearToSRGB(col.xyz); // source is sRGB however we have linear color, so convert it back to sRGB
+                                    dest.colorF(x, y, col);
+                              }else dest.colorL(x, y, col); // write linear color, 'colorL' will perform gamma conversion
                            }else
                            {
-                              Flt a=c[0][0].w+c[0][1].w+c[1][0].w+c[1][1].w;
-                              if(!a){col.w=0; goto linear_rgb_f;}
-                              col.w=a/4;
-                              col.x=(c[0][0].x*c[0][0].w + c[0][1].x*c[0][1].w + c[1][0].x*c[1][0].w + c[1][1].x*c[1][1].w)/a;
-                              col.y=(c[0][0].y*c[0][0].w + c[0][1].y*c[0][1].w + c[1][0].y*c[1][0].w + c[1][1].y*c[1][1].w)/a;
-                              col.z=(c[0][0].z*c[0][0].w + c[0][1].z*c[0][1].w + c[1][0].z*c[1][0].w + c[1][1].z*c[1][1].w)/a;
+                              Color col, c[2][2]; gather(&c[0][0], xc, Elms(xc), yc, Elms(yc)); // [y][x]
+                              if(!alpha_weight)
+                              {
+                                 col.a=((c[0][0].a+c[0][1].a+c[1][0].a+c[1][1].a+2)>>2);
+                              linear_rgb:
+                                 col.r=((c[0][0].r+c[0][1].r+c[1][0].r+c[1][1].r+2)>>2);
+                                 col.g=((c[0][0].g+c[0][1].g+c[1][0].g+c[1][1].g+2)>>2);
+                                 col.b=((c[0][0].b+c[0][1].b+c[1][0].b+c[1][1].b+2)>>2);
+                              }else
+                              {
+                                 UInt a=c[0][0].a+c[0][1].a+c[1][0].a+c[1][1].a;
+                                 if( !a){col.a=0; goto linear_rgb;}
+                                 col.a=((a+2)>>2); UInt a_2=a>>1;
+                                 col.r=(c[0][0].r*c[0][0].a + c[0][1].r*c[0][1].a + c[1][0].r*c[1][0].a + c[1][1].r*c[1][1].a + a_2)/a;
+                                 col.g=(c[0][0].g*c[0][0].a + c[0][1].g*c[0][1].a + c[1][0].g*c[1][0].a + c[1][1].g*c[1][1].a + a_2)/a;
+                                 col.b=(c[0][0].b*c[0][0].a + c[0][1].b*c[0][1].a + c[1][0].b*c[1][0].a + c[1][1].b*c[1][1].a + a_2)/a;
+                              }
+                              dest.color(x, y, col);
                            }
-                           if(ignore_gamma_ds) // we don't want to convert gamma
-                           {
-                              if(src_srgb)col.xyz=LinearToSRGB(col.xyz); // source is sRGB however we have linear color, so convert it back to sRGB
-                                 dest.colorF(x, y, col);
-                           }else dest.colorL(x, y, col); // write linear color, 'colorL' will perform gamma conversion
-                        }else
-                        {
-                           Color col, c[2][2]; gather(&c[0][0], xc, Elms(xc), yc, Elms(yc)); // [y][x]
-                           if(!alpha_weight)
-                           {
-                              col.a=((c[0][0].a+c[0][1].a+c[1][0].a+c[1][1].a+2)>>2);
-                           linear_rgb:
-                              col.r=((c[0][0].r+c[0][1].r+c[1][0].r+c[1][1].r+2)>>2);
-                              col.g=((c[0][0].g+c[0][1].g+c[1][0].g+c[1][1].g+2)>>2);
-                              col.b=((c[0][0].b+c[0][1].b+c[1][0].b+c[1][1].b+2)>>2);
-                           }else
-                           {
-                              UInt a=c[0][0].a+c[0][1].a+c[1][0].a+c[1][1].a;
-                              if( !a){col.a=0; goto linear_rgb;}
-                              col.a=((a+2)>>2); UInt a_2=a>>1;
-                              col.r=(c[0][0].r*c[0][0].a + c[0][1].r*c[0][1].a + c[1][0].r*c[1][0].a + c[1][1].r*c[1][1].a + a_2)/a;
-                              col.g=(c[0][0].g*c[0][0].a + c[0][1].g*c[0][1].a + c[1][0].g*c[1][0].a + c[1][1].g*c[1][1].a + a_2)/a;
-                              col.b=(c[0][0].b*c[0][0].a + c[0][1].b*c[0][1].a + c[1][0].b*c[1][0].a + c[1][1].b*c[1][1].a + a_2)/a;
-                           }
-                           dest.color(x, y, col);
                         }
                      }
                   }goto finish;
@@ -4532,6 +4534,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
 
                   case FILTER_LINEAR:
                   {
+                     high_prec|=src_srgb; // when down-sampling, use high precision if source is sRGB (not linear, because we convert source to linear gamma, to preserve brightness)
                      if(!high_prec)
                      {
                         REPD(z, dest.ld())
