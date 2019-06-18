@@ -1116,10 +1116,6 @@ Vec4 ImageColorL(CPtr data, IMAGE_TYPE hw_type)
       case IMAGE_L8A8     : {VecB2 &c=*(VecB2*)data; Flt l=    ByteToFlt   (c.x); return Vec4(l, l, l, ByteToFlt(c.y));}
       case IMAGE_L8A8_SRGB: {VecB2 &c=*(VecB2*)data; Flt l=ByteSRGBToLinear(c.x); return Vec4(l, l, l, ByteToFlt(c.y));}
 
-      case IMAGE_B8G8R8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteSRGBToLinear(c.z), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.x), ByteToFlt(c.w));}
-      case IMAGE_R8G8B8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteSRGBToLinear(c.x), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.z), ByteToFlt(c.w));}
-      case IMAGE_R8G8B8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(ByteSRGBToLinear(c.x), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.z),              1);}
-      
       case IMAGE_B8G8R8A8: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.z), ByteToFlt(c.y), ByteToFlt(c.x), ByteToFlt(c.w));}
       case IMAGE_R8G8B8A8: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z), ByteToFlt(c.w));}
       case IMAGE_B8G8R8  : {VecB  &c=*(VecB *)data; return Vec4(ByteToFlt(c.z), ByteToFlt(c.y), ByteToFlt(c.x),              1);}
@@ -1127,6 +1123,10 @@ Vec4 ImageColorL(CPtr data, IMAGE_TYPE hw_type)
       case IMAGE_R8G8    : {VecB2 &c=*(VecB2*)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y),              0,              1);}
       case IMAGE_R8      : {Byte   c=*(Byte *)data; return Vec4(ByteToFlt(c  ),              0,              0,              1);}
 
+      case IMAGE_B8G8R8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteSRGBToLinear(c.z), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.x), ByteToFlt(c.w));}
+      case IMAGE_R8G8B8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteSRGBToLinear(c.x), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.z), ByteToFlt(c.w));}
+      case IMAGE_R8G8B8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(ByteSRGBToLinear(c.x), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.z),              1);}
+      
       case IMAGE_R8_SIGN      : {Byte  &c=*(Byte *)data; return Vec4(SByteToSFlt(c  ),                0,                0,                1);}
       case IMAGE_R8G8_SIGN    : {VecB2 &c=*(VecB2*)data; return Vec4(SByteToSFlt(c.x), SByteToSFlt(c.y),                0,                1);}
       case IMAGE_R8G8B8A8_SIGN: {VecB4 &c=*(VecB4*)data; return Vec4(SByteToSFlt(c.x), SByteToSFlt(c.y), SByteToSFlt(c.z), SByteToSFlt(c.w));}
@@ -1184,16 +1184,16 @@ static inline Vec4 GetColorL(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
       case IMAGE_L8A8     : {VecB2 &c=*(VecB2*)data; Flt l=    ByteToFlt   (c.x); return Vec4(l, l, l, ByteToFlt(c.y));}
       case IMAGE_L8A8_SRGB: {VecB2 &c=*(VecB2*)data; Flt l=ByteSRGBToLinear(c.x); return Vec4(l, l, l, ByteToFlt(c.y));}
 
-      case IMAGE_B8G8R8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteSRGBToLinear(c.z), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.x), ByteToFlt(c.w));}
-      case IMAGE_R8G8B8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteSRGBToLinear(c.x), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.z), ByteToFlt(c.w));}
-      case IMAGE_R8G8B8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(ByteSRGBToLinear(c.x), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.z),              1);}
-
       case IMAGE_B8G8R8A8: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.z), ByteToFlt(c.y), ByteToFlt(c.x), ByteToFlt(c.w));}
       case IMAGE_R8G8B8A8: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z), ByteToFlt(c.w));}
       case IMAGE_B8G8R8  : {VecB  &c=*(VecB *)data; return Vec4(ByteToFlt(c.z), ByteToFlt(c.y), ByteToFlt(c.x),              1);}
       case IMAGE_R8G8B8  : {VecB  &c=*(VecB *)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z),              1);}
       case IMAGE_R8G8    : {VecB2 &c=*(VecB2*)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y),              0,              1);}
       case IMAGE_R8      : {Byte   c=*(Byte *)data; return Vec4(ByteToFlt(c  ),              0,              0,              1);}
+
+      case IMAGE_B8G8R8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteSRGBToLinear(c.z), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.x), ByteToFlt(c.w));}
+      case IMAGE_R8G8B8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteSRGBToLinear(c.x), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.z), ByteToFlt(c.w));}
+      case IMAGE_R8G8B8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(ByteSRGBToLinear(c.x), ByteSRGBToLinear(c.y), ByteSRGBToLinear(c.z),              1);}
 
       case IMAGE_R8_SIGN      : {Byte  &c=*(Byte *)data; return Vec4(SByteToSFlt(c  ),                0,                0,                1);}
       case IMAGE_R8G8_SIGN    : {VecB2 &c=*(VecB2*)data; return Vec4(SByteToSFlt(c.x), SByteToSFlt(c.y),                0,                1);}
@@ -1267,16 +1267,16 @@ static inline Vec4 GetColorS(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
       case IMAGE_L8A8     : {VecB2 &c=*(VecB2*)data; Flt l=LinearByteToSRGB(c.x); return Vec4(l, l, l, ByteToFlt(c.y));}
       case IMAGE_L8A8_SRGB: {VecB2 &c=*(VecB2*)data; Flt l=      ByteToFlt (c.x); return Vec4(l, l, l, ByteToFlt(c.y));}
 
-      case IMAGE_B8G8R8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.z), ByteToFlt(c.y), ByteToFlt(c.x), ByteToFlt(c.w));}
-      case IMAGE_R8G8B8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z), ByteToFlt(c.w));}
-      case IMAGE_R8G8B8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z),              1);}
-
       case IMAGE_B8G8R8A8: {VecB4 &c=*(VecB4*)data; return Vec4(LinearByteToSRGB(c.z), LinearByteToSRGB(c.y), LinearByteToSRGB(c.x), ByteToFlt(c.w));}
       case IMAGE_R8G8B8A8: {VecB4 &c=*(VecB4*)data; return Vec4(LinearByteToSRGB(c.x), LinearByteToSRGB(c.y), LinearByteToSRGB(c.z), ByteToFlt(c.w));}
       case IMAGE_B8G8R8  : {VecB  &c=*(VecB *)data; return Vec4(LinearByteToSRGB(c.z), LinearByteToSRGB(c.y), LinearByteToSRGB(c.x),              1);}
       case IMAGE_R8G8B8  : {VecB  &c=*(VecB *)data; return Vec4(LinearByteToSRGB(c.x), LinearByteToSRGB(c.y), LinearByteToSRGB(c.z),              1);}
       case IMAGE_R8G8    : {VecB2 &c=*(VecB2*)data; return Vec4(LinearByteToSRGB(c.x), LinearByteToSRGB(c.y),                     0,              1);}
       case IMAGE_R8      : {Byte   c=*(Byte *)data; return Vec4(LinearByteToSRGB(c  ),                     0,                     0,              1);}
+
+      case IMAGE_B8G8R8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.z), ByteToFlt(c.y), ByteToFlt(c.x), ByteToFlt(c.w));}
+      case IMAGE_R8G8B8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z), ByteToFlt(c.w));}
+      case IMAGE_R8G8B8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z),              1);}
 
     /*case IMAGE_R8_SIGN      : {Byte  &c=*(Byte *)data; return Vec4(LinearToSRGB(SByteToSFlt(c  )),                              0,                              0,                1);} TODO:
       case IMAGE_R8G8_SIGN    : {VecB2 &c=*(VecB2*)data; return Vec4(LinearToSRGB(SByteToSFlt(c.x)), LinearToSRGB(SByteToSFlt(c.y)),                              0,                1);}
