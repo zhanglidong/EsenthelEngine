@@ -349,10 +349,10 @@ static void SetPixelF(Byte *data, IMAGE_TYPE type, Flt pixel)
 {
    switch(type)
    {
-      case IMAGE_F32  : (*(Flt *)data)=pixel; break;
-      case IMAGE_F32_2: (*(Vec2*)data)=pixel; break;
-      case IMAGE_F32_3: (*(Vec *)data)=pixel; break;
-      case IMAGE_F32_4: (*(Vec4*)data)=pixel; break;
+      case IMAGE_F32  :                        (*(Flt *)data)=pixel; break;
+      case IMAGE_F32_2:                        (*(Vec2*)data)=pixel; break;
+      case IMAGE_F32_3: case IMAGE_F32_3_SRGB: (*(Vec *)data)=pixel; break;
+      case IMAGE_F32_4: case IMAGE_F32_4_SRGB: (*(Vec4*)data)=pixel; break;
 
       case IMAGE_F16  : {U16 *d=(U16*)data; d[0]=               Half(pixel).data;} break;
       case IMAGE_F16_2: {U16 *d=(U16*)data; d[0]=d[1]=          Half(pixel).data;} break;
@@ -432,10 +432,10 @@ static inline Flt GetPixelF(C Byte *data, C Image &image, Bool _2d, Int x, Int y
 {
    switch(image.hwType())
    {
-      case IMAGE_F32  : return *(Flt*)data;
-      case IMAGE_F32_2: return *(Flt*)data;
-      case IMAGE_F32_3: return *(Flt*)data;
-      case IMAGE_F32_4: return *(Flt*)data;
+      case IMAGE_F32  :                        return *(Flt*)data;
+      case IMAGE_F32_2:                        return *(Flt*)data;
+      case IMAGE_F32_3: case IMAGE_F32_3_SRGB: return *(Flt*)data;
+      case IMAGE_F32_4: case IMAGE_F32_4_SRGB: return *(Flt*)data;
 
       case IMAGE_F16  : return *(Half*)data;
       case IMAGE_F16_2: return *(Half*)data;
@@ -484,7 +484,7 @@ static inline Flt GetPixelF(C Byte *data, C Image &image, Bool _2d, Int x, Int y
       case IMAGE_B5G5R5A1: return (((*(U16*)data)>>10)&0x1F)/31.0f;
       case IMAGE_B5G6R5  : return (((*(U16*)data)>>11)&0x1F)/31.0f;
 
-      case IMAGE_BC6    : return DecompressPixelBC6(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3).x;
+      case IMAGE_BC6: return DecompressPixelBC6(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3).x;
 
       case IMAGE_BC1    : case IMAGE_BC1_SRGB    :
       case IMAGE_BC2    : case IMAGE_BC2_SRGB    :
@@ -544,10 +544,10 @@ static inline Color GetColor(C Byte *data, C Image &image, Bool _2d, Int x, Int 
       case IMAGE_R8G8_SIGN    : {C VecSB2 &v=*(VecSB2*)data; return Color(SByteToByte(v.x), SByteToByte(v.y),                0,              255);}
       case IMAGE_R8G8B8A8_SIGN: {C VecSB4 &v=*(VecSB4*)data; return Color(SByteToByte(v.x), SByteToByte(v.y), SByteToByte(v.z), SByteToByte(v.w));}
 
-      case IMAGE_F32  : {C Flt  &v=*(Flt *)data; return Color(FltToByte(v  ),              0,              0,            255);}
-      case IMAGE_F32_2: {C Vec2 &v=*(Vec2*)data; return Color(FltToByte(v.x), FltToByte(v.y),              0,            255);}
-      case IMAGE_F32_3: {C Vec  &v=*(Vec *)data; return Color(FltToByte(v.x), FltToByte(v.y), FltToByte(v.z),            255);}
-      case IMAGE_F32_4: {C Vec4 &v=*(Vec4*)data; return Color(FltToByte(v.x), FltToByte(v.y), FltToByte(v.z), FltToByte(v.w));}
+      case IMAGE_F32  :                        {C Flt  &v=*(Flt *)data; return Color(FltToByte(v  ),              0,              0,            255);}
+      case IMAGE_F32_2:                        {C Vec2 &v=*(Vec2*)data; return Color(FltToByte(v.x), FltToByte(v.y),              0,            255);}
+      case IMAGE_F32_3: case IMAGE_F32_3_SRGB: {C Vec  &v=*(Vec *)data; return Color(FltToByte(v.x), FltToByte(v.y), FltToByte(v.z),            255);}
+      case IMAGE_F32_4: case IMAGE_F32_4_SRGB: {C Vec4 &v=*(Vec4*)data; return Color(FltToByte(v.x), FltToByte(v.y), FltToByte(v.z), FltToByte(v.w));}
 
       case IMAGE_F16  : {C Half  &v=*(Half *)data; return Color(FltToByte(v  ),              0,              0,            255);}
       case IMAGE_F16_2: {C VecH2 &v=*(VecH2*)data; return Color(FltToByte(v.x), FltToByte(v.y),              0,            255);}
@@ -609,10 +609,10 @@ static void SetColor(Byte *data, IMAGE_TYPE type, C Color &color)
 
       case IMAGE_R10G10B10A2: *(U32*)data=ByteToU10(color.r) | (ByteToU10(color.g)<<10) | (ByteToU10(color.b)<<20) | (ByteToU2(color.a)<<30); break;
 
-      case IMAGE_F32  : *(Flt *)data =     ByteToFlt(color.r); break;
-      case IMAGE_F32_2: ((Vec2*)data)->set(ByteToFlt(color.r), ByteToFlt(color.g)); break;
-      case IMAGE_F32_3: ((Vec *)data)->set(ByteToFlt(color.r), ByteToFlt(color.g), ByteToFlt(color.b)); break;
-      case IMAGE_F32_4: ((Vec4*)data)->set(ByteToFlt(color.r), ByteToFlt(color.g), ByteToFlt(color.b), ByteToFlt(color.a)); break;
+      case IMAGE_F32  :                        *(Flt *)data =     ByteToFlt(color.r); break;
+      case IMAGE_F32_2:                        ((Vec2*)data)->set(ByteToFlt(color.r), ByteToFlt(color.g)); break;
+      case IMAGE_F32_3: case IMAGE_F32_3_SRGB: ((Vec *)data)->set(ByteToFlt(color.r), ByteToFlt(color.g), ByteToFlt(color.b)); break;
+      case IMAGE_F32_4: case IMAGE_F32_4_SRGB: ((Vec4*)data)->set(ByteToFlt(color.r), ByteToFlt(color.g), ByteToFlt(color.b), ByteToFlt(color.a)); break;
 
       case IMAGE_F16  : *(Half *)data =     ByteToFlt(color.r); break;
       case IMAGE_F16_2: ((VecH2*)data)->set(ByteToFlt(color.r), ByteToFlt(color.g)); break;
@@ -627,11 +627,13 @@ static void SetColor(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Color &c
    {
       case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB:
       case IMAGE_F16_3 :
-      case IMAGE_F32_3 : c.set(color.r, color.g, color.b, 255); break;
+      case IMAGE_F32_3 : case IMAGE_F32_3_SRGB:
+         c.set(color.r, color.g, color.b, 255); break;
 
       case IMAGE_R8G8 :
       case IMAGE_F16_2:
-      case IMAGE_F32_2: c.set(color.r, color.g, 0, 255); break;
+      case IMAGE_F32_2:
+         c.set(color.r, color.g, 0, 255); break;
 
       case IMAGE_R8 :
       case IMAGE_I8 :
@@ -639,7 +641,8 @@ static void SetColor(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Color &c
       case IMAGE_I24:
       case IMAGE_I32:
       case IMAGE_F16:
-      case IMAGE_F32: c.set(color.r, 0, 0, 255); break;
+      case IMAGE_F32:
+         c.set(color.r, 0, 0, 255); break;
 
       case IMAGE_A8  :                       c.set(0, 0, 0    , color.a); break;
       case IMAGE_L8  : case IMAGE_L8_SRGB  : c.set(color.lum(),     255); break;
@@ -664,10 +667,10 @@ static void SetColorF(Byte *data, IMAGE_TYPE type, C Vec4 &color)
 {
    switch(type)
    {
-      case IMAGE_F32  : (*(Flt *)data)=color.x  ; break;
-      case IMAGE_F32_2: (*(Vec2*)data)=color.xy ; break;
-      case IMAGE_F32_3: (*(Vec *)data)=color.xyz; break;
-      case IMAGE_F32_4: (*(Vec4*)data)=color    ; break;
+      case IMAGE_F32  :                        (*(Flt *)data)=color.x  ; break;
+      case IMAGE_F32_2:                        (*(Vec2*)data)=color.xy ; break;
+      case IMAGE_F32_3: case IMAGE_F32_3_SRGB: (*(Vec *)data)=color.xyz; break;
+      case IMAGE_F32_4: case IMAGE_F32_4_SRGB: (*(Vec4*)data)=color    ; break;
 
       case IMAGE_F16  : (*(Half *)data)=color.x  ; break;
       case IMAGE_F16_2: (*(VecH2*)data)=color.xy ; break;
@@ -676,6 +679,90 @@ static void SetColorF(Byte *data, IMAGE_TYPE type, C Vec4 &color)
 
       case IMAGE_A8 : (*(U8*)data)=FltToByte(color.w); break; // it's okay to clamp int for small values
       case IMAGE_I8 : (*(U8*)data)=FltToByte(color.x); break; // it's okay to clamp int for small values
+
+      case IMAGE_I16: (*(U16*)data)=RoundU(Sat(color.x)*0x0000FFFFu); break; // it's better to clamp flt for bigger values
+      case IMAGE_I32: (*(U32*)data)=RoundU(Sat(color.x)*0xFFFFFFFFu); break; // it's better to clamp flt for bigger values
+      case IMAGE_I24: {  U32  c    =RoundU(Sat(color.x)*0x00FFFFFFu); (*(U16*)data)=c; data[2]=(c>>16);} break; // it's better to clamp flt for bigger values
+
+      case IMAGE_L8  : case IMAGE_L8_SRGB  :   (*(U8*)data)=     FltToByte(color.xyz.max()); break; // it's okay to clamp int for small values
+      case IMAGE_L8A8: case IMAGE_L8A8_SRGB: ((VecB2*)data)->set(FltToByte(color.xyz.max()), FltToByte(color.w)); break;
+
+      case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: ((VecB4*)data)->set(FltToByte(color.z), FltToByte(color.y), FltToByte(color.x), FltToByte(color.w)); break;
+      case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: ((VecB4*)data)->set(FltToByte(color.x), FltToByte(color.y), FltToByte(color.z), FltToByte(color.w)); break;
+      case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB  : ((VecB *)data)->set(FltToByte(color.x), FltToByte(color.y), FltToByte(color.z)                    ); break;
+      case IMAGE_R8G8    :                           ((VecB2*)data)->set(FltToByte(color.x), FltToByte(color.y)                                        ); break;
+      case IMAGE_R8      :                           *(Byte *)data  =    FltToByte(color.x)                                                             ; break;
+      case IMAGE_B8G8R8  :                           ((VecB *)data)->set(FltToByte(color.z), FltToByte(color.y), FltToByte(color.x)                    ); break;
+
+      case IMAGE_R8_SIGN      : (*(Byte *)data)=     SFltToSByte(color.x)                                                                   ; break;
+      case IMAGE_R8G8_SIGN    : ( (VecB2*)data)->set(SFltToSByte(color.x), SFltToSByte(color.y)                                            ); break;
+      case IMAGE_R8G8B8A8_SIGN: ( (VecB4*)data)->set(SFltToSByte(color.x), SFltToSByte(color.y), SFltToSByte(color.z), SFltToSByte(color.w)); break;
+
+      case IMAGE_R10G10B10A2: {(*(UInt*)data)=FltToU10(color.x)|(FltToU10(color.y)<<10)|(FltToU10(color.z)<<20)|(FltToU2(color.w)<<30);} break;
+   }
+}
+static void SetColorF(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &color)
+{
+   if(type==hw_type)normal: return SetColorF(data, hw_type, color); // first check if types are the same, the most common case
+   Vec4 c; switch(type) // however if we want 'type' but we've got 'hw_type' then we have to adjust the color we're going to set. This will prevent setting different R G B values for type=IMAGE_L8 when hw_type=IMAGE_R8G8B8A8
+   {
+      case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB:
+      case IMAGE_F16_3 :
+      case IMAGE_F32_3 : case IMAGE_F32_3_SRGB:
+         c.set(color.x, color.y, color.z, 1); break;
+
+      case IMAGE_R8G8 :
+      case IMAGE_F16_2:
+      case IMAGE_F32_2:
+         c.set(color.x, color.y, 0, 1); break;
+
+      case IMAGE_R8 :
+      case IMAGE_I8 :
+      case IMAGE_I16:
+      case IMAGE_I24:
+      case IMAGE_I32:
+      case IMAGE_F16:
+      case IMAGE_F32:
+         c.set(color.x, 0, 0, 1); break;
+
+      case IMAGE_A8  :                                               c.set(0, 0, 0, color.w);  break;
+      case IMAGE_L8  : case IMAGE_L8_SRGB  : {Flt l=color.xyz.max(); c.set(l, l, l,       1);} break;
+      case IMAGE_L8A8: case IMAGE_L8A8_SRGB: {Flt l=color.xyz.max(); c.set(l, l, l, color.w);} break;
+
+      default: goto normal;
+   }
+   SetColorF(data, hw_type, c);
+}
+void Image::colorF(Int x, Int y, C Vec4 &color)
+{
+   if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+      SetColorF(data() + x*bytePP() + y*pitch(), type(), hwType(), color);
+}
+void Image::color3DF(Int x, Int y, Int z, C Vec4 &color)
+{
+   if(InRange(x, lw()) && InRange(y, lh()) && InRange(z, ld())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+      SetColorF(data() + x*bytePP() + y*pitch() + z*pitch2(), type(), hwType(), color);
+}
+/******************************************************************************/
+static void SetColorL(Byte *data, IMAGE_TYPE type, C Vec4 &color)
+{
+   switch(type)
+   {
+      case IMAGE_F32  : (*(Flt *)data)=color.x  ; break;
+      case IMAGE_F32_2: (*(Vec2*)data)=color.xy ; break;
+      case IMAGE_F32_3: (*(Vec *)data)=color.xyz; break;
+      case IMAGE_F32_4: (*(Vec4*)data)=color    ; break;
+
+      case IMAGE_F32_3_SRGB: (*(Vec *)data)=LinearToSRGB(color.xyz); break;
+      case IMAGE_F32_4_SRGB: (*(Vec4*)data)=LinearToSRGB(color    ); break;
+
+      case IMAGE_F16  : (*(Half *)data)=color.x  ; break;
+      case IMAGE_F16_2: (*(VecH2*)data)=color.xy ; break;
+      case IMAGE_F16_3: (*(VecH *)data)=color.xyz; break;
+      case IMAGE_F16_4: (*(VecH4*)data)=color    ; break;
+
+      case IMAGE_A8: (*(U8*)data)=FltToByte(color.w); break; // it's okay to clamp int for small values
+      case IMAGE_I8: (*(U8*)data)=FltToByte(color.x); break; // it's okay to clamp int for small values
 
       case IMAGE_I16: (*(U16*)data)=RoundU(Sat(color.x)*0x0000FFFFu); break; // it's better to clamp flt for bigger values
       case IMAGE_I32: (*(U32*)data)=RoundU(Sat(color.x)*0xFFFFFFFFu); break; // it's better to clamp flt for bigger values
@@ -705,18 +792,20 @@ static void SetColorF(Byte *data, IMAGE_TYPE type, C Vec4 &color)
       case IMAGE_R10G10B10A2: {(*(UInt*)data)=FltToU10(color.x)|(FltToU10(color.y)<<10)|(FltToU10(color.z)<<20)|(FltToU2(color.w)<<30);} break;
    }
 }
-static void SetColorF(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &color)
+static void SetColorL(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &color)
 {
-   if(type==hw_type)normal: return SetColorF(data, hw_type, color); // first check if types are the same, the most common case
+   if(type==hw_type)normal: return SetColorL(data, hw_type, color); // first check if types are the same, the most common case
    Vec4 c; switch(type) // however if we want 'type' but we've got 'hw_type' then we have to adjust the color we're going to set. This will prevent setting different R G B values for type=IMAGE_L8 when hw_type=IMAGE_R8G8B8A8
    {
       case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB:
       case IMAGE_F16_3 :
-      case IMAGE_F32_3 : c.set(color.x, color.y, color.z, 1); break;
+      case IMAGE_F32_3 : case IMAGE_F32_3_SRGB:
+         c.set(color.x, color.y, color.z, 1); break;
 
       case IMAGE_R8G8 :
       case IMAGE_F16_2:
-      case IMAGE_F32_2: c.set(color.x, color.y, 0, 1); break;
+      case IMAGE_F32_2:
+         c.set(color.x, color.y, 0, 1); break;
 
       case IMAGE_R8 :
       case IMAGE_I8 :
@@ -724,7 +813,8 @@ static void SetColorF(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &c
       case IMAGE_I24:
       case IMAGE_I32:
       case IMAGE_F16:
-      case IMAGE_F32: c.set(color.x, 0, 0, 1); break;
+      case IMAGE_F32:
+         c.set(color.x, 0, 0, 1); break;
 
       case IMAGE_A8  :                                               c.set(0, 0, 0, color.w);  break;
       case IMAGE_L8  : case IMAGE_L8_SRGB  : {Flt l=color.xyz.max(); c.set(l, l, l,       1);} break;
@@ -732,20 +822,20 @@ static void SetColorF(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &c
 
       default: goto normal;
    }
-   SetColorF(data, hw_type, c);
+   SetColorL(data, hw_type, c);
 }
-void Image::colorF(Int x, Int y, C Vec4 &color)
+void Image::colorL(Int x, Int y, C Vec4 &color)
 {
    if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
-      SetColorF(data() + x*bytePP() + y*pitch(), type(), hwType(), color);
+      SetColorL(data() + x*bytePP() + y*pitch(), type(), hwType(), color);
 }
-void Image::color3DF(Int x, Int y, Int z, C Vec4 &color)
+void Image::color3DL(Int x, Int y, Int z, C Vec4 &color)
 {
    if(InRange(x, lw()) && InRange(y, lh()) && InRange(z, ld())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
-      SetColorF(data() + x*bytePP() + y*pitch() + z*pitch2(), type(), hwType(), color);
+      SetColorL(data() + x*bytePP() + y*pitch() + z*pitch2(), type(), hwType(), color);
 }
 /******************************************************************************/
-static void SetColorSRGBF(Byte *data, IMAGE_TYPE type, C Vec4 &color)
+static void SetColorS(Byte *data, IMAGE_TYPE type, C Vec4 &color)
 {
    switch(type)
    {
@@ -753,6 +843,9 @@ static void SetColorSRGBF(Byte *data, IMAGE_TYPE type, C Vec4 &color)
       case IMAGE_F32_2: (*(Vec2*)data).set(SRGBToLinear(color.x  ), SRGBToLinear(color.y)); break;
       case IMAGE_F32_3: (*(Vec *)data)=    SRGBToLinear(color.xyz); break;
       case IMAGE_F32_4: (*(Vec4*)data)=    SRGBToLinear(color    ); break;
+
+      case IMAGE_F32_3_SRGB: (*(Vec *)data)=color.xyz; break;
+      case IMAGE_F32_4_SRGB: (*(Vec4*)data)=color    ; break;
 
       case IMAGE_F16  : (*(Half *)data)=    SRGBToLinear(color.x  ); break;
       case IMAGE_F16_2: (*(VecH2*)data).set(SRGBToLinear(color.x  ), SRGBToLinear(color.y)); break;
@@ -790,18 +883,20 @@ static void SetColorSRGBF(Byte *data, IMAGE_TYPE type, C Vec4 &color)
       case IMAGE_R10G10B10A2: {(*(UInt*)data)=FltToU10(SRGBToLinear(color.x))|(FltToU10(SRGBToLinear(color.y))<<10)|(FltToU10(SRGBToLinear(color.z))<<20)|(FltToU2(color.w)<<30);} break;
    }
 }
-static void SetColorSRGBF(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &color)
+static void SetColorS(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec4 &color)
 {
-   if(type==hw_type)normal: return SetColorSRGBF(data, hw_type, color); // first check if types are the same, the most common case
+   if(type==hw_type)normal: return SetColorS(data, hw_type, color); // first check if types are the same, the most common case
    Vec4 c; switch(type) // however if we want 'type' but we've got 'hw_type' then we have to adjust the color we're going to set. This will prevent setting different R G B values for type=IMAGE_L8 when hw_type=IMAGE_R8G8B8A8
    {
       case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB:
       case IMAGE_F16_3 :
-      case IMAGE_F32_3 : c.set(color.x, color.y, color.z, 1); break;
+      case IMAGE_F32_3 : case IMAGE_F32_3_SRGB:
+         c.set(color.x, color.y, color.z, 1); break;
 
       case IMAGE_R8G8 :
       case IMAGE_F16_2:
-      case IMAGE_F32_2: c.set(color.x, color.y, 0, 1); break;
+      case IMAGE_F32_2:
+         c.set(color.x, color.y, 0, 1); break;
 
       case IMAGE_R8 :
       case IMAGE_I8 :
@@ -809,7 +904,8 @@ static void SetColorSRGBF(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec
       case IMAGE_I24:
       case IMAGE_I32:
       case IMAGE_F16:
-      case IMAGE_F32: c.set(color.x, 0, 0, 1); break;
+      case IMAGE_F32:
+         c.set(color.x, 0, 0, 1); break;
 
       case IMAGE_A8  :                                               c.set(0, 0, 0, color.w);  break;
       case IMAGE_L8  : case IMAGE_L8_SRGB  : {Flt l=color.xyz.max(); c.set(l, l, l,       1);} break;
@@ -817,17 +913,17 @@ static void SetColorSRGBF(Byte *data, IMAGE_TYPE type, IMAGE_TYPE hw_type, C Vec
 
       default: goto normal;
    }
-   SetColorSRGBF(data, hw_type, c);
+   SetColorS(data, hw_type, c);
 }
-void Image::colorSRGBF(Int x, Int y, C Vec4 &color)
+void Image::colorS(Int x, Int y, C Vec4 &color)
 {
    if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
-      SetColorSRGBF(data() + x*bytePP() + y*pitch(), type(), hwType(), color);
+      SetColorS(data() + x*bytePP() + y*pitch(), type(), hwType(), color);
 }
-void Image::color3DSRGBF(Int x, Int y, Int z, C Vec4 &color)
+void Image::color3DS(Int x, Int y, Int z, C Vec4 &color)
 {
    if(InRange(x, lw()) && InRange(y, lh()) && InRange(z, ld())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
-      SetColorSRGBF(data() + x*bytePP() + y*pitch() + z*pitch2(), type(), hwType(), color);
+      SetColorS(data() + x*bytePP() + y*pitch() + z*pitch2(), type(), hwType(), color);
 }
 /******************************************************************************/
 static inline void ApplyBlend(Vec4 &src, C Vec4 &color) {src=Blend(src, color);}
@@ -839,18 +935,28 @@ void Image::blend(Int x, Int y, C Vec4 &color)
       Byte *data=T.data() + x*bytePP() + y*pitch();
       switch(hwType())
       {
-         case IMAGE_R8G8B8A8     : {Color &c=*(Color*)data; src=             c ; ApplyBlend(src, color); c=               src ;} break;
-         case IMAGE_R8G8B8A8_SRGB: {Color &c=*(Color*)data; src=SRGBToLinear(c); ApplyBlend(src, color); c=LinearToSColor(src);} break;
-         case IMAGE_F32_4        : {Vec4  &c=*(Vec4 *)data;                      ApplyBlend(  c, color);} break;
-         default                 :
-         {
-            src=colorF(x, y);
-            ApplyBlend(src, color);
-            SetColorF(data, type(), hwType(), src);
-         }break;
+         case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: {Color &c=*(Color*)data; src=c; ApplyBlend(src, color); c=src;} break;
+         case IMAGE_F32_4   : case IMAGE_F32_4_SRGB   : {Vec4  &c=*(Vec4 *)data;        ApplyBlend(  c, color);       } break;
+         default            :                           {             src=colorF(x, y); ApplyBlend(src, color); SetColorF(data, type(), hwType(), src);} break;
       }
    }
 }
+/*void Image::blendL(Int x, Int y, C Vec4 &color)
+{
+   if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+   {
+      Vec4 src;
+      Byte *data=T.data() + x*bytePP() + y*pitch();
+      switch(hwType())
+      {
+         case IMAGE_R8G8B8A8     : {Color &c=*(Color*)data; src=             c ; ApplyBlend(src, color); c=               src ;} break;
+         case IMAGE_R8G8B8A8_SRGB: {Color &c=*(Color*)data; src=SRGBToLinear(c); ApplyBlend(src, color); c=LinearToSColor(src);} break;
+         case IMAGE_F32_4        : {Vec4  &c=*(Vec4 *)data;                      ApplyBlend(  c, color);                       } break;
+         case IMAGE_F32_4_SRGB   : {Vec4  &c=*(Vec4 *)data; src=SRGBToLinear(c); ApplyBlend(  c, color); c=LinearToSRGB  (src);} break;
+         default                 : {                        src=   colorL(x, y); ApplyBlend(src, color); SetColorL(data, type(), hwType(), src);} break;
+      }
+   }
+}*/
 static inline void ApplyMerge(Vec4 &src, C Vec4 &color) {src=PremultipliedBlend(src, color);}
 void Image::merge(Int x, Int y, C Vec4 &color)
 {
@@ -860,20 +966,113 @@ void Image::merge(Int x, Int y, C Vec4 &color)
       Byte *data=T.data() + x*bytePP() + y*pitch();
       switch(hwType())
       {
+         case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: {Color &c=*(Color*)data; src=c; ApplyMerge(src, color); c=src;} break;
+         case IMAGE_F32_4   : case IMAGE_F32_4_SRGB   : {Vec4  &c=*(Vec4 *)data;        ApplyMerge(  c, color);       } break;
+         default            :                           {             src=colorF(x, y); ApplyMerge(src, color); SetColorF(data, type(), hwType(), src);} break;
+      }
+   }
+}
+/*void Image::mergeL(Int x, Int y, C Vec4 &color)
+{
+   if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+   {
+      Vec4 src;
+      Byte *data=T.data() + x*bytePP() + y*pitch();
+      switch(hwType())
+      {
          case IMAGE_R8G8B8A8     : {Color &c=*(Color*)data; src=             c ; ApplyMerge(src, color); c=               src ;} break;
          case IMAGE_R8G8B8A8_SRGB: {Color &c=*(Color*)data; src=SRGBToLinear(c); ApplyMerge(src, color); c=LinearToSColor(src);} break;
-         case IMAGE_F32_4        : {Vec4  &c=*(Vec4 *)data;                      ApplyMerge(  c, color);} break;
-         default                 :
-         {
-            src=colorF(x, y);
-            ApplyMerge(src, color);
-            SetColorF(data, type(), hwType(), src);
-         }break;
+         case IMAGE_F32_4        : {Vec4  &c=*(Vec4 *)data;                      ApplyMerge(  c, color);                       } break;
+         case IMAGE_F32_4_SRGB   : {Vec4  &c=*(Vec4 *)data; src=SRGBToLinear(c); ApplyMerge(  c, color); c=LinearToSRGB  (src);} break;
+         default                 : {                        src=   colorL(x, y); ApplyMerge(src, color); SetColorL(data, type(), hwType(), src);} break;
       }
    }
 }
 /******************************************************************************/
-Vec4 ImageColorF(CPtr data, IMAGE_TYPE hw_type)
+static inline Vec4 GetColorF(CPtr data, C Image &image, Bool _2d, Int x, Int y, Int z=0)
+{
+   switch(image.hwType())
+   {
+      case IMAGE_F32  :                        return Vec4(*(Flt *)data, 0, 0, 1);
+      case IMAGE_F32_2:                        return Vec4(*(Vec2*)data,    0, 1);
+      case IMAGE_F32_3: case IMAGE_F32_3_SRGB: return Vec4(*(Vec *)data,       1);
+      case IMAGE_F32_4: case IMAGE_F32_4_SRGB: return      *(Vec4*)data          ;
+
+      case IMAGE_F16  : return Vec4(((Half*)data)[0],                0,                0,                1);
+      case IMAGE_F16_2: return Vec4(((Half*)data)[0], ((Half*)data)[1],                0,                1);
+      case IMAGE_F16_3: return Vec4(((Half*)data)[0], ((Half*)data)[1], ((Half*)data)[2],                1);
+      case IMAGE_F16_4: return Vec4(((Half*)data)[0], ((Half*)data)[1], ((Half*)data)[2], ((Half*)data)[3]);
+
+      case IMAGE_A8: return Vec4(0, 0, 0, ByteToFlt(*(U8*)data));
+      case IMAGE_I8: return Vec4(Vec(     ByteToFlt(*(U8*)data)), 1);
+
+      // 16
+   #if SUPPORT_DEPTH_TO_COLOR
+      case IMAGE_D16: if(GL)return Vec4(Vec((*(U16*)data)/Flt(0x0000FFFFu)*2-1), 1); // !! else fall through no break on purpose !!
+   #endif
+      case IMAGE_I16:
+         return Vec4(Vec((*(U16*)data)/Flt(0x0000FFFFu)), 1);
+
+      // 32
+   #if SUPPORT_DEPTH_TO_COLOR
+      case IMAGE_D32 :       return Vec4(Vec(GL ? (*(Flt*)data)*2-1 : *(Flt*)data), 1);
+    //case IMAGE_D32I: if(GL)return Vec4(Vec((*(U32*)data)/Dbl(0xFFFFFFFFu)*2-1), 1); // !! else fall through no break on purpose !!
+   #endif
+      case IMAGE_I32:
+         return Vec4(Vec((*(U32*)data)/Dbl(0xFFFFFFFFu)), 1); // Dbl required to get best precision
+
+      // 24
+   #if SUPPORT_DEPTH_TO_COLOR
+      case IMAGE_D24S8:
+      case IMAGE_D24X8: if(GL)return Vec4(Vec((*(U16*)(((Byte*)data)+1) | (((Byte*)data)[3]<<16))/Flt(0x00FFFFFFu)*2-1), 1); // !! else fall through no break on purpose !!
+   #endif
+      case IMAGE_I24:
+         return Vec4(Vec((*(U16*)data | (((Byte*)data)[2]<<16))/Flt(0x00FFFFFFu)), 1); // here Dbl is not required, this was tested
+
+      case IMAGE_L8  : case IMAGE_L8_SRGB  : {Byte  &b=*(Byte *)data; Flt l=ByteToFlt(b  ); return Vec4(l, l, l,              1);}
+      case IMAGE_L8A8: case IMAGE_L8A8_SRGB: {VecB2 &c=*(VecB2*)data; Flt l=ByteToFlt(c.x); return Vec4(l, l, l, ByteToFlt(c.y));}
+
+      case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.z), ByteToFlt(c.y), ByteToFlt(c.x), ByteToFlt(c.w));}
+      case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z), ByteToFlt(c.w));}
+      case IMAGE_B8G8R8  :                           {VecB  &c=*(VecB *)data; return Vec4(ByteToFlt(c.z), ByteToFlt(c.y), ByteToFlt(c.x),              1);}
+      case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z),              1);}
+      case IMAGE_R8G8    :                           {VecB2 &c=*(VecB2*)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y),              0,              1);}
+      case IMAGE_R8      :                           {Byte   c=*(Byte *)data; return Vec4(ByteToFlt(c  ),              0,              0,              1);}
+
+      case IMAGE_R8_SIGN      : {Byte  &c=*(Byte *)data; return Vec4(SByteToSFlt(c  ),                0,                0,                1);}
+      case IMAGE_R8G8_SIGN    : {VecB2 &c=*(VecB2*)data; return Vec4(SByteToSFlt(c.x), SByteToSFlt(c.y),                0,                1);}
+      case IMAGE_R8G8B8A8_SIGN: {VecB4 &c=*(VecB4*)data; return Vec4(SByteToSFlt(c.x), SByteToSFlt(c.y), SByteToSFlt(c.z), SByteToSFlt(c.w));}
+
+      case IMAGE_R10G10B10A2: {UInt u=*(UInt*)data; return Vec4(U10ToFlt(u&0x3FF), U10ToFlt((u>>10)&0x3FF), U10ToFlt((u>>20)&0x3FF), U2ToFlt(u>>30));}
+
+      case IMAGE_BC6: return Vec4(DecompressPixelBC6(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3), 1);
+
+      case IMAGE_BC1    : case IMAGE_BC1_SRGB    :
+      case IMAGE_BC2    : case IMAGE_BC2_SRGB    :
+      case IMAGE_BC3    : case IMAGE_BC3_SRGB    :
+      case IMAGE_BC7    : case IMAGE_BC7_SRGB    :
+      case IMAGE_ETC1   :
+      case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   :
+      case IMAGE_ETC2_A1: case IMAGE_ETC2_A1_SRGB:
+      case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB:
+         return _2d ? DecompressPixel(image, x, y) : DecompressPixel(image, x, y, z);
+   }
+   return 0;
+}
+Vec4 Image::colorF(Int x, Int y)C
+{
+   if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+      return GetColorF(data() + x*bytePP() + y*pitch(), T, true, x, y);
+   return 0;
+}
+Vec4 Image::color3DF(Int x, Int y, Int z)C
+{
+   if(InRange(x, lw()) && InRange(y, lh()) && InRange(z, ld())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+      return GetColorF(data() + x*bytePP() + y*pitch() + z*pitch2(), T, false, x, y, z);
+   return 0;
+}
+/******************************************************************************/
+Vec4 ImageColorL(CPtr data, IMAGE_TYPE hw_type)
 {
    switch(hw_type)
    {
@@ -881,6 +1080,9 @@ Vec4 ImageColorF(CPtr data, IMAGE_TYPE hw_type)
       case IMAGE_F32_2: return Vec4(*(Vec2*)data,    0, 1);
       case IMAGE_F32_3: return Vec4(*(Vec *)data,       1);
       case IMAGE_F32_4: return      *(Vec4*)data          ;
+
+      case IMAGE_F32_3_SRGB: return Vec4(SRGBToLinear(*(Vec *)data), 1);
+      case IMAGE_F32_4_SRGB: return      SRGBToLinear(*(Vec4*)data)    ;
 
       case IMAGE_F16  : return Vec4(((Half*)data)[0],                0,                0,                1);
       case IMAGE_F16_2: return Vec4(((Half*)data)[0], ((Half*)data)[1],                0,                1);
@@ -938,7 +1140,7 @@ Vec4 ImageColorF(CPtr data, IMAGE_TYPE hw_type)
    }
    return 0;
 }
-static inline Vec4 GetColorF(CPtr data, C Image &image, Bool _2d, Int x, Int y, Int z=0)
+static inline Vec4 GetColorL(CPtr data, C Image &image, Bool _2d, Int x, Int y, Int z=0)
 {
    switch(image.hwType())
    {
@@ -946,6 +1148,9 @@ static inline Vec4 GetColorF(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
       case IMAGE_F32_2: return Vec4(*(Vec2*)data,    0, 1);
       case IMAGE_F32_3: return Vec4(*(Vec *)data,       1);
       case IMAGE_F32_4: return      *(Vec4*)data          ;
+
+      case IMAGE_F32_3_SRGB: return Vec4(SRGBToLinear(*(Vec *)data), 1);
+      case IMAGE_F32_4_SRGB: return      SRGBToLinear(*(Vec4*)data)    ;
 
       case IMAGE_F16  : return Vec4(((Half*)data)[0],                0,                0,                1);
       case IMAGE_F16_2: return Vec4(((Half*)data)[0], ((Half*)data)[1],                0,                1);
@@ -1001,7 +1206,7 @@ static inline Vec4 GetColorF(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
 
       case IMAGE_R10G10B10A2: {UInt u=*(UInt*)data; return Vec4(U10ToFlt(u&0x3FF), U10ToFlt((u>>10)&0x3FF), U10ToFlt((u>>20)&0x3FF), U2ToFlt(u>>30));}
 
-      case IMAGE_BC6    : return Vec4(DecompressPixelBC6(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3), 1);
+      case IMAGE_BC6: return Vec4(DecompressPixelBC6(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3), 1);
 
       case IMAGE_BC1    :
       case IMAGE_BC2    :
@@ -1024,20 +1229,20 @@ static inline Vec4 GetColorF(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
    }
    return 0;
 }
-Vec4 Image::colorF(Int x, Int y)C
+Vec4 Image::colorL(Int x, Int y)C
 {
    if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
-      return GetColorF(data() + x*bytePP() + y*pitch(), T, true, x, y);
+      return GetColorL(data() + x*bytePP() + y*pitch(), T, true, x, y);
    return 0;
 }
-Vec4 Image::color3DF(Int x, Int y, Int z)C
+Vec4 Image::color3DL(Int x, Int y, Int z)C
 {
    if(InRange(x, lw()) && InRange(y, lh()) && InRange(z, ld())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
-      return GetColorF(data() + x*bytePP() + y*pitch() + z*pitch2(), T, false, x, y, z);
+      return GetColorL(data() + x*bytePP() + y*pitch() + z*pitch2(), T, false, x, y, z);
    return 0;
 }
 /******************************************************************************/
-static inline Vec4 GetColorSRGBF(CPtr data, C Image &image, Bool _2d, Int x, Int y, Int z=0)
+static inline Vec4 GetColorS(CPtr data, C Image &image, Bool _2d, Int x, Int y, Int z=0)
 {
    switch(image.hwType())
    {
@@ -1045,6 +1250,9 @@ static inline Vec4 GetColorSRGBF(CPtr data, C Image &image, Bool _2d, Int x, Int
       case IMAGE_F32_2: return Vec4(LinearToSRGB(((Flt *)data)[0]), LinearToSRGB(((Flt*)data)[1]), 0, 1);
       case IMAGE_F32_3: return Vec4(LinearToSRGB(*(Vec *)data)                                      , 1);
       case IMAGE_F32_4: return      LinearToSRGB(*(Vec4*)data);
+
+      case IMAGE_F32_3_SRGB: return Vec4(*(Vec *)data, 1);
+      case IMAGE_F32_4_SRGB: return      *(Vec4*)data;
 
       case IMAGE_F16  : return Vec4(LinearToSRGB(((Half *)data)[0]),                              0, 0, 1);
       case IMAGE_F16_2: return Vec4(LinearToSRGB(((Half *)data)[0]), LinearToSRGB(((Half*)data)[1]), 0, 1);
@@ -1081,7 +1289,7 @@ static inline Vec4 GetColorSRGBF(CPtr data, C Image &image, Bool _2d, Int x, Int
 
       case IMAGE_R10G10B10A2: {UInt u=*(UInt*)data; return Vec4(LinearToSRGB(U10ToFlt(u&0x3FF)), LinearToSRGB(U10ToFlt((u>>10)&0x3FF)), LinearToSRGB(U10ToFlt((u>>20)&0x3FF)), U2ToFlt(u>>30));}
 
-      case IMAGE_BC6    : return Vec4(LinearToSRGB(DecompressPixelBC6(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3)), 1);
+      case IMAGE_BC6: return Vec4(LinearToSRGB(DecompressPixelBC6(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3)), 1);
 
       case IMAGE_BC1    :
       case IMAGE_BC2    :
@@ -1104,16 +1312,16 @@ static inline Vec4 GetColorSRGBF(CPtr data, C Image &image, Bool _2d, Int x, Int
    }
    return 0;
 }
-Vec4 Image::colorSRGBF(Int x, Int y)C
+Vec4 Image::colorS(Int x, Int y)C
 {
    if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
-      return GetColorSRGBF(data() + x*bytePP() + y*pitch(), T, true, x, y);
+      return GetColorS(data() + x*bytePP() + y*pitch(), T, true, x, y);
    return 0;
 }
-Vec4 Image::color3DSRGBF(Int x, Int y, Int z)C
+Vec4 Image::color3DS(Int x, Int y, Int z)C
 {
    if(InRange(x, lw()) && InRange(y, lh()) && InRange(z, ld())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
-      return GetColorSRGBF(data() + x*bytePP() + y*pitch() + z*pitch2(), T, false, x, y, z);
+      return GetColorS(data() + x*bytePP() + y*pitch() + z*pitch2(), T, false, x, y, z);
    return 0;
 }
 /******************************************************************************/
@@ -1465,7 +1673,7 @@ Vec4 Image::colorFCubicFast(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
    }
    return 0;
 }
-Vec4 Image::colorSRGBFCubicFast(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
+Vec4 Image::colorLCubicFast(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
 {
    if(lw() && lh())
    {
@@ -1481,7 +1689,7 @@ Vec4 Image::colorSRGBFCubicFast(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
          yo[0]=Mod(yo[0], lh()); yo[1]=(yo[0]+1)%lh(); yo[2]=(yo[0]+2)%lh(); yo[3]=(yo[0]+3)%lh();
       }
 
-      Vec4 c[4][4]; gatherSRGB(&c[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
+      Vec4 c[4][4]; gatherL(&c[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
       Vec  rgb   =0;
       Vec4 color =0;
       Flt  weight=0, w,
@@ -1511,6 +1719,53 @@ Vec4 Image::colorSRGBFCubicFast(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
    }
    return 0;
 }
+Vec4 Image::colorSCubicFast(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
+{
+   if(lw() && lh())
+   {
+      Int xo[4]; xo[0]=Floor(x); x-=xo[0]; xo[0]--;
+      Int yo[4]; yo[0]=Floor(y); y-=yo[0]; yo[0]--;
+      if(clamp)
+      {
+         xo[1]=Mid(xo[0]+1, 0, lw()-1); xo[2]=Mid(xo[0]+2, 0, lw()-1); xo[3]=Mid(xo[0]+3, 0, lw()-1); Clamp(xo[0], 0, lw()-1);
+         yo[1]=Mid(yo[0]+1, 0, lh()-1); yo[2]=Mid(yo[0]+2, 0, lh()-1); yo[3]=Mid(yo[0]+3, 0, lh()-1); Clamp(yo[0], 0, lh()-1);
+      }else
+      {
+         xo[0]=Mod(xo[0], lw()); xo[1]=(xo[0]+1)%lw(); xo[2]=(xo[0]+2)%lw(); xo[3]=(xo[0]+3)%lw();
+         yo[0]=Mod(yo[0], lh()); yo[1]=(yo[0]+1)%lh(); yo[2]=(yo[0]+2)%lh(); yo[3]=(yo[0]+3)%lh();
+      }
+
+      Vec4 c[4][4]; gatherS(&c[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
+      Vec  rgb   =0;
+      Vec4 color =0;
+      Flt  weight=0, w,
+           x0w=Sqr(x+1), x1w=Sqr(x), x2w=Sqr(x-1), x3w=Sqr(x-2),
+           y0w=Sqr(y+1), y1w=Sqr(y), y2w=Sqr(y-1), y3w=Sqr(y-2);
+      w=x0w+y0w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[0][0], w, alpha_weight); weight+=w;}
+      w=x1w+y0w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[0][1], w, alpha_weight); weight+=w;}
+      w=x2w+y0w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[0][2], w, alpha_weight); weight+=w;}
+      w=x3w+y0w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[0][3], w, alpha_weight); weight+=w;}
+
+      w=x0w+y1w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[1][0], w, alpha_weight); weight+=w;}
+      w=x1w+y1w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[1][1], w, alpha_weight); weight+=w;}
+      w=x2w+y1w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[1][2], w, alpha_weight); weight+=w;}
+      w=x3w+y1w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[1][3], w, alpha_weight); weight+=w;}
+
+      w=x0w+y2w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[2][0], w, alpha_weight); weight+=w;}
+      w=x1w+y2w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[2][1], w, alpha_weight); weight+=w;}
+      w=x2w+y2w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[2][2], w, alpha_weight); weight+=w;}
+      w=x3w+y2w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[2][3], w, alpha_weight); weight+=w;}
+
+      w=x0w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[3][0], w, alpha_weight); weight+=w;}
+      w=x1w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[3][1], w, alpha_weight); weight+=w;}
+      w=x2w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[3][2], w, alpha_weight); weight+=w;}
+      w=x3w+y3w; if(w<Sqr(CUBIC_FAST_RANGE)){w=CubicFast2(w); Add(color, rgb, c[3][3], w, alpha_weight); weight+=w;}
+      Normalize(color, rgb, weight, alpha_weight, highPrecision());
+      return color;
+   }
+   return 0;
+}
+/******************************************************************************/
 Vec4 Image::colorFCubicFastSmooth(Flt x, Flt y, Bool clamp, Bool alpha_weight)C
 {
    if(lw() && lh())
@@ -2582,7 +2837,7 @@ Vec4 Image::areaColorAverage(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_w
          xo[1]=Mod(recti.max.x, lw()); yo[1]=Mod(recti.max.y, lh());
       }
 
-      if(recti.min==recti.max)return colorF(xo[0], yo[0]); // if coordinates are the same, then return this pixel
+      if(recti.min==recti.max)return colorL(xo[0], yo[0]); // if coordinates are the same, then return this pixel
 
       // calculate blending factors
       Flt l=1+recti.min.x-rect.min.x, r=1+rect.max.x-recti.max.x, // l=1-(rect.min.x-recti.min.x), r=1-(recti.max.x-rect.max.x)
@@ -2593,19 +2848,19 @@ Vec4 Image::areaColorAverage(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_w
 
       // add inside
       for(Int                                                y=recti.min.y+1; y<recti.max.y; y++)
-      for(Int yo=(clamp ? Mid(y, 0, lh()-1) : Mod(y, lh())), x=recti.min.x+1; x<recti.max.x; x++)Add(color, rgb, colorF(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw()), yo), alpha_weight);
+      for(Int yo=(clamp ? Mid(y, 0, lh()-1) : Mod(y, lh())), x=recti.min.x+1; x<recti.max.x; x++)Add(color, rgb, colorL(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw()), yo), alpha_weight);
 
       // add sides
       if(recti.min.y==recti.max.y)
       for(Int x=recti.min.x+1; x<recti.max.x; x++)
       {
          Int xo=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw()));
-         Add(color, rgb, colorF(xo, yo[0]), alpha_weight);
+         Add(color, rgb, colorL(xo, yo[0]), alpha_weight);
       }else
       for(Int x=recti.min.x+1; x<recti.max.x; x++)
       {
          Int  xo=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw()));
-         Vec4 c[2]; gather(c, &xo, 1, yo, Elms(yo));
+         Vec4 c[2]; gatherL(c, &xo, 1, yo, Elms(yo));
          Add(color, rgb, c[0], t, alpha_weight); // top
          Add(color, rgb, c[1], b, alpha_weight); // bottom
       }
@@ -2614,12 +2869,12 @@ Vec4 Image::areaColorAverage(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_w
       for(Int y=recti.min.y+1; y<recti.max.y; y++)
       {
          Int yo=(clamp ? Mid(y, 0, lh()-1) : Mod(y, lh()));
-         Add(color, rgb, colorF(xo[0], yo), alpha_weight);
+         Add(color, rgb, colorL(xo[0], yo), alpha_weight);
       }else
       for(Int y=recti.min.y+1; y<recti.max.y; y++)
       {
          Int  yo=(clamp ? Mid(y, 0, lh()-1) : Mod(y, lh()));
-         Vec4 c[2]; gather(c, xo, Elms(xo), &yo, 1);
+         Vec4 c[2]; gatherL(c, xo, Elms(xo), &yo, 1);
          Add(color, rgb, c[0], l, alpha_weight); // left
          Add(color, rgb, c[1], r, alpha_weight); // right
       }
@@ -2627,18 +2882,18 @@ Vec4 Image::areaColorAverage(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_w
       // add corners
       if(recti.min.y==recti.max.y)
       {
-         Vec4 c[2]; gather(&c[0], xo, Elms(xo), yo, 1);
+         Vec4 c[2]; gatherL(&c[0], xo, Elms(xo), yo, 1);
          Add(color, rgb, c[0], l, alpha_weight);
          Add(color, rgb, c[1], r, alpha_weight);
       }else
       if(recti.min.x==recti.max.x)
       {
-         Vec4 c[2]; gather(&c[0], xo, 1, yo, Elms(yo));
+         Vec4 c[2]; gatherL(&c[0], xo, 1, yo, Elms(yo));
          Add(color, rgb, c[0], t, alpha_weight);
          Add(color, rgb, c[1], b, alpha_weight);
       }else
       {
-         Vec4 c[2][2]; gather(&c[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
+         Vec4 c[2][2]; gatherL(&c[0][0], xo, Elms(xo), yo, Elms(yo)); // [y][x]
          Add(color, rgb, c[0][0], l*t, alpha_weight);
          Add(color, rgb, c[0][1], r*t, alpha_weight);
          Add(color, rgb, c[1][0], l*b, alpha_weight);
@@ -2674,7 +2929,7 @@ Vec4 Image::areaColorLinear(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_we
          {
             Flt fx=x*x_mul_add.x + x_mul_add.y; fx=Linear(fx); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw()));
             fx*=fy;
-            Add(color, rgb, colorF(xi, yi), fx, alpha_weight); weight+=fx;
+            Add(color, rgb, colorL(xi, yi), fx, alpha_weight); weight+=fx;
          }
       }
       Normalize(color, rgb, weight, alpha_weight, highPrecision());
@@ -2707,7 +2962,7 @@ Vec4 Image::areaColorCubicFast(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha
             Flt fx2=Sqr(x*x_mul_add.x + x_mul_add.y), w=fx2+fy2;
             if(w<Sqr(CUBIC_FAST_RANGE))
             {
-               w=CubicFast2(w); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorF(xi, yi), w, alpha_weight); weight+=w;
+               w=CubicFast2(w); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorL(xi, yi), w, alpha_weight); weight+=w;
             }
          }
       }
@@ -2740,7 +2995,7 @@ Vec4 Image::areaColorCubicFastSmooth(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool
             Flt fx2=Sqr(x*x_mul_add.x + x_mul_add.y), w=fx2+fy2;
             if(w<Sqr(CUBIC_FAST_RANGE))
             {
-               w=CubicFastSmooth2(w); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorF(xi, yi), w, alpha_weight); weight+=w;
+               w=CubicFastSmooth2(w); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorL(xi, yi), w, alpha_weight); weight+=w;
             }
          }
       }
@@ -2773,7 +3028,7 @@ Vec4 Image::areaColorCubicFastSharp(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool 
             Flt fx2=Sqr(x*x_mul_add.x + x_mul_add.y), w=fx2+fy2;
             if(w<Sqr(CUBIC_FAST_RANGE))
             {
-               w=CubicFastSharp2(w); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorF(xi, yi), w, alpha_weight); weight+=w;
+               w=CubicFastSharp2(w); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorL(xi, yi), w, alpha_weight); weight+=w;
             }
          }
       }
@@ -2806,7 +3061,7 @@ Vec4 Image::areaColorCubic(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_wei
             Flt fx2=Sqr(x*x_mul_add.x + x_mul_add.y), w=fx2+fy2;
             if(w<Sqr(CUBIC_MED_RANGE))
             {
-               w=CubicMed2(w*Sqr(CUBIC_MED_SHARPNESS)); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorF(xi, yi), w, alpha_weight); weight+=w;
+               w=CubicMed2(w*Sqr(CUBIC_MED_SHARPNESS)); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorL(xi, yi), w, alpha_weight); weight+=w;
             }
          }
       }
@@ -2839,7 +3094,7 @@ Vec4 Image::areaColorCubicSharp(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alph
             Flt fx2=Sqr(x*x_mul_add.x + x_mul_add.y), w=fx2+fy2;
             if(w<Sqr(CUBIC_SHARP_RANGE))
             {
-               w=CubicSharp2(w*Sqr(CUBIC_SHARP_SHARPNESS)); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorF(xi, yi), w, alpha_weight); weight+=w;
+               w=CubicSharp2(w*Sqr(CUBIC_SHARP_SHARPNESS)); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorL(xi, yi), w, alpha_weight); weight+=w;
             }
          }
       }
@@ -2873,7 +3128,7 @@ Vec4 Image::areaColorCubicOrtho(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alph
             Flt fx2=Sqr(x*x_mul_add.x + x_mul_add.y), w=fx2+fy2;
             if(w<4) // Cubic returns 0 for values >=2, since we use Sqr, check for 4
             {
-               w=CubicSmoothFast2(w); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorF(xi, yi), w, alpha_weight); weight+=w;
+               w=CubicSmoothFast2(w); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw())); Add(color, rgb, colorL(xi, yi), w, alpha_weight); weight+=w;
             }
          }
       }
@@ -2905,7 +3160,7 @@ Vec4 Image::areaColorCubicOrtho(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alph
          {
             Flt fx=x*x_mul_add.x + x_mul_add.y; fx=CubicFastSharp(fx); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw()));
             fx*=fy;
-            Add(color, rgb, colorF(xi, yi), fx, alpha_weight); weight+=fx;
+            Add(color, rgb, colorL(xi, yi), fx, alpha_weight); weight+=fx;
          }
       }
       Normalize(color, rgb, weight, alpha_weight, highPrecision());
@@ -2937,7 +3192,7 @@ Vec4 Image::areaColorLanczosOrtho(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool al
          {
             Flt fx=x*x_mul_add.x + x_mul_add.y; fx=LanczosSharp(fx); Int xi=(clamp ? Mid(x, 0, lw()-1) : Mod(x, lw()));
             fx*=fy;
-            Add(color, rgb, colorF(xi, yi), fx, alpha_weight); weight+=fx;
+            Add(color, rgb, colorL(xi, yi), fx, alpha_weight); weight+=fx;
          }
       }
       Normalize(color, rgb, weight, alpha_weight, highPrecision());
@@ -3069,6 +3324,55 @@ void Image::gather(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
 {
    switch(hwType())
    {
+      case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: FREPD(y, y_offsets)
+      {
+       C Color *color=(Color*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; (colors++)->set(ByteToFlt(src.b), ByteToFlt(src.g), ByteToFlt(src.r), ByteToFlt(src.a));}
+      }break;
+
+      case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: FREPD(y, y_offsets)
+      {
+       C Color *color=(Color*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; (colors++)->set(ByteToFlt(src.r), ByteToFlt(src.g), ByteToFlt(src.b), ByteToFlt(src.a));}
+      }break;
+
+      case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB: FREPD(y, y_offsets)
+      {
+       C VecB *color=(VecB*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets){C VecB &src=color[x_offset[x]]; (colors++)->set(ByteToFlt(src.x), ByteToFlt(src.y), ByteToFlt(src.z), 1);}
+      }break;
+
+      case IMAGE_L8A8: case IMAGE_L8A8_SRGB: FREPD(y, y_offsets) // used for soft text drawing
+      {
+       C VecB2 *color=(VecB2*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets){C VecB2 &src=color[x_offset[x]]; Flt l=ByteToFlt(src.x); (colors++)->set(l, l, l, ByteToFlt(src.y));}
+      }break;
+
+      // Flt
+      case IMAGE_F32_4: case IMAGE_F32_4_SRGB: FREPD(y, y_offsets)
+      {
+       C Vec4 *color=(Vec4*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets)*colors++=color[x_offset[x]];
+      }break;
+
+      case IMAGE_F32_3: case IMAGE_F32_3_SRGB: FREPD(y, y_offsets)
+      {
+       C Vec *color=(Vec*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets)(colors++)->set(color[x_offset[x]], 1);
+      }break;
+
+      default:
+      {
+         FREPD(y, y_offsets)
+         FREPD(x, x_offsets)*colors++=colorF(x_offset[x], y_offset[y]);
+      }break;
+   }
+}
+/******************************************************************************/
+void Image::gatherL(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C
+{
+   switch(hwType())
+   {
       case IMAGE_B8G8R8A8: FREPD(y, y_offsets)
       {
        C Color *color=(Color*)(data()+y_offset[y]*pitch());
@@ -3131,14 +3435,27 @@ void Image::gather(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
          FREPD(x, x_offsets)(colors++)->set(color[x_offset[x]], 1);
       }break;
 
+      case IMAGE_F32_4_SRGB: FREPD(y, y_offsets)
+      {
+       C Vec4 *color=(Vec4*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets)*colors++=SRGBToLinear(color[x_offset[x]]);
+      }break;
+
+      case IMAGE_F32_3_SRGB: FREPD(y, y_offsets)
+      {
+       C Vec *color=(Vec*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets)(colors++)->set(SRGBToLinear(color[x_offset[x]]), 1);
+      }break;
+
       default:
       {
          FREPD(y, y_offsets)
-         FREPD(x, x_offsets)*colors++=colorF(x_offset[x], y_offset[y]);
+         FREPD(x, x_offsets)*colors++=colorL(x_offset[x], y_offset[y]);
       }break;
    }
 }
-void Image::gatherSRGB(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C
+/******************************************************************************/
+void Image::gatherS(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C
 {
    switch(hwType())
    {
@@ -3192,10 +3509,22 @@ void Image::gatherSRGB(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset
          FREPD(x, x_offsets)(colors++)->set(LinearToSRGB(color[x_offset[x]]), 1);
       }break;
 
+      case IMAGE_F32_4_SRGB: FREPD(y, y_offsets)
+      {
+       C Vec4 *color=(Vec4*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets)*colors++=color[x_offset[x]];
+      }break;
+
+      case IMAGE_F32_3_SRGB: FREPD(y, y_offsets)
+      {
+       C Vec *color=(Vec*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets)(colors++)->set(color[x_offset[x]], 1);
+      }break;
+
       default:
       {
          FREPD(y, y_offsets)
-         FREPD(x, x_offsets)*colors++=colorSRGBF(x_offset[x], y_offset[y]);
+         FREPD(x, x_offsets)*colors++=colorS(x_offset[x], y_offset[y]);
       }break;
    }
 }
@@ -3363,6 +3692,65 @@ void Image::gather(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
 {
    switch(hwType())
    {
+      case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Color *color_y=(Color*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets){C Color &src=color_y[x_offset[x]]; (colors++)->set(ByteToFlt(src.b), ByteToFlt(src.g), ByteToFlt(src.r), ByteToFlt(src.a));}
+         }
+      }break;
+
+      case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Color *color_y=(Color*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets){C Color &src=color_y[x_offset[x]]; (colors++)->set(ByteToFlt(src.r), ByteToFlt(src.g), ByteToFlt(src.b), ByteToFlt(src.a));}
+         }
+      }break;
+
+      case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C VecB *color_y=(VecB*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets){C VecB &src=color_y[x_offset[x]]; (colors++)->set(ByteToFlt(src.x), ByteToFlt(src.y), ByteToFlt(src.z), 1);}
+         }
+      }break;
+
+      // Flt
+      case IMAGE_F32_4: case IMAGE_F32_4_SRGB: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Vec4 *color_y=(Vec4*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets)*colors++=color_y[x_offset[x]];
+         }
+      }break;
+
+      case IMAGE_F32_3: case IMAGE_F32_3_SRGB: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Vec *color_y=(Vec*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets)(colors++)->set(color_y[x_offset[x]], 1);
+         }
+      }break;
+
+      default:
+      {
+         FREPD(z, z_offsets)
+         FREPD(y, y_offsets)
+         FREPD(x, x_offsets)*colors++=color3DF(x_offset[x], y_offset[y], z_offset[z]);
+      }break;
+   }
+}
+/******************************************************************************/
+void Image::gatherL(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C
+{
+   switch(hwType())
+   {
       case IMAGE_B8G8R8A8: FREPD(z, z_offsets)
       {
        C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
@@ -3437,11 +3825,134 @@ void Image::gather(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
          }
       }break;
 
+      case IMAGE_F32_4_SRGB: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Vec4 *color_y=(Vec4*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets)*colors++=SRGBToLinear(color_y[x_offset[x]]);
+         }
+      }break;
+
+      case IMAGE_F32_3_SRGB: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Vec *color_y=(Vec*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets)(colors++)->set(SRGBToLinear(color_y[x_offset[x]]), 1);
+         }
+      }break;
+
       default:
       {
          FREPD(z, z_offsets)
          FREPD(y, y_offsets)
-         FREPD(x, x_offsets)*colors++=color3DF(x_offset[x], y_offset[y], z_offset[z]);
+         FREPD(x, x_offsets)*colors++=color3DL(x_offset[x], y_offset[y], z_offset[z]);
+      }break;
+   }
+}
+/******************************************************************************/
+void Image::gatherS(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C
+{
+   switch(hwType())
+   {
+      case IMAGE_B8G8R8A8: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Color *color_y=(Color*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets){C Color &src=color_y[x_offset[x]]; (colors++)->set(LinearByteToSRGB(src.b), LinearByteToSRGB(src.g), LinearByteToSRGB(src.r), ByteToFlt(src.a));}
+         }
+      }break;
+
+      case IMAGE_R8G8B8A8: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Color *color_y=(Color*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets){C Color &src=color_y[x_offset[x]]; (colors++)->set(LinearByteToSRGB(src.r), LinearByteToSRGB(src.g), LinearByteToSRGB(src.b), ByteToFlt(src.a));}
+         }
+      }break;
+
+      case IMAGE_R8G8B8: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C VecB *color_y=(VecB*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets){C VecB &src=color_y[x_offset[x]]; (colors++)->set(LinearByteToSRGB(src.x), LinearByteToSRGB(src.y), LinearByteToSRGB(src.z), 1);}
+         }
+      }break;
+
+      // sRGB
+      case IMAGE_B8G8R8A8_SRGB: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Color *color_y=(Color*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets){C Color &src=color_y[x_offset[x]]; (colors++)->set(ByteToFlt(src.b), ByteToFlt(src.g), ByteToFlt(src.r), ByteToFlt(src.a));}
+         }
+      }break;
+
+      case IMAGE_R8G8B8A8_SRGB: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Color *color_y=(Color*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets){C Color &src=color_y[x_offset[x]]; (colors++)->set(ByteToFlt(src.r), ByteToFlt(src.g), ByteToFlt(src.b), ByteToFlt(src.a));}
+         }
+      }break;
+
+      case IMAGE_R8G8B8_SRGB: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C VecB *color_y=(VecB*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets){C VecB &src=color_y[x_offset[x]]; (colors++)->set(ByteToFlt(src.x), ByteToFlt(src.y), ByteToFlt(src.z), 1);}
+         }
+      }break;
+
+      // Flt
+      case IMAGE_F32_4: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Vec4 *color_y=(Vec4*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets)*colors++=LinearToSRGB(color_y[x_offset[x]]);
+         }
+      }break;
+
+      case IMAGE_F32_3: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Vec *color_y=(Vec*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets)(colors++)->set(LinearToSRGB(color_y[x_offset[x]]), 1);
+         }
+      }break;
+
+      case IMAGE_F32_4_SRGB: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Vec4 *color_y=(Vec4*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets)*colors++=color_y[x_offset[x]];
+         }
+      }break;
+
+      case IMAGE_F32_3_SRGB: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Vec *color_y=(Vec*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets)(colors++)->set(color_y[x_offset[x]], 1);
+         }
+      }break;
+
+      default:
+      {
+         FREPD(z, z_offsets)
+         FREPD(y, y_offsets)
+         FREPD(x, x_offsets)*colors++=color3DS(x_offset[x], y_offset[y], z_offset[z]);
       }break;
    }
 }

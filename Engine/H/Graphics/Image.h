@@ -51,18 +51,20 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
 
    IMAGE_R10G10B10A2, // 32-bit (R,G,B,A), linear gamma, Soft, DX10+, GL, GL ES
 
-   IMAGE_I8   , //      8-bit integer              , Soft
-   IMAGE_I16  , //     16-bit integer              , Soft
-   IMAGE_I24  , //     24-bit integer              , Soft
-   IMAGE_I32  , //     32-bit integer              , Soft
-   IMAGE_F16  , //     16-bit float                , Soft, DX10+, GL, GL ES
-   IMAGE_F32  , //     32-bit float                , Soft, DX10+, GL, GL ES
-   IMAGE_F16_2, // 2 x 16-bit float ( 32-bit total), Soft, DX10+, GL, GL ES
-   IMAGE_F32_2, // 2 x 32-bit float ( 64-bit total), Soft, DX10+, GL, GL ES
-   IMAGE_F16_3, // 3 x 16-bit float ( 48-bit total), Soft         GL, GL ES
-   IMAGE_F32_3, // 3 x 32-bit float ( 96-bit total), Soft, DX10+, GL, GL ES
-   IMAGE_F16_4, // 4 x 16-bit float ( 64-bit total), Soft, DX10+, GL, GL ES
-   IMAGE_F32_4, // 4 x 32-bit float (128-bit total), Soft, DX10+, GL, GL ES
+   IMAGE_I8        , //      8-bit integer              , linear gamma, Soft
+   IMAGE_I16       , //     16-bit integer              , linear gamma, Soft
+   IMAGE_I24       , //     24-bit integer              , linear gamma, Soft
+   IMAGE_I32       , //     32-bit integer              , linear gamma, Soft
+   IMAGE_F16       , //     16-bit float                , linear gamma, Soft, DX10+, GL, GL ES
+   IMAGE_F32       , //     32-bit float                , linear gamma, Soft, DX10+, GL, GL ES
+   IMAGE_F16_2     , // 2 x 16-bit float ( 32-bit total), linear gamma, Soft, DX10+, GL, GL ES
+   IMAGE_F32_2     , // 2 x 32-bit float ( 64-bit total), linear gamma, Soft, DX10+, GL, GL ES
+   IMAGE_F16_3     , // 3 x 16-bit float ( 48-bit total), linear gamma, Soft         GL, GL ES
+   IMAGE_F32_3     , // 3 x 32-bit float ( 96-bit total), linear gamma, Soft, DX10+, GL, GL ES
+   IMAGE_F16_4     , // 4 x 16-bit float ( 64-bit total), linear gamma, Soft, DX10+, GL, GL ES
+   IMAGE_F32_4     , // 4 x 32-bit float (128-bit total), linear gamma, Soft, DX10+, GL, GL ES
+   IMAGE_F32_3_SRGB, // 3 x 32-bit float ( 96-bit total), sRGB   gamma, Soft
+   IMAGE_F32_4_SRGB, // 4 x 32-bit float (128-bit total), sRGB   gamma, Soft
 
    // compressed format for Desktop
    IMAGE_BC1     , // BC1/DXT1 4-bit lossy RGBA compression with 1-bit  alpha            , linear gamma, Soft, DX10+, GL, partial Android
@@ -300,42 +302,42 @@ struct Image // Image (Texture)
    Image& freeOpenGLESData(); // this method is used only under OpenGL ES (on other platforms it is ignored), the method frees the software copy of the GPU data which increases available memory, however after calling this method the data can no longer be accessed on the CPU (can no longer be locked or saved to file)
 
    // pixel
-   UInt  pixel (Int x, Int y)C;   void pixel (Int x, Int y,   UInt   pixel); // get/set pixel UInt value (these methods may not support all compressed types, instead try using 'copy' method first)
-   Flt   pixelF(Int x, Int y)C;   void pixelF(Int x, Int y,   Flt    pixel); // get/set pixel Flt  value (these methods may not support all compressed types, instead try using 'copy' method first)
-   Color color (Int x, Int y)C;   void color (Int x, Int y, C Color &color); // get/set color Byte color (these methods may not support all compressed types, instead try using 'copy' method first)
-   Vec4  colorF(Int x, Int y)C;   void colorF(Int x, Int y, C Vec4  &color); // get/set color Flt  color (these methods may not support all compressed types, instead try using 'copy' method first)
-
-   Vec4 colorSRGBF(Int x, Int y)C;   void colorSRGBF(Int x, Int y, C Vec4 &color); // get/set sRGB color Flt color (these methods may not support all compressed types, instead try using 'copy' method first)
+   UInt  pixel (Int x, Int y)C;   void pixel (Int x, Int y,   UInt   pixel); // get/set pixel UInt value, image  gamma (no gamma conversion), (these methods may not support all compressed types, instead try using 'copy' method first)
+   Flt   pixelF(Int x, Int y)C;   void pixelF(Int x, Int y,   Flt    pixel); // get/set pixel Flt  value, image  gamma (no gamma conversion), (these methods may not support all compressed types, instead try using 'copy' method first)
+   Color color (Int x, Int y)C;   void color (Int x, Int y, C Color &color); // get/set color Byte color, image  gamma (no gamma conversion), (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4  colorF(Int x, Int y)C;   void colorF(Int x, Int y, C Vec4  &color); // get/set color Flt  color, image  gamma (no gamma conversion), (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4  colorL(Int x, Int y)C;   void colorL(Int x, Int y, C Vec4  &color); // get/set color Flt  color, linear gamma (   gamma conversion), (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4  colorS(Int x, Int y)C;   void colorS(Int x, Int y, C Vec4  &color); // get/set color Flt  color, sRGB   gamma (   gamma conversion), (these methods may not support all compressed types, instead try using 'copy' method first)
 
    void blend(Int x, Int y, C Vec4 &color); // apply 'color' pixel using ALPHA_BLEND formula
    void merge(Int x, Int y, C Vec4 &color); // apply 'color' pixel using ALPHA_MERGE formula
 
-   Flt pixelFLinear         (Flt x, Flt y, Bool clamp=true)C; // get pixel Flt with Linear            interpolation, 'clamp'=if use clamping when filtering pixels, (these methods may not support all compressed types, instead try using 'copy' method first)
-   Flt pixelFCubicFast      (Flt x, Flt y, Bool clamp=true)C; // get pixel Flt with Cubic Fast        interpolation, 'clamp'=if use clamping when filtering pixels, (these methods may not support all compressed types, instead try using 'copy' method first)
-   Flt pixelFCubicFastSmooth(Flt x, Flt y, Bool clamp=true)C; // get pixel Flt with Cubic Fast Smooth interpolation, 'clamp'=if use clamping when filtering pixels, (these methods may not support all compressed types, instead try using 'copy' method first)
-   Flt pixelFCubicFastSharp (Flt x, Flt y, Bool clamp=true)C; // get pixel Flt with Cubic Fast Sharp  interpolation, 'clamp'=if use clamping when filtering pixels, (these methods may not support all compressed types, instead try using 'copy' method first)
-   Flt pixelFCubic          (Flt x, Flt y, Bool clamp=true)C; // get pixel Flt with Cubic             interpolation, 'clamp'=if use clamping when filtering pixels, (these methods may not support all compressed types, instead try using 'copy' method first)
-   Flt pixelFCubicSharp     (Flt x, Flt y, Bool clamp=true)C; // get pixel Flt with Cubic Sharp       interpolation, 'clamp'=if use clamping when filtering pixels, (these methods may not support all compressed types, instead try using 'copy' method first)
+   Flt pixelFLinear         (Flt x, Flt y, Bool clamp=true)C; // get pixel Flt with Linear            interpolation, image gamma (no gamma conversion), 'clamp'=if use clamping when filtering pixels, (these methods may not support all compressed types, instead try using 'copy' method first)
+   Flt pixelFCubicFast      (Flt x, Flt y, Bool clamp=true)C; // get pixel Flt with Cubic Fast        interpolation, image gamma (no gamma conversion), 'clamp'=if use clamping when filtering pixels, (these methods may not support all compressed types, instead try using 'copy' method first)
+   Flt pixelFCubicFastSmooth(Flt x, Flt y, Bool clamp=true)C; // get pixel Flt with Cubic Fast Smooth interpolation, image gamma (no gamma conversion), 'clamp'=if use clamping when filtering pixels, (these methods may not support all compressed types, instead try using 'copy' method first)
+   Flt pixelFCubicFastSharp (Flt x, Flt y, Bool clamp=true)C; // get pixel Flt with Cubic Fast Sharp  interpolation, image gamma (no gamma conversion), 'clamp'=if use clamping when filtering pixels, (these methods may not support all compressed types, instead try using 'copy' method first)
+   Flt pixelFCubic          (Flt x, Flt y, Bool clamp=true)C; // get pixel Flt with Cubic             interpolation, image gamma (no gamma conversion), 'clamp'=if use clamping when filtering pixels, (these methods may not support all compressed types, instead try using 'copy' method first)
+   Flt pixelFCubicSharp     (Flt x, Flt y, Bool clamp=true)C; // get pixel Flt with Cubic Sharp       interpolation, image gamma (no gamma conversion), 'clamp'=if use clamping when filtering pixels, (these methods may not support all compressed types, instead try using 'copy' method first)
 
-   Vec4 colorFLinear         (Flt x, Flt y, Bool clamp=true, Bool alpha_weight=false)C; // get color Vec4 with Linear            interpolation, 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
-   Vec4 colorFCubicFast      (Flt x, Flt y, Bool clamp=true, Bool alpha_weight=false)C; // get color Vec4 with Cubic Fast        interpolation, 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
-   Vec4 colorFCubicFastSmooth(Flt x, Flt y, Bool clamp=true, Bool alpha_weight=false)C; // get color Vec4 with Cubic Fast Smooth interpolation, 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
-   Vec4 colorFCubicFastSharp (Flt x, Flt y, Bool clamp=true, Bool alpha_weight=false)C; // get color Vec4 with Cubic Fast Sharp  interpolation, 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
-   Vec4 colorFCubic          (Flt x, Flt y, Bool clamp=true, Bool alpha_weight=false)C; // get color Vec4 with Cubic             interpolation, 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
-   Vec4 colorFCubicSharp     (Flt x, Flt y, Bool clamp=true, Bool alpha_weight=false)C; // get color Vec4 with Cubic Sharp       interpolation, 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4 colorFLinear         (Flt x, Flt y, Bool clamp=true, Bool alpha_weight=false)C; // get color Vec4 with Linear            interpolation, image  gamma (no gamma conversion), 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4 colorFCubicFast      (Flt x, Flt y, Bool clamp=true, Bool alpha_weight=false)C; // get color Vec4 with Cubic Fast        interpolation, image  gamma (no gamma conversion), 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4 colorLCubicFast      (Flt x, Flt y, Bool clamp=true, Bool alpha_weight=false)C; // get color Vec4 with Cubic Fast        interpolation, linear gamma (   gamma conversion), 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4 colorSCubicFast      (Flt x, Flt y, Bool clamp=true, Bool alpha_weight=false)C; // get color Vec4 with Cubic Fast        interpolation, sRGB   gamma (   gamma conversion), 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4 colorFCubicFastSmooth(Flt x, Flt y, Bool clamp=true, Bool alpha_weight=false)C; // get color Vec4 with Cubic Fast Smooth interpolation, image  gamma (no gamma conversion), 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4 colorFCubicFastSharp (Flt x, Flt y, Bool clamp=true, Bool alpha_weight=false)C; // get color Vec4 with Cubic Fast Sharp  interpolation, image  gamma (no gamma conversion), 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4 colorFCubic          (Flt x, Flt y, Bool clamp=true, Bool alpha_weight=false)C; // get color Vec4 with Cubic             interpolation, image  gamma (no gamma conversion), 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4 colorFCubicSharp     (Flt x, Flt y, Bool clamp=true, Bool alpha_weight=false)C; // get color Vec4 with Cubic Sharp       interpolation, image  gamma (no gamma conversion), 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
 #if EE_PRIVATE
-   Vec4 colorFLinearTTNF32_4(Flt x, Flt y, Bool clamp)C; // optimized version specifically for 'transparentToNeighbor', 'clamp'=if use clamping when filtering pixels
+   Vec4 colorFLinearTTNF32_4(Flt x, Flt y, Bool clamp)C; // optimized version specifically for 'transparentToNeighbor', image  gamma (no gamma conversion), 'clamp'=if use clamping when filtering pixels
 #endif
 
-   Vec4 colorSRGBFCubicFast(Flt x, Flt y, Bool clamp=true, Bool alpha_weight=false)C; // get sRGB color Vec4 with Cubic Fast interpolation, 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
-
    // pixel 3D
-   UInt  pixel3D (Int x, Int y, Int z)C;   void pixel3D (Int x, Int y, Int z,   UInt   pixel); // get/set pixel 3D UInt value (these methods may not support all compressed types, instead try using 'copy' method first)
-   Flt   pixel3DF(Int x, Int y, Int z)C;   void pixel3DF(Int x, Int y, Int z,   Flt    pixel); // get/set pixel 3D Flt  value (these methods may not support all compressed types, instead try using 'copy' method first)
-   Color color3D (Int x, Int y, Int z)C;   void color3D (Int x, Int y, Int z, C Color &color); // get/set color 3D Byte color (these methods may not support all compressed types, instead try using 'copy' method first)
-   Vec4  color3DF(Int x, Int y, Int z)C;   void color3DF(Int x, Int y, Int z, C Vec4  &color); // get/set color 3D Flt  color (these methods may not support all compressed types, instead try using 'copy' method first)
-
-   Vec4 color3DSRGBF(Int x, Int y, Int z)C;   void color3DSRGBF(Int x, Int y, Int z, C Vec4 &color); // get/set sRGB color 3D Flt color (these methods may not support all compressed types, instead try using 'copy' method first)
+   UInt  pixel3D (Int x, Int y, Int z)C;   void pixel3D (Int x, Int y, Int z,   UInt   pixel); // get/set pixel 3D UInt value, image  gamma (no gamma conversion), (these methods may not support all compressed types, instead try using 'copy' method first)
+   Flt   pixel3DF(Int x, Int y, Int z)C;   void pixel3DF(Int x, Int y, Int z,   Flt    pixel); // get/set pixel 3D Flt  value, image  gamma (no gamma conversion), (these methods may not support all compressed types, instead try using 'copy' method first)
+   Color color3D (Int x, Int y, Int z)C;   void color3D (Int x, Int y, Int z, C Color &color); // get/set color 3D Byte color, image  gamma (no gamma conversion), (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4  color3DF(Int x, Int y, Int z)C;   void color3DF(Int x, Int y, Int z, C Vec4  &color); // get/set color 3D Flt  color, image  gamma (no gamma conversion), (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4  color3DL(Int x, Int y, Int z)C;   void color3DL(Int x, Int y, Int z, C Vec4  &color); // get/set color 3D Flt  color, linear gamma (   gamma conversion), (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4  color3DS(Int x, Int y, Int z)C;   void color3DS(Int x, Int y, Int z, C Vec4  &color); // get/set color 3D Flt  color, sRGB   gamma (   gamma conversion), (these methods may not support all compressed types, instead try using 'copy' method first)
 
    Flt pixel3DFLinear         (Flt x, Flt y, Flt z, Bool clamp=true)C; // get 3D pixel Flt with Linear            interpolation, 'clamp'=if use clamping when filtering pixels, (these methods may not support all compressed types, instead try using 'copy' method first)
    Flt pixel3DFCubicFast      (Flt x, Flt y, Flt z, Bool clamp=true)C; // get 3D pixel Flt with Cubic Fast        interpolation, 'clamp'=if use clamping when filtering pixels, (these methods may not support all compressed types, instead try using 'copy' method first)
@@ -352,13 +354,13 @@ struct Image // Image (Texture)
    Vec4 color3DFCubicSharp     (Flt x, Flt y, Flt z, Bool clamp=true, Bool alpha_weight=false)C; // get 3D color Vec4 with Cubic Sharp       interpolation, 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
 
    // pixel area
-   Vec4 areaColorAverage        (C Vec2 &pos, C Vec2 &size, Bool clamp=true, Bool alpha_weight=false)C; // get average color Vec4 of specified 'pos' position and 'size' coverage with Average           interpolation, 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
-   Vec4 areaColorLinear         (C Vec2 &pos, C Vec2 &size, Bool clamp=true, Bool alpha_weight=false)C; // get average color Vec4 of specified 'pos' position and 'size' coverage with Linear            interpolation, 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
-   Vec4 areaColorCubicFast      (C Vec2 &pos, C Vec2 &size, Bool clamp=true, Bool alpha_weight=false)C; // get average color Vec4 of specified 'pos' position and 'size' coverage with Cubic Fast        interpolation, 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
-   Vec4 areaColorCubicFastSmooth(C Vec2 &pos, C Vec2 &size, Bool clamp=true, Bool alpha_weight=false)C; // get average color Vec4 of specified 'pos' position and 'size' coverage with Cubic Fast Smooth interpolation, 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
-   Vec4 areaColorCubicFastSharp (C Vec2 &pos, C Vec2 &size, Bool clamp=true, Bool alpha_weight=false)C; // get average color Vec4 of specified 'pos' position and 'size' coverage with Cubic Fast Sharp  interpolation, 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
-   Vec4 areaColorCubic          (C Vec2 &pos, C Vec2 &size, Bool clamp=true, Bool alpha_weight=false)C; // get average color Vec4 of specified 'pos' position and 'size' coverage with Cubic             interpolation, 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
-   Vec4 areaColorCubicSharp     (C Vec2 &pos, C Vec2 &size, Bool clamp=true, Bool alpha_weight=false)C; // get average color Vec4 of specified 'pos' position and 'size' coverage with Cubic Sharp       interpolation, 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4 areaColorAverage        (C Vec2 &pos, C Vec2 &size, Bool clamp=true, Bool alpha_weight=false)C; // get average color Vec4 of specified 'pos' position and 'size' coverage with Average           interpolation, linear gamma (gamma conversion), 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4 areaColorLinear         (C Vec2 &pos, C Vec2 &size, Bool clamp=true, Bool alpha_weight=false)C; // get average color Vec4 of specified 'pos' position and 'size' coverage with Linear            interpolation, linear gamma (gamma conversion), 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4 areaColorCubicFast      (C Vec2 &pos, C Vec2 &size, Bool clamp=true, Bool alpha_weight=false)C; // get average color Vec4 of specified 'pos' position and 'size' coverage with Cubic Fast        interpolation, linear gamma (gamma conversion), 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4 areaColorCubicFastSmooth(C Vec2 &pos, C Vec2 &size, Bool clamp=true, Bool alpha_weight=false)C; // get average color Vec4 of specified 'pos' position and 'size' coverage with Cubic Fast Smooth interpolation, linear gamma (gamma conversion), 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4 areaColorCubicFastSharp (C Vec2 &pos, C Vec2 &size, Bool clamp=true, Bool alpha_weight=false)C; // get average color Vec4 of specified 'pos' position and 'size' coverage with Cubic Fast Sharp  interpolation, linear gamma (gamma conversion), 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4 areaColorCubic          (C Vec2 &pos, C Vec2 &size, Bool clamp=true, Bool alpha_weight=false)C; // get average color Vec4 of specified 'pos' position and 'size' coverage with Cubic             interpolation, linear gamma (gamma conversion), 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
+   Vec4 areaColorCubicSharp     (C Vec2 &pos, C Vec2 &size, Bool clamp=true, Bool alpha_weight=false)C; // get average color Vec4 of specified 'pos' position and 'size' coverage with Cubic Sharp       interpolation, linear gamma (gamma conversion), 'clamp'=if use clamping when filtering pixels, 'alpha_weight'=if use pixel's alpha for weight of pixel's color (these methods may not support all compressed types, instead try using 'copy' method first)
 
    // operations
    Image& clear                (                                                                                                                                               ) ; // clear to 0 (transparent black)
@@ -461,15 +463,18 @@ struct Image // Image (Texture)
  C Vec4 & pixF4(Int x, Int y, Int z)C {return *(Vec4 *)(_data + x*SIZE(Vec4 ) + y*_pitch + z*_pitch2);}   C Vec4 & pixF4(C VecI &v)C {return pixF4(v.x, v.y, v.z);}
 
    // !! warning: 'gather' methods are written for speed and not safety, they assume that image is locked and that offsets are in range, these methods set 'pixels/colors' array from image values, coordinates are specified in the 'offset' parameters !!
-   void gather    (Flt   *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
-   void gather    (VecB  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
-   void gather    (Color *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
-   void gather    (Vec4  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
-   void gatherSRGB(Vec4  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
-   void gather    (Flt   *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
-   void gather    (VecB  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
-   void gather    (Color *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
-   void gather    (Vec4  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
+   void gather (Flt   *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
+   void gather (VecB  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
+   void gather (Color *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
+   void gather (Vec4  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
+   void gatherL(Vec4  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
+   void gatherS(Vec4  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
+   void gather (Flt   *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
+   void gather (VecB  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
+   void gather (Color *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
+   void gather (Vec4  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
+   void gatherL(Vec4  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
+   void gatherS(Vec4  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
 
    // fit
    Rect fit        (C Rect &rect, FIT_MODE fit=FIT_FULL)C {return Fit(   aspect(), rect, fit);} // get rectangle that can be used for drawing of the image to the 'rect' destination while preserving image proportions according to specified 'fit' mode
@@ -725,7 +730,7 @@ inline Bool HighPrecision(C Image   &src, C Image   &dest) {return HighPrecision
        Bool CanDoRawCopy (IMAGE_TYPE src, IMAGE_TYPE dest);
        Bool CanDoRawCopy (C Image   &src, C Image   &dest);
 Bool CompatibleLock(LOCK_MODE cur, LOCK_MODE lock); // if 'lock' is okay to be applied when 'cur' is already applied
-Vec4 ImageColorF(CPtr data, IMAGE_TYPE hw_type);
+Vec4 ImageColorL(CPtr data, IMAGE_TYPE hw_type);
 void CopyNoStretch(C Image &src, Image &dest, Bool clamp); // assumes 'src,dest' are locked and non-compressed
 #if WINDOWS
    HICON CreateIcon(C Image &image, C VecI2 *cursor_hot_spot=null); // 'cursor_hot_spot'=if this is specified then the icon is treated as a mouse cursor with given hot spot, otherwise it's a normal icon

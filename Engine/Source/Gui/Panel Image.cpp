@@ -5,20 +5,13 @@ namespace EE{
 /******************************************************************************/
 #define PANEL_IMAGE_LINEAR_GAMMA 0 // if perform operations in Linear Gamma (if false then sRGB Gamma), false generated prettier results
 
-static inline Vec4 ConvertSRGB(C Color &srgb) {return PANEL_IMAGE_LINEAR_GAMMA ? SRGBToLinear(srgb) : (Vec4)srgb;}
+static inline Vec4 Convert(C Color &srgb) {return PANEL_IMAGE_LINEAR_GAMMA ? SRGBToLinear(srgb) : (Vec4)srgb;}
 
 #if PANEL_IMAGE_LINEAR_GAMMA
-   #define GET_COLOR colorFCubicFast
+   #define GET_COLOR colorLCubicFast
 #else
-   #define GET_COLOR colorSRGBFCubicFast
+   #define GET_COLOR colorSCubicFast
 #endif
-
-// not needed because we already modify 'GET_COLOR'
-//static inline Vec  ConvertLinear(C Vec   &lin ) {return PANEL_IMAGE_LINEAR_GAMMA ? lin :      LinearToSRGB(lin    );}
-//static inline Vec4 ConvertLinear(C Vec4  &lin ) {return PANEL_IMAGE_LINEAR_GAMMA ? lin : Vec4(LinearToSRGB(lin.xyz), lin.w);}
-
-static inline Vec  ConvertLinear(C Vec  &lin) {return lin;}
-static inline Vec4 ConvertLinear(C Vec4 &lin) {return lin;}
 /******************************************************************************
 
    Vertex Shear:
@@ -124,16 +117,16 @@ struct SectionParams
 
    void setColors(C PanelImageParams::Section &src)
    {
-      color_top         =ConvertSRGB(src.color_top);
-      color_bottom      =ConvertSRGB(src.color_bottom);
-      color_left        =ConvertSRGB(src.color_left);
-      color_right       =ConvertSRGB(src.color_right);
-      outer_color       =ConvertSRGB(src.outer_color);
-      inner_color       =ConvertSRGB(src.inner_color);
-      outer_border_color=ConvertSRGB(src.outer_border_color);
-      inner_border_color=ConvertSRGB(src.inner_border_color);
-       prev_border_color=ConvertSRGB(src. prev_border_color);
-      Vec4 src_color    =ConvertSRGB(src.color); outer_color*=src_color; inner_color*=src_color;
+      color_top         =Convert(src.color_top);
+      color_bottom      =Convert(src.color_bottom);
+      color_left        =Convert(src.color_left);
+      color_right       =Convert(src.color_right);
+      outer_color       =Convert(src.outer_color);
+      inner_color       =Convert(src.inner_color);
+      outer_border_color=Convert(src.outer_border_color);
+      inner_border_color=Convert(src.inner_border_color);
+       prev_border_color=Convert(src. prev_border_color);
+      Vec4 src_color    =Convert(src.color); outer_color*=src_color; inner_color*=src_color;
    }
    void setColorY(Flt section_frac, C Vec4 &global_color_y, Vec4 &section_color_y)
    {
@@ -573,11 +566,11 @@ struct PanelImageCreate
          }
          top_offset=-(last.size_top-last.size)*0.5f*resolution;
 
-         color_top   =ConvertSRGB(params.color_top   )*ConvertSRGB(params.color);
-         color_bottom=ConvertSRGB(params.color_bottom)*ConvertSRGB(params.color);
-         color_left  =ConvertSRGB(params.color_left);
-         color_right =ConvertSRGB(params.color_right);
-    inner_glow_color =ConvertSRGB(params.inner_glow_color);
+         color_top   =Convert(params.color_top   )*Convert(params.color);
+         color_bottom=Convert(params.color_bottom)*Convert(params.color);
+         color_left  =Convert(params.color_left);
+         color_right =Convert(params.color_right);
+    inner_glow_color =Convert(params.inner_glow_color);
 
          Flt cut_corner_amount=params.cut_corner_amount*0.5f*resolution, cut_corner_slope=Max(0, params.cut_corner_slope);
          corner_line[0][0].pos.set(            0,             0+cut_corner_amount); corner_line[0][0].normal.set( 1,  cut_corner_slope);
@@ -948,8 +941,8 @@ struct PanelImageCreate
             // apply depth overlay
             if(sp.overlay)
             {
-               Vec4 ovr=ConvertLinear(sp.overlay->GET_COLOR(x*sp.overlay_uv_scale+sp.overlay_uv_offset.x,
-                                                            y*sp.overlay_uv_scale+sp.overlay_uv_offset.y, false));
+               Vec4 ovr=sp.overlay->GET_COLOR(x*sp.overlay_uv_scale+sp.overlay_uv_offset.x,
+                                              y*sp.overlay_uv_scale+sp.overlay_uv_offset.y, false);
                ovr.xyz=ovr.xyz.max();
                ovr.w *=sp.overlay_intensity;
                switch(section.depth_overlay_params.mode)
@@ -1035,7 +1028,7 @@ struct PanelImageCreate
             {
                Vec2 tex(x, y); tex*=sp.overlay_uv_scale; tex+=sp.overlay_uv_offset;
                if(sp.overlay_uv_warp){Vec2 n=nrm.xy; n.setLength(1-CosSin(n.length())); tex+=sp.overlay_uv_warp*n;}
-               Vec4 ovr=ConvertLinear(sp.overlay->GET_COLOR(tex.x, tex.y, false));
+               Vec4 ovr=sp.overlay->GET_COLOR(tex.x, tex.y, false);
                switch(section.color_overlay_params.mode)
                {
                   case PanelImageParams::ImageParams::MULTIPLY  : col    *=Lerp       (Vec4(1)       , ovr , sp.overlay_intensity ); break;
@@ -1065,20 +1058,20 @@ struct PanelImageCreate
             // apply 3x3 images
             if(y<y1)
             {
-               if(x<top_x1){if( top_left_image)col*=ConvertLinear( top_left_image->GET_COLOR(x*image_frac_mul_add[0][0].x+image_frac_mul_add[0][0].y, image_frac_y[0][0], true, true));}else
-               if(x<top_x2){if(      top_image)col*=ConvertLinear(      top_image->GET_COLOR(x*image_frac_mul_add[1][0].x+image_frac_mul_add[1][0].y, image_frac_y[1][0], true, true));}else
-                           {if(top_right_image)col*=ConvertLinear(top_right_image->GET_COLOR(x*image_frac_mul_add[2][0].x+image_frac_mul_add[2][0].y, image_frac_y[2][0], true, true));}
+               if(x<top_x1){if( top_left_image)col*= top_left_image->GET_COLOR(x*image_frac_mul_add[0][0].x+image_frac_mul_add[0][0].y, image_frac_y[0][0], true, true);}else
+               if(x<top_x2){if(      top_image)col*=      top_image->GET_COLOR(x*image_frac_mul_add[1][0].x+image_frac_mul_add[1][0].y, image_frac_y[1][0], true, true);}else
+                           {if(top_right_image)col*=top_right_image->GET_COLOR(x*image_frac_mul_add[2][0].x+image_frac_mul_add[2][0].y, image_frac_y[2][0], true, true);}
             }else
             if(y<y2)
             {
-               if(x<x1){if(  left_image)col*=ConvertLinear(  left_image->GET_COLOR(x*image_frac_mul_add[0][1].x+image_frac_mul_add[0][1].y, image_frac_y[0][1], true, true));}else
-               if(x<x2){if(center_image)col*=ConvertLinear(center_image->GET_COLOR(x*image_frac_mul_add[1][1].x+image_frac_mul_add[1][1].y, image_frac_y[1][1], true, true));}else
-                       {if( right_image)col*=ConvertLinear( right_image->GET_COLOR(x*image_frac_mul_add[2][1].x+image_frac_mul_add[2][1].y, image_frac_y[2][1], true, true));}
+               if(x<x1){if(  left_image)col*=  left_image->GET_COLOR(x*image_frac_mul_add[0][1].x+image_frac_mul_add[0][1].y, image_frac_y[0][1], true, true);}else
+               if(x<x2){if(center_image)col*=center_image->GET_COLOR(x*image_frac_mul_add[1][1].x+image_frac_mul_add[1][1].y, image_frac_y[1][1], true, true);}else
+                       {if( right_image)col*= right_image->GET_COLOR(x*image_frac_mul_add[2][1].x+image_frac_mul_add[2][1].y, image_frac_y[2][1], true, true);}
             }else
             {
-               if(x<bottom_x1){if( bottom_left_image)col*=ConvertLinear( bottom_left_image->GET_COLOR(x*image_frac_mul_add[0][2].x+image_frac_mul_add[0][2].y, image_frac_y[0][2], true, true));}else
-               if(x<bottom_x2){if(      bottom_image)col*=ConvertLinear(      bottom_image->GET_COLOR(x*image_frac_mul_add[1][2].x+image_frac_mul_add[1][2].y, image_frac_y[1][2], true, true));}else
-                              {if(bottom_right_image)col*=ConvertLinear(bottom_right_image->GET_COLOR(x*image_frac_mul_add[2][2].x+image_frac_mul_add[2][2].y, image_frac_y[2][2], true, true));}
+               if(x<bottom_x1){if( bottom_left_image)col*= bottom_left_image->GET_COLOR(x*image_frac_mul_add[0][2].x+image_frac_mul_add[0][2].y, image_frac_y[0][2], true, true);}else
+               if(x<bottom_x2){if(      bottom_image)col*=      bottom_image->GET_COLOR(x*image_frac_mul_add[1][2].x+image_frac_mul_add[1][2].y, image_frac_y[1][2], true, true);}else
+                              {if(bottom_right_image)col*=bottom_right_image->GET_COLOR(x*image_frac_mul_add[2][2].x+image_frac_mul_add[2][2].y, image_frac_y[2][2], true, true);}
             }
 
             // calculate light and specular
@@ -1136,7 +1129,7 @@ struct PanelImageCreate
                }
                uv=(uv*0.5f+0.5f)*sp.reflection->h();
                if(!sp.reflection_one)uv.x+=sp.reflection->h()*face;
-               Vec tex=ConvertLinear(sp.reflection->GET_COLOR(uv.x, uv.y).xyz);
+               Vec tex=sp.reflection->GET_COLOR(uv.x, uv.y).xyz;
                col=AdditiveBlend(col, Vec4(tex, section.reflection_intensity));
             }
 
@@ -1169,8 +1162,8 @@ struct PanelImageCreate
             if(Kb.b(KB_H))col=ColorBrightness(depth      ).asVec4();
          #endif*/
          }
-         if(PANEL_IMAGE_LINEAR_GAMMA)image.colorF    (x, y, col);
-         else                        image.colorSRGBF(x, y, col);
+         if(PANEL_IMAGE_LINEAR_GAMMA)image.colorL(x, y, col);
+         else                        image.colorS(x, y, col);
       }
    }
    void afterColor(FILTER_TYPE filter)

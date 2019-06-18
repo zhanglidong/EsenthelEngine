@@ -2816,7 +2816,7 @@ struct BlurCube
                {
                   Flt a=Acos(cos), w=Weight(a/angle);
                   // FIXME mul 'w' by texel area size
-                  col   +=w*ImageColorF(src_data + x*src.bytePP(), src.hwType());
+                  col   +=w*ImageColorL(src_data + x*src.bytePP(), src.hwType());
                   weight+=w;
                }
             }
@@ -2890,7 +2890,7 @@ struct BlurCube
                            {
                               Flt a=Acos(cos), w=Weight(a/angle);
                               // FIXME mul 'w' by texel area size
-                              col   +=w*ImageColorF(src_data + x*src.bytePP(), src.hwType());
+                              col   +=w*ImageColorL(src_data + x*src.bytePP(), src.hwType());
                               weight+=w;
                            }
                         }
@@ -2930,7 +2930,7 @@ struct BlurCube
                src.unlock();
             }
          }
-         dest.colorF(x, y, col);
+         dest.colorL(x, y, col);
       }
    }
 

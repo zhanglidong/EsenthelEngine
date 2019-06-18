@@ -96,6 +96,8 @@ ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have the sa
    {"F32_3"        , false, 12, 96,  32,32,32, 0,   0,0, 3, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_R32G32B32_FLOAT   , GL_RGB32F )},
    {"F16_4"        , false,  8, 64,  16,16,16,16,   0,0, 4, IMAGE_PRECISION_16, 0, GPU_API(DXGI_FORMAT_R16G16B16A16_FLOAT, GL_RGBA16F)},
    {"F32_4"        , false, 16,128,  32,32,32,32,   0,0, 4, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_R32G32B32A32_FLOAT, GL_RGBA32F)},
+   {"F32_3_SRGB"   , false, 12, 96,  32,32,32, 0,   0,0, 3, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_UNKNOWN           , 0)},
+   {"F32_4_SRGB"   , false, 16,128,  32,32,32,32,   0,0, 4, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_UNKNOWN           , 0)},
 
    {"BC1"          , true ,  0,  4,   5, 6, 5, 1,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC1_UNORM     , GL_COMPRESSED_RGBA_S3TC_DXT1_EXT)},
    {"BC1_SRGB"     , true ,  0,  4,   5, 6, 5, 1,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC1_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT)},
@@ -142,7 +144,7 @@ ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have the sa
 
    {"R11G11B10F"   , false,  4, 32,  11,11,10, 0,   0,0, 3, IMAGE_PRECISION_10, 0, GPU_API(DXGI_FORMAT_R11G11B10_FLOAT   , GL_R11F_G11F_B10F)},
    {"R9G9B9E5F"    , false,  4, 32,  14,14,14, 0,   0,0, 3, IMAGE_PRECISION_10, 0, GPU_API(DXGI_FORMAT_R9G9B9E5_SHAREDEXP, GL_RGB9_E5)},
-}; ASSERT(IMAGE_ALL_TYPES==60);
+}; ASSERT(IMAGE_ALL_TYPES==63);
 /******************************************************************************/
 Bool IsSRGB(IMAGE_TYPE type)
 {
@@ -155,6 +157,8 @@ Bool IsSRGB(IMAGE_TYPE type)
       case IMAGE_R8G8B8_SRGB  :
       case IMAGE_L8_SRGB      :
       case IMAGE_L8A8_SRGB    :
+      case IMAGE_F32_3_SRGB   :
+      case IMAGE_F32_4_SRGB   :
       case IMAGE_BC1_SRGB     :
       case IMAGE_BC2_SRGB     :
       case IMAGE_BC3_SRGB     :
@@ -201,6 +205,8 @@ IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type)
       case IMAGE_F32_2:
       case IMAGE_F32_3: return IMAGE_F32_4;
 
+      case IMAGE_F32_3_SRGB: return IMAGE_F32_4_SRGB;
+
       case IMAGE_ETC1   :
       case IMAGE_ETC2   :
       case IMAGE_ETC2_A1: return IMAGE_ETC2_A8; // ETC2_A1 has only 1-bit alpha which is not enough
@@ -235,6 +241,8 @@ IMAGE_TYPE ImageTypeExcludeAlpha(IMAGE_TYPE type)
 
       case IMAGE_F16_4: return IMAGE_F16_3;
       case IMAGE_F32_4: return IMAGE_F32_3;
+
+      case IMAGE_F32_4_SRGB: return IMAGE_F32_3_SRGB;
 
       case IMAGE_ETC2_A1:
       case IMAGE_ETC2_A8: return IMAGE_ETC2;
@@ -306,6 +314,10 @@ IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type) // this is for HW images, don't retu
       case IMAGE_PVRTC1_4_SRGB:
          return IMAGE_R8G8B8A8_SRGB;
 
+      case IMAGE_F32_3_SRGB:
+      case IMAGE_F32_4_SRGB:
+         return IMAGE_R8G8B8A8_SRGB; // TODO: we could return IMAGE_F32_3/IMAGE_F32_4 but we would have to make sure gamma conversion is performed
+
       case IMAGE_BC6:
          return IMAGE_F16_3;
    }
@@ -320,6 +332,8 @@ IMAGE_TYPE ImageTypeRemoveSRGB(IMAGE_TYPE type)
       case IMAGE_R8G8B8_SRGB  : return IMAGE_R8G8B8;
       case IMAGE_L8_SRGB      : return IMAGE_L8;
       case IMAGE_L8A8_SRGB    : return IMAGE_L8A8;
+      case IMAGE_F32_3_SRGB   : return IMAGE_F32_3;
+      case IMAGE_F32_4_SRGB   : return IMAGE_F32_4;
       case IMAGE_BC1_SRGB     : return IMAGE_BC1;
       case IMAGE_BC2_SRGB     : return IMAGE_BC2;
       case IMAGE_BC3_SRGB     : return IMAGE_BC3;
@@ -341,6 +355,8 @@ IMAGE_TYPE ImageTypeToggleSRGB(IMAGE_TYPE type)
       case IMAGE_R8G8B8_SRGB  : return IMAGE_R8G8B8  ;   case IMAGE_R8G8B8  : return IMAGE_R8G8B8_SRGB;
       case IMAGE_L8_SRGB      : return IMAGE_L8      ;   case IMAGE_L8      : return IMAGE_L8_SRGB;
       case IMAGE_L8A8_SRGB    : return IMAGE_L8A8    ;   case IMAGE_L8A8    : return IMAGE_L8A8_SRGB;
+      case IMAGE_F32_3_SRGB   : return IMAGE_F32_3   ;   case IMAGE_F32_3   : return IMAGE_F32_3_SRGB;
+      case IMAGE_F32_4_SRGB   : return IMAGE_F32_4   ;   case IMAGE_F32_4   : return IMAGE_F32_4_SRGB;
       case IMAGE_BC1_SRGB     : return IMAGE_BC1     ;   case IMAGE_BC1     : return IMAGE_BC1_SRGB;
       case IMAGE_BC2_SRGB     : return IMAGE_BC2     ;   case IMAGE_BC2     : return IMAGE_BC2_SRGB;
       case IMAGE_BC3_SRGB     : return IMAGE_BC3     ;   case IMAGE_BC3     : return IMAGE_BC3_SRGB;
