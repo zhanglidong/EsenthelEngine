@@ -4163,14 +4163,18 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
       {
          if(!ImageTI[hwType()].a)alpha_weight=false; // disable 'alpha_weight' if the source doesn't have it
 
-         /* When downsampling, we always operate in linear gamma (to preserve brightness - that's why 'areaColor*' functions operate in linear gamma) and always end up with linear gamma result
-            Vec4 linear_color;
-            if(ignore_gamma) // we don't want to convert gamma
-            {
-               if(src_srgb)linear_color.xyz=LinearToSRGB(linear_color.xyz); // source is sRGB however we have 'linear_color', so convert it back to sRGB
-                  dest.colorF(x, y, linear_color);
-            }else dest.colorL(x, y, linear_color); // write 'linear_color', 'colorL' will perform gamma conversion
-         */
+      /* When downsampling, we always operate in linear gamma (to preserve brightness - that's why 'areaColor*' functions operate in linear gamma) and always end up with linear gamma result
+         Vec4 linear_color;
+         if(ignore_gamma) // we don't want to convert gamma
+         {
+            if(src_srgb)linear_color.xyz=LinearToSRGB(linear_color.xyz); // source is sRGB however we have 'linear_color', so convert it back to sRGB
+               dest.colorF(x, y, linear_color);
+         }else dest.colorL(x, y, linear_color); // write 'linear_color', 'colorL' will perform gamma conversion
+
+         However if dest is sRGB then 'dest.colorL' will already call 'LinearToSRGB' inside (potentially faster for Byte types).
+         So if 'src_srgb' and we have to do 'LinearToSRGB', and dest is sRGB then we can just skip 'ignore_gamma' and call 'dest.colorL' */
+         Bool ignore_gamma_ds=(ignore_gamma && !(src_srgb && dest_srgb)); // if both are sRGB then disable 'ignore_gamma_ds'
+         // FIXME test this
 
          // check for optimized downscale
          if(dest.lw()==Max(1, T.lw()>>1)
@@ -4219,7 +4223,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                               col.y=(c[0][0].y*c[0][0].w + c[0][1].y*c[0][1].w + c[1][0].y*c[1][0].w + c[1][1].y*c[1][1].w)/a;
                               col.z=(c[0][0].z*c[0][0].w + c[0][1].z*c[0][1].w + c[1][0].z*c[1][0].w + c[1][1].z*c[1][1].w)/a;
                            }
-                           if(ignore_gamma) // we don't want to convert gamma
+                           if(ignore_gamma_ds) // we don't want to convert gamma
                            {
                               if(src_srgb)col.xyz=LinearToSRGB(col.xyz); // source is sRGB however we have linear color, so convert it back to sRGB
                                  dest.colorF(x, y, col);
@@ -4402,7 +4406,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                            REPD(x, 8)
                            REPD(y, 8)if(Flt w=CFSMW8[y][x])Add(color, rgb, c[y][x], w, alpha_weight);
                            Normalize(color, rgb, alpha_weight, src_high_prec);
-                           if(ignore_gamma) // we don't want to convert gamma
+                           if(ignore_gamma_ds) // we don't want to convert gamma
                            {
                               if(src_srgb)color.xyz=LinearToSRGB(color.xyz); // source is sRGB however we have linear color, so convert it back to sRGB
                                  dest.colorF(x, y, color);
@@ -4488,7 +4492,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
             Vec size(x_mul_add.x, y_mul_add.x, z_mul_add.x); size*=sharp_smooth;
             if(filter!=FILTER_NONE && (size.x>1 || size.y>1) && T.ld()==1 && dest.ld()==1) // if we're downsampling (any scale is higher than 1) then we must use more complex 'areaColor*' methods
             {
-               // !! This operates on Linear Gamma !!
+               // !! Downsampling operates on Linear Gamma !!
                Vec4 (Image::*area_color)(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool alpha_weight)C; // pointer to class method
                switch(filter)
                {
@@ -4509,7 +4513,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                   {
                      pos.x=x*x_mul_add.x+x_mul_add.y;
                      Vec4 linear_color=(T.*area_color)(pos, size.xy, clamp, alpha_weight); // 'areaColor*' is linear
-                     if(ignore_gamma) // we don't want to convert gamma
+                     if(ignore_gamma_ds) // we don't want to convert gamma
                      {
                         if(src_srgb)linear_color.xyz=LinearToSRGB(linear_color.xyz); // source is sRGB however we have 'linear_color', so convert it back to sRGB
                            dest.colorF(x, y, linear_color);
@@ -4517,7 +4521,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                   }
                }
             }else
-// FIXME all below
+            // !! Codes below operate on Source Image Native Gamma !! because upscaling sRGB images looks better if they're not sRGB, and linear images need linear anyway
             if((filter==FILTER_CUBIC || filter==FILTER_CUBIC_SHARP || filter==FILTER_BEST) // optimized Cubic/Best upscale
             && T.ld()==1)
             {
@@ -4580,6 +4584,7 @@ Bool Image::copySoft(Image &dest, FILTER_TYPE filter, UInt flags, Int max_mip_ma
                               }
                            }
                            Normalize(color, rgb, weight, alpha_weight, src_high_prec);
+// FIXME all below
                            StoreColor(dest, dest_data_y, color);
                         }
                      }else
