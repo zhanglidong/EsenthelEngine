@@ -386,12 +386,12 @@ static void SetPixelF(Byte *data, IMAGE_TYPE type, Flt pixel)
 }
 void Image::pixelF(Int x, Int y, Flt pixel)
 {
-   if(InRange(x, lw()) && InRange(y, lh()) && !compressed()) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+   if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
       SetPixelF(data() + x*bytePP() + y*pitch(), hwType(), pixel);
 }
 void Image::pixel3DF(Int x, Int y, Int z, Flt pixel)
 {
-   if(InRange(x, lw()) && InRange(y, lh()) && InRange(z, ld()) && !compressed()) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
+   if(InRange(x, lw()) && InRange(y, lh()) && InRange(z, ld())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
       SetPixelF(data() + x*bytePP() + y*pitch() + z*pitch2(), hwType(), pixel);
 }
 /******************************************************************************/
