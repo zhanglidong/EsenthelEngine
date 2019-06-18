@@ -1170,10 +1170,10 @@ struct PanelImageCreate
    {
       image.transparentToNeighbor();
    #if DEBUG
-      if(Kb.b(KB_N)){map.mulAdd(Vec4(0.5f, 0.5f, 0.5f, 1), Vec4(0.5f, 0.5f, 0.5f, 0)); map.copy(image, -1, -1, -1, IMAGE_R8G8B8);}
+      if(Kb.b(KB_N)){map.mulAdd(Vec4(0.5f, 0.5f, 0.5f, 1), Vec4(0.5f, 0.5f, 0.5f, 0)); map.copy(image, -1, -1, -1, IMAGE_R8G8B8_SRGB);}
    #endif
 
-      image.resize(image_size.x/super_sample, image_size.y/super_sample, filter, true, true); // 'alpha_weight' needed when having 2 sections with different opacities   }
+      image.resize(image_size.x/super_sample, image_size.y/super_sample, filter, IC_CLAMP|IC_ALPHA_WEIGHT); // IC_ALPHA_WEIGHT needed when having 2 sections with different opacities
 
       panel_image._padd.zero();
       VecI2 old_size=image.size();

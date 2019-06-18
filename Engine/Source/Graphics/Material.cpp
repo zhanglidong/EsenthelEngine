@@ -616,8 +616,8 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image &alp
       {
          Int w=Max(col_src->w(), bump_src->w()),
              h=Max(col_src->h(), bump_src->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         Image  col_temp; C Image *cs= col_src; if(cs->is() && (cs->w()!=w || cs->h()!=h))if(cs->copyTry( col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, false))cs=& col_temp;else goto error;
-         Image bump_temp; C Image *bs=bump_src; if(bs->is() && (bs->w()!=w || bs->h()!=h))if(bs->copyTry(bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, false))bs=&bump_temp;else goto error;
+         Image  col_temp; C Image *cs= col_src; if(cs->is() && (cs->w()!=w || cs->h()!=h))if(cs->copyTry( col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))cs=& col_temp;else goto error;
+         Image bump_temp; C Image *bs=bump_src; if(bs->is() && (bs->w()!=w || bs->h()!=h))if(bs->copyTry(bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))bs=&bump_temp;else goto error;
          dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8A8_SRGB);
          if(!cs->is() || cs->lockRead())
          {
@@ -633,8 +633,8 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image &alp
       {
          Int w=Max(col_src->w(), alpha_src->w()),
              h=Max(col_src->h(), alpha_src->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         Image   col_temp; C Image *cs=  col_src; if(cs->is() && (cs->w()!=w || cs->h()!=h))if(cs->copyTry(  col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, false))cs=&  col_temp;else goto error;
-         Image alpha_temp; C Image *as=alpha_src; if(as->is() && (as->w()!=w || as->h()!=h))if(as->copyTry(alpha_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, false))as=&alpha_temp;else goto error;
+         Image   col_temp; C Image *cs=  col_src; if(cs->is() && (cs->w()!=w || cs->h()!=h))if(cs->copyTry(  col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))cs=&  col_temp;else goto error;
+         Image alpha_temp; C Image *as=alpha_src; if(as->is() && (as->w()!=w || as->h()!=h))if(as->copyTry(alpha_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))as=&alpha_temp;else goto error;
          dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8A8_SRGB);
          if(!cs->is() || cs->lockRead())
          {
@@ -662,17 +662,17 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image &alp
          {
             MAX(w, bump->w());
             MAX(h, bump->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-            if(bump->w()!=w || bump->h()!=h)if(bump->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, false))bump=&normal_temp;else goto error;
+            if(bump->w()!=w || bump->h()!=h)if(bump->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))bump=&normal_temp;else goto error;
             bump->bumpToNormal(normal_temp, AvgF(w, h)*BUMP_NORMAL_SCALE); normal_src=&normal_temp;
             flip_normal_y=false; // no need to flip since normal map generated from bump is always correct
          }
 
          dest_1.createSoftTry(w, h, 1, IMAGE_R8G8B8A8);
 
-         Image   normal_temp; C Image *ns=  normal_src; if(ns->is() && (ns->w()!=w || ns->h()!=h))if(ns->copyTry(  normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, false))ns=&  normal_temp;else goto error;
-         Image specular_temp; C Image *ss=specular_src; if(ss->is() && (ss->w()!=w || ss->h()!=h))if(ss->copyTry(specular_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, false))ss=&specular_temp;else goto error;
-         Image    alpha_temp; C Image *as=   alpha_src; if(as->is() && (as->w()!=w || as->h()!=h))if(as->copyTry(   alpha_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, false))as=&   alpha_temp;else goto error;
-         Image     glow_temp; C Image *gs=    glow_src; if(gs->is() && (gs->w()!=w || gs->h()!=h))if(gs->copyTry(    glow_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, false))gs=&    glow_temp;else goto error;
+         Image   normal_temp; C Image *ns=  normal_src; if(ns->is() && (ns->w()!=w || ns->h()!=h))if(ns->copyTry(  normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))ns=&  normal_temp;else goto error;
+         Image specular_temp; C Image *ss=specular_src; if(ss->is() && (ss->w()!=w || ss->h()!=h))if(ss->copyTry(specular_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))ss=&specular_temp;else goto error;
+         Image    alpha_temp; C Image *as=   alpha_src; if(as->is() && (as->w()!=w || as->h()!=h))if(as->copyTry(   alpha_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))as=&   alpha_temp;else goto error;
+         Image     glow_temp; C Image *gs=    glow_src; if(gs->is() && (gs->w()!=w || gs->h()!=h))if(gs->copyTry(    glow_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))gs=&    glow_temp;else goto error;
 
          if(!ns->is() || ns->lockRead())
          {
@@ -726,9 +726,9 @@ void CreateDetailTexture(Image &detail, C Image &col, C Image &bump, C Image &no
       Int w=Max(col_src->w(), bump_src->w(), normal_src->w()),
           h=Max(col_src->h(), bump_src->h(), normal_src->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
 
-    C Image *cs=   col_src; if(cs->is() && (cs->w()!=w || cs->h()!=h))if(cs->copyTry(   col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, false))cs=&   col_temp;else goto error;
-    C Image *bs=  bump_src; if(bs->is() && (bs->w()!=w || bs->h()!=h))if(bs->copyTry(  bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, false))bs=&  bump_temp;else goto error;
-    C Image *ns=normal_src; if(ns->is() && (ns->w()!=w || ns->h()!=h))if(ns->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, false))ns=&normal_temp;else goto error;
+    C Image *cs=   col_src; if(cs->is() && (cs->w()!=w || cs->h()!=h))if(cs->copyTry(   col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))cs=&   col_temp;else goto error;
+    C Image *bs=  bump_src; if(bs->is() && (bs->w()!=w || bs->h()!=h))if(bs->copyTry(  bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))bs=&  bump_temp;else goto error;
+    C Image *ns=normal_src; if(ns->is() && (ns->w()!=w || ns->h()!=h))if(ns->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))ns=&normal_temp;else goto error;
 
       if(bs->is() && !ns->is()){bs->bumpToNormal(normal_temp, AvgF(w, h)*BUMP_NORMAL_SCALE); ns=&normal_temp; flip_normal_y=false;} // create normal from bump map, no need to flip since normal map generated from bump is always correct
 
@@ -809,7 +809,7 @@ Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int 
       }
 
       Image color; // operate on temp variable in case 'base_0' argument is set to other images used in this func
-      if(material.base_0->copyTry(color, size.x, size.y, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1, filter, false)) // create new color map
+      if(material.base_0->copyTry(color, size.x, size.y, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1, filter, IC_WRAP)) // create new color map
       {
          Image b1; // 'base_1' resized to 'color' resolution
          MAX(light_power, 0);
@@ -821,7 +821,7 @@ Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int 
               has_nrm  =( light_dir && material.rough   *light_power>0.01f),
               has_spec =( light_dir && material.specular*light_power>0.01f),
               has_glow =(!has_alpha && material.glow                >0.01f);
-         if( (has_alpha || has_nrm || has_spec || has_glow) && material.base_1->copyTry(b1, color.w(), color.h(), 1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1, filter, false))
+         if( (has_alpha || has_nrm || has_spec || has_glow) && material.base_1->copyTry(b1, color.w(), color.h(), 1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1, filter, IC_WRAP))
          {
             // setup alpha
             if(has_alpha)
@@ -899,7 +899,7 @@ Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int 
          if(image_type==IMAGE_PVRTC1_2 || image_type==IMAGE_PVRTC1_4 || image_type==IMAGE_PVRTC1_2_SRGB || image_type==IMAGE_PVRTC1_4_SRGB)size=NearestPow2(size.avgI()); // PVRTC1 must be square and pow2
 
          // final copy
-         if(color.copyTry(color, size.x, size.y, 1, image_type, material.base_0->mode(), (material.base_0->mipMaps()>1) ? 0 : 1, filter, false))
+         if(color.copyTry(color, size.x, size.y, 1, image_type, material.base_0->mode(), (material.base_0->mipMaps()>1) ? 0 : 1, filter, IC_WRAP))
          {
             Swap(base_0, color);
             return true;

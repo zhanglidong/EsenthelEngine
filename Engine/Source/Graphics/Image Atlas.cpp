@@ -115,7 +115,7 @@ Bool ImageAtlas::create(C MemPtr<Source> &images, IMAGE_TYPE image_type, Int mip
    {
       Image &image=T.images[i];
       if(transparent_to_neighbors)image.transparentToNeighbor();
-      if(!image.copyTry(image, -1, -1, -1, image_type, IMAGE_2D, mip_maps, FILTER_BEST, true, true))goto error;
+      if(!image.copyTry(image, -1, -1, -1, image_type, IMAGE_2D, mip_maps, FILTER_BEST, IC_CLAMP|IC_ALPHA_WEIGHT))goto error;
    }
 
    // success

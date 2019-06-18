@@ -369,7 +369,7 @@ const Int         file_faces=(file_cube ? 6 : 1);
             f.skip(ImageMipSize(header.size.x, header.size.y, header.size.z, file_mip, header.type)*file_faces);
          }
       }
-      if(image_mip)image.updateMipMaps(filter, true, false, false, image_mip-1); // set any missing mip maps, this is needed for example if file had 1 mip map, but we've requested to create more
+      if(image_mip)image.updateMipMaps(filter, IC_CLAMP, image_mip-1); // set any missing mip maps, this is needed for example if file had 1 mip map, but we've requested to create more
       else         image.clear(); // or if we didn't load anything, then clear to zero
 
       if(image.mode()!=want.mode) // if created as SOFT, then convert to HW

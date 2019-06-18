@@ -1725,13 +1725,15 @@ static Int CopyMipMaps(C Image &src, Image &dest) // this assumes that "&src != 
    return 0;
 }
 /******************************************************************************/
-Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mip_maps, FILTER_TYPE filter, Bool clamp, Bool alpha_weight, Bool keep_edges, Bool mtrl_base_1, Bool rgba_on_fail)C
+Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mip_maps, FILTER_TYPE filter, UInt flags)C
 {
    if(!is()){dest.del(); return true;}
 
    // adjust settings
    if(type<=0)type=T.type(); // get type before 'fromCube' because it may change it
    if(mode< 0)mode=T.mode();
+
+   Bool rgba_on_fail=!FlagTest(flags, IC_NO_ALT_TYPE);
 
  C Image *src=this; Image temp_src;
    if(src->cube() && !IsCube(IMAGE_MODE(mode))) // if converting from cube to non-cube
@@ -1776,10 +1778,10 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
       // copy
       Int  copied_mip_maps=0;
       Bool same_size=(src->size3()==target.size3());
-      if(same_size // if we use the same size (for which case 'filter' and 'keep_edges' are ignored)
+      if(same_size // if we use the same size (for which case 'filter' and IC_KEEP_EDGES are ignored)
       || (
             (filter==FILTER_BEST || filter==FILTER_DOWN) // we're going to use default filter for downsampling (which is typically used for mip-map generation)
-         && !keep_edges                                  // we're not keeping the edges                        (which is typically used for mip-map generation)
+         && !FlagTest(flags, IC_KEEP_EDGES)              // we're not keeping the edges                        (which is typically used for mip-map generation)
          )
       )copied_mip_maps=CopyMipMaps(*src, target);
       if(!copied_mip_maps)
@@ -1808,32 +1810,32 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
                if(!same_size) // resize needed
                {
                   if(!resized_src.createTry(target.w(), target.h(), target.d(), src->hwType(), (src->cube() && target.cube()) ? IMAGE_SOFT_CUBE : IMAGE_SOFT, 1))return false; // for resize use only 1 mip map, and remaining set with 'updateMipMaps' below
-                  if(!src->copySoft(resized_src, filter, clamp, alpha_weight, keep_edges))return false; src=&resized_src; decompressed_src.del(); // we don't need 'decompressed_src' anymore so delete it to release memory
+                  if(!src->copySoft(resized_src, filter, flags))return false; src=&resized_src; decompressed_src.del(); // we don't need 'decompressed_src' anymore so delete it to release memory
                }
-               if(!Compress(*src, target, mtrl_base_1))return false;
+               if(!Compress(*src, target, FlagTest(flags, IC_MTRL_BASE1)))return false;
                // in this case we have to use last 'src' mip map as the base mip map to set remaining 'target' mip maps, because now 'target' is compressed and has lower quality, while 'src' has better, this is also faster because we don't have to decompress initial mip map
                Int mip_start=src->mipMaps()-1;
-               target.updateMipMaps(*src, mip_start, FILTER_BEST, clamp, alpha_weight, mtrl_base_1, mip_start);
+               target.updateMipMaps(*src, mip_start, FILTER_BEST, flags, mip_start);
                goto skip_mip_maps; // we've already set mip maps, so skip them
             }else
             {
                copied_mip_maps=(same_size ? src->mipMaps() : 1); // if resize is needed, copy/resize only 1 mip map, and remaining set with 'updateMipMaps' below
-               if(!src->copySoft(target, filter, clamp, alpha_weight, keep_edges, copied_mip_maps))return false;
+               if(!src->copySoft(target, filter, flags, copied_mip_maps))return false;
             }
             // !! can't access 'src' here because it may point to 'resized_src' which is now invalid !!
          }
          // !! can't access 'src' here because it may point to 'decompressed_src, resized_src' which are now invalid !!
       }
    finish:
-      target.updateMipMaps(FILTER_BEST, clamp, alpha_weight, mtrl_base_1, copied_mip_maps-1);
+      target.updateMipMaps(FILTER_BEST, flags, copied_mip_maps-1);
    skip_mip_maps:
       if(&target!=&dest)Swap(dest, target);
       return true;
    }
 }
-void Image::copy(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mip_maps, FILTER_TYPE filter, Bool clamp, Bool alpha_weight, Bool keep_edges, Bool mtrl_base_1, Bool rgba_on_fail)C
+void Image::copy(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mip_maps, FILTER_TYPE filter, UInt flags)C
 {
-   if(!copyTry(dest, w, h, d, type, mode, mip_maps, filter, clamp, alpha_weight, keep_edges, mtrl_base_1, rgba_on_fail))Exit(MLTC(u"Can't copy Image", PL,u"Nie można skopiować Image"));
+   if(!copyTry(dest, w, h, d, type, mode, mip_maps, filter, flags))Exit(MLTC(u"Can't copy Image", PL,u"Nie można skopiować Image"));
 }
 /******************************************************************************/
 CUBE_LAYOUT Image::cubeLayout()C
@@ -2555,7 +2557,7 @@ Image& Image::freeOpenGLESData()
    return T;
 }
 /******************************************************************************/
-Bool Image::updateMipMaps(C Image &src, Int src_mip, FILTER_TYPE filter, Bool clamp, Bool alpha_weight, Bool mtrl_base_1, Int mip_start)
+Bool Image::updateMipMaps(C Image &src, Int src_mip, FILTER_TYPE filter, UInt flags, Int mip_start)
 {
    if(mip_start<0)
    {
@@ -2572,15 +2574,15 @@ Bool Image::updateMipMaps(C Image &src, Int src_mip, FILTER_TYPE filter, Bool cl
       ok&=src.extractMipMap(temp, ImageTI[type()].compressed ? ImageTypeUncompressed(type()) : type(), src_mip, (DIR_ENUM)Min(face, src_faces1)); // use 'type' instead of 'hwType' (this is correct), use destination type instead of 'src.type' because we extract only one time, but inject several times
       for(Int mip=mip_start; ++mip<mipMaps(); )
       {
-         temp.downSample(filter, clamp, alpha_weight);
-         ok&=injectMipMap(temp, mip, DIR_ENUM(face), FILTER_BEST, clamp, mtrl_base_1);
+         temp.downSample(filter, flags);
+         ok&=injectMipMap(temp, mip, DIR_ENUM(face), FILTER_BEST, flags);
       }
    }
    return ok;
 }
-Image& Image::updateMipMaps(FILTER_TYPE filter, Bool clamp, Bool alpha_weight, Bool mtrl_base_1, Int mip_start)
+Image& Image::updateMipMaps(FILTER_TYPE filter, UInt flags, Int mip_start)
 {
-   updateMipMaps(T, mip_start, filter, clamp, alpha_weight, mtrl_base_1, mip_start); return T;
+   updateMipMaps(T, mip_start, filter, flags, mip_start); return T;
 }
 /******************************************************************************/
 // GET

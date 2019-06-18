@@ -1680,7 +1680,7 @@ NOINLINE Bool Heightmap::buildEx2(Mesh &mesh, Int quality, Flt tex_scale, UInt f
 
    // downsample
    REP(quality)builder.downSampleMaterials(res, 1<<i);
-   Image color; if(T._color.is()){T._color.copyTry(color); REP(quality)color.resize(color.w()/2+1, color.h()/2+1, FILTER_LINEAR, true, false, true);}
+   Image color; if(T._color.is()){T._color.copyTry(color); REP(quality)color.resize(color.w()/2+1, color.h()/2+1, FILTER_LINEAR, IC_CLAMP|IC_KEEP_EDGES);}
 
    // set LOD levels
    mesh.setLods(Max(1, Min(LODS, BitHi(Unsigned(res1)))-quality)); // BitHi(2)->1 (1 lod), BitHi(4)->2 (2 lods), BitHi(8)->3 (3 lods)
@@ -1704,7 +1704,7 @@ NOINLINE Bool Heightmap::buildEx2(Mesh &mesh, Int quality, Flt tex_scale, UInt f
          if(soft)builder.downSampleNormalsSoft(res, step<<l, Step, mem.vtx_nrm); // normals
          else    builder.downSampleNormals    (res, step<<l, Step             ); // normals
                  builder.downSampleMaterials  (res, step<<(l-1)               ); // materials
-         color.resize(color.w()/2+1, color.h()/2+1, FILTER_LINEAR, true, false, true); // color map
+         color.resize(color.w()/2+1, color.h()/2+1, FILTER_LINEAR, IC_CLAMP|IC_KEEP_EDGES); // color map
       }
 
       builder.clear(res);
@@ -2013,10 +2013,10 @@ void Heightmap::resize(Int res)
    Clamp(res, 2, MAX_HM_RES); res=NearestPow2(res)|1;
    if(res!=resolution())
    {
-     _height    .resize(res, res, FILTER_BEST, true, false, true);
-     _color     .resize(res, res, FILTER_BEST, true, false, true);
-     _mtrl_index.resize(res, res, FILTER_NONE, true, false, true);
-     _mtrl_blend.resize(res, res, FILTER_NONE, true, false, true);
+     _height    .resize(res, res, FILTER_BEST, IC_CLAMP|IC_KEEP_EDGES);
+     _color     .resize(res, res, FILTER_BEST, IC_CLAMP|IC_KEEP_EDGES);
+     _mtrl_index.resize(res, res, FILTER_NONE, IC_CLAMP|IC_KEEP_EDGES);
+     _mtrl_blend.resize(res, res, FILTER_NONE, IC_CLAMP|IC_KEEP_EDGES);
    }
 }
 /******************************************************************************/

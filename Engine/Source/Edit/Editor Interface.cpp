@@ -89,8 +89,8 @@ void MaterialMap::resize(Int resolution)
    MAX(resolution, 0);
    if (resolution!=T.resolution())
    {
-     _m.resize(resolution, resolution, FILTER_NONE, true, false, true);
-     _i.resize(resolution, resolution, FILTER_NONE, true, false, true);
+     _m.resize(resolution, resolution, FILTER_NONE, IC_CLAMP|IC_KEEP_EDGES);
+     _i.resize(resolution, resolution, FILTER_NONE, IC_CLAMP|IC_KEEP_EDGES);
    }
 }
 /******************************************************************************/

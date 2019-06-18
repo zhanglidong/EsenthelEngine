@@ -79,7 +79,7 @@ Bool Image::ExportICO(File &f)C
          VecI2 size=src->size();
          if(size.x>48)size=size*48/size.x;
          if(size.y>48)size=size*48/size.y;
-         Image xp; if(src->copyTry(xp, Max(1, size.x), Max(1, size.y), 1, IMAGE_B8G8R8A8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, true, true)) // ICO uses BGRA
+         Image xp; if(src->copyTry(xp, Max(1, size.x), Max(1, size.y), 1, IMAGE_B8G8R8A8_SRGB, IMAGE_SOFT, 1, FILTER_BEST, IC_CLAMP|IC_ALPHA_WEIGHT)) // ICO uses BGRA
          {
             if(xp.ExportBMPRaw(mip.data.writeMem(), 4, true))
             {
@@ -91,7 +91,7 @@ Bool Image::ExportICO(File &f)C
          if(full_size_included)
          {
             VecI2 size=src->size()/2; if(size.max()<16)break;
-            if(src->copyTry(temp, Max(1, size.x), Max(1, size.y), 1, ImageTypeUncompressed(src->type()), IMAGE_SOFT, 1, FILTER_BEST, true, true))src=&temp;else break;
+            if(src->copyTry(temp, Max(1, size.x), Max(1, size.y), 1, ImageTypeUncompressed(src->type()), IMAGE_SOFT, 1, FILTER_BEST, IC_CLAMP|IC_ALPHA_WEIGHT))src=&temp;else break;
          }
          if(src->ExportPNG(mip.data.writeMem(), 1)){mip.size=src->size(); full_size_included=true;}else mip.data.del();
       }
@@ -313,7 +313,7 @@ Bool Image::ExportICNS(File &f)C // ICNS stores data using RLE, PNG or JPEG 2000
    // - setting up 16,32,64 size as PNG will make it look corrupt (maybe it's related to 'icp*' instead of 'ic0*' however those were tried too and failed)
    Int size=Mid(NearestPow2(src->size().avgI()), 16, 512);
    if(size==64)size=128; // because 64 size can't be used as PNG, it has to be done as RLE, and there it is processed as 48, which will be very low res, so use 128 as the max in that case
-   if(src->w()!=size || src->h()!=size)if(src->copyTry(temp, size, size, 1, ImageTypeUncompressed(src->type()), IMAGE_SOFT, 1, FILTER_BEST, true, true))src=&temp;else return false;
+   if(src->w()!=size || src->h()!=size)if(src->copyTry(temp, size, size, 1, ImageTypeUncompressed(src->type()), IMAGE_SOFT, 1, FILTER_BEST, IC_CLAMP|IC_ALPHA_WEIGHT))src=&temp;else return false;
    MipAlpha mips[3]; // up to 3 mip-maps, providing mip-maps with Esenthel's high quality filtering allows the OS to use them instead of its own filtering
    FREPA(mips)
    {
@@ -321,7 +321,7 @@ Bool Image::ExportICNS(File &f)C // ICNS stores data using RLE, PNG or JPEG 2000
       if(i)
       {
          Int s=src->w()/2; if(s<16)break;
-         if(src->copyTry(temp, s, s, 1, ImageTypeUncompressed(src->type()), IMAGE_SOFT, 1, FILTER_BEST, true, true))src=&temp;else break;
+         if(src->copyTry(temp, s, s, 1, ImageTypeUncompressed(src->type()), IMAGE_SOFT, 1, FILTER_BEST, IC_CLAMP|IC_ALPHA_WEIGHT))src=&temp;else break;
       }
       if(src->w()<=64) // RLE
       {
@@ -329,7 +329,7 @@ Bool Image::ExportICNS(File &f)C // ICNS stores data using RLE, PNG or JPEG 2000
        C Image *s=src;
          Image  rle; 
          if((s->hwType()!=IMAGE_R8G8B8A8 && s->hwType()!=IMAGE_R8G8B8A8_SRGB) || s->w()!=size || s->size()!=s->hwSize()) // 'ICNSEncodeRLE24' requires IMAGE_R8G8B8A8 without any hw padding
-            if(s->copyTry(rle, size, size, 1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1, FILTER_BEST, true, true))s=&rle;else continue;
+            if(s->copyTry(rle, size, size, 1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1, FILTER_BEST, IC_CLAMP|IC_ALPHA_WEIGHT))s=&rle;else continue;
          if(s->lockRead())
          {
             mip.png=false;
