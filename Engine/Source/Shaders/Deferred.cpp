@@ -86,8 +86,8 @@ void VS
    }*/
    if(color)
    {
-      if(materials<=1 /*|| !mtrl_blend*/)O.col.rgb*=vtx.colorF3();
-      else                               O.col.rgb =vtx.colorF3();
+      if(materials<=1 /*|| !mtrl_blend*/)O.col.rgb*=vtx.colorFast3();
+      else                               O.col.rgb =vtx.colorFast3();
    }
 
    if(heightmap && textures && materials==1)O.tex*=MaterialTexScale();

@@ -60,8 +60,8 @@ void VS
    }*/
    if(color)
    {
-      if(materials<=1/* || !mtrl_blend*/)O.col.rgb*=vtx.colorF3();
-      else                               O.col.rgb =vtx.colorF3();
+      if(materials<=1/* || !mtrl_blend*/)O.col.rgb*=vtx.colorFast3();
+      else                               O.col.rgb =vtx.colorFast3();
    }
 
    if(heightmap && textures && materials==1)O.tex*=MaterialTexScale();
@@ -397,8 +397,8 @@ CUSTOM_TECHNIQUE
          #endif*/
       #endif
       #if COLOR!=0
-         if(materials<=1/* || mtrl_blend==0*/)IO_col.rgb*=vtx_colorF3();
-         else                                 IO_col.rgb =vtx_colorF3();
+         if(materials<=1/* || mtrl_blend==0*/)IO_col.rgb*=vtx_colorFast3();
+         else                                 IO_col.rgb =vtx_colorFast3();
       #endif
 
       #if fx==FX_GRASS

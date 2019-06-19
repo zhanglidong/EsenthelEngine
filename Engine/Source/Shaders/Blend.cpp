@@ -25,7 +25,7 @@ void VS
    if(textures )outTex   =vtx.tex ();
    if(light_map)outTexL  =vtx.tex1();
                 outColor =MaterialColor();
-   if(color    )outColor*=vtx.colorF();
+   if(color    )outColor*=vtx.colorFast();
 
    Vec pos; VecH nrm;
    if(!skin)
@@ -117,7 +117,7 @@ CUSTOM_TECHNIQUE // this is defined in C++ as a macro
       #endif
          IO_col=MaterialColor();
       #if COLOR!=0
-         IO_col*=vtx_colorF();
+         IO_col*=vtx_colorFast();
       #endif
 
       #if skin==0

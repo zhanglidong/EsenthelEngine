@@ -54,7 +54,7 @@ void VS
    if(textures   )O.tex  =vtx.tex (heightmap);
    if(light_map  )O.tex_l=vtx.tex1();
                   O.col  =MaterialColor();
-   if(color      )O.col *=vtx.colorF();
+   if(color      )O.col *=vtx.colorFast();
    if(fx==FX_LEAF)
    {
       if(bump_mode> SBUMP_FLAT)BendLeaf(vtx.hlp(), pos, nrm, tan);else
@@ -294,8 +294,8 @@ CUSTOM_TECHNIQUE
       #if light_map==1
          IO_tex_l=vtx_tex1();
       #endif
-                     IO_col =MaterialColor ();
-         if(COLOR!=0)IO_col*=    vtx_colorF();
+                     IO_col =MaterialColor    ();
+         if(COLOR!=0)IO_col*=    vtx_colorFast();
       #if fx==FX_GRASS
          IO_col.a*=1.0-GrassFadeOut();
       #elif fx==FX_LEAF

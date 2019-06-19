@@ -670,7 +670,7 @@ void Simple_VS(VtxInput vtx,
            out Vec4  outVtx:POSITION)
 {
    outTex=vtx.tex();
-   outCol=vtx.colorF();
+   outCol=vtx.colorFast();
    outVtx=Project(TransformPos(vtx.pos()));
 }
 Vec4 Simple_PS(Vec2  inTex:TEXCOORD,
@@ -2466,7 +2466,7 @@ void Particle_VS(VtxInput vtx,
          uniform Bool  stretch_alpha    )
 {
    outTex=vtx.tex();
-   outCol=vtx.colorF();
+   outCol=vtx.colorFast();
 
    Flt  size  =vtx.size(),
         angle =vtx._tan.w;
@@ -3504,8 +3504,8 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
 
       void main()
       {
-         IO_tex=vtx_tex   ();
-         IO_col=vtx_colorF();
+         IO_tex=vtx_tex      ();
+         IO_col=vtx_colorFast();
 
          MP Flt  size  =vtx_size(),
                  angle =vtx_tanW();

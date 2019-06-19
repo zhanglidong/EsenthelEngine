@@ -996,18 +996,16 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
 
    // need to apply gamma correction in the shader because R8G8B8A8_SRGB can't be specified in vertex buffer
 #if LINEAR_GAMMA
-   VecH4 color  () {return VecH4(SRGBToLinear    (_color.rgb), _color.a);} // sRGB   vertex color (precise)
-   VecH  color3 () {return       SRGBToLinear    (_color.rgb)           ;} // sRGB   vertex color (precise)
-   VecH4 colorF () {return VecH4(SRGBToLinearFast(_color.rgb), _color.a);} // sRGB   vertex color (fast)
-   VecH  colorF3() {return       SRGBToLinearFast(_color.rgb)           ;} // sRGB   vertex color (fast)
+   VecH4 color     () {return VecH4(SRGBToLinear    (_color.rgb), _color.a);} // sRGB vertex color (precise)
+   VecH  color3    () {return       SRGBToLinear    (_color.rgb)           ;} // sRGB vertex color (precise)
+   VecH4 colorFast () {return VecH4(SRGBToLinearFast(_color.rgb), _color.a);} // sRGB vertex color (fast)
+   VecH  colorFast3() {return       SRGBToLinearFast(_color.rgb)           ;} // sRGB vertex color (fast)
 #else
-   VecH4 color  () {return _color                                       ;} // sRGB   vertex color (precise)
-   VecH  color3 () {return _color.rgb                                   ;} // sRGB   vertex color (precise)
-   VecH4 colorF () {return _color                                       ;} // sRGB   vertex color (fast)
-   VecH  colorF3() {return _color.rgb                                   ;} // sRGB   vertex color (fast)
+   VecH4 color     () {return _color                                       ;} // sRGB vertex color (precise)
+   VecH  color3    () {return _color.rgb                                   ;} // sRGB vertex color (precise)
+   VecH4 colorFast () {return _color                                       ;} // sRGB vertex color (fast)
+   VecH  colorFast3() {return _color.rgb                                   ;} // sRGB vertex color (fast)
 #endif
-   VecH4 colorL () {return _color                                       ;} // linear vertex color
-   VecH  colorL3() {return _color.rgb                                   ;} // linear vertex color
 
 #if MODEL>=SM_4
    uint _instance:SV_InstanceID;
