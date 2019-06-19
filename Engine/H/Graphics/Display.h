@@ -171,10 +171,10 @@ struct Display : DisplayState, DisplayDraw // Display Control
                                                                 Bool             multiSample      ()C {return _samples>1     ;} // get if Multi Sampling is used
                                                                 Bool             highPrecNrmCalcIs()C {return highPrecNrmCalc() && !highPrecNrmRT();}
                                                                 void             aspectRatioEx    (Bool force=true, Bool quiet=false);
-                                                                Int              maxShaderMatrixes()C; // max number of matrixes that can be set in shaders
-                                                                Bool             meshBoneSplit    ()C; // if requires usage of Bone Splits for meshes with big amount of bones
-                                                                Bool             signedNrmRT      ()C; // if Normal   Render Target is signed
-                                                                Bool             signedVelRT      ()C; // if Velocity Render Target is signed
+                                                      constexpr Int              maxShaderMatrixes()C; // max number of matrixes that can be set in shaders
+                                                      constexpr Bool             meshBoneSplit    ()C; // if requires usage of Bone Splits for meshes with big amount of bones
+                                                      constexpr Bool             signedNrmRT      ()C; // if Normal   Render Target is signed
+                                                      constexpr Bool             signedVelRT      ()C; // if Velocity Render Target is signed
 #endif
                                                                 Rect             rect             ()C {return Rect(-w(), -h(), w(), h());} // get full screen rectangle
    Display& exclusive        (Bool             exclusive   );   Bool             exclusive        ()C {return _exclusive      ;} // get/set if fullscreen mode should be exclusive (true/false                         , default=             true                             ), this affects only Windows DirectX fullscreen mode, exclusive offers better performance, non-exclusive offers faster Alt+Tab switching

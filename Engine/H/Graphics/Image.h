@@ -628,7 +628,7 @@ struct Image // Image (Texture)
 
 #if EE_PRIVATE
    void    zero     () {Zero(T);}
-   void    setInfo  ();
+   Bool    setInfo  ();
    void  forceInfo  (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int samples);
    void adjustInfo  (Int w, Int h, Int d, IMAGE_TYPE type);
    void  setPartial ();

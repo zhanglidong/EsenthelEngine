@@ -797,7 +797,7 @@ void Image::setPartial()
    if(_partial=(w()!=hwW() || h()!=hwH() || d()!=hwD()))_part.set(Flt(w())/hwW(), Flt(h())/hwH(), Flt(d())/hwD());
    else                                                 _part=1;
 }
-void Image::setInfo()
+Bool Image::setInfo()
 {
 #if DX11
    // lock not needed for DX11 'D3D'
@@ -815,9 +815,9 @@ void Image::setInfo()
       {
          default:
          {
-            if(mode()==IMAGE_2D || mode()==IMAGE_3D || mode()==IMAGE_CUBE || mode()==IMAGE_RT || mode()==IMAGE_RT_CUBE || mode()==IMAGE_DS || mode()==IMAGE_SHADOW_MAP)D3D->CreateShaderResourceView(_txtr, null, &_srv);
-            if(mode()==IMAGE_RT || mode()==IMAGE_RT_CUBE   )D3D->CreateRenderTargetView(_txtr, null, &_rtv);
-            if(mode()==IMAGE_DS || mode()==IMAGE_SHADOW_MAP)D3D->CreateDepthStencilView(_txtr, null, &_dsv);
+            switch(mode()){case IMAGE_2D: case IMAGE_3D: case IMAGE_CUBE: case IMAGE_RT: case IMAGE_RT_CUBE: case IMAGE_DS: case IMAGE_SHADOW_MAP: D3D->CreateShaderResourceView(_txtr, null, &_srv); break;}
+            switch(mode()){                                               case IMAGE_RT: case IMAGE_RT_CUBE:                                       D3D->CreateRenderTargetView  (_txtr, null, &_rtv); break;}
+            switch(mode()){                                                                                  case IMAGE_DS: case IMAGE_SHADOW_MAP: D3D->CreateDepthStencilView  (_txtr, null, &_dsv); break;}
          }break;
 
          case DXGI_FORMAT_R8G8B8A8_TYPELESS:
@@ -897,6 +897,12 @@ void Image::setInfo()
       if(IMAGE_TYPE hw_type=ImageFormatToType(desc.Format))T._hw_type=hw_type; // override only if detected, because Image could have been created with TYPELESS format which can't be directly decoded and IMAGE_NONE could be returned
       D3D->CreateShaderResourceView(_vol, null, &_srv);
    }
+   switch(mode())
+   {
+      case IMAGE_2D: case IMAGE_3D: case IMAGE_CUBE: if(!_srv         )return false; break;
+      case IMAGE_RT: case IMAGE_RT_CUBE   :          if(!_srv || !_rtv)return false; break;
+      case IMAGE_DS: case IMAGE_SHADOW_MAP:          if(!_srv || !_dsv)return false; break; // '_rdsv' is optional
+   }
 #elif GL
    if(_txtr)switch(mode())
    {
@@ -958,6 +964,7 @@ void Image::setInfo()
   _byte_pp=ImageTI[hwType()].byte_pp; // keep a copy for faster access
    if(is()){MAX(_mms, 1); MAX(_samples, 1);}
    setPartial();
+   return true;
 }
 void Image::forceInfo(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int samples)
 {
@@ -1131,7 +1138,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
 
       // create
      _size.set(w, h, d); _hw_size=hw_size;
-     _type=type        ; _hw_type=type; // set before 'setInfo' because it affects 'byte_pp' (needed for DX11, GL)
+     _type=type        ; _hw_type=type;
      _mode=mode        ;
       switch(mode)
       {
@@ -1159,7 +1166,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                desc.SampleDesc.Count  =1;
                desc.SampleDesc.Quality=0;
                desc.ArraySize         =1;
-               if(OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr))){setInfo(); return true;}
+               if(OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr)) && setInfo())return true;
             }
          }break;
 
@@ -1177,7 +1184,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                desc.SampleDesc.Count  =samples;
                desc.SampleDesc.Quality=0;
                desc.ArraySize         =1;
-               if(OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(); SyncLocker locker(D._lock); clearHw(); return true;} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
+               if(OK(D3D->CreateTexture2D(&desc, null, &_txtr)) && setInfo()){SyncLocker locker(D._lock); clearHw(); return true;} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
             }
          }break;
 
@@ -1193,7 +1200,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                desc.BindFlags     =D3D11_BIND_SHADER_RESOURCE;
                desc.MiscFlags     =0;
                desc.CPUAccessFlags=0;
-               if(OK(D3D->CreateTexture3D(&desc, initial_data, &_vol))){setInfo(); return true;}
+               if(OK(D3D->CreateTexture3D(&desc, initial_data, &_vol)) && setInfo())return true;
             }
          }break;
 
@@ -1211,7 +1218,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                desc.SampleDesc.Count  =1;
                desc.SampleDesc.Quality=0;
                desc.ArraySize         =6;
-               if(OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr))){setInfo(); return true;}
+               if(OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr)) && setInfo())return true;
             }
          }break;
 
@@ -1229,7 +1236,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                desc.SampleDesc.Count  =samples;
                desc.SampleDesc.Quality=0;
                desc.ArraySize         =6;
-               if(OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(); SyncLocker locker(D._lock); clearHw(); return true;} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
+               if(OK(D3D->CreateTexture2D(&desc, null, &_txtr)) && setInfo()){SyncLocker locker(D._lock); clearHw(); return true;} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
             }
          }break;
 
@@ -1249,9 +1256,9 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                desc.SampleDesc.Count  =samples;
                desc.SampleDesc.Quality=0;
                desc.ArraySize         =1;
-               if(OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(); return true;}
+               if(OK(D3D->CreateTexture2D(&desc, null, &_txtr)) && setInfo())return true;
                FlagDisable(desc.BindFlags, D3D11_BIND_SHADER_RESOURCE); // disable shader reading
-               if(OK(D3D->CreateTexture2D(&desc, null, &_txtr))){setInfo(); return true;}
+               if(OK(D3D->CreateTexture2D(&desc, null, &_txtr)) && setInfo())return true;
             }
          }break;
 
@@ -1269,7 +1276,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                desc.SampleDesc.Count  =1;
                desc.SampleDesc.Quality=0;
                desc.ArraySize         =1;
-               if(OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr))){setInfo(); return true;}
+               if(OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr)) && setInfo())return true;
             }
          }break;
       #elif GL
@@ -1319,10 +1326,9 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                   glCompressedTexImage2D(GL_TEXTURE_2D, 0, format, hwW(), hwH(), 0, mip_size, temp.dataNull());
                }
 
-               if(glGetError()==GL_NO_ERROR) // ok
+               if(glGetError()==GL_NO_ERROR && setInfo()) // ok
                {
                   glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
-                  setInfo();
                #if GL_ES
                   if(mode!=IMAGE_RT && !_data_all)Alloc(_data_all, CeilGL(memUsage())); // '_data_all' could've been created above
                #endif
@@ -1367,10 +1373,9 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                if(!compressed())glTexImage3D(GL_TEXTURE_3D, 0, format, hwW(), hwH(), hwD(), 0, gl_format, gl_type, null);
                else   glCompressedTexImage3D(GL_TEXTURE_3D, 0, format, hwW(), hwH(), hwD(), 0, ImageMipSize(hwW(), hwH(), hwD(), 0, hwType()), null);
 
-               if(glGetError()==GL_NO_ERROR) // ok
+               if(glGetError()==GL_NO_ERROR && setInfo()) // ok
                {
                   glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
-                  setInfo();
                #if GL_ES
                   if(!_data_all)Alloc(_data_all, CeilGL(memUsage())); // '_data_all' could've been created above
                #endif
@@ -1423,10 +1428,9 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                   }
                }
 
-               if(glGetError()==GL_NO_ERROR) // ok
+               if(glGetError()==GL_NO_ERROR && setInfo()) // ok
                {
                   glFlush(); // to make sure that the data was initialized, in case it'll be accessed on a secondary thread
-                  setInfo();
                #if GL_ES
                   if(mode!=IMAGE_RT_CUBE && !_data_all)Alloc(_data_all, CeilGL(memUsage())); // '_data_all' could've been created above
                #endif
@@ -1454,11 +1458,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
 
                glTexImage2D(GL_TEXTURE_2D, 0, ImageTI[hwType()].format, hwW(), hwH(), 0, SourceGLFormat(hwType()), SourceGLType(hwType()), null);
 
-               if(glGetError()==GL_NO_ERROR) // ok
-               {
-                  setInfo();
-                  return true;
-               }
+               if(glGetError()==GL_NO_ERROR && setInfo())return true; // ok
             }
          }break;
 
@@ -1483,11 +1483,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
 
                glTexImage2D(GL_TEXTURE_2D, 0, ImageTI[hwType()].format, hwW(), hwH(), 0, SourceGLFormat(hwType()), SourceGLType(hwType()), null);
 
-               if(glGetError()==GL_NO_ERROR) // ok
-               {
-                  setInfo();
-                  return true;
-               }
+               if(glGetError()==GL_NO_ERROR && setInfo())return true; // ok
             }
          }break;
 
@@ -1505,11 +1501,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                glBindRenderbuffer   (GL_RENDERBUFFER, _rb);
                glRenderbufferStorage(GL_RENDERBUFFER, ImageTI[hwType()].format, hwW(), hwH());
 
-               if(glGetError()==GL_NO_ERROR) // ok
-               {
-                  setInfo();
-                  return true;
-               }
+               if(glGetError()==GL_NO_ERROR && setInfo())return true; // ok
             }
          }break;
       #endif
@@ -2611,7 +2603,7 @@ UInt Image::typeMemUsage()C {return ImageSize(hwW(), hwH(), hwD(),   type(), mod
 Bool Image::map()
 {
 #if DX11
-   del(); if(OK(SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (Ptr*)&_txtr))){_mode=IMAGE_RT; setInfo(); adjustInfo(hwW(), hwH(), hwD(), hwType()); return true;}
+   del(); if(OK(SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (Ptr*)&_txtr))){_mode=IMAGE_RT; if(setInfo()){adjustInfo(hwW(), hwH(), hwD(), hwType()); return true;}}
 #elif DX12
    https://msdn.microsoft.com/en-us/library/windows/desktop/mt427784(v=vs.85).aspx
    In Direct3D 11, applications could call GetBuffer( 0, .. ) only once. Every call to Present implicitly changed the resource identity of the returned interface. Direct3D 12 no longer supports that implicit resource identity change, due to the CPU overhead required and the flexible resource descriptor design. As a result, the application must manually call GetBuffer for every each buffer created with the swapchain. The application must manually render to the next buffer in the sequence after calling Present. Applications are encouraged to create a cache of descriptors for each buffer, instead of re-creating many objects each Present.
@@ -2624,9 +2616,10 @@ Bool Image::map()
          glGetError(); // clear any previous errors
          glBindRenderbuffer(GL_RENDERBUFFER, _rb);
          [MainContext.context renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)view.layer];
-        _mode=IMAGE_GL_RB; setInfo(); adjustInfo(hwW(), hwH(), hwD(), hwType()); // this has a valid '_rb' so it can detect the size and type
-         D._res=size(); D.densityUpdate();
-         return true;
+        _mode=IMAGE_GL_RB; if(setInfo()) // this has a valid '_rb' so it can detect the size and type
+         {
+            adjustInfo(hwW(), hwH(), hwD(), hwType()); D._res=size(); D.densityUpdate(); return true;
+         }
       }
    }
 #elif ANDROID || WEB

@@ -60,6 +60,13 @@ struct ImageRC : Image // Reference Counted Image
    void swapSRV  ();
    void swapRTV  ();
    void swapSRGB ();
+   constexpr INLINE Bool canSwapSRGB()C
+   {
+   #if DX11
+      return _srv_srgb!=null;
+   #endif
+      return false;
+   }
 #endif
    ImageRC();
   ~ImageRC();

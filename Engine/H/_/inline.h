@@ -1907,7 +1907,7 @@ T1(TYPE)  ListColumn::ListColumn(Str (*data_to_text)(C TYPE &data), Flt width, C
 // GRAPHICS
 /******************************************************************************/
 #if EE_PRIVATE
-INLINE Int Display::maxShaderMatrixes()C
+constexpr INLINE Int Display::maxShaderMatrixes()C
 {
 #if DX11
    return MAX_MATRIX_DX10;
@@ -1919,7 +1919,7 @@ INLINE Int Display::maxShaderMatrixes()C
    #endif
 #endif
 }
-INLINE Bool Display::meshBoneSplit()C
+constexpr INLINE Bool Display::meshBoneSplit()C
 {
 #if DX11
    return false;
@@ -1931,7 +1931,7 @@ INLINE Bool Display::meshBoneSplit()C
    #endif
 #endif
 }
-INLINE Bool Display::signedNrmRT()C // #SIGNED_NRM_RT
+constexpr INLINE Bool Display::signedNrmRT()C // #SIGNED_NRM_RT
 {
 #if DX11
    return true;
@@ -1939,7 +1939,7 @@ INLINE Bool Display::signedNrmRT()C // #SIGNED_NRM_RT
    return false;
 #endif
 }
-INLINE Bool Display::signedVelRT()C // #SIGNED_VEL_RT
+constexpr INLINE Bool Display::signedVelRT()C // #SIGNED_VEL_RT
 {
 #if DX11
    return true;
