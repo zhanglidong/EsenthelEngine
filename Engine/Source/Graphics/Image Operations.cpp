@@ -2707,7 +2707,7 @@ void Image::normalToBump(Image &dest, Bool high_quality)
    }
 }
 /******************************************************************************/
-#define BLUR_CUBE_LINEAR 1
+#define BLUR_CUBE_LINEAR 1 // this is for PBR rendering, so use linear to be more physically accurate
 struct BlurCube
 {
    Int   src_res, dest_res, src_face_size, src_pitch, src_mip; DIR_ENUM f;
