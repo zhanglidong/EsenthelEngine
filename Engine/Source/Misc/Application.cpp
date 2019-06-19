@@ -923,7 +923,7 @@ void Application::del()
       deleteSelf();
    }
 #if 1 // reduce mem leaks logging on Mac
-  _exe.del(); _name.del(); _cmd_line.del(); _back_text.del();
+   cmd_line.del(); _exe.del(); _name.del(); _back_text.del();
 #endif
   _closed=true; // !! this needs to be set before 'detectMemLeaks' because that may trigger calling destructors !!
    detectMemLeaks();
@@ -1000,11 +1000,8 @@ void StartEEManually(Ptr dll_module_instance)
 #if MAC || LINUX
 int main(int argc, char *argv[])
 {
-   for(Int i=1; i<argc; i++) // start from #1, because #0 is always the executable name (if file name has spaces, then they're included in the #0 argv)
-   {
-      if(i>1)App._cmd_line+='\n'; // separate with new lines, to allow having arguments with spaces in value to be presented as one argument (for example, on Linux running: "./Project test" abc def "123 456" gives 4 arguments: {"./Project test", "abc", "def", "123 456"}
-             App._cmd_line+=argv[i];
-   }
+   const Int start=1; // start from #1, because #0 is always the executable name (if file name has spaces, then they're included in the #0 argv)
+      App.cmd_line.setNum(argc-start); FREPAO(App.cmd_line)=argv[start+i];
    if(App.create())App.loop();
       App.del   ();
    return 0;

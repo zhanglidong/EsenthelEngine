@@ -631,18 +631,13 @@ void Application::loopUntil(Bool &finished, Bool wait)
 } // namespace EE
 /******************************************************************************/
 #if WINDOWS_OLD
-INT WINAPI WinMain(HINSTANCE hinstance, HINSTANCE, LPSTR cmd_line, Int)
+INT WINAPI WinMain(HINSTANCE hinstance, HINSTANCE, LPSTR command_line, Int)
 {
-   if(CChar *cmd=WChar(GetCommandLine())) // need to use 'GetCommandLine' to get wide char, because 'cmd_line' is ANSI only
+   // there's also '__argc', ANSI '__argv', and UNICODE '__wargv', however in tests only ANSI is available without UNICODE, so can't be used
+   int argc; if(PWSTR *argv=CommandLineToArgvW(GetCommandLineW(), &argc)) // need to use 'GetCommandLineW' to get wide char, because 'command_line' is ANSI only
    {
-      // can be:
-      // c:\path\file.exe param
-      // "c:\path\fi le.exe" param
-      // file.exe param
-      // "fi le.exe" param
-      if(cmd[0]=='"'){if(cmd=TextPos(cmd+1, '"'))cmd+=((cmd[1]==' ') ? 2 : 1);}else // skip '"' and ' '
-      if(cmd=TextPos(cmd, ' '))cmd++;
-      App._cmd_line=cmd;
+      const Int start=1; // start from #1, because #0 is always the executable name (if file name has spaces, then they're included in the #0 argv)
+      App.cmd_line.setNum(argc-start); FREPAO(App.cmd_line)=argv[start+i]; LocalFree(argv);
    }
       App._hinstance=hinstance;
    if(App.create())App.loop();
@@ -659,10 +654,10 @@ INT WINAPI WinMain(HINSTANCE hinstance, HINSTANCE, LPSTR cmd_line, Int)
    ApplicationView::PreferredLaunchWindowingMode = ApplicationViewWindowingMode::PreferredLaunchViewSize;
  //ApplicationView::PreferredLaunchWindowingMode = ApplicationViewWindowingMode::Auto;
  //ApplicationView::PreferredLaunchWindowingMode = ApplicationViewWindowingMode::FullScreen;*/
-   if(args)FREP(args->Length)
+   if(args)
    {
-      if(i>0)App._cmd_line+='\n'; // separate with new lines, to allow having arguments with spaces in value to be presented as one argument
-             App._cmd_line+=args->get(i)->Data();
+      const Int start=1; // start from #1, because #0 is always the executable name (if file name has spaces, then they're included in the #0 argv)
+      App.cmd_line.setNum(args->Length-start); FREPAO(App.cmd_line)=args->get(start+i)->Data();
    }
    Windows::ApplicationModel::Core::CoreApplication::Run(ref new FrameworkViewSource());
    return 0;

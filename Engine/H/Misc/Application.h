@@ -57,6 +57,7 @@ struct Application // Application Settings
    UInt    flag       ; // APP_FLAG
    Int     active_wait, // amount of milliseconds the application should wait before making 'Update' calls when in active     mode                                        , -1=unlimited (app will wait until event occurs  ), 0=instant (app will keep calling 'Update' continuously), >0=wait (app will wait specified time until event occurs before making 'Update' calls), default=0. It's recommended to use this instead of manually waiting with 'Time.wait', because this method allows app to resume instantly when event occurs     , unlike 'Time.wait' which waits without stopping.
        background_wait; // amount of milliseconds the application should wait before making 'Update' calls when in background mode and with APP_WORK_IN_BACKGROUND enabled, -1=unlimited (app will wait until it's activated), 0=instant (app will keep calling 'Update' continuously), >0=wait (app will wait specified time until activated    before making 'Update' calls), default=0. It's recommended to use this instead of manually waiting with 'Time.wait', because this method allows app to resume instantly when it gets activated, unlike 'Time.wait' which waits without stopping.
+   Mems<Str>  cmd_line; // command line arguments
 
    void (*receive_data)(CPtr data, Int size, Ptr hwnd_sender                   ); // pointer to custom function called whan the application has received binary data sent using 'WindowSendData' function, the application may not access 'data' memory after the callback function returns, 'hwnd_sender'=hwnd window identifier of the sender, default=null
    void (*save_state  )(                                                       ); // pointer to custom function called when application is being put into background or will be terminated, in this function you should save current state of data which you may want to restore at next application startup, this function is used only on mobile platforms where the operating system may close the application for any reason, default=null
@@ -73,7 +74,6 @@ struct Application // Application Settings
    Application& name          (C Str &name    );                           // set application name
  C Str&         name          (               )C {return _name          ;} // get application name
  C Str&         exe           (               )C {return _exe           ;} // get executable path and name
- C Str&         cmdLine       (               )C {return _cmd_line      ;} // get command line parameters
    Application& lang          (LANG_TYPE lang );                           // set application language, some engine messages rely on this value, changing language triggers 'GuiObj.setText' for all gui objects, default=EN
    LANG_TYPE    lang          (               )C {return _lang          ;} // get application language, some engine messages rely on this value, changing language triggers 'GuiObj.setText' for all gui objects, default=EN
    Bool         elevated      (               )C {return _elevated      ;} // get application        process elevation (true if has administrator rights)
@@ -165,7 +165,7 @@ private:
    Ptr                 _hwnd;
    VecI2               _window_pos, _window_size, _window_resized, _desktop_size;
    RectI               _desktop_area, _bound, _bound_maximized;
-   Str                 _exe, _name, _cmd_line, _back_text;
+   Str                 _exe, _name, _back_text;
 #if WINDOWS_OLD
    UInt                _style_window, _style_window_maximized, _style_full;
 #if EE_PRIVATE
