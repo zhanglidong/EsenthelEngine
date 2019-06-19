@@ -1538,7 +1538,7 @@ Image& Image::create(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int 
    return T;
 }
 /******************************************************************************/
-static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'dest' are 2 different objects, 'src' is compressed, and 'dest' not compressed or not yet created
+static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'dest' are 2 different objects, 'src' is compressed, and 'dest' not compressed or not yet created, this always ignores gamma
 {
    void (*decompress_block     )(C Byte *b, Color (&block)[4][4])     , (*decompress_block_pitch     )(C Byte *b, Color *dest, Int pitch);
    void (*decompress_block_VecH)(C Byte *b, VecH  (&block)[4][4])=null, (*decompress_block_pitch_VecH)(C Byte *b, VecH  *dest, Int pitch)=null;
@@ -1814,7 +1814,7 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
             // decompress
             Image decompressed_src; if(src->compressed())
             {
-               if(same_size && !target.compressed()) // if match in size and just want to be decompressed
+               if(same_size && ignore_gamma && !target.compressed()) // if match in size, can ignore gamma and just want to be decompressed
                {
                   if(!Decompress(*src, target))return false; // decompress directly to 'target'
                   copied_mip_maps=src->mipMaps();
