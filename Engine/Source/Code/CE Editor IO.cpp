@@ -99,7 +99,7 @@ void CodeEditor::saveSettings(TextNode &code)
 
    TextNode &conf=code.nodes.New().setName("Configuration");
       conf.nodes.New().set("Debug", config_debug );
-      conf.nodes.New().set("32Bit", config_32_bit);
+    //conf.nodes.New().set("32Bit", config_32_bit);
     //conf.nodes.New().set("API"  , config_api   );
       conf.nodes.New().set("EXE"  , (config_exe==EXE_EXE) ? "exe" : (config_exe==EXE_DLL) ? "dll" : (config_exe==EXE_LIB) ? "lib" : (config_exe==EXE_NEW) ? "new" : (config_exe==EXE_APK) ? "apk" : (config_exe==EXE_MAC) ? "mac" : (config_exe==EXE_IOS) ? "ios" : (config_exe==EXE_LINUX) ? "linux" : (config_exe==EXE_WEB) ? "web" : "");
 
@@ -170,8 +170,8 @@ void CodeEditor::loadSettings(C TextNode &code)
    if(C TextNode *conf=code.findNode("Configuration"))
    {
       if(C TextNode *p=conf->findNode("Debug"))configDebug(p->asBool());
-      if(C TextNode *p=conf->findNode("32Bit"))config32Bit(p->asBool());
-      if(C TextNode *p=conf->findNode("API"  ))configAPI  (p->asInt ());
+    //if(C TextNode *p=conf->findNode("32Bit"))config32Bit(p->asBool());
+    //if(C TextNode *p=conf->findNode("API"  ))configAPI  (p->asInt ());
       if(C TextNode *p=conf->findNode("EXE"  ))
       {
          if(p->value=="exe"  )configEXE(EXE_EXE  );else
