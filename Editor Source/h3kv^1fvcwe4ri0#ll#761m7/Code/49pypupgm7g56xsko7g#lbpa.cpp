@@ -119,7 +119,7 @@ class ImageConvert
                {
                   Image &image=atlas.images[i];
                   VecI2   size=image.size(), old=size; if(pvrtc)size=CeilPow2(size.max()); // image must be square for PVRTC. Unlike for regular textures, for atlases it's better to use 'CeilPow2', to make sure we don't make textures much smaller than original.
-                  if(image.copyTry(image, size.x, size.y, -1, type, mode, mip_maps, FILTER_BEST, clamp, true))
+                  if(image.copyTry(image, size.x, size.y, -1, type, mode, mip_maps, FILTER_BEST, (clamp?IC_CLAMP:IC_WRAP)|IC_ALPHA_WEIGHT))
                   {
                   #if 0 // don't do any adjustments because we may want to detect image proportions based on 'trimmed_size' (Esenthel RTS does that)
                      if(size!=old) // if size is different then adjust the parts
@@ -155,7 +155,7 @@ class ImageConvert
             PanelImage panel_image; if(panel_image.load(src))
             {
                VecI2 size=panel_image.image.size(); if(pvrtc)size=CeilPow2(size.max()); // image must be square for PVRTC. Unlike for regular textures, for panel images it's better to use 'CeilPow2', to make sure we don't make textures much smaller than original.
-               panel_image.image.copyTry(panel_image.image, size.x, size.y, -1, type, -1, -1, FILTER_BEST, true, true);
+               panel_image.image.copyTry(panel_image.image, size.x, size.y, -1, type, -1, -1, FILTER_BEST, IC_CLAMP|IC_ALPHA_WEIGHT);
                File f; if(panel_image.save(f.writeMem())){f.pos(0); SafeOverwrite(f, dest, &time);} // save using specified time
             }
          }break;
@@ -191,7 +191,7 @@ class ImageConvert
                   if(type    <0)type    =s.type();                   // source will now be as IMAGE_R8G8B8_SRGB so we can't use "-1", auto-detect instead
                   if(s.copyTry(temp, -1, -1, -1, IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1))s=&temp;
                }
-               if(s.copyTry(temp, size.x, size.y, size.z, type, mode, mip_maps, FILTER_BEST, clamp, false, false, mtrl_base_1))
+               if(s.copyTry(temp, size.x, size.y, size.z, type, mode, mip_maps, FILTER_BEST, (clamp?IC_CLAMP:IC_WRAP)|(mtrl_base_1?IC_MTRL_BASE1:0))
                {
                   File f; if(temp.save(f.writeMem())){f.pos(0); SafeOverwrite(f, dest, &time);} // save using specified time
                }
@@ -828,13 +828,13 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
 
          // change type
          int change_type=-1;
-         if(android)change_type=(tex.uses_alpha ? IMAGE_ETC2_A8  : IMAGE_ETC2    );else
-         if(iOS    )change_type=(tex.keep_hq    ? IMAGE_PVRTC1_4 : IMAGE_PVRTC1_2);else
-         if(web    )change_type=(WebBC7 ? ((tex.uses_alpha || tex.keep_hq) ?        -1 : IMAGE_BC1)      // texture could have alpha, however if we're not using it, then reduce to BC1 because it's only 4-bit per pixel
-                                        :   tex.uses_alpha                 ? IMAGE_BC3 : IMAGE_BC1);else // if BC7 not supported for Web, then use BC3
+         if(android)change_type=(tex.uses_alpha ? IMAGE_ETC2_A8_SRGB  : IMAGE_ETC2_SRGB    );else
+         if(iOS    )change_type=(tex.keep_hq    ? IMAGE_PVRTC1_4_SRGB : IMAGE_PVRTC1_2_SRGB);else
+         if(web    )change_type=(WebBC7 ? ((tex.uses_alpha || tex.keep_hq) ?             -1 : IMAGE_BC1_SRGB)      // texture could have alpha, however if we're not using it, then reduce to BC1 because it's only 4-bit per pixel
+                                        :   tex.uses_alpha                 ? IMAGE_BC3_SRGB : IMAGE_BC1_SRGB);else // if BC7 not supported for Web, then use BC3
        //if(!tex.uses_alpha && !tex.keep_hq )change_type=IMAGE_BC1;else // texture could have alpha, however if we're not using it, then reduce to BC1 because it's only 4-bit per pixel, actually don't do this because it would require calling 'ImageLoadHeader' which is an IO operation and could be slow for many textures
             {}
-         if(change_type>=0 && !tex.mtrl_base_1)change_type=imageytypesrgb;
+         if(change_type>=0 && tex.mtrl_base_1)change_type=ImageTypeExcludeSRGB((IMAGE_TYPE)change_type);
 
          // change size
          int max_size=INT_MAX; //((tex.max_size>0) ? tex.max_size : INT_MAX);

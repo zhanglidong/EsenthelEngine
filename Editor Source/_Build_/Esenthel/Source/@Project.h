@@ -165,7 +165,6 @@ class Project
    void createMiniMapPaths(C UID &mini_map_id);
 
    static int ChannelIndex(char c);
-   static IMAGE_TYPE HighPrecType(IMAGE_TYPE type);
    static void MakeHighPrec(Image &image);
    static void ContrastLum(Image &image, flt contrast, flt avg_lum, C BoxI &box);
    static void AvgContrastLum(Image &image, flt contrast, dbl avg_lum, C BoxI &box);

@@ -18,7 +18,7 @@ DetectSimilarTextures DST;
       {
          T.mtrl_base_1=mtrl_base_1;
          mips.setNum(src.mipMaps());
-         REPA(mips)src.extractMipMap(mips[i], Decompress ? IMAGE_R8G8B8A8 : -1, i);
+         REPA(mips)src.extractMipMap(mips[i], Decompress ? ImageTypeUncompressed(src.type()) : -1, i);
       }
    void DetectSimilarTextures::CompareImage(UID &a_id, UID &b_id, int thread_index)
    {

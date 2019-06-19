@@ -26,10 +26,10 @@ bool InitProjectList()
    RemoveProj.create();
    Register.create();
    ChangePass.create();
-   if(CmdLine.is())
+   if(App.cmd_line.elms())
    {
-      if(GetExt(CmdLine)==EsenthelProjectExt)CopyElms.display(CmdLine);
-      CmdLine.clear();
+      if(GetExt(App.cmd_line[0])==EsenthelProjectExt)CopyElms.display(App.cmd_line[0]);
+      App.cmd_line.del(); // don't check again
    }
    return true;
 }

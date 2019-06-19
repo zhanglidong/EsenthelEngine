@@ -332,17 +332,18 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type, uint flags)
             extract=((md5 && (image.hwType()!=IMAGE_R8G8B8A8 && image.hwType()!=IMAGE_R8G8B8A8_SRGB)) // calculating hash requires RGBA format
                   || (compress_type && ImageTI[image.hwType()].compressed) // checking compress_type requires color reads so copy to RGBA soft to make them faster
                   || force_alpha); // forcing alpha requires modifying the alpha channel, so copy to 'temp' which we can modify
+      if(md5)m.update(&ImageHashHeader(image), SIZE(ImageHashHeader)); // need to start hash with a header, to make sure different sized/cube/srgb images will always have different hash
       Image temp; C Image *src=(extract ? &temp : &image);
       FREPD(face, image.faces())
       {
-         int src_face=face; if(extract)if(image.extractMipMap(temp, IMAGE_R8G8B8A8, 0, DIR_ENUM(face)))src_face=0;else return; // error
+         int src_face=face; if(extract)if(image.extractMipMap(temp, image.sRGB() ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, 0, DIR_ENUM(face)))src_face=0;else return; // error
          if( src->lockRead(0, DIR_ENUM(src_face)))
          {
             if(force_alpha  ) REPD(z, temp.d())
                               REPD(y, temp.h())
                               REPD(x, temp.w())temp.pixC(x, y, z).a=255; // set before calculating hash
             if(md5          )FREPD(z,  src->d())
-                             FREPD(y,  src->h())m.update(src->data() + y*src->pitch() + z*src->pitch2(), src->w()*src->bytePP());
+                             FREPD(y,  src->h())m.update(src->data() + y*src->pitch() + z*src->pitch2(), src->w()*src->bytePP()); // don't use src.pitch to ignore any extra padding
             if(compress_type) REPD(z,  src->d())
                               REPD(y,  src->h())
                               REPD(x,  src->w())
@@ -546,7 +547,7 @@ bool EditToGameImage(Image &edit, Image &game, bool pow2, bool alpha_lum, ElmIma
          Swap(temp, temp2); src=&temp;
       }
    }
-   return src->copyTry(game, size.x, size.y, size.z, dest_type, mode, mip_maps, FILTER_BEST, true, true);
+   return src->copyTry(game, size.x, size.y, size.z, dest_type, mode, mip_maps, FILTER_BEST, IC_CLAMP|IC_ALPHA_WEIGHT);
 }
 bool EditToGameImage(Image &edit, Image &game, C ElmImage &data, C int *force_type)
 {
@@ -583,7 +584,7 @@ bool UpdateMtrlBase1Tex(C Image &src, Image &dest)
          c.set(c.a, c.g, c.r, c.b);
          temp.color(x, y, c);
       }
-      return temp.copyTry(dest, -1, -1, -1, src.type()==IMAGE_BC3 ? IMAGE_BC7 : src.type(), src.mode(), src.mipMaps(), FILTER_BEST, true, false, false, true);
+      return temp.copyTry(dest, -1, -1, -1, src.type()==IMAGE_BC3 ? IMAGE_BC7 : src.type(), src.mode(), src.mipMaps(), FILTER_BEST, IC_WRAP|IC_MTRL_BASE1);
    }
    return false;
 }
@@ -698,12 +699,6 @@ Str  Plural(Str name) // convert to plural name
    if(Ends(name, "fe"))name.removeLast().removeLast()+="ves";else // life -> lives, knife -> knives
       name+='s';
    return case_up ? CaseUp(name) : name;
-}
-Str RemoveQuotes(Str s)
-{
-   if(s.last ()=='"')s.removeLast();
-   if(s.first()=='"')s.remove(0);
-   return s;
 }
 /******************************************************************************/
 Str VecI2AsText(C VecI2 &v) // try to keep as one value if XY are the same
@@ -1622,6 +1617,14 @@ Mems<Edit::FileParams> _DecodeFileParams(C Str &str)
          }
       }
       return false;
+   }
+   ImageHashHeader::ImageHashHeader(C Image &image)
+   {
+      Zero(T); // it's very important to zero entire data at the start, in case there's any extra padding, to make sure hash is always the same
+      size=image.size();
+      if(image.cube())flags|=1;
+      if(image.sRGB())flags|=2;
+      // other flags can be used for example to force high quality, like BC7 instead of BC1
    }
    Rename& Rename::set(C Str &src, C Str &dest) {T.src=src; T.dest=dest; return T;}
    bool Rename::operator==(C Rename &rename)C {return Equal(src, rename.src, true) && Equal(dest, rename.dest, true);}

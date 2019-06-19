@@ -13,7 +13,7 @@ EditorServer EditServer;
    }
    void EditorServer::ConvertHeight(Image &src, Heightmap &dest, flt area_size) // 'src' will get modified !!
    {
-      src.resize(dest.resolution(), dest.resolution(), FILTER_BEST, true, false, true);
+      src.resize(dest.resolution(), dest.resolution(), FILTER_BEST, IC_CLAMP|IC_KEEP_EDGES);
       REPD(y, dest.resolution())
       REPD(x, dest.resolution())dest.height(x, y, src.pixelF(x, y)/area_size);
    }
@@ -25,7 +25,7 @@ EditorServer EditServer;
    }
    void EditorServer::ConvertColor(Image &src, Heightmap &dest) // 'src' will get modified !!
    {
-      src.resize(dest.resolution(), dest.resolution(), FILTER_BEST, true, false, true);
+      src.resize(dest.resolution(), dest.resolution(), FILTER_BEST, IC_CLAMP|IC_KEEP_EDGES);
       REPD(y, dest.resolution())
       REPD(x, dest.resolution())dest.color(x, y, src.color(x, y));
    }

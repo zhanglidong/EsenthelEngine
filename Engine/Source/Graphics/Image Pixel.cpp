@@ -986,6 +986,64 @@ void Image::merge(Int x, Int y, C Vec4 &color)
    }
 }
 /******************************************************************************/
+Vec4 ImageColorF(CPtr data, IMAGE_TYPE hw_type)
+{
+   switch(hw_type)
+   {
+      case IMAGE_F32  :                        return Vec4(*(Flt *)data, 0, 0, 1);
+      case IMAGE_F32_2:                        return Vec4(*(Vec2*)data,    0, 1);
+      case IMAGE_F32_3: case IMAGE_F32_3_SRGB: return Vec4(*(Vec *)data,       1);
+      case IMAGE_F32_4: case IMAGE_F32_4_SRGB: return      *(Vec4*)data          ;
+
+      case IMAGE_F16  : return Vec4(((Half*)data)[0],                0,                0,                1);
+      case IMAGE_F16_2: return Vec4(((Half*)data)[0], ((Half*)data)[1],                0,                1);
+      case IMAGE_F16_3: return Vec4(((Half*)data)[0], ((Half*)data)[1], ((Half*)data)[2],                1);
+      case IMAGE_F16_4: return Vec4(((Half*)data)[0], ((Half*)data)[1], ((Half*)data)[2], ((Half*)data)[3]);
+
+      case IMAGE_A8: return Vec4(0, 0, 0, ByteToFlt(*(U8*)data));
+      case IMAGE_I8: return Vec4(Vec(     ByteToFlt(*(U8*)data)), 1);
+
+      // 16
+   #if SUPPORT_DEPTH_TO_COLOR
+      case IMAGE_D16: if(GL)return Vec4(Vec((*(U16*)data)/Flt(0x0000FFFFu)*2-1), 1); // !! else fall through no break on purpose !!
+   #endif
+      case IMAGE_I16:
+         return Vec4(Vec((*(U16*)data)/Flt(0x0000FFFFu)), 1);
+
+      // 32
+   #if SUPPORT_DEPTH_TO_COLOR
+      case IMAGE_D32 :       return Vec4(Vec(GL ? (*(Flt*)data)*2-1 : *(Flt*)data), 1);
+    //case IMAGE_D32I: if(GL)return Vec4(Vec((*(U32*)data)/Dbl(0xFFFFFFFFu)*2-1), 1); // !! else fall through no break on purpose !!
+   #endif
+      case IMAGE_I32:
+         return Vec4(Vec((*(U32*)data)/Dbl(0xFFFFFFFFu)), 1); // Dbl required to get best precision
+
+      // 24
+   #if SUPPORT_DEPTH_TO_COLOR
+      case IMAGE_D24S8:
+      case IMAGE_D24X8: if(GL)return Vec4(Vec((*(U16*)(((Byte*)data)+1) | (((Byte*)data)[3]<<16))/Flt(0x00FFFFFFu)*2-1), 1); // !! else fall through no break on purpose !!
+   #endif
+      case IMAGE_I24:
+         return Vec4(Vec((*(U16*)data | (((Byte*)data)[2]<<16))/Flt(0x00FFFFFFu)), 1); // here Dbl is not required, this was tested
+
+      case IMAGE_L8  : case IMAGE_L8_SRGB  : {Byte  &b=*(Byte *)data; Flt l=ByteToFlt(b  ); return Vec4(l, l, l,              1);}
+      case IMAGE_L8A8: case IMAGE_L8A8_SRGB: {VecB2 &c=*(VecB2*)data; Flt l=ByteToFlt(c.x); return Vec4(l, l, l, ByteToFlt(c.y));}
+
+      case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.z), ByteToFlt(c.y), ByteToFlt(c.x), ByteToFlt(c.w));}
+      case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: {VecB4 &c=*(VecB4*)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z), ByteToFlt(c.w));}
+      case IMAGE_B8G8R8  : case IMAGE_B8G8R8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(ByteToFlt(c.z), ByteToFlt(c.y), ByteToFlt(c.x),              1);}
+      case IMAGE_R8G8B8  : case IMAGE_R8G8B8_SRGB  : {VecB  &c=*(VecB *)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y), ByteToFlt(c.z),              1);}
+      case IMAGE_R8G8    :                           {VecB2 &c=*(VecB2*)data; return Vec4(ByteToFlt(c.x), ByteToFlt(c.y),              0,              1);}
+      case IMAGE_R8      :                           {Byte   c=*(Byte *)data; return Vec4(ByteToFlt(c  ),              0,              0,              1);}
+
+      case IMAGE_R8_SIGN      : {Byte  &c=*(Byte *)data; return Vec4(SByteToSFlt(c  ),                0,                0,                1);}
+      case IMAGE_R8G8_SIGN    : {VecB2 &c=*(VecB2*)data; return Vec4(SByteToSFlt(c.x), SByteToSFlt(c.y),                0,                1);}
+      case IMAGE_R8G8B8A8_SIGN: {VecB4 &c=*(VecB4*)data; return Vec4(SByteToSFlt(c.x), SByteToSFlt(c.y), SByteToSFlt(c.z), SByteToSFlt(c.w));}
+
+      case IMAGE_R10G10B10A2: {UInt u=*(UInt*)data; return Vec4(U10ToFlt(u&0x3FF), U10ToFlt((u>>10)&0x3FF), U10ToFlt((u>>20)&0x3FF), U2ToFlt(u>>30));}
+   }
+   return 0;
+}
 static inline Vec4 GetColorF(CPtr data, C Image &image, Bool _2d, Int x, Int y, Int z=0)
 {
    switch(image.hwType())

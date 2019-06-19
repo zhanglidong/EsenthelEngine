@@ -269,8 +269,6 @@ struct Image // Image (Texture)
    IMAGE_PRECISION     precision()C {return ImageTI[_hw_type].    precision  ;} // get image precision
    Bool            highPrecision()C {return ImageTI[_hw_type].highPrecision();} // if  any channel of the image uses more than 8 bits
 
-   Bool            highPrecisionOrSRGB()C {return highPrecision() || sRGB();}
-
    CUBE_LAYOUT cubeLayout()C; // auto-detect cube layout based on image size
 
    // manage
@@ -721,6 +719,8 @@ IMAGE_TYPE ImageTypeToggleSRGB (IMAGE_TYPE type); // convert 'type' to the most 
 IMAGE_TYPE ImageTypeIncludeSRGB(IMAGE_TYPE type); // convert 'type' to the most similar IMAGE_TYPE that has           sRGB
 IMAGE_TYPE ImageTypeExcludeSRGB(IMAGE_TYPE type); // convert 'type' to the most similar IMAGE_TYPE that has no        sRGB
 
+IMAGE_TYPE ImageTypeHighPrec(IMAGE_TYPE type); // convert 'type' to the most similar IMAGE_TYPE that has F32 precision per channel
+
 IMAGE_TYPE ImageTypeUncompressed(IMAGE_TYPE type); // convert 'type' to the most similar IMAGE_TYPE that is not compressed
 
 Int  GetPVRTCQuality(           ); // get PVRTC compression quality, 0..4
@@ -749,6 +749,7 @@ Bool IgnoreGamma(UInt flags, IMAGE_TYPE src, IMAGE_TYPE dest);
 Bool CanDoRawCopy(IMAGE_TYPE src, IMAGE_TYPE dest, Bool ignore_gamma=false);
 Bool CanDoRawCopy(C Image   &src, C Image   &dest, Bool ignore_gamma=false);
 Bool CompatibleLock(LOCK_MODE cur, LOCK_MODE lock); // if 'lock' is okay to be applied when 'cur' is already applied
+Vec4 ImageColorF(CPtr data, IMAGE_TYPE hw_type);
 Vec4 ImageColorL(CPtr data, IMAGE_TYPE hw_type);
 void CopyNoStretch(C Image &src, Image &dest, Bool clamp, Bool ignore_gamma=false); // assumes 'src,dest' are locked and non-compressed
 #if WINDOWS

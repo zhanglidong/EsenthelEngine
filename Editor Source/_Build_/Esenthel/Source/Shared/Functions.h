@@ -164,7 +164,6 @@ Str NameToEnum(C Str &name);
 Str TimeAgo(C DateTime &date);
 char CountS(int n);
 Str  Plural(Str name);
-Str RemoveQuotes(Str s);
 Str VecI2AsText(C VecI2 &v);
 Vec2 TextVec2Ex(cchar *t);
 Vec TextVecEx(cchar *t);

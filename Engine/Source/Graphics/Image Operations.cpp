@@ -513,7 +513,7 @@ Image& Image::alphaFromBrightness()
       if(!ImageTI[T.type()].a){copy(T, -1, -1, -1, ImageTypeIncludeAlpha(T.type()), T.mode(), T.mipMaps()); type=T.type();} // if image doesn't have alpha channel then include it, set 'type' to value after conversion so it won't be converted back
       if(lock())
       {
-         if(highPrecisionOrSRGB())
+         if(highPrecision())
          {
             REPD(z, T.d())
             REPD(y, T.h())
@@ -540,7 +540,7 @@ Image& Image::divRgbByAlpha()
       Int        mip_maps;
       if(Decompress(T, type, mode, mip_maps) && lock())
       {
-         if(highPrecisionOrSRGB())
+         if(highPrecision())
          {
             REPD(z, T.d())
             REPD(y, T.h())
@@ -636,7 +636,7 @@ struct BlurContext
 
    BlurContext(C Image &src, Bool clamp, Threads *threads)
    {
-      if(T.high_prec=src.highPrecisionOrSRGB())
+      if(T.high_prec=src.highPrecision())
       {
          if(src.hwType()==IMAGE_F32        )func=0;else // HP 1F, here check 'hwType' because we will access memory directly using 'pixF' method
          if(ImageTI[src.type()].channels==1)func=1;else // HP 1C
@@ -1909,7 +1909,7 @@ Bool Image::stats(Vec4 *min, Vec4 *max, Vec4 *avg, Vec4 *med, Vec4 *mod, Vec *av
          }
          if(min)*min= FLT_MAX;
          if(max)*max=-FLT_MAX;
-         Bool med_fast=!src->highPrecisionOrSRGB(); // calculate median using fast method (8-bit histogram)
+         Bool med_fast=!src->highPrecision(); // calculate median using fast method (8-bit histogram)
          BoxI box(0, src->size3()); if(box_ptr)box&=*box_ptr;
          Long pixels=box.volumeL();
          if(med)
@@ -2001,7 +2001,7 @@ Bool Image::statsSat(Flt *min, Flt *max, Flt *avg, Flt *med, Flt *mod, Flt *avg_
    {
     C Image *src=this; Image temp;
       if(compressed())
-         if(copyTry(temp, -1, -1, -1, IMAGE_R8G8B8, IMAGE_SOFT, 1))src=&temp;else goto error;
+         if(copyTry(temp, -1, -1, -1, ImageTypeUncompressed(type()), IMAGE_SOFT, 1))src=&temp;else goto error;
       if(src->lockRead())
       {
          Dbl  sum=0; Vec2 sum_alpha_weight=0;
@@ -2016,7 +2016,7 @@ Bool Image::statsSat(Flt *min, Flt *max, Flt *avg, Flt *med, Flt *mod, Flt *avg_
          }
          if(min)*min= FLT_MAX;
          if(max)*max=-FLT_MAX;
-         Bool med_fast=!src->highPrecisionOrSRGB(); // calculate median using fast method (8-bit histogram)
+         Bool med_fast=!src->highPrecision(); // calculate median using fast method (8-bit histogram)
          BoxI box(0, src->size3()); if(box_ptr)box&=*box_ptr;
          Long pixels=box.volumeL();
          if(med)

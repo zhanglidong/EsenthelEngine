@@ -1699,7 +1699,7 @@ class ProjectEx : ProjectHierarchy
       {
          if(includeTex(material.base_0_tex))
          {
-            base_0.copyTry(base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, false, false, false, false);
+            base_0.copyTry(base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
             saveTex(base_0, material.base_0_tex);
          }
          Server.setTex(material.base_0_tex);
@@ -1712,7 +1712,7 @@ class ProjectEx : ProjectHierarchy
       {
          if(includeTex(material.base_1_tex))
          {
-            base_1.copyTry(base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, false, false, false, true);
+            base_1.copyTry(base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP|IC_MTRL_BASE1);
             saveTex(base_1, material.base_1_tex);
          }
          Server.setTex(material.base_1_tex);
@@ -1799,7 +1799,7 @@ class ProjectEx : ProjectHierarchy
             if(includeTex(material.detail_tex))
             {
                FixAlpha(detail, ct, RemoveMtrlDetailBump);
-               detail.copyTry(detail, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, false, false, false, true);
+               detail.copyTry(detail, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP|IC_MTRL_BASE1);
                saveTex(detail, material.detail_tex);
             }
             Server.setTex(material.detail_tex);
@@ -1810,14 +1810,14 @@ class ProjectEx : ProjectHierarchy
    {
       Image macro; if(loadImage(macro, material.macro_map)) // proceed only if loaded ok
       {
-         macro.resize(NearestPow2(macro.w()), NearestPow2(macro.h()), FILTER_BEST, false);
+         macro.resize(NearestPow2(macro.w()), NearestPow2(macro.h()), FILTER_BEST, IC_WRAP);
          IMAGE_TYPE ct; ImageProps(macro, &material.macro_tex, &ct, IGNORE_ALPHA); material.macro_map_time.getUTC(); // in order for 'macro_tex' to sync, 'macro_map_time' time must be changed
          if(macro.is())
          {
             if(includeTex(material.macro_tex))
             {
                FixAlpha(macro, ct);
-               macro.copyTry(macro, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, false);
+               macro.copyTry(macro, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
                saveTex(macro, material.macro_tex);
             }
             Server.setTex(material.macro_tex);

@@ -629,19 +629,9 @@ class Project
       }
       return -1;
    }
-   static IMAGE_TYPE HighPrecType(IMAGE_TYPE type)
-   {
-      switch(type)
-      {
-         case IMAGE_R8    : case IMAGE_I8: case IMAGE_I16: case IMAGE_I24: case IMAGE_I32: return IMAGE_F32;
-         case IMAGE_R8G8  :                                                                return IMAGE_F32_2;
-         case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB:                                        return IMAGE_F32_3;
-         default          :                                                                return IMAGE_F32_4;
-      }
-   }
    static void MakeHighPrec(Image &image)
    {
-      if(!image.highPrecision())image.copyTry(image, -1, -1, -1, HighPrecType(image.type()));
+      if(!image.highPrecision())image.copyTry(image, -1, -1, -1, ImageTypeHighPrec(image.type()));
    }
    static void ContrastLum(Image &image, flt contrast, flt avg_lum, C BoxI &box)
    {
@@ -799,7 +789,8 @@ class Project
                s.y=Round(ConvertUnitType(sf.y, image.h(), unit));
             }
             s=ImageSize(image.size3(), s, false).xy;
-            image.resize(s.x, s.y, (param.name=="resizeNoStretch") ? FILTER_NO_STRETCH : (param.name=="resizeLinear") ? FILTER_LINEAR : (param.name=="resizeCubic") ? FILTER_CUBIC_FAST : FILTER_BEST, (param.name=="resizeClamp") ? true : (param.name=="resizeWrap" || param.name=="resizeNoStretch") ? false : clamp);
+            bool resize_clamp=((param.name=="resizeClamp") ? true : (param.name=="resizeWrap" || param.name=="resizeNoStretch") ? false : clamp);
+            image.resize(s.x, s.y, (param.name=="resizeNoStretch") ? FILTER_NO_STRETCH : (param.name=="resizeLinear") ? FILTER_LINEAR : (param.name=="resizeCubic") ? FILTER_CUBIC_FAST : FILTER_BEST, (resize_clamp?IC_CLAMP:IC_WRAP));
          }else
          if(param.name=="maxSize")
          {
@@ -814,7 +805,7 @@ class Project
                s.y=Round(ConvertUnitType(sf.y, image.h(), unit));
             }
             s=ImageSize(image.size3(), s, false).xy;
-            image.resize(Min(image.w(), s.x), Min(image.h(), s.y), FILTER_BEST, clamp);
+            image.resize(Min(image.w(), s.x), Min(image.h(), s.y), FILTER_BEST, (clamp?IC_CLAMP:IC_WRAP));
          }else
          if(param.name=="tile")image.tile(param.asInt());else
          if(param.name=="inverseRGB")
@@ -1560,9 +1551,10 @@ class Project
             {
                int   chn[4]; REPAO(chn)=ChannelIndex(param.value[i]);
                Image temp;
+               bool  srgb=image.sRGB();
                if(image.highPrecision())
                {
-                  temp.createSoftTry(image.w(), image.h(), image.d(), channels==1 ? IMAGE_F32 : channels==2 ? IMAGE_F32_2 : channels==3 ? IMAGE_F32_3 : IMAGE_F32_4);
+                  temp.createSoftTry(image.w(), image.h(), image.d(), channels==1 ? IMAGE_F32 : channels==2 ? IMAGE_F32_2 : channels==3 ? (srgb ? IMAGE_F32_3_SRGB : IMAGE_F32_3) : (srgb ? IMAGE_F32_4_SRGB : IMAGE_F32_4));
                   Vec4 d(0, 0, 0, 1);
                   REPD(z, image.d())
                   REPD(y, image.h())
@@ -1574,7 +1566,7 @@ class Project
                   }
                }else
                {
-                  temp.createSoftTry(image.w(), image.h(), image.d(), channels==1 ? IMAGE_R8 : channels==2 ? IMAGE_R8G8 : channels==3 ? IMAGE_R8G8B8 : IMAGE_R8G8B8A8);
+                  temp.createSoftTry(image.w(), image.h(), image.d(), channels==1 ? IMAGE_R8 : channels==2 ? IMAGE_R8G8 : channels==3 ? (srgb ? IMAGE_R8G8B8_SRGB : IMAGE_R8G8B8) : (srgb ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8));
                   Color d(0, 0, 0, 255);
                   REPD(z, image.d())
                   REPD(y, image.h())
@@ -1717,7 +1709,7 @@ class Project
          {
             VecI2 old_size=image.size();
             if(image.is())image.crop(image, 0, 0, Max(image.w(), size.x), Max(image.h(), size.y));
-            else         {image.createSoftTry(size.x, size.y, 1, (hp || single.highPrecision()) ? IMAGE_F32_4 : IMAGE_R8G8B8A8_SRGB); image.clear();}
+            else         {image.createSoftTry(size.x, size.y, 1, (hp || single.highPrecision()) ? IMAGE_F32_4_SRGB : IMAGE_R8G8B8A8_SRGB); image.clear();}
             if(background!=TRANSPARENT)
                REPD(y, image.h())
                REPD(x, image.w())if(x>=old_size.x || y>=old_size.y)image.color(x, y, background);

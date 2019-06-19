@@ -397,6 +397,16 @@ IMAGE_TYPE ImageTypeToggleSRGB(IMAGE_TYPE type)
       case IMAGE_PVRTC1_4_SRGB: return IMAGE_PVRTC1_4;   case IMAGE_PVRTC1_4: return IMAGE_PVRTC1_4_SRGB;
    }
 }
+IMAGE_TYPE ImageTypeHighPrec(IMAGE_TYPE type)
+{
+ C ImageTypeInfo &type_info=ImageTI[type];
+   Bool srgb=IsSRGB(type);
+   if(type_info.a)return srgb ? IMAGE_F32_4_SRGB : IMAGE_F32_4;
+   if(type_info.b)return srgb ? IMAGE_F32_3_SRGB : IMAGE_F32_3;
+   if(srgb       )return        IMAGE_F32_3_SRGB; // there are no other F32 sRGB types
+   if(type_info.g)return        IMAGE_F32_2;
+                  return type ? IMAGE_F32 : IMAGE_NONE;
+}
 #if DX11
 static DXGI_FORMAT Typeless(IMAGE_TYPE type)
 {

@@ -9,7 +9,6 @@ bool        Initialized=false;
 Str         SettingsPath, RunAtExit;
 Environment DefaultEnvironment;
 Threads     WorkerThreads, BuilderThreads, BackgroundThreads;
-Str         CmdLine;
 /******************************************************************************/
 void ScreenChanged(flt old_width=D.w(), flt old_height=D.h())
 {
@@ -104,16 +103,16 @@ Environment& CurrentEnvironment() {if(Environment *env=EnvEdit.cur())return *env
 /******************************************************************************/
 void InitPre()
 {
-   if(App.cmdLine().is()) // if given command line param
+   if(App.cmd_line.elms()) // if given command line param
    {
       Memc<uint> proc; ProcList(proc);
       REPA(proc)if(proc[i]!=App.processID())
       {
          Str proc_name=GetBase(ProcName(proc[i]));
-         if(proc_name=="Esenthel.exe" || proc_name=="Esenthel 32 DX9.exe")
+         if(proc_name=="Esenthel.exe")
             if(ptr hwnd=ProcWindow(proc[i]))
          {
-            File f; f.writeMem().putStr(RemoveQuotes(App.cmdLine())).pos(0);
+            File f; f.writeMem().putStr(App.cmd_line[0]).pos(0);
             Memt<byte> temp; temp.setNum(f.left()); f.get(temp.data(), temp.elms());
             WindowSendData(temp.data(), temp.elms(), hwnd);
             App.flag=APP_EXIT_IMMEDIATELY;
@@ -293,7 +292,6 @@ bool Init()
       VidOpt.create(); // !! after 'ApplySettings' !!
       SetKbExclusive();
       AssociateFileType(EsenthelProjectExt, App.exe(), "Esenthel.Editor", "Esenthel Project", App.exe());
-      CmdLine=RemoveQuotes(App.cmdLine());
       Initialized=true;
    }
    ScreenChanged();

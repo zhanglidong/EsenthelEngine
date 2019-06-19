@@ -3,7 +3,6 @@ extern bool        Initialized;
 extern Str         SettingsPath, RunAtExit;
 extern Environment DefaultEnvironment;
 extern Threads     WorkerThreads, BuilderThreads, BackgroundThreads;
-extern Str         CmdLine;
 /******************************************************************************/
 void ScreenChanged(flt old_width=D.w(), flt old_height=D.h());
 void SetShader();

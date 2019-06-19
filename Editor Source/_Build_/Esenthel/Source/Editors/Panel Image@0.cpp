@@ -57,7 +57,7 @@ PanelImageEditor PanelImageEdit;
          Vec2 f(LerpR(image_rect.min.x, image_rect.max.x, Ms.pos().x)*soft.w(),
                 LerpR(image_rect.max.y, image_rect.min.y, Ms.pos().y)*soft.h());
          Color c=soft.colorFLinear(f.x, f.y),
-              ca=soft.areaColorAverage(f, 8);
+              ca=soft.areaColorFAverage(f, 8);
          TextStyleParams tsp; tsp.align.set(0, 1); tsp.color=ColorInverse(ca); tsp.color.a=255; tsp.shadow=tsp.color.lum(); tsp.size=0.045f;
          D.text(tsp, Ms.pos(), S+"R:"+c.r+", G:"+c.g+", B:"+c.b+", A:"+c.a);
       }

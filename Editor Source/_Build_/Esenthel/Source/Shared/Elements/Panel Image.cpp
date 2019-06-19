@@ -629,7 +629,7 @@
       IMAGE_TYPE type=panel_image.image.type(); if(base.compressed)ImageProps(panel_image.image, null, &type);
       Image *src=&panel_image.image;
       if(soft){Swap(*soft, *src); src=soft;}
-      src->copyTry(panel_image.image, -1, -1, -1, type, IMAGE_2D, base.mip_maps ? 0 : 1, FILTER_BEST, true, true);
+      src->copyTry(panel_image.image, -1, -1, -1, type, IMAGE_2D, base.mip_maps ? 0 : 1, FILTER_BEST, IC_CLAMP|IC_ALPHA_WEIGHT);
    }
    bool EditPanelImage::save(File &f)C
    {
