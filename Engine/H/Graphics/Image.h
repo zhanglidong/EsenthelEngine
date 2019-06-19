@@ -73,9 +73,9 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
    IMAGE_BC2_SRGB, // BC2/DXT3 8-bit lossy RGBA compression with sharp  alpha transitions, sRGB   gamma, Soft, DX10+, GL, partial Android
    IMAGE_BC3     , // BC3/DXT5 8-bit lossy RGBA compression with smooth alpha transitions, linear gamma, Soft, DX10+, GL, partial Android
    IMAGE_BC3_SRGB, // BC3/DXT5 8-bit lossy RGBA compression with smooth alpha transitions, sRGB   gamma, Soft, DX10+, GL, partial Android
-   IMAGE_BC6     , // BC6      8-bit lossy RGB 16-bit floating point compression         , linear gamma, Soft, DX11+, partial GL (compressing images to this format is available only on when 'SupportCompressBC' was called in 'InitPre')
-   IMAGE_BC7     , // BC7      8-bit lossy RGBA         high quality compression         , linear gamma, Soft, DX11+, partial GL (compressing images to this format is available only on when 'SupportCompressBC' was called in 'InitPre')
-   IMAGE_BC7_SRGB, // BC7      8-bit lossy RGBA         high quality compression         , sRGB   gamma, Soft, DX11+, partial GL (compressing images to this format is available only on when 'SupportCompressBC' was called in 'InitPre')
+   IMAGE_BC6     , // BC6      8-bit lossy RGB 16-bit floating point compression         , linear gamma, Soft, DX11+, partial GL (compressing images to this format is available only when 'SupportCompressBC' was called in 'InitPre')
+   IMAGE_BC7     , // BC7      8-bit lossy RGBA         high quality compression         , linear gamma, Soft, DX11+, partial GL (compressing images to this format is available only when 'SupportCompressBC' was called in 'InitPre')
+   IMAGE_BC7_SRGB, // BC7      8-bit lossy RGBA         high quality compression         , sRGB   gamma, Soft, DX11+, partial GL (compressing images to this format is available only when 'SupportCompressBC' was called in 'InitPre')
 
    // compressed format for Android (compressing images to these formats is available only on when 'SupportCompressETC' was called in 'InitPre', decompressing these formats is available on all platforms, for GPU's that don't support these formats natively, the engine will keep them as R8G8B8A8 in the memory, decompression and especially compression may be slow, formats are recommended to be used only on Android)
    IMAGE_ETC2        , // Ericsson 4-bit lossy RGB  compression with no    alpha (R,G,B,1     ), linear gamma, Soft, GL ES
