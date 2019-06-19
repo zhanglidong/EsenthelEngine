@@ -2707,6 +2707,7 @@ void Image::normalToBump(Image &dest, Bool high_quality)
    }
 }
 /******************************************************************************/
+#define BLUR_CUBE_LINEAR 1
 struct BlurCube
 {
    Int   src_res, dest_res, src_face_size, src_pitch, src_mip; DIR_ENUM f;
@@ -2824,7 +2825,7 @@ struct BlurCube
                {
                   Flt a=Acos(cos), w=Weight(a/angle);
                   // FIXME mul 'w' by texel area size
-                  col   +=w*ImageColorL(src_data + x*src.bytePP(), src.hwType());
+                  col   +=w*(BLUR_CUBE_LINEAR ? ImageColorL : ImageColorF)(src_data + x*src.bytePP(), src.hwType());
                   weight+=w;
                }
             }
@@ -2898,7 +2899,7 @@ struct BlurCube
                            {
                               Flt a=Acos(cos), w=Weight(a/angle);
                               // FIXME mul 'w' by texel area size
-                              col   +=w*ImageColorL(src_data + x*src.bytePP(), src.hwType());
+                              col   +=w*(BLUR_CUBE_LINEAR ? ImageColorL : ImageColorF)(src_data + x*src.bytePP(), src.hwType());
                               weight+=w;
                            }
                         }
@@ -2934,11 +2935,13 @@ struct BlurCube
             SyncLocker locker(lock); if(src.lockRead(src_mip, f))
             {
                Vec2 tex(dir_f.x*src_DirToCubeFace_mul+src_DirToCubeFace_add, -dir_f.y*src_DirToCubeFace_mul+src_DirToCubeFace_add);
-               col=src.areaColorLLinear(tex, src_area_size);
+               if(BLUR_CUBE_LINEAR)col=src.areaColorLLinear(tex, src_area_size);
+               else                col=src.areaColorFLinear(tex, src_area_size);
                src.unlock();
             }
          }
-         dest.colorL(x, y, col);
+         if(BLUR_CUBE_LINEAR)dest.colorL(x, y, col);
+         else                dest.colorF(x, y, col);
       }
    }
 
