@@ -191,7 +191,7 @@ class ImageConvert
                   if(type    <0)type    =s.type();                   // source will now be as IMAGE_R8G8B8_SRGB so we can't use "-1", auto-detect instead
                   if(s.copyTry(temp, -1, -1, -1, IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1))s=&temp;
                }
-               if(s.copyTry(temp, size.x, size.y, size.z, type, mode, mip_maps, FILTER_BEST, (clamp?IC_CLAMP:IC_WRAP)|(mtrl_base_1?IC_MTRL_BASE1:0))
+               if(s.copyTry(temp, size.x, size.y, size.z, type, mode, mip_maps, FILTER_BEST, (clamp?IC_CLAMP:IC_WRAP)|(mtrl_base_1?IC_MTRL_BASE1:0)))
                {
                   File f; if(temp.save(f.writeMem())){f.pos(0); SafeOverwrite(f, dest, &time);} // save using specified time
                }

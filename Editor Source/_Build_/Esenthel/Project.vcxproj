@@ -59,7 +59,7 @@
 	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props"/>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|ARM'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
-		<CharacterSet>NotSet</CharacterSet>
+		<CharacterSet>Unicode</CharacterSet>
 		<WholeProgramOptimization>true</WholeProgramOptimization>
 		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
@@ -73,7 +73,7 @@
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|ARM'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
-		<CharacterSet>NotSet</CharacterSet>
+		<CharacterSet>Unicode</CharacterSet>
 		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|ARM'" Label="Configuration">
@@ -85,7 +85,7 @@
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DX11|x64'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
-		<CharacterSet>NotSet</CharacterSet>
+		<CharacterSet>Unicode</CharacterSet>
 		<WholeProgramOptimization>true</WholeProgramOptimization>
 		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
@@ -108,7 +108,7 @@
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DX11|x64'" Label="Configuration">
 		<ConfigurationType>Application</ConfigurationType>
-		<CharacterSet>NotSet</CharacterSet>
+		<CharacterSet>Unicode</CharacterSet>
 		<PlatformToolset>v142</PlatformToolset>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Universal DX11|x64'" Label="Configuration">
@@ -217,6 +217,7 @@
 			<OptimizeReferences>false</OptimizeReferences>
 			<EnableCOMDATFolding>false</EnableCOMDATFolding>
 			<ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+			<EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>
 		</Link>
 		<Manifest>
 			<AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
@@ -304,6 +305,7 @@
 			<EnableCOMDATFolding>false</EnableCOMDATFolding>
 			<TargetMachine>MachineX64</TargetMachine>
 			<ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+			<EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>
 		</Link>
 		<Manifest>
 			<AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
@@ -479,6 +481,7 @@
 			<OptimizeReferences>true</OptimizeReferences>
 			<EnableCOMDATFolding>true</EnableCOMDATFolding>
 			<LinkTimeCodeGeneration/>
+			<EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>
 		</Link>
 		<Manifest>
 			<AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>
@@ -567,6 +570,7 @@
 			<EnableCOMDATFolding>true</EnableCOMDATFolding>
 			<LinkTimeCodeGeneration/>
 			<TargetMachine>MachineX64</TargetMachine>
+			<EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>
 		</Link>
 		<Manifest>
 			<AdditionalManifestFiles>Windows Manifest.xml</AdditionalManifestFiles>

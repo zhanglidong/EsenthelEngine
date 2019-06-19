@@ -1621,7 +1621,7 @@ Mems<Edit::FileParams> _DecodeFileParams(C Str &str)
    ImageHashHeader::ImageHashHeader(C Image &image)
    {
       Zero(T); // it's very important to zero entire data at the start, in case there's any extra padding, to make sure hash is always the same
-      size=image.size();
+      size=image.size3();
       if(image.cube())flags|=1;
       if(image.sRGB())flags|=2;
       // other flags can be used for example to force high quality, like BC7 instead of BC1
