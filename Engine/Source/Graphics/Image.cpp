@@ -1686,15 +1686,15 @@ static Bool Compress(C Image &src, Image &dest, Bool mtrl_base_1=false) // assum
       case IMAGE_BC3: case IMAGE_BC3_SRGB: return CompressBC(src, dest, mtrl_base_1);
 
       case IMAGE_BC6:
-      case IMAGE_BC7: case IMAGE_BC7_SRGB: return CompressBC67 ? CompressBC67(src, dest) : false;
+      case IMAGE_BC7: case IMAGE_BC7_SRGB: DEBUG_ASSERT(CompressBC67, "'SupportCompressBC/SupportCompressAll' was not called"); return CompressBC67 ? CompressBC67(src, dest) : false;
 
       case IMAGE_ETC1   :
       case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   :
       case IMAGE_ETC2_A1: case IMAGE_ETC2_A1_SRGB:
-      case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB: return CompressETC ? CompressETC(src, dest, -1, mtrl_base_1 ? false : true) : false;
+      case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB: DEBUG_ASSERT(CompressETC, "'SupportCompressETC/SupportCompressAll' was not called"); return CompressETC ? CompressETC(src, dest, -1, mtrl_base_1 ? false : true) : false;
 
       case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB:
-      case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB: return CompressPVRTC ? CompressPVRTC(src, dest, -1) : false;
+      case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB: DEBUG_ASSERT(CompressPVRTC, "'SupportCompressPVRTC/SupportCompressAll' was not called"); return CompressPVRTC ? CompressPVRTC(src, dest, -1) : false;
    }
    return false;
 }
