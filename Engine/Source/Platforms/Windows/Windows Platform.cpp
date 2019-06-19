@@ -631,14 +631,18 @@ void Application::loopUntil(Bool &finished, Bool wait)
 } // namespace EE
 /******************************************************************************/
 #if WINDOWS_OLD
-INT WINAPI WinMain(HINSTANCE hinstance, HINSTANCE, LPSTR command_line, Int)
+INT WINAPI wWinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
-   // there's also '__argc', ANSI '__argv', and UNICODE '__wargv', however in tests only ANSI is available without UNICODE, so can't be used
-   int argc; if(PWSTR *argv=CommandLineToArgvW(GetCommandLineW(), &argc)) // need to use 'GetCommandLineW' to get wide char, because 'command_line' is ANSI only
+#if 1
+   const Int start=1; // start from #1, because #0 is always the executable name (if file name has spaces, then they're included in the #0 argv)
+   App.cmd_line.setNum(__argc-start); FREPAO(App.cmd_line)=__wargv[start+i];
+#else
+   int argc; if(PWSTR *argv=CommandLineToArgvW(pCmdLine, &argc)) // there's also 'GetCommandLineW'
    {
       const Int start=1; // start from #1, because #0 is always the executable name (if file name has spaces, then they're included in the #0 argv)
       App.cmd_line.setNum(argc-start); FREPAO(App.cmd_line)=argv[start+i]; LocalFree(argv);
    }
+#endif
       App._hinstance=hinstance;
    if(App.create())App.loop();
       App.del   ();
