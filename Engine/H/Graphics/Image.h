@@ -251,7 +251,6 @@ struct Image // Image (Texture)
    Bool          soft()C {return IsSoft(mode())   ;} // if this is a software image     (IMAGE_SOFT, IMAGE_SOFT_CUBE)
    Bool            hw()C {return IsHW  (mode())   ;} // if this is a hardware image NOT (IMAGE_SOFT, IMAGE_SOFT_CUBE)
    Bool          cube()C {return IsCube(mode())   ;} // if this is a cube     image     (IMAGE_CUBE, IMAGE_SOFT_CUBE or IMAGE_RT_CUBE)
-   Bool          sRGB()C {return IsSRGB(type())   ;} // if this is a sRGB     image
 
    Int      lMipMap  ()C {return _lmm   ;} // get index              of locked mip map
    DIR_ENUM lCubeFace()C {return _lcf   ;} // get                       locked cube face
@@ -268,6 +267,7 @@ struct Image // Image (Texture)
    Bool               compressed()C {return ImageTI[_hw_type].   compressed  ;} // if  hardware type is compressed
    IMAGE_PRECISION     precision()C {return ImageTI[_hw_type].    precision  ;} // get image precision
    Bool            highPrecision()C {return ImageTI[_hw_type].highPrecision();} // if  any channel of the image uses more than 8 bits
+   Bool                     sRGB()C {return  IsSRGB(_hw_type)                ;} // if  this is a sRGB image
 
    CUBE_LAYOUT cubeLayout()C; // auto-detect cube layout based on image size
 

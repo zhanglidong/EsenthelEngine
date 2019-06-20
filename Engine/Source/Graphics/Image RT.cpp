@@ -193,20 +193,20 @@ static Int CompareDesc(C ImageRC &image, C ImageRTDesc &desc)
 {
    if(Int c=Compare(image.w      (), desc.size.x ))return c;
    if(Int c=Compare(image.h      (), desc.size.y ))return c;
-   if(Int c=Compare(image.hwType (), desc._type  ))return c; // !! have to compare 'hwType' instead of 'type', because 'hwType' is always non-sRGB (same as 'desc._type') while 'type' can be sRGB-toggled in 'swapSRGB' !!
+   if(Int c=Compare(image.type   (), desc._type  ))return c; // !! have to compare 'type' instead of 'hwType', because 'type' is always non-sRGB (same as 'desc._type') while 'hwType' can be sRGB-toggled in 'swapSRGB' !!
    if(Int c=Compare(image.samples(), desc.samples))return c;
    return 0;
 }
 void ImageRC::swapSRGB()
 {
 #if DX11
-   swapSRV(); swapRTV(); _type=ImageTypeToggleSRGB(type()); // !! have to toggle 'type' and not 'hwType' because 'CompareDesc' and 'Set' expect that !!
+   swapSRV(); swapRTV(); _hw_type=ImageTypeToggleSRGB(hwType()); // !! have to toggle 'hwType' and not 'type' because 'CompareDesc' and 'Set' expect that !!
 #endif
 }
 static void Set(ImageRTPtr &p, ImageRC &rt, Bool want_srgb) // this is called only when "_ptr_num==0"
 {
 #if CAN_SWAP_SRGB
-   if(want_srgb!=IsSRGB(rt.type()))rt.swapSRGB(); // !! explicitly check 'type' and not 'hwType' and not 'rt.sRGB', because 'hwType' is always non-sRGB (same as 'desc._type') while 'type' can be sRGB toggled in 'swapSRGB' !!
+   if(want_srgb!=rt.sRGB())rt.swapSRGB();
 #endif
    rt._ptr_num++; p._data=&rt; rt.discard();
 }

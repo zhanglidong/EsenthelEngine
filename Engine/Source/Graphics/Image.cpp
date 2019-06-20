@@ -1778,13 +1778,12 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
    if(mip_maps<=0)mip_maps=dest_total_mip_maps ; // if mip maps not specified then use full chain
    else       MIN(mip_maps,dest_total_mip_maps); // don't use more than maximum allowed
 
-   Bool ignore_gamma=IgnoreGamma(flags, src->type(), IMAGE_TYPE(type));
-
    // check if doesn't require conversion
-   if(this==&dest && w==T.w() && h==T.h() && d==T.d() && mode==T.mode() && mip_maps==T.mipMaps())
+   if(this==&dest && w==T.w() && h==T.h() && d==T.d() && mode==T.mode() && mip_maps==T.mipMaps()) // here check 'T' instead of 'src' (which could've already encountered some cube conversion, however here we want to check if we can just return without doing any conversions at all)
    {
       if(type==T.type())return true;
-      if(soft() && CanDoRawCopy(T.hwType(), (IMAGE_TYPE)type, ignore_gamma)){dest._hw_type=dest._type=(IMAGE_TYPE)type; return true;} // if software and can do a raw copy, then just adjust types
+      if(soft() && CanDoRawCopy(T.hwType(), (IMAGE_TYPE)type, IgnoreGamma(flags, T.hwType(), IMAGE_TYPE(type))))
+         {dest._hw_type=dest._type=(IMAGE_TYPE)type; return true;} // if software and can do a raw copy, then just adjust types
    }
 
    // convert
@@ -1792,6 +1791,7 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
       // create destination
       Image temp_dest, &target=((src==&dest) ? temp_dest : dest);
       if(!target.createTry(w, h, d, IMAGE_TYPE(type), IMAGE_MODE(mode), mip_maps, rgba_on_fail))return false;
+      Bool ignore_gamma=IgnoreGamma(flags, src->hwType(), target.hwType()); // calculate after knowing 'target.hwType'
 
       // copy
       Int  copied_mip_maps=0;
