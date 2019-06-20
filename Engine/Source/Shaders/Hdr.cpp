@@ -63,13 +63,16 @@ Vec4 HdrUpdate_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
    return Lerp(lum, TexPoint(Lum, Vec2(0, 0)).x, Step);
 }
 /******************************************************************************/
-Vec4 Hdr_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
+Vec4 Hdr_PS(NOPERSP Vec2 inTex:TEXCOORD,
+            NOPERSP PIXEL              ,
+            uniform Bool dither        ):COLOR
 {
    Vec4 col=TexLod  (Col, inTex); // can't use 'TexPoint' because 'Col' can be supersampled
    Flt  lum=TexPoint(Lum, Vec2(0, 0)).x;
 
    col.rgb*=lum;
 
+   if(dither)ApplyDither(col.rgb, pixel.xy);
    return col;
 }
 /******************************************************************************/
@@ -79,5 +82,6 @@ TECHNIQUE(HdrDS0, Draw_VS(), HdrDS_PS(0));
 TECHNIQUE(HdrDS1, Draw_VS(), HdrDS_PS(1));
 
 TECHNIQUE(HdrUpdate, Draw_VS(), HdrUpdate_PS());
-TECHNIQUE(Hdr      , Draw_VS(),       Hdr_PS());
+TECHNIQUE(Hdr      , Draw_VS(),       Hdr_PS(false));
+TECHNIQUE(HdrD     , Draw_VS(),       Hdr_PS(true ));
 /******************************************************************************/

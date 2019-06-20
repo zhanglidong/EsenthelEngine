@@ -175,10 +175,10 @@ struct RendererClass // handles rendering
    void setDS         ();
    void linearizeDepth(Image &dest, Image &depth); // this reads from depth buffer and stores it to custom render target in linearized mode
    void   resolveDepth();
-   void adaptEye      (ImageRC &src, Image &dest);
-   void bloom         (Image   &src, Image &dest, Bool dither=false);
-   Bool motionBlur    (Image   &src, Image &dest, Bool dither=false);
-   void dof           (Image   &src, Image &dest, Bool dither=false);
+   void adaptEye      (ImageRC &src, Image &dest, Bool dither);
+   void bloom         (Image   &src, Image &dest, Bool dither);
+   Bool motionBlur    (Image   &src, Image &dest, Bool dither);
+   void dof           (Image   &src, Image &dest, Bool dither);
    void Combine       (IMAGE_PRECISION rt_prec);
 
    Bool reflection        ();

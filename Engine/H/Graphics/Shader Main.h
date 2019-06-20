@@ -369,7 +369,7 @@ struct HDR
    ShaderFile *shader;
    Shader     *h_HdrDS[2], // [Step]
               *h_HdrUpdate,
-              *h_Hdr;
+              *h_Hdr[2]; // [Dither]
 
    void load();
 }extern

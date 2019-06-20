@@ -223,7 +223,7 @@ ImageRTPtr RendererClass::getBackBuffer() // this may get called during renderin
    }
    return null;
 }
-void RendererClass::adaptEye(ImageRC &src, Image &dest)
+void RendererClass::adaptEye(ImageRC &src, Image &dest, Bool dither)
 {
    Hdr.load();
    ImageRTPtr temp=&src;
@@ -239,8 +239,8 @@ void RendererClass::adaptEye(ImageRC &src, Image &dest)
       temp=next;
    }
    Sh.h_Step    ->set(Pow(Mid(1/D.eyeAdaptationSpeed(), EPS, 1.0f), Time.d())); // can use EPS and not EPS_GPU because we're using Pow here and not on GPU
-   Sh.h_ImageLum->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.h_HdrUpdate->draw(temp());
-   Sh.h_ImageLum->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.h_Hdr      ->draw(src   );
+   Sh.h_ImageLum->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.h_HdrUpdate                                                  ->draw(temp());
+   Sh.h_ImageLum->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.h_Hdr[dither && src.highPrecision() && !dest.highPrecision()]->draw(src   );
    MaterialClear();
 }
 INLINE Shader* GetBloomDS(Bool glow, Bool viewport_clamp, Bool half, Bool saturate) {Shader* &s=Sh.h_BloomDS[glow][viewport_clamp][half][saturate]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow, viewport_clamp, half, saturate); return s;}
@@ -1878,7 +1878,7 @@ void RendererClass::postProcess()
    if(eye_adapt)
    {
       if(!--fxs)dest=_final;else dest.get(ImageRTDesc(size.x, size.y, GetImageRTType(_has_glow, rt_prec))); // can't read and write to the same RT, glow requires Alpha channel
-      T.adaptEye(*_col.rc(), *dest); Swap(_col, dest); // Eye Adaptation keeps Alpha
+      T.adaptEye(*_col.rc(), *dest, fx_dither); Swap(_col, dest); // Eye Adaptation keeps Alpha
    }
    IMAGERT_TYPE rt_type=GetImageRTType(false, rt_prec); // there's no need for alpha channel anymore after bloom
    if(bloom) // bloom needs to be done before motion/dof especially because of per-pixel glow

@@ -605,7 +605,8 @@ void HDR::load()
       h_HdrDS[0] =shader->get("HdrDS0"   );
       h_HdrDS[1] =shader->get("HdrDS1"   );
       h_HdrUpdate=shader->get("HdrUpdate");
-      h_Hdr      =shader->get("Hdr"      );
+      h_Hdr[0]   =shader->get("Hdr"      );
+      h_Hdr[1]   =shader->get("HdrD"     );
    }   
 }
 /******************************************************************************/
