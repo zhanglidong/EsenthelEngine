@@ -146,6 +146,22 @@ void ImageRC:: delThis() // delete only this class members without super
 #endif
    zero();
 }
+void ImageRC::createSRGB(Bool srv)
+{
+   if(IMAGE_TYPE type_srgb=ImageTypeToggleSRGB(type()))if(type_srgb!=type()) // try creating toggled sRGB Resource Views
+   {
+   #if DX11
+      D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd);
+      D3D11_RENDER_TARGET_VIEW_DESC   rtvd; Zero(rtvd);
+      if(multiSample()){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS; rtvd.ViewDimension=D3D11_RTV_DIMENSION_TEXTURE2DMS;}
+      else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; rtvd.ViewDimension=D3D11_RTV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
+      srvd.Format=rtvd.Format=ImageTI[type_srgb].format;
+      // lock not needed for DX11 'D3D'
+      if(srv)D3D->CreateShaderResourceView(_txtr, &srvd, &_srv_srgb);
+             D3D->CreateRenderTargetView  (_txtr, &rtvd, &_rtv_srgb);
+   #endif
+   }
+}
 Bool ImageRC::create(C ImageRTDesc &desc)
 {
    Bool ok;
@@ -159,22 +175,64 @@ Bool ImageRC::create(C ImageRTDesc &desc)
    }else
    {
       ok=createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_RT, 1, desc.samples);
-   #if DX11
-      if(ok)if(IMAGE_TYPE type_srgb=ImageTypeToggleSRGB(type()))if(type_srgb!=type()) // try creating toggled sRGB Resource Views
-      {
-         D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd);
-         D3D11_RENDER_TARGET_VIEW_DESC   rtvd; Zero(rtvd);
-         if(multiSample()){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS; rtvd.ViewDimension=D3D11_RTV_DIMENSION_TEXTURE2DMS;}
-         else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; rtvd.ViewDimension=D3D11_RTV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
-         srvd.Format=rtvd.Format=ImageTI[type_srgb].format;
-         // lock not needed for DX11 'D3D'
-         D3D->CreateShaderResourceView(_txtr, &srvd, &_srv_srgb);
-         D3D->CreateRenderTargetView  (_txtr, &rtvd, &_rtv_srgb);
-      }
-   #endif
+      if(ok)createSRGB();
    }
    if(ok)Time.skipUpdate();
    return ok;
+}
+/******************************************************************************/
+Bool ImageRC::map()
+{
+#if DX11
+   del(); if(OK(SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (Ptr*)&_txtr)))
+   {
+     _mode=IMAGE_RT; if(setInfo())
+      {
+         adjustInfo(hwW(), hwH(), hwD(), hwType()); createSRGB(false); // false to skip SRV because it always causes exception
+         return true;
+      }
+   }
+#elif DX12
+   https://msdn.microsoft.com/en-us/library/windows/desktop/mt427784(v=vs.85).aspx
+   In Direct3D 11, applications could call GetBuffer(0, .. ) only once. Every call to Present implicitly changed the resource identity of the returned interface. Direct3D 12 no longer supports that implicit resource identity change, due to the CPU overhead required and the flexible resource descriptor design. As a result, the application must manually call GetBuffer for every each buffer created with the swapchain. The application must manually render to the next buffer in the sequence after calling Present. Applications are encouraged to create a cache of descriptors for each buffer, instead of re-creating many objects each Present.
+#elif IOS
+   del();
+   if(EAGLView *view=GetUIView())
+   {
+      glGenRenderbuffers(1, &_rb); if(_rb)
+      {
+         glGetError(); // clear any previous errors
+         glBindRenderbuffer(GL_RENDERBUFFER, _rb);
+         [MainContext.context renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)view.layer];
+        _mode=IMAGE_GL_RB; if(setInfo()) // this has a valid '_rb' so it can detect the size and type
+         {
+            adjustInfo(hwW(), hwH(), hwD(), hwType()); D._res=size(); D.densityUpdate(); return true;
+         }
+      }
+   }
+#elif ANDROID || WEB
+   // on Android and Web 'Renderer._main' has 'setInfo' called externally in the main loop
+   return true;
+#elif DESKTOP
+   forceInfo(D.resW(), D.resH(), 1, type() ? type() : IMAGE_R8G8B8A8_SRGB, IMAGE_GL_RB, samples()); return true;
+#endif
+   return false;
+}
+/******************************************************************************/
+void ImageRC::unmap()
+{
+#if DX11
+   del();
+#elif IOS
+   if(_rb)
+   {
+      glBindRenderbuffer(GL_RENDERBUFFER, _rb);
+      [MainContext.context renderbufferStorage:GL_RENDERBUFFER fromDrawable:nil]; // detach existing renderbuffer from the drawable object
+      del();
+   }
+#else
+   // on other platforms we're not responsible for the 'Renderer._main' as the system creates it and deletes it, don't delete it here, to preserve info about IMAGE_TYPE and samples
+#endif
 }
 /******************************************************************************/
 void ImageRC::swapSRV()

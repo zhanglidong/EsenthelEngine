@@ -53,20 +53,31 @@ struct ImageRTDesc // Render Target Description
 struct ImageRC : Image // Reference Counted Image
 {
 #if EE_PRIVATE
-   void zero     ();
-   void delThis  ();
-   Bool create   (C ImageRTDesc &desc);
-   Bool available()C {return _ptr_num==0;} // if this image is not currently used
-   void swapSRV  ();
-   void swapRTV  ();
-   void swapSRGB ();
-   constexpr INLINE Bool canSwapSRGB()C
+   Bool available ()C {return _ptr_num==0;} // if this image is not currently used
+   void zero      ();
+   void delThis   ();
+   Bool create    (C ImageRTDesc &desc);
+   void createSRGB(Bool srv=true);
+   Bool   map     ();
+   void unmap     ();
+   void swapSRV   ();
+   void swapRTV   ();
+   void swapSRGB  ();
+   constexpr INLINE Bool canSwapSRV()C
    {
    #if DX11
       return _srv_srgb!=null;
    #endif
       return false;
    }
+   constexpr INLINE Bool canSwapRTV()C
+   {
+   #if DX11
+      return _rtv_srgb!=null;
+   #endif
+      return false;
+   }
+   constexpr INLINE Bool canSwapSRGB()C {return canSwapSRV() && canSwapRTV();}
 #endif
    ImageRC();
   ~ImageRC();

@@ -2585,53 +2585,6 @@ Int Image::faces()C {return is() ? cube() ? 6 : 1 : 0;}
 UInt Image::    memUsage()C {return ImageSize(hwW(), hwH(), hwD(), hwType(), mode(), mipMaps());}
 UInt Image::typeMemUsage()C {return ImageSize(hwW(), hwH(), hwD(),   type(), mode(), mipMaps());}
 /******************************************************************************/
-Bool Image::map()
-{
-#if DX11
-   del(); if(OK(SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (Ptr*)&_txtr))){_mode=IMAGE_RT; if(setInfo()){adjustInfo(hwW(), hwH(), hwD(), hwType()); return true;}}
-#elif DX12
-   https://msdn.microsoft.com/en-us/library/windows/desktop/mt427784(v=vs.85).aspx
-   In Direct3D 11, applications could call GetBuffer( 0, .. ) only once. Every call to Present implicitly changed the resource identity of the returned interface. Direct3D 12 no longer supports that implicit resource identity change, due to the CPU overhead required and the flexible resource descriptor design. As a result, the application must manually call GetBuffer for every each buffer created with the swapchain. The application must manually render to the next buffer in the sequence after calling Present. Applications are encouraged to create a cache of descriptors for each buffer, instead of re-creating many objects each Present.
-#elif IOS
-   del();
-   if(EAGLView *view=GetUIView())
-   {
-      glGenRenderbuffers(1, &_rb); if(_rb)
-      {
-         glGetError(); // clear any previous errors
-         glBindRenderbuffer(GL_RENDERBUFFER, _rb);
-         [MainContext.context renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)view.layer];
-        _mode=IMAGE_GL_RB; if(setInfo()) // this has a valid '_rb' so it can detect the size and type
-         {
-            adjustInfo(hwW(), hwH(), hwD(), hwType()); D._res=size(); D.densityUpdate(); return true;
-         }
-      }
-   }
-#elif ANDROID || WEB
-   // on Android and Web 'Renderer._main' has 'setInfo' called externally in the main loop
-   return true;
-#elif DESKTOP
-   forceInfo(D.resW(), D.resH(), 1, type() ? type() : IMAGE_R8G8B8A8_SRGB, IMAGE_GL_RB, samples()); return true;
-#endif
-   return false;
-}
-/******************************************************************************/
-void Image::unmap()
-{
-#if DX11
-   del();
-#elif IOS
-   if(_rb)
-   {
-      glBindRenderbuffer(GL_RENDERBUFFER, _rb);
-      [MainContext.context renderbufferStorage:GL_RENDERBUFFER fromDrawable:nil]; // detach existing renderbuffer from the drawable object
-      del();
-   }
-#else
-   // on other platforms we're not responsible for the 'Renderer._main' as the system creates it and deletes it, don't delete it here, to preserve info about IMAGE_TYPE and samples
-#endif
-}
-/******************************************************************************/
 // HARDWARE
 /******************************************************************************/
 void SetRects(C Image &src, C Image &dest, RectI &rect_src, RectI &rect_dest, C Rect &rect)

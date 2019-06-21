@@ -633,8 +633,6 @@ struct Image // Image (Texture)
    void  setGLParams();
    void  setGLFont  ();
 
-   Bool   map    ();
-   void unmap    ();
    void duplicate(C Image &src);
 
    void discard();
