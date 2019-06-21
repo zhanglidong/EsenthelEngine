@@ -414,9 +414,20 @@ static DXGI_FORMAT Typeless(IMAGE_TYPE type)
    {
       default: return ImageTI[type].format;
 
-      // these are the only SRGB formats that are used for Render Targets
+      // these are the only sRGB formats that are used for Render Targets
       case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: return DXGI_FORMAT_R8G8B8A8_TYPELESS;
       case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: return DXGI_FORMAT_B8G8R8A8_TYPELESS;
+
+      // these are needed in case we want to dynamically switch between sRGB/non-sRGB drawing
+      case IMAGE_BC1: case IMAGE_BC1_SRGB: return DXGI_FORMAT_BC1_TYPELESS;
+      case IMAGE_BC2: case IMAGE_BC2_SRGB: return DXGI_FORMAT_BC2_TYPELESS;
+      case IMAGE_BC3: case IMAGE_BC3_SRGB: return DXGI_FORMAT_BC3_TYPELESS;
+      case IMAGE_BC7: case IMAGE_BC7_SRGB: return DXGI_FORMAT_BC7_TYPELESS;
+
+      // depth stencil
+      case IMAGE_D16  : return DXGI_FORMAT_R16_TYPELESS;
+      case IMAGE_D24S8: return DXGI_FORMAT_R24G8_TYPELESS;
+      case IMAGE_D32  : return DXGI_FORMAT_R32_TYPELESS;
    }
 }
 #endif
@@ -811,8 +822,10 @@ Bool Image::setInfo()
 {
 #if DX11
    // lock not needed for DX11 'D3D'
+   ID3D11Resource *res=null;
    if(_txtr)
    {
+      res=_txtr;
       D3D11_TEXTURE2D_DESC desc; _txtr->GetDesc(&desc);
      _mms      =desc.MipLevels;
      _samples  =desc.SampleDesc.Count;
@@ -820,84 +833,10 @@ Bool Image::setInfo()
      _hw_size.y=desc.Height;
      _hw_size.z=1;
       if(IMAGE_TYPE hw_type=ImageFormatToType(desc.Format))T._hw_type=hw_type; // override only if detected, because Image could have been created with TYPELESS format which can't be directly decoded and IMAGE_NONE could be returned
-
-      switch(desc.Format)
-      {
-         default:
-         {
-            switch(mode()){case IMAGE_2D: case IMAGE_3D: case IMAGE_CUBE: case IMAGE_RT: case IMAGE_RT_CUBE: case IMAGE_DS: case IMAGE_SHADOW_MAP: D3D->CreateShaderResourceView(_txtr, null, &_srv); break;}
-            switch(mode()){                                               case IMAGE_RT: case IMAGE_RT_CUBE:                                       D3D->CreateRenderTargetView  (_txtr, null, &_rtv); break;}
-            switch(mode()){                                                                                  case IMAGE_DS: case IMAGE_SHADOW_MAP: D3D->CreateDepthStencilView  (_txtr, null, &_dsv); break;}
-         }break;
-
-         case DXGI_FORMAT_R8G8B8A8_TYPELESS:
-         case DXGI_FORMAT_B8G8R8A8_TYPELESS:
-         {
-            switch(mode())
-            {
-               case IMAGE_2D:
-               case IMAGE_3D:
-               case IMAGE_CUBE:
-               case IMAGE_RT:
-               case IMAGE_RT_CUBE:
-               case IMAGE_DS:
-               case IMAGE_SHADOW_MAP:
-               {
-                  D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd); srvd.Format=ImageTI[hwType()].format;
-                  if(mode()==IMAGE_3D){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE3D  ; srvd.Texture3D  .MipLevels=mipMaps();}else
-                  if(cube()          ){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURECUBE; srvd.TextureCube.MipLevels=mipMaps();}else
-                  if(!multiSample()  ){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D  .MipLevels=mipMaps();}else
-                                      {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
-                  D3D->CreateShaderResourceView(_txtr, &srvd, &_srv);
-               }break;
-            }
-            if(mode()==IMAGE_RT /*|| mode()==IMAGE_RT_CUBE*/)
-            {
-               D3D11_RENDER_TARGET_VIEW_DESC rtvd; Zero(rtvd); rtvd.Format=ImageTI[hwType()].format;
-               rtvd.ViewDimension=(multiSample() ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D);
-               D3D->CreateRenderTargetView(_txtr, &rtvd, &_rtv);
-            }
-         }break;
-
-         case DXGI_FORMAT_R16_TYPELESS:
-         {
-            D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd); srvd.Format=DXGI_FORMAT_R16_UNORM;
-            if(multiSample()){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
-            else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
-            D3D->CreateShaderResourceView(_txtr, &srvd, &_srv);
-
-            D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=DXGI_FORMAT_D16_UNORM; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
-                                                  D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv );
-            dsvd.Flags=D3D11_DSV_READ_ONLY_DEPTH; D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // D16 does not have stencil, this will work only on DX11.0 but not 10.0, 10.1
-         }break;
-
-         case DXGI_FORMAT_R32_TYPELESS:
-         {
-            D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd); srvd.Format=DXGI_FORMAT_R32_FLOAT;
-            if(multiSample()){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
-            else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
-            D3D->CreateShaderResourceView(_txtr, &srvd, &_srv);
-
-            D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=DXGI_FORMAT_D32_FLOAT; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
-                                                  D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv );
-            dsvd.Flags=D3D11_DSV_READ_ONLY_DEPTH; D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // D32 does not have stencil, this will work only on DX11.0 but not 10.0, 10.1
-         }break;
-
-         case DXGI_FORMAT_R24G8_TYPELESS:
-         {
-            D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd); srvd.Format=DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-            if(multiSample()){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
-            else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
-            D3D->CreateShaderResourceView(_txtr, &srvd, &_srv);
-
-            D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=DXGI_FORMAT_D24_UNORM_S8_UINT; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
-                                                                                D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv );
-            dsvd.Flags=(D3D11_DSV_READ_ONLY_DEPTH|D3D11_DSV_READ_ONLY_STENCIL); D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // this will work only on DX11.0 but not 10.0, 10.1
-         }break;
-      }
    }else
    if(_vol)
    {
+      res=_vol;
       D3D11_TEXTURE3D_DESC desc; _vol->GetDesc(&desc);
      _mms      =desc.MipLevels;
      _samples  =1;
@@ -905,13 +844,50 @@ Bool Image::setInfo()
      _hw_size.y=desc.Height;
      _hw_size.z=desc.Depth;
       if(IMAGE_TYPE hw_type=ImageFormatToType(desc.Format))T._hw_type=hw_type; // override only if detected, because Image could have been created with TYPELESS format which can't be directly decoded and IMAGE_NONE could be returned
-      D3D->CreateShaderResourceView(_vol, null, &_srv);
    }
-   switch(mode())
+   if(res)
    {
-      case IMAGE_2D: case IMAGE_3D: case IMAGE_CUBE: if(!_srv         )return false; break;
-      case IMAGE_RT: case IMAGE_RT_CUBE   :          if(!_srv || !_rtv)return false; break;
-      case IMAGE_DS: case IMAGE_SHADOW_MAP:          if(!_srv || !_dsv)return false; break; // '_rdsv' is optional
+      switch(mode())
+      {
+         case IMAGE_2D:
+         case IMAGE_3D:
+         case IMAGE_CUBE:
+         case IMAGE_RT:
+         case IMAGE_RT_CUBE:
+         case IMAGE_DS:
+         case IMAGE_SHADOW_MAP:
+         {
+            D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd);
+            switch(hwType())
+            {
+               default         : srvd.Format=ImageTI[hwType()].format; break;
+               case IMAGE_D16  : srvd.Format=DXGI_FORMAT_R16_UNORM; break;
+               case IMAGE_D24S8: srvd.Format=DXGI_FORMAT_R24_UNORM_X8_TYPELESS; break;
+               case IMAGE_D32  : srvd.Format=DXGI_FORMAT_R32_FLOAT; break;
+            }
+            if(mode()==IMAGE_3D){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE3D  ; srvd.Texture3D  .MipLevels=mipMaps();}else
+            if(cube()          ){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURECUBE; srvd.TextureCube.MipLevels=mipMaps();}else
+            if(!multiSample()  ){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D  .MipLevels=mipMaps();}else
+                                {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
+            D3D->CreateShaderResourceView(res, &srvd, &_srv); if(!_srv)return false;
+         }break;
+      }
+      if(mode()==IMAGE_RT /*|| mode()==IMAGE_RT_CUBE*/)
+      {
+         D3D11_RENDER_TARGET_VIEW_DESC rtvd; Zero(rtvd); rtvd.Format=ImageTI[hwType()].format;
+         rtvd.ViewDimension=(multiSample() ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D);
+         D3D->CreateRenderTargetView(res, &rtvd, &_rtv); if(!_rtv)return false;
+      }
+      switch(mode())
+      {
+         case IMAGE_DS:
+         case IMAGE_SHADOW_MAP:
+         {
+            D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=ImageTI[hwType()].format; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
+                                                                                                                  D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv ); if(!_dsv)return false;
+            dsvd.Flags=D3D11_DSV_READ_ONLY_DEPTH; if(ImageTI[hwType()].s)dsvd.Flags|=D3D11_DSV_READ_ONLY_STENCIL; D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // this will work only on DX11.0 but not 10.0, 10.1
+         }break;
+      }
    }
 #elif GL
    if(_txtr)switch(mode())
@@ -1164,7 +1140,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
       #if DX11
          case IMAGE_2D:
          {
-            D3D11_TEXTURE2D_DESC desc; desc.Format=ImageTI[type].format; if(desc.Format!=DXGI_FORMAT_UNKNOWN)
+            D3D11_TEXTURE2D_DESC desc; desc.Format=Typeless(type); if(desc.Format!=DXGI_FORMAT_UNKNOWN)
             {
                desc.Width             =hwW();
                desc.Height            =hwH();
@@ -1200,7 +1176,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
 
          case IMAGE_3D:
          {
-            D3D11_TEXTURE3D_DESC desc; desc.Format=ImageTI[type].format; if(desc.Format!=DXGI_FORMAT_UNKNOWN)
+            D3D11_TEXTURE3D_DESC desc; desc.Format=Typeless(type); if(desc.Format!=DXGI_FORMAT_UNKNOWN)
             {
                desc.Width         =hwW();
                desc.Height        =hwH();
@@ -1216,7 +1192,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
 
          case IMAGE_CUBE:
          {
-            D3D11_TEXTURE2D_DESC desc; desc.Format=ImageTI[type].format; if(desc.Format!=DXGI_FORMAT_UNKNOWN)
+            D3D11_TEXTURE2D_DESC desc; desc.Format=Typeless(type); if(desc.Format!=DXGI_FORMAT_UNKNOWN)
             {
                desc.Width             =hwW();
                desc.Height            =hwH();
@@ -1253,9 +1229,8 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
          case IMAGE_DS:
          case IMAGE_SHADOW_MAP:
          {
-            D3D11_TEXTURE2D_DESC desc; desc.Format=ImageTI[type].format; if(desc.Format!=DXGI_FORMAT_UNKNOWN)
+            D3D11_TEXTURE2D_DESC desc; desc.Format=Typeless(type); if(desc.Format!=DXGI_FORMAT_UNKNOWN)
             {
-               if(desc.Format==DXGI_FORMAT_D24_UNORM_S8_UINT)desc.Format=DXGI_FORMAT_R24G8_TYPELESS;else if(desc.Format==DXGI_FORMAT_D32_FLOAT)desc.Format=DXGI_FORMAT_R32_TYPELESS;else if(desc.Format==DXGI_FORMAT_D16_UNORM)desc.Format=DXGI_FORMAT_R16_TYPELESS;
                desc.Width             =hwW();
                desc.Height            =hwH();
                desc.MipLevels         =mip_maps;
@@ -1274,7 +1249,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
 
          case IMAGE_STAGING:
          {
-            D3D11_TEXTURE2D_DESC desc; desc.Format=ImageTI[type].format; if(desc.Format!=DXGI_FORMAT_UNKNOWN)
+            D3D11_TEXTURE2D_DESC desc; desc.Format=Typeless(type); if(desc.Format!=DXGI_FORMAT_UNKNOWN)
             {
                desc.Width             =hwW();
                desc.Height            =hwH();
