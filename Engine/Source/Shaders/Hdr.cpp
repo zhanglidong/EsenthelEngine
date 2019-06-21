@@ -22,6 +22,10 @@ Vec4 HdrDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
              +TexLod(Col, Vec2(tex_min.x, tex_max.y)).rgb
              +TexLod(Col, Vec2(tex_max.x, tex_max.y)).rgb;
 
+   #if !LINEAR_GAMMA // convert from sRGB to linear
+      sum=SRGBToLinearFast(sum)/4; // SRGBToLinearFast(sum/4)*4
+   #endif
+
       Flt lum=Dot(sum, HdrWeight);
 
    // adjustment
@@ -70,6 +74,14 @@ Vec4 Hdr_PS(NOPERSP Vec2 inTex:TEXCOORD,
    Vec4 col=TexLod  (Col, inTex); // can't use 'TexPoint' because 'Col' can be supersampled
    Flt  lum=TexPoint(Lum, Vec2(0, 0)).x;
 
+   /* full formula
+   if(gamma)col.rgb=SRGBToLinearFast(col.rgb);
+   col.rgb*=lum;
+   if(gamma)col.rgb=LinearToSRGBFast(col.rgb); */
+
+#if !LINEAR_GAMMA
+   lum=LinearToSRGBFast(lum);
+#endif
    col.rgb*=lum;
 
    if(dither)ApplyDither(col.rgb, pixel.xy);
