@@ -440,9 +440,9 @@ static Int    FindCode(C TextCodeData *code, Int codes, CPtr cur_pos)
 static void SetCode(C TextCodeData *code, C TextStyleParams &text_style, Bool sub_pixel)
 {
    VI.flush();
-   if(sub_pixel){             Color c=((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color )        ; D.alphaFactor(c); c.r=c.g=c.b=c.a; VI.color(c);}
-   else         {VI.color            (((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color )       );
-                 Sh.h_FontShadow->set(((code && code->shadow_mode!=TextCodeData::DEFAULT) ? code->shadow : text_style.shadow)/255.0f);}
+   if(sub_pixel){                      Color c=((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color ) ; D.alphaFactor(c); c.r=c.g=c.b=c.a; VI.color(c);}
+   else         {VI.color                     (((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color ));
+                 Sh.h_FontShadow->set(ByteToFlt((code && code->shadow_mode!=TextCodeData::DEFAULT) ? code->shadow : text_style.shadow));}
 }
 void DrawKeyboardCursor(C Vec2 &pos, Flt height)
 {
