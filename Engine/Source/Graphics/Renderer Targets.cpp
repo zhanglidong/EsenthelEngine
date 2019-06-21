@@ -351,11 +351,11 @@ void RendererClass::set(Image *t0, Image *t1, Image *t2, Image *t3, Image *ds, B
 
    if(_cur_id[0]!=id0 || _cur_id[1]!=id1 || _cur_id[2]!=id2 || _cur_id[3]!=id3 || _cur_ds_id!=ids)
    {
-      if(id0 &&                  _cur_id[0]!=id0){D.texClear(t0->_srv); D.sRGB(t0->sRGB());} // FIXME this should be 't0.sRGB' ? if yes, then have to optimize it (remove switch inside 'IsSRGB')
-      if(id1 &&                  _cur_id[1]!=id1) D.texClear(t1->_srv);
-      if(id2 &&                  _cur_id[2]!=id2) D.texClear(t2->_srv);
-      if(id3 &&                  _cur_id[3]!=id3) D.texClear(t3->_srv);
-      if(ids && ids==ds->_dsv && _cur_ds_id!=ids) D.texClear(ds->_srv); // if we're writing to depth then we need to unbind it from reading (because DirectX will do it)
+      if(id0 &&                  _cur_id[0]!=id0)D.texClear(t0->_srv);
+      if(id1 &&                  _cur_id[1]!=id1)D.texClear(t1->_srv);
+      if(id2 &&                  _cur_id[2]!=id2)D.texClear(t2->_srv);
+      if(id3 &&                  _cur_id[3]!=id3)D.texClear(t3->_srv);
+      if(ids && ids==ds->_dsv && _cur_ds_id!=ids)D.texClear(ds->_srv); // if we're writing to depth then we need to unbind it from reading (because DirectX will do it)
 
       changed=true;
      _cur[0]=t0; _cur_id[0]=id0;

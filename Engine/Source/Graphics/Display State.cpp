@@ -117,7 +117,7 @@ static STENCIL_MODE LastStencilMode;
 /******************************************************************************/
 DisplayState::DisplayState()
 {
-  _srgb            =false;
+  _srgb            =LINEAR_GAMMA;
   _cull            =false;
   _line_smooth     =false;
   _wire            =false;
@@ -736,6 +736,8 @@ void DisplayState::setDeviceSettings()
 
   _vf=null;
 
+  _srgb^=1; sRGB(!_srgb);
+
   _depth      ^=1; depth     (old._depth      );
   _depth_write^=1; depthWrite(old._depth_write);
   _depth_func ^=1; depthFunc (old._depth_func );
@@ -778,7 +780,6 @@ void DisplayState::del()
 void DisplayState::create()
 {
    if(LogInit)LogN("DisplayState.create");
-   clearShader();
 
 #if DX11
    {
@@ -1180,6 +1181,7 @@ void DisplayState::create()
       RS[cull][bias][line][wire][clip].create(desc);
    }
 #endif
+   setDeviceSettings();
 }
 /******************************************************************************/
 }
