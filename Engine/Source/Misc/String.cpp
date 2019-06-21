@@ -1992,22 +1992,6 @@ Str  WindowsPath    (C Str &path) {return Replace(path, '/', '\\');}
 Str     UnixPath    (C Str &path) {return Replace(path, '\\', '/');}
 Str8    UnixPathUTF8(C Str &path) {return UTF8(UnixPath(path));}
 /******************************************************************************/
-Str FixNewLine(C Str &text)
-{
-#if 0 // slower
-   return Replace(Replace(text, '\r', '\0'), "\n", "\r\n");
-#else // faster
-   Str s; s.reserve(text.length());
-   FREPA(text)
-   {
-      Char c=text()[i]; // () avoids range checks
-      if(c!='\r')
-      if(c!='\n')s+=c;else s+="\r\n";
-   }
-   return s;
-#endif
-}
-/******************************************************************************/
 CChar8* TextBool(Bool b) {return b ? "true" : "false";}
 CChar8* TextInt(Int i, Char8 (&temp)[256], Int digits, Int separate)
 {

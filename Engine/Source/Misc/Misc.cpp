@@ -781,13 +781,7 @@ void Log    (C Str &text)
       // write to file log
       if(Is(LogFile))
       {
-         FileText f; SyncLocker lock(LogLock); if(f.append(LogFile)) // use lock to prevent 2 threads appending the same file at the same time
-         {
-         #if LINUX
-            f.fix_new_line=false; // on Linux disable Win style line endings because its Text Editor doesn't display them correctly in some cases
-         #endif
-            f.putText(t);
-         }
+         FileText f; SyncLocker lock(LogLock); if(f.append(LogFile))f.putText(t); // use lock to prevent 2 threads appending the same file at the same time
       }
    }
 }
@@ -951,17 +945,16 @@ struct ClipGetter
    }
 };
 #endif
-Bool ClipSet(C Str &text, Bool fix_new_line)
+Bool ClipSet(C Str &text)
 {
 #if WINDOWS_OLD
    if(OpenClipboard(null))
    {
       EmptyClipboard();
-      Str temp; C Str *t=&text; if(fix_new_line)t=&(temp=FixNewLine(text));
-	   Int max_length=t->length()+1;
+	   Int max_length=text.length()+1;
 	   if( max_length>1)if(HGLOBAL buf=GlobalAlloc(GMEM_MOVEABLE, max_length*SIZE(Char)))
       {
-         Set((Char*)GlobalLock(buf), (*t)(), max_length); GlobalUnlock(buf);
+         Set((Char*)GlobalLock(buf), text(), max_length); GlobalUnlock(buf);
          SetClipboardData(CF_UNICODETEXT, buf);
        //GlobalFree(buf); this shouldn't be called after SetClipboardData
       }
@@ -971,7 +964,7 @@ Bool ClipSet(C Str &text, Bool fix_new_line)
 	return false;
 #elif WINDOWS_NEW
    auto content=ref new Windows::ApplicationModel::DataTransfer::DataPackage;
-   content->SetText(ref new Platform::String(fix_new_line ? FixNewLine(text) : text));
+   content->SetText(ref new Platform::String(text));
    if(App.mainThread())Windows::ApplicationModel::DataTransfer::Clipboard::SetContent(content);else ClipSetter cs(content);
    return true;
 #elif MAC
@@ -1032,9 +1025,10 @@ Bool ClipSet(C Str &text, Bool fix_new_line)
    return true;
 #endif
 }
-Str ClipGet(Bool fix_new_line)
+Str ClipGet()
 {
    Str s;
+   const Bool fix_new_line=true;
 #if WINDOWS_OLD
    if(IsClipboardFormatAvailable(CF_UNICODETEXT) && OpenClipboard(null))
    {

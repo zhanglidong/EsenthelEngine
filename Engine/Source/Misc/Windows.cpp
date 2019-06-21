@@ -1012,9 +1012,9 @@ Ptr WindowParentTop(Ptr hwnd)
 void WindowMsgBox(C Str &title, C Str &text, Bool error)
 {
 #if WINDOWS_OLD
-   MessageBox(null, text, title, MB_OK|MB_TOPMOST|(error ? MB_ICONERROR : 0)); // this does not require 'FixNewLine'
+   MessageBox(null, text, title, MB_OK|MB_TOPMOST|(error ? MB_ICONERROR : 0));
 #elif WINDOWS_NEW
-   if(auto dialog=ref new Windows::UI::Popups::MessageDialog(ref new Platform::String(text), ref new Platform::String(title))) // this does not require 'FixNewLine'
+   if(auto dialog=ref new Windows::UI::Popups::MessageDialog(ref new Platform::String(text), ref new Platform::String(title)))
    {
       dialog->Commands->Append(ref new Windows::UI::Popups::UICommand("OK"));
       dialog->ShowAsync();

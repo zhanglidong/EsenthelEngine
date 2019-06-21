@@ -337,8 +337,6 @@ private:
 template<Int size> struct TempChar8 { Char8 c[size]; };
 template<Int size> struct TempChar  { Char  c[size]; };
 
-Str FixNewLine(C Str &text); // remove existing '\r' and then replace '\n' with "\r\n"
-
 Int CompareCS(C Str &a, C BStr &b);
 
        Str      TextHexMem(File &file,                                                 Bool prefix=false);

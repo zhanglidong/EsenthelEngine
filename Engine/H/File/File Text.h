@@ -19,9 +19,8 @@ enum INDENT : Byte // indentation mode
 /******************************************************************************/
 struct FileText
 {
-   Int    depth       ; // depth level which affects indentation when using 'startLine' and 'putLine' methods
-   Bool   fix_new_line; // if replace "\n" characters with "\r\n" which are required in Windows operating system, default=true
-   INDENT indent      ; // indentation mode, default=INDENT_TABS
+   Int    depth ; // depth level which affects indentation when using 'startLine' and 'putLine' methods
+   INDENT indent; // indentation mode, default=INDENT_TABS
 
    // manage
    FileText&   del   (                                                                              ); // delete manually

@@ -167,8 +167,8 @@ void Log       (C Str &text   );                  // write text              to 
 void LogN      (C Str &text=S );                  // write text and new-line to the log (this will output the message to the log file if 'LogName' is specified, and to the console window if it was opened with 'LogConsole')
 void LogShow   (Bool thread_id, Bool date, Bool time, Bool cur_time); // set which additional information should be displayed during logging, 'thread_id'=ID of the thread which is writing to log, 'date'=year-month-day at the moment of the log, 'time'=hour-minute-second at the moment of the log, 'cur_time'=time in seconds obtained using 'Time.curTime()'
 
-Bool ClipSet(C Str &text, Bool fix_new_line=true); // set system clipboard value to 'text', 'fix_new_line'=if replace "\n" characters with "\r\n" which are required in Windows operating system
-Str  ClipGet(             Bool fix_new_line=true); // get system clipboard value          , 'fix_new_line'=if remove  '\r' characters
+Bool ClipSet(C Str &text); // set system clipboard value to 'text'
+Str  ClipGet(           ); // get system clipboard value
 
 enum OS_VER : Byte // Operating System Version
 {

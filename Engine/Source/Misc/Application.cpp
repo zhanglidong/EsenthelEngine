@@ -494,7 +494,7 @@ ref struct Exiter sealed
 {
    Exiter(Platform::String ^title, Platform::String ^error)
    {
-      if(auto dialog=ref new Windows::UI::Popups::MessageDialog(error, title)) // this does not require 'FixNewLine'
+      if(auto dialog=ref new Windows::UI::Popups::MessageDialog(error, title))
       {
          App._closed=true; // disable callback processing
          dialog->Commands->Append(ref new Windows::UI::Popups::UICommand("OK", ref new Windows::UI::Popups::UICommandInvokedHandler(this, &Exiter::onOK)));

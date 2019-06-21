@@ -29,7 +29,7 @@ static void SaveEncoding(File &f, ENCODING encoding)
    }
 }
 /******************************************************************************/
-void      FileText::zero    () {fix_new_line=true; indent=INDENT_TABS; depth=0; _code=ANSI;}
+void      FileText::zero    () {indent=INDENT_TABS; depth=0; _code=ANSI;}
 FileText& FileText::del     () {_f.del(); zero(); return T;}
           FileText::FileText() {zero();}
 
@@ -121,55 +121,43 @@ FileText& FileText::endLine()
    {
       case ANSI       :
       case UTF_8      :
-      case UTF_8_NAKED: if(fix_new_line)_f.putUShort(0x0A0D);else _f.putByte(0x0A); break;
+      case UTF_8_NAKED: _f.putByte(0x0A); break;
 
-      case UTF_16: if(fix_new_line)_f.putUInt(0x000A000D);else _f.putUShort(0x000A); break;
+      case UTF_16: _f.putUShort(0x000A); break;
    }
    return T;
 }
 FileText& FileText::putChar(Char8 c)
 {
-   switch(c)
+   switch(_code)
    {
-      case '\n': endLine(); break;
+      case ANSI  : _f.putByte  (              c ); break;
+      case UTF_16: _f.putUShort(Char8To16Fast(c)); break; // we can assume that Str was already initialized
 
-      case '\r': if(fix_new_line)break; // if we're fixing new line, then never write '\r' manually, otherwise continue, that's why there's no break on purpose
-      default  : switch(_code)
+      case UTF_8      :
+      case UTF_8_NAKED:
       {
-         case ANSI  : _f.putByte  (              c ); break;
-         case UTF_16: _f.putUShort(Char8To16Fast(c)); break; // we can assume that Str was already initialized
-
-         case UTF_8      :
-         case UTF_8_NAKED:
-         {
-            U8 u=c;
-            if(u<=0x7F)_f.putByte (u);
-            else       _f.putMulti(Byte(0xC0 | (u>>6)), Byte(0x80 | (u&0x3F)));
-         }break;
+         U8 u=c;
+         if(u<=0x7F)_f.putByte (u);
+         else       _f.putMulti(Byte(0xC0 | (u>>6)), Byte(0x80 | (u&0x3F)));
       }break;
    }
    return T;
 }
 FileText& FileText::putChar(Char c)
 {
-   switch(c)
+   switch(_code)
    {
-      case '\n': endLine(); break;
+      case ANSI  : _f.putByte  (Char16To8Fast(c)); break; // we can assume that Str was already initialized
+      case UTF_16: _f.putUShort(              c ); break;
 
-      case '\r': if(fix_new_line)break; // if we're fixing new line, then never write '\r' manually, otherwise continue, that's why there's no break on purpose
-      default  : switch(_code)
+      case UTF_8      :
+      case UTF_8_NAKED:
       {
-         case ANSI  : _f.putByte  (Char16To8Fast(c)); break; // we can assume that Str was already initialized
-         case UTF_16: _f.putUShort(              c ); break;
-
-         case UTF_8      :
-         case UTF_8_NAKED:
-         {
-            U16 u=c;
-            if(u<=0x07F)_f.putByte (u);else
-            if(u<=0x7FF)_f.putMulti(Byte(0xC0 | (u>> 6)), Byte(0x80 | ( u    &0x3F)));else
-                        _f.putMulti(Byte(0xE0 | (u>>12)), Byte(0x80 | ((u>>6)&0x3F)), Byte(0x80 | (u&0x3F)));
-         }break;
+         U16 u=c;
+         if(u<=0x07F)_f.putByte (u);else
+         if(u<=0x7FF)_f.putMulti(Byte(0xC0 | (u>> 6)), Byte(0x80 | ( u    &0x3F)));else
+                     _f.putMulti(Byte(0xE0 | (u>>12)), Byte(0x80 | ((u>>6)&0x3F)), Byte(0x80 | (u&0x3F)));
       }break;
    }
    return T;
@@ -179,35 +167,9 @@ FileText& FileText::putText(C Str &text)
    Char temp[65536/SIZE(Char)]; // use Char to force alignment
    switch(_code)
    {
-      case ANSI: if(!fix_new_line){Str8 t=text; _f.putN(t(), t.length());}else
-      {
-         Str8 t=FixNewLine(text); _f.putN(t(), t.length());
-      }break;
+      case ANSI: {Str8 t=text; _f.putN(t(), t.length());} break;
 
-      case UTF_16: if(!fix_new_line){_f.putN(text(), text.length());}else
-      {
-      #if 0 // slower
-         Str t=FixNewLine(text); _f.putN(t(), t.length());
-      #else // faster
-         const Int buf_elms=Elms(temp)-1; // use size -1 because we may be writing 2 characters in one step for "\r\n"
-         for(Int i=0, buf_pos=0; ; )
-         {
-            Bool end=(i>=text.length());
-            if(  end || !InRange(buf_pos, buf_elms)) // if finished, or there's no more room in the buffer
-            {
-               if(buf_pos){_f.putN(temp, buf_pos); buf_pos=0;} // flush
-               if(end)break;
-            }
-            U16 c=text()[i++]; // () avoids range checks
-            if( c!='\r')
-            if( c!='\n')temp[buf_pos++]=c;else
-            {
-               temp[buf_pos++]='\r';
-               temp[buf_pos++]='\n';
-            }
-         }
-      #endif
-      }break;
+      case UTF_16: _f.putN(text(), text.length()); break;
 
       case UTF_8      :
       case UTF_8_NAKED:
@@ -226,15 +188,6 @@ FileText& FileText::putText(C Str &text)
                if(end)break;
             }
             U16 c=text()[i++]; // () avoids range checks
-            if(fix_new_line)switch(c)
-            {
-               case '\r': continue; // use 'continue' to don't store this character
-               case '\n':
-               {
-                  buf[buf_pos++]='\r';
-                  buf[buf_pos++]='\n';
-               }continue; // use 'continue' because we've already stored this character
-            }
             if(c<=0x07F) buf[buf_pos++]=c;else
             if(c<=0x7FF){buf[buf_pos++]=(0xC0 | (c>> 6)); buf[buf_pos++]=(0x80 | ( c    &0x3F));}else
                         {buf[buf_pos++]=(0xE0 | (c>>12)); buf[buf_pos++]=(0x80 | ((c>>6)&0x3F)); buf[buf_pos++]=(0x80 | (c&0x3F));}
