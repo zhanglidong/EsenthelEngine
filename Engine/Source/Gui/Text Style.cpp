@@ -702,8 +702,8 @@ struct FontDraw
    {
       flush();
     //if(sub_pixel){Color c=((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color )      ; D.alphaFactor(c); c.r=c.g=c.b=c.a; VI.color(c);}else
-                   {color =SRGBToLinear((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color );
-                    shadow=ByteToFlt   ((code && code->shadow_mode!=TextCodeData::DEFAULT) ? code->shadow : text_style.shadow);}
+                   {color =         ((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color ); // FIXME or maybe ByteToFlt?
+                    shadow=ByteToFlt((code && code->shadow_mode!=TextCodeData::DEFAULT) ? code->shadow : text_style.shadow);}
    }
    void flush()
    {

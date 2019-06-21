@@ -119,10 +119,10 @@ Flt LinearLumOfSRGBColor  (C Vec &s); // get linear photometric luminance (as pe
 Flt   SRGBLumOfLinearColor(C Vec &l); // get srgb   photometric luminance (as perceived by human eye) of linear color
 Flt   SRGBLumOfSRGBColor  (C Vec &s); // get srgb   photometric luminance (as perceived by human eye) of srgb   color
 #if EE_PRIVATE
-INLINE Vec4 SRGBToDisplay(C Color &srgb) {return LINEAR_GAMMA ? SRGBToLinear(srgb) : (Vec4)srgb;}
+Vec4 SRGBToDisplay(C Color &srgb);;
 
-extern Flt   ByteSRGBToLinearArray[256];
-extern Flt   LinearByteToSRGBArray[256];
+extern Flt ByteToFltArray[256], ByteSRGBToLinearArray[256], LinearByteToSRGBArray[256], *SRGBToDisplayArray;
+
 INLINE Flt   ByteSRGBToLinear(  Byte  s) {return ByteSRGBToLinearArray[s];}
 INLINE Flt   LinearByteToSRGB(  Byte  l) {return LinearByteToSRGBArray[l];}
        Byte  LinearToByteSRGB(  Flt   l);

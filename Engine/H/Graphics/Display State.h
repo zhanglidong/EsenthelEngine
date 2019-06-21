@@ -131,6 +131,7 @@ struct DisplayState // Display States Control, this class methods can be called 
    static void sampler2D    ();
    static void sampler3D    ();
    static void samplerShadow();
+   static void sRGB         (Bool on);
    static void set2D        ();
    static void set3D        ();
    static void fbo          (UInt fbo);
@@ -145,7 +146,7 @@ struct DisplayState // Display States Control, this class methods can be called 
 private:
 #endif
    ALPHA_MODE _alpha;
-   Bool       _depth_lock, _depth, _depth_write, _cull, _line_smooth, _wire, _clip, _clip_allow, _clip_real, _clip_plane_allow, _sampler2D;
+   Bool       _depth_lock, _depth, _depth_write, _cull, _line_smooth, _wire, _clip, _clip_allow, _clip_real, _clip_plane_allow, _sampler2D, _srgb;
    Byte       _col_write[4], _stencil, _stencil_ref, _bias;
    UInt       _depth_func, _sampler_filter[3], _sampler_address, _sample_mask, _fbo;
    RectI      _viewport, _clip_recti;

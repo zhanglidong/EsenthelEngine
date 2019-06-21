@@ -8,10 +8,9 @@ static Color ColorArray[]=
    YELLOW, CYAN , PURPLE,
    ORANGE, TURQ , BROWN ,
 };
-       Flt  ByteSRGBToLinearArray[ 256];
-       Flt  LinearByteToSRGBArray[ 256];
-static Byte LinearToByteSRGBArray[3139]; // 3139=smallest array size which preserves "LinearToByteSRGB(ByteSRGBToLinear(s))==s"
-static Byte SRGBToLinearByteArray[ 554]; //  554=smallest array size which preserves "SRGBToLinearByte(LinearByteToSRGB(l))==l"
+       Flt  ByteToFltArray[256], ByteSRGBToLinearArray[256], LinearByteToSRGBArray[256], *SRGBToDisplayArray=ByteToFltArray;
+static Byte LinearToByteSRGBArray[3139], // 3139=smallest array size which preserves "LinearToByteSRGB(ByteSRGBToLinear(s))==s"
+            SRGBToLinearByteArray[ 554]; //  554=smallest array size which preserves "SRGBToLinearByte(LinearByteToSRGB(l))==l"
 /******************************************************************************/
 Color::Color(C Vec &color)
 {
@@ -417,8 +416,9 @@ Color LinearToSColor  (C Vec4 &l) {return Color(LinearToByteSRGB(l.x), LinearToB
 
 void InitSRGB()
 {
-   REPAO(ByteSRGBToLinearArray)=SRGBToLinear(i/255.0f);
-   REPAO(LinearByteToSRGBArray)=LinearToSRGB(i/255.0f);
+   REPAO(ByteToFltArray       )=i/255.0f; // don't use 'ByteToFlt' in case it's based on 'ByteToFltArray'
+   REPAO(ByteSRGBToLinearArray)=SRGBToLinear(ByteToFlt(i));
+   REPAO(LinearByteToSRGBArray)=LinearToSRGB(ByteToFlt(i));
    REPAO(LinearToByteSRGBArray)=FltToByte(LinearToSRGB(i/Flt(Elms(LinearToByteSRGBArray)-1)));
    REPAO(SRGBToLinearByteArray)=FltToByte(SRGBToLinear(i/Flt(Elms(SRGBToLinearByteArray)-1)));
 
@@ -480,6 +480,11 @@ static Byte LinearToSRGBApprox(Flt l)
    return Min(RoundPos(s*255.0f), 255);
 }
 #endif
+/******************************************************************************/
+Vec4 SRGBToDisplay(C Color &srgb)
+{
+   return Vec4(SRGBToDisplayArray[srgb.r], SRGBToDisplayArray[srgb.g], SRGBToDisplayArray[srgb.b], ByteToFltArray[srgb.a]);
+}
 /******************************************************************************/
 #if WINDOWS_OLD && DX11
    #include <Icm.h>

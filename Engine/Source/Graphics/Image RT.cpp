@@ -221,6 +221,7 @@ Bool ImageRC::map()
 /******************************************************************************/
 void ImageRC::unmap()
 {
+   delThis();
 #if DX11
    del();
 #elif IOS

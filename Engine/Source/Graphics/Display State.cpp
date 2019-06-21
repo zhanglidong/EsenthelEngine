@@ -117,6 +117,7 @@ static STENCIL_MODE LastStencilMode;
 /******************************************************************************/
 DisplayState::DisplayState()
 {
+  _srgb            =false;
   _cull            =false;
   _line_smooth     =false;
   _wire            =false;
@@ -680,6 +681,16 @@ void DisplayState::samplerShadow()
 }
 void DisplayState::set2D() {                     D.clipPlane(false); D.wire(false        ); D.sampler2D();}
 void DisplayState::set3D() {if(Renderer.mirror())D.clipPlane(true ); D.wire(Renderer.wire); D.sampler3D();}
+/******************************************************************************/
+void DisplayState::sRGB(Bool on)
+{
+   if(D._srgb!=on)
+   {
+      D._srgb=on;
+      SRGBToDisplayArray=(on ? ByteSRGBToLinearArray : ByteToFltArray);
+      D.alphaFactor(TRANSPARENT); // TRANSPARENT gives the same Vec4 for sRGB and non-sRGB, have to reset it because '_alpha_factor_v4' depends on 'SRGBToDisplay'
+   }
+}
 /******************************************************************************/
 #if GL
 void DisplayState::fbo(UInt fbo)
