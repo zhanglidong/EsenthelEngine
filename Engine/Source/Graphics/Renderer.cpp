@@ -249,7 +249,7 @@ INLINE Shader* GetBloom  (Bool dither                                           
 void RendererClass::bloom(Image &src, Image &dest, Bool dither)
 {
    const Int     shift=(D.bloomHalf() ? 1 : 2);
-   ImageRTDesc   rt_desc(fxW()>>shift, fxH()>>shift, IMAGERT_SRGB); // using IMAGERT_SRGB will clip to 0..1 range
+   ImageRTDesc   rt_desc(fxW()>>shift, fxH()>>shift, IMAGERT_SRGB); // using IMAGERT_SRGB will clip to 0..1 range !! using high precision would require clamping in the shader to make sure values don't go below 0 !!
    ImageRTPtrRef rt0(D.bloomHalf() ? _h0 : _q0); rt0.get(rt_desc);
    ImageRTPtrRef rt1(D.bloomHalf() ? _h1 : _q1); rt1.get(rt_desc); Bool discard=false; // we've already discarded in 'get' so no need to do it again
 
