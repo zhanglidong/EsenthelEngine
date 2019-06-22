@@ -190,8 +190,8 @@ void ImageRT::clearFull(C Vec4 &color, Bool restore_rt)
 #if DX11
    clearHw(color);
 #else
-   Image *rt[Elms(Renderer._cur)], *ds;
-   Bool   restore_viewport;
+   ImageRT *rt[Elms(Renderer._cur)], *ds;
+   Bool     restore_viewport;
    if(restore_rt)
    {
       REPAO(rt)=Renderer._cur[i];

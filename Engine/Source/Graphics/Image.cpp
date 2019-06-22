@@ -2687,8 +2687,8 @@ void Image::copyHw(ImageRT &dest, Bool restore_rt, C RectI *rect_src, C RectI *r
             if(restore_rt)Renderer.set(rt[0], rt[1], rt[2], rt[3], ds, restore_viewport);
          #else
             // remember settings
-            Image *rt[Elms(Renderer._cur)], *ds;
-            Bool   restore_viewport;
+            ImageRT *rt[Elms(Renderer._cur)], *ds;
+            Bool     restore_viewport;
             if(restore_rt)
             {
                REPAO(rt)=Renderer._cur[i];
