@@ -8,8 +8,8 @@ namespace EE{
    Material Indexes for MtrlCombo's however need to be sorted: 15, 7, 0, 0 (from biggest to smallest),
       so there won't be MtrlCombo's with same materials but different order (like 7, 15, 0, 0)
 
-   Color          image can be IMAGE_R8G8B8  , IMAGE_F32_3, IMAGE_NONE (all white)
-   Material Blend image can be IMAGE_R8G8B8A8, IMAGE_F32_4
+   Color          image can be IMAGE_R8G8B8_SRGB, IMAGE_F32_3_SRGB, IMAGE_NONE (all white)
+   Material Blend image can be IMAGE_R8G8B8A8   , IMAGE_F32_4
 
 /******************************************************************************/
 #define LODS           4
@@ -44,8 +44,8 @@ static VecB ColorB(C Image &image, Int x, Int y) // !! assumes that 'x, y' are i
 {
    switch(image.hwType())
    {
-      case IMAGE_R8G8B8: return image.pixB3(x, y);
-      case IMAGE_F32_3 :
+      case IMAGE_R8G8B8_SRGB: return image.pixB3(x, y);
+      case IMAGE_F32_3_SRGB :
       {
          Vec c=image.pixF3(x, y)*255;
          return VecB(Mid(RoundPos(c.x), 0, 255),
@@ -256,7 +256,7 @@ Heightmap& Heightmap::create(C Heightmap &src)
    if(this!=&src)
    {
       src._height    .copyTry(_height    );
-      src._color     .copyTry(_color     , -1, -1, -1, IMAGE_R8G8B8);
+      src._color     .copyTry(_color     , -1, -1, -1, IMAGE_R8G8B8_SRGB);
       src._mtrl_index.copyTry(_mtrl_index);
       src._mtrl_blend.copyTry(_mtrl_blend, -1, -1, -1, IMAGE_R8G8B8A8);
 
@@ -294,7 +294,7 @@ void Heightmap::createFromQuad(C Heightmap *lb, C Heightmap *rb, C Heightmap *lf
   _mtrl_blend.createSoft(settings.hmRes(), settings.hmRes(), 1, IMAGE_R8G8B8A8); _mtrl_blend.clear();
    if((lb && lb->_color.is()) || (rb && rb->_color.is()) || (lf && lf->_color.is()) || (rf && rf->_color.is()))
    {
-     _color.createSoft(settings.hmRes(), settings.hmRes(), 1, IMAGE_R8G8B8);
+     _color.createSoft(settings.hmRes(), settings.hmRes(), 1, IMAGE_R8G8B8_SRGB);
       REPD(y, _color.h())
       REPD(x, _color.w())_color.pixB3(x, y)=255;
    }else _color.del();
@@ -362,7 +362,7 @@ void Heightmap::color(Int x, Int y, C Color &color)
    {
       if(!_color.is() && (color.r!=255 || color.g!=255 || color.b!=255)) // create if doesn't exist yet but is needed
       {
-        _color.createSoftTry(_height.w(), _height.h(), 1, IMAGE_R8G8B8);
+        _color.createSoftTry(_height.w(), _height.h(), 1, IMAGE_R8G8B8_SRGB);
          REPD(y, _color.h())
          REPD(x, _color.w())_color.pixB3(x, y)=255;
       }
@@ -375,13 +375,13 @@ void Heightmap::colorF(Int x, Int y, C Vec &color)
    {
       if(!_color.is() && (color.x!=1 || color.y!=1 || color.z!=1)) // create if doesn't exist yet but is needed
       {
-        _color.createSoftTry(_height.w(), _height.h(), 1, IMAGE_F32_3);
+        _color.createSoftTry(_height.w(), _height.h(), 1, IMAGE_F32_3_SRGB);
          REPD(y, _color.h())
          REPD(x, _color.w())_color.pixF3(x, y)=1;
       }
       if(_color.is())
       {
-         if(_color.type()!=IMAGE_F32_3)_color.copy(_color, -1, -1, -1, IMAGE_F32_3); // convert to high precision
+         if(_color.type()!=IMAGE_F32_3_SRGB)_color.copy(_color, -1, -1, -1, IMAGE_F32_3_SRGB); // convert to high precision
         _color.pixF3(x, y)=color;
       }
    }
@@ -2047,11 +2047,11 @@ static Bool AddEmptyAlpha(Image &image)
 }
 Bool Heightmap::save(File &f, CChar *path)C
 {
-   f.cmpUIntV(2); // version
-   if(       _height    .saveData(f        ))
-   if(SaveAs(_color     , f, IMAGE_R8G8B8  ))
-   if(       _mtrl_index.saveData(f        ))
-   if(SaveAs(_mtrl_blend, f, IMAGE_R8G8B8A8))
+   f.cmpUIntV(2); // version // FIXME use 3
+   if(       _height    .saveData(f           ))
+   if(SaveAs(_color     , f, IMAGE_R8G8B8_SRGB)) // convert to LowPrec in case HighPrec is used
+   if(       _mtrl_index.saveData(f           ))
+   if(SaveAs(_mtrl_blend, f, IMAGE_R8G8B8A8   )) // convert to LowPrec in case HighPrec is used
    if(_materials.save(f, path))
       return f.ok();
    return false;
@@ -2062,7 +2062,7 @@ Bool Heightmap::load(File &f, CChar *path)
 
    switch(f.decUIntV()) // version
    {
-      case 2:
+      case 3:
       {
          if(_height    .loadData(f))
          if(_color     .loadData(f))
@@ -2072,22 +2072,32 @@ Bool Heightmap::load(File &f, CChar *path)
             if(f.ok())return true;
       }break;
 
+      case 2:
+      {
+         if(_height   .loadData(f))
+         if(LoadAs(_color     , f, IMAGE_R8G8B8_SRGB))
+         if(LoadAs(_mtrl_index, f, IMAGE_R8G8B8A8   ))
+         if(LoadAs(_mtrl_blend, f, IMAGE_R8G8B8A8   ))
+         if(_materials.load    (f, path))
+            if(f.ok())return true;
+      }break;
+
       case 1:
       {
-         if(       _height    .loadData(f)      )
-         if(LoadAs(_color     , f, IMAGE_R8G8B8))
-         if(LoadAs(_mtrl_index, f, IMAGE_R8G8B8))if(AddEmptyAlpha(_mtrl_index))
-         if(LoadAs(_mtrl_blend, f, IMAGE_R8G8B8))if(AddEmptyAlpha(_mtrl_blend))
+         if(       _height    .loadData(f)           )
+         if(LoadAs(_color     , f, IMAGE_R8G8B8_SRGB))
+         if(LoadAs(_mtrl_index, f, IMAGE_R8G8B8     ))if(AddEmptyAlpha(_mtrl_index))
+         if(LoadAs(_mtrl_blend, f, IMAGE_R8G8B8     ))if(AddEmptyAlpha(_mtrl_blend))
          if(_materials.load(f, path))
             if(f.ok())return true;
       }break;
 
       case 0:
       {
-         if(       _height    .loadData(f)      )
-         if(LoadAs(_color     , f, IMAGE_R8G8B8))
-         if(LoadAs(_mtrl_index, f, IMAGE_B8G8R8))
-         if(LoadAs(_mtrl_blend, f, IMAGE_R8G8B8))
+         if(       _height    .loadData(f)           )
+         if(LoadAs(_color     , f, IMAGE_R8G8B8_SRGB))
+         if(LoadAs(_mtrl_index, f, IMAGE_B8G8R8     ))
+         if(LoadAs(_mtrl_blend, f, IMAGE_R8G8B8     ))
          {
             if(_mtrl_index.hwType()==IMAGE_B8G8R8)_mtrl_index._type=_mtrl_index._hw_type=IMAGE_R8G8B8; // old version used 'IMAGE_B8G8R8' and the index for the first material was stored in first byte which is blue
             if(_materials.loadOld(f, path))

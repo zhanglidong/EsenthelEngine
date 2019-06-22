@@ -18,7 +18,7 @@ class EditorServer : Edit.EditorServer
    }
    static void ConvertColor(C Heightmap &src, Image &dest)
    {
-      dest.createSoftTry(src.resolution(), src.resolution(), 1, IMAGE_R8G8B8);
+      dest.createSoftTry(src.resolution(), src.resolution(), 1, IMAGE_R8G8B8_SRGB);
       REPD(y, dest.h())
       REPD(x, dest.w())dest.color(x, y, src.color(x, y));
    }
