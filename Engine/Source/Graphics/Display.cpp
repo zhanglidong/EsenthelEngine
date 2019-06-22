@@ -1339,6 +1339,7 @@ if(LogInit)LogN("Display.create");
       Sh.createSamplers();
    DisplayState::create();
               Sh.create();
+D._linear_gamma^=1; D.linearGamma(!D._linear_gamma); // set after loading shaders
              InitMatrix(); // !! call this after creating main shaders, because it creates the "ObjMatrix, ObjVel" shader buffers !!
   if(!Renderer.rtCreate())Exit("Can't create Render Targets."); // !! call this after creating shaders because it modifies shader values !!
              InitVtxInd();

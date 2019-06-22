@@ -532,7 +532,7 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
          {
             D .depthLock (true );
             D .depthWrite(false); Renderer.needDepthTest(); // !! 'needDepthTest' after 'depthWrite' !!
-            VI.shader    (Sh.h_FontD);
+            VI.shader    (Sh.h_Font[true][D._linear_gamma]);
          }
 
          for(Char c=ti.c(); c; pos++)

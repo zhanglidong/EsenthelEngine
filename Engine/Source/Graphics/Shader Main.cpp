@@ -386,8 +386,10 @@ void MainShaderClass::getTechniques()
    h_FontContrast=GetShaderParam("FontContrast");
    h_FontShade   =GetShaderParam("FontShade"   );
    h_FontDepth   =GetShaderParam("FontDepth"   );
-   h_Font =get("Font");
-   h_FontD=get("FontD"); // font with custom depth
+
+   REPD(d, 2)
+   REPD(g, 2)
+      h_Font[d][g]=get(S8+"Font"+(d?'D':'\0')+(g?'G':'\0'));
 
    // BASIC 2D
    h_Dither=get("Dither");

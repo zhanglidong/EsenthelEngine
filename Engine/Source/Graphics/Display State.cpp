@@ -117,7 +117,7 @@ static STENCIL_MODE LastStencilMode;
 /******************************************************************************/
 DisplayState::DisplayState()
 {
-  _srgb            =LINEAR_GAMMA;
+  _linear_gamma    =LINEAR_GAMMA;
   _cull            =false;
   _line_smooth     =false;
   _wire            =false;
@@ -682,12 +682,13 @@ void DisplayState::samplerShadow()
 void DisplayState::set2D() {                     D.clipPlane(false); D.wire(false        ); D.sampler2D();}
 void DisplayState::set3D() {if(Renderer.mirror())D.clipPlane(true ); D.wire(Renderer.wire); D.sampler3D();}
 /******************************************************************************/
-void DisplayState::sRGB(Bool on)
+void DisplayState::linearGamma(Bool on)
 {
-   if(D._srgb!=on)
+   if(D._linear_gamma!=on)
    {
-      D._srgb=on;
+      D._linear_gamma=on;
       SRGBToDisplayArray=(on ? ByteSRGBToLinearArray : ByteToFltArray);
+      Sh.h_FontCur=Sh.h_Font[false][on];
       D.alphaFactor(TRANSPARENT); // TRANSPARENT gives the same Vec4 for sRGB and non-sRGB, have to reset it because '_alpha_factor_v4' depends on 'SRGBToDisplay'
    }
 }
@@ -736,7 +737,7 @@ void DisplayState::setDeviceSettings()
 
   _vf=null;
 
-  _srgb^=1; sRGB(!_srgb);
+  _linear_gamma^=1; linearGamma(!_linear_gamma);
 
   _depth      ^=1; depth     (old._depth      );
   _depth_write^=1; depthWrite(old._depth_write);
