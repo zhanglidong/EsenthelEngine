@@ -520,7 +520,7 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
                contrast=32/pixels;
                contrast=Sqrt(contrast); // or alternative: contrast=Log2(contrast+1);
                contrast=Max(1, contrast);
-               contrast=Lerp(1.0f, contrast, lum/255.0f);
+               contrast=Lerp(1.0f, contrast, ByteToFlt(lum));
             }
          }
          Sh.h_FontContrast->set(contrast);
@@ -818,7 +818,7 @@ void TextStyleParams::drawMainSoft(Image &image, Flt x, Flt y, TextInput ti, Int
                draw.contrast=32/pixels;
                draw.contrast=Sqrt(draw.contrast); // or alternative: draw.contrast=Log2(draw.contrast+1);
                draw.contrast=Max(1, draw.contrast);
-               draw.contrast=Lerp(1.0f, draw.contrast, lum/255.0f);
+               draw.contrast=Lerp(1.0f, draw.contrast, ByteToFlt(lum));
             }
          }
 
