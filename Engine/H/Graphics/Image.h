@@ -324,8 +324,8 @@ struct Image // Image (Texture)
    Vec4  colorL(Int x, Int y)C;   void colorL(Int x, Int y, C Vec4  &color); // get/set color Flt  color, linear gamma (   gamma conversion), (these methods may not support all compressed types, instead try using 'copy' method first)
    Vec4  colorS(Int x, Int y)C;   void colorS(Int x, Int y, C Vec4  &color); // get/set color Flt  color, sRGB   gamma (   gamma conversion), (these methods may not support all compressed types, instead try using 'copy' method first)
 
-   void blend(Int x, Int y, C Vec4 &color); // apply 'color' pixel using ALPHA_BLEND formula
-   void merge(Int x, Int y, C Vec4 &color); // apply 'color' pixel using ALPHA_MERGE formula
+   void blendF(Int x, Int y, C Vec4 &color); // apply 'color' pixel using ALPHA_BLEND formula
+   void mergeF(Int x, Int y, C Vec4 &color); // apply 'color' pixel using ALPHA_MERGE formula
 
    Flt pixelFLinear         (Flt x, Flt y, Bool clamp=true)C; // get pixel Flt with Linear            interpolation, image gamma (no gamma conversion), 'clamp'=if use clamping when filtering pixels, (these methods may not support all compressed types, instead try using 'copy' method first)
    Flt pixelFCubicFast      (Flt x, Flt y, Bool clamp=true)C; // get pixel Flt with Cubic Fast        interpolation, image gamma (no gamma conversion), 'clamp'=if use clamping when filtering pixels, (these methods may not support all compressed types, instead try using 'copy' method first)

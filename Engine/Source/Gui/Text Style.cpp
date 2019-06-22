@@ -749,7 +749,7 @@ struct FontDraw
                out.xyz=color.xyz*(a*color.w);
                out.w  =color.w*final_alpha;
 
-               T.dest.merge(x, y, out);
+               T.dest.mergeF(x, y, out);
             }
          }
       }

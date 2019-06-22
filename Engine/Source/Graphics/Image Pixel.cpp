@@ -928,7 +928,7 @@ void Image::color3DS(Int x, Int y, Int z, C Vec4 &color)
 }
 /******************************************************************************/
 static inline void ApplyBlend(Vec4 &src, C Vec4 &color) {src=Blend(src, color);}
-void Image::blend(Int x, Int y, C Vec4 &color)
+void Image::blendF(Int x, Int y, C Vec4 &color)
 {
    if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
    {
@@ -957,7 +957,7 @@ void Image::blend(Int x, Int y, C Vec4 &color)
    }
 }*/
 static inline void ApplyMerge(Vec4 &src, C Vec4 &color) {src=PremultipliedBlend(src, color);}
-void Image::merge(Int x, Int y, C Vec4 &color)
+void Image::mergeF(Int x, Int y, C Vec4 &color)
 {
    if(InRange(x, lw()) && InRange(y, lh())) // no need to check for "&& data()" because being "InRange(lockSize())" already guarantees 'data' being available
    {
