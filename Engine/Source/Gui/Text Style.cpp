@@ -524,7 +524,7 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
             }
          }
          Sh.h_FontContrast->set(contrast);
-         Sh.h_FontShade   ->set(LINEAR_GAMMA ? ByteSRGBToLinear(shade) : ByteToFlt(shade));
+         Sh.h_FontShade   ->set(ByteSRGBToDisplay(shade));
          SetCode(cur_code, T, sub_pixel);
 
          // font depth
