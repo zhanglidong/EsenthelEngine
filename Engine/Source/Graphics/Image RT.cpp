@@ -214,7 +214,7 @@ Bool ImageRC::map()
    // on Android and Web 'Renderer._main' has 'setInfo' called externally in the main loop
    return true;
 #elif DESKTOP
-   forceInfo(D.resW(), D.resH(), 1, type() ? type() : IMAGE_R8G8B8A8_SRGB, IMAGE_GL_RB, samples()); return true;
+   forceInfo(D.resW(), D.resH(), 1, type() ? type() : LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, IMAGE_GL_RB, samples()); return true;
 #endif
    return false;
 }
