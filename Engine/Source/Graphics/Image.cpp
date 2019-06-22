@@ -439,24 +439,13 @@ IMAGE_TYPE                 ImageFormatToType(GPU_API(DXGI_FORMAT, UInt) format
 #endif
 )
 {
-   // check these which are listed multiple times (then return the preferred version), or not listed at all but known
+#if GL && GL_SWIZZLE
    switch(format)
    {
-   #if DX11
-      case DXGI_FORMAT_UNKNOWN: return IMAGE_NONE;
-
-      case DXGI_FORMAT_R16_TYPELESS  : return IMAGE_D16;
-      case DXGI_FORMAT_R24G8_TYPELESS: return IMAGE_D24S8;
-      case DXGI_FORMAT_R32_TYPELESS  : return IMAGE_D32;
-   #elif GL
-      case 0: return IMAGE_NONE;
-
-      #if GL_SWIZZLE
-         case GL_R8 : if(type==IMAGE_A8 || type==IMAGE_L8)return type; return IMAGE_R8;
-         case GL_RG8: if(type==IMAGE_L8A8                )return type; return IMAGE_R8G8;
-      #endif
-   #endif
+      case GL_R8 : if(type==IMAGE_A8 || type==IMAGE_L8)return type; return IMAGE_R8;
+      case GL_RG8: if(type==IMAGE_L8A8                )return type; return IMAGE_R8G8;
    }
+#endif
    FREPA(ImageTI) // !! it's important to go from the start in case some formats are listed more than once, return the first one (also this improves performance because most common formats are at the start) !!
       if(ImageTI[i].format==format)return IMAGE_TYPE(i);
    return IMAGE_NONE;
