@@ -658,10 +658,10 @@ private:
    Vec        _part;
    Byte      *_data, *_data_all;
 #if EE_PRIVATE
-   GPU_API(ID3D11Texture2D          *_txtr, union{UInt _txtr; Ptr _txtr_ptr;});
-   GPU_API(ID3D11Texture3D          *_vol , union{UInt _rb  ; Ptr _rb_ptr  ;});
-   GPU_API(ID3D11ShaderResourceView *_srv , union{UInt _w_s ; Ptr _w_s_ptr ;});
-   GPU_API(ID3D11RenderTargetView   *_rtv , union{UInt _w_t ; Ptr _w_t_ptr ;});
+   GPU_API(ID3D11Texture2D          *_txtr, union{UInt   _txtr ; Ptr _txtr_ptr ;});
+   GPU_API(ID3D11Texture3D          *_vol , union{UInt   _rb   ; Ptr _rb_ptr   ;});
+   GPU_API(ID3D11ShaderResourceView *_srv , union{VecUS2 _addr ; Ptr _addr_ptr ;});
+   GPU_API(ID3D11RenderTargetView   *_rtv , union{VecUS2 _addr1; Ptr _addr1_ptr;});
 #else
    Ptr        _ptr[4];
 #endif

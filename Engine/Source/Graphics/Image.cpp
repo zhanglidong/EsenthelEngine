@@ -2803,7 +2803,7 @@ Bool Image::capture(C ImageRT &src)
       SyncLocker locker(D._lock);
       if(src.multiSample())
       {
-         if(createTry(src.w(), src.h(), 1, src.hwType(), IMAGE_RT, 1, false))
+         if(createTry(src.w(), src.h(), 1, src.hwType(), IMAGE_RT, 1, false)) // FIXME: can this be IMAGE_2D?
          {
             D3DC->ResolveSubresource(_txtr, 0, src._txtr, 0, ImageTI[src.hwType()].format);
             return true;

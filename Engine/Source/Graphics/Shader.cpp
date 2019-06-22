@@ -113,8 +113,8 @@ static void SetTexture(Int index, C Image *image, ShaderImage::Sampler *sampler)
                s=sampler->address[0];
                t=sampler->address[1];
             }
-            if(image->_w_s!=s)glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, ConstCast(image->_w_s)=s);
-            if(image->_w_t!=t)glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, ConstCast(image->_w_t)=t);
+            if(image->_addr.x!=s)glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, ConstCast(image->_addr.x)=s);
+            if(image->_addr.y!=t)glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, ConstCast(image->_addr.y)=t);
          }break;
 
          case IMAGE_3D:
@@ -127,13 +127,9 @@ static void SetTexture(Int index, C Image *image, ShaderImage::Sampler *sampler)
                t=sampler->address[1];
                r=sampler->address[2];
             }
-            if(image->_w_s!=s)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, ConstCast(image->_w_s)=s);
-            if(image->_w_t!=t)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, ConstCast(image->_w_t)=t);
-         #if 0 // cached
-            if(image->_w_r!=r)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, ConstCast(image->_w_r)=r);
-         #else
-            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, r);
-         #endif
+            if(image->_addr .x!=s)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, ConstCast(image->_addr .x)=s);
+            if(image->_addr .y!=t)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, ConstCast(image->_addr .y)=t);
+            if(image->_addr1.x!=r)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, ConstCast(image->_addr1.x)=r);
          }break;
 
          case IMAGE_CUBE:
@@ -155,11 +151,11 @@ static void SetTexture(Int index, C Image *image, ShaderImage::Sampler *sampler)
             s=sampler->address[0];
             t=sampler->address[1];
          }
-         if(image->_w_s!=s || image->_w_t!=t)
+         if(image->_addr.x!=s || image->_addr.y!=t)
          {
-            ActivateTexture(index);   TexBind(GL_TEXTURE_2D, image->_txtr);
-            if(image->_w_s!=s)glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, ConstCast(image->_w_s)=s);
-            if(image->_w_t!=t)glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, ConstCast(image->_w_t)=t);
+            ActivateTexture(index);      TexBind(GL_TEXTURE_2D, image->_txtr);
+            if(image->_addr.x!=s)glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, ConstCast(image->_addr.x)=s);
+            if(image->_addr.y!=t)glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, ConstCast(image->_addr.y)=t);
          }
       }break;
 
@@ -172,20 +168,13 @@ static void SetTexture(Int index, C Image *image, ShaderImage::Sampler *sampler)
             t=sampler->address[1];
             r=sampler->address[2];
          }
-      #if 0 // cached
-         if(image->_w_s!=s || image->_w_t!=t || image->_w_r!=r)
+         if(image->_addr.x!=s || image->_addr.y!=t || image->_addr1.x!=r)
          {
-            ActivateTexture(index);   TexBind(GL_TEXTURE_3D, image->_txtr);
-            if(image->_w_s!=s)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, ConstCast(image->_w_s)=s);
-            if(image->_w_t!=t)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, ConstCast(image->_w_t)=t);
-            if(image->_w_r!=r)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, ConstCast(image->_w_r)=r);
+            ActivateTexture(index);       TexBind(GL_TEXTURE_3D, image->_txtr);
+            if(image->_addr .x!=s)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, ConstCast(image->_addr .x)=s);
+            if(image->_addr .y!=t)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, ConstCast(image->_addr .y)=t);
+            if(image->_addr1.x!=r)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, ConstCast(image->_addr1.x)=r);
          }
-      #else
-         ActivateTexture(index);   TexBind(GL_TEXTURE_3D, image->_txtr);
-         if(image->_w_s!=s)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, ConstCast(image->_w_s)=s);
-         if(image->_w_t!=t)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, ConstCast(image->_w_t)=t);
-                           glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R,                        r);
-      #endif
       }break;
    }
 #endif
