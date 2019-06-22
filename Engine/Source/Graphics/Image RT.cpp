@@ -225,19 +225,20 @@ void ImageRT::clearViewport(C Vec4 &color, Bool restore_rt)
    }
 }
 /******************************************************************************/
-void ImageRT:: zero   () {_srv_srgb=null; _rtv_srgb=null; _dsv=_rdsv=null;} // don't zero '_ptr_num' here, because this is called in 'delThis', however ref count should be kept
+void ImageRT:: zero   () {_srv_srgb=null; _rtv=_rtv_srgb=null; _dsv=_rdsv=null;} // don't zero '_ptr_num' here, because this is called in 'delThis', however ref count should be kept
      ImageRT:: ImageRT() {_ptr_num=0; zero();}
      ImageRT::~ImageRT() {delThis();} // delete children first
 void ImageRT:: delThis() // delete only this class members without super
 {
 #if DX11
-   if(_srv_srgb || _rtv_srgb || _dsv || _rdsv)
+   if(_srv_srgb || _rtv || _rtv_srgb || _dsv || _rdsv)
    {
       D.texClear(_srv_srgb);
     //SyncLocker locker(D._lock); lock not needed for DX11 'Release'
       if(D.created())
       {
          RELEASE(_srv_srgb);
+         RELEASE(_rtv     );
          RELEASE(_rtv_srgb);
          RELEASE(_dsv     );
          RELEASE(_rdsv    );
@@ -246,54 +247,60 @@ void ImageRT:: delThis() // delete only this class members without super
 #endif
    zero();
 }
-void ImageRT::createSRGB(Bool srv)
+Bool ImageRT::createViews(Bool srv_srgb)
 {
-   if(IMAGE_TYPE type_srgb=ImageTypeToggleSRGB(type()))if(type_srgb!=type()) // try creating toggled sRGB Resource Views
+   switch(mode())
    {
-   #if DX11
-      D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd);
-      D3D11_RENDER_TARGET_VIEW_DESC   rtvd; Zero(rtvd);
-      if(multiSample()){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS; rtvd.ViewDimension=D3D11_RTV_DIMENSION_TEXTURE2DMS;}
-      else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; rtvd.ViewDimension=D3D11_RTV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
-      srvd.Format=rtvd.Format=ImageTI[type_srgb].format;
-      // lock not needed for DX11 'D3D'
-      if(srv)D3D->CreateShaderResourceView(_txtr, &srvd, &_srv_srgb);
-             D3D->CreateRenderTargetView  (_txtr, &rtvd, &_rtv_srgb);
-   #endif
+      case IMAGE_RT: //case IMAGE_RT_CUBE:
+      {
+      #if DX11
+         D3D11_RENDER_TARGET_VIEW_DESC rtvd; Zero(rtvd); rtvd.Format=ImageTI[hwType()].format;
+         rtvd.ViewDimension=(multiSample() ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D);
+         D3D->CreateRenderTargetView(_txtr, &rtvd, &_rtv); if(!_rtv)return false;
+      #endif
+         if(IMAGE_TYPE type_srgb=ImageTypeToggleSRGB(type()))if(type_srgb!=type()) // try creating toggled sRGB Resource Views
+         {
+         #if DX11
+            D3D11_SHADER_RESOURCE_VIEW_DESC srvd; Zero(srvd);
+            if(multiSample()){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
+            else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
+            srvd.Format=rtvd.Format=ImageTI[type_srgb].format;
+            // lock not needed for DX11 'D3D'
+            if(srv_srgb)D3D->CreateShaderResourceView(_txtr, &srvd, &_srv_srgb);
+                        D3D->CreateRenderTargetView  (_txtr, &rtvd, &_rtv_srgb);
+         #endif
+         }
+      }break;
+
+      case IMAGE_DS:
+      case IMAGE_SHADOW_MAP:
+      {
+      #if DX11
+         D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=ImageTI[hwType()].format; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
+                                                                                                               D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv ); if(!_dsv)return false;
+         dsvd.Flags=D3D11_DSV_READ_ONLY_DEPTH; if(ImageTI[hwType()].s)dsvd.Flags|=D3D11_DSV_READ_ONLY_STENCIL; D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // this will work only on DX11.0 but not 10.0, 10.1
+      #endif
+      }break;
    }
+   return true;
 }
 Bool ImageRT::create(C VecI2 &size, IMAGE_TYPE type, IMAGE_MODE mode, Byte samples)
 {
    delThis(); // delete only this without super 'del', because it's possible this image already has what 'desc' is requesting, so 'createTryEx' could do nothing as long as we're not deleting it here first
-   Bool ok=super::createTryEx(size.x, size.y, 1, type, mode, 1, samples);
+   if(super::createTryEx(size.x, size.y, 1, type, mode, 1, samples)
 #if GL
-   if(!ok && mode==IMAGE_DS)ok=super::createTryEx(size.x, size.y, 1, type, IMAGE_GL_RB, 1, samples);
+   || mode==IMAGE_DS && super::createTryEx(size.x, size.y, 1, type, IMAGE_GL_RB, 1, samples)
 #endif
-   if(ok)
+   )
+   if(createViews())
    {
-      switch(T.mode())
-      {
-         default:
-         {
-            createSRGB();
-         #if DX11
-            {SyncLocker locker(D._lock); clearHw();} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
-         #endif
-         }break;
-
-         case IMAGE_DS:
-         case IMAGE_SHADOW_MAP:
-         {
-         #if DX11
-            D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=ImageTI[hwType()].format; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
-                                                                                                                  D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv ); if(!_dsv)return false;
-            dsvd.Flags=D3D11_DSV_READ_ONLY_DEPTH; if(ImageTI[hwType()].s)dsvd.Flags|=D3D11_DSV_READ_ONLY_STENCIL; D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // this will work only on DX11.0 but not 10.0, 10.1
-         #endif
-         }break;
-      }
+   #if DX11
+      {SyncLocker locker(D._lock); clearHw();} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
+   #endif
       Time.skipUpdate();
+      return true;
    }
-   return ok;
+   return false;
 }
 /******************************************************************************/
 Bool ImageRT::map()
@@ -303,8 +310,7 @@ Bool ImageRT::map()
    {
      _mode=IMAGE_RT; if(setInfo())
       {
-         adjustInfo(hwW(), hwH(), hwD(), hwType()); createSRGB(false); // false to skip SRV because it always causes exception
-         return true;
+         adjustInfo(hwW(), hwH(), hwD(), hwType()); return createViews(false); // false to skip SRV-sRGB because it always causes exception
       }
    }
 #elif DX12

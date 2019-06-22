@@ -738,14 +738,13 @@ Image& Image::del()
          ShaderImages.unlock();
       }
    #if DX11
-      if(_txtr || _srv || _rtv)
+      if(_txtr || _srv)
       {
          D.texClear(_srv);
        //SyncLocker locker(D._lock); lock not needed for DX11 'Release'
          if(D.created())
          {
             // release children first
-            RELEASE(_rtv);
             RELEASE(_srv);
             // now main resources
             RELEASE(_txtr);
@@ -863,12 +862,6 @@ Bool Image::setInfo()
                                 {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
             D3D->CreateShaderResourceView(_txtr, &srvd, &_srv); if(!_srv && mode()!=IMAGE_DS)return false; // allow '_srv' optional in IMAGE_DS
          }break;
-      }
-      if(mode()==IMAGE_RT /*|| mode()==IMAGE_RT_CUBE*/)
-      {
-         D3D11_RENDER_TARGET_VIEW_DESC rtvd; Zero(rtvd); rtvd.Format=ImageTI[hwType()].format;
-         rtvd.ViewDimension=(multiSample() ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D);
-         D3D->CreateRenderTargetView(_txtr, &rtvd, &_rtv); if(!_rtv)return false;
       }
    }
 #elif GL

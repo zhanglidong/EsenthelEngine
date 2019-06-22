@@ -76,7 +76,7 @@ STRUCT(ImageRT , Image) // Image Render Target
    Bool create     (C VecI2 &size, IMAGE_TYPE type, IMAGE_MODE mode=IMAGE_RT, Byte samples=1);
    Bool createTry  ()=delete;
    Bool createTryEx()=delete;
-   void createSRGB (Bool srv=true);
+   Bool createViews(Bool srv_srgb=true);
    Bool   map      ();
    void unmap      ();
    void swapSRV    ();
@@ -102,8 +102,8 @@ private:
 #endif
    UInt _ptr_num;
 #if EE_PRIVATE && DX11
-   ID3D11ShaderResourceView *_srv_srgb;
-   ID3D11RenderTargetView   *_rtv_srgb;
+   ID3D11ShaderResourceView        *_srv_srgb;
+   ID3D11RenderTargetView   *_rtv, *_rtv_srgb;
    ID3D11DepthStencilView   *_dsv, *_rdsv;
 #else
    Ptr  _srv_srgb, _rtv_srgb, _dsv, _rdsv;
