@@ -62,17 +62,17 @@ static struct VirtualRealityDummyApi : VirtualRealityApi
    virtual void   draw           ()  override {}
 
    virtual void          delImages()override {_render.del(); _gui.del();}
-   virtual Bool    createGuiImage ()override {return _gui   .createTry(VR.guiRes().x, VR.guiRes().y, 1, LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, IMAGE_RT, 1);}
-   virtual Bool createRenderImage ()override {return _render.createTry(1280, 720, 1, LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, IMAGE_RT, 1);}
+   virtual Bool    createGuiImage ()override {return _gui   .create(VR.guiRes()     , LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8);}
+   virtual Bool createRenderImage ()override {return _render.create(VecI2(1280, 720), LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8);}
 
-   virtual ImageRC* getNewRender ()override {return  _render.is() ? &_render : null;}
-   virtual ImageRC* getNewGui    ()override {return  _gui   .is() ? &_gui    : null;}
-   virtual ImageRC* getLastRender()override {return &_render;}
-   virtual ImageRC* getLastGui   ()override {return &_gui   ;}
+   virtual ImageRT* getNewRender ()override {return  _render.is() ? &_render : null;}
+   virtual ImageRT* getNewGui    ()override {return  _gui   .is() ? &_gui    : null;}
+   virtual ImageRT* getLastRender()override {return &_render;}
+   virtual ImageRT* getLastGui   ()override {return &_gui   ;}
 
 private:
    Bool    _active;
-   ImageRC _render, _gui;
+   ImageRT _render, _gui;
 }VirtualRealityDummy;
 /******************************************************************************/
        VirtualReality    VR;
@@ -264,10 +264,10 @@ Bool VirtualReality::createImages()
    return createRenderImage() && createGuiImage();
 }
 
-ImageRC* VirtualReality::getNewRender () {   if(ImageRC *image=_api->getNewRender ()){_has_render=true; return image;} return null;}
-ImageRC* VirtualReality::getNewGui    () {return               _api->getNewGui    ()       ;}
-ImageRC* VirtualReality::getLastRender() {return _has_render ? _api->getLastRender() : null;}
-ImageRC* VirtualReality::getLastGui   () {return               _api->getLastGui   ()       ;}
+ImageRT* VirtualReality::getNewRender () {   if(ImageRT *image=_api->getNewRender ()){_has_render=true; return image;} return null;}
+ImageRT* VirtualReality::getNewGui    () {return               _api->getNewGui    ()       ;}
+ImageRT* VirtualReality::getLastRender() {return _has_render ? _api->getLastRender() : null;}
+ImageRT* VirtualReality::getLastGui   () {return               _api->getLastGui   ()       ;}
 /******************************************************************************/
 }
 /******************************************************************************/

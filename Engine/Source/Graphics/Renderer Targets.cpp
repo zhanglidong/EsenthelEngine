@@ -44,18 +44,20 @@ void RendererClass::createShadowMap()
 
    // shadow maps
    D._shd_map_size_actual=Max(0, Min(D.shadowMapSize()*3, D.maxTexSize())/3);
-   Int shd_map_w=D.shadowMapSizeActual()*2,
-       shd_map_h=D.shadowMapSizeActual()*3;
-   if(!_shd_map.createTryEx(shd_map_w, shd_map_h, 1, IMAGE_D32  , IMAGE_SHADOW_MAP, 1)) // D32 shadow maps have no performance penalty (tested on GeForce 650m) so use them if possible
-   if(!_shd_map.createTryEx(shd_map_w, shd_map_h, 1, IMAGE_D24X8, IMAGE_SHADOW_MAP, 1)) // we don't need stencil so avoid it in case it causes performance penalty
-   if(!_shd_map.createTryEx(shd_map_w, shd_map_h, 1, IMAGE_D24S8, IMAGE_SHADOW_MAP, 1))
-       _shd_map.createTryEx(shd_map_w, shd_map_h, 1, IMAGE_D16  , IMAGE_SHADOW_MAP, 1);
+   VecI2 shd_map_size(D.shadowMapSizeActual()*2,
+                      D.shadowMapSizeActual()*3);
+   if(!_shd_map.create(shd_map_size, IMAGE_D32  , IMAGE_SHADOW_MAP)) // D32 shadow maps have no performance penalty (tested on GeForce 650m) so use them if possible
+   if(!_shd_map.create(shd_map_size, IMAGE_D24X8, IMAGE_SHADOW_MAP)) // we don't need stencil so avoid it in case it causes performance penalty
+   if(!_shd_map.create(shd_map_size, IMAGE_D24S8, IMAGE_SHADOW_MAP))
+       _shd_map.create(shd_map_size, IMAGE_D16  , IMAGE_SHADOW_MAP);
    if(!_shd_map.is())D._shd_map_size_actual=0;
 
    // cloud shadow maps
-   if(!_cld_map.createTryEx(D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_R8      , IMAGE_RT, 1))
-   if(!_cld_map.createTryEx(D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_R8G8    , IMAGE_RT, 1))
-       _cld_map.createTryEx(D.cloudsMapSize()*2, D.cloudsMapSize()*3, 1, IMAGE_R8G8B8A8, IMAGE_RT, 1);
+   VecI2 cld_map_size(D.cloudsMapSize()*2,
+                      D.cloudsMapSize()*3);
+   if(!_cld_map.create(cld_map_size, IMAGE_R8      , IMAGE_RT))
+   if(!_cld_map.create(cld_map_size, IMAGE_R8G8    , IMAGE_RT))
+       _cld_map.create(cld_map_size, IMAGE_R8G8B8A8, IMAGE_RT);
 
    Sh.connectRT();
    D.shadowJitterSet();
@@ -148,16 +150,16 @@ Bool RendererClass::rtCreate()
 
    // depth
 #if DX11
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24S8, IMAGE_DS, 1, _main.samples()))return false;
+   if(!_main_ds.create(_main.size(), IMAGE_D24S8, IMAGE_DS, _main.samples()))return false;
 #elif IOS // on iOS we have access to '_main' so let's keep '_main_ds' the same
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24S8, IMAGE_DS, 1, _main.samples()))
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D32  , IMAGE_DS, 1, _main.samples()))
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24X8, IMAGE_DS, 1, _main.samples()))
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D16  , IMAGE_DS, 1, _main.samples()))
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24S8, IMAGE_GL_RB, 1, _main.samples()))
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D32  , IMAGE_GL_RB, 1, _main.samples()))
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D24X8, IMAGE_GL_RB, 1, _main.samples()))
-   if(!_main_ds.createTryEx(_main.w(), _main.h(), 1, IMAGE_D16  , IMAGE_GL_RB, 1, _main.samples()))return false;
+   if(!_main_ds.create(_main.size(), IMAGE_D24S8, IMAGE_DS, _main.samples()))
+   if(!_main_ds.create(_main.size(), IMAGE_D32  , IMAGE_DS, _main.samples()))
+   if(!_main_ds.create(_main.size(), IMAGE_D24X8, IMAGE_DS, _main.samples()))
+   if(!_main_ds.create(_main.size(), IMAGE_D16  , IMAGE_DS, _main.samples()))
+   if(!_main_ds.create(_main.size(), IMAGE_D24S8, IMAGE_GL_RB, _main.samples()))
+   if(!_main_ds.create(_main.size(), IMAGE_D32  , IMAGE_GL_RB, _main.samples()))
+   if(!_main_ds.create(_main.size(), IMAGE_D24X8, IMAGE_GL_RB, _main.samples()))
+   if(!_main_ds.create(_main.size(), IMAGE_D16  , IMAGE_GL_RB, _main.samples()))return false;
 #else // other platforms have '_main_ds' linked with '_main' provided by the system
   _main_ds.forceInfo(_main.w(), _main.h(), 1, _main_ds.type() ? _main_ds.type() : IMAGE_D24S8, IMAGE_GL_RB, _main.samples()); // if we know the type then use it, otherwise assume the default IMAGE_D24S8
 #endif
@@ -166,8 +168,8 @@ Bool RendererClass::rtCreate()
 
    // eye adaptation
   _eye_adapt_scale_cur=0;
-   if(!(_eye_adapt_scale[0].createTryEx(1, 1, 1, IMAGE_F32, IMAGE_RT, 1) || _eye_adapt_scale[0].createTryEx(1, 1, 1, IMAGE_F16, IMAGE_RT, 1))
-   || !(_eye_adapt_scale[1].createTryEx(1, 1, 1, IMAGE_F32, IMAGE_RT, 1) || _eye_adapt_scale[1].createTryEx(1, 1, 1, IMAGE_F16, IMAGE_RT, 1)))
+   if(!(_eye_adapt_scale[0].create(1, IMAGE_F32) || _eye_adapt_scale[0].create(1, IMAGE_F16))
+   || !(_eye_adapt_scale[1].create(1, IMAGE_F32) || _eye_adapt_scale[1].create(1, IMAGE_F16)))
       REPAO(_eye_adapt_scale).del(); // if any failed then delete both
 
    setMain();
@@ -221,8 +223,8 @@ void RendererClass::setMain() // !! requires 'D._lock' !! this is called after R
      _gui   =&_main;
      _gui_ds=&_main_ds;
    }
-  _cur_main   =_gui   .rc();
-  _cur_main_ds=_gui_ds.rc();
+  _cur_main   =_gui   ();
+  _cur_main_ds=_gui_ds();
 
    set(_cur_main, _cur_main_ds, false);
 }
@@ -338,7 +340,7 @@ void RendererClass::setDS(UInt ds_txtr_id)
 void RendererClass::needDepthTest() {setDS(R._cur_ds_ids[NO_DEPTH_READ]);}
 #endif
 #undef R
-void RendererClass::set(Image *t0, Image *t1, Image *t2, Image *t3, Image *ds, Bool custom_viewport, DEPTH_READ_MODE depth_read_mode)
+void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, ImageRT *ds, Bool custom_viewport, DEPTH_READ_MODE depth_read_mode)
 {
    Bool changed=false;
 #if DX11

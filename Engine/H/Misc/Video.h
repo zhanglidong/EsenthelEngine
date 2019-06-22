@@ -90,7 +90,8 @@ private:
    Int         _w, _h, _br;
    Flt         _time, _time_past, _fps;
    File        _file;
-   Image       _lum, _u, _v, _tex;
+   Image       _lum, _u, _v;
+   ImageRT     _tex;
 #if EE_PRIVATE
    VideoCodec *_d;
 #else

@@ -325,9 +325,9 @@ static void DrawShadowMap(DIR_ENUM dir, C MatrixM &cam_matrix, UInt flag, Flt vi
 
       if((flag&SM_CLOUDS) && Renderer._cld_map.is()) // clouds are only for directional lights
       {
-         Int    x =HsmX(dir),
-                y =HsmY(dir);
-         Image *rt=Renderer._cur[0], *rtz=Renderer._cur_ds;
+         Int      x =HsmX(dir),
+                  y =HsmY(dir);
+         ImageRT *rt=Renderer._cur[0], *rtz=Renderer._cur_ds;
          Renderer      .set      (&Renderer._cld_map, null, false);
          D._view_active.set      (RectI(x*D.cloudsMapSize(), y*D.cloudsMapSize(), (x+1)*D.cloudsMapSize(), (y+1)*D.cloudsMapSize()), view_from, view_range, fov, fov_mode).setViewport().setProjMatrix(false); // viewport
          SetCam                  (cam_matrix, true); // camera and frustum
@@ -1230,7 +1230,7 @@ void Light::draw()
    Renderer._shd_ms.clear();
 }
 /******************************************************************************/
-void Light::drawForward(Image *dest, ALPHA_MODE alpha)
+void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
 {
    SetShadowOpacity(shadow_opacity);
 

@@ -103,6 +103,7 @@ struct Motion;
 /******************************************************************************/
 struct Color;
 struct Image;
+struct ImageRT;
 struct ImageHeader;
 struct Video;
 struct Font;

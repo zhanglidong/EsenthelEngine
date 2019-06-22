@@ -114,10 +114,10 @@ private:
    Bool    createGuiImage ();
    Bool createRenderImage ();
 
-   ImageRC* getNewRender ();
-   ImageRC* getNewGui    ();
-   ImageRC* getLastRender();
-   ImageRC* getLastGui   ();
+   ImageRT* getNewRender ();
+   ImageRT* getNewGui    ();
+   ImageRT* getLastRender();
+   ImageRT* getLastGui   ();
 #endif
    VirtualReality();
    NO_COPY_CONSTRUCTOR(VirtualReality);
@@ -141,10 +141,10 @@ struct VirtualRealityApi
    virtual Bool    createGuiImage () {return false;}
    virtual Bool createRenderImage () {return false;}
 
-   virtual ImageRC* getNewRender () {return null;}
-   virtual ImageRC* getNewGui    () {return null;}
-   virtual ImageRC* getLastRender() {return null;}
-   virtual ImageRC* getLastGui   () {return null;}
+   virtual ImageRT* getNewRender () {return null;}
+   virtual ImageRT* getNewGui    () {return null;}
+   virtual ImageRT* getLastRender() {return null;}
+   virtual ImageRT* getLastGui   () {return null;}
 
    virtual ~VirtualRealityApi() {shut();}
 }extern

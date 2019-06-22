@@ -429,9 +429,8 @@ struct Image // Image (Texture)
    Image&    setShadow(                 Int blur, Flt shadow_opacity=1.0f, Flt shadow_spread=0.0f, Bool border_padd=true, C VecI2 &offset=0, Int image_type=0, Bool combine=true); // create shadow and apply to self
 
 #if EE_PRIVATE
-   Bool accessible  ()C;
-   Bool depthTexture()C;
-   Bool compatible  (C Image &image)C;
+   Bool accessible()C;
+   Bool compatible(C Image &image)C;
 
    Bool   toCube(C Image &src, Int layout=-1, Int size=-1, Int              type=-1, Int mode=-1, Int mip_maps=-1, FILTER_TYPE filter=FILTER_BEST, Bool rgba_on_fail=true); // convert from 'src' image      to cube image, 'size'=desired resolution of the image (-1=keep), 'type'=IMAGE_TYPE (-1=keep), 'mode'=IMAGE_MODE (-1=auto), 'mip_maps'=number of mip-maps (0=autodetect), 'filter'=what kind of filtering to use when source is of different size than the target
    Bool fromCube(C Image &src,                             Int uncompressed_type=-1                                                                                      ); // convert from 'src' cube image to 6x1  image,                                      'uncompressed_type'=IMAGE_TYPE to use if source is compressed
@@ -635,22 +634,11 @@ struct Image // Image (Texture)
 
    void duplicate(C Image &src);
 
-   void discard();
-#if DX11
-   void clearHw      (C Vec4 &color=Vec4Zero                       ); // hardware render target  clear
-   void clearDS      (  Byte  s    =0                              ); // hardware depth  stencil clear
-#else
-// there's no 'clearHw' on OpenGL
-// there's no 'clearDS' on OpenGL
-#endif
-   void clearFull    (C Vec4 &color=Vec4Zero, Bool restore_rt=false); // clear full          area
-   void clearViewport(C Vec4 &color=Vec4Zero, Bool restore_rt=false); // clear main viewport area
-
-   Bool copySoft(Image &dest, FILTER_TYPE filter=FILTER_BEST, UInt flags=IC_CLAMP, Int max_mip_maps=INT_MAX, Flt sharp_smooth=1.0f   )C; // software             copy, 'flags'=IMAGE_COPY_FLAG, 'sharp_smooth'=factor affecting sharpness/smoothness (0..Inf, the closer to 0.0 then the sharper result, the bigger than 1.0 then the more blurry result, default=1.0)
-   void copyMs  (Image &dest, Bool restore_rt, Bool multi_sample, C RectI *rect    =null                                             )C; // multi sample texture copy, 'multi_sample'=average samples when writing to single sample, or copy texture on a per sample basis, this is needed because multi-sampled textures can't be sampled smoothly in the shader, this assumes that both source and dest are of the same size
-   void copyMs  (Image &dest, Bool restore_rt, Bool multi_sample, C Rect  &rect                                                      )C; // multi sample texture copy, 'multi_sample'=average samples when writing to single sample, or copy texture on a per sample basis, this is needed because multi-sampled textures can't be sampled smoothly in the shader, this assumes that both source and dest are of the same size
-   void copyHw  (Image &dest, Bool restore_rt,                    C RectI *rect_src=null, C RectI *rect_dest=null, Bool *flipped=null)C; // hardware     texture copy
-   void copyHw  (Image &dest, Bool restore_rt,                    C Rect  &rect                                                      )C; // hardware     texture copy
+   Bool copySoft(Image   &dest, FILTER_TYPE filter=FILTER_BEST, UInt flags=IC_CLAMP, Int max_mip_maps=INT_MAX, Flt sharp_smooth=1.0f   )C; // software             copy, 'flags'=IMAGE_COPY_FLAG, 'sharp_smooth'=factor affecting sharpness/smoothness (0..Inf, the closer to 0.0 then the sharper result, the bigger than 1.0 then the more blurry result, default=1.0)
+   void copyMs  (ImageRT &dest, Bool restore_rt, Bool multi_sample, C RectI *rect    =null                                             )C; // multi sample texture copy, 'multi_sample'=average samples when writing to single sample, or copy texture on a per sample basis, this is needed because multi-sampled textures can't be sampled smoothly in the shader, this assumes that both source and dest are of the same size
+   void copyMs  (ImageRT &dest, Bool restore_rt, Bool multi_sample, C Rect  &rect                                                      )C; // multi sample texture copy, 'multi_sample'=average samples when writing to single sample, or copy texture on a per sample basis, this is needed because multi-sampled textures can't be sampled smoothly in the shader, this assumes that both source and dest are of the same size
+   void copyHw  (ImageRT &dest, Bool restore_rt,                    C RectI *rect_src=null, C RectI *rect_dest=null, Bool *flipped=null)C; // hardware     texture copy
+   void copyHw  (ImageRT &dest, Bool restore_rt,                    C Rect  &rect                                                      )C; // hardware     texture copy
 
    Bool capture(C Image &src);
 #endif
@@ -674,10 +662,8 @@ private:
    GPU_API(ID3D11Texture3D          *_vol , union{UInt _rb  ; Ptr _rb_ptr  ;});
    GPU_API(ID3D11ShaderResourceView *_srv , union{UInt _w_s ; Ptr _w_s_ptr ;});
    GPU_API(ID3D11RenderTargetView   *_rtv , union{UInt _w_t ; Ptr _w_t_ptr ;});
-   GPU_API(ID3D11DepthStencilView   *_dsv , union{UInt _w_r ; Ptr _w_r_ptr ;});
-   GPU_API(ID3D11DepthStencilView   *_rdsv, union{            Ptr _rdsv    ;});
 #else
-   Ptr        _ptr[6];
+   Ptr        _ptr[4];
 #endif
 };
 /******************************************************************************/

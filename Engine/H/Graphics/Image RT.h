@@ -50,19 +50,11 @@ struct ImageRTDesc // Render Target Description
 };
 #endif
 /******************************************************************************/
-struct ImageRC : Image // Reference Counted Image
-{
+STRUCT(ImageRT , Image) // Image Render Target
+//{
 #if EE_PRIVATE
-   Bool available ()C {return _ptr_num==0;} // if this image is not currently used
-   void zero      ();
-   void delThis   ();
-   Bool create    (C ImageRTDesc &desc);
-   void createSRGB(Bool srv=true);
-   Bool   map     ();
-   void unmap     ();
-   void swapSRV   ();
-   void swapRTV   ();
-   void swapSRGB  ();
+   Bool available()C {return _ptr_num==0;} // if this image is not currently used
+   Bool depthTexture()C;
    constexpr INLINE Bool canSwapSRV()C
    {
    #if DX11
@@ -78,9 +70,33 @@ struct ImageRC : Image // Reference Counted Image
       return false;
    }
    constexpr INLINE Bool canSwapSRGB()C {return canSwapSRV() && canSwapRTV();}
+
+   void zero       ();
+   void delThis    ();
+   Bool create     (C VecI2 &size, IMAGE_TYPE type, IMAGE_MODE mode=IMAGE_RT, Byte samples=1);
+   Bool createTry  ()=delete;
+   Bool createTryEx()=delete;
+   void createSRGB (Bool srv=true);
+   Bool   map      ();
+   void unmap      ();
+   void swapSRV    ();
+   void swapRTV    ();
+   void swapSRGB   ();
+
+#if DX11
+   void clearHw(C Vec4 &color=Vec4Zero); // hardware render target  clear
+   void clearDS(  Byte  s    =0       ); // hardware depth  stencil clear
+#else
+// there's no 'clearHw' on OpenGL
+// there's no 'clearDS' on OpenGL
 #endif
-   ImageRC();
-  ~ImageRC();
+   void clearFull    (C Vec4 &color=Vec4Zero, Bool restore_rt=false); // clear full          area
+   void clearViewport(C Vec4 &color=Vec4Zero, Bool restore_rt=false); // clear main viewport area
+
+   void discard();
+#endif
+   ImageRT();
+  ~ImageRT();
 #if !EE_PRIVATE
 private:
 #endif
@@ -88,10 +104,11 @@ private:
 #if EE_PRIVATE && DX11
    ID3D11ShaderResourceView *_srv_srgb;
    ID3D11RenderTargetView   *_rtv_srgb;
+   ID3D11DepthStencilView   *_dsv, *_rdsv;
 #else
-   Ptr  _srv_srgb, _rtv_srgb;
+   Ptr  _srv_srgb, _rtv_srgb, _dsv, _rdsv;
 #endif
-   NO_COPY_CONSTRUCTOR(ImageRC);
+   NO_COPY_CONSTRUCTOR(ImageRT);
 };
 /******************************************************************************/
 struct ImageRTPtr // Render Target Pointer
@@ -100,14 +117,13 @@ struct ImageRTPtr // Render Target Pointer
    Bool       find  (C ImageRTDesc &desc); // find Render Target, false on fail
    ImageRTPtr& get  (C ImageRTDesc &desc); // find Render Target, Exit  on fail
    ImageRTPtr& getDS(Int w, Int h, Byte samples=1, Bool reuse_main=true);
-   ImageRC   * rc   ()C {return _data;}
 #endif
    Bool       find(Int w, Int h, IMAGERT_TYPE rt_type, Byte samples=1); // find Render Target, false on fail, 'samples'=number of samples per-pixel (allows multi-sampling)
    ImageRTPtr& get(Int w, Int h, IMAGERT_TYPE rt_type, Byte samples=1); // find Render Target, Exit  on fail, 'samples'=number of samples per-pixel (allows multi-sampling)
 
-   Image  * operator ()  (               )C {return  T._data         ;} // access the data, you can use the returned reference as long as this 'ImageRTPtr' object exists and not modified
-   ImageRC* operator ->  (               )C {return  T._data         ;} // access the data, you can use the returned reference as long as this 'ImageRTPtr' object exists and not modified
-   Image  & operator *   (               )C {return *T._data         ;} // access the data, you can use the returned reference as long as this 'ImageRTPtr' object exists and not modified
+   ImageRT* operator ()  (               )C {return  T._data         ;} // access the data, you can use the returned reference as long as this 'ImageRTPtr' object exists and not modified
+   ImageRT* operator ->  (               )C {return  T._data         ;} // access the data, you can use the returned reference as long as this 'ImageRTPtr' object exists and not modified
+   ImageRT& operator *   (               )C {return *T._data         ;} // access the data, you can use the returned reference as long as this 'ImageRTPtr' object exists and not modified
    Bool     operator ==  (  null_t       )C {return  T._data==null   ;} // if pointers are equal
    Bool     operator !=  (  null_t       )C {return  T._data!=null   ;} // if pointers are different
    Bool     operator ==  (C Image      *p)C {return  T._data==p      ;} // if pointers are equal
@@ -119,11 +135,11 @@ struct ImageRTPtr // Render Target Pointer
    ImageRTPtr& clear    (               );                  // clear the pointer to null, this automatically decreases the reference count of current data
    ImageRTPtr& operator=(  null_t       ) {return clear();} // clear the pointer to null, this automatically decreases the reference count of current data
    ImageRTPtr& operator=(C ImageRTPtr &p);                  // set       pointer to 'p' , this automatically decreases the reference count of current data and increases the reference count of the new data
-   ImageRTPtr& operator=(  ImageRC    *p);                  // set       pointer to 'p' , this automatically decreases the reference count of current data and increases the reference count of the new data
+   ImageRTPtr& operator=(  ImageRT    *p);                  // set       pointer to 'p' , this automatically decreases the reference count of current data and increases the reference count of the new data
 
    ImageRTPtr(  null_t=null  ) {_data=null; _last_index=-1;}
    ImageRTPtr(C ImageRTPtr &p);
-   ImageRTPtr(  ImageRC    *p);
+   ImageRTPtr(  ImageRT    *p);
 #if EE_PRIVATE
    explicit ImageRTPtr(C ImageRTDesc &desc) {_data=null; _last_index=-1; get(desc);}
 #endif
@@ -132,7 +148,7 @@ struct ImageRTPtr // Render Target Pointer
 #if !EE_PRIVATE
 private:
 #endif
-   ImageRC *_data;
+   ImageRT *_data;
    Int      _last_index;
 };
 /******************************************************************************/
@@ -143,9 +159,9 @@ struct ImageRTPtrRef
 
    ImageRTPtr& get(C ImageRTDesc &desc) {return ref.get(desc);}
 
-   Image*   operator() ()C {return  ref();}
-   Image*   operator-> ()C {return  ref();}
-   Image&   operator*  ()C {return *ref  ;}
+   ImageRT* operator() ()C {return  ref();}
+   ImageRT* operator-> ()C {return  ref();}
+   ImageRT& operator*  ()C {return *ref  ;}
    operator ImageRTPtr&()C {return  ref  ;}
 
    void clear() {ref.clear();}

@@ -738,15 +738,13 @@ Image& Image::del()
          ShaderImages.unlock();
       }
    #if DX11
-      if(_txtr || _vol || _srv || _rtv || _dsv || _rdsv)
+      if(_txtr || _vol || _srv || _rtv)
       {
          D.texClear(_srv);
        //SyncLocker locker(D._lock); lock not needed for DX11 'Release'
          if(D.created())
          {
             // release children first
-            RELEASE(_rdsv);
-            RELEASE(_dsv );
             RELEASE(_rtv );
             RELEASE(_srv );
             // now main resources
@@ -877,16 +875,6 @@ Bool Image::setInfo()
          D3D11_RENDER_TARGET_VIEW_DESC rtvd; Zero(rtvd); rtvd.Format=ImageTI[hwType()].format;
          rtvd.ViewDimension=(multiSample() ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D);
          D3D->CreateRenderTargetView(res, &rtvd, &_rtv); if(!_rtv)return false;
-      }
-      switch(mode())
-      {
-         case IMAGE_DS:
-         case IMAGE_SHADOW_MAP:
-         {
-            D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=ImageTI[hwType()].format; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
-                                                                                                                  D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv ); if(!_dsv)return false;
-            dsvd.Flags=D3D11_DSV_READ_ONLY_DEPTH; if(ImageTI[hwType()].s)dsvd.Flags|=D3D11_DSV_READ_ONLY_STENCIL; D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // this will work only on DX11.0 but not 10.0, 10.1
-         }break;
       }
    }
 #elif GL
@@ -1170,7 +1158,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                desc.SampleDesc.Count  =samples;
                desc.SampleDesc.Quality=0;
                desc.ArraySize         =1;
-               if(OK(D3D->CreateTexture2D(&desc, null, &_txtr)) && setInfo()){SyncLocker locker(D._lock); clearHw(); return true;} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
+               if(OK(D3D->CreateTexture2D(&desc, null, &_txtr)) && setInfo())return true;
             }
          }break;
 
@@ -1222,7 +1210,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                desc.SampleDesc.Count  =samples;
                desc.SampleDesc.Quality=0;
                desc.ArraySize         =6;
-               if(OK(D3D->CreateTexture2D(&desc, null, &_txtr)) && setInfo()){SyncLocker locker(D._lock); clearHw(); return true;} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
+               if(OK(D3D->CreateTexture2D(&desc, null, &_txtr)) && setInfo())return true;
             }
          }break;
 
@@ -2587,71 +2575,13 @@ UInt Image::typeMemUsage()C {return ImageSize(hwW(), hwH(), hwD(),   type(), mod
 /******************************************************************************/
 // HARDWARE
 /******************************************************************************/
-void SetRects(C Image &src, C Image &dest, RectI &rect_src, RectI &rect_dest, C Rect &rect)
-{
-   Rect uv=D.screenToUV(rect);
-
-   // first the smaller Image must be set, and then the bigger Image must be set proportionally
-
-   if(dest.hwW()<src.hwW()){rect_dest.setX(Round(uv.min.x*dest.hwW()), Round(uv.max.x*dest.hwW())); rect_src .setX(rect_dest.min.x* src.hwW()/dest.hwW(), rect_dest.max.x* src.hwW()/dest.hwW());}
-   else                    {rect_src .setX(Round(uv.min.x* src.hwW()), Round(uv.max.x* src.hwW())); rect_dest.setX(rect_src .min.x*dest.hwW()/ src.hwW(), rect_src .max.x*dest.hwW()/ src.hwW());}
-
-   if(dest.hwH()<src.hwH()){rect_dest.setY(Round(uv.min.y*dest.hwH()), Round(uv.max.y*dest.hwH())); rect_src .setY(rect_dest.min.y* src.hwH()/dest.hwH(), rect_dest.max.y* src.hwH()/dest.hwH());}
-   else                    {rect_src .setY(Round(uv.min.y* src.hwH()), Round(uv.max.y* src.hwH())); rect_dest.setY(rect_src .min.y*dest.hwH()/ src.hwH(), rect_src .max.y*dest.hwH()/ src.hwH());}
-}
-void Image::discard()
-{
 #if DX11
-   if(D3DC1)D3DC1->DiscardView(_rtv ? &SCAST(ID3D11View, *_rtv) : &SCAST(ID3D11View, *_dsv)); // will not crash if parameter is null
-#elif GL
-   if(glInvalidateFramebuffer) // requires GL 4.3, GL ES 3.0
-   {
-      // this should be called only if this image is already attached to current FBO - https://community.arm.com/graphics/b/blog/posts/mali-performance-2-how-to-correctly-handle-framebuffers
-      // 'glInvalidateFramebuffer' can be called at the start of rendering (right after attaching to   FBO) to specify that we don't need previous     contents of this RT
-      //                                     and at the end   of rendering (     BEFORE detaching from FBO) to specify that we don't need to store the contents of this RT
-      // !! remember that images can have only '_txtr' or '_rb' or nothing at all (if they're provided by the system) but we still should discard them !!
-      if(!IOS && D.mainFBO()) // iOS doesn't have main FBO
-      { // for main FBO we need to setup different values - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glInvalidateFramebuffer.xhtml
-         if(Renderer._cur_ds==this) // no need to check '_cur_ds_id' because main FBO always has texture 0
-         {
-            GLenum attachments[]={GL_DEPTH, GL_STENCIL};
-            glInvalidateFramebuffer(GL_FRAMEBUFFER, ImageTI[hwType()].s ? 2 : 1, attachments); _discard=false;
-         }else
-         if(Renderer._cur[0]==this) // check '_cur' because '_txtr' can be 0 for RenderBuffers
-         {
-            GLenum attachment=GL_COLOR;
-            glInvalidateFramebuffer(GL_FRAMEBUFFER, 1, &attachment); _discard=false;
-         }else
-           _discard=true; // discard at next opportunity when we want to attach it to FBO
-      }else
-      {
-         GLenum attachment;
-         if(Renderer._cur_ds==this && Renderer._cur_ds_id==_txtr)attachment=(ImageTI[hwType()].s ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT);else // check both '_cur_ds' and '_cur_ds_id' because '_cur_ds_id' will be 0 when Image is a RenderBuffer or temporarily unbound Texture (only Textures can be temporarily unbound), this will work OK for RenderBuffers because both '_cur_ds_id' and '_txtr' will be zero
-         if(Renderer._cur[0]==this                              )attachment=GL_COLOR_ATTACHMENT0;else // check '_cur' because '_txtr' can be 0 for RenderBuffers
-         if(Renderer._cur[1]==this                              )attachment=GL_COLOR_ATTACHMENT1;else // check '_cur' because '_txtr' can be 0 for RenderBuffers
-         if(Renderer._cur[2]==this                              )attachment=GL_COLOR_ATTACHMENT2;else // check '_cur' because '_txtr' can be 0 for RenderBuffers
-         if(Renderer._cur[3]==this                              )attachment=GL_COLOR_ATTACHMENT3;else // check '_cur' because '_txtr' can be 0 for RenderBuffers
-            {_discard=true; return;} // discard at next opportunity when we want to attach it to FBO
-         glInvalidateFramebuffer(GL_FRAMEBUFFER, 1, &attachment); _discard=false;
-      }
-   }
-#endif
-}
-#if DX11
-void Image::clearHw(C Vec4 &color)
-{
-   if(_rtv)D3DC->ClearRenderTargetView(_rtv, color.c);
-}
-void Image::clearDS(Byte s)
-{
-   if(_dsv)D3DC->ClearDepthStencilView(_dsv, D3D11_CLEAR_DEPTH|(ImageTI[hwType()].s ? D3D11_CLEAR_STENCIL : 0), 1, s);
-}
-void Image::copyMs(Image &dest, Bool restore_rt, Bool multi_sample, C RectI *rect)C
+void Image::copyMs(ImageRT &dest, Bool restore_rt, Bool multi_sample, C RectI *rect)C
 {
    if(this!=&dest)
    {
-      Image *rt[Elms(Renderer._cur)], *ds;
-      Bool   restore_viewport;
+      ImageRT *rt[Elms(Renderer._cur)], *ds;
+      Bool     restore_viewport;
       if(restore_rt)
       {
          REPAO(rt)=Renderer._cur[i];
@@ -2704,13 +2634,13 @@ void Image::copyMs(Image &dest, Bool restore_rt, Bool multi_sample, C RectI *rec
       if(restore_rt)Renderer.set(rt[0], rt[1], rt[2], rt[3], ds, restore_viewport);
    }
 }
-void Image::copyMs(Image &dest, Bool restore_rt, Bool multi_sample, C Rect &rect)C
+void Image::copyMs(ImageRT &dest, Bool restore_rt, Bool multi_sample, C Rect &rect)C
 {
    copyMs(dest, restore_rt, multi_sample, &Round(D.screenToUV(rect)*size()));
 }
 #endif
 /******************************************************************************/
-void Image::copyHw(Image &dest, Bool restore_rt, C RectI *rect_src, C RectI *rect_dest, Bool *flipped)C
+void Image::copyHw(ImageRT &dest, Bool restore_rt, C RectI *rect_src, C RectI *rect_dest, Bool *flipped)C
 {
    if(flipped)*flipped=false;
    if(this!=&dest)
@@ -2781,8 +2711,8 @@ void Image::copyHw(Image &dest, Bool restore_rt, C RectI *rect_src, C RectI *rec
       }
    #endif
       // remember settings
-      Image *rt[Elms(Renderer._cur)], *ds;
-      Bool   restore_viewport;
+      ImageRT *rt[Elms(Renderer._cur)], *ds;
+      Bool     restore_viewport;
       if(restore_rt)
       {
          REPAO(rt)=Renderer._cur[i];
@@ -2846,51 +2776,23 @@ void Image::copyHw(Image &dest, Bool restore_rt, C RectI *rect_src, C RectI *rec
       if(restore_rt)Renderer.set(rt[0], rt[1], rt[2], rt[3], ds, restore_viewport);
    }
 }
-void Image::copyHw(Image &dest, Bool restore_rt, C Rect &rect)C
+static void SetRects(C Image &src, C Image &dest, RectI &rect_src, RectI &rect_dest, C Rect &rect)
+{
+   Rect uv=D.screenToUV(rect);
+
+   // first the smaller Image must be set, and then the bigger Image must be set proportionally
+
+   if(dest.hwW()<src.hwW()){rect_dest.setX(Round(uv.min.x*dest.hwW()), Round(uv.max.x*dest.hwW())); rect_src .setX(rect_dest.min.x* src.hwW()/dest.hwW(), rect_dest.max.x* src.hwW()/dest.hwW());}
+   else                    {rect_src .setX(Round(uv.min.x* src.hwW()), Round(uv.max.x* src.hwW())); rect_dest.setX(rect_src .min.x*dest.hwW()/ src.hwW(), rect_src .max.x*dest.hwW()/ src.hwW());}
+
+   if(dest.hwH()<src.hwH()){rect_dest.setY(Round(uv.min.y*dest.hwH()), Round(uv.max.y*dest.hwH())); rect_src .setY(rect_dest.min.y* src.hwH()/dest.hwH(), rect_dest.max.y* src.hwH()/dest.hwH());}
+   else                    {rect_src .setY(Round(uv.min.y* src.hwH()), Round(uv.max.y* src.hwH())); rect_dest.setY(rect_src .min.y*dest.hwH()/ src.hwH(), rect_src .max.y*dest.hwH()/ src.hwH());}
+}
+void Image::copyHw(ImageRT &dest, Bool restore_rt, C Rect &rect)C
 {
    RectI rect_src, rect_dest;
    SetRects(T, dest, rect_src, rect_dest, rect);
    copyHw(dest, restore_rt, &rect_src, &rect_dest);
-}
-/******************************************************************************/
-void Image::clearFull(C Vec4 &color, Bool restore_rt)
-{
-#if DX11
-   clearHw(color);
-#else
-   Image *rt[Elms(Renderer._cur)], *ds;
-   Bool   restore_viewport;
-   if(restore_rt)
-   {
-      REPAO(rt)=Renderer._cur[i];
-            ds =Renderer._cur_ds;
-      restore_viewport=!D._view_active.full;
-   }
-
-   Renderer.set(this, null, false); 
-   D.clearCol(color);
-
-   if(restore_rt)Renderer.set(rt[0], rt[1], rt[2], rt[3], ds, restore_viewport);
-#endif
-}
-void Image::clearViewport(C Vec4 &color, Bool restore_rt)
-{
-   if(D._view_main.full)clearFull(color, restore_rt);else
-   {
-      Image *rt[Elms(Renderer._cur)], *ds;
-      Bool   restore_viewport;
-      if(restore_rt)
-      {
-         REPAO(rt)=Renderer._cur[i];
-               ds =Renderer._cur_ds;
-         restore_viewport=!D._view_active.full;
-      }
-
-      Renderer.set(this, null, true);
-      D.clearCol(color);
-
-      if(restore_rt)Renderer.set(rt[0], rt[1], rt[2], rt[3], ds, restore_viewport);
-   }
 }
 /******************************************************************************/
 Bool Image::capture(C Image &src)
@@ -2943,14 +2845,6 @@ Bool Image::accessible()C
    return _rb || _txtr; // on some platforms with OpenGL, 'Renderer._main' and 'Renderer._main_ds' are provided by the system, so their values may be zero, and we can't directly access it
 #else
    return true;
-#endif
-}
-Bool Image::depthTexture()C
-{
-#if GL
-   return mode()==IMAGE_DS;
-#else
-   return _dsv && _srv;
 #endif
 }
 Bool Image::compatible(C Image &image)C

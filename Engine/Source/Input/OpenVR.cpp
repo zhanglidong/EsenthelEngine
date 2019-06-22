@@ -29,10 +29,10 @@ static struct OpenVRApi : VirtualRealityApi
    virtual Bool    createGuiImage ()override;
    virtual Bool createRenderImage ()override;
 
-   virtual ImageRC* getNewRender ()override;
-   virtual ImageRC* getNewGui    ()override;
-   virtual ImageRC* getLastRender()override;
-   virtual ImageRC* getLastGui   ()override;
+   virtual ImageRT* getNewRender ()override;
+   virtual ImageRT* getNewGui    ()override;
+   virtual ImageRT* getLastRender()override;
+   virtual ImageRT* getLastGui   ()override;
 
    OpenVRApi();
 
@@ -47,7 +47,7 @@ private:
    vr::IVROverlay       *_overlay;
    vr::VROverlayHandle_t _overlay_id;
    Bool                  _overlay_visible, _connected;
-   ImageRC               _render, _gui;
+   ImageRT               _render, _gui;
 #endif
 }OpenVR;
 #if SUPPORT_OPEN_VR
@@ -324,7 +324,7 @@ void OpenVRApi::delImages()
 Bool OpenVRApi::createGuiImage()
 {
 #if SUPPORT_OPEN_VR
-   if(_gui.createTry(VR.guiRes().x, VR.guiRes().y, 1, LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, IMAGE_RT, 1))
+   if(_gui.create(VR.guiRes(), LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8))
    {
       if(_overlay && _overlay_id!=vr::k_ulOverlayHandleInvalid)
       {
@@ -348,33 +348,33 @@ Bool OpenVRApi::createRenderImage()
       uint32_t w=0, h=0; _vr->GetRecommendedRenderTargetSize(&w, &h);
       Clamp(w*=2, 2, D.maxTexSize()); // *2 also makes sure that both eyes have the same width
       Clamp(h   , 1, D.maxTexSize());
-      return _render.createTry(w, h, 1, LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, IMAGE_RT, 1);
+      return _render.create(VecI2(w, h), LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8);
    }
 #endif
    return false;
 }
-ImageRC* OpenVRApi::getNewRender()
+ImageRT* OpenVRApi::getNewRender()
 {
 #if SUPPORT_OPEN_VR
    if(_render.is())return &_render;
 #endif
    return null;
 }
-ImageRC* OpenVRApi::getNewGui()
+ImageRT* OpenVRApi::getNewGui()
 {
 #if SUPPORT_OPEN_VR
    if(_gui.is())return &_gui;
 #endif
    return null;
 }
-ImageRC* OpenVRApi::getLastRender()
+ImageRT* OpenVRApi::getLastRender()
 {
 #if SUPPORT_OPEN_VR
    return &_render;
 #endif
    return null;
 }
-ImageRC* OpenVRApi::getLastGui()
+ImageRT* OpenVRApi::getLastGui()
 {
 #if SUPPORT_OPEN_VR
    return &_gui;

@@ -180,8 +180,8 @@ struct MainShaderClass
       *h_MaxY,
 
       // VIDEO
-      *h_YUV,
-      *h_YUVA,
+      *h_YUV [2], // [Gamma]
+      *h_YUVA[2], // [Gamma]
 
       // 2D FX
       *h_ColTrans       ,

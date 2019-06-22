@@ -127,13 +127,111 @@ void ResetImageTypeCreateResult()
    CopyFast(ImageRTTypesOK[1], ImageRTTypes);
 #endif
 }
-void ImageRC:: zero   () {_srv_srgb=null; _rtv_srgb=null;} // don't zero '_ptr_num' here, because this is called in 'delThis', however ref count should be kept
-     ImageRC:: ImageRC() {_ptr_num=0; zero();}
-     ImageRC::~ImageRC() {delThis();}
-void ImageRC:: delThis() // delete only this class members without super
+Bool ImageRT::depthTexture()C
+{
+#if GL
+   return mode()==IMAGE_DS;
+#else
+   return _dsv && _srv;
+#endif
+}
+/******************************************************************************/
+void ImageRT::discard()
 {
 #if DX11
-   if(_srv_srgb || _rtv_srgb)
+   if(D3DC1)D3DC1->DiscardView(_rtv ? &SCAST(ID3D11View, *_rtv) : &SCAST(ID3D11View, *_dsv)); // will not crash if parameter is null
+#elif GL
+   if(glInvalidateFramebuffer) // requires GL 4.3, GL ES 3.0
+   {
+      // this should be called only if this image is already attached to current FBO - https://community.arm.com/graphics/b/blog/posts/mali-performance-2-how-to-correctly-handle-framebuffers
+      // 'glInvalidateFramebuffer' can be called at the start of rendering (right after attaching to   FBO) to specify that we don't need previous     contents of this RT
+      //                                     and at the end   of rendering (     BEFORE detaching from FBO) to specify that we don't need to store the contents of this RT
+      // !! remember that images can have only '_txtr' or '_rb' or nothing at all (if they're provided by the system) but we still should discard them !!
+      if(!IOS && D.mainFBO()) // iOS doesn't have main FBO
+      { // for main FBO we need to setup different values - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glInvalidateFramebuffer.xhtml
+         if(Renderer._cur_ds==this) // no need to check '_cur_ds_id' because main FBO always has texture 0
+         {
+            GLenum attachments[]={GL_DEPTH, GL_STENCIL};
+            glInvalidateFramebuffer(GL_FRAMEBUFFER, ImageTI[hwType()].s ? 2 : 1, attachments); _discard=false;
+         }else
+         if(Renderer._cur[0]==this) // check '_cur' because '_txtr' can be 0 for RenderBuffers
+         {
+            GLenum attachment=GL_COLOR;
+            glInvalidateFramebuffer(GL_FRAMEBUFFER, 1, &attachment); _discard=false;
+         }else
+           _discard=true; // discard at next opportunity when we want to attach it to FBO
+      }else
+      {
+         GLenum attachment;
+         if(Renderer._cur_ds==this && Renderer._cur_ds_id==_txtr)attachment=(ImageTI[hwType()].s ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT);else // check both '_cur_ds' and '_cur_ds_id' because '_cur_ds_id' will be 0 when Image is a RenderBuffer or temporarily unbound Texture (only Textures can be temporarily unbound), this will work OK for RenderBuffers because both '_cur_ds_id' and '_txtr' will be zero
+         if(Renderer._cur[0]==this                              )attachment=GL_COLOR_ATTACHMENT0;else // check '_cur' because '_txtr' can be 0 for RenderBuffers
+         if(Renderer._cur[1]==this                              )attachment=GL_COLOR_ATTACHMENT1;else // check '_cur' because '_txtr' can be 0 for RenderBuffers
+         if(Renderer._cur[2]==this                              )attachment=GL_COLOR_ATTACHMENT2;else // check '_cur' because '_txtr' can be 0 for RenderBuffers
+         if(Renderer._cur[3]==this                              )attachment=GL_COLOR_ATTACHMENT3;else // check '_cur' because '_txtr' can be 0 for RenderBuffers
+            {_discard=true; return;} // discard at next opportunity when we want to attach it to FBO
+         glInvalidateFramebuffer(GL_FRAMEBUFFER, 1, &attachment); _discard=false;
+      }
+   }
+#endif
+}
+#if DX11
+void ImageRT::clearHw(C Vec4 &color)
+{
+   if(_rtv)D3DC->ClearRenderTargetView(_rtv, color.c);
+}
+void ImageRT::clearDS(Byte s)
+{
+   if(_dsv)D3DC->ClearDepthStencilView(_dsv, D3D11_CLEAR_DEPTH|(ImageTI[hwType()].s ? D3D11_CLEAR_STENCIL : 0), 1, s);
+}
+#endif
+/******************************************************************************/
+void ImageRT::clearFull(C Vec4 &color, Bool restore_rt)
+{
+#if DX11
+   clearHw(color);
+#else
+   Image *rt[Elms(Renderer._cur)], *ds;
+   Bool   restore_viewport;
+   if(restore_rt)
+   {
+      REPAO(rt)=Renderer._cur[i];
+            ds =Renderer._cur_ds;
+      restore_viewport=!D._view_active.full;
+   }
+
+   Renderer.set(this, null, false); 
+   D.clearCol(color);
+
+   if(restore_rt)Renderer.set(rt[0], rt[1], rt[2], rt[3], ds, restore_viewport);
+#endif
+}
+void ImageRT::clearViewport(C Vec4 &color, Bool restore_rt)
+{
+   if(D._view_main.full)clearFull(color, restore_rt);else
+   {
+      ImageRT *rt[Elms(Renderer._cur)], *ds;
+      Bool     restore_viewport;
+      if(restore_rt)
+      {
+         REPAO(rt)=Renderer._cur[i];
+               ds =Renderer._cur_ds;
+         restore_viewport=!D._view_active.full;
+      }
+
+      Renderer.set(this, null, true);
+      D.clearCol(color);
+
+      if(restore_rt)Renderer.set(rt[0], rt[1], rt[2], rt[3], ds, restore_viewport);
+   }
+}
+/******************************************************************************/
+void ImageRT:: zero   () {_srv_srgb=null; _rtv_srgb=null; _dsv=_rdsv=null;} // don't zero '_ptr_num' here, because this is called in 'delThis', however ref count should be kept
+     ImageRT:: ImageRT() {_ptr_num=0; zero();}
+     ImageRT::~ImageRT() {delThis();} // delete children first
+void ImageRT:: delThis() // delete only this class members without super
+{
+#if DX11
+   if(_srv_srgb || _rtv_srgb || _dsv || _rdsv)
    {
       D.texClear(_srv_srgb);
     //SyncLocker locker(D._lock); lock not needed for DX11 'Release'
@@ -141,12 +239,14 @@ void ImageRC:: delThis() // delete only this class members without super
       {
          RELEASE(_srv_srgb);
          RELEASE(_rtv_srgb);
+         RELEASE(_dsv     );
+         RELEASE(_rdsv    );
       }
    }
 #endif
    zero();
 }
-void ImageRC::createSRGB(Bool srv)
+void ImageRT::createSRGB(Bool srv)
 {
    if(IMAGE_TYPE type_srgb=ImageTypeToggleSRGB(type()))if(type_srgb!=type()) // try creating toggled sRGB Resource Views
    {
@@ -162,26 +262,41 @@ void ImageRC::createSRGB(Bool srv)
    #endif
    }
 }
-Bool ImageRC::create(C ImageRTDesc &desc)
+Bool ImageRT::create(C VecI2 &size, IMAGE_TYPE type, IMAGE_MODE mode, Byte samples)
 {
-   Bool ok;
    delThis(); // delete only this without super 'del', because it's possible this image already has what 'desc' is requesting, so 'createTryEx' could do nothing as long as we're not deleting it here first
-   if(ImageTI[desc._type].d) // if this is a depth buffer
+   Bool ok=super::createTryEx(size.x, size.y, 1, type, mode, 1, samples);
+#if GL
+   if(!ok && mode==IMAGE_DS)ok=super::createTryEx(size.x, size.y, 1, type, IMAGE_GL_RB, 1, samples);
+#endif
+   if(ok)
    {
-             ok=createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_DS   , 1, desc.samples); // try first as a render target
-   #if GL
-      if(!ok)ok=createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_GL_RB, 1, desc.samples);
-   #endif
-   }else
-   {
-      ok=createTryEx(desc.size.x, desc.size.y, 1, desc._type, IMAGE_RT, 1, desc.samples);
-      if(ok)createSRGB();
+      switch(T.mode())
+      {
+         default:
+         {
+            createSRGB();
+         #if DX11
+            {SyncLocker locker(D._lock); clearHw();} // 'clearHw' needs lock, clear render targets to zero at start (especially important for floating point RT's), use 'clearHW' instead of 'initial_data' because that would require large memory allocations
+         #endif
+         }break;
+
+         case IMAGE_DS:
+         case IMAGE_SHADOW_MAP:
+         {
+         #if DX11
+            D3D11_DEPTH_STENCIL_VIEW_DESC dsvd; Zero(dsvd); dsvd.Format=ImageTI[hwType()].format; dsvd.ViewDimension=(multiSample() ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D);
+                                                                                                                  D3D->CreateDepthStencilView(_txtr, &dsvd, &_dsv ); if(!_dsv)return false;
+            dsvd.Flags=D3D11_DSV_READ_ONLY_DEPTH; if(ImageTI[hwType()].s)dsvd.Flags|=D3D11_DSV_READ_ONLY_STENCIL; D3D->CreateDepthStencilView(_txtr, &dsvd, &_rdsv); // this will work only on DX11.0 but not 10.0, 10.1
+         #endif
+         }break;
+      }
+      Time.skipUpdate();
    }
-   if(ok)Time.skipUpdate();
    return ok;
 }
 /******************************************************************************/
-Bool ImageRC::map()
+Bool ImageRT::map()
 {
 #if DX11
    del(); if(OK(SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (Ptr*)&_txtr)))
@@ -219,7 +334,7 @@ Bool ImageRC::map()
    return false;
 }
 /******************************************************************************/
-void ImageRC::unmap()
+void ImageRT::unmap()
 {
    delThis();
 #if DX11
@@ -236,19 +351,19 @@ void ImageRC::unmap()
 #endif
 }
 /******************************************************************************/
-void ImageRC::swapSRV()
+void ImageRT::swapSRV()
 {
 #if DX11
    Swap(_srv, _srv_srgb); D.texClear(_srv_srgb); // we have to remove from tex cache, because if we're going to try to bind this as Render Target later, then DX automatically unbinds its SRV's, engine already clears cache in that case, however only for current '_srv' and not the secondary '_srv_srgb'
 #endif
 }
-void ImageRC::swapRTV()
+void ImageRT::swapRTV()
 {
 #if DX11
    Swap(_rtv, _rtv_srgb);
 #endif
 }
-static Int CompareDesc(C ImageRC &image, C ImageRTDesc &desc)
+static Int CompareDesc(C ImageRT &image, C ImageRTDesc &desc)
 {
    if(Int c=Compare(image.w      (), desc.size.x ))return c;
    if(Int c=Compare(image.h      (), desc.size.y ))return c;
@@ -256,13 +371,13 @@ static Int CompareDesc(C ImageRC &image, C ImageRTDesc &desc)
    if(Int c=Compare(image.samples(), desc.samples))return c;
    return 0;
 }
-void ImageRC::swapSRGB()
+void ImageRT::swapSRGB()
 {
 #if DX11
    swapSRV(); swapRTV(); _hw_type=ImageTypeToggleSRGB(hwType()); // !! have to toggle 'hwType' and not 'type' because 'CompareDesc' and 'Set' expect that !!
 #endif
 }
-static void Set(ImageRTPtr &p, ImageRC &rt, Bool want_srgb) // this is called only when "_ptr_num==0"
+static void Set(ImageRTPtr &p, ImageRT &rt, Bool want_srgb) // this is called only when "_ptr_num==0"
 {
 #if CAN_SWAP_SRGB
    if(want_srgb!=rt.sRGB())rt.swapSRGB();
@@ -274,7 +389,7 @@ ImageRTPtr& ImageRTPtr::clear()
 {
    if(_data)
    {
-      DEBUG_ASSERT(_data->_ptr_num, "ImageRC._ptr_num should be >0");
+      DEBUG_ASSERT(_data->_ptr_num, "ImageRT._ptr_num should be >0");
           _data->_ptr_num--;
       if(!_data->_ptr_num)_data->discard();
           _data=null;
@@ -290,7 +405,7 @@ ImageRTPtr& ImageRTPtr::operator=(C ImageRTPtr &p)
    }
    return T;
 }
-ImageRTPtr& ImageRTPtr::operator=(ImageRC *p)
+ImageRTPtr& ImageRTPtr::operator=(ImageRT *p)
 {
    if(T!=p)
    {
@@ -303,7 +418,7 @@ ImageRTPtr::ImageRTPtr(C ImageRTPtr &p)
 {
    if(T._data=p._data){T._data->_ptr_num++; T._last_index=p._last_index;}else T._last_index=-1;
 }
-ImageRTPtr::ImageRTPtr(ImageRC *p)
+ImageRTPtr::ImageRTPtr(ImageRT *p)
 {
    if(T._data=p)T._data->_ptr_num++;else T._last_index=-1;
 }
@@ -336,22 +451,22 @@ again:
    if(found)
    {
       // check '_last_index' first
-      ImageRC &rt=Renderer._rts[_last_index];
+      ImageRT &rt=Renderer._rts[_last_index];
       if(rt.available()){Set(T, rt, want_srgb); return true;}
 
       // check all neighbors with the same desc
-      for(Int i=_last_index-1;         i>=0             ; i--) {ImageRC &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){T._last_index=i; Set(T, rt, want_srgb); return true;}}
-      for(Int i=_last_index+1; InRange(i, Renderer._rts); i++) {ImageRC &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){T._last_index=i; Set(T, rt, want_srgb); return true;}}
+      for(Int i=_last_index-1;         i>=0             ; i--) {ImageRT &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){T._last_index=i; Set(T, rt, want_srgb); return true;}}
+      for(Int i=_last_index+1; InRange(i, Renderer._rts); i++) {ImageRT &rt=Renderer._rts[i]; if(CompareDesc(rt, desc))break; if(rt.available()){T._last_index=i; Set(T, rt, want_srgb); return true;}}
    }
 #if KNOWN_IMAGE_TYPE_USAGE
    if(desc._type) // check this after 'found' because in most cases we will already return from codes above
    { // since we have KNOWN_IMAGE_TYPE_USAGE, and a valid type, then we assume that this should always succeed
-      ImageRC &rt=Renderer._rts.NewAt(_last_index); if(rt.create(desc)){Set(T, rt, want_srgb); return true;}
+      ImageRT &rt=Renderer._rts.NewAt(_last_index); if(rt.create(desc.size, desc._type, ImageTI[desc._type].d ? IMAGE_DS : IMAGE_RT, desc.samples)){Set(T, rt, want_srgb); return true;}
       Exit(S+"Can't create Render Target "+desc.size.x+'x'+desc.size.y+' '+ImageRTName[desc.rt_type]+", samples:"+desc.samples);
    }
 #else
-   ImageRC temp; // try to create first as a standalone variable (not in 'Renderer._rts') in case it fails so we don't have to remove it
-   if(temp.create(desc)){ImageRC &rt=Renderer._rts.NewAt(_last_index); Swap(rt, temp); Set(T, rt, want_srgb); return true;}
+   ImageRT temp; // try to create first as a standalone variable (not in 'Renderer._rts') in case it fails so we don't have to remove it
+   if(temp.create(desc.size, desc._type, ImageTI[desc._type].d ? IMAGE_DS : IMAGE_RT, desc.samples)){ImageRT &rt=Renderer._rts.NewAt(_last_index); Swap(rt, temp); Set(T, rt, want_srgb); return true;}
    // fail
    if(desc._type!=IMAGE_NONE) // try another type, and don't try this again
    {
@@ -373,7 +488,7 @@ ImageRTPtr& ImageRTPtr::getDS(Int w, Int h, Byte samples, Bool reuse_main)
    clear(); // clear first so we can find the same Image if possible
    if(reuse_main)
    {
-      ImageRC &ds=Renderer._main_ds, *cur_ds=Renderer._cur_main_ds;
+      ImageRT &ds=Renderer._main_ds, *cur_ds=Renderer._cur_main_ds;
    #if GL
       // on OpenGL we can't reuse '_main_ds' because it has different flipping orientation as it is always paired with '_main' in the main FBO
       // <- here don't check for 'ds'

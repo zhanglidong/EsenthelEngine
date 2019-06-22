@@ -2963,7 +2963,7 @@ void Display::clearCol(Int i, C Vec4 &color)
 {
    RANGE_ASSERT(i, Renderer._cur);
 #if DX11
-   if(Image *image=Renderer._cur[i])image->clearHw(color);
+   if(ImageRT *image=Renderer._cur[i])image->clearHw(color);
 #elif GL
    if(Renderer._cur[i])glClearBufferfv(GL_COLOR, i, color.c); // 'glClearBufferfv' always clears full RT (viewport is ignored)
 #endif

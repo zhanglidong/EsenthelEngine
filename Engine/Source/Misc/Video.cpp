@@ -353,7 +353,7 @@ Bool Video::frameToImage(Int w, Int h, Int w2, Int h2, CPtr lum_data, CPtr u_dat
      _lum.setFrom(lum_data, lum_pitch);
    }else
    {
-      if(_lum.w()!=w  || _lum.h()!=h ){if(!_lum.create2DTry(w , h , IMAGE_R8, 1, false))return false; if(!Sh.h_YUV)AtomicSet(Sh.h_YUV, Sh.get("YUV"));}
+      if(_lum.w()!=w  || _lum.h()!=h ){if(!_lum.create2DTry(w , h , IMAGE_R8, 1, false))return false; if(!Sh.h_YUV[1]){AtomicSet(Sh.h_YUV[0], Sh.get("YUV")); AtomicSet(Sh.h_YUV[1], Sh.get("YUVG"));}}
       if(_u  .w()!=w2 || _u  .h()!=h2) if(!_u  .create2DTry(w2, h2, IMAGE_R8, 1, false))return false;
       if(_v  .w()!=w2 || _v  .h()!=h2) if(!_v  .create2DTry(w2, h2, IMAGE_R8, 1, false))return false;
 
@@ -363,10 +363,11 @@ Bool Video::frameToImage(Int w, Int h, Int w2, Int h2, CPtr lum_data, CPtr u_dat
 
       if(_mode==IMAGE) // if want to create a texture
       {
-         if(_tex.w()!=w || _tex.h()!=h)_tex.create(w, h, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_RT, 1);
+         if(_tex.w()!=w || _tex.h()!=h)
+            if(!_tex.create(VecI2(w, h), LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8))return false;
 
          SyncLocker locker(D._lock); // needed for drawing in case this is called outside of Draw
-         Image *rt[Elms(Renderer._cur)], *rtz=Renderer._cur_ds; REPAO(rt)=Renderer._cur[i];
+         ImageRT *rt[Elms(Renderer._cur)], *rtz=Renderer._cur_ds; REPAO(rt)=Renderer._cur[i];
          Renderer.set(&_tex, null, false);
          ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
          draw(D.rect()); // use specified rectangle without fitting via 'drawFs' or 'drawFit'
@@ -420,15 +421,17 @@ void Video::drawAlphaFs (C Video &alpha, FIT_MODE fit)C {return drawAlpha(alpha,
 void Video::drawAlphaFit(C Video &alpha, C Rect &rect)C {return drawAlpha(alpha, T.fit(  rect       ));}
 void Video::drawAlpha   (C Video &alpha, C Rect &rect)C
 {
-   if(_lum.is())
+   if(_lum.is() && Renderer._cur[0])
    {
-      if(!Sh.h_YUVA)AtomicSet(Sh.h_YUVA, Sh.get("YUVA"));
+      if(!Sh.h_YUVA[1]){AtomicSet(Sh.h_YUVA[0], Sh.get("YUVA")); AtomicSet(Sh.h_YUVA[1], Sh.get("YUVAG"));}
       Sh .h_ImageCol[1]->set(_u); MaterialClear();
       Sh .h_ImageCol[2]->set(_v);
       Sh .h_ImageCol[3]->set(alpha._lum);
-      VI .shader(Sh.h_YUVA);
+      Bool gamma=LINEAR_GAMMA, swap=(gamma && Renderer._cur[0]->canSwapRTV()); if(swap){gamma=false; Renderer._cur[0]->swapRTV(); Renderer.set(Renderer._cur[0], Renderer._cur_ds, true);}
+      VI .shader(Sh.h_YUVA[gamma]);
      _lum.draw (rect);
       VI .clear(); // force clear to reset custom shader, in case 'draw' doesn't process drawing
+      if(swap){Renderer._cur[0]->swapRTV(); Renderer.set(Renderer._cur[0], Renderer._cur_ds, true);} // restore
    }
 }
 
@@ -436,13 +439,15 @@ void Video::drawFs (FIT_MODE fit)C {return draw(T.fit(D.rect(), fit));}
 void Video::drawFit(C Rect &rect)C {return draw(T.fit(  rect       ));}
 void Video::draw   (C Rect &rect)C
 {
-   if(_lum.is())
+   if(_lum.is() && Renderer._cur[0])
    {
+      Bool gamma=LINEAR_GAMMA, swap=(gamma && Renderer._cur[0]->canSwapRTV()); if(swap){gamma=false; Renderer._cur[0]->swapRTV(); Renderer.set(Renderer._cur[0], Renderer._cur_ds, true);}
       Sh .h_ImageCol[1]->set(_u); MaterialClear();
       Sh .h_ImageCol[2]->set(_v);
-      VI .shader(Sh.h_YUV);
+      VI .shader(Sh.h_YUV[gamma]);
      _lum.draw (rect);
       VI .clear(); // force clear to reset custom shader, in case 'draw' doesn't process drawing
+      if(swap){Renderer._cur[0]->swapRTV(); Renderer.set(Renderer._cur[0], Renderer._cur_ds, true);} // restore
    }
 }
 /******************************************************************************/

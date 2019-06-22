@@ -188,7 +188,7 @@ void RendererClass::requestMirror(C PlaneM &plane, Int priority, Bool shadows, I
    }
 }
 /******************************************************************************/
-void RendererClass::linearizeDepth(Image &dest, Image &depth)
+void RendererClass::linearizeDepth(ImageRT &dest, ImageRT &depth)
 {
    D.alpha(ALPHA_NONE);
    set(&dest, null, true);
@@ -206,7 +206,7 @@ void RendererClass::setDepthForDebugDrawing()
      _set_depth_needed=false;
       if(_ds_1s)if(Shader *shader=Sh.h_SetDepth)
       {
-         Image *rt=_cur[0]; set(null, _cur_ds, true);
+         ImageRT *rt=_cur[0]; set(null, _cur_ds, true);
          ALPHA_MODE alpha=D.alpha(ALPHA_NONE); D.depthLock  (true); D.depthFunc(FUNC_ALWAYS); shader->draw(_ds_1s);
                           D.alpha(alpha     ); D.depthUnlock(    ); D.depthFunc(FUNC_LESS  );
          set(rt, _cur_ds, true);
@@ -223,7 +223,7 @@ ImageRTPtr RendererClass::getBackBuffer() // this may get called during renderin
    }
    return null;
 }
-void RendererClass::adaptEye(ImageRC &src, Image &dest, Bool dither)
+void RendererClass::adaptEye(ImageRT &src, ImageRT &dest, Bool dither)
 {
    Hdr.load();
    ImageRTPtr temp=&src;
@@ -246,7 +246,7 @@ void RendererClass::adaptEye(ImageRC &src, Image &dest, Bool dither)
 INLINE Shader* GetBloomDS(Bool glow, Bool viewport_clamp, Bool half, Bool saturate) {Shader* &s=Sh.h_BloomDS[glow][viewport_clamp][half][saturate]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow, viewport_clamp, half, saturate); return s;}
 INLINE Shader* GetBloom  (Bool dither                                             ) {Shader* &s=Sh.h_Bloom  [dither]                              ; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (dither                              ); return s;}
 // !! Assumes that 'ColClamp' was already set !!
-void RendererClass::bloom(Image &src, Image &dest, Bool dither)
+void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool dither)
 {
    const Int     shift=(D.bloomHalf() ? 1 : 2);
    ImageRTDesc   rt_desc(fxW()>>shift, fxH()>>shift, IMAGERT_SRGB); // using IMAGERT_SRGB will clip to 0..1 range !! using high precision would require clamping in the shader to make sure values don't go below 0 !!
@@ -298,7 +298,7 @@ static void SetMotionBlurParams(Flt pixels) // !! this needs to be called when t
    Mtn.h_MotionPixelSize    ->setConditional(Flt(MAX_MOTION_BLUR_PIXEL_RANGE)/Renderer.res()); // the same value is used for 'SetDirs' (D.motionRes) and 'Blur' (D.res)
 }
 // !! Assumes that 'ColClamp' was already set !!
-Bool RendererClass::motionBlur(Image &src, Image &dest, Bool dither)
+Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
 {
    if(stage==RS_VEL && set(_vel))return true;
 
@@ -393,7 +393,7 @@ Bool RendererClass::motionBlur(Image &src, Image &dest, Bool dither)
 INLINE Shader* GetDofDS(Bool clamp , Bool realistic, Bool half) {Shader* &s=Dof.h_DofDS[clamp ][realistic][half]; if(SLOW_SHADER_LOAD && !s)s=Dof.getDS(clamp , realistic, half); return s;}
 INLINE Shader* GetDof  (Bool dither, Bool realistic           ) {Shader* &s=Dof.h_Dof  [dither][realistic]      ; if(SLOW_SHADER_LOAD && !s)s=Dof.get  (dither, realistic      ); return s;}
 // !! Assumes that 'ColClamp' was already set !!
-void RendererClass::dof(Image &src, Image &dest, Bool dither)
+void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool dither)
 { // Depth of Field shader does not require stereoscopic processing because it just reads the depth buffer
    const Int   shift=1; // half
    ImageRTDesc rt_desc(fxW()>>shift, fxH()>>shift, src.highPrecision() ? IMAGERT_SRGBA_H : IMAGERT_SRGBA); // here Alpha is used to store amount of Blur, use high precision if source is to don't lose smooth gradients when having full blur (especially visible on sky), IMAGERT_SRGBA_H vs IMAGERT_SRGBA has no significant difference on GeForce 1050Ti
@@ -953,7 +953,7 @@ Bool RendererClass::swapDS1S(ImageRTPtr &ds_1s)
    if(!T._ds_1s->accessible())return false; // can't swap if current DS is not accessible
    if( T._ds==T._ds_1s)
    {
-       if(T._ds==T._cur_main_ds)T._cur_main_ds=ds_1s.rc();
+       if(T._ds==T._cur_main_ds)T._cur_main_ds=ds_1s();
           T._ds   = ds_1s ; Sh.h_ImageDepthMS->set(T._ds   );
    } Swap(T._ds_1s, ds_1s); Sh.h_ImageDepth  ->set(T._ds_1s);
    return true;
@@ -1563,7 +1563,7 @@ void RendererClass::palette(Int index)
    if(D.colorPaletteAllow())
       if(C ImagePtr &palette=D._color_palette[index])
    {
-      Image &ds=(_ds_1s ? *_ds_1s : *_ds); // Warning: this will disable applying palette only on terrain using STENCIL_REF_TERRAIN for multisampling
+      ImageRT &ds=(_ds_1s ? *_ds_1s : *_ds); // Warning: this will disable applying palette only on terrain using STENCIL_REF_TERRAIN for multisampling
       Sky.setFracMulAdd();
 
       ImageRTPtr intensity(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA, ds.samples())); // we need to match depth multi-sampling, here Alpha is used for 4th palette channel
@@ -1659,7 +1659,7 @@ void RendererClass::applyOutline()
          ImageRTPtr src=_outline_rt; _outline_rt.get(ImageRTDesc(src->w(), src->h(), IMAGERT_OUTLINE)); src->copyHw(*_outline_rt, false, D.viewRect()); // here Alpha is used for outline opacity
       }
    #endif
-      Image *ds=_ds_1s(); // we've resolved multi-sample so have to use 1-sample
+      ImageRT *ds=_ds_1s(); // we've resolved multi-sample so have to use 1-sample
 
       if(!Sh.h_Outline)
       {
@@ -1866,7 +1866,7 @@ void RendererClass::postProcess()
    if(eye_adapt)
    {
       if(!--fxs)dest=_final;else dest.get(ImageRTDesc(size.x, size.y, GetImageRTType(_has_glow, rt_prec))); // can't read and write to the same RT, glow requires Alpha channel
-      T.adaptEye(*_col.rc(), *dest, fx_dither); Swap(_col, dest); // Eye Adaptation keeps Alpha
+      T.adaptEye(*_col, *dest, fx_dither); Swap(_col, dest); // Eye Adaptation keeps Alpha
    }
    IMAGERT_TYPE rt_type=GetImageRTType(false, rt_prec); // there's no need for alpha channel anymore after bloom
    if(bloom) // bloom needs to be done before motion/dof especially because of per-pixel glow

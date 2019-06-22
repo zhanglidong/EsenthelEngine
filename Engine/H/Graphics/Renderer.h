@@ -75,7 +75,7 @@ struct RendererClass // handles rendering
                 wire                ; // if use wireframe during rendering (not available under OpenGL ES), default=false
    Color        clear_color         ; // screen clearing color, default=BLACK, used only for RT_SIMPLE and RT_FORWARD rendering types
    Dbl          lowest_visible_point; // Y coordinates of lowest visible point on the scene, by default=-DBL_MAX (which means full visibility), you can optionally set this to a custom value before the shadow rendering stage, the value should be world-space Y coordinate of the lowest visible point on the scene below which you don't expect any objects to be visible, for example if your scene has heightmaps and there won't be anything visible under the heightmaps, then you can set this value to the minimum of all heightmap mesh box Y coordinates, setting the value will improve shadow quality and rendering performance
-   ImageRC     *target              ; // render target destination, this can be set to a custom 'ImageRC' of IMAGE_RT mode, in that case the rendering will be performed onto the selected image, this image should have its aspect (proportions) the same as the screen (D.resW, D.resH), if set to null then rendering is performed to the screen, default=null
+   ImageRT     *target              ; // render target destination, this can be set to a custom 'ImageRT' of IMAGE_RT mode, in that case the rendering will be performed onto the selected image, this image should have its aspect (proportions) the same as the screen (D.resW, D.resH), if set to null then rendering is performed to the screen, default=null
    ImagePtr     cel_shade_palette   ; // cel shading light palette, you can set this to custom texture in "Init()", if used then this should point to a palette of custom width and 1 pixel height, if set to null then usage of cel shading is disabled, used only in RT_DEFERRED renderer, default=null
 
    ShaderParam *C material_color, // Vec4
@@ -173,12 +173,12 @@ struct RendererClass // handles rendering
    void mode(RENDER_MODE mode);
 
    void setDS         ();
-   void linearizeDepth(Image &dest, Image &depth); // this reads from depth buffer and stores it to custom render target in linearized mode
+   void linearizeDepth(ImageRT &dest, ImageRT &depth); // this reads from depth buffer and stores it to custom render target in linearized mode
    void   resolveDepth();
-   void adaptEye      (ImageRC &src, Image &dest, Bool dither);
-   void bloom         (Image   &src, Image &dest, Bool dither);
-   Bool motionBlur    (Image   &src, Image &dest, Bool dither);
-   void dof           (Image   &src, Image &dest, Bool dither);
+   void adaptEye      (ImageRT &src, ImageRT &dest, Bool dither);
+   void bloom         (ImageRT &src, ImageRT &dest, Bool dither);
+   Bool motionBlur    (ImageRT &src, ImageRT &dest, Bool dither);
+   void dof           (ImageRT &src, ImageRT &dest, Bool dither);
    void Combine       (IMAGE_PRECISION rt_prec);
 
    Bool reflection        ();
@@ -224,8 +224,8 @@ struct RendererClass // handles rendering
    INLINE void needDepthRead() {}
 #endif
 
-   void set(Image *t0, Image *t1, Image *t2, Image *t3, Image *ds, Bool custom_viewport, DEPTH_READ_MODE depth_read_mode=NO_DEPTH_READ);                                                                   // set render targets, 'custom_viewport'=if true then custom viewport based on 'D.viewRect' is used and if false then full viewport is used
-   void set(Image *t0,                                  Image *ds, Bool custom_viewport, DEPTH_READ_MODE depth_read_mode=NO_DEPTH_READ) {set(t0, null, null, null, ds, custom_viewport, depth_read_mode);} // set render targets, 'custom_viewport'=if true then custom viewport based on 'D.viewRect' is used and if false then full viewport is used
+   void set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, ImageRT *ds, Bool custom_viewport, DEPTH_READ_MODE depth_read_mode=NO_DEPTH_READ);                                                                   // set render targets, 'custom_viewport'=if true then custom viewport based on 'D.viewRect' is used and if false then full viewport is used
+   void set(ImageRT *t0,                                        ImageRT *ds, Bool custom_viewport, DEPTH_READ_MODE depth_read_mode=NO_DEPTH_READ) {set(t0, null, null, null, ds, custom_viewport, depth_read_mode);} // set render targets, 'custom_viewport'=if true then custom viewport based on 'D.viewRect' is used and if false then full viewport is used
 
    Bool swapDS1S(ImageRTPtr &ds_1s);
 
@@ -275,18 +275,18 @@ private:
    ImagePtr      _smaa_area, _smaa_search;
    void        (*_render)();
  C Memc<ShaderParamChange> *_shader_param_changes;
-   ImageRC       _main, _main_ds,
+   ImageRT       _main, _main_ds,
                  _shd_map, _cld_map,
                  _eye_adapt_scale[2],
-                *_cur_main, *_cur_main_ds;
-   Image        *_cur[4], *_cur_ds;
+                *_cur_main, *_cur_main_ds,
+                *_cur[4], *_cur_ds;
    ImageRTPtr    _h0, _h1, _q0, _q1, // <- these members are to be used only temporarily
                  _gui, _gui_ds,
                  _col, _ds, _ds_1s, _nrm, _vel,
                  _lum, _lum_1s, _shd_1s, _shd_ms,
                  _water_col, _water_nrm, _water_ds, _water_lum,
                  _vol, _ao, _fade, _back, _back_ds, _mirror_rt, _outline_rt, _sky_coverage, _final;
-   Memx<ImageRC> _rts;
+   Memx<ImageRT> _rts;
 #if EE_PRIVATE
    GPU_API(ID3D11RenderTargetView *_cur_id[4]    , union{UInt _cur_id[4]    ; Ptr _cur_id_ptr[4]    ;});
    GPU_API(ID3D11DepthStencilView *_cur_ds_id    , union{UInt _cur_ds_id    ; Ptr _cur_ds_id_ptr    ;});

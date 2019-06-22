@@ -33,10 +33,10 @@ static struct OculusRiftApi : VirtualRealityApi
    virtual Bool    createGuiImage ()override;
    virtual Bool createRenderImage ()override;
 
-   virtual ImageRC* getNewRender ()override;
-   virtual ImageRC* getNewGui    ()override;
-   virtual ImageRC* getLastRender()override;
-   virtual ImageRC* getLastGui   ()override;
+   virtual ImageRT* getNewRender ()override;
+   virtual ImageRT* getNewGui    ()override;
+   virtual ImageRT* getLastRender()override;
+   virtual ImageRT* getLastGui   ()override;
 
    Bool    connect();
    void disconnect();
@@ -58,7 +58,7 @@ static struct OculusRiftApi : VirtualRealityApi
 #if SUPPORT_OCULUS
 static struct ovrTexture
 {
-   ImageRC            image;
+   ImageRT            image;
    ovrSwapTextureSet *texture_set;
 #if DX11
    ID3D11RenderTargetView   *rtv[3];
@@ -142,7 +142,7 @@ static struct ovrTexture
    error:
       del(); return false;
    }
-   ImageRC* getImage()
+   ImageRT* getImage()
    {
       if(texture_set)
       {
@@ -357,28 +357,28 @@ Bool OculusRiftApi::createRenderImage()
    return false;
 }
 /******************************************************************************/
-ImageRC* OculusRiftApi::getNewRender()
+ImageRT* OculusRiftApi::getNewRender()
 {
 #if SUPPORT_OCULUS
    return RenderTexture.getImage();
 #endif
    return null;
 }
-ImageRC* OculusRiftApi::getNewGui()
+ImageRT* OculusRiftApi::getNewGui()
 {
 #if SUPPORT_OCULUS
    return GuiTexture.getImage();
 #endif
    return null;
 }
-ImageRC* OculusRiftApi::getLastRender()
+ImageRT* OculusRiftApi::getLastRender()
 {
 #if SUPPORT_OCULUS
    return &RenderTexture.image;
 #endif
    return null;
 }
-ImageRC* OculusRiftApi::getLastGui()
+ImageRT* OculusRiftApi::getLastGui()
 {
 #if SUPPORT_OCULUS
    return &GuiTexture.image;

@@ -1060,7 +1060,8 @@ TECHNIQUE(Volume0LA, Volume_VS(0), Volume_PS(0, true));
 TECHNIQUE(Volume1LA, Volume_VS(1), Volume_PS(1, true));
 TECHNIQUE(Volume2LA, Volume_VS(2), Volume_PS(2, true));
 /******************************************************************************/
-inline VecH TexYUV(Vec2 inTex)
+inline VecH TexYUV(Vec2 inTex,
+           uniform Bool gamma)
 {
  /*Flt y=Tex(Col , inTex).x,
        u=Tex(Col1, inTex).x,
@@ -1075,15 +1076,19 @@ inline VecH TexYUV(Vec2 inTex)
         u=Tex(Col1, inTex).x       -0.5,
         v=Tex(Col2, inTex).x       -0.5;
 
-   return VecH(y             + 1.5958*v,
-               y - 0.39173*u - 0.8129*v,
-               y + 2.017  *u          );
+   VecH rgb=VecH(y             + 1.5958*v,
+                 y - 0.39173*u - 0.8129*v,
+                 y + 2.017  *u          );
+   if(gamma)rgb=SRGBToLinear(rgb);
+   return   rgb;
 }
-VecH4 YUV_PS (NOPERSP Vec2 inTex:TEXCOORD):COLOR {return VecH4(TexYUV(inTex),                                    1);}
-VecH4 YUVA_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return VecH4(TexYUV(inTex), Tex(Col3, inTex).x*1.1643-0.07276875);} // need to MulAdd because alpha image assumes to come from another YUV video
+VecH4 YUV_PS (NOPERSP Vec2 inTex:TEXCOORD, uniform Bool gamma):COLOR {return VecH4(TexYUV(inTex, gamma),                                    1);}
+VecH4 YUVA_PS(NOPERSP Vec2 inTex:TEXCOORD, uniform Bool gamma):COLOR {return VecH4(TexYUV(inTex, gamma), Tex(Col3, inTex).x*1.1643-0.07276875);} // need to MulAdd because alpha image assumes to come from another YUV video
 
-TECHNIQUE(YUV , Draw2DTex_VS(), YUV_PS ());
-TECHNIQUE(YUVA, Draw2DTex_VS(), YUVA_PS());
+TECHNIQUE(YUV  , Draw2DTex_VS(), YUV_PS (false));
+TECHNIQUE(YUVG , Draw2DTex_VS(), YUV_PS (true ));
+TECHNIQUE(YUVA , Draw2DTex_VS(), YUVA_PS(false));
+TECHNIQUE(YUVAG, Draw2DTex_VS(), YUVA_PS(true ));
 /******************************************************************************/
 // BLUR
 /******************************************************************************/
