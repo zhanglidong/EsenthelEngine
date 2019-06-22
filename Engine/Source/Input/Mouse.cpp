@@ -96,7 +96,7 @@ Bool MouseCursor::create(C Image &image, C VecI2 &hot_spot)
 #elif WINDOWS_NEW
    // TODO: WINDOWS_NEW currently there's no way to dynamically create a 'CoreCursor'
 #elif MAC // Mac must keep the cursor image data, it is stored in 'T._image', if released then cursor image data gets corrupted, that's why it must be kept in memory (yes that was tested)
-   image.copy(_image, -1, -1, 1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1);
+   image.copy(_image, -1, -1, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1);
    REPD(y, _image.h())
    REPD(x, _image.w())
    {

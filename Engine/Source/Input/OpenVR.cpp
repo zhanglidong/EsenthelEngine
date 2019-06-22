@@ -324,7 +324,7 @@ void OpenVRApi::delImages()
 Bool OpenVRApi::createGuiImage()
 {
 #if SUPPORT_OPEN_VR
-   if(_gui.createTry(VR.guiRes().x, VR.guiRes().y, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_RT, 1))
+   if(_gui.createTry(VR.guiRes().x, VR.guiRes().y, 1, LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, IMAGE_RT, 1))
    {
       if(_overlay && _overlay_id!=vr::k_ulOverlayHandleInvalid)
       {
@@ -348,7 +348,7 @@ Bool OpenVRApi::createRenderImage()
       uint32_t w=0, h=0; _vr->GetRecommendedRenderTargetSize(&w, &h);
       Clamp(w*=2, 2, D.maxTexSize()); // *2 also makes sure that both eyes have the same width
       Clamp(h   , 1, D.maxTexSize());
-      return _render.createTry(w, h, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_RT, 1);
+      return _render.createTry(w, h, 1, LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, IMAGE_RT, 1);
    }
 #endif
    return false;

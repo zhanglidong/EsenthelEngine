@@ -749,7 +749,7 @@ error:
 }
 Bool CreateBumpFromColor(Image &bump, C Image &col, Flt min_blur_range, Flt max_blur_range, Threads *threads)
 {
-   Image col_temp; C Image *col_src=&col; if(col_src->compressed())if(col_src->copyTry(col_temp, -1, -1, -1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1))col_src=&col_temp;else goto error;
+   Image col_temp; C Image *col_src=&col; if(col_src->compressed())if(col_src->copyTry(col_temp, -1, -1, -1, ImageTypeUncompressed(col_src->type()), IMAGE_SOFT, 1))col_src=&col_temp;else goto error;
    {
       Image bump_temp; if(bump_temp.createSoftTry(col.w(), col.h(), 1, IMAGE_F32)) // operate on temporary in case "&bump==&col", create as high precision to get good quality for blur/normalize
       {
@@ -809,7 +809,7 @@ Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int 
       }
 
       Image color; // operate on temp variable in case 'base_0' argument is set to other images used in this func
-      if(material.base_0->copyTry(color, size.x, size.y, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1, filter, IC_WRAP)) // create new color map
+      if(material.base_0->copyTry(color, size.x, size.y, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1, filter, IC_WRAP)) // create new color map, use IMAGE_R8G8B8A8_SRGB to always include Alpha
       {
          Image b1; // 'base_1' resized to 'color' resolution
          MAX(light_power, 0);
@@ -821,7 +821,7 @@ Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int 
               has_nrm  =( light_dir && material.rough   *light_power>0.01f),
               has_spec =( light_dir && material.specular*light_power>0.01f),
               has_glow =(!has_alpha && material.glow                >0.01f);
-         if( (has_alpha || has_nrm || has_spec || has_glow) && material.base_1->copyTry(b1, color.w(), color.h(), 1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1, filter, IC_WRAP))
+         if( (has_alpha || has_nrm || has_spec || has_glow) && material.base_1->copyTry(b1, color.w(), color.h(), 1, ImageTypeUncompressed(material.base_1->type()), IMAGE_SOFT, 1, filter, IC_WRAP))
          {
             // setup alpha
             if(has_alpha)
