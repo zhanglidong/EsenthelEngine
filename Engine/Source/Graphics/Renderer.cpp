@@ -1751,15 +1751,9 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
       {
          case EDGE_SOFTEN_FXAA:
          {
-            Bool gamma=false;
-         #if LINEAR_GAMMA
-            Bool swap=(_col->canSwapSRV() && dest->canSwapRTV()); if(swap){dest->swapRTV(); _col->swapSRV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
-            else gamma=true;
-         #endif
+            Bool gamma=LINEAR_GAMMA, swap=(gamma && _col->canSwapSRV() && dest->canSwapRTV()); if(swap){gamma=false; dest->swapRTV(); _col->swapSRV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
             set(dest(), null, true); Sh.h_FXAA[gamma]->draw(_col());
-         #if LINEAR_GAMMA
             if(swap){dest->swapRTV(); _col->swapSRV();} // restore
-         #endif
          }break;
 
       #if SUPPORT_MLAA
@@ -1781,25 +1775,19 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
          #endif
-            Bool gamma=false;
-         #if LINEAR_GAMMA
-            if(_col->canSwapSRV())_col->swapSRV(); // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
-            else                  gamma=true;
-         #endif
+
+            Bool gamma=LINEAR_GAMMA, swap=(gamma && _col->canSwapSRV()); if(swap){gamma=false; _col->swapSRV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
             D.stencil(STENCIL_EDGE_SOFT_SET, STENCIL_REF_EDGE_SOFT); // have to use '_ds_1s' in write mode to be able to use stencil
             ImageRTPtr edge(ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO)); set(edge(), _ds_1s(), true); D.clearCol(); Sh.h_SMAAEdge[gamma]->draw(_col()); Sh.h_ImageCol[1]->set(_smaa_area()); Sh.h_ImageCol[2]->set(_smaa_search()); Sh.h_ImageCol[2]->_sampler=&SamplerPoint; D.stencil(STENCIL_EDGE_SOFT_TEST);
-         #if LINEAR_GAMMA
-            if(_col->canSwapSRV())_col->swapSRV(); // restore
-         #endif
+            if(swap)_col->swapSRV(); // restore
+
             ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA)); // this does not store color, but intensities how much to blend in each axis
             set(blend(), _ds_1s(), true); D.clearCol(); Sh.h_SMAABlend->draw(edge()); Sh.h_ImageCol[1]->set(blend()); edge.clear(); Sh.h_ImageCol[2]->_sampler=null; D.stencil(STENCIL_NONE);
-         #if !LINEAR_GAMMA // this we have to perform if we're NOT using sRGB, because if possible, we WANT to use it, as it will improve quality, making AA softer
-            Bool swap=(dest->canSwapRTV() && _col->canSwapSRV()); if(swap){dest->swapRTV(); _col->swapSRV();}
-         #endif
+
+            swap=(!LINEAR_GAMMA && dest->canSwapRTV() && _col->canSwapSRV()); if(swap){dest->swapRTV(); _col->swapSRV();} // this we have to perform if we're NOT using Linear Gamma, because if possible, we WANT to use it, as it will improve quality, making AA softer
             set(dest(), null, true); Sh.h_SMAA->draw(_col());
-         #if !LINEAR_GAMMA
             if(swap){dest->swapRTV(); _col->swapSRV();} // restore
-         #endif
+
             MaterialClear();
          }break;
       }

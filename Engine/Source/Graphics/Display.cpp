@@ -1430,7 +1430,7 @@ static Int DisplaySamples(Int samples)
 #if DX11
 static DXGI_FORMAT SwapChainFormat()
 {
-   if(GDI_COMPATIBLE)return LINEAR_GAMMA ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : DXGI_FORMAT_B8G8R8A8_UNORM; // FIXME test this
+   if(GDI_COMPATIBLE)return LINEAR_GAMMA ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : DXGI_FORMAT_B8G8R8A8_UNORM;
 #if 0 // possibly this check is no longer needed, it's possible Windows supports windowed HDR natively now on HDR capable monitors
    if(full() && exclusive()) // on Windows we need fullscreen and exclusive to be able to really enable it, without it, it will be only 8-bit
 #endif
