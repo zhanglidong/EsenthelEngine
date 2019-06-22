@@ -2826,13 +2826,12 @@ Bool Image::capture(C ImageRT &src)
    {
       Bool depth=(ImageTI[src.hwType()].d>0);
       if( !depth || src.depthTexture())
-      {
-         SyncLocker locker(D._lock);
          if(createTry(src.w(), src.h(), 1, depth ? IMAGE_F32 : src.hwType(), IMAGE_RT, 1, false))
-         {
-            src.copyHw(T, true);
-            return true;
-         }
+      {
+         ImageRT temp; Swap(T, SCAST(Image, temp)); // we can do a swap because on OpenGL 'ImageRT' doesn't have anything extra, this swap is only to allow 'capture' to be a method of 'Image' instead of having to use 'ImageRT'
+         {SyncLocker locker(D._lock); src.copyHw(temp, true);}
+         Swap(T, SCAST(Image, temp));
+         return true;
       }
    }
 #endif
