@@ -1621,7 +1621,7 @@ void RendererClass::behind()
    }
    BehindObjects.clear();
 }
-static const IMAGERT_TYPE IMAGERT_OUTLINE=IMAGERT_RGBA; // here Alpha is used for outline opacity FIXME or IMAGERT_SRGBA?
+static const IMAGERT_TYPE IMAGERT_OUTLINE=IMAGERT_SRGBA; // here Alpha is used for outline opacity
 void RendererClass::setOutline(C Color &color)
 {
   _SetHighlight(color);
