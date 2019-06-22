@@ -20,10 +20,11 @@
    #pragma message("!! Warning: Use this only for debugging !!")
 #endif
 
-#define FONT_SRGB 0
+#define FONT_SRGB           0
+#define FONT_SRGB_SUB_PIXEL 1
 
-#define IMAGE_R8G8B8A8_FONT (FONT_SRGB ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8)
-#define IMAGE_L8A8_FONT     (FONT_SRGB ? IMAGE_L8A8_SRGB     : IMAGE_L8A8    )
+#define FONT_IMAGE_TYPE           (FONT_SRGB           ? IMAGE_L8A8_SRGB     : IMAGE_L8A8    )
+#define FONT_IMAGE_TYPE_SUB_PIXEL (FONT_SRGB_SUB_PIXEL ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8)
 
 namespace EE{
 /******************************************************************************/
@@ -257,9 +258,14 @@ void Font::setGLFont()
 /******************************************************************************/
 Bool Font::imageType(IMAGE_TYPE type)
 {
-   if(_sub_pixel && type!=IMAGE_R8G8B8A8      && type!=IMAGE_B8G8R8A8      && type!=IMAGE_BC2      && type!=IMAGE_BC3      && type!=IMAGE_BC7      && type!=IMAGE_ETC2_A8
-                 && type!=IMAGE_R8G8B8A8_SRGB && type!=IMAGE_B8G8R8A8_SRGB && type!=IMAGE_BC2_SRGB && type!=IMAGE_BC3_SRGB && type!=IMAGE_BC7_SRGB && type!=IMAGE_ETC2_A8_SRGB)return false; // sub pixel supports only these formats
-   type=(FONT_SRGB ? ImageTypeIncludeSRGB : ImageTypeExcludeSRGB)(type);
+   if(!_sub_pixel)type=(FONT_SRGB           ? ImageTypeIncludeSRGB : ImageTypeExcludeSRGB)(type);else
+   {              type=(FONT_SRGB_SUB_PIXEL ? ImageTypeIncludeSRGB : ImageTypeExcludeSRGB)(type);
+   #if FONT_SRGB_SUB_PIXEL
+      if(type!=IMAGE_R8G8B8A8_SRGB && type!=IMAGE_B8G8R8A8_SRGB && type!=IMAGE_BC2_SRGB && type!=IMAGE_BC3_SRGB && type!=IMAGE_BC7_SRGB && type!=IMAGE_ETC2_A8_SRGB)return false; // sub pixel supports only these formats
+   #else
+      if(type!=IMAGE_R8G8B8A8      && type!=IMAGE_B8G8R8A8      && type!=IMAGE_BC2      && type!=IMAGE_BC3      && type!=IMAGE_BC7      && type!=IMAGE_ETC2_A8     )return false; // sub pixel supports only these formats
+   #endif
+   }
    Bool changed=false;
    REPA(_images)
    {
@@ -281,7 +287,7 @@ Bool Font::imageType(IMAGE_TYPE type)
 }
 void Font::toSoft()
 {
-   IMAGE_TYPE type=(_sub_pixel ? IMAGE_R8G8B8A8_FONT : IMAGE_L8A8_FONT);
+   IMAGE_TYPE type=(_sub_pixel ? FONT_IMAGE_TYPE_SUB_PIXEL : FONT_IMAGE_TYPE);
    REPA(_images)
    {
       Image &image=_images[i];
@@ -410,7 +416,7 @@ static void SwapGreenAlpha(Font &font)
 {
    if(!font._sub_pixel)REPA(font._images)
    {
-      Image &image=font._images[i]; if(image.copyTry(image, -1, -1, -1, IMAGE_L8A8_FONT, -1, -1, FILTER_NONE)) // disable filtering here as it will be done below
+      Image &image=font._images[i]; if(image.copyTry(image, -1, -1, -1, FONT_IMAGE_TYPE, -1, -1, FILTER_NONE)) // disable filtering here as it will be done below
       {
          if(image.lock())
          {
@@ -715,7 +721,7 @@ struct SystemFontDrawContext
    #if USE_FREE_TYPE
       if(!image.is())
       {
-         image.createSoft(w, h, 1, IMAGE_R8G8B8A8_FONT);
+         image.createSoft(w, h, 1, IMAGE_R8G8B8A8);
          if(!FT_Init_FreeType(&library))
          {
             FT_Library_SetLcdFilter(library, FT_LCD_FILTER_DEFAULT);
@@ -738,7 +744,7 @@ struct SystemFontDrawContext
    #elif WINDOWS_OLD
       if(!bitmap)
       {
-         image.createSoft(w, h, 1, IMAGE_R8G8B8A8_FONT);
+         image.createSoft(w, h, 1, IMAGE_R8G8B8A8);
 
          BITMAPV5HEADER bi; Zero(bi);
          bi.bV5Size    =SIZE(bi);
@@ -762,8 +768,8 @@ struct SystemFontDrawContext
    #elif MAC
       if(!context)
       {
-         if(!image       .is())       image.createSoft(w, h, 1, IMAGE_R8G8B8A8_FONT);
-         if(!bitmap_image.is())bitmap_image.createSoft(w, h, 1, IMAGE_R8G8B8A8_FONT);
+         if(!image       .is())       image.createSoft(w, h, 1, IMAGE_R8G8B8A8);
+         if(!bitmap_image.is())bitmap_image.createSoft(w, h, 1, IMAGE_R8G8B8A8);
          if(!bitmap)
          {
             unsigned char *image_data=bitmap_image.data();
@@ -916,7 +922,7 @@ struct FontCreate : Font::Params
    VecI2                            draw_size; // size of the buffer used for drawing
    Memc<FontChar>                   chars; // chars to create
    Int                              processed;   Int leftToProcess()C {return Max(0, chars.elms()-processed-SPECIAL_CHARS);} // skip special chars
-   IMAGE_TYPE                       imageTypeTemp()C {return (mode==Font::SUB_PIXEL) ? IMAGE_R8G8B8A8_FONT : IMAGE_L8A8_FONT;}
+   IMAGE_TYPE                       imageTypeTemp()C {return (mode==Font::SUB_PIXEL) ? FONT_IMAGE_TYPE_SUB_PIXEL : FONT_IMAGE_TYPE;}
    SystemFont                       font;
    MemtN<SystemFontDrawContext, 16> dcs;
 
@@ -929,7 +935,7 @@ struct FontCreate : Font::Params
       scaled_size=RoundU(size*scale);
       if(mode==Font::SUB_PIXEL)
       {
-         image_type=IMAGE_R8G8B8A8_FONT;
+         image_type=FONT_IMAGE_TYPE_SUB_PIXEL;
            mip_maps=1;
         shadow_opacity=0; // disable shadows for sub pixels
       }else
@@ -1205,7 +1211,7 @@ Bool Font::create(C Params &params)
    {
    #if USE_FREE_TYPE
    #elif WINDOWS_OLD
-      if(fc.mode!=Font::DEFAULT) // font with extra smoothing uses anti-aliasing, 2 pixels with half transparency are used instead of 1, this means that widths are 1 extra pixel bigger
+      if(fc.mode==Font::SMOOTHED) // font with extra smoothing uses anti-aliasing, 2 pixels with half transparency are used instead of 1, this means that widths are 1 extra pixel bigger
       {
         _padd.z++; // since we'll decrease the width by 1, then we need to increase the right padding by 1
          REPA(_chrs)
