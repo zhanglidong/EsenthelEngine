@@ -956,7 +956,7 @@ Bool CompressBC(C Image &src, Image &dest, Bool mtrl_base_1) // no need to store
       if((s->hwType()!=IMAGE_R8G8B8A8 && s->hwType()!=IMAGE_R8G8B8A8_SRGB) || s->w()!=dest.hwW() || s->h()!=dest.hwH())
       {
          use extractNonCompressedMipMapNoStretch
-         if(s->copyTry(temp, dest.hwW(), dest.hwH(), 1, IMAGE_R8G8B8A8, (s->cube() && dest.cube()) ? IMAGE_SOFT_CUBE : IMAGE_SOFT, 1, FILTER_NO_STRETCH, true))s=&temp;else return false; // we need to cover the area for entire HW size, to process partial and Pow2Padded blocks too
+         if(s->copyTry(temp, dest.hwW(), dest.hwH(), 1, dest.sRGB() ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, (s->cube() && dest.cube()) ? IMAGE_SOFT_CUBE : IMAGE_SOFT, 1, FILTER_NO_STRETCH, true))s=&temp;else return false; // we need to cover the area for entire HW size, to process partial and Pow2Padded blocks too
       }
       Bool ok=false;
       if(s->lockRead())

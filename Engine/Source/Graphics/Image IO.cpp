@@ -456,7 +456,7 @@ Bool Image::loadData(File &f, ImageHeader *header, C Str &name)
                   FREPD(y, dest_blocks_y){f.getFast(dest->data() + y*dest->pitch() + z*dest->pitch2(), dest_pitch); f.skip(file_pitch-dest_pitch);}
                   f.skip((file_blocks_y-dest_blocks_y)*file_pitch); // unread blocksY * pitch
                }
-               if(ih.mode==IMAGE_SOFT && ih.type==IMAGE_R8G8B8){Byte *bgr=dest->data(); REP(dest->lw()*dest->lh()*dest->ld()){Swap(bgr[0], bgr[2]); bgr+=3;}}
+               if(ih.mode==IMAGE_SOFT && (ih.type==IMAGE_R8G8B8 || ih.type==IMAGE_R8G8B8_SRGB)){Byte *bgr=dest->data(); REP(dest->lw()*dest->lh()*dest->ld()){Swap(bgr[0], bgr[2]); bgr+=3;}}
                dest->unlock();
 
                if(hwType()!=ih.type)if(!injectMipMap(*dest, mip, DIR_ENUM(face)))return false;
@@ -497,7 +497,7 @@ Bool Image::loadData(File &f, ImageHeader *header, C Str &name)
                   FREPD(y, dest_blocks_y){f.getFast(dest->data() + y*dest->pitch() + z*dest->pitch2(), dest_pitch); f.skip(file_pitch-dest_pitch);}
                   f.skip((file_blocks_y-dest_blocks_y)*file_pitch); // unread blocksY * pitch
                }
-               if(ih.mode==IMAGE_SOFT && ih.type==IMAGE_R8G8B8){Byte *bgr=dest->data(); REP(dest->lw()*dest->lh()*dest->ld()){Swap(bgr[0], bgr[2]); bgr+=3;}}
+               if(ih.mode==IMAGE_SOFT && (ih.type==IMAGE_R8G8B8 || ih.type==IMAGE_R8G8B8_SRGB)){Byte *bgr=dest->data(); REP(dest->lw()*dest->lh()*dest->ld()){Swap(bgr[0], bgr[2]); bgr+=3;}}
                dest->unlock();
 
                if(hwType()!=ih.type)if(!injectMipMap(*dest, mip, DIR_ENUM(face)))return false;
@@ -538,7 +538,7 @@ Bool Image::loadData(File &f, ImageHeader *header, C Str &name)
                   FREPD(y, dest_blocks_y){f.getFast(dest->data() + y*dest->pitch() + z*dest->pitch2(), dest_pitch); f.skip(file_pitch-dest_pitch);}
                   f.skip((file_blocks_y-dest_blocks_y)*file_pitch); // unread blocksY * pitch
                }
-               if(ih.mode==IMAGE_SOFT && ih.type==IMAGE_R8G8B8){Byte *bgr=dest->data(); REP(dest->lw()*dest->lh()*dest->ld()){Swap(bgr[0], bgr[2]); bgr+=3;}}
+               if(ih.mode==IMAGE_SOFT && (ih.type==IMAGE_R8G8B8 || ih.type==IMAGE_R8G8B8_SRGB)){Byte *bgr=dest->data(); REP(dest->lw()*dest->lh()*dest->ld()){Swap(bgr[0], bgr[2]); bgr+=3;}}
                dest->unlock();
 
                if(hwType()!=ih.type)if(!injectMipMap(*dest, mip, DIR_ENUM(face)))return false;

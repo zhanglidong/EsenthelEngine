@@ -1199,8 +1199,8 @@ again:
       EGLint width, height;
       eglQuerySurface(GLDisplay, MainContext.surface, EGL_WIDTH , &width );
       eglQuerySurface(GLDisplay, MainContext.surface, EGL_HEIGHT, &height);
-      Renderer._main   .forceInfo(width, height, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_GL_RB, samples);
-      Renderer._main_ds.forceInfo(width, height, 1, ds_type            , IMAGE_GL_RB, samples);
+      Renderer._main   .forceInfo(width, height, 1, LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, IMAGE_GL_RB, samples);
+      Renderer._main_ds.forceInfo(width, height, 1, ds_type                                            , IMAGE_GL_RB, samples);
       if(LogInit)LogN(S+"Renderer._main: "+Renderer._main.w()+'x'+Renderer._main.h()+", type: "+ImageTI[Renderer._main.hwType()].name+", ds_type: "+ImageTI[Renderer._main_ds.hwType()].name);
    #elif IOS
       if(MainContext.context=[[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3])_shader_model=SM_GL_ES_3;else
@@ -1232,8 +1232,8 @@ again:
       MainContext.lock();
       Byte samples=(attrs.antialias ? 4 : 1);
       int  width, height; emscripten_get_canvas_element_size(null, &width, &height);
-      Renderer._main   .forceInfo(width, height, 1, IMAGE_R8G8B8A8_SRGB                      , IMAGE_GL_RB, samples);
-      Renderer._main_ds.forceInfo(width, height, 1, attrs.stencil ? IMAGE_D24S8 : IMAGE_D24X8, IMAGE_GL_RB, samples);
+      Renderer._main   .forceInfo(width, height, 1, LINEAR_GAMMA  ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, IMAGE_GL_RB, samples);
+      Renderer._main_ds.forceInfo(width, height, 1, attrs.stencil ? IMAGE_D24S8         : IMAGE_D24X8   , IMAGE_GL_RB, samples);
    #endif
 
    if(!deviceName().is())
@@ -3155,10 +3155,10 @@ void Display::fadeDraw()
 /******************************************************************************/
 // COLOR PALETTE
 /******************************************************************************/
-static void SetPalette(Int index, C ImagePtr &palette) // !! Warning: '_color_palette_soft' must be of IMAGE_SOFT IMAGE_R8G8B8A8 type because 'Particles.draw' codes require that !!
+static void SetPalette(Int index, C ImagePtr &palette) // !! Warning: '_color_palette_soft' must be of IMAGE_SOFT IMAGE_R8G8B8A8_SRGB type because 'Particles.draw' codes require that !!
 {
    D._color_palette[index]=palette;
-   if(palette)palette->copyTry(D._color_palette_soft[index], -1, -1, -1, IMAGE_R8G8B8A8, IMAGE_SOFT, 1);
+   if(palette)palette->copyTry(D._color_palette_soft[index], -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1);
    else                        D._color_palette_soft[index].del();
 }
 Display& Display::colorPalette     (C ImagePtr &palette) {SetPalette(0, palette);    return T;}
