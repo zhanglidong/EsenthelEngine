@@ -2047,7 +2047,7 @@ static Bool AddEmptyAlpha(Image &image)
 }
 Bool Heightmap::save(File &f, CChar *path)C
 {
-   f.cmpUIntV(2); // version // FIXME use 3
+   f.cmpUIntV(2); // version // FIXME use 3 after image types have been finalized
    if(       _height    .saveData(f           ))
    if(SaveAs(_color     , f, IMAGE_R8G8B8_SRGB)) // convert to LowPrec in case HighPrec is used
    if(       _mtrl_index.saveData(f           ))
