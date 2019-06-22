@@ -9,30 +9,6 @@
 /******************************************************************************/
 #define FONT_WIDTH_TEST 8
 /******************************************************************************/
-enum CHARSET_TYPE : Byte
-{
-   CHARSET_ANSI       =0  ,
-   CHARSET_DEFAULT    =1  ,
-   CHARSET_EAST_EUROPE=238,
-   CHARSET_RUSSIAN    =204,
-   CHARSET_SHIFT_JIS  =128,
-   CHARSET_HANGEUL    =129,
-   CHARSET_HANGUL     =129,
-   CHARSET_GB_2312    =134,
-   CHARSET_CHINESE    =136,
-   CHARSET_GREEK      =161,
-   CHARSET_ARABIC     =178,
-   CHARSET_TURKISH    =162,
-   CHARSET_VIETNAMESE =163,
-   CHARSET_THAI       =222,
-   CHARSET_BALTIC     =186,
-   CHARSET_JOHAB      =130,
-   CHARSET_HEBREW     =177,
-   CHARSET_MAC        =77 ,
-   CHARSET_SYMBOL     =2  ,
-   CHARSET_OEM        =255,
-};
-/******************************************************************************/
 enum SPACING_MODE : Byte // Text Spacing Mode
 {
    SPACING_CONST, // constant spacing, characters are aligned by a constant factor taken from TextStyle::space
@@ -50,28 +26,26 @@ struct Font
    };
    struct Params // font creation parameters
    {
-      Str          system_font    , // name of the font
-                   characters     ; // characters to include in the font
-      Bool         software       , // create in software mode for CPU processing only, true/false
-                   shadow_diagonal; // if set shadows in diagonal mode                , true/false
-      Byte         mip_maps       ; // amount of desired mip maps for the textures    ,   0..8 (0=autodetect and create full mip-map chain)
-      Int          size           , // font size (in pixels)                          ,   1..Inf
-                   max_image_size ; // maximum allowed image size to be generated     ,   1..Inf
-      Flt          scale          , // scale applied to source font characters        , 0.5..2.0
-                   shadow_blur    , // amount of shadow blurring                      ,   0..1
-                   shadow_opacity , // shadow opacity                                 ,   0..1
-                   shadow_spread  , // shadow spread                                  ,   0..1
-                   weight         , // font weight                                    ,   0..1
-                   minimum_filter ; // distance in pixels for the minimum filter      ,   0..1
-      MODE         mode           ;
-      IMAGE_TYPE   image_type     ; // image format
-      CHARSET_TYPE charset        ; // charset type
+      Str        system_font    , // name of the font
+                 characters     ; // characters to include in the font
+      Bool       software       , // create in software mode for CPU processing only, true/false
+                 shadow_diagonal; // if set shadows in diagonal mode                , true/false
+      Byte       mip_maps       ; // amount of desired mip maps for the textures    ,   0..8 (0=autodetect and create full mip-map chain)
+      Int        size           , // font size (in pixels)                          ,   1..Inf
+                 max_image_size ; // maximum allowed image size to be generated     ,   1..Inf
+      Flt        scale          , // scale applied to source font characters        , 0.5..2.0
+                 shadow_blur    , // amount of shadow blurring                      ,   0..1
+                 shadow_opacity , // shadow opacity                                 ,   0..1
+                 shadow_spread  , // shadow spread                                  ,   0..1
+                 weight         ; // font weight                                    ,   0..1
+      MODE       mode           ;
+      IMAGE_TYPE image_type     ; // image format
 
       Params()
       {
          software=false; shadow_diagonal=true; mip_maps=3; size=48; max_image_size=2048;
-         scale=1.0f; shadow_blur=0.04f; shadow_opacity=1.0f; shadow_spread=0.0f; weight=0; minimum_filter=0;
-         mode=DEFAULT; image_type=IMAGE_BC7; charset=CHARSET_DEFAULT;
+         scale=1.0f; shadow_blur=0.04f; shadow_opacity=1.0f; shadow_spread=0.0f; weight=0;
+         mode=DEFAULT; image_type=IMAGE_BC7;
       }
    };
 

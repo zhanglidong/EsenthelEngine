@@ -601,12 +601,12 @@ struct SystemFont
   	 /*[font       release];*/ font      =null; // font is not manually allocated
    #endif
    }
-   Bool createFont(Str system_font, Int size, Font::MODE mode, Flt weight, CHARSET_TYPE charset)
+   Bool createFont(Str system_font, Int size, Font::MODE mode, Flt weight)
    {
       del();
    #if USE_FREE_TYPE
       #if WINDOWS_OLD
-         if(HFONT font=CreateFont(size, 0, 0, 0, RoundU(Sat(weight)*1000), 0, 0, 0, charset, 0, 0, (mode==Font::DEFAULT) ? ANTIALIASED_QUALITY : CLEARTYPE_QUALITY, 0, system_font))
+         if(HFONT font=CreateFont(size, 0, 0, 0, RoundU(Sat(weight)*1000), 0, 0, 0, ANSI_CHARSET, 0, 0, (mode==Font::DEFAULT) ? ANTIALIASED_QUALITY : CLEARTYPE_QUALITY, 0, system_font))
          {
             if(HDC hdc=CreateCompatibleDC(null))
             {
@@ -637,7 +637,7 @@ struct SystemFont
       T.size       =size;
       return true;
    #elif WINDOWS_OLD
-      if(font=CreateFont(size, 0, 0, 0, RoundU(Sat(weight)*1000), 0, 0, 0, charset, 0, 0, (mode==Font::DEFAULT) ? ANTIALIASED_QUALITY : CLEARTYPE_QUALITY, 0, system_font))return true;
+      if(font=CreateFont(size, 0, 0, 0, RoundU(Sat(weight)*1000), 0, 0, 0, ANSI_CHARSET, 0, 0, (mode==Font::DEFAULT) ? ANTIALIASED_QUALITY : CLEARTYPE_QUALITY, 0, system_font))return true;
    #elif MAC
       Flt font_size=size*(64.0f/72); // to match Windows size
       if(NSStringAuto family=system_font)
@@ -984,7 +984,7 @@ struct FontCreate : Font::Params
    }
    Bool createFont()
    {
-      return font.createFont(system_font, scaled_size, mode, weight, charset);
+      return font.createFont(system_font, scaled_size, mode, weight);
    }
    Bool drawCharacters()
    {
@@ -1021,9 +1021,6 @@ struct FontCreate : Font::Params
       Image &img=fc.image;
       if(img.createSoftTry(fc.size.x, fc.size.y, 1, imageTypeTemp()))
       {
-         // minimum filter
-         if(U16(fc.chr)<=0x4FF)dc.image.minimum(minimum_filter); // 0x4FF-range for typical characters (not CJK), this filter is not applied for CJK, because those characters are usually thin and don't need this, and also because there are thousands of them, and that would be slow
-
          // copy
          Bool clear_shadow=(mode!=Font::SUB_PIXEL && shadow_opacity<=0);
 
