@@ -738,18 +738,17 @@ Image& Image::del()
          ShaderImages.unlock();
       }
    #if DX11
-      if(_txtr || _vol || _srv || _rtv)
+      if(_txtr || _srv || _rtv)
       {
          D.texClear(_srv);
        //SyncLocker locker(D._lock); lock not needed for DX11 'Release'
          if(D.created())
          {
             // release children first
-            RELEASE(_rtv );
-            RELEASE(_srv );
+            RELEASE(_rtv);
+            RELEASE(_srv);
             // now main resources
             RELEASE(_txtr);
-            RELEASE(_vol );
          }
       }
    #elif GL
@@ -779,7 +778,6 @@ void Image::duplicate(C Image &src)
 
    #if DX11
       if(_txtr=src._txtr)_txtr->AddRef();
-      if(_vol =src._vol )_vol ->AddRef();
       if(_srv =src._srv )_srv ->AddRef();
       if(_rtv =src._rtv )_rtv ->AddRef();
       if(_dsv =src._dsv )_dsv ->AddRef();
@@ -820,31 +818,27 @@ Bool Image::setInfo()
 {
 #if DX11
    // lock not needed for DX11 'D3D'
-   ID3D11Resource *res=null;
    if(_txtr)
    {
-      res=_txtr;
-      D3D11_TEXTURE2D_DESC desc; _txtr->GetDesc(&desc);
-     _mms      =desc.MipLevels;
-     _samples  =desc.SampleDesc.Count;
-     _hw_size.x=desc.Width;
-     _hw_size.y=desc.Height;
-     _hw_size.z=1;
-      if(IMAGE_TYPE hw_type=ImageFormatToType(desc.Format))T._hw_type=hw_type; // override only if detected, because Image could have been created with TYPELESS format which can't be directly decoded and IMAGE_NONE could be returned
-   }else
-   if(_vol)
-   {
-      res=_vol;
-      D3D11_TEXTURE3D_DESC desc; _vol->GetDesc(&desc);
-     _mms      =desc.MipLevels;
-     _samples  =1;
-     _hw_size.x=desc.Width;
-     _hw_size.y=desc.Height;
-     _hw_size.z=desc.Depth;
-      if(IMAGE_TYPE hw_type=ImageFormatToType(desc.Format))T._hw_type=hw_type; // override only if detected, because Image could have been created with TYPELESS format which can't be directly decoded and IMAGE_NONE could be returned
-   }
-   if(res)
-   {
+      if(mode()==IMAGE_3D)
+      {
+         D3D11_TEXTURE3D_DESC desc; static_cast<ID3D11Texture3D*>(_txtr)->GetDesc(&desc);
+        _mms      =desc.MipLevels;
+        _samples  =1;
+        _hw_size.x=desc.Width;
+        _hw_size.y=desc.Height;
+        _hw_size.z=desc.Depth;
+         if(IMAGE_TYPE hw_type=ImageFormatToType(desc.Format))T._hw_type=hw_type; // override only if detected, because Image could have been created with TYPELESS format which can't be directly decoded and IMAGE_NONE could be returned
+      }else
+      {
+         D3D11_TEXTURE2D_DESC desc; static_cast<ID3D11Texture2D*>(_txtr)->GetDesc(&desc);
+        _mms      =desc.MipLevels;
+        _samples  =desc.SampleDesc.Count;
+        _hw_size.x=desc.Width;
+        _hw_size.y=desc.Height;
+        _hw_size.z=1;
+         if(IMAGE_TYPE hw_type=ImageFormatToType(desc.Format))T._hw_type=hw_type; // override only if detected, because Image could have been created with TYPELESS format which can't be directly decoded and IMAGE_NONE could be returned
+      }
       switch(mode())
       {
          case IMAGE_2D:
@@ -867,14 +861,14 @@ Bool Image::setInfo()
             if(cube()          ){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURECUBE; srvd.TextureCube.MipLevels=mipMaps();}else
             if(!multiSample()  ){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D  .MipLevels=mipMaps();}else
                                 {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
-            D3D->CreateShaderResourceView(res, &srvd, &_srv); if(!_srv && mode()!=IMAGE_DS)return false; // allow '_srv' optional in IMAGE_DS
+            D3D->CreateShaderResourceView(_txtr, &srvd, &_srv); if(!_srv && mode()!=IMAGE_DS)return false; // allow '_srv' optional in IMAGE_DS
          }break;
       }
       if(mode()==IMAGE_RT /*|| mode()==IMAGE_RT_CUBE*/)
       {
          D3D11_RENDER_TARGET_VIEW_DESC rtvd; Zero(rtvd); rtvd.Format=ImageTI[hwType()].format;
          rtvd.ViewDimension=(multiSample() ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D);
-         D3D->CreateRenderTargetView(res, &rtvd, &_rtv); if(!_rtv)return false;
+         D3D->CreateRenderTargetView(_txtr, &rtvd, &_rtv); if(!_rtv)return false;
       }
    }
 #elif GL
@@ -1140,7 +1134,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                desc.SampleDesc.Count  =1;
                desc.SampleDesc.Quality=0;
                desc.ArraySize         =1;
-               if(OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr)) && setInfo())return true;
+               if(OK(D3D->CreateTexture2D(&desc, initial_data, (ID3D11Texture2D**)&_txtr)) && setInfo())return true;
             }
          }break;
 
@@ -1158,7 +1152,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                desc.SampleDesc.Count  =samples;
                desc.SampleDesc.Quality=0;
                desc.ArraySize         =1;
-               if(OK(D3D->CreateTexture2D(&desc, null, &_txtr)) && setInfo())return true;
+               if(OK(D3D->CreateTexture2D(&desc, null, (ID3D11Texture2D**)&_txtr)) && setInfo())return true;
             }
          }break;
 
@@ -1174,7 +1168,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                desc.BindFlags     =D3D11_BIND_SHADER_RESOURCE;
                desc.MiscFlags     =0;
                desc.CPUAccessFlags=0;
-               if(OK(D3D->CreateTexture3D(&desc, initial_data, &_vol)) && setInfo())return true;
+               if(OK(D3D->CreateTexture3D(&desc, initial_data, (ID3D11Texture3D**)&_txtr)) && setInfo())return true;
             }
          }break;
 
@@ -1192,7 +1186,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                desc.SampleDesc.Count  =1;
                desc.SampleDesc.Quality=0;
                desc.ArraySize         =6;
-               if(OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr)) && setInfo())return true;
+               if(OK(D3D->CreateTexture2D(&desc, initial_data, (ID3D11Texture2D**)&_txtr)) && setInfo())return true;
             }
          }break;
 
@@ -1210,7 +1204,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                desc.SampleDesc.Count  =samples;
                desc.SampleDesc.Quality=0;
                desc.ArraySize         =6;
-               if(OK(D3D->CreateTexture2D(&desc, null, &_txtr)) && setInfo())return true;
+               if(OK(D3D->CreateTexture2D(&desc, null, (ID3D11Texture2D**)&_txtr)) && setInfo())return true;
             }
          }break;
 
@@ -1229,9 +1223,9 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                desc.SampleDesc.Count  =samples;
                desc.SampleDesc.Quality=0;
                desc.ArraySize         =1;
-               if(OK(D3D->CreateTexture2D(&desc, null, &_txtr)) && setInfo())return true;
+               if(OK(D3D->CreateTexture2D(&desc, null, (ID3D11Texture2D**)&_txtr)) && setInfo())return true;
                FlagDisable(desc.BindFlags, D3D11_BIND_SHADER_RESOURCE); // disable shader reading
-               if(OK(D3D->CreateTexture2D(&desc, null, &_txtr)) && setInfo())return true;
+               if(OK(D3D->CreateTexture2D(&desc, null, (ID3D11Texture2D**)&_txtr)) && setInfo())return true;
             }
          }break;
 
@@ -1249,7 +1243,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
                desc.SampleDesc.Count  =1;
                desc.SampleDesc.Quality=0;
                desc.ArraySize         =1;
-               if(OK(D3D->CreateTexture2D(&desc, initial_data, &_txtr)) && setInfo())return true;
+               if(OK(D3D->CreateTexture2D(&desc, initial_data, (ID3D11Texture2D**)&_txtr)) && setInfo())return true;
             }
          }break;
       #elif GL
@@ -2004,7 +1998,7 @@ Bool Image::lock(LOCK_MODE lock, Int mip_map, DIR_ENUM cube_face)
                   }
                }break;
 
-               case IMAGE_3D: if(_vol)
+               case IMAGE_3D: if(_txtr)
                {
                   Int ld      =Max(1, d()>>mip_map),
                       blocks_y=ImageBlocksY(hwW(), hwH(), mip_map, hwType()),
@@ -2027,7 +2021,7 @@ Bool Image::lock(LOCK_MODE lock, Int mip_map, DIR_ENUM cube_face)
 
                      ID3D11Texture3D *temp; if(OK(D3D->CreateTexture3D(&desc, null, &temp)))
                      {
-                        D3DC->CopySubresourceRegion(temp, D3D11CalcSubresource(0,0,1), 0, 0, 0, _vol, D3D11CalcSubresource(mip_map, 0, mipMaps()), null);
+                        D3DC->CopySubresourceRegion(temp, D3D11CalcSubresource(0,0,1), 0, 0, 0, _txtr, D3D11CalcSubresource(mip_map, 0, mipMaps()), null);
                         D3D11_MAPPED_SUBRESOURCE map; if(OK(D3DC->Map(temp, D3D11CalcSubresource(0,0,1), D3D11_MAP_READ, 0, &map)))
                         {
                            Alloc(_data, pitch3);
@@ -2271,21 +2265,10 @@ Image& Image::unlock()
          #if DX11
             case IMAGE_RT:
             case IMAGE_2D:
+            case IMAGE_3D:
             case IMAGE_DS:
             {
                if(_lock_mode!=LOCK_READ && D3DC)D3DC->UpdateSubresource(_txtr, D3D11CalcSubresource(lMipMap(), 0, mipMaps()), null, data(), pitch(), pitch2());
-              _lock_size.zero();
-              _lmm      =0;
-            //_lcf      =0;
-              _lock_mode=LOCK_NONE;
-              _pitch    =0;
-              _pitch2   =0;
-               Free(_data);
-            }break;
-
-            case IMAGE_3D:
-            {
-               if(_lock_mode!=LOCK_READ && D3DC)D3DC->UpdateSubresource(_vol, D3D11CalcSubresource(lMipMap(), 0, mipMaps()), null, data(), pitch(), pitch2());
               _lock_size.zero();
               _lmm      =0;
             //_lcf      =0;
@@ -2439,7 +2422,7 @@ Bool Image::setFrom(CPtr data, Int data_pitch, Int mip_map, DIR_ENUM cube_face)
       }
    #endif
    #if DX11
-      if(hw() && InRange(mip_map, mipMaps()) && InRange(cube_face, 6))
+      if(hw() && InRange(mip_map, mipMaps()) && InRange(cube_face, faces()))
       {
          Int data_pitch2=data_pitch*valid_blocks_y; // 'data_pitch2' could be moved into a method parameter
          SyncLocker locker(D._lock); if(D3DC)switch(mode())
@@ -2447,16 +2430,6 @@ Bool Image::setFrom(CPtr data, Int data_pitch, Int mip_map, DIR_ENUM cube_face)
             case IMAGE_RT:
             case IMAGE_2D:
             case IMAGE_DS:
-            {
-               D3DC->UpdateSubresource(_txtr, D3D11CalcSubresource(mip_map, 0, mipMaps()), null, data, data_pitch, data_pitch2);
-            }return true;
-
-            case IMAGE_3D:
-            {
-               D3DC->UpdateSubresource(_vol, D3D11CalcSubresource(mip_map, 0, mipMaps()), null, data, data_pitch, data_pitch2);
-            }return true;
-
-            case IMAGE_CUBE:
             {
                D3DC->UpdateSubresource(_txtr, D3D11CalcSubresource(mip_map, cube_face, mipMaps()), null, data, data_pitch, data_pitch2);
             }return true;
