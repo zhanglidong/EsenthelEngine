@@ -165,7 +165,6 @@ bool SaveCode(C Str &code, C Str &name)
 {
  //FileText f; f.writeMem(HasUnicode(code) ? UTF_16 : ANSI); // avoid UTF_8 because it's slower to write/read, and as there can be lot of codes, we don't want to sacrifice performance when opening big projects
    FileText f; f.writeMem(HasUnicode(code) ? UTF_8 : ANSI); // FIXME restore above UTF_16 once github supports it, because now it can corrupt files
-   f.fix_new_line=false; // don't write '\r' to reduce size and improve performance for saving/loading
    f.putText(code);
    return EE::SafeOverwrite(f, name);
 }

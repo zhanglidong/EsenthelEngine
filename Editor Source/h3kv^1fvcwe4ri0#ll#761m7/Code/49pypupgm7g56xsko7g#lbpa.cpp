@@ -789,7 +789,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
          if(elm.type==ELM_FONT) // font
             if(android || iOS || (web && !WebBC7)) // desktop platform already has the best format chosen during font creation
                if(ElmFont *data=elm.fontData())
-                  if(IMAGE_TYPE dest_type=((android || iOS) ? IMAGE_ETC2_A8_SRGB : IMAGE_BC3_SRGB)) // for Android/iOS GL_ES 3.0+ use IMAGE_ETC2_A8, don't use IMAGE_PVRTC1_2/IMAGE_PVRTC1_4 because the quality is too low
+                  if(IMAGE_TYPE dest_type=((android || iOS) ? IMAGE_ETC2_A8 : IMAGE_BC3)) // for Android/iOS GL_ES 3.0+ use IMAGE_ETC2_A8, don't use IMAGE_PVRTC1_2/IMAGE_PVRTC1_4 because the quality is too low
          {
             Str src_name=pfd.data.name,
                dest_name=Proj.formatPath(elm.id, FormatSuffix(dest_type));
