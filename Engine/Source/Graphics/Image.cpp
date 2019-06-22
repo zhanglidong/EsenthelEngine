@@ -867,7 +867,7 @@ Bool Image::setInfo()
             if(cube()          ){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURECUBE; srvd.TextureCube.MipLevels=mipMaps();}else
             if(!multiSample()  ){srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D  .MipLevels=mipMaps();}else
                                 {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2DMS;}
-            D3D->CreateShaderResourceView(res, &srvd, &_srv); if(!_srv)return false;
+            D3D->CreateShaderResourceView(res, &srvd, &_srv); if(!_srv && mode()!=IMAGE_DS)return false; // allow '_srv' optional in IMAGE_DS
          }break;
       }
       if(mode()==IMAGE_RT /*|| mode()==IMAGE_RT_CUBE*/)
