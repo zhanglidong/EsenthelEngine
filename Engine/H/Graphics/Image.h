@@ -658,12 +658,24 @@ private:
    Vec        _part;
    Byte      *_data, *_data_all;
 #if EE_PRIVATE
-   GPU_API(ID3D11Resource           *_txtr, union{UInt   _txtr ; Ptr _txtr_ptr ;});
-   GPU_API(ID3D11ShaderResourceView *_srv , union{UInt   _rb   ; Ptr _rb_ptr   ;});
-   GPU_API(Ptr                       _ptr , union{VecUS2 _addr ; Ptr _addr_ptr ;});
-   GPU_API(Ptr                       _ptr1, union{VecUS2 _addr1; Ptr _addr1_ptr;});
+   #if DX11
+      ID3D11Resource           *_txtr;
+      ID3D11ShaderResourceView *_srv ;
+   #elif GL
+      union
+      {
+         struct
+         {
+            UInt   _txtr, _rb;
+         #if X64 // on X64 size of pointer is 8, so we have room for caching UVW addressing
+            UShort _addr_u, _addr_v, _addr_w;
+         #endif
+         };
+         Ptr _ptr[2]; // need pointers to force alignment
+      };
+   #endif
 #else
-   Ptr        _ptr[4];
+   Ptr        _ptr[2];
 #endif
 };
 /******************************************************************************/

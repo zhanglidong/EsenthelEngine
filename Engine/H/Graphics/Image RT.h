@@ -106,7 +106,7 @@ private:
    ID3D11RenderTargetView   *_rtv, *_rtv_srgb;
    ID3D11DepthStencilView   *_dsv, *_rdsv;
 #else
-   Ptr  _srv_srgb, _rtv_srgb, _dsv, _rdsv;
+   Ptr  _srv_srgb, _rtv, _rtv_srgb, _dsv, _rdsv;
 #endif
    NO_COPY_CONSTRUCTOR(ImageRT);
 };

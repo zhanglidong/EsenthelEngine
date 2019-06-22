@@ -113,8 +113,13 @@ static void SetTexture(Int index, C Image *image, ShaderImage::Sampler *sampler)
                s=sampler->address[0];
                t=sampler->address[1];
             }
-            if(image->_addr.x!=s)glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, ConstCast(image->_addr.x)=s);
-            if(image->_addr.y!=t)glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, ConstCast(image->_addr.y)=t);
+         #if X64
+            if(image->_addr_u!=s)glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, ConstCast(image->_addr_u)=s);
+            if(image->_addr_v!=t)glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, ConstCast(image->_addr_v)=t);
+         #else
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, s);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, t);
+         #endif
          }break;
 
          case IMAGE_3D:
@@ -127,9 +132,15 @@ static void SetTexture(Int index, C Image *image, ShaderImage::Sampler *sampler)
                t=sampler->address[1];
                r=sampler->address[2];
             }
-            if(image->_addr .x!=s)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, ConstCast(image->_addr .x)=s);
-            if(image->_addr .y!=t)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, ConstCast(image->_addr .y)=t);
-            if(image->_addr1.x!=r)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, ConstCast(image->_addr1.x)=r);
+         #if X64
+            if(image->_addr_u!=s)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, ConstCast(image->_addr_u)=s);
+            if(image->_addr_v!=t)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, ConstCast(image->_addr_v)=t);
+            if(image->_addr_w!=r)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, ConstCast(image->_addr_w)=r);
+         #else
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, s);
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, t);
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, r);
+         #endif
          }break;
 
          case IMAGE_CUBE:
@@ -151,12 +162,18 @@ static void SetTexture(Int index, C Image *image, ShaderImage::Sampler *sampler)
             s=sampler->address[0];
             t=sampler->address[1];
          }
-         if(image->_addr.x!=s || image->_addr.y!=t)
+      #if X64
+         if(image->_addr_u!=s || image->_addr_v!=t)
          {
             ActivateTexture(index);      TexBind(GL_TEXTURE_2D, image->_txtr);
-            if(image->_addr.x!=s)glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, ConstCast(image->_addr.x)=s);
-            if(image->_addr.y!=t)glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, ConstCast(image->_addr.y)=t);
+            if(image->_addr_u!=s)glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, ConstCast(image->_addr_u)=s);
+            if(image->_addr_v!=t)glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, ConstCast(image->_addr_v)=t);
          }
+      #else
+         ActivateTexture(index); TexBind(GL_TEXTURE_2D, image->_txtr);
+         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, s);
+         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, t);
+      #endif
       }break;
 
       case IMAGE_3D:
@@ -168,13 +185,20 @@ static void SetTexture(Int index, C Image *image, ShaderImage::Sampler *sampler)
             t=sampler->address[1];
             r=sampler->address[2];
          }
-         if(image->_addr.x!=s || image->_addr.y!=t || image->_addr1.x!=r)
+      #if X64
+         if(image->_addr_u!=s || image->_addr_v!=t || image->_addr_w!=r)
          {
-            ActivateTexture(index);       TexBind(GL_TEXTURE_3D, image->_txtr);
-            if(image->_addr .x!=s)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, ConstCast(image->_addr .x)=s);
-            if(image->_addr .y!=t)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, ConstCast(image->_addr .y)=t);
-            if(image->_addr1.x!=r)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, ConstCast(image->_addr1.x)=r);
+            ActivateTexture(index);      TexBind(GL_TEXTURE_3D, image->_txtr);
+            if(image->_addr_u!=s)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, ConstCast(image->_addr_u)=s);
+            if(image->_addr_v!=t)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, ConstCast(image->_addr_v)=t);
+            if(image->_addr_w!=r)glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, ConstCast(image->_addr_w)=r);
          }
+      #else
+         ActivateTexture(index); TexBind(GL_TEXTURE_3D, image->_txtr);
+         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, s);
+         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, t);
+         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, r);
+      #endif
       }break;
    }
 #endif

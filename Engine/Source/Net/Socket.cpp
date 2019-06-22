@@ -53,6 +53,7 @@ static INLINE Int CompareV6(CPtr a, CPtr b) // assumes that a!=null && b!=null
 }
 
 #if WINDOWS_OLD && SUPPORT_WINDOWS_XP // Windows XP doesn't have 'inet_pton' and 'inet_ntop' and apps won't start, so the functions need to be written manually
+#pragma warning(disable:4996)
 static Int inet_ptonXP(Int addr_family, CChar8 *src, Ptr addr)
 {
    Char8            src_copy[INET6_ADDRSTRLEN]; Set(src_copy, src); // need to make a copy because the 'WSAStringToAddressA' param is not const
