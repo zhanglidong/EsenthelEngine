@@ -2795,7 +2795,7 @@ void Image::copyHw(ImageRT &dest, Bool restore_rt, C Rect &rect)C
    copyHw(dest, restore_rt, &rect_src, &rect_dest);
 }
 /******************************************************************************/
-Bool Image::capture(C Image &src)
+Bool Image::capture(C ImageRT &src)
 {
 #if DX11
    if(src._txtr)

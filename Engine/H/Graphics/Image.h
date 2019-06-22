@@ -640,7 +640,7 @@ struct Image // Image (Texture)
    void copyHw  (ImageRT &dest, Bool restore_rt,                    C RectI *rect_src=null, C RectI *rect_dest=null, Bool *flipped=null)C; // hardware     texture copy
    void copyHw  (ImageRT &dest, Bool restore_rt,                    C Rect  &rect                                                      )C; // hardware     texture copy
 
-   Bool capture(C Image &src);
+   Bool capture(C ImageRT &src);
 #endif
 
 #if !EE_PRIVATE
