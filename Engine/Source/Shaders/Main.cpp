@@ -630,7 +630,7 @@ Vec4 Font_PS
    // a + s - s*a
    Flt final_alpha=a+s-s*a;
 
-#if 1 // use for ALPHA_BLEND (this option is better because we don't need to set blend state specificaly for drawing fonts)
+#if 1 // use for ALPHA_BLEND (this option is better because we don't need to set blend state specifically for drawing fonts)
    return Vec4(Color[0].rgb*(Lerp(FontShade, 1, Sat(inShade))*a/(final_alpha+EPS)), Color[0].a*final_alpha); // NaN, division by 'final_alpha' is required because of the hardware ALPHA_BLEND formula, without it we would get dark borders around the font
 #else // use for ALPHA_MERGE
    return Vec4(Color[0].rgb*(Lerp(FontShade, 1, Sat(inShade))*a*Color[0].a), Color[0].a*final_alpha);

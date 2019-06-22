@@ -95,7 +95,6 @@ class FontEditor : PropWin
    static void ParamsClearType (Params &p, C Str &t) {p.clear_type     =TextBool(t); p.     clear_type_time.getUTC();}
    static void ParamsSoftware  (Params &p, C Str &t) {p.software       =TextBool(t); p.       software_time.getUTC();}
    static void ParamsWeight    (Params &p, C Str &t) {p.weight         =TextFlt (t); p.         weight_time.getUTC();}
-   static void ParamsMinFilter (Params &p, C Str &t) {p.min_filter     =TextFlt (t); p.     min_filter_time.getUTC();}
    static void ParamsDiagShadow(Params &p, C Str &t) {p.diagonal_shadow=TextBool(t); p.diagonal_shadow_time.getUTC();}
    static void ParamsMipMaps   (Params &p, C Str &t) {p.mip_maps       =TextInt (t); p.       mip_maps_time.getUTC();}
    static void ParamsShdBlur   (Params &p, C Str &t) {p.shadow_blur    =TextFlt (t); p.    shadow_blur_time.getUTC();}
@@ -125,7 +124,6 @@ class FontEditor : PropWin
       add("Software"       , MemberDesc(MEMBER(Params, software       )).setTextToDataFunc(ParamsSoftware  )).desc("Create Font in Software mode, which will allow faster software processing (drawing in software mode), however drawing using the GPU will not be allowed");
     //add("Sub Pixel"      , MemberDesc(MEMBER(Params, sub_pixel      )).setTextToDataFunc(ParamsSubPixel  )).desc("Warning: enabling this option will increase font quality only if it will be drawn with correct scale,\nin other case font quality will be worse.\nThis option has no effect if 'Clear Type' is disabled.\nUsing this option disables shadows.");
       add("Weight"         , MemberDesc(MEMBER(Params, weight         )).setTextToDataFunc(ParamsWeight    )).range(0, 1).mouseEditSpeed(0.25);
-      add("Minimum Filter" , MemberDesc(MEMBER(Params, min_filter     )).setTextToDataFunc(ParamsMinFilter )).range(0, 1).mouseEditSpeed(0.25);
       add("Diagonal Shadow", MemberDesc(MEMBER(Params, diagonal_shadow)).setTextToDataFunc(ParamsDiagShadow));
       add("Mip Maps"       , MemberDesc(MEMBER(Params, mip_maps       )).setTextToDataFunc(ParamsMipMaps   )).range(0, 8).mouseEditSpeed(2).desc("Set number of Mip Maps:\n0 = Full Set\n1 = 1 Mip Map\n2 = 2 Mip Maps\n3 = 3 Mip Maps\n..");
       add("Shadow Blur"    , MemberDesc(MEMBER(Params, shadow_blur    )).setTextToDataFunc(ParamsShdBlur   )).range(0, 1).mouseEditSpeed(0.05);

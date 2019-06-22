@@ -12,7 +12,6 @@ class EditFont
    int  size;
    flt  scale, 
         weight,
-        min_filter,
         shadow_blur,
         shadow_opacity,
         shadow_spread;
@@ -25,7 +24,6 @@ class EditFont
              size_time,
              scale_time,
              weight_time,
-             min_filter_time,
              shadow_blur_time,
              shadow_opacity_time,
              shadow_spread_time,

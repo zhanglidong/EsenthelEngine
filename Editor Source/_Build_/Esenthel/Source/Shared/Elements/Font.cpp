@@ -29,7 +29,6 @@
       fp.mode           =(clear_type ? Font::SMOOTHED : Font::DEFAULT);
       fp.software       =(chars      ? false         : software    ); // if 'chars' is provided then it means we're creating only a preview, so use HW to be able to draw
       fp.weight         =weight         ;
-      fp.minimum_filter =min_filter     ;
       fp.mip_maps       =mip_maps       ;
       fp.shadow_blur    =shadow_blur    ;
       fp.shadow_diagonal=diagonal_shadow;
@@ -49,7 +48,6 @@
           || size_time>src.size_time
           || scale_time>src.scale_time
           || weight_time>src.weight_time
-          || min_filter_time>src.min_filter_time
           || shadow_blur_time>src.shadow_blur_time
           || shadow_opacity_time>src.shadow_opacity_time
           || shadow_spread_time>src.shadow_spread_time
@@ -66,7 +64,6 @@
           && size_time==src.size_time
           && scale_time==src.scale_time
           && weight_time==src.weight_time
-          && min_filter_time==src.min_filter_time
           && shadow_blur_time==src.shadow_blur_time
           && shadow_opacity_time==src.shadow_opacity_time
           && shadow_spread_time==src.shadow_spread_time
@@ -83,7 +80,6 @@
       size_time++;
       scale_time++;
       weight_time++;
-      min_filter_time++;
       shadow_blur_time++;
       shadow_opacity_time++;
       shadow_spread_time++;
@@ -107,7 +103,6 @@
       changed|=Sync(           size_time, src.           size_time,            size, src.           size);
       changed|=Sync(          scale_time, src.          scale_time,           scale, src.          scale);
       changed|=Sync(         weight_time, src.         weight_time,          weight, src.         weight);
-      changed|=Sync(     min_filter_time, src.     min_filter_time,      min_filter, src.     min_filter);
       changed|=Sync(    shadow_blur_time, src.    shadow_blur_time,     shadow_blur, src.    shadow_blur);
       changed|=Sync( shadow_opacity_time, src. shadow_opacity_time,  shadow_opacity, src. shadow_opacity);
       changed|=Sync(  shadow_spread_time, src.  shadow_spread_time,   shadow_spread, src.  shadow_spread);
@@ -133,7 +128,6 @@
       changed|=Undo(           size_time, src.           size_time,            size, src.           size);
       changed|=Undo(          scale_time, src.          scale_time,           scale, src.          scale);
       changed|=Undo(         weight_time, src.         weight_time,          weight, src.         weight);
-      changed|=Undo(     min_filter_time, src.     min_filter_time,      min_filter, src.     min_filter);
       changed|=Undo(    shadow_blur_time, src.    shadow_blur_time,     shadow_blur, src.    shadow_blur);
       changed|=Undo( shadow_opacity_time, src. shadow_opacity_time,  shadow_opacity, src. shadow_opacity);
       changed|=Undo(  shadow_spread_time, src.  shadow_spread_time,   shadow_spread, src.  shadow_spread);
@@ -143,18 +137,29 @@
    }
    bool EditFont::save(File &f)C
    {
-      f.cmpUIntV(5);
+      f.cmpUIntV(6);
       f<<diagonal_shadow<<clear_type<<software<<ascii<<german<<french<<polish<<chinese<<japanese<<korean<<russian
-       <<mip_maps<<size<<scale<<weight<<min_filter<<shadow_blur<<shadow_opacity<<shadow_spread
+       <<mip_maps<<size<<scale<<weight<<shadow_blur<<shadow_opacity<<shadow_spread
        <<diagonal_shadow_time<<clear_type_time<<software_time<<ascii_time<<german_time<<french_time<<polish_time<<chinese_time<<japanese_time<<korean_time<<russian_time
-       <<mip_maps_time<<size_time<<scale_time<<weight_time<<min_filter_time<<shadow_blur_time<<shadow_opacity_time<<shadow_spread_time<<font_time<<custom_chars_time
+       <<mip_maps_time<<size_time<<scale_time<<weight_time<<shadow_blur_time<<shadow_opacity_time<<shadow_spread_time<<font_time<<custom_chars_time
        <<font<<custom_chars;
       return f.ok();
    }
    bool EditFont::load(File &f)
    {
+      flt min_filter; TimeStamp min_filter_time;
       reset(); switch(f.decUIntV())
       {
+         case 6:
+         {
+            f>>diagonal_shadow>>clear_type>>software>>ascii>>german>>french>>polish>>chinese>>japanese>>korean>>russian
+             >>mip_maps>>size>>scale>>weight>>shadow_blur>>shadow_opacity>>shadow_spread
+             >>diagonal_shadow_time>>clear_type_time>>software_time>>ascii_time>>german_time>>french_time>>polish_time>>chinese_time>>japanese_time>>korean_time>>russian_time
+             >>mip_maps_time>>size_time>>scale_time>>weight_time>>shadow_blur_time>>shadow_opacity_time>>shadow_spread_time>>font_time>>custom_chars_time
+             >>font>>custom_chars;
+            if(f.ok())return true;
+         }break;
+
          case 5:
          {
             f>>diagonal_shadow>>clear_type>>software>>ascii>>german>>french>>polish>>chinese>>japanese>>korean>>russian
@@ -222,6 +227,6 @@
       File f; if(f.readTry(name))return load(f);
       reset(); return false;
    }
-EditFont::EditFont() : diagonal_shadow(true), clear_type(false), software(false), ascii(true), german(false), french(false), polish(false), chinese(false), japanese(false), korean(false), russian(false), mip_maps(0), size(48), scale(1), weight(0), min_filter(0), shadow_blur(0.04f), shadow_opacity(1.0f), shadow_spread(0.0f), font("Arial") {}
+EditFont::EditFont() : diagonal_shadow(true), clear_type(false), software(false), ascii(true), german(false), french(false), polish(false), chinese(false), japanese(false), korean(false), russian(false), mip_maps(0), size(48), scale(1), weight(0), shadow_blur(0.04f), shadow_opacity(1.0f), shadow_spread(0.0f), font("Arial") {}
 
 /******************************************************************************/

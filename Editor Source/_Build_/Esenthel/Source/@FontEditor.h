@@ -48,7 +48,6 @@ public:
    static void ParamsClearType (Params &p, C Str &t);
    static void ParamsSoftware  (Params &p, C Str &t);
    static void ParamsWeight    (Params &p, C Str &t);
-   static void ParamsMinFilter (Params &p, C Str &t);
    static void ParamsDiagShadow(Params &p, C Str &t);
    static void ParamsMipMaps   (Params &p, C Str &t);
    static void ParamsShdBlur   (Params &p, C Str &t);
