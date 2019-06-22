@@ -69,6 +69,7 @@ struct MainShaderClass
       *h_VtxHeightmap,
 
       *h_FontShadow  ,
+      *h_FontLum     ,
       *h_FontContrast,
       *h_FontShade   ,
       *h_FontDepth   ,

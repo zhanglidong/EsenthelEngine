@@ -440,9 +440,13 @@ static Int    FindCode(C TextCodeData *code, Int codes, CPtr cur_pos)
 static void SetCode(C TextCodeData *code, C TextStyleParams &text_style, Bool sub_pixel)
 {
    VI.flush();
-   if(sub_pixel){                      Color c=((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color ) ; D.alphaFactor(c); c.r=c.g=c.b=c.a; VI.color(c);}
-   else         {VI.color                     (((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color ));
-                 Sh.h_FontShadow->set(ByteToFlt((code && code->shadow_mode!=TextCodeData::DEFAULT) ? code->shadow : text_style.shadow));}
+                                        Color c=((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color );
+   if(!sub_pixel){Sh.h_FontShadow->set(ByteToFlt((code && code->shadow_mode!=TextCodeData::DEFAULT) ? code->shadow : text_style.shadow));
+               #if LINEAR_GAMMA
+                  Sh.h_FontLum   ->set(Min(c.lum(), 128)/128.0f); // calculate text brightness 0..1, multiply by "2" (/128.0f instead of /255.0f) will give better results for grey text color (reaches 1.0 already at grey 128 byte value)
+               #endif
+   }else {D.alphaFactor(c); c.r=c.g=c.b=c.a;}
+   VI.color(c);
 }
 void DrawKeyboardCursor(C Vec2 &pos, Flt height)
 {

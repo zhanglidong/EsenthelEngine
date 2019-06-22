@@ -575,6 +575,7 @@ TECHNIQUE(DrawCubeFace, DrawCubeFace_VS(), DrawCubeFace_PS());
 BUFFER(Font)
    Flt FontShadow,
        FontContrast=1,
+       FontLum,
        FontShade,
        FontDepth;
 BUFFER_END
@@ -618,8 +619,8 @@ Vec4 Font_PS
    {
       //a=  Sqr(  a); // good for bright text
       //a=1-Sqr(1-a); // good for dark   text
-      Flt lum=Min(Max(Color[0].rgb)*4.672, 1); // calculate text brightness, multiply by "1/SRGBToLinear(0.5)" will give better results for grey text color, 'FontShade' is ignored for performance reasons
-      a=Lerp(1-Sqr(1-a), Sqr(a), lum);
+      //Flt lum=Min(Max(Color[0].rgb)*4.672, 1); // calculate text brightness, multiply by "1/SRGBToLinear(0.5)" will give better results for grey text color, 'FontShade' is ignored for performance reasons
+      a=Lerp(1-Sqr(1-a), Sqr(a), FontLum);
       s=     1-Sqr(1-s);
    }
 

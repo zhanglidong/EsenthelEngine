@@ -383,6 +383,7 @@ void MainShaderClass::getTechniques()
 
    // FONT
    h_FontShadow  =GetShaderParam("FontShadow"  );
+   h_FontLum     =GetShaderParam("FontLum"     );
    h_FontContrast=GetShaderParam("FontContrast");
    h_FontShade   =GetShaderParam("FontShade"   );
    h_FontDepth   =GetShaderParam("FontDepth"   );
