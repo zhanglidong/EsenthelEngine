@@ -738,23 +738,34 @@ struct FontDraw
 
                Vec4 c=src->colorFLinear(tx, ty);
 
-               // #FontImageLayout
-               Flt  a=Min(c.x*contrast, 1), // font opacity, scale up by 'contrast' to improve quality when font is very small
-                    s=    c.y*shadow      ; // font shadow
+               if(sub_pixel)
+               {
+                  Vec4 d=T.dest.colorF(x, y);
+                  Vec4 out;
+                  c*=color.w;
+                  out.xyz=c.xyz*color.xyz + d.xyz*(1-c.xyz);
+                  out.w  =c.w  *color.w   + d.w  *(1-c.w  );
+                  T.dest.colorF(x, y, out);
+               }else
+               {
+                  // #FontImageLayout
+                  Flt a=Min(c.x*contrast, 1), // font opacity, scale up by 'contrast' to improve quality when font is very small
+                      s=    c.y*shadow      ; // font shadow
 
-               // Flt final_alpha=1-(1-s)*(1-a);
-               // 1-(1-s)*(1-a)
-               // 1-(1-a-s+sa)
-               // 1-1+a+s-sa
-               // a + s - s*a
-               Flt final_alpha=a+s-s*a;
+                  // Flt final_alpha=1-(1-s)*(1-a);
+                  // 1-(1-s)*(1-a)
+                  // 1-(1-a-s+sa)
+                  // 1-1+a+s-sa
+                  // a + s - s*a
+                  Flt final_alpha=a+s-s*a;
 
-               // ALPHA_MERGE:
-               Vec4 out;
-               out.xyz=color.xyz*(a*color.w);
-               out.w  =color.w*final_alpha;
+                  // ALPHA_MERGE:
+                  Vec4 out;
+                  out.xyz=color.xyz*(a*color.w);
+                  out.w  =color.w*final_alpha;
 
-               T.dest.mergeF(x, y, out);
+                  T.dest.mergeF(x, y, out);
+               }
             }
          }
       }
