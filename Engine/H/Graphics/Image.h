@@ -73,6 +73,8 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
    IMAGE_BC2_SRGB, // BC2/DXT3 8-bit lossy RGBA compression with sharp  alpha transitions, sRGB   gamma, Soft, DX10+, GL, partial Android
    IMAGE_BC3     , // BC3/DXT5 8-bit lossy RGBA compression with smooth alpha transitions, linear gamma, Soft, DX10+, GL, partial Android
    IMAGE_BC3_SRGB, // BC3/DXT5 8-bit lossy RGBA compression with smooth alpha transitions, sRGB   gamma, Soft, DX10+, GL, partial Android
+   IMAGE_BC4     , // BC4      4-bit lossy R    compression                              , linear gamma, Soft, DX10+, GL, partial Android
+   IMAGE_BC5     , // BC5      8-bit lossy RG   compression                              , linear gamma, Soft, DX10+, GL, partial Android
    IMAGE_BC6     , // BC6      8-bit lossy RGB 16-bit floating point compression         , linear gamma, Soft, DX11+, partial GL (compressing images to this format is available only when 'SupportCompressBC' was called in 'InitPre')
    IMAGE_BC7     , // BC7      8-bit lossy RGBA         high quality compression         , linear gamma, Soft, DX11+, partial GL (compressing images to this format is available only when 'SupportCompressBC' was called in 'InitPre')
    IMAGE_BC7_SRGB, // BC7      8-bit lossy RGBA         high quality compression         , sRGB   gamma, Soft, DX11+, partial GL (compressing images to this format is available only when 'SupportCompressBC' was called in 'InitPre')
@@ -115,8 +117,6 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
 
    IMAGE_R11G11B10F,
    IMAGE_R9G9B9E5F ,
-   IMAGE_BC4       ,
-   IMAGE_BC5       ,
 
    IMAGE_ALL_TYPES, // number of all types
 #endif

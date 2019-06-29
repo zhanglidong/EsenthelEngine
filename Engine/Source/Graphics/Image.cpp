@@ -107,6 +107,8 @@ ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have the sa
    {"BC2_SRGB"     , true ,  1,  8,   5, 6, 5, 4,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC2_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT)},
    {"BC3"          , true ,  1,  8,   5, 6, 5, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC3_UNORM     , GL_COMPRESSED_RGBA_S3TC_DXT5_EXT)},
    {"BC3_SRGB"     , true ,  1,  8,   5, 6, 5, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC3_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT)},
+   {"BC4"          , true ,  1,  4,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC4_UNORM     , GL_COMPRESSED_RED_RGTC1)},
+   {"BC5"          , true ,  1,  8,   8, 8, 0, 0,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC5_UNORM     , GL_COMPRESSED_RG_RGTC2)},
    {"BC6"          , true ,  1,  8,  16,16,16, 0,   0,0, 3, IMAGE_PRECISION_16, 0, GPU_API(DXGI_FORMAT_BC6H_UF16     , GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT)},
    {"BC7"          , true ,  1,  8,   7, 7, 7, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC7_UNORM     , GL_COMPRESSED_RGBA_BPTC_UNORM)},
    {"BC7_SRGB"     , true ,  1,  8,   7, 7, 7, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC7_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM)},
@@ -147,8 +149,6 @@ ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have the sa
 
    {"R11G11B10F"   , false,  4, 32,  11,11,10, 0,   0,0, 3, IMAGE_PRECISION_10, 0, GPU_API(DXGI_FORMAT_R11G11B10_FLOAT   , GL_R11F_G11F_B10F)},
    {"R9G9B9E5F"    , false,  4, 32,  14,14,14, 0,   0,0, 3, IMAGE_PRECISION_10, 0, GPU_API(DXGI_FORMAT_R9G9B9E5_SHAREDEXP, GL_RGB9_E5)},
-   {"BC4"          , true ,  1,  4,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC4_UNORM         , GL_COMPRESSED_RED_RGTC1)},
-   {"BC5"          , true ,  1,  8,   8, 8, 0, 0,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC5_UNORM         , GL_COMPRESSED_RG_RGTC2)},
 }; ASSERT(IMAGE_ALL_TYPES==66);
 /******************************************************************************/
 Bool IsSRGB(IMAGE_TYPE type)

@@ -45,7 +45,7 @@ struct Font
       {
          software=false; shadow_diagonal=true; mip_maps=3; size=48; max_image_size=2048;
          scale=1.0f; shadow_blur=0.04f; shadow_opacity=1.0f; shadow_spread=0.0f; weight=0;
-         mode=DEFAULT; image_type=IMAGE_BC7;
+         mode=DEFAULT; image_type=IMAGE_BC5;
       }
    };
 
