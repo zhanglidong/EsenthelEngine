@@ -398,6 +398,8 @@ static Color DecompressPixel(C Image &image, Int x, Int y)
       case IMAGE_BC1    : case IMAGE_BC1_SRGB    : return DecompressPixelBC1   (image.data() + (x>>2)* 8 + (y>>2)*image.pitch(), x&3, y&3);
       case IMAGE_BC2    : case IMAGE_BC2_SRGB    : return DecompressPixelBC2   (image.data() + (x>>2)*16 + (y>>2)*image.pitch(), x&3, y&3);
       case IMAGE_BC3    : case IMAGE_BC3_SRGB    : return DecompressPixelBC3   (image.data() + (x>>2)*16 + (y>>2)*image.pitch(), x&3, y&3);
+      case IMAGE_BC4    :                          return DecompressPixelBC4   (image.data() + (x>>2)*16 + (y>>2)*image.pitch(), x&3, y&3);
+      case IMAGE_BC5    :                          return DecompressPixelBC5   (image.data() + (x>>2)*16 + (y>>2)*image.pitch(), x&3, y&3);
       case IMAGE_BC7    : case IMAGE_BC7_SRGB    : return DecompressPixelBC7   (image.data() + (x>>2)*16 + (y>>2)*image.pitch(), x&3, y&3);
       case IMAGE_ETC1   :                          return DecompressPixelETC1  (image.data() + (x>>2)* 8 + (y>>2)*image.pitch(), x&3, y&3);
       case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   : return DecompressPixelETC2  (image.data() + (x>>2)* 8 + (y>>2)*image.pitch(), x&3, y&3);
@@ -413,6 +415,8 @@ static Color DecompressPixel(C Image &image, Int x, Int y, Int z)
       case IMAGE_BC1    : case IMAGE_BC1_SRGB    : return DecompressPixelBC1   (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
       case IMAGE_BC2    : case IMAGE_BC2_SRGB    : return DecompressPixelBC2   (image.data() + (x>>2)*16 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
       case IMAGE_BC3    : case IMAGE_BC3_SRGB    : return DecompressPixelBC3   (image.data() + (x>>2)*16 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
+      case IMAGE_BC4    :                          return DecompressPixelBC4   (image.data() + (x>>2)*16 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
+      case IMAGE_BC5    :                          return DecompressPixelBC5   (image.data() + (x>>2)*16 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
       case IMAGE_BC7    : case IMAGE_BC7_SRGB    : return DecompressPixelBC7   (image.data() + (x>>2)*16 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
       case IMAGE_ETC1   :                          return DecompressPixelETC1  (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
       case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   : return DecompressPixelETC2  (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
@@ -483,6 +487,8 @@ static inline Flt GetPixelF(C Byte *data, C Image &image, Bool _2d, Int x, Int y
       case IMAGE_BC1    : case IMAGE_BC1_SRGB    :
       case IMAGE_BC2    : case IMAGE_BC2_SRGB    :
       case IMAGE_BC3    : case IMAGE_BC3_SRGB    :
+      case IMAGE_BC4    :
+      case IMAGE_BC5    :
       case IMAGE_BC7    : case IMAGE_BC7_SRGB    :
       case IMAGE_ETC1   :
       case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   :
@@ -553,6 +559,8 @@ static inline Color GetColor(C Byte *data, C Image &image, Bool _2d, Int x, Int 
       case IMAGE_BC1    : case IMAGE_BC1_SRGB    :
       case IMAGE_BC2    : case IMAGE_BC2_SRGB    :
       case IMAGE_BC3    : case IMAGE_BC3_SRGB    :
+      case IMAGE_BC4    :
+      case IMAGE_BC5    :
       case IMAGE_BC7    : case IMAGE_BC7_SRGB    :
       case IMAGE_ETC1   :
       case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   :
@@ -1105,6 +1113,8 @@ static inline Vec4 GetColorF(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
       case IMAGE_BC1    : case IMAGE_BC1_SRGB    :
       case IMAGE_BC2    : case IMAGE_BC2_SRGB    :
       case IMAGE_BC3    : case IMAGE_BC3_SRGB    :
+      case IMAGE_BC4    :
+      case IMAGE_BC5    :
       case IMAGE_BC7    : case IMAGE_BC7_SRGB    :
       case IMAGE_ETC1   :
       case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   :
@@ -1268,6 +1278,8 @@ static inline Vec4 GetColorL(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
       case IMAGE_BC1    :
       case IMAGE_BC2    :
       case IMAGE_BC3    :
+      case IMAGE_BC4    :
+      case IMAGE_BC5    :
       case IMAGE_BC7    :
       case IMAGE_ETC1   :
       case IMAGE_ETC2   :
@@ -1352,6 +1364,8 @@ static inline Vec4 GetColorS(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
       case IMAGE_BC1    :
       case IMAGE_BC2    :
       case IMAGE_BC3    :
+      case IMAGE_BC4    :
+      case IMAGE_BC5    :
       case IMAGE_BC7    :
       case IMAGE_ETC1   :
       case IMAGE_ETC2   :

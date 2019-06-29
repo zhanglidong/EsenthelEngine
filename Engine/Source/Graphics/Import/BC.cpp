@@ -136,30 +136,34 @@ void DecompressBlockBC2(C Byte *b, Color *dest, Int pitch)
    }
 }
 /******************************************************************************/
+static inline void _DecompressBlockBC4(C Byte *b, Byte value[8], U64 &is)
+{
+   value[0]=b[0];
+   value[1]=b[1];
+   if(value[0]>value[1])
+   {
+      value[2]=(value[0]*6 + value[1]*1 + 3)/7;
+      value[3]=(value[0]*5 + value[1]*2 + 3)/7;
+      value[4]=(value[0]*4 + value[1]*3 + 3)/7;
+      value[5]=(value[0]*3 + value[1]*4 + 3)/7;
+      value[6]=(value[0]*2 + value[1]*5 + 3)/7;
+      value[7]=(value[0]*1 + value[1]*6 + 3)/7;
+   }else
+   {
+      value[2]=(value[0]*4 + value[1]*1 + 2)/5;
+      value[3]=(value[0]*3 + value[1]*2 + 2)/5;
+      value[4]=(value[0]*2 + value[1]*3 + 2)/5;
+      value[5]=(value[0]*1 + value[1]*4 + 2)/5;
+      value[6]=                              0;
+      value[7]=                            255;
+   }
+   is=GetU64(b+2);
+}
+/******************************************************************************/
 static inline void _DecompressBlockBC3(C Byte *b, Color color[4], UInt &cis, Byte alpha[8], U64 &ais)
 {
   _DecompressBlockBC2(b, color, cis);
-
-   alpha[0]=b[0];
-   alpha[1]=b[1];
-   if(alpha[0]>alpha[1])
-   {
-      alpha[2]=(alpha[0]*6 + alpha[1]*1 + 3)/7;
-      alpha[3]=(alpha[0]*5 + alpha[1]*2 + 3)/7;
-      alpha[4]=(alpha[0]*4 + alpha[1]*3 + 3)/7;
-      alpha[5]=(alpha[0]*3 + alpha[1]*4 + 3)/7;
-      alpha[6]=(alpha[0]*2 + alpha[1]*5 + 3)/7;
-      alpha[7]=(alpha[0]*1 + alpha[1]*6 + 3)/7;
-   }else
-   {
-      alpha[2]=(alpha[0]*4 + alpha[1]*1 + 2)/5;
-      alpha[3]=(alpha[0]*3 + alpha[1]*2 + 2)/5;
-      alpha[4]=(alpha[0]*2 + alpha[1]*3 + 2)/5;
-      alpha[5]=(alpha[0]*1 + alpha[1]*4 + 2)/5;
-      alpha[6]=                              0;
-      alpha[7]=                            255;
-   }
-   ais=GetU64(b+2);
+  _DecompressBlockBC4(b, alpha, ais);
 }
 void DecompressBlockBC3(C Byte *b, Color (&block)[4][4])
 {
@@ -186,6 +190,62 @@ void DecompressBlockBC3(C Byte *b, Color *dest, Int pitch)
             ci=((cis>>(2*i))&3); // color index
          Color &col=color[ci];
          dest[x].set(col.r, col.g, col.b, alpha[ai]);
+      }
+      dest=(Color*)((Byte*)dest+pitch);
+   }
+}
+/******************************************************************************/
+void DecompressBlockBC4(C Byte *b, Color (&block)[4][4])
+{
+   Byte red[8]; U64 ris; _DecompressBlockBC4(b, red, ris);
+   REPD(y, 4)
+   REPD(x, 4)
+   {
+      Int i=x+(y<<2),         // pixel index
+         ri=((ris>>(3*i))&7); // red   index
+      block[y][x].set(red[ri], 0, 0, 255);
+   }
+}
+void DecompressBlockBC4(C Byte *b, Color *dest, Int pitch)
+{
+   Byte red[8]; U64 ris; _DecompressBlockBC4(b, red, ris);
+   FREPD(y, 4) // move in forward order so 'dest' can be increased by pitch
+   {
+      REPD(x, 4)
+      {
+         Int i=x+(y<<2),      // pixel index
+         ri=((ris>>(3*i))&7); // red   index
+         dest[x].set(red[ri], 0, 0, 255);
+      }
+      dest=(Color*)((Byte*)dest+pitch);
+   }
+}
+/******************************************************************************/
+void DecompressBlockBC5(C Byte *b, Color (&block)[4][4])
+{
+   Byte red  [8]; U64 ris; _DecompressBlockBC4(b  , red  , ris);
+   Byte green[8]; U64 gis; _DecompressBlockBC4(b+8, green, gis);
+   REPD(y, 4)
+   REPD(x, 4)
+   {
+      Int i=x+(y<<2),         // pixel index
+         ri=((ris>>(3*i))&7), // red   index
+         gi=((gis>>(3*i))&7); // green index
+      block[y][x].set(red[ri], green[gi], 0, 255);
+   }
+}
+void DecompressBlockBC5(C Byte *b, Color *dest, Int pitch)
+{
+   Byte red  [8]; U64 ris; _DecompressBlockBC4(b  , red  , ris);
+   Byte green[8]; U64 gis; _DecompressBlockBC4(b+8, green, gis);
+   FREPD(y, 4) // move in forward order so 'dest' can be increased by pitch
+   {
+      REPD(x, 4)
+      {
+         Int i=x+(y<<2),      // pixel index
+         ri=((ris>>(3*i))&7), // red   index
+         gi=((gis>>(3*i))&7); // green index
+         dest[x].set(red[ri], green[gi], 0, 255);
       }
       dest=(Color*)((Byte*)dest+pitch);
    }
@@ -357,6 +417,66 @@ Color DecompressPixelBC3(C Byte *b, Int x, Int y)
    }
           color[ci].a=alpha[ai];
    return color[ci];
+}
+/******************************************************************************/
+Color DecompressPixelBC4(C Byte *b, Int x, Int y)
+{
+   U64 ris=GetU64(b+2);
+   Int i  =x+(y<<2),         // pixel index
+      ri  =((ris>>(3*i))&7); // red   index
+
+   // red
+   Byte red[8];
+   red[0]=b[0];
+   red[1]=b[1];
+   switch(ri)
+   {
+      case 2: red[2]=((red[0]>red[1]) ? (red[0]*6 + red[1]*1 + 3)/7 : (red[0]*4 + red[1]*1 + 2)/5); break;
+      case 3: red[3]=((red[0]>red[1]) ? (red[0]*5 + red[1]*2 + 3)/7 : (red[0]*3 + red[1]*2 + 2)/5); break;
+      case 4: red[4]=((red[0]>red[1]) ? (red[0]*4 + red[1]*3 + 3)/7 : (red[0]*2 + red[1]*3 + 2)/5); break;
+      case 5: red[5]=((red[0]>red[1]) ? (red[0]*3 + red[1]*4 + 3)/7 : (red[0]*1 + red[1]*4 + 2)/5); break;
+      case 6: red[6]=((red[0]>red[1]) ? (red[0]*2 + red[1]*5 + 3)/7 :                           0); break;
+      case 7: red[7]=((red[0]>red[1]) ? (red[0]*1 + red[1]*6 + 3)/7 :                         255); break;
+   }
+
+   return Color(red[ri], 0, 0, 255);
+}
+Color DecompressPixelBC5(C Byte *b, Int x, Int y)
+{
+   U64 ris=GetU64(b+2), gis=GetU64(b+(8+2));
+   Int i  =x+(y<<2),         // pixel index
+      ri  =((ris>>(3*i))&7), // red   index
+      gi  =((gis>>(3*i))&7); // green index
+
+   // red
+   Byte red[8];
+   red[0]=b[0];
+   red[1]=b[1];
+   switch(ri)
+   {
+      case 2: red[2]=((red[0]>red[1]) ? (red[0]*6 + red[1]*1 + 3)/7 : (red[0]*4 + red[1]*1 + 2)/5); break;
+      case 3: red[3]=((red[0]>red[1]) ? (red[0]*5 + red[1]*2 + 3)/7 : (red[0]*3 + red[1]*2 + 2)/5); break;
+      case 4: red[4]=((red[0]>red[1]) ? (red[0]*4 + red[1]*3 + 3)/7 : (red[0]*2 + red[1]*3 + 2)/5); break;
+      case 5: red[5]=((red[0]>red[1]) ? (red[0]*3 + red[1]*4 + 3)/7 : (red[0]*1 + red[1]*4 + 2)/5); break;
+      case 6: red[6]=((red[0]>red[1]) ? (red[0]*2 + red[1]*5 + 3)/7 :                           0); break;
+      case 7: red[7]=((red[0]>red[1]) ? (red[0]*1 + red[1]*6 + 3)/7 :                         255); break;
+   }
+
+   // green
+   Byte green[8];
+   green[0]=b[8+0];
+   green[1]=b[8+1];
+   switch(gi)
+   {
+      case 2: green[2]=((green[0]>green[1]) ? (green[0]*6 + green[1]*1 + 3)/7 : (green[0]*4 + green[1]*1 + 2)/5); break;
+      case 3: green[3]=((green[0]>green[1]) ? (green[0]*5 + green[1]*2 + 3)/7 : (green[0]*3 + green[1]*2 + 2)/5); break;
+      case 4: green[4]=((green[0]>green[1]) ? (green[0]*4 + green[1]*3 + 3)/7 : (green[0]*2 + green[1]*3 + 2)/5); break;
+      case 5: green[5]=((green[0]>green[1]) ? (green[0]*3 + green[1]*4 + 3)/7 : (green[0]*1 + green[1]*4 + 2)/5); break;
+      case 6: green[6]=((green[0]>green[1]) ? (green[0]*2 + green[1]*5 + 3)/7 :                               0); break;
+      case 7: green[7]=((green[0]>green[1]) ? (green[0]*1 + green[1]*6 + 3)/7 :                             255); break;
+   }
+
+   return Color(red[ri], green[gi], 0, 255);
 }
 /******************************************************************************/
 VecH DecompressPixelBC6(C Byte *b, Int x, Int y)
@@ -898,15 +1018,17 @@ static void CompressBC3(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_
 static const Vec BCWeights=ColorLumWeight*0.65f;
 Bool CompressBC(C Image &src, Image &dest, Bool mtrl_base_1) // no need to store this in a separate CPP file, because its code size is small
 {
-   if(dest.hwType()==IMAGE_BC1      || dest.hwType()==IMAGE_BC2      || dest.hwType()==IMAGE_BC3
+   if(dest.hwType()==IMAGE_BC1      || dest.hwType()==IMAGE_BC2      || dest.hwType()==IMAGE_BC3 || dest.hwType()==IMAGE_BC4 || dest.hwType()==IMAGE_BC5
    || dest.hwType()==IMAGE_BC1_SRGB || dest.hwType()==IMAGE_BC2_SRGB || dest.hwType()==IMAGE_BC3_SRGB)
  //if(dest.size3()==src.size3()) this check is not needed because the code below supports different sizes
    {
    #if 1
       void (*compress_block)(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a)=((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB) ? CompressBC1 :
                                                                                                           (dest.hwType()==IMAGE_BC2 || dest.hwType()==IMAGE_BC2_SRGB) ? CompressBC2 :
-                                                                                                          (dest.hwType()==IMAGE_BC3 || dest.hwType()==IMAGE_BC3_SRGB) ? CompressBC3 : null);
-      Int  x_mul     =((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB) ? 8 : 16),
+                                                                                                          (dest.hwType()==IMAGE_BC3 || dest.hwType()==IMAGE_BC3_SRGB) ? CompressBC3 :
+                                                                                                          (dest.hwType()==IMAGE_BC4                                 ) ? CompressBC4 :
+                                                                                                          (dest.hwType()==IMAGE_BC5                                 ) ? CompressBC5 : null);
+      Int  x_mul     =((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB || dest.hwType()==IMAGE_BC4) ? 8 : 16),
            src_faces1=src.faces()-1;
       Vec4 rgba[16];
       Vec  weight(1, 1, 0.5f); // #MaterialTextureChannelOrder - NrmX, NrmY, Spec, Alpha
@@ -965,7 +1087,7 @@ Bool CompressBC(C Image &src, Image &dest, Bool mtrl_base_1) // no need to store
             ok=true;
             Int x_blocks=dest.hwW()/4, // operate on HW size to process partial and Pow2Padded blocks too
                 y_blocks=dest.hwH()/4,
-                x_mul   =((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB) ? 8 : 16);
+                x_mul   =((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB || dest.hwType()==IMAGE_BC4) ? 8 : 16);
             rgba_surface surf;
             surf.width =s->w    ();
             surf.height=s->h    ();

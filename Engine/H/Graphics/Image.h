@@ -115,6 +115,8 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
 
    IMAGE_R11G11B10F,
    IMAGE_R9G9B9E5F ,
+   IMAGE_BC4       ,
+   IMAGE_BC5       ,
 
    IMAGE_ALL_TYPES, // number of all types
 #endif

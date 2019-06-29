@@ -3008,6 +3008,8 @@ void (*DecompressBlock(IMAGE_TYPE type))(C Byte *b, Color (&block)[4][4])
       case IMAGE_BC1    : case IMAGE_BC1_SRGB    : return DecompressBlockBC1   ; break;
       case IMAGE_BC2    : case IMAGE_BC2_SRGB    : return DecompressBlockBC2   ; break;
       case IMAGE_BC3    : case IMAGE_BC3_SRGB    : return DecompressBlockBC3   ; break;
+      case IMAGE_BC4    :                          return DecompressBlockBC4   ; break;
+      case IMAGE_BC5    :                          return DecompressBlockBC5   ; break;
       case IMAGE_BC6    :                          return DecompressBlockBC6   ; break;
       case IMAGE_BC7    : case IMAGE_BC7_SRGB    : return DecompressBlockBC7   ; break;
       case IMAGE_ETC1   :                          return DecompressBlockETC1  ; break;

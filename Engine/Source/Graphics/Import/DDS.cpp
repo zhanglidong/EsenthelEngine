@@ -73,8 +73,8 @@ struct DDS_HEADER
       {
          switch(type) // many DDS writers incorrectly setup 'PitchOrLinearSize', so we have to adjust it manually, according to https://docs.microsoft.com/en-us/windows/desktop/direct3ddds/dx-graphics-dds-pguide#dds-file-layout
          {
-            case IMAGE_BC1: case IMAGE_BC1_SRGB:                                                                                           PitchOrLinearSize=DivCeil4(Width)* 8; break;
-            case IMAGE_BC2: case IMAGE_BC2_SRGB: case IMAGE_BC3: case IMAGE_BC3_SRGB: case IMAGE_BC6: case IMAGE_BC7: case IMAGE_BC7_SRGB: PitchOrLinearSize=DivCeil4(Width)*16; break;
+            case IMAGE_BC1: case IMAGE_BC1_SRGB: case IMAGE_BC4:                                                                                           PitchOrLinearSize=DivCeil4(Width)* 8; break;
+            case IMAGE_BC2: case IMAGE_BC2_SRGB: case IMAGE_BC3: case IMAGE_BC3_SRGB: case IMAGE_BC5: case IMAGE_BC6: case IMAGE_BC7: case IMAGE_BC7_SRGB: PitchOrLinearSize=DivCeil4(Width)*16; break;
 
             default: PitchOrLinearSize=DivCeil8(Width*pf.RGBBitCount); break;
          }

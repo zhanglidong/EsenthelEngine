@@ -52,6 +52,8 @@ namespace EE{
 #define GL_COMPRESSED_RGBA8_ETC2_EAC                 0x9278
 #define GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC          0x9279
 #define GL_LUMINANCE                                 0x1909
+#define GL_COMPRESSED_RED_RGTC1                      0x8DBB
+#define GL_COMPRESSED_RG_RGTC2                       0x8DBD
 
 /* FIXME
 #define GL_UNSIGNED_INT_2_10_10_10_REV               0x8368
@@ -145,7 +147,9 @@ ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have the sa
 
    {"R11G11B10F"   , false,  4, 32,  11,11,10, 0,   0,0, 3, IMAGE_PRECISION_10, 0, GPU_API(DXGI_FORMAT_R11G11B10_FLOAT   , GL_R11F_G11F_B10F)},
    {"R9G9B9E5F"    , false,  4, 32,  14,14,14, 0,   0,0, 3, IMAGE_PRECISION_10, 0, GPU_API(DXGI_FORMAT_R9G9B9E5_SHAREDEXP, GL_RGB9_E5)},
-}; ASSERT(IMAGE_ALL_TYPES==64);
+   {"BC4"          , true ,  1,  4,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC4_UNORM         , GL_COMPRESSED_RED_RGTC1)},
+   {"BC5"          , true ,  1,  8,   8, 8, 0, 0,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC5_UNORM         , GL_COMPRESSED_RG_RGTC2)},
+}; ASSERT(IMAGE_ALL_TYPES==66);
 /******************************************************************************/
 Bool IsSRGB(IMAGE_TYPE type)
 {
@@ -195,8 +199,8 @@ IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type)
 
       case IMAGE_L8_SRGB: return IMAGE_L8A8_SRGB;
 
-      case IMAGE_BC1     : return IMAGE_BC7     ; // BC1 has only 1-bit alpha which is not enough
-      case IMAGE_BC1_SRGB: return IMAGE_BC7_SRGB; // BC1 has only 1-bit alpha which is not enough
+      case IMAGE_BC1     : case IMAGE_BC4: case IMAGE_BC5: return IMAGE_BC7     ; // BC1 has only 1-bit alpha which is not enough
+      case IMAGE_BC1_SRGB:                                 return IMAGE_BC7_SRGB; // BC1 has only 1-bit alpha which is not enough
 
       case IMAGE_BC6  :
       case IMAGE_F16  :
@@ -259,6 +263,12 @@ IMAGE_TYPE ImageTypeUncompressed(IMAGE_TYPE type)
    {
       default: return type;
 
+      case IMAGE_BC4:
+         return IMAGE_R8;
+
+      case IMAGE_BC5:
+         return IMAGE_R8G8;
+
       case IMAGE_BC1 : // use since there's no other desktop compressed format without alpha
       case IMAGE_ETC1:
       case IMAGE_ETC2:
@@ -320,6 +330,12 @@ IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type) // this is for HW images, don't retu
       // Warning: these require IC_CONVERT_GAMMA
       case IMAGE_F32_3_SRGB: return IMAGE_F32_3;
       case IMAGE_F32_4_SRGB: return IMAGE_F32_4;
+
+      case IMAGE_BC4:
+         return IMAGE_R8;
+
+      case IMAGE_BC5:
+         return IMAGE_R8G8;
 
       case IMAGE_BC6:
          return IMAGE_F16_4; // IMAGE_F16_3 is not supported on DX11 and may not be supported on other API's
@@ -1492,6 +1508,8 @@ static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'des
       case IMAGE_BC1    : case IMAGE_BC1_SRGB    : decompress_block=DecompressBlockBC1   ; decompress_block_pitch=DecompressBlockBC1   ; break;
       case IMAGE_BC2    : case IMAGE_BC2_SRGB    : decompress_block=DecompressBlockBC2   ; decompress_block_pitch=DecompressBlockBC2   ; break;
       case IMAGE_BC3    : case IMAGE_BC3_SRGB    : decompress_block=DecompressBlockBC3   ; decompress_block_pitch=DecompressBlockBC3   ; break;
+      case IMAGE_BC4    :                          decompress_block=DecompressBlockBC4   ; decompress_block_pitch=DecompressBlockBC4   ; break;
+      case IMAGE_BC5    :                          decompress_block=DecompressBlockBC5   ; decompress_block_pitch=DecompressBlockBC5   ; break;
       case IMAGE_BC6    :                          decompress_block=DecompressBlockBC6   ; decompress_block_pitch=DecompressBlockBC6   ; decompress_block_VecH=DecompressBlockBC6; decompress_block_pitch_VecH=DecompressBlockBC6; break;
       case IMAGE_BC7    : case IMAGE_BC7_SRGB    : decompress_block=DecompressBlockBC7   ; decompress_block_pitch=DecompressBlockBC7   ; break;
       case IMAGE_ETC1   :                          decompress_block=DecompressBlockETC1  ; decompress_block_pitch=DecompressBlockETC1  ; break;
@@ -1622,7 +1640,10 @@ static Bool Compress(C Image &src, Image &dest, Bool mtrl_base_1=false) // assum
    {
       case IMAGE_BC1: case IMAGE_BC1_SRGB:
       case IMAGE_BC2: case IMAGE_BC2_SRGB:
-      case IMAGE_BC3: case IMAGE_BC3_SRGB: return CompressBC(src, dest, mtrl_base_1);
+      case IMAGE_BC3: case IMAGE_BC3_SRGB:
+      case IMAGE_BC4:
+      case IMAGE_BC5:
+         return CompressBC(src, dest, mtrl_base_1);
 
       case IMAGE_BC6:
       case IMAGE_BC7: case IMAGE_BC7_SRGB: DEBUG_ASSERT(CompressBC67, "'SupportCompressBC/SupportCompressAll' was not called"); return CompressBC67 ? CompressBC67(src, dest) : false;
