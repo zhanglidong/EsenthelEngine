@@ -1644,8 +1644,10 @@ namespace
 // BC6H Compression
 //-------------------------------------------------------------------------------------
 _Use_decl_annotations_
-void D3DX_BC6H::Decode(bool bSigned, VecH (&pOut)[4][4]) const
+void D3DX_BC6H::Decode(bool bSigned, VecH (&pOut)[4][4]) const // ESENTHEL CHANGED
 {
+  //assert(pOut); ESENTHEL CHANGED
+
     size_t uStartBit = 0;
     uint8_t uMode = GetBits(uStartBit, 2u);
     if (uMode != 0x00 && uMode != 0x01)
