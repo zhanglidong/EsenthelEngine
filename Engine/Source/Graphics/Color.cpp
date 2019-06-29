@@ -392,6 +392,9 @@ Vec4 AdditiveBlend(C Vec4 &base, C Vec4 &color)
 Flt SRGBToLinear(Flt s) {return (s<=0.04045f  ) ? s/12.92f : Pow((s+0.055f)/1.055f, 2.4f);} // convert 0..1 srgb   to 0..1 linear
 Flt LinearToSRGB(Flt l) {return (l<=0.0031308f) ? l*12.92f : Pow(l, 1/2.4f)*1.055f-0.055f;} // convert 0..1 linear to 0..1 srgb
 
+Dbl SRGBToLinear(Dbl s) {return (s<=0.04045  ) ? s/12.92 : Pow((s+0.055)/1.055, 2.4);} // convert 0..1 srgb   to 0..1 linear
+Dbl LinearToSRGB(Dbl l) {return (l<=0.0031308) ? l*12.92 : Pow(l, 1/2.4)*1.055-0.055;} // convert 0..1 linear to 0..1 srgb
+
 Vec SRGBToLinear(C Vec &s) {return Vec(SRGBToLinear(s.x), SRGBToLinear(s.y), SRGBToLinear(s.z));}
 Vec LinearToSRGB(C Vec &l) {return Vec(LinearToSRGB(l.x), LinearToSRGB(l.y), LinearToSRGB(l.z));}
 
@@ -417,8 +420,8 @@ Color LinearToSColor  (C Vec4 &l) {return Color(LinearToByteSRGB(l.x), LinearToB
 void InitSRGB()
 {
    REPAO(ByteToFltArray       )=i/255.0f; // don't use 'ByteToFlt' in case it's based on 'ByteToFltArray'
-   REPAO(ByteSRGBToLinearArray)=SRGBToLinear(ByteToFlt(i));
-   REPAO(LinearByteToSRGBArray)=LinearToSRGB(ByteToFlt(i));
+   REPAO(ByteSRGBToLinearArray)=SRGBToLinear(i/255.0); // use Dbl version for more precision
+   REPAO(LinearByteToSRGBArray)=LinearToSRGB(i/255.0); // use Dbl version for more precision
    REPAO(LinearToByteSRGBArray)=FltToByte(LinearToSRGB(i/Flt(Elms(LinearToByteSRGBArray)-1)));
    REPAO(SRGBToLinearByteArray)=FltToByte(SRGBToLinear(i/Flt(Elms(SRGBToLinearByteArray)-1)));
 

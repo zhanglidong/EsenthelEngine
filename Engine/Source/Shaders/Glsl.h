@@ -18,7 +18,7 @@
 
 #define REVERSE_DEPTH false
 
-#define LINEAR_GAMMA true
+#define LINEAR_GAMMA 1
 
 #define Sat(x) Mid(x, 0.0, 1.0)
 
@@ -28,6 +28,8 @@ MP Flt Sum(MP Vec4 v) {return v.x+v.y+v.z+v.w;}
 
 MP Flt  Sqr (MP Flt  x) {return x*x  ;}
 MP Vec2 Sqr (MP Vec2 x) {return x*x  ;}
+MP Vec  Sqr (MP Vec  x) {return x*x  ;}
+MP Vec4 Sqr (MP Vec4 x) {return x*x  ;}
 MP Flt  Cube(MP Flt  x) {return x*x*x;}
 
 HP Flt Length2(HP Vec2 v) {return Dot(v, v);}
@@ -51,3 +53,6 @@ MP Flt LinearToSRGB(MP Flt l) {return (l<=0.0031308) ? l*12.92 : Pow(l, 1/2.4)*1
 
 MP Vec SRGBToLinear(MP Vec s) {return MP Vec(SRGBToLinear(s.x), SRGBToLinear(s.y), SRGBToLinear(s.z));}
 MP Vec LinearToSRGB(MP Vec l) {return MP Vec(LinearToSRGB(l.x), LinearToSRGB(l.y), LinearToSRGB(l.z));}
+
+MP Vec4 SRGBToLinear(MP Vec4 s) {return MP Vec4(SRGBToLinear(s.x), SRGBToLinear(s.y), SRGBToLinear(s.z), s.w);}
+MP Vec4 LinearToSRGB(MP Vec4 l) {return MP Vec4(LinearToSRGB(l.x), LinearToSRGB(l.y), LinearToSRGB(l.z), l.w);}

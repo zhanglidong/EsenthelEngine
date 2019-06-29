@@ -39,8 +39,8 @@ MP Vec  vtx_color3    () {return         SRGBToLinear    (ATTR7.rgb)          ;}
 MP Vec4 vtx_colorFast () {return MP Vec4(SRGBToLinearFast(ATTR7.rgb), ATTR7.a);} // sRGB vertex color (fast)
 MP Vec  vtx_colorFast3() {return         SRGBToLinearFast(ATTR7.rgb)          ;} // sRGB vertex color (fast)
 #else
-MP Vec4 vtx_color     () {return ATTR7                                        ;} // sRGB vertex color (precise)
-MP Vec  vtx_color3    () {return ATTR7.rgb                                    ;} // sRGB vertex color (precise)
-MP Vec4 vtx_colorFast () {return ATTR7                                        ;} // sRGB vertex color (fast)
-MP Vec  vtx_colorFast3() {return ATTR7.rgb                                    ;} // sRGB vertex color (fast)
+MP Vec4 vtx_color     () {return ATTR7    ;} // sRGB vertex color (precise)
+MP Vec  vtx_color3    () {return ATTR7.rgb;} // sRGB vertex color (precise)
+MP Vec4 vtx_colorFast () {return ATTR7    ;} // sRGB vertex color (fast)
+MP Vec  vtx_colorFast3() {return ATTR7.rgb;} // sRGB vertex color (fast)
 #endif
