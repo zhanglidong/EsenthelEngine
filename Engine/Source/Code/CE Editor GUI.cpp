@@ -22,7 +22,7 @@ ColorTheme ThemeLight=
    Color(  0,   0,   0), // ENUM_ELM
    Color(  0,   0,   0), // FUNC
    Color( 51, 153, 255), // SELECT
-   Color(  0,   0,   0, 96), // LINE_HIGHLIGHT
+   Color(  0,   0,   0, 96), //   LINE_HIGHLIGHT
    Color( 64, 128, 255, 60), // SYMBOL_HIGHLIGHT
    Color( 64, 128, 255, 40), //  BRACE_HIGHLIGHT
    Color(128, 128, 128), // PREPROC_DISABLED
@@ -49,9 +49,9 @@ ColorTheme ThemeLight=
    Color(255, 255,   0), // ENUM_ELM
    Color(255, 255,   0), // FUNC
    Color( 51, 153, 255), // SELECT
-   Color(255, 255,   0, 128), // LINE_HIGHLIGHT
-   Color(255, 255, 255, 85), // SYMBOL_HIGHLIGHT
-   Color(255, 255, 255, 40), //  BRACE_HIGHLIGHT
+   Color(255, 255,   0, 128), //   LINE_HIGHLIGHT
+   Color(255, 255, 255,  85), // SYMBOL_HIGHLIGHT
+   Color(255, 255, 255,  40), //  BRACE_HIGHLIGHT
    Color(128, 128, 128), // PREPROC_DISABLED
    Color( 36, 106, 172, 245), // TOKEN_ELM_BACKGROUND
    Color(255, 255, 255), // TOKEN_ELM_NAME
@@ -958,7 +958,8 @@ void CodeEditor::BuildList::draw(C GuiPC &gpc)
       if( alpha>0)
       {
          D.clip(gpc.clip);
-         visToScreenRect(highlight_line).draw(ColorAlpha(CYAN, alpha*0.5f));
+         alpha*=0.5f;
+         visToScreenRect(highlight_line).draw(ColorAlpha(CYAN, LINEAR_GAMMA ? Sqr(alpha) : alpha));
       }
    }
    super::draw(gpc);

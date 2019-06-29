@@ -829,7 +829,7 @@ static void HighlightFind(C Str &str, C Rect &rect, C GuiPC &gpc)
    for(Int offset=0; ; )
    {
       Int match_length, i=TextPosSkipSpaceI(str()+offset, CE.find.text(), match_length, CE.find.case_sensitive(), CE.find.whole_words()); if(i<0)break; offset+=i;
-      Rect_LU(rect.lu()+gpc.offset+Vec2(offset*CE.ts.colWidth(), 0), match_length*CE.ts.colWidth(), CE.ts.lineHeight()).draw(ColorAlpha(YELLOW, 0.5f)); offset+=match_length;
+      Rect_LU(rect.lu()+gpc.offset+Vec2(offset*CE.ts.colWidth(), 0), match_length*CE.ts.colWidth(), CE.ts.lineHeight()).draw(ColorAlpha(YELLOW, LINEAR_GAMMA ? Sqr(0.5f) : 0.5f)); offset+=match_length;
    }
 }
 static void ShowElmName(C UID &id, C Rect &rect, C GuiPC &gpc, C VecI2 &range)
@@ -965,16 +965,16 @@ void Source::draw(C GuiPC &gpc)
          {
             Int  line=cur.y; if(CE.view_mode())line=realToView(line);
             Vec2 pos =offset+posVisual(VecI2(0, line));
-            D.lineX(Theme.colors[TOKEN_LINE_HIGHLIGHT], pos.y                   , _crect.min.x, _crect.max.x);
-            D.lineX(Theme.colors[TOKEN_LINE_HIGHLIGHT], pos.y-CE.ts.lineHeight(), _crect.min.x, _crect.max.x);
+            Rect(_crect.min.x, pos.y-CE.ts.lineHeight(), _crect.max.x, pos.y).drawBorder(Theme.colors[TOKEN_LINE_HIGHLIGHT], CE.ts.lineHeight()*0.06f);
          }
       }
 
-      if(InRange(highlight_line, lines))
+      if(InRange(highlight_line, lines) && highlight_time>0)
       {
-         Int  line=highlight_line; if(CE.view_mode())line=realToView(line);
-         Vec2 pos =offset+posVisual(VecI2(0, line));
-         Rect(_crect.min.x, pos.y-CE.ts.lineHeight(), _crect.max.x, pos.y).draw(ColorAlpha(CYAN, highlight_time*0.5f));
+         Int  line =highlight_line; if(CE.view_mode())line=realToView(line);
+         Vec2 pos  =offset+posVisual(VecI2(0, line));
+         Flt  alpha=highlight_time*0.5f;
+         Rect(_crect.min.x, pos.y-CE.ts.lineHeight(), _crect.max.x, pos.y).draw(ColorAlpha(CYAN, LINEAR_GAMMA ? Sqr(alpha) : alpha));
       }
 
       // highlight token definition
@@ -998,7 +998,7 @@ void Source::draw(C GuiPC &gpc)
                {
                   Vec2 pos=offset+posVisual(VecI2(0, realToView(lit_token_line)));
                   Rect lit_rect(_crect.min.x, pos.y-CE.ts.lineHeight(), _crect.max.x, pos.y);
-                       lit_rect.draw(ColorAlpha(CYAN, 0.2f));
+                       lit_rect.draw(ColorAlpha(CYAN, LINEAR_GAMMA ? Sqr(0.2f) : 0.2f));
                   Rect screen_crect=(_crect-_crect.lu() + screenPos() + _crect.lu()-rect().lu()).extend(CE.ts.lineHeight()*-1.5f);
                   if(Cuts(lit_rect, screen_crect))lit_token_source=null; // if definition is on the screen then don't draw its preview
                }
@@ -1354,7 +1354,7 @@ void Source::draw(C GuiPC &gpc)
          Rect rect_e=gpc.clip; rect_e.extend(0.01f);
          D.drawShadow(190, rect_e, 0.0875f);
          rect_e.draw (Theme.colors[TOKEN_NONE]);
-         Rect_L(gpc.clip.left(), gpc.clip.w(), CE.ts.lineHeight()).draw(ColorAlpha(CYAN, 0.2f));
+         Rect_L(gpc.clip.left(), gpc.clip.w(), CE.ts.lineHeight()).draw(ColorAlpha(CYAN, LINEAR_GAMMA ? Sqr(0.2f) : 0.2f));
          REPAO(lit_token_source->     lines).draw(gpc);
          REPAO(lit_token_source->view_lines).draw(gpc);
          D.clip(null);
