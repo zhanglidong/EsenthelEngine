@@ -9,7 +9,7 @@
 // http://go.microsoft.com/fwlink/?LinkId=248926
 //-------------------------------------------------------------------------------------
 
-//#include "directxtexp.h" ESENTHEL
+//#include "DirectXTexP.h" ESENTHEL
 
 //#include "BC.h" ESENTHEL
 
