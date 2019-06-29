@@ -22,7 +22,7 @@ Bool _CompressPVRTC(C Image &src, Image &dest, Int quality)
  //if(dest.size3()==src.size3()) this check is not needed because the code below supports different sizes
    {
       ok=true;
-      if(quality<0)quality=((dest.hwType()==IMAGE_PVRTC1_2 || dest.hwType()==IMAGE_PVRTC1_2_SRGB) ? GetPVRTCQuality() : 4); // for PVRTC1_2 default to specified settings, for others use best quality as it's not so slow for those types
+      if(quality<0)quality=((dest.hwType()==IMAGE_PVRTC1_2 || dest.hwType()==IMAGE_PVRTC1_2_SRGB) ? 3 : 4); // for PVRTC1_2 default to 3 (4 is too slow), for PVRTC1_4 default to 4 (not slow)
       switch(quality)
       {
          case  0: quality=pvrtexture::ePVRTCFastest; break;

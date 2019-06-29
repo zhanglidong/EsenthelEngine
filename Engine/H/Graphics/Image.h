@@ -721,9 +721,6 @@ IMAGE_TYPE ImageTypeHighPrec(IMAGE_TYPE type); // convert 'type' to the most sim
 
 IMAGE_TYPE ImageTypeUncompressed(IMAGE_TYPE type); // convert 'type' to the most similar IMAGE_TYPE that is not compressed
 
-Int  GetPVRTCQuality(           ); // get PVRTC compression quality, 0..4
-void SetPVRTCQuality(Int quality); // set PVRTC compression quality, 0..4
-
 DIR_ENUM DirToCubeFace(C Vec &dir                    ); // convert vector direction (doesn't need to be normalized) to cube face
 DIR_ENUM DirToCubeFace(C Vec &dir, Int res, Vec2 &tex); // convert vector direction (doesn't need to be normalized) to cube face and texture coordinates, 'res'=cube image resolution, 'tex'=image coordinates
 Vec      CubeFaceToDir(Flt x, Flt y, Int res, DIR_ENUM cube_face); // convert image coordinates, 'x,y'=image coordinates (0..res-1), 'res'=cube image resolution, 'cube_face'=image cube face, returned vector is not normalized, however its on a cube with radius=1 ("Abs(dir).max()=1")

@@ -681,11 +681,7 @@ static int pvrtcDecompress(	PVRTuint8 *pCompressedData,
 /******************************************************************************/
 } // namespace PVRTC
 /******************************************************************************/
-static Int PVRTCQuality=3; // default=High (used only for PVRTC1_2)
 Bool (*CompressPVRTC)(C Image &src, Image &dest, Int quality);
-/******************************************************************************/
-Int  GetPVRTCQuality(           ) {return PVRTCQuality                   ;} // used only for PVRTC1_2
-void SetPVRTCQuality(Int quality) {       PVRTCQuality=Mid(quality, 0, 4);} // used only for PVRTC1_2
 /******************************************************************************/
 Bool DecompressPVRTC(C Image &src, Image &dest)
 {
