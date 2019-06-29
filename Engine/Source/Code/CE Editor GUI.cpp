@@ -77,7 +77,7 @@ ColorTheme ThemeLight=
    Color(200, 200, 200), // FUNC
    Color( 38,  79, 120), // SELECT
    Color(255, 255, 255, LINEAR_GAMMA ? 32 : 80), //   LINE_HIGHLIGHT
-   Color(255, 255, 255, LINEAR_GAMMA ? 26 : 45), // SYMBOL_HIGHLIGHT
+   Color(255, 255, 255, LINEAR_GAMMA ? 22 : 45), // SYMBOL_HIGHLIGHT
    Color(255, 255, 255, LINEAR_GAMMA ?  6 : 30), //  BRACE_HIGHLIGHT
    Color( 90,  90,  90), // PREPROC_DISABLED
    Color( 36, 106, 172, 245), // TOKEN_ELM_BACKGROUND
