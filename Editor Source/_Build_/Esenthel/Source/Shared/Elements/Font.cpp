@@ -35,7 +35,7 @@
       fp.shadow_opacity =shadow_opacity ;
       fp.shadow_spread  =shadow_spread  ;
       if(chars
-      || fp.software)fp.image_type=IMAGE_L8A8_SRGB; // if 'chars' is provided then it means we're creating only a preview, so use IMAGE_L8A8_SRGB for fast processing (use L8A8 also for software modes)
+      || fp.software)fp.image_type=ImageTypeUncompressed(fp.image_type); // if 'chars' is provided then it means we're creating only a preview, so use un-compressed for fast processing (also for software modes)
       return font.create(fp);
    }
    bool EditFont::newer(C EditFont &src)C

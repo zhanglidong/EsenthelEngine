@@ -787,9 +787,9 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
 
          // try optimizing fonts for target platform
          if(elm.type==ELM_FONT) // font
-            if(android || iOS || (web && !WebBC7)) // desktop platform already has the best format chosen during font creation
+            if(android || iOS || web) // desktop platform already has the best format chosen during font creation
                if(ElmFont *data=elm.fontData())
-                  if(IMAGE_TYPE dest_type=((android || iOS) ? IMAGE_ETC2_A8 : IMAGE_BC3)) // for Android/iOS GL_ES 3.0+ use IMAGE_ETC2_A8, don't use IMAGE_PVRTC1_2/IMAGE_PVRTC1_4 because the quality is too low
+                  if(IMAGE_TYPE dest_type=IMAGE_R8G8) // #FontImageLayout IMAGE_ETC2/IMAGE_PVRTC have too low quality, IMAGE_ETC2_A8 is OK however requires storing font in RGB and shadow in A which is not compatible with the best desktop IMAGE_BC5 R G layout, so just decompress to IMAGE_R8G8 so it won't have to be done on target
          {
             Str src_name=pfd.data.name,
                dest_name=Proj.formatPath(elm.id, FormatSuffix(dest_type));
