@@ -2678,8 +2678,8 @@ void D3DX_BC7::Decode(Color (&pOut)[4][4]) const // !! this must be a reference 
 
         for (i = 0; i < NUM_PIXELS_PER_BLOCK; ++i)
         {
-            LDRColorA &outPixel = (LDRColorA&)pOut[0][i]; ASSERT(SIZE(LDRColorA)==SIZE(pOut[0][0])); // ESENTHEL CHANGED
             uint8_t uRegion = g_aPartitionTable[uPartitions][uShape][i];
+            LDRColorA &outPixel = (LDRColorA&)pOut[0][i]; ASSERT(SIZE(LDRColorA)==SIZE(pOut[0][0])); // ESENTHEL CHANGED
             if (uIndexPrec2 == 0)
             {
                 LDRColorA::Interpolate(c[uRegion << 1], c[(uRegion << 1) + 1], w1[i], w1[i], uIndexPrec, uIndexPrec, outPixel);
@@ -2702,6 +2702,8 @@ void D3DX_BC7::Decode(Color (&pOut)[4][4]) const // !! this must be a reference 
             case 2: std::swap(outPixel.g, outPixel.a); break;
             case 3: std::swap(outPixel.b, outPixel.a); break;
             }
+
+          //pOut[i] = HDRColorA(outPixel); ESENTHEL CHANGED
         }
     }
     else
