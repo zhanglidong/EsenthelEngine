@@ -2508,7 +2508,7 @@ float D3DX_BC6H::RoughMSE(EncodeParams* pEP) const
 // BC7 Compression
 //-------------------------------------------------------------------------------------
 _Use_decl_annotations_
-void D3DX_BC7::Decode(Color (&pOut)[4][4]) const // !! this must be a reference because we're calling 'Zero' !!
+void D3DX_BC7::Decode(Color (&pOut)[4][4]) const // ESENTHEL CHANGED !! this must be a reference because we're calling 'Zero' !!
 {
   //assert(pOut); ESENTHEL CHANGED
 
