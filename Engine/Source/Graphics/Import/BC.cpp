@@ -532,8 +532,8 @@ static void _CompressBC1(BC1 &bc, Vec4 (&color)[16], C Vec *weight, Bool dither_
       if(transparent==16)
       {
          bc.rgb[0]=0x0000;
-         bc.rgb[1]=0xffff;
-         bc.bitmap=0xffffffff;
+         bc.rgb[1]=0XFFFF;
+         bc.bitmap=0XFFFFFFFF;
          return;
       }
       steps=(transparent ? 3 : 4);
