@@ -397,6 +397,7 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
       {
          D.fbo(0); // set default frame buffer
         _cur_ds_id=0; // main FBO always has 0 depth txtr ID
+      #if !MAC
          if(glInvalidateFramebuffer) // requires GL 4.3, GL ES 3.0
          {
             // discard, for main FBO we need to setup different values - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glInvalidateFramebuffer.xhtml
@@ -405,6 +406,7 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
             if(_main_ds._discard){_main_ds._discard=false; attachment[attachments++]=GL_DEPTH; if(ImageTI[_main_ds.hwType()].s)attachment[attachments++]=GL_STENCIL;}
             if(attachments)glInvalidateFramebuffer(GL_FRAMEBUFFER, attachments, attachment);
          }
+      #endif
       }else
    #endif
       {
@@ -455,6 +457,7 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
          glReadBuffer (buffers[0]);
 
          // discard
+      #if !MAC
          if(glInvalidateFramebuffer) // requires GL 4.3, GL ES 3.0
          {
             GLenum attachment[ELMS(_cur)+1]; GLsizei attachments=0; // RT's+DS
@@ -465,6 +468,7 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
             if(set_ds && set_ds->_discard){set_ds->_discard=false; attachment[attachments++]=(ImageTI[set_ds->hwType()].s ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT);}
             if(attachments)glInvalidateFramebuffer(GL_FRAMEBUFFER, attachments, attachment);
          }
+      #endif
 
       #if DEBUG
          GLenum error =glCheckFramebufferStatus(GL_FRAMEBUFFER);

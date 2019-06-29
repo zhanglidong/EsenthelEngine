@@ -1,4 +1,4 @@
-﻿/******************************************************************************/
+/******************************************************************************/
 #include "stdafx.h"
 #include "../Platforms/iOS/iOS.h"
 namespace EE{
@@ -45,17 +45,17 @@ namespace EE{
 #define GL_BGR                                       0x80E0
 #define GL_BGRA                                      0x80E1
 #define GL_TEXTURE_MAX_ANISOTROPY                    0x84FE
-
-/*
 #define GL_COMPRESSED_RGB8_ETC2                      0x9274
 #define GL_COMPRESSED_SRGB8_ETC2                     0x9275
 #define GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2  0x9276
 #define GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2 0x9277
 #define GL_COMPRESSED_RGBA8_ETC2_EAC                 0x9278
 #define GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC          0x9279
+#define GL_LUMINANCE                                 0x1909
+
+/* FIXME
 #define GL_UNSIGNED_INT_2_10_10_10_REV               0x8368
 #define GL_LUMINANCE16                               0x8042
-#define GL_LUMINANCE                                 0x1909
 #define GL_LUMINANCE_ALPHA                           0x190A
 #define GL_SRGB8_ALPHA8                              0x8C43*/
 

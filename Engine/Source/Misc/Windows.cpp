@@ -1,4 +1,4 @@
-﻿/******************************************************************************
+/******************************************************************************
 
    On Linux, windows are organized into up to 3 HWND families:
    1. resizable extent (or none if window is not resizable)
@@ -2546,7 +2546,9 @@ again:
       #endif
       }
    }
+#if !MAC
 stop:
+#endif
 
    if(_window_resized.x>0 && _window_resized.y>0)
    {

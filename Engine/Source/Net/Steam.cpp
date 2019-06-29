@@ -74,20 +74,20 @@ void SteamCallbacks::MicroTxnAuthorizationResponse(MicroTxnAuthorizationResponse
 }
 void SteamCallbacks::PersonaStateChange(PersonaStateChange_t *change)
 {
-   ASSERT(SteamWorks::FRIEND_STATE_CHANGE_Name==k_EPersonaChangeName);
-   ASSERT(SteamWorks::FRIEND_STATE_CHANGE_Status==k_EPersonaChangeStatus);
-   ASSERT(SteamWorks::FRIEND_STATE_CHANGE_ComeOnline==k_EPersonaChangeComeOnline);
-   ASSERT(SteamWorks::FRIEND_STATE_CHANGE_GoneOffline==k_EPersonaChangeGoneOffline);
-   ASSERT(SteamWorks::FRIEND_STATE_CHANGE_GamePlayed==k_EPersonaChangeGamePlayed);
-   ASSERT(SteamWorks::FRIEND_STATE_CHANGE_GameServer==k_EPersonaChangeGameServer);
-   ASSERT(SteamWorks::FRIEND_STATE_CHANGE_Avatar==k_EPersonaChangeAvatar);
-   ASSERT(SteamWorks::FRIEND_STATE_CHANGE_JoinedSource==k_EPersonaChangeJoinedSource);
-   ASSERT(SteamWorks::FRIEND_STATE_CHANGE_LeftSource==k_EPersonaChangeLeftSource);
-   ASSERT(SteamWorks::FRIEND_STATE_CHANGE_RelationshipChanged==k_EPersonaChangeRelationshipChanged);
-   ASSERT(SteamWorks::FRIEND_STATE_CHANGE_NameFirstSet==k_EPersonaChangeNameFirstSet);
-   ASSERT(SteamWorks::FRIEND_STATE_CHANGE_FacebookInfo==k_EPersonaChangeFacebookInfo);
-   ASSERT(SteamWorks::FRIEND_STATE_CHANGE_Nickname==k_EPersonaChangeNickname);
-   ASSERT(SteamWorks::FRIEND_STATE_CHANGE_SteamLevel==k_EPersonaChangeSteamLevel);
+   ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_Name==k_EPersonaChangeName);
+   ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_Status==k_EPersonaChangeStatus);
+   ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_ComeOnline==k_EPersonaChangeComeOnline);
+   ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_GoneOffline==k_EPersonaChangeGoneOffline);
+   ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_GamePlayed==k_EPersonaChangeGamePlayed);
+   ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_GameServer==k_EPersonaChangeGameServer);
+   ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_Avatar==k_EPersonaChangeAvatar);
+   ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_JoinedSource==k_EPersonaChangeJoinedSource);
+   ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_LeftSource==k_EPersonaChangeLeftSource);
+   ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_RelationshipChanged==k_EPersonaChangeRelationshipChanged);
+   ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_NameFirstSet==k_EPersonaChangeNameFirstSet);
+   ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_FacebookInfo==k_EPersonaChangeFacebookInfo);
+   ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_Nickname==k_EPersonaChangeNickname);
+   ASSERT((int)SteamWorks::FRIEND_STATE_CHANGE_SteamLevel==k_EPersonaChangeSteamLevel);
    if(change)if(auto callback=Steam.friend_state_changed)callback(change->m_ulSteamID, change->m_nChangeFlags);
 }
 void SteamCallbacks::AvatarImageLoaded(AvatarImageLoaded_t *avatar) // called when 'GetLargeFriendAvatar' was requested but not yet available, simply notify user with callback that new avatar is available for a user

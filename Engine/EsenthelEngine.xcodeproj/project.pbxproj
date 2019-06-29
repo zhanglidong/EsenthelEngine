@@ -4441,6 +4441,7 @@
 					"-Wno-local-type-template-args",
 					"-Wno-unknown-pragmas",
 					"-Wno-undefined-bool-conversion",
+					"-Wno-dynamic-class-memaccess",
 				);
 			};
 			name = Debug;
@@ -4552,6 +4553,7 @@
 					"-Wno-local-type-template-args",
 					"-Wno-unknown-pragmas",
 					"-Wno-undefined-bool-conversion",
+					"-Wno-dynamic-class-memaccess",
 				);
 			};
 			name = Release;

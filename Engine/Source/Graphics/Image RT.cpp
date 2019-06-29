@@ -1,4 +1,4 @@
-﻿/******************************************************************************/
+/******************************************************************************/
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
@@ -140,7 +140,7 @@ void ImageRT::discard()
 {
 #if DX11
    if(D3DC1)D3DC1->DiscardView(_rtv ? &SCAST(ID3D11View, *_rtv) : &SCAST(ID3D11View, *_dsv)); // will not crash if parameter is null
-#elif GL
+#elif GL && !MAC
    if(glInvalidateFramebuffer) // requires GL 4.3, GL ES 3.0
    {
       // this should be called only if this image is already attached to current FBO - https://community.arm.com/graphics/b/blog/posts/mali-performance-2-how-to-correctly-handle-framebuffers
