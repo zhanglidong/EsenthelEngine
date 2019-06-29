@@ -608,9 +608,9 @@ Vec4 Font_PS
    // final=dest*(1-s)*(1-a) + c*a;
 
 #if DX11
-   Vec2 as=Col.Sample(SamplerFont, inTex).ga;
+   Vec2 as=Col.Sample(SamplerFont, inTex).rg; // #FontImageLayout
 #else
-   Vec2 as=Tex(Col, inTex).ga;
+   Vec2 as=Tex(Col, inTex).rg; // #FontImageLayout
 #endif
    Flt  a =Sat(as.x*FontContrast), // font opacity, "Min(as.x*FontContrast, 1)", scale up by 'FontContrast' to improve quality when font is very small
         s =    as.y*FontShadow   ; // font shadow

@@ -2431,22 +2431,13 @@ Image& Image::applyShadow(C Image &shadow, C Color &shadow_color, C VecI2 &offse
    {
       Int l=Max(0, -offset.x),
           u=Max(0, -offset.y);
-      if( image_type<0)image_type=type; // get original
-      if(!image_type  ) // auto-detect
+      if(image_type<0)image_type=type; // get original
+      if(!ImageTI[image_type].a) // if no alpha available, auto-detect
       {
-         if(ImageTI[type].a)image_type=type;else // if original type has alpha channel then use it
-            switch(type) // if not then manually specify the type
-         {
-            case IMAGE_A8 :
-            case IMAGE_L8 : case IMAGE_L8_SRGB:
-            case IMAGE_I8 :
-            case IMAGE_I16:
-            case IMAGE_I24:
-            case IMAGE_I32: image_type=IMAGE_L8A8_SRGB    ; break;
-            default       : image_type=IMAGE_R8G8B8A8_SRGB; break;
-         }
+         if((type==IMAGE_L8      || type==IMAGE_L8A8 || type==IMAGE_A8) && shadow_color.mono())image_type=IMAGE_L8A8     ;else
+         if((type==IMAGE_L8_SRGB || type==IMAGE_L8A8_SRGB             ) && shadow_color.mono())image_type=IMAGE_L8A8_SRGB;else
+                                                                                               image_type=(IsSRGB(type) ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8);
       }
-      if(!ImageTI[image_type].a)return T; // no alpha available
 
       Image temp(Max(w(), shadow.w()+offset.x)-Min(0, offset.x), Max(h(), shadow.h()+offset.y)-Min(0, offset.y), 1, ImageTypeUncompressed((IMAGE_TYPE)image_type), IMAGE_SOFT, 1);
       if(shadow.lockRead())

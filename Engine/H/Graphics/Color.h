@@ -19,8 +19,9 @@ struct Color // 4-Byte Color
    Color& set (Byte red, Byte green, Byte blue, Byte alpha=255) {T.r=red; T.g=green; T.b=blue; T.a=alpha; return T;}
    Color& set (Byte lum,                        Byte alpha=255) {T.r=     T.g=       T.b=lum ; T.a=alpha; return T;}
 
-   Bool any()C {return u!=0        ;} // if any component is non-zero
-   Int  lum()C {return Max(r, g, b);} // get luminance
+   Bool any ()C {return u!=0        ;} // if any component is non-zero
+   Bool mono()C {return r==g && g==b;} // if monochromatic
+   Int  lum ()C {return Max(r, g, b);} // get luminance
 
    operator Vec ()C; // cast to Vec  format (x=red, y=green, z=blue)
    operator Vec4()C; // cast to Vec4 format (x=red, y=green, z=blue, w=alpha)

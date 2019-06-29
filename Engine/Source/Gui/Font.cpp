@@ -20,10 +20,12 @@
    #pragma message("!! Warning: Use this only for debugging !!")
 #endif
 
-#define FONT_SRGB           0
-#define FONT_SRGB_SUB_PIXEL 1
+#define FONT_SRGB           0 // 0=best
+#define FONT_SRGB_SUB_PIXEL 1 // 1=best
 
-#define FONT_IMAGE_TYPE           (FONT_SRGB           ? IMAGE_L8A8_SRGB     : IMAGE_L8A8    )
+ASSERT(!FONT_SRGB); // right now IMAGE_R8G8/IMAGE_BC5 is used, which don't have sRGB variants
+// #FontImageLayout
+#define FONT_IMAGE_TYPE           (FONT_SRGB           ? IMAGE_R8G8/*_SRGB*/ : IMAGE_R8G8    )
 #define FONT_IMAGE_TYPE_SUB_PIXEL (FONT_SRGB_SUB_PIXEL ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8)
 
 namespace EE{
@@ -287,11 +289,10 @@ Bool Font::imageType(IMAGE_TYPE type)
 }
 void Font::toSoft()
 {
-   IMAGE_TYPE type=(_sub_pixel ? FONT_IMAGE_TYPE_SUB_PIXEL : FONT_IMAGE_TYPE);
    REPA(_images)
    {
       Image &image=_images[i];
-      image.copyTry(image, -1, -1, -1, type, IMAGE_SOFT);
+      image.copyTry(image, -1, -1, -1, ImageTypeUncompressed(image.type()), IMAGE_SOFT);
    }
 }
 Font& Font::replace(Char src, Char dest, Bool permanent)
@@ -412,29 +413,42 @@ static void FontLoadChr0(Font &font, File &f)
       REPD(i, FONT_WIDTH_TEST)dest.width2[s][i]=src.width2[i][s];
    }
 }
-static void SwapGreenAlpha(Font &font)
+static Bool Adjust(Font &font, Int layout) // #FontImageLayout
 {
-   if(!font._sub_pixel)REPA(font._images)
+   REPA(font._images)
    {
-      Image &image=font._images[i]; if(image.copyTry(image, -1, -1, -1, FONT_IMAGE_TYPE, -1, -1, FILTER_NONE)) // disable filtering here as it will be done below
+      Image &image=font._images[i];
+      if(font._sub_pixel)
       {
-         if(image.lock())
+         // sub pixel have RGBA layout, just make sure we have correct sRGB
+         if(!image.copyTry(image, -1, -1, -1, FONT_SRGB_SUB_PIXEL ? ImageTypeIncludeSRGB(image.type()) : ImageTypeExcludeSRGB(image.type())))return false;
+      }else
+      {
+         Image dest; if(!dest.createTry(image.w(), image.h(), 1, FONT_IMAGE_TYPE, image.mode(), image.mipMaps()))return false;
+         Image temp; C Image *src=&image; if(image.compressed())if(image.copyTry(temp, -1, -1, -1, ImageTypeUncompressed(image.type()), IMAGE_SOFT, 1))src=&temp;else return false;
+         if(!src->lockRead())return false;
+         if(!dest.lock(LOCK_WRITE)){src->unlock(); return false;}
+         REPD(y, dest.h())
+         REPD(x, dest.w())
          {
-            REPD(y, image.h())
-            REPD(x, image.w())
+            Color c=src->color(x, y);
+            switch(layout)
             {
-               Color c=image.color(x, y); Swap(c.g, c.a); c.r=c.b=c.g;
-               image.color(x, y, c);
+               case 0: {c.b=c.a=0;} break; // source is RG
+               case 1: {c.r=c.g; c.g=c.a; c.b=c.a=0;} break; // source is GA
             }
-            image.unlock();
-            image.updateMipMaps(FILTER_LINEAR); // for speed use linear filter
+            dest.color(x, y, c);
          }
+         dest.unlock(); dest.updateMipMaps(FILTER_LINEAR); // for speed use linear filter
+         src->unlock();
+         Swap(dest, image);
       }
    }
+   return true;
 }
 Bool Font::save(File &f)C
 {
-   f.putMulti(UInt(CC4_FONT), Byte(5), _sub_pixel, _height, _padd); // version
+   f.putMulti(UInt(CC4_FONT), Byte(6), _sub_pixel, _height, _padd); // version
    f.cmpUIntV(_images.elms()); FREPA(_images)if(!_images[i].saveData(f))return false;
   _chrs.saveRaw(f);
    return f.ok();
@@ -444,12 +458,25 @@ Bool Font::load(File &f)
    del();
    if(f.getUInt()==CC4_FONT)switch(f.decUIntV()) // version
    {
-      case 5:
+      case 6:
       {
          f.getMulti(_sub_pixel, _height, _padd);
         _images.setNum(f.decUIntV()); FREPA(_images)if(!_images[i].loadData(f))goto error;
         _chrs.loadRaw(f);
          if(f.ok())
+         {
+            setRemap();
+            setGLFont();
+            return true;
+         }
+      }break;
+
+      case 5:
+      {
+         f.getMulti(_sub_pixel, _height, _padd);
+        _images.setNum(f.decUIntV()); FREPA(_images)if(!_images[i].loadData(f))goto error;
+        _chrs.loadRaw(f);
+         if(f.ok() && Adjust(T, 1))
          {
             setRemap();
             setGLFont();
@@ -463,7 +490,7 @@ Bool Font::load(File &f)
         _images.setNum(f.decUIntV());
          FontLoadChr3(T, f);
          FREPA(_images){f.skip(4); if(!_images[i].loadData(f))goto error;} // skip 'GFX' CC4 and use 'loadData'
-         if(f.ok())
+         if(f.ok() && Adjust(T, 1))
          {
             setRemap();
             setGLFont();
@@ -477,9 +504,8 @@ Bool Font::load(File &f)
         _images.setNum(f.decUIntV());
          FontLoadChr3(T, f);
          FREPA(_images){f.skip(4); if(!_images[i].loadData(f))goto error;} // skip 'GFX' CC4 and use 'loadData'
-         if(f.ok())
+         if(f.ok() && Adjust(T, 0))
          {
-            SwapGreenAlpha(T);
             setRemap();
             setGLFont();
             return true;
@@ -492,9 +518,8 @@ Bool Font::load(File &f)
         _images.setNum(f.getInt());
          FontLoadChr0(T, f);
          FREPA(_images){f.skip(4); if(!_images[i].loadData(f))goto error;} // skip 'GFX' CC4 and use 'loadData'
-         if(f.ok())
+         if(f.ok() && Adjust(T, 0))
          {
-            SwapGreenAlpha(T);
             setRemap();
             setGLFont();
             return true;
@@ -507,9 +532,8 @@ Bool Font::load(File &f)
         _images.setNum(f.getInt());
          FontLoadChr0(T, f);
          FREPA(_images){f.skip(4); if(!_images[i].loadData(f))goto error;} // skip 'GFX' CC4 and use 'loadData'
-         if(f.ok())
+         if(f.ok() && Adjust(T, 0))
          {
-            SwapGreenAlpha(T);
             setRemap();
             setGLFont();
             return true;
@@ -522,9 +546,8 @@ Bool Font::load(File &f)
         _images.setNum(f.getInt()); 
          FontLoadChr0(T, f);
          FREPA(_images){f.skip(4); if(!_images[i].loadData(f))goto error;} // skip 'GFX' CC4 and use 'loadData'
-         if(f.ok())
+         if(f.ok() && Adjust(T, 0))
          {
-            SwapGreenAlpha(T);
             setRemap();
             setGLFont();
             return true;
@@ -1022,23 +1045,25 @@ struct FontCreate : Font::Params
       if(img.createSoftTry(fc.size.x, fc.size.y, 1, imageTypeTemp()))
       {
          // copy
-         Bool clear_shadow=(mode!=Font::SUB_PIXEL && shadow_opacity<=0);
+         Bool clear_shadow=(shadow_opacity<=0);
 
          REPD(y, img.h())
          REPD(x, img.w())
          {
             Color c=dc.image.color(fc.ofs.x+x, fc.ofs.y+y);
-            c.a=AvgI(c.r, c.g, c.b);
-            if(mode!=Font::SUB_PIXEL) // average colors
+            if(mode==Font::SUB_PIXEL)
             {
+               c.a=AvgI(c.r, c.g, c.b);
+            }else
+            {
+               Byte intensity=AvgI(c.r, c.g, c.b);
             #if USE_FREE_TYPE
                // FreeType doesn't have gamma applied
             #elif WINDOWS_OLD
-               c.a=WinGDIGamma[c.a]; // remove gamma applied by WinGDI
+               intensity=WinGDIGamma[intensity]; // remove gamma applied by WinGDI
             #endif
-               c.r=c.g=c.b=c.a;
+               c.set(intensity, clear_shadow ? 0 : intensity, 0, 0); // R=font, G=shadow #FontImageLayout
             }
-            if(clear_shadow)c.a=0;
             img.color(x, y, c);
          }
 
@@ -1066,7 +1091,13 @@ struct FontCreate : Font::Params
       #endif
 
          // apply shadow
-         img.setShadow(shadow_blur, shadow_opacity, shadow_spread, false, shadow_offset, 0, false);
+         if(shadow_opacity>0)
+         {
+            ASSERT(FONT_IMAGE_TYPE==IMAGE_R8G8);
+            img._type=img._hw_type=IMAGE_L8A8;
+            img.setShadow(shadow_blur, shadow_opacity, shadow_spread, false, shadow_offset, 0, false);
+            img._type=img._hw_type=FONT_IMAGE_TYPE;
+         }
       }
    }
    Bool clean()
@@ -1181,7 +1212,12 @@ struct FontCreate : Font::Params
          dest.tex.set(Flt(x-eps)/w, Flt(y-eps)/h, Flt(x+size.x+eps)/w, Flt(y+size.y+eps)/h);
 
          REPD(sy, size.y)
-         REPD(sx, size.x)image.color(x+sx, y+sy, src.image.color(sx, sy));
+         REPD(sx, size.x)
+         {
+            Color c=src.image.color(sx, sy);
+            // #FontImageLayout we could do some advanced remapping here
+            image.color(x+sx, y+sy, c);
+         }
 
          x+=size.x+char_border;
          MAX(max_h, size.y);

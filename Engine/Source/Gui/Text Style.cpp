@@ -738,8 +738,9 @@ struct FontDraw
 
                Vec4 c=src->colorFLinear(tx, ty);
 
-               Flt  a=Min(c.y*contrast, 1), // font opacity, scale up by 'contrast' to improve quality when font is very small
-                    s=    c.w*shadow      ; // font shadow
+               // #FontImageLayout
+               Flt  a=Min(c.x*contrast, 1), // font opacity, scale up by 'contrast' to improve quality when font is very small
+                    s=    c.y*shadow      ; // font shadow
 
                // Flt final_alpha=1-(1-s)*(1-a);
                // 1-(1-s)*(1-a)
