@@ -1093,10 +1093,10 @@ struct FontCreate : Font::Params
          // apply shadow
          if(shadow_opacity>0)
          {
-            ASSERT(FONT_IMAGE_TYPE==IMAGE_R8G8);
-            img._type=img._hw_type=IMAGE_L8A8;
+            ASSERT(FONT_IMAGE_TYPE==IMAGE_R8G8); // #FontImageLayout
+            img._type=img._hw_type=IMAGE_L8A8; // convert R8G8 -> L8A8 needed for shadows
             img.setShadow(shadow_blur, shadow_opacity, shadow_spread, false, shadow_offset, 0, false);
-            img._type=img._hw_type=FONT_IMAGE_TYPE;
+            img._type=img._hw_type=FONT_IMAGE_TYPE; // convert L8A8 -> R8G8
          }
       }
    }
