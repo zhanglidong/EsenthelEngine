@@ -1150,7 +1150,7 @@ void Source::draw(C GuiPC &gpc)
                                  Memc<Str> t;
                                //Int       match=matches[0].average_match;
                                  Int       match=matches.last().lowest_match; REPA(matches)MAX(match, matches[i].lowest_match);
-                                 FREPA(matches){FuncMatch &fm=matches[i]; t.New()=S+((fm.lowest_match==match) ? "[col=000F]" : "[col=0008]")+fm.func->funcDefinition(cur_param)+fm.func->commentsCode()+"[/col]";}
+                                 FREPA(matches){FuncMatch &fm=matches[i]; t.New()=S+((fm.lowest_match==match) ? "[col=000F]" : "[col=888F]")+fm.func->funcDefinition(cur_param)+fm.func->commentsCode()+"[/col]";}
 
                                  Str code; FREPA(t){if(i)code+='\n'; code+=t[i];}
                                  Str text; Memt<TextCodeData> codes; SetTextCode(code, text, codes);

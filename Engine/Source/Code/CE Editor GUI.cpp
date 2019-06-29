@@ -49,9 +49,9 @@ ColorTheme ThemeLight=
    Color(255, 255,   0), // ENUM_ELM
    Color(255, 255,   0), // FUNC
    Color( 51, 153, 255), // SELECT
-   Color(255, 255,   0, LINEAR_GAMMA ? 56 : 128), //   LINE_HIGHLIGHT
+   Color(255, 255,   0, LINEAR_GAMMA ? 48 : 128), //   LINE_HIGHLIGHT
    Color(255, 255, 255, LINEAR_GAMMA ? 48 :  85), // SYMBOL_HIGHLIGHT
-   Color(255, 255, 255, LINEAR_GAMMA ? 24 :  40), //  BRACE_HIGHLIGHT
+   Color(255, 255, 255, LINEAR_GAMMA ? 12 :  40), //  BRACE_HIGHLIGHT
    Color(128, 128, 128), // PREPROC_DISABLED
    Color( 36, 106, 172, 245), // TOKEN_ELM_BACKGROUND
    Color(255, 255, 255), // TOKEN_ELM_NAME
