@@ -1624,6 +1624,8 @@ namespace
     }
 
 
+    void FillWithErrorColors(VecH  (&color)[4][4]){REP(16)color[0][i].set(SET_DEBUG ? HalfOne : HalfZero, HalfZero, SET_DEBUG ? HalfOne : HalfZero);} // ESENTHEL ADDED
+    void FillWithErrorColors(Color (&color)[4][4]){REP(16)color[0][i]=(SET_DEBUG ? PURPLE : BLACK);} // ESENTHEL ADDED
     void FillWithErrorColors(_Out_writes_(NUM_PIXELS_PER_BLOCK) HDRColorA* pOut)
     {
         for (size_t i = 0; i < NUM_PIXELS_PER_BLOCK; ++i)
