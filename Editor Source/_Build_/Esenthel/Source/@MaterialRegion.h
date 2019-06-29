@@ -107,10 +107,13 @@ public:
    static Str  DownsizeTexMobile(C MaterialRegion &mr          );
    static void DownsizeTexMobile(  MaterialRegion &mr, C Str &t);
 
-   static cchar8 *TexQualityiOSText[]
-;
-   static Str  TexQualityiOS(C MaterialRegion &mr          );
-   static void TexQualityiOS(  MaterialRegion &mr, C Str &t);
+   /*static cchar8 *TexQuality[]=
+   {
+      "2-bit Low (default)",
+      "4-bit High",
+   };
+   static Str  TexQuality(C MaterialRegion &mr          ) {return mr.edit.tex_quality;}
+   static void TexQuality(  MaterialRegion &mr, C Str &t) {mr.edit.tex_quality=TextBool(t); mr.edit.tex_quality_time.getUTC();}*/
 
    /*static .MaxTexSize max_tex_sizes[]=
    {
@@ -275,7 +278,7 @@ public:
    void flipNrmY         (bool              on ); // 'rebuildBase' already calls 'setChanged' and 'toGui'
  //void maxTexSize       (Edit.MAX_TEX_SIZE mts) {if(edit.max_tex_size       !=mts){undos.set("mts"  ); edit.max_tex_size       =mts; edit.       max_tex_size_time.getUTC(); setChanged(); toGui();}}
    void downsizeTexMobile(byte              ds );
-   void texQualityiOS    (bool              q  );
+   void texQuality       (int               q  );
 
    void resizeBase(C VecI2 &size, bool relative=false);
    void resizeBase0(C VecI2 &size, bool relative=false);

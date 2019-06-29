@@ -4,10 +4,10 @@ class ElmWaterMtrl : ElmData
 {
    enum FLAG
    {
-      USES_TEX_ALPHA =1<<0,
-      USES_TEX_BUMP  =1<<1,
-      USES_TEX_GLOW  =1<<2,
-      TEX_QUALITY_IOS=1<<3,
+      USES_TEX_ALPHA=1<<0,
+      USES_TEX_BUMP =1<<1,
+      USES_TEX_GLOW =1<<2,
+      TEX_QUALITY_HI=1<<3,
    };
 
    UID  base_0_tex, base_1_tex, reflection_tex;
@@ -17,10 +17,12 @@ class ElmWaterMtrl : ElmData
    bool equal(C ElmMaterial &src)C;
    bool newer(C ElmMaterial &src)C;
 
-   bool usesTexAlpha ()C;   void usesTexAlpha (bool on);
-   bool usesTexBump  ()C;   void usesTexBump  (bool on);
-   bool usesTexGlow  ()C;   void usesTexGlow  (bool on);
-   bool texQualityiOS()C;   void texQualityiOS(bool on);
+   bool usesTexAlpha()C;   void usesTexAlpha(bool on);
+   bool usesTexBump ()C;   void usesTexBump (bool on);
+   bool usesTexGlow ()C;   void usesTexGlow (bool on);
+
+   int texQuality()C;
+   void texQuality(int q);
 
    // get
    bool equal(C ElmWaterMtrl &src)C;

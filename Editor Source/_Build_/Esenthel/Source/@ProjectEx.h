@@ -342,7 +342,7 @@ public:
    void mtrlCull(C MemPtr<UID> &elm_ids, bool on);
    void mtrlFlipNrmY(C MemPtr<UID> &elm_ids, bool on);
    void mtrlDownsizeTexMobile(C MemPtr<UID> &elm_ids, byte downsize);
-   void mtrlTexQualityiOS(C MemPtr<UID> &elm_ids, bool quality);
+   void mtrlTexQuality(C MemPtr<UID> &elm_ids, int quality);
    bool mtrlMulTexCol(C MemPtr<UID> &elm_ids);
    bool mtrlMulTexRough(C MemPtr<UID> &elm_ids);
    void mtrlMoveToObj(C MemPtr<UID> &elm_ids);

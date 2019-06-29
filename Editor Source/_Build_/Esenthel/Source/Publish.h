@@ -14,14 +14,9 @@ extern Str                 PublishPath,
                     PublishExePath, 
                     PublishErrorMessage;
 extern Button              PublishSkipOptimize;
-extern ComboBox            PublishPVRTCQuality;
-extern Text                PublishPVRTCQualityText;
-extern TextWhite           PublishPVRTCQualityTextStyle;
 extern Edit::EXE_TYPE       PublishExeType  ;
 extern Edit::BUILD_MODE     PublishBuildMode;
 extern WindowIO            PublishEsProjIO;
-extern cchar8 *PVRTCQuality[]
-;
 /******************************************************************************/
 bool PublishDataNeeded(Edit::EXE_TYPE exe, Edit::BUILD_MODE mode);
 void PublishDo();
@@ -34,7 +29,6 @@ Texture* GetTexture(MemPtr<Texture> textures, C UID &tex_id);
 void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGenerate> &generate, Memc<ImageConvert> &convert);
 void SetPublishFiles(Memb<PakFileData> &files, Memc<ImageGenerate> &generate, Memc<ImageConvert> &convert, Memc<Mems<byte> > &file_data);
 void GetPublishFiles(Memb<PakFileData> &files);
-void PVRTCQualityChanged(ptr);
 bool InitPublish();
 void ShutPublish();
 void PublishSuccess(C Str &open_path, C Str &text);

@@ -2,7 +2,8 @@
 /******************************************************************************/
 class EditMaterial
 {
-   bool               flip_normal_y, cull, high_quality_ios;
+   bool               flip_normal_y, cull;
+   sbyte              tex_quality;
    byte               downsize_tex_mobile;
    MATERIAL_TECHNIQUE tech;
    Vec4               color;
@@ -15,7 +16,7 @@ class EditMaterial
                       macro_map,
                       reflection_map,
                       light_map;
-   TimeStamp          flip_normal_y_time, high_quality_ios_time,
+   TimeStamp          flip_normal_y_time, tex_quality_time,
                       color_map_time, alpha_map_time, bump_map_time, normal_map_time, specular_map_time, glow_map_time,
                       detail_map_time, macro_map_time, reflection_map_time, light_map_time,
                       cull_time, tech_time, downsize_tex_mobile_time,

@@ -1,7 +1,8 @@
 /******************************************************************************/
 class EditMaterial
 {
-   bool               flip_normal_y=false, cull=true, high_quality_ios=false;
+   bool               flip_normal_y=false, cull=true;
+   sbyte              tex_quality=0;
    byte               downsize_tex_mobile=0;
    MATERIAL_TECHNIQUE tech=MTECH_DEFAULT;
    Vec4               color(1, 1, 1, 1);
@@ -14,7 +15,7 @@ class EditMaterial
                       macro_map,
                       reflection_map,
                       light_map;
-   TimeStamp          flip_normal_y_time, high_quality_ios_time,
+   TimeStamp          flip_normal_y_time, tex_quality_time,
                       color_map_time, alpha_map_time, bump_map_time, normal_map_time, specular_map_time, glow_map_time,
                       detail_map_time, macro_map_time, reflection_map_time, light_map_time,
                       cull_time, tech_time, downsize_tex_mobile_time,
@@ -41,7 +42,7 @@ class EditMaterial
 
    bool equal(C EditMaterial &src)C
    {
-      return flip_normal_y_time==src.flip_normal_y_time && high_quality_ios_time==src.high_quality_ios_time
+      return flip_normal_y_time==src.flip_normal_y_time && tex_quality_time==src.tex_quality_time
       && color_map_time==src.color_map_time && alpha_map_time==src.alpha_map_time && bump_map_time==src.bump_map_time && normal_map_time==src.normal_map_time && specular_map_time==src.specular_map_time && glow_map_time==src.glow_map_time
       && detail_map_time==src.detail_map_time && macro_map_time==src.macro_map_time && reflection_map_time==src.reflection_map_time && light_map_time==src.light_map_time
       && cull_time==src.cull_time && tech_time==src.tech_time && downsize_tex_mobile_time==src.downsize_tex_mobile_time
@@ -50,7 +51,7 @@ class EditMaterial
    }
    bool newer(C EditMaterial &src)C
    {
-      return flip_normal_y_time>src.flip_normal_y_time || high_quality_ios_time>src.high_quality_ios_time
+      return flip_normal_y_time>src.flip_normal_y_time || tex_quality_time>src.tex_quality_time
       || color_map_time>src.color_map_time || alpha_map_time>src.alpha_map_time || bump_map_time>src.bump_map_time || normal_map_time>src.normal_map_time || specular_map_time>src.specular_map_time || glow_map_time>src.glow_map_time
       || detail_map_time>src.detail_map_time || macro_map_time>src.macro_map_time || reflection_map_time>src.reflection_map_time || light_map_time>src.light_map_time
       || cull_time>src.cull_time || tech_time>src.tech_time || downsize_tex_mobile_time>src.downsize_tex_mobile_time
@@ -102,7 +103,7 @@ class EditMaterial
 
    void newData()
    {
-      flip_normal_y_time++; high_quality_ios_time++;
+      flip_normal_y_time++; tex_quality_time++;
       color_map_time++; alpha_map_time++; bump_map_time++; normal_map_time++; specular_map_time++; glow_map_time++;
       detail_map_time++; macro_map_time++; reflection_map_time++; light_map_time++;
       cull_time++; tech_time++; downsize_tex_mobile_time++;
@@ -159,7 +160,7 @@ class EditMaterial
       dest.downsize_tex_mobile=downsize_tex_mobile;
       dest.cull=cull;
       dest.flip_normal_y=flip_normal_y;
-      dest.high_quality_ios=high_quality_ios;
+      dest.tex_quality=tex_quality;
       dest.color=color;
       dest.ambient=ambient;
       dest.specular=specular;
@@ -198,7 +199,7 @@ class EditMaterial
       changed|=CHANGED_PARAM*SyncByValue(               tech_time, time, tech               , src.technique          );
       changed|=CHANGED_PARAM*SyncByValue(               cull_time, time, cull               , src.cull               );
       changed|=              SyncByValue(      flip_normal_y_time, time, flip_normal_y      , src.flip_normal_y      )*(CHANGED_PARAM|CHANGED_BASE|CHANGED_FNY); // set CHANGED_BASE too because this should trigger reloading base textures
-      changed|=CHANGED_PARAM*SyncByValue(   high_quality_ios_time, time, high_quality_ios   , src.high_quality_ios   );
+      changed|=CHANGED_PARAM*SyncByValue(        tex_quality_time, time, tex_quality        , src.tex_quality        );
       changed|=CHANGED_PARAM*SyncByValue(downsize_tex_mobile_time, time, downsize_tex_mobile, src.downsize_tex_mobile);
 
       changed|=CHANGED_PARAM*SyncByValueEqual(     color_time, time,      color, src.     color);
@@ -270,7 +271,7 @@ class EditMaterial
       }
       changed|=Sync(               cull_time, src.               cull_time,                cull, src.               cull)*CHANGED_PARAM;
       changed|=Sync(               tech_time, src.               tech_time,                tech, src.               tech)*CHANGED_PARAM;
-      changed|=Sync(   high_quality_ios_time, src.   high_quality_ios_time,    high_quality_ios, src.   high_quality_ios)*CHANGED_PARAM;
+      changed|=Sync(        tex_quality_time, src.        tex_quality_time,         tex_quality, src.        tex_quality)*CHANGED_PARAM;
       changed|=Sync(downsize_tex_mobile_time, src.downsize_tex_mobile_time, downsize_tex_mobile, src.downsize_tex_mobile)*CHANGED_PARAM;
 
       changed|=Sync(     color_time, src.     color_time, color     , src.color     )*CHANGED_PARAM;
@@ -340,7 +341,7 @@ class EditMaterial
       }
       changed|=Undo(               cull_time, src.               cull_time,                cull, src.               cull)*CHANGED_PARAM;
       changed|=Undo(               tech_time, src.               tech_time,                tech, src.               tech)*CHANGED_PARAM;
-      changed|=Undo(   high_quality_ios_time, src.   high_quality_ios_time,    high_quality_ios, src.   high_quality_ios)*CHANGED_PARAM;
+      changed|=Undo(        tex_quality_time, src.        tex_quality_time,         tex_quality, src.        tex_quality)*CHANGED_PARAM;
       changed|=Undo(downsize_tex_mobile_time, src.downsize_tex_mobile_time, downsize_tex_mobile, src.downsize_tex_mobile)*CHANGED_PARAM;
 
       changed|=Undo(     color_time, src.     color_time, color     , src.color     )*CHANGED_PARAM;
@@ -369,7 +370,7 @@ class EditMaterial
    bool save(File &f)C
    {
       f.cmpUIntV(10);
-      f<<flip_normal_y<<cull<<high_quality_ios<<tech<<downsize_tex_mobile;
+      f<<flip_normal_y<<cull<<tex_quality<<tech<<downsize_tex_mobile;
       f<<color<<ambient<<specular<<sss<<glow<<rough<<bump<<tex_scale<<det_scale<<det_power<<reflection;
       f<<base_0_tex<<base_1_tex<<detail_tex<<macro_tex<<reflection_tex<<light_tex;
 
@@ -379,7 +380,7 @@ class EditMaterial
        <<reflection_map
        <<light_map;
 
-      f<<flip_normal_y_time<<high_quality_ios_time;
+      f<<flip_normal_y_time<<tex_quality_time;
       f<<color_map_time<<alpha_map_time<<bump_map_time<<normal_map_time<<specular_map_time<<glow_map_time;
       f<<detail_map_time<<macro_map_time<<reflection_map_time<<light_map_time;
       f<<cull_time<<tech_time<<downsize_tex_mobile_time;
@@ -393,7 +394,7 @@ class EditMaterial
       {
          case 10:
          {
-            f>>flip_normal_y>>cull>>high_quality_ios>>tech>>downsize_tex_mobile;
+            f>>flip_normal_y>>cull>>tex_quality>>tech>>downsize_tex_mobile;
             f>>color>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>reflection_tex>>light_tex;
 
@@ -403,7 +404,7 @@ class EditMaterial
              >>reflection_map
              >>light_map;
 
-            f>>flip_normal_y_time>>high_quality_ios_time;
+            f>>flip_normal_y_time>>tex_quality_time;
             f>>color_map_time>>alpha_map_time>>bump_map_time>>normal_map_time>>specular_map_time>>glow_map_time;
             f>>detail_map_time>>macro_map_time>>reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time;
@@ -412,7 +413,7 @@ class EditMaterial
 
          case 9:
          {
-            f>>flip_normal_y>>cull>>high_quality_ios>>tech>>downsize_tex_mobile;
+            f>>flip_normal_y>>cull>>tex_quality>>tech>>downsize_tex_mobile;
             f>>color>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>reflection_tex>>light_tex;
 
@@ -422,7 +423,7 @@ class EditMaterial
             GetStr2(f, reflection_map);
             GetStr2(f, light_map);
 
-            f>>flip_normal_y_time>>high_quality_ios_time;
+            f>>flip_normal_y_time>>tex_quality_time;
             f>>color_map_time>>alpha_map_time>>bump_map_time>>normal_map_time>>specular_map_time>>glow_map_time;
             f>>detail_map_time>>macro_map_time>>reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time;
@@ -431,7 +432,7 @@ class EditMaterial
 
          case 8:
          {
-            f>>bump_from_color>>flip_normal_y>>cull>>high_quality_ios>>tech>>downsize_tex_mobile;
+            f>>bump_from_color>>flip_normal_y>>cull>>tex_quality>>tech>>downsize_tex_mobile;
             f>>color>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>reflection_tex>>light_tex;
 
@@ -441,7 +442,7 @@ class EditMaterial
             GetStr2(f, reflection_map);
             GetStr2(f, light_map);
 
-            f>>bump_from_color_time>>flip_normal_y_time>>high_quality_ios_time;
+            f>>bump_from_color_time>>flip_normal_y_time>>tex_quality_time;
             f>>color_map_time>>alpha_map_time>>bump_map_time>>normal_map_time>>specular_map_time>>glow_map_time;
             f>>detail_map_time>>macro_map_time>>reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time;
@@ -450,7 +451,7 @@ class EditMaterial
 
          case 7:
          {
-            f>>bump_from_color>>flip_normal_y>>cull>>high_quality_ios>>tech>>downsize_tex_mobile>>mip_map_blur;
+            f>>bump_from_color>>flip_normal_y>>cull>>tex_quality>>tech>>downsize_tex_mobile>>mip_map_blur;
             f>>color>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>reflection_tex>>light_tex;
 
@@ -460,7 +461,7 @@ class EditMaterial
             GetStr2(f, reflection_map);
             GetStr2(f, light_map);
 
-            f>>bump_from_color_time>>flip_normal_y_time>>high_quality_ios_time;
+            f>>bump_from_color_time>>flip_normal_y_time>>tex_quality_time;
             f>>color_map_time>>alpha_map_time>>bump_map_time>>normal_map_time>>specular_map_time>>glow_map_time;
             f>>detail_map_time>>macro_map_time>>reflection_map_time>>light_map_time;
             f>>cull_time>>tech_time>>downsize_tex_mobile_time>>mip_map_blur_time;

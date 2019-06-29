@@ -601,10 +601,10 @@ class ElmMaterial : ElmData
 {
    enum FLAG
    {
-      USES_TEX_ALPHA =1<<0,
-      USES_TEX_BUMP  =1<<1,
-      USES_TEX_GLOW  =1<<2,
-      TEX_QUALITY_IOS=1<<3,
+      USES_TEX_ALPHA=1<<0,
+      USES_TEX_BUMP =1<<1,
+      USES_TEX_GLOW =1<<2,
+      TEX_QUALITY_HI=1<<3,
    }
    UID  base_0_tex=UIDZero, base_1_tex=UIDZero, detail_tex=UIDZero, macro_tex=UIDZero, reflection_tex=UIDZero, light_tex=UIDZero;
    byte downsize_tex_mobile=0, flag=0;
@@ -613,10 +613,18 @@ class ElmMaterial : ElmData
    bool equal(C ElmMaterial &src)C {return super.equal(src);}
    bool newer(C ElmMaterial &src)C {return super.newer(src);}
 
-   bool usesTexAlpha ()C {return FlagTest(flag, USES_TEX_ALPHA );}   void usesTexAlpha (bool on) {return FlagSet(flag, USES_TEX_ALPHA , on);}
-   bool usesTexBump  ()C {return FlagTest(flag, USES_TEX_BUMP  );}   void usesTexBump  (bool on) {return FlagSet(flag, USES_TEX_BUMP  , on);}
-   bool usesTexGlow  ()C {return FlagTest(flag, USES_TEX_GLOW  );}   void usesTexGlow  (bool on) {return FlagSet(flag, USES_TEX_GLOW  , on);}
-   bool texQualityiOS()C {return FlagTest(flag, TEX_QUALITY_IOS);}   void texQualityiOS(bool on) {return FlagSet(flag, TEX_QUALITY_IOS, on);}
+   bool usesTexAlpha()C {return FlagTest(flag, USES_TEX_ALPHA);}   void usesTexAlpha(bool on) {return FlagSet(flag, USES_TEX_ALPHA, on);}
+   bool usesTexBump ()C {return FlagTest(flag, USES_TEX_BUMP );}   void usesTexBump (bool on) {return FlagSet(flag, USES_TEX_BUMP , on);}
+   bool usesTexGlow ()C {return FlagTest(flag, USES_TEX_GLOW );}   void usesTexGlow (bool on) {return FlagSet(flag, USES_TEX_GLOW , on);}
+
+   int texQuality()C
+   {
+      return (flag&TEX_QUALITY_HI) ? 1 : 0;
+   }
+   void texQuality(int q)
+   {
+      FlagSet(flag, TEX_QUALITY_HI, q>0);
+   }
 
    virtual bool mayContain (C UID &id)C override {return false;}
    virtual bool containsTex(C UID &id, bool test_merged)C override
@@ -650,10 +658,10 @@ class ElmMaterial : ElmData
 
       downsize_tex_mobile=src.downsize_tex_mobile;
 
-      usesTexAlpha (src.usesTexAlpha());
-      usesTexBump  (src.usesTexBump ());
-      usesTexGlow  (src.usesTexGlow ());
-      texQualityiOS(src.high_quality_ios);
+      usesTexAlpha(src.usesTexAlpha());
+      usesTexBump (src.usesTexBump ());
+      usesTexGlow (src.usesTexGlow ());
+      texQuality  (src.tex_quality   );
    }
    uint undo(C ElmMaterial &src) // don't undo 'downsize_tex_mobile', 'flag' because they should be set only in 'from'
    {
@@ -720,7 +728,7 @@ class ElmMaterial : ElmData
       if(reflection_tex.valid())nodes.New().setFN("Reflection"       , reflection_tex);
       if(     light_tex.valid())nodes.New().setFN("Light"            ,      light_tex);
       if(  downsize_tex_mobile )nodes.New().set  ("MobileTexDownsize", downsize_tex_mobile);
-                                nodes.New().set  ("iOSTexQuality"    , texQualityiOS());
+                                nodes.New().set  ("TexQuality"       , texQuality());
       if(usesTexAlpha())nodes.New().set("UsesTexAlpha");
       if(usesTexBump ())nodes.New().set("UsesTexBump" );
       if(usesTexGlow ())nodes.New().set("UsesTexGlow" );
@@ -737,8 +745,8 @@ class ElmMaterial : ElmData
          if(n.name=="Macro"            )n.getValue(     macro_tex);else
          if(n.name=="Reflection"       )n.getValue(reflection_tex);else
          if(n.name=="Light"            )n.getValue(     light_tex);else
-         if(n.name=="MobileTexDownsize")downsize_tex_mobile    =n.asInt () ;else
-         if(n.name=="iOSTexQuality"    )texQualityiOS          (n.asBool());else
+         if(n.name=="MobileTexDownsize")downsize_tex_mobile    =n.asInt() ;else
+         if(n.name=="TexQuality"       )texQuality             (n.asInt());else
          if(n.name=="UsesTexAlpha"     )FlagSet(flag, USES_TEX_ALPHA, n.asBool1());else
          if(n.name=="UsesTexBump"      )FlagSet(flag, USES_TEX_BUMP , n.asBool1());else
          if(n.name=="UsesTexGlow"      )FlagSet(flag, USES_TEX_GLOW , n.asBool1());
@@ -750,10 +758,10 @@ class ElmWaterMtrl : ElmData
 {
    enum FLAG
    {
-      USES_TEX_ALPHA =1<<0,
-      USES_TEX_BUMP  =1<<1,
-      USES_TEX_GLOW  =1<<2,
-      TEX_QUALITY_IOS=1<<3,
+      USES_TEX_ALPHA=1<<0,
+      USES_TEX_BUMP =1<<1,
+      USES_TEX_GLOW =1<<2,
+      TEX_QUALITY_HI=1<<3,
    }
 
    UID  base_0_tex=UIDZero, base_1_tex=UIDZero, reflection_tex=UIDZero;
@@ -763,10 +771,18 @@ class ElmWaterMtrl : ElmData
    bool equal(C ElmMaterial &src)C {return super.equal(src);}
    bool newer(C ElmMaterial &src)C {return super.newer(src);}
 
-   bool usesTexAlpha ()C {return FlagTest(flag, USES_TEX_ALPHA );}   void usesTexAlpha (bool on) {return FlagSet(flag, USES_TEX_ALPHA , on);}
-   bool usesTexBump  ()C {return FlagTest(flag, USES_TEX_BUMP  );}   void usesTexBump  (bool on) {return FlagSet(flag, USES_TEX_BUMP  , on);}
-   bool usesTexGlow  ()C {return FlagTest(flag, USES_TEX_GLOW  );}   void usesTexGlow  (bool on) {return FlagSet(flag, USES_TEX_GLOW  , on);}
-   bool texQualityiOS()C {return FlagTest(flag, TEX_QUALITY_IOS);}   void texQualityiOS(bool on) {return FlagSet(flag, TEX_QUALITY_IOS, on);}
+   bool usesTexAlpha()C {return FlagTest(flag, USES_TEX_ALPHA);}   void usesTexAlpha(bool on) {return FlagSet(flag, USES_TEX_ALPHA, on);}
+   bool usesTexBump ()C {return FlagTest(flag, USES_TEX_BUMP );}   void usesTexBump (bool on) {return FlagSet(flag, USES_TEX_BUMP , on);}
+   bool usesTexGlow ()C {return FlagTest(flag, USES_TEX_GLOW );}   void usesTexGlow (bool on) {return FlagSet(flag, USES_TEX_GLOW , on);}
+
+   int texQuality()C
+   {
+      return (flag&TEX_QUALITY_HI) ? 1 : 0;
+   }
+   void texQuality(int q)
+   {
+      FlagSet(flag, TEX_QUALITY_HI, q>0);
+   }
 
    // get
    bool equal(C ElmWaterMtrl &src)C {return super.equal(src);}
@@ -796,10 +812,10 @@ class ElmWaterMtrl : ElmData
           base_1_tex=src.    base_1_tex;
       reflection_tex=src.reflection_tex;
 
-      usesTexAlpha (src.usesTexAlpha());
-      usesTexBump  (src.usesTexBump ());
-      usesTexGlow  (src.usesTexGlow ());
-      texQualityiOS(src.high_quality_ios);
+      usesTexAlpha(src.usesTexAlpha());
+      usesTexBump (src.usesTexBump ());
+      usesTexGlow (src.usesTexGlow ());
+      texQuality  (src.tex_quality   );
    }
    uint undo(C ElmWaterMtrl &src) {return super.undo(src);} // don't adjust 'ver' here because it also relies on 'EditWaterMtrl', because of that this is included in 'ElmFileInShort', don't undo 'downsize_tex_mobile', 'flag' because they should be set only in 'from'
    uint sync(C ElmWaterMtrl &src) {return super.sync(src);} // don't adjust 'ver' here because it also relies on 'EditWaterMtrl', because of that this is included in 'ElmFileInShort', don't sync 'downsize_tex_mobile', 'flag' because they should be set only in 'from'
@@ -833,10 +849,10 @@ class ElmWaterMtrl : ElmData
    virtual void save(MemPtr<TextNode> nodes)C override
    {
       super.save(nodes);
-      if(    base_0_tex.valid())nodes.New().setFN("Base0"        ,     base_0_tex);
-      if(    base_1_tex.valid())nodes.New().setFN("Base1"        ,     base_1_tex);
-      if(reflection_tex.valid())nodes.New().setFN("Reflection"   , reflection_tex);
-                                nodes.New().set  ("iOSTexQuality", texQualityiOS());
+      if(    base_0_tex.valid())nodes.New().setFN("Base0"       ,     base_0_tex);
+      if(    base_1_tex.valid())nodes.New().setFN("Base1"       ,     base_1_tex);
+      if(reflection_tex.valid())nodes.New().setFN("Reflection"  , reflection_tex);
+                                nodes.New().set  ("TexQuality"  , texQuality());
       if(usesTexAlpha()        )nodes.New().set  ("UsesTexAlpha");
       if(usesTexBump ()        )nodes.New().set  ("UsesTexBump" );
       if(usesTexGlow ()        )nodes.New().set  ("UsesTexGlow" );
@@ -847,13 +863,13 @@ class ElmWaterMtrl : ElmData
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
-         if(n.name=="Base0"        )n.getValue(    base_0_tex);else
-         if(n.name=="Base1"        )n.getValue(    base_1_tex);else
-         if(n.name=="Reflection"   )n.getValue(reflection_tex);else
-         if(n.name=="iOSTexQuality")texQualityiOS(n.asBool());else
-         if(n.name=="UsesTexAlpha" )FlagSet(flag, USES_TEX_ALPHA, n.asBool1());else
-         if(n.name=="UsesTexBump"  )FlagSet(flag, USES_TEX_BUMP , n.asBool1());else
-         if(n.name=="UsesTexGlow"  )FlagSet(flag, USES_TEX_GLOW , n.asBool1());
+         if(n.name=="Base0"       )n.getValue(    base_0_tex);else
+         if(n.name=="Base1"       )n.getValue(    base_1_tex);else
+         if(n.name=="Reflection"  )n.getValue(reflection_tex);else
+         if(n.name=="TexQuality"  )texQuality(n.asInt()     );else
+         if(n.name=="UsesTexAlpha")FlagSet(flag, USES_TEX_ALPHA, n.asBool1());else
+         if(n.name=="UsesTexBump" )FlagSet(flag, USES_TEX_BUMP , n.asBool1());else
+         if(n.name=="UsesTexGlow" )FlagSet(flag, USES_TEX_GLOW , n.asBool1());
       }
    }
 }

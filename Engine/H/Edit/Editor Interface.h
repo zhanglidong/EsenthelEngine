@@ -223,8 +223,8 @@ struct FileParams
 struct Material
 {
    MATERIAL_TECHNIQUE technique;
-   Bool               cull, flip_normal_y,
-                      high_quality_ios; // if use higher quality texture format on iOS platform
+   Bool               cull, flip_normal_y;
+   SByte              tex_quality;
    Byte               downsize_tex_mobile; // how much to downsize textures for Mobile platforms, 0=full size, 1=half size, 2=quarter size, ..
    Vec4               color;
    Vec                ambient;

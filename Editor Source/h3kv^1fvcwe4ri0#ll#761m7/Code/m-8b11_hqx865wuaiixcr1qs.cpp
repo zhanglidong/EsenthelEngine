@@ -366,13 +366,13 @@ class MaterialRegion : Region
    static Str  DownsizeTexMobile(C MaterialRegion &mr          ) {return mr.edit.downsize_tex_mobile;}
    static void DownsizeTexMobile(  MaterialRegion &mr, C Str &t) {mr.edit.downsize_tex_mobile=TextInt(t); mr.edit.downsize_tex_mobile_time.getUTC();}
 
-   static cchar8 *TexQualityiOSText[]=
+   /*static cchar8 *TexQuality[]=
    {
       "2-bit Low (default)",
       "4-bit High",
    };
-   static Str  TexQualityiOS(C MaterialRegion &mr          ) {return mr.edit.high_quality_ios;}
-   static void TexQualityiOS(  MaterialRegion &mr, C Str &t) {mr.edit.high_quality_ios=TextBool(t); mr.edit.high_quality_ios_time.getUTC();}
+   static Str  TexQuality(C MaterialRegion &mr          ) {return mr.edit.tex_quality;}
+   static void TexQuality(  MaterialRegion &mr, C Str &t) {mr.edit.tex_quality=TextBool(t); mr.edit.tex_quality_time.getUTC();}*/
 
    /*static .MaxTexSize max_tex_sizes[]=
    {
@@ -548,7 +548,7 @@ class MaterialRegion : Region
    void flipNrmY         (bool              on ) {if(edit.flip_normal_y      !=on ){undos.set("fny"  ); edit.flip_normal_y      =on ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.baseTex(), true, false);}} // 'rebuildBase' already calls 'setChanged' and 'toGui'
  //void maxTexSize       (Edit.MAX_TEX_SIZE mts) {if(edit.max_tex_size       !=mts){undos.set("mts"  ); edit.max_tex_size       =mts; edit.       max_tex_size_time.getUTC(); setChanged(); toGui();}}
    void downsizeTexMobile(byte              ds ) {if(edit.downsize_tex_mobile!=ds ){undos.set("dtm"  ); edit.downsize_tex_mobile=ds ; edit.downsize_tex_mobile_time.getUTC(); setChanged(); toGui();}}
-   void texQualityiOS    (bool              q  ) {if(edit.high_quality_ios   !=q  ){undos.set("tq"   ); edit.high_quality_ios   =q  ; edit.   high_quality_ios_time.getUTC(); setChanged(); toGui();}}
+   void texQuality       (int               q  ) {if(edit.tex_quality        !=q  ){undos.set("tq"   ); edit.tex_quality        =q  ; edit.        tex_quality_time.getUTC(); setChanged(); toGui();}}
 
    void resizeBase(C VecI2 &size, bool relative=false)
    {
@@ -724,15 +724,15 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       props.New().create("Ambient Green"  , MemberDesc(DATA_REAL).setFunc(AmbG    , AmbG    )).range(0, 1);
       props.New().create("Ambient Blue"   , MemberDesc(DATA_REAL).setFunc(AmbB    , AmbB    )).range(0, 1);
       props.New().create("UV Scale"       , MemberDesc(DATA_REAL).setFunc(TexScale, TexScale)).range(0.01, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
-Property &mts=props.New().create("Mobile Tex Size", MemberDesc(DATA_INT ).setFunc(DownsizeTexMobile, DownsizeTexMobile)).setEnum(DownsizeTexMobileText, Elms(DownsizeTexMobileText)).desc("If Downsize Textures when making Applications for Mobile platforms");
-Property &tqi=props.New().create("iOS Tex Quality", MemberDesc(DATA_BOOL).setFunc(TexQualityiOS    , TexQualityiOS    )).setEnum(    TexQualityiOSText, Elms(    TexQualityiOSText)).desc("Select Texture Quality for iOS platform.\n4-bit per pixel PVRTC format offers higher quality, however it makes the texture use 2x more memory than 2-bit PVRTC.");
+  Property &mts=props.New().create("Mobile Tex Size", MemberDesc(DATA_INT).setFunc(DownsizeTexMobile, DownsizeTexMobile)).setEnum(DownsizeTexMobileText, Elms(DownsizeTexMobileText)).desc("If Downsize Textures when making Applications for Mobile platforms");
+//Property &tqi=props.New().create("Tex Quality"    , MemberDesc(DATA_INT).setFunc(TexQuality       , TexQuality       )).setEnum(       TexQualityText, Elms(       TexQualityText)).desc("Select Texture Quality");
 
       ts.reset().size=0.038; ts.align.set(1, 0);
       Rect prop_rect=AddProperties(props, sub, 0, prop_height, 0.145, &ts); REPAO(props).autoData(this).changed(Changed, PreChanged);
       sub+=brightness.create(Rect_RU(red.textline.rect().left(), red.button.rect().w(), prop_height*2)).func(RGB, T).focusable(false).subType(BUTTON_TYPE_PROPERTY_VALUE); brightness.mode=BUTTON_CONTINUOUS;
       tech.combobox.resize(Vec2(0.27, 0)); // increase size
       mts .combobox.resize(Vec2(0.15, 0)); // increase size
-      tqi .combobox.resize(Vec2(0.15, 0)); // increase size
+    //tqi .combobox.resize(Vec2(0.15, 0)); // increase size
 
       flt tex_size=prop_height*3; int i=-1;
       sub+=texs.New().create(TEX_COLOR   , MEMBER(EditMaterial,      color_map), MEMBER(EditMaterial,      color_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Color"         , T);
@@ -908,7 +908,7 @@ Property &tqi=props.New().create("iOS Tex Quality", MemberDesc(DATA_BOOL).setFun
          Proj.mtrlSetAutoTanBin(elm.id);
          Server.setElmLong(elm.id);
          if(saved.downsize_tex_mobile!=edit.downsize_tex_mobile)Proj.mtrlDownsizeTexMobile(elm_id, edit.downsize_tex_mobile); // upon flushing set all materials with same textures to the same 'downsize_tex_mobile'
-         if(saved.high_quality_ios   !=edit.high_quality_ios   )Proj.mtrlTexQualityiOS    (elm_id, edit.high_quality_ios   ); // upon flushing set all materials with same textures to the same 'high_quality_ios'
+         if(saved.tex_quality        !=edit.tex_quality        )Proj.mtrlTexQuality       (elm_id, edit.tex_quality        ); // upon flushing set all materials with same textures to the same 'tex_quality'
          saved=edit;
       }
       changed=false;

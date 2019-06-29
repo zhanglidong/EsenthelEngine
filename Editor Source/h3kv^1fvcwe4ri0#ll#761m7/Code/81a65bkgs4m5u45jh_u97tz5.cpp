@@ -1446,31 +1446,31 @@ class ProjectEx : ProjectHierarchy
          }
       }
    }
-   void mtrlTexQualityiOS(C MemPtr<UID> &elm_ids, bool quality)
+   void mtrlTexQuality(C MemPtr<UID> &elm_ids, int quality)
    {
       REPA(elm_ids)if(C Elm *mtrl=findElm(elm_ids[i]))if(C ElmMaterial *mtrl_data=mtrl.mtrlData())
       {
          Memt<UID> mtrls;
 
          // include this material
-         if(mtrl_data.texQualityiOS()!=quality)mtrls.add(mtrl.id);
+         if(mtrl_data.texQuality()!=quality)mtrls.add(mtrl.id);
 
          // include other materials that have the same textures
          if(mtrl_data.base_0_tex.valid() || mtrl_data.base_1_tex.valid())
             FREPA(elms)if(C ElmMaterial *test=elms[i].mtrlData())
-               if(test.texQualityiOS()!=quality && test.base_0_tex==mtrl_data.base_0_tex && test.base_1_tex==mtrl_data.base_1_tex)mtrls.binaryInclude(elms[i].id, Compare);
+               if(test.texQuality()!=quality && test.base_0_tex==mtrl_data.base_0_tex && test.base_1_tex==mtrl_data.base_1_tex)mtrls.binaryInclude(elms[i].id, Compare);
 
          REPA(mtrls)if(Elm *mtrl=findElm(mtrls[i]))
          {
-            if(MtrlEdit.elm==mtrl)MtrlEdit.texQualityiOS(quality);else
+            if(MtrlEdit.elm==mtrl)MtrlEdit.texQuality(quality);else
             {
                EditMaterial edit; if(edit.load(editPath(mtrl.id)))if(ElmMaterial *mtrl_data=mtrl.mtrlData())
                {
                   mtrl_data.newVer();
-                  mtrl_data.texQualityiOS(edit.high_quality_ios=quality); edit.high_quality_ios_time.now();
+                  mtrl_data.texQuality(edit.tex_quality=quality); edit.tex_quality_time.now();
                   Save(edit, editPath(mtrl.id));
-                //makeGameVer(*mtrl); this is not needed because 'high_quality_ios' is not stored in the game version, instead textures are converted during publishing
-                  Server.setElmLong(mtrl.id); // Long is needed because 'high_quality_ios_time' is only in edit
+                //makeGameVer(*mtrl); this is not needed because 'tex_quality' is not stored in the game version, instead textures are converted during publishing
+                  Server.setElmLong(mtrl.id); // Long is needed because 'tex_quality_time' is only in edit
                }
             }
          }

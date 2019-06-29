@@ -268,9 +268,6 @@ Str                 PublishPath,
                     PublishExePath, 
                     PublishErrorMessage;
 Button              PublishSkipOptimize;
-ComboBox            PublishPVRTCQuality;
-Text                PublishPVRTCQualityText;
-TextWhite           PublishPVRTCQualityTextStyle;
 Edit.EXE_TYPE       PublishExeType  =Edit.EXE_EXE;
 Edit.BUILD_MODE     PublishBuildMode=Edit.BUILD_BUILD;
 PublishResult       PublishRes;
@@ -543,10 +540,10 @@ class Texture
    UID id, // texture id
        src_tex_id=UIDZero; // if this is a dynamically generated texture, then 'src_tex_id' points to the original texture from which it was created
    bool  uses_alpha=false, // if uses alpha channel
-            keep_hq=false, // if keep high quality and don't convert to low quality format
         mtrl_base_1=false, // if this is material base_1 texture
          regenerate=false; // if this texture needs to be regenerated
-   byte        downsize=0; // blur mip map range
+   sbyte    quality=    0; // -1=PVRTC1_2, 0=default, 1=BC7
+   byte    downsize=    0; // blur mip map range
 
    Texture& downSize(int size) {MAX(downsize, size); return T;}
 
@@ -709,10 +706,9 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
             }
 
             // !! 'GetTexture' needs to be called always because it adds texture to publish list !!
-            bool hq=(iOS && data.texQualityiOS());
-            Texture *t0; if(        t0=GetTexture(publish_texs,          base_0_tex)){t0.downSize(downsize); if(ForceHQMtrlBase0 || hq)t0.keep_hq=true; t0.src_tex_id=src_tex; t0.regenerate|=regenerate;}
-            Texture *t1; if(        t1=GetTexture(publish_texs,          base_1_tex)){t1.downSize(downsize); if(ForceHQMtrlBase1      )t1.keep_hq=true; t1.mtrl_base_1=true;}
-                         if(Texture *t=GetTexture(publish_texs, data.    detail_tex)){t .downSize(downsize); if(ForceHQMtrlDetail     )t .keep_hq=true; if(!RemoveMtrlDetailBump)t.uses_alpha=true;} // Detail uses Alpha for bump unless it's removed
+            Texture *t0; if(        t0=GetTexture(publish_texs,          base_0_tex)){t0.downSize(downsize); if(ForceHQMtrlBase0 )t0.quality=1; t0.src_tex_id=src_tex; t0.regenerate|=regenerate;}
+            Texture *t1; if(        t1=GetTexture(publish_texs,          base_1_tex)){t1.downSize(downsize); if(ForceHQMtrlBase1 )t1.quality=1; t1.mtrl_base_1=true;}
+                         if(Texture *t=GetTexture(publish_texs, data.    detail_tex)){t .downSize(downsize); if(ForceHQMtrlDetail)t .quality=1; if(!RemoveMtrlDetailBump)t.uses_alpha=true;} // Detail uses Alpha for bump unless it's removed
                          if(Texture *t=GetTexture(publish_texs, data.     macro_tex)) t .downSize(downsize); // doesn't use Alpha, 'GetTexture' needs to be called
                          if(Texture *t=GetTexture(publish_texs, data.     light_tex)) t .downSize(downsize); // doesn't use Alpha, 'GetTexture' needs to be called
                          if(Texture *t=GetTexture(publish_texs, data.reflection_tex)){}                      // doesn't use Alpha, 'GetTexture' needs to be called
@@ -732,8 +728,8 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
          if(elm.type==ELM_WATER_MTRL)if(ElmWaterMtrl *data=elm.waterMtrlData()) // water material
          {
             // !! 'GetTexture' needs to be called always because it adds texture to publish list !!
-            Texture *t0; if(        t0=GetTexture(publish_texs, data.    base_0_tex)){if(ForceHQMtrlBase0)t0.keep_hq=true;} // doesn't use Alpha
-            Texture *t1; if(        t1=GetTexture(publish_texs, data.    base_1_tex)){if(ForceHQMtrlBase1)t1.keep_hq=true; t1.mtrl_base_1=true;} // doesn't use Alpha
+            Texture *t0; if(        t0=GetTexture(publish_texs, data.    base_0_tex)){if(ForceHQMtrlBase0)t0.quality=1;} // doesn't use Alpha
+            Texture *t1; if(        t1=GetTexture(publish_texs, data.    base_1_tex)){if(ForceHQMtrlBase1)t1.quality=1; t1.mtrl_base_1=true;} // doesn't use Alpha
                          if(Texture *t=GetTexture(publish_texs, data.reflection_tex)){} // doesn't use Alpha, 'GetTexture' needs to be called
 
             // check which base textures use Alpha Channel, #MaterialTextureChannelOrder
@@ -828,11 +824,11 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
 
          // change type
          int change_type=-1;
-         if(android)change_type=(tex.uses_alpha ? IMAGE_ETC2_A8_SRGB  : IMAGE_ETC2_SRGB    );else
-         if(iOS    )change_type=(tex.keep_hq    ? IMAGE_PVRTC1_4_SRGB : IMAGE_PVRTC1_2_SRGB);else
-         if(web    )change_type=(WebBC7 ? ((tex.uses_alpha || tex.keep_hq) ?             -1 : IMAGE_BC1_SRGB)      // texture could have alpha, however if we're not using it, then reduce to BC1 because it's only 4-bit per pixel
-                                        :   tex.uses_alpha                 ? IMAGE_BC3_SRGB : IMAGE_BC1_SRGB);else // if BC7 not supported for Web, then use BC3
-       //if(!tex.uses_alpha && !tex.keep_hq )change_type=IMAGE_BC1;else // texture could have alpha, however if we're not using it, then reduce to BC1 because it's only 4-bit per pixel, actually don't do this because it would require calling 'ImageLoadHeader' which is an IO operation and could be slow for many textures
+         if(android)change_type=( tex.uses_alpha  ? IMAGE_ETC2_A8_SRGB  : IMAGE_ETC2_SRGB    );else
+         if(iOS    )change_type=((tex.quality>=0) ? IMAGE_PVRTC1_4_SRGB : IMAGE_PVRTC1_2_SRGB);else
+         if(web    )change_type=(WebBC7 ? ((tex.uses_alpha || tex.quality>0) ?             -1 : IMAGE_BC1_SRGB)      // texture could have alpha, however if we're not using it, then reduce to BC1 because it's only 4-bit per pixel
+                                        :   tex.uses_alpha                   ? IMAGE_BC3_SRGB : IMAGE_BC1_SRGB);else // if BC7 not supported for Web, then use BC3
+       //if(!tex.uses_alpha && (tex.quality<=0))change_type=IMAGE_BC1;else // texture could have alpha, however if we're not using it, then reduce to BC1 because it's only 4-bit per pixel, actually don't do this because it would require calling 'ImageLoadHeader' which is an IO operation and could be slow for many textures
             {}
          if(change_type>=0 && tex.mtrl_base_1)change_type=ImageTypeExcludeSRGB((IMAGE_TYPE)change_type);
 
@@ -1094,15 +1090,6 @@ void GetPublishFiles(Memb<PakFileData> &files) // this is to be called outside o
    PublishEsProj   =false;
    SetPublishFiles(files, generate, convert, file_data);
 }
-cchar8 *PVRTCQuality[]=
-{
-   "Lowest - Fastest",
-   "Low - Fast",
-   "Normal",
-   "High - Slow",
-   "Highest - Slowest",
-};
-void PVRTCQualityChanged(ptr) {SetPVRTCQuality(PublishPVRTCQuality());}
 /******************************************************************************/
 bool InitPublish()
 {
@@ -1113,24 +1100,19 @@ bool InitPublish()
    Proj.pause(); // this will also flush all unsaved data which is crucial for publishing
    PublishAreasLeft=Proj.worldAreasToRebuild();
    UpdateProgress.create(Rect_C(0, -0.05, 1, 0.045));
-   PublishPVRTCQualityTextStyle.reset().align.set(0, 1); PublishPVRTCQualityTextStyle.size=0.055;
    Gui+=PublishSkipOptimize    .create(Rect_C(0, -0.20, 0.45, 0.08), "Skip for now").focusable(false); PublishSkipOptimize.mode=BUTTON_TOGGLE;
-   Gui+=PublishPVRTCQuality    .create(Rect_C(0, -0.40, 0.45, 0.06), PVRTCQuality, Elms(PVRTCQuality)).set(GetPVRTCQuality(), QUIET).func(PVRTCQualityChanged).focusable(false);
-   Gui+=PublishPVRTCQualityText.create(PublishPVRTCQuality.rect().up(), "PVRTC Compression Quality:", &PublishPVRTCQualityTextStyle);
    return true;
 }
 void ShutPublish()
 {
    PublishCancel();
-   UpdateThread           .del(); // delete the thread first
-   UpdateProgress         .del();
-   PublishFiles           .del();
-   PublishGenerate        .del();
-   PublishConvert         .del();
-   PublishFileData        .del();
-   PublishSkipOptimize    .del();
-   PublishPVRTCQuality    .del();
-   PublishPVRTCQualityText.del();
+   UpdateThread       .del(); // delete the thread first
+   UpdateProgress     .del();
+   PublishFiles       .del();
+   PublishGenerate    .del();
+   PublishConvert     .del();
+   PublishFileData    .del();
+   PublishSkipOptimize.del();
    Proj.resume();
    WindowSetNormal();
    WindowFlash();
@@ -1202,9 +1184,7 @@ bool UpdatePublish()
        Gui.update();
     Server.update(null, true); // it's very important to set 'busy' so no commands are processed during publishing
    if(Ms.bp(3))WindowToggle();
-   PublishSkipOptimize    .visible(PublishStage==PUBLISH_TEX_OPTIMIZE && !Publish.progress.stop);
-   PublishPVRTCQuality    .visible(PublishSkipOptimize.visible() && !PublishSkipOptimize() && PublishPVRTCUse);
-   PublishPVRTCQualityText.visible(PublishPVRTCQuality.visible());
+   PublishSkipOptimize.visible(PublishStage==PUBLISH_TEX_OPTIMIZE && !Publish.progress.stop);
    return true;
 }
 /******************************************************************************/
