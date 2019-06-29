@@ -533,9 +533,9 @@ ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
       break;
 
       case ALPHA_FONT:
-         glEnable       (GL_BLEND);
-         glBlendEquation(GL_FUNC_ADD);
-         glBlendFunc    (GL_CONSTANT_COLOR, GL_ONE_MINUS_SRC_COLOR);
+         glEnable           (GL_BLEND);
+         glBlendEquation    (GL_FUNC_ADD);
+         glBlendFuncSeparate(GL_CONSTANT_COLOR, GL_ONE_MINUS_SRC_COLOR, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
       break;
       case ALPHA_FONT_DEC:
          glEnable           (GL_BLEND);
@@ -950,8 +950,8 @@ void DisplayState::create()
       desc.RenderTarget[0].BlendEnable=true;
       desc.RenderTarget[0].  BlendOp     =desc.RenderTarget[0].BlendOpAlpha=D3D11_BLEND_OP_ADD;
       desc.RenderTarget[0]. SrcBlend     =D3D11_BLEND_BLEND_FACTOR;
-      desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_BLEND_FACTOR;
       desc.RenderTarget[0].DestBlend     =D3D11_BLEND_INV_SRC_COLOR;
+      desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ONE;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_INV_SRC_ALPHA;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
       BS[ALPHA_FONT].create(desc);

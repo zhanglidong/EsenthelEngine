@@ -705,9 +705,8 @@ struct FontDraw
    void setCode(C TextCodeData *code, C TextStyleParams &text_style)
    {
       flush();
-    //if(sub_pixel){Color c=        ((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color ); D.alphaFactor(c); c.r=c.g=c.b=c.a; VI.color(c);}else
-                   {color =         ((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color );
-                    shadow=ByteToFlt((code && code->shadow_mode!=TextCodeData::DEFAULT) ? code->shadow : text_style.shadow);}
+      color =         ((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color );
+      shadow=ByteToFlt((code && code->shadow_mode!=TextCodeData::DEFAULT) ? code->shadow : text_style.shadow);
    }
    void flush()
    {
@@ -744,7 +743,7 @@ struct FontDraw
                   Vec4 out;
                   c*=color.w;
                   out.xyz=c.xyz*color.xyz + d.xyz*(1-c.xyz);
-                  out.w  =c.w  *color.w   + d.w  *(1-c.w  );
+                  out.w  =c.w             + d.w  *(1-c.w  );
                   T.dest.colorF(x, y, out);
                }else
                {
