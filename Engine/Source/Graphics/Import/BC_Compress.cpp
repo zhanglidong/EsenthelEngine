@@ -92,9 +92,9 @@ static void CompressBC67Block(IntPtr elm_index, Data &data, Int thread_index)
    REPD(by, surf.height/4)
    REPD(bx, surf.width /4)
    {
-      XMVECTOR dx_rgba[4][4]; ASSERT(SIZE(XMVECTOR)==SIZE(Vec4));
-      Int      px=bx*4, py=by*4, // pixel
-               xo[4], yo[4];
+      DirectX::XMVECTOR dx_rgba[4][4]; ASSERT(SIZE(DirectX::XMVECTOR)==SIZE(Vec4));
+      Int px=bx*4, py=by*4, // pixel
+          xo[4], yo[4];
       REP(4)
       {
          xo[i]=px+i;

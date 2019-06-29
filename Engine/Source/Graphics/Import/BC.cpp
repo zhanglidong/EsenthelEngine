@@ -10,7 +10,6 @@
 
 #if BC6_DEC==BC_LIB_DIRECTX || BC7_DEC==BC_LIB_DIRECTX
    #include "../../../../ThirdPartyLibs/DirectXMath/include.h"
-   #define register
    #include "../../../../ThirdPartyLibs/DirectXTex/BC.h"
  //#include "../../../../ThirdPartyLibs/DirectXTex/BC.cpp"
    #include "../../../../ThirdPartyLibs/DirectXTex/BC6HBC7.cpp"

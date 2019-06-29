@@ -2747,11 +2747,11 @@ void D3DX_BC7::Encode(DWORD flags, const HDRColorA* const pIn)
             continue;
         }
 
-        if ((flags & TEX_COMPRESS_BC7_QUICK) && (EP.uMode != 6))
+        /*if ((flags & TEX_COMPRESS_BC7_QUICK) && (EP.uMode != 6)) ESENTHEL CHANGED
         {
             // Use only mode 6
             continue;
-        }
+        }*/
 
         if ((!bHasAlpha) && (EP.uMode == 7))
         {
