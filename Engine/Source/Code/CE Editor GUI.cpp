@@ -22,9 +22,9 @@ ColorTheme ThemeLight=
    Color(  0,   0,   0), // ENUM_ELM
    Color(  0,   0,   0), // FUNC
    Color( 51, 153, 255), // SELECT
-   Color(  0,   0,   0, 96), //   LINE_HIGHLIGHT
-   Color( 64, 128, 255, 60), // SYMBOL_HIGHLIGHT
-   Color( 64, 128, 255, 40), //  BRACE_HIGHLIGHT
+   Color(  0,   0,   0, LINEAR_GAMMA ? 132 : 96), //   LINE_HIGHLIGHT
+   Color( 64, 128, 255, LINEAR_GAMMA ?  96 : 60), // SYMBOL_HIGHLIGHT
+   Color( 64, 128, 255, LINEAR_GAMMA ?  72 : 40), //  BRACE_HIGHLIGHT
    Color(128, 128, 128), // PREPROC_DISABLED
    Color( 86,  86, 244, 239), // TOKEN_ELM_BACKGROUND
    Color(255, 255, 255), // TOKEN_ELM_NAME
@@ -49,9 +49,9 @@ ColorTheme ThemeLight=
    Color(255, 255,   0), // ENUM_ELM
    Color(255, 255,   0), // FUNC
    Color( 51, 153, 255), // SELECT
-   Color(255, 255,   0, 128), //   LINE_HIGHLIGHT
-   Color(255, 255, 255,  85), // SYMBOL_HIGHLIGHT
-   Color(255, 255, 255,  40), //  BRACE_HIGHLIGHT
+   Color(255, 255,   0, LINEAR_GAMMA ? 56 : 128), //   LINE_HIGHLIGHT
+   Color(255, 255, 255, LINEAR_GAMMA ? 48 :  85), // SYMBOL_HIGHLIGHT
+   Color(255, 255, 255, LINEAR_GAMMA ? 24 :  40), //  BRACE_HIGHLIGHT
    Color(128, 128, 128), // PREPROC_DISABLED
    Color( 36, 106, 172, 245), // TOKEN_ELM_BACKGROUND
    Color(255, 255, 255), // TOKEN_ELM_NAME
@@ -76,9 +76,9 @@ ColorTheme ThemeLight=
    Color(161, 193, 225)/*Color(184, 215, 163)/*Color(200, 200, 200)*/, // ENUM_ELM
    Color(200, 200, 200), // FUNC
    Color( 38,  79, 120), // SELECT
-   Color(255, 255, 255, 80), // LINE_HIGHLIGHT
-   Color(255, 255, 255, 45), // SYMBOL_HIGHLIGHT
-   Color(255, 255, 255, 30), //  BRACE_HIGHLIGHT
+   Color(255, 255, 255, LINEAR_GAMMA ? 32 : 80), //   LINE_HIGHLIGHT
+   Color(255, 255, 255, LINEAR_GAMMA ? 26 : 45), // SYMBOL_HIGHLIGHT
+   Color(255, 255, 255, LINEAR_GAMMA ?  6 : 30), //  BRACE_HIGHLIGHT
    Color( 90,  90,  90), // PREPROC_DISABLED
    Color( 36, 106, 172, 245), // TOKEN_ELM_BACKGROUND
    Color(255, 255, 255), // TOKEN_ELM_NAME
