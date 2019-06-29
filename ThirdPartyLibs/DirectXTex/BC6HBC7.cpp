@@ -2510,6 +2510,8 @@ float D3DX_BC6H::RoughMSE(EncodeParams* pEP) const
 _Use_decl_annotations_
 void D3DX_BC7::Decode(Color (&pOut)[4][4]) const // !! this must be a reference because we're calling 'Zero' !!
 {
+  //assert(pOut); ESENTHEL CHANGED
+
     size_t uFirst = 0;
     while (uFirst < 128 && !GetBit(uFirst)) {}
     uint8_t uMode = uint8_t(uFirst - 1);
@@ -2676,8 +2678,8 @@ void D3DX_BC7::Decode(Color (&pOut)[4][4]) const // !! this must be a reference 
 
         for (i = 0; i < NUM_PIXELS_PER_BLOCK; ++i)
         {
-            uint8_t    uRegion  = g_aPartitionTable[uPartitions][uShape][i];
             LDRColorA &outPixel = (LDRColorA&)pOut[0][i]; ASSERT(SIZE(LDRColorA)==SIZE(pOut[0][0])); // ESENTHEL CHANGED
+            uint8_t uRegion = g_aPartitionTable[uPartitions][uShape][i];
             if (uIndexPrec2 == 0)
             {
                 LDRColorA::Interpolate(c[uRegion << 1], c[(uRegion << 1) + 1], w1[i], w1[i], uIndexPrec, uIndexPrec, outPixel);
