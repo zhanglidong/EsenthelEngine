@@ -241,6 +241,9 @@ struct Display : DisplayState, DisplayDraw // Display Control
    Display& resetEyeAdaptation     (  Flt  brightness=1);                                                                   // reset   Eye Adaptation value, eye adaptation changes over time according to screen colors, this method resets the adaptation to its original state, 'brightness'=initial brightness (0..Inf), the change is NOT instant, avoid calling real-time
 
    // Bloom, setting 'original' value to 1 and 'scale' to 0 disables bloom and increases rendering performance, optionally you can disable it with "bloomAllow(false)"
+#if EE_PRIVATE
+   Flt bloomCutL()C {return SRGBToLinear(_bloom_cut);}
+#endif
    Display&  glowAllow   (Bool allow   );   Bool  glowAllow   ()C {return  _glow_allow   ;} // set/get Allow Glow Effect     (true/false, default=true  (false for Mobile)), this can work only if 'bloomAllow' is enabled, the change is instant, you can call it real-time
    Display& bloomAllow   (Bool allow   );   Bool bloomAllow   ()C {return _bloom_allow   ;} // set/get Allow Bloom           (true/false, default=true  (false for Mobile)), the change is instant, you can call it real-time
    Display& bloomOriginal(Flt  original);   Flt  bloomOriginal()C {return _bloom_original;} // set/get Bloom Original Color  (   0..Inf , default=1.0                     ), the change is instant, you can call it real-time
@@ -257,20 +260,23 @@ struct Display : DisplayState, DisplayDraw // Display Control
 #if EE_PRIVATE
    Bool aoWant()C;
 #endif
-   Display& ambientMode    (AMBIENT_MODE mode    );   AMBIENT_MODE ambientMode    ()C {return _amb_mode       ;} // set/get Ambient Mode           (AMBIENT_MODE         , default=AMBIENT_FLAT), the change is instant, you can call it real-time
-   Display& ambientSoft    (  Byte       soft    );   Byte         ambientSoft    ()C {return _amb_soft       ;} // set/get Ambient Softing        (0..AMBIENT_SOFT_NUM-1, default=           1), if soften the AO result, the change is instant, you can call it real-time
-   Display& ambientJitter  (  Bool       jitter  );   Bool         ambientJitter  ()C {return _amb_jitter     ;} // set/get Ambient Jittering      (true/false           , default=        true), jittering enables per pixel randomization of the AO samples, the change is instant, you can call it real-time
-   Display& ambientNormal  (  Bool       normal  );   Bool         ambientNormal  ()C {return _amb_normal     ;} // set/get Ambient Normal Map Use (true/false           , default=        true), if include per pixel normal vectors from the render target, the change is instant, you can call it real-time
-   Display& ambientRes     (  Flt        scale   );   Flt          ambientRes     ()C;                           // set/get Ambient Resolution     (  0..1               , default=         0.5), this determines the size of the buffers used for calculating the Ambient Occlusion effect, 1=full size, 0.5=half size, 0.25=quarter size, .., smaller sizes offer faster performance but worse quality, the change is NOT instant, avoid calling real-time
-   Display& ambientPower   (  Flt        power   );   Flt          ambientPower   ()C {return _amb_color.max();} // set/get Ambient Power          (  0..2               , default=         0.4), this is equivalent to using 'ambientColor' with RGB components set to the same value, the change is instant, you can call it real-time
-   Display& ambientColor   (C Vec       &color   ); C Vec&         ambientColor   ()C {return _amb_color      ;} // set/get Ambient Color          (  0..2               , default=         0.4), the change is instant, you can call it real-time
-   Display& ambientContrast(  Flt        contrast);   Flt          ambientContrast()C {return _amb_contrast   ;} // set/get Ambient Contrast       (  0..Inf             , default=         1.2), the change is instant, you can call it real-time
-   Display& ambientRange   (C Vec2      &range   ); C Vec2&        ambientRange   ()C {return _amb_range      ;} // set/get Ambient 2D Range       (  0..Inf             , default=         0.3), the change is instant, you can call it real-time
-   Display& ambientScale   (  Flt        scale   );   Flt          ambientScale   ()C {return _amb_scale      ;} // set/get Ambient 3D Scale       (  0..Inf             , default=         2.5), the change is instant, you can call it real-time
-   Display& ambientBias    (  Flt        bias    );   Flt          ambientBias    ()C {return _amb_bias       ;} // set/get Ambient Bias           (  0..1               , default=         0.3), the change is instant, you can call it real-time
+   Display& ambientMode    (AMBIENT_MODE mode      );   AMBIENT_MODE ambientMode    ()C {return _amb_mode         ;} // set/get Ambient Mode               (AMBIENT_MODE         , default=AMBIENT_FLAT), the change is instant, you can call it real-time
+   Display& ambientSoft    (  Byte       soft      );   Byte         ambientSoft    ()C {return _amb_soft         ;} // set/get Ambient Softing            (0..AMBIENT_SOFT_NUM-1, default=           1), if soften the AO result, the change is instant, you can call it real-time
+   Display& ambientJitter  (  Bool       jitter    );   Bool         ambientJitter  ()C {return _amb_jitter       ;} // set/get Ambient Jittering          (true/false           , default=        true), jittering enables per pixel randomization of the AO samples, the change is instant, you can call it real-time
+   Display& ambientNormal  (  Bool       normal    );   Bool         ambientNormal  ()C {return _amb_normal       ;} // set/get Ambient Normal Map Use     (true/false           , default=        true), if include per pixel normal vectors from the render target, the change is instant, you can call it real-time
+   Display& ambientRes     (  Flt        scale     );   Flt          ambientRes     ()C;                             // set/get Ambient Resolution         (0..1                 , default=         0.5), this determines the size of the buffers used for calculating the Ambient Occlusion effect, 1=full size, 0.5=half size, 0.25=quarter size, .., smaller sizes offer faster performance but worse quality, the change is NOT instant, avoid calling real-time
+   Display& ambientPowerL  (  Flt         lin_power);   Flt          ambientPowerL  ()C {return _amb_color_l.max();} // set/get Ambient Power Linear Gamma (0..1                                       ), this is equivalent to using 'ambientColorL' with RGB components set to the same value, the change is instant, you can call it real-time
+   Display& ambientPowerS  (  Flt        srgb_power);   Flt          ambientPowerS  ()C;                             // set/get Ambient Power sRGB   Gamma (0..1                 , default=         0.4), this is equivalent to using 'ambientColorS' with RGB components set to the same value, the change is instant, you can call it real-time
+   Display& ambientColorL  (C Vec       & lin_color); C Vec&         ambientColorL  ()C {return _amb_color_l      ;} // set/get Ambient Color Linear Gamma (0..1                                       ), the change is instant, you can call it real-time
+   Display& ambientColorS  (C Vec       &srgb_color);   Vec          ambientColorS  ()C;                             // set/get Ambient Color sRGB   Gamma (0..1                 , default=         0.4), the change is instant, you can call it real-time
+   Display& ambientContrast(  Flt        contrast  );   Flt          ambientContrast()C {return _amb_contrast     ;} // set/get Ambient Contrast           (0..Inf               , default=         1.2), the change is instant, you can call it real-time
+   Display& ambientRange   (C Vec2      &range     ); C Vec2&        ambientRange   ()C {return _amb_range        ;} // set/get Ambient 2D Range           (0..Inf               , default=         0.3), the change is instant, you can call it real-time
+   Display& ambientScale   (  Flt        scale     );   Flt          ambientScale   ()C {return _amb_scale        ;} // set/get Ambient 3D Scale           (0..Inf               , default=         2.5), the change is instant, you can call it real-time
+   Display& ambientBias    (  Flt        bias      );   Flt          ambientBias    ()C {return _amb_bias         ;} // set/get Ambient Bias               (0..1                 , default=         0.3), the change is instant, you can call it real-time
 
    // Night Shade
-   Display& nightShadeColor(C Vec &color);   C Vec& nightShadeColor()C {return _ns_color;} // set/get Night Shade color (0..1, default=0), the change is instant, you can call it real-time, setting color to 0 disables Night Shade effect
+                                                     Vec  nightShadeColorL()C;                      //     get Night Shade color Linear Gamma (0..1, default=0)
+   Display& nightShadeColorS(C Vec &srgb_color);   C Vec& nightShadeColorS()C {return _ns_color_s;} // set/get Night Shade color sRGB   Gamma (0..1, default=0), the change is instant, you can call it real-time, setting color to 0 disables Night Shade effect
 
    // Shadowing
    Display& shadowMode         (SHADOW_MODE mode    );   SHADOW_MODE shadowMode         ()C {return _shd_mode      ;} // set/get Shadow Mode                                  (SHADOW_MODE         , default=SHADOW_MAP (SHADOW_NONE for Mobile)), the change is instant, you can call it real-time
@@ -508,7 +514,7 @@ private:
    Vec2              _unscaled_size, _size, _size2, _pixel_size, _pixel_size_2, _pixel_size_inv,
                      _window_pixel_to_screen_mul, _window_pixel_to_screen_add, _window_pixel_to_screen_scale,
                      _amb_range, _shd_map_split;
-   Vec               _amb_color, _ns_color, _eye_adapt_weight;
+   Vec               _amb_color_l, _ns_color_s, _eye_adapt_weight;
    Vec2              _view_center, _view_fov_tan_gui, _view_fov_tan_full;
    Rect              _view_rect, _view_eye_rect[2];
    Viewport          _view_main, _view_active;

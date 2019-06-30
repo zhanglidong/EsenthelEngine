@@ -261,7 +261,7 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool dither)
       if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(Renderer.pixelToScreenSize((D.bloomMaximum()+D.bloomBlurs())*SHADER_BLUR_RANGE+1));} // when not rendering entire viewport, then extend the rectangle, add +1 because of texture filtering, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
 
       Bool half=(Flt(src.h())/rt0->h() <= 2.5f); // half=scale 2, ..3.., quarter=scale 4, 2.5 was the biggest scale that didn't cause jittering when using half down-sampling
-      Sh.h_BloomParams->setConditional(Vec(D.bloomOriginal(), _has_glow ? D.bloomScale()/Sqr(half ? 2 : 4) : half ? D.bloomScale() : D.bloomScale()/4, -D.bloomCut()*D.bloomScale()));
+      Sh.h_BloomParams->setConditional(Vec(D.bloomOriginal(), _has_glow ? D.bloomScale()/Sqr(half ? 2 : 4) : half ? D.bloomScale() : D.bloomScale()/4, -D.bloomCutL()*D.bloomScale()));
       GetBloomDS(_has_glow, !D._view_main.full, half, D.bloomSaturate())->draw(src, rect);
       if(D.bloomMaximum())
       { // 'discard' before 'set' because it already may have requested discard, and if we 'discard' manually after 'set' then we might discard 2 times
@@ -713,7 +713,7 @@ RendererClass& RendererClass::operator()(void (&render)())
             {
                set(_lum_1s(), null, true);
                D.alpha(ALPHA_ADD);
-               Sh.clear(Vec4(D.ambientColor(), 0));
+               Sh.clear(Vec4(D.ambientColorL(), 0));
             }
             if(set(_lum_1s))goto finished;
          }break;
@@ -729,7 +729,7 @@ RendererClass& RendererClass::operator()(void (&render)())
             if(_ao)
             {
                set(_lum_1s(), null, true); D.alpha(ALPHA_ADD);
-               Sh.h_Color[0]->set(Vec4(D.ambientColor(), 0));
+               Sh.h_Color[0]->set(Vec4(D.ambientColorL(), 0));
                Sh.h_Color[1]->set(Vec4Zero                 );
                Sh.h_DrawTexXC->draw(_ao);
             }
@@ -1177,8 +1177,8 @@ void RendererClass::solid()
            _first_pass=true;
 
             // restore settings
-            ambient_color->set(D.ambientColor()); Sh.h_AmbientMaterial->set(1); // restore ambient lighting
-            Frustum.set();                                                      // restore frustum after it being potentially changed when drawing shadow maps or setting frustum for visible objects for lights
+            ambient_color->set(D.ambientColorL()); Sh.h_AmbientMaterial->set(1); // restore ambient lighting
+            Frustum.set();                                                       // restore frustum after it being potentially changed when drawing shadow maps or setting frustum for visible objects for lights
          }
 
        //resolveDepth(); was already called for the main light
@@ -1361,7 +1361,7 @@ void RendererClass::light()
       D.set2D();
 
       // light buffer is ready so we can combine it with color
-      Bool ao=(_ao!=null), cel_shade=(cel_shade_palette!=null), night_shade=(D.nightShadeColor().max()>EPS_COL);
+      Bool ao=(_ao!=null), cel_shade=(cel_shade_palette!=null), night_shade=(D.nightShadeColorS().max()>EPS_COL);
       Sh.h_ImageLum   ->set(_lum_1s);
       Sh.h_ImageDet[0]->set(_ao    );
       Sh.h_ImageDet[1]->set( cel_shade_palette());
@@ -1526,8 +1526,8 @@ void RendererClass::blend()
       {
          set(_lum_1s(), null, true);
          D.alpha(ALPHA_ADD);
-         Sh.h_Color[0]->set(Vec4(D.ambientColor(), 0));
-         Sh.h_Color[1]->set(Vec4Zero                 );
+         Sh.h_Color[0]->set(Vec4(D.ambientColorL(), 0));
+         Sh.h_Color[1]->set(Vec4Zero                  );
          Sh.h_DrawTexXC->draw(_ao);
       }
       PrepareFur();

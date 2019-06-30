@@ -132,8 +132,8 @@ class VideoOptions : PropWin
       static void BloomScale   (  Advanced &adv, C Str &text) {       DefaultEnvironment.bloom.scale=TextFlt(text);}
       static Str  BloomSat     (C Advanced &adv             ) {return DefaultEnvironment.bloom.saturate;}
       static void BloomSat     (  Advanced &adv, C Str &text) {       DefaultEnvironment.bloom.saturate=TextBool(text);}
-      static Str  AmbLight     (C Advanced &adv             ) {return DefaultEnvironment.ambient.color.max();}
-      static void AmbLight     (  Advanced &adv, C Str &text) {       DefaultEnvironment.ambient.color=TextFlt(text);}
+      static Str  AmbLight     (C Advanced &adv             ) {return DefaultEnvironment.ambient.color_s.max();}
+      static void AmbLight     (  Advanced &adv, C Str &text) {       DefaultEnvironment.ambient.color_s=TextFlt(text);}
       static Str  AOContrast   (C Advanced &adv             ) {return D.ambientContrast();}
       static void AOContrast   (  Advanced &adv, C Str &text) {       D.ambientContrast(TextFlt(text));}
       static Str  AORange      (C Advanced &adv             ) {return D.ambientRange().x;}

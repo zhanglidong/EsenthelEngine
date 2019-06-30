@@ -52,11 +52,11 @@ class EnvEditor : ClosableWindow
    Vec2              sun_angle=0;
    Edit.Undo<Change> undos(true);   void undoVis() {SetUndo(undos, undo, redo);}
 
-   static void AmbientColor(  EditEnv &env, C Str &text) {env.ambient.color=TextVec(text); env.ambient_color_time.getUTC();}
-   static Str  AmbientColor(C EditEnv &env             ) {return Vec4(env.ambient.color, 1);}
+   static void AmbientColor(  EditEnv &env, C Str &text) {env.ambient.color_s=TextVec(text); env.ambient_color_time.getUTC();}
+   static Str  AmbientColor(C EditEnv &env             ) {return Vec4(env.ambient.color_s, 1);}
 
-   static void NightShadeColor(  EditEnv &env, C Str &text) {env.ambient.night_shade_color=TextVec(text); env.night_shade_color_time.getUTC();}
-   static Str  NightShadeColor(C EditEnv &env             ) {return Vec4(env.ambient.night_shade_color, 1);}
+   static void NightShadeColor(  EditEnv &env, C Str &text) {env.ambient.night_shade_color_s=TextVec(text); env.night_shade_color_time.getUTC();}
+   static Str  NightShadeColor(C EditEnv &env             ) {return Vec4(env.ambient.night_shade_color_s, 1);}
 
    static void BloomOriginal(  EditEnv &env, C Str &text) {env.bloom.original=TextFlt(text); env.bloom_original_time.getUTC();}
    static Str  BloomOriginal(C EditEnv &env             ) {return env.bloom.original;}

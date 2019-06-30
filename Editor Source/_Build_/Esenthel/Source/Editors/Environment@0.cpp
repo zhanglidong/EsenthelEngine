@@ -34,10 +34,10 @@ EnvEditor EnvEdit;
          EnvEdit.undoVis();
       }
    void EnvEditor::undoVis() {SetUndo(undos, undo, redo);}
-   void EnvEditor::AmbientColor(  EditEnv &env, C Str &text) {env.ambient.color=TextVec(text); env.ambient_color_time.getUTC();}
-   Str  EnvEditor::AmbientColor(C EditEnv &env             ) {return Vec4(env.ambient.color, 1);}
-   void EnvEditor::NightShadeColor(  EditEnv &env, C Str &text) {env.ambient.night_shade_color=TextVec(text); env.night_shade_color_time.getUTC();}
-   Str  EnvEditor::NightShadeColor(C EditEnv &env             ) {return Vec4(env.ambient.night_shade_color, 1);}
+   void EnvEditor::AmbientColor(  EditEnv &env, C Str &text) {env.ambient.color_s=TextVec(text); env.ambient_color_time.getUTC();}
+   Str  EnvEditor::AmbientColor(C EditEnv &env             ) {return Vec4(env.ambient.color_s, 1);}
+   void EnvEditor::NightShadeColor(  EditEnv &env, C Str &text) {env.ambient.night_shade_color_s=TextVec(text); env.night_shade_color_time.getUTC();}
+   Str  EnvEditor::NightShadeColor(C EditEnv &env             ) {return Vec4(env.ambient.night_shade_color_s, 1);}
    void EnvEditor::BloomOriginal(  EditEnv &env, C Str &text) {env.bloom.original=TextFlt(text); env.bloom_original_time.getUTC();}
    Str  EnvEditor::BloomOriginal(C EditEnv &env             ) {return env.bloom.original;}
    void EnvEditor::BloomScale(  EditEnv &env, C Str &text) {env.bloom.scale=TextFlt(text); env.bloom_scale_time.getUTC();}

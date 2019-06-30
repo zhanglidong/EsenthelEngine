@@ -322,7 +322,7 @@ class MaterialRegion : Region
                preview_mesh[preview_mode()].draw(m);
             }
 
-            LightDir(previewLight(), 1-D.ambientColor()).add(false);
+            LightDir(previewLight(), 1-D.ambientColorL()).add(false);
          }break;
       }
    }

@@ -169,7 +169,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
       {
          case RM_PREPARE:
          {
-            LightDir(options.light_dir ? !(ActiveCam.matrix.z*2+ActiveCam.matrix.x-ActiveCam.matrix.y) : ActiveCam.matrix.z, 1-D.ambientColor()).add(false);
+            LightDir(options.light_dir ? !(ActiveCam.matrix.z*2+ActiveCam.matrix.x-ActiveCam.matrix.y) : ActiveCam.matrix.z, 1-D.ambientColorL()).add(false);
 
             VecI2 vis_range=list.visibleElmsOnScreen();
             MAX(vis_range.x-=options.rows,             0);

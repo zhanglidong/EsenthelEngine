@@ -30,7 +30,7 @@ class WaterMtrlRegion : MaterialRegion
       {
          case RM_PREPARE:
          {
-            LightDir(previewLight(), 1-D.ambientColor()).add(false);
+            LightDir(previewLight(), 1-D.ambientColorL()).add(false);
          }break;
       }
    }

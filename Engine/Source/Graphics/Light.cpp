@@ -102,7 +102,7 @@ void RendererClass::getLumRT()
    {
       GetLum();
       if(_lum_1s!=_lum)_lum_1s->clearViewport();
-                       _lum   ->clearViewport(_ao ? Vec4Zero : Vec4(D.ambientColor(), 0)); // if '_ao' is not available then set '_lum' to 'ambientColor' (set '_lum' instead of '_lum_1s' because it is the one that is read in both 1-sample and multi-sample ColLight shaders, if this is changed then adjust all clears to '_lum_1s' and '_lum' in this file)
+                       _lum   ->clearViewport(_ao ? Vec4Zero : Vec4(D.ambientColorL(), 0)); // if '_ao' is not available then set '_lum' to 'ambientColor' (set '_lum' instead of '_lum_1s' because it is the one that is read in both 1-sample and multi-sample ColLight shaders, if this is changed then adjust all clears to '_lum_1s' and '_lum' in this file)
    }
 }
 static Bool SetLum()
@@ -111,7 +111,7 @@ static Bool SetLum()
    Renderer.set(Renderer._lum_1s(), Renderer._ds_1s(), true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests, start with '_lum_1s' so '_lum' will be processed later, because at the end we still have to render ambient from 3d meshes to '_lum' this way we avoid changing RT's
    if(set)
    {
-      D.depth2DOff(); D.clearCol((Renderer._lum_1s!=Renderer._lum || Renderer._ao) ? Vec4Zero : Vec4(D.ambientColor(), 0));
+      D.depth2DOff(); D.clearCol((Renderer._lum_1s!=Renderer._lum || Renderer._ao) ? Vec4Zero : Vec4(D.ambientColorL(), 0));
       D.depth2DOn ();
    }
    D.alpha(ALPHA_ADD); Sh.h_ImageNrm[0]->set(Renderer._nrm);
@@ -119,14 +119,14 @@ static Bool SetLum()
 }
 
 static void                GetWaterLum  () {Renderer._water_lum.get(ImageRTDesc(Renderer._water_ds->w(), Renderer._water_ds->h(), IMAGERT_RGBA));} // here Alpha is used for specular
-       void RendererClass::getWaterLumRT() {if(!_water_lum){GetWaterLum(); _water_lum->clearViewport(Vec4(D.ambientColor(), 0));}}
+       void RendererClass::getWaterLumRT() {if(!_water_lum){GetWaterLum(); _water_lum->clearViewport(Vec4(D.ambientColorL(), 0));}}
 static void                SetWaterLum  ()
 {
    Bool set=!Renderer._water_lum; if(set)GetWaterLum();
    Renderer.set(Renderer._water_lum(), Renderer._water_ds(), true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
    if(set)
    {
-      D.depth2DOff(); D.clearCol(Vec4(D.ambientColor(), 0));
+      D.depth2DOff(); D.clearCol(Vec4(D.ambientColorL(), 0));
       D.depth2DOn ();
    }
    D.alpha(ALPHA_ADD); Sh.h_ImageNrm[0]->set(Renderer._water_nrm);
@@ -998,7 +998,7 @@ void Light::draw()
             Renderer.set(Renderer._lum(), Renderer._ds(), true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
             if(clear)
             {
-               D.depth2DOff(); D.stencil(STENCIL_NONE); D.clearCol(Renderer._ao ? Vec4Zero : Vec4(D.ambientColor(), 0));
+               D.depth2DOff(); D.stencil(STENCIL_NONE); D.clearCol(Renderer._ao ? Vec4Zero : Vec4(D.ambientColorL(), 0));
                D.depth2DOn ();
             }
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
@@ -1069,7 +1069,7 @@ void Light::draw()
             Renderer.set(Renderer._lum(), Renderer._ds(), true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
             if(clear)
             {
-               D.depth2DOff(); D.stencil(STENCIL_NONE); D.clearCol(Renderer._ao ? Vec4Zero : Vec4(D.ambientColor(), 0));
+               D.depth2DOff(); D.stencil(STENCIL_NONE); D.clearCol(Renderer._ao ? Vec4Zero : Vec4(D.ambientColorL(), 0));
                D.depth2DOn ();
             }
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
@@ -1140,7 +1140,7 @@ void Light::draw()
             Renderer.set(Renderer._lum(), Renderer._ds(), true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
             if(clear)
             {
-               D.depth2DOff(); D.stencil(STENCIL_NONE); D.clearCol(Renderer._ao ? Vec4Zero : Vec4(D.ambientColor(), 0));
+               D.depth2DOff(); D.stencil(STENCIL_NONE); D.clearCol(Renderer._ao ? Vec4Zero : Vec4(D.ambientColorL(), 0));
                D.depth2DOn ();
             }
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
@@ -1216,7 +1216,7 @@ void Light::draw()
             Renderer.set(Renderer._lum(), Renderer._ds(), true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
             if(clear)
             {
-               D.depth2DOff(); D.stencil(STENCIL_NONE); D.clearCol(Renderer._ao ? Vec4Zero : Vec4(D.ambientColor(), 0));
+               D.depth2DOff(); D.stencil(STENCIL_NONE); D.clearCol(Renderer._ao ? Vec4Zero : Vec4(D.ambientColorL(), 0));
                D.depth2DOn ();
             }
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);

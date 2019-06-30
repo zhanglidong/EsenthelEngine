@@ -69,8 +69,8 @@ class EditEnv : Environment
    {
       bool changed=false;
       changed|=Sync(ambient_on_time, src.ambient_on_time, ambient.on, src.ambient.on);
-      changed|=Sync(ambient_color_time, src.ambient_color_time, ambient.color, src.ambient.color);
-      changed|=Sync(night_shade_color_time, src.night_shade_color_time, ambient.night_shade_color, src.ambient.night_shade_color);
+      changed|=Sync(ambient_color_time, src.ambient_color_time, ambient.color_s, src.ambient.color_s);
+      changed|=Sync(night_shade_color_time, src.night_shade_color_time, ambient.night_shade_color_s, src.ambient.night_shade_color_s);
       changed|=Sync(bloom_on_time, src.bloom_on_time, bloom.on, src.bloom.on);
       changed|=Sync(bloom_half_time, src.bloom_half_time, bloom.half, src.bloom.half);
       changed|=Sync(bloom_saturate_time, src.bloom_saturate_time, bloom.saturate, src.bloom.saturate);
@@ -119,8 +119,8 @@ class EditEnv : Environment
    {
       bool changed=false;
       changed|=Undo(ambient_on_time, src.ambient_on_time, ambient.on, src.ambient.on);
-      changed|=Undo(ambient_color_time, src.ambient_color_time, ambient.color, src.ambient.color);
-      changed|=Undo(night_shade_color_time, src.night_shade_color_time, ambient.night_shade_color, src.ambient.night_shade_color);
+      changed|=Undo(ambient_color_time, src.ambient_color_time, ambient.color_s, src.ambient.color_s);
+      changed|=Undo(night_shade_color_time, src.night_shade_color_time, ambient.night_shade_color_s, src.ambient.night_shade_color_s);
       changed|=Undo(bloom_on_time, src.bloom_on_time, bloom.on, src.bloom.on);
       changed|=Undo(bloom_half_time, src.bloom_half_time, bloom.half, src.bloom.half);
       changed|=Undo(bloom_saturate_time, src.bloom_saturate_time, bloom.saturate, src.bloom.saturate);

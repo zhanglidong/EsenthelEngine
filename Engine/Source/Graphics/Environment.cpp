@@ -8,14 +8,14 @@ DEFINE_CACHE(Environment, Environments, EnvironmentPtr, "Environment");
 /******************************************************************************/
 // AMBIENT
 /******************************************************************************/
-void Environment::Ambient::set  ()C {D.ambientColor(on ? color : VecZero); D.nightShadeColor(on ? night_shade_color : VecZero);}
-void Environment::Ambient::get  ()  {color=D.ambientColor(); night_shade_color=D.nightShadeColor(); on=(color.any() || night_shade_color.any());}
-void Environment::Ambient::reset()  {on=true; color=0.4f; night_shade_color.zero();}
+void Environment::Ambient::set  ()C {D.ambientColorS(on ? color_s : VecZero); D.nightShadeColorS(on ? night_shade_color_s : VecZero);}
+void Environment::Ambient::get  ()  {color_s=D.ambientColorS(); night_shade_color_s=D.nightShadeColorS(); on=(color_s.any() || night_shade_color_s.any());}
+void Environment::Ambient::reset()  {on=true; color_s=0.4f; night_shade_color_s.zero();}
 
 Bool Environment::Ambient::save(File &f, CChar *path)C
 {
    f.cmpUIntV(1); // version
-   f<<on<<color<<night_shade_color;
+   f<<on<<color_s<<night_shade_color_s;
    return f.ok();
 }
 Bool Environment::Ambient::load(File &f, CChar *path)
@@ -24,13 +24,13 @@ Bool Environment::Ambient::load(File &f, CChar *path)
    {
       case 1:
       {
-         f>>on>>color>>night_shade_color;
+         f>>on>>color_s>>night_shade_color_s;
          if(f.ok())return true;
       }break;
 
       case 0:
       {
-         f>>on>>color; night_shade_color.zero();
+         f>>on>>color_s; night_shade_color_s.zero();
          if(f.ok())return true;
       }break;
    }

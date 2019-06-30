@@ -310,7 +310,7 @@ class AnimEditor : Viewport4Region
             {
                if(AnimEdit.mesh)AnimEdit.mesh->draw(AnimEdit.anim_skel);
 
-               LightDir(!(ActiveCam.matrix.z*2+ActiveCam.matrix.x-ActiveCam.matrix.y), 1-D.ambientColor()).add(false);
+               LightDir(!(ActiveCam.matrix.z*2+ActiveCam.matrix.x-ActiveCam.matrix.y), 1-D.ambientColorL()).add(false);
             }break;
          }
       }
@@ -561,7 +561,7 @@ class AnimEditor : Viewport4Region
          {
             if(AnimEdit.draw_mesh() && AnimEdit.mesh)AnimEdit.mesh->draw(AnimEdit.anim_skel);
 
-            LightDir(!(ActiveCam.matrix.z*2+ActiveCam.matrix.x-ActiveCam.matrix.y), 1-D.ambientColor()).add(false);
+            LightDir(!(ActiveCam.matrix.z*2+ActiveCam.matrix.x-ActiveCam.matrix.y), 1-D.ambientColorL()).add(false);
          }break;
       }
    }

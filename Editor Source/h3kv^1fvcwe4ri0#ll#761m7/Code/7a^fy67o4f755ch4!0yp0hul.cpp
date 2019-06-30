@@ -73,8 +73,8 @@ class PreviewClass : Window // create as window so it will be above other window
                case ELM_ANIM: if(mesh)mesh->MeshLod.draw(anim_skel); break;
             }
 
-            if(elm_type==ELM_WATER_MTRL)LightDir(Matrix3().setRotateXY(PI_4, PI_4).z                              , 1-D.ambientColor()).add(false);
-            else                        LightDir(!(ActiveCam.matrix.z*2 + ActiveCam.matrix.x - ActiveCam.matrix.y), 1-D.ambientColor()).add(false);
+            if(elm_type==ELM_WATER_MTRL)LightDir(Matrix3().setRotateXY(PI_4, PI_4).z                              , 1-D.ambientColorL()).add(false);
+            else                        LightDir(!(ActiveCam.matrix.z*2 + ActiveCam.matrix.x - ActiveCam.matrix.y), 1-D.ambientColorL()).add(false);
          }break;
 
          case RM_BLEND:

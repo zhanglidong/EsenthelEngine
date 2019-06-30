@@ -8,9 +8,9 @@ struct Environment
 {
    struct Ambient
    {
-      Bool on               ; // if enabled       ,     true/false    , default=true
-      Vec  color            , // ambient     color, (0,0,0) .. (1,1,1), default=(0.4, 0.4, 0.4)
-           night_shade_color; // night shade color, (0,0,0) .. (1,1,1), default=(0.0, 0.0, 0.0)
+      Bool on                 ; // if enabled       ,     true/false    , default=true
+      Vec  color_s            , // ambient     sRGB color, (0,0,0) .. (1,1,1), default=(0.4, 0.4, 0.4)
+           night_shade_color_s; // night shade sRGB color, (0,0,0) .. (1,1,1), default=(0.0, 0.0, 0.0)
 
       // set / get
       void set  ()C; // apply these settings to graphics

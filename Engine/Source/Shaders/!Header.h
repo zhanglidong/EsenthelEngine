@@ -943,8 +943,9 @@ Half LinearToSRGB(Half l) {return (l<=0.0031308) ? l*12.92 : Pow(l, 1/2.4)*1.055
 VecH SRGBToLinear(VecH s) {return VecH(SRGBToLinear(s.x), SRGBToLinear(s.y), SRGBToLinear(s.z));}
 VecH LinearToSRGB(VecH l) {return VecH(LinearToSRGB(l.x), LinearToSRGB(l.y), LinearToSRGB(l.z));}
 
-Half LinearLumOfSRGBColor(VecH s) {return                  Dot(SRGBToLinearFast(s), ColorLumWeight2) ;}
-Half   SRGBLumOfSRGBColor(VecH s) {return LinearToSRGBFast(Dot(SRGBToLinearFast(s), ColorLumWeight2));}
+Half LinearLumOfLinearColor(VecH l) {return                  Dot(                 l , ColorLumWeight2) ;}
+Half LinearLumOfSRGBColor  (VecH s) {return                  Dot(SRGBToLinearFast(s), ColorLumWeight2) ;}
+Half   SRGBLumOfSRGBColor  (VecH s) {return LinearToSRGBFast(Dot(SRGBToLinearFast(s), ColorLumWeight2));}
 /******************************************************************************/
 struct VtxInput // Vertex Input, use this class to access vertex data in vertex shaders
 {

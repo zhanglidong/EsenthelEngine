@@ -105,14 +105,14 @@ class TextureDownsize : Viewport4Region
                   SetVariation(VariationWithMostMaterialUses(*normal_mesh, normal_mtrl)); (interval ? downsized_mesh : SCAST(MeshLod, *normal_mesh)).draw(MatrixIdentity);
                   SetVariation();
                }
-               LightDir(light_dir() ? !Vec(-1, -1, -1) : ActiveCam.matrix.z, 1-D.ambientColor()).add(false);
+               LightDir(light_dir() ? !Vec(-1, -1, -1) : ActiveCam.matrix.z, 1-D.ambientColorL()).add(false);
             }else
             if(normal_mtrl) // draw as material
             {
                Preview.ball.material(interval ? MaterialPtr(downsized_mtrls(mtrl_id)) : normal_mtrl).setShader();
                Preview.ball.draw(ActiveCam.matrix.pos+ActiveCam.matrix.z*(1.1+ActiveCam.dist));
 
-               LightDir(previewLight(), 1-D.ambientColor()).add(false);
+               LightDir(previewLight(), 1-D.ambientColorL()).add(false);
             }
          }break;
       }

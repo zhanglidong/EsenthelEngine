@@ -202,8 +202,8 @@ VideoOptions VidOpt;
       void VideoOptions::Advanced::BloomScale(  Advanced &adv, C Str &text) {       DefaultEnvironment.bloom.scale=TextFlt(text);}
       Str  VideoOptions::Advanced::BloomSat(C Advanced &adv             ) {return DefaultEnvironment.bloom.saturate;}
       void VideoOptions::Advanced::BloomSat(  Advanced &adv, C Str &text) {       DefaultEnvironment.bloom.saturate=TextBool(text);}
-      Str  VideoOptions::Advanced::AmbLight(C Advanced &adv             ) {return DefaultEnvironment.ambient.color.max();}
-      void VideoOptions::Advanced::AmbLight(  Advanced &adv, C Str &text) {       DefaultEnvironment.ambient.color=TextFlt(text);}
+      Str  VideoOptions::Advanced::AmbLight(C Advanced &adv             ) {return DefaultEnvironment.ambient.color_s.max();}
+      void VideoOptions::Advanced::AmbLight(  Advanced &adv, C Str &text) {       DefaultEnvironment.ambient.color_s=TextFlt(text);}
       Str  VideoOptions::Advanced::AOContrast(C Advanced &adv             ) {return D.ambientContrast();}
       void VideoOptions::Advanced::AOContrast(  Advanced &adv, C Str &text) {       D.ambientContrast(TextFlt(text));}
       Str  VideoOptions::Advanced::AORange(C Advanced &adv             ) {return D.ambientRange().x;}

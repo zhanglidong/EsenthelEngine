@@ -480,7 +480,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
 
             if(mode()==BODY && body)body->draw(MatrixIdentity); // body is game mesh which is already in correct transform
 
-            LightDir(light_dir() ? !Vec(-1, -1, -1) : ActiveCam.matrix.z, 1-D.ambientColor()).add(false);
+            LightDir(light_dir() ? !Vec(-1, -1, -1) : ActiveCam.matrix.z, 1-D.ambientColorL()).add(false);
          }break;
 
          case RM_BLEND:

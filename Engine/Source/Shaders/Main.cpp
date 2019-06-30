@@ -2402,8 +2402,13 @@ Vec ColLight(Vec4 color, Vec4 lum, Flt ao, Vec night_shade_col,
    Vec col_lit=(color.rgb+spec)*lum.rgb;
    if(night_shade)
    {
+   #if LINEAR_GAMMA
+      Flt night_shade_intensity=Sat(1-max_lum)                     // only for low light
+                               *LinearLumOfLinearColor(color.rgb); // set based on unlit color luminance
+   #else
       Flt night_shade_intensity=Sat(1-max_lum)                 // only for low light
                                *SRGBLumOfSRGBColor(color.rgb); // set based on unlit color luminance
+   #endif
       if(ao_do)night_shade_intensity*=ao;
       col_lit+=night_shade_intensity*night_shade_col;
    }
