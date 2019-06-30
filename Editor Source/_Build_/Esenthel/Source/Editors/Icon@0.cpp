@@ -408,7 +408,7 @@ IconEditor IconEdit;
          }
          col.resize(settings.width, settings.height, FILTER_BEST, IC_CLAMP|IC_ALPHA_WEIGHT);
          data->hasAlpha(HasAlpha(col)).hasColor(HasColor(col));
-         EditToGameImage(col, col, false, false, settings.type, IMAGE_2D, settings.mip_maps ? 0 : 1, data->hasColor(), data->hasAlpha(), false);
+         EditToGameImage(col, col, false, true, false, settings.type, IMAGE_2D, settings.mip_maps ? 0 : 1, data->hasColor(), data->hasAlpha(), false);
          setChanged(true);
          Save(col, Proj.gamePath(*elm)); Proj.savedGame(*elm);
       }

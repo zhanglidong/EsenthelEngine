@@ -1342,7 +1342,7 @@ void DrawProject()
             VecI2 s=size;
             if(relative) // for relative size, we need to get information about the source image size
             {
-               Image temp; if(!loadImages(temp, Edit::FileParams::Encode(files)))return false; // if failed to load, then do nothing
+               Image temp; if(!loadImages(temp, Edit::FileParams::Encode(files)))return false; // if failed to load, then do nothing, can ignore sRGB
                s.set(Max(1, Shl(temp.w(), size.x)), Max(1, Shl(temp.h(), size.y)));
                s.set(NearestPow2(s.x), NearestPow2(s.y)); // textures are gonna be resized to pow2 anyway, so force pow2 size, to avoid double resize
             }
@@ -1716,7 +1716,7 @@ void DrawProject()
       IMAGE_TYPE ct;
 
       // base 0
-         old_tex_id =material.base_0_tex; ImageProps(base_0, &material.base_0_tex, &ct, ForceHQMtrlBase0 ? FORCE_HQ : 0);
+         old_tex_id =material.base_0_tex; ImageProps(base_0, &material.base_0_tex, &ct, SRGB | (ForceHQMtrlBase0 ? FORCE_HQ : 0));
       if(old_tex_id!=material.base_0_tex)material.color_map_time.getUTC(); // in order for 'base_0_tex' to sync, a base 0 texture time must be changed, but set it only if the new texture is different
       if(base_0.is())
       {
@@ -1729,7 +1729,7 @@ void DrawProject()
       }
 
       // base 1
-         old_tex_id =material.base_1_tex; ImageProps(base_1, &material.base_1_tex, &ct, ForceHQMtrlBase1 ? FORCE_HQ : 0);
+         old_tex_id =material.base_1_tex; ImageProps(base_1, &material.base_1_tex, &ct, (ForceHQMtrlBase1 ? FORCE_HQ : 0));
       if(old_tex_id!=material.base_1_tex)material.normal_map_time.getUTC(); // in order for 'base_1_tex' to sync, a base 1 texture time must be changed, but set it only if the new texture is different
       if(base_1.is())
       {
@@ -1790,7 +1790,7 @@ void DrawProject()
    {
       Image reflection; if(mtrlCreateReflectionTexture(reflection, material)) // proceed only if there's no source, or succeeded with importing, this is to avoid clearing existing texture when failed to load
       {
-         ImageProps(reflection, &material.reflection_tex, null, IGNORE_ALPHA); material.reflection_map_time.getUTC(); // in order for 'reflection_tex' to sync, 'reflection_map_time' time must be changed
+         ImageProps(reflection, &material.reflection_tex, null, SRGB|IGNORE_ALPHA); material.reflection_map_time.getUTC(); // in order for 'reflection_tex' to sync, 'reflection_map_time' time must be changed
          if(reflection.is())
          {
             if(includeTex(material.reflection_tex))
@@ -1806,9 +1806,9 @@ void DrawProject()
    {
       // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !!
       Image col, bump, normal;
-      bool col_ok=loadImage(   col, material.detail_color                           ), // load before 'bump'  , here 'col' and 'bump' are not yet available
-          bump_ok=loadImage(  bump, material.detail_bump  , false, &col, null, null ), // load before 'normal', here           'bump' is  not yet available
-           nrm_ok=loadImage(normal, material.detail_normal, false, &col, null, &bump);
+      bool col_ok=loadImage(   col, material.detail_color , true                           ), // load before 'bump'  , here 'col' and 'bump' are not yet available
+          bump_ok=loadImage(  bump, material.detail_bump  , false, false, &col, null, null ), // load before 'normal', here           'bump' is  not yet available
+           nrm_ok=loadImage(normal, material.detail_normal, false, false, &col, null, &bump);
 
       if(!bump_ok && !material.detail_normal.is())nrm_ok=false; // if bump map failed to load, and there is no dedicated normal map, and since it's possible that normal was created from the bump , which is not available, so normal needs to be marked as failed
 
@@ -1831,10 +1831,10 @@ void DrawProject()
    }
    void ProjectEx::mtrlCreateMacroTexture(EditMaterial &material)
    {
-      Image macro; if(loadImage(macro, material.macro_map)) // proceed only if loaded ok
+      Image macro; if(loadImage(macro, material.macro_map, true)) // proceed only if loaded ok
       {
          macro.resize(NearestPow2(macro.w()), NearestPow2(macro.h()), FILTER_BEST, IC_WRAP);
-         IMAGE_TYPE ct; ImageProps(macro, &material.macro_tex, &ct, IGNORE_ALPHA); material.macro_map_time.getUTC(); // in order for 'macro_tex' to sync, 'macro_map_time' time must be changed
+         IMAGE_TYPE ct; ImageProps(macro, &material.macro_tex, &ct, SRGB|IGNORE_ALPHA); material.macro_map_time.getUTC(); // in order for 'macro_tex' to sync, 'macro_map_time' time must be changed
          if(macro.is())
          {
             if(includeTex(material.macro_tex))
@@ -1849,10 +1849,10 @@ void DrawProject()
    }
    void ProjectEx::mtrlCreateLightTexture(EditMaterial &material)
    {
-      Image light; if(loadImage(light, material.light_map)) // proceed only if loaded ok
+      Image light; if(loadImage(light, material.light_map, true)) // proceed only if loaded ok
       {
          light.resize(NearestPow2(light.w()), NearestPow2(light.h()));
-         IMAGE_TYPE ct; ImageProps(light, &material.light_tex, &ct, IGNORE_ALPHA); material.light_map_time.getUTC(); // in order for 'light_tex' to sync, 'light_map_time' time must be changed
+         IMAGE_TYPE ct; ImageProps(light, &material.light_tex, &ct, SRGB|IGNORE_ALPHA); material.light_map_time.getUTC(); // in order for 'light_tex' to sync, 'light_map_time' time must be changed
          if(light.is())
          {
             if(includeTex(material.light_tex))

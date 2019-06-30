@@ -162,6 +162,8 @@ class ImageEditor : PropWin
    static Str  MipMaps (C ImageEditor &ie          ) {if(ElmImage *d=ie.data())return d.mipMaps(); return S;}
    static void Pow2    (  ImageEditor &ie, C Str &t) {if(ElmImage *d=ie.data()){d.pow2(TextBool(t)); d.pow2_time.getUTC();}}
    static Str  Pow2    (C ImageEditor &ie          ) {if(ElmImage *d=ie.data())return d.pow2(); return S;}
+   static void SRGB    (  ImageEditor &ie, C Str &t) {if(ElmImage *d=ie.data()){d.sRGB(TextBool(t)); d.srgb_time.getUTC();}}
+   static Str  SRGB    (C ImageEditor &ie          ) {if(ElmImage *d=ie.data())return d.sRGB(); return S;}
    static void Width   (  ImageEditor &ie, C Str &t) {if(ElmImage *d=ie.data()){d.size.x=TextInt(t); d.size_time.getUTC();}}
    static Str  Width   (C ImageEditor &ie          ) {if(ElmImage *d=ie.data())return d.size.x; return S;}
    static void Height  (  ImageEditor &ie, C Str &t) {if(ElmImage *d=ie.data()){d.size.y=TextInt(t); d.size_time.getUTC();}}
@@ -188,6 +190,7 @@ class ImageEditor : PropWin
       add("Type"                , MemberDesc(         ).setFunc(Type    , Type    )).setEnum().combobox.setColumns(lct, Elms(lct)).setData(ElmImage.ImageTypes, ElmImage.ImageTypesElms).menu.list.setElmDesc(MEMBER(NameDesc, desc));
       add("Mip Maps"            , MemberDesc(DATA_BOOL).setFunc(MipMaps , MipMaps ));
       add("Power of 2"          , MemberDesc(DATA_BOOL).setFunc(Pow2    , Pow2    )).desc("Resize image to nearest power of 2");
+    //add("sRGB"                , MemberDesc(DATA_BOOL).setFunc(SRGB    , SRGB    )).desc("Use sRGB gamma\nThis should be enabled when storing RGB colors (almost all the time)");
       add("Alpha from Luminance", MemberDesc(DATA_BOOL).setFunc(AlphaLum, AlphaLum)).desc("Set image opacity from its brightness");
       add("Mode"                , MemberDesc(         ).setFunc(Mode    , Mode    )).setEnum().combobox.setColumns(lcm, Elms(lcm)).setData(ImageModes, Elms(ImageModes)).menu.list.setElmDesc(MEMBER(ImageMode, desc));
       add("Width"               , MemberDesc(DATA_INT ).setFunc(Width   , Width   )).range(-1, 65536).desc("Set custom image width (0=default, -1=keep original)");

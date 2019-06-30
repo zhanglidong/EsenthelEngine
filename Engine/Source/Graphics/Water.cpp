@@ -299,8 +299,8 @@ void WaterClass::begin()
       if(_use_secondary_rt)
       {
         _swapped_ds=false;
-         Renderer._water_col.get  (ImageRTDesc(Renderer._col->w(), Renderer._col->h(),                                    IMAGERT_SRGBA)); // here Alpha is used for Glow
-         Renderer._water_nrm.get  (ImageRTDesc(Renderer._col->w(), Renderer._col->h(), D.signedNrmRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA )); // here Alpha is used for Specular
+         Renderer._water_col.get  (ImageRTDesc(Renderer._col->w(), Renderer._col->h(),                                    IMAGERT_SRGB)); // here Alpha is unused
+         Renderer._water_nrm.get  (ImageRTDesc(Renderer._col->w(), Renderer._col->h(), D.signedNrmRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA)); // here Alpha is   used for Specular
          Renderer._water_ds .getDS(            Renderer._col->w(), Renderer._col->h(), 1, false);
 
          if(Renderer.stage)switch(Renderer.stage)

@@ -773,8 +773,8 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       if(!EqualPath(file, detail_bump_file))
       {
          detail_bump_file=file;
-         Image temp; Proj.loadImage(temp, detail_bump_file);
-         temp.copyTry(detail_bump, Min(temp.w(), 128), Min(temp.h(), 128), 1, -1, IMAGE_2D, 1, FILTER_LINEAR); // we only need a preview, so make it small, no mip maps, and fast filtering
+         Image temp; Proj.loadImage(temp, detail_bump_file, true); // use sRGB because this is for preview
+         temp.copyTry(detail_bump, Min(temp.w(), 128), Min(temp.h(), 128), 1, IMAGE_L8_SRGB, IMAGE_2D, 1, FILTER_LINEAR, IC_WRAP|IC_IGNORE_GAMMA); // we only need a preview, so make it small, no mip maps, and fast filtering, need to IC_IGNORE_GAMMA because 'loadImage' may lose it due to "channel" transform and here we need sRGB for preview
       }
       return detail_bump.is() ? &detail_bump : null;
    }

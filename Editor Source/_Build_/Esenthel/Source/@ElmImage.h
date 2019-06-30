@@ -9,6 +9,7 @@ class ElmImage : ElmData
       ALPHA_LUM=1<<2,
       HAS_COLOR=1<<3, // if image is not monochromatic (r!=g || r!=b) (this member is not synced, it is inherited from image data)
       HAS_ALPHA=1<<4, // if any alpha pixel is not 255                (this member is not synced, it is inherited from image data)
+      SRGB     =1<<5,
    };
    enum TYPE : byte // !! these enums are saved !!
    {
@@ -34,11 +35,12 @@ class ElmImage : ElmData
    TYPE       type;
    IMAGE_MODE mode;
    VecI2      size; // -1=use existing, 0=default (use existing but adjust scale to keep aspect ratio if other value is modified)
-   TimeStamp  mip_maps_time, pow2_time, alpha_lum_time, type_time, mode_time, size_time, file_time;
+   TimeStamp  mip_maps_time, pow2_time, srgb_time, alpha_lum_time, type_time, mode_time, size_time, file_time;
 
    bool       ignoreAlpha()C;
    bool       mipMaps    ()C;   void mipMaps (bool on);
    bool       pow2       ()C;   void pow2    (bool on);
+   bool       sRGB       ()C;   void sRGB    (bool on);
    bool       alphaLum   ()C;   void alphaLum(bool on);
    bool       hasColor   ()C;   void hasColor(bool on);
    bool       hasAlpha   ()C;   void hasAlpha(bool on);

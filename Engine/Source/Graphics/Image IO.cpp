@@ -394,34 +394,45 @@ Bool Image::loadData(File &f, ImageHeader *header, C Str &name)
    ImageHeader ih;
    switch(f.decUIntV())
    {
+      #pragma pack(push, 1)
+      struct FileHeader
+      {
+         VecI       size;
+         IMAGE_TYPE type;
+         IMAGE_MODE mode;
+         Byte       mips;
+      };
+      #pragma pack(pop)
+
+      /*case 5:
+      {
+         FileHeader fh; f>>fh;
+         Unaligned(ih.size    , fh.size);
+         Unaligned(ih.type    , fh.type);
+         Unaligned(ih.mode    , fh.mode);
+        _Unaligned(ih.mip_maps, fh.mips);
+         if(header)goto set_header;
+         if(Load(T, f, ih, name))goto ok;
+      }break;*/
+
       case 4:
       {
-         #pragma pack(push, 1)
-         struct ImageHeader4
-         {
-            VecI       size;
-            IMAGE_TYPE type;
-            IMAGE_MODE mode;
-            Byte       mips;
-         }header4;
-         #pragma pack(pop)
-         f>>header4;
-         Unaligned(ih.size    , header4.size);
-         Unaligned(ih.type    , header4.type); ih.type=OldImageType2(ih.type); DYNAMIC_ASSERT(header4.type==NewImageTypeToOld(ih.type), "type mismatch"); // FIXME
-         Unaligned(ih.mode    , header4.mode);
-        _Unaligned(ih.mip_maps, header4.mips);
+         FileHeader fh; f>>fh;
+         Unaligned(ih.size    , fh.size);
+         Unaligned(ih.type    , fh.type); ih.type=OldImageType2(ih.type); DYNAMIC_ASSERT(fh.type==NewImageTypeToOld(ih.type), "type mismatch"); // FIXME
+         Unaligned(ih.mode    , fh.mode);
+        _Unaligned(ih.mip_maps, fh.mips);
          if(header)goto set_header;
          if(Load(T, f, ih, name))goto ok;
       }break;
 
       case 3:
       {
-         ih.size.x  =f.getInt();
-         ih.size.y  =f.getInt();
-         ih.size.z  =f.getInt();
-         ih.type    =OldImageType1(f.getByte());
-         ih.mode    =IMAGE_MODE   (f.getByte());
-         ih.mip_maps=f.getByte();
+         FileHeader fh; f>>fh;
+         Unaligned(ih.size    , fh.size);
+         Unaligned(ih.type    , fh.type); ih.type=OldImageType1(ih.type);
+         Unaligned(ih.mode    , fh.mode);
+        _Unaligned(ih.mip_maps, fh.mips);
          if(header)goto set_header;
          if(Load(T, f, ih, name))goto ok;
       }break;

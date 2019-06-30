@@ -1544,7 +1544,7 @@ class Project
                image.unlock();
             }
          }else
-         if(param.name=="channel")
+         if(param.name=="channel") // Warning: this loses sRGB for 1..2 channels, because there are no IMAGE_R8_SRGB, IMAGE_R8G8_SRGB, IMAGE_F32_SRGB, IMAGE_F32_2_SRGB
          {
             int channels=param.value.length();
             if( channels>=1 && channels<=4)
@@ -1643,7 +1643,7 @@ class Project
          }
       }
    }
-   bool loadImage(Image &image, C Edit.FileParams &fp, bool clamp=false, C Image *color=null, C Image *spec=null, C Image *bump=null)C
+   bool loadImage(Image &image, C Edit.FileParams &fp, bool srgb, bool clamp=false, C Image *color=null, C Image *spec=null, C Image *bump=null)C
    {
       if(!fp.name.is()){image.del(); return true;}
       Str  name=fp.name;
@@ -1665,6 +1665,7 @@ class Project
       if(ImportImage(image, name, -1, IMAGE_SOFT, 1, true))
       {
       imported:
+         image.copyTry(image, -1, -1, -1, srgb ? ImageTypeIncludeSRGB(image.type()) : ImageTypeExcludeSRGB(image.type())); // set desired sRGB
          if(lum_to_alpha)image.alphaFromBrightness().divRgbByAlpha();
          TransformImage(image, ConstCast(fp.params), clamp);
          return true;
@@ -1682,16 +1683,16 @@ class Project
       APPLY_SUB,
       APPLY_MAX,
    }
-   bool loadImages(Image &image, C Str &src, bool clamp=false, C Color &background=TRANSPARENT, C Image *color=null, C Image *spec=null, C Image *bump=null)C
+   bool loadImages(Image &image, C Str &src, bool srgb=true, bool clamp=false, C Color &background=TRANSPARENT, C Image *color=null, C Image *spec=null, C Image *bump=null)C
    {
       Mems<Edit.FileParams> fps=Edit.FileParams.Decode(src);
       if(!fps.elms()){image.del(); return true;}
-      if( fps.elms()==1 && !fps[0].findParam("position") && !fps[0].findParam("pos"))return loadImage(image, fps[0], clamp, color, spec, bump); // can load as a single image only if doesn't have position specified
+      if( fps.elms()==1 && !fps[0].findParam("position") && !fps[0].findParam("pos"))return loadImage(image, fps[0], srgb, clamp, color, spec, bump); // can load as a single image only if doesn't have position specified
       image.del();
       bool ok=true, hp=false;
       Image single;
        REPA(fps)if(C TextParam *p=fps[i].findParam("mode"))if(p.value!="set"){hp=true; break;}
-      FREPA(fps)if(loadImage(single, fps[i], clamp, color, spec, bump)) // process in order
+      FREPA(fps)if(loadImage(single, fps[i], srgb, clamp, color, spec, bump)) // process in order
       {
          VecI2 pos=0; {C TextParam *p=fps[i].findParam("position"); if(!p)p=fps[i].findParam("pos"); if(p)pos=p.asVecI2();}
          VecI2 size=single.size()+pos;

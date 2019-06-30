@@ -472,8 +472,8 @@ class ConvertToAtlasClass : PropWin
                                                                                                                         atlas.mtrl.sss      /=mtrls.elms();
                                                                                                                         atlas.mtrl.reflect  /=mtrls.elms();
 
-            IMAGE_TYPE ct; ImageProps(atlas.base_0, &atlas.base_0_id, &ct, ForceHQMtrlBase0 ? FORCE_HQ : 0); if(Importer.includeTex(atlas.base_0_id))atlas.base_0.copyTry(atlas.base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
-                           ImageProps(atlas.base_1, &atlas.base_1_id, &ct, ForceHQMtrlBase1 ? FORCE_HQ : 0); if(Importer.includeTex(atlas.base_1_id))atlas.base_1.copyTry(atlas.base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP|IC_MTRL_BASE1);
+            IMAGE_TYPE ct; ImageProps(atlas.base_0, &atlas.base_0_id, &ct, SRGB|(ForceHQMtrlBase0 ? FORCE_HQ : 0)); if(Importer.includeTex(atlas.base_0_id))atlas.base_0.copyTry(atlas.base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
+                           ImageProps(atlas.base_1, &atlas.base_1_id, &ct,      (ForceHQMtrlBase1 ? FORCE_HQ : 0)); if(Importer.includeTex(atlas.base_1_id))atlas.base_1.copyTry(atlas.base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP|IC_MTRL_BASE1);
 
             UID atlas_id=Proj.newMtrl(atlas, parent_id).id;
             Server.setElmFull(atlas_id);

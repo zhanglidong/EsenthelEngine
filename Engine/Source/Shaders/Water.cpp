@@ -201,7 +201,7 @@ void Surface_PS
       water_col=Lerp(water_col, TexLodClamp(Col1, inTex), rfl); // use LOD to avoid anisotropic going out of clamp region
 
       // glow and specular
-      water_col.a  +=lum.w*      0.5f; // glow
+    //water_col.a  +=lum.w*      0.5f; // glow
       water_col.rgb+=lum.w*lum.w*0.5f; // specular
 
       if(soft)
@@ -274,8 +274,8 @@ Vec4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          water_col=Lerp(water_col, TexLodClamp(Col1, inTex), rfl); // use LOD to avoid anisotropic going out of clamp region
 
          // glow and specular
+       //water_col.a  +=lum.w*      0.5f; // glow
          water_col.rgb+=lum.w*lum.w*0.5f; // specular
-         water_col.a  +=lum.w*      0.5f; // glow
       }
              Vec4 solid_col=TexClamp(Col2, col_tex);
       return Lerp(solid_col, water_col, alpha);
@@ -314,8 +314,8 @@ Vec4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          water_col=Lerp(water_col, TexLod(Col1, inTex), rfl);
 
          // glow and specular
+       //water_col.a  +=lum.w*      0.5f; // glow
          water_col.rgb+=lum.w*lum.w*0.5f; // specular
-         water_col.a  +=lum.w*      0.5f; // glow
 
          solid_col=Lerp(solid_col, water_col, alpha);
       }

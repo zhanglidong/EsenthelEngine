@@ -622,7 +622,7 @@ Vec4 Font_PS
       //a=  Sqr(  a); // good for bright text
       //a=1-Sqr(1-a); // good for dark   text
       //Half lum=Min(Max(Color[0].rgb)*4.672, 1); // calculate text brightness, multiply by "1/SRGBToLinear(0.5)" will give better results for grey text color, 'FontShade' is ignored for performance reasons
-      a=Lerp(1-Sqr(1-a), Sqr(a), FontLum.x);
+      a=Lerp(1-Sqr(1-a), Sqr(a), FontLum.x); // TODO: could this be done somehow per RGB channel? similar to Sub-Pixel
       s=     1-Sqr(1-s);
    }
 

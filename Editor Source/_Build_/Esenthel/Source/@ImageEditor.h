@@ -68,6 +68,8 @@ public:
    static Str  MipMaps (C ImageEditor &ie          );
    static void Pow2    (  ImageEditor &ie, C Str &t);
    static Str  Pow2    (C ImageEditor &ie          );
+   static void SRGB    (  ImageEditor &ie, C Str &t);
+   static Str  SRGB    (C ImageEditor &ie          );
    static void Width   (  ImageEditor &ie, C Str &t);
    static Str  Width   (C ImageEditor &ie          );
    static void Height  (  ImageEditor &ie, C Str &t);

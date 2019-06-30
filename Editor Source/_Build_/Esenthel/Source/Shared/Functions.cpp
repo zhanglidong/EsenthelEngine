@@ -315,13 +315,14 @@ bool FixAlpha(Image &image, IMAGE_TYPE type, bool always) // returns if any chan
 
 void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type, uint flags) // calculate image MD5 (when in IMAGE_R8G8B8A8 type) and get best type for image compression
 {
-   if((flags&FORCE_HQ    ) && compress_type){*compress_type=IMAGE_BC7; compress_type=null;} // when forcing  HQ    set BC7 and set null so it no longer needs to be calculated, check this before IGNORE_ALPHA
-   if((flags&IGNORE_ALPHA) && compress_type){*compress_type=IMAGE_BC1; compress_type=null;} // when ignoring alpha set BC1 and set null so it no longer needs to be calculated
+   bool srgb=FlagTest(flags, SRGB);
+   if((flags&FORCE_HQ    ) && compress_type){*compress_type=(srgb ? IMAGE_BC7_SRGB : IMAGE_BC7); compress_type=null;} // when forcing  HQ    set BC7 and set null so it no longer needs to be calculated, check this before IGNORE_ALPHA
+   if((flags&IGNORE_ALPHA) && compress_type){*compress_type=(srgb ? IMAGE_BC1_SRGB : IMAGE_BC1); compress_type=null;} // when ignoring alpha set BC1 and set null so it no longer needs to be calculated
    if(md5 || compress_type)
    {
       // set initial values
       if(md5          )md5->zero();
-      if(compress_type)*compress_type=(SupportBC7 ? IMAGE_BC7 : IMAGE_BC3);
+      if(compress_type)*compress_type=(SupportBC7 ? (srgb ? IMAGE_BC7_SRGB : IMAGE_BC7) : (srgb ? IMAGE_BC3_SRGB : IMAGE_BC3));
 
       // calculate
       if(!image.is())return;
@@ -358,7 +359,7 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type, uint flags)
       }
 
       if(md5          )*md5          =m();
-      if(compress_type)*compress_type=(bc1 ? IMAGE_BC1 : SupportBC7 ? IMAGE_BC7 : bc2 ? IMAGE_BC2 : IMAGE_BC3); // prefer BC1 because it's 4-bit per pixel
+      if(compress_type)*compress_type=(bc1 ? (srgb ? IMAGE_BC1_SRGB : IMAGE_BC1) : SupportBC7 ? (srgb ? IMAGE_BC7_SRGB : IMAGE_BC7) : bc2 ? (srgb ? IMAGE_BC2_SRGB : IMAGE_BC2) : (srgb ? IMAGE_BC3_SRGB : IMAGE_BC3)); // prefer BC1 because it's 4-bit per pixel
    }
 }
 /******************************************************************************/
@@ -500,7 +501,7 @@ VecI ImageSize(C VecI &src, C VecI2 &custom, bool pow2)
    if(pow2)size.set(NearestPow2(size.x), NearestPow2(size.y), NearestPow2(size.z));
    return size;
 }
-bool EditToGameImage(Image &edit, Image &game, bool pow2, bool alpha_lum, ElmImage::TYPE type, int mode, int mip_maps, bool has_color, bool has_alpha, bool ignore_alpha, C VecI2 &custom_size, C int *force_type)
+bool EditToGameImage(Image &edit, Image &game, bool pow2, bool srgb, bool alpha_lum, ElmImage::TYPE type, int mode, int mip_maps, bool has_color, bool has_alpha, bool ignore_alpha, C VecI2 &custom_size, C int *force_type)
 {
    VecI size=edit.size3();
    if(!edit.cube() && IsCube((IMAGE_MODE)mode))switch(edit.cubeLayout())
@@ -531,8 +532,8 @@ bool EditToGameImage(Image &edit, Image &game, bool pow2, bool alpha_lum, ElmIma
    IMAGE_TYPE    dest_type;
    if(force_type)dest_type=IMAGE_TYPE(*force_type);else
    if(type==ElmImage::ALPHA)dest_type=IMAGE_A8;else
-   if(type==ElmImage::FULL )dest_type=(has_color ? IMAGE_R8G8B8A8_SRGB : has_alpha ? IMAGE_L8A8_SRGB : IMAGE_L8_SRGB);else
-                           ImageProps(*src, null, &dest_type, (ignore_alpha ? IGNORE_ALPHA : 0) | ((type==ElmImage::COMPRESSED2) ? FORCE_HQ : 0));
+   if(type==ElmImage::FULL )dest_type=(has_color ? (srgb ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8) : has_alpha ? (srgb ? IMAGE_L8A8_SRGB : IMAGE_L8A8) : (srgb ? IMAGE_L8_SRGB : IMAGE_L8));else
+                           ImageProps(*src, null, &dest_type, (srgb ? SRGB : 0) | (ignore_alpha ? IGNORE_ALPHA : 0) | ((type==ElmImage::COMPRESSED2) ? FORCE_HQ : 0));
 
    if((src->type()==IMAGE_L8 || src->type()==IMAGE_L8_SRGB) &&  dest_type==IMAGE_A8
    ||  src->type()==IMAGE_A8                               && (dest_type==IMAGE_L8 || dest_type==IMAGE_L8_SRGB))
@@ -550,7 +551,7 @@ bool EditToGameImage(Image &edit, Image &game, bool pow2, bool alpha_lum, ElmIma
 }
 bool EditToGameImage(Image &edit, Image &game, C ElmImage &data, C int *force_type)
 {
-   return EditToGameImage(edit, game, data.pow2(), data.alphaLum(), data.type, data.mode, data.mipMaps() ? 0 : 1, data.hasColor(), data.hasAlpha3(), data.ignoreAlpha(), data.size, force_type);
+   return EditToGameImage(edit, game, data.pow2(), data.sRGB(), data.alphaLum(), data.type, data.mode, data.mipMaps() ? 0 : 1, data.hasColor(), data.hasAlpha3(), data.ignoreAlpha(), data.size, force_type);
 }
 /******************************************************************************/
 void DrawPanelImage(C PanelImage &pi, C Rect &rect, bool draw_lines)

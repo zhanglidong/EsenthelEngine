@@ -15,7 +15,7 @@ namespace EE{
   _lum      : D.renderW(), D.renderH(),                        D.highPrecLumRT() ? IMAGERT_RGBA_H : IMAGERT_RGBA , D.samples(), LIGHT RGB, LIGHT SPEC
   _lum_1s   : D.renderW(), D.renderH(),                        D.highPrecLumRT() ? IMAGERT_RGBA_H : IMAGERT_RGBA , 1          , LIGHT RGB, LIGHT SPEC. if '_lum' is Multi-Sampled then this is created as a standalone 1-sampled depth buffer, otherwise it's a duplicate of '_lum'
 
-  _water_col: D.renderW(), D.renderH(),                                                             IMAGERT_SRGBA, 1          , COLOR RGB, GLOW
+  _water_col: D.renderW(), D.renderH(),                                                             IMAGERT_SRGB , 1          , COLOR RGB
   _water_nrm: D.renderW(), D.renderH(), D.signedNrmRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA                          , 1          , NRM   XYZ, SPEC. High precision is not needed because we just use better UnpackNormal in the shader
   _water_ds : D.renderW(), D.renderH(),                                                             IMAGERT_DS   , 1          , Water Depth
   _water_lum: D.renderW(), D.renderH(),                                                             IMAGERT_RGBA , 1          , LIGHT RGB, LIGHT SPEC

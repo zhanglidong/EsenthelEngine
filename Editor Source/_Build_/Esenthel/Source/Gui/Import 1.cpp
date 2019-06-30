@@ -346,12 +346,12 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
 
                // set textures
                Image base_1, detail_map; if(game.base_1)UpdateMtrlBase1Tex(*game.base_1, base_1); if(game.detail_map)UpdateMtrlBase1Tex(*game.detail_map, detail_map);
-               if(game.        base_0)ImageProps(*game.        base_0, &edit.    base_0_tex, null,  ForceHQMtrlBase0  ? FORCE_HQ : 0              );else edit.    base_0_tex.zero();
-               if(game.        base_1)ImageProps(              base_1, &edit.    base_1_tex, null,  ForceHQMtrlBase1  ? FORCE_HQ : 0              );else edit.    base_1_tex.zero();
-               if(game.    detail_map)ImageProps(          detail_map, &edit.    detail_tex, null, (ForceHQMtrlDetail ? FORCE_HQ : 0)|IGNORE_ALPHA);else edit.    detail_tex.zero();
-               if(game.     macro_map)ImageProps(*game.     macro_map, &edit.     macro_tex, null,                                    IGNORE_ALPHA);else edit.     macro_tex.zero();
-               if(game.reflection_map)ImageProps(*game.reflection_map, &edit.reflection_tex, null,                                    IGNORE_ALPHA);else edit.reflection_tex.zero();
-               if(game.     light_map)ImageProps(*game.     light_map, &edit.     light_tex, null,                                    IGNORE_ALPHA);else edit.     light_tex.zero();
+               if(game.        base_0)ImageProps(*game.        base_0, &edit.    base_0_tex, null, SRGB|(ForceHQMtrlBase0  ? FORCE_HQ : 0)             );else edit.    base_0_tex.zero();
+               if(game.        base_1)ImageProps(              base_1, &edit.    base_1_tex, null,      (ForceHQMtrlBase1  ? FORCE_HQ : 0)             );else edit.    base_1_tex.zero();
+               if(game.    detail_map)ImageProps(          detail_map, &edit.    detail_tex, null,      (ForceHQMtrlDetail ? FORCE_HQ : 0)|IGNORE_ALPHA);else edit.    detail_tex.zero();
+               if(game.     macro_map)ImageProps(*game.     macro_map, &edit.     macro_tex, null, SRGB|                                   IGNORE_ALPHA);else edit.     macro_tex.zero();
+               if(game.reflection_map)ImageProps(*game.reflection_map, &edit.reflection_tex, null, SRGB|                                   IGNORE_ALPHA);else edit.reflection_tex.zero();
+               if(game.     light_map)ImageProps(*game.     light_map, &edit.     light_tex, null, SRGB|                                   IGNORE_ALPHA);else edit.     light_tex.zero();
                if(edit.    base_0_tex.valid())if(Proj.includeTex(edit.    base_0_tex))game.        base_0->save(Proj.texPath(edit.    base_0_tex));
                if(edit.    base_1_tex.valid())if(Proj.includeTex(edit.    base_1_tex))             base_1. save(Proj.texPath(edit.    base_1_tex));
                if(edit.    detail_tex.valid())if(Proj.includeTex(edit.    detail_tex))         detail_map. save(Proj.texPath(edit.    detail_tex));

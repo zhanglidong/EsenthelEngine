@@ -459,12 +459,12 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
             }
 
             // !! 'GetTexture' needs to be called always because it adds texture to publish list !!
-            Texture *t0; if(        t0=GetTexture(publish_texs,          base_0_tex)){t0->downSize(downsize); if(ForceHQMtrlBase0 )t0->quality=1; t0->src_tex_id=src_tex; t0->regenerate|=regenerate;}
-            Texture *t1; if(        t1=GetTexture(publish_texs,          base_1_tex)){t1->downSize(downsize); if(ForceHQMtrlBase1 )t1->quality=1; t1->mtrl_base_1=true;}
-                         if(Texture *t=GetTexture(publish_texs, data->    detail_tex)){t ->downSize(downsize); if(ForceHQMtrlDetail)t ->quality=1; if(!RemoveMtrlDetailBump)t->uses_alpha=true;} // Detail uses Alpha for bump unless it's removed
-                         if(Texture *t=GetTexture(publish_texs, data->     macro_tex)) t ->downSize(downsize); // doesn't use Alpha, 'GetTexture' needs to be called
-                         if(Texture *t=GetTexture(publish_texs, data->     light_tex)) t ->downSize(downsize); // doesn't use Alpha, 'GetTexture' needs to be called
-                         if(Texture *t=GetTexture(publish_texs, data->reflection_tex)){}                      // doesn't use Alpha, 'GetTexture' needs to be called
+            Texture *t0; if(        t0=GetTexture(publish_texs,          base_0_tex)){t0->srgb=true ; t0->downSize(downsize); if(ForceHQMtrlBase0 )t0->quality=1; t0->src_tex_id=src_tex; t0->regenerate|=regenerate;}
+            Texture *t1; if(        t1=GetTexture(publish_texs,          base_1_tex)){t1->srgb=false; t1->downSize(downsize); if(ForceHQMtrlBase1 )t1->quality=1; t1->mtrl_base_1=true;}
+                         if(Texture *t=GetTexture(publish_texs, data->    detail_tex)){t ->srgb=false; t ->downSize(downsize); if(ForceHQMtrlDetail)t ->quality=1; if(!RemoveMtrlDetailBump)t->uses_alpha=true;} // Detail uses Alpha for bump unless it's removed
+                         if(Texture *t=GetTexture(publish_texs, data->     macro_tex)){t ->srgb=true ; t ->downSize(downsize);} // doesn't use Alpha, 'GetTexture' needs to be called
+                         if(Texture *t=GetTexture(publish_texs, data->     light_tex)){t ->srgb=true ; t ->downSize(downsize);} // doesn't use Alpha, 'GetTexture' needs to be called
+                         if(Texture *t=GetTexture(publish_texs, data->reflection_tex)){t ->srgb=true ;}                        // doesn't use Alpha, 'GetTexture' needs to be called
 
             // check which base textures use Alpha Channel, #MaterialTextureChannelOrder
             if(t1) // having 'base_1' texture means that 'base_0' alpha channel is bump intensity and 'base_1' is alpha channel opacity
@@ -481,9 +481,9 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
          if(elm->type==ELM_WATER_MTRL)if(ElmWaterMtrl *data=elm->waterMtrlData()) // water material
          {
             // !! 'GetTexture' needs to be called always because it adds texture to publish list !!
-            Texture *t0; if(        t0=GetTexture(publish_texs, data->    base_0_tex)){if(ForceHQMtrlBase0)t0->quality=1;} // doesn't use Alpha
-            Texture *t1; if(        t1=GetTexture(publish_texs, data->    base_1_tex)){if(ForceHQMtrlBase1)t1->quality=1; t1->mtrl_base_1=true;} // doesn't use Alpha
-                         if(Texture *t=GetTexture(publish_texs, data->reflection_tex)){} // doesn't use Alpha, 'GetTexture' needs to be called
+            Texture *t0; if(        t0=GetTexture(publish_texs, data->    base_0_tex)){t0->srgb=true ; if(ForceHQMtrlBase0)t0->quality=1;} // doesn't use Alpha
+            Texture *t1; if(        t1=GetTexture(publish_texs, data->    base_1_tex)){t1->srgb=false; if(ForceHQMtrlBase1)t1->quality=1; t1->mtrl_base_1=true;} // doesn't use Alpha
+                         if(Texture *t=GetTexture(publish_texs, data->reflection_tex)){t ->srgb=true ;} // doesn't use Alpha, 'GetTexture' needs to be called
 
             // check which base textures use Alpha Channel, #MaterialTextureChannelOrder
             if(t1) // having 'base_1' texture means that 'base_0' alpha channel is bump intensity and 'base_1' is alpha channel opacity
@@ -576,14 +576,14 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
          pfd.data.set(dynamic ? Proj.texDynamicPath(tex.id) : Proj.texPath(tex.id)); // src name
 
          // change type
-         int change_type=-1;
-         if(android)change_type=( tex.uses_alpha  ? IMAGE_ETC2_A8_SRGB  : IMAGE_ETC2_SRGB    );else
-         if(iOS    )change_type=((tex.quality>=0) ? IMAGE_PVRTC1_4_SRGB : IMAGE_PVRTC1_2_SRGB);else
-         if(web    )change_type=(WebBC7 ? ((tex.uses_alpha || tex.quality>0) ?             -1 : IMAGE_BC1_SRGB)      // texture could have alpha, however if we're not using it, then reduce to BC1 because it's only 4-bit per pixel
-                                        :   tex.uses_alpha                   ? IMAGE_BC3_SRGB : IMAGE_BC1_SRGB);else // if BC7 not supported for Web, then use BC3
+         int change_type=-1; // sRGB is set below
+         if(android)change_type=( tex.uses_alpha  ? IMAGE_ETC2_A8  : IMAGE_ETC2    );else
+         if(iOS    )change_type=((tex.quality>=0) ? IMAGE_PVRTC1_4 : IMAGE_PVRTC1_2);else
+         if(web    )change_type=(WebBC7 ? ((tex.uses_alpha || tex.quality>0) ?        -1 : IMAGE_BC1)      // texture could have alpha, however if we're not using it, then reduce to BC1 because it's only 4-bit per pixel
+                                        :   tex.uses_alpha                   ? IMAGE_BC3 : IMAGE_BC1);else // if BC7 not supported for Web, then use BC3
        //if(!tex.uses_alpha && (tex.quality<=0))change_type=IMAGE_BC1;else // texture could have alpha, however if we're not using it, then reduce to BC1 because it's only 4-bit per pixel, actually don't do this because it would require calling 'ImageLoadHeader' which is an IO operation and could be slow for many textures
             {}
-         if(change_type>=0 && tex.mtrl_base_1)change_type=ImageTypeExcludeSRGB((IMAGE_TYPE)change_type);
+         if(change_type>=0 && tex.srgb)change_type=ImageTypeIncludeSRGB((IMAGE_TYPE)change_type); // set sRGB
 
          // change size
          int max_size=INT_MAX; //((tex.max_size>0) ? tex.max_size : INT_MAX);
@@ -1033,7 +1033,7 @@ void DrawPublish()
       {
          case ELM_IMAGE:
          {
-            Image image; if(image.ImportTry(src))if(EditToGameImage(image, image, pow2, alpha_lum, ElmImage::COMPRESSED, mode, mip_maps, has_color, has_alpha, ignore_alpha, size, &type))
+            Image image; if(image.ImportTry(src))if(EditToGameImage(image, image, pow2, true, alpha_lum, ElmImage::COMPRESSED, mode, mip_maps, has_color, has_alpha, ignore_alpha, size, &type)) // sRGB is ignored here because we force custom type
             {
                File f; if(image.save(f.writeMem())){f.pos(0); SafeOverwrite(f, dest, &time);} // save using specified time
             }
@@ -1153,6 +1153,6 @@ ImageConvert::ImageConvert() : pow2(false), clamp(true ), alpha_lum(false), has_
 
 PublishClass::PublishClass() : export_data_exe(Edit::EXE_EXE) {}
 
-Texture::Texture() : src_tex_id(UIDZero), uses_alpha(false), mtrl_base_1(false), regenerate(false), quality(    0), downsize(    0) {}
+Texture::Texture() : src_tex_id(UIDZero), uses_alpha(false), srgb(true ), mtrl_base_1(false), regenerate(false), quality(    0), downsize(    0) {}
 
 /******************************************************************************/

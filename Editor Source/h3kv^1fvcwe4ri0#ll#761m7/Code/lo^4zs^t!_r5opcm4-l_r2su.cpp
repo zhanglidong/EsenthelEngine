@@ -68,12 +68,12 @@ class ImporterClass
             if(GetExt(color_map)=="img" || GetExt(normal_map)=="img" || GetExt(detail_color_map)=="img" || GetExt(reflection_map)=="img") // this is 'EE.Material' ("mtrl" format)
             {
                Str b0=color_map, b1=normal_map, d=detail_color_map, r=reflection_map, l=light_map, m;
-               base_0    .load(b0); ImageProps(base_0    , &    base_0_id, null, ForceHQMtrlBase0 ? FORCE_HQ : 0);
-               base_1    .load(b1); ImageProps(base_1    , &    base_1_id, null, ForceHQMtrlBase1 ? FORCE_HQ : 0);
-               detail    .load(d ); ImageProps(detail    , &    detail_id, null, IGNORE_ALPHA);
-               macro     .load(m ); ImageProps(macro     , &     macro_id, null, IGNORE_ALPHA);
-               reflection.load(r ); ImageProps(reflection, &reflection_id, null, IGNORE_ALPHA);
-               light     .load(l ); ImageProps(light     , &     light_id, null, IGNORE_ALPHA);
+               base_0    .load(b0); ImageProps(base_0    , &    base_0_id, null, SRGB|(ForceHQMtrlBase0 ? FORCE_HQ : 0));
+               base_1    .load(b1); ImageProps(base_1    , &    base_1_id, null,      (ForceHQMtrlBase1 ? FORCE_HQ : 0));
+               detail    .load(d ); ImageProps(detail    , &    detail_id, null,      IGNORE_ALPHA);
+               macro     .load(m ); ImageProps(macro     , &     macro_id, null, SRGB|IGNORE_ALPHA);
+               reflection.load(r ); ImageProps(reflection, &reflection_id, null, SRGB|IGNORE_ALPHA);
+               light     .load(l ); ImageProps(light     , &     light_id, null, SRGB|IGNORE_ALPHA);
 
                Edit.FileParams fp; 
                fp=b0; if(fp.name.is())fp.getParam("channel").setValue("rgb"); color_map=fp.encode();
@@ -111,10 +111,10 @@ class ImporterClass
 
                // process textures only if they're added for the first time, otherwise delete them so they won't be saved
                uint       bt=CreateBaseTextures(base_0, base_1, col, alpha, bump, normal, spec, glow, true, flip_normal_y);
-               IMAGE_TYPE ct; ImageProps(    base_0, &    base_0_id, &ct, ForceHQMtrlBase0 ? FORCE_HQ : 0); if(Importer.includeTex(    base_0_id))                           base_0    .copyTry(base_0    , -1, -1, -1, ct, IMAGE_2D  , 0, FILTER_BEST, IC_WRAP              ); else base_0    .del();
-                              ImageProps(    base_1, &    base_1_id, &ct, ForceHQMtrlBase1 ? FORCE_HQ : 0); if(Importer.includeTex(    base_1_id))                           base_1    .copyTry(base_1    , -1, -1, -1, ct, IMAGE_2D  , 0, FILTER_BEST, IC_WRAP|IC_MTRL_BASE1); else base_1    .del();
-                              ImageProps(reflection, &reflection_id, &ct, IGNORE_ALPHA                   ); if(Importer.includeTex(reflection_id)){FixAlpha(reflection, ct); reflection.copyTry(reflection, -1, -1, -1, ct, IMAGE_CUBE, 1                                    );}else reflection.del();
-                              ImageProps(     light, &     light_id, &ct, IGNORE_ALPHA                   ); if(Importer.includeTex(     light_id)){FixAlpha(light     , ct); light     .copyTry(light     , -1, -1, -1, ct, IMAGE_2D  , 0                                    );}else light     .del();
+               IMAGE_TYPE ct; ImageProps(    base_0, &    base_0_id, &ct, SRGB|(ForceHQMtrlBase0 ? FORCE_HQ : 0)); if(Importer.includeTex(    base_0_id))                           base_0    .copyTry(base_0    , -1, -1, -1, ct, IMAGE_2D  , 0, FILTER_BEST, IC_WRAP              ); else base_0    .del();
+                              ImageProps(    base_1, &    base_1_id, &ct,      (ForceHQMtrlBase1 ? FORCE_HQ : 0)); if(Importer.includeTex(    base_1_id))                           base_1    .copyTry(base_1    , -1, -1, -1, ct, IMAGE_2D  , 0, FILTER_BEST, IC_WRAP|IC_MTRL_BASE1); else base_1    .del();
+                              ImageProps(reflection, &reflection_id, &ct, SRGB|IGNORE_ALPHA                     ); if(Importer.includeTex(reflection_id)){FixAlpha(reflection, ct); reflection.copyTry(reflection, -1, -1, -1, ct, IMAGE_CUBE, 1                                    );}else reflection.del();
+                              ImageProps(     light, &     light_id, &ct, SRGB|IGNORE_ALPHA                     ); if(Importer.includeTex(     light_id)){FixAlpha(light     , ct); light     .copyTry(light     , -1, -1, -1, ct, IMAGE_2D  , 0                                    );}else light     .del();
                mtrl._adjustParams(~bt, bt);
             }
          }
