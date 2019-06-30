@@ -437,15 +437,22 @@ static Int    FindCode(C TextCodeData *code, Int codes, CPtr cur_pos)
    if(    found)for(; index>0 && code[index-1].pos==cur_pos; )index--; // in case if many codes would point to the same place
    return found ? index : index-1; // if we haven't found at exact position, then we need to grab the one before selected position like this: "<code>some tex|t here" when starting drawing of | we need to use the <code>
 }
+static inline Flt ByteToFontLum(Byte b) {return Min(b, 128)/128.0f;} // calculate text brightness 0..1, multiply by "2" (/128.0f instead of /255.0f) will give better results for grey text color (reaches 1.0 already at grey 128 byte value)
 static void SetCode(C TextCodeData *code, C TextStyleParams &text_style, Bool sub_pixel)
 {
    VI.flush();
-                                        Color c=((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color );
-#if LINEAR_GAMMA
-   Sh.h_FontLum->set(Min(c.lum(), 128)/128.0f); // calculate text brightness 0..1, multiply by "2" (/128.0f instead of /255.0f) will give better results for grey text color (reaches 1.0 already at grey 128 byte value)
-#endif
-   if(!sub_pixel){Sh.h_FontShadow->set(ByteToFlt((code && code->shadow_mode!=TextCodeData::DEFAULT) ? code->shadow : text_style.shadow));}else {D.alphaFactor(c); c.r=c.g=c.b=c.a;}
-   VI.color(c);
+                                        Color c=((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color ); VI.color(c);
+   if(!sub_pixel){Sh.h_FontShadow->set(ByteToFlt((code && code->shadow_mode!=TextCodeData::DEFAULT) ? code->shadow : text_style.shadow));
+   #if LINEAR_GAMMA
+      Sh.h_FontLum->set(ByteToFontLum(c.lum()));
+   #endif
+   }else
+   {
+   #if LINEAR_GAMMA
+      Sh.h_FontLum->set(Vec(ByteToFontLum(c.r), ByteToFontLum(c.g), ByteToFontLum(c.b)));
+   #endif
+      D.alphaFactor(c);
+   }
 }
 void DrawKeyboardCursor(C Vec2 &pos, Flt height)
 {

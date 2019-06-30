@@ -577,9 +577,9 @@ TECHNIQUE(DrawCubeFace, DrawCubeFace_VS(), DrawCubeFace_PS());
 BUFFER(Font)
    Flt FontShadow,
        FontContrast=1,
-       FontLum,
        FontShade,
        FontDepth;
+   Vec FontLum;
 BUFFER_END
 
 void Font_VS(VtxInput vtx,
@@ -610,28 +610,28 @@ Vec4 Font_PS
    // final=dest*(1-s)*(1-a) + c*a;
 
 #if DX11
-   Vec2 as=Col.Sample(SamplerFont, inTex).rg; // #FontImageLayout
+   VecH2 as=Col.Sample(SamplerFont, inTex).rg; // #FontImageLayout
 #else
-   Vec2 as=Tex(Col, inTex).rg; // #FontImageLayout
+   VecH2 as=Tex(Col, inTex).rg; // #FontImageLayout
 #endif
-   Flt  a =Sat(as.x*FontContrast), // font opacity, "Min(as.x*FontContrast, 1)", scale up by 'FontContrast' to improve quality when font is very small
-        s =    as.y*FontShadow   ; // font shadow
+   Half  a =Sat(as.x*FontContrast), // font opacity, "Min(as.x*FontContrast, 1)", scale up by 'FontContrast' to improve quality when font is very small
+         s =    as.y*FontShadow   ; // font shadow
 
    if(linear_gamma)
    {
       //a=  Sqr(  a); // good for bright text
       //a=1-Sqr(1-a); // good for dark   text
-      //Flt lum=Min(Max(Color[0].rgb)*4.672, 1); // calculate text brightness, multiply by "1/SRGBToLinear(0.5)" will give better results for grey text color, 'FontShade' is ignored for performance reasons
-      a=Lerp(1-Sqr(1-a), Sqr(a), FontLum);
+      //Half lum=Min(Max(Color[0].rgb)*4.672, 1); // calculate text brightness, multiply by "1/SRGBToLinear(0.5)" will give better results for grey text color, 'FontShade' is ignored for performance reasons
+      a=Lerp(1-Sqr(1-a), Sqr(a), FontLum.x);
       s=     1-Sqr(1-s);
    }
 
-   // Flt final_alpha=1-(1-s)*(1-a);
+   // Half final_alpha=1-(1-s)*(1-a);
    // 1-(1-s)*(1-a)
    // 1-(1-a-s+sa)
    // 1-1+a+s-sa
    // a + s - s*a
-   Flt final_alpha=a+s-s*a;
+   Half final_alpha=a+s-s*a;
 
 #if 1 // use for ALPHA_BLEND (this option is better because we don't need to set blend state specifically for drawing fonts)
    return Vec4(Color[0].rgb*(Lerp(FontShade, 1, Sat(inShade))*a/(final_alpha+EPS)), Color[0].a*final_alpha); // NaN, division by 'final_alpha' is required because of the hardware ALPHA_BLEND formula, without it we would get dark borders around the font
@@ -659,14 +659,14 @@ Vec4 FontSP_PS
    uniform Bool linear_gamma
 ):COLOR
 {
-   Vec4 c=Tex(Col, inTex);
+   VecH4 c=Tex(Col, inTex);
    if(linear_gamma)
    {
     //c.rgb=  Sqr(  c.rgb); // good for bright text
     //c.rgb=1-Sqr(1-c.rgb); // good for dark   text
       c.rgb=Lerp(1-Sqr(1-c.rgb), Sqr(c.rgb), FontLum); // auto
    }
-   return c*Color[0];
+   return c*Color[0].a;
 }
 TECHNIQUE(FontSP , FontSP_VS(), FontSP_PS(false));
 TECHNIQUE(FontSPG, FontSP_VS(), FontSP_PS(true ));
