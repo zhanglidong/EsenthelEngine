@@ -154,7 +154,9 @@ struct MainShaderClass
       *h_DrawCubeFace,
 
       *h_FontCur,
+      *h_FontCurSP,
       *h_Font[2][2], // [Depth][Gamma]
+      *h_FontSP [2], //        [Gamma]
 
       *h_Laser[2],
 

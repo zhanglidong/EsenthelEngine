@@ -572,6 +572,8 @@ Vec4 DrawCubeFace_PS(NOPERSP Vec inTex:TEXCOORD):COLOR {return TexCube(Rfl, inTe
 
 TECHNIQUE(DrawCubeFace, DrawCubeFace_VS(), DrawCubeFace_PS());
 /******************************************************************************/
+// FONT
+/******************************************************************************/
 BUFFER(Font)
    Flt FontShadow,
        FontContrast=1,
@@ -641,6 +643,33 @@ TECHNIQUE(Font  , Font_VS(false), Font_PS(false));
 TECHNIQUE(FontD , Font_VS(true ), Font_PS(false));
 TECHNIQUE(FontG , Font_VS(false), Font_PS(true ));
 TECHNIQUE(FontDG, Font_VS(true ), Font_PS(true ));
+/******************************************************************************/
+// FONT SUB-PIXEL
+/******************************************************************************/
+void FontSP_VS(VtxInput vtx,
+           out Vec2 outTex:TEXCOORD,
+           out Vec4 outVtx:POSITION)
+{
+   outTex=     vtx.tex ();
+   outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
+}
+Vec4 FontSP_PS
+(
+   NOPERSP Vec2 inTex:TEXCOORD,
+   uniform Bool linear_gamma
+):COLOR
+{
+   Vec4 c=Tex(Col, inTex);
+   if(linear_gamma)
+   {
+    //c.rgb=  Sqr(  c.rgb); // good for bright text
+    //c.rgb=1-Sqr(1-c.rgb); // good for dark   text
+      c.rgb=Lerp(1-Sqr(1-c.rgb), Sqr(c.rgb), FontLum); // auto
+   }
+   return c*Color[0];
+}
+TECHNIQUE(FontSP , FontSP_VS(), FontSP_PS(false));
+TECHNIQUE(FontSPG, FontSP_VS(), FontSP_PS(true ));
 /******************************************************************************/
 void Laser_VS(VtxInput vtx,
           out Vec  outPos:TEXCOORD0,

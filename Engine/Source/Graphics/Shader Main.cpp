@@ -392,6 +392,9 @@ void MainShaderClass::getTechniques()
    REPD(g, 2)
       h_Font[d][g]=get(S8+"Font"+(d?'D':'\0')+(g?'G':'\0'));
 
+   REPD(g, 2)
+      h_FontSP[g]=get(S8+"FontSP"+(g?'G':'\0'));
+
    // BASIC 2D
    h_Dither=get("Dither");
    h_SetCol=get("SetCol");

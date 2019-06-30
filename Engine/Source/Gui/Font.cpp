@@ -21,7 +21,7 @@
 #endif
 
 #define FONT_SRGB           0 // 0=best
-#define FONT_SRGB_SUB_PIXEL 1 // 1=best
+#define FONT_SRGB_SUB_PIXEL 0 // 0=best
 
 ASSERT(!FONT_SRGB); // right now IMAGE_R8G8/IMAGE_BC5 is used, which don't have sRGB variants
 // #FontImageLayout
@@ -421,7 +421,7 @@ static Bool Adjust(Font &font, Int layout) // #FontImageLayout
       if(font._sub_pixel)
       {
          // sub pixel have RGBA layout, just make sure we have correct sRGB
-         if(!image.copyTry(image, -1, -1, -1, FONT_SRGB_SUB_PIXEL ? ImageTypeIncludeSRGB(image.type()) : ImageTypeExcludeSRGB(image.type())))return false;
+         if(!image.copyTry(image, -1, -1, -1, (FONT_SRGB_SUB_PIXEL ? ImageTypeIncludeSRGB : ImageTypeExcludeSRGB)(image.type())))return false;
       }else
       {
          Image dest; if(!dest.createTry(image.w(), image.h(), 1, FONT_IMAGE_TYPE, image.mode(), image.mipMaps()))return false;
@@ -434,8 +434,8 @@ static Bool Adjust(Font &font, Int layout) // #FontImageLayout
             Color c=src->color(x, y);
             switch(layout)
             {
-               case 0: {c.b=c.a=0;} break; // source is RG
-               case 1: {c.r=c.g; c.g=c.a; c.b=c.a=0;} break; // source is GA
+               case 0:                   c.b=c.a=0; break; // source is RG
+               case 1: c.r=c.g; c.g=c.a; c.b=c.a=0; break; // source is GA
             }
             dest.color(x, y, c);
          }

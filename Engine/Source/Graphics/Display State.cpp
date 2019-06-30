@@ -688,7 +688,8 @@ void DisplayState::linearGamma(Bool on)
    {
       D._linear_gamma=on;
       SRGBToDisplayArray=(on ? ByteSRGBToLinearArray : ByteToFltArray);
-      Sh.h_FontCur=Sh.h_Font[false][on];
+      Sh.h_FontCur  =Sh.h_Font[false][on];
+      Sh.h_FontCurSP=Sh.h_FontSP     [on];
       D.alphaFactor(TRANSPARENT); // TRANSPARENT gives the same Vec4 for sRGB and non-sRGB, have to reset it because '_alpha_factor_v4' depends on 'SRGBToDisplay'
    }
 }

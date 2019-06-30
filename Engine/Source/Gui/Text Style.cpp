@@ -441,11 +441,10 @@ static void SetCode(C TextCodeData *code, C TextStyleParams &text_style, Bool su
 {
    VI.flush();
                                         Color c=((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color );
-   if(!sub_pixel){Sh.h_FontShadow->set(ByteToFlt((code && code->shadow_mode!=TextCodeData::DEFAULT) ? code->shadow : text_style.shadow));
-               #if LINEAR_GAMMA
-                  Sh.h_FontLum   ->set(Min(c.lum(), 128)/128.0f); // calculate text brightness 0..1, multiply by "2" (/128.0f instead of /255.0f) will give better results for grey text color (reaches 1.0 already at grey 128 byte value)
-               #endif
-   }else {D.alphaFactor(c); c.r=c.g=c.b=c.a;}
+#if LINEAR_GAMMA
+   Sh.h_FontLum->set(Min(c.lum(), 128)/128.0f); // calculate text brightness 0..1, multiply by "2" (/128.0f instead of /255.0f) will give better results for grey text color (reaches 1.0 already at grey 128 byte value)
+#endif
+   if(!sub_pixel){Sh.h_FontShadow->set(ByteToFlt((code && code->shadow_mode!=TextCodeData::DEFAULT) ? code->shadow : text_style.shadow));}else {D.alphaFactor(c); c.r=c.g=c.b=c.a;}
    VI.color(c);
 }
 void DrawKeyboardCursor(C Vec2 &pos, Flt height)
@@ -507,7 +506,7 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
          // sub-pixel rendering
          ALPHA_MODE alpha;
          Bool       sub_pixel=font->_sub_pixel;
-         if(sub_pixel){alpha=D.alpha(Renderer.inside() ? ALPHA_FONT_DEC : ALPHA_FONT); VI.color2(TRANSPARENT);}else // if drawing text while rendering, then decrease the alpha channel (glow)
+         if(sub_pixel){alpha=D.alpha(Renderer.inside() ? ALPHA_FONT_DEC : ALPHA_FONT); VI.shader(Sh.h_FontCurSP);}else // if drawing text while rendering, then decrease the alpha channel (glow)
          if(Renderer.inside())D.alpha(ALPHA_BLEND_DEC); // if drawing text while rendering, then decrease the alpha channel (glow), but don't bother to restore it, as in Rendering, alpha blending is always set for each call
 
          Int            cur_code_index=FindCode(code, codes, ti.p());
