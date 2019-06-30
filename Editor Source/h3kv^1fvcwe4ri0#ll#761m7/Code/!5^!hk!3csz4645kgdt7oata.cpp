@@ -58,7 +58,7 @@ class ConvertToAtlasClass : PropWin
             Color c; if(src.color.is())
             {
                Vec4 cf=src.color.colorF(x, y);
-               cf.xyz*=edit.color.xyz;
+               cf.xyz*=edit.color_s.xyz;
                c=cf;
             }else c=WHITE;
 
@@ -394,7 +394,7 @@ class ConvertToAtlasClass : PropWin
             VecI2 tex_filled=0; // x=which textures are filled in X, y=which textures are filled in Y
             atlas.name="Atlas";
             atlas.mtrl.cull=true;
-            atlas.mtrl.color=0;
+            atlas.mtrl.color_l=0; Vec4 color_s=0;
             atlas.mtrl.ambient=0;
             atlas.mtrl.sss=0;
             atlas.mtrl.glow=0;
@@ -408,7 +408,7 @@ class ConvertToAtlasClass : PropWin
             {
                Mtrl &mtrl=mtrls[i];
                atlas.mtrl.cull    &=mtrl.edit.cull; // if at least one material requires cull disabled, then disable for all
-               atlas.mtrl.color   +=mtrl.edit.color;
+                          color_s +=mtrl.edit.color_s;
                atlas.mtrl.ambient +=mtrl.edit.ambient;
                atlas.mtrl.sss     +=mtrl.edit.sss;
                atlas.mtrl.glow    +=mtrl.edit.glow;
@@ -417,7 +417,7 @@ class ConvertToAtlasClass : PropWin
                atlas.mtrl.specular+=mtrl.edit.specular;
                atlas.mtrl.reflect +=mtrl.edit.reflection;
 
-               if(mtrl.edit.tech){alpha+=mtrl.edit.color.w; alpha_num++; tech=mtrl.edit.tech;}
+               if(mtrl.edit.tech){alpha+=mtrl.edit.color_s.w; alpha_num++; tech=mtrl.edit.tech;}
 
                Str alpha_map=mtrl.edit.alpha_map;
                if(has_alpha_map) // if at least one material has 'alpha_map', then we need to specify all of them, in case: alpha in one material comes from 'color_map', or it will in the future
@@ -427,7 +427,7 @@ class ConvertToAtlasClass : PropWin
                   SetTransform(alpha_map, "channel", "a"); // use alpha channel of 'color_map'
                }
 
-               AddMap(atlas.   color_map, mtrl.edit.   color_map, mtrl, false, mtrl.edit.color.xyz);
+               AddMap(atlas.   color_map, mtrl.edit.   color_map, mtrl, false, mtrl.edit.color_s.xyz);
                AddMap(atlas.   alpha_map,              alpha_map, mtrl);
                AddMap(atlas.    bump_map, mtrl.edit.    bump_map, mtrl);
                AddMap(atlas.  normal_map, mtrl.edit.  normal_map, mtrl, true , mtrl.edit.rough   );
@@ -462,15 +462,15 @@ class ConvertToAtlasClass : PropWin
             checkSide(atlas.specular_map, tex_filled.x&BT_SPECULAR);
             checkSide(atlas.    glow_map, tex_filled.x&BT_GLOW    );
 
-            if(tex&BT_COLOR   ){atlas.mtrl.color.xyz=                                1;                           }else atlas.mtrl.color.xyz/=mtrls.elms();
-            if(tex&BT_ALPHA   ){atlas.mtrl.color.w  =(alpha_num ? alpha/alpha_num : 1); atlas.mtrl.technique=tech;}else atlas.mtrl.color.w  /=mtrls.elms(); // if we ended up having alpha    map, then set parameters from alpha materials only
-            if(tex&BT_BUMP    ){                                                                                  }     atlas.mtrl.bump     /=mtrls.elms();
-            if(tex&BT_NORMAL  ){atlas.mtrl.rough    =1;                                                           }else atlas.mtrl.rough    /=mtrls.elms(); // if we ended up having normal   map, then it means we've used the baked textures, for which we need to set the full rough    multiplier
-            if(tex&BT_SPECULAR){atlas.mtrl.specular =1;                                                           }else atlas.mtrl.specular /=mtrls.elms(); // if we ended up having specular map, then it means we've used the baked textures, for which we need to set the full specular multiplier
-            if(tex&BT_GLOW    ){atlas.mtrl.glow     =1;                                                           }else atlas.mtrl.glow     /=mtrls.elms(); // if we ended up having glow     map, then it means we've used the baked textures, for which we need to set the full glow     multiplier
-                                                                                                                        atlas.mtrl.ambient  /=mtrls.elms();
-                                                                                                                        atlas.mtrl.sss      /=mtrls.elms();
-                                                                                                                        atlas.mtrl.reflect  /=mtrls.elms();
+            if(tex&BT_COLOR   ){atlas.mtrl.color_l.xyz=                                1;                           }else atlas.mtrl.color_l.xyz=SRGBToLinear(color_s.xyz/mtrls.elms());
+            if(tex&BT_ALPHA   ){atlas.mtrl.color_l.w  =(alpha_num ? alpha/alpha_num : 1); atlas.mtrl.technique=tech;}else atlas.mtrl.color_l.w  =             color_s.w  /mtrls.elms() ; // if we ended up having alpha    map, then set parameters from alpha materials only
+            if(tex&BT_BUMP    ){                                                                                    }     atlas.mtrl.bump     /=mtrls.elms();
+            if(tex&BT_NORMAL  ){atlas.mtrl.rough    =1;                                                             }else atlas.mtrl.rough    /=mtrls.elms(); // if we ended up having normal   map, then it means we've used the baked textures, for which we need to set the full rough    multiplier
+            if(tex&BT_SPECULAR){atlas.mtrl.specular =1;                                                             }else atlas.mtrl.specular /=mtrls.elms(); // if we ended up having specular map, then it means we've used the baked textures, for which we need to set the full specular multiplier
+            if(tex&BT_GLOW    ){atlas.mtrl.glow     =1;                                                             }else atlas.mtrl.glow     /=mtrls.elms(); // if we ended up having glow     map, then it means we've used the baked textures, for which we need to set the full glow     multiplier
+                                                                                                                          atlas.mtrl.ambient  /=mtrls.elms();
+                                                                                                                          atlas.mtrl.sss      /=mtrls.elms();
+                                                                                                                          atlas.mtrl.reflect  /=mtrls.elms();
 
             IMAGE_TYPE ct; ImageProps(atlas.base_0, &atlas.base_0_id, &ct, SRGB|(ForceHQMtrlBase0 ? FORCE_HQ : 0)); if(Importer.includeTex(atlas.base_0_id))atlas.base_0.copyTry(atlas.base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
                            ImageProps(atlas.base_1, &atlas.base_1_id, &ct,      (ForceHQMtrlBase1 ? FORCE_HQ : 0)); if(Importer.includeTex(atlas.base_1_id))atlas.base_1.copyTry(atlas.base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP|IC_MTRL_BASE1);

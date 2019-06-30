@@ -23,7 +23,7 @@ enum MATERIAL_TECHNIQUE : Byte // Material Techniques
 /******************************************************************************/
 struct MaterialParams // Material Parameters
 {
-   Vec4 color    ; // color                 (0,0,0,0) .. (1,1,1,1), default=(1,1,1,1)
+   Vec4 color_l  ; // color Linear Gamma    (0,0,0,0) .. (1,1,1,1), default=(1,1,1,1)
    Vec  ambient  ; // ambient                 (0,0,0) .. (1,1,1)  , default=(0,0,0)
    Flt  specular , // specular                      0 .. 1        , default=0
         sss      , // sub-surface scattering        0 .. 1        , default=0
@@ -34,6 +34,9 @@ struct MaterialParams // Material Parameters
         det_scale, // detail  scale                 0 .. Inf      , default=4
         det_power, // detail  power                 0 .. 1        , default=0.3
         reflect  ; // reflection                    0 .. 1        , default=0.2
+
+ C Vec4& colorL()C {return color_l;}   void colorL(C Vec4 &color_l) {T.color_l=color_l;} // get/set Linear Gamma color
+   Vec4  colorS()C;                    void colorS(C Vec4 &color_s);                     // get/set sRGB   Gamma color
 };
 STRUCT(Material , MaterialParams) // Mesh Rendering Material - contains render parameters and textures
 //{

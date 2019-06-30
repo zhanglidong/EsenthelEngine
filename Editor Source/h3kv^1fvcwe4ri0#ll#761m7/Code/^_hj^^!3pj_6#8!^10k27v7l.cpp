@@ -12,7 +12,7 @@ class EditWaterMtrl : EditMaterial
              reflect_world_time, refract_time, refract_reflection_time, refract_underwater_time, wave_scale_time,
              fresnel_pow_time, fresnel_rough_time, fresnel_color_time, color_underwater_time;
 
-   EditWaterMtrl() {super.color.set(0.42, 0.50, 0.58, 1); super.rough=1; super.specular=1.5; super.reflection=0.1;}
+   EditWaterMtrl() {super.color_s.set(0.42, 0.50, 0.58, 1); super.rough=1; super.specular=1.5; super.reflection=0.1;}
 
    // get
    bool usesTexBump()C {return wave_scale>EPSL && hasBumpMap();}
@@ -60,7 +60,7 @@ super.specular              =src.specular; spec_time=time;
       fresnel_pow           =src.fresnel_pow; fresnel_pow_time=time;
       fresnel_rough         =src.fresnel_rough; fresnel_rough_time=time;
       fresnel_color         =src.fresnel_color; fresnel_color_time=time;
-super.color                 =Vec4(src.color, 1); color_time=time;
+super.color_s               =Vec4(src.color, 1); color_time=time;
       color_underwater0     =src.color_underwater0; color_underwater_time=time;
       color_underwater1     =src.color_underwater1;
           base_0_tex=src.     colorMap().id();
@@ -87,7 +87,7 @@ super.color                 =Vec4(src.color, 1); color_time=time;
       dest.fresnel_pow           =fresnel_pow           ;
       dest.fresnel_rough         =fresnel_rough         ;
       dest.fresnel_color         =fresnel_color         ;
-      dest.color                 =super.color.xyz       ;
+      dest.color                 =super.color_s.xyz     ;
       dest.color_underwater0     =color_underwater0     ;
       dest.color_underwater1     =color_underwater1     ;
       dest.     colorMap(proj.texPath(    base_0_tex))

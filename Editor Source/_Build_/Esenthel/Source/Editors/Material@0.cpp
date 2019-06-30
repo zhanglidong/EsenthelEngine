@@ -317,7 +317,7 @@ MaterialTech mtrl_techs[]=
    {
       mr.undos.set("brightness");
       Vec2 d=0; int on=0, pd=0; REPA(MT)if(MT.b(i) && MT.guiObj(i)==&mr.brightness){d+=MT.ad(i); if(!MT.touch(i))Ms.freeze(); if(MT.bp(i))pd++;else on++;}
-      Vec &rgb=mr.edit.color.xyz; if(pd && !on){mr.mouse_edit_value=rgb; mr.mouse_edit_delta=0;} mr.mouse_edit_delta+=d.sum()*0.75f;
+      Vec &rgb=mr.edit.color_s.xyz; if(pd && !on){mr.mouse_edit_value=rgb; mr.mouse_edit_delta=0;} mr.mouse_edit_delta+=d.sum()*0.75f;
       flt  max=mr.mouse_edit_value.max(), lum=max+mr.mouse_edit_delta; if(lum<0){mr.mouse_edit_delta-=lum; lum=0;}
       Vec  v  =mr.mouse_edit_value; if(max)v/=max;else v=1; v*=lum;
       if(mr.red  ){mr.red  ->set(v.x, QUIET); rgb.x=mr.red  ->asFlt();}
@@ -325,14 +325,14 @@ MaterialTech mtrl_techs[]=
       if(mr.blue ){mr.blue ->set(v.z, QUIET); rgb.z=mr.blue ->asFlt();}
       mr.edit.color_time.getUTC(); mr.setChanged();
    }
-   Str  MaterialRegion::Red(C MaterialRegion &mr          ) {return mr.edit.color.x;}
-   void MaterialRegion::Red(  MaterialRegion &mr, C Str &t) {mr.edit.color.x=TextFlt(t); mr.edit.color_time.getUTC();}
-   Str  MaterialRegion::Green(C MaterialRegion &mr          ) {return mr.edit.color.y;}
-   void MaterialRegion::Green(  MaterialRegion &mr, C Str &t) {mr.edit.color.y=TextFlt(t); mr.edit.color_time.getUTC();}
-   Str  MaterialRegion::Blue(C MaterialRegion &mr          ) {return mr.edit.color.z;}
-   void MaterialRegion::Blue(  MaterialRegion &mr, C Str &t) {mr.edit.color.z=TextFlt(t); mr.edit.color_time.getUTC();}
-   Str  MaterialRegion::Alpha(C MaterialRegion &mr          ) {return mr.edit.color.w;}
-   void MaterialRegion::Alpha(  MaterialRegion &mr, C Str &t) {mr.edit.color.w=TextFlt(t); mr.edit.color_time.getUTC();}
+   Str  MaterialRegion::Red(C MaterialRegion &mr          ) {return mr.edit.color_s.x;}
+   void MaterialRegion::Red(  MaterialRegion &mr, C Str &t) {mr.edit.color_s.x=TextFlt(t); mr.edit.color_time.getUTC();}
+   Str  MaterialRegion::Green(C MaterialRegion &mr          ) {return mr.edit.color_s.y;}
+   void MaterialRegion::Green(  MaterialRegion &mr, C Str &t) {mr.edit.color_s.y=TextFlt(t); mr.edit.color_time.getUTC();}
+   Str  MaterialRegion::Blue(C MaterialRegion &mr          ) {return mr.edit.color_s.z;}
+   void MaterialRegion::Blue(  MaterialRegion &mr, C Str &t) {mr.edit.color_s.z=TextFlt(t); mr.edit.color_time.getUTC();}
+   Str  MaterialRegion::Alpha(C MaterialRegion &mr          ) {return mr.edit.color_s.w;}
+   void MaterialRegion::Alpha(  MaterialRegion &mr, C Str &t) {mr.edit.color_s.w=TextFlt(t); mr.edit.color_time.getUTC();}
    Str  MaterialRegion::Bump(C MaterialRegion &mr          ) {return mr.edit.bump/BumpScale;}
    void MaterialRegion::Bump(  MaterialRegion &mr, C Str &t) {mr.edit.bump=TextFlt(t)*BumpScale; mr.edit.rough_bump_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
    Str  MaterialRegion::NrmScale(C MaterialRegion &mr          ) {return mr.edit.rough;}
@@ -442,12 +442,12 @@ MaterialTech mtrl_techs[]=
    void MaterialRegion::MulTexCol(MaterialRegion &editor) {Proj.mtrlMulTexCol  (editor.elm_id);}
    void MaterialRegion::MulTexRough(MaterialRegion &editor) {Proj.mtrlMulTexRough(editor.elm_id);}
    bool MaterialRegion::bigVisible()C {return visible() && big();}
-   void   MaterialRegion::setRGB(C Vec            &rgb) {if(edit.color.xyz          !=rgb){undos.set("rgb1" ); edit.color.xyz          =rgb; edit.              color_time.getUTC(); setChanged(); toGui();}}
-   void MaterialRegion::resetAlpha(                     ) {                                  undos.set("alpha"); edit.resetAlpha()           ;                                         setChanged(); toGui(); }
-   void MaterialRegion::cull(bool              on ) {if(edit.cull               !=on ){undos.set("cull" ); edit.cull               =on ; edit.               cull_time.getUTC(); setChanged(); toGui();}}
-   void MaterialRegion::flipNrmY(bool              on ) {if(edit.flip_normal_y      !=on ){undos.set("fny"  ); edit.flip_normal_y      =on ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.baseTex(), true, false);}}
-   void MaterialRegion::downsizeTexMobile(byte              ds ) {if(edit.downsize_tex_mobile!=ds ){undos.set("dtm"  ); edit.downsize_tex_mobile=ds ; edit.downsize_tex_mobile_time.getUTC(); setChanged(); toGui();}}
-   void MaterialRegion::texQuality(int               q  ) {if(edit.tex_quality        !=q  ){undos.set("tq"   ); edit.tex_quality        =q  ; edit.        tex_quality_time.getUTC(); setChanged(); toGui();}}
+   void   MaterialRegion::setRGB(C Vec           &srgb) {if(edit.color_s.xyz        !=srgb){undos.set("rgb1" ); edit.color_s.xyz        =srgb; edit.              color_time.getUTC(); setChanged(); toGui();}}
+   void MaterialRegion::resetAlpha(                     ) {                                   undos.set("alpha"); edit.resetAlpha()            ;                                         setChanged(); toGui(); }
+   void MaterialRegion::cull(bool              on ) {if(edit.cull               !=on  ){undos.set("cull" ); edit.cull               =on  ; edit.               cull_time.getUTC(); setChanged(); toGui();}}
+   void MaterialRegion::flipNrmY(bool              on ) {if(edit.flip_normal_y      !=on  ){undos.set("fny"  ); edit.flip_normal_y      =on  ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.baseTex(), true, false);}}
+   void MaterialRegion::downsizeTexMobile(byte              ds ) {if(edit.downsize_tex_mobile!=ds  ){undos.set("dtm"  ); edit.downsize_tex_mobile=ds  ; edit.downsize_tex_mobile_time.getUTC(); setChanged(); toGui();}}
+   void MaterialRegion::texQuality(int               q  ) {if(edit.tex_quality        !=q   ){undos.set("tq"   ); edit.tex_quality        =q   ; edit.        tex_quality_time.getUTC(); setChanged(); toGui();}}
    void MaterialRegion::resizeBase(C VecI2 &size, bool relative)
    {
       undos.set("resizeBase");

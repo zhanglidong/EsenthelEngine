@@ -8,7 +8,7 @@ class MergeSimilarMaterials : PropWin
       UID  elm_id, base_0_tex, base_1_tex, detail_tex, macro_tex, reflect_tex, light_tex;
       bool cull;
       MATERIAL_TECHNIQUE tech;
-      Vec4 col;
+      Vec4 col_s;
       flt  bump, spec, glow, reflect, uv_scale;
 
       bool similar(C Mtrl &m)C;

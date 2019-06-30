@@ -857,7 +857,7 @@ class WorldView : Viewport4Region, WorldData
 
       mode.moveToTop(); // because of sub-windows
 
-      dummy_mtrl.reset().color.set(0.7, 0.7, 0.7, 0.5);
+      dummy_mtrl.reset().colorS(Vec4(0.7, 0.7, 0.7, 0.5));
       dummy_mtrl.technique=MTECH_BLEND_LIGHT;
       dummy_mtrl.validate();
       dummy_mesh.create(1).parts[0].material(&dummy_mtrl).base.create(Ball(0.5), VTX_NRM, 3); dummy_mesh.setRender().setBox(); // keep base to speed up Cursor ray test

@@ -595,12 +595,12 @@ void AdjustMaterialParams(EditMaterial &edit, Material &game, uint old_base_tex,
 {
    TimeStamp time; time.getUTC();
    game._adjustParams(old_base_tex, new_base_tex);
-   SyncByValue     (edit.      tech_time, time, edit.tech    , game.technique);
-   SyncByValueEqual(edit.     color_time, time, edit.color.w , game.color.w  );
-   SyncByValueEqual(edit.rough_bump_time, time, edit.bump    , game.bump     );
-   SyncByValueEqual(edit.rough_bump_time, time, edit.rough   , game.rough    );
-   SyncByValueEqual(edit.      spec_time, time, edit.specular, game.specular );
-   SyncByValueEqual(edit.      glow_time, time, edit.glow    , game.glow     );
+   SyncByValue     (edit.      tech_time, time, edit.tech     , game.technique);
+   SyncByValueEqual(edit.     color_time, time, edit.color_s.w, game.color_l.w);
+   SyncByValueEqual(edit.rough_bump_time, time, edit.bump     , game.bump     );
+   SyncByValueEqual(edit.rough_bump_time, time, edit.rough    , game.rough    );
+   SyncByValueEqual(edit.      spec_time, time, edit.specular , game.specular );
+   SyncByValueEqual(edit.      glow_time, time, edit.glow     , game.glow     );
 }
 /******************************************************************************/
 bool ImportImage(Image &image, C Str &name, int type, int mode, int mip_maps, bool decompress)

@@ -78,9 +78,9 @@ struct RendererClass // handles rendering
    ImageRT     *target              ; // render target destination, this can be set to a custom 'ImageRT' of IMAGE_RT mode, in that case the rendering will be performed onto the selected image, this image should have its aspect (proportions) the same as the screen (D.resW, D.resH), if set to null then rendering is performed to the screen, default=null
    ImagePtr     cel_shade_palette   ; // cel shading light palette, you can set this to custom texture in "Init()", if used then this should point to a palette of custom width and 1 pixel height, if set to null then usage of cel shading is disabled, used only in RT_DEFERRED renderer, default=null
 
-   ShaderParam *C material_color, // Vec4
-               *C highlight     , // Vec
-               *C ambient_color ; // Vec
+   ShaderParam *C material_color_l, // Vec4 Linear Gamma
+               *C highlight       , // Vec
+               *C ambient_color_l ; // Vec  Linear Gamma
 
 #if EE_PRIVATE
  C VecI2& res ()C {return _res  ;} // get Current Render Target Size   (in pixels)

@@ -99,8 +99,8 @@ class WaterMtrlRegion : MaterialRegion
    static void FresnelRough         (  WaterMtrlRegion &mr, C Str &t) {mr.edit.fresnel_rough=TextFlt(t); mr.edit.fresnel_rough_time.getUTC();}
    static Str  FresnelColor         (C WaterMtrlRegion &mr          ) {return mr.edit.fresnel_color;}
    static void FresnelColor         (  WaterMtrlRegion &mr, C Str &t) {mr.edit.fresnel_color=TextVec(t); mr.edit.fresnel_color_time.getUTC();}
-   static Str  Col                  (C WaterMtrlRegion &mr          ) {return mr.edit.color;}
-   static void Col                  (  WaterMtrlRegion &mr, C Str &t) {mr.edit.color.xyz=TextVec(t); mr.edit.color_time.getUTC();}
+   static Str  Col                  (C WaterMtrlRegion &mr          ) {return mr.edit.color_s;}
+   static void Col                  (  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_s.xyz=TextVec(t); mr.edit.color_time.getUTC();}
    static Str  ColorUnderwater0     (C WaterMtrlRegion &mr          ) {return mr.edit.color_underwater0;}
    static void ColorUnderwater0     (  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_underwater0=TextVec(t); mr.edit.color_underwater_time.getUTC();}
    static Str  ColorUnderwater1     (C WaterMtrlRegion &mr          ) {return mr.edit.color_underwater1;}

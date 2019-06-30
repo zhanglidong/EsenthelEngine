@@ -391,7 +391,7 @@ class MaterialRegion : Region
    {
       mr.undos.set("brightness");
       Vec2 d=0; int on=0, pd=0; REPA(MT)if(MT.b(i) && MT.guiObj(i)==&mr.brightness){d+=MT.ad(i); if(!MT.touch(i))Ms.freeze(); if(MT.bp(i))pd++;else on++;}
-      Vec &rgb=mr.edit.color.xyz; if(pd && !on){mr.mouse_edit_value=rgb; mr.mouse_edit_delta=0;} mr.mouse_edit_delta+=d.sum()*0.75;
+      Vec &rgb=mr.edit.color_s.xyz; if(pd && !on){mr.mouse_edit_value=rgb; mr.mouse_edit_delta=0;} mr.mouse_edit_delta+=d.sum()*0.75;
       flt  max=mr.mouse_edit_value.max(), lum=max+mr.mouse_edit_delta; if(lum<0){mr.mouse_edit_delta-=lum; lum=0;}
       Vec  v  =mr.mouse_edit_value; if(max)v/=max;else v=1; v*=lum;
       if(mr.red  ){mr.red  .set(v.x, QUIET); rgb.x=mr.red  .asFlt();}
@@ -400,14 +400,14 @@ class MaterialRegion : Region
       mr.edit.color_time.getUTC(); mr.setChanged();
    }
 
-   static Str  Red  (C MaterialRegion &mr          ) {return mr.edit.color.x;}
-   static void Red  (  MaterialRegion &mr, C Str &t) {mr.edit.color.x=TextFlt(t); mr.edit.color_time.getUTC();}
-   static Str  Green(C MaterialRegion &mr          ) {return mr.edit.color.y;}
-   static void Green(  MaterialRegion &mr, C Str &t) {mr.edit.color.y=TextFlt(t); mr.edit.color_time.getUTC();}
-   static Str  Blue (C MaterialRegion &mr          ) {return mr.edit.color.z;}
-   static void Blue (  MaterialRegion &mr, C Str &t) {mr.edit.color.z=TextFlt(t); mr.edit.color_time.getUTC();}
-   static Str  Alpha(C MaterialRegion &mr          ) {return mr.edit.color.w;}
-   static void Alpha(  MaterialRegion &mr, C Str &t) {mr.edit.color.w=TextFlt(t); mr.edit.color_time.getUTC();}
+   static Str  Red  (C MaterialRegion &mr          ) {return mr.edit.color_s.x;}
+   static void Red  (  MaterialRegion &mr, C Str &t) {mr.edit.color_s.x=TextFlt(t); mr.edit.color_time.getUTC();}
+   static Str  Green(C MaterialRegion &mr          ) {return mr.edit.color_s.y;}
+   static void Green(  MaterialRegion &mr, C Str &t) {mr.edit.color_s.y=TextFlt(t); mr.edit.color_time.getUTC();}
+   static Str  Blue (C MaterialRegion &mr          ) {return mr.edit.color_s.z;}
+   static void Blue (  MaterialRegion &mr, C Str &t) {mr.edit.color_s.z=TextFlt(t); mr.edit.color_time.getUTC();}
+   static Str  Alpha(C MaterialRegion &mr          ) {return mr.edit.color_s.w;}
+   static void Alpha(  MaterialRegion &mr, C Str &t) {mr.edit.color_s.w=TextFlt(t); mr.edit.color_time.getUTC();}
 
    static const flt BumpScale=0.10;
    static Str  Bump    (C MaterialRegion &mr          ) {return mr.edit.bump/BumpScale;}
@@ -542,13 +542,13 @@ class MaterialRegion : Region
 
    bool bigVisible()C {return visible() && big();}
 
-   void   setRGB         (C Vec            &rgb) {if(edit.color.xyz          !=rgb){undos.set("rgb1" ); edit.color.xyz          =rgb; edit.              color_time.getUTC(); setChanged(); toGui();}}
-   void resetAlpha       (                     ) {                                  undos.set("alpha"); edit.resetAlpha()           ;                                         setChanged(); toGui(); }
-   void cull             (bool              on ) {if(edit.cull               !=on ){undos.set("cull" ); edit.cull               =on ; edit.               cull_time.getUTC(); setChanged(); toGui();}}
-   void flipNrmY         (bool              on ) {if(edit.flip_normal_y      !=on ){undos.set("fny"  ); edit.flip_normal_y      =on ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.baseTex(), true, false);}} // 'rebuildBase' already calls 'setChanged' and 'toGui'
- //void maxTexSize       (Edit.MAX_TEX_SIZE mts) {if(edit.max_tex_size       !=mts){undos.set("mts"  ); edit.max_tex_size       =mts; edit.       max_tex_size_time.getUTC(); setChanged(); toGui();}}
-   void downsizeTexMobile(byte              ds ) {if(edit.downsize_tex_mobile!=ds ){undos.set("dtm"  ); edit.downsize_tex_mobile=ds ; edit.downsize_tex_mobile_time.getUTC(); setChanged(); toGui();}}
-   void texQuality       (int               q  ) {if(edit.tex_quality        !=q  ){undos.set("tq"   ); edit.tex_quality        =q  ; edit.        tex_quality_time.getUTC(); setChanged(); toGui();}}
+   void   setRGB         (C Vec           &srgb) {if(edit.color_s.xyz        !=srgb){undos.set("rgb1" ); edit.color_s.xyz        =srgb; edit.              color_time.getUTC(); setChanged(); toGui();}}
+   void resetAlpha       (                     ) {                                   undos.set("alpha"); edit.resetAlpha()            ;                                         setChanged(); toGui(); }
+   void cull             (bool              on ) {if(edit.cull               !=on  ){undos.set("cull" ); edit.cull               =on  ; edit.               cull_time.getUTC(); setChanged(); toGui();}}
+   void flipNrmY         (bool              on ) {if(edit.flip_normal_y      !=on  ){undos.set("fny"  ); edit.flip_normal_y      =on  ; edit.      flip_normal_y_time.getUTC(); rebuildBase(edit.baseTex(), true, false);}} // 'rebuildBase' already calls 'setChanged' and 'toGui'
+ //void maxTexSize       (Edit.MAX_TEX_SIZE mts) {if(edit.max_tex_size       !=mts ){undos.set("mts"  ); edit.max_tex_size       =mts ; edit.       max_tex_size_time.getUTC(); setChanged(); toGui();}}
+   void downsizeTexMobile(byte              ds ) {if(edit.downsize_tex_mobile!=ds  ){undos.set("dtm"  ); edit.downsize_tex_mobile=ds  ; edit.downsize_tex_mobile_time.getUTC(); setChanged(); toGui();}}
+   void texQuality       (int               q  ) {if(edit.tex_quality        !=q   ){undos.set("tq"   ); edit.tex_quality        =q   ; edit.        tex_quality_time.getUTC(); setChanged(); toGui();}}
 
    void resizeBase(C VecI2 &size, bool relative=false)
    {

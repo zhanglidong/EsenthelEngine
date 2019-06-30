@@ -1547,10 +1547,10 @@ void MeshPart::drawBlend(C Vec4 *color)C
          Bool no_blend=!material.hasAlphaBlend(); // if there is no blending then it means it's ALPHA_NONE or ALPHA_TEST, in both cases we should ignore the material.color.a, and use 1.0
          if(color || no_blend)
          {
-            Vec4 col=material.color;
+            Vec4 col=material.color_l;
             if(no_blend)col.w=1; // force full alpha for non-blending techniques
             if(color   )col *=*color;
-            Renderer.material_color->set(col);
+            Renderer.material_color_l->set(col);
             MaterialClear();
          }
          s->begin(); render.set().draw();

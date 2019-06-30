@@ -161,7 +161,7 @@ void DrawIDReplace()
          if(MSM.       light_tex   &&   light_tex!=m.  light_tex)return false;
          if(MSM.            cull   &&        cull!=m.       cull)return false;
          if(MSM.            tech   &&        tech!=m.       tech)return false;
-         if(MSM.  color_value_on() && Abs(col     -m.col     ).max()>MSM.  color_value)return false;
+         if(MSM.  color_value_on() && Abs(col_s   -m.col_s   ).max()>MSM.  color_value)return false;
          if(MSM.   bump_value_on() && Abs(bump    -m.bump    )      >MSM.   bump_value)return false;
          if(MSM.   spec_value_on() && Abs(spec    -m.spec    )      >MSM.   spec_value)return false;
          if(MSM.   glow_value_on() && Abs(glow    -m.glow    )      >MSM.   glow_value)return false;
@@ -182,7 +182,7 @@ void DrawIDReplace()
           light_tex=m.light_tex;
          cull=m.cull;
          tech=m.tech;
-         col=m.color;
+         col_s=m.color_s;
          bump=m.bump;
          spec=m.specular;
          glow=m.glow;

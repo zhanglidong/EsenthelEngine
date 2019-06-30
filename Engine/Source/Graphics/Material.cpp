@@ -44,9 +44,12 @@ Enum                  *MaterialUserShader,
 MaterialPtr            MaterialNull;
 ThreadSafeMap<UniqueMultiMaterialKey, UniqueMultiMaterialData> UniqueMultiMaterialMap(Compare);
 /******************************************************************************/
+Vec4 MaterialParams::colorS(               )C {return LinearToSRGB(color_l);}
+void MaterialParams::colorS(C Vec4 &color_s)  {return colorL(SRGBToLinear(color_s));}
+/******************************************************************************/
 Material::Material()
 {
-   color  .set(1, 1, 1, 1);
+   color_l.set(1, 1, 1, 1);
    ambient.set(0, 0, 0);
    specular =0;
    sss      =0;
@@ -118,7 +121,7 @@ Material& Material::validate()
 
    // set multi
    {
-     _multi.color    =color    ;
+     _multi.color    =color_l  ;
      _multi.tex_scale=tex_scale;
      _multi.det_scale=det_scale;
 
@@ -255,7 +258,7 @@ void Material::setOutline()C
       MaterialLast=this;
       Sh.h_ImageCol[0]->set(base_0());
       Sh.h_ImageNrm[0]->set(base_1());
-      Renderer.material_color->set(color); // only Material Color is used for potential alpha-testing
+      Renderer.material_color_l->set(color_l); // only Material Color is used for potential alpha-testing
    }
 }
 void Material::setBehind()C
@@ -265,7 +268,7 @@ void Material::setBehind()C
       MaterialLast=this;
       Sh.h_ImageCol[0]->set(base_0());
       Sh.h_ImageNrm[0]->set(base_1());
-      Renderer.material_color->set(color); // only Material Color is used
+      Renderer.material_color_l->set(color_l); // only Material Color is used
    }
 }
 void Material::setShadow()C
@@ -275,7 +278,7 @@ void Material::setShadow()C
       MaterialLast=this;
       Sh.h_ImageCol[0]->set(base_0());
       Sh.h_ImageNrm[0]->set(base_1());
-      Renderer.material_color->set(color); // only Material Color is used
+      Renderer.material_color_l->set(color_l); // only Material Color is used
    }
 }
 void Material::setMulti(Int i)C
@@ -347,8 +350,8 @@ void Material::_adjustParams(UInt old_base_tex, UInt new_base_tex)
    {
       if(new_base_tex&BT_ALPHA)
       {
-         if(!hasAlphaBlend() && color.w>=1-EPS_COL)color.w=0.5f;
-         if(!hasAlpha     ()                      )technique=MTECH_ALPHA_TEST;
+         if(!hasAlphaBlend() && color_l.w>=1-EPS_COL)color_l.w=0.5f;
+         if(!hasAlpha     ()                        )technique=MTECH_ALPHA_TEST;
       }else
       {
          if(hasAlpha())technique=MTECH_DEFAULT; // disable alpha technique if alpha map is not available
@@ -360,7 +363,9 @@ void Material::_adjustParams(UInt old_base_tex, UInt new_base_tex)
 /******************************************************************************/
 Bool Material::saveData(File &f, CChar *path)C
 {
-   f.putMulti(Byte(9), cull, Byte(technique))<<SCAST(C MaterialParams, T); // version
+   // !! for ver 10 just save like this: !!
+ //f.putMulti(Byte(10), cull, Byte(technique))<<SCAST(C MaterialParams, T); // version
+   f.putMulti(Byte(9), cull, Byte(technique))<<colorS()<<ambient<<specular<<sss<<glow<<rough<<bump<<tex_scale<<det_scale<<det_power<<reflect;
 
    // textures
    f.putStr(        base_0.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
@@ -381,9 +386,11 @@ Bool Material::loadData(File &f, CChar *path)
    MaterialParams &mp=T; Char temp[MAX_LONG_PATH];
    switch(f.decUIntV())
    {
+      // !! for ver 10, don't convert 'color' gamma !!
+
       case 9:
       {
-         f.getMulti(cull, technique)>>mp;
+         f.getMulti(cull, technique)>>mp; colorS(color_l);
          f.getStr(temp            );         base_0.require(temp, path);
          f.getStr(temp            );         base_1.require(temp, path);
          f.getStr(temp            );     detail_map.require(temp, path);
@@ -396,7 +403,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 8:
       {
-         f.getMulti(cull, technique)>>mp;
+         f.getMulti(cull, technique)>>mp; colorS(color_l);
          f._getStr1(temp            );         base_0.require(temp, path);
          f._getStr1(temp            );         base_1.require(temp, path);
          f._getStr1(temp            );     detail_map.require(temp, path);
@@ -409,7 +416,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 7:
       {
-         f>>mp>>cull>>technique;
+         f>>mp>>cull>>technique; colorS(color_l);
          f._getStr(temp            );         base_0.require(temp, path);
          f._getStr(temp            );         base_1.require(temp, path);
          f._getStr(temp            );     detail_map.require(temp, path);
@@ -422,7 +429,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 6:
       {
-         f>>mp>>cull>>technique; user_type=0; user_type_name.clear();
+         f>>mp>>cull>>technique; user_type=0; user_type_name.clear(); colorS(color_l);
          f._getStr(temp);         base_0.require(temp, path);
          f._getStr(temp);         base_1.require(temp, path);
          f._getStr(temp);     detail_map.require(temp, path);
@@ -434,7 +441,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 5:
       {
-         f>>mp>>cull>>technique; user_type=0; user_type_name.clear();
+         f>>mp>>cull>>technique; user_type=0; user_type_name.clear(); colorS(color_l);
          f._getStr(temp);         base_0.require(temp, path);
          f._getStr(temp);         base_1.require(temp, path);
          f._getStr(temp);     detail_map.require(temp, path);
@@ -446,7 +453,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 4:
       {
-         f>>mp>>cull>>technique; user_shader=user_type=0; user_shader_name.clear(); user_type_name.clear();
+         f>>mp>>cull>>technique; user_shader=user_type=0; user_shader_name.clear(); user_type_name.clear(); colorS(color_l);
          f._getStr(temp);         base_0.require(temp, path);
          f._getStr(temp);         base_1.require(temp, path);
          f._getStr(temp);     detail_map.require(temp, path);
@@ -457,7 +464,7 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 3:
       {
-         f>>color>>ambient>>specular>>sss>>glow>>rough>>bump>>det_scale>>det_power>>reflect>>cull>>technique; tex_scale=1; user_shader=user_type=0; user_shader_name.clear(); user_type_name.clear();
+         f>>color_l>>ambient>>specular>>sss>>glow>>rough>>bump>>det_scale>>det_power>>reflect>>cull>>technique; tex_scale=1; user_shader=user_type=0; user_shader_name.clear(); user_type_name.clear(); colorS(color_l);
                  base_0.require(f._getStr8(), path);
                  base_1.require(f._getStr8(), path);
              detail_map.require(f._getStr8(), path);
@@ -469,8 +476,8 @@ Bool Material::loadData(File &f, CChar *path)
       case 2:
       {
          f.skip(1);
-         f>>color>>specular>>sss>>glow>>rough>>bump>>det_scale>>det_power>>reflect>>cull>>technique; ambient=0; tex_scale=1; user_shader=user_type=0; user_shader_name.clear(); user_type_name.clear();
-         if(technique==MTECH_FUR){det_power=color.w; color.w=1;}
+         f>>color_l>>specular>>sss>>glow>>rough>>bump>>det_scale>>det_power>>reflect>>cull>>technique; ambient=0; tex_scale=1; user_shader=user_type=0; user_shader_name.clear(); user_type_name.clear(); colorS(color_l);
+         if(technique==MTECH_FUR){det_power=color_l.w; color_l.w=1;}
                  base_0.require(f._getStr8(), path);
                  base_1.require(f._getStr8(), path);
              detail_map.require(f._getStr8(), path);
@@ -482,8 +489,8 @@ Bool Material::loadData(File &f, CChar *path)
       case 1:
       {
          f.skip(1);
-         f>>color>>specular>>glow>>rough>>bump>>det_scale>>det_power>>reflect>>cull>>technique; sss=0; ambient=0; tex_scale=1; user_shader=user_type=0; user_shader_name.clear(); user_type_name.clear();
-         if(technique==MTECH_FUR){det_power=color.w; color.w=1;}
+         f>>color_l>>specular>>glow>>rough>>bump>>det_scale>>det_power>>reflect>>cull>>technique; sss=0; ambient=0; tex_scale=1; user_shader=user_type=0; user_shader_name.clear(); user_type_name.clear(); colorS(color_l);
+         if(technique==MTECH_FUR){det_power=color_l.w; color_l.w=1;}
                  base_0.require(f._getStr8(), path);
                  base_1.require(f._getStr8(), path);
              detail_map.require(f._getStr8(), path);
@@ -495,7 +502,7 @@ Bool Material::loadData(File &f, CChar *path)
       case 0:
       {
          f.skip(1);
-         f>>color>>specular>>glow>>rough>>bump>>det_scale>>det_power>>reflect>>cull; sss=0; ambient=0; tex_scale=1; user_shader=user_type=0; user_shader_name.clear(); user_type_name.clear(); user_shader_name.clear();
+         f>>color_l>>specular>>glow>>rough>>bump>>det_scale>>det_power>>reflect>>cull; sss=0; ambient=0; tex_scale=1; user_shader=user_type=0; user_shader_name.clear(); user_type_name.clear(); user_shader_name.clear(); colorS(color_l);
          switch(f.getByte())
          {
             default: technique=MTECH_DEFAULT   ; break;
@@ -503,7 +510,7 @@ Bool Material::loadData(File &f, CChar *path)
             case 4 : technique=MTECH_FUR       ; break;
             case 5 : technique=MTECH_GRASS     ; break;
          }
-         if(technique==MTECH_FUR){det_power=color.w; color.w=1;}
+         if(technique==MTECH_FUR){det_power=color_l.w; color_l.w=1;}
          Char8 tex[80];
          f>>tex;         base_0.require(tex, path);
          f>>tex;         base_1.require(tex, path);

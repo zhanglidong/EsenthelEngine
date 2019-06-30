@@ -669,7 +669,7 @@ WorldView WorldEdit;
 
       mode.moveToTop(); // because of sub-windows
 
-      dummy_mtrl.reset().color.set(0.7f, 0.7f, 0.7f, 0.5f);
+      dummy_mtrl.reset().colorS(Vec4(0.7f, 0.7f, 0.7f, 0.5f));
       dummy_mtrl.technique=MTECH_BLEND_LIGHT;
       dummy_mtrl.validate();
       dummy_mesh.create(1).parts[0].material(&dummy_mtrl).base.create(Ball(0.5f), VTX_NRM, 3); dummy_mesh.setRender().setBox(); // keep base to speed up Cursor ray test

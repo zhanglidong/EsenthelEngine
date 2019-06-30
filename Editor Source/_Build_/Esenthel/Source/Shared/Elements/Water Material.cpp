@@ -3,7 +3,7 @@
 /******************************************************************************/
 
 /******************************************************************************/
-   EditWaterMtrl::EditWaterMtrl() : density(0.3f), density_add(0.45f), density_underwater(0.02f), density_underwater_add(0.6f), scale_color(200), scale_normal(10), scale_bump(100), reflect_world(0.18f), refract(0.10f), refract_reflection(0.06f), refract_underwater(0.01f), wave_scale(0.25f), fresnel_pow(5.5f), fresnel_rough(4), fresnel_color(0.10f, 0.10f, 0.10f), color_underwater0(0.26f, 0.35f, 0.42f), color_underwater1(0.10f, 0.20f, 0.30f) {::EditMaterial::color.set(0.42f, 0.50f, 0.58f, 1); ::EditMaterial::rough=1; ::EditMaterial::specular=1.5f; ::EditMaterial::reflection=0.1f;}
+   EditWaterMtrl::EditWaterMtrl() : density(0.3f), density_add(0.45f), density_underwater(0.02f), density_underwater_add(0.6f), scale_color(200), scale_normal(10), scale_bump(100), reflect_world(0.18f), refract(0.10f), refract_reflection(0.06f), refract_underwater(0.01f), wave_scale(0.25f), fresnel_pow(5.5f), fresnel_rough(4), fresnel_color(0.10f, 0.10f, 0.10f), color_underwater0(0.26f, 0.35f, 0.42f), color_underwater1(0.10f, 0.20f, 0.30f) {::EditMaterial::color_s.set(0.42f, 0.50f, 0.58f, 1); ::EditMaterial::rough=1; ::EditMaterial::specular=1.5f; ::EditMaterial::reflection=0.1f;}
    bool EditWaterMtrl::usesTexBump()C {return wave_scale>EPSL && hasBumpMap();}
    bool EditWaterMtrl::equal(C EditWaterMtrl &src)C
    {
@@ -46,7 +46,7 @@
       fresnel_pow           =src.fresnel_pow; fresnel_pow_time=time;
       fresnel_rough         =src.fresnel_rough; fresnel_rough_time=time;
       fresnel_color         =src.fresnel_color; fresnel_color_time=time;
-::EditMaterial::color                 =Vec4(src.color, 1); color_time=time;
+::EditMaterial::color_s               =Vec4(src.color, 1); color_time=time;
       color_underwater0     =src.color_underwater0; color_underwater_time=time;
       color_underwater1     =src.color_underwater1;
           base_0_tex=src.     colorMap().id();
@@ -73,7 +73,7 @@
       dest.fresnel_pow           =fresnel_pow           ;
       dest.fresnel_rough         =fresnel_rough         ;
       dest.fresnel_color         =fresnel_color         ;
-      dest.color                 =::EditMaterial::color.xyz       ;
+      dest.color                 =::EditMaterial::color_s.xyz     ;
       dest.color_underwater0     =color_underwater0     ;
       dest.color_underwater1     =color_underwater1     ;
       dest.     colorMap(proj.texPath(    base_0_tex))

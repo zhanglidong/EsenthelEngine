@@ -91,8 +91,8 @@ WaterMtrlRegion WaterMtrlEdit;
    void WaterMtrlRegion::FresnelRough(  WaterMtrlRegion &mr, C Str &t) {mr.edit.fresnel_rough=TextFlt(t); mr.edit.fresnel_rough_time.getUTC();}
    Str  WaterMtrlRegion::FresnelColor(C WaterMtrlRegion &mr          ) {return mr.edit.fresnel_color;}
    void WaterMtrlRegion::FresnelColor(  WaterMtrlRegion &mr, C Str &t) {mr.edit.fresnel_color=TextVec(t); mr.edit.fresnel_color_time.getUTC();}
-   Str  WaterMtrlRegion::Col(C WaterMtrlRegion &mr          ) {return mr.edit.color;}
-   void WaterMtrlRegion::Col(  WaterMtrlRegion &mr, C Str &t) {mr.edit.color.xyz=TextVec(t); mr.edit.color_time.getUTC();}
+   Str  WaterMtrlRegion::Col(C WaterMtrlRegion &mr          ) {return mr.edit.color_s;}
+   void WaterMtrlRegion::Col(  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_s.xyz=TextVec(t); mr.edit.color_time.getUTC();}
    Str  WaterMtrlRegion::ColorUnderwater0(C WaterMtrlRegion &mr          ) {return mr.edit.color_underwater0;}
    void WaterMtrlRegion::ColorUnderwater0(  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_underwater0=TextVec(t); mr.edit.color_underwater_time.getUTC();}
    Str  WaterMtrlRegion::ColorUnderwater1(C WaterMtrlRegion &mr          ) {return mr.edit.color_underwater1;}

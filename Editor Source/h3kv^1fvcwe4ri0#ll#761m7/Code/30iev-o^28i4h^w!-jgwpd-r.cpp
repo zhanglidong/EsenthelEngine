@@ -979,7 +979,7 @@ void Highlight(C Rect &rect, flt alpha, C Color &color=Color(255, 64, 64, 0), fl
 /******************************************************************************/
 Color MaterialColor(C MaterialPtr &mtrl)
 {
-   return mtrl ? (Color)mtrl->color.xyz : WHITE;
+   return mtrl ? (Color)mtrl->colorS().xyz : WHITE;
 }
 ImagePtr MaterialImage(C MaterialPtr &mtrl)
 {

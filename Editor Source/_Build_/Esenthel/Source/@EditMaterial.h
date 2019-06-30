@@ -6,7 +6,7 @@ class EditMaterial
    sbyte              tex_quality;
    byte               downsize_tex_mobile;
    MATERIAL_TECHNIQUE tech;
-   Vec4               color;
+   Vec4               color_s;
    Vec                ambient;
    flt                specular, sss, glow, rough, bump,
                       tex_scale, det_scale, det_power, reflection;

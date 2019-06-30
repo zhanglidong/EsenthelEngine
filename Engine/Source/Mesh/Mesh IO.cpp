@@ -34,7 +34,7 @@ void XMaterial::createFrom(C Material &src)
 {
    cull          =src.cull;
    technique     =src.technique;
-   color         =src.color;
+   color         =src.colorS();
    ambient       =src.ambient;
    specular      =src.specular;
    sss           =src.sss;
@@ -55,7 +55,7 @@ void XMaterial::copyParamsTo(Material &mtrl)C
 {
    mtrl.cull     =cull;
    mtrl.technique=technique;
-   mtrl.color    =color;
+   mtrl.colorS   (color);
    mtrl.ambient  =ambient;
    mtrl.specular =specular.max();
    mtrl.sss      =sss;

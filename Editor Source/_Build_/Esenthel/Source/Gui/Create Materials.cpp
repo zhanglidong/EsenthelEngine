@@ -102,7 +102,7 @@ void DrawCreateMaterials()
          if(bt&BT_ALPHA) // if we ended up having an alpha texture, then set alpha-test params
          {
             edit.tech=MTECH_ALPHA_TEST;
-            edit.color.w=0.5f;
+            edit.color_s.w=0.5f;
          }
 
          // save texture

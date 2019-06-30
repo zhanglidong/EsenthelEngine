@@ -40,7 +40,7 @@ static void ShutMshr()
    MshrBall.del();
 }
 /******************************************************************************/
-RendererClass::RendererClass() : ambient_color(null), highlight(null), material_color(null)
+RendererClass::RendererClass() : ambient_color_l(null), highlight(null), material_color_l(null)
 {
    stage           =RS_DEFAULT;
   _solid_mode_index=RM_SIMPLE;
@@ -1169,7 +1169,7 @@ void RendererClass::solid()
          {
            _first_pass=false;
             Bool clip=D._clip, clip_allow=D._clip_allow; T._clip=(clip ? D._clip_rect : D.rect()); // remember clipping because 'drawForward' may change it
-            ambient_color->set(VecZero); Sh.h_AmbientMaterial->set(0); // disable ambient lighting
+            ambient_color_l->set(VecZero); Sh.h_AmbientMaterial->set(0); // disable ambient lighting
             D.depthFunc(FUNC_LESS_EQUAL); // need to make sure we can apply lights on existing depth
             REPA(Lights)if(i!=start_light)Lights[i].drawForward(_col(), ALPHA_ADD_KEEP); // draw 0-th at the end to setup shadow maps (needed for BLEND_LIGHT), keep alpha which is glow
             D.clip(clip ? &T._clip : null); D.clipAllow(clip_allow);
@@ -1177,7 +1177,7 @@ void RendererClass::solid()
            _first_pass=true;
 
             // restore settings
-            ambient_color->set(D.ambientColorL()); Sh.h_AmbientMaterial->set(1); // restore ambient lighting
+            ambient_color_l->set(D.ambientColorL()); Sh.h_AmbientMaterial->set(1); // restore ambient lighting
             Frustum.set();                                                       // restore frustum after it being potentially changed when drawing shadow maps or setting frustum for visible objects for lights
          }
 

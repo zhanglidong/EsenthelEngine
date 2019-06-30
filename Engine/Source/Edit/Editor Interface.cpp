@@ -194,7 +194,7 @@ Material& Material::reset()
    flip_normal_y=false;
    tex_quality=0;
    downsize_tex_mobile=0;
-   color=1;
+   color_s=1;
    ambient=0;
    specular=0;
    glow=0;
@@ -216,7 +216,7 @@ Material& Material::reset()
 void Material::save(File &f)C
 {
    f.cmpUIntV(0);
-   f<<technique<<cull<<flip_normal_y<<tex_quality<<downsize_tex_mobile<<color<<ambient<<specular<<glow<<roughness<<bump<<reflection
+   f<<technique<<cull<<flip_normal_y<<tex_quality<<downsize_tex_mobile<<color_s<<ambient<<specular<<glow<<roughness<<bump<<reflection
     <<Encode(color_map)<<Encode(alpha_map)
     <<Encode( bump_map)<<Encode(normal_map)
     <<Encode(specular_map)
@@ -234,7 +234,7 @@ Bool Material::load(File &f)
    {
       case 0:
       {
-         f>>technique>>cull>>flip_normal_y>>tex_quality>>downsize_tex_mobile>>color>>ambient>>specular>>glow>>roughness>>bump>>reflection;
+         f>>technique>>cull>>flip_normal_y>>tex_quality>>downsize_tex_mobile>>color_s>>ambient>>specular>>glow>>roughness>>bump>>reflection;
          Decode(f, color_map); Decode(f, alpha_map);
          Decode(f,  bump_map); Decode(f, normal_map);
          Decode(f, specular_map);

@@ -337,7 +337,7 @@ public:
    void removeMeshVtx(C MemPtr<UID> &elm_ids, uint flag);
    bool forceImageSize(Str &file, C VecI2 &size, bool relative, TimeStamp &file_time, C TimeStamp &time);
    void imageMipMap(C MemPtr<UID> &elm_ids, bool on);
-   void mtrlRGB(C MemPtr<UID> &elm_ids, C Vec &rgb, bool mul=false);
+   void mtrlRGB(C MemPtr<UID> &elm_ids, C Vec &srgb, bool mul=false);
    void mtrlAlpha(C MemPtr<UID> &elm_ids);
    void mtrlCull(C MemPtr<UID> &elm_ids, bool on);
    void mtrlFlipNrmY(C MemPtr<UID> &elm_ids, bool on);

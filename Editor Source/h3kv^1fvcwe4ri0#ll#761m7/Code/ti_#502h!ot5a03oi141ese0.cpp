@@ -17,7 +17,7 @@ class MergeSimilarMaterials : PropWin
       UID  elm_id, base_0_tex, base_1_tex, detail_tex, macro_tex, reflect_tex, light_tex;
       bool cull;
       MATERIAL_TECHNIQUE tech;
-      Vec4 col;
+      Vec4 col_s;
       flt  bump, spec, glow, reflect, uv_scale;
 
       bool similar(C Mtrl &m)C
@@ -32,7 +32,7 @@ class MergeSimilarMaterials : PropWin
          if(MSM.       light_tex   &&   light_tex!=m.  light_tex)return false;
          if(MSM.            cull   &&        cull!=m.       cull)return false;
          if(MSM.            tech   &&        tech!=m.       tech)return false;
-         if(MSM.  color_value_on() && Abs(col     -m.col     ).max()>MSM.  color_value)return false;
+         if(MSM.  color_value_on() && Abs(col_s   -m.col_s   ).max()>MSM.  color_value)return false;
          if(MSM.   bump_value_on() && Abs(bump    -m.bump    )      >MSM.   bump_value)return false;
          if(MSM.   spec_value_on() && Abs(spec    -m.spec    )      >MSM.   spec_value)return false;
          if(MSM.   glow_value_on() && Abs(glow    -m.glow    )      >MSM.   glow_value)return false;
@@ -53,7 +53,7 @@ class MergeSimilarMaterials : PropWin
           light_tex=m.light_tex;
          cull=m.cull;
          tech=m.tech;
-         col=m.color;
+         col_s=m.color_s;
          bump=m.bump;
          spec=m.specular;
          glow=m.glow;

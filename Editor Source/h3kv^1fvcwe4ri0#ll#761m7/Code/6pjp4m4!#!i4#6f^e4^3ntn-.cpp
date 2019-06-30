@@ -62,7 +62,7 @@ class CreateMaterials : PropWin
          if(bt&BT_ALPHA) // if we ended up having an alpha texture, then set alpha-test params
          {
             edit.tech=MTECH_ALPHA_TEST;
-            edit.color.w=0.5;
+            edit.color_s.w=0.5;
          }
 
          // save texture

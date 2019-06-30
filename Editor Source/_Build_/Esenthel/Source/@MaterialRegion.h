@@ -272,11 +272,11 @@ public:
 
    bool bigVisible()C;
 
-   void   setRGB         (C Vec            &rgb);
+   void   setRGB         (C Vec           &srgb);
    void resetAlpha       (                     );
    void cull             (bool              on );
    void flipNrmY         (bool              on ); // 'rebuildBase' already calls 'setChanged' and 'toGui'
- //void maxTexSize       (Edit.MAX_TEX_SIZE mts) {if(edit.max_tex_size       !=mts){undos.set("mts"  ); edit.max_tex_size       =mts; edit.       max_tex_size_time.getUTC(); setChanged(); toGui();}}
+ //void maxTexSize       (Edit.MAX_TEX_SIZE mts) {if(edit.max_tex_size       !=mts ){undos.set("mts"  ); edit.max_tex_size       =mts ; edit.       max_tex_size_time.getUTC(); setChanged(); toGui();}}
    void downsizeTexMobile(byte              ds );
    void texQuality       (int               q  );
 

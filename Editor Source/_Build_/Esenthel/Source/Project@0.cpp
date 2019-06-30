@@ -399,7 +399,7 @@ void DrawProject()
    void ProjectEx::MtrlRGB1(ProjectEx &proj) {proj.mtrlRGB            (proj.menu_list_sel, 1);}
    void ProjectEx::MtrlRGB(ProjectEx &proj) {SetMtrlColor.display    (proj.menu_list_sel);}
    void ProjectEx::MtrlMulRGB(ProjectEx &proj) {SetMtrlColor.display    (proj.menu_list_sel, true);}
-   void ProjectEx::MtrlRGBCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlRGB            (proj.menu_list_sel, MtrlEdit.edit.color.xyz);else Gui.msgBox(S, "There's no Material opened");}
+   void ProjectEx::MtrlRGBCur(ProjectEx &proj) {if(MtrlEdit.elm)proj.mtrlRGB            (proj.menu_list_sel, MtrlEdit.edit.color_s.xyz);else Gui.msgBox(S, "There's no Material opened");}
    void ProjectEx::MtrlAlpha(ProjectEx &proj) {proj.mtrlAlpha          (proj.menu_list_sel);}
    void ProjectEx::MtrlCullOn(ProjectEx &proj) {proj.mtrlCull           (proj.menu_list_sel, true );}
    void ProjectEx::MtrlCullOff(ProjectEx &proj) {proj.mtrlCull           (proj.menu_list_sel, false);}
@@ -1370,18 +1370,18 @@ void DrawProject()
          Server.setElmShort(image->id);
       }
    }
-   void ProjectEx::mtrlRGB(C MemPtr<UID> &elm_ids, C Vec &rgb, bool mul)
+   void ProjectEx::mtrlRGB(C MemPtr<UID> &elm_ids, C Vec &srgb, bool mul)
    {
-      if(!mul || rgb!=1)
+      if(!mul || srgb!=1)
       REPA(elm_ids)
       if(Elm *mtrl=findElm(elm_ids[i], ELM_MTRL))
       if(ElmMaterial *mtrl_data=mtrl->mtrlData())
-      if(MtrlEdit.elm==mtrl)MtrlEdit.setRGB(mul ? MtrlEdit.edit.color.xyz*rgb : rgb);else
+      if(MtrlEdit.elm==mtrl)MtrlEdit.setRGB(mul ? MtrlEdit.edit.color_s.xyz*srgb : srgb);else
       {
-         EditMaterial edit; if(edit.load(editPath(mtrl->id)))if(mul || edit.color.xyz!=rgb)
+         EditMaterial edit; if(edit.load(editPath(mtrl->id)))if(mul || edit.color_s.xyz!=srgb)
          {
             mtrl_data->newVer();
-            if(mul)edit.color.xyz*=rgb;else edit.color.xyz=rgb; edit.color_time.now();
+            if(mul)edit.color_s.xyz*=srgb;else edit.color_s.xyz=srgb; edit.color_time.now();
             Save(edit, editPath(mtrl->id));
             makeGameVer(*mtrl);
             Server.setElmLong(mtrl->id);
@@ -1506,14 +1506,14 @@ void DrawProject()
       {
          EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
          {
-            if(!Equal(edit.color.xyz, Vec(1)) && edit.color_map.is())
+            if(!Equal(edit.color_s.xyz, Vec(1)) && edit.color_map.is())
             {
                Mems<Edit::FileParams> fps=Edit::FileParams::Decode(edit.color_map);
-               Vec mul=edit.color.xyz; if(C TextParam *p=FindTransform(fps, "mulRGB"))mul*=TextVecEx(p->value);
+               Vec mul=edit.color_s.xyz; if(C TextParam *p=FindTransform(fps, "mulRGB"))mul*=TextVecEx(p->value);
                if(Equal(mul, Vec(1)))DelTransform(fps, "mulRGB");
                else                  SetTransform(fps, "mulRGB", TextVecEx(mul));
                edit.color_map=Edit::FileParams::Encode(fps); edit.color_map_time.now();
-               edit.color.xyz=1; edit.color_time.now();
+               edit.color_s.xyz=1; edit.color_time.now();
                mtrlSync(elm_ids[i], edit, true, false, "mulTexCol");
             }
          }

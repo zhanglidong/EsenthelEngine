@@ -44,9 +44,9 @@
       {
          case MTECH_ALPHA_TEST:
          case MTECH_GRASS     :
-         case MTECH_LEAF      : color.w=0.5f; break;
+         case MTECH_LEAF      : color_s.w=0.5f; break;
 
-         default: color.w=1; break;
+         default: color_s.w=1; break;
       }
       color_time.getUTC();
    }
@@ -89,7 +89,7 @@
    {
       cull=src.cull; cull_time=time;
       tech=src.technique; tech_time=time;
-      color=src.color; color_time=time;
+      color_s=src.colorS(); color_time=time;
       ambient=src.ambient; ambient_time=time;
       specular=src.specular; spec_time=time;
       sss=src.sss; sss_time=time;
@@ -111,7 +111,7 @@
    {
       dest.cull=cull;
       dest.technique=tech;
-      dest.color=color;
+      dest.colorS(color_s);
       dest.ambient=ambient;
       dest.specular=specular;
       dest.sss=sss;
@@ -137,7 +137,7 @@
       dest.cull=cull;
       dest.flip_normal_y=flip_normal_y;
       dest.tex_quality=tex_quality;
-      dest.color=color;
+      dest.color_s=color_s;
       dest.ambient=ambient;
       dest.specular=specular;
       dest.glow=glow;
@@ -168,7 +168,7 @@
       changed|=CHANGED_PARAM*SyncByValue(        tex_quality_time, time, tex_quality        , src.tex_quality        );
       changed|=CHANGED_PARAM*SyncByValue(downsize_tex_mobile_time, time, downsize_tex_mobile, src.downsize_tex_mobile);
 
-      changed|=CHANGED_PARAM*SyncByValueEqual(     color_time, time,      color, src.     color);
+      changed|=CHANGED_PARAM*SyncByValueEqual(     color_time, time,    color_s, src.   color_s);
       changed|=CHANGED_PARAM*SyncByValueEqual(   ambient_time, time,    ambient, src.   ambient);
       changed|=CHANGED_PARAM*SyncByValueEqual(      spec_time, time,   specular, src.  specular);
       changed|=CHANGED_PARAM*SyncByValueEqual(      glow_time, time,       glow, src.      glow);
@@ -240,7 +240,7 @@
       changed|=Sync(        tex_quality_time, src.        tex_quality_time,         tex_quality, src.        tex_quality)*CHANGED_PARAM;
       changed|=Sync(downsize_tex_mobile_time, src.downsize_tex_mobile_time, downsize_tex_mobile, src.downsize_tex_mobile)*CHANGED_PARAM;
 
-      changed|=Sync(     color_time, src.     color_time, color     , src.color     )*CHANGED_PARAM;
+      changed|=Sync(     color_time, src.     color_time, color_s   , src.color_s   )*CHANGED_PARAM;
       changed|=Sync(   ambient_time, src.   ambient_time, ambient   , src.ambient   )*CHANGED_PARAM;
       changed|=Sync(      spec_time, src.      spec_time, specular  , src.specular  )*CHANGED_PARAM;
       changed|=Sync(       sss_time, src.       sss_time, sss       , src.sss       )*CHANGED_PARAM;
@@ -310,7 +310,7 @@
       changed|=Undo(        tex_quality_time, src.        tex_quality_time,         tex_quality, src.        tex_quality)*CHANGED_PARAM;
       changed|=Undo(downsize_tex_mobile_time, src.downsize_tex_mobile_time, downsize_tex_mobile, src.downsize_tex_mobile)*CHANGED_PARAM;
 
-      changed|=Undo(     color_time, src.     color_time, color     , src.color     )*CHANGED_PARAM;
+      changed|=Undo(     color_time, src.     color_time, color_s   , src.color_s   )*CHANGED_PARAM;
       changed|=Undo(   ambient_time, src.   ambient_time, ambient   , src.ambient   )*CHANGED_PARAM;
       changed|=Undo(      spec_time, src.      spec_time, specular  , src.specular  )*CHANGED_PARAM;
       changed|=Undo(       sss_time, src.       sss_time, sss       , src.sss       )*CHANGED_PARAM;
@@ -335,7 +335,7 @@
    {
       f.cmpUIntV(10);
       f<<flip_normal_y<<cull<<tex_quality<<tech<<downsize_tex_mobile;
-      f<<color<<ambient<<specular<<sss<<glow<<rough<<bump<<tex_scale<<det_scale<<det_power<<reflection;
+      f<<color_s<<ambient<<specular<<sss<<glow<<rough<<bump<<tex_scale<<det_scale<<det_power<<reflection;
       f<<base_0_tex<<base_1_tex<<detail_tex<<macro_tex<<reflection_tex<<light_tex;
 
       f<<color_map<<alpha_map<<bump_map<<normal_map<<specular_map<<glow_map
@@ -359,7 +359,7 @@
          case 10:
          {
             f>>flip_normal_y>>cull>>tex_quality>>tech>>downsize_tex_mobile;
-            f>>color>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
+            f>>color_s>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>reflection_tex>>light_tex;
 
             f>>color_map>>alpha_map>>bump_map>>normal_map>>specular_map>>glow_map
@@ -378,7 +378,7 @@
          case 9:
          {
             f>>flip_normal_y>>cull>>tex_quality>>tech>>downsize_tex_mobile;
-            f>>color>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
+            f>>color_s>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>reflection_tex>>light_tex;
 
             GetStr2(f, color_map); GetStr2(f, alpha_map); GetStr2(f, bump_map); GetStr2(f, normal_map); GetStr2(f, specular_map); GetStr2(f, glow_map);
@@ -397,7 +397,7 @@
          case 8:
          {
             f>>bump_from_color>>flip_normal_y>>cull>>tex_quality>>tech>>downsize_tex_mobile;
-            f>>color>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
+            f>>color_s>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>reflection_tex>>light_tex;
 
             GetStr2(f, color_map); GetStr2(f, alpha_map); GetStr2(f, bump_map); GetStr2(f, normal_map); GetStr2(f, specular_map); GetStr2(f, glow_map);
@@ -416,7 +416,7 @@
          case 7:
          {
             f>>bump_from_color>>flip_normal_y>>cull>>tex_quality>>tech>>downsize_tex_mobile>>mip_map_blur;
-            f>>color>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
+            f>>color_s>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>reflection_tex>>light_tex;
 
             GetStr2(f, color_map); GetStr2(f, alpha_map); GetStr2(f, bump_map); GetStr2(f, normal_map); GetStr2(f, specular_map); GetStr2(f, glow_map);
@@ -435,7 +435,7 @@
          case 6:
          {
             f>>bump_from_color>>flip_normal_y>>cull>>tech>>downsize_tex_mobile>>mip_map_blur;
-            f>>color>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
+            f>>color_s>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>reflection_tex>>light_tex;
 
             GetStr2(f, color_map); GetStr2(f, alpha_map); GetStr2(f, bump_map); GetStr2(f, normal_map); GetStr2(f, specular_map); GetStr2(f, glow_map);
@@ -454,7 +454,7 @@
          case 5:
          {
             byte max_tex_size; f>>bump_from_color>>flip_normal_y>>cull>>tech>>max_tex_size>>mip_map_blur; downsize_tex_mobile=(max_tex_size>=1 && max_tex_size<=10);
-            f>>color>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
+            f>>color_s>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>reflection_tex>>light_tex;
 
             GetStr2(f, color_map); GetStr2(f, alpha_map); GetStr2(f, bump_map); GetStr2(f, normal_map); GetStr2(f, specular_map); GetStr2(f, glow_map);
@@ -473,7 +473,7 @@
          case 4:
          {
             byte max_tex_size; f>>bump_from_color>>flip_normal_y>>cull>>tech>>max_tex_size>>mip_map_blur; downsize_tex_mobile=(max_tex_size>=1 && max_tex_size<=10);
-            f>>color>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
+            f>>color_s>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>reflection_tex>>light_tex;
             GetStr(f, color_map); GetStr(f, alpha_map); GetStr(f, bump_map); GetStr(f, normal_map); GetStr(f, specular_map); GetStr(f, glow_map);
             GetStr(f, detail_color); GetStr(f, detail_bump); GetStr(f, detail_normal);
@@ -491,7 +491,7 @@
          case 3:
          {
             f>>bump_from_color>>flip_normal_y>>cull>>tech>>mip_map_blur;
-            f>>color>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
+            f>>color_s>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>reflection_tex>>light_tex;
             GetStr(f, color_map); GetStr(f, alpha_map); GetStr(f, bump_map); GetStr(f, normal_map); GetStr(f, specular_map); GetStr(f, glow_map);
             GetStr(f, detail_color); GetStr(f, detail_bump); GetStr(f, detail_normal);
@@ -509,7 +509,7 @@
          case 2:
          {
             f>>bump_from_color>>flip_normal_y>>cull>>tech;
-            f>>color>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
+            f>>color_s>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>reflection_tex>>light_tex;
             GetStr(f, color_map); GetStr(f, alpha_map); GetStr(f, bump_map); GetStr(f, normal_map); GetStr(f, specular_map); GetStr(f, glow_map);
             GetStr(f, detail_color); GetStr(f, detail_bump); GetStr(f, detail_normal);
@@ -527,7 +527,7 @@
          case 1:
          {
             f>>bump_from_color>>flip_normal_y>>cull>>tech;
-            f>>color>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
+            f>>color_s>>ambient>>specular>>sss>>glow>>rough>>bump>>tex_scale>>det_scale>>det_power>>reflection;
             f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>reflection_tex;
             GetStr(f, color_map); GetStr(f, alpha_map); GetStr(f, bump_map); GetStr(f, normal_map); GetStr(f, specular_map); GetStr(f, glow_map);
             GetStr(f, detail_color); GetStr(f, detail_bump); GetStr(f, detail_normal);
@@ -559,6 +559,6 @@
       File f; if(f.readTry(name))return load(f);
       reset(); return false;
    }
-EditMaterial::EditMaterial() : flip_normal_y(false), cull(true), tex_quality(0), downsize_tex_mobile(0), tech(MTECH_DEFAULT), color(1, 1, 1, 1), ambient(0, 0, 0), specular(0), sss(0), glow(0), rough(0), bump(0), tex_scale(1), det_scale(4), det_power(0.3f), reflection(0.2f), base_0_tex(UIDZero), base_1_tex(UIDZero), detail_tex(UIDZero), macro_tex(UIDZero), reflection_tex(UIDZero), light_tex(UIDZero) {}
+EditMaterial::EditMaterial() : flip_normal_y(false), cull(true), tex_quality(0), downsize_tex_mobile(0), tech(MTECH_DEFAULT), color_s(1, 1, 1, 1), ambient(0, 0, 0), specular(0), sss(0), glow(0), rough(0), bump(0), tex_scale(1), det_scale(4), det_power(0.3f), reflection(0.2f), base_0_tex(UIDZero), base_1_tex(UIDZero), detail_tex(UIDZero), macro_tex(UIDZero), reflection_tex(UIDZero), light_tex(UIDZero) {}
 
 /******************************************************************************/
