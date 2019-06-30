@@ -111,12 +111,12 @@ static IMAGE_TYPE OldImageType0(Byte type)
       case 13: return IMAGE_BC2_SRGB;
       case 14: return IMAGE_BC3_SRGB;
 
-      case 15: return IMAGE_I8   ;
-      case 16: return IMAGE_I16  ;
-      case 17: return IMAGE_I24  ;
-      case 18: return IMAGE_I32  ;
-      case 19: return IMAGE_F16  ;
-      case 20: return IMAGE_F32  ;
+      case 15: return IMAGE_I8;
+      case 16: return IMAGE_I16;
+      case 17: return IMAGE_I24;
+      case 18: return IMAGE_I32;
+      case 19: return IMAGE_F16;
+      case 20: return IMAGE_F32;
       case 21: return IMAGE_F16_2;
       case 22: return IMAGE_F32_2;
       case 23: return IMAGE_F16_3;
