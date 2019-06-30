@@ -125,7 +125,7 @@ Property &nos =add("No Scale"       , MemberDesc(MEMBER(Params, no_scale       )
       T+=undo  .create(Rect_LU(0.02f, -0.01f     , 0.05f, 0.05f)).func(Undo, T).focusable(false).desc("Undo"); undo.image="Gui/Misc/undo.img";
       T+=redo  .create(Rect_LU(undo.rect().ru(), 0.05f, 0.05f)).func(Redo, T).focusable(false).desc("Redo"); redo.image="Gui/Misc/redo.img";
       T+=locate.create(Rect_LU(redo.rect().ru()+Vec2(0.01f, 0), 0.14f, 0.05f), "Locate").func(Locate, T).focusable(false).desc("Locate this element in the Project");
-      clientRect(Rect_C(0, 0, 2, 1.156f));
+      clientRect(Rect_C(0, 0, 2, 1.113f));
       T+=viewport.create(Rect_LU(0.6f, -0.04f, 1.37f, 0.9f), Preview, this);
    }
    void FontEditor::toGui() {::PropWin::toGui(); refresh();}

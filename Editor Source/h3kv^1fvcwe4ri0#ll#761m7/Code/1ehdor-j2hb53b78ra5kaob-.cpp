@@ -148,7 +148,7 @@ Property &nos =add("No Scale"       , MemberDesc(MEMBER(Params, no_scale       )
       T+=undo  .create(Rect_LU(0.02, -0.01     , 0.05, 0.05)).func(Undo, T).focusable(false).desc("Undo"); undo.image="Gui/Misc/undo.img";
       T+=redo  .create(Rect_LU(undo.rect().ru(), 0.05, 0.05)).func(Redo, T).focusable(false).desc("Redo"); redo.image="Gui/Misc/redo.img";
       T+=locate.create(Rect_LU(redo.rect().ru()+Vec2(0.01, 0), 0.14, 0.05), "Locate").func(Locate, T).focusable(false).desc("Locate this element in the Project");
-      clientRect(Rect_C(0, 0, 2, 1.156));
+      clientRect(Rect_C(0, 0, 2, 1.113));
       T+=viewport.create(Rect_LU(0.6, -0.04, 1.37, 0.9), Preview, this);
    }
    void toGui() {super.toGui(); refresh();}
