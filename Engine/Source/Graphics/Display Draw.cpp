@@ -66,15 +66,6 @@ void DisplayDraw::lines(C Color &color, C Vec2 *point, Int points)
    }
 }
 /******************************************************************************/
-void DisplayDraw::drawShadowBorders(Byte alpha, C Rect &rect, Flt shadow_radius)
-{
-   if(Gui.image_shadow)Gui.image_shadow->draw3x3Borders(Color(0, 0, 0, alpha), TRANSPARENT, Rect(rect.min.x-shadow_radius, rect.min.y-shadow_radius, rect.max.x+shadow_radius, rect.max.y+shadow_radius), shadow_radius, 0.33f);
-}
-void DisplayDraw::drawShadow(Byte alpha, C Rect &rect, Flt shadow_radius)
-{
-   if(Gui.image_shadow)Gui.image_shadow->draw3x3(Color(0, 0, 0, alpha), TRANSPARENT, Rect(rect.min.x-shadow_radius, rect.min.y-shadow_radius, rect.max.x+shadow_radius, rect.max.y+shadow_radius), shadow_radius, 0.33f);
-}
-/******************************************************************************/
 void Image::draw(C Rect &rect)C
 {
    VI.image  (this);
@@ -669,60 +660,6 @@ void Image::drawBorder(C Color &color, C Color &color_add, C Rect &rect, Flt b, 
    VI.clear();
 }
 /******************************************************************************/
-void Image::draw3x3Borders(C Color &color, C Color &color_add, C Rect &rect, Flt border_size, Flt tex_frac)C
-{
-   VI.color  (color    );
-   VI.color2 (color_add);
-   VI.image  (this     );
-   VI.setType(VI_2D_TEX, VI_SP_COL);
-   if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(16))
-   {
-      Flt w=rect.w(), W=((w>=0) ? Min(w/2, border_size) : Max(w/2, -border_size)),
-          h=rect.h(), H=((h>=0) ? Min(h/2, border_size) : Max(h/2, -border_size)),
-          x0=rect.min.x, x3=rect.max.x, x1=x0+W, x2=x3-W,
-          y0=rect.max.y, y3=rect.min.y, y1=y0-H, y2=y3+H,
-          tex_frac1=1-tex_frac;
-
-      v[ 0].pos.set(x0, y0);
-      v[ 1].pos.set(x1, y0);
-      v[ 2].pos.set(x2, y0);
-      v[ 3].pos.set(x3, y0);
-      v[ 4].pos.set(x0, y1);
-      v[ 5].pos.set(x1, y1);
-      v[ 6].pos.set(x2, y1);
-      v[ 7].pos.set(x3, y1);
-      v[ 8].pos.set(x0, y2);
-      v[ 9].pos.set(x1, y2);
-      v[10].pos.set(x2, y2);
-      v[11].pos.set(x3, y2);
-      v[12].pos.set(x0, y3);
-      v[13].pos.set(x1, y3);
-      v[14].pos.set(x2, y3);
-      v[15].pos.set(x3, y3);
-
-      v[ 0].tex.set(        0,         0);
-      v[ 1].tex.set(tex_frac ,         0);
-      v[ 2].tex.set(tex_frac1,         0);
-      v[ 3].tex.set(        1,         0);
-      v[ 4].tex.set(        0, tex_frac );
-      v[ 5].tex.set(tex_frac , tex_frac );
-      v[ 6].tex.set(tex_frac1, tex_frac );
-      v[ 7].tex.set(        1, tex_frac );
-      v[ 8].tex.set(        0, tex_frac1);
-      v[ 9].tex.set(tex_frac , tex_frac1);
-      v[10].tex.set(tex_frac1, tex_frac1);
-      v[11].tex.set(        1, tex_frac1);
-      v[12].tex.set(        0,         1);
-      v[13].tex.set(tex_frac ,         1);
-      v[14].tex.set(tex_frac1,         1);
-      v[15].tex.set(        1,         1);
-
-      if(partial())REP(16)v[i].tex*=_part.xy;
-
-      VI.flushIndexed(IndBufPanel, (3*3-1)*2*3);
-   }
-   VI.clear();
-}
 void Image::draw3x3(C Color &color, C Color &color_add, C Rect &rect, Flt border_size, Flt tex_frac)C
 {
    VI.color  (color    );
@@ -830,6 +767,119 @@ void Image::draw3x3Vertical(C Color &color, C Color &color_add, C Rect &rect, Fl
       VI.flushIndexed(IndBufPanel, 3*3*2*3);
    }
    VI.clear();
+}
+/******************************************************************************/
+void DisplayDraw::drawShadow(Byte alpha, C Rect &rect, Flt shadow_radius)
+{
+   if(Gui.image_shadow)
+   {
+      Flt tex_frac=1.0f/3;
+      Sh.h_Color[0]->set(Vec4(0, 0, 0, 1-ByteSRGBToDisplay(255-alpha)));
+      Sh.h_Color[1]->set(Vec4Zero);
+      VI.image  (Gui.image_shadow());
+      VI.setType(VI_2D_TEX, VI_SP_COL);
+      if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(16))
+      {
+         Flt x1=rect.min.x, x0=x1-shadow_radius, x2=rect.max.x, x3=x2+shadow_radius,
+             y1=rect.max.y, y0=y1+shadow_radius, y2=rect.min.y, y3=y2-shadow_radius,
+             tex_frac1=1-tex_frac;
+
+         v[ 0].pos.set(x0, y0);
+         v[ 1].pos.set(x1, y0);
+         v[ 2].pos.set(x2, y0);
+         v[ 3].pos.set(x3, y0);
+         v[ 4].pos.set(x0, y1);
+         v[ 5].pos.set(x1, y1);
+         v[ 6].pos.set(x2, y1);
+         v[ 7].pos.set(x3, y1);
+         v[ 8].pos.set(x0, y2);
+         v[ 9].pos.set(x1, y2);
+         v[10].pos.set(x2, y2);
+         v[11].pos.set(x3, y2);
+         v[12].pos.set(x0, y3);
+         v[13].pos.set(x1, y3);
+         v[14].pos.set(x2, y3);
+         v[15].pos.set(x3, y3);
+
+         v[ 0].tex.set(        0,         0);
+         v[ 1].tex.set(tex_frac ,         0);
+         v[ 2].tex.set(tex_frac1,         0);
+         v[ 3].tex.set(        1,         0);
+         v[ 4].tex.set(        0, tex_frac );
+         v[ 5].tex.set(tex_frac , tex_frac );
+         v[ 6].tex.set(tex_frac1, tex_frac );
+         v[ 7].tex.set(        1, tex_frac );
+         v[ 8].tex.set(        0, tex_frac1);
+         v[ 9].tex.set(tex_frac , tex_frac1);
+         v[10].tex.set(tex_frac1, tex_frac1);
+         v[11].tex.set(        1, tex_frac1);
+         v[12].tex.set(        0,         1);
+         v[13].tex.set(tex_frac ,         1);
+         v[14].tex.set(tex_frac1,         1);
+         v[15].tex.set(        1,         1);
+
+         if(Gui.image_shadow->partial())REP(16)v[i].tex*=Gui.image_shadow->_part.xy;
+
+         VI.flushIndexed(IndBufPanel, 3*3*2*3);
+      }
+      VI.clear();
+   }
+}
+void DisplayDraw::drawShadowBorders(Byte alpha, C Rect &rect, Flt shadow_radius)
+{
+   if(Gui.image_shadow)
+   {
+      Flt tex_frac=1.0f/3;
+      Sh.h_Color[0]->set(Vec4(0, 0, 0, 1-ByteSRGBToDisplay(255-alpha)));
+      Sh.h_Color[1]->set(Vec4Zero);
+      VI.image  (Gui.image_shadow());
+      VI.setType(VI_2D_TEX, VI_SP_COL);
+      if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(16))
+      {
+         Flt x1=rect.min.x, x0=x1-shadow_radius, x2=rect.max.x, x3=x2+shadow_radius,
+             y1=rect.max.y, y0=y1+shadow_radius, y2=rect.min.y, y3=y2-shadow_radius,
+             tex_frac1=1-tex_frac;
+
+         v[ 0].pos.set(x0, y0);
+         v[ 1].pos.set(x1, y0);
+         v[ 2].pos.set(x2, y0);
+         v[ 3].pos.set(x3, y0);
+         v[ 4].pos.set(x0, y1);
+         v[ 5].pos.set(x1, y1);
+         v[ 6].pos.set(x2, y1);
+         v[ 7].pos.set(x3, y1);
+         v[ 8].pos.set(x0, y2);
+         v[ 9].pos.set(x1, y2);
+         v[10].pos.set(x2, y2);
+         v[11].pos.set(x3, y2);
+         v[12].pos.set(x0, y3);
+         v[13].pos.set(x1, y3);
+         v[14].pos.set(x2, y3);
+         v[15].pos.set(x3, y3);
+
+         v[ 0].tex.set(        0,         0);
+         v[ 1].tex.set(tex_frac ,         0);
+         v[ 2].tex.set(tex_frac1,         0);
+         v[ 3].tex.set(        1,         0);
+         v[ 4].tex.set(        0, tex_frac );
+         v[ 5].tex.set(tex_frac , tex_frac );
+         v[ 6].tex.set(tex_frac1, tex_frac );
+         v[ 7].tex.set(        1, tex_frac );
+         v[ 8].tex.set(        0, tex_frac1);
+         v[ 9].tex.set(tex_frac , tex_frac1);
+         v[10].tex.set(tex_frac1, tex_frac1);
+         v[11].tex.set(        1, tex_frac1);
+         v[12].tex.set(        0,         1);
+         v[13].tex.set(tex_frac ,         1);
+         v[14].tex.set(tex_frac1,         1);
+         v[15].tex.set(        1,         1);
+
+         if(Gui.image_shadow->partial())REP(16)v[i].tex*=Gui.image_shadow->_part.xy;
+
+         VI.flushIndexed(IndBufPanel, (3*3-1)*2*3);
+      }
+      VI.clear();
+   }
 }
 /******************************************************************************/
 void Image::drawCubeFace(C Color &color, C Color &color_add, C Rect &rect, DIR_ENUM face)C
