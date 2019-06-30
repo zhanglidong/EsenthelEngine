@@ -184,7 +184,7 @@ class ImageConvert
                   MIN(size.z, max_size);
                }
                int mip_maps=T.mip_maps, mode=T.mode;
-               if(ignore_alpha && NeedFixAlpha(*s, IMAGE_TYPE(type))) // if we won't need alpha
+               if(ignore_alpha && NeedFullAlpha(*s, IMAGE_TYPE(type))) // if we won't need alpha
                {
                   if(mip_maps<0)mip_maps=((s.mipMaps()==1) ? 1 : 0); // source will have now only one mip-map   so we can't use "-1", auto-detect instead
                   if(mode    <0)mode    =s.mode();                   // source will now be as IMAGE_SOFT        so we can't use "-1", auto-detect instead

@@ -11,8 +11,8 @@ class ImportTerrainClass : ClosableWindow
       static void Load(C Str &name, GuiImage2 &img) {img.load(name);}
              void load(C Str &name)
       {
-         image_sw.ImportTry(name, mono ? IMAGE_F32 : IMAGE_R8G8B8A8, IMAGE_SOFT, 1); // FIXME sRGB?
-         image_sw.copyTry(image_hw, 128, 128, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_2D, 1);
+         image_sw.ImportTry(name, mono ? IMAGE_F32 : IMAGE_R8G8B8A8, IMAGE_SOFT, 1);
+         image_sw.copyTry(image_hw, 128, 128, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_2D, 1, FILTER_LINEAR, IC_CLAMP|IC_IGNORE_GAMMA); // we need sRGB preview, so ignore gamma always
       }
 
       GuiImage2& create(C Rect &rect, bool mono=false)

@@ -79,10 +79,10 @@ ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have the sa
    {"R8"           , false,  1,  8,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_R8_UNORM           , GL_R8   )},
 
    {"A8"           , false,  1,  8,   0, 0, 0, 8,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_A8_UNORM, GL_SWIZZLE ? GL_R8  : GL_ALPHA8           )},
-   {"L8"           , false,  1,  8,   0, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN , GL_SWIZZLE ? GL_R8  : GL_LUMINANCE8       )},
-   {"L8_SRGB"      , false,  1,  8,   0, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN , 0)},
-   {"L8A8"         , false,  2, 16,   0, 0, 0, 8,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN , GL_SWIZZLE ? GL_RG8 : GL_LUMINANCE8_ALPHA8)},
-   {"L8A8_SRGB"    , false,  2, 16,   0, 0, 0, 8,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN , 0)},
+   {"L8"           , false,  1,  8,   8, 8, 8, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN , GL_SWIZZLE ? GL_R8  : GL_LUMINANCE8       )},
+   {"L8_SRGB"      , false,  1,  8,   8, 8, 8, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN , 0)},
+   {"L8A8"         , false,  2, 16,   8, 8, 8, 8,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN , GL_SWIZZLE ? GL_RG8 : GL_LUMINANCE8_ALPHA8)},
+   {"L8A8_SRGB"    , false,  2, 16,   8, 8, 8, 8,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN , 0)},
 
    {"R10G10B10A2"  , false,  4, 32,  10,10,10, 2,   0,0, 4, IMAGE_PRECISION_10, 0, GPU_API(DXGI_FORMAT_R10G10B10A2_UNORM, GL_RGB10_A2)},
 
@@ -101,8 +101,8 @@ ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have the sa
    {"F32_3_SRGB"   , false, 12, 96,  32,32,32, 0,   0,0, 3, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_UNKNOWN           , 0)},
    {"F32_4_SRGB"   , false, 16,128,  32,32,32,32,   0,0, 4, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_UNKNOWN           , 0)},
 
-   {"BC1"          , true ,  0,  4,   5, 6, 5, 1,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC1_UNORM     , GL_COMPRESSED_RGBA_S3TC_DXT1_EXT)},
-   {"BC1_SRGB"     , true ,  0,  4,   5, 6, 5, 1,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC1_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT)},
+   {"BC1"          , true ,  0,  4,   5, 6, 5, 0,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC1_UNORM     , GL_COMPRESSED_RGBA_S3TC_DXT1_EXT      )}, // set 0 alpha bits, even though BC1 can support 1-bit alpha, it's never used in the engine, other formats are used for alpha
+   {"BC1_SRGB"     , true ,  0,  4,   5, 6, 5, 0,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC1_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT)}, // set 0 alpha bits, even though BC1 can support 1-bit alpha, it's never used in the engine, other formats are used for alpha
    {"BC2"          , true ,  1,  8,   5, 6, 5, 4,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC2_UNORM     , GL_COMPRESSED_RGBA_S3TC_DXT3_EXT)},
    {"BC2_SRGB"     , true ,  1,  8,   5, 6, 5, 4,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC2_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT)},
    {"BC3"          , true ,  1,  8,   5, 6, 5, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC3_UNORM     , GL_COMPRESSED_RGBA_S3TC_DXT5_EXT)},

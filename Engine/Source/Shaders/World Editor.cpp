@@ -15,7 +15,7 @@ void Color_VS
    uniform Bool vtx_col=false
 )
 {  
-   if(vtx_col)outCol=vtx.color();
+   if(vtx_col)outCol=vtx.colorFast();
 
    outNrm=Normalize(TransformDir(vtx.nrm()));
    outPos=          TransformPos(vtx.pos()) ;
@@ -94,9 +94,11 @@ Vec4 Circle_PS
    b=Length(d);
    b=Sat   ((b-(1-XZSoft))/XZSoft);
    b=BlendSmoothCube(b);
-   if(XZImageUse)b*=Tex(XZImage, (XZPattern ? I.pos2D*XZPatternScale : d*0.5f+0.5f)*Vec2(1,-1)).r;
 
-   return Vec4(XZCol*b, 0);
+   if(LINEAR_GAMMA)b=SRGBToLinearFast(b);
+   Vec col=XZCol*b;
+   if(XZImageUse)col*=Tex(XZImage, (XZPattern ? I.pos2D*XZPatternScale : d*0.5f+0.5f)*Vec2(1,-1)).r; // XZImage is sRGB
+   return Vec4(col, 0);
 }
 /******************************************************************************/
 Vec4 Square_PS
@@ -111,9 +113,11 @@ Vec4 Square_PS
    b=Max(Abs(d));
    b=Sat((b-(1-XZSoft))/XZSoft);
    b=BlendSmoothCube(b);
-   if(XZImageUse)b*=Tex(XZImage, (XZPattern ? I.pos2D*XZPatternScale : d*0.5f+0.5f)*Vec2(1, -1)).r;
 
-   return Vec4(XZCol*b, 0);
+   if(LINEAR_GAMMA)b=SRGBToLinearFast(b);
+   Vec col=XZCol*b;
+   if(XZImageUse)col*=Tex(XZImage, (XZPattern ? I.pos2D*XZPatternScale : d*0.5f+0.5f)*Vec2(1, -1)).r; // XZImage is sRGB
+   return Vec4(col, 0);
 }
 /******************************************************************************/
 Vec4 Grid_PS
@@ -125,7 +129,10 @@ Vec4 Grid_PS
    Vec2 xz   =Sat((Abs(Frac(pos)-0.5f)-0.5f)/XZSoft+1);
    Flt  alpha=Max(xz);
    Flt  dd=Max(Vec4(Abs(ddx(pos)), Abs(ddy(pos)))); alpha*=LerpRS(0.2f, 0.1f, dd);
-   return Vec4(XZCol*alpha, 0);
+
+   if(LINEAR_GAMMA)alpha=SRGBToLinearFast(alpha);
+   Vec col=XZCol*alpha;
+   return Vec4(col, 0);
 }
 /******************************************************************************/
 // HULL / DOMAIN
@@ -179,49 +186,4 @@ TECHNIQUE            (Grid   <bool ForceHP=true;>, FX_VS(),   Grid_PS());
 TECHNIQUE_TESSELATION(CircleT                    , FX_VS(), Circle_PS(), HS(), DS());
 TECHNIQUE_TESSELATION(SquareT                    , FX_VS(), Square_PS(), HS(), DS());
 TECHNIQUE_TESSELATION(GridT                      , FX_VS(),   Grid_PS(), HS(), DS());
-/******************************************************************************/
-#if 0
-@GROUP "Circle"
-
-   @SHARED
-      #include "Glsl.h"
-
-      VAR HP Vec2 IO_pos2D;
-   @SHARED_END
-
-   @VS
-      #include "Glsl VS.h"
-      #include "Glsl VS 3D.h"
-
-      void main()
-      {
-         HP Vec pos=TransformPos(vtx_pos());
-         IO_pos2D=Transform(pos, CamMatrix).xz;
-         O_vtx=Project(pos);
-      }
-   @VS_END
-
-   @PS
-      #include "Glsl PS.h"
-
-      void main()
-      {
-   Vec2 cos_sin; CosSin(cos_sin.x, cos_sin.y, XZAngle);
-   Vec2 d=I.pos2D-XZPos; d=Rotate(d, cos_sin); d/=XZRange;
-
-   Flt b;
-   b=Length(d);
-   b=Sat   ((b-(1-XZSoft))/XZSoft);
-   b=BlendSmoothCube(b);
-   if(XZImageUse)b*=Tex(XZImage, (XZPattern ? I.pos2D*XZPatternScale : d*0.5f+0.5f)*Vec2(1,-1)).r;
-
-   return Vec4(XZCol*b, 0);
-
-         gl_FragColor.rgb=col; // set 'gl_FragColor' at end since it's MP
-         gl_FragColor.a  =((per_pixel!=0) ? glow : 0.0);
-      }
-   @PS_END
-
-@GROUP_END
-#endif
 /******************************************************************************/

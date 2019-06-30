@@ -632,7 +632,7 @@ static void OptimizeRGB(Vec &color_a, Vec &color_b, Vec4 (&color)[16], Int steps
    color_a=min;
    color_b=max;
 }
-static void _CompressBC1(BC1 &bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a, Flt alpha_ref) // !! Warning: 'color' gets modified !!, 'alpha_ref'=use zero to disable alpha encoding
+static void _CompressBC1(BC1 &bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a, Flt alpha_ref=0.5f) // !! Warning: 'color' gets modified !! 'alpha_ref'=use zero to disable alpha encoding
 {
    Int steps;
    if(alpha_ref>0)
@@ -796,11 +796,13 @@ static void _CompressBC1(BC1 &bc, Vec4 (&color)[16], C Vec *weight, Bool dither_
    }
    bc.bitmap=bitmap;
 }
-static void CompressBC1(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a) {return _CompressBC1(*(BC1*)bc, color, weight, dither_rgb, dither_a, 0.5f);}
+static inline void _CompressBC1RGB(BC1 &bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb) {_CompressBC1(bc, color, weight, dither_rgb, false, 0);}
+
+static void CompressBC1(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a) {_CompressBC1RGB(*(BC1*)bc, color, weight, dither_rgb);}
 static void CompressBC2(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a)
 {
    BC2 &bc2=*(BC2*)bc;
-  _CompressBC1(bc2.rgb, color, weight, dither_rgb, false, 0);
+  _CompressBC1RGB(bc2.rgb, color, weight, dither_rgb);
 
    bc2.alpha[0]=0;
    bc2.alpha[1]=0;
@@ -1024,8 +1026,8 @@ static void _CompressBC4(BC4 &bc, Vec4 (&color)[16], Bool dither)
 static void CompressBC3(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a)
 {
    BC3 &bc3=*(BC3*)bc;
-  _CompressBC1(bc3.rgb  ,              color     , weight, dither_rgb, false, 0);
-  _CompressBC4(bc3.alpha, (Vec4(&)[16])color[0].w,         dither_a);
+  _CompressBC1RGB(bc3.rgb  ,              color     , weight, dither_rgb);
+  _CompressBC4   (bc3.alpha, (Vec4(&)[16])color[0].w,         dither_a  );
 }
 static void CompressBC4(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a)
 {

@@ -397,14 +397,16 @@ bool HasColor(C Image &image) // if image is not monochromatic
 {
    return !image.monochromatic();
 }
-bool NeedFixAlpha(Image &image, IMAGE_TYPE type, bool always=false)
+bool NeedFullAlpha(Image &image, IMAGE_TYPE type, bool always=false)
 {
-   return (((image.type()!=IMAGE_BC1 && image.type()!=IMAGE_BC1_SRGB) && (type==IMAGE_BC1 || type==IMAGE_BC1_SRGB)) || always) // if we're converting from non-BC1 to BC1, then since BC1 will make black pixels for alpha<128, we need to force full alpha (ETC2_A1 does that too, however if we didn't want it, we can just use ETC2)
-       && ImageTI[image.type()].a; // no point in changing alpha if the source doesn't have it
+   return (
+          //((image.type()!=IMAGE_BC1 && image.type()!=IMAGE_BC1_SRGB) && (type==IMAGE_BC1 || type==IMAGE_BC1_SRGB)) || // if we're converting from non-BC1 to BC1, then since BC1 will make black pixels for alpha<128, we need to force full alpha, right now BC1 has alpha disabled in 'CompressBC1'
+            always
+          ) && ImageTI[image.type()].a; // no point in changing alpha if the source doesn't have it
 }
-bool FixAlpha(Image &image, IMAGE_TYPE type, bool always=false) // returns if any change was made
+bool SetFullAlpha(Image &image, IMAGE_TYPE type, bool always=false) // returns if any change was made
 {
-   if(NeedFixAlpha(image, type, always))
+   if(NeedFullAlpha(image, type, always))
    {
       if(image.compressed())return image.copyTry(image, -1, -1, -1, ImageTypeExcludeAlpha(ImageTypeUncompressed(image.type())), IMAGE_SOFT, 1);
       if(image.lock())

@@ -1821,7 +1821,7 @@ void DrawProject()
          {
             if(includeTex(material.detail_tex))
             {
-               FixAlpha(detail, ct, RemoveMtrlDetailBump);
+               SetFullAlpha(detail, ct, RemoveMtrlDetailBump);
                detail.copyTry(detail, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP|IC_MTRL_BASE1);
                saveTex(detail, material.detail_tex);
             }
@@ -1839,7 +1839,7 @@ void DrawProject()
          {
             if(includeTex(material.macro_tex))
             {
-               FixAlpha(macro, ct);
+               SetFullAlpha(macro, ct);
                macro.copyTry(macro, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
                saveTex(macro, material.macro_tex);
             }
@@ -1857,7 +1857,7 @@ void DrawProject()
          {
             if(includeTex(material.light_tex))
             {
-               FixAlpha(light, ct);
+               SetFullAlpha(light, ct);
                light.copyTry(light, -1, -1, -1, ct, IMAGE_2D, 0);
                saveTex(light, material.light_tex);
             }
