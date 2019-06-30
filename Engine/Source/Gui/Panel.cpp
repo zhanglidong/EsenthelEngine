@@ -700,12 +700,12 @@ Bool Panel::load(File &f, CChar *path)
             Unaligned(    bottom_offset , desc.    bottom_offset.y);
             Unaligned(left_right_offset , desc.left_right_offset  );
 
-                   top_image.require(f._getStr2(), path);
-                center_image.require(f._getStr2(), path);
-                border_image.require(f._getStr2(), path);
-            top_corner_image.require(f._getStr2(), path);
-                bottom_image.require(f._getStr2(), path);
-            left_right_image.require(f._getStr2(), path);
+                   top_image.require(f._getStr1(), path);
+                center_image.require(f._getStr1(), path);
+                border_image.require(f._getStr1(), path);
+            top_corner_image.require(f._getStr1(), path);
+                bottom_image.require(f._getStr1(), path);
+            left_right_image.require(f._getStr1(), path);
 
               side_stretch      =false;
               side_color        =border_color;

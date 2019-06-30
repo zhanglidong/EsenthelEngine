@@ -179,7 +179,7 @@ Bool ImageAtlas::load(File &f)
          FREPA(parts)
          {
             Part &part=parts[i];
-            f.getMulti(part.image_index, part.rotated, part.tex_rect, part.center_offset, part.original_size, part.trimmed_size, part.trim_pos)._getStr2(part.name);
+            f.getMulti(part.image_index, part.rotated, part.tex_rect, part.center_offset, part.original_size, part.trimmed_size, part.trim_pos)._getStr1(part.name);
          }
          if(images.load(f))
             if(f.ok())return true;

@@ -3385,7 +3385,7 @@ Bool Animation::load(File &f)
       {
          f.getMulti(_flag, _length);
          if(!keys.loadData(f))goto error;
-         bones.setNum(f.decUIntV()); FREPA(bones){AnimBone &abon=bones[i]; f._getStr2(abon.name).getMulti(abon.type, abon.type_index, abon.type_sub); if(!abon.loadData(f))goto error;}
+         bones.setNum(f.decUIntV()); FREPA(bones){AnimBone &abon=bones[i]; f._getStr1(abon.name).getMulti(abon.type, abon.type_index, abon.type_sub); if(!abon.loadData(f))goto error;}
          if(!events.loadRaw(f))goto error;
          if(f.ok()){setRootMatrix(); return true;}
       }break;
@@ -3394,7 +3394,7 @@ Bool Animation::load(File &f)
       {
          f>>_flag>>_length;
          keys.loadData3(f);
-         bones.setNum(f.decUIntV()); FREPA(bones){AnimBone &abon=bones[i]; f._getStr2(abon.name).getMulti(abon.type, abon.type_index, abon.type_sub); abon.loadData3(f);}
+         bones.setNum(f.decUIntV()); FREPA(bones){AnimBone &abon=bones[i]; f._getStr1(abon.name).getMulti(abon.type, abon.type_index, abon.type_sub); abon.loadData3(f);}
          if(!events.loadRaw(f))goto error;
          if(f.ok()){setRootMatrix(); return true;}
       }break;
@@ -3403,7 +3403,7 @@ Bool Animation::load(File &f)
       {
          f>>_flag>>_length;
          keys.loadData3(f);
-         bones.setNum(f.decUIntV()); FREPA(bones){AnimBone &abon=bones[i]; abon.set(null); f._getStr2(abon.name); abon.loadData3(f);}
+         bones.setNum(f.decUIntV()); FREPA(bones){AnimBone &abon=bones[i]; abon.set(null); f._getStr1(abon.name); abon.loadData3(f);}
          if(!events.loadRaw(f))goto error;
          if(f.ok()){setRootMatrix(); return true;}
       }break;

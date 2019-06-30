@@ -426,7 +426,7 @@ Bool TextLine::load(File &f, CChar *path)
       {
         _type=GO_TEXTLINE;
 
-         Bool kb_catch; f>>kb_catch>>kb_lit>>show_find>>_edit.password>>_max_length; f._getStr2(hint)._getStr2(_text);
+         Bool kb_catch; f>>kb_catch>>kb_lit>>show_find>>_edit.password>>_max_length; f._getStr1(hint)._getStr1(_text);
          reset.visible(f.getBool());
         _skin.require(f._getAsset(), path);
          if(f.ok())return true;
@@ -436,7 +436,7 @@ Bool TextLine::load(File &f, CChar *path)
       {
         _type=GO_TEXTLINE;
 
-         f>>kb_lit; f.skip(8); f>>_edit.password>>_max_length; f._getStr2(_text); f._getStr2();
+         f>>kb_lit; f.skip(8); f>>_edit.password>>_max_length; f._getStr1(_text); f._getStr1();
          if(f.ok())return true;
       }break;
 

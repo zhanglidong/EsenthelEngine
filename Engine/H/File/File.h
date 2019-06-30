@@ -288,9 +288,9 @@ union
    #define FILE_MEMB_UNION 1 // if 'File._memb' is stored in an union and can be accessed only when 'File._type' matches FILE_MEMB, union will give smaller 'File' class size, no union will allow to reuse previously allocated MEMB memory
 
    File& _decIntV (  Int  &i); // deprecated - do not use
-   Str   _getStr2 (         ); // deprecated - do not use
-   File& _getStr2 (  Str  &s); // deprecated - do not use
-   File& _getStr2 (  Str8 &s); // deprecated - do not use
+   Str   _getStr1 (         ); // deprecated - do not use
+   File& _getStr1 (  Str  &s); // deprecated - do not use
+   File& _getStr1 (  Str8 &s); // deprecated - do not use
    File& _putStr  (C Str8 &s);   File& _putStr(CChar8 *t) {return _putStr(Str8(t));} // write string, deprecated - do not use
    File& _putStr  (C Str  &s);   File& _putStr(CChar  *t) {return _putStr(Str (t));} // write string, deprecated - do not use
    Str   _getStr  (         ); // read  string        , deprecated - do not use
@@ -301,10 +301,10 @@ union
    File& _putAsset(CChar  *t); // write asset location, deprecated - do not use
    Str   _getAsset(         ); // read  asset location, deprecated - do not use
 
-                       File& _getStr2(Char8  *t, Int t_elms);                            // read string into 't' array, 't_elms'=number of elements in the array, deprecated - do not use
-                       File& _getStr2(Char   *t, Int t_elms);                            // read string into 't' array, 't_elms'=number of elements in the array, deprecated - do not use
-   template<Int elms>  File& _getStr2(Char8 (&t)[elms]     ) {return _getStr2(t, elms);} // read string into 't' array,                                         , deprecated - do not use
-   template<Int elms>  File& _getStr2(Char  (&t)[elms]     ) {return _getStr2(t, elms);} // read string into 't' array,                                         , deprecated - do not use
+                       File& _getStr1(Char8  *t, Int t_elms);                            // read string into 't' array, 't_elms'=number of elements in the array, deprecated - do not use
+                       File& _getStr1(Char   *t, Int t_elms);                            // read string into 't' array, 't_elms'=number of elements in the array, deprecated - do not use
+   template<Int elms>  File& _getStr1(Char8 (&t)[elms]     ) {return _getStr1(t, elms);} // read string into 't' array,                                         , deprecated - do not use
+   template<Int elms>  File& _getStr1(Char  (&t)[elms]     ) {return _getStr1(t, elms);} // read string into 't' array,                                         , deprecated - do not use
 
                        File& _getStr(Char  *t, Int t_elms);                           // read string into 't' array, 't_elms'=number of elements in the array, deprecated - do not use
    template<Int elms>  File& _getStr(Char (&t)[elms]     ) {return _getStr(t, elms);} // read string into 't' array,                                         , deprecated - do not use

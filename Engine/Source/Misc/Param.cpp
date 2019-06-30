@@ -522,7 +522,7 @@ Bool Param::load(File &f, CChar *path)
       case 4:
       {
          f>>type; if(type==PARAM_ENUM)enum_type=Enums(f.getAssetID(), path);else enum_type=null;
-         f._getStr2(name);
+         f._getStr1(name);
          switch(type)
          {
             default            : goto error;
@@ -534,8 +534,8 @@ Bool Param::load(File &f, CChar *path)
             case PARAM_VEC4    : f>>value.v4; break;
             case PARAM_COLOR   : f>>value.c ; break;
             case PARAM_ID      : f>>value.id; break;
-            case PARAM_ENUM    : f>>value.id; f._getStr2(value.s); if(enum_type){Int i=enum_type->find(value.id); if(InRange(i, *enum_type))value.s=(*enum_type)[i].name;else{i=enum_type->find(value.s); if(InRange(i, *enum_type))value.id=(*enum_type)[i].id;}} break;
-            case PARAM_STR     : f._getStr2(value.s); break;
+            case PARAM_ENUM    : f>>value.id; f._getStr1(value.s); if(enum_type){Int i=enum_type->find(value.id); if(InRange(i, *enum_type))value.s=(*enum_type)[i].name;else{i=enum_type->find(value.s); if(InRange(i, *enum_type))value.id=(*enum_type)[i].id;}} break;
+            case PARAM_STR     : f._getStr1(value.s); break;
             case PARAM_ID_ARRAY: if(UInt ids=f.decUIntV())
             {
                Int chars=ids*(SIZE(UID)/SIZE(Char));

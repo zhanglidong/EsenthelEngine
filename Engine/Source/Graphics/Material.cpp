@@ -397,14 +397,14 @@ Bool Material::loadData(File &f, CChar *path)
       case 8:
       {
          f.getMulti(cull, technique)>>mp;
-         f._getStr2(temp            );         base_0.require(temp, path);
-         f._getStr2(temp            );         base_1.require(temp, path);
-         f._getStr2(temp            );     detail_map.require(temp, path);
-         f._getStr2(temp            );      macro_map.require(temp, path);
-         f._getStr2(temp            ); reflection_map.require(temp, path);
-         f._getStr2(temp            );      light_map.require(temp, path);
-         f._getStr2(user_shader_name); user_shader=(MaterialUserShader ? MaterialUserShader->find(user_shader_name) : 0);
-         f._getStr2(user_type_name  ); user_type  =(MaterialUserType   ? MaterialUserType  ->find(user_type_name  ) : 0);
+         f._getStr1(temp            );         base_0.require(temp, path);
+         f._getStr1(temp            );         base_1.require(temp, path);
+         f._getStr1(temp            );     detail_map.require(temp, path);
+         f._getStr1(temp            );      macro_map.require(temp, path);
+         f._getStr1(temp            ); reflection_map.require(temp, path);
+         f._getStr1(temp            );      light_map.require(temp, path);
+         f._getStr1(user_shader_name); user_shader=(MaterialUserShader ? MaterialUserShader->find(user_shader_name) : 0);
+         f._getStr1(user_type_name  ); user_type  =(MaterialUserType   ? MaterialUserType  ->find(user_type_name  ) : 0);
       }break;
 
       case 7:

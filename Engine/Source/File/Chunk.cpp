@@ -130,7 +130,7 @@ File* ChunkReader::operator()()
          case 2:
          {
             // load chunk info
-           _f->_getStr2 (_name);
+           _f->_getStr1 (_name);
            _f-> decUIntV(_ver );
             UInt chunk_size=_f->getUInt();
             if(_f->ok())

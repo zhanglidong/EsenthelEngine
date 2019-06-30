@@ -424,7 +424,7 @@ Bool Button::load(File &f, CChar *path)
       case 6:
       {
          setParams();
-         f.getMulti(mode, sound, image_color, text_align, text_size, _on, _focusable)._getStr2(text);
+         f.getMulti(mode, sound, image_color, text_align, text_size, _on, _focusable)._getStr1(text);
          image.require(f.getAssetID(), path);
          skin .require(f.getAssetID(), path);
          if(f.ok())return true;
@@ -433,7 +433,7 @@ Bool Button::load(File &f, CChar *path)
       case 5:
       {
          setParams();
-         f>>mode>>image_color>>text_align>>text_size>>_on>>_focusable; f._getStr2(text);
+         f>>mode>>image_color>>text_align>>text_size>>_on>>_focusable; f._getStr1(text);
          image.require(f._getAsset(), path);
          skin .require(f._getAsset(), path);
          if(f.ok())return true;

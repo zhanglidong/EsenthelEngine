@@ -474,7 +474,7 @@ Bool Font::load(File &f)
       case 5:
       {
          f.getMulti(_sub_pixel, _height, _padd);
-        _images.setNum(f.decUIntV()); FREPA(_images)if(!_images[i].loadData(f))goto error;
+        _images.setNum(f.decUIntV()); FREPA(_images)if(!_images[i]._loadData(f))goto error;
         _chrs.loadRaw(f);
          if(f.ok() && Adjust(T, 1))
          {
@@ -489,7 +489,7 @@ Bool Font::load(File &f)
          f>>_sub_pixel>>_height>>_padd;
         _images.setNum(f.decUIntV());
          FontLoadChr3(T, f);
-         FREPA(_images){f.skip(4); if(!_images[i].loadData(f))goto error;} // skip 'GFX' CC4 and use 'loadData'
+         FREPA(_images){f.skip(4); if(!_images[i]._loadData(f))goto error;} // skip 'GFX' CC4 and use '_loadData'
          if(f.ok() && Adjust(T, 1))
          {
             setRemap();
@@ -503,7 +503,7 @@ Bool Font::load(File &f)
          f>>_sub_pixel>>_height>>_padd.x>>_padd.z>>_padd.y>>_padd.w;
         _images.setNum(f.decUIntV());
          FontLoadChr3(T, f);
-         FREPA(_images){f.skip(4); if(!_images[i].loadData(f))goto error;} // skip 'GFX' CC4 and use 'loadData'
+         FREPA(_images){f.skip(4); if(!_images[i]._loadData(f))goto error;} // skip 'GFX' CC4 and use '_loadData'
          if(f.ok() && Adjust(T, 0))
          {
             setRemap();
@@ -517,7 +517,7 @@ Bool Font::load(File &f)
          f>>_sub_pixel>>_height>>_padd.x>>_padd.z>>_padd.y>>_padd.w;
         _images.setNum(f.getInt());
          FontLoadChr0(T, f);
-         FREPA(_images){f.skip(4); if(!_images[i].loadData(f))goto error;} // skip 'GFX' CC4 and use 'loadData'
+         FREPA(_images){f.skip(4); if(!_images[i]._loadData(f))goto error;} // skip 'GFX' CC4 and use '_loadData'
          if(f.ok() && Adjust(T, 0))
          {
             setRemap();
@@ -531,7 +531,7 @@ Bool Font::load(File &f)
          f>>_height>>_padd.x>>_padd.z>>_padd.y>>_padd.w;
         _images.setNum(f.getInt());
          FontLoadChr0(T, f);
-         FREPA(_images){f.skip(4); if(!_images[i].loadData(f))goto error;} // skip 'GFX' CC4 and use 'loadData'
+         FREPA(_images){f.skip(4); if(!_images[i]._loadData(f))goto error;} // skip 'GFX' CC4 and use '_loadData'
          if(f.ok() && Adjust(T, 0))
          {
             setRemap();
@@ -545,7 +545,7 @@ Bool Font::load(File &f)
          f>>_height>>_padd.x>>_padd.z; _padd.y=_padd.x; _padd.w=_padd.z;
         _images.setNum(f.getInt()); 
          FontLoadChr0(T, f);
-         FREPA(_images){f.skip(4); if(!_images[i].loadData(f))goto error;} // skip 'GFX' CC4 and use 'loadData'
+         FREPA(_images){f.skip(4); if(!_images[i]._loadData(f))goto error;} // skip 'GFX' CC4 and use '_loadData'
          if(f.ok() && Adjust(T, 0))
          {
             setRemap();

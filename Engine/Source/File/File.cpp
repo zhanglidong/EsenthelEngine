@@ -1607,8 +1607,8 @@ File& File::_decIntV(Int &i)
    i=(positive ? u+1 : -Int(u));
    return T;
 }
-Str   File::_getStr2(      ) {Str s; _getStr2(s); return s;} // warning: this must handle having '\0' chars in the middle
-File& File::_getStr2(Str &s) // warning: this must handle having '\0' chars in the middle
+Str   File::_getStr1(      ) {Str s; _getStr1(s); return s;} // warning: this must handle having '\0' chars in the middle
+File& File::_getStr1(Str &s) // warning: this must handle having '\0' chars in the middle
 {
    s.clear(); // always 'clear' even for 'reserve' to avoid copying old data in 'setNum'
    Int length; _decIntV(length);
@@ -1637,7 +1637,7 @@ length_too_long:
 error:
    s.clear(); return T;
 }
-File& File::_getStr2(Str8 &s) // warning: this must handle having '\0' chars in the middle
+File& File::_getStr1(Str8 &s) // warning: this must handle having '\0' chars in the middle
 {
    s.clear(); // always 'clear' even for 'reserve' to avoid copying old data in 'setNum'
    Int length; _decIntV(length);
@@ -1665,7 +1665,7 @@ length_too_long:
 error:
    s.clear(); return T;
 }
-File& File::_getStr2(Char8 *t, Int t_elms)
+File& File::_getStr1(Char8 *t, Int t_elms)
 {
    Int length; _decIntV(length);
    if( length<0) // unicode
@@ -1701,7 +1701,7 @@ length_too_long:
 error:
    if(t && t_elms>0)t[0]='\0'; return T;
 }
-File& File::_getStr2(Char *t, Int t_elms)
+File& File::_getStr1(Char *t, Int t_elms)
 {
    Int length; _decIntV(length);
    if( length<0) // unicode
@@ -1882,7 +1882,7 @@ Str File::_getAsset()
    switch(getByte())
    {
       default: return S;
-      case  1: return _getStr2();
+      case  1: return _getStr1();
       case  2: {UID id; T>>id; return _EncodeFileName(id);}
    }
 }

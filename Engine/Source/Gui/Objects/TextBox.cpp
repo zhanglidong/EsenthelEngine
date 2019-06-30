@@ -564,7 +564,7 @@ Bool TextBox::load(File &f, CChar *path)
 
       case 0:
       {
-         f.getMulti(kb_lit, _word_wrap, _max_length, _slidebar_size)._getStr2(hint)._getStr2(_text);
+         f.getMulti(kb_lit, _word_wrap, _max_length, _slidebar_size)._getStr1(hint)._getStr1(_text);
         _skin.require(f.getAssetID(), path);
          if(view       .load(f, path))
          if(slidebar[0].load(f, path))

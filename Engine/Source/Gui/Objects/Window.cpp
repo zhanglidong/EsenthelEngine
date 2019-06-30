@@ -736,7 +736,7 @@ Bool Window::load(File &f, CChar *path)
 
       case 4:
       {
-         f.getMulti(flag, resize_mask, _level, _crect, _bar_visible, _fade_type, _fade_alpha, _alpha)._getStr2(title);
+         f.getMulti(flag, resize_mask, _level, _crect, _bar_visible, _fade_type, _fade_alpha, _alpha)._getStr1(title);
         _skin.require(f.getAssetID(), path);
          if(button[0].load(f, path))
          if(button[1].load(f, path))
@@ -746,7 +746,7 @@ Bool Window::load(File &f, CChar *path)
 
       case 3:
       {
-         f>>flag>>resize_mask>>_level>>_crect>>_bar_visible>>_fade_type>>_fade_alpha; f._getStr2(title); _alpha=1;
+         f>>flag>>resize_mask>>_level>>_crect>>_bar_visible>>_fade_type>>_fade_alpha; f._getStr1(title); _alpha=1;
         _skin.require(f._getAsset(), path);
          if(button[0].load(f, path))
          if(button[1].load(f, path))

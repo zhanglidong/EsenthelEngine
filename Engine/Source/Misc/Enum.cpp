@@ -161,8 +161,8 @@ Bool Enum::load(File &f)
 
       case 2:
       {
-         f._getStr2(name);
-        _elms.setNum(f.decUIntV()); FREPA(T){Elm &elm=_elms[i]; f._getStr2(elm.name)>>elm.id;}
+         f._getStr1(name);
+        _elms.setNum(f.decUIntV()); FREPA(T){Elm &elm=_elms[i]; f._getStr1(elm.name)>>elm.id;}
          f.getN(Alloc(_order, elms().elms()*2), elms().elms()*2);
          if(f.ok())return true;
       }break;

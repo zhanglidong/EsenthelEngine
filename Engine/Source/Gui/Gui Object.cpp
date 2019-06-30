@@ -588,7 +588,7 @@ Bool GuiObj::load(File &f, CChar *path)
 
       case 3:
       {
-         f.getMulti(_visible, _disabled, _rect)._getStr2(_desc);
+         f.getMulti(_visible, _disabled, _rect)._getStr1(_desc);
          if(f.ok())return true;
       }break;
 

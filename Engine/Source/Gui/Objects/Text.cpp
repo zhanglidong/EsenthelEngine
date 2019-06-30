@@ -145,7 +145,7 @@ Bool Text::load(File &f, CChar *path)
       {
         _type=GO_TEXT;
 
-         f>>auto_line; f._getStr2(_text);
+         f>>auto_line; f._getStr1(_text);
          text_style.require(f._getAsset(), path);
          skin      .require(f._getAsset(), path);
         _codes=f.decUIntV(); Alloc(_code, _codes); FREP(_codes){TextCodeData &c=_code[i]; UInt pos; f.getMulti(c.shadow_mode, c.color_mode, c.nocode_mode, c.shadow, c.color, pos); c.pos=Ptr(_text()+pos);}

@@ -2,6 +2,7 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
+#define CC4_IMG CC4('I','M','G',0)
 #define CC4_GFX CC4('G','F','X',0)
 /******************************************************************************/
 static IMAGE_TYPE OldImageType2(Byte type)
@@ -128,12 +129,6 @@ static IMAGE_TYPE OldImageType0(Byte type)
 /******************************************************************************/
 // SAVE / LOAD
 /******************************************************************************/
-static Byte NewImageTypeToOld(IMAGE_TYPE type) // FIXME remove this
-{
-   type=ImageTypeExcludeSRGB(type);
-   FREP(256)if(ImageTypeExcludeSRGB(OldImageType2(i))==type)return i;
-   return 0;
-}
 Bool Image::saveData(File &f)C
 {
    if(mode()!=IMAGE_SOFT && mode()!=IMAGE_SOFT_CUBE && mode()!=IMAGE_2D && mode()!=IMAGE_3D && mode()!=IMAGE_CUBE)return false; // verify that mode is correct
@@ -144,8 +139,7 @@ Bool Image::saveData(File &f)C
    || (file_type==IMAGE_PVRTC1_2 || file_type==IMAGE_PVRTC1_4 || file_type==IMAGE_PVRTC1_2_SRGB || file_type==IMAGE_PVRTC1_4_SRGB                                                                            ) && !CompressPVRTC
    )file_type=T.hwType(); // if compressing to format which isn't supported then store as current 'hwType'
 
-   // FIXME when saving remove 'NewImageTypeToOld', use ver 0 and convert loadData to loadOldData? adjust Font and ImageAtlas
-   f.putMulti(Byte(4), size3(), Byte(NewImageTypeToOld(file_type)), Byte(mode()), Byte(mipMaps())); // version
+   f.putMulti(Byte(0), size3(), Byte(file_type), Byte(mode()), Byte(mipMaps())); // version
 
    if(soft() && CanDoRawCopy(hwType(), file_type)) // software with matching type, we can save without locking
    {
@@ -389,37 +383,54 @@ const Int         file_faces=(file_cube ? 6 : 1);
    }
    return false;
 }
+#pragma pack(push, 1)
+struct ImageFileHeader
+{
+   VecI       size;
+   IMAGE_TYPE type;
+   IMAGE_MODE mode;
+   Byte       mips;
+};
+#pragma pack(pop)
 Bool Image::loadData(File &f, ImageHeader *header, C Str &name)
 {
    ImageHeader ih;
    switch(f.decUIntV())
    {
-      #pragma pack(push, 1)
-      struct FileHeader
+      case 0:
       {
-         VecI       size;
-         IMAGE_TYPE type;
-         IMAGE_MODE mode;
-         Byte       mips;
-      };
-      #pragma pack(pop)
-
-      /*case 5:
-      {
-         FileHeader fh; f>>fh;
+         ImageFileHeader fh; f>>fh;
          Unaligned(ih.size    , fh.size);
          Unaligned(ih.type    , fh.type);
          Unaligned(ih.mode    , fh.mode);
         _Unaligned(ih.mip_maps, fh.mips);
          if(header)goto set_header;
          if(Load(T, f, ih, name))goto ok;
-      }break;*/
+      }break;
+   }
 
+error:
+   if(header)header->zero();
+   del(); return false;
+
+ok:
+   if(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA)freeOpenGLESData();
+   return true;
+
+set_header:
+   if(f.ok()){*header=ih; return true;}
+   goto error;
+}
+Bool Image::_loadData(File &f, ImageHeader *header, C Str &name)
+{
+   ImageHeader ih;
+   switch(f.decUIntV())
+   {
       case 4:
       {
-         FileHeader fh; f>>fh;
+         ImageFileHeader fh; f>>fh;
          Unaligned(ih.size    , fh.size);
-         Unaligned(ih.type    , fh.type); ih.type=OldImageType2(ih.type); DYNAMIC_ASSERT(fh.type==NewImageTypeToOld(ih.type), "type mismatch"); // FIXME
+         Unaligned(ih.type    , fh.type); ih.type=OldImageType2(ih.type);
          Unaligned(ih.mode    , fh.mode);
         _Unaligned(ih.mip_maps, fh.mips);
          if(header)goto set_header;
@@ -428,7 +439,7 @@ Bool Image::loadData(File &f, ImageHeader *header, C Str &name)
 
       case 3:
       {
-         FileHeader fh; f>>fh;
+         ImageFileHeader fh; f>>fh;
          Unaligned(ih.size    , fh.size);
          Unaligned(ih.type    , fh.type); ih.type=OldImageType1(ih.type);
          Unaligned(ih.mode    , fh.mode);
@@ -562,23 +573,27 @@ error:
    if(header)header->zero();
    del(); return false;
 
-ok:;
+ok:
    if(App.flag&APP_AUTO_FREE_IMAGE_OPEN_GL_ES_DATA)freeOpenGLESData();
    return true;
 
-set_header:;
+set_header:
    if(f.ok()){*header=ih; return true;}
    goto error;
 }
 /******************************************************************************/
 Bool Image::save(File &f)C
 {
-   f.putUInt(CC4_GFX);
+   f.putUInt(CC4_IMG);
    return saveData(f);
 }
 Bool Image::load(File &f)
 {
-   if(f.getUInt()==CC4_GFX)return loadData(f);
+   switch(f.getUInt())
+   {
+      case CC4_IMG: return  loadData(f);
+      case CC4_GFX: return _loadData(f);
+   }
    del(); return false;
 }
 
@@ -589,7 +604,11 @@ Bool Image::save(C Str &name)C
 }
 Bool Image::load(C Str &name)
 {
-   File f; if(f.readTry(name) && f.getUInt()==CC4_GFX)return loadData(f, null, name);
+   File f; if(f.readTry(name))switch(f.getUInt())
+   {
+      case CC4_IMG: return  loadData(f, null, name);
+      case CC4_GFX: return _loadData(f, null, name);
+   }
    del(); return false;
 }
 void Image::operator=(C UID &id  ) {T=_EncodeFileName(id);}
@@ -696,7 +715,12 @@ Bool ImageLoadHeader(File &f, ImageHeader &header)
 {
    Image temp;
    Long  pos=f.pos(); // remember file position
-   Bool  ok =(f.getUInt()==CC4_GFX && temp.loadData(f, &header));
+   Bool  ok =false;
+   switch(f.getUInt())
+   {
+      case CC4_IMG: ok=temp. loadData(f, &header); break;
+      case CC4_GFX: ok=temp._loadData(f, &header); break;
+   }
    f.pos(pos); // reset file position
    if(ok)return true;
    header.zero(); return false;

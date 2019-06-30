@@ -2028,9 +2028,9 @@ static Bool SaveAs(C Image &image, File &f, IMAGE_TYPE type)
    Image temp; if(image.copyTry(temp, -1, -1, -1, type))return temp.saveData(f);
    return false;
 }
-static Bool LoadAs(Image &image, File &f, IMAGE_TYPE type)
+static Bool LoadOldAs(Image &image, File &f, IMAGE_TYPE type) // !! uses old '_loadData' !!
 {
-   if(!image.loadData(f))return false;
+   if(!image._loadData(f))return false;
    if( image.is() && image.type()!=type)if(!image.copyTry(image, -1, -1, -1, type))return false;
    return true;
 }
@@ -2047,7 +2047,7 @@ static Bool AddEmptyAlpha(Image &image)
 }
 Bool Heightmap::save(File &f, CChar *path)C
 {
-   f.cmpUIntV(2); // version // FIXME use 3 after image types have been finalized
+   f.cmpUIntV(3); // version
    if(       _height    .saveData(f           ))
    if(SaveAs(_color     , f, IMAGE_R8G8B8_SRGB)) // convert to LowPrec in case HighPrec is used
    if(       _mtrl_index.saveData(f           ))
@@ -2074,30 +2074,30 @@ Bool Heightmap::load(File &f, CChar *path)
 
       case 2:
       {
-         if(_height   .loadData(f))
-         if(LoadAs(_color     , f, IMAGE_R8G8B8_SRGB))
-         if(LoadAs(_mtrl_index, f, IMAGE_R8G8B8A8   ))
-         if(LoadAs(_mtrl_blend, f, IMAGE_R8G8B8A8   ))
+         if(          _height   ._loadData(f))
+         if(LoadOldAs(_color     , f, IMAGE_R8G8B8_SRGB))
+         if(LoadOldAs(_mtrl_index, f, IMAGE_R8G8B8A8   ))
+         if(LoadOldAs(_mtrl_blend, f, IMAGE_R8G8B8A8   ))
          if(_materials.load    (f, path))
             if(f.ok())return true;
       }break;
 
       case 1:
       {
-         if(       _height    .loadData(f)           )
-         if(LoadAs(_color     , f, IMAGE_R8G8B8_SRGB))
-         if(LoadAs(_mtrl_index, f, IMAGE_R8G8B8     ))if(AddEmptyAlpha(_mtrl_index))
-         if(LoadAs(_mtrl_blend, f, IMAGE_R8G8B8     ))if(AddEmptyAlpha(_mtrl_blend))
+         if(          _height    ._loadData(f))
+         if(LoadOldAs(_color     , f, IMAGE_R8G8B8_SRGB))
+         if(LoadOldAs(_mtrl_index, f, IMAGE_R8G8B8     ))if(AddEmptyAlpha(_mtrl_index))
+         if(LoadOldAs(_mtrl_blend, f, IMAGE_R8G8B8     ))if(AddEmptyAlpha(_mtrl_blend))
          if(_materials.load(f, path))
             if(f.ok())return true;
       }break;
 
       case 0:
       {
-         if(       _height    .loadData(f)           )
-         if(LoadAs(_color     , f, IMAGE_R8G8B8_SRGB))
-         if(LoadAs(_mtrl_index, f, IMAGE_B8G8R8     ))
-         if(LoadAs(_mtrl_blend, f, IMAGE_R8G8B8     ))
+         if(          _height    ._loadData(f))
+         if(LoadOldAs(_color     , f, IMAGE_R8G8B8_SRGB))
+         if(LoadOldAs(_mtrl_index, f, IMAGE_B8G8R8     ))
+         if(LoadOldAs(_mtrl_blend, f, IMAGE_R8G8B8     ))
          {
             if(_mtrl_index.hwType()==IMAGE_B8G8R8)_mtrl_index._type=_mtrl_index._hw_type=IMAGE_R8G8B8; // old version used 'IMAGE_B8G8R8' and the index for the first material was stored in first byte which is blue
             if(_materials.loadOld(f, path))

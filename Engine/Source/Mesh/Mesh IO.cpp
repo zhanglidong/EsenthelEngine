@@ -645,7 +645,7 @@ Bool MeshPart::loadData(File &f, CChar *path)
 
       case 6:
       {
-         f._getStr2(name).getMulti(part_flag, _vtx_heightmap, _draw_mask, _draw_mask_enum_id);
+         f._getStr1(name).getMulti(part_flag, _vtx_heightmap, _draw_mask, _draw_mask_enum_id);
         _materials[0].require(f.getAssetID(), path);
         _materials[1].require(f.getAssetID(), path);
         _materials[2].require(f.getAssetID(), path);

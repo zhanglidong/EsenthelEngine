@@ -560,6 +560,8 @@ struct Image // Image (Texture)
 #if EE_PRIVATE
    Bool saveData (  File &f                                         )C; // save, false on fail
    Bool loadData (  File &f, ImageHeader *header=null, C Str &name=S) ; // load, false on fail
+
+   Bool _loadData(  File &f, ImageHeader *header=null, C Str &name=S) ; // load, false on fail - Deprecated do not use !!
 #endif
    Bool save     (C Str  &name)C; // save, false on fail
    Bool load     (C Str  &name) ; // load, false on fail
