@@ -745,9 +745,8 @@ struct FontDraw
 
                if(sub_pixel)
                {
-                  Vec4 d=T.dest.colorF(x, y);
-                  Vec4 out;
                   c*=color.w;
+                  Vec4 d=T.dest.colorF(x, y), out;
                   out.xyz=c.xyz*color.xyz + d.xyz*(1-c.xyz);
                   out.w  =c.w             + d.w  *(1-c.w  );
                   T.dest.colorF(x, y, out);
