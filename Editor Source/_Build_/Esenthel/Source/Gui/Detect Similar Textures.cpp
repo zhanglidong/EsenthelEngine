@@ -112,10 +112,10 @@ DetectSimilarTextures DST;
          Elm &elm=Proj.elms[i];
          if(ElmMaterial *mtrl_data=elm.mtrlData())if(mtrl_data->base_1_tex.valid())
          {
-            int texs_i; if(texs.binarySearch(mtrl_data->base_1_tex, texs_i, Compare))proj_texs[texs_i].mtrl_base_1=true;
+            int texs_i; if(texs.binarySearch(mtrl_data->base_1_tex, texs_i))proj_texs[texs_i].mtrl_base_1=true;
          }
       }
-      REPA(loaded_texs)if(!texs.binaryHas(loaded_texs.lockedKey(i), Compare))loaded_texs.remove(i); // remove loaded textures if they're no longer present in the project
+      REPA(loaded_texs)if(!texs.binaryHas(loaded_texs.lockedKey(i)))loaded_texs.remove(i); // remove loaded textures if they're no longer present in the project
 
       // request compare on all loaded textures up to this point
       Memt<Threads::Call> calls;

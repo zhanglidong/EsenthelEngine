@@ -238,7 +238,7 @@ class Client : ConnectionServer.Client
             case CS_SET_TEXTURE: if(user && user.canWrite() && project)
             {
                UID tex_id; File cmpr_tex_data; ServerRecvSetTexture(connection.data, tex_id, cmpr_tex_data.writeMem());
-               if(project.texs.binaryInclude(tex_id, Compare))
+               if(project.texs.binaryInclude(tex_id))
                {
                   cmpr_tex_data.pos(0); SafeOverwrite(cmpr_tex_data, project.tex_path+EncodeFileName(tex_id));
                   Server.distributeTex(tex_id, project, this);
@@ -453,7 +453,7 @@ class Client : ConnectionServer.Client
             case CS_GET_MINI_MAP_IMAGES: if(user && project)
             {
                UID mini_map_id; Memc<VecI2> images; ServerRecvGetMiniMapImages(connection.data, mini_map_id, images);
-               if(MiniMapSync *mms=mini_map_sync.get(mini_map_id))FREPA(images)mms.images.binaryInclude(images[i], Compare);
+               if(MiniMapSync *mms=mini_map_sync.get(mini_map_id))FREPA(images)mms.images.binaryInclude(images[i]);
             }break;
 
             case CS_SET_MINI_MAP_SETTINGS: if(user && user.canWrite() && project)
@@ -582,7 +582,7 @@ class Client : ConnectionServer.Client
          if(send_tex.elms() && smallBuf())
          {
             UID tex_id=send_tex.first(); send_tex.remove(0, true);
-            if( project.texs.binaryHas(tex_id, Compare))
+            if(project.texs.binaryHas(tex_id))
             {
                File data; data.readTry(project.tex_path+EncodeFileName(tex_id)); data.pos(0);
                File f; ServerWriteSetTexture(f.writeMem(), tex_id, data, project.id); f.pos(0); connection.send(f, -1, false);

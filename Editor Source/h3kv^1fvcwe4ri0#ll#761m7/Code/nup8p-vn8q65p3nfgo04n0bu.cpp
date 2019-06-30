@@ -428,7 +428,7 @@ class ElmMesh : ElmData
    bool equal(C ElmMesh &src)C {return super.equal(src) && file_time==src.file_time && body_time==src.body_time && draw_group_time==src.draw_group_time && transform_time==src.transform_time && EqualID(obj_id, src.obj_id) && EqualID(skel_id, src.skel_id) && EqualID(phys_id, src.phys_id);}
    bool newer(C ElmMesh &src)C {return super.newer(src) || file_time> src.file_time || body_time> src.body_time || draw_group_time> src.draw_group_time || transform_time> src.transform_time || NewerID(obj_id, src.obj_id) || NewerID(skel_id, src.skel_id) || NewerID(phys_id, src.phys_id);}
 
-   virtual bool mayContain(C UID &id)C override {return id==obj_id || id==skel_id || id==phys_id || id==body_id || id==draw_group_id || mtrl_ids.binaryHas(id, Compare);}
+   virtual bool mayContain(C UID &id)C override {return id==obj_id || id==skel_id || id==phys_id || id==body_id || id==draw_group_id || mtrl_ids.binaryHas(id);}
    virtual void clearLinked()override {obj_id.zero(); skel_id.zero(); phys_id.zero();}
 
    flt  posScale    ()C {return 1/transform.scale;}
@@ -457,12 +457,12 @@ class ElmMesh : ElmData
                REP(4)if(C MaterialPtr &mtrl=part.multiMaterial(i))
                {
                   UID mtrl_id=mtrl.id();
-                  if( mtrl_id.valid())mtrl_ids.binaryInclude(mtrl_id, Compare);
+                  if( mtrl_id.valid())mtrl_ids.binaryInclude(mtrl_id);
                }
                REP(part.variations())if(i)if(C MaterialPtr &mtrl=part.variation(i))
                {
                   UID mtrl_id=mtrl.id();
-                  if( mtrl_id.valid())mtrl_ids.binaryInclude(mtrl_id, Compare);
+                  if( mtrl_id.valid())mtrl_ids.binaryInclude(mtrl_id);
                }
             }
          }
@@ -590,7 +590,7 @@ class ElmMesh : ElmData
          {
             FREPA(n.nodes) // get in order
             {
-               UID id; if(n.nodes[i].getValue(id) && id.valid())mtrl_ids.binaryInclude(id, Compare);
+               UID id; if(n.nodes[i].getValue(id) && id.valid())mtrl_ids.binaryInclude(id);
             }
          }
       }
@@ -638,12 +638,12 @@ class ElmMaterial : ElmData
    }
    virtual void listTexs(MemPtr<UID> texs)C override
    {
-      if(    base_0_tex.valid())texs.binaryInclude(    base_0_tex, Compare);
-      if(    base_1_tex.valid())texs.binaryInclude(    base_1_tex, Compare);
-      if(    detail_tex.valid())texs.binaryInclude(    detail_tex, Compare);
-      if(     macro_tex.valid())texs.binaryInclude(     macro_tex, Compare);
-      if(reflection_tex.valid())texs.binaryInclude(reflection_tex, Compare);
-      if(     light_tex.valid())texs.binaryInclude(     light_tex, Compare);
+      if(    base_0_tex.valid())texs.binaryInclude(    base_0_tex);
+      if(    base_1_tex.valid())texs.binaryInclude(    base_1_tex);
+      if(    detail_tex.valid())texs.binaryInclude(    detail_tex);
+      if(     macro_tex.valid())texs.binaryInclude(     macro_tex);
+      if(reflection_tex.valid())texs.binaryInclude(reflection_tex);
+      if(     light_tex.valid())texs.binaryInclude(     light_tex);
    }
 
    // operations
@@ -800,9 +800,9 @@ class ElmWaterMtrl : ElmData
    }
    virtual void listTexs(MemPtr<UID> texs)C override
    {
-      if(    base_0_tex.valid())texs.binaryInclude(    base_0_tex, Compare);
-      if(    base_1_tex.valid())texs.binaryInclude(    base_1_tex, Compare);
-      if(reflection_tex.valid())texs.binaryInclude(reflection_tex, Compare);
+      if(    base_0_tex.valid())texs.binaryInclude(    base_0_tex);
+      if(    base_1_tex.valid())texs.binaryInclude(    base_1_tex);
+      if(reflection_tex.valid())texs.binaryInclude(reflection_tex);
    }
 
    // operations
@@ -2260,7 +2260,7 @@ class ElmPanelImage : ElmData
    bool      compressed=false;
    Mems<UID> image_ids;
 
-   virtual bool mayContain(C UID &id)C override {return image_ids.binaryHas(id, Compare);}
+   virtual bool mayContain(C UID &id)C override {return image_ids.binaryHas(id);}
 
    // operations
    void from(C EditPanelImage &pi)
@@ -2313,7 +2313,7 @@ class ElmPanelImage : ElmData
          {
             FREPA(n.nodes) // add in order
             {
-               UID id; if(n.nodes[i].getValue(id) && id.valid())image_ids.binaryInclude(id, Compare);
+               UID id; if(n.nodes[i].getValue(id) && id.valid())image_ids.binaryInclude(id);
             }
          }
       }
@@ -2323,7 +2323,7 @@ class ElmPanel : ElmData
 {
    Mems<UID> image_ids;
 
-   virtual bool mayContain(C UID &id)C override {return image_ids.binaryHas(id, Compare);}
+   virtual bool mayContain(C UID &id)C override {return image_ids.binaryHas(id);}
 
    // operations
    void from(C EditPanel &panel)
@@ -2374,7 +2374,7 @@ class ElmPanel : ElmData
          {
             FREPA(n.nodes) // add in order
             {
-               UID id; if(n.nodes[i].getValue(id) && id.valid())image_ids.binaryInclude(id, Compare);
+               UID id; if(n.nodes[i].getValue(id) && id.valid())image_ids.binaryInclude(id);
             }
          }
       }
@@ -2385,7 +2385,7 @@ class ElmGuiSkin : ElmData
 {
    Mems<UID> elm_ids;
 
-   virtual bool mayContain(C UID &id)C override {return elm_ids.binaryHas(id, Compare);}
+   virtual bool mayContain(C UID &id)C override {return elm_ids.binaryHas(id);}
 
    // operations
    void from(C EditGuiSkin &pi)
@@ -2433,7 +2433,7 @@ class ElmGuiSkin : ElmData
          {
             FREPA(n.nodes) // add in order
             {
-               UID id; if(n.nodes[i].getValue(id) && id.valid())elm_ids.binaryInclude(id, Compare);
+               UID id; if(n.nodes[i].getValue(id) && id.valid())elm_ids.binaryInclude(id);
             }
          }
       }

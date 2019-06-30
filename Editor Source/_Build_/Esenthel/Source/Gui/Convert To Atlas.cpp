@@ -143,7 +143,7 @@ ConvertToAtlasClass ConvertToAtlas;
             MeshPart &part=lod.parts[i];
             MeshBase &base=part.base; if(base.vtx.tex0())REP(4)
             {
-               UID mtrl_id=part.multiMaterial(i).id(); if(mtrl_id.valid() && mtrl_ids.binaryHas(mtrl_id, Compare))
+               UID mtrl_id=part.multiMaterial(i).id(); if(mtrl_id.valid() && mtrl_ids.binaryHas(mtrl_id))
                {
                   base.explodeVtxs().fixTexOffset();
                   flt error=0; REPA(base.vtx)MAX(error, Dist(base.vtx.tex0(i), tex_rect)); // verify that all tex uv's are within allowed tex rect
@@ -163,15 +163,15 @@ ConvertToAtlasClass ConvertToAtlas;
    void ConvertToAtlasClass::convertMeshes(C UID &atlas_id)
    {
       MaterialPtr atlas_mtrl=Proj.gamePath(atlas_id);
-      Memc<UID> mtrl_ids, obj_ids; REPA(mtrls)mtrl_ids.binaryInclude(mtrls[i].id, Compare);
+      Memc<UID> mtrl_ids, obj_ids; REPA(mtrls)mtrl_ids.binaryInclude(mtrls[i].id);
       REPA(Proj.elms) // iterate all elements
       {
        C Elm &obj=Proj.elms[i]; if(C ElmObj *obj_data=obj.objData()) // if that's an object
          if(C Elm *mesh=Proj.findElm(obj_data->mesh_id))if(C ElmMesh *mesh_data=mesh->meshData())
          {
-            REPA(mesh_data->mtrl_ids)if(mtrl_ids.binaryHas(mesh_data->mtrl_ids[i], Compare)) // if that mesh has one of the materials
+            REPA(mesh_data->mtrl_ids)if(mtrl_ids.binaryHas(mesh_data->mtrl_ids[i])) // if that mesh has one of the materials
             {
-               obj_ids.binaryInclude(obj.id, Compare);
+               obj_ids.binaryInclude(obj.id);
                break;
             }
          }
@@ -257,8 +257,8 @@ ConvertToAtlasClass ConvertToAtlas;
             REPA(Proj.elms)
             {
                Elm &sub=Proj.elms[i]; int index;
-               if(non_atlased.binarySearch(sub.parent_id, index, Compare) // if is located in one of 'non_atlased'
-               && !mtrl_ids.binaryHas(sub.id, Compare) // this is not one of the original materials (let's keep original materials in objects)
+               if(non_atlased.binarySearch(sub.parent_id, index) // if is located in one of 'non_atlased'
+               && !mtrl_ids.binaryHas(sub.id) // this is not one of the original materials (let's keep original materials in objects)
                && ElmVisible(sub.type)) // this is not one of the special element of original object (mesh/skel/phys)
                {
                   sub.setParent(atlased[index], time); Server.setElmParent(sub);
@@ -269,7 +269,7 @@ ConvertToAtlasClass ConvertToAtlas;
          {
             REPA(mtrl_ids)if(Elm *mtrl=Proj.findElm(mtrl_ids[i]))
             {
-               int index; if(atlased.binarySearch(mtrl->parent_id, index, Compare)) // if is located in one of 'atlased'
+               int index; if(atlased.binarySearch(mtrl->parent_id, index)) // if is located in one of 'atlased'
                {
                   mtrl->setParent(non_atlased[index], time); Server.setElmParent(*mtrl);
                }
@@ -288,7 +288,7 @@ ConvertToAtlasClass ConvertToAtlas;
 
       if(mode==REPLACE_NO_PUBLISH || mode==REPLACE_REMOVE)REPA(Proj.elms) // move material sub elements to atlas
       {
-         Elm &sub=Proj.elms[i]; if(mtrl_ids.binaryHas(sub.parent_id, Compare))
+         Elm &sub=Proj.elms[i]; if(mtrl_ids.binaryHas(sub.parent_id))
          {
             sub.setParent(atlas_id, time); Server.setElmParent(sub);
          }
@@ -437,7 +437,7 @@ ConvertToAtlasClass ConvertToAtlas;
    void ConvertToAtlasClass::convertDo()
    {
       warning.hide();
-      Memc<UID> mtrl_ids; REPA(mtrls)mtrl_ids.binaryInclude(mtrls[i].id, Compare);
+      Memc<UID> mtrl_ids; REPA(mtrls)mtrl_ids.binaryInclude(mtrls[i].id);
 
       // check if can (meshes need to have non-wrapped UV's)
       errors.clear();
@@ -445,7 +445,7 @@ ConvertToAtlasClass ConvertToAtlas;
       {
          Elm &elm=Proj.elms[i]; if(ElmMesh *mesh_data=elm.meshData()) // if that's a mesh
          {
-            REPA(mesh_data->mtrl_ids)if(mtrl_ids.binaryHas(mesh_data->mtrl_ids[i], Compare)) // if that mesh has one of the materials
+            REPA(mesh_data->mtrl_ids)if(mtrl_ids.binaryHas(mesh_data->mtrl_ids[i])) // if that mesh has one of the materials
             {
                Mesh mesh; if(ObjEdit.mesh_elm==&elm)mesh.create(ObjEdit.mesh);else Load(mesh, Proj.editPath(elm.id), Proj.game_path); // load edit so we can have access to MeshBase
                setErrors(mesh, mtrl_ids, elm.id);

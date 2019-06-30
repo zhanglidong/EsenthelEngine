@@ -224,8 +224,8 @@ class TransformRegion : Region
                    C VecI2 &v=ObjEdit.sel_face[i]; if(MeshPart *part=ObjEdit.getPart(v.x))
                      {
                         MeshBase &base=part.base;
-                        if(v.y&SIGN_BIT){int f=v.y^SIGN_BIT; if(InRange(f, base.quad)){C VecI4 &q=base.quad.ind(f); REPA(q)vtxs.binaryInclude(VecI2(v.x, q.c[i]), Compare);}}
-                        else            {int f=v.y         ; if(InRange(f, base.tri )){C VecI  &t=base.tri .ind(f); REPA(t)vtxs.binaryInclude(VecI2(v.x, t.c[i]), Compare);}}
+                        if(v.y&SIGN_BIT){int f=v.y^SIGN_BIT; if(InRange(f, base.quad)){C VecI4 &q=base.quad.ind(f); REPA(q)vtxs.binaryInclude(VecI2(v.x, q.c[i]));}}
+                        else            {int f=v.y         ; if(InRange(f, base.tri )){C VecI  &t=base.tri .ind(f); REPA(t)vtxs.binaryInclude(VecI2(v.x, t.c[i]));}}
                      }
                   }
                   // add touching vertexes from other parts
@@ -242,7 +242,7 @@ class TransformRegion : Region
                {
                 C VecI2 &v=vtxs[i]; if(MeshPart *part=ObjEdit.getPart(v.x))
                   {
-                     parts.binaryInclude(v.x, Compare);
+                     parts.binaryInclude(v.x);
                      MeshBase &base=part.base; if(InRange(v.y, base.vtx))
                      {
                         if(trans_normal && base.vtx.pos() && base.vtx.nrm())base.vtx.pos(v.y)+=base.vtx.nrm(v.y)*trans_normal; // transform before transforming by matrix

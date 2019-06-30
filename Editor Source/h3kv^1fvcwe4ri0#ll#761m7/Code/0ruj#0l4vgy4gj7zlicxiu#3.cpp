@@ -711,7 +711,7 @@ bool UpdateMtrlBase1Tex(C Image &src, Image &dest)
          c.set(c.a, c.g, c.r, c.b);
          temp.color(x, y, c);
       }
-      return temp.copyTry(dest, -1, -1, -1, src.type()==IMAGE_BC3 ? IMAGE_BC7 : src.type(), src.mode(), src.mipMaps(), FILTER_BEST, IC_WRAP|IC_MTRL_BASE1);
+      return temp.copyTry(dest, -1, -1, -1, (src.type()==IMAGE_BC3 || src.type()==IMAGE_BC3_SRGB) ? IMAGE_BC7 : ImageTypeExcludeSRGB(src.type()), src.mode(), src.mipMaps(), FILTER_BEST, IC_WRAP|IC_MTRL_BASE1);
    }
    return false;
 }
@@ -1376,7 +1376,7 @@ Rect GetRect(C Rect &rect, Memt<Rect> &rects) // !! this will modify 'rects' !!
 /******************************************************************************/
 void Include(MemPtr<UID> ids, C UID &id)
 {
-   if(id.valid())ids.binaryInclude(id, Compare);
+   if(id.valid())ids.binaryInclude(id);
 }
 /******************************************************************************/
 bool Same(C Memc<UID> &a, C Memc<UID> &b)

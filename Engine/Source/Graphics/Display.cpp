@@ -930,7 +930,7 @@ void Display::createDevice()
          DXGI_FORMAT                                          mode=DXGI_FORMAT_R8G8B8A8_UNORM; // always use this mode in case system doesn't support 10-bit color
          UInt                                           descs_elms=0; output->GetDisplayModeList(mode, 0, &descs_elms, null); // get number of mode descs
          MemtN<DXGI_MODE_DESC, 128> descs; descs.setNum(descs_elms ); output->GetDisplayModeList(mode, 0, &descs_elms, descs.data()); // get mode descs
-         FREPA(descs)modes.binaryInclude(VecI2(descs[i].Width, descs[i].Height), Compare); // add from the start to avoid unnecessary memory moves
+         FREPA(descs)modes.binaryInclude(VecI2(descs[i].Width, descs[i].Height)); // add from the start to avoid unnecessary memory moves
          RELEASE(output);
       }
      _modes=modes;

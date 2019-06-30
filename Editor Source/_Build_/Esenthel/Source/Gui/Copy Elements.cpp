@@ -19,7 +19,7 @@ bool CopyElmsFunc(Thread &thread)
    {
       if(thread.wantStop())return false;
       UID id=CopyElms.texs_to_copy[i];
-      if(src.texs.binaryHas(id, Compare) && !dest.texs.binaryHas(id, Compare)) // if source has and dest doesn't
+      if(src.texs.binaryHas(id) && !dest.texs.binaryHas(id)) // if source has and dest doesn't
       {
          Str  sp=src.texPath(id), dp=dest.texPath(id);
          bool ok=false;
@@ -32,8 +32,9 @@ bool CopyElmsFunc(Thread &thread)
          }
          if(ok)
          {
-            dest.texs.binaryInclude(id, Compare); // include in dest on success
-            if(src.texs_update.binaryHas(id, Compare))dest.texs_update.binaryInclude(id, Compare);
+            dest.texs.binaryInclude(id); // include in dest on success
+            if(src.texs_update_base1.binaryHas(id))dest.texs_update_base1.binaryInclude(id);
+            if(src.texs_remove_srgb .binaryHas(id))dest.texs_remove_srgb .binaryInclude(id);
          }else goto error;
       }
       UpdateProgress.set(i, total);
@@ -163,9 +164,9 @@ void ShutCopyElms()
       FREPA(CopyElms.elms_replaced) // process only replaced elements, to avoid having to rebuild everything when just importing completely new elements to a project
          if(Elm *elm=CopyElms.dest->findElm(CopyElms.elms_replaced[i]))switch(elm->type)
       {
-         case ELM_MESH: CopyElms.dest->meshTransformChanged(*elm, CopyElms.changed_body.binaryHas(elm->id, Compare)); break; // need to call 'meshTransformChanged' in case mesh transform was changed and need to setup transform for skeletons/anims/phys/bodies, or if we need to rebuild world embedded objects
-         case ELM_SKEL: CopyElms.dest->skelTransformChanged( elm->id                                               ); break; // need to call 'skelTransformChanged' because 'meshTransformChanged' will not trigger this, since 'setSkelTransform' calls this only when it detects a transform change, however transform was already adjusted during copying
-         case ELM_MTRL: CopyElms.dest->mtrlSetAutoTanBin   ( elm->id                                               ); break;
+         case ELM_MESH: CopyElms.dest->meshTransformChanged(*elm, CopyElms.changed_body.binaryHas(elm->id)); break; // need to call 'meshTransformChanged' in case mesh transform was changed and need to setup transform for skeletons/anims/phys/bodies, or if we need to rebuild world embedded objects
+         case ELM_SKEL: CopyElms.dest->skelTransformChanged( elm->id                                      ); break; // need to call 'skelTransformChanged' because 'meshTransformChanged' will not trigger this, since 'setSkelTransform' calls this only when it detects a transform change, however transform was already adjusted during copying
+         case ELM_MTRL: CopyElms.dest->mtrlSetAutoTanBin   ( elm->id                                      ); break;
       }
    }
    CopyElms.elms_copied  .clear();
@@ -234,11 +235,11 @@ void DrawCopyElms()
                // remove those elements which are not selected
                list.sel.sort(Compare);
                FREPA(list) // iterate all elements
-                  if(!list.sel.binaryHas(i, Compare)) // if i-th element is not selected
+                  if(!list.sel.binaryHas(i)) // if i-th element is not selected
                      if(ElmListElm *data=list.absToData(i)) // get data of that element
                {
-                                     CopyElms.elms_to_copy.binaryExclude(data->id         , Compare); // don't copy that element
-                  REPA(data->children)CopyElms.elms_to_copy.binaryExclude(data->children[i], Compare); // don't copy its  children
+                                     CopyElms.elms_to_copy.binaryExclude(data->id         ); // don't copy that element
+                  REPA(data->children)CopyElms.elms_to_copy.binaryExclude(data->children[i]); // don't copy its  children
                }
 
                // start copying
@@ -343,23 +344,23 @@ void DrawCopyElms()
          int      child_i    =node.children [i];
          ElmNode &child      =src ->hierarchy[child_i];
          Elm     &elm        =src ->elms     [child_i];
-         bool     elm_sel    =sel .binaryHas(elm.id, Compare),
+         bool     elm_sel    =sel .binaryHas(elm.id),
                   elm_removed=(elm.removed() || parent_removed);
 
          if(elm_sel                          // if this one is specifically selected
          || parent_selected && !elm_removed) // or parent is selected and this one is not removed
-            elms_to_copy.binaryInclude(elm.id, Compare);
+            elms_to_copy.binaryInclude(elm.id);
 
          floodSelected(child, elm_sel || parent_selected, elm_removed);
       }
    }
    void CopyElements::includeTex(C UID &tex_id)
    {
-      if(tex_id.valid())texs_to_copy.binaryInclude(tex_id, Compare);
+      if(tex_id.valid())texs_to_copy.binaryInclude(tex_id);
    }
    void CopyElements::includeDep(C UID &elm_id)
    {
-      if(elm_id.valid())if(processed_dep.binaryInclude(elm_id, Compare))if(Elm *elm=src->findElm(elm_id))switch(elm->type)
+      if(elm_id.valid())if(processed_dep.binaryInclude(elm_id))if(Elm *elm=src->findElm(elm_id))switch(elm->type)
       {
          case ELM_APP: if(ElmApp *data=elm->appData())
          {
@@ -582,7 +583,7 @@ void DrawCopyElms()
          Memc<UID> elms=elms_to_copy;
          for(; elms.elms(); )
          {
-            UID elm_id=elms.pop(); if(Elm *elm=Proj.findElm(elm_id))if(Proj.findElm(elm->parent_id))if(elms_to_copy.binaryInclude(elm->parent_id, Compare))elms.add(elm->parent_id);
+            UID elm_id=elms.pop(); if(Elm *elm=Proj.findElm(elm_id))if(Proj.findElm(elm->parent_id))if(elms_to_copy.binaryInclude(elm->parent_id))elms.add(elm->parent_id);
          }
       }
 
@@ -629,8 +630,8 @@ void DrawCopyElms()
             src->setHierarchy();
 
             // select all elements and textures to be copied
-            elms_to_copy.clear(); FREPA(src->elms)elms_to_copy.binaryInclude(src->elms[i].id, Compare);
-            texs_to_copy.clear(); FREPA(src->texs)texs_to_copy.binaryInclude(src->texs[i]   , Compare);
+            elms_to_copy.clear(); FREPA(src->elms)elms_to_copy.binaryInclude(src->elms[i].id);
+            texs_to_copy.clear(); FREPA(src->texs)texs_to_copy.binaryInclude(src->texs[i]   );
 
             if(Proj.valid()) // if there's a project opened, then import into that one
             {

@@ -582,7 +582,7 @@ class TextureDownsize : Viewport4Region
                {
                   Elm &elm=Proj.elms[i];
                   if(allow_removed || elm.finalExists())if(ElmObj *obj_data=elm.objData())if(Elm *mesh=Proj.findElm(obj_data.mesh_id))if(ElmMesh *mesh_data=mesh.meshData())
-                     REPA(mesh_data.mtrl_ids)if(mtrls.binaryHas(mesh_data.mtrl_ids[i], Compare)){secondary.add(elm.id); break;}
+                     REPA(mesh_data.mtrl_ids)if(mtrls.binaryHas(mesh_data.mtrl_ids[i])){secondary.add(elm.id); break;}
                }
             }
          }break;
@@ -593,7 +593,7 @@ class TextureDownsize : Viewport4Region
             {
             #if 0 // don't do this because this is sorted by ID, and we want to sort by Part/Variation
                if(Elm *mesh=Proj.findElm(obj_data.mesh_id))if(ElmMesh *mesh_data=mesh.meshData())
-               REPA(mesh_data.mtrl_ids)secondary.binaryInclude(mesh_data.mtrl_ids[i], Compare);
+               REPA(mesh_data.mtrl_ids)secondary.binaryInclude(mesh_data.mtrl_ids[i]);
             #else
                if(MeshPtr mesh=Proj.gamePath(obj_data.mesh_id))
                   FREPD (v, mesh->variations()) // iterate variations first

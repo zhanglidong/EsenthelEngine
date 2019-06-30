@@ -70,7 +70,7 @@ class ListElm
    }
    static Str TexSharp(C ListElm &data) {flt sharpness=data.texSharpness(); if(sharpness<2)return sharpness; return S;}
 
-   static void IncludeTex(Memt<UID> &texs, C UID &tex_id) {if(tex_id.valid())texs.binaryInclude(tex_id, Compare);}
+   static void IncludeTex(Memt<UID> &texs, C UID &tex_id) {if(tex_id.valid())texs.binaryInclude(tex_id);}
    static void IncludeTex(Memt<UID> &texs, C Elm &elm)
    {
       // material

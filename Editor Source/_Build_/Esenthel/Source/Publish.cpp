@@ -569,7 +569,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
    FREPA(publish_texs)
    {
     C Texture &tex=publish_texs[i]; const bool dynamic=tex.src_tex_id.valid();
-      if(Proj.texs.binaryHas(tex.id, Compare) || dynamic)
+      if(Proj.texs.binaryHas(tex.id) || dynamic)
       {
          PakFileData &pfd=files.New();
          pfd.name=S+"Tex/"+EncodeFileName(tex.id); // dest name
@@ -630,7 +630,7 @@ void SetPublishFiles(Memb<PakFileData> &files, Memc<ImageGenerate> &generate, Me
    {
       Project temp; temp=Proj;
       Memc<UID> remove; Proj.floodRemoved(remove, Proj.root); remove.sort(Compare);
-      REPA(temp.elms)if(remove.binaryHas(temp.elms[i].id, Compare))temp.elms.removeValid(i, true);
+      REPA(temp.elms)if(remove.binaryHas(temp.elms[i].id))temp.elms.removeValid(i, true);
       temp.getTextures(temp.texs); // keep only used textures
 
       // project "Data" file

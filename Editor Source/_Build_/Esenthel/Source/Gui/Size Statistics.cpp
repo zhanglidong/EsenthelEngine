@@ -177,7 +177,7 @@ SizeStatistics SizeStats;
          {
             case ELM_MTRL:
             {
-               if(!used_mtrls.binaryHas(elm.id, Compare))
+               if(!used_mtrls.binaryHas(elm.id))
                {
                   long size=FSize(Proj.gamePath(elm.id));
                   data.New().setElm(elm.id, size, size);

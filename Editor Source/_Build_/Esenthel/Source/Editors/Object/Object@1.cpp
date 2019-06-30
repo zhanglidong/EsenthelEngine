@@ -609,10 +609,10 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          getVtxNeighbors(lit, lit_vtx, lit_vf_part);
          if(lit.elms())
          {
-            REPA(lit){int vtx=lit[i]; VI.dot(sel_vtx.binaryHas(VecI2(lit_vf_part, vtx), Compare) ? SelColor : LitColor, pos[vtx], 0.005f);}
+            REPA(lit){int vtx=lit[i]; VI.dot(sel_vtx.binaryHas(VecI2(lit_vf_part, vtx)) ? SelColor : LitColor, pos[vtx], 0.005f);}
             VI.end();
          }
-         if(InRange(lit_vtx, part->base.vtx))part->base.vtx.pos(lit_vtx).draw(sel_vtx.binaryHas(VecI2(lit_vf_part, lit_vtx), Compare) ? SelColor : LitColor, 0.01f);
+         if(InRange(lit_vtx, part->base.vtx))part->base.vtx.pos(lit_vtx).draw(sel_vtx.binaryHas(VecI2(lit_vf_part, lit_vtx)) ? SelColor : LitColor, 0.01f);
 
          // faces
          getFaceNeighbors(lit, lit_face, lit_vf_part);
@@ -623,7 +623,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
             REPA(lit)
             {
                int    face=lit[i];
-             C Color &col =(sel_face.binaryHas(VecI2(lit_vf_part, face), Compare) ? sel_color : lit_color);
+             C Color &col =(sel_face.binaryHas(VecI2(lit_vf_part, face)) ? sel_color : lit_color);
                if(face&SIGN_BIT)
                {
                   int f=(face^SIGN_BIT); if(InRange(f, part->base.quad))
@@ -960,7 +960,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
             {
              C Vec &pos=part.base.vtx.pos(i); if(!vtxs_front() || frontFace(pos, part.base.vtx.nrm() ? &part.base.vtx.nrm(i) : null, cam))
                {
-                  Vec world_pos=pos*matrix; Vec2 s; if(PosToScreen(world_pos, s))if(Cuts(s, shape))vtxs.binaryInclude(VecI2(p, i), Compare);
+                  Vec world_pos=pos*matrix; Vec2 s; if(PosToScreen(world_pos, s))if(Cuts(s, shape))vtxs.binaryInclude(VecI2(p, i));
                }
             }
          }
@@ -1065,8 +1065,8 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
        C VecI2 &v=sel_face[i]; if(MeshPart *part=getPart(v.x))
          {
           C MeshBase &base=part->base;
-            if(v.y&SIGN_BIT){int f=v.y^SIGN_BIT; if(InRange(f, base.quad)){C VecI4 &q=base.quad.ind(f); REPA(q)vtxs.binaryInclude(VecI2(v.x, q.c[i]), Compare);}}
-            else            {int f=v.y         ; if(InRange(f, base.tri )){C VecI  &t=base.tri .ind(f); REPA(t)vtxs.binaryInclude(VecI2(v.x, t.c[i]), Compare);}}
+            if(v.y&SIGN_BIT){int f=v.y^SIGN_BIT; if(InRange(f, base.quad)){C VecI4 &q=base.quad.ind(f); REPA(q)vtxs.binaryInclude(VecI2(v.x, q.c[i]));}}
+            else            {int f=v.y         ; if(InRange(f, base.tri )){C VecI  &t=base.tri .ind(f); REPA(t)vtxs.binaryInclude(VecI2(v.x, t.c[i]));}}
          }
       }
    }
@@ -1087,7 +1087,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       {
        C Vec &pos=p->base.vtx.pos(i); REPAD(v, vtxs)
          {
-          C VecI2 &vtx=vtxs[v]; if(Equal(pos, lod.parts[vtx.x].base.vtx.pos(vtx.y))){vtxs.binaryInclude(VecI2(part, i), Compare); break;} // if share position then process this one too
+          C VecI2 &vtx=vtxs[v]; if(Equal(pos, lod.parts[vtx.x].base.vtx.pos(vtx.y))){vtxs.binaryInclude(VecI2(part, i)); break;} // if share position then process this one too
          }
       }
    }
@@ -1114,24 +1114,24 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    {
       if(part>=0)
       {
-         if(vtx >= 0)if(!same_pos)sel_vtx .binaryToggle(VecI2(part, vtx ), Compare);else{Memt<VecI2> vtxs; getSamePos(part, vtx, vtxs); REPA(vtxs)sel_vtx.binaryToggle(vtxs[i], Compare);}
-         if(face!=-1)             sel_face.binaryToggle(VecI2(part, face), Compare);
+         if(vtx >= 0)if(!same_pos)sel_vtx .binaryToggle(VecI2(part, vtx ));else{Memt<VecI2> vtxs; getSamePos(part, vtx, vtxs); REPA(vtxs)sel_vtx.binaryToggle(vtxs[i]);}
+         if(face!=-1)             sel_face.binaryToggle(VecI2(part, face));
       }
    }
    void ObjView::selVFInclude(int part, int vtx, int face, bool same_pos)
    {
       if(part>=0)
       {
-         if(vtx >= 0)if(!same_pos)sel_vtx .binaryInclude(VecI2(part, vtx ), Compare);else{Memt<VecI2> vtxs; getSamePos(part, vtx, vtxs); REPA(vtxs)sel_vtx.binaryInclude(vtxs[i], Compare);}
-         if(face!=-1)             sel_face.binaryInclude(VecI2(part, face), Compare);
+         if(vtx >= 0)if(!same_pos)sel_vtx .binaryInclude(VecI2(part, vtx ));else{Memt<VecI2> vtxs; getSamePos(part, vtx, vtxs); REPA(vtxs)sel_vtx.binaryInclude(vtxs[i]);}
+         if(face!=-1)             sel_face.binaryInclude(VecI2(part, face));
       }
    }
    void ObjView::selVFExclude(int part, int vtx, int face, bool same_pos)
    {
       if(part>=0)
       {
-         if(vtx >= 0)if(!same_pos)sel_vtx .binaryExclude(VecI2(part, vtx ), Compare);else{Memt<VecI2> vtxs; getSamePos(part, vtx, vtxs); REPA(vtxs)sel_vtx.binaryExclude(vtxs[i], Compare);}
-         if(face!=-1)             sel_face.binaryExclude(VecI2(part, face), Compare);
+         if(vtx >= 0)if(!same_pos)sel_vtx .binaryExclude(VecI2(part, vtx ));else{Memt<VecI2> vtxs; getSamePos(part, vtx, vtxs); REPA(vtxs)sel_vtx.binaryExclude(vtxs[i]);}
+         if(face!=-1)             sel_face.binaryExclude(VecI2(part, face));
       }
    }
    void ObjView::selVFDo()
@@ -1157,8 +1157,8 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
          {
           C MeshLod &lod=getLod(); REPA(lod)if(partVisible(i, lod.parts[i]))includeSamePos(i, vtxs);
          }
-         if(include)REPA(vtxs)sel_vtx.binaryInclude(vtxs[i], Compare);
-         else       REPA(vtxs)sel_vtx.binaryExclude(vtxs[i], Compare);
+         if(include)REPA(vtxs)sel_vtx.binaryInclude(vtxs[i]);
+         else       REPA(vtxs)sel_vtx.binaryExclude(vtxs[i]);
       }
    }
    void ObjView::selUndo()
@@ -2551,7 +2551,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
                {
                 C VecI2 &vtx=vtxs[i]; if(mesh_parts.partOp(vtx.x))if(MeshPart *part=getPart(vtx.x))
                   {
-                     parts.binaryInclude(vtx.x, Compare);
+                     parts.binaryInclude(vtx.x);
                      MeshBase &base=part->base;
                      if(add) // if adding then create and setup vertex data if needed
                      {

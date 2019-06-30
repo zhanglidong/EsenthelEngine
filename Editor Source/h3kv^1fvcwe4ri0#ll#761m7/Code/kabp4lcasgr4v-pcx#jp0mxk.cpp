@@ -964,7 +964,7 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
           C UID &mtrl_id=mesh_data.mtrl_ids[i];
             REPA(Proj.elms) // check other meshes
             {
-               Elm &elm_other=Proj.elms[i]; if(ElmMesh *mesh_data=elm_other.meshData())if(&elm_other!=&elm)if(mesh_data.mtrl_ids.binaryHas(mtrl_id, Compare))goto used;
+               Elm &elm_other=Proj.elms[i]; if(ElmMesh *mesh_data=elm_other.meshData())if(&elm_other!=&elm)if(mesh_data.mtrl_ids.binaryHas(mtrl_id))goto used;
             }
             if(Elm *mtrl_elm=Proj.findElm(mtrl_id, ELM_MTRL))if(Elm *obj=Proj.meshToObjElm(&elm))mtrl_elm.setParent(obj); // set to object
          used:;

@@ -342,7 +342,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmMesh::equal(C ElmMesh &src)C {return ::ElmData::equal(src) && file_time==src.file_time && body_time==src.body_time && draw_group_time==src.draw_group_time && transform_time==src.transform_time && EqualID(obj_id, src.obj_id) && EqualID(skel_id, src.skel_id) && EqualID(phys_id, src.phys_id);}
    bool ElmMesh::newer(C ElmMesh &src)C {return ::ElmData::newer(src) || file_time> src.file_time || body_time> src.body_time || draw_group_time> src.draw_group_time || transform_time> src.transform_time || NewerID(obj_id, src.obj_id) || NewerID(skel_id, src.skel_id) || NewerID(phys_id, src.phys_id);}
-   bool ElmMesh::mayContain(C UID &id)C {return id==obj_id || id==skel_id || id==phys_id || id==body_id || id==draw_group_id || mtrl_ids.binaryHas(id, Compare);}
+   bool ElmMesh::mayContain(C UID &id)C {return id==obj_id || id==skel_id || id==phys_id || id==body_id || id==draw_group_id || mtrl_ids.binaryHas(id);}
    void ElmMesh::clearLinked(){obj_id.zero(); skel_id.zero(); phys_id.zero();}
    flt  ElmMesh::posScale()C {return 1/transform.scale;}
    flt  ElmMesh::vtxDupPosEps()C {return VtxDupPosEps*posScale();}
@@ -368,12 +368,12 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
                REP(4)if(C MaterialPtr &mtrl=part.multiMaterial(i))
                {
                   UID mtrl_id=mtrl.id();
-                  if( mtrl_id.valid())mtrl_ids.binaryInclude(mtrl_id, Compare);
+                  if( mtrl_id.valid())mtrl_ids.binaryInclude(mtrl_id);
                }
                REP(part.variations())if(i)if(C MaterialPtr &mtrl=part.variation(i))
                {
                   UID mtrl_id=mtrl.id();
-                  if( mtrl_id.valid())mtrl_ids.binaryInclude(mtrl_id, Compare);
+                  if( mtrl_id.valid())mtrl_ids.binaryInclude(mtrl_id);
                }
             }
          }
@@ -499,7 +499,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          {
             FREPA(n.nodes) // get in order
             {
-               UID id; if(n.nodes[i].getValue(id) && id.valid())mtrl_ids.binaryInclude(id, Compare);
+               UID id; if(n.nodes[i].getValue(id) && id.valid())mtrl_ids.binaryInclude(id);
             }
          }
       }
@@ -532,12 +532,12 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmMaterial::listTexs(MemPtr<UID> texs)C 
 {
-      if(    base_0_tex.valid())texs.binaryInclude(    base_0_tex, Compare);
-      if(    base_1_tex.valid())texs.binaryInclude(    base_1_tex, Compare);
-      if(    detail_tex.valid())texs.binaryInclude(    detail_tex, Compare);
-      if(     macro_tex.valid())texs.binaryInclude(     macro_tex, Compare);
-      if(reflection_tex.valid())texs.binaryInclude(reflection_tex, Compare);
-      if(     light_tex.valid())texs.binaryInclude(     light_tex, Compare);
+      if(    base_0_tex.valid())texs.binaryInclude(    base_0_tex);
+      if(    base_1_tex.valid())texs.binaryInclude(    base_1_tex);
+      if(    detail_tex.valid())texs.binaryInclude(    detail_tex);
+      if(     macro_tex.valid())texs.binaryInclude(     macro_tex);
+      if(reflection_tex.valid())texs.binaryInclude(reflection_tex);
+      if(     light_tex.valid())texs.binaryInclude(     light_tex);
    }
    void ElmMaterial::from(C EditMaterial &src)
    {
@@ -672,9 +672,9 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmWaterMtrl::listTexs(MemPtr<UID> texs)C 
 {
-      if(    base_0_tex.valid())texs.binaryInclude(    base_0_tex, Compare);
-      if(    base_1_tex.valid())texs.binaryInclude(    base_1_tex, Compare);
-      if(reflection_tex.valid())texs.binaryInclude(reflection_tex, Compare);
+      if(    base_0_tex.valid())texs.binaryInclude(    base_0_tex);
+      if(    base_1_tex.valid())texs.binaryInclude(    base_1_tex);
+      if(reflection_tex.valid())texs.binaryInclude(reflection_tex);
    }
    void ElmWaterMtrl::from(C EditWaterMtrl &src)
    {
@@ -1889,7 +1889,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          if(n.name=="Font")n.getValue(font_id);
       }
    }
-   bool ElmPanelImage::mayContain(C UID &id)C {return image_ids.binaryHas(id, Compare);}
+   bool ElmPanelImage::mayContain(C UID &id)C {return image_ids.binaryHas(id);}
    void ElmPanelImage::from(C EditPanelImage &pi)
    {
       Memt<UID> temp; pi.base.includeIDs(temp); image_ids=temp;
@@ -1938,12 +1938,12 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          {
             FREPA(n.nodes) // add in order
             {
-               UID id; if(n.nodes[i].getValue(id) && id.valid())image_ids.binaryInclude(id, Compare);
+               UID id; if(n.nodes[i].getValue(id) && id.valid())image_ids.binaryInclude(id);
             }
          }
       }
    }
-   bool ElmPanel::mayContain(C UID &id)C {return image_ids.binaryHas(id, Compare);}
+   bool ElmPanel::mayContain(C UID &id)C {return image_ids.binaryHas(id);}
    void ElmPanel::from(C EditPanel &panel)
    {
       Memt<UID> temp; panel.includeIDs(temp); image_ids=temp;
@@ -1990,12 +1990,12 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          {
             FREPA(n.nodes) // add in order
             {
-               UID id; if(n.nodes[i].getValue(id) && id.valid())image_ids.binaryInclude(id, Compare);
+               UID id; if(n.nodes[i].getValue(id) && id.valid())image_ids.binaryInclude(id);
             }
          }
       }
    }
-   bool ElmGuiSkin::mayContain(C UID &id)C {return elm_ids.binaryHas(id, Compare);}
+   bool ElmGuiSkin::mayContain(C UID &id)C {return elm_ids.binaryHas(id);}
    void ElmGuiSkin::from(C EditGuiSkin &pi)
    {
       Memt<UID> temp; pi.base.includeIDs(temp); elm_ids=temp;
@@ -2039,7 +2039,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          {
             FREPA(n.nodes) // add in order
             {
-               UID id; if(n.nodes[i].getValue(id) && id.valid())elm_ids.binaryInclude(id, Compare);
+               UID id; if(n.nodes[i].getValue(id) && id.valid())elm_ids.binaryInclude(id);
             }
          }
       }

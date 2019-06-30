@@ -183,7 +183,7 @@
                   MemtN<int, 256> fingers;
                   FREP(bone.children_num)
                      if(SkelBone *child=skel.bones.addr(bone.children_offset+i))
-                        if(child->type==BONE_FINGER)fingers.binaryInclude(int(child->type_index), Compare);
+                        if(child->type==BONE_FINGER)fingers.binaryInclude(int(child->type_index));
                   if(fingers.elms())
                   {
                      int mid=DivRound(fingers.elms()-1, 2), // use -1 and DivRound to get: 0 for 1 fingers, 1 for 2/3 fingers (to avoid thumbs), and 2 for 4/5 fingers

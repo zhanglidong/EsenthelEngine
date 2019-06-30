@@ -960,7 +960,7 @@ MeshBase& MeshBase::quadToTri(Flt cos)
 }
 MeshBase& MeshBase::quadToTri(C MemPtr<Int> &quads)
 {
-   Memt<Int> actual_quads; FREPA(quads){Int q=quads[i]; if(InRange(q, T.quad))actual_quads.binaryInclude(q, Compare);}
+   Memt<Int> actual_quads; FREPA(quads){Int q=quads[i]; if(InRange(q, T.quad))actual_quads.binaryInclude(q);}
    if(       actual_quads.elms())
    {
       if(tris() && !tri.nrm() && quad.nrm())setFaceNormals(); // if there are tris, and quads have normals but tris don't, then set normals for tris

@@ -652,7 +652,7 @@ class ImporterClass
       if(tex_id.valid())
       {
          SyncLocker locker(lock);
-         return texs.binaryInclude(tex_id, Compare);
+         return texs.binaryInclude(tex_id);
       }
       return false;
    }
@@ -661,7 +661,7 @@ class ImporterClass
       if(tex_id.valid())
       {
          SyncLocker locker(lock);
-         texs.binaryExclude(tex_id, Compare);
+         texs.binaryExclude(tex_id);
       }
    }
    void clearProj()
@@ -702,7 +702,7 @@ class ImporterClass
       {
          Import &import=imports[i]; // remember that this 'import' may be processed on secondary thread
          if(import.mode==UPDATE // only this mode operates on 'elm_id' while others treat it as target
-         && sorted_elm_ids.binaryHas(import.elm_id, Compare))
+         && sorted_elm_ids.binaryHas(import.elm_id))
          {
             if(threads.cancel(import, ImportDo, T))import.status=0; // if succesfully canceled, then mark as finished, otherwise we need to wait until it will finish on its own
             import.cancel=true;
@@ -719,7 +719,7 @@ class ImporterClass
          REPA(import_queue)
          {
             ImportElm &import=import_queue[i];
-            if(sorted.binaryHas(import.elm_id, Compare))
+            if(sorted.binaryHas(import.elm_id))
             {
                if(import.remember_result)*import_results(import.elm_id)=Edit.RELOAD_CANCELED; // if wanted to remember result, then set as canceled
                import_queue.remove(i, true);
@@ -757,13 +757,13 @@ class ImporterClass
             Import &import=imports[i]; // remember that this 'import' may be processed on secondary thread
             if(import.mode==UPDATE // only this mode operates on 'elm_id' while others treat it as target
             && import.remember_result // if wanted to remember the result
-            && sorted.binaryHas(import.elm_id, Compare))import.remember_result=false;
+            && sorted.binaryHas(import.elm_id))import.remember_result=false;
          }
          REPA(import_queue)
          {
             ImportElm &import=import_queue[i];
             if(import.remember_result
-            && sorted.binaryHas(import.elm_id, Compare))import.remember_result=false;
+            && sorted.binaryHas(import.elm_id))import.remember_result=false;
          }
          clearImportResults(sorted);
       }

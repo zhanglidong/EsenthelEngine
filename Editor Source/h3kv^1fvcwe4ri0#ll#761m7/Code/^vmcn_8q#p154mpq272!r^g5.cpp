@@ -50,7 +50,7 @@ class ClientServer : ConnectionServer // server class that manages all client co
    }
    void distributeMiniMapImage(C UID &mini_map_id, C VecI2 &image_xy, Project *project, .Client *except) // distribute mini map image to all clients (except 'except') operating on 'project'
    {
-      REPA(clients){.Client &client=T.client(i); if(client.project==project && &client!=except)if(.Client.MiniMapSync *mms=client.mini_map_sync.get(mini_map_id))mms.images.binaryInclude(image_xy, Compare);}
+      REPA(clients){.Client &client=T.client(i); if(client.project==project && &client!=except)if(.Client.MiniMapSync *mms=client.mini_map_sync.get(mini_map_id))mms.images.binaryInclude(image_xy);}
    }
 
    // operations

@@ -110,7 +110,7 @@ WorldView WorldEdit;
    void WorldView::ShowObjTerrain(WorldView &world) {world.show_obj_access[OBJ_ACCESS_TERRAIN]=world.show_menu.menu("Objects/Terrain"); world.setObjVisibility();}
    void WorldView::ShowObjGrass(WorldView &world) {world.show_obj_access[OBJ_ACCESS_GRASS  ]=world.show_menu.menu("Objects/Grass"  ); world.setObjVisibility();}
    void WorldView::ShowObjCustom(WorldView &world) {world.show_obj_access[OBJ_ACCESS_CUSTOM ]=world.show_menu.menu("Objects/Custom" ); world.setObjVisibility();}
-   void WorldView::ShowObjClass(UID       &id   ) {WorldEdit.hide_obj_classes.binaryToggle(id, Compare);                          WorldEdit.setObjVisibility();}
+   void WorldView::ShowObjClass(UID       &id   ) {WorldEdit.hide_obj_classes.binaryToggle(id);                                   WorldEdit.setObjVisibility();}
    void WorldView::ShowWaypointList(WorldView &world) {world.waypoint_list.push();}
    void WorldView::ModeChanged(WorldView &world) {world.modeChanged();}
    void WorldView::ObjOpChanged(WorldView &world) {world.obj_pos.apply();}
@@ -826,7 +826,7 @@ WorldView WorldEdit;
          {
             elms.New();
             Memt<IDName> classes; FREPA(Proj.existing_obj_classes)if(Elm *obj_class=Proj.findElm(Proj.existing_obj_classes[i]))classes.New().set(obj_class->id, obj_class->name); classes.sort(IDName::CompareName);
-            FREPA(classes)elms.New().create(classes[i].name, ShowObjClass, show_menu_objs_id.New()=classes[i].id).flag(MENU_TOGGLABLE).setOn(!hide_obj_classes.binaryHas(classes[i].id, Compare));
+            FREPA(classes)elms.New().create(classes[i].name, ShowObjClass, show_menu_objs_id.New()=classes[i].id).flag(MENU_TOGGLABLE).setOn(!hide_obj_classes.binaryHas(classes[i].id));
          }
          show_menu_objs->setData(elms);
       }

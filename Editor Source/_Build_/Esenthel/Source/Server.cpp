@@ -92,7 +92,7 @@ ServerClass Server;
    void ServerClass::getElmShort(Memc<UID> &elms                                    ) {if(canRead ())ClientSendGetElmShort  (T, elms);}
    void ServerClass::getElmLong(Memc<UID> &elms                                    ) {if(canRead ())ClientSendGetElmLong   (T, elms);}
    void ServerClass::getElmLong(   C UID  &elm_id                                  ) {Memc<UID> elms; elms.add(elm_id); getElmLong(elms);}
-   void ServerClass::setTex(C UID &tex_id) {if(canWrite() && tex_id.valid() && texs.binaryInclude(tex_id, Compare))Synchronizer.setTex(tex_id);}
+   void ServerClass::setTex(C UID &tex_id) {if(canWrite() && tex_id.valid() && texs.binaryInclude(tex_id))Synchronizer.setTex(tex_id);}
    void ServerClass::setElmShort(C UID &elm_id) {if(canWrite())Synchronizer.setElmShort(elm_id);}
    void ServerClass::setElmLong(C UID &elm_id) {if(canWrite())Synchronizer.setElmLong (elm_id);}
    void ServerClass::setElmFull(C UID &elm_id) {if(canWrite())Synchronizer.setElmFull (elm_id);}

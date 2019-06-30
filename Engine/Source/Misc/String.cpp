@@ -3893,8 +3893,8 @@ static void GenMap()
    FREP(65536)
    {
       U16 l=towlower(i), u=towupper(i);
-      if( l!=i)dus.binaryInclude(VecI2(l, i), Compare);
-      if( i!=u)dus.binaryInclude(VecI2(i, u), Compare);
+      if( l!=i)dus.binaryInclude(VecI2(l, i));
+      if( i!=u)dus.binaryInclude(VecI2(i, u));
    }
    s+="static const U16 DownUps[][2]={";
    FREPA(dus){if(i)s+=", "; s+=dus[i].x; s+=','; s+=dus[i].y;}

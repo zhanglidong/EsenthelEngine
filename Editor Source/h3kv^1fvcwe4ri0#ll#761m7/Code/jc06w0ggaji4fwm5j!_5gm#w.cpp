@@ -666,9 +666,9 @@ class EditorServer : Edit.EditorServer
                         {
                            Obj &src=Selection[i];
                            if(src.area)
-                           if(include_removed ? true                                              : !src.removed)
-                           if(limit_areas     ? Cuts(src.area.xy, areas)                          : true        )
-                           if(limit_obj_ids   ? world_obj_instance_ids.binaryHas(src.id, Compare) : true        )
+                           if(include_removed ? true                                     : !src.removed)
+                           if(limit_areas     ? Cuts(src.area.xy, areas)                 : true        )
+                           if(limit_obj_ids   ? world_obj_instance_ids.binaryHas(src.id) : true        )
                            {
                               Edit.WorldObjDesc &obj=objs.New();
                               obj.instance_id=src.id;
@@ -771,7 +771,7 @@ class EditorServer : Edit.EditorServer
                      Memc<VecI2> areas;
                      REPA(world_obj_instance_ids)
                         if(C ObjVer *src=world_ver.obj.find(world_obj_instance_ids[i]))
-                           areas.binaryInclude(src.area_xy, Compare);
+                           areas.binaryInclude(src.area_xy);
                      world_obj_instance_ids.sort(Compare); // sort obj id's because that's required for the 'objGet' below
                      Memc<ObjData> area_objs;
                      FREPA(areas)

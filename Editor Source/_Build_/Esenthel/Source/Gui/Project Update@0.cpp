@@ -34,7 +34,7 @@ bool UpdateProjectUpdate()
       SetProjectState();
    }
 
-   UpdateProgress.set(ProjUpdate.texs.elms()-WorkerThreads.queued(), ProjUpdate.texs.elms());
+   UpdateProgress.set(ProjUpdate.total()-WorkerThreads.queued(), ProjUpdate.total());
    WindowSetProgress(UpdateProgress());
    Time.wait(1000/30);
      //Gui.update(); this may cause conflicts with 'Proj.elmChanged'

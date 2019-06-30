@@ -121,7 +121,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
       Vec2 size (ScreenToPosD(Vec2(rect.w(), 0), depth).length(),
                  ScreenToPosD(Vec2(0, rect.h()), depth).length());
 
-      Matrix m(1); if(transform_ids.binaryHas(elm_id, Compare))m=transform_matrix;
+      Matrix m(1); if(transform_ids.binaryHas(elm_id))m=transform_matrix;
       if(options.center)
       {
          m.move(-box.center()); box-=box.center(); // move so it's at the center
@@ -394,7 +394,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
       if(refresh&REFRESH_DATA)
       {
          // save selection
-         Memt<UID> sel; sel.reserve(list.sel.elms()); FREPA(list.sel)if(ListElm *elm=list.absToData(list.sel[i]))sel.binaryInclude(elm->id, Compare);
+         Memt<UID> sel; sel.reserve(list.sel.elms()); FREPA(list.sel)if(ListElm *elm=list.absToData(list.sel[i]))sel.binaryInclude(elm->id);
 
          data.clear();
          if(!Proj.filter_is_id)listElms(Proj.root);else
@@ -402,7 +402,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
          list.setData(data);
 
          // restore selection
-         list.sel.clear(); if(sel.elms())FREPA(data)if(sel.binaryHas(data[i].id, Compare))list.sel.add(i);
+         list.sel.clear(); if(sel.elms())FREPA(data)if(sel.binaryHas(data[i].id))list.sel.add(i);
       }
 
       list.imageSize(size, 0).horizontal(options.horizontal);
@@ -440,7 +440,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
                {
                   transform_ids.clear();
                   if(!list.sel.has(list.visToAbs(list.lit)))list.sel.clear(); // if highlited is not selected, then clear selection
-                  FREPA(list.sel)if(ListElm *elm=list.absToData(list.sel[i]))transform_ids.binaryInclude(elm->id, Compare);
+                  FREPA(list.sel)if(ListElm *elm=list.absToData(list.sel[i]))transform_ids.binaryInclude(elm->id);
                   if(!transform_ids.elms())if(ListElm *elm=list.visToData(list.lit))transform_ids.add(elm->id);
                   transform_rotate_y=0;
                   transform_rotate_y_frac=0;

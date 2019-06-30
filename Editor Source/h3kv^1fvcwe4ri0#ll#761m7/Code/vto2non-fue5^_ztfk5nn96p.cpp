@@ -1,5 +1,5 @@
 /******************************************************************************/
-const uint ProjectVersion     =65, // !! increase this by one if any of engine/editor asset formats have changed !!
+const uint ProjectVersion     =66, // !! increase this by one if any of engine/editor asset formats have changed !!
            ClientServerVersion=61; // !! client/server version (client will fail if tries to connect to server compiled with different version), increase this by one if any of engine resource formats have changed or if the network protocol has changed or if editor classes formats have changed !!
 const Str  ClientServerString ="Esenthel Editor";
 /******************************************************************************/

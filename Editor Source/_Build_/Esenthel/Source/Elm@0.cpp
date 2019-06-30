@@ -99,7 +99,7 @@ TexInfoGetter TIG;
       return s;
    }
    Str ListElm::TexSharp(C ListElm &data) {flt sharpness=data.texSharpness(); if(sharpness<2)return sharpness; return S;}
-   void ListElm::IncludeTex(Memt<UID> &texs, C UID &tex_id) {if(tex_id.valid())texs.binaryInclude(tex_id, Compare);}
+   void ListElm::IncludeTex(Memt<UID> &texs, C UID &tex_id) {if(tex_id.valid())texs.binaryInclude(tex_id);}
    void ListElm::IncludeTex(Memt<UID> &texs, C Elm &elm)
    {
       // material

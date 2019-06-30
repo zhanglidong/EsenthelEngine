@@ -1,15 +1,19 @@
 /******************************************************************************/
 class ProjectUpdate
 {
-   Memc<UID> texs;
+   Memc<UID> texs_update_base1, texs_remove_srgb;
    Project  *proj=null;
    SyncLock  lock;
+
+   int total()C {return texs_update_base1.elms()+texs_remove_srgb.elms();}
 
    static void Error    (C Str &error) {Gui.msgBox(S, error);}
    static void ErrorLoad(C Str &path ) {Error(S+"Can't load image:\n\""+path+'"');}
    static void ErrorSave(C Str &path ) {Error(S+"Can't save image:\n\""+path+'"');}
-   static void UpdateTex(  UID &tex_id, ProjectUpdate &pu, int thread_index) {pu.updateTex(tex_id);}
-          void updateTex(C UID &tex_id)
+
+   static void UpdateBase1Tex(  UID &tex_id, ProjectUpdate &pu, int thread_index) {pu.updateTex(tex_id, true );}
+   static void RemoveSRGB    (  UID &tex_id, ProjectUpdate &pu, int thread_index) {pu.updateTex(tex_id, false);}
+          void updateTex     (C UID &tex_id, bool old_update)
    {
       Str   path=proj.texPath(tex_id);
       Image img;
@@ -28,33 +32,45 @@ class ProjectUpdate
       f.del();
 
       // convert
-      if(!UpdateMtrlBase1Tex(img, img)){Error("Can't convert texture"); goto error;}
+      if(old_update)
+      {
+         if(!UpdateMtrlBase1Tex(img, img)){Error("Can't convert texture"); goto error;}
+      }else
+      {
+         if(!img.copyTry(img, -1, -1, -1, ImageTypeExcludeSRGB(img.type()))){Error("Can't convert texture"); goto error;}
+      }
 
       // save
       if(IsServer) // server
       {
          if(!img.save(temp.writeMem())){ErrorSave(path); goto error;} temp.pos(0);
-         if(!Compress(temp, f.writeMem(), COMPRESS_LZMA, 5, false)){ErrorSave(path); goto error;} f.pos(0);
+         if(!Compress(temp, f.writeMem(), ClientNetworkCompression, ClientNetworkCompressionLevel, false)){ErrorSave(path); goto error;} f.pos(0);
          if(!SafeOverwrite(f, path)){ErrorSave(path); goto error;}
       }else
       if(!Save(img, path)){ErrorSave(path); goto error;} // client
 
       {
          SyncLocker locker(lock);
-         proj.texs_update.binaryExclude(tex_id, Compare);
+         proj.texs_update_base1.binaryExclude(tex_id);
+         proj.texs_remove_srgb .binaryExclude(tex_id);
       }
       error:;
    }
    void start(Project &proj, Threads &threads)
    {
       T.proj=&proj;
-      T.texs=proj.texs_update; // copy because 'proj.texs_update' will be dynamically updated
-      REPA(texs)threads.queue(texs[i], UpdateTex, T);
+      T.texs_update_base1=proj.texs_update_base1; // copy because 'proj.texs_update_base1' will be dynamically updated
+      T.texs_remove_srgb =proj.texs_remove_srgb ; // copy because 'proj.texs_remove_srgb'  will be dynamically updated
+      // Warning: with method below there's a risk of processing the same texture from different functions, to remove that risk, the textures are placed to either container, but not both
+      REPA(texs_update_base1)threads.queue(texs_update_base1[i], UpdateBase1Tex, T);
+      REPA(texs_remove_srgb )threads.queue(texs_remove_srgb [i], RemoveSRGB    , T);
    }
    void stop(Threads &threads)
    {
-      REPA(texs)threads.cancel(texs[i], UpdateTex, T);
-      REPA(texs)threads.wait  (texs[i], UpdateTex, T);
+      REPA(texs_update_base1)threads.cancel(texs_update_base1[i], UpdateBase1Tex, T);
+      REPA(texs_remove_srgb )threads.cancel(texs_remove_srgb [i], RemoveSRGB    , T);
+      REPA(texs_update_base1)threads.wait  (texs_update_base1[i], UpdateBase1Tex, T);
+      REPA(texs_remove_srgb )threads.wait  (texs_remove_srgb [i], RemoveSRGB    , T);
       T.proj=null;
    }
 }

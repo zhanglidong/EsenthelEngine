@@ -1300,7 +1300,7 @@ static void SaveBuffers(File &f, C Mems<Shader11::Buffer> &constants, C Memc<Sha
     C ShaderBufferParams &buffer=file_buffers[buffer_index];
       if(buffer.index<0) // here we have to save only buffers that don't have a constant bind point index
          save.New().set(constants[i].index, buffer_index); // save to which index this buffer should be bound for this shader, and index of buffer in 'file_buffers' array
-      all.binaryInclude(AsUShort(buffer_index), Compare);
+      all.binaryInclude(AsUShort(buffer_index));
    }
    save.saveRaw(f);
 }

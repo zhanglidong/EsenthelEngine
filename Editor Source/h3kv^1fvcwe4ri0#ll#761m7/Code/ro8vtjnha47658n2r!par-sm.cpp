@@ -132,7 +132,7 @@ class ConvertToDeAtlasClass : PropWin
          {
             REPA(mtrls)if(Elm *mtrl=Proj.findElm(mtrls[i]))
             {
-               int index; if(deatlased.binarySearch(mtrl.parent_id, index, Compare)) // if is located in one of 'deatlased'
+               int index; if(deatlased.binarySearch(mtrl.parent_id, index)) // if is located in one of 'deatlased'
                {
                   mtrl.setParent(non_deatlased[index], time); Server.setElmParent(*mtrl);
                }
@@ -155,8 +155,8 @@ class ConvertToDeAtlasClass : PropWin
          REPA(mtrls)
          {
           C UID &mtrl_id=mtrls[i];
-            if(mode==REPLACE_REMOVE && !used_mtrls_exist  .binaryHas(mtrl_id, Compare))remove   .add(mtrl_id);else // first check if we can remove            , no other existing    element uses this material
-            if(                        !used_mtrls_publish.binaryHas(mtrl_id, Compare))unpublish.add(mtrl_id);     // then  check if at least we can unpublish, no other publishable element uses this material
+            if(mode==REPLACE_REMOVE && !used_mtrls_exist  .binaryHas(mtrl_id))remove   .add(mtrl_id);else // first check if we can remove            , no other existing    element uses this material
+            if(                        !used_mtrls_publish.binaryHas(mtrl_id))unpublish.add(mtrl_id);     // then  check if at least we can unpublish, no other publishable element uses this material
          }
          Proj.remove        (remove   , false);
          Proj.disablePublish(unpublish, false);
@@ -278,11 +278,11 @@ Property &mode=add("De-Atlased Objects", MEMBER(ConvertToDeAtlasClass, mode)).se
             if(mtrl_data.base_0_tex==base_0_tex
             && mtrl_data.base_1_tex==base_1_tex)
             {
-               mtrls.binaryInclude(elm_mtrl.id, Compare);
+               mtrls.binaryInclude(elm_mtrl.id);
                include_obj=true;
             }
          }
-         if(include_obj)objs.binaryInclude(elm.id, Compare);
+         if(include_obj)objs.binaryInclude(elm.id);
       }
 
       if(!objs.elms())Gui.msgBox(S, "No Objects/Materials to process");else
@@ -305,7 +305,7 @@ Property &mode=add("De-Atlased Objects", MEMBER(ConvertToDeAtlasClass, mode)).se
                 C MeshPart &part=lod.parts[i];
                 C MeshBase &base=part.base; if(base.vtx.tex0())REP(4)
                   {
-                     UID mtrl_id=part.multiMaterial(i).id(); if(mtrl_id.valid() && mtrls.binaryHas(mtrl_id, Compare))
+                     UID mtrl_id=part.multiMaterial(i).id(); if(mtrl_id.valid() && mtrls.binaryHas(mtrl_id))
                      {
                         REPA(base.tri)
                         {

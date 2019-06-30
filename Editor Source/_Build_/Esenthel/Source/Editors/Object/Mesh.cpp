@@ -162,8 +162,8 @@ void ObjView::meshReverse()
             base.reverse(*f);
             part.setRender();
             // when reversing selected faces, the mesh must be split, making the selected faces to be located at the end, therefore we need to adjust the selection
-            REP(Min( tris, base. tris()))sel_face.binaryInclude(VecI2(p,  base. tris()-1-i          ), Compare);
-            REP(Min(quads, base.quads()))sel_face.binaryInclude(VecI2(p, (base.quads()-1-i)^SIGN_BIT), Compare);
+            REP(Min( tris, base. tris()))sel_face.binaryInclude(VecI2(p,  base. tris()-1-i          ));
+            REP(Min(quads, base.quads()))sel_face.binaryInclude(VecI2(p, (base.quads()-1-i)^SIGN_BIT));
             changed=true;
          }
       }
@@ -192,7 +192,7 @@ void ObjView::meshReverseN()
       {
          C VecI2 &v=vtxs[i]; if(MeshPart *part=getPart(v.x))
          {
-            changed_parts.binaryInclude(v.x, Compare);
+            changed_parts.binaryInclude(v.x);
             MeshBase &base=part->base; if(InRange(v.y, base.vtx))
             {
                if(base.vtx.nrm())base.vtx.nrm(v.y).chs();
@@ -514,7 +514,7 @@ void ObjView::meshQuadToTri()
    if(changed)
    {
        REPA(sel_face)if(sel_face[i].y&SIGN_BIT)sel_face.remove(i, true); // remove all quads from selection
-      FREPA(part_tris)for(int j=part_tris[i], end=lod.parts[i].tris(); j<end; j++)sel_face.binaryInclude(VecI2(i, j), Compare); // add all tris to selection that were created in this operation
+      FREPA(part_tris)for(int j=part_tris[i], end=lod.parts[i].tris(); j<end; j++)sel_face.binaryInclude(VecI2(i, j)); // add all tris to selection that were created in this operation
       setChangedMesh(true, false);
    }
 }

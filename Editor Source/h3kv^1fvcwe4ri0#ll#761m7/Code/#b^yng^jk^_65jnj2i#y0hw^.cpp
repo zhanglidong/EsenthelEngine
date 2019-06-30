@@ -134,11 +134,11 @@ class CompareProjects : PropWin
                      || test_name    && elm_a.  name_time!=elm_b.  name_time && !Equal(elm_a.name, elm_b.name, true)
                      || test_parent  && elm_a.parent_time!=elm_b.parent_time &&        elm_a.parent_id!=elm_b.parent_id
                      || test_publish && elm_a.noPublish()!=elm_b.noPublish())
-                        if(different.binaryInclude(elm_a.id, Compare))
+                        if(different.binaryInclude(elm_a.id))
                            data.New().setElm(proj_a, elm_a);
                   }else
                   if(display_new)
-                     if(different.binaryInclude(elm_a.id, Compare))
+                     if(different.binaryInclude(elm_a.id))
                         data.New().setElm(proj_a, elm_a);
                }
             }

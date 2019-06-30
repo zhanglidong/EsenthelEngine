@@ -22,8 +22,8 @@ static Str ElmFullData(C MemPtr<Elm> &elms, C UID &elm_id, Str &name, Bool &remo
    Memt<UID> processed;
    for( UID cur_id=elm_id; cur_id.valid(); )
    {
-      if(      processed.binaryInclude(cur_id, Compare)) // not yet processed
-      if(C Elm *elm=elms.binaryFind   (cur_id, Compare)) // was found in elements
+      if(      processed.binaryInclude(cur_id)) // not yet processed
+      if(C Elm *elm=elms.binaryFind   (cur_id)) // was found in elements
       {
          name    =(name.is() ? elm->name+'\\'+name : elm->name);
          removed|=elm->removed;
@@ -1487,7 +1487,7 @@ Bool ContainsElm(MemPtr<Elm> elms, C UID &parent_id, C UID &child_id)
    if(parent_id.valid()) // if parent valid
    {
       Memt<UID> ids;
-      for(C UID *id=&child_id; id->valid() && ids.binaryInclude(*id, Compare); ) // if valid and not checked yet
+      for(C UID *id=&child_id; id->valid() && ids.binaryInclude(*id); ) // if valid and not checked yet
       {
          if(*id==parent_id)return true;
          if(Elm *elm=FindElm(elms, *id))id=&elm->parent_id;else break;

@@ -12,7 +12,7 @@ class Project
    UID               id, app_id, hm_mtrl_id, water_mtrl_id, mtrl_brush_id[MtrlBrushSlots];
    Str               name, path, code_path, code_base_path, edit_path, game_path, temp_path, tex_path, temp_tex_path, temp_tex_dynamic_path;
    Memx<Elm>         elms;
-   Memc<UID>         texs, texs_update;
+   Memc<UID>         texs, texs_update_base1, texs_remove_srgb;
    Memc<UID>         world_paths, mini_map_paths;
    Cache<WorldVer>   world_vers;
    Cache<MiniMapVer> mini_map_vers;

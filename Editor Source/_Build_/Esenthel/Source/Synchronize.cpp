@@ -140,22 +140,22 @@ SynchronizerClass Synchronizer;
    }
    void SynchronizerClass::setArea(C UID &world_id, C VecI2 &area_xy)
    {
-      if(Server.canWrite() && world_id.valid())if(WorldSync *ws=world_sync.get(world_id))ws->set_area.binaryInclude(area_xy, Compare);
+      if(Server.canWrite() && world_id.valid())if(WorldSync *ws=world_sync.get(world_id))ws->set_area.binaryInclude(area_xy);
    }
    void SynchronizerClass::setObjs(C UID &world_id, Memc<UID> &obj_ids)
    {
-      if(Server.canWrite() && world_id.valid() && obj_ids.elms())if(WorldSync *ws=world_sync.get(world_id))REPA(obj_ids)ws->set_obj.binaryInclude(obj_ids[i], Compare);
+      if(Server.canWrite() && world_id.valid() && obj_ids.elms())if(WorldSync *ws=world_sync.get(world_id))REPA(obj_ids)ws->set_obj.binaryInclude(obj_ids[i]);
    }
    void SynchronizerClass::setMiniMapImage(C UID &mini_map_id, C VecI2 &image_xy)
    {
-      if(Server.canWrite() && mini_map_id.valid())if(MiniMapSync *mms=mini_map_sync.get(mini_map_id))mms->set_image.binaryInclude(image_xy, Compare);
+      if(Server.canWrite() && mini_map_id.valid())if(MiniMapSync *mms=mini_map_sync.get(mini_map_id))mms->set_image.binaryInclude(image_xy);
    }
    void SynchronizerClass::delayedSetArea(C UID &world_id, C VecI2 &area_xy) // !! must be multi-threaded SAFE !!
    {
       if(Server.canWrite() && world_id.valid())
       {
          MapLock ml(delayed_world_sync); // use lock because this may be called on multiple threads by 'Area.setServer'
-         if(WorldSync *ws=delayed_world_sync.get(world_id))ws->set_area.binaryInclude(area_xy, Compare);
+         if(WorldSync *ws=delayed_world_sync.get(world_id))ws->set_area.binaryInclude(area_xy);
       }
    }
    void SynchronizerClass::delayedSetObj(C UID &world_id, C MemPtr<UID> &obj_id) // !! must be multi-threaded SAFE !!
@@ -164,7 +164,7 @@ SynchronizerClass Synchronizer;
       {
          MapLock ml(delayed_world_sync); // use lock because this may be called on multiple threads by 'Area.setChangedObj'
          if(WorldSync *ws=delayed_world_sync.get(world_id))
-            REPA(obj_id)if(obj_id[i].valid())ws->set_obj.binaryInclude(obj_id[i], Compare);
+            REPA(obj_id)if(obj_id[i].valid())ws->set_obj.binaryInclude(obj_id[i]);
       }
    }
    void SynchronizerClass::erasing(C UID &elm_id)
@@ -259,8 +259,8 @@ SynchronizerClass Synchronizer;
 
       // textures
       Memc<UID> local_texs; local.getTextures(local_texs);
-      REPA(server.texs)if(!local .texs.binaryHas(server.texs[i], Compare))get_textures.add(server.texs[i]);
-      REPA( local_texs)if(!server.texs.binaryHas( local_texs[i], Compare))set_textures.add( local_texs[i]);
+      REPA(server.texs)if(!local .texs.binaryHas(server.texs[i]))get_textures.add(server.texs[i]);
+      REPA( local_texs)if(!server.texs.binaryHas( local_texs[i]))set_textures.add( local_texs[i]);
 
       // sync
       Memc<UID> temp;
@@ -308,7 +308,7 @@ SynchronizerClass Synchronizer;
                        *server_area=(ws->server_ver ? ws->server_ver->areas.find(area_xy) : null);
                if(uint area_sync_flag=local_area.compare(server_area))
                {
-                  if( area_sync_flag&AREA_SYNC_HM )ws->set_area.binaryInclude(area_xy, Compare); // don't send objects in this way
+                  if( area_sync_flag&AREA_SYNC_HM )ws->set_area.binaryInclude(area_xy); // don't send objects in this way
                   if((area_sync_flag&AREA_SYNC_OBJ) && !server_area)area_get.New().set(AREA_SYNC_OBJ, area_xy); // if objects need to be synced and this will not be processed below again "!server_area"
                }
             }
@@ -404,15 +404,15 @@ SynchronizerClass Synchronizer;
          if(Server.canWrite() && mms->local_ver) // only if can write
             if(!mms->server_ver || mms->local_ver->time>=mms->server_ver->time) // send only if the time of the images is same/newer than on the server (check for same in case some images did not finish sending yet)
                FREPA(mms->local_ver->images)
-                  if(!mms->server_ver || mms->local_ver->time>mms->server_ver->time || !mms->server_ver->images.binaryHas(mms->local_ver->images[i], Compare)) // if server ver doesn't exist, or is old, or is the same time but doesn't have the image yet
-                     mms->set_image.binaryInclude(mms->local_ver->images[i], Compare); // mark to be sent
+                  if(!mms->server_ver || mms->local_ver->time>mms->server_ver->time || !mms->server_ver->images.binaryHas(mms->local_ver->images[i])) // if server ver doesn't exist, or is old, or is the same time but doesn't have the image yet
+                     mms->set_image.binaryInclude(mms->local_ver->images[i]); // mark to be sent
 
          // check server to receive
          if(mms->server_ver)
             if(!mms->local_ver || mms->server_ver->time>=mms->local_ver->time) // receive only if the time of the images is same/newer than on the client (check for same in case some images did not finish sending yet)
                FREPA(mms->server_ver->images)
-                  if(!mms->local_ver || mms->server_ver->time>mms->local_ver->time || !mms->local_ver->images.binaryHas(mms->server_ver->images[i], Compare)) // if local ver doesn't exist, or is old, or is the same time but doesn't have the image yet
-                     get_image.binaryInclude(mms->server_ver->images[i], Compare); // mark to be received
+                  if(!mms->local_ver || mms->server_ver->time>mms->local_ver->time || !mms->local_ver->images.binaryHas(mms->server_ver->images[i])) // if local ver doesn't exist, or is old, or is the same time but doesn't have the image yet
+                     get_image.binaryInclude(mms->server_ver->images[i]); // mark to be received
 
          Server.getMiniMapImages(mini_map_id, get_image);
       }
@@ -431,8 +431,8 @@ SynchronizerClass Synchronizer;
             if(WorldSync *ws=world_sync.get(world_id))
             {
                WorldSync &dws=delayed_world_sync.lockedData(i);
-               FREPA(dws.set_area)ws->set_area.binaryInclude(dws.set_area[i], Compare);
-               FREPA(dws.set_obj )ws->set_obj .binaryInclude(dws.set_obj [i], Compare);
+               FREPA(dws.set_area)ws->set_area.binaryInclude(dws.set_area[i]);
+               FREPA(dws.set_obj )ws->set_obj .binaryInclude(dws.set_obj [i]);
             }
          }
          delayed_world_sync.del();
@@ -519,7 +519,7 @@ SynchronizerClass Synchronizer;
                   VecI2 area_xy=obj_ver->area_xy; // get area of that object
                   REPA(ws.set_obj)if(ObjVer *obj_ver=ws.local_ver->obj.find(ws.set_obj[i]))if(obj_ver->area_xy==area_xy) // get all objects from that area
                   {
-                     obj_ids.binaryInclude(ws.set_obj[i], Compare); ws.set_obj.remove(i, true);
+                     obj_ids.binaryInclude(ws.set_obj[i]); ws.set_obj.remove(i, true);
                   }
                   // now we have all ID's of objects to send
                   Memc<ObjData> objs; Proj.objGet(world_id, area_xy, obj_ids, objs); // get objects from areas

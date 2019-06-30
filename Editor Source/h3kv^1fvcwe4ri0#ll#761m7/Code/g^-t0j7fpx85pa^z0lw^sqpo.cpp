@@ -19,7 +19,7 @@ class Project
    UID               id=UIDZero, app_id=UIDZero, hm_mtrl_id=UIDZero, water_mtrl_id=UIDZero, mtrl_brush_id[MtrlBrushSlots];
    Str               name, path, code_path, code_base_path, edit_path, game_path, temp_path, tex_path, temp_tex_path, temp_tex_dynamic_path;
    Memx<Elm>         elms;
-   Memc<UID>         texs, texs_update;
+   Memc<UID>         texs, texs_update_base1, texs_remove_srgb;
    Memc<UID>         world_paths, mini_map_paths;
    Cache<WorldVer>   world_vers;
    Cache<MiniMapVer> mini_map_vers;
@@ -39,7 +39,7 @@ class Project
       world_paths.del(); mini_map_paths.del();
 
       elms.del();
-      texs.del(); texs_update.del();
+      texs.del(); texs_update_base1.del(); texs_remove_srgb.del();
 
       cipher=CIPHER_NONE; REPAO(cipher_key)=0;
       compress_type =COMPRESS_NONE;
@@ -58,7 +58,7 @@ class Project
 
    // get
    bool valid()C {return id.valid();}
-   bool needUpdate()C {return texs_update.elms()>0;}
+   bool needUpdate()C {return texs_update_base1.elms()>0 || texs_remove_srgb.elms()>0;}
 
    bool  hasElm (C UID &id)C {           return  id.valid() && elms.binaryHas   (id,        CompareID);}
    int  findElmI(C UID &id)C {int index; return (id.valid() && elms.binarySearch(id, index, CompareID)) ? index : -1;}
@@ -227,7 +227,7 @@ class Project
 
    Elm* mtrlToMeshElm(C UID &mtrl_id)
    {
-      if(mtrl_id.valid())REPA(elms){Elm &elm=elms[i]; if(C ElmMesh *mesh_data=elm.meshData())if(mesh_data.mtrl_ids.binaryHas(mtrl_id, Compare))return &elm;}
+      if(mtrl_id.valid())REPA(elms){Elm &elm=elms[i]; if(C ElmMesh *mesh_data=elm.meshData())if(mesh_data.mtrl_ids.binaryHas(mtrl_id))return &elm;}
       return null;
    }
    UID mtrlToObj(C UID &mtrl_id)
@@ -250,7 +250,7 @@ class Project
          {
             case ELM_MESH:
             {
-               if(C ElmMesh *mesh_data=elm.meshData())REPA(mesh_data.mtrl_ids)used.binaryInclude(mesh_data.mtrl_ids[i], Compare);
+               if(C ElmMesh *mesh_data=elm.meshData())REPA(mesh_data.mtrl_ids)used.binaryInclude(mesh_data.mtrl_ids[i]);
             }break;
          }
       }
@@ -278,7 +278,7 @@ class Project
    }
    bool getObjBox(C UID &elm_id, Box &box) // get box of ELM_OBJ (mesh.box|phys.box)
    {
-      Memt<UID> processed; for(UID id=elm_id; processed.binaryInclude(id, Compare); ) // to avoid potential infinite loops (A is based on A)
+      Memt<UID> processed; for(UID id=elm_id; processed.binaryInclude(id); ) // to avoid potential infinite loops (A is based on A)
          if(Elm *obj_elm=findElm(id))if(ElmObj *obj=obj_elm.objData())
       {
          if(Elm *mesh_elm=findElm(obj.mesh_id))if(ElmMesh *mesh=mesh_elm.meshData())
@@ -293,7 +293,7 @@ class Project
    }
    bool getObjTerrain(C UID &elm_id) // get if ELM_OBJ has OBJ_ACCESS_TERRAIN
    {
-      Memt<UID> processed; for(UID id=elm_id; processed.binaryInclude(id, Compare); ) // to avoid potential infinite loops (A is based on A)
+      Memt<UID> processed; for(UID id=elm_id; processed.binaryInclude(id); ) // to avoid potential infinite loops (A is based on A)
          if(Elm *obj_elm=findElm(id))
       {
          if(ElmObjClass *obj=obj_elm.objClassData())return obj.terrain();
@@ -303,7 +303,7 @@ class Project
    }
    OBJ_PATH getObjPath(C UID &elm_id) // get OBJ_PATH of ELM_OBJ
    {
-      Memt<UID> processed; for(UID id=elm_id; processed.binaryInclude(id, Compare); ) // to avoid potential infinite loops (A is based on A)
+      Memt<UID> processed; for(UID id=elm_id; processed.binaryInclude(id); ) // to avoid potential infinite loops (A is based on A)
          if(Elm *obj_elm=findElm(id))
       {
          if(ElmObjClass *obj=obj_elm.objClassData())                  return obj.pathSelf();
@@ -346,17 +346,17 @@ class Project
    bool isBasedOnObjs(C Elm &elm, C Memt<UID> &objs)C // check if 'elm' is based on 'objs' (assumes that 'objs' is sorted)
    {
       Memt<UID> processed;
-      if(elm.type==ELM_OBJ || elm.type==ELM_OBJ_CLASS)for(UID id=elm.id; processed.binaryInclude(id, Compare); ) // to avoid potential infinite loops (A is based on A)
+      if(elm.type==ELM_OBJ || elm.type==ELM_OBJ_CLASS)for(UID id=elm.id; processed.binaryInclude(id); ) // to avoid potential infinite loops (A is based on A)
          if(C Elm *obj_elm=findElm(id))
       {
-         if(objs.binaryHas(id, Compare))return true; // if this object is in the 'objs'
+         if(objs.binaryHas(id))return true; // if this object is in the 'objs'
          if(C ElmObj *obj=obj_elm.objData())id=obj.base_id; // proceed to base
       }
       return false;
    }
    void getExtendedObjs(C Memt<UID> &objs, Memt<UID> &exts)C // get list of all objects that are based on 'objs' (assumes that 'objs' is sorted)
    {
-      REPA(elms){C Elm &elm=elms[i]; if(isBasedOnObjs(elm, objs))exts.binaryInclude(elm.id, Compare);}
+      REPA(elms){C Elm &elm=elms[i]; if(isBasedOnObjs(elm, objs))exts.binaryInclude(elm.id);}
    }
 
    bool idToValid(C UID &id) // if target is valid (not removed)
@@ -460,7 +460,7 @@ class Project
       }
       if(invalid)invalid.clear(); return false; // OK
    }
-   bool invalidTex(C UID &tex_id                     )C {return tex_id.valid() && !texs.binaryHas(tex_id, Compare);} // is specified and is not present
+   bool invalidTex(C UID &tex_id                     )C {return tex_id.valid() && !texs.binaryHas(tex_id);} // is specified and is not present
    bool invalidRef(C UID &elm_id, bool optional=false)C // is specified and is not present
    {
       if(!elm_id.valid())return false; // empty/null reference is valid
@@ -599,7 +599,7 @@ class Project
    }
    void createWorldPaths(C UID &world_id)
    {
-      if(world_id.valid() && world_paths.binaryInclude(world_id, Compare)) // create paths only at first time
+      if(world_id.valid() && world_paths.binaryInclude(world_id)) // create paths only at first time
       {
          Str edit, game; if(getWorldPaths(world_id, edit, game))
          {
@@ -614,7 +614,7 @@ class Project
    }
    void createMiniMapPaths(C UID &mini_map_id)
    {
-      if(mini_map_id.valid() && mini_map_paths.binaryInclude(mini_map_id, Compare)) // create paths only at first time
+      if(mini_map_id.valid() && mini_map_paths.binaryInclude(mini_map_id)) // create paths only at first time
          FCreateDirs(gamePath(mini_map_id));
    }
 
@@ -1867,12 +1867,12 @@ class Project
       // get all used meshes
       FREPA(elms) // go forward because most likely 'used' ID's will be increasing
       {
-       C Elm &elm=elms[i]; if(C ElmObj *obj_data=elm.objData())used.binaryInclude(obj_data.mesh_id, Compare);
+       C Elm &elm=elms[i]; if(C ElmObj *obj_data=elm.objData())used.binaryInclude(obj_data.mesh_id);
       }
       // remove unused meshes
       REPA(elms)
       {
-         Elm &elm=elms[i]; if(elm.type==ELM_MESH && !elm.removed() && !used.binaryHas(elm.id, Compare))elm.setRemoved(true, time);
+         Elm &elm=elms[i]; if(elm.type==ELM_MESH && !elm.removed() && !used.binaryHas(elm.id))elm.setRemoved(true, time);
       }
 
       used.clear();
@@ -1880,12 +1880,12 @@ class Project
       // get all used skel
       FREPA(elms) // go forward because most likely 'used' ID's will be increasing
       {
-       C Elm &elm=elms[i]; if(C ElmMesh *mesh_data=elm.meshData())if(mesh_data.skel_id.valid())used.binaryInclude(mesh_data.skel_id, Compare);
+       C Elm &elm=elms[i]; if(C ElmMesh *mesh_data=elm.meshData())if(mesh_data.skel_id.valid())used.binaryInclude(mesh_data.skel_id);
       }
       // remove unused skel
       REPA(elms)
       {
-         Elm &elm=elms[i]; if(elm.type==ELM_SKEL && !elm.removed() && !used.binaryHas(elm.id, Compare))elm.setRemoved(true, time);
+         Elm &elm=elms[i]; if(elm.type==ELM_SKEL && !elm.removed() && !used.binaryHas(elm.id))elm.setRemoved(true, time);
       }
 
       used.clear();
@@ -1893,12 +1893,12 @@ class Project
       // get all used phys
       FREPA(elms) // go forward because most likely 'used' ID's will be increasing
       {
-       C Elm &elm=elms[i]; if(C ElmMesh *mesh_data=elm.meshData())if(mesh_data.phys_id.valid())used.binaryInclude(mesh_data.phys_id, Compare);
+       C Elm &elm=elms[i]; if(C ElmMesh *mesh_data=elm.meshData())if(mesh_data.phys_id.valid())used.binaryInclude(mesh_data.phys_id);
       }
       // remove unused phys
       REPA(elms)
       {
-         Elm &elm=elms[i]; if(elm.type==ELM_PHYS && !elm.removed() && !used.binaryHas(elm.id, Compare))elm.setRemoved(true, time);
+         Elm &elm=elms[i]; if(elm.type==ELM_PHYS && !elm.removed() && !used.binaryHas(elm.id))elm.setRemoved(true, time);
       }
    }
    virtual void eraseElm(C UID &elm_id)
@@ -1945,7 +1945,7 @@ class Project
    virtual bool eraseTex(C UID &_tex_id)
    {
       UID tex_id=_tex_id; // copy this to a temp var in case '_tex_id' actually belongs to 'texs' container which we're removing from below, which would make that UID invalid !!
-      if(texs.binaryExclude(tex_id, Compare)) // if found and removed
+      if(texs.binaryExclude(tex_id)) // if found and removed
       {
          FDelFile(texPath(tex_id)); // delete the texture
          eraseTexFormats(tex_id);
@@ -1959,19 +1959,19 @@ class Project
 
       // erase regular textures
       Memt<UID> used; getTextures(used);
-      REPA(texs)if(!used.binaryHas(texs[i], Compare))erased|=eraseTex(texs[i]); // go from the end because of removal
+      REPA(texs)if(!used.binaryHas(texs[i]))erased|=eraseTex(texs[i]); // go from the end because of removal
 
       // erase dynamic textures
       used.clear();
       REPA(elms)if(ElmMaterial *mtrl_data=elms[i].mtrlData())
          if(mtrl_data.base_0_tex.valid() && mtrl_data.base_1_tex.valid())
-            used.binaryInclude(MergedBaseTexturesID(mtrl_data.base_0_tex, mtrl_data.base_1_tex), Compare);
+            used.binaryInclude(MergedBaseTexturesID(mtrl_data.base_0_tex, mtrl_data.base_1_tex));
       for(FileFind ff(temp_tex_dynamic_path); ff(); )
       {
          bool tex_used=false;
          UID  tex_id; if(DecodeFileName(ff.name, tex_id))
          {
-            tex_used=used.binaryHas(tex_id, Compare);
+            tex_used=used.binaryHas(tex_id);
             if(!tex_used)eraseTexFormats(tex_id);
          }
          if(!tex_used)FDelFile(ff.pathName());
@@ -2009,7 +2009,7 @@ class Project
             if(obj_ver.removed()) // if object is removed
             {
                world_ver.setChanged();
-               areas.binaryInclude(obj_ver.area_xy, Compare); // mark for processing
+               areas.binaryInclude(obj_ver.area_xy); // mark for processing
                world_ver.obj.remove(i); // we're completely erasing so remove from obj database too !! after this call don't operate on 'obj_ver' as it was just removed !!
             }
          }
@@ -2047,25 +2047,6 @@ class Project
 
       if(ver<=27) // project version 27 and below
       {
-         // mtrl base 1 and detail textures need to have channels swapped
-         texs_update.clear();
-         REPA(elms)
-         {
-          C Elm &elm=elms[i]; switch(elm.type)
-            {
-               case ELM_MTRL: if(C ElmMaterial *mtrl_data=elm.mtrlData())
-               {
-                  if(mtrl_data.base_1_tex.valid() && texs.binaryHas(mtrl_data.base_1_tex, Compare))texs_update.binaryInclude(mtrl_data.base_1_tex, Compare);
-                  if(mtrl_data.detail_tex.valid() && texs.binaryHas(mtrl_data.detail_tex, Compare))texs_update.binaryInclude(mtrl_data.detail_tex, Compare);
-               }break;
-
-               case ELM_WATER_MTRL: if(C ElmWaterMtrl *water_mtrl_data=elm.waterMtrlData())
-               {
-                  if(water_mtrl_data.base_1_tex.valid() && texs.binaryHas(water_mtrl_data.base_1_tex, Compare))texs_update.binaryInclude(water_mtrl_data.base_1_tex, Compare);
-               }break;
-            }
-         }
-
          // src file was encoded differently
          REPA(elms)
          {
@@ -2092,6 +2073,29 @@ class Project
          REPA(elms)
          {
             Elm &elm=elms[i]; if(elm.type!=ELM_ANIM && elm.data)elm.data.src_file.replace('|', '\n'); // keep anim as | because some animations can have | in the name "Para.fbx?name=Para|SitLoop"
+         }
+      }
+      if(ver<=65) // project version 65 and below
+      {
+         // mtrl base 1 and detail textures need to be updated
+         texs_update_base1.clear();
+         texs_remove_srgb .clear();
+         Memc<UID> &tex_update=((ver<=27) ? texs_update_base1 : texs_remove_srgb); // for project version 27 and below we have to swap channels (this will already remove sRGB), for 28..65 just remove sRGB
+         REPA(elms)
+         {
+          C Elm &elm=elms[i]; switch(elm.type)
+            {
+               case ELM_MTRL: if(C ElmMaterial *mtrl_data=elm.mtrlData())
+               {
+                  if(mtrl_data.base_1_tex.valid() && texs.binaryHas(mtrl_data.base_1_tex))tex_update.binaryInclude(mtrl_data.base_1_tex);
+                  if(mtrl_data.detail_tex.valid() && texs.binaryHas(mtrl_data.detail_tex))tex_update.binaryInclude(mtrl_data.detail_tex);
+               }break;
+
+               case ELM_WATER_MTRL: if(C ElmWaterMtrl *water_mtrl_data=elm.waterMtrlData())
+               {
+                  if(water_mtrl_data.base_1_tex.valid() && texs.binaryHas(water_mtrl_data.base_1_tex))tex_update.binaryInclude(water_mtrl_data.base_1_tex);
+               }break;
+            }
          }
       }
 
@@ -2385,7 +2389,7 @@ class Project
       {
          Elm &elm=elms[i];
          if(C ElmMesh *data=elm.meshData())
-            if(data.mtrl_ids.binaryHas(mtrl_id, Compare))
+            if(data.mtrl_ids.binaryHas(mtrl_id))
          {
             if(!material)material=gamePath(mtrl_id); // load only when needed
             meshSetAutoTanBin(elm, material);
@@ -2493,7 +2497,7 @@ class Project
    void meshTransformChanged(Elm &mesh_elm, bool body_changed=false) {Memt<UID>  processed; meshTransformChanged(mesh_elm, body_changed, processed);}
    void meshTransformChanged(Elm &mesh_elm, bool body_changed,        Memt<UID> &processed) // can't do default param "=Memt<UID>()" on Mac
    {
-      if(processed.binaryInclude(mesh_elm.id, Compare)) // to avoid potential infinite loops
+      if(processed.binaryInclude(mesh_elm.id)) // to avoid potential infinite loops
       if(ElmMesh *mesh_data=mesh_elm.meshData())
       {
          // force transform from body
@@ -2530,7 +2534,7 @@ class Project
          REPA(world_ver.obj)
          {
             ObjVer &obj=world_ver.obj.lockedData(i);
-            if(!obj.removed() && objs.binaryHas(obj.elm_obj_id, Compare)) // if object exists and its base is contained in 'objs'
+            if(!obj.removed() && objs.binaryHas(obj.elm_obj_id)) // if object exists and its base is contained in 'objs'
             {
              C UID &obj_id=world_ver.obj.lockedKey(i);
                rebuildEmbedObj(obj_id, obj.area_xy, world_ver, true); // 'rebuild_game_area_objs=true' because obj base changed, and world object embed state could be changed
@@ -2548,7 +2552,7 @@ class Project
          REPA(world_ver.obj)
          {
             ObjVer &obj=world_ver.obj.lockedData(i);
-            if(!obj.removed() && objs.binaryHas(obj.elm_obj_id, Compare)) // if object exists and its base is contained in 'objs'
+            if(!obj.removed() && objs.binaryHas(obj.elm_obj_id)) // if object exists and its base is contained in 'objs'
                if(only_not_ovr ? !obj.ovrPath() : obj.path(T)!=OBJ_PATH_IGNORE) // if custom condition met, or want to create paths
             {
              C UID &obj_id=world_ver.obj.lockedKey(i);
@@ -2568,7 +2572,7 @@ class Project
                if(Elm *mesh_elm=findElm(     data.mesh_id))if(ElmMesh *mesh_data=mesh_elm.meshData())                        // if has mesh
                if(Elm *phys_elm=findElm(mesh_data.phys_id))if(ElmPhys *phys_data=phys_elm.physData())if(phys_data.hasBody()) // if has phys
             {
-               objs.binaryInclude(elm.id, Compare);
+               objs.binaryInclude(elm.id);
             }
          }
              getExtendedObjs(objs, exts);
@@ -2582,7 +2586,7 @@ class Project
       {
          Elm &obj=elms[i]; if(ElmObj *obj_data=obj.objData())if(obj_data.mesh_id==phys_data.mesh_id) // check if object mesh matches phys mesh
          {
-            objs.binaryInclude(obj.id, Compare);
+            objs.binaryInclude(obj.id);
          }
       }
           getExtendedObjs(objs, exts);
@@ -2603,7 +2607,7 @@ class Project
          {
             makeGameVer(obj);
              objChanged(obj);
-             objs.binaryInclude(obj.id, Compare);
+             objs.binaryInclude(obj.id);
          }
       }
           getExtendedObjs(objs, exts);
@@ -2667,7 +2671,7 @@ class Project
          Memc<ObjData> file_objs;
          if(LoadEditObject(editAreaPath(world_id, area_xy), file_objs, edit_path)) // load objects from file
             REPA(file_objs) // iterate all file objects
-               if(obj_ids.binaryHas(file_objs[i].id, Compare)) // if this is wanted object
+               if(obj_ids.binaryHas(file_objs[i].id)) // if this is wanted object
                   Swap(objs.New(), file_objs[i]); // move to output container (Swap without remove is okay since we're iterating 'file_objs' from the end)
       }
    }
@@ -3261,10 +3265,10 @@ class Project
          Str image_name=gamePath(mini_map_id).tailSlash(true)+image_xy;
          if( image_data.is()) // if image data exists then save it
          {
-            image_data.pos(0); if(SafeOverwrite(image_data, image_name))if(mini_map_ver.images.binaryInclude(image_xy, Compare))mini_map_ver.changed=true;
+            image_data.pos(0); if(SafeOverwrite(image_data, image_name))if(mini_map_ver.images.binaryInclude(image_xy))mini_map_ver.changed=true;
          }else // otherwise delete it
          {
-            FDelFile(image_name); if(mini_map_ver.images.binaryExclude(image_xy, Compare))mini_map_ver.changed=true;
+            FDelFile(image_name); if(mini_map_ver.images.binaryExclude(image_xy))mini_map_ver.changed=true;
          }
          return true;
       }
@@ -3381,14 +3385,15 @@ class Project
          if(mode>=SAVE_ALL)
          {
             // data
-            f.cmpUIntV(0); // version
+            f.cmpUIntV(1); // version
             f.cmpUIntV(elms.elms()); FREPAO(elms).save(f, network, network);
             f.cmpUIntV(texs.elms()); FREPA (texs)f<<texs[i];
 
             // update
             if(!network) // not sent over network, because projects are first updated locally fully, and sent once everything finished
             {
-               f.cmpUIntV(texs_update.elms()); FREPA(texs_update)f<<texs_update[i];
+               f.cmpUIntV(texs_update_base1.elms()); FREPA(texs_update_base1)f<<texs_update_base1[i];
+               f.cmpUIntV(texs_remove_srgb .elms()); FREPA(texs_remove_srgb )f<<texs_remove_srgb [i];
             }
          }
       }
@@ -3433,13 +3438,29 @@ class Project
                {
                   default: goto newer;
 
+                  case 1:
+                  {
+                     elms.setNum(f.decUIntV()); FREPA(elms)if(!elms[i].load(f, network, network)){if(f.ok())goto newer; goto error;}
+                     texs.setNum(f.decUIntV()); FREPA(texs)f>>texs[i];
+
+                     // update
+                     if(!network)
+                     {
+                        texs_update_base1.setNum(f.decUIntV()); FREPA(texs_update_base1)f>>texs_update_base1[i];
+                        texs_remove_srgb .setNum(f.decUIntV()); FREPA(texs_remove_srgb )f>>texs_remove_srgb [i];
+                     }
+                  }break;
+
                   case 0:
                   {
                      elms.setNum(f.decUIntV()); FREPA(elms)if(!elms[i].load(f, network, network)){if(f.ok())goto newer; goto error;}
                      texs.setNum(f.decUIntV()); FREPA(texs)f>>texs[i];
 
                      // update
-                     if(!network){texs_update.setNum(f.decUIntV()); FREPA(texs_update)f>>texs_update[i];}
+                     if(!network)
+                     {
+                        texs_update_base1.setNum(f.decUIntV()); FREPA(texs_update_base1)f>>texs_update_base1[i];
+                     }
                   }break;
                }
             }
@@ -3480,7 +3501,7 @@ class Project
                      texs.setNum(f.decUIntV()); FREPA(texs)f>>texs[i];
 
                      // update
-                     if(!network){texs_update.setNum(f.decUIntV()); FREPA(texs_update)f>>texs_update[i];}
+                     if(!network){texs_update_base1.setNum(f.decUIntV()); FREPA(texs_update_base1)f>>texs_update_base1[i];}
                   }break;
                }
             }
@@ -3528,7 +3549,7 @@ class Project
                      texs.setNum(f.decUIntV()); FREPA(texs)f>>texs[i];
 
                      // update
-                     if(!network){texs_update.setNum(f.decUIntV()); FREPA(texs_update)f>>texs_update[i];}
+                     if(!network){texs_update_base1.setNum(f.decUIntV()); FREPA(texs_update_base1)f>>texs_update_base1[i];}
                   }break;
                }
             }
@@ -3544,7 +3565,7 @@ class Project
                texs.setNum(f.decUIntV()); FREPA(texs)f>>texs[i];
 
                // update
-               if(ver>27){texs_update.setNum(f.decUIntV()); FREPA(texs_update)f>>texs_update[i];}
+               if(ver>27){texs_update_base1.setNum(f.decUIntV()); FREPA(texs_update_base1)f>>texs_update_base1[i];}
             }
          }break;
 
@@ -3648,7 +3669,7 @@ class Project
             texs.clear();
             FREPA(node.nodes) // process in order because they are sorted to avoid moving elements in 'texs.binaryInclude'
             {
-               UID id; if(node.nodes[i].getValue(id) && id.valid())texs.binaryInclude(id, Compare); // use 'binaryInclude' in case text file is messed up
+               UID id; if(node.nodes[i].getValue(id) && id.valid())texs.binaryInclude(id); // use 'binaryInclude' in case text file is messed up
                else {error=S+"Invalid Texture ID \""+node.nodes[i].value+'"'; goto error;}
             }
          }

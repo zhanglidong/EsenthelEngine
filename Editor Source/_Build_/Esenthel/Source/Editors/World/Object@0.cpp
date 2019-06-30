@@ -224,7 +224,7 @@ void OpenObjMaterial  ()
       if(visible)
       {
          if(InRange(params.access, WorldEdit.show_obj_access))visible=WorldEdit.show_obj_access[params.access];
-         if(visible)if(params.access==OBJ_ACCESS_CUSTOM && WorldEdit.hide_obj_classes.binaryHas(params.type, Compare))visible=false;
+         if(visible)if(params.access==OBJ_ACCESS_CUSTOM && WorldEdit.hide_obj_classes.binaryHas(params.type))visible=false;
       }
       if(!visible)
       {

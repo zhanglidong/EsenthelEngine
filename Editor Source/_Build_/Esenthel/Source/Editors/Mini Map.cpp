@@ -248,7 +248,7 @@ void DrawMiniMap()
                image.save(Proj.gamePath(MiniMapEdit.elm_id).tailSlash(true)+image_pos);
                if(MiniMapVer *ver=T.ver())
                {
-                  ver->images.binaryInclude(image_pos, Compare);
+                  ver->images.binaryInclude(image_pos);
                   ver->changed=true;
                }
             }

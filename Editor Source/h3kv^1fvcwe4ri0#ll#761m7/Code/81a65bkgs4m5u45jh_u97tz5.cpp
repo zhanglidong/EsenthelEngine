@@ -524,15 +524,15 @@ class ProjectEx : ProjectHierarchy
    }
  C UID& curApp() // warning: this relies on 'existing_apps' being setup properly
    {
-      if(existing_apps.binaryHas(app_id, Compare))return  app_id; // if desired app exists
-      if(list.app_checks.elms())return list.app_checks[0].app_id; // return first visible checkbox/app
-      if(existing_apps  .elms())return existing_apps  [0];        // return any existing app
+      if(existing_apps.binaryHas(app_id))return                    app_id; // if desired app exists
+      if(list.app_checks.elms()         )return list.app_checks[0].app_id; // return first visible checkbox/app
+      if(existing_apps  .elms()         )return existing_apps  [0];        // return any existing app
       return UIDZero; // no application
    }
    GuiSkinPtr appGuiSkin()C {return gamePath(CodeEdit.appGuiSkin());}
    bool includeTex(C UID &tex_id)
    {
-      if(tex_id.valid())if(texs.binaryInclude(tex_id, Compare))
+      if(tex_id.valid())if(texs.binaryInclude(tex_id))
       {
          Importer.includeTex(tex_id);
          return true;
@@ -975,7 +975,7 @@ class ProjectEx : ProjectHierarchy
             {
                change.type=ElmChange.RESTORE;
                change.name="New Element";
-               change.elms.binaryInclude(elm.id, Compare);
+               change.elms.binaryInclude(elm.id);
             }
          }
          return &elm;
@@ -1148,7 +1148,7 @@ class ProjectEx : ProjectHierarchy
          {
             change.type=ElmChange.REMOVE;
             change.name="Remove";
-            FREPA(removed)change.elms.binaryInclude(removed[i], Compare);
+            FREPA(removed)change.elms.binaryInclude(removed[i]);
          }
          Server.removeElms(removed, true, time);
          setList(false);
@@ -1170,7 +1170,7 @@ class ProjectEx : ProjectHierarchy
          {
             change.type=ElmChange.RESTORE;
             change.name="Restore";
-            FREPA(restored)change.elms.binaryInclude(restored[i], Compare);
+            FREPA(restored)change.elms.binaryInclude(restored[i]);
          }
          Server.removeElms(restored, false, time);
          setList(false);
@@ -1214,7 +1214,7 @@ class ProjectEx : ProjectHierarchy
          {
             change.type=ElmChange.PUBLISH_DISABLE;
             change.name="Disable Publishing";
-            FREPA(processed)change.elms.binaryInclude(processed[i], Compare);
+            FREPA(processed)change.elms.binaryInclude(processed[i]);
          }
          Server.noPublishElms(processed, true, time);
          refresh(false);
@@ -1235,7 +1235,7 @@ class ProjectEx : ProjectHierarchy
          {
             change.type=ElmChange.PUBLISH_ENABLE;
             change.name="Enable Publishing";
-            FREPA(processed)change.elms.binaryInclude(processed[i], Compare);
+            FREPA(processed)change.elms.binaryInclude(processed[i]);
          }
          Server.noPublishElms(processed, false, time);
          refresh(false);
@@ -1428,7 +1428,7 @@ class ProjectEx : ProjectHierarchy
          // include other materials that have the same textures
          if(mtrl_data.base_0_tex.valid() || mtrl_data.base_1_tex.valid())
             FREPA(elms)if(C ElmMaterial *test=elms[i].mtrlData())
-               if(test.downsize_tex_mobile!=downsize && test.base_0_tex==mtrl_data.base_0_tex && test.base_1_tex==mtrl_data.base_1_tex)mtrls.binaryInclude(elms[i].id, Compare);
+               if(test.downsize_tex_mobile!=downsize && test.base_0_tex==mtrl_data.base_0_tex && test.base_1_tex==mtrl_data.base_1_tex)mtrls.binaryInclude(elms[i].id);
 
          REPA(mtrls)if(Elm *mtrl=findElm(mtrls[i]))
          {
@@ -1458,7 +1458,7 @@ class ProjectEx : ProjectHierarchy
          // include other materials that have the same textures
          if(mtrl_data.base_0_tex.valid() || mtrl_data.base_1_tex.valid())
             FREPA(elms)if(C ElmMaterial *test=elms[i].mtrlData())
-               if(test.texQuality()!=quality && test.base_0_tex==mtrl_data.base_0_tex && test.base_1_tex==mtrl_data.base_1_tex)mtrls.binaryInclude(elms[i].id, Compare);
+               if(test.texQuality()!=quality && test.base_0_tex==mtrl_data.base_0_tex && test.base_1_tex==mtrl_data.base_1_tex)mtrls.binaryInclude(elms[i].id);
 
          REPA(mtrls)if(Elm *mtrl=findElm(mtrls[i]))
          {
@@ -2495,7 +2495,7 @@ class ProjectEx : ProjectHierarchy
          {
             change.type=ElmChange.RESTORE;
             change.name="Copy";
-            REPA(duplicated)change.elms.binaryInclude(duplicated[i], Compare);
+            REPA(duplicated)change.elms.binaryInclude(duplicated[i]);
          }
       }
    }
@@ -2669,10 +2669,10 @@ class ProjectEx : ProjectHierarchy
             if(!np)child.finalPublish(true);
             switch(child.type)
             {
-               case ELM_ENUM     : existing_enums      .binaryInclude(child.id, Compare); break;
-               case ELM_OBJ_CLASS: existing_obj_classes.binaryInclude(child.id, Compare); break;
-               case ELM_FONT     : existing_fonts      .binaryInclude(child.id, Compare); if(!np)publish_fonts.binaryInclude(child.id, Compare); break;
-               case ELM_APP      : existing_apps       .binaryInclude(child.id, Compare); break;
+               case ELM_ENUM     : existing_enums      .binaryInclude(child.id); break;
+               case ELM_OBJ_CLASS: existing_obj_classes.binaryInclude(child.id); break;
+               case ELM_FONT     : existing_fonts      .binaryInclude(child.id); if(!np)publish_fonts.binaryInclude(child.id); break;
+               case ELM_APP      : existing_apps       .binaryInclude(child.id); break;
             }
             ElmNode &child=hierarchy[child_i];
             floodExisting(child, np);
@@ -3317,7 +3317,7 @@ class ProjectEx : ProjectHierarchy
       Memt<UID> added;
       FREPA(elm_ids) // add in order
          if(Elm *elm=firstVisibleParent(findElm(elm_ids[i]))) // add visible (not hidden)
-            if(added.binaryInclude(elm.id, Compare)) // don't add the same element multiple times
+            if(added.binaryInclude(elm.id)) // don't add the same element multiple times
       {
          elmOpenParents(elm.id, false);
          list_sel.add(elm.id);
@@ -4034,7 +4034,7 @@ class ProjectEx : ProjectHierarchy
          if(Area *area=WorldEdit.findAreaLoaded(area_xy))
       {
          REPA(area.objs)if(Obj *obj=area.objs[i]) // iterate all objects in the area
-            if(obj_ids.binaryHas(obj.id, Compare)) // if this is wanted object
+            if(obj_ids.binaryHas(obj.id)) // if this is wanted object
                objs.New()=*obj; // copy to output container
          return;
       }
@@ -4046,14 +4046,14 @@ class ProjectEx : ProjectHierarchy
       {
          bool        loaded_areas_changed=false; // if objects of loaded areas have changed
          Memt<VecI2> unload_areas; // areas to unload after processing
-         Area       &target_area=*WorldEdit.getArea(area_xy); if(!target_area.loaded)unload_areas.binaryInclude(target_area.xy, Compare);
+         Area       &target_area=*WorldEdit.getArea(area_xy); if(!target_area.loaded)unload_areas.binaryInclude(target_area.xy);
          REPA(objs)
          {
             ObjData &obj=objs[i];
             ObjVer  *obj_ver=WorldEdit.ver.obj.find(obj.id); // use 'find' to get null if not found
             if(!obj_ver) // not present in this world, then add to target area
             {
-               bool area_loaded=!unload_areas.binaryHas(target_area.xy, Compare); // if area is loaded (and won't be unloaded)
+               bool area_loaded=!unload_areas.binaryHas(target_area.xy); // if area is loaded (and won't be unloaded)
                Obj &cur_obj=WorldEdit.objs.New(); cur_obj.id=obj.id;
                cur_obj.sync(obj, edit_path);
                cur_obj.attach(WorldEdit, &target_area); // call before 'setChangedEmbed'
@@ -4066,8 +4066,8 @@ class ProjectEx : ProjectHierarchy
                if(area_loaded){loaded_areas_changed=true; target_area.delayedValidateRefs();}
             }else
             {
-               Area &cur_area=*WorldEdit.getArea(obj_ver.area_xy); if(!cur_area.loaded)unload_areas.binaryInclude(cur_area.xy, Compare);
-               bool  area_loaded=(!unload_areas.binaryHas(target_area.xy, Compare) || !unload_areas.binaryHas(cur_area.xy, Compare)); // if area is loaded (and won't be unloaded)
+               Area &cur_area=*WorldEdit.getArea(obj_ver.area_xy); if(!cur_area.loaded)unload_areas.binaryInclude(cur_area.xy);
+               bool  area_loaded=(!unload_areas.binaryHas(target_area.xy) || !unload_areas.binaryHas(cur_area.xy)); // if area is loaded (and won't be unloaded)
                cur_area.load();
                REPA(cur_area.objs)if(cur_area.objs[i].id==obj.id) // found that object
                {

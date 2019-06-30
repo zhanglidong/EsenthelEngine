@@ -115,7 +115,7 @@ class ServerClass : Connection
    void getElmLong   (Memc<UID> &elms                                    ) {if(canRead ())ClientSendGetElmLong   (T, elms);}
    void getElmLong   (   C UID  &elm_id                                  ) {Memc<UID> elms; elms.add(elm_id); getElmLong(elms);}
 
-   void setTex     (C UID &tex_id) {if(canWrite() && tex_id.valid() && texs.binaryInclude(tex_id, Compare))Synchronizer.setTex(tex_id);} // send if it wasn't available on the server yet, this should be called everytime a texture is created in the project (OR reused in case it was created before but not yet sent because it was not used at that time)
+   void setTex     (C UID &tex_id) {if(canWrite() && tex_id.valid() && texs.binaryInclude(tex_id))Synchronizer.setTex(tex_id);} // send if it wasn't available on the server yet, this should be called everytime a texture is created in the project (OR reused in case it was created before but not yet sent because it was not used at that time)
    void setElmShort(C UID &elm_id) {if(canWrite())Synchronizer.setElmShort(elm_id);} // this sets only ID TYPE DATA       but no NAME, PARENT, etc.
    void setElmLong (C UID &elm_id) {if(canWrite())Synchronizer.setElmLong (elm_id);} // this sets only ID TYPE DATA FILES but no NAME, PARENT, etc.
    void setElmFull (C UID &elm_id) {if(canWrite())Synchronizer.setElmFull (elm_id);}

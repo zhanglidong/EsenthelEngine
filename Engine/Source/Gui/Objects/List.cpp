@@ -1517,8 +1517,8 @@ void _List::update(C GuiPC &gpc)
                {
                   if(Kb.k.first())
                   {
-                                        REPA(sel          )if(               absToVis(sel[i])<0        )goto different; // if element is selected but not visible
-                     sel.sort(Compare); REP (visibleElms())if(!sel.binaryHas(visToAbs(    i ), Compare))goto different; // if element is visible  but not selected (sort first)
+                                        REPA(sel          )if(               absToVis(sel[i])<0)goto different; // if element is selected but not visible
+                     sel.sort(Compare); REP (visibleElms())if(!sel.binaryHas(visToAbs(    i )) )goto different; // if element is visible  but not selected (sort first)
                      if(0)
                      {
                      different:
