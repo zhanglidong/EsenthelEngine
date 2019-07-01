@@ -206,7 +206,7 @@ void Viewport4::Zoom::draw(C GuiPC &gpc)
       rect.draw(Color(192, 200, 232, 64));
       rect.draw(Color(0, 0, 0, 128), false);
       {
-         VI.color(Color(0, 0, 0, 64));
+         VI.color(Color(0, 0, 0, LINEAR_GAMMA ? 192 : 64));
          Flt offset=-0.2f*Log2((v4 && view) ? v4->perspective() ? view->camera.dist : view->viewport.fov : ActiveCam.dist),
              x0=rect.lerpX(0.2f),
              x1=rect.lerpX(0.8f);
@@ -283,7 +283,7 @@ void Viewport4::DPad::draw(C GuiPC &gpc)
       if(touched)circle.drawPie(Color(0, 192, 255, 192), r2, angle-PI_4/2, PI_4);
       // draw lines
       {
-         VI.color(Color(0, 0, 0, 64));
+         VI.color(Color(0, 0, 0, LINEAR_GAMMA ? 192 : 64));
          REP(8){Flt c, s; CosSin(c, s, i*PI_4 + PI_4/2); VI.line(Vec2(circle.pos.x+c*circle.r, circle.pos.y+s*circle.r), Vec2(circle.pos.x+c*r2, circle.pos.y+s*r2));}
          VI.end();
       }
@@ -303,7 +303,7 @@ void Viewport4::DPadY::draw(C GuiPC &gpc)
       VI.end();
       if(dir>0)Quad2(rect.left(), rect.lu(), rect.ru  (), right).draw(Color(0, 192, 255, 192), true);else
       if(dir<0)Quad2(rect.rd  (), rect.ld(), rect.left(), right).draw(Color(0, 192, 255, 192), true);
-      D.line(Color(0, 0, 0, 64), rect.left(), right);
+      D.line(Color(0, 0, 0, LINEAR_GAMMA ? 192 : 64), rect.left(), right);
    }
 }
 /******************************************************************************/
@@ -388,7 +388,7 @@ void Viewport4::APadY::draw(C GuiPC &gpc)
    }
 }
 /******************************************************************************/
-// ZOOM
+// DRAG PAD
 /******************************************************************************/
 Viewport4::Drag & Viewport4::Drag ::create(Viewport4 &v4, View &view) {super::create(); T.v4=&v4; T.view=&view; return T;}
 Viewport4::DragY& Viewport4::DragY::create(Viewport4 &v4, View &view) {super::create(); T.v4=&v4; T.view=&view; return T;}
@@ -432,7 +432,7 @@ void Viewport4::Drag::draw(C GuiPC &gpc)
       D.clip(gpc.clip);
       Circle c(rect().h()*0.5f, rect().center()+gpc.offset);
       c.draw(Color(192, 200, 232, 64));
-      c.draw(Color(0, 0, 0, 128), false);
+      c.draw(Color(0, 0, 0, LINEAR_GAMMA ? 192 : 128), false);
    }
 }
 void Viewport4::DragY::draw(C GuiPC &gpc)
@@ -442,7 +442,7 @@ void Viewport4::DragY::draw(C GuiPC &gpc)
       D.clip(gpc.clip);
       Rect rect=T.rect()+gpc.offset;
       rect.draw(Color(192, 200, 232, 64));
-      rect.draw(Color(0, 0, 0, 128), false);
+      rect.draw(Color(0, 0, 0, LINEAR_GAMMA ? 192 : 128), false);
    }
 }
 /******************************************************************************/

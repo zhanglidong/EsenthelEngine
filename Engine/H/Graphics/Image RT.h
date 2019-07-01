@@ -73,6 +73,7 @@ STRUCT(ImageRT , Image) // Image Render Target
 
    void zero       ();
    void delThis    ();
+   void del        ();
    Bool create     (C VecI2 &size, IMAGE_TYPE type, IMAGE_MODE mode=IMAGE_RT, Byte samples=1);
    Bool createTry  ()=delete;
    Bool createTryEx()=delete;

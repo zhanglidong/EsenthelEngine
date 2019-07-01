@@ -227,7 +227,7 @@ void ImageRT::clearViewport(C Vec4 &color, Bool restore_rt)
 /******************************************************************************/
 void ImageRT:: zero   () {_srv_srgb=null; _rtv=_rtv_srgb=null; _dsv=_rdsv=null;} // don't zero '_ptr_num' here, because this is called in 'delThis', however ref count should be kept
      ImageRT:: ImageRT() {_ptr_num=0; zero();}
-     ImageRT::~ImageRT() {delThis();} // delete children first
+     ImageRT::~ImageRT() {delThis();} // delete children first, 'super.del' already called automatically in '~Image'
 void ImageRT:: delThis() // delete only this class members without super
 {
 #if DX11
@@ -246,6 +246,11 @@ void ImageRT:: delThis() // delete only this class members without super
    }
 #endif
    zero();
+}
+void ImageRT::del()
+{
+   delThis(); // delete children first
+   super::del();
 }
 Bool ImageRT::createViews(Bool srv_srgb)
 {
@@ -342,7 +347,6 @@ Bool ImageRT::map()
 /******************************************************************************/
 void ImageRT::unmap()
 {
-   delThis();
 #if DX11
    del();
 #elif IOS
