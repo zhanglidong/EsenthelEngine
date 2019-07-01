@@ -28,7 +28,7 @@ bool UpdateProjectUpdate()
       StateMain.set(StateFadeTime);
    }
 
-   int total=0; REPA(ProjUpdate)total+=ProjUpdate[i].texs.elms();
+   long total=0; REPA(ProjUpdate)total+=ProjUpdate[i].total();
    UpdateProgress.set(total-WorkerThreads.queued(), total);
    WindowSetProgress(UpdateProgress());
    Time.wait(1000/30);

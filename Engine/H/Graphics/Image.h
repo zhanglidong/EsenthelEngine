@@ -422,9 +422,11 @@ struct Image // Image (Texture)
    Image& tile                 (               Int  range, Bool horizontally=true, Bool vertically=true                                                                        ) ; // make tileable, 'range'=number of pixels to blend
    Image& minimum              (               Flt  distance                                                                                                                   ) ; // apply minimum filter, 'distance'=pixel range (0..1)
    Image& maximum              (               Flt  distance                                                                                                                   ) ; // apply maximum filter, 'distance'=pixel range (0..1)
-   Image& transparentToNeighbor(               Bool clamp=true, Flt step=1                                                                                                     ) ; // replace transparent pixels with neighbors
    Bool   getSameColorNeighbors(               Int x, Int y, MemPtr<VecI2> pixels, Bool diagonal=true                                                                          )C; // get a list of all neighbor pixels   with the same color, 'diagonal'=if allow diagonal movements, false on fail
    Image& fill                 (               Int x, Int y, C Color      &color , Bool diagonal=true                                                                          ) ; // fill image at specified coordinates with given    color, 'diagonal'=if allow diagonal movements
+
+   Image& transparentToNeighbor  (Bool clamp=true, Flt step     =1); // replace transparent pixels with neighbors
+   Image& transparentForFiltering(Bool clamp=true, Flt intensity=1); // adjust  transparent pixels to optimize for filtering
 
    Image& createShadow(C Image &src   , Int blur, Flt shadow_opacity=1.0f, Flt shadow_spread=0.0f, Bool border_padd=true                                                        ); // create shadow image IMAGE_A8 from 'src' alpha channel, 'blur'=blur range (in pixels), 'shadow_opacity'=shadow opacity (0..1), 'shadow_spread'=shadow spread (0..1)
    Image&  applyShadow(C Image &shadow,      C Color &shadow_color  =BLACK,                                               C VecI2 &offset=0, Int image_type=0, Bool combine=true); // apply  shadow image to self, 'offset'=offset in pixels where to apply the shadow, 'image_type'=IMAGE_TYPE (-1=keep, 0=autodetect), 'combine'=if combine on to the color map (if false then alpha will be set to shadow intensity)

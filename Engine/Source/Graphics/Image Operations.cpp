@@ -2293,6 +2293,63 @@ Image& Image::transparentToNeighbor(Bool clamp, Flt step)
    return T;
 #endif
 }
+/******************************************************************************/
+Image& Image::transparentForFiltering(Bool clamp, Flt intensity)
+{
+ C Image *src=this; Image temp;
+   if(compressed())if(copyTry(temp, -1, -1, -1, ImageTypeUncompressed(type()), IMAGE_SOFT, 1))src=&temp;else return T;
+   if(src->lockRead())
+   {
+      Bool ok=false;
+      Image dest; if(dest.createTry(src->w(), src->h(), src->d(), src->type(), src->mode(), src->mipMaps()) && dest.lock(LOCK_WRITE))
+      {
+         intensity/=9*2; // 9 neighbors, and half
+         const Flt scale=2;
+         RectI mask(0, 0, src->w()-1, src->h()-1);
+         REPD(z, dest.d())
+         REPD(y, dest.h())
+         REPD(x, dest.w())
+         {
+            Vec4 base=src->color3DF(x, y, z);
+            Vec4 out; out.xyz=0; out.w=base.w; Flt weight=0;
+
+            // Example #1: center A=  1, neighbor A=  5, center weight=  1, neighbor weight=  4
+            // Example #2: center A=128, neighbor A=255, center weight=128, neighbor weight=127
+            // Example #3: center A=255, neighbor A=255, center weight=255, neighbor weight=  0
+            // Example #4: center A=  1, neighbor A=255, center weight=  1, neighbor weight=255
+
+            // add starting color
+            Flt w=base.w; // with weight according to its alpha
+            out.xyz+=w*base.xyz;
+            weight +=w;
+
+            RectI rect(x-1, y-1, x+1, y+1); if(clamp)rect&=mask;
+            for(Int sy=rect.min.y; sy<=rect.max.y; sy++)
+            for(Int sx=rect.min.x; sx<=rect.max.x; sx++)
+               if(sx!=x || sy!=y) // skip center
+            {
+               Vec4 s=src->color3DF(clamp ? sx : Mod(sx, src->w()), clamp ? sy : Mod(sy, src->h()), z);
+               // add neighbor color
+               Flt w=s.w-base.w*scale; if(w>0) // with weight as difference between neighbor and center alpha
+               {
+                  w*=intensity;
+                  out.xyz+=w*s.xyz;
+                  weight +=w;
+               }
+            }
+
+            if(weight)out.xyz/=weight;else out.xyz=base.xyz; // if have no weight, then just copy original
+            dest.color3DF(x, y, z, out);
+         }
+         ok=true;
+         dest.unlock().updateMipMaps(FILTER_BEST, clamp?IC_CLAMP:IC_WRAP);
+      }
+      src->unlock();
+      if(ok)Swap(dest, T);
+   }
+   return T;
+}
+/******************************************************************************/
 static VecI2 move[8]=
 {
    VecI2( 0, 1),
