@@ -95,8 +95,8 @@ struct GpuSun
 };
 #pragma pack(pop)
 
-static INLINE Shader* GetSunRaysMask(Bool mask                         ) {Shader* &s=Sh.h_SunRaysMask[mask]               ; if(SLOW_SHADER_LOAD && !s)s=Sh.getSunRaysMask(mask               ); return s;}
-static INLINE Shader* GetSunRays    (Bool high, Bool jitter, Bool gamma) {Shader* &s=Sh.h_SunRays    [high][jitter][gamma]; if(SLOW_SHADER_LOAD && !s)s=Sh.getSunRays    (high, jitter, gamma); return s;}
+static INLINE Shader* GetSunRaysMask(Bool mask                                      ) {Shader* &s=Sh.h_SunRaysMask[mask]                       ; if(SLOW_SHADER_LOAD && !s)s=Sh.getSunRaysMask(mask                       ); return s;}
+static INLINE Shader* GetSunRays    (Bool high, Bool dither, Bool jitter, Bool gamma) {Shader* &s=Sh.h_SunRays    [high][dither][jitter][gamma]; if(SLOW_SHADER_LOAD && !s)s=Sh.getSunRays    (high, dither, jitter, gamma); return s;}
 
 void SunClass::drawRays(Image *coverage, Vec &color)
 {
@@ -107,15 +107,18 @@ void SunClass::drawRays(Image *coverage, Vec &color)
    Flt alpha=Sat(sun.pos.z/0.18f); // if sun is close to camera (or behind it) then decrease opacity
    if(Fog.draw && Fog.affect_sky)alpha*=VisibleOpacity(Fog.density, D.viewRange()); // rays are in ALPHA_ADD mode, so we need to downscale the color
    color=rays_color*alpha;
-   Bool gamma=LINEAR_GAMMA; // can't do 'swapRTV' here, because when operating in linear color space, the effect looks totally different
+   Bool dither, gamma;
 
    if(Renderer._cur[0]!=Renderer._col()) // if rendering to a separate RT, then render with full color, so later when upscaling, we can use dithering with higher precision, during dithering the color will be set to the right value
    {
       sun.color=1;
-      gamma=false;
+      dither   =false; // we will do dithering later
+      gamma    =false;
    }else // if rendering to the main target, then use final color
    {
       sun.color=color;
+      dither   =(D.dither() && !Renderer._cur[0]->highPrecision());
+      gamma    =LINEAR_GAMMA; // can't do 'swapRTV' here, because when operating in linear color space, the effect looks totally different
    }
 
    REPS(Renderer._eye, Renderer._eye_num)
@@ -130,11 +133,11 @@ void SunClass::drawRays(Image *coverage, Vec &color)
          if(Renderer._eye)sun.pos2.x+=0.5f;
       }
       Sh.h_Sun->set(sun);
-      Bool jitter=((rays_jitter<0) ? rays_color.max()>0.1f+EPS_COL : rays_jitter!=0); // for auto, enable jittering only if rays have a high brightness
+      Bool jitter=((rays_jitter<0) ? rays_color.max()>(LINEAR_GAMMA ? 0.15f : 0.1f)+EPS_COL : rays_jitter!=0); // for auto, enable jittering only if rays have a high brightness
       switch(_actual_rays_mode)
       {
-         case SUN_RAYS_HIGH: GetSunRays(true , jitter, gamma)->draw(coverage       , rect); break;
-         default           : GetSunRays(false, jitter, gamma)->draw(Renderer._ds_1s, rect); break;
+         case SUN_RAYS_HIGH: GetSunRays(true , dither, jitter, gamma)->draw(coverage       , rect); break;
+         default           : GetSunRays(false, dither, jitter, gamma)->draw(Renderer._ds_1s, rect); break;
       }
    }
 }

@@ -471,7 +471,7 @@ Vec4 DrawTexXC_PS(NOPERSP Vec2 inTex:TEXCOORD,
 {
    VecH4 col=Tex(Col, inTex).x*Color[0]+Color[1];
    if(dither)ApplyDither(col.rgb, pixel.xy, LINEAR_GAMMA && !gamma); // don't perform gamma conversions inside dither if "gamma==true", because this means we have sRGB color which we're going to convert to linear below
-   if(gamma )col.rgb=SRGBToLinearFast(col.rgb);
+   if(gamma )col.rgb=SRGBToLinearFast(col.rgb); // this is used for drawing sun rays, 'SRGBToLinearFast' works better here than 'SRGBToLinear' (gives high contrast, dark colors remain darker, while 'SRGBToLinear' highlights them more)
    return col;
 }
 TECHNIQUE(DrawTexXC  , Draw_VS(), DrawTexXC_PS(false));
@@ -1890,13 +1890,14 @@ Vec4 SunRays_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                 NOPERSP Vec2 inPosXY:TEXCOORD1,
                 NOPERSP PIXEL                 ,
                 uniform Bool high             ,
+                uniform Bool dither           ,
                 uniform Bool jitter           ,
                 uniform Bool gamma            ):COLOR
 {
-   Vec  pos  =Normalize(Vec(inPosXY, 1));
-   Flt  cos  =Dot(Sun.pos, pos),
-        power=(LINEAR_GAMMA ? cos : (cos>0) ? cos*cos : 0);
-   Vec4 col  =0;
+   VecH  pos  =Normalize(Vec(inPosXY, 1));
+   Half  cos  =Dot(Sun.pos, pos),
+         power=(LINEAR_GAMMA ? cos : (cos>0) ? cos*cos : 0);
+   VecH4 col  =0;
 
 #if 0 // can't use 'clip' because we always have to set output (to 0 if no rays)
    clip(power-EPS_COL);
@@ -1955,18 +1956,27 @@ Vec4 SunRays_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          else    light+=DEPTH_BACKGROUND(TexDepthRawPoint(t)); // use simpler version here unlike in 'SunRaysPre_PS' because this one is called for each step for each pixel
       }
       col.rgb=(light*power/steps)*Sun.color;
-      if(gamma)col.rgb=SRGBToLinearFast(col.rgb);
+      if(dither)ApplyDither(col.rgb, pixel.xy, false); // here we're always in sRGB gamma
+      if(gamma )col.rgb=SRGBToLinearFast(col.rgb); // 'SRGBToLinearFast' works better here than 'SRGBToLinear' (gives high contrast, dark colors remain darker, while 'SRGBToLinear' highlights them more)
    }
    return col;
 }
-TECHNIQUE(SunRays   , DrawPosXY_VS(), SunRays_PS(false, false, false));
-TECHNIQUE(SunRaysH  , DrawPosXY_VS(), SunRays_PS(true , false, false));
-TECHNIQUE(SunRaysJ  , DrawPosXY_VS(), SunRays_PS(false, true , false));
-TECHNIQUE(SunRaysHJ , DrawPosXY_VS(), SunRays_PS(true , true , false));
-TECHNIQUE(SunRaysG  , DrawPosXY_VS(), SunRays_PS(false, false, true ));
-TECHNIQUE(SunRaysHG , DrawPosXY_VS(), SunRays_PS(true , false, true ));
-TECHNIQUE(SunRaysJG , DrawPosXY_VS(), SunRays_PS(false, true , true ));
-TECHNIQUE(SunRaysHJG, DrawPosXY_VS(), SunRays_PS(true , true , true ));
+TECHNIQUE(SunRays    , DrawPosXY_VS(), SunRays_PS(false, false, false, false));
+TECHNIQUE(SunRaysH   , DrawPosXY_VS(), SunRays_PS(true , false, false, false));
+TECHNIQUE(SunRaysD   , DrawPosXY_VS(), SunRays_PS(false, true , false, false));
+TECHNIQUE(SunRaysHD  , DrawPosXY_VS(), SunRays_PS(true , true , false, false));
+TECHNIQUE(SunRaysJ   , DrawPosXY_VS(), SunRays_PS(false, false, true , false));
+TECHNIQUE(SunRaysHJ  , DrawPosXY_VS(), SunRays_PS(true , false, true , false));
+TECHNIQUE(SunRaysDJ  , DrawPosXY_VS(), SunRays_PS(false, true , true , false));
+TECHNIQUE(SunRaysHDJ , DrawPosXY_VS(), SunRays_PS(true , true , true , false));
+TECHNIQUE(SunRaysG   , DrawPosXY_VS(), SunRays_PS(false, false, false, true ));
+TECHNIQUE(SunRaysHG  , DrawPosXY_VS(), SunRays_PS(true , false, false, true ));
+TECHNIQUE(SunRaysDG  , DrawPosXY_VS(), SunRays_PS(false, true , false, true ));
+TECHNIQUE(SunRaysHDG , DrawPosXY_VS(), SunRays_PS(true , true , false, true ));
+TECHNIQUE(SunRaysJG  , DrawPosXY_VS(), SunRays_PS(false, false, true , true ));
+TECHNIQUE(SunRaysHJG , DrawPosXY_VS(), SunRays_PS(true , false, true , true ));
+TECHNIQUE(SunRaysDJG , DrawPosXY_VS(), SunRays_PS(false, true , true , true ));
+TECHNIQUE(SunRaysHDJG, DrawPosXY_VS(), SunRays_PS(true , true , true , true ));
 /******************************************************************************/
 // SHADOW MAP
 /******************************************************************************/
