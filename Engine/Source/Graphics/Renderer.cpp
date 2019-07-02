@@ -248,6 +248,10 @@ INLINE Shader* GetBloom  (Bool dither, Bool gamma                               
 // !! Assumes that 'ColClamp' was already set !!
 void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool dither)
 {
+   // process bloom in sRGB gamma, because it will provide sharper results
+
+   Bool gamma=LINEAR_GAMMA, swap=(gamma && src.canSwapSRV() && dest.canSwapRTV()); if(swap){gamma=false; src.swapSRV(); dest.swapRTV();}
+
    const Int     shift=(D.bloomHalf() ? 1 : 2);
    ImageRTDesc   rt_desc(fxW()>>shift, fxH()>>shift, IMAGERT_RGB); // using IMAGERT_RGB will clip to 0..1 range !! using high precision would require clamping in the shader to make sure values don't go below 0 !!
    ImageRTPtrRef rt0(D.bloomHalf() ? _h0 : _q0); rt0.get(rt_desc);

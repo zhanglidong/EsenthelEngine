@@ -2331,7 +2331,7 @@ Display& Display::samples(Byte samples)
 Display& Display::highPrecColRT(Bool on) {if(_hp_col_rt!=on){_hp_col_rt=on; Renderer.rtClean();} return T;}
 Display& Display::highPrecNrmRT(Bool on) {if(_hp_nrm_rt!=on){_hp_nrm_rt=on; Renderer.rtClean();} return T;}
 Display& Display::highPrecLumRT(Bool on) {if(_hp_lum_rt!=on){_hp_lum_rt=on; Renderer.rtClean();} return T;}
-Display& Display::litColRTPrecision(IMAGE_PRECISION precision)
+Display& Display::litColRTPrecision(IMAGE_PRECISION precision) // !! Warning: there might be small differences between using high precision RT's, because sometimes we can use sRGB/non-sRGB RT views, but sometimes we have to do gamma correction in the shader, and for performance reasons, LinearToSRGBFast/SRGBToLinearFast are chosen, which don't provide the same exact results !!
 {
    Clamp(precision, IMAGE_PRECISION_8, IMAGE_PRECISION(IMAGE_PRECISION_NUM-1));
    if(_lit_col_rt_prec!=precision){_lit_col_rt_prec=precision; Renderer.rtClean();}
