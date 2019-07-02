@@ -1136,11 +1136,11 @@ inline Half DitherValue(Vec2 pixel)
    VecI2 xy=Trunc(pixel)%8; return OrderDither[xy.x + xy.y*8]; // -1..1 / 256 range
 #endif
 }
-inline void ApplyDither(inout VecH col, Vec2 pixel)
+inline void ApplyDither(inout VecH col, Vec2 pixel, uniform Bool linear_gamma=LINEAR_GAMMA)
 {
-   if(LINEAR_GAMMA)col=LinearToSRGBFast(col);
+   if(linear_gamma)col=LinearToSRGBFast(col);
    col+=DitherValue(pixel)*(1.5/256);
-   if(LINEAR_GAMMA)col=SRGBToLinearFast(col);
+   if(linear_gamma)col=SRGBToLinearFast(col);
 }
 /******************************************************************************/
 // RGB <-> HSB

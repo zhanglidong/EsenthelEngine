@@ -466,14 +466,18 @@ TECHNIQUE(Draw2DDepthTexColAT, Draw2DDepthTexCol_VS(), Draw3DTexCol_PS(true , fa
 /******************************************************************************/
 Vec4 DrawTexXC_PS(NOPERSP Vec2 inTex:TEXCOORD,
                   NOPERSP PIXEL,
-          uniform Bool dither=false):COLOR
+          uniform Bool dither=false,
+          uniform Bool gamma =false):COLOR
 {
    VecH4 col=Tex(Col, inTex).x*Color[0]+Color[1];
-   if(dither)ApplyDither(col.rgb, pixel.xy);
+   if(dither)ApplyDither(col.rgb, pixel.xy, LINEAR_GAMMA && !gamma); // don't perform gamma conversions inside dither if "gamma==true", because this means we have sRGB color which we're going to convert to linear below
+   if(gamma )col.rgb=SRGBToLinearFast(col.rgb);
    return col;
 }
-TECHNIQUE(DrawTexXC , Draw_VS(), DrawTexXC_PS());
-TECHNIQUE(DrawTexXCD, Draw_VS(), DrawTexXC_PS(true));
+TECHNIQUE(DrawTexXC  , Draw_VS(), DrawTexXC_PS(false));
+TECHNIQUE(DrawTexXCD , Draw_VS(), DrawTexXC_PS(true ));
+TECHNIQUE(DrawTexXCG , Draw_VS(), DrawTexXC_PS(false, true));
+TECHNIQUE(DrawTexXCDG, Draw_VS(), DrawTexXC_PS(true , true));
 /******************************************************************************/
 Vec4 DrawTexCubicFast_PS(NOPERSP Vec2 inTex:TEXCOORD,
                          NOPERSP PIXEL,
@@ -1886,11 +1890,12 @@ Vec4 SunRays_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                 NOPERSP Vec2 inPosXY:TEXCOORD1,
                 NOPERSP PIXEL                 ,
                 uniform Bool high             ,
-                uniform Bool jitter           ):COLOR
+                uniform Bool jitter           ,
+                uniform Bool gamma            ):COLOR
 {
    Vec  pos  =Normalize(Vec(inPosXY, 1));
    Flt  cos  =Dot(Sun.pos, pos),
-        power=((cos>0) ? cos*cos : 0);
+        power=(LINEAR_GAMMA ? cos : (cos>0) ? cos*cos : 0);
    Vec4 col  =0;
 
 #if 0 // can't use 'clip' because we always have to set output (to 0 if no rays)
@@ -1950,13 +1955,18 @@ Vec4 SunRays_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          else    light+=DEPTH_BACKGROUND(TexDepthRawPoint(t)); // use simpler version here unlike in 'SunRaysPre_PS' because this one is called for each step for each pixel
       }
       col.rgb=(light*power/steps)*Sun.color;
+      if(gamma)col.rgb=SRGBToLinearFast(col.rgb);
    }
    return col;
 }
-TECHNIQUE(SunRays  , DrawPosXY_VS(), SunRays_PS(false, false));
-TECHNIQUE(SunRaysH , DrawPosXY_VS(), SunRays_PS(true , false));
-TECHNIQUE(SunRaysJ , DrawPosXY_VS(), SunRays_PS(false, true ));
-TECHNIQUE(SunRaysHJ, DrawPosXY_VS(), SunRays_PS(true , true ));
+TECHNIQUE(SunRays   , DrawPosXY_VS(), SunRays_PS(false, false, false));
+TECHNIQUE(SunRaysH  , DrawPosXY_VS(), SunRays_PS(true , false, false));
+TECHNIQUE(SunRaysJ  , DrawPosXY_VS(), SunRays_PS(false, true , false));
+TECHNIQUE(SunRaysHJ , DrawPosXY_VS(), SunRays_PS(true , true , false));
+TECHNIQUE(SunRaysG  , DrawPosXY_VS(), SunRays_PS(false, false, true ));
+TECHNIQUE(SunRaysHG , DrawPosXY_VS(), SunRays_PS(true , false, true ));
+TECHNIQUE(SunRaysJG , DrawPosXY_VS(), SunRays_PS(false, true , true ));
+TECHNIQUE(SunRaysHJG, DrawPosXY_VS(), SunRays_PS(true , true , true ));
 /******************************************************************************/
 // SHADOW MAP
 /******************************************************************************/

@@ -191,8 +191,8 @@ Shader* MainShaderClass::getLightCone(Bool shadow, Bool image, Bool multi_sample
 
 Shader* MainShaderClass::getColLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade) {return get(S8+"ColLight"+multi_sample+(ao?'A':'\0')+(cel_shade?'C':'\0')+(night_shade?'N':'\0'));}
 
-Shader* MainShaderClass::getSunRaysMask(Bool mask             ) {return get(S8+"SunRaysMask"+(mask?'1':'\0'));}
-Shader* MainShaderClass::getSunRays    (Bool high, Bool jitter) {return get(S8+"SunRays"    +(high?'H':'\0')+(jitter?'J':'\0'));}
+Shader* MainShaderClass::getSunRaysMask(Bool mask                         ) {return get(S8+"SunRaysMask"+(mask?'1':'\0'));}
+Shader* MainShaderClass::getSunRays    (Bool high, Bool jitter, Bool gamma) {return get(S8+"SunRays"    +(high?'H':'\0')+(jitter?'J':'\0')+(gamma?'G':'\0'));}
 
 Shader* MainShaderClass::getSkyTF(Int textures,                Bool cloud  ,                   Bool dither) {return get(S8+"SkyTF"+textures+(cloud?'C':'\0')+(dither?'D':'\0'));}
 Shader* MainShaderClass::getSkyT (Int textures,                              Int multi_sample, Bool dither) {return get(S8+"SkyT" +textures+multi_sample+(dither?'D':'\0'));}
@@ -356,6 +356,8 @@ void MainShaderClass::getTechniques()
    h_DrawTexX   =get("DrawTexX");
    h_DrawTexXC  =get("DrawTexXC");
    h_DrawTexXCD =get("DrawTexXCD");
+   h_DrawTexXCG =get("DrawTexXCG");
+   h_DrawTexXCDG=get("DrawTexXCDG");
  //h_DrawTexY   =get("DrawTexY"); used by Editor
  //h_DrawTexZ   =get("DrawTexZ"); used by Editor
  //h_DrawTexW   =get("DrawTexW"); used by Editor
@@ -478,8 +480,11 @@ void MainShaderClass::getTechniques()
    }
 
    REPD(m, 2)h_SunRaysMask[m]=getSunRaysMask(m);
+
    REPD(h, 2)
-   REPD(j, 2)h_SunRays[h][j]=getSunRays(h, j);
+   REPD(j, 2)
+   REPD(g, 2)
+      h_SunRays[h][j][g]=getSunRays(h, j, g);
  //h_SunRaysSoft=get("SunRaysSoft");
 #endif
 

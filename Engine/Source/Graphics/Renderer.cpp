@@ -730,7 +730,7 @@ RendererClass& RendererClass::operator()(void (&render)())
             {
                set(_lum_1s(), null, true); D.alpha(ALPHA_ADD);
                Sh.h_Color[0]->set(Vec4(D.ambientColorL(), 0));
-               Sh.h_Color[1]->set(Vec4Zero                 );
+               Sh.h_Color[1]->set(Vec4Zero                  );
                Sh.h_DrawTexXC->draw(_ao);
             }
             if(set(_lum_1s))goto finished;
@@ -1178,7 +1178,7 @@ void RendererClass::solid()
 
             // restore settings
             ambient_color_l->set(D.ambientColorL()); Sh.h_AmbientMaterial->set(1); // restore ambient lighting
-            Frustum.set();                                                       // restore frustum after it being potentially changed when drawing shadow maps or setting frustum for visible objects for lights
+            Frustum.set();                                                         // restore frustum after it being potentially changed when drawing shadow maps or setting frustum for visible objects for lights
          }
 
        //resolveDepth(); was already called for the main light

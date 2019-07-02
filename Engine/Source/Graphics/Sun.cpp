@@ -95,8 +95,8 @@ struct GpuSun
 };
 #pragma pack(pop)
 
-INLINE Shader* GetSunRaysMask(Bool mask             ) {Shader* &s=Sh.h_SunRaysMask[mask]        ; if(SLOW_SHADER_LOAD && !s)s=Sh.getSunRaysMask(mask        ); return s;}
-INLINE Shader* GetSunRays    (Bool high, Bool jitter) {Shader* &s=Sh.h_SunRays    [high][jitter]; if(SLOW_SHADER_LOAD && !s)s=Sh.getSunRays    (high, jitter); return s;}
+static INLINE Shader* GetSunRaysMask(Bool mask                         ) {Shader* &s=Sh.h_SunRaysMask[mask]               ; if(SLOW_SHADER_LOAD && !s)s=Sh.getSunRaysMask(mask               ); return s;}
+static INLINE Shader* GetSunRays    (Bool high, Bool jitter, Bool gamma) {Shader* &s=Sh.h_SunRays    [high][jitter][gamma]; if(SLOW_SHADER_LOAD && !s)s=Sh.getSunRays    (high, jitter, gamma); return s;}
 
 void SunClass::drawRays(Image *coverage, Vec &color)
 {
@@ -107,10 +107,12 @@ void SunClass::drawRays(Image *coverage, Vec &color)
    Flt alpha=Sat(sun.pos.z/0.18f); // if sun is close to camera (or behind it) then decrease opacity
    if(Fog.draw && Fog.affect_sky)alpha*=VisibleOpacity(Fog.density, D.viewRange()); // rays are in ALPHA_ADD mode, so we need to downscale the color
    color=rays_color*alpha;
+   Bool gamma=LINEAR_GAMMA; // can't do 'swapRTV' here, because when operating in linear color space, the effect looks totally different
 
    if(Renderer._cur[0]!=Renderer._col()) // if rendering to a separate RT, then render with full color, so later when upscaling, we can use dithering with higher precision, during dithering the color will be set to the right value
    {
       sun.color=1;
+      gamma=false;
    }else // if rendering to the main target, then use final color
    {
       sun.color=color;
@@ -131,8 +133,8 @@ void SunClass::drawRays(Image *coverage, Vec &color)
       Bool jitter=((rays_jitter<0) ? rays_color.max()>0.1f+EPS_COL : rays_jitter!=0); // for auto, enable jittering only if rays have a high brightness
       switch(_actual_rays_mode)
       {
-         case SUN_RAYS_HIGH: GetSunRays(true , jitter)->draw(coverage       , rect); break;
-         default           : GetSunRays(false, jitter)->draw(Renderer._ds_1s, rect); break;
+         case SUN_RAYS_HIGH: GetSunRays(true , jitter, gamma)->draw(coverage       , rect); break;
+         default           : GetSunRays(false, jitter, gamma)->draw(Renderer._ds_1s, rect); break;
       }
    }
 }
@@ -226,8 +228,8 @@ Bool AstroDrawRays()
          Bool dither=(D.dither() && !Renderer._col->highPrecision()); // don't do dithering for high precision RT
          Shader *shader;
        //if(Sun.rays_soft && shift==1)shader=Sh.h_SunRaysSoft;else
-         if(dither                   )shader=Sh.h_DrawTexXCD;else
-                                      shader=Sh.h_DrawTexXC ;
+         if(dither                   )shader=(LINEAR_GAMMA ? Sh.h_DrawTexXCDG : Sh.h_DrawTexXCD);else
+                                      shader=(LINEAR_GAMMA ? Sh.h_DrawTexXCG  : Sh.h_DrawTexXC );
          REPS(Renderer._eye, Renderer._eye_num)shader->draw(rt0, Renderer._stereo ? &D._view_eye_rect[Renderer._eye] : &D.viewRect());
       }
       Renderer._sky_coverage.clear();

@@ -148,6 +148,8 @@ struct MainShaderClass
       *h_DrawTexX            ,
       *h_DrawTexXC           ,
       *h_DrawTexXCD          ,
+      *h_DrawTexXCG          ,
+      *h_DrawTexXCDG         ,
       *h_Simple              ,
 
       *h_DrawMask,
@@ -308,13 +310,13 @@ struct MainShaderClass
    // SKY
    Shader
       *h_SunRaysMask[2]      , // [Mask]
-      *h_SunRays    [2][2]   , // [High] [Jitter]
+      *h_SunRays    [2][2][2], // [High] [Jitter] [Gamma]
       *h_SkyTF[2]   [2]   [2], // [Textures(0->1, 1->2)]         [Cloud  ]               [Dither] (Textures   +Flat)
       *h_SkyT [2]      [3][2], // [Textures(0->1, 1->2)]                   [MultiSample] [Dither] (Textures        )
       *h_SkyAF[2][2][2]   [2], // [PerVertex           ] [Stars] [Cloud  ]               [Dither] (Atmospheric+Flat)
       *h_SkyA [2][2][2][3][2]; // [PerVertex           ] [Stars] [Density] [MultiSample] [Dither] (Atmospheric     )
    Shader* getSunRaysMask(Bool mask);
-   Shader* getSunRays    (Bool high, Bool jitter);
+   Shader* getSunRays    (Bool high, Bool jitter, Bool gamma);
    Shader* getSkyTF(Int textures,                Bool cloud  ,                   Bool dither);
    Shader* getSkyT (Int textures,                              Int multi_sample, Bool dither);
    Shader* getSkyAF(Bool per_vertex, Bool stars, Bool cloud  ,                   Bool dither);
