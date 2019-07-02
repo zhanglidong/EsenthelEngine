@@ -43,8 +43,8 @@ STRUCT(SunClass , Astro) // Sun objects have default member values: 'glow'=128, 
    Flt highlight_front, // amount of highlight applied on atmospheric sky, 0..Inf, default=0.10
        highlight_back ; // amount of highlight applied on atmospheric sky, 0..Inf, default=0.07
 
-   Vec           rays_color ; // rays color , (0,0,0)..(1,1,1), default=(0.05, 0.05, 0.05)
-   SByte         rays_jitter; // rays jitter,   -1/false/true , default=-1           , false=always disabled, true=always enabled, -1=auto
+   Vec           rays_color ; // rays color , (0,0,0)..(1,1,1), default=(0.12, 0.12, 0.12)
+   SByte         rays_jitter; // rays jitter,   -1/false/true , default=-1, false=always disabled, true=always enabled, -1=auto
    SUN_RAYS_MODE rays_mode  ; // rays mode  ,   SUN_RAYS_MODE , default=SUN_RAYS_HIGH
 
    SunClass& raysRes    (Flt scale);   Flt raysRes    ()C; // set/get rays      resolution (0..1, default=1/4), this determines the size of the buffers used for calculating the Sun Rays      effect, 1=full size, 0.5=half size, 0.25=quarter size, .., smaller sizes offer faster performance but worse quality, the change is NOT instant, avoid calling real-time

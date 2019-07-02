@@ -129,7 +129,7 @@ struct Environment
                highlight_back ; // highlight on atmospheric sky,           0..Inf          , default=0.07
       Vec      pos            , // position on sky sphere      , its length must be equal 1, default=!Vec(-1, 1, -1)
                light_color    , // light color                 ,     (0,0,0)..(1,1,1)      , default=(0.7, 0.7, 0.7), value of (0, 0, 0) disables light casting
-                rays_color    ; // rays  color                 ,     (0,0,0)..(1,1,1)      , default=(0.05, 0.05, 0.05)
+                rays_color    ; // rays  color                 ,     (0,0,0)..(1,1,1)      , default=(0.12, 0.12, 0.12)
       Vec4     image_color    ; // image color                 ,   (0,0,0,0)..(1,1,1,1)    , default=(1, 1, 1, 1)
       ImagePtr image          ; // image                                                   , default=null
 

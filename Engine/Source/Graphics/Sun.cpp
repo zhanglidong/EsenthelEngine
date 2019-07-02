@@ -73,7 +73,7 @@ SunClass::SunClass()
    highlight_front=0.10f;
    highlight_back =0.07f;
 
-   rays_color   =0.05f; // don't set more than 0.1f because it will require jittering
+   rays_color   =0.12f; // !! if changing then also change 'Environment.Sun' !! don't set more than (LINEAR_FILTER ? 0.15 : 0.1) because it will require jittering
    rays_jitter  =-1   ; // auto
    rays_mode    =SUN_RAYS_HIGH;
   _rays_res     =FltToByteScale(0.25f);

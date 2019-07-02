@@ -260,7 +260,7 @@ void Environment::Sun::get()
 }
 void Environment::Sun::reset()
 {
-   on=true; blend=true; glow=128; size=0.15; highlight_front=0.10f; highlight_back=0.07f; pos.set(-SQRT3_3, SQRT3_3, -SQRT3_3); light_color=0.7f; rays_color=0.05f; image_color=1; image=null;
+   on=true; blend=true; glow=128; size=0.15; highlight_front=0.10f; highlight_back=0.07f; pos.set(-SQRT3_3, SQRT3_3, -SQRT3_3); light_color=0.7f; rays_color=0.12f; image_color=1; image=null;
 }
 
 Bool Environment::Sun::save(File &f, CChar *path)C
