@@ -243,13 +243,13 @@ void RendererClass::adaptEye(ImageRT &src, ImageRT &dest, Bool dither)
    Sh.h_ImageLum->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.h_Hdr[dither && src.highPrecision() && !dest.highPrecision()]->draw(src   );
    MaterialClear();
 }
-INLINE Shader* GetBloomDS(Bool glow, Bool viewport_clamp, Bool half, Bool saturate) {Shader* &s=Sh.h_BloomDS[glow][viewport_clamp][half][saturate]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow, viewport_clamp, half, saturate); return s;}
-INLINE Shader* GetBloom  (Bool dither                                             ) {Shader* &s=Sh.h_Bloom  [dither]                              ; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (dither                              ); return s;}
+INLINE Shader* GetBloomDS(Bool glow, Bool viewport_clamp, Bool half, Bool saturate, Bool gamma) {Shader* &s=Sh.h_BloomDS[glow][viewport_clamp][half][saturate][gamma]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow, viewport_clamp, half, saturate, gamma); return s;}
+INLINE Shader* GetBloom  (Bool dither, Bool gamma                                             ) {Shader* &s=Sh.h_Bloom  [dither][gamma]                              ; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (dither, gamma                              ); return s;}
 // !! Assumes that 'ColClamp' was already set !!
 void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool dither)
 {
    const Int     shift=(D.bloomHalf() ? 1 : 2);
-   ImageRTDesc   rt_desc(fxW()>>shift, fxH()>>shift, IMAGERT_SRGB); // using IMAGERT_SRGB will clip to 0..1 range !! using high precision would require clamping in the shader to make sure values don't go below 0 !!
+   ImageRTDesc   rt_desc(fxW()>>shift, fxH()>>shift, IMAGERT_RGB); // using IMAGERT_RGB will clip to 0..1 range !! using high precision would require clamping in the shader to make sure values don't go below 0 !!
    ImageRTPtrRef rt0(D.bloomHalf() ? _h0 : _q0); rt0.get(rt_desc);
    ImageRTPtrRef rt1(D.bloomHalf() ? _h1 : _q1); rt1.get(rt_desc); Bool discard=false; // we've already discarded in 'get' so no need to do it again
 
@@ -261,8 +261,14 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool dither)
       if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(Renderer.pixelToScreenSize((D.bloomMaximum()+D.bloomBlurs())*SHADER_BLUR_RANGE+1));} // when not rendering entire viewport, then extend the rectangle, add +1 because of texture filtering, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
 
       Bool half=(Flt(src.h())/rt0->h() <= 2.5f); // half=scale 2, ..3.., quarter=scale 4, 2.5 was the biggest scale that didn't cause jittering when using half down-sampling
-      Sh.h_BloomParams->setConditional(Vec(D.bloomOriginal(), _has_glow ? D.bloomScale()/Sqr(half ? 2 : 4) : half ? D.bloomScale() : D.bloomScale()/4, -D.bloomCutL()*D.bloomScale()));
-      GetBloomDS(_has_glow, !D._view_main.full, half, D.bloomSaturate())->draw(src, rect);
+      const Int  res=(half ? 2 : 4);
+      const Bool gamma_per_pixel=false; // !! must be the same as in shader !!
+
+      Sh.h_BloomParams->setConditional(Vec(D.bloomOriginal(), _has_glow ? D.bloomScale()/((gamma && !gamma_per_pixel) ? res : Sqr(res)) // for "gamma && !gamma_per_pixel" use only res, because "LinearToSRGBFast(c.rgb/(res*res)) == LinearToSRGBFast(c.rgb)/Sqrt(res*res) == LinearToSRGBFast(c.rgb)/res"
+                                                                 : half ? D.bloomScale()
+                                                                        : D.bloomScale()/(gamma ? 2 : 4),
+                                                                        -D.bloomCut()*D.bloomScale()));
+      GetBloomDS(_has_glow, !D._view_main.full, half, D.bloomSaturate() || !D._bloom_cut, gamma)->draw(src, rect); // we can enable saturation (which is faster) if cut is zero, because zero cut won't change saturation
       if(D.bloomMaximum())
       { // 'discard' before 'set' because it already may have requested discard, and if we 'discard' manually after 'set' then we might discard 2 times
                          set(rt1(), null, false); Sh.h_MaxX->draw(rt0(), rect); discard=true; // discard next time
@@ -279,7 +285,8 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool dither)
    }
    set(&dest, null, true);
    Sh.h_ImageCol[1]->set(rt0()); MaterialClear();
-   GetBloom(dither /*&& (src.highPrecision() || rt0->highPrecision())*/ && !dest.highPrecision())->draw(src); // merging 2 RT's ('src' and 'rt0') with some scaling factors will give us high precision
+   GetBloom(dither /*&& (src.highPrecision() || rt0->highPrecision())*/ && !dest.highPrecision(), gamma)->draw(src); // merging 2 RT's ('src' and 'rt0') with some scaling factors will give us high precision
+   if(swap){src.swapSRV(); dest.swapRTV();} // restore
 }
 static Flt PixelsToScale(Flt pixels, Int res) {return pixels*2/res;} // 'pixels=max blur range in pixels in one direction, 'res'=total resolution
 static Flt ScaleToPixels(Flt scale , Int res) {return scale*res/2 ;}

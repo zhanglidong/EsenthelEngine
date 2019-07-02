@@ -302,10 +302,10 @@ struct MainShaderClass
    ShaderParam
       *h_BloomParams;
    Shader
-      *h_BloomDS[2][2][2][2], // [Glow] [UVClamp] [HalfRes] [Saturate]
-      *h_Bloom  [2]         ; // [Dither]
-   Shader* getBloomDS(Bool glow, Bool viewport_clamp, Bool half, Bool saturate);
-   Shader* getBloom  (Bool dither);
+      *h_BloomDS[2][2][2][2][2], // [Glow] [UVClamp] [HalfRes] [Saturate] [Gamma]
+      *h_Bloom  [2][2]         ; // [Dither] [Gamma]
+   Shader* getBloomDS(Bool glow, Bool viewport_clamp, Bool half, Bool saturate, Bool gamma);
+   Shader* getBloom  (Bool dither, Bool gamma);
 
    // SKY
    Shader

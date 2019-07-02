@@ -1947,7 +1947,7 @@ Vec4 SunRays_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
     //power  *=(1-frac);
    #endif
 
-      if(jitter)inTex+=(sun_pos-inTex)*(DitherValue(pixel)*(3.0f/steps)); // a good value is 2.5 or 3.0 (3.0 was slightly better)
+      if(jitter)inTex+=(sun_pos-inTex)*(DitherValue(pixel.xy)*(3.0f/steps)); // a good value is 2.5 or 3.0 (3.0 was slightly better)
 
       UNROLL for(Int i=0; i<steps; i++)
       {
@@ -2812,8 +2812,9 @@ void BloomDS_VS(VtxInput vtx,
    outTex=vtx.tex (); if(glow)outTex-=ColSize.xy*Vec2(half ? 0.5f : 1.5f, half ? 0.5f : 1.5f);
    outVtx=vtx.pos4();
 }
-inline VecH BloomColor(VecH color, uniform Bool saturate)
+inline VecH BloomColor(VecH color, uniform Bool saturate, uniform Bool gamma)
 {
+   if(gamma)color=LinearToSRGBFast(color);
    if(saturate)
    {
       return color*BloomParams.y+BloomParams.z;
@@ -2827,29 +2828,33 @@ Vec4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
                 uniform Bool glow          ,
                 uniform Bool do_clamp      ,
                 uniform Bool half          ,
-                uniform Bool saturate      ):COLOR // "Max(0, " of the result is not needed because we're rendering to 1 byte per channel RT
+                uniform Bool saturate      ,
+                uniform Bool gamma         ):COLOR // "Max(0, " of the result is not needed because we're rendering to 1 byte per channel RT
 {
    if(glow)
    {
-      const Int res=(half ? 2 : 4);
+      const Int  res=(half ? 2 : 4);
+      const Bool gamma_per_pixel=false; // !! must be the same as in 'RendererClass::bloom' !!
 
-      Vec  color=0;
-      Vec4 glow =0;
+      VecH  color=0;
+      VecH4 glow =0;
       UNROLL for(Int y=0; y<res; y++)
       UNROLL for(Int x=0; x<res; x++)
       {
-         Vec4    c=TexLod(Col, UVClamp(inTex+ColSize.xy*Vec2(x, y), do_clamp)); // can't use 'TexPoint' because 'Col' can be supersampled
+         VecH4   c=TexLod(Col, UVClamp(inTex+ColSize.xy*Vec2(x, y), do_clamp)); // can't use 'TexPoint' because 'Col' can be supersampled
+         if(gamma && gamma_per_pixel)c.rgb=LinearToSRGBFast(c.rgb);
          color   +=c.rgb;
          glow.rgb+=c.rgb*c.a;
          glow.a   =Max(glow.a, c.a);
       }
-      glow.rgb*=2*glow.a/Max(Vec4(glow.rgb, EPS)); // NaN (increase by 2 because normally it's too small)
-      return Vec4(Max(BloomColor(color, saturate), glow.rgb), 0);
+      if(gamma && !gamma_per_pixel)glow.rgb =(2*glow.a)*LinearToSRGBFast(glow.rgb/Max(Vec4(glow.rgb, EPS)));
+      else                         glow.rgb*= 2*glow.a                           /Max(Vec4(glow.rgb, EPS)) ; // NaN (increase by 2 because normally it's too small)
+      return Vec4(Max(BloomColor(color, saturate, gamma && !gamma_per_pixel), glow.rgb), 0);
    }else
    {
       if(half)
       {
-         return Vec4(BloomColor(TexLod(Col, UVClamp(inTex, do_clamp)).rgb, saturate), 0);
+         return Vec4(BloomColor(TexLod(Col, UVClamp(inTex, do_clamp)).rgb, saturate, gamma), 0);
       }else
       {
          Vec2 tex_min=UVClamp(inTex-ColSize.xy, do_clamp),
@@ -2857,39 +2862,60 @@ Vec4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
          return Vec4(BloomColor(TexLod(Col, Vec2(tex_min.x, tex_min.y)).rgb
                                +TexLod(Col, Vec2(tex_max.x, tex_min.y)).rgb
                                +TexLod(Col, Vec2(tex_min.x, tex_max.y)).rgb
-                               +TexLod(Col, Vec2(tex_max.x, tex_max.y)).rgb, saturate), 0);
+                               +TexLod(Col, Vec2(tex_max.x, tex_max.y)).rgb, saturate, gamma), 0);
       }
    }
 }
-TECHNIQUE(BloomDS    , BloomDS_VS(false, false, false), BloomDS_PS(false, false, false, false));
-TECHNIQUE(BloomDSC   , BloomDS_VS(false, true , false), BloomDS_PS(false, true , false, false));
-TECHNIQUE(BloomDSH   , BloomDS_VS(false, false, true ), BloomDS_PS(false, false, true , false));
-TECHNIQUE(BloomDSCH  , BloomDS_VS(false, true , true ), BloomDS_PS(false, true , true , false));
-TECHNIQUE(BloomGDS   , BloomDS_VS(true , false, false), BloomDS_PS(true , false, false, false));
-TECHNIQUE(BloomGDSC  , BloomDS_VS(true , true , false), BloomDS_PS(true , true , false, false));
-TECHNIQUE(BloomGDSH  , BloomDS_VS(true , false, true ), BloomDS_PS(true , false, true , false));
-TECHNIQUE(BloomGDSCH , BloomDS_VS(true , true , true ), BloomDS_PS(true , true , true , false));
-TECHNIQUE(BloomDSS   , BloomDS_VS(false, false, false), BloomDS_PS(false, false, false, true ));
-TECHNIQUE(BloomDSCS  , BloomDS_VS(false, true , false), BloomDS_PS(false, true , false, true ));
-TECHNIQUE(BloomDSHS  , BloomDS_VS(false, false, true ), BloomDS_PS(false, false, true , true ));
-TECHNIQUE(BloomDSCHS , BloomDS_VS(false, true , true ), BloomDS_PS(false, true , true , true ));
-TECHNIQUE(BloomGDSS  , BloomDS_VS(true , false, false), BloomDS_PS(true , false, false, true ));
-TECHNIQUE(BloomGDSCS , BloomDS_VS(true , true , false), BloomDS_PS(true , true , false, true ));
-TECHNIQUE(BloomGDSHS , BloomDS_VS(true , false, true ), BloomDS_PS(true , false, true , true ));
-TECHNIQUE(BloomGDSCHS, BloomDS_VS(true , true , true ), BloomDS_PS(true , true , true , true ));
+TECHNIQUE(BloomDS     , BloomDS_VS(false, false, false), BloomDS_PS(false, false, false, false, false));
+TECHNIQUE(BloomDSC    , BloomDS_VS(false, true , false), BloomDS_PS(false, true , false, false, false));
+TECHNIQUE(BloomDSH    , BloomDS_VS(false, false, true ), BloomDS_PS(false, false, true , false, false));
+TECHNIQUE(BloomDSCH   , BloomDS_VS(false, true , true ), BloomDS_PS(false, true , true , false, false));
+TECHNIQUE(BloomGDS    , BloomDS_VS(true , false, false), BloomDS_PS(true , false, false, false, false));
+TECHNIQUE(BloomGDSC   , BloomDS_VS(true , true , false), BloomDS_PS(true , true , false, false, false));
+TECHNIQUE(BloomGDSH   , BloomDS_VS(true , false, true ), BloomDS_PS(true , false, true , false, false));
+TECHNIQUE(BloomGDSCH  , BloomDS_VS(true , true , true ), BloomDS_PS(true , true , true , false, false));
+TECHNIQUE(BloomDSS    , BloomDS_VS(false, false, false), BloomDS_PS(false, false, false, true , false));
+TECHNIQUE(BloomDSCS   , BloomDS_VS(false, true , false), BloomDS_PS(false, true , false, true , false));
+TECHNIQUE(BloomDSHS   , BloomDS_VS(false, false, true ), BloomDS_PS(false, false, true , true , false));
+TECHNIQUE(BloomDSCHS  , BloomDS_VS(false, true , true ), BloomDS_PS(false, true , true , true , false));
+TECHNIQUE(BloomGDSS   , BloomDS_VS(true , false, false), BloomDS_PS(true , false, false, true , false));
+TECHNIQUE(BloomGDSCS  , BloomDS_VS(true , true , false), BloomDS_PS(true , true , false, true , false));
+TECHNIQUE(BloomGDSHS  , BloomDS_VS(true , false, true ), BloomDS_PS(true , false, true , true , false));
+TECHNIQUE(BloomGDSCHS , BloomDS_VS(true , true , true ), BloomDS_PS(true , true , true , true , false));
+TECHNIQUE(BloomDSG    , BloomDS_VS(false, false, false), BloomDS_PS(false, false, false, false, true ));
+TECHNIQUE(BloomDSCG   , BloomDS_VS(false, true , false), BloomDS_PS(false, true , false, false, true ));
+TECHNIQUE(BloomDSHG   , BloomDS_VS(false, false, true ), BloomDS_PS(false, false, true , false, true ));
+TECHNIQUE(BloomDSCHG  , BloomDS_VS(false, true , true ), BloomDS_PS(false, true , true , false, true ));
+TECHNIQUE(BloomGDSG   , BloomDS_VS(true , false, false), BloomDS_PS(true , false, false, false, true ));
+TECHNIQUE(BloomGDSCG  , BloomDS_VS(true , true , false), BloomDS_PS(true , true , false, false, true ));
+TECHNIQUE(BloomGDSHG  , BloomDS_VS(true , false, true ), BloomDS_PS(true , false, true , false, true ));
+TECHNIQUE(BloomGDSCHG , BloomDS_VS(true , true , true ), BloomDS_PS(true , true , true , false, true ));
+TECHNIQUE(BloomDSSG   , BloomDS_VS(false, false, false), BloomDS_PS(false, false, false, true , true ));
+TECHNIQUE(BloomDSCSG  , BloomDS_VS(false, true , false), BloomDS_PS(false, true , false, true , true ));
+TECHNIQUE(BloomDSHSG  , BloomDS_VS(false, false, true ), BloomDS_PS(false, false, true , true , true ));
+TECHNIQUE(BloomDSCHSG , BloomDS_VS(false, true , true ), BloomDS_PS(false, true , true , true , true ));
+TECHNIQUE(BloomGDSSG  , BloomDS_VS(true , false, false), BloomDS_PS(true , false, false, true , true ));
+TECHNIQUE(BloomGDSCSG , BloomDS_VS(true , true , false), BloomDS_PS(true , true , false, true , true ));
+TECHNIQUE(BloomGDSHSG , BloomDS_VS(true , false, true ), BloomDS_PS(true , false, true , true , true ));
+TECHNIQUE(BloomGDSCHSG, BloomDS_VS(true , true , true ), BloomDS_PS(true , true , true , true , true ));
 /******************************************************************************/
 VecH4 Bloom_PS(NOPERSP Vec2 inTex:TEXCOORD,
                NOPERSP PIXEL              ,
-               uniform Bool dither        ):COLOR // Saturation of the result is not needed because we're rendering to 1 byte per channel RT
+               uniform Bool dither        ,
+               uniform Bool gamma         ):COLOR
 {
    // final=src*original + Sat((src-cut)*scale)
-   VecH col=TexLod(Col , inTex).rgb*BloomParams.x // can't use 'TexPoint' because 'Col'  can be supersampled
-           +TexLod(Col1, inTex).rgb;              // can't use 'TexPoint' because 'Col1' can be smaller
-   if(dither)ApplyDither(col.rgb, pixel.xy);
+   VecH col=TexLod(Col, inTex).rgb; // original, can't use 'TexPoint' because 'Col' can be supersampled
+   if(gamma)col=LinearToSRGBFast(col);
+   col=col*BloomParams.x + TexLod(Col1, inTex).rgb; // bloom, can't use 'TexPoint' because 'Col1' can be smaller
+   if(dither)ApplyDither(col.rgb, pixel.xy, false); // here we always have sRGB gamma
+   if(gamma)col=SRGBToLinearFast(col);
    return VecH4(col, 1); // force full alpha so back buffer effects can work ok
 }
-TECHNIQUE(Bloom , Draw_VS(), Bloom_PS(false));
-TECHNIQUE(BloomD, Draw_VS(), Bloom_PS(true ));
+TECHNIQUE(Bloom  , Draw_VS(), Bloom_PS(false, false));
+TECHNIQUE(BloomD , Draw_VS(), Bloom_PS(true , false));
+TECHNIQUE(BloomG , Draw_VS(), Bloom_PS(false, true ));
+TECHNIQUE(BloomDG, Draw_VS(), Bloom_PS(true , true ));
 /******************************************************************************/
 // FXAA
 /******************************************************************************/

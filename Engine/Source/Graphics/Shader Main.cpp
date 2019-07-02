@@ -177,8 +177,8 @@ void MainShaderClass::draw (C Image &image                ,                     
 void MainShaderClass::draw (C Image &image, C Vec4  &color, C Vec4  &color_add, C Rect *rect) {Sh.h_Color[0]->set(color); Sh.h_Color[1]->set(color_add); Sh.h_DrawC ->draw(image, rect);}
 void MainShaderClass::draw (C Image &image, C Color &color, C Color &color_add, C Rect *rect) {Sh.h_Color[0]->set(color); Sh.h_Color[1]->set(color_add); Sh.h_DrawC ->draw(image, rect);}
 /******************************************************************************/
-Shader* MainShaderClass::getBloomDS(Bool glow, Bool viewport_clamp, Bool half, Bool saturate) {return get(S8+"Bloom"+(glow?'G':'\0')+"DS"+(viewport_clamp?'C':'\0')+(half?'H':'\0')+(saturate?'S':'\0'));}
-Shader* MainShaderClass::getBloom  (Bool dither                                             ) {return get(S8+"Bloom"+(dither?'D':'\0'));}
+Shader* MainShaderClass::getBloomDS(Bool glow, Bool viewport_clamp, Bool half, Bool saturate, Bool gamma) {return get(S8+"Bloom"+(glow?'G':'\0')+"DS"+(viewport_clamp?'C':'\0')+(half?'H':'\0')+(saturate?'S':'\0')+(gamma?'G':'\0'));}
+Shader* MainShaderClass::getBloom  (Bool dither, Bool gamma                                             ) {return get(S8+"Bloom"+(dither?'D':'\0')+(gamma?'G':'\0'));}
 
 Shader* MainShaderClass::getShdDir (Int map_num, Bool clouds, Bool multi_sample) {return get(S8+"ShdDir"+map_num+(clouds?'C':'\0')+(multi_sample?'M':'\0'));}
 Shader* MainShaderClass::getShdPnt (                          Bool multi_sample) {return get(S8+"ShdPnt"                          +(multi_sample?'M':'\0'));}
@@ -413,11 +413,16 @@ void MainShaderClass::getTechniques()
    // BLOOM
    h_BloomParams=GetShaderParam("BloomParams");
 #if !SLOW_SHADER_LOAD
-   REPD(g, 2)
+   REPD(glow, 2)
    REPD(c, 2)
    REPD(h, 2)
-   REPD(s, 2)h_BloomDS[g][c][h][s]=getBloomDS(g, c, h, s);
-   REPD(d, 2)h_Bloom  [d]         =getBloom  (d);
+   REPD(s, 2)
+   REPD(gamma, 2)
+      h_BloomDS[glow][c][h][s][gamma]=getBloomDS(glow, c, h, s, gamma);
+
+   REPD(dither, 2)
+   REPD(gamma , 2)
+      h_Bloom[dither][gamma]=getBloom(dither, gamma);
 #endif
 
    // BLUR
