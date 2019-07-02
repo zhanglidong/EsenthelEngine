@@ -182,21 +182,24 @@ void CloudsDraw_VS(VtxInput vtx,
    outPos=Vec(ScreenToPosXY(vtx.tex()), 1);
    outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
-Vec4 CloudsDraw_PS(NOPERSP Vec2 inTex:TEXCOORD0,
-                   NOPERSP Vec  inPos:TEXCOORD1):COLOR
+VecH4 CloudsDraw_PS(NOPERSP Vec2 inTex:TEXCOORD0,
+                    NOPERSP Vec  inPos:TEXCOORD1,
+                    uniform Bool gamma          ):COLOR
 {
-   Vec2 clouds=TexLod(Col, inTex).xy; // can't use TexPoint because Col may be smaller
+   VecH2 clouds=TexLod(Col, inTex).xy; // can't use TexPoint because Col may be smaller
 #if 1
    clouds.y*=Sat(TexDepthPoint(inTex)*Length(inPos)*SkyFracMulAdd.x+SkyFracMulAdd.y);
 #else
    Vec pos=GetPosPoint(inTex, inPosXY); clouds.y*=Sat(Length(pos)*SkyFracMulAdd.x+SkyFracMulAdd.y);
 #endif
-   return Vec4(Color[0].rgb*clouds.x, clouds.y);
+   VecH c=Color[0].rgb*clouds.x; if(gamma)c=SRGBToLinear(c);
+   return VecH4(c, clouds.y);
 }
 /******************************************************************************/
 // TECHNIQUES
 /******************************************************************************/
-TECHNIQUE(Clouds    , Clouds_VS    (), Clouds_PS    ());
-TECHNIQUE(CloudsMap , CloudsMap_VS (), CloudsMap_PS ());
-TECHNIQUE(CloudsDraw, CloudsDraw_VS(), CloudsDraw_PS());
+TECHNIQUE(Clouds     , Clouds_VS    (), Clouds_PS    ());
+TECHNIQUE(CloudsMap  , CloudsMap_VS (), CloudsMap_PS ());
+TECHNIQUE(CloudsDraw , CloudsDraw_VS(), CloudsDraw_PS(false));
+TECHNIQUE(CloudsDrawG, CloudsDraw_VS(), CloudsDraw_PS(true ));
 /******************************************************************************/

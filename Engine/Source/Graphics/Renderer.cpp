@@ -1829,8 +1829,8 @@ void RendererClass::refract() // !! assumes that 'finalizeGlow' was called !!
       SPSet("WaterUnder"    ,        under_step);
       SPSet("WaterUnderRfr" ,       refract_val);
       SPSet("WaterDns"      , Vec2(Mid(under.density_underwater , 0.0f, 1-EPS_GPU), under.density_underwater_add)); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
-      SPSet("WaterUnderCol0",          under.  color_underwater0                                                 );
-      SPSet("WaterUnderCol1",          under.  color_underwater1                                                 );
+      SPSet("WaterUnderCol0", SRGBToLinear(under.color_underwater0));
+      SPSet("WaterUnderCol1", SRGBToLinear(under.color_underwater1));
       REPS(_eye, _eye_num)WS.h_Under[refract]->draw(*src, setEyeParams());
    }
 }

@@ -346,7 +346,8 @@ struct VolumetricCloudsFx
 {
    ShaderFile  *shader;
    ShaderParam *h_Cloud, *h_CloudMap;
-   Shader      *h_Clouds, *h_CloudsDraw, *h_CloudsMap;
+   Shader      *h_Clouds, *h_CloudsMap,
+               *h_CloudsDraw[2]; // [Gamma]
 
    void load();
 }extern

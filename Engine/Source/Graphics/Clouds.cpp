@@ -657,6 +657,7 @@ void VolumetricClouds::draw()
       Sh.h_ImageVol[0]->_sampler=null;
       Sh.h_ImageVol[1]->_sampler=null;
 
+      Bool gamma=LINEAR_GAMMA, swap=(gamma && Renderer._col->canSwapRTV()); if(swap){gamma=false; Renderer._col->swapRTV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
       Renderer.set(Renderer._col(), null, true);
       D.alpha(ALPHA_BLEND_DEC);
 
@@ -665,7 +666,8 @@ void VolumetricClouds::draw()
       Sh.h_SkyFracMulAdd->set(mul_add);
 
       Sh.h_Color[0]->set(color);
-      VolCloud.h_CloudsDraw->draw(dest());
+      VolCloud.h_CloudsDraw[gamma]->draw(dest());
+      if(swap)Renderer._col->swapRTV(); // restore
    }
 }
 void VolumetricClouds::shadowMap()

@@ -583,8 +583,8 @@ void VolumetricCloudsFx::load()
       h_Cloud     =GetShaderParam("Cloud");
       h_CloudMap  =GetShaderParam("CloudMap");
       h_Clouds    =shader->get("Clouds");
-      h_CloudsDraw=shader->get("CloudsDraw");
       h_CloudsMap =shader->get("CloudsMap");
+      REPD(g, 2)h_CloudsDraw[g]=shader->get(S8+"CloudsDraw"+(g?'G':'\0'));
    }
 }
 /******************************************************************************/
