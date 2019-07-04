@@ -102,7 +102,7 @@ struct Light
    Bool       shadow        ; // if shadowing enabled
    Flt        shadow_opacity; // opacity of shadows
    Flt        image_scale   ; // dynamic lightmap scale
-   Rect       rect          ; // on screen rectangle affected by light
+   Rect       rect          ; // screen rectangle affected by light
    CPtr       src           ; // custom pointer to light source
    Image     *image         ; // dynamic lightmap
    union
