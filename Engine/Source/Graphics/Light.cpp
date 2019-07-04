@@ -93,8 +93,8 @@ void RendererClass::getShdRT()
 
 static void GetLum()
 {
-                                   Renderer._lum   .get(ImageRTDesc(Renderer._col->w(), Renderer._col->h(), D.highPrecLumRT() ? IMAGERT_RGBA_H : IMAGERT_RGBA, Renderer._col->samples())); // here Alpha is used for specular
-   if(Renderer._lum->multiSample())Renderer._lum_1s.get(ImageRTDesc(Renderer._lum->w(), Renderer._lum->h(), D.highPrecLumRT() ? IMAGERT_RGBA_H : IMAGERT_RGBA));else Renderer._lum_1s=Renderer._lum;
+                                   Renderer._lum   .get(ImageRTDesc(Renderer._col->w(), Renderer._col->h(), D.highPrecLumRT() ? IMAGERT_SRGBA_H : IMAGERT_SRGBA, Renderer._col->samples())); // here Alpha is used for specular
+   if(Renderer._lum->multiSample())Renderer._lum_1s.get(ImageRTDesc(Renderer._lum->w(), Renderer._lum->h(), D.highPrecLumRT() ? IMAGERT_SRGBA_H : IMAGERT_SRGBA));else Renderer._lum_1s=Renderer._lum;
 }
 void RendererClass::getLumRT()
 {
