@@ -7,7 +7,7 @@ void InitPre()
    Ms.hide();
    Ms.clip(null, 1);
 
-   D.ambientPower(0.2).mode(App.desktopW()*0.75, App.desktopH()*0.8);
+   D.ambientPowerS(0.2).mode(App.desktopW()*0.75, App.desktopH()*0.8);
 
    Cam.dist=1;
    Cam.at.set(16, 4, 2);
@@ -51,7 +51,7 @@ bool Update()
    Sun.pos.normalize();
 
    // set sun color
-   Sun.light_color=(1-D.ambientColor())*Sat(Cbrt(Sun.pos.y));
+   Sun.light_color=(1-D.ambientColorL())*Sat(Cbrt(Sun.pos.y));
 
    // set sun rays and highlight
    flt rays=Sqrt(Sun.pos.y);

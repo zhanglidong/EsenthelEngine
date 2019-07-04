@@ -24,7 +24,6 @@ void InitPre()
    Ms.hide();
    Ms.clip(null, 1);
    Cam.dist=3;
-   D.ambientPower(0.3);
    D.mode(App.desktopW()*0.8, App.desktopH()*0.8);
 }
 /******************************************************************************/

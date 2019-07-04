@@ -92,7 +92,7 @@ void Render()
       {
          mesh.draw(MatrixIdentity); // draw mesh
 
-         LightDir(Cam.matrix.z, 1-D.ambientColor()).add();
+         LightDir(Cam.matrix.z, 1-D.ambientColorL()).add();
       }break;
    }
 }

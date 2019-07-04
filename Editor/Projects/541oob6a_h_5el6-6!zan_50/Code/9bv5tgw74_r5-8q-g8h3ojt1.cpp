@@ -71,8 +71,7 @@ void InitPre()
    Ms.hide();
    Ms.clip(null, 1);
 
-   D.ambientPower(0.3)
-    .shadowJitter(true).shadowSoft(1).shadowMapSize(2048)
+   D.shadowJitter(true).shadowSoft(1).shadowMapSize(2048)
     .viewFrom(0.005).viewRange(5);
 
    Cam.yaw  = 2.7;
@@ -86,7 +85,7 @@ bool Init()
    Sky.atmospheric();
    Sun.image=UID(1275694243, 1199742097, 1108828586, 1055787228);
    Sun.pos=!Vec(1, 1, 1);
-   Sun.light_color=1-D.ambientColor();
+   Sun.light_color=1-D.ambientColorL();
 
    // setup player data
    player.createDefault();

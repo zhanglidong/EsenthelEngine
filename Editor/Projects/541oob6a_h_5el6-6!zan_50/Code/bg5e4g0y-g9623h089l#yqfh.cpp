@@ -46,7 +46,7 @@ void InitPre()
    EE_INIT();
    Ms.hide();
    Ms.clip(null, 1);
-   D.ambientPower(0.3).viewRange(50);
+   D.viewRange(50);
 
    Cam.at.set(16, 0, 16);
    Cam.dist = 10;

@@ -7,7 +7,7 @@ void InitPre()
    EE_INIT();
    Ms.hide();
    Ms.clip(null, 1);
-   D.ambientPower(0.1);
+   D.ambientPowerS(0.1);
 }
 /******************************************************************************/
 bool Init()
@@ -51,7 +51,7 @@ void Render()
    {
       case RM_PREPARE:
       {
-         LightDir(Vec(0, 0, -1), 1-D.ambientColor()).add(); // set light
+         LightDir(Vec(0, 0, -1), 1-D.ambientColorL()).add(); // set light
 
          chr->mesh()->draw(skel); // draw mesh with skeleton matrixes
       }break;

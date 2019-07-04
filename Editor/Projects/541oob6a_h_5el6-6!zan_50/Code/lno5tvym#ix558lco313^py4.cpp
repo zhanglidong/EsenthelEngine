@@ -11,7 +11,7 @@ void InitPre()
 {
    App.flag=APP_MAXIMIZABLE|APP_MINIMIZABLE|APP_RESIZABLE|APP_AUTO_FREE_OPEN_GL_ES_DATA;
    EE_INIT();
-   D.ambientPower(0.25);
+   D.ambientPowerS(0.25);
    D.screen_changed=Resize;
    D.highPrecNrmCalc(true);
    Cam.dist =5;
@@ -28,7 +28,7 @@ bool Init()
    Earth=obj->mesh();
    Sun.image=UID(1275694243, 1199742097, 1108828586, 1055787228);
    Sun.rays_mode=SUN_RAYS_OFF;
-   Sun.light_color=1-D.ambientColor();
+   Sun.light_color=1-D.ambientColorL();
    Sky.skybox(UID(540301137, 1134104252, 1741669259, 1349485002));
    return true;
 }

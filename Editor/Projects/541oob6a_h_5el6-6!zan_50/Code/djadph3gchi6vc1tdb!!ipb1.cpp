@@ -11,7 +11,7 @@ void InitPre()
    Cam.dist=1;
    Cam.yaw=PI;
 
-   D.ambientPower(0);
+   D.ambientPowerL(0);
 }
 /******************************************************************************/
 bool Init()

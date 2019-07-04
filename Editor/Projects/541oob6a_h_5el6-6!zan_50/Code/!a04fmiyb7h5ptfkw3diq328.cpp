@@ -14,7 +14,7 @@ AnimatedSkeleton skel;
 void InitPre()
 {
    EE_INIT();
-   D.ambientPower(0.1);
+   D.ambientPowerS(0.1);
    Ms.hide();
    Ms.clip(null, true);
 }
@@ -54,7 +54,7 @@ void Render()
    {
       case RM_PREPARE:
       {
-         LightDir(Vec(0, 0, -1), 1-D.ambientColor()).add();
+         LightDir(Vec(0, 0, -1), 1-D.ambientColorL()).add();
 
          // draw mesh
          chr->mesh()->draw(skel);

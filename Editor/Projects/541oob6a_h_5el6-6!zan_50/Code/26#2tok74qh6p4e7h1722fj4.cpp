@@ -18,9 +18,9 @@ void InitPre()
    Ms.hide();
    Ms.clip(null, 1);
 
-   D.ambientPower(0                   )
-    .motionMode  (MOTION_CAMERA_OBJECT)  // enable   motion blur
-    .motionScale (0.08                ); // increase motion blur scale
+   D.ambientPowerL(0                   )
+    .motionMode   (MOTION_CAMERA_OBJECT)  // enable   motion blur
+    .motionScale  (0.08                ); // increase motion blur scale
 }
 /******************************************************************************/
 bool Init()

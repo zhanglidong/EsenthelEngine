@@ -46,7 +46,7 @@ void Render()
             SetDrawMask(); // reset default draw mask
          }
 
-         LightDir(Cam.matrix.z, 1-D.ambientColor()).add();
+         LightDir(Cam.matrix.z, 1-D.ambientColorL()).add();
       }break;
    }
 }

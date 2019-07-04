@@ -6,7 +6,7 @@ void InitPre()
    EE_INIT();
    Ms.hide();
    Ms.clip(null, 1);
-   D.ambientPower(0.5).viewRange(200);
+   D.ambientPowerS(0.5).viewRange(200);
 
    Cam.dist =1;
    Cam.yaw  =2.8;
@@ -17,7 +17,7 @@ bool Init()
 {
    Sky.atmospheric();
    Sun.image=UID(1275694243, 1199742097, 1108828586, 1055787228);
-   Sun.light_color=1-D.ambientColor();
+   Sun.light_color=1-D.ambientColorL();
 
    // create background threads
    threads.create(false, Cpu.threads()-1, -1);

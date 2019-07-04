@@ -72,7 +72,7 @@ void Render()
       {
          blocks.draw(blocks_map.matrix(0, 0)); // draw blocks with its matrix
 
-         LightDir(Cam.matrix.z, 1-D.ambientColor()).add();
+         LightDir(Cam.matrix.z, 1-D.ambientColorL()).add();
       }break;
    }
 }

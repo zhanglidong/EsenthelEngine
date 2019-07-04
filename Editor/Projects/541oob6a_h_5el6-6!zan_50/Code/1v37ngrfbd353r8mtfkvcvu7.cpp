@@ -36,7 +36,7 @@ void InitPre()
    EE_INIT();
    Ms.hide();
    Ms.clip(null, 1);
-   D.ambientPower(0);
+   D.ambientPowerL(0);
    Cam.dist =4;
    Cam.pitch=-0.6;
 }

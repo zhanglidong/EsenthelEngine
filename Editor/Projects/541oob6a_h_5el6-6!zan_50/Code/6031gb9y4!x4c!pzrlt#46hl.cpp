@@ -117,7 +117,7 @@ Bool Init()
    // sun
    Sun.image=UID(1275694243, 1199742097, 1108828586, 1055787228);
    Sun.pos  =!Vec(1, 1, 3);
-   Sun.light_color=1-D.ambientColor();
+   Sun.light_color=1-D.ambientColorL();
 
    // sky
    Sky.atmospheric();

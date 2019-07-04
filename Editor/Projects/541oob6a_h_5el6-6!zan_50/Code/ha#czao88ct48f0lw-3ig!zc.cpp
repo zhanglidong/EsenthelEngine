@@ -19,7 +19,7 @@ void InitPre()
    Ms.hide();
    Ms.clip(null, 1);
    D.set_shader=SetShader;
-   D.ambientPower(0).bumpMode(BUMP_RELIEF).shadowSoft(1).shadowJitter(true);
+   D.ambientPowerL(0).bumpMode(BUMP_RELIEF).shadowSoft(1).shadowJitter(true);
 }
 /******************************************************************************/
 bool Init()

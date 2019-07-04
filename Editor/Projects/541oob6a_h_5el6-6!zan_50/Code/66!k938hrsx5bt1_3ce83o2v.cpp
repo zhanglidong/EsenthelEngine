@@ -71,7 +71,7 @@ void Render()
       {
          REPAO(obj).draw();
 
-         LightDir(!Vec(1, -1, 1), 1-D.ambientColor()).add();
+         LightDir(!Vec(1, -1, 1), 1-D.ambientColorL()).add();
       }break;
    }
 }

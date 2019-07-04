@@ -16,7 +16,7 @@ void InitPre()
    Ms.clip(null, 1);
 
    D.lost=Lost; // specify custom function called when D3D Device is lost
-   D.ambientPower(0);
+   D.ambientPowerL(0);
 }
 /******************************************************************************/
 bool Init()

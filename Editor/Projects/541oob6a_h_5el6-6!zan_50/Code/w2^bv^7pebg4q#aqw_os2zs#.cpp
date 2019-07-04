@@ -78,7 +78,6 @@ void InitPre()
    EE_INIT();
    Ms.hide();
    Ms.clip(null, 1);
-   D.ambientPower(0.3);
 }
 /******************************************************************************/
 bool Init()

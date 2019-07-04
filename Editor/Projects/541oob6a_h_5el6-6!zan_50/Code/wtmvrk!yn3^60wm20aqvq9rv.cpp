@@ -71,7 +71,6 @@ void InitPre()
    Ms.hide();
    Ms.clip(null, 1);
    Cam.dist=3;
-   D.ambientPower(0.3);
    D.shadowMode(SHADOW_NONE); // disable high quality shadows
 }
 /******************************************************************************/
