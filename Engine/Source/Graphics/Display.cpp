@@ -2749,6 +2749,13 @@ Flt Display::ambientRes   ()C {return ByteScaleToFlt(_amb_res);}
 Flt Display::ambientPowerS()C {return LinearToSRGB(ambientPowerL());}
 Vec Display::ambientColorS()C {return LinearToSRGB(ambientColorL());}
 
+void Display::ambientSet()C
+{
+   if(Sh.h_AmbientColor_l  )Sh.h_AmbientColor_l  ->set(ambientColorL());
+   if(Sh.h_AmbientColorNS_l)Sh.h_AmbientColorNS_l->set(ambientColorL()+nightShadeColorL());
+   if(Sh.h_NightShadeColor )Sh.h_NightShadeColor ->set(                nightShadeColorL());
+}
+
 Display& Display::ambientRes     (  Flt          scale     ) {Byte res=FltToByteScale( scale  );    if(res!=_amb_res){_amb_res =res ; Renderer.rtClean();} return T;}
 Display& Display::ambientMode    (  AMBIENT_MODE mode      ) {Clamp(mode, AMBIENT_FLAT, AMBIENT_MODE(AMBIENT_NUM-1)); _amb_mode=mode;                      return T;}
 Display& Display::ambientSoft    (  Byte         soft      ) {MIN  (soft,                       AMBIENT_SOFT_NUM-1 ); _amb_soft=soft;                      return T;}
@@ -2756,15 +2763,15 @@ Display& Display::ambientJitter  (  Bool         jitter    ) {_amb_jitter=jitter
 Display& Display::ambientNormal  (  Bool         normal    ) {_amb_normal=normal;                                                                          return T;}
 Display& Display::ambientPowerS  (  Flt          srgb_power) {return ambientPowerL(SRGBToLinear(srgb_power));}
 Display& Display::ambientColorS  (C Vec         &srgb_color) {return ambientColorL(SRGBToLinear(srgb_color));}
-Display& Display::ambientPowerL  (  Flt           lin_power) {MAX(lin_power, 0);                                                     if(_amb_color_l !=lin_power){_amb_color_l =lin_power; if(Renderer.ambient_color_l)Renderer.ambient_color_l->set(ambientColorL  ());} return T;}
-Display& Display::ambientColorL  (C Vec         & lin_color) {Vec  c(Max(lin_color.x, 0), Max(lin_color.y, 0), Max(lin_color.z, 0)); if(_amb_color_l !=c        ){_amb_color_l =c        ; if(Renderer.ambient_color_l)Renderer.ambient_color_l->set(ambientColorL  ());} return T;}
-Display& Display::ambientContrast(  Flt          contrast  ) {MAX(contrast, 0);                                                      if(_amb_contrast!=contrast ){_amb_contrast=contrast ; if(Sh.h_AmbientContrast    )Sh.h_AmbientContrast    ->set(ambientContrast());} return T;}
-Display& Display::ambientRange   (C Vec2        &range     ) {Vec2 r(Max(range.x, 0.01f), Max(range.y, 0.01f));                      if(_amb_range   !=r        ){_amb_range   =r        ; if(Sh.h_AmbientRange       )Sh.h_AmbientRange       ->set(ambientRange   ());} return T;}
-Display& Display::ambientScale   (  Flt          scale     ) {MAX(scale, 0.05f);                                                     if(_amb_scale   !=scale    ){_amb_scale   =scale    ; if(Sh.h_AmbientScale       )Sh.h_AmbientScale       ->set(ambientScale   ());} return T;}
-Display& Display::ambientBias    (  Flt          bias      ) {SAT(bias);                                                             if(_amb_bias    !=bias     ){_amb_bias    =bias     ; if(Sh.h_AmbientBias        )Sh.h_AmbientBias        ->set(ambientBias    ());} return T;}
+Display& Display::ambientPowerL  (  Flt           lin_power) {MAX(lin_power, 0);                                                     if(_amb_color_l !=lin_power){_amb_color_l =lin_power; ambientSet();} return T;}
+Display& Display::ambientColorL  (C Vec         & lin_color) {Vec  c(Max(lin_color.x, 0), Max(lin_color.y, 0), Max(lin_color.z, 0)); if(_amb_color_l !=c        ){_amb_color_l =c        ; ambientSet();} return T;}
+Display& Display::ambientContrast(  Flt          contrast  ) {MAX(contrast, 0);                                                      if(_amb_contrast!=contrast ){_amb_contrast=contrast ; if(Sh.h_AmbientContrast)Sh.h_AmbientContrast->set(ambientContrast());} return T;}
+Display& Display::ambientRange   (C Vec2        &range     ) {Vec2 r(Max(range.x, 0.01f), Max(range.y, 0.01f));                      if(_amb_range   !=r        ){_amb_range   =r        ; if(Sh.h_AmbientRange   )Sh.h_AmbientRange   ->set(ambientRange   ());} return T;}
+Display& Display::ambientScale   (  Flt          scale     ) {MAX(scale, 0.05f);                                                     if(_amb_scale   !=scale    ){_amb_scale   =scale    ; if(Sh.h_AmbientScale   )Sh.h_AmbientScale   ->set(ambientScale   ());} return T;}
+Display& Display::ambientBias    (  Flt          bias      ) {SAT(bias);                                                             if(_amb_bias    !=bias     ){_amb_bias    =bias     ; if(Sh.h_AmbientBias    )Sh.h_AmbientBias    ->set(ambientBias    ());} return T;}
 /******************************************************************************/
 Vec      Display::nightShadeColorL()C {return SRGBToLinear(nightShadeColorS());}
-Display& Display::nightShadeColorS(C Vec &srgb_color) {Vec c(Max(srgb_color.x, 0), Max(srgb_color.y, 0), Max(srgb_color.z, 0)); if(_ns_color_s!=c){_ns_color_s=c; if(Sh.h_NightShadeColor)Sh.h_NightShadeColor->set(nightShadeColorL());} return T;}
+Display& Display::nightShadeColorS(C Vec &srgb_color) {Vec c(Max(srgb_color.x, 0), Max(srgb_color.y, 0), Max(srgb_color.z, 0)); if(_ns_color_s!=c){_ns_color_s=c; ambientSet();} return T;}
 /******************************************************************************/
 Flt      Display::motionRes   (                  )C {return   ByteScaleToFlt(_mtn_res);}
 Display& Display::motionRes   (Flt         scale )  {Byte res=FltToByteScale(scale); if(res!=_mtn_res){_mtn_res=res; Renderer.rtClean();}                                     return T;}

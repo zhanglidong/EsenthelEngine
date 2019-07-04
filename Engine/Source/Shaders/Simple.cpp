@@ -132,7 +132,7 @@ void VS
       if(bump_mode>=SBUMP_FLAT)
       {
          Half d  =Sat(Dot(O.nrm, Light_dir.dir));
-         VecH lum=Light_dir.color.rgb*d + AmbColor;
+         VecH lum=Light_dir.color.rgb*d + AmbNSColor;
          if(materials<=1 && fx!=FX_BONE)lum+=MaterialAmbient();
          O.col.rgb*=lum;
       }
@@ -235,7 +235,7 @@ Vec4 PS
       {
          VecH nrm=Normalize(I.nrm); if(fx!=FX_GRASS && fx!=FX_LEAF && fx!=FX_LEAFS)BackFlip(nrm, front);
          Half d  =Sat(Dot(nrm, Light_dir.dir));
-         VecH lum=Light_dir.color.rgb*d + AmbColor;
+         VecH lum=Light_dir.color.rgb*d + AmbNSColor;
          if(materials<=1 && fx!=FX_BONE)lum+=MaterialAmbient();
          I.col.rgb*=lum;
       }
@@ -435,7 +435,7 @@ CUSTOM_TECHNIQUE
             #if bump_mode>=SBUMP_FLAT
             {
                MP Flt d  =Max(Dot(nrm, Light_dir.dir), 0.0);
-               MP Vec lum=Light_dir.color.rgb*d + AmbColor;
+               MP Vec lum=Light_dir.color.rgb*d + AmbNSColor;
                if(materials<=1 && fx!=FX_BONE)lum+=MaterialAmbient();
                IO_col.rgb*=lum;
             }
@@ -572,7 +572,7 @@ CUSTOM_TECHNIQUE
             {
                MP Vec nrm=Normalize(IO_nrm); if(fx!=FX_GRASS && fx!=FX_LEAF && fx!=FX_LEAFS)BackFlip(nrm);
                MP Flt d  =Max(Dot(nrm, Light_dir.dir), 0.0);
-               MP Vec lum=Light_dir.color.rgb*d + AmbColor;
+               MP Vec lum=Light_dir.color.rgb*d + AmbNSColor;
                if(materials<=1 && fx!=FX_BONE)lum+=MaterialAmbient();
                col*=lum;
             }

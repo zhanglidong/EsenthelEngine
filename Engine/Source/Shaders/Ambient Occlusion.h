@@ -1,6 +1,6 @@
 /******************************************************************************/
 BUFFER(AO)
-   VecH AmbColor;
+   VecH AmbColor, AmbNSColor;
    Half AmbMaterial=1; // if apply Material Ambient
    Half AmbContrast=1.0f,
         AmbScale   =2.5f,

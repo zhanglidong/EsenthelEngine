@@ -316,13 +316,15 @@ void MainShaderClass::getTechniques()
    h_GrassRangeMulAdd=GetShaderParam("GrassRangeMulAdd");
    h_BendFactor      =GetShaderParam("BendFactor");
 
-   ConstCast(Renderer.ambient_color_l)=GetShaderParam("AmbColor"       ); Renderer.ambient_color_l->set(D.ambientColorL   ());
-                     h_AmbientMaterial=GetShaderParam("AmbMaterial"    );
-                     h_AmbientContrast=GetShaderParam("AmbContrast"    );        h_AmbientContrast->set(D.ambientContrast ());
-                     h_AmbientRange   =GetShaderParam("AmbRange"       );        h_AmbientRange   ->set(D.ambientRange    ());
-                     h_AmbientScale   =GetShaderParam("AmbScale"       );        h_AmbientScale   ->set(D.ambientScale    ());
-                     h_AmbientBias    =GetShaderParam("AmbBias"        );        h_AmbientBias    ->set(D.ambientBias     ());
-                     h_NightShadeColor=GetShaderParam("NightShadeColor");        h_NightShadeColor->set(D.nightShadeColorL());
+   h_NightShadeColor =GetShaderParam("NightShadeColor"); // set in 'D.ambientSet()'
+   h_AmbientColor_l  =GetShaderParam("AmbColor"       ); // set in 'D.ambientSet()'
+   h_AmbientColorNS_l=GetShaderParam("AmbNSColor"     ); // set in 'D.ambientSet()'
+   h_AmbientMaterial =GetShaderParam("AmbMaterial"    );
+   h_AmbientContrast =GetShaderParam("AmbContrast"    ); h_AmbientContrast->set(D.ambientContrast());
+   h_AmbientRange    =GetShaderParam("AmbRange"       ); h_AmbientRange   ->set(D.ambientRange   ());
+   h_AmbientScale    =GetShaderParam("AmbScale"       ); h_AmbientScale   ->set(D.ambientScale   ());
+   h_AmbientBias     =GetShaderParam("AmbBias"        ); h_AmbientBias    ->set(D.ambientBias    ());
+   D.ambientSet();
 
    h_HdrBrightness=GetShaderParam("HdrBrightness"); h_HdrBrightness->set(D.eyeAdaptationBrightness());
    h_HdrExp       =GetShaderParam("HdrExp"       ); h_HdrExp       ->set(D.eyeAdaptationExp       ());

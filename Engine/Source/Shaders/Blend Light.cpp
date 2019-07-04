@@ -134,7 +134,7 @@ void VS
       if(bump_mode>=SBUMP_FLAT)
       {
          Half d  =Sat(Dot(O.mtrx[2], Light_dir.dir));
-         VecH lum=Light_dir.color.rgb*d + AmbColor;
+         VecH lum=Light_dir.color.rgb*d + AmbNSColor;
          O.col.rgb*=lum;
       }
 
@@ -205,7 +205,7 @@ out Vec4 outVel:COLOR1, // #BlendRT
    // calculate lighting
    if(per_pixel && bump_mode>=SBUMP_FLAT)
    {
-      VecH total_lum=AmbColor;//+AmbMaterial*MaterialAmbient();
+      VecH total_lum=AmbNSColor;//+AmbMaterial*MaterialAmbient();
     //VecH total_specular=0;
 
       if(fx!=FX_GRASS && fx!=FX_LEAF && fx!=FX_LEAFS)BackFlip(nrm, front);
@@ -331,7 +331,7 @@ CUSTOM_TECHNIQUE
             if(bump_mode>=SBUMP_FLAT)
             {
                MP Flt d  =Max(Dot(nrm, Light_dir.dir), 0.0);
-               MP Vec lum=Light_dir.color.rgb*d + AmbColor;
+               MP Vec lum=Light_dir.color.rgb*d + AmbNSColor;
                IO_col.rgb*=lum;
             }
 
@@ -428,7 +428,7 @@ CUSTOM_TECHNIQUE
 
          #if per_pixel!=0 && bump_mode>=SBUMP_FLAT
          {
-            MP Vec total_lum=AmbColor;
+            MP Vec total_lum=AmbNSColor;
             if(fx!=FX_GRASS && fx!=FX_LEAF && fx!=FX_LEAFS)BackFlip(nrm);
 
             // directional light

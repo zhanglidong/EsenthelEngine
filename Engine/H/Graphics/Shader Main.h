@@ -83,12 +83,14 @@ struct MainShaderClass
 
       *h_RippleParams,
 
-      *h_AmbientMaterial,
-      *h_AmbientContrast,
-      *h_AmbientRange   ,
-      *h_AmbientScale   ,
-      *h_AmbientBias    ,
-      *h_NightShadeColor,
+      *h_AmbientMaterial ,
+      *h_AmbientContrast ,
+      *h_AmbientRange    ,
+      *h_AmbientScale    ,
+      *h_AmbientBias     ,
+      *h_AmbientColor_l  , // Vec Linear Gamma
+      *h_AmbientColorNS_l, // Vec Linear Gamma + NightShade
+      *h_NightShadeColor ,
 
       *h_HdrBrightness,
       *h_HdrExp,

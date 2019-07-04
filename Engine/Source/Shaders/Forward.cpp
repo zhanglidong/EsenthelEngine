@@ -331,7 +331,7 @@ Vec4 PS
         total_specular=0;
 
    if(bump_mode==SBUMP_ZERO     )total_lum =1;
-   else                          total_lum =AmbColor;
+   else                          total_lum =AmbNSColor;
    if(materials<=1 && !secondary)total_lum+=MaterialAmbient()*AmbMaterial; // ambient values are always disabled for secondary passes (so don't bother adding them)
 
    VecH2 jitter_value;

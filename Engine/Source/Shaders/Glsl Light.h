@@ -5,4 +5,4 @@ struct LIGHT_DIR
  //MP Vec  vol_exponent_steam; not used by GLSL
 };
 PAR LIGHT_DIR Light_dir;
-PAR MP Vec AmbColor;
+PAR MP Vec AmbColor, AmbNSColor;

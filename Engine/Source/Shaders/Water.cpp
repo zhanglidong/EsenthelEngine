@@ -193,7 +193,7 @@ void Surface_PS
       }
 
       // col light
-      water_col.rgb*=lum.rgb+AmbColor;
+      water_col.rgb*=lum.rgb+AmbNSColor;
 
       // reflection
       Flt   rfl=WaterRfl*Sat(inPDF);

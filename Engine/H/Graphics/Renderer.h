@@ -79,8 +79,7 @@ struct RendererClass // handles rendering
    ImagePtr     cel_shade_palette   ; // cel shading light palette, you can set this to custom texture in "Init()", if used then this should point to a palette of custom width and 1 pixel height, if set to null then usage of cel shading is disabled, used only in RT_DEFERRED renderer, default=null
 
    ShaderParam *C material_color_l, // Vec4 Linear Gamma
-               *C highlight       , // Vec
-               *C ambient_color_l ; // Vec  Linear Gamma
+               *C highlight       ; // Vec
 
 #if EE_PRIVATE
  C VecI2& res ()C {return _res  ;} // get Current Render Target Size   (in pixels)

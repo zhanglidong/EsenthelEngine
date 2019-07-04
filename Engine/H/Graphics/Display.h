@@ -259,6 +259,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
    // Ambient Light
 #if EE_PRIVATE
    Bool aoWant()C;
+   void ambientSet()C;
 #endif
    Display& ambientMode    (AMBIENT_MODE mode      );   AMBIENT_MODE ambientMode    ()C {return _amb_mode         ;} // set/get Ambient Mode               (AMBIENT_MODE         , default=AMBIENT_FLAT), the change is instant, you can call it real-time
    Display& ambientSoft    (  Byte       soft      );   Byte         ambientSoft    ()C {return _amb_soft         ;} // set/get Ambient Softing            (0..AMBIENT_SOFT_NUM-1, default=           1), if soften the AO result, the change is instant, you can call it real-time
