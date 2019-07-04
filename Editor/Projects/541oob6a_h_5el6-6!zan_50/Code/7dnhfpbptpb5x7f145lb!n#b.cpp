@@ -25,7 +25,11 @@ void InitPre()
    EE_INIT();
    Ms.hide();
    Ms.clip(null, 1);
-   D.ambientPower(0);
+   D.ambientPowerL(0);
+
+   // this will enable high precision RT's
+   D.highPrecLumRT(true);
+   D.highPrecNrmRT(true);
 }
 /******************************************************************************/
 bool Init()
@@ -48,7 +52,7 @@ bool Init()
    FREPA(materials)
    {
       Material &mtrl=materials[i];
-      mtrl.reset().color=ColorHue(flt(i)/Elms(materials)).asVec4();
+      mtrl.reset().colorS(ColorHue(flt(i)/Elms(materials)));
       mtrl.validate();
       ball.parts[0].variation(i, &mtrl);
    }

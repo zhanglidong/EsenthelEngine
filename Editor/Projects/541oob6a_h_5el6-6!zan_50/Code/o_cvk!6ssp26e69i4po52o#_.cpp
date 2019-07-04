@@ -3,9 +3,9 @@ class Obj
 {
    Vec pos=0;
 
-   void create     (         ) {pos=Random(box.box);}
+   void create     (         ) {pos=Random(box.ext);}
    void draw       (         ) {ball.draw(Matrix(pos));}
-   void drawOutline(flt alpha) {Color color=ColorAlpha(alpha); ball.drawOutline(color, pos);}
+   void drawOutline(flt alpha) {Color color=ColorAlpha(alpha); ball.drawOutline(GREY, pos);}
 }
 
 MaterialPtr brick;
@@ -16,7 +16,7 @@ Obj         obj[32];
 void InitPre()
 {
    EE_INIT();
-   D.ambientPower(0);
+   D.ambientPowerL(0);
 }
 /******************************************************************************/
 bool Init()
