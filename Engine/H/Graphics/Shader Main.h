@@ -145,11 +145,12 @@ struct MainShaderClass
       *h_Draw3DTexCol[2][2]  , // [AlphaTest] [Fog]
       *h_Draw2DDepthTex   [2], // [AlphaTest]
       *h_Draw2DDepthTexCol[2], // [AlphaTest]
-      *h_DrawTexX            ,
-      *h_DrawTexXC           ,
-      *h_DrawTexXCD          ,
-      *h_DrawTexXCG          ,
-      *h_DrawTexXCDG         ,
+      *h_DrawX               ,
+      *h_DrawXG              ,
+      *h_DrawXC              ,
+      *h_DrawXCD             ,
+      *h_DrawXCG             ,
+      *h_DrawXCDG            ,
       *h_Simple              ,
 
       *h_DrawMask,

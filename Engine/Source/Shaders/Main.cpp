@@ -362,6 +362,23 @@ TECHNIQUE(Draw      ,      Draw_VS(),  Draw2DTex_PS());
 TECHNIQUE(DrawC     ,      Draw_VS(), Draw2DTexC_PS());
 TECHNIQUE(DrawA     ,      Draw_VS(), Draw2DTexA_PS());
 
+Vec4 DrawTexXC_PS(NOPERSP Vec2 inTex:TEXCOORD,
+                  NOPERSP PIXEL,
+          uniform Bool dither=false,
+          uniform Bool gamma =false):COLOR
+{
+   VecH4 col=Tex(Col, inTex).x*Color[0]+Color[1];
+   if(dither)ApplyDither(col.rgb, pixel.xy, LINEAR_GAMMA && !gamma); // don't perform gamma conversions inside dither if "gamma==true", because this means we have sRGB color which we're going to convert to linear below
+   if(gamma )col.rgb=SRGBToLinearFast(col.rgb); // this is used for drawing sun rays, 'SRGBToLinearFast' works better here than 'SRGBToLinear' (gives high contrast, dark colors remain darker, while 'SRGBToLinear' highlights them more)
+   return col;
+}
+TECHNIQUE(DrawX   , Draw_VS(), DrawTexX_PS ());
+TECHNIQUE(DrawXG  , Draw_VS(), DrawTexXG_PS());
+TECHNIQUE(DrawXC  , Draw_VS(), DrawTexXC_PS(false));
+TECHNIQUE(DrawXCD , Draw_VS(), DrawTexXC_PS(true ));
+TECHNIQUE(DrawXCG , Draw_VS(), DrawTexXC_PS(false, true));
+TECHNIQUE(DrawXCDG, Draw_VS(), DrawTexXC_PS(true , true));
+
 Vec4 DrawTexPoint_PS (NOPERSP Vec2 inTex:TEXCOORD):COLOR {return TexPoint(Col, inTex);}
 Vec4 DrawTexPointC_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return TexPoint(Col, inTex)*Color[0]+Color[1];}
 TECHNIQUE(DrawTexPoint , Draw2DTex_VS(), DrawTexPoint_PS ());
@@ -463,21 +480,6 @@ TECHNIQUE(Draw3DTexColATF, Draw3DTexCol_VS(true ), Draw3DTexCol_PS(true , true )
 
 TECHNIQUE(Draw2DDepthTexCol  , Draw2DDepthTexCol_VS(), Draw3DTexCol_PS(false, false));
 TECHNIQUE(Draw2DDepthTexColAT, Draw2DDepthTexCol_VS(), Draw3DTexCol_PS(true , false));
-/******************************************************************************/
-Vec4 DrawTexXC_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                  NOPERSP PIXEL,
-          uniform Bool dither=false,
-          uniform Bool gamma =false):COLOR
-{
-   VecH4 col=Tex(Col, inTex).x*Color[0]+Color[1];
-   if(dither)ApplyDither(col.rgb, pixel.xy, LINEAR_GAMMA && !gamma); // don't perform gamma conversions inside dither if "gamma==true", because this means we have sRGB color which we're going to convert to linear below
-   if(gamma )col.rgb=SRGBToLinearFast(col.rgb); // this is used for drawing sun rays, 'SRGBToLinearFast' works better here than 'SRGBToLinear' (gives high contrast, dark colors remain darker, while 'SRGBToLinear' highlights them more)
-   return col;
-}
-TECHNIQUE(DrawTexXC  , Draw_VS(), DrawTexXC_PS(false));
-TECHNIQUE(DrawTexXCD , Draw_VS(), DrawTexXC_PS(true ));
-TECHNIQUE(DrawTexXCG , Draw_VS(), DrawTexXC_PS(false, true));
-TECHNIQUE(DrawTexXCDG, Draw_VS(), DrawTexXC_PS(true , true));
 /******************************************************************************/
 Vec4 DrawTexCubicFast_PS(NOPERSP Vec2 inTex:TEXCOORD,
                          NOPERSP PIXEL,
@@ -2397,7 +2399,7 @@ BUFFER_END
 
 Flt CelShade(Flt lum) {return TexLod(Det1, Vec2(lum, 0.5f)).x;} // have to use linear filtering
 
-Vec ColLight(Vec4 color, Vec4 lum, Flt ao, Vec night_shade_col,
+VecH ColLight(VecH4 color, VecH4 lum, Half ao, VecH night_shade_col,
      uniform Bool    ao_do   ,
      uniform Bool   cel_shade,
      uniform Bool night_shade)
@@ -2412,79 +2414,80 @@ Vec ColLight(Vec4 color, Vec4 lum, Flt ao, Vec night_shade_col,
       lum.rgb=lum.rgb*(1-color.w) + color.w;
    #endif
 #endif
-   Flt max_lum=Max(lum.rgb);
+   Half max_lum=Max(lum.rgb);
    if(cel_shade)
    {
       max_lum=CelShade(max_lum);
       lum.rgb=max_lum;
    }
-   Flt spec   =lum.w/Max(max_lum, EPS);
-   Vec col_lit=(color.rgb+spec)*lum.rgb;
+   Half spec   =lum.w/Max(max_lum, EPS);
+   VecH col_lit=(color.rgb+spec)*lum.rgb;
    if(night_shade)
    {
    #if LINEAR_GAMMA
-      Flt night_shade_intensity=Sat(1-max_lum)                     // only for low light
-                               *LinearLumOfLinearColor(color.rgb); // set based on unlit color luminance
+      Half night_shade_intensity=Sat(1-max_lum)                     // only for low light
+                                *LinearLumOfLinearColor(color.rgb); // set based on unlit color luminance
    #else
-      Flt night_shade_intensity=Sat(1-max_lum)                 // only for low light
-                               *SRGBLumOfSRGBColor(color.rgb); // set based on unlit color luminance
+      Half night_shade_intensity=Sat(1-max_lum)                 // only for low light
+                                *SRGBLumOfSRGBColor(color.rgb); // set based on unlit color luminance
    #endif
       if(ao_do)night_shade_intensity*=ao;
       col_lit+=night_shade_intensity*night_shade_col;
    }
    return col_lit;
 }
-Vec4 ColLight_PS(NOPERSP Vec2 inTex:TEXCOORD   ,
-                 NOPERSP PIXEL,
-                 uniform Int  multi_sample     ,
-                 uniform Bool    ao_do   =false,
-                 uniform Bool   cel_shade=false,
-                 uniform Bool night_shade=false):COLOR
+VecH4 ColLight_PS(NOPERSP Vec2 inTex:TEXCOORD   ,
+                  NOPERSP PIXEL,
+                  uniform Int  multi_sample     ,
+                  uniform Bool    ao_do   =false,
+                  uniform Bool   cel_shade=false,
+                  uniform Bool night_shade=false):COLOR
 {
-   Flt ao; Vec ambient; if(ao_do){ao=TexLod(Det, inTex).x; ambient=AmbColor*ao;} // use 'TexLod' because AO can be of different size and we need to use tex filtering
+   const Bool ao_all=true; // !! must be the same as 'D._amb_all' !! if apply Ambient Occlusion to all lights (not just Ambient), this was disabled in the past, however in LINEAR_GAMMA the darkening was too strong in low light, enabling this option solves that problem
+   Half ao; VecH ambient; if(ao_do){ao=TexLod(Det, inTex).x; if(!ao_all)ambient=AmbColor*ao;} // use 'TexLod' because AO can be of different size and we need to use tex filtering
 #if MODEL>=SM_4
    VecI p=VecI(pixel.xy, 0);
    if(multi_sample)
    {
       if(multi_sample==1) // 1 sample
       {
-         Vec4     color=TexSample(ColMS, pixel.xy, 0),
-                  lum  =TexSample(LumMS, pixel.xy, 0), // needed because Mesh Ambient is stored only in Multi Sampled Lum
-                  lum1s=          Lum  .Load(p);
-                  lum      +=lum1s  ;
-         if(ao_do)lum  .rgb+=ambient;
-                  color.rgb =ColLight(color, lum, ao, NightShadeColor, ao_do, cel_shade, night_shade);
-         return   color;
+         VecH4  color=TexSample(ColMS, pixel.xy, 0),
+                lum  =TexSample(LumMS, pixel.xy, 0), // needed because Mesh Ambient is stored only in Multi Sampled Lum
+                lum1s=Lum.Load(p);
+                lum +=lum1s; 
+         if(ao_do && !ao_all)lum.rgb+=ambient;
+                color.rgb=ColLight(color, lum, ao, NightShadeColor, ao_do && !ao_all, cel_shade, night_shade); if(ao_do && ao_all)color*=ao;
+         return color;
       }else // n samples
       {
-         Vec4 color_sum=0;
-         Flt  valid_samples=EPS;
-         Vec  night_shade_col=NightShadeColor; if(night_shade && ao_do)night_shade_col*=ao; // compute it once, and not inside 'ColLight'
+         VecH4 color_sum=0;
+         Flt   valid_samples=EPS;
+         VecH  night_shade_col; if(night_shade && ao_do && !ao_all)night_shade_col=NightShadeColor*ao; // compute it once, and not inside 'ColLight'
          UNROLL for(Int i=0; i<MS_SAMPLES; i++)if(DEPTH_FOREGROUND(TexDepthMSRaw(pixel.xy, i))) // valid sample
          {
-            Vec4     color=TexSample(ColMS, pixel.xy, i),
-                     lum  =TexSample(LumMS, pixel.xy, i);
-            if(ao_do)lum  .rgb+=ambient;
-                     color.rgb =ColLight(color, lum, ao, night_shade_col, false, cel_shade, night_shade); // we've already adjusted 'night_shade_col' by 'ao', so set 'ao_do' as false
+            VecH4 color=TexSample(ColMS, pixel.xy, i),
+                  lum  =TexSample(LumMS, pixel.xy, i);
+            if(ao_do && !ao_all)lum.rgb+=ambient;
+            color.rgb =ColLight(color, lum, ao, (night_shade && ao_do && !ao_all) ? night_shade_col : NightShadeColor, false, cel_shade, night_shade); // we've already adjusted 'night_shade_col' by 'ao', so set 'ao_do' as false
             color_sum+=color;
             valid_samples++;
          }
-         return color_sum/valid_samples; // MS_SAMPLES
+         if(ao_do && ao_all)color_sum*=ao/valid_samples;
+         else               color_sum/=   valid_samples; // MS_SAMPLES
+         return color_sum;
       }
    }else
    {
-      Vec4     color=Col.Load(p),
-               lum  =Lum.Load(p);
-      if(ao_do)lum  .rgb+=ambient;
-               color.rgb =ColLight(color, lum, ao, NightShadeColor, ao_do, cel_shade, night_shade);
-      return   color;
+      VecH4  color=Col.Load(p),
+             lum  =Lum.Load(p); if(ao_do && !ao_all)lum.rgb+=ambient;
+             color.rgb =ColLight(color, lum, ao, NightShadeColor, ao_do && !ao_all, cel_shade, night_shade); if(ao_do && ao_all)color*=ao;
+      return color;
    }
 #else
-   Vec4     color=TexPoint(Col, inTex),
-            lum  =TexPoint(Lum, inTex);
-   if(ao_do)lum  .rgb+=ambient;
-            color.rgb =ColLight(color, lum, ao, NightShadeColor, ao_do, cel_shade, night_shade);
-   return   color;
+   Vec4   color=TexPoint(Col, inTex),
+          lum  =TexPoint(Lum, inTex); if(ao_do && !ao_all)lum.rgb+=ambient;
+          color.rgb =ColLight(color, lum, ao, NightShadeColor, ao_do && !ao_all, cel_shade, night_shade); if(ao_do && ao_all)color*=ao;
+   return color;
 #endif
 }
 TECHNIQUE(ColLight0   , Draw_VS(), ColLight_PS(0));

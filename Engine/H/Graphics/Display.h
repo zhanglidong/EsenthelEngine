@@ -269,7 +269,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
    Display& ambientPowerS  (  Flt        srgb_power);   Flt          ambientPowerS  ()C;                             // set/get Ambient Power sRGB   Gamma (0..1                 , default=         0.4), this is equivalent to using 'ambientColorS' with RGB components set to the same value, the change is instant, you can call it real-time
    Display& ambientColorL  (C Vec       & lin_color); C Vec&         ambientColorL  ()C {return _amb_color_l      ;} // set/get Ambient Color Linear Gamma (0..1                                       ), the change is instant, you can call it real-time
    Display& ambientColorS  (C Vec       &srgb_color);   Vec          ambientColorS  ()C;                             // set/get Ambient Color sRGB   Gamma (0..1                 , default=         0.4), the change is instant, you can call it real-time
-   Display& ambientContrast(  Flt        contrast  );   Flt          ambientContrast()C {return _amb_contrast     ;} // set/get Ambient Contrast           (0..Inf               , default=         1.2), the change is instant, you can call it real-time
+   Display& ambientContrast(  Flt        contrast  );   Flt          ambientContrast()C {return _amb_contrast     ;} // set/get Ambient Contrast           (0..Inf               , default=         1.0), the change is instant, you can call it real-time
    Display& ambientRange   (C Vec2      &range     ); C Vec2&        ambientRange   ()C {return _amb_range        ;} // set/get Ambient 2D Range           (0..Inf               , default=         0.3), the change is instant, you can call it real-time
    Display& ambientScale   (  Flt        scale     );   Flt          ambientScale   ()C {return _amb_scale        ;} // set/get Ambient 3D Scale           (0..Inf               , default=         2.5), the change is instant, you can call it real-time
    Display& ambientBias    (  Flt        bias      );   Flt          ambientBias    ()C {return _amb_bias         ;} // set/get Ambient Bias               (0..1                 , default=         0.3), the change is instant, you can call it real-time
@@ -483,7 +483,7 @@ private:
    FILTER_TYPE       _density_filter;
    Bool              _full, _sync, _exclusive, _hp_col_rt, _hp_nrm_rt, _hp_lum_rt, _hp_nrm_calc, _dither, _bend_leafs, _particles_soft, _particles_smooth, _tex_mip_filter, _tex_macro, _tex_detail_lod, _eye_adapt, _bloom_sat, _bloom_max, _bloom_half, _bloom_samples,
                      _tesselation, _tesselation_heightmap, _tesselation_allow,
-                     _bloom_allow, _glow_allow, _amb_jitter, _amb_normal, _shd_jitter, _shd_reduce, _grass_shadow, _grass_mirror, _vol_light, _vol_add, _dof_foc_mode, _outline_sky, _color_palette_allow,
+                     _bloom_allow, _glow_allow, _amb_all, _amb_jitter, _amb_normal, _shd_jitter, _shd_reduce, _grass_shadow, _grass_mirror, _vol_light, _vol_add, _dof_foc_mode, _outline_sky, _color_palette_allow,
                      _gamma_all, _view_square_pixel, _initialized, _resetting, _no_gpu, _can_draw, _fade_get, _fade_flipped, _allow_stereo, _draw_null_mtrl, _mtrl_blend;
    Byte              _density, _samples, _max_tex_filter, _max_vtx_attribs, _bloom_blurs, _max_rt,
                      _amb_soft, _amb_res,

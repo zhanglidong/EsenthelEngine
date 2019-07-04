@@ -720,7 +720,7 @@ RendererClass& RendererClass::operator()(void (&render)())
 
          case RS_LIGHT: if(_lum_1s)
          {
-            if(_ao) // if there's AO available, then it means that ambient hasn't been applied yet to '_lum_1s', to keep consistency with '_lum_1s' when AO is disabled, apply flat ambient here
+            if(_ao && !D._amb_all) // if there's AO available, then it means that ambient hasn't been applied yet to '_lum_1s', to keep consistency with '_lum_1s' when AO is disabled, apply flat ambient here
             {
                set(_lum_1s(), null, true);
                D.alpha(ALPHA_ADD);
@@ -731,7 +731,7 @@ RendererClass& RendererClass::operator()(void (&render)())
 
          case RS_AO: if(_ao)
          {
-            set(_final(), null, true); D.alpha(ALPHA_NONE); VI.shader(Sh.h_DrawTexX); _ao->drawFs(FIT_FULL, FILTER_LINEAR);
+            set(_final(), null, true); D.alpha(ALPHA_NONE); (LINEAR_GAMMA ? Sh.h_DrawXG : Sh.h_DrawX)->draw(_ao);
             goto finished;
          }break;
 
@@ -739,10 +739,18 @@ RendererClass& RendererClass::operator()(void (&render)())
          {
             if(_ao)
             {
-               set(_lum_1s(), null, true); D.alpha(ALPHA_ADD);
-               Sh.h_Color[0]->set(Vec4(D.ambientColorL(), 0));
-               Sh.h_Color[1]->set(Vec4Zero                  );
-               Sh.h_DrawTexXC->draw(_ao);
+               set(_lum_1s(), null, true);
+               if(D._amb_all)
+               {
+                  D.alpha(ALPHA_MUL);
+                  Sh.h_DrawX->draw(_ao);
+               }else
+               {
+                  D.alpha(ALPHA_ADD);
+                  Sh.h_Color[0]->set(Vec4(D.ambientColorL(), 0));
+                  Sh.h_Color[1]->set(Vec4Zero                  );
+                  Sh.h_DrawXC->draw(_ao);
+               }
             }
             if(set(_lum_1s))goto finished;
          }break;
@@ -1170,7 +1178,7 @@ void RendererClass::solid()
                D.depth2DOn();
                Sh.h_Color[0]->set(Vec4(1, 1, 1, 0));
                Sh.h_Color[1]->set(Vec4(0, 0, 0, 1));
-               Sh.h_DrawTexXC->draw(_ao);
+               Sh.h_DrawXC->draw(_ao);
                D.depth2DOff();
             }
          }
@@ -1536,10 +1544,17 @@ void RendererClass::blend()
       if(_ao)
       {
          set(_lum_1s(), null, true);
-         D.alpha(ALPHA_ADD);
-         Sh.h_Color[0]->set(Vec4(D.ambientColorL(), 0));
-         Sh.h_Color[1]->set(Vec4Zero                  );
-         Sh.h_DrawTexXC->draw(_ao);
+         if(D._amb_all)
+         {
+            D.alpha(ALPHA_MUL);
+            Sh.h_DrawX->draw(_ao);
+         }else
+         {
+            D.alpha(ALPHA_ADD);
+            Sh.h_Color[0]->set(Vec4(D.ambientColorL(), 0));
+            Sh.h_Color[1]->set(Vec4Zero                  );
+            Sh.h_DrawXC->draw(_ao);
+         }
       }
       PrepareFur();
    }

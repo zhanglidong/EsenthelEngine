@@ -231,8 +231,8 @@ Bool AstroDrawRays()
          Bool dither=(D.dither() && !Renderer._col->highPrecision()); // don't do dithering for high precision RT
          Shader *shader;
        //if(Sun.rays_soft && shift==1)shader=Sh.h_SunRaysSoft;else
-         if(dither                   )shader=(LINEAR_GAMMA ? Sh.h_DrawTexXCDG : Sh.h_DrawTexXCD);else
-                                      shader=(LINEAR_GAMMA ? Sh.h_DrawTexXCG  : Sh.h_DrawTexXC );
+         if(dither                   )shader=(LINEAR_GAMMA ? Sh.h_DrawXCDG : Sh.h_DrawXCD);else
+                                      shader=(LINEAR_GAMMA ? Sh.h_DrawXCG  : Sh.h_DrawXC );
          REPS(Renderer._eye, Renderer._eye_num)shader->draw(rt0, Renderer._stereo ? &D._view_eye_rect[Renderer._eye] : &D.viewRect());
       }
       Renderer._sky_coverage.clear();

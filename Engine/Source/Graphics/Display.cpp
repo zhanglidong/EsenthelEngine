@@ -656,10 +656,11 @@ Display::Display() : _monitors(Compare, Create, null, 4)
 
   _amb_mode    =AMBIENT_FLAT;
   _amb_soft    =1;
+  _amb_all     =true;
   _amb_jitter  =true;
   _amb_normal  =true;
   _amb_res     =FltToByteScale(0.5f);
-  _amb_contrast=1.2f;
+  _amb_contrast=1.0f;
   _amb_range   =0.3f;
   _amb_scale   =2.5f;
   _amb_bias    =0.3f;
