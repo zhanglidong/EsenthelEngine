@@ -8,9 +8,9 @@ struct Environment
 {
    struct Ambient
    {
-      Bool on                 ; // if enabled            ,     true/false    , default=true
-      Vec  color_s            , // ambient     sRGB color, (0,0,0) .. (1,1,1), default=(0.4, 0.4, 0.4)
-           night_shade_color_s; // night shade sRGB color, (0,0,0) .. (1,1,1), default=(0.0, 0.0, 0.0)
+      Bool on                 ; // if enabled                  ,     true/false    , default=true
+      Vec  color_s            , // ambient     color sRGB gamma, (0,0,0) .. (1,1,1), default=(0.4, 0.4, 0.4)
+           night_shade_color_s; // night shade color sRGB gamma, (0,0,0) .. (1,1,1), default=(0.0, 0.0, 0.0)
 
       // set / get
       void set  ()C; // apply these settings to graphics
@@ -51,10 +51,10 @@ struct Environment
    {
       struct Layer // Cloud Layer
       {
-         Flt      scale   ; // texture scale   ,         0..Inf      , default={0.35, 0.41, 0.50, 0.62}
-         Vec2     velocity; // texture velocity,      -Inf..Inf      , default={0.010, 0.008, 0.006, 0.004}
-         Vec4     color   ; // texture color   , (0,0,0,0)..(1,1,1,1), default=(1,1,1,1)
-         ImagePtr image   ; // texture         ,                       default=null
+         Flt      scale   ; // texture scale           ,         0..Inf      , default={0.35, 0.41, 0.50, 0.62}
+         Vec2     velocity; // texture velocity        ,      -Inf..Inf      , default={0.010, 0.008, 0.006, 0.004}
+         Vec4     color_s ; // texture color sRGB gamma, (0,0,0,0)..(1,1,1,1), default=(1,1,1,1)
+         ImagePtr image   ; // texture                 ,                       default=null
       };
 
       Bool  on               ; // if enabled, true/false, default=true
@@ -128,7 +128,7 @@ struct Environment
                highlight_front, // highlight on atmospheric sky,           0..Inf          , default=0.10
                highlight_back ; // highlight on atmospheric sky,           0..Inf          , default=0.07
       Vec      pos            , // position on sky sphere      , its length must be equal 1, default=!Vec(-1, 1, -1)
-               light_color    , // light color                 ,     (0,0,0)..(1,1,1)      , default=(0.7, 0.7, 0.7), value of (0, 0, 0) disables light casting
+               light_color_s  , // light color sRGB gamma      ,     (0,0,0)..(1,1,1)      , default=(0.7, 0.7, 0.7), value of (0, 0, 0) disables light casting
                 rays_color    ; // rays  color                 ,     (0,0,0)..(1,1,1)      , default=(0.12, 0.12, 0.12)
       Vec4     image_color    ; // image color                 ,   (0,0,0,0)..(1,1,1,1)    , default=(1, 1, 1, 1)
       ImagePtr image          ; // image                                                   , default=null

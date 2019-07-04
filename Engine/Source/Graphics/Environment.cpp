@@ -92,7 +92,7 @@ void Environment::Clouds::set()C
    {
                    C Layer &src =                 layers[i       ];
       LayeredClouds::Layer &dest=::Clouds.layered.layer [active++];
-      dest.scale=src.scale; dest.velocity=src.velocity; dest.color=src.color; dest.image=src.image;
+      dest.scale=src.scale; dest.velocity=src.velocity; dest.colorS(src.color_s); dest.image=src.image;
    }
  ::Clouds.layered.set(on ? active : false);
  ::Clouds.layered.scaleY(vertical_scale);
@@ -104,7 +104,7 @@ void Environment::Clouds::get()
    {
     C LayeredClouds::Layer &src =::Clouds.layered.layer [i];
                      Layer &dest=                 layers[i];
-      dest.scale=src.scale; dest.velocity=src.velocity; dest.color=src.color; dest.image=src.image;
+      dest.scale=src.scale; dest.velocity=src.velocity; dest.color_s=src.colorS(); dest.image=src.image;
    }
    on=(::Clouds.layered.layers()>0);
    vertical_scale   =::Clouds.layered.scaleY();
@@ -113,7 +113,7 @@ void Environment::Clouds::get()
 void Environment::Clouds::reset()
 {
    on=true; vertical_scale=1.05f; ray_mask_contrast=4;
-   REPA(layers){Layer &layer=layers[i]; layer.color=1; layer.image=null;}
+   REPA(layers){Layer &layer=layers[i]; layer.color_s=1; layer.image=null;}
    layers[0].scale=1.0f/2.8f; layers[0].velocity=0.010f;
    layers[1].scale=1.0f/2.4f; layers[1].velocity=0.008f;
    layers[2].scale=1.0f/2.0f; layers[2].velocity=0.006f;
@@ -126,7 +126,7 @@ Bool Environment::Clouds::save(File &f, CChar *path)C
    f<<on<<vertical_scale<<ray_mask_contrast;
    FREPA(layers)
    {
-    C Layer &layer=layers[i]; f<<layer.scale<<layer.velocity<<layer.color; f._putStr(layer.image.name(path));
+    C Layer &layer=layers[i]; f<<layer.scale<<layer.velocity<<layer.color_s; f._putStr(layer.image.name(path));
    }
    return f.ok();
 }
@@ -139,7 +139,7 @@ Bool Environment::Clouds::load(File &f, CChar *path)
          f>>on>>vertical_scale>>ray_mask_contrast;
          FREPA(layers)
          {
-            Layer &layer=layers[i]; f>>layer.scale>>layer.velocity>>layer.color; layer.image.require(f._getStr(), path);
+            Layer &layer=layers[i]; f>>layer.scale>>layer.velocity>>layer.color_s; layer.image.require(f._getStr(), path);
          }
          if(f.ok())return true;
       }break;
@@ -239,7 +239,7 @@ void Environment::Sun::set()C
  ::Sun.highlight_front=highlight_front;
  ::Sun.highlight_back =highlight_back;
  ::Sun.pos            =pos;
- ::Sun.light_color    =light_color;
+ ::Sun.lightColorS    (light_color_s);
  ::Sun. rays_color    = rays_color;
  ::Sun.image_color    =image_color;
  ::Sun.image          =image;
@@ -253,20 +253,20 @@ void Environment::Sun::get()
    highlight_front=::Sun.highlight_front;
    highlight_back =::Sun.highlight_back;
    pos            =::Sun.pos;
-   light_color    =::Sun.light_color;
+   light_color_s  =::Sun.lightColorS();
     rays_color    =::Sun. rays_color;
    image_color    =::Sun.image_color;
    image          =::Sun.image;
 }
 void Environment::Sun::reset()
 {
-   on=true; blend=true; glow=128; size=0.15; highlight_front=0.10f; highlight_back=0.07f; pos.set(-SQRT3_3, SQRT3_3, -SQRT3_3); light_color=0.7f; rays_color=0.12f; image_color=1; image=null;
+   on=true; blend=true; glow=128; size=0.15; highlight_front=0.10f; highlight_back=0.07f; pos.set(-SQRT3_3, SQRT3_3, -SQRT3_3); light_color_s=0.7f; rays_color=0.12f; image_color=1; image=null;
 }
 
 Bool Environment::Sun::save(File &f, CChar *path)C
 {
    f.cmpUIntV(0); // version
-   f<<on<<blend<<glow<<size<<highlight_front<<highlight_back<<pos<<light_color<<rays_color<<image_color; f._putStr(image.name(path));
+   f<<on<<blend<<glow<<size<<highlight_front<<highlight_back<<pos<<light_color_s<<rays_color<<image_color; f._putStr(image.name(path));
    return f.ok();
 }
 Bool Environment::Sun::load(File &f, CChar *path)
@@ -275,7 +275,7 @@ Bool Environment::Sun::load(File &f, CChar *path)
    {
       case 0:
       {
-         f>>on>>blend>>glow>>size>>highlight_front>>highlight_back>>pos>>light_color>>rays_color>>image_color; image.require(f._getStr(), path);
+         f>>on>>blend>>glow>>size>>highlight_front>>highlight_back>>pos>>light_color_s>>rays_color>>image_color; image.require(f._getStr(), path);
          if(f.ok())return true;
       }break;
    }

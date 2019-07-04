@@ -86,8 +86,8 @@ EnvEditor EnvEdit;
    Str  EnvEditor::SunImage(C EditEnv &env             ) {return Proj.elmFullName(env.sun_id);}
    void EnvEditor::SunImageC(  EditEnv &env, C Str &text) {env.sun.image_color=TextVec4(text); env.sun_image_color_time.getUTC();}
    Str  EnvEditor::SunImageC(C EditEnv &env             ) {return env.sun.image_color;}
-   void EnvEditor::SunLight(  EditEnv &env, C Str &text) {env.sun.light_color=TextVec(text); env.sun_light_color_time.getUTC();}
-   Str  EnvEditor::SunLight(C EditEnv &env             ) {return Vec4(env.sun.light_color, 1);}
+   void EnvEditor::SunLight(  EditEnv &env, C Str &text) {env.sun.light_color_s=TextVec(text); env.sun_light_color_time.getUTC();}
+   Str  EnvEditor::SunLight(C EditEnv &env             ) {return Vec4(env.sun.light_color_s, 1);}
    void EnvEditor::SunLitF(  EditEnv &env, C Str &text) {env.sun.highlight_front=TextFlt(text); env.sun_highlight_front_time.getUTC();}
    Str  EnvEditor::SunLitF(C EditEnv &env             ) {return env.sun.highlight_front;}
    void EnvEditor::SunLitB(  EditEnv &env, C Str &text) {env.sun.highlight_back=TextFlt(text); env.sun_highlight_back_time.getUTC();}

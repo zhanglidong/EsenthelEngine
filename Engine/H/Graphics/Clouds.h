@@ -3,11 +3,14 @@ struct LayeredClouds
 {
    struct Layer // Cloud Layer
    {
-      Vec4     color   ; // texture color   ,          , default=(1, 1, 1, 1)
-      Flt      scale   ; // texture scale   ,    0..Inf, default={0.35, 0.41, 0.50, 0.62}
-      Vec2     position, // texture position, -Inf..Inf,
-               velocity; // texture velocity, -Inf..Inf, default={0.010, 0.008, 0.006, 0.004}
+      Vec4     color_l ; // texture color linear gamma,          , default=(1, 1, 1, 1)
+      Flt      scale   ; // texture scale             ,    0..Inf, default={0.35, 0.41, 0.50, 0.62}
+      Vec2     position, // texture position          , -Inf..Inf,
+               velocity; // texture velocity          , -Inf..Inf, default={0.010, 0.008, 0.006, 0.004}
       ImagePtr image   ; // texture
+
+    C Vec4& colorL()C {return color_l;}   void colorL(C Vec4 &color_l) {T.color_l=color_l;} // get/set Linear Gamma color
+      Vec4  colorS()C;                    void colorS(C Vec4 &color_s);                     // get/set sRGB   Gamma color
    };
 
    Bool  merge_with_sky, // if draw clouds together with the sky, this can result in better performance, but supports only up to 1 layer of clouds and Sky.frac() must be set to 1, this also results in drawing astronomical objects on top of clouds, default=false (true for Mobile)
@@ -49,16 +52,16 @@ struct VolumetricCloud
       Flt  density    , // density scale factor, 0..1
            noise_min  , // noise value at which a cloud is formed      (start of the cloud), -1..1, currently ignored for object clouds
            noise_max  , // noise value at which a cloud is fully dense (end   of the cloud), -1..1, currently ignored for object clouds
-           brightness , // cloud brightness, 0..1
-           ambient    , // ambient light   , 0..1
-           light_power; // light power     , 0..1
+           brightness , // cloud brightness sRGB gamma, 0..1
+           ambient    , // ambient light    sRGB gamma, 0..1
+           light_power; // light power      sRGB gamma, 0..1
       Vec  light_pos  ; // light position
 
    #if EE_PRIVATE
       void zero() {Zero(T);}
    #endif
 
-      Settings() {detail=3; density=0.75f; noise_min=0.35f; noise_max=1.0f; brightness=0.8f; ambient=D.ambientPowerS(); light_power=Sun.light_color.max(); light_pos=Sun.pos;}
+      Settings() {detail=3; density=0.75f; noise_min=0.35f; noise_max=1.0f; brightness=0.8f; ambient=D.ambientPowerS(); light_power=Sun.lightColorS().max(); light_pos=Sun.pos;}
    };
 
    // get
@@ -145,7 +148,7 @@ struct VolumetricClouds
        curve    , // cloud dome curviness          ,                0..1            , default=0.05
        tex_scale, // texture coordinates scale     ,                0..Inf          , default=0.5
        shadow   ; // shadow intensity              ,                0..1            , default=0.35
-   Vec color    , // cloud color                   ,          (0,0,0)..(1,1,1)      , default=(1,1,1)
+   Vec color_s  , // cloud color sRGB gamma        ,          (0,0,0)..(1,1,1)      , default=(1,1,1)
        pos      ; // world space position in meters, (-Inf,-Inf,-Inf)..(Inf,Inf,Inf), default=(0,0,0)
 
 #if !EE_PRIVATE

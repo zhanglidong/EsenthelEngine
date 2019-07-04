@@ -151,7 +151,7 @@ void SkyClass::draw()
               dither =(D.dither() && !Renderer._col->highPrecision()),
               vertex = !_precision,
               stars  =((_stars   !=null) && (_hor_col_s.w<1-EPS_COL || _sky_col_s.w<1-EPS_COL)),
-              cloud  =(Clouds.draw && Clouds.layered.merge_with_sky && Clouds.layered.layers() && Clouds.layered.layer[0].image && Clouds.layered.layer[0].color.w && (Clouds.layered.draw_in_mirror || !Renderer.mirror()));
+              cloud  =(Clouds.draw && Clouds.layered.merge_with_sky && Clouds.layered.layers() && Clouds.layered.layer[0].image && Clouds.layered.layer[0].color_l.w && (Clouds.layered.draw_in_mirror || !Renderer.mirror()));
       Int     tex    =((_image[0]!=null) + (_image[1]!=null)),
               multi  =(Renderer._col->multiSample() ? ((Renderer._cur_type==RT_DEFERRED) ? 1 : 2) : 0);
       Flt     from   =(Renderer.canReadDepth() ? D.viewRange()*frac() : D.viewRange()), // we're using fraction only if we have depth access

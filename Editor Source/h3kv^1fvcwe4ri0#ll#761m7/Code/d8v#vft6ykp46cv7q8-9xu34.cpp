@@ -78,8 +78,8 @@ class EnvEditor : ClosableWindow
    static void CloudsRayMask(  EditEnv &env, C Str &text) {env.clouds.ray_mask_contrast=TextFlt(text); env.clouds_ray_mask_contrast_time.getUTC();}
    static Str  CloudsRayMask(C EditEnv &env             ) {return env.clouds.ray_mask_contrast;}
 
-   template<int i>   static void CloudsColor(  EditEnv &env, C Str &text) {env.clouds.layers[i].color=TextVec4(text); env.clouds_color_time[i].getUTC();}
-   template<int i>   static Str  CloudsColor(C EditEnv &env             ) {return env.clouds.layers[i].color;}
+   template<int i>   static void CloudsColor(  EditEnv &env, C Str &text) {env.clouds.layers[i].color_s=TextVec4(text); env.clouds_color_time[i].getUTC();}
+   template<int i>   static Str  CloudsColor(C EditEnv &env             ) {return env.clouds.layers[i].color_s;}
    template<int i>   static void CloudsScale(  EditEnv &env, C Str &text) {env.clouds.layers[i].scale=TextFlt(text); env.clouds_scale_time[i].getUTC();}
    template<int i>   static Str  CloudsScale(C EditEnv &env             ) {return env.clouds.layers[i].scale;}
    template<int i>   static void CloudsVel  (  EditEnv &env, C Str &text) {env.clouds.layers[i].velocity=TextVec2(text); env.clouds_velocity_time[i].getUTC();}
@@ -119,8 +119,8 @@ class EnvEditor : ClosableWindow
    static Str  SunImage (C EditEnv &env             ) {return Proj.elmFullName(env.sun_id);}
    static void SunImageC(  EditEnv &env, C Str &text) {env.sun.image_color=TextVec4(text); env.sun_image_color_time.getUTC();}
    static Str  SunImageC(C EditEnv &env             ) {return env.sun.image_color;}
-   static void SunLight (  EditEnv &env, C Str &text) {env.sun.light_color=TextVec(text); env.sun_light_color_time.getUTC();}
-   static Str  SunLight (C EditEnv &env             ) {return Vec4(env.sun.light_color, 1);}
+   static void SunLight (  EditEnv &env, C Str &text) {env.sun.light_color_s=TextVec(text); env.sun_light_color_time.getUTC();}
+   static Str  SunLight (C EditEnv &env             ) {return Vec4(env.sun.light_color_s, 1);}
    static void SunLitF  (  EditEnv &env, C Str &text) {env.sun.highlight_front=TextFlt(text); env.sun_highlight_front_time.getUTC();}
    static Str  SunLitF  (C EditEnv &env             ) {return env.sun.highlight_front;}
    static void SunLitB  (  EditEnv &env, C Str &text) {env.sun.highlight_back=TextFlt(text); env.sun_highlight_back_time.getUTC();}

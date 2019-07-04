@@ -16,17 +16,20 @@ Astro::Astro()
    pos.set(-SQRT3_3, SQRT3_3, -SQRT3_3);
    image_color=WHITE;
 
-   light_color    =0;
+   light_color_l  =0;
    light_vol      =0; // 0.2f
    light_vol_exp  =1.0f;
    light_vol_steam=0.5f;
 }
 /******************************************************************************/
+Vec  Astro::lightColorS(              )C {return LinearToSRGB(light_color_l);}
+void Astro::lightColorS(C Vec &color_s)  {return lightColorL(SRGBToLinear(color_s));}
+/******************************************************************************/
 void Astro::light()
 {
    if(is())
    {
-      LightDir(-pos, light_color, light_vol, light_vol_exp, light_vol_steam).add(true, this);
+      LightDir(-pos, light_color_l, light_vol, light_vol_exp, light_vol_steam).add(true, this);
    }
 }
 void Astro::Draw()
@@ -68,7 +71,7 @@ void Astro::Draw()
 SunClass::SunClass()
 {
    glow=128;
-   light_color=0.7f;
+   lightColorS(0.7f); // !! if changing then also change 'Environment.Sun'
 
    highlight_front=0.10f;
    highlight_back =0.07f;

@@ -75,7 +75,7 @@
       {
          changed|=Sync(clouds_scale_time[i], src.clouds_scale_time[i], clouds.layers[i].scale, src.clouds.layers[i].scale);
          changed|=Sync(clouds_velocity_time[i], src.clouds_velocity_time[i], clouds.layers[i].velocity, src.clouds.layers[i].velocity);
-         changed|=Sync(clouds_color_time[i], src.clouds_color_time[i], clouds.layers[i].color, src.clouds.layers[i].color);
+         changed|=Sync(clouds_color_time[i], src.clouds_color_time[i], clouds.layers[i].color_s, src.clouds.layers[i].color_s);
          changed|=Sync(clouds_image_time[i], src.clouds_image_time[i], cloud_id[i], src.cloud_id[i]);
       }
       changed|=Sync(fog_on_time, src.fog_on_time, fog.on, src.fog.on);
@@ -98,7 +98,7 @@
       changed|=Sync(sun_highlight_front_time, src.sun_highlight_front_time, sun.highlight_front, src.sun.highlight_front);
       changed|=Sync(sun_highlight_back_time, src.sun_highlight_back_time, sun.highlight_back, src.sun.highlight_back);
       changed|=Sync(sun_pos_time, src.sun_pos_time, sun.pos, src.sun.pos);
-      changed|=Sync(sun_light_color_time, src.sun_light_color_time, sun.light_color, src.sun.light_color);
+      changed|=Sync(sun_light_color_time, src.sun_light_color_time, sun.light_color_s, src.sun.light_color_s);
       changed|=Sync(sun_rays_color_time, src.sun_rays_color_time, sun.rays_color, src.sun.rays_color);
       changed|=Sync(sun_image_color_time, src.sun_image_color_time, sun.image_color, src.sun.image_color);
       changed|=Sync(sun_image_time, src.sun_image_time, sun_id, src.sun_id);
@@ -125,7 +125,7 @@
       {
          changed|=Undo(clouds_scale_time[i], src.clouds_scale_time[i], clouds.layers[i].scale, src.clouds.layers[i].scale);
          changed|=Undo(clouds_velocity_time[i], src.clouds_velocity_time[i], clouds.layers[i].velocity, src.clouds.layers[i].velocity);
-         changed|=Undo(clouds_color_time[i], src.clouds_color_time[i], clouds.layers[i].color, src.clouds.layers[i].color);
+         changed|=Undo(clouds_color_time[i], src.clouds_color_time[i], clouds.layers[i].color_s, src.clouds.layers[i].color_s);
          changed|=Undo(clouds_image_time[i], src.clouds_image_time[i], cloud_id[i], src.cloud_id[i]);
       }
       changed|=Undo(fog_on_time, src.fog_on_time, fog.on, src.fog.on);
@@ -148,7 +148,7 @@
       changed|=Undo(sun_highlight_front_time, src.sun_highlight_front_time, sun.highlight_front, src.sun.highlight_front);
       changed|=Undo(sun_highlight_back_time, src.sun_highlight_back_time, sun.highlight_back, src.sun.highlight_back);
       changed|=Undo(sun_pos_time, src.sun_pos_time, sun.pos, src.sun.pos);
-      changed|=Undo(sun_light_color_time, src.sun_light_color_time, sun.light_color, src.sun.light_color);
+      changed|=Undo(sun_light_color_time, src.sun_light_color_time, sun.light_color_s, src.sun.light_color_s);
       changed|=Undo(sun_rays_color_time, src.sun_rays_color_time, sun.rays_color, src.sun.rays_color);
       changed|=Undo(sun_image_color_time, src.sun_image_color_time, sun.image_color, src.sun.image_color);
       changed|=Undo(sun_image_time, src.sun_image_time, sun_id, src.sun_id);

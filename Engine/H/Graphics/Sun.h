@@ -24,10 +24,13 @@ struct Astro // Astronomical Object (Star/Planet/Moon)
    Color    image_color; // image      color         ,                                , default=WHITE
    ImagePtr image      ; // image                                                     , default=null
 
-   Vec light_color    ; // light      color   , (0,0,0)..(1,1,1), default=(0,0,0), value of (0,0,0) disables light casting
-   Flt light_vol      , // volumetric amount  ,       0..Inf    , default=0.0
-       light_vol_exp  , // volumetric exponent,       0..Inf    , default=1.0
-       light_vol_steam; // volumetric steam   ,       0..1      , default=0.5
+   Vec light_color_l  ; // light      color linear gamma, (0,0,0)..(1,1,1), default=(0,0,0), value of (0,0,0) disables light casting
+   Flt light_vol      , // volumetric amount            ,       0..Inf    , default=0.0
+       light_vol_exp  , // volumetric exponent          ,       0..Inf    , default=1.0
+       light_vol_steam; // volumetric steam             ,       0..1      , default=0.5
+
+ C Vec& lightColorL()C {return light_color_l;}   void lightColorL(C Vec &color_l) {T.light_color_l=color_l;} // get/set Linear Gamma color
+   Vec  lightColorS()C;                          void lightColorS(C Vec &color_s);                           // get/set sRGB   Gamma color
 
    Astro();
 
