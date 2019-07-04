@@ -118,7 +118,7 @@ static Bool SetLum()
    return set;
 }
 
-static void                GetWaterLum  () {Renderer._water_lum.get(ImageRTDesc(Renderer._water_ds->w(), Renderer._water_ds->h(), IMAGERT_RGBA));} // here Alpha is used for specular
+static void                GetWaterLum  () {Renderer._water_lum.get(ImageRTDesc(Renderer._water_ds->w(), Renderer._water_ds->h(), IMAGERT_SRGBA));} // here Alpha is used for specular
        void RendererClass::getWaterLumRT() {if(!_water_lum){GetWaterLum(); _water_lum->clearViewport(Vec4(D.ambientColorL(), 0));}}
 static void                SetWaterLum  ()
 {

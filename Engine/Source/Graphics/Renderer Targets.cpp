@@ -18,7 +18,7 @@ namespace EE{
   _water_col: D.renderW(), D.renderH(),                                                              IMAGERT_SRGB , 1          , COLOR RGB
   _water_nrm: D.renderW(), D.renderH(), D.signedNrmRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA                           , 1          , NRM   XYZ, SPEC. High precision is not needed because we just use better UnpackNormal in the shader
   _water_ds : D.renderW(), D.renderH(),                                                              IMAGERT_DS   , 1          , Water Depth
-  _water_lum: D.renderW(), D.renderH(),                                                              IMAGERT_RGBA , 1          , LIGHT RGB, LIGHT SPEC
+  _water_lum: D.renderW(), D.renderH(),                                                              IMAGERT_SRGBA, 1          , LIGHT RGB, LIGHT SPEC
 
   '_gui' is set to '_main', unless stereoscopic rendering is enabled then it's set to VR RT
 
