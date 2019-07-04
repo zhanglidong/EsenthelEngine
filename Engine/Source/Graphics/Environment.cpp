@@ -149,14 +149,14 @@ Bool Environment::Clouds::load(File &f, CChar *path)
 /******************************************************************************/
 // FOG
 /******************************************************************************/
-void Environment::Fog::set  ()C {::Fog.draw=on; ::Fog.affect_sky=affect_sky; ::Fog.density=density; ::Fog.color=color;}
-void Environment::Fog::get  ()  {on=::Fog.draw; affect_sky=::Fog.affect_sky; density=::Fog.density; color=::Fog.color;}
-void Environment::Fog::reset()  {on=false; affect_sky=false; density=0.02f; color=0.5f;}
+void Environment::Fog::set  ()C {::Fog.draw=on; ::Fog.affect_sky=affect_sky; ::Fog.density=density; ::Fog.color=color_s;}
+void Environment::Fog::get  ()  {on=::Fog.draw; affect_sky=::Fog.affect_sky; density=::Fog.density; color_s=::Fog.color;}
+void Environment::Fog::reset()  {on=false; affect_sky=false; density=0.02f; color_s=0.5f;}
 
 Bool Environment::Fog::save(File &f, CChar *path)C
 {
    f.cmpUIntV(0); // version
-   f<<on<<affect_sky<<density<<color;
+   f<<on<<affect_sky<<density<<color_s;
    return f.ok();
 }
 Bool Environment::Fog::load(File &f, CChar *path)
@@ -165,7 +165,7 @@ Bool Environment::Fog::load(File &f, CChar *path)
    {
       case 0:
       {
-         f>>on>>affect_sky>>density>>color;
+         f>>on>>affect_sky>>density>>color_s;
          if(f.ok())return true;
       }break;
    }
@@ -178,7 +178,7 @@ void Environment::Sky::set()C
 {
  ::Sky.frac(frac)
       .atmosphericDensityExponent(atmospheric_density_exponent).atmosphericHorizonExponent (atmospheric_horizon_exponent )
-      .atmosphericHorizonColor   (atmospheric_horizon_color   ).atmosphericSkyColor        (atmospheric_sky_color        )
+      .atmosphericHorizonColor   (atmospheric_horizon_color_s ).atmosphericSkyColor        (atmospheric_sky_color_s      )
       .atmosphericStars          (atmospheric_stars           ).atmosphericStarsOrientation(atmospheric_stars_orientation);
    if(!on    )::Sky.clear();else
    if( skybox)::Sky.skybox(skybox);else
@@ -190,7 +190,7 @@ void Environment::Sky::get()
      frac=::Sky.frac();
    skybox=::Sky.skybox();
    atmospheric_density_exponent=::Sky.atmosphericDensityExponent(); atmospheric_horizon_exponent =::Sky.atmosphericHorizonExponent ();
-   atmospheric_horizon_color   =::Sky.atmosphericHorizonColor   (); atmospheric_sky_color        =::Sky.atmosphericSkyColor        ();
+   atmospheric_horizon_color_s =::Sky.atmosphericHorizonColor   (); atmospheric_sky_color_s      =::Sky.atmosphericSkyColor        ();
    atmospheric_stars           =::Sky.atmosphericStars          (); atmospheric_stars_orientation=::Sky.atmosphericStarsOrientation();
 }
 void Environment::Sky::reset()
@@ -200,8 +200,8 @@ void Environment::Sky::reset()
    skybox=null;
    atmospheric_density_exponent=1;
    atmospheric_horizon_exponent=3.5f;
-   atmospheric_horizon_color.set(0.32f, 0.46f, 0.58f, 1.0f);
-   atmospheric_sky_color    .set(0.16f, 0.36f, 0.54f, 1.0f);
+   atmospheric_horizon_color_s.set(0.32f, 0.46f, 0.58f, 1.0f);
+   atmospheric_sky_color_s    .set(0.16f, 0.36f, 0.54f, 1.0f);
    atmospheric_stars            =null;
    atmospheric_stars_orientation.identity();
 }
@@ -209,7 +209,7 @@ void Environment::Sky::reset()
 Bool Environment::Sky::save(File &f, CChar *path)C
 {
    f.cmpUIntV(0); // version
-   f<<on<<frac<<atmospheric_density_exponent<<atmospheric_horizon_exponent<<atmospheric_horizon_color<<atmospheric_sky_color<<atmospheric_stars_orientation;
+   f<<on<<frac<<atmospheric_density_exponent<<atmospheric_horizon_exponent<<atmospheric_horizon_color_s<<atmospheric_sky_color_s<<atmospheric_stars_orientation;
    f._putStr(atmospheric_stars.name(path))._putStr(skybox.name(path));
    return f.ok();
 }
@@ -219,7 +219,7 @@ Bool Environment::Sky::load(File &f, CChar *path)
    {
       case 0:
       {
-         f>>on>>frac>>atmospheric_density_exponent>>atmospheric_horizon_exponent>>atmospheric_horizon_color>>atmospheric_sky_color>>atmospheric_stars_orientation;
+         f>>on>>frac>>atmospheric_density_exponent>>atmospheric_horizon_exponent>>atmospheric_horizon_color_s>>atmospheric_sky_color_s>>atmospheric_stars_orientation;
          atmospheric_stars.require(f._getStr(), path);
          skybox           .require(f._getStr(), path);
          if(f.ok())return true;

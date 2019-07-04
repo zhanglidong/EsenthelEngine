@@ -60,18 +60,18 @@ EnvEditor EnvEdit;
    Str  EnvEditor::FogSky(C EditEnv &env             ) {return env.fog.affect_sky;}
    void EnvEditor::FogDensity(  EditEnv &env, C Str &text) {env.fog.density=TextFlt(text); env.fog_density_time.getUTC();}
    Str  EnvEditor::FogDensity(C EditEnv &env             ) {return (dbl)env.fog.density;}
-   void EnvEditor::FogColor(  EditEnv &env, C Str &text) {env.fog.color=TextVec(text); env.fog_color_time.getUTC();}
-   Str  EnvEditor::FogColor(C EditEnv &env             ) {return Vec4(env.fog.color, 1);}
+   void EnvEditor::FogColor(  EditEnv &env, C Str &text) {env.fog.color_s=TextVec(text); env.fog_color_time.getUTC();}
+   Str  EnvEditor::FogColor(C EditEnv &env             ) {return Vec4(env.fog.color_s, 1);}
    void EnvEditor::SkyFrac(  EditEnv &env, C Str &text) {env.sky.frac=TextFlt(text); env.sky_frac_time.getUTC();}
    Str  EnvEditor::SkyFrac(C EditEnv &env             ) {return env.sky.frac;}
    void EnvEditor::SkyDnsExp(  EditEnv &env, C Str &text) {env.sky.atmospheric_density_exponent=TextFlt(text); env.sky_atmospheric_density_exponent_time.getUTC();}
    Str  EnvEditor::SkyDnsExp(C EditEnv &env             ) {return (dbl)env.sky.atmospheric_density_exponent;}
    void EnvEditor::SkyHorExp(  EditEnv &env, C Str &text) {env.sky.atmospheric_horizon_exponent=TextFlt(text); env.sky_atmospheric_horizon_exponent_time.getUTC();}
    Str  EnvEditor::SkyHorExp(C EditEnv &env             ) {return env.sky.atmospheric_horizon_exponent;}
-   void EnvEditor::SkyHorCol(  EditEnv &env, C Str &text) {env.sky.atmospheric_horizon_color=TextVec4(text); env.sky_atmospheric_horizon_color_time.getUTC();}
-   Str  EnvEditor::SkyHorCol(C EditEnv &env             ) {return env.sky.atmospheric_horizon_color;}
-   void EnvEditor::SkySkyCol(  EditEnv &env, C Str &text) {env.sky.atmospheric_sky_color=TextVec4(text); env.sky_atmospheric_sky_color_time.getUTC();}
-   Str  EnvEditor::SkySkyCol(C EditEnv &env             ) {return env.sky.atmospheric_sky_color;}
+   void EnvEditor::SkyHorCol(  EditEnv &env, C Str &text) {env.sky.atmospheric_horizon_color_s=TextVec4(text); env.sky_atmospheric_horizon_color_time.getUTC();}
+   Str  EnvEditor::SkyHorCol(C EditEnv &env             ) {return env.sky.atmospheric_horizon_color_s;}
+   void EnvEditor::SkySkyCol(  EditEnv &env, C Str &text) {env.sky.atmospheric_sky_color_s=TextVec4(text); env.sky_atmospheric_sky_color_time.getUTC();}
+   Str  EnvEditor::SkySkyCol(C EditEnv &env             ) {return env.sky.atmospheric_sky_color_s;}
    void EnvEditor::SkyStars(  EditEnv &env, C Str &text) {env.star_id=Proj.findElmImageID(text); env.sky_atmospheric_stars_time.getUTC();}
    Str  EnvEditor::SkyStars(C EditEnv &env             ) {return Proj.elmFullName(env.star_id);}
    void EnvEditor::SkyBox(  EditEnv &env, C Str &text) {env.skybox_id=Proj.findElmImageID(text); env.sky_skybox_time.getUTC();}

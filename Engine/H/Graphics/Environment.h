@@ -76,10 +76,10 @@ struct Environment
 
    struct Fog
    {
-      Bool on        , // if enabled        ,    true/false   , default=false
-           affect_sky; // if fog affects sky,    true/false   , default=false
-      Flt  density   ; // fog density       ,       0..1      , default=0.02
-      Vec  color     ; // fog color         , (0,0,0)..(1,1,1), default=(0.5, 0.5, 0.5)
+      Bool on        , // if enabled          ,    true/false   , default=false
+           affect_sky; // if fog affects sky  ,    true/false   , default=false
+      Flt  density   ; // fog density         ,       0..1      , default=0.02
+      Vec  color_s   ; // fog color sRGB gamma, (0,0,0)..(1,1,1), default=(0.5, 0.5, 0.5)
 
       // set / get
       void set  ()C; // apply these settings to graphics
@@ -98,12 +98,12 @@ struct Environment
       Bool on  ; // if enabled  , true/false, default=true
       Flt  frac; // sky fraction,    0..1   , default=0.8, (1 is the fastest), fraction of the Viewport range where the sky starts
 
-      Flt      atmospheric_density_exponent , // atmospheric density exponent,            0..1                   , default=1.0, (1 is the fastest)
-               atmospheric_horizon_exponent ; // atmospheric horizon exponent,            0..Inf                 , default=3.5, (this affects at what height the horizon color will be selected instead of the sky color)
-      Vec4     atmospheric_horizon_color    , // atmospheric horizon color   ,    (0,0,0,0)..(1,1,1,1)           , default=(0.32, 0.46, 0.58, 1.0) here alpha specifies opacity to combine with star map when used
-               atmospheric_sky_color        ; // atmospheric sky     color   ,    (0,0,0,0)..(1,1,1,1)           , default=(0.16, 0.36, 0.54, 0.9) here alpha specifies opacity to combine with star map when used
-      ImagePtr atmospheric_stars            ; // atmospheric star map        , image must be in IMAGE_CUBE format, default=null
-      Matrix3  atmospheric_stars_orientation; // atmospheric star orientation,       must be normalized          , default=MatrixIdentity3
+      Flt      atmospheric_density_exponent , // atmospheric density exponent        ,            0..1                   , default=1.0, (1 is the fastest)
+               atmospheric_horizon_exponent ; // atmospheric horizon exponent        ,            0..Inf                 , default=3.5, (this affects at what height the horizon color will be selected instead of the sky color)
+      Vec4     atmospheric_horizon_color_s  , // atmospheric horizon color sRGB gamma,    (0,0,0,0)..(1,1,1,1)           , default=(0.32, 0.46, 0.58, 1.0) here alpha specifies opacity to combine with star map when used
+               atmospheric_sky_color_s      ; // atmospheric sky     color sRGB gamma,    (0,0,0,0)..(1,1,1,1)           , default=(0.16, 0.36, 0.54, 0.9) here alpha specifies opacity to combine with star map when used
+      ImagePtr atmospheric_stars            ; // atmospheric star map                , image must be in IMAGE_CUBE format, default=null
+      Matrix3  atmospheric_stars_orientation; // atmospheric star orientation        ,       must be normalized          , default=MatrixIdentity3
 
       ImagePtr skybox; // skybox image, default=null, when specified then it will be used instead of atmospheric sky
 

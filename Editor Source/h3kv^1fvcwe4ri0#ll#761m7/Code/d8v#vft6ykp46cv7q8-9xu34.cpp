@@ -91,8 +91,8 @@ class EnvEditor : ClosableWindow
    static Str  FogSky    (C EditEnv &env             ) {return env.fog.affect_sky;}
    static void FogDensity(  EditEnv &env, C Str &text) {env.fog.density=TextFlt(text); env.fog_density_time.getUTC();}
    static Str  FogDensity(C EditEnv &env             ) {return (dbl)env.fog.density;}
-   static void FogColor  (  EditEnv &env, C Str &text) {env.fog.color=TextVec(text); env.fog_color_time.getUTC();}
-   static Str  FogColor  (C EditEnv &env             ) {return Vec4(env.fog.color, 1);}
+   static void FogColor  (  EditEnv &env, C Str &text) {env.fog.color_s=TextVec(text); env.fog_color_time.getUTC();}
+   static Str  FogColor  (C EditEnv &env             ) {return Vec4(env.fog.color_s, 1);}
 
    static void SkyFrac  (  EditEnv &env, C Str &text) {env.sky.frac=TextFlt(text); env.sky_frac_time.getUTC();}
    static Str  SkyFrac  (C EditEnv &env             ) {return env.sky.frac;}
@@ -100,10 +100,10 @@ class EnvEditor : ClosableWindow
    static Str  SkyDnsExp(C EditEnv &env             ) {return (dbl)env.sky.atmospheric_density_exponent;}
    static void SkyHorExp(  EditEnv &env, C Str &text) {env.sky.atmospheric_horizon_exponent=TextFlt(text); env.sky_atmospheric_horizon_exponent_time.getUTC();}
    static Str  SkyHorExp(C EditEnv &env             ) {return env.sky.atmospheric_horizon_exponent;}
-   static void SkyHorCol(  EditEnv &env, C Str &text) {env.sky.atmospheric_horizon_color=TextVec4(text); env.sky_atmospheric_horizon_color_time.getUTC();}
-   static Str  SkyHorCol(C EditEnv &env             ) {return env.sky.atmospheric_horizon_color;}
-   static void SkySkyCol(  EditEnv &env, C Str &text) {env.sky.atmospheric_sky_color=TextVec4(text); env.sky_atmospheric_sky_color_time.getUTC();}
-   static Str  SkySkyCol(C EditEnv &env             ) {return env.sky.atmospheric_sky_color;}
+   static void SkyHorCol(  EditEnv &env, C Str &text) {env.sky.atmospheric_horizon_color_s=TextVec4(text); env.sky_atmospheric_horizon_color_time.getUTC();}
+   static Str  SkyHorCol(C EditEnv &env             ) {return env.sky.atmospheric_horizon_color_s;}
+   static void SkySkyCol(  EditEnv &env, C Str &text) {env.sky.atmospheric_sky_color_s=TextVec4(text); env.sky_atmospheric_sky_color_time.getUTC();}
+   static Str  SkySkyCol(C EditEnv &env             ) {return env.sky.atmospheric_sky_color_s;}
    static void SkyStars (  EditEnv &env, C Str &text) {env.star_id=Proj.findElmImageID(text); env.sky_atmospheric_stars_time.getUTC();}
    static Str  SkyStars (C EditEnv &env             ) {return Proj.elmFullName(env.star_id);}
    static void SkyBox   (  EditEnv &env, C Str &text) {env.skybox_id=Proj.findElmImageID(text); env.sky_skybox_time.getUTC();}
