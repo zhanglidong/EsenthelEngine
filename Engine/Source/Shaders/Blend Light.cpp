@@ -221,7 +221,7 @@ out Vec4 outVel:COLOR1, // #BlendRT
 
          // specular
       /*#if MODEL>=SM_4 // don't use specular at all
-         BRANCH if(lum*specular>EPS_COL)
+         BRANCH if(lum*specular>EPS_LUM)
       #endif
          {
             Vec eye_dir=Normalize    (-I.pos);

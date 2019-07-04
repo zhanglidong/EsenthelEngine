@@ -348,7 +348,7 @@ Vec4 PS
 
       // specular
    #if MODEL>=SM_4
-      BRANCH if(lum*specular>EPS_COL)
+      BRANCH if(lum*specular>EPS_LUM)
    #endif
       {
          VecH eye_dir=Normalize    (-I.pos);
@@ -372,7 +372,7 @@ Vec4 PS
 
       // specular
    #if MODEL>=SM_4
-      BRANCH if(lum*specular>EPS_COL)
+      BRANCH if(lum*specular>EPS_LUM)
    #endif
       {
          VecH eye_dir=Normalize    (-I.pos);
@@ -396,7 +396,7 @@ Vec4 PS
 
       // specular
    #if MODEL>=SM_4
-      BRANCH if(lum*specular>EPS_COL)
+      BRANCH if(lum*specular>EPS_LUM)
    #endif
       {
          VecH eye_dir=Normalize    (-I.pos);
@@ -421,7 +421,7 @@ Vec4 PS
 
       // specular
    #if MODEL>=SM_4
-      BRANCH if(lum*specular>EPS_COL)
+      BRANCH if(lum*specular>EPS_LUM)
    #endif
       {
          VecH eye_dir=Normalize    (-I.pos);

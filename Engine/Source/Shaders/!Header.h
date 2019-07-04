@@ -177,8 +177,10 @@
 #else
    #define MAX_MATRIX  60 // maximum number of matrixes
 #endif
-#define EPS     0.0001f             // float epsilon
-#define EPS_COL (1.0f/256)          // color epsilon
+#define EPS     0.0001f                             // float epsilon
+#define EPS_COL (1.0f/256)                          // color epsilon
+#define EPS_LUM (LINEAR_GAMMA ? 1.0f/512 : EPS_COL) // light epsilon (need a little extra precision for linear gamma)
+
 #define PI_6    0.5235987755982988f // PI/6 ( 30 deg) Flt
 #define PI_4    0.7853981633974483f // PI/4 ( 45 deg) Flt
 #define PI_3    1.0471975511965977f // PI/3 ( 60 deg) Flt

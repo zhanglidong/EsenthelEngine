@@ -173,7 +173,7 @@ LightCone::LightCone(Flt length, C VecD &pos, C Vec &dir, C Vec &color, Flt vol,
 /******************************************************************************/
 Flt LightPoint::range()C
 {
-   return Sqrt(power/(4.0f/255));
+   return Sqrt(power/(LINEAR_GAMMA ? 1.0f/512 : 1.0f/256));
 }
 /******************************************************************************/
 void LightDir  ::add(Bool shadow        , CPtr light_src                               ) {           if(color.max()          >EPS_COL                       && Renderer.firstPass()){Lights.New().set(T,       shadow        , light_src);}}

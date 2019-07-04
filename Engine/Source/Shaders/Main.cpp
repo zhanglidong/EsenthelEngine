@@ -2135,7 +2135,7 @@ Vec4 LightDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
    // diffuse
    VecH4 nrm=GetNormal   (inTex, quality);
-   Half  lum=LightDiffuse(nrm.xyz, Light_dir.dir); if(shadow)lum*=shd; clip(lum-EPS_COL);
+   Half  lum=LightDiffuse(nrm.xyz, Light_dir.dir); if(shadow)lum*=shd; clip(lum-EPS_LUM);
 
    // specular
    VecH eye_dir =Normalize    (-Vec(inPosXY, 1));
@@ -2156,7 +2156,7 @@ Vec4 LightDirM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
 
    // diffuse
    VecH4 nrm=GetNormalMS(pixel.xy, index, quality);
-   Half  lum=LightDiffuse(nrm.xyz, Light_dir.dir); if(shadow)lum*=shd; clip(lum-EPS_COL);
+   Half  lum=LightDiffuse(nrm.xyz, Light_dir.dir); if(shadow)lum*=shd; clip(lum-EPS_LUM);
 
    // specular
    VecH eye_dir =Normalize    (-Vec(inPosXY, 1));
@@ -2182,13 +2182,13 @@ Vec4 LightPnt_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    Half shd; if(shadow)
    {
       shd=ShadowFinal(TexPoint(Col, inTex).x);
-      clip(shd-EPS_COL);
+      clip(shd-EPS_LUM);
    }
 
    // distance
    Vec  pos      =GetPosPoint(inTex, inPosXY),
         light_dir=Light_point.pos-pos;
-   Half power    =LightPointDist(light_dir); if(shadow)power*=shd; clip(power-EPS_COL);
+   Half power    =LightPointDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
 
    // diffuse
          light_dir=Normalize   (light_dir);
@@ -2210,12 +2210,12 @@ Vec4 LightPntM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                   uniform Bool quality               ):COLOR
 {
    // shadow
-   Half shd; if(shadow){shd=ShadowFinal(TexSample(ColMS, pixel.xy, index).x); clip(shd-EPS_COL);}
+   Half shd; if(shadow){shd=ShadowFinal(TexSample(ColMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
 
    // distance
    Vec  pos      =GetPosMS(pixel.xy, index, inPosXY),
         light_dir=Light_point.pos-pos;
-   Half power    =LightPointDist(light_dir); if(shadow)power*=shd; clip(power-EPS_COL);
+   Half power    =LightPointDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
 
    // diffuse
          light_dir=Normalize   (light_dir);
@@ -2246,13 +2246,13 @@ Vec4 LightSqr_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    Half shd; if(shadow)
    {
       shd=ShadowFinal(TexPoint(Col, inTex).x);
-      clip(shd-EPS_COL);
+      clip(shd-EPS_LUM);
    }
 
    // distance
    Vec  pos      =GetPosPoint(inTex, inPosXY),
         light_dir=Light_sqr.pos-pos;
-   Half power    =LightSqrDist(light_dir); if(shadow)power*=shd; clip(power-EPS_COL);
+   Half power    =LightSqrDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
 
    // diffuse
          light_dir=Normalize   (light_dir);
@@ -2274,12 +2274,12 @@ Vec4 LightSqrM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                   uniform Bool quality               ):COLOR
 {
    // shadow
-   Half shd; if(shadow){shd=ShadowFinal(TexSample(ColMS, pixel.xy, index).x); clip(shd-EPS_COL);}
+   Half shd; if(shadow){shd=ShadowFinal(TexSample(ColMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
 
    // distance
    Vec  pos      =GetPosMS(pixel.xy, index, inPosXY),
         light_dir=Light_sqr.pos-pos;
-   Half power    =LightSqrDist(light_dir); if(shadow)power*=shd; clip(power-EPS_COL);
+   Half power    =LightSqrDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
 
    // diffuse
          light_dir=Normalize   (light_dir);
@@ -2311,14 +2311,14 @@ Vec4 LightCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    Half shd; if(shadow)
    {
       shd=ShadowFinal(TexPoint(Col, inTex).x);
-      clip(shd-EPS_COL);
+      clip(shd-EPS_LUM);
    }
 
    // distance & angle
    Vec  pos      =GetPosPoint(inTex, inPosXY),
         light_dir=Light_cone.pos-pos,
         dir      =mul(Light_cone.mtrx, light_dir); dir.xy/=dir.z; clip(Vec(1-Abs(dir.xy), dir.z));
-   Half power    =LightConeAngle(dir.xy)*LightConeDist(light_dir); if(shadow)power*=shd; clip(power-EPS_COL);
+   Half power    =LightConeAngle(dir.xy)*LightConeDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
 
    // diffuse
          light_dir=Normalize   (light_dir);
@@ -2348,13 +2348,13 @@ Vec4 LightConeM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                    uniform Bool image                 ):COLOR
 {
    // shadow
-   Half shd; if(shadow){shd=ShadowFinal(TexSample(ColMS, pixel.xy, index).x); clip(shd-EPS_COL);}
+   Half shd; if(shadow){shd=ShadowFinal(TexSample(ColMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
 
    // distance & angle
    Vec  pos      =GetPosMS(pixel.xy, index, inPosXY),
         light_dir=Light_cone.pos-pos,
         dir      =mul(Light_cone.mtrx, light_dir); dir.xy/=dir.z; clip(Vec(1-Abs(dir.xy), dir.z));
-   Half power    =LightConeAngle(dir.xy)*LightConeDist(light_dir); if(shadow)power*=shd; clip(power-EPS_COL);
+   Half power    =LightConeAngle(dir.xy)*LightConeDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
 
    // diffuse
          light_dir=Normalize   (light_dir);
