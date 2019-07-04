@@ -160,12 +160,12 @@ static void RestoreShadowMapSettings()
    RestoreLightSettings();
 }
 /******************************************************************************/
-LightCone::LightCone(Flt length, C VecD &pos, C Vec &dir, C Vec &color, Flt vol, Flt vol_max)
+LightCone::LightCone(Flt length, C VecD &pos, C Vec &dir, C Vec &color_l, Flt vol, Flt vol_max)
 {
    T.pyramid.scale=1;
    T.pyramid.h    =length;
    T.pyramid.setPosDir(pos, dir);
-   T.color        =color;
+   T.color_l      =color_l;
    T.falloff      =0.5f;
    T.vol          =vol;
    T.vol_max      =vol_max;
@@ -176,10 +176,10 @@ Flt LightPoint::range()C
    return Sqrt(power/(LINEAR_GAMMA ? 1.0f/512 : 1.0f/256));
 }
 /******************************************************************************/
-void LightDir  ::add(Bool shadow        , CPtr light_src                               ) {           if(color.max()          >EPS_COL                       && Renderer.firstPass()){Lights.New().set(T,       shadow        , light_src);}}
-void LightPoint::add(Flt  shadow_opacity, CPtr light_src                               ) {Rect rect; if(color.max()*power    >EPS_COL && toScreenRect(rect) && Renderer.firstPass()){Lights.New().set(T, rect, shadow_opacity, light_src);}}
-void LightSqr  ::add(Flt  shadow_opacity, CPtr light_src                               ) {Rect rect; if(color.max()*range    >EPS_COL && toScreenRect(rect) && Renderer.firstPass()){Lights.New().set(T, rect, shadow_opacity, light_src);}}
-void LightCone ::add(Flt  shadow_opacity, CPtr light_src, Image *image, Flt image_scale) {Rect rect; if(color.max()*pyramid.h>EPS_COL && toScreenRect(rect) && Renderer.firstPass())
+void LightDir  ::add(Bool shadow        , CPtr light_src                               ) {           if(color_l.max()          >EPS_COL                       && Renderer.firstPass()){Lights.New().set(T,       shadow        , light_src);}}
+void LightPoint::add(Flt  shadow_opacity, CPtr light_src                               ) {Rect rect; if(color_l.max()*power    >EPS_COL && toScreenRect(rect) && Renderer.firstPass()){Lights.New().set(T, rect, shadow_opacity, light_src);}}
+void LightSqr  ::add(Flt  shadow_opacity, CPtr light_src                               ) {Rect rect; if(color_l.max()*range    >EPS_COL && toScreenRect(rect) && Renderer.firstPass()){Lights.New().set(T, rect, shadow_opacity, light_src);}}
+void LightCone ::add(Flt  shadow_opacity, CPtr light_src, Image *image, Flt image_scale) {Rect rect; if(color_l.max()*pyramid.h>EPS_COL && toScreenRect(rect) && Renderer.firstPass())
    {
       Light &l=Lights.New();
       l.set(T, rect, shadow_opacity, light_src);
@@ -219,8 +219,8 @@ void LightDir::set()
 {
    GpuLightDir l;
    l.dir         .fromDivNormalized(dir, CamMatrix.orn()).chs();
-   l.color       =color;
-   l.spec        =color.max();
+   l.color       =color_l;
+   l.spec        =color_l.max();
    l.vol         =vol;
    l.vol_exponent=vol_exponent;
    l.vol_steam   =vol_steam;
@@ -233,8 +233,8 @@ void LightPoint::set(Flt shadow_opacity)
    l.vol    =vol*shadow_opacity;
    l.vol_max=vol_max;
    l.pos    .fromDivNormalized(pos, CamMatrix);
-   l.color  =color;
-   l.spec   =color.max();
+   l.color  =color_l;
+   l.spec   =color_l.max();
    Sh.h_Light_pnt->set(l);
 }
 void LightSqr::set(Flt shadow_opacity)
@@ -244,8 +244,8 @@ void LightSqr::set(Flt shadow_opacity)
    l.vol    =vol*shadow_opacity;
    l.vol_max=vol_max;
    l.pos    .fromDivNormalized(pos, CamMatrix);
-   l.color  =color;
-   l.spec   =color.max();
+   l.color  =color_l;
+   l.spec   =color_l.max();
    Sh.h_Light_sqr->set(l);
 }
 void LightCone::set(Flt shadow_opacity)
@@ -258,8 +258,8 @@ void LightCone::set(Flt shadow_opacity)
    l.falloff.y   =-l.falloff.x;
    l.vol         = vol*shadow_opacity;
    l.vol_max     = vol_max;
-   l.color       = color;
-   l.spec        = color.max();
+   l.color       = color_l;
+   l.spec        = color_l.max();
    l.length      = pyramid.h;
    l.scale       = pyramid.scale;
    l.mtrx.x      =-pyramid.cross()/pyramid.scale;
@@ -895,10 +895,10 @@ void Light::scalePower(Flt scale)
 {
    switch(type)
    {
-      case LIGHT_DIR  : dir  .color    *=scale; break;
-      case LIGHT_POINT: point.power    *=scale; break;
-      case LIGHT_SQR  : sqr  .range    *=scale; break;
-      case LIGHT_CONE : cone .pyramid.h*=scale; break;
+      case LIGHT_DIR  : dir  .color_l  *=Sqr(scale); break; // color_l=SRGBToLinear(LinearToSRGB(color_l)*scale)
+      case LIGHT_POINT: point.power    *=Sqr(scale); break;
+      case LIGHT_SQR  : sqr  .range    *=    scale ; break;
+      case LIGHT_CONE : cone .pyramid.h*=    scale ; break;
    }
 }
 /******************************************************************************/
@@ -1505,7 +1505,7 @@ void LimitLights()
          REPA(Lights)
          {
             Light &l=Lights[i];
-            LightImportance[i].f=((l.type==LIGHT_DIR) ? 1-l.dir.color.max() : 1+Dist2(ActiveCam.at, l.pos()));
+            LightImportance[i].f=((l.type==LIGHT_DIR) ? 1-l.dir.color_l.max() : 1+Dist2(ActiveCam.at, l.pos()));
             LightImportance[i].i=i;
          }
          LightImportance.sort(FloatIndex::Compare);
@@ -1542,7 +1542,7 @@ void SortLights()
          Light &light=Lights[i];
          if(light.type==LIGHT_DIR)
          {
-            Flt p=light.dir.color.max();
+            Flt p=light.dir.color_l.max();
             if(main<0 || p>power){main=i; power=p;}
          }
       }

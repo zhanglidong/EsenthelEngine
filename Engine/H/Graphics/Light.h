@@ -20,7 +20,7 @@ enum LIGHT_TYPE : Byte // Light Type
 struct LightDir // Directional Light
 {
    Vec dir         , // direction          , normalized vector
-       color       ; // color              , (0,0,0) .. (1,1,1)
+       color_l     ; // color linear gamma , (0,0,0) .. (1,1,1)
    Flt vol         , // volumetric amount  , (0..1  )
        vol_exponent, // volumetric exponent, (0..Inf)
        vol_steam   ; // volumetric steam   , (0..1  )
@@ -29,7 +29,7 @@ struct LightDir // Directional Light
    void set(                                     ); // use only outside Renderer rendering, before drawing any shade'able meshes
 
    LightDir() {}
-   LightDir(C Vec &dir, C Vec &color=Vec(1, 1, 1), Flt vol=0, Flt vol_exponent=1, Flt vol_steam=0.5f) {T.dir=dir; T.color=color; T.vol=vol; T.vol_exponent=vol_exponent; T.vol_steam=vol_steam;}
+   LightDir(C Vec &dir, C Vec &color_l=Vec(1, 1, 1), Flt vol=0, Flt vol_exponent=1, Flt vol_steam=0.5f) {T.dir=dir; T.color_l=color_l; T.vol=vol; T.vol_exponent=vol_exponent; T.vol_steam=vol_steam;}
 
 #if EE_PRIVATE
    Bool toScreenRect(Rect &rect)C {rect=D.viewRect(); return true;}
@@ -42,13 +42,13 @@ struct LightPoint // Point Light
         vol    , // volumetric amount , (0..Inf)
         vol_max; // volumetric maximum, (0..1  )
    VecD pos    ; // position          ,
-   Vec  color  ; // color             , (0,0,0) .. (1,1,1)
+   Vec  color_l; // color linear gamma, (0,0,0) .. (1,1,1)
 
    Flt  range(                                            )C; // get affected range according to light's 'power'
    void add  (Flt shadow_opacity=1.0f, CPtr light_src=null) ; // add light to scene, this needs to be called only in RM_PREPARE mode, 'shadow_opacity'=opacity of shadows (0..1) where value 0 disables shadowing, value 1 sets full shadows, and values between allow for manual blending the shadows, 'light_src'=custom pointer to light source (which can be later accessed from "CurrentLight.src")
 
    LightPoint() {}
-   LightPoint(Flt power, C VecD &pos, C Vec &color=Vec(1, 1, 1), Flt vol=0, Flt vol_max=0.5f) {T.power=power; T.pos=pos; T.color=color; T.vol=vol; T.vol_max=vol_max;}
+   LightPoint(Flt power, C VecD &pos, C Vec &color_l=Vec(1, 1, 1), Flt vol=0, Flt vol_max=0.5f) {T.power=power; T.pos=pos; T.color_l=color_l; T.vol=vol; T.vol_max=vol_max;}
 
 #if EE_PRIVATE
    void  set(Flt shadow_opacity);
@@ -63,12 +63,12 @@ struct LightSqr // Point Light with small range
         vol    , // volumetric amount , (0..Inf)
         vol_max; // volumetric maximum, (0..1  )
    VecD pos    ; // position          ,
-   Vec  color  ; // color             , (0,0,0) .. (1,1,1)
+   Vec  color_l; // color linear gamma, (0,0,0) .. (1,1,1)
 
    void add(Flt shadow_opacity=1.0f, CPtr light_src=null); // add light to scene, this needs to be called only in RM_PREPARE mode, 'shadow_opacity'=opacity of shadows (0..1) where value 0 disables shadowing, value 1 sets full shadows, and values between allow for manual blending the shadows, 'light_src'=custom pointer to light source (which can be later accessed from "CurrentLight.src")
 
    LightSqr() {}
-   LightSqr(Flt range, C VecD &pos, C Vec &color=Vec(1, 1, 1), Flt vol=0, Flt vol_max=0.5f) {T.range=range; T.pos=pos; T.color=color; T.vol=vol; T.vol_max=vol_max;}
+   LightSqr(Flt range, C VecD &pos, C Vec &color_l=Vec(1, 1, 1), Flt vol=0, Flt vol_max=0.5f) {T.range=range; T.pos=pos; T.color_l=color_l; T.vol=vol; T.vol_max=vol_max;}
 
 #if EE_PRIVATE
    void  set(Flt shadow_opacity);
@@ -82,13 +82,13 @@ struct LightCone // Cone Light
    Flt      falloff, // light falloff     , (0..1  ), default=0.5
             vol    , // volumetric amount , (0..Inf)
             vol_max; // volumetric maximum, (0..1  )
-   Vec      color  ; // color             , (0,0,0) .. (1,1,1)
+   Vec      color_l; // color linear gamma, (0,0,0) .. (1,1,1)
    PyramidM pyramid; // pyramid           , determines orientation of the light
 
    void add(Flt shadow_opacity=1.0f, CPtr light_src=null, Image *image=null, Flt image_scale=1); // add light to scene, this needs to be called only in RM_PREPARE mode, 'shadow_opacity'=opacity of shadows (0..1) where value 0 disables shadowing, value 1 sets full shadows, and values between allow for manual blending the shadows, 'light_src'=custom pointer to light source (which can be later accessed from "CurrentLight.src"), 'image'=dynamic lightmap, 'image_scale'=scale dynamic lightmap
 
    LightCone() {}
-   LightCone(Flt length, C VecD &pos, C Vec &dir, C Vec &color=Vec(1, 1, 1), Flt vol=0, Flt vol_max=0.5f);
+   LightCone(Flt length, C VecD &pos, C Vec &dir, C Vec &color_l=Vec(1, 1, 1), Flt vol=0, Flt vol_max=0.5f);
 
 #if EE_PRIVATE
    void set(Flt shadow_opacity);
