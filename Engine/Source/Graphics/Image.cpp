@@ -2147,7 +2147,8 @@ Bool Image::lock(LOCK_MODE lock, Int mip_map, DIR_ENUM cube_face)
 
                            ImageRT temp, *src;
                            if(this== Renderer._cur[0])src= Renderer._cur[0];else
-                           if(this==&Renderer._main  )src=&Renderer._main  ;else{Swap(T, SCAST(Image, temp)); src=&temp;}
+                           if(this==&Renderer._main  )src=&Renderer._main  ;else
+                                                     {src=&temp; Swap(T, SCAST(Image, temp));} // we can do a swap because on OpenGL 'ImageRT' doesn't have anything extra, this swap is only to allow this method to belong to 'Image' instead of having to use 'ImageRT'
                            Renderer.set(src, null, false); // put 'this' to FBO
                            glGetError(); // clear any previous errors
                            glReadPixels(0, 0, pw, ph, format, type, data);
