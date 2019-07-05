@@ -2107,17 +2107,32 @@ Bool Image::lock(LOCK_MODE lock, Int mip_map, DIR_ENUM cube_face)
             #elif GL
                case IMAGE_2D:
                case IMAGE_RT:
-               case IMAGE_DS: if(_txtr)
+               case IMAGE_DS:
+               case IMAGE_GL_RB:
                {
                   Int pitch =softPitch   (              mip_map          ),
                       pitch2=ImageBlocksY(hwW(), hwH(), mip_map, hwType())*pitch;
-               #if GL_ES // 'glGetTexImage' not available on GL ES
-                  if(mode()==IMAGE_RT) // must use 'glReadPixels'
+               #if !GL_ES // 'glGetTexImage' not available on GL ES
+                  if(_txtr)
+                  {
+                     Alloc(_data, CeilGL(pitch2));
+                     if(lock!=LOCK_WRITE) // get from GPU
+                     {
+                        glGetError(); // clear any previous errors
+                                             D.texBind(GL_TEXTURE_2D, _txtr);
+                        if(!compressed())glGetTexImage(GL_TEXTURE_2D, mip_map, SourceGLFormat(hwType()), SourceGLType(hwType()), data());
+                        else   glGetCompressedTexImage(GL_TEXTURE_2D, mip_map, data());
+                        if(glGetError()!=GL_NO_ERROR)Free(_data);
+                     }
+                  }else
+               #endif
+                  if(mode()==IMAGE_RT
+                  || mode()==IMAGE_GL_RB) // must use 'glReadPixels', also we don't want '_data_all' for these modes, because RT's are assumed to always change due to rendering
                   {
                      if(!compressed())
                      {
                         Alloc(_data, CeilGL(pitch2));
-                        if(lock!=LOCK_WRITE) // get from GPU
+                        if(lock!=LOCK_WRITE && mip_map==0) // get from GPU
                         {
                            ImageRT *rt[Elms(Renderer._cur)], *ds;
                            Bool     restore_viewport=!D._view_active.full;
@@ -2130,30 +2145,28 @@ Bool Image::lock(LOCK_MODE lock, Int mip_map, DIR_ENUM cube_face)
                                 type=SourceGLType(hwType());
                            Ptr  data=_data;
 
-                           Renderer.set(this, null, false); // put 'this' to FBO
+                           ImageRT temp, *src;
+                           if(this== Renderer._cur[0])src= Renderer._cur[0];else
+                           if(this==&Renderer._main  )src=&Renderer._main  ;else{Swap(T, SCAST(Image, temp)); src=&temp;}
+                           Renderer.set(src, null, false); // put 'this' to FBO
                            glGetError(); // clear any previous errors
                            glReadPixels(0, 0, pw, ph, format, type, data);
-
-                           if(glGetError()!=GL_NO_ERROR)Free(_data);
+                           if(glGetError()!=GL_NO_ERROR)Free(src->_data); // check for error right after 'glReadPixels' without doing any other operations which could overwrite 'glGetError'
 
                            // restore settings
                            Renderer.set(rt[0], rt[1], rt[2], rt[3], ds, restore_viewport);
+
+                           if(src==&temp)Swap(T, SCAST(Image, temp)); // swap after restore
+                           if(_data && this==&Renderer._main) // on OpenGL main has to be flipped
+                              REPD(y, h()/2)Swap(_data + y*pitch, _data + (h()-1-y)*pitch, pitch);
                         }
                      }
-                  }else
+                  }
+               #if GL_ES
+                  else
                   {
                      if(!_data_all && lock==LOCK_WRITE && mipMaps()==1)Alloc(_data_all, CeilGL(memUsage())); // if GL ES data is not available, but we want to write to it and we have only 1 mip map then re-create it
                      if( _data_all)_data=softData(mip_map);
-                  }
-               #else
-                  Alloc(_data, CeilGL(pitch2));
-                  if(lock!=LOCK_WRITE) // get from GPU
-                  {
-                     glGetError(); // clear any previous errors
-                                          D.texBind(GL_TEXTURE_2D, _txtr);
-                     if(!compressed())glGetTexImage(GL_TEXTURE_2D, mip_map, SourceGLFormat(hwType()), SourceGLType(hwType()), data());
-                     else   glGetCompressedTexImage(GL_TEXTURE_2D, mip_map, data());
-                     if(glGetError()!=GL_NO_ERROR)Free(_data);
                   }
                #endif
                   if(data())
@@ -2310,6 +2323,7 @@ Image& Image::unlock()
             case IMAGE_2D:
             case IMAGE_RT:
             case IMAGE_DS:
+            case IMAGE_GL_RB:
             {
                if(_lock_mode!=LOCK_READ && D.created())
                {
@@ -2338,7 +2352,7 @@ Image& Image::unlock()
                  _pitch2   =0;
                  _discard  =false;
                #if GL_ES
-                  if(mode()==IMAGE_RT)Free(_data);else _data=null;
+                  if(_data_all)_data=null;else Free(_data); // if we have '_data_all' then '_data' was set to part of it, so just clear it, otherwise it was allocated 
                #else
                   Free(_data);
                #endif
@@ -2510,8 +2524,7 @@ Bool Image::setFrom(CPtr data, Int data_pitch, Int mip_map, DIR_ENUM cube_face)
 Image& Image::freeOpenGLESData()
 {
 #if GL_ES
-   unlock();
-   if(hw())Free(_data_all);
+   if(hw()){unlock(); Free(_data_all);}
 #endif
    return T;
 }
