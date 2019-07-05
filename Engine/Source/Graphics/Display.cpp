@@ -1172,6 +1172,9 @@ again:
                EGL_ALPHA_SIZE     , 8,
                EGL_DEPTH_SIZE     , (d==0) ? 24 : (d==1) ? 32 : 16,
                EGL_STENCIL_SIZE   , (s==0) ?  8 : 0,
+            #if LINEAR_GAMMA
+               EGL_GL_COLORSPACE_KHR, EGL_GL_COLORSPACE_SRGB_KHR,
+            #endif
                EGL_NONE // end of list
             };
             if(LogInit)LogN(S+"Trying config GL:"+gl_ver+", D:"+d+", S:"+s);

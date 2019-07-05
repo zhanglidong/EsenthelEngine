@@ -2124,15 +2124,17 @@ Bool Image::lock(LOCK_MODE lock, Int mip_map, DIR_ENUM cube_face)
                            REPAO(rt)=Renderer._cur[i];
                                  ds =Renderer._cur_ds;
 
-                           Renderer.set(this, null, false); // put 'this' to FBO
-                           glGetError(); // clear any previous errors
                            UInt format=SourceGLFormat(hwType());
-                           Bool ok    =false;
                            Int  pw=PaddedWidth (hwW(), hwH(), mip_map, hwType()),
                                 ph=PaddedHeight(hwW(), hwH(), mip_map, hwType()),
                                 type=SourceGLType(hwType());
-                           glReadPixels(0, 0, pw, ph, format , type, _data); ok=(glGetError()==GL_NO_ERROR);
-                           if(!ok)Free(_data);
+                           Ptr  data=_data;
+
+                           Renderer.set(this, null, false); // put 'this' to FBO
+                           glGetError(); // clear any previous errors
+                           glReadPixels(0, 0, pw, ph, format, type, data);
+
+                           if(glGetError()!=GL_NO_ERROR)Free(_data);
 
                            // restore settings
                            Renderer.set(rt[0], rt[1], rt[2], rt[3], ds, restore_viewport);
