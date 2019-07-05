@@ -1884,7 +1884,9 @@ void Display::getCaps()
       MeshBoneSplit=(Min(max_vs_vectors, max_ps_vectors)<768+256+256); // 768 for ObjMatrix, 256 for ObjVel, 256 extra
    #endif
    #if !GL_ES && (defined GL_INTERNALFORMAT_SUPPORTED || defined GL_COLOR_RENDERABLE || defined GL_DEPTH_RENDERABLE) // on GL_ES glGetInternalformativ works only for GL_RENDERBUFFER
+   #if WINDOWS
       if(glGetInternalformativ)
+   #endif
       {
          glGetError(); // clear any previous errors
          REP(IMAGE_ALL_TYPES)
