@@ -292,13 +292,13 @@ void OpenVRApi::draw()
          if(_overlay_visible) // this needs to be called per-frame
          {
             t.handle=(Ptr)_gui._txtr;
-            t.eColorSpace=vr::ColorSpace_Auto; // TODO: support gamma correct sRGB rendering
+            t.eColorSpace=(LINEAR_GAMMA ? vr::ColorSpace_Linear : vr::ColorSpace_Gamma);
 	        _overlay->SetOverlayTexture(_overlay_id, &t);
          }
       }
 
       t.handle=(Ptr)_render._txtr;
-      t.eColorSpace=vr::ColorSpace_Auto; // TODO: support gamma correct sRGB rendering
+      t.eColorSpace=(LINEAR_GAMMA ? vr::ColorSpace_Linear : vr::ColorSpace_Gamma);
 
       vr::VRTextureBounds_t rect;
    #if GL // for OpenGL need to flip vertically
@@ -331,7 +331,7 @@ Bool OpenVRApi::createGuiImage()
          vr::Texture_t t;
          t.handle=(Ptr)_gui._txtr;
          t.eType=GPU_API(vr::API_DirectX, vr::API_OpenGL);
-         t.eColorSpace=vr::ColorSpace_Auto; // TODO: support gamma correct sRGB rendering
+         t.eColorSpace=(LINEAR_GAMMA ? vr::ColorSpace_Linear : vr::ColorSpace_Gamma);
 	     _overlay->SetOverlayTexture(_overlay_id, &t);
          setOverlaySizeDepth();
       }

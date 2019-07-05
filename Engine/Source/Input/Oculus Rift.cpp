@@ -94,7 +94,6 @@ static struct ovrTexture
    {
       del();
 
-      // TODO: support gamma correct sRGB rendering
       image._size=image._hw_size.set(w, h, 1);
       image._type=image._hw_type=(LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8);
       image._mode=IMAGE_RT;
