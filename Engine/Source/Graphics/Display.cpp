@@ -1152,6 +1152,13 @@ again:
       if(LogInit)LogN("EGL");
       GLDisplay=eglGetDisplay(EGL_DEFAULT_DISPLAY); if(!GLDisplay)Exit("Can't get EGL Display"); if(eglInitialize(GLDisplay, null, null)!=EGL_TRUE)Exit("Can't initialize EGL Display");
       Byte samples=1; IMAGE_TYPE ds_type=IMAGE_NONE;
+      EGLint win_attribs[]=
+      {
+      #if LINEAR_GAMMA
+         EGL_GL_COLORSPACE_KHR, LINEAR_GAMMA ? EGL_GL_COLORSPACE_SRGB_KHR : EGL_GL_COLORSPACE_LINEAR_KHR,
+      #endif
+         EGL_NONE // end of list
+      };
       for(Int gl_ver=3; gl_ver>=3; gl_ver--) // start from OpenGL ES 3.0 (ES3)
       {
          EGLint ctx_attribs[]=
@@ -1173,9 +1180,6 @@ again:
                EGL_ALPHA_SIZE     , 8,
                EGL_DEPTH_SIZE     , (d==0) ? 24 : (d==1) ? 32 : 16,
                EGL_STENCIL_SIZE   , (s==0) ?  8 : 0,
-            #if LINEAR_GAMMA
-               //EGL_GL_COLORSPACE_KHR, EGL_GL_COLORSPACE_SRGB_KHR,
-            #endif
                EGL_NONE // end of list
             };
             if(LogInit)LogN(S+"Trying config GL:"+gl_ver+", D:"+d+", S:"+s);
@@ -1185,7 +1189,7 @@ again:
             {
                EGLint format; eglGetConfigAttrib(GLDisplay, GLConfig, EGL_NATIVE_VISUAL_ID, &format);
                ANativeWindow_setBuffersGeometry(AndroidApp->window, 0, 0, format);
-               if(MainContext.surface=eglCreateWindowSurface(GLDisplay, GLConfig, AndroidApp->window, null))
+               if(MainContext.surface=eglCreateWindowSurface(GLDisplay, GLConfig, AndroidApp->window, win_attribs))
                {
                   if(MainContext.context=eglCreateContext(GLDisplay, GLConfig, null, ctx_attribs))
                   {
@@ -1332,9 +1336,16 @@ void Display::androidOpen()
    androidClose();
    if(GLDisplay && MainContext.context)
    {
+      EGLint win_attribs[]=
+      {
+      #if LINEAR_GAMMA
+         EGL_GL_COLORSPACE_KHR, LINEAR_GAMMA ? EGL_GL_COLORSPACE_SRGB_KHR : EGL_GL_COLORSPACE_LINEAR_KHR,
+      #endif
+         EGL_NONE // end of list
+      };
       EGLint format; eglGetConfigAttrib(GLDisplay, GLConfig, EGL_NATIVE_VISUAL_ID, &format);
       ANativeWindow_setBuffersGeometry(AndroidApp->window, 0, 0, format);
-      MainContext.surface=eglCreateWindowSurface(GLDisplay, GLConfig, AndroidApp->window, null); if(!MainContext.surface)Exit("Can't create EGLSurface.");
+      MainContext.surface=eglCreateWindowSurface(GLDisplay, GLConfig, AndroidApp->window, win_attribs); if(!MainContext.surface)Exit("Can't create EGLSurface.");
       MainContext.lock();
    }else Exit("OpenGL Display and MainContext not available.");
 #endif
