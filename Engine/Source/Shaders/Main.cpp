@@ -2541,7 +2541,7 @@ void Particle_VS(VtxInput vtx,
          uniform Bool  stretch_alpha    )
 {
    outTex=vtx.tex();
-   outCol=vtx.colorFast();
+   outCol=(palette ? vtx.colorF() : vtx.colorFast()); // use linear color for palette
 
    Flt  size  =vtx.size(),
         angle =vtx._tan.w;
@@ -3605,8 +3605,8 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
 
       void main()
       {
-         IO_tex=vtx_tex      ();
-         IO_col=vtx_colorFast();
+         IO_tex=vtx_tex();
+         IO_col=((palette!=0) ? vtx_colorF() : vtx_colorFast());
 
          MP Flt  size  =vtx_size(),
                  angle =vtx_tanW();

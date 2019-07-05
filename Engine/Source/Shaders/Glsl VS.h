@@ -44,3 +44,5 @@ MP Vec  vtx_color3    () {return ATTR7.rgb;} // sRGB vertex color (precise)
 MP Vec4 vtx_colorFast () {return ATTR7    ;} // sRGB vertex color (fast)
 MP Vec  vtx_colorFast3() {return ATTR7.rgb;} // sRGB vertex color (fast)
 #endif
+MP Vec4 vtx_colorF () {return ATTR7    ;} // linear vertex color
+MP Vec  vtx_colorF3() {return ATTR7.rgb;} // linear vertex color

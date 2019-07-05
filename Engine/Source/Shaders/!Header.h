@@ -1009,6 +1009,8 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    VecH4 colorFast () {return _color                                       ;} // sRGB vertex color (fast)
    VecH  colorFast3() {return _color.rgb                                   ;} // sRGB vertex color (fast)
 #endif
+   VecH4 colorF    () {return _color                                       ;} // linear vertex color
+   VecH  colorF3   () {return _color.rgb                                   ;} // linear vertex color
 
 #if MODEL>=SM_4
    uint _instance:SV_InstanceID;
