@@ -48,8 +48,8 @@ MP Flt LerpRS(MP Flt from, MP Flt to, MP Flt v) {return Sat((v-from)/(to-from));
 #define SRGBToLinearFast Sqr
 #define LinearToSRGBFast Sqrt
 
-MP Flt SRGBToLinear(MP Flt s) {return (s<=0.04045  ) ? s/12.92 : Pow((s+0.055)/1.055, 2.4);} // convert 0..1 srgb   to 0..1 linear
-MP Flt LinearToSRGB(MP Flt l) {return (l<=0.0031308) ? l*12.92 : Pow(l, 1/2.4)*1.055-0.055;} // convert 0..1 linear to 0..1 srgb
+MP Flt SRGBToLinear(MP Flt s) {return (s<=0.04045  ) ? s/12.92 : Pow((s+0.055)/1.055, 2.4)  ;} // convert 0..1 srgb   to 0..1 linear
+MP Flt LinearToSRGB(MP Flt l) {return (l<=0.0031308) ? l*12.92 : Pow(l, 1.0/2.4)*1.055-0.055;} // convert 0..1 linear to 0..1 srgb
 
 MP Vec SRGBToLinear(MP Vec s) {return Vec(SRGBToLinear(s.x), SRGBToLinear(s.y), SRGBToLinear(s.z));}
 MP Vec LinearToSRGB(MP Vec l) {return Vec(LinearToSRGB(l.x), LinearToSRGB(l.y), LinearToSRGB(l.z));}
