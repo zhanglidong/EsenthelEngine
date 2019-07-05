@@ -8,7 +8,7 @@ struct FogClass
    Bool draw      , // if draw the fog       ,    true/false   , default=false
         affect_sky; // if fog affects sky    ,    true/false   , default=false
    Flt  density   ; // fog density           ,       0..1      , default=0.02
-   Vec  color_l   ; // fog color linear gamma, (0,0,0)..(1,1,1), default=(0.5, 0.5, 0.5)
+   Vec  color_l   ; // fog color linear gamma, (0,0,0)..(1,1,1), default=colorS(0.5, 0.5, 0.5)
 
  C Vec& colorL()C {return color_l;}   void colorL(C Vec &color_l) {T.color_l=color_l;} // get/set Linear Gamma color
    Vec  colorS()C;                    void colorS(C Vec &color_s);                     // get/set sRGB   Gamma color
