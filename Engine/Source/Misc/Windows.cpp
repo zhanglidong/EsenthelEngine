@@ -1786,7 +1786,10 @@ void Application::windowCreate()
       GLX_DEPTH_SIZE   , 24,
       GLX_STENCIL_SIZE , 8,
       GLX_DOUBLEBUFFER , true,
-      NULL
+   #if LINEAR_GAMMA
+		GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT, LINEAR_GAMMA,
+   #endif
+      NULL // end of list
    };
    int count=0; if(GLXFBConfig *fbc=glXChooseFBConfig(XDisplay, DefaultScreen(XDisplay), attribs, &count))
    {

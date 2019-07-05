@@ -1010,23 +1010,24 @@ again:
       if(wglChoosePixelFormatARB)
       {
          const int pf_attribs[]=
-	      {
-		      WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
-		      WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
-		      WGL_DOUBLE_BUFFER_ARB , GL_TRUE,
-		      WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, LINEAR_GAMMA,
-		      WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
-		      WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
-		      WGL_COLOR_BITS_ARB  , 32,
-		      WGL_DEPTH_BITS_ARB  , 24,
-		      WGL_STENCIL_BITS_ARB,  8,
-		      NULL // end of list
-	      };
-	      int  pixel_formats[1]; // just need the first one
-	      UINT numFormatsAvailable=0;
-	      if(wglChoosePixelFormatARB(hDC, pf_attribs, null, Elms(pixel_formats), pixel_formats, &numFormatsAvailable))
+         {
+            WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+            WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
+            WGL_DOUBLE_BUFFER_ARB , GL_TRUE,
+            WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, LINEAR_GAMMA,
+            WGL_COLORSPACE_EXT, LINEAR_GAMMA ? WGL_COLORSPACE_SRGB_EXT : WGL_COLORSPACE_LINEAR_EXT,
+            WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
+            WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+            WGL_COLOR_BITS_ARB  , 32,
+            WGL_DEPTH_BITS_ARB  , 24,
+            WGL_STENCIL_BITS_ARB,  8,
+            NULL // end of list
+         };
+         int  pixel_formats[1]; // just need the first one
+         UINT numFormatsAvailable=0;
+         if(wglChoosePixelFormatARB(hDC, pf_attribs, null, Elms(pixel_formats), pixel_formats, &numFormatsAvailable))
          if(numFormatsAvailable)
-	         Bool ok=SetPixelFormat(hDC, pixel_formats[0], &pfd);
+            Bool ok=SetPixelFormat(hDC, pixel_formats[0], &pfd);
       }
    #endif
       if(wglCreateContextAttribsARB)
