@@ -1,13 +1,7 @@
 /******************************************************************************/
 Mesh    box ,
         ball;
-ImageRC rtt ; // Render Target Texture (of IMAGE_RT mode), must be 'ImageRC' and not 'Image'
-/******************************************************************************/
-bool Lost()
-{
-   rtt.del();   // IMAGE_RT Image's must be manually deleted before the D3D Device is reset
-   return true; // return success
-}
+ImageRT rtt ; // Render Target Image (of IMAGE_RT mode), must be 'ImageRT' and not 'Image'
 /******************************************************************************/
 void InitPre()
 {
@@ -15,7 +9,6 @@ void InitPre()
    Ms.hide();
    Ms.clip(null, 1);
 
-   D.lost=Lost; // specify custom function called when D3D Device is lost
    D.ambientPowerL(0);
 }
 /******************************************************************************/
@@ -63,7 +56,7 @@ void RenderToTexture()
    Int tex_size=256;
 
    // create the Render Target Texture if it hasn't been created yet
-   if(!rtt.is())rtt.create(tex_size, tex_size, 1, IMAGE_B8G8R8A8, IMAGE_RT, 1);
+   if(!rtt.is())rtt.create(VecI2(tex_size, tex_size), IMAGE_R8G8B8A8_SRGB);
 
    // render to texture
    Renderer.target=&rtt; // specify custom render target

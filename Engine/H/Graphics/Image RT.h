@@ -52,6 +52,8 @@ struct ImageRTDesc // Render Target Description
 /******************************************************************************/
 STRUCT(ImageRT , Image) // Image Render Target
 //{
+   Bool create   (C VecI2 &size, IMAGE_TYPE type, IMAGE_MODE mode=IMAGE_RT, Byte samples=1); // create, false on fail
+   Bool createTry()=delete;
 #if EE_PRIVATE
    Bool available()C {return _ptr_num==0;} // if this image is not currently used
    Bool depthTexture()C;
@@ -74,8 +76,6 @@ STRUCT(ImageRT , Image) // Image Render Target
    void zero       ();
    void delThis    ();
    void del        ();
-   Bool create     (C VecI2 &size, IMAGE_TYPE type, IMAGE_MODE mode=IMAGE_RT, Byte samples=1);
-   Bool createTry  ()=delete;
    Bool createTryEx()=delete;
    Bool createViews(Bool srv_srgb=true);
    Bool   map      ();
@@ -96,6 +96,7 @@ STRUCT(ImageRT , Image) // Image Render Target
 
    void discard();
 #endif
+
    ImageRT();
   ~ImageRT();
 #if !EE_PRIVATE
