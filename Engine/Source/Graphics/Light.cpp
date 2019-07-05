@@ -66,13 +66,14 @@ static Flt ShadowStep(Int i, Int num) // 0..1
    return Pow(s, D.shadowMapSplit().x + D.shadowMapSplit().y*s); // Pow(s, 2) == s*s produces results nearly identical to "Lerp(1/((1-s)*D.viewRange()), s, s);"
 }
 /******************************************************************************/
-static inline Flt GetBias() {return (D.shadowJitter() ? SQRT2 : SQRT2_2)/D.shadowMapSizeActual();}
+static inline Flt GetBias() {return (D.shadowJitter() ? 4.0f : 2.0f)/D.shadowMapSizeActual();} // #ShadowBias
 /******************************************************************************/
 static void ApplyViewSpaceBias(Flt &mp_z_z)
 {
    if(FovPerspective(D.viewFovMode())) // needed only for perspective because it can produce big errors
    {
       mp_z_z=ProjMatrix.z.z;
+      // #ShadowBias
       ProjMatrix.z.z+=(REVERSE_DEPTH ? -1.0 : 1.0)/(1ull<<ImageTI[Renderer._ds->hwType()].d); // this adjusts the value that is responsible for 'LinearizeDepth' by moving everything back by 1 value (in depth buffer bit precision)
       if(ProjMatrix.z.z==mp_z_z) // if adding hasn't changed anything, then change by 1 bit (this can happen for small values)
          if(REVERSE_DEPTH)DecRealByBit(ProjMatrix.z.z);

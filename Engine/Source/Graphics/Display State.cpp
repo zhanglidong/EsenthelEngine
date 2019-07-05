@@ -9,6 +9,8 @@ namespace EE{
 /******************************************************************************/
 #define DEPTH_VALUE(x) (REVERSE_DEPTH ? -(x) : (x))
 
+// #ShadowBias
+
 #if GL
    #define DEPTH_BIAS_SHADOW  DEPTH_VALUE( 0.0f           )
    #define DEPTH_BIAS_OVERLAY DEPTH_VALUE(-1.0f/(1ull<<24)) // 24-bit depth buffer
@@ -17,7 +19,7 @@ namespace EE{
    #define DEPTH_BIAS_OVERLAY DEPTH_VALUE(-1)
 #endif
 
-#define SLOPE_SCALED_DEPTH_BIAS_SHADOW  DEPTH_VALUE(SQRT2)
+#define SLOPE_SCALED_DEPTH_BIAS_SHADOW  DEPTH_VALUE( 2.0f)
 #define SLOPE_SCALED_DEPTH_BIAS_OVERLAY DEPTH_VALUE(-1.0f)
 /******************************************************************************/
 #if DX11
