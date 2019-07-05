@@ -5,10 +5,13 @@
 /******************************************************************************/
 struct FogClass
 {
-   Bool draw      , // if draw the fog   ,    true/false   , default=false
-        affect_sky; // if fog affects sky,    true/false   , default=false
-   Flt  density   ; // fog density       ,       0..1      , default=0.02
-   Vec  color     ; // fog color         , (0,0,0)..(1,1,1), default=(0.5, 0.5, 0.5)
+   Bool draw      , // if draw the fog       ,    true/false   , default=false
+        affect_sky; // if fog affects sky    ,    true/false   , default=false
+   Flt  density   ; // fog density           ,       0..1      , default=0.02
+   Vec  color_l   ; // fog color linear gamma, (0,0,0)..(1,1,1), default=(0.5, 0.5, 0.5)
+
+ C Vec& colorL()C {return color_l;}   void colorL(C Vec &color_l) {T.color_l=color_l;} // get/set Linear Gamma color
+   Vec  colorS()C;                    void colorS(C Vec &color_s);                     // get/set sRGB   Gamma color
 
 #if EE_PRIVATE
    void Draw(Bool after_sky);
@@ -18,7 +21,7 @@ struct FogClass
 }extern
    Fog; // Global Fog Control
 /******************************************************************************/
-void       FogDraw(C OBox &obox, Flt density, C Vec &color); // draw local 'obox' based        fog, with uniform  'density', this can be called only in RM_CLOUD or RM_BLEND rendering modes
-void       FogDraw(C Ball &ball, Flt density, C Vec &color); // draw local 'ball' based        fog, with uniform  'density', this can be called only in RM_CLOUD or RM_BLEND rendering modes
-void HeightFogDraw(C OBox &obox, Flt density, C Vec &color); // draw local 'obox' based height fog, with variable 'density', this can be called only in RM_CLOUD or RM_BLEND rendering modes
+void       FogDraw(C OBox &obox, Flt density, C Vec &color_l); // draw local 'obox' based        fog, with uniform  'density', this can be called only in RM_CLOUD or RM_BLEND rendering modes
+void       FogDraw(C Ball &ball, Flt density, C Vec &color_l); // draw local 'ball' based        fog, with uniform  'density', this can be called only in RM_CLOUD or RM_BLEND rendering modes
+void HeightFogDraw(C OBox &obox, Flt density, C Vec &color_l); // draw local 'obox' based height fog, with variable 'density', this can be called only in RM_CLOUD or RM_BLEND rendering modes
 /******************************************************************************/

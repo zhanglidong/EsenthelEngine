@@ -149,8 +149,8 @@ Bool Environment::Clouds::load(File &f, CChar *path)
 /******************************************************************************/
 // FOG
 /******************************************************************************/
-void Environment::Fog::set  ()C {::Fog.draw=on; ::Fog.affect_sky=affect_sky; ::Fog.density=density; ::Fog.color=color_s;}
-void Environment::Fog::get  ()  {on=::Fog.draw; affect_sky=::Fog.affect_sky; density=::Fog.density; color_s=::Fog.color;}
+void Environment::Fog::set  ()C {::Fog.draw=on; ::Fog.affect_sky=affect_sky; ::Fog.density=density; ::Fog.colorS(color_s);}
+void Environment::Fog::get  ()  {on=::Fog.draw; affect_sky=::Fog.affect_sky; density=::Fog.density; color_s=::Fog.colorS();}
 void Environment::Fog::reset()  {on=false; affect_sky=false; density=0.02f; color_s=0.5f;}
 
 Bool Environment::Fog::save(File &f, CChar *path)C

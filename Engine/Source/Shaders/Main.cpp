@@ -2810,9 +2810,9 @@ void BloomDS_VS(VtxInput vtx,
             out Vec4 outVtx:POSITION,
         uniform Bool glow           ,
         uniform Bool do_clamp       ,
-        uniform Bool half           )
+        uniform Bool half_res       )
 {
-   outTex=vtx.tex (); if(glow)outTex-=ColSize.xy*Vec2(half ? 0.5f : 1.5f, half ? 0.5f : 1.5f);
+   outTex=vtx.tex (); if(glow)outTex-=ColSize.xy*Vec2(half_res ? 0.5f : 1.5f, half_res ? 0.5f : 1.5f);
    outVtx=vtx.pos4();
 }
 inline VecH BloomColor(VecH color, uniform Bool saturate, uniform Bool gamma)
@@ -2830,13 +2830,13 @@ inline VecH BloomColor(VecH color, uniform Bool saturate, uniform Bool gamma)
 Vec4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
                 uniform Bool glow          ,
                 uniform Bool do_clamp      ,
-                uniform Bool half          ,
+                uniform Bool half_res      ,
                 uniform Bool saturate      ,
                 uniform Bool gamma         ):COLOR // "Max(0, " of the result is not needed because we're rendering to 1 byte per channel RT
 {
    if(glow)
    {
-      const Int  res=(half ? 2 : 4);
+      const Int  res=(half_res ? 2 : 4);
       const Bool gamma_per_pixel=false; // !! must be the same as in 'RendererClass::bloom' !!
 
       VecH  color=0;
@@ -2855,7 +2855,7 @@ Vec4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
       return Vec4(Max(BloomColor(color, saturate, gamma && !gamma_per_pixel), glow.rgb), 0);
    }else
    {
-      if(half)
+      if(half_res)
       {
          return Vec4(BloomColor(TexLod(Col, UVClamp(inTex, do_clamp)).rgb, saturate, gamma), 0);
       }else
