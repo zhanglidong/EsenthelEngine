@@ -1279,7 +1279,11 @@ again:
 
    if(LogInit)LogN("FBO");
 #if LINEAR_GAMMA
-   glEnable(GL_FRAMEBUFFER_SRGB);
+   #ifdef        GL_FRAMEBUFFER_SRGB
+        glEnable(GL_FRAMEBUFFER_SRGB);
+   #elif defined GL_FRAMEBUFFER_SRGB_EXT
+        glEnable(GL_FRAMEBUFFER_SRGB_EXT);
+   #endif
 #endif
    glGenFramebuffers(1, &FBO); if(!FBO)Exit("Couldn't create OpenGL Frame Buffer Object (FBO)");
    glGenVertexArrays(1, &VAO); if(!VAO)Exit("Couldn't create OpenGL Vertex Arrays (VAO)");

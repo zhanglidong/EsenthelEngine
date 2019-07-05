@@ -2119,8 +2119,8 @@ Bool Image::lock(LOCK_MODE lock, Int mip_map, DIR_ENUM cube_face)
                         Alloc(_data, CeilGL(pitch2));
                         if(lock!=LOCK_WRITE) // get from GPU
                         {
-                           Image *rt[Elms(Renderer._cur)], *ds;
-                           Bool   restore_viewport=!D._view_active.full;
+                           ImageRT *rt[Elms(Renderer._cur)], *ds;
+                           Bool     restore_viewport=!D._view_active.full;
                            REPAO(rt)=Renderer._cur[i];
                                  ds =Renderer._cur_ds;
 
@@ -2631,8 +2631,8 @@ void Image::copyHw(ImageRT &dest, Bool restore_rt, C RectI *rect_src, C RectI *r
 
          #if GL_ES
             // remember render target settings
-            Image *rt[Elms(Renderer._cur)], *ds;
-            Bool   restore_viewport;
+            ImageRT *rt[Elms(Renderer._cur)], *ds;
+            Bool     restore_viewport;
             if(restore_rt)
             {
                REPAO(rt)=Renderer._cur[i];

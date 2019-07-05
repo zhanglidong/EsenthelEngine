@@ -398,7 +398,9 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
          D.fbo(0); // set default frame buffer
         _cur_ds_id=0; // main FBO always has 0 depth txtr ID
       #if !MAC
+      #if !GL_ES
          if(glInvalidateFramebuffer) // requires GL 4.3, GL ES 3.0
+      #endif
          {
             // discard, for main FBO we need to setup different values - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glInvalidateFramebuffer.xhtml
             GLenum attachment[3]; GLsizei attachments=0; // RT0+Depth+Stencil
@@ -458,7 +460,9 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
 
          // discard
       #if !MAC
+      #if !GL_ES
          if(glInvalidateFramebuffer) // requires GL 4.3, GL ES 3.0
+      #endif
          {
             GLenum attachment[ELMS(_cur)+1]; GLsizei attachments=0; // RT's+DS
             if(t0     &&     t0->_discard){    t0->_discard=false; attachment[attachments++]=GL_COLOR_ATTACHMENT0;}

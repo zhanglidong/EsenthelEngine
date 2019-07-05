@@ -141,7 +141,9 @@ void ImageRT::discard()
 #if DX11
    if(D3DC1)D3DC1->DiscardView(_rtv ? &SCAST(ID3D11View, *_rtv) : &SCAST(ID3D11View, *_dsv)); // will not crash if parameter is null
 #elif GL && !MAC
+#if !GL_ES
    if(glInvalidateFramebuffer) // requires GL 4.3, GL ES 3.0
+#endif
    {
       // this should be called only if this image is already attached to current FBO - https://community.arm.com/graphics/b/blog/posts/mali-performance-2-how-to-correctly-handle-framebuffers
       // 'glInvalidateFramebuffer' can be called at the start of rendering (right after attaching to   FBO) to specify that we don't need previous     contents of this RT
