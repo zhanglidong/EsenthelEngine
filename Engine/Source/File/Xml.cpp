@@ -268,7 +268,6 @@ static TEXT_TYPE TextType(C Str &t)
    }
    return simple ? TEXT_SIMPLE : TEXT_QUOTE;
 }
-static TEXT_TYPE TextTypeJSON(C Str &t) {return TEXT_QUOTE;}
 /******************************************************************************/
 static void SaveText(FileText &f, C Str &t)
 {
@@ -323,25 +322,17 @@ static void SaveText(FileText &f, C Str &t)
 }
 static void SaveTextJSON(FileText &f, C Str &t)
 {
-   switch(TextTypeJSON(t))
+   f.putChar('"');
+   FREPA(t)switch(Char c=t()[i]) // () avoids range check
    {
-      case TEXT_SIMPLE: f.putText(t); break;
-
-      case TEXT_QUOTE:
-      {
-         f.putChar('"');
-         FREPA(t)switch(Char c=t()[i]) // () avoids range check
-         {
-            case '\0': f.putChar('\\').putChar('0'); break;
-            case '\n': f.putChar('\\').putChar('n'); break;
-          //case '\t': f.putChar('\\').putChar('t'); break; // we can encode tab below normally instead
-            case '"' : f.putChar('\\').putChar('"'); break;
-            case '\\': f.putChar('\\').putChar('\\'); break;
-            default  : if(Unsigned(c)>=32 || c=='\t')f.putChar(c); break;
-         }
-         f.putChar('"');
-      }break;
+      case '\0': f.putChar('\\').putChar('0'); break;
+      case '\n': f.putChar('\\').putChar('n'); break;
+    //case '\t': f.putChar('\\').putChar('t'); break; // we can encode tab below normally instead
+      case '"' : f.putChar('\\').putChar('"'); break;
+      case '\\': f.putChar('\\').putChar('\\'); break;
+      default  : if(Unsigned(c)>=32 || c=='\t')f.putChar(c); break;
    }
+   f.putChar('"');
 }
 /******************************************************************************/
 static Bool DecodeText(Char *src, Int src_elms, UInt &out)
@@ -763,7 +754,8 @@ Bool TextNode::saveJSON(FileText &f, Bool just_values, Bool last)C
             {skip_name=true; goto skip_name;}
       SaveTextJSON(f, name);
    }
-   if(value.is() || nodes.elms())
+   if(value.is() || nodes.elms()
+   || !just_values) // for JSON we always have to write values (must be "name":"value", can't be just "name")
    {
       if(!just_values)f.putChar(':');
       if(!nodes.elms())SaveTextJSON(f, value);else // just 'value' is present (save this only when there are no nodes, because they have the priority)
