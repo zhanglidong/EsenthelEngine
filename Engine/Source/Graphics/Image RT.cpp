@@ -141,7 +141,7 @@ void ImageRT::discard()
 #if DX11
    if(D3DC1)D3DC1->DiscardView(_rtv ? &SCAST(ID3D11View, *_rtv) : &SCAST(ID3D11View, *_dsv)); // will not crash if parameter is null
 #elif GL && !MAC
-#if !GL_ES
+#if WINDOWS
    if(glInvalidateFramebuffer) // requires GL 4.3, GL ES 3.0
 #endif
    {

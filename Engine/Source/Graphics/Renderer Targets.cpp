@@ -398,7 +398,7 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
          D.fbo(0); // set default frame buffer
         _cur_ds_id=0; // main FBO always has 0 depth txtr ID
       #if !MAC
-      #if !GL_ES
+      #if WINDOWS
          if(glInvalidateFramebuffer) // requires GL 4.3, GL ES 3.0
       #endif
          {
@@ -460,7 +460,7 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
 
          // discard
       #if !MAC
-      #if !GL_ES
+      #if WINDOWS
          if(glInvalidateFramebuffer) // requires GL 4.3, GL ES 3.0
       #endif
          {
