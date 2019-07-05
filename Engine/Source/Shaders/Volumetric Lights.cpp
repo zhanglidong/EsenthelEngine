@@ -50,8 +50,8 @@ Vec4 VolPnt_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       obj  *=Viewport.range/length;
       length=Viewport.range;
    }
-   Vec from =ShdMatrix[3],
-       to   =Transform(obj, ShdMatrix);
+   Vec from=ShdMatrix[3],
+       to  =Transform(obj, ShdMatrix);
 
    VecH2 jitter_value=ShadowJitter(pixel.xy);
 

@@ -25,11 +25,11 @@ void ObjLightCone::create(Object &obj)
    range    = obj.scale();
    position = obj.matrixFinal().pos;
    direction=!obj.matrix.z;
-   if(Param *param=obj.findParam("cast shadows"))cast_shadows=    param->asBool();
-   if(Param *param=obj.findParam("volumetric"  ))volumetric  =Max(param->asFlt (), 0.0f);
-   if(Param *param=obj.findParam("angle"       ))angle       =Max(param->asFlt (), 0.0f);
-   if(Param *param=obj.findParam("falloff"     ))falloff     =Sat(param->asFlt ());
-   if(Param *param=obj.findParam("color"       ))color       =    param->asVec ();
+   if(Param *param=obj.findParam("cast shadows"))cast_shadows=             param->asBool();
+   if(Param *param=obj.findParam("volumetric"  ))volumetric  =         Max(param->asFlt (), 0.0f);
+   if(Param *param=obj.findParam("angle"       ))angle       =         Max(param->asFlt (), 0.0f);
+   if(Param *param=obj.findParam("falloff"     ))falloff     =         Sat(param->asFlt ());
+   if(Param *param=obj.findParam("color"       ))color       =SRGBToLinear(param->asVec ());
 }
 /******************************************************************************/
 // GET / SET

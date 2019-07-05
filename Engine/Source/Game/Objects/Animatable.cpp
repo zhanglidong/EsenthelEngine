@@ -62,7 +62,10 @@ void Animatable::memoryAddressChanged()
 /******************************************************************************/
 Bool Animatable::update()
 {
-   skel.clear().animate(skel_anim, Time.time()).updateMatrix(_matrix).updateVelocities();
+   skel.clear()
+       .animate    (skel_anim, Time.time())
+       .animateRoot(skel_anim ? skel_anim->animation() : null, Time.time())
+       .updateMatrix(_matrix).updateVelocities();
    return true;
 }
 /******************************************************************************/
