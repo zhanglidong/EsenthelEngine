@@ -563,7 +563,7 @@ void DisplayState::alphaFactor(C Color &factor)
       D._alpha_factor_v4=SRGBToDisplay(factor);
       BS[D._alpha].set();
    #elif GL
-      glBlendColor(factor.r/255.0f, factor.g/255.0f, factor.b/255.0f, factor.a/255.0f);
+      glBlendColor(ByteSRGBToDisplay(factor.r), ByteSRGBToDisplay(factor.g), ByteSRGBToDisplay(factor.b), ByteToFlt(factor.a));
    #endif
    }
 }

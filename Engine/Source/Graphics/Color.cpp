@@ -486,7 +486,7 @@ static Byte LinearToSRGBApprox(Flt l)
 /******************************************************************************/
 Vec4 SRGBToDisplay(C Color &srgb)
 {
-   return Vec4(SRGBToDisplayArray[srgb.r], SRGBToDisplayArray[srgb.g], SRGBToDisplayArray[srgb.b], ByteToFltArray[srgb.a]);
+   return Vec4(ByteSRGBToDisplay(srgb.r), ByteSRGBToDisplay(srgb.g), ByteSRGBToDisplay(srgb.b), ByteToFlt(srgb.a));
 }
 /******************************************************************************/
 #if WINDOWS_OLD && DX11

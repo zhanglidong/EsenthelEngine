@@ -3249,8 +3249,8 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
       void main()
       {
          MP Vec4 tex=Tex(Col, IO_tex);
-         MP Flt  a  =tex.g,
-                 s  =tex.a*FontShadow,
+         MP Flt  a  =tex.r,            // #FontImageLayout
+                 s  =tex.g*FontShadow, // #FontImageLayout
                  final_alpha=a+s-s*a;
          MP Flt  final_color=Lerp(FontShade, 1.0, Sat(IO_shade))*a/(final_alpha+EPS);
 
