@@ -372,7 +372,7 @@ static void DrawPanelText(C Panel *panel, C Color &panel_color, Flt padding, C T
       Rect_LU r(pos, width, height); r.extend(padding); if(mouse)
       {
          Int height=32; // default mouse cursor height
-         if(Ms._image)height=Ms._image->h()-Ms._hot_spot.y;
+         if(Ms._cursor && Ms._cursor->_image)height=Ms._cursor->_image->h()-Ms._cursor->_hot_spot.y;
          Flt y=D.pixelToScreenSize().y*height;
          r.min.y-=y;
          r.max.y-=y;

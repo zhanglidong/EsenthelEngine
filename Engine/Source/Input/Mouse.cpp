@@ -40,42 +40,7 @@ static void SetHook() {if(!MsHook)MsHook=SetWindowsHookEx(WH_MOUSE_LL, MsLLProc,
 static void  UnHook() {if( MsHook){UnhookWindowsHookEx(MsHook); MsHook=null;}}
 #endif
 /******************************************************************************/
-struct MouseCursor
-{
-   void del   (); // delete manually
-   Bool create(C Image &image, C VecI2 &hot_spot=VecI2(0, 0)); // create from image, false on fail
-
-  ~MouseCursor()  {del();}
-#if LINUX
-   MouseCursor()  {       _cursor =NULL;}
-   Bool     is()C {return _cursor!=NULL;}
-#else
-   MouseCursor()  {       _cursor =null;}
-   Bool     is()C {return _cursor!=null;}
-#endif
-
-#if EE_PRIVATE
-   #if WINDOWS_OLD
-      HCURSOR _cursor;
-   #elif WINDOWS_NEW
-      CoreCursor ^_cursor;
-   #elif MAC
-      NSCursor *_cursor;
-   #elif LINUX
-      XCursor _cursor;
-   #else
-      Ptr _cursor;
-   #endif
-#else
-private:
-   Ptr   _cursor;
-#endif
-   Image _image;
-
-   NO_COPY_CONSTRUCTOR(MouseCursor);
-};
-/******************************************************************************/
-void MouseCursor::del()
+void MouseCursorHW::del()
 {
 #if WINDOWS_OLD
    if(_cursor){DestroyIcon(_cursor); _cursor=null;}
@@ -84,11 +49,11 @@ void MouseCursor::del()
 #elif MAC
    [_cursor release]; _cursor=null;
 #elif LINUX
-   if(_cursor){if(XDisplay)XFreeCursor(XDisplay, _cursor); _cursor=NULL;}
+   if(_cursor){if(XDisplay)XFreeCursor(XDisplay, (XCursor)_cursor); _cursor=null;}
 #endif
   _image.del();
 }
-Bool MouseCursor::create(C Image &image, C VecI2 &hot_spot)
+Bool MouseCursorHW::create(C Image &image, C VecI2 &hot_spot)
 {
    del();
 #if WINDOWS_OLD
@@ -133,7 +98,7 @@ Bool MouseCursor::create(C Image &image, C VecI2 &hot_spot)
    if(XDisplay)
    {
       Image temp; C Image *src=&image;
-      if(src->compressed())if(src->copyTry(temp, -1, -1, 1, IMAGE_B8G8R8A8_SRGB, IMAGE_SOFT, 1))src=&temp;else src=null;
+      if(src->compressed())if(src->copyTry(temp, -1, -1, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))src=&temp;else src=null;
       if(src && src->lockRead())
       {
          if(XcursorImage *image=XcursorImageCreate(src->w(), src->h()))
@@ -158,11 +123,16 @@ Bool MouseCursor::create(C Image &image, C VecI2 &hot_spot)
    // TODO: Web mouse cursor
 #endif
 
-#if LINUX
-   return _cursor!=NULL;
-#else
    return _cursor!=null;
-#endif
+}
+/******************************************************************************/
+void MouseCursor::del() {_hw.del(); _image.clear(); _hot_spot.zero(); if(this==Ms._cursor)Ms.resetCursor();}
+void MouseCursor::create(C ImagePtr &image, C VecI2 &hot_spot, Bool hardware)
+{
+   if(hardware && image)_hw.create(*image, hot_spot);else _hw.del();
+  _image   =image; // always remember, even if hardware succeeded, because if VR gets active, then we can't use hardware
+  _hot_spot=hot_spot;
+   if(this==Ms._cursor)Ms.resetCursor();
 }
 /******************************************************************************/
 #if WINDOWS_OLD
@@ -188,13 +158,13 @@ Bool MouseCursor::create(C Image &image, C VecI2 &hot_spot)
    static Bool  MouseClipOn;
    static RectI MouseClipRect;
 #elif LINUX
-   static MouseCursor MsCurEmpty;
-   static XWindow     Grab;
+   static MouseCursorHW MsCurEmpty;
+   static XWindow       Grab;
 #endif
 
 static Bool DelayPush;
-Mouse       Ms;
-MouseCursor MsCur;
+
+Mouse Ms;
 /******************************************************************************/
 Mouse::Mouse()
 {
@@ -204,8 +174,9 @@ Mouse::Mouse()
   _cur=-1;
   _speed=SPEED; _wheel_time=_start_time=0;
   _pos=_delta=_delta_clp=_delta_relative=_start_pos=_wheel=_wheel_f=0;
-  _window_posi=_desktop_posi=_deltai=_hot_spot=_wheel_i=0;
+  _window_posi=_desktop_posi=_deltai=_wheel_i=0;
   _clip_rect.zero();
+  _cursor=null;
   _did=null;
   _button_name[0]="Mouse1";
   _button_name[1]="Mouse2";
@@ -218,7 +189,7 @@ Mouse::Mouse()
 }
 void Mouse::del()
 {
-  _image=null; // clear the pointer because display and images are already deleted, and attempting to use it afterwards will result in a crash
+  _cursor=null; _cursor_temp.del(); // clear the pointer and images because display and images are already deleted, and attempting to use it afterwards will result in a crash
 #if WINDOWS_OLD
 #if MS_RAW_INPUT
    RAWINPUTDEVICE rid[1];
@@ -481,12 +452,13 @@ Mouse& Mouse::clip(C Rect *rect, Int window)
 Mouse& Mouse::freeze() {_freeze=true; return T;}
 /******************************************************************************/
 #if WINDOWS_NEW
-static void MouseResetVisibility() {Ms.resetVisibility();}
+static void MouseResetCursor() {Ms.resetCursor();}
 #endif
-void Mouse::resetVisibility()
+static Bool CanUseHWCursor() {return Ms._cursor && Ms._cursor->_hw.is() && !VR.active();} // can't use hardware cursor in VR mode (it can be enabled there, however that would also require drawing it manually on the gui surface, and that would result in cursor being drawn twice on the window - 1-on gui surface 2-using hardware cursor)
+void Mouse::resetCursor()
 {
 #if WINDOWS_NEW
-   if(!App.mainThread()){App._callbacks.include(MouseResetVisibility); return;} // for Windows New this can be called only on the main thread
+   if(!App.mainThread()){App._callbacks.include(MouseResetCursor); return;} // for Windows New this can be called only on the main thread
 #endif
 
    Int cur; // -1=system default, 0=hidden, 1=custom hardware
@@ -496,42 +468,40 @@ void Mouse::resetVisibility()
 #endif
    )cur=-1;else // for example: not on the window
    if(hidden())cur=0;else // for example: want to be hidden
-   if(MsCur.is())cur=1;else // for example: our own custom hardware cursor
-   if(_image)cur=0;else // for example: our own custom non-hardware cursor
+   if(CanUseHWCursor())cur=1;else // for example: our own custom hardware cursor
+   if(_cursor && _cursor->_image)cur=0;else // for example: our own custom non-hardware cursor
       cur=-1; // use default
 
 #if WINDOWS_OLD
-   SetCursor((cur<0) ? LoadCursor(null, IDC_ARROW) : (cur==0) ? null : MsCur._cursor);
+   SetCursor((cur<0) ? LoadCursor(null, IDC_ARROW) : (cur==0) ? null : _cursor->_hw._cursor);
 #elif WINDOWS_NEW
    if(App.hwnd())
    {
-      App.Hwnd()->PointerCursor=((cur<0) ? ref new CoreCursor(CoreCursorType::Arrow, 0) : (cur==0) ? null : MsCur._cursor);
+      App.Hwnd()->PointerCursor=((cur<0) ? ref new CoreCursor(CoreCursorType::Arrow, 0) : (cur==0) ? null : _cursor->_hw._cursor);
      _locked=(App.Hwnd()->PointerCursor==null);
    }
 #elif MAC
-   if(cur)[((cur>0) ? MsCur._cursor : [NSCursor arrowCursor]) set];
+   if(cur)[((cur>0) ? _cursor->_hw._cursor : [NSCursor arrowCursor]) set];
    Bool visible=(cur!=0); if(visible!=CGCursorIsVisible())if(visible)[NSCursor unhide];else [NSCursor hide];
 #elif LINUX
-   if(XDisplay && App.hwnd())XDefineCursor(XDisplay, App.Hwnd(), (cur<0) ? NULL : (cur==0) ? MsCurEmpty._cursor : MsCur._cursor);
+   if(XDisplay && App.hwnd())XDefineCursor(XDisplay, App.Hwnd(), XCursor((cur<0) ? null : (cur==0) ? MsCurEmpty._cursor : _cursor->_hw._cursor));
 #endif
 }
-void Mouse::resetCursor()
+Mouse& Mouse::cursor(C MouseCursor *cursor)
 {
-   Bool hardware=(_want_cur_hw && !VR.active()); // can't use hardware cursor in VR mode (it can be enabled there, however that would also require drawing it manually on the gui surface, and that would result in cursor being drawn twice on the window - 1-on gui surface 2-using hardware cursor)
-
-   if(hardware && _image)MsCur.create(*_image, _hot_spot);
-   else                  MsCur.del();
-
-   resetVisibility();
+   if(T._cursor!=cursor)
+   {
+      T._cursor=cursor;
+      resetCursor();
+   }
+   return T;
 }
 Mouse& Mouse::cursor(C ImagePtr &image, C VecI2 &hot_spot, Bool hardware, Bool reset)
 {
-   if(T._image!=image || _want_cur_hw!=hardware || T._hot_spot!=hot_spot || reset)
+   if(_cursor_temp._image!=image || _cursor_temp._hot_spot!=hot_spot || _want_cur_hw!=hardware || reset)
    {
-      T._image      =image;
-      T._hot_spot   =hot_spot;
-      T._want_cur_hw=hardware;
-      resetCursor();
+     _cursor_temp.create(image, hot_spot, _want_cur_hw=hardware);
+      cursor(&_cursor_temp);
    }
    return T;
 }
@@ -541,7 +511,7 @@ Mouse& Mouse::visible(Bool show)
    if(_visible!=show)
    {
      _visible=show;
-      resetVisibility();
+      resetCursor();
    }
    return T;
 }
@@ -564,7 +534,7 @@ void Mouse::acquire(Bool on)
 #endif
 #endif
    clipUpdate();
-   resetVisibility();
+   resetCursor();
 }
 /******************************************************************************/
 void Mouse::clear()
@@ -672,7 +642,7 @@ void Mouse::update()
         _window_posi.y=p.y;
       }
      _on_client=(InRange(_window_posi.x, D.resW()) && InRange(_window_posi.y, D.resH()) && WindowMouse()==App.hwnd());
-      // 'resetVisibility' is always called in 'WM_SETCURSOR'
+      // 'resetCursor' is always called in 'WM_SETCURSOR'
    #elif WINDOWS_NEW
       if(App.hwnd())
       {
@@ -802,20 +772,20 @@ void Mouse::update()
 /******************************************************************************/
 void Mouse::draw()
 {
-   if(_image && _detected && visible() && !MsCur.is() && _on_client
+   if(_cursor && _cursor->_image && _detected && visible() && !CanUseHWCursor() && _on_client
 #if !WINDOWS_OLD
    && App.active()
 #endif
    )
    {
       Vec2 pos=D.screenAlignedToPixel(T.pos());
-      if(_hot_spot.any())
+      if(_cursor->_hot_spot.any())
       {
-         Vec2 size=D.pixelToScreenSize(_hot_spot);
+         Vec2 size=D.pixelToScreenSize(_cursor->_hot_spot);
          pos.x-=size.x;
          pos.y+=size.y;
       }
-     _image->draw(Rect_LU(pos, D.pixelToScreenSize(_image->size())));
+     _cursor->_image->draw(Rect_LU(pos, D.pixelToScreenSize(_cursor->_image->size())));
    }
 }
 /******************************************************************************/

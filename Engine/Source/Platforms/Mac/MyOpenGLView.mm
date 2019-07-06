@@ -46,8 +46,8 @@ static ImageRTPtr    LiveResize;
 -(void) otherMouseDown:(NSEvent*)theEvent {[self mouseDown:theEvent];}
 -(void) rightMouseUp  :(NSEvent*)theEvent {[self mouseUp  :theEvent];}
 -(void) otherMouseUp  :(NSEvent*)theEvent {[self mouseUp  :theEvent];}
--(void) mouseEntered  :(NSEvent*)theEvent {Ms._on_client=true ; Ms.resetVisibility();}
--(void) mouseExited   :(NSEvent*)theEvent {Ms._on_client=false; Ms.resetVisibility();}
+-(void) mouseEntered  :(NSEvent*)theEvent {Ms._on_client=true ; Ms.resetCursor();}
+-(void) mouseExited   :(NSEvent*)theEvent {Ms._on_client=false; Ms.resetCursor();}
 /******************************************************************************/
 // DRAW
 /******************************************************************************/

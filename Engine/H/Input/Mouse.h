@@ -3,6 +3,49 @@
    Use 'Ms' to access Mouse input.
 
 /******************************************************************************/
+struct MouseCursorHW // Hardware Mouse Cursor
+{
+   void del   (); // delete manually
+   Bool create(C Image &image, C VecI2 &hot_spot=VecI2(0, 0)); // create from image, 'hot_spot'=focus position in image coordinates, 'hardware'=if use hardware cursor (this allows to draw the mouse cursor with full display speed, regardless of the game speed), false on fail
+
+  ~MouseCursorHW()  {del();}
+   MouseCursorHW()  {       _cursor =null;}
+   Bool       is()C {return _cursor!=null;}
+
+#if EE_PRIVATE
+   #if WINDOWS_OLD
+      HCURSOR _cursor;
+   #elif WINDOWS_NEW
+      CoreCursor ^_cursor;
+   #elif MAC
+      NSCursor *_cursor;
+   #elif LINUX
+      Ptr _cursor; // cast to XCursor which is unsigned long
+   #else
+      Ptr _cursor;
+   #endif
+#else
+private:
+   Ptr   _cursor;
+#endif
+   Image _image;
+
+   NO_COPY_CONSTRUCTOR(MouseCursorHW);
+};
+/******************************************************************************/
+struct MouseCursor // Mouse Cursor
+{
+   void del   (); // delete manually
+   void create(C ImagePtr &image, C VecI2 &hot_spot=VecI2(0, 0), Bool hardware=true); // create from image, 'hot_spot'=focus position in image coordinates, 'hardware'=if use hardware cursor (this allows to draw the mouse cursor with full display speed, regardless of the game speed)
+
+#if !EE_PRIVATE
+private:
+#endif
+   MouseCursorHW _hw;
+   ImagePtr      _image;
+   VecI2         _hot_spot;
+};
+/******************************************************************************/
 struct Mouse // Mouse Input
 {
  C Vec2&      pos()C {return _pos      ;}   void pos(C Vec2 &pos); // get/set cursor position                      (in Screen Coordinates)
@@ -54,7 +97,7 @@ struct Mouse // Mouse Input
 
    // cursor visuals
 #if EE_PRIVATE
-   void resetVisibility();
+   void resetCursor();
 #endif
    Bool   visible(            )C {return  _visible          ;} // if     cursor is visible
    Bool   hidden (            )C {return !_visible          ;} // if     cursor is hidden
@@ -62,7 +105,9 @@ struct Mouse // Mouse Input
    Mouse& toggle (            )  {return visible(!visible());} // toggle cursor visibility
    Mouse& show   (            )  {return visible(true      );} // show   cursor
    Mouse& hide   (            )  {return visible(false     );} // hide   cursor
-   Mouse& cursor (C ImagePtr &image, C VecI2 &hot_spot=VecI2(0, 0), Bool hardware=true, Bool reset=false); // set cursor image, 'hot_spot'=point in image coordinates, 'hardware'=if use hardware cursor (this allows to draw the mouse cursor with full display speed, regardless of the game speed), 'reset'=if reset cursor even if the parameters are same as before
+   
+   Mouse& cursor(C ImagePtr &image, C VecI2 &hot_spot=VecI2(0, 0), Bool hardware=true, Bool reset=false); // set cursor image, 'hot_spot'=focus position in image coordinates, 'hardware'=if use hardware cursor (this allows to draw the mouse cursor with full display speed, regardless of the game speed), 'reset'=if reset cursor even if the parameters are same as before (for example if image data has changed). If you change cursors frequently, it's recommended to instead use 'MouseCursor' to avoid overhead. This method has extra overhead however doesn't require to manually create 'MouseCursor' objects.
+   Mouse& cursor(const_mem_addr C MouseCursor *cursor                                                  ); // set cursor from an already created cursor, which will avoid some overhead each time a cursor is changed, 'cursor' must point to object in constant memory address (only pointer is stored through which the object can be later accessed)
 
    // operations
    void eat     (          ); // eat any button  input from this frame so it will not be processed by the remaining codes in frame
@@ -76,13 +121,12 @@ struct Mouse // Mouse Input
    void acquire(Bool on);
 
    // operations
-   void resetCursor();
-   void clear      ();
-   void push       (Byte b, Flt double_click_time=DoubleClickTime);
-   void release    (Byte b);
-   void update     ();
-   void clipUpdate ();
-   void draw       ();
+   void clear     ();
+   void push      (Byte b, Flt double_click_time=DoubleClickTime);
+   void release   (Byte b);
+   void update    ();
+   void clipUpdate();
+   void draw      ();
 #endif
 
 #if !EE_PRIVATE
@@ -94,12 +138,13 @@ private:
    Flt              _speed;
    Dbl              _start_time, _wheel_time;
    Vec2             _pos, _delta, _delta_clp, _delta_relative, _vel, _start_pos, _wheel, _wheel_f;
-   VecI2            _window_posi, _desktop_posi, _deltai, _hot_spot, _wheel_i;
+   VecI2            _window_posi, _desktop_posi, _deltai, _wheel_i;
    Rect             _clip_rect;
    SmoothValue2     _sv_delta;
    SmoothValueTime2 _sv_vel;
-   ImagePtr         _image;
    CChar8          *_button_name[8];
+   MouseCursor      _cursor_temp;
+ C MouseCursor     *_cursor;
 #if EE_PRIVATE
    #if WINDOWS_OLD
       IDirectInputDevice8 *_did;

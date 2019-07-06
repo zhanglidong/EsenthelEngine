@@ -3182,8 +3182,8 @@ HICON CreateIcon(C Image &image, C VecI2 *cursor_hot_spot)
 {
    HICON icon=null;
    Image temp; C Image *src=&image;
-   if(src->compressed())if(src->copyTry(temp, -1, -1, 1, IMAGE_B8G8R8A8_SRGB, IMAGE_SOFT, 1))src=&temp;else src=null;
-   if(src && src->is() && src->lockRead())
+   if(src->compressed())if(src->copyTry(temp, -1, -1, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))src=&temp;else src=null;
+   if(src && src->lockRead())
    {
       BITMAPV5HEADER bi; Zero(bi);
       bi.bV5Size       =SIZE(bi);
@@ -3192,6 +3192,7 @@ HICON CreateIcon(C Image &image, C VecI2 *cursor_hot_spot)
       bi.bV5Planes     =1;
       bi.bV5BitCount   =32;
       bi.bV5Compression=BI_BITFIELDS;
+      // must be BGRA, trying to use RGBA results in no transparency
       bi.bV5RedMask    =0x00FF0000;
       bi.bV5GreenMask  =0x0000FF00;
       bi.bV5BlueMask   =0x000000FF;
