@@ -214,7 +214,7 @@ class Upload
    }
    void createText(C Str &text, C Str &path, C Str &display)
    {
-      FileText f; f.writeMem(HasUnicode(text) ? UTF_8 : ANSI).fix_new_line=true; f.putText(text); // it's important to use ANSI when there's no Unicode, because HTAccess will not work if there's a BOM
+      FileText f; f.writeMem(HasUnicode(text) ? UTF_8 : ANSI); f.putText(text); // it's important to use ANSI when there's no Unicode, because HTAccess will not work if there's a BOM
       createText(f, path, display);
    }
 
@@ -714,7 +714,7 @@ REPAO(installer).disabled( disabled);
                Str file_ftp_path;
 
                // installer info
-               TextData data; installer_local.save(data); FileText f; f.writeMem(installer_local.hasUnicode() ? UTF_8 : ANSI).fix_new_line=true; data.save(f);
+               TextData data; installer_local.save(data); FileText f; f.writeMem(installer_local.hasUnicode() ? UTF_8 : ANSI); data.save(f);
                file_ftp_path=installer_info_path[i]+new_suffix;
                ftp_upload_files.New().createText(f, file_ftp_path, "Installer Info"); rename_files.add(file_ftp_path);
 
