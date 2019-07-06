@@ -666,7 +666,7 @@ Display::Display() : _monitors(Compare, Create, null, 4)
   _amb_bias    =0.3f;
   _amb_color_l =SRGBToLinear(0.4f);
 
-  _ns_color_s.zero();
+  _ns_color_l.zero();
 
   _vol_light=false;
   _vol_add  =false;
@@ -2796,8 +2796,9 @@ Display& Display::ambientRange   (C Vec2        &range     ) {Vec2 r(Max(range.x
 Display& Display::ambientScale   (  Flt          scale     ) {MAX(scale, 0.05f);                                                     if(_amb_scale   !=scale    ){_amb_scale   =scale    ; if(Sh.h_AmbientScale   )Sh.h_AmbientScale   ->set(ambientScale   ());} return T;}
 Display& Display::ambientBias    (  Flt          bias      ) {SAT(bias);                                                             if(_amb_bias    !=bias     ){_amb_bias    =bias     ; if(Sh.h_AmbientBias    )Sh.h_AmbientBias    ->set(ambientBias    ());} return T;}
 /******************************************************************************/
-Vec      Display::nightShadeColorL()C {return SRGBToLinear(nightShadeColorS());}
-Display& Display::nightShadeColorS(C Vec &srgb_color) {Vec c(Max(srgb_color.x, 0), Max(srgb_color.y, 0), Max(srgb_color.z, 0)); if(_ns_color_s!=c){_ns_color_s=c; ambientSet();} return T;}
+Vec      Display::nightShadeColorS(                 )C {return LinearToSRGB(nightShadeColorL());}
+Display& Display::nightShadeColorS(C Vec &srgb_color)  {return nightShadeColorL(SRGBToLinear(srgb_color));}
+Display& Display::nightShadeColorL(C Vec & lin_color)  {Vec c(Max(lin_color.x, 0), Max(lin_color.y, 0), Max(lin_color.z, 0)); if(_ns_color_l!=c){_ns_color_l=c; ambientSet();} return T;}
 /******************************************************************************/
 Flt      Display::motionRes   (                  )C {return   ByteScaleToFlt(_mtn_res);}
 Display& Display::motionRes   (Flt         scale )  {Byte res=FltToByteScale(scale); if(res!=_mtn_res){_mtn_res=res; Renderer.rtClean();}                                     return T;}

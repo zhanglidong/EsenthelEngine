@@ -262,10 +262,10 @@ struct Display : DisplayState, DisplayDraw // Display Control
    void ambientSet()C;
 #if LINEAR_GAMMA
    INLINE C Vec&    ambientColorD()C {return    ambientColorL();}
-   INLINE   Vec  nightShadeColorD()C {return nightShadeColorL();}
+   INLINE C Vec& nightShadeColorD()C {return nightShadeColorL();}
 #else
    INLINE   Vec     ambientColorD()C {return    ambientColorS();}
-   INLINE C Vec& nightShadeColorD()C {return nightShadeColorS();}
+   INLINE   Vec  nightShadeColorD()C {return nightShadeColorS();}
 #endif
 #endif
    Display& ambientMode    (AMBIENT_MODE mode      );   AMBIENT_MODE ambientMode    ()C {return _amb_mode         ;} // set/get Ambient Mode               (AMBIENT_MODE         , default=AMBIENT_FLAT), the change is instant, you can call it real-time
@@ -283,8 +283,8 @@ struct Display : DisplayState, DisplayDraw // Display Control
    Display& ambientBias    (  Flt        bias      );   Flt          ambientBias    ()C {return _amb_bias         ;} // set/get Ambient Bias               (0..1                 , default=         0.3), the change is instant, you can call it real-time
 
    // Night Shade
-                                                     Vec  nightShadeColorL()C;                      //     get Night Shade color Linear Gamma (0..1, default=0)
-   Display& nightShadeColorS(C Vec &srgb_color);   C Vec& nightShadeColorS()C {return _ns_color_s;} // set/get Night Shade color sRGB   Gamma (0..1, default=0), the change is instant, you can call it real-time, setting color to 0 disables Night Shade effect
+   Display& nightShadeColorL(C Vec & lin_color);   C Vec& nightShadeColorL()C {return _ns_color_l;} // set/get Night Shade color Linear Gamma (0..1, default=0), the change is instant, you can call it real-time, setting color to 0 disables Night Shade effect
+   Display& nightShadeColorS(C Vec &srgb_color);     Vec  nightShadeColorS()C;                      // set/get Night Shade color sRGB   Gamma (0..1, default=0), the change is instant, you can call it real-time, setting color to 0 disables Night Shade effect
 
    // Shadowing
    Display& shadowMode         (SHADOW_MODE mode    );   SHADOW_MODE shadowMode         ()C {return _shd_mode      ;} // set/get Shadow Mode                                  (SHADOW_MODE         , default=SHADOW_MAP (SHADOW_NONE for Mobile)), the change is instant, you can call it real-time
@@ -522,7 +522,7 @@ private:
    Vec2              _unscaled_size, _size, _size2, _pixel_size, _pixel_size_2, _pixel_size_inv,
                      _window_pixel_to_screen_mul, _window_pixel_to_screen_add, _window_pixel_to_screen_scale,
                      _amb_range, _shd_map_split;
-   Vec               _amb_color_l, _ns_color_s, _eye_adapt_weight;
+   Vec               _amb_color_l, _ns_color_l, _eye_adapt_weight;
    Vec2              _view_center, _view_fov_tan_gui, _view_fov_tan_full;
    Rect              _view_rect, _view_eye_rect[2];
    Viewport          _view_main, _view_active;
