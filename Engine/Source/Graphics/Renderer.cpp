@@ -724,7 +724,7 @@ RendererClass& RendererClass::operator()(void (&render)())
             {
                set(_lum_1s(), null, true);
                D.alpha(ALPHA_ADD);
-               Sh.clear(Vec4(D.ambientColorL(), 0));
+               Sh.clear(Vec4(D.ambientColorD(), 0));
             }
             if(set(_lum_1s))goto finished;
          }break;
@@ -747,7 +747,7 @@ RendererClass& RendererClass::operator()(void (&render)())
                }else
                {
                   D.alpha(ALPHA_ADD);
-                  Sh.h_Color[0]->set(Vec4(D.ambientColorL(), 0));
+                  Sh.h_Color[0]->set(Vec4(D.ambientColorD(), 0));
                   Sh.h_Color[1]->set(Vec4Zero                  );
                   Sh.h_DrawXC->draw(_ao);
                }
@@ -1196,7 +1196,7 @@ void RendererClass::solid()
            _first_pass=true;
 
             // restore settings
-            Sh.h_AmbientColorNS_l->set(D.ambientColorL()+D.nightShadeColorL()); Sh.h_AmbientMaterial->set(1); // restore ambient lighting
+            Sh.h_AmbientColorNS_l->set(D.ambientColorD()+D.nightShadeColorD()); Sh.h_AmbientMaterial->set(1); // restore ambient lighting
             Frustum.set(); // restore frustum after it being potentially changed when drawing shadow maps or setting frustum for visible objects for lights
          }
 
@@ -1551,7 +1551,7 @@ void RendererClass::blend()
          }else
          {
             D.alpha(ALPHA_ADD);
-            Sh.h_Color[0]->set(Vec4(D.ambientColorL(), 0));
+            Sh.h_Color[0]->set(Vec4(D.ambientColorD(), 0));
             Sh.h_Color[1]->set(Vec4Zero                  );
             Sh.h_DrawXC->draw(_ao);
          }

@@ -122,23 +122,30 @@ Flt   SRGBLumOfSRGBColor  (C Vec &s); // get srgb   photometric luminance (as pe
 #if EE_PRIVATE
 extern Flt ByteToFltArray[256], ByteSRGBToLinearArray[256], LinearByteToSRGBArray[256], *SRGBToDisplayArray;
 
-INLINE Flt   ByteSRGBToLinear (  Byte  s) {return ByteSRGBToLinearArray[s];}
-INLINE Flt   LinearByteToSRGB (  Byte  l) {return LinearByteToSRGBArray[l];}
-INLINE Flt   ByteSRGBToDisplay(  Byte  s) {return    SRGBToDisplayArray[s];}
-       Byte  LinearToByteSRGB (  Flt   l);
-       Byte  SRGBToLinearByte (  Flt   s);
-       VecB  LinearToSVecB    (C Vec  &l);
-       Color LinearToSColor   (C Vec  &l);
-       Color LinearToSColor   (C Vec4 &l);
+INLINE Flt   ByteSRGBToLinear (  Byte   s) {return ByteSRGBToLinearArray[s];}
+INLINE Flt   LinearByteToSRGB (  Byte   l) {return LinearByteToSRGBArray[l];}
+INLINE Flt   ByteSRGBToDisplay(  Byte   s) {return    SRGBToDisplayArray[s];}
+       Byte  LinearToByteSRGB (  Flt    l);
+       Byte  SRGBToLinearByte (  Flt    s);
+       VecB  LinearToSVecB    (C Vec   &l);
+       Color LinearToSColor   (C Vec   &l);
+       Color LinearToSColor   (C Vec4  &l);
+       Vec4  SRGBToDisplay    (C Color &s);
 
-INLINE Flt  LinearToDisplay(  Flt   l) {return LINEAR_GAMMA ? l : LinearToSRGB(l);}
-INLINE Vec  LinearToDisplay(C Vec  &l) {return LINEAR_GAMMA ? l : LinearToSRGB(l);}
-INLINE Vec4 LinearToDisplay(C Vec4 &l) {return LINEAR_GAMMA ? l : LinearToSRGB(l);}
+INLINE Flt LinearToDisplay(Flt l) {return LINEAR_GAMMA ? l : LinearToSRGB(l);}
+INLINE Flt   SRGBToDisplay(Flt s) {return LINEAR_GAMMA ? SRGBToLinear(s) : s;}
 
-INLINE Flt  SRGBToDisplay(  Flt    s) {return LINEAR_GAMMA ? SRGBToLinear(s) : s;}
-INLINE Vec  SRGBToDisplay(C Vec   &s) {return LINEAR_GAMMA ? SRGBToLinear(s) : s;}
-INLINE Vec4 SRGBToDisplay(C Vec4  &s) {return LINEAR_GAMMA ? SRGBToLinear(s) : s;}
-       Vec4 SRGBToDisplay(C Color &s);
+#if LINEAR_GAMMA
+INLINE C Vec & LinearToDisplay(C Vec  &l) {return l;}
+INLINE C Vec4& LinearToDisplay(C Vec4 &l) {return l;}
+INLINE   Vec     SRGBToDisplay(C Vec  &s) {return SRGBToLinear(s);}
+INLINE   Vec4    SRGBToDisplay(C Vec4 &s) {return SRGBToLinear(s);}
+#else
+INLINE   Vec   LinearToDisplay(C Vec  &l) {return LinearToSRGB(l);}
+INLINE   Vec4  LinearToDisplay(C Vec4 &l) {return LinearToSRGB(l);}
+INLINE C Vec &   SRGBToDisplay(C Vec  &s) {return s;}
+INLINE C Vec4&   SRGBToDisplay(C Vec4 &s) {return s;}
+#endif
 
 void InitSRGB();
 Str GetColorProfilePath();

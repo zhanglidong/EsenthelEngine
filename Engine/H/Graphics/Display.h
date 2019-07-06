@@ -260,6 +260,13 @@ struct Display : DisplayState, DisplayDraw // Display Control
 #if EE_PRIVATE
    Bool aoWant()C;
    void ambientSet()C;
+#if LINEAR_GAMMA
+   INLINE C Vec&    ambientColorD()C {return    ambientColorL();}
+   INLINE   Vec  nightShadeColorD()C {return nightShadeColorL();}
+#else
+   INLINE   Vec     ambientColorD()C {return    ambientColorS();}
+   INLINE C Vec& nightShadeColorD()C {return nightShadeColorS();}
+#endif
 #endif
    Display& ambientMode    (AMBIENT_MODE mode      );   AMBIENT_MODE ambientMode    ()C {return _amb_mode         ;} // set/get Ambient Mode               (AMBIENT_MODE         , default=AMBIENT_FLAT), the change is instant, you can call it real-time
    Display& ambientSoft    (  Byte       soft      );   Byte         ambientSoft    ()C {return _amb_soft         ;} // set/get Ambient Softing            (0..AMBIENT_SOFT_NUM-1, default=           1), if soften the AO result, the change is instant, you can call it real-time
