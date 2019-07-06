@@ -121,7 +121,7 @@ Material& Material::validate()
 
    // set multi
    {
-     _multi.color    =color_l  ;
+     _multi.color    =(LINEAR_GAMMA ? colorL() : colorS());
      _multi.tex_scale=tex_scale;
      _multi.det_scale=det_scale;
 
@@ -198,6 +198,9 @@ void Material::setSolid()C
       Sh.h_ImageRfl[0]->set(reflection_map());
       Sh.h_ImageLum   ->set(     light_map());
       Sh.h_Material   ->set<MaterialParams>(T);
+   #if !LINEAR_GAMMA
+      Renderer.material_color_l->set(colorS());
+   #endif
    }
 }
 void Material::setAmbient()C
@@ -210,6 +213,9 @@ void Material::setAmbient()C
       Sh.h_ImageCol[0]->set(base_0());
       Sh.h_ImageNrm[0]->set(base_1());
       Sh.h_Material   ->set<MaterialParams>(T); // params needed for alpha-test and ambient
+   #if !LINEAR_GAMMA
+      Renderer.material_color_l->set(colorS());
+   #endif
    }
 }
 void Material::setBlend()C
@@ -227,6 +233,9 @@ void Material::setBlend()C
       Sh.h_ImageRfl[0]->set(reflection_map());
       Sh.h_ImageLum   ->set(     light_map());
       Sh.h_Material   ->set<MaterialParams>(T);
+   #if !LINEAR_GAMMA
+      Renderer.material_color_l->set(colorS());
+   #endif
    }
 }
 void Material::setBlendForce()C
@@ -250,6 +259,9 @@ void Material::setBlendForce()C
    Sh.h_ImageRfl[0]->set(reflection_map());
    Sh.h_ImageLum   ->set(     light_map());
    Sh.h_Material   ->set<MaterialParams>(T);
+#if !LINEAR_GAMMA
+   Renderer.material_color_l->set(colorS());
+#endif
 }
 void Material::setOutline()C
 {
@@ -258,7 +270,7 @@ void Material::setOutline()C
       MaterialLast=this;
       Sh.h_ImageCol[0]->set(base_0());
       Sh.h_ImageNrm[0]->set(base_1());
-      Renderer.material_color_l->set(color_l); // only Material Color is used for potential alpha-testing
+      Renderer.material_color_l->set(LINEAR_GAMMA ? colorL() : colorS()); // only Material Color is used for potential alpha-testing
    }
 }
 void Material::setBehind()C
@@ -268,7 +280,7 @@ void Material::setBehind()C
       MaterialLast=this;
       Sh.h_ImageCol[0]->set(base_0());
       Sh.h_ImageNrm[0]->set(base_1());
-      Renderer.material_color_l->set(color_l); // only Material Color is used
+      Renderer.material_color_l->set(LINEAR_GAMMA ? colorL() : colorS()); // only Material Color is used
    }
 }
 void Material::setShadow()C
@@ -278,7 +290,7 @@ void Material::setShadow()C
       MaterialLast=this;
       Sh.h_ImageCol[0]->set(base_0());
       Sh.h_ImageNrm[0]->set(base_1());
-      Renderer.material_color_l->set(color_l); // only Material Color is used
+      Renderer.material_color_l->set(LINEAR_GAMMA ? colorL() : colorS()); // only Material Color is used
    }
 }
 void Material::setMulti(Int i)C

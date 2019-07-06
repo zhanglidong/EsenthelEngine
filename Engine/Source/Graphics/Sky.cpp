@@ -27,8 +27,8 @@ SkyClass& SkyClass::del()
 }
 SkyClass& SkyClass::create()
 {
-   Sh.h_SkyHorCol  ->set(atmosphericHorizonColorL());
-   Sh.h_SkySkyCol  ->set(atmosphericSkyColorL    ());
+   Sh.h_SkyHorCol  ->set(LINEAR_GAMMA ? atmosphericHorizonColorL() : atmosphericHorizonColor());
+   Sh.h_SkySkyCol  ->set(LINEAR_GAMMA ? atmosphericSkyColorL    () : atmosphericSkyColor    ());
    Sh.h_SkyBoxBlend->set(_box_blend);
    Sh.h_SkyStarOrn ->set(_stars_m  );
    Flt temp=_hor_exp; _hor_exp=-1; atmosphericHorizonExponent(temp); // set -1 to force reset
@@ -78,12 +78,12 @@ SkyClass& SkyClass::skybox(C ImagePtr &a, C ImagePtr &b)
 }
 /******************************************************************************/
 SkyClass& SkyClass::frac                       (  Flt       frac     ) {SAT(frac  );                                                                         T._frac         =frac               ; return T;}
-SkyClass& SkyClass::atmosphericHorizonExponent (  Flt       exp      ) {MAX(exp, 0);              if(exp        !=T._hor_exp                               ){T._hor_exp      =exp                ; if(Sh.h_SkyHorExp  )Sh.h_SkyHorExp  ->set(Max  (T._hor_exp, EPS_GPU));} return T;} // avoid zero in case "Pow(1-Sat(inTex.y), SkyHorExp)" in shader would cause NaN or slow-downs
-SkyClass& SkyClass::atmosphericHorizonColor    (C Vec4     &color_s  ) {Flt alpha=Sat(color_s.w); if(color_s.xyz!=T._hor_col_s.xyz || alpha!=T._hor_col_s.w){T._hor_col_s.set(color_s.xyz, alpha); if(Sh.h_SkyHorCol  )Sh.h_SkyHorCol  ->set(atmosphericHorizonColorL());} return T;} // alpha must be saturated
-SkyClass& SkyClass::atmosphericSkyColor        (C Vec4     &color_s  ) {Flt alpha=Sat(color_s.w); if(color_s.xyz!=T._sky_col_s.xyz || alpha!=T._sky_col_s.w){T._sky_col_s.set(color_s.xyz, alpha); if(Sh.h_SkySkyCol  )Sh.h_SkySkyCol  ->set(atmosphericSkyColorL    ());} return T;} // alpha must be saturated
-SkyClass& SkyClass::skyboxBlend                (  Flt       blend    ) {SAT(blend );              if(blend      !=T._box_blend                             ){T._box_blend    =blend              ; if(Sh.h_SkyBoxBlend)Sh.h_SkyBoxBlend->set(      T._box_blend        );} return T;}
+SkyClass& SkyClass::atmosphericHorizonExponent (  Flt       exp      ) {MAX(exp, 0);              if(exp        !=T._hor_exp                               ){T._hor_exp      =exp                ; if(Sh.h_SkyHorExp  )Sh.h_SkyHorExp  ->set(Max(T._hor_exp, EPS_GPU)                                             );} return T;} // avoid zero in case "Pow(1-Sat(inTex.y), SkyHorExp)" in shader would cause NaN or slow-downs
+SkyClass& SkyClass::atmosphericHorizonColor    (C Vec4     &color_s  ) {Flt alpha=Sat(color_s.w); if(color_s.xyz!=T._hor_col_s.xyz || alpha!=T._hor_col_s.w){T._hor_col_s.set(color_s.xyz, alpha); if(Sh.h_SkyHorCol  )Sh.h_SkyHorCol  ->set(LINEAR_GAMMA ? atmosphericHorizonColorL() : atmosphericHorizonColor());} return T;} // alpha must be saturated
+SkyClass& SkyClass::atmosphericSkyColor        (C Vec4     &color_s  ) {Flt alpha=Sat(color_s.w); if(color_s.xyz!=T._sky_col_s.xyz || alpha!=T._sky_col_s.w){T._sky_col_s.set(color_s.xyz, alpha); if(Sh.h_SkySkyCol  )Sh.h_SkySkyCol  ->set(LINEAR_GAMMA ? atmosphericSkyColorL    () : atmosphericSkyColor    ());} return T;} // alpha must be saturated
+SkyClass& SkyClass::skyboxBlend                (  Flt       blend    ) {SAT(blend );              if(blend      !=T._box_blend                             ){T._box_blend    =blend              ; if(Sh.h_SkyBoxBlend)Sh.h_SkyBoxBlend->set(T._box_blend                                                         );} return T;}
 SkyClass& SkyClass::atmosphericStars           (C ImagePtr &cube     ) {                                                                                     T._stars        =cube               ; return T;}
-SkyClass& SkyClass::atmosphericStarsOrientation(C Matrix3  &orn      ) {                                                                                    {T._stars_m      =orn                ; if(Sh.h_SkyStarOrn )Sh.h_SkyStarOrn ->set(      T._stars_m          );} return T;}
+SkyClass& SkyClass::atmosphericStarsOrientation(C Matrix3  &orn      ) {                                                                                    {T._stars_m      =orn                ; if(Sh.h_SkyStarOrn )Sh.h_SkyStarOrn ->set(T._stars_m                                                           );} return T;}
 SkyClass& SkyClass::atmosphericPrecision       (  Bool      per_pixel) {                                                                                     T._precision    =per_pixel          ; return T;}
 SkyClass& SkyClass::atmosphericDensityExponent (  Flt       exp      )
 {

@@ -68,8 +68,8 @@ void WaterMtrl::set()
       SPSet("WaterWave"        , wave_scale   );
       SPSet("WaterFresnelPow"  , fresnel_pow  );
       SPSet("WaterFresnelRough", fresnel_rough);
-      SPSet("WaterFresnelColor", SRGBToLinear(fresnel_color));
-      SPSet("WaterCol"         , SRGBToLinear(color        ));
+      SPSet("WaterFresnelColor", SRGBToDisplay(fresnel_color));
+      SPSet("WaterCol"         , SRGBToDisplay(color        ));
       SPSet("WaterDns"         , Vec2(Mid(density, 0.0f, 1-EPS_GPU), density_add)); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
       if(Renderer._mirror_rt)
       {

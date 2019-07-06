@@ -107,13 +107,14 @@ void LayeredClouds::commit()
 
    REP(_layers)
    {
+      Layer &l=layer[i];
       GpuCloudLayer cl;
-      cl.color   =layer[i].color_l;
-      cl.scale   =layer[i].scale/LCScale;
+      cl.color   =(LINEAR_GAMMA ? l.colorL() : l.colorS());
+      cl.scale   =l.scale/LCScale;
    #if MOBILE
-      cl.position=Frac(layer[i].position); // mobile devices can have low precision for tex coords, so use fraction to always keep in 0..1 range
+      cl.position=Frac(l.position); // mobile devices can have low precision for tex coords, so use fraction to always keep in 0..1 range
    #else
-      cl.position=layer[i].position;
+      cl.position=l.position;
    #endif
       LC.h_CL[i]->set(cl);
    }

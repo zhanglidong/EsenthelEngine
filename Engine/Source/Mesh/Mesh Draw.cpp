@@ -1550,7 +1550,7 @@ void MeshPart::drawBlend(C Vec4 *color)C
             Vec4 col=material.color_l;
             if(no_blend)col.w=1; // force full alpha for non-blending techniques
             if(color   )col *=*color;
-            Renderer.material_color_l->set(col);
+            Renderer.material_color_l->set(LinearToDisplay(col));
             MaterialClear();
          }
          s->begin(); render.set().draw();

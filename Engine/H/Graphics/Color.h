@@ -120,8 +120,6 @@ Flt LinearLumOfSRGBColor  (C Vec &s); // get linear photometric luminance (as pe
 Flt   SRGBLumOfLinearColor(C Vec &l); // get srgb   photometric luminance (as perceived by human eye) of linear color
 Flt   SRGBLumOfSRGBColor  (C Vec &s); // get srgb   photometric luminance (as perceived by human eye) of srgb   color
 #if EE_PRIVATE
-Vec4 SRGBToDisplay(C Color &srgb);
-
 extern Flt ByteToFltArray[256], ByteSRGBToLinearArray[256], LinearByteToSRGBArray[256], *SRGBToDisplayArray;
 
 INLINE Flt   ByteSRGBToLinear (  Byte  s) {return ByteSRGBToLinearArray[s];}
@@ -132,6 +130,15 @@ INLINE Flt   ByteSRGBToDisplay(  Byte  s) {return    SRGBToDisplayArray[s];}
        VecB  LinearToSVecB    (C Vec  &l);
        Color LinearToSColor   (C Vec  &l);
        Color LinearToSColor   (C Vec4 &l);
+
+INLINE Flt  LinearToDisplay(  Flt   l) {return LINEAR_GAMMA ? l : LinearToSRGB(l);}
+INLINE Vec  LinearToDisplay(C Vec  &l) {return LINEAR_GAMMA ? l : LinearToSRGB(l);}
+INLINE Vec4 LinearToDisplay(C Vec4 &l) {return LINEAR_GAMMA ? l : LinearToSRGB(l);}
+
+INLINE Flt  SRGBToDisplay(  Flt    s) {return LINEAR_GAMMA ? SRGBToLinear(s) : s;}
+INLINE Vec  SRGBToDisplay(C Vec   &s) {return LINEAR_GAMMA ? SRGBToLinear(s) : s;}
+INLINE Vec4 SRGBToDisplay(C Vec4  &s) {return LINEAR_GAMMA ? SRGBToLinear(s) : s;}
+       Vec4 SRGBToDisplay(C Color &s);
 
 void InitSRGB();
 Str GetColorProfilePath();

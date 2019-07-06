@@ -220,7 +220,7 @@ void LightDir::set()
 {
    GpuLightDir l;
    l.dir         .fromDivNormalized(dir, CamMatrix.orn()).chs();
-   l.color       =color_l;
+   l.color       =LinearToDisplay(color_l);
    l.spec        =color_l.max();
    l.vol         =vol;
    l.vol_exponent=vol_exponent;
@@ -234,7 +234,7 @@ void LightPoint::set(Flt shadow_opacity)
    l.vol    =vol*shadow_opacity;
    l.vol_max=vol_max;
    l.pos    .fromDivNormalized(pos, CamMatrix);
-   l.color  =color_l;
+   l.color  =LinearToDisplay(color_l);
    l.spec   =color_l.max();
    Sh.h_Light_pnt->set(l);
 }
@@ -245,7 +245,7 @@ void LightSqr::set(Flt shadow_opacity)
    l.vol    =vol*shadow_opacity;
    l.vol_max=vol_max;
    l.pos    .fromDivNormalized(pos, CamMatrix);
-   l.color  =color_l;
+   l.color  =LinearToDisplay(color_l);
    l.spec   =color_l.max();
    Sh.h_Light_sqr->set(l);
 }
@@ -259,7 +259,7 @@ void LightCone::set(Flt shadow_opacity)
    l.falloff.y   =-l.falloff.x;
    l.vol         = vol*shadow_opacity;
    l.vol_max     = vol_max;
-   l.color       = color_l;
+   l.color       = LinearToDisplay(color_l);
    l.spec        = color_l.max();
    l.length      = pyramid.h;
    l.scale       = pyramid.scale;
