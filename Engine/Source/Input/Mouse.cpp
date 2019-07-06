@@ -473,6 +473,7 @@ void Mouse::resetCursor()
       cur=-1; // use default
 
 #if WINDOWS_OLD
+   if(!_on_client)return; // don't set cursor if not on client, to let OS decide which cursor to use (sometimes it can be resizing window cursor)
    SetCursor((cur<0) ? LoadCursor(null, IDC_ARROW) : (cur==0) ? null : _cursor->_hw._cursor);
 #elif WINDOWS_NEW
    if(App.hwnd())
