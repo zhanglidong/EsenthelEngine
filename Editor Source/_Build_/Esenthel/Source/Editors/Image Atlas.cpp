@@ -32,8 +32,10 @@ ImageAtlasEditor ImageAtlasEdit;
    Str ImageAtlasEditor::ElmFullName(C ListElm &le) {return      Proj.elmFullName(le.img_id);}
    Str ImageAtlasEditor::ElmName(C ListElm &le) {if(Elm *elm=Proj.findElm    (le.img_id))return elm->name; return UnknownName;}
    int ImageAtlasEditor::CompareSource(C ImageAtlas::Source &a, C ImageAtlas::Source &b) {return ComparePathNumber(a.name, b.name);}
-   void ImageAtlasEditor::MipMaps(  ImageAtlasEditor &iae, C Str &t) {if(ElmImageAtlas *d=iae.data()){iae.undos.set("mms"); d->mip_maps=TextBool(t); d->mip_maps_time.getUTC(); iae.setChanged();}}
-   Str  ImageAtlasEditor::MipMaps(C ImageAtlasEditor &iae          ) {if(ElmImageAtlas *d=iae.data())return d->mip_maps; return S;}
+   void ImageAtlasEditor::MipMaps(  ImageAtlasEditor &iae, C Str &t) {if(ElmImageAtlas *d=iae.data()){iae.undos.set("mms"); d->mipMaps(TextBool(t)); d->mip_maps_time.getUTC(); iae.setChanged();}}
+   Str  ImageAtlasEditor::MipMaps(C ImageAtlasEditor &iae          ) {if(ElmImageAtlas *d=iae.data())return d->mipMaps(); return S;}
+   void ImageAtlasEditor::Compress(  ImageAtlasEditor &iae, C Str &t) {if(ElmImageAtlas *d=iae.data()){iae.undos.set("cmp"); d->compress(TextBool(t)); d->compress_time.getUTC(); iae.setChanged();}}
+   Str  ImageAtlasEditor::Compress(C ImageAtlasEditor &iae          ) {if(ElmImageAtlas *d=iae.data())return d->compress(); return S;}
    void ImageAtlasEditor::Undo(ImageAtlasEditor &editor) {editor.undos.undo();}
    void ImageAtlasEditor::Redo(ImageAtlasEditor &editor) {editor.undos.redo();}
    void ImageAtlasEditor::Locate(ImageAtlasEditor &editor) {Proj.elmLocate(editor.elm_id);}
@@ -60,7 +62,7 @@ ImageAtlasEditor ImageAtlasEdit;
             }
          }
          source.sort(CompareSource);
-         if(!atlas.create(source, SupportBC7 ? IMAGE_BC7_SRGB : IMAGE_BC3_SRGB, data->mip_maps ? 0 : 1))Gui.msgBox(S, "Error creating Image Atlas");else
+         if(!atlas.create(source, data->compress() ? (SupportBC7 ? IMAGE_BC7_SRGB : IMAGE_BC3_SRGB) : IMAGE_R8G8B8A8_SRGB, data->mipMaps() ? 0 : 1))Gui.msgBox(S, "Error creating Image Atlas");else
          {
             Save(atlas, Proj.gamePath(*elm)); Proj.savedGame(*elm);
             setChanged(true);
@@ -69,7 +71,8 @@ ImageAtlasEditor ImageAtlasEdit;
    }
    void ImageAtlasEditor::create()
    {
-      Property &mip_maps=add("Mip Maps", MemberDesc(DATA_BOOL).setFunc(MipMaps, MipMaps));
+      Property &mip_maps=add("Mip Maps", MemberDesc(DATA_BOOL).setFunc(MipMaps , MipMaps ));
+      Property &compress=add("Compress", MemberDesc(DATA_BOOL).setFunc(Compress, Compress));
       autoData(this);
 
       ListColumn lc[]=
@@ -81,6 +84,7 @@ ImageAtlasEditor ImageAtlasEdit;
       ::PropWin::create("Image Atlas Editor"); button[1].show(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
       T+=make.create(Rect_LU(0.01f, -0.01f, 0.25f, 0.055f), "Create").func(Make, T).focusable(false).desc("Create and save image atlas from currently listed images");
       mip_maps.pos(make.rect().right()+Vec2(make.size().y, 0));
+      compress.pos(Vec2(mip_maps.checkbox.rect().max.x+make.size().y, make.rect().centerY()));
       T+=undo  .create().func(Undo, T).focusable(false).desc("Undo"); undo.image="Gui/Misc/undo.img";
       T+=redo  .create().func(Redo, T).focusable(false).desc("Redo"); redo.image="Gui/Misc/redo.img";
       T+=locate.create("Locate").func(Locate, T).focusable(false).desc("Locate this element in the Project");

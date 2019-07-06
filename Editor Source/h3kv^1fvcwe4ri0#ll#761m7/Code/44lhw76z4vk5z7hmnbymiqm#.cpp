@@ -54,8 +54,11 @@ class ImageAtlasEditor : PropWin
 
    static int CompareSource(C ImageAtlas.Source &a, C ImageAtlas.Source &b) {return ComparePathNumber(a.name, b.name);}
 
-   static void MipMaps(  ImageAtlasEditor &iae, C Str &t) {if(ElmImageAtlas *d=iae.data()){iae.undos.set("mms"); d.mip_maps=TextBool(t); d.mip_maps_time.getUTC(); iae.setChanged();}}
-   static Str  MipMaps(C ImageAtlasEditor &iae          ) {if(ElmImageAtlas *d=iae.data())return d.mip_maps; return S;}
+   static void MipMaps(  ImageAtlasEditor &iae, C Str &t) {if(ElmImageAtlas *d=iae.data()){iae.undos.set("mms"); d.mipMaps(TextBool(t)); d.mip_maps_time.getUTC(); iae.setChanged();}}
+   static Str  MipMaps(C ImageAtlasEditor &iae          ) {if(ElmImageAtlas *d=iae.data())return d.mipMaps(); return S;}
+
+   static void Compress(  ImageAtlasEditor &iae, C Str &t) {if(ElmImageAtlas *d=iae.data()){iae.undos.set("cmp"); d.compress(TextBool(t)); d.compress_time.getUTC(); iae.setChanged();}}
+   static Str  Compress(C ImageAtlasEditor &iae          ) {if(ElmImageAtlas *d=iae.data())return d.compress(); return S;}
 
    static void Undo  (ImageAtlasEditor &editor) {editor.undos.undo();}
    static void Redo  (ImageAtlasEditor &editor) {editor.undos.redo();}
@@ -85,7 +88,7 @@ class ImageAtlasEditor : PropWin
             }
          }
          source.sort(CompareSource);
-         if(!atlas.create(source, SupportBC7 ? IMAGE_BC7_SRGB : IMAGE_BC3_SRGB, data.mip_maps ? 0 : 1))Gui.msgBox(S, "Error creating Image Atlas");else
+         if(!atlas.create(source, data.compress() ? (SupportBC7 ? IMAGE_BC7_SRGB : IMAGE_BC3_SRGB) : IMAGE_R8G8B8A8_SRGB, data.mipMaps() ? 0 : 1))Gui.msgBox(S, "Error creating Image Atlas");else
          {
             Save(atlas, Proj.gamePath(*elm)); Proj.savedGame(*elm);
             setChanged(true);
@@ -95,7 +98,8 @@ class ImageAtlasEditor : PropWin
 
    void create()
    {
-      Property &mip_maps=add("Mip Maps", MemberDesc(DATA_BOOL).setFunc(MipMaps, MipMaps));
+      Property &mip_maps=add("Mip Maps", MemberDesc(DATA_BOOL).setFunc(MipMaps , MipMaps ));
+      Property &compress=add("Compress", MemberDesc(DATA_BOOL).setFunc(Compress, Compress));
       autoData(this);
 
       ListColumn lc[]=
@@ -107,6 +111,7 @@ class ImageAtlasEditor : PropWin
       super.create("Image Atlas Editor"); button[1].show(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
       T+=make.create(Rect_LU(0.01, -0.01, 0.25, 0.055), "Create").func(Make, T).focusable(false).desc("Create and save image atlas from currently listed images");
       mip_maps.pos(make.rect().right()+Vec2(make.size().y, 0));
+      compress.pos(Vec2(mip_maps.checkbox.rect().max.x+make.size().y, make.rect().centerY()));
       T+=undo  .create().func(Undo, T).focusable(false).desc("Undo"); undo.image="Gui/Misc/undo.img";
       T+=redo  .create().func(Redo, T).focusable(false).desc("Redo"); redo.image="Gui/Misc/redo.img";
       T+=locate.create("Locate").func(Locate, T).focusable(false).desc("Locate this element in the Project");

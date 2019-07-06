@@ -14,15 +14,15 @@ class TextStyleEditor : PropWin
       virtual void draw(C GuiPC &gpc)override;
    };
 
-   UID              elm_id;
-   Elm             *elm;
-   bool             changed;
-   EditTextStyle    edit;
-       TextStylePtr game;
-       TextClip     text;
-   Panel            panel;
-   Button           undo, redo, locate;
-   Property        *font_prop;
+   UID               elm_id;
+   Elm              *elm;
+   bool              changed;
+   EditTextStyle     edit;
+       TextStylePtr  game;
+       TextClip      text;
+   Panel             panel;
+   Button            undo, redo, locate;
+   Property         *font_prop;
    Edit::Undo<Change> undos;   void undoVis();
 
    static void PreChanged(C Property &prop);

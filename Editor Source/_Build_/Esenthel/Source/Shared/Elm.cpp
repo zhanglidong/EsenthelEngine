@@ -1517,20 +1517,24 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       bool ElmImageAtlas::Img::equal(C Img &src)C {return removed_time==src.removed_time;}
       bool ElmImageAtlas::Img::newer(C Img &src)C {return removed_time> src.removed_time;}
       bool ElmImageAtlas::Img::undo(C Img &src) {return Undo(removed_time, src.removed_time, removed, src.removed);}
+   bool ElmImageAtlas::mipMaps()C {return FlagTest(flag, MIP_MAPS);}
+   void ElmImageAtlas::mipMaps(bool on) {FlagSet(flag, MIP_MAPS, on);}
+   bool ElmImageAtlas::compress()C {return FlagTest(flag, COMPRESS);}
+   void ElmImageAtlas::compress(bool on) {FlagSet(flag, COMPRESS, on);}
  C ::ElmImageAtlas::Img* ElmImageAtlas::find(C UID &id)C {return ConstCast(T).find(id);}
    ::ElmImageAtlas::Img* ElmImageAtlas::find(C UID &id)  {       return images.binaryFind  (id,    Img::Compare);}
    ::ElmImageAtlas::Img&  ElmImageAtlas::get(C UID &id)  {int i; return images.binarySearch(id, i, Img::Compare) ? images[i] : images.NewAt(i);}
-   void ElmImageAtlas::newData(){::ElmData::newData(); file_time++; mip_maps_time++;}
+   void ElmImageAtlas::newData(){::ElmData::newData(); file_time++; mip_maps_time++; compress_time++;}
    bool ElmImageAtlas::equal(C ElmImageAtlas &src)C
    {
-      if(file_time!=src.file_time || mip_maps_time!=src.mip_maps_time)return false;
+      if(file_time!=src.file_time || mip_maps_time!=src.mip_maps_time || compress_time!=src.compress_time)return false;
       if(images.elms()!=src.images.elms())return false;
       REPA(images){C Img &img=images[i]; C Img *s=src.find(img.id); if(!s || !img.equal(*s))return false;}
       return ::ElmData::equal(src);
    }
    bool ElmImageAtlas::newer(C ElmImageAtlas &src)C
    {
-      if(file_time>src.file_time || mip_maps_time>src.mip_maps_time)return true;
+      if(file_time>src.file_time || mip_maps_time>src.mip_maps_time || compress_time>src.compress_time)return true;
       REPA(images){C Img &img=images[i]; C Img *s=src.find(img.id); if(!s || img.newer(*s))return true;}
       return ::ElmData::newer(src);
    }
@@ -1539,7 +1543,8 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    {
       uint changed=::ElmData::undo(src);
 
-      changed|=Undo(mip_maps_time, src.mip_maps_time, mip_maps, src.mip_maps)*CHANGE_AFFECT_FILE;
+      if(Undo(mip_maps_time, src.mip_maps_time)){changed|=CHANGE_AFFECT_FILE; mipMaps (src.mipMaps ());}
+      if(Undo(compress_time, src.compress_time)){changed|=CHANGE_AFFECT_FILE; compress(src.compress());}
       // mark as removed those that aren't present in 'src'
       REPA(images)
       {
@@ -1561,7 +1566,8 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    {
       uint changed=::ElmData::sync(src);
 
-      changed|=Sync(mip_maps_time, src.mip_maps_time, mip_maps, src.mip_maps)*CHANGE_AFFECT_FILE;
+      if(Sync(mip_maps_time, src.mip_maps_time)){changed|=CHANGE_AFFECT_FILE; mipMaps (src.mipMaps ());}
+      if(Sync(compress_time, src.compress_time)){changed|=CHANGE_AFFECT_FILE; compress(src.compress());}
       REPA(src.images)
       {
        C Img &s=src.images[i];
@@ -1584,8 +1590,8 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    bool ElmImageAtlas::save(File &f)C 
 {
       ::ElmData::save(f);
-      f.cmpUIntV(1);
-      f<<mip_maps<<file_time<<mip_maps_time;
+      f.cmpUIntV(2);
+      f<<flag<<file_time<<mip_maps_time<<compress_time;
       f.cmpUIntV(images.elms());
       FREPA(images)f<<images[i].removed<<images[i].id<<images[i].removed_time;
       return f.ok();
@@ -1594,9 +1600,17 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
 {
       if(::ElmData::load(f))switch(f.decUIntV())
       {
+         case 2:
+         {
+            f>>flag>>file_time>>mip_maps_time>>compress_time;
+            images.setNum(f.decUIntV());
+            FREPA(images)f>>images[i].removed>>images[i].id>>images[i].removed_time;
+            if(f.ok())return true;
+         }break;
+
          case 1:
          {
-            f>>mip_maps>>file_time>>mip_maps_time;
+            bool mip_maps; f>>mip_maps>>file_time>>mip_maps_time; mipMaps(mip_maps); compress(true); compress_time=1;
             images.setNum(f.decUIntV());
             FREPA(images)f>>images[i].removed>>images[i].id>>images[i].removed_time;
             if(f.ok())return true;
@@ -1604,7 +1618,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
 
          case 0:
          {
-            mip_maps=true; mip_maps_time=1;
+            flag=MIP_MAPS|COMPRESS; mip_maps_time=1; compress_time=1;
             f>>file_time;
             images.setNum(f.decUIntV());
             FREPA(images)f>>images[i].removed>>images[i].id>>images[i].removed_time;
@@ -1616,9 +1630,11 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    void ElmImageAtlas::save(MemPtr<TextNode> nodes)C 
 {
       ::ElmData::save(nodes);
-      nodes.New().set("MipMaps"    , mip_maps);
-      nodes.New().set("MipMapsTime", mip_maps_time.text());
-      nodes.New().set("FileTime"   ,     file_time.text());
+      nodes.New().set("MipMaps"     , mipMaps ());
+      nodes.New().set("Compress"    , compress());
+      nodes.New().set("MipMapsTime" , mip_maps_time.text());
+      nodes.New().set("CompressTime", compress_time.text());
+      nodes.New().set("FileTime"    ,     file_time.text());
       TextNode &images=nodes.New().setName("Images"); FREPA(T.images) // list in order
       {
        C Img      &src =T.images[i];
@@ -1633,10 +1649,12 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
-         if(n.name=="MipMaps"    )mip_maps     =n.asBool1();else
-         if(n.name=="MipMapsTime")mip_maps_time=n.value    ;else
-         if(n.name=="FileTime"   )    file_time=n.value    ;else
-         if(n.name=="Images"     )FREPA(n.nodes) // get in order
+         if(n.name=="MipMaps"     )mipMaps (n.asBool1());else
+         if(n.name=="Compress"    )compress(n.asBool1());else
+         if(n.name=="MipMapsTime" )mip_maps_time=n.value;else
+         if(n.name=="CompressTime")compress_time=n.value;else
+         if(n.name=="FileTime"    )    file_time=n.value;else
+         if(n.name=="Images"      )FREPA(n.nodes) // get in order
          {
           C TextNode &src=n.nodes[i]; UID id; if(id.fromText(src.name) && id.valid())
             {
@@ -3496,7 +3514,7 @@ ElmEnum::ElmEnum() : type(EditEnums::DEFAULT) {}
 
 ElmImage::ElmImage() : flag(MIP_MAPS|SRGB), type(COMPRESSED), mode(IMAGE_2D), size(0) {}
 
-ElmImageAtlas::ElmImageAtlas() : mip_maps(true) {}
+ElmImageAtlas::ElmImageAtlas() : flag(MIP_MAPS|COMPRESS) {}
 
 ElmImageAtlas::Img::Img() : removed(false), id(UIDZero) {}
 

@@ -33,15 +33,15 @@ class TextStyleEditor : PropWin
       }
    }
 
-   UID              elm_id=UIDZero;
-   Elm             *elm=null;
-   bool             changed=false;
-   EditTextStyle    edit;
-       TextStylePtr game;
-       TextClip     text;
-   Panel            panel;
-   Button           undo, redo, locate;
-   Property        *font_prop=null;
+   UID               elm_id=UIDZero;
+   Elm              *elm=null;
+   bool              changed=false;
+   EditTextStyle     edit;
+       TextStylePtr  game;
+       TextClip      text;
+   Panel             panel;
+   Button            undo, redo, locate;
+   Property         *font_prop=null;
    Edit.Undo<Change> undos(true);   void undoVis() {SetUndo(undos, undo, redo);}
 
    static void PreChanged(C Property &prop) {TextStyleEdit.undos.set(&prop);}

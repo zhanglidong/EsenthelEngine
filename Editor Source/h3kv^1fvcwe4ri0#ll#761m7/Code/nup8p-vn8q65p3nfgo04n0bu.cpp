@@ -1809,6 +1809,11 @@ class ElmImage : ElmData
 /******************************************************************************/
 class ElmImageAtlas : ElmData
 {
+   enum FLAG
+   {
+      MIP_MAPS=1<<0,
+      COMPRESS=1<<1,
+   }
    class Img
    {
       bool      removed=false;
@@ -1822,27 +1827,30 @@ class ElmImageAtlas : ElmData
 
       bool undo(C Img &src) {return Undo(removed_time, src.removed_time, removed, src.removed);}
    }
-   bool      mip_maps=true;
+   byte      flag=MIP_MAPS|COMPRESS;
    Memc<Img> images;
-   TimeStamp file_time, mip_maps_time;
+   TimeStamp file_time, mip_maps_time, compress_time;
+
+   bool mipMaps ()C {return FlagTest(flag, MIP_MAPS);}   void mipMaps (bool on) {FlagSet(flag, MIP_MAPS, on);}
+   bool compress()C {return FlagTest(flag, COMPRESS);}   void compress(bool on) {FlagSet(flag, COMPRESS, on);}
 
  C Img* find(C UID &id)C {return ConstCast(T).find(id);}
    Img* find(C UID &id)  {       return images.binaryFind  (id,    Img.Compare);}
    Img&  get(C UID &id)  {int i; return images.binarySearch(id, i, Img.Compare) ? images[i] : images.NewAt(i);}
 
    // operations
-   virtual void newData()override {super.newData(); file_time++; mip_maps_time++;}
+   virtual void newData()override {super.newData(); file_time++; mip_maps_time++; compress_time++;}
 
    bool equal(C ElmImageAtlas &src)C
    {
-      if(file_time!=src.file_time || mip_maps_time!=src.mip_maps_time)return false;
+      if(file_time!=src.file_time || mip_maps_time!=src.mip_maps_time || compress_time!=src.compress_time)return false;
       if(images.elms()!=src.images.elms())return false;
       REPA(images){C Img &img=images[i]; C Img *s=src.find(img.id); if(!s || !img.equal(*s))return false;}
       return super.equal(src);
    }
    bool newer(C ElmImageAtlas &src)C
    {
-      if(file_time>src.file_time || mip_maps_time>src.mip_maps_time)return true;
+      if(file_time>src.file_time || mip_maps_time>src.mip_maps_time || compress_time>src.compress_time)return true;
       REPA(images){C Img &img=images[i]; C Img *s=src.find(img.id); if(!s || img.newer(*s))return true;}
       return super.newer(src);
    }
@@ -1853,7 +1861,8 @@ class ElmImageAtlas : ElmData
    {
       uint changed=super.undo(src);
 
-      changed|=Undo(mip_maps_time, src.mip_maps_time, mip_maps, src.mip_maps)*CHANGE_AFFECT_FILE;
+      if(Undo(mip_maps_time, src.mip_maps_time)){changed|=CHANGE_AFFECT_FILE; mipMaps (src.mipMaps ());}
+      if(Undo(compress_time, src.compress_time)){changed|=CHANGE_AFFECT_FILE; compress(src.compress());}
       // mark as removed those that aren't present in 'src'
       REPA(images)
       {
@@ -1875,7 +1884,8 @@ class ElmImageAtlas : ElmData
    {
       uint changed=super.sync(src);
 
-      changed|=Sync(mip_maps_time, src.mip_maps_time, mip_maps, src.mip_maps)*CHANGE_AFFECT_FILE;
+      if(Sync(mip_maps_time, src.mip_maps_time)){changed|=CHANGE_AFFECT_FILE; mipMaps (src.mipMaps ());}
+      if(Sync(compress_time, src.compress_time)){changed|=CHANGE_AFFECT_FILE; compress(src.compress());}
       REPA(src.images)
       {
        C Img &s=src.images[i];
@@ -1900,8 +1910,8 @@ class ElmImageAtlas : ElmData
    virtual bool save(File &f)C override
    {
       super.save(f);
-      f.cmpUIntV(1);
-      f<<mip_maps<<file_time<<mip_maps_time;
+      f.cmpUIntV(2);
+      f<<flag<<file_time<<mip_maps_time<<compress_time;
       f.cmpUIntV(images.elms());
       FREPA(images)f<<images[i].removed<<images[i].id<<images[i].removed_time;
       return f.ok();
@@ -1910,9 +1920,17 @@ class ElmImageAtlas : ElmData
    {
       if(super.load(f))switch(f.decUIntV())
       {
+         case 2:
+         {
+            f>>flag>>file_time>>mip_maps_time>>compress_time;
+            images.setNum(f.decUIntV());
+            FREPA(images)f>>images[i].removed>>images[i].id>>images[i].removed_time;
+            if(f.ok())return true;
+         }break;
+
          case 1:
          {
-            f>>mip_maps>>file_time>>mip_maps_time;
+            bool mip_maps; f>>mip_maps>>file_time>>mip_maps_time; mipMaps(mip_maps); compress(true); compress_time=1;
             images.setNum(f.decUIntV());
             FREPA(images)f>>images[i].removed>>images[i].id>>images[i].removed_time;
             if(f.ok())return true;
@@ -1920,7 +1938,7 @@ class ElmImageAtlas : ElmData
 
          case 0:
          {
-            mip_maps=true; mip_maps_time=1;
+            flag=MIP_MAPS|COMPRESS; mip_maps_time=1; compress_time=1;
             f>>file_time;
             images.setNum(f.decUIntV());
             FREPA(images)f>>images[i].removed>>images[i].id>>images[i].removed_time;
@@ -1932,9 +1950,11 @@ class ElmImageAtlas : ElmData
    virtual void save(MemPtr<TextNode> nodes)C override
    {
       super.save(nodes);
-      nodes.New().set("MipMaps"    , mip_maps);
-      nodes.New().set("MipMapsTime", mip_maps_time.text());
-      nodes.New().set("FileTime"   ,     file_time.text());
+      nodes.New().set("MipMaps"     , mipMaps ());
+      nodes.New().set("Compress"    , compress());
+      nodes.New().set("MipMapsTime" , mip_maps_time.text());
+      nodes.New().set("CompressTime", compress_time.text());
+      nodes.New().set("FileTime"    ,     file_time.text());
       TextNode &images=nodes.New().setName("Images"); FREPA(T.images) // list in order
       {
        C Img      &src =T.images[i];
@@ -1949,10 +1969,12 @@ class ElmImageAtlas : ElmData
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
-         if(n.name=="MipMaps"    )mip_maps     =n.asBool1();else
-         if(n.name=="MipMapsTime")mip_maps_time=n.value    ;else
-         if(n.name=="FileTime"   )    file_time=n.value    ;else
-         if(n.name=="Images"     )FREPA(n.nodes) // get in order
+         if(n.name=="MipMaps"     )mipMaps (n.asBool1());else
+         if(n.name=="Compress"    )compress(n.asBool1());else
+         if(n.name=="MipMapsTime" )mip_maps_time=n.value;else
+         if(n.name=="CompressTime")compress_time=n.value;else
+         if(n.name=="FileTime"    )    file_time=n.value;else
+         if(n.name=="Images"      )FREPA(n.nodes) // get in order
          {
           C TextNode &src=n.nodes[i]; UID id; if(id.fromText(src.name) && id.valid())
             {

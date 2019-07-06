@@ -128,6 +128,53 @@ error:
    REPA(images)if(images[i].image)images[i].image->unlock(); del(); return false;
 }
 /******************************************************************************/
+Bool ImageAtlas::extract(Int part_index, Image &dest, Bool soft)C
+{
+   Bool ok=false;
+   if(InRange(part_index, parts))
+   {
+    C Part &part=parts[part_index];
+      if(C Image *src=images.addr(part.image_index))
+      {
+         Image temp; if(src->compressed())if(src->copyTry(temp, -1, -1, -1, ImageTypeUncompressed(src->type()), IMAGE_SOFT, 1))src=&temp;else return false;
+         if(src->lockRead())
+         {
+            if(dest.createTry(part.original_size.x, part.original_size.y, 1, src->type(), soft ? IMAGE_SOFT : IMAGE_2D, 1)) // at this time, 'src.type' is already uncompressed
+            {
+               if(dest.lock(LOCK_WRITE))
+               {
+                  Int x0=0, x1=part.trim_pos.x, x2=x1+part.trimmed_size.x, x3=dest.lw(),
+                      y0=0, y1=part.trim_pos.y, y2=y1+part.trimmed_size.y, y3=dest.lh();
+
+                  // clear borders
+                  for(Int y=y0; y<y1; y++) for(Int x=x0; x<x3; x++)dest.color(x, y, TRANSPARENT); // top
+                  for(Int y=y1; y<y2; y++){for(Int x=x0; x<x1; x++)dest.color(x, y, TRANSPARENT); for(Int x=x2; x<x3; x++)dest.color(x, y, TRANSPARENT);} // left+right
+                  for(Int y=y2; y<y3; y++) for(Int x=x0; x<x3; x++)dest.color(x, y, TRANSPARENT); // bottom
+
+                  // copy image
+                  Int pack_min_x=Round(part.tex_rect.min.x*src->w());
+                  Int pack_min_y=Round(part.tex_rect.min.y*src->h());
+                  Int pack_max_x=Round(part.tex_rect.max.x*src->w());
+                //Int pack_max_y=Round(part.tex_rect.max.y*src->h());
+
+                  REPD(y, part.trimmed_size.y)
+                  REPD(x, part.trimmed_size.x)
+                  {
+                     Int sx, sy; if(part.rotated){sx=pack_max_x-1-y; sy=x+pack_min_y;}else{sx=x+pack_min_x; sy=y+pack_min_y;}
+                     dest.color(x1+x, y1+y, src->color(sx, sy));
+                  }
+
+                  ok=true;
+                  dest.unlock();
+               }
+            }
+            src->unlock();
+         }
+      }
+   }
+   return ok;
+}
+/******************************************************************************/
 void ImageAtlas::draw(Int part_index, C Vec2 &pos, Flt pixel_size)C
 {
    if(InRange(part_index, parts))

@@ -45,6 +45,9 @@ public:
    static void MipMaps(  ImageAtlasEditor &iae, C Str &t);
    static Str  MipMaps(C ImageAtlasEditor &iae          );
 
+   static void Compress(  ImageAtlasEditor &iae, C Str &t);
+   static Str  Compress(C ImageAtlasEditor &iae          );
+
    static void Undo  (ImageAtlasEditor &editor);
    static void Redo  (ImageAtlasEditor &editor);
    static void Locate(ImageAtlasEditor &editor);

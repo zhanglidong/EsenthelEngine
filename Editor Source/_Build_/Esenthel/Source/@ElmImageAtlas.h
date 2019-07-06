@@ -2,6 +2,11 @@
 /******************************************************************************/
 class ElmImageAtlas : ElmData
 {
+   enum FLAG
+   {
+      MIP_MAPS=1<<0,
+      COMPRESS=1<<1,
+   };
    class Img
    {
       bool      removed;
@@ -18,9 +23,12 @@ class ElmImageAtlas : ElmData
 public:
    Img();
    };
-   bool      mip_maps;
+   byte      flag;
    Memc<Img> images;
-   TimeStamp file_time, mip_maps_time;
+   TimeStamp file_time, mip_maps_time, compress_time;
+
+   bool mipMaps ()C;   void mipMaps (bool on);
+   bool compress()C;   void compress(bool on);
 
  C Img* find(C UID &id)C;
    Img* find(C UID &id); 

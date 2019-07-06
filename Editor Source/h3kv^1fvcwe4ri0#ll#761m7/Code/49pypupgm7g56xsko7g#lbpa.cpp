@@ -772,7 +772,8 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
          if(elm.type==ELM_IMAGE_ATLAS) // image atlas
             if(android || iOS || (web && !WebBC7)) // desktop platform already has the best format chosen during image atlas creation
                if(ElmImageAtlas *data=elm.imageAtlasData())
-                  if(IMAGE_TYPE dest_type=(android ? IMAGE_ETC2_A8_SRGB : iOS ? IMAGE_PVRTC1_4_SRGB : IMAGE_BC3_SRGB)) // we assume that atlas images contain transparency
+                  if(data.compress())
+                     if(IMAGE_TYPE dest_type=(android ? IMAGE_ETC2_A8_SRGB : iOS ? IMAGE_PVRTC1_4_SRGB : IMAGE_BC3_SRGB)) // we assume that atlas images contain transparency
          {
             Str src_name=pfd.data.name,
                dest_name=Proj.formatPath(elm.id, FormatSuffix(dest_type));
