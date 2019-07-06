@@ -178,7 +178,7 @@ void Environment::Sky::set()C
 {
  ::Sky.frac(frac)
       .atmosphericDensityExponent(atmospheric_density_exponent).atmosphericHorizonExponent (atmospheric_horizon_exponent )
-      .atmosphericHorizonColor   (atmospheric_horizon_color_s ).atmosphericSkyColor        (atmospheric_sky_color_s      )
+      .atmosphericHorizonColorS  (atmospheric_horizon_color_s ).atmosphericSkyColorS       (atmospheric_sky_color_s      )
       .atmosphericStars          (atmospheric_stars           ).atmosphericStarsOrientation(atmospheric_stars_orientation);
    if(!on    )::Sky.clear();else
    if( skybox)::Sky.skybox(skybox);else
@@ -190,7 +190,7 @@ void Environment::Sky::get()
      frac=::Sky.frac();
    skybox=::Sky.skybox();
    atmospheric_density_exponent=::Sky.atmosphericDensityExponent(); atmospheric_horizon_exponent =::Sky.atmosphericHorizonExponent ();
-   atmospheric_horizon_color_s =::Sky.atmosphericHorizonColor   (); atmospheric_sky_color_s      =::Sky.atmosphericSkyColor        ();
+   atmospheric_horizon_color_s =::Sky.atmosphericHorizonColorS  (); atmospheric_sky_color_s      =::Sky.atmosphericSkyColorS       ();
    atmospheric_stars           =::Sky.atmosphericStars          (); atmospheric_stars_orientation=::Sky.atmosphericStarsOrientation();
 }
 void Environment::Sky::reset()
