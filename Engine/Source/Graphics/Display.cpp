@@ -2772,9 +2772,15 @@ Vec Display::ambientColorS()C {return LinearToSRGB(ambientColorL());}
 
 void Display::ambientSet()C
 {
+#if LINEAR_GAMMA
    if(Sh.h_AmbientColor_l  )Sh.h_AmbientColor_l  ->set(ambientColorL());
    if(Sh.h_AmbientColorNS_l)Sh.h_AmbientColorNS_l->set(ambientColorL()+nightShadeColorL());
    if(Sh.h_NightShadeColor )Sh.h_NightShadeColor ->set(                nightShadeColorL());
+#else
+   if(Sh.h_AmbientColor_l  )Sh.h_AmbientColor_l  ->set(ambientColorS());
+   if(Sh.h_AmbientColorNS_l)Sh.h_AmbientColorNS_l->set(ambientColorS()+nightShadeColorS());
+   if(Sh.h_NightShadeColor )Sh.h_NightShadeColor ->set(                nightShadeColorS());
+#endif
 }
 
 Display& Display::ambientRes     (  Flt          scale     ) {Byte res=FltToByteScale( scale  );    if(res!=_amb_res){_amb_res =res ; Renderer.rtClean();} return T;}
