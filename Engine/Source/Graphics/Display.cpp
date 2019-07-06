@@ -2772,9 +2772,14 @@ Vec Display::ambientColorS()C {return LinearToSRGB(ambientColorL());}
 
 void Display::ambientSet()C
 {
-   if(Sh.h_AmbientColor_l  )Sh.h_AmbientColor_l  ->set(ambientColorD());
-   if(Sh.h_AmbientColorNS_l)Sh.h_AmbientColorNS_l->set(ambientColorD()+nightShadeColorD());
-   if(Sh.h_NightShadeColor )Sh.h_NightShadeColor ->set(                nightShadeColorD());
+   if(Sh.h_AmbientColor_l  )Sh.h_AmbientColor_l ->set(   ambientColorD());
+   if(Sh.h_NightShadeColor )Sh.h_NightShadeColor->set(nightShadeColorD());
+   if(Sh.h_AmbientColorNS_l)
+   {
+      // in the shader, night shade is applied as "night_shade * Sat(1-lum)" (to be applied only for low lights), so night shade is limited by light, since light is per-pixel and depends on ambient and dynamic lights, we don't know the exact value, however we know ambient, so here limit according to ambient only
+      Flt max_lum=ambientColorD().max(), intensity=Sat(1-max_lum);
+      Sh.h_AmbientColorNS_l->set(ambientColorD() + nightShadeColorD()*intensity);
+   }
 }
 
 Display& Display::ambientRes     (  Flt          scale     ) {Byte res=FltToByteScale( scale  );    if(res!=_amb_res){_amb_res =res ; Renderer.rtClean();} return T;}

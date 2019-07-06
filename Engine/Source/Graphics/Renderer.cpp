@@ -1196,7 +1196,7 @@ void RendererClass::solid()
            _first_pass=true;
 
             // restore settings
-            Sh.h_AmbientColorNS_l->set(D.ambientColorD()+D.nightShadeColorD()); Sh.h_AmbientMaterial->set(1); // restore ambient lighting
+            D.ambientSet(); Sh.h_AmbientMaterial->set(1); // restore ambient lighting
             Frustum.set(); // restore frustum after it being potentially changed when drawing shadow maps or setting frustum for visible objects for lights
          }
 
