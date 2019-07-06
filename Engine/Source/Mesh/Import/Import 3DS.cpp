@@ -185,7 +185,7 @@ Bool Import3DS(C Str &name, Mesh *mesh, MemPtr<XMaterial> materials, MemPtr<Int>
             case CHUNK3DS_COLOR_RGB_BYTE:
             {
                Color c; f>>c.r>>c.g>>c.b; c.a=255;
-               if(materials.elms())materials.last().color=SRGBToLinear(c);
+               if(materials.elms())materials.last().color=c;
             }break;
 
             default: skip: f.pos(end); break;
