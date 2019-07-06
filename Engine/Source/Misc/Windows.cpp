@@ -1283,7 +1283,7 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
 
       case WM_SETCURSOR: // this will get called only if the mouse is on the app window, there will be different results if mouse is on client or for example on the title bar
       {
-         if(Ms._on_client=(LOWORD(lParam)==HTCLIENT)){Ms.resetCursor(); return true;} // call this here to make sure that we have correct cursor set, in Mouse.update there's also '_on_client' modification, because this isn't called when mouse goes outside the window, return true only when on client, so for example at the window edge, system resize cursor can be assigned by default functions
+         if(Ms._on_client=(LOWORD(lParam)==HTCLIENT)){Ms.resetCursor(); return true;} // call this here to make sure that we have correct cursor set, in 'Mouse.update' there's also '_on_client' modification, because this isn't called when mouse goes outside the window, return true only when on client, so for example at the window edge, system resize cursor can be assigned by default functions
       }break;
 
       #define WM_MOUSEHWHEEL 0x020E
