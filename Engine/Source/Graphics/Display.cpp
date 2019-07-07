@@ -424,7 +424,13 @@ VecI2 Display::screen()C
    }
 #elif IOS
    CGSize size=[[UIScreen mainScreen] nativeBounds].size; // 'nativeBounds' is not changed when device is rotated
-   return VecI2(RoundPos(size.width), RoundPos(size.height));
+   VecI2  screen(RoundPos(size.width), RoundPos(size.height));
+   switch(App.orientation())
+   {
+      case DIR_RIGHT: 
+      case DIR_LEFT : screen.swap(); break; // rotate manually
+   }
+   return screen;
 #elif WEB
    return VecI2(JavaScriptRunI("screen.width"), JavaScriptRunI("screen.height")); // it's not possible to get correct results, because on Chrome: this value is adjusted by "System DPI/Scaling", but not 'D.browserZoom', and does not change when zooming. Because "System DPI/Scaling" is unknown, it can't be calculated.
 #endif

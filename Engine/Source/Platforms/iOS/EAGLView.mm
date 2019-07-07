@@ -162,12 +162,12 @@ EAGLView* GetUIView()
    NSDictionary *info=[aNotification userInfo];
    CGRect rect=[[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
    RectI  recti(Round(rect.origin.x*ScreenScale), Round(rect.origin.y*ScreenScale), Round((rect.origin.x+rect.size.width)*ScreenScale), Round((rect.origin.y+rect.size.height)*ScreenScale));
-   switch([UIApplication sharedApplication].statusBarOrientation) // don't use 'App.orientation' as it's one frame ahead/behind than this call
+   switch(App.orientation())
    {
-      default                                      : Kb._recti=recti; break;
-      case UIInterfaceOrientationPortraitUpsideDown: Kb._recti.set(recti.min.x, D.resH()-recti.max.y, recti.max.x, D.resH()-recti.min.y); break;
-      case UIInterfaceOrientationLandscapeLeft     : Kb._recti.set(recti.min.y,          recti.min.x, recti.max.y,          recti.max.x); break;
-      case UIInterfaceOrientationLandscapeRight    : Kb._recti.set(recti.min.y, D.resH()-recti.max.x, recti.max.y, D.resH()-recti.min.x); break;
+      default       : Kb._recti=recti; break;
+      case DIR_DOWN : Kb._recti.set(recti.min.x, D.resH()-recti.max.y, recti.max.x, D.resH()-recti.min.y); break;
+      case DIR_RIGHT: Kb._recti.set(recti.min.y,          recti.min.x, recti.max.y,          recti.max.x); break;
+      case DIR_LEFT : Kb._recti.set(recti.min.y, D.resH()-recti.max.x, recti.max.y, D.resH()-recti.min.x); break;
    }
 }
 -(void)keyboardWillBeHidden:(NSNotification*)aNotification {Kb._visible=false;}
