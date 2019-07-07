@@ -7,5 +7,6 @@ BUFFER(FurStep)
    VecH2 FurStep; // x=step, y=step+1
 BUFFER_END
 
-Image FurCol, FurLight;
+ImageH FurCol;
+Image  FurLight;
 /******************************************************************************/
