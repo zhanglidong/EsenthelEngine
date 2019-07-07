@@ -1,7 +1,7 @@
 /******************************************************************************/
 #include "!Header.h"
 #include "Fur.h"
-#define FACTOR (-0.7f) // prevents complete darkness at the bottom layers, gives ambient=0.3, it will match the 'size' version
+#define FACTOR (-0.7) // prevents complete darkness at the bottom layers, gives ambient=0.3, it will match the 'size' version
 /******************************************************************************/
 inline VecH GetBoneFurVel(VecI bone, VecH weight) {return weight.x*FurVel[bone.x] + weight.y*FurVel[bone.y] + weight.z*FurVel[bone.z];}
 /******************************************************************************/
