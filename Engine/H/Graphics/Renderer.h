@@ -275,6 +275,9 @@ private:
    void        (*_render)();
  C Memc<ShaderParamChange> *_shader_param_changes;
    ImageRT       _main, _main_ds,
+               #if WEB // #WebSRGB
+                 _main_temp, _main_temp_ds,
+               #endif
                  _shd_map, _cld_map,
                  _eye_adapt_scale[2],
                 *_cur_main, *_cur_main_ds,

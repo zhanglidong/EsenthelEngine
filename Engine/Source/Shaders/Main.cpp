@@ -3141,6 +3141,11 @@ Vec4 SMAA_PS(NOPERSP Vec2 texcoord:TEXCOORD0,
   TECHNIQUE(SMAABlend     , SMAABlend_VS(), SMAABlend_PS    ());
   TECHNIQUE(SMAA          , SMAA_VS     (), SMAA_PS         ());
 /******************************************************************************/
+#if GL // #WebSRGB
+VecH4 WebLToS_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return LinearToSRGB(TexLod(Col, inTex));}
+TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
+#endif
+/******************************************************************************/
 #if 0
 @GROUP "Draw3DTex" // params: COLOR, alpha_test
    @SHARED

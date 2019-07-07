@@ -1241,8 +1241,8 @@ again:
       MainContext.lock();
       Byte samples=(attrs.antialias ? 4 : 1);
       int  width, height; emscripten_get_canvas_element_size(null, &width, &height);
-      Renderer._main   .forceInfo(width, height, 1, LINEAR_GAMMA  ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, IMAGE_GL_RB, samples);
-      Renderer._main_ds.forceInfo(width, height, 1, attrs.stencil ? IMAGE_D24S8         : IMAGE_D24X8   , IMAGE_GL_RB, samples);
+      Renderer._main   .forceInfo(width, height, 1,/*LINEAR_GAMMA  ? IMAGE_R8G8B8A8_SRGB :*/IMAGE_R8G8B8A8, IMAGE_GL_RB, samples); // #WebSRGB currently web doesn't support SRGB SwapChain
+      Renderer._main_ds.forceInfo(width, height, 1,  attrs.stencil ? IMAGE_D24S8         :  IMAGE_D24X8   , IMAGE_GL_RB, samples);
    #endif
 
    if(!deviceName().is())
@@ -1977,6 +1977,10 @@ Bool Display::flip()
          [MainContext.context presentRenderbuffer:GL_RENDERBUFFER];
       #elif WEB
          // this is done automatically on Web
+         // #WebSRGB
+         Renderer.set(&Renderer._main, null, false);
+         Sh.get("WebLToS")->draw(Renderer._main_temp);
+         Renderer.set(Renderer._cur_main, Renderer._cur_main_ds, false);
       #endif
    #endif
    }
@@ -3156,7 +3160,12 @@ void Display::setFade(Flt seconds, Bool previous_frame)
          {
             SyncLocker locker(_lock);
             Renderer._fade.get(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha
-            Renderer._main.copyHw(*Renderer._fade, true, null, null, &_fade_flipped);
+         #if WEB // #WebSRGB
+            Renderer._main_temp
+         #else
+            Renderer._main
+         #endif
+               .copyHw(*Renderer._fade, true, null, null, &_fade_flipped);
            _fade_get =false  ;
            _fade_step=0      ;
            _fade_len =seconds;
@@ -3190,7 +3199,12 @@ void Display::fadeDraw()
      _fade_get =false;
      _fade_step=0    ;
       Renderer._fade.get(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha
-      Renderer._main.copyHw(*Renderer._fade, true, null, null, &_fade_flipped);
+   #if WEB // #WebSRGB
+      Renderer._main_temp
+   #else
+      Renderer._main
+   #endif
+         .copyHw(*Renderer._fade, true, null, null, &_fade_flipped);
    }
 }
 /******************************************************************************/

@@ -78,8 +78,13 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
   _vtx_fog_end  =1.00f;
   _vtx_fog_color.set(0.40f, 0.48f, 0.64f);
 
+#if WEB // #WebSRGB
+  _gui   =_cur_main   =&_main_temp;
+  _gui_ds=_cur_main_ds=&_main_temp_ds;
+#else
   _gui   =_cur_main   =&_main;
   _gui_ds=_cur_main_ds=&_main_ds;
+#endif
 }
 void RendererClass::del()
 {

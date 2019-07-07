@@ -122,8 +122,13 @@ void RendererClass::rtDel()
   _back   .clear();
   _back_ds.clear();
 
+#if WEB // #WebSRGB
+  _gui   =_cur_main   =&_main_temp;
+  _gui_ds=_cur_main_ds=&_main_temp_ds;
+#else
   _gui   =_cur_main   =&_main;
   _gui_ds=_cur_main_ds=&_main_ds;
+#endif
 
    unmapMain();
 #if DX11 || IOS // only on these platforms we're creating custom '_main_ds', on other platforms the system creates it, so we're not deleting (to keep the info about IMAGE_TYPE and samples)
@@ -147,6 +152,11 @@ Bool RendererClass::rtCreate()
    if(!D.canDraw())return true; // don't bother with render targets if the device can't draw (can happen when using 'APP_ALLOW_NO_GPU')
 
    if(!mapMain())return false;
+
+#if WEB // #WebSRGB
+   if(!_main_temp   .create(_main.size(), IMAGE_R8G8B8A8_SRGB, IMAGE_RT, _main.samples()))return false;
+   if(!_main_temp_ds.create(_main.size(), IMAGE_D24S8        , IMAGE_DS, _main.samples()))return false;
+#endif
 
    // depth
 #if DX11
@@ -220,8 +230,13 @@ void RendererClass::setMain() // !! requires 'D._lock' !! this is called after R
      _gui_ds.getDS(_gui->w(), _gui->h());
    }else
    {
+   #if WEB // #WebSRGB
+     _gui   =&_main_temp;
+     _gui_ds=&_main_temp_ds;
+   #else
      _gui   =&_main;
      _gui_ds=&_main_ds;
+   #endif
    }
   _cur_main   =_gui   ();
   _cur_main_ds=_gui_ds();
