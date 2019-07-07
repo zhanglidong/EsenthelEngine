@@ -3,7 +3,6 @@
 /******************************************************************************
 
    Warning/TODO/FIXME: Once every few months 'UpdateCertificates' should be called to update latest version of trusted certificates for SSL/TLS/HTTPS
-      Last Updated: 1 May 2019
 
 /******************************************************************************/
 #define UPDATE_CERTIFICATES (DEBUG && 0)
@@ -1468,6 +1467,8 @@ static void UpdateCertificates()
       Str dest=GetPath(__FILE__).tailSlash(true)+"_/Certificates.h";
       FileText ft;
       ft.write(dest);
+      DateTime dt; dt.getUTC();
+      ft.putLine(S+"// Last Updated: "+dt.day+' '+MonthNameShort(dt.month)+' '+dt.year);
       ft.putLine(S+"static const Int  CertificatesSize="+f.size()+';');
       ft.putLine(  "static const Byte CertificatesData[]=");
       ft.putLine("{");
