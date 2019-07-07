@@ -840,7 +840,7 @@ inline VecH TransformDir(VecH dir, uniform uint mtrx) {return Transform3(dir, Vi
 
 inline Vec  TransformPos(Vec  pos, VecI bone, Vec  weight) {return weight.x*Transform (pos, ViewMatrix[bone.x]) + weight.y*Transform (pos, ViewMatrix[bone.y]) + weight.z*Transform (pos, ViewMatrix[bone.z]);}
 inline VecH TransformDir(VecH dir, VecI bone, VecH weight) {return weight.x*Transform3(dir, ViewMatrix[bone.x]) + weight.y*Transform3(dir, ViewMatrix[bone.y]) + weight.z*Transform3(dir, ViewMatrix[bone.z]);}
-inline VecH GetBoneVel  (          VecI bone, VecH weight) {return weight.x*          (     ObjVel [bone.x]) + weight.y*          (     ObjVel [bone.y]) + weight.z*          (     ObjVel [bone.z]);}
+inline VecH GetBoneVel  (          VecI bone, VecH weight) {return weight.x*          (     ObjVel    [bone.x]) + weight.y*          (     ObjVel    [bone.y]) + weight.z*          (     ObjVel    [bone.z]);}
 
 inline Vec4 Project(Vec pos) {return Transform(pos, ProjMatrix);}
 /******************************************************************************/
@@ -900,7 +900,7 @@ inline Flt DelinearizeDepth(Flt z, uniform Bool perspective=true)
        w=(perspective ? (z*a+b)/z : (z*a+REVERSE_DEPTH));
 
 #if MODEL==SM_GL
-   w=w*0.5f+0.5f;
+   w=w*0.5+0.5;
 #endif
 
    return w;
@@ -1082,7 +1082,7 @@ inline Matrix3 Inverse(Matrix3 m, uniform Bool normalized)
    }
    return m;
 }
-/******************************************************************************/
+/******************************************************************************
 inline Flt Lerp4(Flt v0, Flt v1, Flt v2, Flt v3, Flt s)
 {
    return s*s*s * ((2-TAN)*(v1-v2) + TAN*(v3-v0)                            )
@@ -1110,6 +1110,7 @@ inline Vec4 Lerp4(Vec4 v0, Vec4 v1, Vec4 v2, Vec4 v3, Flt s)
         - v0 * (   TAN*(s3+s ) - (2*TAN  )*s2            )
         + v3 * (   TAN*(s3-s2)                           );
 }
+/******************************************************************************/
 inline Half LerpCube(Half s) {return (3-2*s)*s*s;}
 inline Flt  LerpCube(Flt  s) {return (3-2*s)*s*s;}
 
@@ -1119,8 +1120,8 @@ inline Flt  LerpCube(Flt  from, Flt  to, Flt  s) {return Lerp(from, to, LerpCube
 inline Flt LerpSmoothPow(Flt s, Flt p)
 {
    s=Sat(s);
-   if(s<=0.5f)return   0.5f*Pow(  2*s, p);
-              return 1-0.5f*Pow(2-2*s, p);
+   if(s<=0.5)return   0.5*Pow(  2*s, p);
+             return 1-0.5*Pow(2-2*s, p);
 }
 
 inline Half BlendSqr(Half x) {return Sat(1-x*x);}
@@ -1129,8 +1130,8 @@ inline Flt  BlendSqr(Flt  x) {return Sat(1-x*x);}
 inline Half BlendSmoothCube(Half x) {x=Sat(Abs(x)); return 1-LerpCube(x);}
 inline Flt  BlendSmoothCube(Flt  x) {x=Sat(Abs(x)); return 1-LerpCube(x);}
 
-inline Half BlendSmoothSin(Half x) {x=Sat(Abs(x)); return Cos(x*PI)*0.5f+0.5f;}
-inline Flt  BlendSmoothSin(Flt  x) {x=Sat(Abs(x)); return Cos(x*PI)*0.5f+0.5f;}
+inline Half BlendSmoothSin(Half x) {x=Sat(Abs(x)); return Cos(x*PI)*0.5+0.5;}
+inline Flt  BlendSmoothSin(Flt  x) {x=Sat(Abs(x)); return Cos(x*PI)*0.5+0.5;}
 
 inline Half Gaussian(Half x) {return exp(-x*x);}
 inline Flt  Gaussian(Flt  x) {return exp(-x*x);}
@@ -1141,11 +1142,11 @@ inline Flt AccumulatedDensity(Flt density, Flt range) {return 1-Pow(1-density, r
 inline Half DitherValue(Vec2 pixel)
 {
 #if 0 // low
-   return Frac(Dot(pixel, Vec2(1.0f, 0.5f)/3))-0.5f;
+   return Frac(Dot(pixel, Vec2(1.0, 0.5)/3))-0.5;
 #elif 0 // medium
-   return Frac(Dot(pixel, Vec2(3, 1)/8))-0.5f;
+   return Frac(Dot(pixel, Vec2(3, 1)/8))-0.5;
 #elif 1 // good
-   return Frac(Dot(pixel, Vec2(1.6f, 1)*0.25f))-0.5f; // -0.5 .. 0.5 range
+   return Frac(Dot(pixel, Vec2(1.6, 1)*0.25))-0.5; // -0.5 .. 0.5 range
 #else
    VecI2 xy=Trunc(pixel)%8; return OrderDither[xy.x + xy.y*8]; // -1..1 / 256 range
 #endif
@@ -1227,7 +1228,7 @@ inline VecH4 GetNormal(Vec2 tex, uniform Int quality)
 {
    VecH4 nrm=TexPoint(Nrm, tex); UnpackNormal(nrm.xyz, quality);
 #if SIGNED_NRM_RT && FULL_PRECISION_SPEC
-   nrm.w=nrm.w*0.5f+0.5f; // -1..1 -> 0..1
+   nrm.w=nrm.w*0.5+0.5; // -1..1 -> 0..1
 #endif
    return nrm;
 }
@@ -1236,7 +1237,7 @@ inline VecH4 GetNormalMS(VecI2 pixel, UInt sample, uniform Int quality)
 {
    VecH4 nrm=TexSample(NrmMS, pixel, sample); UnpackNormal(nrm.xyz, quality);
 #if SIGNED_NRM_RT && FULL_PRECISION_SPEC
-   nrm.w=nrm.w*0.5f+0.5f; // -1..1 -> 0..1
+   nrm.w=nrm.w*0.5+0.5; // -1..1 -> 0..1
 #endif
    return nrm;
 }
@@ -1247,42 +1248,42 @@ inline VecH4 GetNormalMS(VecI2 pixel, UInt sample, uniform Int quality)
 inline Half GetLod(Vec2 tex_coord, Flt tex_size)
 {
    Vec2 tex=tex_coord*tex_size;
-   return 0.5f*log2(Max(Length2(ddx(tex)) , Length2(ddy(tex)))); // NVIDIA
- //return 0.5f*log2(Max(Sqr    (ddx(tex)) + Sqr    (ddy(tex)))); // ATI
+   return 0.5*log2(Max(Length2(ddx(tex)) , Length2(ddy(tex)))); // NVIDIA
+ //return 0.5*log2(Max(Sqr    (ddx(tex)) + Sqr    (ddy(tex)))); // ATI
 }
 inline Half GetLod(Vec2 tex_coord, Vec2 tex_size)
 {
    Vec2 tex=tex_coord*tex_size;
-   return 0.5f*log2(Max(Length2(ddx(tex)) , Length2(ddy(tex)))); // NVIDIA
- //return 0.5f*log2(Max(Sqr    (ddx(tex)) + Sqr    (ddy(tex)))); // ATI
+   return 0.5*log2(Max(Length2(ddx(tex)) , Length2(ddy(tex)))); // NVIDIA
+ //return 0.5*log2(Max(Sqr    (ddx(tex)) + Sqr    (ddy(tex)))); // ATI
 }
 /******************************************************************************/
 // GRASS AND LEAF
 /******************************************************************************/
-#define GrassBendFreq  1.0f
-#define GrassBendScale 0.18f
+#define GrassBendFreq  1.0
+#define GrassBendScale 0.18
 
-#define LeafBendFreq   2.0f
-#define LeafBendScale  0.13f
+#define LeafBendFreq   2.0
+#define LeafBendScale  0.13
 #define LeafsBendScale (LeafBendScale/2)
 /******************************************************************************/
 inline Vec2 GetGrassBend(Vec center)
 {
-   Flt offset=Sum(center.xz*(Vec2(0.7f, 0.9f)*GrassBendFreq));
-   return Vec2((0.28f*GrassBendScale)*Sin(offset+BendFactor.x) + (0.32f*GrassBendScale)*Sin(offset+BendFactor.y),
-               (0.18f*GrassBendScale)*Sin(offset+BendFactor.z) + (0.24f*GrassBendScale)*Sin(offset+BendFactor.w));
+   Flt offset=Sum(center.xz*(Vec2(0.7, 0.9)*GrassBendFreq));
+   return Vec2((0.28*GrassBendScale)*Sin(offset+BendFactor.x) + (0.32*GrassBendScale)*Sin(offset+BendFactor.y),
+               (0.18*GrassBendScale)*Sin(offset+BendFactor.z) + (0.24*GrassBendScale)*Sin(offset+BendFactor.w));
 }
 inline Vec2 GetLeafBend(Vec center)
 {
-   Flt offset=Sum(center.xy*(Vec2(0.7f, 0.8f)*LeafBendFreq));
-   return Vec2((0.28f*LeafBendScale)*Sin(offset+BendFactor.x) + (0.32f*LeafBendScale)*Sin(offset+BendFactor.y),
-               (0.18f*LeafBendScale)*Sin(offset+BendFactor.z) + (0.24f*LeafBendScale)*Sin(offset+BendFactor.w));
+   Flt offset=Sum(center.xy*(Vec2(0.7, 0.8)*LeafBendFreq));
+   return Vec2((0.28*LeafBendScale)*Sin(offset+BendFactor.x) + (0.32*LeafBendScale)*Sin(offset+BendFactor.y),
+               (0.18*LeafBendScale)*Sin(offset+BendFactor.z) + (0.24*LeafBendScale)*Sin(offset+BendFactor.w));
 }
 inline Vec2 GetLeafsBend(Vec center)
 {
-   Flt offset=Sum(center.xy*(Vec2(0.7f, 0.8f)*LeafBendFreq));
-   return Vec2((0.28f*LeafsBendScale)*Sin(offset+BendFactor.x) + (0.32f*LeafsBendScale)*Sin(offset+BendFactor.y),
-               (0.18f*LeafsBendScale)*Sin(offset+BendFactor.z) + (0.24f*LeafsBendScale)*Sin(offset+BendFactor.w));
+   Flt offset=Sum(center.xy*(Vec2(0.7, 0.8)*LeafBendFreq));
+   return Vec2((0.28*LeafsBendScale)*Sin(offset+BendFactor.x) + (0.32*LeafsBendScale)*Sin(offset+BendFactor.y),
+               (0.18*LeafsBendScale)*Sin(offset+BendFactor.z) + (0.24*LeafsBendScale)*Sin(offset+BendFactor.w));
 }
 /******************************************************************************/
 inline Half GrassFadeOut(uniform uint mtrx=0)
@@ -1352,13 +1353,13 @@ inline void BendLeafs(Vec center, Flt offset, in out Vec pos, in out VecH nrm, i
 // DEPTH WEIGHT
 /******************************************************************************/
 BUFFER(DepthWeight)
-   Flt DepthWeightScale=0.005f;
+   Flt DepthWeightScale=0.005;
 BUFFER_END
 #if 0
-Flt P1=0.004f, P2=2;
-inline Vec2 DepthWeightMAD(Flt depth) {return Vec2(-1.0f/(depth*DepthWeightScale+P1), P2);}
+Flt P1=0.004, P2=2;
+inline Vec2 DepthWeightMAD(Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale+P1), P2);}
 #else
-inline Vec2 DepthWeightMAD(Flt depth) {return Vec2(-1.0f/(depth*DepthWeightScale+0.004f), 2);}
+inline Vec2 DepthWeightMAD(Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale+0.004), 2);}
 #endif
 inline Flt  DepthWeight(Flt delta, Vec2 dw_mad)
 {
@@ -1367,9 +1368,9 @@ inline Flt  DepthWeight(Flt delta, Vec2 dw_mad)
 /******************************************************************************/
 // DETAIL
 /******************************************************************************/
-inline Vec GetDetail(Vec2 tex)
+inline VecH GetDetail(Vec2 tex)
 {
-   return (Tex(Det, tex*MaterialDetScale()).xyz-0.5f)*MaterialDetPower(); // tex.xy=nrm.xy, tex.z=color, #MaterialTextureChannelOrder
+   return (Tex(Det, tex*MaterialDetScale()).xyz-0.5)*MaterialDetPower(); // tex.xy=nrm.xy, tex.z=color, #MaterialTextureChannelOrder
 }
 /******************************************************************************/
 // FACE NORMAL HANDLING
@@ -1395,7 +1396,7 @@ inline void UpdateVelocities_PS(in out Vec vel, Vec view_space_pos)
       vel/=view_space_pos.z;
 
 #if !SIGNED_VEL_RT
-   vel=vel*0.5f+0.5f; // scale from signed to unsigned (-1..1 -> 0..1)
+   vel=vel*0.5+0.5; // scale from signed to unsigned (-1..1 -> 0..1)
 #endif
 }
 inline Vec GetVelocitiesCameraOnly(Vec view_space_pos)
@@ -1417,21 +1418,21 @@ inline Half MultiMaterialWeight(Half weight, Half alpha) // 'weight'=weight of t
    // sharpen alpha
 #if 0 // not needed when ALPHA_POWER is big
    #if 0 // good but slow
-      if(alpha<=0.5f)alpha=  2*Sqr(  alpha);
-      else           alpha=1-2*Sqr(1-alpha);
+      if(alpha<=0.5)alpha=  2*Sqr(  alpha);
+      else          alpha=1-2*Sqr(1-alpha);
    #else // fast approximation
-      alpha=Sat(alpha*1.5f + (-0.5f*1.5f+0.5f)); // Sat((alpha-0.5f)*1.5f+0.5f)
+      alpha=Sat(alpha*1.5 + (-0.5*1.5+0.5)); // Sat((alpha-0.5)*1.5+0.5)
    #endif
 #endif
 
 #if 1 // works best
-   #define ALPHA_POWER 10.0f
+   #define ALPHA_POWER 10.0
    Half w=weight // base
-         +weight*(1-weight)*(alpha*ALPHA_POWER - 0.5f*ALPHA_POWER); // "weight"=ignore alpha at start "1-weight" ignore alpha at end, "(alpha-0.5f)*ALPHA_POWER" alpha
+         +weight*(1-weight)*(alpha*ALPHA_POWER - 0.5*ALPHA_POWER); // "weight"=ignore alpha at start "1-weight" ignore alpha at end, "(alpha-0.5)*ALPHA_POWER" alpha
    if(ALPHA_POWER>2)w=Max(w, weight/16); // if ALPHA_POWER>2 then this formula could go below zero which could result in artifacts, because weights could be negative or all zero, so maximize with a small slope (has to be zero at start, and small after that)
    return w;
 #elif 1
-   #define ALPHA_POWER 0.5f
+   #define ALPHA_POWER 0.5
    return Sat(weight*(1+ALPHA_POWER) + alpha*ALPHA_POWER - ALPHA_POWER); // start at "-ALPHA_POWER" so it can clear out any alpha we have at the start (we always want up to zero weight at the start even if we have high alpha) and always want at least 1 weight at the end, even if we have low alpha
 #else
    return Lerp(weight, alpha, weight*(1-weight)*2);
@@ -1497,8 +1498,8 @@ inline Half LightSpecular(VecH nrm, Half specular, VecH light_dir, VecH eye_dir,
 BUFFER(Shadow)
    Flt     ShdRange      ,
            ShdStep[6]    ;
-   Vec2    ShdRangeMulAdd,
-           ShdOpacity    ;
+   Vec2    ShdRangeMulAdd;
+   VecH2   ShdOpacity    ;
    Vec4    ShdJitter     ;
    Matrix  ShdMatrix     ;
    Matrix4 ShdMatrix4[6] ;
@@ -1556,12 +1557,11 @@ inline Vec ShadowPointTransform(Vec pos)
    return p.xyz/p.w;
 }
 /******************************************************************************/
-inline VecH2 ShadowJitter(Vec2 pixel)
+inline Vec2 ShadowJitter(Vec2 pixel)
 {
-    VecH2 offset;
-          offset=Frac(pixel*0.5f)*2 - 0.5f;
-          offset.y+=    offset.x;
-       if(offset.y>1.1f)offset.y=0;
+     Vec2 offset=Frac(pixel*0.5)*2 - 0.5;
+          offset.y+=   offset.x;
+       if(offset.y>1.1)offset.y=0;
    return offset*ShdJitter.xy+ShdJitter.zw;
 }
 /******************************************************************************/
@@ -1608,7 +1608,7 @@ struct DeferredSolidOutput // use this structure in Pixel Shader for setting the
    #if SIGNED_NRM_RT
       out1.xyz=normal;
    #else
-      out1.xyz=normal*0.5f+0.5f; // -1..1 -> 0..1
+      out1.xyz=normal*0.5+0.5; // -1..1 -> 0..1
    #endif
    }
 
@@ -1642,7 +1642,7 @@ struct HSData
 };
 inline Vec2 ToScreen(Vec pos)
 {
-   return pos.xy/Max(0.1f, pos.z);
+   return pos.xy/Max(0.1, pos.z);
 }
 inline HSData GetHSData(Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nrm2, uniform Bool shadow_map=false)
 {
