@@ -845,14 +845,21 @@ inline VecH GetBoneVel  (          VecI bone, VecH weight) {return weight.x*    
 
 inline Vec4 Project(Vec pos) {return Transform(pos, ProjMatrix);}
 /******************************************************************************/
-inline Vec MatrixX(Matrix3 m) {return m[0];}
-inline Vec MatrixY(Matrix3 m) {return m[1];}
-inline Vec MatrixZ(Matrix3 m) {return m[2];}
+inline Vec  MatrixX(Matrix3  m) {return m[0];}
+inline VecH MatrixX(MatrixH3 m) {return m[0];}
+inline Vec  MatrixY(Matrix3  m) {return m[1];}
+inline VecH MatrixY(MatrixH3 m) {return m[1];}
+inline Vec  MatrixZ(Matrix3  m) {return m[2];}
+inline VecH MatrixZ(MatrixH3 m) {return m[2];}
 
-inline Vec MatrixX  (Matrix m) {return m[0];}
-inline Vec MatrixY  (Matrix m) {return m[1];}
-inline Vec MatrixZ  (Matrix m) {return m[2];}
-inline Vec MatrixPos(Matrix m) {return m[3];}
+inline Vec  MatrixX  (Matrix  m) {return m[0];}
+inline VecH MatrixX  (MatrixH m) {return m[0];}
+inline Vec  MatrixY  (Matrix  m) {return m[1];}
+inline VecH MatrixY  (MatrixH m) {return m[1];}
+inline Vec  MatrixZ  (Matrix  m) {return m[2];}
+inline VecH MatrixZ  (MatrixH m) {return m[2];}
+inline Vec  MatrixPos(Matrix  m) {return m[3];}
+inline VecH MatrixPos(MatrixH m) {return m[3];}
 
 inline Vec ObjWorldPos(uniform uint mtrx=0) {return Transform(MatrixPos(ViewMatrix[mtrx]), CamMatrix);} // get the world position of the object matrix
 /******************************************************************************/
