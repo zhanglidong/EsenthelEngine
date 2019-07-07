@@ -230,8 +230,6 @@ out Vec4 outVel:COLOR1, // #BlendRT
          }*/total_lum     +=Light_dir.color.rgb*lum ;
       }
 
-    //UpdateColorBySss(col, nrm, MaterialSss()); // don't use sub-surface scattering at all
-
       // perform lighting
       I.col.rgb=I.col.rgb*total_lum;// + total_specular;
    }

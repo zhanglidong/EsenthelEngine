@@ -479,7 +479,6 @@ inline VecH  MaterialColor3  () {return Material._color.rgb;}
 inline Half  MaterialAlpha   () {return Material._color.a;}
 inline VecH  MaterialAmbient () {return Material._ambient_specular.xyz;}
 inline Half  MaterialSpecular() {return Material._ambient_specular.w;}
-inline Half  MaterialSss     () {return Material._sss_glow_rough_bump.x;}
 inline Half  MaterialGlow    () {return Material._sss_glow_rough_bump.y;}
 inline Half  MaterialRough   () {return Material._sss_glow_rough_bump.z;}
 inline Half  MaterialBump    () {return Material._sss_glow_rough_bump.w;}
@@ -862,11 +861,6 @@ inline Vec  MatrixPos(Matrix  m) {return m[3];}
 inline VecH MatrixPos(MatrixH m) {return m[3];}
 
 inline Vec ObjWorldPos(uniform uint mtrx=0) {return Transform(MatrixPos(ViewMatrix[mtrx]), CamMatrix);} // get the world position of the object matrix
-/******************************************************************************/
-inline void UpdateColorBySss(in out VecH color, VecH normal, uniform Half sub_surf_scatter)
-{
-   color*=(1-Abs(normal.z))*sub_surf_scatter+1;
-}
 /******************************************************************************/
 inline Vec2 UVClamp(Vec2 screen, uniform Bool do_clamp=true)
 {

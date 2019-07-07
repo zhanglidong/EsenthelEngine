@@ -159,14 +159,13 @@ Vec4 PS
    Bool secondary=(light_point || light_linear || light_cone); // local lights are enabled only for secondary shader passes
 
    VecH nrm;
-   Half glow, specular, sss;
+   Half glow, specular;
 
    if(bump_mode==SBUMP_ZERO)
    {
       nrm     =0;
       glow    =MaterialGlow();
       specular=0;
-      sss     =0;
 
       light_dir   =false;
       light_point =false;
@@ -216,7 +215,6 @@ Vec4 PS
       }
 
       if(light_map)I.col.rgb*=Tex(Lum, I.tex_l).rgb;
-      sss=MaterialSss();
 
       // reflection
       if(rflct)
@@ -320,8 +318,6 @@ Vec4 PS
             if(materials>=4)I.col.rgb+=TexCube(Rfl3, I.rfl).rgb*(MultiMaterial3Reflect()*I.material.w*tex_spec[3]);
          }
       }
-
-      sss=0;
    }
 
    if(fx!=FX_GRASS && fx!=FX_LEAF && fx!=FX_LEAFS)BackFlip(nrm, front);
@@ -430,7 +426,6 @@ Vec4 PS
       }  total_lum     +=Light_cone.color.rgb*(lum *power);
    }
 
-   UpdateColorBySss(I.col.rgb, nrm, sss);
    I.col.rgb=(I.col.rgb+Highlight.rgb)*total_lum + total_specular;
 
    return Vec4(I.col.rgb, glow);

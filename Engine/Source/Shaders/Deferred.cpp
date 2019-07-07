@@ -177,13 +177,12 @@ void PS
 )
 {
    VecH nrm;
-   Half glow, specular, sss;
+   Half glow, specular;
 
    if(bump_mode==SBUMP_ZERO)
    {
       glow    =MaterialGlow();
       specular=MaterialSpecular();
-      sss     =MaterialSss();
       nrm     =0;
    }else
    if(materials==1)
@@ -366,7 +365,6 @@ void PS
 
       if(macro    )I.col.rgb =Lerp(I.col.rgb, Tex(Mac, I.tex*MacroScale).rgb, LerpRS(MacroFrom, MacroTo, I.pos.z)*MacroMax);
       if(light_map)I.col.rgb*=Tex(Lum, I.tex_l).rgb;
-      sss=MaterialSss();
 
       // reflection
       if(rflct)
@@ -676,14 +674,11 @@ void PS
             if(materials>=4)I.col.rgb+=TexCube(Rfl3, rfl).rgb*(MultiMaterial3Reflect()*I.material.w*tex_spec[3]);
          }
       }
-
-      sss=0;
    }
 
    if(fx!=FX_GRASS && fx!=FX_LEAF && fx!=FX_LEAFS)BackFlip(nrm, front);
 
    I.col.rgb+=Highlight.rgb;
-   UpdateColorBySss(I.col.rgb, nrm, sss);
 
    output.color   (I.col.rgb   );
    output.glow    (glow        );

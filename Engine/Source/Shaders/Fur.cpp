@@ -81,7 +81,6 @@ void Base_PS
    col=col*MaterialColor3()+Highlight.rgb;
 
    inNrm=Normalize(inNrm);
- //UpdateColorBySss(col, inNrm, MaterialSss());
 
    output.color   (col);
    output.glow    (0);
