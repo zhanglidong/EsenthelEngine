@@ -1212,7 +1212,7 @@ void Shader::draw(C Image *image, C Rect *rect)
             VI.image  (image);
             VI.shader (this );
             VI.setType(VI_2D_TEX, VI_STRIP);
-   if(image)Sh.h_ColSize->set(Vec4(1.0f/image->hwSize(), image->hwSize()));
+   if(image)Sh.colSize(*image);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
    {
       if(!D._view_active.full || rect)
@@ -1280,7 +1280,7 @@ void Shader::draw(C Image *image, C Rect *rect, C Rect &tex)
             VI.image  (image);
             VI.shader (this );
             VI.setType(VI_2D_TEX, VI_STRIP);
-   if(image)Sh.h_ColSize->set(Vec4(1.0f/image->hwSize(), image->hwSize()));
+   if(image)Sh.colSize(*image);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
    {
       if(!D._view_active.full || rect)

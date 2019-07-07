@@ -575,6 +575,7 @@ Image     Col, Col1, Col2, Col3,
           Det, Det1, Det2, Det3,
           Mac, Mac1, Mac2, Mac3,
           Lum;
+ImageH    Val;
 ImageF    Depth;
 ImageCube Rfl, Rfl1, Rfl2, Rfl3;
 
@@ -582,6 +583,7 @@ ImageCube Rfl, Rfl1, Rfl2, Rfl3;
 Texture2DMS<VecH4, MS_SAMPLES> ColMS;
 Texture2DMS<VecH4, MS_SAMPLES> NrmMS;
 Texture2DMS<VecH4, MS_SAMPLES> LumMS;
+Texture2DMS<Half , MS_SAMPLES> ValMS;
 Texture2DMS<Flt  , MS_SAMPLES> DepthMS;
 #endif
 

@@ -263,6 +263,8 @@ void MainShaderClass::getTechniques()
    h_ImageRfl[2]   =ShaderImages("Rfl2"   );
    h_ImageRfl[3]   =ShaderImages("Rfl3"   );
    h_ImageLum      =ShaderImages("Lum"    );
+   h_ImageVal      =ShaderImages("Val"    );
+   h_ImageValMS    =ShaderImages("ValMS"  );
    h_ImageShdMap[0]=ShaderImages("ShdMap" ); h_ImageShdMap[0]->_sampler=&SamplerLinearClamp;
    h_ImageShdMap[1]=ShaderImages("ShdMap1"); h_ImageShdMap[1]->_sampler=&SamplerLinearClamp;
    h_ImageColMS    =ShaderImages("ColMS"  );

@@ -174,7 +174,7 @@ void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
       v[1].tex.set(_part.x,       0);
       v[2].tex.set(      0, _part.y);
       v[3].tex.set(_part.x, _part.y);
-      Sh.h_ColSize->set(Vec4(1.0f/hwSize(), hwSize()));
+      Sh.colSize(T);
    }
    VI.end();
    if(filter==FILTER_NONE)
@@ -225,7 +225,7 @@ void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_
       v[1].tex.set(_part.x,       0);
       v[2].tex.set(      0, _part.y);
       v[3].tex.set(_part.x, _part.y);
-      Sh.h_ColSize->set(Vec4(1.0f/hwSize(), hwSize()));
+      Sh.colSize(T);
    }
    VI.end();
    if(filter==FILTER_NONE)

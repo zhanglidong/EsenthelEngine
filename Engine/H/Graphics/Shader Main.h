@@ -15,6 +15,8 @@ struct MainShaderClass
    static void draw (C Image &image, C Color &color, C Color &color_add=TRANSPARENT, C Rect *rect=null);
    static void draw (C Image &image, C Vec4  &color, C Vec4  &color_add=Vec4Zero   , C Rect *rect=null);
 
+   INLINE void colSize(C Image &image) {h_ColSize->set(Vec4(1.0f/image.hwSize(), image.hwSize()));}
+
    // private
    void del           ();
    void createSamplers();
@@ -31,6 +33,7 @@ struct MainShaderClass
       *h_ImageRfl[4],
       *h_ImageDepth, *h_ImageDepthMS,
       *h_ImageLum  , *h_ImageLumMS  ,
+      *h_ImageVal  , *h_ImageValMS  ,
       *h_ImageShdMap[2],
       *h_ImageCub,
       *h_ImageVol[2];

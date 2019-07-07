@@ -1514,14 +1514,14 @@ TECHNIQUE(ResolveDepth, DrawPixel_VS(), ResolveDepth_PS());
 // 'DepthMs' can't be used because it's always multi-sampled (all samples are different)
 void DetectMSCol_PS(NOPERSP PIXEL)
 {
-   Vec cols[4]={TexSample(ColMS, pixel.xy, 0).rgb, TexSample(ColMS, pixel.xy, 1).rgb, TexSample(ColMS, pixel.xy, 2).rgb, TexSample(ColMS, pixel.xy, 3).rgb}; // load 4-multi-samples of texel
+   VecH cols[4]={TexSample(ColMS, pixel.xy, 0).rgb, TexSample(ColMS, pixel.xy, 1).rgb, TexSample(ColMS, pixel.xy, 2).rgb, TexSample(ColMS, pixel.xy, 3).rgb}; // load 4-multi-samples of texel
  //if(all((cols[0]==cols[1])*(cols[0]==cols[2])*(cols[0]==cols[3])))discard;
-   clip(Length2(cols[0].rgb*3-cols[1].rgb-cols[2].rgb-cols[3].rgb) - Sqr(2.0f/256)); // simplified and approximate version of testing if samples are identical, (cols[0].rgb-cols[1].rgb) + (cols[0].rgb-cols[2].rgb) + (cols[0].rgb-cols[3].rgb)
+   clip(Length2(cols[0].rgb*3-cols[1].rgb-cols[2].rgb-cols[3].rgb) - Sqr(LINEAR_GAMMA ? Half(1.0)/256 : Half(2.0)/256)); // simplified and approximate version of testing if samples are identical, (cols[0].rgb-cols[1].rgb) + (cols[0].rgb-cols[2].rgb) + (cols[0].rgb-cols[3].rgb)
 }
 TECHNIQUE(DetectMSCol, DrawPixel_VS(), DetectMSCol_PS());
 /*void DetectMSNrm_PS(NOPERSP PIXEL)
 {
-   Vec2 nrms[4]={TexSample(ColMS, pixel.xy, 0).xy, TexSample(ColMS, pixel.xy, 1).xy, TexSample(ColMS, pixel.xy, 2).xy, TexSample(ColMS, pixel.xy, 3).xy}; // load 4-multi-samples of texel
+   Vec2 nrms[4]={TexSample(NrmMS, pixel.xy, 0).xy, TexSample(NrmMS, pixel.xy, 1).xy, TexSample(NrmMS, pixel.xy, 2).xy, TexSample(NrmMS, pixel.xy, 3).xy}; // load 4-multi-samples of texel
  //if(all((nrms[0]==nrms[1])*(nrms[0]==nrms[2])*(nrms[0]==nrms[3])))discard;
    clip(Length2(nrms[0].xy*3-nrms[1].xy-nrms[2].xy-nrms[3].xy) - Sqr(2.0f/256*(SIGNED_NRM_RT ? 2 : 1))); // simplified and approximate version of testing if samples are identical, (nrms[0].xy-nrms[1].xy) + (nrms[0].xy-nrms[2].xy) + (nrms[0].xy-nrms[3].xy), for SIGNED_NRM_RT we have to use bigger epsilon because we have 2x bigger value range (-1..1 instead of 0..1)
 }
@@ -2053,12 +2053,12 @@ Vec4 ShdConeM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
 TECHNIQUE    (ShdCone , DrawPosXY_VS(), ShdCone_PS());
 TECHNIQUE_4_1(ShdConeM, DrawPosXY_VS(), ShdConeM_PS());
 /******************************************************************************/
-Vec4 ShdBlur_PS(NOPERSP Vec2 inTex:TEXCOORD,
+Half ShdBlur_PS(NOPERSP Vec2 inTex:TEXCOORD,
                 uniform Int  samples       ):COLOR
 {
-   Flt  weight=0.25f,
-        color =TexPoint(Col, inTex).x*weight,
-        z     =TexDepthPoint(inTex);
+   Half weight=0.25,
+        color =TexPoint(Val, inTex).x*weight;
+   Flt  z     =TexDepthPoint(inTex);
    Vec2 dw_mad=DepthWeightMAD(z);
    UNROLL for(Int i=0; i<samples; i++)
    {
@@ -2071,42 +2071,42 @@ Vec4 ShdBlur_PS(NOPERSP Vec2 inTex:TEXCOORD,
       if(samples==12)t=ColSize.xy*BlendOfs12[i]+inTex;
     //if(samples==13)t=ColSize.xy*BlendOfs13[i]+inTex;
       // use linear filtering because texcoords are not rounded
-      Flt w=DepthWeight(z-TexDepthLinear(t), dw_mad);
-      color +=w*TexLod(Col, t).x; // use linear filtering because texcoords aren't rounded
+      Half w=DepthWeight(z-TexDepthLinear(t), dw_mad);
+      color +=w*TexLod(Val, t).x; // use linear filtering because texcoords aren't rounded
       weight+=w;
    }
    return color/weight;
 }
-Vec4 ShdBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
+Half ShdBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
                  uniform Int  range         ):COLOR
 {
-   Flt  weight=0.5f,
-        color =TexPoint(Col, inTex).x*weight,
-        z     =TexDepthPoint(inTex);
+   Half weight=0.5,
+        color =TexPoint(Val, inTex).x*weight;
+   Flt  z     =TexDepthPoint(inTex);
    Vec2 dw_mad=DepthWeightMAD(z), t; t.y=inTex.y;
    UNROLL for(Int i=-range; i<=range; i++)if(i)
    {
       // use linear filtering because texcoords are not rounded
       t.x=ColSize.x*(2*i+((i>0) ? -0.5f : 0.5f))+inTex.x;
-      Flt w=DepthWeight(z-TexDepthLinear(t), dw_mad);
-      color +=w*TexLod(Col, t).x; // use linear filtering because texcoords aren't rounded
+      Half w=DepthWeight(z-TexDepthLinear(t), dw_mad);
+      color +=w*TexLod(Val, t).x; // use linear filtering because texcoords aren't rounded
       weight+=w;
    }
    return color/weight;
 }
-Vec4 ShdBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
+Half ShdBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
                  uniform Int  range         ):COLOR
 {
-   Flt  weight=0.5f,
-        color =TexPoint(Col, inTex).x*weight,
-        z     =TexDepthPoint(inTex);
+   Half weight=0.5,
+        color =TexPoint(Val, inTex).x*weight;
+   Flt  z     =TexDepthPoint(inTex);
    Vec2 dw_mad=DepthWeightMAD(z), t; t.x=inTex.x;
    UNROLL for(Int i=-range; i<=range; i++)if(i)
    {
       // use linear filtering because texcoords are not rounded
       t.y=ColSize.y*(2*i+((i>0) ? -0.5f : 0.5f))+inTex.y;
-      Flt w=DepthWeight(z-TexDepthLinear(t), dw_mad);
-      color +=w*TexLod(Col, t).x; // use linear filtering because texcoords aren't rounded
+      Half w=DepthWeight(z-TexDepthLinear(t), dw_mad);
+      color +=w*TexLod(Val, t).x; // use linear filtering because texcoords aren't rounded
       weight+=w;
    }
    return color/weight;
@@ -2135,7 +2135,7 @@ Vec4 LightDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                  uniform Bool quality          ):COLOR
 {
    // shadow
-   Half shd; if(shadow)shd=TexPoint(Col, inTex).x;
+   Half shd; if(shadow)shd=TexPoint(Val, inTex).x;
 
    // diffuse
    VecH4 nrm=GetNormal   (inTex, quality);
@@ -2156,7 +2156,7 @@ Vec4 LightDirM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                   uniform Bool quality               ):COLOR
 {
    // shadow
-   Half shd; if(shadow)shd=TexSample(ColMS, pixel.xy, index).x;
+   Half shd; if(shadow)shd=TexSample(ValMS, pixel.xy, index).x;
 
    // diffuse
    VecH4 nrm=GetNormalMS(pixel.xy, index, quality);
@@ -2185,7 +2185,7 @@ Vec4 LightPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    // shadow
    Half shd; if(shadow)
    {
-      shd=ShadowFinal(TexPoint(Col, inTex).x);
+      shd=ShadowFinal(TexPoint(Val, inTex).x);
       clip(shd-EPS_LUM);
    }
 
@@ -2214,7 +2214,7 @@ Vec4 LightPointM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                     uniform Bool quality               ):COLOR
 {
    // shadow
-   Half shd; if(shadow){shd=ShadowFinal(TexSample(ColMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
+   Half shd; if(shadow){shd=ShadowFinal(TexSample(ValMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
 
    // distance
    Vec  pos      =GetPosMS(pixel.xy, index, inPosXY),
@@ -2249,7 +2249,7 @@ Vec4 LightLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    // shadow
    Half shd; if(shadow)
    {
-      shd=ShadowFinal(TexPoint(Col, inTex).x);
+      shd=ShadowFinal(TexPoint(Val, inTex).x);
       clip(shd-EPS_LUM);
    }
 
@@ -2278,7 +2278,7 @@ Vec4 LightLinearM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                      uniform Bool quality               ):COLOR
 {
    // shadow
-   Half shd; if(shadow){shd=ShadowFinal(TexSample(ColMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
+   Half shd; if(shadow){shd=ShadowFinal(TexSample(ValMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
 
    // distance
    Vec  pos      =GetPosMS(pixel.xy, index, inPosXY),
@@ -2314,7 +2314,7 @@ Vec4 LightCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    // shadow
    Half shd; if(shadow)
    {
-      shd=ShadowFinal(TexPoint(Col, inTex).x);
+      shd=ShadowFinal(TexPoint(Val, inTex).x);
       clip(shd-EPS_LUM);
    }
 
@@ -2352,7 +2352,7 @@ Vec4 LightConeM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                    uniform Bool image                 ):COLOR
 {
    // shadow
-   Half shd; if(shadow){shd=ShadowFinal(TexSample(ColMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
+   Half shd; if(shadow){shd=ShadowFinal(TexSample(ValMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
 
    // distance & angle
    Vec  pos      =GetPosMS(pixel.xy, index, inPosXY),

@@ -2577,11 +2577,12 @@ void Image::copyMs(ImageRT &dest, Bool restore_rt, Bool multi_sample, C RectI *r
       Renderer.set(&dest, null, false);
       ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
 
+      Sh.h_ImageCol[0]->set(this);
+      Sh.h_ImageColMS ->set(this);
       VI.shader(!multiSample() ? Sh.h_Draw    : // 1s->1s, 1s->ms
                 !multi_sample  ? Sh.h_DrawMs1 : // #0->1s, #0->ms
             dest.multiSample() ? Sh.h_DrawMsM : // ms->ms
                                  Sh.h_DrawMsN); // ms->1s
-                                VI.image  (this);
                                 VI.setType(VI_2D_TEX, VI_STRIP);
       if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx (4))
       {

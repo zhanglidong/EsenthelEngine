@@ -1715,7 +1715,6 @@ void VtxIndBuf::image(C Image *image)
       flush(); // first flush what's already available, after that make the change
       VI._image=image;
       Sh.h_ImageCol[0]->set(image);
-      Sh.h_ImageColMS ->set(image);
    }
 }
 void VtxIndBuf::color(C Color &color)
