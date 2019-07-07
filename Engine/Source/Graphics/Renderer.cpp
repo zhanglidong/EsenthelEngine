@@ -1248,7 +1248,7 @@ void RendererClass::resolveDepth()
       // always resolve '_ds' into '_ds_1s'
       set(null, _ds_1s(), true);
       D.stencil(STENCIL_ALWAYS_SET, 0); // use 'STENCIL_ALWAYS_SET' here so when down-sampling depth, we clear the entire stencil mask for '_ds_1s'
-      D.depthFunc(FUNC_ALWAYS); D.depthLock  (true); Sh.h_ResolveDepth->draw(_ds);
+      D.depthFunc(FUNC_ALWAYS); D.depthLock  (true); Sh.h_ResolveDepth->draw();
       D.depthFunc(FUNC_LESS  ); D.depthUnlock(    );
 
       // set 1-sampled '_ds_1s' MSAA

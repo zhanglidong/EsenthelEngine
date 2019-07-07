@@ -377,7 +377,7 @@ void WaterClass::end()
          {
             Renderer.set(null, Renderer._ds_1s(), true);
             D.alpha(ALPHA_NONE);
-            D.depthLock  (true); Sh.h_ResolveDepth->draw(Renderer._ds); // here we can keep FUNC_LESS because 1S DS was already set before and we just need to apply water on top
+            D.depthLock  (true); Sh.h_ResolveDepth->draw(); // here we can keep FUNC_LESS because 1S DS was already set before and we just need to apply water on top
             D.depthUnlock(    );
          }
       }

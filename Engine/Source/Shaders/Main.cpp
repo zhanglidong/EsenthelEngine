@@ -1505,8 +1505,8 @@ void ResolveDepth_PS(NOPERSP PIXEL,
                          out Flt depth:DEPTH)
 {
    // return the smallest of all samples
-                                         depth=                 TexSample(ColMS, pixel.xy, 0).x;
-   UNROLL for(Int i=1; i<MS_SAMPLES; i++)depth=DEPTH_MIN(depth, TexSample(ColMS, pixel.xy, i).x); // have to use minimum of depth samples to avoid shadow artifacts, by picking the samples that are closer to the camera, similar effect to what we do with view space bias (if Max is used, then shadow acne can occur for local lights)
+                                         depth=                 TexSample(DepthMS, pixel.xy, 0).x;
+   UNROLL for(Int i=1; i<MS_SAMPLES; i++)depth=DEPTH_MIN(depth, TexSample(DepthMS, pixel.xy, i).x); // have to use minimum of depth samples to avoid shadow artifacts, by picking the samples that are closer to the camera, similar effect to what we do with view space bias (if Max is used, then shadow acne can occur for local lights)
 }
 TECHNIQUE(ResolveDepth, DrawPixel_VS(), ResolveDepth_PS());
 
