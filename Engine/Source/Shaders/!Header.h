@@ -1468,7 +1468,7 @@ BUFFER(LightPoint ) LIGHT_POINT  Light_point ; BUFFER_END
 BUFFER(LightLinear) LIGHT_LINEAR Light_linear; BUFFER_END
 BUFFER(LightCone  ) LIGHT_CONE   Light_cone  ; BUFFER_END
 /******************************************************************************/
-inline Half LightPointDist (Vec  pos           ) {return Min(  Light_point.power/Length2(pos                        ), Light_point.lum_max);} // NaN
+inline Half LightPointDist (Vec  pos           ) {return Min(Half(Light_point.power/Length2(pos)), Light_point.lum_max);} // NaN
 inline Half LightLinearDist(Vec  pos, Flt range) {return Sat(1-Length(pos)      /       (             range         ));}
 inline Half LightLinearDist(Vec  pos           ) {return Sat(1-Length(pos)      /       (Light_linear.range         ));}
 inline Half LightConeDist  (Vec  pos           ) {return Sat(1-Length2(pos)     /Sqr    (Light_cone  .length        ));}
