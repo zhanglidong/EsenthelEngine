@@ -463,11 +463,11 @@ struct FRST : ShaderBase // Forward Rendering Shader Techniques
 {
    Bool all_passes;
    Shader
-      *none,               // no light
-      *dir , * dir_shd[6], // directional light, [MapNum]
-      *pnt , * pnt_shd   , // point       light
-      *sqr , * sqr_shd   , // square      light
-      *cone, *cone_shd   ; // cone        light
+      *none  ,                 // no light
+      *dir   , *   dir_shd[6], // directional light, [MapNum]
+      *point , * point_shd   , // point       light
+      *linear, *linear_shd   , // square      light
+      *cone  , *  cone_shd   ; // cone        light
 };
 /******************************************************************************/
 struct BLSTKey // Blend Light Shader Techniques

@@ -55,10 +55,10 @@ struct MainShaderClass
       *h_Material        ,
       *h_MultiMaterial[4],
 
-      *h_Light_dir ,
-      *h_Light_pnt ,
-      *h_Light_sqr ,
-      *h_Light_cone,
+      *h_Light_dir   ,
+      *h_Light_point ,
+      *h_Light_linear,
+      *h_Light_cone  ,
 
       *h_Step         ,
       *h_Color[2]     ,
@@ -276,25 +276,25 @@ struct MainShaderClass
    // SHADOWS
    Shader
       *h_ShdDir[6][2][2], // [NumberOfMaps] [Clouds] [MultiSample]
-      *h_ShdPnt      [2], //                         [MultiSample]
+      *h_ShdPoint    [2], //                         [MultiSample]
       *h_ShdCone     [2], //                         [MultiSample]
       *h_ShdBlur     [4], // [Quality]
       *h_ShdBlurX       ,
       *h_ShdBlurY       ;
-   Shader* getShdDir (Int map_num, Bool clouds, Bool multi_sample);
-   Shader* getShdPnt (                          Bool multi_sample);
-   Shader* getShdCone(                          Bool multi_sample);
+   Shader* getShdDir  (Int map_num, Bool clouds, Bool multi_sample);
+   Shader* getShdPoint(                          Bool multi_sample);
+   Shader* getShdCone (                          Bool multi_sample);
 
    // LIGHT
    Shader
-      *h_LightDir [2]   [2][2], // [Shadow]         [MultiSample] [QualityUnpack]
-      *h_LightPnt [2]   [2][2], // [Shadow]         [MultiSample] [QualityUnpack]
-      *h_LightSqr [2]   [2][2], // [Shadow]         [MultiSample] [QualityUnpack]
-      *h_LightCone[2][2][2][2]; // [Shadow] [Image] [MultiSample] [QualityUnpack]
-   Shader* getLightDir (Bool shadow,             Bool multi_sample, Bool quality);
-   Shader* getLightPnt (Bool shadow,             Bool multi_sample, Bool quality);
-   Shader* getLightSqr (Bool shadow,             Bool multi_sample, Bool quality);
-   Shader* getLightCone(Bool shadow, Bool image, Bool multi_sample, Bool quality);
+      *h_LightDir   [2]   [2][2], // [Shadow]         [MultiSample] [QualityUnpack]
+      *h_LightPoint [2]   [2][2], // [Shadow]         [MultiSample] [QualityUnpack]
+      *h_LightLinear[2]   [2][2], // [Shadow]         [MultiSample] [QualityUnpack]
+      *h_LightCone  [2][2][2][2]; // [Shadow] [Image] [MultiSample] [QualityUnpack]
+   Shader* getLightDir   (Bool shadow,             Bool multi_sample, Bool quality);
+   Shader* getLightPoint (Bool shadow,             Bool multi_sample, Bool quality);
+   Shader* getLightLinear(Bool shadow,             Bool multi_sample, Bool quality);
+   Shader* getLightCone  (Bool shadow, Bool image, Bool multi_sample, Bool quality);
 
    // COL LIGHT
    Shader
@@ -363,8 +363,8 @@ struct VolumetricLights
    ShaderFile  *shader;
    ShaderParam *h_Light_point_range;
    Shader      *h_VolDir[6][2], // [ShdMapNum] [Clouds]
-               *h_VolPnt      ,
-               *h_VolSqr      ,
+               *h_VolPoint    ,
+               *h_VolLinear   ,
                *h_VolCone     ,
                *h_Volumetric  ,
                *h_VolumetricA ;
@@ -455,7 +455,7 @@ void CreateFontSampler       ();
 
 Str8 TechNameSimple    (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel, Int tess);
 Str8 TechNameDeferred  (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int macro, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tess);
-Str8 TechNameForward   (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_sqr, Int light_sqr_shd,   Int light_cone, Int light_cone_shd,   Int tess);
+Str8 TechNameForward   (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tess);
 Str8 TechNameBlendLight(Int skin, Int color    , Int textures, Int bump_mode, Int alpha_test, Int alpha, Int light_map, Int rflct, Int fx, Int per_pixel, Int shadow_maps);
 Str8 TechNamePosition  (Int skin, Int textures, Int test_blend, Int fx, Int tess);
 Str8 TechNameBlend     (Int skin, Int color, Int rflct, Int textures, Int light_map);

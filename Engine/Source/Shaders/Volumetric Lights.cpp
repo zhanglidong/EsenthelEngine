@@ -38,9 +38,9 @@ Vec4 VolDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    return Vec4(Light_dir.color.rgb*power, 0);
 }
 /******************************************************************************/
-Vec4 VolPnt_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-               NOPERSP Vec2 inPosXY:TEXCOORD1,
-               NOPERSP PIXEL                 ):COLOR
+Vec4 VolPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+                 NOPERSP Vec2 inPosXY:TEXCOORD1,
+                 NOPERSP PIXEL                 ):COLOR
 {
    Vec obj   =GetPosLinear(inTex, inPosXY); // use linear filtering because we may be drawing to a smaller RT
    Flt power =0,
@@ -61,14 +61,14 @@ Vec4 VolPnt_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    {
       // TODO: optimize
       Vec pos=Lerp(from, to, Flt(i)/Flt(steps));
-      power+=ShadowPointValue(obj*(Flt(i)/steps), jitter_value, true)*LightSqrDist(pos, Light_point_range);
+      power+=ShadowPointValue(obj*(Flt(i)/steps), jitter_value, true)*LightLinearDist(pos, Light_point_range);
    }
    return Vec4(Light_point.color.rgb*Min(Light_point.vol_max, Light_point.vol*power*(length/steps)), 0);
 }
 /******************************************************************************/
-Vec4 VolSqr_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-               NOPERSP Vec2 inPosXY:TEXCOORD1,
-               NOPERSP PIXEL                 ):COLOR
+Vec4 VolLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+                  NOPERSP Vec2 inPosXY:TEXCOORD1,
+                  NOPERSP PIXEL                 ):COLOR
 {
    Vec obj   =GetPosLinear(inTex, inPosXY); // use linear filtering because we may be drawing to a smaller RT
    Flt power =0,
@@ -88,9 +88,9 @@ Vec4 VolSqr_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    {
       // TODO: optimize
       Vec pos=Lerp(from, to, Flt(i)/Flt(steps));
-      power+=ShadowPointValue(obj*(Flt(i)/steps), jitter_value, true)*LightSqrDist(pos);
+      power+=ShadowPointValue(obj*(Flt(i)/steps), jitter_value, true)*LightLinearDist(pos);
    }
-   return Vec4(Light_sqr.color.rgb*Min(Light_sqr.vol_max, Light_sqr.vol*power*(length/steps)), 0);
+   return Vec4(Light_linear.color.rgb*Min(Light_linear.vol_max, Light_linear.vol*power*(length/steps)), 0);
 }
 /******************************************************************************/
 Vec4 VolCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
@@ -160,9 +160,9 @@ TECHNIQUE(VolDir4, DrawPosXY_VS(), VolDir_PS(4, false));   TECHNIQUE(VolDir4C, D
 TECHNIQUE(VolDir5, DrawPosXY_VS(), VolDir_PS(5, false));   TECHNIQUE(VolDir5C, DrawPosXY_VS(), VolDir_PS(5, true));
 TECHNIQUE(VolDir6, DrawPosXY_VS(), VolDir_PS(6, false));   TECHNIQUE(VolDir6C, DrawPosXY_VS(), VolDir_PS(6, true));
 
-TECHNIQUE(VolPnt , DrawPosXY_VS(), VolPnt_PS ());
-TECHNIQUE(VolSqr , DrawPosXY_VS(), VolSqr_PS ());
-TECHNIQUE(VolCone, DrawPosXY_VS(), VolCone_PS());
+TECHNIQUE(VolPoint , DrawPosXY_VS(), VolPoint_PS ());
+TECHNIQUE(VolLinear, DrawPosXY_VS(), VolLinear_PS());
+TECHNIQUE(VolCone  , DrawPosXY_VS(), VolCone_PS  ());
 
 TECHNIQUE(Volumetric , Draw_VS(), Volumetric_PS(false));
 TECHNIQUE(VolumetricA, Draw_VS(), Volumetric_PS(true ));

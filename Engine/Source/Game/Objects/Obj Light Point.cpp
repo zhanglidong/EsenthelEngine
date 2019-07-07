@@ -44,11 +44,11 @@ Bool ObjLightPoint::update()
 /******************************************************************************/
 void ObjLightPoint::drawPrepare(C Matrix &matrix)
 {
-   LightSqr(range, position*matrix, color, volumetric).add(cast_shadows, this);
+   LightLinear(range, position*matrix, color, volumetric).add(cast_shadows, this);
 }
 UInt ObjLightPoint::drawPrepare()
 {
-   LightSqr(range, position, color, volumetric).add(cast_shadows, this);
+   LightLinear(range, position, color, volumetric).add(cast_shadows, this);
    return 0; // no additional render modes required
 }
 /******************************************************************************/

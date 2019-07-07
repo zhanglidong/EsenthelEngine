@@ -180,14 +180,14 @@ void MainShaderClass::draw (C Image &image, C Color &color, C Color &color_add, 
 Shader* MainShaderClass::getBloomDS(Bool glow, Bool viewport_clamp, Bool half, Bool saturate, Bool gamma) {return get(S8+"Bloom"+(glow?'G':'\0')+"DS"+(viewport_clamp?'C':'\0')+(half?'H':'\0')+(saturate?'S':'\0')+(gamma?'G':'\0'));}
 Shader* MainShaderClass::getBloom  (Bool dither, Bool gamma                                             ) {return get(S8+"Bloom"+(dither?'D':'\0')+(gamma?'G':'\0'));}
 
-Shader* MainShaderClass::getShdDir (Int map_num, Bool clouds, Bool multi_sample) {return get(S8+"ShdDir"+map_num+(clouds?'C':'\0')+(multi_sample?'M':'\0'));}
-Shader* MainShaderClass::getShdPnt (                          Bool multi_sample) {return get(S8+"ShdPnt"                          +(multi_sample?'M':'\0'));}
-Shader* MainShaderClass::getShdCone(                          Bool multi_sample) {return get(S8+"ShdCone"                         +(multi_sample?'M':'\0'));}
+Shader* MainShaderClass::getShdDir  (Int map_num, Bool clouds, Bool multi_sample) {return get(S8+"ShdDir"+map_num+(clouds?'C':'\0')+(multi_sample?'M':'\0'));}
+Shader* MainShaderClass::getShdPoint(                          Bool multi_sample) {return get(S8+"ShdPoint"                        +(multi_sample?'M':'\0'));}
+Shader* MainShaderClass::getShdCone (                          Bool multi_sample) {return get(S8+"ShdCone"                         +(multi_sample?'M':'\0'));}
 
-Shader* MainShaderClass::getLightDir (Bool shadow,             Bool multi_sample, Bool quality) {return get(S8+"LightDir" +(shadow?'S':'\0')+((quality && !multi_sample)?'Q':'\0')                 +(multi_sample?'M':'\0'));} // MSAA doesn't have quality version (to make it faster)
-Shader* MainShaderClass::getLightPnt (Bool shadow,             Bool multi_sample, Bool quality) {return get(S8+"LightPnt" +(shadow?'S':'\0')+((quality && !multi_sample)?'Q':'\0')                 +(multi_sample?'M':'\0'));} // MSAA doesn't have quality version (to make it faster)
-Shader* MainShaderClass::getLightSqr (Bool shadow,             Bool multi_sample, Bool quality) {return get(S8+"LightSqr" +(shadow?'S':'\0')+((quality && !multi_sample)?'Q':'\0')                 +(multi_sample?'M':'\0'));} // MSAA doesn't have quality version (to make it faster)
-Shader* MainShaderClass::getLightCone(Bool shadow, Bool image, Bool multi_sample, Bool quality) {return get(S8+"LightCone"+(shadow?'S':'\0')+((quality && !multi_sample)?'Q':'\0')+(image?'I':'\0')+(multi_sample?'M':'\0'));} // MSAA doesn't have quality version (to make it faster)
+Shader* MainShaderClass::getLightDir   (Bool shadow,             Bool multi_sample, Bool quality) {return get(S8+"LightDir"   +(shadow?'S':'\0')+((quality && !multi_sample)?'Q':'\0')                 +(multi_sample?'M':'\0'));} // MSAA doesn't have quality version (to make it faster)
+Shader* MainShaderClass::getLightPoint (Bool shadow,             Bool multi_sample, Bool quality) {return get(S8+"LightPoint" +(shadow?'S':'\0')+((quality && !multi_sample)?'Q':'\0')                 +(multi_sample?'M':'\0'));} // MSAA doesn't have quality version (to make it faster)
+Shader* MainShaderClass::getLightLinear(Bool shadow,             Bool multi_sample, Bool quality) {return get(S8+"LightLinear"+(shadow?'S':'\0')+((quality && !multi_sample)?'Q':'\0')                 +(multi_sample?'M':'\0'));} // MSAA doesn't have quality version (to make it faster)
+Shader* MainShaderClass::getLightCone  (Bool shadow, Bool image, Bool multi_sample, Bool quality) {return get(S8+"LightCone"  +(shadow?'S':'\0')+((quality && !multi_sample)?'Q':'\0')+(image?'I':'\0')+(multi_sample?'M':'\0'));} // MSAA doesn't have quality version (to make it faster)
 
 Shader* MainShaderClass::getColLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade) {return get(S8+"ColLight"+multi_sample+(ao?'A':'\0')+(cel_shade?'C':'\0')+(night_shade?'N':'\0'));}
 
@@ -297,10 +297,10 @@ void MainShaderClass::getTechniques()
    h_MultiMaterial[2]=GetShaderParam("MultiMaterial2");
    h_MultiMaterial[3]=GetShaderParam("MultiMaterial3");
 
-   h_Light_dir =GetShaderParam("Light_dir"  );
-   h_Light_pnt =GetShaderParam("Light_point");
-   h_Light_sqr =GetShaderParam("Light_sqr"  );
-   h_Light_cone=GetShaderParam("Light_cone" );
+   h_Light_dir   =GetShaderParam("Light_dir"   );
+   h_Light_point =GetShaderParam("Light_point" );
+   h_Light_linear=GetShaderParam("Light_linear");
+   h_Light_cone  =GetShaderParam("Light_cone"  );
 
    h_Step         =GetShaderParam("Step"         );
    h_Color[0]     =GetShaderParam("Color[0]"     );
@@ -525,9 +525,9 @@ void MainShaderClass::getTechniques()
       REPD(m, (D.shaderModel()>=SM_4_1) ? 2 : 1)
       {
          REPD(n, 6)
-         REPD(c, 2)h_ShdDir[n][c][m]=getShdDir (n+1, c, m);
-                   h_ShdPnt      [m]=getShdPnt (        m);
-                   h_ShdCone     [m]=getShdCone(        m);
+         REPD(c, 2)h_ShdDir[n][c][m]=getShdDir  (n+1, c, m);
+                   h_ShdPoint    [m]=getShdPoint(        m);
+                   h_ShdCone     [m]=getShdCone (        m);
       }
 
       // LIGHT
@@ -535,10 +535,10 @@ void MainShaderClass::getTechniques()
       REPD(s, 2) // shadow
       REPD(q, 2) // quality unpack
       {
-                   h_LightDir [s]   [m][q]=getLightDir (s,    m, q);
-                   h_LightPnt [s]   [m][q]=getLightPnt (s,    m, q);
-                   h_LightSqr [s]   [m][q]=getLightSqr (s,    m, q);
-         REPD(i, 2)h_LightCone[s][i][m][q]=getLightCone(s, i, m, q);
+                   h_LightDir   [s]   [m][q]=getLightDir   (s,    m, q);
+                   h_LightPoint [s]   [m][q]=getLightPoint (s,    m, q);
+                   h_LightLinear[s]   [m][q]=getLightLinear(s,    m, q);
+         REPD(i, 2)h_LightCone  [s][i][m][q]=getLightCone  (s, i, m, q);
       }
 
       // COL LIGHT
@@ -614,9 +614,9 @@ void VolumetricLights::load()
 
       REPD(n, 6)
       REPD(c, 2)h_VolDir[n][c]=shader->get(S8+"VolDir"+(n+1)+(c?'C':'\0'));
-                h_VolPnt      =shader->get(   "VolPnt" );
-                h_VolSqr      =shader->get(   "VolSqr" );
-                h_VolCone     =shader->get(   "VolCone");
+                h_VolPoint    =shader->get(   "VolPoint" );
+                h_VolLinear   =shader->get(   "VolLinear");
+                h_VolCone     =shader->get(   "VolCone"  );
       h_Volumetric =shader->get("Volumetric" );
       h_VolumetricA=shader->get("VolumetricA");
    }

@@ -1,20 +1,20 @@
 /******************************************************************************
 
-   Use 'LightDir'   to add a directional light onto the scene
-   Use 'LightPoint' to add a point       light onto the scene
-   Use 'LightSqr'   to add a point       light onto the scene (with small range)
-   Use 'LightCone'  to add a cone        light onto the scene
+   Use 'LightDir'    to add a directional light onto the scene
+   Use 'LightPoint'  to add a point       light onto the scene
+   Use 'LightLinear' to add a point       light onto the scene (with small range)
+   Use 'LightCone'   to add a cone        light onto the scene
 
    Access 'CurrentLight' to gain informations about the current light which is being applied.
 
 /******************************************************************************/
 enum LIGHT_TYPE : Byte // Light Type
 {
-   LIGHT_NONE , // none
-   LIGHT_DIR  , // directional
-   LIGHT_POINT, // point
-   LIGHT_SQR  , // point with small range
-   LIGHT_CONE , // cone
+   LIGHT_NONE  , // none
+   LIGHT_DIR   , // directional
+   LIGHT_POINT , // point
+   LIGHT_LINEAR, // point with small range
+   LIGHT_CONE  , // cone
 };
 /******************************************************************************/
 struct LightDir // Directional Light
@@ -39,6 +39,7 @@ struct LightDir // Directional Light
 struct LightPoint // Point Light
 {
    Flt  power  , // power             , (0..Inf), determines light range
+        lum_max, // maximum luminance , (0..Inf)
         vol    , // volumetric amount , (0..Inf)
         vol_max; // volumetric maximum, (0..1  )
    VecD pos    ; // position          ,
@@ -48,7 +49,7 @@ struct LightPoint // Point Light
    void add  (Flt shadow_opacity=1.0f, CPtr light_src=null) ; // add light to scene, this needs to be called only in RM_PREPARE mode, 'shadow_opacity'=opacity of shadows (0..1) where value 0 disables shadowing, value 1 sets full shadows, and values between allow for manual blending the shadows, 'light_src'=custom pointer to light source (which can be later accessed from "CurrentLight.src")
 
    LightPoint() {}
-   LightPoint(Flt power, C VecD &pos, C Vec &color_l=Vec(1, 1, 1), Flt vol=0, Flt vol_max=0.5f) {T.power=power; T.pos=pos; T.color_l=color_l; T.vol=vol; T.vol_max=vol_max;}
+   LightPoint(Flt power, C VecD &pos, C Vec &color_l=Vec(1, 1, 1), Flt lum_max=1, Flt vol=0, Flt vol_max=0.5f) {T.power=power; T.pos=pos; T.color_l=color_l; T.lum_max=lum_max; T.vol=vol; T.vol_max=vol_max;}
 
 #if EE_PRIVATE
    void  set(Flt shadow_opacity);
@@ -57,7 +58,7 @@ struct LightPoint // Point Light
 #endif
 };
 /******************************************************************************/
-struct LightSqr // Point Light with small range
+struct LightLinear // Point Light with small range
 {
    Flt  range  , // range             , (0..Inf)
         vol    , // volumetric amount , (0..Inf)
@@ -67,8 +68,8 @@ struct LightSqr // Point Light with small range
 
    void add(Flt shadow_opacity=1.0f, CPtr light_src=null); // add light to scene, this needs to be called only in RM_PREPARE mode, 'shadow_opacity'=opacity of shadows (0..1) where value 0 disables shadowing, value 1 sets full shadows, and values between allow for manual blending the shadows, 'light_src'=custom pointer to light source (which can be later accessed from "CurrentLight.src")
 
-   LightSqr() {}
-   LightSqr(Flt range, C VecD &pos, C Vec &color_l=Vec(1, 1, 1), Flt vol=0, Flt vol_max=0.5f) {T.range=range; T.pos=pos; T.color_l=color_l; T.vol=vol; T.vol_max=vol_max;}
+   LightLinear() {}
+   LightLinear(Flt range, C VecD &pos, C Vec &color_l=Vec(1, 1, 1), Flt vol=0, Flt vol_max=0.5f) {T.range=range; T.pos=pos; T.color_l=color_l; T.vol=vol; T.vol_max=vol_max;}
 
 #if EE_PRIVATE
    void  set(Flt shadow_opacity);
@@ -107,10 +108,10 @@ struct Light
    Image     *image         ; // dynamic lightmap
    union
    {
-      LightDir   dir  ; // directional light, valid when "type==LIGHT_DIR"
-      LightPoint point; // point       light, valid when "type==LIGHT_POINT"
-      LightSqr   sqr  ; // point       light, valid when "type==LIGHT_SQR"
-      LightCone  cone ; // cone        light, valid when "type==LIGHT_CONE"
+      LightDir    dir   ; // directional light, valid when "type==LIGHT_DIR"
+      LightPoint  point ; // point       light, valid when "type==LIGHT_POINT"
+      LightLinear linear; // point       light, valid when "type==LIGHT_LINEAR"
+      LightCone   cone  ; // cone        light, valid when "type==LIGHT_CONE"
    };
 
    // get / set
@@ -127,10 +128,10 @@ struct Light
 
    void set();
 
-   void set(LightDir   &light,               Bool shadow        , CPtr light_src);
-   void set(LightPoint &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src);
-   void set(LightSqr   &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src);
-   void set(LightCone  &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src);
+   void set(LightDir    &light,               Bool shadow        , CPtr light_src);
+   void set(LightPoint  &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src);
+   void set(LightLinear &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src);
+   void set(LightCone   &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src);
 
    void draw       ();
    void drawForward(ImageRT *dest, ALPHA_MODE alpha);

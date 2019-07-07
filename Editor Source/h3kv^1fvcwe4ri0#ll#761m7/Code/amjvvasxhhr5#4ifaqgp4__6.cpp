@@ -317,8 +317,8 @@ class Obj : ObjData
       }
       switch(edit_type)
       {
-         case EDIT_OBJ_LIGHT_POINT: {LightSqr  l(m.x.length(), m.pos,       light_col);                                                       l.add(light_cast_shadows, this);} break;
-         case EDIT_OBJ_LIGHT_CONE : {LightCone l(m.x.length(), m.pos, !m.z, light_col); l.pyramid.scale=light_angle; l.falloff=light_falloff; l.add(light_cast_shadows, this);} break;
+         case EDIT_OBJ_LIGHT_POINT: {LightLinear l(m.x.length(), m.pos,       light_col);                                                       l.add(light_cast_shadows, this);} break;
+         case EDIT_OBJ_LIGHT_CONE : {LightCone   l(m.x.length(), m.pos, !m.z, light_col); l.pyramid.scale=light_angle; l.falloff=light_falloff; l.add(light_cast_shadows, this);} break;
          case EDIT_OBJ_PARTICLES  :
          {
             switch(particles.renderMode()) // use include because this can be called multiple times per single rendering in RT_FORWARD

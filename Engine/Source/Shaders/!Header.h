@@ -1439,12 +1439,12 @@ struct LIGHT_DIR
 
 struct LIGHT_POINT
 {
-   Half  power, vol, vol_max;
+   Half  power, lum_max, vol, vol_max;
    Vec   pos;
    VecH4 color; // a=spec
 };
 
-struct LIGHT_SQR
+struct LIGHT_LINEAR
 {
    Half  range, vol, vol_max;
    Vec   pos;
@@ -1453,23 +1453,23 @@ struct LIGHT_SQR
 
 struct LIGHT_CONE
 {
-   MatrixH3 mtrx; // must be at start because of ATI OpenGL bug
    Half     length, scale, vol, vol_max;
    VecH2    falloff;
    Vec      pos;
    VecH4    color; // a=spec
+   MatrixH3 mtrx;
 };
 
-BUFFER(LightDir  ) LIGHT_DIR   Light_dir  ; BUFFER_END
-BUFFER(LightPoint) LIGHT_POINT Light_point; BUFFER_END
-BUFFER(LightSqr  ) LIGHT_SQR   Light_sqr  ; BUFFER_END
-BUFFER(LightCone ) LIGHT_CONE  Light_cone ; BUFFER_END
+BUFFER(LightDir   ) LIGHT_DIR    Light_dir   ; BUFFER_END
+BUFFER(LightPoint ) LIGHT_POINT  Light_point ; BUFFER_END
+BUFFER(LightLinear) LIGHT_LINEAR Light_linear; BUFFER_END
+BUFFER(LightCone  ) LIGHT_CONE   Light_cone  ; BUFFER_END
 /******************************************************************************/
-inline Half LightPointDist(Vec  pos           ) {return Sat(  Light_point.power/Length2(pos                        ));} // NaN
-inline Half LightSqrDist  (Vec  pos, Flt range) {return Sat(1-Length2(pos)     /Sqr    (           range           ));}
-inline Half LightSqrDist  (Vec  pos           ) {return Sat(1-Length2(pos)     /Sqr    (Light_sqr .range           ));}
-inline Half LightConeDist (Vec  pos           ) {return Sat(1-Length2(pos)     /Sqr    (Light_cone.length          ));}
-inline Half LightConeAngle(Vec2 pos           ) {return Sat(  Length (pos)*Light_cone.falloff.x+Light_cone.falloff.y);}
+inline Half LightPointDist (Vec  pos           ) {return Min(  Light_point.power/Length2(pos                        ), Light_point.lum_max);} // NaN
+inline Half LightLinearDist(Vec  pos, Flt range) {return Sat(1-Length(pos)      /       (             range         ));}
+inline Half LightLinearDist(Vec  pos           ) {return Sat(1-Length(pos)      /       (Light_linear.range         ));}
+inline Half LightConeDist  (Vec  pos           ) {return Sat(1-Length2(pos)     /Sqr    (Light_cone  .length        ));}
+inline Half LightConeAngle (Vec2 pos           ) {return Sat(  Length (pos)*Light_cone.falloff.x+Light_cone.falloff.y);}
 
 inline Half LightDiffuse (VecH nrm,                VecH light_dir                             ) {return Sat(Dot(nrm, light_dir));}
 inline Half LightSpecular(VecH nrm, Half specular, VecH light_dir, VecH eye_dir, Half power=64)

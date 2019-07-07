@@ -1380,36 +1380,36 @@ static Bool Create(FRST &frst, C FRSTKey &key, Ptr)
    {
       Shader *shader=shader_file->get(TechNameForward(key.skin, key.materials, key.textures, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.rflct, key.color, key.mtrl_blend, key.heightmap, key.fx,   false, 0, 0,   false, 0,   false, 0,   false, 0,   false));
       frst.all_passes=false;
-      frst.none=shader;
-      frst.dir =shader;
-      frst.pnt =shader;
-      frst.sqr =shader;
-      frst.cone=shader;
-      REPAO(frst. dir_shd)=shader;
-            frst. pnt_shd =shader;
-            frst. sqr_shd =shader;
-            frst.cone_shd =shader;
+      frst.none  =shader;
+      frst.dir   =shader;
+      frst.point =shader;
+      frst.linear=shader;
+      frst.cone  =shader;
+      REPAO(frst.   dir_shd)=shader;
+            frst. point_shd =shader;
+            frst.linear_shd =shader;
+            frst.  cone_shd =shader;
    }else
    {
       frst.all_passes=true;
-      frst.none=shader_file->get(TechNameForward(key.skin, key.materials, key.textures, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.rflct, key.color, key.mtrl_blend, key.heightmap, key.fx,   false, false, 0,   false, false,   false, false,   false, false,   key.tess));
-      frst.dir =shader_file->get(TechNameForward(key.skin, key.materials, key.textures, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.rflct, key.color, key.mtrl_blend, key.heightmap, key.fx,   true , false, 0,   false, false,   false, false,   false, false,   key.tess));
-      frst.pnt =shader_file->get(TechNameForward(key.skin, key.materials, key.textures, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.rflct, key.color, key.mtrl_blend, key.heightmap, key.fx,   false, false, 0,   true , false,   false, false,   false, false,   key.tess));
-      frst.sqr =shader_file->get(TechNameForward(key.skin, key.materials, key.textures, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.rflct, key.color, key.mtrl_blend, key.heightmap, key.fx,   false, false, 0,   false, false,   true , false,   false, false,   key.tess));
-      frst.cone=shader_file->get(TechNameForward(key.skin, key.materials, key.textures, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.rflct, key.color, key.mtrl_blend, key.heightmap, key.fx,   false, false, 0,   false, false,   false, false,   true , false,   key.tess));
+      frst.none  =shader_file->get(TechNameForward(key.skin, key.materials, key.textures, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.rflct, key.color, key.mtrl_blend, key.heightmap, key.fx,   false, false, 0,   false, false,   false, false,   false, false,   key.tess));
+      frst.dir   =shader_file->get(TechNameForward(key.skin, key.materials, key.textures, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.rflct, key.color, key.mtrl_blend, key.heightmap, key.fx,   true , false, 0,   false, false,   false, false,   false, false,   key.tess));
+      frst.point =shader_file->get(TechNameForward(key.skin, key.materials, key.textures, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.rflct, key.color, key.mtrl_blend, key.heightmap, key.fx,   false, false, 0,   true , false,   false, false,   false, false,   key.tess));
+      frst.linear=shader_file->get(TechNameForward(key.skin, key.materials, key.textures, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.rflct, key.color, key.mtrl_blend, key.heightmap, key.fx,   false, false, 0,   false, false,   true , false,   false, false,   key.tess));
+      frst.cone  =shader_file->get(TechNameForward(key.skin, key.materials, key.textures, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.rflct, key.color, key.mtrl_blend, key.heightmap, key.fx,   false, false, 0,   false, false,   false, false,   true , false,   key.tess));
 
       if(D.shadowSupported())
       {
-         REPAO(frst. dir_shd)=shader_file->get(TechNameForward(key.skin, key.materials, key.textures, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.rflct, key.color, key.mtrl_blend, key.heightmap, key.fx,   true , true , Ceil2(i+1),   false, false,   false, false,   false, false,  key.tess));
-               frst. pnt_shd =shader_file->get(TechNameForward(key.skin, key.materials, key.textures, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.rflct, key.color, key.mtrl_blend, key.heightmap, key.fx,   false, false,         0 ,   true , true ,   false, false,   false, false,  key.tess));
-               frst. sqr_shd =shader_file->get(TechNameForward(key.skin, key.materials, key.textures, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.rflct, key.color, key.mtrl_blend, key.heightmap, key.fx,   false, false,         0 ,   false, false,   true , true ,   false, false,  key.tess));
-               frst.cone_shd =shader_file->get(TechNameForward(key.skin, key.materials, key.textures, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.rflct, key.color, key.mtrl_blend, key.heightmap, key.fx,   false, false,         0 ,   false, false,   false, false,   true , true ,  key.tess));
+         REPAO(frst.   dir_shd)=shader_file->get(TechNameForward(key.skin, key.materials, key.textures, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.rflct, key.color, key.mtrl_blend, key.heightmap, key.fx,   true , true , Ceil2(i+1),   false, false,   false, false,   false, false,  key.tess));
+               frst. point_shd =shader_file->get(TechNameForward(key.skin, key.materials, key.textures, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.rflct, key.color, key.mtrl_blend, key.heightmap, key.fx,   false, false,         0 ,   true , true ,   false, false,   false, false,  key.tess));
+               frst.linear_shd =shader_file->get(TechNameForward(key.skin, key.materials, key.textures, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.rflct, key.color, key.mtrl_blend, key.heightmap, key.fx,   false, false,         0 ,   false, false,   true , true ,   false, false,  key.tess));
+               frst.  cone_shd =shader_file->get(TechNameForward(key.skin, key.materials, key.textures, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.rflct, key.color, key.mtrl_blend, key.heightmap, key.fx,   false, false,         0 ,   false, false,   false, false,   true , true ,  key.tess));
       }else
       {
-         REPAO(frst. dir_shd)=null;
-               frst. pnt_shd =null;
-               frst. sqr_shd =null;
-               frst.cone_shd =null;
+         REPAO(frst.   dir_shd)=null;
+               frst. point_shd =null;
+               frst.linear_shd =null;
+               frst.  cone_shd =null;
       }
    }
    return true;

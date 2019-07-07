@@ -2015,23 +2015,23 @@ TECHNIQUE_4_1(ShdDir4M, DrawPosXY_VS(), ShdDirM_PS(4, false));   TECHNIQUE_4_1(S
 TECHNIQUE_4_1(ShdDir5M, DrawPosXY_VS(), ShdDirM_PS(5, false));   TECHNIQUE_4_1(ShdDir5CM, DrawPosXY_VS(), ShdDirM_PS(5, true));
 TECHNIQUE_4_1(ShdDir6M, DrawPosXY_VS(), ShdDirM_PS(6, false));   TECHNIQUE_4_1(ShdDir6CM, DrawPosXY_VS(), ShdDirM_PS(6, true));
 /******************************************************************************/
-Vec4 ShdPnt_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-               NOPERSP Vec2 inPosXY:TEXCOORD1,
-               NOPERSP PIXEL):COLOR
+Vec4 ShdPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+                 NOPERSP Vec2 inPosXY:TEXCOORD1,
+                 NOPERSP PIXEL):COLOR
 {
    return ShadowPointValue(GetPosPoint(inTex, inPosXY), ShadowJitter(pixel.xy), true);
 }
 #if MODEL>=SM_4
-Vec4 ShdPntM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
-                NOPERSP Vec2 inPosXY:TEXCOORD1     ,
-                NOPERSP PIXEL,
-                        UInt index  :SV_SampleIndex):COLOR
+Vec4 ShdPointM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
+                  NOPERSP Vec2 inPosXY:TEXCOORD1     ,
+                  NOPERSP PIXEL,
+                          UInt index  :SV_SampleIndex):COLOR
 {
    return ShadowPointValue(GetPosMS(pixel.xy, index, inPosXY), ShadowJitter(pixel.xy), true);
 }
 #endif
-TECHNIQUE    (ShdPnt , DrawPosXY_VS(), ShdPnt_PS ());
-TECHNIQUE_4_1(ShdPntM, DrawPosXY_VS(), ShdPntM_PS());
+TECHNIQUE    (ShdPoint , DrawPosXY_VS(), ShdPoint_PS ());
+TECHNIQUE_4_1(ShdPointM, DrawPosXY_VS(), ShdPointM_PS());
 /******************************************************************************/
 Vec4 ShdCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                 NOPERSP Vec2 inPosXY:TEXCOORD1,
@@ -2175,10 +2175,10 @@ TECHNIQUE_4_1(LightDirM , DrawPosXY_VS(), LightDirM_PS(false, false));
 TECHNIQUE_4_1(LightDirSM, DrawPosXY_VS(), LightDirM_PS(true , false));
 // no Quality version for MSAA
 /******************************************************************************/
-Vec4 LightPnt_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                 NOPERSP Vec2 inPosXY:TEXCOORD1,
-                 uniform Int  shadow           ,
-                 uniform Bool quality          ):COLOR
+Vec4 LightPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+                   NOPERSP Vec2 inPosXY:TEXCOORD1,
+                   uniform Int  shadow           ,
+                   uniform Bool quality          ):COLOR
 {
    // shadow
    Half shd; if(shadow)
@@ -2204,12 +2204,12 @@ Vec4 LightPnt_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    return Vec4(Light_point.color.rgb*lum, Light_point.color.a*specular);
 }
 #if MODEL>=SM_4
-Vec4 LightPntM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
-                  NOPERSP Vec2 inPosXY:TEXCOORD1     ,
-                  NOPERSP PIXEL                      ,
-                          UInt index  :SV_SampleIndex,
-                  uniform Bool shadow                ,
-                  uniform Bool quality               ):COLOR
+Vec4 LightPointM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
+                    NOPERSP Vec2 inPosXY:TEXCOORD1     ,
+                    NOPERSP PIXEL                      ,
+                            UInt index  :SV_SampleIndex,
+                    uniform Bool shadow                ,
+                    uniform Bool quality               ):COLOR
 {
    // shadow
    Half shd; if(shadow){shd=ShadowFinal(TexSample(ColMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
@@ -2231,18 +2231,18 @@ Vec4 LightPntM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
    return Vec4(Light_point.color.rgb*lum, Light_point.color.a*specular);
 }
 #endif
-TECHNIQUE    (LightPnt  , DrawPosXY_VS(), LightPnt_PS (false, false));
-TECHNIQUE    (LightPntS , DrawPosXY_VS(), LightPnt_PS (true , false));
-TECHNIQUE    (LightPntQ , DrawPosXY_VS(), LightPnt_PS (false, true ));
-TECHNIQUE    (LightPntSQ, DrawPosXY_VS(), LightPnt_PS (true , true ));
-TECHNIQUE_4_1(LightPntM , DrawPosXY_VS(), LightPntM_PS(false, false));
-TECHNIQUE_4_1(LightPntSM, DrawPosXY_VS(), LightPntM_PS(true , false));
+TECHNIQUE    (LightPoint  , DrawPosXY_VS(), LightPoint_PS (false, false));
+TECHNIQUE    (LightPointS , DrawPosXY_VS(), LightPoint_PS (true , false));
+TECHNIQUE    (LightPointQ , DrawPosXY_VS(), LightPoint_PS (false, true ));
+TECHNIQUE    (LightPointSQ, DrawPosXY_VS(), LightPoint_PS (true , true ));
+TECHNIQUE_4_1(LightPointM , DrawPosXY_VS(), LightPointM_PS(false, false));
+TECHNIQUE_4_1(LightPointSM, DrawPosXY_VS(), LightPointM_PS(true , false));
 // no Quality version for MSAA
 /******************************************************************************/
-Vec4 LightSqr_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                 NOPERSP Vec2 inPosXY:TEXCOORD1,
-                 uniform Int  shadow           ,
-                 uniform Bool quality          ):COLOR
+Vec4 LightLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+                    NOPERSP Vec2 inPosXY:TEXCOORD1,
+                    uniform Int  shadow           ,
+                    uniform Bool quality          ):COLOR
 {
    // shadow
    Half shd; if(shadow)
@@ -2253,8 +2253,8 @@ Vec4 LightSqr_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
    // distance
    Vec  pos      =GetPosPoint(inTex, inPosXY),
-        light_dir=Light_sqr.pos-pos;
-   Half power    =LightSqrDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
+        light_dir=Light_linear.pos-pos;
+   Half power    =LightLinearDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
 
    // diffuse
          light_dir=Normalize   (light_dir);
@@ -2265,23 +2265,23 @@ Vec4 LightSqr_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    VecH eye_dir =Normalize    (-pos);
    Half specular=LightSpecular( nrm.xyz, nrm.w, light_dir, eye_dir)*power;
 
-   return Vec4(Light_sqr.color.rgb*lum, Light_sqr.color.a*specular);
+   return Vec4(Light_linear.color.rgb*lum, Light_linear.color.a*specular);
 }
 #if MODEL>=SM_4
-Vec4 LightSqrM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
-                  NOPERSP Vec2 inPosXY:TEXCOORD1     ,
-                  NOPERSP PIXEL                      ,
-                          UInt index  :SV_SampleIndex,
-                  uniform Bool shadow                ,
-                  uniform Bool quality               ):COLOR
+Vec4 LightLinearM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
+                     NOPERSP Vec2 inPosXY:TEXCOORD1     ,
+                     NOPERSP PIXEL                      ,
+                             UInt index  :SV_SampleIndex,
+                     uniform Bool shadow                ,
+                     uniform Bool quality               ):COLOR
 {
    // shadow
    Half shd; if(shadow){shd=ShadowFinal(TexSample(ColMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
 
    // distance
    Vec  pos      =GetPosMS(pixel.xy, index, inPosXY),
-        light_dir=Light_sqr.pos-pos;
-   Half power    =LightSqrDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
+        light_dir=Light_linear.pos-pos;
+   Half power    =LightLinearDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
 
    // diffuse
          light_dir=Normalize   (light_dir);
@@ -2292,15 +2292,15 @@ Vec4 LightSqrM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
    VecH eye_dir =Normalize    (-pos);
    Half specular=LightSpecular( nrm.xyz, nrm.w, light_dir, eye_dir)*power;
 
-   return Vec4(Light_sqr.color.rgb*lum, Light_sqr.color.a*specular);
+   return Vec4(Light_linear.color.rgb*lum, Light_linear.color.a*specular);
 }
 #endif
-TECHNIQUE    (LightSqr  , DrawPosXY_VS(), LightSqr_PS (false, false));
-TECHNIQUE    (LightSqrS , DrawPosXY_VS(), LightSqr_PS (true , false));
-TECHNIQUE    (LightSqrQ , DrawPosXY_VS(), LightSqr_PS (false, true ));
-TECHNIQUE    (LightSqrSQ, DrawPosXY_VS(), LightSqr_PS (true , true ));
-TECHNIQUE_4_1(LightSqrM , DrawPosXY_VS(), LightSqrM_PS(false, false));
-TECHNIQUE_4_1(LightSqrSM, DrawPosXY_VS(), LightSqrM_PS(true , false));
+TECHNIQUE    (LightLinear  , DrawPosXY_VS(), LightLinear_PS (false, false));
+TECHNIQUE    (LightLinearS , DrawPosXY_VS(), LightLinear_PS (true , false));
+TECHNIQUE    (LightLinearQ , DrawPosXY_VS(), LightLinear_PS (false, true ));
+TECHNIQUE    (LightLinearSQ, DrawPosXY_VS(), LightLinear_PS (true , true ));
+TECHNIQUE_4_1(LightLinearM , DrawPosXY_VS(), LightLinearM_PS(false, false));
+TECHNIQUE_4_1(LightLinearSM, DrawPosXY_VS(), LightLinearM_PS(true , false));
 // no Quality version for MSAA
 /******************************************************************************/
 Vec4 LightCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,

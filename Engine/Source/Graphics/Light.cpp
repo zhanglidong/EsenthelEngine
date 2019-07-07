@@ -48,14 +48,14 @@ static inline void SetShdMatrix()
    REP(6)Sh.h_ShdMatrix4[i]->set(ShdMatrix4[i][Renderer._eye]);
 }
 /******************************************************************************/
-INLINE Shader* GetShdDir (Int map_num, Bool clouds, Bool multi_sample) {Shader* &s=Sh.h_ShdDir[map_num-1][clouds][multi_sample]; if(SLOW_SHADER_LOAD && !s)s=Sh.getShdDir (map_num, clouds, multi_sample); return s;}
-INLINE Shader* GetShdPnt (                          Bool multi_sample) {Shader* &s=Sh.h_ShdPnt                   [multi_sample]; if(SLOW_SHADER_LOAD && !s)s=Sh.getShdPnt (                 multi_sample); return s;}
-INLINE Shader* GetShdCone(                          Bool multi_sample) {Shader* &s=Sh.h_ShdCone                  [multi_sample]; if(SLOW_SHADER_LOAD && !s)s=Sh.getShdCone(                 multi_sample); return s;}
+INLINE Shader* GetShdDir  (Int map_num, Bool clouds, Bool multi_sample) {Shader* &s=Sh.h_ShdDir[map_num-1][clouds][multi_sample]; if(SLOW_SHADER_LOAD && !s)s=Sh.getShdDir  (map_num, clouds, multi_sample); return s;}
+INLINE Shader* GetShdPoint(                          Bool multi_sample) {Shader* &s=Sh.h_ShdPoint                 [multi_sample]; if(SLOW_SHADER_LOAD && !s)s=Sh.getShdPoint(                 multi_sample); return s;}
+INLINE Shader* GetShdCone (                          Bool multi_sample) {Shader* &s=Sh.h_ShdCone                  [multi_sample]; if(SLOW_SHADER_LOAD && !s)s=Sh.getShdCone (                 multi_sample); return s;}
 
-INLINE Shader* GetLightDir (Bool shadow,             Bool multi_sample, Bool quality) {Shader* &s=Sh.h_LightDir [shadow]       [multi_sample][quality]; if(SLOW_SHADER_LOAD && !s)s=Sh.getLightDir (shadow,        multi_sample, quality); return s;}
-INLINE Shader* GetLightPnt (Bool shadow,             Bool multi_sample, Bool quality) {Shader* &s=Sh.h_LightPnt [shadow]       [multi_sample][quality]; if(SLOW_SHADER_LOAD && !s)s=Sh.getLightPnt (shadow,        multi_sample, quality); return s;}
-INLINE Shader* GetLightSqr (Bool shadow,             Bool multi_sample, Bool quality) {Shader* &s=Sh.h_LightSqr [shadow]       [multi_sample][quality]; if(SLOW_SHADER_LOAD && !s)s=Sh.getLightSqr (shadow,        multi_sample, quality); return s;}
-INLINE Shader* GetLightCone(Bool shadow, Bool image, Bool multi_sample, Bool quality) {Shader* &s=Sh.h_LightCone[shadow][image][multi_sample][quality]; if(SLOW_SHADER_LOAD && !s)s=Sh.getLightCone(shadow, image, multi_sample, quality); return s;}
+INLINE Shader* GetLightDir   (Bool shadow,             Bool multi_sample, Bool quality) {Shader* &s=Sh.h_LightDir   [shadow]       [multi_sample][quality]; if(SLOW_SHADER_LOAD && !s)s=Sh.getLightDir   (shadow,        multi_sample, quality); return s;}
+INLINE Shader* GetLightPoint (Bool shadow,             Bool multi_sample, Bool quality) {Shader* &s=Sh.h_LightPoint [shadow]       [multi_sample][quality]; if(SLOW_SHADER_LOAD && !s)s=Sh.getLightPoint (shadow,        multi_sample, quality); return s;}
+INLINE Shader* GetLightLinear(Bool shadow,             Bool multi_sample, Bool quality) {Shader* &s=Sh.h_LightLinear[shadow]       [multi_sample][quality]; if(SLOW_SHADER_LOAD && !s)s=Sh.getLightLinear(shadow,        multi_sample, quality); return s;}
+INLINE Shader* GetLightCone  (Bool shadow, Bool image, Bool multi_sample, Bool quality) {Shader* &s=Sh.h_LightCone  [shadow][image][multi_sample][quality]; if(SLOW_SHADER_LOAD && !s)s=Sh.getLightCone  (shadow, image, multi_sample, quality); return s;}
 /******************************************************************************/
 static Flt ShadowStep(Int i, Int num) // 0..1
 {
@@ -177,10 +177,10 @@ Flt LightPoint::range()C
    return Sqrt(power/(LINEAR_GAMMA ? 1.0f/512 : 1.0f/256));
 }
 /******************************************************************************/
-void LightDir  ::add(Bool shadow        , CPtr light_src                               ) {           if(color_l.max()          >EPS_COL                       && Renderer.firstPass()){Lights.New().set(T,       shadow        , light_src);}}
-void LightPoint::add(Flt  shadow_opacity, CPtr light_src                               ) {Rect rect; if(color_l.max()*power    >EPS_COL && toScreenRect(rect) && Renderer.firstPass()){Lights.New().set(T, rect, shadow_opacity, light_src);}}
-void LightSqr  ::add(Flt  shadow_opacity, CPtr light_src                               ) {Rect rect; if(color_l.max()*range    >EPS_COL && toScreenRect(rect) && Renderer.firstPass()){Lights.New().set(T, rect, shadow_opacity, light_src);}}
-void LightCone ::add(Flt  shadow_opacity, CPtr light_src, Image *image, Flt image_scale) {Rect rect; if(color_l.max()*pyramid.h>EPS_COL && toScreenRect(rect) && Renderer.firstPass())
+void LightDir   ::add(Bool shadow        , CPtr light_src                               ) {           if(color_l.max()          >EPS_COL                       && Renderer.firstPass()){Lights.New().set(T,       shadow        , light_src);}}
+void LightPoint ::add(Flt  shadow_opacity, CPtr light_src                               ) {Rect rect; if(color_l.max()*power    >EPS_COL && toScreenRect(rect) && Renderer.firstPass()){Lights.New().set(T, rect, shadow_opacity, light_src);}}
+void LightLinear::add(Flt  shadow_opacity, CPtr light_src                               ) {Rect rect; if(color_l.max()*range    >EPS_COL && toScreenRect(rect) && Renderer.firstPass()){Lights.New().set(T, rect, shadow_opacity, light_src);}}
+void LightCone  ::add(Flt  shadow_opacity, CPtr light_src, Image *image, Flt image_scale) {Rect rect; if(color_l.max()*pyramid.h>EPS_COL && toScreenRect(rect) && Renderer.firstPass())
    {
       Light &l=Lights.New();
       l.set(T, rect, shadow_opacity, light_src);
@@ -197,11 +197,11 @@ struct GpuLightDir
 };
 struct GpuLightPoint
 {
-   Flt power, vol, vol_max;
+   Flt power, lum_max, vol, vol_max;
    Vec pos, color;
    Flt spec;
 };
-struct GpuLightSqr
+struct GpuLightLinear
 {
    Flt range, vol, vol_max;
    Vec pos, color;
@@ -209,11 +209,11 @@ struct GpuLightSqr
 };
 struct GpuLightCone
 {
-   Matrix3 mtrx; // must be at start because of ATI OpenGL bug
    Flt     length, scale, vol, vol_max;
    Vec2    falloff;
    Vec     pos, color;
    Flt     spec;
+   Matrix3 mtrx;
 };
 #pragma pack(pop)
 void LightDir::set()
@@ -231,23 +231,24 @@ void LightPoint::set(Flt shadow_opacity)
 {
    GpuLightPoint l;
    l.power  =power;
+   l.lum_max=lum_max;
    l.vol    =vol*shadow_opacity;
    l.vol_max=vol_max;
    l.pos    .fromDivNormalized(pos, CamMatrix);
    l.color  =LinearToDisplay(color_l);
    l.spec   =color_l.max();
-   Sh.h_Light_pnt->set(l);
+   Sh.h_Light_point->set(l);
 }
-void LightSqr::set(Flt shadow_opacity)
+void LightLinear::set(Flt shadow_opacity)
 {
-   GpuLightSqr l;
+   GpuLightLinear l;
    l.range  =range;
    l.vol    =vol*shadow_opacity;
    l.vol_max=vol_max;
    l.pos    .fromDivNormalized(pos, CamMatrix);
    l.color  =LinearToDisplay(color_l);
    l.spec   =color_l.max();
-   Sh.h_Light_sqr->set(l);
+   Sh.h_Light_linear->set(l);
 }
 void LightCone::set(Flt shadow_opacity)
 {
@@ -393,15 +394,15 @@ static void ApplyVolumetric(LightPoint &light)
    {
       StartVol();
       VL.h_Light_point_range->set(light.range());
-      VL.h_VolPnt->draw(Renderer._vol(), &CurrentLightRect[Renderer._eye]);
+      VL.h_VolPoint->draw(Renderer._vol(), &CurrentLightRect[Renderer._eye]);
    }
 }
-static void ApplyVolumetric(LightSqr &light)
+static void ApplyVolumetric(LightLinear &light)
 {
    if(Renderer.hasVolLight() && light.vol>EPS_COL)REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])
    {
       StartVol();
-      VL.h_VolSqr->draw(Renderer._vol(), &CurrentLightRect[Renderer._eye]);
+      VL.h_VolLinear->draw(Renderer._vol(), &CurrentLightRect[Renderer._eye]);
    }
 }
 static void ApplyVolumetric(LightCone &light)
@@ -854,52 +855,52 @@ Flt Light::range()C
 {
    switch(type)
    {
-      case LIGHT_POINT: return point.range()  ;
-      case LIGHT_SQR  : return sqr  .range    ;
-      case LIGHT_CONE : return cone .pyramid.h;
-      default         : return 0              ;
+      case LIGHT_POINT : return point .range()  ;
+      case LIGHT_LINEAR: return linear.range    ;
+      case LIGHT_CONE  : return cone  .pyramid.h;
+      default          : return 0               ;
    }
 }
 Flt Light::vol()C
 {
    switch(type)
    {
-      case LIGHT_DIR  : return dir  .vol;
-      case LIGHT_POINT: return point.vol;
-      case LIGHT_SQR  : return sqr  .vol;
-      case LIGHT_CONE : return cone .vol;
-      default         : return 0        ;
+      case LIGHT_DIR   : return dir   .vol;
+      case LIGHT_POINT : return point .vol;
+      case LIGHT_LINEAR: return linear.vol;
+      case LIGHT_CONE  : return cone  .vol;
+      default          : return 0         ;
    }
 }
 VecD Light::pos()C
 {
    switch(type)
    {
-      case LIGHT_POINT: return point.pos        ;
-      case LIGHT_SQR  : return sqr  .pos        ;
-      case LIGHT_CONE : return cone .pyramid.pos;
-      default         : return 0                ;
+      case LIGHT_POINT : return point .pos        ;
+      case LIGHT_LINEAR: return linear.pos        ;
+      case LIGHT_CONE  : return cone  .pyramid.pos;
+      default          : return 0                 ;
    }
 }
 Bool Light::toScreenRect(Rect &rect)C
 {
    switch(type)
    {
-      case LIGHT_DIR  : return dir  .toScreenRect(rect);
-      case LIGHT_POINT: return point.toScreenRect(rect);
-      case LIGHT_SQR  : return sqr  .toScreenRect(rect);
-      case LIGHT_CONE : return cone .toScreenRect(rect);
-      default         : return false;
+      case LIGHT_DIR   : return dir   .toScreenRect(rect);
+      case LIGHT_POINT : return point .toScreenRect(rect);
+      case LIGHT_LINEAR: return linear.toScreenRect(rect);
+      case LIGHT_CONE  : return cone  .toScreenRect(rect);
+      default          : return false;
    }
 }
 void Light::scalePower(Flt scale)
 {
    switch(type)
    {
-      case LIGHT_DIR  : dir  .color_l  *=Sqr(scale); break; // color_l=SRGBToLinear(LinearToSRGB(color_l)*scale)
-      case LIGHT_POINT: point.power    *=Sqr(scale); break;
-      case LIGHT_SQR  : sqr  .range    *=    scale ; break;
-      case LIGHT_CONE : cone .pyramid.h*=    scale ; break;
+      case LIGHT_DIR   : dir   .color_l  *=Sqr(scale); break; // color_l=SRGBToLinear(LinearToSRGB(color_l)*scale)
+      case LIGHT_POINT : point .power    *=Sqr(scale); break;
+      case LIGHT_LINEAR: linear.range    *=    scale ; break;
+      case LIGHT_CONE  : cone  .pyramid.h*=    scale ; break;
    }
 }
 /******************************************************************************/
@@ -907,10 +908,10 @@ void Light::set()
 {
    switch(type)
    {
-      case LIGHT_DIR  : dir  .set(              ); break;
-      case LIGHT_POINT: point.set(shadow_opacity); break;
-      case LIGHT_SQR  : sqr  .set(shadow_opacity); break;
-      case LIGHT_CONE : cone .set(shadow_opacity); break;
+      case LIGHT_DIR   : dir   .set(              ); break;
+      case LIGHT_POINT : point .set(shadow_opacity); break;
+      case LIGHT_LINEAR: linear.set(shadow_opacity); break;
+      case LIGHT_CONE  : cone  .set(shadow_opacity); break;
    }
 }
 /******************************************************************************/
@@ -918,10 +919,10 @@ static Bool CanDoShadow()
 {
    return D.shadowMode() && D.shadowSupported() && Renderer._cur_type!=RT_SIMPLE && FovPerspective(D.viewFovMode());
 }
-void Light::set(LightDir   &light,               Bool shadow        , CPtr light_src) {Zero(T); type=LIGHT_DIR  ; dir  =light; T.rect=D.viewRect(); T.shadow=(shadow                 && CanDoShadow()); T.shadow_opacity=(T.shadow                          ); T.src=light_src;}
-void Light::set(LightPoint &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src) {Zero(T); type=LIGHT_POINT; point=light; T.rect=        rect; T.shadow=(shadow_opacity>EPS_COL && CanDoShadow()); T.shadow_opacity=(T.shadow ? Sat(shadow_opacity) : 0); T.src=light_src;}
-void Light::set(LightSqr   &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src) {Zero(T); type=LIGHT_SQR  ; sqr  =light; T.rect=        rect; T.shadow=(shadow_opacity>EPS_COL && CanDoShadow()); T.shadow_opacity=(T.shadow ? Sat(shadow_opacity) : 0); T.src=light_src;}
-void Light::set(LightCone  &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src) {Zero(T); type=LIGHT_CONE ; cone =light; T.rect=        rect; T.shadow=(shadow_opacity>EPS_COL && CanDoShadow()); T.shadow_opacity=(T.shadow ? Sat(shadow_opacity) : 0); T.src=light_src;}
+void Light::set(LightDir    &light,               Bool shadow        , CPtr light_src) {Zero(T); type=LIGHT_DIR   ; dir   =light; T.rect=D.viewRect(); T.shadow=(shadow                 && CanDoShadow()); T.shadow_opacity=(T.shadow                          ); T.src=light_src;}
+void Light::set(LightPoint  &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src) {Zero(T); type=LIGHT_POINT ; point =light; T.rect=        rect; T.shadow=(shadow_opacity>EPS_COL && CanDoShadow()); T.shadow_opacity=(T.shadow ? Sat(shadow_opacity) : 0); T.src=light_src;}
+void Light::set(LightLinear &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src) {Zero(T); type=LIGHT_LINEAR; linear=light; T.rect=        rect; T.shadow=(shadow_opacity>EPS_COL && CanDoShadow()); T.shadow_opacity=(T.shadow ? Sat(shadow_opacity) : 0); T.src=light_src;}
+void Light::set(LightCone   &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src) {Zero(T); type=LIGHT_CONE  ; cone  =light; T.rect=        rect; T.shadow=(shadow_opacity>EPS_COL && CanDoShadow()); T.shadow_opacity=(T.shadow ? Sat(shadow_opacity) : 0); T.src=light_src;}
 /******************************************************************************/
 void Light::draw()
 {
@@ -1025,11 +1026,11 @@ void Light::draw()
                // no need for view space bias, because we're calculating shadow for water surfaces, which by themself don't cast shadows and are usually above shadow surfaces
                Renderer.getShdRT();
                Renderer.set(Renderer._shd_1s(), Renderer._water_ds(), true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
-               REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPnt(false)->draw(null, &CurrentLight.rect);
+               REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(false)->draw(null, &CurrentLight.rect);
             }
 
             SetWaterLum();
-            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightPnt(CurrentLight.shadow, false, true)->draw(Renderer._shd_1s, &CurrentLight.rect); // always use Quality Specular for Water
+            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightPoint(CurrentLight.shadow, false, true)->draw(Renderer._shd_1s, &CurrentLight.rect); // always use Quality Specular for Water
 
             Sh.h_ImageDepth->set(Renderer._ds_1s); // restore default depth
             D.stencil(STENCIL_NONE);
@@ -1043,11 +1044,11 @@ void Light::draw()
             if(!Renderer._ds->multiSample())
             {
                Renderer.set(Renderer._shd_1s(), Renderer._ds_1s(), true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization
-               REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPnt(false)->draw(null, &CurrentLight.rect);
+               REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(false)->draw(null, &CurrentLight.rect);
             }else
             { // we can ignore 'Renderer.hasStencilAttached' because we would have to apply for all samples of '_shd_ms' and '_shd_1s' which will happen anyway below
-               Renderer.set(Renderer._shd_ms(), Renderer._ds   (), true, NEED_DEPTH_READ); D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPnt(true )->draw(null, &CurrentLight.rect); // use DS because it may be used for 'D.depth2D' optimization
-               Renderer.set(Renderer._shd_1s(), Renderer._ds_1s(), true, NEED_DEPTH_READ); D.stencil(STENCIL_NONE                       ); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPnt(false)->draw(null, &CurrentLight.rect); // use DS because it may be used for 'D.depth2D' optimization, for all stencil samples because they are needed for smoothing
+               Renderer.set(Renderer._shd_ms(), Renderer._ds   (), true, NEED_DEPTH_READ); D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(true )->draw(null, &CurrentLight.rect); // use DS because it may be used for 'D.depth2D' optimization
+               Renderer.set(Renderer._shd_1s(), Renderer._ds_1s(), true, NEED_DEPTH_READ); D.stencil(STENCIL_NONE                       ); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(false)->draw(null, &CurrentLight.rect); // use DS because it may be used for 'D.depth2D' optimization, for all stencil samples because they are needed for smoothing
             }
             RestoreViewSpaceBias(mp_z_z);
             MapSoft();
@@ -1056,7 +1057,7 @@ void Light::draw()
          Bool clear=SetLum();
          if(!Renderer._ds->multiSample()) // 1-sample
          {
-            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightPnt(CurrentLight.shadow, false, D.highPrecNrmCalcIs())->draw(Renderer._shd_1s, &CurrentLight.rect);
+            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightPoint(CurrentLight.shadow, false, D.highPrecNrmCalcIs())->draw(Renderer._shd_1s, &CurrentLight.rect);
          #if TEST_LIGHT_RECT
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
          #endif
@@ -1065,7 +1066,7 @@ void Light::draw()
             if(Renderer.hasStencilAttached()) // if we can use stencil tests, then process 1-sample pixels using 1-sample shader, if we can't use stencil then all pixels will be processed using multi-sample shader later below
             {
                D.stencil(STENCIL_MSAA_TEST, 0);
-               REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightPnt(CurrentLight.shadow, false, D.highPrecNrmCalcIs())->draw(Renderer._shd_1s, &CurrentLight.rect);
+               REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightPoint(CurrentLight.shadow, false, D.highPrecNrmCalcIs())->draw(Renderer._shd_1s, &CurrentLight.rect);
             }
             Renderer.set(Renderer._lum(), Renderer._ds(), true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
             if(clear)
@@ -1074,14 +1075,14 @@ void Light::draw()
                D.depth2DOn ();
             }
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
-            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightPnt(CurrentLight.shadow, true, D.highPrecNrmCalcIs())->draw(Renderer._shd_ms, &CurrentLight.rect);
+            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightPoint(CurrentLight.shadow, true, D.highPrecNrmCalcIs())->draw(Renderer._shd_ms, &CurrentLight.rect);
             D.stencil(STENCIL_NONE);
          }
       }break;
 
-      case LIGHT_SQR:
+      case LIGHT_LINEAR:
       {
-         if(CurrentLight.shadow)ShadowMap(CurrentLight.sqr.range, CurrentLight.sqr.pos);
+         if(CurrentLight.shadow)ShadowMap(CurrentLight.linear.range, CurrentLight.linear.pos);
 
          D.depth2DOn();
 
@@ -1096,11 +1097,11 @@ void Light::draw()
                // no need for view space bias, because we're calculating shadow for water surfaces, which by themself don't cast shadows and are usually above shadow surfaces
                Renderer.getShdRT();
                Renderer.set(Renderer._shd_1s(), Renderer._water_ds(), true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
-               REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPnt(false)->draw(null, &CurrentLight.rect);
+               REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(false)->draw(null, &CurrentLight.rect);
             }
 
             SetWaterLum();
-            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightSqr(CurrentLight.shadow, false, true)->draw(Renderer._shd_1s, &CurrentLight.rect); // always use Quality Specular for Water
+            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightLinear(CurrentLight.shadow, false, true)->draw(Renderer._shd_1s, &CurrentLight.rect); // always use Quality Specular for Water
 
             Sh.h_ImageDepth->set(Renderer._ds_1s); // restore default depth
             D.stencil(STENCIL_NONE);
@@ -1114,20 +1115,20 @@ void Light::draw()
             if(!Renderer._ds->multiSample())
             {
                Renderer.set(Renderer._shd_1s(), Renderer._ds_1s(), true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization
-               REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPnt(false)->draw(null, &CurrentLight.rect);
+               REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(false)->draw(null, &CurrentLight.rect);
             }else
             { // we can ignore 'Renderer.hasStencilAttached' because we would have to apply for all samples of '_shd_ms' and '_shd_1s' which will happen anyway below
-               Renderer.set(Renderer._shd_ms(), Renderer._ds   (), true, NEED_DEPTH_READ); D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPnt(true )->draw(null, &CurrentLight.rect); // use DS because it may be used for 'D.depth2D' optimization
-               Renderer.set(Renderer._shd_1s(), Renderer._ds_1s(), true, NEED_DEPTH_READ); D.stencil(STENCIL_NONE                       ); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPnt(false)->draw(null, &CurrentLight.rect); // use DS because it may be used for 'D.depth2D' optimization, for all stencil samples because they are needed for smoothing
+               Renderer.set(Renderer._shd_ms(), Renderer._ds   (), true, NEED_DEPTH_READ); D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(true )->draw(null, &CurrentLight.rect); // use DS because it may be used for 'D.depth2D' optimization
+               Renderer.set(Renderer._shd_1s(), Renderer._ds_1s(), true, NEED_DEPTH_READ); D.stencil(STENCIL_NONE                       ); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(false)->draw(null, &CurrentLight.rect); // use DS because it may be used for 'D.depth2D' optimization, for all stencil samples because they are needed for smoothing
             }
             RestoreViewSpaceBias(mp_z_z);
             MapSoft();
-            ApplyVolumetric(CurrentLight.sqr);
+            ApplyVolumetric(CurrentLight.linear);
          }
          Bool clear=SetLum();
          if(!Renderer._ds->multiSample()) // 1-sample
          {
-            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightSqr(CurrentLight.shadow, false, D.highPrecNrmCalcIs())->draw(Renderer._shd_1s, &CurrentLight.rect);
+            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightLinear(CurrentLight.shadow, false, D.highPrecNrmCalcIs())->draw(Renderer._shd_1s, &CurrentLight.rect);
          #if TEST_LIGHT_RECT
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
          #endif
@@ -1136,7 +1137,7 @@ void Light::draw()
             if(Renderer.hasStencilAttached()) // if we can use stencil tests, then process 1-sample pixels using 1-sample shader, if we can't use stencil then all pixels will be processed using multi-sample shader later below
             {
                D.stencil(STENCIL_MSAA_TEST, 0);
-               REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightSqr(CurrentLight.shadow, false, D.highPrecNrmCalcIs())->draw(Renderer._shd_1s, &CurrentLight.rect);
+               REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightLinear(CurrentLight.shadow, false, D.highPrecNrmCalcIs())->draw(Renderer._shd_1s, &CurrentLight.rect);
             }
             Renderer.set(Renderer._lum(), Renderer._ds(), true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
             if(clear)
@@ -1145,7 +1146,7 @@ void Light::draw()
                D.depth2DOn ();
             }
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
-            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightSqr(CurrentLight.shadow, true, D.highPrecNrmCalcIs())->draw(Renderer._shd_ms, &CurrentLight.rect);
+            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightLinear(CurrentLight.shadow, true, D.highPrecNrmCalcIs())->draw(Renderer._shd_ms, &CurrentLight.rect);
             D.stencil(STENCIL_NONE);
          }
       }break;
@@ -1303,10 +1304,10 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
          if(CurrentLight.shadow)
          {
             ShadowMap(CurrentLight.point.range(), CurrentLight.point.pos);
-            Renderer._frst_light_offset=OFFSET(FRST, pnt_shd);
+            Renderer._frst_light_offset=OFFSET(FRST, point_shd);
          }else
          {
-            Renderer._frst_light_offset=OFFSET(FRST, pnt);
+            Renderer._frst_light_offset=OFFSET(FRST, point);
          }
 
          Renderer.set(dest, Renderer._ds(), true);
@@ -1347,26 +1348,26 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
                // no need for view space bias, because we're calculating shadow for water surfaces, which by themself don't cast shadows and are usually above shadow surfaces
                Renderer.getShdRT();
                Renderer.set(Renderer._shd_1s(), Renderer._water_ds(), true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
-               REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPnt(false)->draw(null, &CurrentLight.rect);
+               REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(false)->draw(null, &CurrentLight.rect);
             }
 
             SetWaterLum();
-            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightPnt(CurrentLight.shadow, false, true)->draw(Renderer._shd_1s, &CurrentLight.rect); // always use Quality Specular for Water
+            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightPoint(CurrentLight.shadow, false, true)->draw(Renderer._shd_1s, &CurrentLight.rect); // always use Quality Specular for Water
 
             Sh.h_ImageDepth->set(Renderer._ds_1s); // restore default depth
             D.depth2DOff(); D.stencil(STENCIL_NONE);
          }
       }break;
 
-      case LIGHT_SQR:
+      case LIGHT_LINEAR:
       {
          if(CurrentLight.shadow)
          {
-            ShadowMap(CurrentLight.sqr.range, CurrentLight.sqr.pos);
-            Renderer._frst_light_offset=OFFSET(FRST, sqr_shd);
+            ShadowMap(CurrentLight.linear.range, CurrentLight.linear.pos);
+            Renderer._frst_light_offset=OFFSET(FRST, linear_shd);
          }else
          {
-            Renderer._frst_light_offset=OFFSET(FRST, sqr);
+            Renderer._frst_light_offset=OFFSET(FRST, linear);
          }
 
          Renderer.set(dest, Renderer._ds(), true);
@@ -1377,7 +1378,7 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
             D.stencil(STENCIL_ALWAYS_SET, 0);
          }else
          {  // we need to generate list of objects
-            Renderer.mode(RM_PREPARE); Frustum.from(BoxD(CurrentLight.sqr.range, CurrentLight.sqr.pos)); // set frustum after setting render mode
+            Renderer.mode(RM_PREPARE); Frustum.from(BoxD(CurrentLight.linear.range, CurrentLight.linear.pos)); // set frustum after setting render mode
             Renderer._render();
             D.clipAllow(true);
          }
@@ -1387,7 +1388,7 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
             Renderer.setEyeViewport();
             GetCurrentLightRect(); // if(.. would require ClearSolidInstances afterwards, call this after setting viewport and camera
             if(CurrentLight.shadow)SetShdMatrix();
-            CurrentLight.sqr.set(CurrentLight.shadow_opacity);
+            CurrentLight.linear.set(CurrentLight.shadow_opacity);
             if(Renderer.secondaryPass())D.clip(CurrentLight.rect&Renderer._clip); // clip rendering to area affected by the light
             DrawSolidInstances(); Renderer._render();
          }
@@ -1407,11 +1408,11 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
                // no need for view space bias, because we're calculating shadow for water surfaces, which by themself don't cast shadows and are usually above shadow surfaces
                Renderer.getShdRT();
                Renderer.set(Renderer._shd_1s(), Renderer._water_ds(), true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
-               REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPnt(false)->draw(null, &CurrentLight.rect);
+               REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(false)->draw(null, &CurrentLight.rect);
             }
 
             SetWaterLum();
-            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightSqr(CurrentLight.shadow, false, true)->draw(Renderer._shd_1s, &CurrentLight.rect); // always use Quality Specular for Water
+            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightLinear(CurrentLight.shadow, false, true)->draw(Renderer._shd_1s, &CurrentLight.rect); // always use Quality Specular for Water
 
             Sh.h_ImageDepth->set(Renderer._ds_1s); // restore default depth
             D.depth2DOff(); D.stencil(STENCIL_NONE);

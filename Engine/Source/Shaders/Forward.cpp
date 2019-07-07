@@ -23,8 +23,8 @@
    uniform Bool light_point      ,\
    uniform Bool light_point_shd  ,\
                                   \
-   uniform Bool light_sqr        ,\
-   uniform Bool light_sqr_shd    ,\
+   uniform Bool light_linear     ,\
+   uniform Bool light_linear_shd ,\
                                   \
    uniform Bool light_cone       ,\
    uniform Bool light_cone_shd   ,\
@@ -156,7 +156,7 @@ Vec4 PS
    PARAMS
 ):COLOR
 {
-   Bool secondary=(light_point || light_sqr || light_cone); // local lights are enabled only for secondary shader passes
+   Bool secondary=(light_point || light_linear || light_cone); // local lights are enabled only for secondary shader passes
 
    VecH nrm;
    Half glow, specular, sss;
@@ -168,10 +168,10 @@ Vec4 PS
       specular=0;
       sss     =0;
 
-      light_dir  =false;
-      light_point=false;
-      light_sqr  =false;
-      light_cone =false;
+      light_dir   =false;
+      light_point =false;
+      light_linear=false;
+      light_cone  =false;
    }else
    if(materials==1)
    {
@@ -335,7 +335,7 @@ Vec4 PS
    if(materials<=1 && !secondary)total_lum+=MaterialAmbient()*AmbMaterial; // ambient values are always disabled for secondary passes (so don't bother adding them)
 
    VecH2 jitter_value;
-   if(light_dir_shd || light_point_shd || light_sqr_shd || light_cone_shd)jitter_value=ShadowJitter(pixel.xy);
+   if(light_dir_shd || light_point_shd || light_linear_shd || light_cone_shd)jitter_value=ShadowJitter(pixel.xy);
 
    if(light_dir)
    {
@@ -381,14 +381,14 @@ Vec4 PS
       }  total_lum     +=Light_point.color.rgb*(lum *power);
    }
 
-   if(light_sqr)
+   if(light_linear)
    {
       // shadow
-      Half shadow; if(light_sqr_shd)shadow=ShadowFinal(ShadowPointValue(I.pos, jitter_value, true));
+      Half shadow; if(light_linear_shd)shadow=ShadowFinal(ShadowPointValue(I.pos, jitter_value, true));
 
       // distance
-      VecH light_dir=Light_sqr.pos-I.pos;
-      Half power    =LightSqrDist(light_dir); if(light_sqr_shd)power*=shadow;
+      VecH light_dir=Light_linear.pos-I.pos;
+      Half power    =LightLinearDist(light_dir); if(light_linear_shd)power*=shadow;
 
       // diffuse
            light_dir=Normalize   (light_dir);
@@ -401,8 +401,8 @@ Vec4 PS
       {
          VecH eye_dir=Normalize    (-I.pos);
          Half spec   =LightSpecular(   nrm, specular, light_dir, eye_dir);
-         total_specular+=Light_sqr.color.rgb*(spec*power);
-      }  total_lum     +=Light_sqr.color.rgb*(lum *power);
+         total_specular+=Light_linear.color.rgb*(spec*power);
+      }  total_lum     +=Light_linear.color.rgb*(lum *power);
    }
 
    if(light_cone)
