@@ -54,12 +54,6 @@ namespace EE{
 #define GL_COMPRESSED_RED_RGTC1                      0x8DBB
 #define GL_COMPRESSED_RG_RGTC2                       0x8DBD
 
-/* FIXME
-#define GL_UNSIGNED_INT_2_10_10_10_REV               0x8368
-#define GL_LUMINANCE16                               0x8042
-#define GL_LUMINANCE_ALPHA                           0x190A
-#define GL_SRGB8_ALPHA8                              0x8C43*/
-
 #define GL_SWIZZLE (GL && !GL_ES) // Modern Desktop OpenGL (3.2) does not support GL_ALPHA8, GL_LUMINANCE8, GL_LUMINANCE8_ALPHA8, use swizzle instead
 /******************************************************************************/
 DEFINE_CACHE(Image, Images, ImagePtr, "Image");
