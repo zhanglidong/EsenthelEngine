@@ -74,7 +74,7 @@ Display D;
 #if WINDOWS_NEW
 Flt ScreenScale; // can't initialize here because crash will occur
 #elif IOS
-Flt ScreenScale=([[UIScreen mainScreen] respondsToSelector:@selector(nativeScale)] ? [UIScreen mainScreen].nativeScale : [UIScreen mainScreen].scale);
+Flt ScreenScale=[UIScreen mainScreen].nativeScale;
 #endif
 /******************************************************************************/
 static Bool ActualSync() {return D.sync() && !VR.active();} // we can synchronize only when not using VR, otherwise, it will handle synchronization based on the VR refresh rate
@@ -414,18 +414,16 @@ VecI2 Display::screen()C
       int clock; XF86VidModeModeLine mode; if(XF86VidModeGetModeLine(XDisplay, DefaultScreen(XDisplay), &clock, &mode))return VecI2(mode.hdisplay, mode.vdisplay);
       Screen *screen=DefaultScreenOfDisplay(XDisplay); return VecI2(WidthOfScreen(screen), HeightOfScreen(screen));
    }
-#elif ANDROID // fall down to the App.desktop()
-#elif IOS
-   CGSize size;
-   if([[UIScreen mainScreen] respondsToSelector:@selector(nativeBounds)])
+#elif ANDROID
+   JNI jni;
+   if(jni && ActivityClass && Activity)
+      if(JMethodID screen=jni.func(ActivityClass, "screen", "()J"))
    {
-      size=[[UIScreen mainScreen] nativeBounds].size; // 'nativeBounds' is not changed when device is rotated
-   }else
-   {
-      size=[[UIScreen mainScreen] bounds].size; // 'bounds' is changed when device is rotated
-      size.width *=ScreenScale;
-      size.height*=ScreenScale;
+      ULong s=jni->CallLongMethod(Activity, screen); // 'screen' is changed when device is rotated
+      return VecI2(s&UINT_MAX, s>>32);
    }
+#elif IOS
+   CGSize size=[[UIScreen mainScreen] nativeBounds].size; // 'nativeBounds' is not changed when device is rotated
    return VecI2(RoundPos(size.width), RoundPos(size.height));
 #elif WEB
    return VecI2(JavaScriptRunI("screen.width"), JavaScriptRunI("screen.height")); // it's not possible to get correct results, because on Chrome: this value is adjusted by "System DPI/Scaling", but not 'D.browserZoom', and does not change when zooming. Because "System DPI/Scaling" is unknown, it can't be calculated.
@@ -1920,14 +1918,19 @@ void Display::getCaps()
 
 #if IOS
   _freq_got=[UIScreen mainScreen].maximumFramesPerSecond;
+#elif ANDROID
+   JNI jni;
+   if(jni && ActivityClass && Activity)
+      if(JMethodID refreshRate=jni.func(ActivityClass, "refreshRate", "()F"))
+         _freq_got=RoundPos(jni->CallFloatMethod(Activity, refreshRate));
 #elif LINUX
    if(XDisplay)
    {
       int dotclock; XF86VidModeModeLine mode;
       if(XF86VidModeGetModeLine(XDisplay, DefaultScreen(XDisplay), &dotclock, &mode))
       {
-         int total=mode.htotal*mode.vtotal;
-        _freq_got=(total ? dotclock*1000/total : 0);
+         Int total=mode.htotal*mode.vtotal;
+        _freq_got=(total ? DivRound(dotclock*1000, total) : 0);
       }
    }
 #endif

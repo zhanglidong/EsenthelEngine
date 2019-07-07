@@ -88,8 +88,8 @@ void SetLocationRefresh(Flt interval, Bool gps)
    if(CLLocationManager *lm=LocationManager[gps])
       if(interval>=0 && [CLLocationManager locationServicesEnabled])
    {
-      if(LocationBackground[gps]){if([lm respondsToSelector:@selector(requestAlwaysAuthorization   )])[lm requestAlwaysAuthorization   ];}
-      else                       {if([lm respondsToSelector:@selector(requestWhenInUseAuthorization)])[lm requestWhenInUseAuthorization];}
+      if(LocationBackground[gps])[lm requestAlwaysAuthorization   ];
+      else                       [lm requestWhenInUseAuthorization];
       if(gps)[lm startUpdatingLocation];
       else   [lm startMonitoringSignificantLocationChanges];
    }else

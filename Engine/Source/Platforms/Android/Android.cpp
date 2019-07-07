@@ -889,22 +889,12 @@ static void JavaGetInput()
       InputDeviceGetName  =Jni.func      (InputDeviceClass, "getName"  , "()Ljava/lang/String;"         );
    }
 }
-static void JavaGetScreenSize()
+static void JavaDisplay()
 {
-   LOG("JavaGetScreenSize");
+   LOG("JavaDisplay");
    if(!DefaultDisplay)
       if(Jni && ActivityClass)
    {
-      // DisplayMetrics display_metrics=new DisplayMetrics();
-      // getWindowManager().getDefaultDisplay().getMetrics(display_metrics);
-      // w=display_metrics.widthPixels;
-      // h=display_metrics.heightPixels;
-
-      // DisplayMetrics display_metrics=new DisplayMetrics();
-      //if(JClass DisplayMetricsClass="android/util/DisplayMetrics")
-      //if(JMethodID DisplayMetricsCtor=Jni.func(DisplayMetricsClass, "<init>", "()V"))
-      //if(JObject display_metrics=Jni->NewObject(DisplayMetricsClass, DisplayMetricsCtor))
-
       // Get WindowManager
       if(JClass WindowManagerClass="android/view/WindowManager")
       if(JMethodID getWindowManager=Jni.func(ActivityClass, "getWindowManager", "()Landroid/view/WindowManager;"))
@@ -916,16 +906,7 @@ static void JavaGetScreenSize()
          if(DefaultDisplay=Jni->CallObjectMethod(window_manager, getDefaultDisplay))if(DefaultDisplay.makeGlobal())
          {
             // Get Display methods
-                      getRotation=Jni.func(Display, "getRotation", "()I"); // set this as the last one so only one 'if' can be performed in 'UpdateOrientation'
-            JMethodID getWidth   =Jni.func(Display, "getWidth"   , "()I");
-            JMethodID getHeight  =Jni.func(Display, "getHeight"  , "()I");
-          //JMethodID getMetrics =Jni.func(Display, "getMetrics" , "(Landroid/util/DisplayMetrics;)V");
-            Int rotation=(getRotation ? Jni->CallIntMethod(DefaultDisplay, getRotation) : ROTATION_0),
-                width   =(getWidth    ? Jni->CallIntMethod(DefaultDisplay, getWidth   ) : 800       ),
-                height  =(getHeight   ? Jni->CallIntMethod(DefaultDisplay, getHeight  ) : 600       );
-            if(rotation==ROTATION_90 || rotation==ROTATION_270)Swap(width, height);
-
-            App._desktop_size.set(width, height);
+            getRotation=Jni.func(Display, "getRotation", "()I"); // set this as the last one so only one 'if' can be performed in 'UpdateOrientation'
          }
       }
    }
@@ -1249,13 +1230,13 @@ void android_main(android_app *app)
       JavaGetAppPackage();
       JavaGetAppName   ();
    }
-   JavaLooper       ();
-   JavaGetInput     ();
-   JavaGetScreenSize();
-   JavaKeyboard     ();
-   JavaClipboard    ();
-   JavaLocation     ();
-   InitSensor       ();
+   JavaLooper   ();
+   JavaGetInput ();
+   JavaDisplay  ();
+   JavaKeyboard ();
+   JavaClipboard();
+   JavaLocation ();
+   InitSensor   ();
    LOG("LoopStart");
    for(;;)
    {

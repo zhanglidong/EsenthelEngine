@@ -28,6 +28,7 @@ import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.graphics.BitmapFactory;
+import android.graphics.Point;
 import android.location.Location;
 import android.location.LocationListener;
 import android.media.AudioFormat;
@@ -772,8 +773,10 @@ public class EsenthelActivity extends NativeActivity
 
    public final float dipToPx(float f) {return f*getResources().getDisplayMetrics().density;}
    public final float pxToDip(float f) {return f/getResources().getDisplayMetrics().density;}
-   public final int screenW() {return getWindowManager().getDefaultDisplay().getWidth ();}
-   public final int screenH() {return getWindowManager().getDefaultDisplay().getHeight();}
+   public final int resW() {return getWindowManager().getDefaultDisplay().getWidth ();}
+   public final int resH() {return getWindowManager().getDefaultDisplay().getHeight();}
+   public final float refreshRate() {return getWindowManager().getDefaultDisplay().getRefreshRate();}
+   public final long screen() {Point size=new Point(); getWindowManager().getDefaultDisplay().getRealSize(size); return size.x | (((long)size.y)<<32);}
 
    /******************************************************************************/
    // KEYBOARD
@@ -1085,8 +1088,8 @@ ADMOB_BEGIN
    }
    public final int popupWindowW() {return (popup_window!=null) ? (int)dipToPx(popup_window.getWidth ()) : 0;}
    public final int popupWindowH() {return (popup_window!=null) ? (int)dipToPx(popup_window.getHeight()) : 0;}
-   public final int bannerX() {int w=popupWindowW(); return (banner_x<0) ? 0 : (banner_x>0) ? screenW()-w : (screenW()-w)/2;}
-   public final int bannerY() {int h=popupWindowH(); return (banner_y>0) ? 0 : (banner_y<0) ? screenH()-h : (screenH()-h)/2;}
+   public final int bannerX() {int w=popupWindowW(); return (banner_x<0) ? 0 : (banner_x>0) ? resW()-w : (resW()-w)/2;}
+   public final int bannerY() {int h=popupWindowH(); return (banner_y>0) ? 0 : (banner_y<0) ? resH()-h : (resH()-h)/2;}
    public final void adVisible(final boolean banner, final boolean visible)
    {
       runOnUiThread(new Runnable()
