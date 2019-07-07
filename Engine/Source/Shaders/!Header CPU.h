@@ -25,7 +25,7 @@
 
 #define MAX_MTRLS 4 // 3 or 4 (3 to make shaders smaller, 4 to support more materials per tri)
 
-#define LCScale 0.2f // must be in sync with GLSL
+#define LCScale 0.2 // must be in sync with GLSL
 
 // Buffer Indexes
 #define SBI_GLOBAL     0
