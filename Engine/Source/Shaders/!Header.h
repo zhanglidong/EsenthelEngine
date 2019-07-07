@@ -181,24 +181,24 @@
 #else
    #define MAX_MATRIX  60 // maximum number of matrixes
 #endif
-#define EPS     0.0001f                             // float epsilon
-#define EPS_COL (1.0f/256)                          // color epsilon
-#define EPS_LUM (LINEAR_GAMMA ? 1.0f/512 : EPS_COL) // light epsilon (need a little extra precision for linear gamma)
+#define EPS     0.0001                             // float epsilon
+#define EPS_COL (1.0/256)                          // color epsilon
+#define EPS_LUM (LINEAR_GAMMA ? 1.0/512 : EPS_COL) // light epsilon (need a little extra precision for linear gamma)
 
-#define PI_6    0.5235987755982988f // PI/6 ( 30 deg) Flt
-#define PI_4    0.7853981633974483f // PI/4 ( 45 deg) Flt
-#define PI_3    1.0471975511965977f // PI/3 ( 60 deg) Flt
-#define PI_2    1.5707963267948966f // PI/2 ( 90 deg) Flt
-#define PI      3.1415926535897932f // PI   (180 deg) Flt
-#define PI2     6.2831853071795864f // PI*2 (360 deg) Flt
-#define SQRT2   1.4142135623730950f // Sqrt(2)
-#define SQRT3   1.7320508075688773f // Sqrt(3)
-#define SQRT2_2 0.7071067811865475f // Sqrt(2)/2
-#define SQRT3_3 0.5773502691896257f // Sqrt(3)/3
-#define TAN     0.5f                // tangent calculation constant
+#define PI_6    0.5235987755982988 // PI/6 ( 30 deg) Flt
+#define PI_4    0.7853981633974483 // PI/4 ( 45 deg) Flt
+#define PI_3    1.0471975511965977 // PI/3 ( 60 deg) Flt
+#define PI_2    1.5707963267948966 // PI/2 ( 90 deg) Flt
+#define PI      3.1415926535897932 // PI   (180 deg) Flt
+#define PI2     6.2831853071795864 // PI*2 (360 deg) Flt
+#define SQRT2   1.4142135623730950 // Sqrt(2)
+#define SQRT3   1.7320508075688773 // Sqrt(3)
+#define SQRT2_2 0.7071067811865475 // Sqrt(2)/2
+#define SQRT3_3 0.5773502691896257 // Sqrt(3)/3
+#define TAN     0.5                // tangent calculation constant
 
-#define ColorLumWeight  VecH(0.2126f, 0.7152f, 0.0722f)
-#define ColorLumWeight2 VecH(0.2990f, 0.5870f, 0.1140f)
+#define ColorLumWeight  VecH(0.2126, 0.7152, 0.0722)
+#define ColorLumWeight2 VecH(0.2990, 0.5870, 0.1140)
 /******************************************************************************/
 // RENDER TARGETS
 /******************************************************************************/
@@ -212,14 +212,14 @@
 #if     REVERSE_DEPTH
    #define DEPTH_MIN Max
    #define DEPTH_MAX Min
-   #define DEPTH_FOREGROUND(x) ((x)> 0.0f)
-   #define DEPTH_BACKGROUND(x) ((x)<=0.0f)
+   #define DEPTH_FOREGROUND(x) ((x)> 0.0)
+   #define DEPTH_BACKGROUND(x) ((x)<=0.0)
    #define DEPTH_SMALLER(x, y) ((x)>(y))
 #else
    #define DEPTH_MIN Min
    #define DEPTH_MAX Max
-   #define DEPTH_FOREGROUND(x) ((x)< 1.0f)
-   #define DEPTH_BACKGROUND(x) ((x)>=1.0f)
+   #define DEPTH_FOREGROUND(x) ((x)< 1.0)
+   #define DEPTH_BACKGROUND(x) ((x)>=1.0)
    #define DEPTH_SMALLER(x, y) ((x)<(y))
 #endif
 /******************************************************************************/
@@ -290,105 +290,105 @@ BUFFER_END
 BUFFER(Constants)
    const Vec2 BlendOfs4[4]=
    {
-      Vec2( 0.5f, -1.5f),
-      Vec2(-1.5f, -0.5f),
-      Vec2( 1.5f,  0.5f),
-      Vec2(-0.5f,  1.5f),
+      Vec2( 0.5, -1.5),
+      Vec2(-1.5, -0.5),
+      Vec2( 1.5,  0.5),
+      Vec2(-0.5,  1.5),
    };
  /*const Vec2 BlendOfs5[5]=
    {
-      Vec2(-0.5f, -1.5f),
+      Vec2(-0.5, -1.5),
 
-      Vec2(-1.5f, -0.5f),
-      Vec2( 1.5f, -0.5f),
+      Vec2(-1.5, -0.5),
+      Vec2( 1.5, -0.5),
 
-      Vec2(-0.5f,  1.5f),
-      Vec2( 1.5f,  1.5f),
+      Vec2(-0.5,  1.5),
+      Vec2( 1.5,  1.5),
    };*/
    const Vec2 BlendOfs6[6]=
    {
-      Vec2( 0.5f, -2.5f),
+      Vec2( 0.5, -2.5),
 
-      Vec2(-0.5f, -0.5f),
-      Vec2( 1.5f, -0.5f),
+      Vec2(-0.5, -0.5),
+      Vec2( 1.5, -0.5),
 
-      Vec2(-2.5f,  0.5f),
+      Vec2(-2.5,  0.5),
 
-      Vec2(-0.5f,  1.5f),
-      Vec2( 1.5f,  1.5f),
+      Vec2(-0.5,  1.5),
+      Vec2( 1.5,  1.5),
    };
    const Vec2 BlendOfs8[8]=
    {
-      Vec2(-1.5f, -2.5f),
+      Vec2(-1.5, -2.5),
 
-      Vec2( 0.5f, -1.5f),
-      Vec2( 2.5f, -1.5f),
+      Vec2( 0.5, -1.5),
+      Vec2( 2.5, -1.5),
 
-      Vec2(-1.5f, -0.5f),
+      Vec2(-1.5, -0.5),
 
-      Vec2( 1.5f,  0.5f),
+      Vec2( 1.5,  0.5),
 
-      Vec2(-2.5f,  1.5f),
-      Vec2(-0.5f,  1.5f),
+      Vec2(-2.5,  1.5),
+      Vec2(-0.5,  1.5),
 
-      Vec2( 1.5f,  2.5f),
+      Vec2( 1.5,  2.5),
    };
  /*const Vec2 BlendOfs9[9]=
    {
-      Vec2(-2.5f, -2.5f),
-      Vec2(-0.5f, -2.5f),
-      Vec2( 1.5f, -2.5f),
+      Vec2(-2.5, -2.5),
+      Vec2(-0.5, -2.5),
+      Vec2( 1.5, -2.5),
 
-      Vec2(-2.5f, -0.5f),
-      Vec2(-0.5f, -0.5f),
-      Vec2( 1.5f, -0.5f),
+      Vec2(-2.5, -0.5),
+      Vec2(-0.5, -0.5),
+      Vec2( 1.5, -0.5),
 
-      Vec2(-2.5f,  1.5f),
-      Vec2(-0.5f,  1.5f),
-      Vec2( 1.5f,  1.5f),
+      Vec2(-2.5,  1.5),
+      Vec2(-0.5,  1.5),
+      Vec2( 1.5,  1.5),
    };*/
    const Vec2 BlendOfs12[12]=
    {
-      Vec2( 0.5f, -3.5f),
+      Vec2( 0.5, -3.5),
 
-      Vec2(-1.5f, -2.5f),
+      Vec2(-1.5, -2.5),
 
-      Vec2( 0.5f, -1.5f),
-      Vec2( 2.5f, -1.5f),
+      Vec2( 0.5, -1.5),
+      Vec2( 2.5, -1.5),
 
-      Vec2(-3.5f, -0.5f),
-      Vec2(-1.5f, -0.5f),
+      Vec2(-3.5, -0.5),
+      Vec2(-1.5, -0.5),
 
-      Vec2( 1.5f,  0.5f),
-      Vec2( 3.5f,  0.5f),
+      Vec2( 1.5,  0.5),
+      Vec2( 3.5,  0.5),
 
-      Vec2(-2.5f,  1.5f),
-      Vec2(-0.5f,  1.5f),
+      Vec2(-2.5,  1.5),
+      Vec2(-0.5,  1.5),
 
-      Vec2( 1.5f,  2.5f),
+      Vec2( 1.5,  2.5),
 
-      Vec2(-0.5f,  3.5f),
+      Vec2(-0.5,  3.5),
    };
  /*const Vec2 BlendOfs13[13]=
    {
-      Vec2(-0.5f, -3.5f),
+      Vec2(-0.5, -3.5),
 
-      Vec2( 1.5f, -2.5f),
+      Vec2( 1.5, -2.5),
 
-      Vec2(-0.5f, -1.5f),
+      Vec2(-0.5, -1.5),
 
-      Vec2(-3.5f, -0.5f),
-      Vec2(-1.5f, -0.5f),
-      Vec2( 1.5f, -0.5f),
-      Vec2( 3.5f, -0.5f),
+      Vec2(-3.5, -0.5),
+      Vec2(-1.5, -0.5),
+      Vec2( 1.5, -0.5),
+      Vec2( 3.5, -0.5),
 
-      Vec2(-2.5f,  1.5f),
-      Vec2(-0.5f,  1.5f),
-      Vec2( 1.5f,  1.5f),
-      Vec2( 3.5f,  1.5f),
+      Vec2(-2.5,  1.5),
+      Vec2(-0.5,  1.5),
+      Vec2( 1.5,  1.5),
+      Vec2( 3.5,  1.5),
 
-      Vec2(-0.5f,  3.5f),
-      Vec2( 1.5f,  3.5f),
+      Vec2(-0.5,  3.5),
+      Vec2( 1.5,  3.5),
    };*/
    #define V(x) (Flt(x-32)/32/256) // gives -1..1 / 256 range
    const Flt OrderDither[64]=
