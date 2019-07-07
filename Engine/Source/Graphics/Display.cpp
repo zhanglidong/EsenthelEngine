@@ -2764,7 +2764,7 @@ void Display::shadowJitterSet()
 Bool Display::aoWant()C
 {
    return ambientMode()!=AMBIENT_FLAT
-      && (ambientColorS()+nightShadeColorS()).max()>EPS_COL; // no need to calculate AO if it's too small
+     && (_amb_all || (ambientColorS()+nightShadeColorS()).max()>EPS_COL); // no need to calculate AO if it's too small
 }
 Flt Display::ambientRes   ()C {return ByteScaleToFlt(_amb_res);}
 Flt Display::ambientPowerS()C {return LinearToSRGB(ambientPowerL());}
