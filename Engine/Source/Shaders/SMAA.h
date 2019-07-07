@@ -542,7 +542,7 @@
 #if defined(SMAA_HLSL_4) || defined(SMAA_HLSL_4_1)
 //SamplerState LinearSampler { Filter = MIN_MAG_LINEAR_MIP_POINT; AddressU = Clamp; AddressV = Clamp; }; ESENTHEL
 //SamplerState PointSampler { Filter = MIN_MAG_MIP_POINT; AddressU = Clamp; AddressV = Clamp; }; ESENTHEL
-#define SMAATexture2D(tex) Texture2D tex
+#define SMAATexture2D(tex) Image tex // ESENTHEL
 #define SMAATexturePass2D(tex) tex
 #define SMAASampleLevelZero(tex, coord) tex.SampleLevel(LinearSampler, coord, 0)
 #define SMAASampleLevelZeroPoint(tex, coord) tex.SampleLevel(PointSampler, coord, 0)

@@ -112,14 +112,18 @@
 #endif
 
 #if DX11
-   #define Image       Texture2D
-   #define Image3D     Texture3D
-   #define ImageCube   TextureCube
-   #define ImageShadow Texture2D
+   #define ImageF      Texture2D  <Flt  >
+   #define ImageH      Texture2D  <Half >
+   #define Image       Texture2D  <VecH4>
+   #define Image3D     Texture3D  <VecH4>
+   #define ImageCube   TextureCube<VecH4>
+   #define ImageShadow Texture2D  <Flt  > // use 'Flt' because source is F32 depth buffer TODO: or perhaps we can use Half because it defines the output not input?
 
    #define        SAMPLER(name, index) sampler                name : register(s##index) //        sampler
    #define SHADOW_SAMPLER(name, index) SamplerComparisonState name : register(s##index) // shadow sampler
 #elif GL
+   #define ImageF      sampler2D
+   #define ImageH      sampler2D
    #define Image       sampler2D
    #define Image3D     sampler3D
    #define ImageCube   samplerCUBE
@@ -460,7 +464,7 @@ struct MaterialClass // this is used when a MeshPart has only one material
    Half  reflect () {return _texscale_detscale_detpower_reflect.w;}
 #endif
 
-   VecH4 _color, // !! color must be listed first because ShaderParam handle for setting Material.color is set from the entire Material object pointer !!
+   VecH4 _color, // !! color must be listed first because ShaderParam handle for setting 'Material.color' is set from the entire Material object pointer !!
          _ambient_specular,
          _sss_glow_rough_bump;
    Vec4  _texscale_detscale_detpower_reflect;
@@ -570,15 +574,15 @@ Image     Col, Col1, Col2, Col3,
           Nrm, Nrm1, Nrm2, Nrm3,
           Det, Det1, Det2, Det3,
           Mac, Mac1, Mac2, Mac3,
-          Lum,
-          Depth;
+          Lum;
+ImageF    Depth;
 ImageCube Rfl, Rfl1, Rfl2, Rfl3;
 
 #if MODEL>=SM_4
-Texture2DMS<Vec4, MS_SAMPLES> ColMS;
-Texture2DMS<Vec4, MS_SAMPLES> NrmMS;
-Texture2DMS<Vec4, MS_SAMPLES> LumMS;
-Texture2DMS<Flt , MS_SAMPLES> DepthMS;
+Texture2DMS<VecH4, MS_SAMPLES> ColMS;
+Texture2DMS<VecH4, MS_SAMPLES> NrmMS;
+Texture2DMS<VecH4, MS_SAMPLES> LumMS;
+Texture2DMS<Flt  , MS_SAMPLES> DepthMS;
 #endif
 
 #if DX11
@@ -1498,7 +1502,7 @@ BUFFER(Shadow)
 BUFFER_END
 
 ImageShadow ShdMap;
-Image       ShdMap1;
+ImageH      ShdMap1;
 
 inline Half ShadowFinal(Half shadow) {return shadow*ShdOpacity.x+ShdOpacity.y;}
 

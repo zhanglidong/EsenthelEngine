@@ -197,12 +197,9 @@ void RendererClass::linearizeDepth(ImageRT &dest, ImageRT &depth)
 {
    D.alpha(ALPHA_NONE);
    set(&dest, null, true);
-
-   if(!depth.multiSample() || depth.size()!=dest.size())Sh.h_LinearizeDepth[FovPerspective(D.viewFovMode())][0]->draw(depth);else // 1s->1s, if we're resizing then we also need to use the simple version
-   if(!dest .multiSample()                             )Sh.h_LinearizeDepth[FovPerspective(D.viewFovMode())][1]->draw(depth);else // ms->1s
-                                                        Sh.h_LinearizeDepth[FovPerspective(D.viewFovMode())][2]->draw(depth);     // ms->ms
-   Sh.h_ImageCol[0]->set(null);
-   Sh.h_ImageColMS ->set(null);
+   if(!depth.multiSample() || depth.size()!=dest.size()){Sh.h_ImageDepth  ->set(depth); Sh.h_LinearizeDepth[FovPerspective(D.viewFovMode())][0]->draw(); Sh.h_ImageDepth  ->set(_ds_1s);}else // 1s->1s, set and restore depth, if we're resizing then we also need to use the simple version
+   if(!dest .multiSample()                             ){Sh.h_ImageDepthMS->set(depth); Sh.h_LinearizeDepth[FovPerspective(D.viewFovMode())][1]->draw(); Sh.h_ImageDepthMS->set(_ds   );}else // ms->1s, set and restore depth
+                                                        {Sh.h_ImageDepthMS->set(depth); Sh.h_LinearizeDepth[FovPerspective(D.viewFovMode())][2]->draw(); Sh.h_ImageDepthMS->set(_ds   );}     // ms->ms, set and restore depth
 }
 void RendererClass::setDepthForDebugDrawing()
 {
@@ -212,7 +209,7 @@ void RendererClass::setDepthForDebugDrawing()
       if(_ds_1s)if(Shader *shader=Sh.h_SetDepth)
       {
          ImageRT *rt=_cur[0]; set(null, _cur_ds, true);
-         ALPHA_MODE alpha=D.alpha(ALPHA_NONE); D.depthLock  (true); D.depthFunc(FUNC_ALWAYS); shader->draw(_ds_1s);
+         ALPHA_MODE alpha=D.alpha(ALPHA_NONE); D.depthLock  (true); D.depthFunc(FUNC_ALWAYS); shader->draw();
                           D.alpha(alpha     ); D.depthUnlock(    ); D.depthFunc(FUNC_LESS  );
          set(rt, _cur_ds, true);
       }
@@ -956,7 +953,7 @@ Bool RendererClass::set(C ImageRTPtr &image)
       if(ImageTI[image->hwType()].d) // depth
       {
          if(!image->depthTexture())return false; // can't read
-         set(_final(), null, true); D.alpha(ALPHA_NONE); Sh.get("DrawDepth")->draw(image);
+         set(_final(), null, true); D.alpha(ALPHA_NONE); Sh.h_ImageDepth->set(image); Sh.get("DrawDepth")->draw(); Sh.h_ImageDepth->set(_ds_1s);
       }else
       if(image->type()!=IMAGE_R8G8B8A8_SIGN
       && image->type()!=IMAGE_R8G8_SIGN
@@ -1476,13 +1473,13 @@ Bool RendererClass::waterPostLight()
       if((!Water._swapped_ds || !swapDS1S(_water_ds)) && Sh.h_SetDepth) // if we haven't swapped before, or swap back failed, then we have to apply '_water_ds' on top of existing '_ds_1s', otherwise we just swap back '_water_ds' because it had the stencil values
       {
          set(null, _ds_1s(), true);
-         D.depthLock(true); Sh.h_SetDepth->draw(_water_ds); // keep FUNC_LESS to modify only those that are closer
+         D.depthLock(true); Sh.h_ImageDepth->set(_water_ds); Sh.h_SetDepth->draw(); Sh.h_ImageDepth->set(_ds_1s); // keep FUNC_LESS to modify only those that are closer
          D.depthUnlock();
       }
       if(_ds!=_ds_1s && Sh.h_SetDepth) // multi-sample
       {
          set(null, _ds(), true);
-         D.depthLock(true); Sh.h_SetDepth->draw(_water_ds); // keep FUNC_LESS to modify only those that are closer
+         D.depthLock(true); Sh.h_ImageDepth->set(_water_ds); Sh.h_SetDepth->draw(); Sh.h_ImageDepth->set(_ds_1s); // keep FUNC_LESS to modify only those that are closer
          D.depthUnlock();
       }
 

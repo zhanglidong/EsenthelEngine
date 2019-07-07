@@ -149,26 +149,26 @@ static void AddTranslation11(ShaderParam &sp, ID3DX11EffectVariable *par, C D3DX
 {
    if(par_desc.Elements<=1) // array size
    {
-      if(par_desc.Class==D3D10_SVC_SCALAR || par_desc.Class==D3D10_SVC_VECTOR) // for example: Flt f,f[]; Vec2 v,v[]; Vec v,v[]; Vec4 v,v[];
+      if(par_desc.Class==D3D_SVC_SCALAR || par_desc.Class==D3D_SVC_VECTOR) // for example: Flt f,f[]; Vec2 v,v[]; Vec v,v[]; Vec4 v,v[];
       {
          if(par_desc.Rows!=1)Exit("Shader Param Rows!=1");
-         if(par_desc.Type==D3D10_SVT_FLOAT)
+         if(par_desc.Type==D3D_SVT_FLOAT)
          {
             sp._full_translation.New().set(sp._cpu_data_size, var_desc.BufferOffset, SIZE(Flt)*par_desc.Columns);
             sp._cpu_data_size+=SIZE(Flt)*par_desc.Columns;
          }else Exit(S+"Unhandled Shader Parameter Type for \""+var_desc.Name+'"');
       }else
-      if(par_desc.Class==D3D10_SVC_MATRIX_COLUMNS)
+      if(par_desc.Class==D3D_SVC_MATRIX_COLUMNS)
       {
          if(par_desc.Rows   >4)Exit("Shader Param Matrix Rows>4");
          if(par_desc.Columns>4)Exit("Shader Param Matrix Cols>4");
-         if(par_desc.Type!=D3D10_SVT_FLOAT)Exit(S+"Unhandled Shader Parameter Type for \""+var_desc.Name+'"');
+         if(par_desc.Type!=D3D_SVT_FLOAT)Exit(S+"Unhandled Shader Parameter Type for \""+var_desc.Name+'"');
 
          FREPD(y, par_desc.Columns)
          FREPD(x, par_desc.Rows   )sp._full_translation.New().set(sp._cpu_data_size+SIZE(Flt)*(y+x*par_desc.Columns), var_desc.BufferOffset+SIZE(Flt)*(x+y*4), SIZE(Flt));
          sp._cpu_data_size+=SIZE(Flt)*par_desc.Rows*par_desc.Columns;
       }else
-      if(par_desc.Class==D3D10_SVC_STRUCT)
+      if(par_desc.Class==D3D_SVC_STRUCT)
       {
          FREP(par_desc.Members) // number of members
          {
@@ -358,7 +358,7 @@ static Bool ShaderCompile11(C Str &src, C Str &dest, C MemPtr<ShaderMacro> &macr
          D3DX11_EFFECT_VARIABLE_DESC desc; var->GetDesc(&desc);
          D3DX11_EFFECT_TYPE_DESC     type; var->GetType()->GetDesc(&type);
 
-         if(type.Type==D3D10_SVT_TEXTURE2D || type.Type==D3D10_SVT_TEXTURE3D || type.Type==D3D10_SVT_TEXTURECUBE || type.Type==D3D10_SVT_TEXTURE2DMS)
+         if(type.Type==D3D_SVT_TEXTURE2D || type.Type==D3D_SVT_TEXTURE3D || type.Type==D3D_SVT_TEXTURECUBE || type.Type==D3D_SVT_TEXTURE2DMS)
             images.add(ShaderImages(Str8Temp(desc.Name)));
          RELEASE(var);
       }
@@ -411,8 +411,8 @@ static Bool ShaderCompile11(C Str &src, C Str &dest, C MemPtr<ShaderMacro> &macr
                   D3D11_SHADER_INPUT_BIND_DESC desc; reflection->GetResourceBindingDesc(i, &desc);
                   switch(desc.Type)
                   {
-                     case D3D10_SIT_CBUFFER: if(!InRange(desc.BindPoint, MAX_SHADER_BUFFERS))Exit(S+"Constant Buffer index: "+desc.BindPoint+", is too big");  buffers.New().set(desc.BindPoint, *ShaderBuffers(Str8Temp(desc.Name))); break;
-                     case D3D10_SIT_TEXTURE: if(!InRange(desc.BindPoint, MAX_TEXTURES      ))Exit(S+"Texture index: "        +desc.BindPoint+", is too big"); textures.New().set(desc.BindPoint, *ShaderImages (Str8Temp(desc.Name))); break;
+                     case D3D_SIT_CBUFFER: if(!InRange(desc.BindPoint, MAX_SHADER_BUFFERS))Exit(S+"Constant Buffer index: "+desc.BindPoint+", is too big");  buffers.New().set(desc.BindPoint, *ShaderBuffers(Str8Temp(desc.Name))); break;
+                     case D3D_SIT_TEXTURE: if(!InRange(desc.BindPoint, MAX_TEXTURES      ))Exit(S+"Texture index: "        +desc.BindPoint+", is too big"); textures.New().set(desc.BindPoint, *ShaderImages (Str8Temp(desc.Name))); break;
                   }
                }
 

@@ -1531,7 +1531,7 @@ TECHNIQUE(DetectMSNrm, DrawPixel_VS(), DetectMSNrm_PS());*/
 void SetDepth_PS(NOPERSP Vec2 inTex:TEXCOORD,
                      out Flt  depth:DEPTH   )
 {
-   depth=TexLod(Col, inTex).x; // use linear filtering because this can be used for different size RT
+   depth=TexLod(Depth, inTex).x; // use linear filtering because this can be used for different size RT
 }
 TECHNIQUE(SetDepth, Draw_VS(), SetDepth_PS());
 
@@ -1539,7 +1539,7 @@ TECHNIQUE(SetDepth, Draw_VS(), SetDepth_PS());
                          out Flt  depth:DEPTH   ,
                      uniform Bool perspective   )
 {
-   depth=DelinearizeDepth(TexLod(Col, inTex).x, perspective); // use linear filtering because this can be used for different size RT
+   depth=DelinearizeDepth(TexLod(Depth, inTex).x, perspective); // use linear filtering because this can be used for different size RT
 }
 TECHNIQUE(RebuildDepth , Draw_VS(), RebuildDepth_PS(false));
 TECHNIQUE(RebuildDepthP, Draw_VS(), RebuildDepth_PS(true ));*/
@@ -1547,7 +1547,7 @@ TECHNIQUE(RebuildDepthP, Draw_VS(), RebuildDepth_PS(true ));*/
 Vec4 LinearizeDepth_PS(NOPERSP Vec2 inTex:TEXCOORD,
                        uniform Bool perspective   ):COLOR
 {
-   return LinearizeDepth(TexLod(Col, inTex).x, perspective); // use linear filtering because this can be used for different size RT
+   return LinearizeDepth(TexLod(Depth, inTex).x, perspective); // use linear filtering because this can be used for different size RT
 }
 TECHNIQUE(LinearizeDepth0 , Draw_VS(), LinearizeDepth_PS(false));
 TECHNIQUE(LinearizeDepthP0, Draw_VS(), LinearizeDepth_PS(true ));
@@ -1555,13 +1555,13 @@ TECHNIQUE(LinearizeDepthP0, Draw_VS(), LinearizeDepth_PS(true ));
 Vec4 LinearizeDepth1_PS(NOPERSP PIXEL,
                         uniform Bool perspective):COLOR
 {
-   return LinearizeDepth(TexSample(ColMS, pixel.xy, 0).x, perspective);
+   return LinearizeDepth(TexSample(DepthMS, pixel.xy, 0).x, perspective);
 }
 Vec4 LinearizeDepth2_PS(NOPERSP PIXEL,
                                 UInt index:SV_SampleIndex,
                         uniform Bool perspective         ):COLOR
 {
-   return LinearizeDepth(TexSample(ColMS, pixel.xy, index).x, perspective);
+   return LinearizeDepth(TexSample(DepthMS, pixel.xy, index).x, perspective);
 }
 TECHNIQUE    (LinearizeDepth1 , DrawPixel_VS(), LinearizeDepth1_PS(false));
 TECHNIQUE    (LinearizeDepthP1, DrawPixel_VS(), LinearizeDepth1_PS(true ));
@@ -1571,8 +1571,10 @@ TECHNIQUE_4_1(LinearizeDepthP2, DrawPixel_VS(), LinearizeDepth2_PS(true ));
 
 Vec4 DrawDepth_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
-   Flt frac=LinearizeDepth(TexLod(Col, inTex).x)/Viewport.range; // use linear filtering because this can be used for different size RT
-   return Vec4(HsbToRgb(Vec(frac*2.57f, 1, 1)), 1); // the scale is set so the full range equals to blue color, to imitate sky color
+   Flt frac=LinearizeDepth(TexLod(Depth, inTex).x)/Viewport.range; // use linear filtering because this can be used for different size RT
+   Vec rgb=HsbToRgb(Vec(frac*2.57f, 1, 1)); // the scale is set so the full range equals to blue color, to imitate sky color
+   if(LINEAR_GAMMA)rgb=SRGBToLinear(rgb);
+   return Vec4(rgb, 1);
 }
 TECHNIQUE(DrawDepth, Draw_VS(), DrawDepth_PS());
 /******************************************************************************/
