@@ -73,8 +73,8 @@ SunClass::SunClass()
    glow=128;
    lightColorS(0.7f); // !! if changing then also change 'Environment.Sun'
 
-   highlight_front=0.10f;
-   highlight_back =0.07f;
+   highlight_front=0.20f; // !! if changing then also change 'Environment.Sun'
+   highlight_back =0.15f;
 
    rays_color   =0.12f; // !! if changing then also change 'Environment.Sun' !! don't set more than (LINEAR_FILTER ? 0.15 : 0.1) because it will require jittering
    rays_jitter  =-1   ; // auto

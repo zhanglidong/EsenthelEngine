@@ -125,8 +125,8 @@ struct Environment
                blend          ; // if use blending for image   ,        true/false         , default=true, if true then 'image' will be applied using alpha blending, if false then 'image' will be added onto the screen
       Byte     glow           ; // glow amount                 ,           0..255          , default=128 , total glow amount is equal to ('image' alpha channel * 'image_color' alpha component * 'glow')
       Flt      size           , // image size                  ,           0..1            , default=0.15
-               highlight_front, // highlight on atmospheric sky,           0..Inf          , default=0.10
-               highlight_back ; // highlight on atmospheric sky,           0..Inf          , default=0.07
+               highlight_front, // highlight on atmospheric sky,           0..Inf          , default=0.20
+               highlight_back ; // highlight on atmospheric sky,           0..Inf          , default=0.15
       Vec      pos            , // position on sky sphere      , its length must be equal 1, default=!Vec(-1, 1, -1)
                light_color_s  , // light color sRGB gamma      ,     (0,0,0)..(1,1,1)      , default=(0.7, 0.7, 0.7), value of (0, 0, 0) disables light casting
                 rays_color    ; // rays  color                 ,     (0,0,0)..(1,1,1)      , default=(0.12, 0.12, 0.12)

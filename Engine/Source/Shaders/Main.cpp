@@ -1605,7 +1605,7 @@ inline VecH4 SkyTex(Vec inTex, Vec inTexStar, VecH4 inCol, Half alpha, uniform B
          inCol=SkyColor (inTex);
 
          Flt cos      =Dot(SkySunPos, inTex),
-             highlight=1+Sqr(cos)*((cos>0) ? SkySunHighlight.x : SkySunHighlight.y); // rayleigh
+             highlight=1+Sqr(cos)*((cos>0) ? SkySunHighlight.x : SkySunHighlight.y); // rayleigh, here 'Sqr' works better than 'Abs'
          inCol.rgb*=highlight;
       }
 
@@ -1906,7 +1906,7 @@ VecH4 SunRays_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 {
    VecH  pos  =Normalize(Vec(inPosXY, 1));
    Half  cos  =Dot(Sun.pos, pos),
-         power=(LINEAR_GAMMA ? cos : (cos>0) ? cos*cos : 0);
+         power=(LINEAR_GAMMA ? cos : (cos>0) ? Sqr(cos) : 0);
    VecH4 col  =0;
 
 #if 0 // can't use 'clip' because we always have to set output (to 0 if no rays)

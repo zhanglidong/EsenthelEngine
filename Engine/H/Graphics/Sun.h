@@ -43,8 +43,8 @@ struct Astro // Astronomical Object (Star/Planet/Moon)
 /******************************************************************************/
 STRUCT(SunClass , Astro) // Sun objects have default member values: 'glow'=128, 'light_color'=(0.7, 0.7, 0.7)
 //{
-   Flt highlight_front, // amount of highlight applied on atmospheric sky, 0..Inf, default=0.10
-       highlight_back ; // amount of highlight applied on atmospheric sky, 0..Inf, default=0.07
+   Flt highlight_front, // amount of highlight applied on atmospheric sky, 0..Inf, default=0.20
+       highlight_back ; // amount of highlight applied on atmospheric sky, 0..Inf, default=0.15
 
    Vec           rays_color ; // rays color , (0,0,0)..(1,1,1), default=(0.12, 0.12, 0.12)
    SByte         rays_jitter; // rays jitter,   -1/false/true , default=-1, false=always disabled, true=always enabled, -1=auto
