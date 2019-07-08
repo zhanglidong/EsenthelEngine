@@ -143,8 +143,8 @@ Bool DrawState()
          if(VR.active())
          {
             const Bool ds=false; // no need for depth buffer because we will only copy VR results
-            Renderer._gui   =&Renderer._main   ; Renderer._cur_main   =Renderer._gui   ();
-            Renderer._gui_ds=&Renderer._main_ds; Renderer._cur_main_ds=Renderer._gui_ds();
+            Renderer._gui   =&Renderer._main   ; Renderer._cur_main   =Renderer._gui   ;
+            Renderer._gui_ds=&Renderer._main_ds; Renderer._cur_main_ds=Renderer._gui_ds;
             Renderer.set(Renderer._cur_main, ds ? Renderer._cur_main_ds : null, false);
                   Renderer._cur_main   ->discard();
             if(ds)Renderer._cur_main_ds->discard();

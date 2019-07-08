@@ -65,15 +65,15 @@ void DisplayDraw::fxBegin()
 {
    if(!Renderer._back   )Renderer._back   .get  (ImageRTDesc(Renderer._gui->w(), Renderer._gui->h(), IMAGERT_SRGBA)); // Alpha is used for transparency
    if(!Renderer._back_ds)Renderer._back_ds.getDS(Renderer._back->w(), Renderer._back->h(), Renderer._back->samples());
-   Renderer._cur_main   =Renderer._back   ();
-   Renderer._cur_main_ds=Renderer._back_ds();
+   Renderer._cur_main   =Renderer._back   ;
+   Renderer._cur_main_ds=Renderer._back_ds;
    Renderer.set(Renderer._cur_main, Renderer._cur_main_ds, false);
 }
 ImageRTPtr DisplayDraw::fxEnd()
 {
    ImageRTPtr cur; Swap(cur, Renderer._back); Renderer._back_ds.clear();
-   Renderer._cur_main   =Renderer._gui   ();
-   Renderer._cur_main_ds=Renderer._gui_ds();
+   Renderer._cur_main   =Renderer._gui   ;
+   Renderer._cur_main_ds=Renderer._gui_ds;
    Renderer.set(Renderer._cur_main, Renderer._cur_main_ds, true);
    return cur;
 }

@@ -112,7 +112,7 @@ void SunClass::drawRays(Image *coverage, Vec &color)
    color=rays_color*alpha;
    Bool dither, gamma;
 
-   if(Renderer._cur[0]!=Renderer._col()) // if rendering to a separate RT, then render with full color, so later when upscaling, we can use dithering with higher precision, during dithering the color will be set to the right value
+   if(Renderer._cur[0]!=Renderer._col) // if rendering to a separate RT, then render with full color, so later when upscaling, we can use dithering with higher precision, during dithering the color will be set to the right value
    {
       sun.color=1;
       dither   =false; // we will do dithering later
@@ -139,8 +139,8 @@ void SunClass::drawRays(Image *coverage, Vec &color)
       Bool jitter=((rays_jitter<0) ? rays_color.max()>(LINEAR_GAMMA ? 0.15f : 0.1f)+EPS_COL : rays_jitter!=0); // for auto, enable jittering only if rays have a high brightness
       switch(_actual_rays_mode)
       {
-         case SUN_RAYS_HIGH: GetSunRays(true , dither, jitter, gamma)->draw(*coverage, rect); break;
-         default           : GetSunRays(false, dither, jitter, gamma)->draw(           rect); break;
+         case SUN_RAYS_HIGH: GetSunRays(true , dither, jitter, gamma)->draw(coverage, rect); break;
+         default           : GetSunRays(false, dither, jitter, gamma)->draw(          rect); break;
       }
    }
 }
@@ -171,7 +171,7 @@ void AstroDraw()
 {
    if(AstrosDraw)
    {
-      Renderer.set(Renderer._col(), Renderer._ds(), true); // use DS for depth tests
+      Renderer.set(Renderer._col, Renderer._ds, true); // use DS for depth tests
       SetOneMatrix(MatrixM(CamMatrix.pos)); // normally we have to set matrixes after 'setEyeViewport', however since matrixes are always relative to the camera, and here we set exactly at the camera position, so the matrix will be the same for both eyes
       Sh.h_SkyFracMulAdd->set(Vec2(0, 1)); // astronomical objects are drawn as billboards which make use of sky fraction, so be sure to disable it before drawing
       D.depthWrite(false); D.depthFunc(FUNC_LESS_EQUAL); REPS(Renderer._eye, Renderer._eye_num){Renderer.setEyeViewport(); Sun.Draw(); FREPAO(Astros).Draw();}
@@ -187,16 +187,16 @@ Bool AstroDrawRays()
       if(Renderer._sky_coverage) // apply mask based on depth tests, have to do this at the end, once we have depth buffer set (including from blend phase), no need to check for 'canReadDepth' because that was already checked when setting '_sky_coverage'
       {
          const VecI2 res=ByteScaleRes(Renderer.fx(), Sun._rays_mask_res);
-         if(res!=Renderer._sky_coverage()->size()) // draw to smaller RT, and combine sky coverage with depth tests
+         if(res!=Renderer._sky_coverage->size()) // draw to smaller RT, and combine sky coverage with depth tests
          {
             D.alpha(ALPHA_NONE);
             ImageRTPtr temp; temp.get(ImageRTDesc(res.x, res.y, IMAGERT_ONE));
-            Renderer.set(temp(), null, true);
+            Renderer.set(temp, null, true);
             GetSunRaysMask(true)->draw(Renderer._sky_coverage);
             Swap(temp, Renderer._sky_coverage);
          }else // apply depth tests to existing sky coverage
          {
-            Renderer.set(Renderer._sky_coverage(), Renderer._ds(), true, NEED_DEPTH_READ); // '_ds' needed for 'depth2D' optimization
+            Renderer.set(Renderer._sky_coverage, Renderer._ds, true, NEED_DEPTH_READ); // '_ds' needed for 'depth2D' optimization
             D.alpha     (ALPHA_MUL);
             D.depth2DOn (); GetSunRaysMask(false)->draw();
             D.depth2DOff();
@@ -208,11 +208,11 @@ Bool AstroDrawRays()
       const VecI2 res=ByteScaleRes(Renderer.fx(), Sun._rays_res);
       ImageRTPtr rt0; if(res!=Renderer._col->size())rt0.get(ImageRTDesc(res.x, res.y, IMAGERT_ONE));
 
-      Renderer.set(rt0 ? rt0() : Renderer._col(), null, rt0==null); // set viewport only when drawing to 'Renderer._col'
+      Renderer.set(rt0 ? rt0 : Renderer._col, null, rt0==null); // set viewport only when drawing to 'Renderer._col'
       SetOneMatrix();
       D.alpha(rt0 ? ALPHA_NONE : ALPHA_ADD); // if drawing to rt0 then set, if drawing to Renderer._col then add
 
-      Vec color; Sun.drawRays(Renderer._sky_coverage(), color);
+      Vec color; Sun.drawRays(Renderer._sky_coverage, color);
       if(rt0)
       {
        /*if(Sun.rays_soft && shift>=2)
@@ -228,7 +228,7 @@ Bool AstroDrawRays()
             Renderer.set(rt1(), null, false); Sh.h_BlurX_X->draw(rt0(), &D.viewRect());
             Renderer.set(rt0(), null, false); Sh.h_BlurY_X->draw(rt1(), &D.viewRect());
          }*/
-         Renderer.set(Renderer._col(), null, true);
+         Renderer.set(Renderer._col, null, true);
          D.alpha(ALPHA_ADD);
          Sh.h_Color[0]->set(Vec4(color, 0)); // we've rendered the sun with full intensity, so now we need to make it darker
          Sh.h_Color[1]->set(Vec4Zero      );

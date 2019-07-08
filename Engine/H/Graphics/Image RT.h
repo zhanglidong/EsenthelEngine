@@ -123,16 +123,19 @@ struct ImageRTPtr // Render Target Pointer
    Bool       find(Int w, Int h, IMAGERT_TYPE rt_type, Byte samples=1); // find Render Target, false on fail, 'samples'=number of samples per-pixel (allows multi-sampling)
    ImageRTPtr& get(Int w, Int h, IMAGERT_TYPE rt_type, Byte samples=1); // find Render Target, Exit  on fail, 'samples'=number of samples per-pixel (allows multi-sampling)
 
-   ImageRT* operator ()  (               )C {return  T._data         ;} // access the data, you can use the returned reference as long as this 'ImageRTPtr' object exists and not modified
-   ImageRT* operator ->  (               )C {return  T._data         ;} // access the data, you can use the returned reference as long as this 'ImageRTPtr' object exists and not modified
-   ImageRT& operator *   (               )C {return *T._data         ;} // access the data, you can use the returned reference as long as this 'ImageRTPtr' object exists and not modified
-   Bool     operator ==  (  null_t       )C {return  T._data==null   ;} // if pointers are equal
-   Bool     operator !=  (  null_t       )C {return  T._data!=null   ;} // if pointers are different
-   Bool     operator ==  (C Image      *p)C {return  T._data==p      ;} // if pointers are equal
-   Bool     operator !=  (C Image      *p)C {return  T._data!=p      ;} // if pointers are different
-   Bool     operator ==  (C ImageRTPtr &p)C {return  T._data==p._data;} // if pointers are equal
-   Bool     operator !=  (C ImageRTPtr &p)C {return  T._data!=p._data;} // if pointers are different
-            operator Bool(               )C {return  T._data!=null   ;} // if pointer  is  valid
+   ImageRT* operator ()      (               )C {return  T._data         ;} // access the data, you can use the returned reference as long as this 'ImageRTPtr' object exists and not modified
+   ImageRT* operator ->      (               )C {return  T._data         ;} // access the data, you can use the returned reference as long as this 'ImageRTPtr' object exists and not modified
+   ImageRT& operator *       (               )C {return *T._data         ;} // access the data, you can use the returned reference as long as this 'ImageRTPtr' object exists and not modified
+   Bool     operator ==      (  null_t       )C {return  T._data==null   ;} // if pointers are equal
+   Bool     operator !=      (  null_t       )C {return  T._data!=null   ;} // if pointers are different
+   Bool     operator ==      (  ImageRT    *p)C {return  T._data==p      ;} // if pointers are equal
+   Bool     operator !=      (  ImageRT    *p)C {return  T._data!=p      ;} // if pointers are different
+   Bool     operator ==      (C ImageRT    *p)C {return  T._data==p      ;} // if pointers are equal
+   Bool     operator !=      (C ImageRT    *p)C {return  T._data!=p      ;} // if pointers are different
+   Bool     operator ==      (C ImageRTPtr &p)C {return  T._data==p._data;} // if pointers are equal
+   Bool     operator !=      (C ImageRTPtr &p)C {return  T._data!=p._data;} // if pointers are different
+            operator Bool    (               )C {return  T._data!=null   ;} // if pointer  is  valid
+            operator ImageRT*(               )C {return  T._data         ;}
 
    ImageRTPtr& clear    (               );                  // clear the pointer to null, this automatically decreases the reference count of current data
    ImageRTPtr& operator=(  null_t       ) {return clear();} // clear the pointer to null, this automatically decreases the reference count of current data
@@ -161,10 +164,11 @@ struct ImageRTPtrRef
 
    ImageRTPtr& get(C ImageRTDesc &desc) {return ref.get(desc);}
 
-   ImageRT* operator() ()C {return  ref();}
-   ImageRT* operator-> ()C {return  ref();}
-   ImageRT& operator*  ()C {return *ref  ;}
-   operator ImageRTPtr&()C {return  ref  ;}
+   ImageRT* operator() ()C {return  ref;}
+   ImageRT* operator-> ()C {return  ref;}
+   ImageRT& operator*  ()C {return *ref;}
+   operator ImageRTPtr&()C {return  ref;}
+   operator ImageRT   *()C {return  ref;}
 
    void clear() {ref.clear();}
 

@@ -212,7 +212,7 @@ void SkyClass::draw()
    #if !REVERSE_DEPTH // for low precision depth we need to make sure that sky ball mesh is slightly smaller than view range, to avoid mesh clipping, this was observed on OpenGL with viewFrom=0.05, viewRange=1024, Cam.yaw=0, Cam.pitch=PI_2
       MIN(sky_ball_mesh_size, to*EPS_SKY_MIN_VIEW_RANGE); // alternatively we could try using D3DRS_CLIPPING, DepthClipEnable, GL_DEPTH_CLAMP
    #endif
-      Renderer.set(Renderer._col(), Renderer._ds(), true, blend ? NEED_DEPTH_READ : NO_DEPTH_READ); // specify correct mode because without it the sky may cover everything completely
+      Renderer.set(Renderer._col, Renderer._ds, true, blend ? NEED_DEPTH_READ : NO_DEPTH_READ); // specify correct mode because without it the sky may cover everything completely
       D.alpha     (blend ? ALPHA_BLEND_DEC : ALPHA_NONE);
       D.depthWrite(false);
       D.depthFunc (FUNC_LESS_EQUAL); // to make sure we draw at the end of viewRange

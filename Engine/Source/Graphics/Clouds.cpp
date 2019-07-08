@@ -132,7 +132,7 @@ void LayeredClouds::draw()
    {
       commit();
 
-      Renderer.set(Renderer._col(), Renderer._sky_coverage(), null, null, Renderer._ds(), true, WANT_DEPTH_READ); // use DS for depth tests
+      Renderer.set(Renderer._col, Renderer._sky_coverage, null, null, Renderer._ds, true, WANT_DEPTH_READ); // use DS for depth tests
       Flt from=D.viewRange()*frac(),
           to  =D.viewRange();
       MAX(from, FrustumMain.view_quad_max_dist/CLOUD_MESH_MIN_DIST); // make sure we don't intersect with the near plane
@@ -637,7 +637,7 @@ void VolumetricClouds::draw()
       res.x=Max(1, Round(res.y*D._unscaled_size.div())); // calculate proportionally to 'res.y' and current mode aspect (do not use 'D.aspectRatio' because that's the entire monitor screen aspect, and not application window), all of this is needed because we need to have square pixels for motion blur render targets, however the main application resolution may not have square pixels
       ImageRTPtr dest(ImageRTDesc(res.x, res.y, IMAGERT_TWO)); // here Red is for brightness, Green is used for density/opacity
 
-      Renderer.set(dest(), null, false); D.alpha(ALPHA_NONE);
+      Renderer.set(dest, null, false); D.alpha(ALPHA_NONE);
 
       GpuCloud c;
       Flt curve =Max(1.0f/512, T.curve)/size, // use Min because smaller values caused artifacts when looking up (at the top point of the cloud dome)
@@ -662,7 +662,7 @@ void VolumetricClouds::draw()
       Sh.h_ImageVol[1]->_sampler=null;
 
       Bool gamma=LINEAR_GAMMA, swap=(gamma && Renderer._col->canSwapRTV()); if(swap){gamma=false; Renderer._col->swapRTV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
-      Renderer.set(Renderer._col(), null, true);
+      Renderer.set(Renderer._col, null, true);
       D.alpha(ALPHA_BLEND_DEC);
 
       Flt to=D.viewRange(), from=Min(to*Sky.frac(), to-0.01f);
@@ -715,7 +715,7 @@ void AllClouds::drawAll()
       {
          Sky.setFracMulAdd();
 
-         Renderer.set(Renderer._col(), Renderer._sky_coverage(), null, null, Renderer._ds(), true, WANT_DEPTH_READ); Renderer.setDSLookup(); // we may use soft cloud, 'setDSLookup' after 'set'
+         Renderer.set(Renderer._col, Renderer._sky_coverage, null, null, Renderer._ds, true, WANT_DEPTH_READ); Renderer.setDSLookup(); // we may use soft cloud, 'setDSLookup' after 'set'
          D.alpha     (ALPHA_BLEND_DEC);
          D.depthWrite(false); REPS(Renderer._eye, Renderer._eye_num){Renderer.setEyeViewport(); Renderer.mode(RM_CLOUD); Renderer._render();}
          D.depthWrite(true );

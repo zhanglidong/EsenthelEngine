@@ -238,8 +238,8 @@ void RendererClass::setMain() // !! requires 'D._lock' !! this is called after R
      _gui_ds=&_main_ds;
    #endif
    }
-  _cur_main   =_gui   ();
-  _cur_main_ds=_gui_ds();
+  _cur_main   =_gui;
+  _cur_main_ds=_gui_ds;
 
    set(_cur_main, _cur_main_ds, false);
 }

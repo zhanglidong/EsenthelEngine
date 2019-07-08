@@ -185,9 +185,9 @@ void Panel::draw(C Rect &rect)C
       if(secondary)Renderer._gui->copyHw(*cur, false, r ); // set background to be a copy
 
     //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
-      ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Renderer.set(rt1(), null, false); Sh.h_BlurX[true]->draw(rt0, &re);
-                                            Renderer.set(rt0(), null, false); Sh.h_BlurY[true]->draw(rt1, &re);
-                                            Renderer.set(cur  , ds  , true );
+      ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Renderer.set(rt1, null, false); Sh.h_BlurX[true]->draw(rt0, &re);
+                                            Renderer.set(rt0, null, false); Sh.h_BlurY[true]->draw(rt1, &re);
+                                            Renderer.set(cur, ds  , true );
       if(shadow_opacity)
       {
          D.alpha(ALPHA_BLEND);
@@ -335,9 +335,9 @@ void Panel::draw(C Color &color, C Rect &rect)C
       if(secondary)Renderer._gui->copyHw(*cur, false, r ); // set background to be a copy
 
     //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
-      ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Renderer.set(rt1(), null, false); Sh.h_BlurX[true]->draw(rt0, &re);
-                                            Renderer.set(rt0(), null, false); Sh.h_BlurY[true]->draw(rt1, &re);
-                                            Renderer.set(cur  , ds  , true );
+      ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Renderer.set(rt1, null, false); Sh.h_BlurX[true]->draw(rt0, &re);
+                                            Renderer.set(rt0, null, false); Sh.h_BlurY[true]->draw(rt1, &re);
+                                            Renderer.set(cur, ds  , true );
       if(shadow_opacity)
       {
          D.alpha(ALPHA_BLEND);
