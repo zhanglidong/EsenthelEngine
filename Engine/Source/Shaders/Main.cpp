@@ -1447,14 +1447,14 @@ VecH4 EdgeDetect_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR // use VecH4 because we m
 }
 VecH4 EdgeDetectApply_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR // use VecH4 because we apply this directly onto RGBA destination
 {
-   const Int samples=6;
+   const Int samples=4;
          Flt color  =TexPoint(ImgX, inTex).x;
    for(Int i=0; i<samples; i++)
    {
-      Vec2 t=inTex+BlendOfs6[i]*ImgSize.xy;
+      Vec2 t=inTex+BlendOfs4[i]*ImgSize.xy;
       color+=TexLod(ImgX, t).x; // use linear filtering because texcoords aren't rounded
    }
-   return color/(samples+1);
+   return color/(samples+1); // Sqr could be used on the result, to make darkening much stronger
 }
 TECHNIQUE(EdgeDetect     , Draw_VS(),      EdgeDetect_PS());
 TECHNIQUE(EdgeDetectApply, Draw_VS(), EdgeDetectApply_PS());

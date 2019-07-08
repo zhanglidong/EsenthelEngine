@@ -45,9 +45,9 @@ VideoOptions VidOpt;
       };
       cchar8 *VideoOptions::Advanced::EdgeDetect_t[]=
       {
-         "Off",  // 0
-         "Thin", // 1
-         "Fat",  // 2
+         "Off" , // 0
+         "Soft", // 1
+         "Thin", // 2
       };
       cchar8 *VideoOptions::Advanced::Precision_t[]=
       {

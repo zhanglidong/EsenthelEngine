@@ -15,7 +15,7 @@ class VideoOptions : PropWin
       static cchar8 *TexUse_t[]
 ; ASSERT(TEX_USE_DISABLE==0 && TEX_USE_SINGLE==1 && TEX_USE_MULTI==2);
       static cchar8 *EdgeDetect_t[]
-; ASSERT(EDGE_DETECT_NONE==0 && EDGE_DETECT_THIN==1 && EDGE_DETECT_FAT==2);
+; ASSERT(EDGE_DETECT_NONE==0 && EDGE_DETECT_SOFT==1 && EDGE_DETECT_THIN==2);
       static cchar8 *Precision_t[]
 ; ASSERT(IMAGE_PRECISION_8==0 && IMAGE_PRECISION_10==1);
       static cchar8 *Stage_t[]

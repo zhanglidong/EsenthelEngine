@@ -43,10 +43,10 @@ class VideoOptions : PropWin
       }; ASSERT(TEX_USE_DISABLE==0 && TEX_USE_SINGLE==1 && TEX_USE_MULTI==2);
       static cchar8 *EdgeDetect_t[]=
       {
-         "Off",  // 0
-         "Thin", // 1
-         "Fat",  // 2
-      }; ASSERT(EDGE_DETECT_NONE==0 && EDGE_DETECT_THIN==1 && EDGE_DETECT_FAT==2);
+         "Off" , // 0
+         "Soft", // 1
+         "Thin", // 2
+      }; ASSERT(EDGE_DETECT_NONE==0 && EDGE_DETECT_SOFT==1 && EDGE_DETECT_THIN==2);
       static cchar8 *Precision_t[]=
       {
           "8 bit", // 0

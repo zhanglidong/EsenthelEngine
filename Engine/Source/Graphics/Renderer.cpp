@@ -1517,7 +1517,7 @@ void RendererClass::edgeDetect()
          D.depth2DOff();
       }break;
 
-      case EDGE_DETECT_FAT:
+      case EDGE_DETECT_SOFT:
       {
          ImageRTPtr edge(ImageRTDesc(fxW(), fxH(), IMAGERT_ONE));
          D.alpha     (ALPHA_NONE); set(edge, null, true, NEED_DEPTH_READ); Sh.imgSize(*_ds_1s); Sh.h_EdgeDetect->draw(); // we need to fill the entire buffer because below we're using blurring (which takes nearby texels)
@@ -1722,7 +1722,7 @@ void RendererClass::applyOutline()
             D.depth2DOff();
          }break;
 
-         case EDGE_DETECT_FAT: if(Sh.h_Outline && Sh.h_OutlineDS && Sh.h_OutlineApply)
+         case EDGE_DETECT_SOFT: if(Sh.h_Outline && Sh.h_OutlineDS && Sh.h_OutlineApply)
          {
             ImageRTPtr temp(ImageRTDesc(fxW(), fxH(), IMAGERT_OUTLINE)); // here Alpha is used for outline opacity
             set(temp, null, true);
