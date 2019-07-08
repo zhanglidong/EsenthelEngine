@@ -158,8 +158,8 @@ VecH4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
    weight  +=w;
 
    blur_abs/=weight;
- //return Vec4(color.rgb/weight, color.a/weight);
-   return Vec4(color.rgb/weight, (color.a>=0.5*weight) ? 0.5+blur_abs : 0.5-blur_abs); // color.a/weight>=0.5 ? .. : ..
+ //return VecH4(color.rgb/weight, color.a/weight);
+   return VecH4(color.rgb/weight, (color.a>=0.5*weight) ? 0.5+blur_abs : 0.5-blur_abs); // color.a/weight>=0.5 ? .. : ..
 }
 #undef  SCALE
 #define SCALE 1.0 // at the end we need 0..1 range, and since we start with 0..1 we need to scale by "1"
@@ -196,7 +196,7 @@ VecH4 DofBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
 
    blur_abs/=weight;
  //color.a  =((color.a>=0.5*weight) ? 0.5+blur_abs : 0.5-blur_abs); // color.a/weight>=0.5 ? .. : ..
-   return Vec4(color.rgb/weight, FINAL_MODE ? ((color.a>=0.5*weight) ? 0 : blur_abs) : blur_abs);
+   return VecH4(color.rgb/weight, FINAL_MODE ? ((color.a>=0.5*weight) ? 0 : blur_abs) : blur_abs);
 }
 /******************************************************************************/
 VecH4 Dof_PS(NOPERSP Vec2 inTex:TEXCOORD,
