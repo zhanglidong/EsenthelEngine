@@ -4,5 +4,5 @@ BUFFER(Fog)
 BUFFER_END
 
 inline VecH FogColor  () {return FogColor_Density.rgb;}
-inline Half FogDensity() {return FogColor_Density.a  ;}
+inline Flt  FogDensity() {return FogColor_Density.a  ;}
 /******************************************************************************/

@@ -29,7 +29,7 @@ BUFFER_END
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
 Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
            NOPERSP Vec2 inPosXY:TEXCOORD1,
-           PIXEL                         ,
+           NOPERSP PIXEL                         ,
    uniform Int  mode                     ,
    uniform Bool jitter                   ,
    uniform Bool normals                  ):COLOR

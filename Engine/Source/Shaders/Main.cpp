@@ -271,7 +271,7 @@ VecH TexCubicRGB(Vec2 inTex) // ignores alpha channel
 Vec4 Draw2DFlat_VS(VtxInput vtx):POSITION {return Vec4(vtx.pos2()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);}
 Vec4 Draw3DFlat_VS(VtxInput vtx):POSITION {return Project(TransformPos(vtx.pos()));}
 
-Vec4 DrawFlat_PS():COLOR {return Color[0];}
+VecH4 DrawFlat_PS():COLOR {return Color[0];}
 
 TECHNIQUE(Draw2DFlat, Draw2DFlat_VS(), DrawFlat_PS());
 TECHNIQUE(Draw3DFlat, Draw3DFlat_VS(), DrawFlat_PS());
@@ -279,13 +279,13 @@ TECHNIQUE(Draw3DFlat, Draw3DFlat_VS(), DrawFlat_PS());
 TECHNIQUE(SetCol    , Draw_VS      (), DrawFlat_PS());
 #else // this version works OK
 void SetCol_VS(VtxInput vtx,
-           out Vec4 outCol:COLOR   ,
-           out Vec4 outVtx:POSITION)
+           out VecH4 outCol:COLOR   ,
+           out Vec4  outVtx:POSITION)
 {
    outCol=Color[0];
    outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
-Vec4 SetCol_PS(NOPERSP Vec4 inCol:COLOR):COLOR {return inCol;}
+VecH4 SetCol_PS(NOPERSP VecH4 inCol:COLOR):COLOR {return inCol;}
 TECHNIQUE(SetCol, SetCol_VS(), SetCol_PS());
 #endif
 /******************************************************************************/
@@ -296,7 +296,7 @@ void Draw2DCol_VS(VtxInput vtx,
    outCol=     vtx.color();
    outVtx=Vec4(vtx.pos2 ()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
 }
-Vec4 Draw2DCol_PS(NOPERSP Vec4 inCol:COLOR):COLOR {return inCol;}
+VecH4 Draw2DCol_PS(NOPERSP VecH4 inCol:COLOR):COLOR {return inCol;}
 
 TECHNIQUE(Draw2DCol, Draw2DCol_VS(), Draw2DCol_PS());
 /******************************************************************************/
@@ -307,7 +307,7 @@ void Draw3DCol_VS(VtxInput vtx,
    outCol=vtx.color();
    outVtx=Project(TransformPos(vtx.pos()));
 }
-Vec4 Draw3DCol_PS(Vec4 inCol:COLOR):COLOR {return inCol;}
+VecH4 Draw3DCol_PS(VecH4 inCol:COLOR):COLOR {return inCol;}
 
 TECHNIQUE(Draw3DCol, Draw3DCol_VS(), Draw3DCol_PS());
 /******************************************************************************/
@@ -318,30 +318,30 @@ void Draw2DTex_VS(VtxInput vtx,
    outTex=vtx.tex();
    outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
 }
-Vec4 Draw2DTex_PS (NOPERSP Vec2 inTex:TEXCOORD):COLOR {return      Tex(Col, inTex);}
-Vec4 Draw2DTexC_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return      Tex(Col, inTex)*Color[0]+Color[1];}
-Vec4 Draw2DTexA_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(Tex(Col, inTex).rgb, Step);}
+VecH4 Draw2DTex_PS (NOPERSP Vec2 inTex:TEXCOORD):COLOR {return       Tex(Col, inTex);}
+VecH4 Draw2DTexC_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return       Tex(Col, inTex)*Color[0]+Color[1];}
+VecH4 Draw2DTexA_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return VecH4(Tex(Col, inTex).rgb, Step);}
 
-Vec4 DrawTexX_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(Tex(Col, inTex).xxx, 1);}
-Vec4 DrawTexY_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(Tex(Col, inTex).yyy, 1);}
-Vec4 DrawTexZ_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(Tex(Col, inTex).zzz, 1);}
-Vec4 DrawTexW_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(Tex(Col, inTex).www, 1);}
+VecH4 DrawTexX_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return VecH4(Tex(Col, inTex).xxx, 1);}
+VecH4 DrawTexY_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return VecH4(Tex(Col, inTex).yyy, 1);}
+VecH4 DrawTexZ_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return VecH4(Tex(Col, inTex).zzz, 1);}
+VecH4 DrawTexW_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return VecH4(Tex(Col, inTex).www, 1);}
 
 // these functions are used in Editor for previewing material textures, so use slow high precision versions to visually match original
-Vec4 DrawTexXG_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(SRGBToLinear(Tex(Col, inTex).x).xxx, 1);}
-Vec4 DrawTexYG_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(SRGBToLinear(Tex(Col, inTex).y).xxx, 1);}
-Vec4 DrawTexZG_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(SRGBToLinear(Tex(Col, inTex).z).xxx, 1);}
-Vec4 DrawTexWG_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return Vec4(SRGBToLinear(Tex(Col, inTex).w).xxx, 1);}
+VecH4 DrawTexXG_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return VecH4(SRGBToLinear(Tex(Col, inTex).x).xxx, 1);}
+VecH4 DrawTexYG_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return VecH4(SRGBToLinear(Tex(Col, inTex).y).xxx, 1);}
+VecH4 DrawTexZG_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return VecH4(SRGBToLinear(Tex(Col, inTex).z).xxx, 1);}
+VecH4 DrawTexWG_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return VecH4(SRGBToLinear(Tex(Col, inTex).w).xxx, 1);}
 
-Vec4 DrawTexNrm_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
+VecH4 DrawTexNrm_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
-   Vec nrm; nrm.xy=Tex(Col, inTex).xy*2-1; // #MaterialTextureChannelOrder
-            nrm.z =CalcZ(nrm.xy);
-            nrm   =Normalize(nrm)*0.5+0.5;
-         #if LINEAR_GAMMA
-            nrm   =SRGBToLinear(nrm);
-         #endif
-   return Vec4(nrm, 1);
+   VecH nrm; nrm.xy=Tex(Col, inTex).xy*2-1; // #MaterialTextureChannelOrder
+             nrm.z =CalcZ(nrm.xy);
+             nrm   =Normalize(nrm)*0.5+0.5;
+          #if LINEAR_GAMMA
+             nrm   =SRGBToLinear(nrm);
+          #endif
+   return VecH4(nrm, 1);
 }
 
 TECHNIQUE(Draw2DTex , Draw2DTex_VS(),  Draw2DTex_PS());
@@ -362,10 +362,10 @@ TECHNIQUE(Draw      ,      Draw_VS(),  Draw2DTex_PS());
 TECHNIQUE(DrawC     ,      Draw_VS(), Draw2DTexC_PS());
 TECHNIQUE(DrawA     ,      Draw_VS(), Draw2DTexA_PS());
 
-Vec4 DrawTexXC_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                  NOPERSP PIXEL,
-          uniform Bool dither=false,
-          uniform Bool gamma =false):COLOR
+VecH4 DrawTexXC_PS(NOPERSP Vec2 inTex:TEXCOORD,
+                   NOPERSP PIXEL,
+           uniform Bool dither=false,
+           uniform Bool gamma =false):COLOR
 {
    VecH4 col=Tex(Col, inTex).x*Color[0]+Color[1];
    if(dither)ApplyDither(col.rgb, pixel.xy, LINEAR_GAMMA && !gamma); // don't perform gamma conversions inside dither if "gamma==true", because this means we have sRGB color which we're going to convert to linear below
@@ -379,8 +379,8 @@ TECHNIQUE(DrawXCD , Draw_VS(), DrawTexXC_PS(true ));
 TECHNIQUE(DrawXCG , Draw_VS(), DrawTexXC_PS(false, true));
 TECHNIQUE(DrawXCDG, Draw_VS(), DrawTexXC_PS(true , true));
 
-Vec4 DrawTexPoint_PS (NOPERSP Vec2 inTex:TEXCOORD):COLOR {return TexPoint(Col, inTex);}
-Vec4 DrawTexPointC_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return TexPoint(Col, inTex)*Color[0]+Color[1];}
+VecH4 DrawTexPoint_PS (NOPERSP Vec2 inTex:TEXCOORD):COLOR {return TexPoint(Col, inTex);}
+VecH4 DrawTexPointC_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return TexPoint(Col, inTex)*Color[0]+Color[1];}
 TECHNIQUE(DrawTexPoint , Draw2DTex_VS(), DrawTexPoint_PS ());
 TECHNIQUE(DrawTexPointC, Draw2DTex_VS(), DrawTexPointC_PS());
 /******************************************************************************/
@@ -393,11 +393,10 @@ void Draw2DTexCol_VS(VtxInput vtx,
    outCol=     vtx.color();
    outVtx=Vec4(vtx.pos2 ()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
 }
-Vec4 Draw2DTexCol_PS(NOPERSP Vec2  inTex:TEXCOORD,
-                     NOPERSP VecH4 inCol:COLOR   ):COLOR
+VecH4 Draw2DTexCol_PS(NOPERSP Vec2  inTex:TEXCOORD,
+                      NOPERSP VecH4 inCol:COLOR   ):COLOR
 {
-   VecH4  col=Tex(Col, inTex);
-   return col*inCol;
+   return Tex(Col, inTex)*inCol;
 }
 TECHNIQUE(Draw2DTexCol, Draw2DTexCol_VS(), Draw2DTexCol_PS());
 /******************************************************************************/
@@ -409,7 +408,7 @@ void Draw3DTex_VS(VtxInput vtx,
 {
    Vec pos=TransformPos(vtx.pos());
           outTex=vtx.tex();
-   if(fog)outFog=Vec4(FogColor(), AccumulatedDensity(FogDensity(), Length(pos)));
+   if(fog)outFog=VecH4(FogColor(), AccumulatedDensity(FogDensity(), Length(pos)));
           outVtx=Project(pos);
 }
 void Draw2DDepthTex_VS(VtxInput vtx,
@@ -420,10 +419,10 @@ void Draw2DDepthTex_VS(VtxInput vtx,
    outTex=vtx.tex();
    outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, DelinearizeDepth(vtx._pos.z), 1);
 }
-Vec4 Draw3DTex_PS(Vec2  inTex:TEXCOORD,
-                  VecH4 inFog:COLOR   ,
-          uniform Bool  alpha_test    ,
-          uniform Bool  fog           ):COLOR
+VecH4 Draw3DTex_PS(Vec2  inTex:TEXCOORD,
+                   VecH4 inFog:COLOR   ,
+           uniform Bool  alpha_test    ,
+           uniform Bool  fog           ):COLOR
 {
    VecH4 col=Tex(Col, inTex);
    if(alpha_test)clip(col.a-0.5);
@@ -448,7 +447,7 @@ void Draw3DTexCol_VS(VtxInput vtx,
    Vec pos=TransformPos(vtx.pos());
           outTex=vtx.tex  ();
           outCol=vtx.color();
-   if(fog)outFog=Vec4(FogColor(), AccumulatedDensity(FogDensity(), Length(pos)));
+   if(fog)outFog=VecH4(FogColor(), AccumulatedDensity(FogDensity(), Length(pos)));
           outVtx=Project(pos);
 }
 void Draw2DDepthTexCol_VS(VtxInput vtx,
@@ -481,23 +480,23 @@ TECHNIQUE(Draw3DTexColATF, Draw3DTexCol_VS(true ), Draw3DTexCol_PS(true , true )
 TECHNIQUE(Draw2DDepthTexCol  , Draw2DDepthTexCol_VS(), Draw3DTexCol_PS(false, false));
 TECHNIQUE(Draw2DDepthTexColAT, Draw2DDepthTexCol_VS(), Draw3DTexCol_PS(true , false));
 /******************************************************************************/
-Vec4 DrawTexCubicFast_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                         NOPERSP PIXEL,
-                 uniform Bool color,
-                 uniform Bool dither):COLOR
+VecH4 DrawTexCubicFast_PS(NOPERSP Vec2 inTex:TEXCOORD,
+                          NOPERSP PIXEL,
+                  uniform Bool color,
+                  uniform Bool dither):COLOR
 {
    VecH4 col=TexCubicFast(inTex);
    if(color)col=col*Color[0]+Color[1];
    if(dither)ApplyDither(col.rgb, pixel.xy);
    return col;
 }
-Vec4 DrawTexCubicFastRGB_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                            NOPERSP PIXEL,
-                    uniform Bool dither=false):COLOR
+VecH4 DrawTexCubicFastRGB_PS(NOPERSP Vec2 inTex:TEXCOORD,
+                             NOPERSP PIXEL,
+                     uniform Bool dither=false):COLOR
 {
-   VecH col=TexCubicFastRGB(inTex);
+   VecH4 col=VecH4(TexCubicFastRGB(inTex), 1);
    if(dither)ApplyDither(col.rgb, pixel.xy);
-   return Vec4(col, 1);
+   return col;
 }
 TECHNIQUE(DrawTexCubicFast    , Draw2DTex_VS(), DrawTexCubicFast_PS(false, false));
 TECHNIQUE(DrawTexCubicFastC   , Draw2DTex_VS(), DrawTexCubicFast_PS(true , false));
@@ -506,23 +505,23 @@ TECHNIQUE(DrawTexCubicFastD   ,      Draw_VS(), DrawTexCubicFast_PS(false, true 
 TECHNIQUE(DrawTexCubicFastRGB ,      Draw_VS(), DrawTexCubicFastRGB_PS());
 TECHNIQUE(DrawTexCubicFastRGBD,      Draw_VS(), DrawTexCubicFastRGB_PS(true));
 /******************************************************************************/
-Vec4 DrawTexCubic_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                     NOPERSP PIXEL              ,
-                     uniform Bool color         ,
-                     uniform Bool dither        ):COLOR
+VecH4 DrawTexCubic_PS(NOPERSP Vec2 inTex:TEXCOORD,
+                      NOPERSP PIXEL              ,
+                      uniform Bool color         ,
+                      uniform Bool dither        ):COLOR
 {
    VecH4 col=TexCubic(inTex);
    if(color)col=col*Color[0]+Color[1];
    if(dither)ApplyDither(col.rgb, pixel.xy);
    return col;
 }
-Vec4 DrawTexCubicRGB_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                        NOPERSP PIXEL              ,
-                        uniform Bool dither=false  ):COLOR
+VecH4 DrawTexCubicRGB_PS(NOPERSP Vec2 inTex:TEXCOORD,
+                         NOPERSP PIXEL              ,
+                         uniform Bool dither=false  ):COLOR
 {
-   VecH col=TexCubicRGB(inTex);
+   VecH4 col=VecH4(TexCubicRGB(inTex), 1);
    if(dither)ApplyDither(col.rgb, pixel.xy);
-   return Vec4(col, 1);
+   return col;
 }
 TECHNIQUE(DrawTexCubic    , Draw2DTex_VS(), DrawTexCubic_PS(false, false));
 TECHNIQUE(DrawTexCubicC   , Draw2DTex_VS(), DrawTexCubic_PS(true , false));
@@ -532,15 +531,15 @@ TECHNIQUE(DrawTexCubicRGB ,      Draw_VS(), DrawTexCubicRGB_PS());
 TECHNIQUE(DrawTexCubicRGBD,      Draw_VS(), DrawTexCubicRGB_PS(true));
 /******************************************************************************/
 #if MODEL>=SM_4
-Vec4 DrawMs1_PS(NOPERSP PIXEL):COLOR {return TexSample(ColMS, pixel.xy, 0);}
-Vec4 DrawMsN_PS(NOPERSP PIXEL):COLOR
+VecH4 DrawMs1_PS(NOPERSP PIXEL):COLOR {return TexSample(ColMS, pixel.xy, 0);}
+VecH4 DrawMsN_PS(NOPERSP PIXEL):COLOR
 {
-                                    Vec4 color =TexSample(ColMS, pixel.xy, 0);
+                                    Vec4 color =TexSample(ColMS, pixel.xy, 0); // use HP because we sum a lot of colors
    UNROLL for(Int i=1; i<MS_SAMPLES; i++)color+=TexSample(ColMS, pixel.xy, i);
    return color/MS_SAMPLES;
 }
-Vec4 DrawMsM_PS(NOPERSP PIXEL,
-                   UInt index:SV_SampleIndex):COLOR
+VecH4 DrawMsM_PS(NOPERSP PIXEL,
+                    UInt index:SV_SampleIndex):COLOR
 {
    return TexSample(ColMS, pixel.xy, index);
 }
@@ -558,8 +557,8 @@ void DrawMask_VS(VtxInput vtx,
    outTexM=vtx.tex1();
    outVtx =Vec4(vtx.pos2()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
 }
-Vec4 DrawMask_PS(NOPERSP Vec2 inTexC:TEXCOORD0,
-                 NOPERSP Vec2 inTexM:TEXCOORD1):COLOR
+VecH4 DrawMask_PS(NOPERSP Vec2 inTexC:TEXCOORD0,
+                  NOPERSP Vec2 inTexM:TEXCOORD1):COLOR
 {
    VecH4  col   =Tex(Col , inTexC)*Color[0]+Color[1];
           col.a*=Tex(Col1, inTexM).a;
@@ -574,23 +573,23 @@ void DrawCubeFace_VS(VtxInput vtx,
    outTex=Vec (vtx.tex(), vtx.size());
    outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
 }
-Vec4 DrawCubeFace_PS(NOPERSP Vec inTex:TEXCOORD):COLOR {return TexCube(Rfl, inTex)*Color[0]+Color[1];}
+VecH4 DrawCubeFace_PS(NOPERSP Vec inTex:TEXCOORD):COLOR {return TexCube(Rfl, inTex)*Color[0]+Color[1];}
 
 TECHNIQUE(DrawCubeFace, DrawCubeFace_VS(), DrawCubeFace_PS());
 /******************************************************************************/
 // FONT
 /******************************************************************************/
 BUFFER(Font)
-   Flt FontShadow,
-       FontContrast=1,
-       FontShade,
-       FontDepth;
-   Vec FontLum;
+   Half FontShadow,
+        FontContrast=1,
+        FontShade;
+   Flt  FontDepth;
+   VecH FontLum;
 BUFFER_END
 
 void Font_VS(VtxInput vtx,
          out Vec2 outTex  :TEXCOORD0,
-         out Flt  outShade:TEXCOORD1,
+         out Half outShade:TEXCOORD1,
          out Vec4 outVtx  :POSITION ,
      uniform Bool custom_depth)
 {
@@ -599,10 +598,10 @@ void Font_VS(VtxInput vtx,
    if(custom_depth)outVtx  =Vec4(vtx.pos2()*Coords.xy+Coords.zw, DelinearizeDepth(FontDepth), 1);
    else            outVtx  =Vec4(vtx.pos2()*Coords.xy+Coords.zw,               REVERSE_DEPTH, 1);
 }
-Vec4 Font_PS
+VecH4 Font_PS
 (
    NOPERSP Vec2 inTex  :TEXCOORD0,
-   NOPERSP Flt  inShade:TEXCOORD1,
+   NOPERSP Half inShade:TEXCOORD1,
    uniform Bool linear_gamma
 ):COLOR
 {
@@ -640,9 +639,9 @@ Vec4 Font_PS
    Half final_alpha=a+s-s*a;
 
 #if 1 // use for ALPHA_BLEND (this option is better because we don't need to set blend state specifically for drawing fonts)
-   return Vec4(Color[0].rgb*(Lerp(FontShade, 1, Sat(inShade))*a/(final_alpha+EPS)), Color[0].a*final_alpha); // NaN, division by 'final_alpha' is required because of the hardware ALPHA_BLEND formula, without it we would get dark borders around the font
+   return VecH4(Color[0].rgb*(Lerp(FontShade, 1, Sat(inShade))*a/(final_alpha+EPS)), Color[0].a*final_alpha); // NaN, division by 'final_alpha' is required because of the hardware ALPHA_BLEND formula, without it we would get dark borders around the font
 #else // use for ALPHA_MERGE
-   return Vec4(Color[0].rgb*(Lerp(FontShade, 1, Sat(inShade))*a*Color[0].a), Color[0].a*final_alpha);
+   return VecH4(Color[0].rgb*(Lerp(FontShade, 1, Sat(inShade))*a*Color[0].a), Color[0].a*final_alpha);
 #endif
 }
 TECHNIQUE(Font  , Font_VS(false), Font_PS(false));
@@ -659,7 +658,7 @@ void FontSP_VS(VtxInput vtx,
    outTex=     vtx.tex ();
    outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
 }
-Vec4 FontSP_PS
+VecH4 FontSP_PS
 (
    NOPERSP Vec2 inTex:TEXCOORD,
    uniform Bool linear_gamma
@@ -733,8 +732,8 @@ BUFFER(LocalFog)
    Vec  LocalFogInside;
 BUFFER_END
 
-inline Vec LocalFogColor  () {return LocalFogColor_Density.rgb;}
-inline Flt LocalFogDensity() {return LocalFogColor_Density.a  ;}
+inline VecH LocalFogColor  () {return LocalFogColor_Density.rgb;}
+inline Flt  LocalFogDensity() {return LocalFogColor_Density.a  ;}
 /******************************************************************************/
 // TODO: optimize fog shaders
 void FogBox_VS(VtxInput vtx,
@@ -762,8 +761,8 @@ void FogBox_PS
    Vec4    inSize:TEXCOORD2,
    Matrix3 inMat :TEXCOORD3,
 
-   out Vec4 color:COLOR0,
-   out Vec4 alpha:COLOR1,
+   out VecH4 color:COLOR0,
+   out VecH4 alpha:COLOR1,
 
    uniform Bool height
 )
@@ -820,8 +819,8 @@ void FogBoxI_PS
    NOPERSP Vec4    inSize :TEXCOORD2,
    NOPERSP Matrix3 inMat  :TEXCOORD3,
 
-   out Vec4 color:COLOR0,
-   out Vec4 alpha:COLOR1,
+   out VecH4 color:COLOR0,
+   out VecH4 alpha:COLOR1,
 
    uniform Int  inside,
    uniform Bool height
@@ -884,8 +883,8 @@ void FogBall_PS
    Vec inTex :TEXCOORD1,
    Flt inSize:TEXCOORD2,
 
-   out Vec4 color:COLOR0,
-   out Vec4 alpha:COLOR1
+   out VecH4 color:COLOR0,
+   out VecH4 alpha:COLOR1
 )
 {
    Flt z  =TexDepthPoint(PixelToScreen(pixel));
@@ -925,8 +924,8 @@ void FogBallI_PS
    NOPERSP Vec2 inPosXY:TEXCOORD1,
    NOPERSP Flt  inSize :TEXCOORD2,
 
-   out Vec4 color:COLOR0,
-   out Vec4 alpha:COLOR1,
+   out VecH4 color:COLOR0,
+   out VecH4 alpha:COLOR1,
 
    uniform Int inside
 )
@@ -1004,8 +1003,8 @@ void Volume_PS
    Vec     inTex:TEXCOORD1,
    Matrix3 inMat:TEXCOORD2,
 
-   out Vec4 color:COLOR0,
-   out Vec4 alpha:COLOR1,
+   out VecH4 color:COLOR0,
+   out VecH4 alpha:COLOR1,
 
    uniform Int  inside,
    uniform Bool LA=false
@@ -1164,57 +1163,57 @@ TECHNIQUE(YUVAG, Draw2DTex_VS(), YUVA_PS(true ));
 
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
 
-Vec4 BlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
-              uniform Int  samples       ):COLOR
+VecH4 BlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
+               uniform Int  samples       ):COLOR
 {
 #if TEST_BLUR
    if(Test){Int s=Round(Samples); Vec4 color=0; Flt weight=0; for(Int i=-s; i<=s; i++){Flt w=Weight(Abs(i), s); weight+=w; color.rgb+=w*TexPoint(Col, inTex+RTSize.xy*Vec2(i, 0)).rgb;} color.rgb/=weight; return color;}
 #endif
    // use linear filtering because texcoords aren't rounded
    if(samples==4) // -3 .. 3
-      return Vec4(TexLod(Col, inTex+RTSize.xy*Vec2( 0+WEIGHT4_1/(WEIGHT4_0/2+WEIGHT4_1), 0)).rgb*(WEIGHT4_0/2+WEIGHT4_1) // 0th sample is divided by 2 because it's obtained here and line below to preserve symmetry
-                 +TexLod(Col, inTex+RTSize.xy*Vec2(-0-WEIGHT4_1/(WEIGHT4_0/2+WEIGHT4_1), 0)).rgb*(WEIGHT4_0/2+WEIGHT4_1)
-                 +TexLod(Col, inTex+RTSize.xy*Vec2( 2+WEIGHT4_3/(WEIGHT4_2  +WEIGHT4_3), 0)).rgb*(WEIGHT4_2  +WEIGHT4_3)
-                 +TexLod(Col, inTex+RTSize.xy*Vec2(-2-WEIGHT4_3/(WEIGHT4_2  +WEIGHT4_3), 0)).rgb*(WEIGHT4_2  +WEIGHT4_3), 0);
+      return VecH4(TexLod(Col, inTex+RTSize.xy*Vec2( 0+WEIGHT4_1/(WEIGHT4_0/2+WEIGHT4_1), 0)).rgb*(WEIGHT4_0/2+WEIGHT4_1) // 0th sample is divided by 2 because it's obtained here and line below to preserve symmetry
+                  +TexLod(Col, inTex+RTSize.xy*Vec2(-0-WEIGHT4_1/(WEIGHT4_0/2+WEIGHT4_1), 0)).rgb*(WEIGHT4_0/2+WEIGHT4_1)
+                  +TexLod(Col, inTex+RTSize.xy*Vec2( 2+WEIGHT4_3/(WEIGHT4_2  +WEIGHT4_3), 0)).rgb*(WEIGHT4_2  +WEIGHT4_3)
+                  +TexLod(Col, inTex+RTSize.xy*Vec2(-2-WEIGHT4_3/(WEIGHT4_2  +WEIGHT4_3), 0)).rgb*(WEIGHT4_2  +WEIGHT4_3), 0);
    if(samples==5) // -4 .. 4
-      return Vec4(TexLod(Col, inTex                                                       ).rgb* WEIGHT5_0
-                 +TexLod(Col, inTex+RTSize.xy*Vec2( 1+WEIGHT5_2/(WEIGHT5_1+WEIGHT5_2), 0)).rgb*(WEIGHT5_1+WEIGHT5_2)
-                 +TexLod(Col, inTex+RTSize.xy*Vec2(-1-WEIGHT5_2/(WEIGHT5_1+WEIGHT5_2), 0)).rgb*(WEIGHT5_1+WEIGHT5_2)
-                 +TexLod(Col, inTex+RTSize.xy*Vec2( 3+WEIGHT5_4/(WEIGHT5_3+WEIGHT5_4), 0)).rgb*(WEIGHT5_3+WEIGHT5_4)
-                 +TexLod(Col, inTex+RTSize.xy*Vec2(-3-WEIGHT5_4/(WEIGHT5_3+WEIGHT5_4), 0)).rgb*(WEIGHT5_3+WEIGHT5_4), 0);
+      return VecH4(TexLod(Col, inTex                                                      ).rgb* WEIGHT5_0
+                  +TexLod(Col, inTex+RTSize.xy*Vec2( 1+WEIGHT5_2/(WEIGHT5_1+WEIGHT5_2), 0)).rgb*(WEIGHT5_1+WEIGHT5_2)
+                  +TexLod(Col, inTex+RTSize.xy*Vec2(-1-WEIGHT5_2/(WEIGHT5_1+WEIGHT5_2), 0)).rgb*(WEIGHT5_1+WEIGHT5_2)
+                  +TexLod(Col, inTex+RTSize.xy*Vec2( 3+WEIGHT5_4/(WEIGHT5_3+WEIGHT5_4), 0)).rgb*(WEIGHT5_3+WEIGHT5_4)
+                  +TexLod(Col, inTex+RTSize.xy*Vec2(-3-WEIGHT5_4/(WEIGHT5_3+WEIGHT5_4), 0)).rgb*(WEIGHT5_3+WEIGHT5_4), 0);
    if(samples==6) // -5 .. 5
-      return Vec4(TexLod(Col, inTex+RTSize.xy*Vec2( 0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).rgb*(WEIGHT6_0/2+WEIGHT6_1) // 0th sample is divided by 2 because it's obtained here and line below to preserve symmetry
-                 +TexLod(Col, inTex+RTSize.xy*Vec2(-0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).rgb*(WEIGHT6_0/2+WEIGHT6_1)
-                 +TexLod(Col, inTex+RTSize.xy*Vec2( 2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).rgb*(WEIGHT6_2  +WEIGHT6_3)
-                 +TexLod(Col, inTex+RTSize.xy*Vec2(-2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).rgb*(WEIGHT6_2  +WEIGHT6_3)
-                 +TexLod(Col, inTex+RTSize.xy*Vec2( 4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).rgb*(WEIGHT6_4  +WEIGHT6_5)
-                 +TexLod(Col, inTex+RTSize.xy*Vec2(-4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).rgb*(WEIGHT6_4  +WEIGHT6_5), 0);
+      return VecH4(TexLod(Col, inTex+RTSize.xy*Vec2( 0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).rgb*(WEIGHT6_0/2+WEIGHT6_1) // 0th sample is divided by 2 because it's obtained here and line below to preserve symmetry
+                  +TexLod(Col, inTex+RTSize.xy*Vec2(-0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).rgb*(WEIGHT6_0/2+WEIGHT6_1)
+                  +TexLod(Col, inTex+RTSize.xy*Vec2( 2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).rgb*(WEIGHT6_2  +WEIGHT6_3)
+                  +TexLod(Col, inTex+RTSize.xy*Vec2(-2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).rgb*(WEIGHT6_2  +WEIGHT6_3)
+                  +TexLod(Col, inTex+RTSize.xy*Vec2( 4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).rgb*(WEIGHT6_4  +WEIGHT6_5)
+                  +TexLod(Col, inTex+RTSize.xy*Vec2(-4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).rgb*(WEIGHT6_4  +WEIGHT6_5), 0);
 }
-Vec4 BlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
-              uniform Int  samples       ):COLOR
+VecH4 BlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
+               uniform Int  samples       ):COLOR
 {
 #if TEST_BLUR
    if(Test){Int s=Round(Samples); Vec4 color=0; Flt weight=0; for(Int i=-s; i<=s; i++){Flt w=Weight(Abs(i), s); weight+=w; color.rgb+=w*TexPoint(Col, inTex+RTSize.xy*Vec2(0, i)).rgb;} color.rgb/=weight; return color;}
 #endif
    // use linear filtering because texcoords aren't rounded
    if(samples==4) // -3 .. 3
-      return Vec4(TexLod(Col, inTex+RTSize.xy*Vec2(0,  0+WEIGHT4_1/(WEIGHT4_0/2+WEIGHT4_1))).rgb*(WEIGHT4_0/2+WEIGHT4_1) // 0th sample is divided by 2 because it's obtained here and line below to preserve symmetry
-                 +TexLod(Col, inTex+RTSize.xy*Vec2(0, -0-WEIGHT4_1/(WEIGHT4_0/2+WEIGHT4_1))).rgb*(WEIGHT4_0/2+WEIGHT4_1)
-                 +TexLod(Col, inTex+RTSize.xy*Vec2(0,  2+WEIGHT4_3/(WEIGHT4_2  +WEIGHT4_3))).rgb*(WEIGHT4_2  +WEIGHT4_3)
-                 +TexLod(Col, inTex+RTSize.xy*Vec2(0, -2-WEIGHT4_3/(WEIGHT4_2  +WEIGHT4_3))).rgb*(WEIGHT4_2  +WEIGHT4_3), 0);
+      return VecH4(TexLod(Col, inTex+RTSize.xy*Vec2(0,  0+WEIGHT4_1/(WEIGHT4_0/2+WEIGHT4_1))).rgb*(WEIGHT4_0/2+WEIGHT4_1) // 0th sample is divided by 2 because it's obtained here and line below to preserve symmetry
+                  +TexLod(Col, inTex+RTSize.xy*Vec2(0, -0-WEIGHT4_1/(WEIGHT4_0/2+WEIGHT4_1))).rgb*(WEIGHT4_0/2+WEIGHT4_1)
+                  +TexLod(Col, inTex+RTSize.xy*Vec2(0,  2+WEIGHT4_3/(WEIGHT4_2  +WEIGHT4_3))).rgb*(WEIGHT4_2  +WEIGHT4_3)
+                  +TexLod(Col, inTex+RTSize.xy*Vec2(0, -2-WEIGHT4_3/(WEIGHT4_2  +WEIGHT4_3))).rgb*(WEIGHT4_2  +WEIGHT4_3), 0);
    if(samples==5) // -4 .. 4
-      return Vec4(TexLod(Col, inTex                                                       ).rgb* WEIGHT5_0
-                 +TexLod(Col, inTex+RTSize.xy*Vec2(0,  1+WEIGHT5_2/(WEIGHT5_1+WEIGHT5_2))).rgb*(WEIGHT5_1+WEIGHT5_2)
-                 +TexLod(Col, inTex+RTSize.xy*Vec2(0, -1-WEIGHT5_2/(WEIGHT5_1+WEIGHT5_2))).rgb*(WEIGHT5_1+WEIGHT5_2)
-                 +TexLod(Col, inTex+RTSize.xy*Vec2(0,  3+WEIGHT5_4/(WEIGHT5_3+WEIGHT5_4))).rgb*(WEIGHT5_3+WEIGHT5_4)
-                 +TexLod(Col, inTex+RTSize.xy*Vec2(0, -3-WEIGHT5_4/(WEIGHT5_3+WEIGHT5_4))).rgb*(WEIGHT5_3+WEIGHT5_4), 0);
+      return VecH4(TexLod(Col, inTex                                                      ).rgb* WEIGHT5_0
+                  +TexLod(Col, inTex+RTSize.xy*Vec2(0,  1+WEIGHT5_2/(WEIGHT5_1+WEIGHT5_2))).rgb*(WEIGHT5_1+WEIGHT5_2)
+                  +TexLod(Col, inTex+RTSize.xy*Vec2(0, -1-WEIGHT5_2/(WEIGHT5_1+WEIGHT5_2))).rgb*(WEIGHT5_1+WEIGHT5_2)
+                  +TexLod(Col, inTex+RTSize.xy*Vec2(0,  3+WEIGHT5_4/(WEIGHT5_3+WEIGHT5_4))).rgb*(WEIGHT5_3+WEIGHT5_4)
+                  +TexLod(Col, inTex+RTSize.xy*Vec2(0, -3-WEIGHT5_4/(WEIGHT5_3+WEIGHT5_4))).rgb*(WEIGHT5_3+WEIGHT5_4), 0);
    if(samples==6) // -5 .. 5
-      return Vec4(TexLod(Col, inTex+RTSize.xy*Vec2(0,  0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).rgb*(WEIGHT6_0/2+WEIGHT6_1) // 0th sample is divided by 2 because it's obtained here and line below to preserve symmetry
-                 +TexLod(Col, inTex+RTSize.xy*Vec2(0, -0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).rgb*(WEIGHT6_0/2+WEIGHT6_1)
-                 +TexLod(Col, inTex+RTSize.xy*Vec2(0,  2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).rgb*(WEIGHT6_2  +WEIGHT6_3)
-                 +TexLod(Col, inTex+RTSize.xy*Vec2(0, -2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).rgb*(WEIGHT6_2  +WEIGHT6_3)
-                 +TexLod(Col, inTex+RTSize.xy*Vec2(0,  4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).rgb*(WEIGHT6_4  +WEIGHT6_5)
-                 +TexLod(Col, inTex+RTSize.xy*Vec2(0, -4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).rgb*(WEIGHT6_4  +WEIGHT6_5), 0);
+      return VecH4(TexLod(Col, inTex+RTSize.xy*Vec2(0,  0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).rgb*(WEIGHT6_0/2+WEIGHT6_1) // 0th sample is divided by 2 because it's obtained here and line below to preserve symmetry
+                  +TexLod(Col, inTex+RTSize.xy*Vec2(0, -0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).rgb*(WEIGHT6_0/2+WEIGHT6_1)
+                  +TexLod(Col, inTex+RTSize.xy*Vec2(0,  2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).rgb*(WEIGHT6_2  +WEIGHT6_3)
+                  +TexLod(Col, inTex+RTSize.xy*Vec2(0, -2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).rgb*(WEIGHT6_2  +WEIGHT6_3)
+                  +TexLod(Col, inTex+RTSize.xy*Vec2(0,  4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).rgb*(WEIGHT6_4  +WEIGHT6_5)
+                  +TexLod(Col, inTex+RTSize.xy*Vec2(0, -4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).rgb*(WEIGHT6_4  +WEIGHT6_5), 0);
 }
 
 TECHNIQUE(BlurX , Draw_VS(), BlurX_PS(4));
@@ -1222,7 +1221,7 @@ TECHNIQUE(BlurXH, Draw_VS(), BlurX_PS(6));
 TECHNIQUE(BlurY , Draw_VS(), BlurY_PS(4));
 TECHNIQUE(BlurYH, Draw_VS(), BlurY_PS(6));
 
-Vec4 BlurX_X_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
+Half BlurX_X_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    // use linear filtering because texcoords aren't rounded
    return TexLod(Col, inTex+RTSize.xy*Vec2( 0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).x*(WEIGHT6_0/2+WEIGHT6_1)
@@ -1232,7 +1231,7 @@ Vec4 BlurX_X_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
          +TexLod(Col, inTex+RTSize.xy*Vec2( 4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).x*(WEIGHT6_4  +WEIGHT6_5)
          +TexLod(Col, inTex+RTSize.xy*Vec2(-4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).x*(WEIGHT6_4  +WEIGHT6_5);
 }
-Vec4 BlurY_X_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
+Half BlurY_X_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    // use linear filtering because texcoords aren't rounded
    return TexLod(Col, inTex+RTSize.xy*Vec2(0,  0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).x*(WEIGHT6_0/2+WEIGHT6_1)
@@ -1249,7 +1248,7 @@ TECHNIQUE(BlurY_X, Draw_VS(), BlurY_X_PS());
 // MAX
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
-Vec4 MaxX_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
+VecH4 MaxX_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    VecH color; // color=0; for(Int i=0; i<11; i++)color=Max(color, TexPoint(Col, inTex+RTSize.xy*Vec2(i-5, 0)).rgb*(BlendWeight[i]/BlendWeight[5])); original slower version
    // use linear filtering because texcoords aren't rounded
@@ -1259,9 +1258,9 @@ Vec4 MaxX_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
    color=Max(color, TexLod(Col, inTex+RTSize.xy*Vec2(-2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).rgb*((WEIGHT6_2+WEIGHT6_3)/(WEIGHT6_0+WEIGHT6_1)));
    color=Max(color, TexLod(Col, inTex+RTSize.xy*Vec2( 4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).rgb*((WEIGHT6_4+WEIGHT6_5)/(WEIGHT6_0+WEIGHT6_1)));
    color=Max(color, TexLod(Col, inTex+RTSize.xy*Vec2(-4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).rgb*((WEIGHT6_4+WEIGHT6_5)/(WEIGHT6_0+WEIGHT6_1)));
-   return Vec4(color, 0);
+   return VecH4(color, 0);
 }
-Vec4 MaxY_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
+VecH4 MaxY_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    VecH color; // color=0; for(Int i=0; i<11; i++)color=Max(color, TexPoint(Col, inTex+RTSize.xy*Vec2(0, i-5)).rgb*(BlendWeight[i]/BlendWeight[5])); original slower version
    // use linear filtering because texcoords aren't rounded
@@ -1271,7 +1270,7 @@ Vec4 MaxY_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
    color=Max(color, TexLod(Col, inTex+RTSize.xy*Vec2(0, -2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).rgb*((WEIGHT6_2+WEIGHT6_3)/(WEIGHT6_0+WEIGHT6_1)));
    color=Max(color, TexLod(Col, inTex+RTSize.xy*Vec2(0,  4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).rgb*((WEIGHT6_4+WEIGHT6_5)/(WEIGHT6_0+WEIGHT6_1)));
    color=Max(color, TexLod(Col, inTex+RTSize.xy*Vec2(0, -4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).rgb*((WEIGHT6_4+WEIGHT6_5)/(WEIGHT6_0+WEIGHT6_1)));
-   return Vec4(color, 0);
+   return VecH4(color, 0);
 }
 TECHNIQUE(MaxX, Draw_VS(), MaxX_PS());
 TECHNIQUE(MaxY, Draw_VS(), MaxY_PS());
@@ -1283,22 +1282,22 @@ BUFFER(ColTrans)
    Vec    ColTransHsb;
 BUFFER_END
 
-Vec4 ColTrans_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
+VecH4 ColTrans_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
-   return Vec4(Transform(Tex(Col, inTex).rgb, ColTransMatrix), Step);
+   return VecH4(Transform(Tex(Col, inTex).rgb, ColTransMatrix), Step);
 }
-Vec4 ColTransHB_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
+VecH4 ColTransHB_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
-   Vec color     =Tex(Col, inTex).rgb;
-   Flt brightness=Max(color); color=Transform(color, ColTransMatrix);
-   Flt max       =Max(color);
-   if( max)color*=ColTransHsb.z*brightness/max;
-   return Vec4(color, Step);
+   VecH color     =Tex(Col, inTex).rgb;
+   Half brightness=Max(color); color=Transform(color, ColTransMatrix);
+   Half max       =Max(color);
+   if(  max)color*=ColTransHsb.z*brightness/max;
+   return VecH4(color, Step);
 }
-Vec4 ColTransHSB_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
+VecH4 ColTransHSB_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    Vec hsb=RgbToHsb(Tex(Col, inTex).rgb);
-   return Vec4(HsbToRgb(Vec(hsb.x+ColTransHsb.x, hsb.y*ColTransHsb.y, hsb.z*ColTransHsb.z)), Step);
+   return VecH4(HsbToRgb(Vec(hsb.x+ColTransHsb.x, hsb.y*ColTransHsb.y, hsb.z*ColTransHsb.z)), Step);
 }
 TECHNIQUE(ColTrans   , Draw_VS(),    ColTrans_PS());
 TECHNIQUE(ColTransHB , Draw_VS(),  ColTransHB_PS());
@@ -1319,7 +1318,7 @@ BUFFER(Ripple)
    RippleClass Rppl;
 BUFFER_END
 
-Vec4 Ripple_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
+VecH4 Ripple_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    inTex+=Vec2(Sin(inTex.x*Rppl.xx + inTex.y*Rppl.xy + Rppl.stp),
                Sin(inTex.x*Rppl.yx + inTex.y*Rppl.yy + Rppl.stp))*Rppl.power;
@@ -1342,18 +1341,18 @@ BUFFER(Titles)
    TitlesClass Ttls;
 BUFFER_END
 
-Vec4 Titles_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
+VecH4 Titles_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    Flt s=Sat((Abs(inTex.y-Ttls.center)-Ttls.range)/Ttls.smooth);
    inTex.x+=Sin(s*s*s*s*(PI*6)+Ttls.stp)*s*s*Ttls.swirl;
-   Vec4 color=0; UNROLL for(Int i=-4; i<=4; i++)color+=Tex(Col, inTex+s*ImgSize.xy*Vec2(i, 0));
+   VecH4 color=0; UNROLL for(Int i=-4; i<=4; i++)color+=Tex(Col, inTex+s*ImgSize.xy*Vec2(i, 0));
    color/=9;
    color.a*=Pow(1-s, 0.6);
    return color;
 }
 TECHNIQUE(Titles, Draw_VS(), Titles_PS());
 /******************************************************************************/
-Vec4 Fade_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
+VecH4 Fade_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    VecH4  c=Tex(Col, inTex); c.a*=Sat(Step*3+(inTex.x+inTex.y)*0.5-1-Tex(Col1, inTex).a);
    return c;
@@ -1370,25 +1369,25 @@ void Wave_VS(VtxInput vtx,
 }
 TECHNIQUE(Wave, Wave_VS(), Draw2DTex_PS());
 /******************************************************************************/
-Vec4 RadialBlur_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
+VecH4 RadialBlur_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
          Vec2 tex  =inTex/Color[0].z + (Color[0].xy-Color[0].xy/Color[0].z); // (inTex-RadialBlurPos)/step+RadialBlurPos
-         Vec  color=0;
+         Vec  color=0; // use HP
    const Int  steps=32;
    for(Int i=0; i<steps; i++)color+=Tex(Col, Lerp(inTex, tex, i/Flt(steps-1))).rgb;
-   return Vec4(color/steps, Color[0].w);
+   return VecH4(color/steps, Color[0].w);
 }
 TECHNIQUE(RadialBlur, Draw_VS(), RadialBlur_PS());
 /******************************************************************************/
-Vec4 Outline_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                uniform Bool clip_do       ,
-                uniform Bool down_sample=false):COLOR
+VecH4 Outline_PS(NOPERSP Vec2 inTex:TEXCOORD,
+                 uniform Bool clip_do       ,
+                 uniform Bool down_sample=false):COLOR
 {
    if(down_sample)inTex=(Floor(inTex*ImgSize.zw)+0.5)*ImgSize.xy; // we're rendering to a smaller RT, so inTex is located in the center between multiple texels, we need to align it so it's located at the center of the nearest one
 
-   Vec4 col=TexLod(Col, inTex); // use linear filtering because 'Col' can be of different size
-   Vec2 t0=inTex+ImgSize.xy*(down_sample ? 2.5 : 0.5), // 2.5 scale was the min value that worked OK with 2.0 density
-        t1=inTex-ImgSize.xy*(down_sample ? 2.5 : 0.5);
+   VecH4 col=TexLod(Col, inTex); // use linear filtering because 'Col' can be of different size
+   Vec2  t0=inTex+ImgSize.xy*(down_sample ? 2.5 : 0.5), // 2.5 scale was the min value that worked OK with 2.0 density
+         t1=inTex-ImgSize.xy*(down_sample ? 2.5 : 0.5);
    // use linear filtering because texcoords aren't rounded
 #if 0
    if(Dist2(col.rgb, TexLod(Col, Vec2(t0.x, t0.y)).rgb)
@@ -1412,13 +1411,13 @@ Vec4 Outline_PS(NOPERSP Vec2 inTex:TEXCOORD,
    if(clip_do)clip(col.a-EPS);
    return col;
 }
-Vec4 OutlineApply_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
+VecH4 OutlineApply_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
-   Vec4 color=TexLod(Col, inTex); // use linear filtering because 'Col' can be of different size
+   VecH4 color=TexLod(Col, inTex); // use linear filtering because 'Col' can be of different size
    for(Int i=0; i<6; i++)
    {
-      Vec2 t=inTex+BlendOfs6[i]*ImgSize.xy;
-      Vec4 c=TexLod(Col, t); // use linear filtering because texcoords aren't rounded
+      Vec2  t=inTex+BlendOfs6[i]*ImgSize.xy;
+      VecH4 c=TexLod(Col, t); // use linear filtering because texcoords aren't rounded
       if(c.a>color.a)color=c;
    }
    return color;
@@ -1428,7 +1427,7 @@ TECHNIQUE(OutlineDS   , Draw_VS(),      Outline_PS(false, true));
 TECHNIQUE(OutlineClip , Draw_VS(),      Outline_PS(true ));
 TECHNIQUE(OutlineApply, Draw_VS(), OutlineApply_PS());
 /******************************************************************************/
-Vec4 EdgeDetect_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
+VecH4 EdgeDetect_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR // use VecH4 because we may want to apply this directly onto RGBA destination
 {
    Flt z =TexDepthPoint(inTex),
        zl=TexDepthPoint(inTex+ImgSize.xy*Vec2(-1, 0)),
@@ -1436,13 +1435,13 @@ Vec4 EdgeDetect_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
        zd=TexDepthPoint(inTex+ImgSize.xy*Vec2( 0,-1)),
        zu=TexDepthPoint(inTex+ImgSize.xy*Vec2( 0, 1)), soft=0.1+z/50;
 
-   Flt px  =Abs(zr-((z-zl)+z))/soft-0.5, //cx=Sat(Max(Abs(zl-z), Abs(zr-z))/soft-0.5), cx, cy doesn't work well in lower screen resolutions and with flat terrain
-       py  =Abs(zu-((z-zd)+z))/soft-0.5, //cy=Sat(Max(Abs(zu-z), Abs(zd-z))/soft-0.5),
-       edge=px+py;
+   Half px  =Abs(zr-((z-zl)+z))/soft-0.5, //cx=Sat(Max(Abs(zl-z), Abs(zr-z))/soft-0.5), cx, cy doesn't work well in lower screen resolutions and with flat terrain
+        py  =Abs(zu-((z-zd)+z))/soft-0.5, //cy=Sat(Max(Abs(zu-z), Abs(zd-z))/soft-0.5),
+        edge=px+py;
 
    return Sat(1-edge); // saturate because this can be directly multiplied to dest using ALPHA_MUL
 }
-Vec4 EdgeDetectApply_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
+VecH4 EdgeDetectApply_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR // use VecH4 because we apply this directly onto RGBA destination
 {
    const Int samples=6;
          Flt color  =TexPoint(Col, inTex).x;
@@ -1456,8 +1455,8 @@ Vec4 EdgeDetectApply_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 TECHNIQUE(EdgeDetect     , Draw_VS(),      EdgeDetect_PS());
 TECHNIQUE(EdgeDetectApply, Draw_VS(), EdgeDetectApply_PS());
 /******************************************************************************/
-Vec4 Dither_PS(NOPERSP Vec2 inTex:TEXCOORD,
-               NOPERSP PIXEL):COLOR
+VecH4 Dither_PS(NOPERSP Vec2 inTex:TEXCOORD,
+                NOPERSP PIXEL):COLOR
 {
    VecH4 col=VecH4(TexLod(Col, inTex).rgb, 1); // force full alpha so back buffer effects can work ok, can't use 'TexPoint' because 'Col' can be of different size
    ApplyDither(col.rgb, pixel.xy);
@@ -1465,15 +1464,15 @@ Vec4 Dither_PS(NOPERSP Vec2 inTex:TEXCOORD,
 }
 TECHNIQUE(Dither, Draw_VS(), Dither_PS());
 /******************************************************************************/
-Vec4 CombineSSAlpha_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
+Half CombineSSAlpha_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    return DEPTH_FOREGROUND(TexDepthRawPoint(inTex));
 }
-Vec4 Combine_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                NOPERSP PIXEL,
-                uniform Int  sample        ):COLOR
+VecH4 Combine_PS(NOPERSP Vec2 inTex:TEXCOORD,
+                 NOPERSP PIXEL,
+                 uniform Int  sample        ):COLOR
 {
-   Vec4 col=TexLod(Col, inTex); // use linear filtering because Col can be of different size
+   VecH4 col=TexLod(Col, inTex); // use linear filtering because Col can be of different size
 #if MODEL>=SM_4
    if(sample==2) // multi sample
    {
@@ -1583,13 +1582,13 @@ TECHNIQUE(DrawDepth, Draw_VS(), DrawDepth_PS());
 /******************************************************************************/
 // SKY
 /******************************************************************************/
-inline Vec4 SkyColor(Vec inTex)
+inline VecH4 SkyColor(Vec inTex)
 {
-   Flt hor=Pow(1-Sat(inTex.y), SkyHorExp);
+   Half hor=Pow(1-Sat(inTex.y), SkyHorExp);
    return Lerp(SkySkyCol, SkyHorCol, hor);
 }
 
-inline VecH4 SkyTex(Vec inTex, Vec inTexStar, VecH4 inCol, Flt alpha, uniform Bool per_vertex, uniform Bool density, uniform Int textures, uniform Bool stars)
+inline VecH4 SkyTex(Vec inTex, Vec inTexStar, VecH4 inCol, Half alpha, uniform Bool per_vertex, uniform Bool density, uniform Int textures, uniform Bool stars)
 {
    if(density)alpha=Pow(SkyDnsExp, alpha)*SkyDnsMulAdd.x+SkyDnsMulAdd.y; // here 'alpha' means opacity of the sky which is used as the distance from start to end point, this function matches 'AccumulatedDensity'
 
@@ -1634,22 +1633,22 @@ void Sky_VS(VtxInput vtx,
       outColCloud=CL[0].color; outColCloud.a*=Sat(CloudAlpha(vtx.pos().y));
    }
 }
-Vec4 Sky_PS(PIXEL,
-            Vec   inPos     :TEXCOORD0,
-            Vec   inTex     :TEXCOORD1,
-            Vec   inTexStar :TEXCOORD2,
-            Vec   inTexCloud:TEXCOORD3,
-            VecH4 inCol     :COLOR0   ,
-            VecH4 inColCloud:COLOR1   ,
-    uniform Bool  per_vertex          ,
-    uniform Bool  flat                ,
-    uniform Bool  density             ,
-    uniform Int   textures            ,
-    uniform Bool  stars               ,
-    uniform Bool  clouds              ,
-    uniform Bool  dither              ):COLOR
+VecH4 Sky_PS(PIXEL,
+             Vec   inPos     :TEXCOORD0,
+             Vec   inTex     :TEXCOORD1,
+             Vec   inTexStar :TEXCOORD2,
+             Vec   inTexCloud:TEXCOORD3,
+             VecH4 inCol     :COLOR0   ,
+             VecH4 inColCloud:COLOR1   ,
+     uniform Bool  per_vertex          ,
+     uniform Bool  flat                ,
+     uniform Bool  density             ,
+     uniform Int   textures            ,
+     uniform Bool  stars               ,
+     uniform Bool  clouds              ,
+     uniform Bool  dither              ):COLOR
 {
-   Flt alpha; if(flat)alpha=0;else // flat uses ALPHA_NONE
+   Half alpha; if(flat)alpha=0;else // flat uses ALPHA_NONE
    {
       alpha=TexDepthPoint(PixelToScreen(pixel))/Normalize(inPos).z;
       alpha=Sat(alpha*SkyFracMulAdd.x + SkyFracMulAdd.y);
@@ -1665,41 +1664,41 @@ Vec4 Sky_PS(PIXEL,
    return col;
 }
 #if MODEL>=SM_4
-Vec4 Sky1_PS(PIXEL,
-             Vec  inPos     :TEXCOORD0,
-             Vec  inTex     :TEXCOORD1,
-             Vec  inTexStar :TEXCOORD2,
-             Vec  inTexCloud:TEXCOORD3,
-             Vec4 inCol     :COLOR    ,
-     uniform Bool per_vertex          ,
-     uniform Bool density             ,
-     uniform Int  textures            ,
-     uniform Bool stars               ,
-     uniform Bool dither              ):COLOR
+VecH4 Sky1_PS(PIXEL,
+              Vec  inPos     :TEXCOORD0,
+              Vec  inTex     :TEXCOORD1,
+              Vec  inTexStar :TEXCOORD2,
+              Vec  inTexCloud:TEXCOORD3,
+              Vec4 inCol     :COLOR    ,
+      uniform Bool per_vertex          ,
+      uniform Bool density             ,
+      uniform Int  textures            ,
+      uniform Bool stars               ,
+      uniform Bool dither              ):COLOR
 {
-   Flt pos_scale=Normalize(inPos).z, alpha=0;
+   Flt pos_scale=Normalize(inPos).z; Half alpha=0;
    UNROLL for(Int i=0; i<MS_SAMPLES; i++){Flt dist=TexDepthMS(pixel.xy, i)/pos_scale; alpha+=Sat(dist*SkyFracMulAdd.x + SkyFracMulAdd.y);}
    alpha/=MS_SAMPLES;
    VecH4 col=SkyTex(inTex, inTexStar, inCol, alpha, per_vertex, density, textures, stars);
    if(dither)ApplyDither(col.rgb, pixel.xy);
    return col;
 }
-Vec4 Sky2_PS(PIXEL,
-             Vec  inPos     :TEXCOORD0     ,
-             Vec  inTex     :TEXCOORD1     ,
-             Vec  inTexStar :TEXCOORD2     ,
-             Vec  inTexCloud:TEXCOORD3     ,
-             Vec4 inCol     :COLOR         ,
-             UInt index     :SV_SampleIndex,
-     uniform Bool per_vertex               ,
-     uniform Bool density                  ,
-     uniform Int  textures                 ,
-     uniform Bool stars                    ,
-     uniform Bool dither                   ):COLOR
+VecH4 Sky2_PS(PIXEL,
+              Vec  inPos     :TEXCOORD0     ,
+              Vec  inTex     :TEXCOORD1     ,
+              Vec  inTexStar :TEXCOORD2     ,
+              Vec  inTexCloud:TEXCOORD3     ,
+              Vec4 inCol     :COLOR         ,
+              UInt index     :SV_SampleIndex,
+      uniform Bool per_vertex               ,
+      uniform Bool density                  ,
+      uniform Int  textures                 ,
+      uniform Bool stars                    ,
+      uniform Bool dither                   ):COLOR
 {
-   Flt pos_scale=Normalize(inPos).z,
-       alpha    =Sat(TexDepthMS(pixel.xy, index)/pos_scale*SkyFracMulAdd.x + SkyFracMulAdd.y);
-   VecH4 col=SkyTex(inTex, inTexStar, inCol, alpha, per_vertex, density, textures, stars);
+   Flt   pos_scale=Normalize(inPos).z;
+   Half  alpha    =Sat(TexDepthMS(pixel.xy, index)/pos_scale*SkyFracMulAdd.x + SkyFracMulAdd.y);
+   VecH4 col      =SkyTex(inTex, inTexStar, inCol, alpha, per_vertex, density, textures, stars);
    // skip dither for MS because it won't be noticeable
    return col;
 }
@@ -1804,18 +1803,18 @@ TECHNIQUE_4_1(SkyAVSP2D, Sky_VS(true , true , false), Sky2_PS(true , true , 0, t
 /******************************************************************************/
 // FOG
 /******************************************************************************/
-Vec4 Fog_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-            NOPERSP Vec2 inPosXY:TEXCOORD1):COLOR
+VecH4 Fog_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+             NOPERSP Vec2 inPosXY:TEXCOORD1):COLOR
 {
-   Vec pos=GetPosPoint(inTex, inPosXY);
-   Flt dns=AccumulatedDensity(FogDensity(), Length(pos));
+   Vec  pos=GetPosPoint(inTex, inPosXY);
+   Half dns=AccumulatedDensity(FogDensity(), Length(pos));
 
-   return Vec4(FogColor(), dns);
+   return VecH4(FogColor(), dns);
 }
 #if MODEL>=SM_4
-Vec4 FogN_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-             NOPERSP Vec2 inPosXY:TEXCOORD1,
-             NOPERSP PIXEL                 ):COLOR
+VecH4 FogN_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+              NOPERSP Vec2 inPosXY:TEXCOORD1,
+              NOPERSP PIXEL                 ):COLOR
 {
    Flt valid=EPS, dns=0;
    UNROLL for(Int i=0; i<MS_SAMPLES; i++)
@@ -1827,15 +1826,15 @@ Vec4 FogN_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          valid++;
       }
    }
-   return Vec4(FogColor(), dns/valid);
+   return VecH4(FogColor(), dns/valid);
 }
-Vec4 FogM_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-             NOPERSP Vec2 inPosXY:TEXCOORD1,
-             NOPERSP PIXEL                 ,
-                     UInt index  :SV_SampleIndex):COLOR
+VecH4 FogM_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+              NOPERSP Vec2 inPosXY:TEXCOORD1,
+              NOPERSP PIXEL                 ,
+                      UInt index  :SV_SampleIndex):COLOR
 {
    Vec pos=GetPosMS(pixel.xy, index, inPosXY);
-   return Vec4(FogColor(), AccumulatedDensity(FogDensity(), Length(pos)));
+   return VecH4(FogColor(), AccumulatedDensity(FogDensity(), Length(pos)));
 }
 #endif
 TECHNIQUE    (Fog , DrawPosXY_VS(), Fog_PS ());
@@ -1856,7 +1855,7 @@ BUFFER(Sun)
    SunClass Sun;
 BUFFER_END
 
-Vec4 SunRaysMask_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+Half SunRaysMask_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                     NOPERSP Vec2 inPosXY:TEXCOORD1,
                     uniform Bool mask             ):COLOR
 {
@@ -1893,13 +1892,13 @@ TECHNIQUE(SunRaysMask1, DrawPosXY_VS(), SunRaysMask_PS(true ));
    return Vec4(color/(samples+1)*Color[0].rgb, 0);
 }
 TECHNIQUE(SunRaysSoft, Draw_VS(), SunRaysSoft_PS());*/
-Vec4 SunRays_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                NOPERSP Vec2 inPosXY:TEXCOORD1,
-                NOPERSP PIXEL                 ,
-                uniform Bool high             ,
-                uniform Bool dither           ,
-                uniform Bool jitter           ,
-                uniform Bool gamma            ):COLOR
+VecH4 SunRays_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+                 NOPERSP Vec2 inPosXY:TEXCOORD1,
+                 NOPERSP PIXEL                 ,
+                 uniform Bool high             ,
+                 uniform Bool dither           ,
+                 uniform Bool jitter           ,
+                 uniform Bool gamma            ):COLOR
 {
    VecH  pos  =Normalize(Vec(inPosXY, 1));
    Half  cos  =Dot(Sun.pos, pos),
@@ -1987,7 +1986,7 @@ TECHNIQUE(SunRaysHDJG, DrawPosXY_VS(), SunRays_PS(true , true , true , true ));
 /******************************************************************************/
 // SHADOW MAP
 /******************************************************************************/
-Vec4 ShdDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+Half ShdDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                NOPERSP Vec2 inPosXY:TEXCOORD1,
                NOPERSP PIXEL                 ,
                uniform Int  num              ,
@@ -1996,7 +1995,7 @@ Vec4 ShdDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    return ShadowDirValue(GetPosPoint(inTex, inPosXY), ShadowJitter(pixel.xy), true, num, cloud);
 }
 #if MODEL>=SM_4
-Vec4 ShdDirM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
+Half ShdDirM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                 NOPERSP Vec2 inPosXY:TEXCOORD1     ,
                 NOPERSP PIXEL                      ,
                         UInt index  :SV_SampleIndex,
@@ -2020,14 +2019,14 @@ TECHNIQUE_4_1(ShdDir4M, DrawPosXY_VS(), ShdDirM_PS(4, false));   TECHNIQUE_4_1(S
 TECHNIQUE_4_1(ShdDir5M, DrawPosXY_VS(), ShdDirM_PS(5, false));   TECHNIQUE_4_1(ShdDir5CM, DrawPosXY_VS(), ShdDirM_PS(5, true));
 TECHNIQUE_4_1(ShdDir6M, DrawPosXY_VS(), ShdDirM_PS(6, false));   TECHNIQUE_4_1(ShdDir6CM, DrawPosXY_VS(), ShdDirM_PS(6, true));
 /******************************************************************************/
-Vec4 ShdPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+Half ShdPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                  NOPERSP Vec2 inPosXY:TEXCOORD1,
                  NOPERSP PIXEL):COLOR
 {
    return ShadowPointValue(GetPosPoint(inTex, inPosXY), ShadowJitter(pixel.xy), true);
 }
 #if MODEL>=SM_4
-Vec4 ShdPointM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
+Half ShdPointM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                   NOPERSP Vec2 inPosXY:TEXCOORD1     ,
                   NOPERSP PIXEL,
                           UInt index  :SV_SampleIndex):COLOR
@@ -2038,14 +2037,14 @@ Vec4 ShdPointM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
 TECHNIQUE    (ShdPoint , DrawPosXY_VS(), ShdPoint_PS ());
 TECHNIQUE_4_1(ShdPointM, DrawPosXY_VS(), ShdPointM_PS());
 /******************************************************************************/
-Vec4 ShdCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+Half ShdCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                 NOPERSP Vec2 inPosXY:TEXCOORD1,
                 NOPERSP PIXEL):COLOR
 {
    return ShadowConeValue(GetPosPoint(inTex, inPosXY), ShadowJitter(pixel.xy), true);
 }
 #if MODEL>=SM_4
-Vec4 ShdConeM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
+Half ShdConeM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                  NOPERSP Vec2 inPosXY:TEXCOORD1     ,
                  NOPERSP PIXEL,
                          UInt index  :SV_SampleIndex):COLOR
@@ -2133,10 +2132,10 @@ BUFFER(LightMap)
    Flt LightMapScale=1;
 BUFFER_END
 
-Vec4 LightDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                 NOPERSP Vec2 inPosXY:TEXCOORD1,
-                 uniform Int  shadow           ,
-                 uniform Bool quality          ):COLOR
+VecH4 LightDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+                  NOPERSP Vec2 inPosXY:TEXCOORD1,
+                  uniform Int  shadow           ,
+                  uniform Bool quality          ):COLOR
 {
    // shadow
    Half shd; if(shadow)shd=TexPoint(Val, inTex).x;
@@ -2149,15 +2148,15 @@ Vec4 LightDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    VecH eye_dir =Normalize    (-Vec(inPosXY, 1));
    Half specular=LightSpecular(nrm.xyz, nrm.w, Light_dir.dir, eye_dir); if(shadow)specular*=shd;
 
-   return Vec4(Light_dir.color.rgb*lum, Light_dir.color.a*specular);
+   return VecH4(Light_dir.color.rgb*lum, Light_dir.color.a*specular);
 }
 #if MODEL>=SM_4
-Vec4 LightDirM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
-                  NOPERSP Vec2 inPosXY:TEXCOORD1     ,
-                  NOPERSP PIXEL                      ,
-                          UInt index  :SV_SampleIndex,
-                  uniform Bool shadow                ,
-                  uniform Bool quality               ):COLOR
+VecH4 LightDirM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
+                   NOPERSP Vec2 inPosXY:TEXCOORD1     ,
+                   NOPERSP PIXEL                      ,
+                           UInt index  :SV_SampleIndex,
+                   uniform Bool shadow                ,
+                   uniform Bool quality               ):COLOR
 {
    // shadow
    Half shd; if(shadow)shd=TexSample(ValMS, pixel.xy, index).x;
@@ -2170,7 +2169,7 @@ Vec4 LightDirM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
    VecH eye_dir =Normalize    (-Vec(inPosXY, 1));
    Half specular=LightSpecular(nrm.xyz, nrm.w, Light_dir.dir, eye_dir); if(shadow)specular*=shd;
 
-   return Vec4(Light_dir.color.rgb*lum, Light_dir.color.a*specular);
+   return VecH4(Light_dir.color.rgb*lum, Light_dir.color.a*specular);
 }
 #endif
 TECHNIQUE    (LightDir  , DrawPosXY_VS(), LightDir_PS (false, false));
@@ -2181,71 +2180,7 @@ TECHNIQUE_4_1(LightDirM , DrawPosXY_VS(), LightDirM_PS(false, false));
 TECHNIQUE_4_1(LightDirSM, DrawPosXY_VS(), LightDirM_PS(true , false));
 // no Quality version for MSAA
 /******************************************************************************/
-Vec4 LightPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                   NOPERSP Vec2 inPosXY:TEXCOORD1,
-                   uniform Int  shadow           ,
-                   uniform Bool quality          ):COLOR
-{
-   // shadow
-   Half shd; if(shadow)
-   {
-      shd=ShadowFinal(TexPoint(Val, inTex).x);
-      clip(shd-EPS_LUM);
-   }
-
-   // distance
-   Vec  pos      =GetPosPoint(inTex, inPosXY),
-        light_dir=Light_point.pos-pos;
-   Half power    =LightPointDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
-
-   // diffuse
-         light_dir=Normalize   (light_dir);
-   VecH4 nrm      =GetNormal   (inTex, quality);
-   Half  lum      =LightDiffuse(nrm.xyz, light_dir)*power;
-
-   // specular
-   VecH eye_dir =Normalize    (-pos);
-   Half specular=LightSpecular( nrm.xyz, nrm.w, light_dir, eye_dir)*power;
-
-   return Vec4(Light_point.color.rgb*lum, Light_point.color.a*specular);
-}
-#if MODEL>=SM_4
-Vec4 LightPointM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
-                    NOPERSP Vec2 inPosXY:TEXCOORD1     ,
-                    NOPERSP PIXEL                      ,
-                            UInt index  :SV_SampleIndex,
-                    uniform Bool shadow                ,
-                    uniform Bool quality               ):COLOR
-{
-   // shadow
-   Half shd; if(shadow){shd=ShadowFinal(TexSample(ValMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
-
-   // distance
-   Vec  pos      =GetPosMS(pixel.xy, index, inPosXY),
-        light_dir=Light_point.pos-pos;
-   Half power    =LightPointDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
-
-   // diffuse
-         light_dir=Normalize   (light_dir);
-   VecH4 nrm      =GetNormalMS (pixel.xy, index, quality);
-   Half  lum      =LightDiffuse(nrm.xyz, light_dir)*power;
-
-   // specular
-   VecH eye_dir =Normalize    (-pos);
-   Half specular=LightSpecular( nrm.xyz, nrm.w, light_dir, eye_dir)*power;
-
-   return Vec4(Light_point.color.rgb*lum, Light_point.color.a*specular);
-}
-#endif
-TECHNIQUE    (LightPoint  , DrawPosXY_VS(), LightPoint_PS (false, false));
-TECHNIQUE    (LightPointS , DrawPosXY_VS(), LightPoint_PS (true , false));
-TECHNIQUE    (LightPointQ , DrawPosXY_VS(), LightPoint_PS (false, true ));
-TECHNIQUE    (LightPointSQ, DrawPosXY_VS(), LightPoint_PS (true , true ));
-TECHNIQUE_4_1(LightPointM , DrawPosXY_VS(), LightPointM_PS(false, false));
-TECHNIQUE_4_1(LightPointSM, DrawPosXY_VS(), LightPointM_PS(true , false));
-// no Quality version for MSAA
-/******************************************************************************/
-Vec4 LightLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+VecH4 LightPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                     NOPERSP Vec2 inPosXY:TEXCOORD1,
                     uniform Int  shadow           ,
                     uniform Bool quality          ):COLOR
@@ -2259,6 +2194,70 @@ Vec4 LightLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
    // distance
    Vec  pos      =GetPosPoint(inTex, inPosXY),
+        light_dir=Light_point.pos-pos;
+   Half power    =LightPointDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
+
+   // diffuse
+         light_dir=Normalize   (light_dir);
+   VecH4 nrm      =GetNormal   (inTex, quality);
+   Half  lum      =LightDiffuse(nrm.xyz, light_dir)*power;
+
+   // specular
+   VecH eye_dir =Normalize    (-pos);
+   Half specular=LightSpecular( nrm.xyz, nrm.w, light_dir, eye_dir)*power;
+
+   return VecH4(Light_point.color.rgb*lum, Light_point.color.a*specular);
+}
+#if MODEL>=SM_4
+VecH4 LightPointM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
+                     NOPERSP Vec2 inPosXY:TEXCOORD1     ,
+                     NOPERSP PIXEL                      ,
+                             UInt index  :SV_SampleIndex,
+                     uniform Bool shadow                ,
+                     uniform Bool quality               ):COLOR
+{
+   // shadow
+   Half shd; if(shadow){shd=ShadowFinal(TexSample(ValMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
+
+   // distance
+   Vec  pos      =GetPosMS(pixel.xy, index, inPosXY),
+        light_dir=Light_point.pos-pos;
+   Half power    =LightPointDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
+
+   // diffuse
+         light_dir=Normalize   (light_dir);
+   VecH4 nrm      =GetNormalMS (pixel.xy, index, quality);
+   Half  lum      =LightDiffuse(nrm.xyz, light_dir)*power;
+
+   // specular
+   VecH eye_dir =Normalize    (-pos);
+   Half specular=LightSpecular( nrm.xyz, nrm.w, light_dir, eye_dir)*power;
+
+   return VecH4(Light_point.color.rgb*lum, Light_point.color.a*specular);
+}
+#endif
+TECHNIQUE    (LightPoint  , DrawPosXY_VS(), LightPoint_PS (false, false));
+TECHNIQUE    (LightPointS , DrawPosXY_VS(), LightPoint_PS (true , false));
+TECHNIQUE    (LightPointQ , DrawPosXY_VS(), LightPoint_PS (false, true ));
+TECHNIQUE    (LightPointSQ, DrawPosXY_VS(), LightPoint_PS (true , true ));
+TECHNIQUE_4_1(LightPointM , DrawPosXY_VS(), LightPointM_PS(false, false));
+TECHNIQUE_4_1(LightPointSM, DrawPosXY_VS(), LightPointM_PS(true , false));
+// no Quality version for MSAA
+/******************************************************************************/
+VecH4 LightLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+                     NOPERSP Vec2 inPosXY:TEXCOORD1,
+                     uniform Int  shadow           ,
+                     uniform Bool quality          ):COLOR
+{
+   // shadow
+   Half shd; if(shadow)
+   {
+      shd=ShadowFinal(TexPoint(Val, inTex).x);
+      clip(shd-EPS_LUM);
+   }
+
+   // distance
+   Vec  pos      =GetPosPoint(inTex, inPosXY),
         light_dir=Light_linear.pos-pos;
    Half power    =LightLinearDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
 
@@ -2271,15 +2270,15 @@ Vec4 LightLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    VecH eye_dir =Normalize    (-pos);
    Half specular=LightSpecular( nrm.xyz, nrm.w, light_dir, eye_dir)*power;
 
-   return Vec4(Light_linear.color.rgb*lum, Light_linear.color.a*specular);
+   return VecH4(Light_linear.color.rgb*lum, Light_linear.color.a*specular);
 }
 #if MODEL>=SM_4
-Vec4 LightLinearM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
-                     NOPERSP Vec2 inPosXY:TEXCOORD1     ,
-                     NOPERSP PIXEL                      ,
-                             UInt index  :SV_SampleIndex,
-                     uniform Bool shadow                ,
-                     uniform Bool quality               ):COLOR
+VecH4 LightLinearM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
+                      NOPERSP Vec2 inPosXY:TEXCOORD1     ,
+                      NOPERSP PIXEL                      ,
+                              UInt index  :SV_SampleIndex,
+                      uniform Bool shadow                ,
+                      uniform Bool quality               ):COLOR
 {
    // shadow
    Half shd; if(shadow){shd=ShadowFinal(TexSample(ValMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
@@ -2298,7 +2297,7 @@ Vec4 LightLinearM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
    VecH eye_dir =Normalize    (-pos);
    Half specular=LightSpecular( nrm.xyz, nrm.w, light_dir, eye_dir)*power;
 
-   return Vec4(Light_linear.color.rgb*lum, Light_linear.color.a*specular);
+   return VecH4(Light_linear.color.rgb*lum, Light_linear.color.a*specular);
 }
 #endif
 TECHNIQUE    (LightLinear  , DrawPosXY_VS(), LightLinear_PS (false, false));
@@ -2309,11 +2308,11 @@ TECHNIQUE_4_1(LightLinearM , DrawPosXY_VS(), LightLinearM_PS(false, false));
 TECHNIQUE_4_1(LightLinearSM, DrawPosXY_VS(), LightLinearM_PS(true , false));
 // no Quality version for MSAA
 /******************************************************************************/
-Vec4 LightCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                  NOPERSP Vec2 inPosXY:TEXCOORD1,
-                  uniform Int  shadow           ,
-                  uniform Bool quality          ,
-                  uniform Bool image            ):COLOR
+VecH4 LightCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+                   NOPERSP Vec2 inPosXY:TEXCOORD1,
+                   uniform Int  shadow           ,
+                   uniform Bool quality          ,
+                   uniform Bool image            ):COLOR
 {
    // shadow
    Half shd; if(shadow)
@@ -2340,20 +2339,20 @@ Vec4 LightCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    if(image)
    {
       VecH map_col=Tex(Col1, dir.xy*(LightMapScale*0.5)+0.5).rgb;
-      return Vec4(Light_cone.color.rgb*lum*map_col, Light_cone.color.a*specular);
+      return VecH4(Light_cone.color.rgb*lum*map_col, Light_cone.color.a*specular);
    }else
    {
-      return Vec4(Light_cone.color.rgb*lum, Light_cone.color.a*specular);
+      return VecH4(Light_cone.color.rgb*lum, Light_cone.color.a*specular);
    }
 }
 #if MODEL>=SM_4
-Vec4 LightConeM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
-                   NOPERSP Vec2 inPosXY:TEXCOORD1     ,
-                   NOPERSP PIXEL                      ,
-                           UInt index  :SV_SampleIndex,
-                   uniform Bool shadow                ,
-                   uniform Bool quality               ,
-                   uniform Bool image                 ):COLOR
+VecH4 LightConeM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
+                    NOPERSP Vec2 inPosXY:TEXCOORD1     ,
+                    NOPERSP PIXEL                      ,
+                            UInt index  :SV_SampleIndex,
+                    uniform Bool shadow                ,
+                    uniform Bool quality               ,
+                    uniform Bool image                 ):COLOR
 {
    // shadow
    Half shd; if(shadow){shd=ShadowFinal(TexSample(ValMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
@@ -2376,10 +2375,10 @@ Vec4 LightConeM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
    if(image)
    {
       VecH map_col=Tex(Col1, dir.xy*(LightMapScale*0.5)+0.5).rgb;
-      return Vec4(Light_cone.color.rgb*lum*map_col, Light_cone.color.a*specular);
+      return VecH4(Light_cone.color.rgb*lum*map_col, Light_cone.color.a*specular);
    }else
    {
-      return Vec4(Light_cone.color.rgb*lum, Light_cone.color.a*specular);
+      return VecH4(Light_cone.color.rgb*lum, Light_cone.color.a*specular);
    }
 }
 #endif
@@ -2403,7 +2402,7 @@ BUFFER(ColLight)
    VecH NightShadeColor;
 BUFFER_END
 
-Flt CelShade(Flt lum) {return TexLod(Det1, Vec2(lum, 0.5)).x;} // have to use linear filtering
+Half CelShade(Half lum) {return TexLod(Det1, VecH2(lum, 0.5)).x;} // have to use linear filtering
 
 VecH ColLight(VecH4 color, VecH4 lum, Half ao, VecH night_shade_col,
      uniform Bool    ao_do   ,
@@ -2639,23 +2638,23 @@ void Particle_VS(VtxInput vtx,
    outVtx=Project(pos);
 }
 /******************************************************************************/
-Vec4 Particle_PS(PIXEL,
-                 VecH4 inCol :COLOR    ,
-                 Vec2  inTex :TEXCOORD0,
-                 Vec2  inZS  :TEXCOORD1,
-                 Vec   inAnim:TEXCOORD2,
-         uniform Bool  palette         ,
-         uniform Bool  soft            ,
-         uniform Int   anim            ):COLOR
+VecH4 Particle_PS(PIXEL,
+                  VecH4 inCol :COLOR    ,
+                  Vec2  inTex :TEXCOORD0,
+                  Vec2  inZS  :TEXCOORD1,
+                  Vec   inAnim:TEXCOORD2,
+          uniform Bool  palette         ,
+          uniform Bool  soft            ,
+          uniform Int   anim            ):COLOR
 {
    VecH4                tex=          Tex(Col, inTex    )           ;
    if(anim==ANIM_SMOOTH)tex=Lerp(tex, Tex(Col, inAnim.xy), inAnim.z);
    if(soft)
    {
-      Flt  z0    =inZS.x-tex.a*inZS.y,
-           z1    =inZS.x+tex.a*inZS.y;
-           tex.a*=Sat((TexDepthPoint(PixelToScreen(pixel))-z0)/inZS.y); // fade out at occluder
-           tex.a*=Sat(z1/(z1-z0+EPS));                                  // smooth visibility fraction when particle near (or behind) camera, NaN
+      Flt z0    =inZS.x-tex.a*inZS.y,
+          z1    =inZS.x+tex.a*inZS.y;
+          tex.a*=Sat((TexDepthPoint(PixelToScreen(pixel))-z0)/inZS.y); // fade out at occluder
+          tex.a*=Sat(z1/(z1-z0+EPS));                                  // smooth visibility fraction when particle near (or behind) camera, NaN
    }
    if(palette)return inCol*tex.a;
    else       return inCol*tex  ;
@@ -2689,7 +2688,7 @@ TECHNIQUE(ParticleTexPAAM , Particle_VS(true , false, ANIM_SMOOTH, true , true )
 TECHNIQUE(ParticleTexSAAM , Particle_VS(false, true , ANIM_SMOOTH, true , true ), Particle_PS(false, true , ANIM_SMOOTH));
 TECHNIQUE(ParticleTexPSAAM, Particle_VS(true , true , ANIM_SMOOTH, true , true ), Particle_PS(true , true , ANIM_SMOOTH));
 /******************************************************************************/
-Vec4 PaletteDraw_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
+VecH4 PaletteDraw_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    VecH4 particle=TexLod(Col, inTex); // use linear filtering in case in the future we support downsized palette intensities (for faster fill-rate)
    clip(Length2(particle)-Sqr(Half(EPS_COL))); // 'clip' is faster than "BRANCH if(Length2(particle)>Sqr(EPS_COL))" (branch is however slightly faster when entire majority of pixels have some effect, however in most cases majority of pixels doesn't have anything so stick with 'clip')
@@ -2746,23 +2745,23 @@ void Decal_VS(VtxInput vtx,
       outVtx=Project(TransformPos(vtx.pos()));
    }
 }
-Vec4 Decal_PS(PIXEL,
-              Matrix  inMatrix :TEXCOORD0,
-              Matrix3 inMatrixN:TEXCOORD3,
-          out Vec4    outNrm   :COLOR1   ,
-      uniform Bool    normal             ,
-      uniform Bool    palette            ):COLOR
+VecH4 Decal_PS(PIXEL,
+               Matrix  inMatrix :TEXCOORD0,
+               Matrix3 inMatrixN:TEXCOORD3,
+           out Vec4    outNrm   :COLOR1   ,
+       uniform Bool    normal             ,
+       uniform Bool    palette            ):COLOR
 {
-   Vec pos  =GetPosPoint(PixelToScreen(pixel));
-       pos  =mul((Matrix3)inMatrix, pos-inMatrix[3]);
-   Flt alpha=Sat(Abs(pos.z)*DecalOpaqueFracMul()+DecalOpaqueFracAdd());
+   Vec  pos  =GetPosPoint(PixelToScreen(pixel));
+        pos  =mul((Matrix3)inMatrix, pos-inMatrix[3]);
+   Half alpha=Sat(Abs(pos.z)*DecalOpaqueFracMul()+DecalOpaqueFracAdd());
  
    clip(Vec(1-Abs(pos.xy), alpha-EPS_COL));
    alpha*=DecalAlpha();
 
    pos.xy=pos.xy*0.5+0.5;
 
-   Vec4 col=Tex(Col, pos.xy);
+   VecH4 col=Tex(Col, pos.xy);
 
    if(palette)
    {
@@ -2771,10 +2770,10 @@ Vec4 Decal_PS(PIXEL,
    {
       if(normal)
       {
-         Vec4 tex_nrm =Tex(Nrm, pos.xy); // #MaterialTextureChannelOrder
-         Flt  specular=tex_nrm.z*MaterialSpecular(); // specular is in 'nrm.z'
+         VecH4 tex_nrm =Tex(Nrm, pos.xy); // #MaterialTextureChannelOrder
+         Half  specular=tex_nrm.z*MaterialSpecular(); // specular is in 'nrm.z'
 
-               Vec nrm;
+              VecH nrm;
                    nrm.xy =(tex_nrm.xy*2-1)*MaterialRough(); // normal is in 'nrm.xy'
        //if(detail)nrm.xy+=det.xy;
                    nrm.z  =CalcZ(nrm.xy);
@@ -2833,12 +2832,12 @@ inline VecH BloomColor(VecH color, uniform Bool saturate, uniform Bool gamma)
       return (lum>0) ? color*(lum/col_lum) : VecH(0, 0, 0);
    }
 }
-Vec4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                uniform Bool glow          ,
-                uniform Bool do_clamp      ,
-                uniform Bool half_res      ,
-                uniform Bool saturate      ,
-                uniform Bool gamma         ):COLOR // "Max(0, " of the result is not needed because we're rendering to 1 byte per channel RT
+VecH4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
+                 uniform Bool glow          ,
+                 uniform Bool do_clamp      ,
+                 uniform Bool half_res      ,
+                 uniform Bool saturate      ,
+                 uniform Bool gamma         ):COLOR // "Max(0, " of the result is not needed because we're rendering to 1 byte per channel RT
 {
    if(glow)
    {
@@ -2858,20 +2857,20 @@ Vec4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
       }
       if(gamma && !gamma_per_pixel)glow.rgb =(2*glow.a)*LinearToSRGBFast(glow.rgb/Max(Vec4(glow.rgb, EPS)));
       else                         glow.rgb*= 2*glow.a                           /Max(Vec4(glow.rgb, EPS)) ; // NaN (increase by 2 because normally it's too small)
-      return Vec4(Max(BloomColor(color, saturate, gamma && !gamma_per_pixel), glow.rgb), 0);
+      return VecH4(Max(BloomColor(color, saturate, gamma && !gamma_per_pixel), glow.rgb), 0);
    }else
    {
       if(half_res)
       {
-         return Vec4(BloomColor(TexLod(Col, UVClamp(inTex, do_clamp)).rgb, saturate, gamma), 0);
+         return VecH4(BloomColor(TexLod(Col, UVClamp(inTex, do_clamp)).rgb, saturate, gamma), 0);
       }else
       {
          Vec2 tex_min=UVClamp(inTex-ImgSize.xy, do_clamp),
               tex_max=UVClamp(inTex+ImgSize.xy, do_clamp);
-         return Vec4(BloomColor(TexLod(Col, Vec2(tex_min.x, tex_min.y)).rgb
-                               +TexLod(Col, Vec2(tex_max.x, tex_min.y)).rgb
-                               +TexLod(Col, Vec2(tex_min.x, tex_max.y)).rgb
-                               +TexLod(Col, Vec2(tex_max.x, tex_max.y)).rgb, saturate, gamma), 0);
+         return VecH4(BloomColor(TexLod(Col, Vec2(tex_min.x, tex_min.y)).rgb
+                                +TexLod(Col, Vec2(tex_max.x, tex_min.y)).rgb
+                                +TexLod(Col, Vec2(tex_min.x, tex_max.y)).rgb
+                                +TexLod(Col, Vec2(tex_max.x, tex_max.y)).rgb, saturate, gamma), 0);
       }
    }
 }
@@ -2945,8 +2944,8 @@ TECHNIQUE(BloomDG, Draw_VS(), Bloom_PS(true , true ));
 #include "FXAA_config.h"
 #include "FXAA.h"
 
-Vec4 FXAA_PS(NOPERSP Vec2 pos:TEXCOORD,
-             uniform Bool gamma):COLOR
+VecH4 FXAA_PS(NOPERSP Vec2 pos:TEXCOORD,
+              uniform Bool gamma):COLOR
 {
    return FxaaPixelShader(pos, 0, Col, Col, Col, RTSize.xy, 0, 0, 0, 0.475, 0.15, 0.0833, 8.0, 0.125, 0.05, Vec4(1.0, -1.0, 0.25, -0.25), gamma);
 }

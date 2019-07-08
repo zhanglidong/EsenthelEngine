@@ -18,7 +18,7 @@ MP Vec ViewMatrixY  () {MP Int i=gl_InstanceID*3; return Vec(ViewMatrix[i].y, Vi
 HP Vec ViewMatrixPos() {MP Int i=gl_InstanceID*3; return Vec(ViewMatrix[i].w, ViewMatrix[i+1].w, ViewMatrix[i+2].w);}
 
 MP Vec FogColor  () {return FogColor_Density.rgb;}
-MP Flt FogDensity() {return FogColor_Density.a  ;}
+HP Flt FogDensity() {return FogColor_Density.a  ;}
 
 /*#if 0
 HP Vec TransformPos(HP Vec v) {return Transform (v, ViewMatrix[0]);}
