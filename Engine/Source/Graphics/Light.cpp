@@ -86,9 +86,9 @@ static void RestoreViewSpaceBias(Flt mp_z_z)
    if(FovPerspective(D.viewFovMode())){ProjMatrix.z.z=mp_z_z; SetProjMatrix();}
 }
 void RendererClass::getShdRT()
-{ // always do 'get' to call 'discard'
-                                  Renderer._shd_1s.get(ImageRTDesc(Renderer._ds_1s->w(), Renderer._ds_1s->h(), IMAGERT_ONE));
-   if(Renderer._ds->multiSample())Renderer._shd_ms.get(ImageRTDesc(Renderer._ds   ->w(), Renderer._ds   ->h(), IMAGERT_ONE, Renderer._ds->samples()));
+{ // always do 'get' to call 'discard', do h_ImageVal->set it will be used by drawing lights 'Light.draw, drawForward' (GetLight*->draw) and 'MapSoft'
+                                  {Renderer._shd_1s.get(ImageRTDesc(Renderer._ds_1s->w(), Renderer._ds_1s->h(), IMAGERT_ONE                         )); Sh.h_ImageVal  ->set(Renderer._shd_1s);}
+   if(Renderer._ds->multiSample()){Renderer._shd_ms.get(ImageRTDesc(Renderer._ds   ->w(), Renderer._ds   ->h(), IMAGERT_ONE, Renderer._ds->samples())); Sh.h_ImageValMS->set(Renderer._shd_ms);}
    D.alpha(ALPHA_NONE);
 }
 
@@ -138,7 +138,6 @@ static void MapSoft()
    if(D.shadowSoft()) // this needs to be in sync with 'D.ambientSoft'
    {
       ImageRTDesc rt_desc(Renderer._shd_1s->w(), Renderer._shd_1s->h(), IMAGERT_ONE);
-      Sh.h_ImageVal->set (Renderer._shd_1s);
       Sh.colSize(*Renderer._shd_1s);
       if(D.shadowSoft()>=5)
       {
@@ -151,6 +150,7 @@ static void MapSoft()
          Renderer.set(Renderer._shd_1s(), Renderer._ds_1s(), true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization
          REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.h_ShdBlur[D.shadowSoft()-1]->draw(null, &CurrentLightRect[Renderer._eye]);
       }
+      Sh.h_ImageVal->set(Renderer._shd_1s);
    }
 }
 static void RestoreLightSettings()
@@ -895,11 +895,22 @@ Bool Light::toScreenRect(Rect &rect)C
       default          : return false;
    }
 }
+void Light::fade(Flt fade)
+{
+   switch(type)
+   {                         // color_l=SRGBToLinear(LinearToSRGB(color_l)*scale)
+      case LIGHT_DIR   : dir   .color_l*=Sqr(fade); break;
+      case LIGHT_POINT : point .color_l*=Sqr(fade); break;
+      case LIGHT_LINEAR: linear.color_l*=Sqr(fade); break;
+      case LIGHT_CONE  : cone  .color_l*=Sqr(fade); break;
+   }
+}
+/******************************************************************************
 void Light::scalePower(Flt scale)
 {
    switch(type)
    {
-      case LIGHT_DIR   : dir   .color_l  *=Sqr(scale); break; // color_l=SRGBToLinear(LinearToSRGB(color_l)*scale)
+      case LIGHT_DIR   : dir   .color_l  *=Sqr(scale); break;
       case LIGHT_POINT : point .power    *=Sqr(scale); break;
       case LIGHT_LINEAR: linear.range    *=    scale ; break;
       case LIGHT_CONE  : cone  .pyramid.h*=    scale ; break;
@@ -961,7 +972,6 @@ void Light::draw()
             }
 
             SetWaterLum();
-            Sh.h_ImageVal->set(Renderer._shd_1s);
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightDir(CurrentLight.shadow, false, true)->draw(null, &CurrentLight.rect); // always use Quality Specular for Water
 
             Sh.h_ImageDepth->set(Renderer._ds_1s); // restore default depth
@@ -989,7 +999,6 @@ void Light::draw()
          Bool clear=SetLum();
          if(!Renderer._ds->multiSample()) // 1-sample
          {
-            Sh.h_ImageVal->set(Renderer._shd_1s);
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightDir(CurrentLight.shadow, false, D.highPrecNrmCalcIs())->draw(null, &CurrentLight.rect);
          #if TEST_LIGHT_RECT
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
@@ -999,7 +1008,6 @@ void Light::draw()
             if(Renderer.hasStencilAttached()) // if we can use stencil tests, then process 1-sample pixels using 1-sample shader, if we can't use stencil then all pixels will be processed using multi-sample shader later below
             {
                D.stencil(STENCIL_MSAA_TEST, 0);
-               Sh.h_ImageVal->set(Renderer._shd_1s);
                REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightDir(CurrentLight.shadow, false, D.highPrecNrmCalcIs())->draw(null, &CurrentLight.rect);
             }
             Renderer.set(Renderer._lum(), Renderer._ds(), true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
@@ -1009,7 +1017,6 @@ void Light::draw()
                D.depth2DOn ();
             }
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
-            Sh.h_ImageValMS->set(Renderer._shd_ms);
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightDir(CurrentLight.shadow, true, D.highPrecNrmCalcIs())->draw(null, &CurrentLight.rect);
             D.stencil(STENCIL_NONE);
          }
@@ -1036,7 +1043,6 @@ void Light::draw()
             }
 
             SetWaterLum();
-            Sh.h_ImageVal->set(Renderer._shd_1s);
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightPoint(CurrentLight.shadow, false, true)->draw(null, &CurrentLight.rect); // always use Quality Specular for Water
 
             Sh.h_ImageDepth->set(Renderer._ds_1s); // restore default depth
@@ -1064,7 +1070,6 @@ void Light::draw()
          Bool clear=SetLum();
          if(!Renderer._ds->multiSample()) // 1-sample
          {
-            Sh.h_ImageVal->set(Renderer._shd_1s);
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightPoint(CurrentLight.shadow, false, D.highPrecNrmCalcIs())->draw(null, &CurrentLight.rect);
          #if TEST_LIGHT_RECT
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
@@ -1074,7 +1079,6 @@ void Light::draw()
             if(Renderer.hasStencilAttached()) // if we can use stencil tests, then process 1-sample pixels using 1-sample shader, if we can't use stencil then all pixels will be processed using multi-sample shader later below
             {
                D.stencil(STENCIL_MSAA_TEST, 0);
-               Sh.h_ImageVal->set(Renderer._shd_1s);
                REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightPoint(CurrentLight.shadow, false, D.highPrecNrmCalcIs())->draw(null, &CurrentLight.rect);
             }
             Renderer.set(Renderer._lum(), Renderer._ds(), true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
@@ -1084,7 +1088,6 @@ void Light::draw()
                D.depth2DOn ();
             }
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
-            Sh.h_ImageValMS->set(Renderer._shd_ms);
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightPoint(CurrentLight.shadow, true, D.highPrecNrmCalcIs())->draw(null, &CurrentLight.rect);
             D.stencil(STENCIL_NONE);
          }
@@ -1111,7 +1114,6 @@ void Light::draw()
             }
 
             SetWaterLum();
-            Sh.h_ImageVal->set(Renderer._shd_1s);
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightLinear(CurrentLight.shadow, false, true)->draw(null, &CurrentLight.rect); // always use Quality Specular for Water
 
             Sh.h_ImageDepth->set(Renderer._ds_1s); // restore default depth
@@ -1139,7 +1141,6 @@ void Light::draw()
          Bool clear=SetLum();
          if(!Renderer._ds->multiSample()) // 1-sample
          {
-            Sh.h_ImageVal->set(Renderer._shd_1s);
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightLinear(CurrentLight.shadow, false, D.highPrecNrmCalcIs())->draw(null, &CurrentLight.rect);
          #if TEST_LIGHT_RECT
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
@@ -1149,7 +1150,6 @@ void Light::draw()
             if(Renderer.hasStencilAttached()) // if we can use stencil tests, then process 1-sample pixels using 1-sample shader, if we can't use stencil then all pixels will be processed using multi-sample shader later below
             {
                D.stencil(STENCIL_MSAA_TEST, 0);
-               Sh.h_ImageVal->set(Renderer._shd_1s);
                REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightLinear(CurrentLight.shadow, false, D.highPrecNrmCalcIs())->draw(null, &CurrentLight.rect);
             }
             Renderer.set(Renderer._lum(), Renderer._ds(), true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
@@ -1159,7 +1159,6 @@ void Light::draw()
                D.depth2DOn ();
             }
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
-            Sh.h_ImageValMS->set(Renderer._shd_ms);
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightLinear(CurrentLight.shadow, true, D.highPrecNrmCalcIs())->draw(null, &CurrentLight.rect);
             D.stencil(STENCIL_NONE);
          }
@@ -1186,7 +1185,6 @@ void Light::draw()
             }
 
             SetWaterLum();
-            Sh.h_ImageVal->set(Renderer._shd_1s);
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightCone(CurrentLight.shadow, CurrentLight.image?1:0, false, true)->draw(null, &CurrentLight.rect); // always use Quality Specular for Water
 
             Sh.h_ImageDepth->set(Renderer._ds_1s); // restore default depth
@@ -1219,7 +1217,6 @@ void Light::draw()
          Bool clear=SetLum();
          if(!Renderer._ds->multiSample()) // 1-sample
          {
-            Sh.h_ImageVal->set(Renderer._shd_1s);
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightCone(CurrentLight.shadow, CurrentLight.image?1:0, false, D.highPrecNrmCalcIs())->draw(null, &CurrentLight.rect);
          #if TEST_LIGHT_RECT
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
@@ -1229,7 +1226,6 @@ void Light::draw()
             if(Renderer.hasStencilAttached()) // if we can use stencil tests, then process 1-sample pixels using 1-sample shader, if we can't use stencil then all pixels will be processed using multi-sample shader later below
             {
                D.stencil(STENCIL_MSAA_TEST, 0);
-               Sh.h_ImageVal->set(Renderer._shd_1s);
                REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightCone(CurrentLight.shadow, CurrentLight.image?1:0, false, D.highPrecNrmCalcIs())->draw(null, &CurrentLight.rect);
             }
             Renderer.set(Renderer._lum(), Renderer._ds(), true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
@@ -1239,7 +1235,6 @@ void Light::draw()
                D.depth2DOn ();
             }
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
-            Sh.h_ImageValMS->set(Renderer._shd_ms);
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightCone(CurrentLight.shadow, CurrentLight.image?1:0, true, D.highPrecNrmCalcIs())->draw(null, &CurrentLight.rect);
             D.stencil(STENCIL_NONE);
          }
@@ -1310,7 +1305,6 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
             }
 
             SetWaterLum();
-            Sh.h_ImageVal->set(Renderer._shd_1s);
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightDir(CurrentLight.shadow, false, true)->draw(null, &CurrentLight.rect); // always use Quality Specular for Water
 
             Sh.h_ImageDepth->set(Renderer._ds_1s); // restore default depth
@@ -1371,7 +1365,6 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
             }
 
             SetWaterLum();
-            Sh.h_ImageVal->set(Renderer._shd_1s);
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightPoint(CurrentLight.shadow, false, true)->draw(null, &CurrentLight.rect); // always use Quality Specular for Water
 
             Sh.h_ImageDepth->set(Renderer._ds_1s); // restore default depth
@@ -1432,7 +1425,6 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
             }
 
             SetWaterLum();
-            Sh.h_ImageVal->set(Renderer._shd_1s);
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightLinear(CurrentLight.shadow, false, true)->draw(null, &CurrentLight.rect); // always use Quality Specular for Water
 
             Sh.h_ImageDepth->set(Renderer._ds_1s); // restore default depth
@@ -1493,7 +1485,6 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
             }
 
             SetWaterLum();
-            Sh.h_ImageVal->set(Renderer._shd_1s);
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightCone(CurrentLight.shadow, CurrentLight.image?1:0, false, true)->draw(null, &CurrentLight.rect); // always use Quality Specular for Water
 
             Sh.h_ImageDepth->set(Renderer._ds_1s); // restore default depth
@@ -1549,7 +1540,7 @@ void LimitLights()
             LightFade &lf=new_fade[LightFadesNum++];
             lf.src =l.src;
             lf.fade=Time.rd()*3; REP(old_fades)if(old_fade[i].src==l.src){lf.fade+=old_fade[i].fade; break;} SAT(lf.fade);
-            l.scalePower(lf.fade);
+            l.fade(lf.fade);
          }
       }
       LightFadeIndex^=1;

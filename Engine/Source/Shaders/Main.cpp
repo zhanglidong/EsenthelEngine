@@ -2687,20 +2687,20 @@ TECHNIQUE(ParticleTexPSAAM, Particle_VS(true , true , ANIM_SMOOTH, true , true )
 /******************************************************************************/
 Vec4 PaletteDraw_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
-   Vec4 particle=TexLod(Col, inTex); // use linear filtering in case in the future we support downsized palette intensities (for faster fill-rate)
-   clip(Length2(particle)-Sqr(EPS_COL)); // 'clip' is faster than "BRANCH if(Length2(particle)>Sqr(EPS_COL))" (branch is however slightly faster when entire majority of pixels have some effect, however in most cases majority of pixels doesn't have anything so stick with 'clip')
+   VecH4 particle=TexLod(Col, inTex); // use linear filtering in case in the future we support downsized palette intensities (for faster fill-rate)
+   clip(Length2(particle)-Sqr(Half(EPS_COL))); // 'clip' is faster than "BRANCH if(Length2(particle)>Sqr(EPS_COL))" (branch is however slightly faster when entire majority of pixels have some effect, however in most cases majority of pixels doesn't have anything so stick with 'clip')
 
    // have to use linear filtering because this is palette image
-   Vec4 c0=TexLod(Col1, Vec2(particle.x, 0.5f/4)),
-        c1=TexLod(Col1, Vec2(particle.y, 1.5f/4)),
-        c2=TexLod(Col1, Vec2(particle.z, 2.5f/4)),
-        c3=TexLod(Col1, Vec2(particle.w, 3.5f/4));
-   Flt  a =Max(c0.a, c1.a, c2.a, c3.a);
+   VecH4 c0=TexLod(Col1, VecH2(particle.x, 0.5/4)),
+         c1=TexLod(Col1, VecH2(particle.y, 1.5/4)),
+         c2=TexLod(Col1, VecH2(particle.z, 2.5/4)),
+         c3=TexLod(Col1, VecH2(particle.w, 3.5/4));
+   Half  a =Max(c0.a, c1.a, c2.a, c3.a);
 
-   return Vec4((c0.rgb*c0.a
-               +c1.rgb*c1.a
-               +c2.rgb*c2.a
-               +c3.rgb*c3.a)/(a+EPS), a); // NaN
+   return VecH4((c0.rgb*c0.a
+                +c1.rgb*c1.a
+                +c2.rgb*c2.a
+                +c3.rgb*c3.a)/(a+EPS), a); // NaN
 }
 TECHNIQUE(PaletteDraw, Draw_VS(), PaletteDraw_PS());
 /******************************************************************************/

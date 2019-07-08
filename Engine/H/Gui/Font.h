@@ -30,7 +30,7 @@ struct Font
                  characters     ; // characters to include in the font
       Bool       software       , // create in software mode for CPU processing only, true/false
                  shadow_diagonal; // if set shadows in diagonal mode                , true/false
-      Byte       mip_maps       ; // amount of desired mip maps for the textures    ,   0..8 (0=autodetect and create full mip-map chain)
+      Byte       mip_maps       ; // amount of desired mip maps for the textures    ,   0..255 (0=autodetect and create full mip-map chain)
       Int        size           , // font size (in pixels)                          ,   1..Inf
                  max_image_size ; // maximum allowed image size to be generated     ,   1..Inf
       Flt        scale          , // scale applied to source font characters        , 0.5..2.0
@@ -105,12 +105,12 @@ struct Font
               height     , // full height of this character in pixels (this does not include the shadow padding and     'offset')
               width_padd , // full width  of this character in pixels (this does     include the shadow padding)
               height_padd, // full height of this character in pixels (this does     include the shadow padding but not 'offset')
-              width2[2][FONT_WIDTH_TEST];
+              widths[2][FONT_WIDTH_TEST];
          Rect tex        ; // texture coordinates covering the font pixels in the image (this already includes the shadow padding)
       };
 
     C Mems<Chr  >& chrs  ()C {return _chrs  ;} // get list of characters supported in this Font
-    C Mems<Image>& images()C {return _images;} // get list of images used for storing character data, these images have data packed in channels: Green=Character Intensity, Alpha=Shadow Intensity, Red/Blue=Unused, please keep in mind that these images are IMAGE_2D hardware textures with possibly compressed texture formats, which are not suitable for software processing, when wanting to do software drawing it's recommended to first copy the images to separate software copies
+    C Mems<Image>& images()C {return _images;} // get list of images used for storing character data, these images have data packed in channels, avoid accessing the images manually, if you wish to perform software drawing to 'Image', please use 'TextStyle.drawSoft'
 
       Int charIndex(Char8 c)C; // get 'c' character index in the 'chrs' container, -1 if it's not included
       Int charIndex(Char  c)C; // get 'c' character index in the 'chrs' container, -1 if it's not included

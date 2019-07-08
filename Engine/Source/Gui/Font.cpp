@@ -77,8 +77,8 @@ Int Font::charWidth(Char8 c0, Char8 c1, SPACING_MODE spacing)C
             Int  width= chr.width; // get width of the first character
             index=_char_to_font[Unsigned(c1)]; if(InRange(index, _chrs)) // if the second character exists, then adjust spacing between them
             {
-             C Byte *width_0=         chr.width2[1], // we're taking the right side of the first  character
-                    *width_1=_chrs[index].width2[0]; // we're taking the left  side of the second character
+             C Byte *width_0=         chr.widths[1], // we're taking the right side of the first  character
+                    *width_1=_chrs[index].widths[0]; // we're taking the left  side of the second character
                Int   min    =255*2; // 255 (means no distance) * 2 (because of adding l+r)
                REP(FONT_WIDTH_TEST)
                {
@@ -111,8 +111,8 @@ Int Font::charWidth(Char c0, Char c1, SPACING_MODE spacing)C
             Int  width= chr.width; // get width of the first character
             index=_wide_to_font[Unsigned(c1)]; if(InRange(index, _chrs)) // if the second character exists, then adjust spacing between them
             {
-             C Byte *width_0=         chr.width2[1], // we're taking the right side of the first  character
-                    *width_1=_chrs[index].width2[0]; // we're taking the left  side of the second character
+             C Byte *width_0=         chr.widths[1], // we're taking the right side of the first  character
+                    *width_1=_chrs[index].widths[0]; // we're taking the left  side of the second character
                Int   min    =255*2; // 255 (means no distance) * 2 (because of adding l+r)
                REP(FONT_WIDTH_TEST)
                {
@@ -369,13 +369,13 @@ void Font::setRemap()
 struct FontChr3
 {
    Char chr;
-   Byte image, offset, width, height, width2[FONT_WIDTH_TEST][2];
+   Byte image, offset, width, height, widths[FONT_WIDTH_TEST][2];
    Rect tex;
 };
 struct FontChr0
 {
    Char chr;
-   Byte image, width, width2[FONT_WIDTH_TEST][2];
+   Byte image, width, widths[FONT_WIDTH_TEST][2];
    Rect tex;
 };
 #pragma pack(pop)
@@ -393,7 +393,7 @@ static void FontLoadChr3(Font &font, File &f)
       dest.height=src.height; dest.height_padd=Min(dest.height+font.paddingT()+font.paddingB(), 255);
       dest.tex   =src.tex;
       REPD(s, 2)
-      REPD(i, FONT_WIDTH_TEST)dest.width2[s][i]=src.width2[i][s];
+      REPD(i, FONT_WIDTH_TEST)dest.widths[s][i]=src.widths[i][s];
    }
 }
 static void FontLoadChr0(Font &font, File &f)
@@ -410,7 +410,7 @@ static void FontLoadChr0(Font &font, File &f)
       dest.height=font.height(); dest.height_padd=Min(dest.height+font.paddingT()+font.paddingB(), 255);
       dest.offset=0;
       REPD(s, 2)
-      REPD(i, FONT_WIDTH_TEST)dest.width2[s][i]=src.width2[i][s];
+      REPD(i, FONT_WIDTH_TEST)dest.widths[s][i]=src.widths[i][s];
    }
 }
 static Bool Adjust(Font &font, Int layout) // #FontImageLayout
@@ -907,7 +907,7 @@ struct FontChar
 {
    Char  chr;
    VecI2 ofs, size; // these are unaffected by shadow padding
-   Byte  width2[2][FONT_WIDTH_TEST];
+   Byte  widths[2][FONT_WIDTH_TEST];
    Image image;
 
    void setSpace(Int size)
@@ -915,7 +915,7 @@ struct FontChar
       T.chr=' ';
       T.ofs=0;
       T.size.set(DivRound(size, 4), 0);
-      Zero(width2);
+      Zero(widths);
       image.del();
    }
    void setFullSpace(Int size)
@@ -923,7 +923,7 @@ struct FontChar
       T.chr=FullWidthSpace;
       T.ofs=0;
       T.size.set(DivRound(size, 2), 0);
-      Zero(width2);
+      Zero(widths);
       image.del();
    }
    void setTab(Int size)
@@ -931,13 +931,13 @@ struct FontChar
       T.chr='\t';
       T.ofs=0;
       T.size.set(DivRound(size, 4)*3, 0); // make tab 3x wider than space
-      Zero(width2);
+      Zero(widths);
       image.del();
    }
 
    static Int Compare(C FontChar &a, C FontChar &b) {return ::Compare(a.image.h(), b.image.h());}
 
-   FontChar() {chr='\0'; ofs=size=0; Zero(width2);} // Zero (for example required for spaces)
+   FontChar() {chr='\0'; ofs=size=0; Zero(widths);} // Zero (for example required for spaces)
 };
 struct FontCreate : Font::Params
 {
@@ -1076,8 +1076,8 @@ struct FontCreate : Font::Params
 
             if(y2<=y1)y2=y1+1; // make sure that at least one iteration is performed, because search is exclusive "y<y2"
             Int x, y, found;
-            for(x=0, found=255; x<w; x++) for(y=y1; y<y2; y++) if(img.pixel(    x, y)){found=Min(254, x); goto found_l;} found_l: if(fc.chr==u'ำ' && found!=255)found=Min(found+scaled_size/9, 254); fc.width2[0][i]=found; // use "Min(254" because 255 means nothing was found, 'ำ' needs to be placed closer to other characters
-            for(x=0, found=255; x<w; x++) for(y=y1; y<y2; y++) if(img.pixel(w-1-x, y)){found=Min(254, x); goto found_r;} found_r:                                                                     fc.width2[1][i]=found; // use "Min(254" because 255 means nothing was found
+            for(x=0, found=255; x<w; x++) for(y=y1; y<y2; y++) if(img.pixel(    x, y)){found=Min(254, x); goto found_l;} found_l: if(fc.chr==u'ำ' && found!=255)found=Min(found+scaled_size/9, 254); fc.widths[0][i]=found; // use "Min(254" because 255 means nothing was found, 'ำ' needs to be placed closer to other characters
+            for(x=0, found=255; x<w; x++) for(y=y1; y<y2; y++) if(img.pixel(w-1-x, y)){found=Min(254, x); goto found_r;} found_r:                                                                     fc.widths[1][i]=found; // use "Min(254" because 255 means nothing was found
          #if TEST_FONT && 0
             img.color(0, y1  , GREEN);
             img.color(0, y2-1, RED  ); // -1 because search is exclusive "y<y2"
@@ -1139,7 +1139,7 @@ struct FontCreate : Font::Params
               dest.width =src.size.x; dest. width_padd=Min(dest.width +font.paddingL()+font.paddingR(), 255);
               dest.height=src.size.y; dest.height_padd=Min(dest.height+font.paddingT()+font.paddingB(), 255);
               dest.offset=Mid(src.ofs.y+offset, 0, 255); // use 'Mid' because we're storing as Byte
-         Copy(dest.width2, src.width2);
+         Copy(dest.widths, src.widths);
       }
       return true;
    }
@@ -1252,8 +1252,8 @@ Bool Font::create(C Params &params)
             Font::Chr &c=_chrs[i];
             c.width=Max(c.width-1, 0);
           //c.width_padd remains the same, because width was decreased but padding increased
-            REP(FONT_WIDTH_TEST)if(c.width2[1][i]!=0xFF)c.width2[1][i]=Mid(c.width2[1][i]+1, 0, 254); // here increase by 1 and not decrease, because 'width2[1]' means amount of distance from the right side
-          //REP(FONT_WIDTH_TEST)if(c.width2[0][i]!=0xFF)c.width2[0][i]=Mid(c.width2[0][i]+1, 0, 254); // don't use this as that's too much
+            REP(FONT_WIDTH_TEST)if(c.widths[1][i]!=0xFF)c.widths[1][i]=Mid(c.widths[1][i]+1, 0, 254); // here increase by 1 and not decrease, because 'widths[1]' means amount of distance from the right side
+          //REP(FONT_WIDTH_TEST)if(c.widths[0][i]!=0xFF)c.widths[0][i]=Mid(c.widths[0][i]+1, 0, 254); // don't use this as that's too much
          }
       }
    #endif

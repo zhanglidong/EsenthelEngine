@@ -124,7 +124,7 @@ struct Light
 #if EE_PRIVATE
    Bool toScreenRect(Rect &rect)C;
 
-   void scalePower(Flt scale);
+   void fade(Flt fade);
 
    void set();
 
