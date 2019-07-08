@@ -137,10 +137,10 @@ inline Vec2 PosToScreen(Vec pos)
 }
 inline Vec2 PosToScreen(Vec4 pos)
 {
-   Vec2 screen=pos.xy/pos.w*Vec2(0.5,-0.5)+0.5; return screen*Viewport.size+(Viewport.min+0.5/RTSizeI);
-   return (pos.xy/pos.w*Vec2(0.5,-0.5)+0.5)*Viewport.size+(Viewport.min+0.5/RTSizeI);
-   return (pos.xy/pos.w) * (Vec2(0.5,-0.5)*Viewport.size) + (0.5*Viewport.size+Viewport.min+0.5/RTSizeI);
-   return (pos.xy/pos.w) * Viewport.PosToScreen.xy        + Viewport.PosToScreen.zw                     ;
+   Vec2 screen=pos.xy/pos.w*Vec2(0.5,-0.5)+0.5; return screen*Viewport.size+(Viewport.min+0.5*RTSize.xy);
+   return (pos.xy/pos.w*Vec2(0.5,-0.5)+0.5)*Viewport.size+(Viewport.min+0.5*RTSize.xy);
+   return (pos.xy/pos.w) * (Vec2(0.5,-0.5)*Viewport.size) + (0.5*Viewport.size+Viewport.min+0.5*RTSize.xy);
+   return (pos.xy/pos.w) * Viewport.PosToScreen.xy        + Viewport.PosToScreen.zw                       ;
 }
 /******************************************************************************/
 Display::Viewport& Display::Viewport::setViewport()

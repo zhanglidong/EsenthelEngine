@@ -30,7 +30,7 @@ Vec4 LayeredClouds_PS(Vec   inPos :TEXCOORD0,
    Half a=Sat(inTex.w);
    if(blend)
    {
-      Flt range=TexDepthPoint(PIXEL_TO_SCREEN)/Normalize(inPos).z; // 0..Viewport.range
+      Flt range=TexDepthPoint(PixelToScreen(pixel))/Normalize(inPos).z; // 0..Viewport.range
           a   *=Sat(range*LCRange.x+LCRange.y);
    }
    Vec2  uv=Normalize(inTex.xyz).xz;

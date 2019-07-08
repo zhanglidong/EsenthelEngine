@@ -17,15 +17,15 @@ ImageCube Cub;
 VecH4 TexCubicFast(Vec2 inTex)
 {
 #if 0 // original
-   Vec2 tex =inTex*ColSize.zw-0.5f,
+   Vec2 tex =inTex*ImgSize.zw-0.5f,
         texi=Floor(tex),
         texf=tex-texi;
-        texi-=0.5f; texi*=ColSize.xy;
+        texi-=0.5f; texi*=ImgSize.xy;
 
-   Vec4 c00=TexPoint(Col, texi+ColSize.xy*Vec2(0, 0)), c10=TexPoint(Col, texi+ColSize.xy*Vec2(1, 0)), c20=TexPoint(Col, texi+ColSize.xy*Vec2(2, 0)), c30=TexPoint(Col, texi+ColSize.xy*Vec2(3, 0)),
-        c01=TexPoint(Col, texi+ColSize.xy*Vec2(0, 1)), c11=TexPoint(Col, texi+ColSize.xy*Vec2(1, 1)), c21=TexPoint(Col, texi+ColSize.xy*Vec2(2, 1)), c31=TexPoint(Col, texi+ColSize.xy*Vec2(3, 1)),
-        c02=TexPoint(Col, texi+ColSize.xy*Vec2(0, 2)), c12=TexPoint(Col, texi+ColSize.xy*Vec2(1, 2)), c22=TexPoint(Col, texi+ColSize.xy*Vec2(2, 2)), c32=TexPoint(Col, texi+ColSize.xy*Vec2(3, 2)),
-        c03=TexPoint(Col, texi+ColSize.xy*Vec2(0, 3)), c13=TexPoint(Col, texi+ColSize.xy*Vec2(1, 3)), c23=TexPoint(Col, texi+ColSize.xy*Vec2(2, 3)), c33=TexPoint(Col, texi+ColSize.xy*Vec2(3, 3));
+   Vec4 c00=TexPoint(Col, texi+ImgSize.xy*Vec2(0, 0)), c10=TexPoint(Col, texi+ImgSize.xy*Vec2(1, 0)), c20=TexPoint(Col, texi+ImgSize.xy*Vec2(2, 0)), c30=TexPoint(Col, texi+ImgSize.xy*Vec2(3, 0)),
+        c01=TexPoint(Col, texi+ImgSize.xy*Vec2(0, 1)), c11=TexPoint(Col, texi+ImgSize.xy*Vec2(1, 1)), c21=TexPoint(Col, texi+ImgSize.xy*Vec2(2, 1)), c31=TexPoint(Col, texi+ImgSize.xy*Vec2(3, 1)),
+        c02=TexPoint(Col, texi+ImgSize.xy*Vec2(0, 2)), c12=TexPoint(Col, texi+ImgSize.xy*Vec2(1, 2)), c22=TexPoint(Col, texi+ImgSize.xy*Vec2(2, 2)), c32=TexPoint(Col, texi+ImgSize.xy*Vec2(3, 2)),
+        c03=TexPoint(Col, texi+ImgSize.xy*Vec2(0, 3)), c13=TexPoint(Col, texi+ImgSize.xy*Vec2(1, 3)), c23=TexPoint(Col, texi+ImgSize.xy*Vec2(2, 3)), c33=TexPoint(Col, texi+ImgSize.xy*Vec2(3, 3));
 
    Vec4 c0=Lerp4(c00, c10, c20, c30, texf.x),
         c1=Lerp4(c01, c11, c21, c31, texf.x),
@@ -34,7 +34,7 @@ VecH4 TexCubicFast(Vec2 inTex)
 
    return Lerp4(c0, c1, c2, c3, texf.y);
 #else // optimized
-   inTex*=ColSize.zw;
+   inTex*=ImgSize.zw;
    Vec2 tc=Floor(inTex-0.5f)+0.5f,
         f=inTex-tc, f2=f*f, f3=f2*f,
         w0=f2-0.5f*(f3+f), w1=1.5f*f3-2.5f*f2+1.0f,
@@ -44,10 +44,10 @@ VecH4 TexCubicFast(Vec2 inTex)
         w3=0.5f*(f3-f2), w2=1.0f-w0-w1-w3;
    #endif
 
-   tc*=ColSize.xy;
-   Vec2 tc0=tc-ColSize.xy, tc3=tc+ColSize.xy*2;
+   tc*=ImgSize.xy;
+   Vec2 tc0=tc-ImgSize.xy, tc3=tc+ImgSize.xy*2;
 #if 0 // 16 tex reads
-   Vec2 tc2=tc+ColSize.xy;
+   Vec2 tc2=tc+ImgSize.xy;
 
  /*Flt w[4][4]={(w0.x*w0.y), (w1.x*w0.y), (w2.x*w0.y), (w3.x*w0.y),
                 (w0.x*w1.y), (w1.x*w1.y), (w2.x*w1.y), (w3.x*w1.y),
@@ -74,7 +74,7 @@ VecH4 TexCubicFast(Vec2 inTex)
          +TexPoint(Col, Vec2(tc2.x, tc3.y))*(w2.x*w3.y)
          +TexPoint(Col, Vec2(tc3.x, tc3.y))*(w3.x*w3.y);
 #else // 5 tex reads, corners are ignored because they're insignificant, 
-   Vec2 w12=w1+w2, p=tc+(w2/w12)*ColSize.xy;
+   Vec2 w12=w1+w2, p=tc+(w2/w12)*ImgSize.xy;
    Flt  wu=w12.x*w0.y, wd=w12.x*w3.y, wl=w12.y*w0.x, wr=w12.y*w3.x, wc=w12.x*w12.y;
    // keep 'Tex' in case we need LOD's (for example stretching in 1 dimension but shrinking in another)
    return(Tex(Col, Vec2(  p.x, tc0.y))*wu // sample upper edge (2 texels), both weights are negative
@@ -88,14 +88,14 @@ VecH4 TexCubicFast(Vec2 inTex)
 }
 VecH TexCubicFastRGB(Vec2 inTex) // ignores alpha channel
 {
-   inTex*=ColSize.zw;
+   inTex*=ImgSize.zw;
    Vec2 tc=Floor(inTex-0.5f)+0.5f,
         f=inTex-tc, f2=f*f, f3=f2*f,
         w0=f2-0.5f*(f3+f), w1=1.5f*f3-2.5f*f2+1.0f,
         w3=0.5f*(f3-f2), w2=1.0f-w0-w1-w3;
-   tc*=ColSize.xy;
-   Vec2 tc0=tc-ColSize.xy, tc3=tc+ColSize.xy*2,
-        w12=w1  +w2      , p  =tc+(w2/w12)*ColSize.xy;
+   tc*=ImgSize.xy;
+   Vec2 tc0=tc-ImgSize.xy, tc3=tc+ImgSize.xy*2,
+        w12=w1  +w2      , p  =tc+(w2/w12)*ImgSize.xy;
    Flt  wu =w12.x*w0.y   , wd =w12.x*w3.y, wl=w12.y*w0.x, wr=w12.y*w3.x, wc=w12.x*w12.y;
    // keep 'Tex' in case we need LOD's (for example stretching in 1 dimension but shrinking in another)
    return(Tex(Col, Vec2(  p.x, tc0.y)).rgb*wu
@@ -167,7 +167,7 @@ VecH TexLerpRGB(Vec2 t0, Vec2 t1, Flt lu, Flt ru, Flt lb, Flt rb) // ignores alp
 
 VecH4 TexCubic(Vec2 inTex)
 {
-   Vec2 pixel =inTex*ColSize.zw-0.5f,
+   Vec2 pixel =inTex*ImgSize.zw-0.5f,
         pixeli=Floor(pixel),
         offset       [CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE],
         offset_weight[CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE];
@@ -180,7 +180,7 @@ VecH4 TexCubic(Vec2 inTex)
    {
       offset       [i]=     pixeli+(i-(CUBIC_SAMPLES-1));
       offset_weight[i]=Sqr((pixel -offset[i])*CUBIC_SHARPNESS);
-      offset       [i]=           (offset[i]+0.5f)*ColSize.xy;
+      offset       [i]=           (offset[i]+0.5f)*ImgSize.xy;
    }
    Vec4 color =0;
    Flt  weight=0;
@@ -217,7 +217,7 @@ VecH4 TexCubic(Vec2 inTex)
 }
 VecH TexCubicRGB(Vec2 inTex) // ignores alpha channel
 {
-   Vec2 pixel =inTex*ColSize.zw-0.5f,
+   Vec2 pixel =inTex*ImgSize.zw-0.5f,
         pixeli=Floor(pixel),
         offset       [CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE],
         offset_weight[CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE];
@@ -230,7 +230,7 @@ VecH TexCubicRGB(Vec2 inTex) // ignores alpha channel
    {
       offset       [i]=     pixeli+(i-(CUBIC_SAMPLES-1));
       offset_weight[i]=Sqr((pixel -offset[i])*CUBIC_SHARPNESS);
-      offset       [i]=           (offset[i]+0.5f)*ColSize.xy;
+      offset       [i]=           (offset[i]+0.5f)*ImgSize.xy;
    }
    Vec color =0;
    Flt weight=0;
@@ -768,7 +768,7 @@ void FogBox_PS
    uniform Bool height
 )
 {
-   Flt z  =TexDepthPoint(PIXEL_TO_SCREEN);
+   Flt z  =TexDepthPoint(PixelToScreen(pixel));
    Vec pos=inTex,
        dir=Normalize(inPos); dir*=Min((SQRT3*2)*inSize.w, (z-inPos.z)/dir.z);
        dir=mul(inMat, dir); // convert to box space
@@ -888,7 +888,7 @@ void FogBall_PS
    out Vec4 alpha:COLOR1
 )
 {
-   Flt z  =TexDepthPoint(PIXEL_TO_SCREEN);
+   Flt z  =TexDepthPoint(PixelToScreen(pixel));
    Vec pos=Normalize    (inTex),
        dir=Normalize    (inPos); Flt max_length=(z-inPos.z)/(dir.z*inSize);
        dir=Transform3   (dir, CamMatrix); // convert to ball space
@@ -1011,7 +1011,7 @@ void Volume_PS
    uniform Bool LA=false
 )
 {
-   Flt z  =TexDepthPoint(PIXEL_TO_SCREEN);
+   Flt z  =TexDepthPoint(PixelToScreen(pixel));
    Vec pos=inTex;
    Vec dir=Normalize(inPos); dir*=Min((SQRT3*2)*Max(Volume.size), (z-(inside ? Viewport.from : inPos.z))/dir.z);
        dir=mul(inMat, dir); // convert to box space
@@ -1162,57 +1162,59 @@ TECHNIQUE(YUVAG, Draw2DTex_VS(), YUVA_PS(true ));
    }
 #endif
 
+// can use 'RTSize' instead of 'ImgSize' since there's no scale
+
 Vec4 BlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
               uniform Int  samples       ):COLOR
 {
 #if TEST_BLUR
-   if(Test){Int s=Round(Samples); Vec4 color=0; Flt weight=0; for(Int i=-s; i<=s; i++){Flt w=Weight(Abs(i), s); weight+=w; color.rgb+=w*TexPoint(Col, inTex+ColSize.xy*Vec2(i, 0)).rgb;} color.rgb/=weight; return color;}
+   if(Test){Int s=Round(Samples); Vec4 color=0; Flt weight=0; for(Int i=-s; i<=s; i++){Flt w=Weight(Abs(i), s); weight+=w; color.rgb+=w*TexPoint(Col, inTex+RTSize.xy*Vec2(i, 0)).rgb;} color.rgb/=weight; return color;}
 #endif
    // use linear filtering because texcoords aren't rounded
    if(samples==4) // -3 .. 3
-      return Vec4(TexLod(Col, inTex+ColSize.xy*Vec2( 0+WEIGHT4_1/(WEIGHT4_0/2+WEIGHT4_1), 0)).rgb*(WEIGHT4_0/2+WEIGHT4_1) // 0th sample is divided by 2 because it's obtained here and line below to preserve symmetry
-                 +TexLod(Col, inTex+ColSize.xy*Vec2(-0-WEIGHT4_1/(WEIGHT4_0/2+WEIGHT4_1), 0)).rgb*(WEIGHT4_0/2+WEIGHT4_1)
-                 +TexLod(Col, inTex+ColSize.xy*Vec2( 2+WEIGHT4_3/(WEIGHT4_2  +WEIGHT4_3), 0)).rgb*(WEIGHT4_2  +WEIGHT4_3)
-                 +TexLod(Col, inTex+ColSize.xy*Vec2(-2-WEIGHT4_3/(WEIGHT4_2  +WEIGHT4_3), 0)).rgb*(WEIGHT4_2  +WEIGHT4_3), 0);
+      return Vec4(TexLod(Col, inTex+RTSize.xy*Vec2( 0+WEIGHT4_1/(WEIGHT4_0/2+WEIGHT4_1), 0)).rgb*(WEIGHT4_0/2+WEIGHT4_1) // 0th sample is divided by 2 because it's obtained here and line below to preserve symmetry
+                 +TexLod(Col, inTex+RTSize.xy*Vec2(-0-WEIGHT4_1/(WEIGHT4_0/2+WEIGHT4_1), 0)).rgb*(WEIGHT4_0/2+WEIGHT4_1)
+                 +TexLod(Col, inTex+RTSize.xy*Vec2( 2+WEIGHT4_3/(WEIGHT4_2  +WEIGHT4_3), 0)).rgb*(WEIGHT4_2  +WEIGHT4_3)
+                 +TexLod(Col, inTex+RTSize.xy*Vec2(-2-WEIGHT4_3/(WEIGHT4_2  +WEIGHT4_3), 0)).rgb*(WEIGHT4_2  +WEIGHT4_3), 0);
    if(samples==5) // -4 .. 4
       return Vec4(TexLod(Col, inTex                                                       ).rgb* WEIGHT5_0
-                 +TexLod(Col, inTex+ColSize.xy*Vec2( 1+WEIGHT5_2/(WEIGHT5_1+WEIGHT5_2), 0)).rgb*(WEIGHT5_1+WEIGHT5_2)
-                 +TexLod(Col, inTex+ColSize.xy*Vec2(-1-WEIGHT5_2/(WEIGHT5_1+WEIGHT5_2), 0)).rgb*(WEIGHT5_1+WEIGHT5_2)
-                 +TexLod(Col, inTex+ColSize.xy*Vec2( 3+WEIGHT5_4/(WEIGHT5_3+WEIGHT5_4), 0)).rgb*(WEIGHT5_3+WEIGHT5_4)
-                 +TexLod(Col, inTex+ColSize.xy*Vec2(-3-WEIGHT5_4/(WEIGHT5_3+WEIGHT5_4), 0)).rgb*(WEIGHT5_3+WEIGHT5_4), 0);
+                 +TexLod(Col, inTex+RTSize.xy*Vec2( 1+WEIGHT5_2/(WEIGHT5_1+WEIGHT5_2), 0)).rgb*(WEIGHT5_1+WEIGHT5_2)
+                 +TexLod(Col, inTex+RTSize.xy*Vec2(-1-WEIGHT5_2/(WEIGHT5_1+WEIGHT5_2), 0)).rgb*(WEIGHT5_1+WEIGHT5_2)
+                 +TexLod(Col, inTex+RTSize.xy*Vec2( 3+WEIGHT5_4/(WEIGHT5_3+WEIGHT5_4), 0)).rgb*(WEIGHT5_3+WEIGHT5_4)
+                 +TexLod(Col, inTex+RTSize.xy*Vec2(-3-WEIGHT5_4/(WEIGHT5_3+WEIGHT5_4), 0)).rgb*(WEIGHT5_3+WEIGHT5_4), 0);
    if(samples==6) // -5 .. 5
-      return Vec4(TexLod(Col, inTex+ColSize.xy*Vec2( 0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).rgb*(WEIGHT6_0/2+WEIGHT6_1) // 0th sample is divided by 2 because it's obtained here and line below to preserve symmetry
-                 +TexLod(Col, inTex+ColSize.xy*Vec2(-0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).rgb*(WEIGHT6_0/2+WEIGHT6_1)
-                 +TexLod(Col, inTex+ColSize.xy*Vec2( 2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).rgb*(WEIGHT6_2  +WEIGHT6_3)
-                 +TexLod(Col, inTex+ColSize.xy*Vec2(-2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).rgb*(WEIGHT6_2  +WEIGHT6_3)
-                 +TexLod(Col, inTex+ColSize.xy*Vec2( 4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).rgb*(WEIGHT6_4  +WEIGHT6_5)
-                 +TexLod(Col, inTex+ColSize.xy*Vec2(-4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).rgb*(WEIGHT6_4  +WEIGHT6_5), 0);
+      return Vec4(TexLod(Col, inTex+RTSize.xy*Vec2( 0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).rgb*(WEIGHT6_0/2+WEIGHT6_1) // 0th sample is divided by 2 because it's obtained here and line below to preserve symmetry
+                 +TexLod(Col, inTex+RTSize.xy*Vec2(-0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).rgb*(WEIGHT6_0/2+WEIGHT6_1)
+                 +TexLod(Col, inTex+RTSize.xy*Vec2( 2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).rgb*(WEIGHT6_2  +WEIGHT6_3)
+                 +TexLod(Col, inTex+RTSize.xy*Vec2(-2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).rgb*(WEIGHT6_2  +WEIGHT6_3)
+                 +TexLod(Col, inTex+RTSize.xy*Vec2( 4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).rgb*(WEIGHT6_4  +WEIGHT6_5)
+                 +TexLod(Col, inTex+RTSize.xy*Vec2(-4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).rgb*(WEIGHT6_4  +WEIGHT6_5), 0);
 }
 Vec4 BlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
               uniform Int  samples       ):COLOR
 {
 #if TEST_BLUR
-   if(Test){Int s=Round(Samples); Vec4 color=0; Flt weight=0; for(Int i=-s; i<=s; i++){Flt w=Weight(Abs(i), s); weight+=w; color.rgb+=w*TexPoint(Col, inTex+ColSize.xy*Vec2(0, i)).rgb;} color.rgb/=weight; return color;}
+   if(Test){Int s=Round(Samples); Vec4 color=0; Flt weight=0; for(Int i=-s; i<=s; i++){Flt w=Weight(Abs(i), s); weight+=w; color.rgb+=w*TexPoint(Col, inTex+RTSize.xy*Vec2(0, i)).rgb;} color.rgb/=weight; return color;}
 #endif
    // use linear filtering because texcoords aren't rounded
    if(samples==4) // -3 .. 3
-      return Vec4(TexLod(Col, inTex+ColSize.xy*Vec2(0,  0+WEIGHT4_1/(WEIGHT4_0/2+WEIGHT4_1))).rgb*(WEIGHT4_0/2+WEIGHT4_1) // 0th sample is divided by 2 because it's obtained here and line below to preserve symmetry
-                 +TexLod(Col, inTex+ColSize.xy*Vec2(0, -0-WEIGHT4_1/(WEIGHT4_0/2+WEIGHT4_1))).rgb*(WEIGHT4_0/2+WEIGHT4_1)
-                 +TexLod(Col, inTex+ColSize.xy*Vec2(0,  2+WEIGHT4_3/(WEIGHT4_2  +WEIGHT4_3))).rgb*(WEIGHT4_2  +WEIGHT4_3)
-                 +TexLod(Col, inTex+ColSize.xy*Vec2(0, -2-WEIGHT4_3/(WEIGHT4_2  +WEIGHT4_3))).rgb*(WEIGHT4_2  +WEIGHT4_3), 0);
+      return Vec4(TexLod(Col, inTex+RTSize.xy*Vec2(0,  0+WEIGHT4_1/(WEIGHT4_0/2+WEIGHT4_1))).rgb*(WEIGHT4_0/2+WEIGHT4_1) // 0th sample is divided by 2 because it's obtained here and line below to preserve symmetry
+                 +TexLod(Col, inTex+RTSize.xy*Vec2(0, -0-WEIGHT4_1/(WEIGHT4_0/2+WEIGHT4_1))).rgb*(WEIGHT4_0/2+WEIGHT4_1)
+                 +TexLod(Col, inTex+RTSize.xy*Vec2(0,  2+WEIGHT4_3/(WEIGHT4_2  +WEIGHT4_3))).rgb*(WEIGHT4_2  +WEIGHT4_3)
+                 +TexLod(Col, inTex+RTSize.xy*Vec2(0, -2-WEIGHT4_3/(WEIGHT4_2  +WEIGHT4_3))).rgb*(WEIGHT4_2  +WEIGHT4_3), 0);
    if(samples==5) // -4 .. 4
       return Vec4(TexLod(Col, inTex                                                       ).rgb* WEIGHT5_0
-                 +TexLod(Col, inTex+ColSize.xy*Vec2(0,  1+WEIGHT5_2/(WEIGHT5_1+WEIGHT5_2))).rgb*(WEIGHT5_1+WEIGHT5_2)
-                 +TexLod(Col, inTex+ColSize.xy*Vec2(0, -1-WEIGHT5_2/(WEIGHT5_1+WEIGHT5_2))).rgb*(WEIGHT5_1+WEIGHT5_2)
-                 +TexLod(Col, inTex+ColSize.xy*Vec2(0,  3+WEIGHT5_4/(WEIGHT5_3+WEIGHT5_4))).rgb*(WEIGHT5_3+WEIGHT5_4)
-                 +TexLod(Col, inTex+ColSize.xy*Vec2(0, -3-WEIGHT5_4/(WEIGHT5_3+WEIGHT5_4))).rgb*(WEIGHT5_3+WEIGHT5_4), 0);
+                 +TexLod(Col, inTex+RTSize.xy*Vec2(0,  1+WEIGHT5_2/(WEIGHT5_1+WEIGHT5_2))).rgb*(WEIGHT5_1+WEIGHT5_2)
+                 +TexLod(Col, inTex+RTSize.xy*Vec2(0, -1-WEIGHT5_2/(WEIGHT5_1+WEIGHT5_2))).rgb*(WEIGHT5_1+WEIGHT5_2)
+                 +TexLod(Col, inTex+RTSize.xy*Vec2(0,  3+WEIGHT5_4/(WEIGHT5_3+WEIGHT5_4))).rgb*(WEIGHT5_3+WEIGHT5_4)
+                 +TexLod(Col, inTex+RTSize.xy*Vec2(0, -3-WEIGHT5_4/(WEIGHT5_3+WEIGHT5_4))).rgb*(WEIGHT5_3+WEIGHT5_4), 0);
    if(samples==6) // -5 .. 5
-      return Vec4(TexLod(Col, inTex+ColSize.xy*Vec2(0,  0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).rgb*(WEIGHT6_0/2+WEIGHT6_1) // 0th sample is divided by 2 because it's obtained here and line below to preserve symmetry
-                 +TexLod(Col, inTex+ColSize.xy*Vec2(0, -0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).rgb*(WEIGHT6_0/2+WEIGHT6_1)
-                 +TexLod(Col, inTex+ColSize.xy*Vec2(0,  2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).rgb*(WEIGHT6_2  +WEIGHT6_3)
-                 +TexLod(Col, inTex+ColSize.xy*Vec2(0, -2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).rgb*(WEIGHT6_2  +WEIGHT6_3)
-                 +TexLod(Col, inTex+ColSize.xy*Vec2(0,  4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).rgb*(WEIGHT6_4  +WEIGHT6_5)
-                 +TexLod(Col, inTex+ColSize.xy*Vec2(0, -4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).rgb*(WEIGHT6_4  +WEIGHT6_5), 0);
+      return Vec4(TexLod(Col, inTex+RTSize.xy*Vec2(0,  0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).rgb*(WEIGHT6_0/2+WEIGHT6_1) // 0th sample is divided by 2 because it's obtained here and line below to preserve symmetry
+                 +TexLod(Col, inTex+RTSize.xy*Vec2(0, -0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).rgb*(WEIGHT6_0/2+WEIGHT6_1)
+                 +TexLod(Col, inTex+RTSize.xy*Vec2(0,  2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).rgb*(WEIGHT6_2  +WEIGHT6_3)
+                 +TexLod(Col, inTex+RTSize.xy*Vec2(0, -2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).rgb*(WEIGHT6_2  +WEIGHT6_3)
+                 +TexLod(Col, inTex+RTSize.xy*Vec2(0,  4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).rgb*(WEIGHT6_4  +WEIGHT6_5)
+                 +TexLod(Col, inTex+RTSize.xy*Vec2(0, -4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).rgb*(WEIGHT6_4  +WEIGHT6_5), 0);
 }
 
 TECHNIQUE(BlurX , Draw_VS(), BlurX_PS(4));
@@ -1223,22 +1225,22 @@ TECHNIQUE(BlurYH, Draw_VS(), BlurY_PS(6));
 Vec4 BlurX_X_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    // use linear filtering because texcoords aren't rounded
-   return TexLod(Col, inTex+ColSize.xy*Vec2( 0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).x*(WEIGHT6_0/2+WEIGHT6_1)
-         +TexLod(Col, inTex+ColSize.xy*Vec2(-0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).x*(WEIGHT6_0/2+WEIGHT6_1)
-         +TexLod(Col, inTex+ColSize.xy*Vec2( 2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).x*(WEIGHT6_2  +WEIGHT6_3)
-         +TexLod(Col, inTex+ColSize.xy*Vec2(-2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).x*(WEIGHT6_2  +WEIGHT6_3)
-         +TexLod(Col, inTex+ColSize.xy*Vec2( 4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).x*(WEIGHT6_4  +WEIGHT6_5)
-         +TexLod(Col, inTex+ColSize.xy*Vec2(-4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).x*(WEIGHT6_4  +WEIGHT6_5);
+   return TexLod(Col, inTex+RTSize.xy*Vec2( 0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).x*(WEIGHT6_0/2+WEIGHT6_1)
+         +TexLod(Col, inTex+RTSize.xy*Vec2(-0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).x*(WEIGHT6_0/2+WEIGHT6_1)
+         +TexLod(Col, inTex+RTSize.xy*Vec2( 2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).x*(WEIGHT6_2  +WEIGHT6_3)
+         +TexLod(Col, inTex+RTSize.xy*Vec2(-2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).x*(WEIGHT6_2  +WEIGHT6_3)
+         +TexLod(Col, inTex+RTSize.xy*Vec2( 4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).x*(WEIGHT6_4  +WEIGHT6_5)
+         +TexLod(Col, inTex+RTSize.xy*Vec2(-4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).x*(WEIGHT6_4  +WEIGHT6_5);
 }
 Vec4 BlurY_X_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    // use linear filtering because texcoords aren't rounded
-   return TexLod(Col, inTex+ColSize.xy*Vec2(0,  0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).x*(WEIGHT6_0/2+WEIGHT6_1)
-         +TexLod(Col, inTex+ColSize.xy*Vec2(0, -0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).x*(WEIGHT6_0/2+WEIGHT6_1)
-         +TexLod(Col, inTex+ColSize.xy*Vec2(0,  2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).x*(WEIGHT6_2  +WEIGHT6_3)
-         +TexLod(Col, inTex+ColSize.xy*Vec2(0, -2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).x*(WEIGHT6_2  +WEIGHT6_3)
-         +TexLod(Col, inTex+ColSize.xy*Vec2(0,  4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).x*(WEIGHT6_4  +WEIGHT6_5)
-         +TexLod(Col, inTex+ColSize.xy*Vec2(0, -4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).x*(WEIGHT6_4  +WEIGHT6_5);
+   return TexLod(Col, inTex+RTSize.xy*Vec2(0,  0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).x*(WEIGHT6_0/2+WEIGHT6_1)
+         +TexLod(Col, inTex+RTSize.xy*Vec2(0, -0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).x*(WEIGHT6_0/2+WEIGHT6_1)
+         +TexLod(Col, inTex+RTSize.xy*Vec2(0,  2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).x*(WEIGHT6_2  +WEIGHT6_3)
+         +TexLod(Col, inTex+RTSize.xy*Vec2(0, -2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).x*(WEIGHT6_2  +WEIGHT6_3)
+         +TexLod(Col, inTex+RTSize.xy*Vec2(0,  4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).x*(WEIGHT6_4  +WEIGHT6_5)
+         +TexLod(Col, inTex+RTSize.xy*Vec2(0, -4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).x*(WEIGHT6_4  +WEIGHT6_5);
 }
 
 TECHNIQUE(BlurX_X, Draw_VS(), BlurX_X_PS());
@@ -1246,28 +1248,29 @@ TECHNIQUE(BlurY_X, Draw_VS(), BlurY_X_PS());
 /******************************************************************************/
 // MAX
 /******************************************************************************/
+// can use 'RTSize' instead of 'ImgSize' since there's no scale
 Vec4 MaxX_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
-   VecH color; // color=0; for(Int i=0; i<11; i++)color=Max(color, TexPoint(Col, inTex+ColSize.xy*Vec2(i-5, 0)).rgb*(BlendWeight[i]/BlendWeight[5])); original slower version
+   VecH color; // color=0; for(Int i=0; i<11; i++)color=Max(color, TexPoint(Col, inTex+RTSize.xy*Vec2(i-5, 0)).rgb*(BlendWeight[i]/BlendWeight[5])); original slower version
    // use linear filtering because texcoords aren't rounded
-   color=           TexLod(Col, inTex+ColSize.xy*Vec2( 0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).rgb ;
-   color=Max(color, TexLod(Col, inTex+ColSize.xy*Vec2(-0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).rgb);
-   color=Max(color, TexLod(Col, inTex+ColSize.xy*Vec2( 2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).rgb*((WEIGHT6_2+WEIGHT6_3)/(WEIGHT6_0+WEIGHT6_1)));
-   color=Max(color, TexLod(Col, inTex+ColSize.xy*Vec2(-2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).rgb*((WEIGHT6_2+WEIGHT6_3)/(WEIGHT6_0+WEIGHT6_1)));
-   color=Max(color, TexLod(Col, inTex+ColSize.xy*Vec2( 4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).rgb*((WEIGHT6_4+WEIGHT6_5)/(WEIGHT6_0+WEIGHT6_1)));
-   color=Max(color, TexLod(Col, inTex+ColSize.xy*Vec2(-4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).rgb*((WEIGHT6_4+WEIGHT6_5)/(WEIGHT6_0+WEIGHT6_1)));
+   color=           TexLod(Col, inTex+RTSize.xy*Vec2( 0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).rgb ;
+   color=Max(color, TexLod(Col, inTex+RTSize.xy*Vec2(-0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).rgb);
+   color=Max(color, TexLod(Col, inTex+RTSize.xy*Vec2( 2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).rgb*((WEIGHT6_2+WEIGHT6_3)/(WEIGHT6_0+WEIGHT6_1)));
+   color=Max(color, TexLod(Col, inTex+RTSize.xy*Vec2(-2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).rgb*((WEIGHT6_2+WEIGHT6_3)/(WEIGHT6_0+WEIGHT6_1)));
+   color=Max(color, TexLod(Col, inTex+RTSize.xy*Vec2( 4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).rgb*((WEIGHT6_4+WEIGHT6_5)/(WEIGHT6_0+WEIGHT6_1)));
+   color=Max(color, TexLod(Col, inTex+RTSize.xy*Vec2(-4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).rgb*((WEIGHT6_4+WEIGHT6_5)/(WEIGHT6_0+WEIGHT6_1)));
    return Vec4(color, 0);
 }
 Vec4 MaxY_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
-   VecH color; // color=0; for(Int i=0; i<11; i++)color=Max(color, TexPoint(Col, inTex+ColSize.xy*Vec2(0, i-5)).rgb*(BlendWeight[i]/BlendWeight[5])); original slower version
+   VecH color; // color=0; for(Int i=0; i<11; i++)color=Max(color, TexPoint(Col, inTex+RTSize.xy*Vec2(0, i-5)).rgb*(BlendWeight[i]/BlendWeight[5])); original slower version
    // use linear filtering because texcoords aren't rounded
-   color=           TexLod(Col, inTex+ColSize.xy*Vec2(0,  0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).rgb ;
-   color=Max(color, TexLod(Col, inTex+ColSize.xy*Vec2(0, -0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).rgb);
-   color=Max(color, TexLod(Col, inTex+ColSize.xy*Vec2(0,  2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).rgb*((WEIGHT6_2+WEIGHT6_3)/(WEIGHT6_0+WEIGHT6_1)));
-   color=Max(color, TexLod(Col, inTex+ColSize.xy*Vec2(0, -2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).rgb*((WEIGHT6_2+WEIGHT6_3)/(WEIGHT6_0+WEIGHT6_1)));
-   color=Max(color, TexLod(Col, inTex+ColSize.xy*Vec2(0,  4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).rgb*((WEIGHT6_4+WEIGHT6_5)/(WEIGHT6_0+WEIGHT6_1)));
-   color=Max(color, TexLod(Col, inTex+ColSize.xy*Vec2(0, -4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).rgb*((WEIGHT6_4+WEIGHT6_5)/(WEIGHT6_0+WEIGHT6_1)));
+   color=           TexLod(Col, inTex+RTSize.xy*Vec2(0,  0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).rgb ;
+   color=Max(color, TexLod(Col, inTex+RTSize.xy*Vec2(0, -0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).rgb);
+   color=Max(color, TexLod(Col, inTex+RTSize.xy*Vec2(0,  2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).rgb*((WEIGHT6_2+WEIGHT6_3)/(WEIGHT6_0+WEIGHT6_1)));
+   color=Max(color, TexLod(Col, inTex+RTSize.xy*Vec2(0, -2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).rgb*((WEIGHT6_2+WEIGHT6_3)/(WEIGHT6_0+WEIGHT6_1)));
+   color=Max(color, TexLod(Col, inTex+RTSize.xy*Vec2(0,  4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).rgb*((WEIGHT6_4+WEIGHT6_5)/(WEIGHT6_0+WEIGHT6_1)));
+   color=Max(color, TexLod(Col, inTex+RTSize.xy*Vec2(0, -4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).rgb*((WEIGHT6_4+WEIGHT6_5)/(WEIGHT6_0+WEIGHT6_1)));
    return Vec4(color, 0);
 }
 TECHNIQUE(MaxX, Draw_VS(), MaxX_PS());
@@ -1343,7 +1346,7 @@ Vec4 Titles_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    Flt s=Sat((Abs(inTex.y-Ttls.center)-Ttls.range)/Ttls.smooth);
    inTex.x+=Sin(s*s*s*s*(PI*6)+Ttls.stp)*s*s*Ttls.swirl;
-   Vec4 color=0; UNROLL for(Int i=-4; i<=4; i++)color+=Tex(Col, inTex+s*ColSize.xy*Vec2(i, 0));
+   Vec4 color=0; UNROLL for(Int i=-4; i<=4; i++)color+=Tex(Col, inTex+s*ImgSize.xy*Vec2(i, 0));
    color/=9;
    color.a*=Pow(1-s, 0.6f);
    return color;
@@ -1381,11 +1384,11 @@ Vec4 Outline_PS(NOPERSP Vec2 inTex:TEXCOORD,
                 uniform Bool clip_do       ,
                 uniform Bool down_sample=false):COLOR
 {
-   if(down_sample)inTex=(Floor(inTex*ColSize.zw)+0.5f)*ColSize.xy; // we're rendering to a smaller RT, so inTex is located in the center between multiple texels, we need to align it so it's located at the center of the nearest one
+   if(down_sample)inTex=(Floor(inTex*ImgSize.zw)+0.5f)*ImgSize.xy; // we're rendering to a smaller RT, so inTex is located in the center between multiple texels, we need to align it so it's located at the center of the nearest one
 
    Vec4 col=TexLod(Col, inTex); // use linear filtering because 'Col' can be of different size
-   Vec2 t0=inTex+ColSize.xy*(down_sample ? 2.5f : 0.5f), // 2.5 scale was the min value that worked OK with 2.0 density
-        t1=inTex-ColSize.xy*(down_sample ? 2.5f : 0.5f);
+   Vec2 t0=inTex+ImgSize.xy*(down_sample ? 2.5f : 0.5f), // 2.5 scale was the min value that worked OK with 2.0 density
+        t1=inTex-ImgSize.xy*(down_sample ? 2.5f : 0.5f);
    // use linear filtering because texcoords aren't rounded
 #if 0
    if(Dist2(col.rgb, TexLod(Col, Vec2(t0.x, t0.y)).rgb)
@@ -1401,10 +1404,10 @@ Vec4 Outline_PS(NOPERSP Vec2 inTex:TEXCOORD,
    /* old code used for super sampling
 	{
       Flt pos=TexDepthPoint(inTex);
-      if(Dist2(col, TexLod(Col, inTex+ColSize.xy*Vec2(-1,  0)))*(TexDepthPoint(inTex+ColSize.xy*Vec2(-1,  0))>=pos)
-        +Dist2(col, TexLod(Col, inTex+ColSize.xy*Vec2( 1,  0)))*(TexDepthPoint(inTex+ColSize.xy*Vec2( 1,  0))>=pos)
-        +Dist2(col, TexLod(Col, inTex+ColSize.xy*Vec2( 0, -1)))*(TexDepthPoint(inTex+ColSize.xy*Vec2( 0, -1))>=pos)
-        +Dist2(col, TexLod(Col, inTex+ColSize.xy*Vec2( 0,  1)))*(TexDepthPoint(inTex+ColSize.xy*Vec2( 0,  1))>=pos)<=EPS_COL)col.a=0;
+      if(Dist2(col, TexLod(Col, inTex+ImgSize.xy*Vec2(-1,  0)))*(TexDepthPoint(inTex+ImgSize.xy*Vec2(-1,  0))>=pos)
+        +Dist2(col, TexLod(Col, inTex+ImgSize.xy*Vec2( 1,  0)))*(TexDepthPoint(inTex+ImgSize.xy*Vec2( 1,  0))>=pos)
+        +Dist2(col, TexLod(Col, inTex+ImgSize.xy*Vec2( 0, -1)))*(TexDepthPoint(inTex+ImgSize.xy*Vec2( 0, -1))>=pos)
+        +Dist2(col, TexLod(Col, inTex+ImgSize.xy*Vec2( 0,  1)))*(TexDepthPoint(inTex+ImgSize.xy*Vec2( 0,  1))>=pos)<=EPS_COL)col.a=0;
 	}*/
    if(clip_do)clip(col.a-EPS);
    return col;
@@ -1414,7 +1417,7 @@ Vec4 OutlineApply_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
    Vec4 color=TexLod(Col, inTex); // use linear filtering because 'Col' can be of different size
    for(Int i=0; i<6; i++)
    {
-      Vec2 t=inTex+BlendOfs6[i]*ColSize.xy;
+      Vec2 t=inTex+BlendOfs6[i]*ImgSize.xy;
       Vec4 c=TexLod(Col, t); // use linear filtering because texcoords aren't rounded
       if(c.a>color.a)color=c;
    }
@@ -1428,10 +1431,10 @@ TECHNIQUE(OutlineApply, Draw_VS(), OutlineApply_PS());
 Vec4 EdgeDetect_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    Flt z =TexDepthPoint(inTex),
-       zl=TexDepthPoint(inTex+ColSize.xy*Vec2(-1, 0)),
-       zr=TexDepthPoint(inTex+ColSize.xy*Vec2( 1, 0)),
-       zd=TexDepthPoint(inTex+ColSize.xy*Vec2( 0,-1)),
-       zu=TexDepthPoint(inTex+ColSize.xy*Vec2( 0, 1)), soft=0.1f+z/50;
+       zl=TexDepthPoint(inTex+ImgSize.xy*Vec2(-1, 0)),
+       zr=TexDepthPoint(inTex+ImgSize.xy*Vec2( 1, 0)),
+       zd=TexDepthPoint(inTex+ImgSize.xy*Vec2( 0,-1)),
+       zu=TexDepthPoint(inTex+ImgSize.xy*Vec2( 0, 1)), soft=0.1f+z/50;
 
    Flt px  =Abs(zr-((z-zl)+z))/soft-0.5f, //cx=Sat(Max(Abs(zl-z), Abs(zr-z))/soft-0.5f), cx, cy doesn't work well in lower screen resolutions and with flat terrain
        py  =Abs(zu-((z-zd)+z))/soft-0.5f, //cy=Sat(Max(Abs(zu-z), Abs(zd-z))/soft-0.5f),
@@ -1445,7 +1448,7 @@ Vec4 EdgeDetectApply_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
          Flt color  =TexPoint(Col, inTex).x;
    for(Int i=0; i<samples; i++)
    {
-      Vec2 t=inTex+BlendOfs6[i]*ColSize.xy;
+      Vec2 t=inTex+BlendOfs6[i]*ImgSize.xy;
       color+=TexLod(Col, t).x; // use linear filtering because texcoords aren't rounded
    }
    return color/(samples+1);
@@ -1480,9 +1483,9 @@ Vec4 Combine_PS(NOPERSP Vec2 inTex:TEXCOORD,
 
       // if any of the neighbor pixels are transparent then assume that there's no blended graphics in the area, and then return just the solid pixel to keep AA
       // use linear filtering because Col can be of different size
-      if(Max(TexLod(Col, inTex+ColSize.xy*Vec2( 0, SQRT2)).rgb)<=0.15f
-      || Max(TexLod(Col, inTex+ColSize.xy*Vec2(-1,    -1)).rgb)<=0.15f
-      || Max(TexLod(Col, inTex+ColSize.xy*Vec2( 1,    -1)).rgb)<=0.15f)return col; // there can be bloom around solid pixels, so allow some tolerance
+      if(Max(TexLod(Col, inTex+ImgSize.xy*Vec2( 0, SQRT2)).rgb)<=0.15f
+      || Max(TexLod(Col, inTex+ImgSize.xy*Vec2(-1,    -1)).rgb)<=0.15f
+      || Max(TexLod(Col, inTex+ImgSize.xy*Vec2( 1,    -1)).rgb)<=0.15f)return col; // there can be bloom around solid pixels, so allow some tolerance
    }else
 #endif
    if(sample==1)col.w=TexLod(Col1, inTex).x; // super sample, use linear filtering because Col can be of different size
@@ -1648,7 +1651,7 @@ Vec4 Sky_PS(PIXEL,
 {
    Flt alpha; if(flat)alpha=0;else // flat uses ALPHA_NONE
    {
-      alpha=TexDepthPoint(PIXEL_TO_SCREEN)/Normalize(inPos).z;
+      alpha=TexDepthPoint(PixelToScreen(pixel))/Normalize(inPos).z;
       alpha=Sat(alpha*SkyFracMulAdd.x + SkyFracMulAdd.y);
    }
    VecH4 col=SkyTex(inTex, inTexStar, inCol, alpha, per_vertex, density, textures, stars);
@@ -1884,7 +1887,7 @@ TECHNIQUE(SunRaysMask1, DrawPosXY_VS(), SunRaysMask_PS(true ));
          Flt color  =TexLod(Col, inTex).x; // use linear filtering because Col can be of different size
    for(Int i=0; i<samples; i++)
    {
-      Vec2 t=inTex+BlendOfs6[i]*ColSize.xy;
+      Vec2 t=inTex+BlendOfs6[i]*ImgSize.xy;
       color+=TexLod(Col, t).x; // use linear filtering because texcoords aren't rounded
    }
    return Vec4(color/(samples+1)*Color[0].rgb, 0);
@@ -2053,6 +2056,7 @@ Vec4 ShdConeM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
 TECHNIQUE    (ShdCone , DrawPosXY_VS(), ShdCone_PS());
 TECHNIQUE_4_1(ShdConeM, DrawPosXY_VS(), ShdConeM_PS());
 /******************************************************************************/
+// can use 'RTSize' instead of 'ImgSize' since there's no scale
 Half ShdBlur_PS(NOPERSP Vec2 inTex:TEXCOORD,
                 uniform Int  samples       ):COLOR
 {
@@ -2063,13 +2067,13 @@ Half ShdBlur_PS(NOPERSP Vec2 inTex:TEXCOORD,
    UNROLL for(Int i=0; i<samples; i++)
    {
       Vec2 t;
-      if(samples== 4)t=ColSize.xy*BlendOfs4 [i]+inTex;
-    //if(samples== 5)t=ColSize.xy*BlendOfs5 [i]+inTex;
-      if(samples== 6)t=ColSize.xy*BlendOfs6 [i]+inTex;
-      if(samples== 8)t=ColSize.xy*BlendOfs8 [i]+inTex;
-    //if(samples== 9)t=ColSize.xy*BlendOfs9 [i]+inTex;
-      if(samples==12)t=ColSize.xy*BlendOfs12[i]+inTex;
-    //if(samples==13)t=ColSize.xy*BlendOfs13[i]+inTex;
+      if(samples== 4)t=RTSize.xy*BlendOfs4 [i]+inTex;
+    //if(samples== 5)t=RTSize.xy*BlendOfs5 [i]+inTex;
+      if(samples== 6)t=RTSize.xy*BlendOfs6 [i]+inTex;
+      if(samples== 8)t=RTSize.xy*BlendOfs8 [i]+inTex;
+    //if(samples== 9)t=RTSize.xy*BlendOfs9 [i]+inTex;
+      if(samples==12)t=RTSize.xy*BlendOfs12[i]+inTex;
+    //if(samples==13)t=RTSize.xy*BlendOfs13[i]+inTex;
       // use linear filtering because texcoords are not rounded
       Half w=DepthWeight(z-TexDepthLinear(t), dw_mad);
       color +=w*TexLod(Val, t).x; // use linear filtering because texcoords aren't rounded
@@ -2087,7 +2091,7 @@ Half ShdBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
    UNROLL for(Int i=-range; i<=range; i++)if(i)
    {
       // use linear filtering because texcoords are not rounded
-      t.x=ColSize.x*(2*i+((i>0) ? -0.5f : 0.5f))+inTex.x;
+      t.x=RTSize.x*(2*i+((i>0) ? -0.5f : 0.5f))+inTex.x;
       Half w=DepthWeight(z-TexDepthLinear(t), dw_mad);
       color +=w*TexLod(Val, t).x; // use linear filtering because texcoords aren't rounded
       weight+=w;
@@ -2104,7 +2108,7 @@ Half ShdBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
    UNROLL for(Int i=-range; i<=range; i++)if(i)
    {
       // use linear filtering because texcoords are not rounded
-      t.y=ColSize.y*(2*i+((i>0) ? -0.5f : 0.5f))+inTex.y;
+      t.y=RTSize.y*(2*i+((i>0) ? -0.5f : 0.5f))+inTex.y;
       Half w=DepthWeight(z-TexDepthLinear(t), dw_mad);
       color +=w*TexLod(Val, t).x; // use linear filtering because texcoords aren't rounded
       weight+=w;
@@ -2650,8 +2654,8 @@ Vec4 Particle_PS(PIXEL,
    {
       Flt  z0    =inZS.x-tex.a*inZS.y,
            z1    =inZS.x+tex.a*inZS.y;
-           tex.a*=Sat((TexDepthPoint(PIXEL_TO_SCREEN)-z0)/inZS.y); // fade out at occluder
-           tex.a*=Sat(z1/(z1-z0+EPS));                             // smooth visibility fraction when particle near (or behind) camera, NaN
+           tex.a*=Sat((TexDepthPoint(PixelToScreen(pixel))-z0)/inZS.y); // fade out at occluder
+           tex.a*=Sat(z1/(z1-z0+EPS));                                  // smooth visibility fraction when particle near (or behind) camera, NaN
    }
    if(palette)return inCol*tex.a;
    else       return inCol*tex  ;
@@ -2749,7 +2753,7 @@ Vec4 Decal_PS(PIXEL,
       uniform Bool    normal             ,
       uniform Bool    palette            ):COLOR
 {
-   Vec pos  =GetPosPoint(PIXEL_TO_SCREEN);
+   Vec pos  =GetPosPoint(PixelToScreen(pixel));
        pos  =mul((Matrix3)inMatrix, pos-inMatrix[3]);
    Flt alpha=Sat(Abs(pos.z)*DecalOpaqueFracMul()+DecalOpaqueFracAdd());
  
@@ -2814,7 +2818,7 @@ void BloomDS_VS(VtxInput vtx,
         uniform Bool do_clamp       ,
         uniform Bool half_res       )
 {
-   outTex=vtx.tex (); if(glow)outTex-=ColSize.xy*Vec2(half_res ? 0.5f : 1.5f, half_res ? 0.5f : 1.5f);
+   outTex=vtx.tex (); if(glow)outTex-=ImgSize.xy*Vec2(half_res ? 0.5f : 1.5f, half_res ? 0.5f : 1.5f);
    outVtx=vtx.pos4();
 }
 inline VecH BloomColor(VecH color, uniform Bool saturate, uniform Bool gamma)
@@ -2846,7 +2850,7 @@ Vec4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
       UNROLL for(Int y=0; y<res; y++)
       UNROLL for(Int x=0; x<res; x++)
       {
-         VecH4   c=TexLod(Col, UVClamp(inTex+ColSize.xy*Vec2(x, y), do_clamp)); // can't use 'TexPoint' because 'Col' can be supersampled
+         VecH4   c=TexLod(Col, UVClamp(inTex+ImgSize.xy*Vec2(x, y), do_clamp)); // can't use 'TexPoint' because 'Col' can be supersampled
          if(gamma && gamma_per_pixel)c.rgb=LinearToSRGBFast(c.rgb);
          color   +=c.rgb;
          glow.rgb+=c.rgb*c.a;
@@ -2862,8 +2866,8 @@ Vec4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
          return Vec4(BloomColor(TexLod(Col, UVClamp(inTex, do_clamp)).rgb, saturate, gamma), 0);
       }else
       {
-         Vec2 tex_min=UVClamp(inTex-ColSize.xy, do_clamp),
-              tex_max=UVClamp(inTex+ColSize.xy, do_clamp);
+         Vec2 tex_min=UVClamp(inTex-ImgSize.xy, do_clamp),
+              tex_max=UVClamp(inTex+ImgSize.xy, do_clamp);
          return Vec4(BloomColor(TexLod(Col, Vec2(tex_min.x, tex_min.y)).rgb
                                +TexLod(Col, Vec2(tex_max.x, tex_min.y)).rgb
                                +TexLod(Col, Vec2(tex_min.x, tex_max.y)).rgb
@@ -2924,6 +2928,8 @@ TECHNIQUE(BloomDG, Draw_VS(), Bloom_PS(true , true ));
 /******************************************************************************/
 // FXAA
 /******************************************************************************/
+// can use 'RTSize' instead of 'ImgSize' since there's no scale
+
 #define FxaaTex Image
 
 #if MODEL>=SM_4
@@ -2933,7 +2939,7 @@ TECHNIQUE(BloomDG, Draw_VS(), Bloom_PS(true , true ));
 #else
    #define FxaaInt2 Vec2
    #define FxaaTexTop(t, p      ) TexLod(t, p)
-   #define FxaaTexOff(t, p, o, r) TexLod(t, p+o*ColSize.xy)
+   #define FxaaTexOff(t, p, o, r) TexLod(t, p+o*RTSize.xy)
 #endif
 
 #include "FXAA_config.h"
@@ -2942,7 +2948,7 @@ TECHNIQUE(BloomDG, Draw_VS(), Bloom_PS(true , true ));
 Vec4 FXAA_PS(NOPERSP Vec2 pos:TEXCOORD,
              uniform Bool gamma):COLOR
 {
-   return FxaaPixelShader(pos, 0, Col, Col, Col, ColSize.xy, 0, 0, 0, 0.475f, 0.15f, 0.0833f, 8.0, 0.125, 0.05, Vec4(1.0, -1.0, 0.25, -0.25), gamma);
+   return FxaaPixelShader(pos, 0, Col, Col, Col, RTSize.xy, 0, 0, 0, 0.475f, 0.15f, 0.0833f, 8.0, 0.125, 0.05, Vec4(1.0, -1.0, 0.25, -0.25), gamma);
 }
 TECHNIQUE(FXAA , Draw_VS(), FXAA_PS(false));
 TECHNIQUE(FXAAG, Draw_VS(), FXAA_PS(true ));
@@ -2955,6 +2961,8 @@ Copyright (C) 2011 Fernando Navarro (fernandn@microsoft.com)
 Copyright (C) 2011 Diego Gutierrez (diegog@unizar.es)
 All rights reserved.
 /******************************************************************************
+// can use 'RTSize' instead of 'ImgSize' since there's no scale
+
 #define MLAA_MAX_SEARCH_STEPS 6
 #define MLAA_MAX_DISTANCE     32
 #define MLAA_THRESHOLD        0.1f
@@ -2973,8 +2981,8 @@ void MLAA_VS(VtxInput vtx,
 {
    outVtx         =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
    outTex         =vtx.tex();
-   outTexOffset[0]=ColSize.xyxy*Vec4(-1, 0, 0,-1)+outTex.xyxy;
-   outTexOffset[1]=ColSize.xyxy*Vec4( 1, 0, 0, 1)+outTex.xyxy;
+   outTexOffset[0]=RTSize.xyxy*Vec4(-1, 0, 0,-1)+outTex.xyxy;
+   outTexOffset[1]=RTSize.xyxy*Vec4( 1, 0, 0, 1)+outTex.xyxy;
 }
 Vec4 MLAAEdge_PS(NOPERSP Vec2 texcoord :TEXCOORD0,
                  NOPERSP Vec4 offset[2]:TEXCOORD1):COLOR
@@ -2994,15 +3002,15 @@ Vec4 MLAAEdge_PS(NOPERSP Vec2 texcoord :TEXCOORD0,
 }
 
 #if MODEL!=SM_GL
-Flt MLAASearchXLeft (Vec2 texcoord) {Flt i, e=0; for(i=-1.5f; i>-2*MLAA_MAX_SEARCH_STEPS; i-=2){e=TexLod(Col, texcoord+ColSize.xy*Vec2(i, 0)).g; FLATTEN if(e<0.9f)break;} return Max(i+1.5f-2*e, -2*MLAA_MAX_SEARCH_STEPS);}
-Flt MLAASearchXRight(Vec2 texcoord) {Flt i, e=0; for(i= 1.5f; i< 2*MLAA_MAX_SEARCH_STEPS; i+=2){e=TexLod(Col, texcoord+ColSize.xy*Vec2(i, 0)).g; FLATTEN if(e<0.9f)break;} return Min(i-1.5f+2*e,  2*MLAA_MAX_SEARCH_STEPS);}
-Flt MLAASearchYUp   (Vec2 texcoord) {Flt i, e=0; for(i=-1.5f; i>-2*MLAA_MAX_SEARCH_STEPS; i-=2){e=TexLod(Col, texcoord+ColSize.xy*Vec2(0, i)).r; FLATTEN if(e<0.9f)break;} return Max(i+1.5f-2*e, -2*MLAA_MAX_SEARCH_STEPS);}
-Flt MLAASearchYDown (Vec2 texcoord) {Flt i, e=0; for(i= 1.5f; i< 2*MLAA_MAX_SEARCH_STEPS; i+=2){e=TexLod(Col, texcoord+ColSize.xy*Vec2(0, i)).r; FLATTEN if(e<0.9f)break;} return Min(i-1.5f+2*e,  2*MLAA_MAX_SEARCH_STEPS);}
+Flt MLAASearchXLeft (Vec2 texcoord) {Flt i, e=0; for(i=-1.5f; i>-2*MLAA_MAX_SEARCH_STEPS; i-=2){e=TexLod(Col, texcoord+RTSize.xy*Vec2(i, 0)).g; FLATTEN if(e<0.9f)break;} return Max(i+1.5f-2*e, -2*MLAA_MAX_SEARCH_STEPS);}
+Flt MLAASearchXRight(Vec2 texcoord) {Flt i, e=0; for(i= 1.5f; i< 2*MLAA_MAX_SEARCH_STEPS; i+=2){e=TexLod(Col, texcoord+RTSize.xy*Vec2(i, 0)).g; FLATTEN if(e<0.9f)break;} return Min(i-1.5f+2*e,  2*MLAA_MAX_SEARCH_STEPS);}
+Flt MLAASearchYUp   (Vec2 texcoord) {Flt i, e=0; for(i=-1.5f; i>-2*MLAA_MAX_SEARCH_STEPS; i-=2){e=TexLod(Col, texcoord+RTSize.xy*Vec2(0, i)).r; FLATTEN if(e<0.9f)break;} return Max(i+1.5f-2*e, -2*MLAA_MAX_SEARCH_STEPS);}
+Flt MLAASearchYDown (Vec2 texcoord) {Flt i, e=0; for(i= 1.5f; i< 2*MLAA_MAX_SEARCH_STEPS; i+=2){e=TexLod(Col, texcoord+RTSize.xy*Vec2(0, i)).r; FLATTEN if(e<0.9f)break;} return Min(i-1.5f+2*e,  2*MLAA_MAX_SEARCH_STEPS);}
 #else // CG doesn't properly compile "break"
-Flt MLAASearchXLeft (Vec2 texcoord) {Flt i, e=0; for(i=-1.5f; i>-2*MLAA_MAX_SEARCH_STEPS; i-=2){e=TexLod(Col, texcoord+ColSize.xy*Vec2(i, 0)).g; if(e<0.9f)return Max(i+1.5f-2*e, -2*MLAA_MAX_SEARCH_STEPS);} return Max(i+1.5f-2*e, -2*MLAA_MAX_SEARCH_STEPS);}
-Flt MLAASearchXRight(Vec2 texcoord) {Flt i, e=0; for(i= 1.5f; i< 2*MLAA_MAX_SEARCH_STEPS; i+=2){e=TexLod(Col, texcoord+ColSize.xy*Vec2(i, 0)).g; if(e<0.9f)return Min(i-1.5f+2*e,  2*MLAA_MAX_SEARCH_STEPS);} return Min(i-1.5f+2*e,  2*MLAA_MAX_SEARCH_STEPS);}
-Flt MLAASearchYUp   (Vec2 texcoord) {Flt i, e=0; for(i=-1.5f; i>-2*MLAA_MAX_SEARCH_STEPS; i-=2){e=TexLod(Col, texcoord+ColSize.xy*Vec2(0, i)).r; if(e<0.9f)return Max(i+1.5f-2*e, -2*MLAA_MAX_SEARCH_STEPS);} return Max(i+1.5f-2*e, -2*MLAA_MAX_SEARCH_STEPS);}
-Flt MLAASearchYDown (Vec2 texcoord) {Flt i, e=0; for(i= 1.5f; i< 2*MLAA_MAX_SEARCH_STEPS; i+=2){e=TexLod(Col, texcoord+ColSize.xy*Vec2(0, i)).r; if(e<0.9f)return Min(i-1.5f+2*e,  2*MLAA_MAX_SEARCH_STEPS);} return Min(i-1.5f+2*e,  2*MLAA_MAX_SEARCH_STEPS);}
+Flt MLAASearchXLeft (Vec2 texcoord) {Flt i, e=0; for(i=-1.5f; i>-2*MLAA_MAX_SEARCH_STEPS; i-=2){e=TexLod(Col, texcoord+RTSize.xy*Vec2(i, 0)).g; if(e<0.9f)return Max(i+1.5f-2*e, -2*MLAA_MAX_SEARCH_STEPS);} return Max(i+1.5f-2*e, -2*MLAA_MAX_SEARCH_STEPS);}
+Flt MLAASearchXRight(Vec2 texcoord) {Flt i, e=0; for(i= 1.5f; i< 2*MLAA_MAX_SEARCH_STEPS; i+=2){e=TexLod(Col, texcoord+RTSize.xy*Vec2(i, 0)).g; if(e<0.9f)return Min(i-1.5f+2*e,  2*MLAA_MAX_SEARCH_STEPS);} return Min(i-1.5f+2*e,  2*MLAA_MAX_SEARCH_STEPS);}
+Flt MLAASearchYUp   (Vec2 texcoord) {Flt i, e=0; for(i=-1.5f; i>-2*MLAA_MAX_SEARCH_STEPS; i-=2){e=TexLod(Col, texcoord+RTSize.xy*Vec2(0, i)).r; if(e<0.9f)return Max(i+1.5f-2*e, -2*MLAA_MAX_SEARCH_STEPS);} return Max(i+1.5f-2*e, -2*MLAA_MAX_SEARCH_STEPS);}
+Flt MLAASearchYDown (Vec2 texcoord) {Flt i, e=0; for(i= 1.5f; i< 2*MLAA_MAX_SEARCH_STEPS; i+=2){e=TexLod(Col, texcoord+RTSize.xy*Vec2(0, i)).r; if(e<0.9f)return Min(i-1.5f+2*e,  2*MLAA_MAX_SEARCH_STEPS);} return Min(i-1.5f+2*e,  2*MLAA_MAX_SEARCH_STEPS);}
 #endif
 
 Vec4 MLAABlend_PS(NOPERSP Vec2 texcoord:TEXCOORD):COLOR
@@ -3013,7 +3021,7 @@ Vec4 MLAABlend_PS(NOPERSP Vec2 texcoord:TEXCOORD):COLOR
    BRANCH if(e.g) // Edge at north
    {
       Vec2 d     =Vec2(MLAASearchXLeft(texcoord), MLAASearchXRight(texcoord)); // Search distances to the left and to the right
-      Vec4 coords=Vec4(d.x, -0.25f, d.y+1, -0.25f)*ColSize.xyxy+texcoord.xyxy; // Now fetch the crossing edges. Instead of sampling between edgels, we sample at -0.25, to be able to discern what value has each edge
+      Vec4 coords=Vec4(d.x, -0.25f, d.y+1, -0.25f)*RTSize.xyxy+texcoord.xyxy; // Now fetch the crossing edges. Instead of sampling between edgels, we sample at -0.25, to be able to discern what value has each edge
       Flt  e1=TexLod(Col, coords.xy).r,
            e2=TexLod(Col, coords.zw).r;
       areas.rg=MLAAArea(Abs(d), e1, e2); // Ok, we know how this pattern looks like, now it is time for getting the actual area
@@ -3022,7 +3030,7 @@ Vec4 MLAABlend_PS(NOPERSP Vec2 texcoord:TEXCOORD):COLOR
    BRANCH if(e.r) // Edge at west
    {
       Vec2 d     =Vec2(MLAASearchYUp(texcoord), MLAASearchYDown(texcoord)); // Search distances to the top and to the bottom
-      Vec4 coords=Vec4(-0.25f, d.x, -0.25f, d.y+1)*ColSize.xyxy+texcoord.xyxy; // Now fetch the crossing edges (yet again)
+      Vec4 coords=Vec4(-0.25f, d.x, -0.25f, d.y+1)*RTSize.xyxy+texcoord.xyxy; // Now fetch the crossing edges (yet again)
       Flt  e1=TexLod(Col, coords.xy).g,
            e2=TexLod(Col, coords.zw).g;
       areas.ba=MLAAArea(Abs(d), e1, e2); // Get the area for this direction
@@ -3045,10 +3053,10 @@ Vec4 MLAA_PS(NOPERSP Vec2 texcoord :TEXCOORD0,
 
    // Add the contributions of the possible 4 lines that can cross this pixel:
 #if 1 // use Bilinear Filtering to speedup calculations
-   Vec4 color=TexLod(Col, texcoord-Vec2(0, a.r*ColSize.y))*w.r
-             +TexLod(Col, texcoord+Vec2(0, a.g*ColSize.y))*w.g
-             +TexLod(Col, texcoord-Vec2(a.b*ColSize.x, 0))*w.b
-             +TexLod(Col, texcoord+Vec2(a.a*ColSize.x, 0))*w.a;
+   Vec4 color=TexLod(Col, texcoord-Vec2(0, a.r*RTSize.y))*w.r
+             +TexLod(Col, texcoord+Vec2(0, a.g*RTSize.y))*w.g
+             +TexLod(Col, texcoord-Vec2(a.b*RTSize.x, 0))*w.b
+             +TexLod(Col, texcoord+Vec2(a.a*RTSize.x, 0))*w.a;
 #else
    Vec4 C      =TexPoint(Col, texcoord    ),
         Cleft  =TexPoint(Col, offset[0].xy),
@@ -3269,6 +3277,7 @@ TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
 @GROUP_END
 
 
+// can use 'RTSize' instead of 'ImgSize' since there's no scale
 @GROUP "Blur" // params: axis, high
 
    @SHARED
@@ -3304,31 +3313,31 @@ TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
          HP Vec2 tex=vtx_tex();
       #if high==0
          #if axis==0 // X
-            IO_tex0.y=tex.y; IO_tex0.x=tex.x+ColSize.x*( 0.0+WEIGHT4_1/(WEIGHT4_0/2.0+WEIGHT4_1));
-            IO_tex1.y=tex.y; IO_tex1.x=tex.x+ColSize.x*(-0.0-WEIGHT4_1/(WEIGHT4_0/2.0+WEIGHT4_1));
-            IO_tex2.y=tex.y; IO_tex2.x=tex.x+ColSize.x*( 2.0+WEIGHT4_3/(WEIGHT4_2    +WEIGHT4_3));
-            IO_tex3.y=tex.y; IO_tex3.x=tex.x+ColSize.x*(-2.0-WEIGHT4_3/(WEIGHT4_2    +WEIGHT4_3));
+            IO_tex0.y=tex.y; IO_tex0.x=tex.x+RTSize.x*( 0.0+WEIGHT4_1/(WEIGHT4_0/2.0+WEIGHT4_1));
+            IO_tex1.y=tex.y; IO_tex1.x=tex.x+RTSize.x*(-0.0-WEIGHT4_1/(WEIGHT4_0/2.0+WEIGHT4_1));
+            IO_tex2.y=tex.y; IO_tex2.x=tex.x+RTSize.x*( 2.0+WEIGHT4_3/(WEIGHT4_2    +WEIGHT4_3));
+            IO_tex3.y=tex.y; IO_tex3.x=tex.x+RTSize.x*(-2.0-WEIGHT4_3/(WEIGHT4_2    +WEIGHT4_3));
          #else
-            IO_tex0.x=tex.x; IO_tex0.y=tex.y+ColSize.y*( 0.0+WEIGHT4_1/(WEIGHT4_0/2.0+WEIGHT4_1));
-            IO_tex1.x=tex.x; IO_tex1.y=tex.y+ColSize.y*(-0.0-WEIGHT4_1/(WEIGHT4_0/2.0+WEIGHT4_1));
-            IO_tex2.x=tex.x; IO_tex2.y=tex.y+ColSize.y*( 2.0+WEIGHT4_3/(WEIGHT4_2    +WEIGHT4_3));
-            IO_tex3.x=tex.x; IO_tex3.y=tex.y+ColSize.y*(-2.0-WEIGHT4_3/(WEIGHT4_2    +WEIGHT4_3));
+            IO_tex0.x=tex.x; IO_tex0.y=tex.y+RTSize.y*( 0.0+WEIGHT4_1/(WEIGHT4_0/2.0+WEIGHT4_1));
+            IO_tex1.x=tex.x; IO_tex1.y=tex.y+RTSize.y*(-0.0-WEIGHT4_1/(WEIGHT4_0/2.0+WEIGHT4_1));
+            IO_tex2.x=tex.x; IO_tex2.y=tex.y+RTSize.y*( 2.0+WEIGHT4_3/(WEIGHT4_2    +WEIGHT4_3));
+            IO_tex3.x=tex.x; IO_tex3.y=tex.y+RTSize.y*(-2.0-WEIGHT4_3/(WEIGHT4_2    +WEIGHT4_3));
          #endif
       #else
          #if axis==0 // X
-            IO_tex0.y=tex.y; IO_tex0.x=tex.x+ColSize.x*( 0.0+WEIGHT6_1/(WEIGHT6_0/2.0+WEIGHT6_1));
-            IO_tex1.y=tex.y; IO_tex1.x=tex.x+ColSize.x*(-0.0-WEIGHT6_1/(WEIGHT6_0/2.0+WEIGHT6_1));
-            IO_tex2.y=tex.y; IO_tex2.x=tex.x+ColSize.x*( 2.0+WEIGHT6_3/(WEIGHT6_2    +WEIGHT6_3));
-            IO_tex3.y=tex.y; IO_tex3.x=tex.x+ColSize.x*(-2.0-WEIGHT6_3/(WEIGHT6_2    +WEIGHT6_3));
-            IO_tex4.y=tex.y; IO_tex4.x=tex.x+ColSize.x*( 4.0+WEIGHT6_5/(WEIGHT6_4    +WEIGHT6_5));
-            IO_tex5.y=tex.y; IO_tex5.x=tex.x+ColSize.x*(-4.0-WEIGHT6_5/(WEIGHT6_4    +WEIGHT6_5));
+            IO_tex0.y=tex.y; IO_tex0.x=tex.x+RTSize.x*( 0.0+WEIGHT6_1/(WEIGHT6_0/2.0+WEIGHT6_1));
+            IO_tex1.y=tex.y; IO_tex1.x=tex.x+RTSize.x*(-0.0-WEIGHT6_1/(WEIGHT6_0/2.0+WEIGHT6_1));
+            IO_tex2.y=tex.y; IO_tex2.x=tex.x+RTSize.x*( 2.0+WEIGHT6_3/(WEIGHT6_2    +WEIGHT6_3));
+            IO_tex3.y=tex.y; IO_tex3.x=tex.x+RTSize.x*(-2.0-WEIGHT6_3/(WEIGHT6_2    +WEIGHT6_3));
+            IO_tex4.y=tex.y; IO_tex4.x=tex.x+RTSize.x*( 4.0+WEIGHT6_5/(WEIGHT6_4    +WEIGHT6_5));
+            IO_tex5.y=tex.y; IO_tex5.x=tex.x+RTSize.x*(-4.0-WEIGHT6_5/(WEIGHT6_4    +WEIGHT6_5));
          #else
-            IO_tex0.x=tex.x; IO_tex0.y=tex.y+ColSize.y*( 0.0+WEIGHT6_1/(WEIGHT6_0/2.0+WEIGHT6_1));
-            IO_tex1.x=tex.x; IO_tex1.y=tex.y+ColSize.y*(-0.0-WEIGHT6_1/(WEIGHT6_0/2.0+WEIGHT6_1));
-            IO_tex2.x=tex.x; IO_tex2.y=tex.y+ColSize.y*( 2.0+WEIGHT6_3/(WEIGHT6_2    +WEIGHT6_3));
-            IO_tex3.x=tex.x; IO_tex3.y=tex.y+ColSize.y*(-2.0-WEIGHT6_3/(WEIGHT6_2    +WEIGHT6_3));
-            IO_tex4.x=tex.x; IO_tex4.y=tex.y+ColSize.y*( 4.0+WEIGHT6_5/(WEIGHT6_4    +WEIGHT6_5));
-            IO_tex5.x=tex.x; IO_tex5.y=tex.y+ColSize.y*(-4.0-WEIGHT6_5/(WEIGHT6_4    +WEIGHT6_5));
+            IO_tex0.x=tex.x; IO_tex0.y=tex.y+RTSize.y*( 0.0+WEIGHT6_1/(WEIGHT6_0/2.0+WEIGHT6_1));
+            IO_tex1.x=tex.x; IO_tex1.y=tex.y+RTSize.y*(-0.0-WEIGHT6_1/(WEIGHT6_0/2.0+WEIGHT6_1));
+            IO_tex2.x=tex.x; IO_tex2.y=tex.y+RTSize.y*( 2.0+WEIGHT6_3/(WEIGHT6_2    +WEIGHT6_3));
+            IO_tex3.x=tex.x; IO_tex3.y=tex.y+RTSize.y*(-2.0-WEIGHT6_3/(WEIGHT6_2    +WEIGHT6_3));
+            IO_tex4.x=tex.x; IO_tex4.y=tex.y+RTSize.y*( 4.0+WEIGHT6_5/(WEIGHT6_4    +WEIGHT6_5));
+            IO_tex5.x=tex.x; IO_tex5.y=tex.y+RTSize.y*(-4.0-WEIGHT6_5/(WEIGHT6_4    +WEIGHT6_5));
          #endif
       #endif
       }
@@ -3385,18 +3394,18 @@ TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
          O_vtx=vtx_pos4();
          HP Vec2 tex=vtx_tex();
       #if DoGlow!=0
-         IO_tex=tex-ColSize.xy*Vec2((half!=0) ? 0.5 : 1.5, (half!=0) ? 0.5 : 1.5);
+         IO_tex=tex-ImgSize.xy*Vec2((half!=0) ? 0.5 : 1.5, (half!=0) ? 0.5 : 1.5);
       #elif half!=0
          IO_tex=tex;
       #else
          #if DoClamp!=0
-            IO_tex0=tex-ColSize.xy;
-            IO_tex1=tex+ColSize.xy;
+            IO_tex0=tex-ImgSize.xy;
+            IO_tex1=tex+ImgSize.xy;
          #else
-            IO_tex0=tex+ColSize.xy*Vec2( 1.0,  1.0);
-            IO_tex1=tex+ColSize.xy*Vec2(-1.0,  1.0);
-            IO_tex2=tex+ColSize.xy*Vec2( 1.0, -1.0);
-            IO_tex3=tex+ColSize.xy*Vec2(-1.0, -1.0);
+            IO_tex0=tex+ImgSize.xy*Vec2( 1.0,  1.0);
+            IO_tex1=tex+ImgSize.xy*Vec2(-1.0,  1.0);
+            IO_tex2=tex+ImgSize.xy*Vec2( 1.0, -1.0);
+            IO_tex3=tex+ImgSize.xy*Vec2(-1.0, -1.0);
          #endif
       #endif
       }
@@ -3425,7 +3434,7 @@ TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
          for(Int y=0; y<res; y++)
          for(Int x=0; x<res; x++)
          {
-            MP Vec4 c=texture2DLod(Col, UVClamp(IO_tex+ColSize.xy*Vec2(x, y), DoClamp!=0), 0.0);
+            MP Vec4 c=texture2DLod(Col, UVClamp(IO_tex+ImgSize.xy*Vec2(x, y), DoClamp!=0), 0.0);
             color   +=c.rgb;
             glow.rgb+=c.rgb*c.a;
             glow.a   =Max(glow.a, c.a);
@@ -3490,6 +3499,7 @@ TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
 @GROUP_END
 
 
+// can use 'RTSize' instead of 'ImgSize' since there's no scale
 @GROUP "ShdBlurX" // params: range
    @SHARED
       #include "Glsl.h"
@@ -3508,12 +3518,12 @@ TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
    @VS_END
 
    @PS
+      #include "Glsl VS 2D.h"
       #include "Glsl PS.h"
       #include "Glsl Matrix.h"
       PAR HP Matrix4(ProjMatrix);
       #include "Glsl Depth.h"
-      PAR HP Flt  DepthWeightScale;
-      PAR HP Vec4 ColSize;
+      PAR HP Flt DepthWeightScale;
 
       inline HP Vec2 DepthWeightMAD(HP Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale+0.004), 2.0);}
       inline MP Flt  DepthWeight   (MP Flt delta, HP Vec2 dw_mad) {return Sat(Abs(delta)*dw_mad.x + dw_mad.y);}
@@ -3526,7 +3536,7 @@ TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
          HP Vec2 dw_mad=DepthWeightMAD(z), t; t.y=IO_tex.y;
          for(MP Int i=-range; i<=range; i++)if(i!=0)
          {
-            t.x=ColSize.x*(Flt(2*i)+((i>0) ? -0.5 : 0.5))+IO_tex.x;
+            t.x=RTSize.x*(Flt(2*i)+((i>0) ? -0.5 : 0.5))+IO_tex.x;
             MP Flt w=DepthWeight(z-LinearizeDepth(texture2DLod(Depth, t, 0.0).x, true), dw_mad);
             color +=w*texture2DLod(Col, t, 0.0).x;
             weight+=w;
@@ -3538,6 +3548,7 @@ TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
 @GROUP_END
 
 
+// can use 'RTSize' instead of 'ImgSize' since there's no scale
 @GROUP "ShdBlurY" // params: range
    @SHARED
       #include "Glsl.h"
@@ -3556,12 +3567,12 @@ TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
    @VS_END
 
    @PS
+      #include "Glsl VS 2D.h"
       #include "Glsl PS.h"
       #include "Glsl Matrix.h"
       PAR HP Matrix4(ProjMatrix);
       #include "Glsl Depth.h"
-      PAR HP Flt  DepthWeightScale;
-      PAR HP Vec4 ColSize;
+      PAR HP Flt DepthWeightScale;
 
       inline HP Vec2 DepthWeightMAD(HP Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale+0.004), 2.0);}
       inline MP Flt  DepthWeight   (MP Flt delta, HP Vec2 dw_mad) {return Sat(Abs(delta)*dw_mad.x + dw_mad.y);}
@@ -3574,7 +3585,7 @@ TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
          HP Vec2 dw_mad=DepthWeightMAD(z), t; t.x=IO_tex.x;
          for(MP Int i=-range; i<=range; i++)if(i!=0)
          {
-            t.y=ColSize.y*(Flt(2*i)+((i>0) ? -0.5 : 0.5))+IO_tex.y;
+            t.y=RTSize.y*(Flt(2*i)+((i>0) ? -0.5 : 0.5))+IO_tex.y;
             MP Flt w=DepthWeight(z-LinearizeDepth(texture2DLod(Depth, t, 0.0).x, true), dw_mad);
             color +=w*texture2DLod(Col, t, 0.0).x;
             weight+=w;
@@ -3819,6 +3830,7 @@ TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
 @GROUP_END
 
 
+// can use 'RTSize' instead of 'ImgSize' since there's no scale
 @GROUP "FXAA" // params: GAMMA
    @SHARED
       #include "Glsl.h"
@@ -3842,7 +3854,7 @@ TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
       #include "FXAA.h"
       void main()
       {
-         gl_FragColor=FxaaPixelShader(IO_tex, 0.0, Col, Col, Col, ColSize.xy, 0.0, 0.0, 0.0, 0.475, 0.15, 0.0833, 8.0, 0.125, 0.05, Vec4(1.0, -1.0, 0.25, -0.25), GAMMA);
+         gl_FragColor=FxaaPixelShader(IO_tex, 0.0, Col, Col, Col, RTSize.xy, 0.0, 0.0, 0.0, 0.475, 0.15, 0.0833, 8.0, 0.125, 0.05, Vec4(1.0, -1.0, 0.25, -0.25), GAMMA);
       }
    @PS_END
 @GROUP_END

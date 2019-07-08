@@ -120,6 +120,7 @@ Vec4 Convert_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    return delta;
 }
 /******************************************************************************/
+// can use 'RTSize' instead of 'ImgSize' since there's no scale
 Vec4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
                uniform Int  range=1                           ,
                uniform Int  pixels=MAX_MOTION_BLUR_PIXEL_RANGE,
@@ -137,7 +138,7 @@ Vec4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
    UNROLL for(Int y=-range; y<=range; y++)
    UNROLL for(Int x=-range; x<=range; x++)if(x || y)
    {
-      Vec2 t=inTex+Vec2(x, y)*ColSize.xy;
+      Vec2 t=inTex+Vec2(x, y)*RTSize.xy;
       Vec  b=TexPoint(Col, t).xyz;
    #if !SIGNED_VEL_RT
       b.xy=b.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
@@ -169,6 +170,7 @@ Vec4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
    return blur;
 }
 /******************************************************************************/
+// can use 'RTSize' instead of 'ImgSize' since there's no scale
 Vec4 DilateX_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
                 uniform Int  range                             ,
                 uniform Bool diagonal=false                    ,
@@ -185,7 +187,7 @@ Vec4 DilateX_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
 
    UNROLL for(Int i=-range; i<=range; i++)if(i)
    {
-      t.x=inTex.x+ColSize.x*i;
+      t.x=inTex.x+RTSize.x*i;
       Vec b=TexPoint(Col, t).xyz;
    #if !SIGNED_VEL_RT
       b.xy=b.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
@@ -204,7 +206,7 @@ Vec4 DilateX_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
       range=Round(range*SQRT2_2);
       UNROLL for(Int i=-range; i<=range; i++)if(i)
       {
-         t=inTex+ColSize.xy*i;
+         t=inTex+RTSize.xy*i;
          Vec b=TexPoint(Col, t).xyz;
       #if !SIGNED_VEL_RT
          b.xy=b.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
@@ -225,6 +227,7 @@ Vec4 DilateX_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
    return blur;
 }
 /******************************************************************************/
+// can use 'RTSize' instead of 'ImgSize' since there's no scale
 Vec4 DilateY_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
                 uniform Int  range                             ,
                 uniform Bool diagonal=false                    ,
@@ -241,7 +244,7 @@ Vec4 DilateY_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
 
    UNROLL for(Int i=-range; i<=range; i++)if(i)
    {
-      t.y=inTex.y+ColSize.y*i;
+      t.y=inTex.y+RTSize.y*i;
       Vec b=TexPoint(Col, t).xyz;
    #if !SIGNED_VEL_RT
       b.xy=b.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
@@ -260,7 +263,7 @@ Vec4 DilateY_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
       range=Round(range*SQRT2_2);
       UNROLL for(Int i=-range; i<=range; i++)if(i)
       {
-         t=inTex+ColSize.xy*Vec2(i, -i);
+         t=inTex+RTSize.xy*Vec2(i, -i);
          Vec b=TexPoint(Col, t).xyz;
       #if !SIGNED_VEL_RT
          b.xy=b.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1

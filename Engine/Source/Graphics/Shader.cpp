@@ -1209,10 +1209,9 @@ Shader* ShaderFile::get(C Str8 &name)
 /******************************************************************************/
 void Shader::draw(C Image *image, C Rect *rect)
 {
-            VI.image  (image);
-            VI.shader (this );
-            VI.setType(VI_2D_TEX, VI_STRIP);
-   if(image)Sh.colSize(*image);
+   VI.image  (image);
+   VI.shader (this );
+   VI.setType(VI_2D_TEX, VI_STRIP);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
    {
       if(!D._view_active.full || rect)
@@ -1277,10 +1276,9 @@ void Shader::draw(C Image *image, C Rect *rect)
 }
 void Shader::draw(C Image *image, C Rect *rect, C Rect &tex)
 {
-            VI.image  (image);
-            VI.shader (this );
-            VI.setType(VI_2D_TEX, VI_STRIP);
-   if(image)Sh.colSize(*image);
+   VI.image  (image);
+   VI.shader (this );
+   VI.setType(VI_2D_TEX, VI_STRIP);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
    {
       if(!D._view_active.full || rect)

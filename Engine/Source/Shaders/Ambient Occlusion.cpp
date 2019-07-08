@@ -26,6 +26,7 @@ BUFFER(AOConstants)
 #endif
 BUFFER_END
 /******************************************************************************/
+// can use 'RTSize' instead of 'ImgSize' since there's no scale
 Vec4 AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
            NOPERSP Vec2 inPosXY:TEXCOORD1,
            PIXEL                         ,
@@ -46,10 +47,10 @@ Vec4 AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
             n-=0.5f; // normally it should be "n=n*2-1", however since the normal doesn't need to be normalized, we can just do -0.5
          #endif
       #else // smoothened normal, less detail
-         Flt zl=TexDepthRawPoint(inTex+ColSize.xy*Vec2(-1, 0)),
-             zr=TexDepthRawPoint(inTex+ColSize.xy*Vec2( 1, 0)),
-             zd=TexDepthRawPoint(inTex+ColSize.xy*Vec2( 0,-1)),
-             zu=TexDepthRawPoint(inTex+ColSize.xy*Vec2( 0, 1)),
+         Flt zl=TexDepthRawPoint(inTex+RTSize.xy*Vec2(-1, 0)),
+             zr=TexDepthRawPoint(inTex+RTSize.xy*Vec2( 1, 0)),
+             zd=TexDepthRawPoint(inTex+RTSize.xy*Vec2( 0,-1)),
+             zu=TexDepthRawPoint(inTex+RTSize.xy*Vec2( 0, 1)),
              dl=z-zl, dr=zr-z, adr=Abs(dr), adl=Abs(dl),
              dd=z-zd, du=zu-z, adu=Abs(du), add=Abs(dd);
 
@@ -58,39 +59,39 @@ Vec4 AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
 
          // read two normals from texture, convert to -1..1 scale and average them
          // ((n1*2-1) + (n2*2-1))/2 = n1+n2-1
-         Vec n=TexLod(Nrm, inTex+ColSize.xy*0.5f*smooth_ru).xyz+ // apply 0.5 scale so we get a smooth texel from 4 values using bilinear filtering
-               TexLod(Nrm, inTex-ColSize.xy*0.5f*smooth_ld).xyz; // apply 0.5 scale so we get a smooth texel from 4 values using bilinear filtering
+         Vec n=TexLod(Nrm, inTex+RTSize.xy*0.5f*smooth_ru).xyz+ // apply 0.5 scale so we get a smooth texel from 4 values using bilinear filtering
+               TexLod(Nrm, inTex-RTSize.xy*0.5f*smooth_ld).xyz; // apply 0.5 scale so we get a smooth texel from 4 values using bilinear filtering
          #if !SIGNED_NRM_RT
             n-=2*0.5f; // same as above (0.5f) but for 2 Tex reads
          #endif
       #endif
        //n=Normalize(n); 'n' does not need to be normalized, because following codes don't require that
-         Vec dir_right=Normalize(Vec(ScreenToPosXY(inTex+Vec2(ColSize.x, 0)), 1)),
-             dir_up   =Normalize(Vec(ScreenToPosXY(inTex+Vec2(0, ColSize.y)), 1));
+         Vec dir_right=Normalize(Vec(ScreenToPosXY(inTex+Vec2(RTSize.x, 0)), 1)),
+             dir_up   =Normalize(Vec(ScreenToPosXY(inTex+Vec2(0, RTSize.y)), 1));
       #if 0
          Vec pr=PointOnPlaneRay(Vec(0, 0, 0), p, n, dir_right),
              pu=PointOnPlaneRay(Vec(0, 0, 0), p, n, dir_up   );
 
-         nrm=Vec2(pr.z-z, pu.z-z)*ColSize.zw;
+         nrm=Vec2(pr.z-z, pu.z-z)*RTSize.zw;
       #else // optimized
          Flt pr_z=dir_right.z*Dot(p, n)/Dot(dir_right, n),
              pu_z=dir_up   .z*Dot(p, n)/Dot(dir_up   , n);
 
-         nrm=Vec2(pr_z-z, pu_z-z)*ColSize.zw;
+         nrm=Vec2(pr_z-z, pu_z-z)*RTSize.zw;
       #endif
       }else
       {
          // !! for AO shader depth is already linearized !!
              z =TexDepthRawPoint(inTex);
-         Flt zl=TexDepthRawPoint(inTex-Vec2(ColSize.x, 0)),
-             zr=TexDepthRawPoint(inTex+Vec2(ColSize.x, 0)),
-             zd=TexDepthRawPoint(inTex-Vec2(0, ColSize.y)),
-             zu=TexDepthRawPoint(inTex+Vec2(0, ColSize.y)),
+         Flt zl=TexDepthRawPoint(inTex-Vec2(RTSize.x, 0)),
+             zr=TexDepthRawPoint(inTex+Vec2(RTSize.x, 0)),
+             zd=TexDepthRawPoint(inTex-Vec2(0, RTSize.y)),
+             zu=TexDepthRawPoint(inTex+Vec2(0, RTSize.y)),
              dl=z-zl, dr=zr-z,
              dd=z-zd, du=zu-z;
 
          nrm=Vec2((Abs(dl)<Abs(dr)) ? dl : dr,
-                  (Abs(dd)<Abs(du)) ? dd : du)*ColSize.zw;
+                  (Abs(dd)<Abs(du)) ? dd : du)*RTSize.zw;
       }
 
       Vec2 cos_sin;
@@ -145,7 +146,7 @@ Vec4 AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
          Vec2      offs=pattern.xy*offs_scale;
       #endif
          if(jitter)offs=Rotate(offs, cos_sin);
-                   offs=Round (offs*ColSize.zw)*ColSize.xy; // doesn't make a big difference for pixels close to camera, but makes a HUGE difference for pixels far away, keep !! otherwise distant terrain gets unnaturally shaded
+                   offs=Round (offs*RTSize.zw)*RTSize.xy; // doesn't make a big difference for pixels close to camera, but makes a HUGE difference for pixels far away, keep !! otherwise distant terrain gets unnaturally shaded
 
          Vec2 t=inTex+offs;
 

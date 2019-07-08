@@ -45,7 +45,7 @@ Vec4 PS
    if(textures==1)clip(Tex(Col, inTex).a + MaterialAlpha()-1);else // alpha in 'Col' texture
    if(textures==2)clip(Tex(Nrm, inTex).a + MaterialAlpha()-1);     // alpha in 'Nrm' texture, #MaterialTextureChannelOrder
 
-   Flt alpha=Sat((inPos.z-TexDepthPoint(PIXEL_TO_SCREEN)-BehindBias)/0.3f);
+   Flt alpha=Sat((inPos.z-TexDepthPoint(PixelToScreen(pixel))-BehindBias)/0.3f);
 
    Vec4   col   =Lerp(Color[0], Color[1], Abs(Normalize(inNrm).z));
           col.a*=alpha;

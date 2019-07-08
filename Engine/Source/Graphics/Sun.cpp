@@ -224,6 +224,7 @@ Bool AstroDrawRays()
             }
             D.alpha(ALPHA_NONE);
             rt1.get(ImageRTDesc(Renderer.fxW()>>shift, Renderer.fxH()>>shift, IMAGERT_ONE));
+          //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
             Renderer.set(rt1(), null, false); Sh.h_BlurX_X->draw(rt0(), &D.viewRect());
             Renderer.set(rt0(), null, false); Sh.h_BlurY_X->draw(rt1(), &D.viewRect());
          }*/
@@ -233,7 +234,7 @@ Bool AstroDrawRays()
          Sh.h_Color[1]->set(Vec4Zero      );
          Bool dither=(D.dither() && !Renderer._col->highPrecision()); // don't do dithering for high precision RT
          Shader *shader;
-       //if(Sun.rays_soft && shift==1)shader=Sh.h_SunRaysSoft;else
+       //if(Sun.rays_soft && shift==1){Sh.imgSize(*rt0); shader=Sh.h_SunRaysSoft;}else
          if(dither                   )shader=(LINEAR_GAMMA ? Sh.h_DrawXCDG : Sh.h_DrawXCD);else
                                       shader=(LINEAR_GAMMA ? Sh.h_DrawXCG  : Sh.h_DrawXC );
          REPS(Renderer._eye, Renderer._eye_num)shader->draw(rt0, Renderer._stereo ? &D._view_eye_rect[Renderer._eye] : &D.viewRect());

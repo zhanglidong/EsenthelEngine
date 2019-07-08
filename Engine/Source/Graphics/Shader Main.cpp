@@ -276,9 +276,9 @@ void MainShaderClass::getTechniques()
    h_ImageVol[0]   =ShaderImages("Vol"    );
    h_ImageVol[1]   =ShaderImages("Vol1"   );
 
-   h_ColSize         =GetShaderParam("ColSize" );
-   h_ColClamp        =GetShaderParam("ColClamp");
-   h_RTSizeI         =GetShaderParam("RTSizeI" );
+   h_ImgSize         =GetShaderParam("ImgSize" );
+   h_ImgClamp        =GetShaderParam("ImgClamp");
+   h_RTSize          =GetShaderParam("RTSize"  );
    h_Coords          =GetShaderParam("Coords"  );
    h_Viewport        =GetShaderParam("Viewport");
    h_DepthWeightScale=GetShaderParam("DepthWeightScale");

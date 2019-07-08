@@ -134,13 +134,13 @@ Vec4 Volumetric_PS(NOPERSP Vec2 inTex:TEXCOORD,
    UNROLL for(Int i=0; i<samples; i++)
    {
       Vec2 t;
-      if(samples== 4)t=ColSize.xy*BlendOfs4 [i]+inTex;
-    //if(samples== 5)t=ColSize.xy*BlendOfs5 [i]+inTex;
-      if(samples== 6)t=ColSize.xy*BlendOfs6 [i]+inTex;
-      if(samples== 8)t=ColSize.xy*BlendOfs8 [i]+inTex;
-    //if(samples== 9)t=ColSize.xy*BlendOfs9 [i]+inTex;
-      if(samples==12)t=ColSize.xy*BlendOfs12[i]+inTex;
-    //if(samples==13)t=ColSize.xy*BlendOfs13[i]+inTex;
+      if(samples== 4)t=ImgSize.xy*BlendOfs4 [i]+inTex;
+    //if(samples== 5)t=ImgSize.xy*BlendOfs5 [i]+inTex;
+      if(samples== 6)t=ImgSize.xy*BlendOfs6 [i]+inTex;
+      if(samples== 8)t=ImgSize.xy*BlendOfs8 [i]+inTex;
+    //if(samples== 9)t=ImgSize.xy*BlendOfs9 [i]+inTex;
+      if(samples==12)t=ImgSize.xy*BlendOfs12[i]+inTex;
+    //if(samples==13)t=ImgSize.xy*BlendOfs13[i]+inTex;
 
       vol+=TexLod(Col, t).rgb; // use linear filtering because Col may be smaller and texcoords are not rounded
    }

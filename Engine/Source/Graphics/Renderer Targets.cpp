@@ -254,7 +254,7 @@ void RendererClass::unmapMain()
   _cur_id[0]=NULL;
 }
 /******************************************************************************/
-Rect RendererClass::colClamp(C VecI2 &size)
+Rect RendererClass::imgClamp(C VecI2 &size)
 {
    Rect r((D.viewRect().min.x+D.w())*size.x/D.w2(), (D.h()-D.viewRect().max.y)*size.y/D.h2(),
           (D.viewRect().max.x+D.w())*size.x/D.w2(), (D.h()-D.viewRect().min.y)*size.y/D.h2());
@@ -533,7 +533,7 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
       if(Image *main=(t0 ? t0 : ds))
       {
         _res=main->size();
-         if(Sh.h_RTSizeI)Sh.h_RTSizeI->setConditional(_res);
+         Sh.rtSize(*main);
       }
 
    #if GL

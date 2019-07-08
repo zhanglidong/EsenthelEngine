@@ -137,7 +137,6 @@
    #define IF_IS_FRONT               Bool front:VFACE,                     // face front side
    #define IF_IS_CLIP            out Flt O_clip:BCOL1,                     // clip plane distance, this will generate "gl_BackSecondaryColor" which is later replaced with "gl_ClipDistance[0]"
    #define CLIP(pos)             O_clip=Dot(Vec4((pos).xyz, 1), ClipPlane) // perform user plane clipping
-   #define PIXEL_TO_SCREEN       PixelToScreen(pixel)                      // PixelToScreen is faster and more accurate than PosToScreen
    #define BUFFER(name)                                                    // constant buffers (not available in OpenGL)
    #define BUFFER_I(name, index)                                           // constant buffers (not available in OpenGL)
    #define BUFFER_END                                                      // constant buffers (not available in OpenGL)
@@ -146,7 +145,6 @@
    #define IF_IS_FRONT               Bool front :SV_IsFrontFace ,          // face front side
    #define IF_IS_CLIP            out Flt  O_clip:SV_ClipDistance,          // clip plane distance
    #define CLIP(pos)             O_clip=Dot(Vec4((pos).xyz, 1), ClipPlane) // perform user plane clipping
-   #define PIXEL_TO_SCREEN       PixelToScreen(pixel)                      // PixelToScreen is faster and more accurate than PosToScreen
    #define BUFFER(name)          cbuffer name {                            // declare a constant buffer
    #define BUFFER_I(name, index) cbuffer name : register(b##index) {       // declare a constant buffer with custom buffer index
    #define BUFFER_END            }                                         // end constant buffer declaration
@@ -284,7 +282,7 @@ struct ViewportClass
 BUFFER_I(Viewport, SBI_VIEWPORT)
    Vec4          Coords  ;
    ViewportClass Viewport;
-   Vec2          RTSizeI ;
+   Vec4          RTSize  ; // xy=1/Image.hwSize(), zw=Image.hwSize(), this format is also required for SMAA
 BUFFER_END
 
 BUFFER(Constants)
@@ -408,12 +406,12 @@ BUFFER(Step)
    Flt Step;
 BUFFER_END
 
-BUFFER(ColSize)
-   Vec4 ColSize; // xy=1/Col.hwSize(), zw=Col.hwSize(), this format is also required for SMAA
+BUFFER(ImgSize)
+   Vec4 ImgSize; // xy=1/Image.hwSize(), zw=Image.hwSize(), this format is also required for SMAA
 BUFFER_END
 
-BUFFER(ColClamp)
-   Vec4 ColClamp; // xy=min.xy, zw=max.xy
+BUFFER(ImgClamp)
+   Vec4 ImgClamp; // xy=min.xy, zw=max.xy
 BUFFER_END
 
 BUFFER_I(Color, SBI_COLOR)
@@ -864,7 +862,7 @@ inline Vec ObjWorldPos(uniform uint mtrx=0) {return Transform(MatrixPos(ViewMatr
 /******************************************************************************/
 inline Vec2 UVClamp(Vec2 screen, uniform Bool do_clamp=true)
 {
-   return do_clamp ? Mid(screen, ColClamp.xy, ColClamp.zw) : screen;
+   return do_clamp ? Mid(screen, ImgClamp.xy, ImgClamp.zw) : screen;
 }
 /******************************************************************************/
 inline Vec2 FracToPosXY(Vec2 frac) // return view space xy position at z=1
@@ -885,9 +883,9 @@ inline Vec2 PosToScreen(Vec4 pos)
    return (pos.xy/pos.w) * Viewport.PosToScreen.xy + Viewport.PosToScreen.zw;
 }
 /******************************************************************************/
-inline Vec2 PixelToScreen(Vec4 pixel)
+inline Vec2 PixelToScreen(Vec4 pixel) // faster and more accurate than 'PosToScreen'
 {
-          pixel.xy/=RTSizeI;
+          pixel.xy*=RTSize.xy;
    return pixel.xy;
 }
 /******************************************************************************/

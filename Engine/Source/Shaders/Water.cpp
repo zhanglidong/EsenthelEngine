@@ -147,7 +147,7 @@ void Surface_PS
    #endif
    }else
    {
-          inTex  =PIXEL_TO_SCREEN;
+          inTex  =PixelToScreen(pixel);
       Flt water_z=inPos.z,
           solid_z=(soft ? LinearizeDepth(TexPoint(Det, inTex).x) : water_z+DEFAULT_DEPTH), alpha=0;
 

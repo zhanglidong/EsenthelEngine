@@ -236,6 +236,7 @@ void RendererClass::adaptEye(ImageRT &src, ImageRT &dest, Bool dither)
    {
       ImageRTPtr next=temp; next.get(ImageRTDesc(s, s, IMAGERT_F32)); s/=4; // we could use 16-bit as according to calculations, the max error for 1920x1080, starting with 256x256 as first step and going down to 1x1, with average luminance of 1.0 (255 byte) is 0.00244140625 at the final stage, which gives 410 possible colors, however we may use some special tricks in the shader that requires higher precision (for example BRIGHT with Sqr and Sqrt later, or use Linear/sRGB)
       set(next(), null, false);
+      Sh.imgSize(*temp);
       if(i)Hdr.h_HdrDS[1]->draw(temp());
       else Hdr.h_HdrDS[0]->draw(temp(), null, D.screenToUV(D.viewRect()));
       temp=next;
@@ -247,7 +248,7 @@ void RendererClass::adaptEye(ImageRT &src, ImageRT &dest, Bool dither)
 }
 INLINE Shader* GetBloomDS(Bool glow, Bool viewport_clamp, Bool half, Bool saturate, Bool gamma) {Shader* &s=Sh.h_BloomDS[glow][viewport_clamp][half][saturate][gamma]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow, viewport_clamp, half, saturate, gamma); return s;}
 INLINE Shader* GetBloom  (Bool dither, Bool gamma                                             ) {Shader* &s=Sh.h_Bloom  [dither][gamma]                              ; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (dither, gamma                              ); return s;}
-// !! Assumes that 'ColClamp' was already set !!
+// !! Assumes that 'ImgClamp' was already set !!
 void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool dither)
 {
    // process bloom in sRGB gamma, because it will provide sharper results
@@ -273,8 +274,9 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool dither)
       Sh.h_BloomParams->setConditional(Vec(D.bloomOriginal(), _has_glow ? D.bloomScale()/((gamma && !gamma_per_pixel) ? res : Sqr(res)) // for "gamma && !gamma_per_pixel" use only res, because "LinearToSRGBFast(c.rgb/(res*res)) == LinearToSRGBFast(c.rgb)/Sqrt(res*res) == LinearToSRGBFast(c.rgb)/res"
                                                                  : half ? D.bloomScale()
                                                                         : D.bloomScale()/(gamma ? 2 : 4),
-                                                                        -D.bloomCut()*D.bloomScale()));
-      GetBloomDS(_has_glow, !D._view_main.full, half, D.bloomSaturate() || !D._bloom_cut, gamma)->draw(src, rect); // we can enable saturation (which is faster) if cut is zero, because zero cut won't change saturation
+                                                                         -D.bloomCut()*D.bloomScale()));
+      Sh.imgSize( src); GetBloomDS(_has_glow, !D._view_main.full, half, D.bloomSaturate() || !D._bloom_cut, gamma)->draw(src, rect); // we can enable saturation (which is faster) if cut is zero, because zero cut won't change saturation
+    //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
       if(D.bloomMaximum())
       { // 'discard' before 'set' because it already may have requested discard, and if we 'discard' manually after 'set' then we might discard 2 times
                          set(rt1(), null, false); Sh.h_MaxX->draw(rt0(), rect); discard=true; // discard next time
@@ -310,7 +312,7 @@ static void SetMotionBlurParams(Flt pixels) // !! this needs to be called when t
    Mtn.h_MotionVelScaleLimit->setConditional(Vec4(D.scale()/D.viewFovTanFull().x*limit, -D.scale()/D.viewFovTanFull().y*limit, scale, limit));
    Mtn.h_MotionPixelSize    ->setConditional(Flt(MAX_MOTION_BLUR_PIXEL_RANGE)/Renderer.res()); // the same value is used for 'SetDirs' (D.motionRes) and 'Blur' (D.res)
 }
-// !! Assumes that 'ColClamp' was already set !!
+// !! Assumes that 'ImgClamp' was already set !!
 Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
 {
    if(stage==RS_VEL && set(_vel))return true;
@@ -377,6 +379,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
       // so we should have information about X=2 depth, however there's no easy way to do that
       // TODO: check if depth tests are useful for the first step ("dilated==converted")
 
+    //Sh.imgSize(*dilated); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
       if(ortho) // do orthogonal first (this will result in slightly less artifacts when the camera is moving)
       {
          helper .get(rt_desc); set(helper (), null, false); ortho->h_DilateX[diagonal]->draw(dilated(), rect);
@@ -405,7 +408,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
 }
 INLINE Shader* GetDofDS(Bool clamp , Bool realistic, Bool half) {Shader* &s=Dof.h_DofDS[clamp ][realistic][half]; if(SLOW_SHADER_LOAD && !s)s=Dof.getDS(clamp , realistic, half); return s;}
 INLINE Shader* GetDof  (Bool dither, Bool realistic           ) {Shader* &s=Dof.h_Dof  [dither][realistic]      ; if(SLOW_SHADER_LOAD && !s)s=Dof.get  (dither, realistic      ); return s;}
-// !! Assumes that 'ColClamp' was already set !!
+// !! Assumes that 'ImgClamp' was already set !!
 void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool dither)
 { // Depth of Field shader does not require stereoscopic processing because it just reads the depth buffer
    const Int   shift=1; // half
@@ -421,7 +424,8 @@ void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool dither)
    Dof.h_DofParams->setConditional(Vec4(D.dofIntensity(), D.dofFocus(), range_inv, -D.dofFocus()*range_inv));
 
    set(rt0(), null, false); Rect ext_rect, *rect=null; if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(Renderer.pixelToScreenSize(pixel.pixels+1));} // when not rendering entire viewport, then extend the rectangle because of blurs checking neighbors, add +1 because of texture filtering, we can ignore stereoscopic there because that's always disabled for not full viewports, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize' and call after setting RT
-     GetDofDS(!D._view_main.full, D.dofFocusMode(), half)->draw(src  , rect);
+   Sh.imgSize( src); GetDofDS(!D._view_main.full, D.dofFocusMode(), half)->draw(src, rect);
+ //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
    set(rt1(), null, false);                 pixel.h_BlurX->draw(rt0(), rect);
    set(rt0(), null, false); rt0->discard(); pixel.h_BlurY->draw(rt1(), rect);
 
@@ -444,6 +448,7 @@ void RendererClass::Combine(IMAGE_PRECISION rt_prec)
          D.alpha(ALPHA_SETBLEND_SET); alpha_premultiplied=true;
       }
       set(resolve(), _ds_1s(), true, NEED_DEPTH_READ);
+      Sh.imgSize(*_col);
       if(hasStencilAttached())
       {
          D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); GetCombineMS()->draw(_col);
@@ -506,14 +511,14 @@ void RendererClass::Combine(IMAGE_PRECISION rt_prec)
             case FILTER_CUBIC_FAST_SMOOTH:
             case FILTER_CUBIC_FAST_SHARP :
                pixels=2+1; // 2 for filtering + 1 for borders
-               shader=(dither ? Sh.h_DrawTexCubicFastD : Sh.h_DrawTexCubicFast1); // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
+               Sh.imgSize(*_col); shader=(dither ? Sh.h_DrawTexCubicFastD : Sh.h_DrawTexCubicFast1); // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
             break;
 
             case FILTER_BEST       :
             case FILTER_CUBIC      :
             case FILTER_CUBIC_SHARP:
                pixels=3+1; // 3 for filtering + 1 for borders
-               Sh.loadCubicShaders(); shader=(dither ? Sh.h_DrawTexCubicD : Sh.h_DrawTexCubic1); // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
+               Sh.imgSize(*_col); Sh.loadCubicShaders(); shader=(dither ? Sh.h_DrawTexCubicD : Sh.h_DrawTexCubic1); // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
             break;
          }
          if(!D._view_main.full)
@@ -1310,6 +1315,7 @@ void RendererClass::ao()
    ao_depth.get(ImageRTDesc(_ao->w(), _ao->h(), IMAGERT_F32)); // don't try to reduce to IMAGERT_F16 because it can create artifacts on big view ranges under certain angles (especially when we don't use normal maps, like in forward renderer)
    linearizeDepth(*ao_depth, *_ds_1s);
 
+ //Sh.imgSize(*_ao); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
    Sh.h_ImageNrm[0]->set(_nrm);
    Sh.h_ImageDepth ->set(ao_depth);
    Bool foreground=_ao->compatible(*_ds_1s);
@@ -1324,6 +1330,7 @@ void RendererClass::ao()
    if(D.ambientSoft()) // this needs to be in sync with 'D.shadowSoft'
    {
       ImageRTDesc rt_desc(_ao->w(), _ao->h(), IMAGERT_ONE);
+    //Sh.imgSize(*_ao); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
       if(D.ambientSoft()>=5)
       {
          ImageRTPtr temp; temp.get(rt_desc);
@@ -1504,16 +1511,16 @@ void RendererClass::edgeDetect()
    {
       case EDGE_DETECT_THIN:
       {
-         D.depth2DOn (); D.alpha(ALPHA_MUL); set(_col(), _ds(), true, NEED_DEPTH_READ); Sh.h_EdgeDetect->draw(_ds_1s);
+         D.depth2DOn (); D.alpha(ALPHA_MUL); set(_col(), _ds(), true, NEED_DEPTH_READ); Sh.imgSize(*_ds_1s); Sh.h_EdgeDetect->draw();
          D.depth2DOff();
       }break;
 
       case EDGE_DETECT_FAT:
       {
          ImageRTPtr edge(ImageRTDesc(fxW(), fxH(), IMAGERT_ONE));
-         D.alpha     (ALPHA_NONE); set(edge(), null , true, NEED_DEPTH_READ); Sh.h_EdgeDetect     ->draw(_ds_1s); // we need to fill the entire buffer because below we're using blurring (which takes nearby texels)
+         D.alpha     (ALPHA_NONE); set(edge(), null , true, NEED_DEPTH_READ); Sh.imgSize(*_ds_1s); Sh.h_EdgeDetect     ->draw(); // we need to fill the entire buffer because below we're using blurring (which takes nearby texels)
          D.depth2DOn ();
-         D.alpha     (ALPHA_MUL ); set(_col(), _ds(), true,   NO_DEPTH_READ); Sh.h_EdgeDetectApply->draw(edge());
+         D.alpha     (ALPHA_MUL ); set(_col(), _ds(), true,   NO_DEPTH_READ); Sh.imgSize(* edge ); Sh.h_EdgeDetectApply->draw(edge());
          D.depth2DOff();
       }break;
    }
@@ -1698,6 +1705,7 @@ void RendererClass::applyOutline()
          Sh.h_OutlineApply=Sh.get("OutlineApply");
       }
 
+      Sh.imgSize(*_outline_rt);
       switch(D.outlineMode())
       {
          case EDGE_DETECT_THIN: if(Sh.h_OutlineClip)
@@ -1720,7 +1728,7 @@ void RendererClass::applyOutline()
             set(_col(), (ds && ds->compatible(*_col)) ? ds : null, true);
             D .alpha    (ALPHA_BLEND_DEC);
             if(!D.outlineAffectSky())D.depth2DOn();
-            Sh.h_OutlineApply->draw(temp);
+            Sh.imgSize(*temp); Sh.h_OutlineApply->draw(temp);
             D.depth2DOff();
          }break;
       }
@@ -1776,6 +1784,7 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
       }
       ImageRTPtr dest(ImageRTDesc(_col->w(), _col->h(), GetImageRTType(_has_glow, D.litColRTPrecision())));
       // D.depth2DOn/depth2DOff can't be applied here, this was tested and resulted in loss of softening at object/sky edges
+    //Sh.imgSize(*_col); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
       switch(D.edgeSoften())
       {
          case EDGE_SOFTEN_FXAA:
@@ -1830,6 +1839,7 @@ void RendererClass::volumetric()
       downSample(); // we're modifying existing RT, so downSample if needed
       set(_col(), null, true);
       SPSet("VolMax", Vec(D.volMax()));
+      Sh.imgSize(*_vol);
       D.alpha(D.volAdd() ? ALPHA_ADD        : ALPHA_BLEND_DEC);
              (D.volAdd() ? VL.h_VolumetricA : VL.h_Volumetric)->draw(_vol());
      _vol.clear();
@@ -1883,7 +1893,7 @@ void RendererClass::postProcess()
 
    Int fxs=((upscale || _get_target) ? -1 : eye_adapt+bloom+motion+dof+combine); // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final', when up sampling then don't render to '_final'
    if( D._view_main.full && !_get_target && !combine && _col!=_final)_final->discard();
-   if(!D._view_main.full)Sh.h_ColClamp->setConditional(colClamp(size)); // set ColClamp that may be needed for Bloom, DoF, MotionBlur, this is the viewport rect within texture, so reading will be clamped to what was rendered inside the viewport
+   if(!D._view_main.full)Sh.h_ImgClamp->setConditional(imgClamp(size)); // set 'ImgClamp' that may be needed for Bloom, DoF, MotionBlur, this is the viewport rect within texture, so reading will be clamped to what was rendered inside the viewport
 
    IMAGE_PRECISION rt_prec=D.litColRTPrecision();
    if(!_get_target) // if we're going to output to the monitor
@@ -1952,11 +1962,11 @@ void RendererClass::postProcess()
 
                case FILTER_CUBIC_FAST       :
                case FILTER_CUBIC_FAST_SMOOTH:
-               case FILTER_CUBIC_FAST_SHARP : shader=(dither ? Sh.h_DrawTexCubicFastRGBD : Sh.h_DrawTexCubicFastRGB); break; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
+               case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(*_col); shader=(dither ? Sh.h_DrawTexCubicFastRGBD : Sh.h_DrawTexCubicFastRGB); break; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
 
                case FILTER_BEST       :
                case FILTER_CUBIC      :
-               case FILTER_CUBIC_SHARP: Sh.loadCubicShaders(); shader=(dither ? Sh.h_DrawTexCubicRGBD : Sh.h_DrawTexCubicRGB); break; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
+               case FILTER_CUBIC_SHARP: Sh.imgSize(*_col); Sh.loadCubicShaders(); shader=(dither ? Sh.h_DrawTexCubicRGBD : Sh.h_DrawTexCubicRGB); break; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
             }
             if(!shader)
             {

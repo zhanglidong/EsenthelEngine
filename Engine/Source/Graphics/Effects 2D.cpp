@@ -114,6 +114,7 @@ TitlesFx& TitlesFx::reset()
 void TitlesFx::draw(C Image &image)
 {
    SPSet("Ttls", T);
+   Sh.imgSize(image);
    if(!Sh.h_Titles)Sh.h_Titles=Sh.get("Titles"); Sh.h_Titles->draw(image);
 }
 /******************************************************************************/

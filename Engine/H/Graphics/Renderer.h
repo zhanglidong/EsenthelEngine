@@ -243,7 +243,7 @@ struct RendererClass // handles rendering
    Bool   mapMain();
    void unmapMain();
 
-   static Rect  colClamp          (C VecI2 &size  );
+   static Rect  imgClamp          (C VecI2 &size  );
    static Rect  screenToPixel     (C Rect  &screen);
    static RectI screenToPixelI    (C Rect  &screen);
    static Vec2  screenToPixelSize (C Vec2  &screen);

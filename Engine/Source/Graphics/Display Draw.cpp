@@ -156,11 +156,11 @@ void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
 
       case FILTER_CUBIC_FAST       :
       case FILTER_CUBIC_FAST_SMOOTH:
-      case FILTER_CUBIC_FAST_SHARP : VI.shader(Sh.h_DrawTexCubicFast); break;
+      case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(T); VI.shader(Sh.h_DrawTexCubicFast); break;
 
       case FILTER_BEST       :
       case FILTER_CUBIC      :
-      case FILTER_CUBIC_SHARP: Sh.loadCubicShaders(); VI.shader(Sh.h_DrawTexCubic); break;
+      case FILTER_CUBIC_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.h_DrawTexCubic); break;
    }
    VI.image  (this);
    VI.setType(VI_2D_TEX, VI_STRIP);
@@ -174,7 +174,6 @@ void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
       v[1].tex.set(_part.x,       0);
       v[2].tex.set(      0, _part.y);
       v[3].tex.set(_part.x, _part.y);
-      Sh.colSize(T);
    }
    VI.end();
    if(filter==FILTER_NONE)
@@ -205,11 +204,11 @@ void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_
 
       case FILTER_CUBIC_FAST       :
       case FILTER_CUBIC_FAST_SMOOTH:
-      case FILTER_CUBIC_FAST_SHARP : VI.shader(Sh.h_DrawTexCubicFastC); break;
+      case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(T); VI.shader(Sh.h_DrawTexCubicFastC); break;
 
       case FILTER_BEST       :
       case FILTER_CUBIC      :
-      case FILTER_CUBIC_SHARP: Sh.loadCubicShaders(); VI.shader(Sh.h_DrawTexCubicC); break;
+      case FILTER_CUBIC_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.h_DrawTexCubicC); break;
    }
    VI.color  (color    );
    VI.color2 (color_add);
@@ -225,7 +224,6 @@ void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_
       v[1].tex.set(_part.x,       0);
       v[2].tex.set(      0, _part.y);
       v[3].tex.set(_part.x, _part.y);
-      Sh.colSize(T);
    }
    VI.end();
    if(filter==FILTER_NONE)
@@ -258,7 +256,7 @@ void Image::drawOutline(C Color &color, C Rect &rect, Flt tex_range)
          v[1].tex.set(_part.x,       0);
          v[2].tex.set(      0, _part.y);
          v[3].tex.set(_part.x, _part.y);
-         Sh.h_ImgSize->set();
+         Sh.imgSize(T);
       }
       VI.end();
    }

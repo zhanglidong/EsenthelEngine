@@ -1,5 +1,5 @@
 #define SMAA_AREATEX_SELECT(sample) sample.rg
-#define SMAA_RT_METRICS             ColSize
+#define SMAA_RT_METRICS             RTSize // can use 'RTSize' instead of 'ImgSize' since there's no scale
 #define SMAA_THRESHOLD              SMAAThreshold // best noticable on "iloyjp6kr6q56_jzjamo0z6#" /* Vehicles\Cartoon\Tank */
 #define SMAA_MAX_SEARCH_STEPS       6
 #define SMAA_MAX_SEARCH_STEPS_DIAG  0

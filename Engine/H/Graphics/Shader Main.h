@@ -15,7 +15,8 @@ struct MainShaderClass
    static void draw (C Image &image, C Color &color, C Color &color_add=TRANSPARENT, C Rect *rect=null);
    static void draw (C Image &image, C Vec4  &color, C Vec4  &color_add=Vec4Zero   , C Rect *rect=null);
 
-   INLINE void colSize(C Image &image) {h_ColSize->set(Vec4(1.0f/image.hwSize(), image.hwSize()));}
+   INLINE void imgSize(C Image &image) {h_ImgSize->set           (Vec4(1.0f/image.hwSize(), image.hwSize()));} // xy=1/hwSize(), zw=hwSize(), this format is also required for SMAA
+   INLINE void  rtSize(C Image &image) {h_RTSize ->setConditional(Vec4(1.0f/image.hwSize(), image.hwSize()));} // xy=1/hwSize(), zw=hwSize(), this format is also required for SMAA
 
    // private
    void del           ();
@@ -39,9 +40,9 @@ struct MainShaderClass
       *h_ImageVol[2];
 
    ShaderParam
-      *h_ColSize    ,
-      *h_ColClamp   ,
-      *h_RTSizeI    ,
+      *h_ImgSize    ,
+      *h_ImgClamp   ,
+      *h_RTSize     ,
       *h_Coords     ,
       *h_Viewport   ,
       *h_DepthWeightScale,

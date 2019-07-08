@@ -138,7 +138,7 @@ static void MapSoft()
    if(D.shadowSoft()) // this needs to be in sync with 'D.ambientSoft'
    {
       ImageRTDesc rt_desc(Renderer._shd_1s->w(), Renderer._shd_1s->h(), IMAGERT_ONE);
-      Sh.colSize(*Renderer._shd_1s);
+    //Sh.imgSize(*Renderer._shd_1s); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
       if(D.shadowSoft()>=5)
       {
          ImageRTPtr temp; temp.get(rt_desc);

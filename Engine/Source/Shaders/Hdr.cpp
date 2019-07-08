@@ -12,8 +12,8 @@
 Vec4 HdrDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
               uniform Int  step          ):COLOR
 {
-   Vec2 tex_min=inTex-ColSize.xy,
-        tex_max=inTex+ColSize.xy;
+   Vec2 tex_min=inTex-ImgSize.xy,
+        tex_max=inTex+ImgSize.xy;
    if(step==0)
    {
       // use linear filtering because we're downsampling

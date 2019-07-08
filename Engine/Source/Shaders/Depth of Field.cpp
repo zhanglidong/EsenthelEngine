@@ -40,19 +40,19 @@ inline Flt Blur(Flt z, uniform Bool realistic)
 Vec4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
               uniform Bool do_clamp      ,
               uniform Bool realistic     ,
-              uniform Bool half          ,
+              uniform Bool half_res      ,
               uniform Bool gather        ):COLOR
 {
    Vec4 ret; // RGB=col, W=Blur
-   if(half)
+   if(half_res)
    {
       ret.rgb=TexLod(Col, UVClamp(inTex, do_clamp)).rgb; // use linear filtering because we're downsampling
    #if MODEL>=SM_4
       if(gather)ret.w=DEPTH_MIN(Depth.Gather(SamplerPoint, inTex));else
    #endif
       {
-         Vec2 tex_min=inTex-ColSize.xy*0.5f,
-              tex_max=inTex+ColSize.xy*0.5f;
+         Vec2 tex_min=inTex-ImgSize.xy*0.5f,
+              tex_max=inTex+ImgSize.xy*0.5f;
          ret.w=DEPTH_MIN(TexDepthRawPoint(Vec2(tex_min.x, tex_min.y)),
                          TexDepthRawPoint(Vec2(tex_max.x, tex_min.y)),
                          TexDepthRawPoint(Vec2(tex_min.x, tex_max.y)),
@@ -60,8 +60,8 @@ Vec4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
       }
    }else // quarter
    {
-      Vec2 tex_min=UVClamp(inTex-ColSize.xy, do_clamp),
-           tex_max=UVClamp(inTex+ColSize.xy, do_clamp);
+      Vec2 tex_min=UVClamp(inTex-ImgSize.xy, do_clamp),
+           tex_max=UVClamp(inTex+ImgSize.xy, do_clamp);
       Vec2 t00=Vec2(tex_min.x, tex_min.y),
            t10=Vec2(tex_max.x, tex_min.y),
            t01=Vec2(tex_min.x, tex_max.y),
@@ -123,7 +123,8 @@ inline Flt FinalBlur(Flt blur, Flt blur_smooth) // 'blur'=-Inf .. Inf, 'blur_smo
 }
 inline Flt WeightSum(uniform Int range) {return range+1;} // Sum of all weights for all "-range..range" steps, calculated using "Flt weight=0; for(Int dist=-range; dist<=range; dist++)weight+=BlendSmoothCube(dist/Flt(range+1));"
 /******************************************************************************/
-#define SCALE 0.5f // at the end we need 0 .. 0.5 range, and since we start with 0..1 we need to scale by "0.5"
+// can use 'RTSize' instead of 'ImgSize' since there's no scale
+#define SCALE 0.5 // at the end we need 0 .. 0.5 range, and since we start with 0..1 we need to scale by "0.5"
 Vec4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
                  uniform Int  range         ):COLOR
 {  //  INPUT: Col: RGB         , Blur
@@ -137,7 +138,7 @@ Vec4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
    Vec2 t; t.y=inTex.y;
    UNROLL for(Int i=-range; i<=range; i++)if(i)
    {
-      t.x=inTex.x+ColSize.x*i;
+      t.x=inTex.x+RTSize.x*i;
       Vec4 c=TexPoint(Col, t);
       Flt  test_blur=c.a,
         #if MODEL==SM_GL
@@ -160,7 +161,7 @@ Vec4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
    return Vec4(color.rgb/weight, (color.a>=0.5f*weight) ? 0.5f+blur_abs : 0.5f-blur_abs); // color.a/weight>=0.5f ? .. : ..
 }
 #undef  SCALE
-#define SCALE 1.0f // at the end we need 0..1 range, and since we start with 0..1 we need to scale by "1"
+#define SCALE 1.0 // at the end we need 0..1 range, and since we start with 0..1 we need to scale by "1"
 Vec4 DofBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
                  uniform Int  range         ):COLOR
 {  //  INPUT: Col: RGB BlurredX , BlurSmooth
@@ -174,7 +175,7 @@ Vec4 DofBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
    Vec2 t; t.x=inTex.x;
    UNROLL for(Int i=-range; i<=range; i++)if(i)
    {
-      t.y=inTex.y+ColSize.y*i;
+      t.y=inTex.y+RTSize.y*i;
       Vec4 c=TexPoint(Col, t);
       Flt  test_blur=c.a,
         #if MODEL==SM_GL
