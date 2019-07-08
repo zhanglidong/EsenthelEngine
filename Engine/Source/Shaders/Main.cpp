@@ -1445,9 +1445,9 @@ VecH4 EdgeDetect_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
    Half px   =Abs(zr-((z-zl)+z))/soft-0.5, //cx=Sat(Max(Abs(zl-z), Abs(zr-z))/soft-0.5), cx, cy doesn't work well in lower screen resolutions and with flat terrain
         py   =Abs(zu-((z-zd)+z))/soft-0.5, //cy=Sat(Max(Abs(zu-z), Abs(zd-z))/soft-0.5),
         alpha=Sat(Length(pos)*SkyFracMulAdd.x + SkyFracMulAdd.y),
-        edge =px+py;
+        edge =Sat(px+py);
 
-   return Sat(1-edge*alpha); // saturate because this can be directly multiplied to dest using ALPHA_MUL
+   return 1-edge*alpha;
 }
 VecH4 EdgeDetectApply_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR // use VecH4 because we apply this directly onto RGBA destination
 {
