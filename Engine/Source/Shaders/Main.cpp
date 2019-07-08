@@ -1431,7 +1431,8 @@ TECHNIQUE(OutlineDS   , Draw_VS(),      Outline_PS(false, true));
 TECHNIQUE(OutlineClip , Draw_VS(),      Outline_PS(true ));
 TECHNIQUE(OutlineApply, Draw_VS(), OutlineApply_PS());
 /******************************************************************************/
-VecH4 EdgeDetect_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR // use VecH4 because we may want to apply this directly onto RGBA destination
+VecH4 EdgeDetect_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
+                    NOPERSP Vec2 inPosXY:TEXCOORD1):COLOR // use VecH4 because we may want to apply this directly onto RGBA destination
 {
    Flt z =TexDepthPoint(inTex),
        zl=TexDepthPoint(inTex+ImgSize.xy*Vec2(-1, 0)),
@@ -1439,11 +1440,14 @@ VecH4 EdgeDetect_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR // use VecH4 because we m
        zd=TexDepthPoint(inTex+ImgSize.xy*Vec2( 0,-1)),
        zu=TexDepthPoint(inTex+ImgSize.xy*Vec2( 0, 1)), soft=0.1+z/50;
 
-   Half px  =Abs(zr-((z-zl)+z))/soft-0.5, //cx=Sat(Max(Abs(zl-z), Abs(zr-z))/soft-0.5), cx, cy doesn't work well in lower screen resolutions and with flat terrain
-        py  =Abs(zu-((z-zd)+z))/soft-0.5, //cy=Sat(Max(Abs(zu-z), Abs(zd-z))/soft-0.5),
-        edge=px+py;
+   Vec pos=GetPos(Min(z, Min(zl, zr, zd, zu)), inPosXY);
 
-   return Sat(1-edge); // saturate because this can be directly multiplied to dest using ALPHA_MUL
+   Half px   =Abs(zr-((z-zl)+z))/soft-0.5, //cx=Sat(Max(Abs(zl-z), Abs(zr-z))/soft-0.5), cx, cy doesn't work well in lower screen resolutions and with flat terrain
+        py   =Abs(zu-((z-zd)+z))/soft-0.5, //cy=Sat(Max(Abs(zu-z), Abs(zd-z))/soft-0.5),
+        alpha=Sat(Length(pos)*SkyFracMulAdd.x + SkyFracMulAdd.y),
+        edge =px+py;
+
+   return Sat(1-edge*alpha); // saturate because this can be directly multiplied to dest using ALPHA_MUL
 }
 VecH4 EdgeDetectApply_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR // use VecH4 because we apply this directly onto RGBA destination
 {
@@ -1456,8 +1460,8 @@ VecH4 EdgeDetectApply_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR // use VecH4 because
    }
    return color/(samples+1); // Sqr could be used on the result, to make darkening much stronger
 }
-TECHNIQUE(EdgeDetect     , Draw_VS(),      EdgeDetect_PS());
-TECHNIQUE(EdgeDetectApply, Draw_VS(), EdgeDetectApply_PS());
+TECHNIQUE(EdgeDetect     , DrawPosXY_VS(),      EdgeDetect_PS());
+TECHNIQUE(EdgeDetectApply, Draw_VS     (), EdgeDetectApply_PS());
 /******************************************************************************/
 VecH4 Dither_PS(NOPERSP Vec2 inTex:TEXCOORD,
                 NOPERSP PIXEL):COLOR
