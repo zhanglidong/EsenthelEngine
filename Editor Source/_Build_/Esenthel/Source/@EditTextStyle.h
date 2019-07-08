@@ -3,7 +3,7 @@
 class EditTextStyle : TextStyle
 {
    UID       font;
-   TimeStamp shadow_time, shade_time, color_time, selection_time, align_time, size_time, space_time, font_time;
+   TimeStamp shadow_time, shade_time, color_time, selection_time, align_time, size_time, space_time, spacing_time, font_time;
 
    // get
    bool newer(C EditTextStyle &src)C;

@@ -47,14 +47,17 @@ class TextStyleEditor : PropWin
    static void PreChanged(C Property &prop) {TextStyleEdit.undos.set(&prop);}
    static void    Changed(C Property &prop) {TextStyleEdit.setChanged();}
 
-   static void ParamsShadow(EditTextStyle &e, C Str &t) {e.shadow   =TextInt (t); e.   shadow_time.getUTC();}
-   static void ParamsShade (EditTextStyle &e, C Str &t) {e.shade    =TextInt (t); e.    shade_time.getUTC();}
-   static void ParamsColor (EditTextStyle &e, C Str &t) {e.color    =TextVec4(t); e.    color_time.getUTC();}
-   static void ParamsSelect(EditTextStyle &e, C Str &t) {e.selection=TextVec4(t); e.selection_time.getUTC();}
-   static void ParamsAlign (EditTextStyle &e, C Str &t) {e.align    =TextVec2(t); e.    align_time.getUTC();}
-   static void ParamsSize  (EditTextStyle &e, C Str &t) {e.size     =TextVec2(t); e.     size_time.getUTC();}
-   static void ParamsSpace (EditTextStyle &e, C Str &t) {e.space    =TextVec2(t); e.    space_time.getUTC();}
-   static void ParamsFont  (EditTextStyle &e, C Str &t)
+   static Str ParamsSpacing(C EditTextStyle &e) {return e.spacing==SPACING_CONST;}
+
+   static void ParamsShadow (EditTextStyle &e, C Str &t) {e.shadow   =TextInt (t); e.   shadow_time.getUTC();}
+   static void ParamsShade  (EditTextStyle &e, C Str &t) {e.shade    =TextInt (t); e.    shade_time.getUTC();}
+   static void ParamsColor  (EditTextStyle &e, C Str &t) {e.color    =TextVec4(t); e.    color_time.getUTC();}
+   static void ParamsSelect (EditTextStyle &e, C Str &t) {e.selection=TextVec4(t); e.selection_time.getUTC();}
+   static void ParamsAlign  (EditTextStyle &e, C Str &t) {e.align    =TextVec2(t); e.    align_time.getUTC();}
+   static void ParamsSize   (EditTextStyle &e, C Str &t) {e.size     =TextVec2(t); e.     size_time.getUTC();}
+   static void ParamsSpace  (EditTextStyle &e, C Str &t) {e.space    =TextVec2(t); e.    space_time.getUTC();}
+   static void ParamsSpacing(EditTextStyle &e, C Str &t) {e.spacing  =(TextBool(t) ? SPACING_CONST : SPACING_NICE); e.spacing_time.getUTC();}
+   static void ParamsFont   (EditTextStyle &e, C Str &t)
    {
       e.font.zero(); int i=TextInt(t); if(InRange(i, Proj.font_node.children))
       {
@@ -79,14 +82,15 @@ class TextStyleEditor : PropWin
 
    void create()
    {
-                 add("Shadow"   , MemberDesc(MEMBER(EditTextStyle, shadow   )).setTextToDataFunc(ParamsShadow)).desc("Shadow Intensity");
-                 add("Shade"    , MemberDesc(MEMBER(EditTextStyle, shade    )).setTextToDataFunc(ParamsShade )).desc("Shading");
-                 add("Color"    , MemberDesc(MEMBER(EditTextStyle, color    )).setTextToDataFunc(ParamsColor )).setColor();
-                 add("Selection", MemberDesc(MEMBER(EditTextStyle, selection)).setTextToDataFunc(ParamsSelect)).setColor();
-                 add("Align"    , MemberDesc(MEMBER(EditTextStyle, align    )).setTextToDataFunc(ParamsAlign )).range(-1, 1);
-                 add("Size"     , MemberDesc(MEMBER(EditTextStyle, size     )).setTextToDataFunc(ParamsSize  )).min(0).mouseEditSpeed(0.3);
-                 add("Space"    , MemberDesc(MEMBER(EditTextStyle, space    )).setTextToDataFunc(ParamsSpace )).min(0);
-      font_prop=&add("Font"     , MemberDesc().setFunc(ParamsFont, ParamsFont)).setEnum(); font_prop.combobox.setData(Proj.font_node);
+                 add("Shadow"       , MemberDesc(MEMBER(EditTextStyle, shadow   )).setTextToDataFunc(ParamsShadow)).desc("Shadow Intensity");
+                 add("Shade"        , MemberDesc(MEMBER(EditTextStyle, shade    )).setTextToDataFunc(ParamsShade )).desc("Shading");
+                 add("Color"        , MemberDesc(MEMBER(EditTextStyle, color    )).setTextToDataFunc(ParamsColor )).setColor();
+                 add("Selection"    , MemberDesc(MEMBER(EditTextStyle, selection)).setTextToDataFunc(ParamsSelect)).setColor();
+                 add("Align"        , MemberDesc(MEMBER(EditTextStyle, align    )).setTextToDataFunc(ParamsAlign )).range(-1, 1);
+                 add("Size"         , MemberDesc(MEMBER(EditTextStyle, size     )).setTextToDataFunc(ParamsSize  )).min(0).mouseEditSpeed(0.3);
+                 add("Space"        , MemberDesc(MEMBER(EditTextStyle, space    )).setTextToDataFunc(ParamsSpace )).min(0);
+                 add("Const Spacing", MemberDesc(DATA_BOOL                       ).setFunc          (ParamsSpacing, ParamsSpacing));
+      font_prop=&add("Font"         , MemberDesc(                                ).setFunc          (ParamsFont   , ParamsFont   )).setEnum(); font_prop.combobox.setData(Proj.font_node);
       autoData(&edit);
 
       super.create("Text Style Editor", Vec2(0.02, -0.07), 0.036, 0.043, 0.3); super.changed(Changed, PreChanged); button[1].show(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;

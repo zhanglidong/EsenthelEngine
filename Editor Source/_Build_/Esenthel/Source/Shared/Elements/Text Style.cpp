@@ -5,15 +5,15 @@
 /******************************************************************************/
    bool EditTextStyle::newer(C EditTextStyle &src)C
    {
-      return shadow_time>src.shadow_time || shade_time>src.shade_time || color_time>src.color_time || selection_time>src.selection_time || align_time>src.align_time || size_time>src.size_time || space_time>src.space_time || font_time>src.font_time;
+      return shadow_time>src.shadow_time || shade_time>src.shade_time || color_time>src.color_time || selection_time>src.selection_time || align_time>src.align_time || size_time>src.size_time || space_time>src.space_time || spacing_time>src.spacing_time || font_time>src.font_time;
    }
    bool EditTextStyle::equal(C EditTextStyle &src)C
    {
-      return shadow_time==src.shadow_time && shade_time==src.shade_time && color_time==src.color_time && selection_time==src.selection_time && align_time==src.align_time && size_time==src.size_time && space_time==src.space_time && font_time==src.font_time;
+      return shadow_time==src.shadow_time && shade_time==src.shade_time && color_time==src.color_time && selection_time==src.selection_time && align_time==src.align_time && size_time==src.size_time && space_time==src.space_time && spacing_time==src.spacing_time && font_time==src.font_time;
    }
    void EditTextStyle::newData()
    {
-      shadow_time++; shade_time++; color_time++; selection_time++; align_time++; size_time++; space_time++; font_time++;
+      shadow_time++; shade_time++; color_time++; selection_time++; align_time++; size_time++; space_time++; spacing_time++; font_time++;
    }
    bool EditTextStyle::sync(C EditTextStyle &src)
    {
@@ -25,6 +25,7 @@
       changed|=Sync(    align_time, src.     align_time, align     , src.align     );
       changed|=Sync(     size_time, src.      size_time, size      , src.size      );
       changed|=Sync(    space_time, src.     space_time, space     , src.space     );
+      changed|=Sync(  spacing_time, src.   spacing_time, spacing   , src.spacing   );
       changed|=Sync(     font_time, src.      font_time, font      , src.font      );
       return changed;
    }
@@ -38,6 +39,7 @@
       changed|=Undo(    align_time, src.     align_time, align     , src.align     );
       changed|=Undo(     size_time, src.      size_time, size      , src.size      );
       changed|=Undo(    space_time, src.     space_time, space     , src.space     );
+      changed|=Undo(  spacing_time, src.   spacing_time, spacing   , src.spacing   );
       changed|=Undo(     font_time, src.      font_time, font      , src.font      );
       return changed;
    }
@@ -47,7 +49,7 @@
       SCAST(TextStyle, T)=src;
       ::EE::TextStyle::font(null);
           T.font=font;
-      shadow_time=shade_time=color_time=selection_time=align_time=size_time=space_time=font_time=time;
+      shadow_time=shade_time=color_time=selection_time=align_time=size_time=space_time=spacing_time=font_time=time;
    }
    void EditTextStyle::copyTo(TextStyle &dest, C Project &proj)C
    {
@@ -56,15 +58,21 @@
    }
    bool EditTextStyle::save(File &f)C
    {
-      f.cmpUIntV(1);
+      f.cmpUIntV(2);
       ::EE::TextStyle::save(f);
-      f<<font<<shadow_time<<shade_time<<color_time<<selection_time<<align_time<<size_time<<space_time<<font_time;
+      f<<font<<shadow_time<<shade_time<<color_time<<selection_time<<align_time<<size_time<<space_time<<spacing_time<<font_time;
       return f.ok();
    }
    bool EditTextStyle::load(File &f)
    {
       reset(); switch(f.decUIntV())
       {
+         case 2: if(::EE::TextStyle::load(f))
+         {
+            f>>font>>shadow_time>>shade_time>>color_time>>selection_time>>align_time>>size_time>>space_time>>spacing_time>>font_time;
+            if(f.ok())return true;
+         }break;
+
          case 1: if(::EE::TextStyle::load(f))
          {
             f>>font>>shadow_time>>shade_time>>color_time>>selection_time>>align_time>>size_time>>space_time>>font_time;

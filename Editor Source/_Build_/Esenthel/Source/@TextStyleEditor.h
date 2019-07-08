@@ -28,14 +28,17 @@ class TextStyleEditor : PropWin
    static void PreChanged(C Property &prop);
    static void    Changed(C Property &prop);
 
-   static void ParamsShadow(EditTextStyle &e, C Str &t);
-   static void ParamsShade (EditTextStyle &e, C Str &t);
-   static void ParamsColor (EditTextStyle &e, C Str &t);
-   static void ParamsSelect(EditTextStyle &e, C Str &t);
-   static void ParamsAlign (EditTextStyle &e, C Str &t);
-   static void ParamsSize  (EditTextStyle &e, C Str &t);
-   static void ParamsSpace (EditTextStyle &e, C Str &t);
-   static void ParamsFont  (EditTextStyle &e, C Str &t);
+   static Str ParamsSpacing(C EditTextStyle &e);
+
+   static void ParamsShadow (EditTextStyle &e, C Str &t);
+   static void ParamsShade  (EditTextStyle &e, C Str &t);
+   static void ParamsColor  (EditTextStyle &e, C Str &t);
+   static void ParamsSelect (EditTextStyle &e, C Str &t);
+   static void ParamsAlign  (EditTextStyle &e, C Str &t);
+   static void ParamsSize   (EditTextStyle &e, C Str &t);
+   static void ParamsSpace  (EditTextStyle &e, C Str &t);
+   static void ParamsSpacing(EditTextStyle &e, C Str &t);
+   static void ParamsFont   (EditTextStyle &e, C Str &t);
    static Str ParamsFont(C EditTextStyle &e);
 
    static void Undo  (TextStyleEditor &editor);

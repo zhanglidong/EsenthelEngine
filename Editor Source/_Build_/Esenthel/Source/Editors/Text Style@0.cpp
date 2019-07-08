@@ -31,6 +31,7 @@ TextStyleEditor TextStyleEdit;
    void TextStyleEditor::undoVis() {SetUndo(undos, undo, redo);}
    void TextStyleEditor::PreChanged(C Property &prop) {TextStyleEdit.undos.set(&prop);}
    void    TextStyleEditor::Changed(C Property &prop) {TextStyleEdit.setChanged();}
+   Str TextStyleEditor::ParamsSpacing(C EditTextStyle &e) {return e.spacing==SPACING_CONST;}
    void TextStyleEditor::ParamsShadow(EditTextStyle &e, C Str &t) {e.shadow   =TextInt (t); e.   shadow_time.getUTC();}
    void TextStyleEditor::ParamsShade(EditTextStyle &e, C Str &t) {e.shade    =TextInt (t); e.    shade_time.getUTC();}
    void TextStyleEditor::ParamsColor(EditTextStyle &e, C Str &t) {e.color    =TextVec4(t); e.    color_time.getUTC();}
@@ -38,6 +39,7 @@ TextStyleEditor TextStyleEdit;
    void TextStyleEditor::ParamsAlign(EditTextStyle &e, C Str &t) {e.align    =TextVec2(t); e.    align_time.getUTC();}
    void TextStyleEditor::ParamsSize(EditTextStyle &e, C Str &t) {e.size     =TextVec2(t); e.     size_time.getUTC();}
    void TextStyleEditor::ParamsSpace(EditTextStyle &e, C Str &t) {e.space    =TextVec2(t); e.    space_time.getUTC();}
+   void TextStyleEditor::ParamsSpacing(EditTextStyle &e, C Str &t) {e.spacing  =(TextBool(t) ? SPACING_CONST : SPACING_NICE); e.spacing_time.getUTC();}
    void TextStyleEditor::ParamsFont(EditTextStyle &e, C Str &t)
    {
       e.font.zero(); int i=TextInt(t); if(InRange(i, Proj.font_node.children))
@@ -61,14 +63,15 @@ TextStyleEditor TextStyleEdit;
    void TextStyleEditor::Locate(TextStyleEditor &editor) {Proj.elmLocate(editor.elm_id);}
    void TextStyleEditor::create()
    {
-                 add("Shadow"   , MemberDesc(MEMBER(EditTextStyle, shadow   )).setTextToDataFunc(ParamsShadow)).desc("Shadow Intensity");
-                 add("Shade"    , MemberDesc(MEMBER(EditTextStyle, shade    )).setTextToDataFunc(ParamsShade )).desc("Shading");
-                 add("Color"    , MemberDesc(MEMBER(EditTextStyle, color    )).setTextToDataFunc(ParamsColor )).setColor();
-                 add("Selection", MemberDesc(MEMBER(EditTextStyle, selection)).setTextToDataFunc(ParamsSelect)).setColor();
-                 add("Align"    , MemberDesc(MEMBER(EditTextStyle, align    )).setTextToDataFunc(ParamsAlign )).range(-1, 1);
-                 add("Size"     , MemberDesc(MEMBER(EditTextStyle, size     )).setTextToDataFunc(ParamsSize  )).min(0).mouseEditSpeed(0.3f);
-                 add("Space"    , MemberDesc(MEMBER(EditTextStyle, space    )).setTextToDataFunc(ParamsSpace )).min(0);
-      font_prop=&add("Font"     , MemberDesc().setFunc(ParamsFont, ParamsFont)).setEnum(); font_prop->combobox.setData(Proj.font_node);
+                 add("Shadow"       , MemberDesc(MEMBER(EditTextStyle, shadow   )).setTextToDataFunc(ParamsShadow)).desc("Shadow Intensity");
+                 add("Shade"        , MemberDesc(MEMBER(EditTextStyle, shade    )).setTextToDataFunc(ParamsShade )).desc("Shading");
+                 add("Color"        , MemberDesc(MEMBER(EditTextStyle, color    )).setTextToDataFunc(ParamsColor )).setColor();
+                 add("Selection"    , MemberDesc(MEMBER(EditTextStyle, selection)).setTextToDataFunc(ParamsSelect)).setColor();
+                 add("Align"        , MemberDesc(MEMBER(EditTextStyle, align    )).setTextToDataFunc(ParamsAlign )).range(-1, 1);
+                 add("Size"         , MemberDesc(MEMBER(EditTextStyle, size     )).setTextToDataFunc(ParamsSize  )).min(0).mouseEditSpeed(0.3f);
+                 add("Space"        , MemberDesc(MEMBER(EditTextStyle, space    )).setTextToDataFunc(ParamsSpace )).min(0);
+                 add("Const Spacing", MemberDesc(DATA_BOOL                       ).setFunc          (ParamsSpacing, ParamsSpacing));
+      font_prop=&add("Font"         , MemberDesc(                                ).setFunc          (ParamsFont   , ParamsFont   )).setEnum(); font_prop->combobox.setData(Proj.font_node);
       autoData(&edit);
 
       ::PropWin::create("Text Style Editor", Vec2(0.02f, -0.07f), 0.036f, 0.043f, 0.3f); ::PropWin::changed(Changed, PreChanged); button[1].show(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
