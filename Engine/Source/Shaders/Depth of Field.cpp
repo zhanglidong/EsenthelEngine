@@ -37,23 +37,24 @@ inline Flt Blur(Flt z, uniform Bool realistic)
    }else return DofIntensity()*Mid(z*DofMul() + DofAdd(), -1, 1); // (z-DofFocus())/DofRange, z/DofRange - DofFocus()/DofRange
 }
 /******************************************************************************/
-Vec4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
-              uniform Bool do_clamp      ,
-              uniform Bool realistic     ,
-              uniform Bool half_res      ,
-              uniform Bool gather        ):COLOR
+VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
+               uniform Bool do_clamp      ,
+               uniform Bool realistic     ,
+               uniform Bool half_res      ,
+               uniform Bool gather        ):COLOR
 {
-   Vec4 ret; // RGB=col, W=Blur
+   VecH4 ret; // RGB=col, W=Blur
+   Flt   depth;
    if(half_res)
    {
       ret.rgb=TexLod(Col, UVClamp(inTex, do_clamp)).rgb; // use linear filtering because we're downsampling
    #if MODEL>=SM_4
-      if(gather)ret.w=DEPTH_MIN(Depth.Gather(SamplerPoint, inTex));else
+      if(gather)depth=DEPTH_MIN(Depth.Gather(SamplerPoint, inTex));else
    #endif
       {
-         Vec2 tex_min=inTex-ImgSize.xy*0.5f,
-              tex_max=inTex+ImgSize.xy*0.5f;
-         ret.w=DEPTH_MIN(TexDepthRawPoint(Vec2(tex_min.x, tex_min.y)),
+         Vec2 tex_min=inTex-ImgSize.xy*0.5,
+              tex_max=inTex+ImgSize.xy*0.5;
+         depth=DEPTH_MIN(TexDepthRawPoint(Vec2(tex_min.x, tex_min.y)),
                          TexDepthRawPoint(Vec2(tex_max.x, tex_min.y)),
                          TexDepthRawPoint(Vec2(tex_min.x, tex_max.y)),
                          TexDepthRawPoint(Vec2(tex_max.x, tex_max.y)));
@@ -72,20 +73,20 @@ Vec4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
               +TexLod(Col, t01).rgb
               +TexLod(Col, t11).rgb)/4;
    #if MODEL>=SM_4
-      if(gather)ret.w=DEPTH_MIN(DEPTH_MIN(Depth.Gather(SamplerPoint, t00)),
+      if(gather)depth=DEPTH_MIN(DEPTH_MIN(Depth.Gather(SamplerPoint, t00)),
                                 DEPTH_MIN(Depth.Gather(SamplerPoint, t10)),
                                 DEPTH_MIN(Depth.Gather(SamplerPoint, t01)),
                                 DEPTH_MIN(Depth.Gather(SamplerPoint, t11)));else
    #endif
       {
          // this is approximation because we would have to take 16 samples
-         ret.w=DEPTH_MIN(TexDepthRawPoint(t00),
+         depth=DEPTH_MIN(TexDepthRawPoint(t00),
                          TexDepthRawPoint(t10),
                          TexDepthRawPoint(t01),
                          TexDepthRawPoint(t11));
       }
    }
-   ret.w=Blur(LinearizeDepth(ret.w), realistic)*0.5f+0.5f;
+   ret.w=Blur(LinearizeDepth(depth), realistic)*0.5+0.5;
    return ret;
 }
 /******************************************************************************/
@@ -125,8 +126,8 @@ inline Flt WeightSum(uniform Int range) {return range+1;} // Sum of all weights 
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
 #define SCALE 0.5 // at the end we need 0 .. 0.5 range, and since we start with 0..1 we need to scale by "0.5"
-Vec4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                 uniform Int  range         ):COLOR
+VecH4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
+                  uniform Int  range         ):COLOR
 {  //  INPUT: Col: RGB         , Blur
    // OUTPUT:      RGB BlurredX, BlurSmooth
 
@@ -162,8 +163,8 @@ Vec4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
 }
 #undef  SCALE
 #define SCALE 1.0 // at the end we need 0..1 range, and since we start with 0..1 we need to scale by "1"
-Vec4 DofBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                 uniform Int  range         ):COLOR
+VecH4 DofBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
+                  uniform Int  range         ):COLOR
 {  //  INPUT: Col: RGB BlurredX , BlurSmooth
    // OUTPUT:      RGB BlurredXY, BlurSmooth
 
@@ -198,10 +199,10 @@ Vec4 DofBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
    return Vec4(color.rgb/weight, FINAL_MODE ? ((color.a>=0.5f*weight) ? 0 : blur_abs) : blur_abs);
 }
 /******************************************************************************/
-Vec4 Dof_PS(NOPERSP Vec2 inTex:TEXCOORD,
-            NOPERSP PIXEL              ,
-            uniform Bool dither        ,
-            uniform Bool realistic     ):COLOR
+VecH4 Dof_PS(NOPERSP Vec2 inTex:TEXCOORD,
+             NOPERSP PIXEL              ,
+             uniform Bool dither        ,
+             uniform Bool realistic     ):COLOR
 {
    Flt z=TexDepthPoint(inTex),
        b=Blur(z, realistic);

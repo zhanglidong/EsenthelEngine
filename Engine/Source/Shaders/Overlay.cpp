@@ -43,23 +43,23 @@ void VS
    outMatrix[0]=Cross(outMatrix[1], outMatrix[2]);
 }
 /******************************************************************************/
-Vec4 PS
+VecH4 PS
 (
    Vec     inTex   :TEXCOORD0,
    Matrix3 inMatrix:TEXCOORD1,
 
-   out Vec4 outNrm:COLOR1,
+   out VecH4 outNrm:COLOR1,
 
    PARAMS
 ):COLOR
 {
-   Vec4 col  =Tex(Col, inTex.xy);
-   Flt  alpha=Sat(inTex.z)*OverlayAlpha();
+   VecH4 col  =Tex(Col, inTex.xy);
+   Flt   alpha=Sat(inTex.z)*OverlayAlpha();
 
    if(normal)
    {
-      Vec4 tex     =Tex(Nrm, inTex.xy); // #MaterialTextureChannelOrder
-    //Flt  specular=tex.z*MaterialSpecular();
+      VecH4 tex     =Tex(Nrm, inTex.xy); // #MaterialTextureChannelOrder
+    //Half  specular=tex.z*MaterialSpecular();
 
            VecH nrm;
                 nrm.xy =(tex.xy*2-1)*MaterialRough();
@@ -72,7 +72,7 @@ Vec4 PS
    #if SIGNED_NRM_RT
       outNrm.xyz=nrm;
    #else
-      outNrm.xyz=nrm*0.5f+0.5f;
+      outNrm.xyz=nrm*0.5+0.5;
    #endif
    }
    col.a*=alpha;

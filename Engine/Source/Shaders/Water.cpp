@@ -86,8 +86,8 @@ void Surface_PS
    Flt  inPDF  :TEXCOORD5,
    PIXEL,
 
-   out Vec4 O_col:COLOR0,
-   out Vec4 O_nrm:COLOR1,
+   out VecH4 O_col:COLOR0,
+   out VecH4 O_nrm:COLOR1,
 
    uniform Bool waves                ,
    uniform Bool river                ,
@@ -215,11 +215,11 @@ void Surface_PS
    }
 }
 /******************************************************************************/
-Vec4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-              NOPERSP Vec2 inPosXY:TEXCOORD1,
-                  out Flt  depth  :DEPTH    ,
-              uniform Bool refract          ,
-              uniform Bool set_depth=false  ):COLOR
+VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+               NOPERSP Vec2 inPosXY:TEXCOORD1,
+                   out Flt  depth  :DEPTH    ,
+               uniform Bool refract          ,
+               uniform Bool set_depth=false  ):COLOR
 {
    Flt water_z=TexPoint        (Det, inTex).x,
        solid_z=TexDepthRawPoint(     inTex), alpha=0;
@@ -323,9 +323,9 @@ Vec4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    }
 }
 /******************************************************************************/
-Vec4 Under_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-              NOPERSP Vec2 inPosXY:TEXCOORD1,
-              uniform Bool refract          ):COLOR
+VecH4 Under_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+               NOPERSP Vec2 inPosXY:TEXCOORD1,
+               uniform Bool refract          ):COLOR
 {
    // underwater refraction
    if(refract)

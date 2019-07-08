@@ -76,8 +76,8 @@ void PS
    PARAMS
 )
 {
-   if(textures==1)clip(Tex(Col, I.tex).a+(test_blend ? (MaterialAlpha()*0.5f-1) : (MaterialAlpha()-1)));else
-   if(textures==2)clip(Tex(Nrm, I.tex).a+(test_blend ? (MaterialAlpha()*0.5f-1) : (MaterialAlpha()-1))); // #MaterialTextureChannelOrder
+   if(textures==1)clip(Tex(Col, I.tex).a+(test_blend ? (MaterialAlpha()*0.5-1) : (MaterialAlpha()-1)));else
+   if(textures==2)clip(Tex(Nrm, I.tex).a+(test_blend ? (MaterialAlpha()*0.5-1) : (MaterialAlpha()-1))); // #MaterialTextureChannelOrder
 }
 /******************************************************************************/
 // HULL / DOMAIN

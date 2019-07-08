@@ -54,7 +54,7 @@ void VS
    outColor.a*=Sat(Length(pos)*SkyFracMulAdd.x + SkyFracMulAdd.y);
 }
 /******************************************************************************/
-Vec4 PS
+VecH4 PS
 (
    Vec2  inTex  :TEXCOORD0,
    Vec2  inTexL :TEXCOORD1,

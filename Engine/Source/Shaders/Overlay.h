@@ -1,7 +1,7 @@
 /******************************************************************************/
 struct OverlayClass
 {
-   Vec4   param;
+   VecH4  param;
    Matrix mtrx ;
 };
 

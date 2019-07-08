@@ -19,13 +19,13 @@ void LayeredClouds_VS
    outVtx=Project(outPos=TransformPos(pos));
 }
 /******************************************************************************/
-Vec4 LayeredClouds_PS(Vec   inPos :TEXCOORD0,
-                      Vec4  inTex :TEXCOORD1,
-                      PIXEL                 ,
-                  out VecH4 outMask:COLOR1  ,
-              uniform Int   num             ,
-              uniform Bool  blend           ,
-              uniform Bool  mask            ):COLOR
+VecH4 LayeredClouds_PS(Vec   inPos :TEXCOORD0,
+                       Vec4  inTex :TEXCOORD1,
+                       PIXEL                 ,
+                   out VecH4 outMask:COLOR1  ,
+               uniform Int   num             ,
+               uniform Bool  blend           ,
+               uniform Bool  mask            ):COLOR
 {
    Half a=Sat(inTex.w);
    if(blend)

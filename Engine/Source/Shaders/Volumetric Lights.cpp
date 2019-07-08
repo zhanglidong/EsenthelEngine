@@ -3,15 +3,15 @@
 #include "Sky.h"
 /******************************************************************************/
 BUFFER(VolLight)
-   Vec VolMax=Vec(1, 1, 1);
-   Flt Light_point_range;
+   VecH VolMax=Vec(1, 1, 1);
+   Flt  Light_point_range;
 BUFFER_END
 /******************************************************************************/
-Vec4 VolDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-               NOPERSP Vec2 inPosXY:TEXCOORD1,
-               NOPERSP PIXEL                 ,
-               uniform Int  num              ,
-               uniform Bool cloud            ):COLOR
+VecH4 VolDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+                NOPERSP Vec2 inPosXY:TEXCOORD1,
+                NOPERSP PIXEL                 ,
+                uniform Int  num              ,
+                uniform Bool cloud            ):COLOR
 {
    Vec obj   =GetPosLinear(inTex, inPosXY); // use linear filtering because we may be drawing to a smaller RT
    Flt power =0,
@@ -35,12 +35,12 @@ Vec4 VolDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    power =Pow(power /steps   , Light_dir.vol_exponent_steam.y);
    power*=Pow(length/ShdRange, Light_dir.vol_exponent_steam.y*(1-Light_dir.vol_exponent_steam.z));
    power*=Light_dir.vol_exponent_steam.x;
-   return Vec4(Light_dir.color.rgb*power, 0);
+   return VecH4(Light_dir.color.rgb*power, 0);
 }
 /******************************************************************************/
-Vec4 VolPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                 NOPERSP Vec2 inPosXY:TEXCOORD1,
-                 NOPERSP PIXEL                 ):COLOR
+VecH4 VolPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+                  NOPERSP Vec2 inPosXY:TEXCOORD1,
+                  NOPERSP PIXEL                 ):COLOR
 {
    Vec obj   =GetPosLinear(inTex, inPosXY); // use linear filtering because we may be drawing to a smaller RT
    Flt power =0,
@@ -63,12 +63,12 @@ Vec4 VolPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       Vec pos=Lerp(from, to, Flt(i)/Flt(steps));
       power+=ShadowPointValue(obj*(Flt(i)/steps), jitter_value, true)*LightLinearDist(pos, Light_point_range);
    }
-   return Vec4(Light_point.color.rgb*Min(Light_point.vol_max, Light_point.vol*power*(length/steps)), 0);
+   return VecH4(Light_point.color.rgb*Min(Light_point.vol_max, Light_point.vol*power*(length/steps)), 0);
 }
 /******************************************************************************/
-Vec4 VolLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                  NOPERSP Vec2 inPosXY:TEXCOORD1,
-                  NOPERSP PIXEL                 ):COLOR
+VecH4 VolLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+                   NOPERSP Vec2 inPosXY:TEXCOORD1,
+                   NOPERSP PIXEL                 ):COLOR
 {
    Vec obj   =GetPosLinear(inTex, inPosXY); // use linear filtering because we may be drawing to a smaller RT
    Flt power =0,
@@ -90,12 +90,12 @@ Vec4 VolLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       Vec pos=Lerp(from, to, Flt(i)/Flt(steps));
       power+=ShadowPointValue(obj*(Flt(i)/steps), jitter_value, true)*LightLinearDist(pos);
    }
-   return Vec4(Light_linear.color.rgb*Min(Light_linear.vol_max, Light_linear.vol*power*(length/steps)), 0);
+   return VecH4(Light_linear.color.rgb*Min(Light_linear.vol_max, Light_linear.vol*power*(length/steps)), 0);
 }
 /******************************************************************************/
-Vec4 VolCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                NOPERSP Vec2 inPosXY:TEXCOORD1,
-                NOPERSP PIXEL                 ):COLOR
+VecH4 VolCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+                 NOPERSP Vec2 inPosXY:TEXCOORD1,
+                 NOPERSP PIXEL                 ):COLOR
 {
    Vec obj   =GetPosLinear(inTex, inPosXY), // use linear filtering because we may be drawing to a smaller RT
        scale =Vec(Light_cone.scale, Light_cone.scale, 1);
@@ -122,14 +122,14 @@ Vec4 VolCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          power+=ShadowConeValue(obj*(Flt(i)/steps), jitter_value, true)*LightConeDist(pos*scale)*LightConeAngle(pos.xy/pos.z);
       }
    }
-   return Vec4(Light_cone.color.rgb*Min(Light_cone.vol_max, Light_cone.vol*power*(length/steps)), 0);
+   return VecH4(Light_cone.color.rgb*Min(Light_cone.vol_max, Light_cone.vol*power*(length/steps)), 0);
 }
 /******************************************************************************/
-Vec4 Volumetric_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                   uniform Bool add           ,
-                   uniform Int  samples=6     ):COLOR
+VecH4 Volumetric_PS(NOPERSP Vec2 inTex:TEXCOORD,
+                    uniform Bool add           ,
+                    uniform Int  samples=6     ):COLOR
 {
-   Vec vol=TexLod(Col, inTex).rgb; // use linear filtering because Col may be smaller
+   VecH vol=TexLod(Col, inTex).rgb; // use linear filtering because Col may be smaller
 
    UNROLL for(Int i=0; i<samples; i++)
    {
@@ -147,8 +147,8 @@ Vec4 Volumetric_PS(NOPERSP Vec2 inTex:TEXCOORD,
    vol/=samples+1;
    vol =Min(vol, VolMax);
 
-   if(add)return Vec4(vol, 0);                                 // alpha blending : ALPHA_ADD
-   else   {Flt max=Max(vol); return Vec4(vol/(EPS+max), max);} // alpha blending : ALPHA_BLEND_DEC
+   if(add)return VecH4(vol, 0);                                  // alpha blending : ALPHA_ADD
+   else   {Half max=Max(vol); return VecH4(vol/(EPS+max), max);} // alpha blending : ALPHA_BLEND_DEC
 }
 /******************************************************************************/
 // TECHNIQUES

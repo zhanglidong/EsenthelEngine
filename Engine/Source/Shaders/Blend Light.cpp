@@ -154,8 +154,8 @@ void PS
  //PIXEL,
    IF_IS_FRONT
 
-out Vec4 outCol:COLOR0,
-out Vec4 outVel:COLOR1, // #BlendRT
+out VecH4 outCol:COLOR0,
+out VecH4 outVel:COLOR1, // #BlendRT
 
    PARAMS
 )

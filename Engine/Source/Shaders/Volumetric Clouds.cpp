@@ -47,7 +47,7 @@ void Clouds_VS(VtxInput vtx,
    dir=Transform3(Vec(ScreenToPosXY(vtx.tex()), 1), CamMatrix); // world-space position
    outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
-Vec2 Clouds_PS(NOPERSP Vec dir:TEXCOORD):COLOR // 'dir'=world-space position
+VecH2 Clouds_PS(NOPERSP Vec dir:TEXCOORD):COLOR // 'dir'=world-space position
 {
    Flt a=Sat(dir.y*8); // alternatively, 'a' could be calculated as "a=Sat(max_from-from)"
 #if FLOW
@@ -116,9 +116,9 @@ void CloudsMap_VS(VtxInput vtx,
 
    outVtx=vtx.pos4();
 }
-Flt CloudsMap_PS(NOPERSP Vec pos:TEXCOORD0, // world-space position, relative to main camera
-                 NOPERSP Vec dir:TEXCOORD1  // world-space direction
-                ):COLOR
+Half CloudsMap_PS(NOPERSP Vec pos:TEXCOORD0, // world-space position, relative to main camera
+                  NOPERSP Vec dir:TEXCOORD1  // world-space direction
+                 ):COLOR
 {
 /* clouds = -Cloud.curve*x*x + Cloud.height
    ray    = pos + dir*t

@@ -123,7 +123,7 @@ void Soft_VS
    outVtx=Project(pos);
 }
 /******************************************************************************/
-Vec4 Soft_PS
+VecH4 Soft_PS
 (
    Vec2 inTex :TEXCOORD0,
    Vec4 inPos4:TEXCOORD1,

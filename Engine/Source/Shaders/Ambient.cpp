@@ -25,7 +25,7 @@ void VS
        CLIP(pos); outVtx=Project(pos);
 }
 /******************************************************************************/
-Vec4 PS
+VecH4 PS
 (
    Vec2 inTex:TEXCOORD,
 
@@ -35,7 +35,7 @@ Vec4 PS
    if(alpha_test==1)clip(Tex(Col, inTex).a + MaterialAlpha()-1);else
    if(alpha_test==2)clip(Tex(Nrm, inTex).a + MaterialAlpha()-1); // #MaterialTextureChannelOrder
 
-   return Vec4(MaterialAmbient(), 0);
+   return VecH4(MaterialAmbient(), 0);
 }
 /******************************************************************************/
 CUSTOM_TECHNIQUE
