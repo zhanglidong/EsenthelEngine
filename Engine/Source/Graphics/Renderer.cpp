@@ -1518,9 +1518,9 @@ void RendererClass::edgeDetect()
       case EDGE_DETECT_FAT:
       {
          ImageRTPtr edge(ImageRTDesc(fxW(), fxH(), IMAGERT_ONE));
-         D.alpha     (ALPHA_NONE); set(edge, null, true, NEED_DEPTH_READ); Sh.imgSize(*_ds_1s); Sh.h_EdgeDetect     ->draw(); // we need to fill the entire buffer because below we're using blurring (which takes nearby texels)
+         D.alpha     (ALPHA_NONE); set(edge, null, true, NEED_DEPTH_READ); Sh.imgSize(*_ds_1s); Sh.h_EdgeDetect->draw(); // we need to fill the entire buffer because below we're using blurring (which takes nearby texels)
          D.depth2DOn ();
-         D.alpha     (ALPHA_MUL ); set(_col, _ds , true,   NO_DEPTH_READ); Sh.imgSize(* edge ); Sh.h_EdgeDetectApply->draw(edge);
+         D.alpha     (ALPHA_MUL ); set(_col, _ds , true,   NO_DEPTH_READ); Sh.imgSize(* edge ); Sh.h_ImageImgX[0]->set(edge); Sh.h_EdgeDetectApply->draw();
          D.depth2DOff();
       }break;
    }
