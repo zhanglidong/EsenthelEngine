@@ -9,18 +9,18 @@
 /******************************************************************************/
 // HDR
 /******************************************************************************/
-Vec4 HdrDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
-              uniform Int  step          ):COLOR
+Flt HdrDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
+             uniform Int  step          ):COLOR
 {
    Vec2 tex_min=inTex-ImgSize.xy,
         tex_max=inTex+ImgSize.xy;
    if(step==0)
    {
-      // use linear filtering because we're downsampling
-      Vec sum=TexLod(Col, Vec2(tex_min.x, tex_min.y)).rgb
-             +TexLod(Col, Vec2(tex_max.x, tex_min.y)).rgb
-             +TexLod(Col, Vec2(tex_min.x, tex_max.y)).rgb
-             +TexLod(Col, Vec2(tex_max.x, tex_max.y)).rgb;
+      // use linear filtering because we're downsampling, for the first step use half precision for high performance, because there's a lot of data
+      VecH sum=TexLod(Col, Vec2(tex_min.x, tex_min.y)).rgb
+              +TexLod(Col, Vec2(tex_max.x, tex_min.y)).rgb
+              +TexLod(Col, Vec2(tex_min.x, tex_max.y)).rgb
+              +TexLod(Col, Vec2(tex_max.x, tex_max.y)).rgb;
 
    #if !LINEAR_GAMMA // convert from sRGB to linear
       sum=SRGBToLinearFast(sum)/4; // SRGBToLinearFast(sum/4)*4
@@ -39,17 +39,17 @@ Vec4 HdrDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
       return lum;
    }else
    {
-      // use linear filtering because we're downsampling
-      return Avg(TexLod(Col, Vec2(tex_min.x, tex_min.y)).x,
-                 TexLod(Col, Vec2(tex_max.x, tex_min.y)).x,
-                 TexLod(Col, Vec2(tex_min.x, tex_max.y)).x,
-                 TexLod(Col, Vec2(tex_max.x, tex_max.y)).x);
+      // use linear filtering because we're downsampling, here use full precision for more accuracy
+      return Avg(TexLod(ValF, Vec2(tex_min.x, tex_min.y)).x,
+                 TexLod(ValF, Vec2(tex_max.x, tex_min.y)).x,
+                 TexLod(ValF, Vec2(tex_min.x, tex_max.y)).x,
+                 TexLod(ValF, Vec2(tex_max.x, tex_max.y)).x);
    }
 }
 /******************************************************************************/
-Vec4 HdrUpdate_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
+Flt HdrUpdate_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR // here use full precision
 {
-   Flt lum=TexPoint(Col, Vec2(0, 0)).x;
+   Flt lum=TexPoint(ValF, Vec2(0, 0)).x; // new luminance
 
    // adjustment restore
 #if GEOMETRIC
@@ -64,7 +64,7 @@ Vec4 HdrUpdate_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
    lum=HdrBrightness/Max(lum, EPS_COL); // desired scale
 
    lum=Mid(lum, HdrMaxDark, HdrMaxBright);
-   return Lerp(lum, TexPoint(Lum, Vec2(0, 0)).x, Step);
+   return Lerp(lum, TexPoint(Val1F, Vec2(0, 0)).x, Step); // lerp new with old
 }
 /******************************************************************************/
 VecH4 Hdr_PS(NOPERSP Vec2 inTex:TEXCOORD,
@@ -72,7 +72,7 @@ VecH4 Hdr_PS(NOPERSP Vec2 inTex:TEXCOORD,
              uniform Bool dither        ):COLOR
 {
    VecH4 col=TexLod  (Col, inTex); // can't use 'TexPoint' because 'Col' can be supersampled
-   Half  lum=TexPoint(Lum, Vec2(0, 0)).x;
+   Half  lum=TexPoint(Val, Vec2(0, 0)).x;
 
    /* full formula
    if(gamma)col.rgb=SRGBToLinearFast(col.rgb);

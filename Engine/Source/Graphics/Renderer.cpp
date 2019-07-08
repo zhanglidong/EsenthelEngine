@@ -237,13 +237,13 @@ void RendererClass::adaptEye(ImageRT &src, ImageRT &dest, Bool dither)
       ImageRTPtr next=temp; next.get(ImageRTDesc(s, s, IMAGERT_F32)); s/=4; // we could use 16-bit as according to calculations, the max error for 1920x1080, starting with 256x256 as first step and going down to 1x1, with average luminance of 1.0 (255 byte) is 0.00244140625 at the final stage, which gives 410 possible colors, however we may use some special tricks in the shader that requires higher precision (for example BRIGHT with Sqr and Sqrt later, or use Linear/sRGB)
       set(next(), null, false);
       Sh.imgSize(*temp);
-      if(i)Hdr.h_HdrDS[1]->draw(temp());
-      else Hdr.h_HdrDS[0]->draw(temp(), null, D.screenToUV(D.viewRect()));
+      if(i){Sh.h_ImageValF[0]->set(temp()); Hdr.h_HdrDS[1]->draw();}
+      else {Sh.h_ImageCol [0]->set(temp()); Hdr.h_HdrDS[0]->draw(null, null, D.screenToUV(D.viewRect()));}
       temp=next;
    }
    Sh.h_Step    ->set(Pow(Mid(1/D.eyeAdaptationSpeed(), EPS, 1.0f), Time.d())); // can use EPS and not EPS_GPU because we're using Pow here and not on GPU
-   Sh.h_ImageLum->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.h_HdrUpdate                                                  ->draw(temp());
-   Sh.h_ImageLum->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.h_Hdr[dither && src.highPrecision() && !dest.highPrecision()]->draw(src   );
+   Sh.h_ImageValF[0]->set(temp()); Sh.h_ImageValF[1]->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.h_HdrUpdate                                                  ->draw();
+                                   Sh.h_ImageVal    ->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.h_Hdr[dither && src.highPrecision() && !dest.highPrecision()]->draw(src);
    MaterialClear();
 }
 INLINE Shader* GetBloomDS(Bool glow, Bool viewport_clamp, Bool half, Bool saturate, Bool gamma) {Shader* &s=Sh.h_BloomDS[glow][viewport_clamp][half][saturate][gamma]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow, viewport_clamp, half, saturate, gamma); return s;}

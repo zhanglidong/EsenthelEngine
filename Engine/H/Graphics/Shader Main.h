@@ -35,6 +35,7 @@ struct MainShaderClass
       *h_ImageDepth, *h_ImageDepthMS,
       *h_ImageLum  , *h_ImageLumMS  ,
       *h_ImageVal  , *h_ImageValMS  ,
+      *h_ImageValF[2],
       *h_ImageShdMap[2],
       *h_ImageCub,
       *h_ImageVol[2];
