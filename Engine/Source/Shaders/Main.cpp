@@ -1226,22 +1226,22 @@ TECHNIQUE(BlurYH, Draw_VS(), BlurY_PS(6));
 Half BlurX_X_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    // use linear filtering because texcoords aren't rounded
-   return TexLod(Col, inTex+RTSize.xy*Vec2( 0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).x*(WEIGHT6_0/2+WEIGHT6_1)
-         +TexLod(Col, inTex+RTSize.xy*Vec2(-0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).x*(WEIGHT6_0/2+WEIGHT6_1)
-         +TexLod(Col, inTex+RTSize.xy*Vec2( 2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).x*(WEIGHT6_2  +WEIGHT6_3)
-         +TexLod(Col, inTex+RTSize.xy*Vec2(-2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).x*(WEIGHT6_2  +WEIGHT6_3)
-         +TexLod(Col, inTex+RTSize.xy*Vec2( 4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).x*(WEIGHT6_4  +WEIGHT6_5)
-         +TexLod(Col, inTex+RTSize.xy*Vec2(-4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).x*(WEIGHT6_4  +WEIGHT6_5);
+   return TexLod(ImgX, inTex+RTSize.xy*Vec2( 0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).x*(WEIGHT6_0/2+WEIGHT6_1)
+         +TexLod(ImgX, inTex+RTSize.xy*Vec2(-0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1), 0)).x*(WEIGHT6_0/2+WEIGHT6_1)
+         +TexLod(ImgX, inTex+RTSize.xy*Vec2( 2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).x*(WEIGHT6_2  +WEIGHT6_3)
+         +TexLod(ImgX, inTex+RTSize.xy*Vec2(-2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3), 0)).x*(WEIGHT6_2  +WEIGHT6_3)
+         +TexLod(ImgX, inTex+RTSize.xy*Vec2( 4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).x*(WEIGHT6_4  +WEIGHT6_5)
+         +TexLod(ImgX, inTex+RTSize.xy*Vec2(-4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5), 0)).x*(WEIGHT6_4  +WEIGHT6_5);
 }
 Half BlurY_X_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    // use linear filtering because texcoords aren't rounded
-   return TexLod(Col, inTex+RTSize.xy*Vec2(0,  0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).x*(WEIGHT6_0/2+WEIGHT6_1)
-         +TexLod(Col, inTex+RTSize.xy*Vec2(0, -0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).x*(WEIGHT6_0/2+WEIGHT6_1)
-         +TexLod(Col, inTex+RTSize.xy*Vec2(0,  2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).x*(WEIGHT6_2  +WEIGHT6_3)
-         +TexLod(Col, inTex+RTSize.xy*Vec2(0, -2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).x*(WEIGHT6_2  +WEIGHT6_3)
-         +TexLod(Col, inTex+RTSize.xy*Vec2(0,  4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).x*(WEIGHT6_4  +WEIGHT6_5)
-         +TexLod(Col, inTex+RTSize.xy*Vec2(0, -4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).x*(WEIGHT6_4  +WEIGHT6_5);
+   return TexLod(ImgX, inTex+RTSize.xy*Vec2(0,  0+WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).x*(WEIGHT6_0/2+WEIGHT6_1)
+         +TexLod(ImgX, inTex+RTSize.xy*Vec2(0, -0-WEIGHT6_1/(WEIGHT6_0/2+WEIGHT6_1))).x*(WEIGHT6_0/2+WEIGHT6_1)
+         +TexLod(ImgX, inTex+RTSize.xy*Vec2(0,  2+WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).x*(WEIGHT6_2  +WEIGHT6_3)
+         +TexLod(ImgX, inTex+RTSize.xy*Vec2(0, -2-WEIGHT6_3/(WEIGHT6_2  +WEIGHT6_3))).x*(WEIGHT6_2  +WEIGHT6_3)
+         +TexLod(ImgX, inTex+RTSize.xy*Vec2(0,  4+WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).x*(WEIGHT6_4  +WEIGHT6_5)
+         +TexLod(ImgX, inTex+RTSize.xy*Vec2(0, -4-WEIGHT6_5/(WEIGHT6_4  +WEIGHT6_5))).x*(WEIGHT6_4  +WEIGHT6_5);
 }
 
 TECHNIQUE(BlurX_X, Draw_VS(), BlurX_X_PS());
