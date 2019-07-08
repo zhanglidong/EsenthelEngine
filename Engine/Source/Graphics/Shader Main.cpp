@@ -267,6 +267,7 @@ void MainShaderClass::getTechniques()
    h_ImageValMS    =ShaderImages("ValMS"  );
    h_ImageValF[0]  =ShaderImages("ValF"   );
    h_ImageValF[1]  =ShaderImages("Val1F"  );
+   h_ImageValXY    =ShaderImages("ValXY"  );
    h_ImageShdMap[0]=ShaderImages("ShdMap" ); h_ImageShdMap[0]->_sampler=&SamplerLinearClamp;
    h_ImageShdMap[1]=ShaderImages("ShdMap1"); h_ImageShdMap[1]->_sampler=&SamplerLinearClamp;
    h_ImageColMS    =ShaderImages("ColMS"  );
@@ -275,8 +276,9 @@ void MainShaderClass::getTechniques()
    h_ImageDepth    =ShaderImages("Depth"  );
    h_ImageDepthMS  =ShaderImages("DepthMS");
    h_ImageCub      =ShaderImages("Cub"    );
-   h_ImageVol[0]   =ShaderImages("Vol"    );
-   h_ImageVol[1]   =ShaderImages("Vol1"   );
+   h_ImageVol      =ShaderImages("Vol"    );
+   h_ImageVolXY[0] =ShaderImages("VolXY"  );
+   h_ImageVolXY[1] =ShaderImages("VolXY1" );
 
    h_ImgSize         =GetShaderParam("ImgSize" );
    h_ImgClamp        =GetShaderParam("ImgClamp");

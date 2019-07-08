@@ -997,10 +997,11 @@ void Image::drawVolume(C Color &color, C Color &color_add, C OBox &obox, Flt vox
       v.inside.z=Dot(delta, obox.matrix.z);
 
       D .alphaFactor(TRANSPARENT);
-      Sh.h_ImageVol[0]->set(T        ); Sh.h_ImageVol[0]->_sampler=&SamplerLinearClamp;
-      Sh.h_Color   [0]->set(color    );
-      Sh.h_Color   [1]->set(color_add);
-      Sh.h_Volume     ->set(v);
+      ShaderImage &si=(LA ? *Sh.h_ImageVolXY[0] : *Sh.h_ImageVol);
+      si            .set(T        ); si._sampler=&SamplerLinearClamp;
+      Sh.h_Color[0]->set(color    );
+      Sh.h_Color[1]->set(color_add);
+      Sh.h_Volume  ->set(v);
 
       D.cull (true);
       D.alpha(ALPHA_BLEND_DEC);
@@ -1025,8 +1026,8 @@ void Image::drawVolume(C Color &color, C Color &color_add, C OBox &obox, Flt vox
          Sh.h_Volume0[LA]->begin(); MshrBox.set().drawFull();
       }
 
-      Sh.h_ImageVol[0]->_sampler=null;
-      MaterialClear(); // because D.alphaFactor and ImageCol
+      si._sampler=null;
+      MaterialClear(); // because D.alphaFactor
    }
 }
 /******************************************************************************/

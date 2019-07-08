@@ -86,7 +86,7 @@ static void RestoreViewSpaceBias(Flt mp_z_z)
    if(FovPerspective(D.viewFovMode())){ProjMatrix.z.z=mp_z_z; SetProjMatrix();}
 }
 void RendererClass::getShdRT()
-{ // always do 'get' to call 'discard', do h_ImageVal->set it will be used by drawing lights 'Light.draw, drawForward' (GetLight*->draw) and 'MapSoft'
+{ // always do 'get' to call 'discard', do "h_ImageVal->set" it will be used by drawing lights 'Light.draw, drawForward' (GetLight*->draw) and 'MapSoft'
                                   {Renderer._shd_1s.get(ImageRTDesc(Renderer._ds_1s->w(), Renderer._ds_1s->h(), IMAGERT_ONE                         )); Sh.h_ImageVal  ->set(Renderer._shd_1s);}
    if(Renderer._ds->multiSample()){Renderer._shd_ms.get(ImageRTDesc(Renderer._ds   ->w(), Renderer._ds   ->h(), IMAGERT_ONE, Renderer._ds->samples())); Sh.h_ImageValMS->set(Renderer._shd_ms);}
    D.alpha(ALPHA_NONE);

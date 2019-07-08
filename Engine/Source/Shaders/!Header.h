@@ -114,8 +114,10 @@
 #if DX11
    #define ImageF      Texture2D  <Flt  >
    #define ImageH      Texture2D  <Half >
+   #define ImageH2     Texture2D  <VecH2>
    #define Image       Texture2D  <VecH4>
    #define Image3D     Texture3D  <VecH4>
+   #define Image3DH2   Texture3D  <VecH2>
    #define ImageCube   TextureCube<VecH4>
    #define ImageShadow Texture2D  <Flt  > // use 'Flt' because source is F32 depth buffer TODO: or perhaps we can use Half because it defines the output not input?
 
@@ -124,8 +126,10 @@
 #elif GL
    #define ImageF      sampler2D
    #define ImageH      sampler2D
+   #define ImageH2     sampler2D
    #define Image       sampler2D
    #define Image3D     sampler3D
+   #define Image3DH2   sampler3D
    #define ImageCube   samplerCUBE
    #define ImageShadow sampler2DShadow
 #endif
@@ -574,6 +578,7 @@ Image     Col, Col1, Col2, Col3,
           Lum;
 ImageH    Val;
 ImageF    ValF, Val1F, Depth;
+ImageH2   ValXY;
 ImageCube Rfl, Rfl1, Rfl2, Rfl3;
 
 #if MODEL>=SM_4

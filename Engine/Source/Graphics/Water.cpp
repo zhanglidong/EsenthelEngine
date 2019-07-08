@@ -48,7 +48,7 @@ WaterMtrl& WaterMtrl::validate()
 }
 void WaterMtrl::set()
 {
-   // Col[1], Col[2], Det[0] reserved for 'setImages'
+   // Col[1], Col[2], ValF[0] reserved for 'setImages'
    Sh.h_ImageCol[0]->set(     _color_map());
    Sh.h_ImageNrm[0]->set(    _normal_map());
    Sh.h_ImageRfl[0]->set(_reflection_map());
@@ -395,9 +395,9 @@ void WaterClass::under(C PlaneM &plane, WaterMtrl &mtrl)
 /******************************************************************************/
 void WaterClass::setImages(Image *src, Image *depth)
 {
-   Sh.h_ImageCol[1]->set(Renderer._mirror_rt); Sh.h_ImageCol[1]->_sampler=&SamplerLinearClamp; // reflection
-   Sh.h_ImageCol[2]->set(          src      ); Sh.h_ImageCol[2]->_sampler=&SamplerLinearClamp; // solid underwater
-   Sh.h_ImageDet[0]->set(          depth    );                                                 // solid depth
+   Sh.h_ImageCol [1]->set(Renderer._mirror_rt); Sh.h_ImageCol[1]->_sampler=&SamplerLinearClamp; // reflection
+   Sh.h_ImageCol [2]->set(          src      ); Sh.h_ImageCol[2]->_sampler=&SamplerLinearClamp; // solid underwater
+   Sh.h_ImageValF[0]->set(          depth    );                                                 // solid depth
 }
 void WaterClass::endImages()
 {

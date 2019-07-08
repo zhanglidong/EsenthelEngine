@@ -35,10 +35,10 @@ VecH4 LayeredClouds_PS(Vec   inPos :TEXCOORD0,
    }
    Vec2  uv=Normalize(inTex.xyz).xz;
    VecH4 color;
-   if(num>=4){Vec4 tex=Tex(Col3, uv*CL[3].scale + CL[3].position)*CL[3].color; if(num==4)color=tex;else color=Lerp(color, tex, tex.a);}
-   if(num>=3){Vec4 tex=Tex(Col2, uv*CL[2].scale + CL[2].position)*CL[2].color; if(num==3)color=tex;else color=Lerp(color, tex, tex.a);}
-   if(num>=2){Vec4 tex=Tex(Col1, uv*CL[1].scale + CL[1].position)*CL[1].color; if(num==2)color=tex;else color=Lerp(color, tex, tex.a);}
-   if(num>=1){Vec4 tex=Tex(Col , uv*CL[0].scale + CL[0].position)*CL[0].color; if(num==1)color=tex;else color=Lerp(color, tex, tex.a);}
+   if(num>=4){VecH4 tex=Tex(Col3, uv*CL[3].scale + CL[3].position)*CL[3].color; if(num==4)color=tex;else color=Lerp(color, tex, tex.a);}
+   if(num>=3){VecH4 tex=Tex(Col2, uv*CL[2].scale + CL[2].position)*CL[2].color; if(num==3)color=tex;else color=Lerp(color, tex, tex.a);}
+   if(num>=2){VecH4 tex=Tex(Col1, uv*CL[1].scale + CL[1].position)*CL[1].color; if(num==2)color=tex;else color=Lerp(color, tex, tex.a);}
+   if(num>=1){VecH4 tex=Tex(Col , uv*CL[0].scale + CL[0].position)*CL[0].color; if(num==1)color=tex;else color=Lerp(color, tex, tex.a);}
 
    color.a*=a;
    if(mask)

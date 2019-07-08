@@ -14,7 +14,7 @@ void Surface_VS
    out Vec4 outTexN0:TEXCOORD2,
    out Vec4 outTexN1:TEXCOORD3,
    out Vec4 outTexB :TEXCOORD4,
-   out Flt  outPDF  :TEXCOORD5,
+   out Half outPDF  :TEXCOORD5,
    out Vec4 outVtx  :POSITION ,
 
    uniform Bool waves,
@@ -64,7 +64,7 @@ void Surface_VS
 
    if(waves)
    {
-      Flt dist_scale=LerpRS(Sqr(150.0), Sqr(100.0), Length2(outPos)),
+      Flt dist_scale=LerpRS(Sqr(150.0f), Sqr(100.0f), Length2(outPos)),
           bump      =TexLod(Col, outTexB.xy).a+TexLod(Col, outTexB.zw).a;
           bump      =bump-1; // Avg(a,b)*2-1 = (a+b)-1
           outPos   +=(WaterPlnNrm*WaterWave)*bump*dist_scale;
@@ -83,7 +83,7 @@ void Surface_PS
    Vec4 inTexN0:TEXCOORD2,
    Vec4 inTexN1:TEXCOORD3,
    Vec4 inTexB :TEXCOORD4,
-   Flt  inPDF  :TEXCOORD5,
+   Half inPDF  :TEXCOORD5,
    PIXEL,
 
    out VecH4 O_col:COLOR0,
@@ -97,7 +97,7 @@ void Surface_PS
    uniform Bool soft           =false
 )
 {
-   Vec      nrm; // #MaterialTextureChannelOrder
+   VecH     nrm; // #MaterialTextureChannelOrder
             nrm.xy =(Tex(Nrm, inTexN0.xy).xy - Tex(Nrm, inTexN0.zw).xy + Tex(Nrm, inTexN1.xy).xy - Tex(Nrm, inTexN1.zw).xy)*WaterRgh_2; // (Avg(Tex(Nrm, inTexN0.xy).xy, 1-Tex(Nrm, inTexN0.zw).xy, Tex(Nrm, inTexN1.xy).xy, 1-Tex(Nrm, inTexN1.zw).xy)*2-1)*WaterRgh
    if(waves)nrm.xy+=(Tex(Nrm, inTexB .xy).xy - Tex(Nrm, inTexB .zw).xy                                                    )*WaterWave ; // (Avg(Tex(Nrm, inTexB .xy).xy, 1-Tex(Nrm, inTexB .zw).xy                                                    )*2-1)*WaterWave
             nrm.z  =CalcZ(nrm.xy);
@@ -107,15 +107,15 @@ void Surface_PS
    mtrx[1]=MatrixZ(ViewMatrix[0]);
    mtrx[2]=MatrixY(ViewMatrix[0]);
 
-   Vec fresnel_nrm    =nrm;
-       fresnel_nrm.xy*=WaterFresnelRough;
-       fresnel_nrm.z  =CalcZ(fresnel_nrm.xy);
-       fresnel_nrm    =Transform(fresnel_nrm, mtrx); // convert to view space
-   Vec    view_nrm    =Transform(nrm        , mtrx); // convert to view space
+   VecH fresnel_nrm    =nrm;
+        fresnel_nrm.xy*=WaterFresnelRough;
+        fresnel_nrm.z  =CalcZ(fresnel_nrm.xy);
+        fresnel_nrm    =Transform(fresnel_nrm, mtrx); // convert to view space
+   Vec     view_nrm    =Transform(nrm        , mtrx); // convert to view space
 
    Vec view=Normalize(inPos);
 
-   Vec4 col=Vec4(WaterCol*Tex(Col, inTex).rgb, 0);
+   VecH4 col=VecH4(WaterCol*Tex(Col, inTex).rgb, 0);
    {
       if(fake_reflection) // add fake reflection
       {
@@ -123,8 +123,8 @@ void Surface_PS
       }
       // fresnel
       {
-         Flt dot_prod=Sat(-Dot(view, fresnel_nrm)),
-             fresnel =Pow(1-dot_prod, WaterFresnelPow);
+         Half dot_prod=Sat(-Dot(view, fresnel_nrm)),
+              fresnel =Pow(1-dot_prod, WaterFresnelPow);
          col.rgb+=fresnel*WaterFresnelColor;
       }
    }
@@ -147,12 +147,13 @@ void Surface_PS
    #endif
    }else
    {
-          inTex  =PixelToScreen(pixel);
-      Flt water_z=inPos.z,
-          solid_z=(soft ? LinearizeDepth(TexPoint(Det, inTex).x) : water_z+DEFAULT_DEPTH), alpha=0;
+           inTex  =PixelToScreen(pixel);
+      Flt  water_z=inPos.z,
+           solid_z=(soft ? LinearizeDepth(TexPoint(ValF, inTex).x) : water_z+DEFAULT_DEPTH);
+      Half alpha=0;
 
-      Vec2   col_tex=inTex;
-      Vec4 water_col=col;
+      Vec2    col_tex=inTex;
+      VecH4 water_col=col;
 
       Vec2 refract=nrm.xy*Viewport.size;
 
@@ -162,7 +163,7 @@ void Surface_PS
       Vec2 test_tex=Mid(col_tex+refract*WaterRfr*alpha/Max(1, water_z), WaterClamp.xy, WaterClamp.zw);
       if(soft)
       {
-         Flt test_z=LinearizeDepth(TexLodClamp(Det, test_tex).x); // use linear filtering because texcoords are not rounded
+         Flt test_z=LinearizeDepth(TexLodClamp(ValF, test_tex).x); // use linear filtering because texcoords are not rounded
          if( test_z>water_z)
          {
             solid_z=test_z;
@@ -178,25 +179,25 @@ void Surface_PS
       if(soft)if(solid_z>=Viewport.range*0.96)alpha=1; // always force full opacity when there's no solid pixel set to avoid remains in the RenderTarget from previous usage
 
       // light
-      Vec4 lum;
+      VecH4 lum;
       {
          // shadow
-         Flt shd; if(shadow)shd=Sat(ShadowDirValue(inPos, ShadowJitter(pixel.xy), true, shadow, false));
+         Half shd; if(shadow)shd=Sat(ShadowDirValue(inPos, ShadowJitter(pixel.xy), true, shadow, false));
 
          // diffuse
-         Flt diffuse=LightDiffuse(view_nrm, Light_dir.dir); if(shadow)diffuse*=shd;
+         Half diffuse=LightDiffuse(view_nrm, Light_dir.dir); if(shadow)diffuse*=shd;
 
          // specular
-         Flt specular=LightSpecular(view_nrm, WaterSpc, Light_dir.dir, -view); if(shadow)specular*=shd;
+         Half specular=LightSpecular(view_nrm, WaterSpc, Light_dir.dir, -view); if(shadow)specular*=shd;
 
-         lum=Vec4(Light_dir.color.rgb*diffuse, Light_dir.color.a*specular);
+         lum=VecH4(Light_dir.color.rgb*diffuse, Light_dir.color.a*specular);
       }
 
       // col light
       water_col.rgb*=lum.rgb+AmbNSColor;
 
       // reflection
-      Flt   rfl=WaterRfl*Sat(inPDF);
+      Half  rfl=WaterRfl*Sat(inPDF);
           inTex=Mid ((inTex+refract*WaterRfrRfl)*WaterRflMulAdd.xy+WaterRflMulAdd.zw, WaterClamp.xy, WaterClamp.zw);
       water_col=Lerp(water_col, TexLodClamp(Col1, inTex), rfl); // use LOD to avoid anisotropic going out of clamp region
 
@@ -206,7 +207,7 @@ void Surface_PS
 
       if(soft)
       {
-               Vec4 solid_col=TexLodClamp(Col2, col_tex);
+              VecH4 solid_col=TexLodClamp(Col2, col_tex);
          O_col=Lerp(solid_col, water_col, alpha);
       }else
       {
@@ -221,15 +222,16 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                uniform Bool refract          ,
                uniform Bool set_depth=false  ):COLOR
 {
-   Flt water_z=TexPoint        (Det, inTex).x,
-       solid_z=TexDepthRawPoint(     inTex), alpha=0;
+   Flt  water_z=TexPoint        (ValF, inTex).x,
+        solid_z=TexDepthRawPoint(      inTex);
+   Half alpha=0;
 
    if(set_depth)depth=water_z;
 
    if(refract)
    {
-      Vec2 col_tex=inTex;
-      Vec4 water_col=0;
+      Vec2  col_tex=inTex;
+      VecH4 water_col=0;
 
    #if FLOW
       BRANCH if(DEPTH_SMALLER(water_z, solid_z)) // branch works faster when most of the screen is above water
@@ -239,7 +241,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          solid_z=LinearizeDepth(solid_z);
 
          water_col=TexLod(Col3, inTex);
-         Vec4  lum=TexLod(Lum , inTex); // water surface light
+         VecH4 lum=TexLod(Lum , inTex); // water surface light
          VecH  nrm=GetNormal(inTex, false).xyz; // water surface normals
 
          Matrix3 mtrx;
@@ -268,7 +270,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
          // reflection
          Vec   pos=Vec(inPosXY*water_z, water_z);
-         Flt   pdf=Sat(2-Abs(DistPointPlane(pos, WaterPlnPos, WaterPlnNrm))), // plane distance factor, must be = 1 for dist=0..1 (wave scale)
+         Half  pdf=Sat(2-Abs(DistPointPlane(pos, WaterPlnPos, WaterPlnNrm))), // plane distance factor, must be = 1 for dist=0..1 (wave scale)
                rfl=WaterRfl*pdf;
              inTex=Mid ((inTex+refract*WaterRfrRfl)*WaterRflMulAdd.xy+WaterRflMulAdd.zw, WaterClamp.xy, WaterClamp.zw);
          water_col=Lerp(water_col, TexLodClamp(Col1, inTex), rfl); // use LOD to avoid anisotropic going out of clamp region
@@ -277,11 +279,11 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
        //water_col.a  +=lum.w*      0.5; // glow
          water_col.rgb+=lum.w*lum.w*0.5; // specular
       }
-             Vec4 solid_col=TexClamp(Col2, col_tex);
+            VecH4 solid_col=TexClamp(Col2, col_tex);
       return Lerp(solid_col, water_col, alpha);
    }else
    {
-      Vec4 solid_col=TexLod(Col2, inTex);
+      VecH4 solid_col=TexLod(Col2, inTex);
    #if FLOW
       BRANCH if(DEPTH_SMALLER(water_z, solid_z)) // branch works faster when most of the screen is above water
    #endif
@@ -292,9 +294,9 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          Flt dz   =solid_z-water_z;
              alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03);
 
-         Vec4 water_col=TexLod(Col3, inTex),
-                    lum=TexLod(Lum , inTex); // water surface light
-         VecH       nrm=GetNormal(inTex, false).xyz; // water surface normals
+         VecH4 water_col=TexLod(Col3, inTex),
+                     lum=TexLod(Lum , inTex); // water surface light
+         VecH        nrm=GetNormal(inTex, false).xyz; // water surface normals
 
          Matrix3 mtrx;
          mtrx[0]=MatrixX(ViewMatrix[0]);
@@ -308,7 +310,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
          // reflection
          Vec   pos=Vec(inPosXY*water_z, water_z);
-         Flt   pdf=Sat(2-Abs(DistPointPlane(pos, WaterPlnPos, WaterPlnNrm))), // plane distance factor, needs to be = 1 for dist=0..1 (wave scale)
+         Half  pdf=Sat(2-Abs(DistPointPlane(pos, WaterPlnPos, WaterPlnNrm))), // plane distance factor, needs to be = 1 for dist=0..1 (wave scale)
                rfl=WaterRfl*pdf;
              inTex=Mid ((inTex+refract*WaterRfrRfl)*WaterRflMulAdd.xy+WaterRflMulAdd.zw, WaterClamp.xy, WaterClamp.zw);
          water_col=Lerp(water_col, TexLod(Col1, inTex), rfl);
@@ -351,12 +353,12 @@ VecH4 Under_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    Flt to_surface=-DistPointPlaneRay(Vec(0, 0, 0), WaterPlnPos, WaterPlnNrm, ray);
    if( to_surface>0)dist=Min(to_surface, dist);
 
-   Flt opacity=Sat(AccumulatedDensity(WaterDns.x, dist)+WaterDns.y)*WaterUnder;
+   Half opacity=Sat(AccumulatedDensity(WaterDns.x, dist)+WaterDns.y)*WaterUnder;
 
    Flt depth_0=-DistPointPlane(Vec(0, 0, 0), WaterPlnPos, WaterPlnNrm),
        depth_1=-DistPointPlane(ray*dist    , WaterPlnPos, WaterPlnNrm);
 
-   Flt water_density;
+   Half water_density;
 
 /* Proper function:
    {
@@ -379,16 +381,16 @@ VecH4 Under_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 /**/
    // approximation:
    {
-      Flt density_0=AccumulatedDensity(WaterDns.x, depth_0),
-          density_1=AccumulatedDensity(WaterDns.x, depth_1),
-          blend    =0.5/(1+dist*(WaterDns.x/3));
+      Half density_0=AccumulatedDensity(WaterDns.x, depth_0),
+           density_1=AccumulatedDensity(WaterDns.x, depth_1),
+           blend    =0.5/(1+dist*(WaterDns.x/3));
       water_density=Lerp(density_0, density_1, blend);
    }
 
-   Vec water_col=Lerp(WaterUnderCol0, WaterUnderCol1, water_density);
+   VecH water_col=Lerp(WaterUnderCol0, WaterUnderCol1, water_density);
 
-   return refract ? Lerp(TexLod(Col, inTex), Vec4(water_col, 0), opacity)
-                  :                          Vec4(water_col    , opacity);
+   return refract ? Lerp(TexLod(Col, inTex), VecH4(water_col, 0), opacity)
+                  :                          VecH4(water_col    , opacity);
 }
 /******************************************************************************/
 TECHNIQUE(Apply , DrawPosXY_VS(), Apply_PS(false));

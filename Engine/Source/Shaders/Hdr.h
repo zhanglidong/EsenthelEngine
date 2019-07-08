@@ -1,9 +1,9 @@
 /******************************************************************************/
 BUFFER(Hdr)
-   Flt HdrBrightness,
-       HdrExp       ,
-       HdrMaxDark   ,
-       HdrMaxBright ;
-   Vec HdrWeight    ;
+   Flt  HdrBrightness,
+        HdrExp       ,
+        HdrMaxDark   ,
+        HdrMaxBright ;
+   VecH HdrWeight    ;
 BUFFER_END
 /******************************************************************************/

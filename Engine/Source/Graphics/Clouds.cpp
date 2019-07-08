@@ -651,15 +651,15 @@ void VolumetricClouds::draw()
       VolCloud.h_Cloud->set(c);
 
       cloud.checkBuild(); // check if there are any finished image builds
-      Sh.h_ImageVol[0]->set(cloud._image); Sh.h_ImageVol[0]->_sampler=&SamplerLinearCWW;
-                                           Sh.h_ImageVol[1]->_sampler=&SamplerLinearWrap;
+      Sh.h_ImageVolXY[0]->set(cloud._image); Sh.h_ImageVolXY[0]->_sampler=&SamplerLinearCWW;
+                                             Sh.h_ImageVolXY[1]->_sampler=&SamplerLinearWrap;
 
       Rect ext_rect, *rect=null; // set rect, after setting render target
       if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(Renderer.pixelToScreenSize(1));} // when not rendering entire viewport, then extend the rectangle, add +1 because of texture filtering, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
 
       VolCloud.h_Clouds->draw(rect);
-      Sh.h_ImageVol[0]->_sampler=null;
-      Sh.h_ImageVol[1]->_sampler=null;
+      Sh.h_ImageVolXY[0]->_sampler=null;
+      Sh.h_ImageVolXY[1]->_sampler=null;
 
       Bool gamma=LINEAR_GAMMA, swap=(gamma && Renderer._col->canSwapRTV()); if(swap){gamma=false; Renderer._col->swapRTV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
       Renderer.set(Renderer._col, null, true);
@@ -670,7 +670,8 @@ void VolumetricClouds::draw()
       Sh.h_SkyFracMulAdd->set(mul_add);
 
       Sh.h_Color[0]->set(color_s);
-      VolCloud.h_CloudsDraw[gamma]->draw(dest);
+      Sh.h_ImageValXY->set(dest);
+      VolCloud.h_CloudsDraw[gamma]->draw();
       if(swap)Renderer._col->swapRTV(); // restore
    }
 }
@@ -694,9 +695,9 @@ void VolumetricClouds::shadowMap()
       VolCloud.h_CloudMap->set(c);
 
       cloud.checkBuild(); // check if there are any finished image builds
-      Sh.h_ImageVol[0]->set(cloud._image);
-      Sh.h_ImageVol[0]->_sampler=&SamplerLinearCWW; VolCloud.h_CloudsMap->draw();
-      Sh.h_ImageVol[0]->_sampler=null;
+      Sh.h_ImageVolXY[0]->set(cloud._image);
+      Sh.h_ImageVolXY[0]->_sampler=&SamplerLinearCWW; VolCloud.h_CloudsMap->draw();
+      Sh.h_ImageVolXY[0]->_sampler=null;
    }
 }
 /******************************************************************************/

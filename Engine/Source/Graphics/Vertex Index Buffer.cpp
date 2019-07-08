@@ -1717,6 +1717,15 @@ void VtxIndBuf::image(C Image *image)
       Sh.h_ImageCol[0]->set(image);
    }
 }
+void VtxIndBuf::image(C Image *image, ShaderImage &shader_image)
+{
+   if(VI._image!=image)
+   {
+      flush(); // first flush what's already available, after that make the change
+      VI._image=image;
+      shader_image.set(image);
+   }
+}
 void VtxIndBuf::color(C Color &color)
 {
    if(VI._color!=color)

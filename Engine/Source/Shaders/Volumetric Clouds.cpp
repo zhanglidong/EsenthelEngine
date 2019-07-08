@@ -70,7 +70,7 @@ VecH2 Clouds_PS(NOPERSP Vec dir:TEXCOORD):COLOR // 'dir'=world-space position
    LOOP for(Int i=0; i<steps; i++)
    {
    #if MODEL>=SM_4
-      Vec2 sample=Vol.SampleLevel(SamplerLinearCWW, pos, 0).rg;
+      Vec2 sample=VolXY.SampleLevel(SamplerLinearCWW, pos, 0).rg;
       /* test code for adding detail if(Z)
       {
          Flt s=0.5;
@@ -80,13 +80,13 @@ VecH2 Clouds_PS(NOPERSP Vec dir:TEXCOORD):COLOR // 'dir'=world-space position
          if(X)m=0.5*Sat(sample.y*10)*s;else
                  m=3*sample.y*s;
 
-              sample.y+=(Vol1.SampleLevel(SamplerLinearWrap, pos*S*Z  , 0).r)*m;
-         if(Y)sample.y+=(Vol1.SampleLevel(SamplerLinearWrap, pos*S*Z*2, 0).r)*m/2;
+              sample.y+=(VolXY1.SampleLevel(SamplerLinearWrap, pos*S*Z  , 0).r)*m;
+         if(Y)sample.y+=(VolXY1.SampleLevel(SamplerLinearWrap, pos*S*Z*2, 0).r)*m/2;
 
          sample.y=Sat(sample.y);
       }*/
    #else
-      Vec2 sample=Tex3DLod(Vol, pos).rg;
+      Vec2 sample=Tex3DLod(VolXY, pos).rg;
    #endif
 
       Flt alpha=sample.y*(1-col.y);
@@ -150,8 +150,8 @@ Half CloudsMap_PS(NOPERSP Vec pos:TEXCOORD0, // world-space position, relative t
        t_l=(-b - Sqrt(d_l))/a2, // here "(2*a)" was replaced with "a2"
        delta=(t_l-t_u)*CloudMap.tex_scale;
 
-   pos=Vec( 0, (pos.x+dir.x*t_u)*CloudMap.tex_scale+CloudMap.pos.x, (pos.z+dir.z*t_u)*CloudMap.tex_scale+CloudMap.pos.y); // start from upper layer (above clouds)
-   dir=Vec( 1,        dir.x*delta                                 ,        dir.z*delta                                 ); // go down                (below clouds)
+   pos=Vec(0, (pos.x+dir.x*t_u)*CloudMap.tex_scale+CloudMap.pos.x, (pos.z+dir.z*t_u)*CloudMap.tex_scale+CloudMap.pos.y); // start from upper layer (above clouds)
+   dir=Vec(1,        dir.x*delta                                 ,        dir.z*delta                                 ); // go down                (below clouds)
 
    Int steps=CloudMap.steps;
    dir/=steps;
@@ -160,9 +160,9 @@ Half CloudsMap_PS(NOPERSP Vec pos:TEXCOORD0, // world-space position, relative t
    LOOP for(Int i=0; i<steps; i++)
    {
    #if MODEL>=SM_4
-      Flt alpha=Vol.SampleLevel(SamplerLinearCWW, pos, 0).g;
+      Flt alpha=VolXY.SampleLevel(SamplerLinearCWW, pos, 0).g;
    #else
-      Flt alpha=Tex3DLod(Vol, pos).g;
+      Flt alpha=Tex3DLod(VolXY, pos).g;
    #endif
 
       density+=alpha*(1-density);
@@ -186,7 +186,7 @@ VecH4 CloudsDraw_PS(NOPERSP Vec2 inTex:TEXCOORD0,
                     NOPERSP Vec  inPos:TEXCOORD1,
                     uniform Bool gamma          ):COLOR
 {
-   VecH2 clouds=TexLod(Col, inTex).xy; // can't use TexPoint because Col may be smaller
+   VecH2 clouds=TexLod(ValXY, inTex).xy; // can't use TexPoint because image may be smaller
 #if 1
    clouds.y*=Sat(TexDepthPoint(inTex)*Length(inPos)*SkyFracMulAdd.x+SkyFracMulAdd.y);
 #else

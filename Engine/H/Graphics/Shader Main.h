@@ -36,9 +36,11 @@ struct MainShaderClass
       *h_ImageLum  , *h_ImageLumMS  ,
       *h_ImageVal  , *h_ImageValMS  ,
       *h_ImageValF[2],
+      *h_ImageValXY,
       *h_ImageShdMap[2],
       *h_ImageCub,
-      *h_ImageVol[2];
+      *h_ImageVol,
+      *h_ImageVolXY[2];
 
    ShaderParam
       *h_ImgSize    ,

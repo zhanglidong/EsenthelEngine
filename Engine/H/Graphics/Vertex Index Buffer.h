@@ -144,6 +144,9 @@ struct VtxIndBuf // Vertex Index Buffer - used for buffered drawing
    // operations
    static void shader    ( Shader *shader); // set custom shader
    static void image     (C Image *image ); // set texture
+#if EE_PRIVATE
+   static void image     (C Image *image, ShaderImage &shader_image); // set texture for custom shader image
+#endif
    static void color     (C Color &color ); // set color
    static void color2    (C Color &color ); // set color2
    static void cull      (Bool     cull  ); // set face  culling

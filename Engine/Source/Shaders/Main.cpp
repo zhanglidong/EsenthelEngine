@@ -615,9 +615,9 @@ VecH4 Font_PS
    // final=dest*(1-s)*(1-a) + c*a;
 
 #if DX11
-   VecH2 as=Col.Sample(SamplerFont, inTex).rg; // #FontImageLayout
+   VecH2 as=ValXY.Sample(SamplerFont, inTex).rg; // #FontImageLayout
 #else
-   VecH2 as=Tex(Col, inTex).rg; // #FontImageLayout
+   VecH2 as=Tex(ValXY, inTex).rg; // #FontImageLayout
 #endif
    Half  a =Sat(as.x*FontContrast), // font opacity, "Min(as.x*FontContrast, 1)", scale up by 'FontContrast' to improve quality when font is very small
          s =    as.y*FontShadow   ; // font shadow
@@ -1047,13 +1047,15 @@ void Volume_PS
 
    dir/=steps;
 
+   // !! Use high precision here because iterating many samples !!
+
    if(LA)
    {
       Vec2 col=0;
 
       LOOP for(Int i=0; i<steps; i++)
       {
-         Vec2 sample=Tex3DLod(Vol, pos).rg;
+         Vec2 sample=Tex3DLod(VolXY, pos).rg; // HP
          Flt  alpha =sample.g*density_factor*(1-col.g);
 
          col.r+=alpha*sample.r;
@@ -1072,7 +1074,7 @@ void Volume_PS
 
       LOOP for(Int i=0; i<steps; i++)
       {
-         Vec4 sample=Tex3DLod(Vol, pos);
+         Vec4 sample=Tex3DLod(Vol, pos); // HP
          Flt  alpha =sample.a*density_factor*(1-col.a);
 
          col.rgb+=alpha*sample.rgb;
@@ -3262,7 +3264,7 @@ TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
 
       void main()
       {
-         MP Vec4 tex=Tex(Col, IO_tex);
+         MP Vec4 tex=Tex(ValXY, IO_tex);
          MP Flt  a  =tex.r,            // #FontImageLayout
                  s  =tex.g*FontShadow, // #FontImageLayout
                  final_alpha=a+s-s*a;

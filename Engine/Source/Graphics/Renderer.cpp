@@ -1334,12 +1334,12 @@ void RendererClass::ao()
       if(D.ambientSoft()>=5)
       {
          ImageRTPtr temp; temp.get(rt_desc);
-         set(temp, foreground ? _ds_1s : null, true, NEED_DEPTH_READ);                 Sh.h_ShdBlurX->draw( _ao); // use DS for 'D.depth2D'
-         set( _ao, foreground ? _ds_1s : null, true, NEED_DEPTH_READ); _ao->discard(); Sh.h_ShdBlurY->draw(temp); // use DS for 'D.depth2D'
+         set(temp, foreground ? _ds_1s : null, true, NEED_DEPTH_READ);                 Sh.h_ImageVal->set( _ao); Sh.h_ShdBlurX->draw(); // use DS for 'D.depth2D'
+         set( _ao, foreground ? _ds_1s : null, true, NEED_DEPTH_READ); _ao->discard(); Sh.h_ImageVal->set(temp); Sh.h_ShdBlurY->draw(); // use DS for 'D.depth2D'
       }else
       {
          ImageRTPtr src=_ao; _ao.get(rt_desc);
-         set(_ao, foreground ? _ds_1s : null, true, NEED_DEPTH_READ); Sh.h_ShdBlur[D.ambientSoft()-1]->draw(src); // use DS for 'D.depth2D'
+         set(_ao, foreground ? _ds_1s : null, true, NEED_DEPTH_READ); Sh.h_ImageVal->set(src); Sh.h_ShdBlur[D.ambientSoft()-1]->draw(); // use DS for 'D.depth2D'
       }
    }
    if(foreground)D.depth2DOff();
