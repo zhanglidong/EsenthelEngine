@@ -36,19 +36,19 @@ void FogClass::Draw(Bool after_sky)
                REPS(Renderer._eye, Renderer._eye_num)
                {
                   Rect *rect=Renderer.setEyeParams();
-                  D.stencilRef(STENCIL_REF_MSAA); /*if(!affect_sky && multi!=1)D.depth2DOn();*/ Sh.h_Fog[multi]->draw(null, rect);                D.depth2DOff(); // never enable 'depth2DOn' for deferred renderer as it's needed, it was tested that enabling this for forward renderer actually makes it slower (19 vs 25 fps on 200 draws)
-                  D.stencilRef(               0);   if(!affect_sky            )D.depth2DOn();   Sh.h_Fog[0    ]->draw(null, rect); if(!affect_sky)D.depth2DOff();
+                  D.stencilRef(STENCIL_REF_MSAA); /*if(!affect_sky && multi!=1)D.depth2DOn();*/ Sh.h_Fog[multi]->draw(rect);                D.depth2DOff(); // never enable 'depth2DOn' for deferred renderer as it's needed, it was tested that enabling this for forward renderer actually makes it slower (19 vs 25 fps on 200 draws)
+                  D.stencilRef(               0);   if(!affect_sky            )D.depth2DOn();   Sh.h_Fog[0    ]->draw(rect); if(!affect_sky)D.depth2DOff();
                }
                D.stencil(STENCIL_NONE);
             }else // if don't have stencil available then have to write all as multi-sampled
             {
-               REPS(Renderer._eye, Renderer._eye_num)Sh.h_Fog[multi]->draw(null, Renderer.setEyeParams());
+               REPS(Renderer._eye, Renderer._eye_num)Sh.h_Fog[multi]->draw(Renderer.setEyeParams());
             }
             return;
          }else
          if(Sh.h_Fog[0])
          {
-            if(!affect_sky)D.depth2DOn (); REPS(Renderer._eye, Renderer._eye_num)Sh.h_Fog[0]->draw(null, Renderer.setEyeParams());
+            if(!affect_sky)D.depth2DOn (); REPS(Renderer._eye, Renderer._eye_num)Sh.h_Fog[0]->draw(Renderer.setEyeParams());
             if(!affect_sky)D.depth2DOff();
             return;
          }
@@ -90,8 +90,8 @@ void FogDraw(C OBox &obox, Flt density, C Vec &color_l)
             
          if(inside.x>=-size.x+e && inside.x<=size.x-e
          && inside.y>=-size.y+e && inside.y<=size.y-e
-         && inside.z>=-size.z+e && inside.z<=size.z-e)Sh.h_FogBox1->draw(Renderer._ds_1s);
-         else                                         Sh.h_FogBox0->draw(Renderer._ds_1s);
+         && inside.z>=-size.z+e && inside.z<=size.z-e)Sh.h_FogBox1->draw();
+         else                                         Sh.h_FogBox0->draw();
       }else
       {
          D .depth     (true );
@@ -126,8 +126,8 @@ void FogDraw(C Ball &ball, Flt density, C Vec &color_l)
       {
          Sh.h_LocalFogInside->set(inside);
 
-         if(i<=ball.r-e)Sh.h_FogBall1->draw(Renderer._ds_1s);
-         else           Sh.h_FogBall0->draw(Renderer._ds_1s);
+         if(i<=ball.r-e)Sh.h_FogBall1->draw();
+         else           Sh.h_FogBall0->draw();
       }else
       {
          D .depth     (true );
@@ -170,8 +170,8 @@ void HeightFogDraw(C OBox &obox, Flt density, C Vec &color_l)
             
          if(inside.x>=-size.x+e && inside.x<=size.x-e
          && inside.y>=-size.y+e && inside.y<=size.y-e
-         && inside.z>=-size.z+e && inside.z<=size.z-e)Sh.h_FogHgt1->draw(Renderer._ds_1s);
-         else                                         Sh.h_FogHgt0->draw(Renderer._ds_1s);
+         && inside.z>=-size.z+e && inside.z<=size.z-e)Sh.h_FogHgt1->draw();
+         else                                         Sh.h_FogHgt0->draw();
       }else
       {
          D .depth     (true );

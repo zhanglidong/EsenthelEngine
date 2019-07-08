@@ -657,7 +657,7 @@ void VolumetricClouds::draw()
       Rect ext_rect, *rect=null; // set rect, after setting render target
       if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(Renderer.pixelToScreenSize(1));} // when not rendering entire viewport, then extend the rectangle, add +1 because of texture filtering, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
 
-      VolCloud.h_Clouds->draw(null, rect);
+      VolCloud.h_Clouds->draw(rect);
       Sh.h_ImageVol[0]->_sampler=null;
       Sh.h_ImageVol[1]->_sampler=null;
 
@@ -670,7 +670,7 @@ void VolumetricClouds::draw()
       Sh.h_SkyFracMulAdd->set(mul_add);
 
       Sh.h_Color[0]->set(color_s);
-      VolCloud.h_CloudsDraw[gamma]->draw(dest());
+      VolCloud.h_CloudsDraw[gamma]->draw(dest);
       if(swap)Renderer._col->swapRTV(); // restore
    }
 }

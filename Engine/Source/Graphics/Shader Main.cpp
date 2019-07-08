@@ -172,7 +172,7 @@ void MainShaderClass::create()
    connectRT    ();
 }
 /******************************************************************************/
-void MainShaderClass::clear(                C Vec4  &color,                     C Rect *rect) {Sh.h_Color[0]->set(color);                                Sh.h_SetCol->draw(null , rect);}
+void MainShaderClass::clear(                C Vec4  &color,                     C Rect *rect) {Sh.h_Color[0]->set(color);                                Sh.h_SetCol->draw(       rect);}
 void MainShaderClass::draw (C Image &image                ,                     C Rect *rect) {                                                          Sh.h_Draw  ->draw(image, rect);}
 void MainShaderClass::draw (C Image &image, C Vec4  &color, C Vec4  &color_add, C Rect *rect) {Sh.h_Color[0]->set(color); Sh.h_Color[1]->set(color_add); Sh.h_DrawC ->draw(image, rect);}
 void MainShaderClass::draw (C Image &image, C Color &color, C Color &color_add, C Rect *rect) {Sh.h_Color[0]->set(color); Sh.h_Color[1]->set(color_add); Sh.h_DrawC ->draw(image, rect);}

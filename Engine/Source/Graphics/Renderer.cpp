@@ -238,7 +238,7 @@ void RendererClass::adaptEye(ImageRT &src, ImageRT &dest, Bool dither)
       set(next(), null, false);
       Sh.imgSize(*temp);
       if(i){Sh.h_ImageValF[0]->set(temp()); Hdr.h_HdrDS[1]->draw();}
-      else {Sh.h_ImageCol [0]->set(temp()); Hdr.h_HdrDS[0]->draw(null, null, D.screenToUV(D.viewRect()));}
+      else {Sh.h_ImageCol [0]->set(temp()); Hdr.h_HdrDS[0]->draw(null, D.screenToUV(D.viewRect()));}
       temp=next;
    }
    Sh.h_Step    ->set(Pow(Mid(1/D.eyeAdaptationSpeed(), EPS, 1.0f), Time.d())); // can use EPS and not EPS_GPU because we're using Pow here and not on GPU
@@ -279,13 +279,13 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool dither)
     //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
       if(D.bloomMaximum())
       { // 'discard' before 'set' because it already may have requested discard, and if we 'discard' manually after 'set' then we might discard 2 times
-                         set(rt1(), null, false); Sh.h_MaxX->draw(rt0(), rect); discard=true; // discard next time
-         rt0->discard(); set(rt0(), null, false); Sh.h_MaxY->draw(rt1(), rect);
+                         set(rt1(), null, false); Sh.h_MaxX->draw(rt0, rect); discard=true; // discard next time
+         rt0->discard(); set(rt0(), null, false); Sh.h_MaxY->draw(rt1, rect);
       }
       REP(D.bloomBlurs())
       { // 'discard' before 'set' because it already may have requested discard, and if we 'discard' manually after 'set' then we might discard 2 times
-         if(discard)rt1->discard(); set(rt1(), null, false); Sh.h_BlurX[D.bloomSamples()]->draw(rt0(), rect); discard=true; // discard next time
-                    rt0->discard(); set(rt0(), null, false); Sh.h_BlurY[D.bloomSamples()]->draw(rt1(), rect);
+         if(discard)rt1->discard(); set(rt1(), null, false); Sh.h_BlurX[D.bloomSamples()]->draw(rt0, rect); discard=true; // discard next time
+                    rt0->discard(); set(rt0(), null, false); Sh.h_BlurY[D.bloomSamples()]->draw(rt1, rect);
       }
    }else
    {
@@ -382,13 +382,13 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
     //Sh.imgSize(*dilated); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
       if(ortho) // do orthogonal first (this will result in slightly less artifacts when the camera is moving)
       {
-         helper .get(rt_desc); set(helper (), null, false); ortho->h_DilateX[diagonal]->draw(dilated(), rect);
-         dilated.get(rt_desc); set(dilated(), null, false); ortho->h_DilateY[diagonal]->draw(helper (), rect);
+         helper .get(rt_desc); set(helper (), null, false); ortho->h_DilateX[diagonal]->draw(dilated, rect);
+         dilated.get(rt_desc); set(dilated(), null, false); ortho->h_DilateY[diagonal]->draw(helper , rect);
       }
       REP(dilate_round_steps)
       {
          if(!helper || helper==converted)helper.get(rt_desc);else helper->discard(); // don't write to original 'converted' in the next step, because we need it later
-         set(helper(), null, false); Mtn.h_Dilate->draw(dilated(), rect); Swap(dilated, helper);
+         set(helper(), null, false); Mtn.h_Dilate->draw(dilated, rect); Swap(dilated, helper);
       }
    }
    if(stage==RS_VEL_DILATED && set(dilated))return true;
@@ -397,7 +397,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
    Sh.h_ImageCol[1]->set(dilated()); MaterialClear();
    rt_desc.rt_type=(D.signedVelRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA); // XY=Dir#0, ZW=Dir#1
    helper.get(rt_desc); // we always need to call this because 'helper' can be set to 'converted'
-   set(helper(), null, false); Mtn.h_SetDirs[!D._view_main.full]->draw(converted(), rect);
+   set(helper(), null, false); Mtn.h_SetDirs[!D._view_main.full]->draw(converted, rect);
    if(stage==RS_VEL_LEAK && set(helper))return true;
 
    Sh.h_ImageCol[1]->set(helper()); MaterialClear();
@@ -426,8 +426,8 @@ void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool dither)
    set(rt0(), null, false); Rect ext_rect, *rect=null; if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(Renderer.pixelToScreenSize(pixel.pixels+1));} // when not rendering entire viewport, then extend the rectangle because of blurs checking neighbors, add +1 because of texture filtering, we can ignore stereoscopic there because that's always disabled for not full viewports, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize' and call after setting RT
    Sh.imgSize( src); GetDofDS(!D._view_main.full, D.dofFocusMode(), half)->draw(src, rect);
  //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
-   set(rt1(), null, false);                 pixel.h_BlurX->draw(rt0(), rect);
-   set(rt0(), null, false); rt0->discard(); pixel.h_BlurY->draw(rt1(), rect);
+   set(rt1(), null, false);                 pixel.h_BlurX->draw(rt0, rect);
+   set(rt0(), null, false); rt0->discard(); pixel.h_BlurY->draw(rt1, rect);
 
    set(&dest, null, true);
    Sh.h_ImageCol[1]->set(rt0()); MaterialClear();
@@ -1468,7 +1468,7 @@ Bool RendererClass::waterPostLight()
       REPS(_eye, _eye_num)
       {
          Water.setEyeViewport();
-         WS.h_Apply[refract][depth_test]->draw(src()); // we need to output depth only if we need it for depth testing
+         WS.h_Apply[refract][depth_test]->draw(src); // we need to output depth only if we need it for depth testing
       }
       if(depth_test)
       {
@@ -1520,7 +1520,7 @@ void RendererClass::edgeDetect()
          ImageRTPtr edge(ImageRTDesc(fxW(), fxH(), IMAGERT_ONE));
          D.alpha     (ALPHA_NONE); set(edge(), null , true, NEED_DEPTH_READ); Sh.imgSize(*_ds_1s); Sh.h_EdgeDetect     ->draw(); // we need to fill the entire buffer because below we're using blurring (which takes nearby texels)
          D.depth2DOn ();
-         D.alpha     (ALPHA_MUL ); set(_col(), _ds(), true,   NO_DEPTH_READ); Sh.imgSize(* edge ); Sh.h_EdgeDetectApply->draw(edge());
+         D.alpha     (ALPHA_MUL ); set(_col(), _ds(), true,   NO_DEPTH_READ); Sh.imgSize(* edge ); Sh.h_EdgeDetectApply->draw(edge);
          D.depth2DOff();
       }break;
    }
@@ -1790,7 +1790,7 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
          case EDGE_SOFTEN_FXAA:
          {
             Bool gamma=LINEAR_GAMMA, swap=(gamma && _col->canSwapSRV() && dest->canSwapRTV()); if(swap){gamma=false; dest->swapRTV(); _col->swapSRV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
-            set(dest(), null, true); Sh.h_FXAA[gamma]->draw(_col());
+            set(dest(), null, true); Sh.h_FXAA[gamma]->draw(_col);
             if(swap){dest->swapRTV(); _col->swapSRV();} // restore
          }break;
 
@@ -1816,14 +1816,14 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
 
             Bool gamma=LINEAR_GAMMA, swap=(gamma && _col->canSwapSRV()); if(swap){gamma=false; _col->swapSRV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
             D.stencil(STENCIL_EDGE_SOFT_SET, STENCIL_REF_EDGE_SOFT); // have to use '_ds_1s' in write mode to be able to use stencil
-            ImageRTPtr edge(ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO)); set(edge(), _ds_1s(), true); D.clearCol(); Sh.h_SMAAEdge[gamma]->draw(_col()); Sh.h_ImageCol[1]->set(_smaa_area()); Sh.h_ImageCol[2]->set(_smaa_search()); Sh.h_ImageCol[2]->_sampler=&SamplerPoint; D.stencil(STENCIL_EDGE_SOFT_TEST);
+            ImageRTPtr edge(ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO)); set(edge(), _ds_1s(), true); D.clearCol(); Sh.h_SMAAEdge[gamma]->draw(_col); Sh.h_ImageCol[1]->set(_smaa_area()); Sh.h_ImageCol[2]->set(_smaa_search()); Sh.h_ImageCol[2]->_sampler=&SamplerPoint; D.stencil(STENCIL_EDGE_SOFT_TEST);
             if(swap)_col->swapSRV(); // restore
 
             ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA)); // this does not store color, but intensities how much to blend in each axis
-            set(blend(), _ds_1s(), true); D.clearCol(); Sh.h_SMAABlend->draw(edge()); Sh.h_ImageCol[1]->set(blend()); edge.clear(); Sh.h_ImageCol[2]->_sampler=null; D.stencil(STENCIL_NONE);
+            set(blend(), _ds_1s(), true); D.clearCol(); Sh.h_SMAABlend->draw(edge); Sh.h_ImageCol[1]->set(blend()); edge.clear(); Sh.h_ImageCol[2]->_sampler=null; D.stencil(STENCIL_NONE);
 
             swap=(!LINEAR_GAMMA && dest->canSwapRTV() && _col->canSwapSRV()); if(swap){dest->swapRTV(); _col->swapSRV();} // this we have to perform if we're NOT using Linear Gamma, because if possible, we WANT to use it, as it will improve quality, making AA softer
-            set(dest(), null, true); Sh.h_SMAA->draw(_col());
+            set(dest(), null, true); Sh.h_SMAA->draw(_col);
             if(swap){dest->swapRTV(); _col->swapSRV();} // restore
 
             MaterialClear();
@@ -1841,7 +1841,7 @@ void RendererClass::volumetric()
       SPSet("VolMax", Vec(D.volMax()));
       Sh.imgSize(*_vol);
       D.alpha(D.volAdd() ? ALPHA_ADD        : ALPHA_BLEND_DEC);
-             (D.volAdd() ? VL.h_VolumetricA : VL.h_Volumetric)->draw(_vol());
+             (D.volAdd() ? VL.h_VolumetricA : VL.h_Volumetric)->draw(_vol);
      _vol.clear();
    }
 }

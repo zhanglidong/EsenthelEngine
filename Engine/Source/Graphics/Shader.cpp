@@ -1207,10 +1207,10 @@ Shader* ShaderFile::get(C Str8 &name)
 /******************************************************************************/
 // DRAW
 /******************************************************************************/
-void Shader::draw(C Image *image, C Rect *rect)
+void Shader::draw(C Image &image, C Rect *rect) {Sh.h_ImageCol[0]->set(image); draw(rect);}
+void Shader::draw(                C Rect *rect)
 {
-   VI.image  (image);
-   VI.shader (this );
+   VI.shader (this);
    VI.setType(VI_2D_TEX, VI_STRIP);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
    {
@@ -1274,10 +1274,10 @@ void Shader::draw(C Image *image, C Rect *rect)
    }
    VI.end();
 }
-void Shader::draw(C Image *image, C Rect *rect, C Rect &tex)
+void Shader::draw(C Image &image, C Rect *rect, C Rect &tex) {Sh.h_ImageCol[0]->set(image); draw(rect, tex);}
+void Shader::draw(                C Rect *rect, C Rect &tex)
 {
-   VI.image  (image);
-   VI.shader (this );
+   VI.shader (this);
    VI.setType(VI_2D_TEX, VI_STRIP);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
    {
