@@ -737,7 +737,6 @@ Display::Display() : _monitors(Compare, Create, null, 4)
   _tesselation_heightmap=false;
   _tesselation_density  =60;
 
-  _outline_sky =false;
   _outline_mode=EDGE_DETECT_THIN;
   _edge_detect =EDGE_DETECT_NONE;
   _edge_soften =EDGE_SOFTEN_NONE;
@@ -2408,7 +2407,6 @@ Display& Display::texDetailLOD       (Bool             on       ) {             
 Display& Display::texReflection      (TEXTURE_USAGE    usage    ) {Clamp(usage, TEX_USE_DISABLE, TEXTURE_USAGE(TEX_USE_NUM-1));        if(T._tex_reflect     !=usage    ){T._tex_reflect     =usage    ; setShader();} return T;}
 Display& Display::materialBlend      (Bool             per_pixel) {                                                                    if(T._mtrl_blend      !=per_pixel){T._mtrl_blend      =per_pixel; setShader();} return T;}
 Display& Display::bendLeafs          (Bool             on       ) {                                                                    if(T._bend_leafs      !=on       ){T._bend_leafs      =on       ; setShader();} return T;}
-Display& Display::outlineAffectSky   (Bool             on       ) {                                                                    if(T._outline_sky     !=on       ){T._outline_sky     =on       ;             } return T;}
 Display& Display::outlineMode        (EDGE_DETECT_MODE mode     ) {Clamp(mode, EDGE_DETECT_NONE, EDGE_DETECT_MODE(EDGE_DETECT_NUM-1)); if(T._outline_mode    !=mode     ){T._outline_mode    =mode     ;             } return T;}
 Display& Display::particlesSoft      (Bool             on       ) {                                                                    if(T._particles_soft  !=on       ){T._particles_soft  =on       ;             } return T;}
 Display& Display::particlesSmoothAnim(Bool             on       ) {                                                                    if(T._particles_smooth!=on       ){T._particles_smooth=on       ;             } return T;}

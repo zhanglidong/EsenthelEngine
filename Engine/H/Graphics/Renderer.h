@@ -147,6 +147,7 @@ struct RendererClass // handles rendering
    Flt  timeWater      (       )C {return _t_water       [0];}
    Flt  timeLight      (       )C {return _t_light       [0];}
    Flt  timeSky        (       )C {return _t_sky         [0];}
+   Flt  timeEdgeDetect (       )C {return _t_edge_detect [0];}
    Flt  timeBlend      (       )C {return _t_blend       [0];}
    Flt  timePalette    (       )C {return _t_palette     [0];}
    Flt  timeBehind     (       )C {return _t_behind      [0];}
@@ -299,7 +300,7 @@ private:
 
    Int           _t_measures[2];
    Dbl           _t_last_measure;
-   Flt           _t_reflection[2], _t_prepare[2], _t_solid[2], _t_overlay[2], _t_water[2], _t_light[2], _t_sky[2], _t_blend[2], _t_palette[2], _t_behind[2], _t_rays[2], _t_refract[2], _t_volumetric[2], _t_post_process[2], _t_gpu_wait[2];
+   Flt           _t_reflection[2], _t_prepare[2], _t_solid[2], _t_overlay[2], _t_water[2], _t_light[2], _t_sky[2], _t_edge_detect[2], _t_blend[2], _t_palette[2], _t_behind[2], _t_rays[2], _t_refract[2], _t_volumetric[2], _t_post_process[2], _t_gpu_wait[2];
 
    RendererClass();
 }extern

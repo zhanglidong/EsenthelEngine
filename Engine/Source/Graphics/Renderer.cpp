@@ -764,12 +764,12 @@ RendererClass& RendererClass::operator()(void (&render)())
          }break;
       }
       if(waterPostLight())goto finished; MEASURE(_t_water[1])if(_t_measure)_t_water[1]+=water;
-         edgeDetect    ();
 
       MEASURE(temp)
 
-      sky(); MEASURE(_t_sky[1])
-      blend(); MEASURE(_t_blend[1])
+      sky       (); MEASURE(_t_sky[1])
+      edgeDetect(); MEASURE(_t_edge_detect[1])
+      blend     (); MEASURE(_t_blend[1])
     /*if(stage)switch(stage)
       {
          case RS_DEPTH: if(set(_ds_1s))goto finished; break;
@@ -1509,22 +1509,23 @@ Bool RendererClass::waterPostLight()
 }
 void RendererClass::edgeDetect()
 {
-   if(D.edgeDetect() && !mirror() && canReadDepth())switch(D.edgeDetect())
+   if(D.edgeDetect() && !mirror() && canReadDepth())
    {
-      case EDGE_DETECT_THIN:
+      Sky.setFracMulAdd();
+      switch(D.edgeDetect()) // here can't use 'D.depth2DOn' because we want to affect sky
       {
-         D.depth2DOn (); D.alpha(ALPHA_MUL); set(_col, _ds, true, NEED_DEPTH_READ); Sh.imgSize(*_ds_1s); Sh.h_EdgeDetect->draw();
-         D.depth2DOff();
-      }break;
+         case EDGE_DETECT_THIN:
+         {
+            D.alpha(ALPHA_MUL); set(_col, _ds, true, NEED_DEPTH_READ); Sh.imgSize(*_ds_1s); Sh.h_EdgeDetect->draw();
+         }break;
 
-      case EDGE_DETECT_SOFT:
-      {
-         ImageRTPtr edge(ImageRTDesc(fxW(), fxH(), IMAGERT_ONE));
-         D.alpha     (ALPHA_NONE); set(edge, null, true, NEED_DEPTH_READ); Sh.imgSize(*_ds_1s); Sh.h_EdgeDetect->draw(); // we need to fill the entire buffer because below we're using blurring (which takes nearby texels)
-         D.depth2DOn ();
-         D.alpha     (ALPHA_MUL ); set(_col, _ds , true,   NO_DEPTH_READ); Sh.imgSize(* edge ); Sh.h_ImageImgX[0]->set(edge); Sh.h_EdgeDetectApply->draw();
-         D.depth2DOff();
-      }break;
+         case EDGE_DETECT_SOFT:
+         {
+            ImageRTPtr edge(ImageRTDesc(fxW(), fxH(), IMAGERT_ONE));
+            D.alpha(ALPHA_NONE); set(edge, null, true, NEED_DEPTH_READ); Sh.imgSize(*_ds_1s); Sh.h_EdgeDetect->draw(); // we need to fill the entire buffer because below we're using blurring (which takes nearby texels)
+            D.alpha(ALPHA_MUL ); set(_col, _ds , true,   NO_DEPTH_READ); Sh.imgSize(* edge ); Sh.h_ImageImgX[0]->set(edge); Sh.h_EdgeDetectApply->draw();
+         }break;
+      }
    }
 }
 void RendererClass::sky()
@@ -1730,9 +1731,9 @@ void RendererClass::applyOutline()
             ((temp->w()<_outline_rt->w()) ? Sh.h_OutlineDS : Sh.h_Outline)->draw(_outline_rt);
             set(_col, (ds && ds->compatible(*_col)) ? ds : null, true);
             D .alpha    (ALPHA_BLEND_DEC);
-            if(!D.outlineAffectSky())D.depth2DOn();
+          //D.depth2DOn(); can't enable because we need to affect sky
             Sh.imgSize(*temp); Sh.h_OutlineApply->draw(temp);
-            D.depth2DOff();
+          //D.depth2DOff();
          }break;
       }
      _outline_rt.clear();
