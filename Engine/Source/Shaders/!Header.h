@@ -258,7 +258,7 @@
    #define TexLodClamp( image, uv )   TexLod  (image, uv )
    #define Tex3DLodWrap(image, uvw)   Tex3DLod(image, uvw)
 
-   #define TexShadow(image, uvw)   tex2Dproj(image, Vec4(uvw.xy, uvw.z*0.5f+0.5f, 1)) // adjust OpenGL depth scale (z' = z*0.5 + 0.5), have to use 'tex2Dproj' because on Windows GL 'tex2Dlod' doesn't work here, perhaps it's a problem with CG that converts HLSL to GLSL, can't return .x because it's not Vec4 but a Flt already (since we're using 'sampler2DShadow')
+   #define TexShadow(image, uvw)   tex2Dproj(image, Vec4(uvw.xy, uvw.z*0.5+0.5, 1)) // adjust OpenGL depth scale (z' = z*0.5 + 0.5), have to use 'tex2Dproj' because on Windows GL 'tex2Dlod' doesn't work here, perhaps it's a problem with CG that converts HLSL to GLSL, can't return .x because it's not Vec4 but a Flt already (since we're using 'sampler2DShadow')
 #endif
 
 #define TexDepthRawPoint( uv)                       TexPoint (Depth  , uv).x
@@ -654,30 +654,30 @@ inline Vec   Max(Vec   x, Vec   y, Vec   z, Vec   w) {return max(x, max(y, max(z
 inline VecH4 Max(VecH4 x, VecH4 y, VecH4 z, VecH4 w) {return max(x, max(y, max(z, w)));}
 inline Vec4  Max(Vec4  x, Vec4  y, Vec4  z, Vec4  w) {return max(x, max(y, max(z, w)));}
 
-inline Half  Avg(Half  x, Half  y                  ) {return (x+y    )/2    ;}
-inline Flt   Avg(Flt   x, Flt   y                  ) {return (x+y    )*0.50f;}
-inline VecH2 Avg(VecH2 x, VecH2 y                  ) {return (x+y    )/2    ;}
-inline Vec2  Avg(Vec2  x, Vec2  y                  ) {return (x+y    )*0.50f;}
-inline VecH  Avg(VecH  x, VecH  y                  ) {return (x+y    )/2    ;}
-inline Vec   Avg(Vec   x, Vec   y                  ) {return (x+y    )*0.50f;}
-inline VecH4 Avg(VecH4 x, VecH4 y                  ) {return (x+y    )/2    ;}
-inline Vec4  Avg(Vec4  x, Vec4  y                  ) {return (x+y    )*0.50f;}
-inline Half  Avg(Half  x, Half  y, Half  z         ) {return (x+y+z  )/3    ;}
-inline Flt   Avg(Flt   x, Flt   y, Flt   z         ) {return (x+y+z  )/3.00f;}
-inline VecH2 Avg(VecH2 x, VecH2 y, VecH2 z         ) {return (x+y+z  )/3    ;}
-inline Vec2  Avg(Vec2  x, Vec2  y, Vec2  z         ) {return (x+y+z  )/3.00f;}
-inline VecH  Avg(VecH  x, VecH  y, VecH  z         ) {return (x+y+z  )/3    ;}
-inline Vec   Avg(Vec   x, Vec   y, Vec   z         ) {return (x+y+z  )/3.00f;}
-inline VecH4 Avg(VecH4 x, VecH4 y, VecH4 z         ) {return (x+y+z  )/3    ;}
-inline Vec4  Avg(Vec4  x, Vec4  y, Vec4  z         ) {return (x+y+z  )/3.00f;}
-inline Half  Avg(Half  x, Half  y, Half  z, Half  w) {return (x+y+z+w)/4    ;}
-inline Flt   Avg(Flt   x, Flt   y, Flt   z, Flt   w) {return (x+y+z+w)*0.25f;}
-inline VecH2 Avg(VecH2 x, VecH2 y, VecH2 z, VecH2 w) {return (x+y+z+w)/4    ;}
-inline Vec2  Avg(Vec2  x, Vec2  y, Vec2  z, Vec2  w) {return (x+y+z+w)*0.25f;}
-inline VecH  Avg(VecH  x, VecH  y, VecH  z, VecH  w) {return (x+y+z+w)/4    ;}
-inline Vec   Avg(Vec   x, Vec   y, Vec   z, Vec   w) {return (x+y+z+w)*0.25f;}
-inline VecH4 Avg(VecH4 x, VecH4 y, VecH4 z, VecH4 w) {return (x+y+z+w)/4    ;}
-inline Vec4  Avg(Vec4  x, Vec4  y, Vec4  z, Vec4  w) {return (x+y+z+w)*0.25f;}
+inline Half  Avg(Half  x, Half  y                  ) {return (x+y    )/2   ;}
+inline Flt   Avg(Flt   x, Flt   y                  ) {return (x+y    )*0.50;}
+inline VecH2 Avg(VecH2 x, VecH2 y                  ) {return (x+y    )/2   ;}
+inline Vec2  Avg(Vec2  x, Vec2  y                  ) {return (x+y    )*0.50;}
+inline VecH  Avg(VecH  x, VecH  y                  ) {return (x+y    )/2   ;}
+inline Vec   Avg(Vec   x, Vec   y                  ) {return (x+y    )*0.50;}
+inline VecH4 Avg(VecH4 x, VecH4 y                  ) {return (x+y    )/2   ;}
+inline Vec4  Avg(Vec4  x, Vec4  y                  ) {return (x+y    )*0.50;}
+inline Half  Avg(Half  x, Half  y, Half  z         ) {return (x+y+z  )/3   ;}
+inline Flt   Avg(Flt   x, Flt   y, Flt   z         ) {return (x+y+z  )/3.00;}
+inline VecH2 Avg(VecH2 x, VecH2 y, VecH2 z         ) {return (x+y+z  )/3   ;}
+inline Vec2  Avg(Vec2  x, Vec2  y, Vec2  z         ) {return (x+y+z  )/3.00;}
+inline VecH  Avg(VecH  x, VecH  y, VecH  z         ) {return (x+y+z  )/3   ;}
+inline Vec   Avg(Vec   x, Vec   y, Vec   z         ) {return (x+y+z  )/3.00;}
+inline VecH4 Avg(VecH4 x, VecH4 y, VecH4 z         ) {return (x+y+z  )/3   ;}
+inline Vec4  Avg(Vec4  x, Vec4  y, Vec4  z         ) {return (x+y+z  )/3.00;}
+inline Half  Avg(Half  x, Half  y, Half  z, Half  w) {return (x+y+z+w)/4   ;}
+inline Flt   Avg(Flt   x, Flt   y, Flt   z, Flt   w) {return (x+y+z+w)*0.25;}
+inline VecH2 Avg(VecH2 x, VecH2 y, VecH2 z, VecH2 w) {return (x+y+z+w)/4   ;}
+inline Vec2  Avg(Vec2  x, Vec2  y, Vec2  z, Vec2  w) {return (x+y+z+w)*0.25;}
+inline VecH  Avg(VecH  x, VecH  y, VecH  z, VecH  w) {return (x+y+z+w)/4   ;}
+inline Vec   Avg(Vec   x, Vec   y, Vec   z, Vec   w) {return (x+y+z+w)*0.25;}
+inline VecH4 Avg(VecH4 x, VecH4 y, VecH4 z, VecH4 w) {return (x+y+z+w)/4   ;}
+inline Vec4  Avg(Vec4  x, Vec4  y, Vec4  z, Vec4  w) {return (x+y+z+w)*0.25;}
 
 inline Half Min(VecH2 v) {return Min(v.x, v.y);}
 inline Half Max(VecH2 v) {return Max(v.x, v.y);}
@@ -1680,7 +1680,7 @@ inline HSData GetHSData(Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nr
 
       Vec E=O.B210+O.B120+O.B021+O.B012+O.B102+O.B201,
           V=B003+B030+B300;
-      O.B111=E*0.5f-V;
+      O.B111=E*0.5-V;
    }
 
 #if 0 // cubic normal interpolation

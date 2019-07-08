@@ -705,7 +705,7 @@ NOTE the other tuning knobs are now in the shader function inputs!
 FxaaFloat FxaaLuma(FxaaFloat4 rgba, uniform Bool gamma) // ESENTHEL
 {
    if(gamma)rgba.rgb=LinearToSRGBFast(rgba.rgb);
-   return Dot(rgba.rgb, Vec(0.299f, 0.587f, 0.114f));
+   return Dot(rgba.rgb, Vec(0.299, 0.587, 0.114));
 }
 
 

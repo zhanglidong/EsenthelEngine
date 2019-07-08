@@ -97,7 +97,7 @@ Vec4 Circle_PS
 
    if(LINEAR_GAMMA)b=SRGBToLinearFast(b);
    Vec col=XZCol*b;
-   if(XZImageUse)col*=Tex(XZImage, (XZPattern ? I.pos2D*XZPatternScale : d*0.5f+0.5f)*Vec2(1,-1)).r; // XZImage is sRGB
+   if(XZImageUse)col*=Tex(XZImage, (XZPattern ? I.pos2D*XZPatternScale : d*0.5+0.5)*Vec2(1,-1)).r; // XZImage is sRGB
    return Vec4(col, 0);
 }
 /******************************************************************************/
@@ -116,7 +116,7 @@ Vec4 Square_PS
 
    if(LINEAR_GAMMA)b=SRGBToLinearFast(b);
    Vec col=XZCol*b;
-   if(XZImageUse)col*=Tex(XZImage, (XZPattern ? I.pos2D*XZPatternScale : d*0.5f+0.5f)*Vec2(1, -1)).r; // XZImage is sRGB
+   if(XZImageUse)col*=Tex(XZImage, (XZPattern ? I.pos2D*XZPatternScale : d*0.5+0.5)*Vec2(1, -1)).r; // XZImage is sRGB
    return Vec4(col, 0);
 }
 /******************************************************************************/
@@ -126,9 +126,9 @@ Vec4 Grid_PS
 ):COLOR
 {
    Vec2 pos  =I.pos2D/XZRange;
-   Vec2 xz   =Sat((Abs(Frac(pos)-0.5f)-0.5f)/XZSoft+1);
+   Vec2 xz   =Sat((Abs(Frac(pos)-0.5)-0.5)/XZSoft+1);
    Flt  alpha=Max(xz);
-   Flt  dd=Max(Vec4(Abs(ddx(pos)), Abs(ddy(pos)))); alpha*=LerpRS(0.2f, 0.1f, dd);
+   Flt  dd=Max(Vec4(Abs(ddx(pos)), Abs(ddy(pos)))); alpha*=LerpRS(0.2, 0.1, dd);
 
    if(LINEAR_GAMMA)alpha=SRGBToLinearFast(alpha);
    Vec col=XZCol*alpha;

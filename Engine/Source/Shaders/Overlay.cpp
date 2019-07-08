@@ -22,7 +22,7 @@ void VS
    m[1]=OverlayParams.mtrx[1]/Length2(OverlayParams.mtrx[1]);
    m[2]=OverlayParams.mtrx[2]/Length2(OverlayParams.mtrx[2]);
    outTex   =mul(m, vtx.pos()-OverlayParams.mtrx[3]);
-   outTex.xy=outTex.xy*0.5f+0.5f;
+   outTex.xy=outTex.xy*0.5+0.5;
    outTex.z =1 - (Abs(outTex.z)-OverlayOpaqueFrac())/(1-OverlayOpaqueFrac()); // Abs(outTex.z)/-(1-OverlayOpaqueFrac()) + (OverlayOpaqueFrac()/(1-OverlayOpaqueFrac())+1)
 
    if(!skin)

@@ -59,7 +59,7 @@ VecH2 Clouds_PS(NOPERSP Vec dir:TEXCOORD):COLOR // 'dir'=world-space position
    Flt from=(Sqrt(dir.y*dir.y + Cloud.AC4_bottom)-dir.y)*Cloud.A2_inv,
        to  =(Sqrt(dir.y*dir.y + Cloud.AC4_top   )-dir.y)*Cloud.A2_inv, delta=to-from;
 
-   Vec pos=Vec( 1, dir.x*from +Cloud.pos.x, dir.z*from +Cloud.pos.y); // correct way would be to start from "1-0.5f/Cloud.pixels.x", however it's really unnoticeable
+   Vec pos=Vec( 1, dir.x*from +Cloud.pos.x, dir.z*from +Cloud.pos.y); // correct way would be to start from "1-0.5/Cloud.pixels.x", however it's really unnoticeable
        dir=Vec(-1, dir.x*delta            , dir.z*delta            );
 
    Flt pixels=Length(dir*Cloud.pixels);
@@ -73,7 +73,7 @@ VecH2 Clouds_PS(NOPERSP Vec dir:TEXCOORD):COLOR // 'dir'=world-space position
       Vec2 sample=Vol.SampleLevel(SamplerLinearCWW, pos, 0).rg;
       /* test code for adding detail if(Z)
       {
-         Flt s=0.5f;
+         Flt s=0.5;
          Flt m;
          if(X>=2.5)m=2.0*(1-Sqr(1-sample.y))*s;else
          if(X>=1.5)m=1.1*Sqrt(sample.y)*s;else

@@ -3,7 +3,7 @@
 #include "Ambient Occlusion.h"
 #include "Water.h"
 /******************************************************************************/
-#define DEFAULT_DEPTH 1.0f
+#define DEFAULT_DEPTH 1.0
 /******************************************************************************/
 void Surface_VS
 (
@@ -64,7 +64,7 @@ void Surface_VS
 
    if(waves)
    {
-      Flt dist_scale=LerpRS(Sqr(150.0f), Sqr(100.0f), Length2(outPos)),
+      Flt dist_scale=LerpRS(Sqr(150.0), Sqr(100.0), Length2(outPos)),
           bump      =TexLod(Col, outTexB.xy).a+TexLod(Col, outTexB.zw).a;
           bump      =bump-1; // Avg(a,b)*2-1 = (a+b)-1
           outPos   +=(WaterPlnNrm*WaterWave)*bump*dist_scale;
@@ -137,7 +137,7 @@ void Surface_PS
    #if SIGNED_NRM_RT
       O_nrm.xyz=view_nrm;
    #else
-      O_nrm.xyz=view_nrm*0.5f+0.5f; // -1..1 -> 0..1
+      O_nrm.xyz=view_nrm*0.5+0.5; // -1..1 -> 0..1
    #endif
 
    #if SIGNED_NRM_RT && FULL_PRECISION_SPEC
@@ -157,7 +157,7 @@ void Surface_PS
       Vec2 refract=nrm.xy*Viewport.size;
 
       Flt dz   =(soft ? solid_z-water_z : DEFAULT_DEPTH);
-          alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03f);
+          alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03);
 
       Vec2 test_tex=Mid(col_tex+refract*WaterRfr*alpha/Max(1, water_z), WaterClamp.xy, WaterClamp.zw);
       if(soft)
@@ -169,13 +169,13 @@ void Surface_PS
             col_tex=test_tex;
          }
          dz   =solid_z-water_z;
-         alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03f);
+         alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03);
       }else
       {
          col_tex=test_tex;
       }
 
-      if(soft)if(solid_z>=Viewport.range*0.96f)alpha=1; // always force full opacity when there's no solid pixel set to avoid remains in the RenderTarget from previous usage
+      if(soft)if(solid_z>=Viewport.range*0.96)alpha=1; // always force full opacity when there's no solid pixel set to avoid remains in the RenderTarget from previous usage
 
       // light
       Vec4 lum;
@@ -201,8 +201,8 @@ void Surface_PS
       water_col=Lerp(water_col, TexLodClamp(Col1, inTex), rfl); // use LOD to avoid anisotropic going out of clamp region
 
       // glow and specular
-    //water_col.a  +=lum.w*      0.5f; // glow
-      water_col.rgb+=lum.w*lum.w*0.5f; // specular
+    //water_col.a  +=lum.w*      0.5; // glow
+      water_col.rgb+=lum.w*lum.w*0.5; // specular
 
       if(soft)
       {
@@ -250,7 +250,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          Vec2 refract=nrm.xy*Viewport.size;
 
          Flt dz   =solid_z-water_z;
-             alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03f);
+             alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03);
 
          Vec2 test_tex=Mid(col_tex+refract*WaterRfr*alpha/Max(1, water_z), WaterClamp.xy, WaterClamp.zw);
          Flt  test_z  =TexDepthLinear(test_tex); // use linear filtering because texcoords are not rounded
@@ -261,7 +261,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          }
 
          dz   =solid_z-water_z;
-         alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03f);
+         alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03);
 
          // col light
          water_col.rgb*=lum.rgb;
@@ -274,8 +274,8 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          water_col=Lerp(water_col, TexLodClamp(Col1, inTex), rfl); // use LOD to avoid anisotropic going out of clamp region
 
          // glow and specular
-       //water_col.a  +=lum.w*      0.5f; // glow
-         water_col.rgb+=lum.w*lum.w*0.5f; // specular
+       //water_col.a  +=lum.w*      0.5; // glow
+         water_col.rgb+=lum.w*lum.w*0.5; // specular
       }
              Vec4 solid_col=TexClamp(Col2, col_tex);
       return Lerp(solid_col, water_col, alpha);
@@ -290,7 +290,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          solid_z=LinearizeDepth(solid_z);
 
          Flt dz   =solid_z-water_z;
-             alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03f);
+             alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03);
 
          Vec4 water_col=TexLod(Col3, inTex),
                     lum=TexLod(Lum , inTex); // water surface light
@@ -314,8 +314,8 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          water_col=Lerp(water_col, TexLod(Col1, inTex), rfl);
 
          // glow and specular
-       //water_col.a  +=lum.w*      0.5f; // glow
-         water_col.rgb+=lum.w*lum.w*0.5f; // specular
+       //water_col.a  +=lum.w*      0.5; // glow
+         water_col.rgb+=lum.w*lum.w*0.5; // specular
 
          solid_col=Lerp(solid_col, water_col, alpha);
       }
@@ -341,7 +341,7 @@ VecH4 Under_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       inTex =(inTex-Viewport.center)/(1+2*refract)+Viewport.center; // scale texture coordinates to avoid clamping
    #else
       inTex+=Sin(inTex.yx*14+Half(Step))*refract; // add refraction
-      inTex =(inTex-0.5f)/(1+2*refract)+0.5f; // scale texture coordinates to avoid clamping
+      inTex =(inTex-0.5)/(1+2*refract)+0.5; // scale texture coordinates to avoid clamping
    #endif
    }
 
@@ -381,7 +381,7 @@ VecH4 Under_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    {
       Flt density_0=AccumulatedDensity(WaterDns.x, depth_0),
           density_1=AccumulatedDensity(WaterDns.x, depth_1),
-          blend    =0.5f/(1+dist*(WaterDns.x/3));
+          blend    =0.5/(1+dist*(WaterDns.x/3));
       water_density=Lerp(density_0, density_1, blend);
    }
 

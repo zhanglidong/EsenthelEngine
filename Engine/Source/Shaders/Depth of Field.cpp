@@ -12,9 +12,9 @@ TODO: add slow but high quality circular bokeh DoF
 #define SHOW_BLURRED     0
 
 #define FRONT_EXTEND 0 // 0 or 1, method for extending the front, default=0
-#define DEPTH_TOLERANCE (FRONT_EXTEND ? 1.5f : 1.0f) // 1..2 are reasonable
+#define DEPTH_TOLERANCE (FRONT_EXTEND ? 1.5 : 1.0) // 1..2 are reasonable
 #define FINAL_MODE  1 // 1(default)=maximize smooth blur only if it's closer, 0=always maximize smooth blur
-#define FINAL_SCALE 4.0f // final blur scale, increases transition between sharp and blurred in 0..1/FINAL_SCALE step, instead of 0..1
+#define FINAL_SCALE 4.0 // final blur scale, increases transition between sharp and blurred in 0..1/FINAL_SCALE step, instead of 0..1
 /******************************************************************************/
 BUFFER(Dof)
    Vec4 DofParams; // Intensity, Focus, SimpleMulAdd
@@ -30,7 +30,7 @@ inline Flt Blur(Flt z, uniform Bool realistic)
    if(realistic)
    {
    #if 0 // F makes almost no difference
-      Flt F=0.075f; return DofIntensity() /* * F */ * (z - DofFocus()) / (z * (DofFocus() - F));
+      Flt F=0.075; return DofIntensity() /* * F */ * (z - DofFocus()) / (z * (DofFocus() - F));
    #else
       return DofIntensity()*(z-DofFocus())/(z*DofFocus()); // 'DofRange' ignored
    #endif
@@ -159,7 +159,7 @@ VecH4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
 
    blur_abs/=weight;
  //return Vec4(color.rgb/weight, color.a/weight);
-   return Vec4(color.rgb/weight, (color.a>=0.5f*weight) ? 0.5f+blur_abs : 0.5f-blur_abs); // color.a/weight>=0.5f ? .. : ..
+   return Vec4(color.rgb/weight, (color.a>=0.5*weight) ? 0.5+blur_abs : 0.5-blur_abs); // color.a/weight>=0.5 ? .. : ..
 }
 #undef  SCALE
 #define SCALE 1.0 // at the end we need 0..1 range, and since we start with 0..1 we need to scale by "1"
@@ -195,8 +195,8 @@ VecH4 DofBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
    weight  +=w;
 
    blur_abs/=weight;
- //color.a  =((color.a>=0.5f*weight) ? 0.5f+blur_abs : 0.5f-blur_abs); // color.a/weight>=0.5f ? .. : ..
-   return Vec4(color.rgb/weight, FINAL_MODE ? ((color.a>=0.5f*weight) ? 0 : blur_abs) : blur_abs);
+ //color.a  =((color.a>=0.5*weight) ? 0.5+blur_abs : 0.5-blur_abs); // color.a/weight>=0.5 ? .. : ..
+   return Vec4(color.rgb/weight, FINAL_MODE ? ((color.a>=0.5*weight) ? 0 : blur_abs) : blur_abs);
 }
 /******************************************************************************/
 VecH4 Dof_PS(NOPERSP Vec2 inTex:TEXCOORD,

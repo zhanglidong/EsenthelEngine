@@ -1,6 +1,6 @@
 /******************************************************************************/
-#define MLAAThreshold  0.1f
-#define MLAAThreshold2 (2.5f/255)
+#define MLAAThreshold  0.1
+#define MLAAThreshold2 (2.5/255)
 
 inline Flt ColDiff(Vec a, Vec b)
 {
@@ -30,7 +30,7 @@ Vec4 EdgeSoftenCalcDist_PS(IF_IS_PIXEL
 	{
 		// scan left
 		{
-		   Vec2 tex=inTex; tex.y+=0.5f*PixSize.y; // use bilinear filtering to scan both top and bottom
+		   Vec2 tex=inTex; tex.y+=0.5*PixSize.y; // use bilinear filtering to scan both top and bottom
 		   Flt  inc=1.0f/255;
 		   UNROLL for(Int i=0; i<4; i++)
 		   {
@@ -42,7 +42,7 @@ Vec4 EdgeSoftenCalcDist_PS(IF_IS_PIXEL
 		}
 		// scan right
 		{
-		   Vec2 tex =inTex; tex.y+=0.5f*PixSize.y; // use bilinear filtering to scan both top and bottom
+		   Vec2 tex =inTex; tex.y+=0.5*PixSize.y; // use bilinear filtering to scan both top and bottom
 		   Flt  inc =1.0f/255;
 		   Vec2 edge=TexLod(Col,tex).xy;
 		   UNROLL for(Int i=0; i<3; i++)
@@ -60,7 +60,7 @@ Vec4 EdgeSoftenCalcDist_PS(IF_IS_PIXEL
 	{
 		// scan top
 		{
-		   Vec2 tex=inTex; tex.x+=0.5f*PixSize.x; // use bilinear filtering to scan both left and right
+		   Vec2 tex=inTex; tex.x+=0.5*PixSize.x; // use bilinear filtering to scan both left and right
 		   Flt  inc=1.0f/255;
 		   UNROLL for(Int i=0; i<4; i++)
 		   {
@@ -72,7 +72,7 @@ Vec4 EdgeSoftenCalcDist_PS(IF_IS_PIXEL
 		}
 		// scan bottom
 		{
-         Vec2 tex =inTex; tex.x+=0.5f*PixSize.x; // use bilinear filtering to scan both left and right
+         Vec2 tex =inTex; tex.x+=0.5*PixSize.x; // use bilinear filtering to scan both left and right
          Flt  inc =1.0f/255;		
          Vec2 edge=TexLod(Col,tex).xy;
          UNROLL for(Int i=0; i<3; i++)
@@ -249,7 +249,7 @@ inline Flt BlendFactor(Flt start, Flt end, Flt pos, Flt h0, Flt h1, Flt step)
 	Flt slope=(h1 -h0)/(end+step-start),
 	    hb0  = h0 +slope*(pos-start),
 	    hb1  = hb0+step*slope,
-	    area =(hb0+hb1)*0.5f;
+	    area =(hb0+hb1)*0.5;
 	return area;
 }
 
@@ -292,8 +292,8 @@ Vec4 EdgeSoftenApply_PS(IF_IS_PIXEL
 		      Vec4 c=TexLod(Col1,startUV+PixSize*Vec2(-1,0));
 		      if(c.r)
 		      {
-			      Flt h0= 0.5f,
-			          h1=-0.5f,
+			      Flt h0= 0.5,
+			          h1=-0.5,
 			          b = BlendFactor(startUV.x, endUV.x, inTex.x, h0, h1, PixSize.x);				
 			      finalCol+=TexLod(Col,inTex+Vec2(0,b*PixSize.y)); // lerp, using bilinear filtering for transition
 			      weight  +=1;
@@ -306,8 +306,8 @@ Vec4 EdgeSoftenApply_PS(IF_IS_PIXEL
 		      Vec4 c=TexLod(Col1,endUV);	
 		      if(c.r)
 		      {
-			      Flt h0=-0.5f,
-			          h1= 0.5f,
+			      Flt h0=-0.5,
+			          h1= 0.5,
 			          b = BlendFactor(startUV.x, endUV.x, inTex.x, h0, h1, PixSize.x);				
 			      finalCol+=TexLod(Col,inTex+Vec2(0,b*PixSize.y)); // lerp, using bilinear filtering for transition
 			      weight  +=1;
@@ -338,8 +338,8 @@ Vec4 EdgeSoftenApply_PS(IF_IS_PIXEL
 		      Vec4 c=TexLod(Col1,startUV+PixSize*Vec2(-1,1));
 		      if(c.r)
 		      {
-			      Flt h0=-0.5f,
-			          h1= 0.5f,
+			      Flt h0=-0.5,
+			          h1= 0.5,
 			          b = BlendFactor(startUV.x, endUV.x, inTex.x, h0, h1, PixSize.x);				
 			      finalCol+=TexLod(Col,inTex+Vec2(0,b*PixSize.y)); // lerp, using bilinear filtering for transition
 			      weight  +=1;
@@ -353,8 +353,8 @@ Vec4 EdgeSoftenApply_PS(IF_IS_PIXEL
 		      Vec4 c=TexLod(Col1,endUV+PixSize*Vec2(0,1));
 		      if(c.r)
 		      {
-			      Flt h0= 0.5f,
-			          h1=-0.5f,
+			      Flt h0= 0.5,
+			          h1=-0.5,
 			          b = BlendFactor(startUV.x, endUV.x, inTex.x, h0, h1, PixSize.x);				
 			      finalCol+=TexLod(Col,inTex+Vec2(0,b*PixSize.y)); // lerp, using bilinear filtering for transition
 			      weight  +=1;
@@ -386,8 +386,8 @@ Vec4 EdgeSoftenApply_PS(IF_IS_PIXEL
 		      Vec4 c=TexLod(Col1,startUV+PixSize*Vec2(0,-1));
 		      if(c.g)
 		      {
-			      Flt h0= 0.5f,
-			          h1=-0.5f,
+			      Flt h0= 0.5,
+			          h1=-0.5,
 			          b = BlendFactor(startUV.y, endUV.y, inTex.y, h0, h1, PixSize.y);				
 			      finalCol+=TexLod(Col,inTex+Vec2(b*PixSize.x,0)); // lerp, using bilinear filtering for transition
 			      weight  +=1;
@@ -402,8 +402,8 @@ Vec4 EdgeSoftenApply_PS(IF_IS_PIXEL
 		      Vec4 c=TexLod(Col1,endUV);
 		      if(c.g)
 		      {
-			      Flt h0=-0.5f,
-			          h1= 0.5f,				
+			      Flt h0=-0.5,
+			          h1= 0.5,				
 			          b = BlendFactor(startUV.y, endUV.y, inTex.y, h0, h1, PixSize.y);				
 			      finalCol+=TexLod(Col,inTex+Vec2(b*PixSize.x,0)); // lerp, using bilinear filtering for transition
 			      weight  +=1;
@@ -435,8 +435,8 @@ Vec4 EdgeSoftenApply_PS(IF_IS_PIXEL
             Vec4 c=TexLod(Col1,startUV+PixSize*Vec2(1,-1));
             if(c.g)
             {
-               Flt h0=-0.5f,
-                   h1= 0.5f,
+               Flt h0=-0.5,
+                   h1= 0.5,
                    b = BlendFactor(startUV.y, endUV.y, inTex.y, h0, h1, PixSize.y);				
                finalCol+=TexLod(Col,inTex+Vec2(b*PixSize.x,0)); // lerp, using bilinear filtering for transition
                weight  +=1;
@@ -451,8 +451,8 @@ Vec4 EdgeSoftenApply_PS(IF_IS_PIXEL
 		      Vec4 c=TexLod(Col1,endUV+PixSize*Vec2(1,0));
 		      if(c.g)
 		      {
-			      Flt h0= 0.5f,
-			          h1=-0.5f,
+			      Flt h0= 0.5,
+			          h1=-0.5,
 			          b = BlendFactor(startUV.y, endUV.y, inTex.y, h0, h1, PixSize.y);				
 			      finalCol+=TexLod(Col,inTex+Vec2(b*PixSize.x,0)); // lerp, using bilinear filtering for transition
 			      weight  +=1;

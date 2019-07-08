@@ -1,23 +1,23 @@
 /******************************************************************************/
 #include "!Header.h"
 /******************************************************************************/
-#define MacroFrom   192.0f
-#define MacroTo     320.0f
-#define MacroMax    0.70f
-#define MacroScale (1.0f/32)
+#define MacroFrom   192.0
+#define MacroTo     320.0
+#define MacroMax    0.70
+#define MacroScale (1.0/32)
 
-#define DEFAULT_TEX_SIZE 1024.0f // 1024x1024
+#define DEFAULT_TEX_SIZE 1024.0 // 1024x1024
 
 #define PARALLAX_MODE 1 // 1=best
 
 #define RELIEF_STEPS_MAX    32
 #define RELIEF_STEPS_BINARY 3 // 3 works good in most cases, 4 could be used for absolute best quality
-#define RELIEF_STEPS_MUL    0.75f // 0.75f gets slightly worse quality but better performance, 1.0f gets full quality but slower performance, default=0.75f
-#define RELIEF_LOD_OFFSET   0.33f // values >0 increase performance (by using fewer steps and smaller LOD's) which also makes results more soft and flat helping to reduce jitter for distant pixels, default=0.33f
+#define RELIEF_STEPS_MUL    0.75 // 0.75 gets slightly worse quality but better performance, 1.0 gets full quality but slower performance, default=0.75
+#define RELIEF_LOD_OFFSET   0.33 // values >0 increase performance (by using fewer steps and smaller LOD's) which also makes results more soft and flat helping to reduce jitter for distant pixels, default=0.33
 #define RELIEF_TAN_POS      1 // 0=gets worse quality but better performance (not good for triangles with vertexes with very different normals or for surfaces very close to camera), 1=gets full quality but slower performance, default=1
 #define RELIEF_DEC_NRM      1 // if reduce relief bump intensity where there are big differences between vtx normals, tangents and binormals, default=1
 #define RELIEF_MODE         1 // 1=best
-#define RELIEF_Z_LIMIT      0.4f // smaller values may cause leaking (UV swimming), and higher reduce bump intensity at angles, default=0.4f
+#define RELIEF_Z_LIMIT      0.4 // smaller values may cause leaking (UV swimming), and higher reduce bump intensity at angles, default=0.4
 #define RELIEF_LOD_TEST     0 // close to camera (test enabled=4.76 fps, test disabled=4.99 fps), far from camera (test enabled=9.83 fps, test disabled=9.52 fps), conclusion: this test reduces performance when close to camera by a similar factor to when far away, however since more likely pixels will be close to camera (as for distant LOD's other shaders are used) we prioritize close to camera performance, so this check should be disabled, default=0
 /******************************************************************************/
 #define PARAMS             \
@@ -200,14 +200,14 @@ void PS
          #elif PARALLAX_MODE==1 // best results (not as flat, and not much aliasing)
             Flt scale=MaterialBump()/(steps*Lerp(1, tpos.z, tpos.z)); // MaterialBump()/steps/Lerp(1, tpos.z, tpos.z);
          #elif PARALLAX_MODE==2 // generates too steep walls (not good for parallax)
-            Flt scale=MaterialBump()/(steps*Lerp(1, tpos.z, Sat(tpos.z/0.5f))); // MaterialBump()/steps/Lerp(1, tpos.z, tpos.z);
+            Flt scale=MaterialBump()/(steps*Lerp(1, tpos.z, Sat(tpos.z/0.5))); // MaterialBump()/steps/Lerp(1, tpos.z, tpos.z);
          #elif PARALLAX_MODE==3 // introduces a bit too much aliasing/artifacts on surfaces perpendicular to view direction
             Flt scale=MaterialBump()/steps*(2-tpos.z); // MaterialBump()/steps*Lerp(1, 1/tpos.z, tpos.z)
          #else // correct however introduces way too much aliasing/artifacts on surfaces perpendicular to view direction
             Flt scale=MaterialBump()/steps/tpos.z;
          #endif
             tpos.xy*=scale;
-            UNROLL for(Int i=0; i<steps; i++)I.tex+=(Tex(Col, I.tex).w-0.5f)*tpos.xy;
+            UNROLL for(Int i=0; i<steps; i++)I.tex+=(Tex(Col, I.tex).w-0.5)*tpos.xy;
          }else
          if(bump_mode==SBUMP_RELIEF) // relief mapping
          {
@@ -247,16 +247,16 @@ void PS
                Flt length=Length(tpos.xy) * TexSize / Pow(2, lod);
                if(RELIEF_STEPS_MUL!=1)if(lod>0)length*=RELIEF_STEPS_MUL; // don't use this for first LOD
 
-               I.tex-=tpos.xy*0.5f;
+               I.tex-=tpos.xy*0.5;
 
                Int  steps   =Mid(length, 0, RELIEF_STEPS_MAX);
-               Flt  stp     =1.0f/(steps+1),
+               Flt  stp     =1.0/(steps+1),
                     ray     =1;
                Vec2 tex_step=tpos.xy*stp;
 
             #if 1 // linear + interval search (faster)
                // linear search
-               Flt height_next, height_prev=0.5f; // use 0.5 as approximate average value, we could do "TexLodI(Col, I.tex, lod).w", however in tests that wasn't needed but only reduced performance
+               Flt height_next, height_prev=0.5; // use 0.5 as approximate average value, we could do "TexLodI(Col, I.tex, lod).w", however in tests that wasn't needed but only reduced performance
                LOOP for(Int i=0; ; i++)
                {
                   ray  -=stp;
@@ -309,7 +309,7 @@ void PS
                // binary search
                {
                   Flt ray_prev=ray+stp,
-                      l=0, r=1, m=0.5f;
+                      l=0, r=1, m=0.5;
                   UNROLL for(Int i=0; i<RELIEF_STEPS_BINARY; i++)
                   {
                      Flt height=TexLodI(Col, I.tex-tex_step*m, lod).w;
@@ -394,7 +394,7 @@ void PS
          #elif PARALLAX_MODE==1 // best results (not as flat, and not much aliasing)
             Flt scale=1/(steps*Lerp(1, tpos.z, tpos.z)); // 1/steps/Lerp(1, tpos.z, tpos.z);
          #elif PARALLAX_MODE==2 // generates too steep walls (not good for parallax)
-            Flt scale=1/(steps*Lerp(1, tpos.z, Sat(tpos.z/0.5f)));
+            Flt scale=1/(steps*Lerp(1, tpos.z, Sat(tpos.z/0.5)));
          #elif PARALLAX_MODE==3 // introduces a bit too much aliasing/artifacts on surfaces perpendicular to view direction
             Flt scale=1/steps*(2-tpos.z); // 1/steps*Lerp(1, 1/tpos.z, tpos.z)
          #else // correct however introduces way too much aliasing/artifacts on surfaces perpendicular to view direction
@@ -404,11 +404,11 @@ void PS
 
             // (x-0.5)*bump_mul = x*bump_mul - 0.5*bump_mul
             VecH4 bump_mul; bump_mul.x=MultiMaterial0Bump();
-            VecH4 bump_add; bump_mul.y=MultiMaterial1Bump(); if(materials==2){bump_mul.xy  *=I.material.xy  ; bump_add.xy  =bump_mul.xy  *-0.5f;}
-            if(materials>=3)bump_mul.z=MultiMaterial2Bump(); if(materials==3){bump_mul.xyz *=I.material.xyz ; bump_add.xyz =bump_mul.xyz *-0.5f;}
-            if(materials>=4)bump_mul.w=MultiMaterial3Bump(); if(materials==4){bump_mul.xyzw*=I.material.xyzw; bump_add.xyzw=bump_mul.xyzw*-0.5f;}
+            VecH4 bump_add; bump_mul.y=MultiMaterial1Bump(); if(materials==2){bump_mul.xy  *=I.material.xy  ; bump_add.xy  =bump_mul.xy  *-0.5;}
+            if(materials>=3)bump_mul.z=MultiMaterial2Bump(); if(materials==3){bump_mul.xyz *=I.material.xyz ; bump_add.xyz =bump_mul.xyz *-0.5;}
+            if(materials>=4)bump_mul.w=MultiMaterial3Bump(); if(materials==4){bump_mul.xyzw*=I.material.xyzw; bump_add.xyzw=bump_mul.xyzw*-0.5;}
 
-            UNROLL for(Int i=0; i<steps; i++) // I.tex+=(Tex(Col, I.tex).w-0.5f)*tpos.xy;
+            UNROLL for(Int i=0; i<steps; i++) // I.tex+=(Tex(Col, I.tex).w-0.5)*tpos.xy;
             {
                           Half h =Tex(Col , tex0).w*bump_mul.x+bump_add.x
                                  +Tex(Col1, tex1).w*bump_mul.y+bump_add.y;
@@ -462,21 +462,21 @@ void PS
                Flt length=Length(tpos.xy) * TexSize / Pow(2, lod);
                if(RELIEF_STEPS_MUL!=1)if(lod>0)length*=RELIEF_STEPS_MUL; // don't use this for first LOD
 
-             //I.tex-=tpos.xy*0.5f;
-               Vec2 offset=tpos.xy*0.5f;
+             //I.tex-=tpos.xy*0.5;
+               Vec2 offset=tpos.xy*0.5;
                                tex0-=offset;
                                tex1-=offset;
                if(materials>=3)tex2-=offset;
                if(materials>=4)tex3-=offset;
 
                Int  steps   =Mid(length, 0, RELIEF_STEPS_MAX);
-               Flt  stp     =1.0f/(steps+1),
+               Flt  stp     =1.0/(steps+1),
                     ray     =1;
                Vec2 tex_step=tpos.xy*stp;
 
             #if 1 // linear + interval search (faster)
                // linear search
-               Flt height_next, height_prev=0.5f; // use 0.5 as approximate average value, we could do "TexLodI(Col, I.tex, lod).w", however in tests that wasn't needed but only reduced performance
+               Flt height_next, height_prev=0.5; // use 0.5 as approximate average value, we could do "TexLodI(Col, I.tex, lod).w", however in tests that wasn't needed but only reduced performance
                LOOP for(Int i=0; ; i++)
                {
                   ray-=stp;
@@ -559,7 +559,7 @@ void PS
                // binary search
                {
                   Flt ray_prev=ray+stp,
-                      l=0, r=1, m=0.5f;
+                      l=0, r=1, m=0.5;
                   UNROLL for(Int i=0; i<RELIEF_STEPS_BINARY; i++)
                   {
                      Half height=TexLodI(Col, I.tex-tex_step*m, lod).w;

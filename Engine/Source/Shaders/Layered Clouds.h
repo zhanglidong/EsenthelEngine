@@ -13,5 +13,5 @@ BUFFER(CloudLayer)
    CloudLayer CL[4];
 BUFFER_END
 /******************************************************************************/
-inline Flt CloudAlpha(Flt y) {return y*8-0.15f;}
+inline Flt CloudAlpha(Flt y) {return y*8-0.15;}
 /******************************************************************************/

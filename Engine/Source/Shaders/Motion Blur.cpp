@@ -20,7 +20,7 @@ BUFFER(MotionBlur)
    Vec2 MotionPixelSize;
 BUFFER_END
 /******************************************************************************/
-#define DEPTH_TOLERANCE 0.1f // 10 cm
+#define DEPTH_TOLERANCE 0.1 // 10 cm
 inline Flt DepthBlend(Flt z_test, Flt z_base)
 {
    return Sat((z_base-z_test)/DEPTH_TOLERANCE+1); // we can apply overlap only if tested depth is smaller
@@ -46,7 +46,7 @@ void Explosion_PS(Vec   inPos:TEXCOORD0,
    // there's no NaN because inPos.z is always >0 in PixelShader
    inVel/=inPos.z;
 #if !SIGNED_VEL_RT
-   inVel=inVel*0.5f+0.5f;
+   inVel=inVel*0.5+0.5;
 #endif
    outVel.xyz=inVel.xyz;
    outVel.w  =0;
@@ -60,7 +60,7 @@ void ClearSkyVel_VS(VtxInput vtx,
 
    outVel.xyz=Cross(pos, CamAngVel);
 #if !SIGNED_VEL_RT
-   outVel.xyz=outVel.xyz*0.5f+0.5f;
+   outVel.xyz=outVel.xyz*0.5+0.5;
 #endif
 
    outVel.w=0;
@@ -98,7 +98,7 @@ VecH4 Convert_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    {
       blur=TexLod(Col, UVClamp(inTex, do_clamp)).xyz; // have to use linear filtering because we may draw to smaller RT
    #if !SIGNED_VEL_RT // convert 0..1 -> -1..1 (*2-1) and fix zero, unsigned texture formats don't have a precise zero when converted to signed, because both 127/255*2-1 and 128/255*2-1 aren't zeros, 127: (127/255-0.5)==-0.5/255, 128: (128/255-0.5)==0.5/255, 129: (129/255-0.5)==1.5/255, so let's compare <=1.0/255
-      blur=((Abs(blur-0.5f)<=1.0f/255) ? Vec(0, 0, 0) : blur*2-1); // this performs comparisons for all channels separately, force 0 when source value is close to 0.5, otherwise scale to -1..1
+      blur=((Abs(blur-0.5)<=1.0/255) ? Vec(0, 0, 0) : blur*2-1); // this performs comparisons for all channels separately, force 0 when source value is close to 0.5, otherwise scale to -1..1
    #endif
    }
 
@@ -155,7 +155,7 @@ VecH4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
       l-=Dist(x, y)/pixels; // when loop is unrolled and 'pixels' is uniform then it can be evaluated to a constant expression
       if(l>len)
       {
-         const Flt eps=0.7f; // 1.0f would include neighbors too, and with each call to this function we would bloat by 1 pixel, this needs to be slightly below SQRT2_2 0.7071067811865475 to avoid diagonal bloating too
+         const Flt eps=0.7; // 1.0 would include neighbors too, and with each call to this function we would bloat by 1 pixel, this needs to be slightly below SQRT2_2 0.7071067811865475 to avoid diagonal bloating too
          Flt line_dist=Dot(b.xy, Vec2(y, -x)); if(Abs(line_dist)<=b_len*eps) // Vec2 perp_n=Vec2(b.y, -b.x)/b_len; Flt line_dist=Dot(perp_n, Vec2(x, y)); if(Abs(line_dist)<=eps)..   (don't try to do "Vec2(y, -x)/eps" instead of "b_len*eps", because compiler can optimize the Dot better without it)
          {blur.xy=b.xy*(l/b_len); if(!ALWAYS_DILATE_LENGTH)blur.z=Max(blur.z, b.z); len=l;}
       }
@@ -293,7 +293,7 @@ VecH4 SetDirs_PS(NOPERSP Vec2 inTex:TEXCOORD, // goes simultaneously in both way
 
    Vec blur_dir=TexPoint(Col1, inTex).xyz; // XY=Dir, Z=Max Dir length of all nearby pixels
 #if !SIGNED_VEL_RT
-   blur_dir.xy=((Abs(blur_dir.xy-0.5f)<=1.0f/255) ? Vec2(0, 0) : blur_dir.xy*2-1); // this performs comparisons for all channels separately, force 0 when source value is close to 0.5, otherwise scale to -1..1
+   blur_dir.xy=((Abs(blur_dir.xy-0.5)<=1.0/255) ? Vec2(0, 0) : blur_dir.xy*2-1); // this performs comparisons for all channels separately, force 0 when source value is close to 0.5, otherwise scale to -1..1
 #endif
 
    Vec4 dirs=0;
@@ -304,7 +304,7 @@ VecH4 SetDirs_PS(NOPERSP Vec2 inTex:TEXCOORD, // goes simultaneously in both way
          Flt blur_dir_length2=Length2(blur_dir.xy);
 #else
          Flt blur_dir_length2=Length2(blur_dir.xy);
-   BRANCH if(blur_dir_length2>Sqr(0.5f/pixels)) // Length(blur_dir.xy)*pixels>0.5f. Check 'blur_dir.xy' instead of 'blur_dir.z' because can be big (because of nearby pixels moving) but 'blur_dir.xy' can be zero. Always check for 0.5 regardless of ROUND (this was tested and it looks much better)
+   BRANCH if(blur_dir_length2>Sqr(0.5/pixels)) // Length(blur_dir.xy)*pixels>0.5. Check 'blur_dir.xy' instead of 'blur_dir.z' because can be big (because of nearby pixels moving) but 'blur_dir.xy' can be zero. Always check for 0.5 regardless of ROUND (this was tested and it looks much better)
    {
 #endif
       /*
@@ -392,8 +392,8 @@ VecH4 SetDirs_PS(NOPERSP Vec2 inTex:TEXCOORD, // goes simultaneously in both way
          depth_min1=Min(depth_min1, z1);
 
          // TODO: can this be improved?
-         same_vel0*=(Dist2(pixel_vel, c0)<=Sqr(1.5f/pixels));
-         same_vel1*=(Dist2(pixel_vel, c1)<=Sqr(1.5f/pixels));
+         same_vel0*=(Dist2(pixel_vel, c0)<=Sqr(1.5/pixels));
+         same_vel1*=(Dist2(pixel_vel, c1)<=Sqr(1.5/pixels));
 
          Bool allow0=(InFront(depth0, depth_min0) || same_vel0),
               allow1=(InFront(depth1, depth_min1) || same_vel1);
@@ -412,8 +412,8 @@ VecH4 SetDirs_PS(NOPERSP Vec2 inTex:TEXCOORD, // goes simultaneously in both way
       // normally with the formula above, we can get only integer precision, 'range0' and 'range1' can only be set to integer steps, based on which we set vectors
       // we get multiples of pixel ranges, without fraction, this gets much worse with smaller resolutions, in which steps are bigger
       // to solve this problem, if there were no obstacles found, then maximize directions by original smooth value
-      Flt actual_length=blur_dir_length - ROUND*0.5f/pixels, // we need to subtract what we've added before, no need to do Sat, because we're inside BRANCH if that tests for length
-            test_length=blur_dir_length + 1.0f/128         ; // we have to use a bigger value than 'actual_length' and 'blur_dir_length' to improve chances of this going through (the epsilon was tested carefully it supports both small and big velocities)
+      Flt actual_length=blur_dir_length - ROUND*0.5/pixels, // we need to subtract what we've added before, no need to do Sat, because we're inside BRANCH if that tests for length
+            test_length=blur_dir_length + 1.0/128         ; // we have to use a bigger value than 'actual_length' and 'blur_dir_length' to improve chances of this going through (the epsilon was tested carefully it supports both small and big velocities)
       if(allowed0==samples && (range1>0 || samples<=1) && test_length>=dir_length0)dir_length0=actual_length; // if there were no obstacles in this direction (also check opposite direction because of linear filtering using neighbor sample which causes visible leaking, we check that we've blurred at least one pixel "range>0", however if the velocity is <1 less than 1 pixel then range will not get >0, to support very small smooth velocities, we have to do another check for "samples <= 1"), then try using original
       if(allowed1==samples && (range0>0 || samples<=1) && test_length>=dir_length1)dir_length1=actual_length; // if there were no obstacles in this direction (also check opposite direction because of linear filtering using neighbor sample which causes visible leaking, we check that we've blurred at least one pixel "range>0", however if the velocity is <1 less than 1 pixel then range will not get >0, to support very small smooth velocities, we have to do another check for "samples <= 1"), then try using original
    #endif
@@ -459,7 +459,7 @@ Vec4 Blur_PS(NOPERSP Vec2 inTex:TEXCOORD,
       }
       Int samples=MAX_BLUR_SAMPLES;
    #if VARIABLE_BLUR_SAMPLES
-      Flt eps=0.15f;
+      Flt eps=0.15;
       #if 1
          samples=Ceil(Sat(Max(Abs(blur))/MotionVelScaleLimit.w+eps)*samples);
       #else
