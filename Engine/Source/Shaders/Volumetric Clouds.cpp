@@ -186,7 +186,7 @@ VecH4 CloudsDraw_PS(NOPERSP Vec2 inTex:TEXCOORD0,
                     NOPERSP Vec  inPos:TEXCOORD1,
                     uniform Bool gamma          ):COLOR
 {
-   VecH2 clouds=TexLod(ValXY, inTex).xy; // can't use TexPoint because image may be smaller
+   VecH2 clouds=TexLod(ImgXY, inTex).xy; // can't use TexPoint because image may be smaller
 #if 1
    clouds.y*=Sat(TexDepthPoint(inTex)*Length(inPos)*SkyFracMulAdd.x+SkyFracMulAdd.y);
 #else

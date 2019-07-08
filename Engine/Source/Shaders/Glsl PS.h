@@ -2,7 +2,7 @@
 
 PAR Image     Col, Col1, Col2, Col3,
               Nrm, Nrm1, Nrm2, Nrm3,
-              Lum, ValXY;
+              Lum, ImgXY;
 PAR HP Image  Depth;
 PAR ImageCube Rfl, Rfl1, Rfl2, Rfl3;
 

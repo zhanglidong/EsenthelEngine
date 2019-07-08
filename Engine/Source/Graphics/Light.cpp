@@ -86,9 +86,9 @@ static void RestoreViewSpaceBias(Flt mp_z_z)
    if(FovPerspective(D.viewFovMode())){ProjMatrix.z.z=mp_z_z; SetProjMatrix();}
 }
 void RendererClass::getShdRT()
-{ // always do 'get' to call 'discard', do "h_ImageVal->set" it will be used by drawing lights 'Light.draw, drawForward' (GetLight*->draw) and 'MapSoft'
-                                  {Renderer._shd_1s.get(ImageRTDesc(Renderer._ds_1s->w(), Renderer._ds_1s->h(), IMAGERT_ONE                         )); Sh.h_ImageVal  ->set(Renderer._shd_1s);}
-   if(Renderer._ds->multiSample()){Renderer._shd_ms.get(ImageRTDesc(Renderer._ds   ->w(), Renderer._ds   ->h(), IMAGERT_ONE, Renderer._ds->samples())); Sh.h_ImageValMS->set(Renderer._shd_ms);}
+{ // always do 'get' to call 'discard', do "h_ImageImgX[0]->set" it will be used by drawing lights 'Light.draw, drawForward' (GetLight*->draw) and 'MapSoft'
+                                  {Renderer._shd_1s.get(ImageRTDesc(Renderer._ds_1s->w(), Renderer._ds_1s->h(), IMAGERT_ONE                         )); Sh.h_ImageImgX[0]->set(Renderer._shd_1s);}
+   if(Renderer._ds->multiSample()){Renderer._shd_ms.get(ImageRTDesc(Renderer._ds   ->w(), Renderer._ds   ->h(), IMAGERT_ONE, Renderer._ds->samples())); Sh.h_ImageImgXMS ->set(Renderer._shd_ms);}
    D.alpha(ALPHA_NONE);
 }
 
@@ -142,15 +142,15 @@ static void MapSoft()
       if(D.shadowSoft()>=5)
       {
          ImageRTPtr temp; temp.get(rt_desc);
-         Renderer.set(            temp, Renderer._ds_1s, true, NEED_DEPTH_READ);                                                        REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.h_ShdBlurX->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth2D' optimization
-         Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); Renderer._shd_1s->discard(); Sh.h_ImageVal->set(temp); REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.h_ShdBlurY->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth2D' optimization
+         Renderer.set(            temp, Renderer._ds_1s, true, NEED_DEPTH_READ);                                                            REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.h_ShdBlurX->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth2D' optimization
+         Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); Renderer._shd_1s->discard(); Sh.h_ImageImgX[0]->set(temp); REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.h_ShdBlurY->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth2D' optimization
       }else
       {
          ImageRTPtr src=Renderer._shd_1s; Renderer._shd_1s.get(rt_desc);
          Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization
          REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.h_ShdBlur[D.shadowSoft()-1]->draw(&CurrentLightRect[Renderer._eye]);
       }
-      Sh.h_ImageVal->set(Renderer._shd_1s);
+      Sh.h_ImageImgX[0]->set(Renderer._shd_1s);
    }
 }
 static void RestoreLightSettings()

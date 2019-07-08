@@ -513,7 +513,7 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
          // sub-pixel rendering
          ALPHA_MODE   alpha;
          Bool         sub_pixel=font->_sub_pixel;
-         ShaderImage &shader_image=(sub_pixel ? *Sh.h_ImageCol[0] : *Sh.h_ImageValXY);
+         ShaderImage &shader_image=(sub_pixel ? *Sh.h_ImageCol[0] : *Sh.h_ImageImgXY);
          if(sub_pixel){alpha=D.alpha(Renderer.inside() ? ALPHA_FONT_DEC : ALPHA_FONT); VI.shader(Sh.h_FontCurSP);}else // if drawing text while rendering, then decrease the alpha channel (glow)
          if(Renderer.inside())D.alpha(ALPHA_BLEND_DEC); // if drawing text while rendering, then decrease the alpha channel (glow), but don't bother to restore it, as in Rendering, alpha blending is always set for each call
 

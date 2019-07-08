@@ -615,9 +615,9 @@ VecH4 Font_PS
    // final=dest*(1-s)*(1-a) + c*a;
 
 #if DX11
-   VecH2 as=ValXY.Sample(SamplerFont, inTex).rg; // #FontImageLayout
+   VecH2 as=ImgXY.Sample(SamplerFont, inTex).rg; // #FontImageLayout
 #else
-   VecH2 as=Tex(ValXY, inTex).rg; // #FontImageLayout
+   VecH2 as=Tex(ImgXY, inTex).rg; // #FontImageLayout
 #endif
    Half  a =Sat(as.x*FontContrast), // font opacity, "Min(as.x*FontContrast, 1)", scale up by 'FontContrast' to improve quality when font is very small
          s =    as.y*FontShadow   ; // font shadow
@@ -1100,18 +1100,18 @@ TECHNIQUE(Volume2LA, Volume_VS(2), Volume_PS(2, true));
 inline VecH TexYUV(Vec2 inTex,
            uniform Bool gamma)
 {
- /*Flt y=Tex(Col , inTex).x,
-       u=Tex(Col1, inTex).x,
-       v=Tex(Col2, inTex).x;
+ /*Half y=Tex(ImgX , inTex).x,
+        u=Tex(ImgX1, inTex).x,
+        v=Tex(ImgX2, inTex).x;
 
-   Flt r=1.1643*(y-0.0625)                   + 1.5958*(v-0.5),
-       g=1.1643*(y-0.0625) - 0.39173*(u-0.5) - 0.8129*(v-0.5),
-       b=1.1643*(y-0.0625) + 2.017  *(u-0.5)                 ;*/
+   Half r=1.1643*(y-0.0625)                   + 1.5958*(v-0.5),
+        g=1.1643*(y-0.0625) - 0.39173*(u-0.5) - 0.8129*(v-0.5),
+        b=1.1643*(y-0.0625) + 2.017  *(u-0.5)                 ;*/
 
    // keep 'Tex' in case images have LOD's (however unlikely)
-   Half y=Tex(Col , inTex).x*1.1643-0.07276875,
-        u=Tex(Col1, inTex).x       -0.5,
-        v=Tex(Col2, inTex).x       -0.5;
+   Half y=Tex(ImgX , inTex).x*1.1643-0.07276875,
+        u=Tex(ImgX1, inTex).x       -0.5,
+        v=Tex(ImgX2, inTex).x       -0.5;
 
    VecH rgb=VecH(y             + 1.5958*v,
                  y - 0.39173*u - 0.8129*v,
@@ -1119,8 +1119,8 @@ inline VecH TexYUV(Vec2 inTex,
    if(gamma)rgb=SRGBToLinear(rgb);
    return   rgb;
 }
-VecH4 YUV_PS (NOPERSP Vec2 inTex:TEXCOORD, uniform Bool gamma):COLOR {return VecH4(TexYUV(inTex, gamma),                                    1);}
-VecH4 YUVA_PS(NOPERSP Vec2 inTex:TEXCOORD, uniform Bool gamma):COLOR {return VecH4(TexYUV(inTex, gamma), Tex(Col3, inTex).x*1.1643-0.07276875);} // need to MulAdd because alpha image assumes to come from another YUV video
+VecH4 YUV_PS (NOPERSP Vec2 inTex:TEXCOORD, uniform Bool gamma):COLOR {return VecH4(TexYUV(inTex, gamma),                                     1);}
+VecH4 YUVA_PS(NOPERSP Vec2 inTex:TEXCOORD, uniform Bool gamma):COLOR {return VecH4(TexYUV(inTex, gamma), Tex(ImgX3, inTex).x*1.1643-0.07276875);} // need to MulAdd because alpha image assumes to come from another YUV video
 
 TECHNIQUE(YUV  , Draw2DTex_VS(), YUV_PS (false));
 TECHNIQUE(YUVG , Draw2DTex_VS(), YUV_PS (true ));
@@ -2062,7 +2062,7 @@ Half ShdBlur_PS(NOPERSP Vec2 inTex:TEXCOORD,
                 uniform Int  samples       ):COLOR
 {
    Half weight=0.25,
-        color =TexPoint(Val, inTex).x*weight;
+        color =TexPoint(ImgX, inTex).x*weight;
    Flt  z     =TexDepthPoint(inTex);
    Vec2 dw_mad=DepthWeightMAD(z);
    UNROLL for(Int i=0; i<samples; i++)
@@ -2077,7 +2077,7 @@ Half ShdBlur_PS(NOPERSP Vec2 inTex:TEXCOORD,
     //if(samples==13)t=RTSize.xy*BlendOfs13[i]+inTex;
       // use linear filtering because texcoords are not rounded
       Half w=DepthWeight(z-TexDepthLinear(t), dw_mad);
-      color +=w*TexLod(Val, t).x; // use linear filtering because texcoords aren't rounded
+      color +=w*TexLod(ImgX, t).x; // use linear filtering because texcoords aren't rounded
       weight+=w;
    }
    return color/weight;
@@ -2086,7 +2086,7 @@ Half ShdBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
                  uniform Int  range         ):COLOR
 {
    Half weight=0.5,
-        color =TexPoint(Val, inTex).x*weight;
+        color =TexPoint(ImgX, inTex).x*weight;
    Flt  z     =TexDepthPoint(inTex);
    Vec2 dw_mad=DepthWeightMAD(z), t; t.y=inTex.y;
    UNROLL for(Int i=-range; i<=range; i++)if(i)
@@ -2094,7 +2094,7 @@ Half ShdBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
       // use linear filtering because texcoords are not rounded
       t.x=RTSize.x*(2*i+((i>0) ? -0.5 : 0.5))+inTex.x;
       Half w=DepthWeight(z-TexDepthLinear(t), dw_mad);
-      color +=w*TexLod(Val, t).x; // use linear filtering because texcoords aren't rounded
+      color +=w*TexLod(ImgX, t).x; // use linear filtering because texcoords aren't rounded
       weight+=w;
    }
    return color/weight;
@@ -2103,7 +2103,7 @@ Half ShdBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
                  uniform Int  range         ):COLOR
 {
    Half weight=0.5,
-        color =TexPoint(Val, inTex).x*weight;
+        color =TexPoint(ImgX, inTex).x*weight;
    Flt  z     =TexDepthPoint(inTex);
    Vec2 dw_mad=DepthWeightMAD(z), t; t.x=inTex.x;
    UNROLL for(Int i=-range; i<=range; i++)if(i)
@@ -2111,7 +2111,7 @@ Half ShdBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
       // use linear filtering because texcoords are not rounded
       t.y=RTSize.y*(2*i+((i>0) ? -0.5 : 0.5))+inTex.y;
       Half w=DepthWeight(z-TexDepthLinear(t), dw_mad);
-      color +=w*TexLod(Val, t).x; // use linear filtering because texcoords aren't rounded
+      color +=w*TexLod(ImgX, t).x; // use linear filtering because texcoords aren't rounded
       weight+=w;
    }
    return color/weight;
@@ -2140,7 +2140,7 @@ VecH4 LightDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                   uniform Bool quality          ):COLOR
 {
    // shadow
-   Half shd; if(shadow)shd=TexPoint(Val, inTex).x;
+   Half shd; if(shadow)shd=TexPoint(ImgX, inTex).x;
 
    // diffuse
    VecH4 nrm=GetNormal   (inTex, quality);
@@ -2161,7 +2161,7 @@ VecH4 LightDirM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                    uniform Bool quality               ):COLOR
 {
    // shadow
-   Half shd; if(shadow)shd=TexSample(ValMS, pixel.xy, index).x;
+   Half shd; if(shadow)shd=TexSample(ImgXMS, pixel.xy, index).x;
 
    // diffuse
    VecH4 nrm=GetNormalMS(pixel.xy, index, quality);
@@ -2190,7 +2190,7 @@ VecH4 LightPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    // shadow
    Half shd; if(shadow)
    {
-      shd=ShadowFinal(TexPoint(Val, inTex).x);
+      shd=ShadowFinal(TexPoint(ImgX, inTex).x);
       clip(shd-EPS_LUM);
    }
 
@@ -2219,7 +2219,7 @@ VecH4 LightPointM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                      uniform Bool quality               ):COLOR
 {
    // shadow
-   Half shd; if(shadow){shd=ShadowFinal(TexSample(ValMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
+   Half shd; if(shadow){shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
 
    // distance
    Vec  pos      =GetPosMS(pixel.xy, index, inPosXY),
@@ -2254,7 +2254,7 @@ VecH4 LightLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    // shadow
    Half shd; if(shadow)
    {
-      shd=ShadowFinal(TexPoint(Val, inTex).x);
+      shd=ShadowFinal(TexPoint(ImgX, inTex).x);
       clip(shd-EPS_LUM);
    }
 
@@ -2283,7 +2283,7 @@ VecH4 LightLinearM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                       uniform Bool quality               ):COLOR
 {
    // shadow
-   Half shd; if(shadow){shd=ShadowFinal(TexSample(ValMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
+   Half shd; if(shadow){shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
 
    // distance
    Vec  pos      =GetPosMS(pixel.xy, index, inPosXY),
@@ -2319,7 +2319,7 @@ VecH4 LightCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    // shadow
    Half shd; if(shadow)
    {
-      shd=ShadowFinal(TexPoint(Val, inTex).x);
+      shd=ShadowFinal(TexPoint(ImgX, inTex).x);
       clip(shd-EPS_LUM);
    }
 
@@ -2357,7 +2357,7 @@ VecH4 LightConeM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                     uniform Bool image                 ):COLOR
 {
    // shadow
-   Half shd; if(shadow){shd=ShadowFinal(TexSample(ValMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
+   Half shd; if(shadow){shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
 
    // distance & angle
    Vec  pos      =GetPosMS(pixel.xy, index, inPosXY),
@@ -3264,7 +3264,7 @@ TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
 
       void main()
       {
-         MP Vec4 tex=Tex(ValXY, IO_tex);
+         MP Vec4 tex=Tex(ImgXY, IO_tex);
          MP Flt  a  =tex.r,            // #FontImageLayout
                  s  =tex.g*FontShadow, // #FontImageLayout
                  final_alpha=a+s-s*a;

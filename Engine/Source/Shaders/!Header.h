@@ -576,16 +576,16 @@ Image     Col, Col1, Col2, Col3,
           Det, Det1, Det2, Det3,
           Mac, Mac1, Mac2, Mac3,
           Lum;
-ImageH    Val;
-ImageF    ValF, Val1F, Depth;
-ImageH2   ValXY;
+ImageH    ImgX, ImgX1, ImgX2, ImgX3;
+ImageF    ImgXF, ImgXF1, Depth;
+ImageH2   ImgXY;
 ImageCube Rfl, Rfl1, Rfl2, Rfl3;
 
 #if MODEL>=SM_4
 Texture2DMS<VecH4, MS_SAMPLES> ColMS;
 Texture2DMS<VecH4, MS_SAMPLES> NrmMS;
 Texture2DMS<VecH4, MS_SAMPLES> LumMS;
-Texture2DMS<Half , MS_SAMPLES> ValMS;
+Texture2DMS<Half , MS_SAMPLES> ImgXMS;
 Texture2DMS<Flt  , MS_SAMPLES> DepthMS;
 #endif
 

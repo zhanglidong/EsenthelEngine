@@ -149,7 +149,7 @@ void Surface_PS
    {
            inTex  =PixelToScreen(pixel);
       Flt  water_z=inPos.z,
-           solid_z=(soft ? LinearizeDepth(TexPoint(ValF, inTex).x) : water_z+DEFAULT_DEPTH);
+           solid_z=(soft ? LinearizeDepth(TexPoint(ImgXF, inTex).x) : water_z+DEFAULT_DEPTH);
       Half alpha=0;
 
       Vec2    col_tex=inTex;
@@ -163,7 +163,7 @@ void Surface_PS
       Vec2 test_tex=Mid(col_tex+refract*WaterRfr*alpha/Max(1, water_z), WaterClamp.xy, WaterClamp.zw);
       if(soft)
       {
-         Flt test_z=LinearizeDepth(TexLodClamp(ValF, test_tex).x); // use linear filtering because texcoords are not rounded
+         Flt test_z=LinearizeDepth(TexLodClamp(ImgXF, test_tex).x); // use linear filtering because texcoords are not rounded
          if( test_z>water_z)
          {
             solid_z=test_z;
@@ -222,8 +222,8 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                uniform Bool refract          ,
                uniform Bool set_depth=false  ):COLOR
 {
-   Flt  water_z=TexPoint        (ValF, inTex).x,
-        solid_z=TexDepthRawPoint(      inTex);
+   Flt  water_z=TexPoint        (ImgXF, inTex).x,
+        solid_z=TexDepthRawPoint(       inTex);
    Half alpha=0;
 
    if(set_depth)depth=water_z;

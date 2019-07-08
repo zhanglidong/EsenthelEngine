@@ -40,16 +40,16 @@ Flt HdrDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
    }else
    {
       // use linear filtering because we're downsampling, here use full precision for more accuracy
-      return Avg(TexLod(ValF, Vec2(tex_min.x, tex_min.y)).x,
-                 TexLod(ValF, Vec2(tex_max.x, tex_min.y)).x,
-                 TexLod(ValF, Vec2(tex_min.x, tex_max.y)).x,
-                 TexLod(ValF, Vec2(tex_max.x, tex_max.y)).x);
+      return Avg(TexLod(ImgXF, Vec2(tex_min.x, tex_min.y)).x,
+                 TexLod(ImgXF, Vec2(tex_max.x, tex_min.y)).x,
+                 TexLod(ImgXF, Vec2(tex_min.x, tex_max.y)).x,
+                 TexLod(ImgXF, Vec2(tex_max.x, tex_max.y)).x);
    }
 }
 /******************************************************************************/
 Flt HdrUpdate_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR // here use full precision
 {
-   Flt lum=TexPoint(ValF, Vec2(0, 0)).x; // new luminance
+   Flt lum=TexPoint(ImgXF, Vec2(0, 0)).x; // new luminance
 
    // adjustment restore
 #if GEOMETRIC
@@ -64,15 +64,15 @@ Flt HdrUpdate_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR // here use full precision
    lum=HdrBrightness/Max(lum, EPS_COL); // desired scale
 
    lum=Mid(lum, HdrMaxDark, HdrMaxBright);
-   return Lerp(lum, TexPoint(Val1F, Vec2(0, 0)).x, Step); // lerp new with old
+   return Lerp(lum, TexPoint(ImgXF1, Vec2(0, 0)).x, Step); // lerp new with old
 }
 /******************************************************************************/
 VecH4 Hdr_PS(NOPERSP Vec2 inTex:TEXCOORD,
              NOPERSP PIXEL              ,
              uniform Bool dither        ):COLOR
 {
-   VecH4 col=TexLod  (Col, inTex); // can't use 'TexPoint' because 'Col' can be supersampled
-   Half  lum=TexPoint(Val, Vec2(0, 0)).x;
+   VecH4 col=TexLod  (Col , inTex); // can't use 'TexPoint' because 'Col' can be supersampled
+   Half  lum=TexPoint(ImgX, Vec2(0, 0)).x;
 
    /* full formula
    if(gamma)col.rgb=SRGBToLinearFast(col.rgb);
