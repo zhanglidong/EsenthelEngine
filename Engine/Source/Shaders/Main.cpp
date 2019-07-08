@@ -362,22 +362,24 @@ TECHNIQUE(Draw      ,      Draw_VS(),  Draw2DTex_PS());
 TECHNIQUE(DrawC     ,      Draw_VS(), Draw2DTexC_PS());
 TECHNIQUE(DrawA     ,      Draw_VS(), Draw2DTexA_PS());
 
-VecH4 DrawTexXC_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                   NOPERSP PIXEL,
-           uniform Bool dither=false,
-           uniform Bool gamma =false):COLOR
+VecH4 DrawX_PS (NOPERSP Vec2 inTex:TEXCOORD):COLOR {return VecH4(             Tex(ImgX, inTex)   .xxx, 1);}
+VecH4 DrawXG_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return VecH4(SRGBToLinear(Tex(ImgX, inTex).x).xxx, 1);}
+VecH4 DrawXC_PS(NOPERSP Vec2 inTex:TEXCOORD,
+                NOPERSP PIXEL,
+        uniform Bool dither=false,
+        uniform Bool gamma =false):COLOR
 {
-   VecH4 col=Tex(Col, inTex).x*Color[0]+Color[1];
+   VecH4 col=Tex(ImgX, inTex).x*Color[0]+Color[1];
    if(dither)ApplyDither(col.rgb, pixel.xy, LINEAR_GAMMA && !gamma); // don't perform gamma conversions inside dither if "gamma==true", because this means we have sRGB color which we're going to convert to linear below
    if(gamma )col.rgb=SRGBToLinearFast(col.rgb); // this is used for drawing sun rays, 'SRGBToLinearFast' works better here than 'SRGBToLinear' (gives high contrast, dark colors remain darker, while 'SRGBToLinear' highlights them more)
    return col;
 }
-TECHNIQUE(DrawX   , Draw_VS(), DrawTexX_PS ());
-TECHNIQUE(DrawXG  , Draw_VS(), DrawTexXG_PS());
-TECHNIQUE(DrawXC  , Draw_VS(), DrawTexXC_PS(false));
-TECHNIQUE(DrawXCD , Draw_VS(), DrawTexXC_PS(true ));
-TECHNIQUE(DrawXCG , Draw_VS(), DrawTexXC_PS(false, true));
-TECHNIQUE(DrawXCDG, Draw_VS(), DrawTexXC_PS(true , true));
+TECHNIQUE(DrawX   , Draw_VS(), DrawX_PS ());
+TECHNIQUE(DrawXG  , Draw_VS(), DrawXG_PS());
+TECHNIQUE(DrawXC  , Draw_VS(), DrawXC_PS(false));
+TECHNIQUE(DrawXCD , Draw_VS(), DrawXC_PS(true ));
+TECHNIQUE(DrawXCG , Draw_VS(), DrawXC_PS(false, true));
+TECHNIQUE(DrawXCDG, Draw_VS(), DrawXC_PS(true , true));
 
 VecH4 DrawTexPoint_PS (NOPERSP Vec2 inTex:TEXCOORD):COLOR {return TexPoint(Col, inTex);}
 VecH4 DrawTexPointC_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return TexPoint(Col, inTex)*Color[0]+Color[1];}
@@ -1869,7 +1871,7 @@ Half SunRaysMask_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       Flt  z=TexDepthRawLinear(inTex);
       Half m=(DEPTH_BACKGROUND(z) || Length2(GetPos(LinearizeDepth(z), inPosXY))>=Sqr(Viewport.range));
    #endif
-      return m*TexLod(Col, inTex).x; // use linear filtering because Col can be of different size
+      return m*TexLod(ImgX, inTex).x; // use linear filtering because 'ImgX' can be of different size
    }else // can use point filtering here
    {
    #if REVERSE_DEPTH // we can use the simple version for REVERSE_DEPTH
@@ -1885,11 +1887,11 @@ TECHNIQUE(SunRaysMask1, DrawPosXY_VS(), SunRaysMask_PS(true ));
 /*Vec4 SunRaysSoft_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
    const Int samples=6;
-         Flt color  =TexLod(Col, inTex).x; // use linear filtering because Col can be of different size
+         Flt color  =TexLod(ImgX, inTex).x; // use linear filtering because 'ImgX' can be of different size
    for(Int i=0; i<samples; i++)
    {
       Vec2 t=inTex+BlendOfs6[i]*ImgSize.xy;
-      color+=TexLod(Col, t).x; // use linear filtering because texcoords aren't rounded
+      color+=TexLod(ImgX, t).x; // use linear filtering because texcoords aren't rounded
    }
    return Vec4(color/(samples+1)*Color[0].rgb, 0);
 }
@@ -1960,7 +1962,7 @@ VecH4 SunRays_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       UNROLL for(Int i=0; i<steps; i++)
       {
          Vec2 t=Lerp(inTex, sun_pos, i/Flt(steps)); // /(steps) worked better than /(steps-1)
-         if(high)light+=TexLod(Col, t).x; // pos and clouds combined together, use linear filtering because texcoords aren't rounded
+         if(high)light+=TexLod(ImgX, t).x; // pos and clouds combined together, use linear filtering because texcoords aren't rounded
          else    light+=DEPTH_BACKGROUND(TexDepthRawPoint(t)); // use simpler version here unlike in 'SunRaysPre_PS' because this one is called for each step for each pixel
       }
       col.rgb=(light*power/steps)*Sun.color;
@@ -2404,7 +2406,7 @@ BUFFER(ColLight)
    VecH NightShadeColor;
 BUFFER_END
 
-Half CelShade(Half lum) {return TexLod(Det1, VecH2(lum, 0.5)).x;} // have to use linear filtering
+Half CelShade(Half lum) {return TexLod(Det, VecH2(lum, 0.5)).x;} // have to use linear filtering
 
 VecH ColLight(VecH4 color, VecH4 lum, Half ao, VecH night_shade_col,
      uniform Bool    ao_do   ,
@@ -2451,7 +2453,7 @@ VecH4 ColLight_PS(NOPERSP Vec2 inTex:TEXCOORD   ,
                   uniform Bool night_shade=false):COLOR
 {
    const Bool ao_all=true; // !! must be the same as 'D._amb_all' !! if apply Ambient Occlusion to all lights (not just Ambient), this was disabled in the past, however in LINEAR_GAMMA the darkening was too strong in low light, enabling this option solves that problem
-   Half ao; VecH ambient; if(ao_do){ao=TexLod(Det, inTex).x; if(!ao_all)ambient=AmbColor*ao;} // use 'TexLod' because AO can be of different size and we need to use tex filtering
+   Half ao; VecH ambient; if(ao_do){ao=TexLod(ImgX, inTex).x; if(!ao_all)ambient=AmbColor*ao;} // use 'TexLod' because AO can be of different size and we need to use tex filtering
 #if MODEL>=SM_4
    VecI p=VecI(pixel.xy, 0);
    if(multi_sample)

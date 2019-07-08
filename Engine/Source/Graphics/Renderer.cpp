@@ -738,7 +738,7 @@ RendererClass& RendererClass::operator()(void (&render)())
 
          case RS_AO: if(_ao)
          {
-            set(_final, null, true); D.alpha(ALPHA_NONE); (LINEAR_GAMMA ? Sh.h_DrawXG : Sh.h_DrawX)->draw(_ao);
+            set(_final, null, true); D.alpha(ALPHA_NONE); Sh.h_ImageImgX[0]->set(_ao); (LINEAR_GAMMA ? Sh.h_DrawXG : Sh.h_DrawX)->draw();
             goto finished;
          }break;
 
@@ -747,16 +747,17 @@ RendererClass& RendererClass::operator()(void (&render)())
             if(_ao)
             {
                set(_lum_1s, null, true);
+               Sh.h_ImageImgX[0]->set(_ao);
                if(D._amb_all)
                {
                   D.alpha(ALPHA_MUL);
-                  Sh.h_DrawX->draw(_ao);
+                  Sh.h_DrawX->draw();
                }else
                {
                   D.alpha(ALPHA_ADD);
                   Sh.h_Color[0]->set(Vec4(D.ambientColorD(), 0));
                   Sh.h_Color[1]->set(Vec4Zero                  );
-                  Sh.h_DrawXC->draw(_ao);
+                  Sh.h_DrawXC->draw();
                }
             }
             if(set(_lum_1s))goto finished;
@@ -1185,7 +1186,8 @@ void RendererClass::solid()
                D.depth2DOn();
                Sh.h_Color[0]->set(Vec4(1, 1, 1, 0));
                Sh.h_Color[1]->set(Vec4(0, 0, 0, 1));
-               Sh.h_DrawXC->draw(_ao);
+               Sh.h_ImageImgX[0]->set(_ao);
+               Sh.h_DrawXC->draw();
                D.depth2DOff();
             }
          }
@@ -1390,9 +1392,9 @@ void RendererClass::light()
 
       // light buffer is ready so we can combine it with color
       Bool ao=(_ao!=null), cel_shade=(cel_shade_palette!=null), night_shade=(D.nightShadeColorS().max()>EPS_COL);
-      Sh.h_ImageLum   ->set(_lum_1s);
-      Sh.h_ImageDet[0]->set(_ao    );
-      Sh.h_ImageDet[1]->set( cel_shade_palette());
+      Sh.h_ImageLum    ->set(_lum_1s);
+      Sh.h_ImageImgX[0]->set(_ao    );
+      Sh.h_ImageDet [0]->set( cel_shade_palette());
       D .alpha(ALPHA_NONE);
       ImageRTPtr src=_col; // can't read and write to the same RT
       Bool has_last_frag_color=false, // TODO: there would be no need to write to a new RT if we would use gl_LastFragColor/gl_LastFragData[0] using extensions - https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_shader_framebuffer_fetch.txt and https://www.khronos.org/registry/OpenGL/extensions/ARM/ARM_shader_framebuffer_fetch.txt
@@ -1554,16 +1556,17 @@ void RendererClass::blend()
       if(_ao)
       {
          set(_lum_1s, null, true);
+         Sh.h_ImageImgX[0]->set(_ao);
          if(D._amb_all)
          {
             D.alpha(ALPHA_MUL);
-            Sh.h_DrawX->draw(_ao);
+            Sh.h_DrawX->draw();
          }else
          {
             D.alpha(ALPHA_ADD);
             Sh.h_Color[0]->set(Vec4(D.ambientColorD(), 0));
             Sh.h_Color[1]->set(Vec4Zero                  );
-            Sh.h_DrawXC->draw(_ao);
+            Sh.h_DrawXC->draw();
          }
       }
       PrepareFur();

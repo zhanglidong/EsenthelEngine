@@ -139,8 +139,8 @@ void SunClass::drawRays(Image *coverage, Vec &color)
       Bool jitter=((rays_jitter<0) ? rays_color.max()>(LINEAR_GAMMA ? 0.15f : 0.1f)+EPS_COL : rays_jitter!=0); // for auto, enable jittering only if rays have a high brightness
       switch(_actual_rays_mode)
       {
-         case SUN_RAYS_HIGH: GetSunRays(true , dither, jitter, gamma)->draw(coverage, rect); break;
-         default           : GetSunRays(false, dither, jitter, gamma)->draw(          rect); break;
+         case SUN_RAYS_HIGH: Sh.h_ImageImgX[0]->set(coverage); GetSunRays(true , dither, jitter, gamma)->draw(rect); break;
+         default           :                                   GetSunRays(false, dither, jitter, gamma)->draw(rect); break;
       }
    }
 }
@@ -192,7 +192,8 @@ Bool AstroDrawRays()
             D.alpha(ALPHA_NONE);
             ImageRTPtr temp; temp.get(ImageRTDesc(res.x, res.y, IMAGERT_ONE));
             Renderer.set(temp, null, true);
-            GetSunRaysMask(true)->draw(Renderer._sky_coverage);
+            Sh.h_ImageImgX[0]->set(Renderer._sky_coverage);
+            GetSunRaysMask(true)->draw();
             Swap(temp, Renderer._sky_coverage);
          }else // apply depth tests to existing sky coverage
          {
@@ -234,10 +235,11 @@ Bool AstroDrawRays()
          Sh.h_Color[1]->set(Vec4Zero      );
          Bool dither=(D.dither() && !Renderer._col->highPrecision()); // don't do dithering for high precision RT
          Shader *shader;
+         Sh.h_ImageImgX[0]->set(rt0);
        //if(Sun.rays_soft && shift==1){Sh.imgSize(*rt0); shader=Sh.h_SunRaysSoft;}else
          if(dither                   )shader=(LINEAR_GAMMA ? Sh.h_DrawXCDG : Sh.h_DrawXCD);else
                                       shader=(LINEAR_GAMMA ? Sh.h_DrawXCG  : Sh.h_DrawXC );
-         REPS(Renderer._eye, Renderer._eye_num)shader->draw(rt0, Renderer._stereo ? &D._view_eye_rect[Renderer._eye] : &D.viewRect());
+         REPS(Renderer._eye, Renderer._eye_num)shader->draw(Renderer._stereo ? &D._view_eye_rect[Renderer._eye] : &D.viewRect());
       }
       Renderer._sky_coverage.clear();
    }
