@@ -16,7 +16,7 @@ void DrawVelocityBlur(Flt power, C Ball &ball)
       Mtn.load();
 
       SetOneMatrix();
-      Sh.h_Step->set(power);
+      Sh.Step->set(power);
       D .depthWrite(false); Renderer.needDepthTest(); // !! 'needDepthTest' after 'depthWrite' !!
       D .alpha     (ALPHA_NONE);
       D .stencil   (STENCIL_NONE);
@@ -88,10 +88,10 @@ void DrawLaser(C Color &color, C Color &middle_color, Flt middle_exponent, Flt r
          VI.color1(Color(255, 255, 255, 0));
       }else
       {
-         VI.shader(Sh.h_Laser[normals]);
+         VI.shader(Sh.Laser[normals]);
          VI.color (       color);
          VI.color1(middle_color);
-         Sh.h_Step->set(middle_exponent);
+         Sh.Step->set(middle_exponent);
          if(color.a || middle_color.a)Renderer._has_glow=true;
       }
       VI.cull   (true);

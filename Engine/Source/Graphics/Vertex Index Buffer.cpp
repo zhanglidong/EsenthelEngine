@@ -1601,24 +1601,24 @@ void VtxIndBuf::setType(VI_TYPE vtx_type, UInt flag)
    VtxFormat *vf;
    switch(VI._vtx_type=vtx_type)
    {
-      case VI_2D_FLAT         : VI._vb._vtx_size=SIZE(Vtx2DFlat    ); shader=Sh.h_Draw2DFlat                                                                                       ; vf=&VI._vf2D_flat     ; D.depth(false); D.cull(false); break;
-      case VI_2D_COL          : VI._vb._vtx_size=SIZE(Vtx2DCol     ); shader=Sh.h_Draw2DCol                                                                                        ; vf=&VI._vf2D_col      ; D.depth(false); D.cull(false); break;
-      case VI_2D_TEX          : VI._vb._vtx_size=SIZE(Vtx2DTex     ); shader=((flag&VI_SP_COL) ? Sh.h_Draw2DTexC : Sh.h_Draw2DTex)                                                 ; vf=&VI._vf2D_tex      ; D.depth(false); D.cull(false); break;
-      case VI_2D_TEX_COL      : VI._vb._vtx_size=SIZE(Vtx2DTexCol  ); shader=Sh.h_Draw2DTexCol                                                                                     ; vf=&VI._vf2D_tex_col  ; D.depth(false); D.cull(false); break;
-      case VI_2D_TEX2         : VI._vb._vtx_size=SIZE(Vtx2DTex2    ); shader=Sh.h_DrawMask                                                                                         ; vf=&VI._vf2D_tex2     ; D.depth(false); D.cull(false); break;
-      case VI_2D_FONT         : VI._vb._vtx_size=SIZE(Vtx2DFont    ); shader=Sh.h_FontCur                                                                                          ; vf=&VI._vf2D_font     ; D.depth(false); D.cull(false); break;
-      case VI_2D_DEPTH_TEX    : VI._vb._vtx_size=SIZE(Vtx3DTex     ); shader=Sh.h_Draw2DDepthTex   [FlagTest(VI._user_flag, VI_ALPHA_TEST)]                                        ; vf=&VI._vf3D_tex      ; D.depth(true ); D.cull(false); break;
-      case VI_2D_DEPTH_TEX_COL: VI._vb._vtx_size=SIZE(Vtx3DTexCol  ); shader=Sh.h_Draw2DDepthTexCol[FlagTest(VI._user_flag, VI_ALPHA_TEST)]                                        ; vf=&VI._vf3D_tex_col  ; D.depth(true ); D.cull(false); break;
-      case VI_3D_FLAT         : VI._vb._vtx_size=SIZE(Vtx3DFlat    ); shader=Sh.h_Draw3DFlat                                                                                       ; vf=&VI._vf3D_flat     ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
-      case VI_3D_COL          : VI._vb._vtx_size=SIZE(Vtx3DCol     ); shader=Sh.h_Draw3DCol                                                                                        ; vf=&VI._vf3D_col      ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
-      case VI_3D_TEX          : VI._vb._vtx_size=SIZE(Vtx3DTex     ); shader=Sh.h_Draw3DTex   [FlagTest(VI._user_flag, VI_ALPHA_TEST)][FlagTest(VI._user_flag, VI_FOG) && Fog.draw]; vf=&VI._vf3D_tex      ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
-      case VI_3D_TEX_COL      : VI._vb._vtx_size=SIZE(Vtx3DTexCol  ); shader=Sh.h_Draw3DTexCol[FlagTest(VI._user_flag, VI_ALPHA_TEST)][FlagTest(VI._user_flag, VI_FOG) && Fog.draw]; vf=&VI._vf3D_tex_col  ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
-      case VI_3D_BILB         : VI._vb._vtx_size=SIZE(Vtx3DBilb    ); shader=Sh.h_Bilb                                                                                             ; vf=&VI._vf3D_bilb     ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
-      case VI_3D_BILB_ANIM    : VI._vb._vtx_size=SIZE(Vtx3DBilbAnim); shader=null                                                                                                  ; vf=&VI._vf3D_bilb_anim; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
-      case VI_3D_LASER        : VI._vb._vtx_size=SIZE(Vtx3DLaser   ); shader=null                                                                                                  ; vf=&VI._vf3D_laser    ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
-      case VI_3D_SIMPLE       : VI._vb._vtx_size=SIZE(Vtx3DSimple  ); shader=Sh.h_Simple                                                                                           ; vf=&VI._vf3D_simple   ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
-      case VI_3D_STANDARD     : VI._vb._vtx_size=SIZE(Vtx3DStandard); shader=Sh.h_Simple                                                                                           ; vf=&VI._vf3D_standard ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
-      case VI_3D_FULL         : VI._vb._vtx_size=SIZE(Vtx3DFull    ); shader=null                                                                                                  ; vf=&VI._vf3D_full     ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
+      case VI_2D_FLAT         : VI._vb._vtx_size=SIZE(Vtx2DFlat    ); shader=Sh.Draw2DFlat                                                                                       ; vf=&VI._vf2D_flat     ; D.depth(false); D.cull(false); break;
+      case VI_2D_COL          : VI._vb._vtx_size=SIZE(Vtx2DCol     ); shader=Sh.Draw2DCol                                                                                        ; vf=&VI._vf2D_col      ; D.depth(false); D.cull(false); break;
+      case VI_2D_TEX          : VI._vb._vtx_size=SIZE(Vtx2DTex     ); shader=((flag&VI_SP_COL) ? Sh.Draw2DTexC : Sh.Draw2DTex)                                                   ; vf=&VI._vf2D_tex      ; D.depth(false); D.cull(false); break;
+      case VI_2D_TEX_COL      : VI._vb._vtx_size=SIZE(Vtx2DTexCol  ); shader=Sh.Draw2DTexCol                                                                                     ; vf=&VI._vf2D_tex_col  ; D.depth(false); D.cull(false); break;
+      case VI_2D_TEX2         : VI._vb._vtx_size=SIZE(Vtx2DTex2    ); shader=Sh.DrawMask                                                                                         ; vf=&VI._vf2D_tex2     ; D.depth(false); D.cull(false); break;
+      case VI_2D_FONT         : VI._vb._vtx_size=SIZE(Vtx2DFont    ); shader=Sh.FontCur                                                                                          ; vf=&VI._vf2D_font     ; D.depth(false); D.cull(false); break;
+      case VI_2D_DEPTH_TEX    : VI._vb._vtx_size=SIZE(Vtx3DTex     ); shader=Sh.Draw2DDepthTex   [FlagTest(VI._user_flag, VI_ALPHA_TEST)]                                        ; vf=&VI._vf3D_tex      ; D.depth(true ); D.cull(false); break;
+      case VI_2D_DEPTH_TEX_COL: VI._vb._vtx_size=SIZE(Vtx3DTexCol  ); shader=Sh.Draw2DDepthTexCol[FlagTest(VI._user_flag, VI_ALPHA_TEST)]                                        ; vf=&VI._vf3D_tex_col  ; D.depth(true ); D.cull(false); break;
+      case VI_3D_FLAT         : VI._vb._vtx_size=SIZE(Vtx3DFlat    ); shader=Sh.Draw3DFlat                                                                                       ; vf=&VI._vf3D_flat     ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
+      case VI_3D_COL          : VI._vb._vtx_size=SIZE(Vtx3DCol     ); shader=Sh.Draw3DCol                                                                                        ; vf=&VI._vf3D_col      ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
+      case VI_3D_TEX          : VI._vb._vtx_size=SIZE(Vtx3DTex     ); shader=Sh.Draw3DTex   [FlagTest(VI._user_flag, VI_ALPHA_TEST)][FlagTest(VI._user_flag, VI_FOG) && Fog.draw]; vf=&VI._vf3D_tex      ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
+      case VI_3D_TEX_COL      : VI._vb._vtx_size=SIZE(Vtx3DTexCol  ); shader=Sh.Draw3DTexCol[FlagTest(VI._user_flag, VI_ALPHA_TEST)][FlagTest(VI._user_flag, VI_FOG) && Fog.draw]; vf=&VI._vf3D_tex_col  ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
+      case VI_3D_BILB         : VI._vb._vtx_size=SIZE(Vtx3DBilb    ); shader=Sh.Bilb                                                                                             ; vf=&VI._vf3D_bilb     ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
+      case VI_3D_BILB_ANIM    : VI._vb._vtx_size=SIZE(Vtx3DBilbAnim); shader=null                                                                                                ; vf=&VI._vf3D_bilb_anim; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
+      case VI_3D_LASER        : VI._vb._vtx_size=SIZE(Vtx3DLaser   ); shader=null                                                                                                ; vf=&VI._vf3D_laser    ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
+      case VI_3D_SIMPLE       : VI._vb._vtx_size=SIZE(Vtx3DSimple  ); shader=Sh.Simple                                                                                           ; vf=&VI._vf3D_simple   ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
+      case VI_3D_STANDARD     : VI._vb._vtx_size=SIZE(Vtx3DStandard); shader=Sh.Simple                                                                                           ; vf=&VI._vf3D_standard ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
+      case VI_3D_FULL         : VI._vb._vtx_size=SIZE(Vtx3DFull    ); shader=null                                                                                                ; vf=&VI._vf3D_full     ; D.depth(true ); D.cull(FlagTest(VI._user_flag, VI_CULL)); break;
       default                 : return;
    }
 
@@ -1686,7 +1686,7 @@ void VtxIndBuf::clear()
          if(D._sampler2D)SamplerLinearClamp.setPS(SSI_DEFAULT);
          else            SamplerAnisotropic.setPS(SSI_DEFAULT);
       #else
-         Sh.h_ImageCol[0]->_sampler=null;
+         Sh.Img[0]->_sampler=null;
       #endif
       }
       VI._user_flag=0; // clear the user flag
@@ -1714,8 +1714,8 @@ void VtxIndBuf::imageConditional(C Image *image, ShaderImage &shader_image)
       shader_image.set(image);
    }
 }
-void VtxIndBuf::color (C Color &color) {Sh.h_Color[0]->set(color);} // don't do any caching here "if(T._color!=color).." because 'Sh.Color' can be changed freely across the engine
-void VtxIndBuf::color1(C Color &color) {Sh.h_Color[1]->set(color);}
+void VtxIndBuf::color (C Color &color) {Sh.Color[0]->set(color);} // don't do any caching here "if(T._color!=color).." because 'Sh.Color' can be changed freely across the engine
+void VtxIndBuf::color1(C Color &color) {Sh.Color[1]->set(color);}
 
 void VtxIndBuf::cull      (Bool cull) {FlagSet(VI._user_flag, VI_CULL      , cull);}
 void VtxIndBuf::alphaTest (Bool on  ) {FlagSet(VI._user_flag, VI_ALPHA_TEST, on  );}
@@ -1728,7 +1728,7 @@ void VtxIndBuf::clamp()
 #if DX11
    SamplerLinearClamp.setPS(SSI_DEFAULT);
 #else
-   Sh.h_ImageCol[0]->_sampler=&SamplerLinearClamp;
+   Sh.Img[0]->_sampler=&SamplerLinearClamp;
 #endif
 }
 void VtxIndBuf::wrap()
@@ -1737,7 +1737,7 @@ void VtxIndBuf::wrap()
 #if DX11
    SamplerLinearWrap.setPS(SSI_DEFAULT);
 #else
-   Sh.h_ImageCol[0]->_sampler=&SamplerLinearWrap;
+   Sh.Img[0]->_sampler=&SamplerLinearWrap;
 #endif
 }
 void VtxIndBuf::wrapX()
@@ -1746,7 +1746,7 @@ void VtxIndBuf::wrapX()
 #if DX11
    SamplerLinearWCC.setPS(SSI_DEFAULT);
 #else
-   Sh.h_ImageCol[0]->_sampler=&SamplerLinearWCC;
+   Sh.Img[0]->_sampler=&SamplerLinearWCC;
 #endif
 }
 void VtxIndBuf::wrapY()
@@ -1755,7 +1755,7 @@ void VtxIndBuf::wrapY()
 #if DX11
    SamplerLinearCWC.setPS(SSI_DEFAULT);
 #else
-   Sh.h_ImageCol[0]->_sampler=&SamplerLinearCWC;
+   Sh.Img[0]->_sampler=&SamplerLinearCWC;
 #endif
 }
 /******************************************************************************/

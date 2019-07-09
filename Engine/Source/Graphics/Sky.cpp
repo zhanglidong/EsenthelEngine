@@ -27,10 +27,10 @@ SkyClass& SkyClass::del()
 }
 SkyClass& SkyClass::create()
 {
-   Sh.h_SkyHorCol  ->set(LINEAR_GAMMA ? atmosphericHorizonColorL() : atmosphericHorizonColorS());
-   Sh.h_SkySkyCol  ->set(LINEAR_GAMMA ? atmosphericSkyColorL    () : atmosphericSkyColorS    ());
-   Sh.h_SkyBoxBlend->set(_box_blend);
-   Sh.h_SkyStarOrn ->set(_stars_m  );
+   Sh.SkyHorCol  ->set(LINEAR_GAMMA ? atmosphericHorizonColorL() : atmosphericHorizonColorS());
+   Sh.SkySkyCol  ->set(LINEAR_GAMMA ? atmosphericSkyColorL    () : atmosphericSkyColorS    ());
+   Sh.SkyBoxBlend->set(_box_blend);
+   Sh.SkyStarOrn ->set(_stars_m  );
    Flt temp=_hor_exp; _hor_exp=-1; atmosphericHorizonExponent(temp); // set -1 to force reset
        temp=_dns_exp; _dns_exp=-1; atmosphericDensityExponent(temp); // set -1 to force reset
 
@@ -84,19 +84,19 @@ SkyClass& SkyClass::atmosphericHorizonColorS(C Vec4 &color_s) {return atmospheri
 SkyClass& SkyClass::atmosphericSkyColorS    (C Vec4 &color_s) {return atmosphericSkyColorL    (SRGBToLinear(color_s));}
 
 SkyClass& SkyClass::frac                       (  Flt       frac     ) {SAT(frac  );                                                                         T._frac         =frac               ; return T;}
-SkyClass& SkyClass::atmosphericHorizonExponent (  Flt       exp      ) {MAX(exp, 0);              if(exp        !=T._hor_exp                               ){T._hor_exp      =exp                ; if(Sh.h_SkyHorExp  )Sh.h_SkyHorExp  ->set(Max(T._hor_exp, EPS_GPU)                                              );} return T;} // avoid zero in case "Pow(1-Sat(inTex.y), SkyHorExp)" in shader would cause NaN or slow-downs
-SkyClass& SkyClass::atmosphericHorizonColorL   (C Vec4     &color_l  ) {Flt alpha=Sat(color_l.w); if(color_l.xyz!=T._hor_col_l.xyz || alpha!=T._hor_col_l.w){T._hor_col_l.set(color_l.xyz, alpha); if(Sh.h_SkyHorCol  )Sh.h_SkyHorCol  ->set(LINEAR_GAMMA ? atmosphericHorizonColorL() : atmosphericHorizonColorS());} return T;} // alpha must be saturated
-SkyClass& SkyClass::atmosphericSkyColorL       (C Vec4     &color_l  ) {Flt alpha=Sat(color_l.w); if(color_l.xyz!=T._sky_col_l.xyz || alpha!=T._sky_col_l.w){T._sky_col_l.set(color_l.xyz, alpha); if(Sh.h_SkySkyCol  )Sh.h_SkySkyCol  ->set(LINEAR_GAMMA ? atmosphericSkyColorL    () : atmosphericSkyColorS    ());} return T;} // alpha must be saturated
-SkyClass& SkyClass::skyboxBlend                (  Flt       blend    ) {SAT(blend );              if(blend      !=T._box_blend                             ){T._box_blend    =blend              ; if(Sh.h_SkyBoxBlend)Sh.h_SkyBoxBlend->set(T._box_blend                                                          );} return T;}
+SkyClass& SkyClass::atmosphericHorizonExponent (  Flt       exp      ) {MAX(exp, 0);              if(exp        !=T._hor_exp                               ){T._hor_exp      =exp                ; if(Sh.SkyHorExp  )Sh.SkyHorExp  ->set(Max(T._hor_exp, EPS_GPU)                                              );} return T;} // avoid zero in case "Pow(1-Sat(inTex.y), SkyHorExp)" in shader would cause NaN or slow-downs
+SkyClass& SkyClass::atmosphericHorizonColorL   (C Vec4     &color_l  ) {Flt alpha=Sat(color_l.w); if(color_l.xyz!=T._hor_col_l.xyz || alpha!=T._hor_col_l.w){T._hor_col_l.set(color_l.xyz, alpha); if(Sh.SkyHorCol  )Sh.SkyHorCol  ->set(LINEAR_GAMMA ? atmosphericHorizonColorL() : atmosphericHorizonColorS());} return T;} // alpha must be saturated
+SkyClass& SkyClass::atmosphericSkyColorL       (C Vec4     &color_l  ) {Flt alpha=Sat(color_l.w); if(color_l.xyz!=T._sky_col_l.xyz || alpha!=T._sky_col_l.w){T._sky_col_l.set(color_l.xyz, alpha); if(Sh.SkySkyCol  )Sh.SkySkyCol  ->set(LINEAR_GAMMA ? atmosphericSkyColorL    () : atmosphericSkyColorS    ());} return T;} // alpha must be saturated
+SkyClass& SkyClass::skyboxBlend                (  Flt       blend    ) {SAT(blend );              if(blend      !=T._box_blend                             ){T._box_blend    =blend              ; if(Sh.SkyBoxBlend)Sh.SkyBoxBlend->set(T._box_blend                                                          );} return T;}
 SkyClass& SkyClass::atmosphericStars           (C ImagePtr &cube     ) {                                                                                     T._stars        =cube               ; return T;}
-SkyClass& SkyClass::atmosphericStarsOrientation(C Matrix3  &orn      ) {                                                                                    {T._stars_m      =orn                ; if(Sh.h_SkyStarOrn )Sh.h_SkyStarOrn ->set(T._stars_m                                                            );} return T;}
+SkyClass& SkyClass::atmosphericStarsOrientation(C Matrix3  &orn      ) {                                                                                    {T._stars_m      =orn                ; if(Sh.SkyStarOrn )Sh.SkyStarOrn ->set(T._stars_m                                                            );} return T;}
 SkyClass& SkyClass::atmosphericPrecision       (  Bool      per_pixel) {                                                                                     T._precision    =per_pixel          ; return T;}
 SkyClass& SkyClass::atmosphericDensityExponent (  Flt       exp      )
 {
    SAT(exp); if(exp!=T._dns_exp)
    {
       T._dns_exp=exp;
-      if(Sh.h_SkyDnsExp)
+      if(Sh.SkyDnsExp)
       {
          /* shader uses the formula based on "Flt AccumulatedDensity(Flt density, Flt range) {return 1-Pow(1-density, range);}"
             "1-Pow(SkyDnsExp, alpha)" but that gives the range 0..(1-SkyDnsExp), however we need it normalized, so:
@@ -106,8 +106,8 @@ SkyClass& SkyClass::atmosphericDensityExponent (  Flt       exp      )
                Pow(SkyDnsExp, alpha) *   mul              + add
          */
          Flt v=1-exp; if(v)v=1/v;
-         Sh.h_SkyDnsExp   ->set(Max(T._dns_exp, EPS_GPU)); // avoid zero in case "Pow(0, alpha)" in shader would cause NaN or slow-downs
-         Sh.h_SkyDnsMulAdd->set(Vec2(-v, v));
+         Sh.SkyDnsExp   ->set(Max(T._dns_exp, EPS_GPU)); // avoid zero in case "Pow(0, alpha)" in shader would cause NaN or slow-downs
+         Sh.SkyDnsMulAdd->set(Vec2(-v, v));
       }
    }
    return T;
@@ -135,17 +135,17 @@ void SkyClass::setFracMulAdd()
       //              1=       from  *SkyFracMulAdd.x+SkyFracMulAdd.y;
       //              0=       to    *SkyFracMulAdd.x+SkyFracMulAdd.y;
       Vec2 mul_add; mul_add.x=1/(from-to); mul_add.y=-to*mul_add.x;
-      Sh.h_SkyFracMulAdd->set(mul_add);
+      Sh.SkyFracMulAdd->set(mul_add);
    }else
    {
-      Sh.h_SkyFracMulAdd->set(Vec2(0, 1));
+      Sh.SkyFracMulAdd->set(Vec2(0, 1));
    }
 }
 /******************************************************************************/
-INLINE Shader* SkyTF(Int textures,                                    Bool cloud, Bool dither) {Shader* &s=Sh.h_SkyTF[textures-1][cloud][dither]                       ; if(SLOW_SHADER_LOAD && !s)s=Sh.getSkyTF(textures, cloud, dither);                          return s;}
-INLINE Shader* SkyT (Int textures,                              Int multi_sample, Bool dither) {Shader* &s=Sh.h_SkyT [textures-1][multi_sample][dither]                ; if(SLOW_SHADER_LOAD && !s)s=Sh.getSkyT (textures, multi_sample, dither);                   return s;}
-INLINE Shader* SkyAF(Bool per_vertex, Bool stars,                     Bool cloud, Bool dither) {Shader* &s=Sh.h_SkyAF[per_vertex][stars][cloud][dither]                ; if(SLOW_SHADER_LOAD && !s)s=Sh.getSkyAF(per_vertex, stars, cloud, dither);                 return s;}
-INLINE Shader* SkyA (Bool per_vertex, Bool stars, Bool density, Int multi_sample, Bool dither) {Shader* &s=Sh.h_SkyA [per_vertex][stars][density][multi_sample][dither]; if(SLOW_SHADER_LOAD && !s)s=Sh.getSkyA (per_vertex, stars, density, multi_sample, dither); return s;}
+INLINE Shader* SkyTF(Int textures,                                    Bool cloud, Bool dither) {Shader* &s=Sh.SkyTF[textures-1][cloud][dither]                       ; if(SLOW_SHADER_LOAD && !s)s=Sh.getSkyTF(textures, cloud, dither);                          return s;}
+INLINE Shader* SkyT (Int textures,                              Int multi_sample, Bool dither) {Shader* &s=Sh.SkyT [textures-1][multi_sample][dither]                ; if(SLOW_SHADER_LOAD && !s)s=Sh.getSkyT (textures, multi_sample, dither);                   return s;}
+INLINE Shader* SkyAF(Bool per_vertex, Bool stars,                     Bool cloud, Bool dither) {Shader* &s=Sh.SkyAF[per_vertex][stars][cloud][dither]                ; if(SLOW_SHADER_LOAD && !s)s=Sh.getSkyAF(per_vertex, stars, cloud, dither);                 return s;}
+INLINE Shader* SkyA (Bool per_vertex, Bool stars, Bool density, Int multi_sample, Bool dither) {Shader* &s=Sh.SkyA [per_vertex][stars][density][multi_sample][dither]; if(SLOW_SHADER_LOAD && !s)s=Sh.getSkyA (per_vertex, stars, density, multi_sample, dither); return s;}
 
 void SkyClass::draw()
 {
@@ -187,11 +187,11 @@ void SkyClass::draw()
 
       if(AstrosDraw && Sun.is())
       {
-         Sh.h_SkySunHighlight->set(Vec2(Sun.highlight_front, Sun.highlight_back));
-         Sh.h_SkySunPos      ->set(Sun.pos);
+         Sh.SkySunHighlight->set(Vec2(Sun.highlight_front, Sun.highlight_back));
+         Sh.SkySunPos      ->set(Sun.pos);
       }else
       {
-         Sh.h_SkySunHighlight->set(Vec2(0));
+         Sh.SkySunHighlight->set(Vec2(0));
       }
 
       if(cloud)Clouds.layered.commit();
@@ -203,7 +203,7 @@ void SkyClass::draw()
          //              0=       from  *SkyFracMulAdd.x+SkyFracMulAdd.y;
          //              1=       to    *SkyFracMulAdd.x+SkyFracMulAdd.y;
          Vec2 mul_add; mul_add.x=1/(to-from); mul_add.y=-from*mul_add.x;
-         Sh.h_SkyFracMulAdd->set(mul_add);
+         Sh.SkyFracMulAdd->set(mul_add);
 
          sky_ball_mesh_size=from;
        //sky_ball_mesh_size-=DepthError(D.viewFrom(), D.viewRange(), sky_ball_mesh_size, FovPerspective(D.viewFovMode()), ImageTI[Renderer._ds->hwType()].d); // draw smaller by DepthError to avoid depth precision issues

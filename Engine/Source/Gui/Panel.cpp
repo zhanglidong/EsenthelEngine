@@ -185,8 +185,8 @@ void Panel::draw(C Rect &rect)C
       if(secondary)Renderer._gui->copyHw(*cur, false, r ); // set background to be a copy
 
     //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
-      ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Renderer.set(rt1, null, false); Sh.h_BlurX[true]->draw(rt0, &re);
-                                            Renderer.set(rt0, null, false); Sh.h_BlurY[true]->draw(rt1, &re);
+      ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Renderer.set(rt1, null, false); Sh.BlurX[true]->draw(rt0, &re);
+                                            Renderer.set(rt0, null, false); Sh.BlurY[true]->draw(rt1, &re);
                                             Renderer.set(cur, ds  , true );
       if(shadow_opacity)
       {
@@ -200,10 +200,10 @@ void Panel::draw(C Rect &rect)C
       if(secondary) // for secondary we need to force rt.alpha to 1.0
       {
          D.alphaFactor(Color(blur_color.a, blur_color.a, blur_color.a, 255)); MaterialClear(); // 'MaterialClear' must be called when changing 'D.alphaFactor'
-         D.alpha(ALPHA_FACTOR); Sh.h_Color[0]->set(Color(center_color.r, center_color.g, center_color.b, 0)); Sh.h_Color[1]->set(Color(blur_color.r, blur_color.g, blur_color.b, 255)); Sh.h_DrawC->draw(rt0, &r);
+         D.alpha(ALPHA_FACTOR); Sh.Color[0]->set(Color(center_color.r, center_color.g, center_color.b, 0)); Sh.Color[1]->set(Color(blur_color.r, blur_color.g, blur_color.b, 255)); Sh.DrawC->draw(rt0, &r);
       }else
       {
-         D.alpha(ALPHA_BLEND ); Sh.h_Color[0]->set(Color(center_color.r, center_color.g, center_color.b, 0)); Sh.h_Color[1]->set(blur_color); Sh.h_DrawC->draw(rt0, &r);
+         D.alpha(ALPHA_BLEND ); Sh.Color[0]->set(Color(center_color.r, center_color.g, center_color.b, 0)); Sh.Color[1]->set(blur_color); Sh.DrawC->draw(rt0, &r);
       }
          D.alpha(alpha       );
    }else
@@ -335,8 +335,8 @@ void Panel::draw(C Color &color, C Rect &rect)C
       if(secondary)Renderer._gui->copyHw(*cur, false, r ); // set background to be a copy
 
     //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
-      ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Renderer.set(rt1, null, false); Sh.h_BlurX[true]->draw(rt0, &re);
-                                            Renderer.set(rt0, null, false); Sh.h_BlurY[true]->draw(rt1, &re);
+      ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Renderer.set(rt1, null, false); Sh.BlurX[true]->draw(rt0, &re);
+                                            Renderer.set(rt0, null, false); Sh.BlurY[true]->draw(rt1, &re);
                                             Renderer.set(cur, ds  , true );
       if(shadow_opacity)
       {
@@ -350,10 +350,10 @@ void Panel::draw(C Color &color, C Rect &rect)C
       if(secondary) // for secondary we need to force rt.alpha to 1.0
       {
          D.alphaFactor(Color(blur_color.a, blur_color.a, blur_color.a, 255)); MaterialClear(); // 'MaterialClear' must be called when changing 'D.alphaFactor'
-         D.alpha(ALPHA_FACTOR); Sh.h_Color[0]->set(Color(center_color.r, center_color.g, center_color.b, 0)); Sh.h_Color[1]->set(Color(blur_color.r, blur_color.g, blur_color.b, 255)); Sh.h_DrawC->draw(rt0, &r);
+         D.alpha(ALPHA_FACTOR); Sh.Color[0]->set(Color(center_color.r, center_color.g, center_color.b, 0)); Sh.Color[1]->set(Color(blur_color.r, blur_color.g, blur_color.b, 255)); Sh.DrawC->draw(rt0, &r);
       }else
       {
-         D.alpha(ALPHA_BLEND ); Sh.h_Color[0]->set(Color(center_color.r, center_color.g, center_color.b, 0)); Sh.h_Color[1]->set(blur_color); Sh.h_DrawC->draw(rt0, &r);
+         D.alpha(ALPHA_BLEND ); Sh.Color[0]->set(Color(center_color.r, center_color.g, center_color.b, 0)); Sh.Color[1]->set(blur_color); Sh.DrawC->draw(rt0, &r);
       }
          D.alpha(alpha       );
    }else

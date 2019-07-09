@@ -172,10 +172,10 @@ void MainShaderClass::create()
    connectRT    ();
 }
 /******************************************************************************/
-void MainShaderClass::clear(                C Vec4  &color,                     C Rect *rect) {Sh.h_Color[0]->set(color);                                Sh.h_SetCol->draw(       rect);}
-void MainShaderClass::draw (C Image &image                ,                     C Rect *rect) {                                                          Sh.h_Draw  ->draw(image, rect);}
-void MainShaderClass::draw (C Image &image, C Vec4  &color, C Vec4  &color_add, C Rect *rect) {Sh.h_Color[0]->set(color); Sh.h_Color[1]->set(color_add); Sh.h_DrawC ->draw(image, rect);}
-void MainShaderClass::draw (C Image &image, C Color &color, C Color &color_add, C Rect *rect) {Sh.h_Color[0]->set(color); Sh.h_Color[1]->set(color_add); Sh.h_DrawC ->draw(image, rect);}
+void MainShaderClass::clear(                C   Vec4  &color,                       C Rect *rect) {Sh.Color[0]->set(color);                              Sh.SetCol->draw(       rect);}
+void MainShaderClass::draw (C Image &image                  ,                       C Rect *rect) {                                                      Sh.Draw  ->draw(image, rect);}
+void MainShaderClass::draw (C Image &image, C   Vec4  &color, C   Vec4  &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC ->draw(image, rect);}
+void MainShaderClass::draw (C Image &image, C ::Color &color, C ::Color &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC ->draw(image, rect);}
 /******************************************************************************/
 Shader* MainShaderClass::getBloomDS(Bool glow, Bool viewport_clamp, Bool half, Bool saturate, Bool gamma) {return get(S8+"Bloom"+(glow?'G':'\0')+"DS"+(viewport_clamp?'C':'\0')+(half?'H':'\0')+(saturate?'S':'\0')+(gamma?'G':'\0'));}
 Shader* MainShaderClass::getBloom  (Bool dither, Bool gamma                                             ) {return get(S8+"Bloom"+(dither?'D':'\0')+(gamma?'G':'\0'));}
@@ -201,41 +201,41 @@ Shader* MainShaderClass::getSkyA (Bool per_vertex, Bool stars, Bool density, Int
 
 void MainShaderClass::initCubicShaders()
 {
-   if(!h_DrawTexCubic) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
+   if(!DrawTexCubic) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
    {
-      h_DrawTexCubic    =get("DrawTexCubic");
-      h_DrawTexCubicC   =get("DrawTexCubicC");
-      h_DrawTexCubic1   =get("DrawTexCubic1");
-      h_DrawTexCubicD   =get("DrawTexCubicD");
-      h_DrawTexCubicRGB =get("DrawTexCubicRGB");
-      h_DrawTexCubicRGBD=get("DrawTexCubicRGBD");
+      DrawTexCubic    =get("DrawTexCubic");
+      DrawTexCubicC   =get("DrawTexCubicC");
+      DrawTexCubic1   =get("DrawTexCubic1");
+      DrawTexCubicD   =get("DrawTexCubicD");
+      DrawTexCubicRGB =get("DrawTexCubicRGB");
+      DrawTexCubicRGBD=get("DrawTexCubicRGBD");
    }
 }
 void MainShaderClass::initFogBoxShaders()
 {
-   if(!h_FogBox) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
+   if(!FogBox) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
    {
-      h_FogBox =get("FogBox"  );
-      h_FogBox0=get("FogBox0" );
-      h_FogBox1=get("FogBox1" );
+      FogBox =get("FogBox"  );
+      FogBox0=get("FogBox0" );
+      FogBox1=get("FogBox1" );
    }
 }
 void MainShaderClass::initFogHgtShaders()
 {
-   if(!h_FogHgt) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
+   if(!FogHgt) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
    {
-      h_FogHgt =get("FogHgt"  );
-      h_FogHgt0=get("FogHgt0" );
-      h_FogHgt1=get("FogHgt1" );
+      FogHgt =get("FogHgt"  );
+      FogHgt0=get("FogHgt0" );
+      FogHgt1=get("FogHgt1" );
    }
 }
 void MainShaderClass::initFogBallShaders()
 {
-   if(!h_FogBall) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
+   if(!FogBall) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
    {
-      h_FogBall =get("FogBall" );
-      h_FogBall0=get("FogBall0");
-      h_FogBall1=get("FogBall1");
+      FogBall =get("FogBall" );
+      FogBall0=get("FogBall0");
+      FogBall1=get("FogBall1");
    }
 }
 
@@ -294,249 +294,249 @@ void MainShaderClass::getTechniques()
    Rfl[3]=ShaderImages("Rfl3");
    Lum   =ShaderImages("Lum" );
 
-   h_ImgSize         =GetShaderParam("ImgSize" );
-   h_ImgClamp        =GetShaderParam("ImgClamp");
-   h_RTSize          =GetShaderParam("RTSize"  );
-   h_Coords          =GetShaderParam("Coords"  );
-   h_Viewport        =GetShaderParam("Viewport");
-   h_DepthWeightScale=GetShaderParam("DepthWeightScale");
+   ImgSize         =GetShaderParam("ImgSize" );
+   ImgClamp        =GetShaderParam("ImgClamp");
+   RTSize          =GetShaderParam("RTSize"  );
+   Coords          =GetShaderParam("Coords"  );
+   Viewport        =GetShaderParam("Viewport");
+   DepthWeightScale=GetShaderParam("DepthWeightScale");
 
-   h_CamAngVel =GetShaderParam("CamAngVel" );
-   h_ObjAngVel =GetShaderParam("ObjAngVel" );
-   h_ObjVel    =GetShaderParam("ObjVel"    );
-   h_ViewMatrix=GetShaderParam("ViewMatrix");
-   h_CamMatrix =GetShaderParam("CamMatrix" );
-   h_ProjMatrix=GetShaderParam("ProjMatrix");
-   h_FurVel    =GetShaderParam("FurVel"    );
-   h_ClipPlane =GetShaderParam("ClipPlane" );
+   CamAngVel =GetShaderParam("CamAngVel" );
+   ObjAngVel =GetShaderParam("ObjAngVel" );
+   ObjVel    =GetShaderParam("ObjVel"    );
+   ViewMatrix=GetShaderParam("ViewMatrix");
+   CamMatrix =GetShaderParam("CamMatrix" );
+   ProjMatrix=GetShaderParam("ProjMatrix");
+   FurVel    =GetShaderParam("FurVel"    );
+   ClipPlane =GetShaderParam("ClipPlane" );
 
-              ConstCast(Renderer.highlight       )=GetShaderParam("Highlight");
-   h_Material=ConstCast(Renderer.material_color_l)=GetShaderParam("Material");
-   h_MultiMaterial[0]=GetShaderParam("MultiMaterial0");
-   h_MultiMaterial[1]=GetShaderParam("MultiMaterial1");
-   h_MultiMaterial[2]=GetShaderParam("MultiMaterial2");
-   h_MultiMaterial[3]=GetShaderParam("MultiMaterial3");
+            ConstCast(Renderer.highlight       )=GetShaderParam("Highlight");
+   Material=ConstCast(Renderer.material_color_l)=GetShaderParam("Material");
+   MultiMaterial[0]=GetShaderParam("MultiMaterial0");
+   MultiMaterial[1]=GetShaderParam("MultiMaterial1");
+   MultiMaterial[2]=GetShaderParam("MultiMaterial2");
+   MultiMaterial[3]=GetShaderParam("MultiMaterial3");
 
-   h_Light_dir   =GetShaderParam("Light_dir"   );
-   h_Light_point =GetShaderParam("Light_point" );
-   h_Light_linear=GetShaderParam("Light_linear");
-   h_Light_cone  =GetShaderParam("Light_cone"  );
+   Light_dir   =GetShaderParam("Light_dir"   );
+   Light_point =GetShaderParam("Light_point" );
+   Light_linear=GetShaderParam("Light_linear");
+   Light_cone  =GetShaderParam("Light_cone"  );
 
-   h_Step         =GetShaderParam("Step"         );
-   h_Color[0]     =GetShaderParam("Color[0]"     );
-   h_Color[1]     =GetShaderParam("Color[1]"     );
-   h_BehindBias   =GetShaderParam("BehindBias"   );
-   h_AllowBackFlip=GetShaderParam("AllowBackFlip");
+   Step         =GetShaderParam("Step"         );
+   Color[0]     =GetShaderParam("Color[0]"     );
+   Color[1]     =GetShaderParam("Color[1]"     );
+   BehindBias   =GetShaderParam("BehindBias"   );
+   AllowBackFlip=GetShaderParam("AllowBackFlip");
 
-   h_VtxSkinning =GetShaderParam("VtxSkinning" );
-   h_VtxHeightmap=GetShaderParam("VtxHeightmap");
+   VtxSkinning =GetShaderParam("VtxSkinning" );
+   VtxHeightmap=GetShaderParam("VtxHeightmap");
 
-   h_LightMapScale=GetShaderParam("LightMapScale");
+   LightMapScale=GetShaderParam("LightMapScale");
 
-   h_GrassRangeMulAdd=GetShaderParam("GrassRangeMulAdd");
-   h_BendFactor      =GetShaderParam("BendFactor");
+   GrassRangeMulAdd=GetShaderParam("GrassRangeMulAdd");
+   BendFactor      =GetShaderParam("BendFactor");
 
-   h_NightShadeColor =GetShaderParam("NightShadeColor"); // set in 'D.ambientSet()'
-   h_AmbientColor_l  =GetShaderParam("AmbColor"       ); // set in 'D.ambientSet()'
-   h_AmbientColorNS_l=GetShaderParam("AmbNSColor"     ); // set in 'D.ambientSet()'
-   h_AmbientMaterial =GetShaderParam("AmbMaterial"    );
-   h_AmbientContrast =GetShaderParam("AmbContrast"    ); h_AmbientContrast->set(D.ambientContrast());
-   h_AmbientRange    =GetShaderParam("AmbRange"       ); h_AmbientRange   ->set(D.ambientRange   ());
-   h_AmbientScale    =GetShaderParam("AmbScale"       ); h_AmbientScale   ->set(D.ambientScale   ());
-   h_AmbientBias     =GetShaderParam("AmbBias"        ); h_AmbientBias    ->set(D.ambientBias    ());
+   NightShadeColor =GetShaderParam("NightShadeColor"); // set in 'D.ambientSet()'
+   AmbientColor_l  =GetShaderParam("AmbColor"       ); // set in 'D.ambientSet()'
+   AmbientColorNS_l=GetShaderParam("AmbNSColor"     ); // set in 'D.ambientSet()'
+   AmbientMaterial =GetShaderParam("AmbMaterial"    );
+   AmbientContrast =GetShaderParam("AmbContrast"    ); AmbientContrast->set(D.ambientContrast());
+   AmbientRange    =GetShaderParam("AmbRange"       ); AmbientRange   ->set(D.ambientRange   ());
+   AmbientScale    =GetShaderParam("AmbScale"       ); AmbientScale   ->set(D.ambientScale   ());
+   AmbientBias     =GetShaderParam("AmbBias"        ); AmbientBias    ->set(D.ambientBias    ());
    D.ambientSet();
 
-   h_HdrBrightness=GetShaderParam("HdrBrightness"); h_HdrBrightness->set(D.eyeAdaptationBrightness());
-   h_HdrExp       =GetShaderParam("HdrExp"       ); h_HdrExp       ->set(D.eyeAdaptationExp       ());
-   h_HdrMaxDark   =GetShaderParam("HdrMaxDark"   ); h_HdrMaxDark   ->set(D.eyeAdaptationMaxDark   ());
-   h_HdrMaxBright =GetShaderParam("HdrMaxBright" ); h_HdrMaxBright ->set(D.eyeAdaptationMaxBright ());
-   h_HdrWeight    =GetShaderParam("HdrWeight"    ); h_HdrWeight    ->set(D.eyeAdaptationWeight()/4  );
+   HdrBrightness=GetShaderParam("HdrBrightness"); HdrBrightness->set(D.eyeAdaptationBrightness());
+   HdrExp       =GetShaderParam("HdrExp"       ); HdrExp       ->set(D.eyeAdaptationExp       ());
+   HdrMaxDark   =GetShaderParam("HdrMaxDark"   ); HdrMaxDark   ->set(D.eyeAdaptationMaxDark   ());
+   HdrMaxBright =GetShaderParam("HdrMaxBright" ); HdrMaxBright ->set(D.eyeAdaptationMaxBright ());
+   HdrWeight    =GetShaderParam("HdrWeight"    ); HdrWeight    ->set(D.eyeAdaptationWeight()/4  );
 
-   h_TesselationDensity=GetShaderParam("TesselationDensity"); h_TesselationDensity->set(D.tesselationDensity());
+   TesselationDensity=GetShaderParam("TesselationDensity"); TesselationDensity->set(D.tesselationDensity());
 
    // TECHNIQUES
-   h_Draw2DFlat  =get("Draw2DFlat");
-   h_Draw3DFlat  =get("Draw3DFlat");
-   h_Draw2DCol   =get("Draw2DCol");
-   h_Draw3DCol   =get("Draw3DCol");
-   h_Draw2DTex   =get("Draw2DTex");
-   h_Draw2DTexC  =get("Draw2DTexC");
-   h_Draw2DTexCol=get("Draw2DTexCol");
+   Draw2DFlat  =get("Draw2DFlat");
+   Draw3DFlat  =get("Draw3DFlat");
+   Draw2DCol   =get("Draw2DCol");
+   Draw3DCol   =get("Draw3DCol");
+   Draw2DTex   =get("Draw2DTex");
+   Draw2DTexC  =get("Draw2DTexC");
+   Draw2DTexCol=get("Draw2DTexCol");
    REPD(at, 2)
    REPD(f , 2)
    {
-      h_Draw3DTex   [at][f]=get(S8+"Draw3DTex"   +(at?"AT":"")+(f?'F':'\0'));
-      h_Draw3DTexCol[at][f]=get(S8+"Draw3DTexCol"+(at?"AT":"")+(f?'F':'\0'));
+      Draw3DTex   [at][f]=get(S8+"Draw3DTex"   +(at?"AT":"")+(f?'F':'\0'));
+      Draw3DTexCol[at][f]=get(S8+"Draw3DTexCol"+(at?"AT":"")+(f?'F':'\0'));
    }
    REPD(at, 2)
    {
-      h_Draw2DDepthTex   [at]=get(S8+"Draw2DDepthTex"   +(at?"AT":""));
-      h_Draw2DDepthTexCol[at]=get(S8+"Draw2DDepthTexCol"+(at?"AT":""));
+      Draw2DDepthTex   [at]=get(S8+"Draw2DDepthTex"   +(at?"AT":""));
+      Draw2DDepthTexCol[at]=get(S8+"Draw2DDepthTexCol"+(at?"AT":""));
    }
-   h_PaletteDraw=get("PaletteDraw");
-   h_Simple     =get("Simple");
+   PaletteDraw=get("PaletteDraw");
+   Simple     =get("Simple");
 
-   h_DrawX   =get("DrawX");
-   h_DrawXG  =get("DrawXG");
-   h_DrawXC  =get("DrawXC");
-   h_DrawXCD =get("DrawXCD");
-   h_DrawXCG =get("DrawXCG");
-   h_DrawXCDG=get("DrawXCDG");
+   DrawX   =get("DrawX");
+   DrawXG  =get("DrawXG");
+   DrawXC  =get("DrawXC");
+   DrawXCD =get("DrawXCD");
+   DrawXCG =get("DrawXCG");
+   DrawXCDG=get("DrawXCDG");
 
- //h_DrawTexX  =get("DrawTexX"); used by Editor
- //h_DrawTexY  =get("DrawTexY"); used by Editor
- //h_DrawTexZ  =get("DrawTexZ"); used by Editor
- //h_DrawTexW  =get("DrawTexW"); used by Editor
- //h_DrawTexXG =get("DrawTexXG"); used by Editor
- //h_DrawTexYG =get("DrawTexYG"); used by Editor
- //h_DrawTexZG =get("DrawTexZG"); used by Editor
- //h_DrawTexWG =get("DrawTexWG"); used by Editor
- //h_DrawTexNrm=get("DrawTexNrm"); used by Editor
+ //DrawTexX  =get("DrawTexX"); used by Editor
+ //DrawTexY  =get("DrawTexY"); used by Editor
+ //DrawTexZ  =get("DrawTexZ"); used by Editor
+ //DrawTexW  =get("DrawTexW"); used by Editor
+ //DrawTexXG =get("DrawTexXG"); used by Editor
+ //DrawTexYG =get("DrawTexYG"); used by Editor
+ //DrawTexZG =get("DrawTexZG"); used by Editor
+ //DrawTexWG =get("DrawTexWG"); used by Editor
+ //DrawTexNrm=get("DrawTexNrm"); used by Editor
 
-   h_DrawMask=get("DrawMask");
+   DrawMask=get("DrawMask");
 
    // POINT (these can be null if failed to load)
-   h_DrawTexPoint =find("DrawTexPoint");
-   h_DrawTexPointC=find("DrawTexPointC");
+   DrawTexPoint =find("DrawTexPoint");
+   DrawTexPointC=find("DrawTexPointC");
 
    // CUBIC (these can be null if failed to load)
-   h_DrawTexCubicFast    =find("DrawTexCubicFast");
-   h_DrawTexCubicFastC   =find("DrawTexCubicFastC");
-   h_DrawTexCubicFast1   =find("DrawTexCubicFast1");
-   h_DrawTexCubicFastD   =find("DrawTexCubicFastD");
-   h_DrawTexCubicFastRGB =find("DrawTexCubicFastRGB");
-   h_DrawTexCubicFastRGBD=find("DrawTexCubicFastRGBD");
+   DrawTexCubicFast    =find("DrawTexCubicFast");
+   DrawTexCubicFastC   =find("DrawTexCubicFastC");
+   DrawTexCubicFast1   =find("DrawTexCubicFast1");
+   DrawTexCubicFastD   =find("DrawTexCubicFastD");
+   DrawTexCubicFastRGB =find("DrawTexCubicFastRGB");
+   DrawTexCubicFastRGBD=find("DrawTexCubicFastRGBD");
 #if !SLOW_SHADER_LOAD
    initCubicShaders();
 #endif
 
    // FONT
-   h_FontShadow  =GetShaderParam("FontShadow"  );
-   h_FontLum     =GetShaderParam("FontLum"     );
-   h_FontContrast=GetShaderParam("FontContrast");
-   h_FontShade   =GetShaderParam("FontShade"   );
-   h_FontDepth   =GetShaderParam("FontDepth"   );
+   FontShadow  =GetShaderParam("FontShadow"  );
+   FontLum     =GetShaderParam("FontLum"     );
+   FontContrast=GetShaderParam("FontContrast");
+   FontShade   =GetShaderParam("FontShade"   );
+   FontDepth   =GetShaderParam("FontDepth"   );
 
    REPD(d, 2)
    REPD(g, 2)
-      h_Font[d][g]=get(S8+"Font"+(d?'D':'\0')+(g?'G':'\0'));
+      Font[d][g]=get(S8+"Font"+(d?'D':'\0')+(g?'G':'\0'));
 
    REPD(g, 2)
-      h_FontSP[g]=get(S8+"FontSP"+(g?'G':'\0'));
+      FontSP[g]=get(S8+"FontSP"+(g?'G':'\0'));
 
    // BASIC 2D
-   h_Dither=get("Dither");
-   h_SetCol=get("SetCol");
-   h_Draw  =get("Draw"  );
-   h_DrawC =get("DrawC" );
-   h_DrawA =get("DrawA" );
+   Dither=get("Dither");
+   SetCol=get("SetCol");
+   Draw  =get("Draw"  );
+   DrawC =get("DrawC" );
+   DrawA =get("DrawA" );
    if(D.shaderModel()>=SM_4)
    {
-                                 h_DrawMs1=get("DrawMs1");
-                                 h_DrawMsN=get("DrawMsN");
-      if(D.shaderModel()>=SM_4_1)h_DrawMsM=get("DrawMsM");
+                                 DrawMs1=get("DrawMs1");
+                                 DrawMsN=get("DrawMsN");
+      if(D.shaderModel()>=SM_4_1)DrawMsM=get("DrawMsM");
    }
 
    // BLOOM
-   h_BloomParams=GetShaderParam("BloomParams");
+   BloomParams=GetShaderParam("BloomParams");
 #if !SLOW_SHADER_LOAD
    REPD(glow, 2)
    REPD(c, 2)
    REPD(h, 2)
    REPD(s, 2)
    REPD(gamma, 2)
-      h_BloomDS[glow][c][h][s][gamma]=getBloomDS(glow, c, h, s, gamma);
+      BloomDS[glow][c][h][s][gamma]=getBloomDS(glow, c, h, s, gamma);
 
    REPD(dither, 2)
    REPD(gamma , 2)
-      h_Bloom[dither][gamma]=getBloom(dither, gamma);
+      Bloom[dither][gamma]=getBloom(dither, gamma);
 #endif
 
    // BLUR
    REPD(h, 2)
    {
-      h_BlurX[h]=get(S8+"BlurX"+(h?'H':'\0'));
-      h_BlurY[h]=get(S8+"BlurY"+(h?'H':'\0'));
+      BlurX[h]=get(S8+"BlurX"+(h?'H':'\0'));
+      BlurY[h]=get(S8+"BlurY"+(h?'H':'\0'));
    }
 
    // DEPTH
    REPD(m, (D.shaderModel()>=SM_4_1) ? 3 : (D.shaderModel()>=SM_4) ? 2 : 1)
-   REPD(p, 2)h_LinearizeDepth[p][m]=get(S8+"LinearizeDepth"+(p?'P':'\0')+m);
+   REPD(p, 2)LinearizeDepth[p][m]=get(S8+"LinearizeDepth"+(p?'P':'\0')+m);
 
-   h_SetDepth=get("SetDepth");
+   SetDepth=get("SetDepth");
 
    if(D.shaderModel()>=SM_4)
    {
-      h_ResolveDepth=get("ResolveDepth");
-      h_DetectMSCol =get("DetectMSCol");
-    //h_DetectMSNrm =get("DetectMSNrm");
+      ResolveDepth=get("ResolveDepth");
+      DetectMSCol =get("DetectMSCol");
+    //DetectMSNrm =get("DetectMSNrm");
    }
 
 #if !SLOW_SHADER_LOAD
-                            h_Combine       =get("Combine");
-   if(D.shaderModel()>=SM_4)h_CombineMS     =get("CombineMS");
-                            h_CombineSS     =get("CombineSS");
-                            h_CombineSSAlpha=get("CombineSSAlpha");
+                            Combine       =get("Combine");
+   if(D.shaderModel()>=SM_4)CombineMS     =get("CombineMS");
+                            CombineSS     =get("CombineSS");
+                            CombineSSAlpha=get("CombineSSAlpha");
 #endif
 
    // SKY
-   h_Sun            =GetShaderParam("Sun"            );
-   h_SkyDnsExp      =GetShaderParam("SkyDnsExp"      );
-   h_SkyHorExp      =GetShaderParam("SkyHorExp"      );
-   h_SkyBoxBlend    =GetShaderParam("SkyBoxBlend"    );
-   h_SkyHorCol      =GetShaderParam("SkyHorCol"      );
-   h_SkySkyCol      =GetShaderParam("SkySkyCol"      );
-   h_SkyStarOrn     =GetShaderParam("SkyStarOrn"     );
-   h_SkyFracMulAdd  =GetShaderParam("SkyFracMulAdd"  );
-   h_SkyDnsMulAdd   =GetShaderParam("SkyDnsMulAdd"   );
-   h_SkySunHighlight=GetShaderParam("SkySunHighlight");
-   h_SkySunPos      =GetShaderParam("SkySunPos"      );
+   Sun            =GetShaderParam("Sun"            );
+   SkyDnsExp      =GetShaderParam("SkyDnsExp"      );
+   SkyHorExp      =GetShaderParam("SkyHorExp"      );
+   SkyBoxBlend    =GetShaderParam("SkyBoxBlend"    );
+   SkyHorCol      =GetShaderParam("SkyHorCol"      );
+   SkySkyCol      =GetShaderParam("SkySkyCol"      );
+   SkyStarOrn     =GetShaderParam("SkyStarOrn"     );
+   SkyFracMulAdd  =GetShaderParam("SkyFracMulAdd"  );
+   SkyDnsMulAdd   =GetShaderParam("SkyDnsMulAdd"   );
+   SkySunHighlight=GetShaderParam("SkySunHighlight");
+   SkySunPos      =GetShaderParam("SkySunPos"      );
 #if !SLOW_SHADER_LOAD
    REPD(dither, 2)
    {
       REPD(t, 2)
-      REPD(c, 2)h_SkyTF[t][c][dither]=getSkyTF(t+1, c, dither);
+      REPD(c, 2)SkyTF[t][c][dither]=getSkyTF(t+1, c, dither);
 
       REPD(v, 2)
       REPD(s, 2)
-      REPD(c, 2)h_SkyAF[v][s][c][dither]=getSkyAF(v, s, c, dither);
+      REPD(c, 2)SkyAF[v][s][c][dither]=getSkyAF(v, s, c, dither);
 
       REPD(m, (D.shaderModel()>=SM_4_1) ? 3 : (D.shaderModel()>=SM_4) ? 2 : 1)
       {
-         REPD(t, 2)h_SkyT[t][m][dither]=getSkyT(t+1, m, dither);
+         REPD(t, 2)SkyT[t][m][dither]=getSkyT(t+1, m, dither);
 
          REPD(v, 2)
          REPD(s, 2)
-         REPD(d, 2)h_SkyA[v][s][d][m][dither]=getSkyA(v, s, d, m, dither);
+         REPD(d, 2)SkyA[v][s][d][m][dither]=getSkyA(v, s, d, m, dither);
       }
    }
 
-   REPD(m, 2)h_SunRaysMask[m]=getSunRaysMask(m);
+   REPD(m, 2)SunRaysMask[m]=getSunRaysMask(m);
 
    REPD(h, 2)
    REPD(d, 2)
    REPD(j, 2)
    REPD(g, 2)
-      h_SunRays[h][d][j][g]=getSunRays(h, d, j, g);
- //h_SunRaysSoft=get("SunRaysSoft");
+      SunRays[h][d][j][g]=getSunRays(h, d, j, g);
+ //SunRaysSoft=get("SunRaysSoft");
 #endif
 
    // SHADOWS
-   REPAO(h_ShdStep      )=GetShaderParam(S8+"ShdStep["+i+']');
-         h_ShdJitter     =GetShaderParam("ShdJitter");
-         h_ShdRange      =GetShaderParam("ShdRange");
-         h_ShdRangeMulAdd=GetShaderParam("ShdRangeMulAdd");
-         h_ShdOpacity    =GetShaderParam("ShdOpacity");
-         h_ShdMatrix     =GetShaderParam("ShdMatrix");
-   REPAO(h_ShdMatrix4   )=GetShaderParam(S8+"ShdMatrix4["+i+']');
+   REPAO(ShdStep      )=GetShaderParam(S8+"ShdStep["+i+']');
+         ShdJitter     =GetShaderParam("ShdJitter");
+         ShdRange      =GetShaderParam("ShdRange");
+         ShdRangeMulAdd=GetShaderParam("ShdRangeMulAdd");
+         ShdOpacity    =GetShaderParam("ShdOpacity");
+         ShdMatrix     =GetShaderParam("ShdMatrix");
+   REPAO(ShdMatrix4   )=GetShaderParam(S8+"ShdMatrix4["+i+']');
 
    // can be used for shadows in deferred and AO
-   h_ShdBlur[0]=get("ShdBlur4");
-   h_ShdBlur[1]=get("ShdBlur6");
-   h_ShdBlur[2]=get("ShdBlur8");
-   h_ShdBlur[3]=get("ShdBlur12");
-   h_ShdBlurX  =get("ShdBlurX2");
-   h_ShdBlurY  =get("ShdBlurY2");
+   ShdBlur[0]=get("ShdBlur4");
+   ShdBlur[1]=get("ShdBlur6");
+   ShdBlur[2]=get("ShdBlur8");
+   ShdBlur[3]=get("ShdBlur12");
+   ShdBlurX  =get("ShdBlurX2");
+   ShdBlurY  =get("ShdBlurY2");
 
 #if !SLOW_SHADER_LOAD
    if(!D.deferredUnavailable())
@@ -545,9 +545,9 @@ void MainShaderClass::getTechniques()
       REPD(m, (D.shaderModel()>=SM_4_1) ? 2 : 1)
       {
          REPD(n, 6)
-         REPD(c, 2)h_ShdDir[n][c][m]=getShdDir  (n+1, c, m);
-                   h_ShdPoint    [m]=getShdPoint(        m);
-                   h_ShdCone     [m]=getShdCone (        m);
+         REPD(c, 2)ShdDir[n][c][m]=getShdDir  (n+1, c, m);
+                   ShdPoint    [m]=getShdPoint(        m);
+                   ShdCone     [m]=getShdCone (        m);
       }
 
       // LIGHT
@@ -555,41 +555,41 @@ void MainShaderClass::getTechniques()
       REPD(s, 2) // shadow
       REPD(q, 2) // quality unpack
       {
-                   h_LightDir   [s]   [m][q]=getLightDir   (s,    m, q);
-                   h_LightPoint [s]   [m][q]=getLightPoint (s,    m, q);
-                   h_LightLinear[s]   [m][q]=getLightLinear(s,    m, q);
-         REPD(i, 2)h_LightCone  [s][i][m][q]=getLightCone  (s, i, m, q);
+                   LightDir   [s]   [m][q]=getLightDir   (s,    m, q);
+                   LightPoint [s]   [m][q]=getLightPoint (s,    m, q);
+                   LightLinear[s]   [m][q]=getLightLinear(s,    m, q);
+         REPD(i, 2)LightCone  [s][i][m][q]=getLightCone  (s, i, m, q);
       }
 
       // COL LIGHT
       REPD(m, (D.shaderModel()>=SM_4_1) ? 3 : 1)
       REPD(a, 2)
       REPD(c, 2)
-      REPD(n, 2)h_ColLight[m][a][c][n]=getColLight(m, a, c, n);
+      REPD(n, 2)ColLight[m][a][c][n]=getColLight(m, a, c, n);
    }
 #endif
 
    // PARTICLE
-   h_ParticleFrames=GetShaderParam("ParticleFrames");
-   h_Bilb          =get("Bilb");
+   ParticleFrames=GetShaderParam("ParticleFrames");
+   Bilb          =get("Bilb");
    REPD(p, 2)
    REPD(s, 2)
    REPD(a, 3)
    REPD(m, 2)
-      h_Particle[p][s][a][m]=get(S8+"ParticleTex"+(p?'P':'\0')+(s?'S':'\0')+((a==0) ? "" : (a==1) ? "A" : "AA")+(m?'M':'\0'));
+      Particle[p][s][a][m]=get(S8+"ParticleTex"+(p?'P':'\0')+(s?'S':'\0')+((a==0) ? "" : (a==1) ? "A" : "AA")+(m?'M':'\0'));
 
    // FOG
-   h_VertexFogMulAdd=GetShaderParam("VertexFogMulAdd");
-   h_VertexFogColor =GetShaderParam("VertexFogColor");
+   VertexFogMulAdd=GetShaderParam("VertexFogMulAdd");
+   VertexFogColor =GetShaderParam("VertexFogColor");
 
-   h_FogColor_Density     =GetShaderParam(     "FogColor_Density");
-   h_LocalFogColor_Density=GetShaderParam("LocalFogColor_Density");
-   h_LocalFogInside       =GetShaderParam("LocalFogInside"       );
-                                 h_Fog[0]=get("Fog");
+   FogColor_Density     =GetShaderParam(     "FogColor_Density");
+   LocalFogColor_Density=GetShaderParam("LocalFogColor_Density");
+   LocalFogInside       =GetShaderParam("LocalFogInside"       );
+                                 Fog[0]=get("Fog");
    if(D.shaderModel()>=SM_4)
    {
-                                 h_Fog[1]=get("FogN");
-      if(D.shaderModel()>=SM_4_1)h_Fog[2]=get("FogM");
+                                 Fog[1]=get("FogN");
+      if(D.shaderModel()>=SM_4_1)Fog[2]=get("FogM");
    }
 
 #if !SLOW_SHADER_LOAD
@@ -599,12 +599,12 @@ void MainShaderClass::getTechniques()
 #endif
 
    // DECAL
-   h_DecalParams  =GetShaderParam(  "DecalParams");
-   h_OverlayParams=GetShaderParam("OverlayParams");
+   DecalParams  =GetShaderParam(  "DecalParams");
+   OverlayParams=GetShaderParam("OverlayParams");
 
    // OTHER
-   h_Laser[0]=get("Laser");
-   h_Laser[1]=get("LaserN");
+   Laser[0]=get("Laser");
+   Laser[1]=get("LaserN");
 }
 void MainShaderClass::connectRT()
 {

@@ -40,22 +40,22 @@ static inline void MatrixFovScaleX(Matrix &matrix, Flt scale) {matrix.x.x/=scale
 static inline void MatrixFovScaleY(Matrix &matrix, Flt scale) {matrix.x.y/=scale; matrix.y.y/=scale; matrix.z.y/=scale; matrix.pos.y/=scale;}
 static inline void MatrixFovScale (Matrix &matrix, Flt scale) {MatrixFovScaleX(matrix, scale); MatrixFovScaleY(matrix, scale);}
 /******************************************************************************/
-static inline void SetShadowOpacity(Flt opacity) {Sh.h_ShdOpacity->set(Vec2(opacity, 1-opacity));} // shd=Lerp(1, shd, shadow_opacity) -> shd=1*(1-shadow_opacity) + shd*(shadow_opacity) -> shd=shd*shadow_opacity + 1-shadow_opacity
+static inline void SetShadowOpacity(Flt opacity) {Sh.ShdOpacity->set(Vec2(opacity, 1-opacity));} // shd=Lerp(1, shd, shadow_opacity) -> shd=1*(1-shadow_opacity) + shd*(shadow_opacity) -> shd=shd*shadow_opacity + 1-shadow_opacity
 
 static inline void SetShdMatrix()
 {
-         Sh.h_ShdMatrix    ->set(ShdMatrix    [Renderer._eye]);
-   REP(6)Sh.h_ShdMatrix4[i]->set(ShdMatrix4[i][Renderer._eye]);
+         Sh.ShdMatrix    ->set(ShdMatrix    [Renderer._eye]);
+   REP(6)Sh.ShdMatrix4[i]->set(ShdMatrix4[i][Renderer._eye]);
 }
 /******************************************************************************/
-INLINE Shader* GetShdDir  (Int map_num, Bool clouds, Bool multi_sample) {Shader* &s=Sh.h_ShdDir[map_num-1][clouds][multi_sample]; if(SLOW_SHADER_LOAD && !s)s=Sh.getShdDir  (map_num, clouds, multi_sample); return s;}
-INLINE Shader* GetShdPoint(                          Bool multi_sample) {Shader* &s=Sh.h_ShdPoint                 [multi_sample]; if(SLOW_SHADER_LOAD && !s)s=Sh.getShdPoint(                 multi_sample); return s;}
-INLINE Shader* GetShdCone (                          Bool multi_sample) {Shader* &s=Sh.h_ShdCone                  [multi_sample]; if(SLOW_SHADER_LOAD && !s)s=Sh.getShdCone (                 multi_sample); return s;}
+INLINE Shader* GetShdDir  (Int map_num, Bool clouds, Bool multi_sample) {Shader* &s=Sh.ShdDir[map_num-1][clouds][multi_sample]; if(SLOW_SHADER_LOAD && !s)s=Sh.getShdDir  (map_num, clouds, multi_sample); return s;}
+INLINE Shader* GetShdPoint(                          Bool multi_sample) {Shader* &s=Sh.ShdPoint                 [multi_sample]; if(SLOW_SHADER_LOAD && !s)s=Sh.getShdPoint(                 multi_sample); return s;}
+INLINE Shader* GetShdCone (                          Bool multi_sample) {Shader* &s=Sh.ShdCone                  [multi_sample]; if(SLOW_SHADER_LOAD && !s)s=Sh.getShdCone (                 multi_sample); return s;}
 
-INLINE Shader* GetLightDir   (Bool shadow,             Bool multi_sample, Bool quality) {Shader* &s=Sh.h_LightDir   [shadow]       [multi_sample][quality]; if(SLOW_SHADER_LOAD && !s)s=Sh.getLightDir   (shadow,        multi_sample, quality); return s;}
-INLINE Shader* GetLightPoint (Bool shadow,             Bool multi_sample, Bool quality) {Shader* &s=Sh.h_LightPoint [shadow]       [multi_sample][quality]; if(SLOW_SHADER_LOAD && !s)s=Sh.getLightPoint (shadow,        multi_sample, quality); return s;}
-INLINE Shader* GetLightLinear(Bool shadow,             Bool multi_sample, Bool quality) {Shader* &s=Sh.h_LightLinear[shadow]       [multi_sample][quality]; if(SLOW_SHADER_LOAD && !s)s=Sh.getLightLinear(shadow,        multi_sample, quality); return s;}
-INLINE Shader* GetLightCone  (Bool shadow, Bool image, Bool multi_sample, Bool quality) {Shader* &s=Sh.h_LightCone  [shadow][image][multi_sample][quality]; if(SLOW_SHADER_LOAD && !s)s=Sh.getLightCone  (shadow, image, multi_sample, quality); return s;}
+INLINE Shader* GetLightDir   (Bool shadow,             Bool multi_sample, Bool quality) {Shader* &s=Sh.LightDir   [shadow]       [multi_sample][quality]; if(SLOW_SHADER_LOAD && !s)s=Sh.getLightDir   (shadow,        multi_sample, quality); return s;}
+INLINE Shader* GetLightPoint (Bool shadow,             Bool multi_sample, Bool quality) {Shader* &s=Sh.LightPoint [shadow]       [multi_sample][quality]; if(SLOW_SHADER_LOAD && !s)s=Sh.getLightPoint (shadow,        multi_sample, quality); return s;}
+INLINE Shader* GetLightLinear(Bool shadow,             Bool multi_sample, Bool quality) {Shader* &s=Sh.LightLinear[shadow]       [multi_sample][quality]; if(SLOW_SHADER_LOAD && !s)s=Sh.getLightLinear(shadow,        multi_sample, quality); return s;}
+INLINE Shader* GetLightCone  (Bool shadow, Bool image, Bool multi_sample, Bool quality) {Shader* &s=Sh.LightCone  [shadow][image][multi_sample][quality]; if(SLOW_SHADER_LOAD && !s)s=Sh.getLightCone  (shadow, image, multi_sample, quality); return s;}
 /******************************************************************************/
 static Flt ShadowStep(Int i, Int num) // 0..1
 {
@@ -142,13 +142,13 @@ static void MapSoft()
       if(D.shadowSoft()>=5)
       {
          ImageRTPtr temp; temp.get(rt_desc);
-         Renderer.set(            temp, Renderer._ds_1s, true, NEED_DEPTH_READ);                                                     REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.h_ShdBlurX->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth2D' optimization
-         Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); Renderer._shd_1s->discard(); Sh.ImgX[0]->set(temp); REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.h_ShdBlurY->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth2D' optimization
+         Renderer.set(            temp, Renderer._ds_1s, true, NEED_DEPTH_READ);                                                     REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.ShdBlurX->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth2D' optimization
+         Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); Renderer._shd_1s->discard(); Sh.ImgX[0]->set(temp); REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.ShdBlurY->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth2D' optimization
       }else
       {
          ImageRTPtr src=Renderer._shd_1s; Renderer._shd_1s.get(rt_desc);
          Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization
-         REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.h_ShdBlur[D.shadowSoft()-1]->draw(&CurrentLightRect[Renderer._eye]);
+         REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.ShdBlur[D.shadowSoft()-1]->draw(&CurrentLightRect[Renderer._eye]);
       }
       Sh.ImgX[0]->set(Renderer._shd_1s);
    }
@@ -227,7 +227,7 @@ void LightDir::set()
    l.vol         =vol;
    l.vol_exponent=vol_exponent;
    l.vol_steam   =vol_steam;
-   Sh.h_Light_dir->set(l);
+   Sh.Light_dir->set(l);
 }
 void LightPoint::set(Flt shadow_opacity)
 {
@@ -239,7 +239,7 @@ void LightPoint::set(Flt shadow_opacity)
    l.pos    .fromDivNormalized(pos, CamMatrix);
    l.color  =LinearToDisplay(color_l);
    l.spec   =color_l.max();
-   Sh.h_Light_point->set(l);
+   Sh.Light_point->set(l);
 }
 void LightLinear::set(Flt shadow_opacity)
 {
@@ -250,7 +250,7 @@ void LightLinear::set(Flt shadow_opacity)
    l.pos    .fromDivNormalized(pos, CamMatrix);
    l.color  =LinearToDisplay(color_l);
    l.spec   =color_l.max();
-   Sh.h_Light_linear->set(l);
+   Sh.Light_linear->set(l);
 }
 void LightCone::set(Flt shadow_opacity)
 {
@@ -271,7 +271,7 @@ void LightCone::set(Flt shadow_opacity)
    l.mtrx.z      =-pyramid.dir;
    l.mtrx.    divNormalized(             CamMatrix.orn());
    l.pos .fromDivNormalized(pyramid.pos, CamMatrix);
-   Sh.h_Light_cone->set(l);
+   Sh.Light_cone->set(l);
 }
 /******************************************************************************/
 enum SHADOW_MAP_FLAG
@@ -322,7 +322,7 @@ static void DrawShadowMap(DIR_ENUM dir, C MatrixM &cam_matrix, UInt flag, Flt vi
 
       // set matrix converting from shadow map to main camera space (required for tesselation - adaptive tesselation factors)
       Matrix temp; cam_matrix.divNormalized(ActiveCam.matrix, temp); // temp = cam_matrix/ActiveCam.matrix
-      Sh.h_ShdMatrix->set(temp);
+      Sh.ShdMatrix->set(temp);
 
       D.samplerShadow(); D.bias(BIAS_SHADOW); D.depth(true); PrepareShadowInstances(); Renderer._render(); DrawShadowInstances();
       D.sampler2D    (); D.bias(BIAS_ZERO);
@@ -560,7 +560,7 @@ static Bool ShadowMap(LightDir &light)
       Flt //s0=Lerp(shd_from_frac, shd_to_frac, ShadowStep(i  , steps)); // convert to shd_from_frac .. shd_to_frac, already calculated
             s1=Lerp(shd_from_frac, shd_to_frac, ShadowStep(i+1, steps)), // convert to shd_from_frac .. shd_to_frac
             view_main_max=s1*D.viewRange();
-      Sh.h_ShdStep[i]->set(view_main_max); // this value specifies at what depth what shadow map index should be used
+      Sh.ShdStep[i]->set(view_main_max); // this value specifies at what depth what shadow map index should be used
 
       if(FrustumMain.points==5) // perspective (pyramid frustum)
       {
@@ -1211,8 +1211,8 @@ void Light::draw()
          }
          if(CurrentLight.image)
          {
-            Sh.h_LightMapScale->set(CurrentLight.image_scale);
-            Sh.Img[1]         ->set(CurrentLight.image      );
+            Sh.LightMapScale->set(CurrentLight.image_scale);
+            Sh.Img[1]       ->set(CurrentLight.image      );
          }
          Bool clear=SetLum();
          if(!Renderer._ds->multiSample()) // 1-sample

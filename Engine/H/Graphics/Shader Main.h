@@ -15,8 +15,8 @@ struct MainShaderClass
    static void draw (C Image &image, C Color &color, C Color &color_add=TRANSPARENT, C Rect *rect=null);
    static void draw (C Image &image, C Vec4  &color, C Vec4  &color_add=Vec4Zero   , C Rect *rect=null);
 
-   INLINE void imgSize(C Image &image) {h_ImgSize->set           (Vec4(1.0f/image.hwSize(), image.hwSize()));} // xy=1/hwSize(), zw=hwSize(), this format is also required for SMAA
-   INLINE void  rtSize(C Image &image) {h_RTSize ->setConditional(Vec4(1.0f/image.hwSize(), image.hwSize()));} // xy=1/hwSize(), zw=hwSize(), this format is also required for SMAA
+   INLINE void imgSize(C Image &image) {ImgSize->set           (Vec4(1.0f/image.hwSize(), image.hwSize()));} // xy=1/hwSize(), zw=hwSize(), this format is also required for SMAA
+   INLINE void  rtSize(C Image &image) {RTSize ->setConditional(Vec4(1.0f/image.hwSize(), image.hwSize()));} // xy=1/hwSize(), zw=hwSize(), this format is also required for SMAA
 
    // private
    void del           ();
@@ -45,261 +45,261 @@ struct MainShaderClass
       *Lum;
 
    ShaderParam
-      *h_ImgSize    ,
-      *h_ImgClamp   ,
-      *h_RTSize     ,
-      *h_Coords     ,
-      *h_Viewport   ,
-      *h_DepthWeightScale,
+      *ImgSize    ,
+      *ImgClamp   ,
+      *RTSize     ,
+      *Coords     ,
+      *Viewport   ,
+      *DepthWeightScale,
 
-      *h_CamAngVel ,
-      *h_ObjAngVel ,
-      *h_ObjVel    ,
-      *h_ViewMatrix,
-      *h_CamMatrix ,
-      *h_ProjMatrix,
-      *h_FurVel    ,
-      *h_ClipPlane ,
+      *CamAngVel ,
+      *ObjAngVel ,
+      *ObjVel    ,
+      *ViewMatrix,
+      *CamMatrix ,
+      *ProjMatrix,
+      *FurVel    ,
+      *ClipPlane ,
 
-      *h_Material        ,
-      *h_MultiMaterial[4],
+      *Material        ,
+      *MultiMaterial[4],
 
-      *h_Light_dir   ,
-      *h_Light_point ,
-      *h_Light_linear,
-      *h_Light_cone  ,
+      *Light_dir   ,
+      *Light_point ,
+      *Light_linear,
+      *Light_cone  ,
 
-      *h_Step         ,
-      *h_Color[2]     ,
-      *h_BehindBias   ,
-      *h_AllowBackFlip,
+      *Step         ,
+      *Color[2]     ,
+      *BehindBias   ,
+      *AllowBackFlip,
 
-      *h_VtxSkinning ,
-      *h_VtxHeightmap,
+      *VtxSkinning ,
+      *VtxHeightmap,
 
-      *h_FontShadow  ,
-      *h_FontLum     ,
-      *h_FontContrast,
-      *h_FontShade   ,
-      *h_FontDepth   ,
+      *FontShadow  ,
+      *FontLum     ,
+      *FontContrast,
+      *FontShade   ,
+      *FontDepth   ,
 
-      *h_LightMapScale,
+      *LightMapScale,
 
-      *h_GrassRangeMulAdd,
-      *h_BendFactor,
+      *GrassRangeMulAdd,
+      *BendFactor,
 
-      *h_Volume,
+      *Volume,
 
-      *h_RippleParams,
+      *RippleParams,
 
-      *h_AmbientMaterial ,
-      *h_AmbientContrast ,
-      *h_AmbientRange    ,
-      *h_AmbientScale    ,
-      *h_AmbientBias     ,
-      *h_AmbientColor_l  , // Vec Linear Gamma
-      *h_AmbientColorNS_l, // Vec Linear Gamma + NightShade
-      *h_NightShadeColor ,
+      *AmbientMaterial ,
+      *AmbientContrast ,
+      *AmbientRange    ,
+      *AmbientScale    ,
+      *AmbientBias     ,
+      *AmbientColor_l  , // Vec Linear Gamma
+      *AmbientColorNS_l, // Vec Linear Gamma + NightShade
+      *NightShadeColor ,
 
-      *h_HdrBrightness,
-      *h_HdrExp,
-      *h_HdrMaxDark,
-      *h_HdrMaxBright,
-      *h_HdrWeight,
+      *HdrBrightness,
+      *HdrExp,
+      *HdrMaxDark,
+      *HdrMaxBright,
+      *HdrWeight,
 
-      *h_TesselationDensity,
+      *TesselationDensity,
 
-      *h_Sun            ,
-      *h_SkyFracMulAdd  ,
-      *h_SkyDnsMulAdd   ,
-      *h_SkyDnsExp      ,
-      *h_SkyHorExp      ,
-      *h_SkyBoxBlend    ,
-      *h_SkyHorCol      ,
-      *h_SkySkyCol      ,
-      *h_SkyStarOrn     ,
-      *h_SkySunHighlight,
-      *h_SkySunPos      ,
+      *Sun            ,
+      *SkyFracMulAdd  ,
+      *SkyDnsMulAdd   ,
+      *SkyDnsExp      ,
+      *SkyHorExp      ,
+      *SkyBoxBlend    ,
+      *SkyHorCol      ,
+      *SkySkyCol      ,
+      *SkyStarOrn     ,
+      *SkySunHighlight,
+      *SkySunPos      ,
 
-      *h_FogColor_Density     ,
-      *h_LocalFogColor_Density,
-      *h_LocalFogInside       ,
+      *FogColor_Density     ,
+      *LocalFogColor_Density,
+      *LocalFogInside       ,
 
-      *h_VertexFogMulAdd,
-      *h_VertexFogColor ,
+      *VertexFogMulAdd,
+      *VertexFogColor ,
 
-      *h_ShdJitter     ,
-      *h_ShdRange      ,
-      *h_ShdRangeMulAdd,
-      *h_ShdOpacity    ,
-      *h_ShdStep[6]    ,
-      *h_ShdMatrix     ,
-      *h_ShdMatrix4[6] ,
+      *ShdJitter     ,
+      *ShdRange      ,
+      *ShdRangeMulAdd,
+      *ShdOpacity    ,
+      *ShdStep[6]    ,
+      *ShdMatrix     ,
+      *ShdMatrix4[6] ,
 
-      *h_ParticleFrames,
+      *ParticleFrames,
 
-      *h_DecalParams,
-      *h_OverlayParams,
+      *DecalParams,
+      *OverlayParams,
       
-      *h_SMAAThreshold;
+      *SMAAThreshold;
 
    // SHADERS
    Shader
-      *h_Draw2DFlat          ,
-      *h_Draw3DFlat          ,
-      *h_Draw2DCol           ,
-      *h_Draw3DCol           ,
-      *h_Draw2DTex           ,
-      *h_Draw2DTexC          ,
-      *h_Draw2DTexCol        ,
-      *h_Draw3DTex   [2][2]  , // [AlphaTest] [Fog]
-      *h_Draw3DTexCol[2][2]  , // [AlphaTest] [Fog]
-      *h_Draw2DDepthTex   [2], // [AlphaTest]
-      *h_Draw2DDepthTexCol[2], // [AlphaTest]
-      *h_DrawX               ,
-      *h_DrawXG              ,
-      *h_DrawXC              ,
-      *h_DrawXCD             ,
-      *h_DrawXCG             ,
-      *h_DrawXCDG            ,
-      *h_Simple              ,
+      *Draw2DFlat          ,
+      *Draw3DFlat          ,
+      *Draw2DCol           ,
+      *Draw3DCol           ,
+      *Draw2DTex           ,
+      *Draw2DTexC          ,
+      *Draw2DTexCol        ,
+      *Draw3DTex   [2][2]  , // [AlphaTest] [Fog]
+      *Draw3DTexCol[2][2]  , // [AlphaTest] [Fog]
+      *Draw2DDepthTex   [2], // [AlphaTest]
+      *Draw2DDepthTexCol[2], // [AlphaTest]
+      *DrawX               ,
+      *DrawXG              ,
+      *DrawXC              ,
+      *DrawXCD             ,
+      *DrawXCG             ,
+      *DrawXCDG            ,
+      *Simple              ,
 
-      *h_DrawMask,
-      *h_DrawCubeFace,
+      *DrawMask,
+      *DrawCubeFace,
 
-      *h_FontCur,
-      *h_FontCurSP,
-      *h_Font[2][2], // [Depth][Gamma]
-      *h_FontSP [2], //        [Gamma]
+      *FontCur,
+      *FontCurSP,
+      *Font[2][2], // [Depth][Gamma]
+      *FontSP [2], //        [Gamma]
 
-      *h_Laser[2],
+      *Laser[2],
 
-      *h_PaletteDraw,
+      *PaletteDraw,
 
       // BASIC 2D
-      *h_SetCol ,
-      *h_Draw   ,
-      *h_DrawC  ,
-      *h_DrawA  ,
-      *h_DrawMs1,
-      *h_DrawMsN,
-      *h_DrawMsM,
+      *SetCol ,
+      *Draw   ,
+      *DrawC  ,
+      *DrawA  ,
+      *DrawMs1,
+      *DrawMsN,
+      *DrawMsM,
 
       // BLUR
       #define SHADER_BLUR_RANGE 5 // 5 pixel range in both directions
-      *h_BlurX[2], // [High]
-      *h_BlurY[2], // [High]
-    /**h_BlurX_X,
-      *h_BlurY_X,*/
+      *BlurX[2], // [High]
+      *BlurY[2], // [High]
+    /**BlurX_X,
+      *BlurY_X,*/
 
       // MAX
-      *h_MaxX,
-      *h_MaxY,
+      *MaxX,
+      *MaxY,
 
       // VIDEO
-      *h_YUV [2], // [Gamma]
-      *h_YUVA[2], // [Gamma]
+      *YUV [2], // [Gamma]
+      *YUVA[2], // [Gamma]
 
       // 2D FX
-      *h_ColTrans       ,
-      *h_ColTransHB     ,
-      *h_ColTransHSB    ,
-      *h_Ripple         ,
-      *h_Titles         ,
-      *h_Fade           ,
-      *h_Wave           ,
-      *h_RadialBlur     ,
-      *h_Outline        ,
-      *h_OutlineDS      ,
-      *h_OutlineClip    ,
-      *h_OutlineApply   ,
-      *h_EdgeDetect     ,
-      *h_EdgeDetectApply,
-      *h_DetectMSCol    ,
-    //*h_DetectMSNrm    ,
+      *ColTrans       ,
+      *ColTransHB     ,
+      *ColTransHSB    ,
+      *Ripple         ,
+      *Titles         ,
+      *Fade           ,
+      *Wave           ,
+      *RadialBlur     ,
+      *Outline        ,
+      *OutlineDS      ,
+      *OutlineClip    ,
+      *OutlineApply   ,
+      *EdgeDetect     ,
+      *EdgeDetectApply,
+      *DetectMSCol    ,
+    //*DetectMSNrm    ,
 
-      *h_LinearizeDepth[2][3], // [Perspective] [MultiSample]
-      *h_ResolveDepth,
-      *h_SetDepth,
-      *h_Dither,
-      *h_Combine,
-      *h_CombineMS,
-      *h_CombineSS,
-      *h_CombineSSAlpha,
+      *LinearizeDepth[2][3], // [Perspective] [MultiSample]
+      *ResolveDepth,
+      *SetDepth,
+      *Dither,
+      *Combine,
+      *CombineMS,
+      *CombineSS,
+      *CombineSSAlpha,
 
       // FOG
-      *h_Fog[3]  , // [MultiSample]
-      *h_FogBox  ,
-      *h_FogBox0 ,
-      *h_FogBox1 ,
-      *h_FogHgt  ,
-      *h_FogHgt0 ,
-      *h_FogHgt1 ,
-      *h_FogBall ,
-      *h_FogBall0,
-      *h_FogBall1;
+      *Fog[3]  , // [MultiSample]
+      *FogBox  ,
+      *FogBox0 ,
+      *FogBox1 ,
+      *FogHgt  ,
+      *FogHgt0 ,
+      *FogHgt1 ,
+      *FogBall ,
+      *FogBall0,
+      *FogBall1;
    void initFogBoxShaders ();   INLINE void loadFogBoxShaders () {if(SLOW_SHADER_LOAD)initFogBoxShaders ();}
    void initFogHgtShaders ();   INLINE void loadFogHgtShaders () {if(SLOW_SHADER_LOAD)initFogHgtShaders ();}
    void initFogBallShaders();   INLINE void loadFogBallShaders() {if(SLOW_SHADER_LOAD)initFogBallShaders();}
 
    Shader
       // VOLUME
-      *h_Volume0[2], // [RedGreen as LumAlpha]
-      *h_Volume1[2], // [RedGreen as LumAlpha]
-      *h_Volume2[2], // [RedGreen as LumAlpha]
+      *Volume0[2], // [RedGreen as LumAlpha]
+      *Volume1[2], // [RedGreen as LumAlpha]
+      *Volume2[2], // [RedGreen as LumAlpha]
 
       // EDGE SOFTEN
-      *h_FXAA[2], // [Gamma]
+      *FXAA[2], // [Gamma]
    #if SUPPORT_MLAA
-      *h_MLAAEdge ,
-      *h_MLAABlend,
-      *h_MLAA     ,
+      *MLAAEdge ,
+      *MLAABlend,
+      *MLAA     ,
    #endif
-      *h_SMAAEdge[2], // [Gamma]
-      *h_SMAABlend  ,
-      *h_SMAA       ,
+      *SMAAEdge[2], // [Gamma]
+      *SMAABlend  ,
+      *SMAA       ,
 
       // PARTICLE
-      *h_Bilb                ,
-      *h_Particle[2][2][3][2], // [Palette] [Soft] [Anim] [Motion stretch affects opacity]
+      *Bilb                ,
+      *Particle[2][2][3][2], // [Palette] [Soft] [Anim] [Motion stretch affects opacity]
 
       // POINT
-      *h_DrawTexPoint ,
-      *h_DrawTexPointC,
+      *DrawTexPoint ,
+      *DrawTexPointC,
 
       // CUBIC
-      *h_DrawTexCubicFast    ,
-      *h_DrawTexCubicFastC   ,
-      *h_DrawTexCubicFast1   ,
-      *h_DrawTexCubicFastD   ,
-      *h_DrawTexCubicFastRGB ,
-      *h_DrawTexCubicFastRGBD,
-      *h_DrawTexCubic        ,
-      *h_DrawTexCubicC       ,
-      *h_DrawTexCubic1       ,
-      *h_DrawTexCubicD       ,
-      *h_DrawTexCubicRGB     ,
-      *h_DrawTexCubicRGBD    ;
+      *DrawTexCubicFast    ,
+      *DrawTexCubicFastC   ,
+      *DrawTexCubicFast1   ,
+      *DrawTexCubicFastD   ,
+      *DrawTexCubicFastRGB ,
+      *DrawTexCubicFastRGBD,
+      *DrawTexCubic        ,
+      *DrawTexCubicC       ,
+      *DrawTexCubic1       ,
+      *DrawTexCubicD       ,
+      *DrawTexCubicRGB     ,
+      *DrawTexCubicRGBD    ;
    void initCubicShaders();   INLINE void loadCubicShaders() {if(SLOW_SHADER_LOAD)initCubicShaders();}
 
    // SHADOWS
    Shader
-      *h_ShdDir[6][2][2], // [NumberOfMaps] [Clouds] [MultiSample]
-      *h_ShdPoint    [2], //                         [MultiSample]
-      *h_ShdCone     [2], //                         [MultiSample]
-      *h_ShdBlur     [4], // [Quality]
-      *h_ShdBlurX       ,
-      *h_ShdBlurY       ;
+      *ShdDir[6][2][2], // [NumberOfMaps] [Clouds] [MultiSample]
+      *ShdPoint    [2], //                         [MultiSample]
+      *ShdCone     [2], //                         [MultiSample]
+      *ShdBlur     [4], // [Quality]
+      *ShdBlurX       ,
+      *ShdBlurY       ;
    Shader* getShdDir  (Int map_num, Bool clouds, Bool multi_sample);
    Shader* getShdPoint(                          Bool multi_sample);
    Shader* getShdCone (                          Bool multi_sample);
 
    // LIGHT
    Shader
-      *h_LightDir   [2]   [2][2], // [Shadow]         [MultiSample] [QualityUnpack]
-      *h_LightPoint [2]   [2][2], // [Shadow]         [MultiSample] [QualityUnpack]
-      *h_LightLinear[2]   [2][2], // [Shadow]         [MultiSample] [QualityUnpack]
-      *h_LightCone  [2][2][2][2]; // [Shadow] [Image] [MultiSample] [QualityUnpack]
+      *LightDir   [2]   [2][2], // [Shadow]         [MultiSample] [QualityUnpack]
+      *LightPoint [2]   [2][2], // [Shadow]         [MultiSample] [QualityUnpack]
+      *LightLinear[2]   [2][2], // [Shadow]         [MultiSample] [QualityUnpack]
+      *LightCone  [2][2][2][2]; // [Shadow] [Image] [MultiSample] [QualityUnpack]
    Shader* getLightDir   (Bool shadow,             Bool multi_sample, Bool quality);
    Shader* getLightPoint (Bool shadow,             Bool multi_sample, Bool quality);
    Shader* getLightLinear(Bool shadow,             Bool multi_sample, Bool quality);
@@ -307,26 +307,26 @@ struct MainShaderClass
 
    // COL LIGHT
    Shader
-      *h_ColLight[3][2][2][2]; // [Multisample] [AmbientOcclusion] [CelShade] [NightShade]
+      *ColLight[3][2][2][2]; // [Multisample] [AmbientOcclusion] [CelShade] [NightShade]
    Shader* getColLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade);
 
    // BLOOM
    ShaderParam
-      *h_BloomParams;
+      *BloomParams;
    Shader
-      *h_BloomDS[2][2][2][2][2], // [Glow] [UVClamp] [HalfRes] [Saturate] [Gamma]
-      *h_Bloom  [2][2]         ; // [Dither] [Gamma]
+      *BloomDS[2][2][2][2][2], // [Glow] [UVClamp] [HalfRes] [Saturate] [Gamma]
+      *Bloom  [2][2]         ; // [Dither] [Gamma]
    Shader* getBloomDS(Bool glow, Bool viewport_clamp, Bool half, Bool saturate, Bool gamma);
    Shader* getBloom  (Bool dither, Bool gamma);
 
    // SKY
    Shader
-      *h_SunRaysMask[2]      , // [Mask]
-      *h_SunRays [2][2][2][2], // [High] [Dither] [Jitter] [Gamma]
-      *h_SkyTF[2]   [2]   [2], // [Textures(0->1, 1->2)]         [Cloud  ]               [Dither] (Textures   +Flat)
-      *h_SkyT [2]      [3][2], // [Textures(0->1, 1->2)]                   [MultiSample] [Dither] (Textures        )
-      *h_SkyAF[2][2][2]   [2], // [PerVertex           ] [Stars] [Cloud  ]               [Dither] (Atmospheric+Flat)
-      *h_SkyA [2][2][2][3][2]; // [PerVertex           ] [Stars] [Density] [MultiSample] [Dither] (Atmospheric     )
+      *SunRaysMask[2]      , // [Mask]
+      *SunRays [2][2][2][2], // [High] [Dither] [Jitter] [Gamma]
+      *SkyTF[2]   [2]   [2], // [Textures(0->1, 1->2)]         [Cloud  ]               [Dither] (Textures   +Flat)
+      *SkyT [2]      [3][2], // [Textures(0->1, 1->2)]                   [MultiSample] [Dither] (Textures        )
+      *SkyAF[2][2][2]   [2], // [PerVertex           ] [Stars] [Cloud  ]               [Dither] (Atmospheric+Flat)
+      *SkyA [2][2][2][3][2]; // [PerVertex           ] [Stars] [Density] [MultiSample] [Dither] (Atmospheric     )
    Shader* getSunRaysMask(Bool mask);
    Shader* getSunRays    (Bool high, Bool dither, Bool jitter, Bool gamma);
    Shader* getSkyTF(Int textures,                Bool cloud  ,                   Bool dither);

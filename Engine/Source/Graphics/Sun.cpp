@@ -96,8 +96,8 @@ struct GpuSun
 };
 #pragma pack(pop)
 
-static INLINE Shader* GetSunRaysMask(Bool mask                                      ) {Shader* &s=Sh.h_SunRaysMask[mask]                       ; if(SLOW_SHADER_LOAD && !s)s=Sh.getSunRaysMask(mask                       ); return s;}
-static INLINE Shader* GetSunRays    (Bool high, Bool dither, Bool jitter, Bool gamma) {Shader* &s=Sh.h_SunRays    [high][dither][jitter][gamma]; if(SLOW_SHADER_LOAD && !s)s=Sh.getSunRays    (high, dither, jitter, gamma); return s;}
+static INLINE Shader* GetSunRaysMask(Bool mask                                      ) {Shader* &s=Sh.SunRaysMask[mask]                       ; if(SLOW_SHADER_LOAD && !s)s=Sh.getSunRaysMask(mask                       ); return s;}
+static INLINE Shader* GetSunRays    (Bool high, Bool dither, Bool jitter, Bool gamma) {Shader* &s=Sh.SunRays    [high][dither][jitter][gamma]; if(SLOW_SHADER_LOAD && !s)s=Sh.getSunRays    (high, dither, jitter, gamma); return s;}
 
 void SunClass::drawRays(Image *coverage, Vec &color)
 {
@@ -133,7 +133,7 @@ void SunClass::drawRays(Image *coverage, Vec &color)
          sun.pos2.x*=0.5f;
          if(Renderer._eye)sun.pos2.x+=0.5f;
       }
-      Sh.h_Sun->set(sun);
+      Sh.Sun->set(sun);
       Bool jitter=((rays_jitter<0) ? rays_color.max()>(LINEAR_GAMMA ? 0.15f : 0.1f)+EPS_COL : rays_jitter!=0); // for auto, enable jittering only if rays have a high brightness
       switch(_actual_rays_mode)
       {
@@ -171,7 +171,7 @@ void AstroDraw()
    {
       Renderer.set(Renderer._col, Renderer._ds, true); // use DS for depth tests
       SetOneMatrix(MatrixM(CamMatrix.pos)); // normally we have to set matrixes after 'setEyeViewport', however since matrixes are always relative to the camera, and here we set exactly at the camera position, so the matrix will be the same for both eyes
-      Sh.h_SkyFracMulAdd->set(Vec2(0, 1)); // astronomical objects are drawn as billboards which make use of sky fraction, so be sure to disable it before drawing
+      Sh.SkyFracMulAdd->set(Vec2(0, 1)); // astronomical objects are drawn as billboards which make use of sky fraction, so be sure to disable it before drawing
       D.depthWrite(false); D.depthFunc(FUNC_LESS_EQUAL); REPS(Renderer._eye, Renderer._eye_num){Renderer.setEyeViewport(); Sun.Draw(); FREPAO(Astros).Draw();}
       D.depthWrite(true ); D.depthFunc(FUNC_LESS      );
    }
@@ -216,27 +216,27 @@ Bool AstroDrawRays()
       {
        /*if(Sun.rays_soft && shift>=2)
          {
-            if(!Sh.h_BlurX_X)
+            if(!Sh.BlurX_X)
             {
-               Sh.h_BlurX_X=Sh.get("BlurX_X");
-               Sh.h_BlurY_X=Sh.get("BlurY_X");
+               Sh.BlurX_X=Sh.get("BlurX_X");
+               Sh.BlurY_X=Sh.get("BlurY_X");
             }
             D.alpha(ALPHA_NONE);
             rt1.get(ImageRTDesc(Renderer.fxW()>>shift, Renderer.fxH()>>shift, IMAGERT_ONE));
           //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
-            Renderer.set(rt1, null, false); Sh.ImgX->set(rt0); Sh.h_BlurX_X->draw(&D.viewRect());
-            Renderer.set(rt0, null, false); Sh.ImgX->set(rt1); Sh.h_BlurY_X->draw(&D.viewRect());
+            Renderer.set(rt1, null, false); Sh.ImgX->set(rt0); Sh.BlurX_X->draw(&D.viewRect());
+            Renderer.set(rt0, null, false); Sh.ImgX->set(rt1); Sh.BlurY_X->draw(&D.viewRect());
          }*/
          Renderer.set(Renderer._col, null, true);
          D.alpha(ALPHA_ADD);
-         Sh.h_Color[0]->set(Vec4(color, 0)); // we've rendered the sun with full intensity, so now we need to make it darker
-         Sh.h_Color[1]->set(Vec4Zero      );
+         Sh.Color[0]->set(Vec4(color, 0)); // we've rendered the sun with full intensity, so now we need to make it darker
+         Sh.Color[1]->set(Vec4Zero      );
          Bool dither=(D.dither() && !Renderer._col->highPrecision()); // don't do dithering for high precision RT
          Shader *shader;
          Sh.ImgX[0]->set(rt0);
-       //if(Sun.rays_soft && shift==1){Sh.imgSize(*rt0); shader=Sh.h_SunRaysSoft;}else
-         if(dither                   )shader=(LINEAR_GAMMA ? Sh.h_DrawXCDG : Sh.h_DrawXCD);else
-                                      shader=(LINEAR_GAMMA ? Sh.h_DrawXCG  : Sh.h_DrawXC );
+       //if(Sun.rays_soft && shift==1){Sh.imgSize(*rt0); shader=Sh.SunRaysSoft;}else
+         if(dither                   )shader=(LINEAR_GAMMA ? Sh.DrawXCDG : Sh.DrawXCD);else
+                                      shader=(LINEAR_GAMMA ? Sh.DrawXCG  : Sh.DrawXC );
          REPS(Renderer._eye, Renderer._eye_num)shader->draw(Renderer._stereo ? &D._view_eye_rect[Renderer._eye] : &D.viewRect());
       }
       Renderer._sky_coverage.clear();

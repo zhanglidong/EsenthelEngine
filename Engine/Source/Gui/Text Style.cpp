@@ -441,15 +441,15 @@ static inline Flt ByteToFontLum(Byte b) {return Min(b, 128)/128.0f;} // calculat
 static void SetCode(C TextCodeData *code, C TextStyleParams &text_style, Bool sub_pixel)
 {
    VI.flush();
-                                        Color c=((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color ); VI.color(c);
-   if(!sub_pixel){Sh.h_FontShadow->set(ByteToFlt((code && code->shadow_mode!=TextCodeData::DEFAULT) ? code->shadow : text_style.shadow));
+                                      Color c=((code && code-> color_mode!=TextCodeData::DEFAULT) ? code->color  : text_style.color ); VI.color(c);
+   if(!sub_pixel){Sh.FontShadow->set(ByteToFlt((code && code->shadow_mode!=TextCodeData::DEFAULT) ? code->shadow : text_style.shadow));
    #if LINEAR_GAMMA
-      Sh.h_FontLum->set(ByteToFontLum(c.lum()));
+      Sh.FontLum->set(ByteToFontLum(c.lum()));
    #endif
    }else
    {
    #if LINEAR_GAMMA
-      Sh.h_FontLum->set(Vec(ByteToFontLum(c.r), ByteToFontLum(c.g), ByteToFontLum(c.b)));
+      Sh.FontLum->set(Vec(ByteToFontLum(c.r), ByteToFontLum(c.g), ByteToFontLum(c.b)));
    #endif
       D.alphaFactor(c); // 'MaterialClear' called below only one time instead of here which can be called multiple times
    }
@@ -514,7 +514,7 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
          ALPHA_MODE   alpha;
          Bool         sub_pixel=font->_sub_pixel;
          ShaderImage &shader_image=(sub_pixel ? *Sh.Img[0] : *Sh.ImgXY);
-         if(sub_pixel){alpha=D.alpha(Renderer.inside() ? ALPHA_FONT_DEC : ALPHA_FONT); VI.shader(Sh.h_FontCurSP); MaterialClear();}else // if drawing text while rendering, then decrease the alpha channel (glow), for sub-pixel we will be changing 'D.alphaFactor' for which we have to call 'MaterialClear'
+         if(sub_pixel){alpha=D.alpha(Renderer.inside() ? ALPHA_FONT_DEC : ALPHA_FONT); VI.shader(Sh.FontCurSP); MaterialClear();}else // if drawing text while rendering, then decrease the alpha channel (glow), for sub-pixel we will be changing 'D.alphaFactor' for which we have to call 'MaterialClear'
          if(Renderer.inside())D.alpha(ALPHA_BLEND_DEC); // if drawing text while rendering, then decrease the alpha channel (glow), but don't bother to restore it, as in Rendering, alpha blending is always set for each call
 
          VI._image=null; // clear to make sure 'VI.imageConditional' below will work properly
@@ -536,8 +536,8 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
                contrast=Lerp(1.0f, contrast, ByteToFlt(lum));
             }
          }
-         Sh.h_FontContrast->set(contrast);
-         Sh.h_FontShade   ->set(ByteSRGBToDisplay(shade));
+         Sh.FontContrast->set(contrast);
+         Sh.FontShade   ->set(ByteSRGBToDisplay(shade));
          SetCode(cur_code, T, sub_pixel);
 
          // font depth
@@ -545,7 +545,7 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
          {
             D .depthLock (true );
             D .depthWrite(false); Renderer.needDepthTest(); // !! 'needDepthTest' after 'depthWrite' !!
-            VI.shader    (Sh.h_Font[true][D._linear_gamma]);
+            VI.shader    (Sh.Font[true][D._linear_gamma]);
          }
 
          for(Char c=ti.c(); c; pos++)

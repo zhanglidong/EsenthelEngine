@@ -437,7 +437,7 @@ void DisplayState::clipPlane(Bool on)
 {
 #if DX11
    D._clip_plane_allow=on;
-   Sh.h_ClipPlane->set(on ? D._clip_plane : Vec4(0, 0, 0, 1));
+   Sh.ClipPlane->set(on ? D._clip_plane : Vec4(0, 0, 0, 1));
 #elif GL && defined GL_CLIP_DISTANCE0
    if(on)glEnable(GL_CLIP_DISTANCE0);else glDisable(GL_CLIP_DISTANCE0);
 #endif
@@ -451,7 +451,7 @@ void DisplayState::clipPlane(C PlaneM &plane)
    clipPlane(D._clip_plane_allow);
 #elif GL
    Vec4 clip_plane(nrm, -Dot(pos, nrm));
-   Sh.h_ClipPlane->set(clip_plane);
+   Sh.ClipPlane->set(clip_plane);
 #endif
 }
 /******************************************************************************/
@@ -690,8 +690,8 @@ void DisplayState::linearGamma(Bool on)
    {
       D._linear_gamma=on;
       SRGBToDisplayArray=(on ? ByteSRGBToLinearArray : ByteToFltArray);
-      Sh.h_FontCur  =Sh.h_Font[false][on];
-      Sh.h_FontCurSP=Sh.h_FontSP     [on];
+      Sh.FontCur  =Sh.Font[false][on];
+      Sh.FontCurSP=Sh.FontSP     [on];
       // alpha factor depends on gamma, have to reset it
    #if 1 // keep old value
       if(D._alpha_factor.any()) // we can do it only if 'any' because all zeroes have the same value for all gammas and don't need reset

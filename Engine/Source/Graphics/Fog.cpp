@@ -21,14 +21,14 @@ void FogClass::Draw(Bool after_sky)
 {
    if(after_sky==affect_sky)
    {
-      if(draw && Renderer.canReadDepth() && Sh.h_Fog[0])
+      if(draw && Renderer.canReadDepth() && Sh.Fog[0])
       {
          Int multi=(Renderer._ds->multiSample() ? (Renderer._cur_type==RT_DEFERRED ? 1 : 2) : 0);
          Renderer.set(Renderer._col, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
          Renderer.setMainViewport();
-         Sh.h_FogColor_Density->set(Vec4(LINEAR_GAMMA ? colorL() : colorS(), Mid(density, 0.0f, MAX_DENSITY))); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
+         Sh.FogColor_Density->set(Vec4(LINEAR_GAMMA ? colorL() : colorS(), Mid(density, 0.0f, MAX_DENSITY))); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
          D .alpha(ALPHA_BLEND_DEC);
-         if(multi && Sh.h_Fog[multi])
+         if(multi && Sh.Fog[multi])
          {
             if(Renderer.hasStencilAttached())
             {
@@ -36,25 +36,25 @@ void FogClass::Draw(Bool after_sky)
                REPS(Renderer._eye, Renderer._eye_num)
                {
                   Rect *rect=Renderer.setEyeParams();
-                  D.stencilRef(STENCIL_REF_MSAA); /*if(!affect_sky && multi!=1)D.depth2DOn();*/ Sh.h_Fog[multi]->draw(rect);                D.depth2DOff(); // never enable 'depth2DOn' for deferred renderer as it's needed, it was tested that enabling this for forward renderer actually makes it slower (19 vs 25 fps on 200 draws)
-                  D.stencilRef(               0);   if(!affect_sky            )D.depth2DOn();   Sh.h_Fog[0    ]->draw(rect); if(!affect_sky)D.depth2DOff();
+                  D.stencilRef(STENCIL_REF_MSAA); /*if(!affect_sky && multi!=1)D.depth2DOn();*/ Sh.Fog[multi]->draw(rect);                D.depth2DOff(); // never enable 'depth2DOn' for deferred renderer as it's needed, it was tested that enabling this for forward renderer actually makes it slower (19 vs 25 fps on 200 draws)
+                  D.stencilRef(               0);   if(!affect_sky            )D.depth2DOn();   Sh.Fog[0    ]->draw(rect); if(!affect_sky)D.depth2DOff();
                }
                D.stencil(STENCIL_NONE);
             }else // if don't have stencil available then have to write all as multi-sampled
             {
-               REPS(Renderer._eye, Renderer._eye_num)Sh.h_Fog[multi]->draw(Renderer.setEyeParams());
+               REPS(Renderer._eye, Renderer._eye_num)Sh.Fog[multi]->draw(Renderer.setEyeParams());
             }
             return;
          }else
-         if(Sh.h_Fog[0])
+         if(Sh.Fog[0])
          {
-            if(!affect_sky)D.depth2DOn (); REPS(Renderer._eye, Renderer._eye_num)Sh.h_Fog[0]->draw(Renderer.setEyeParams());
+            if(!affect_sky)D.depth2DOn (); REPS(Renderer._eye, Renderer._eye_num)Sh.Fog[0]->draw(Renderer.setEyeParams());
             if(!affect_sky)D.depth2DOff();
             return;
          }
       }
       // clear because BlendLight shaders always use Fog
-      Sh.h_FogColor_Density->set(Vec4Zero);
+      Sh.FogColor_Density->set(Vec4Zero);
    }
 }
 /******************************************************************************/
@@ -65,7 +65,7 @@ void FogDraw(C OBox &obox, Flt density, C Vec &color_l)
       Sh.loadFogBoxShaders();
       Renderer.needDepthRead();
       D .alpha(ALPHA_BLEND_DEC);
-      Sh.h_LocalFogColor_Density->set(Vec4(LinearToDisplay(color_l), Mid(density, 0.0f, MAX_DENSITY))); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
+      Sh.LocalFogColor_Density->set(Vec4(LinearToDisplay(color_l), Mid(density, 0.0f, MAX_DENSITY))); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
 
       Vec delta=CamMatrix.pos-obox.center(), inside;
       inside.x=Dot(delta, obox.matrix.x);
@@ -86,18 +86,18 @@ void FogDraw(C OBox &obox, Flt density, C Vec &color_l)
       && inside.y>=-size.y-e && inside.y<=size.y+e
       && inside.z>=-size.z-e && inside.z<=size.z+e)
       {
-         Sh.h_LocalFogInside->set(inside);
+         Sh.LocalFogInside->set(inside);
             
          if(inside.x>=-size.x+e && inside.x<=size.x-e
          && inside.y>=-size.y+e && inside.y<=size.y-e
-         && inside.z>=-size.z+e && inside.z<=size.z-e)Sh.h_FogBox1->draw();
-         else                                         Sh.h_FogBox0->draw();
+         && inside.z>=-size.z+e && inside.z<=size.z-e)Sh.FogBox1->draw();
+         else                                         Sh.FogBox0->draw();
       }else
       {
          D .depth     (true );
          D .depthWrite(false);
          D .cull      (true );
-         Sh.h_FogBox->begin(); MshrBox.set().drawFull();
+         Sh.FogBox->begin(); MshrBox.set().drawFull();
       }
    }
 }
@@ -109,7 +109,7 @@ void FogDraw(C Ball &ball, Flt density, C Vec &color_l)
       Sh.loadFogBallShaders();
       Renderer.needDepthRead();
       D .alpha(ALPHA_BLEND_DEC);
-      Sh.h_LocalFogColor_Density->set(Vec4(LinearToDisplay(color_l), Mid(density, 0.0f, MAX_DENSITY))); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
+      Sh.LocalFogColor_Density->set(Vec4(LinearToDisplay(color_l), Mid(density, 0.0f, MAX_DENSITY))); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
 
       Vec inside=CamMatrix.pos-ball.pos;
 
@@ -124,16 +124,16 @@ void FogDraw(C Ball &ball, Flt density, C Vec &color_l)
           i=inside.length();
       if( i<=ball.r+e)
       {
-         Sh.h_LocalFogInside->set(inside);
+         Sh.LocalFogInside->set(inside);
 
-         if(i<=ball.r-e)Sh.h_FogBall1->draw();
-         else           Sh.h_FogBall0->draw();
+         if(i<=ball.r-e)Sh.FogBall1->draw();
+         else           Sh.FogBall0->draw();
       }else
       {
          D .depth     (true );
          D .depthWrite(false);
          D .cull      (true );
-         Sh.h_FogBall->begin(); MshrBall.set().drawFull();
+         Sh.FogBall->begin(); MshrBall.set().drawFull();
       }
    }
 }
@@ -145,7 +145,7 @@ void HeightFogDraw(C OBox &obox, Flt density, C Vec &color_l)
       Sh.loadFogHgtShaders();
       Renderer.needDepthRead();
       D .alpha(ALPHA_BLEND_DEC);
-      Sh.h_LocalFogColor_Density->set(Vec4(LinearToDisplay(color_l), Mid(density, 0.0f, MAX_DENSITY))); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
+      Sh.LocalFogColor_Density->set(Vec4(LinearToDisplay(color_l), Mid(density, 0.0f, MAX_DENSITY))); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
 
       Vec delta=CamMatrix.pos-obox.center(), inside;
       inside.x=Dot(delta, obox.matrix.x);
@@ -166,18 +166,18 @@ void HeightFogDraw(C OBox &obox, Flt density, C Vec &color_l)
       && inside.y>=-size.y-e && inside.y<=size.y+e
       && inside.z>=-size.z-e && inside.z<=size.z+e)
       {
-         Sh.h_LocalFogInside->set(inside);
+         Sh.LocalFogInside->set(inside);
             
          if(inside.x>=-size.x+e && inside.x<=size.x-e
          && inside.y>=-size.y+e && inside.y<=size.y-e
-         && inside.z>=-size.z+e && inside.z<=size.z-e)Sh.h_FogHgt1->draw();
-         else                                         Sh.h_FogHgt0->draw();
+         && inside.z>=-size.z+e && inside.z<=size.z-e)Sh.FogHgt1->draw();
+         else                                         Sh.FogHgt0->draw();
       }else
       {
          D .depth     (true );
          D .depthWrite(false);
          D .cull      (true );
-         Sh.h_FogHgt->begin(); MshrBox.set().drawFull();
+         Sh.FogHgt->begin(); MshrBox.set().drawFull();
       }
    }
 }

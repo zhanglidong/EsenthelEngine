@@ -201,7 +201,7 @@ Display::Viewport& Display::Viewport::setShader(Flt *offset)
     //v.PosToScreen  [1].x this shouldn't be modified because we're referring to screen which is already offsetted (this was tested on rendering fur which uses 'PosToScreen')
    }
 
-   Sh.h_Viewport->set(v);
+   Sh.Viewport->set(v);
    return T;
 }
 inline Dbl DelinearizeDepth(Dbl z, Dbl mp_z_z, Dbl mp_w_z, Bool perspective)

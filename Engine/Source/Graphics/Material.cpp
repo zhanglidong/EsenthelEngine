@@ -197,7 +197,7 @@ void Material::setSolid()C
       Sh.Mac[0]  ->set(     macro_map());
       Sh.Rfl[0]  ->set(reflection_map());
       Sh.Lum     ->set(     light_map());
-      Sh.h_Material->set<MaterialParams>(T);
+      Sh.Material->set<MaterialParams>(T);
    #if !LINEAR_GAMMA
       Renderer.material_color_l->set(colorS());
    #endif
@@ -211,9 +211,9 @@ void Material::setAmbient()C
     //MaterialLast4[0]=null; not needed since multi materials not rendered in ambient mode
 
       // textures needed for alpha-test
-      Sh.Col[0]->set(base_0());
-      Sh.Nrm[0]->set(base_1());
-      Sh.h_Material->set<MaterialParams>(T); // params needed for alpha-test and ambient
+      Sh.Col[0]  ->set(base_0());
+      Sh.Nrm[0]  ->set(base_1());
+      Sh.Material->set<MaterialParams>(T); // params needed for alpha-test and ambient
    #if !LINEAR_GAMMA
       Renderer.material_color_l->set(colorS());
    #endif
@@ -228,13 +228,13 @@ void Material::setBlend()C
 
       D.alphaFactor(_alpha_factor); if(_alpha_factor.a)Renderer._has_glow=true;
 
-      Sh.Col[0]->set(        base_0());
-      Sh.Nrm[0]->set(        base_1());
-      Sh.Det[0]->set(    detail_map());
-      Sh.Mac[0]->set(     macro_map());
-      Sh.Rfl[0]->set(reflection_map());
-      Sh.Lum   ->set(     light_map());
-      Sh.h_Material->set<MaterialParams>(T);
+      Sh.Col[0]  ->set(        base_0());
+      Sh.Nrm[0]  ->set(        base_1());
+      Sh.Det[0]  ->set(    detail_map());
+      Sh.Mac[0]  ->set(     macro_map());
+      Sh.Rfl[0]  ->set(reflection_map());
+      Sh.Lum     ->set(     light_map());
+      Sh.Material->set<MaterialParams>(T);
    #if !LINEAR_GAMMA
       Renderer.material_color_l->set(colorS());
    #endif
@@ -254,13 +254,13 @@ void Material::setBlendForce()C
       D.alphaFactor(_alpha_factor); if(_alpha_factor.a)Renderer._has_glow=true;
    }
 
-   Sh.Col[0]->set(        base_0());
-   Sh.Nrm[0]->set(        base_1());
-   Sh.Det[0]->set(    detail_map());
-   Sh.Mac[0]->set(     macro_map());
-   Sh.Rfl[0]->set(reflection_map());
-   Sh.Lum   ->set(     light_map());
-   Sh.h_Material->set<MaterialParams>(T);
+   Sh.Col[0]  ->set(        base_0());
+   Sh.Nrm[0]  ->set(        base_1());
+   Sh.Det[0]  ->set(    detail_map());
+   Sh.Mac[0]  ->set(     macro_map());
+   Sh.Rfl[0]  ->set(reflection_map());
+   Sh.Lum     ->set(     light_map());
+   Sh.Material->set<MaterialParams>(T);
 #if !LINEAR_GAMMA
    Renderer.material_color_l->set(colorS());
 #endif
@@ -300,7 +300,7 @@ void Material::setShadow()C
 }
 void Material::setMulti(Int i)C
 {
-   RANGE_ASSERT(i, Sh.h_MultiMaterial);
+   RANGE_ASSERT(i, Sh.MultiMaterial);
    if(MaterialLast4[i]!=this)
    {
             MaterialLast4[i]=this;
@@ -313,7 +313,7 @@ void Material::setMulti(Int i)C
       Sh.Det          [i]->set(    detail_map());
       Sh.Mac          [i]->set(     macro_map());
       Sh.Rfl          [i]->set(reflection_map());
-      Sh.h_MultiMaterial[i]->set(_multi          );
+      Sh.MultiMaterial[i]->set(_multi          );
    }
 }
 void Material::setAuto()C

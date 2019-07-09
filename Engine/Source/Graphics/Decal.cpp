@@ -62,11 +62,11 @@ void Decal::drawStatic(Flt alpha)C
             SetOneMatrix(matrix);
 
            _material->setBlend();
-            Sh.h_DecalParams->set(Vec(OpaqueFracMul(), OpaqueFracAdd(), alpha));
-            Sh.h_Color[0]   ->set(color);
+            Sh.DecalParams->set(Vec(OpaqueFracMul(), OpaqueFracAdd(), alpha));
+            Sh.Color[0]   ->set(color);
 
             if(terrain_only)D.stencil(STENCIL_TERRAIN_TEST);
-          //Bool cwrt; Byte cwrt_old; if(cwrt=(Renderer.cur[1] && tech!=Sh.h_DecalN)){cwrt_old=D._cwrt[1]; D.colWrite(0, 1);} it looks like if the shader doesn't write to RT then it's not applied
+          //Bool cwrt; Byte cwrt_old; if(cwrt=(Renderer.cur[1] && tech!=Sh.DecalN)){cwrt_old=D._cwrt[1]; D.colWrite(0, 1);} it looks like if the shader doesn't write to RT then it's not applied
 
             Renderer.needDepthRead();
             D.alpha(Renderer._palette_mode ? ALPHA_ADD : ALPHA_BLEND_FACTOR);
@@ -98,11 +98,11 @@ void Decal::drawAnimated(C Matrix &object_world_matrix, Flt alpha)C
             SetOneMatrix(m);
 
            _material->setBlend();
-            Sh.h_DecalParams->set(Vec(OpaqueFracMul(), OpaqueFracAdd(), alpha));
-            Sh.h_Color[0]   ->set(color);
+            Sh.DecalParams->set(Vec(OpaqueFracMul(), OpaqueFracAdd(), alpha));
+            Sh.Color[0]   ->set(color);
 
             if(terrain_only)D.stencil(STENCIL_TERRAIN_TEST);
-          //Bool cwrt; Byte cwrt_old; if(cwrt=(Renderer.cur[1] && tech!=Sh.h_DecalN)){cwrt_old=D._cwrt[1]; D.colWrite(0, 1);} it looks like if the shader doesn't write to RT then it's not applied
+          //Bool cwrt; Byte cwrt_old; if(cwrt=(Renderer.cur[1] && tech!=Sh.DecalN)){cwrt_old=D._cwrt[1]; D.colWrite(0, 1);} it looks like if the shader doesn't write to RT then it's not applied
 
             Renderer.needDepthRead();
             D.alpha(Renderer._palette_mode ? ALPHA_ADD : ALPHA_BLEND_FACTOR);

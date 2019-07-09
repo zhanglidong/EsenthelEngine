@@ -147,7 +147,7 @@ void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
 
       case FILTER_NONE:
       #if DX11
-         VI.shader(Sh.h_DrawTexPoint);
+         VI.shader(Sh.DrawTexPoint);
        //SamplerPoint.setPS(SSI_DEFAULT);
       #elif GL // in GL 'ShaderImage.Sampler' does not affect filtering, so modify it manually
          D.texBind(GL_TEXTURE_2D, _txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -156,11 +156,11 @@ void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
 
       case FILTER_CUBIC_FAST       :
       case FILTER_CUBIC_FAST_SMOOTH:
-      case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(T); VI.shader(Sh.h_DrawTexCubicFast); break;
+      case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(T); VI.shader(Sh.DrawTexCubicFast); break;
 
       case FILTER_BEST       :
       case FILTER_CUBIC      :
-      case FILTER_CUBIC_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.h_DrawTexCubic); break;
+      case FILTER_CUBIC_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.DrawTexCubic); break;
    }
    VI.image  (this);
    VI.setType(VI_2D_TEX, VI_STRIP);
@@ -195,7 +195,7 @@ void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_
 
       case FILTER_NONE:
       #if DX11
-         VI.shader(Sh.h_DrawTexPointC);
+         VI.shader(Sh.DrawTexPointC);
        //SamplerPoint.setPS(SSI_DEFAULT);
       #elif GL // in GL 'ShaderImage.Sampler' does not affect filtering, so modify it manually
          D.texBind(GL_TEXTURE_2D, _txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -204,11 +204,11 @@ void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_
 
       case FILTER_CUBIC_FAST       :
       case FILTER_CUBIC_FAST_SMOOTH:
-      case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(T); VI.shader(Sh.h_DrawTexCubicFastC); break;
+      case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(T); VI.shader(Sh.DrawTexCubicFastC); break;
 
       case FILTER_BEST       :
       case FILTER_CUBIC      :
-      case FILTER_CUBIC_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.h_DrawTexCubicC); break;
+      case FILTER_CUBIC_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.DrawTexCubicC); break;
    }
    VI.color  (color    );
    VI.color1 (color_add);
@@ -241,9 +241,9 @@ void Image::drawOutline(C Color &color, C Rect &rect, Flt tex_range)
 {
    if(color.a)
    {
-      VI.shader (Sh.h_OutlineI);
-      VI.color  (color    );
-      VI.image  (this     );
+      VI.shader (Sh.OutlineI);
+      VI.color  (color      );
+      VI.image  (this       );
       VI.setType(VI_2D_TEX, VI_STRIP|VI_SP_COL);
       if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
       {
@@ -772,8 +772,8 @@ void DisplayDraw::drawShadow(Byte alpha, C Rect &rect, Flt shadow_radius)
    if(Gui.image_shadow)
    {
       Flt tex_frac=1.0f/3;
-      Sh.h_Color[0]->set(Vec4(0, 0, 0, 1-ByteSRGBToDisplay(255-alpha)));
-      Sh.h_Color[1]->set(Vec4Zero);
+      Sh.Color[0]->set(Vec4(0, 0, 0, 1-ByteSRGBToDisplay(255-alpha)));
+      Sh.Color[1]->set(Vec4Zero);
       VI.image  (Gui.image_shadow());
       VI.setType(VI_2D_TEX, VI_SP_COL);
       if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(16))
@@ -828,8 +828,8 @@ void DisplayDraw::drawShadowBorders(Byte alpha, C Rect &rect, Flt shadow_radius)
    if(Gui.image_shadow)
    {
       Flt tex_frac=1.0f/3;
-      Sh.h_Color[0]->set(Vec4(0, 0, 0, 1-ByteSRGBToDisplay(255-alpha)));
-      Sh.h_Color[1]->set(Vec4Zero);
+      Sh.Color[0]->set(Vec4(0, 0, 0, 1-ByteSRGBToDisplay(255-alpha)));
+      Sh.Color[1]->set(Vec4Zero);
       VI.image  (Gui.image_shadow());
       VI.setType(VI_2D_TEX, VI_SP_COL);
       if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(16))
@@ -884,8 +884,8 @@ void Image::drawCubeFace(C Color &color, C Color &color_add, C Rect &rect, DIR_E
 {
    if(InRange(face, 6))
    {
-      if(!Sh.h_DrawCubeFace)Sh.h_DrawCubeFace=Sh.get("DrawCubeFace");
-      VI.shader (Sh.h_DrawCubeFace);
+      if(!Sh.DrawCubeFace)Sh.DrawCubeFace=Sh.get("DrawCubeFace");
+      VI.shader (Sh.DrawCubeFace);
       VI.color  (color    );
       VI.color1 (color_add);
       VI.setType(VI_2D_FONT, VI_STRIP);
@@ -967,12 +967,12 @@ void Image::drawVolume(C Color &color, C Color &color_add, C OBox &obox, Flt vox
 {
    if(Frustum(obox) && Renderer.canReadDepth())
    {
-      if(!Sh.h_Volume)
+      if(!Sh.Volume)
       {
-         Sh.h_Volume=GetShaderParam("Volume");
-         Sh.h_Volume0[0]=Sh.get("Volume0"); Sh.h_Volume0[1]=Sh.get("Volume0LA");
-         Sh.h_Volume1[0]=Sh.get("Volume1"); Sh.h_Volume1[1]=Sh.get("Volume1LA");
-         Sh.h_Volume2[0]=Sh.get("Volume2"); Sh.h_Volume2[1]=Sh.get("Volume2LA");
+         Sh.Volume=GetShaderParam("Volume");
+         Sh.Volume0[0]=Sh.get("Volume0"); Sh.Volume0[1]=Sh.get("Volume0LA");
+         Sh.Volume1[0]=Sh.get("Volume1"); Sh.Volume1[1]=Sh.get("Volume1LA");
+         Sh.Volume2[0]=Sh.get("Volume2"); Sh.Volume2[1]=Sh.get("Volume2LA");
       }
       GpuVolume v;
       Bool LA=(type()==IMAGE_R8G8); // check 'type' instead of 'hwType' because volumetric clouds may want to be set as RG, but got RGBA, however only RG was set
@@ -998,10 +998,10 @@ void Image::drawVolume(C Color &color, C Color &color_add, C OBox &obox, Flt vox
 
       D .alphaFactor(TRANSPARENT); MaterialClear(); // 'MaterialClear' must be called when changing 'D.alphaFactor'
       ShaderImage &si=(LA ? *Sh.VolXY[0] : *Sh.Vol);
-      si            .set(T        ); si._sampler=&SamplerLinearClamp;
-      Sh.h_Color[0]->set(color    );
-      Sh.h_Color[1]->set(color_add);
-      Sh.h_Volume  ->set(v);
+      si          .set(T        ); si._sampler=&SamplerLinearClamp;
+      Sh.Color[0]->set(color    );
+      Sh.Color[1]->set(color_add);
+      Sh.Volume  ->set(v);
 
       D.cull (true);
       D.alpha(ALPHA_BLEND_DEC);
@@ -1016,14 +1016,14 @@ void Image::drawVolume(C Color &color, C Color &color_add, C OBox &obox, Flt vox
 
          if(v.inside.x>=-v.size.x+e && v.inside.x<=v.size.x-e
          && v.inside.y>=-v.size.y+e && v.inside.y<=v.size.y-e
-         && v.inside.z>=-v.size.z+e && v.inside.z<=v.size.z-e)Sh.h_Volume2[LA]->begin();
-         else                                                 Sh.h_Volume1[LA]->begin();
+         && v.inside.z>=-v.size.z+e && v.inside.z<=v.size.z-e)Sh.Volume2[LA]->begin();
+         else                                                 Sh.Volume1[LA]->begin();
          MshrBoxR.set().drawFull();
       }else
       {
          D .depth     (true );
          D .depthWrite(false);
-         Sh.h_Volume0[LA]->begin(); MshrBox.set().drawFull();
+         Sh.Volume0[LA]->begin(); MshrBox.set().drawFull();
       }
 
       si._sampler=null;

@@ -666,10 +666,10 @@ void VolumetricClouds::draw()
 
       Flt to=D.viewRange(), from=Min(to*Sky.frac(), to-0.01f);
       Vec2 mul_add; mul_add.x=1/(to-from); mul_add.y=-from*mul_add.x;
-      Sh.h_SkyFracMulAdd->set(mul_add);
+      Sh.SkyFracMulAdd->set(mul_add);
 
-      Sh.h_Color[0]->set(color_s);
-      Sh.ImgXY->set(dest);
+      Sh.Color[0]->set(color_s);
+      Sh.ImgXY   ->set(dest);
       VolCloud.CloudsDraw[gamma]->draw();
       if(swap)Renderer._col->swapRTV(); // restore
    }

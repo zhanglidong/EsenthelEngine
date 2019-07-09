@@ -118,7 +118,7 @@ void SetCam(C MatrixM &matrix, Bool set_frustum)
 {
    CamMatrix=matrix;
    CamMatrix.inverse(CamMatrixInv, true);
-   Sh.h_CamMatrix->set(CamMatrix);
+   Sh.CamMatrix->set(CamMatrix);
    if(set_frustum)Frustum.set();
 }
 void Camera::set()C // this should be called only outside of 'Renderer' rendering
@@ -133,7 +133,7 @@ void Camera::set()C // this should be called only outside of 'Renderer' renderin
 
       // set velocity related things !! the same must be done below in 'MotionScaleChanged' !!
       CamMatrixInvMotionScale=CamMatrixInv.orn(); CamMatrixInvMotionScale.scale(D.motionScale());
-      Sh.h_CamAngVel->set(ang_vel*CamMatrixInvMotionScale);
+      Sh.CamAngVel->set(ang_vel*CamMatrixInvMotionScale);
    }
 }
 void MotionScaleChanged() // !! this must match codes above !!
@@ -142,7 +142,7 @@ void MotionScaleChanged() // !! this must match codes above !!
    CamMatrixInvMotionScale.x.setLength(l);
    CamMatrixInvMotionScale.y.setLength(l);
    CamMatrixInvMotionScale.z.setLength(l);
-   if(Sh.h_CamAngVel)Sh.h_CamAngVel->set(ActiveCam.ang_vel*CamMatrixInvMotionScale);
+   if(Sh.CamAngVel)Sh.CamAngVel->set(ActiveCam.ang_vel*CamMatrixInvMotionScale);
 }
 /******************************************************************************/
 Bool Camera::save(File &f)C

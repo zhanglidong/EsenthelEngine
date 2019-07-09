@@ -321,8 +321,8 @@ void MeshOverlay::setParams(Flt alpha)C // this is called only inside 'draw' met
    GOverlayClass overlay_params;
    overlay_params.param.set(0.8f, alpha, 0, 0);
    overlay_params.mtrx=_matrix;
-   Sh.h_OverlayParams->set(overlay_params);
-  _material          ->setBlend();
+   Sh.OverlayParams->set(overlay_params);
+  _material        ->setBlend();
    D.depth(true);
    D.cull (true);
  //D.alpha(ALPHA_BLEND_FACTOR); not needed because ALPHA_BLEND_FACTOR is used everywhere in RM_OVERLAY

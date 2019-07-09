@@ -43,10 +43,10 @@ void SetStencilValue(  Bool     terrain     ) {Renderer._mesh_stencil_value=(ter
 void SetStencilMode (  Bool     terrain_only) {Renderer._mesh_stencil_mode =(terrain_only ? STENCIL_TERRAIN_TEST : STENCIL_NONE    );}
 void SetBlendAlpha  (ALPHA_MODE alpha       ) {Renderer._mesh_blend_alpha  =alpha;}
 void SetEarlyZ      (  Bool     on          ) {Renderer._mesh_early_z      =on;}
-void SetBehindBias  (  Flt      distance    ) {Sh.h_BehindBias->setConditional(distance);}
+void SetBehindBias  (  Flt      distance    ) {Sh.BehindBias->setConditional(distance);}
 
-static INLINE void DisableSkinning() {Sh.h_VtxSkinning->setConditional(0.0f);}
-static INLINE void  EnableSkinning() {Sh.h_VtxSkinning->setConditional(1.0f);}
+static INLINE void DisableSkinning() {Sh.VtxSkinning->setConditional(0.0f);}
+static INLINE void  EnableSkinning() {Sh.VtxSkinning->setConditional(1.0f);}
 /******************************************************************************
 // SHADER PARAM CHANGES
 /******************************************************************************/
@@ -186,7 +186,7 @@ void DrawEarlyZInstances()
          FREPA(instances)
          {
           C EarlyZInstance &instance=instances[i];
-            SetViewMatrix(instance.view_matrix); Sh.h_ViewMatrix->setChanged();
+            SetViewMatrix(instance.view_matrix); Sh.ViewMatrix->setChanged();
             Renderer._shader_early_z->commit();
             instance.mesh->set().drawFull();
          }
@@ -238,11 +238,11 @@ static INLINE void DrawSolidInstances(Bool forward)
          #endif
           C MeshRender &render=mesh.render.set();
           C Bool        instancing_mesh=!(render.flag()&VTX_SKIN); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
-            Sh.h_VtxHeightmap->setConditional(mesh._vtx_heightmap);
+            Sh.VtxHeightmap->setConditional(mesh._vtx_heightmap);
 
             for(SolidShaderMaterialMeshInstance *instance=&SolidShaderMaterialMeshInstances[shader_material_mesh->first_instance]; ; )
             {
-               SetViewMatrix        (instance->view_matrix         ); Sh.h_ViewMatrix->setChanged();
+               SetViewMatrix        (instance->view_matrix         ); Sh.ViewMatrix->setChanged();
                SetFastVel           (instance->vel                 );
                SetFastAngVel        (instance->ang_vel_shader      );
               _SetHighlight         (instance->highlight           );
@@ -383,11 +383,11 @@ static INLINE void DrawSolidInstances(Bool forward)
          #if MULTI_MATERIAL_INSTANCING
           C Bool                 instancing_mesh=!(render.flag()&VTX_SKIN); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
          #endif
-            Sh.h_VtxHeightmap->setConditional(mesh._vtx_heightmap);
+            Sh.VtxHeightmap->setConditional(mesh._vtx_heightmap);
 
             for(SolidShaderMaterialMeshInstance *instance=&SolidShaderMaterialMeshInstances[shader_material_mesh->first_instance]; ; )
             {
-               SetViewMatrix        (instance->view_matrix         ); Sh.h_ViewMatrix->setChanged();
+               SetViewMatrix        (instance->view_matrix         ); Sh.ViewMatrix->setChanged();
                SetFastVel           (instance->vel                 );
                SetFastAngVel        (instance->ang_vel_shader      );
               _SetHighlight         (instance->highlight           );
@@ -522,7 +522,7 @@ void DrawAmbientInstances()
     C Material            &material = variation.getMaterial();
    #endif
       material.setAmbient(); D.cull(material.cull);
-      SetViewMatrix        (instance.view_matrix         ); Sh.h_ViewMatrix->setChanged();
+      SetViewMatrix        (instance.view_matrix         ); Sh.ViewMatrix->setChanged();
       SetShaderParamChanges(instance.shader_param_changes);
       shader.begin(); mesh.render.set().drawFull();
       SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
@@ -612,7 +612,7 @@ void DrawShadowInstances()
 
             for(ShadowShaderMaterialMeshInstance *instance=&ShadowShaderMaterialMeshInstances[shader_material_mesh->first_instance]; ; )
             {
-               ViewMatrix[0]        =instance->view_matrix          ; Sh.h_ViewMatrix->setChanged(); // this doesn't need 'ViewOffset'
+               ViewMatrix[0]        =instance->view_matrix          ; Sh.ViewMatrix->setChanged(); // this doesn't need 'ViewOffset'
                SetShaderParamChanges(instance->shader_param_changes);
                Int instances=1;
                if( instancing_mesh)for(; instance->next_instance>=0; )
@@ -748,7 +748,7 @@ void DrawBlendInstances()
            _SetHighlight         (object->s.highlight);
             D.stencil            (object->s.stencil_mode);
             SetShaderParamChanges(object->s.shader_param_changes);
-            SetViewMatrix        (object->s.view_matrix); Sh.h_ViewMatrix->setChanged();
+            SetViewMatrix        (object->s.view_matrix); Sh.ViewMatrix->setChanged();
             const Bool instancing_mesh=!(render.flag()&VTX_SKIN); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
             Int instances=1;
             for(; i; ) // if there's next one
@@ -772,14 +772,14 @@ void DrawBlendInstances()
                            if(!InRange(instances, MAX_MATRIX_INSTANCE)) // there's no room for this instance
                            {
                               SetMatrixCount(instances); shader.commit(); render.drawInstanced(instances); // draw what we have
-                              instances=0; Sh.h_ViewMatrix->setChanged(); // reset counter and mark as modified
+                              instances=0; Sh.ViewMatrix->setChanged(); // reset counter and mark as modified
                            }
                            SetViewMatrix(next.s.view_matrix, instances);
                            instances++;
                         }else
                         {
                            SetMatrixCount(); shader.commit(); render.drawFull(); // draw what we have
-                           SetViewMatrix(next.s.view_matrix); Sh.h_ViewMatrix->setChanged();
+                           SetViewMatrix(next.s.view_matrix); Sh.ViewMatrix->setChanged();
                         }
                      }else // we have the same shader/material, but different mesh/params
                      {
@@ -810,7 +810,7 @@ void DrawBlendInstances()
            _SetHighlight         (object->s.highlight);
             D.stencil            (object->s.stencil_mode);
             SetShaderParamChanges(object->s.shader_param_changes);
-            SetViewMatrix        (object->s.view_matrix); Sh.h_ViewMatrix->setChanged();
+            SetViewMatrix        (object->s.view_matrix); Sh.ViewMatrix->setChanged();
             SetFastVel           (object->s.vel);
             SetFastAngVel        (object->s.ang_vel_shader);
             const Bool instancing_mesh=!(render.flag()&VTX_SKIN); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
@@ -842,7 +842,7 @@ void DrawBlendInstances()
                            if(!InRange(instances, MAX_MATRIX_INSTANCE)) // there's no room for this instance
                            {
                               SetMatrixCount(instances); shader.commit(); render.drawInstanced(instances); // draw what we have
-                              instances=0; Sh.h_ViewMatrix->setChanged(); // reset counter and mark as modified
+                              instances=0; Sh.ViewMatrix->setChanged(); // reset counter and mark as modified
                            }
                            SetViewMatrix(next.s.view_matrix, instances);
                         #if PER_INSTANCE_VEL
@@ -855,7 +855,7 @@ void DrawBlendInstances()
                         }else
                         {
                            SetMatrixCount(); shader.commit(); render.drawFull(); // draw what we have
-                           SetViewMatrix (next.s.view_matrix); Sh.h_ViewMatrix->setChanged();
+                           SetViewMatrix (next.s.view_matrix); Sh.ViewMatrix->setChanged();
                            SetFastVel    (next.s.vel);
                            SetFastAngVel (next.s.ang_vel_shader);
                         }
@@ -884,7 +884,7 @@ void DrawBlendInstances()
             D.stencil            (STENCIL_NONE);
             SetMatrixCount       ();
             SetFurVelCount       ();
-            SetViewMatrix        (object->s.view_matrix); Sh.h_ViewMatrix->setChanged();
+            SetViewMatrix        (object->s.view_matrix); Sh.ViewMatrix->setChanged();
             SetVelFur            (object->s.view_matrix, object->s.vel);
            _SetHighlight         (object->s.highlight);
             SetShaderParamChanges(object->s.shader_param_changes);

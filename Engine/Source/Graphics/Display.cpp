@@ -2258,7 +2258,7 @@ Display& Display::exclusive(Bool exclusive)
 /******************************************************************************/
 void Display::validateCoords(Int eye)
 {
-   if(Sh.h_Coords)
+   if(Sh.Coords)
    {
       Vec2 coords_mul(1/w(), 1/h()),
            coords_add=0;  // or coords_mul*_draw_offset;
@@ -2285,7 +2285,7 @@ void Display::validateCoords(Int eye)
       }
    #endif
 
-      Sh.h_Coords->setConditional(Vec4(coords_mul, coords_add));
+      Sh.Coords->setConditional(Vec4(coords_mul, coords_add));
    }
 }
 /******************************************************************************/
@@ -2416,10 +2416,10 @@ Display& Display::edgeDetect(EDGE_DETECT_MODE mode)
 {
    Clamp(mode, EDGE_DETECT_NONE, EDGE_DETECT_MODE(EDGE_DETECT_NUM-1)); if(T._edge_detect!=mode)
    {
-      T._edge_detect=mode; if(!Sh.h_EdgeDetect && mode && created())
+      T._edge_detect=mode; if(!Sh.EdgeDetect && mode && created())
       {
-         Sh.h_EdgeDetect     =Sh.get("EdgeDetect");
-         Sh.h_EdgeDetectApply=Sh.get("EdgeDetectApply");
+         Sh.EdgeDetect     =Sh.get("EdgeDetect");
+         Sh.EdgeDetectApply=Sh.get("EdgeDetectApply");
       }
    }
    return T;
@@ -2430,32 +2430,32 @@ Display& Display::edgeSoften(EDGE_SOFTEN_MODE mode)
    {
       T._edge_soften=mode; if(created())switch(mode) // techniques can be null if failed to load
       {
-         case EDGE_SOFTEN_FXAA: if(!Sh.h_FXAA[1])
+         case EDGE_SOFTEN_FXAA: if(!Sh.FXAA[1])
          {
-            if(Sh.h_FXAA[0]=Sh.find("FXAA"))
-            if(Sh.h_FXAA[1]=Sh.find("FXAAG"))
+            if(Sh.FXAA[0]=Sh.find("FXAA"))
+            if(Sh.FXAA[1]=Sh.find("FXAAG"))
                break; // all OK
          }break;
 
       #if SUPPORT_MLAA
          case EDGE_SOFTEN_MLAA: if(!Renderer._mlaa_area)
          {
-            Sh.h_MLAAEdge =Sh.find("MLAAEdge" );
-            Sh.h_MLAABlend=Sh.find("MLAABlend");
-            Sh.h_MLAA     =Sh.find("MLAA"     );
+            Sh.MLAAEdge =Sh.find("MLAAEdge" );
+            Sh.MLAABlend=Sh.find("MLAABlend");
+            Sh.MLAA     =Sh.find("MLAA"     );
 
             Renderer._mlaa_area.get("Img/MLAA Area.img");
          }break;
       #endif
 
-         case EDGE_SOFTEN_SMAA: if(!Sh.h_SMAAThreshold)
+         case EDGE_SOFTEN_SMAA: if(!Sh.SMAAThreshold)
          {
-            Sh.h_SMAAThreshold=GetShaderParam("SMAAThreshold"); Sh.h_SMAAThreshold->set(D.smaaThreshold());
+            Sh.SMAAThreshold=GetShaderParam("SMAAThreshold"); Sh.SMAAThreshold->set(D.smaaThreshold());
 
-            if(Sh.h_SMAAEdge[0]=Sh.find("SMAAEdgeColor" )) // use 'SMAAEdgeColor' instead of 'SMAAEdgeLuma' to differentiate between different colors
-            if(Sh.h_SMAAEdge[1]=Sh.find("SMAAEdgeColorG")) // use 'SMAAEdgeColor' instead of 'SMAAEdgeLuma' to differentiate between different colors
-            if(Sh.h_SMAABlend  =Sh.find("SMAABlend"     ))
-            if(Sh.h_SMAA       =Sh.find("SMAA"          ))
+            if(Sh.SMAAEdge[0]=Sh.find("SMAAEdgeColor" )) // use 'SMAAEdgeColor' instead of 'SMAAEdgeLuma' to differentiate between different colors
+            if(Sh.SMAAEdge[1]=Sh.find("SMAAEdgeColorG")) // use 'SMAAEdgeColor' instead of 'SMAAEdgeLuma' to differentiate between different colors
+            if(Sh.SMAABlend  =Sh.find("SMAABlend"     ))
+            if(Sh.SMAA       =Sh.find("SMAA"          ))
             if(Renderer._smaa_area  .get("Img/SMAA Area.img"))
             if(Renderer._smaa_search.get("Img/SMAA Search.img"))
                break; // all OK
@@ -2469,7 +2469,7 @@ Display& Display::edgeSoften(EDGE_SOFTEN_MODE mode)
 }
 Display& Display::smaaThreshold(Flt threshold)
 {
-   SAT(threshold); _smaa_threshold=threshold; if(Sh.h_SMAAThreshold)Sh.h_SMAAThreshold->setConditional(_smaa_threshold); return T;
+   SAT(threshold); _smaa_threshold=threshold; if(Sh.SMAAThreshold)Sh.SMAAThreshold->setConditional(_smaa_threshold); return T;
 }
 Int      Display::secondaryOpenGLContexts(             )C {return GPU_API(0, SecondaryContexts.elms());}
 Display& Display::secondaryOpenGLContexts(Byte contexts)
@@ -2726,7 +2726,7 @@ Display& Display::bloomHalf    (Bool half    ) {                    _bloom_half 
 Display& Display::bloomBlurs   (Byte blurs   ) {Clamp(blurs, 0, 4); _bloom_blurs   =blurs   ; return T;}
 Display& Display::bloomSamples (Bool high    ) {                    _bloom_samples =high    ; return T;}
 Display& Display::bloomSaturate(Bool saturate) {                    _bloom_sat     =saturate; return T;}
-Display& Display::bloomMaximum (Bool on      ) {if(_bloom_max!=on){ _bloom_max     =on      ; if(!Sh.h_MaxX && on && created()){Sh.h_MaxX=Sh.get("MaxX"); Sh.h_MaxY=Sh.get("MaxY");}} return T;}
+Display& Display::bloomMaximum (Bool on      ) {if(_bloom_max!=on){ _bloom_max     =on      ; if(!Sh.MaxX && on && created()){Sh.MaxX=Sh.get("MaxX"); Sh.MaxY=Sh.get("MaxY");}} return T;}
 Bool     Display::bloomUsed    (             )C{return bloomAllow() && (!Equal(bloomOriginal(), 1, EPS_COL) || !Equal(bloomScale(), 0, EPS_COL));}
 /******************************************************************************/
 Display& Display::volLight(Bool on ) {_vol_light=    on     ; return T;}
@@ -2765,10 +2765,10 @@ Bool Display::shadowSupported()C
 }
 void Display::shadowJitterSet()
 {
-   if(Sh.h_ShdJitter)
+   if(Sh.ShdJitter)
    {
       Vec2 j=Flt(shadowJitter())/Renderer._shd_map.hwSize();
-      Sh.h_ShdJitter->set(Vec4(j, j*-0.5f));
+      Sh.ShdJitter->set(Vec4(j, j*-0.5f));
    }
 }
 /******************************************************************************/
@@ -2783,13 +2783,13 @@ Vec Display::ambientColorS()C {return LinearToSRGB(ambientColorL());}
 
 void Display::ambientSet()C
 {
-   if(Sh.h_AmbientColor_l  )Sh.h_AmbientColor_l ->set(   ambientColorD());
-   if(Sh.h_NightShadeColor )Sh.h_NightShadeColor->set(nightShadeColorD());
-   if(Sh.h_AmbientColorNS_l)
+   if(Sh.AmbientColor_l  )Sh.AmbientColor_l ->set(   ambientColorD());
+   if(Sh.NightShadeColor )Sh.NightShadeColor->set(nightShadeColorD());
+   if(Sh.AmbientColorNS_l)
    {
       // in the shader, night shade is applied as "night_shade * Sat(1-lum)" (to be applied only for low lights), so night shade is limited by light, since light is per-pixel and depends on ambient and dynamic lights, we don't know the exact value, however we know ambient, so here limit according to ambient only
       Flt max_lum=ambientColorD().max(), intensity=Sat(1-max_lum);
-      Sh.h_AmbientColorNS_l->set(ambientColorD() + nightShadeColorD()*intensity);
+      Sh.AmbientColorNS_l->set(ambientColorD() + nightShadeColorD()*intensity);
    }
 }
 
@@ -2802,10 +2802,10 @@ Display& Display::ambientPowerS  (  Flt          srgb_power) {return ambientPowe
 Display& Display::ambientColorS  (C Vec         &srgb_color) {return ambientColorL(SRGBToLinear(srgb_color));}
 Display& Display::ambientPowerL  (  Flt           lin_power) {MAX(lin_power, 0);                                                     if(_amb_color_l !=lin_power){_amb_color_l =lin_power; ambientSet();} return T;}
 Display& Display::ambientColorL  (C Vec         & lin_color) {Vec  c(Max(lin_color.x, 0), Max(lin_color.y, 0), Max(lin_color.z, 0)); if(_amb_color_l !=c        ){_amb_color_l =c        ; ambientSet();} return T;}
-Display& Display::ambientContrast(  Flt          contrast  ) {MAX(contrast, 0);                                                      if(_amb_contrast!=contrast ){_amb_contrast=contrast ; if(Sh.h_AmbientContrast)Sh.h_AmbientContrast->set(ambientContrast());} return T;}
-Display& Display::ambientRange   (C Vec2        &range     ) {Vec2 r(Max(range.x, 0.01f), Max(range.y, 0.01f));                      if(_amb_range   !=r        ){_amb_range   =r        ; if(Sh.h_AmbientRange   )Sh.h_AmbientRange   ->set(ambientRange   ());} return T;}
-Display& Display::ambientScale   (  Flt          scale     ) {MAX(scale, 0.05f);                                                     if(_amb_scale   !=scale    ){_amb_scale   =scale    ; if(Sh.h_AmbientScale   )Sh.h_AmbientScale   ->set(ambientScale   ());} return T;}
-Display& Display::ambientBias    (  Flt          bias      ) {SAT(bias);                                                             if(_amb_bias    !=bias     ){_amb_bias    =bias     ; if(Sh.h_AmbientBias    )Sh.h_AmbientBias    ->set(ambientBias    ());} return T;}
+Display& Display::ambientContrast(  Flt          contrast  ) {MAX(contrast, 0);                                                      if(_amb_contrast!=contrast ){_amb_contrast=contrast ; if(Sh.AmbientContrast)Sh.AmbientContrast->set(ambientContrast());} return T;}
+Display& Display::ambientRange   (C Vec2        &range     ) {Vec2 r(Max(range.x, 0.01f), Max(range.y, 0.01f));                      if(_amb_range   !=r        ){_amb_range   =r        ; if(Sh.AmbientRange   )Sh.AmbientRange   ->set(ambientRange   ());} return T;}
+Display& Display::ambientScale   (  Flt          scale     ) {MAX(scale, 0.05f);                                                     if(_amb_scale   !=scale    ){_amb_scale   =scale    ; if(Sh.AmbientScale   )Sh.AmbientScale   ->set(ambientScale   ());} return T;}
+Display& Display::ambientBias    (  Flt          bias      ) {SAT(bias);                                                             if(_amb_bias    !=bias     ){_amb_bias    =bias     ; if(Sh.AmbientBias    )Sh.AmbientBias    ->set(ambientBias    ());} return T;}
 /******************************************************************************/
 Vec      Display::nightShadeColorS(                 )C {return LinearToSRGB(nightShadeColorL());}
 Display& Display::nightShadeColorS(C Vec &srgb_color)  {return nightShadeColorL(SRGBToLinear(srgb_color));}
@@ -2823,13 +2823,13 @@ Display& Display::dofFocus    (Flt      z        ) {                            
 Display& Display::dofRange    (Flt      range    ) {                                            _dof_range    =Max(range    , 0); return T;}
 Display& Display::dofIntensity(Flt      intensity) {                                            _dof_intensity=Max(intensity, 0); return T;}
 /******************************************************************************/
-Display& Display::eyeAdaptation          (  Bool on        ) {                                                            _eye_adapt           =on        ;                                                                            return T;}
-Display& Display::eyeAdaptationBrightness(  Flt  brightness) {MAX  (brightness, 0); if(_eye_adapt_brightness!=brightness){_eye_adapt_brightness=brightness; if(Sh.h_HdrBrightness)Sh.h_HdrBrightness->set(eyeAdaptationBrightness());} return T;}
-Display& Display::eyeAdaptationExp       (  Flt  exp       ) {Clamp(exp, 0.1f , 1); if(_eye_adapt_exp       !=exp       ){_eye_adapt_exp       =exp       ; if(Sh.h_HdrExp       )Sh.h_HdrExp       ->set(eyeAdaptationExp       ());} return T;}
-Display& Display::eyeAdaptationMaxDark   (  Flt  max_dark  ) {MAX  (max_dark  , 0); if(_eye_adapt_max_dark  !=max_dark  ){_eye_adapt_max_dark  =max_dark  ; if(Sh.h_HdrMaxDark   )Sh.h_HdrMaxDark   ->set(eyeAdaptationMaxDark   ());} return T;}
-Display& Display::eyeAdaptationMaxBright (  Flt  max_bright) {MAX  (max_bright, 0); if(_eye_adapt_max_bright!=max_bright){_eye_adapt_max_bright=max_bright; if(Sh.h_HdrMaxBright )Sh.h_HdrMaxBright ->set(eyeAdaptationMaxBright ());} return T;}
-Display& Display::eyeAdaptationSpeed     (  Flt  speed     ) {MAX  (speed     , 1); if(_eye_adapt_speed     !=speed     ){_eye_adapt_speed     =speed     ;                                                                          } return T;}
-Display& Display::eyeAdaptationWeight    (C Vec &weight    ) {                      if(_eye_adapt_weight    !=weight    ){_eye_adapt_weight    =weight    ; if(Sh.h_HdrWeight    )Sh.h_HdrWeight    ->set(eyeAdaptationWeight()/4  );} return T;}
+Display& Display::eyeAdaptation          (  Bool on        ) {                                                            _eye_adapt           =on        ;                                                                        return T;}
+Display& Display::eyeAdaptationBrightness(  Flt  brightness) {MAX  (brightness, 0); if(_eye_adapt_brightness!=brightness){_eye_adapt_brightness=brightness; if(Sh.HdrBrightness)Sh.HdrBrightness->set(eyeAdaptationBrightness());} return T;}
+Display& Display::eyeAdaptationExp       (  Flt  exp       ) {Clamp(exp, 0.1f , 1); if(_eye_adapt_exp       !=exp       ){_eye_adapt_exp       =exp       ; if(Sh.HdrExp       )Sh.HdrExp       ->set(eyeAdaptationExp       ());} return T;}
+Display& Display::eyeAdaptationMaxDark   (  Flt  max_dark  ) {MAX  (max_dark  , 0); if(_eye_adapt_max_dark  !=max_dark  ){_eye_adapt_max_dark  =max_dark  ; if(Sh.HdrMaxDark   )Sh.HdrMaxDark   ->set(eyeAdaptationMaxDark   ());} return T;}
+Display& Display::eyeAdaptationMaxBright (  Flt  max_bright) {MAX  (max_bright, 0); if(_eye_adapt_max_bright!=max_bright){_eye_adapt_max_bright=max_bright; if(Sh.HdrMaxBright )Sh.HdrMaxBright ->set(eyeAdaptationMaxBright ());} return T;}
+Display& Display::eyeAdaptationSpeed     (  Flt  speed     ) {MAX  (speed     , 1); if(_eye_adapt_speed     !=speed     ){_eye_adapt_speed     =speed     ;                                                                      } return T;}
+Display& Display::eyeAdaptationWeight    (C Vec &weight    ) {                      if(_eye_adapt_weight    !=weight    ){_eye_adapt_weight    =weight    ; if(Sh.HdrWeight    )Sh.HdrWeight    ->set(eyeAdaptationWeight()/4  );} return T;}
 Display& Display::resetEyeAdaptation     (  Flt  brightness)
 {
    if(Renderer._eye_adapt_scale[0].is())
@@ -2850,10 +2850,10 @@ Display& Display::grassRange  (Flt  range  )
    {
      _grass_range    =range;
      _grass_range_sqr=Sqr(_grass_range);
-      if(Sh.h_GrassRangeMulAdd)
+      if(Sh.GrassRangeMulAdd)
       {
          Flt from=Sqr(_grass_range*0.8f), to=_grass_range_sqr, mul, add; if(to>from+EPSL){mul=1/(to-from); add=-from*mul;}else{mul=0; add=1;} // else{no grass} because distance is 0
-         Sh.h_GrassRangeMulAdd->set(Vec2(mul, add));
+         Sh.GrassRangeMulAdd->set(Vec2(mul, add));
       }
    }
    return T;
@@ -2862,7 +2862,7 @@ static Flt BendFactor;
 Display& Display::grassUpdate()
 {
    BendFactor+=Time.d();
-   if(Sh.h_BendFactor)Sh.h_BendFactor->set(Vec4(1.6f, 1.2f, 1.4f, 1.1f)*BendFactor+Vec4(0.1f, 0.5f, 0.7f, 1.1f));
+   if(Sh.BendFactor)Sh.BendFactor->set(Vec4(1.6f, 1.2f, 1.4f, 1.1f)*BendFactor+Vec4(0.1f, 0.5f, 0.7f, 1.1f));
    return T;
 }
 /******************************************************************************/
@@ -2910,7 +2910,7 @@ Display& Display::lodFactorMirror(Flt factor) {return lod(_lod_factor, _lod_fact
 Display& Display::tesselationAllow    (Bool on     ) {                       if(_tesselation_allow    !=on     ) _tesselation_allow    =on     ;               return T;}
 Display& Display::tesselation         (Bool on     ) {                       if(_tesselation          !=on     ){_tesselation          =on     ; setShader();} return T;}
 Display& Display::tesselationHeightmap(Bool on     ) {                       if(_tesselation_heightmap!=on     ){_tesselation_heightmap=on     ; setShader();} return T;}
-Display& Display::tesselationDensity  (Flt  density) {MAX(density, EPS_GPU); if(_tesselation_density  !=density){_tesselation_density  =density; if(Sh.h_TesselationDensity)Sh.h_TesselationDensity->set(tesselationDensity());} return T;}
+Display& Display::tesselationDensity  (Flt  density) {MAX(density, EPS_GPU); if(_tesselation_density  !=density){_tesselation_density  =density; if(Sh.TesselationDensity)Sh.TesselationDensity->set(tesselationDensity());} return T;}
 /******************************************************************************/
 void Display::setViewFovTan()
 {
@@ -2931,7 +2931,7 @@ void Display::setViewFovTan()
      _view_fov_tan_gui=_view_fov_tan_full;
    }
 
-   if(Sh.h_DepthWeightScale)Sh.h_DepthWeightScale->set(_view_active.fov_tan.y*0.00714074011f);
+   if(Sh.DepthWeightScale)Sh.DepthWeightScale->set(_view_active.fov_tan.y*0.00714074011f);
 }
 void Display::viewUpdate()
 {
@@ -3198,8 +3198,8 @@ void Display::fadeDraw()
 {
    if(Renderer._fade)
    {
-      Sh.h_Step->set(1-_fade_step);
-      Sh.h_DrawA->draw(*Renderer._fade, _fade_flipped ? &Rect(-w(), h(), w(), -h()) : null);
+      Sh.Step->set(1-_fade_step);
+      Sh.DrawA->draw(*Renderer._fade, _fade_flipped ? &Rect(-w(), h(), w(), -h()) : null);
    }
    if(_fade_get)
    {

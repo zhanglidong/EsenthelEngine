@@ -35,8 +35,8 @@ void ColorMatrix::draw(Flt alpha)
       if(C ImageRTPtr &back=Renderer.getBackBuffer())
    {
       SPSet("ColTransMatrix", T);
-      Sh.h_Step->set(alpha);
-      if(!Sh.h_ColTrans)Sh.h_ColTrans=Sh.get("ColTrans"); Sh.h_ColTrans->draw(*back);
+      Sh.Step->set(alpha);
+      if(!Sh.ColTrans)Sh.ColTrans=Sh.get("ColTrans"); Sh.ColTrans->draw(*back);
    }
 }
 void ColorTransHB(Flt hue, Flt brightness, Flt alpha)
@@ -46,8 +46,8 @@ void ColorTransHB(Flt hue, Flt brightness, Flt alpha)
    {
       SPSet("ColTransMatrix", ColorMatrix().setHue(hue));
       SPSet("ColTransHsb"   , Vec(0, 0, brightness));
-      Sh.h_Step->set(alpha);
-      if(!Sh.h_ColTransHB)Sh.h_ColTransHB=Sh.get("ColTransHB"); Sh.h_ColTransHB->draw(*back);
+      Sh.Step->set(alpha);
+      if(!Sh.ColTransHB)Sh.ColTransHB=Sh.get("ColTransHB"); Sh.ColTransHB->draw(*back);
    }
 }
 void ColorTransHSB(Flt hue, Flt saturation, Flt brightness, Flt alpha)
@@ -56,8 +56,8 @@ void ColorTransHSB(Flt hue, Flt saturation, Flt brightness, Flt alpha)
       if(C ImageRTPtr &back=Renderer.getBackBuffer())
    {
       SPSet("ColTransHsb", Vec(hue, saturation, brightness));
-      Sh.h_Step->set(alpha);
-      if(!Sh.h_ColTransHSB)Sh.h_ColTransHSB=Sh.get("ColTransHSB"); Sh.h_ColTransHSB->draw(*back);
+      Sh.Step->set(alpha);
+      if(!Sh.ColTransHSB)Sh.ColTransHSB=Sh.get("ColTransHSB"); Sh.ColTransHSB->draw(*back);
    }
 }
 /******************************************************************************/
@@ -93,13 +93,13 @@ RippleFx& RippleFx::reset()
 }
 void RippleFx::draw(C Image &image, C Rect &rect)
 {
-   if(!Sh.h_Ripple)
+   if(!Sh.Ripple)
    {
-      Sh.h_Ripple      =Sh.get("Ripple");
-      Sh.h_RippleParams=GetShaderParam("Rppl");
+      Sh.Ripple      =Sh.get("Ripple");
+      Sh.RippleParams=GetShaderParam("Rppl");
    }
-   Sh.h_RippleParams->set(T);
-   VI.shader(Sh.h_Ripple); image.draw(rect);
+   Sh.RippleParams->set(T);
+   VI.shader(Sh.Ripple); image.draw(rect);
 }
 /******************************************************************************/
 TitlesFx& TitlesFx::reset()
@@ -115,14 +115,14 @@ void TitlesFx::draw(C Image &image)
 {
    SPSet("Ttls", T);
    Sh.imgSize(image);
-   if(!Sh.h_Titles)Sh.h_Titles=Sh.get("Titles"); Sh.h_Titles->draw(image);
+   if(!Sh.Titles)Sh.Titles=Sh.get("Titles"); Sh.Titles->draw(image);
 }
 /******************************************************************************/
 void FadeFx(C Image &image, Flt time, Image *fade_modifier)
 {
    Sh.Img[1]->set(fade_modifier);
-   Sh.h_Step->set(time         );
-   if(!Sh.h_Fade)Sh.h_Fade=Sh.get("Fade"); Sh.h_Fade->draw(image);
+   Sh.Step  ->set(time         );
+   if(!Sh.Fade)Sh.Fade=Sh.get("Fade"); Sh.Fade->draw(image);
 }
 /******************************************************************************/
 void WaveFx(Flt time, Flt scale)
@@ -133,10 +133,10 @@ void WaveFx(Flt time, Flt scale)
       Matrix m;
       m.setPos(Vec2(-0.5f)).scale(Vec(Cos(time), Sin(time), 0), scale)
        .move  (Vec2( 0.5f));
-      Sh.h_Color[0]->set(Vec(m.x.x, m.x.y, m.pos.x));
-      Sh.h_Color[1]->set(Vec(m.y.x, m.y.y, m.pos.y));
+      Sh.Color[0]->set(Vec(m.x.x, m.x.y, m.pos.x));
+      Sh.Color[1]->set(Vec(m.y.x, m.y.y, m.pos.y));
       ALPHA_MODE alpha=D.alpha(ALPHA_NONE); // disable alpha blending
-      if(!Sh.h_Wave)Sh.h_Wave=Sh.get("Wave"); Sh.h_Wave->draw(*back);
+      if(!Sh.Wave)Sh.Wave=Sh.get("Wave"); Sh.Wave->draw(*back);
       D.alpha(alpha);
    }
 }
@@ -146,8 +146,8 @@ void RadialBlurFx(Flt scale, Flt alpha, C Vec2 &center)
    if(scale>0 && alpha>0)
       if(C ImageRTPtr &back=Renderer.getBackBuffer())
    {
-      Sh.h_Color[0]->set(Vec4(D.screenToUV(center), 1+Abs(scale), alpha));
-      if(!Sh.h_RadialBlur)Sh.h_RadialBlur=Sh.get("RadialBlur"); Sh.h_RadialBlur->draw(*back);
+      Sh.Color[0]->set(Vec4(D.screenToUV(center), 1+Abs(scale), alpha));
+      if(!Sh.RadialBlur)Sh.RadialBlur=Sh.get("RadialBlur"); Sh.RadialBlur->draw(*back);
    }
 }
 /******************************************************************************/

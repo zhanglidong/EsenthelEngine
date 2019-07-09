@@ -1268,7 +1268,7 @@ Bool Font::create(C Params &params)
 /******************************************************************************/
 void DisplayDraw::textDepth(Bool use, Flt depth)
 {
-   if(D._text_depth=use)Sh.h_FontDepth->set(depth);
+   if(D._text_depth=use)Sh.FontDepth->set(depth);
 }
 /******************************************************************************/
 // MAIN

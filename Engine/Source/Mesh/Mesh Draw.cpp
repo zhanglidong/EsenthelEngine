@@ -12,7 +12,7 @@ void SetAngVelShader(Vec &ang_vel_shader, C Vec &ang_vel, C Matrix3 &matrix)
 static INLINE void SetViewMatrix(Matrix &view_matrix, C Matrix  &matrix) {matrix.mul(CamMatrixInv, view_matrix);}
 static INLINE void SetViewMatrix(Matrix &view_matrix, C MatrixM &matrix) {matrix.mul(CamMatrixInv, view_matrix);}
 
-static INLINE void SetSkinning() {Sh.h_VtxSkinning->setConditional(Matrixes>1);}
+static INLINE void SetSkinning() {Sh.VtxSkinning->setConditional(Matrixes>1);}
 /******************************************************************************/
 void MeshBase::draw2D(C Color &vtx_color, C Color &edge_color, C Color &face_color, Flt vtx_r, Flt side_width)C
 {
@@ -1595,7 +1595,7 @@ void MeshPart::drawOverlay(C Image &image, C Color &color)C
          D .depth      (true);
          D .cull       (true);
        /*D .depthWrite (false); not needed because false is used everywhere in RM_OVERLAY*/ Renderer.needDepthTest(); // !! 'needDepthTest' after 'depthWrite' !!
-         Sh.h_Color[0]->set(color);
+         Sh.Color[0]->set(color);
          Sh.Col  [0]->set(image);
          shader->begin (); render.set().draw();
          MaterialClear (); // we've changed texture and 'D.alphaFactor'
@@ -1638,8 +1638,8 @@ void MeshPart::drawBehind(C Color &color_perp, C Color &color_parallel)C
        C Material &material=variation.getMaterial();
          SetSkinning();
          D.cull(material.cull); material.setBehind();
-         Sh.h_Color[0]->set(color_perp    );
-         Sh.h_Color[1]->set(color_parallel);
+         Sh.Color[0]->set(color_perp    );
+         Sh.Color[1]->set(color_parallel);
          shader->begin(); render.set().draw();
       }
    }

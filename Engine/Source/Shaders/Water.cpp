@@ -217,8 +217,7 @@ void Surface_PS
 }
 /******************************************************************************/
 
-FIXME
-
+//FIXME
 // Img=Nrm (this is required for GetNormal, GetNormalMS, which are used for Lights - Dir, Point, etc.), ImgXF=WaterDepth, 
 
 VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
