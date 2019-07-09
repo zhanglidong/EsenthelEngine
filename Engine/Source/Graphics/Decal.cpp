@@ -72,7 +72,7 @@ void Decal::drawStatic(Flt alpha)C
             D.alpha(Renderer._palette_mode ? ALPHA_ADD : ALPHA_BLEND_FACTOR);
             if(inside)
             {
-               shader->draw(*_material->base_0);
+               shader->draw();
             }else
             {
                shader->begin(); D.cull(true); D.depth(true); D.depthWrite(false); MshrBox.set().drawFull();

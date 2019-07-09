@@ -2771,7 +2771,7 @@ VecH4 Decal_PS(PIXEL,
 
    pos.xy=pos.xy*0.5+0.5;
 
-   VecH4 col=Tex(Col, pos.xy); // FIXME
+   VecH4 col=Tex(Col, pos.xy);
 
    if(palette)
    {
@@ -2780,7 +2780,7 @@ VecH4 Decal_PS(PIXEL,
    {
       if(normal)
       {
-         VecH4 tex_nrm =Tex(Nrm, pos.xy); // #MaterialTextureChannelOrder // FIXME
+         VecH4 tex_nrm =Tex(Nrm, pos.xy); // #MaterialTextureChannelOrder
          Half  specular=tex_nrm.z*MaterialSpecular(); // specular is in 'nrm.z'
 
               VecH nrm;
