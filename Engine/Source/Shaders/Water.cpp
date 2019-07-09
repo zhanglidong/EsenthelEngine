@@ -175,14 +175,15 @@ void Surface_PS
             solid_z=test_z;
             col_tex=test_tex;
          }
-         dz   =solid_z-water_z;
-         alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03);
+         if(DEPTH_BACKGROUND(solid_z_raw))alpha=1;else // always force full opacity when there's no solid pixel set to avoid remains in the RenderTarget from previous usage
+         {
+            dz   =solid_z-water_z;
+            alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03);
+         }
       }else
       {
          col_tex=test_tex;
       }
-
-      if(soft)if(DEPTH_BACKGROUND(solid_z_raw))alpha=1; // always force full opacity when there's no solid pixel set to avoid remains in the RenderTarget from previous usage
 
       // light
       VecH4 lum;
@@ -272,7 +273,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
             col_tex=test_tex;
          }
 
-         //if(DEPTH_BACKGROUND(solid_z_raw))alpha=1;else // always force full opacity when there's no solid pixel set to avoid remains in the RenderTarget from previous usage
+         if(DEPTH_BACKGROUND(solid_z_raw))alpha=1;else // always force full opacity when there's no solid pixel set to avoid remains in the RenderTarget from previous usage
          {
             dz   =solid_z-water_z;
             alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03);
@@ -304,7 +305,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
              water_z=LinearizeDepth(water_z    );
          Flt solid_z=LinearizeDepth(solid_z_raw);
 
-         //if(DEPTH_BACKGROUND(solid_z_raw))alpha=1;else // always force full opacity when there's no solid pixel set to avoid remains in the RenderTarget from previous usage
+         if(DEPTH_BACKGROUND(solid_z_raw))alpha=1;else // always force full opacity when there's no solid pixel set to avoid remains in the RenderTarget from previous usage
          {
             Flt dz   =solid_z-water_z;
                 alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03);
