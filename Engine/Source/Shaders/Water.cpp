@@ -152,9 +152,10 @@ void Surface_PS
    #endif
    }else
    {
-           inTex  =PixelToScreen(pixel);
-      Flt  water_z=inPos.z,
-           solid_z=(soft ? LinearizeDepth(TexPoint(ImgXF, inTex).x) : water_z+DEFAULT_DEPTH);
+           inTex      =PixelToScreen(pixel);
+      Flt  water_z    =inPos.z,
+           solid_z_raw=(soft ? TexPoint(ImgXF, inTex).x : 0),
+           solid_z    =(soft ? LinearizeDepth(solid_z_raw) : water_z+DEFAULT_DEPTH);
       Half alpha=0;
 
       Vec2    col_tex=inTex;
@@ -181,7 +182,7 @@ void Surface_PS
          col_tex=test_tex;
       }
 
-      if(soft)if(solid_z>=Viewport.range*0.96)alpha=1; // always force full opacity when there's no solid pixel set to avoid remains in the RenderTarget from previous usage
+      if(soft)if(DEPTH_BACKGROUND(solid_z_raw))alpha=1; // always force full opacity when there's no solid pixel set to avoid remains in the RenderTarget from previous usage
 
       // light
       VecH4 lum;
@@ -231,8 +232,8 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                uniform Bool refract          ,
                uniform Bool set_depth=false  ):COLOR
 {
-   Flt  water_z=TexPoint        (ImgXF, inTex).x,
-        solid_z=TexDepthRawPoint(       inTex);
+   Flt  water_z    =TexPoint        (ImgXF, inTex).x,
+        solid_z_raw=TexDepthRawPoint(       inTex);
    Half alpha=0;
 
    if(set_depth)depth=water_z;
@@ -243,11 +244,11 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       VecH4 water_col=0;
 
    #if FLOW
-      BRANCH if(DEPTH_SMALLER(water_z, solid_z)) // branch works faster when most of the screen is above water
+      BRANCH if(DEPTH_SMALLER(water_z, solid_z_raw)) // branch works faster when most of the screen is above water
    #endif
       {
-         water_z=LinearizeDepth(water_z);
-         solid_z=LinearizeDepth(solid_z);
+             water_z=LinearizeDepth(water_z    );
+         Flt solid_z=LinearizeDepth(solid_z_raw);
 
          water_col=TexLod(Img3, inTex);
          VecH4 lum=TexLod(Col , inTex); // water surface light
@@ -271,8 +272,11 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
             col_tex=test_tex;
          }
 
-         dz   =solid_z-water_z;
-         alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03);
+         //if(DEPTH_BACKGROUND(solid_z_raw))alpha=1;else // always force full opacity when there's no solid pixel set to avoid remains in the RenderTarget from previous usage
+         {
+            dz   =solid_z-water_z;
+            alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03);
+         }
 
          // col light
          water_col.rgb*=lum.rgb;
@@ -294,14 +298,17 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    {
       VecH4 solid_col=TexLod(Img2, inTex);
    #if FLOW
-      BRANCH if(DEPTH_SMALLER(water_z, solid_z)) // branch works faster when most of the screen is above water
+      BRANCH if(DEPTH_SMALLER(water_z, solid_z_raw)) // branch works faster when most of the screen is above water
    #endif
       {
-         water_z=LinearizeDepth(water_z);
-         solid_z=LinearizeDepth(solid_z);
+             water_z=LinearizeDepth(water_z    );
+         Flt solid_z=LinearizeDepth(solid_z_raw);
 
-         Flt dz   =solid_z-water_z;
-             alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03);
+         //if(DEPTH_BACKGROUND(solid_z_raw))alpha=1;else // always force full opacity when there's no solid pixel set to avoid remains in the RenderTarget from previous usage
+         {
+            Flt dz   =solid_z-water_z;
+                alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03);
+         }
 
          VecH4 water_col=TexLod(Img3, inTex),
                      lum=TexLod(Col , inTex); // water surface light
