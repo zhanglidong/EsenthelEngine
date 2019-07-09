@@ -191,13 +191,13 @@ void Material::setSolid()C
       MaterialLast4[0]=null; // because they use the same shader images
 
       if(_alpha_factor.a)Renderer._has_glow=true;
-      Sh.h_ImageCol[0]->set(        base_0());
-      Sh.h_ImageNrm[0]->set(        base_1());
-      Sh.h_ImageDet[0]->set(    detail_map());
-      Sh.h_ImageMac[0]->set(     macro_map());
-      Sh.h_ImageRfl[0]->set(reflection_map());
-      Sh.h_ImageLum   ->set(     light_map());
-      Sh.h_Material   ->set<MaterialParams>(T);
+      Sh.Col[0]  ->set(        base_0());
+      Sh.Nrm[0]  ->set(        base_1());
+      Sh.Det[0]  ->set(    detail_map());
+      Sh.Mac[0]  ->set(     macro_map());
+      Sh.Rfl[0]  ->set(reflection_map());
+      Sh.Lum     ->set(     light_map());
+      Sh.h_Material->set<MaterialParams>(T);
    #if !LINEAR_GAMMA
       Renderer.material_color_l->set(colorS());
    #endif
@@ -208,11 +208,12 @@ void Material::setAmbient()C
    if(MaterialLast!=this)
    {
       MaterialLast=this;
+    //MaterialLast4[0]=null; not needed since multi materials not rendered in ambient mode
 
       // textures needed for alpha-test
-      Sh.h_ImageCol[0]->set(base_0());
-      Sh.h_ImageNrm[0]->set(base_1());
-      Sh.h_Material   ->set<MaterialParams>(T); // params needed for alpha-test and ambient
+      Sh.Col[0]->set(base_0());
+      Sh.Nrm[0]->set(base_1());
+      Sh.h_Material->set<MaterialParams>(T); // params needed for alpha-test and ambient
    #if !LINEAR_GAMMA
       Renderer.material_color_l->set(colorS());
    #endif
@@ -223,16 +224,17 @@ void Material::setBlend()C
    if(MaterialLast!=this)
    {
       MaterialLast=this;
+    //MaterialLast4[0]=null; not needed since multi materials not rendered in blend mode
 
       D.alphaFactor(_alpha_factor); if(_alpha_factor.a)Renderer._has_glow=true;
 
-      Sh.h_ImageCol[0]->set(        base_0());
-      Sh.h_ImageNrm[0]->set(        base_1());
-      Sh.h_ImageDet[0]->set(    detail_map());
-      Sh.h_ImageMac[0]->set(     macro_map());
-      Sh.h_ImageRfl[0]->set(reflection_map());
-      Sh.h_ImageLum   ->set(     light_map());
-      Sh.h_Material   ->set<MaterialParams>(T);
+      Sh.Col[0]->set(        base_0());
+      Sh.Nrm[0]->set(        base_1());
+      Sh.Det[0]->set(    detail_map());
+      Sh.Mac[0]->set(     macro_map());
+      Sh.Rfl[0]->set(reflection_map());
+      Sh.Lum   ->set(     light_map());
+      Sh.h_Material->set<MaterialParams>(T);
    #if !LINEAR_GAMMA
       Renderer.material_color_l->set(colorS());
    #endif
@@ -252,13 +254,13 @@ void Material::setBlendForce()C
       D.alphaFactor(_alpha_factor); if(_alpha_factor.a)Renderer._has_glow=true;
    }
 
-   Sh.h_ImageCol[0]->set(        base_0());
-   Sh.h_ImageNrm[0]->set(        base_1());
-   Sh.h_ImageDet[0]->set(    detail_map());
-   Sh.h_ImageMac[0]->set(     macro_map());
-   Sh.h_ImageRfl[0]->set(reflection_map());
-   Sh.h_ImageLum   ->set(     light_map());
-   Sh.h_Material   ->set<MaterialParams>(T);
+   Sh.Col[0]->set(        base_0());
+   Sh.Nrm[0]->set(        base_1());
+   Sh.Det[0]->set(    detail_map());
+   Sh.Mac[0]->set(     macro_map());
+   Sh.Rfl[0]->set(reflection_map());
+   Sh.Lum   ->set(     light_map());
+   Sh.h_Material->set<MaterialParams>(T);
 #if !LINEAR_GAMMA
    Renderer.material_color_l->set(colorS());
 #endif
@@ -268,8 +270,9 @@ void Material::setOutline()C
    if(MaterialLast!=this)
    {
       MaterialLast=this;
-      Sh.h_ImageCol[0]->set(base_0());
-      Sh.h_ImageNrm[0]->set(base_1());
+    //MaterialLast4[0]=null; not needed since multi materials not rendered in outline mode
+      Sh.Col[0]->set(base_0());
+      Sh.Nrm[0]->set(base_1());
       Renderer.material_color_l->set(LINEAR_GAMMA ? colorL() : colorS()); // only Material Color is used for potential alpha-testing
    }
 }
@@ -278,8 +281,9 @@ void Material::setBehind()C
    if(MaterialLast!=this)
    {
       MaterialLast=this;
-      Sh.h_ImageCol[0]->set(base_0());
-      Sh.h_ImageNrm[0]->set(base_1());
+    //MaterialLast4[0]=null; not needed since multi materials not rendered in behind mode
+      Sh.Col[0]->set(base_0());
+      Sh.Nrm[0]->set(base_1());
       Renderer.material_color_l->set(LINEAR_GAMMA ? colorL() : colorS()); // only Material Color is used
    }
 }
@@ -288,8 +292,9 @@ void Material::setShadow()C
    if(hasAlphaTest() && MaterialLast!=this) // this shader needs params/textures only for alpha test (if used)
    {
       MaterialLast=this;
-      Sh.h_ImageCol[0]->set(base_0());
-      Sh.h_ImageNrm[0]->set(base_1());
+    //MaterialLast4[0]=null; not needed since multi materials don't have alpha test and don't need to set values in shadow mode
+      Sh.Col[0]->set(base_0());
+      Sh.Nrm[0]->set(base_1());
       Renderer.material_color_l->set(LINEAR_GAMMA ? colorL() : colorS()); // only Material Color is used
    }
 }
@@ -303,11 +308,11 @@ void Material::setMulti(Int i)C
 
       if(_alpha_factor.a)Renderer._has_glow=true;
 
-      Sh.h_ImageCol     [i]->set(        base_0());
-      Sh.h_ImageNrm     [i]->set(        base_1());
-      Sh.h_ImageDet     [i]->set(    detail_map());
-      Sh.h_ImageMac     [i]->set(     macro_map());
-      Sh.h_ImageRfl     [i]->set(reflection_map());
+      Sh.Col          [i]->set(        base_0());
+      Sh.Nrm          [i]->set(        base_1());
+      Sh.Det          [i]->set(    detail_map());
+      Sh.Mac          [i]->set(     macro_map());
+      Sh.Rfl          [i]->set(reflection_map());
       Sh.h_MultiMaterial[i]->set(_multi          );
    }
 }
@@ -561,7 +566,7 @@ Bool Material::load(C Str &name)
    reset(); return false;
 }
 /******************************************************************************/
-void MaterialClear() // must be called: after changing 'Renderer.mode', after changing textures, after changing 'D.alphaFactor'
+void MaterialClear() // must be called: after changing 'Renderer.mode', after changing 'D.alphaFactor', or material parameters/textures
 {
          MaterialLast  =null;
    REPAO(MaterialLast4)=null;

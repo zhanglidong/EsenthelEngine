@@ -177,12 +177,12 @@ void SkyClass::draw()
       // set shader parameters
       if(tex)
       {
-         Sh.h_ImageRfl[0]->set(_image[0]());
-         Sh.h_ImageCub   ->set(_image[1]());
+         Sh.Cub[0]->set(_image[0]());
+         Sh.Cub[1]->set(_image[1]());
       }else
       if(stars)
       {
-         Sh.h_ImageRfl[0]->set(_stars());
+         Sh.Cub[0]->set(_stars());
       }
 
       if(AstrosDraw && Sun.is())
@@ -227,11 +227,10 @@ void SkyClass::draw()
          if(shader_multi){D.depth((multi==1) ? false : ds); D.stencilRef(STENCIL_REF_MSAA); shader_multi->begin(); _mshr.drawFull(); D.stencilRef(0);} // MS edges for deferred must not use depth testing
                           D.depth(                     ds);                                 shader      ->begin(); _mshr.drawFull();
       }
-      D.sampler2D  (    );
-      D.depthWrite (true);
-      D.depthFunc  (FUNC_LESS);
-      D.stencil    (STENCIL_NONE);
-      MaterialClear(    );
+      D.sampler2D (    );
+      D.depthWrite(true);
+      D.depthFunc (FUNC_LESS);
+      D.stencil   (STENCIL_NONE);
    #if DX11
       D.flush(); // FIXME this is a workaround for Nvidia GeForce bug https://devtalk.nvidia.com/default/topic/1038873/directx-and-direct-compute/geforce-1050-ti-bug/ remove this line once the bug is fixed
    #endif

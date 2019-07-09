@@ -45,7 +45,7 @@ Bool DrawParticleBegin(C Image &image, Byte glow, Bool motion_affects_alpha)
    switch(Renderer())
    {
       default         : return false;
-      case RM_BLEND   : shader=Sh.h_Particle[false][soft][0][motion_affects_alpha]; ColorFunc=ColorAlpha; D.alpha(ALPHA_BLEND_FACTOR); D.alphaFactor(Color(0, 0, 0, glow)); Renderer._has_glow|=(glow!=0); break;
+      case RM_BLEND   : shader=Sh.h_Particle[false][soft][0][motion_affects_alpha]; ColorFunc=ColorAlpha; D.alpha(ALPHA_BLEND_FACTOR); D.alphaFactor(Color(0, 0, 0, glow)); MaterialClear(); Renderer._has_glow|=(glow!=0); break; // 'MaterialClear' must be called when changing 'D.alphaFactor'
       case RM_PALETTE :
       case RM_PALETTE1: shader=Sh.h_Particle[true ][soft][0][motion_affects_alpha]; ColorFunc=ColorMul  ; D.alpha(ALPHA_ADD         ); break;
    }
@@ -54,7 +54,6 @@ Bool DrawParticleBegin(C Image &image, Byte glow, Bool motion_affects_alpha)
    VI.image     (&image );
    VI.shader    ( shader);
    VI.setFirst  ( VI_3D_BILB, VI_QUAD_IND);
-   MaterialClear(); // because of alpha factor
    return true;
 }
 void DrawParticleAdd(C Color &color, Flt opacity, Flt radius, Flt angle, C Vec &pos, C Vec &vel)
@@ -84,7 +83,7 @@ Bool DrawAnimatedParticleBegin(C Image &image, Byte glow, Bool motion_affects_al
    switch(Renderer())
    {
       default         : return false;
-      case RM_BLEND   : shader=Sh.h_Particle[false][soft][1+D.particlesSmoothAnim()][motion_affects_alpha]; ColorFunc=ColorAlpha; D.alpha(ALPHA_BLEND_FACTOR); D.alphaFactor(Color(0, 0, 0, glow)); Renderer._has_glow|=(glow!=0); break;
+      case RM_BLEND   : shader=Sh.h_Particle[false][soft][1+D.particlesSmoothAnim()][motion_affects_alpha]; ColorFunc=ColorAlpha; D.alpha(ALPHA_BLEND_FACTOR); D.alphaFactor(Color(0, 0, 0, glow)); MaterialClear(); Renderer._has_glow|=(glow!=0); break; // 'MaterialClear' must be called when changing 'D.alphaFactor'
       case RM_PALETTE :
       case RM_PALETTE1: shader=Sh.h_Particle[true ][soft][1+D.particlesSmoothAnim()][motion_affects_alpha]; ColorFunc=ColorMul  ; D.alpha(ALPHA_ADD         ); break;
    }
@@ -94,7 +93,6 @@ Bool DrawAnimatedParticleBegin(C Image &image, Byte glow, Bool motion_affects_al
    VI.shader    ( shader);
    VI.setFirst  ( VI_3D_BILB_ANIM, VI_QUAD_IND);
    Sh.h_ParticleFrames->set(VecI2(x_frames, y_frames));
-   MaterialClear(); // because of alpha factor
    return true;
 }
 void DrawAnimatedParticleAdd(C Color &color, Flt opacity, Flt radius, Flt angle, C Vec &pos, C Vec &vel, Flt frame)
@@ -756,16 +754,16 @@ void RawParticles::draw()C
       switch(Renderer())
       {
          default         : return;
-         case RM_BLEND   : shader=Sh.h_Particle[false][soft][0][motion_affects_alpha]; D.alpha(ALPHA_BLEND_FACTOR); D.alphaFactor(Color(0, 0, 0, glow)); Renderer._has_glow|=(glow!=0); break;
+         case RM_BLEND   : shader=Sh.h_Particle[false][soft][0][motion_affects_alpha]; D.alpha(ALPHA_BLEND_FACTOR); D.alphaFactor(Color(0, 0, 0, glow)); MaterialClear(); Renderer._has_glow|=(glow!=0); break; // 'MaterialClear' must be called when changing 'D.alphaFactor'
          case RM_PALETTE :
          case RM_PALETTE1: shader=Sh.h_Particle[true ][soft][0][motion_affects_alpha]; D.alpha(ALPHA_ADD         ); break;
       }
 
-      SetOneMatrix (     );
-      D .depthWrite(false);
-      D .depth     (true );
-      D .cull      (false);
-      Sh.h_ImageCol[0]->set(image());
+      SetOneMatrix  (     );
+      D .depthWrite (false);
+      D .depth      (true );
+      D .cull       (false);
+      Sh.Img[0]->set(image());
 
       // set
     C IndBuf &ib=(T._ib.is() ? T._ib : IndBuf16384Quads);
@@ -778,9 +776,6 @@ void RawParticles::draw()C
    #elif GL
       glDrawElements(GL_TRIANGLES, _particles*(2*3), ib.bit16() ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, null);
    #endif
-
-      // we've changed textures and set alpha factor so we need to clear material
-      MaterialClear();
    }
 }
 /******************************************************************************/

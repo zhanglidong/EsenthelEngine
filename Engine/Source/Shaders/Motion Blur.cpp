@@ -96,7 +96,7 @@ VecH4 Convert_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    }else
    if(mode==1)
    {
-      blur=TexLod(Col, UVClamp(inTex, do_clamp)).xyz; // have to use linear filtering because we may draw to smaller RT
+      blur=TexLod(Img, UVClamp(inTex, do_clamp)).xyz; // have to use linear filtering because we may draw to smaller RT
    #if !SIGNED_VEL_RT // convert 0..1 -> -1..1 (*2-1) and fix zero, unsigned texture formats don't have a precise zero when converted to signed, because both 127/255*2-1 and 128/255*2-1 aren't zeros, 127: (127/255-0.5)==-0.5/255, 128: (128/255-0.5)==0.5/255, 129: (129/255-0.5)==1.5/255, so let's compare <=1.0/255
       blur=((Abs(blur-0.5)<=1.0/255) ? Vec(0, 0, 0) : blur*2-1); // this performs comparisons for all channels separately, force 0 when source value is close to 0.5, otherwise scale to -1..1
    #endif
@@ -127,7 +127,7 @@ VecH4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
                 uniform Bool depth=false                       ):COLOR
 {
    Vec4 blur;
-   blur.xyz=TexPoint(Col, inTex).xyz;
+   blur.xyz=TexPoint(Img, inTex).xyz;
    blur.w=0;
 #if !SIGNED_VEL_RT
    blur.xy=blur.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
@@ -139,7 +139,7 @@ VecH4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
    UNROLL for(Int x=-range; x<=range; x++)if(x || y)
    {
       Vec2 t=inTex+Vec2(x, y)*RTSize.xy;
-      Vec  b=TexPoint(Col, t).xyz;
+      Vec  b=TexPoint(Img, t).xyz;
    #if !SIGNED_VEL_RT
       b.xy=b.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
    #endif
@@ -177,7 +177,7 @@ VecH4 DilateX_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
                  uniform Int  pixels=MAX_MOTION_BLUR_PIXEL_RANGE,
                  uniform Bool depth=false                       ):COLOR
 {
-   Vec4 blur=TexPoint(Col, inTex); // XY=Dir, Z=Max Dir length of all nearby pixels
+   Vec4 blur=TexPoint(Img, inTex); // XY=Dir, Z=Max Dir length of all nearby pixels
 #if !SIGNED_VEL_RT
    blur.xy=blur.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
 #endif
@@ -188,7 +188,7 @@ VecH4 DilateX_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
    UNROLL for(Int i=-range; i<=range; i++)if(i)
    {
       t.x=inTex.x+RTSize.x*i;
-      Vec b=TexPoint(Col, t).xyz;
+      Vec b=TexPoint(Img, t).xyz;
    #if !SIGNED_VEL_RT
       b.xy=b.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
    #endif
@@ -207,7 +207,7 @@ VecH4 DilateX_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
       UNROLL for(Int i=-range; i<=range; i++)if(i)
       {
          t=inTex+RTSize.xy*i;
-         Vec b=TexPoint(Col, t).xyz;
+         Vec b=TexPoint(Img, t).xyz;
       #if !SIGNED_VEL_RT
          b.xy=b.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
       #endif
@@ -234,7 +234,7 @@ VecH4 DilateY_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
                  uniform Int  pixels=MAX_MOTION_BLUR_PIXEL_RANGE,
                  uniform Bool depth=false                       ):COLOR
 {
-   Vec4 blur=TexPoint(Col, inTex); // XY=Dir, Z=Max Dir length of all nearby pixels
+   Vec4 blur=TexPoint(Img, inTex); // XY=Dir, Z=Max Dir length of all nearby pixels
 #if !SIGNED_VEL_RT
    blur.xy=blur.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
 #endif
@@ -245,7 +245,7 @@ VecH4 DilateY_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
    UNROLL for(Int i=-range; i<=range; i++)if(i)
    {
       t.y=inTex.y+RTSize.y*i;
-      Vec b=TexPoint(Col, t).xyz;
+      Vec b=TexPoint(Img, t).xyz;
    #if !SIGNED_VEL_RT
       b.xy=b.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
    #endif
@@ -264,7 +264,7 @@ VecH4 DilateY_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
       UNROLL for(Int i=-range; i<=range; i++)if(i)
       {
          t=inTex+RTSize.xy*Vec2(i, -i);
-         Vec b=TexPoint(Col, t).xyz;
+         Vec b=TexPoint(Img, t).xyz;
       #if !SIGNED_VEL_RT
          b.xy=b.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
       #endif
@@ -288,10 +288,10 @@ VecH4 SetDirs_PS(NOPERSP Vec2 inTex:TEXCOORD, // goes simultaneously in both way
                  uniform Bool do_clamp      ,
                  uniform Int  pixels=MAX_MOTION_BLUR_PIXEL_RANGE):COLOR
 {
-   // Input: Col  - pixel   velocity
-   //        Col1 - dilated velocity (main blur direction)
+   // Input: Img  - pixel   velocity
+   //        Img1 - dilated velocity (main blur direction)
 
-   Vec blur_dir=TexPoint(Col1, inTex).xyz; // XY=Dir, Z=Max Dir length of all nearby pixels
+   Vec blur_dir=TexPoint(Img1, inTex).xyz; // XY=Dir, Z=Max Dir length of all nearby pixels
 #if !SIGNED_VEL_RT
    blur_dir.xy=((Abs(blur_dir.xy-0.5)<=1.0/255) ? Vec2(0, 0) : blur_dir.xy*2-1); // this performs comparisons for all channels separately, force 0 when source value is close to 0.5, otherwise scale to -1..1
 #endif
@@ -338,7 +338,7 @@ VecH4 SetDirs_PS(NOPERSP Vec2 inTex:TEXCOORD, // goes simultaneously in both way
       Flt  pixel_range=blur_dir_length*pixels; dirs/=pixel_range; // 'dirs' is now 1 pixel length (we need this length, because we compare blur lengths/distances to "Int i" step)
       Int  range0=0, range1=0;
 
-      Vec2 pixel_vel=TexPoint(Col, inTex).xy;
+      Vec2 pixel_vel=TexPoint(Img, inTex).xy;
    #if !SIGNED_VEL_RT
       pixel_vel=pixel_vel*2-1;
    #endif
@@ -359,7 +359,7 @@ VecH4 SetDirs_PS(NOPERSP Vec2 inTex:TEXCOORD, // goes simultaneously in both way
       {
          t0+=dirs.xy;
          t1+=dirs.zw;
-         Vec2 c0=TexLod(Col, t0).xy, c1=TexLod(Col, t1).xy; // use linear filtering because texcoords are not rounded
+         Vec2 c0=TexLod(Img, t0).xy, c1=TexLod(Img, t1).xy; // use linear filtering because texcoords are not rounded
       #if !SIGNED_VEL_RT
          c0=c0*2-1;
          c1=c1*2-1;
@@ -438,15 +438,15 @@ Vec4 Blur_PS(NOPERSP Vec2 inTex:TEXCOORD,
              uniform Bool dither        ,
              uniform Bool do_clamp=false):COLOR // no need to do clamp because we've already done that in 'SetDirs'
 {
-   // Input: Col  - color
-   //        Col1 - 2 blur ranges (XY, ZW)
+   // Input: Img  - color
+   //        Img1 - 2 blur ranges (XY, ZW)
 
-   Vec4 blur=TexLod(Col1, inTex); // use linear filtering because 'Col1' may be smaller
+   Vec4 blur=TexLod(Img1, inTex); // use linear filtering because 'Img1' may be smaller
 #if !SIGNED_VEL_RT
    blur=((Abs(blur-0.5)<=1.0/255) ? Vec4(0, 0, 0, 0) : blur*2-1); // this performs comparisons for all channels separately, force 0 when source value is close to 0.5, otherwise scale to -1..1
 #endif
 
-   Vec4 color=Vec4(TexLod(Col, inTex).rgb, 1); // force full alpha so back buffer effects can work ok, can't use 'TexPoint' because 'Col' can be supersampled
+   Vec4 color=Vec4(TexLod(Img, inTex).rgb, 1); // force full alpha so back buffer effects can work ok, can't use 'TexPoint' because 'Img' can be supersampled
 
    BRANCH if(any(blur)) // we can use 'any' here because small values got clipped out already in 'SetDirs'
    {
@@ -479,8 +479,8 @@ Vec4 Blur_PS(NOPERSP Vec2 inTex:TEXCOORD,
          for(Int i=1; i<=samples; i++) // start from 1 because we've already got #0 before
       {
          // TODO: implement new high quality mode that doesn't use 'SetDirs' but calculates per-sample weights based on velocity and depth (for this have to use 'do_clamp')
-         color.rgb+=TexLod(Col, inTex+=dir0).rgb; // use linear filtering
-         color.rgb+=TexLod(Col,   t1 +=dir1).rgb; // use linear filtering
+         color.rgb+=TexLod(Img, inTex+=dir0).rgb; // use linear filtering
+         color.rgb+=TexLod(Img,   t1 +=dir1).rgb; // use linear filtering
       }
       color.rgb/=samples*2+1;
 

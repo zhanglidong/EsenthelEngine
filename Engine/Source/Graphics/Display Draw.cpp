@@ -428,7 +428,7 @@ void Image::drawMask(C Color &color, C Color &color_add, C Rect &rect, C Image &
       VI.color (color    );
       VI.color1(color_add);
       VI.image (this     );
-      Sh.h_ImageCol[1]->set(mask); MaterialClear();
+      Sh.Img[1]->set(mask);
       VI.setType(VI_2D_TEX2, VI_STRIP);
       if(Vtx2DTex2 *v=(Vtx2DTex2*)VI.addVtx(4))
       {
@@ -889,7 +889,7 @@ void Image::drawCubeFace(C Color &color, C Color &color_add, C Rect &rect, DIR_E
       VI.color  (color    );
       VI.color1 (color_add);
       VI.setType(VI_2D_FONT, VI_STRIP);
-      Sh.h_ImageRfl[0]->set(this);
+      Sh.Cub[0]->set(this);
       if(Vtx2DFont *v=(Vtx2DFont*)VI.addVtx(4))
       {
          v[0].pos.set(rect.min.x, rect.max.y);
@@ -996,8 +996,8 @@ void Image::drawVolume(C Color &color, C Color &color_add, C OBox &obox, Flt vox
       v.inside.y=Dot(delta, obox.matrix.y);
       v.inside.z=Dot(delta, obox.matrix.z);
 
-      D .alphaFactor(TRANSPARENT);
-      ShaderImage &si=(LA ? *Sh.h_ImageVolXY[0] : *Sh.h_ImageVol);
+      D .alphaFactor(TRANSPARENT); MaterialClear(); // 'MaterialClear' must be called when changing 'D.alphaFactor'
+      ShaderImage &si=(LA ? *Sh.VolXY[0] : *Sh.Vol);
       si            .set(T        ); si._sampler=&SamplerLinearClamp;
       Sh.h_Color[0]->set(color    );
       Sh.h_Color[1]->set(color_add);
@@ -1027,7 +1027,6 @@ void Image::drawVolume(C Color &color, C Color &color_add, C OBox &obox, Flt vox
       }
 
       si._sampler=null;
-      MaterialClear(); // because D.alphaFactor
    }
 }
 /******************************************************************************/

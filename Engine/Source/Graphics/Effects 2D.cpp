@@ -120,8 +120,8 @@ void TitlesFx::draw(C Image &image)
 /******************************************************************************/
 void FadeFx(C Image &image, Flt time, Image *fade_modifier)
 {
-   Sh.h_ImageCol[1]->set(fade_modifier); MaterialClear();
-   Sh.h_Step       ->set(time         );
+   Sh.Img[1]->set(fade_modifier);
+   Sh.h_Step->set(time         );
    if(!Sh.h_Fade)Sh.h_Fade=Sh.get("Fade"); Sh.h_Fade->draw(image);
 }
 /******************************************************************************/

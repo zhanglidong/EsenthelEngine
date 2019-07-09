@@ -451,7 +451,7 @@ static void SetCode(C TextCodeData *code, C TextStyleParams &text_style, Bool su
    #if LINEAR_GAMMA
       Sh.h_FontLum->set(Vec(ByteToFontLum(c.r), ByteToFontLum(c.g), ByteToFontLum(c.b)));
    #endif
-      D.alphaFactor(c);
+      D.alphaFactor(c); // 'MaterialClear' called below only one time instead of here which can be called multiple times
    }
 }
 void DrawKeyboardCursor(C Vec2 &pos, Flt height)
@@ -513,8 +513,8 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
          // sub-pixel rendering
          ALPHA_MODE   alpha;
          Bool         sub_pixel=font->_sub_pixel;
-         ShaderImage &shader_image=(sub_pixel ? *Sh.h_ImageCol[0] : *Sh.h_ImageImgXY);
-         if(sub_pixel){alpha=D.alpha(Renderer.inside() ? ALPHA_FONT_DEC : ALPHA_FONT); VI.shader(Sh.h_FontCurSP);}else // if drawing text while rendering, then decrease the alpha channel (glow)
+         ShaderImage &shader_image=(sub_pixel ? *Sh.Img[0] : *Sh.ImgXY);
+         if(sub_pixel){alpha=D.alpha(Renderer.inside() ? ALPHA_FONT_DEC : ALPHA_FONT); VI.shader(Sh.h_FontCurSP); MaterialClear();}else // if drawing text while rendering, then decrease the alpha channel (glow), for sub-pixel we will be changing 'D.alphaFactor' for which we have to call 'MaterialClear'
          if(Renderer.inside())D.alpha(ALPHA_BLEND_DEC); // if drawing text while rendering, then decrease the alpha channel (glow), but don't bother to restore it, as in Rendering, alpha blending is always set for each call
 
          VI._image=null; // clear to make sure 'VI.imageConditional' below will work properly

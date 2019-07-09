@@ -38,7 +38,7 @@ void Astro::Draw()
    {
       // TODO: apply per-pixel softing based on depth buffer, exactly like particle softing (draw closer to camera, but scale XY size, along CamMatrix.xy) and modify pixel shader
       Renderer._has_glow|=(glow!=0);
-      D .alphaFactor(VecB4(0, 0, 0, glow));
+      D .alphaFactor(VecB4(0, 0, 0, glow)); MaterialClear(); // 'MaterialClear' must be called when changing 'D.alphaFactor'
       D .alpha      (blend ? ALPHA_BLEND_FACTOR : ALPHA_ADD_FACTOR);
       VI.image      (image());
       VI.setType    (VI_3D_TEX_COL, VI_STRIP);
@@ -63,8 +63,6 @@ void Astro::Draw()
          v[3].tex.set(image->_part.x, image->_part.y);
       }
       VI.end();
-
-      MaterialClear(); // because alpha factor
    }
 }
 /******************************************************************************/
@@ -139,8 +137,8 @@ void SunClass::drawRays(Image *coverage, Vec &color)
       Bool jitter=((rays_jitter<0) ? rays_color.max()>(LINEAR_GAMMA ? 0.15f : 0.1f)+EPS_COL : rays_jitter!=0); // for auto, enable jittering only if rays have a high brightness
       switch(_actual_rays_mode)
       {
-         case SUN_RAYS_HIGH: Sh.h_ImageImgX[0]->set(coverage); GetSunRays(true , dither, jitter, gamma)->draw(rect); break;
-         default           :                                   GetSunRays(false, dither, jitter, gamma)->draw(rect); break;
+         case SUN_RAYS_HIGH: Sh.ImgX[0]->set(coverage); GetSunRays(true , dither, jitter, gamma)->draw(rect); break;
+         default           :                            GetSunRays(false, dither, jitter, gamma)->draw(rect); break;
       }
    }
 }
@@ -192,7 +190,7 @@ Bool AstroDrawRays()
             D.alpha(ALPHA_NONE);
             ImageRTPtr temp; temp.get(ImageRTDesc(res.x, res.y, IMAGERT_ONE));
             Renderer.set(temp, null, true);
-            Sh.h_ImageImgX[0]->set(Renderer._sky_coverage);
+            Sh.ImgX[0]->set(Renderer._sky_coverage);
             GetSunRaysMask(true)->draw();
             Swap(temp, Renderer._sky_coverage);
          }else // apply depth tests to existing sky coverage
@@ -226,8 +224,8 @@ Bool AstroDrawRays()
             D.alpha(ALPHA_NONE);
             rt1.get(ImageRTDesc(Renderer.fxW()>>shift, Renderer.fxH()>>shift, IMAGERT_ONE));
           //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
-            Renderer.set(rt1, null, false); Sh.h_ImageImgX->set(rt0); Sh.h_BlurX_X->draw(&D.viewRect());
-            Renderer.set(rt0, null, false); Sh.h_ImageImgX->set(rt1); Sh.h_BlurY_X->draw(&D.viewRect());
+            Renderer.set(rt1, null, false); Sh.ImgX->set(rt0); Sh.h_BlurX_X->draw(&D.viewRect());
+            Renderer.set(rt0, null, false); Sh.ImgX->set(rt1); Sh.h_BlurY_X->draw(&D.viewRect());
          }*/
          Renderer.set(Renderer._col, null, true);
          D.alpha(ALPHA_ADD);
@@ -235,7 +233,7 @@ Bool AstroDrawRays()
          Sh.h_Color[1]->set(Vec4Zero      );
          Bool dither=(D.dither() && !Renderer._col->highPrecision()); // don't do dithering for high precision RT
          Shader *shader;
-         Sh.h_ImageImgX[0]->set(rt0);
+         Sh.ImgX[0]->set(rt0);
        //if(Sun.rays_soft && shift==1){Sh.imgSize(*rt0); shader=Sh.h_SunRaysSoft;}else
          if(dither                   )shader=(LINEAR_GAMMA ? Sh.h_DrawXCDG : Sh.h_DrawXCD);else
                                       shader=(LINEAR_GAMMA ? Sh.h_DrawXCG  : Sh.h_DrawXC );

@@ -199,7 +199,7 @@ void Panel::draw(C Rect &rect)C
       }
       if(secondary) // for secondary we need to force rt.alpha to 1.0
       {
-         D.alphaFactor(Color(blur_color.a, blur_color.a, blur_color.a, 255));
+         D.alphaFactor(Color(blur_color.a, blur_color.a, blur_color.a, 255)); MaterialClear(); // 'MaterialClear' must be called when changing 'D.alphaFactor'
          D.alpha(ALPHA_FACTOR); Sh.h_Color[0]->set(Color(center_color.r, center_color.g, center_color.b, 0)); Sh.h_Color[1]->set(Color(blur_color.r, blur_color.g, blur_color.b, 255)); Sh.h_DrawC->draw(rt0, &r);
       }else
       {
@@ -349,7 +349,7 @@ void Panel::draw(C Color &color, C Rect &rect)C
       }
       if(secondary) // for secondary we need to force rt.alpha to 1.0
       {
-         D.alphaFactor(Color(blur_color.a, blur_color.a, blur_color.a, 255));
+         D.alphaFactor(Color(blur_color.a, blur_color.a, blur_color.a, 255)); MaterialClear(); // 'MaterialClear' must be called when changing 'D.alphaFactor'
          D.alpha(ALPHA_FACTOR); Sh.h_Color[0]->set(Color(center_color.r, center_color.g, center_color.b, 0)); Sh.h_Color[1]->set(Color(blur_color.r, blur_color.g, blur_color.b, 255)); Sh.h_DrawC->draw(rt0, &r);
       }else
       {

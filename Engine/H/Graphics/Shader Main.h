@@ -27,21 +27,22 @@ struct MainShaderClass
    void connectRT     ();
 
    ShaderImage
-      *Img[2],
-      *h_ImageCol[4]  , *h_ImageColMS,
-      *h_ImageNrm[4]  , *h_ImageNrmMS,
-      *h_ImageDet[4]  ,
-      *h_ImageMac[4]  ,
-      *h_ImageRfl[4]  ,
-      *h_ImageDepth   , *h_ImageDepthMS,
-      *h_ImageLum     , *h_ImageLumMS  ,
-      *h_ImageImgX [4], *h_ImageImgXMS ,
-      *h_ImageImgXF[2],
-      *h_ImageImgXY   ,
-      *h_ImageShdMap[2],
-      *h_ImageCub,
-      *h_ImageVol,
-      *h_ImageVolXY[2];
+      *Img  [4], *ImgMS[2],
+      *ImgX [4], *ImgXMS,
+      *ImgXF[2],
+      *ImgXY,
+      *Cub[2],
+      *Vol,
+      *VolXY[2],
+      *Depth, *DepthMS,
+      *ShdMap[2],
+
+      *Col[4],
+      *Nrm[4],
+      *Det[4],
+      *Mac[4],
+      *Rfl[4],
+      *Lum;
 
    ShaderParam
       *h_ImgSize    ,

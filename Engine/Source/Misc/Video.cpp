@@ -424,10 +424,10 @@ void Video::drawAlpha   (C Video &alpha, C Rect &rect)C
    if(_lum.is() && Renderer._cur[0])
    {
       if(!Sh.h_YUVA[1]){AtomicSet(Sh.h_YUVA[0], Sh.get("YUVA")); AtomicSet(Sh.h_YUVA[1], Sh.get("YUVAG"));}
-      Sh .h_ImageImgX[0]->set(_lum);
-      Sh .h_ImageImgX[1]->set(_u  );
-      Sh .h_ImageImgX[2]->set(_v  );
-      Sh .h_ImageImgX[3]->set(alpha._lum);
+      Sh .ImgX[0]->set(_lum);
+      Sh .ImgX[1]->set(_u  );
+      Sh .ImgX[2]->set(_v  );
+      Sh .ImgX[3]->set(alpha._lum);
       Bool gamma=LINEAR_GAMMA, swap=(gamma && Renderer._cur[0]->canSwapRTV()); if(swap){gamma=false; Renderer._cur[0]->swapRTV(); Renderer.set(Renderer._cur[0], Renderer._cur_ds, true);}
       VI .shader(Sh.h_YUVA[gamma]);
      _lum.draw (rect); // Warning: this will result in a useless VI.image call inside, since we already set '_lum' above
@@ -443,9 +443,9 @@ void Video::draw   (C Rect &rect)C
    if(_lum.is() && Renderer._cur[0])
    {
       Bool gamma=LINEAR_GAMMA, swap=(gamma && Renderer._cur[0]->canSwapRTV()); if(swap){gamma=false; Renderer._cur[0]->swapRTV(); Renderer.set(Renderer._cur[0], Renderer._cur_ds, true);}
-      Sh .h_ImageImgX[0]->set(_lum);
-      Sh .h_ImageImgX[1]->set(_u  );
-      Sh .h_ImageImgX[2]->set(_v  );
+      Sh .ImgX[0]->set(_lum);
+      Sh .ImgX[1]->set(_u  );
+      Sh .ImgX[2]->set(_v  );
       VI .shader(Sh.h_YUV[gamma]);
      _lum.draw (rect); // Warning: this will result in a useless VI.image call inside, since we already set '_lum' above
       VI .clear(); // force clear to reset custom shader, in case 'draw' doesn't process drawing

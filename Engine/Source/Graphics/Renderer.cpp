@@ -157,7 +157,7 @@ void RendererClass::mode(RENDER_MODE mode)
 #endif
    Bool cull=D._cull; D.cull(false); D.cull(cull); // force reset
    D.lodSetCurrentFactor();
-   MaterialClear();
+   MaterialClear(); // must be called when changing rendering modes, because when setting materials, we may set only some of their shader values depending on mode
 }
 RendererClass& RendererClass::simplePrecision(Bool per_pixel)
 {
@@ -197,9 +197,9 @@ void RendererClass::linearizeDepth(ImageRT &dest, ImageRT &depth)
 {
    D.alpha(ALPHA_NONE);
    set(&dest, null, true);
-   if(!depth.multiSample() || depth.size()!=dest.size()){Sh.h_ImageDepth  ->set(depth); Sh.h_LinearizeDepth[FovPerspective(D.viewFovMode())][0]->draw(); Sh.h_ImageDepth  ->set(_ds_1s);}else // 1s->1s, set and restore depth, if we're resizing then we also need to use the simple version
-   if(!dest .multiSample()                             ){Sh.h_ImageDepthMS->set(depth); Sh.h_LinearizeDepth[FovPerspective(D.viewFovMode())][1]->draw(); Sh.h_ImageDepthMS->set(_ds   );}else // ms->1s, set and restore depth
-                                                        {Sh.h_ImageDepthMS->set(depth); Sh.h_LinearizeDepth[FovPerspective(D.viewFovMode())][2]->draw(); Sh.h_ImageDepthMS->set(_ds   );}     // ms->ms, set and restore depth
+   if(!depth.multiSample() || depth.size()!=dest.size()){Sh.Depth  ->set(depth); Sh.h_LinearizeDepth[FovPerspective(D.viewFovMode())][0]->draw(); Sh.Depth  ->set(_ds_1s);}else // 1s->1s, set and restore depth, if we're resizing then we also need to use the simple version
+   if(!dest .multiSample()                             ){Sh.DepthMS->set(depth); Sh.h_LinearizeDepth[FovPerspective(D.viewFovMode())][1]->draw(); Sh.DepthMS->set(_ds   );}else // ms->1s, set and restore depth
+                                                        {Sh.DepthMS->set(depth); Sh.h_LinearizeDepth[FovPerspective(D.viewFovMode())][2]->draw(); Sh.DepthMS->set(_ds   );}     // ms->ms, set and restore depth
 }
 void RendererClass::setDepthForDebugDrawing()
 {
@@ -237,14 +237,13 @@ void RendererClass::adaptEye(ImageRT &src, ImageRT &dest, Bool dither)
       ImageRTPtr next=temp; next.get(ImageRTDesc(s, s, IMAGERT_F32)); s/=4; // we could use 16-bit as according to calculations, the max error for 1920x1080, starting with 256x256 as first step and going down to 1x1, with average luminance of 1.0 (255 byte) is 0.00244140625 at the final stage, which gives 410 possible colors, however we may use some special tricks in the shader that requires higher precision (for example BRIGHT with Sqr and Sqrt later, or use Linear/sRGB)
       set(next, null, false);
       Sh.imgSize(*temp);
-      if(i){Sh.h_ImageImgXF[0]->set(temp); Hdr.HdrDS[1]->draw();}
-      else {Sh.h_ImageCol  [0]->set(temp); Hdr.HdrDS[0]->draw(null, D.screenToUV(D.viewRect()));}
+      if(i){Sh.ImgXF[0]->set(temp); Hdr.HdrDS[1]->draw();}
+      else {Sh.Img  [0]->set(temp); Hdr.HdrDS[0]->draw(null, D.screenToUV(D.viewRect()));}
       temp=next;
    }
    Sh.h_Step->set(Pow(Mid(1/D.eyeAdaptationSpeed(), EPS, 1.0f), Time.d())); // can use EPS and not EPS_GPU because we're using Pow here and not on GPU
-   Sh.h_ImageImgXF[0]->set(temp); Sh.h_ImageImgXF[1]->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.HdrUpdate                                                  ->draw();
-                                  Sh.h_ImageImgX [0]->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.Hdr[dither && src.highPrecision() && !dest.highPrecision()]->draw(src);
-   MaterialClear();
+   Sh.ImgXF[0]->set(temp); Sh.ImgXF[1]->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.HdrUpdate                                                  ->draw();
+                           Sh.ImgX [0]->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.Hdr[dither && src.highPrecision() && !dest.highPrecision()]->draw(src);
 }
 INLINE Shader* GetBloomDS(Bool glow, Bool viewport_clamp, Bool half, Bool saturate, Bool gamma) {Shader* &s=Sh.h_BloomDS[glow][viewport_clamp][half][saturate][gamma]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow, viewport_clamp, half, saturate, gamma); return s;}
 INLINE Shader* GetBloom  (Bool dither, Bool gamma                                             ) {Shader* &s=Sh.h_Bloom  [dither][gamma]                              ; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (dither, gamma                              ); return s;}
@@ -292,7 +291,7 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool dither)
       rt0->clearFull();
    }
    set(&dest, null, true);
-   Sh.h_ImageCol[1]->set(rt0); MaterialClear();
+   Sh.Img[1]->set(rt0);
    GetBloom(dither /*&& (src.highPrecision() || rt0->highPrecision())*/ && !dest.highPrecision(), gamma)->draw(src); // merging 2 RT's ('src' and 'rt0') with some scaling factors will give us high precision
    if(swap){src.swapSRV(); dest.swapRTV();} // restore
 }
@@ -394,13 +393,13 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
    if(stage==RS_VEL_DILATED && set(dilated))return true;
 
    // check how far can we go (remove leaks)
-   Sh.h_ImageCol[1]->set(dilated); MaterialClear();
+   Sh.Img[1]->set(dilated);
    rt_desc.rt_type=(D.signedVelRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA); // XY=Dir#0, ZW=Dir#1
    helper.get(rt_desc); // we always need to call this because 'helper' can be set to 'converted'
    set(helper, null, false); Mtn.SetDirs[!D._view_main.full]->draw(converted, rect);
    if(stage==RS_VEL_LEAK && set(helper))return true;
 
-   Sh.h_ImageCol[1]->set(helper); MaterialClear();
+   Sh.Img[1]->set(helper);
    set(&dest, null, true);
    Mtn.Blur[dither /*&& src.highPrecision()*/ && !dest.highPrecision()]->draw(src); // here blurring may generate high precision values
 
@@ -430,7 +429,7 @@ void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool dither)
    set(rt0, null, false); rt0->discard(); pixel.BlurY->draw(rt1, rect);
 
    set(&dest, null, true);
-   Sh.h_ImageCol[1]->set(rt0); MaterialClear();
+   Sh.Img[1]->set(rt0);
    GetDof(dither && (src.highPrecision() || rt0->highPrecision()) && !dest.highPrecision(), D.dofFocusMode())->draw(src);
 }
 INLINE Shader* GetCombine       () {Shader* &s=Sh.h_Combine       ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("Combine"       ); return s;}
@@ -474,7 +473,7 @@ void RendererClass::Combine(IMAGE_PRECISION rt_prec)
       set(alpha, null, true);
       D.alpha(ALPHA_NONE);
       GetCombineSSAlpha()->draw();
-      Sh.h_ImageCol[1]->set(alpha); MaterialClear();
+      Sh.Img[1]->set(alpha);
       set(_final, null, true);
       D.alpha(ALPHA_BLEND);
       GetCombineSS()->draw(_col);
@@ -738,7 +737,7 @@ RendererClass& RendererClass::operator()(void (&render)())
 
          case RS_AO: if(_ao)
          {
-            set(_final, null, true); D.alpha(ALPHA_NONE); Sh.h_ImageImgX[0]->set(_ao); (LINEAR_GAMMA ? Sh.h_DrawXG : Sh.h_DrawX)->draw();
+            set(_final, null, true); D.alpha(ALPHA_NONE); Sh.ImgX[0]->set(_ao); (LINEAR_GAMMA ? Sh.h_DrawXG : Sh.h_DrawX)->draw();
             goto finished;
          }break;
 
@@ -747,7 +746,7 @@ RendererClass& RendererClass::operator()(void (&render)())
             if(_ao)
             {
                set(_lum_1s, null, true);
-               Sh.h_ImageImgX[0]->set(_ao);
+               Sh.ImgX[0]->set(_ao);
                if(D._amb_all)
                {
                   D.alpha(ALPHA_MUL);
@@ -959,7 +958,7 @@ Bool RendererClass::set(C ImageRTPtr &image)
       if(ImageTI[image->hwType()].d) // depth
       {
          if(!image->depthTexture())return false; // can't read
-         set(_final, null, true); D.alpha(ALPHA_NONE); Sh.h_ImageDepth->set(image); Sh.get("DrawDepth")->draw(); Sh.h_ImageDepth->set(_ds_1s);
+         set(_final, null, true); D.alpha(ALPHA_NONE); Sh.Depth->set(image); Sh.get("DrawDepth")->draw(); Sh.Depth->set(_ds_1s);
       }else
       if(image->type()!=IMAGE_R8G8B8A8_SIGN
       && image->type()!=IMAGE_R8G8_SIGN
@@ -981,8 +980,8 @@ Bool RendererClass::swapDS1S(ImageRTPtr &ds_1s)
    if( T._ds==T._ds_1s)
    {
        if(T._ds==T._cur_main_ds)T._cur_main_ds=ds_1s;
-          T._ds   = ds_1s ; Sh.h_ImageDepthMS->set(T._ds   );
-   } Swap(T._ds_1s, ds_1s); Sh.h_ImageDepth  ->set(T._ds_1s);
+          T._ds   = ds_1s ; Sh.DepthMS->set(T._ds   );
+   } Swap(T._ds_1s, ds_1s); Sh.Depth  ->set(T._ds_1s);
    return true;
 }
 void RendererClass::setDS()
@@ -1037,8 +1036,8 @@ start:
    if(!_ds->multiSample ())_ds_1s=_ds;else // if the source is not multisampled then reuse it
    if( _ds->depthTexture())_ds_1s.getDS(_ds->w(), _ds->h());else // create new only if we can resolve multi-sample onto 1-sample
                            _ds_1s.clear(); // there's no point in creating a 1-sampled depth buffer if we can't resolve from the multi-sampled
-   Sh.h_ImageDepth  ->set(_ds_1s);
-   Sh.h_ImageDepthMS->set(_ds   );
+   Sh.Depth  ->set(_ds_1s);
+   Sh.DepthMS->set(_ds   );
 
   _set_depth_needed=(_ds!=_cur_main_ds && _ds_1s!=_cur_main_ds && canReadDepth()); // if we're not rendering to currently main depth buffer and we have depth access
 
@@ -1085,10 +1084,11 @@ start:
          }
 
         _nrm.get(ImageRTDesc(_col->w(), _col->h(), D.signedNrmRT() ? (D.highPrecNrmRT() ? IMAGERT_RGBA_SP : IMAGERT_RGBA_S) : (D.highPrecNrmRT() ? IMAGERT_RGBA_P : IMAGERT_RGBA), _col->samples())); // here Alpha is used for specular
-         if(clear_nrm && !merged_clear)_nrm->clearViewport(D.signedNrmRT() ? SNRM_CLEAR : NRM_CLEAR);
-         Sh.h_ImageNrmMS->set(_nrm);
-
-         if(clear_col && !merged_clear)_col->clearViewport();
+         if(!merged_clear)
+         {
+            if(clear_nrm)_nrm->clearViewport(D.signedNrmRT() ? SNRM_CLEAR : NRM_CLEAR);
+            if(clear_col)_col->clearViewport();
+         }
 
          set(_col, _nrm, _vel, null, _ds, true);
          if(merged_clear)
@@ -1186,7 +1186,7 @@ void RendererClass::solid()
                D.depth2DOn();
                Sh.h_Color[0]->set(Vec4(1, 1, 1, 0));
                Sh.h_Color[1]->set(Vec4(0, 0, 0, 1));
-               Sh.h_ImageImgX[0]->set(_ao);
+               Sh.ImgX[0]->set(_ao);
                Sh.h_DrawXC->draw();
                D.depth2DOff();
             }
@@ -1248,8 +1248,8 @@ void RendererClass::resolveDepth()
       {
          D.stencil(STENCIL_MSAA_SET, STENCIL_REF_MSAA);
          set(null, _ds, true);
-       //if(_nrm){Sh.h_ImageNrmMS->set(_nrm); Sh.h_DetectMSNrm->draw();}else 'DetectMSNrm' generates too many MS pixels, making rendering slower, so don't use
-                 {Sh.h_ImageColMS->set(_col); Sh.h_DetectMSCol->draw();}
+       //if(_nrm){Sh.ImgMS[0]->set(_nrm); Sh.h_DetectMSNrm->draw();}else 'DetectMSNrm' generates too many MS pixels, making rendering slower, so don't use
+                 {Sh.ImgMS[0]->set(_col); Sh.h_DetectMSCol->draw();}
       }
 
       // always resolve '_ds' into '_ds_1s'
@@ -1263,8 +1263,8 @@ void RendererClass::resolveDepth()
       || slowCombine())         // for non-deferred it will be used only for slow combine
       {
          D.stencilRef(STENCIL_REF_MSAA);
-       //if(_nrm){Sh.h_ImageNrmMS->set(_nrm); Sh.h_DetectMSNrm->draw();}else 'DetectMSNrm' generates too many MS pixels, making rendering slower, so don't use
-                 {Sh.h_ImageColMS->set(_col); Sh.h_DetectMSCol->draw();}
+       //if(_nrm){Sh.ImgMS[0]->set(_nrm); Sh.h_DetectMSNrm->draw();}else 'DetectMSNrm' generates too many MS pixels, making rendering slower, so don't use
+                 {Sh.ImgMS[0]->set(_col); Sh.h_DetectMSCol->draw();}
       }
       D.stencil(STENCIL_NONE);
    }
@@ -1318,16 +1318,16 @@ void RendererClass::ao()
    linearizeDepth(*ao_depth, *_ds_1s);
 
  //Sh.imgSize(*_ao); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
-   Sh.h_ImageNrm[0]->set(_nrm);
-   Sh.h_ImageDepth ->set(ao_depth);
+   Sh.Img[0]->set(_nrm);
+   Sh.Depth ->set(ao_depth);
    Bool foreground=_ao->compatible(*_ds_1s);
    if(_col->multiSample())foreground&=Sky.isActual(); // when having multi-sampling, then allow this optimization only if we're rendering Sky, this is related to smooth edges between solid and sky pixels
    if(stage)if(stage==RS_AO || stage==RS_LIGHT_AO)foreground=false; // if we will display AO then set fully
    if(foreground)D.depth2DOn();
    set(_ao, foreground ? _ds_1s : null, true, NEED_DEPTH_READ); // use DS for 'D.depth2D'
-   REPS(_eye, _eye_num)tech_occl->draw(ao_depth, setEyeParams()); // calculate occlusion
+   REPS(_eye, _eye_num)tech_occl->draw(setEyeParams()); // calculate occlusion
    ao_depth.clear(); // this one is no longer needed
-   Sh.h_ImageDepth->set(_ds_1s); // restore full resolution depth
+   Sh.Depth->set(_ds_1s); // restore full resolution depth
 
    if(D.ambientSoft()) // this needs to be in sync with 'D.shadowSoft'
    {
@@ -1336,12 +1336,12 @@ void RendererClass::ao()
       if(D.ambientSoft()>=5)
       {
          ImageRTPtr temp; temp.get(rt_desc);
-         set(temp, foreground ? _ds_1s : null, true, NEED_DEPTH_READ);                 Sh.h_ImageImgX[0]->set( _ao); Sh.h_ShdBlurX->draw(); // use DS for 'D.depth2D'
-         set( _ao, foreground ? _ds_1s : null, true, NEED_DEPTH_READ); _ao->discard(); Sh.h_ImageImgX[0]->set(temp); Sh.h_ShdBlurY->draw(); // use DS for 'D.depth2D'
+         set(temp, foreground ? _ds_1s : null, true, NEED_DEPTH_READ);                 Sh.ImgX[0]->set( _ao); Sh.h_ShdBlurX->draw(); // use DS for 'D.depth2D'
+         set( _ao, foreground ? _ds_1s : null, true, NEED_DEPTH_READ); _ao->discard(); Sh.ImgX[0]->set(temp); Sh.h_ShdBlurY->draw(); // use DS for 'D.depth2D'
       }else
       {
          ImageRTPtr src=_ao; _ao.get(rt_desc);
-         set(_ao, foreground ? _ds_1s : null, true, NEED_DEPTH_READ); Sh.h_ImageImgX[0]->set(src); Sh.h_ShdBlur[D.ambientSoft()-1]->draw(); // use DS for 'D.depth2D'
+         set(_ao, foreground ? _ds_1s : null, true, NEED_DEPTH_READ); Sh.ImgX[0]->set(src); Sh.h_ShdBlur[D.ambientSoft()-1]->draw(); // use DS for 'D.depth2D'
       }
    }
    if(foreground)D.depth2DOff();
@@ -1392,9 +1392,9 @@ void RendererClass::light()
 
       // light buffer is ready so we can combine it with color
       Bool ao=(_ao!=null), cel_shade=(cel_shade_palette!=null), night_shade=(D.nightShadeColorS().max()>EPS_COL);
-      Sh.h_ImageLum    ->set(_lum_1s);
-      Sh.h_ImageImgX[0]->set(_ao    );
-      Sh.h_ImageDet [0]->set( cel_shade_palette());
+      Sh.Img [1]->set(_lum_1s             );
+      Sh.Img [2]->set( cel_shade_palette());
+      Sh.ImgX[0]->set(_ao                 );
       D .alpha(ALPHA_NONE);
       ImageRTPtr src=_col; // can't read and write to the same RT
       Bool has_last_frag_color=false, // TODO: there would be no need to write to a new RT if we would use gl_LastFragColor/gl_LastFragData[0] using extensions - https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_shader_framebuffer_fetch.txt and https://www.khronos.org/registry/OpenGL/extensions/ARM/ARM_shader_framebuffer_fetch.txt
@@ -1405,8 +1405,8 @@ void RendererClass::light()
       if((_col==src || Sky.isActual()) && stage!=RS_LIT_COLOR)D.depth2DOn(); // we can skip background only if we're applying to the same RT or if the background will be later overwritten by Sky
       if(!_col->multiSample())GetColLight(0, ao, cel_shade, night_shade)->draw(src);else
       {
-         Sh.h_ImageColMS->set( src);
-         Sh.h_ImageLumMS->set(_lum);
+         Sh.ImgMS[0]->set( src);
+         Sh.ImgMS[1]->set(_lum);
          if(hasStencilAttached())
          {
             D.stencil   (STENCIL_MSAA_TEST, 0); GetColLight(1, ao, cel_shade, night_shade)->draw(); // 1 sample
@@ -1423,8 +1423,6 @@ void RendererClass::light()
       src.clear();
       if(_lum!=_lum_1s && (_fur_is || stage==RS_LIGHT || stage==RS_LIGHT_AO)){set(_lum_1s, null, true); D.alpha(ALPHA_ADD); Sh.draw(*_lum);} // need to apply multi-sampled lum to 1-sample for fur and light stage
      _lum.clear(); // '_lum' will not be used after this point, however '_lum_1s' may be for rendering fur
-
-      MaterialClear();
    }
 }
 Bool RendererClass::waterPostLight()
@@ -1483,13 +1481,13 @@ Bool RendererClass::waterPostLight()
       if((!Water._swapped_ds || !swapDS1S(_water_ds)) && Sh.h_SetDepth) // if we haven't swapped before, or swap back failed, then we have to apply '_water_ds' on top of existing '_ds_1s', otherwise we just swap back '_water_ds' because it had the stencil values
       {
          set(null, _ds_1s, true);
-         D.depthLock(true); Sh.h_ImageDepth->set(_water_ds); Sh.h_SetDepth->draw(); Sh.h_ImageDepth->set(_ds_1s); // keep FUNC_LESS to modify only those that are closer
+         D.depthLock(true); Sh.Depth->set(_water_ds); Sh.h_SetDepth->draw(); Sh.Depth->set(_ds_1s); // keep FUNC_LESS to modify only those that are closer
          D.depthUnlock();
       }
       if(_ds!=_ds_1s && Sh.h_SetDepth) // multi-sample
       {
          set(null, _ds, true);
-         D.depthLock(true); Sh.h_ImageDepth->set(_water_ds); Sh.h_SetDepth->draw(); Sh.h_ImageDepth->set(_ds_1s); // keep FUNC_LESS to modify only those that are closer
+         D.depthLock(true); Sh.Depth->set(_water_ds); Sh.h_SetDepth->draw(); Sh.Depth->set(_ds_1s); // keep FUNC_LESS to modify only those that are closer
          D.depthUnlock();
       }
 
@@ -1523,7 +1521,7 @@ void RendererClass::edgeDetect()
          {
             ImageRTPtr edge(ImageRTDesc(fxW(), fxH(), IMAGERT_ONE));
             D.alpha(ALPHA_NONE); set(edge, null, true, NEED_DEPTH_READ); Sh.imgSize(*_ds_1s); Sh.h_EdgeDetect->draw(); // we need to fill the entire buffer because below we're using blurring (which takes nearby texels)
-            D.alpha(ALPHA_MUL ); set(_col, _ds , true,   NO_DEPTH_READ); Sh.imgSize(* edge ); Sh.h_ImageImgX[0]->set(edge); Sh.h_EdgeDetectApply->draw();
+            D.alpha(ALPHA_MUL ); set(_col, _ds , true,   NO_DEPTH_READ); Sh.imgSize(* edge ); Sh.ImgX[0]->set(edge); Sh.h_EdgeDetectApply->draw();
          }break;
       }
    }
@@ -1557,7 +1555,7 @@ void RendererClass::blend()
       if(_ao)
       {
          set(_lum_1s, null, true);
-         Sh.h_ImageImgX[0]->set(_ao);
+         Sh.ImgX[0]->set(_ao);
          if(D._amb_all)
          {
             D.alpha(ALPHA_MUL);
@@ -1630,7 +1628,7 @@ void RendererClass::palette(Int index)
    #endif
       set(_col, null, true);
       D .alpha(ALPHA_BLEND_DEC);
-      Sh.h_ImageCol[1]->set ( palette()); MaterialClear();
+      Sh.Img[1]->set(palette());
       Sh.h_PaletteDraw->draw(*intensity);
    }
    if(index)
@@ -1803,10 +1801,9 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
          {
            _col->copyHw(*dest, false, D.viewRect());
             D.stencil(STENCIL_EDGE_SOFT_SET, STENCIL_REF_EDGE_SOFT); // have to use '_ds_1s' in write mode to be able to use stencil
-            ImageRTPtr edge (ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO )); set(edge (), _ds_1s(), true); D.clearCol(); Sh.h_MLAAEdge ->draw(_col ()); Sh.h_ImageCol[1]->set(_mlaa_area()); D.stencil(STENCIL_EDGE_SOFT_TEST);
-            ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA)); set(blend(), _ds_1s(), true); D.clearCol(); Sh.h_MLAABlend->draw( edge()); Sh.h_ImageCol[1]->set( blend    ()); edge.clear();
-                                                                               set(dest (), _ds_1s(), true);               Sh.h_MLAA     ->draw(_col ());                                      D.stencil(STENCIL_NONE          );
-            MaterialClear();
+            ImageRTPtr edge (ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO )); set(edge (), _ds_1s(), true); D.clearCol(); Sh.h_MLAAEdge ->draw(_col ()); Sh.Img[1]->set(_mlaa_area()); D.stencil(STENCIL_EDGE_SOFT_TEST);
+            ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA)); set(blend(), _ds_1s(), true); D.clearCol(); Sh.h_MLAABlend->draw( edge()); Sh.Img[1]->set( blend    ()); edge.clear();
+                                                                               set(dest (), _ds_1s(), true);               Sh.h_MLAA     ->draw(_col ());                               D.stencil(STENCIL_NONE          );
          }break;
       #endif
 
@@ -1820,17 +1817,15 @@ void RendererClass::edgeSoften() // !! assumes that 'finalizeGlow' was called !!
 
             Bool gamma=LINEAR_GAMMA, swap=(gamma && _col->canSwapSRV()); if(swap){gamma=false; _col->swapSRV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
             D.stencil(STENCIL_EDGE_SOFT_SET, STENCIL_REF_EDGE_SOFT); // have to use '_ds_1s' in write mode to be able to use stencil
-            ImageRTPtr edge(ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO)); set(edge, _ds_1s, true); D.clearCol(); Sh.h_SMAAEdge[gamma]->draw(_col); Sh.h_ImageCol[1]->set(_smaa_area()); Sh.h_ImageCol[2]->set(_smaa_search()); Sh.h_ImageCol[2]->_sampler=&SamplerPoint; D.stencil(STENCIL_EDGE_SOFT_TEST);
+            ImageRTPtr edge(ImageRTDesc(_col->w(), _col->h(), IMAGERT_TWO)); set(edge, _ds_1s, true); D.clearCol(); Sh.h_SMAAEdge[gamma]->draw(_col); Sh.Img[1]->set(_smaa_area()); Sh.Img[2]->set(_smaa_search()); Sh.Img[2]->_sampler=&SamplerPoint; D.stencil(STENCIL_EDGE_SOFT_TEST);
             if(swap)_col->swapSRV(); // restore
 
             ImageRTPtr blend(ImageRTDesc(_col->w(), _col->h(), IMAGERT_RGBA)); // this does not store color, but intensities how much to blend in each axis
-            set(blend, _ds_1s, true); D.clearCol(); Sh.h_SMAABlend->draw(edge); Sh.h_ImageCol[1]->set(blend); edge.clear(); Sh.h_ImageCol[2]->_sampler=null; D.stencil(STENCIL_NONE);
+            set(blend, _ds_1s, true); D.clearCol(); Sh.h_SMAABlend->draw(edge); Sh.Img[1]->set(blend); edge.clear(); Sh.Img[2]->_sampler=null; D.stencil(STENCIL_NONE);
 
             swap=(!LINEAR_GAMMA && dest->canSwapRTV() && _col->canSwapSRV()); if(swap){dest->swapRTV(); _col->swapSRV();} // this we have to perform if we're NOT using Linear Gamma, because if possible, we WANT to use it, as it will improve quality, making AA softer
             set(dest, null, true); Sh.h_SMAA->draw(_col);
             if(swap){dest->swapRTV(); _col->swapSRV();} // restore
-
-            MaterialClear();
          }break;
       }
       Swap(dest, _col);

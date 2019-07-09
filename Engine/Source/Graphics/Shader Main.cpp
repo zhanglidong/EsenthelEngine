@@ -242,48 +242,57 @@ void MainShaderClass::initFogBallShaders()
 void MainShaderClass::getTechniques()
 {
    // images
-   Img[0]          =ShaderImages("Img"    );
-   Img[1]          =ShaderImages("Img1"   );
-   h_ImageCol[0]   =ShaderImages("Col"    );
-   h_ImageCol[1]   =ShaderImages("Col1"   );
-   h_ImageCol[2]   =ShaderImages("Col2"   );
-   h_ImageCol[3]   =ShaderImages("Col3"   );
-   h_ImageNrm[0]   =ShaderImages("Nrm"    );
-   h_ImageNrm[1]   =ShaderImages("Nrm1"   );
-   h_ImageNrm[2]   =ShaderImages("Nrm2"   );
-   h_ImageNrm[3]   =ShaderImages("Nrm3"   );
-   h_ImageDet[0]   =ShaderImages("Det"    );
-   h_ImageDet[1]   =ShaderImages("Det1"   );
-   h_ImageDet[2]   =ShaderImages("Det2"   );
-   h_ImageDet[3]   =ShaderImages("Det3"   );
-   h_ImageMac[0]   =ShaderImages("Mac"    );
-   h_ImageMac[1]   =ShaderImages("Mac1"   );
-   h_ImageMac[2]   =ShaderImages("Mac2"   );
-   h_ImageMac[3]   =ShaderImages("Mac3"   );
-   h_ImageRfl[0]   =ShaderImages("Rfl"    );
-   h_ImageRfl[1]   =ShaderImages("Rfl1"   );
-   h_ImageRfl[2]   =ShaderImages("Rfl2"   );
-   h_ImageRfl[3]   =ShaderImages("Rfl3"   );
-   h_ImageLum      =ShaderImages("Lum"    );
-   h_ImageImgX[0]  =ShaderImages("ImgX"   );
-   h_ImageImgX[1]  =ShaderImages("ImgX1"  );
-   h_ImageImgX[2]  =ShaderImages("ImgX2"  );
-   h_ImageImgX[3]  =ShaderImages("ImgX3"  );
-   h_ImageImgXMS   =ShaderImages("ImgXMS" );
-   h_ImageImgXF[0] =ShaderImages("ImgXF"  );
-   h_ImageImgXF[1] =ShaderImages("ImgXF1" );
-   h_ImageImgXY    =ShaderImages("ImgXY"  );
-   h_ImageShdMap[0]=ShaderImages("ShdMap" ); h_ImageShdMap[0]->_sampler=&SamplerLinearClamp;
-   h_ImageShdMap[1]=ShaderImages("ShdMap1"); h_ImageShdMap[1]->_sampler=&SamplerLinearClamp;
-   h_ImageColMS    =ShaderImages("ColMS"  );
-   h_ImageNrmMS    =ShaderImages("NrmMS"  );
-   h_ImageLumMS    =ShaderImages("LumMS"  );
-   h_ImageDepth    =ShaderImages("Depth"  );
-   h_ImageDepthMS  =ShaderImages("DepthMS");
-   h_ImageCub      =ShaderImages("Cub"    );
-   h_ImageVol      =ShaderImages("Vol"    );
-   h_ImageVolXY[0] =ShaderImages("VolXY"  );
-   h_ImageVolXY[1] =ShaderImages("VolXY1" );
+   Img[0]=ShaderImages("Img" );
+   Img[1]=ShaderImages("Img1");
+   Img[2]=ShaderImages("Img2");
+   Img[3]=ShaderImages("Img3");
+
+   ImgMS[0]=ShaderImages("ImgMS" );
+   ImgMS[1]=ShaderImages("ImgMS1");
+
+   ImgX[0]  =ShaderImages("ImgX"  );
+   ImgX[1]  =ShaderImages("ImgX1" );
+   ImgX[2]  =ShaderImages("ImgX2" );
+   ImgX[3]  =ShaderImages("ImgX3" );
+   ImgXMS   =ShaderImages("ImgXMS");
+   ImgXF[0] =ShaderImages("ImgXF" );
+   ImgXF[1] =ShaderImages("ImgXF1");
+   ImgXY    =ShaderImages("ImgXY" );
+
+   Cub[0]=ShaderImages("Cub");
+   Cub[1]=ShaderImages("Cub");
+
+   Vol     =ShaderImages("Vol"    );
+   VolXY[0]=ShaderImages("VolXY"  );
+   VolXY[1]=ShaderImages("VolXY1" );
+
+   Depth    =ShaderImages("Depth"  );
+   DepthMS  =ShaderImages("DepthMS");
+   ShdMap[0]=ShaderImages("ShdMap" ); ShdMap[0]->_sampler=&SamplerLinearClamp;
+   ShdMap[1]=ShaderImages("ShdMap1"); ShdMap[1]->_sampler=&SamplerLinearClamp;
+
+   // material textures
+   Col[0]=ShaderImages("Col" );
+   Col[1]=ShaderImages("Col1");
+   Col[2]=ShaderImages("Col2");
+   Col[3]=ShaderImages("Col3");
+   Nrm[0]=ShaderImages("Nrm" );
+   Nrm[1]=ShaderImages("Nrm1");
+   Nrm[2]=ShaderImages("Nrm2");
+   Nrm[3]=ShaderImages("Nrm3");
+   Det[0]=ShaderImages("Det" );
+   Det[1]=ShaderImages("Det1");
+   Det[2]=ShaderImages("Det2");
+   Det[3]=ShaderImages("Det3");
+   Mac[0]=ShaderImages("Mac" );
+   Mac[1]=ShaderImages("Mac1");
+   Mac[2]=ShaderImages("Mac2");
+   Mac[3]=ShaderImages("Mac3");
+   Rfl[0]=ShaderImages("Rfl" );
+   Rfl[1]=ShaderImages("Rfl1");
+   Rfl[2]=ShaderImages("Rfl2");
+   Rfl[3]=ShaderImages("Rfl3");
+   Lum   =ShaderImages("Lum" );
 
    h_ImgSize         =GetShaderParam("ImgSize" );
    h_ImgClamp        =GetShaderParam("ImgClamp");
@@ -599,8 +608,8 @@ void MainShaderClass::getTechniques()
 }
 void MainShaderClass::connectRT()
 {
-   if(h_ImageShdMap[0])h_ImageShdMap[0]->set(Renderer._shd_map);
-   if(h_ImageShdMap[1])h_ImageShdMap[1]->set(Renderer._cld_map);
+   if(ShdMap[0])ShdMap[0]->set(Renderer._shd_map);
+   if(ShdMap[1])ShdMap[1]->set(Renderer._cld_map);
 }
 /******************************************************************************/
 // EFFECTS

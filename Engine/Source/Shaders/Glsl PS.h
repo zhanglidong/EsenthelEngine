@@ -2,9 +2,12 @@
 
 PAR Image     Col, Col1, Col2, Col3,
               Nrm, Nrm1, Nrm2, Nrm3,
-              Lum, ImgXY;
-PAR HP Image  Depth;
+              Lum;
 PAR ImageCube Rfl, Rfl1, Rfl2, Rfl3;
+PAR Image     ImgX, ImgX1, ImgX2, ImgX3;
+PAR HP Image  ImgXF, ImgXF1, Depth;
+PAR Image     ImgXY;
+PAR ImageCube Cub, Cub1;
 
 PAR MP Flt AllowBackFlip;
 #define BackFlip(dir) {if(gl_FrontFacing==false)dir*=AllowBackFlip;} // keep this as "gl_FrontFacing==false" instead of "!gl_FrontFacing" because Mac OpenGL drivers for Intel fail to compile this correctly, resulting in reversed lighting

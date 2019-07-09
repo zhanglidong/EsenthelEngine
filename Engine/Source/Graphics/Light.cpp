@@ -86,9 +86,9 @@ static void RestoreViewSpaceBias(Flt mp_z_z)
    if(FovPerspective(D.viewFovMode())){ProjMatrix.z.z=mp_z_z; SetProjMatrix();}
 }
 void RendererClass::getShdRT()
-{ // always do 'get' to call 'discard', do "h_ImageImgX[0]->set" it will be used by drawing lights 'Light.draw, drawForward' (GetLight*->draw) and 'MapSoft'
-                                  {Renderer._shd_1s.get(ImageRTDesc(Renderer._ds_1s->w(), Renderer._ds_1s->h(), IMAGERT_ONE                         )); Sh.h_ImageImgX[0]->set(Renderer._shd_1s);}
-   if(Renderer._ds->multiSample()){Renderer._shd_ms.get(ImageRTDesc(Renderer._ds   ->w(), Renderer._ds   ->h(), IMAGERT_ONE, Renderer._ds->samples())); Sh.h_ImageImgXMS ->set(Renderer._shd_ms);}
+{ // always do 'get' to call 'discard', do "ImgX[0]->set" it will be used by drawing lights 'Light.draw, drawForward' (GetLight*->draw) and 'MapSoft'
+                                  {Renderer._shd_1s.get(ImageRTDesc(Renderer._ds_1s->w(), Renderer._ds_1s->h(), IMAGERT_ONE                         )); Sh.ImgX[0]->set(Renderer._shd_1s);}
+   if(Renderer._ds->multiSample()){Renderer._shd_ms.get(ImageRTDesc(Renderer._ds   ->w(), Renderer._ds   ->h(), IMAGERT_ONE, Renderer._ds->samples())); Sh.ImgXMS ->set(Renderer._shd_ms);}
    D.alpha(ALPHA_NONE);
 }
 
@@ -115,7 +115,7 @@ static Bool SetLum()
       D.depth2DOff(); D.clearCol((Renderer._lum_1s!=Renderer._lum || (Renderer._ao && !D._amb_all)) ? Vec4Zero : Vec4(D.ambientColorD(), 0));
       D.depth2DOn ();
    }
-   D.alpha(ALPHA_ADD); Sh.h_ImageNrm[0]->set(Renderer._nrm);
+   D.alpha(ALPHA_ADD); Sh.Img[0]->set(Renderer._nrm); Sh.ImgMS[0]->set(Renderer._nrm);
    return set;
 }
 
@@ -130,7 +130,7 @@ static void                SetWaterLum  ()
       D.depth2DOff(); D.clearCol(Vec4(D.ambientColorD(), 0));
       D.depth2DOn ();
    }
-   D.alpha(ALPHA_ADD); Sh.h_ImageNrm[0]->set(Renderer._water_nrm);
+   D.alpha(ALPHA_ADD); Sh.Img[0]->set(Renderer._nrm); Sh.ImgMS[0]->set(Renderer._nrm);
 }
 
 static void MapSoft()
@@ -142,15 +142,15 @@ static void MapSoft()
       if(D.shadowSoft()>=5)
       {
          ImageRTPtr temp; temp.get(rt_desc);
-         Renderer.set(            temp, Renderer._ds_1s, true, NEED_DEPTH_READ);                                                            REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.h_ShdBlurX->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth2D' optimization
-         Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); Renderer._shd_1s->discard(); Sh.h_ImageImgX[0]->set(temp); REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.h_ShdBlurY->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth2D' optimization
+         Renderer.set(            temp, Renderer._ds_1s, true, NEED_DEPTH_READ);                                                     REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.h_ShdBlurX->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth2D' optimization
+         Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); Renderer._shd_1s->discard(); Sh.ImgX[0]->set(temp); REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.h_ShdBlurY->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth2D' optimization
       }else
       {
          ImageRTPtr src=Renderer._shd_1s; Renderer._shd_1s.get(rt_desc);
          Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization
          REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.h_ShdBlur[D.shadowSoft()-1]->draw(&CurrentLightRect[Renderer._eye]);
       }
-      Sh.h_ImageImgX[0]->set(Renderer._shd_1s);
+      Sh.ImgX[0]->set(Renderer._shd_1s);
    }
 }
 static void RestoreLightSettings()
@@ -961,7 +961,7 @@ void Light::draw()
          if(Renderer._water_nrm)
          {
             D.stencil(STENCIL_WATER_TEST, STENCIL_REF_WATER);
-            Sh.h_ImageDepth->set(Renderer._water_ds); // set water depth
+            Sh.Depth->set(Renderer._water_ds); // set water depth
 
             if(CurrentLight.shadow)
             {
@@ -974,7 +974,7 @@ void Light::draw()
             SetWaterLum();
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightDir(CurrentLight.shadow, false, true)->draw(&CurrentLight.rect); // always use Quality Specular for Water
 
-            Sh.h_ImageDepth->set(Renderer._ds_1s); // restore default depth
+            Sh.Depth->set(Renderer._ds_1s); // restore default depth
             D.stencil(STENCIL_NONE);
          }
 
@@ -1032,7 +1032,7 @@ void Light::draw()
          if(Renderer._water_nrm)
          {
             D.stencil(STENCIL_WATER_TEST, STENCIL_REF_WATER);
-            Sh.h_ImageDepth->set(Renderer._water_ds); // set water depth
+            Sh.Depth->set(Renderer._water_ds); // set water depth
 
             if(CurrentLight.shadow)
             {
@@ -1045,7 +1045,7 @@ void Light::draw()
             SetWaterLum();
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightPoint(CurrentLight.shadow, false, true)->draw(&CurrentLight.rect); // always use Quality Specular for Water
 
-            Sh.h_ImageDepth->set(Renderer._ds_1s); // restore default depth
+            Sh.Depth->set(Renderer._ds_1s); // restore default depth
             D.stencil(STENCIL_NONE);
          }
 
@@ -1103,7 +1103,7 @@ void Light::draw()
          if(Renderer._water_nrm)
          {
             D.stencil(STENCIL_WATER_TEST, STENCIL_REF_WATER);
-            Sh.h_ImageDepth->set(Renderer._water_ds); // set water depth
+            Sh.Depth->set(Renderer._water_ds); // set water depth
 
             if(CurrentLight.shadow)
             {
@@ -1116,7 +1116,7 @@ void Light::draw()
             SetWaterLum();
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightLinear(CurrentLight.shadow, false, true)->draw(&CurrentLight.rect); // always use Quality Specular for Water
 
-            Sh.h_ImageDepth->set(Renderer._ds_1s); // restore default depth
+            Sh.Depth->set(Renderer._ds_1s); // restore default depth
             D.stencil(STENCIL_NONE);
          }
 
@@ -1174,7 +1174,7 @@ void Light::draw()
          if(Renderer._water_nrm)
          {
             D.stencil(STENCIL_WATER_TEST, STENCIL_REF_WATER);
-            Sh.h_ImageDepth->set(Renderer._water_ds); // set water depth
+            Sh.Depth->set(Renderer._water_ds); // set water depth
 
             if(CurrentLight.shadow)
             {
@@ -1187,7 +1187,7 @@ void Light::draw()
             SetWaterLum();
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightCone(CurrentLight.shadow, CurrentLight.image?1:0, false, true)->draw(&CurrentLight.rect); // always use Quality Specular for Water
 
-            Sh.h_ImageDepth->set(Renderer._ds_1s); // restore default depth
+            Sh.Depth->set(Renderer._ds_1s); // restore default depth
             D.stencil(STENCIL_NONE);
          }
 
@@ -1212,7 +1212,7 @@ void Light::draw()
          if(CurrentLight.image)
          {
             Sh.h_LightMapScale->set(CurrentLight.image_scale);
-            Sh.h_ImageCol[1]  ->set(CurrentLight.image      );
+            Sh.Img[1]         ->set(CurrentLight.image      );
          }
          Bool clear=SetLum();
          if(!Renderer._ds->multiSample()) // 1-sample
@@ -1294,7 +1294,7 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
          if(Renderer._water_nrm)
          {
             D.depth2DOn(); D.stencil(STENCIL_WATER_TEST, STENCIL_REF_WATER);
-            Sh.h_ImageDepth->set(Renderer._water_ds); // set water depth
+            Sh.Depth->set(Renderer._water_ds); // set water depth
 
             if(CurrentLight.shadow)
             {
@@ -1307,7 +1307,7 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
             SetWaterLum();
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightDir(CurrentLight.shadow, false, true)->draw(&CurrentLight.rect); // always use Quality Specular for Water
 
-            Sh.h_ImageDepth->set(Renderer._ds_1s); // restore default depth
+            Sh.Depth->set(Renderer._ds_1s); // restore default depth
             D.depth2DOff(); D.stencil(STENCIL_NONE);
          }
       }break;
@@ -1354,7 +1354,7 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
          if(Renderer._water_nrm)
          {
             D.depth2DOn(); D.stencil(STENCIL_WATER_TEST, STENCIL_REF_WATER);
-            Sh.h_ImageDepth->set(Renderer._water_ds); // set water depth
+            Sh.Depth->set(Renderer._water_ds); // set water depth
 
             if(CurrentLight.shadow)
             {
@@ -1367,7 +1367,7 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
             SetWaterLum();
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightPoint(CurrentLight.shadow, false, true)->draw(&CurrentLight.rect); // always use Quality Specular for Water
 
-            Sh.h_ImageDepth->set(Renderer._ds_1s); // restore default depth
+            Sh.Depth->set(Renderer._ds_1s); // restore default depth
             D.depth2DOff(); D.stencil(STENCIL_NONE);
          }
       }break;
@@ -1414,7 +1414,7 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
          if(Renderer._water_nrm)
          {
             D.depth2DOn(); D.stencil(STENCIL_WATER_TEST, STENCIL_REF_WATER);
-            Sh.h_ImageDepth->set(Renderer._water_ds); // set water depth
+            Sh.Depth->set(Renderer._water_ds); // set water depth
 
             if(CurrentLight.shadow)
             {
@@ -1427,7 +1427,7 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
             SetWaterLum();
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightLinear(CurrentLight.shadow, false, true)->draw(&CurrentLight.rect); // always use Quality Specular for Water
 
-            Sh.h_ImageDepth->set(Renderer._ds_1s); // restore default depth
+            Sh.Depth->set(Renderer._ds_1s); // restore default depth
             D.depth2DOff(); D.stencil(STENCIL_NONE);
          }
       }break;
@@ -1474,7 +1474,7 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
          if(Renderer._water_nrm)
          {
             D.depth2DOn(); D.stencil(STENCIL_WATER_TEST, STENCIL_REF_WATER);
-            Sh.h_ImageDepth->set(Renderer._water_ds); // set water depth
+            Sh.Depth->set(Renderer._water_ds); // set water depth
 
             if(CurrentLight.shadow)
             {
@@ -1487,7 +1487,7 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
             SetWaterLum();
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetLightCone(CurrentLight.shadow, CurrentLight.image?1:0, false, true)->draw(&CurrentLight.rect); // always use Quality Specular for Water
 
-            Sh.h_ImageDepth->set(Renderer._ds_1s); // restore default depth
+            Sh.Depth->set(Renderer._ds_1s); // restore default depth
             D.depth2DOff(); D.stencil(STENCIL_NONE);
          }
       }break;
@@ -1570,7 +1570,6 @@ void DrawLights()
    {
       REPAO(Lights).draw(); // apply in backward order to leave main shadow map in the end
       RestoreLightSettings(); // restore this because camera matrix may have changed even when not rendering shadows, but when using stereoscopic rendering and setting cameras for each eye
-      MaterialClear();
    }
 }
 /******************************************************************************/

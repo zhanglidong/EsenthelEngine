@@ -119,11 +119,10 @@ void LayeredClouds::commit()
       LC.CL[i]->set(cl);
    }
 
-   Sh.h_ImageCol[0]->set(layer[0].image());
-   Sh.h_ImageCol[1]->set(layer[1].image());
-   Sh.h_ImageCol[2]->set(layer[2].image());
-   Sh.h_ImageCol[3]->set(layer[3].image());
-   MaterialClear();
+   Sh.Img[0]->set(layer[0].image());
+   Sh.Img[1]->set(layer[1].image());
+   Sh.Img[2]->set(layer[2].image());
+   Sh.Img[3]->set(layer[3].image());
 }
 Bool LayeredClouds::wantDepth()C {return _layers && !merge_with_sky && frac()<1;}
 void LayeredClouds::draw()
@@ -651,15 +650,15 @@ void VolumetricClouds::draw()
       VolCloud.Cloud->set(c);
 
       cloud.checkBuild(); // check if there are any finished image builds
-      Sh.h_ImageVolXY[0]->set(cloud._image); Sh.h_ImageVolXY[0]->_sampler=&SamplerLinearCWW;
-                                             Sh.h_ImageVolXY[1]->_sampler=&SamplerLinearWrap;
+      Sh.VolXY[0]->set(cloud._image); Sh.VolXY[0]->_sampler=&SamplerLinearCWW;
+                                      Sh.VolXY[1]->_sampler=&SamplerLinearWrap; // reserved for detail map
 
       Rect ext_rect, *rect=null; // set rect, after setting render target
       if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(Renderer.pixelToScreenSize(1));} // when not rendering entire viewport, then extend the rectangle, add +1 because of texture filtering, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
 
       VolCloud.Clouds->draw(rect);
-      Sh.h_ImageVolXY[0]->_sampler=null;
-      Sh.h_ImageVolXY[1]->_sampler=null;
+      Sh.VolXY[0]->_sampler=null;
+      Sh.VolXY[1]->_sampler=null;
 
       Bool gamma=LINEAR_GAMMA, swap=(gamma && Renderer._col->canSwapRTV()); if(swap){gamma=false; Renderer._col->swapRTV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
       Renderer.set(Renderer._col, null, true);
@@ -670,7 +669,7 @@ void VolumetricClouds::draw()
       Sh.h_SkyFracMulAdd->set(mul_add);
 
       Sh.h_Color[0]->set(color_s);
-      Sh.h_ImageImgXY->set(dest);
+      Sh.ImgXY->set(dest);
       VolCloud.CloudsDraw[gamma]->draw();
       if(swap)Renderer._col->swapRTV(); // restore
    }
@@ -695,9 +694,9 @@ void VolumetricClouds::shadowMap()
       VolCloud.CloudMap->set(c);
 
       cloud.checkBuild(); // check if there are any finished image builds
-      Sh.h_ImageVolXY[0]->set(cloud._image);
-      Sh.h_ImageVolXY[0]->_sampler=&SamplerLinearCWW; VolCloud.CloudsMap->draw();
-      Sh.h_ImageVolXY[0]->_sampler=null;
+      Sh.VolXY[0]->set(cloud._image);
+      Sh.VolXY[0]->_sampler=&SamplerLinearCWW; VolCloud.CloudsMap->draw();
+      Sh.VolXY[0]->_sampler=null;
    }
 }
 /******************************************************************************/

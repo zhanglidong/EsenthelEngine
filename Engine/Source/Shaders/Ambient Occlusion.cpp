@@ -27,6 +27,7 @@ BUFFER(AOConstants)
 BUFFER_END
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
+// Img=Nrm, Depth=depth
 Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
            NOPERSP Vec2 inPosXY:TEXCOORD1,
            NOPERSP PIXEL                         ,
@@ -41,7 +42,7 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
    {
       Vec p=GetPos(TexDepthRawPoint(inTex), inPosXY); z=p.z; // !! for AO shader depth is already linearized !!
    #if 1 // sharp normal, looks better
-      Vec n=TexLod(Nrm, inTex).xyz; // use linear filtering because Nrm may be bigger
+      Vec n=TexLod(Img, inTex).xyz; // use linear filtering because 'Img' may be bigger
       #if !SIGNED_NRM_RT
          n-=0.5; // normally it should be "n=n*2-1", however since the normal doesn't need to be normalized, we can just do -0.5
       #endif
@@ -58,8 +59,8 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
 
       // read two normals from texture, convert to -1..1 scale and average them
       // ((n1*2-1) + (n2*2-1))/2 = n1+n2-1
-      Vec n=TexLod(Nrm, inTex+RTSize.xy*0.5*smooth_ru).xyz+ // apply 0.5 scale so we get a smooth texel from 4 values using bilinear filtering
-            TexLod(Nrm, inTex-RTSize.xy*0.5*smooth_ld).xyz; // apply 0.5 scale so we get a smooth texel from 4 values using bilinear filtering
+      Vec n=TexLod(Img, inTex+RTSize.xy*0.5*smooth_ru).xyz+ // apply 0.5 scale so we get a smooth texel from 4 values using bilinear filtering
+            TexLod(Img, inTex-RTSize.xy*0.5*smooth_ld).xyz; // apply 0.5 scale so we get a smooth texel from 4 values using bilinear filtering
       #if !SIGNED_NRM_RT
          n-=2*0.5; // same as above (0.5) but for 2 Tex reads
       #endif

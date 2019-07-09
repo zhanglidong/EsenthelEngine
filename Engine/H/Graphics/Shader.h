@@ -402,12 +402,12 @@ struct Shader : ShaderBase, GPU_API(Shader11, ShaderGL)
 struct Shader
 {
 #endif
-   void draw(                     C Rect *rect=null        );                             // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Col' shader image, 'rect'=screen rectangle for the effect (set null for full viewport)
-   void draw(C Image      *image, C Rect *rect=null        );                             // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Col' shader image, 'rect'=screen rectangle for the effect (set null for full viewport)
-   void draw(C Image      &image, C Rect *rect=null        ) {draw(&image  , rect     );} // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Col' shader image, 'rect'=screen rectangle for the effect (set null for full viewport)
-   void draw(                     C Rect *rect, C Rect &tex);                             // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Col' shader image, 'rect'=screen rectangle for the effect (set null for full viewport), 'tex'=source image texture coordinates
-   void draw(C Image      *image, C Rect *rect, C Rect &tex);                             // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Col' shader image, 'rect'=screen rectangle for the effect (set null for full viewport), 'tex'=source image texture coordinates
-   void draw(C Image      &image, C Rect *rect, C Rect &tex) {draw(&image  , rect, tex);} // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Col' shader image, 'rect'=screen rectangle for the effect (set null for full viewport), 'tex'=source image texture coordinates*/
+   void draw(                     C Rect *rect=null        );                             // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Img' shader image, 'rect'=screen rectangle for the effect (set null for full viewport)
+   void draw(C Image      *image, C Rect *rect=null        );                             // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Img' shader image, 'rect'=screen rectangle for the effect (set null for full viewport)
+   void draw(C Image      &image, C Rect *rect=null        ) {draw(&image  , rect     );} // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Img' shader image, 'rect'=screen rectangle for the effect (set null for full viewport)
+   void draw(                     C Rect *rect, C Rect &tex);                             // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Img' shader image, 'rect'=screen rectangle for the effect (set null for full viewport), 'tex'=source image texture coordinates
+   void draw(C Image      *image, C Rect *rect, C Rect &tex);                             // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Img' shader image, 'rect'=screen rectangle for the effect (set null for full viewport), 'tex'=source image texture coordinates
+   void draw(C Image      &image, C Rect *rect, C Rect &tex) {draw(&image  , rect, tex);} // apply custom 2D effect on the screen, 'image'=image to automatically set as 'Img' shader image, 'rect'=screen rectangle for the effect (set null for full viewport), 'tex'=source image texture coordinates*/
 };
 /******************************************************************************/
 struct ShaderFile // Shader File

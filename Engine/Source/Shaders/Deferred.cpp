@@ -216,11 +216,11 @@ void PS
          #endif
             {
             #if MODEL>=SM_4
-               Flt TexSize, TexHeight; Col.GetDimensions(TexSize, TexHeight);
+               Flt TexWidth, TexHeight; Col.GetDimensions(TexWidth, TexHeight);
             #else
-               Flt TexSize=DEFAULT_TEX_SIZE;
+               Flt TexWidth=DEFAULT_TEX_SIZE;
             #endif
-               Flt lod=Max(0, GetLod(I.tex, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
+               Flt lod=Max(0, GetLod(I.tex, TexWidth)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
              //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
 
             #if RELIEF_TAN_POS
@@ -244,7 +244,7 @@ void PS
             #endif
                tpos.xy*=-scale;
 
-               Flt length=Length(tpos.xy) * TexSize / Pow(2, lod);
+               Flt length=Length(tpos.xy) * TexWidth / Pow(2, lod);
                if(RELIEF_STEPS_MUL!=1)if(lod>0)length*=RELIEF_STEPS_MUL; // don't use this for first LOD
 
                I.tex-=tpos.xy*0.5;
@@ -434,8 +434,8 @@ void PS
                if(materials>=3)bump_mul.z=MultiMaterial2Bump(); if(materials==3){bump_mul.xyz *=I.material.xyz ; avg_bump=Sum(bump_mul.xyz );}
                if(materials>=4)bump_mul.w=MultiMaterial3Bump(); if(materials==4){bump_mul.xyzw*=I.material.xyzw; avg_bump=Sum(bump_mul.xyzw);}
 
-               Flt TexSize=DEFAULT_TEX_SIZE, // here we have 2..4 textures, so use a default value
-                   lod=Max(0, GetLod(I.tex, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
+               Flt TexWidth=DEFAULT_TEX_SIZE, // here we have 2..4 textures, so use a default value
+                   lod=Max(0, GetLod(I.tex, TexWidth)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
              //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
 
             #if RELIEF_TAN_POS
@@ -459,7 +459,7 @@ void PS
             #endif
                tpos.xy*=-scale;
 
-               Flt length=Length(tpos.xy) * TexSize / Pow(2, lod);
+               Flt length=Length(tpos.xy) * TexWidth / Pow(2, lod);
                if(RELIEF_STEPS_MUL!=1)if(lod>0)length*=RELIEF_STEPS_MUL; // don't use this for first LOD
 
              //I.tex-=tpos.xy*0.5;

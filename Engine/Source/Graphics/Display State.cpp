@@ -692,7 +692,13 @@ void DisplayState::linearGamma(Bool on)
       SRGBToDisplayArray=(on ? ByteSRGBToLinearArray : ByteToFltArray);
       Sh.h_FontCur  =Sh.h_Font[false][on];
       Sh.h_FontCurSP=Sh.h_FontSP     [on];
-      D.alphaFactor(TRANSPARENT); // TRANSPARENT gives the same Vec4 for sRGB and non-sRGB, have to reset it because '_alpha_factor_v4' depends on 'SRGBToDisplay'
+      // alpha factor depends on gamma, have to reset it
+   #if 1 // keep old value
+      if(D._alpha_factor.any()) // we can do it only if 'any' because all zeroes have the same value for all gammas and don't need reset
+         {Color old=D._alpha_factor; D._alpha_factor.r^=1; D.alphaFactor(old);}
+   #else // clear to zero
+      D.alphaFactor(TRANSPARENT); MaterialClear(); // TRANSPARENT gives the same Vec4 for sRGB and non-sRGB, 'MaterialClear' must be called when changing 'D.alphaFactor'
+   #endif
    }
 }
 /******************************************************************************/

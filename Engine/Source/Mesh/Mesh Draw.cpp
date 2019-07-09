@@ -1551,7 +1551,7 @@ void MeshPart::drawBlend(C Vec4 *color)C
             if(no_blend)col.w=1; // force full alpha for non-blending techniques
             if(color   )col *=*color;
             Renderer.material_color_l->set(LinearToDisplay(col));
-            MaterialClear();
+            MaterialClear(); // we've changed material properties
          }
          s->begin(); render.set().draw();
          D.stencil(STENCIL_NONE);
@@ -1591,14 +1591,14 @@ void MeshPart::drawOverlay(C Image &image, C Color &color)C
       {
          SetSkinning();
        //D .alpha      (ALPHA_BLEND_FACTOR); not needed because ALPHA_BLEND_FACTOR is used everywhere in RM_OVERLAY
-         D .alphaFactor(TRANSPARENT);
+         D .alphaFactor(TRANSPARENT); // 'MaterialClear' called below
          D .depth      (true);
          D .cull       (true);
        /*D .depthWrite (false); not needed because false is used everywhere in RM_OVERLAY*/ Renderer.needDepthTest(); // !! 'needDepthTest' after 'depthWrite' !!
-         Sh.h_Color   [0]->set(color);
-         Sh.h_ImageCol[0]->set(image);
+         Sh.h_Color[0]->set(color);
+         Sh.Col  [0]->set(image);
          shader->begin (); render.set().draw();
-         MaterialClear ();
+         MaterialClear (); // we've changed texture and 'D.alphaFactor'
       }
    }
 }

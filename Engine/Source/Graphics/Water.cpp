@@ -48,11 +48,6 @@ WaterMtrl& WaterMtrl::validate()
 }
 void WaterMtrl::set()
 {
-   // Col[1], Col[2], ImgXF[0] reserved for 'setImages'
-   Sh.h_ImageCol[0]->set(     _color_map());
-   Sh.h_ImageNrm[0]->set(    _normal_map());
-   Sh.h_ImageRfl[0]->set(_reflection_map());
-
    if(WaterMtrlLast!=this)
    {
       WaterMtrlLast=this;
@@ -80,8 +75,10 @@ void WaterMtrl::set()
          SPSet("WaterRfl"   , 0);
          SPSet("WaterRfrRfl", 0);
       }
+      Sh.Col[0]->set(     _color_map());
+      Sh.Nrm[0]->set(    _normal_map());
+      Sh.Rfl[0]->set(_reflection_map());
    }
-   MaterialClear();
 }
 /******************************************************************************/
 Bool WaterMtrl::save(File &f, CChar *path)C
@@ -368,6 +365,8 @@ void WaterClass::end()
       D.sampler2D();
       D.stencil  (STENCIL_NONE);
 
+      MaterialClear(); // clear Materials because we've potentially set WaterMaterials which share the same textures FIXME is this the right place to call this?
+
       if(!_use_secondary_rt)
       {
          endImages();
@@ -397,13 +396,12 @@ void WaterClass::setImages(Image *src, Image *depth)
 {
    Sh.h_ImageCol  [1]->set(Renderer._mirror_rt); Sh.h_ImageCol[1]->_sampler=&SamplerLinearClamp; // reflection
    Sh.h_ImageCol  [2]->set(          src      ); Sh.h_ImageCol[2]->_sampler=&SamplerLinearClamp; // solid underwater
-   Sh.h_ImageImgXF[0]->set(          depth    );                                                 // solid depth
+   Sh.ImgXF[0]->set(          depth    );                                                 // solid depth
 }
 void WaterClass::endImages()
 {
    Sh.h_ImageCol[1]->_sampler=null;
    Sh.h_ImageCol[2]->_sampler=null;
-   MaterialClear();
 }
 /******************************************************************************/
 Bool WaterClass::ocean()

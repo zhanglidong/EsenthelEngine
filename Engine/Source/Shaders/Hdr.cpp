@@ -17,10 +17,10 @@ Flt HdrDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
    if(step==0)
    {
       // use linear filtering because we're downsampling, for the first step use half precision for high performance, because there's a lot of data
-      VecH sum=TexLod(Col, Vec2(tex_min.x, tex_min.y)).rgb
-              +TexLod(Col, Vec2(tex_max.x, tex_min.y)).rgb
-              +TexLod(Col, Vec2(tex_min.x, tex_max.y)).rgb
-              +TexLod(Col, Vec2(tex_max.x, tex_max.y)).rgb;
+      VecH sum=TexLod(Img, Vec2(tex_min.x, tex_min.y)).rgb
+              +TexLod(Img, Vec2(tex_max.x, tex_min.y)).rgb
+              +TexLod(Img, Vec2(tex_min.x, tex_max.y)).rgb
+              +TexLod(Img, Vec2(tex_max.x, tex_max.y)).rgb;
 
    #if !LINEAR_GAMMA // convert from sRGB to linear
       sum=SRGBToLinearFast(sum)/4; // SRGBToLinearFast(sum/4)*4
@@ -71,7 +71,7 @@ VecH4 Hdr_PS(NOPERSP Vec2 inTex:TEXCOORD,
              NOPERSP PIXEL              ,
              uniform Bool dither        ):COLOR
 {
-   VecH4 col=TexLod  (Col , inTex); // can't use 'TexPoint' because 'Col' can be supersampled
+   VecH4 col=TexLod  (Img , inTex); // can't use 'TexPoint' because 'Img' can be supersampled
    Half  lum=TexPoint(ImgX, Vec2(0, 0)).x;
 
    /* full formula

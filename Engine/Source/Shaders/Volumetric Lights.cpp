@@ -129,7 +129,7 @@ VecH4 Volumetric_PS(NOPERSP Vec2 inTex:TEXCOORD,
                     uniform Bool add           ,
                     uniform Int  samples=6     ):COLOR
 {
-   VecH vol=TexLod(Col, inTex).rgb; // use linear filtering because Col may be smaller
+   VecH vol=TexLod(Img, inTex).rgb; // use linear filtering because 'Img' may be smaller
 
    UNROLL for(Int i=0; i<samples; i++)
    {
@@ -142,7 +142,7 @@ VecH4 Volumetric_PS(NOPERSP Vec2 inTex:TEXCOORD,
       if(samples==12)t=ImgSize.xy*BlendOfs12[i]+inTex;
     //if(samples==13)t=ImgSize.xy*BlendOfs13[i]+inTex;
 
-      vol+=TexLod(Col, t).rgb; // use linear filtering because Col may be smaller and texcoords are not rounded
+      vol+=TexLod(Img, t).rgb; // use linear filtering because 'Img' may be smaller and texcoords are not rounded
    }
    vol/=samples+1;
    vol =Min(vol, VolMax);

@@ -576,15 +576,15 @@ Image     Col, Col1, Col2, Col3,
           Det, Det1, Det2, Det3,
           Mac, Mac1, Mac2, Mac3,
           Lum;
+ImageCube Rfl, Rfl1, Rfl2, Rfl3;
+
 ImageH    ImgX, ImgX1, ImgX2, ImgX3;
 ImageF    ImgXF, ImgXF1, Depth;
 ImageH2   ImgXY;
-ImageCube Rfl, Rfl1, Rfl2, Rfl3;
+ImageCube Cub, Cub1;
 
 #if MODEL>=SM_4
-Texture2DMS<VecH4, MS_SAMPLES> ColMS;
-Texture2DMS<VecH4, MS_SAMPLES> NrmMS;
-Texture2DMS<VecH4, MS_SAMPLES> LumMS;
+Texture2DMS<VecH4, MS_SAMPLES> ImgMS, ImgMS1;
 Texture2DMS<Half , MS_SAMPLES> ImgXMS;
 Texture2DMS<Flt  , MS_SAMPLES> DepthMS;
 #endif
@@ -1229,7 +1229,7 @@ inline void UnpackNormal(in out VecH nrm, uniform Int quality)
 }
 inline VecH4 GetNormal(Vec2 tex, uniform Int quality)
 {
-   VecH4 nrm=TexPoint(Nrm, tex); UnpackNormal(nrm.xyz, quality);
+   VecH4 nrm=TexPoint(Img, tex); UnpackNormal(nrm.xyz, quality);
 #if SIGNED_NRM_RT && FULL_PRECISION_SPEC
    nrm.w=nrm.w*0.5+0.5; // -1..1 -> 0..1
 #endif
@@ -1238,7 +1238,7 @@ inline VecH4 GetNormal(Vec2 tex, uniform Int quality)
 #if MODEL>=SM_4
 inline VecH4 GetNormalMS(VecI2 pixel, UInt sample, uniform Int quality)
 {
-   VecH4 nrm=TexSample(NrmMS, pixel, sample); UnpackNormal(nrm.xyz, quality);
+   VecH4 nrm=TexSample(ImgMS, pixel, sample); UnpackNormal(nrm.xyz, quality);
 #if SIGNED_NRM_RT && FULL_PRECISION_SPEC
    nrm.w=nrm.w*0.5+0.5; // -1..1 -> 0..1
 #endif
