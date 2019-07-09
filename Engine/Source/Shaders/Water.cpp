@@ -76,6 +76,11 @@ void Surface_VS
    outVtx=Project(outPos);
 }
 /******************************************************************************/
+
+// Col, Nrm, Rfl = water material textures
+// ImgXF = solid underwater depth
+// these must be the same as "Apply" shader - Img1=reflection (2D image), Img2=solid underwater
+
 void Surface_PS
 (
    Vec  inPos  :TEXCOORD0,
@@ -199,7 +204,7 @@ void Surface_PS
       // reflection
       Half  rfl=WaterRfl*Sat(inPDF);
           inTex=Mid ((inTex+refract*WaterRfrRfl)*WaterRflMulAdd.xy+WaterRflMulAdd.zw, WaterClamp.xy, WaterClamp.zw);
-      water_col=Lerp(water_col, TexLodClamp(Col1, inTex), rfl); // use LOD to avoid anisotropic going out of clamp region // FIXME
+      water_col=Lerp(water_col, TexLodClamp(Img1, inTex), rfl); // use LOD to avoid anisotropic going out of clamp region
 
       // glow and specular
     //water_col.a  +=lum.w*      0.5; // glow
@@ -207,7 +212,7 @@ void Surface_PS
 
       if(soft)
       {
-              VecH4 solid_col=TexLodClamp(Col2, col_tex); // FIXME
+              VecH4 solid_col=TexLodClamp(Img2, col_tex);
          O_col=Lerp(solid_col, water_col, alpha);
       }else
       {
@@ -217,8 +222,8 @@ void Surface_PS
 }
 /******************************************************************************/
 
-//FIXME
-// Img=Nrm (this is required for GetNormal, GetNormalMS, which are used for Lights - Dir, Point, etc.), ImgXF=WaterDepth, 
+// Img=Water RT Nrm (this is required for 'GetNormal', 'GetNormalMS', which are used for Lights - Dir, Point, etc.), ImgXF=WaterDepth, Img3=Water RT Col, Col=Water RT Lum
+// these must be the same as "Surface" shader - Img1=reflection (2D image), Img2=solid underwater
 
 VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                NOPERSP Vec2 inPosXY:TEXCOORD1,
@@ -244,8 +249,8 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          water_z=LinearizeDepth(water_z);
          solid_z=LinearizeDepth(solid_z);
 
-         water_col=TexLod(Col3, inTex); // FIXME
-         VecH4 lum=TexLod(Lum , inTex); // water surface light FIXME
+         water_col=TexLod(Img3, inTex);
+         VecH4 lum=TexLod(Col , inTex); // water surface light
          VecH  nrm=GetNormal(inTex, false).xyz; // water surface normals
 
          Matrix3 mtrx;
@@ -277,17 +282,17 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          Half  pdf=Sat(2-Abs(DistPointPlane(pos, WaterPlnPos, WaterPlnNrm))), // plane distance factor, must be = 1 for dist=0..1 (wave scale)
                rfl=WaterRfl*pdf;
              inTex=Mid ((inTex+refract*WaterRfrRfl)*WaterRflMulAdd.xy+WaterRflMulAdd.zw, WaterClamp.xy, WaterClamp.zw);
-         water_col=Lerp(water_col, TexLodClamp(Col1, inTex), rfl); // use LOD to avoid anisotropic going out of clamp region // FIXME
+         water_col=Lerp(water_col, TexLodClamp(Img1, inTex), rfl); // use LOD to avoid anisotropic going out of clamp region
 
          // glow and specular
        //water_col.a  +=lum.w*      0.5; // glow
          water_col.rgb+=lum.w*lum.w*0.5; // specular
       }
-            VecH4 solid_col=TexClamp(Col2, col_tex); // FIXME
+            VecH4 solid_col=TexClamp(Img2, col_tex);
       return Lerp(solid_col, water_col, alpha);
    }else
    {
-      VecH4 solid_col=TexLod(Col2, inTex); // FIXME
+      VecH4 solid_col=TexLod(Img2, inTex);
    #if FLOW
       BRANCH if(DEPTH_SMALLER(water_z, solid_z)) // branch works faster when most of the screen is above water
    #endif
@@ -298,8 +303,8 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          Flt dz   =solid_z-water_z;
              alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03);
 
-         VecH4 water_col=TexLod(Col3, inTex), // FIXME
-                     lum=TexLod(Lum , inTex); // water surface light // FIXME
+         VecH4 water_col=TexLod(Img3, inTex),
+                     lum=TexLod(Col , inTex); // water surface light
          VecH        nrm=GetNormal(inTex, false).xyz; // water surface normals
 
          Matrix3 mtrx;
@@ -317,7 +322,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          Half  pdf=Sat(2-Abs(DistPointPlane(pos, WaterPlnPos, WaterPlnNrm))), // plane distance factor, needs to be = 1 for dist=0..1 (wave scale)
                rfl=WaterRfl*pdf;
              inTex=Mid ((inTex+refract*WaterRfrRfl)*WaterRflMulAdd.xy+WaterRflMulAdd.zw, WaterClamp.xy, WaterClamp.zw);
-         water_col=Lerp(water_col, TexLod(Col1, inTex), rfl); // FIXME
+         water_col=Lerp(water_col, TexLod(Img1, inTex), rfl);
 
          // glow and specular
        //water_col.a  +=lum.w*      0.5; // glow
@@ -393,7 +398,7 @@ VecH4 Under_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
    VecH water_col=Lerp(WaterUnderCol0, WaterUnderCol1, water_density);
 
-   return refract ? Lerp(TexLod(Col, inTex), VecH4(water_col, 0), opacity) // FIXME
+   return refract ? Lerp(TexLod(Img, inTex), VecH4(water_col, 0), opacity)
                   :                          VecH4(water_col    , opacity);
 }
 /******************************************************************************/

@@ -172,7 +172,7 @@ WaterClass& WaterClass::max1Light(Bool on) {/*if(_max_1_light!=on)*/_max_1_light
 /******************************************************************************/
 void WaterClass::prepare() // this is called at the start
 {
-   WaterMtrlLast=null;
+   WaterMtrlLast=null; // reset 'WaterMtrlLast' because we may have 'set' regular Materials which share the same texture shader images as WaterMaterials, so make sure we will reset them when setting water materials
 
   _under_mtrl        =null;
   _draw_plane_surface=false;
@@ -365,7 +365,7 @@ void WaterClass::end()
       D.sampler2D();
       D.stencil  (STENCIL_NONE);
 
-      MaterialClear(); // clear Materials because we've potentially set WaterMaterials which share the same textures FIXME is this the right place to call this?
+      MaterialClear(); // clear Materials because we've potentially set WaterMaterials which share the same textures
 
       if(!_use_secondary_rt)
       {
@@ -394,14 +394,15 @@ void WaterClass::under(C PlaneM &plane, WaterMtrl &mtrl)
 /******************************************************************************/
 void WaterClass::setImages(Image *src, Image *depth)
 {
-   //FIXME Sh.ImageCol  [1]->set(Renderer._mirror_rt); Sh.ImageCol[1]->_sampler=&SamplerLinearClamp; // reflection
-   //FIXME Sh.ImageCol  [2]->set(          src      ); Sh.ImageCol[2]->_sampler=&SamplerLinearClamp; // solid underwater
-   Sh.ImgXF[0]->set(          depth    );                                                 // solid depth
+   // these are used by both draw surface and apply water shaders
+   Sh.Img  [1]->set(Renderer._mirror_rt); Sh.Img[1]->_sampler=&SamplerLinearClamp; // reflection
+   Sh.Img  [2]->set(          src      ); Sh.Img[2]->_sampler=&SamplerLinearClamp; // solid underwater
+   Sh.ImgXF[0]->set(          depth    );                                          // solid depth
 }
 void WaterClass::endImages()
 {
-   //FIXME Sh.ImageCol[1]->_sampler=null;
-   //FIXME Sh.ImageCol[2]->_sampler=null;
+   Sh.Img[1]->_sampler=null;
+   Sh.Img[2]->_sampler=null;
 }
 /******************************************************************************/
 Bool WaterClass::ocean()
