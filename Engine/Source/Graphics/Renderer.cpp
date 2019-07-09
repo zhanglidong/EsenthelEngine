@@ -966,9 +966,9 @@ Bool RendererClass::set(C ImageRTPtr &image)
       {
          set(_final, null, true); D.alpha(ALPHA_NONE);
          // we need to draw image*0.5f+0.5f
-         Sh.Color[0]->set (Vec4(0.5f, 0.5f, 0.5f, 0));
-         Sh.Color[1]->set (Vec4(0.5f, 0.5f, 0.5f, 1));
-         Sh.DrawC   ->draw(image);
+         Sh.Color[0]->set(Vec4(0.5f, 0.5f, 0.5f, 0));
+         Sh.Color[1]->set(Vec4(0.5f, 0.5f, 0.5f, 1));
+         (LINEAR_GAMMA ? Sh.DrawCG : Sh.DrawC)->draw(image);
       }
       return true;
    }

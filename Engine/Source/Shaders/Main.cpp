@@ -326,6 +326,8 @@ VecH4 DrawTexZ_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return VecH4(Tex(Img, inTe
 VecH4 DrawTexW_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return VecH4(Tex(Img, inTex).www, 1);}
 
 // these functions are used in Editor for previewing material textures, so use slow high precision versions to visually match original
+VecH4 DrawTexCG_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return SRGBToLinear(Tex(Img, inTex)*Color[0]+Color[1]);}
+
 VecH4 DrawTexXG_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return VecH4(SRGBToLinear(Tex(Img, inTex).x).xxx, 1);}
 VecH4 DrawTexYG_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return VecH4(SRGBToLinear(Tex(Img, inTex).y).xxx, 1);}
 VecH4 DrawTexZG_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR {return VecH4(SRGBToLinear(Tex(Img, inTex).z).xxx, 1);}
@@ -358,6 +360,7 @@ TECHNIQUE(DrawTexWG, Draw2DTex_VS(), DrawTexWG_PS());
 TECHNIQUE(DrawTexNrm, Draw2DTex_VS(), DrawTexNrm_PS());
 TECHNIQUE(Draw      ,      Draw_VS(),  Draw2DTex_PS());
 TECHNIQUE(DrawC     ,      Draw_VS(), Draw2DTexC_PS());
+TECHNIQUE(DrawCG    ,      Draw_VS(), DrawTexCG_PS());
 TECHNIQUE(DrawA     ,      Draw_VS(), Draw2DTexA_PS());
 
 VecH4 DrawX_PS (NOPERSP Vec2 inTex:TEXCOORD):COLOR {return VecH4(             Tex(ImgX, inTex)   .xxx, 1);}

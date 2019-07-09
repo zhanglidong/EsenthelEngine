@@ -429,6 +429,7 @@ void MainShaderClass::getTechniques()
    SetCol=get("SetCol");
    Draw  =get("Draw"  );
    DrawC =get("DrawC" );
+   DrawCG=get("DrawCG");
    DrawA =get("DrawA" );
    if(D.shaderModel()>=SM_4)
    {
