@@ -130,7 +130,7 @@ static void                SetWaterLum  ()
       D.depth2DOff(); D.clearCol(Vec4(D.ambientColorD(), 0));
       D.depth2DOn ();
    }
-   D.alpha(ALPHA_ADD); Sh.Img[0]->set(Renderer._nrm); Sh.ImgMS[0]->set(Renderer._nrm);
+   D.alpha(ALPHA_ADD); Sh.Img[0]->set(Renderer._water_nrm); Sh.ImgMS[0]->set(Renderer._water_nrm);
 }
 
 static void MapSoft()
