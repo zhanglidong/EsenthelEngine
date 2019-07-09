@@ -1462,13 +1462,13 @@ Bool RendererClass::waterPostLight()
 
       Water.set();
       Water.setImages(src, _water_ds);
-      Sh.Img[0]->set(_water_nrm); // Img0 required by shader 'GetNormal', 'GetNormalMS' functions
+      Sh.Img[0]->set(_water_nrm); // 'Img0' required by shader 'GetNormal', 'GetNormalMS' functions
       Sh.Img[3]->set(_water_col);
       Sh.Col[0]->set(_water_lum); MaterialClear(); // have to re-use Material texture shader image, because there are no other left, so have to call 'MaterialClear', no need for 'WaterMtrlLast' because we will don't draw any water after this, and later 'WaterMtrlLast' is automatically cleared at start of new water rendering
       REPS(_eye, _eye_num)
       {
          Water.setEyeViewport();
-         WS.Apply[refract][depth_test]->draw(src); // we need to output depth only if we need it for depth testing
+         WS.Apply[refract][depth_test]->draw(); // we need to output depth only if we need it for depth testing
       }
       if(depth_test)
       {
