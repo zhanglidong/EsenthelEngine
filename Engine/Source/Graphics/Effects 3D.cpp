@@ -20,7 +20,7 @@ void DrawVelocityBlur(Flt power, C Ball &ball)
       D .depthWrite(false); Renderer.needDepthTest(); // !! 'needDepthTest' after 'depthWrite' !!
       D .alpha     (ALPHA_NONE);
       D .stencil   (STENCIL_NONE);
-      VI.shader    (Mtn.h_Explosion);
+      VI.shader    (Mtn.Explosion);
       VI.cull      (true); ball.drawVI(true);
       VI.end       (    );
    }
@@ -85,12 +85,12 @@ void DrawLaser(C Color &color, C Color &middle_color, Flt middle_exponent, Flt r
       if(Renderer()==RM_AMBIENT)
       {
          VI.color (Color(255, 255, 255, 0));
-         VI.color2(Color(255, 255, 255, 0));
+         VI.color1(Color(255, 255, 255, 0));
       }else
       {
          VI.shader(Sh.h_Laser[normals]);
          VI.color (       color);
-         VI.color2(middle_color);
+         VI.color1(middle_color);
          Sh.h_Step->set(middle_exponent);
          if(color.a || middle_color.a)Renderer._has_glow=true;
       }

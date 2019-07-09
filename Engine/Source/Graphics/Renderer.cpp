@@ -237,13 +237,13 @@ void RendererClass::adaptEye(ImageRT &src, ImageRT &dest, Bool dither)
       ImageRTPtr next=temp; next.get(ImageRTDesc(s, s, IMAGERT_F32)); s/=4; // we could use 16-bit as according to calculations, the max error for 1920x1080, starting with 256x256 as first step and going down to 1x1, with average luminance of 1.0 (255 byte) is 0.00244140625 at the final stage, which gives 410 possible colors, however we may use some special tricks in the shader that requires higher precision (for example BRIGHT with Sqr and Sqrt later, or use Linear/sRGB)
       set(next, null, false);
       Sh.imgSize(*temp);
-      if(i){Sh.h_ImageImgXF[0]->set(temp); Hdr.h_HdrDS[1]->draw();}
-      else {Sh.h_ImageCol  [0]->set(temp); Hdr.h_HdrDS[0]->draw(null, D.screenToUV(D.viewRect()));}
+      if(i){Sh.h_ImageImgXF[0]->set(temp); Hdr.HdrDS[1]->draw();}
+      else {Sh.h_ImageCol  [0]->set(temp); Hdr.HdrDS[0]->draw(null, D.screenToUV(D.viewRect()));}
       temp=next;
    }
    Sh.h_Step->set(Pow(Mid(1/D.eyeAdaptationSpeed(), EPS, 1.0f), Time.d())); // can use EPS and not EPS_GPU because we're using Pow here and not on GPU
-   Sh.h_ImageImgXF[0]->set(temp); Sh.h_ImageImgXF[1]->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.h_HdrUpdate                                                  ->draw();
-                                  Sh.h_ImageImgX [0]->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.h_Hdr[dither && src.highPrecision() && !dest.highPrecision()]->draw(src);
+   Sh.h_ImageImgXF[0]->set(temp); Sh.h_ImageImgXF[1]->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.HdrUpdate                                                  ->draw();
+                                  Sh.h_ImageImgX [0]->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.Hdr[dither && src.highPrecision() && !dest.highPrecision()]->draw(src);
    MaterialClear();
 }
 INLINE Shader* GetBloomDS(Bool glow, Bool viewport_clamp, Bool half, Bool saturate, Bool gamma) {Shader* &s=Sh.h_BloomDS[glow][viewport_clamp][half][saturate][gamma]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow, viewport_clamp, half, saturate, gamma); return s;}
@@ -307,10 +307,10 @@ static void SetMotionBlurParams(Flt pixels) // !! this needs to be called when t
    Vec2 viewport_center=D._view_active.recti.centerF()/Renderer.res(), size2=D._unscaled_size*(2/scale)*limit;
    // pos=(inTex-viewport_center)*size2;
    // pos=inTex*size2 - viewport_center*size2;
-   Mtn.h_MotionUVMulAdd     ->setConditional(Vec4(size2.x, size2.y, -viewport_center.x*size2.x, -viewport_center.y*size2.y));
+   Mtn.MotionUVMulAdd     ->setConditional(Vec4(size2.x, size2.y, -viewport_center.x*size2.x, -viewport_center.y*size2.y));
 
-   Mtn.h_MotionVelScaleLimit->setConditional(Vec4(D.scale()/D.viewFovTanFull().x*limit, -D.scale()/D.viewFovTanFull().y*limit, scale, limit));
-   Mtn.h_MotionPixelSize    ->setConditional(Flt(MAX_MOTION_BLUR_PIXEL_RANGE)/Renderer.res()); // the same value is used for 'SetDirs' (D.motionRes) and 'Blur' (D.res)
+   Mtn.MotionVelScaleLimit->setConditional(Vec4(D.scale()/D.viewFovTanFull().x*limit, -D.scale()/D.viewFovTanFull().y*limit, scale, limit));
+   Mtn.MotionPixelSize    ->setConditional(Flt(MAX_MOTION_BLUR_PIXEL_RANGE)/Renderer.res()); // the same value is used for 'SetDirs' (D.motionRes) and 'Blur' (D.res)
 }
 // !! Assumes that 'ImgClamp' was already set !!
 Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
@@ -344,8 +344,8 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
    ImageRTDesc rt_desc(res.x, res.y, D.signedVelRT() ? IMAGERT_RGB_S : IMAGERT_RGB); // Alpha not used (XY=Dir, Z=Dir.length)
    ImageRTPtr  converted(rt_desc);
    Shader     *shader;
-   if(camera_object)shader=Mtn.h_Convert[true ][!D._view_main.full];else
-   {                shader=Mtn.h_Convert[false][!D._view_main.full];
+   if(camera_object)shader=Mtn.Convert[true ][!D._view_main.full];else
+   {                shader=Mtn.Convert[false][!D._view_main.full];
                     SetFastVel();
    }
    set(converted, null, false);
@@ -382,13 +382,13 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
     //Sh.imgSize(*dilated); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
       if(ortho) // do orthogonal first (this will result in slightly less artifacts when the camera is moving)
       {
-         helper .get(rt_desc); set(helper , null, false); ortho->h_DilateX[diagonal]->draw(dilated, rect);
-         dilated.get(rt_desc); set(dilated, null, false); ortho->h_DilateY[diagonal]->draw(helper , rect);
+         helper .get(rt_desc); set(helper , null, false); ortho->DilateX[diagonal]->draw(dilated, rect);
+         dilated.get(rt_desc); set(dilated, null, false); ortho->DilateY[diagonal]->draw(helper , rect);
       }
       REP(dilate_round_steps)
       {
          if(!helper || helper==converted)helper.get(rt_desc);else helper->discard(); // don't write to original 'converted' in the next step, because we need it later
-         set(helper, null, false); Mtn.h_Dilate->draw(dilated, rect); Swap(dilated, helper);
+         set(helper, null, false); Mtn.Dilate->draw(dilated, rect); Swap(dilated, helper);
       }
    }
    if(stage==RS_VEL_DILATED && set(dilated))return true;
@@ -397,17 +397,17 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
    Sh.h_ImageCol[1]->set(dilated); MaterialClear();
    rt_desc.rt_type=(D.signedVelRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA); // XY=Dir#0, ZW=Dir#1
    helper.get(rt_desc); // we always need to call this because 'helper' can be set to 'converted'
-   set(helper, null, false); Mtn.h_SetDirs[!D._view_main.full]->draw(converted, rect);
+   set(helper, null, false); Mtn.SetDirs[!D._view_main.full]->draw(converted, rect);
    if(stage==RS_VEL_LEAK && set(helper))return true;
 
    Sh.h_ImageCol[1]->set(helper); MaterialClear();
    set(&dest, null, true);
-   Mtn.h_Blur[dither /*&& src.highPrecision()*/ && !dest.highPrecision()]->draw(src); // here blurring may generate high precision values
+   Mtn.Blur[dither /*&& src.highPrecision()*/ && !dest.highPrecision()]->draw(src); // here blurring may generate high precision values
 
    return false;
 }
-INLINE Shader* GetDofDS(Bool clamp , Bool realistic, Bool half) {Shader* &s=Dof.h_DofDS[clamp ][realistic][half]; if(SLOW_SHADER_LOAD && !s)s=Dof.getDS(clamp , realistic, half); return s;}
-INLINE Shader* GetDof  (Bool dither, Bool realistic           ) {Shader* &s=Dof.h_Dof  [dither][realistic]      ; if(SLOW_SHADER_LOAD && !s)s=Dof.get  (dither, realistic      ); return s;}
+INLINE Shader* GetDofDS(Bool clamp , Bool realistic, Bool half) {Shader* &s=Dof.DofDS[clamp ][realistic][half]; if(SLOW_SHADER_LOAD && !s)s=Dof.getDS(clamp , realistic, half); return s;}
+INLINE Shader* GetDof  (Bool dither, Bool realistic           ) {Shader* &s=Dof.Dof  [dither][realistic]      ; if(SLOW_SHADER_LOAD && !s)s=Dof.get  (dither, realistic      ); return s;}
 // !! Assumes that 'ImgClamp' was already set !!
 void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool dither)
 { // Depth of Field shader does not require stereoscopic processing because it just reads the depth buffer
@@ -421,13 +421,13 @@ void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool dither)
  C DepthOfField::Pixel &pixel=Dof.pixel(Round(fxH()*(5.0f/1080))); // use 5 pixel range blur on a 1080 resolution
 
    Flt range_inv=1.0f/Max(D.dofRange(), EPS);
-   Dof.h_DofParams->setConditional(Vec4(D.dofIntensity(), D.dofFocus(), range_inv, -D.dofFocus()*range_inv));
+   Dof.DofParams->setConditional(Vec4(D.dofIntensity(), D.dofFocus(), range_inv, -D.dofFocus()*range_inv));
 
    set(rt0, null, false); Rect ext_rect, *rect=null; if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(Renderer.pixelToScreenSize(pixel.pixels+1));} // when not rendering entire viewport, then extend the rectangle because of blurs checking neighbors, add +1 because of texture filtering, we can ignore stereoscopic there because that's always disabled for not full viewports, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize' and call after setting RT
    Sh.imgSize( src); GetDofDS(!D._view_main.full, D.dofFocusMode(), half)->draw(src, rect);
  //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
-   set(rt1, null, false);                 pixel.h_BlurX->draw(rt0, rect);
-   set(rt0, null, false); rt0->discard(); pixel.h_BlurY->draw(rt1, rect);
+   set(rt1, null, false);                 pixel.BlurX->draw(rt0, rect);
+   set(rt0, null, false); rt0->discard(); pixel.BlurY->draw(rt1, rect);
 
    set(&dest, null, true);
    Sh.h_ImageCol[1]->set(rt0); MaterialClear();
@@ -707,7 +707,7 @@ RendererClass& RendererClass::operator()(void (&render)())
             }
             if(_vel)
             {
-               Mtn.load(); set(_vel, _ds, true); Mtn.h_ClearSkyVel->draw(); // use DS because we use it for 'D.depth2D' optimization
+               Mtn.load(); set(_vel, _ds, true); Mtn.ClearSkyVel->draw(); // use DS because we use it for 'D.depth2D' optimization
             }
             D.depth2DOff();
          }
@@ -1299,7 +1299,7 @@ void RendererClass::waterPreLight()
 }
 inline Shader* AmbientOcclusion::get(Int quality, Bool jitter, Bool normal)
 {
-   Shader* &s=h_AO[quality][jitter][normal]; if(!s)
+   Shader* &s=AO[quality][jitter][normal]; if(!s)
    {
       if(!shader)shader=ShaderFiles("Ambient Occlusion");
       s=shader->get(S8+"AO"+quality+(jitter?'J':'\0')+(normal?'N':'\0'));
@@ -1470,7 +1470,7 @@ Bool RendererClass::waterPostLight()
       REPS(_eye, _eye_num)
       {
          Water.setEyeViewport();
-         WS.h_Apply[refract][depth_test]->draw(src); // we need to output depth only if we need it for depth testing
+         WS.Apply[refract][depth_test]->draw(src); // we need to output depth only if we need it for depth testing
       }
       if(depth_test)
       {
@@ -1844,8 +1844,8 @@ void RendererClass::volumetric()
       set(_col, null, true);
       SPSet("VolMax", Vec(D.volMax()));
       Sh.imgSize(*_vol);
-      D.alpha(D.volAdd() ? ALPHA_ADD        : ALPHA_BLEND_DEC);
-             (D.volAdd() ? VL.h_VolumetricA : VL.h_Volumetric)->draw(_vol);
+      D.alpha(D.volAdd() ? ALPHA_ADD      : ALPHA_BLEND_DEC);
+             (D.volAdd() ? VL.VolumetricA : VL.Volumetric)->draw(_vol);
      _vol.clear();
    }
 }
@@ -1874,7 +1874,7 @@ void RendererClass::refract() // !! assumes that 'finalizeGlow' was called !!
       SPSet("WaterDns"      , Vec2(Mid(under.density_underwater , 0.0f, 1-EPS_GPU), under.density_underwater_add)); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
       SPSet("WaterUnderCol0", SRGBToDisplay(under.color_underwater0));
       SPSet("WaterUnderCol1", SRGBToDisplay(under.color_underwater1));
-      REPS(_eye, _eye_num)WS.h_Under[refract]->draw(*src, setEyeParams());
+      REPS(_eye, _eye_num)WS.Under[refract]->draw(*src, setEyeParams());
    }
 }
 void RendererClass::postProcess()

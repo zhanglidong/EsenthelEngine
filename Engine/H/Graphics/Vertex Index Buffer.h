@@ -145,10 +145,10 @@ struct VtxIndBuf // Vertex Index Buffer - used for buffered drawing
    static void shader    ( Shader *shader); // set custom shader
    static void image     (C Image *image ); // set texture
 #if EE_PRIVATE
-   static void image     (C Image *image, ShaderImage &shader_image); // set texture for custom shader image
+   static void imageConditional(C Image *image, ShaderImage &shader_image); // set texture for custom shader image, but only if different
 #endif
    static void color     (C Color &color ); // set color
-   static void color2    (C Color &color ); // set color2
+   static void color1    (C Color &color ); // set color1
    static void cull      (Bool     cull  ); // set face  culling
    static void depthWrite(Bool     on    ); // set depth writing (this will affect only drawing that normally uses depth buffer)
    static void alphaTest (Bool     on    ); // set alpha testing (currently this is supported only for drawing faces using 'Vtx3DTex' and 'Vtx3DTexCol' as parameters)
@@ -210,8 +210,8 @@ struct VtxIndBuf // Vertex Index Buffer - used for buffered drawing
    static void quad(C Color &col0 , C Color &col1, C Vec  &a, C Vec  &b, C Vec  &c, C Vec  &d);
 
    // draw image
-   static void image    (C Rect &screen_rect                  ); // this uses 'VI.color' and 'VI.color2' as "FinalColor = Image*color + color2"
-   static void imagePart(C Rect &screen_rect, C Rect &tex_rect); // this uses 'VI.color' and 'VI.color2' as "FinalColor = Image*color + color2"
+   static void image    (C Rect &screen_rect                  ); // this uses 'VI.color' and 'VI.color1' as "FinalColor = Image*color + color1"
+   static void imagePart(C Rect &screen_rect, C Rect &tex_rect); // this uses 'VI.color' and 'VI.color1' as "FinalColor = Image*color + color1"
 #if EE_PRIVATE
    static void font     (C Rect &screen_rect, C Rect &tex_rect);
 #endif
@@ -270,7 +270,6 @@ private:
    Int        _mem_max,
               _vtx_queued, _vtx_drawing, _vtx_drawing_raw,
               _ind_div, _ind_sub;
-   Color      _color;
  C Image     *_image;
    Shader    *_shader;
    Byte      *_vtx_buf;

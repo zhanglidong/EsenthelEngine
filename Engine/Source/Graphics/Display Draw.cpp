@@ -86,7 +86,7 @@ void Image::draw(C Rect &rect)C
 void Image::draw(C Color &color, C Color &color_add, C Rect &rect)C
 {
    VI.color  (color    );
-   VI.color2 (color_add);
+   VI.color1 (color_add);
    VI.image  (this);
    VI.setType(VI_2D_TEX, VI_STRIP|VI_SP_COL);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
@@ -122,7 +122,7 @@ void Image::drawVertical(C Rect &rect)C
 void Image::drawVertical(C Color &color, C Color &color_add, C Rect &rect)C
 {
    VI.color  (color    );
-   VI.color2 (color_add);
+   VI.color1 (color_add);
    VI.image  (this);
    VI.setType(VI_2D_TEX, VI_STRIP|VI_SP_COL);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
@@ -211,7 +211,7 @@ void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_
       case FILTER_CUBIC_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.h_DrawTexCubicC); break;
    }
    VI.color  (color    );
-   VI.color2 (color_add);
+   VI.color1 (color_add);
    VI.image  (this     );
    VI.setType(VI_2D_TEX, VI_STRIP|VI_SP_COL);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
@@ -295,7 +295,7 @@ void Image::drawPart(C Rect &screen_rect, C Rect &tex_rect)C
 void Image::drawPart(C Color &color, C Color &color_add, C Rect &screen_rect, C Rect &tex_rect)C
 {
    VI.color  (color    );
-   VI.color2 (color_add);
+   VI.color1 (color_add);
    VI.image  (this     );
    VI.setType(VI_2D_TEX, VI_STRIP|VI_SP_COL);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
@@ -349,7 +349,7 @@ void Image::drawPartVertical(C Rect &screen_rect, C Rect &tex_rect)C
 void Image::drawPartVertical(C Color &color, C Color &color_add, C Rect &screen_rect, C Rect &tex_rect)C
 {
    VI.color  (color    );
-   VI.color2 (color_add);
+   VI.color1 (color_add);
    VI.image  (this     );
    VI.setType(VI_2D_TEX, VI_STRIP|VI_SP_COL);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
@@ -399,7 +399,7 @@ void Image::drawRotate(C Vec2 &center, C Vec2 &size, Flt angle, C Vec2 *rotation
 void Image::drawRotate(C Color &color, C Color &color_add, C Vec2 &center, C Vec2 &size, Flt angle, C Vec2 *rotation_center)C
 {
    VI.color  (color    );
-   VI.color2 (color_add);
+   VI.color1 (color_add);
    VI.image  (this     );
    VI.setType(VI_2D_TEX, VI_STRIP|VI_SP_COL);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(4))
@@ -426,7 +426,7 @@ void Image::drawMask(C Color &color, C Color &color_add, C Rect &rect, C Image &
    if(  r.valid())
    {
       VI.color (color    );
-      VI.color2(color_add);
+      VI.color1(color_add);
       VI.image (this     );
       Sh.h_ImageCol[1]->set(mask); MaterialClear();
       VI.setType(VI_2D_TEX2, VI_STRIP);
@@ -489,7 +489,7 @@ void Image::drawTile(C Rect &rect, Flt tex_scale)C
 void Image::drawTile(C Color &color, C Color &color_add, C Rect &rect, Flt tex_scale)C
 {
    VI.color  (color    );
-   VI.color2 (color_add);
+   VI.color1 (color_add);
    VI.image  (this     );
    VI.wrap   (         );
    VI.setType(VI_2D_TEX, VI_STRIP|VI_SP_COL);
@@ -585,7 +585,7 @@ void Image::drawBorder(C Rect &rect, Flt b, Flt tex_scale, Flt tex_offset, Bool 
 void Image::drawBorder(C Color &color, C Color &color_add, C Rect &rect, Flt b, Flt tex_scale, Flt tex_offset, Bool wrap_mode)C
 {
    VI.color  (color    );
-   VI.color2 (color_add);
+   VI.color1 (color_add);
    VI.image  (this     );
    VI.wrapX  (         );
    VI.setType(VI_2D_TEX, (wrap_mode ? VI_STRIP : 0)|VI_SP_COL);
@@ -661,7 +661,7 @@ void Image::drawBorder(C Color &color, C Color &color_add, C Rect &rect, Flt b, 
 void Image::draw3x3(C Color &color, C Color &color_add, C Rect &rect, Flt border_size, Flt tex_frac)C
 {
    VI.color  (color    );
-   VI.color2 (color_add);
+   VI.color1 (color_add);
    VI.image  (this     );
    VI.setType(VI_2D_TEX, VI_SP_COL);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(16))
@@ -715,7 +715,7 @@ void Image::draw3x3(C Color &color, C Color &color_add, C Rect &rect, Flt border
 void Image::draw3x3Vertical(C Color &color, C Color &color_add, C Rect &rect, Flt border_size, Flt tex_frac)C
 {
    VI.color  (color    );
-   VI.color2 (color_add);
+   VI.color1 (color_add);
    VI.image  (this     );
    VI.setType(VI_2D_TEX, VI_SP_COL);
    if(Vtx2DTex *v=(Vtx2DTex*)VI.addVtx(16))
@@ -887,7 +887,7 @@ void Image::drawCubeFace(C Color &color, C Color &color_add, C Rect &rect, DIR_E
       if(!Sh.h_DrawCubeFace)Sh.h_DrawCubeFace=Sh.get("DrawCubeFace");
       VI.shader (Sh.h_DrawCubeFace);
       VI.color  (color    );
-      VI.color2 (color_add);
+      VI.color1 (color_add);
       VI.setType(VI_2D_FONT, VI_STRIP);
       Sh.h_ImageRfl[0]->set(this);
       if(Vtx2DFont *v=(Vtx2DFont*)VI.addVtx(4))

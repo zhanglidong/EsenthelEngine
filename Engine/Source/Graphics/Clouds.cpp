@@ -90,15 +90,15 @@ inline void LayeredCloudsFx::load()
 
       range=GetShaderParam("LCRange");
 
-      h_CL[0]=GetShaderParam("CL[0]");
-      h_CL[1]=GetShaderParam("CL[1]");
-      h_CL[2]=GetShaderParam("CL[2]");
-      h_CL[3]=GetShaderParam("CL[3]");
+      CL[0]=GetShaderParam("CL[0]");
+      CL[1]=GetShaderParam("CL[1]");
+      CL[2]=GetShaderParam("CL[2]");
+      CL[3]=GetShaderParam("CL[3]");
    }
 }
 inline Shader* LayeredCloudsFx::get(Int layers, Bool blend, Bool mask)
 {
-   Shader* &s=h_Clouds[layers][blend][mask]; if(!s)s=shader->get(S+"Clouds"+(layers+1)+(blend?'B':'\0')+(mask?'M':'\0'));
+   Shader* &s=Clouds[layers][blend][mask]; if(!s)s=shader->get(S+"Clouds"+(layers+1)+(blend?'B':'\0')+(mask?'M':'\0'));
    return   s;
 }
 void LayeredClouds::commit()
@@ -116,7 +116,7 @@ void LayeredClouds::commit()
    #else
       cl.position=l.position;
    #endif
-      LC.h_CL[i]->set(cl);
+      LC.CL[i]->set(cl);
    }
 
    Sh.h_ImageCol[0]->set(layer[0].image());
@@ -648,7 +648,7 @@ void VolumetricClouds::draw()
       Flt s=tex_scale/size; c.pos.set(ActiveCam.matrix.pos.x*s-pos.x, ActiveCam.matrix.pos.z*s-pos.z);
       c.max_steps=cloud.height()*2;
       c.pixels   =cloud._image.size3();
-      VolCloud.h_Cloud->set(c);
+      VolCloud.Cloud->set(c);
 
       cloud.checkBuild(); // check if there are any finished image builds
       Sh.h_ImageVolXY[0]->set(cloud._image); Sh.h_ImageVolXY[0]->_sampler=&SamplerLinearCWW;
@@ -657,7 +657,7 @@ void VolumetricClouds::draw()
       Rect ext_rect, *rect=null; // set rect, after setting render target
       if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(Renderer.pixelToScreenSize(1));} // when not rendering entire viewport, then extend the rectangle, add +1 because of texture filtering, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
 
-      VolCloud.h_Clouds->draw(rect);
+      VolCloud.Clouds->draw(rect);
       Sh.h_ImageVolXY[0]->_sampler=null;
       Sh.h_ImageVolXY[1]->_sampler=null;
 
@@ -671,7 +671,7 @@ void VolumetricClouds::draw()
 
       Sh.h_Color[0]->set(color_s);
       Sh.h_ImageImgXY->set(dest);
-      VolCloud.h_CloudsDraw[gamma]->draw();
+      VolCloud.CloudsDraw[gamma]->draw();
       if(swap)Renderer._col->swapRTV(); // restore
    }
 }
@@ -692,11 +692,11 @@ void VolumetricClouds::shadowMap()
       Flt s=tex_scale/size; c.pos.set(ActiveCam.matrix.pos.x*s-pos.x, ActiveCam.matrix.pos.z*s-pos.z);
       c.cam   =CamMatrix.pos-ActiveCam.matrix.pos; // calculate current camera (light) position relative to the main camera
 
-      VolCloud.h_CloudMap->set(c);
+      VolCloud.CloudMap->set(c);
 
       cloud.checkBuild(); // check if there are any finished image builds
       Sh.h_ImageVolXY[0]->set(cloud._image);
-      Sh.h_ImageVolXY[0]->_sampler=&SamplerLinearCWW; VolCloud.h_CloudsMap->draw();
+      Sh.h_ImageVolXY[0]->_sampler=&SamplerLinearCWW; VolCloud.CloudsMap->draw();
       Sh.h_ImageVolXY[0]->_sampler=null;
    }
 }

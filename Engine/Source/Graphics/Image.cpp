@@ -720,21 +720,25 @@ UInt SourceGLType(IMAGE_TYPE type)
 /******************************************************************************/
 // MANAGE
 /******************************************************************************/
-Image& Image::operator=(C Image &src                                                       )           {if(this!=&src)src.copy(T); return T;}
+Image::~Image()
+{
+   del();
+
+   // remove image from 'ShaderImages' and 'VI.image'
+   ShaderImages.lock  (); REPA(ShaderImages){ShaderImage &image=ShaderImages.lockedData(i); if(image.get()==this)image.set(null);}
+   ShaderImages.unlock();
+   if(VI._image==this)VI._image=null;
+}
        Image::Image    (                                                                   )           {zero();}
        Image::Image    (C Image &src                                                       ) : Image() {src.copy(T);}
        Image::Image    (Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps) : Image() {create(w, h, d, type, mode, mip_maps);}
+Image& Image::operator=(C Image &src                                                       )           {if(this!=&src)src.copy(T); return T;}
 /******************************************************************************/
 Image& Image::del()
 {
    unlock();
    if(D.created())
    {
-      if(is() && hw()) // remove image from 'ShaderImages'
-      {
-         ShaderImages.lock  (); REPA(ShaderImages){ShaderImage &image=ShaderImages.lockedData(i); if(image.get()==this)image.set(null);}
-         ShaderImages.unlock();
-      }
    #if DX11
       if(_txtr || _srv)
       {

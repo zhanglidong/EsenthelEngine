@@ -1280,7 +1280,7 @@ void PanelImage::draw(                                    C Rect &rect)C {draw(W
 void PanelImage::draw(C Color &color, C Color &color_add, C Rect &rect)C
 {
    VI.color  (color    );
-   VI.color2 (color_add);
+   VI.color1 (color_add);
    VI.image  (&image   );
    VI.setType(VI_2D_TEX, VI_SP_COL);
    const Int vtxs=(_same_x ? 16 : 20);
@@ -1432,7 +1432,7 @@ void PanelImage::drawVertical(                                    C Rect &rect)C
 void PanelImage::drawVertical(C Color &color, C Color &color_add, C Rect &rect)C
 {
    VI.color  (color    );
-   VI.color2 (color_add);
+   VI.color1 (color_add);
    VI.image  (&image   );
    VI.setType(VI_2D_TEX, VI_SP_COL);
    const Int vtxs=(_same_x ? 16 : 20);
@@ -1583,7 +1583,7 @@ void PanelImage::drawVertical(C Color &color, C Color &color_add, C Rect &rect)C
 void PanelImage::drawBorders(C Color &color, C Color &color_add, C Rect &rect)C
 {
    VI.color  (color    );
-   VI.color2 (color_add);
+   VI.color1 (color_add);
    VI.image  (&image   );
    VI.setType(VI_2D_TEX, VI_SP_COL);
    const Int vtxs=(_same_x ? 16 : 20);
@@ -1744,7 +1744,7 @@ static void Clip(Flt &min_pos, Flt &max_pos, Flt min_tex, Flt &max_tex, Flt clip
 void PanelImage::drawFrac(C Color &color, C Color &color_add, C Rect &rect, Flt frac_x, Bool include_padding)C
 {
    VI.color  (color    );
-   VI.color2 (color_add);
+   VI.color1 (color_add);
    VI.image  (&image   );
    VI.setType(VI_2D_TEX, VI_SP_COL);
    const Int vtxs=(_same_x ? 16 : 20);
@@ -1920,7 +1920,7 @@ void PanelImage::drawFrac(C Color &color, C Color &color_add, C Rect &rect, Flt 
 void PanelImage::drawVerticalFrac(C Color &color, C Color &color_add, C Rect &rect, Flt frac_y, Bool include_padding)C
 {
    VI.color  (color    );
-   VI.color2 (color_add);
+   VI.color1 (color_add);
    VI.image  (&image   );
    VI.setType(VI_2D_TEX, VI_SP_COL);
    const Int vtxs=(_same_x ? 16 : 20);

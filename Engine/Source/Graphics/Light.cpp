@@ -387,7 +387,7 @@ static void ApplyVolumetric(LightDir &light, Int shd_map_num, Bool cloud_vol)
    if(Renderer.hasVolLight() && light.vol>EPS_COL && shd_map_num>0)REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])
    {
       StartVol();
-      VL.h_VolDir[shd_map_num-1][cloud_vol]->draw(Renderer._vol, &CurrentLightRect[Renderer._eye]);
+      VL.VolDir[shd_map_num-1][cloud_vol]->draw(Renderer._vol, &CurrentLightRect[Renderer._eye]);
    }
 }
 static void ApplyVolumetric(LightPoint &light)
@@ -395,8 +395,8 @@ static void ApplyVolumetric(LightPoint &light)
    if(Renderer.hasVolLight() && light.vol>EPS_COL)REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])
    {
       StartVol();
-      VL.h_Light_point_range->set(light.range());
-      VL.h_VolPoint->draw(Renderer._vol, &CurrentLightRect[Renderer._eye]);
+      VL.Light_point_range->set(light.range());
+      VL.VolPoint->draw(Renderer._vol, &CurrentLightRect[Renderer._eye]);
    }
 }
 static void ApplyVolumetric(LightLinear &light)
@@ -404,7 +404,7 @@ static void ApplyVolumetric(LightLinear &light)
    if(Renderer.hasVolLight() && light.vol>EPS_COL)REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])
    {
       StartVol();
-      VL.h_VolLinear->draw(Renderer._vol, &CurrentLightRect[Renderer._eye]);
+      VL.VolLinear->draw(Renderer._vol, &CurrentLightRect[Renderer._eye]);
    }
 }
 static void ApplyVolumetric(LightCone &light)
@@ -412,7 +412,7 @@ static void ApplyVolumetric(LightCone &light)
    if(Renderer.hasVolLight() && light.vol>EPS_COL)REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])
    {
       StartVol();
-      VL.h_VolCone->draw(Renderer._vol, &CurrentLightRect[Renderer._eye]);
+      VL.VolCone->draw(Renderer._vol, &CurrentLightRect[Renderer._eye]);
    }
 }
 /******************************************************************************/

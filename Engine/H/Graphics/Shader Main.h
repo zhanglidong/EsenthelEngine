@@ -27,6 +27,7 @@ struct MainShaderClass
    void connectRT     ();
 
    ShaderImage
+      *Img[2],
       *h_ImageCol[4]  , *h_ImageColMS,
       *h_ImageNrm[4]  , *h_ImageNrmMS,
       *h_ImageDet[4]  ,
@@ -337,7 +338,7 @@ struct MainShaderClass
 struct AmbientOcclusion
 {
    ShaderFile *shader;
-   Shader     *h_AO[4][2][2]; // [Quality] [Jitter] [Normal]
+   Shader     *AO[4][2][2]; // [Quality] [Jitter] [Normal]
 
    Shader* get(Int quality, Bool jitter, Bool normal);
 }extern
@@ -346,8 +347,8 @@ struct AmbientOcclusion
 struct LayeredCloudsFx
 {
    ShaderFile  *shader;
-   ShaderParam *h_CL[4], *range;
-   Shader      *h_Clouds[4][2][2]; // [#Layers] [Blend] [Draw Mask to 2nd RT]
+   ShaderParam *CL[4], *range;
+   Shader      *Clouds[4][2][2]; // [#Layers] [Blend] [Draw Mask to 2nd RT]
 
    void    load();
    Shader* get(Int layers, Bool blend, Bool mask);
@@ -357,9 +358,9 @@ struct LayeredCloudsFx
 struct VolumetricCloudsFx
 {
    ShaderFile  *shader;
-   ShaderParam *h_Cloud, *h_CloudMap;
-   Shader      *h_Clouds, *h_CloudsMap,
-               *h_CloudsDraw[2]; // [Gamma]
+   ShaderParam *Cloud, *CloudMap;
+   Shader      *Clouds, *CloudsMap,
+               *CloudsDraw[2]; // [Gamma]
 
    void load();
 }extern
@@ -368,13 +369,13 @@ struct VolumetricCloudsFx
 struct VolumetricLights
 {
    ShaderFile  *shader;
-   ShaderParam *h_Light_point_range;
-   Shader      *h_VolDir[6][2], // [ShdMapNum] [Clouds]
-               *h_VolPoint    ,
-               *h_VolLinear   ,
-               *h_VolCone     ,
-               *h_Volumetric  ,
-               *h_VolumetricA ;
+   ShaderParam *Light_point_range;
+   Shader      *VolDir[6][2], // [ShdMapNum] [Clouds]
+               *VolPoint    ,
+               *VolLinear   ,
+               *VolCone     ,
+               *Volumetric  ,
+               *VolumetricA ;
 
    void load();
 }extern
@@ -383,9 +384,9 @@ struct VolumetricLights
 struct HDR
 {
    ShaderFile *shader;
-   Shader     *h_HdrDS[2], // [Step]
-              *h_HdrUpdate,
-              *h_Hdr[2]; // [Dither]
+   Shader     *HdrDS[2], // [Step]
+              *HdrUpdate,
+              *Hdr[2]; // [Dither]
 
    void load();
 }extern
@@ -394,21 +395,21 @@ struct HDR
 struct MotionBlur
 {
    ShaderFile  *shader;
-   ShaderParam *h_MotionUVMulAdd     ,
-               *h_MotionVelScaleLimit,
-               *h_MotionPixelSize    ;
-   Shader      *h_Explosion          ,
-               *h_ClearSkyVel        ,
-               *h_Convert      [2][2], // [High][Clamp]
-               *h_Dilate             ,
-               *h_SetDirs      [2]   , // [Clamp]
-               *h_Blur         [2]   ; // [Dither]
+   ShaderParam *MotionUVMulAdd     ,
+               *MotionVelScaleLimit,
+               *MotionPixelSize    ;
+   Shader      *Explosion          ,
+               *ClearSkyVel        ,
+               *Convert      [2][2], // [High][Clamp]
+               *Dilate             ,
+               *SetDirs      [2]   , // [Clamp]
+               *Blur         [2]   ; // [Dither]
 
    struct Pixel
    {
       Int     pixels;
-      Shader *h_DilateX[2], // [Diagonal]
-             *h_DilateY[2]; // [Diagonal]
+      Shader *DilateX[2], // [Diagonal]
+             *DilateY[2]; // [Diagonal]
    }pixels[9];
 
    void load();
@@ -420,15 +421,15 @@ struct MotionBlur
 struct DepthOfField
 {
    ShaderFile  *shader;
-   ShaderParam *h_DofParams;
-   Shader      *h_DofDS[2][2][2], // [Clamp ][Realistic][Half]
-               *h_Dof  [2][2]   ; // [Dither][Realistic]
+   ShaderParam *DofParams;
+   Shader      *DofDS[2][2][2], // [Clamp ][Realistic][Half]
+               *Dof  [2][2]   ; // [Dither][Realistic]
 
    struct Pixel
    {
       Int     pixels;
-      Shader *h_BlurX,
-             *h_BlurY;
+      Shader *BlurX,
+             *BlurY;
    }pixels[11];
 
    void load();
@@ -442,14 +443,14 @@ struct DepthOfField
 struct WaterShader
 {
    ShaderFile *shader;
-   Shader     *h_Ocean [2]      , // [FakeReflect]
-              *h_Lake  [2]      , // [FakeReflect]
-              *h_River [2]      , // [FakeReflect]
-              *h_OceanL[2][7][2], // [FakeReflect] [Shadows] [Soft]
-              *h_LakeL [2][7][2], // [FakeReflect] [Shadows] [Soft]
-              *h_RiverL[2][7][2], // [FakeReflect] [Shadows] [Soft]
-              *h_Apply [2][2]   , // [Refract] [Depth]
-              *h_Under [2]      ; // [Refract]
+   Shader     *Ocean [2]      , // [FakeReflect]
+              *Lake  [2]      , // [FakeReflect]
+              *River [2]      , // [FakeReflect]
+              *OceanL[2][7][2], // [FakeReflect] [Shadows] [Soft]
+              *LakeL [2][7][2], // [FakeReflect] [Shadows] [Soft]
+              *RiverL[2][7][2], // [FakeReflect] [Shadows] [Soft]
+              *Apply [2][2]   , // [Refract] [Depth]
+              *Under [2]      ; // [Refract]
 
    void load();
 }extern

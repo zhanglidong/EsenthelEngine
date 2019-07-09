@@ -242,6 +242,8 @@ void MainShaderClass::initFogBallShaders()
 void MainShaderClass::getTechniques()
 {
    // images
+   Img[0]          =ShaderImages("Img"    );
+   Img[1]          =ShaderImages("Img1"   );
    h_ImageCol[0]   =ShaderImages("Col"    );
    h_ImageCol[1]   =ShaderImages("Col1"   );
    h_ImageCol[2]   =ShaderImages("Col2"   );
@@ -607,11 +609,11 @@ void VolumetricCloudsFx::load()
 {
    if(!shader)if(shader=ShaderFiles("Volumetric Clouds"))
    {
-      h_Cloud     =GetShaderParam("Cloud");
-      h_CloudMap  =GetShaderParam("CloudMap");
-      h_Clouds    =shader->get("Clouds");
-      h_CloudsMap =shader->get("CloudsMap");
-      REPD(g, 2)h_CloudsDraw[g]=shader->get(S8+"CloudsDraw"+(g?'G':'\0'));
+      Cloud     =GetShaderParam("Cloud");
+      CloudMap  =GetShaderParam("CloudMap");
+      Clouds    =shader->get("Clouds");
+      CloudsMap =shader->get("CloudsMap");
+      REPD(g, 2)CloudsDraw[g]=shader->get(S8+"CloudsDraw"+(g?'G':'\0'));
    }
 }
 /******************************************************************************/
@@ -619,15 +621,15 @@ void VolumetricLights::load()
 {
    if(!shader)if(shader=ShaderFiles("Volumetric Lights"))
    {
-      h_Light_point_range=GetShaderParam("Light_point_range");
+      Light_point_range=GetShaderParam("Light_point_range");
 
       REPD(n, 6)
-      REPD(c, 2)h_VolDir[n][c]=shader->get(S8+"VolDir"+(n+1)+(c?'C':'\0'));
-                h_VolPoint    =shader->get(   "VolPoint" );
-                h_VolLinear   =shader->get(   "VolLinear");
-                h_VolCone     =shader->get(   "VolCone"  );
-      h_Volumetric =shader->get("Volumetric" );
-      h_VolumetricA=shader->get("VolumetricA");
+      REPD(c, 2)VolDir[n][c]=shader->get(S8+"VolDir"+(n+1)+(c?'C':'\0'));
+                VolPoint    =shader->get(   "VolPoint" );
+                VolLinear   =shader->get(   "VolLinear");
+                VolCone     =shader->get(   "VolCone"  );
+      Volumetric =shader->get("Volumetric" );
+      VolumetricA=shader->get("VolumetricA");
    }
 }
 /******************************************************************************/
@@ -635,11 +637,11 @@ void HDR::load()
 {
    if(!shader)if(shader=ShaderFiles("Hdr"))
    {
-      h_HdrDS[0] =shader->get("HdrDS0"   );
-      h_HdrDS[1] =shader->get("HdrDS1"   );
-      h_HdrUpdate=shader->get("HdrUpdate");
-      h_Hdr[0]   =shader->get("Hdr"      );
-      h_Hdr[1]   =shader->get("HdrD"     );
+      HdrDS[0] =shader->get("HdrDS0"   );
+      HdrDS[1] =shader->get("HdrDS1"   );
+      HdrUpdate=shader->get("HdrUpdate");
+      Hdr[0]   =shader->get("Hdr"      );
+      Hdr[1]   =shader->get("HdrD"     );
    }   
 }
 /******************************************************************************/
@@ -647,22 +649,22 @@ void MotionBlur::load()
 {
    if(!shader)if(shader=ShaderFiles("Motion Blur"))
    {
-      h_MotionUVMulAdd     =GetShaderParam("MotionUVMulAdd");
-      h_MotionVelScaleLimit=GetShaderParam("MotionVelScaleLimit");
-      h_MotionPixelSize    =GetShaderParam("MotionPixelSize");
+      MotionUVMulAdd     =GetShaderParam("MotionUVMulAdd");
+      MotionVelScaleLimit=GetShaderParam("MotionVelScaleLimit");
+      MotionPixelSize    =GetShaderParam("MotionPixelSize");
 
-      h_Explosion=shader->get("Explosion");
+      Explosion=shader->get("Explosion");
 
-      h_ClearSkyVel=shader->get("ClearSkyVel");
+      ClearSkyVel=shader->get("ClearSkyVel");
 
       REPD(h, 2)
-      REPD(c, 2)h_Convert[h][c]=shader->get(S8+"Convert"+(h?'H':'\0')+(c?'C':'\0'));
+      REPD(c, 2)Convert[h][c]=shader->get(S8+"Convert"+(h?'H':'\0')+(c?'C':'\0'));
 
-      h_Dilate=shader->get("Dilate");
+      Dilate=shader->get("Dilate");
 
-      REPD(c, 2)h_SetDirs[c]=shader->get(S8+"SetDirs"+(c?'C':'\0'));
+      REPD(c, 2)SetDirs[c]=shader->get(S8+"SetDirs"+(c?'C':'\0'));
 
-      REPD(d, 2)h_Blur[d]=shader->get(S8+"Blur"+(d?'D':'\0'));
+      REPD(d, 2)Blur[d]=shader->get(S8+"Blur"+(d?'D':'\0'));
 
       pixels[0].pixels=1;
       pixels[1].pixels=2;
@@ -684,10 +686,10 @@ C MotionBlur::Pixel* MotionBlur::pixel(Int pixel, Bool diagonal)
    {
       p=&pixels[i]; if(p->pixels>=pixel)break; // if this covers desired range of pixels to blur
    }
-   if(!p->h_DilateX[diagonal])
+   if(!p->DilateX[diagonal])
    {
-      p->h_DilateX[diagonal]=shader->get(S8+"DilateX"+(diagonal?'D':'\0')+p->pixels);
-      p->h_DilateY[diagonal]=shader->get(S8+"DilateY"+(diagonal?'D':'\0')+p->pixels);
+      p->DilateX[diagonal]=shader->get(S8+"DilateX"+(diagonal?'D':'\0')+p->pixels);
+      p->DilateY[diagonal]=shader->get(S8+"DilateY"+(diagonal?'D':'\0')+p->pixels);
    }
    return p;
 }
@@ -699,15 +701,15 @@ void DepthOfField::load()
 {
    if(!shader)if(shader=ShaderFiles("Depth of Field"))
    {
-      h_DofParams=GetShaderParam("DofParams");
+      DofParams=GetShaderParam("DofParams");
 
    #if !SLOW_SHADER_LOAD
       REPD(c, 2)
       REPD(r, 2)
-      REPD(h, 2)h_DofDS[c][r][h]=getDS(c, r, h);
+      REPD(h, 2)DofDS[c][r][h]=getDS(c, r, h);
 
       REPD(d, 2)
-      REPD(r, 2)h_Dof[d][r]=get(d, r);
+      REPD(r, 2)Dof[d][r]=get(d, r);
    #endif
 
       pixels[ 0].pixels=2;
@@ -731,10 +733,10 @@ C DepthOfField::Pixel& DepthOfField::pixel(Int pixel)
    {
       p=&pixels[i]; if(p->pixels>=pixel)break; // if this covers desired range of pixels to blur
    }
-   if(!p->h_BlurX)
+   if(!p->BlurX)
    {
-      p->h_BlurX=shader->get(S8+"DofBlurX"+p->pixels);
-      p->h_BlurY=shader->get(S8+"DofBlurY"+p->pixels);
+      p->BlurX=shader->get(S8+"DofBlurX"+p->pixels);
+      p->BlurY=shader->get(S8+"DofBlurY"+p->pixels);
    }
    return *p;
 }
@@ -745,22 +747,22 @@ void WaterShader::load()
    {
       REPD(fake_reflect, 2) // fake reflection
       {
-         h_Lake [fake_reflect]=shader->get(S8+"Lake" +(fake_reflect?'F':'\0'));
-         h_River[fake_reflect]=shader->get(S8+"River"+(fake_reflect?'F':'\0'));
-         h_Ocean[fake_reflect]=shader->get(S8+"Ocean"+(fake_reflect?'F':'\0'));
+         Lake [fake_reflect]=shader->get(S8+"Lake" +(fake_reflect?'F':'\0'));
+         River[fake_reflect]=shader->get(S8+"River"+(fake_reflect?'F':'\0'));
+         Ocean[fake_reflect]=shader->get(S8+"Ocean"+(fake_reflect?'F':'\0'));
 
          REPD(shadow, 7)
          REPD(soft  , 2)
          {
-            h_LakeL [fake_reflect][shadow][soft]=shader->get(S8+"LakeL" +shadow+(soft?'S':'\0')+(fake_reflect?'F':'\0'));
-            h_RiverL[fake_reflect][shadow][soft]=shader->get(S8+"RiverL"+shadow+(soft?'S':'\0')+(fake_reflect?'F':'\0'));
-            h_OceanL[fake_reflect][shadow][soft]=shader->get(S8+"OceanL"+shadow+(soft?'S':'\0')+(fake_reflect?'F':'\0'));
+            LakeL [fake_reflect][shadow][soft]=shader->get(S8+"LakeL" +shadow+(soft?'S':'\0')+(fake_reflect?'F':'\0'));
+            RiverL[fake_reflect][shadow][soft]=shader->get(S8+"RiverL"+shadow+(soft?'S':'\0')+(fake_reflect?'F':'\0'));
+            OceanL[fake_reflect][shadow][soft]=shader->get(S8+"OceanL"+shadow+(soft?'S':'\0')+(fake_reflect?'F':'\0'));
          }
       }
       REPD(r, 2)
-      REPD(d, DX11 ? 2 : 1)h_Apply[r][d]=shader->get(S8+"Apply"+(r?'R':'\0')+(d?'D':'\0'));
+      REPD(d, DX11 ? 2 : 1)Apply[r][d]=shader->get(S8+"Apply"+(r?'R':'\0')+(d?'D':'\0'));
 
-      REPD(r, 2)h_Under[r]=shader->get(S8+"Under"+(r?'R':'\0'));
+      REPD(r, 2)Under[r]=shader->get(S8+"Under"+(r?'R':'\0'));
    }
 }
 /******************************************************************************/

@@ -517,6 +517,8 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
          if(sub_pixel){alpha=D.alpha(Renderer.inside() ? ALPHA_FONT_DEC : ALPHA_FONT); VI.shader(Sh.h_FontCurSP);}else // if drawing text while rendering, then decrease the alpha channel (glow)
          if(Renderer.inside())D.alpha(ALPHA_BLEND_DEC); // if drawing text while rendering, then decrease the alpha channel (glow), but don't bother to restore it, as in Rendering, alpha blending is always set for each call
 
+         VI._image=null; // clear to make sure 'VI.imageConditional' below will work properly
+
          Int            cur_code_index=FindCode(code, codes, ti.p());
        C TextCodeData * cur_code      =(InRange(cur_code_index  , codes) ? &code[cur_code_index  ] : null),
                       *next_code      =(InRange(cur_code_index+1, codes) ? &code[cur_code_index+1] : null);
@@ -575,7 +577,7 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
                                                c_pos.y-=ysize  *fc.offset;
                      if(pixel_align)D.alignScreenXToPixel(c_pos.x);
 
-                     VI.image(&font->_images[fc.image], shader_image);
+                     VI.imageConditional(&font->_images[fc.image], shader_image);
                      Rect_LU rect(c_pos, xsize*fc.width_padd, ysize*fc.height_padd);
                      if(sub_pixel)VI.imagePart(rect, fc.tex);
                      else         VI.font     (rect, fc.tex);
@@ -610,7 +612,7 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
                            n_pos.y-=ysize  *fc.offset;
                            if(pixel_align)D.alignScreenXToPixel(n_pos.x);
 
-                           VI.image(&font->_images[fc.image], shader_image);
+                           VI.imageConditional(&font->_images[fc.image], shader_image);
                            Rect_LU rect(n_pos, xsize*fc.width_padd, ysize*fc.height_padd);
                            if(sub_pixel)VI.imagePart(rect, fc.tex);
                            else         VI.font     (rect, fc.tex);
@@ -646,7 +648,7 @@ void TextStyleParams::drawMain(Flt x, Flt y, TextInput ti, Int max_length, C Tex
          }
 
          // sub-pixel
-         if(sub_pixel)D.alpha(alpha);
+         if(sub_pixel)D.alpha(alpha); // restore alpha
          
          // font depth
          if(D._text_depth) // reset old state

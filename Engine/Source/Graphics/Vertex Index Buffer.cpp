@@ -1675,12 +1675,7 @@ void VtxIndBuf::clear()
 {
    VI._vtx_type  =VI_NONE;
    VI._vtx_queued=0; // clear can be called by engine method to stop VI in progress (like in light drawing when detected that the rectangle doesn't intersect with the viewport), so clear any current vertexes for drawing
-   VI._image     =null;
    VI._shader    =null;
-
-   // we've changed textures so we need to clear material
-   MaterialLast    =null;
-   MaterialLast4[0]=null;
 
    if(VI._user_flag)
    {
@@ -1708,16 +1703,9 @@ void VtxIndBuf::end()
 }
 /******************************************************************************/
 void VtxIndBuf::shader(Shader *shader) {VI._shader=shader;}
-void VtxIndBuf::image(C Image *image)
-{
-   if(VI._image!=image)
-   {
-      flush(); // first flush what's already available, after that make the change
-      VI._image=image;
-      Sh.h_ImageCol[0]->set(image);
-   }
-}
-void VtxIndBuf::image(C Image *image, ShaderImage &shader_image)
+void VtxIndBuf::image (C Image *image) {VI._image =image ; Sh.Img[0]->set(image);}
+
+void VtxIndBuf::imageConditional(C Image *image, ShaderImage &shader_image)
 {
    if(VI._image!=image)
    {
@@ -1726,19 +1714,9 @@ void VtxIndBuf::image(C Image *image, ShaderImage &shader_image)
       shader_image.set(image);
    }
 }
-void VtxIndBuf::color(C Color &color)
-{
-   if(VI._color!=color)
-   {
-      flush(); // first flush what's already available, after that make the change
-      VI._color=color;
-   }
-   Sh.h_Color[0]->set(color);
-}
-void VtxIndBuf::color2(C Color &color)
-{
-   Sh.h_Color[1]->set(color);
-}
+void VtxIndBuf::color (C Color &color) {Sh.h_Color[0]->set(color);} // don't do any caching here "if(T._color!=color).." because 'Sh.Color' can be changed freely across the engine
+void VtxIndBuf::color1(C Color &color) {Sh.h_Color[1]->set(color);}
+
 void VtxIndBuf::cull      (Bool cull) {FlagSet(VI._user_flag, VI_CULL      , cull);}
 void VtxIndBuf::alphaTest (Bool on  ) {FlagSet(VI._user_flag, VI_ALPHA_TEST, on  );}
 void VtxIndBuf::fog       (Bool on  ) {FlagSet(VI._user_flag, VI_FOG       , on  );}

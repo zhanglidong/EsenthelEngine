@@ -414,8 +414,8 @@ Bool WaterClass::ocean()
 Shader* WaterClass::shader()
 {
    Bool fake_reflect=(_reflection_map!=null);
-   return _use_secondary_rt ? (ocean() ? WS.h_Ocean  : WS.h_Lake )[fake_reflect]
-                            : (ocean() ? WS.h_OceanL : WS.h_LakeL)[fake_reflect][_shader_shadow][_shader_soft];
+   return _use_secondary_rt ? (ocean() ? WS.Ocean  : WS.Lake )[fake_reflect]
+                            : (ocean() ? WS.OceanL : WS.LakeL)[fake_reflect][_shader_shadow][_shader_soft];
 }
 /******************************************************************************/
 void WaterClass::drawSurfaces()
@@ -558,8 +558,8 @@ Shader* WaterMesh::shader()C
    if(WaterMtrl *mtrl=getMaterial())
    {
       Bool fake_reflect=(mtrl->_reflection_map!=null);
-      return Water._use_secondary_rt ? (_lake ? WS.h_Lake  : WS.h_River )[fake_reflect]
-                                     : (_lake ? WS.h_LakeL : WS.h_RiverL)[fake_reflect][Water._shader_shadow][Water._shader_soft];
+      return Water._use_secondary_rt ? (_lake ? WS.Lake  : WS.River )[fake_reflect]
+                                     : (_lake ? WS.LakeL : WS.RiverL)[fake_reflect][Water._shader_shadow][Water._shader_soft];
    }
    return null;
 }

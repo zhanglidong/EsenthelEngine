@@ -621,7 +621,7 @@ struct Image // Image (Texture)
    Bool ExportICNS(  File &f                                             )C; // export as ICNS to   file, false on fail
 
             Image& operator=(C Image &src); // create from 'src' image using 'copy' method, Exit on fail
-           ~Image() {del();}
+           ~Image();
             Image();
             Image(C Image &src                                                         ); // create from 'src' image using 'copy' method, Exit on fail
    explicit Image(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps=0); // create with specified parameters using 'create' method, Exit on fail, 'mip_maps'=number of mip-maps (0=autodetect)
