@@ -554,7 +554,7 @@ ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
 #endif
    return prev;
 }
-void DisplayState::alphaFactor(C Color &factor)
+void DisplayState::alphaFactor(C Color &factor) // 'MaterialClear' must be called if changing this
 {
    if(D._alpha_factor!=factor)
    {
