@@ -307,7 +307,7 @@ void WaterClass::begin()
          }
 
          // set RT's and depth buffer
-         if(Shader *shader=Sh.h_SetDepth) // if we can copy depth buffer from existing solid's, then do it, to prevent drawing water pixels if they're occluded
+         if(Shader *shader=Sh.SetDepth) // if we can copy depth buffer from existing solid's, then do it, to prevent drawing water pixels if they're occluded
          {
             Renderer.set(null, Renderer._water_ds, true);
             D.depthLock  (true); D.depthFunc(FUNC_ALWAYS); D.stencil(STENCIL_ALWAYS_SET, 0); shader->draw();
@@ -376,7 +376,7 @@ void WaterClass::end()
          {
             Renderer.set(null, Renderer._ds_1s, true);
             D.alpha(ALPHA_NONE);
-            D.depthLock  (true); Sh.h_ResolveDepth->draw(); // here we can keep FUNC_LESS because 1S DS was already set before and we just need to apply water on top
+            D.depthLock  (true); Sh.ResolveDepth->draw(); // here we can keep FUNC_LESS because 1S DS was already set before and we just need to apply water on top
             D.depthUnlock(    );
          }
       }
@@ -394,14 +394,14 @@ void WaterClass::under(C PlaneM &plane, WaterMtrl &mtrl)
 /******************************************************************************/
 void WaterClass::setImages(Image *src, Image *depth)
 {
-   Sh.h_ImageCol  [1]->set(Renderer._mirror_rt); Sh.h_ImageCol[1]->_sampler=&SamplerLinearClamp; // reflection
-   Sh.h_ImageCol  [2]->set(          src      ); Sh.h_ImageCol[2]->_sampler=&SamplerLinearClamp; // solid underwater
+   //FIXME Sh.ImageCol  [1]->set(Renderer._mirror_rt); Sh.ImageCol[1]->_sampler=&SamplerLinearClamp; // reflection
+   //FIXME Sh.ImageCol  [2]->set(          src      ); Sh.ImageCol[2]->_sampler=&SamplerLinearClamp; // solid underwater
    Sh.ImgXF[0]->set(          depth    );                                                 // solid depth
 }
 void WaterClass::endImages()
 {
-   Sh.h_ImageCol[1]->_sampler=null;
-   Sh.h_ImageCol[2]->_sampler=null;
+   //FIXME Sh.ImageCol[1]->_sampler=null;
+   //FIXME Sh.ImageCol[2]->_sampler=null;
 }
 /******************************************************************************/
 Bool WaterClass::ocean()
@@ -750,7 +750,7 @@ void WaterDrops::setSkin(Skeleton &skeleton)
 void WaterDrops::draw()
 {
    VI.image    (image);
-   VI.technique(blend ? Sh.h_RndrWaterdS : Sh.h_RndrWaterd);
+   VI.technique(blend ? Sh.RndrWaterdS : Sh.RndrWaterd);
    REP(num)
    {
       Flt t1=Sin(Time.time()*1.5f+time[i]),
