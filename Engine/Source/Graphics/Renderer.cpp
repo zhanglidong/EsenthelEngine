@@ -1629,7 +1629,7 @@ void RendererClass::palette(Int index)
       set(_col, null, true);
       D .alpha(ALPHA_BLEND_DEC);
       Sh.Img[1]->set(palette());
-      Sh.PaletteDraw->draw(*intensity);
+      Sh.PaletteDraw->draw(intensity);
    }
    if(index)
    {
@@ -1869,7 +1869,7 @@ void RendererClass::refract() // !! assumes that 'finalizeGlow' was called !!
       SPSet("WaterDns"      , Vec2(Mid(under.density_underwater , 0.0f, 1-EPS_GPU), under.density_underwater_add)); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
       SPSet("WaterUnderCol0", SRGBToDisplay(under.color_underwater0));
       SPSet("WaterUnderCol1", SRGBToDisplay(under.color_underwater1));
-      REPS(_eye, _eye_num)WS.Under[refract]->draw(*src, setEyeParams());
+      REPS(_eye, _eye_num)WS.Under[refract]->draw(src, setEyeParams());
    }
 }
 void RendererClass::postProcess()

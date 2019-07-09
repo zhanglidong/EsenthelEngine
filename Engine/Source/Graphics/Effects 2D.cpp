@@ -36,7 +36,7 @@ void ColorMatrix::draw(Flt alpha)
    {
       SPSet("ColTransMatrix", T);
       Sh.Step->set(alpha);
-      if(!Sh.ColTrans)Sh.ColTrans=Sh.get("ColTrans"); Sh.ColTrans->draw(*back);
+      if(!Sh.ColTrans)Sh.ColTrans=Sh.get("ColTrans"); Sh.ColTrans->draw(back);
    }
 }
 void ColorTransHB(Flt hue, Flt brightness, Flt alpha)
@@ -47,7 +47,7 @@ void ColorTransHB(Flt hue, Flt brightness, Flt alpha)
       SPSet("ColTransMatrix", ColorMatrix().setHue(hue));
       SPSet("ColTransHsb"   , Vec(0, 0, brightness));
       Sh.Step->set(alpha);
-      if(!Sh.ColTransHB)Sh.ColTransHB=Sh.get("ColTransHB"); Sh.ColTransHB->draw(*back);
+      if(!Sh.ColTransHB)Sh.ColTransHB=Sh.get("ColTransHB"); Sh.ColTransHB->draw(back);
    }
 }
 void ColorTransHSB(Flt hue, Flt saturation, Flt brightness, Flt alpha)
@@ -57,7 +57,7 @@ void ColorTransHSB(Flt hue, Flt saturation, Flt brightness, Flt alpha)
    {
       SPSet("ColTransHsb", Vec(hue, saturation, brightness));
       Sh.Step->set(alpha);
-      if(!Sh.ColTransHSB)Sh.ColTransHSB=Sh.get("ColTransHSB"); Sh.ColTransHSB->draw(*back);
+      if(!Sh.ColTransHSB)Sh.ColTransHSB=Sh.get("ColTransHSB"); Sh.ColTransHSB->draw(back);
    }
 }
 /******************************************************************************/
@@ -136,7 +136,7 @@ void WaveFx(Flt time, Flt scale)
       Sh.Color[0]->set(Vec(m.x.x, m.x.y, m.pos.x));
       Sh.Color[1]->set(Vec(m.y.x, m.y.y, m.pos.y));
       ALPHA_MODE alpha=D.alpha(ALPHA_NONE); // disable alpha blending
-      if(!Sh.Wave)Sh.Wave=Sh.get("Wave"); Sh.Wave->draw(*back);
+      if(!Sh.Wave)Sh.Wave=Sh.get("Wave"); Sh.Wave->draw(back);
       D.alpha(alpha);
    }
 }
@@ -147,7 +147,7 @@ void RadialBlurFx(Flt scale, Flt alpha, C Vec2 &center)
       if(C ImageRTPtr &back=Renderer.getBackBuffer())
    {
       Sh.Color[0]->set(Vec4(D.screenToUV(center), 1+Abs(scale), alpha));
-      if(!Sh.RadialBlur)Sh.RadialBlur=Sh.get("RadialBlur"); Sh.RadialBlur->draw(*back);
+      if(!Sh.RadialBlur)Sh.RadialBlur=Sh.get("RadialBlur"); Sh.RadialBlur->draw(back);
    }
 }
 /******************************************************************************/

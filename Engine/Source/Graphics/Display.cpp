@@ -3199,7 +3199,7 @@ void Display::fadeDraw()
    if(Renderer._fade)
    {
       Sh.Step->set(1-_fade_step);
-      Sh.DrawA->draw(*Renderer._fade, _fade_flipped ? &Rect(-w(), h(), w(), -h()) : null);
+      Sh.DrawA->draw(Renderer._fade, _fade_flipped ? &Rect(-w(), h(), w(), -h()) : null);
    }
    if(_fade_get)
    {
