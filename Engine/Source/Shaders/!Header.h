@@ -578,6 +578,7 @@ Image     Col, Col1, Col2, Col3,
           Lum;
 ImageCube Rfl, Rfl1, Rfl2, Rfl3;
 
+Image     Img, Img1, Img2, Img3;
 ImageH    ImgX, ImgX1, ImgX2, ImgX3;
 ImageF    ImgXF, ImgXF1, Depth;
 ImageH2   ImgXY;
