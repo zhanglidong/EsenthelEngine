@@ -30,7 +30,7 @@ BUFFER_END
 // Img=Nrm, Depth=depth
 Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
            NOPERSP Vec2 inPosXY:TEXCOORD1,
-           NOPERSP PIXEL                         ,
+           NOPERSP PIXEL                 ,
    uniform Int  mode                     ,
    uniform Bool jitter                   ,
    uniform Bool normals                  ):COLOR
