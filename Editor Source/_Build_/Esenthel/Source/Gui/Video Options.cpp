@@ -206,7 +206,7 @@ VideoOptions VidOpt;
       void VideoOptions::Advanced::AmbLight(  Advanced &adv, C Str &text) {       DefaultEnvironment.ambient.color_s=TextFlt(text);}
       Str  VideoOptions::Advanced::AOContrast(C Advanced &adv             ) {return D.ambientContrast();}
       void VideoOptions::Advanced::AOContrast(  Advanced &adv, C Str &text) {       D.ambientContrast(TextFlt(text));}
-      Str  VideoOptions::Advanced::AORange(C Advanced &adv             ) {return D.ambientRange().x;}
+      Str  VideoOptions::Advanced::AORange(C Advanced &adv             ) {return D.ambientRange();}
       void VideoOptions::Advanced::AORange(  Advanced &adv, C Str &text) {       D.ambientRange(TextFlt(text));}
       Str  VideoOptions::Advanced::ShadowFlicker(C Advanced &adv             ) {return D.shadowReduceFlicker();}
       void VideoOptions::Advanced::ShadowFlicker(  Advanced &adv, C Str &text) {D.shadowReduceFlicker(TextInt(text));}

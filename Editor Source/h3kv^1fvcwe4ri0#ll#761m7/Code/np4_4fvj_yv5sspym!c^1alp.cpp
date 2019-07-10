@@ -136,7 +136,7 @@ class VideoOptions : PropWin
       static void AmbLight     (  Advanced &adv, C Str &text) {       DefaultEnvironment.ambient.color_s=TextFlt(text);}
       static Str  AOContrast   (C Advanced &adv             ) {return D.ambientContrast();}
       static void AOContrast   (  Advanced &adv, C Str &text) {       D.ambientContrast(TextFlt(text));}
-      static Str  AORange      (C Advanced &adv             ) {return D.ambientRange().x;}
+      static Str  AORange      (C Advanced &adv             ) {return D.ambientRange();}
       static void AORange      (  Advanced &adv, C Str &text) {       D.ambientRange(TextFlt(text));}
       static Str  ShadowFlicker(C Advanced &adv             ) {return D.shadowReduceFlicker();}
       static void ShadowFlicker(  Advanced &adv, C Str &text) {D.shadowReduceFlicker(TextInt(text));}

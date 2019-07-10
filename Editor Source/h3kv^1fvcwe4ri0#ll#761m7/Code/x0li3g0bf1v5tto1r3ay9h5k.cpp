@@ -284,7 +284,7 @@ class IconEditor : PropWin
       SHADOW_MODE      shadow       =D.shadowMode     (); D.shadowMode     (SHADOW_MAP);
       Vec              ambient_col_l=D.ambientColorL  (); D.ambientColorS  (settings.ambient_col);
       flt              ambient_contr=D.ambientContrast(); D.ambientContrast(settings.ambient_occl);
-      Vec2             ambient_range=D.ambientRange   (); D.ambientRange   (settings.ambient_range);
+      flt              ambient_range=D.ambientRange   (); D.ambientRange   (settings.ambient_range);
       int              ambient_res  =D.ambientRes     (); D.ambientRes     (0);
       flt              lod_fac      =D.lodFactor      (); D.lodFactor      (0);
       DOF_MODE         dof          =D.dofMode        (); D.dofMode        (DOF_NONE);

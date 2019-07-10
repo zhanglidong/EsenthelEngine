@@ -97,7 +97,7 @@ bool SaveSettings(C Str &name)
       video.nodes.New().set("BloomSaturate"           , DefaultEnvironment.bloom.saturate);
       video.nodes.New().set("AmbientLight"            , DefaultEnvironment.ambient.color_s.max());
       video.nodes.New().set("AmbientOcclusion"        , D.ambientMode());
-      video.nodes.New().set("AmbientOcclusionRange"   , D.ambientRange().x);
+      video.nodes.New().set("AmbientOcclusionRange"   , D.ambientRange());
       video.nodes.New().set("AmbientOcclusionContrast", D.ambientContrast());
       video.nodes.New().set("EyeAdaptation"           , D.eyeAdaptation());
       video.nodes.New().set("EyeAdaptationBrightness" , D.eyeAdaptationBrightness());
