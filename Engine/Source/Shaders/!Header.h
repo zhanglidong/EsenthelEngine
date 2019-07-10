@@ -421,6 +421,11 @@ BUFFER_END
 BUFFER_I(Color, SBI_COLOR)
    VecH4 Color[2];
 BUFFER_END
+
+BUFFER(Ambient)
+   VecH AmbColor, AmbNSColor;
+   Half AmbMaterial=1; // if apply Material Ambient
+BUFFER_END
 /******************************************************************************/
 BUFFER_I(Global, SBI_GLOBAL)
    Matrix4 ProjMatrix                    ; // projection  matrix

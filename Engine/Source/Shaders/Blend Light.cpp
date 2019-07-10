@@ -1,6 +1,5 @@
 /******************************************************************************/
 #include "!Header.h"
-#include "Ambient Occlusion.h"
 #include "Vertex Fog.h"
 #include "Fog.h"
 #include "Sky.h"

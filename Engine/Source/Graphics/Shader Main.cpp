@@ -342,7 +342,6 @@ void MainShaderClass::getTechniques()
    AmbientMaterial =GetShaderParam("AmbMaterial"    );
    AmbientContrast =GetShaderParam("AmbContrast"    ); AmbientContrast->set(D.ambientContrast());
    AmbientRange    =GetShaderParam("AmbRange"       ); AmbientRange   ->set(D.ambientRange   ());
-   AmbientScale    =GetShaderParam("AmbScale"       ); AmbientScale   ->set(D.ambientScale   ());
    AmbientBias     =GetShaderParam("AmbBias"        ); AmbientBias    ->set(D.ambientBias    ());
    D.ambientSet();
 

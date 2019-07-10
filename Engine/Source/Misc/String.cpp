@@ -3702,14 +3702,6 @@ Str  Str ::operator+(C VecSB4 &v)C {return RValue(Str (T, 4* SBYTEC + 3*COMMA)+=
 /******************************************************************************/
 // STRING LIBRARY
 /******************************************************************************/
-static inline Int CompareSCI(C Str &a, C Str &b) {return Compare(a(), b(), false);}
-static inline Int CompareSCS(C Str &a, C Str &b) {return Compare(a(), b(), true );}
-
-static Int (&GetCompare(Bool case_sensitive, Bool paths)) (C Str &a, C Str &b)
-{
-   return paths ? (case_sensitive ? ComparePathCS : ComparePathCI) : (case_sensitive ? CompareSCS : CompareSCI);
-}
-
 void StrLibrary::del()
 {
   _elms=_size=0;
@@ -3720,6 +3712,13 @@ void StrLibrary::alloc()
 {
   _index=(UInt*)Alloc(SIZE(*_index)*_elms + SIZE(*_data)*_size);
   _data =(Byte*)(_index+_elms);
+}
+static inline Int CompareSCI(C Str &a, C Str &b) {return Compare(a(), b(), false);}
+static inline Int CompareSCS(C Str &a, C Str &b) {return Compare(a(), b(), true );}
+
+static Int (&GetCompare(Bool case_sensitive, Bool paths)) (C Str &a, C Str &b)
+{
+   return paths ? (case_sensitive ? ComparePathCS : ComparePathCI) : (case_sensitive ? CompareSCS : CompareSCI);
 }
 void StrLibrary::create(C MemPtr<Str> &strings, Bool case_sensitive, Bool paths)
 {
@@ -3773,15 +3772,50 @@ Str StrLibrary::elm(Int i)C
    return S;
 }
 /******************************************************************************/
+static Int _ComparePathCI(CChar  *a, C Str &b) {return ComparePath(a, b, false);} // compare paths Case-Insensitive, you can use this function directly to other parts of the engine which require comparison functions in this format
+static Int _ComparePathCI(CChar8 *a, C Str &b) {return ComparePath(a, b, false);} // compare paths Case-Insensitive, you can use this function directly to other parts of the engine which require comparison functions in this format
+static Int _ComparePathCS(CChar  *a, C Str &b) {return ComparePath(a, b, true );} // compare paths Case-  Sensitive, you can use this function directly to other parts of the engine which require comparison functions in this format
+static Int _ComparePathCS(CChar8 *a, C Str &b) {return ComparePath(a, b, true );} // compare paths Case-  Sensitive, you can use this function directly to other parts of the engine which require comparison functions in this format
+
+static Int _CompareCI(CChar  *a, C Str &b) {return Compare(a, b, false);}
+static Int _CompareCI(CChar8 *a, C Str &b) {return Compare(a, b, false);}
+static Int _CompareCS(CChar  *a, C Str &b) {return Compare(a, b, true );}
+static Int _CompareCS(CChar8 *a, C Str &b) {return Compare(a, b, true );}
+
 void StrLibrary::putStr(File &f, C Str &str)C
 {
-   Int (&compare)(C Str &a, C Str &b)=GetCompare(_case_sensitive, _paths);
+   Int (*compare8)(CChar8 *a, C Str &b);
+   Int (*compare )(CChar  *a, C Str &b);
+   if(_paths)
+   {
+      if(_case_sensitive)
+      {
+         compare8=_ComparePathCS;
+         compare =_ComparePathCS;
+      }else
+      {
+         compare8=_ComparePathCI;
+         compare =_ComparePathCI;
+      }
+   }else
+   {
+      if(_case_sensitive)
+      {
+         compare8=_CompareCS;
+         compare =_CompareCS;
+      }else
+      {
+         compare8=_CompareCI;
+         compare =_CompareCI;
+      }
+   }
+
    Int l=0, r=_elms, found=-1; // -1 is 0xFFFFFFFF
    for(; l<r; )
    {
       Int  mid   =UInt(l+r)/2;
       UInt offset=_index[mid];
-      Int  c     =((offset&SIGN_BIT) ? compare((CChar*)(_data+(offset^SIGN_BIT)), str) : compare((CChar8*)(_data+offset), str));
+      Int  c     =((offset&SIGN_BIT) ? compare((CChar*)(_data+(offset^SIGN_BIT)), str) : compare8((CChar8*)(_data+offset), str));
       if( c<0)l=mid+1;else
       if( c>0)r=mid  ;else {found=mid; break;}
    }

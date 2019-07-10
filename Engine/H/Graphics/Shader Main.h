@@ -95,7 +95,6 @@ struct MainShaderClass
       *AmbientMaterial ,
       *AmbientContrast ,
       *AmbientRange    ,
-      *AmbientScale    ,
       *AmbientBias     ,
       *AmbientColor_l  , // Vec Linear Gamma
       *AmbientColorNS_l, // Vec Linear Gamma + NightShade

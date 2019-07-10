@@ -120,7 +120,7 @@ void CodeEditor::parseHeader(C Str &h, Memc<Macro> &macros, Memc<SymbolPtr> &usi
 
    Memc<PrepCond  > prep_if   ;
    Memc<Token     > tokens    ; parseHeaderEx(h, S, ee ? false : true, tokens, macros, usings, ee, prep_if);
-   Memc<Token*    > token_ptrs; FREPA(tokens)token_ptrs.add(&tokens[i]);
+   Memc<Token*    > token_ptrs; token_ptrs.setNum(tokens.elms()); FREPAO(token_ptrs)=&tokens[i];
    Memc<SymbolDef > symbols   ; 
    Memc<SymbolDecl> decls     ; DetectDataTypes(symbols, decls, token_ptrs);
                                   LinkDataTypes(symbols,        token_ptrs);
