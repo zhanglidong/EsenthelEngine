@@ -1320,7 +1320,7 @@ void RendererClass::ao()
    linearizeDepth(*ao_depth, *_ds_1s);
 
  //Sh.imgSize(*_ao); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
-   Sh.Img[0]->set(_nrm); Sh.Img[0]->_sampler=&SamplerPoint;
+   Sh.Img[0]->set(_nrm);
    Sh.Depth ->set(ao_depth);
    Bool foreground=_ao->compatible(*_ds_1s);
    if(_col->multiSample())foreground&=Sky.isActual(); // when having multi-sampling, then allow this optimization only if we're rendering Sky, this is related to smooth edges between solid and sky pixels
@@ -1330,7 +1330,6 @@ void RendererClass::ao()
    REPS(_eye, _eye_num)tech_occl->draw(setEyeParams()); // calculate occlusion
    ao_depth.clear(); // this one is no longer needed
    Sh.Depth->set(_ds_1s); // restore full resolution depth
-   Sh.Img[0]->_sampler=null;
 
    if(D.ambientSoft()) // this needs to be in sync with 'D.shadowSoft'
    {
