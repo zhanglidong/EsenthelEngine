@@ -180,6 +180,7 @@ struct MainShaderClass
       *SetCol ,
       *Draw   ,
       *DrawC  ,
+      *DrawG  ,
       *DrawCG ,
       *DrawA  ,
       *DrawMs1,

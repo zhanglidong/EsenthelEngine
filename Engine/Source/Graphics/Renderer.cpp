@@ -314,7 +314,7 @@ static void SetMotionBlurParams(Flt pixels) // !! this needs to be called when t
 // !! Assumes that 'ImgClamp' was already set !!
 Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
 {
-   if(stage==RS_VEL && set(_vel))return true;
+   if(stage==RS_VEL && show(_vel, false, D.signedVelRT()))return true;
 
    Mtn.load();
 
@@ -362,7 +362,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
    }
   _vel.clear();
 
-   if(stage==RS_VEL_CONVERT && set(converted))return true;
+   if(stage==RS_VEL_CONVERT && show(converted, false, D.signedVelRT()))return true;
 
    ImageRTPtr dilated=converted, helper;
 
@@ -390,14 +390,14 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
          set(helper, null, false); Mtn.Dilate->draw(dilated, rect); Swap(dilated, helper);
       }
    }
-   if(stage==RS_VEL_DILATED && set(dilated))return true;
+   if(stage==RS_VEL_DILATED && show(dilated, false, D.signedVelRT()))return true;
 
    // check how far can we go (remove leaks)
    Sh.Img[1]->set(dilated);
    rt_desc.rt_type=(D.signedVelRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA); // XY=Dir#0, ZW=Dir#1
    helper.get(rt_desc); // we always need to call this because 'helper' can be set to 'converted'
    set(helper, null, false); Mtn.SetDirs[!D._view_main.full]->draw(converted, rect);
-   if(stage==RS_VEL_LEAK && set(helper))return true;
+   if(stage==RS_VEL_LEAK && show(helper, false, D.signedVelRT()))return true;
 
    Sh.Img[1]->set(helper);
    set(&dest, null, true);
@@ -714,15 +714,15 @@ RendererClass& RendererClass::operator()(void (&render)())
 
       if(stage)switch(stage)
       {
-         case RS_COLOR : if(_cur_type==RT_DEFERRED && set(_col  ))goto finished; break; // only on deferred renderer the color is unlit
-         case RS_NORMAL: if(                          set(_nrm  ))goto finished; break;
-         case RS_DEPTH : if(                          set(_ds_1s))goto finished; break; // this may be affected by test blend materials later
+         case RS_COLOR : if(_cur_type==RT_DEFERRED && show(_col  , true                  ))goto finished; break; // only on deferred renderer the color is unlit
+         case RS_NORMAL: if(                          show(_nrm  , false, D.signedNrmRT()))goto finished; break;
+         case RS_DEPTH : if(                          show(_ds_1s, false                 ))goto finished; break; // this may be affected by test blend materials later
       }
       waterPreLight(); MEASURE(water)
       light        (); MEASURE(_t_light[1])
       if(stage)switch(stage)
       {
-         case RS_LIT_COLOR: if(set(_col))goto finished; break;
+         case RS_LIT_COLOR: if(show(_col, true))goto finished; break;
 
          case RS_LIGHT: if(_lum_1s)
          {
@@ -732,7 +732,7 @@ RendererClass& RendererClass::operator()(void (&render)())
                D.alpha(ALPHA_ADD);
                Sh.clear(Vec4(D.ambientColorD(), 0));
             }
-            if(set(_lum_1s))goto finished;
+            if(show(_lum_1s, true))goto finished;
          }break;
 
          case RS_AO: if(_ao)
@@ -759,7 +759,7 @@ RendererClass& RendererClass::operator()(void (&render)())
                   Sh.DrawXC->draw();
                }
             }
-            if(set(_lum_1s))goto finished;
+            if(show(_lum_1s, true))goto finished;
          }break;
       }
       if(waterPostLight())goto finished; MEASURE(_t_water[1])if(_t_measure)_t_water[1]+=water;
@@ -893,7 +893,7 @@ Bool RendererClass::reflection()
       // <- reset viewport here if needed
       cam.set();                 // camera
 
-      if(stage==RS_REFLECTION && set(_mirror_rt))return true;
+      if(stage==RS_REFLECTION && show(_mirror_rt, true))return true;
    }
    return false;
 }
@@ -951,7 +951,7 @@ Bool RendererClass::anyDeferred      ()C {return type()==RT_DEFERRED || Water.re
 Bool RendererClass::anyForward       ()C {return type()==RT_FORWARD  || Water.reflectionRenderer()==RT_FORWARD ;}
 Bool RendererClass::lowDepthPrecision()C {return _main_ds.type()==IMAGE_D16;} // this can happen only on Android, and there we do have information about the depth buffer
 /******************************************************************************/
-Bool RendererClass::set(C ImageRTPtr &image)
+Bool RendererClass::show(C ImageRTPtr &image, Bool srgb, Bool sign)
 {
    if(image)
    {
@@ -960,16 +960,18 @@ Bool RendererClass::set(C ImageRTPtr &image)
          if(!image->depthTexture())return false; // can't read
          set(_final, null, true); D.alpha(ALPHA_NONE); Sh.Depth->set(image); Sh.get("DrawDepth")->draw(); Sh.Depth->set(_ds_1s);
       }else
-      if(image->type()!=IMAGE_R8G8B8A8_SIGN
-      && image->type()!=IMAGE_R8G8_SIGN
-      && image->type()!=IMAGE_R8_SIGN)image->copyHw(*_final, false, D.viewRect());else
+      if(sign)
       {
-         set(_final, null, true); D.alpha(ALPHA_NONE);
-         // we need to draw image*0.5f+0.5f
+         // we need to draw image*0.5+0.5
          Sh.Color[0]->set(Vec4(0.5f, 0.5f, 0.5f, 0));
          Sh.Color[1]->set(Vec4(0.5f, 0.5f, 0.5f, 1));
-         (LINEAR_GAMMA ? Sh.DrawCG : Sh.DrawC)->draw(image);
-      }
+         set(_final, null, true); D.alpha(ALPHA_NONE); ((LINEAR_GAMMA && !srgb) ? Sh.DrawCG : Sh.DrawC)->draw(image);
+      }else
+      if(LINEAR_GAMMA && !srgb)
+      {
+         set(_final, null, true); D.alpha(ALPHA_NONE); Sh.DrawG->draw(image);
+      }else
+         image->copyHw(*_final, false, D.viewRect());
       return true;
    }
    return false;
@@ -1493,9 +1495,9 @@ Bool RendererClass::waterPostLight()
 
       if(stage)switch(stage)
       {
-         case RS_WATER_COLOR : if(set(_water_col))return true; break;
-         case RS_WATER_NORMAL: if(set(_water_nrm))return true; break;
-         case RS_WATER_LIGHT : if(set(_water_lum))return true; break;
+         case RS_WATER_COLOR : if(show(_water_col, true                  ))return true; break;
+         case RS_WATER_NORMAL: if(show(_water_nrm, false, D.signedNrmRT()))return true; break;
+         case RS_WATER_LIGHT : if(show(_water_lum, true                  ))return true; break;
       }
    }
   _water_col.clear();

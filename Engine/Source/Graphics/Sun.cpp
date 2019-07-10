@@ -201,7 +201,7 @@ Bool AstroDrawRays()
             D.depth2DOff();
          }
 
-         if(Renderer.stage==RS_SKY_COVERAGE && Renderer.set(Renderer._sky_coverage))return true;
+         if(Renderer.stage==RS_SKY_COVERAGE && Renderer.show(Renderer._sky_coverage, false))return true;
       }
 
       const VecI2 res=ByteScaleRes(Renderer.fx(), Sun._rays_res);
