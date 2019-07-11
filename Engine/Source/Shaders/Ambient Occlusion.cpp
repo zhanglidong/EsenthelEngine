@@ -18,7 +18,7 @@ BUFFER(AOConstants) // z=1/xy.length()
    Vec AO3Vec[]={Vec(-0.141, -0.990, 1.000), Vec(0.141, -0.990, 1.000), Vec(-0.283, -0.849, 1.117), Vec(0.000, -0.849, 1.178), Vec(0.283, -0.849, 1.117), Vec(-0.707, -0.707, 1.000), Vec(-0.424, -0.707, 1.213), Vec(-0.141, -0.707, 1.387), Vec(0.141, -0.707, 1.387), Vec(0.424, -0.707, 1.213), Vec(0.707, -0.707, 1.000), Vec(-0.566, -0.566, 1.249), Vec(-0.283, -0.566, 1.580), Vec(0.000, -0.566, 1.767), Vec(0.283, -0.566, 1.580), Vec(0.566, -0.566, 1.249), Vec(-0.707, -0.424, 1.213), Vec(-0.424, -0.424, 1.668), Vec(-0.141, -0.424, 2.238), Vec(0.141, -0.424, 2.238), Vec(0.424, -0.424, 1.668), Vec(0.707, -0.424, 1.213), Vec(-0.849, -0.283, 1.117), Vec(-0.566, -0.283, 1.580), Vec(-0.283, -0.283, 2.499), Vec(0.000, -0.283, 3.534), Vec(0.283, -0.283, 2.499), Vec(0.566, -0.283, 1.580), Vec(0.849, -0.283, 1.117), Vec(-0.990, -0.141, 1.000), Vec(-0.707, -0.141, 1.387), Vec(-0.424, -0.141, 2.238), Vec(-0.141, -0.141, 5.015), Vec(0.141, -0.141, 5.015), Vec(0.424, -0.141, 2.238), Vec(0.707, -0.141, 1.387), Vec(0.990, -0.141, 1.000), Vec(-0.849, 0.000, 1.178), Vec(-0.566, 0.000, 1.767), Vec(-0.283, 0.000, 3.534), Vec(0.283, 0.000, 3.534), Vec(0.566, 0.000, 1.767), Vec(0.849, 0.000, 1.178), Vec(-0.990, 0.141, 1.000), Vec(-0.707, 0.141, 1.387), Vec(-0.424, 0.141, 2.238), Vec(-0.141, 0.141, 5.015), Vec(0.141, 0.141, 5.015), Vec(0.424, 0.141, 2.238), Vec(0.707, 0.141, 1.387), Vec(0.990, 0.141, 1.000), Vec(-0.849, 0.283, 1.117), Vec(-0.566, 0.283, 1.580), Vec(-0.283, 0.283, 2.499), Vec(0.000, 0.283, 3.534), Vec(0.283, 0.283, 2.499), Vec(0.566, 0.283, 1.580), Vec(0.849, 0.283, 1.117), Vec(-0.707, 0.424, 1.213), Vec(-0.424, 0.424, 1.668), Vec(-0.141, 0.424, 2.238), Vec(0.141, 0.424, 2.238), Vec(0.424, 0.424, 1.668), Vec(0.707, 0.424, 1.213), Vec(-0.566, 0.566, 1.249), Vec(-0.283, 0.566, 1.580), Vec(0.000, 0.566, 1.767), Vec(0.283, 0.566, 1.580), Vec(0.566, 0.566, 1.249), Vec(-0.707, 0.707, 1.000), Vec(-0.424, 0.707, 1.213), Vec(-0.141, 0.707, 1.387), Vec(0.141, 0.707, 1.387), Vec(0.424, 0.707, 1.213), Vec(0.707, 0.707, 1.000), Vec(-0.283, 0.849, 1.117), Vec(0.000, 0.849, 1.178), Vec(0.283, 0.849, 1.117), Vec(-0.141, 0.990, 1.000), Vec(0.141, 0.990, 1.000)};
 BUFFER_END
 /******************************************************************************/
-Flt Q,W,E; // FIXME
+Flt Q,W,E,R; // FIXME
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
 // Img=Nrm, Depth=depth
 Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
@@ -30,7 +30,6 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
 {
    Bool geom=(normals && Q); // FIXME
 
-   Flt  z;
    Vec2 nrm2;
    Vec  nrm, pos;
 
@@ -67,7 +66,6 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
          nrm=Normalize(nrm);
       }else
       {
-         z=pos.z;
          // 'nrm' does not need to be normalized, because following codes don't require that
 
          Vec dir_right=Normalize(Vec(ScreenToPosXY(inTex+Vec2(RTSize.x, 0)), 1)),
@@ -76,24 +74,24 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
          Vec pr=PointOnPlaneRay(Vec(0, 0, 0), pos, nrm, dir_right),
              pu=PointOnPlaneRay(Vec(0, 0, 0), pos, nrm, dir_up   );
 
-         nrm2=Vec2(pr.z-z, pu.z-z)*RTSize.zw;
+         nrm2=Vec2(pr.z-pos.z, pu.z-pos.z)*RTSize.zw;
       #else // optimized
          Flt pr_z=dir_right.z*Dot(pos, nrm)/Dot(dir_right, nrm),
              pu_z=dir_up   .z*Dot(pos, nrm)/Dot(dir_up   , nrm);
 
-         nrm2=Vec2(pr_z-z, pu_z-z)*RTSize.zw;
+         nrm2=Vec2(pr_z-pos.z, pu_z-pos.z)*RTSize.zw;
       #endif
       }
    }else
    {
       // !! for AO shader depth is already linearized !!
-          z =TexDepthRawPoint(inTex);
+      pos.z =TexDepthRawPoint(inTex);
       Flt zl=TexDepthRawPoint(inTex-Vec2(RTSize.x, 0)),
           zr=TexDepthRawPoint(inTex+Vec2(RTSize.x, 0)),
           zd=TexDepthRawPoint(inTex-Vec2(0, RTSize.y)),
           zu=TexDepthRawPoint(inTex+Vec2(0, RTSize.y)),
-          dl=z-zl, dr=zr-z,
-          dd=z-zd, du=zu-z;
+          dl=pos.z-zl, dr=zr-pos.z,
+          dd=pos.z-zd, du=zu-pos.z;
 
       nrm2=Vec2((Abs(dl)<Abs(dr)) ? dl : dr,
                 (Abs(dd)<Abs(du)) ? dd : du)*RTSize.zw;
@@ -108,22 +106,41 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
       CosSin(cos_sin.x, cos_sin.y, a);
    }
 
-   Flt  ao_scale=5,
-        occl  =0,
-        weight=EPS,
-        bias  =(geom ? AmbBias*AmbRange : AmbBias);
-   Vec2 offs_scale=Viewport.size_fov_tan*(0.5*AmbRange/Max(1.0, z)); // use 0.5 because we're converting from -1..1 to 0..1 scale
+   Flt  occl  =0,
+        weight=EPS;
+   Vec2 offs_scale=Viewport.size_fov_tan*(0.5*AmbRange/Max(1.0, pos.z)); // use 0.5 because we're converting from -1..1 to 0..1 scale
+
+   Flt pixels=Min(offs_scale*RTSize.zw);
+   Flt rrr=AmbRange;//, max_length=1;
+   #define AmbRange rrr
+   Flt min_pixels;
+   if(mode==0)min_pixels=1/(0.707-0.354);else
+   if(mode==1)min_pixels=1/(0.943-0.707);else
+   if(mode==2)min_pixels=1/(0.884-0.707);else
+              min_pixels=1/(0.990-0.849);
+   if(W && 0)if(pixels<min_pixels)
+   {
+      Flt scale=min_pixels/pixels;
+      AmbRange*=scale;
+      offs_scale*=scale;
+    //max_length/=scale;
+   }
+
+   Flt bias=AmbBias*AmbRange;
+   if(!geom)bias+=pos.z/(1024/* *Viewport.size_fov_tan.y*/); // add some distance based bias, which reduces flickering for distant pixels, the formula should depend on size_fov_tan, however when using it, then we're getting artifacts in low fov and high distance, so have to keep it disabled
 
    // required for later optimizations
-   Flt range, range2;
+   Flt range2, scale;
    if(geom)
    {
       range2=Sqr(AmbRange);
    }else
    {
-      range=-1/AmbRange;
-      nrm2*=range*-ao_scale;
-      z   =-(z - z/1024)*range - bias; // add some distance based bias (/1024), which reduces flickering for distant pixels
+   #if 1
+      scale=1/AmbRange;
+      nrm2*=scale;
+      pos.z=(pos.z-bias)*scale;
+   #endif
    }
 
    Int        elms;
@@ -140,6 +157,8 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
       if(mode==2)pattern=AO2Vec[i];else
                  pattern=AO3Vec[i];
 
+      //if(1/pattern.z>max_length)continue; not working well
+
       Vec2      offs=pattern.xy*offs_scale;
       if(jitter)offs=Rotate(offs, cos_sin);
                 offs=Round (offs*RTSize.zw)*RTSize.xy; // doesn't make a big difference for pixels close to camera, but makes a HUGE difference for pixels far away, keep !! otherwise distant terrain gets unnaturally shaded
@@ -150,14 +169,39 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
       if(all(Abs(t-Viewport.center)<=Viewport.size/2)) // UV inside viewport
       {
          // !! for AO shader depth is already linearized !!
+         Flt test_z=TexDepthRawPoint(t); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 't'
          if(geom)
          {
-            Vec test_pos=GetPos(TexDepthRawPoint(t), ScreenToPosXY(t)),
+            test_z+=bias;
+            Vec test_pos=GetPos(test_z, ScreenToPosXY(t)),
                 delta=test_pos-pos;
-            if(Dot(delta, nrm)>bias)
+            if(Dot(delta, nrm)>0)
             {
-               w=(Length2(delta)<=range2);
-               o=1;
+                  w=(Length2(delta)<=range2);
+                  //if(W)w=Sat(1-Length2(delta)/range2);
+                  //if(E)w*=BlendSqr(Dot(delta, nrm)/AmbRange);
+                  //if(!E && R && !W)w=(Length(delta)<=AmbRange+bias);
+                  o=1;
+                  if(w<=0)
+                  {
+                     w=1.0/3;
+                     o=0;
+                  }
+               /*if(W)
+               {
+                  Flt f=Length(delta)/AmbRange;
+                  //if(E)w=Sat(1-Length2(delta)/range2);else
+                  w=Sat(1.5-Sqr(f));
+                  o=1;
+               }else
+               {
+                  w=(Length2(delta)<=(W ? 2 : 1.0)*range2);
+                  o=1;
+               }*/
+
+               //if(E)
+               //if(R)
+               //o=Sat(Dot(delta, nrm)/bias-(E?0:1));
             }else
             {
                w=1;
@@ -165,27 +209,26 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
             }
          }else
          {
-         #if 0 // Unoptimized
-            Flt range=AmbRange,
-                delta=z - AmbBias*AmbRange - TexDepthRawPoint(t), // apply bias to Z and calculate delta between TexDepth at that location, can use point filtering because we've rounded 't'
-                expected=Sum(nrm2*offs); // this is the expected delta
-            o=Sat((delta+expected)/(range/ao_scale));
-            #if 1
-               w=((o>0) ? BlendSqr(delta/range) : 1);
-            #else
-               w=BlendSqr(delta/range); // ignore samples that are out of range (Z dist)
-               if(delta<=-range){o=0; w=1;} // if sample is behind us and out of range, then set it as brightening
-            #endif
-         #else // Optimized
-            Flt delta=TexDepthRawPoint(t)*range+z; // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 't'
-            o=Sat(delta*ao_scale+Dot(nrm2, offs));
-            #if 1
-               w=((o>0) ? BlendSqr(delta) : 1);
-            #else
-               w=BlendSqr(delta); // ignore samples that are out of range (Z dist)
-               if(delta<=-1){o=0; w=1;} // if sample is behind us and out of range, then set it as brightening
-            #endif
+         #if 1 // Optimized
+            Flt expected=pos.z+Dot(nrm2, offs); test_z*=scale; if(test_z<expected)
+            {
+               w=BlendSqr(pos.z-test_z);
+         #else // Unoptimized
+            Flt expected=pos.z+Dot(nrm2, offs); test_z+=AmbBias*AmbRange; if(test_z<expected)
+            {
+               w=BlendSqr((pos.z-test_z)/AmbRange);
          #endif
+               o=1;
+               if(w<=0)
+               {
+                  w=1.0/3;
+                  o=0;
+               }
+            }else
+            {
+               w=1;
+               o=0;
+            }
          }
       }else // UV outside viewport
       {

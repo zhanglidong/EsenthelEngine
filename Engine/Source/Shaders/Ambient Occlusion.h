@@ -2,6 +2,6 @@
 BUFFER(AO)
    Half AmbRange   =0.4,
         AmbContrast=1.0,
-        AmbBias    =0.1;
+        AmbBias    =0.15;
 BUFFER_END
 /******************************************************************************/
