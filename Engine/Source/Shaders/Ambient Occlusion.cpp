@@ -18,7 +18,6 @@ BUFFER(AOConstants) // z=1/xy.length()
    Vec AO3Vec[]={Vec(-0.141, -0.990, 1.000), Vec(0.141, -0.990, 1.000), Vec(-0.283, -0.849, 1.117), Vec(0.000, -0.849, 1.178), Vec(0.283, -0.849, 1.117), Vec(-0.707, -0.707, 1.000), Vec(-0.424, -0.707, 1.213), Vec(-0.141, -0.707, 1.387), Vec(0.141, -0.707, 1.387), Vec(0.424, -0.707, 1.213), Vec(0.707, -0.707, 1.000), Vec(-0.566, -0.566, 1.249), Vec(-0.283, -0.566, 1.580), Vec(0.000, -0.566, 1.767), Vec(0.283, -0.566, 1.580), Vec(0.566, -0.566, 1.249), Vec(-0.707, -0.424, 1.213), Vec(-0.424, -0.424, 1.668), Vec(-0.141, -0.424, 2.238), Vec(0.141, -0.424, 2.238), Vec(0.424, -0.424, 1.668), Vec(0.707, -0.424, 1.213), Vec(-0.849, -0.283, 1.117), Vec(-0.566, -0.283, 1.580), Vec(-0.283, -0.283, 2.499), Vec(0.000, -0.283, 3.534), Vec(0.283, -0.283, 2.499), Vec(0.566, -0.283, 1.580), Vec(0.849, -0.283, 1.117), Vec(-0.990, -0.141, 1.000), Vec(-0.707, -0.141, 1.387), Vec(-0.424, -0.141, 2.238), Vec(-0.141, -0.141, 5.015), Vec(0.141, -0.141, 5.015), Vec(0.424, -0.141, 2.238), Vec(0.707, -0.141, 1.387), Vec(0.990, -0.141, 1.000), Vec(-0.849, 0.000, 1.178), Vec(-0.566, 0.000, 1.767), Vec(-0.283, 0.000, 3.534), Vec(0.283, 0.000, 3.534), Vec(0.566, 0.000, 1.767), Vec(0.849, 0.000, 1.178), Vec(-0.990, 0.141, 1.000), Vec(-0.707, 0.141, 1.387), Vec(-0.424, 0.141, 2.238), Vec(-0.141, 0.141, 5.015), Vec(0.141, 0.141, 5.015), Vec(0.424, 0.141, 2.238), Vec(0.707, 0.141, 1.387), Vec(0.990, 0.141, 1.000), Vec(-0.849, 0.283, 1.117), Vec(-0.566, 0.283, 1.580), Vec(-0.283, 0.283, 2.499), Vec(0.000, 0.283, 3.534), Vec(0.283, 0.283, 2.499), Vec(0.566, 0.283, 1.580), Vec(0.849, 0.283, 1.117), Vec(-0.707, 0.424, 1.213), Vec(-0.424, 0.424, 1.668), Vec(-0.141, 0.424, 2.238), Vec(0.141, 0.424, 2.238), Vec(0.424, 0.424, 1.668), Vec(0.707, 0.424, 1.213), Vec(-0.566, 0.566, 1.249), Vec(-0.283, 0.566, 1.580), Vec(0.000, 0.566, 1.767), Vec(0.283, 0.566, 1.580), Vec(0.566, 0.566, 1.249), Vec(-0.707, 0.707, 1.000), Vec(-0.424, 0.707, 1.213), Vec(-0.141, 0.707, 1.387), Vec(0.141, 0.707, 1.387), Vec(0.424, 0.707, 1.213), Vec(0.707, 0.707, 1.000), Vec(-0.283, 0.849, 1.117), Vec(0.000, 0.849, 1.178), Vec(0.283, 0.849, 1.117), Vec(-0.141, 0.990, 1.000), Vec(0.141, 0.990, 1.000)};
 BUFFER_END
 /******************************************************************************/
-Flt Q,W,E,R; // FIXME
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
 // Img=Nrm, Depth=depth
 Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
@@ -28,7 +27,7 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
    uniform Bool jitter                   ,
    uniform Bool normals                  ):COLOR
 {
-   Bool geom=(normals && Q); // FIXME
+   Bool geom=(normals && 0); // this is an alternative mode to AO formula, currently disabled, because has some unresolved issues, pixels in the distant go to full brightness fast, alpha-tested leafs can have lot of black pixels
 
    Vec2 nrm2;
    Vec  nrm, pos;
@@ -101,7 +100,7 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
    if(jitter)
    {
       Flt a    =Dot(pixel.xy, Vec2(0.5, 0.25)),
-          angle=0.8;
+          angle=2.0/3; // good results were obtained with 0.666(2/3), 0.8, 1.0, however using smaller value increases performance because it affects texture cache
       a=Frac(a)*angle - 0.5*angle; // (Frac(a)-0.5)*angle;
       CosSin(cos_sin.x, cos_sin.y, a);
    }
@@ -110,9 +109,11 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
         weight=EPS;
    Vec2 offs_scale=Viewport.size_fov_tan*(0.5*AmbRange/Max(1.0, pos.z)); // use 0.5 because we're converting from -1..1 to 0..1 scale
 
+#if 0 // don't pack too many samples together, require them to be spread out, don't use for now, because forces big occlusion on distant objects
+   this doesn't work with AmbBias already scaled by AmbRange, would have to make AmbBiasChangeable
    Flt pixels=Min(offs_scale*RTSize.zw);
-   Flt rrr=AmbRange;//, max_length=1;
-   #define AmbRange rrr
+   Flt AmbRangeChangeable=AmbRange;
+   #define AmbRange AmbRangeChangeable
    Flt min_pixels;
    if(mode==0)min_pixels=1/(0.707-0.354);else
    if(mode==1)min_pixels=1/(0.943-0.707);else
@@ -123,11 +124,14 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
       Flt scale=min_pixels/pixels;
       AmbRange*=scale;
       offs_scale*=scale;
-    //max_length/=scale;
    }
+#endif
 
-   Flt bias=AmbBias*AmbRange;
-   if(!geom)bias+=pos.z/(1024/* *Viewport.size_fov_tan.y*/); // add some distance based bias, which reduces flickering for distant pixels, the formula should depend on size_fov_tan, however when using it, then we're getting artifacts in low fov and high distance, so have to keep it disabled
+   // add some distance based bias, which reduces flickering for distant pixels
+   { // must be in delinearized space, which will not affect much pixels close to camera, or when we have high precision depth (high fov, high view from).
+      pos.z=DelinearizeDepth(pos.z); DEPTH_DEC(pos.z, 0.00000007); // value tested on fov 20 deg, 1000 view range
+      pos.z=  LinearizeDepth(pos.z);
+   }
 
    // required for later optimizations
    Flt range2, scale;
@@ -136,10 +140,9 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
       range2=Sqr(AmbRange);
    }else
    {
-   #if 1
+   #if 1 // Optimized
       scale=1/AmbRange;
-      nrm2*=scale;
-      pos.z=(pos.z-bias)*scale;
+      pos.z-=AmbBias;
    #endif
    }
 
@@ -148,16 +151,14 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
    if(mode==1)elms=AO1Elms;else
    if(mode==2)elms=AO2Elms;else
               elms=AO3Elms;
-   // FIXME UNROLL?
-   UNROLL for(Int i=0; i<elms; i++)
+ //using UNROLL didn't make a performance difference, however it made shader file bigger and compilation slower
+   LOOP for(Int i=0; i<elms; i++)
    {
       Vec        pattern;
       if(mode==0)pattern=AO0Vec[i];else
       if(mode==1)pattern=AO1Vec[i];else
       if(mode==2)pattern=AO2Vec[i];else
                  pattern=AO3Vec[i];
-
-      //if(1/pattern.z>max_length)continue; not working well
 
       Vec2      offs=pattern.xy*offs_scale;
       if(jitter)offs=Rotate(offs, cos_sin);
@@ -172,15 +173,12 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
          Flt test_z=TexDepthRawPoint(t); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 't'
          if(geom)
          {
-            test_z+=bias;
+            test_z+=AmbBias;
             Vec test_pos=GetPos(test_z, ScreenToPosXY(t)),
                 delta=test_pos-pos;
             if(Dot(delta, nrm)>0)
             {
                   w=(Length2(delta)<=range2);
-                  //if(W)w=Sat(1-Length2(delta)/range2);
-                  //if(E)w*=BlendSqr(Dot(delta, nrm)/AmbRange);
-                  //if(!E && R && !W)w=(Length(delta)<=AmbRange+bias);
                   o=1;
                   if(w<=0)
                   {
@@ -197,11 +195,9 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
                {
                   w=(Length2(delta)<=(W ? 2 : 1.0)*range2);
                   o=1;
-               }*/
+               }
 
-               //if(E)
-               //if(R)
-               //o=Sat(Dot(delta, nrm)/bias-(E?0:1));
+               o=Sat(Dot(delta, nrm)/AmbBias-(E?0:1));*/
             }else
             {
                w=1;
@@ -210,11 +206,11 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
          }else
          {
          #if 1 // Optimized
-            Flt expected=pos.z+Dot(nrm2, offs); test_z*=scale; if(test_z<expected)
+            Flt expected=pos.z+Dot(nrm2, offs); if(test_z<expected)
             {
-               w=BlendSqr(pos.z-test_z);
+               w=BlendSqr((pos.z-test_z)*scale);
          #else // Unoptimized
-            Flt expected=pos.z+Dot(nrm2, offs); test_z+=AmbBias*AmbRange; if(test_z<expected)
+            Flt expected=pos.z+Dot(nrm2, offs); test_z+=AmbBias; if(test_z<expected)
             {
                w=BlendSqr((pos.z-test_z)/AmbRange);
          #endif
@@ -242,7 +238,6 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
    return 1-AmbContrast*occl/weight; // result is stored in One Channel 1 Byte RT so it doesn't need 'Sat' saturation
 }
 /******************************************************************************/
-/*FIXME
 TECHNIQUE(AO0  , DrawPosXY_VS(), AO_PS(0, false, false));
 TECHNIQUE(AO1  , DrawPosXY_VS(), AO_PS(1, false, false));
 TECHNIQUE(AO2  , DrawPosXY_VS(), AO_PS(2, false, false));
@@ -254,7 +249,7 @@ TECHNIQUE(AO3J , DrawPosXY_VS(), AO_PS(3, true , false));
 TECHNIQUE(AO0N , DrawPosXY_VS(), AO_PS(0, false, true ));
 TECHNIQUE(AO1N , DrawPosXY_VS(), AO_PS(1, false, true ));
 TECHNIQUE(AO2N , DrawPosXY_VS(), AO_PS(2, false, true ));
-TECHNIQUE(AO3N , DrawPosXY_VS(), AO_PS(3, false, true ));*/
+TECHNIQUE(AO3N , DrawPosXY_VS(), AO_PS(3, false, true ));
 TECHNIQUE(AO0JN, DrawPosXY_VS(), AO_PS(0, true , true ));
 TECHNIQUE(AO1JN, DrawPosXY_VS(), AO_PS(1, true , true ));
 TECHNIQUE(AO2JN, DrawPosXY_VS(), AO_PS(2, true , true ));

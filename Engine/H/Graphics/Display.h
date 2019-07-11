@@ -259,6 +259,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
 #if EE_PRIVATE
    Bool aoWant()C;
    void ambientSet()C;
+   void ambientSetRangeBias()C;
 #if LINEAR_GAMMA
    INLINE C Vec&    ambientColorD()C {return    ambientColorL();}
    INLINE C Vec& nightShadeColorD()C {return nightShadeColorL();}

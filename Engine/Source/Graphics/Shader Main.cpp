@@ -341,9 +341,9 @@ void MainShaderClass::getTechniques()
    AmbientColorNS_l=GetShaderParam("AmbNSColor"     ); // set in 'D.ambientSet()'
    AmbientMaterial =GetShaderParam("AmbMaterial"    );
    AmbientContrast =GetShaderParam("AmbContrast"    ); AmbientContrast->set(D.ambientContrast());
-   AmbientRange    =GetShaderParam("AmbRange"       ); AmbientRange   ->set(D.ambientRange   ());
-   AmbientBias     =GetShaderParam("AmbBias"        ); AmbientBias    ->set(D.ambientBias    ());
-   D.ambientSet();
+   AmbientRange    =GetShaderParam("AmbRange"       );
+   AmbientBias     =GetShaderParam("AmbBias"        );
+   D.ambientSet(); D.ambientSetRangeBias();
 
    HdrBrightness=GetShaderParam("HdrBrightness"); HdrBrightness->set(D.eyeAdaptationBrightness());
    HdrExp       =GetShaderParam("HdrExp"       ); HdrExp       ->set(D.eyeAdaptationExp       ());

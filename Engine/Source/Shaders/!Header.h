@@ -217,12 +217,14 @@
    #define DEPTH_FOREGROUND(x) ((x)> 0.0)
    #define DEPTH_BACKGROUND(x) ((x)<=0.0)
    #define DEPTH_SMALLER(x, y) ((x)>(y))
+   #define DEPTH_DEC(x, y)     ((x)+=(y))
 #else
    #define DEPTH_MIN Min
    #define DEPTH_MAX Max
    #define DEPTH_FOREGROUND(x) ((x)< 1.0)
    #define DEPTH_BACKGROUND(x) ((x)>=1.0)
    #define DEPTH_SMALLER(x, y) ((x)<(y))
+   #define DEPTH_DEC(x, y)     ((x)-=(y))
 #endif
 /******************************************************************************/
 // TEXTURE ACCESSING

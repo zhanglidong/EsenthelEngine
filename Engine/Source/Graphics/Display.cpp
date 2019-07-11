@@ -2791,6 +2791,11 @@ void Display::ambientSet()C
       Sh.AmbientColorNS_l->set(ambientColorD() + nightShadeColorD()*intensity);
    }
 }
+void Display::ambientSetRangeBias()C
+{
+   if(Sh.AmbientRange)Sh.AmbientRange->set(D.ambientRange());
+   if(Sh.AmbientBias )Sh.AmbientBias ->set(D.ambientBias ()*D.ambientRange());
+}
 
 Display& Display::ambientRes     (  Flt          scale     ) {Byte res=FltToByteScale( scale  );    if(res!=_amb_res){_amb_res =res ; Renderer.rtClean();} return T;}
 Display& Display::ambientMode    (  AMBIENT_MODE mode      ) {Clamp(mode, AMBIENT_FLAT, AMBIENT_MODE(AMBIENT_NUM-1)); _amb_mode=mode;                      return T;}
@@ -2801,9 +2806,9 @@ Display& Display::ambientPowerS  (  Flt          srgb_power) {return ambientPowe
 Display& Display::ambientColorS  (C Vec         &srgb_color) {return ambientColorL(SRGBToLinear(srgb_color));}
 Display& Display::ambientPowerL  (  Flt           lin_power) {MAX(lin_power, 0);                                                     if(_amb_color_l !=lin_power){_amb_color_l =lin_power; ambientSet();} return T;}
 Display& Display::ambientColorL  (C Vec         & lin_color) {Vec  c(Max(lin_color.x, 0), Max(lin_color.y, 0), Max(lin_color.z, 0)); if(_amb_color_l !=c        ){_amb_color_l =c        ; ambientSet();} return T;}
-Display& Display::ambientRange   (  Flt          range     ) {MAX(range, 0);                                                         if(_amb_range   !=range    ){_amb_range   =range    ; if(Sh.AmbientRange   )Sh.AmbientRange   ->set(ambientRange   ());} return T;}
 Display& Display::ambientContrast(  Flt          contrast  ) {MAX(contrast, 0);                                                      if(_amb_contrast!=contrast ){_amb_contrast=contrast ; if(Sh.AmbientContrast)Sh.AmbientContrast->set(ambientContrast());} return T;}
-Display& Display::ambientBias    (  Flt          bias      ) {SAT(bias);                                                             if(_amb_bias    !=bias     ){_amb_bias    =bias     ; if(Sh.AmbientBias    )Sh.AmbientBias    ->set(ambientBias    ());} return T;}
+Display& Display::ambientRange   (  Flt          range     ) {MAX(range, 0);                                                         if(_amb_range   !=range    ){_amb_range   =range    ; ambientSetRangeBias();} return T;}
+Display& Display::ambientBias    (  Flt          bias      ) {SAT(bias);                                                             if(_amb_bias    !=bias     ){_amb_bias    =bias     ; ambientSetRangeBias();} return T;}
 /******************************************************************************/
 Vec      Display::nightShadeColorS(                 )C {return LinearToSRGB(nightShadeColorL());}
 Display& Display::nightShadeColorS(C Vec &srgb_color)  {return nightShadeColorL(SRGBToLinear(srgb_color));}
