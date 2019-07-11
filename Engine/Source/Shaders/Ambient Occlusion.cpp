@@ -27,7 +27,8 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
    uniform Bool jitter                   ,
    uniform Bool normals                  ):COLOR
 {
-   Bool geom=(normals && 0); // this is an alternative mode to AO formula, currently disabled, because has some unresolved issues, pixels in the distant go to full brightness fast, alpha-tested leafs can have lot of black pixels
+   const Bool geom=(normals && 0); // this is an alternative mode to AO formula, currently disabled, because has some unresolved issues, pixels in the distant go to full brightness fast, alpha-tested leafs can have lot of black pixels
+   const Bool linear_filter=1; // this removes some vertical lines on distant terrain (because multiple samples are clamped together), however introduces extra shadowing under distant objects
 
    Vec2 nrm2;
    Vec  nrm, pos;
@@ -162,7 +163,7 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
 
       Vec2      offs=pattern.xy*offs_scale;
       if(jitter)offs=Rotate(offs, cos_sin);
-                offs=Round (offs*RTSize.zw)*RTSize.xy; // doesn't make a big difference for pixels close to camera, but makes a HUGE difference for pixels far away, keep !! otherwise distant terrain gets unnaturally shaded
+                offs=(linear_filter ? offs : Round(offs*RTSize.zw)*RTSize.xy); // doesn't make a big difference for pixels close to camera, but makes a HUGE difference for pixels far away, keep !! otherwise distant terrain gets unnaturally shaded
 
       Vec2 t=inTex+offs;
       Flt  o, w;
@@ -170,7 +171,7 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
       if(all(Abs(t-Viewport.center)<=Viewport.size/2)) // UV inside viewport
       {
          // !! for AO shader depth is already linearized !!
-         Flt test_z=TexDepthRawPoint(t); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 't'
+         Flt test_z=(linear_filter ? TexDepthRawLinear(t) : TexDepthRawPoint(t)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 't'
          if(geom)
          {
             test_z+=AmbBias;
