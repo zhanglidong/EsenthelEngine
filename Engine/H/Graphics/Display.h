@@ -279,7 +279,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
    Display& ambientColorS  (C Vec       &srgb_color);   Vec          ambientColorS  ()C;                             // set/get Ambient Color sRGB   Gamma (0..1                 , default=         0.4), the change is instant, you can call it real-time
    Display& ambientContrast(  Flt        contrast  );   Flt          ambientContrast()C {return _amb_contrast     ;} // set/get Ambient Contrast           (0..Inf               , default=         1.0), the change is instant, you can call it real-time
    Display& ambientRange   (  Flt        range     );   Flt          ambientRange   ()C {return _amb_range        ;} // set/get Ambient Range              (0..Inf               , default=         0.4), the change is instant, you can call it real-time
-   Display& ambientBias    (  Flt        bias      );   Flt          ambientBias    ()C {return _amb_bias         ;} // set/get Ambient Bias               (0..1                 , default=        0.15), the change is instant, you can call it real-time
+   Display& ambientBias    (  Flt        bias      );   Flt          ambientBias    ()C {return _amb_bias         ;} // set/get Ambient Bias               (0..1                 , default=         0.1), the change is instant, you can call it real-time
 
    // Night Shade
    Display& nightShadeColorL(C Vec & lin_color);   C Vec& nightShadeColorL()C {return _ns_color_l;} // set/get Night Shade color Linear Gamma (0..1, default=0), the change is instant, you can call it real-time, setting color to 0 disables Night Shade effect

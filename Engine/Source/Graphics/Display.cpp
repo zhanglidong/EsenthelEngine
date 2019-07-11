@@ -666,7 +666,7 @@ Display::Display() : _monitors(Compare, Create, null, 4)
   _amb_res     =FltToByteScale(0.5f);
   _amb_contrast=1.0f;
   _amb_range   =0.4f;
-  _amb_bias    =0.15f;
+  _amb_bias    =0.1f;
   _amb_color_l =SRGBToLinear(0.4f);
 
   _ns_color_l.zero();
