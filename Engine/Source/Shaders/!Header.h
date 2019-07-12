@@ -1491,10 +1491,10 @@ BUFFER(LightLinear) LIGHT_LINEAR Light_linear; BUFFER_END
 BUFFER(LightCone  ) LIGHT_CONE   Light_cone  ; BUFFER_END
 /******************************************************************************/
 inline Half LightPointDist (Vec  pos           ) {return Min(  Half(Light_point.power/Length2(pos)), Light_point.lum_max   );} // NaN
-inline Half LightLinearDist(Vec  pos, Flt range) {return Sat(1-Half(Length (pos)         /   (             range         )));}
-inline Half LightLinearDist(Vec  pos           ) {return Sat(1-Half(Length (pos)         /   (Light_linear.range         )));}
-inline Half LightConeDist  (Vec  pos           ) {return Sat(1-Half(Length2(pos)         /Sqr(Light_cone  .length        )));}
-inline Half LightConeAngle (Vec2 pos           ) {return Sat(  Half(Length (pos)*Light_cone.falloff.x+Light_cone.falloff.y));}
+inline Half LightLinearDist(Vec  pos, Flt range) {return Sat(1-Half(Length (pos)         /   (             range         )));} // TODO: #HLSLHalf
+inline Half LightLinearDist(Vec  pos           ) {return Sat(1-Half(Length (pos)         /   (Light_linear.range         )));} // TODO: #HLSLHalf
+inline Half LightConeDist  (Vec  pos           ) {return Sat(1-Half(Length2(pos)         /Sqr(Light_cone  .length        )));} // TODO: #HLSLHalf
+inline Half LightConeAngle (Vec2 pos           ) {return Sat(  Half(Length (pos)*Light_cone.falloff.x+Light_cone.falloff.y));} // TODO: #HLSLHalf
 
 inline Half LightDiffuse (VecH nrm,                VecH light_dir                             ) {return Sat(Dot(nrm, light_dir));}
 inline Half LightSpecular(VecH nrm, Half specular, VecH light_dir, VecH eye_dir, Half power=64)

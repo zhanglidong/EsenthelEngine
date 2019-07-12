@@ -257,7 +257,7 @@ Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
       occl  +=w*o;
       weight+=w;
    }
-   return 1-AmbContrast*occl/weight; // result is stored in One Channel 1 Byte RT so it doesn't need 'Sat' saturation
+   return 1-AmbContrast*Half(occl/weight); // result is stored in One Channel 1 Byte RT so it doesn't need 'Sat' saturation
 }
 /******************************************************************************/
 TECHNIQUE(AO0  , AO_VS(), AO_PS(0, false, false));
