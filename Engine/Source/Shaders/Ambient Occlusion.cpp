@@ -182,9 +182,9 @@ Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
       if(mode==2)pattern=AO2Vec[i];else
                  pattern=AO3Vec[i];
 
-      Vec2      offs=pattern.xy*offs_scale;
-      if(jitter)offs=Rotate(offs, cos_sin);
-                offs=(linear_filter ? offs : Round(offs*RTSize.zw)*RTSize.xy); // doesn't make a big difference for pixels close to camera, but makes a HUGE difference for pixels far away, keep !! otherwise distant terrain gets unnaturally shaded
+      Vec2              offs=pattern.xy*offs_scale;
+      if(jitter        )offs=Rotate(offs, cos_sin);
+      if(!linear_filter)offs=Round(offs*RTSize.zw)*RTSize.xy;
 
       Vec2 t=inTex+offs;
       Flt  o, w;
