@@ -19,15 +19,27 @@ BUFFER(AOConstants) // z=1/xy.length()
 BUFFER_END
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
-// Img=Nrm, Depth=depth
-Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
-           NOPERSP Vec2 inPosXY:TEXCOORD1,
-           NOPERSP PIXEL                 ,
-   uniform Int  mode                     ,
-   uniform Bool jitter                   ,
-   uniform Bool normals                  ):COLOR
+void AO_VS(VtxInput vtx,
+       out Vec2 outTex   :TEXCOORD0,
+       out Vec2 outPosXY :TEXCOORD1,
+       out Vec2 outPosXY1:TEXCOORD2,
+       out Vec4 outVtx   :POSITION )
 {
-   const Bool geom=(normals && 0); // this is an alternative mode to AO formula, currently disabled, because has some unresolved issues, pixels in the distant go to full brightness fast, alpha-tested leafs can have lot of black pixels
+   outTex   =vtx.tex();
+   outPosXY =ScreenToPosXY(outTex);
+   outPosXY1=ScreenToPosXY(outTex+RTSize.xy);
+   outVtx   =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+}
+// Img=Nrm, Depth=depth
+Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
+           NOPERSP Vec2 inPosXY :TEXCOORD1,
+           NOPERSP Vec2 inPosXY1:TEXCOORD2,
+           NOPERSP PIXEL                  ,
+   uniform Int  mode                      ,
+   uniform Bool jitter                    ,
+   uniform Bool normals                   ):COLOR
+{
+   const Bool geom=(normals && 0); // this is an alternative mode to AO formula which works on 3D space instead of 2D, currently disabled, because has some unresolved issues, doesn't work with flipped normals (leafs/grass), probably would require storing flipped information in Nrm RT W channel, which is currently used for specular
    const Bool linear_filter=1; // this removes some vertical lines on distant terrain (because multiple samples are clamped together), however introduces extra shadowing under distant objects
 
    Vec2 nrm2;
@@ -68,14 +80,19 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
       {
          // 'nrm' does not need to be normalized, because following codes don't require that
 
-         Vec dir_right=Normalize(Vec(ScreenToPosXY(inTex+Vec2(RTSize.x, 0)), 1)),
-             dir_up   =Normalize(Vec(ScreenToPosXY(inTex+Vec2(0, RTSize.y)), 1));
       #if 0
-         Vec pr=PointOnPlaneRay(Vec(0, 0, 0), pos, nrm, dir_right),
-             pu=PointOnPlaneRay(Vec(0, 0, 0), pos, nrm, dir_up   );
+         Vec dir_right=Normalize(Vec(ScreenToPosXY(inTex+Vec2(RTSize.x, 0)), 1)), // get view space direction that points slightly to the right of 'pos'
+             dir_up   =Normalize(Vec(ScreenToPosXY(inTex+Vec2(0, RTSize.y)), 1)); // get view space direction that points slightly to the top   of 'pos'
 
-         nrm2=Vec2(pr.z-pos.z, pu.z-pos.z)*RTSize.zw;
+         Vec pr=PointOnPlaneRay(Vec(0, 0, 0), pos, nrm, dir_right), // get intersection point when casting ray from view space camera (0,0,0) to 'pos,nrm' plane using 'dir_right' ray
+             pu=PointOnPlaneRay(Vec(0, 0, 0), pos, nrm, dir_up   ); // get intersection point when casting ray from view space camera (0,0,0) to 'pos,nrm' plane using 'dir_up'    ray
+
+         nrm2=Vec2(pr.z-pos.z, pu.z-pos.z) // this gives the expected delta between depths (for right-center, and top-center pixels)
+             *RTSize.zw; // have to scale because we will multiply 'nrm2' by 'offs' below, and it operates on texture coordinates, so the next pixel uses 'RTSize.xy' offset, however we want 1 offset, so scale it by '1/RTSize.xy' which is 'RTSize.zw'
       #else // optimized
+         Vec dir_right=Normalize(Vec(inPosXY1.x, inPosXY .y, 1)),
+             dir_up   =Normalize(Vec(inPosXY .x, inPosXY1.y, 1));
+
          Flt pr_z=dir_right.z*Dot(pos, nrm)/Dot(dir_right, nrm),
              pu_z=dir_up   .z*Dot(pos, nrm)/Dot(dir_up   , nrm);
 
@@ -229,7 +246,7 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
          }
       }else // UV outside viewport
       {
-         o=0; w=0.5; // set as brightening but only half of weight
+         o=0; w=0.5; // set as brightening but use small weight
       }
 
       w     *=pattern.z; // focus on samples near to the center
@@ -239,20 +256,20 @@ Half AO_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
    return 1-AmbContrast*occl/weight; // result is stored in One Channel 1 Byte RT so it doesn't need 'Sat' saturation
 }
 /******************************************************************************/
-TECHNIQUE(AO0  , DrawPosXY_VS(), AO_PS(0, false, false));
-TECHNIQUE(AO1  , DrawPosXY_VS(), AO_PS(1, false, false));
-TECHNIQUE(AO2  , DrawPosXY_VS(), AO_PS(2, false, false));
-TECHNIQUE(AO3  , DrawPosXY_VS(), AO_PS(3, false, false));
-TECHNIQUE(AO0J , DrawPosXY_VS(), AO_PS(0, true , false));
-TECHNIQUE(AO1J , DrawPosXY_VS(), AO_PS(1, true , false));
-TECHNIQUE(AO2J , DrawPosXY_VS(), AO_PS(2, true , false));
-TECHNIQUE(AO3J , DrawPosXY_VS(), AO_PS(3, true , false));
-TECHNIQUE(AO0N , DrawPosXY_VS(), AO_PS(0, false, true ));
-TECHNIQUE(AO1N , DrawPosXY_VS(), AO_PS(1, false, true ));
-TECHNIQUE(AO2N , DrawPosXY_VS(), AO_PS(2, false, true ));
-TECHNIQUE(AO3N , DrawPosXY_VS(), AO_PS(3, false, true ));
-TECHNIQUE(AO0JN, DrawPosXY_VS(), AO_PS(0, true , true ));
-TECHNIQUE(AO1JN, DrawPosXY_VS(), AO_PS(1, true , true ));
-TECHNIQUE(AO2JN, DrawPosXY_VS(), AO_PS(2, true , true ));
-TECHNIQUE(AO3JN, DrawPosXY_VS(), AO_PS(3, true , true ));
+TECHNIQUE(AO0  , AO_VS(), AO_PS(0, false, false));
+TECHNIQUE(AO1  , AO_VS(), AO_PS(1, false, false));
+TECHNIQUE(AO2  , AO_VS(), AO_PS(2, false, false));
+TECHNIQUE(AO3  , AO_VS(), AO_PS(3, false, false));
+TECHNIQUE(AO0J , AO_VS(), AO_PS(0, true , false));
+TECHNIQUE(AO1J , AO_VS(), AO_PS(1, true , false));
+TECHNIQUE(AO2J , AO_VS(), AO_PS(2, true , false));
+TECHNIQUE(AO3J , AO_VS(), AO_PS(3, true , false));
+TECHNIQUE(AO0N , AO_VS(), AO_PS(0, false, true ));
+TECHNIQUE(AO1N , AO_VS(), AO_PS(1, false, true ));
+TECHNIQUE(AO2N , AO_VS(), AO_PS(2, false, true ));
+TECHNIQUE(AO3N , AO_VS(), AO_PS(3, false, true ));
+TECHNIQUE(AO0JN, AO_VS(), AO_PS(0, true , true ));
+TECHNIQUE(AO1JN, AO_VS(), AO_PS(1, true , true ));
+TECHNIQUE(AO2JN, AO_VS(), AO_PS(2, true , true ));
+TECHNIQUE(AO3JN, AO_VS(), AO_PS(3, true , true ));
 /******************************************************************************/

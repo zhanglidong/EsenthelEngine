@@ -1584,7 +1584,7 @@ TECHNIQUE_4_1(LinearizeDepthP2, DrawPixel_VS(), LinearizeDepth2_PS(true ));
 
 Vec4 DrawDepth_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
-   Flt frac=LinearizeDepth(TexLod(Depth, inTex).x)/Viewport.range; // use linear filtering because this can be used for different size RT
+   Flt frac=TexDepthPoint(inTex)/Viewport.range; // can't filter depth, because if Depth image is smaller, then we will get borders around objects
    Vec rgb=HsbToRgb(Vec(frac*2.57, 1, 1)); // the scale is set so the full range equals to blue color, to imitate sky color
    if(LINEAR_GAMMA)rgb=SRGBToLinear(rgb);
    return Vec4(rgb, 1);
