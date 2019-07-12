@@ -580,9 +580,6 @@ void MainShaderClass::getTechniques()
       Particle[p][s][a][m]=get(S8+"ParticleTex"+(p?'P':'\0')+(s?'S':'\0')+((a==0) ? "" : (a==1) ? "A" : "AA")+(m?'M':'\0'));
 
    // FOG
-   VertexFogMulAdd=GetShaderParam("VertexFogMulAdd");
-   VertexFogColor =GetShaderParam("VertexFogColor");
-
    FogColor_Density     =GetShaderParam(     "FogColor_Density");
    LocalFogColor_Density=GetShaderParam("LocalFogColor_Density");
    LocalFogInside       =GetShaderParam("LocalFogInside"       );

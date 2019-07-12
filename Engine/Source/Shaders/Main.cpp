@@ -8,7 +8,6 @@
 #include "Overlay.h"
 #include "Simple.h"
 #include "Volumetric.h"
-#include "Vertex Fog.h"
 #include "Fog.h"
 #include "Fur.h"
 /******************************************************************************/

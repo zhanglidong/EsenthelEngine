@@ -119,11 +119,6 @@ struct RendererClass // handles rendering
    RendererClass& simplePrecision(Bool   per_pixel);   Bool        simplePrecision  ()C {return _simple_prec;} // set/get precision of the RT_SIMPLE renderer, default=true  (false for Mobile), the change is NOT instant, avoid calling real-time
                                                        Bool        lowDepthPrecision()C;                       //     get if current depth buffer has low precision (16-bits) for which you may want to increase viewport near plane "D.viewFrom" to avoid depth artifacts, such low precision can be encountered on old graphic cards or some mobile devices
 
-   // simple vertex fog
-   RendererClass& simpleVertexFogColor(C Vec &fog_color            );   Vec simpleVertexFogColor()C {return _vtx_fog_color;} // set/get simple vertex fog color, default=(0.40, 0.48, 0.64), the change is instant, you can call it real-time
-   RendererClass& simpleVertexFogRange(Flt start_frac, Flt end_frac);   Flt simpleVertexFogStart()C {return _vtx_fog_start;} // set/get simple vertex fog range, default=(start=0.8, end=1.0), vertex fog is available only for RT_SIMPLE renderer with Renderer.simplePrecision set to false (this is the recommended method for applying fog on low-performance GPU's, in other case please use 'Sky' or 'Fog' to control the fog), the change is instant, you can call it real-time
-                                                                        Flt simpleVertexFogEnd  ()C {return _vtx_fog_end  ;} // set/get simple vertex fog range, default=(start=0.8, end=1.0), vertex fog is available only for RT_SIMPLE renderer with Renderer.simplePrecision set to false (this is the recommended method for applying fog on low-performance GPU's, in other case please use 'Sky' or 'Fog' to control the fog), the change is instant, you can call it real-time
-
    // operations
    RendererClass& operator()(void (&render)()); // perform 3D rendering using custom 'render' callback function
    ImageRTPtr     get       (void (&render)()); // perform 3D rendering using custom 'render' callback function and return the result as a render target instead of drawing it to the screen
@@ -264,9 +259,8 @@ private:
    Int           _eye, _eye_num, _mirror_priority, _mirror_resolution, _mesh_variation_1;
    UInt          _frst_light_offset, _blst_light_offset, _mesh_draw_mask;
    Color         _mesh_highlight;
-   Flt           _shd_range, _vtx_fog_start, _vtx_fog_end;
+   Flt           _shd_range;
    VecI2         _res;
-   Vec           _vtx_fog_color;
    Rect          _clip;
    PlaneM        _mirror_plane;
    Shader       *_shader_early_z, *_shader_shd_map, *_shader_shd_map_skin;

@@ -120,15 +120,8 @@ void SkyClass::setFracMulAdd()
    {
       Flt  from, to;
       Bool can_read_depth=Renderer.safeCanReadDepth(); // use 'safe' version because 'Renderer._ds' can be null here (for example when using RS_REFLECTION)
-      if( !can_read_depth && Renderer.type()==RT_SIMPLE && !Renderer.simplePrecision()) // if we cannot apply sky frac, but we are in simple vertex fog mode, then use it instead
-      {
-         from=D.viewRange()*Renderer.simpleVertexFogStart();
-         to  =D.viewRange()*Renderer.simpleVertexFogEnd  ();
-      }else
-      {
-         from=(can_read_depth ? D.viewRange()*frac() : D.viewRange()); // we're using fraction only if we have depth access
-         to  =D.viewRange();
-      }
+      from=(can_read_depth ? D.viewRange()*frac() : D.viewRange()); // we're using fraction only if we have depth access
+      to  =D.viewRange();
       MIN(from, to-EPS_SKY_MIN_LERP_DIST); // make sure there's some distance between positions to avoid floating point issues, move 'from' instead of 'to' to make sure we always have zero opacity at the end
 
       //Flt obj_opacity=Length(O.pos)*SkyFracMulAdd.x+SkyFracMulAdd.y;

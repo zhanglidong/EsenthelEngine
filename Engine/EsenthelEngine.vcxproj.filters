@@ -924,9 +924,6 @@
     <ClInclude Include="Source\Shaders\SMAA.h">
       <Filter>Source\Shaders</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Shaders\Vertex Fog.h">
-      <Filter>Source\Shaders</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Shaders\Volumetric.h">
       <Filter>Source\Shaders</Filter>
     </ClInclude>

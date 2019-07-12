@@ -124,9 +124,6 @@ struct MainShaderClass
       *LocalFogColor_Density,
       *LocalFogInside       ,
 
-      *VertexFogMulAdd,
-      *VertexFogColor ,
-
       *ShdJitter     ,
       *ShdRange      ,
       *ShdRangeMulAdd,

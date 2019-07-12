@@ -1839,7 +1839,6 @@
     <ClInclude Include="Source\Shaders\Simple.h" />
     <ClInclude Include="Source\Shaders\Sky.h" />
     <ClInclude Include="Source\Shaders\SMAA.h" />
-    <ClInclude Include="Source\Shaders\Vertex Fog.h" />
     <ClInclude Include="Source\Shaders\Volumetric.h" />
     <ClInclude Include="Source\Shaders\Water.h" />
     <ClInclude Include="Source\Platforms\iOS\EAGLView.h" />

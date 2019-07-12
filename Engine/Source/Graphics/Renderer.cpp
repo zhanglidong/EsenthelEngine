@@ -14,7 +14,7 @@ inline Bool ClearNrm() {return D.aoWant() && D.ambientNormal() || Renderer.stage
       Reading and Writing to the same Render Target - Yes: GL         No: DX10+
       Deferred Multi-Sampling                       - Yes: DX>=10.1   No: DX10.0, GL
 
-   TODO: remove RT_SIMPLE, simplePrecision, simpleVertexFog
+   TODO: remove RT_SIMPLE, simplePrecision
 
 /******************************************************************************/
 RendererClass Renderer;
@@ -94,10 +94,6 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
   _cull_mode[0]=0;
   _cull_mode[1]=1;
 #endif
-
-  _vtx_fog_start=0.80f;
-  _vtx_fog_end  =1.00f;
-  _vtx_fog_color.set(0.40f, 0.48f, 0.64f);
 
 #if WEB // #WebSRGB
   _gui   =_cur_main   =&_main_temp;
@@ -188,18 +184,6 @@ RendererClass& RendererClass::simplePrecision(Bool per_pixel)
       D.setShader();
    }
    return T;
-}
-/******************************************************************************/
-RendererClass& RendererClass::simpleVertexFogRange(Flt start_frac, Flt end_frac)
-{
-	T._vtx_fog_start=start_frac;
-   T._vtx_fog_end  =  end_frac;
-	return T;
-}
-RendererClass& RendererClass::simpleVertexFogColor(C Vec &fog_color)
-{
-	T._vtx_fog_color=fog_color;
-	return T;
 }
 /******************************************************************************/
 void RendererClass::requestMirror(C PlaneM &plane, Int priority, Bool shadows, Int resolution)
@@ -620,60 +604,6 @@ RendererClass& RendererClass::operator()(void (&render)())
          Flt mul=1/(to-from), add=-from*mul;
          Sh.ShdRangeMulAdd->setConditional(Vec2(mul, add));
       }
-   }
-
-   // vertex fog settings
-   {
-      Flt from=D.viewRange()*simpleVertexFogStart(),
-          to  =D.viewRange()*simpleVertexFogEnd  (); MAX(to, from+0.01f);
-
-      // remember that GL ES MP precision is in range Pow2(2, -14) .. Pow2(2, 14) : (0.000061035 .. 16384)
-
-   #if 1 // quadratic mul add (currently used) (does not qualify for MP), must be HP because of high values !!
-    //Flt fog_intensity=Length2(O.pos)*VertexFogMulAdd.x+VertexFogMulAdd.y;
-    //                0=Sqr    (from )*VertexFogMulAdd.x+VertexFogMulAdd.y;
-    //                1=Sqr    (to   )*VertexFogMulAdd.x+VertexFogMulAdd.y;
-      Flt mul, add;
-      if(simpleVertexFogStart()>=1){mul=0; add=1;}else // no fog
-      { // fog
-         to*=to; from*=from;
-         mul=1/(to-from); add=-from*mul;
-
-         // now reverse (fog_intensity -> 1-fog_intensity)
-         mul=-mul  ; // for viewRange(350).fogRange(1, 1) mul = ~ -0.14269789
-         add=-add+1; // for viewRange(350).fogRange(1, 1) add = ~  17481.490
-      }
-   #elif 0 // linear mul add (does not qualify for MP)
-    //Flt fog_intensity=Length(O.pos)*VertexFogMulAdd.x+VertexFogMulAdd.y;
-    //                0=      (from )*VertexFogMulAdd.x+VertexFogMulAdd.y;
-    //                1=      (to   )*VertexFogMulAdd.x+VertexFogMulAdd.y;
-      Flt mul=1/(to-from), add=-from*mul;
-
-      // now reverse (fog_intensity -> 1-fog_intensity)
-      mul=-mul  ; // for viewRange(350).fogRange(1, 1) mul = ~ -  100
-      add=-add+1; // for viewRange(350).fogRange(1, 1) add = ~ -35000
-   #elif 0 // quadratic add mul (does not qualify for MP)
-    //Flt fog_intensity=(Length2(O.pos)+VertexFogMulAdd.y)*VertexFogMulAdd.x;
-    //                0=(Sqr    (from )+VertexFogMulAdd.y)*VertexFogMulAdd.x;
-    //                1=(Sqr    (to   )+VertexFogMulAdd.y)*VertexFogMulAdd.x;
-      //Flt add=-Sqr(from), mul=1.0f/(Sqr(to)-Sqr(from));
-
-      // reversed (fog_intensity -> 1-fog_intensity)
-      Flt add=-Sqr(to),                 // for viewRange(350).fogRange(1, 1) add = ~ -122507    , for viewRange(2000).fogRange(0, 1); add = ~ -4000000
-          mul=1.0f/(Sqr(from)-Sqr(to)); // for viewRange(350).fogRange(1, 1) mul = ~ -0.14271572, for viewRange(2000).fogRange(0, 1); mul = ~ -2.5000000e-007
-   #else // linear add mul (qualifies for MP) (however since Length(Vec) is required, it can't be MP because Length(Vec(128)) = Sqrt(Dot(Vec(128), Vec(128))) where Dot would result in 16384 values which is the MP limit (and making only first 128 meters usable)
-    //Flt fog_intensity=(Length(O.pos)+VertexFogMulAdd.y)*VertexFogMulAdd.x;
-    //                0=(      (from )+VertexFogMulAdd.y)*VertexFogMulAdd.x;
-    //                1=(      (to   )+VertexFogMulAdd.y)*VertexFogMulAdd.x;
-      //Flt add=-from, mul=1.0f/(to-from);
-
-      // reversed (fog_intensity -> 1-fog_intensity)
-      Flt add=-to,            // for viewRange(350).fogRange(1, 1) add = ~ -350, for viewRange(2000).fogRange(0, 1); add = ~ -2000
-          mul=1.0f/(from-to); // for viewRange(350).fogRange(1, 1) mul = ~ -100, for viewRange(2000).fogRange(0, 1); mul = ~ -0.0005
-   #endif
-
-      Sh.VertexFogMulAdd->setConditional(Vec2(mul, add));
-      Sh.VertexFogColor ->setConditional(_vtx_fog_color);
    }
 
    // prepare

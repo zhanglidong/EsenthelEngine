@@ -3,8 +3,6 @@
 
 PAR HP Vec2    GrassRangeMulAdd; // must be HP
 PAR HP Vec2    SkyFracMulAdd; // better do HP because we can operate on large view ranges
-PAR HP Vec2    VertexFogMulAdd; // must be HP
-PAR MP Vec     VertexFogColor;
 PAR MP Vec4    FogColor_Density;
 PAR HP Vec4    ClipPlane;
 //PAR  Matrix  ViewMatrix[MAX_MATRIX]; Adreno 220 Android 2.3 complains about insufficient vertex uniform vectors, this also causes bug in Windows Nvidia GeForce GTX 460 where full array of matrixes is not always detected as used in the shader when skinning is present
