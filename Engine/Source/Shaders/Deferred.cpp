@@ -362,7 +362,7 @@ void PS
       // reflection
       if(rflct)
       {
-         Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix);
+         Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
          I.col.rgb+=TexCube(Rfl, rfl).rgb*((textures==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
       }
    }else // materials>1
@@ -621,7 +621,7 @@ void PS
          // reflection
          if(rflct)
          {
-            Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix);
+            Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
                             I.col.rgb+=TexCube(Rfl , rfl).rgb*(MultiMaterial0Reflect()*I.material.x);
                             I.col.rgb+=TexCube(Rfl1, rfl).rgb*(MultiMaterial1Reflect()*I.material.y);
             if(materials>=3)I.col.rgb+=TexCube(Rfl2, rfl).rgb*(MultiMaterial2Reflect()*I.material.z);
@@ -661,7 +661,7 @@ void PS
          // reflection
          if(rflct)
          {
-            Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix);
+            Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
                             I.col.rgb+=TexCube(Rfl , rfl).rgb*(MultiMaterial0Reflect()*I.material.x*tex_spec[0]);
                             I.col.rgb+=TexCube(Rfl1, rfl).rgb*(MultiMaterial1Reflect()*I.material.y*tex_spec[1]);
             if(materials>=3)I.col.rgb+=TexCube(Rfl2, rfl).rgb*(MultiMaterial2Reflect()*I.material.z*tex_spec[2]);

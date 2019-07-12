@@ -32,13 +32,13 @@
 /******************************************************************************/
 struct VS_PS
 {
-   Vec2    tex     :TEXCOORD0;
-   Vec     pos     :TEXCOORD1;
-   Matrix3 mtrx    :TEXCOORD2; // !! may not be Normalized !!
-   Vec     rfl     :TEXCOORD6;
-   Half    fade_out:TEXCOORD5;
-   VecH    col     :COLOR0   ;
-   VecH4   material:COLOR1   ;
+   Vec2     tex     :TEXCOORD0;
+   Vec      pos     :TEXCOORD1;
+   MatrixH3 mtrx    :TEXCOORD2; // !! may not be Normalized !!
+   VecH     rfl     :TEXCOORD6;
+   Half     fade_out:TEXCOORD5;
+   VecH     col     :COLOR0   ;
+   VecH4    material:COLOR1   ;
 };
 /******************************************************************************/
 // VS
@@ -137,7 +137,7 @@ void VS
 
    if(bump_mode>SBUMP_FLAT)O.mtrx[1]=vtx.bin(O.mtrx[2], O.mtrx[0], heightmap);
 
-   if(rflct && bump_mode==SBUMP_FLAT)O.rfl=Transform3(reflect(Normalize(O.pos), O.mtrx[2]), CamMatrix);
+   if(rflct && bump_mode==SBUMP_FLAT)O.rfl=Transform3(reflect((VecH)Normalize(O.pos), O.mtrx[2]), CamMatrix);
 
    O_vtx=Project(O.pos);
 }
@@ -214,7 +214,7 @@ VecH4 PS
       // reflection
       if(rflct)
       {
-         if(bump_mode>SBUMP_FLAT)I.rfl=Transform3(reflect(I.pos, nrm), CamMatrix);
+         if(bump_mode>SBUMP_FLAT)I.rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
          I.col.rgb+=TexCube(Rfl, I.rfl).rgb*((textures==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
       }
    }else // materials>1
@@ -266,7 +266,7 @@ VecH4 PS
          // reflection
          if(rflct)
          {
-            if(bump_mode>SBUMP_FLAT)I.rfl=Transform3(reflect(I.pos, nrm), CamMatrix);
+            if(bump_mode>SBUMP_FLAT)I.rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
                             I.col.rgb+=TexCube(Rfl , I.rfl).rgb*(MultiMaterial0Reflect()*I.material.x);
                             I.col.rgb+=TexCube(Rfl1, I.rfl).rgb*(MultiMaterial1Reflect()*I.material.y);
             if(materials>=3)I.col.rgb+=TexCube(Rfl2, I.rfl).rgb*(MultiMaterial2Reflect()*I.material.z);
@@ -306,7 +306,7 @@ VecH4 PS
          // reflection
          if(rflct)
          {
-            if(bump_mode>SBUMP_FLAT)I.rfl=Transform3(reflect(I.pos, nrm), CamMatrix);
+            if(bump_mode>SBUMP_FLAT)I.rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
                             I.col.rgb+=TexCube(Rfl , I.rfl).rgb*(MultiMaterial0Reflect()*I.material.x*tex_spec[0]);
                             I.col.rgb+=TexCube(Rfl1, I.rfl).rgb*(MultiMaterial1Reflect()*I.material.y*tex_spec[1]);
             if(materials>=3)I.col.rgb+=TexCube(Rfl2, I.rfl).rgb*(MultiMaterial2Reflect()*I.material.z*tex_spec[2]);

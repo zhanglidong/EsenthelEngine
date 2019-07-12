@@ -187,7 +187,7 @@ out VecH4 outVel:COLOR1, // #BlendRT
    // reflection
    if(rflct)
    {
-      if(per_pixel && bump_mode>SBUMP_FLAT)I.rfl=Transform3(reflect(I.pos, nrm), CamMatrix);
+      if(per_pixel && bump_mode>SBUMP_FLAT)I.rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
       I.col.rgb+=TexCube(Rfl, I.rfl).rgb * ((textures==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
    }
 
