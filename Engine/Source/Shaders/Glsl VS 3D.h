@@ -11,7 +11,7 @@ PAR HP Vec4    ClipPlane;
 PAR HP Vec4    ViewMatrix[MAX_MATRIX*3];
 PAR MP Vec     ObjVel[MAX_MATRIX];
 PAR MP Vec     ObjAngVel;
-PAR MP Vec     CamAngVel;
+PAR HP Vec     CamAngVel;
 PAR HP Matrix4(ProjMatrix);
 
 MP Vec ViewMatrixY  () {MP Int i=gl_InstanceID*3; return Vec(ViewMatrix[i].y, ViewMatrix[i+1].y, ViewMatrix[i+2].y);}

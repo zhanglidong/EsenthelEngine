@@ -432,7 +432,7 @@ BUFFER_END
 /******************************************************************************/
 BUFFER_I(Global, SBI_GLOBAL)
    Matrix4 ProjMatrix                    ; // projection  matrix
-   VecH    CamAngVel                     ; // camera      angular velocity, pre-multiplied by 'D.motionScale'
+   Vec     CamAngVel                     ; // camera      angular velocity, pre-multiplied by 'D.motionScale'
    Matrix  CamMatrix                     ; // camera      matrix
    Vec4    ClipPlane    =Vec4(0, 0, 0, 1); // clipping    plane
    Half    AllowBackFlip=              -1; // normal      flipping TODO: this probably needs to be handled differently, so it can work for mirrored reflections too
