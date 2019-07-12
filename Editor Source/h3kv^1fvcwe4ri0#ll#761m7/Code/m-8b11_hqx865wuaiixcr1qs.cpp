@@ -729,7 +729,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
 //Property &tqi=props.New().create("Tex Quality"    , MemberDesc(DATA_INT).setFunc(TexQuality       , TexQuality       )).setEnum(       TexQualityText, Elms(       TexQualityText)).desc("Select Texture Quality");
 
       ts.reset().size=0.038; ts.align.set(1, 0);
-      Rect prop_rect=AddProperties(props, sub, 0, prop_height, 0.145, &ts); REPAO(props).autoData(this).changed(Changed, PreChanged);
+      Rect prop_rect=AddProperties(props, sub, 0, prop_height, 0.16, &ts); REPAO(props).autoData(this).changed(Changed, PreChanged);
       sub+=brightness.create(Rect_RU(red.textline.rect().left(), red.button.rect().w(), prop_height*2)).func(RGB, T).focusable(false).subType(BUTTON_TYPE_PROPERTY_VALUE); brightness.mode=BUTTON_CONTINUOUS;
       tech.combobox.resize(Vec2(0.27, 0)); // increase size
       mts .combobox.resize(Vec2(0.15, 0)); // increase size
