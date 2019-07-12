@@ -1528,13 +1528,30 @@ TECHNIQUE(ResolveDepth, DrawPixel_VS(), ResolveDepth_PS());
 void DetectMSCol_PS(NOPERSP PIXEL)
 {
    VecH cols[4]={TexSample(ImgMS, pixel.xy, 0).rgb, TexSample(ImgMS, pixel.xy, 1).rgb, TexSample(ImgMS, pixel.xy, 2).rgb, TexSample(ImgMS, pixel.xy, 3).rgb}; // load 4-multi-samples of texel
+#if 0 // generates too many MS pixels
    if(all((cols[0]==cols[1]) && (cols[0]==cols[2]) && (cols[0]==cols[3])))discard;
+#else
+/* this Eps was calculated using formula below, it's meant to disable MS for neighbor byte colors (such as 0,1) but enable for others (0,2), so calculate at borderline of 1.5:
+   Vec c0=0.0f/255, c1=1.5f/255, cols[]={c0, c0, c1, c1};
+   Flt eps=Dist2(cols[0], cols[1])
+          +Dist2(cols[0], cols[2])
+          +Dist2(cols[0], cols[3]); */
+   if(Dist2(cols[0], cols[1])
+     +Dist2(cols[0], cols[2])
+     +Dist2(cols[0], cols[3])<=0.000207612466)discard;
+#endif
 }
 TECHNIQUE(DetectMSCol, DrawPixel_VS(), DetectMSCol_PS());
 /*void DetectMSNrm_PS(NOPERSP PIXEL)
 {
    Vec2 nrms[4]={TexSample(ImgMS, pixel.xy, 0).xy, TexSample(ImgMS, pixel.xy, 1).xy, TexSample(ImgMS, pixel.xy, 2).xy, TexSample(ImgMS, pixel.xy, 3).xy}; // load 4-multi-samples of texel
+#if 0 // generates too many MS pixels
    if(all((nrms[0]==nrms[1]) && (nrms[0]==nrms[2]) && (nrms[0]==nrms[3])))discard;
+#else
+   if(Dist2(nrms[0], nrms[1])
+     +Dist2(nrms[0], nrms[2])
+     +Dist2(nrms[0], nrms[3])<=Half(some eps))discard;
+#endif
 }
 TECHNIQUE(DetectMSNrm, DrawPixel_VS(), DetectMSNrm_PS());*/
 #endif

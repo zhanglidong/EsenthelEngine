@@ -1263,6 +1263,7 @@ void RendererClass::resolveDepth()
    // this resolves the entire '_ds' into '_ds_1s' (by choosing Min of depth samples), and sets 'STENCIL_REF_MSAA' if needed
    if(_ds->multiSample() && _ds->depthTexture())
    {
+      Bool swap=(LINEAR_GAMMA && _col->canSwapSRV()); if(swap)_col->swapSRV(); // use sRGB if possible because we're interested in visual differences
       D.alpha(ALPHA_NONE);
 
       // set multi-sampled '_ds' MSAA
@@ -1289,7 +1290,9 @@ void RendererClass::resolveDepth()
        //if(_nrm){Sh.ImgMS[0]->set(_nrm); Sh.DetectMSNrm->draw();}else 'DetectMSNrm' generates too many MS pixels, making rendering slower, so don't use
                  {Sh.ImgMS[0]->set(_col); Sh.DetectMSCol->draw();}
       }
+
       D.stencil(STENCIL_NONE);
+      if(swap)_col->swapSRV(); // restore
    }
 }
 void RendererClass::overlay()
