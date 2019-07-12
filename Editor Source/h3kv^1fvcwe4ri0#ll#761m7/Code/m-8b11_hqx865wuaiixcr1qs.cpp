@@ -708,6 +708,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
     //props.New();
       props.New().create("Specular"       , MemberDesc(DATA_REAL).setFunc(Spec, Spec)).range(0, 3);
       props.New().create("Glow"           , MemberDesc(DATA_REAL).setFunc(Glow, Glow)).range(0, 1);
+      props.New();
     //props.New().create("Subsurf Scatter", MemberDesc(DATA_REAL).setFunc(SSS , SSS )).range(0, 1);
       props.New().create("Detail Scale"   , MemberDesc(DATA_REAL).setFunc(DetScale, DetScale)).range(0.01, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
       props.New().create("Detail Power"   , MemberDesc(DATA_REAL).setFunc(DetPower, DetPower)).range(0, 1);
