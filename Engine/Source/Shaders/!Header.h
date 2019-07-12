@@ -1129,12 +1129,12 @@ inline Flt  LerpCube(Flt  s) {return (3-2*s)*s*s;}
 inline Half LerpCube(Half from, Half to, Half s) {return Lerp(from, to, LerpCube(s));}
 inline Flt  LerpCube(Flt  from, Flt  to, Flt  s) {return Lerp(from, to, LerpCube(s));}
 
-inline Flt LerpSmoothPow(Flt s, Flt p)
+/*inline Flt LerpSmoothPow(Flt s, Flt p)
 {
    s=Sat(s);
    if(s<=0.5)return   0.5*Pow(  2*s, p);
              return 1-0.5*Pow(2-2*s, p);
-}
+}*/
 
 inline Half BlendSqr(Half x) {return Sat(1-x*x);}
 inline Flt  BlendSqr(Flt  x) {return Sat(1-x*x);}
@@ -1412,8 +1412,8 @@ inline void UpdateVelocities_PS(in out Vec vel, Vec view_space_pos)
 }
 inline Vec GetVelocitiesCameraOnly(Vec view_space_pos)
 {
-   Vec vel =ObjVel[0]; // set to object linear velocity in view space
-       vel+=Cross(view_space_pos, CamAngVel); // add camera angular velocity
+   Vec vel=ObjVel[0] // set to object linear velocity in view space
+          +Cross(view_space_pos, CamAngVel); // add camera angular velocity
 
    // divide by distance to camera (there is no NaN because in PixelShader view_space_pos.z>0)
  //if(ORTHO_SUPPORT && !Viewport.ortho)
