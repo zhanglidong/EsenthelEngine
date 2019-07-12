@@ -351,8 +351,6 @@ MaterialTech mtrl_techs[]=
    void MaterialRegion::Reflect(  MaterialRegion &mr, C Str &t) {mr.edit.reflection=TextFlt(t); mr.edit.reflection_time.getUTC();}
    Str  MaterialRegion::Cull(C MaterialRegion &mr          ) {return mr.edit.cull;}
    void MaterialRegion::Cull(  MaterialRegion &mr, C Str &t) {mr.edit.cull=TextBool(t); mr.edit.cull_time.now();}
-   Str  MaterialRegion::SSS(C MaterialRegion &mr          ) {return mr.edit.sss;}
-   void MaterialRegion::SSS(  MaterialRegion &mr, C Str &t) {mr.edit.sss=TextFlt(t); mr.edit.sss_time.getUTC();}
    Str  MaterialRegion::AmbR(C MaterialRegion &mr          ) {return mr.edit.ambient.x;}
    void MaterialRegion::AmbR(  MaterialRegion &mr, C Str &t) {mr.edit.ambient.x=TextFlt(t); mr.edit.ambient_time.getUTC(); mr.setChanged(); D.setShader(mr.game());}
    Str  MaterialRegion::AmbG(C MaterialRegion &mr          ) {return mr.edit.ambient.y;}
@@ -604,7 +602,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
     //props.New();
       props.New().create("Specular"       , MemberDesc(DATA_REAL).setFunc(Spec, Spec)).range(0, 3);
       props.New().create("Glow"           , MemberDesc(DATA_REAL).setFunc(Glow, Glow)).range(0, 1);
-      props.New().create("Subsurf Scatter", MemberDesc(DATA_REAL).setFunc(SSS , SSS )).range(0, 1);
+    //props.New().create("Subsurf Scatter", MemberDesc(DATA_REAL).setFunc(SSS , SSS )).range(0, 1);
       props.New().create("Detail Scale"   , MemberDesc(DATA_REAL).setFunc(DetScale, DetScale)).range(0.01f, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
       props.New().create("Detail Power"   , MemberDesc(DATA_REAL).setFunc(DetPower, DetPower)).range(0, 1);
       props.New();

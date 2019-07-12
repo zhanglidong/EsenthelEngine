@@ -162,8 +162,8 @@ public:
 
    static Str  Cull    (C MaterialRegion &mr          );
    static void Cull    (  MaterialRegion &mr, C Str &t);
-   static Str  SSS     (C MaterialRegion &mr          );
-   static void SSS     (  MaterialRegion &mr, C Str &t);
+ //static Str  SSS     (C MaterialRegion &mr          ) {return mr.edit.sss;}
+ //static void SSS     (  MaterialRegion &mr, C Str &t) {mr.edit.sss=TextFlt(t); mr.edit.sss_time.getUTC();}
    static Str  AmbR    (C MaterialRegion &mr          );
    static void AmbR    (  MaterialRegion &mr, C Str &t);
    static Str  AmbG    (C MaterialRegion &mr          );
