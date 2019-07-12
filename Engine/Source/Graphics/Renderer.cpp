@@ -42,15 +42,37 @@ static void ShutMshr()
 /******************************************************************************/
 RendererClass::RendererClass() : highlight(null), material_color_l(null)
 {
-   stage           =RS_DEFAULT;
+#if 0 // there's only one 'RendererClass' global 'Renderer' and it doesn't need clearing members to zero
+   stage=RS_DEFAULT;
+   combine=false;
+   wire=false;
+   clear_color.zero();
+   ms_samples_color.zero();
+   target=null;
+
+  _mode=RM_SIMPLE;
+  _mesh_blend_alpha=ALPHA_NONE;
+  _has_glow=_fur_is=_mirror=_mirror_want=_mirror_shadows=_palette_mode=_eye_adapt_scale_cur=_t_measure=_set_depth_needed=_get_target=_stereo=_mesh_early_z=_mesh_shader_vel=false;
+  _outline=0;
+  _mirror_priority=_mirror_resolution=0;
+  _frst_light_offset=_blst_light_offset=0;
+  _shd_range=0;
+  _res.zero();
+  _clip.zero();
+  _mirror_plane.zero();
+  _shader_early_z=_shader_shd_map=_shader_shd_map_skin=null;
+  _render=null;
+  _shader_param_changes=null;
+   REPAO(_t_measures)=0;
+  _t_last_measure=0;
+   REPAO(_t_reflection)=0; REPAO(_t_prepare)=0; REPAO(_t_solid)=0; REPAO(_t_overlay)=0; REPAO(_t_water)=0; REPAO(_t_light)=0; REPAO(_t_sky)=0; REPAO(_t_edge_detect)=0; REPAO(_t_blend)=0; REPAO(_t_palette)=0; REPAO(_t_behind)=0; REPAO(_t_rays)=0; REPAO(_t_refract)=0; REPAO(_t_volumetric)=0; REPAO(_t_post_process)=0; REPAO(_t_gpu_wait)=0;
+#endif
+
   _solid_mode_index=RM_SIMPLE;
 
    lowest_visible_point=-DBL_MAX;
 
   _first_pass=true;
-  _get_target=false;
-  _set_depth_needed=false;
-  _stereo=false;
   _eye=0; _eye_num=1;
 
   _type=_cur_type=(MOBILE ? RT_SIMPLE : RT_DEFERRED);
@@ -66,7 +88,6 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
   _mesh_stencil_mode =STENCIL_NONE;
   _mesh_highlight    .zero();
   _mesh_draw_mask    =0xFFFFFFFF;
-  _shader_param_changes=null;
    SetVariation(0);
 
 #if DX11
@@ -1923,6 +1944,14 @@ void RendererClass::postProcess()
    {
       if(!--fxs)dest=_final;else dest.get(ImageRTDesc(size.x, size.y, rt_type)); // can't read and write to the same RT
       T.dof(*_col, *dest, fx_dither); alpha_set=true; Swap(_col, dest); // DoF sets Alpha
+   }
+   if(ms_samples_color.a && D.multiSample())
+   {
+      D.alpha(ALPHA_BLEND);
+      D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
+      set(_col, _ds_1s, true);
+      D.viewRect().draw(ms_samples_color, true);
+      D.stencil(STENCIL_NONE);
    }
 
    // 'upscale' will happen somewhere below
