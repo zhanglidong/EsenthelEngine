@@ -1,6 +1,5 @@
 /******************************************************************************/
 #include "!Header.h"
-#include "Vertex Fog.h"
 #include "Fog.h"
 #include "Sky.h"
 /******************************************************************************/
@@ -119,29 +118,24 @@ void VS
 
    if(rflct && !(per_pixel && bump_mode>SBUMP_FLAT))O.rfl=Transform3(reflect(Normalize(O.pos), O.mtrx[2]), CamMatrix);
 
-   if(per_pixel)
-   {
-      Flt d=Length(O.pos);
-      O.col.a*=Sat(d*SkyFracMulAdd.x + SkyFracMulAdd.y);
+   Flt d=Length(O.pos);
 
-      Half fog_rev=       VisibleOpacity(FogDensity(), d); // fog_rev=1-fog
-      O.col.rgb*=                                fog_rev ; //       *=1-fog
-      O.col_add =Lerp(FogColor(), Highlight.rgb, fog_rev); //         1-fog
-   }else
-   {
-      // lighting
-      if(bump_mode>=SBUMP_FLAT)
-      {
-         Half d  =Sat(Dot(O.mtrx[2], Light_dir.dir));
-         VecH lum=Light_dir.color.rgb*d + AmbNSColor;
-         O.col.rgb*=lum;
-      }
+   // sky
+   O.col.a*=Sat(d*SkyFracMulAdd.x + SkyFracMulAdd.y);
 
-      // fog
-      Half fog_rev=Sat(Length2(O.pos)*VertexFogMulAdd.x+VertexFogMulAdd.y); // fog_rev=1-fog
-      O.col.rgb*=                                        fog_rev ;          //       *=1-fog
-      O.col_add =Lerp(VertexFogColor.rgb, Highlight.rgb, fog_rev);          //         1-fog
+   // fog
+   Half fog_rev=       VisibleOpacity(FogDensity(), d); // fog_rev=1-fog
+   O.col.rgb*=                                fog_rev ; //       *=1-fog
+   O.col_add =Lerp(FogColor(), Highlight.rgb, fog_rev); //         1-fog
+
+   //  per-vertex light
+   if(!per_pixel && bump_mode>=SBUMP_FLAT)
+   {
+      Half d  =Sat(Dot(O.mtrx[2], Light_dir.dir));
+      VecH lum=Light_dir.color.rgb*d + AmbNSColor;
+      O.col.rgb*=lum;
    }
+
    O_vtx=Project(O.pos);
 }
 /******************************************************************************/
@@ -232,7 +226,7 @@ out VecH4 outVel:COLOR1, // #BlendRT
       // perform lighting
       I.col.rgb=I.col.rgb*total_lum;// + total_specular;
    }
-   I.col.rgb+=I.col_add;
+   I.col.rgb+=I.col_add; // add after lighting because this could have fog
    outCol=I.col;
    if(use_vel){UpdateVelocities_PS(I.vel, I.pos); outVel.xyz=I.vel; outVel.w=I.col.a;} // alpha needed because of blending
 }
@@ -323,34 +317,28 @@ CUSTOM_TECHNIQUE
          }
          #endif
 
-         #if per_pixel==0
+         // sky
+         MP Vec mp_pos =IO_pos;
+         MP Flt d      =Length(mp_pos);
+         MP Flt opacity=Sat(d*SkyFracMulAdd.x + SkyFracMulAdd.y);
+         IO_col.a*=opacity;
+
+         // fog
+         MP Flt fog_rev=      VisibleOpacity(FogDensity(), d);
+         IO_col.rgb*=                                fog_rev ;
+         IO_col_add =Lerp(FogColor(), Highlight.rgb, fog_rev);
+
+         // per-vertex light
+         #if per_pixel==0 && bump_mode>=SBUMP_FLAT
          {
-            if(bump_mode>=SBUMP_FLAT)
-            {
-               MP Flt d  =Max(Dot(nrm, Light_dir.dir), 0.0);
-               MP Vec lum=Light_dir.color.rgb*d + AmbNSColor;
-               IO_col.rgb*=lum;
-            }
-
-            MP Flt fog_rev=Sat(Length2(IO_pos)*VertexFogMulAdd.x+VertexFogMulAdd.y);
-            IO_col.rgb*=                                        fog_rev ;
-            IO_col_add =Lerp(VertexFogColor.rgb, Highlight.rgb, fog_rev);
+            MP Flt d  =Max(Dot(nrm, Light_dir.dir), 0.0);
+            MP Vec lum=Light_dir.color.rgb*d + AmbNSColor;
+            IO_col.rgb*=lum;
          }
-         #else
-         {
-            #if bump_mode>=SBUMP_FLAT
-               IO_nrm=nrm;
-            #endif
+         #endif
 
-            MP Vec mp_pos =IO_pos;
-            MP Flt d      =Length(mp_pos);
-            MP Flt opacity=Sat(d*SkyFracMulAdd.x + SkyFracMulAdd.y);
-            IO_col.a*=opacity;
-
-            MP Flt fog_rev=      VisibleOpacity(FogDensity(), d);
-            IO_col.rgb*=                                fog_rev ;
-            IO_col_add =Lerp(FogColor(), Highlight.rgb, fog_rev);
-         }
+         #if per_pixel!=0 && bump_mode>=SBUMP_FLAT
+            IO_nrm=nrm;
          #endif
 
          #if rflct!=0

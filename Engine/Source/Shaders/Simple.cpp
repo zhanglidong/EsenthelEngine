@@ -1,7 +1,6 @@
 /******************************************************************************/
 #include "!Header.h"
 #include "Simple.h"
-#include "Vertex Fog.h"
 /******************************************************************************/
 #define PARAMS             \
    uniform Bool skin      ,\
@@ -25,8 +24,7 @@ struct VS_PS
    Vec2  tex_l   :TEXCOORD2;
    Vec   pos     :TEXCOORD3;
    Half  fade_out:TEXCOORD4;
-   VecH  col_add :TEXCOORD5;
-   Vec   rfl     :TEXCOORD6;
+   Vec   rfl     :TEXCOORD5;
    VecH  col     :COLOR0   ;
    VecH4 material:COLOR1   ;
 };
@@ -67,12 +65,12 @@ void VS
 
    if(fx==FX_LEAF)
    {
-      if(bump_mode==SBUMP_FLAT)BendLeaf(vtx.hlp(), pos, nrm);
+      if(bump_mode>=SBUMP_FLAT)BendLeaf(vtx.hlp(), pos, nrm);
       else                     BendLeaf(vtx.hlp(), pos);
    }
    if(fx==FX_LEAFS)
    {
-      if(bump_mode==SBUMP_FLAT)BendLeafs(vtx.hlp(), vtx.size(), pos, nrm);
+      if(bump_mode>=SBUMP_FLAT)BendLeafs(vtx.hlp(), vtx.size(), pos, nrm);
       else                     BendLeafs(vtx.hlp(), vtx.size(), pos);
    }
 
@@ -82,7 +80,7 @@ void VS
       if(true) // instance
       {
                                   O.pos=TransformPos(pos, vtx.instance());
-         if(bump_mode==SBUMP_FLAT)O.nrm=TransformDir(nrm, vtx.instance());
+         if(bump_mode>=SBUMP_FLAT)O.nrm=TransformDir(nrm, vtx.instance());
          if(fx==FX_GRASS)
          {
               BendGrass(pos, O.pos, vtx.instance());
@@ -92,7 +90,7 @@ void VS
    #endif
       {
                                   O.pos=TransformPos(pos);
-         if(bump_mode==SBUMP_FLAT)O.nrm=TransformDir(nrm);
+         if(bump_mode>=SBUMP_FLAT)O.nrm=TransformDir(nrm);
          if(fx==FX_GRASS)
          {
             BendGrass(pos, O.pos);
@@ -103,11 +101,11 @@ void VS
    {
       VecI bone=vtx.bone();
                                O.pos=TransformPos(pos, bone, vtx.weight());
-      if(bump_mode==SBUMP_FLAT)O.nrm=TransformDir(nrm, bone, vtx.weight());
+      if(bump_mode>=SBUMP_FLAT)O.nrm=TransformDir(nrm, bone, vtx.weight());
    }
 
    // normalize
-   if(bump_mode==SBUMP_FLAT && (tesselate || rflct || !per_pixel))O.nrm=Normalize(O.nrm);
+   if(bump_mode>=SBUMP_FLAT && (tesselate || rflct || !per_pixel))O.nrm=Normalize(O.nrm);
 
    if(fx==FX_BONE)
    {
@@ -135,11 +133,6 @@ void VS
          if(materials<=1 && fx!=FX_BONE)lum+=MaterialAmbient();
          O.col.rgb*=lum;
       }
-
-      // fog
-      Half fog_rev=Sat(Length2(O.pos)*VertexFogMulAdd.x+VertexFogMulAdd.y); // fog_rev=1-fog
-      O.col.rgb*=                                        fog_rev ;          //       *=1-fog
-      O.col_add =Lerp(VertexFogColor.rgb, Highlight.rgb, fog_rev);          //         1-fog
    }
 
    O_vtx=Project(O.pos); CLIP(O.pos);
@@ -226,21 +219,16 @@ VecH4 PS
       }
    }
 
+   I.col.rgb+=Highlight.rgb;
+
    // perform lighting
-   if(per_pixel)
+   if(per_pixel && bump_mode>=SBUMP_FLAT)
    {
-      I.col.rgb+=Highlight.rgb;
-      if(bump_mode==SBUMP_FLAT)
-      {
-         VecH nrm=Normalize(I.nrm); if(fx!=FX_GRASS && fx!=FX_LEAF && fx!=FX_LEAFS)BackFlip(nrm, front);
-         Half d  =Sat(Dot(nrm, Light_dir.dir));
-         VecH lum=Light_dir.color.rgb*d + AmbNSColor;
-         if(materials<=1 && fx!=FX_BONE)lum+=MaterialAmbient();
-         I.col.rgb*=lum;
-      }
-   }else
-   {
-      I.col.rgb+=I.col_add;
+      VecH nrm=Normalize(I.nrm); if(fx!=FX_GRASS && fx!=FX_LEAF && fx!=FX_LEAFS)BackFlip(nrm, front);
+      Half d  =Sat(Dot(nrm, Light_dir.dir));
+      VecH lum=Light_dir.color.rgb*d + AmbNSColor;
+      if(materials<=1 && fx!=FX_BONE)lum+=MaterialAmbient();
+      I.col.rgb*=lum;
    }
 
    return Vec4(I.col.rgb, glow);
@@ -271,7 +259,6 @@ VS_PS HS
    if(rflct                                                                )O.rfl     =I[cp_id].rfl;
    if(materials>1                                                          )O.material=I[cp_id].material;
    if(fx==FX_GRASS                                                         )O.fade_out=I[cp_id].fade_out;
-   if(!per_pixel                                                           )O.col_add =I[cp_id].col_add;
    return O;
 }
 /******************************************************************************/
@@ -292,7 +279,6 @@ void DS
    if(rflct                                                                )O.rfl     =I[0].rfl     *B.z + I[1].rfl     *B.x + I[2].rfl     *B.y;
    if(materials>1                                                          )O.material=I[0].material*B.z + I[1].material*B.x + I[2].material*B.y;
    if(fx==FX_GRASS                                                         )O.fade_out=I[0].fade_out*B.z + I[1].fade_out*B.x + I[2].fade_out*B.y;
-   if(!per_pixel                                                           )O.col_add =I[0].col_add *B.z + I[1].col_add *B.x + I[2].col_add *B.y;
 
    SetDSPosNrm(O.pos, O.nrm, I[0].pos, I[1].pos, I[2].pos, I[0].nrm, I[1].nrm, I[2].nrm, B, hs_data, false, 0);
    O_vtx=Project(O.pos);
@@ -317,9 +303,7 @@ CUSTOM_TECHNIQUE
       #if materials<=1 /*|| mtrl_blend==0*/ || COLOR!=0 || per_pixel==0
          VAR MP Vec IO_col;
       #endif
-      #if per_pixel==0
-         VAR MP Vec IO_col_add;
-      #else
+      #if per_pixel!=0
          VAR MP Vec IO_nrm;
       #endif
       #if fx==FX_GRASS
@@ -409,14 +393,14 @@ CUSTOM_TECHNIQUE
          #if skin==0
          {
                                    O_pos=          TransformPos(pos, gl_InstanceID) ; if(fx==FX_GRASS)O_pos+=BendGrass(pos);
-            if(bump_mode==SBUMP_FLAT)nrm=Normalize(TransformDir(nrm, gl_InstanceID));
+            if(bump_mode>=SBUMP_FLAT)nrm=Normalize(TransformDir(nrm, gl_InstanceID));
          }
          #else
          {
             MP VecI bone  =vtx_bone  ();
             MP Vec  weight=vtx_weight();
                                    O_pos=          TransformPos(pos, bone, weight) ;
-            if(bump_mode==SBUMP_FLAT)nrm=Normalize(TransformDir(nrm, bone, weight));
+            if(bump_mode>=SBUMP_FLAT)nrm=Normalize(TransformDir(nrm, bone, weight));
          }
          #endif
          O_vtx=Project(O_pos);
@@ -439,10 +423,6 @@ CUSTOM_TECHNIQUE
                IO_col.rgb*=lum;
             }
             #endif
-
-            MP Flt fog_rev=Sat(Length2(O_pos)*VertexFogMulAdd.x+VertexFogMulAdd.y);
-            IO_col.rgb*=                                        fog_rev ;
-            IO_col_add =Lerp(VertexFogColor.rgb, Highlight.rgb, fog_rev);
          }
          #else
             IO_nrm=nrm;
@@ -563,11 +543,11 @@ CUSTOM_TECHNIQUE
             col=tex;
          #endif
       #endif
+         col+=Highlight.rgb;
          // lighting
          #if per_pixel!=0
          {
-            col+=Highlight.rgb;
-            #if bump_mode==SBUMP_FLAT
+            #if bump_mode>=SBUMP_FLAT
             {
                MP Vec nrm=Normalize(IO_nrm); if(fx!=FX_GRASS && fx!=FX_LEAF && fx!=FX_LEAFS)BackFlip(nrm);
                MP Flt d  =Max(Dot(nrm, Light_dir.dir), 0.0);
@@ -577,8 +557,6 @@ CUSTOM_TECHNIQUE
             }
             #endif
          }
-         #else
-            col+=IO_col_add;
          #endif
 
          gl_FragColor.rgb=col; // set 'gl_FragColor' at end since it's MP
