@@ -29,7 +29,7 @@ bool Init()
    Memc<Edit.WorldObjParams> objs;
    REP(32) // 32 objects
    {
-      Matrix matrix; matrix.setScalePos(2, Vec(RandomF(0, 64), 0, RandomF(0, 64)));
+      Matrix matrix; matrix.setScalePos(2, Vec(Random.f(0, 64), 0, Random.f(0, 64)));
       objs.New().set(obj_id, matrix, false, 0);
    }
    ok=EI.worldObjCreate(world_id, objs);

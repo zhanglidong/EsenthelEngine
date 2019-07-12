@@ -17,7 +17,7 @@ bool Init()
 {
    Sky.atmospheric();
    Sun.image=UID(1275694243, 1199742097, 1108828586, 1055787228);
-   Sun.light_color=1-D.ambientColorL();
+   Sun.light_color_l=1-D.ambientColorL();
 
    // create background threads
    threads.create(false, Cpu.threads()-1, -1);
@@ -37,6 +37,8 @@ bool Update()
    Cam.transformByMouse(0.01, 500, CAMH_ZOOM|(Ms.b(1)?CAMH_MOVE:CAMH_ROT));
 
    VolumetricCloud.Settings settings;
+   settings.ambient=0.5;
+   settings.light_power=0.5;
    Clouds.volumetric.cloud.update(settings);
    Clouds.volumetric.pos.x+=Time.d()*0.02;
 

@@ -25,9 +25,9 @@ Bool Init()
    {
       switch(Random(3))
       {
-         case 0: obj[i].create(Box    (RandomF(0.1, 0.5),                    Random(Box(10, 1, 10)))); break;
-         case 1: obj[i].create(Ball   (RandomF(0.1, 0.5),                    Random(Box(10, 1, 10)))); break;
-         case 2: obj[i].create(Capsule(RandomF(0.1, 0.2), RandomF(0.5, 1.0), Random(Box(10, 1, 10)))); break;
+         case 0: obj[i].create(Box    (Random.f(0.1, 0.5),                     Random(Box(10, 1, 10)))); break;
+         case 1: obj[i].create(Ball   (Random.f(0.1, 0.5),                     Random(Box(10, 1, 10)))); break;
+         case 2: obj[i].create(Capsule(Random.f(0.1, 0.2), Random.f(0.5, 1.0), Random(Box(10, 1, 10)))); break;
       }
 
       obj[i].group(GROUP_OBJ).user(ptr(i)); // set actor's group to 'object' group and set its user data, in this tutorial it'll be index of the object in the array

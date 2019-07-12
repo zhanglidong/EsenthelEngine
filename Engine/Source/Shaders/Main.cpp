@@ -767,7 +767,7 @@ void FogBox_PS
    Matrix3 inMat :TEXCOORD3,
 
    out VecH4 color:COLOR0,
-   out VecH4 alpha:COLOR1,
+   out VecH4 mask :COLOR1,
 
    uniform Bool height
 )
@@ -798,7 +798,7 @@ void FogBox_PS
 
    color.rgb=LocalFogColor();
    color.a  =AccumulatedDensity(dns, len);
-   alpha    =color.a;
+   mask.rgb=0; mask.a=color.a;
 }
 
 void FogBoxI_VS(VtxInput vtx,
@@ -825,7 +825,7 @@ void FogBoxI_PS
    NOPERSP Matrix3 inMat  :TEXCOORD3,
 
    out VecH4 color:COLOR0,
-   out VecH4 alpha:COLOR1,
+   out VecH4 mask :COLOR1,
 
    uniform Int  inside,
    uniform Bool height
@@ -867,7 +867,7 @@ void FogBoxI_PS
 
    color.rgb=LocalFogColor();
    color.a  =AccumulatedDensity(dns, len);
-   alpha    =color.a;
+   mask.rgb=0; mask.a=color.a;
 }
 
 void FogBall_VS(VtxInput vtx,
@@ -889,7 +889,7 @@ void FogBall_PS
    Flt inSize:TEXCOORD2,
 
    out VecH4 color:COLOR0,
-   out VecH4 alpha:COLOR1
+   out VecH4 mask :COLOR1
 )
 {
    Flt z  =TexDepthPoint(PixelToScreen(pixel));
@@ -909,7 +909,7 @@ void FogBall_PS
 
    color.rgb=LocalFogColor();
    color.a  =AccumulatedDensity(dns, len);
-   alpha    =color.a;
+   mask.rgb=0; mask.a=color.a;
 }
 
 void FogBallI_VS(VtxInput vtx,
@@ -930,7 +930,7 @@ void FogBallI_PS
    NOPERSP Flt  inSize :TEXCOORD2,
 
    out VecH4 color:COLOR0,
-   out VecH4 alpha:COLOR1,
+   out VecH4 mask :COLOR1,
 
    uniform Int inside
 )
@@ -953,7 +953,7 @@ void FogBallI_PS
 
    color.rgb=LocalFogColor();
    color.a  =AccumulatedDensity(dns, len);
-   alpha    =color.a;
+   mask.rgb=0; mask.a=color.a;
 }
 
 TECHNIQUE(FogBox ,  FogBox_VS(),  FogBox_PS(   false));
@@ -1009,7 +1009,7 @@ void Volume_PS
    Matrix3 inMat:TEXCOORD2,
 
    out VecH4 color:COLOR0,
-   out VecH4 alpha:COLOR1,
+   out VecH4 mask :COLOR1,
 
    uniform Int  inside,
    uniform Bool LA=false
@@ -1071,8 +1071,10 @@ void Volume_PS
 
       col.r/=col.g+EPS; // NaN
 
+      if(LINEAR_GAMMA)col.r=SRGBToLinearFast(col.r);
+
       color=col.rrrg*Color[0]+Color[1];
-      alpha=color.a;
+      mask.rgb=0; mask.a=color.a;
    }else
    {
       Vec4 col=0;
@@ -1091,7 +1093,7 @@ void Volume_PS
       col.rgb/=col.a+EPS; // NaN
 
       color=col*Color[0]+Color[1];
-      alpha=color.a;
+      mask.rgb=0; mask.a=color.a;
    }
 }
 TECHNIQUE(Volume0, Volume_VS(0), Volume_PS(0));

@@ -24,6 +24,6 @@ void Draw()
    D.clear(TURQ);
    REP(1000)D.dot(BLUE, Random(Circle(0.5              ))); // draw 1000 random points inside circle
    REP(1000)D.dot(RED , Random(Rect  (0.5, -0.5, 1, 0.5))); // draw 1000 random points inside rectangle
-   D.text(0, 0.7, S+Random(4)+"  "+Random(10, 15)+"  "+RandomF()+"  "+RandomF(10, 15));
+   D.text(0, 0.7, S+Random(4)+"  "+Random(10, 15)+"  "+Random.f()+"  "+Random.f(10, 15));
 }
 /******************************************************************************/

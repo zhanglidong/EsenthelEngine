@@ -2,7 +2,7 @@
 class Cloud
 {
    int cloud_index=Random(Elms(cloud_image));
-   flt size=RandomF(0.8, 1.2);
+   flt size=Random.f(0.8, 1.2);
    Vec pos;
    
    void draw()
@@ -31,7 +31,7 @@ bool Init()
 {
    Sky.atmospheric();
    Sun.image=UID(1275694243, 1199742097, 1108828586, 1055787228);
-   Sun.light_color=1-D.ambientColorL();
+   Sun.light_color_l=1-D.ambientColorL();
 
    // create background threads
    threads.create(false, Cpu.threads()-1, -1);
@@ -56,6 +56,8 @@ bool Update()
    Cam.transformByMouse(0.01, 500, CAMH_ZOOM|(Ms.b(1)?CAMH_MOVE:CAMH_ROT));
 
    VolumetricCloud.Settings settings; settings.density=1;
+   settings.ambient=0.5;
+   settings.light_power=0.5;
    REPAO(cloud_image).update(settings);
 
    return true;

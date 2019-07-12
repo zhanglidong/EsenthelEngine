@@ -34,9 +34,9 @@ void InitPre()
 /******************************************************************************/
 bool Init()
 {
-   REPA(floats)floats[i]     =RandomF(10); // fill 'floats'    with random values (0..10)
-   REPA(data  )data  [i].real=RandomF(10); // fill 'data.real' with random values (0..10)
-   REP (8     )memc  (i).real=RandomF(10); // fill 'memc.real' with random values (0..10)
+   REPA(floats)floats[i]     =Random.f(10); // fill 'floats'    with random values (0..10)
+   REPA(data  )data  [i].real=Random.f(10); // fill 'data.real' with random values (0..10)
+   REP (8     )memc  (i).real=Random.f(10); // fill 'memc.real' with random values (0..10)
 
    return true;
 }

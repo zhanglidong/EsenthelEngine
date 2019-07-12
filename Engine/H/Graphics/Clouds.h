@@ -60,7 +60,7 @@ struct VolumetricCloud
       void zero() {Zero(T);}
    #endif
 
-      Settings() {detail=3; density=0.75f; noise_min=0.35f; noise_max=1.0f; brightness=0.8f; ambient=D.ambientPowerS(); light_power=Sun.lightColorS().max(); light_pos=Sun.pos;}
+      Settings() {detail=3; density=0.75f; noise_min=0.35f; noise_max=1.0f; brightness=0.8f; ambient=0.5f; light_power=0.5f; light_pos=Sun.pos;}
    };
 
    // get

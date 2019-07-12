@@ -24,7 +24,7 @@ bool Init()
 
    // create holographic image
    int size=64;
-   image.create(size, size, size, IMAGE_R8G8B8A8, IMAGE_3D, 1); // size x size x size dimensions, R8G8B8A8 type, 3D mode, 1 mip map
+   image.create(size, size, size, IMAGE_R8G8B8A8_SRGB, IMAGE_3D, 1); // size x size x size dimensions, IMAGE_R8G8B8A8_SRGB type, 3D mode, 1 mip map
    if(image.lock()) // start manual pixel editing
    {
       REPD(z, image.d())
@@ -45,16 +45,16 @@ bool Init()
          || y<=1 || y>=image.h()-2
          || z<=1 || z>=image.d()-2) // if current pixel is on border
          {
-            color.set(0, 1, 0, RandomF(0.5, 1)); // green color with random alpha
+            color.set(0, 1, 0, Random.f(0.5, 1)); // green color with random alpha
          }
          else // if current pixel is inside
          {
             // blue sphere
             flt length=Vec(px, py, pz).length();
-            flt sphere=(1-Sat(Abs(length-0.5)*8));//*RandomF();
+            flt sphere=(1-Sat(Abs(length-0.5)*8));//*Random.f();
 
             // red fade
-            flt red_fade=0.5*fx*fx*RandomF();
+            flt red_fade=0.5*fx*fx*Random.f();
 
             // color value from blue sphere and red fade
             if(flt sum=sphere+red_fade) // total alpha value
