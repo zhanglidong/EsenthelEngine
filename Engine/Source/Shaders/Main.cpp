@@ -1528,13 +1528,13 @@ TECHNIQUE(ResolveDepth, DrawPixel_VS(), ResolveDepth_PS());
 void DetectMSCol_PS(NOPERSP PIXEL)
 {
    VecH cols[4]={TexSample(ImgMS, pixel.xy, 0).rgb, TexSample(ImgMS, pixel.xy, 1).rgb, TexSample(ImgMS, pixel.xy, 2).rgb, TexSample(ImgMS, pixel.xy, 3).rgb}; // load 4-multi-samples of texel
-   if((cols[0]==cols[1]) && (cols[0]==cols[2]) && (cols[0]==cols[3]))discard;
+   if(all((cols[0]==cols[1]) && (cols[0]==cols[2]) && (cols[0]==cols[3])))discard;
 }
 TECHNIQUE(DetectMSCol, DrawPixel_VS(), DetectMSCol_PS());
 /*void DetectMSNrm_PS(NOPERSP PIXEL)
 {
    Vec2 nrms[4]={TexSample(ImgMS, pixel.xy, 0).xy, TexSample(ImgMS, pixel.xy, 1).xy, TexSample(ImgMS, pixel.xy, 2).xy, TexSample(ImgMS, pixel.xy, 3).xy}; // load 4-multi-samples of texel
-   if((nrms[0]==nrms[1]) && (nrms[0]==nrms[2]) && (nrms[0]==nrms[3]))discard;
+   if(all((nrms[0]==nrms[1]) && (nrms[0]==nrms[2]) && (nrms[0]==nrms[3])))discard;
 }
 TECHNIQUE(DetectMSNrm, DrawPixel_VS(), DetectMSNrm_PS());*/
 #endif
