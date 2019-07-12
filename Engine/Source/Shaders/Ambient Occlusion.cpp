@@ -182,7 +182,7 @@ Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
       if(mode==2)pattern=AO2Vec[i];else
                  pattern=AO3Vec[i];
 
-      Vec2              offs=pattern.xy*offs_scale;
+      Vec2              offs=pattern.xy*offs_scale; // TODO: #HLSLHalf
       if(jitter        )offs=Rotate(offs, cos_sin);
       if(!linear_filter)offs=Round(offs*RTSize.zw)*RTSize.xy;
 

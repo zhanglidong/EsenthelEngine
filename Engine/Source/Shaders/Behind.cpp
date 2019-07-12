@@ -45,7 +45,7 @@ VecH4 PS
    if(textures==1)clip(Tex(Col, inTex).a + MaterialAlpha()-1);else // alpha in 'Col' texture
    if(textures==2)clip(Tex(Nrm, inTex).a + MaterialAlpha()-1);     // alpha in 'Nrm' texture, #MaterialTextureChannelOrder
 
-   Half alpha=Sat((inPos.z-TexDepthPoint(PixelToScreen(pixel))-BehindBias)/0.3);
+   Half alpha=Sat((Half(inPos.z-TexDepthPoint(PixelToScreen(pixel)))-BehindBias)/0.3);
 
    VecH4  col   =Lerp(Color[0], Color[1], Abs(Normalize(inNrm).z));
           col.a*=alpha;
