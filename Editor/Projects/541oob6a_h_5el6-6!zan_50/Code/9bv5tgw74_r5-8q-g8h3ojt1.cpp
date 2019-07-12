@@ -85,7 +85,7 @@ bool Init()
    Sky.atmospheric();
    Sun.image=UID(1275694243, 1199742097, 1108828586, 1055787228);
    Sun.pos=!Vec(1, 1, 1);
-   Sun.light_color=1-D.ambientColorL();
+   Sun.light_color_l=1-D.ambientColorL();
 
    // setup player data
    player.createDefault();

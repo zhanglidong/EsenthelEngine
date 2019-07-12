@@ -51,7 +51,7 @@ bool Update()
    Sun.pos.normalize();
 
    // set sun color
-   Sun.light_color=(1-D.ambientColorL())*Sat(Cbrt(Sun.pos.y));
+   Sun.light_color_l=(1-D.ambientColorL())*Sat(Cbrt(Sun.pos.y));
 
    // set sun rays and highlight
    flt rays=Sqrt(Sun.pos.y);

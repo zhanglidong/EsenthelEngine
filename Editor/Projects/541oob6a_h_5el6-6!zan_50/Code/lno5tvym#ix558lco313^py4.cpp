@@ -28,7 +28,7 @@ bool Init()
    Earth=obj->mesh();
    Sun.image=UID(1275694243, 1199742097, 1108828586, 1055787228);
    Sun.rays_mode=SUN_RAYS_OFF;
-   Sun.light_color=1-D.ambientColorL();
+   Sun.light_color_l=1-D.ambientColorL();
    Sky.skybox(UID(540301137, 1134104252, 1741669259, 1349485002));
    return true;
 }
