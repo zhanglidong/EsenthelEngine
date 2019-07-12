@@ -10,7 +10,7 @@
       ambient_on_time>src.ambient_on_time || ambient_color_time>src.ambient_color_time || night_shade_color_time>src.night_shade_color_time
    || bloom_on_time>src.bloom_on_time || bloom_half_time>src.bloom_half_time || bloom_saturate_time>src.bloom_saturate_time || bloom_maximum_time>src.bloom_maximum_time || bloom_blurs_time>src.bloom_blurs_time
    || bloom_original_time>src.bloom_original_time || bloom_scale_time>src.bloom_scale_time || bloom_cut_time>src.bloom_cut_time
-   || clouds_on_time>src.clouds_on_time || clouds_vertical_scale_time>src.clouds_vertical_scale_time || clouds_ray_mask_contrast_time>src.clouds_ray_mask_contrast_time
+   || clouds_on_time>src.clouds_on_time || clouds_vertical_scale_time>src.clouds_vertical_scale_time
    || clouds_scale_time[0]>src.clouds_scale_time[0] || clouds_velocity_time[0]>src.clouds_velocity_time[0] || clouds_color_time[0]>src.clouds_color_time[0] || clouds_image_time[0]>src.clouds_image_time[0]
    || clouds_scale_time[1]>src.clouds_scale_time[1] || clouds_velocity_time[1]>src.clouds_velocity_time[1] || clouds_color_time[1]>src.clouds_color_time[1] || clouds_image_time[1]>src.clouds_image_time[1]
    || clouds_scale_time[2]>src.clouds_scale_time[2] || clouds_velocity_time[2]>src.clouds_velocity_time[2] || clouds_color_time[2]>src.clouds_color_time[2] || clouds_image_time[2]>src.clouds_image_time[2]
@@ -30,7 +30,7 @@
       ambient_on_time==src.ambient_on_time && ambient_color_time==src.ambient_color_time && night_shade_color_time==src.night_shade_color_time
    && bloom_on_time==src.bloom_on_time && bloom_half_time==src.bloom_half_time && bloom_saturate_time==src.bloom_saturate_time && bloom_maximum_time==src.bloom_maximum_time && bloom_blurs_time==src.bloom_blurs_time
    && bloom_original_time==src.bloom_original_time && bloom_scale_time==src.bloom_scale_time && bloom_cut_time==src.bloom_cut_time
-   && clouds_on_time==src.clouds_on_time && clouds_vertical_scale_time==src.clouds_vertical_scale_time && clouds_ray_mask_contrast_time==src.clouds_ray_mask_contrast_time
+   && clouds_on_time==src.clouds_on_time && clouds_vertical_scale_time==src.clouds_vertical_scale_time
    && clouds_scale_time[0]==src.clouds_scale_time[0] && clouds_velocity_time[0]==src.clouds_velocity_time[0] && clouds_color_time[0]==src.clouds_color_time[0] && clouds_image_time[0]==src.clouds_image_time[0]
    && clouds_scale_time[1]==src.clouds_scale_time[1] && clouds_velocity_time[1]==src.clouds_velocity_time[1] && clouds_color_time[1]==src.clouds_color_time[1] && clouds_image_time[1]==src.clouds_image_time[1]
    && clouds_scale_time[2]==src.clouds_scale_time[2] && clouds_velocity_time[2]==src.clouds_velocity_time[2] && clouds_color_time[2]==src.clouds_color_time[2] && clouds_image_time[2]==src.clouds_image_time[2]
@@ -48,7 +48,7 @@
    {
       ambient_on_time++; ambient_color_time++; night_shade_color_time++;
       bloom_on_time++; bloom_half_time++; bloom_saturate_time++; bloom_maximum_time++; bloom_blurs_time++; bloom_original_time++; bloom_scale_time++; bloom_cut_time++;
-      clouds_on_time++; clouds_vertical_scale_time++; clouds_ray_mask_contrast_time++;
+      clouds_on_time++; clouds_vertical_scale_time++;
       REPAO(clouds_scale_time)++; REPAO(clouds_velocity_time)++; REPAO(clouds_color_time)++; REPAO(clouds_image_time)++;
       fog_on_time++; fog_affect_sky_time++; fog_density_time++; fog_color_time++;
       sky_on_time++; sky_frac_time++; sky_atmospheric_density_exponent_time++; sky_atmospheric_horizon_exponent_time++; sky_atmospheric_horizon_color_time++; sky_atmospheric_sky_color_time++; sky_atmospheric_stars_time++; sky_atmospheric_stars_orientation_time++; sky_skybox_time++;
@@ -70,7 +70,6 @@
       changed|=Sync(bloom_cut_time, src.bloom_cut_time, bloom.cut, src.bloom.cut);
       changed|=Sync(clouds_on_time, src.clouds_on_time, clouds.on, src.clouds.on);
       changed|=Sync(clouds_vertical_scale_time, src.clouds_vertical_scale_time, clouds.vertical_scale, src.clouds.vertical_scale);
-      changed|=Sync(clouds_ray_mask_contrast_time, src.clouds_ray_mask_contrast_time, clouds.ray_mask_contrast, src.clouds.ray_mask_contrast);
       REPA(clouds_scale_time)
       {
          changed|=Sync(clouds_scale_time[i], src.clouds_scale_time[i], clouds.layers[i].scale, src.clouds.layers[i].scale);
@@ -120,7 +119,6 @@
       changed|=Undo(bloom_cut_time, src.bloom_cut_time, bloom.cut, src.bloom.cut);
       changed|=Undo(clouds_on_time, src.clouds_on_time, clouds.on, src.clouds.on);
       changed|=Undo(clouds_vertical_scale_time, src.clouds_vertical_scale_time, clouds.vertical_scale, src.clouds.vertical_scale);
-      changed|=Undo(clouds_ray_mask_contrast_time, src.clouds_ray_mask_contrast_time, clouds.ray_mask_contrast, src.clouds.ray_mask_contrast);
       REPA(clouds_scale_time)
       {
          changed|=Undo(clouds_scale_time[i], src.clouds_scale_time[i], clouds.layers[i].scale, src.clouds.layers[i].scale);
@@ -165,12 +163,12 @@
    }
    bool EditEnv::save(File &f)C
    {
-      f.cmpUIntV(2);
+      f.cmpUIntV(3);
       ::EE::Environment::save(f);
       f<<sun_id<<star_id<<skybox_id<<cloud_id
        <<ambient_on_time<<ambient_color_time<<night_shade_color_time
        <<bloom_on_time<<bloom_half_time<<bloom_saturate_time<<bloom_maximum_time<<bloom_blurs_time<<bloom_original_time<<bloom_scale_time<<bloom_cut_time
-       <<clouds_on_time<<clouds_vertical_scale_time<<clouds_ray_mask_contrast_time
+       <<clouds_on_time<<clouds_vertical_scale_time
        <<clouds_scale_time<<clouds_velocity_time<<clouds_color_time<<clouds_image_time
        <<fog_on_time<<fog_affect_sky_time<<fog_density_time<<fog_color_time
        <<sky_on_time<<sky_frac_time<<sky_atmospheric_density_exponent_time<<sky_atmospheric_horizon_exponent_time<<sky_atmospheric_horizon_color_time<<sky_atmospheric_sky_color_time
@@ -181,9 +179,25 @@
    }
    bool EditEnv::load(File &f)
    {
-      TimeStamp bloom_contrast_time;
+      TimeStamp bloom_contrast_time, clouds_ray_mask_contrast_time;
       reset(); switch(f.decUIntV())
       {
+         case 3:
+         {
+            if(!::EE::Environment::load(f))break;
+            f>>sun_id>>star_id>>skybox_id>>cloud_id
+             >>ambient_on_time>>ambient_color_time>>night_shade_color_time
+             >>bloom_on_time>>bloom_half_time>>bloom_saturate_time>>bloom_maximum_time>>bloom_blurs_time>>bloom_original_time>>bloom_scale_time>>bloom_cut_time
+             >>clouds_on_time>>clouds_vertical_scale_time
+             >>clouds_scale_time>>clouds_velocity_time>>clouds_color_time>>clouds_image_time
+             >>fog_on_time>>fog_affect_sky_time>>fog_density_time>>fog_color_time
+             >>sky_on_time>>sky_frac_time>>sky_atmospheric_density_exponent_time>>sky_atmospheric_horizon_exponent_time>>sky_atmospheric_horizon_color_time>>sky_atmospheric_sky_color_time
+             >>sky_atmospheric_stars_time>>sky_atmospheric_stars_orientation_time>>sky_skybox_time
+             >>sun_on_time>>sun_blend_time>>sun_glow_time>>sun_size_time>>sun_highlight_front_time>>sun_highlight_back_time>>sun_pos_time>>sun_light_color_time>>sun_rays_color_time
+             >>sun_image_color_time>>sun_image_time;
+            if(f.ok())return true;
+         }break;
+
          case 2:
          {
             if(!::EE::Environment::load(f))break;

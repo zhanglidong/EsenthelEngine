@@ -52,10 +52,8 @@ class EnvEditor : ClosableWindow
    static void BloomBlurs   (  EditEnv &env, C Str &text);
    static Str  BloomBlurs   (C EditEnv &env             );
 
-   static void CloudsScaleY (  EditEnv &env, C Str &text);
-   static Str  CloudsScaleY (C EditEnv &env             );
-   static void CloudsRayMask(  EditEnv &env, C Str &text);
-   static Str  CloudsRayMask(C EditEnv &env             );
+   static void CloudsScaleY(  EditEnv &env, C Str &text);
+   static Str  CloudsScaleY(C EditEnv &env             );
 
    template<int i>   static void CloudsColor(  EditEnv &env, C Str &text);
    template<int i>   static Str  CloudsColor(C EditEnv &env             );

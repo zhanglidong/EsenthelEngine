@@ -18,10 +18,9 @@ struct LayeredClouds
    Layer layer[4]      ; // layer array
 
    // set / get
-   LayeredClouds& set            (Byte active_layers, C ImagePtr &image=null);   Int layers         ()C {return _layers ;} // set/get number of active layers 0..4, if 'image'!=null layers will have 'image' set as their texture
-   LayeredClouds& frac           (Flt  frac                                 );   Flt frac           ()C {return _frac   ;} // set/get cloud viewport fraction  , 0..1  , default=0.9 , fraction of the Viewport range where clouds start (1 is the fastest)
-   LayeredClouds& scaleY         (Flt  scale                                );   Flt scaleY         ()C {return _scale_y;} // set/get Y scaling                , 1..2  , default=1.05, setting this value higher than 1 helps covering the empty gap between flat ground and the clouds
-   LayeredClouds& rayMaskContrast(Flt  contrast                             );   Flt rayMaskContrast()C {return _rmc    ;} // set/get sun rays masking contrast, 1..Inf, default=4   , this is used when "Sun.rays_mode==SUN_RAYS_HIGH"
+   LayeredClouds& set   (Byte active_layers, C ImagePtr &image=null);   Int layers()C {return _layers ;} // set/get number of active layers 0..4, if 'image'!=null layers will have 'image' set as their texture
+   LayeredClouds& frac  (Flt  frac                                 );   Flt frac  ()C {return _frac   ;} // set/get cloud viewport fraction  , 0..1  , default=0.9 , fraction of the Viewport range where clouds start (1 is the fastest)
+   LayeredClouds& scaleY(Flt  scale                                );   Flt scaleY()C {return _scale_y;} // set/get Y scaling                , 1..2  , default=1.05, setting this value higher than 1 helps covering the empty gap between flat ground and the clouds
 
    void update(); // update layers, this needs to be called once per frame to update the cloud texture animation movement (move the layer texture positions according to velocities)
 
@@ -29,7 +28,7 @@ struct LayeredClouds
 private:
 #endif
    Byte       _layers;
-   Flt        _frac, _scale_y, _rmc;
+   Flt        _frac, _scale_y;
    MeshRender _mshr;
 
    LayeredClouds();

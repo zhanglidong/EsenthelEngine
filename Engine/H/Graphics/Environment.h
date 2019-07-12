@@ -57,10 +57,9 @@ struct Environment
          ImagePtr image   ; // texture                 ,                       default=null
       };
 
-      Bool  on               ; // if enabled, true/false, default=true
-      Flt   vertical_scale   , // vertical texture scaling ,    1..2   , default=1.05, setting this value higher than 1 helps covering the empty gap between flat ground and the clouds
-            ray_mask_contrast; // sun rays masking contrast,    1..Inf , default=4   , this is used when "Sun.rays_mode==SUN_RAYS_HIGH"
-      Layer layers[4]        ; // layer array
+      Bool  on            ; // if enabled              , true/false, default=true
+      Flt   vertical_scale; // vertical texture scaling,    1..2   , default=1.05, setting this value higher than 1 helps covering the empty gap between flat ground and the clouds
+      Layer layers[4]     ; // layer array
 
       // set / get
       void set  ()C; // apply these settings to graphics

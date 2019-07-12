@@ -54,8 +54,6 @@ EnvEditor EnvEdit;
    Str  EnvEditor::BloomBlurs(C EditEnv &env             ) {return env.bloom.blurs;}
    void EnvEditor::CloudsScaleY(  EditEnv &env, C Str &text) {env.clouds.vertical_scale=TextFlt(text); env.clouds_vertical_scale_time.getUTC();}
    Str  EnvEditor::CloudsScaleY(C EditEnv &env             ) {return env.clouds.vertical_scale;}
-   void EnvEditor::CloudsRayMask(  EditEnv &env, C Str &text) {env.clouds.ray_mask_contrast=TextFlt(text); env.clouds_ray_mask_contrast_time.getUTC();}
-   Str  EnvEditor::CloudsRayMask(C EditEnv &env             ) {return env.clouds.ray_mask_contrast;}
    void EnvEditor::FogSky(  EditEnv &env, C Str &text) {env.fog.affect_sky=TextBool(text); env.fog_affect_sky_time.getUTC();}
    Str  EnvEditor::FogSky(C EditEnv &env             ) {return env.fog.affect_sky;}
    void EnvEditor::FogDensity(  EditEnv &env, C Str &text) {env.fog.density=TextFlt(text); env.fog_density_time.getUTC();}
@@ -166,8 +164,7 @@ EnvEditor EnvEdit;
       bloom.add("Blurs"   , MemberDesc(DATA_INT ).setFunc(BloomBlurs   , BloomBlurs   )).range(0, 4).mouseEditSpeed(3);
       bloom.autoData(&edit); bloom.create("Bloom", 0.14f);
 
-      clouds.add("Vertical Scale"   , MemberDesc(DATA_REAL).setFunc(CloudsScaleY , CloudsScaleY )).range(1, 2);
-      clouds.add("Ray Mask Contrast", MemberDesc(DATA_REAL).setFunc(CloudsRayMask, CloudsRayMask)).min(1);
+      clouds.add("Vertical Scale", MemberDesc(DATA_REAL).setFunc(CloudsScaleY, CloudsScaleY)).range(1, 2);
       clouds.add();
       clouds.add("Layer 1 Color"   , MemberDesc(DATA_VEC4).setFunc(CloudsColor<0>, CloudsColor<0>)).setColor();
       clouds.add("Layer 1 Scale"   , MemberDesc(DATA_REAL).setFunc(CloudsScale<0>, CloudsScale<0>)).mouseEditSpeed(0.2f);

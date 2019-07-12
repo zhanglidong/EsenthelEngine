@@ -23,7 +23,6 @@ LayeredClouds::LayeredClouds()
    layer[3].color_l=1; layer[3].scale=1.0f/1.6f; layer[3].position.set(0.75f, 0.8f); layer[3].velocity=0.004f;
    frac(0.9f);
   _scale_y=1.05f; // set manually instead of calling method to avoid accessing shader param map, which could crash if not yet initialized
-  _rmc    =4    ; // set manually instead of calling method to avoid accessing shader param map, which could crash if not yet initialized
 }
 void LayeredClouds::del()
 {
@@ -32,8 +31,7 @@ void LayeredClouds::del()
 }
 void LayeredClouds::create()
 {
-   {Flt v=         scaleY(); _scale_y=-1;          scaleY(v);}
-   {Flt v=rayMaskContrast(); _rmc    =-1; rayMaskContrast(v);}
+   {Flt v=scaleY(); _scale_y=-1; scaleY(v);}
 
    MeshBase mshb;
    mshb.createIcoHalf(Ball(1), 0, 3); // 3 give 'dist'=0.982246876
@@ -64,12 +62,6 @@ LayeredClouds& LayeredClouds::scaleY(Flt scale)
    if(T._scale_y!=scale)SPSet("LCScaleY", T._scale_y=scale);
    return T;
 }
-LayeredClouds& LayeredClouds::rayMaskContrast(Flt contrast)
-{
-   MAX(contrast, 1);
-   if(T._rmc!=contrast)SPSet("LCMaskContrast", Vec2(T._rmc=contrast, contrast*-0.5f+0.5f));
-   return T;
-}
 /******************************************************************************/
 void LayeredClouds::update()
 {
@@ -96,9 +88,9 @@ inline void LayeredCloudsFx::load()
       CL[3]=GetShaderParam("CL[3]");
    }
 }
-inline Shader* LayeredCloudsFx::get(Int layers, Bool blend, Bool mask)
+inline Shader* LayeredCloudsFx::get(Int layers, Bool blend)
 {
-   Shader* &s=Clouds[layers][blend][mask]; if(!s)s=shader->get(S+"Clouds"+(layers+1)+(blend?'B':'\0')+(mask?'M':'\0'));
+   Shader* &s=Clouds[layers][blend]; if(!s)s=shader->get(S+"Clouds"+(layers+1)+(blend?'B':'\0'));
    return   s;
 }
 void LayeredClouds::commit()
@@ -154,7 +146,7 @@ void LayeredClouds::draw()
       D.depth     (true );
       D.cull      (true );
       D.sampler3D (     );
-      Shader *shader=LC.get(_layers-1, blend, Renderer._sky_coverage!=null);
+      Shader *shader=LC.get(_layers-1, blend);
       REPS(Renderer._eye, Renderer._eye_num)
       {
          Renderer.setEyeViewport();
@@ -661,7 +653,7 @@ void VolumetricClouds::draw()
       Sh.VolXY[1]->_sampler=null;
 
       Bool gamma=LINEAR_GAMMA, swap=(gamma && Renderer._col->canSwapRTV()); if(swap){gamma=false; Renderer._col->swapRTV();} // if we have a non-sRGB access, then just use it instead of doing the more expensive shader, later we have to restore it
-      Renderer.set(Renderer._col, null, true);
+      Renderer.set(Renderer._col, Renderer._sky_coverage, null, null, null, true);
       D.alpha(ALPHA_BLEND_DEC);
 
       Flt to=D.viewRange(), from=Min(to*Sky.frac(), to-0.01f);

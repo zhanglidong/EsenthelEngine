@@ -3759,8 +3759,7 @@ TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
          HP Vec2 position;
       };
 
-      PAR MP Flt  LCScaleY;
-      PAR MP Vec2 LCMaskContrast;
+      PAR MP Flt LCScaleY;
 
       PAR CloudLayer CL[1];
 

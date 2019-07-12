@@ -6,9 +6,8 @@ struct CloudLayer
 };
 
 BUFFER(CloudLayer)
-   Half  LCScaleY;
-   VecH2 LCMaskContrast;
-   Vec2  LCRange;
+   Half LCScaleY;
+   Vec2 LCRange;
 
    CloudLayer CL[4];
 BUFFER_END

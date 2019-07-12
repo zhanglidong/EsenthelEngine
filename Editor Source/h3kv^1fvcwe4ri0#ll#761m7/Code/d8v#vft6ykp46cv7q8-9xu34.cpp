@@ -73,10 +73,8 @@ class EnvEditor : ClosableWindow
    static void BloomBlurs   (  EditEnv &env, C Str &text) {env.bloom.blurs=TextInt(text); env.bloom_blurs_time.getUTC();}
    static Str  BloomBlurs   (C EditEnv &env             ) {return env.bloom.blurs;}
 
-   static void CloudsScaleY (  EditEnv &env, C Str &text) {env.clouds.vertical_scale=TextFlt(text); env.clouds_vertical_scale_time.getUTC();}
-   static Str  CloudsScaleY (C EditEnv &env             ) {return env.clouds.vertical_scale;}
-   static void CloudsRayMask(  EditEnv &env, C Str &text) {env.clouds.ray_mask_contrast=TextFlt(text); env.clouds_ray_mask_contrast_time.getUTC();}
-   static Str  CloudsRayMask(C EditEnv &env             ) {return env.clouds.ray_mask_contrast;}
+   static void CloudsScaleY(  EditEnv &env, C Str &text) {env.clouds.vertical_scale=TextFlt(text); env.clouds_vertical_scale_time.getUTC();}
+   static Str  CloudsScaleY(C EditEnv &env             ) {return env.clouds.vertical_scale;}
 
    template<int i>   static void CloudsColor(  EditEnv &env, C Str &text) {env.clouds.layers[i].color_s=TextVec4(text); env.clouds_color_time[i].getUTC();}
    template<int i>   static Str  CloudsColor(C EditEnv &env             ) {return env.clouds.layers[i].color_s;}
@@ -205,8 +203,7 @@ class EnvEditor : ClosableWindow
       bloom.add("Blurs"   , MemberDesc(DATA_INT ).setFunc(BloomBlurs   , BloomBlurs   )).range(0, 4).mouseEditSpeed(3);
       bloom.autoData(&edit); bloom.create("Bloom", 0.14);
 
-      clouds.add("Vertical Scale"   , MemberDesc(DATA_REAL).setFunc(CloudsScaleY , CloudsScaleY )).range(1, 2);
-      clouds.add("Ray Mask Contrast", MemberDesc(DATA_REAL).setFunc(CloudsRayMask, CloudsRayMask)).min(1);
+      clouds.add("Vertical Scale", MemberDesc(DATA_REAL).setFunc(CloudsScaleY, CloudsScaleY)).range(1, 2);
       clouds.add();
       clouds.add("Layer 1 Color"   , MemberDesc(DATA_VEC4).setFunc(CloudsColor<0>, CloudsColor<0>)).setColor();
       clouds.add("Layer 1 Scale"   , MemberDesc(DATA_REAL).setFunc(CloudsScale<0>, CloudsScale<0>)).mouseEditSpeed(0.2);

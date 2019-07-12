@@ -24,8 +24,7 @@ VecH4 LayeredClouds_PS(Vec   inPos :TEXCOORD0,
                        PIXEL                 ,
                    out VecH4 outMask:COLOR1  ,
                uniform Int   num             ,
-               uniform Bool  blend           ,
-               uniform Bool  mask            ):COLOR
+               uniform Bool  blend           ):COLOR
 {
    Half a=Sat(inTex.w);
    if(blend)
@@ -41,30 +40,19 @@ VecH4 LayeredClouds_PS(Vec   inPos :TEXCOORD0,
    if(num>=1){VecH4 tex=Tex(Img , uv*CL[0].scale + CL[0].position)*CL[0].color; if(num==1)color=tex;else color=Lerp(color, tex, tex.a);}
 
    color.a*=a;
-   if(mask)
-   {
-      outMask.rgb=0;
-      outMask.a  =Sat(color.a*LCMaskContrast.x+LCMaskContrast.y); // (color.a-0.5)*LCMaskContrast+0.5
-   }
+   outMask.rgb=0;
+   outMask.a  =color.a;
    return color;
 }
 /******************************************************************************/
 // TECHNIQUES
 /******************************************************************************/
-TECHNIQUE(Clouds1  , LayeredClouds_VS(), LayeredClouds_PS(1, false, false));
-TECHNIQUE(Clouds2  , LayeredClouds_VS(), LayeredClouds_PS(2, false, false));
-TECHNIQUE(Clouds3  , LayeredClouds_VS(), LayeredClouds_PS(3, false, false));
-TECHNIQUE(Clouds4  , LayeredClouds_VS(), LayeredClouds_PS(4, false, false));
-TECHNIQUE(Clouds1B , LayeredClouds_VS(), LayeredClouds_PS(1, true , false));
-TECHNIQUE(Clouds2B , LayeredClouds_VS(), LayeredClouds_PS(2, true , false));
-TECHNIQUE(Clouds3B , LayeredClouds_VS(), LayeredClouds_PS(3, true , false));
-TECHNIQUE(Clouds4B , LayeredClouds_VS(), LayeredClouds_PS(4, true , false));
-TECHNIQUE(Clouds1M , LayeredClouds_VS(), LayeredClouds_PS(1, false, true ));
-TECHNIQUE(Clouds2M , LayeredClouds_VS(), LayeredClouds_PS(2, false, true ));
-TECHNIQUE(Clouds3M , LayeredClouds_VS(), LayeredClouds_PS(3, false, true ));
-TECHNIQUE(Clouds4M , LayeredClouds_VS(), LayeredClouds_PS(4, false, true ));
-TECHNIQUE(Clouds1BM, LayeredClouds_VS(), LayeredClouds_PS(1, true , true ));
-TECHNIQUE(Clouds2BM, LayeredClouds_VS(), LayeredClouds_PS(2, true , true ));
-TECHNIQUE(Clouds3BM, LayeredClouds_VS(), LayeredClouds_PS(3, true , true ));
-TECHNIQUE(Clouds4BM, LayeredClouds_VS(), LayeredClouds_PS(4, true , true ));
+TECHNIQUE(Clouds1 , LayeredClouds_VS(), LayeredClouds_PS(1, false));
+TECHNIQUE(Clouds2 , LayeredClouds_VS(), LayeredClouds_PS(2, false));
+TECHNIQUE(Clouds3 , LayeredClouds_VS(), LayeredClouds_PS(3, false));
+TECHNIQUE(Clouds4 , LayeredClouds_VS(), LayeredClouds_PS(4, false));
+TECHNIQUE(Clouds1B, LayeredClouds_VS(), LayeredClouds_PS(1, true ));
+TECHNIQUE(Clouds2B, LayeredClouds_VS(), LayeredClouds_PS(2, true ));
+TECHNIQUE(Clouds3B, LayeredClouds_VS(), LayeredClouds_PS(3, true ));
+TECHNIQUE(Clouds4B, LayeredClouds_VS(), LayeredClouds_PS(4, true ));
 /******************************************************************************/

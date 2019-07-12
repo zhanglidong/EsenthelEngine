@@ -96,7 +96,6 @@ void Environment::Clouds::set()C
    }
  ::Clouds.layered.set(on ? active : false);
  ::Clouds.layered.scaleY(vertical_scale);
- ::Clouds.layered.rayMaskContrast(ray_mask_contrast);
 }
 void Environment::Clouds::get()
 {
@@ -107,12 +106,11 @@ void Environment::Clouds::get()
       dest.scale=src.scale; dest.velocity=src.velocity; dest.color_s=src.colorS(); dest.image=src.image;
    }
    on=(::Clouds.layered.layers()>0);
-   vertical_scale   =::Clouds.layered.scaleY();
-   ray_mask_contrast=::Clouds.layered.rayMaskContrast();
+   vertical_scale=::Clouds.layered.scaleY();
 }
 void Environment::Clouds::reset()
 {
-   on=true; vertical_scale=1.05f; ray_mask_contrast=4;
+   on=true; vertical_scale=1.05f;
    REPA(layers){Layer &layer=layers[i]; layer.color_s=1; layer.image=null;}
    layers[0].scale=1.0f/2.8f; layers[0].velocity=0.010f;
    layers[1].scale=1.0f/2.4f; layers[1].velocity=0.008f;
@@ -123,7 +121,7 @@ void Environment::Clouds::reset()
 Bool Environment::Clouds::save(File &f, CChar *path)C
 {
    f.cmpUIntV(0); // version
-   f<<on<<vertical_scale<<ray_mask_contrast;
+   f<<on<<vertical_scale<<Flt(4/*ray_mask_contrast*/); // !! in the future don't save this !!
    FREPA(layers)
    {
     C Layer &layer=layers[i]; f<<layer.scale<<layer.velocity<<layer.color_s; f._putStr(layer.image.name(path));
@@ -136,7 +134,7 @@ Bool Environment::Clouds::load(File &f, CChar *path)
    {
       case 0:
       {
-         f>>on>>vertical_scale>>ray_mask_contrast;
+         Flt ray_mask_contrast; f>>on>>vertical_scale>>ray_mask_contrast;
          FREPA(layers)
          {
             Layer &layer=layers[i]; f>>layer.scale>>layer.velocity>>layer.color_s; layer.image.require(f._getStr(), path);

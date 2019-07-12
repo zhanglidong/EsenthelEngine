@@ -350,10 +350,10 @@ struct LayeredCloudsFx
 {
    ShaderFile  *shader;
    ShaderParam *CL[4], *range;
-   Shader      *Clouds[4][2][2]; // [#Layers] [Blend] [Draw Mask to 2nd RT]
+   Shader      *Clouds[4][2]; // [#Layers] [Blend]
 
    void    load();
-   Shader* get(Int layers, Bool blend, Bool mask);
+   Shader* get(Int layers, Bool blend);
 }extern
    LC;
 
