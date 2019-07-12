@@ -1528,15 +1528,13 @@ TECHNIQUE(ResolveDepth, DrawPixel_VS(), ResolveDepth_PS());
 void DetectMSCol_PS(NOPERSP PIXEL)
 {
    VecH cols[4]={TexSample(ImgMS, pixel.xy, 0).rgb, TexSample(ImgMS, pixel.xy, 1).rgb, TexSample(ImgMS, pixel.xy, 2).rgb, TexSample(ImgMS, pixel.xy, 3).rgb}; // load 4-multi-samples of texel
- //if(all((cols[0]==cols[1])*(cols[0]==cols[2])*(cols[0]==cols[3])))discard;
-   clip(Length2(cols[0].rgb*3-cols[1].rgb-cols[2].rgb-cols[3].rgb) - Sqr(LINEAR_GAMMA ? Half(1.0)/256 : Half(2.0)/256)); // simplified and approximate version of testing if samples are identical, (cols[0].rgb-cols[1].rgb) + (cols[0].rgb-cols[2].rgb) + (cols[0].rgb-cols[3].rgb)
+   if((cols[0]==cols[1]) && (cols[0]==cols[2]) && (cols[0]==cols[3]))discard;
 }
 TECHNIQUE(DetectMSCol, DrawPixel_VS(), DetectMSCol_PS());
 /*void DetectMSNrm_PS(NOPERSP PIXEL)
 {
    Vec2 nrms[4]={TexSample(ImgMS, pixel.xy, 0).xy, TexSample(ImgMS, pixel.xy, 1).xy, TexSample(ImgMS, pixel.xy, 2).xy, TexSample(ImgMS, pixel.xy, 3).xy}; // load 4-multi-samples of texel
- //if(all((nrms[0]==nrms[1])*(nrms[0]==nrms[2])*(nrms[0]==nrms[3])))discard;
-   clip(Length2(nrms[0].xy*3-nrms[1].xy-nrms[2].xy-nrms[3].xy) - Sqr(2.0/256*(SIGNED_NRM_RT ? 2 : 1))); // simplified and approximate version of testing if samples are identical, (nrms[0].xy-nrms[1].xy) + (nrms[0].xy-nrms[2].xy) + (nrms[0].xy-nrms[3].xy), for SIGNED_NRM_RT we have to use bigger epsilon because we have 2x bigger value range (-1..1 instead of 0..1)
+   if((nrms[0]==nrms[1]) && (nrms[0]==nrms[2]) && (nrms[0]==nrms[3]))discard;
 }
 TECHNIQUE(DetectMSNrm, DrawPixel_VS(), DetectMSNrm_PS());*/
 #endif
