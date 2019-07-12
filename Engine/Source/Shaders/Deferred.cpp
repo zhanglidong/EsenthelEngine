@@ -26,7 +26,6 @@
    uniform Int  textures  ,\
    uniform Int  bump_mode ,\
    uniform Bool alpha_test,\
-   uniform Bool light_map ,\
    uniform Bool detail    ,\
    uniform Bool macro     ,\
    uniform Bool rflct     ,\
@@ -42,15 +41,10 @@ struct VS_PS
    Vec     pos     :TEXCOORD1;
    Vec    _tpos    :TEXCOORD2;
    Vec     vel     :TEXCOORD3;
-   Matrix3 mtrx    :TEXCOORD4; // !! may not be Normalized !!
-   Vec2    tex_l   :TEXCOORD7;
+   Matrix3 mtrx    :TEXCOORD4; // !! may not be Normalized !! TODO: #ShaderHalf
+   Half    fade_out:TEXCOORD7;
    VecH4   material:COLOR0   ;
    VecH    col     :COLOR1   ;
-#if GL
-   #define fade_out material.x // can't use TEXCOORD8 and can't reuse COLOR0 on GL
-#else
-   Half    fade_out:TEXCOORD8;
-#endif
 
    Vec tpos() {return Normalize(_tpos);}
 };
@@ -73,7 +67,6 @@ void VS
    VecH nrm, tan; if(bump_mode>=SBUMP_FLAT)nrm=vtx.nrm(); if(bump_mode>SBUMP_FLAT)tan=vtx.tan(nrm, heightmap);
 
    if(textures || detail)O.tex     =vtx.tex     (heightmap);
-   if(light_map         )O.tex_l   =vtx.tex1    ();
    if(materials>1       )O.material=vtx.material();
 
    if(materials<=1)O.col.rgb=MaterialColor3();/*else
@@ -249,6 +242,7 @@ void PS
 
                I.tex-=tpos.xy*0.5;
 
+               // TODO: #ShaderHalf
                Int  steps   =Mid(length, 0, RELIEF_STEPS_MAX);
                Flt  stp     =1.0/(steps+1),
                     ray     =1;
@@ -363,8 +357,7 @@ void PS
          }
       }
 
-      if(macro    )I.col.rgb =Lerp(I.col.rgb, Tex(Mac, I.tex*MacroScale).rgb, LerpRS(MacroFrom, MacroTo, I.pos.z)*MacroMax);
-      if(light_map)I.col.rgb*=Tex(Lum, I.tex_l).rgb;
+      if(macro)I.col.rgb=Lerp(I.col.rgb, Tex(Mac, I.tex*MacroScale).rgb, LerpRS(MacroFrom, MacroTo, I.pos.z)*MacroMax);
 
       // reflection
       if(rflct)
@@ -438,6 +431,7 @@ void PS
                    lod=Max(0, GetLod(I.tex, TexWidth)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
              //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
 
+               // TODO: #ShaderHalf
             #if RELIEF_TAN_POS
                Vec tpos=Normalize(mul(I.mtrx, -I.pos));
             #else
@@ -708,7 +702,6 @@ VS_PS HS
    if(materials<=1 /*|| !mtrl_blend*/ || color)O.col     =I[cp_id].col     ;
                                                O.vel     =I[cp_id].vel     ;
    if(textures || detail                      )O.tex     =I[cp_id].tex     ;
-   if(light_map                               )O.tex_l   =I[cp_id].tex_l   ;
    if(materials>1                             )O.material=I[cp_id].material;
    if(fx==FX_GRASS                            )O.fade_out=I[cp_id].fade_out;
    if(bump_mode==SBUMP_FLAT                   )O.mtrx[2] =I[cp_id].mtrx[2] ;
@@ -734,7 +727,6 @@ void DS
    if(materials<=1 /*|| !mtrl_blend*/ || color)O.col     =I[0].col     *B.z + I[1].col     *B.x + I[2].col     *B.y;
                                                O.vel     =I[0].vel     *B.z + I[1].vel     *B.x + I[2].vel     *B.y;
    if(textures || detail                      )O.tex     =I[0].tex     *B.z + I[1].tex     *B.x + I[2].tex     *B.y;
-   if(light_map                               )O.tex_l   =I[0].tex_l   *B.z + I[1].tex_l   *B.x + I[2].tex_l   *B.y;
    if(materials>1                             )O.material=I[0].material*B.z + I[1].material*B.x + I[2].material*B.y;
    if(fx==FX_GRASS                            )O.fade_out=I[0].fade_out*B.z + I[1].fade_out*B.x + I[2].fade_out*B.y;
 

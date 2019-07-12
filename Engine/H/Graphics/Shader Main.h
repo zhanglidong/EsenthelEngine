@@ -461,15 +461,15 @@ void CreateAnisotropicSampler();
 void CreateFontSampler       ();
 
 Str8 TechNameSimple    (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel, Int tess);
-Str8 TechNameDeferred  (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int macro, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tess);
+Str8 TechNameDeferred  (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int detail, Int macro, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tess);
 Str8 TechNameForward   (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tess);
 Str8 TechNameBlendLight(Int skin, Int color    , Int textures, Int bump_mode, Int alpha_test, Int alpha, Int light_map, Int rflct, Int fx, Int per_pixel, Int shadow_maps);
 Str8 TechNamePosition  (Int skin, Int textures, Int test_blend, Int fx, Int tess);
-Str8 TechNameBlend     (Int skin, Int color, Int rflct, Int textures, Int light_map);
+Str8 TechNameBlend     (Int skin, Int color, Int rflct, Int textures);
 Str8 TechNameSetColor  (Int skin, Int textures, Int tess);
 Str8 TechNameBehind    (Int skin, Int textures);
 Str8 TechNameEarlyZ    (Int skin);
-Str8 TechNameAmbient   (Int skin, Int alpha_test);
+Str8 TechNameAmbient   (Int skin, Int alpha_test, Int light_map);
 Str8 TechNameOverlay   (Int skin, Int normal);
 Str8 TechNameFurBase   (Int skin, Int size, Int diffuse);
 Str8 TechNameFurSoft   (Int skin, Int size, Int diffuse);

@@ -21,10 +21,9 @@ struct VS_PS
 {
    VecH  nrm     :TEXCOORD0; // !! may not be Normalized !!
    Vec2  tex     :TEXCOORD1;
-   Vec2  tex_l   :TEXCOORD2;
-   Vec   pos     :TEXCOORD3;
-   Half  fade_out:TEXCOORD4;
-   Vec   rfl     :TEXCOORD5;
+   Vec   pos     :TEXCOORD2;
+   Half  fade_out:TEXCOORD3;
+   Vec   rfl     :TEXCOORD4;
    VecH  col     :COLOR0   ;
    VecH4 material:COLOR1   ;
 };
@@ -44,7 +43,6 @@ void VS
    VecH nrm; if(bump_mode>=SBUMP_FLAT)nrm=vtx.nrm();
 
    if(textures   )O.tex     =vtx.tex     (heightmap);
-   if(light_map  )O.tex_l   =vtx.tex1    ();
    if(materials>1)O.material=vtx.material();
 
    if(materials<=1)O.col.rgb=MaterialColor3();/*else
@@ -178,8 +176,6 @@ VecH4 PS
                I.col.rgb*=Tex(Col, I.tex).rgb;
             }
 
-            if(light_map)I.col.rgb*=Tex(Lum, I.tex_l).rgb;
-
             // reflection
             if(rflct)I.col.rgb+=TexCube(Rfl, I.rfl).rgb*((textures==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
          }
@@ -227,7 +223,11 @@ VecH4 PS
       VecH nrm=Normalize(I.nrm); if(fx!=FX_GRASS && fx!=FX_LEAF && fx!=FX_LEAFS)BackFlip(nrm, front);
       Half d  =Sat(Dot(nrm, Light_dir.dir));
       VecH lum=Light_dir.color.rgb*d + AmbNSColor;
-      if(materials<=1 && fx!=FX_BONE)lum+=MaterialAmbient();
+      if(materials<=1 && fx!=FX_BONE)
+      {
+         if(light_map)lum+=MaterialAmbient()*Tex(Lum, I.tex).rgb;
+         else         lum+=MaterialAmbient();
+      }
       I.col.rgb*=lum;
    }
 
@@ -255,7 +255,6 @@ VS_PS HS
                                                                             O.nrm     =I[cp_id].nrm;
    if(materials<=1 /*|| !mtrl_blend*/ || color || fx==FX_BONE || !per_pixel)O.col     =I[cp_id].col;
    if(textures                                                             )O.tex     =I[cp_id].tex;
-   if(light_map                                                            )O.tex_l   =I[cp_id].tex_l;
    if(rflct                                                                )O.rfl     =I[cp_id].rfl;
    if(materials>1                                                          )O.material=I[cp_id].material;
    if(fx==FX_GRASS                                                         )O.fade_out=I[cp_id].fade_out;
@@ -275,7 +274,6 @@ void DS
 {
    if(materials<=1 /*|| !mtrl_blend*/ || color || fx==FX_BONE || !per_pixel)O.col     =I[0].col     *B.z + I[1].col     *B.x + I[2].col     *B.y;
    if(textures                                                             )O.tex     =I[0].tex     *B.z + I[1].tex     *B.x + I[2].tex     *B.y;
-   if(light_map                                                            )O.tex_l   =I[0].tex_l   *B.z + I[1].tex_l   *B.x + I[2].tex_l   *B.y;
    if(rflct                                                                )O.rfl     =I[0].rfl     *B.z + I[1].rfl     *B.x + I[2].rfl     *B.y;
    if(materials>1                                                          )O.material=I[0].material*B.z + I[1].material*B.x + I[2].material*B.y;
    if(fx==FX_GRASS                                                         )O.fade_out=I[0].fade_out*B.z + I[1].fade_out*B.x + I[2].fade_out*B.y;
@@ -326,9 +324,6 @@ CUSTOM_TECHNIQUE
             #endif
          #endif
       #endif
-      #if light_map==1
-         VAR HP Vec2 IO_tex_l;
-      #endif
       #if rflct!=0
          VAR MP Vec IO_rfl;
       #endif
@@ -364,9 +359,6 @@ CUSTOM_TECHNIQUE
                if(materials==1)IO_tex*=MaterialTexScale();
             #endif
          }
-      #endif
-      #if light_map==1
-         IO_tex_l=vtx_tex1();
       #endif
       #if materials<=1
          IO_col.rgb=MaterialColor3();
@@ -475,10 +467,6 @@ CUSTOM_TECHNIQUE
                col*=Tex(Col, IO_tex).rgb;
             #endif
 
-            #if light_map==1
-               col*=Tex(Lum, IO_tex_l).rgb;
-            #endif
-
             #if rflct!=0
                #if textures==2
                   col.rgb+=TexCube(Rfl, IO_rfl).rgb*(MaterialReflect()*tex_nrm.z);
@@ -552,7 +540,14 @@ CUSTOM_TECHNIQUE
                MP Vec nrm=Normalize(IO_nrm); if(fx!=FX_GRASS && fx!=FX_LEAF && fx!=FX_LEAFS)BackFlip(nrm);
                MP Flt d  =Max(Dot(nrm, Light_dir.dir), 0.0);
                MP Vec lum=Light_dir.color.rgb*d + AmbNSColor;
-               if(materials<=1 && fx!=FX_BONE)lum+=MaterialAmbient();
+               if(materials<=1 && fx!=FX_BONE)
+               {
+               #if light_map==1
+                  lum+=MaterialAmbient()*Tex(Lum, IO_tex).rgb;
+               #else
+                  lum+=MaterialAmbient();
+               #endif
+               }
                col*=lum;
             }
             #endif

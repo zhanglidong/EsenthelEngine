@@ -3,7 +3,8 @@
 /******************************************************************************/
 #define PARAMS             \
    uniform Bool skin      ,\
-   uniform Int  alpha_test
+   uniform Int  alpha_test,\
+   uniform Bool light_map
 /******************************************************************************/
 void VS
 (
@@ -17,7 +18,7 @@ void VS
    PARAMS
 )
 {
-   if(alpha_test)outTex=vtx.tex();
+   if(alpha_test || light_map)outTex=vtx.tex();
 
    Vec      pos;
    if(!skin)pos=TransformPos(vtx.pos());
@@ -35,7 +36,7 @@ VecH4 PS
    if(alpha_test==1)clip(Tex(Col, inTex).a + MaterialAlpha()-1);else
    if(alpha_test==2)clip(Tex(Nrm, inTex).a + MaterialAlpha()-1); // #MaterialTextureChannelOrder
 
-   return VecH4(MaterialAmbient(), 0);
+   return VecH4(light_map ? Tex(Lum, inTex).rgb*MaterialAmbient() : MaterialAmbient(), 0);
 }
 /******************************************************************************/
 CUSTOM_TECHNIQUE

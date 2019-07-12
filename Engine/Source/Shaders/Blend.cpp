@@ -2,30 +2,27 @@
 #include "!Header.h"
 #include "Sky.h"
 /******************************************************************************/
-#define PARAMS            \
-   uniform Bool skin     ,\
-   uniform Bool color    ,\
-   uniform Bool rflct    ,\
-   uniform Int  textures ,\
-   uniform Bool light_map
+#define PARAMS           \
+   uniform Bool skin    ,\
+   uniform Bool color   ,\
+   uniform Bool rflct   ,\
+   uniform Int  textures
 /******************************************************************************/
 void VS
 (
    VtxInput vtx,
 
    out Vec2  outTex  :TEXCOORD0,
-   out Vec2  outTexL :TEXCOORD1,
-   out Vec   outRfl  :TEXCOORD2,
+   out VecH  outRfl  :TEXCOORD1,
    out VecH4 outColor:COLOR    ,
    out Vec4  outVtx  :POSITION ,
 
    PARAMS
 )
 {
-   if(textures )outTex   =vtx.tex ();
-   if(light_map)outTexL  =vtx.tex1();
-                outColor =MaterialColor();
-   if(color    )outColor*=vtx.colorFast();
+   if(textures)outTex   =vtx.tex();
+               outColor =MaterialColor();
+   if(color   )outColor*=vtx.colorFast();
 
    Vec pos; VecH nrm;
    if(!skin)
@@ -47,18 +44,17 @@ void VS
                pos=TransformPos(vtx.pos(), bone, vtx.weight());
       if(rflct)nrm=TransformDir(vtx.nrm(), bone, vtx.weight());
    }
-   if(rflct)outRfl=Transform3(reflect(Normalize(pos), Normalize(nrm)), CamMatrix);
+   if(rflct)outRfl=Transform3(reflect((VecH)Normalize(pos), Normalize(nrm)), CamMatrix);
 
    outVtx=Project(pos);
 
-   outColor.a*=Sat(Length(pos)*SkyFracMulAdd.x + SkyFracMulAdd.y);
+   outColor.a*=Sat(Half(Length(pos)*SkyFracMulAdd.x + SkyFracMulAdd.y));
 }
 /******************************************************************************/
 VecH4 PS
 (
    Vec2  inTex  :TEXCOORD0,
-   Vec2  inTexL :TEXCOORD1,
-   Vec   inRfl  :TEXCOORD2,
+   VecH  inRfl  :TEXCOORD1,
    VecH4 inColor:COLOR    ,
 
    PARAMS
@@ -68,8 +64,6 @@ VecH4 PS
 
    if(textures==1) inColor    *=Tex(Col, inTex);else                                                 // alpha in 'Col' texture
    if(textures==2){inColor.rgb*=Tex(Col, inTex).rgb; tex_nrm=Tex(Nrm, inTex); inColor.a*=tex_nrm.a;} // alpha in 'Nrm' texture
-
-   if(light_map)inColor.rgb*=Tex(Lum, inTexL).rgb;
 
    inColor.rgb+=Highlight.rgb;
 
@@ -93,9 +87,6 @@ CUSTOM_TECHNIQUE // this is defined in C++ as a macro
       #if textures>0
          VAR HP Vec2 IO_tex;
       #endif
-      #if light_map!=0
-         VAR HP Vec2 IO_tex_l;
-      #endif
       #if rflct!=0
          VAR MP Vec  IO_rfl;
       #endif
@@ -111,9 +102,6 @@ CUSTOM_TECHNIQUE // this is defined in C++ as a macro
 
       #if textures>0
          IO_tex=vtx_tex();
-      #endif
-      #if light_map!=0
-         IO_tex_l=vtx_tex1();
       #endif
          IO_col=MaterialColor();
       #if COLOR!=0
@@ -160,10 +148,6 @@ CUSTOM_TECHNIQUE // this is defined in C++ as a macro
       #elif textures==2
          MP Vec4 tex_nrm=Tex(Nrm, IO_tex); // #MaterialTextureChannelOrder
          MP Vec4 tex_col=Tex(Col, IO_tex); tex_col.a=tex_nrm.a; col*=tex_col;
-      #endif
-
-      #if light_map!=0
-         col.rgb*=Tex(Lum, IO_tex_l).rgb;
       #endif
 
          col.rgb+=Highlight.rgb;

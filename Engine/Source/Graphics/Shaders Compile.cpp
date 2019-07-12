@@ -42,16 +42,16 @@ namespace EE{
 /******************************************************************************/
 // SHADER TECHNIQUE NAMES
 /******************************************************************************/
-Str8 TechNameSimple    (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test,            Int light_map, Int reflect, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel, Int tess) {return S8+"T"+skin+materials+textures+bump_mode+alpha_test+light_map+reflect+color+mtrl_blend+heightmap+fx+per_pixel+tess;}
-Str8 TechNameDeferred  (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test,            Int light_map, Int detail, Int macro, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tess) {return S8+"T"+skin+materials+textures+bump_mode+alpha_test+light_map+detail+macro+rflct+color+mtrl_blend+heightmap+fx+tess;}
-Str8 TechNameForward   (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test,            Int light_map, Int detail, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tess) {return S8+"T"+skin+materials+textures+bump_mode+alpha_test+light_map+detail+rflct+color+mtrl_blend+heightmap+fx+light_dir+light_dir_shd+light_dir_shd_num+light_point+light_point_shd+light_linear+light_linear_shd+light_cone+light_cone_shd+tess;}
+Str8 TechNameSimple    (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int reflect, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel, Int tess) {return S8+"T"+skin+materials+textures+bump_mode+alpha_test+light_map+reflect+color+mtrl_blend+heightmap+fx+per_pixel+tess;}
+Str8 TechNameDeferred  (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int detail, Int macro, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tess) {return S8+"T"+skin+materials+textures+bump_mode+alpha_test+detail+macro+rflct+color+mtrl_blend+heightmap+fx+tess;}
+Str8 TechNameForward   (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tess) {return S8+"T"+skin+materials+textures+bump_mode+alpha_test+light_map+detail+rflct+color+mtrl_blend+heightmap+fx+light_dir+light_dir_shd+light_dir_shd_num+light_point+light_point_shd+light_linear+light_linear_shd+light_cone+light_cone_shd+tess;}
 Str8 TechNameBlendLight(Int skin, Int color    , Int textures, Int bump_mode, Int alpha_test, Int alpha, Int light_map, Int rflct, Int fx, Int per_pixel, Int shadow_maps) {return S8+"T"+skin+color+textures+bump_mode+alpha_test+alpha+light_map+rflct+fx+per_pixel+shadow_maps;}
 Str8 TechNamePosition  (Int skin, Int textures, Int test_blend, Int fx, Int tess) {return S8+"T"+skin+textures+test_blend+fx+tess;}
-Str8 TechNameBlend     (Int skin, Int color, Int rflct, Int textures, Int light_map) {return S8+"T"+skin+color+rflct+textures+light_map;}
+Str8 TechNameBlend     (Int skin, Int color, Int rflct, Int textures) {return S8+"T"+skin+color+rflct+textures;}
 Str8 TechNameSetColor  (Int skin, Int textures, Int tess) {return S8+"T"+skin+textures+tess;}
 Str8 TechNameBehind    (Int skin, Int textures) {return S8+"T"+skin+textures;}
 Str8 TechNameEarlyZ    (Int skin) {return S8+"T"+skin;}
-Str8 TechNameAmbient   (Int skin, Int alpha_test) {return S8+"T"+skin+alpha_test;}
+Str8 TechNameAmbient   (Int skin, Int alpha_test, Int light_map) {return S8+"T"+skin+alpha_test+light_map;}
 Str8 TechNameOverlay   (Int skin, Int normal) {return S8+"T"+skin+normal;}
 Str8 TechNameFurBase   (Int skin, Int size, Int diffuse) {return S8+"Base"+skin+size+diffuse;}
 Str8 TechNameFurSoft   (Int skin, Int size, Int diffuse) {return S8+"Soft"+skin+size+diffuse;}
@@ -86,10 +86,10 @@ static ShaderGLSL TechSimpleGlsl(Int skin, Int materials, Int textures, Int bump
       .par("tesselate" , tess      );
 }
 
-static Str TechDeferred(Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int macro, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tess)
+static Str TechDeferred(Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int detail, Int macro, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tess)
 {
-   Str params=               S+skin+','+materials+','+textures+','+bump_mode+','+alpha_test+','+light_map+','+detail+','+macro+','+rflct+','+color+','+mtrl_blend+','+heightmap+','+fx+','+tess,
-       name  =TechNameDeferred(skin  ,  materials  ,  textures  ,  bump_mode  ,  alpha_test  ,  light_map  ,  detail  ,  macro  ,  rflct  ,  color  ,  mtrl_blend  ,  heightmap  ,  fx  ,  tess);
+   Str params=               S+skin+','+materials+','+textures+','+bump_mode+','+alpha_test+','+detail+','+macro+','+rflct+','+color+','+mtrl_blend+','+heightmap+','+fx+','+tess,
+       name  =TechNameDeferred(skin  ,  materials  ,  textures  ,  bump_mode  ,  alpha_test  ,  detail  ,  macro  ,  rflct  ,  color  ,  mtrl_blend  ,  heightmap  ,  fx  ,  tess);
    return tess ? S+"TECHNIQUE_TESSELATION("+name+", VS("+params+"), PS("+params+"), HS("+params+"), DS("+params+"));"
                : S+"TECHNIQUE            ("+name+", VS("+params+"), PS("+params+")                                );";
 }
@@ -124,20 +124,19 @@ static Str TechPosition(Int skin, Int textures, Int test_blend, Int fx, Int tess
                : S+"TECHNIQUE            ("+name+", VS("+params+"), PS("+params+")                                );";
 }
 
-static Str TechBlend(Int skin, Int color, Int rflct, Int textures, Int light_map)
+static Str TechBlend(Int skin, Int color, Int rflct, Int textures)
 {
-   Str params=            S+skin+','+color+','+rflct+','+textures+','+light_map,
-       name  =TechNameBlend(skin  ,  color  ,  rflct  ,  textures,    light_map);
+   Str params=            S+skin+','+color+','+rflct+','+textures,
+       name  =TechNameBlend(skin  ,  color  ,  rflct  ,  textures);
    return S+"TECHNIQUE("+name+", VS("+params+"), PS("+params+"));";
 }
-static ShaderGLSL TechBlendGlsl(Int skin, Int color, Int rflct, Int textures, Int light_map)
+static ShaderGLSL TechBlendGlsl(Int skin, Int color, Int rflct, Int textures)
 {
-   return ShaderGLSL().set("Main", TechNameBlend(skin, color, rflct, textures, light_map))
-      .par("skin"     , skin     )
-      .par("COLOR"    , color    )
-      .par("rflct"    , rflct    )
-      .par("textures" , textures )
-      .par("light_map", light_map);
+   return ShaderGLSL().set("Main", TechNameBlend(skin, color, rflct, textures))
+      .par("skin"    , skin    )
+      .par("COLOR"   , color   )
+      .par("rflct"   , rflct   )
+      .par("textures", textures);
 }
 
 static Str TechBlendLight(Int skin, Int color, Int textures, Int bump_mode, Int alpha_test, Int alpha, Int light_map, Int rflct, Int fx, Int per_pixel, Int shadow_maps)
@@ -184,10 +183,10 @@ static Str TechEarlyZ(Int skin)
    return S+"TECHNIQUE("+name+", VS("+params+"), PS("+params+"));";
 }
 
-static Str TechAmbient(Int skin, Int alpha_test)
+static Str TechAmbient(Int skin, Int alpha_test, Int light_map)
 {
-   Str params=              S+skin+','+alpha_test,
-       name  =TechNameAmbient(skin  ,  alpha_test);
+   Str params=              S+skin+','+alpha_test+','+light_map,
+       name  =TechNameAmbient(skin  ,  alpha_test  ,  light_map);
    return S+"TECHNIQUE("+name+", VS("+params+"), PS("+params+"));";
 }
 
@@ -412,7 +411,7 @@ static void Compile(SHADER_MODEL model)
 
    // zero
    REPD(skin , 2)
-   REPD(color, 2)names+=TechDeferred(skin, 1, 0, SBUMP_ZERO, false, false, false, false, false, color, false, false, FX_NONE, false);
+   REPD(color, 2)names+=TechDeferred(skin, 1, 0, SBUMP_ZERO, false, false, false, false, color, false, false, FX_NONE, false);
 
    REPD(tess     , (model>=SM_4) ? 2 : 1)
    REPD(heightmap, 2)
@@ -423,43 +422,38 @@ static void Compile(SHADER_MODEL model)
       REPD(rflct , 2)
       REPD(color , 2)
       {
-         names+=TechDeferred(skin, 1, 0, SBUMP_FLAT, false, false, detail, false, rflct, color, false, heightmap, FX_NONE, tess); // 1 material, 0 tex
+         names+=TechDeferred(skin, 1, 0, SBUMP_FLAT, false, detail, false, rflct, color, false, heightmap, FX_NONE, tess); // 1 material, 0 tex
          REPD(alpha_test, heightmap ? 1 : 2)
-         REPD(light_map , 2)
          {
-            names+=TechDeferred(skin, 1, 1, SBUMP_FLAT, alpha_test, light_map, detail, false, rflct, color, false, heightmap, FX_NONE, tess); // 1 material, 1 tex
-            names+=TechDeferred(skin, 1, 2, SBUMP_FLAT, alpha_test, light_map, detail, false, rflct, color, false, heightmap, FX_NONE, tess); // 1 material, 2 tex
+            names+=TechDeferred(skin, 1, 1, SBUMP_FLAT, alpha_test, detail, false, rflct, color, false, heightmap, FX_NONE, tess); // 1 material, 1 tex
+            names+=TechDeferred(skin, 1, 2, SBUMP_FLAT, alpha_test, detail, false, rflct, color, false, heightmap, FX_NONE, tess); // 1 material, 2 tex
          }
       }
 
       // 1 material, 1-2 tex, flat, macro
-      REPD(light_map, 2)
-      REPD(color    , 2)
-      for(Int textures=1; textures<=2; textures++)names+=TechDeferred(false, 1, textures, SBUMP_FLAT, false, light_map, false, true, false, color, false, heightmap, FX_NONE, tess);
+      REPD(color, 2)
+      for(Int textures=1; textures<=2; textures++)names+=TechDeferred(false, 1, textures, SBUMP_FLAT, false, false, true, false, color, false, heightmap, FX_NONE, tess);
 
    #if BUMP_MAPPING
       // 1 material, 2 tex, normal + parallax
       REPD(skin      , heightmap ? 1 : 2)
       REPD(alpha_test, heightmap ? 1 : 2)
-      REPD(light_map , 2)
       REPD(detail    , 2)
       REPD(rflct     , 2)
       REPD(color     , 2)
       for(Int bump_mode=SBUMP_NORMAL; bump_mode<=SBUMP_PARALLAX_MAX; bump_mode++)if(bump_mode==SBUMP_NORMAL || bump_mode>=SBUMP_PARALLAX_MIN)
-         names+=TechDeferred(skin, 1, 2, bump_mode, alpha_test, light_map, detail, false, rflct, color, false, heightmap, FX_NONE, tess);
+         names+=TechDeferred(skin, 1, 2, bump_mode, alpha_test, detail, false, rflct, color, false, heightmap, FX_NONE, tess);
 
       // 1 material, 1-2 tex, normal, macro
-      REPD(light_map, 2)
-      REPD(color    , 2)
-      for(Int textures=1; textures<=2; textures++)names+=TechDeferred(false, 1, textures, SBUMP_NORMAL, false, light_map, false, true, false, color, false, heightmap, FX_NONE, tess);
+      REPD(color, 2)
+      for(Int textures=1; textures<=2; textures++)names+=TechDeferred(false, 1, textures, SBUMP_NORMAL, false, false, true, false, color, false, heightmap, FX_NONE, tess);
 
       // 1 material, 2 tex, relief
       REPD(skin      , heightmap ? 1 : 2)
       REPD(alpha_test, heightmap ? 1 : 2)
-      REPD(light_map , 2)
       REPD(detail    , 2)
       REPD(rflct     , 2)
-      REPD(color     , 2)names+=TechDeferred(skin, 1, 2, SBUMP_RELIEF, alpha_test, light_map, detail, false, rflct, color, false, heightmap, FX_NONE, tess);
+      REPD(color     , 2)names+=TechDeferred(skin, 1, 2, SBUMP_RELIEF, alpha_test, detail, false, rflct, color, false, heightmap, FX_NONE, tess);
    #endif
 
    #if MULTI_MATERIAL
@@ -470,23 +464,23 @@ static void Compile(SHADER_MODEL model)
       {
          // 2-4 materials, 1-2 tex, flat
          REPD(detail, 2)
-         for(Int textures=1; textures<=2; textures++)names+=TechDeferred(false, materials, textures, SBUMP_FLAT, false, false, detail, false, rflct, color, mtrl_blend, heightmap, FX_NONE, tess);
+         for(Int textures=1; textures<=2; textures++)names+=TechDeferred(false, materials, textures, SBUMP_FLAT, false, detail, false, rflct, color, mtrl_blend, heightmap, FX_NONE, tess);
 
          // 2-4 materials, 1-2 tex, flat, macro
-         for(Int textures=1; textures<=2; textures++)names+=TechDeferred(false, materials, textures, SBUMP_FLAT, false, false, false, true, rflct, color, mtrl_blend, heightmap, FX_NONE, tess);
+         for(Int textures=1; textures<=2; textures++)names+=TechDeferred(false, materials, textures, SBUMP_FLAT, false, false, true, rflct, color, mtrl_blend, heightmap, FX_NONE, tess);
 
       #if BUMP_MAPPING
          // 2-4 materials, 2 textures, normal + parallax
          REPD(detail, 2)
          for(Int bump_mode=SBUMP_NORMAL; bump_mode<=SBUMP_PARALLAX_MAX_MULTI; bump_mode++)if(bump_mode==SBUMP_NORMAL || bump_mode>=SBUMP_PARALLAX_MIN)
-            names+=TechDeferred(false, materials, 2, bump_mode, false, false, detail, false, rflct, color, mtrl_blend, heightmap, FX_NONE, tess);
+            names+=TechDeferred(false, materials, 2, bump_mode, false, detail, false, rflct, color, mtrl_blend, heightmap, FX_NONE, tess);
 
          // 2-4 materials, 2 textures, normal, macro
-         names+=TechDeferred(false, materials, 2, SBUMP_NORMAL, false, false, false, true, rflct, color, mtrl_blend, heightmap, FX_NONE, tess);
+         names+=TechDeferred(false, materials, 2, SBUMP_NORMAL, false, false, true, rflct, color, mtrl_blend, heightmap, FX_NONE, tess);
 
          // 2-4 materials, 2 textures, relief
          REPD(detail, 2)
-            names+=TechDeferred(false, materials, 2, SBUMP_RELIEF, false, false, detail, false, rflct, color, mtrl_blend, heightmap, FX_NONE, tess);
+            names+=TechDeferred(false, materials, 2, SBUMP_RELIEF, false, detail, false, rflct, color, mtrl_blend, heightmap, FX_NONE, tess);
       #endif
       }
    #endif
@@ -496,14 +490,14 @@ static void Compile(SHADER_MODEL model)
    for(Int textures=1; textures<=2; textures++)
    REPD(color, 2)
    {
-      names+=TechDeferred(false, 1, textures, SBUMP_FLAT, true, false, false, false, false, color, false, false, FX_GRASS, false); // 1 material, 1-2 tex, grass, flat
-      names+=TechDeferred(false, 1, textures, SBUMP_FLAT, true, false, false, false, false, color, false, false, FX_LEAF , false); // 1 material, 1-2 tex, leaf , flat
-      names+=TechDeferred(false, 1, textures, SBUMP_FLAT, true, false, false, false, false, color, false, false, FX_LEAFS, false); // 1 material, 1-2 tex, leafs, flat
+      names+=TechDeferred(false, 1, textures, SBUMP_FLAT, true, false, false, false, color, false, false, FX_GRASS, false); // 1 material, 1-2 tex, grass, flat
+      names+=TechDeferred(false, 1, textures, SBUMP_FLAT, true, false, false, false, color, false, false, FX_LEAF , false); // 1 material, 1-2 tex, leaf , flat
+      names+=TechDeferred(false, 1, textures, SBUMP_FLAT, true, false, false, false, color, false, false, FX_LEAFS, false); // 1 material, 1-2 tex, leafs, flat
       if(textures==2)
       {
-         names+=TechDeferred(false, 1, textures, SBUMP_NORMAL, true, false, false, false, false, color, false, false, FX_GRASS, false); // 1 material, 1-2 tex, grass, normal
-         names+=TechDeferred(false, 1, textures, SBUMP_NORMAL, true, false, false, false, false, color, false, false, FX_LEAF , false); // 1 material, 1-2 tex, leaf , normal
-         names+=TechDeferred(false, 1, textures, SBUMP_NORMAL, true, false, false, false, false, color, false, false, FX_LEAFS, false); // 1 material, 1-2 tex, leafs, normal
+         names+=TechDeferred(false, 1, textures, SBUMP_NORMAL, true, false, false, false, color, false, false, FX_GRASS, false); // 1 material, 1-2 tex, grass, normal
+         names+=TechDeferred(false, 1, textures, SBUMP_NORMAL, true, false, false, false, color, false, false, FX_LEAF , false); // 1 material, 1-2 tex, leaf , normal
+         names+=TechDeferred(false, 1, textures, SBUMP_NORMAL, true, false, false, false, color, false, false, FX_LEAFS, false); // 1 material, 1-2 tex, leafs, normal
       }
    }
 
@@ -649,14 +643,13 @@ static void Compile(SHADER_MODEL model)
 {
    Str names; Memc<ShaderGLSL> glsl;
 
-   REPD(skin     , 2)
-   REPD(color    , 2)
-   REPD(rflct    , 2)
-   REPD(textures , 3)
-   REPD(light_map, 2)
+   REPD(skin    , 2)
+   REPD(color   , 2)
+   REPD(rflct   , 2)
+   REPD(textures, 3)
    {
-       names+=(TechBlend    (skin, color, rflct, textures, light_map));
-      glsl.add(TechBlendGlsl(skin, color, rflct, textures, light_map));
+       names+=(TechBlend    (skin, color, rflct, textures));
+      glsl.add(TechBlendGlsl(skin, color, rflct, textures));
    }
 
    Add(src_path+"Blend.cpp", dest_path+"Blend", model, names, glsl);
@@ -751,7 +744,9 @@ static void Compile(SHADER_MODEL model)
 
    // base
    REPD(skin      , 2)
-   REPD(alpha_test, 3)names+=TechAmbient(skin, alpha_test);
+   REPD(alpha_test, 3)
+   REPD(light_map , 2)
+      names+=TechAmbient(skin, alpha_test, light_map);
 
    Add(src_path+"Ambient.cpp", dest_path+"Ambient", model, names);
 }

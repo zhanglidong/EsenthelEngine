@@ -211,8 +211,9 @@ void Material::setAmbient()C
     //MaterialLast4[0]=null; not needed since multi materials not rendered in ambient mode
 
       // textures needed for alpha-test
-      Sh.Col[0]  ->set(base_0());
-      Sh.Nrm[0]  ->set(base_1());
+      Sh.Col[0]  ->set(base_0   ());
+      Sh.Nrm[0]  ->set(base_1   ());
+      Sh.Lum     ->set(light_map());
       Sh.Material->set<MaterialParams>(T); // params needed for alpha-test and ambient
    #if !LINEAR_GAMMA
       Renderer.material_color_l->set(colorS());

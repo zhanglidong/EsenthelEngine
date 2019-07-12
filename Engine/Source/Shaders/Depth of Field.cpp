@@ -125,6 +125,8 @@ inline Flt FinalBlur(Flt blur, Flt blur_smooth) // 'blur'=-Inf .. Inf, 'blur_smo
 inline Flt WeightSum(uniform Int range) {return range+1;} // Sum of all weights for all "-range..range" steps, calculated using "Flt weight=0; for(Int dist=-range; dist<=range; dist++)weight+=BlendSmoothCube(dist/Flt(range+1));"
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
+// Use HighPrec because we operate on lot of samples
+
 #define SCALE 0.5 // at the end we need 0 .. 0.5 range, and since we start with 0..1 we need to scale by "0.5"
 VecH4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
                   uniform Int  range         ):COLOR

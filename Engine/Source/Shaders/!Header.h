@@ -446,7 +446,7 @@ BUFFER_I(ObjMatrix, SBI_OBJ_MATRIX) // this CB is dynamically resized, do not ad
 BUFFER_END
 
 BUFFER_I(ObjVel, SBI_OBJ_VEL) // this CB is dynamically resized, do not add other members
-   VecH  ObjVel[MAX_MATRIX]; // object linear velocities (use this for skinning) (this is the linear velocity in view space, pre-multiplied by 'D.motionScale')
+   VecH  ObjVel[MAX_MATRIX]; // object linear velocities (use this for skinning) (this is the linear velocity in view space, pre-multiplied by 'D.motionScale'), use VecH to allow 'GetBoneVel' work faster
 BUFFER_END
 
 BUFFER_I(Mesh, SBI_MESH)
@@ -835,7 +835,7 @@ inline Half LerpRS(Half from, Half to, Half v) {return Sat((v-from)/(to-from));}
 inline Flt  LerpRS(Flt  from, Flt  to, Flt  v) {return Sat((v-from)/(to-from));}
 /******************************************************************************/
 inline VecH Transform (VecH v, MatrixH3 m) {return mul(v,           m)                      ;} // transform 'v' vector by 'm' orientation-scale             matrix
-inline VecH Transform3(VecH v, Matrix   m) {return mul(v, (MatrixH3)m)                      ;} // transform 'v' vector by 'm' orientation-scale             matrix, faster version of "v.x*m[0] + (v.y*m[1] + (v.z*m[2]))"
+inline VecH Transform3(VecH v, Matrix   m) {return mul(v, (MatrixH3)m)                      ;} // transform 'v' vector by 'm' orientation-scale             matrix, faster version of "v.x*m[0] + (v.y*m[1] + (v.z*m[2]))" TODO: #ShaderHalf
 #if 1 // TODO: check if future generation GPU's have 'mul' faster (GeForce 650m GT has 'mul' slower)
 inline Vec  Transform (Vec  v, Matrix   m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' orientation-scale-translation matrix, faster version of "mul(Vec4(v, 1), m)"
 inline Vec4 Transform (Vec  v, Matrix4  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' 4x4                           matrix, faster version of "mul(Vec4(v, 1), m)"
@@ -1279,7 +1279,7 @@ inline Half GetLod(Vec2 tex_coord, Vec2 tex_size)
 #define LeafBendScale  0.13
 #define LeafsBendScale (LeafBendScale/2)
 /******************************************************************************/
-inline Vec2 GetGrassBend(Vec world_pos) // TODO: #HLSLHalf
+inline Vec2 GetGrassBend(Vec world_pos) // TODO: #ShaderHalf
 {
    Flt offset=Dot(world_pos.xz, Vec2(0.7, 0.9)*GrassBendFreq);
    return Vec2((0.28*GrassBendScale)*Sin(offset+BendFactor.x) + (0.32*GrassBendScale)*Sin(offset+BendFactor.y),
@@ -1302,7 +1302,7 @@ inline Half GrassFadeOut(uniform uint mtrx=0)
 {
    return Sat(Length2(MatrixPos(ViewMatrix[mtrx]))*GrassRangeMulAdd.x+GrassRangeMulAdd.y);
 }
-inline void BendGrass(Vec local_pos, in out Vec view_pos, uniform uint mtrx=0) // TODO: #HLSLHalf
+inline void BendGrass(Vec local_pos, in out Vec view_pos, uniform uint mtrx=0) // TODO: #ShaderHalf
 {
    Flt  b   =Cube(Sat(local_pos.y));
    Vec2 bend=GetGrassBend(ObjWorldPos(mtrx))*(b*Length(MatrixY(ViewMatrix[mtrx])));
@@ -1394,7 +1394,7 @@ inline VecH GetDetail(Vec2 tex)
 /******************************************************************************/
 // VELOCITIES
 /******************************************************************************/
-inline void UpdateVelocities_VS(in out Vec vel, VecH local_pos, Vec view_space_pos, uniform uint mtrx=0) // TODO: #HLSLHalf
+inline void UpdateVelocities_VS(in out Vec vel, VecH local_pos, Vec view_space_pos, uniform uint mtrx=0) // TODO: #ShaderHalf
 {
    // on start 'vel'=object linear velocity in view space
    vel-=Transform3(Cross(local_pos      , ObjAngVel), ViewMatrix[mtrx]); // add object angular velocity in view space
@@ -1491,10 +1491,10 @@ BUFFER(LightLinear) LIGHT_LINEAR Light_linear; BUFFER_END
 BUFFER(LightCone  ) LIGHT_CONE   Light_cone  ; BUFFER_END
 /******************************************************************************/
 inline Half LightPointDist (Vec  pos           ) {return Min(  Half(Light_point.power/Length2(pos)), Light_point.lum_max   );} // NaN
-inline Half LightLinearDist(Vec  pos, Flt range) {return Sat(1-Half(Length (pos)         /   (             range         )));} // TODO: #HLSLHalf
-inline Half LightLinearDist(Vec  pos           ) {return Sat(1-Half(Length (pos)         /   (Light_linear.range         )));} // TODO: #HLSLHalf
-inline Half LightConeDist  (Vec  pos           ) {return Sat(1-Half(Length2(pos)         /Sqr(Light_cone  .length        )));} // TODO: #HLSLHalf
-inline Half LightConeAngle (Vec2 pos           ) {return Sat(  Half(Length (pos)*Light_cone.falloff.x+Light_cone.falloff.y));} // TODO: #HLSLHalf
+inline Half LightLinearDist(Vec  pos, Flt range) {return Sat(1-Half(Length (pos)         /   (             range         )));}
+inline Half LightLinearDist(Vec  pos           ) {return Sat(1-Half(Length (pos)         /   (Light_linear.range         )));}
+inline Half LightConeDist  (Vec  pos           ) {return Sat(1-Half(Length2(pos)         /Sqr(Light_cone  .length        )));}
+inline Half LightConeAngle (Vec2 pos           ) {return Sat(  Half(Length (pos)*Light_cone.falloff.x+Light_cone.falloff.y));}
 
 inline Half LightDiffuse (VecH nrm,                VecH light_dir                             ) {return Sat(Dot(nrm, light_dir));}
 inline Half LightSpecular(VecH nrm, Half specular, VecH light_dir, VecH eye_dir, Half power=64)

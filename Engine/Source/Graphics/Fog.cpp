@@ -53,7 +53,7 @@ void FogClass::Draw(Bool after_sky)
             return;
          }
       }
-      // clear because BlendLight shaders always use Fog
+      // if we didn't draw fog and return, then clear because BlendLight shaders always use Fog
       Sh.FogColor_Density->set(Vec4Zero);
    }
 }

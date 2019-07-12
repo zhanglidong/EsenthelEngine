@@ -25,9 +25,8 @@ struct VS_PS
    Vec      pos    :TEXCOORD0;
    Vec2     tex    :TEXCOORD1;
    MatrixH3 mtrx   :TEXCOORD2; // !! may not be Normalized !!
-   Vec2     tex_l  :TEXCOORD5;
-   Vec      rfl    :TEXCOORD6;
-   Vec      vel    :TEXCOORD7;
+   VecH     rfl    :TEXCOORD5;
+   Vec      vel    :TEXCOORD6;
    VecH4    col    :COLOR0   ;
    VecH     col_add:COLOR1   ;
 };
@@ -49,10 +48,9 @@ void VS
    Vec  pos=vtx.pos();
    VecH nrm, tan; if(bump_mode>=SBUMP_FLAT)nrm=vtx.nrm(); if(bump_mode>SBUMP_FLAT)tan=vtx.tan(nrm, heightmap);
 
-   if(textures   )O.tex  =vtx.tex (heightmap);
-   if(light_map  )O.tex_l=vtx.tex1();
-                  O.col  =MaterialColor();
-   if(color      )O.col *=vtx.colorFast();
+   if(textures   )O.tex =vtx.tex(heightmap);
+                  O.col =MaterialColor();
+   if(color      )O.col*=vtx.colorFast();
    if(fx==FX_LEAF)
    {
       if(bump_mode> SBUMP_FLAT)BendLeaf(vtx.hlp(), pos, nrm, tan);else
@@ -116,12 +114,12 @@ void VS
 
    if(bump_mode>SBUMP_FLAT)O.mtrx[1]=vtx.bin(O.mtrx[2], O.mtrx[0], heightmap);
 
-   if(rflct && !(per_pixel && bump_mode>SBUMP_FLAT))O.rfl=Transform3(reflect(Normalize(O.pos), O.mtrx[2]), CamMatrix);
+   if(rflct && !(per_pixel && bump_mode>SBUMP_FLAT))O.rfl=Transform3(reflect((VecH)Normalize(O.pos), O.mtrx[2]), CamMatrix);
 
    Flt d=Length(O.pos);
 
    // sky
-   O.col.a*=Sat(d*SkyFracMulAdd.x + SkyFracMulAdd.y);
+   O.col.a*=Sat(Half(d*SkyFracMulAdd.x + SkyFracMulAdd.y));
 
    // fog
    Half fog_rev=       VisibleOpacity(FogDensity(), d); // fog_rev=1-fog
@@ -186,8 +184,6 @@ out VecH4 outVel:COLOR1, // #BlendRT
       }
    }
 
-   if(light_map)I.col.rgb*=Tex(Lum, I.tex_l).rgb;
-
    // reflection
    if(rflct)
    {
@@ -198,8 +194,11 @@ out VecH4 outVel:COLOR1, // #BlendRT
    // calculate lighting
    if(per_pixel && bump_mode>=SBUMP_FLAT)
    {
-      VecH total_lum=AmbNSColor;//+AmbMaterial*MaterialAmbient();
     //VecH total_specular=0;
+
+      VecH total_lum=AmbNSColor;
+    //if(light_map)total_lum+=AmbMaterial*MaterialAmbient()*Tex(Lum, I.tex).rgb;
+    //else         total_lum+=AmbMaterial*MaterialAmbient();
 
       if(fx!=FX_GRASS && fx!=FX_LEAF && fx!=FX_LEAFS)BackFlip(nrm, front);
 
@@ -251,9 +250,6 @@ CUSTOM_TECHNIQUE
       #if textures>=1
          VAR HP Vec2 IO_tex;
       #endif
-      #if light_map==1
-         VAR HP Vec2 IO_tex_l;
-      #endif
       #if per_pixel!=0 && bump_mode>=SBUMP_FLAT
          VAR MP Vec  IO_nrm;
       #endif
@@ -282,9 +278,6 @@ CUSTOM_TECHNIQUE
          IO_tex=vtx_tex();
       #endif
 
-      #if light_map==1
-         IO_tex_l=vtx_tex1();
-      #endif
                      IO_col =MaterialColor    ();
          if(COLOR!=0)IO_col*=    vtx_colorFast();
       #if fx==FX_GRASS
@@ -395,10 +388,6 @@ CUSTOM_TECHNIQUE
             #endif
          #endif
 
-         #if light_map==1
-            col.rgb*=Tex(Lum, IO_tex_l).rgb;
-         #endif
-
          #if rflct!=0
             MP Vec rfl=IO_rfl;
             #if per_pixel!=0 && bump_mode>=SBUMP_FLAT
@@ -415,6 +404,13 @@ CUSTOM_TECHNIQUE
          {
             MP Vec total_lum=AmbNSColor;
             if(fx!=FX_GRASS && fx!=FX_LEAF && fx!=FX_LEAFS)BackFlip(nrm);
+
+            // ambient
+       /*#if light_map==1
+            total_lum+=AmbMaterial*MaterialAmbient()*Tex(Lum, IO_tex).rgb;
+         #else
+            total_lum+=AmbMaterial*MaterialAmbient();
+         #endif*/
 
             // directional light
             MP Flt d  =Max(Dot(nrm, Light_dir.dir), 0.0);

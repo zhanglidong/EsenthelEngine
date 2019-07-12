@@ -6,3 +6,4 @@ struct LIGHT_DIR
 };
 PAR LIGHT_DIR Light_dir;
 PAR MP Vec AmbColor, AmbNSColor;
+Par MP Flt AmbMaterial;

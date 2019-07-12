@@ -36,7 +36,6 @@ struct VS_PS
    Vec     pos     :TEXCOORD1;
    Matrix3 mtrx    :TEXCOORD2; // !! may not be Normalized !!
    Vec     rfl     :TEXCOORD6;
-   Vec2    tex_l   :TEXCOORD7;
    Half    fade_out:TEXCOORD5;
    VecH    col     :COLOR0   ;
    VecH4   material:COLOR1   ;
@@ -59,7 +58,6 @@ void VS
    VecH nrm, tan; if(bump_mode>=SBUMP_FLAT)nrm=vtx.nrm(); if(bump_mode>SBUMP_FLAT)tan=vtx.tan(nrm, heightmap);
 
    if(textures || detail)O.tex     =vtx.tex     (heightmap);
-   if(light_map         )O.tex_l   =vtx.tex1    ();
    if(materials>1       )O.material=vtx.material();
 
    if(materials<=1)O.col.rgb=MaterialColor3();/*else
@@ -213,8 +211,6 @@ VecH4 PS
          }
       }
 
-      if(light_map)I.col.rgb*=Tex(Lum, I.tex_l).rgb;
-
       // reflection
       if(rflct)
       {
@@ -327,7 +323,11 @@ VecH4 PS
 
    if(bump_mode==SBUMP_ZERO     )total_lum =1;
    else                          total_lum =AmbNSColor;
-   if(materials<=1 && !secondary)total_lum+=MaterialAmbient()*AmbMaterial; // ambient values are always disabled for secondary passes (so don't bother adding them)
+   if(materials<=1 && !secondary) // ambient values are always disabled for secondary passes (so don't bother adding them)
+   {
+      if(light_map)total_lum+=AmbMaterial*MaterialAmbient()*Tex(Lum, I.tex).rgb;
+      else         total_lum+=AmbMaterial*MaterialAmbient();
+   }
 
    VecH2 jitter_value;
    if(light_dir_shd || light_point_shd || light_linear_shd || light_cone_shd)jitter_value=ShadowJitter(pixel.xy);
@@ -450,7 +450,6 @@ VS_PS HS
                                                O.pos     =I[cp_id].pos     ;
    if(materials<=1 /*|| !mtrl_blend*/ || color)O.col     =I[cp_id].col     ;
    if(textures || detail                      )O.tex     =I[cp_id].tex     ;
-   if(light_map                               )O.tex_l   =I[cp_id].tex_l   ;
    if(rflct && bump_mode==SBUMP_FLAT          )O.rfl     =I[cp_id].rfl     ;
    if(materials>1                             )O.material=I[cp_id].material;
    if(fx==FX_GRASS                            )O.fade_out=I[cp_id].fade_out;
@@ -472,7 +471,6 @@ void DS
 {
    if(materials<=1 /*|| !mtrl_blend*/ || color)O.col     =I[0].col     *B.z + I[1].col     *B.x + I[2].col     *B.y;
    if(textures || detail                      )O.tex     =I[0].tex     *B.z + I[1].tex     *B.x + I[2].tex     *B.y;
-   if(light_map                               )O.tex_l   =I[0].tex_l   *B.z + I[1].tex_l   *B.x + I[2].tex_l   *B.y;
    if(rflct && bump_mode==SBUMP_FLAT          )O.rfl     =I[0].rfl     *B.z + I[1].rfl     *B.x + I[2].rfl     *B.y;
    if(materials>1                             )O.material=I[0].material*B.z + I[1].material*B.x + I[2].material*B.y;
    if(fx==FX_GRASS                            )O.fade_out=I[0].fade_out*B.z + I[1].fade_out*B.x + I[2].fade_out*B.y;

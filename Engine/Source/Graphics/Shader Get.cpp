@@ -164,7 +164,7 @@ void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_
     mtrl_blend      =(                                       materials> 1 && D.materialBlend()                                    ); // this is multi-material blending (blending between multiple materials)
    skin             =((mesh_base_flag&VTX_SKIN)==VTX_SKIN && materials==1 &&                !heightmap && !grass && !leaf         );
    fx               =(grass ? FX_GRASS : leaf ? (size ? FX_LEAFS : FX_LEAF) : FX_NONE);
-   light_map        =((mesh_base_flag&VTX_TEX1) &&           materials==1 && textures>=1 && m->light_map && !fx);
+   light_map        =(                                       materials==1 && textures>=1 && m->light_map && !fx && ambient);
    tess             =((lod_index<=0) && D.shaderModel()>=SM_5 && D.tesselation() && (!heightmap || D.tesselationHeightmap()) && normal && !fx);
 
    if(fx){detail=macro=false; MIN(bump, SBUMP_NORMAL);} // currently shaders with effects don't support detail/macro/fancy bump
@@ -196,8 +196,8 @@ Shader* DefaultShaders::Solid(Bool mirror)C
       if(fur)return ShaderFiles("Fur")->get(TechNameFurBase(skin, size, textures!=0));
       Bool detail=T.detail, tess=T.tess; Byte bump=T.bump; if(mirror){detail=false; tess=false; MIN(bump, SBUMP_NORMAL);} // disable detail tesselation and fancy bump for mirror
       Str8 name;
-      if(normal      )name=TechNameDeferred(skin, materials, textures,  bump     , alpha_test, light_map, detail, macro, reflect, color, mtrl_blend, heightmap, fx, tess);else
-      if(materials==1)name=TechNameDeferred(skin, materials,        0, SBUMP_ZERO, false     , light_map, false , false, reflect, color, mtrl_blend, heightmap, fx, tess);
+      if(normal      )name=TechNameDeferred(skin, materials, textures,  bump     , alpha_test, detail, macro, reflect, color, mtrl_blend, heightmap, fx, tess);else
+      if(materials==1)name=TechNameDeferred(skin, materials,        0, SBUMP_ZERO, false     , false , false, reflect, color, mtrl_blend, heightmap, fx, tess);
       return ShaderFiles("Deferred")->get(name);
    }
    return null;
@@ -205,7 +205,7 @@ Shader* DefaultShaders::Solid(Bool mirror)C
 Shader* DefaultShaders::Ambient()C
 {
 #if SUPPORT_MATERIAL_AMBIENT
-   if(valid && !alpha_blend && ambient && materials==1 && !heightmap && !fx)return ShaderFiles("Ambient")->get(TechNameAmbient(skin, alpha_test ? textures : 0));
+   if(valid && !alpha_blend && ambient && materials==1 && !heightmap && !fx)return ShaderFiles("Ambient")->get(TechNameAmbient(skin, alpha_test ? textures : 0, light_map));
 #endif
    return null;
 }
@@ -232,7 +232,7 @@ Shader* DefaultShaders::Shadow()C
 Shader* DefaultShaders::Blend()C
 {
    if(valid && blend) // "!blend" here will return null so BLST can be used in 'drawBlend'
-      return ShaderFiles("Blend")->get(TechNameBlend(skin, color, reflect, textures, light_map));
+      return ShaderFiles("Blend")->get(TechNameBlend(skin, color, reflect, textures));
    return null;
 }
 Shader* DefaultShaders::Overlay()C
