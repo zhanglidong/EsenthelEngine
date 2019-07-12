@@ -435,10 +435,10 @@ BUFFER_I(Global, SBI_GLOBAL)
    VecH    CamAngVel                     ; // camera      angular velocity, pre-multiplied by 'D.motionScale'
    Matrix  CamMatrix                     ; // camera      matrix
    Vec4    ClipPlane    =Vec4(0, 0, 0, 1); // clipping    plane
-   Half    AllowBackFlip=              -1, // normal      flipping TODO: this probably needs to be handled differently, so it can work for mirrored reflections too
-           TesselationDensity            ; // tesselation density
+   Half    AllowBackFlip=              -1; // normal      flipping TODO: this probably needs to be handled differently, so it can work for mirrored reflections too
+   Flt     TesselationDensity            ; // tesselation density
    Vec2    GrassRangeMulAdd              ; // factors used for grass opacity      calculation
-   Vec4    BendFactor                    ; // factors used for grass/leaf bending calculation
+   VecH4   BendFactor                    ; // factors used for grass/leaf bending calculation
 BUFFER_END
 
 BUFFER_I(ObjMatrix, SBI_OBJ_MATRIX) // this CB is dynamically resized, do not add other members
@@ -1279,87 +1279,86 @@ inline Half GetLod(Vec2 tex_coord, Vec2 tex_size)
 #define LeafBendScale  0.13
 #define LeafsBendScale (LeafBendScale/2)
 /******************************************************************************/
-inline Vec2 GetGrassBend(Vec center)
+inline Vec2 GetGrassBend(Vec world_pos)
 {
-   Flt offset=Sum(center.xz*(Vec2(0.7, 0.9)*GrassBendFreq));
+   Flt offset=Dot(world_pos.xz, Vec2(0.7, 0.9)*GrassBendFreq);
    return Vec2((0.28*GrassBendScale)*Sin(offset+BendFactor.x) + (0.32*GrassBendScale)*Sin(offset+BendFactor.y),
                (0.18*GrassBendScale)*Sin(offset+BendFactor.z) + (0.24*GrassBendScale)*Sin(offset+BendFactor.w));
 }
-inline Vec2 GetLeafBend(Vec center)
+inline VecH2 GetLeafBend(VecH center)
 {
-   Flt offset=Sum(center.xy*(Vec2(0.7, 0.8)*LeafBendFreq));
-   return Vec2((0.28*LeafBendScale)*Sin(offset+BendFactor.x) + (0.32*LeafBendScale)*Sin(offset+BendFactor.y),
-               (0.18*LeafBendScale)*Sin(offset+BendFactor.z) + (0.24*LeafBendScale)*Sin(offset+BendFactor.w));
+   Half offset=Dot(center.xy, VecH2(0.7, 0.8)*LeafBendFreq);
+   return VecH2((0.28*LeafBendScale)*(Half)Sin(offset+BendFactor.x) + (0.32*LeafBendScale)*(Half)Sin(offset+BendFactor.y),
+                (0.18*LeafBendScale)*(Half)Sin(offset+BendFactor.z) + (0.24*LeafBendScale)*(Half)Sin(offset+BendFactor.w));
 }
-inline Vec2 GetLeafsBend(Vec center)
+inline VecH2 GetLeafsBend(VecH center)
 {
-   Flt offset=Sum(center.xy*(Vec2(0.7, 0.8)*LeafBendFreq));
-   return Vec2((0.28*LeafsBendScale)*Sin(offset+BendFactor.x) + (0.32*LeafsBendScale)*Sin(offset+BendFactor.y),
-               (0.18*LeafsBendScale)*Sin(offset+BendFactor.z) + (0.24*LeafsBendScale)*Sin(offset+BendFactor.w));
+   Half offset=Dot(center.xy, VecH2(0.7, 0.8)*LeafBendFreq);
+   return VecH2((0.28*LeafsBendScale)*(Half)Sin(offset+BendFactor.x) + (0.32*LeafsBendScale)*(Half)Sin(offset+BendFactor.y),
+                (0.18*LeafsBendScale)*(Half)Sin(offset+BendFactor.z) + (0.24*LeafsBendScale)*(Half)Sin(offset+BendFactor.w));
 }
 /******************************************************************************/
 inline Half GrassFadeOut(uniform uint mtrx=0)
 {
-   return Sat(Length2(MatrixPos(ViewMatrix[mtrx]))*GrassRangeMulAdd.x+GrassRangeMulAdd.y); // - fade_out
+   return Sat(Length2(MatrixPos(ViewMatrix[mtrx]))*GrassRangeMulAdd.x+GrassRangeMulAdd.y);
 }
 inline void BendGrass(Vec local_pos, in out Vec view_pos, uniform uint mtrx=0)
 {
-   Vec  world_pos=ObjWorldPos(mtrx);
-   Flt  b        =Cube(Sat(local_pos.y));
-   Vec2 bend     =GetGrassBend(world_pos)*(b*Length(MatrixY(ViewMatrix[mtrx])));
+   Flt  b   =Cube(Sat(local_pos.y));
+   Vec2 bend=GetGrassBend(ObjWorldPos(mtrx))*(b*Length(MatrixY(ViewMatrix[mtrx])));
 
    view_pos+=Vec(CamMatrix[0].x, CamMatrix[1].x, CamMatrix[2].x)*bend.x;
    view_pos+=Vec(CamMatrix[0].y, CamMatrix[1].y, CamMatrix[2].y)*bend.y;
 }
 /******************************************************************************/
-inline void BendLeaf(Vec center, in out Vec pos)
+inline void BendLeaf(VecH center, in out Vec pos)
 {
-   pos-=center;
-   Vec2   cos_sin, bend=GetLeafBend(center);
-   CosSin(cos_sin.x, cos_sin.y, bend.x); pos.xy=Rotate(pos.xy, cos_sin);
-   CosSin(cos_sin.x, cos_sin.y, bend.y); pos.zy=Rotate(pos.zy, cos_sin);
-   pos+=center;
+   VecH   delta=(VecH)pos-center;
+   VecH2  cos_sin, bend=GetLeafBend(center);
+   CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin);
+   CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin);
+   pos=center+delta;
 }
-inline void BendLeaf(Vec center, in out Vec pos, in out VecH nrm)
+inline void BendLeaf(VecH center, in out Vec pos, in out VecH nrm)
 {
-   pos-=center;
-   Vec2   cos_sin, bend=GetLeafBend(center);
-   CosSin(cos_sin.x, cos_sin.y, bend.x); pos.xy=Rotate(pos.xy, cos_sin); nrm.xy=Rotate(nrm.xy, cos_sin);
-   CosSin(cos_sin.x, cos_sin.y, bend.y); pos.zy=Rotate(pos.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin);
-   pos+=center;
+   VecH   delta=(VecH)pos-center;
+   VecH2  cos_sin, bend=GetLeafBend(center);
+   CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin); nrm.xy=Rotate(nrm.xy, cos_sin);
+   CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin);
+   pos=center+delta;
 }
-inline void BendLeaf(Vec center, in out Vec pos, in out VecH nrm, in out VecH tan)
+inline void BendLeaf(VecH center, in out Vec pos, in out VecH nrm, in out VecH tan)
 {
-   pos-=center;
-   Vec2   cos_sin, bend=GetLeafBend(center);
-   CosSin(cos_sin.x, cos_sin.y, bend.x); pos.xy=Rotate(pos.xy, cos_sin); nrm.xy=Rotate(nrm.xy, cos_sin); tan.xy=Rotate(tan.xy, cos_sin);
-   CosSin(cos_sin.x, cos_sin.y, bend.y); pos.zy=Rotate(pos.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin); tan.zy=Rotate(tan.zy, cos_sin);
-   pos+=center;
+   VecH   delta=(VecH)pos-center;
+   VecH2  cos_sin, bend=GetLeafBend(center);
+   CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin); nrm.xy=Rotate(nrm.xy, cos_sin); tan.xy=Rotate(tan.xy, cos_sin);
+   CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin); tan.zy=Rotate(tan.zy, cos_sin);
+   pos=center+delta;
 }
 /******************************************************************************/
-inline void BendLeafs(Vec center, Flt offset, in out Vec pos)
+inline void BendLeafs(VecH center, Flt offset, in out Vec pos)
 {
-   pos-=center;
-   Vec2   cos_sin, bend=GetLeafsBend(center+offset);
-   CosSin(cos_sin.x, cos_sin.y, bend.x); pos.xy=Rotate(pos.xy, cos_sin);
-   CosSin(cos_sin.x, cos_sin.y, bend.y); pos.zy=Rotate(pos.zy, cos_sin);
-   pos+=center;
+   VecH   delta=(VecH)pos-center;
+   VecH2  cos_sin, bend=GetLeafsBend(center+offset);
+   CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin);
+   CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin);
+   pos=center+delta;
 }
-inline void BendLeafs(Vec center, Flt offset, in out Vec pos, in out VecH nrm)
+inline void BendLeafs(VecH center, Flt offset, in out Vec pos, in out VecH nrm)
 {
-   pos-=center;
-   Vec2   cos_sin, bend=GetLeafsBend(center+offset);
-   CosSin(cos_sin.x, cos_sin.y, bend.x); pos.xy=Rotate(pos.xy, cos_sin); nrm.xy=Rotate(nrm.xy, cos_sin);
-   CosSin(cos_sin.x, cos_sin.y, bend.y); pos.zy=Rotate(pos.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin);
-   pos+=center;
+   VecH   delta=(VecH)pos-center;
+   VecH2  cos_sin, bend=GetLeafsBend(center+offset);
+   CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin); nrm.xy=Rotate(nrm.xy, cos_sin);
+   CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin);
+   pos=center+delta;
 }
-inline void BendLeafs(Vec center, Flt offset, in out Vec pos, in out VecH nrm, in out VecH tan)
+inline void BendLeafs(VecH center, Flt offset, in out Vec pos, in out VecH nrm, in out VecH tan)
 {
-   pos-=center;
-   Vec2   cos_sin, bend=GetLeafsBend(center+offset);
-   CosSin(cos_sin.x, cos_sin.y, bend.x); pos.xy=Rotate(pos.xy, cos_sin); nrm.xy=Rotate(nrm.xy, cos_sin); tan.xy=Rotate(tan.xy, cos_sin);
-   CosSin(cos_sin.x, cos_sin.y, bend.y); pos.zy=Rotate(pos.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin); tan.zy=Rotate(tan.zy, cos_sin);
-   pos+=center;
+   VecH   delta=(VecH)pos-center;
+   VecH2  cos_sin, bend=GetLeafsBend(center+offset);
+   CosSin(cos_sin.x, cos_sin.y, bend.x); delta.xy=Rotate(delta.xy, cos_sin); nrm.xy=Rotate(nrm.xy, cos_sin); tan.xy=Rotate(tan.xy, cos_sin);
+   CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin); tan.zy=Rotate(tan.zy, cos_sin);
+   pos=center+delta;
 }
 /******************************************************************************/
 // DEPTH WEIGHT
