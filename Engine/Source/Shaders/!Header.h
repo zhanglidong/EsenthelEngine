@@ -11,6 +11,7 @@
       -use NOPERSP for flat 2D shaders
       -offload some calculations on the CPU or Vertex Shader
       -use 'TexPoint' or 'TexLod' wherever possible
+      -use constants without any suffix (0.0 instead of 0.0f or 0.0h) - https://gpuopen.com/first-steps-implementing-fp16/ - "Using either the h or f suffix will result in a conversion. It is better to use the unadorned literal, such as 0.0, 1.5 and so on."
 
 /******************************************************************************/
 // MODEL AND TECHNIQUES
@@ -119,7 +120,7 @@
    #define Image3D     Texture3D  <VecH4>
    #define Image3DH2   Texture3D  <VecH2>
    #define ImageCube   TextureCube<VecH4>
-   #define ImageShadow Texture2D  <Flt  > // use 'Flt' because source is F32 depth buffer TODO: or perhaps we can use Half because it defines the output not input?
+   #define ImageShadow Texture2D  <Half > // TODO: Half is used to get half output, however this internally operates on a F32 depth buffer, so do we need to use 'Flt' format?
 
    #define        SAMPLER(name, index) sampler                name : register(s##index) //        sampler
    #define SHADOW_SAMPLER(name, index) SamplerComparisonState name : register(s##index) // shadow sampler

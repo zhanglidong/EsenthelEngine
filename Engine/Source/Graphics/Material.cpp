@@ -380,7 +380,7 @@ void Material::_adjustParams(UInt old_base_tex, UInt new_base_tex)
 /******************************************************************************/
 Bool Material::saveData(File &f, CChar *path)C
 {
-   // !! for ver 10 just save like this: !!
+   // !! for ver 10 just save like this: also remove sub surf, reflection map !!
  //f.putMulti(Byte(10), cull, Byte(technique))<<SCAST(C MaterialParams, T); // version
    f.putMulti(Byte(9), cull, Byte(technique))<<colorS()<<ambient<<specular<<sss<<glow<<rough<<bump<<tex_scale<<det_scale<<det_power<<reflect;
 
