@@ -2,6 +2,10 @@
 
    For AO shader, Depth is linearized to 0 .. Viewport.range
 
+   TODO: the 2d version "!geom" operates on 'nrm2' which assumes that depth changes are linear when iterating though pixels,
+      however most likely they're not. (it's possible that deltas are linear when using the raw "Delinearized" depth buffer)
+   3D version 'geom' should be used, however it doesn't work with flipped normals.
+
 /******************************************************************************/
 #include "!Header.h"
 #include "Ambient Occlusion.h"
