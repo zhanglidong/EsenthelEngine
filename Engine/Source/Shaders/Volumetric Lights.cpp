@@ -22,7 +22,7 @@ VecH4 VolDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       length=ShdRange;
    }
 
-   VecH2 jitter_value=ShadowJitter(pixel.xy);
+   Vec2 jitter_value=ShadowJitter(pixel.xy);
 
    Int  steps=80;
    LOOP for(Int i=0; i<steps; i++)
@@ -53,7 +53,7 @@ VecH4 VolPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    Vec from=ShdMatrix[3],
        to  =Transform(obj, ShdMatrix);
 
-   VecH2 jitter_value=ShadowJitter(pixel.xy);
+   Vec2 jitter_value=ShadowJitter(pixel.xy);
 
    Int steps=48;
 
@@ -82,7 +82,7 @@ VecH4 VolLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
        to   =Transform(obj, ShdMatrix);
    Int steps=48;
 
-   VecH2 jitter_value=ShadowJitter(pixel.xy);
+   Vec2 jitter_value=ShadowJitter(pixel.xy);
 
    LOOP for(Int i=0; i<steps; i++)
    {
@@ -110,7 +110,7 @@ VecH4 VolCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
        to   =Transform(obj, ShdMatrix);
    Int steps=48;
 
-   VecH2 jitter_value=ShadowJitter(pixel.xy);
+   Vec2 jitter_value=ShadowJitter(pixel.xy);
 
    LOOP for(Int i=0; i<steps; i++)
    {

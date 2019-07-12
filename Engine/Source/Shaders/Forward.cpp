@@ -329,7 +329,7 @@ VecH4 PS
       else         total_lum+=AmbMaterial*MaterialAmbient();
    }
 
-   VecH2 jitter_value;
+   Vec2 jitter_value;
    if(light_dir_shd || light_point_shd || light_linear_shd || light_cone_shd)jitter_value=ShadowJitter(pixel.xy);
 
    if(light_dir)
