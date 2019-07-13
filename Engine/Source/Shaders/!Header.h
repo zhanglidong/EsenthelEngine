@@ -1403,7 +1403,7 @@ inline Vec2 DepthWeightMAD(Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale+
 #else
 inline Vec2 DepthWeightMAD(Flt depth) {return Vec2(-1.0/(depth*DepthWeightScale+0.004), 2);}
 #endif
-inline Flt  DepthWeight(Flt delta, Vec2 dw_mad)
+inline Half DepthWeight(Flt delta, Vec2 dw_mad)
 {
    return Sat(Abs(delta)*dw_mad.x + dw_mad.y);
 }
