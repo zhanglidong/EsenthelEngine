@@ -3477,7 +3477,7 @@ TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
             glow.a   =Max(glow.a, c.a);
          }
          MP Flt eps=HALF_MIN;
-         glow.rgb*=2.0*glow.a/Max(glow.rgb, eps); // NaN (increase by 2 because normally it's too small)
+         glow.rgb*=2.0*glow.a/Max(Max(glow.rgb), eps); // NaN (increase by 2 because normally it's too small)
          gl_FragColor.rgb=Max(BloomColor(color), glow.rgb);
       #elif half!=0
          gl_FragColor.rgb=BloomColor(texture2DLod(Img, UVClamp(IO_tex, DoClamp!=0), 0.0).rgb);
