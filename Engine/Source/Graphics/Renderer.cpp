@@ -398,10 +398,11 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
    if(stage==RS_VEL_DILATED && show(dilated, false, D.signedVelRT()))return true;
 
    // check how far can we go (remove leaks)
-   Sh.Img[1]->set(dilated);
+   Sh.ImgXY ->set(converted);
+   Sh.Img[0]->set(dilated  );
    rt_desc.rt_type=(D.signedVelRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA); // XY=Dir#0, ZW=Dir#1
    helper.get(rt_desc); // we always need to call this because 'helper' can be set to 'converted'
-   set(helper, null, false); Mtn.SetDirs[!D._view_main.full]->draw(converted, rect);
+   set(helper, null, false); Mtn.SetDirs[!D._view_main.full]->draw(rect);
    if(stage==RS_VEL_LEAK && show(helper, false, D.signedVelRT()))return true;
 
    Sh.Img[1]->set(helper);
