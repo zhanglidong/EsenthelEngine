@@ -2229,12 +2229,12 @@ VecH4 LightPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    }
 
    // distance
-   Vec  pos      =GetPosPoint(inTex, inPosXY),
-        light_dir=Light_point.pos-pos;
-   Half power    =LightPointDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
+   Vec  pos  =GetPosPoint(inTex, inPosXY);
+   Vec  delta=Light_point.pos-pos; Flt inv_dist2=1/Length2(delta);
+   Half power=LightPointDist(inv_dist2); if(shadow)power*=shd; clip(power-EPS_LUM);
 
    // diffuse
-         light_dir=Normalize   (light_dir);
+   VecH  light_dir=delta*Sqrt(inv_dist2); // Normalize(delta);
    VecH4 nrm      =GetNormal   (inTex, quality);
    Half  lum      =LightDiffuse(nrm.xyz, light_dir)*power;
 
@@ -2256,12 +2256,12 @@ VecH4 LightPointM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
    Half shd; if(shadow){shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
 
    // distance
-   Vec  pos      =GetPosMS(pixel.xy, index, inPosXY),
-        light_dir=Light_point.pos-pos;
-   Half power    =LightPointDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
+   Vec  pos  =GetPosMS(pixel.xy, index, inPosXY);
+   Vec  delta=Light_point.pos-pos; Flt inv_dist2=1/Length2(delta);
+   Half power=LightPointDist(inv_dist2); if(shadow)power*=shd; clip(power-EPS_LUM);
 
    // diffuse
-         light_dir=Normalize   (light_dir);
+   VecH  light_dir=delta*Sqrt(inv_dist2); // Normalize(delta);
    VecH4 nrm      =GetNormalMS (pixel.xy, index, quality);
    Half  lum      =LightDiffuse(nrm.xyz, light_dir)*power;
 
@@ -2298,7 +2298,7 @@ VecH4 LightLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    Half power=LightLinearDist(dist); if(shadow)power*=shd; clip(power-EPS_LUM);
 
    // diffuse
-   VecH  light_dir=delta/dist;
+   VecH  light_dir=delta/dist; // Normalize(delta);
    VecH4 nrm      =GetNormal   (inTex, quality);
    Half  lum      =LightDiffuse(nrm.xyz, light_dir)*power;
 
@@ -2325,7 +2325,7 @@ VecH4 LightLinearM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
    Half power=LightLinearDist(dist); if(shadow)power*=shd; clip(power-EPS_LUM);
 
    // diffuse
-   VecH  light_dir=delta/dist;
+   VecH  light_dir=delta/dist; // Normalize(delta);
    VecH4 nrm      =GetNormalMS (pixel.xy, index, quality);
    Half  lum      =LightDiffuse(nrm.xyz, light_dir)*power;
 
@@ -2365,7 +2365,7 @@ VecH4 LightCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    Half power=LightConeAngle(dir.xy)*LightConeDist(dist); if(shadow)power*=shd; clip(power-EPS_LUM);
 
    // diffuse
-   VecH  light_dir=delta/dist;
+   VecH  light_dir=delta/dist; // Normalize(delta);
    VecH4 nrm      =GetNormal   (inTex, quality);
    Half  lum      =LightDiffuse(nrm.xyz, light_dir)*power;
 
@@ -2402,7 +2402,7 @@ VecH4 LightConeM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
    Half power=LightConeAngle(dir.xy)*LightConeDist(dist); if(shadow)power*=shd; clip(power-EPS_LUM);
 
    // diffuse
-   VecH  light_dir=delta/dist;
+   VecH  light_dir=delta/dist; // Normalize(delta);
    VecH4 nrm      =GetNormalMS (pixel.xy, index, quality);
    Half  lum      =LightDiffuse(nrm.xyz, light_dir)*power;
 

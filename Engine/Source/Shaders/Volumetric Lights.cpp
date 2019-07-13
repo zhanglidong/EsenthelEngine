@@ -59,8 +59,8 @@ VecH4 VolPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    LOOP for(Int i=0; i<steps; i++)
    {
       // TODO: optimize
-      Vec pos=Lerp(from, to, Flt(i)/Flt(steps));
-      power+=ShadowPointValue(obj*(Flt(i)/steps), jitter_value, true)*LightPointDist(pos);
+      Vec pos=Lerp(from, to, Flt(i)/Flt(steps)); Flt inv_dist2=1/Length2(pos);
+      power+=ShadowPointValue(obj*(Flt(i)/steps), jitter_value, true)*LightPointDist(inv_dist2);
    }
    return VecH4(Light_point.color.rgb*Min(Light_point.vol_max, Light_point.vol*power*(length/steps)), 0);
 }

@@ -358,11 +358,11 @@ VecH4 PS
       Half shadow; if(light_point_shd)shadow=ShadowFinal(ShadowPointValue(I.pos, jitter_value, true));
 
       // distance
-      Vec  delta=Light_point.pos-I.pos;
-      Half power=LightPointDist(delta); if(light_point_shd)power*=shadow;
+      Vec  delta=Light_point.pos-I.pos; Flt inv_dist2=1/Length2(delta);
+      Half power=LightPointDist(inv_dist2); if(light_point_shd)power*=shadow;
 
       // diffuse
-      VecH light_dir=Normalize   (delta);
+      VecH light_dir=delta*Sqrt(inv_dist2); // Normalize(delta);
       Half lum      =LightDiffuse(nrm, light_dir);
 
       // specular
@@ -386,7 +386,7 @@ VecH4 PS
       Half power=LightLinearDist(dist); if(light_linear_shd)power*=shadow;
 
       // diffuse
-      VecH light_dir=delta/dist;
+      VecH light_dir=delta/dist; // Normalize(delta);
       Half lum      =LightDiffuse(nrm, light_dir);
 
       // specular
@@ -411,7 +411,7 @@ VecH4 PS
       Half power=LightConeAngle(dir.xy)*LightConeDist(dist); if(light_cone_shd)power*=shadow; power*=(dir.z>0);
 
       // diffuse
-      VecH light_dir=delta/dist;
+      VecH light_dir=delta/dist; // Normalize(delta);
       Half lum      =LightDiffuse(nrm, light_dir);
 
       // specular
