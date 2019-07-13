@@ -546,7 +546,7 @@ TECHNIQUE(DrawTexCubicRGBD,      Draw_VS(), DrawTexCubicRGB_PS(true));
 VecH4 DrawMs1_PS(NOPERSP PIXEL):COLOR {return TexSample(ImgMS, pixel.xy, 0);}
 VecH4 DrawMsN_PS(NOPERSP PIXEL):COLOR
 {
-                                    Vec4 color =TexSample(ImgMS, pixel.xy, 0); // use HP because we sum a lot of colors
+                                   VecH4 color =TexSample(ImgMS, pixel.xy, 0);
    UNROLL for(Int i=1; i<MS_SAMPLES; i++)color+=TexSample(ImgMS, pixel.xy, i);
    return color/MS_SAMPLES;
 }
