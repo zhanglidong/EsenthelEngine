@@ -9,7 +9,7 @@ struct VS_PS
 {
    Vec2 tex:TEXCOORD0;
    Vec  pos:TEXCOORD1;
-   Vec  nrm:TEXCOORD2;
+   VecH nrm:TEXCOORD2;
 };
 /******************************************************************************/
 // VS

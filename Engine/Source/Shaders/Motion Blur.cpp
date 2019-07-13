@@ -88,7 +88,6 @@ VecH4 Convert_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                  uniform Bool do_clamp         ,
                  uniform Int  pixels=MAX_MOTION_BLUR_PIXEL_RANGE):COLOR
 {
-   // #ShaderHalf
    Vec blur;
    if(mode==0)
    {

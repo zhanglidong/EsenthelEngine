@@ -54,7 +54,7 @@ VecH4 PS
 ):COLOR
 {
    VecH4 col  =Tex(Col, inTex.xy);
-   Flt   alpha=Sat(inTex.z)*OverlayAlpha();
+   Half  alpha=Sat((Half)inTex.z)*OverlayAlpha();
 
    if(normal)
    {

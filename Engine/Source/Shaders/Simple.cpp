@@ -23,7 +23,7 @@ struct VS_PS
    Vec2  tex     :TEXCOORD1;
    Vec   pos     :TEXCOORD2;
    Half  fade_out:TEXCOORD3;
-   Vec   rfl     :TEXCOORD4;
+   VecH  rfl     :TEXCOORD4;
    VecH  col     :COLOR0   ;
    VecH4 material:COLOR1   ;
 };
@@ -117,7 +117,7 @@ void VS
       O.col=((b>EPS) ? Vec(b, 0, 1-b) : Vec(1, 1, 1));
    }
 
-   if(rflct)O.rfl=Transform3(reflect(Normalize(O.pos), O.nrm), CamMatrix);
+   if(rflct)O.rfl=Transform3(reflect((VecH)Normalize(O.pos), O.nrm), CamMatrix);
 
    if(!per_pixel)
    {
@@ -231,7 +231,7 @@ VecH4 PS
       I.col.rgb*=lum;
    }
 
-   return Vec4(I.col.rgb, glow);
+   return VecH4(I.col.rgb, glow);
 }
 /******************************************************************************/
 // HULL / DOMAIN
