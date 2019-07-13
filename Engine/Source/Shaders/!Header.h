@@ -410,7 +410,7 @@ BUFFER(Constants)
 BUFFER_END
 
 BUFFER(Step)
-   Flt Step;
+   Half Step;
 BUFFER_END
 
 BUFFER(ImgSize)
@@ -1008,6 +1008,7 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    Vec2  pos2     (                                                ) {return _pos.xy                                                               ;} // vertex position
    Vec   pos      (                                                ) {return _pos.xyz                                                              ;} // vertex position
    Vec4  pos4     (                                                ) {return _pos                                                                  ;} // vertex position in Vec4(pos.xyz, 1) format
+   Flt   posZ     (                                                ) {return _pos.z                                                                ;} // vertex position Z
    VecH  hlp      (                                                ) {return _hlp                                                                  ;} // helper position
    VecH  tan      (                                                ) {return _tan.xyz                                                              ;} // helper position
    Vec2  tex      (                    uniform Bool heightmap=false) {return heightmap ? _pos.xz*Vec2(VtxHeightmap, -VtxHeightmap) : _tex          ;} // tex coords 0
@@ -1102,6 +1103,14 @@ inline Flt Lerp4(Flt v0, Flt v1, Flt v2, Flt v3, Flt s)
         + s     * ( TAN   *(v2-v0)                                          )
         + v1;
 }
+inline Half Lerp4(Half v0, Half v1, Half v2, Half v3, Half s)
+{
+   return s*s*s * ((2-TAN)*(v1-v2) + TAN*(v3-v0)                            )
+        + s*s   * ((TAN-3)*(v1   ) - TAN*(v3   ) - (2*TAN-3)*v2 + (2*TAN)*v0)
+        + s     * ( TAN   *(v2-v0)                                          )
+        + v1;
+}
+
 inline Vec Lerp4(Vec v0, Vec v1, Vec v2, Vec v3, Flt s)
 {
    Flt s2=s*s,
@@ -1112,10 +1121,31 @@ inline Vec Lerp4(Vec v0, Vec v1, Vec v2, Vec v3, Flt s)
         - v0 * (   TAN*(s3+s ) - (2*TAN  )*s2            )
         + v3 * (   TAN*(s3-s2)                           );
 }
+inline VecH Lerp4(VecH v0, VecH v1, VecH v2, VecH v3, Half s)
+{
+   Half s2=s*s,
+        s3=s*s*s;
+
+   return v1 * ((2-TAN)*s3     + (  TAN-3)*s2         + 1)
+        - v2 * ((2-TAN)*s3     + (2*TAN-3)*s2 - TAN*s    )
+        - v0 * (   TAN*(s3+s ) - (2*TAN  )*s2            )
+        + v3 * (   TAN*(s3-s2)                           );
+}
+
 inline Vec4 Lerp4(Vec4 v0, Vec4 v1, Vec4 v2, Vec4 v3, Flt s)
 {
    Flt s2=s*s,
        s3=s*s*s;
+
+   return v1 * ((2-TAN)*s3     + (  TAN-3)*s2         + 1)
+        - v2 * ((2-TAN)*s3     + (2*TAN-3)*s2 - TAN*s    )
+        - v0 * (   TAN*(s3+s ) - (2*TAN  )*s2            )
+        + v3 * (   TAN*(s3-s2)                           );
+}
+inline VecH4 Lerp4(VecH4 v0, VecH4 v1, VecH4 v2, VecH4 v3, Half s)
+{
+   Half s2=s*s,
+        s3=s*s*s;
 
    return v1 * ((2-TAN)*s3     + (  TAN-3)*s2         + 1)
         - v2 * ((2-TAN)*s3     + (2*TAN-3)*s2 - TAN*s    )

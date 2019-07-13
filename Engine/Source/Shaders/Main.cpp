@@ -14,26 +14,26 @@
 VecH4 TexCubicFast(Vec2 inTex)
 {
 #if 0 // original
-   Vec2 tex =inTex*ImgSize.zw-0.5,
-        texi=Floor(tex),
-        texf=tex-texi;
-        texi-=0.5; texi*=ImgSize.xy;
+   Vec2  tex =inTex*ImgSize.zw-0.5,
+         texi=Floor(tex);
+   VecH2 texf=tex-texi;
+         texi-=0.5; texi*=ImgSize.xy;
 
-   Vec4 c00=TexPoint(Img, texi+ImgSize.xy*Vec2(0, 0)), c10=TexPoint(Img, texi+ImgSize.xy*Vec2(1, 0)), c20=TexPoint(Img, texi+ImgSize.xy*Vec2(2, 0)), c30=TexPoint(Img, texi+ImgSize.xy*Vec2(3, 0)),
-        c01=TexPoint(Img, texi+ImgSize.xy*Vec2(0, 1)), c11=TexPoint(Img, texi+ImgSize.xy*Vec2(1, 1)), c21=TexPoint(Img, texi+ImgSize.xy*Vec2(2, 1)), c31=TexPoint(Img, texi+ImgSize.xy*Vec2(3, 1)),
-        c02=TexPoint(Img, texi+ImgSize.xy*Vec2(0, 2)), c12=TexPoint(Img, texi+ImgSize.xy*Vec2(1, 2)), c22=TexPoint(Img, texi+ImgSize.xy*Vec2(2, 2)), c32=TexPoint(Img, texi+ImgSize.xy*Vec2(3, 2)),
-        c03=TexPoint(Img, texi+ImgSize.xy*Vec2(0, 3)), c13=TexPoint(Img, texi+ImgSize.xy*Vec2(1, 3)), c23=TexPoint(Img, texi+ImgSize.xy*Vec2(2, 3)), c33=TexPoint(Img, texi+ImgSize.xy*Vec2(3, 3));
+   VecH4 c00=TexPoint(Img, texi+ImgSize.xy*Vec2(0, 0)), c10=TexPoint(Img, texi+ImgSize.xy*Vec2(1, 0)), c20=TexPoint(Img, texi+ImgSize.xy*Vec2(2, 0)), c30=TexPoint(Img, texi+ImgSize.xy*Vec2(3, 0)),
+         c01=TexPoint(Img, texi+ImgSize.xy*Vec2(0, 1)), c11=TexPoint(Img, texi+ImgSize.xy*Vec2(1, 1)), c21=TexPoint(Img, texi+ImgSize.xy*Vec2(2, 1)), c31=TexPoint(Img, texi+ImgSize.xy*Vec2(3, 1)),
+         c02=TexPoint(Img, texi+ImgSize.xy*Vec2(0, 2)), c12=TexPoint(Img, texi+ImgSize.xy*Vec2(1, 2)), c22=TexPoint(Img, texi+ImgSize.xy*Vec2(2, 2)), c32=TexPoint(Img, texi+ImgSize.xy*Vec2(3, 2)),
+         c03=TexPoint(Img, texi+ImgSize.xy*Vec2(0, 3)), c13=TexPoint(Img, texi+ImgSize.xy*Vec2(1, 3)), c23=TexPoint(Img, texi+ImgSize.xy*Vec2(2, 3)), c33=TexPoint(Img, texi+ImgSize.xy*Vec2(3, 3));
 
-   Vec4 c0=Lerp4(c00, c10, c20, c30, texf.x),
-        c1=Lerp4(c01, c11, c21, c31, texf.x),
-        c2=Lerp4(c02, c12, c22, c32, texf.x),
-        c3=Lerp4(c03, c13, c23, c33, texf.x);
+   VecH4 c0=Lerp4(c00, c10, c20, c30, texf.x),
+         c1=Lerp4(c01, c11, c21, c31, texf.x),
+         c2=Lerp4(c02, c12, c22, c32, texf.x),
+         c3=Lerp4(c03, c13, c23, c33, texf.x);
 
    return Lerp4(c0, c1, c2, c3, texf.y);
 #else // optimized
    inTex*=ImgSize.zw;
-   Vec2 tc=Floor(inTex-0.5)+0.5,
-        f=inTex-tc, f2=f*f, f3=f2*f,
+   Vec2 tc=Floor(inTex-0.5)+0.5;
+   VecH2 f=inTex-tc, f2=f*f, f3=f2*f,
         w0=f2-0.5*(f3+f), w1=1.5*f3-2.5*f2+1.0,
    #if 0
         w2=-1.5*f3+2*f2+0.5*f, w3=0.5*(f3-f2);
@@ -71,8 +71,8 @@ VecH4 TexCubicFast(Vec2 inTex)
          +TexPoint(Img, Vec2(tc2.x, tc3.y))*(w2.x*w3.y)
          +TexPoint(Img, Vec2(tc3.x, tc3.y))*(w3.x*w3.y);
 #else // 5 tex reads, corners are ignored because they're insignificant, 
-   Vec2 w12=w1+w2, p=tc+(w2/w12)*ImgSize.xy;
-   Flt  wu=w12.x*w0.y, wd=w12.x*w3.y, wl=w12.y*w0.x, wr=w12.y*w3.x, wc=w12.x*w12.y;
+   VecH2 w12=w1+w2; Vec2 p=tc+(w2/w12)*ImgSize.xy;
+   Half  wu=w12.x*w0.y, wd=w12.x*w3.y, wl=w12.y*w0.x, wr=w12.y*w3.x, wc=w12.x*w12.y;
    // keep 'Tex' in case we need LOD's (for example stretching in 1 dimension but shrinking in another)
    return(Tex(Img, Vec2(  p.x, tc0.y))*wu // sample upper edge (2 texels), both weights are negative
          +Tex(Img, Vec2(  p.x, tc3.y))*wd // sample lower edge (2 texels), both weights are negative
@@ -86,14 +86,14 @@ VecH4 TexCubicFast(Vec2 inTex)
 VecH TexCubicFastRGB(Vec2 inTex) // ignores alpha channel
 {
    inTex*=ImgSize.zw;
-   Vec2 tc=Floor(inTex-0.5)+0.5,
-        f=inTex-tc, f2=f*f, f3=f2*f,
+   Vec2 tc=Floor(inTex-0.5)+0.5;
+   VecH2 f=inTex-tc, f2=f*f, f3=f2*f,
         w0=f2-0.5*(f3+f), w1=1.5*f3-2.5*f2+1.0,
         w3=0.5*(f3-f2), w2=1.0-w0-w1-w3;
    tc*=ImgSize.xy;
-   Vec2 tc0=tc-ImgSize.xy, tc3=tc+ImgSize.xy*2,
-        w12=w1  +w2      , p  =tc+(w2/w12)*ImgSize.xy;
-   Flt  wu =w12.x*w0.y   , wd =w12.x*w3.y, wl=w12.y*w0.x, wr=w12.y*w3.x, wc=w12.x*w12.y;
+   Vec2  tc0=tc-ImgSize.xy, tc3=tc+ImgSize.xy*2;
+   VecH2 w12=w1+w2; Vec2 p=tc+(w2/w12)*ImgSize.xy;
+   Half  wu =w12.x*w0.y, wd=w12.x*w3.y, wl=w12.y*w0.x, wr=w12.y*w3.x, wc=w12.x*w12.y;
    // keep 'Tex' in case we need LOD's (for example stretching in 1 dimension but shrinking in another)
    return(Tex(Img, Vec2(  p.x, tc0.y)).rgb*wu
          +Tex(Img, Vec2(  p.x, tc3.y)).rgb*wd
@@ -119,9 +119,17 @@ inline Flt Cubic(Flt x, uniform Flt blur, uniform Flt sharpen)
    return (x<=1) ? ((12-9*blur-6*sharpen)/6*x3 + (-18+12*blur+6*sharpen)/6*x2 +                             (6-2*blur         )/6)
                  : ((-blur-6*sharpen    )/6*x3 + (6*blur+30*sharpen    )/6*x2 + (-12*blur-48*sharpen)/6*x + (8*blur+24*sharpen)/6);
 }
-Flt CubicMed(Flt x) {return Cubic(x, 0.0, 0.375);}
+inline Half Cubic(Half x, uniform Half blur, uniform Half sharpen)
+{
+   Half x2=x*x,
+        x3=x*x*x;
+   return (x<=1) ? ((12-9*blur-6*sharpen)/6*x3 + (-18+12*blur+6*sharpen)/6*x2 +                             (6-2*blur         )/6)
+                 : ((-blur-6*sharpen    )/6*x3 + (6*blur+30*sharpen    )/6*x2 + (-12*blur-48*sharpen)/6*x + (8*blur+24*sharpen)/6);
+}
+Flt  CubicMed(Flt  x) {return Cubic(x, 0.0, 0.375);}
+Half CubicMed(Half x) {return Cubic(x, 0.0, 0.375);}
 
-VecH4 TexLerp(Flt x0, Flt x1, Flt y, Flt l, Flt r)
+/*VecH4 TexLerp(Flt x0, Flt x1, Flt y, Flt l, Flt r)
 {
    Flt w=l+r;
    // keep 'Tex' in case we need LOD's (for example stretching in 1 dimension but shrinking in another)
@@ -160,14 +168,14 @@ VecH TexLerpRGB(Vec2 t0, Vec2 t1, Flt lu, Flt ru, Flt lb, Flt rb) // ignores alp
    Flt w=lu+ru+lb+rb;
    // keep 'Tex' in case we need LOD's (for example stretching in 1 dimension but shrinking in another)
    return Tex(Img, t/w).rgb*Half(w);
-}
+}*/
 
 VecH4 TexCubic(Vec2 inTex)
 {
-   Vec2 pixel =inTex*ImgSize.zw-0.5,
-        pixeli=Floor(pixel),
-        offset       [CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE],
-        offset_weight[CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE];
+   Vec2  pixel =inTex*ImgSize.zw-0.5,
+         pixeli=Floor(pixel),
+         offset       [CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE];
+   VecH2 offset_weight[CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE];
 
 #if CUBIC_SKIP_SAMPLE
    pixeli+=(pixel-pixeli>=CUBIC_RANGE/CUBIC_SHARPNESS-(CUBIC_SAMPLES-1)); // if the left/top coordinate is completely out of range, then process the next pixel (the >= returns Vec2, so it modifies X and Y independently)
@@ -179,13 +187,13 @@ VecH4 TexCubic(Vec2 inTex)
       offset_weight[i]=Sqr((pixel -offset[i])*CUBIC_SHARPNESS);
       offset       [i]=           (offset[i]+0.5)*ImgSize.xy;
    }
-   Vec4 color =0;
-   Flt  weight=0;
+   VecH4 color =0;
+   Half  weight=0;
 #if CUBIC_QUALITY>=2
    UNROLL for(int y=0; y<CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE; y++)
    UNROLL for(int x=0; x<CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE; x++)
    {
-      Flt w=offset_weight[x].x+offset_weight[y].y; if(w<Sqr(CUBIC_RANGE))
+      Half w=offset_weight[x].x+offset_weight[y].y; if(w<Sqr(CUBIC_RANGE))
       {
          w=CubicMed(Sqrt(w));
          color +=w*TexPoint(Img, Vec2(offset[x].x, offset[y].y)); // don't use "color+=w*Img.Load(VecI(offset[x].x without scale, offset[y].y without scale, 0)); because it is slower and doesn't support wrap/clamp
@@ -214,10 +222,10 @@ VecH4 TexCubic(Vec2 inTex)
 }
 VecH TexCubicRGB(Vec2 inTex) // ignores alpha channel
 {
-   Vec2 pixel =inTex*ImgSize.zw-0.5,
-        pixeli=Floor(pixel),
-        offset       [CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE],
-        offset_weight[CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE];
+   Vec2  pixel =inTex*ImgSize.zw-0.5,
+         pixeli=Floor(pixel),
+         offset       [CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE];
+   VecH2 offset_weight[CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE];
 
 #if CUBIC_SKIP_SAMPLE
    pixeli+=(pixel-pixeli>=CUBIC_RANGE/CUBIC_SHARPNESS-(CUBIC_SAMPLES-1)); // if the left/top coordinate is completely out of range, then process the next pixel (the >= returns Vec2, so it modifies X and Y independently)
@@ -229,13 +237,13 @@ VecH TexCubicRGB(Vec2 inTex) // ignores alpha channel
       offset_weight[i]=Sqr((pixel -offset[i])*CUBIC_SHARPNESS);
       offset       [i]=           (offset[i]+0.5)*ImgSize.xy;
    }
-   Vec color =0;
-   Flt weight=0;
+   VecH color =0;
+   Half weight=0;
 #if CUBIC_QUALITY>=2 // high quality
    UNROLL for(int y=0; y<CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE; y++)
    UNROLL for(int x=0; x<CUBIC_SAMPLES*2-CUBIC_SKIP_SAMPLE; x++)
    {
-      Flt w=offset_weight[x].x+offset_weight[y].y; if(w<Sqr(CUBIC_RANGE))
+      Half w=offset_weight[x].x+offset_weight[y].y; if(w<Sqr(CUBIC_RANGE))
       {
          w=CubicMed(Sqrt(w));
          color +=w*TexPoint(Img, Vec2(offset[x].x, offset[y].y)).rgb; // don't use "color+=w*Img.Load(VecI(offset[x].x without scale, offset[y].y without scale, 0)).rgb; because it is slower and doesn't support wrap/clamp
@@ -421,7 +429,7 @@ void Draw2DDepthTex_VS(VtxInput vtx,
                    out Vec4  outVtx:POSITION)
 {
    outTex=vtx.tex();
-   outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, DelinearizeDepth(vtx._pos.z), 1);
+   outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, DelinearizeDepth(vtx.posZ()), 1);
 }
 VecH4 Draw3DTex_PS(Vec2  inTex:TEXCOORD,
                    VecH4 inFog:COLOR   ,
@@ -462,7 +470,7 @@ void Draw2DDepthTexCol_VS(VtxInput vtx,
 {
    outTex=vtx.tex  ();
    outCol=vtx.color();
-   outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, DelinearizeDepth(vtx._pos.z), 1);
+   outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, DelinearizeDepth(vtx.posZ()), 1);
 }
 Vec4 Draw3DTexCol_PS(Vec2  inTex:TEXCOORD,
                      VecH4 inCol:COLOR   ,
@@ -699,7 +707,7 @@ void Laser_PS(Vec                 inPos:TEXCOORD0,
          inNrm=Normalize(inNrm);
       Flt  stp=Max (-Dot(inNrm, Normalize(inPos)), -inNrm.z);
            stp=Sat (stp);
-           stp=Pow (stp, Half(Step));
+           stp=Pow (stp, Step);
       Vec4 col=Lerp(Color[0], Color[1], stp);
       output.color(col.rgb);
       output.glow (col.a  );
@@ -3758,11 +3766,11 @@ TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
       struct CloudLayer
       {
          MP Vec4 color;
-         MP Vec2 scale;
+         HP Vec2 scale;
          HP Vec2 position;
       };
 
-      PAR MP Flt LCScaleY;
+      PAR HP Flt LCScaleY;
 
       PAR CloudLayer CL[1];
 

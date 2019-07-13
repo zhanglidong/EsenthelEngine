@@ -355,10 +355,10 @@ VecH4 Under_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       Flt refract=Sat(AccumulatedDensity(WaterDns.x, dist)+WaterDns.y)*WaterUnderRfr;
 
    #if 1 // viewport size adjusted
-      inTex+=Sin(inTex.yx*14/Viewport.size+Half(Step))*refract*Viewport.size; // add refraction
+      inTex+=Sin(inTex.yx*14/Viewport.size+Step)*refract*Viewport.size; // add refraction
       inTex =(inTex-Viewport.center)/(1+2*refract)+Viewport.center; // scale texture coordinates to avoid clamping
    #else
-      inTex+=Sin(inTex.yx*14+Half(Step))*refract; // add refraction
+      inTex+=Sin(inTex.yx*14+Step)*refract; // add refraction
       inTex =(inTex-0.5)/(1+2*refract)+0.5; // scale texture coordinates to avoid clamping
    #endif
    }

@@ -2,11 +2,11 @@
 struct CloudLayer
 {
    VecH4 color;
-   VecH2 scale, position;
+   Vec2  scale, position;
 };
 
 BUFFER(CloudLayer)
-   Half LCScaleY;
+   Flt  LCScaleY;
    Vec2 LCRange;
 
    CloudLayer CL[4];

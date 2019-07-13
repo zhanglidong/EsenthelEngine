@@ -64,7 +64,7 @@ Flt HdrUpdate_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR // here use full precision
    lum=HdrBrightness/Max(lum, EPS_COL); // desired scale
 
    lum=Mid(lum, HdrMaxDark, HdrMaxBright);
-   return Lerp(lum, TexPoint(ImgXF1, Vec2(0, 0)).x, Step); // lerp new with old
+   return Lerp(lum, TexPoint(ImgXF1, Vec2(0, 0)).x, (Flt)Step); // lerp new with old
 }
 /******************************************************************************/
 VecH4 Hdr_PS(NOPERSP Vec2 inTex:TEXCOORD,
