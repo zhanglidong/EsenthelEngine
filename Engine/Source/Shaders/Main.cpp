@@ -1292,8 +1292,8 @@ TECHNIQUE(MaxY, Draw_VS(), MaxY_PS());
 // 2D FX
 /******************************************************************************/
 BUFFER(ColTrans)
-   Matrix ColTransMatrix;
-   Vec    ColTransHsb;
+   MatrixH ColTransMatrix;
+   Vec     ColTransHsb;
 BUFFER_END
 
 VecH4 ColTrans_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
@@ -1305,7 +1305,7 @@ VecH4 ColTransHB_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
    VecH color     =Tex(Img, inTex).rgb;
    Half brightness=Max(color); color=Transform(color, ColTransMatrix);
    Half max       =Max(color);
-   if(  max)color*=ColTransHsb.z*brightness/max;
+   if(  max)color*=Half(ColTransHsb.z)*brightness/max;
    return VecH4(color, Step);
 }
 VecH4 ColTransHSB_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
@@ -1368,7 +1368,7 @@ TECHNIQUE(Titles, Draw_VS(), Titles_PS());
 /******************************************************************************/
 VecH4 Fade_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
 {
-   VecH4  c=Tex(Img, inTex); c.a*=Sat(Step*3+(inTex.x+inTex.y)*0.5-1-Tex(Img1, inTex).a);
+   VecH4  c=Tex(Img, inTex); c.a*=Sat(Half(Step)*3+Half(inTex.x+inTex.y)*0.5-1-Tex(Img1, inTex).a);
    return c;
 }
 TECHNIQUE(Fade, Draw_VS(), Fade_PS());
@@ -1461,8 +1461,8 @@ VecH4 EdgeDetect_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
 }
 VecH4 EdgeDetectApply_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR // use VecH4 because we apply this directly onto RGBA destination
 {
-   const Int samples=4;
-         Flt color  =TexPoint(ImgX, inTex).x;
+   const Int  samples=4;
+         Half color  =TexPoint(ImgX, inTex).x;
    for(Int i=0; i<samples; i++)
    {
       Vec2 t=inTex+BlendOfs4[i]*ImgSize.xy;
