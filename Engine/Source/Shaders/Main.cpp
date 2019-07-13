@@ -1633,8 +1633,8 @@ inline VecH4 SkyTex(Vec inTex, Vec inTexStar, VecH4 inCol, Half alpha, uniform B
          inTex=Normalize(inTex);
          inCol=SkyColor (inTex);
 
-         Flt cos      =Dot(SkySunPos, inTex),
-             highlight=1+Sqr(cos)*((cos>0) ? SkySunHighlight.x : SkySunHighlight.y); // rayleigh, here 'Sqr' works better than 'Abs'
+         Half cos      =Dot(SkySunPos, inTex),
+              highlight=1+Sqr(cos)*((cos>0) ? SkySunHighlight.x : SkySunHighlight.y); // rayleigh, here 'Sqr' works better than 'Abs'
          inCol.rgb*=highlight;
       }
 
@@ -1683,8 +1683,8 @@ VecH4 Sky_PS(PIXEL,
 {
    Half alpha; if(flat)alpha=0;else // flat uses ALPHA_NONE
    {
-      alpha=TexDepthPoint(PixelToScreen(pixel))/Normalize(inPos).z;
-      alpha=Sat(alpha*SkyFracMulAdd.x + SkyFracMulAdd.y);
+      Flt frac=TexDepthPoint(PixelToScreen(pixel))/Normalize(inPos).z;
+      alpha=Sat(frac*SkyFracMulAdd.x + SkyFracMulAdd.y);
    }
    VecH4 col=SkyTex(inTex, inTexStar, inCol, alpha, per_vertex, density, textures, stars);
    if(clouds)
