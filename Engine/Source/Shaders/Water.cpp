@@ -115,9 +115,9 @@ void Surface_PS
         fresnel_nrm.xy*=WaterFresnelRough;
         fresnel_nrm.z  =CalcZ(fresnel_nrm.xy);
         fresnel_nrm    =Transform(fresnel_nrm, mtrx); // convert to view space
-   Vec     view_nrm    =Transform(nrm        , mtrx); // convert to view space
+   VecH    view_nrm    =Transform(nrm        , mtrx); // convert to view space
 
-   Vec view=Normalize(inPos);
+   VecH view=Normalize(inPos);
 
    VecH4 col=VecH4(WaterCol*Tex(Col, inTex).rgb, 0);
    {
@@ -352,14 +352,14 @@ VecH4 Under_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       Flt to_surface=-DistPointPlaneRay(Vec(0, 0, 0), WaterPlnPos, WaterPlnNrm, Normalize(Vec(inPosXY, 1)));
       if( to_surface>0)dist=Min(to_surface, dist);
 
-      Flt refract=Sat(AccumulatedDensity(WaterDns.x, dist)+WaterDns.y)*WaterUnderRfr;
+      Flt refract_len=Sat(AccumulatedDensity(WaterDns.x, dist)+WaterDns.y)*WaterUnderRfr;
 
    #if 1 // viewport size adjusted
-      inTex+=Sin(inTex.yx*14/Viewport.size+Step)*refract*Viewport.size; // add refraction
-      inTex =(inTex-Viewport.center)/(1+2*refract)+Viewport.center; // scale texture coordinates to avoid clamping
+      inTex+=Sin(inTex.yx*14/Viewport.size+Step)*refract_len*Viewport.size; // add refraction
+      inTex =(inTex-Viewport.center)/(1+2*refract_len)+Viewport.center; // scale texture coordinates to avoid clamping
    #else
-      inTex+=Sin(inTex.yx*14+Step)*refract; // add refraction
-      inTex =(inTex-0.5)/(1+2*refract)+0.5; // scale texture coordinates to avoid clamping
+      inTex+=Sin(inTex.yx*14+Step)*refract_len; // add refraction
+      inTex =(inTex-0.5)/(1+2*refract_len)+0.5; // scale texture coordinates to avoid clamping
    #endif
    }
 

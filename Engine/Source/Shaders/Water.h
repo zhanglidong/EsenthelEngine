@@ -1,20 +1,20 @@
 /******************************************************************************/
 BUFFER(WaterSurface)
+   Half WaterRgh_2,
+        WaterFresnelRough,
+        WaterFresnelPow,
+        WaterRflFake,
+        WaterSpc;
    Flt  WaterScaleDif,
         WaterScaleNrm,
-        WaterScaleBump,
-        WaterRgh_2,
-        WaterRflFake,
-        WaterSpc,
-        WaterFresnelPow,
-        WaterFresnelRough;
-   Vec  WaterFresnelColor;
-   Vec  WaterCol;
+        WaterScaleBump;
+   VecH WaterCol,
+        WaterFresnelColor;
 BUFFER_END
 
 BUFFER(Water)
-   Flt  WaterRfl,
-        WaterRfr,
+   Half WaterRfl;
+   Flt  WaterRfr,
         WaterRfrRfl,
         WaterUnder,
         WaterUnderRfr,
@@ -26,7 +26,7 @@ BUFFER(Water)
    Vec4 WaterRflMulAdd,
         WaterClamp;
 
-   Flt  WaterWave;
+   Half WaterWave;
    Vec2 WaterYMulAdd;
    Vec  WaterPlnPos,
         WaterPlnNrm;

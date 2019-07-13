@@ -1313,7 +1313,7 @@ inline Half GetLod(Vec2 tex_coord, Vec2 tex_size)
 #define LeafBendScale  0.13
 #define LeafsBendScale (LeafBendScale/2)
 /******************************************************************************/
-inline Vec2 GetGrassBend(Vec world_pos) // TODO: #ShaderHalf
+inline Vec2 GetGrassBend(Vec world_pos)
 {
    Flt offset=Dot(world_pos.xz, Vec2(0.7, 0.9)*GrassBendFreq);
    return Vec2((0.28*GrassBendScale)*Sin(offset+BendFactor.x) + (0.32*GrassBendScale)*Sin(offset+BendFactor.y),
@@ -1336,7 +1336,7 @@ inline Half GrassFadeOut(uniform uint mtrx=0)
 {
    return Sat(Length2(MatrixPos(ViewMatrix[mtrx]))*GrassRangeMulAdd.x+GrassRangeMulAdd.y);
 }
-inline void BendGrass(Vec local_pos, in out Vec view_pos, uniform uint mtrx=0) // TODO: #ShaderHalf
+inline void BendGrass(Vec local_pos, in out Vec view_pos, uniform uint mtrx=0)
 {
    Flt  b   =Cube(Sat(local_pos.y));
    Vec2 bend=GetGrassBend(ObjWorldPos(mtrx))*(b*Length(MatrixY(ViewMatrix[mtrx])));
