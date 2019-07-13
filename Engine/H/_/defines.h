@@ -98,8 +98,8 @@ T2(ENUM0, ENUM1) constexpr typename std::enable_if< std::is_enum<ENUM0>::value &
 #define    RANGE_ASSERT(index, elms  )   DEBUG_ASSERT(InRange(index, elms), "Element out of range")                 // out of range assertion, asserts that 'index' is in range "0..elms-1"
 #define    ALIGN_ASSERT(Class, member)   ASSERT(!(OFFSET(Class, member)&(SIZE(Ptr)-1)))                             // assert that class member has alignment native to the target platform
 
-ASSERT(SIZE(Bool)==1); // size of Bool must be 1 byte
-ASSERT(SIZE(Char)==2); // size of Char must be 2 bytes
+ASSERT(SIZE(Bool )==1); // size of Bool  must be 1 byte
+ASSERT(SIZE(Char8)==1); // size of Char8 must be 1 byte
 /******************************************************************************/
 // STRUCT DECLARATION
 /******************************************************************************/
@@ -121,11 +121,11 @@ ASSERT(SIZE(Char)==2); // size of Char must be 2 bytes
 // FUNCTION DECLARATION
 /******************************************************************************/
 #if WINDOWS
-   #define INLINE         __forceinline  // force   inlining, this is stronger than 'inline'
+   #define   INLINE       __forceinline  // force   inlining, this is stronger than 'inline'
    #define NOINLINE __declspec(noinline) // disable inlining
 #else
-   #define INLINE inline __attribute__((always_inline)) // force   inlining, this is stronger than 'inline'
-   #define NOINLINE      __attribute__((     noinline)) // disable inlining
+   #define   INLINE inline __attribute__((always_inline)) // force   inlining, this is stronger than 'inline'
+   #define NOINLINE        __attribute__((     noinline)) // disable inlining
 #endif
 /******************************************************************************/
 // CONFIGURATION
