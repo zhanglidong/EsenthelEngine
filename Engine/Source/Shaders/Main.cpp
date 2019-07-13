@@ -2505,7 +2505,7 @@ VecH4 ColLight_PS(NOPERSP Vec2 inTex:TEXCOORD   ,
       }else // n samples
       {
          VecH4 color_sum=0;
-         Flt   valid_samples=EPS;
+         Half  valid_samples=EPS;
          VecH  night_shade_col; if(night_shade && ao_do && !ao_all)night_shade_col=NightShadeColor*ao; // compute it once, and not inside 'ColLight'
          UNROLL for(Int i=0; i<MS_SAMPLES; i++)if(DEPTH_FOREGROUND(TexDepthMSRaw(pixel.xy, i))) // valid sample
          {
