@@ -2571,7 +2571,7 @@ TECHNIQUE(ColLight2ACN, Draw_VS(), ColLight_PS(2, true , true , true));
 BUFFER(Particle)
    Vec2 ParticleFrames=Vec2(1, 1);
 BUFFER_END
-
+// #ShaderHalf
 void Particle_VS(VtxInput vtx,
              out Vec4  outVtx :POSITION ,
              out VecH4 outCol :COLOR    ,
@@ -2749,12 +2749,12 @@ TECHNIQUE(PaletteDraw, Draw_VS(), PaletteDraw_PS());
 // DECAL
 /******************************************************************************/
 BUFFER(Decal)
-   Vec DecalParams; // x=OpaqueFracMul, y=OpaqueFracAdd, z=alpha
+   VecH DecalParams; // x=OpaqueFracMul, y=OpaqueFracAdd, z=alpha
 BUFFER_END
 
-inline Flt DecalOpaqueFracMul() {return DecalParams.x;}
-inline Flt DecalOpaqueFracAdd() {return DecalParams.y;}
-inline Flt DecalAlpha        () {return DecalParams.z;}
+inline Half DecalOpaqueFracMul() {return DecalParams.x;}
+inline Half DecalOpaqueFracAdd() {return DecalParams.y;}
+inline Half DecalAlpha        () {return DecalParams.z;}
 
 void Decal_VS(VtxInput vtx,
           out Vec4    outVtx    :POSITION ,
@@ -2793,7 +2793,7 @@ VecH4 Decal_PS(PIXEL,
 {
    Vec  pos  =GetPosPoint(PixelToScreen(pixel));
         pos  =mul((Matrix3)inMatrix, pos-inMatrix[3]);
-   Half alpha=Sat(Abs(pos.z)*DecalOpaqueFracMul()+DecalOpaqueFracAdd());
+   Half alpha=Sat(Half(Abs(pos.z))*DecalOpaqueFracMul()+DecalOpaqueFracAdd());
  
    clip(Vec(1-Abs(pos.xy), alpha-EPS_COL));
    alpha*=DecalAlpha();
@@ -2804,7 +2804,7 @@ VecH4 Decal_PS(PIXEL,
 
    if(palette)
    {
-      return col.a*(Color[0]*MaterialColor())*alpha;
+      return (col.a*alpha)*Color[0]*MaterialColor();
    }else
    {
       if(normal)
@@ -2818,9 +2818,8 @@ VecH4 Decal_PS(PIXEL,
                    nrm.z  =CalcZ(nrm.xy);
                    nrm    =Transform(nrm, inMatrixN);
 
-         col.a =tex_nrm.w; // alpha is in 'nrm.w'
-         col  *=Color[0]*MaterialColor();
-         col.a*=alpha;
+         col.a=tex_nrm.w*alpha; // alpha is in 'nrm.w'
+         col *=Color[0]*MaterialColor();
 
       #if SIGNED_NRM_RT
          outNrm.xyz=nrm;
