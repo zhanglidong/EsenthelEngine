@@ -205,13 +205,13 @@ struct GpuLightPoint
 };
 struct GpuLightLinear
 {
-   Flt range, vol, vol_max;
+   Flt neg_inv_range, vol, vol_max;
    Vec pos, color;
    Flt spec;
 };
 struct GpuLightCone
 {
-   Flt     length, scale, vol, vol_max;
+   Flt     neg_inv_range, scale, vol, vol_max;
    Vec2    falloff;
    Vec     pos, color;
    Flt     spec;
@@ -244,12 +244,12 @@ void LightPoint::set(Flt shadow_opacity)
 void LightLinear::set(Flt shadow_opacity)
 {
    GpuLightLinear l;
-   l.range  =range;
-   l.vol    =vol*shadow_opacity;
-   l.vol_max=vol_max;
-   l.pos    .fromDivNormalized(pos, CamMatrix);
-   l.color  =LinearToDisplay(color_l);
-   l.spec   =color_l.max();
+   l.neg_inv_range=-1/range;
+   l.vol          =vol*shadow_opacity;
+   l.vol_max      =vol_max;
+   l.pos          .fromDivNormalized(pos, CamMatrix);
+   l.color        =LinearToDisplay(color_l);
+   l.spec         =color_l.max();
    Sh.Light_linear->set(l);
 }
 void LightCone::set(Flt shadow_opacity)
@@ -258,17 +258,17 @@ void LightCone::set(Flt shadow_opacity)
    // angular intensity = Length(pos)*l.falloff.x+l.falloff.y             falloff=0 Y|\         falloff=1 Y|  |
    // falloff=0         ->            l.falloff.x=-1    l.falloff.y=1                | \                   |  |
    // falloff=1         ->            l.falloff.x=-Inf  l.falloff.y=Inf              +--\X                 +--|X
-   l.falloff.x   =-1.0f/Mid(falloff, EPS, 1.0f);
-   l.falloff.y   =-l.falloff.x;
-   l.vol         = vol*shadow_opacity;
-   l.vol_max     = vol_max;
-   l.color       = LinearToDisplay(color_l);
-   l.spec        = color_l.max();
-   l.length      = pyramid.h;
-   l.scale       = pyramid.scale;
-   l.mtrx.x      =-pyramid.cross()/pyramid.scale;
-   l.mtrx.y      =-pyramid.perp   /pyramid.scale;
-   l.mtrx.z      =-pyramid.dir;
+   l.falloff.x    =-1.0f/Mid(falloff, EPS, 1.0f);
+   l.falloff.y    =-l.falloff.x;
+   l.vol          = vol*shadow_opacity;
+   l.vol_max      = vol_max;
+   l.color        = LinearToDisplay(color_l);
+   l.spec         = color_l.max();
+   l.neg_inv_range=-1/pyramid.h;
+   l.scale        = pyramid.scale;
+   l.mtrx.x       =-pyramid.cross()/pyramid.scale;
+   l.mtrx.y       =-pyramid.perp   /pyramid.scale;
+   l.mtrx.z       =-pyramid.dir;
    l.mtrx.    divNormalized(             CamMatrix.orn());
    l.pos .fromDivNormalized(pyramid.pos, CamMatrix);
    Sh.Light_cone->set(l);
@@ -395,7 +395,6 @@ static void ApplyVolumetric(LightPoint &light)
    if(Renderer.hasVolLight() && light.vol>EPS_COL)REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])
    {
       StartVol();
-      VL.Light_point_range->set(light.range());
       VL.VolPoint->draw(Renderer._vol, &CurrentLightRect[Renderer._eye]);
    }
 }

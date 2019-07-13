@@ -628,8 +628,6 @@ void VolumetricLights::load()
 {
    if(!shader)if(shader=ShaderFiles("Volumetric Lights"))
    {
-      Light_point_range=GetShaderParam("Light_point_range");
-
       REPD(n, 6)
       REPD(c, 2)VolDir[n][c]=shader->get(S8+"VolDir"+(n+1)+(c?'C':'\0'));
                 VolPoint    =shader->get(   "VolPoint" );

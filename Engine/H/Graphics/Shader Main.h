@@ -367,14 +367,13 @@ struct VolumetricCloudsFx
 
 struct VolumetricLights
 {
-   ShaderFile  *shader;
-   ShaderParam *Light_point_range;
-   Shader      *VolDir[6][2], // [ShdMapNum] [Clouds]
-               *VolPoint    ,
-               *VolLinear   ,
-               *VolCone     ,
-               *Volumetric  ,
-               *VolumetricA ;
+   ShaderFile *shader;
+   Shader     *VolDir[6][2], // [ShdMapNum] [Clouds]
+              *VolPoint    ,
+              *VolLinear   ,
+              *VolCone     ,
+              *Volumetric  ,
+              *VolumetricA ;
 
    void load();
 }extern

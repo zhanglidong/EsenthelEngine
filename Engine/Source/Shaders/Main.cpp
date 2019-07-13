@@ -2164,7 +2164,7 @@ BUFFER_END
 
 VecH4 LightDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                   NOPERSP Vec2 inPosXY:TEXCOORD1,
-                  uniform Int  shadow           ,
+                  uniform Bool shadow           ,
                   uniform Bool quality          ):COLOR
 {
    // shadow
@@ -2212,7 +2212,7 @@ TECHNIQUE_4_1(LightDirSM, DrawPosXY_VS(), LightDirM_PS(true , false));
 /******************************************************************************/
 VecH4 LightPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                     NOPERSP Vec2 inPosXY:TEXCOORD1,
-                    uniform Int  shadow           ,
+                    uniform Bool shadow           ,
                     uniform Bool quality          ):COLOR
 {
    // shadow
@@ -2276,7 +2276,7 @@ TECHNIQUE_4_1(LightPointSM, DrawPosXY_VS(), LightPointM_PS(true , false));
 /******************************************************************************/
 VecH4 LightLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                      NOPERSP Vec2 inPosXY:TEXCOORD1,
-                     uniform Int  shadow           ,
+                     uniform Bool shadow           ,
                      uniform Bool quality          ):COLOR
 {
    // shadow
@@ -2287,12 +2287,12 @@ VecH4 LightLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    }
 
    // distance
-   Vec  pos      =GetPosPoint(inTex, inPosXY),
-        light_dir=Light_linear.pos-pos;
-   Half power    =LightLinearDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
+   Vec  pos  =GetPosPoint(inTex, inPosXY),
+        delta=Light_linear.pos-pos; Flt dist=Length(delta);
+   Half power=LightLinearDist(dist); if(shadow)power*=shd; clip(power-EPS_LUM);
 
    // diffuse
-         light_dir=Normalize   (light_dir);
+   VecH  light_dir=delta/dist;
    VecH4 nrm      =GetNormal   (inTex, quality);
    Half  lum      =LightDiffuse(nrm.xyz, light_dir)*power;
 
@@ -2314,12 +2314,12 @@ VecH4 LightLinearM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
    Half shd; if(shadow){shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
 
    // distance
-   Vec  pos      =GetPosMS(pixel.xy, index, inPosXY),
-        light_dir=Light_linear.pos-pos;
-   Half power    =LightLinearDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
+   Vec  pos  =GetPosMS(pixel.xy, index, inPosXY),
+        delta=Light_linear.pos-pos; Flt dist=Length(delta);
+   Half power=LightLinearDist(dist); if(shadow)power*=shd; clip(power-EPS_LUM);
 
    // diffuse
-         light_dir=Normalize   (light_dir);
+   VecH  light_dir=delta/dist;
    VecH4 nrm      =GetNormalMS (pixel.xy, index, quality);
    Half  lum      =LightDiffuse(nrm.xyz, light_dir)*power;
 
@@ -2340,7 +2340,7 @@ TECHNIQUE_4_1(LightLinearSM, DrawPosXY_VS(), LightLinearM_PS(true , false));
 /******************************************************************************/
 VecH4 LightCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                    NOPERSP Vec2 inPosXY:TEXCOORD1,
-                   uniform Int  shadow           ,
+                   uniform Bool shadow           ,
                    uniform Bool quality          ,
                    uniform Bool image            ):COLOR
 {
@@ -2352,13 +2352,14 @@ VecH4 LightCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    }
 
    // distance & angle
-   Vec  pos      =GetPosPoint(inTex, inPosXY),
-        light_dir=Light_cone.pos-pos,
-        dir      =mul(Light_cone.mtrx, light_dir); dir.xy/=dir.z; clip(Vec(1-Abs(dir.xy), dir.z));
-   Half power    =LightConeAngle(dir.xy)*LightConeDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
+   Vec  pos  =GetPosPoint(inTex, inPosXY),
+        delta=Light_cone.pos-pos,
+        dir  =mul(Light_cone.mtrx, delta); dir.xy/=dir.z; clip(Vec(1-Abs(dir.xy), dir.z));
+   Flt  dist =Length(delta);
+   Half power=LightConeAngle(dir.xy)*LightConeDist(dist); if(shadow)power*=shd; clip(power-EPS_LUM);
 
    // diffuse
-         light_dir=Normalize   (light_dir);
+   VecH  light_dir=delta/dist;
    VecH4 nrm      =GetNormal   (inTex, quality);
    Half  lum      =LightDiffuse(nrm.xyz, light_dir)*power;
 
@@ -2388,13 +2389,14 @@ VecH4 LightConeM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
    Half shd; if(shadow){shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
 
    // distance & angle
-   Vec  pos      =GetPosMS(pixel.xy, index, inPosXY),
-        light_dir=Light_cone.pos-pos,
-        dir      =mul(Light_cone.mtrx, light_dir); dir.xy/=dir.z; clip(Vec(1-Abs(dir.xy), dir.z));
-   Half power    =LightConeAngle(dir.xy)*LightConeDist(light_dir); if(shadow)power*=shd; clip(power-EPS_LUM);
+   Vec  pos  =GetPosMS(pixel.xy, index, inPosXY),
+        delta=Light_cone.pos-pos,
+        dir  =mul(Light_cone.mtrx, delta); dir.xy/=dir.z; clip(Vec(1-Abs(dir.xy), dir.z));
+   Flt  dist =Length(delta);
+   Half power=LightConeAngle(dir.xy)*LightConeDist(dist); if(shadow)power*=shd; clip(power-EPS_LUM);
 
    // diffuse
-         light_dir=Normalize   (light_dir);
+   VecH  light_dir=delta/dist;
    VecH4 nrm      =GetNormalMS (pixel.xy, index, quality);
    Half  lum      =LightDiffuse(nrm.xyz, light_dir)*power;
 

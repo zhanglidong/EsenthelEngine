@@ -48,7 +48,7 @@ void VS
 
    outVtx=Project(pos);
 
-   outColor.a*=Sat(Half(Length(pos)*SkyFracMulAdd.x + SkyFracMulAdd.y));
+   outColor.a*=(Half)Sat(Length(pos)*SkyFracMulAdd.x + SkyFracMulAdd.y);
 }
 /******************************************************************************/
 VecH4 PS

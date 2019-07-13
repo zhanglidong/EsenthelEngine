@@ -119,7 +119,7 @@ void VS
    Flt d=Length(O.pos);
 
    // sky
-   O.col.a*=Sat(Half(d*SkyFracMulAdd.x + SkyFracMulAdd.y));
+   O.col.a*=(Half)Sat(d*SkyFracMulAdd.x + SkyFracMulAdd.y);
 
    // fog
    Half fog_rev=       VisibleOpacity(FogDensity(), d); // fog_rev=1-fog

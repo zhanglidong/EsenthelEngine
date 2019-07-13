@@ -4,7 +4,6 @@
 /******************************************************************************/
 BUFFER(VolLight)
    VecH VolMax=Vec(1, 1, 1);
-   Flt  Light_point_range;
 BUFFER_END
 /******************************************************************************/
 VecH4 VolDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
@@ -61,7 +60,7 @@ VecH4 VolPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    {
       // TODO: optimize
       Vec pos=Lerp(from, to, Flt(i)/Flt(steps));
-      power+=ShadowPointValue(obj*(Flt(i)/steps), jitter_value, true)*LightLinearDist(pos, Light_point_range);
+      power+=ShadowPointValue(obj*(Flt(i)/steps), jitter_value, true)*LightPointDist(pos);
    }
    return VecH4(Light_point.color.rgb*Min(Light_point.vol_max, Light_point.vol*power*(length/steps)), 0);
 }
@@ -88,7 +87,7 @@ VecH4 VolLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    {
       // TODO: optimize
       Vec pos=Lerp(from, to, Flt(i)/Flt(steps));
-      power+=ShadowPointValue(obj*(Flt(i)/steps), jitter_value, true)*LightLinearDist(pos);
+      power+=ShadowPointValue(obj*(Flt(i)/steps), jitter_value, true)*LightLinearDist(Length(pos));
    }
    return VecH4(Light_linear.color.rgb*Min(Light_linear.vol_max, Light_linear.vol*power*(length/steps)), 0);
 }
@@ -119,7 +118,7 @@ VecH4 VolCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       Flt cur=Max(Abs(pos));
       if( pos.z>=cur)
       {
-         power+=ShadowConeValue(obj*(Flt(i)/steps), jitter_value, true)*LightConeDist(pos*scale)*LightConeAngle(pos.xy/pos.z);
+         power+=ShadowConeValue(obj*(Flt(i)/steps), jitter_value, true)*LightConeDist(Length(pos*scale))*LightConeAngle(pos.xy/pos.z);
       }
    }
    return VecH4(Light_cone.color.rgb*Min(Light_cone.vol_max, Light_cone.vol*power*(length/steps)), 0);

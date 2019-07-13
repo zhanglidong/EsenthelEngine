@@ -17,8 +17,8 @@
 // MODEL AND TECHNIQUES
 /******************************************************************************/
 // Here are listed enums for different Shader Models:
-#define SM_GL  0 //            (OpenGL     )
-#define SM_4   1 // Model 4.0+ (DirectX 10+) D3D_FEATURE_LEVEL_10_0+
+#define SM_GL 0 //            (OpenGL     )
+#define SM_4  1 // Model 4.0+ (DirectX 10+) D3D_FEATURE_LEVEL_10_0+
 
 #ifndef MODEL // MODEL is a macro automatically defined by the engine, set to one of the SM_ values above
    #define MODEL SM_4 // this line only makes Visual Studio properly highlight SM_4 parts of the codes when editing a shader file in Visual Studio
@@ -1469,7 +1469,7 @@ struct LIGHT_POINT
 
 struct LIGHT_LINEAR
 {
-   Flt   range;
+   Flt   neg_inv_range;
    Half  vol, vol_max;
    Vec   pos;
    VecH4 color; // a=spec
@@ -1477,7 +1477,7 @@ struct LIGHT_LINEAR
 
 struct LIGHT_CONE
 {
-   Flt      length;
+   Flt      neg_inv_range;
    Half     scale, vol, vol_max;
    Vec2     falloff;
    Vec      pos;
@@ -1490,11 +1490,10 @@ BUFFER(LightPoint ) LIGHT_POINT  Light_point ; BUFFER_END
 BUFFER(LightLinear) LIGHT_LINEAR Light_linear; BUFFER_END
 BUFFER(LightCone  ) LIGHT_CONE   Light_cone  ; BUFFER_END
 /******************************************************************************/
-inline Half LightPointDist (Vec  pos           ) {return Min(  Half(Light_point.power/Length2(pos)), Light_point.lum_max   );} // NaN
-inline Half LightLinearDist(Vec  pos, Flt range) {return Sat(1-Half(Length (pos)         /   (             range         )));}
-inline Half LightLinearDist(Vec  pos           ) {return Sat(1-Half(Length (pos)         /   (Light_linear.range         )));}
-inline Half LightConeDist  (Vec  pos           ) {return Sat(1-Half(Length2(pos)         /Sqr(Light_cone  .length        )));}
-inline Half LightConeAngle (Vec2 pos           ) {return Sat(  Half(Length (pos)*Light_cone.falloff.x+Light_cone.falloff.y));}
+inline Half LightPointDist (Vec  pos ) {return Min(Half(Light_point.power/Length2(pos)), Light_point.lum_max);} // NaN
+inline Half LightLinearDist(Flt  dist) {return Sat(dist        *Light_linear.neg_inv_range + 1              );} // 1-Length(pos)/Light_linear.range
+inline Half LightConeDist  (Flt  dist) {return Sat(dist        *Light_cone  .neg_inv_range + 1              );} // 1-Length(pos)/Light_cone  .range
+inline Half LightConeAngle (Vec2 pos ) {Half v=Sat(Length(pos) *Light_cone  .falloff.x+Light_cone.falloff.y ); return v;} // alternative is Sqr(v)
 
 inline Half LightDiffuse (VecH nrm,                VecH light_dir                             ) {return Sat(Dot(nrm, light_dir));}
 inline Half LightSpecular(VecH nrm, Half specular, VecH light_dir, VecH eye_dir, Half power=64)
