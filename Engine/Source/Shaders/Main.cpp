@@ -2887,14 +2887,14 @@ VecH4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
       UNROLL for(Int y=0; y<res; y++)
       UNROLL for(Int x=0; x<res; x++)
       {
-         VecH4   c=TexLod(Img, UVClamp(inTex+ImgSize.xy*Vec2(x, y), do_clamp)); // can't use 'TexPoint' because 'Img' can be supersampled
+         VecH4 c=TexLod(Img, UVClamp(inTex+ImgSize.xy*Vec2(x, y), do_clamp)); // can't use 'TexPoint' because 'Img' can be supersampled
          if(gamma && gamma_per_pixel)c.rgb=LinearToSRGBFast(c.rgb);
          color   +=c.rgb;
          glow.rgb+=c.rgb*c.a;
          glow.a   =Max(glow.a, c.a);
       }
-      if(gamma && !gamma_per_pixel)glow.rgb =(2*glow.a)*LinearToSRGBFast(glow.rgb/Max(Vec4(glow.rgb, HALF_MIN)));
-      else                         glow.rgb*= 2*glow.a                           /Max(Vec4(glow.rgb, HALF_MIN)) ; // NaN (increase by 2 because normally it's too small)
+      if(gamma && !gamma_per_pixel)glow.rgb =(2*glow.a)*LinearToSRGBFast(glow.rgb/Max(Max(glow.rgb), HALF_MIN));
+      else                         glow.rgb*= 2*glow.a                           /Max(Max(glow.rgb), HALF_MIN) ; // NaN (increase by 2 because normally it's too small)
       return VecH4(Max(BloomColor(color, saturate, gamma && !gamma_per_pixel), glow.rgb), 0);
    }else
    {
