@@ -651,7 +651,7 @@ VecH4 Font_PS
    Half final_alpha=a+s-s*a;
 
 #if 1 // use for ALPHA_BLEND (this option is better because we don't need to set blend state specifically for drawing fonts)
-   return VecH4(Color[0].rgb*(Lerp(FontShade, 1, Sat(inShade))*a/(final_alpha+EPS)), Color[0].a*final_alpha); // NaN, division by 'final_alpha' is required because of the hardware ALPHA_BLEND formula, without it we would get dark borders around the font
+   return VecH4(Color[0].rgb*(Lerp(FontShade, 1, Sat(inShade))*a/(final_alpha+HALF_MIN)), Color[0].a*final_alpha); // NaN, division by 'final_alpha' is required because of the hardware ALPHA_BLEND formula, without it we would get dark borders around the font
 #else // use for ALPHA_MERGE
    return VecH4(Color[0].rgb*(Lerp(FontShade, 1, Sat(inShade))*a*Color[0].a), Color[0].a*final_alpha);
 #endif
@@ -1074,7 +1074,7 @@ void Volume_PS
          pos+=dir;
       }
 
-      col.r/=col.g+EPS; // NaN
+      col.r/=col.g+HALF_MIN; // NaN
 
       if(LINEAR_GAMMA)col.r=SRGBToLinearFast(col.r);
 
@@ -1095,7 +1095,7 @@ void Volume_PS
          pos+=dir;
       }
 
-      col.rgb/=col.a+EPS; // NaN
+      col.rgb/=col.a+HALF_MIN; // NaN
 
       color=col*Color[0]+Color[1];
       mask.rgb=0; mask.a=color.a;
@@ -1849,7 +1849,7 @@ VecH4 FogN_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
               NOPERSP Vec2 inPosXY:TEXCOORD1,
               NOPERSP PIXEL                 ):COLOR
 {
-   Flt valid=EPS, dns=0;
+   Half valid=HALF_MIN, dns=0;
    UNROLL for(Int i=0; i<MS_SAMPLES; i++)
    {
       Flt depth=TexDepthMSRaw(pixel.xy, i); if(DEPTH_FOREGROUND(depth))
@@ -2463,7 +2463,7 @@ VecH ColLight(VecH4 color, VecH4 lum, Half ao, VecH night_shade_col,
       max_lum=CelShade(max_lum);
       lum.rgb=max_lum;
    }
-   Half spec   =lum.w/Max(max_lum, EPS);
+   Half spec   =lum.w/Max(max_lum, HALF_MIN);
    VecH col_lit=(color.rgb+spec)*lum.rgb;
    if(night_shade)
    {
@@ -2505,7 +2505,7 @@ VecH4 ColLight_PS(NOPERSP Vec2 inTex:TEXCOORD   ,
       }else // n samples
       {
          VecH4 color_sum=0;
-         Half  valid_samples=EPS;
+         Half  valid_samples=HALF_MIN;
          VecH  night_shade_col; if(night_shade && ao_do && !ao_all)night_shade_col=NightShadeColor*ao; // compute it once, and not inside 'ColLight'
          UNROLL for(Int i=0; i<MS_SAMPLES; i++)if(DEPTH_FOREGROUND(TexDepthMSRaw(pixel.xy, i))) // valid sample
          {
@@ -2599,8 +2599,8 @@ void Particle_VS(VtxInput vtx,
       Vec  vel =TransformDir(vtx.tan()); if(vel.z<0)vel=-vel; // view space velocity, always make it along the camera direction, so we won't have a situation where the 'pos1' is behind the camera
       Vec  pos1=pos+vel/PARTICLE_PROJECT;
       Vec2 vel2=(pos1.xy/pos1.z - pos.xy/pos.z)*PARTICLE_PROJECT; // 2D velocity
-      Flt  len =Length(vel2)+EPS;
-    //if(len>0) // instead of using "if", add EPS line above - it's faster
+      Flt  len =Length(vel2)+HALF_MIN;
+    //if(len>0) // instead of using "if", add HALF_MIN line above - it's faster
       {
        //Flt  max_stretch=5; if(len>max_stretch){vel2*=max_stretch/len; len=max_stretch;} // NaN
          Vec2 x=vel2*(vel2.x/len),
@@ -2693,7 +2693,7 @@ VecH4 Particle_PS(PIXEL,
       Flt z0    =inZS.x-tex.a*inZS.y,
           z1    =inZS.x+tex.a*inZS.y;
           tex.a*=Sat((TexDepthPoint(PixelToScreen(pixel))-z0)/inZS.y); // fade out at occluder
-          tex.a*=Sat(z1/(z1-z0+EPS));                                  // smooth visibility fraction when particle near (or behind) camera, NaN
+          tex.a*=Sat(z1/(z1-z0+HALF_MIN));                             // smooth visibility fraction when particle near (or behind) camera, NaN
    }
    if(palette)return inCol*tex.a;
    else       return inCol*tex  ;
@@ -2742,7 +2742,7 @@ VecH4 PaletteDraw_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR
    return VecH4((c0.rgb*c0.a
                 +c1.rgb*c1.a
                 +c2.rgb*c2.a
-                +c3.rgb*c3.a)/(a+EPS), a); // NaN
+                +c3.rgb*c3.a)/(a+HALF_MIN), a); // NaN
 }
 TECHNIQUE(PaletteDraw, Draw_VS(), PaletteDraw_PS());
 /******************************************************************************/
@@ -2894,8 +2894,8 @@ VecH4 BloomDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
          glow.rgb+=c.rgb*c.a;
          glow.a   =Max(glow.a, c.a);
       }
-      if(gamma && !gamma_per_pixel)glow.rgb =(2*glow.a)*LinearToSRGBFast(glow.rgb/Max(Vec4(glow.rgb, EPS)));
-      else                         glow.rgb*= 2*glow.a                           /Max(Vec4(glow.rgb, EPS)) ; // NaN (increase by 2 because normally it's too small)
+      if(gamma && !gamma_per_pixel)glow.rgb =(2*glow.a)*LinearToSRGBFast(glow.rgb/Max(Vec4(glow.rgb, HALF_MIN)));
+      else                         glow.rgb*= 2*glow.a                           /Max(Vec4(glow.rgb, HALF_MIN)) ; // NaN (increase by 2 because normally it's too small)
       return VecH4(Max(BloomColor(color, saturate, gamma && !gamma_per_pixel), glow.rgb), 0);
    }else
    {
@@ -3305,7 +3305,7 @@ TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
          MP Flt  a  =tex.r,            // #FontImageLayout
                  s  =tex.g*FontShadow, // #FontImageLayout
                  final_alpha=a+s-s*a;
-         MP Flt  final_color=Lerp(FontShade, 1.0, Sat(IO_shade))*a/(final_alpha+EPS);
+         MP Flt  final_color=Lerp(FontShade, 1.0, Sat(IO_shade))*a/(final_alpha+HALF_MIN);
 
          gl_FragColor.rgb=Color[0].rgb*final_color;
          gl_FragColor.a  =Color[0].a  *final_alpha;
@@ -3477,7 +3477,7 @@ TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
             glow.rgb+=c.rgb*c.a;
             glow.a   =Max(glow.a, c.a);
          }
-         MP Flt eps=EPS;
+         MP Flt eps=HALF_MIN;
          glow.rgb*=2.0*glow.a/Max(glow.rgb, eps); // NaN (increase by 2 because normally it's too small)
          gl_FragColor.rgb=Max(BloomColor(color), glow.rgb);
       #elif half!=0
@@ -3676,7 +3676,7 @@ TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
             MP Vec  vel =TransformDir(vtx_tan()); if(vel.z<0.0)vel=-vel;
             HP Vec  pos1=pos+vel/PARTICLE_PROJECT;
             MP Vec2 vel2=(pos1.xy/pos1.z - pos.xy/pos.z)*PARTICLE_PROJECT;
-            MP Flt  len =Length(vel2)+EPS;
+            MP Flt  len =Length(vel2)+HALF_MIN;
             {
                MP Vec2 x=vel2*(vel2.x/len),
                        y=vel2*(vel2.y/len);

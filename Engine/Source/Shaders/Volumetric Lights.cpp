@@ -146,8 +146,8 @@ VecH4 Volumetric_PS(NOPERSP Vec2 inTex:TEXCOORD,
    vol/=samples+1;
    vol =Min(vol, VolMax);
 
-   if(add)return VecH4(vol, 0);                                  // alpha blending : ALPHA_ADD
-   else   {Half max=Max(vol); return VecH4(vol/(EPS+max), max);} // alpha blending : ALPHA_BLEND_DEC
+   if(add)return VecH4(vol, 0);                                       // alpha blending : ALPHA_ADD
+   else   {Half max=Max(vol); return VecH4(vol/(HALF_MIN+max), max);} // alpha blending : ALPHA_BLEND_DEC
 }
 /******************************************************************************/
 // TECHNIQUES

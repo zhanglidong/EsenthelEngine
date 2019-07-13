@@ -97,7 +97,7 @@ VecH2 Clouds_PS(NOPERSP Vec dir:TEXCOORD):COLOR // 'dir'=world-space position
       pos+=dir;
    }
 
-   col.x/=col.y+EPS; // NaN
+   col.x/=col.y+HALF_MIN; // NaN
    col.y*=a;
    return col;
 }

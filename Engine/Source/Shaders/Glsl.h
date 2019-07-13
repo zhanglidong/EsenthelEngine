@@ -1,10 +1,11 @@
 #define PAR uniform
 #define VAR varying
 
-#define EPS     0.0001
-#define EPS_COL (1.0/256.0)
-#define PI      3.14159265
-#define PI2     6.28318531
+#define HALF_MIN 0.00006103515625
+#define EPS      0.0001
+#define EPS_COL  (1.0/256.0)
+#define PI       3.14159265
+#define PI2      6.28318531
 
 #define SBUMP_ZERO   0
 #define SBUMP_FLAT   1

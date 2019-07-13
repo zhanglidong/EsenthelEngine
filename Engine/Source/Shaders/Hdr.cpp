@@ -33,7 +33,7 @@ Flt HdrDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
       lum=Sqr(lum);
    #endif
    #if GEOMETRIC
-      lum=log2(Max(lum, EPS)); // NaN
+      lum=log2(Max(lum, HALF_MIN)); // NaN
    #endif
 
       return lum;
