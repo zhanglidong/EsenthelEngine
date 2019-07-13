@@ -1881,7 +1881,7 @@ TECHNIQUE_4_1(FogM, DrawPosXY_VS(), FogM_PS());
 struct SunClass
 {
    Vec2 pos2;
-   Vec  pos, color;
+   VecH pos, color;
 };
 
 BUFFER(Sun)
@@ -1945,7 +1945,7 @@ VecH4 SunRays_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 #endif
    {
       const Int  steps  =40;
-            Flt  light  =0;
+            Flt  light  =0; // use HP because we're iterating lot of samples
             Vec2 sun_pos=Sun.pos2;
 
       // limit sun position
@@ -1994,7 +1994,7 @@ VecH4 SunRays_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          if(high)light+=TexLod(ImgX, t).x; // pos and clouds combined together, use linear filtering because texcoords aren't rounded
          else    light+=DEPTH_BACKGROUND(TexDepthRawPoint(t)); // use simpler version here unlike in 'SunRaysPre_PS' because this one is called for each step for each pixel
       }
-      col.rgb=(light*power/steps)*Sun.color;
+      col.rgb=Half(light*power/steps)*Sun.color;
       if(dither)ApplyDither(col.rgb, pixel.xy, false); // here we're always in sRGB gamma
       if(gamma )col.rgb=SRGBToLinearFast(col.rgb); // 'SRGBToLinearFast' works better here than 'SRGBToLinear' (gives high contrast, dark colors remain darker, while 'SRGBToLinear' highlights them more)
    }
