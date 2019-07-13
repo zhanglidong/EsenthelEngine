@@ -21,7 +21,7 @@ BUFFER(MotionBlur)
 BUFFER_END
 /******************************************************************************/
 #define DEPTH_TOLERANCE 0.1 // 10 cm
-inline Flt DepthBlend(Flt z_test, Flt z_base)
+inline Half DepthBlend(Flt z_test, Flt z_base)
 {
    return Sat((z_base-z_test)/DEPTH_TOLERANCE+1); // we can apply overlap only if tested depth is smaller
 }
@@ -88,6 +88,7 @@ VecH4 Convert_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                  uniform Bool do_clamp         ,
                  uniform Int  pixels=MAX_MOTION_BLUR_PIXEL_RANGE):COLOR
 {
+   // #ShaderHalf
    Vec blur;
    if(mode==0)
    {
@@ -126,37 +127,37 @@ VecH4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
                 uniform Int  pixels=MAX_MOTION_BLUR_PIXEL_RANGE,
                 uniform Bool depth=false                       ):COLOR
 {
-   Vec4 blur;
+   VecH4 blur;
    blur.xyz=TexPoint(Img, inTex).xyz;
    blur.w=0;
 #if !SIGNED_VEL_RT
    blur.xy=blur.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
 #endif
-   Flt len=Length(blur.xy), // can't use 'blur.z' as length here, because it's max length of all nearby pixels and not just this pixel
-       z_base; if(depth)z_base=TexDepthLinear(inTex); // use linear filtering because RT can be smaller
+   Half len=Length(blur.xy); // can't use 'blur.z' as length here, because it's max length of all nearby pixels and not just this pixel
+   Flt  z_base; if(depth)z_base=TexDepthLinear(inTex); // use linear filtering because RT can be smaller
    // this function iterates nearby pixels and calculates how much the should blur over this one (including angle between pixels, distances, and their blur velocities)
    UNROLL for(Int y=-range; y<=range; y++)
    UNROLL for(Int x=-range; x<=range; x++)if(x || y)
    {
       Vec2 t=inTex+Vec2(x, y)*RTSize.xy;
-      Vec  b=TexPoint(Img, t).xyz;
+      VecH b=TexPoint(Img, t).xyz;
    #if !SIGNED_VEL_RT
       b.xy=b.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
    #endif
 
    #if 1 // version that multiplies length by cos between pixels (faster and more accurate for diagonal blurs, however bloats slightly)
-      Flt l=Abs(Dot(b.xy, Normalize(Vec2(x, y)))); // we want this to be proportional to 'b.xy' length
+      Half l=Abs(Dot(b.xy, Normalize(VecH2(x, y)))); // we want this to be proportional to 'b.xy' length
       if(depth)l*=DepthBlend(TexDepthLinear(t), z_base); // use linear filtering because RT can be smaller
-      l-=Dist(x, y)/pixels; // when loop is unrolled and 'pixels' is uniform then it can be evaluated to a constant expression
+      l-=DistH(x, y)/pixels; // when loop is unrolled and 'pixels' is uniform then it can be evaluated to a constant expression
       if(l>len){blur.xy=b.xy*(l/Length(b.xy)); if(!ALWAYS_DILATE_LENGTH)blur.z=Max(blur.z, b.z); len=l;}
    #else // version that does line intersection tests (slower)
-      Flt b_len=Length(b.xy), // can't use 'b.z' as length here, because it's max length of all nearby pixels and not just this pixel
-          l=b_len; if(depth)l*=DepthBlend(TexDepthLinear(t), z_base); // use linear filtering because RT can be smaller
-      l-=Dist(x, y)/pixels; // when loop is unrolled and 'pixels' is uniform then it can be evaluated to a constant expression
+      Half b_len=Length(b.xy), // can't use 'b.z' as length here, because it's max length of all nearby pixels and not just this pixel
+           l=b_len; if(depth)l*=DepthBlend(TexDepthLinear(t), z_base); // use linear filtering because RT can be smaller
+      l-=DistH(x, y)/pixels; // when loop is unrolled and 'pixels' is uniform then it can be evaluated to a constant expression
       if(l>len)
       {
-         const Flt eps=0.7; // 1.0 would include neighbors too, and with each call to this function we would bloat by 1 pixel, this needs to be slightly below SQRT2_2 0.7071067811865475 to avoid diagonal bloating too
-         Flt line_dist=Dot(b.xy, Vec2(y, -x)); if(Abs(line_dist)<=b_len*eps) // Vec2 perp_n=Vec2(b.y, -b.x)/b_len; Flt line_dist=Dot(perp_n, Vec2(x, y)); if(Abs(line_dist)<=eps)..   (don't try to do "Vec2(y, -x)/eps" instead of "b_len*eps", because compiler can optimize the Dot better without it)
+         const Half eps=0.7; // 1.0 would include neighbors too, and with each call to this function we would bloat by 1 pixel, this needs to be slightly below SQRT2_2 0.7071067811865475 to avoid diagonal bloating too
+         Half line_dist=Dot(b.xy, VecH2(y, -x)); if(Abs(line_dist)<=b_len*eps) // VecH2 perp_n=VecH2(b.y, -b.x)/b_len; Flt line_dist=Dot(perp_n, VecH2(x, y)); if(Abs(line_dist)<=eps)..   (don't try to do "VecH2(y, -x)/eps" instead of "b_len*eps", because compiler can optimize the Dot better without it)
          {blur.xy=b.xy*(l/b_len); if(!ALWAYS_DILATE_LENGTH)blur.z=Max(blur.z, b.z); len=l;}
       }
    #endif
@@ -177,25 +178,25 @@ VecH4 DilateX_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
                  uniform Int  pixels=MAX_MOTION_BLUR_PIXEL_RANGE,
                  uniform Bool depth=false                       ):COLOR
 {
-   Vec4 blur=TexPoint(Img, inTex); // XY=Dir, Z=Max Dir length of all nearby pixels
+   VecH4 blur=TexPoint(Img, inTex); // XY=Dir, Z=Max Dir length of all nearby pixels
 #if !SIGNED_VEL_RT
    blur.xy=blur.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
 #endif
-   Flt  len=Length(blur.xy), // can't use 'blur.z' as length here, because it's max length of all nearby pixels and not just this pixel
-        z_base; if(depth)z_base=TexDepthLinear(inTex); // use linear filtering because RT can be smaller
+   Half len=Length(blur.xy); // can't use 'blur.z' as length here, because it's max length of all nearby pixels and not just this pixel
+   Flt  z_base; if(depth)z_base=TexDepthLinear(inTex); // use linear filtering because RT can be smaller
    Vec2 t; t.y=inTex.y;
 
    UNROLL for(Int i=-range; i<=range; i++)if(i)
    {
       t.x=inTex.x+RTSize.x*i;
-      Vec b=TexPoint(Img, t).xyz;
+      VecH b=TexPoint(Img, t).xyz;
    #if !SIGNED_VEL_RT
       b.xy=b.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
    #endif
 
-      Flt ll=Abs(b.x), l=ll;
+      Half ll=Abs(b.x), l=ll;
       if(depth)l*=DepthBlend(TexDepthLinear(t), z_base); // use linear filtering because RT can be smaller
-      l-=Abs(Flt(i))/pixels; // when loop is unrolled and 'pixels' is uniform then it can be evaluated to a constant expression
+      l-=Abs(Half(i))/pixels; // when loop is unrolled and 'pixels' is uniform then it can be evaluated to a constant expression
       if(l>len){blur.xy=b.xy*(l/(diagonal ? Length(b.xy) : ll)); if(!ALWAYS_DILATE_LENGTH)blur.z=Max(blur.z, b.z); len=l;} // when not doing diagonal then use 'll' to artificially boost intensity, because it helps in making it look more like "Dilate"
 
       if(ALWAYS_DILATE_LENGTH)blur.z=Max(blur.z, b.z);
@@ -207,14 +208,14 @@ VecH4 DilateX_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
       UNROLL for(Int i=-range; i<=range; i++)if(i)
       {
          t=inTex+RTSize.xy*i;
-         Vec b=TexPoint(Img, t).xyz;
+         VecH b=TexPoint(Img, t).xyz;
       #if !SIGNED_VEL_RT
          b.xy=b.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
       #endif
 
-         Flt l=Abs(Dot(b.xy, Vec2(SQRT2_2, SQRT2_2)));
+         Half l=Abs(Dot(b.xy, VecH2(SQRT2_2, SQRT2_2)));
          if(depth)l*=DepthBlend(TexDepthLinear(t), z_base); // use linear filtering because RT can be smaller
-         l-=Abs(i*SQRT2)/pixels; // when loop is unrolled and 'pixels' is uniform then it can be evaluated to a constant expression
+         l-=Abs(Half(i*SQRT2))/pixels; // when loop is unrolled and 'pixels' is uniform then it can be evaluated to a constant expression
          if(l>len){blur.xy=b.xy*(l/Length(b.xy)); if(!ALWAYS_DILATE_LENGTH)blur.z=Max(blur.z, b.z); len=l;}
 
          if(ALWAYS_DILATE_LENGTH)blur.z=Max(blur.z, b.z);
@@ -234,25 +235,25 @@ VecH4 DilateY_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
                  uniform Int  pixels=MAX_MOTION_BLUR_PIXEL_RANGE,
                  uniform Bool depth=false                       ):COLOR
 {
-   Vec4 blur=TexPoint(Img, inTex); // XY=Dir, Z=Max Dir length of all nearby pixels
+   VecH4 blur=TexPoint(Img, inTex); // XY=Dir, Z=Max Dir length of all nearby pixels
 #if !SIGNED_VEL_RT
    blur.xy=blur.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
 #endif
-   Flt  len=Length(blur.xy), // can't use 'blur.z' as length here, because it's max length of all nearby pixels and not just this pixel
-        z_base; if(depth)z_base=TexDepthLinear(inTex); // use linear filtering because RT can be smaller
+   Half len=Length(blur.xy); // can't use 'blur.z' as length here, because it's max length of all nearby pixels and not just this pixel
+   Flt  z_base; if(depth)z_base=TexDepthLinear(inTex); // use linear filtering because RT can be smaller
    Vec2 t; t.x=inTex.x;
 
    UNROLL for(Int i=-range; i<=range; i++)if(i)
    {
       t.y=inTex.y+RTSize.y*i;
-      Vec b=TexPoint(Img, t).xyz;
+      VecH b=TexPoint(Img, t).xyz;
    #if !SIGNED_VEL_RT
       b.xy=b.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
    #endif
 
-      Flt ll=Abs(b.y), l=ll;
+      Half ll=Abs(b.y), l=ll;
       if(depth)l*=DepthBlend(TexDepthLinear(t), z_base); // use linear filtering because RT can be smaller
-      l-=Abs(Flt(i))/pixels; // when loop is unrolled and 'pixels' is uniform then it can be evaluated to a constant expression
+      l-=Abs(Half(i))/pixels; // when loop is unrolled and 'pixels' is uniform then it can be evaluated to a constant expression
       if(l>len){blur.xy=b.xy*(l/(diagonal ? Length(b.xy) : ll)); if(!ALWAYS_DILATE_LENGTH)blur.z=Max(blur.z, b.z); len=l;} // when not doing diagonal then use 'll' to artificially boost intensity, because it helps in making it look more like "Dilate"
 
       if(ALWAYS_DILATE_LENGTH)blur.z=Max(blur.z, b.z);
@@ -264,14 +265,14 @@ VecH4 DilateY_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
       UNROLL for(Int i=-range; i<=range; i++)if(i)
       {
          t=inTex+RTSize.xy*Vec2(i, -i);
-         Vec b=TexPoint(Img, t).xyz;
+         VecH b=TexPoint(Img, t).xyz;
       #if !SIGNED_VEL_RT
          b.xy=b.xy*2-1; // scale XY 0..1 -> -1..1, but leave Z in 0..1
       #endif
 
-         Flt l=Abs(Dot(b.xy, Vec2(SQRT2_2, -SQRT2_2)));
+         Half l=Abs(Dot(b.xy, VecH2(SQRT2_2, -SQRT2_2)));
          if(depth)l*=DepthBlend(TexDepthLinear(t), z_base); // use linear filtering because RT can be smaller
-         l-=Abs(i*SQRT2)/pixels; // when loop is unrolled and 'pixels' is uniform then it can be evaluated to a constant expression
+         l-=Abs(Half(i*SQRT2))/pixels; // when loop is unrolled and 'pixels' is uniform then it can be evaluated to a constant expression
          if(l>len){blur.xy=b.xy*(l/Length(b.xy)); if(!ALWAYS_DILATE_LENGTH)blur.z=Max(blur.z, b.z); len=l;}
 
          if(ALWAYS_DILATE_LENGTH)blur.z=Max(blur.z, b.z);

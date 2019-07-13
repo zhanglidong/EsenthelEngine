@@ -761,6 +761,8 @@ inline Flt  Dist(Vec2  a, Vec2  b) {return distance(a, b );}
 inline Half Dist(VecH  a, VecH  b) {return distance(a, b );}
 inline Flt  Dist(Vec   a, Vec   b) {return distance(a, b );}
 
+inline Half DistH(Int a, Int b) {return Sqrt(Half(a*a + b*b));}
+
 inline Int  Dist2(Int   a, Int   b) {return a*a + b*b;}
 inline Half Dist2(Half  a, Half  b) {return a*a + b*b;}
 inline Flt  Dist2(Flt   a, Flt   b) {return a*a + b*b;}
