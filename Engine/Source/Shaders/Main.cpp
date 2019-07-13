@@ -420,7 +420,7 @@ void Draw3DTex_VS(VtxInput vtx,
 {
    Vec pos=TransformPos(vtx.pos());
           outTex=vtx.tex();
-   if(fog)outFog=VecH4(FogColor(), AccumulatedDensity(FogDensity(), Length(pos)));
+   if(fog)outFog=VecH4(FogColor, AccumulatedDensity(FogDensity, Length(pos)));
           outVtx=Project(pos);
 }
 void Draw2DDepthTex_VS(VtxInput vtx,
@@ -459,7 +459,7 @@ void Draw3DTexCol_VS(VtxInput vtx,
    Vec pos=TransformPos(vtx.pos());
           outTex=vtx.tex  ();
           outCol=vtx.color();
-   if(fog)outFog=VecH4(FogColor(), AccumulatedDensity(FogDensity(), Length(pos)));
+   if(fog)outFog=VecH4(FogColor, AccumulatedDensity(FogDensity, Length(pos)));
           outVtx=Project(pos);
 }
 void Draw2DDepthTexCol_VS(VtxInput vtx,
@@ -690,7 +690,7 @@ TECHNIQUE(FontSPG, FontSP_VS(), FontSP_PS(true ));
 /******************************************************************************/
 void Laser_VS(VtxInput vtx,
           out Vec  outPos:TEXCOORD0,
-          out Vec  outNrm:TEXCOORD1,
+          out VecH outNrm:TEXCOORD1,
           out Vec4 outVtx:POSITION ,
       uniform Bool normals         )
 {
@@ -698,17 +698,17 @@ void Laser_VS(VtxInput vtx,
    outVtx=Project(outPos=TransformPos(vtx.pos()));
 }
 void Laser_PS(Vec                 inPos:TEXCOORD0,
-              Vec                 inNrm:TEXCOORD1,
+              VecH                inNrm:TEXCOORD1,
           out DeferredSolidOutput output         ,
       uniform Bool                normals        )
 {
    if(normals)
    {
-         inNrm=Normalize(inNrm);
-      Flt  stp=Max (-Dot(inNrm, Normalize(inPos)), -inNrm.z);
-           stp=Sat (stp);
-           stp=Pow (stp, Step);
-      Vec4 col=Lerp(Color[0], Color[1], stp);
+          inNrm=Normalize(inNrm);
+      Half  stp=Max (-Dot(inNrm, Normalize(inPos)), -inNrm.z);
+            stp=Sat (stp);
+            stp=Pow (stp, Step);
+      VecH4 col=Lerp(Color[0], Color[1], stp);
       output.color(col.rgb);
       output.glow (col.a  );
    }else
@@ -740,12 +740,10 @@ Vec4 Simple_PS(Vec2  inTex:TEXCOORD,
 TECHNIQUE(Simple, Simple_VS(), Simple_PS());
 /******************************************************************************/
 BUFFER(LocalFog)
-   Vec4 LocalFogColor_Density; // rgb=color, a=density
+   VecH LocalFogColor;
+   Flt  LocalFogDensity;
    Vec  LocalFogInside;
 BUFFER_END
-
-inline VecH LocalFogColor  () {return LocalFogColor_Density.rgb;}
-inline Flt  LocalFogDensity() {return LocalFogColor_Density.a  ;}
 /******************************************************************************/
 // TODO: optimize fog shaders
 void FogBox_VS(VtxInput vtx,
@@ -800,10 +798,10 @@ void FogBox_PS
        dir*=inSize.xyz;
    Flt len =Length(dir)/inSize.w;
 
-   Flt dns=LocalFogDensity();
+   Flt dns=LocalFogDensity;
    if(height){dns*=1-Avg(pos.y, end.y); len*=3;}
 
-   color.rgb=LocalFogColor();
+   color.rgb=LocalFogColor;
    color.a  =AccumulatedDensity(dns, len);
    mask.rgb=0; mask.a=color.a;
 }
@@ -869,10 +867,10 @@ void FogBoxI_PS
        dir*=inSize.xyz;
    Flt len =Length(dir)/inSize.w;
 
-   Flt dns=LocalFogDensity();
+   Flt dns=LocalFogDensity;
    if(height){dns*=1-Avg(pos.y, end.y); len*=3;}
 
-   color.rgb=LocalFogColor();
+   color.rgb=LocalFogColor;
    color.a  =AccumulatedDensity(dns, len);
    mask.rgb=0; mask.a=color.a;
 }
@@ -912,9 +910,9 @@ void FogBall_PS
 
    Flt len=Min(Dist(pos, end), max_length);
 
-   Flt dns=LocalFogDensity()*s;
+   Flt dns=LocalFogDensity*s;
 
-   color.rgb=LocalFogColor();
+   color.rgb=LocalFogColor;
    color.a  =AccumulatedDensity(dns, len);
    mask.rgb=0; mask.a=color.a;
 }
@@ -956,9 +954,9 @@ void FogBallI_PS
 
    Flt len=Min(Dist(pos, end), max_length);
 
-   Flt dns=LocalFogDensity()*s;
+   Flt dns=LocalFogDensity*s;
 
-   color.rgb=LocalFogColor();
+   color.rgb=LocalFogColor;
    color.a  =AccumulatedDensity(dns, len);
    mask.rgb=0; mask.a=color.a;
 }
@@ -1842,9 +1840,9 @@ VecH4 Fog_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
              NOPERSP Vec2 inPosXY:TEXCOORD1):COLOR
 {
    Vec  pos=GetPosPoint(inTex, inPosXY);
-   Half dns=AccumulatedDensity(FogDensity(), Length(pos));
+   Half dns=AccumulatedDensity(FogDensity, Length(pos));
 
-   return VecH4(FogColor(), dns);
+   return VecH4(FogColor, dns);
 }
 #if MODEL>=SM_4
 VecH4 FogN_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
@@ -1857,11 +1855,11 @@ VecH4 FogN_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       Flt depth=TexDepthMSRaw(pixel.xy, i); if(DEPTH_FOREGROUND(depth))
       {
          Vec pos =GetPos(LinearizeDepth(depth), inPosXY);
-             dns+=AccumulatedDensity(FogDensity(), Length(pos));
+             dns+=AccumulatedDensity(FogDensity, Length(pos));
          valid++;
       }
    }
-   return VecH4(FogColor(), dns/valid);
+   return VecH4(FogColor, dns/valid);
 }
 VecH4 FogM_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
               NOPERSP Vec2 inPosXY:TEXCOORD1,
@@ -1869,7 +1867,7 @@ VecH4 FogM_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                       UInt index  :SV_SampleIndex):COLOR
 {
    Vec pos=GetPosMS(pixel.xy, index, inPosXY);
-   return VecH4(FogColor(), AccumulatedDensity(FogDensity(), Length(pos)));
+   return VecH4(FogColor, AccumulatedDensity(FogDensity, Length(pos)));
 }
 #endif
 TECHNIQUE    (Fog , DrawPosXY_VS(), Fog_PS ());

@@ -120,9 +120,11 @@ struct MainShaderClass
       *SkySunHighlight,
       *SkySunPos      ,
 
-      *FogColor_Density     ,
-      *LocalFogColor_Density,
-      *LocalFogInside       ,
+      *FogColor       ,
+      *FogDensity     ,
+      *LocalFogColor  ,
+      *LocalFogDensity,
+      *LocalFogInside ,
 
       *ShdJitter     ,
       *ShdRange      ,

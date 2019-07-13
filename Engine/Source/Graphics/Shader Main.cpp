@@ -580,9 +580,11 @@ void MainShaderClass::getTechniques()
       Particle[p][s][a][m]=get(S8+"ParticleTex"+(p?'P':'\0')+(s?'S':'\0')+((a==0) ? "" : (a==1) ? "A" : "AA")+(m?'M':'\0'));
 
    // FOG
-   FogColor_Density     =GetShaderParam(     "FogColor_Density");
-   LocalFogColor_Density=GetShaderParam("LocalFogColor_Density");
-   LocalFogInside       =GetShaderParam("LocalFogInside"       );
+   FogColor       =GetShaderParam(     "FogColor"  );
+   FogDensity     =GetShaderParam(     "FogDensity");
+   LocalFogColor  =GetShaderParam("LocalFogColor"  );
+   LocalFogDensity=GetShaderParam("LocalFogDensity");
+   LocalFogInside =GetShaderParam("LocalFogInside" );
                                  Fog[0]=get("Fog");
    if(D.shaderModel()>=SM_4)
    {

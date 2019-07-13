@@ -122,9 +122,9 @@ void VS
    O.col.a*=(Half)Sat(d*SkyFracMulAdd.x + SkyFracMulAdd.y);
 
    // fog
-   Half fog_rev=       VisibleOpacity(FogDensity(), d); // fog_rev=1-fog
-   O.col.rgb*=                                fog_rev ; //       *=1-fog
-   O.col_add =Lerp(FogColor(), Highlight.rgb, fog_rev); //         1-fog
+   Half fog_rev=       VisibleOpacity(FogDensity, d); // fog_rev=1-fog
+   O.col.rgb*=                              fog_rev ; //       *=1-fog
+   O.col_add =Lerp(FogColor, Highlight.rgb, fog_rev); //         1-fog
 
    //  per-vertex light
    if(!per_pixel && bump_mode>=SBUMP_FLAT)
@@ -317,9 +317,9 @@ CUSTOM_TECHNIQUE
          IO_col.a*=opacity;
 
          // fog
-         MP Flt fog_rev=      VisibleOpacity(FogDensity(), d);
-         IO_col.rgb*=                                fog_rev ;
-         IO_col_add =Lerp(FogColor(), Highlight.rgb, fog_rev);
+         MP Flt fog_rev=      VisibleOpacity(FogDensity, d);
+         IO_col.rgb*=                              fog_rev ;
+         IO_col_add =Lerp(FogColor, Highlight.rgb, fog_rev);
 
          // per-vertex light
          #if per_pixel==0 && bump_mode>=SBUMP_FLAT

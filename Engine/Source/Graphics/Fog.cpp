@@ -26,7 +26,8 @@ void FogClass::Draw(Bool after_sky)
          Int multi=(Renderer._ds->multiSample() ? (Renderer._cur_type==RT_DEFERRED ? 1 : 2) : 0);
          Renderer.set(Renderer._col, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
          Renderer.setMainViewport();
-         Sh.FogColor_Density->set(Vec4(LINEAR_GAMMA ? colorL() : colorS(), Mid(density, 0.0f, MAX_DENSITY))); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
+         Sh.FogColor  ->set(LINEAR_GAMMA ? colorL() : colorS());
+         Sh.FogDensity->set(Mid(density, 0.0f, MAX_DENSITY)); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
          D .alpha(ALPHA_BLEND_DEC);
          if(multi && Sh.Fog[multi])
          {
@@ -54,7 +55,8 @@ void FogClass::Draw(Bool after_sky)
          }
       }
       // if we didn't draw fog and return, then clear because BlendLight shaders always use Fog
-      Sh.FogColor_Density->set(Vec4Zero);
+      Sh.FogColor  ->set(VecZero);
+      Sh.FogDensity->set(0);
    }
 }
 /******************************************************************************/
@@ -65,7 +67,8 @@ void FogDraw(C OBox &obox, Flt density, C Vec &color_l)
       Sh.loadFogBoxShaders();
       Renderer.needDepthRead();
       D .alpha(ALPHA_BLEND_DEC);
-      Sh.LocalFogColor_Density->set(Vec4(LinearToDisplay(color_l), Mid(density, 0.0f, MAX_DENSITY))); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
+      Sh.LocalFogColor  ->set(LinearToDisplay(color_l));
+      Sh.LocalFogDensity->set(Mid(density, 0.0f, MAX_DENSITY)); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
 
       Vec delta=CamMatrix.pos-obox.center(), inside;
       inside.x=Dot(delta, obox.matrix.x);
@@ -109,7 +112,8 @@ void FogDraw(C Ball &ball, Flt density, C Vec &color_l)
       Sh.loadFogBallShaders();
       Renderer.needDepthRead();
       D .alpha(ALPHA_BLEND_DEC);
-      Sh.LocalFogColor_Density->set(Vec4(LinearToDisplay(color_l), Mid(density, 0.0f, MAX_DENSITY))); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
+      Sh.LocalFogColor  ->set(LinearToDisplay(color_l));
+      Sh.LocalFogDensity->set(Mid(density, 0.0f, MAX_DENSITY)); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
 
       Vec inside=CamMatrix.pos-ball.pos;
 
@@ -145,7 +149,8 @@ void HeightFogDraw(C OBox &obox, Flt density, C Vec &color_l)
       Sh.loadFogHgtShaders();
       Renderer.needDepthRead();
       D .alpha(ALPHA_BLEND_DEC);
-      Sh.LocalFogColor_Density->set(Vec4(LinearToDisplay(color_l), Mid(density, 0.0f, MAX_DENSITY))); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
+      Sh.LocalFogColor  ->set(LinearToDisplay(color_l));
+      Sh.LocalFogDensity->set(Mid(density, 0.0f, MAX_DENSITY)); // avoid 1 in case "Pow(1-density, ..)" in shader would cause NaN or slow-downs
 
       Vec delta=CamMatrix.pos-obox.center(), inside;
       inside.x=Dot(delta, obox.matrix.x);
