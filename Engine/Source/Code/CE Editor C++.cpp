@@ -390,7 +390,7 @@ struct CodeFile
    }
 };
 /******************************************************************************/
-void CodeEditor::generateHeadersH(Memc<Symbol*> &sorted_classes, EXPORT_MODE export_mode, Bool gcc)
+void CodeEditor::generateHeadersH(Memc<Symbol*> &sorted_classes, EXPORT_MODE export_mode)
 {
    Memc<CodeLine> lines;
    Memc<Symbol* > symbols;
@@ -491,7 +491,7 @@ void CodeEditor::generateHeadersH(Memc<Symbol*> &sorted_classes, EXPORT_MODE exp
          // adjust namespaces to typedef namespace
          AdjustNameSymbol(lines, Namespace, symbol.Namespace());
 
-         symbol.source->writeSymbolDecl(lines, symbol, gcc);
+         symbol.source->writeSymbolDecl(lines, symbol);
          symbol.source->removeDefVal   (lines, symbol);
       }
    }
@@ -542,7 +542,7 @@ void CodeEditor::generateHeadersH(Memc<Symbol*> &sorted_classes, EXPORT_MODE exp
             // convert '.' to "->" or "::" when needed
             for(Int i=start; i<=end; i++)
             {
-               Token &c=*source.tokens[i]; source.adjustToken(lines, i, gcc);
+               Token &c=*source.tokens[i]; source.adjustToken(lines, i);
                if(c=='}' && c.parent)if(c.parent->type==Symbol::CLASS || c.parent->type==Symbol::ENUM) // put ';'
                   if(!InRange(i+1, source.tokens) || (*source.tokens[i+1])!=';') // only if it's not already there (this caused issues when the struct/class/enum was defined by a macro, like UNION)
                {
@@ -596,7 +596,7 @@ void CodeEditor::generateHeadersH(Memc<Symbol*> &sorted_classes, EXPORT_MODE exp
             // TODO: make more nicer to look
 
             // adjust token
-            for(Int i=start; i<=end; i++)source->adjustToken(lines, i, false);
+            for(Int i=start; i<=end; i++)source->adjustToken(lines, i);
          }
       }
 
@@ -646,7 +646,7 @@ void CodeEditor::generateHeadersH(Memc<Symbol*> &sorted_classes, EXPORT_MODE exp
                   // adjust namespaces to typedef namespace
                   AdjustNameSymbol(lines, Namespace, Typedef.Namespace());
 
-                  source.writeSymbolDecl(lines, Typedef, gcc);
+                  source.writeSymbolDecl(lines, Typedef);
                }
             }
             to_process.clear();
@@ -673,7 +673,7 @@ void CodeEditor::generateHeadersH(Memc<Symbol*> &sorted_classes, EXPORT_MODE exp
       FREPA(sorted_classes)
          if(Source *source=sorted_classes[i]->source)
       {
-         if(source->writeClass(lines, *sorted_classes[i], gcc))
+         if(source->writeClass(lines, *sorted_classes[i]))
          {
          #if MERGE_HEADERS
             f.add(source->loc, lines);
@@ -696,7 +696,7 @@ void CodeEditor::generateHeadersH(Memc<Symbol*> &sorted_classes, EXPORT_MODE exp
       if(bf.mode==BuildFile::SOURCE)
          if(Source *source=findSource(bf.src_loc))
       {
-         if(source->writeVarFuncs(lines, gcc))
+         if(source->writeVarFuncs(lines))
          {
          #if MERGE_HEADERS
             f.add(source->loc, lines);
@@ -719,7 +719,7 @@ void CodeEditor::generateHeadersH(Memc<Symbol*> &sorted_classes, EXPORT_MODE exp
       if(bf.mode==BuildFile::SOURCE)
          if(Source *source=findSource(bf.src_loc))
       {
-         if(source->writeInline(lines, gcc))
+         if(source->writeInline(lines))
          {
          #if MERGE_HEADERS
             f.add(source->loc, lines);
@@ -770,8 +770,7 @@ Bool CodeEditor::generateCPPH(Memc<Symbol*> &sorted_classes, EXPORT_MODE export_
 
    // count number of source files
    Int  sources=0; REPA(build_files)if(build_files[i].mode==BuildFile::SOURCE)sources++;
-   Bool build_headers_in_cpp=(sources<=8),
-        gcc                 =(export_mode==EXPORT_ANDROID || export_mode==EXPORT_XCODE || export_mode==EXPORT_LINUX_MAKE || export_mode==EXPORT_LINUX_NETBEANS || config_exe==EXE_WEB);
+   Bool build_headers_in_cpp=(sources<=8);
 
    // make cpp files
    FREPA(build_files)
@@ -785,12 +784,12 @@ Bool CodeEditor::generateCPPH(Memc<Symbol*> &sorted_classes, EXPORT_MODE export_
                if(!Compare(src.modify_time_utc, dest.modify_time_utc, 1))continue; // if 'src' date is the same as 'dest' date then assume they're the same
          }*/
          if(Source *source=findSource(bf.src_loc))
-            source->makeCPP(build_source, bf.dest_file_path, gcc, build_headers_in_cpp);
+            source->makeCPP(build_source, bf.dest_file_path, build_headers_in_cpp);
       }
    }
 
    // make headers
-   generateHeadersH(sorted_classes, export_mode, gcc);
+   generateHeadersH(sorted_classes, export_mode);
 
    // generate precompiled header
    {

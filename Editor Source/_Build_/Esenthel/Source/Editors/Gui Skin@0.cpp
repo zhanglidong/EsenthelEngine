@@ -52,10 +52,10 @@ GuiSkinEditor GuiSkinEdit;
          GuiSkinEdit.toGui();
          GuiSkinEdit.undoVis();
       }
-      void GuiSkinEditor::Objs::ButtonPushed::update(C GuiPC &gpc){::EE::Button::update(gpc); set(true , QUIET);}
-      void GuiSkinEditor::Objs::CheckBoxOff::update(C GuiPC &gpc){::EE::CheckBox::update(gpc); set(false, QUIET);}
-      void GuiSkinEditor::Objs::CheckBoxOn::update(C GuiPC &gpc){::EE::CheckBox::update(gpc); set(true , QUIET);}
-      void GuiSkinEditor::Objs::CheckBoxMulti::update(C GuiPC &gpc){::EE::CheckBox::update(gpc); setMulti();}
+      void GuiSkinEditor::Objs::ButtonPushed::update(C GuiPC &gpc){super::update(gpc); set(true , QUIET);}
+      void GuiSkinEditor::Objs::CheckBoxOff::update(C GuiPC &gpc){super::update(gpc); set(false, QUIET);}
+      void GuiSkinEditor::Objs::CheckBoxOn::update(C GuiPC &gpc){super::update(gpc); set(true , QUIET);}
+      void GuiSkinEditor::Objs::CheckBoxMulti::update(C GuiPC &gpc){super::update(gpc); setMulti();}
       void GuiSkinEditor::Objs::ComboBoxPushed::draw(C GuiPC &gpc)
 {
          GuiSkinPtr old=skin();
@@ -64,7 +64,7 @@ GuiSkinEditor GuiSkinEdit;
          if(temp.combobox.pushed         )temp.combobox.normal        =temp.combobox.pushed;
                                           temp.combobox.disabled_color=temp.combobox.pushed_disabled_color;
          if(temp.combobox.pushed_disabled)temp.combobox.disabled      =temp.combobox.pushed_disabled;
-         ::EE::Button::draw(gpc);
+         super::draw(gpc);
          skin(old, false);
       }
       void GuiSkinEditor::Objs::WindowActive::draw(C GuiPC &gpc)
@@ -75,7 +75,7 @@ GuiSkinEditor GuiSkinEdit;
          if(temp.window.active           )temp.window.normal           =temp.window.active;
          if(temp.window.active_no_bar    )temp.window.normal_no_bar    =temp.window.active_no_bar;
          if(temp.window.active_text_style)temp.window.normal_text_style=temp.window.active_text_style;
-         skin(&temp); ::EE::Window::draw(gpc);
+         skin(&temp); super::draw(gpc);
          skin( old );
       }
       void GuiSkinEditor::Objs::Reset(GuiObj &go) {Rect r=go.rect(); go.rect(Rect(0, 0)); go.rect(r);}
@@ -170,7 +170,7 @@ GuiSkinEditor GuiSkinEdit;
          if(visible() && gpc.visible)
          {
             GuiSkinPtr temp=Gui.skin; Gui.skin=GuiSkinEdit.game;
-            ::EE::Region::update(gpc);
+            super::update(gpc);
             Gui.skin=temp;
          }
       }
@@ -179,7 +179,7 @@ GuiSkinEditor GuiSkinEdit;
          if(visible() && gpc.visible)
          {
             GuiSkinPtr temp=Gui.skin; Gui.skin=GuiSkinEdit.game;
-            ::EE::Region::draw(gpc);
+            super::draw(gpc);
             Gui.skin=temp;
          }
       }
@@ -482,10 +482,10 @@ GuiSkinEditor GuiSkinEdit;
    void GuiSkinEditor::Locate(GuiSkinEditor &editor) {Proj.elmLocate(editor.elm_id);}
    bool GuiSkinEditor::selected()C {return Mode()==MODE_GUI_SKIN;}
    void GuiSkinEditor::selectedChanged() {}
-                  C Rect& GuiSkinEditor::rect()C {return ::EE::Region::rect();}
+                  C Rect& GuiSkinEditor::rect()C {return super::rect();}
    GuiSkinEditor& GuiSkinEditor::rect(C Rect &rect)
 {
-      ::EE::Region::rect(rect);
+      super::rect(rect);
       props_region.rect(Rect(0.01f, -clientHeight()+0.01f, 0.01f+props_x, undo.rect().min.y-0.01f));
        objs_region.rect(Rect(props_region.rect().max.x, props_region.rect().min.y, clientWidth(), undo.rect().min.y-0.01f));
       flt s=0.12f;
@@ -738,7 +738,7 @@ GuiSkinEditor GuiSkinEdit;
 
       REPAO(props).autoData(&edit).changed(Changed, PreChanged);
 
-      parent+=::EE::Region::create().skin(&EmptyGuiSkin, false); T.kb_lit=false;
+      parent+=super::create().skin(&EmptyGuiSkin, false); T.kb_lit=false;
       T+=undo      .create(Rect_LU(0.02f, -0.01f     , 0.05f, 0.05f)).func(Undo, T).focusable(false).desc("Undo"); undo.image="Gui/Misc/undo.img";
       T+=redo      .create(Rect_LU(undo.rect().ru(), 0.05f, 0.05f)).func(Redo, T).focusable(false).desc("Redo"); redo.image="Gui/Misc/redo.img";
       T+=locate    .create(Rect_LU(redo.rect().ru()+Vec2(0.01f, 0), 0.14f, 0.05f), "Locate").func(Locate, T).focusable(false).desc("Locate this element in the Project");
@@ -808,7 +808,7 @@ GuiSkinEditor GuiSkinEdit;
    }
    void GuiSkinEditor::draw(C GuiPC &gpc)
 {
-      ::EE::Region::draw(gpc);
+      super::draw(gpc);
       if(gpc.visible)
       {
          D.clip();

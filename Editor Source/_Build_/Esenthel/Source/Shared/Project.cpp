@@ -3015,7 +3015,7 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
          if(river){MapLock ml(world_ver.rivers); water_ver->areas=new_area; world_ver.changed=true;} // lock before changing 'world_ver'
       }
    }
-   bool Project::syncObj(C UID &world_id, C VecI2 &area_xy, Memc<ObjData> &objs, Map<VecI2, Memc<ObjData> > *obj_modified, Memc<UID> *local_newer)
+   bool Project::syncObj(C UID &world_id, C VecI2 &area_xy, Memc<ObjData> &objs, Map<VecI2, Memc<ObjData>> *obj_modified, Memc<UID> *local_newer)
    {
       if(world_id.valid())
          if(WorldVer *world_ver=worldVerRequire(world_id))
@@ -3720,7 +3720,7 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
 {
       root.clear();
       hierarchy.del();
-      ::Project::del(); return T;
+      super::del(); return T;
    }
    void ProjectHierarchy::floodRemoved(Memc<UID> &removed, ElmNode &node, bool parent_removed)
    {
@@ -3853,7 +3853,7 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
       }
       return null;
    }
-           Str ProjectHierarchy::elmFullName(C UID &elm_id, int max_elms)C {return ::Project::elmFullName(elm_id, max_elms);}
+           Str ProjectHierarchy::elmFullName(C UID &elm_id, int max_elms)C {return super::elmFullName(elm_id, max_elms);}
    Str ProjectHierarchy::elmFullName(C Elm *elm   , int max_elms)C 
 {
       int length=0; Memt<C Elm*> processed; Str name;

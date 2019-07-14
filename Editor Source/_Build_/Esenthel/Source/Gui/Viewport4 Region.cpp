@@ -85,7 +85,7 @@
       csc++;
       csc.New().create("Zoom", CtrlsZoom, T).desc("Draw camera zoom pad").flag(MENU_TOGGLABLE);
 
-      ::EE::Region::create(Rect_LU(0, 0, 3, 2)).removeSlideBars().skin(&EmptyGuiSkin, false); kb_lit=false; flt h=0.05f; // set initial size so sub-windows can be aligned to sides
+      super::create(Rect_LU(0, 0, 3, 2)).removeSlideBars().skin(&EmptyGuiSkin, false); kb_lit=false; flt h=0.05f; // set initial size so sub-windows can be aligned to sides
       T+=v4.create(draw, default_pitch, default_yaw, default_dist, from, range).sel(Edit::Viewport4::VIEW_FRONT).perspFov(VidOpt.advanced.fov);
       T+=cam_tabs     .create(Rect_LU(0, 0, 2*0.03f, 2*0.03f), 0, (cchar8**)null, 4).func(CamChanged, T).set(v4.sel(), QUIET); cam_tabs.tab(0).rect(Rect(cam_tabs.rect().left(), cam_tabs.rect().up())); cam_tabs.tab(1).rect(Rect(cam_tabs.rect().center(), cam_tabs.rect().ru())); cam_tabs.tab(2).rect(Rect(cam_tabs.rect().ld(), cam_tabs.rect().center())); cam_tabs.tab(3).rect(Rect(cam_tabs.rect().down(), cam_tabs.rect().right())); FREPA(cam_tabs)cam_tabs.tab(i).setCornerTab(i&1, !(i&2)).desc(cam_desc[i]);
       T+=cam_spherical.create(Rect_LU(cam_tabs     .rect().ld(), h)).func(CamSpherical , T).focusable(false).desc(S+"Camera mode (Spherical or FPP)\nKeyboard Shortcut: Tab"); cam_spherical.mode=BUTTON_TOGGLE; cam_spherical.set(true); cam_spherical.image="Gui/Misc/spherical.img";
@@ -137,6 +137,6 @@
                   if(Edit::Viewport4::View *view=v4.focus())view->viewport.kbSet();
          }
       }
-      ::EE::Region::update(gpc);
+      super::update(gpc);
    }
 /******************************************************************************/

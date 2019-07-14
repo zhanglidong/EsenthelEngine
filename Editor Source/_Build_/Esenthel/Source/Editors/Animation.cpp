@@ -58,7 +58,7 @@ AnimEditor AnimEdit;
       }
       ::AnimEditor::Track& AnimEditor::Track::create(bool events)
       {
-         ::EE::GuiCustom::create();
+         super::create();
          T.events=events;
          return T;
       }
@@ -337,7 +337,7 @@ AnimEditor AnimEdit;
   event=&add("Events:");
          autoData(&AnimEdit);
          flt  h=0.043f;
-         Rect r=::PropWin::create("Animation Editor", Vec2(0.02f, -0.02f), 0.036f, h, 0.35f); button[1].show(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
+         Rect r=super::create("Animation Editor", Vec2(0.02f, -0.02f), 0.036f, h, 0.35f); button[1].show(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
          obj->textline.resize(Vec2(h, 0));
          prop_max_x=r.max.x;
          T+=split.create(Rect_RU(r.max.x, r.max.y, 0.15f, 0.055f), "Split").func(Split, T).desc(S+"Split Animation\nKeyboard Shortcut: "+Kb.ctrlCmdName()+"+S");
@@ -355,7 +355,7 @@ AnimEditor AnimEdit;
       }
       void AnimEditor::Preview::toGui()
       {
-         ::PropWin::toGui();
+         super::toGui();
          if(length)length->name.set(S+"Length: "+(anim() ? S+TextReal(anim()->length(), -2)+"s" : S));
       }
       void AnimEditor::Preview::removedEvent(int index)
@@ -363,11 +363,11 @@ AnimEditor AnimEdit;
          if(event_lit==index)event_lit=-1;else if(event_lit>index)event_lit--;
          if(event_sel==index)event_sel=-1;else if(event_sel>index)event_sel--;
       }
-      ::AnimEditor::Preview& AnimEditor::Preview::hide(            )  {if(!AnimEdit.fullscreen)AnimEdit.set(null); ::PropWin::hide(); return T;}
-      Rect     AnimEditor::Preview::sizeLimit(            )C {Rect r=::EE::Window::sizeLimit(); r.min.set(1.0f, 0.9f); return r;}
+      ::AnimEditor::Preview& AnimEditor::Preview::hide(            )  {if(!AnimEdit.fullscreen)AnimEdit.set(null); super::hide(); return T;}
+      Rect     AnimEditor::Preview::sizeLimit(            )C {Rect r=super::sizeLimit(); r.min.set(1.0f, 0.9f); return r;}
       ::AnimEditor::Preview& AnimEditor::Preview::rect(C Rect &rect)  
 {
-         ::EE::Window::rect(rect);
+         super   ::rect(rect);
          track   .rect(Rect(prop_max_x, -clientHeight(), clientWidth(), -clientHeight()+0.09f).extend(-0.02f));
          viewport.rect(Rect(prop_max_x, track.rect().max.y, clientWidth(), 0).extend(-0.02f));
          event_op.move(Vec2(0, track.rect().min.y-event_op.rect().min.y));
@@ -400,7 +400,7 @@ AnimEditor AnimEdit;
 
             AnimEdit.playUpdate(time_speed);
          }
-         ::EE::ClosableWindow::update(gpc); // process after adjusting 'animTime' so clicking on anim track will not be changed afterwards
+         super::update(gpc); // process after adjusting 'animTime' so clicking on anim track will not be changed afterwards
 
          flt delta_t=Time.ad()*time_speed; // use default delta
          if(AnimEdit.anim) // if we have animation
@@ -445,7 +445,7 @@ AnimEditor AnimEdit;
          add("Scale Tolerance"   , MEMBER(OptimizeAnim, scale_eps)).changed(Changed).mouseEditSpeed(0.0001f).min(0);
               file_size=&add();
          optimized_size=&add();
-         Rect r=::PropWin::create("Reduce Keyframes", Vec2(0.02f, -0.02f), 0.040f, 0.046f); button[2].show();
+         Rect r=super::create("Reduce Keyframes", Vec2(0.02f, -0.02f), 0.040f, 0.046f); button[2].show();
          autoData(this);
          resize(Vec2(0, 0.1f));
          T+=optimize.create(Rect_D(clientWidth()/2, -clientHeight()+0.03f, 0.2f, 0.06f), "Optimize").func(Optimize, T);
@@ -467,7 +467,7 @@ AnimEditor AnimEdit;
          st=&add("Start Time", MEMBER(TimeRangeSpeed, start));
          e =&add("End Time"  , MEMBER(TimeRangeSpeed, end  ));
          sp=&add("Speed"     , MEMBER(TimeRangeSpeed, speed));
-         Rect r=::PropWin::create("Time Range Speed", Vec2(0.02f, -0.02f), 0.040f, 0.046f); button[2].show();
+         Rect r=super::create("Time Range Speed", Vec2(0.02f, -0.02f), 0.040f, 0.046f); button[2].show();
          autoData(this);
          resize(Vec2(0, 0.1f));
          T+=apply.create(Rect_D(clientWidth()/2, -clientHeight()+0.03f, 0.2f, 0.06f), "Apply").func(Apply, T);
@@ -846,12 +846,12 @@ AnimEditor AnimEdit;
    }
    void AnimEditor::setMenu()
    {
-      ::Viewport4Region::setMenu(selected());
+      super::setMenu(selected());
       cmd.menu.enabled(selected());
    }
    void AnimEditor::setMenu(Node<MenuElm> &menu, C Str &prefix)
    {
-      ::Viewport4Region::setMenu(menu, prefix);
+      super::setMenu(menu, prefix);
       FREPA(menu.children)if(menu.children[i].name==prefix+"View")
       {
          Node<MenuElm> &v=menu.children[i];
@@ -879,7 +879,7 @@ AnimEditor AnimEdit;
    }
    AnimEditor& AnimEditor::create()
    {
-      ::Viewport4Region::create(Draw, false, 0, PI, 1, 0.01f, 1000); v4.toggleHorizontal();
+      super::create(Draw, false, 0, PI, 1, 0.01f, 1000); v4.toggleHorizontal();
       flt h=ctrls.rect().h();
       T+=axis      .create(Rect_LU(ctrls     .rect().ld(), h)     ).focusable(false).desc(S+"Display identity matrix axes, where:\nRed = right (x vector)\nGreen = up (y vector)\nBlue = forward (z vector)\nLength of each vector is 1 unit\nPlease note that the camera in Object Editor is by default faced from forward to backward.\n\nKeyboard Shortcut: Alt+A"); axis.mode=BUTTON_TOGGLE; axis.set(true); axis.image="Gui/Misc/axis.img";
       T+=draw_bones.create(Rect_LU(axis      .rect().ru(), h), "B").focusable(false).desc(S+"Display skeleton bones\nKeyboard Shortcut: Alt+B"); draw_bones.mode=BUTTON_TOGGLE; draw_bones.set(true);
@@ -1316,7 +1316,7 @@ AnimEditor AnimEdit;
             if(settings_region.contains(Gui.ms()))settings.set(-1);
          }
       }
-      ::Viewport4Region::update(gpc); // process after adjusting 'animTime' so clicking on anim track will not be changed afterwards
+      super::update(gpc); // process after adjusting 'animTime' so clicking on anim track will not be changed afterwards
    }
    bool AnimEditor::selectionZoom(flt &dist)
    {
@@ -1361,7 +1361,7 @@ AnimEditor AnimEdit;
    }
    void AnimEditor::resize()
 {
-      ::Viewport4Region::resize();
+      super::resize();
       track.rect(Rect(Proj.visible() ? 0 : Misc.rect().w(), -clientHeight(), v4.rect().max.x, 0.09f-clientHeight()));
       end       .rect(Rect_RD(track     .rect().ru(), 0.07f, 0.07f));
       next_frame.rect(Rect_RD(end       .rect().ld(), 0.08f, 0.07f));

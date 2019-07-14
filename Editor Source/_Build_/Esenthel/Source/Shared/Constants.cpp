@@ -201,7 +201,7 @@ const Pose PoseIdentity;
  C SmallMatrix3& SmallMatrix::orn()C {return T;}
    bool SmallMatrix::operator==(C SmallMatrix &m)C {return orn()==m.orn() && pos==m.pos;}
    bool SmallMatrix::operator!=(C SmallMatrix &m)C {return orn()!=m.orn() || pos!=m.pos;}
-   void SmallMatrix::set(Matrix &matrix)C {::SmallMatrix3::set(matrix); matrix.pos=pos;}
+   void SmallMatrix::set(Matrix &matrix)C {super::set(matrix); matrix.pos=pos;}
    Matrix SmallMatrix::operator()()C {Matrix matrix; set(matrix); return matrix;}
    SmallMatrix::SmallMatrix() {}
    SmallMatrix::SmallMatrix(C Matrix &matrix) : SmallMatrix3(matrix) {pos=matrix.pos;}

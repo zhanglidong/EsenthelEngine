@@ -47,7 +47,7 @@ ColorBrushClass ColorBrush;
       flt b=0.01f  ,
           e=0.005f ,
           s=0.0425f;
-      ::EE::Window::create("Color"/*MLT("Color Brush", PL,"Kolor", DE,"Farb Pinsel", RU,"Цвет кисти", PO,"Cor do Pincel")*/);
+      super::create("Color"/*MLT("Color Brush", PL,"Kolor", DE,"Farb Pinsel", RU,"Цвет кисти", PO,"Cor do Pincel")*/);
       clientRect(Rect_R(WorldEdit.rect().w(), -WorldEdit.rect().h()/2, b*2+(s+e)*X-e, b*2+(s+e)*Y-e));
    #if MOBILE
       pos(HB.rect().lu()-Vec2(0.05f+rect().w(), 0)); // on mobile platforms with small screens move to top, left of heightbrush (so it won't be close to orientation cube)
@@ -74,7 +74,7 @@ ColorBrushClass ColorBrush;
       cp.create(S).func(Changed, T).hide();
       return T;
    }
-   Window& ColorBrushClass::hide(){cp.hide(); return ::EE::Window::hide();}
+   Window& ColorBrushClass::hide(){cp.hide(); return super::hide();}
    void ColorBrushClass::EditColor(Cell<Area> &cell, Vec &color, int thread_index)
    {
       Area &area=cell();

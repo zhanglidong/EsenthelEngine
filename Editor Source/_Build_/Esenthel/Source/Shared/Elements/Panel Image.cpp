@@ -635,7 +635,7 @@
    {
       f.cmpUIntV(0);
        base.save(f);
-      ::EE::PanelImageParams::save(f);
+      super::save(f);
       return f.ok();
    }
    bool EditPanelImage::load(File &f)
@@ -645,7 +645,7 @@
          case 0:
          {
             if( base.load(f))
-            if(::EE::PanelImageParams::load(f))
+            if(super::load(f))
                if(f.ok())return true;
          }break;
       }

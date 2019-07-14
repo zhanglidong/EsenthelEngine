@@ -121,14 +121,14 @@ Property &text=add("Text"           , MemberDesc(MEMBER(Params, sample_text    )
 Property &nos =add("No Scale"       , MemberDesc(MEMBER(Params, no_scale       )));
       autoData(&params);
 
-      ::PropWin::create("Font Editor", Vec2(0.02f, -0.07f), 0.036f, 0.043f, 0.3f); ::PropWin::changed(Changed, PreChanged); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); text.changed(null, null); nos.changed(null, null);
+      super::create("Font Editor", Vec2(0.02f, -0.07f), 0.036f, 0.043f, 0.3f); super::changed(Changed, PreChanged); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); text.changed(null, null); nos.changed(null, null);
       T+=undo  .create(Rect_LU(0.02f, -0.01f     , 0.05f, 0.05f)).func(Undo, T).focusable(false).desc("Undo"); undo.image="Gui/Misc/undo.img";
       T+=redo  .create(Rect_LU(undo.rect().ru(), 0.05f, 0.05f)).func(Redo, T).focusable(false).desc("Redo"); redo.image="Gui/Misc/redo.img";
       T+=locate.create(Rect_LU(redo.rect().ru()+Vec2(0.01f, 0), 0.14f, 0.05f), "Locate").func(Locate, T).focusable(false).desc("Locate this element in the Project");
       clientRect(Rect_C(0, 0, 2, 1.113f));
       T+=viewport.create(Rect_LU(0.6f, -0.04f, 1.37f, 0.9f), Preview, this);
    }
-   void FontEditor::toGui() {::PropWin::toGui(); refresh();}
+   void FontEditor::toGui() {super::toGui(); refresh();}
    void FontEditor::setInfo()
    {
       // can't use 'font' because that's just the preview
@@ -136,8 +136,8 @@ Property &nos =add("No Scale"       , MemberDesc(MEMBER(Params, no_scale       )
    }
    void FontEditor::stopThread() {thread.stop(); event.on();}
    void FontEditor::refresh() {if(elm){event.on(); if(!thread.active() || thread.wantStop())thread.create(Make, this);}}
-   FontEditor& FontEditor::del(){stopThread(); thread.del(); ::EE::Window::del (); return T;}
-   FontEditor& FontEditor::hide(){stopThread(); set(null   ); ::PropWin::hide(); return T;}
+   FontEditor& FontEditor::del(){stopThread(); thread.del(); super::del (); return T;}
+   FontEditor& FontEditor::hide(){stopThread(); set(null   ); super::hide(); return T;}
    void FontEditor::flush()
    {
       if(elm && changed)
@@ -171,7 +171,7 @@ Property &nos =add("No Scale"       , MemberDesc(MEMBER(Params, no_scale       )
          visible(T.elm!=null).moveToTop();
       }
    }
-   void FontEditor::activate(Elm *elm) {set(elm); if(T.elm)::EE::GuiObj::activate();}
+   void FontEditor::activate(Elm *elm) {set(elm); if(T.elm)super::activate();}
    void FontEditor::toggle(Elm *elm) {if(elm==T.elm)elm=null; set(elm);}
    void FontEditor::elmChanged(C UID &font_id)
    {

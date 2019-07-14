@@ -44,7 +44,7 @@ ImageAtlasEditor ImageAtlasEdit;
 {
               list.desc(desc);
             region.desc(desc);
-      return ::EE::GuiObj::desc(desc);
+      return super::desc(desc);
    }
    void ImageAtlasEditor::makeDo()
    {
@@ -81,7 +81,7 @@ ImageAtlasEditor ImageAtlasEdit;
          ListColumn(ElmFullName    , 0.8f  , "Element"      ),
          ListColumn(ElmName        , 0.4f  , "Name in Atlas"),
       };
-      ::PropWin::create("Image Atlas Editor"); button[1].show(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
+      super::create("Image Atlas Editor"); button[1].show(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
       T+=make.create(Rect_LU(0.01f, -0.01f, 0.25f, 0.055f), "Create").func(Make, T).focusable(false).desc("Create and save image atlas from currently listed images");
       mip_maps.pos(make.rect().right()+Vec2(make.size().y, 0));
       compress.pos(Vec2(mip_maps.checkbox.rect().max.x+make.size().y, make.rect().centerY()));
@@ -95,10 +95,10 @@ ImageAtlasEditor ImageAtlasEdit;
       flt w=0.02f+region.slidebarSize(); REPA(lc)w+=lc[i].width; rect(Rect_C(0, 0, w, 1));
       desc("Drag and drop an image here");
    }
-   Rect ImageAtlasEditor::sizeLimit()C {Rect r=::EE::Window::sizeLimit(); r.min.set(0.85f, 0.4f); return r;}
+   Rect ImageAtlasEditor::sizeLimit()C {Rect r=super::sizeLimit(); r.min.set(0.85f, 0.4f); return r;}
    ImageAtlasEditor& ImageAtlasEditor::rect(C Rect &rect)
 {
-      ::EE::Window::rect(rect);
+      super::rect(rect);
       show_removed.rect(Rect_RU(Vec2(clientWidth()-0.01f, -0.01f) ,       make.rect().h()));
       locate      .rect(Rect_RU(show_removed.pos()-Vec2(0.01f, 0), 0.15f, make.rect().h()));
       redo        .rect(Rect_RU(locate      .pos()-Vec2(0.01f, 0),       make.rect().h()));
@@ -144,7 +144,7 @@ ImageAtlasEditor ImageAtlasEdit;
    }
    void ImageAtlasEditor::toGui()
    {
-      ::PropWin::toGui();
+      super::toGui();
       int v=0; flt h=list.elmHeight();
       list_data.clear(); if(ElmImageAtlas *data=T.data())FREPA(data->images)if(!data->images[i].removed || show_removed())
       {
@@ -170,9 +170,9 @@ ImageAtlasEditor ImageAtlasEdit;
          visible(T.elm!=null).moveToTop();
       }
    }
-           void              ImageAtlasEditor::activate(Elm *elm)         {set(elm); if(T.elm)::EE::GuiObj::activate();}
+           void              ImageAtlasEditor::activate(Elm *elm)         {set(elm); if(T.elm)super::activate();}
            void              ImageAtlasEditor::toggle(Elm *elm)         {if(elm==T.elm)elm=null; set(elm);}
-   ImageAtlasEditor& ImageAtlasEditor::hide(        ){if(visible()){::PropWin::hide(); set(null);} return T;}
+   ImageAtlasEditor& ImageAtlasEditor::hide(        ){if(visible()){super::hide(); set(null);} return T;}
    void ImageAtlasEditor::elmChanged(C UID &elm_id)
    {
       if(elm && elm->id==elm_id)

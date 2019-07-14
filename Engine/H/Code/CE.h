@@ -680,7 +680,7 @@ const_mem_addr struct CodeEditor
    Bool      verifyBuildFiles(Memc<Message> &msgs);
    Bool      adjustBuildFiles();
    Bool           generateTXT(Memc<Message> &msgs);
-   void      generateHeadersH(Memc<Symbol*> &sorted_classes, EXPORT_MODE export_mode, Bool gcc);
+   void      generateHeadersH(Memc<Symbol*> &sorted_classes, EXPORT_MODE export_mode);
    Bool          generateCPPH(Memc<Symbol*> &sorted_classes, EXPORT_MODE export_mode);
    Bool        generateVSProj(Int version);
    Bool     generateXcodeProj();

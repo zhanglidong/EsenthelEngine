@@ -24,7 +24,7 @@ State               StatePublish(UpdatePublish, DrawPublish, InitPublish, ShutPu
 Memb<PakFileData>   PublishFiles;
 Memc<ImageGenerate> PublishGenerate;
 Memc<ImageConvert>  PublishConvert;
-Memc<Mems<byte> >    PublishFileData; // for file data allocated dynamically
+Memc<Mems<byte>>    PublishFileData; // for file data allocated dynamically
 SyncLock            PublishLock;
 bool                PublishOk, PublishNoCompile, PublishOpenIDE, PublishDataAsPak, PublishDataOnly, PublishEsProj;
 int                 PublishAreasLeft, PublishPVRTCUse;
@@ -620,7 +620,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
    if(tex_not_found)Gui.msgBox(S, S+tex_not_found+" Texture"+CountS(tex_not_found)+" were not found");
 }
 /******************************************************************************/
-void SetPublishFiles(Memb<PakFileData> &files, Memc<ImageGenerate> &generate, Memc<ImageConvert> &convert, Memc<Mems<byte> > &file_data)
+void SetPublishFiles(Memb<PakFileData> &files, Memc<ImageGenerate> &generate, Memc<ImageConvert> &convert, Memc<Mems<byte>> &file_data)
 {
    files    .clear();
    generate .clear();
@@ -1134,7 +1134,7 @@ void DrawPublish()
    {
       path=(PublishProjectDataPath.is() ? PublishProjectDataPath : PublishBinPath);
 
-      Gui+=::EE::Window::create(Rect_C(0, 0, 1, 0.34f), "Publishing succeeded"); button[2].show();
+      Gui+=super::create(Rect_C(0, 0, 1, 0.34f), "Publishing succeeded"); button[2].show();
       T+=ok        .create(Rect_D(clientWidth()*(PublishEsProj ? 2 : 1)/4, -clientHeight()+0.04f, 0.3f, 0.06f), "OK"        ).func(OK       , T);
       T+=size_stats.create(Rect_D(clientWidth()*                     3 /4, -clientHeight()+0.04f, 0.3f, 0.06f), "Size Stats").func(SizeStats, T).hidden(PublishEsProj);
       T+=T.text    .create(Rect(0.02f, ok.rect().max.y, clientWidth()-0.02f, 0), text);

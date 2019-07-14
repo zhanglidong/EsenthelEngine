@@ -6,11 +6,11 @@ Str       GameWorld;
 bool      DrawPhysics, DrawWorldPath;
 VIEW_MODE ViewMode=VIEW_TPP;
 
-Memx<Game::ObjMap<Game::Static       > >      Statics;
-Memx<Game::ObjMap<Game::ObjLightPoint> >  PointLights;
-Memx<Game::ObjMap<Game::ObjLightCone > >   ConeLights;
-Memx<Game::ObjMap<Game::ObjParticles > > ObjParticles;
-Memx<Game::ObjMap<Player            > >      Players;
+Memx<Game::ObjMap<Game::Static       >>      Statics;
+Memx<Game::ObjMap<Game::ObjLightPoint>>  PointLights;
+Memx<Game::ObjMap<Game::ObjLightCone >>   ConeLights;
+Memx<Game::ObjMap<Game::ObjParticles >> ObjParticles;
+Memx<Game::ObjMap<Player            >>      Players;
 
 /******************************************************************************/
 void StartGame(Elm &elm)

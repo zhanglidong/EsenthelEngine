@@ -13,7 +13,7 @@ ObjListClass ObjList;
    void ObjListClass::setChanged() {_changed=true;}
    ObjListClass& ObjListClass::create()
    {
-      ::EE::Window::create(Rect_RD(D.w(), -D.h(), 1.09f, 1.2f), "Object List").hide(); button[1].show(); button[2].show().func(Hide, T); flag|=WIN_RESIZABLE;
+      super::create(Rect_RD(D.w(), -D.h(), 1.09f, 1.2f), "Object List").hide(); button[1].show(); button[2].show().func(Hide, T); flag|=WIN_RESIZABLE;
       ts.reset().size=0.038f; ts.align.set(1, 0); ts2.reset().size=0.033f;
       cchar8 *group_t[]=
       {
@@ -142,13 +142,13 @@ ObjListClass ObjList;
    }
    Rect ObjListClass::sizeLimit()C 
 {
-      Rect   r=::EE::Window::sizeLimit(); r.min.set(0.4f, 0.3f);
+      Rect   r=super::sizeLimit(); r.min.set(0.4f, 0.3f);
       return r;
    }
-           C Rect& ObjListClass::rect()C {return ::EE::Window::rect();}
+           C Rect& ObjListClass::rect()C {return super::rect();}
    Window& ObjListClass::rect(C Rect &rect)
 {
-      ::EE::Window::rect(rect);
+      super ::rect(rect);
       region.rect(Rect(0, -clientHeight(), clientWidth(), group.rect().min.y).extend(-0.03f));
       return T;
    }
@@ -156,7 +156,7 @@ ObjListClass ObjList;
 {
       visible(StateActive==&StateProject && Mode()==MODE_WORLD && WorldEdit.mode()==WorldView::OBJECT && WorldEdit.obj_list());
       if(visible() && gpc.visible && _changed)set(); // first set data
-      ::EE::ClosableWindow::update(gpc); // now update list
+      super::update(gpc); // now update list
       if(visible() && gpc.visible)
       {
          REPA(MT)if(MT.guiObj(i)==&list && MT.bp(i))if(Elm *elm=list())

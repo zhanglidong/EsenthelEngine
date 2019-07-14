@@ -113,7 +113,7 @@ Bool MouseCursorHW::create(C Image &image, C VecI2 &hot_spot)
                Color c=src->color(x, y);
                bgra++->set(c.b, c.g, c.r, c.a);
             }
-           _cursor=XcursorImageLoadCursor(XDisplay, image);
+           _cursor=(Ptr)XcursorImageLoadCursor(XDisplay, image);
             XcursorImageDestroy(image);
          }
          src->unlock();

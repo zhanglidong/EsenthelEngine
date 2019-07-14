@@ -28,7 +28,7 @@ VideoEditor VideoEdit;
       codec =&add();
       autoData(this);
 
-      Rect r=::PropWin::create("Video Player", Vec2(0.02f, -0.02f)); button[1].show(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
+      Rect r=super::create("Video Player", Vec2(0.02f, -0.02f)); button[1].show(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
       T+=custom.create(this);
       rect(Rect_C(0, 0, Min(1.7f, D.w()*2), Min(1.07f, D.h()*2)));
       T+=locate.create(Rect_U(0.11f, r.min.y-0.02f, 0.15f, 0.055f), "Locate").func(Locate, T).focusable(false).desc("Locate this element in the Project");
@@ -43,14 +43,14 @@ VideoEditor VideoEdit;
    }
    void VideoEditor::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(gpc.visible && visible())setInfo();
    }
-   VideoEditor& VideoEditor::hide(            )  {set(null); ::PropWin::hide(); return T;}
-   Rect         VideoEditor::sizeLimit(            )C {Rect r=::EE::Window::sizeLimit(); r.min.set(1.0f, 0.45f); return r;}
+   VideoEditor& VideoEditor::hide(            )  {set(null); super::hide(); return T;}
+   Rect         VideoEditor::sizeLimit(            )C {Rect r=super::sizeLimit(); r.min.set(1.0f, 0.45f); return r;}
    VideoEditor& VideoEditor::rect(C Rect &rect)  
 {
-      ::EE::Window::rect(rect);
+      super::rect(rect);
       flt  x=0; if(props.elms())x=0.22f; //props[0].button.rect().max.x;
       Rect r(x, -clientHeight(), clientWidth(), 0); r.extend(-0.02f);
       custom.rect(r);
@@ -87,7 +87,7 @@ VideoEditor VideoEdit;
          visible(T.elm!=null).moveToTop();
       }
    }
-   void VideoEditor::activate(Elm *elm) {set(elm); if(T.elm)::EE::GuiObj::activate();}
+   void VideoEditor::activate(Elm *elm) {set(elm); if(T.elm)super::activate();}
    void VideoEditor::toggle(Elm *elm) {if(elm==T.elm)elm=null; set(elm);}
    void VideoEditor::closeElm(C UID &elm_id) {if(elm && elm->id==elm_id)video.del();}
    void VideoEditor::erasing(C UID &elm_id) {if(elm && elm->id==elm_id)set(null);}

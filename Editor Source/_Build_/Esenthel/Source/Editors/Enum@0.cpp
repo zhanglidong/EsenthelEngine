@@ -17,18 +17,18 @@ EnumEditor EnumEdit;
       void EnumEditor::Enum::operator=(C EditEnum &src) {enum_id=src.id; name=src.name; removed=src.removed; setColor();}
       void EnumEditor::RenameWindow::create()
       {
-         Gui+=::EE::Window::create(Rect_C(0, 0, 1, 0.14f), "Rename Enum").hide(); button[2].show();
+         Gui+=super   ::create(Rect_C(0, 0, 1, 0.14f), "Rename Enum").hide(); button[2].show();
          T  +=textline.create(Rect  (0, -clientHeight(), clientWidth(), 0).extend(-0.01f));
       }
       void EnumEditor::RenameWindow::activate(C UID &enum_id, C Str &name)
       {
          T.enum_id=enum_id;
          textline.set(name).selectAll().activate();
-         ::EE::GuiObj::activate();
+         super::activate();
       }
       void EnumEditor::RenameWindow::update(C GuiPC &gpc)
 {
-         ::EE::ClosableWindow::update(gpc);
+         super::update(gpc);
 
          if(Gui.window()==this)
          {
@@ -46,7 +46,7 @@ EnumEditor EnumEdit;
             {
                if(Gui.skin)skin=*Gui.skin; skin.list.highlight_color.zero(); T.skin(&skin);
             }
-            ::EE::_List::draw(gpc);
+            super::draw(gpc);
             if(elm>=0)
             {
                T.skin(null);
@@ -115,7 +115,7 @@ EnumEditor EnumEdit;
       {
          ListColumn(MEMBER(Enum, name), LCW_MAX_DATA_PARENT, "name"),
       };
-      Gui+=::EE::Window::create("Enum Editor").hide(); button[1].show(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
+      Gui+=super::create("Enum Editor").hide(); button[1].show(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
       T+=undo  .create(Rect_LU(0.01f, -0.01f     , 0.055f, 0.055f)).func(Undo, T).focusable(false).desc("Undo"); undo.image="Gui/Misc/undo.img";
       T+=redo  .create(Rect_LU(undo.rect().ru(), 0.055f, 0.055f)).func(Redo, T).focusable(false).desc("Redo"); redo.image="Gui/Misc/redo.img";
       T+=locate.create(Rect_LU(redo.rect().ru()+Vec2(0.01f, 0), 0.15f, 0.055f), "Locate").func(Locate, T).focusable(false).desc("Locate this element in the Project");
@@ -129,10 +129,10 @@ EnumEditor EnumEdit;
       rect(Rect_C(0, 0, 0.6f, 1));
       rename_window.create();
    }
-   Rect   EnumEditor::sizeLimit(            )C {Rect r=::EE::Window::sizeLimit(); r.min.set(0.61f, 0.35f); return r;}
+   Rect   EnumEditor::sizeLimit(            )C {Rect r=super::sizeLimit(); r.min.set(0.61f, 0.35f); return r;}
    EnumEditor& EnumEditor::rect(C Rect &rect)  
 {
-      ::EE::Window::rect(rect);
+      super::rect(rect);
       Rect_RU r(clientWidth()-0.01f, -0.01f, 0.23f, 0.055f); if(r.min.x-0.01f-type.rect().h()<type.rect().max.x+0.01f)r-=Vec2(0, type.rect().h()+0.01f);
        new_enum   .rect(r);
       show_removed.rect(Rect_RU(new_enum.rect().lu()-Vec2(0.01f, 0), new_enum.rect().h()));
@@ -202,9 +202,9 @@ EnumEditor EnumEdit;
          visible(T.elm!=null).moveToTop();
       }
    }
-           void        EnumEditor::activate(Elm *elm)         {set(elm); if(T.elm)::EE::GuiObj::activate();}
+           void        EnumEditor::activate(Elm *elm)         {set(elm); if(T.elm)super::activate();}
            void        EnumEditor::toggle(Elm *elm)         {if(elm==T.elm)elm=null; set(elm);}
-   EnumEditor& EnumEditor::hide(        ){if(visible()){::EE::Window::hide(); set(null);} return T;}
+   EnumEditor& EnumEditor::hide(        ){if(visible()){super::hide(); set(null);} return T;}
    void EnumEditor::DragEnums(EnumEditor &ee, GuiObj *obj, C Vec2 &screen_pos) {ee.dragEnums(obj, screen_pos);}
           void EnumEditor::dragEnums(                GuiObj *obj, C Vec2 &screen_pos)
    {
@@ -237,7 +237,7 @@ EnumEditor EnumEdit;
    }
    void EnumEditor::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(Gui.window()==this)REPA(MT)if(MT.bp(i) && MT.guiObj(i)==&list)if(Enum *e=list())
       {
          if(list.selMode()==LSM_SET)Gui.drag(DragEnums, T, MT.touch(i));

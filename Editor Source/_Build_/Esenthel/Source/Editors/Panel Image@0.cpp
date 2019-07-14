@@ -89,10 +89,10 @@ PanelImageEditor PanelImageEdit;
    void PanelImageEditor::Locate(PanelImageEditor &editor) {Proj.elmLocate(editor.elm_id);}
    void PanelImageEditor::Copy(PanelImageEditor &editor) {TextData data; FileText f; SaveProperties(editor.props, data.nodes, ' ', true); data.save(f.writeMem()); ClipSet(f.rewind().getAll());}
    void PanelImageEditor::Paste(PanelImageEditor &editor) {TextData data; FileText f; f.writeMem().putText(ClipGet()); data.load(f.rewind()); editor.force_undo_change_type="paste"; LoadProperties(editor.props, data.nodes, ' ', true); editor.force_undo_change_type=null; editor.setChanged();}
-                     C Rect& PanelImageEditor::rect(            )C {return ::EE::Window::rect();}
+                     C Rect& PanelImageEditor::rect(            )C {return super::rect();}
    PanelImageEditor& PanelImageEditor::rect(C Rect &rect)
 {
-      ::EE::Window::rect(rect);
+      super::rect(rect);
       flt p=0.02f;
       region      .rect(Rect   (p, -clientHeight()+p, p+props_w+region.slidebarSize(), -0.07f));
       viewport    .rect(Rect   (region.rect().max.x+p+0.01f, region.rect().min.y, clientWidth()-p, -0.07f));
@@ -382,7 +382,7 @@ PanelImageEditor PanelImageEdit;
       add("Reflection Intensity", MemberDesc(MEMBER(Params, sections[1].reflection_intensity)).setTextToDataFunc(SectionReflectionIntensity<1>)).range(-1, 1).mouseEditSpeed(0.2f);
       autoData(&params);
 
-      props_w=::PropWin::create("Panel Image Editor", Vec2(prop_x, 0), 0.036f, prop_h, 0.3f).max.x+0.02f; button[1].show(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
+      props_w=super::create("Panel Image Editor", Vec2(prop_x, 0), 0.036f, prop_h, 0.3f).max.x+0.02f; button[1].show(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
       T+=undo  .create(Rect_LU(0.02f, -0.01f     , 0.05f, 0.05f)).func(Undo, T).focusable(false).desc("Undo"); undo.image="Gui/Misc/undo.img";
       T+=redo  .create(Rect_LU(undo  .rect().ru(), 0.05f, 0.05f)).func(Redo, T).focusable(false).desc("Redo"); redo.image="Gui/Misc/redo.img";
       T+=locate.create(Rect_LU(redo  .rect().ru()+Vec2(0.01f, 0), 0.14f, 0.05f), "Locate").func(Locate, T).focusable(false).desc("Locate this element in the Project");
@@ -398,12 +398,12 @@ PanelImageEditor PanelImageEdit;
       T+=viewport.create(Preview, this);
       rect(Rect_C(0, 0, 2.2f, 1.5f));
    }
-   void PanelImageEditor::toGui() {::PropWin::toGui(); refresh();}
+   void PanelImageEditor::toGui() {super::toGui(); refresh();}
    void PanelImageEditor::stopThread() {thread.stop(); event.on();}
    void PanelImageEditor::refresh() {if(elm){event.on(); if(!thread.active() || thread.wantStop())thread.create(Make, this);}}
-   PanelImageEditor& PanelImageEditor::del()  {stopThread(); thread.del(); ::EE::Window::del (); return T;}
-   PanelImageEditor& PanelImageEditor::hide()  {stopThread(); set(null   ); ::PropWin::hide(); return T;}
-   Rect         PanelImageEditor::sizeLimit()C {Rect r=::EE::Window::sizeLimit(); r.min.set(0.3f, 0.2f); return r;}
+   PanelImageEditor& PanelImageEditor::del()  {stopThread(); thread.del(); super::del (); return T;}
+   PanelImageEditor& PanelImageEditor::hide()  {stopThread(); set(null   ); super::hide(); return T;}
+   Rect         PanelImageEditor::sizeLimit()C {Rect r=super::sizeLimit(); r.min.set(0.3f, 0.2f); return r;}
    void PanelImageEditor::flush()
    {
       if(elm && changed)
@@ -443,7 +443,7 @@ PanelImageEditor PanelImageEdit;
          visible(T.elm!=null).moveToTop();
       }
    }
-   void PanelImageEditor::activate(Elm *elm) {set(elm); if(T.elm)::EE::GuiObj::activate();}
+   void PanelImageEditor::activate(Elm *elm) {set(elm); if(T.elm)super::activate();}
    void PanelImageEditor::toggle(Elm *elm) {if(elm==T.elm)elm=null; set(elm);}
    void PanelImageEditor::elmChanged(C UID &panel_image_id)
    {

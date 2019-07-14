@@ -420,7 +420,7 @@ WorldView WorldEdit;
  C UID* WorldView::ID(C River        *river   )C {return rivers   .dataToKey(river   );}
    void WorldView::setMenu()
    {
-      ::Viewport4Region::setMenu(selected());
+      super::setMenu(selected());
       Proj.menu.setCommand(prefix+"Obj"     , selected() && mode()==OBJECT  );
       Proj.menu.setCommand(prefix+"Waypoint", selected() && mode()==WAYPOINT);
           show_menu.menu.enabled(selected()                    );
@@ -430,7 +430,7 @@ WorldView WorldEdit;
    }
    void WorldView::setMenu(Node<MenuElm> &menu, C Str &prefix)
    {
-      ::Viewport4Region::setMenu(menu, prefix);
+      super::setMenu(menu, prefix);
       FREPA(menu.children)if(menu.children[i].name==prefix+"View")
       {
          Node<MenuElm> &v=menu.children[i];
@@ -624,7 +624,7 @@ WorldView WorldEdit;
    }
    WorldView& WorldView::create()
    {
-      ::Viewport4Region::create(Draw, true, -0.4f, 0, 64*3, 0.25f, 3000);
+      super::create(Draw, true, -0.4f, 0, 64*3, 0.25f, 3000);
       flt h=0.05f;
       T+=show_cur_pos  .create(Rect_LU(ctrls       .rect().ld(), h)).focusable(false).desc("Display mouse cursor position information\nKeyboard Shortcut: Alt+C"); show_cur_pos.mode=BUTTON_TOGGLE; show_cur_pos.image="Gui/Misc/select_info.img";
       T+=show_grid     .create(Rect_LU(show_cur_pos.rect().ru(), h)).focusable(false).desc("Draw world grid\nKeyboard Shortcut: Alt+G"); show_grid.mode=BUTTON_TOGGLE; show_grid.set(true); show_grid.image="Gui/Misc/grid.img";
@@ -722,7 +722,7 @@ WorldView WorldEdit;
    }
    void WorldView::flush()
    {
-      ::WorldData::flush   ();
+      super::flush   ();
       flushSettings ();
       flushWaypoints();
       flushWater    ();
@@ -867,7 +867,7 @@ WorldView WorldEdit;
    }
    void WorldView::resize()
 {
-      ::Viewport4Region::resize();
+      super::resize();
       param_edit.move(Vec2(rect().w(), obj_params.rect().min.y-0.01f)-param_edit.rect().ru());
       path_props.move(Vec2(rect().w(), mode      .rect().min.y-0.01f)-path_props.rect().ru());
    }
@@ -1054,7 +1054,7 @@ WorldView WorldEdit;
    }
    void WorldView::update(C GuiPC &gpc)
 {
-      ::Viewport4Region::update(gpc); // update viewport4
+      super::update(gpc); // update viewport4
       if(gpc.visible && visible())
       {
          grid_plane_level_win.set();
@@ -1207,7 +1207,7 @@ WorldView WorldEdit;
 {
       if(visible() && gpc.visible)
       {
-         ::EE::Region::draw(gpc);
+         super::draw(gpc);
          Memt<Str> a;
          if(show_cur_pos())a.add(S+"Cursor: "+(cur.valid() ? S+cur.pos()+" (Area: "+worldToArea(cur.pos())+")" : S));
          if(a.elms())

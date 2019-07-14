@@ -82,13 +82,13 @@ MeshAOClass MeshAO;
       }
       startThread();
    }
-           MeshAOClass& MeshAOClass::activate(){if(hidden()){createSrc(); thread.cancelStop(); ObjEdit.lod.edit_dist.set(-1);} ::EE::GuiObj::activate(); return T;}
-   MeshAOClass& MeshAOClass::hide(){                          thread.      stop();                                 ::EE::Window::hide    (); return T;}
+           MeshAOClass& MeshAOClass::activate(){if(hidden()){createSrc(); thread.cancelStop(); ObjEdit.lod.edit_dist.set(-1);} super::activate(); return T;}
+   MeshAOClass& MeshAOClass::hide(){                          thread.      stop();                                 super::hide    (); return T;}
   MeshAOClass::~MeshAOClass() {thread.del();}
-   MeshAOClass& MeshAOClass::del(){thread.del(); ::EE::Window::del(); return T;}
+   MeshAOClass& MeshAOClass::del(){thread.del(); super::del(); return T;}
    MeshAOClass& MeshAOClass::create()
    {
-      ::EE::Window::create("Set Per-Vertex AO").hide(); button[2].show();
+      super::create("Set Per-Vertex AO").hide(); button[2].show();
       preview_prop=&props.New().create("Preview"         , MEMBER(MeshAOClass, preview   )).desc("Keyboard Shortcut: Alt+P");
                     props.New();
                     props.New().create("Strength"        , MEMBER(MeshAOClass, strength  )).range(0, 2).mouseEditSpeed(0.4f).desc("AO Intensity");
@@ -105,7 +105,7 @@ MeshAOClass MeshAO;
    }
    void MeshAOClass::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(visible() && gpc.visible)
       {
          if(needRebuild())startThread();

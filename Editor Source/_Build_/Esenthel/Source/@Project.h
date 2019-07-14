@@ -271,7 +271,7 @@ public:
    };
    void rebuildEmbedObj(C UID &world_obj_instance_id, C VecI2 &area_xy, WorldVer &world_ver, bool rebuild_game_area_objs); // this must be called after 'changedObj'
    void rebuildWater(Lake *lake, River *river, C UID &water_id, WorldVer &world_ver);
-   virtual bool syncObj(C UID &world_id, C VecI2 &area_xy, Memc<ObjData> &objs, Map<VecI2, Memc<ObjData> > *obj_modified=null, Memc<UID> *local_newer=null);
+   virtual bool syncObj(C UID &world_id, C VecI2 &area_xy, Memc<ObjData> &objs, Map<VecI2, Memc<ObjData>> *obj_modified=null, Memc<UID> *local_newer=null);
    virtual bool syncWaypoint(C UID &world_id, C UID &waypoint_id, Version &src_ver, EditWaypoint &src); // this should modify 'src_ver' and 'src' according to final data, because Server CS_SET_WORLD_WAYPOINT relies on that
    virtual bool syncLake(C UID &world_id, C UID &lake_id, Version &src_ver, Lake &src); // this should modify 'src_ver' and 'src' according to final data, because Server CS_SET_WORLD_WAYPOINT relies on that
    virtual bool syncRiver(C UID &world_id, C UID &river_id, Version &src_ver, River &src); // this should modify 'src_ver' and 'src' according to final data, because Server CS_SET_WORLD_WAYPOINT relies on that

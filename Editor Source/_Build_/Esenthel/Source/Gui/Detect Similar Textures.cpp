@@ -152,7 +152,7 @@ DetectSimilarTextures DST;
 {
       if(hidden())
       {
-         ::EE::Window::show();
+         super::show();
          rect(Rect_C(0, 0, 1.6f, D.h()*1.75f));
          progress.clear().show();
 
@@ -166,7 +166,7 @@ DetectSimilarTextures DST;
       if(visible())
       {
          stop();
-         ::PropWin::hide();
+         super::hide();
       }
       return T;
    }
@@ -216,11 +216,11 @@ DetectSimilarTextures DST;
       data.New().set(a); // add 'a' as first (parent)
       data.New().set(b); // add 'b' as next  (child)
    }
-   Rect DetectSimilarTextures::sizeLimit()C {Rect r=::EE::Window::sizeLimit(); r.min.set(0.6f, 0.4f); return r;}
-                          C Rect& DetectSimilarTextures::rect()C {return ::EE::Window::rect();}
+   Rect DetectSimilarTextures::sizeLimit()C {Rect r=super::sizeLimit(); r.min.set(0.6f, 0.4f); return r;}
+                          C Rect& DetectSimilarTextures::rect()C {return super::rect();}
    DetectSimilarTextures& DetectSimilarTextures::rect(C Rect &rect)
 {
-      ::EE::Window::rect(rect);
+      super::rect(rect);
       progress.rect(Rect_LU(0, 0, clientWidth(), 0.017f));
       region  .rect(Rect(region.rect().min.x, -clientHeight()+0.03f, clientWidth()-0.02f, -0.03f));
       return T;
@@ -239,7 +239,7 @@ DetectSimilarTextures DST;
       add("Similar Limit"  , MEMBER(DetectSimilarTextures, similar_dif)).range(0, 1).desc("Max difference between pixel colors to consider them similar");
    #endif
       flt h=0.043f;
-      Rect params=::PropWin::create("Detect Similar Textures", Vec2(0.02f, -0.02f), 0.036f, h, 0.15f); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
+      Rect params=super::create("Detect Similar Textures", Vec2(0.02f, -0.02f), 0.036f, h, 0.15f); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
       T.flag|=WIN_RESIZABLE;
       autoData(this).changed(Changed);
 
@@ -253,7 +253,7 @@ DetectSimilarTextures DST;
    }
    void DetectSimilarTextures::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(visible() && gpc.visible)
       {
          progress.set(compared, UniquePairs(proj_texs.elms())); progress.visible(progress()<1 && proj_texs.elms()); // !! do not merge into a single instruction !!

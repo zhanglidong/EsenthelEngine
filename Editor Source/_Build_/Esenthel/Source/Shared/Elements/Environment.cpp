@@ -164,7 +164,7 @@
    bool EditEnv::save(File &f)C
    {
       f.cmpUIntV(3);
-      ::EE::Environment::save(f);
+      super::save(f);
       f<<sun_id<<star_id<<skybox_id<<cloud_id
        <<ambient_on_time<<ambient_color_time<<night_shade_color_time
        <<bloom_on_time<<bloom_half_time<<bloom_saturate_time<<bloom_maximum_time<<bloom_blurs_time<<bloom_original_time<<bloom_scale_time<<bloom_cut_time
@@ -184,7 +184,7 @@
       {
          case 3:
          {
-            if(!::EE::Environment::load(f))break;
+            if(!super::load(f))break;
             f>>sun_id>>star_id>>skybox_id>>cloud_id
              >>ambient_on_time>>ambient_color_time>>night_shade_color_time
              >>bloom_on_time>>bloom_half_time>>bloom_saturate_time>>bloom_maximum_time>>bloom_blurs_time>>bloom_original_time>>bloom_scale_time>>bloom_cut_time
@@ -200,7 +200,7 @@
 
          case 2:
          {
-            if(!::EE::Environment::load(f))break;
+            if(!super::load(f))break;
             f>>sun_id>>star_id>>skybox_id>>cloud_id
              >>ambient_on_time>>ambient_color_time>>night_shade_color_time
              >>bloom_on_time>>bloom_half_time>>bloom_saturate_time>>bloom_maximum_time>>bloom_blurs_time>>bloom_original_time>>bloom_scale_time>>bloom_cut_time
@@ -216,7 +216,7 @@
 
          case 1:
          {
-            if(!::EE::Environment::load(f))break;
+            if(!super::load(f))break;
             f>>sun_id>>star_id>>skybox_id>>cloud_id
              >>ambient_on_time>>ambient_color_time>>night_shade_color_time
              >>bloom_on_time>>bloom_half_time>>bloom_maximum_time>>bloom_blurs_time>>bloom_original_time>>bloom_scale_time>>bloom_cut_time>>bloom_contrast_time
@@ -232,7 +232,7 @@
 
          case 0:
          {
-            if(!::EE::Environment::load(f))break;
+            if(!super::load(f))break;
             f>>sun_id>>star_id>>skybox_id>>cloud_id
              >>ambient_on_time>>ambient_color_time
              >>bloom_on_time>>bloom_half_time>>bloom_maximum_time>>bloom_blurs_time>>bloom_original_time>>bloom_scale_time>>bloom_cut_time>>bloom_contrast_time

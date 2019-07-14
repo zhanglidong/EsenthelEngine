@@ -7,18 +7,18 @@ CalculatorClass Calculator;
 /******************************************************************************/
    void CalculatorClass::visibleToggleActivate()
    {
-      ::EE::GuiObj::visibleToggleActivate();
+      super::visibleToggleActivate();
       expression.activate();
    }
    CalculatorClass& CalculatorClass::create(C Rect &rect)
    {
-      ::EE::Window::create("Calculator").clientRect(rect);
+      super::create("Calculator").clientRect(rect);
       T+=expression.create(Rect(0.01f, -clientHeight()+0.01f, clientWidth()-0.01f, -clientHeight()+0.01f+0.05f)); button[2].func(HideEditAct, SCAST(GuiObj, T)).show();
       return T;
    }
    void CalculatorClass::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(Gui.kb()==&expression)
       {
          CalcValue value; if(Kb.kf(KB_ENTER) && Calculate(value, expression())){expression.set(value.asText(-9)); expression.cursor(expression().length());}
@@ -28,7 +28,7 @@ CalculatorClass Calculator;
 {
       if(visible() && gpc.visible)
       {
-         ::EE::Window::draw(gpc);
+         super::draw(gpc);
          D.clip(gpc.clip);
 
          CalcValue value; Str error; bool ok=Calculate(value, expression(), &error);

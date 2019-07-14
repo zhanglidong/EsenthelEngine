@@ -258,7 +258,7 @@ void OpenObjMaterial  ()
    }
    void Obj::create(C Obj &src)
    {
-      ::ObjData::create(src);
+      super::create(src);
       mesh=src.mesh; mesh_proper=src.mesh_proper; mesh_variation=src.mesh_variation;
       phys=src.phys;
    }
@@ -267,7 +267,7 @@ void OpenObjMaterial  ()
       EditObject *base             =  params.base();
       bool        removed          =T.removed;
       uint        mesh_variation_id=  params.mesh_variation_id;
-      if(::ObjData::sync(src, edit_path))
+      if(super::sync(src, edit_path))
       {
          if(base   !=params.base())setMeshPhys  ();else if(mesh_variation_id!=params.mesh_variation_id)setMeshVariation(); // 'setMeshPhys' already calls 'setMeshVariation'
          if(removed!=T.removed    )removeChanged();
@@ -280,7 +280,7 @@ void OpenObjMaterial  ()
       EditObject *base             =  params.base();
       bool        removed          =T.removed;
       uint        mesh_variation_id=  params.mesh_variation_id;
-      if(::ObjData::undo(src, edit_path))
+      if(super::undo(src, edit_path))
       {
          if(base   !=params.base())setMeshPhys  ();else if(mesh_variation_id!=params.mesh_variation_id)setMeshVariation(); // 'setMeshPhys' already calls 'setMeshVariation'
          if(removed!=T.removed    )removeChanged();
@@ -523,10 +523,10 @@ void OpenObjMaterial  ()
          setMeshVariation();
       }
    }
-   bool Obj::save(File &f) {return ::ObjData::save(f, Proj.edit_path);}
+   bool Obj::save(File &f) {return super::save(f, Proj.edit_path);}
    bool Obj::load(File &f) // 'setMeshPhys' doesn't need to be called because it will be called in 'attach->removeChanged'
    {
-      if(::ObjData::load(f, Proj.edit_path))
+      if(super::load(f, Proj.edit_path))
       {
          return true;
       }

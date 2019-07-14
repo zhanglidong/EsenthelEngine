@@ -47,6 +47,6 @@
          angle.y+=Rot.delta.y*1.5f;
       }
 
-      return ::EE::Game::Chr::update();
+      return super::update();
    }
 /******************************************************************************/

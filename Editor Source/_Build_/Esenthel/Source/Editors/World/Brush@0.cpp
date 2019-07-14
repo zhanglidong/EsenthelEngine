@@ -7,7 +7,7 @@ WorldBrushClass Brush;
 /******************************************************************************/
    WorldBrushClass& WorldBrushClass::create(GuiObj &parent)
    {
-      ::BrushClass::create(parent, Vec2(WorldEdit.rect().w(), -WorldEdit.rect().h()));
+      super ::create(parent, Vec2(WorldEdit.rect().w(), -WorldEdit.rect().h()));
       ssize .set(0.1f);
       sspeed.set(0.2f);
       return T;
@@ -166,7 +166,7 @@ WorldBrushClass Brush;
    void WorldBrushClass::setVisibility() {visible(WorldEdit.mode()!=WorldView::OBJECT || ObjPaint.available());}
    void WorldBrushClass::update(C GuiPC &gpc)
 {
-      ::BrushClass::update(gpc);
+      super::update(gpc);
       setVisibility();
       if(visible() && gpc.visible)
       {

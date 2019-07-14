@@ -7,7 +7,7 @@ ObjPaintClass ObjPaint;
 /******************************************************************************/
       void ObjPaintClass::Mtrl::update(C GuiPC &gpc)
 {
-         ::EE::GuiObj::update(gpc);
+         super::update(gpc);
          remove.visible(Gui.ms()==this || Gui.ms()==&remove);
       }
    void ObjPaintClass::Hide(ObjPaintClass &op) {WorldEdit.obj_paint.set(false);}
@@ -129,7 +129,7 @@ ObjPaintClass ObjPaint;
       add("Scale Multiplier"    , MEMBER(ObjPaintClass, scale_mul   )).range(0.1f, 10).desc("Constant scale factor applied to objects when painting").mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
       add("Terrain Normal Align", MEMBER(ObjPaintClass, align_normal)).range(0  ,  1).desc("How much align the object to terrain normal vector\n0 = don't align\n1 = fully align").mouseEditSpeed(0.3f);
       autoData(this);
-      Rect r=::PropWin::create("Object Paint", Vec2(0.02f, -0.01f), 0.036f, 0.043f, 0.15f); hide(); button[2].show().func(Hide, T);
+      Rect r=super::create("Object Paint", Vec2(0.02f, -0.01f), 0.036f, 0.043f, 0.15f); hide(); button[2].show().func(Hide, T);
       flt  h=ts.lineHeight(), w=0.46f, p=h*1.3f, y=r.min.y-p;
       T+=        objects_t    .create(Vec2(0.02f, y), "Objects", &ts);
       T+=        objects_r    .create(Rect_LU(0.02f, y, w, 0.25f)); y=objects_r.rect().min.y-p;
@@ -278,7 +278,7 @@ ObjPaintClass ObjPaint;
             }
          }
       }
-      ::EE::ClosableWindow::update(gpc); // now update list
+      super::update(gpc); // now update list
    }
    void ObjPaintClass::erasing(C UID &elm_id)
    {

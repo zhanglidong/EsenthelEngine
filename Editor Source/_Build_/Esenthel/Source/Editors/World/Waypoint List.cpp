@@ -15,7 +15,7 @@ WaypointListClass WaypointList;
    void WaypointListClass::setChanged() {_changed=true;}
    WaypointListClass& WaypointListClass::create()
    {
-      ::EE::Window::create(Rect_RD(D.w(), -D.h(), 0.88f, 1.2f), "Waypoint List").hide(); button[1].show(); button[2].show().func(Hide, T); flag|=WIN_RESIZABLE;
+      super::create(Rect_RD(D.w(), -D.h(), 0.88f, 1.2f), "Waypoint List").hide(); button[1].show(); button[2].show().func(Hide, T); flag|=WIN_RESIZABLE;
 
       flt y=-0.05f;
       T+=filter.create(Rect_LU(0.03f, -0.02f, 0.6f, 0.05f)).func(FilterChanged, T).desc("Find waypoint\nType waypoint name or its ID to find it"); filter.kbSet(); filter.reset.show(); filter.show_find=true; filter.hint="Find Waypoint";
@@ -78,13 +78,13 @@ WaypointListClass WaypointList;
    }
    Rect WaypointListClass::sizeLimit()C 
 {
-      Rect   r=::EE::Window::sizeLimit(); r.min.set(0.4f, 0.3f);
+      Rect   r=super::sizeLimit(); r.min.set(0.4f, 0.3f);
       return r;
    }
-           C Rect& WaypointListClass::rect()C {return ::EE::Window::rect();}
+           C Rect& WaypointListClass::rect()C {return super::rect();}
    Window& WaypointListClass::rect(C Rect &rect)
 {
-      ::EE::Window::rect(rect);
+      super ::rect(rect);
       region.rect(Rect(0, -clientHeight(), clientWidth(), filter.rect().min.y).extend(-0.03f));
       show_removed.rect(Rect_RU(region.rect().max.x, filter.rect().max.y, filter.rect().h(), filter.rect().h()));
       filter.size(Vec2(region.rect().w()-show_removed.rect().w(), filter.rect().h()));
@@ -95,7 +95,7 @@ WaypointListClass WaypointList;
       visible(Mode()==MODE_WORLD && WorldEdit.mode()==WorldView::WAYPOINT && WorldEdit.waypoint_list());
       if(visible() && gpc.visible && _changed)set(); // first set data
       int cur=list.cur;
-      ::EE::ClosableWindow::update(gpc); // now update list
+      super::update(gpc); // now update list
       if(visible() && gpc.visible)
       {
          REPA(MT)if(MT.guiObj(i)==&list && MT.bp(i))if(Elm *elm=list())

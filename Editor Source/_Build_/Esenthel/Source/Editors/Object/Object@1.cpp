@@ -236,7 +236,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       }
       ::ObjView::SkinBrush& ObjView::SkinBrush::create(GuiObj &parent, C Vec2 &rd)
       {
-         ::BrushClass::create(parent, rd);
+         super::create(parent, rd);
          alt_rotate=false;
          ssize.set(0.3f);
          return T;
@@ -1169,7 +1169,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    }
    void ObjView::setMenu()
    {
-      ::Viewport4Region::setMenu(selected());
+      super   ::setMenu(selected());
       mesh_ops.menu.enabled(selected() && mode()==MESH );
       skin_ops.menu.enabled(selected() && mode()==SKIN );
       slot_ops.menu.enabled(selected() && mode()==SLOTS);
@@ -1179,7 +1179,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    }
    void ObjView::setMenu(Node<MenuElm> &menu, C Str &prefix)
    {
-      ::Viewport4Region::setMenu(menu, prefix);
+      super::setMenu(menu, prefix);
       FREPA(menu.children)if(menu.children[i].name==prefix+"View")
       {
          Node<MenuElm> &v=menu.children[i];
@@ -1221,7 +1221,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    {
       mesh_undos.maxMemUsage(100*1024*1024); // 100 MB
       ts.reset().size=0.045f; ts.align.set(1, 0);
-      ::Viewport4Region::create(Draw, false, 0, PI, 1, 0.01f, 1000); v4.toggleHorizontal();
+      super::create(Draw, false, 0, PI, 1, 0.01f, 1000); v4.toggleHorizontal();
       flt h=0.05f;
 
       T+=info.create(Vec2(0)); // create first to display text on bottom
@@ -1384,7 +1384,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
    }
    void ObjView::resize()
 {
-      ::Viewport4Region::resize();
+      super::resize();
       flt h=0.05f;
       lod.resize();
       leaf.move(Vec2(rect().w(), rect().h()/-2)-leaf.rect().right());
@@ -1442,7 +1442,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
             Save(*mesh_skel, Proj.gamePath(skel_elm->id)); Proj.savedGame(*skel_elm);
             Server.setElmLong(skel_elm->id);
 
-            Mems<Mems<IndexWeight> > bone_weights; cur_skel_to_saved_skel.set(bone_weights, saved_skel, *mesh_skel, EditSkeleton::BONE_NAME_IS_NODE_NAME); // 'cur_skel_to_saved_skel' is always created from 'saved_skel' so node name matches bone name
+            Mems<Mems<IndexWeight>> bone_weights; cur_skel_to_saved_skel.set(bone_weights, saved_skel, *mesh_skel, EditSkeleton::BONE_NAME_IS_NODE_NAME); // 'cur_skel_to_saved_skel' is always created from 'saved_skel' so node name matches bone name
             int old_bone_as_root=-1; if(InRange(edit_skel.root, edit_skel.nodes)) // if we want root
             {
              C EditSkeleton::Node &new_root=edit_skel.nodes[edit_skel.root];
@@ -2091,7 +2091,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
       lit_bone=lit_bone_vis=lit_slot=-1;
       lit_phys=-1;
       selLod(sel_lod);
-      ::Viewport4Region::update(gpc);
+      super::update(gpc);
       if(visible() && gpc.visible)
       {
          // get lit

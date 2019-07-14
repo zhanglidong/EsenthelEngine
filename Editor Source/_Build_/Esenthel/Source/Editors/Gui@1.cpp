@@ -35,70 +35,70 @@ GuiView GuiEdit;
    void  GuiView::ViewportDraw(Viewport &viewport) {D.clearCol(BLACK);}
    GuiView::Button2::~Button2() {GuiEdit.removed(this);}
    GuiView::Button2::Button2() {create();}
-   GuiObj* GuiView::Button2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : ::EE::GuiObj::test(gpc, pos, mouse_wheel);}
+   GuiObj* GuiView::Button2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : super::test(gpc, pos, mouse_wheel);}
    GuiView::CheckBox2::~CheckBox2() {GuiEdit.removed(this);}
    GuiView::CheckBox2::CheckBox2() {create();}
-   GuiObj* GuiView::CheckBox2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : ::EE::GuiObj::test(gpc, pos, mouse_wheel);}
-   void GuiView::CheckBox2::update(C GuiPC &gpc){GuiPC temp=gpc; temp.enabled=false; ::EE::CheckBox::update(temp);}
+   GuiObj* GuiView::CheckBox2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : super::test(gpc, pos, mouse_wheel);}
+   void GuiView::CheckBox2::update(C GuiPC &gpc){GuiPC temp=gpc; temp.enabled=false; super::update(temp);}
    GuiView::ComboBox2::~ComboBox2() {GuiEdit.removed(this);}
    GuiView::ComboBox2::ComboBox2() {create(); size(Vec2(0.3f, 0.05f));}
-   GuiObj* GuiView::ComboBox2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : ::EE::ComboBox::test(gpc, pos, mouse_wheel);}
-   void GuiView::ComboBox2::update(C GuiPC &gpc){GuiPC temp=gpc; temp.enabled=false; ::EE::ComboBox::update(temp);}
+   GuiObj* GuiView::ComboBox2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : super::test(gpc, pos, mouse_wheel);}
+   void GuiView::ComboBox2::update(C GuiPC &gpc){GuiPC temp=gpc; temp.enabled=false; super::update(temp);}
    GuiView::GuiCustom2::~GuiCustom2() {GuiEdit.removed(this);}
    GuiView::GuiCustom2::GuiCustom2() {create(); size(Vec2(0.3f));}
-   GuiObj* GuiView::GuiCustom2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : ::EE::GuiObj::test(gpc, pos, mouse_wheel);}
+   GuiObj* GuiView::GuiCustom2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : super::test(gpc, pos, mouse_wheel);}
    void GuiView::GuiCustom2::draw(C GuiPC &gpc){if(gpc.visible && visible()){D.clip(gpc.clip); (rect()+gpc.offset).draw(BLACK, false);}}
    GuiView::Desktop2::~Desktop2() {GuiEdit.removed(this);}
    GuiView::Desktop2::Desktop2() {create();}
    GuiView::GuiImage2::~GuiImage2() {GuiEdit.removed(this);}
    GuiView::GuiImage2::GuiImage2() {create();}
-   GuiObj* GuiView::GuiImage2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : ::EE::GuiObj::test(gpc, pos, mouse_wheel);}
+   GuiObj* GuiView::GuiImage2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : super::test(gpc, pos, mouse_wheel);}
    GuiView::List2::~List2() {GuiEdit.removed(this);}
    GuiView::List2::List2() {create();}
-   GuiObj* GuiView::List2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : ::EE::_List::test(gpc, pos, mouse_wheel);}
+   GuiObj* GuiView::List2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : super::test(gpc, pos, mouse_wheel);}
    GuiView::Menu2::~Menu2() {GuiEdit.removed(this);}
    GuiView::Menu2::Menu2() {create();}
-   GuiObj* GuiView::Menu2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : ::EE::Menu::test(gpc, pos, mouse_wheel);}
+   GuiObj* GuiView::Menu2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : super::test(gpc, pos, mouse_wheel);}
    GuiView::MenuBar2::~MenuBar2() {GuiEdit.removed(this);}
    GuiView::MenuBar2::MenuBar2() {         }
-   GuiObj* GuiView::MenuBar2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : ::EE::GuiObj::test(gpc, pos, mouse_wheel);}
+   GuiObj* GuiView::MenuBar2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : super::test(gpc, pos, mouse_wheel);}
    GuiView::Progress2::~Progress2() {GuiEdit.removed(this);}
    GuiView::Progress2::Progress2() {create();}
-   GuiObj* GuiView::Progress2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : ::EE::GuiObj::test(gpc, pos, mouse_wheel);}
+   GuiObj* GuiView::Progress2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : super::test(gpc, pos, mouse_wheel);}
    GuiView::Region2::~Region2() {GuiEdit.removed(this);}
    GuiView::Region2::Region2() {create(); size(Vec2(0.3f));}
-   GuiObj* GuiView::Region2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : ::EE::Region::test(gpc, pos, mouse_wheel);}
+   GuiObj* GuiView::Region2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : super::test(gpc, pos, mouse_wheel);}
    GuiView::SlideBar2::~SlideBar2() {GuiEdit.removed(this);}
    GuiView::SlideBar2::SlideBar2() {create(); size(Vec2(0.3f, 0.05f));}
-   GuiObj* GuiView::SlideBar2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : ::EE::SlideBar::test(gpc, pos, mouse_wheel);}
+   GuiObj* GuiView::SlideBar2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : super::test(gpc, pos, mouse_wheel);}
    GuiView::Slider2::~Slider2() {GuiEdit.removed(this);}
    GuiView::Slider2::Slider2() {create();}
-   GuiObj* GuiView::Slider2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : ::EE::Slider::test(gpc, pos, mouse_wheel);}
+   GuiObj* GuiView::Slider2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : super::test(gpc, pos, mouse_wheel);}
    GuiView::Tabs2::~Tabs2() {GuiEdit.removed(this);}
    GuiView::Tabs2::Tabs2() {cchar8 *t[]={"Tab 0", "Tab 1", "Tab 2"}; create(t, Elms(t)); size(Vec2(0.6f, 0.06f));}
-   GuiObj* GuiView::Tabs2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : ::EE::Tabs::test(gpc, pos, mouse_wheel);}
+   GuiObj* GuiView::Tabs2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : super::test(gpc, pos, mouse_wheel);}
    GuiView::Text2::~Text2() {GuiEdit.removed(this);}
    GuiView::Text2::Text2() {create("Text"); size(Vec2(0.04f));}
-   GuiObj* GuiView::Text2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : ::EE::GuiObj::test(gpc, pos, mouse_wheel);}
-   void GuiView::Text2::draw(C GuiPC &gpc){::EE::Text::draw(gpc); if(gpc.visible && visible() && TextRectColor.a){D.clip(gpc.clip); (rect()+gpc.offset).draw(TextRectColor, false);}}
+   GuiObj* GuiView::Text2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : super::test(gpc, pos, mouse_wheel);}
+   void GuiView::Text2::draw(C GuiPC &gpc){super::draw(gpc); if(gpc.visible && visible() && TextRectColor.a){D.clip(gpc.clip); (rect()+gpc.offset).draw(TextRectColor, false);}}
    GuiView::TextBox2::~TextBox2() {GuiEdit.removed(this);}
    GuiView::TextBox2::TextBox2() {create();}
-   GuiObj* GuiView::TextBox2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : ::EE::TextBox::test(gpc, pos, mouse_wheel);}
-   void GuiView::TextBox2::update(C GuiPC &gpc){GuiPC temp=gpc; temp.enabled=false; ::EE::TextBox::update(temp);}
-   void GuiView::TextBox2::draw(C GuiPC &gpc){GuiPC temp=gpc; temp.enabled=false; ::EE::TextBox::draw(temp);}
+   GuiObj* GuiView::TextBox2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : super::test(gpc, pos, mouse_wheel);}
+   void GuiView::TextBox2::update(C GuiPC &gpc){GuiPC temp=gpc; temp.enabled=false; super::update(temp);}
+   void GuiView::TextBox2::draw(C GuiPC &gpc){GuiPC temp=gpc; temp.enabled=false; super::draw(temp);}
    GuiView::TextLine2::~TextLine2() {GuiEdit.removed(this);}
    GuiView::TextLine2::TextLine2() {create();}
-   GuiObj* GuiView::TextLine2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : ::EE::TextLine::test(gpc, pos, mouse_wheel);}
-   void GuiView::TextLine2::update(C GuiPC &gpc){GuiPC temp=gpc; temp.enabled=false; ::EE::TextLine::update(temp);}
-   void GuiView::TextLine2::draw(C GuiPC &gpc){GuiPC temp=gpc; temp.enabled=false; ::EE::TextLine::draw(temp);}
+   GuiObj* GuiView::TextLine2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : super::test(gpc, pos, mouse_wheel);}
+   void GuiView::TextLine2::update(C GuiPC &gpc){GuiPC temp=gpc; temp.enabled=false; super::update(temp);}
+   void GuiView::TextLine2::draw(C GuiPC &gpc){GuiPC temp=gpc; temp.enabled=false; super::draw(temp);}
    GuiView::Viewport2::~Viewport2() {GuiEdit.removed(this);}
    GuiView::Viewport2::Viewport2() {create();}
-   GuiObj* GuiView::Viewport2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : ::EE::Viewport::test(gpc, pos, mouse_wheel);}
-   void GuiView::Viewport2::draw(C GuiPC &gpc){draw_func=ViewportDraw; ::EE::Viewport::draw(gpc);}
+   GuiObj* GuiView::Viewport2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : super::test(gpc, pos, mouse_wheel);}
+   void GuiView::Viewport2::draw(C GuiPC &gpc){draw_func=ViewportDraw; super::draw(gpc);}
    GuiView::Window2::~Window2() {GuiEdit.removed(this);}
    GuiView::Window2::Window2() {create(); size(Vec2(0.3f));}
-   GuiObj* GuiView::Window2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : ::EE::Window::test(gpc, pos, mouse_wheel);}
-   void GuiView::Window2::update(C GuiPC &gpc){uint flag=T.flag; FlagDisable(T.flag, WIN_MOVABLE|WIN_RESIZABLE); ::EE::Window::update(gpc); T.flag=flag;}
+   GuiObj* GuiView::Window2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (IgnoreSelected && GuiEdit.sel.has(this)) ? null : super::test(gpc, pos, mouse_wheel);}
+   void GuiView::Window2::update(C GuiPC &gpc){uint flag=T.flag; FlagDisable(T.flag, WIN_MOVABLE|WIN_RESIZABLE); super::update(gpc); T.flag=flag;}
       Memx<GuiObj>* GuiView::Objects::container(GUI_OBJ_TYPE type)
       {
          switch(type)
@@ -269,7 +269,7 @@ GuiView GuiEdit;
             props.NewAt(1).create("Pos Y" , MemberDesc(DATA_REAL).setFunc( PosY,  PosY)).mouseEditSpeed(0.1f);
             props.NewAt(2).create("Width" , MemberDesc(DATA_REAL).setFunc(SizeX, SizeX)).min(MinSize).mouseEditSpeed(0.1f);
             props.NewAt(3).create("Height", MemberDesc(DATA_REAL).setFunc(SizeY, SizeY)).min(MinSize).mouseEditSpeed(0.1f);
-            Rect rect=::PropWin::create(S+GuiObjTypeName(type)+" Properties", Vec2(0.02f, -0.02f), 0.036f, 0.043f, PropElmNameWidth); changed(Changed, PreChanged).level(level);
+            Rect rect=super::create(S+GuiObjTypeName(type)+" Properties", Vec2(0.02f, -0.02f), 0.036f, 0.043f, PropElmNameWidth); changed(Changed, PreChanged).level(level);
             Mode.tab(MODE_GUI)+=T; // move to gui tab so it will be hidden in other modes
             button[2].func(null); // disable auto-closing
             return rect;
@@ -281,7 +281,7 @@ GuiView GuiEdit;
          if(gpc.visible && visible())
          {
             GuiSkinPtr temp=Gui.skin; Gui.skin=Mode.Gui_skin; // restore Editor's Gui.skin before drawing this Window
-            ::EE::Window::draw(gpc);
+            super::draw(gpc);
             Gui.skin=temp;
          }
       }
@@ -343,7 +343,7 @@ GuiView GuiEdit;
       }
       ::GuiView::Panel& GuiView::Panel::create()
       {
-         ::EE::Window::create(Rect_RU(D.w(), D.h(), 0.31f, 1.13f)).level(/*LicenseCheck.level()*/256-2).barVisible(false);
+         super::create(Rect_RU(D.w(), D.h(), 0.31f, 1.13f)).level(/*LicenseCheck.level()*/256-2).barVisible(false);
          flt h=0.05f, b=0.03f, p=0.01f;
          T+=draw_proportions.create(Rect_LU(b, -b, h, h)).focusable(false).desc("Draw screen proportions:\nPurple : X Range    -1 .. 1   , Aspect Ratio  1:1\nBlue   : X Range -1.25 .. 1.25, Aspect Ratio 5:4 (1280x1024)\nGreen : X Range -1.33 .. 1.33, Aspect Ratio 4:3 (1024x768)\nRed   : X Range -1.60 .. 1.60, Aspect Ratio 16:10 (1680x1050)\nCyan  : X Range -1.77 .. 1.77, Aspect Ratio 16:9 (1920x1080)"); draw_proportions.mode=BUTTON_TOGGLE; draw_proportions.image="Gui/Misc/grid_small.img";
          T+=grid_align.create(Rect_LU(draw_proportions.rect().ru(), h, h)).focusable(false).desc("Align objects to grid"); grid_align.mode=BUTTON_TOGGLE; grid_align.set(true); grid_align.image="Gui/Misc/grid.img";
@@ -631,7 +631,7 @@ GuiView GuiEdit;
    }
    GuiView& GuiView::create(GuiObj &parent)
    {
-      parent+=::EE::Region::create();
+      parent+=super::create();
       objs.parent=&parent;
       Gui+=panel.create().hide().disabled(true);
       undoVis();
@@ -767,7 +767,7 @@ GuiView GuiEdit;
    }
    void GuiView::update(C GuiPC &gpc)
 {
-      ::EE::Region::update(gpc);
+      super::update(gpc);
       lit.clear();
       if(visible() && gpc.visible)
       {

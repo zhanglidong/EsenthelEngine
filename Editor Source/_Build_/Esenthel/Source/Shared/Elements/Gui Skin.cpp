@@ -96,29 +96,29 @@
       void EditGuiSkin::Button::reset() {T=Button();}
       void EditGuiSkin::ButtonImage::copyTo(GuiSkin::ButtonImage &skin, C Project &proj)C
       {
-         ::EditGuiSkin::Button::copyTo(skin, proj);
+         super::copyTo(skin, proj);
          skin.image=proj.gamePath(image_id);
       }
       void EditGuiSkin::ButtonImage::includeIDs(MemPtr<UID> ids)C
       {
-         ::EditGuiSkin::Button::includeIDs(ids);
+         super::includeIDs(ids);
          Include(ids, image_id);
       }
       bool EditGuiSkin::ButtonImage::newer(C ButtonImage &src)C
       {
-         return ::EditGuiSkin::Button::newer(src) || image>src.image || image_color>src.image_color; // || image_color_add>src.image_color_add
+         return super::newer(src) || image>src.image || image_color>src.image_color; // || image_color_add>src.image_color_add
       }
       bool EditGuiSkin::ButtonImage::equal(C ButtonImage &src)C
       {
-         return ::EditGuiSkin::Button::equal(src) && image==src.image && image_color==src.image_color; // && image_color_add==src.image_color_add
+         return super::equal(src) && image==src.image && image_color==src.image_color; // && image_color_add==src.image_color_add
       }
       void EditGuiSkin::ButtonImage::newData()
       {
-         ::EditGuiSkin::Button::newData(); image++; image_color++; // image_color_add++;
+         super::newData(); image++; image_color++; // image_color_add++;
       }
       bool EditGuiSkin::ButtonImage::sync(GuiSkin::ButtonImage &val, C ButtonImage &src, C GuiSkin::ButtonImage &src_val)
       {
-         bool changed=::EditGuiSkin::Button::sync(val, src, src_val);
+         bool changed=super::sync(val, src, src_val);
          changed|=Sync(image, src.image, image_id, src.image_id);
          changed|=Sync(image_color, src.image_color, val.image_color, src_val.image_color);
        //changed|=Sync(image_color_add, src.image_color_add, val.image_color_add, src_val.image_color_add);
@@ -126,7 +126,7 @@
       }
       bool EditGuiSkin::ButtonImage::undo(GuiSkin::ButtonImage &val, C ButtonImage &src, C GuiSkin::ButtonImage &src_val)
       {
-         bool changed=::EditGuiSkin::Button::undo(val, src, src_val);
+         bool changed=super::undo(val, src, src_val);
          changed|=Undo(image, src.image, image_id, src.image_id);
          changed|=Undo(image_color, src.image_color, val.image_color, src_val.image_color);
        //changed|=Undo(image_color_add, src.image_color_add, val.image_color_add, src_val.image_color_add);
@@ -135,7 +135,7 @@
       bool EditGuiSkin::ButtonImage::save(File &f)C
       {
          f.cmpUIntV(0);
-         ::EditGuiSkin::Button::save(f);
+         super::save(f);
          f<<image_id<<image<<image_color;
          return f.ok();
       }
@@ -143,7 +143,7 @@
       {
          reset(); switch(f.decUIntV())
          {
-            case 0: if(::EditGuiSkin::Button::load(f))
+            case 0: if(super::load(f))
             {
                f>>image_id>>image>>image_color;
                if(f.ok())return true;
@@ -221,44 +221,44 @@
       void EditGuiSkin::CheckBox::reset() {T=CheckBox();}
       void EditGuiSkin::ComboBox::copyTo(GuiSkin::ComboBox &skin, C Project &proj)C
       {
-         ::EditGuiSkin::ButtonImage::copyTo(skin, proj);
+         super::copyTo(skin, proj);
       }
       void EditGuiSkin::ComboBox::includeIDs(MemPtr<UID> ids)C
       {
-         ::EditGuiSkin::ButtonImage::includeIDs(ids);
+         super::includeIDs(ids);
       }
       bool EditGuiSkin::ComboBox::newer(C ComboBox &src)C
       {
-         return ::EditGuiSkin::ButtonImage::newer(src);
+         return super::newer(src);
       }
       bool EditGuiSkin::ComboBox::equal(C ComboBox &src)C
       {
-         return ::EditGuiSkin::ButtonImage::equal(src);
+         return super::equal(src);
       }
       void EditGuiSkin::ComboBox::newData()
       {
-         ::EditGuiSkin::ButtonImage::newData();
+         super::newData();
       }
       bool EditGuiSkin::ComboBox::sync(GuiSkin::ComboBox &val, C ComboBox &src, C GuiSkin::ComboBox &src_val)
       {
-         bool   changed=::EditGuiSkin::ButtonImage::sync(val, src, src_val);
+         bool   changed=super::sync(val, src, src_val);
          return changed;
       }
       bool EditGuiSkin::ComboBox::undo(GuiSkin::ComboBox &val, C ComboBox &src, C GuiSkin::ComboBox &src_val)
       {
-         bool   changed=::EditGuiSkin::ButtonImage::undo(val, src, src_val);
+         bool   changed=super::undo(val, src, src_val);
          return changed;
       }
       bool EditGuiSkin::ComboBox::save(File &f)C
       {
          f.cmpUIntV(0);
-         return ::EditGuiSkin::ButtonImage::save(f);
+         return super::save(f);
       }
       bool EditGuiSkin::ComboBox::load(File &f)
       {
          reset(); switch(f.decUIntV())
          {
-            case 0: if(::EditGuiSkin::ButtonImage::load(f))
+            case 0: if(super::load(f))
             {
                if(f.ok())return true;
             }break;
@@ -1081,33 +1081,33 @@
       }
       void EditGuiSkin::Tab::includeIDs(MemPtr<UID> ids)C
       {
-         ::EditGuiSkin::Button::includeIDs(ids);
+         super::includeIDs(ids);
          left.includeIDs(ids); horizontal.includeIDs(ids); right.includeIDs(ids); top.includeIDs(ids); vertical.includeIDs(ids); bottom.includeIDs(ids);
          top_left.includeIDs(ids); top_right.includeIDs(ids); bottom_left.includeIDs(ids); bottom_right.includeIDs(ids);
       }
       bool EditGuiSkin::Tab::newer(C Tab &src)C
       {
-         return ::EditGuiSkin::Button::newer(src)
+         return super::newer(src)
              || left.newer(src.left) || horizontal.newer(src.horizontal) || right.newer(src.right)
              || top.newer(src.top) || vertical.newer(src.vertical) || bottom.newer(src.bottom)
              || top_left.newer(src.top_left) || top_right.newer(src.top_right) || bottom_left.newer(src.bottom_left) || bottom_right.newer(src.bottom_right);
       }
       bool EditGuiSkin::Tab::equal(C Tab &src)C
       {
-         return ::EditGuiSkin::Button::equal(src)
+         return super::equal(src)
              && left.equal(src.left) && horizontal.equal(src.horizontal) && right.equal(src.right)
              && top.equal(src.top) && vertical.equal(src.vertical) && bottom.equal(src.bottom)
              && top_left.equal(src.top_left) && top_right.equal(src.top_right) && bottom_left.equal(src.bottom_left) && bottom_right.equal(src.bottom_right);
       }
       void EditGuiSkin::Tab::newData()
       {
-         ::EditGuiSkin::Button::newData();
+         super::newData();
          left.newData(); horizontal.newData(); right.newData(); top.newData(); vertical.newData(); bottom.newData();
          top_left.newData(); top_right.newData(); bottom_left.newData(); bottom_right.newData();
       }
       bool EditGuiSkin::Tab::sync(GuiSkin::Tab &val, C Tab &src, C GuiSkin::Tab &src_val)
       {
-         bool changed=::EditGuiSkin::Button::sync(val.left, src, src_val.left);
+         bool changed=super   ::sync(val.left, src, src_val.left);
          changed|=left        .sync(src.left        );
          changed|=horizontal  .sync(src.horizontal  );
          changed|=right       .sync(src.right       );
@@ -1122,7 +1122,7 @@
       }
       bool EditGuiSkin::Tab::undo(GuiSkin::Tab &val, C Tab &src, C GuiSkin::Tab &src_val)
       {
-         bool changed=::EditGuiSkin::Button::undo(val.left, src, src_val.left);
+         bool changed=super   ::undo(val.left, src, src_val.left);
          changed|=left        .undo(src.left        );
          changed|=horizontal  .undo(src.horizontal  );
          changed|=right       .undo(src.right       );
@@ -1138,7 +1138,7 @@
       bool EditGuiSkin::Tab::save(File &f)C
       {
          f.cmpUIntV(0);
-         ::EditGuiSkin::Button::save(f);
+         super       ::save(f);
          left        .save(f);
          horizontal  .save(f);
          right       .save(f);
@@ -1155,7 +1155,7 @@
       {
          reset(); switch(f.decUIntV())
          {
-            case 0: if(::EditGuiSkin::Button::load(f))
+            case 0: if(super::load(f))
             {
                if(left        .load(f))
                if(horizontal  .load(f))
@@ -1817,7 +1817,7 @@
    bool EditGuiSkin::save(File &f)C
    {
       f.cmpUIntV(0);
-      ::EE::GuiSkin::save(f);
+      super::save(f);
       base .save(f);
       return f.ok();
    }
@@ -1825,7 +1825,7 @@
    {
       reset(); switch(f.decUIntV())
       {
-         case 0: if(::EE::GuiSkin::load(f))
+         case 0: if(super::load(f))
          {
             if(base.load(f))
                if(f.ok())return true;

@@ -27,7 +27,7 @@ public:
    void init(C VecI2 &center, C Vec &from, C Vec &move, bool heightmaps, bool objects);
 
    static void ListAreas(Cell< ::Area> &cell, RayTest &ray_test); // add areas sorted by distance to center
-   static void Test( Area &area, RayTest &rt, int thread_index); 
+   static void Test( Area &area, RayTest &rt, int thread_index);
           void test(::Area &area); // !! this function should be multi-threaded safe !!
 
    bool test()C;

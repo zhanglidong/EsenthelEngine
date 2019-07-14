@@ -10,8 +10,8 @@ ServerClass Server;
    bool ServerClass::canWrite()C {return loggedIn() && proj_opened && CanWrite    (access);}
    bool ServerClass::canWriteCode()C {return loggedIn() && proj_opened && CanWriteCode(access);}
    bool ServerClass::smallBuf()C {return queued()<=ServerSendBufSize;}
-   long ServerClass::sentTotal()C {return sent+::EE::Connection::sent    ();}
-   long ServerClass::rcvdTotal()C {return rcvd+::EE::Connection::received();}
+   long ServerClass::sentTotal()C {return sent+super::sent    ();}
+   long ServerClass::rcvdTotal()C {return rcvd+super::received();}
    void ServerClass::clearProj()
    {
       texs.clear();
@@ -23,7 +23,7 @@ ServerClass Server;
    void ServerClass::stopConnect()
    {
       Misc.online.set("Offline");
-      ::EE::Connection::del();
+      super::del();
       logged_email.del();
       if(projects.elms())
       {
@@ -36,8 +36,8 @@ ServerClass Server;
    void ServerClass::startConnect(ACTION action)
    {
       T.action=action;
-      sent+=::EE::Connection::sent    ();
-      rcvd+=::EE::Connection::received();
+      sent+=super::sent    ();
+      rcvd+=super::received();
       clientConnectToServer(conn_addr);
       after_connect=true;
    }

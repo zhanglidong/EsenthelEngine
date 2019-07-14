@@ -374,7 +374,7 @@
       add("Add Shoulder"            , MEMBER(AdjustBoneOrns, add_shoulder));
       add("Rotate Shoulder"         , MEMBER(AdjustBoneOrns, rotate_shoulder)).setEnum(RotShoulder, Elms(RotShoulder));
       add("Reset Bone Perpendicular", MEMBER(AdjustBoneOrns, reset_perp));
-      Rect r=::PropWin::create("Adjust Bone Orientations", Vec2(0.02f, -0.02f), 0.040f, 0.046f); button[2].show();
+      Rect r=super::create("Adjust Bone Orientations", Vec2(0.02f, -0.02f), 0.040f, 0.046f); button[2].show();
       autoData(this).changed(Changed);
       resize(Vec2(0, 0.1f));
       T+=adjust.create(Rect_D(clientWidth()/2, -clientHeight()+0.03f, 0.2f, 0.06f), "Adjust").func(Adjust, T);

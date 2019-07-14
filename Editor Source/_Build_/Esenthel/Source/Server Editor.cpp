@@ -58,7 +58,7 @@ EditorServer EditServer;
    }
       bool EditorServer::Client::update()
 {
-         if(!::EE::Edit::EditorServer::Client::update())return false;
+         if(!super::update())return false;
 
          int timeout=0;
       check_again:
@@ -220,7 +220,7 @@ EditorServer EditServer;
                {
                   File &f=connection.data;
                   bool ok=false;
-                  Mems<Edit::IDParam<Edit::RELOAD_RESULT> > results;
+                  Mems<Edit::IDParam<Edit::RELOAD_RESULT>> results;
                   Mems<UID> elms; if(Proj.valid() && elms.loadRaw(f)){ok=true; Importer.getResult(elms, results);}
                   f.reset().putByte(Edit::EI_RLD_ELMS_GET_RESULT).putBool(ok); if(ok)results.save(f); f.pos(0); connection.send(f);
                }break;
@@ -252,7 +252,7 @@ EditorServer EditServer;
                   bool ok=false;
                   if(Proj.valid())
                   {
-                     Memc<Edit::IDParam<Str> > elms; if(elms.load(connection.data))
+                     Memc<Edit::IDParam<Str>> elms; if(elms.load(connection.data))
                      {
                         ok=true;
                         Proj.setElmNames(elms);
@@ -266,7 +266,7 @@ EditorServer EditServer;
                   bool ok=false;
                   if(Proj.valid())
                   {
-                     Memc<Edit::IDParam<bool> > elms; if(elms.load(connection.data))
+                     Memc<Edit::IDParam<bool>> elms; if(elms.load(connection.data))
                      {
                         ok=true;
                         Memc<UID> remove, restore; FREPA(elms)if(elms[i].value)remove.add(elms[i].id);else restore.add(elms[i].id);
@@ -282,7 +282,7 @@ EditorServer EditServer;
                   bool ok=false;
                   if(Proj.valid())
                   {
-                     Memc<Edit::IDParam<bool> > elms; if(elms.load(connection.data))
+                     Memc<Edit::IDParam<bool>> elms; if(elms.load(connection.data))
                      {
                         ok=true;
                         Memc<UID> publish, no_publish; FREPA(elms)if(elms[i].value)publish.add(elms[i].id);else no_publish.add(elms[i].id);
@@ -298,7 +298,7 @@ EditorServer EditServer;
                   bool ok=false;
                   if(Proj.valid())
                   {
-                     Memc<Edit::IDParam<UID> > elms; if(elms.load(connection.data))
+                     Memc<Edit::IDParam<UID>> elms; if(elms.load(connection.data))
                      {
                         ok=true;
                         Proj.setElmParent(elms);
@@ -312,7 +312,7 @@ EditorServer EditServer;
                   bool ok=false;
                   if(Proj.valid())
                   {
-                     Memc<Edit::IDParam<Str> > elms; if(elms.load(connection.data))
+                     Memc<Edit::IDParam<Str>> elms; if(elms.load(connection.data))
                      {
                         ok=true;
                         TimeStamp time; time.getUTC();
@@ -1077,7 +1077,7 @@ EditorServer EditServer;
    {
       T.busy    =busy;
       T.received=false;
-      ::EE::ConnectionServer::update();
+      super::update();
       if(!received && !busy && !App.active())Time.wait(10);
    }
    EditorServer::EditorServer() : busy(false), received(false), start_time(0) {clients.replaceClass<Client>();}

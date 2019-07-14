@@ -253,7 +253,7 @@
    }
    void TransformRegion::update(C GuiPC &gpc)
 {
-      ::EE::Region::update(gpc);
+      super::update(gpc);
       if(gpc.visible && visible()) // set speed based on cam distance and FOV
       {
          if(anchor==CAM_TARGET)setMatrix(); // this will already call 'setAnchorPos'
@@ -264,7 +264,7 @@
    }
    TransformRegion& TransformRegion::create(bool full)
    {
-      ::EE::Region::create().skin(&TransparentSkin, false); kb_lit=false; T.full=full; if(full)hide();
+      super::create().skin(&TransparentSkin, false); kb_lit=false; T.full=full; if(full)hide();
       Property *anchor_p=null, *rot_p[3];
                   props.New().create("Scale"   , MemberDesc(MEMBER(TransformRegion, trans.scale))).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).real_precision=4;
                if(full)

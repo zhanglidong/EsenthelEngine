@@ -161,7 +161,7 @@ PanelEditor PanelEdit;
 
       autoData(&edit);
 
-      Rect r=::PropWin::create("Panel Editor", Vec2(0.02f, -0.07f), 0.036f, 0.043f, PropElmNameWidth); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE; ::PropWin::changed(Changed, PreChanged);
+      Rect r=super ::create("Panel Editor", Vec2(0.02f, -0.07f), 0.036f, 0.043f, PropElmNameWidth); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE; super::changed(Changed, PreChanged);
       T+=undo      .create(Rect_LU(0.02f, -0.01f     , 0.05f, 0.05f)).func(Undo, T).focusable(false).desc("Undo"); undo.image="Gui/Misc/undo.img";
       T+=redo      .create(Rect_LU(undo  .rect().ru(), 0.05f, 0.05f)).func(Redo, T).focusable(false).desc("Redo"); redo.image="Gui/Misc/redo.img";
       T+=locate    .create(Rect_LU(redo  .rect().ru()+Vec2(0.01f, 0), 0.14f, 0.05f), "Locate").func(Locate, T).focusable(false).desc("Locate this element in the Project");
@@ -175,12 +175,12 @@ PanelEditor PanelEdit;
       Vec2 padd=defaultInnerPaddingSize(); rect(Rect_C(0, 0, Min(1.7f+padd.x, D.w()*2), Min(-y+padd.y+0.01f, D.h()*2)));
    }
    void PanelEditor::toGame() {if(game)edit.copyTo(*game, Proj);}
-   void PanelEditor::toGui() {::PropWin::toGui(); toGame();}
-   PanelEditor& PanelEditor::hide(            )  {set(null); ::PropWin::hide(); return T;}
-   Rect         PanelEditor::sizeLimit(            )C {Rect r=::EE::Window::sizeLimit(); r.min.set(1.0f, 0.5f); return r;}
+   void PanelEditor::toGui() {super::toGui(); toGame();}
+   PanelEditor& PanelEditor::hide(            )  {set(null); super::hide(); return T;}
+   Rect         PanelEditor::sizeLimit(            )C {Rect r=super::sizeLimit(); r.min.set(1.0f, 0.5f); return r;}
    PanelEditor& PanelEditor::rect(C Rect &rect)  
 {
-      ::EE::Window::rect(rect);
+      super::rect(rect);
       flt  x=set_top_size.rect().max.x; if(props.elms())MAX(x, props[0].button.rect().max.x);
       Rect r(x, -clientHeight(), clientWidth(), 0); r.extend(-0.08f);
       r.setC(r.center(), Min(r.w(), 1.3f), Min(r.h(), 1.09f));
@@ -224,7 +224,7 @@ PanelEditor PanelEdit;
          visible(T.elm!=null).moveToTop();
       }
    }
-   void PanelEditor::activate(Elm *elm) {set(elm); if(T.elm)::EE::GuiObj::activate();}
+   void PanelEditor::activate(Elm *elm) {set(elm); if(T.elm)super::activate();}
    void PanelEditor::toggle(Elm *elm) {if(elm==T.elm)elm=null; set(elm);}
    void PanelEditor::elmChanged(C UID &elm_id)
    {

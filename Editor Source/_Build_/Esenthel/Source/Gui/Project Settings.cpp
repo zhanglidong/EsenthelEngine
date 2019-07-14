@@ -90,7 +90,7 @@ ProjectSettings ProjSettings;
       {
          ListColumn(MEMBER(ClassNameDesc, name), LCW_MAX_DATA_PARENT, "Name"),
       };
-      Gui+=::EE::Window::create(Rect_C(0, 0, 1.28f, 0.47f), "Project Settings").hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
+      Gui+=super::create(Rect_C(0, 0, 1.28f, 0.47f), "Project Settings").hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
       ts.reset().size=0.043f; ts.align.set(1, 0);
       flt y=-0.05f, h=0.05f, p=0.07f;
       Str cipher_desc; FREP(CIPHER_NUM){if(i)cipher_desc+="\n\n"; cipher_desc+=S+CipherText[i].name+" - "+CipherText[i].desc;}

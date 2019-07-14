@@ -950,7 +950,7 @@ void DrawImport()
 /******************************************************************************/
    EE1WorldSettings& EE1WorldSettings::reset()
    {
-      ::EE::Game::WorldSettings::reset();
+      super::reset();
       path .reset();
       return T;
    }
@@ -961,14 +961,14 @@ void DrawImport()
       {
          case 1:
          {
-            if(!::EE::Game::WorldSettings::load(f))return false;
+            if(!super::load(f))return false;
             if(!path .load(f))return false;
          }return true;
 
          case 0:
          {
             reset();
-            f.skip(-1); if(!::EE::Game::WorldSettings::load(f))return false;
+            f.skip(-1); if(!super::load(f))return false;
             path.reset().areaSize(areaSize());
          }return true;
       }
@@ -1007,7 +1007,7 @@ void DrawImport()
    }
    bool EE1EditLake::load(File &f, C Str &name)
    {
-      if(id.fromHex(name))if(::EE1ObjGlobal::load(f))switch(f.decUIntV())
+      if(id.fromHex(name))if(super::load(f))switch(f.decUIntV())
       {
          case 0:
          {
@@ -1020,7 +1020,7 @@ void DrawImport()
    }
    bool EE1EditRiver::load(File &f, C Str &name)
    {
-      if(id.fromHex(name))if(::EE1ObjGlobal::load(f))switch(f.decUIntV())
+      if(id.fromHex(name))if(super::load(f))switch(f.decUIntV())
       {
          case 0:
          {

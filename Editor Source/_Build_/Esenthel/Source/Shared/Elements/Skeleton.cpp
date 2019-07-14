@@ -34,8 +34,8 @@
          }
          return false;
       }
-      uint EditSkeleton::Bone::memUsage()C {return name.memUsage()+::EE::Mems< ::EE::IndexWeight>::memUsage();}
-      void EditSkeleton::Bone::init(C Str &name, int node) {T.name=name; ::EE::Mems< ::EE::IndexWeight>::setNum(1)[0].set(node, 1);}
+      uint EditSkeleton::Bone::memUsage()C {return name.memUsage()+super::memUsage();}
+      void EditSkeleton::Bone::init(C Str &name, int node) {T.name=name; super::setNum(1)[0].set(node, 1);}
       void EditSkeleton::Bone::addWeight(int index, flt weight)
       {
          if(index>=0)
@@ -54,9 +54,9 @@
          }
          return node_i;
       }
-      bool EditSkeleton::Bone::save(File &f)C {f<<name; return ::EE::Mems< ::EE::IndexWeight>::saveRaw(f);}
-      bool EditSkeleton::Bone::load(File &f)  {f>>name; return ::EE::Mems< ::EE::IndexWeight>::loadRaw(f);}
-      bool EditSkeleton::Bone::loadOld(File &f) {name=GetStr2(f); return ::EE::Mems< ::EE::IndexWeight>::loadRaw(f);}
+      bool EditSkeleton::Bone::save(File &f)C {f<<name; return super::saveRaw(f);}
+      bool EditSkeleton::Bone::load(File &f)  {f>>name; return super::loadRaw(f);}
+      bool EditSkeleton::Bone::loadOld(File &f) {name=GetStr2(f); return super::loadRaw(f);}
    uint EditSkeleton::memUsage()C
    {
       uint mem=0;
@@ -95,7 +95,7 @@
       }
       skel.sortBones();
    }
-   void EditSkeleton::set(Mems<Mems<IndexWeight> > &weights, C Skeleton &old_skel, C Skeleton &new_skel, MAPPING mapping)C
+   void EditSkeleton::set(Mems<Mems<IndexWeight>> &weights, C Skeleton &old_skel, C Skeleton &new_skel, MAPPING mapping)C
    {
       MemtN<int, 256> node_to_bone; // converts node index to 'old_skel' bone index
       if(mapping!=KEEP)

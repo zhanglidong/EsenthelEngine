@@ -73,49 +73,49 @@ AppPropsEditor AppPropsEdit;
    void CodeView::visibleChangedOutput(){Misc.build.menu("View Output"            , visibleOutput       (), QUIET);}
    void CodeView::visibleChangedAndroidDevLog(){Misc.build.menu("View Android Device Log", visibleAndroidDevLog(), QUIET);}
    UID CodeView::projectID(){return Proj.id;}
-   UID               CodeView::appID(){if(Elm *app=Proj.findElm(Proj.curApp()))                                  return app->id                          ; return ::EE::Edit::CodeEditorInterface::appID();}
-   Str               CodeView::appName(){if(Elm *app=Proj.findElm(Proj.curApp()))                                  return app->name                        ; return ::EE::Edit::CodeEditorInterface::appName();}
-   Str               CodeView::appDirsWindows(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->dirs_windows           ; return ::EE::Edit::CodeEditorInterface::appDirsWindows();}
-   Str               CodeView::appDirsNonWindows(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->dirs_nonwindows        ; return ::EE::Edit::CodeEditorInterface::appDirsNonWindows();}
-   Str               CodeView::appHeadersWindows(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->headers_windows        ; return ::EE::Edit::CodeEditorInterface::appHeadersWindows();}
-   Str               CodeView::appHeadersMac(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->headers_mac            ; return ::EE::Edit::CodeEditorInterface::appHeadersMac();}
-   Str               CodeView::appHeadersLinux(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->headers_linux          ; return ::EE::Edit::CodeEditorInterface::appHeadersLinux();}
-   Str               CodeView::appHeadersAndroid(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->headers_android        ; return ::EE::Edit::CodeEditorInterface::appHeadersAndroid();}
-   Str               CodeView::appHeadersiOS(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->headers_ios            ; return ::EE::Edit::CodeEditorInterface::appHeadersiOS();}
-   Str               CodeView::appLibsWindows(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->libs_windows           ; return ::EE::Edit::CodeEditorInterface::appLibsWindows();}
-   Str               CodeView::appLibsMac(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->libs_mac               ; return ::EE::Edit::CodeEditorInterface::appLibsMac();}
-   Str               CodeView::appLibsLinux(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->libs_linux             ; return ::EE::Edit::CodeEditorInterface::appLibsLinux();}
-   Str               CodeView::appLibsAndroid(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->libs_android           ; return ::EE::Edit::CodeEditorInterface::appLibsAndroid();}
-   Str               CodeView::appLibsiOS(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->libs_ios               ; return ::EE::Edit::CodeEditorInterface::appLibsiOS();}
-   Str               CodeView::appPackage(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->package                ; return ::EE::Edit::CodeEditorInterface::appPackage();}
-   Str               CodeView::appGooglePlayLicenseKey(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->android_license_key    ; return ::EE::Edit::CodeEditorInterface::appGooglePlayLicenseKey();}
-   Str               CodeView::appLocationUsageReason(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->location_usage_reason  ; return ::EE::Edit::CodeEditorInterface::appLocationUsageReason();}
-   Int               CodeView::appBuild(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->build                  ; return ::EE::Edit::CodeEditorInterface::appBuild();}
-   ulong             CodeView::appFacebookAppID(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->fb_app_id              ; return ::EE::Edit::CodeEditorInterface::appFacebookAppID();}
-   Str               CodeView::appAdMobAppIDiOS(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->am_app_id_ios          ; return ::EE::Edit::CodeEditorInterface::appAdMobAppIDiOS();}
-   Str               CodeView::appAdMobAppIDGooglePlay(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->am_app_id_google       ; return ::EE::Edit::CodeEditorInterface::appAdMobAppIDGooglePlay();}
-   Str               CodeView::appChartboostAppIDiOS(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->cb_app_id_ios          ; return ::EE::Edit::CodeEditorInterface::appChartboostAppIDiOS();}
-   Str               CodeView::appChartboostAppSignatureiOS(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->cb_app_signature_ios   ; return ::EE::Edit::CodeEditorInterface::appChartboostAppSignatureiOS();}
-   Str               CodeView::appChartboostAppIDGooglePlay(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->cb_app_id_google       ; return ::EE::Edit::CodeEditorInterface::appChartboostAppIDGooglePlay();}
-   Str               CodeView::appChartboostAppSignatureGooglePlay(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->cb_app_signature_google; return ::EE::Edit::CodeEditorInterface::appChartboostAppSignatureGooglePlay();}
-   Edit::STORAGE_MODE CodeView::appPreferredStorage(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->storage                ; return ::EE::Edit::CodeEditorInterface::appPreferredStorage();}
-   UInt              CodeView::appSupportedOrientations(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->supported_orientations ; return ::EE::Edit::CodeEditorInterface::appSupportedOrientations();}
-   UID               CodeView::appGuiSkin(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->gui_skin               ; return ::EE::Edit::CodeEditorInterface::appGuiSkin();}
-   int               CodeView::appEmbedEngineData(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->embedEngineData ()     ; return ::EE::Edit::CodeEditorInterface::appEmbedEngineData();}
-   Cipher*           CodeView::appEmbedCipher(){static ProjectCipher cipher; /*if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app.appData())*/return cipher.set(Proj)(); return ::EE::Edit::CodeEditorInterface::appEmbedCipher();}
-   COMPRESS_TYPE     CodeView::appEmbedCompress(){/*if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app.appData())*/return Proj.compress_type              ; return ::EE::Edit::CodeEditorInterface::appEmbedCompress();}
-   int               CodeView::appEmbedCompressLevel(){/*if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app.appData())*/return Proj.compress_level             ; return ::EE::Edit::CodeEditorInterface::appEmbedCompressLevel();}
-   DateTime          CodeView::appEmbedSettingsTime(){/*if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app.appData())*/return Max(Max(Proj.compress_type_time, Proj.compress_level_time), Max(Proj.cipher_time, Proj.cipher_key_time)).asDateTime(); return ::EE::Edit::CodeEditorInterface::appEmbedSettingsTime();}
-   Bool              CodeView::appPublishProjData(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->publishProjData ()     ; return ::EE::Edit::CodeEditorInterface::appPublishProjData();}
-   Bool              CodeView::appPublishPhysxDll(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->publishPhysxDll ()     ; return ::EE::Edit::CodeEditorInterface::appPublishPhysxDll();}
-   Bool              CodeView::appPublishSteamDll(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->publishSteamDll ()     ; return ::EE::Edit::CodeEditorInterface::appPublishSteamDll();}
-   Bool              CodeView::appPublishOpenVRDll(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->publishOpenVRDll()     ; return ::EE::Edit::CodeEditorInterface::appPublishOpenVRDll();}
-   Bool              CodeView::appPublishDataAsPak(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->publishDataAsPak()     ; return ::EE::Edit::CodeEditorInterface::appPublishDataAsPak();}
-   Bool              CodeView::appAndroidExpansion(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->androidExpansion()     ; return ::EE::Edit::CodeEditorInterface::appAndroidExpansion();}
-   ImagePtr          CodeView::appIcon(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())if(app_data->icon             .valid())return ImagePtr().get(Proj.gamePath(app_data->icon             )); return ::EE::Edit::CodeEditorInterface::appIcon();}
-   ImagePtr          CodeView::appImagePortrait(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())if(app_data->image_portrait   .valid())return ImagePtr().get(Proj.gamePath(app_data->image_portrait   )); return ::EE::Edit::CodeEditorInterface::appImagePortrait();}
-   ImagePtr          CodeView::appImageLandscape(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())if(app_data->image_landscape  .valid())return ImagePtr().get(Proj.gamePath(app_data->image_landscape  )); return ::EE::Edit::CodeEditorInterface::appImageLandscape();}
-   ImagePtr          CodeView::appNotificationIcon(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())if(app_data->notification_icon.valid())return ImagePtr().get(Proj.gamePath(app_data->notification_icon)); return ::EE::Edit::CodeEditorInterface::appNotificationIcon();}
+   UID               CodeView::appID(){if(Elm *app=Proj.findElm(Proj.curApp()))                                  return app->id                          ; return super::appID();}
+   Str               CodeView::appName(){if(Elm *app=Proj.findElm(Proj.curApp()))                                  return app->name                        ; return super::appName();}
+   Str               CodeView::appDirsWindows(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->dirs_windows           ; return super::appDirsWindows();}
+   Str               CodeView::appDirsNonWindows(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->dirs_nonwindows        ; return super::appDirsNonWindows();}
+   Str               CodeView::appHeadersWindows(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->headers_windows        ; return super::appHeadersWindows();}
+   Str               CodeView::appHeadersMac(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->headers_mac            ; return super::appHeadersMac();}
+   Str               CodeView::appHeadersLinux(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->headers_linux          ; return super::appHeadersLinux();}
+   Str               CodeView::appHeadersAndroid(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->headers_android        ; return super::appHeadersAndroid();}
+   Str               CodeView::appHeadersiOS(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->headers_ios            ; return super::appHeadersiOS();}
+   Str               CodeView::appLibsWindows(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->libs_windows           ; return super::appLibsWindows();}
+   Str               CodeView::appLibsMac(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->libs_mac               ; return super::appLibsMac();}
+   Str               CodeView::appLibsLinux(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->libs_linux             ; return super::appLibsLinux();}
+   Str               CodeView::appLibsAndroid(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->libs_android           ; return super::appLibsAndroid();}
+   Str               CodeView::appLibsiOS(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->libs_ios               ; return super::appLibsiOS();}
+   Str               CodeView::appPackage(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->package                ; return super::appPackage();}
+   Str               CodeView::appGooglePlayLicenseKey(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->android_license_key    ; return super::appGooglePlayLicenseKey();}
+   Str               CodeView::appLocationUsageReason(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->location_usage_reason  ; return super::appLocationUsageReason();}
+   Int               CodeView::appBuild(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->build                  ; return super::appBuild();}
+   ulong             CodeView::appFacebookAppID(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->fb_app_id              ; return super::appFacebookAppID();}
+   Str               CodeView::appAdMobAppIDiOS(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->am_app_id_ios          ; return super::appAdMobAppIDiOS();}
+   Str               CodeView::appAdMobAppIDGooglePlay(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->am_app_id_google       ; return super::appAdMobAppIDGooglePlay();}
+   Str               CodeView::appChartboostAppIDiOS(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->cb_app_id_ios          ; return super::appChartboostAppIDiOS();}
+   Str               CodeView::appChartboostAppSignatureiOS(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->cb_app_signature_ios   ; return super::appChartboostAppSignatureiOS();}
+   Str               CodeView::appChartboostAppIDGooglePlay(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->cb_app_id_google       ; return super::appChartboostAppIDGooglePlay();}
+   Str               CodeView::appChartboostAppSignatureGooglePlay(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->cb_app_signature_google; return super::appChartboostAppSignatureGooglePlay();}
+   Edit::STORAGE_MODE CodeView::appPreferredStorage(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->storage                ; return super::appPreferredStorage();}
+   UInt              CodeView::appSupportedOrientations(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->supported_orientations ; return super::appSupportedOrientations();}
+   UID               CodeView::appGuiSkin(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->gui_skin               ; return super::appGuiSkin();}
+   int               CodeView::appEmbedEngineData(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->embedEngineData ()     ; return super::appEmbedEngineData();}
+   Cipher*           CodeView::appEmbedCipher(){static ProjectCipher cipher; /*if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app.appData())*/return cipher.set(Proj)(); return super::appEmbedCipher();}
+   COMPRESS_TYPE     CodeView::appEmbedCompress(){/*if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app.appData())*/return Proj.compress_type              ; return super::appEmbedCompress();}
+   int               CodeView::appEmbedCompressLevel(){/*if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app.appData())*/return Proj.compress_level             ; return super::appEmbedCompressLevel();}
+   DateTime          CodeView::appEmbedSettingsTime(){/*if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app.appData())*/return Max(Max(Proj.compress_type_time, Proj.compress_level_time), Max(Proj.cipher_time, Proj.cipher_key_time)).asDateTime(); return super::appEmbedSettingsTime();}
+   Bool              CodeView::appPublishProjData(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->publishProjData ()     ; return super::appPublishProjData();}
+   Bool              CodeView::appPublishPhysxDll(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->publishPhysxDll ()     ; return super::appPublishPhysxDll();}
+   Bool              CodeView::appPublishSteamDll(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->publishSteamDll ()     ; return super::appPublishSteamDll();}
+   Bool              CodeView::appPublishOpenVRDll(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->publishOpenVRDll()     ; return super::appPublishOpenVRDll();}
+   Bool              CodeView::appPublishDataAsPak(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->publishDataAsPak()     ; return super::appPublishDataAsPak();}
+   Bool              CodeView::appAndroidExpansion(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())return app_data->androidExpansion()     ; return super::appAndroidExpansion();}
+   ImagePtr          CodeView::appIcon(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())if(app_data->icon             .valid())return ImagePtr().get(Proj.gamePath(app_data->icon             )); return super::appIcon();}
+   ImagePtr          CodeView::appImagePortrait(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())if(app_data->image_portrait   .valid())return ImagePtr().get(Proj.gamePath(app_data->image_portrait   )); return super::appImagePortrait();}
+   ImagePtr          CodeView::appImageLandscape(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())if(app_data->image_landscape  .valid())return ImagePtr().get(Proj.gamePath(app_data->image_landscape  )); return super::appImageLandscape();}
+   ImagePtr          CodeView::appNotificationIcon(){if(Elm *app=Proj.findElm(Proj.curApp()))if(ElmApp *app_data=app->appData())if(app_data->notification_icon.valid())return ImagePtr().get(Proj.gamePath(app_data->notification_icon)); return super::appNotificationIcon();}
    void CodeView::ImageGenerateProcess(ImageGenerate &generate, ptr user, int thread_index) {ThreadMayUseGPUData(); generate.process();}
    void CodeView::ImageConvertProcess(ImageConvert  &convert , ptr user, int thread_index) {ThreadMayUseGPUData(); convert .process();}
    void CodeView::appSpecificFiles(MemPtr<PakFileData> files)
@@ -225,14 +225,14 @@ AppPropsEditor AppPropsEdit;
          if(elm.finalPublish() && ElmPublish(elm.type) && ElmVisible(elm.type))elms.New().set(elm.id, Proj.elmFullName(&elm), Proj.elmIcon(elm.type));
       }
    }
-   Str CodeView::importPaths(C Str &path)C {return ::EE::Edit::CodeEditorInterface::importPaths() ? GetRelativePath(GetPath(App.exe()), path) : path;}
+   Str CodeView::importPaths(C Str &path)C {return super::importPaths() ? GetRelativePath(GetPath(App.exe()), path) : path;}
    void CodeView::drag(C MemPtr<UID> &elms, GuiObj *obj, C Vec2 &screen_pos)
    {
       if(selected())
       {
          Memc<UID> temp;
          FREPA(elms)if(Elm *elm=Proj.findElm(elms[i]))if(ElmPublish(elm->type))temp.add(elm->id); // filter out non-publishable elements
-         ::EE::Edit::CodeEditorInterface::paste(temp, obj, screen_pos);
+         super::paste(temp, obj, screen_pos);
       }
    }
    void CodeView::drop(C MemPtr<Str> &names, GuiObj *obj, C Vec2 &screen_pos)
@@ -247,7 +247,7 @@ AppPropsEditor AppPropsEdit;
             text+=Replace(names[i], '\\', '/');
             text+='"';
          }
-         ::EE::Edit::CodeEditorInterface::paste(text, obj, screen_pos);
+         super::paste(text, obj, screen_pos);
       }
    }
    bool CodeView::selected()C {return Mode()==MODE_CODE;}
@@ -263,17 +263,17 @@ AppPropsEditor AppPropsEdit;
    }
    void CodeView::sourceRename(C UID &id)
    {
-      ::EE::Edit::CodeEditorInterface::sourceRename(id);
+      super::sourceRename(id);
       sourceTitleChanged(id);
    }
    bool CodeView::sourceDataSet(C UID &id, C Str &data)
    {
-      if(::EE::Edit::CodeEditorInterface::sourceDataSet(id, data)){sourceTitleChanged(id); return true;}
+      if(super::sourceDataSet(id, data)){sourceTitleChanged(id); return true;}
       return false;
    }
    void CodeView::cleanAll()
    {
-      ::EE::Edit::CodeEditorInterface::cleanAll(); // first call super to stop any build in progress
+      super::cleanAll(); // first call super to stop any build in progress
       FDelDirs(ProjectsPath.tailSlash(true)+ProjectsPublishPath);
    }
    int CodeView::Compare(C Enum::Elm &a, C Enum::Elm &b) {return ::Compare(a.name, b.name, true);}
@@ -394,10 +394,10 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
    {
       switch(mode)
       {
-         case Edit::BUILD_BUILD  :                 ::EE::Edit::CodeEditorInterface::build  ();                  break;
-         case Edit::BUILD_PUBLISH: makeAuto(true); ::EE::Edit::CodeEditorInterface::publish(); makeAuto(false); break;
-         case Edit::BUILD_PLAY   :                 ::EE::Edit::CodeEditorInterface::play   ();                  break;
-         case Edit::BUILD_DEBUG  :                 ::EE::Edit::CodeEditorInterface::debug  ();                  break;
+         case Edit::BUILD_BUILD  :                 super::build  ();                  break;
+         case Edit::BUILD_PUBLISH: makeAuto(true); super::publish(); makeAuto(false); break;
+         case Edit::BUILD_PLAY   :                 super::play   ();                  break;
+         case Edit::BUILD_DEBUG  :                 super::debug  ();                  break;
       }
    }
    void CodeView::buildDo(Edit::BUILD_MODE mode)
@@ -421,7 +421,7 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
       if(PublishDataNeeded(configEXE(), Edit::BUILD_PUBLISH))StartPublish(S, configEXE(), Edit::BUILD_PUBLISH, true, S, true);else // we need to create project data pak first
       {
          Proj.flush(); // flush in case we want to play with latest data
-         ::EE::Edit::CodeEditorInterface::openIDE();
+         super::openIDE();
       }
    }
    bool CodeView::Export(Edit::EXPORT_MODE mode, bool data)
@@ -430,7 +430,7 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
 
       bool ok=false;
       makeAuto(true); // before exporting, reset auto header to force EE_PUBLISH as true, important because exported projects are meant to be distributed to other computers, and compiled for publishing (such as EE Editor), in such case they can't be using paths from this computer, therefore publishing will make them use target paths
-      if(ok=::EE::Edit::CodeEditorInterface::Export(mode))if(data)
+      if(ok=super::Export(mode))if(data)
       {
          Edit::EXE_TYPE exe=(Edit::EXE_TYPE)-1;
          switch(mode)
@@ -601,7 +601,7 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
       {
          T.md=md;
          T.md_time=md_time;
-         parent+=::EE::GuiImage::create(rect); fit=true;
+         parent+=super::create(rect); fit=true;
          parent+=remove.create(Rect_RU(rect.ru(), 0.045f, 0.045f)).func(Remove, T); remove.image="Gui/close.img";
          return T;
       }
@@ -723,7 +723,7 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
    p_notification_icon=&add("Notification Icon");
       autoData(this);
 
-      Rect rect=::PropWin::create(S, Vec2(0.02f, -0.02f), 0.04f, h, 0.85f); ::PropWin::changed(Changed); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
+      Rect rect=super::create(S, Vec2(0.02f, -0.02f), 0.04f, h, 0.85f); super::changed(Changed); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
       Vec2 pos(0.02f, -0.02f);
       flt  th=google_lk.textline.rect().h();
       T+=platforms.create(platforms_t, Elms(platforms_t)).valid(true).set(0).rect(Rect_LU(pos, clientWidth()-0.04f, 0.05f)); pos.y-=0.05f;
@@ -773,13 +773,13 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
    }
    void AppPropsEditor::toGui()
    {
-      ::PropWin::toGui();
+      super::toGui();
       icon             .setImage();
       image_portrait   .setImage();
       image_landscape  .setImage();
       notification_icon.setImage();
    }
-   AppPropsEditor& AppPropsEditor::hide(){set(null); ::PropWin::hide(); return T;}
+   AppPropsEditor& AppPropsEditor::hide(){set(null); super::hide(); return T;}
    void AppPropsEditor::flush()
    {
       if(elm && changed)
@@ -812,7 +812,7 @@ if(appGuiSkin().valid())data+="   Gui.default_skin=EE_GUI_SKIN; // set default G
          if(elm)setTitle(S+'"'+elm->name+"\" Settings");
       }
    }
-   void AppPropsEditor::activate(Elm *elm) {set(elm); if(T.elm)::EE::GuiObj::activate();}
+   void AppPropsEditor::activate(Elm *elm) {set(elm); if(T.elm)super::activate();}
    void AppPropsEditor::toggle(Elm *elm) {if(elm==T.elm)elm=null; set(elm);}
    void AppPropsEditor::elmChanged(C UID &elm_id)
    {

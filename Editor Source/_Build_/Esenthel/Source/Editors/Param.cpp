@@ -23,7 +23,7 @@ ObjClassEditor ObjClassEdit;
       ParamEditor::RenameWindow::RenameWindow(ParamEditor &pe) : pe(pe) {}
       void ParamEditor::RenameWindow::create()
       {
-         Gui+=::EE::Window::create(Rect_C(0, 0, 1, 0.14f), "Rename").hide(); button[2].show();
+         Gui+=super::create(Rect_C(0, 0, 1, 0.14f), "Rename").hide(); button[2].show();
          T  +=dest .create(Rect  (0, -clientHeight(), clientWidth(), 0).extend(-0.01f));
       }
       void ParamEditor::RenameWindow::rename(C Str &src, PARAM_TYPE type, C UID &id)
@@ -45,7 +45,7 @@ ObjClassEditor ObjClassEdit;
       }
       void ParamEditor::RenameWindow::update(C GuiPC &gpc)
 {
-         ::EE::ClosableWindow::update(gpc);
+         super::update(gpc);
 
          if(Gui.window()==this && Kb.k(KB_ENTER))
          {
@@ -389,7 +389,7 @@ ObjClassEditor ObjClassEdit;
       ::ParamEditor::ParamWindow& ParamEditor::ParamWindow::create(C Rect &rect, bool is_class)
       {
          T.is_class=is_class;
-         ::EE::Window::create("Object Class Editor").barVisible(is_class).visible(!is_class);
+         super::create("Object Class Editor").barVisible(is_class).visible(!is_class);
          if(!is_class){resize_mask=DIRF_LEFT|DIRF_DOWN; FlagDisable(flag, WIN_MOVABLE); skin(&NoShadowSkin); button[2].func(null);}else button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
          ts.reset().size=0.035f; ts.align.set(1, -1);
          T+=type   .create("Type" , &ts);
@@ -401,16 +401,16 @@ ObjClassEditor ObjClassEdit;
       }
       Rect ParamEditor::ParamWindow::sizeLimit()C 
 {
-         Rect r=::EE::Window::sizeLimit();
+         Rect r=super::sizeLimit();
          r.min.set(is_class ? 0.72f : 0.69f, is_class ? 0.33f : 0.15f);
          if(!is_class)r.max.set(2.0f, screenPos().y-(-D.h())-0.1f);
          return r;
       }
       flt ParamEditor::ParamWindow::listWidth() {return region.rect().w()-region.slidebarSize();}
-    C Rect& ParamEditor::ParamWindow::rect()C {return ::EE::Window::rect();}
+    C Rect& ParamEditor::ParamWindow::rect()C {return super::rect();}
       ::ParamEditor::ParamWindow& ParamEditor::ParamWindow::rect(C Rect &rect)
 {
-         ::EE::Window::rect(rect);
+         super::rect(rect);
          flt y=(is_class ? -0.16f : -0.01f);
          type .pos(Vec2(0.06f             , y));
          name .pos(Vec2(type.pos().x+0.24f, y));
@@ -423,7 +423,7 @@ ObjClassEditor ObjClassEdit;
       }
       void ParamEditor::ParamWindow::update(C GuiPC &gpc)
 {
-         ::EE::ClosableWindow::update(gpc);
+         super::update(gpc);
          if(!is_class && rect().h()>sizeLimit().max.y+EPS)rect(rect());
          if(Gui.window()==this)
          {
@@ -440,7 +440,7 @@ ObjClassEditor ObjClassEdit;
             }
          }
       }
-      ::ParamEditor::ParamWindow& ParamEditor::ParamWindow::hide(){if(visible()){::EE::Window::hide(); pe.paramWindowHidden();} return T;}
+      ::ParamEditor::ParamWindow& ParamEditor::ParamWindow::hide(){if(visible()){super::hide(); pe.paramWindowHidden();} return T;}
       ::ParamEditor::ParamWindow::Param* ParamEditor::ParamWindow::findParam(GuiObj *go)
       {
          if(contains(go))REPA(params)if(params[i].contains(go))return &params[i];
@@ -916,7 +916,7 @@ ObjClassEditor ObjClassEdit;
       if(!is_class)
       {
          flt w=0.63f;
-         parent+=::EE::Region::create().skin(&TransparentSkin, false); kb_lit=false;
+         parent+=super::create().skin(&TransparentSkin, false); kb_lit=false;
          if(world)
          {
             T+=b_class.create(Rect_L(0.01f, y, 0.16f, h), "Object").func(ToBase, T).desc("Keyboard Shortctut: Ctrl+E"); T+=t_obj.create(Rect_L(0.22f, y, 0.40f, h)).disabled(true).desc("Drag and drop an object here"); y-=h;
@@ -988,7 +988,7 @@ ObjClassEditor ObjClassEdit;
    }
    ParamEditor& ParamEditor::move(C Vec2 &delta)
 {
-             ::EE::Region::move(delta);
+             super::move(delta);
       param_window.move(rect().rd()-param_window.rect().ru());
       return T;
    }
@@ -1458,7 +1458,7 @@ ObjClassEditor ObjClassEdit;
    void ObjClassEditor::paramWindowHidden(){set(null);}
    void ObjClassEditor::create()
    {
-      ::ParamEditor::create(*Gui.desktop(), true);
+      super::create(*Gui.desktop(), true);
       param_window+=locate.create(Rect_LU(redo.rect().ru()+Vec2(0.01f, 0), 0.14f, 0.05f), "Locate").func(Locate, T).focusable(false).desc("Locate this element in the Project");
    }
    void ObjClassEditor::flush()
@@ -1494,7 +1494,7 @@ ObjClassEditor ObjClassEdit;
          param_window.visible(T.elm!=null).moveToTop();
       }
    }
-   void ObjClassEditor::activate(Elm *elm) {set(elm); if(T.elm)::EE::GuiObj::activate();}
+   void ObjClassEditor::activate(Elm *elm) {set(elm); if(T.elm)super::activate();}
    void ObjClassEditor::toggle(Elm *elm) {if(elm==T.elm)elm=null; set(elm);}
    void ObjClassEditor::elmChanged(C UID &elm_id)
    {

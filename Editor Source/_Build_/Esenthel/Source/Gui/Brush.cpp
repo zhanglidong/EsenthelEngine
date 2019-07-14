@@ -59,7 +59,7 @@
    BrushClass& BrushClass::create(GuiObj &parent, C Vec2 &rd)
    {
       ts.reset().size*=0.8f;
- parent+=::EE::Window::create(Rect_RD(rd, 0.40f, 0.29f), MLTC(u"Brush Parameters", PL, u"Parametry Pędzla", DE, u"Pinsel Eigenschaften", RU, u"Параметры кисти", PO, u"Parâmetros do Pincel", CN, u"刷子参数"));
+ parent+=super ::create(Rect_RD(rd, 0.40f, 0.29f), MLTC(u"Brush Parameters", PL, u"Parametry Pędzla", DE, u"Pinsel Eigenschaften", RU, u"Параметры кисти", PO, u"Parâmetros do Pincel", CN, u"刷子参数"));
       T+=shape .create(Rect_L(0.02f, -0.04f, 0.125f, 0.045f), 0, (cchar8**)null, 2).layout(TABS_HORIZONTAL).valid(true).set(0).desc(MLTC(u"Brush Shape", PL, u"Kształt pędzla", RU, u"Фигура кисти", CN, u"刷子形状")); shape.tab(0).image="Gui/Misc/circle.img"; shape.tab(1).image="Gui/Misc/square.img";
       T+=tsize .create(Vec2  (0.08f, -0.10f), MLTC(u"Size" , PL, u"Rozmiar" , DE, u"Größe", RU, u"Размер"  , PO, u"Tamanho"   ), &ts); T+=ssize .create(Rect_R(clientWidth()-0.02f, -0.10f, 0.20f, 0.05f), 0.5f).desc(MLT(S+"Change size with: "+Kb.ctrlCmdName()+" + MouseWheel"        , PL,S+u"Zmień Rozmiar przy pomocy: "+Kb.ctrlCmdName()+" + MouseWheel"         , DE,u"Größe ändern mit: Strg + Mausrad"           , RU,S+u"Чтобы изменить размер нажмите: "+Kb.ctrlCmdName()+u" + Колесо прокрутки мыши"          , PO,S+"Mudar o tamanho com: "+Kb.ctrlCmdName()+" + Scroll do Rato"       , CN,u"改变大小:Ctrl键+鼠标滚轮"));
       T+=tspeed.create(Vec2  (0.08f, -0.15f), MLTC(u"Speed", PL, u"Prędkość", DE, u"Speed", RU, u"Скорость", PO, u"Velocidade"), &ts); T+=sspeed.create(Rect_R(clientWidth()-0.02f, -0.15f, 0.20f, 0.05f), 0.5f).desc(MLT(S+"Change speed with: Shift + MouseWheel"      , PL,u"Zmień Prędkość przy pomocy: Shift + MouseWheel"       , DE,u"Geschwindigkeit ändern mit: Shift + Mausrad", RU,u"Чтобы изменить скорость нажмите: Shift + Колесо прокрутки мыши"       , PO,"Mudar a velocidade com: Shift + Scroll do Rato"   , CN,u"改变速度:Shift键+鼠标滚轮"));
@@ -97,12 +97,12 @@ parent+=slope_window.create(Rect_RD(rect().ld()-Vec2(0.03f, 0), 0.22f, 0.13f), "
       image_window.move(rect().ru()+Vec2(0, 0.02f)-image_window.rect().rd());
       slope_window.move((image() ? image_window.rect().ld()-Vec2(0.01f, 0) : rect().ru()+Vec2(0, 0.02f))-slope_window.rect().rd());
    }
-   Window& BrushClass::hide(){::EE::Window::hide();            image_window.hide();              slope_window.hide();                    return T;}
-   Window& BrushClass::show(){::EE::Window::show(); if(image())image_window.show(); if(slope_b())slope_window.show(); setChildWindows(); return T;}
+   Window& BrushClass::hide(){super::hide();            image_window.hide();              slope_window.hide();                    return T;}
+   Window& BrushClass::show(){super::show(); if(image())image_window.show(); if(slope_b())slope_window.show(); setChildWindows(); return T;}
    bool BrushClass::hasMsWheelFocus()C {return false;}
    void BrushClass::update(C GuiPC &gpc)
 {
-      ::EE::Window::update(gpc);
+      super::update(gpc);
       if(visible() && gpc.visible)
       {
          setChildWindows();

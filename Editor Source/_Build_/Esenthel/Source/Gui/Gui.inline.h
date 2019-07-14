@@ -10,7 +10,7 @@ template<typename TYPE>
 template<typename TYPE>
    TYPE& ObjPtrs<TYPE>::operator[](int i) {return *((*objs)[i]);}
 template<typename TYPE> int Elms(C ObjPtrs<TYPE> &obj_ptrs) {return obj_ptrs.objs ? obj_ptrs.objs->elms() : 0;}
-   T1(TYPE) PropEx& PropEx::create(C Str &name,   TYPE       &member         ) {::EE::Property::create(name, member); return T;}
+   T1(TYPE) PropEx& PropEx::create(C Str &name,   TYPE       &member         ) {super::create(name, member); return T;}
 template<typename TYPE>
 ObjPtrs<TYPE>::ObjPtrs() : deleted(false) {}
 

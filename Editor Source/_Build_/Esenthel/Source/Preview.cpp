@@ -27,7 +27,7 @@ PreviewClass Preview;
 /******************************************************************************/
    void PreviewClass::create()
    {
-      Gui+=::EE::Window::create().level(1); // set level so it will be displayed above other editor windows
+      Gui+=super::create().level(1); // set level so it will be displayed above other editor windows
       ball.create(1).parts[0].base.create(Ball(1), VTX_TEX0|VTX_NRM_TAN_BIN, 16);
       ball.setRender().setBox();
       objs_container.create(S);

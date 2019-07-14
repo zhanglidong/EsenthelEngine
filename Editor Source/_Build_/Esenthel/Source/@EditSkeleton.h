@@ -47,7 +47,7 @@ public:
       BONE_NAME_IS_NODE_INDEX,
       BONE_NAME_IS_NODE_NAME ,
    };
-   void set(Mems<Mems<IndexWeight> > &weights, C Skeleton &old_skel, C Skeleton &new_skel, MAPPING mapping)C;
+   void set(Mems<Mems<IndexWeight>> &weights, C Skeleton &old_skel, C Skeleton &new_skel, MAPPING mapping)C;
 
    Str nodeUID(int i)C; // unique string identifying a node !! needs to be the same as 'Import.nodeUID' !!
 

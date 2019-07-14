@@ -248,7 +248,7 @@ StoreClass AppStore;
       ClosableWindow& StoreClass::NewItem::create()
       {
          ts.reset().size*=0.75f; ts.align.set(1, 0);
-         ::EE::Window::create("New Item").hide(); button[2].show(); FlagDisable(flag, WIN_MOVABLE);
+         super::create("New Item").hide(); button[2].show(); FlagDisable(flag, WIN_MOVABLE);
          T+=terms.create(
             "1. You certify that you have full rights to sell the items that you're submitting to Esenthel Store (you're the creator of the item or you have acquired all legal rights in order to sell it)\n"
             "2. Once item is submitted, it cannot be deleted (users that bought it, can access it forever)\n"
@@ -272,7 +272,7 @@ StoreClass AppStore;
       }
       ClosableWindow& StoreClass::NewItem::rect(C Rect &rect)
 {
-         ::EE::Window::rect(rect);
+         super::rect(rect);
          t_name.rect(Vec2(clientWidth()/2-0.4f, -clientHeight()+0.06f)); name.rect(Rect_L(t_name.pos()+Vec2(0.13f, 0), 0.45f, 0.05f));
          b_create.rect(Rect_L(name.rect().right()+Vec2(0.02f, 0), 0.25f, 0.06f));
          terms.rect(Rect(0, name.rect().max.y, clientWidth(), 0).extend(-0.05f));
@@ -281,12 +281,12 @@ StoreClass AppStore;
       ClosableWindow& StoreClass::NewItem::show()
 {
          name.kbSet();
-         ::EE::Window::show();
+         super::show();
          return T;
       }
       void StoreClass::NewItem::update(C GuiPC &gpc)
 {
-         ::EE::ClosableWindow::update(gpc);
+         super::update(gpc);
          if(Kb.k(KB_ENTER) && contains(Gui.kb()))b_create.push();
       }
       void StoreClass::Login::LoginDo(Login &login) {AppStore.loginDo(1, login.email(), login.pass());}
@@ -310,7 +310,7 @@ StoreClass AppStore;
       }
       ClosableWindow& StoreClass::Login::create()
       {
-            ::EE::Window::create("Log In").hide().barVisible(false); FlagDisable(flag, WIN_MOVABLE); button[2].func(Cancel, T);
+            super      ::create("Log In").hide().barVisible(false); FlagDisable(flag, WIN_MOVABLE); button[2].func(Cancel, T);
          T+=t_email    .create("E-mail"           ); T+=email.create();
          T+=t_pass     .create("Password"         ); T+=pass .create().password(true);
          T+=login      .create("Log In / Register").func(LoginDo   , T);
@@ -320,7 +320,7 @@ StoreClass AppStore;
       }
       ClosableWindow& StoreClass::Login::rect(C Rect &rect)
 {
-         ::EE::Window::rect(rect);
+         super::rect(rect);
          t_email    .rect(Vec2(0.07f, -0.05f)); email.rect(Rect_L(0.22f, -0.05f, 0.45f, 0.05f));
          t_pass     .rect(Vec2(0.11f, -0.11f)); pass .rect(Rect_L(0.22f, -0.11f, 0.45f, 0.05f));
          login      .rect(Rect_C(clientWidth()*1/4-0.00f, -clientHeight()+0.105f, 0.30f, 0.05f));
@@ -331,19 +331,19 @@ StoreClass AppStore;
       ClosableWindow& StoreClass::Login::show()
 {
          if(email().is())pass.kbSet();else email.kbSet();
-         ::EE::Window::show();
+         super::show();
          return T;
       }
       void StoreClass::Login::update(C GuiPC &gpc)
 {
-         ::EE::ClosableWindow::update(gpc);
+         super::update(gpc);
          if(Kb.k(KB_ENTER) && contains(Gui.kb()))login.push();
       }
       void StoreClass::Register::Yes(Register &reg) {AppStore.loginDo(0, AppStore.login_email, AppStore.login_pass);}
       void StoreClass::Register::Cancel(Register &reg) {reg.hide();}
       ::StoreClass::Register& StoreClass::Register::create(C Vec2 &pos)
       {
-            ::EE::Window::create(Rect_C(pos, 0.9f, 0.4f), "Log In").hide(); button[2].show();
+            super ::create(Rect_C(pos, 0.9f, 0.4f), "Log In").hide(); button[2].show();
          T+=yes   .create(Rect_C(clientWidth()*1/4, -clientHeight()+0.08f, 0.25f, 0.055f), "Yes"   ).func(Yes   , T);
          T+=cancel.create(Rect_C(clientWidth()*3/4, -clientHeight()+0.08f, 0.25f, 0.055f), "Cancel").func(Cancel, T);
          T+=text  .create(Rect(0, yes.rect().max.y, clientWidth(), 0).extend(-0.05f)); text.auto_line=AUTO_LINE_SPACE_SPLIT;
@@ -351,7 +351,7 @@ StoreClass AppStore;
       }
       ::StoreClass::Register& StoreClass::Register::activate()
       {
-         ::EE::GuiObj::activate();
+         super::activate();
          text.set(S+"User "+AppStore.login_email+" was not found.\nWould you like to register?");
          return T;
       }
@@ -372,7 +372,7 @@ StoreClass AppStore;
       ::StoreClass::ConfirmPayPal& StoreClass::ConfirmPayPal::create()
       {
          ts.reset().size=0.039f;
-            ::EE::Window::create(Rect_LU(0, 0, 0.9f, 0.22f), "Edit PayPal").barVisible(false).hide(); button[2].show(); FlagDisable(flag, WIN_MOVABLE);
+            super  ::create(Rect_LU(0, 0, 0.9f, 0.22f), "Edit PayPal").barVisible(false).hide(); button[2].show(); FlagDisable(flag, WIN_MOVABLE);
          T+=paypal .create(Rect_L(0.03f, -clientHeight()+0.05f, 0.53f, 0.055f));
          T+=confirm.create(Rect  (paypal.rect().max.x+0.01f, paypal.rect().min.y, clientWidth()-0.03f, paypal.rect().max.y), "Confirm").func(Confirm, T);
          T+=text   .create(Rect(0, confirm.rect().max.y, clientWidth(), 0).extend(-0.03f), "Please confirm your PayPal email address.\nIf you type it wrong you will not be able to receive payments !!", &ts); text.auto_line=AUTO_LINE_SPACE_SPLIT;
@@ -384,14 +384,14 @@ StoreClass AppStore;
       }
       ::StoreClass::ConfirmPayPal& StoreClass::ConfirmPayPal::activate()
 {
-         ::EE::GuiObj::activate();
+         super::activate();
          paypal.clear().kbSet();
          setPos();
          return T;
       }
       void StoreClass::ConfirmPayPal::update(C GuiPC &gpc)
 {
-         ::EE::ClosableWindow::update(gpc);
+         super::update(gpc);
          if(gpc.visible && visible())
          {
             setPos();
@@ -402,7 +402,7 @@ StoreClass AppStore;
       ::StoreClass::BecomeSeller& StoreClass::BecomeSeller::create(C Vec2 &pos)
       {
          ts.reset().size=0.04f; ts.align.set(1, 0);
-         ::EE::Window::create(Rect_C(pos, 1.32f, 0.30f), "Seller").barVisible(false).hide(); button[2].show();
+         super::create(Rect_C(pos, 1.32f, 0.30f), "Seller").barVisible(false).hide(); button[2].show();
          T+=engine_license.create(Rect_C(clientWidth()/2, -clientHeight()+0.06f, 0.5f, 0.055f), "Buy Engine License").func(EngineLicense, T);
          T+=text          .create(Rect(0, engine_license.rect().max.y, clientWidth(), 0).extend(-0.05f), "In order to sell your own items in Esenthel Store you need to be a Licensed Developer (have an Esenthel Engine License).\nOnce you're a Licensed Developer, you will be able to submit your own items to Esenthel Store and gain income from their sales.", &ts); text.auto_line=AUTO_LINE_SPACE_SPLIT;
          return T;
@@ -419,7 +419,7 @@ StoreClass AppStore;
       }
       ClosableWindow& StoreClass::Contribute::create()
       {
-         ::EE::Window::create(Rect_LU(0, 0, 0.7f, 0.23f), "Contribute").barVisible(false).hide(); button[2].show(); FlagDisable(flag, WIN_MOVABLE);
+         super::create(Rect_LU(0, 0, 0.7f, 0.23f), "Contribute").barVisible(false).hide(); button[2].show(); FlagDisable(flag, WIN_MOVABLE);
          ts.reset().size=0.045f;
          T+=amount    .create(Rect_C(clientWidth()*1/4, -clientHeight()+0.05f, 0.25f, 0.055f)).maxLength(32);
          T+=contribute.create(Rect_C(clientWidth()*3/4, -clientHeight()+0.05f, 0.25f, 0.055f), "Contribute").func(Buy, T);
@@ -428,7 +428,7 @@ StoreClass AppStore;
       }
       void StoreClass::Contribute::update(C GuiPC &gpc)
 {
-         ::EE::ClosableWindow::update(gpc);
+         super::update(gpc);
          if(Kb.k(KB_ENTER) && contains(Gui.kb()))contribute.push();
       }
       void StoreClass::ItemList::draw(C GuiPC &gpc)
@@ -454,7 +454,7 @@ StoreClass AppStore;
             }
 
             // draw images and selection rectangles
-            ::EE::_List::draw(gpc);
+            super::draw(gpc);
 
             // draw names and descriptions
             if(drawMode()==LDM_RECTS)
@@ -490,7 +490,7 @@ StoreClass AppStore;
          void StoreClass::DownloadFile::WindowIOEx::Hidden(WindowIOEx &w) {AppStore.clearDownloadFiles();}
          WindowIO& StoreClass::DownloadFile::WindowIOEx::hide()
 {
-            ::EE::WindowIO::hide();
+            super::hide();
             Gui.addFuncCall(Hidden, T);
             return T;
          }
@@ -532,7 +532,7 @@ StoreClass AppStore;
          dest.tailSlash(true)+=file;
       #endif
          download(false);
-         Gui+=::EE::Window::create(Rect_C(0, 0, 0.8f, 0.21f), S+"Downloading \""+GetBase(file)+'"');
+         Gui+=super::create(Rect_C(0, 0, 0.8f, 0.21f), S+"Downloading \""+GetBase(file)+'"');
          T+=progress.create(Rect_LU(0, 0, clientWidth(), 0.09f).extend(-0.02f));
          ts.reset(); ts.size=0.045f;
          T+=text.create(progress.rect().center(), S, &ts);
@@ -555,7 +555,7 @@ StoreClass AppStore;
       }
       void StoreClass::DownloadFile::update(C GuiPC &gpc)
 {
-         ::EE::Window::update(gpc);
+         super::update(gpc);
 
          if(down.totalSize()>=0) // if size is known
          {
@@ -647,7 +647,7 @@ StoreClass AppStore;
       ::StoreClass::RenameFile& StoreClass::RenameFile::create(C Vec2 &pos)
       {
          Vec2 size(0.78f, 0.05f), padd=defaultInnerPaddingSize()+0.02f;
-         ::EE::Window::create(Rect_LU(pos, size+padd)); button[2].show();
+         super::create(Rect_LU(pos, size+padd)); button[2].show();
          T+=new_name.create(Rect_LU(0.01f, -0.01f, size.x, size.y)).maxLength(256);
          return T;
       }
@@ -656,13 +656,13 @@ StoreClass AppStore;
          T.file=df.file;
          T.name=df.name;
          setTitle(S+"Rename \""+name+"\"");
-         ::EE::GuiObj::activate();
+         super::activate();
          new_name.set(df.name).selectAll().kbSet();
          return T;
       }
       void StoreClass::RenameFile::update(C GuiPC &gpc)
 {
-         ::EE::ClosableWindow::update(gpc);
+         super::update(gpc);
          if(Gui.window()==this && Kb.k(KB_ENTER)){ok(); Kb.eatKey();}
       }
       void StoreClass::RemoveFile::OK(RemoveFile &fr) {fr.hide(); AppStore.sendCommand("remove_item_file", "i", S+AppStore.cur_item, "item_file_file", fr.file);}
@@ -670,11 +670,11 @@ StoreClass AppStore;
       {
          T.file=df.file;
          setTitle(S+"Remove File \""+df.name+"\"");
-         ::EE::GuiObj::activate();
+         super::activate();
       }
       ::StoreClass::RemoveFile& StoreClass::RemoveFile::create(C Vec2 &pos)
       {
-             ::EE::Window::create(Rect_C(pos, 0.72f, 0.32f), "Remove File").hide(); button[2].show();
+             super::create(Rect_C(pos, 0.72f, 0.32f), "Remove File").hide(); button[2].show();
          T+=t_name.create(Rect_C(clientWidth()/2, -0.09f, 0.7f, 0.0f), "Are you sure you wish to remove selected file?"); t_name.auto_line=AUTO_LINE_SPACE_SPLIT;
          T+=    ok.create(Rect_C(clientWidth()/2, -0.20f, 0.3f, 0.06f), "OK").func(OK, T);
          return T;
@@ -695,7 +695,7 @@ StoreClass AppStore;
       }
       ::StoreClass::PublishConfirm& StoreClass::PublishConfirm::create(C Vec2 &pos)
       {
-           ::EE::Window::create(Rect_C(pos, 1.00f, 0.35f), "Confirm Publishing").hide(); button[2].show();
+           super::create(Rect_C(pos, 1.00f, 0.35f), "Confirm Publishing").hide(); button[2].show();
          T+=ok  .create(Rect_C(clientWidth()/2, -clientHeight()+0.07f, 0.3f, 0.06f), "OK").func(OK, T);
          T+=text.create(Rect(0, ok.rect().max.y, clientWidth(), 0).extend(-0.05f), "You haven't specified the price for your item.\nAre you sure you wish to publish it for free?"); text.auto_line=AUTO_LINE_SPACE_SPLIT;
          return T;
@@ -763,12 +763,12 @@ StoreClass AppStore;
       }
       ::StoreClass::ItemImage& StoreClass::ItemImage::create(bool hoverable)
       {
-         ::EE::GuiImage::create();
+         super::create();
          T.hoverable=hoverable;
          fit=true;
          return T;
       }
-      GuiObj* StoreClass::ItemImage::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (editable || hoverable) ? ::EE::GuiObj::test(gpc, pos, mouse_wheel) : null;}
+      GuiObj* StoreClass::ItemImage::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (editable || hoverable) ? super::test(gpc, pos, mouse_wheel) : null;}
       void StoreClass::ItemImage::draw(C GuiPC &gpc)
 {
          if(gpc.visible && visible())
@@ -1001,7 +1001,7 @@ StoreClass AppStore;
       item_category.set(cat, QUIET);
       if(InRange(cat, categories_node.children))
       {
-         Memx<Node<MenuElm> > &subs=categories_node.children[cat].children;
+         Memx<Node<MenuElm>> &subs=categories_node.children[cat].children;
          if(InRange(sub, subs))item_category.text=subs[sub].name;
       }
    }
@@ -1011,7 +1011,7 @@ StoreClass AppStore;
       sub=0;
       if(InRange(cat, categories_node.children))
       {
-         Memx<Node<MenuElm> > &subs=categories_node.children[cat].children;
+         Memx<Node<MenuElm>> &subs=categories_node.children[cat].children;
          REPA(subs)if(subs[i].name==item_category.text){sub=i; break;}
       }
    }
@@ -1037,7 +1037,7 @@ StoreClass AppStore;
       }; lc[2].sort=&date_sort.set(MEMBER(Item, date_added)); lc[4].sort=&price_sort.set(MEMBER(Item, price));
 
       DYNAMIC_ASSERT(Elms(sub_categories)==Elms(categories_t), "categories elms");
-      Gui+=::EE::Window::create("Esenthel Store").hide(); button[1].show(); button[2].show(); flag|=WIN_RESIZABLE;
+      Gui+=super::create("Esenthel Store").hide(); button[1].show(); button[2].show(); flag|=WIN_RESIZABLE;
       T+=mode.create((cchar**)null, 2).set(0); REPA(mode)mode.tab(i).hide();
       T+=hello_user.create();
       T+=line.create();
@@ -1131,7 +1131,7 @@ StoreClass AppStore;
    }
    Rect StoreClass::sizeLimit()C 
 {
-      Rect rect=::EE::Window::sizeLimit();
+      Rect rect=super::sizeLimit();
       MAX(rect.min.x, 2);
       MAX(rect.min.y, 1.5f);
       return rect;
@@ -1203,7 +1203,7 @@ StoreClass AppStore;
    }
    Window& StoreClass::rect(C Rect &rect)
 {
-      ::EE::Window::rect(rect);
+      super::rect(rect);
       hello_user.pos(Vec2(clientWidth()/2, -0.05f));
       {flt y=hello_user.pos().y-0.05f, b=0.3f; line.rect(Rect(b, y, clientWidth()-b, y));}
       filter_name.rect(Rect_LU(0.05f, -0.025f, 0.35f, 0.05f));
@@ -1283,7 +1283,7 @@ StoreClass AppStore;
          downloaded=true;
          downloadItems();
       }
-      return ::EE::Window::show();
+      return super::show();
    }
    void StoreClass::setItemImages(Item &item)
    {
@@ -1352,7 +1352,7 @@ StoreClass AppStore;
       t_dev_paypal  .set(S+"PayPal: "         +cur_dev_paypal      ).visible(cur_dev>=0 && dev_editable);
       t_dev_discount.set(S+"Global Discount: "+cur_dev_discount+'%').visible(cur_dev>=0 && dev_editable);
         dev_support.text=(ValidEmail(cur_dev_support) ? "Email" : ValidURL(cur_dev_support) ? "Open Website" : ""); dev_support.visible(dev_support.text.is());
-      rect(::EE::Window::rect());
+      rect(super::rect());
    }
    void StoreClass::openDeveloper(int id, C Str &name, C Str &support, C Str &paypal, C DateTime &date, int discount)
    {
@@ -1518,7 +1518,7 @@ StoreClass AppStore;
    }
    void StoreClass::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(visible() && gpc.visible)
       {
          if((Ms.tapped(1) && Gui.window()==this) || (Ms.bp(4) && Gui.window()==this && !(Gui.kb() && Gui.kb()->type()==GO_TEXTLINE)))back.push();
@@ -1768,7 +1768,7 @@ StoreClass AppStore;
    }
    void StoreClass::draw(C GuiPC &gpc)
 {
-      ::EE::Window::draw(gpc);
+      super::draw(gpc);
       if(visible() && gpc.visible)
       {
          if(image_preview && image_preview_step>EPS_COL)

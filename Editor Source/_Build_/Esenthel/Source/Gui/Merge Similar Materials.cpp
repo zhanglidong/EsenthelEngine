@@ -196,7 +196,7 @@ void DrawIDReplace()
       MtrlEdit.flush(); // flush Material Editor changes first
 
            Memc<Mtrl>  mtrls;
-      Memc<Memc<Mtrl> > similar;
+      Memc<Memc<Mtrl>> similar;
 
       // first load all existing materials
       FREPA(Proj.elms)
@@ -325,7 +325,7 @@ void DrawIDReplace()
       add("Merge Only If:");
       add("Color Texture Exists", MEMBER(MergeSimilarMaterials, color_is)).desc("When this option is selected, then Materials will not be merged if they don't have a color texture image set");
       flt h=0.043f;
-      ::PropWin::create("Merge Similar Materials", Vec2(0.02f, -0.02f), 0.036f, h, 0.15f); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
+      super::create("Merge Similar Materials", Vec2(0.02f, -0.02f), 0.036f, h, 0.15f); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
       int c=0;
       FREPA(props)if(props[i].textline.is())
       {
@@ -359,7 +359,7 @@ void DrawIDReplace()
    }
    void MergeSimilarMaterials::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(visible() && gpc.visible)
       {
          if(Ms.tappedFirst(0) && Gui.ms()==&list)if(Data *data=list())if(Elm *elm=Proj.findElm(data->id))MtrlEdit.toggle(elm);

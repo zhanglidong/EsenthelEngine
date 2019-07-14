@@ -3,31 +3,31 @@
 /******************************************************************************/
 
 /******************************************************************************/
-   EditWaterMtrl::EditWaterMtrl() : density(0.3f), density_add(0.45f), density_underwater(0.02f), density_underwater_add(0.6f), scale_color(200), scale_normal(10), scale_bump(100), reflect_world(0.18f), refract(0.10f), refract_reflection(0.06f), refract_underwater(0.01f), wave_scale(0.25f), fresnel_pow(5.5f), fresnel_rough(4), fresnel_color(0.10f, 0.10f, 0.10f), color_underwater0(0.26f, 0.35f, 0.42f), color_underwater1(0.10f, 0.20f, 0.30f) {::EditMaterial::color_s.set(0.42f, 0.50f, 0.58f, 1); ::EditMaterial::rough=1; ::EditMaterial::specular=1.5f; ::EditMaterial::reflection=0.1f;}
+   EditWaterMtrl::EditWaterMtrl() : density(0.3f), density_add(0.45f), density_underwater(0.02f), density_underwater_add(0.6f), scale_color(200), scale_normal(10), scale_bump(100), reflect_world(0.18f), refract(0.10f), refract_reflection(0.06f), refract_underwater(0.01f), wave_scale(0.25f), fresnel_pow(5.5f), fresnel_rough(4), fresnel_color(0.10f, 0.10f, 0.10f), color_underwater0(0.26f, 0.35f, 0.42f), color_underwater1(0.10f, 0.20f, 0.30f) {super::color_s.set(0.42f, 0.50f, 0.58f, 1); super::rough=1; super::specular=1.5f; super::reflection=0.1f;}
    bool EditWaterMtrl::usesTexBump()C {return wave_scale>EPSL && hasBumpMap();}
    bool EditWaterMtrl::equal(C EditWaterMtrl &src)C
    {
-      return ::EditMaterial::equal(src) && density_time==src.density_time && density_underwater_time==src.density_underwater_time && scale_color_time==src.scale_color_time && scale_normal_time==src.scale_normal_time && scale_bump_time==src.scale_bump_time
+      return super::equal(src) && density_time==src.density_time && density_underwater_time==src.density_underwater_time && scale_color_time==src.scale_color_time && scale_normal_time==src.scale_normal_time && scale_bump_time==src.scale_bump_time
       && reflect_world_time==src.reflect_world_time && refract_time==src.refract_time && refract_reflection_time==src.refract_reflection_time && refract_underwater_time==src.refract_underwater_time && wave_scale_time==src.wave_scale_time
       && fresnel_pow_time==src.fresnel_pow_time && fresnel_rough_time==src.fresnel_rough_time && fresnel_color_time==src.fresnel_color_time && color_underwater_time==src.color_underwater_time;
    }
    bool EditWaterMtrl::newer(C EditWaterMtrl &src)C
    {
-      return ::EditMaterial::newer(src) || density_time>src.density_time || density_underwater_time>src.density_underwater_time || scale_color_time>src.scale_color_time || scale_normal_time>src.scale_normal_time || scale_bump_time>src.scale_bump_time
+      return super::newer(src) || density_time>src.density_time || density_underwater_time>src.density_underwater_time || scale_color_time>src.scale_color_time || scale_normal_time>src.scale_normal_time || scale_bump_time>src.scale_bump_time
       || reflect_world_time>src.reflect_world_time || refract_time>src.refract_time || refract_reflection_time>src.refract_reflection_time || refract_underwater_time>src.refract_underwater_time || wave_scale_time>src.wave_scale_time
       || fresnel_pow_time>src.fresnel_pow_time || fresnel_rough_time>src.fresnel_rough_time || fresnel_color_time>src.fresnel_color_time || color_underwater_time>src.color_underwater_time;
    }
    void EditWaterMtrl::reset() {T=EditWaterMtrl();}
    void EditWaterMtrl::newData()
    {
-      ::EditMaterial::newData();
+      super::newData();
       density_time++; density_underwater_time++; scale_color_time++; scale_normal_time++; scale_bump_time++;
       reflect_world_time++; refract_time++; refract_reflection_time++; refract_underwater_time++; wave_scale_time++;
       fresnel_pow_time++; fresnel_rough_time++; fresnel_color_time++; color_underwater_time++;
    }
    void EditWaterMtrl::create(C WaterMtrl &src, C TimeStamp &time)
    {
-      ::EditMaterial::create(Material(), time); // call super to setup times for all values
+      super::create(Material(), time); // call super to setup times for all values
       density               =src.density;
       density_add           =src.density_add; density_time=time;
       density_underwater    =src.density_underwater;
@@ -35,18 +35,18 @@
       scale_color           =src.scale_color; scale_color_time=time;
       scale_normal          =src.scale_normal; scale_normal_time=time;
       scale_bump            =src.scale_bump; scale_bump_time=time;
-::EditMaterial::rough                 =src.rough; rough_bump_time=time;
-::EditMaterial::reflection            =src.reflect_tex; reflection_time=time;
+super::rough                 =src.rough; rough_bump_time=time;
+super::reflection            =src.reflect_tex; reflection_time=time;
       reflect_world         =src.reflect_world; reflect_world_time=time;
       refract               =src.refract; refract_time=time;
       refract_reflection    =src.refract_reflection; refract_reflection_time=time;
       refract_underwater    =src.refract_underwater; refract_underwater_time=time;
-::EditMaterial::specular              =src.specular; spec_time=time;
+super::specular              =src.specular; spec_time=time;
       wave_scale            =src.wave_scale; wave_scale_time=time;
       fresnel_pow           =src.fresnel_pow; fresnel_pow_time=time;
       fresnel_rough         =src.fresnel_rough; fresnel_rough_time=time;
       fresnel_color         =src.fresnel_color; fresnel_color_time=time;
-::EditMaterial::color_s               =Vec4(src.color, 1); color_time=time;
+super::color_s               =Vec4(src.color, 1); color_time=time;
       color_underwater0     =src.color_underwater0; color_underwater_time=time;
       color_underwater1     =src.color_underwater1;
           base_0_tex=src.     colorMap().id();
@@ -62,18 +62,18 @@
       dest.scale_color           =scale_color           ;
       dest.scale_normal          =scale_normal          ;
       dest.scale_bump            =scale_bump            ;
-      dest.rough                 =::EditMaterial::rough           ;
-      dest.reflect_tex           =::EditMaterial::reflection      ;
+      dest.rough                 =super::rough           ;
+      dest.reflect_tex           =super::reflection      ;
       dest.reflect_world         =reflect_world         ;
       dest.refract               =refract               ;
       dest.refract_reflection    =refract_reflection    ;
       dest.refract_underwater    =refract_underwater    ;
-      dest.specular              =::EditMaterial::specular        ;
+      dest.specular              =super::specular        ;
       dest.wave_scale            =wave_scale            ;
       dest.fresnel_pow           =fresnel_pow           ;
       dest.fresnel_rough         =fresnel_rough         ;
       dest.fresnel_color         =fresnel_color         ;
-      dest.color                 =::EditMaterial::color_s.xyz     ;
+      dest.color                 =super::color_s.xyz     ;
       dest.color_underwater0     =color_underwater0     ;
       dest.color_underwater1     =color_underwater1     ;
       dest.     colorMap(proj.texPath(    base_0_tex))
@@ -83,7 +83,7 @@
    }
    uint EditWaterMtrl::sync(C EditWaterMtrl &src)
    {
-      uint changed=::EditMaterial::sync(src);
+      uint changed=super::sync(src);
       if(Sync(density_time, src.density_time))
       {
          changed|=CHANGED_PARAM;
@@ -117,7 +117,7 @@
    }
    uint EditWaterMtrl::undo(C EditWaterMtrl &src)
    {
-      uint changed=::EditMaterial::undo(src);
+      uint changed=super::undo(src);
       if(Undo(density_time, src.density_time))
       {
          changed|=CHANGED_PARAM;
@@ -152,7 +152,7 @@
    bool EditWaterMtrl::save(File &f)C
    {
       f.cmpUIntV(1);
-      ::EditMaterial::save(f);
+      super::save(f);
       f<<density<<density_add<<density_underwater<<density_underwater_add<<scale_color<<scale_normal<<scale_bump
        <<reflect_world<<refract<<refract_reflection<<refract_underwater<<wave_scale
        <<fresnel_pow<<fresnel_rough<<fresnel_color<<color_underwater0<<color_underwater1
@@ -165,7 +165,7 @@
    {
       switch(f.decUIntV())
       {
-         case 1: if(::EditMaterial::load(f))
+         case 1: if(super::load(f))
          {
             f>>density>>density_add>>density_underwater>>density_underwater_add>>scale_color>>scale_normal>>scale_bump
              >>reflect_world>>refract>>refract_reflection>>refract_underwater>>wave_scale

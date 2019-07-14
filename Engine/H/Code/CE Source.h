@@ -472,9 +472,9 @@ const_mem_addr struct Source : Region
    void write(Memc<CodeLine> &clines, C VecI2 &start, C VecI2 &end, VecI2 *clines_start=null, Int *line_i=null);
    void write(Memc<CodeLine> &clines,   Int    start,   Int    end, VecI2 *clines_start=null, Int *line_i=null);
 
-   void writeTokens(CodeLine &cline, Int start, Int end, Bool gcc);
+   void writeTokens(CodeLine &cline, Int start, Int end);
 
-   void writeSymbolDecl(Memc<CodeLine> &clines, Symbol &symbol, Bool gcc);
+   void writeSymbolDecl(Memc<CodeLine> &clines, Symbol &symbol);
 
    void remove      (Memc<CodeLine> &clines, Int start, Int end, Bool definite);
    void removeDefVal(Memc<CodeLine> &clines, Symbol &symbol);
@@ -486,8 +486,8 @@ const_mem_addr struct Source : Region
 
    Bool isFirstVar(Symbol &symbol);
 
-   CChar8* adjustDot  (                            Int i          ); // replace '.' with "->" or "::", returns string only if change is needed
-   void    adjustToken(Memc<CodeLine> &code_lines, Int i, Bool gcc); // adjust token from Esenthel Script to C++, 'gcc'=if should be compatible with GCC
+   CChar8* adjustDot  (                            Int i); // replace '.' with "->" or "::", returns string only if change is needed
+   void    adjustToken(Memc<CodeLine> &code_lines, Int i); // adjust token from Esenthel Script to C++
 
    void writeClassPath(CodeLine &line, Int col, Symbol *parent, Symbol *cur_namespace, Bool global, Memc<Symbol::Modif> *templates=null, bool start_separator=true);
 
@@ -501,18 +501,18 @@ const_mem_addr struct Source : Region
    void expandTemplates   (Memc<CodeLine> &code_lines);
 
    void writeClassTemplates(Memc<CodeLine> &clines, Symbol *Class);
-   void writeCtorInit      (Memc<CodeLine> &clines, Symbol &ci   , Int &line_i, Bool first, Bool gcc);
-   void writeCtorInits     (Memc<CodeLine> &clines, Symbol &func , Int  body_start, Bool gcc);
-   void writeForcedCtor    (Memc<CodeLine> &clines, Symbol &Class, Symbol* &Namespace, Bool gcc);
+   void writeCtorInit      (Memc<CodeLine> &clines, Symbol &ci   , Int &line_i, Bool first);
+   void writeCtorInits     (Memc<CodeLine> &clines, Symbol &func , Int  body_start);
+   void writeForcedCtor    (Memc<CodeLine> &clines, Symbol &Class, Symbol* &Namespace);
 
    void detectDefaultCtors();
-   Bool writeClass     (Memc<CodeLine> &clines, Symbol &symbol, Bool gcc);
-   Bool writeVarFuncs  (Memc<CodeLine> &clines,                 Bool gcc);
-   Bool writeInline    (Memc<CodeLine> &clines,                 Bool gcc);
-   Bool writeFunc      (Memc<CodeLine> &clines, Bool gcc, Symbol &symbol, Symbol* &Namespace);
-   Bool writeStaticVars(Memc<CodeLine> &clines, Bool gcc, Symbol* &Namespace, Bool templates);
+   Bool writeClass     (Memc<CodeLine> &clines, Symbol &symbol);
+   Bool writeVarFuncs  (Memc<CodeLine> &clines);
+   Bool writeInline    (Memc<CodeLine> &clines);
+   Bool writeFunc      (Memc<CodeLine> &clines, Symbol &symbol, Symbol* &Namespace);
+   Bool writeStaticVars(Memc<CodeLine> &clines, Symbol* &Namespace, Bool templates);
 
-   void makeCPP(C Str &path, C Str &file, Bool gcc, Bool include_headers);
+   void makeCPP(C Str &path, C Str &file, Bool include_headers);
 };
 #endif
 /******************************************************************************/

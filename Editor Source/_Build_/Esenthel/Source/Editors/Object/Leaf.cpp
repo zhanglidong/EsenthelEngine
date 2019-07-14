@@ -73,7 +73,7 @@
    }
    LeafRegion& LeafRegion::create()
    {
-      ::EE::Region::create(Rect_LU(0, 0, 0.44f, 0.793f)).skin(&TransparentSkin, false); kb_lit=false;
+      super::create(Rect_LU(0, 0, 0.44f, 0.793f)).skin(&TransparentSkin, false); kb_lit=false;
       ts.reset(); ts.size=0.038f; ts.align.set(1, 0);
       flt h=0.044f, p=0.005f, vh=h*0.97f, y=-0.025f, w=rect().w()-0.02f;
       T+=leaf_attachment.create(Vec2(0.01f, y), "Set Leaf Attachment", &ts); y-=h/2;
@@ -90,7 +90,7 @@
    }
    void LeafRegion::update(C GuiPC &gpc)
 {
-      ::EE::Region::update(gpc);
+      super::update(gpc);
       visible(MtrlEdit.visible() && (MtrlEdit.edit.tech==MTECH_LEAF || MtrlEdit.edit.tech==MTECH_BLEND_LIGHT_LEAF || MtrlEdit.edit.tech==MTECH_TEST_BLEND_LIGHT_LEAF) && meshHasMtrl(MtrlEdit.game));
       if(visible())
       {

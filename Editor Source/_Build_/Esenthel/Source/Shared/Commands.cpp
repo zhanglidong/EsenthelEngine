@@ -928,7 +928,7 @@ bool ClientRecvCodeSyncStatus(File &f, Memc<ElmCodeBase> &elms, bool &resync, UI
    int ElmTypeVer::Compare(C ElmTypeVer &a, C UID        &id) {return ::Compare(a.id,   id);}
    void ElmCodeData::set(Elm &elm, Code *code)
    {
-      ::ElmTypeVer::set(elm);
+      super::set(elm);
       switch(type)
       {
          case ELM_APP : if(ElmApp *elm_app=elm.appData())app=*elm_app; break;
@@ -937,14 +937,14 @@ bool ClientRecvCodeSyncStatus(File &f, Memc<ElmCodeBase> &elms, bool &resync, UI
    }
    bool ElmCodeData::save(File &f)C
    {
-      ::ElmTypeVer::save(f);
+      super::save(f);
       if(type==ELM_CODE)code.save(f);
       if(type==ELM_APP )app .save(f);
       return f.ok();
    }
    bool ElmCodeData::load(File &f)
    {
-      if(::ElmTypeVer::load(f))
+      if(super::load(f))
       {
          if(type==ELM_CODE)if(!code.load(f))return false;
          if(type==ELM_APP )if(!app .load(f))return false;

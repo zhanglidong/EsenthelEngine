@@ -213,7 +213,7 @@ void WorldView::editObj()
    ObjPos& ObjPos::create(C Vec2 &up)
    {
       ts.reset().size=0.04f; ts.align.set(1, 0);
-      ::EE::Region::create(Rect_U(up, 0.255f, 0.22f)).skin(&TransparentSkin, false).hide(); kb_lit=false;
+      super::create(Rect_U(up, 0.255f, 0.22f)).skin(&TransparentSkin, false).hide(); kb_lit=false;
       props.New().create("X", MemberDesc(DATA_REAL));
       props.New().create("Y", MemberDesc(DATA_REAL));
       props.New().create("Z", MemberDesc(DATA_REAL));
@@ -258,7 +258,7 @@ void WorldView::editObj()
    }
    void ObjPos::update(C GuiPC &gpc)
 {
-      ::EE::Region::update(gpc);
+      super::update(gpc);
       if(gpc.visible && visible())
       {
          if(Ms.bp(2) && contains(Gui.ms()))WorldEdit.obj_op.set(-1);
@@ -339,7 +339,7 @@ void WorldView::editObj()
    ObjScale& ObjScale::create(C Vec2 &up)
    {
       ts.reset().size=0.04f; ts.align.set(1, 0);
-      ::EE::Region::create(Rect_U(up, 0.30f, 0.19f)).skin(&TransparentSkin, false).hide(); kb_lit=false;
+      super::create(Rect_U(up, 0.30f, 0.19f)).skin(&TransparentSkin, false).hide(); kb_lit=false;
       props.New().create("X"  , MEMBER(ObjScale, scale.x  )).precision(4).textline.func(ChangedX  , T, true);
       props.New().create("Y"  , MEMBER(ObjScale, scale.y  )).precision(4).textline.func(ChangedY  , T, true);
       props.New().create("Z"  , MEMBER(ObjScale, scale.z  )).precision(4).textline.func(ChangedZ  , T, true);
@@ -374,7 +374,7 @@ void WorldView::editObj()
    }
    void ObjScale::update(C GuiPC &gpc)
 {
-      ::EE::Region::update(gpc);
+      super::update(gpc);
       if(gpc.visible && visible())
       {
          if(Ms.bp(2) && contains(Gui.ms()))WorldEdit.obj_op.set(-1);
@@ -456,7 +456,7 @@ void WorldView::editObj()
    ObjRot& ObjRot::create(C Vec2 &up)
    {
       ts.reset().size=0.04f; ts.align.set(1, 0);
-      ::EE::Region::create(Rect_U(up, 0.255f, 0.147f)).skin(&TransparentSkin, false).hide(); kb_lit=false;
+      super::create(Rect_U(up, 0.255f, 0.147f)).skin(&TransparentSkin, false).hide(); kb_lit=false;
       props.New().create("X", MEMBER(ObjRot, angles.x)).textline.func(ChangedX, T);
       props.New().create("Y", MEMBER(ObjRot, angles.y)).textline.func(ChangedY, T);
       props.New().create("Z", MEMBER(ObjRot, angles.z)).textline.func(ChangedZ, T);
@@ -482,7 +482,7 @@ void WorldView::editObj()
    }
    void ObjRot::update(C GuiPC &gpc)
 {
-      ::EE::Region::update(gpc);
+      super::update(gpc);
       if(gpc.visible && visible())
       {
          if(Ms.bp(2) && contains(Gui.ms()))WorldEdit.obj_op.set(-1);
@@ -490,7 +490,7 @@ void WorldView::editObj()
    }
    ObjGrid& ObjGrid::create()
    {
-      ::EE::Region::create(Rect_LU(0, 0, 0.315f, 0.125f)).skin(&TransparentSkin, false); kb_lit=false;
+      super ::create(Rect_LU(0, 0, 0.315f, 0.125f)).skin(&TransparentSkin, false); kb_lit=false;
       T+=bxz.create(Rect_L(0.01f, -0.035f, 0.17f, 0.045f), "Horizontal").focusable(false).desc("Enable Horizontal Grid Aligning"); bxz.mode=BUTTON_TOGGLE; bxz.set(true);
       T+=by .create(Rect_L(0.01f, -0.090f, 0.17f, 0.045f), "Vertical"  ).focusable(false).desc("Enable Vertical Grid Aligning"  ); by .mode=BUTTON_TOGGLE;
       T+= xz.create(Rect_L(0.19f, -0.035f, 0.11f, 0.045f), "1").desc(MLTC(u"Grid size (in meters)", PL, u"Rozmiar Siatki (w metrach)", DE, u"Gittergröße (in Meter)", RU, u"Размер сетки (в метрах)", PO, u"Tamanho da grade (em metros)"));
@@ -499,7 +499,7 @@ void WorldView::editObj()
    }
    void ObjGrid::update(C GuiPC &gpc)
 {
-      ::EE::Region::update(gpc);
+      super::update(gpc);
       if(gpc.visible && visible())
       {
          if(Ms.bp(2) && contains(Gui.ms()))WorldEdit.show_obj_grid.toggle(0);
@@ -521,7 +521,7 @@ void WorldView::editObj()
    WaypointPos& WaypointPos::create(C Vec2 &up)
    {
       ts.reset().size=0.04f; ts.align.set(1, 0);
-      ::EE::Region::create(Rect_U(up, 0.255f, 0.15f)).skin(&TransparentSkin, false).hide(); kb_lit=false;
+      super::create(Rect_U(up, 0.255f, 0.15f)).skin(&TransparentSkin, false).hide(); kb_lit=false;
       props.New().create("X", MemberDesc(DATA_REAL));
       props.New().create("Y", MemberDesc(DATA_REAL));
       props.New().create("Z", MemberDesc(DATA_REAL));
@@ -542,7 +542,7 @@ void WorldView::editObj()
    }
    void WaypointPos::update(C GuiPC &gpc)
 {
-      ::EE::Region::update(gpc);
+      super::update(gpc);
       if(gpc.visible && visible())
       {
          if(Ms.bp(2) && contains(Gui.ms()))WorldEdit.waypoint_op.set(-1); // close

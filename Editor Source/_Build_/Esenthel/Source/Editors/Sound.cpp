@@ -114,7 +114,7 @@ SoundEditor SoundEdit;
       vol     =&add("Volume", MemberDesc(MEMBER(SoundEditor, volume))).range(0, 1);
       autoData(this);
 
-      Rect r=::PropWin::create("Sound Player", Vec2(0.02f, -0.02f), 0.036f, 0.043f, 0.15f); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
+      Rect r=super::create("Sound Player", Vec2(0.02f, -0.02f), 0.036f, 0.043f, 0.15f); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
       import_as->combobox.resize(Vec2(0.33f, 0));
       rect(Rect_C(0, 0, 0.67f, 0.481f));
       r.set(r.max.x, -clientHeight(), clientWidth(), 0); r.extend(-0.04f);
@@ -148,18 +148,18 @@ SoundEditor SoundEdit;
       setting:;
       }
       if(gpc.visible && visible())update(!seek_set);
-      ::EE::ClosableWindow::update(gpc); // call after 'update' so progress value will be recent once 'Seek' is called
+      super::update(gpc); // call after 'update' so progress value will be recent once 'Seek' is called
    }
    void SoundEditor::draw(C GuiPC &gpc)
 {
-      ::EE::Window::draw(gpc);
+      super::draw(gpc);
       if(elm && import_as->combobox.contains(Gui.ms()) && Proj.invalidSrc(elm->srcFile())) // if source was not found, then draw exclamation
       {
          D.clip(gpc.clip);
          Proj.exclamation->drawFit(Rect_LD(import_as->combobox.rect().min+clientRect().lu()+gpc.offset, import_as->combobox.rect().h()));
       }
    }
-   SoundEditor& SoundEditor::hide(){set(null); ::PropWin::hide(); return T;}
+   SoundEditor& SoundEditor::hide(){set(null); super::hide(); return T;}
    void SoundEditor::flush()
    {
       if(elm && changed)
@@ -193,7 +193,7 @@ SoundEditor SoundEdit;
          visible(T.elm!=null).moveToTop();
       }
    }
-   void SoundEditor::activate(Elm *elm) {set(elm); if(T.elm)::EE::GuiObj::activate();}
+   void SoundEditor::activate(Elm *elm) {set(elm); if(T.elm)super::activate();}
    void SoundEditor::toggle(Elm *elm) {if(elm==T.elm)elm=null; set(elm);}
    void SoundEditor::closeElm(C UID &elm_id)
    {

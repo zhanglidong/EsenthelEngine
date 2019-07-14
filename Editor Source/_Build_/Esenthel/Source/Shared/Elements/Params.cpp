@@ -17,7 +17,7 @@ Cache<EditObject> EditObjects;
    {
       return removed_time>src.removed_time || name_time>src.name_time || type_time>src.type_time || value_time>src.value_time;
    }
-   uint EditParam::memUsage()C {return ::EE::Param::memUsage();}
+   uint EditParam::memUsage()C {return super::memUsage();}
    bool EditParam::contains(C Str &text, Project &proj)C
    {
       if(Contains(name, text))return true;
@@ -34,19 +34,19 @@ Cache<EditObject> EditObjects;
    }
    void       EditParam::setRemoved(  bool   removed                     ) {T.removed=removed; removed_time.getUTC();}
    EditParam& EditParam::setName(C Str   &name                        ) {T.name   =name   ;    name_time.getUTC(); return T;}
-   void       EditParam::clearValue(                                     ) {if(type==PARAM_ID)setAsIDArray(null);else{::EE::Param::clearValue(); value_time.getUTC();}}
+   void       EditParam::clearValue(                                     ) {if(type==PARAM_ID)setAsIDArray(null);else{super::clearValue(); value_time.getUTC();}}
    void       EditParam::setBool(  bool   v                           ) {value.b=v;                       value_time.getUTC();}
    void       EditParam::setColor(C Color &v                           ) {value.c=v;                       value_time.getUTC();}
-   void       EditParam::setValue(  int    v                           ) {::EE::Param::setValue(v);               value_time.getUTC();}
-   void       EditParam::setValue(C Str   &v                           ) {::EE::Param::setValue(v);               value_time.getUTC();}
+   void       EditParam::setValue(  int    v                           ) {super::setValue(v);               value_time.getUTC();}
+   void       EditParam::setValue(C Str   &v                           ) {super::setValue(v);               value_time.getUTC();}
    EditParam& EditParam::forceBool(  bool   v                           ) {setType(PARAM_BOOL ); value.b=v; value_time.getUTC(); return T;}
    EditParam& EditParam::forceInt(  int    v                           ) {setType(PARAM_INT  ); value.i=v; value_time.getUTC(); return T;}
    EditParam& EditParam::forceFlt(  flt    v                           ) {setType(PARAM_FLT  ); value.f=v; value_time.getUTC(); return T;}
    EditParam& EditParam::forceColor(C Color &v                           ) {setType(PARAM_COLOR); value.c=v; value_time.getUTC(); return T;}
-   EditParam&     EditParam::setAsIDArray(C MemPtr<UID> &ids                   ) {::EE::Param::    setAsIDArray(ids); type_time.getUTC(); value_time.getUTC(); return T;}
-   EditParam& EditParam::includeAsIDArray(C MemPtr<UID> &ids                   ) {::EE::Param::includeAsIDArray(ids); type_time.getUTC(); value_time.getUTC(); return T;}
-   EditParam& EditParam::setType(PARAM_TYPE type, Enum *enum_type) {::EE::Param::setType((type==PARAM_ID) ? PARAM_ID_ARRAY : type, enum_type); type_time.getUTC(); return T;}
-   EditParam& EditParam::setTypeValue(C Param &src                         ) {::EE::Param::setTypeValue(src); type_time.getUTC(); value_time.getUTC(); return T;}
+   EditParam&     EditParam::setAsIDArray(C MemPtr<UID> &ids                   ) {super::    setAsIDArray(ids); type_time.getUTC(); value_time.getUTC(); return T;}
+   EditParam& EditParam::includeAsIDArray(C MemPtr<UID> &ids                   ) {super::includeAsIDArray(ids); type_time.getUTC(); value_time.getUTC(); return T;}
+   EditParam& EditParam::setType(PARAM_TYPE type, Enum *enum_type) {super::setType((type==PARAM_ID) ? PARAM_ID_ARRAY : type, enum_type); type_time.getUTC(); return T;}
+   EditParam& EditParam::setTypeValue(C Param &src                         ) {super::setTypeValue(src); type_time.getUTC(); value_time.getUTC(); return T;}
    void       EditParam::nameTypeValueUTC(                                     ) {name_time.getUTC();      type_time.getUTC(); value_time.getUTC();}
    bool EditParam::sync(C EditParam &src)
    {
@@ -56,12 +56,12 @@ Cache<EditObject> EditObjects;
       if(Sync(type_time, src.type_time)) // adjust type first before the value
       {
          changed=true;
-         ::EE::Param::setType(src.type, src.enum_type);
+         super::setType(src.type, src.enum_type);
       }
       if(Sync(value_time, src.value_time))
       {
          changed=true;
-         ::EE::Param::setValue(src);
+         super::setValue(src);
       }
       return changed;
    }
@@ -73,12 +73,12 @@ Cache<EditObject> EditObjects;
       if(Undo(type_time, src.type_time)) // adjust type first before the value
       {
          changed=true;
-         ::EE::Param::setType(src.type, src.enum_type);
+         super::setType(src.type, src.enum_type);
       }
       if(Undo(value_time, src.value_time))
       {
          changed=true;
-         ::EE::Param::setValue(src);
+         super::setValue(src);
       }
       return changed;
    }
@@ -86,7 +86,7 @@ Cache<EditObject> EditObjects;
    {
       f.cmpUIntV(0);
       f<<id<<removed<<removed_time<<name_time<<type_time<<value_time;
-      ::EE::Param::save(f, game_path);
+      super::save(f, game_path);
       return f.ok();
    }
    bool EditParam::load(File &f, cchar *game_path)
@@ -96,7 +96,7 @@ Cache<EditObject> EditObjects;
          case 0:
          {
             f>>id>>removed>>removed_time>>name_time>>type_time>>value_time;
-            if(::EE::Param::load(f, game_path))
+            if(super::load(f, game_path))
                if(f.ok())return true;
          }break;
       }
@@ -189,13 +189,13 @@ Cache<EditObject> EditObjects;
    bool EditParams::save(File &f, cchar *game_path)C
    {
       f.cmpUIntV(0);
-      return ::EE::Memc< ::EditParam>::save(f, game_path);
+      return super::save(f, game_path);
    }
    bool EditParams::load(File &f, cchar *game_path)
    {
       switch(f.decUIntV())
       {
-         case 0: return ::EE::Memc< ::EditParam>::load(f, game_path);
+         case 0: return super::load(f, game_path);
       }
       return false;
    }
@@ -224,12 +224,12 @@ Cache<EditObject> EditObjects;
          return false;
       }
    bool EditObject::constant()C {return FlagTest(flag, CONSTANT);}
-   uint EditObject::memUsage()C {return ::EditParams::memUsage()+sub_objs.memUsage();}
+   uint EditObject::memUsage()C {return super::memUsage()+sub_objs.memUsage();}
    ::EditObject::SubObj* EditObject::findSubObj(C UID &id)  {REPA(sub_objs)if(sub_objs[i].id==id)return &sub_objs[i]; return null;}
  C ::EditObject::SubObj* EditObject::findSubObj(C UID &id)C {return ConstCast(T).findSubObj(id);}
    void EditObject::del()
    {
-      ::EE::Memc< ::EditParam>::del();
+      super::del();
       flag=0;
       type.zero();
       editor_type.zero();
@@ -352,9 +352,9 @@ Cache<EditObject> EditObjects;
       }
       return false;
    }
-   bool EditObject::old(C TimeStamp &now)C {return base_time< now           && access_time< now             && type_time< now           && editor_type_time< now                  && const_time< now            && path_time< now           && mesh_variation_time< now                     && ::EditParams::old  (now) && subObjsOld  (now);}
-   bool EditObject::equal(C EditObject &src                    )C {return base_time==src.base_time && access_time==src.access_time && type_time==src.type_time && editor_type_time==src.editor_type_time && const_time==src.const_time && path_time==src.path_time && mesh_variation_time==src.mesh_variation_time && ::EditParams::equal(src) && subObjsEqual(src);}
-   bool EditObject::newer(C EditObject &src                    )C {return base_time> src.base_time || access_time> src.access_time || type_time> src.type_time || editor_type_time> src.editor_type_time || const_time> src.const_time || path_time> src.path_time || mesh_variation_time> src.mesh_variation_time || ::EditParams::newer(src) || subObjsNewer(src);}
+   bool EditObject::old(C TimeStamp &now)C {return base_time< now           && access_time< now             && type_time< now           && editor_type_time< now                  && const_time< now            && path_time< now           && mesh_variation_time< now                     && super::old  (now) && subObjsOld  (now);}
+   bool EditObject::equal(C EditObject &src                    )C {return base_time==src.base_time && access_time==src.access_time && type_time==src.type_time && editor_type_time==src.editor_type_time && const_time==src.const_time && path_time==src.path_time && mesh_variation_time==src.mesh_variation_time && super::equal(src) && subObjsEqual(src);}
+   bool EditObject::newer(C EditObject &src                    )C {return base_time> src.base_time || access_time> src.access_time || type_time> src.type_time || editor_type_time> src.editor_type_time || const_time> src.const_time || path_time> src.path_time || mesh_variation_time> src.mesh_variation_time || super::newer(src) || subObjsNewer(src);}
    void EditObject::newData()
    {
       base_time++; access_time++; type_time++; const_time++; path_time++; mesh_variation_time++;
@@ -362,7 +362,7 @@ Cache<EditObject> EditObjects;
    }
    void EditObject::create(C EditObject &src)
    {
-      ::EditParams::create(src);
+      super::create(src);
       flag             =src.flag             ;          const_time=src.         const_time;
       access           =src.access           ;         access_time=src.        access_time;
       path             =src.path             ;           path_time=src.          path_time;
@@ -373,7 +373,7 @@ Cache<EditObject> EditObjects;
    }
    void EditObject::create(C Object &src, C UID &type, C EditObjectPtr &base, C TimeStamp &time)
    {
-      ::EditParams::create(src, time);
+      super::create(src, time);
       base_time=access_time=type_time=const_time=path_time=mesh_variation_time=time;
       FlagSet(flag, OVR_ACCESS        , src.customAccess       ());
       FlagSet(flag, OVR_TYPE          , src.customType         ());
@@ -391,7 +391,7 @@ Cache<EditObject> EditObjects;
    }
    void EditObject::copyTo(Object &obj, C Project &proj, bool zero_align, C UID *mesh_id, C UID *phys_id)C // 'zero_align' should be set only to ELM_OBJ
    {
-      ::EditParams::copyTo(obj);
+      super::copyTo(obj);
       obj.access         (FlagTest(flag, OVR_ACCESS        ), access           );
       obj.type           (FlagTest(flag, OVR_TYPE          ), type             );
       obj.constant       (FlagTest(flag, OVR_CONST         ), constant()       );
@@ -468,7 +468,7 @@ Cache<EditObject> EditObjects;
    }
    bool EditObject::sync(C EditObject &src, cchar *edit_path)
    {
-      bool changed=::EditParams::sync(src);
+      bool changed=super::sync(src);
       changed|=Sync(       base_time, src.       base_time, base       , src.base       );
       changed|=Sync(editor_type_time, src.editor_type_time, editor_type, src.editor_type);
       if(Sync(access_time, src.access_time))
@@ -511,7 +511,7 @@ Cache<EditObject> EditObjects;
    }
    bool EditObject::undo(C EditObject &src, cchar *edit_path)
    {
-      bool changed=::EditParams::undo(src);
+      bool changed=super::undo(src);
       changed|=Undo(       base_time, src.       base_time, base       , src.base       );
       changed|=Undo(editor_type_time, src.editor_type_time, editor_type, src.editor_type);
       if(Undo(access_time, src.access_time))
@@ -642,7 +642,7 @@ Cache<EditObject> EditObjects;
    bool EditObject::save(File &f, cchar *edit_path)C
    {
       f.cmpUIntV(2);
-      ::EditParams::save(f, EditToGamePath(edit_path)); // 'EditParams' requires game path
+      super::save(f, EditToGamePath(edit_path)); // 'EditParams' requires game path
       f<<flag<<base.id()<<editor_type;
       if(flag&OVR_ACCESS        )f<<access;
       if(flag&OVR_TYPE          )f<<type;
@@ -658,7 +658,7 @@ Cache<EditObject> EditObjects;
       {
          case 2:
          {
-            if(!::EditParams::load(f, EditToGamePath(edit_path)))goto error; // 'EditParams' requires game path
+            if(!super::load(f, EditToGamePath(edit_path)))goto error; // 'EditParams' requires game path
             UID base_id;
             f>>flag>>base_id>>editor_type; if(base_id.valid())base=Str(edit_path).tailSlash(true)+EncodeFileName(base_id);else base=null;
             if(  flag&OVR_ACCESS        )f>>access           ;else access           =(base ? base->access            : OBJ_ACCESS_TERRAIN);
@@ -674,7 +674,7 @@ Cache<EditObject> EditObjects;
 
          case 1:
          {
-            if(!::EditParams::load(f, EditToGamePath(edit_path)))goto error; // 'EditParams' requires game path
+            if(!super::load(f, EditToGamePath(edit_path)))goto error; // 'EditParams' requires game path
             UID base_id;
             f>>flag>>base_id>>editor_type; if(base_id.valid())base=Str(edit_path).tailSlash(true)+EncodeFileName(base_id);else base=null;
             if(  flag&OVR_ACCESS)f>>access;else access=(base ? base->access : OBJ_ACCESS_TERRAIN);
@@ -690,7 +690,7 @@ Cache<EditObject> EditObjects;
 
          case 0:
          {
-            if(!::EditParams::load(f, EditToGamePath(edit_path)))goto error; // 'EditParams' requires game path
+            if(!super::load(f, EditToGamePath(edit_path)))goto error; // 'EditParams' requires game path
             UID base_id;
             f>>flag>>base_id>>editor_type; if(base_id.valid())base=Str(edit_path).tailSlash(true)+EncodeFileName(base_id);else base=null;
             if(  flag&OVR_ACCESS)f>>access;else access=(base ? base->access : OBJ_ACCESS_TERRAIN);

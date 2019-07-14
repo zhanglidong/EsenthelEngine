@@ -35,7 +35,7 @@ NewLodClass NewLod;
    LodRegion& LodRegion::create()
    {
       Gui+=NewLod.create();
-      ::EE::Region::create().skin(&EmptyGuiSkin, false); kb_lit=false;
+      super::create().skin(&EmptyGuiSkin, false); kb_lit=false;
       cchar8 *t_edit_dist[]=
       {
          "Edit Distance",
@@ -67,7 +67,7 @@ NewLodClass NewLod;
    void LodRegion::toGui() {REPAO(props).toGui();}
    void LodRegion::update(C GuiPC &gpc)
 {
-      ::EE::Region::update(gpc);
+      super::update(gpc);
       if(gpc.visible && visible())
       {
          flt s=0.25f;
@@ -282,14 +282,14 @@ NewLodClass NewLod;
       }
       startThread();
    }
-           NewLodClass& NewLodClass::activate(){if(hidden()){createSrc(); thread.cancelStop(); ObjEdit.lod.edit_dist.set(-1);} ::EE::GuiObj::activate(); return T;}
-   NewLodClass& NewLodClass::hide(){                          thread.      stop();                                 ::EE::Window::hide    (); return T;}
+           NewLodClass& NewLodClass::activate(){if(hidden()){createSrc(); thread.cancelStop(); ObjEdit.lod.edit_dist.set(-1);} super::activate(); return T;}
+   NewLodClass& NewLodClass::hide(){                          thread.      stop();                                 super::hide    (); return T;}
   NewLodClass::~NewLodClass() {thread.del();}
-   NewLodClass& NewLodClass::del(){thread.del(); ::EE::Window::del(); return T;}
+   NewLodClass& NewLodClass::del(){thread.del(); super::del(); return T;}
    NewLodClass& NewLodClass::create()
    {
       Property *draw_distance_prop;
-      ::EE::Window::create("New LOD").hide(); button[2].show();
+      super::create("New LOD").hide(); button[2].show();
          preview_prop=&props.New().create("Preview"         , MEMBER(NewLodClass, preview         )).desc("Keyboard Shortcut: Alt+P");
 draw_at_distance_prop=&props.New().create("Draw at Distance", MEMBER(NewLodClass, draw_at_distance)).desc("Draw LOD at specified distance\nKeyboard Shortcut: Alt+D");
    draw_distance_prop=&props.New().create("Draw Distance"   , MEMBER(NewLodClass, draw_distance   )).min(0).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).mouseEditSpeed(0.5f);
@@ -313,7 +313,7 @@ draw_at_distance_prop=&props.New().create("Draw at Distance", MEMBER(NewLodClass
    }
    void NewLodClass::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(visible() && gpc.visible)
       {
          if(needRebuild())startThread();

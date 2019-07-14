@@ -7,8 +7,8 @@ void ObjView::meshDelete()
    {
       mesh_undos.set("delete");
       MeshLod &lod=getLod();
-      Memc<Memc<int> > vtxs ; REPA(sel_vtx )vtxs (sel_vtx [i].x).add(sel_vtx [i].y);
-      Memc<Memc<int> > faces; REPA(sel_face)faces(sel_face[i].x).add(sel_face[i].y);
+      Memc<Memc<int>> vtxs ; REPA(sel_vtx )vtxs (sel_vtx [i].x).add(sel_vtx [i].y);
+      Memc<Memc<int>> faces; REPA(sel_face)faces(sel_face[i].x).add(sel_face[i].y);
       bool changed=false;
       REPA(lod)
       {
@@ -41,8 +41,8 @@ void ObjView::meshSplit()
    {
       mesh_undos.set("split");
       MeshLod &lod=getLod();
-      Memc<Memc<int> > vtxs ; REPA(sel_vtx )vtxs (sel_vtx [i].x).add(sel_vtx [i].y);
-      Memc<Memc<int> > faces; REPA(sel_face)faces(sel_face[i].x).add(sel_face[i].y);
+      Memc<Memc<int>> vtxs ; REPA(sel_vtx )vtxs (sel_vtx [i].x).add(sel_vtx [i].y);
+      Memc<Memc<int>> faces; REPA(sel_face)faces(sel_face[i].x).add(sel_face[i].y);
       bool changed=false;
       REPA(lod)
       {
@@ -147,7 +147,7 @@ void ObjView::meshReverse()
       if(!sel_face.elms())Gui.msgBox(S, "No faces selected");else
       {
          mesh_undos.set("reverse");
-         Memc<Memc<int> > faces; REPA(sel_face)faces(sel_face[i].x).add(sel_face[i].y);
+         Memc<Memc<int>> faces; REPA(sel_face)faces(sel_face[i].x).add(sel_face[i].y);
          litSelVFClear();
          REPAD(p, lod)if(Memc<int> *f=faces.addr(p))if(f->elms())
          {
@@ -493,7 +493,7 @@ void ObjView::meshQuadToTri()
    Mems<int> part_tris; part_tris.setNum(lod.parts.elms()); REPAO(part_tris)=lod.parts[i].tris(); // number of tris in each part before conversion
    if(mesh_parts.edit_selected())
    {
-      Memc<Memc<int> > part_quads;
+      Memc<Memc<int>> part_quads;
       REPA(sel_face)
       {
        C VecI2 &sf=sel_face[i]; if(sf.y&SIGN_BIT) // only quads

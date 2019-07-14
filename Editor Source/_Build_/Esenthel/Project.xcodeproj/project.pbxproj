@@ -1103,6 +1103,7 @@
                "-framework OpenGLES",
                "-framework OpenAL",
                "-lz",
+               "-ObjC", // needed by Facebook
             );
             LIBRARY_SEARCH_PATHS = (
                "$(inherited)",
@@ -1146,6 +1147,7 @@
                "-framework OpenGLES",
                "-framework OpenAL",
                "-lz",
+               "-ObjC", // needed by Facebook
             );
             LIBRARY_SEARCH_PATHS = (
                "$(inherited)",
@@ -1185,19 +1187,20 @@
 "\"../../../Editor/Bin/\"",
 				);
             ONLY_ACTIVE_ARCH = YES;
-            OTHER_CFLAGS = (
-               "-fshort-wchar",
-            );
+				OTHER_CFLAGS = (
+					"-fshort-wchar",
+					"-fms-extensions",
+				);
             SEPARATE_STRIP = YES;
             STRIP_INSTALLED_PRODUCT = NO;
 				WARNING_CFLAGS = (
-		"-Wno-address-of-temporary",
-		"-Wno-comment",
-		"-Wno-parentheses",
-		"-Wno-switch",
-		"-Wno-logical-op-parentheses",
-		"-Wno-null-dereference",
-		"-Wno-int-to-void-pointer-cast",
+					"-Wno-address-of-temporary",
+					"-Wno-comment",
+					"-Wno-parentheses",
+					"-Wno-switch",
+					"-Wno-logical-op-parentheses",
+					"-Wno-null-dereference",
+					"-Wno-int-to-void-pointer-cast",
             );
          };
          name = Debug;
@@ -1229,19 +1232,20 @@
 "\"../../../Editor/Bin/\"",
 				);
             ONLY_ACTIVE_ARCH = NO;
-            OTHER_CFLAGS = (
-               "-fshort-wchar",
-            );
+				OTHER_CFLAGS = (
+					"-fshort-wchar",
+					"-fms-extensions",
+				);
             SEPARATE_STRIP = YES;
 				WARNING_CFLAGS = (
-		"-Wno-address-of-temporary",
-		"-Wno-comment",
-		"-Wno-parentheses",
-		"-Wno-switch",
-		"-Wno-logical-op-parentheses",
-		"-Wno-null-dereference",
-		"-Wno-int-to-void-pointer-cast",
-	);
+					"-Wno-address-of-temporary",
+					"-Wno-comment",
+					"-Wno-parentheses",
+					"-Wno-switch",
+					"-Wno-logical-op-parentheses",
+					"-Wno-null-dereference",
+					"-Wno-int-to-void-pointer-cast",
+				);
          };
          name = Release;
       };

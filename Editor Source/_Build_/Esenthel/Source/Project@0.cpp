@@ -182,7 +182,7 @@ void DrawProject()
       }
       GuiObj* ProjectEx::OuterRegion::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 {
-         GuiObj *go=::EE::Region::test(gpc, pos, mouse_wheel);
+         GuiObj *go=super::test(gpc, pos, mouse_wheel);
          if(visible())
          {
             Rect r=rect()+gpc.offset;
@@ -194,7 +194,7 @@ void DrawProject()
       }
       void ProjectEx::OuterRegion::update(C GuiPC &gpc)
 {
-         ::EE::Region::update(gpc);
+         super::update(gpc);
          if(Gui.ms()==this)
          {
             if(!Ms.b(0)) // if not pressed then detect new resize, if pressed then keep previous
@@ -219,13 +219,13 @@ void DrawProject()
             image->draw(Rect_LU(D.screenAlignedToPixel(pos), size));
          }
       }
-      GuiObj& ProjectEx::OuterRegion::show(){if(hidden ()){::EE::GuiObj::show(); MtrlEdit.resize(); WaterMtrlEdit.resize(); CodeEdit.resize(); if(!Gui.window() && Mode()<0)Proj.list.kbSet();} return T;}
-      GuiObj& ProjectEx::OuterRegion::hide(){if(visible()){::EE::GuiObj::hide(); MtrlEdit.resize(); WaterMtrlEdit.resize(); CodeEdit.resize(); Proj.updateMenu();                             } return T;}
+      GuiObj& ProjectEx::OuterRegion::show(){if(hidden ()){super::show(); MtrlEdit.resize(); WaterMtrlEdit.resize(); CodeEdit.resize(); if(!Gui.window() && Mode()<0)Proj.list.kbSet();} return T;}
+      GuiObj& ProjectEx::OuterRegion::hide(){if(visible()){super::hide(); MtrlEdit.resize(); WaterMtrlEdit.resize(); CodeEdit.resize(); Proj.updateMenu();                             } return T;}
          GuiObj* ProjectEx::ElmList::Warning::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return null;}
          void ProjectEx::ElmList::Warning::create(int data_abs_index, bool error, flt offset)
          {
             flt w=Proj.list.columnWidth(Proj.list.icon_col);
-            ::EE::GuiImage::create(Rect_U(offset, 0, w, w), error ? Proj.exclamation : Proj.warning);
+            super::create(Rect_U(offset, 0, w, w), error ? Proj.exclamation : Proj.warning);
             rect_color.zero();
             Proj.list.addChild(T, data_abs_index, Proj.list.icon_col); // add after everything is setup
          }
@@ -265,7 +265,7 @@ void DrawProject()
             if(!tapped_open)Ms.eat(0); // don't process any new presses
          }
 
-         ::EE::_List::update(gpc);
+         super::update(gpc);
 
          if(Gui.kb()==this)
          {
@@ -555,7 +555,7 @@ void DrawProject()
          default             : return icon_file;
       }
    }
-   bool ProjectEx::contains(C Elm &a, C Elm *b)C {return ::ProjectHierarchy::contains(a, b);}
+   bool ProjectEx::contains(C Elm &a, C Elm *b)C {return super::contains(a, b);}
    Enum* ProjectEx::getEnumFromName(C Str &enum_name)
    {
       REPA(existing_enums)if(Elm *elm=findElm(existing_enums[i]))if(elm->name==enum_name)return Enums(gamePath(elm->id));
@@ -844,7 +844,7 @@ void DrawProject()
          if(refresh_elm_list)setListCurSel();
          Str  elm_name=(name ? *name : newElmName(type, parent_id));
          Elm *parent=findElm(parent_id); if(parent)parent->opened(true);
-         Elm &elm=::Project::newElm(elm_name, parent_id, type);
+         Elm &elm=super::newElm(elm_name, parent_id, type);
          switch(type)
          {
             case ELM_CODE:
@@ -1021,7 +1021,7 @@ void DrawProject()
       {
          setListCurSel();
          Elm *parent=findElm(parent_id); if(parent)parent->opened(true);
-         Elm &elm=::Project::newElm(name, parent_id, ELM_WORLD);
+         Elm &elm=super::newElm(name, parent_id, ELM_WORLD);
          if(ElmWorld *ew=elm.worldData())
          {
             ew->newData();
@@ -1061,7 +1061,7 @@ void DrawProject()
    }
    Elm& ProjectEx::newMtrl(ImporterClass::Import::MaterialEx &src, C UID parent_id, C Str &src_file) // create new material from 'src' !! this doesn't set elm list and doesn't send to the server !!
    {
-      Elm &mtrl=::Project::newElm(src.name, parent_id, ELM_MTRL); mtrl.mtrlData()->newData();
+      Elm &mtrl=super::newElm(src.name, parent_id, ELM_MTRL); mtrl.mtrlData()->newData();
       setMtrl(mtrl, src, src_file);
       return mtrl;
    }
@@ -1081,7 +1081,7 @@ void DrawProject()
          case ELM_APP      : CodeEdit.makeAuto(); break;
       }
    }
-   void ProjectEx::setElmNames(Memc<Edit::IDParam<Str> > &elms, bool adjust_elms) // 'adjust_elms'=if this is performed because of undo, and in that case we need to remember current names, so we can undo this change later
+   void ProjectEx::setElmNames(Memc<Edit::IDParam<Str>> &elms, bool adjust_elms) // 'adjust_elms'=if this is performed because of undo, and in that case we need to remember current names, so we can undo this change later
    {
       if(elms.elms())
       {
@@ -1544,7 +1544,7 @@ void DrawProject()
    }
    void ProjectEx::mtrlMoveToObj(C MemPtr<UID> &elm_ids)
    {
-      Memc<Edit::IDParam<UID> > moves;
+      Memc<Edit::IDParam<UID>> moves;
       FREPA(elm_ids)
       {
        C UID &mtrl_id=elm_ids[i], obj_id=mtrlToObj(mtrl_id); if(obj_id.valid())moves.New()=Edit::IDParam<UID>(mtrl_id, obj_id);
@@ -2265,7 +2265,7 @@ void DrawProject()
          elmReload(changed);
       }
    }
-   void ProjectEx::adjustAnimations(C UID &skel_id, C EditSkeleton &old_edit_skel, C Skeleton &old_skel, C Skeleton &new_skel, C MemPtr<Mems<IndexWeight> > &bone_weights, int old_bone_as_root)
+   void ProjectEx::adjustAnimations(C UID &skel_id, C EditSkeleton &old_edit_skel, C Skeleton &old_skel, C Skeleton &new_skel, C MemPtr<Mems<IndexWeight>> &bone_weights, int old_bone_as_root)
    {
       int difference=0; // 0=none, 1=only name/types, 2=full
       MemtN<int, 256> old_to_new;
@@ -2391,7 +2391,7 @@ void DrawProject()
          if(Elm *src=findElm(ids[i]))if(validElm(*src))
       {
          if(src->type!=ELM_CODE)flushElm(src->id);
-         Elm &dup=::Project::newElm(); dup.type=src->type; // set 'type' before calling 'copyParams'
+         Elm &dup=super::newElm(); dup.type=src->type; // set 'type' before calling 'copyParams'
          dup.copyParams(*src).setName(src->name+suffix); // call 'setName' after 'copyParams'
          duplicated.add(dup.id);
          switch(src->type)
@@ -2528,13 +2528,13 @@ void DrawProject()
        AppPropsEdit.erasing(elm_id);
       ImportTerrain.erasing(elm_id);
        Synchronizer.erasing(elm_id);
-             ::Project::eraseElm(elm_id);
+             super::eraseElm(elm_id);
    }
    bool ProjectEx::eraseTex(C UID &tex_id)
 {
       Importer    .excludeTex(tex_id);
       Synchronizer.erasingTex(tex_id);
-      return ::Project::eraseTex  (tex_id);
+      return super::eraseTex  (tex_id);
    }
    void ProjectEx::eraseWorldAreaObjs(C UID &world_id, C VecI2 &area_xy)
 {
@@ -2545,7 +2545,7 @@ void DrawProject()
          if(erased)area->setChangedObj();
          return;
       }
-      ::Project::eraseWorldAreaObjs(world_id, area_xy);
+      super::eraseWorldAreaObjs(world_id, area_xy);
    }
    void ProjectEx::eraseRemoved()
 {
@@ -2553,13 +2553,13 @@ void DrawProject()
       Importer.stop();
       pauseServer();
 
-      ::ProjectHierarchy::eraseRemoved();
+      super::eraseRemoved();
 
       setList();
       Importer.investigate(root); // call after setting list because may rely on hierarchy
       resumeServer(); // call after setting list because may rely on hierarchy
    }
-   void ProjectEx::setElmParent(Memc<Edit::IDParam<UID> > &elms, bool adjust_elms, bool as_undo) // 'adjust_elms'=if this is performed because of undo, and in that case we need to remember current parents, so we can undo this change later
+   void ProjectEx::setElmParent(Memc<Edit::IDParam<UID>> &elms, bool adjust_elms, bool as_undo) // 'adjust_elms'=if this is performed because of undo, and in that case we need to remember current parents, so we can undo this change later
    {
       if(elms.elms())
       {
@@ -3752,23 +3752,23 @@ void DrawProject()
    }
    void ProjectEx::meshSetAutoTanBin(Elm &elm, C MaterialPtr &material)
 {
-      ::Project::meshSetAutoTanBin(elm, material);
+      super::meshSetAutoTanBin(elm, material);
       if(ObjEdit.mesh_elm && ObjEdit.mesh_elm->id==elm.id)ObjEdit.setAutoTanBin(material);
    }
    void ProjectEx::animTransformChanged(Elm &elm_anim)
 {
-      ::Project::animTransformChanged(elm_anim);
+      super::animTransformChanged(elm_anim);
       if(&elm_anim==AnimEdit.elm)AnimEdit.toGui();
    }
    void ProjectEx::skelTransformChanged(C UID &skel_id)
 {
-      ::Project::skelTransformChanged(skel_id);
+      super::skelTransformChanged(skel_id);
 
       if(ObjEdit.skel_elm && ObjEdit.skel_elm->id==skel_id)ObjEdit.skelTransformChanged();
    }
    void ProjectEx::objChanged(Elm &obj)
 {
-      ::Project::objChanged(obj);
+      super::objChanged(obj);
 
               ObjEdit.param_edit.p->updateBase(edit_path);
       REPAO(WorldEdit.objs).params.updateBase(edit_path); // updateBase for all objects in case they use this object
@@ -3778,7 +3778,7 @@ void DrawProject()
    }
    void ProjectEx::meshChanged(Elm &mesh)
 {
-      ::Project::meshChanged(mesh);
+      super::meshChanged(mesh);
 
       if(ObjEdit.mesh_elm && ObjEdit.mesh_elm->id==mesh.id)ObjEdit.meshChanged();
       if(Selection.elms() && Selection[0].mesh_proper.id()==mesh.id)WorldEdit.param_edit.meshVariationChanged();
@@ -3858,7 +3858,7 @@ void DrawProject()
          case ELM_OBJ      : obj=gamePath(elm); terrain=*obj; phys=*obj; break;
          case ELM_WORLD    : world_valid=elm.worldData()->valid(); elm.worldData()->copyTo(path_settings); break;
       }
-      if(::Project::syncElm(elm, src, src_data, src_extra, sync_long, elm_newer_src, src_newer_elm))
+      if(super::syncElm(elm, src, src_data, src_extra, sync_long, elm_newer_src, src_newer_elm))
       {
          elmChanged(elm);
          switch(elm.type)
@@ -3927,7 +3927,7 @@ void DrawProject()
       }
 
       EditWaypoint server =src;
-      bool         changed=::Project::syncWaypoint(world_id, waypoint_id, src_ver, src); // this modifies 'src_ver' and 'src'
+      bool         changed=super::syncWaypoint(world_id, waypoint_id, src_ver, src); // this modifies 'src_ver' and 'src'
       if(src.newer(server))Server.setWaypoint(world_id, waypoint_id, src_ver, src); // if after syncing local waypoint is newer than server, then send its data to the server
       return changed;
    }
@@ -3949,7 +3949,7 @@ void DrawProject()
       }
 
       Lake         server =src;
-      bool         changed=::Project::syncLake(world_id, lake_id, src_ver, src); // this modifies 'src_ver' and 'src'
+      bool         changed=super::syncLake(world_id, lake_id, src_ver, src); // this modifies 'src_ver' and 'src'
       if(src.newer(server))Server.setLake(world_id, lake_id, src_ver, src); // if after syncing local lake is newer than server, then send its data to the server
       return changed;
    }
@@ -3971,14 +3971,14 @@ void DrawProject()
       }
 
       River        server =src;
-      bool         changed=::Project::syncRiver(world_id, river_id, src_ver, src); // this modifies 'src_ver' and 'src'
+      bool         changed=super::syncRiver(world_id, river_id, src_ver, src); // this modifies 'src_ver' and 'src'
       if(src.newer(server))Server.setRiver(world_id, river_id, src_ver, src); // if after syncing local lake is newer than server, then send its data to the server
       return changed;
    }
    void ProjectEx::hmDel(C UID &world_id, C VecI2 &area_xy, C TimeStamp *time)
 {
       if(WorldEdit.elm_id==world_id)WorldEdit.hmDel(          area_xy, time);
-      else                          ::Project::hmDel(world_id, area_xy, time);
+      else                          super    ::hmDel(world_id, area_xy, time);
    }
    Heightmap* ProjectEx::hmGet(C UID &world_id, C VecI2 &area_xy, Heightmap &temp)
 {
@@ -3986,7 +3986,7 @@ void DrawProject()
       if(world_id.valid() && WorldEdit.elm_id==world_id)
          if(Area *area=WorldEdit.findAreaLoaded(area_xy))return area->hm;
 
-      return ::Project::hmGet(world_id, area_xy, temp);
+      return super::hmGet(world_id, area_xy, temp);
    }
    uint ProjectEx::hmUpdate(C UID &world_id, C VecI2 &area_xy, uint area_sync_flag, C AreaVer &src_area, Heightmap &src_hm)
 {
@@ -4011,7 +4011,7 @@ void DrawProject()
                return synced;
             }
          }
-         return ::Project::hmUpdate(world_id, area_xy, area_sync_flag, src_area, src_hm);
+         return super::hmUpdate(world_id, area_xy, area_sync_flag, src_area, src_hm);
       }
       return 0;
    }
@@ -4025,9 +4025,9 @@ void DrawProject()
                objs.New()=*obj; // copy to output container
          return;
       }
-      ::Project::objGet(world_id, area_xy, obj_ids, objs);
+      super::objGet(world_id, area_xy, obj_ids, objs);
    }
-   bool ProjectEx::syncObj(C UID &world_id, C VecI2 &area_xy, Memc<ObjData> &objs, Map<VecI2, Memc<ObjData> > *obj_modified, Memc<UID> *local_newer)
+   bool ProjectEx::syncObj(C UID &world_id, C VecI2 &area_xy, Memc<ObjData> &objs, Map<VecI2, Memc<ObjData>> *obj_modified, Memc<UID> *local_newer)
 {
       if(world_id.valid() && WorldEdit.elm_id==world_id && WorldEdit.ver)
       {
@@ -4089,7 +4089,7 @@ void DrawProject()
          if(loaded_areas_changed)ObjList.setChanged();
          return Same(target_objs, objs);
       }
-      return ::Project::syncObj(world_id, area_xy, objs, obj_modified, local_newer);
+      return super::syncObj(world_id, area_xy, objs, obj_modified, local_newer);
    }
    void ProjectEx::syncCodes()
    {
@@ -4378,7 +4378,7 @@ void DrawProject()
    }
    void ProjectEx::flush(SAVE_MODE save_mode)
 {
-      ::Project::flush(save_mode);
+      super         ::flush(save_mode);
       ImageEdit     .flush();
       ImageAtlasEdit.flush();
       IconSettsEdit .flush();
@@ -4461,7 +4461,7 @@ void DrawProject()
    LOAD_RESULT ProjectEx::open(C UID &id, C Str &name, C Str &path, Str &error, bool ignore_lock)
 {
       save_time=Time.appTime()+AutoSaveTime; // when opening new project, make sure that auto save won't be triggered too quickly
-      LOAD_RESULT result=::Project::open(id, name, path, error, ignore_lock);
+      LOAD_RESULT result=super::open(id, name, path, error, ignore_lock);
       if(LoadOK(result))
       {
                              WorldEdit.setHmMtrl   (      hm_mtrl_id   );
@@ -4485,7 +4485,7 @@ void DrawProject()
    bool ProjectEx::save(SAVE_MODE save_mode)
 {
       save_time=Time.appTime()+AutoSaveTime;
-      return ::Project::save(save_mode);
+      return super::save(save_mode);
    }
    ProjectEx& ProjectEx::del()
 {
@@ -4517,7 +4517,7 @@ void DrawProject()
       // 'TIG' can still do some processing because it doesn't operate on this project
       file_size_getter_step=false;
       file_size_getter.del();
-      ::ProjectHierarchy::del(); return T;
+      super::del(); return T;
    }
    void ProjectEx::close()
 {
@@ -4548,7 +4548,7 @@ void DrawProject()
           AnimEdit.set(null);
       AppPropsEdit.set(null);
 
-      ::Project::close();
+      super::close();
 
       setList();
       enumChanged();

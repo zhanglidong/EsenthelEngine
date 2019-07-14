@@ -27,11 +27,11 @@ CompareProjects CompareProjs;
       list.clear();
       data.clear();
    }
-   CompareProjects& CompareProjects::del(){release(); ::EE::Window::del (); return T;}
-   CompareProjects& CompareProjects::hide(){release(); ::PropWin::hide(); return T;}
+   CompareProjects& CompareProjects::del(){release(); super::del (); return T;}
+   CompareProjects& CompareProjects::hide(){release(); super::hide(); return T;}
    CompareProjects& CompareProjects::rect(C Rect &rect)
 {
-      ::EE::Window::rect(rect);
+      super::rect(rect);
       flt p=0.02f;
       region.rect(Rect(p, -clientHeight()+p, clientWidth()-p, prop_min_y-p));
       return T;
@@ -43,7 +43,7 @@ CompareProjects CompareProjs;
       add("Detect Parent Differences" , MEMBER(CompareProjects, test_parent));
       add("Detect Publish Differences", MEMBER(CompareProjects, test_publish));
       add("Display New Elements"      , MEMBER(CompareProjects, display_new)).desc("This will display all elements that exist in one project, but don't exist in the other one.");
-      Rect r=::PropWin::create("Project Comparison"); prop_min_y=r.min.y; autoData(this); ::PropWin::changed(Changed); flag|=WIN_RESIZABLE; button[1].show(); button[2].show();
+      Rect r=super::create("Project Comparison"); prop_min_y=r.min.y; autoData(this); super::changed(Changed); flag|=WIN_RESIZABLE; button[1].show(); button[2].show();
       ListColumn lc[]=
       {
          ListColumn(MEMBER(ElmListElm,      name), 1.00f, "Name"), // 0
@@ -140,7 +140,7 @@ CompareProjects CompareProjs;
    }
    void CompareProjects::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(visible() && gpc.visible)
       {
          select_selected.visible(Proj.valid());

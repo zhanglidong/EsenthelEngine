@@ -115,8 +115,8 @@ public:
       TYPE                    type;
       Str                     name; // keep 'name' even though we could extract it from 'type', because 'type' will get changed in 'swap', while 'name' needs to remain constant
       Memc<UID>               elms;
-      Memc<Edit::IDParam<UID> > elm_parents;
-      Memc<Edit::IDParam<Str> > elm_names;
+      Memc<Edit::IDParam<UID>> elm_parents;
+      Memc<Edit::IDParam<Str>> elm_names;
 
       virtual void swap(ptr user)override;
 
@@ -315,7 +315,7 @@ public:
    Elm& newMtrl(ImporterClass::Import::MaterialEx &src, C UID parent_id=UIDZero, C Str &src_file=S); // create new material from 'src' !! this doesn't set elm list and doesn't send to the server !!
 
    void setElmName(Elm &elm, C Str &name, C TimeStamp &time=TimeStamp().getUTC());
-   void setElmNames(Memc<Edit::IDParam<Str> > &elms, bool adjust_elms=false); // 'adjust_elms'=if this is performed because of undo, and in that case we need to remember current names, so we can undo this change later
+   void setElmNames(Memc<Edit::IDParam<Str>> &elms, bool adjust_elms=false); // 'adjust_elms'=if this is performed because of undo, and in that case we need to remember current names, so we can undo this change later
    void renameElm(C UID &elm_id, C Str &name);
    void replaceName(C MemPtr<UID> &elm_ids, C Str &from, C Str &to);
 
@@ -379,7 +379,7 @@ public:
    void soundImportAs(C MemPtr<UID> &elm_ids, SOUND_CODEC codec=SOUND_NONE, int rel_bit_rate=-1);
    void mulSoundVolume(C MemPtr<UID> &elm_ids, flt volume);
 
-   void adjustAnimations(C UID &skel_id, C EditSkeleton &old_edit_skel, C Skeleton &old_skel, C Skeleton &new_skel, C MemPtr<Mems<IndexWeight> > &bone_weights, int old_bone_as_root=-1);
+   void adjustAnimations(C UID &skel_id, C EditSkeleton &old_edit_skel, C Skeleton &old_skel, C Skeleton &new_skel, C MemPtr<Mems<IndexWeight>> &bone_weights, int old_bone_as_root=-1);
    void offsetAnimations(C Skeleton &old_skel, C Skeleton &new_skel, C UID &skel_id);
  /*void updateSkelBoneTypes()
    {
@@ -409,7 +409,7 @@ public:
    virtual void eraseWorldAreaObjs(C UID &world_id, C VecI2 &area_xy)override;
    virtual void eraseRemoved()override;
 
-   void setElmParent(Memc<Edit::IDParam<UID> > &elms, bool adjust_elms=false, bool as_undo=false); // 'adjust_elms'=if this is performed because of undo, and in that case we need to remember current parents, so we can undo this change later
+   void setElmParent(Memc<Edit::IDParam<UID>> &elms, bool adjust_elms=false, bool as_undo=false); // 'adjust_elms'=if this is performed because of undo, and in that case we need to remember current parents, so we can undo this change later
    void drag(Memc<UID> &elms, GuiObj *focus_obj, C Vec2 &screen_pos);
    void collapse (Memc<UID> &ids, Memc<EEItem*> &items);           
    void expand   (Memc<UID> &ids, Memc<EEItem*> &items);           
@@ -497,7 +497,7 @@ public:
    virtual Heightmap* hmGet(C UID &world_id, C VecI2 &area_xy, Heightmap &temp)override;
    virtual uint hmUpdate(C UID &world_id, C VecI2 &area_xy, uint area_sync_flag, C AreaVer &src_area, Heightmap &src_hm)override;
    virtual void objGet(C UID &world_id, C VecI2 &area_xy, C Memc<UID> &obj_ids, Memc<ObjData> &objs)override; // assumes that 'obj_ids' is sorted
-   virtual bool syncObj(C UID &world_id, C VecI2 &area_xy, Memc<ObjData> &objs, Map<VecI2, Memc<ObjData> > *obj_modified=null, Memc<UID> *local_newer=null)override;
+   virtual bool syncObj(C UID &world_id, C VecI2 &area_xy, Memc<ObjData> &objs, Map<VecI2, Memc<ObjData>> *obj_modified=null, Memc<UID> *local_newer=null)override;
 
    void syncCodes();
    void syncCodes(C Memc<ElmCodeData> &elm_code_datas);

@@ -160,7 +160,7 @@ MaterialTech mtrl_techs[]=
          T.type=type;
          T.md_file=md_file;
          T.md_time=md_time;
-         ::EE::GuiCustom::create().rect(rect.extend(-0.003f)); T.text=text;
+         super::create().rect(rect.extend(-0.003f)); T.text=text;
          win_io.create().ext(SUPPORTED_IMAGE_EXT, Replace(text, '\n', ' ')).io(Load, Load, T);
          remove.create(Rect_RU(rect.ru(), 0.035f, 0.035f)).func(Remove, T); remove.image="Gui/close.img";
          return T;
@@ -169,7 +169,7 @@ MaterialTech mtrl_techs[]=
 {
          if(visible() && gpc.visible)
          {
-            ::EE::GuiObj::update(gpc);
+            super::update(gpc);
             rect_color=((Gui.msLit()==this && Gui.skin) ? Gui.skin->keyboard_highlight_color : Gui.borderColor());
             REPA(MT)if(MT.bp(i) && MT.guiObj(i)==this)
             {
@@ -560,7 +560,7 @@ MaterialTech mtrl_techs[]=
    }
    void MaterialRegion::create()
    {
-      Gui+=::EE::Region::create(Rect_LU(0, 0, 0.73f, 1)).skin(&LightSkin, false).hide();
+      Gui+=super::create(Rect_LU(0, 0, 0.73f, 1)).skin(&LightSkin, false).hide();
       flt w=rect().w()-slidebarSize(), e=0.01f, we=w-e*2, p=0.007f, h=0.05f, prop_height=0.044f;
         T+=big         .create(Rect_LU(e, 0, h*1.6f, h), "<<").focusable(false); big.mode=BUTTON_TOGGLE;
         T+=set_mtrl    .create(Rect_LU(big.rect().max.x+p, big.rect().max.y, h, h)).func(SetMtrl, T).focusable(false).desc("Enable this and click on the screen to set material at that location"); set_mtrl.mode=BUTTON_TOGGLE; set_mtrl.image="Gui/Misc/set.img";
@@ -848,8 +848,8 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       if(elm==T.elm && visible())elm=null; activate(elm);
    }
            void            MaterialRegion::hideBig()         {if(bigVisible())big.push();}
-   MaterialRegion& MaterialRegion::show(){if(hidden ()){::EE::GuiObj::show();                                           resize(); CodeEdit.resize();} return T;}
-   MaterialRegion& MaterialRegion::hide(){if(visible()){::EE::GuiObj::hide(); preview_big.hide(); REPAO(props).close(); resize(); CodeEdit.resize();} return T;}
+   MaterialRegion& MaterialRegion::show(){if(hidden ()){super::show();                                           resize(); CodeEdit.resize();} return T;}
+   MaterialRegion& MaterialRegion::hide(){if(visible()){super::hide(); preview_big.hide(); REPAO(props).close(); resize(); CodeEdit.resize();} return T;}
    void MaterialRegion::set(C MaterialPtr &mtrl) {activate(Proj.findElm(mtrl.id()));}
    void MaterialRegion::set(Memt<MaterialPtr> mtrls)
    {
@@ -993,7 +993,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
    bool MaterialRegion::winIOContains(GuiObj *go)C {REPA(texs)if(texs[i].win_io.contains(go))return true; return false;}
    void MaterialRegion::update(C GuiPC &gpc)
 {
-      ::EE::Region::update(gpc);
+      super::update(gpc);
       preview_big.visible(bigVisible());
       if(Gui.ms()==&preview || Gui.ms()==&preview_big)
       {

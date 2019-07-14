@@ -15,7 +15,7 @@ StoreFiles IC;
    }
    ImagePtr StoreFiles::getImage(C Str &url)
    {
-      init(); return ::EE::InternetCache::getImage(url);
+      init(); return super::getImage(url);
    }
 StoreFiles::StoreFiles() : initialized(false) {}
 

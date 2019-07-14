@@ -58,7 +58,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
          add("Allow Edit Mode"        , MemberDesc(DATA_BOOL).setFunc(EditMode, EditMode)).desc("Edit Mode allows Transforming Objects directly in the Theater");
          autoData(this);
 
-         Rect r=::PropWin::create("Options", Vec2(0.02f, -0.02f), 0.04f, 0.045f, 0.26f); barVisible(false).show(); FlagDisable(flag, WIN_MOVABLE); button[2].func(null);
+         Rect r=super::create("Options", Vec2(0.02f, -0.02f), 0.04f, 0.045f, 0.26f); barVisible(false).show(); FlagDisable(flag, WIN_MOVABLE); button[2].func(null);
          size(Vec2(r.max.x, -r.min.y)+0.02f+defaultInnerPaddingSize());
          return T;
       }
@@ -87,7 +87,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
          }
          temp.set();
          if(vis>=0)return vis;
-         return ::EE::_List::screenToVis(screen, gpc);
+         return super::screenToVis(screen, gpc);
       }
    void TheaterClass::ModeChanged(TheaterClass &theater) {theater.refreshData(); theater.refreshNow();}
    void TheaterClass::Mode0(TheaterClass &theater) {theater.mode.set(0);}
@@ -151,7 +151,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
    bool TheaterClass::highlighted(int i)C {return list.lit==i;}
    bool TheaterClass::selected(int i)C {return list.sel.has(list.visToAbs(i));}
       void        TheaterClass::MeshMtrls::clean()  {REP(variations)parts[0].variation(i, null, -1); variations=0;}
-      ::TheaterClass::MeshMtrls& TheaterClass::MeshMtrls::create()  {::EE::Mesh::create(1).parts[0].variations(32).base.create(Ball(0.42f), VTX_NRM|VTX_TAN|VTX_TEX0, 16); setRender().setBox(); delBase(); return T;}
+      ::TheaterClass::MeshMtrls& TheaterClass::MeshMtrls::create()  {super::create(1).parts[0].variations(32).base.create(Ball(0.42f), VTX_NRM|VTX_TAN|VTX_TEX0, 16); setRender().setBox(); delBase(); return T;}
       bool    TheaterClass::MeshMtrls::available()C {return InRange(variations, parts[0].variations());}
       Mesh&         TheaterClass::MeshMtrls::set(C MaterialPtr &mtrl, int &variation) {parts[0].variation(variations, mtrl); variation=variations++; return T;}
    void TheaterClass::cleanMeshMaterial() {REPAO(mesh_mtrls).clean();}
@@ -292,7 +292,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
    {
       cchar8 *options_t[]={"Options"};
       Gui+=viewport    .create(Draw); viewport.fov=DegToRad(30);
-      Gui+=::EE::Region::create().slidebarSize(0.06f).skin(&EmptyGuiSkin, false); kb_lit=false; REPAO(slidebar).skin(&HalfTransparentSkin);
+      Gui+=super       ::create().slidebarSize(0.06f).skin(&EmptyGuiSkin, false); kb_lit=false; REPAO(slidebar).skin(&HalfTransparentSkin);
       Gui+=mode        .create((cchar8**)null, ELMS(modes)).valid(true).set(0).func(ModeChanged, T); REPA(mode)mode.tab(i).setText(Plural(ElmTypeName[modes[i]])).desc(S+"Keyboard Shortcut: F"+(i+1));
       FREPA(modes)if(modes[i]==ELM_OBJ)
       {
@@ -324,7 +324,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
    {
       show_options.moveAbove(go);
       mode        .moveAbove(go);
-      ::EE::GuiObj::moveAbove(go);
+      super       ::moveAbove(go);
       viewport    .moveAbove(go);
    }
    void TheaterClass::listElms(ElmNode &node, bool parent_contains_name)
@@ -426,7 +426,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
          Ms.eatWheel();
       }
 
-      ::EE::Region::update(gpc);
+      super::update(gpc);
 
       if(visible() && gpc.visible)
       {

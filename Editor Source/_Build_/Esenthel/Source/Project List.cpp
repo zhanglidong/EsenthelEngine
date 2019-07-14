@@ -466,60 +466,60 @@ void DrawProjectList()
    void NewProjWin::OK(NewProjWin &npw) {if(Projs.newProj(npw.name()))npw.button[2].push();}
    void NewProjWin::create()
    {
-      Gui+= ::EE::Window::create(Rect_C(0, 0, 0.75f, 0.37f), "New Project").hide(); button[2].func(HideProjsAct, SCAST(GuiObj, T)).show();
+      Gui+= super::create(Rect_C(0, 0, 0.75f, 0.37f), "New Project").hide(); button[2].func(HideProjsAct, SCAST(GuiObj, T)).show();
       T  +=t_name.create(Vec2  (clientWidth()/2, -0.05f), "Project Name");
       T  +=  name.create(Rect_C(clientWidth()/2, -0.12f, 0.65f, 0.06f));
       T  +=    ok.create(Rect_C(clientWidth()/2, -0.23f, 0.3f, 0.06f), "OK").func(OK, T);
    }
    void NewProjWin::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(Gui.window()==this && Kb.k(KB_ENTER)){Kb.eatKey(); OK(T);}
    }
    void RenameProjWin::OK(RenameProjWin &rpw) {if(Projs.renameProj(rpw.proj_id, rpw.name()))rpw.button[2].push();}
    void RenameProjWin::activate(Projects::Elm &proj)
    {
       setTitle(S+"Rename Project \""+proj.local_name+"\"");
-      ::EE::GuiObj::activate();
+      super::activate();
       proj_id=proj.id;
       name.set(proj.local_name).selectAll().activate();
    }
    void RenameProjWin::create()
    {
-      Gui+= ::EE::Window::create(Rect_C(0, 0, 0.75f, 0.37f), "Rename Project").hide(); button[2].func(HideProjsAct, SCAST(GuiObj, T)).show();
+      Gui+= super::create(Rect_C(0, 0, 0.75f, 0.37f), "Rename Project").hide(); button[2].func(HideProjsAct, SCAST(GuiObj, T)).show();
       T  +=t_name.create(Vec2  (clientWidth()/2, -0.05f), "New Project Name");
       T  +=  name.create(Rect_C(clientWidth()/2, -0.12f, 0.65f, 0.06f));
       T  +=    ok.create(Rect_C(clientWidth()/2, -0.23f, 0.3f, 0.06f), "OK").func(OK, T);
    }
    void RenameProjWin::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(Gui.window()==this && Kb.k(KB_ENTER)){Kb.eatKey(); OK(T);}
    }
    void RemoveProjWin::OK(RemoveProjWin &rpw) {Projs.removeProj(rpw.proj_id); rpw.button[2].push();}
    void RemoveProjWin::activate(Projects::Elm &proj)
    {
       setTitle(S+"Delete Project \""+proj.local_name+"\"");
-      ::EE::GuiObj::activate();
+      super::activate();
       proj_id=proj.id;
    }
    void RemoveProjWin::create()
    {
-      Gui+= ::EE::Window::create(Rect_C(0, 0, 0.75f, 0.37f), "Delete Project").hide(); button[2].func(HideProjsAct, SCAST(GuiObj, T)).show();
+      Gui+= super::create(Rect_C(0, 0, 0.75f, 0.37f), "Delete Project").hide(); button[2].func(HideProjsAct, SCAST(GuiObj, T)).show();
       T  +=t_name.create(Rect_C(clientWidth()/2, -0.11f, 0.7f, 0.0f), "Are you sure you wish to delete selected project from your disk?"); t_name.auto_line=AUTO_LINE_SPACE_SPLIT;
       T  +=    ok.create(Rect_C(clientWidth()/2, -0.23f, 0.3f, 0.06f), "OK").func(OK, T);
    }
    void RegisterWin::OK(RegisterWin &rw) {Server.Register(rw.name()); rw.hide();}
    void RegisterWin::create()
    {
-      Gui+= ::EE::Window::create(Rect_C(0, 0, 0.8f, 0.5f), "Register").hide(); button[2].show();
+      Gui+= super::create(Rect_C(0, 0, 0.8f, 0.5f), "Register").hide(); button[2].show();
       T  +=t_name.create(Vec2  (clientWidth()/2, -0.12f), "E-mail was not found.\nWould you like to register?\n\nYour Name");
       T  +=  name.create(Rect_C(clientWidth()/2, -0.25f, 0.65f, 0.06f)).maxLength(64);
       T  +=    ok.create(Rect_C(clientWidth()/2, -0.36f, 0.3f, 0.06f), "OK").func(OK, T);
    }
    void RegisterWin::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(Gui.window()==this && Kb.k(KB_ENTER)){OK(T); Kb.eatKey();}
    }
    void ChangePassWin::ChangePass(ChangePassWin &cpw) {cpw.changePass();}
@@ -546,7 +546,7 @@ void DrawProjectList()
    }
    void ChangePassWin::activate(bool use_key)
    {
-      ::EE::GuiObj::activate();
+      super::activate();
       T.use_key=use_key;
       t_cur.set(use_key ? "Key" : "Current Password");
         cur.clear().activate();
@@ -555,7 +555,7 @@ void DrawProjectList()
    }
    void ChangePassWin::create()
    {
-      Gui+=::EE::Window::create(Rect_C(0, 0, 0.8f, 0.5f), "Change Password").hide(); button[2].show();
+      Gui+=super::create(Rect_C(0, 0, 0.8f, 0.5f), "Change Password").hide(); button[2].show();
       T+=t_cur     .create(Vec2  (clientWidth()/2, -0.05f));
       T+=  cur     .create(Rect_C(clientWidth()/2, -0.12f, 0.65f, 0.06f)).maxLength(16);
       T+=t_new_pass.create(Vec2  (clientWidth()/2, -0.20f), "New Password");
@@ -564,7 +564,7 @@ void DrawProjectList()
    }
    void ChangePassWin::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(Gui.window()==this && Kb.k(KB_ENTER)){Kb.eatKey(); changePass();}
    }
 Projects::Projects() : proj_menu_id(UIDZero) {}

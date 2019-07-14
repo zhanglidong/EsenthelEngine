@@ -62,11 +62,11 @@ SizeStatistics SizeStats;
       image.del  ();
       image_id.zero();
    }
-   SizeStatistics& SizeStatistics::del(){release(); ::EE::Window::del (); return T;}
-   SizeStatistics& SizeStatistics::hide(){release(); ::EE::Window::hide(); return T;}
+   SizeStatistics& SizeStatistics::del(){release(); super::del (); return T;}
+   SizeStatistics& SizeStatistics::hide(){release(); super::hide(); return T;}
    SizeStatistics& SizeStatistics::rect(C Rect &rect)
 {
-      ::EE::Window::rect(rect);
+      super::rect(rect);
       flt p=0.02f;
       region .rect(Rect(p, -clientHeight()+p, (clientWidth()-p)/2, -p));
       preview.rect(Rect((clientWidth()+p)/2, -clientHeight()+p, clientWidth()-p, -p));
@@ -84,7 +84,7 @@ SizeStatistics SizeStats;
       sort_size[0]=MEMBER(ElmListElm, size);
       sort_size[1]=MEMBER(ElmListElm, size_compressed);
 
-      Gui+=::EE::Window::create("Project Data Size Statistics").hide(); button[1].show(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
+      Gui+=super::create("Project Data Size Statistics").hide(); button[1].show(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
       T+=region .create();
       T+=preview.create(DrawPreview);
       region+=list.create(lc, Elms(lc)).elmHeight(0.038f).textSize(0, 1); list.flag|=LIST_RESIZABLE_COLUMNS|LIST_MULTI_SEL; list.cur_mode=LCM_ALWAYS;
@@ -191,7 +191,7 @@ SizeStatistics SizeStats;
    }
    void SizeStatistics::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(visible() && gpc.visible)
       {
          if(Ms.bd(       0) && Gui.ms()==&list

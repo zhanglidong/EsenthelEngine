@@ -111,11 +111,11 @@
       WorldEdit.undoVis();
    }
    WorldUndo::WorldUndo() : Edit::Undo<WorldChange>(false) {}
-   void WorldUndo::del() {::EE::Edit::_Undo::del(); WorldEdit.undoVis();}
+   void WorldUndo::del() {super::del(); WorldEdit.undoVis();}
    WorldChange* WorldUndo::set(cptr type, bool force_create) // !! this may get called on multiple threads when processing different areas !!
    {
       SyncLocker locker(lock);
-      WorldChange *change=::EE::Edit::Undo< ::WorldChange>::set(type, force_create);
+      WorldChange *change=super::set(type, force_create);
       WorldEdit.undoVis();
       return change;
    }

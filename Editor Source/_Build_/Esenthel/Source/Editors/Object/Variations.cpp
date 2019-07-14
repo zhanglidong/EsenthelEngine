@@ -6,7 +6,7 @@
       void MeshVariations::RenameVariation::Hide(RenameVariation &rv) {rv.hide(); ObjEdit.mesh_variations.activate();}
       void MeshVariations::RenameVariation::create()
       {
-         Gui+=::EE::Window::create(Rect_C(0, 0, 1, 0.14f), "Rename Variation").hide(); button[2].func(Hide, T).show();
+         Gui+=super   ::create(Rect_C(0, 0, 1, 0.14f), "Rename Variation").hide(); button[2].func(Hide, T).show();
          T  +=textline.create(Rect  (0, -clientHeight(), clientWidth(), 0).extend(-0.01f));
       }
       void MeshVariations::RenameVariation::activate(int variation)
@@ -18,12 +18,12 @@
             name =mesh.variationName(variation);
             index=0; FREP(variation)if(name==mesh.variationName(i))index++;
             textline.set(name).selectAll().activate();
-            ::EE::GuiObj::activate();
+            super::activate();
          }
       }
       void MeshVariations::RenameVariation::update(C GuiPC &gpc)
 {
-         ::EE::ClosableWindow::update(gpc);
+         super::update(gpc);
 
          if(Gui.window()==this)
          {
@@ -119,7 +119,7 @@
             {
                if(Gui.skin)skin=*Gui.skin; skin.list.highlight_color.zero(); T.skin(&skin);
             }
-            ::EE::_List::draw(gpc);
+            super::draw(gpc);
             if(elm>=0)
             {
                T.skin(null);
@@ -136,10 +136,10 @@
       r.max.set(D.w(), D.h()*1.5f);
       return r;
    }
-                   C Rect& MeshVariations::rect() {return ::EE::Window::rect();}
+                   C Rect& MeshVariations::rect() {return super::rect();}
    MeshVariations& MeshVariations::rect(C Rect &rect)
 {
-      ::EE::Window::rect(rect);
+      super::rect(rect);
       flt h=0.05f;
       add   .rect(Rect_LU(0.01f, -0.01f, h*5, h));
       region.rect(Rect(0, -clientHeight(), clientWidth(), add.rect().min.y).extend(-0.01f));
@@ -166,7 +166,7 @@
          ListColumn(MEMBER(Variation, index), LCW_DATA, "#"   ), // 1
          ListColumn(Name                    , LCW_DATA, "Name"), // 2
       };
-      ::EE::Window::create("Variations"); flag|=WIN_RESIZABLE;
+      super::create("Variations"); flag|=WIN_RESIZABLE;
       T+=region.create().slidebarSize(0.04f);
       T+=add.create("New Variation").func(Add, T).focusable(false).desc("Create a new variation");
       region+=list.create(lc, Elms(lc)).elmHeight(height).textSize(0, 1).columnHeight(0.05f).selChanged(ListChanged, T); list.flag|=LIST_MULTI_SEL; FlagDisable(list.flag, LIST_SORTABLE); // disable sorting so we can re-arrange variation order by drag and drop
@@ -276,7 +276,7 @@
 {
       if(gpc.visible && visible())
       {
-         ::EE::Window::update(gpc);
+         super::update(gpc);
          if(ObjEdit.mesh.variations()!=data.elms())refresh();
          if(Ms.bp(1) && Gui.ms()==&list)
          {

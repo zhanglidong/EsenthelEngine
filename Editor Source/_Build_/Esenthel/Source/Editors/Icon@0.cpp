@@ -135,13 +135,13 @@ IconEditor IconEdit;
       add("Field of View"    , MemberDesc(DATA_REAL).setFunc(Fov, Fov)).range(1, 120).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
       autoData(this);
 
-      ::PropWin::create("Icon Settings Editor", Vec2(0.02f, -0.07f), 0.036f, 0.043f, 0.28f); ::PropWin::changed(Changed, PreChanged); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
+      super::create("Icon Settings Editor", Vec2(0.02f, -0.07f), 0.036f, 0.043f, 0.28f); super::changed(Changed, PreChanged); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
       T+=undo  .create(Rect_LU(0.02f, -0.01f     , 0.05f, 0.05f)).func(Undo, T).focusable(false).desc("Undo"); undo.image="Gui/Misc/undo.img";
       T+=redo  .create(Rect_LU(undo.rect().ru(), 0.05f, 0.05f)).func(Redo, T).focusable(false).desc("Redo"); redo.image="Gui/Misc/redo.img";
       T+=locate.create(Rect_LU(redo.rect().ru()+Vec2(0.01f, 0), 0.14f, 0.05f), "Locate").func(Locate, T).focusable(false).desc("Locate this element in the Project");
       move(Vec2(D.w(), 0)-rect().right());
    }
-   IconSettsEditor& IconSettsEditor::hide(){set(null); ::PropWin::hide(); return T;}
+   IconSettsEditor& IconSettsEditor::hide(){set(null); super::hide(); return T;}
    void IconSettsEditor::flush()
    {
       if(elm && changed)
@@ -184,7 +184,7 @@ IconEditor IconEdit;
          visible(T.elm!=null).moveToTop();
       }
    }
-   void IconSettsEditor::activate(Elm *elm) {set(elm); if(T.elm)::EE::GuiObj::activate();}
+   void IconSettsEditor::activate(Elm *elm) {set(elm); if(T.elm)super::activate();}
    void IconSettsEditor::toggle(Elm *elm) {if(elm==T.elm)elm=null; set(elm);}
    void IconSettsEditor::erasing(C UID &elm_id) {if(elm && elm->id==elm_id)set(null);}
    void IconSettsEditor::elmChanged(C UID &elm_id)
@@ -482,7 +482,7 @@ IconEditor IconEdit;
       autoData(this);
 
       flt  h=0.043f;
-      Rect r=::PropWin::create("Icon Editor", Vec2(0.02f, -0.07f), 0.036f, h, PropElmNameWidth); ::PropWin::changed(Changed, PreChanged); nos->changed(null, null);
+      Rect r=super::create("Icon Editor", Vec2(0.02f, -0.07f), 0.036f, h, PropElmNameWidth); super::changed(Changed, PreChanged); nos->changed(null, null);
       T+=undo  .create(Rect_LU(0.02f, -0.01f     , 0.05f, 0.05f)).func(Undo, T).focusable(false).desc("Undo"); undo.image="Gui/Misc/undo.img";
       T+=redo  .create(Rect_LU(undo.rect().ru(), 0.05f, 0.05f)).func(Redo, T).focusable(false).desc("Redo"); redo.image="Gui/Misc/redo.img";
       T+=locate.create(Rect_LU(redo.rect().ru()+Vec2(0.01f, 0), 0.14f, 0.05f), "Locate").func(Locate, T).focusable(false).desc("Locate this element in the Project");
@@ -497,12 +497,12 @@ IconEditor IconEdit;
       };
       var->combobox.setColumns(lc, Elms(lc), true);
    }
-   void IconEditor::toGui() {meshVariationChanged(); ::PropWin::toGui();}
-   IconEditor& IconEditor::hide(            )  {set(null); ::PropWin::hide(); return T;}
-   Rect        IconEditor::sizeLimit(            )C {Rect r=::EE::Window::sizeLimit(); r.min.set(0.75f, 0.45f); return r;}
+   void IconEditor::toGui() {meshVariationChanged(); super::toGui();}
+   IconEditor& IconEditor::hide(            )  {set(null); super::hide(); return T;}
+   Rect        IconEditor::sizeLimit(            )C {Rect r=super::sizeLimit(); r.min.set(0.75f, 0.45f); return r;}
    IconEditor& IconEditor::rect(C Rect &rect)  
 {
-      ::EE::Window::rect(rect);
+      super::rect(rect);
       viewport.rect(Rect(prop_max_x, -clientHeight(), clientWidth(), 0).extend(-0.02f));
       return T;
    }
@@ -549,7 +549,7 @@ IconEditor IconEdit;
          visible(T.elm!=null).moveToTop();
       }
    }
-   void IconEditor::activate(Elm *elm) {set(elm); if(T.elm)::EE::GuiObj::activate();}
+   void IconEditor::activate(Elm *elm) {set(elm); if(T.elm)super::activate();}
    void IconEditor::toggle(Elm *elm) {if(elm==T.elm)elm=null; set(elm);}
    void IconEditor::elmChanged(C UID &elm_id)
    {

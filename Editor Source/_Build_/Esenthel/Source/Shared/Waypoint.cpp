@@ -220,7 +220,7 @@
    {
       f.cmpUIntV(2);
       f<<removed<<loop_mode<<name<<removed_time<<loop_mode_time<<name_time;
-      ::EE::Memc< ::EditWaypointPoint>::save(f);
+      super::save(f);
       return f.ok();
    }
    bool EditWaypoint::load(File &f)
@@ -231,21 +231,21 @@
          case 2:
          {
             f>>removed>>loop_mode>>name>>removed_time>>loop_mode_time>>name_time;
-            if(::EE::Memc< ::EditWaypointPoint>::load(f))
+            if(super::load(f))
                if(f.ok())return true;
          }break;
 
          case 1:
          {
             f>>removed>>loop_mode; GetStr2(f, name); f>>removed_time>>loop_mode_time>>name_time;
-            if(::EE::Memc< ::EditWaypointPoint>::load(f))
+            if(super::load(f))
                if(f.ok())return true;
          }break;
 
          case 0:
          {
             f>>removed>>loop_mode>>removed_time>>loop_mode_time>>name_time; GetStr(f, name);
-            if(::EE::Memc< ::EditWaypointPoint>::load(f))
+            if(super::load(f))
                if(f.ok())return true;
          }break;
       }

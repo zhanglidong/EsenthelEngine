@@ -160,7 +160,7 @@ void Source::write(Memc<CodeLine> &clines, Int start, Int end, VecI2 *clines_sta
       if(clines_start)*clines_start=-1;
    }
 }
-void Source::writeTokens(CodeLine &cline, Int start, Int end, Bool gcc)
+void Source::writeTokens(CodeLine &cline, Int start, Int end)
 {
    MAX(start,               0);
    MIN(end  , tokens.elms()-1);
@@ -174,14 +174,14 @@ void Source::writeTokens(CodeLine &cline, Int start, Int end, Bool gcc)
          Token &token=*tokens[i];
          Int    line = token.lineIndex();
          cline.includeLine(line);
-         if(MustSeparate(last_type, token.type) /*|| gcc && (token==TMPL_B || token==TMPL_E)*/)cline.append(' ', TOKEN_NONE); // GCC does not handle << >> double templates
+         if(MustSeparate(last_type, token.type))cline.append(' ', TOKEN_NONE);
          last_type=token.type;
          token.asText(temp);
          FREPAD(t, temp)cline.cols.New().set(temp[t], token.col, line, i, token.type);
       }
    }
 }
-void Source::writeSymbolDecl(Memc<CodeLine> &clines, Symbol &symbol, Bool gcc)
+void Source::writeSymbolDecl(Memc<CodeLine> &clines, Symbol &symbol)
 {
    Bool   add_extern=(symbol.isVar() && !(symbol.modifiers&Symbol::MODIF_EXTERN));
    Int    start     =getSymbolStart(symbol.token_index),
@@ -193,7 +193,7 @@ void Source::writeSymbolDecl(Memc<CodeLine> &clines, Symbol &symbol, Bool gcc)
    {
       CodeLine &cl=clines.New();
       if(add_extern)cl.append("extern", TOKEN_KEYWORD).append(' ', TOKEN_NONE); // prepend by "extern"
-      writeTokens(cl, start, end, gcc);
+      writeTokens(cl, start, end);
    }else
    {
       VecI2 var_start;
@@ -202,7 +202,7 @@ void Source::writeSymbolDecl(Memc<CodeLine> &clines, Symbol &symbol, Bool gcc)
    }
 
    // adjust tokens
-   for(Int i=start; i<=end; i++)adjustToken(clines, i, gcc);
+   for(Int i=start; i<=end; i++)adjustToken(clines, i);
 }
 void Source::remove(Memc<CodeLine> &clines, Int start, Int end, Bool definite)
 {
@@ -294,7 +294,7 @@ CChar8* Source::adjustDot(Int i)
    }
    return null;
 }
-void Source::adjustToken(Memc<CodeLine> &code_lines, Int i, Bool gcc)
+void Source::adjustToken(Memc<CodeLine> &code_lines, Int i)
 {
    if(InRange(i, tokens))
    {
@@ -345,7 +345,6 @@ void Source::adjustToken(Memc<CodeLine> &code_lines, Int i, Bool gcc)
                }
             }
          }else
-      #if 0
          if(token.type==TOKEN_KEYWORD && (token=="super" || token=="__super")) // replace 'super' with 'ClassName'
          {
             if(Symbol *symbol=finalSymbol(i+2)) // get 'symbol' from "super.symbol"
@@ -359,7 +358,6 @@ void Source::adjustToken(Memc<CodeLine> &code_lines, Int i, Bool gcc)
                }
             }
          }else
-      #endif
          if(token.type==TOKEN_KEYWORD && token=="friend") // replace "friend X;" with "friend struct X;"
          {
             if(InRange(i+1, tokens))
@@ -537,7 +535,7 @@ void Source::writeClassTemplates(Memc<CodeLine> &clines, Symbol *Class)
    Memc<Symbol*> template_classes; for(; Class && Class->type==Symbol::CLASS; Class=Class->Parent())if(Class->templates.elms())template_classes.add(Class);
    REPA(template_classes){Symbol *Class=template_classes[i]; write(clines, getSymbolStart(Class->token_index), Class->token_index-2);} // skip "struct name"
 }
-void Source::writeCtorInit(Memc<CodeLine> &clines, Symbol &ci, Int &line_i, Bool first, Bool gcc)
+void Source::writeCtorInit(Memc<CodeLine> &clines, Symbol &ci, Int &line_i, Bool first)
 {
    CodeLine &line=clines[line_i];
    if(first)line.append(' ', TOKEN_NONE    ).append(':', TOKEN_OPERATOR).append(' ', TOKEN_NONE);
@@ -565,9 +563,9 @@ void Source::writeCtorInit(Memc<CodeLine> &clines, Symbol &ci, Int &line_i, Bool
       Int col; if(CodeLine *cl=FindLineCol(clines, end->pos(), col))cl->cols[col].c=')'; // replace it with ')'
    }
 
-   for(Int i=ci.def_val_range.x; i<=ci.def_val_range.y; i++)adjustToken(clines, i, gcc);
+   for(Int i=ci.def_val_range.x; i<=ci.def_val_range.y; i++)adjustToken(clines, i);
 }
-void Source::writeCtorInits(Memc<CodeLine> &clines, Symbol &func, Int body_start, Bool gcc)
+void Source::writeCtorInits(Memc<CodeLine> &clines, Symbol &func, Int body_start)
 {
    if((func.modifiers&Symbol::MODIF_CTOR) && InRange(body_start-1, tokens)) // if is constructor
       if(Symbol *Class=func.Class())
@@ -596,7 +594,7 @@ void Source::writeCtorInits(Memc<CodeLine> &clines, Symbol &func, Int body_start
                // we need to use the source where the class member is listed, and not this source where the function is listed
                // for example Source A: "class A{int x=0; A();}", Source B: "A::A(){}"
                // this is Source B with the function definition, however class member is listed in Source A
-               ci->source->writeCtorInit(clines, *ci, pos.y, first, gcc); // write
+               ci->source->writeCtorInit(clines, *ci, pos.y, first); // write
                first=false;
             }
          }
@@ -609,7 +607,7 @@ void Source::writeCtorInits(Memc<CodeLine> &clines, Symbol &func, Int body_start
       }
    }
 }
-void Source::writeForcedCtor(Memc<CodeLine> &clines, Symbol &Class, Symbol* &Namespace, Bool gcc)
+void Source::writeForcedCtor(Memc<CodeLine> &clines, Symbol &Class, Symbol* &Namespace)
 {
    AdjustNameSymbol(clines, Namespace, Class.Namespace());
    writeClassTemplates(clines, &Class);
@@ -621,7 +619,7 @@ void Source::writeForcedCtor(Memc<CodeLine> &clines, Symbol &Class, Symbol* &Nam
    } // braces so that we won't use 'line' after 'writeCtorInit' because that may change its address
 
    Int line_i=clines.elms()-1;
-   FREPA(Class.ctor_inits)writeCtorInit(clines, *Class.ctor_inits[i], line_i, i==0, gcc); // X::X() x(..)
+   FREPA(Class.ctor_inits)writeCtorInit(clines, *Class.ctor_inits[i], line_i, i==0); // X::X() x(..)
 
    clines.last().append(' ', TOKEN_NONE).append("{}", TOKEN_OPERATOR); // X::X() x(..) {}
    clines.New();
@@ -664,7 +662,7 @@ void Source::detectDefaultCtors()
    }
 }
 /******************************************************************************/
-Bool Source::writeClass(Memc<CodeLine> &clines, Symbol &symbol, Bool gcc)
+Bool Source::writeClass(Memc<CodeLine> &clines, Symbol &symbol)
 {
    if(symbol.type==Symbol::CLASS && symbol.isGlobal()) // global classes only
    {
@@ -703,7 +701,7 @@ Bool Source::writeClass(Memc<CodeLine> &clines, Symbol &symbol, Bool gcc)
          // convert '.' to "->" or "::" when needed
          for(Int i=start; i<=end; i++)
          {
-            Token &c=*tokens[i]; adjustToken(clines, i, gcc);
+            Token &c=*tokens[i]; adjustToken(clines, i);
             if(c=='}' && c.parent)if(c.parent->type==Symbol::CLASS || c.parent->type==Symbol::ENUM)
             {
                VecI2 pos; if(FindLineCol(clines, c.pos(), pos))
@@ -786,7 +784,7 @@ Bool Source::writeClass(Memc<CodeLine> &clines, Symbol &symbol, Bool gcc)
                   // adjust namespaces to typedef namespace
                   AdjustNameSymbol(clines, Namespace, Typedef.Namespace());
 
-                  source.writeSymbolDecl(clines, Typedef, gcc);
+                  source.writeSymbolDecl(clines, Typedef);
                }
             }
          }
@@ -811,7 +809,7 @@ Bool Source::writeClass(Memc<CodeLine> &clines, Symbol &symbol, Bool gcc)
                // adjust namespaces to variable namespace
                AdjustNameSymbol(clines, Namespace, var.Namespace());
 
-               writeSymbolDecl(clines, var, gcc);
+               writeSymbolDecl(clines, var);
             }
          }
 
@@ -850,7 +848,7 @@ Bool Source::writeClass(Memc<CodeLine> &clines, Symbol &symbol, Bool gcc)
    return false;
 }
 /******************************************************************************/
-Bool Source::writeVarFuncs(Memc<CodeLine> &clines, Bool gcc)
+Bool Source::writeVarFuncs(Memc<CodeLine> &clines)
 {
    Bool    is=false; // if actually contains anything
    Symbol *Namespace=null;
@@ -872,7 +870,7 @@ Bool Source::writeVarFuncs(Memc<CodeLine> &clines, Bool gcc)
          // adjust namespaces to variable namespace
          AdjustNameSymbol(clines, Namespace, symbol.Namespace());
 
-         writeSymbolDecl(clines, symbol, gcc);
+         writeSymbolDecl(clines, symbol);
       }
    }
 
@@ -909,7 +907,7 @@ Bool Source::writeVarFuncs(Memc<CodeLine> &clines, Bool gcc)
          if(clines.elms())clines.last().append(';', TOKEN_OPERATOR);
 
          // adjust tokens
-         for(Int i=start; i<=end; i++)adjustToken(clines, i, gcc);
+         for(Int i=start; i<=end; i++)adjustToken(clines, i);
       }
    }
 
@@ -929,7 +927,7 @@ Bool Source::writeVarFuncs(Memc<CodeLine> &clines, Bool gcc)
    return is;
 }
 /******************************************************************************/
-Bool Source::writeFunc(Memc<CodeLine> &clines, Bool gcc, Symbol &symbol, Symbol* &Namespace)
+Bool Source::writeFunc(Memc<CodeLine> &clines, Symbol &symbol, Symbol* &Namespace)
 {
    if((symbol.modifiers&Symbol::MODIF_FUNC_BODY) && !symbol.insideFunc()) // process only functions with bodies
    {
@@ -1002,17 +1000,17 @@ Bool Source::writeFunc(Memc<CodeLine> &clines, Bool gcc, Symbol &symbol, Symbol*
          REPA(symbol.params)removeDefVal(clines, *symbol.params[i]);
 
          // write ctor initializers
-         writeCtorInits(clines, symbol, body_start, gcc);
+         writeCtorInits(clines, symbol, body_start);
 
          // adjust token
-         for(Int i=start; i<end; i++)adjustToken(clines, i, gcc);
+         for(Int i=start; i<end; i++)adjustToken(clines, i);
 
          return true;
       }
    }
    return false;
 }
-Bool Source::writeStaticVars(Memc<CodeLine> &clines, Bool gcc, Symbol* &Namespace, Bool templates)
+Bool Source::writeStaticVars(Memc<CodeLine> &clines, Symbol* &Namespace, Bool templates)
 {
    Bool is=false;
    FREPA(symbols)
@@ -1059,7 +1057,7 @@ Bool Source::writeStaticVars(Memc<CodeLine> &clines, Bool gcc, Symbol* &Namespac
             expandRetVal(clines, symbol);
 
             // adjust token
-            for(Int i=start; i<end; i++)adjustToken(clines, i, gcc);
+            for(Int i=start; i<end; i++)adjustToken(clines, i);
          }
       }
    }
@@ -1072,7 +1070,7 @@ Bool Source::writeStaticVars(Memc<CodeLine> &clines, Bool gcc, Symbol* &Namespac
    return is;
 }
 /******************************************************************************/
-Bool Source::writeInline(Memc<CodeLine> &clines, Bool gcc)
+Bool Source::writeInline(Memc<CodeLine> &clines)
 {
    Bool    is=false; // if actually contains anything
    Symbol *Namespace=null;
@@ -1080,20 +1078,20 @@ Bool Source::writeInline(Memc<CodeLine> &clines, Bool gcc)
    clines.New().append(SEP_LINE, TOKEN_COMMENT);
 
    // insert static class vars
-   is|=writeStaticVars(clines, gcc, Namespace, true);
+   is|=writeStaticVars(clines, Namespace, true);
 
    // insert class method bodies
    FREPA(symbols)
    {
       Symbol &symbol=*symbols[i];
-      if(symbol.isInlineFunc())is|=writeFunc(clines, gcc, symbol, Namespace);
+      if(symbol.isInlineFunc())is|=writeFunc(clines, symbol, Namespace);
    }
 
    // write forced constructors
    FREPA(symbols)
    {
       Symbol &symbol=*symbols[i];
-      if((symbol.helper&Symbol::HELPER_FORCE_CTOR) && symbol.isTemplateClass()){is=true; writeForcedCtor(clines, symbol, Namespace, gcc);}
+      if((symbol.helper&Symbol::HELPER_FORCE_CTOR) && symbol.isTemplateClass()){is=true; writeForcedCtor(clines, symbol, Namespace);}
    }
       
    if(is)
@@ -1109,7 +1107,7 @@ Bool Source::writeInline(Memc<CodeLine> &clines, Bool gcc)
    }
    return is;
 }
-void Source::makeCPP(C Str &path, C Str &file, Bool gcc, Bool include_headers)
+void Source::makeCPP(C Str &path, C Str &file, Bool include_headers)
 {
    Memc<CodeLine> clines;
                       clines.New().append(SEP_LINE  , TOKEN_COMMENT);
@@ -1145,7 +1143,7 @@ void Source::makeCPP(C Str &path, C Str &file, Bool gcc, Bool include_headers)
          if(symbol.fromPartialMacro()) // if this symbol was created from a partial macro, then we have to keep it as the macro may also define other things, like 'DEFINE_CACHE' that also defines variables
          {
             // since we're keeping it then we need to adjust tokens
-            for(Int i=start; i<end; i++)adjustToken(clines, i, gcc);
+            for(Int i=start; i<end; i++)adjustToken(clines, i);
          }else // otherwise we can remove it as it will be stored in the headers
          {
             remove(clines, start, end, false);
@@ -1167,7 +1165,7 @@ void Source::makeCPP(C Str &path, C Str &file, Bool gcc, Bool include_headers)
              end  =getListEnd    (symbol.token_index);
 
          // adjust token
-         for(Int i=start; i<end; i++)adjustToken(clines, i, gcc);
+         for(Int i=start; i<end; i++)adjustToken(clines, i);
       }
    }
 
@@ -1188,7 +1186,7 @@ void Source::makeCPP(C Str &path, C Str &file, Bool gcc, Bool include_headers)
             REPA(symbol.params)removeDefVal(clines, *symbol.params[i]);
 
             // adjust token
-            for(Int i=start; i<end; i++)adjustToken(clines, i, gcc);
+            for(Int i=start; i<end; i++)adjustToken(clines, i);
          }
       }
    }
@@ -1201,7 +1199,7 @@ void Source::makeCPP(C Str &path, C Str &file, Bool gcc, Bool include_headers)
    Symbol *Namespace=null;
 
    // insert static class vars
-   writeStaticVars(clines, gcc, Namespace, false);
+   writeStaticVars(clines, Namespace, false);
    AdjustNameSymbol(clines, Namespace, null);
    clines.New().append(SEP_LINE          , TOKEN_COMMENT);
 #if WRITE_SEPARATORS
@@ -1215,14 +1213,14 @@ void Source::makeCPP(C Str &path, C Str &file, Bool gcc, Bool include_headers)
    {
       Symbol &symbol=*symbols[i];
       if((symbol.isFunc() && symbol.Parent() && symbol.Parent()->type==Symbol::CLASS) || (symbol.type==Symbol::FUNC && (symbol.modifiers&Symbol::MODIF_FRIEND))) // friend functions also need to be written
-         if(!symbol.isInlineFunc())writeFunc(clines, gcc, symbol, Namespace);
+         if(!symbol.isInlineFunc())writeFunc(clines, symbol, Namespace);
    }
 
    // write forced constructors
    FREPA(symbols)
    {
       Symbol &symbol=*symbols[i];
-      if((symbol.helper&Symbol::HELPER_FORCE_CTOR) && !symbol.isTemplateClass())writeForcedCtor(clines, symbol, Namespace, gcc);
+      if((symbol.helper&Symbol::HELPER_FORCE_CTOR) && !symbol.isTemplateClass())writeForcedCtor(clines, symbol, Namespace);
    }
    AdjustNameSymbol(clines, Namespace, null);
    clines.New().append(SEP_LINE, TOKEN_COMMENT);

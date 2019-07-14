@@ -62,13 +62,13 @@ bool OnWorld(GuiObj *go)
       {
          images.setNum(elms);
          rects .setNum(elms);
-         ::EE::GuiCustom::create();
+         super::create();
          return T;
       }
-            C Rect&         SelectionClass::TouchSelTabs::rect()C {return ::EE::GuiObj::rect();}
+            C Rect&         SelectionClass::TouchSelTabs::rect()C {return super::rect();}
       ::SelectionClass::TouchSelTabs& SelectionClass::TouchSelTabs::rect(C Rect &rect)
 {
-         ::EE::GuiObj::rect(rect);
+         super::rect(rect);
          flt a=1.4f, b=1.0f, c=0.8f, sum=a+b*2+c*2, x=rect.min.x, y=rect.max.y, w=rect.w(), h=rect.h();
          if(w>=h)
          {
@@ -91,7 +91,7 @@ bool OnWorld(GuiObj *go)
       }
       ::SelectionClass::TouchSelTabs& SelectionClass::TouchSelTabs::move(C Vec2 &delta)
 {
-         ::EE::GuiObj::move(delta);
+         super::move(delta);
          REPAO(rects)+=delta;
          return T;
       }

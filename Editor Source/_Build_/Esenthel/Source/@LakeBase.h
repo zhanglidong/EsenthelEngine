@@ -10,7 +10,7 @@ class LakeBase
    bool            removed;
    flt             depth, tex_scale;
    UID             material;
-   Memc<Memc<Vec> > polys;
+   Memc<Memc<Vec>> polys;
    TimeStamp       removed_time, depth_time, tex_scale_time, material_time, polys_time;
 
    // get

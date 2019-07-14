@@ -124,7 +124,7 @@
    void EditPanel::create(C Panel &src, C UID &center_image, C UID &border_image, C UID &top_image, C UID &bottom_image, C UID &left_right_image, C UID &top_corner_image, C UID &bottom_corner_image, C UID &panel_image, C TimeStamp &time)
    {
       SCAST(Panel, T)=src;
-      ::EE::Panel::center_image=::EE::Panel::border_image=::EE::Panel::top_image=::EE::Panel::bottom_image=::EE::Panel::left_right_image=::EE::Panel::top_corner_image=::EE::Panel::bottom_corner_image=null; ::EE::Panel::panel_image=null;
+      super::center_image=super::border_image=super::top_image=super::bottom_image=super::left_right_image=super::top_corner_image=super::bottom_corner_image=null; super::panel_image=null;
           T.center_image=center_image; T.border_image=border_image; T.top_image=top_image; T.bottom_image=bottom_image; T.left_right_image=left_right_image; T.top_corner_image=top_corner_image; T.bottom_corner_image=bottom_corner_image; T.panel_image=panel_image;
       center_stretch_time=side_stretch_time
          =center_color_time=border_color_time=side_color_time=blur_color_time
@@ -150,7 +150,7 @@
    bool EditPanel::save(File &f)C
    {
       f.cmpUIntV(2);
-      ::EE::Panel::save(f);
+      super::save(f);
       f<<center_image<<border_image<<top_image<<bottom_image<<left_right_image<<top_corner_image<<bottom_corner_image
        <<panel_image
        <<center_stretch_time<<side_stretch_time<<center_shadow_time
@@ -168,7 +168,7 @@
       {
          case 2:
          {
-            if(!::EE::Panel::load(f))break;
+            if(!super::load(f))break;
             f>>center_image>>border_image>>top_image>>bottom_image>>left_right_image>>top_corner_image>>bottom_corner_image
              >>panel_image
              >>center_stretch_time>>side_stretch_time>>center_shadow_time
@@ -183,7 +183,7 @@
 
          case 1:
          {
-            if(!::EE::Panel::load(f))break;
+            if(!super::load(f))break;
             f>>center_image>>border_image>>top_corner_image>>top_image>>bottom_image>>left_right_image
              >>center_stretch_time>>shadow_opacity_time>>center_color_time>>border_color_time>>blur_color_time>>shadow_offset_time>>shadow_radius_time>>border_size_time
              >>center_scale_time>>top_corner_size_time>>top_size_time>>bottom_size_time>>left_right_size_time
@@ -195,7 +195,7 @@
 
          case 0:
          {
-            if(!::EE::Panel::load(f))break;
+            if(!super::load(f))break;
             f>>center_image>>border_image>>top_corner_image>>top_image
              >>center_stretch_time>>shadow_opacity_time>>center_color_time>>border_color_time>>blur_color_time>>shadow_offset_time>>shadow_radius_time>>border_size_time
              >>center_scale_time>>top_corner_size_time>>top_size_time>>top_corner_offset_time>>top_offset_time>>center_image_time>>border_image_time>>top_corner_image_time>>top_image_time;

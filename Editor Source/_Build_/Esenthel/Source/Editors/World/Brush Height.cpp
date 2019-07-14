@@ -24,7 +24,7 @@ HeightBrushClass HeightBrush;
          MLTC(u"Noise"    , PL, u"Szum"         , DE, u"Noise"         , RU, u"шум"        , PO, u"Desnivelar"       , CN, u"干扰"  ),
       };
 
-      ::EE::Window::create("Height"/*MLTC(u"Height Brush", PL,u"Wysokość", DE,u"Höhen Pinsel", RU,u"Высота кисти", PO,u"Pincel do Heightmap")*/);
+      super::create("Height"/*MLTC(u"Height Brush", PL,u"Wysokość", DE,u"Höhen Pinsel", RU,u"Высота кисти", PO,u"Pincel do Heightmap")*/);
       clientRect(Rect_RU(WorldEdit.rect().w(), -defaultBarHeight(), 0.22f, 0.32f));
       T+=mode.create(Rect_LU(0, clientSize()).extend(-0.01f), 0, text, Elms(text)).func(ModeChanged, T);
    #if MOBILE

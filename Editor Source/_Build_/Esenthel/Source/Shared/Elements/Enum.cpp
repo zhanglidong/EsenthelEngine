@@ -167,14 +167,14 @@
    {
       f.cmpUIntV(1);
       f<<type<<type_time;
-      return ::EE::Memc< ::EditEnum>::save(f);
+      return super::save(f);
    }
    bool EditEnums::load(File &f)
    {
       switch(f.decUIntV())
       {
-         case 1: f>>type>>type_time; return ::EE::Memc< ::EditEnum>::load(f);
-         case 0: type=DEFAULT; type_time.zero(); return ::EE::Memc< ::EditEnum>::load(f);
+         case 1: f>>type>>type_time; return super::load(f);
+         case 0: type=DEFAULT; type_time.zero(); return super::load(f);
       }
       del(); return false;
    }

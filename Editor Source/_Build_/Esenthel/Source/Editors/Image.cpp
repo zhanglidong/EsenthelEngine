@@ -18,7 +18,7 @@ ImageEditor ImageEdit;
    int ImageEditor::ChannelsElms=Elms(Channels);
 /******************************************************************************/
    void ImageEditor::Render() {}
-      GuiObj* ImageEditor::GuiImage2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (image && image->cube()) ? ::EE::GuiObj::test(gpc, pos, mouse_wheel) : null;}
+      GuiObj* ImageEditor::GuiImage2::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return (image && image->cube()) ? super::test(gpc, pos, mouse_wheel) : null;}
       void    ImageEditor::GuiImage2::update(C GuiPC &gpc)
 {
          if(Gui.ms()==this && Ms.b(0))
@@ -86,7 +86,7 @@ ImageEditor ImageEdit;
       }
       ::ImageEditor::CubeFace& ImageEditor::CubeFace::create(DIR_ENUM dir, int x, int y)
       {
-         ::EE::GuiImage::create().desc(DirToText(dir));
+         super::create().desc(DirToText(dir));
          T.face=dir;
          T.ofs.set(x, y);
          return T;
@@ -174,7 +174,7 @@ ImageEditor ImageEdit;
       autoData(this);
 
       flt h=0.043f;
-      ::PropWin::create("Image Editor", Vec2(0.02f, -0.07f), 0.036f, h, 0.28f); ::PropWin::changed(Changed, PreChanged); chn->changed(null, null); nos->changed(null, null); src->changed(null, null);
+      super::create("Image Editor", Vec2(0.02f, -0.07f), 0.036f, h, 0.28f); super::changed(Changed, PreChanged); chn->changed(null, null); nos->changed(null, null); src->changed(null, null);
       button[1].show(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
       T+=undo  .create(Rect_LU(0.02f, -0.01f     , 0.05f, 0.05f)).func(Undo, T).focusable(false).desc("Undo"); undo.image="Gui/Misc/undo.img";
       T+=redo  .create(Rect_LU(undo.rect().ru(), 0.05f, 0.05f)).func(Redo, T).focusable(false).desc("Redo"); redo.image="Gui/Misc/redo.img";
@@ -210,14 +210,14 @@ ImageEditor ImageEdit;
    }
    void ImageEditor::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(gpc.visible && visible())setInfo();
    }
-   ImageEditor& ImageEditor::hide(            )  {set(null); ::PropWin::hide(); return T;}
-   Rect         ImageEditor::sizeLimit(            )C {Rect r=::EE::Window::sizeLimit(); r.min.set(0.7f, 0.26f); return r;}
+   ImageEditor& ImageEditor::hide(            )  {set(null); super::hide(); return T;}
+   Rect         ImageEditor::sizeLimit(            )C {Rect r=super::sizeLimit(); r.min.set(0.7f, 0.26f); return r;}
    ImageEditor& ImageEditor::rect(C Rect &rect)  
 {
-      ::EE::Window::rect(rect);
+      super::rect(rect);
       flt x=0; if(props.elms())x=props[0].combobox.rect().max.x;
       gui_image.rect(Rect(x, -clientHeight(), clientWidth(), 0).extend(-0.02f));
       Rect r=gui_image.rect();
@@ -267,7 +267,7 @@ ImageEditor ImageEdit;
          visible(T.elm!=null).moveToTop();
       }
    }
-   void ImageEditor::activate(Elm *elm) {set(elm); if(T.elm)::EE::GuiObj::activate();}
+   void ImageEditor::activate(Elm *elm) {set(elm); if(T.elm)super::activate();}
    void ImageEditor::toggle(Elm *elm) {if(elm==T.elm)elm=null; set(elm);}
    void ImageEditor::elmChanged(C UID &elm_id)
    {

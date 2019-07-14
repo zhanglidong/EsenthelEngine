@@ -23,7 +23,7 @@ MtrlBrushClass MtrlBrush;
       int    skip=0;
       Rect_D rect(WorldEdit.rect().w()/2-0.16f, -WorldEdit.rect().h(), 1.585f, s+b*2);
    #endif
-      ::EE::Window::create("Material"/*MLTC(u"Material Brush", PL,u"Materiał", DE,u"Material Pinsel", RU,u"Материал кисти", PO,u"Pincel do Material")*/);
+      super::create("Material"/*MLTC(u"Material Brush", PL,u"Materiał", DE,u"Material Pinsel", RU,u"Материал кисти", PO,u"Pincel do Material")*/);
       clientRect(rect);
       FREP(Elms(image)-skip)
       {

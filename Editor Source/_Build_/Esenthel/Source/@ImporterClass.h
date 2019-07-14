@@ -117,7 +117,7 @@ public:
    bool inQueue(C UID &elm_id);
    void cancelImports(C MemPtr<UID> &sorted_elm_ids);
    void cancel(C MemPtr<UID> &elm_ids);
-   void getResult(C MemPtr<UID> &elms, MemPtr<Edit::IDParam<Edit::RELOAD_RESULT> > results);
+   void getResult(C MemPtr<UID> &elms, MemPtr<Edit::IDParam<Edit::RELOAD_RESULT>> results);
    void clearImportResults(C MemPtr<UID> &elm_ids);
    void forgetResult(C MemPtr<UID> &elm_ids);
    void reload(C MemPtr<UID> &elm_ids, bool remember_result);

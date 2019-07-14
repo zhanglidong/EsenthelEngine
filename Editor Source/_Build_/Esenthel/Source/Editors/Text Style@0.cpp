@@ -25,7 +25,7 @@ TextStyleEditor TextStyleEdit;
             Rect r=rect()+gpc.offset;
             TextStyleEdit.panel.draw(r);
             text_style=TextStyleEdit.game;
-            GuiPC gpc2=gpc; gpc2.clip&=r; ::EE::Text::draw(gpc2);
+            GuiPC gpc2=gpc; gpc2.clip&=r; super::draw(gpc2);
          }
       }
    void TextStyleEditor::undoVis() {SetUndo(undos, undo, redo);}
@@ -74,7 +74,7 @@ TextStyleEditor TextStyleEdit;
       font_prop=&add("Font"         , MemberDesc(                                ).setFunc          (ParamsFont   , ParamsFont   )).setEnum(); font_prop->combobox.setData(Proj.font_node);
       autoData(&edit);
 
-      ::PropWin::create("Text Style Editor", Vec2(0.02f, -0.07f), 0.036f, 0.043f, 0.3f); ::PropWin::changed(Changed, PreChanged); button[1].show(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
+      super::create("Text Style Editor", Vec2(0.02f, -0.07f), 0.036f, 0.043f, 0.3f); super::changed(Changed, PreChanged); button[1].show(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
       T+=undo  .create(Rect_LU(0.02f, -0.01f     , 0.05f, 0.05f)).func(Undo, T).focusable(false).desc("Undo"); undo.image="Gui/Misc/undo.img";
       T+=redo  .create(Rect_LU(undo.rect().ru(), 0.05f, 0.05f)).func(Redo, T).focusable(false).desc("Redo"); redo.image="Gui/Misc/redo.img";
       T+=locate.create(Rect_LU(redo.rect().ru()+Vec2(0.01f, 0), 0.14f, 0.05f), "Locate").func(Locate, T).focusable(false).desc("Locate this element in the Project");
@@ -85,17 +85,17 @@ TextStyleEditor TextStyleEdit;
    void TextStyleEditor::toGame() {if(game)edit.copyTo(*game, Proj);}
    void TextStyleEditor::toGui()
    {
-      ::PropWin::toGui(); toGame();
+      super::toGui(); toGame();
       if(font_prop && font_prop->combobox()<=0 && edit.font.valid()) // if there is a font specified but not in combobox selection (for example if combobox selection lists only certain fonts)
       {
          Elm *font=Proj.findElm(edit.font); font_prop->combobox.setText(font ? font->name : UnknownName, true, QUIET);
       }
    }
-   TextStyleEditor& TextStyleEditor::hide(            )  {set(null); ::PropWin::hide(); return T;}
-   Rect             TextStyleEditor::sizeLimit(            )C {Rect r=::EE::Window::sizeLimit(); r.min.set(1.0f, 0.49f); return r;}
+   TextStyleEditor& TextStyleEditor::hide(            )  {set(null); super::hide(); return T;}
+   Rect             TextStyleEditor::sizeLimit(            )C {Rect r=super::sizeLimit(); r.min.set(1.0f, 0.49f); return r;}
    TextStyleEditor& TextStyleEditor::rect(C Rect &rect)  
 {
-      ::EE::Window::rect(rect);
+      super::rect(rect);
       flt  x=0; if(props.elms())x=props[0].button.rect().max.x;
       Rect r(x, -clientHeight(), clientWidth(), 0); r.extend(-0.05f); //r.setC(r.center(), Min(r.w(), 0.8), Min(r.h(), 0.7));
       text.rect(r);
@@ -136,7 +136,7 @@ TextStyleEditor TextStyleEdit;
          visible(T.elm!=null).moveToTop();
       }
    }
-   void TextStyleEditor::activate(Elm *elm) {set(elm); if(T.elm)::EE::GuiObj::activate();}
+   void TextStyleEditor::activate(Elm *elm) {set(elm); if(T.elm)super::activate();}
    void TextStyleEditor::toggle(Elm *elm) {if(elm==T.elm)elm=null; set(elm);}
    void TextStyleEditor::elmChanged(C UID &elm_id)
    {

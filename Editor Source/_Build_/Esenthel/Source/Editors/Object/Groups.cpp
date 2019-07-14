@@ -56,7 +56,7 @@
    }
    GroupRegion& GroupRegion::create()
    {
-      ::EE::Region::create(Rect_LU(0, 0, 1.2f, 0.8f)).skin(&TransparentSkin, false); kb_lit=false;
+      super::create(Rect_LU(0, 0, 1.2f, 0.8f)).skin(&TransparentSkin, false); kb_lit=false;
       ts.reset().size=0.043f; ts.align.set(0, 1);
       T+=groups_r.create(Rect(0.01f, -rect().h()+0.01f, 0.48f, -0.06f));
       T+= parts_r.create(Rect(groups_r.rect().max.x+0.01f, -rect().h()+0.01f, rect().w()-0.01f, -0.06f));
@@ -84,7 +84,7 @@
    }
    void GroupRegion::update(C GuiPC &gpc)
 {
-      ::EE::Region::update(gpc);
+      super::update(gpc);
       if(gpc.visible && visible())
       {
          ObjEdit.resetDrawGroupEnum(); // dynamically adjust draw group in each frame in case the enum got changed

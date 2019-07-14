@@ -231,7 +231,7 @@ Property &mode=add("De-Atlased Objects", MEMBER(ConvertToDeAtlasClass, mode)).se
                add("Force Height"      , MEMBER(ConvertToDeAtlasClass, dest_size.y)).min(-1);
             w=&add();
             h=&add();
-      Rect r=::PropWin::create("Extract from Atlas", Vec2(0.02f, -0.02f), 0.036f, 0.043f, 0.2f); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); mode.combobox.resize(Vec2(0.73f, 0));
+      Rect r=super::create("Extract from Atlas", Vec2(0.02f, -0.02f), 0.036f, 0.043f, 0.2f); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); mode.combobox.resize(Vec2(0.73f, 0));
       autoData(this);
       T+=preview.create(Rect_LU(r.ru()+Vec2(0.02f, -0.06f), 1.4f));
       T+=t_tex_size.create(preview.rect().ru()+Vec2(-0.15f, 0.02f));
@@ -321,13 +321,13 @@ Property &mode=add("De-Atlased Objects", MEMBER(ConvertToDeAtlasClass, mode)).se
    }
    ConvertToDeAtlasClass& ConvertToDeAtlasClass::hide()
 {
-      ::PropWin::hide();
+      super::hide();
       clearProj(); // release memory
       return T;
    }
    void ConvertToDeAtlasClass::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(visible() && gpc.visible)
       {
          VecI2 size=finalSize();

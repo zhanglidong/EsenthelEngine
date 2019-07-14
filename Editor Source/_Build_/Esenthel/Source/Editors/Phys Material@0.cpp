@@ -127,7 +127,7 @@ PhysMtrlEditor PhysMtrlEdit;
       dfd      =&add();
       dfb      =&add();
       autoData(this);
-      prop_max_x=::PropWin::create("Physics Material Editor", Vec2(0.02f, -0.07f), 0.036f, 0.043f, 0.2f).max.x; ::PropWin::changed(Changed, PreChanged); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
+      prop_max_x=super::create("Physics Material Editor", Vec2(0.02f, -0.07f), 0.036f, 0.043f, 0.2f).max.x; super::changed(Changed, PreChanged); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); flag|=WIN_RESIZABLE;
       T+=undo  .create(Rect_LU(0.02f, -0.01f     , 0.05f, 0.05f)).func(Undo, T).focusable(false).desc("Undo"); undo.image="Gui/Misc/undo.img";
       T+=redo  .create(Rect_LU(undo.rect().ru(), 0.05f, 0.05f)).func(Redo, T).focusable(false).desc("Redo"); redo.image="Gui/Misc/redo.img";
       T+=locate.create(Rect_LU(redo.rect().ru()+Vec2(0.01f, 0), 0.14f, 0.05f), "Locate").func(Locate, T).focusable(false).desc("Locate this element in the Project");
@@ -145,17 +145,17 @@ PhysMtrlEditor PhysMtrlEdit;
       REPAO(actor_dyn).material( null); edit.copyTo(temp); temp.density(1); // set to null in case changing material props would affect all actors
       REPAO(actor_dyn).material(&temp);
    }
-   PhysMtrlEditor& PhysMtrlEditor::hide(            )  {set(null); ::PropWin::hide(); return T;}
-   Rect            PhysMtrlEditor::sizeLimit(            )C {Rect r=::EE::Window::sizeLimit(); r.min.set(1.0f, 0.70f); return r;}
+   PhysMtrlEditor& PhysMtrlEditor::hide(            )  {set(null); super::hide(); return T;}
+   Rect            PhysMtrlEditor::sizeLimit(            )C {Rect r=super::sizeLimit(); r.min.set(1.0f, 0.70f); return r;}
    PhysMtrlEditor& PhysMtrlEditor::rect(C Rect &rect)  
 {
-      ::EE::Window::rect(rect);
+      super   ::rect(rect);
       viewport.rect(Rect(prop_max_x, -clientHeight(), clientWidth(), 0).extend(-0.02f));
       return T;
    }
    void PhysMtrlEditor::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(visible() && gpc.visible)
       {
          if(Gui.ms   ()==&viewport)if(Ms.b(0) || Ms.b(4)){cam.yaw-=Ms.d().x; cam.pitch+=Ms.d().y; Ms.freeze();}
@@ -206,7 +206,7 @@ PhysMtrlEditor PhysMtrlEdit;
       }
    }
    void PhysMtrlEditor::toggle(Elm *elm) {if(elm==T.elm)elm=null; set(elm);}
-   void PhysMtrlEditor::activate(Elm *elm) {set(elm); if(T.elm)::EE::GuiObj::activate();}
+   void PhysMtrlEditor::activate(Elm *elm) {set(elm); if(T.elm)super::activate();}
    void PhysMtrlEditor::elmChanged(C UID &elm_id)
    {
       if(elm && elm->id==elm_id)

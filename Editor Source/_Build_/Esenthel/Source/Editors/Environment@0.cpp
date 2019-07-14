@@ -18,7 +18,7 @@ EnvEditor EnvEdit;
       }
       ::EnvEditor::PropWin& EnvEditor::PropWin::create(C Str &name, flt value_width)
       {
-         ::PropWin::create(name, Vec2(0.02f, -0.02f), 0.036f, 0.043f, value_width); changed(Changed, PreChanged); button[2].func(Hide, T).show();
+         super::create(name, Vec2(0.02f, -0.02f), 0.036f, 0.043f, value_width); changed(Changed, PreChanged); button[2].func(Hide, T).show();
          return T;
       }
       void EnvEditor::Change::create(ptr user)
@@ -137,7 +137,7 @@ EnvEditor EnvEdit;
    }
    void EnvEditor::create()
    {
-      Gui+=::EE::Window::create("Environment").hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
+      Gui+=super::create("Environment").hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
       rect(Rect_RU(D.w(), D.h(), defaultBarFullWidth(), 0.45f));
       flt y=-0.095f, h=0.052f, c=0.044f, p=0.02f, x=0.07f, w=clientWidth()-x-p;
       T+=undo  .create(Rect_LU(0.02f, -0.01f     , 0.05f, 0.05f)).func(Undo, T).focusable(false).desc("Undo"); undo.image="Gui/Misc/undo.img";
@@ -228,8 +228,8 @@ EnvEditor EnvEdit;
       csun    .set(edit.sun    .on, QUIET); sun    .toGui();
       toGame();
    }
-   EnvEditor& EnvEditor::hide(){set(null); ambient.hide(); bloom.hide(); clouds.hide(); fog.hide(); sun.hide(); sky.hide(); ::EE::Window::hide(); return T;}
-   EnvEditor& EnvEditor::show(){if(bambient())ambient.show(); if(bbloom())bloom.show(); if(bclouds())clouds.show(); if(bfog())fog.show(); if(bsun())sun.show(); if(bsky())sky.show(); ::EE::Window::show(); return T;}
+   EnvEditor& EnvEditor::hide(){set(null); ambient.hide(); bloom.hide(); clouds.hide(); fog.hide(); sun.hide(); sky.hide(); super::hide(); return T;}
+   EnvEditor& EnvEditor::show(){if(bambient())ambient.show(); if(bbloom())bloom.show(); if(bclouds())clouds.show(); if(bfog())fog.show(); if(bsun())sun.show(); if(bsky())sky.show(); super::show(); return T;}
    void EnvEditor::flush()
    {
       if(elm && changed)
@@ -266,7 +266,7 @@ EnvEditor EnvEdit;
          visible(T.elm!=null).moveToTop();
       }
    }
-   void EnvEditor::activate(Elm *elm) {set(elm); if(T.elm)::EE::GuiObj::activate();}
+   void EnvEditor::activate(Elm *elm) {set(elm); if(T.elm)super::activate();}
    void EnvEditor::toggle(Elm *elm) {if(elm==T.elm)elm=null; set(elm);}
    void EnvEditor::elmChanged(C UID &elm_id)
    {

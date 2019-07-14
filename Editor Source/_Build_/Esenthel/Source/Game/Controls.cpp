@@ -47,11 +47,11 @@ void GameScreenChanged()
 /******************************************************************************/
    GuiObj* Rotator::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 {
-      return Cuts(pos, Circle(rect().h()*0.5f, rect().center()+gpc.offset)) ? ::EE::GuiObj::test(gpc, pos, mouse_wheel) : null;
+      return Cuts(pos, Circle(rect().h()*0.5f, rect().center()+gpc.offset)) ? super::test(gpc, pos, mouse_wheel) : null;
    }
    void Rotator::update(C GuiPC &gpc)
 {
-      ::EE::GuiObj::update(gpc);
+      super::update(gpc);
       delta=0; if(Gui.ms()==this && Ms.b(0)){delta+=Ms.d(); Ms.freeze();} REPA(Touches)if(Touches[i].guiObj()==this && Touches[i].on())delta+=Touches[i].ad()*3;
    }
    void Rotator::draw(C GuiPC &gpc)

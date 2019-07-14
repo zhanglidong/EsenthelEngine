@@ -137,7 +137,7 @@ void DrawCreateMaterials()
    void CreateMaterials::create()
    {
       add("Create Materials in following Project Location:", MEMBER(CreateMaterials, path)).elmType(ELM_ANY);
-      Rect r=::PropWin::create("Create Materials", Vec2(0.03f, -0.1f), 0.045f, 0.05f, 0.7f); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
+      Rect r=super::create("Create Materials", Vec2(0.03f, -0.1f), 0.045f, 0.05f, 0.7f); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
       autoData(this);
       rect(Rect_C(0, 0, 1.8f, 1.3f));
       T+=text.create(Vec2(clientWidth()/2, -0.05f), "Drag and Drop Image Elements and Image Files to create Materials from them:");
@@ -155,13 +155,13 @@ void DrawCreateMaterials()
       if(hidden())
       {
          clearProj();
-         ::EE::Window::show();
+         super::show();
       }
       return T;
    }
    void CreateMaterials::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(visible() && gpc.visible)
       {
          if(Ms.tappedFirst(0) && Gui.ms()==&list)if(Src *src=list())if(Elm *elm=Proj.findElm(src->id))ImageEdit.toggle(elm);

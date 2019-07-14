@@ -12,7 +12,7 @@
          "Selection"    ,
       };
       ts.reset().size=0.05f;
-      Gui+=::EE::Window::create(Rect_C(0, 0, 0.85f, 0.25f), "Grid Plane Level").hide(); button[2].show();
+      Gui+=super ::create(Rect_C(0, 0, 0.85f, 0.25f), "Grid Plane Level").hide(); button[2].show();
       T  +=mode  .create(Rect_C(clientWidth()*0.5f, -0.05f, 0.8f, 0.055f), 0, mode_t, Elms(mode_t), true).valid(true).set(0); mode.tab(0).desc("Set Grid Plane Level from value specified below"); mode.tab(1).desc("Set Grid Plane Level from Camera Target (doesn't work in FPP mode)"); mode.tab(2).desc("Set Grid Plane Level from current selection (this can be selected objects, waypoints, etc.)");
       props.New().create("Level ", MEMBER(WorldView, grid_plane_level)).mouseEditSpeed(5).toGui(&WorldEdit);
       AddProperties(props, mode.tab(0), Vec2(0.06f, -0.11f), 0.05f, 0.5f, &ts);
@@ -20,11 +20,11 @@
    Window& GridPlaneLevel::show()
 {
       if(hidden() && props.elms())props[0].textline.selectAll();
-      return ::EE::Window::show();
+      return super::show();
    }
    void GridPlaneLevel::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(Gui.window()==this && Kb.k(KB_ENTER)){Kb.eatKey(); hide();}
    }
    void GridPlaneLevel::set()
@@ -44,7 +44,7 @@
    }
    void GoToArea::create()
    {
-      Gui+=::EE::Window::create(Rect_C(0, 0, 0.5f, 0.4f), "Go To Area").hide(); button[2].func(HideEditAct, SCAST(GuiObj, T)).show();
+      Gui+=super::create(Rect_C(0, 0, 0.5f, 0.4f), "Go To Area").hide(); button[2].func(HideEditAct, SCAST(GuiObj, T)).show();
       T  +=tx   .create(Vec2(0.1f, -0.07f), "X:"); T+=x.create(Rect_L(0.2f, -0.07f, 0.2f, 0.06f));
       T  +=tz   .create(Vec2(0.1f, -0.14f), "Z:"); T+=z.create(Rect_L(0.2f, -0.14f, 0.2f, 0.06f));
       T  +=go   .create(Rect_C(clientWidth()/2, -0.25f, 0.3f, 0.07f), MLT("GO", PL,u"Idź", RU,u"Двигаться")).func(Go, T).focusable(false);
@@ -57,11 +57,11 @@
          z.set(S+Floor(ActiveCam.at.z/WorldEdit.areaSize()));
          x.selectAll().activate();
       }
-      ::EE::Window::show(); return T;
+      super::show(); return T;
    }
    void GoToArea::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(Gui.window()==this && Kb.k(KB_ENTER)){Kb.eatKey(); Go(T);}
    }
    ElmWorld* PathProps::WS() {return WorldEdit.elm ? WorldEdit.elm->worldData() : null;}
@@ -85,7 +85,7 @@
    void PathProps::Paste(PathProps &pp) {TextData data; FileText f; f.writeMem().putText(ClipGet()); data.load(f.rewind()); LoadProperties(pp.props, data.nodes);}
    PathProps& PathProps::create()
    {
-      ::EE::Region::create().skin(&TransparentSkin, false); kb_lit=false;
+      super::create().skin(&TransparentSkin, false); kb_lit=false;
       props.New().create("Cell Size"        , MemberDesc(DATA_REAL).setFunc(CellSize  , CellSize  )).min(0.01f).mouseEditSpeed(0.2f).desc("Size of single path cell (in meters)\nDefault = 0.333");
       flt cs=props.elms()+0.5f; props.New();
       props.New().create("Controller Radius", MemberDesc(DATA_REAL).setFunc(CtrlRadius, CtrlRadius)).min(0).mouseEditSpeed(0.2f).desc("Controller Radius (in meters)\nwill be rounded according to Cell Size\nDefault = 0.33");

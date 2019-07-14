@@ -6,7 +6,7 @@
       void MeshParts::RenamePart::Hide(RenamePart &rp) {rp.hide(); ObjEdit.mesh_parts.activate();}
       void MeshParts::RenamePart::create()
       {
-         Gui+=::EE::Window::create(Rect_C(0, 0, 1, 0.14f), "Rename Part").hide(); button[2].func(Hide, T).show();
+         Gui+=super   ::create(Rect_C(0, 0, 1, 0.14f), "Rename Part").hide(); button[2].func(Hide, T).show();
          T  +=textline.create(Rect  (0, -clientHeight(), clientWidth(), 0).extend(-0.01f));
       }
       void MeshParts::RenamePart::activate(int part)
@@ -17,12 +17,12 @@
             name =lod.parts[part].name;
             index=0; FREP(part)if(name==lod.parts[i].name)index++;
             textline.set(name).selectAll().activate();
-            ::EE::GuiObj::activate();
+            super::activate();
          }
       }
       void MeshParts::RenamePart::update(C GuiPC &gpc)
 {
-         ::EE::ClosableWindow::update(gpc);
+         super::update(gpc);
 
          if(Gui.window()==this)
          {
@@ -32,13 +32,13 @@
       void MeshParts::Part::setColor() {color=GuiListTextColor(); if(removed)color.a/=2;}
       void MeshParts::WeldVtxPos::create()
       {
-         Gui+=::EE::Window::create(Rect_C(0, 0, 1, 0.24f), "Weld Vertex Positions").hide(); button[2].show();
+         Gui+=super   ::create(Rect_C(0, 0, 1, 0.24f), "Weld Vertex Positions").hide(); button[2].show();
          T  +=text    .create(Vec2(clientWidth()/2, -0.05f), "Please Enter Position Tolerance");
          T  +=textline.create(Rect  (0, -clientHeight(), clientWidth(), -0.10f).extend(-0.01f)).set("0.001");
       }
       void MeshParts::WeldVtxPos::update(C GuiPC &gpc)
 {
-         ::EE::ClosableWindow::update(gpc);
+         super::update(gpc);
 
          if(Gui.window()==this)
          {
@@ -187,10 +187,10 @@
       r.max.set(D.w(), D.h()*1.5f);
       return r;
    }
-              C Rect& MeshParts::rect() {return ::EE::Window::rect();}
+              C Rect& MeshParts::rect() {return super::rect();}
    MeshParts& MeshParts::rect(C Rect &rect)
 {
-      ::EE::Window::rect(rect);
+      super::rect(rect);
       flt h=0.05f;
       edit_selected.rect(Rect_LU(0.01f, -0.01f, 0.23f, h));
       add          .rect(Rect_LU(edit_selected.rect().ru()+Vec2(0.01f, 0), h*2.6f, h));
@@ -381,7 +381,7 @@
          ListColumn(Tris               , LCW_DATA, "Tris"), // 4
          ListColumn(Mtrl               , LCW_DATA, "Material"), // 5
       }; lc[3].text_align=lc[4].text_align=-1; lc[3].sort=&md_vtxs; lc[4].sort=&md_tris; md_vtxs.setDataToTextFunc(VtxsN); md_tris.setDataToTextFunc(TrisN);
-      ::EE::Window::create("Parts"); flag|=WIN_RESIZABLE;
+      super::create("Parts"); flag|=WIN_RESIZABLE;
       T+=region.create().slidebarSize(0.04f);
       T+=edit_selected.create("Edit selected").func(EditChanged, T).focusable(false); edit_selected.mode=BUTTON_TOGGLE;
       T+=add          .create(add_elms).focusable(false).desc("Add new shape to the mesh"); add.text="New"; add.flag|=COMBOBOX_CONST_TEXT;
@@ -421,7 +421,7 @@
 {
       if(gpc.visible && visible())
       {
-         ::EE::Window::update(gpc);
+         super::update(gpc);
        C MeshLod &lod=ObjEdit.getLod();
          if(lod.parts.elms()!=data.elms())refresh();
          if(Ms.bp(1) && Gui.ms()==&list)

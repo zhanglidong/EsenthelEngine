@@ -311,7 +311,7 @@ void DrawMiniMap()
       autoData(this);
 
       flt h=0.043f;
-      Rect r=::PropWin::create("Mini Map Editor", Vec2(0.02f, -0.07f), 0.036f, h, PropElmNameWidth); ::PropWin::changed(Changed, PreChanged);
+      Rect r=super::create("Mini Map Editor", Vec2(0.02f, -0.07f), 0.036f, h, PropElmNameWidth); super::changed(Changed, PreChanged);
       T+=undo  .create(Rect_LU(0.02f, -0.01f     , 0.05f, 0.05f)).func(Undo, T).focusable(false).desc("Undo"); undo.image="Gui/Misc/undo.img";
       T+=redo  .create(Rect_LU(undo.rect().ru(), 0.05f, 0.05f)).func(Redo, T).focusable(false).desc("Redo"); redo.image="Gui/Misc/redo.img";
       T+=locate.create(Rect_LU(redo.rect().ru()+Vec2(0.01f, 0), 0.14f, 0.05f), "Locate").func(Locate, T).focusable(false).desc("Locate this element in the Project");
@@ -320,10 +320,10 @@ void DrawMiniMap()
       T+=viewport.create(Draw);
       rect(Rect_C(0, 0, Min(1.7f, D.w()*2), Min(1.12f, D.h()*2)));
    }
-   Rect MiniMapEditor::sizeLimit()C {Rect r=::EE::Window::sizeLimit(); r.min.set(0.9f, 0.5f); return r;}
+   Rect MiniMapEditor::sizeLimit()C {Rect r=super::sizeLimit(); r.min.set(0.9f, 0.5f); return r;}
    MiniMapEditor& MiniMapEditor::rect(C Rect &rect)
 {
-      ::EE::Window::rect(rect);
+      super::rect(rect);
       viewport.rect(Rect(prop_max_x, -clientHeight(), clientWidth(), 0).extend(-0.02f));
       return T;
    }
@@ -401,9 +401,9 @@ void DrawMiniMap()
          reloadWorld();
       }
    }
-           void           MiniMapEditor::activate(Elm *elm)         {set(elm); if(T.elm)::EE::GuiObj::activate();}
+           void           MiniMapEditor::activate(Elm *elm)         {set(elm); if(T.elm)super::activate();}
            void           MiniMapEditor::toggle(Elm *elm)         {if(elm==T.elm)elm=null; set(elm);}
-   MiniMapEditor& MiniMapEditor::hide(        ){if(visible()){::PropWin::hide(); set(null);} return T;}
+   MiniMapEditor& MiniMapEditor::hide(        ){if(visible()){super::hide(); set(null);} return T;}
    void MiniMapEditor::elmChanged(C UID &elm_id)
    {
       if(elm && elm->id==elm_id)

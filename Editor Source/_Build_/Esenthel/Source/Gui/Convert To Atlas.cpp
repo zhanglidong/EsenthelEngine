@@ -108,7 +108,7 @@ ConvertToAtlasClass ConvertToAtlas;
       void ConvertToAtlasClass::Warning::Proceed(ptr) {ConvertToAtlas.convertPerform();}
       void ConvertToAtlasClass::Warning::create()
       {
-         Gui+=::EE::Window::create(Rect_C(0, 0, 1.7f, 1), "Convert To Atlas").hide(); button[2].show();
+         Gui+=super::create(Rect_C(0, 0, 1.7f, 1), "Convert To Atlas").hide(); button[2].show();
          T+=text.create(Vec2(clientWidth()/2, -0.06f), "Warning: Following meshes use wrapped texture coordinates.\nConverting to Atlas may introduce some artifacts.");
          T+=proceed.create(Rect_D(clientWidth()/2, -clientHeight()+0.03f, 0.34f, 0.055f), "Proceed Anyway").func(Proceed);
          T+=region.create(Rect(0, proceed.rect().max.y, clientWidth(), text.rect().min.y-0.04f).extend(-0.02f, -0.03f));
@@ -468,7 +468,7 @@ ConvertToAtlasClass ConvertToAtlas;
                add("Auto Stretch"   , MEMBER(ConvertToAtlasClass, auto_stretch)).changed(Refresh);
 Property &mode=add("Atlased Objects", MEMBER(ConvertToAtlasClass, mode)).setEnum(mode_t, Elms(mode_t)).desc("When creating material atlases, existing object meshes need to have their UV adjusted.\nWith this option you can control if the adjusted objects:\n-Replace the old ones (keeping their Element ID)\nor\n-They are created as new objects (with new Element ID)");
                add("Global Scale"   , MEMBER(ConvertToAtlasClass, scale)).range(1.0f/8, 8).mouseEditMode(PROP_MOUSE_EDIT_SCALAR).changed(ChangedScale);
-      Rect r=::PropWin::create("Convert To Atlas"); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); mode.combobox.resize(Vec2(0.63f, 0));
+      Rect r=super::create("Convert To Atlas"); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); mode.combobox.resize(Vec2(0.63f, 0));
       autoData(this);
       T+=region.create(Rect_LU(0.02f, r.min.y-0.02f, 1.70f, 0.7f));
       T+=preview.create(Rect_LU(region.rect().ru()+Vec2(0.02f, 0), 0.7f));
@@ -573,7 +573,7 @@ Property &mode=add("Atlased Objects", MEMBER(ConvertToAtlasClass, mode)).setEnum
    }
    ConvertToAtlasClass& ConvertToAtlasClass::hide()
 {
-      ::PropWin::hide();
+      super::hide();
       mtrls.clear(); warning.hide(); // release memory, since we're releasing then we also need to hide the warning to prevent from converting on empty materials
       return T;
    }

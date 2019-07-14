@@ -283,12 +283,12 @@ VideoOptions VidOpt;
          props.New().create("Tex Lod"                    , MemberDesc(DATA_INT ).setFunc(TexLod       , TexLod       )).desc("Minimum Texture LOD usage").range(0, 14).mouseEditSpeed(1);
       #endif
 
-         ::PropWin::create("Advanced Video Options"); autoData(this); button[2].show();
+         super::create("Advanced Video Options"); autoData(this); button[2].show();
       }
       ::VideoOptions::Advanced& VideoOptions::Advanced::hide()
 {
          VidOpt.advanced_show.set(false, QUIET);
-         ::PropWin::hide();
+         super::hide();
          return T;
       }
    void VideoOptions::Mode(  VideoOptions &vo, C Str &t) {int m=TextInt(t); if(InRange(m, D.modes()))D.mode(D.modes()[m].x, D.modes()[m].y);}
@@ -381,10 +381,10 @@ VideoOptions VidOpt;
             #endif
       skin   =&props.New().create("Gui Skin"           , MemberDesc()).setEnum(); skin->combobox.func(SkinChanged, T).menu.setColumns(theme_list_column, Elms(theme_list_column), true).setData(skins, Elms(skins)); skin->combobox.text_size*=0.95f;
 
-      Rect r=::PropWin::create("Video Options", Vec2(0.02f, -0.02f), 0.041f, 0.050f, 0.27f); autoData(this); button[2].show();
+      Rect r=super::create("Video Options", Vec2(0.02f, -0.02f), 0.041f, 0.050f, 0.27f); autoData(this); button[2].show();
       skin->set(skinIndex(Gui.skin.id()), QUIET); // call after 'autoData'
       T+=advanced_show.create(Rect_U(clientWidth()/2, r.min.y-0.015f, 0.3f, 0.055f), "Advanced").func(ShowAdvanced, T); advanced_show.mode=BUTTON_TOGGLE;
-      ::EE::GuiObj::resize(Vec2(0, 0.07f));
+      super::resize(Vec2(0, 0.07f));
       setVis();
       pos(Vec2(D.w()-rect().w(), D.h()));
 
@@ -409,18 +409,18 @@ VideoOptions VidOpt;
 {
       Misc .vid_opt.set(true, QUIET);
       Projs.vid_opt.set(true, QUIET);
-      return ::EE::Window::show();
+      return super::show();
    }
    VideoOptions& VideoOptions::hide()
 {
       Misc .vid_opt.set(false, QUIET);
       Projs.vid_opt.set(false, QUIET);
-      ::PropWin::hide();
+      super::hide();
       return T;
    }
    void VideoOptions::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(visible())setTitle(S+"Video Options - "+TextReal(Time.fps(), 1)+" Fps");
    }
 VideoOptions::VideoOptions() : full(null), mode(null), shd(null), shd_siz(null), shd_num(null), shd_sft(null), shd_jit(null), bump(null), ao(null), skin(null), scale(1), scale_win(true) {}

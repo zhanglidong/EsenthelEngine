@@ -659,7 +659,7 @@ ImporterClass Importer;
          }
       }
    }
-   void ImporterClass::getResult(C MemPtr<UID> &elms, MemPtr<Edit::IDParam<Edit::RELOAD_RESULT> > results)
+   void ImporterClass::getResult(C MemPtr<UID> &elms, MemPtr<Edit::IDParam<Edit::RELOAD_RESULT>> results)
    {
       results.setNum(elms.elms()); // pre-alloc
       FREPA(results)
@@ -854,7 +854,7 @@ ImporterClass Importer;
                            Swap(temp.bones, import.skel.bones);
                         }
                         {
-                           Mems<Mems<IndexWeight> > weights; edit_skel.set(weights, import.skel, *skel, EditSkeleton::BONE_NAME_IS_NODE_INDEX);
+                           Mems<Mems<IndexWeight>> weights; edit_skel.set(weights, import.skel, *skel, EditSkeleton::BONE_NAME_IS_NODE_INDEX);
                            int root=edit_skel.root;
                            if(anim_data->flag&ElmAnim::ROOT_FROM_BODY) // if want from body, then override 'root' bone index, and set custom
                            {
@@ -937,7 +937,7 @@ ImporterClass Importer;
                      new_skel.transform(m); // !! transform after creating 'EditSkeleton' !!
 
                      // keep Skeleton params and set bone weights from new to old
-                     Mems<Mems<IndexWeight> > bone_weights; bone_weights.setNum(new_skel.bones.elms());
+                     Mems<Mems<IndexWeight>> bone_weights; bone_weights.setNum(new_skel.bones.elms());
                      {
                         // slots
                         new_skel.slots=old_skel->slots; REPA(new_skel.slots)
@@ -1207,7 +1207,7 @@ ImporterClass Importer;
                Swap(temp.bones, import.skel.bones);
             }
             {
-               Mems<Mems<IndexWeight> > weights; edit_skel.set(weights, import.skel, *skel, EditSkeleton::BONE_NAME_IS_NODE_INDEX);
+               Mems<Mems<IndexWeight>> weights; edit_skel.set(weights, import.skel, *skel, EditSkeleton::BONE_NAME_IS_NODE_INDEX);
                REPAO(import.anims).anim.adjustForSameTransformWithDifferentSkeleton(import.skel, *skel, edit_skel.root, weights, (edit_skel.rootZero() ? 0 : ROOT_BONE_POSITION|ROOT_START_IDENTITY));
             }
          }else

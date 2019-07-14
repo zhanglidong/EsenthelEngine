@@ -255,7 +255,7 @@ MiscRegion Misc;
 
       online_ts.reset().size=0.036f;
       flt w=0.55f, h=0.06f;
-      Gui+=::EE::Region::create(Rect_LU(0, 0,                      w,    h)).skin(&DarkSkin, false).hide().disabled(true); kb_lit=false;
+      Gui+=super    ::create(Rect_LU(0, 0,                      w,    h)).skin(&DarkSkin, false).hide().disabled(true); kb_lit=false;
       T  +=hide_proj.create(Rect_LU(0, 0,                  0.090f, 0.06f), "<<").func(HideProj, T).focusable(false).desc("Hide Project\nKeyboard Shortcut: Alt+1"); hide_proj.mode=BUTTON_TOGGLE;
       T  +=menu     .create(Rect_LU(hide_proj.rect().ru(), 0.060f, 0.06f), menu_menu).skin(&NoComboBoxImage).focusable(false).desc("Menu"); menu.text="M"; menu.text_align=0; menu.flag|=COMBOBOX_CONST_TEXT;
       T  +=vid_opt  .create(Rect_LU(menu     .rect().ru(), 0.060f, 0.06f)).func(VidOpt, T).focusable(false).desc(S+MLTC(u"Video Options", PL, u"Opcje Grafiki", DE, u"Grafik Optionen", RU, u"Настройки видео", PO, u"Opçőes de Video")+"\nKeyboard Shortcut: F12"); vid_opt.image="Gui/Misc/display.img"; vid_opt.mode=BUTTON_TOGGLE;
@@ -289,7 +289,7 @@ MiscRegion Misc;
    }
    void MiscRegion::update(C GuiPC &gpc)
 {
-      ::EE::Region::update(gpc);
+      super::update(gpc);
       if(screenshot && !--screenshot)Renderer.screenShots(SystemPath(SP_DESKTOP).tailSlash(true)+"Esenthel Editor ScreenShots/", "bmp");
    }
    void MiscRegion::draw(C GuiPC &gpc)
@@ -304,11 +304,11 @@ MiscRegion Misc;
             Color col=BackgroundColor(); //if(GuiSkin *skin=getSkin()){col=skin.region.normal_color; col.a=255;}
             r.draw(col);
          }
-         ::EE::Region::draw(gpc);
+         super::draw(gpc);
       }
    }
-   MiscRegion& MiscRegion::show(){::EE::GuiObj::show(); updateMove(); return T;}
-   MiscRegion& MiscRegion::hide(){::EE::GuiObj::hide(); updateMove(); return T;}
+   MiscRegion& MiscRegion::show(){super::show(); updateMove(); return T;}
+   MiscRegion& MiscRegion::hide(){super::hide(); updateMove(); return T;}
 MiscRegion::MiscRegion() : screenshot(0), pos(0, MiscOnTop) {}
 
 /******************************************************************************/

@@ -253,7 +253,7 @@ void DrawCopyElms()
       }
       void CopyElements::ReplaceElms::create()
       {
-         Gui+=::EE::Window::create(Rect_C(0, 0, 1.65f, 1.1f), "Replace elements").hide(); button[2].show();
+         Gui+=super ::create(Rect_C(0, 0, 1.65f, 1.1f), "Replace elements").hide(); button[2].show();
          T  +=text  .create(Rect_LU(0, 0, clientWidth(), 0.19f).extend(-0.02f), "Following elements already exist in target project.\nPlease select which elements should be copied and replace those in target project.\nThe elements that are not selected will not be copied."); text.auto_line=AUTO_LINE_SPACE_SPLIT;
          T  +=copy  .create(Rect_RD(clientWidth()-0.04f, -clientHeight()+0.04f, 0.25f, 0.06f), "Copy").func(Copy, T);
          T  +=region.create(Rect(0, copy.rect().max.y, clientWidth(), text.rect().min.y).extend(-0.04f));
@@ -316,7 +316,7 @@ void DrawCopyElms()
    }
    void CopyElements::create()
    {
-      Gui+=::EE::Window::create(Rect_C(0, 0, 1.8f, 1.1f), "Copy elements").hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
+      Gui+=super::create(Rect_C(0, 0, 1.8f, 1.1f), "Copy elements").hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
       T+=proj_region.create(Rect_RU(clientWidth()-0.04f, -0.10f, 0.5f, 0.82f));
       T+=elms_region.create(Rect   (0.04f, proj_region.rect().min.y, proj_region.rect().min.x-0.04f, proj_region.rect().max.y));
       T+=elms_text  .create(elms_region.rect().up()+Vec2(0, 0.04f), "Following elements will be copied");
@@ -656,7 +656,7 @@ void DrawCopyElms()
             proj_data.clear(); FREPA(Projs.proj_data){Projects::Elm &src=Projs.proj_data[i]; if(src.id!=Proj.id){if(src.id==target.id)cur=proj_data.elms(); proj_data.add(src);}} // add all except currently opened project, if there's a project to which we've copied last time, then select it
             proj_list.setData(proj_data); proj_list.setCur(proj_list.absToVis(cur)); // !! do not merge into one instruction !!
 
-            ::EE::GuiObj::activate();
+            super::activate();
          }
       }
    }

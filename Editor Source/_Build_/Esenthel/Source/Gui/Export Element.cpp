@@ -163,8 +163,8 @@ ExportWindow Export;
             case ELM_FILE: ext=GetExt(elm->srcFile()); break;
          }
          if(!supp_ext.is())supp_ext=ext;
-         if(!is())::EE::WindowIO::create().io(null, Save);
-         ::EE::WindowIO::ext(supp_ext).save().name(elm->name).textline.selectAll();
+         if(!is())super::create().io(null, Save);
+         super::ext(supp_ext).save().name(elm->name).textline.selectAll();
       }
    }
 ExportWindow::ExportWindow() : elm_id(UIDZero) {}

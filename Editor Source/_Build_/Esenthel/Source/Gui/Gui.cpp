@@ -335,12 +335,12 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
    ObjPtrs<PropEx> PropEx::props;
 /******************************************************************************/
    void       TextWhite::skinChanged() {resetColors(false);}
-   TextWhite& TextWhite::reset() {::EE::TextStyle::reset(false); return T;}
+   TextWhite& TextWhite::reset() {super::reset(false); return T;}
    TextWhite& TextWhite::operator=  (C TextStyle &ts) {SCAST(TextStyle, T)=ts; return T;}
    TextWhite::TextWhite() {texts.include(T);}
   TextWhite::~TextWhite() {texts.exclude(T);}
    void       TextBlack::skinChanged() {resetColors(true);}
-   TextBlack& TextBlack::reset() {::EE::TextStyle::reset(true); return T;}
+   TextBlack& TextBlack::reset() {super::reset(true); return T;}
    TextBlack& TextBlack::operator=  (C TextStyle &ts) {SCAST(TextStyle, T)=ts; return T;}
    TextBlack::TextBlack() {texts.include(T);}
   TextBlack::~TextBlack() {texts.exclude(T);}
@@ -353,14 +353,14 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
    GuiObj* TextNoTest::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel){return null;}
    void PropEx::Clear(PropEx &prop) {prop.clear();}
    bool PropEx::compatible(ELM_TYPE elm_type)C {return ElmCompatible(elm_type, T.elm_type);}
-   void    PropEx::setDesc(                        ) {Str d=_desc; if(elm_type)d.line()+=S+"Drag and drop "+ElmTypeName[elm_type]+" element here\nCtrl+LeftClick to open it"; ::EE::Property::desc(d);}
+   void    PropEx::setDesc(                        ) {Str d=_desc; if(elm_type)d.line()+=S+"Drag and drop "+ElmTypeName[elm_type]+" element here\nCtrl+LeftClick to open it"; super::desc(d);}
    PropEx& PropEx::desc(C Str &desc             ) {_desc=desc; setDesc(); return T;}
-   PropEx& PropEx::setEnum(                        ) {::EE::Property::setEnum(          ); return T;}
-   PropEx& PropEx::setEnum(cchar8 *data[], int elms) {::EE::Property::setEnum(data, elms); return T;}
-   PropEx& PropEx::setEnum(cchar  *data[], int elms) {::EE::Property::setEnum(data, elms); return T;}
+   PropEx& PropEx::setEnum(                        ) {super::setEnum(          ); return T;}
+   PropEx& PropEx::setEnum(cchar8 *data[], int elms) {super::setEnum(data, elms); return T;}
+   PropEx& PropEx::setEnum(cchar  *data[], int elms) {super::setEnum(data, elms); return T;}
    PropEx& PropEx::elmType(ELM_TYPE elm_type       ) {T.elm_type=elm_type; setDesc(); if(elm_type)button.create("C").func(Clear, T).desc(S+"Clear this "+((elm_type==ELM_ANY) ? "element" : ElmTypeName[elm_type])); return T;}
-   void    PropEx::clear(                        ) {::EE::Property::set(S);}
-            PropEx& PropEx::create(C Str &name, C MemberDesc &md) {::EE::Property::create(name, md    ); return T;}
+   void    PropEx::clear(                        ) {super::set(S);}
+            PropEx& PropEx::create(C Str &name, C MemberDesc &md) {super::create(name, md    ); return T;}
    void PropEx::dragStart(bool elm_types[ELM_NUM_ANY]) {textline.enabled(elm_types[elm_type]);}
    void PropEx::dragEnd(                           ) {textline.enabled(true               );}
    PropEx::PropEx() : elm_type(ELM_NONE) {props.include(T);}
@@ -368,7 +368,7 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
    Rect PropWin::create(C Str &name, C Vec2 &lu, C Vec2 &text_scale, flt property_height, flt value_width)
    {
       ts.reset().size=text_scale; ts.align.set(1, 0);
-      Gui+=::EE::Window::create(name).hide();
+      Gui+=super::create(name).hide();
       Rect rect =AddProperties(props, T, lu, property_height, value_width, &ts);
       flt  right=Max(rect.max.x, defaultBarFullWidth()+button[2].rect().w()); // here 'button[2]' is hidden so add it manually
       Vec2 padd =defaultInnerPaddingSize()+0.02f; T.rect(Rect_RD(D.w(), -D.h(), right+padd.x, -rect.min.y+padd.y));
@@ -380,23 +380,23 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
    PropWin& PropWin::autoData( ptr data) {REPAO(props).autoData(data); return T;}
    ptr PropWin::autoData()C {FREPA(props)if(ptr data=props[i].autoData())return data; return null;}
    PropWin& PropWin::changed(void (*changed)(C Property &prop), void (*pre_changed)(C Property &prop)) {REPAO(props).changed(changed, pre_changed); return T;}
-   PropWin& PropWin::hide(){::EE::Window::hide(); REPAO(props).close(); return T;}
+   PropWin& PropWin::hide(){super::hide(); REPAO(props).close(); return T;}
    void RenameElmClass::create()
    {
-      Gui+=::EE::Window::create(Rect_C(0, 0, 1, 0.14f), "Rename Element").level(1).hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
+      Gui+=super   ::create(Rect_C(0, 0, 1, 0.14f), "Rename Element").level(1).hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
       T  +=textline.create(Rect  (0, -clientHeight(), clientWidth(), 0).extend(-0.01f));
    }
    void RenameElmClass::activate(C UID &elm_id, C Str &name)
    {
       T.elm_id=elm_id;
       textline.set(name).selectAll().activate();
-      ::EE::GuiObj::activate();
+      super::activate();
    }
    void RenameElmClass::activate(C UID &elm_id) {activate(Proj.findElm(elm_id));}
    void RenameElmClass::activate(  Elm *elm   ) {if(elm)activate(elm->id, elm->name);}
    void RenameElmClass::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
 
       if(Gui.window()==this)
       {
@@ -406,18 +406,18 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
    void ReplaceNameClass::create()
    {
       flt y=-0.05f;
-      Gui+=::EE::Window::create(Rect_C(0, 0, 1, 0.23f), "Replace Name Part").level(1).hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
+      Gui+=super::create(Rect_C(0, 0, 1, 0.23f), "Replace Name Part").level(1).hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
       T+=t_from .create(Vec2(0.1f, y), "From"); T+=from.create(Rect(0.2f, y-0.03f, clientWidth()-0.01f, y+0.03f)); y-=0.07f;
       T+=t_to   .create(Vec2(0.1f, y), "To"  ); T+=to  .create(Rect(0.2f, y-0.03f, clientWidth()-0.01f, y+0.03f)); y-=0.07f;
    }
    void ReplaceNameClass::activate(C MemPtr<UID> &elm_ids)
    {
       T.elm_ids=elm_ids;
-      if(elm_ids.elms()){from.selectAll().activate(); ::EE::GuiObj::activate();}else button[2].push();
+      if(elm_ids.elms()){from.selectAll().activate(); super::activate();}else button[2].push();
    }
    void ReplaceNameClass::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
 
       if(Gui.window()==this)
       {
@@ -426,7 +426,7 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
    }
    void RenameSlotClass::create()
    {
-      Gui+=::EE::Window::create(Rect_C(0, 0, 1, 0.14f), "Rename Slot").hide(); button[2].show();
+      Gui+=super   ::create(Rect_C(0, 0, 1, 0.14f), "Rename Slot").hide(); button[2].show();
       T  +=textline.create(Rect  (0, -clientHeight(), clientWidth(), 0).extend(-0.01f));
    }
    void RenameSlotClass::activate(int slot)
@@ -436,12 +436,12 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
          slot_name =ObjEdit.mesh_skel->slots[slot].name;
          slot_index=0; for(int i=0; i<slot; i++)if(slot_name==ObjEdit.mesh_skel->slots[i].name)slot_index++;
          textline.set(slot_name).selectAll().activate();
-         ::EE::GuiObj::activate();
+         super::activate();
       }
    }
    void RenameSlotClass::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
 
       if(Gui.window()==this)
       {
@@ -450,7 +450,7 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
    }
    void RenameBoneClass::create()
    {
-      Gui+=::EE::Window::create(Rect_C(0, 0, 1, 0.14f), "Rename Bone").hide(); button[2].show();
+      Gui+=super   ::create(Rect_C(0, 0, 1, 0.14f), "Rename Bone").hide(); button[2].show();
       T  +=textline.create(Rect  (0, -clientHeight(), clientWidth(), 0).extend(-0.01f));
    }
    void RenameBoneClass::activate(int bone)
@@ -459,12 +459,12 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
       {
          bone_name=ObjEdit.mesh_skel->bones[bone].name;
          textline.set(bone_name).selectAll().activate();
-         ::EE::GuiObj::activate();
+         super::activate();
       }
    }
    void RenameBoneClass::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
 
       if(Gui.window()==this)
       {
@@ -474,7 +474,7 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
    void RenameEventClass::Hide(RenameEventClass &re) {re.hide(); AnimEdit.focus();}
    void RenameEventClass::create()
    {
-      Gui+=::EE::Window::create(Rect_C(0, 0, 1, 0.14f), "Rename Event").hide(); button[2].show().func(Hide, T);
+      Gui+=super   ::create(Rect_C(0, 0, 1, 0.14f), "Rename Event").hide(); button[2].show().func(Hide, T);
       T  +=textline.create(Rect  (0, -clientHeight(), clientWidth(), 0).extend(-0.01f));
    }
    void RenameEventClass::activate(int event)
@@ -484,12 +484,12 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
          event_name =AnimEdit.anim->events[event].name;
          event_index=0; for(int i=0; i<event; i++)if(event_name==AnimEdit.anim->events[i].name)event_index++;
          textline.set(event_name).selectAll().activate();
-         ::EE::GuiObj::activate();
+         super::activate();
       }
    }
    void RenameEventClass::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
 
       if(Gui.window()==this)
       {
@@ -517,7 +517,7 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
 
       ts.reset().align.set(1, 0);
 
-      Gui+=::EE::Window::create(Rect_C(0, 0, 1.0f, 0.7f), MLTC(u"New World", PL, u"Nowy Świat", DE, u"Neue Welt", RU, u"Новый мир", PO, u"Novo Mundo")).hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
+      Gui+=super::create(Rect_C(0, 0, 1.0f, 0.7f), MLTC(u"New World", PL, u"Nowy Świat", DE, u"Neue Welt", RU, u"Новый мир", PO, u"Novo Mundo")).hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
 
       T+=tname.create(Vec2(0.05f, -0.1f), "Name:", &ts);
       T+= name.create(Rect_L(clientWidth()/2+0.05f, -0.1f, 0.35f, 0.06f));
@@ -541,12 +541,12 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
          Proj.setMenuListSel();
          parent_id=(Proj.menu_list_sel.elms() ? Proj.menu_list_sel[0] : UIDZero);
          name.set(Proj.newElmName(ELM_WORLD, parent_id));
-         ::EE::GuiObj::activate();
+         super::activate();
       }
    }
    void NewWorldClass::update(C GuiPC &gpc)
    {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
 
       if(visible() && gpc.visible)
       {
@@ -557,7 +557,7 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
       void ModeTabs::TabEx::update(C GuiPC &gpc)
 {
          GuiSkinPtr temp; if(Mode.Gui_skin){Swap(temp, Gui.skin); Gui.skin=Mode.Gui_skin;} // restore Editor's Gui.skin before updating this Tab
-         ::EE::Button::update(gpc);
+         super::update(gpc);
          if(temp)Swap(Gui.skin, temp);
       }
       void ModeTabs::TabEx::draw(C GuiPC &gpc)
@@ -565,7 +565,7 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
          if(gpc.visible && visible())
          {
             GuiSkinPtr temp; if(Mode.Gui_skin){Swap(temp, Gui.skin); Gui.skin=Mode.Gui_skin;} // restore Editor's Gui.skin before drawing this Tab
-            ::EE::Button::draw(gpc);
+            super::draw(gpc);
             if(temp)Swap(Gui.skin, temp);
          }
       }
@@ -642,7 +642,7 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
    }
    void ModeTabs::create()
    {
-      Gui+=::EE::Tabs::create(ModeText, Elms(ModeText)).func(Changed, T).valid(true).hide();
+      Gui+=super::create(ModeText, Elms(ModeText)).func(Changed, T).valid(true).hide();
       Gui+=close.create().func(CloseActive, T).desc("Keyboard Shortcut: Alt+F3"); close.image="Gui/close.img"; close.skin=&EmptyGuiSkin;
       tab(MODE_OBJ     )+=    ObjEdit.create();
       tab(MODE_ANIM    )+=   AnimEdit.create();
@@ -665,8 +665,8 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
       int v=0; FREPA(T)if(tab(i).visible(visible && available[i]).visible()){tab(i).pos(Vec2(x, rect().max.y)); v++; tab(i).desc(S+"Keyboard Shortcut: "+Kb.ctrlCmdName()+"+F"+v); x+=tab(i).rect().w();}
       setCloseVisibility();
    }
-   Tabs& ModeTabs::rect(C Rect &rect){::EE::Tabs::rect(rect); setTabs(); return T;}
-   C Rect& ModeTabs::rect()C {return ::EE::Tabs::rect();}
+   Tabs& ModeTabs::rect(C Rect &rect){super::rect(rect); setTabs(); return T;}
+   C Rect& ModeTabs::rect()C {return super::rect();}
    void ModeTabs::resize()
    {
       flt l=-D.w(), r=D.w();
@@ -695,11 +695,11 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
    }
    bool ModeTabs::visibleTabs() {int v=0; REPA(T)v+=available[i]; return v>(ModeTabsAlwaysVisible ? 0 : 1);}
    Tab* ModeTabs::visibleTab(int t) {if(InRange(t, T))FREPA(T)if(tab(i).visible())if(!t--)return &tab(i); return null;}
-   GuiObj& ModeTabs::show(){setCloseVisibility(); return ::EE::GuiObj::show();}
-   GuiObj& ModeTabs::hide(){close.hide        (); return ::EE::GuiObj::hide();}
+   GuiObj& ModeTabs::show(){setCloseVisibility(); return super::show();}
+   GuiObj& ModeTabs::hide(){close.hide        (); return super::hide();}
    void ModeTabs::update(C GuiPC &gpc)
 {
-      ::EE::Tabs::update(gpc);
+      super::update(gpc);
       if(visible() && gpc.visible && Ms.bp(2))REPA(T)if(Gui.ms()==&tab(i)) // close Tab on middle mouse
       {
          closeTab(i, true);
@@ -713,7 +713,7 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
          if(visibleTabs()){D.clip(gpc.clip); (rect()+gpc.offset).draw(BackgroundColorLight());}
          bool gui=(T()==MODE_GUI);
          if(gui){Gui_skin=Gui.skin; if(GuiSkinPtr app_skin=Proj.appGuiSkin())Swap(app_skin, Gui.skin);}
-         ::EE::Tabs::draw(gpc);
+         super::draw(gpc);
          if(gui){Swap(Gui.skin, Gui_skin); Gui_skin.clear();}
       }
    }
@@ -754,7 +754,7 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
       win_io.hide(); T-=text; T-=path; T-=path_sel; T-=yes; T-=t_name; T-=name; T-=set_start_frame; T-=set_end_frame; T-=set_speed; T-=set_optimize; T-=mirror; T-=start_frame; T-=end_frame; T-=speed; T-=optimize;
       rect(Rect_C(0, 0, 1, 0.36f)); T+=text_all; T+=yes_all;
       Swap(elms, T.elms);
-      ::EE::GuiObj::activate();
+      super::activate();
    }
    void ReloadElmClass::activate(C UID &elm_id) // single element
    {
@@ -793,13 +793,13 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
             }break;
          }
          path.set(Edit::FileParams::Encode(files));
-         ::EE::GuiObj::activate();
+         super::activate();
       }
    }
    ReloadElmClass& ReloadElmClass::hide()
 {
       win_io.hide();
-      ::EE::Window::hide();
+      super::hide();
       return T;
    }
    void ReloadElmClass::ToggleStart(ReloadElmClass &re) {re.start_frame.visible(re.set_start_frame());}
@@ -809,7 +809,7 @@ ConvertToDeAtlas.drag(elms, obj, screen_pos);
    void ReloadElmClass::create()
    {
       cchar8 *speed_t="Set custom speed factor, default=1", *optimize_t="Set custom keyframe optimization (reduction) factor, default=1\nIf not specified, then optimization of 1 is applied.\nValue of 0 completely disables keyframe reduction.";
-      Gui+=::EE::Window::create("Reload Elements").hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
+      Gui+=super::create("Reload Elements").hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
       text_all .create(Vec2  (0.5f  , -0.09f), "Are you sure you wish to reload all selected\nelements from their original files?");
       text     .create(Vec2  (0.7f  , -0.09f), "Are you sure you wish to reload selected\nelement from its original file?");
       path     .create(Rect_C(0.675f, -0.20f, 1.3f , 0.055f));
@@ -827,7 +827,7 @@ set_optimize   .create(Rect_L(0.98f, -0.328f, 0.25f, 0.0475f), "Set Optimize"   
    }
    void ReloadElmClass::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
 
       if(Gui.window()==this)
       {
@@ -838,11 +838,11 @@ set_optimize   .create(Rect_L(0.98f, -0.328f, 0.25f, 0.0475f), "Set Optimize"   
       Str ImportCodeClass::Update::AsText(C Update &code) {return Proj.elmFullName(code.id);}
    void ImportCodeClass::No(ImportCodeClass &is) {            is.del();}
    void ImportCodeClass::Yes(ImportCodeClass &is) {is.apply(); is.del();}
-   Rect ImportCodeClass::sizeLimit()C {Rect size=::EE::Window::sizeLimit(); size.min.set(0.9f, 0.5f); return size;}
-                    C Rect& ImportCodeClass::rect()C {return ::EE::Window::rect();}
+   Rect ImportCodeClass::sizeLimit()C {Rect size=super::sizeLimit(); size.min.set(0.9f, 0.5f); return size;}
+                    C Rect& ImportCodeClass::rect()C {return super::rect();}
    ImportCodeClass& ImportCodeClass::rect(C Rect &rect)
 {
-      ::EE::Window::rect(rect);
+      super ::rect(rect);
       text  .rect(Vec2(clientWidth()/2, -0.10f));
       region.rect(Rect_LU(0, -0.14f, clientWidth(), clientHeight()-0.205f).extend(-0.05f));
       yes   .rect(Rect_C(clientWidth()*0.3f, -clientHeight()+0.06f, 0.25f, 0.06f));
@@ -866,7 +866,7 @@ set_optimize   .create(Rect_L(0.98f, -0.328f, 0.25f, 0.0475f), "Set Optimize"   
    {
       if(updates.elms())
       {
-         Gui+=::EE::Window::create("Code Import"); button[2].func(No, T).show(); flag|=WIN_RESIZABLE;
+         Gui+=super ::create("Code Import"); button[2].func(No, T).show(); flag|=WIN_RESIZABLE;
          T  +=text  .create("Are you sure you wish to import codes\nfrom Code Synchronization folder?\nFollowing files will be modified:");
          T  +=region.create();
          T  +=yes   .create("OK"    ).func(Yes, T);
@@ -896,7 +896,7 @@ set_optimize   .create(Rect_L(0.98f, -0.328f, 0.25f, 0.0475f), "Set Optimize"   
       add("Blue" , MEMBER(SetMtrlColorClass, rgb.z)).range(0, 4);
       autoData(this);
 
-      Rect r=::PropWin::create(S, Vec2(0.02f, -0.02f), 0.04f, 0.045f, 0.2f); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); hide();
+      Rect r=super::create(S, Vec2(0.02f, -0.02f), 0.04f, 0.045f, 0.2f); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); hide();
       T+=ok.create(Rect_U(clientWidth()/2, r.min.y-0.03f, 0.25f, 0.053f), "OK").func(OK, T);
       rect(Rect_C(0, size()+Vec2(0, 0.09f)));
    }
@@ -909,7 +909,7 @@ set_optimize   .create(Rect_L(0.98f, -0.328f, 0.25f, 0.0475f), "Set Optimize"   
    }
    void SetMtrlColorClass::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(Gui.window()==this && Kb.k(KB_ENTER))
       {
          Kb.eatKey();
@@ -926,7 +926,7 @@ set_optimize   .create(Rect_L(0.98f, -0.328f, 0.25f, 0.0475f), "Set Optimize"   
       add("Volume", MEMBER(MulSoundVolumeClass, volume)).range(0, 10);
       autoData(this);
 
-      Rect r=::PropWin::create("Multiply Sound Volume", Vec2(0.02f, -0.02f), 0.04f, 0.045f, 0.2f); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); hide();
+      Rect r=super::create("Multiply Sound Volume", Vec2(0.02f, -0.02f), 0.04f, 0.045f, 0.2f); button[2].func(HideProjAct, SCAST(GuiObj, T)).show(); hide();
       T+=ok.create(Rect_U(clientWidth()/2, r.min.y-0.03f, 0.25f, 0.053f), "OK").func(OK, T);
       rect(Rect_C(0, size()+Vec2(0, 0.09f)));
    }
@@ -937,7 +937,7 @@ set_optimize   .create(Rect_L(0.98f, -0.328f, 0.25f, 0.0475f), "Set Optimize"   
    }
    void MulSoundVolumeClass::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(Gui.window()==this && Kb.k(KB_ENTER))
       {
          Kb.eatKey();
@@ -952,7 +952,7 @@ set_optimize   .create(Rect_L(0.98f, -0.328f, 0.25f, 0.0475f), "Set Optimize"   
       }
    void EraseRemovedElms::create()
    {
-      Gui+=::EE::Window::create(Rect_C(0, 0, 1.44f, 1.5f), "Erase Removed Elements").hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
+      Gui+=super ::create(Rect_C(0, 0, 1.44f, 1.5f), "Erase Removed Elements").hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
       T  +=text  .create(Rect_C(clientWidth()/2  , -0.15f, clientWidth()-0.05f, 0.1f), "Are you sure you wish to erase all removed elements from the project?\nWarning: This operation cannot be undone!\n\nThis will remove files only from the local computer - when connected to server it will redownload the elements."); text.auto_line=AUTO_LINE_SPACE_SPLIT;
       T  +=ok    .create(Rect_C(clientWidth()*1/3, -0.34f, 0.29f, 0.07f), "OK"    ).func(OK         ,               T ).focusable(false);
       T  +=cancel.create(Rect_C(clientWidth()*2/3, -0.34f, 0.29f, 0.07f), "Cancel").func(HideProjAct, SCAST(GuiObj, T)).focusable(false);
@@ -971,7 +971,7 @@ set_optimize   .create(Rect_L(0.98f, -0.328f, 0.25f, 0.0475f), "Set Optimize"   
          data.clear();
          FREPA(remove)if(::Elm *elm=Proj.findElm(remove[i]))if(ElmVisible(elm->type))data.New().create(*elm);
          list.setData(data);
-         ::EE::Window::show();
+         super::show();
       }
       return T;
    }
@@ -979,11 +979,11 @@ set_optimize   .create(Rect_L(0.98f, -0.328f, 0.25f, 0.0475f), "Set Optimize"   
 {
       list.clear();
       data.clear();
-      ::EE::Window::hide(); return T;
+      super::hide(); return T;
    }
    void EraseRemovedElms::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(Ms.bd(0) && Gui.ms()==&list)if(Elm *elm=list())Proj.elmToggle(elm->id);
    }
    void ProjectLocked::OK(ProjectLocked &pl)
@@ -994,7 +994,7 @@ set_optimize   .create(Rect_L(0.98f, -0.328f, 0.25f, 0.0475f), "Set Optimize"   
    void ProjectLocked::create(C UID &proj_id)
    {
       T.proj_id=proj_id;
-      Gui+=::EE::Window::create(Rect_C(0, 0, 1.59f, 0.38f), "Project Already Opened"); button[2].show();
+      Gui+=super ::create(Rect_C(0, 0, 1.59f, 0.38f), "Project Already Opened"); button[2].show();
       T  +=text  .create(Rect_C(clientWidth()/2  , -0.10f, clientWidth()-0.08f, 0.1f), "This project appears to be already opened in another instance of the Editor.\nOpening the same project in multiple instances of the Editor may corrupt its data.\nWould you like to open it anyway?"); text.auto_line=AUTO_LINE_SPACE_SPLIT;
       T  +=ok    .create(Rect_C(clientWidth()*1/3, -0.25f, 0.29f, 0.07f), "OK"    ).func(OK  ,               T ).focusable(false);
       T  +=cancel.create(Rect_C(clientWidth()*2/3, -0.25f, 0.29f, 0.07f), "Cancel").func(Hide, SCAST(GuiObj, T)).focusable(false);
@@ -1004,7 +1004,7 @@ set_optimize   .create(Rect_L(0.98f, -0.328f, 0.25f, 0.0475f), "Set Optimize"   
    void ElmProperties::Explore(ElmProperties &ep) {if(Elm *elm=Proj.findElm(ep.elm_id))Proj.explore(*elm);}
    void ElmProperties::create()
    {
-      Gui+=::EE::Window::create(Rect_C(0, 0, 1.3f, 0.47f)).hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
+      Gui+=super::create(Rect_C(0, 0, 1.3f, 0.47f)).hide(); button[2].func(HideProjAct, SCAST(GuiObj, T)).show();
       ts.reset().size=0.046f; ts.align.set(1, 0); ts_small=ts; ts_small.size=0.04f; ts_small.align.set(1, -1);
       T+=t_id   .create(Vec2(0.02f, -0.05f), "ID:"       , &ts); T+=id   .create(Vec2(0.23f, -0.03f), S, &ts_small); T+=b_id  .create(Rect_R(clientWidth()-0.02f, -0.05f, 0.15f, 0.05f), "Copy").func(CopyID  , T).desc(S+"Element ID can be accessed in additional ways:\n- Drag and drop the element to the codes to insert its ID at that location\n- "+Kb.ctrlCmdName()+"+RightClick the element to copy its ID to current location in codes\n- "+Kb.ctrlCmdName()+"+MiddleClick the element to copy its ID to system clipboard");
       T+=t_file .create(Vec2(0.02f, -0.12f), "File ID:"  , &ts); T+=file .create(Vec2(0.23f, -0.10f), S, &ts_small); T+=b_file.create(Rect_R(clientWidth()-0.02f, -0.12f, 0.15f, 0.05f), "Copy").func(CopyFile, T);

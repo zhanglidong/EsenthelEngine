@@ -16,13 +16,13 @@ Memx<ImportTerrainTask> ImportTerrainTasks;
       ::ImportTerrainClass::GuiImage2& ImportTerrainClass::GuiImage2::create(C Rect &rect, bool mono)
       {
          T.mono=mono;
-         ::EE::GuiImage::create(rect, &image_hw).desc("Drag and drop an image here,\nor click to select one.");
+         super::create(rect, &image_hw).desc("Drag and drop an image here,\nor click to select one.");
          wio.create(S, S, S, Load, Load, T).ext(SUPPORTED_IMAGE_EXT, "Image");
          return T;
       }
       void ImportTerrainClass::GuiImage2::update(C GuiPC &gpc)
 {
-         ::EE::GuiObj::update(gpc);
+         super::update(gpc);
          REPA(MT)if(MT.bp(i) && MT.guiObj(i)==this)wio.activate();
       }
       void ImportTerrainClass::GuiImage2::draw(C GuiPC &gpc)
@@ -66,7 +66,7 @@ Memx<ImportTerrainTask> ImportTerrainTasks;
       }
       ::ImportTerrainClass::MaterialChannel& ImportTerrainClass::MaterialChannel::create(C Rect &rect, Color rect_color, C Str &desc)
       {
-         ::EE::GuiImage::create(rect).desc(desc);
+         super::create(rect).desc(desc);
          T.rect_color=rect_color;
          remove.create(Rect_RU(rect.ru(), 0.035f, 0.035f)).func(Clear, T); remove.image="Gui/close.img";
          alpha_mode=ALPHA_NONE;
@@ -74,7 +74,7 @@ Memx<ImportTerrainTask> ImportTerrainTasks;
       }
       void ImportTerrainClass::MaterialChannel::update(C GuiPC &gpc)
 {
-         ::EE::GuiObj::update(gpc);
+         super::update(gpc);
          remove.visible(mtrl_id.valid() && (Gui.ms()==this || Gui.ms()==&remove));
       }
    void ImportTerrainClass::HeightModeChanged(ImportTerrainClass &it) {if(it.height_prop.elms())it.height_prop[0].visible(it.height_mode()==0);}
@@ -119,7 +119,7 @@ Memx<ImportTerrainTask> ImportTerrainTasks;
    {
       ts.reset().size=0.04f; ts_r=ts_l=ts; ts_r.align.set(1, 0); ts_l.align.set(-1, 0); ts.align.set(0, -1);
       flt x=0, y=-0.04f, h=0.05f, height_w=0.4f, mtrl_w=0.5f, color_w=0.4f;
-      Gui+=::EE::Window::create(Rect_C(0, 0, height_w+mtrl_w+color_w, 1.06f), "Import Heightmap").hide(); button[2].show();
+      Gui+=super::create(Rect_C(0, 0, height_w+mtrl_w+color_w, 1.06f), "Import Heightmap").hide(); button[2].show();
       cchar8 *pos_mode_t[]={"Radius", "Size", "Target"};
       T+=world_area_coords_t.create(Vec2(0.25f, y), "World area coordinates:", &ts);
       T+=pos_mode.create(Rect_LU(0.04f, y, 0.4f, 0.055f), 0, pos_mode_t, Elms(pos_mode_t), true).valid(true).set(0);
@@ -213,7 +213,7 @@ Memx<ImportTerrainTask> ImportTerrainTasks;
    }
    void ImportTerrainClass::update(C GuiPC &gpc)
 {
-      ::EE::ClosableWindow::update(gpc);
+      super::update(gpc);
       if(ImportTerrainTasks.elms())
       {
          const uint time=Time.curTimeMs(), delay=16; // 1000ms/60fps
@@ -227,7 +227,7 @@ Memx<ImportTerrainTask> ImportTerrainTasks;
    void ImportTerrainTask::Stop(ImportTerrainTask &it) {ImportTerrainTasks.removeData(&it, true);}
    void ImportTerrainTask::create(ImportTerrainClass &it)
    {
-      Gui+=::EE::Window::create(Rect_C(0, 0, 1, 0.10f), "Import Heightmap Task"); button[2].show().func(Stop, T);
+      Gui+=super::create(Rect_C(0, 0, 1, 0.10f), "Import Heightmap Task"); button[2].show().func(Stop, T);
       T+=progress.create(Rect_LU(0, 0, clientWidth(), clientHeight()).extend(-0.01f));
 
       area_rect=it.areaRect();

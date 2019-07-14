@@ -47,7 +47,7 @@
    void EditTextStyle::create(C TextStyle &src, C UID &font, C TimeStamp &time)
    {
       SCAST(TextStyle, T)=src;
-      ::EE::TextStyle::font(null);
+      super::font(null);
           T.font=font;
       shadow_time=shade_time=color_time=selection_time=align_time=size_time=space_time=spacing_time=font_time=time;
    }
@@ -59,7 +59,7 @@
    bool EditTextStyle::save(File &f)C
    {
       f.cmpUIntV(2);
-      ::EE::TextStyle::save(f);
+      super::save(f);
       f<<font<<shadow_time<<shade_time<<color_time<<selection_time<<align_time<<size_time<<space_time<<spacing_time<<font_time;
       return f.ok();
    }
@@ -67,19 +67,19 @@
    {
       reset(); switch(f.decUIntV())
       {
-         case 2: if(::EE::TextStyle::load(f))
+         case 2: if(super::load(f))
          {
             f>>font>>shadow_time>>shade_time>>color_time>>selection_time>>align_time>>size_time>>space_time>>spacing_time>>font_time;
             if(f.ok())return true;
          }break;
 
-         case 1: if(::EE::TextStyle::load(f))
+         case 1: if(super::load(f))
          {
             f>>font>>shadow_time>>shade_time>>color_time>>selection_time>>align_time>>size_time>>space_time>>font_time;
             if(f.ok())return true;
          }break;
 
-         case 0: if(::EE::TextStyle::load(f))
+         case 0: if(super::load(f))
          {
             f>>font>>shadow_time>>shade_time>>color_time>>align_time>>size_time>>space_time>>font_time;
             if(f.ok())return true;

@@ -244,18 +244,18 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       ovrAccess(FlagTest(params.flag, EditObject::OVR_ACCESS)); terrain (params.access==OBJ_ACCESS_TERRAIN);
       ovrPath  (FlagTest(params.flag, EditObject::OVR_PATH  )); pathSelf(params.path                      );
    }
-   uint ElmObjClass::undo(C ElmObjClass &src) {return ::ElmData::undo(src);}
-   uint ElmObjClass::sync(C ElmObjClass &src) {return ::ElmData::sync(src);}
+   uint ElmObjClass::undo(C ElmObjClass &src) {return super::undo(src);}
+   uint ElmObjClass::sync(C ElmObjClass &src) {return super::sync(src);}
    bool ElmObjClass::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(0);
       f<<flag;
       return f.ok();
    }
    bool ElmObjClass::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 0:
          {
@@ -267,7 +267,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmObjClass::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
       if(ovrAccess())nodes.New().set("OverrideAccess");
       if(ovrPath  ())nodes.New().set("OverridePath"  );
                      nodes.New().set("Terrain", terrain ());
@@ -275,7 +275,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmObjClass::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -285,36 +285,36 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          if(n.name=="Path"          )pathSelf ((OBJ_PATH)n.asUInt ());
       }
    }
-   bool ElmObj::equal(C ElmObj &src)C {return ::ElmData::equal(src) && EqualID(mesh_id, src.mesh_id);}
-   bool ElmObj::newer(C ElmObj &src)C {return ::ElmData::newer(src) || NewerID(mesh_id, src.mesh_id);}
+   bool ElmObj::equal(C ElmObj &src)C {return super::equal(src) && EqualID(mesh_id, src.mesh_id);}
+   bool ElmObj::newer(C ElmObj &src)C {return super::newer(src) || NewerID(mesh_id, src.mesh_id);}
    void ElmObj::clearLinked(){mesh_id.zero();}
    uint ElmObj::undo(C ElmObj &src)
    {
-      uint   changed =::ElmObjClass::undo(src);
+      uint   changed =super::undo(src);
              changed|=UndoID(mesh_id, src.mesh_id)*CHANGE_NORMAL;
       return changed; // don't adjust 'ver' here because it also relies on 'EditObject', because of that this is included in 'ElmFileInShort'
    }
    uint ElmObj::sync(C ElmObj &src)
    {
-      uint   changed =::ElmObjClass::sync(src);
+      uint   changed =super::sync(src);
              changed|=SyncID(mesh_id, src.mesh_id)*CHANGE_NORMAL;
       return changed; // don't adjust 'ver' here because it also relies on 'EditObject', because of that this is included in 'ElmFileInShort'
    }
    void ElmObj::from(C EditObject &params)
    {
-      ::ElmObjClass::from(params);
+      super::from(params);
       base_id=params.base.id();
    }
    bool ElmObj::save(File &f)C 
 {
-      ::ElmObjClass::save(f);
+      super::save(f);
       f.cmpUIntV(0);
       f<<mesh_id<<base_id;
       return f.ok();
    }
    bool ElmObj::load(File &f)
 {
-      if(::ElmObjClass::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 0:
          {
@@ -326,13 +326,13 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmObj::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmObjClass::save(nodes);
+      super::save(nodes);
       if(mesh_id.valid())nodes.New().setFN("Mesh", mesh_id);
       if(base_id.valid())nodes.New().setFN("Base", base_id);
    }
    void ElmObj::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmObjClass::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -340,8 +340,8 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          if(n.name=="Base")n.getValue(base_id);
       }
    }
-   bool ElmMesh::equal(C ElmMesh &src)C {return ::ElmData::equal(src) && file_time==src.file_time && body_time==src.body_time && draw_group_time==src.draw_group_time && transform_time==src.transform_time && EqualID(obj_id, src.obj_id) && EqualID(skel_id, src.skel_id) && EqualID(phys_id, src.phys_id);}
-   bool ElmMesh::newer(C ElmMesh &src)C {return ::ElmData::newer(src) || file_time> src.file_time || body_time> src.body_time || draw_group_time> src.draw_group_time || transform_time> src.transform_time || NewerID(obj_id, src.obj_id) || NewerID(skel_id, src.skel_id) || NewerID(phys_id, src.phys_id);}
+   bool ElmMesh::equal(C ElmMesh &src)C {return super::equal(src) && file_time==src.file_time && body_time==src.body_time && draw_group_time==src.draw_group_time && transform_time==src.transform_time && EqualID(obj_id, src.obj_id) && EqualID(skel_id, src.skel_id) && EqualID(phys_id, src.phys_id);}
+   bool ElmMesh::newer(C ElmMesh &src)C {return super::newer(src) || file_time> src.file_time || body_time> src.body_time || draw_group_time> src.draw_group_time || transform_time> src.transform_time || NewerID(obj_id, src.obj_id) || NewerID(skel_id, src.skel_id) || NewerID(phys_id, src.phys_id);}
    bool ElmMesh::mayContain(C UID &id)C {return id==obj_id || id==skel_id || id==phys_id || id==body_id || id==draw_group_id || mtrl_ids.binaryHas(id);}
    void ElmMesh::clearLinked(){obj_id.zero(); skel_id.zero(); phys_id.zero();}
    flt  ElmMesh::posScale()C {return 1/transform.scale;}
@@ -349,7 +349,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    bool ElmMesh::canHaveCustomTransform()C {return !body_id.valid();}
    void ElmMesh::newData()
 {
-      ::ElmData::newData();
+      super::newData();
       file_time++;
       body_time++;
       draw_group_time++;
@@ -386,7 +386,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    uint ElmMesh::undo(C ElmMesh &src)
    {
-      uint changed=::ElmData::undo(src);
+      uint changed=super::undo(src);
 
       changed|=UndoID( obj_id, src. obj_id)*CHANGE_NORMAL;
       changed|=UndoID(skel_id, src.skel_id)*CHANGE_AFFECT_FILE;
@@ -400,7 +400,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    uint ElmMesh::sync(C ElmMesh &src)
    {
-      uint changed=::ElmData::sync(src);
+      uint changed=super::sync(src);
 
       changed|=SyncID( obj_id, src. obj_id)*CHANGE_NORMAL;
       changed|=SyncID(skel_id, src.skel_id)*CHANGE_AFFECT_FILE;
@@ -423,7 +423,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmMesh::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(2);
       f<<transform<<obj_id<<skel_id<<body_id<<phys_id<<draw_group_id; f.cmpUIntV(mtrl_ids.elms()); FREPA(mtrl_ids)f<<mtrl_ids[i]; f<<box;
       f<<file_time<<body_time<<transform_time<<draw_group_time;
@@ -431,7 +431,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmMesh::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 2:
          {
@@ -460,7 +460,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmMesh::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
                                nodes.New().setRaw("Pose"         , transform);
                                nodes.New().setRaw("Box"          , box      );
       if(       obj_id.valid())nodes.New().setFN ("Object"       ,  obj_id  );
@@ -480,7 +480,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmMesh::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -504,8 +504,8 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          }
       }
    }
-   bool ElmMaterial::equal(C ElmMaterial &src)C {return ::ElmData::equal(src);}
-   bool ElmMaterial::newer(C ElmMaterial &src)C {return ::ElmData::newer(src);}
+   bool ElmMaterial::equal(C ElmMaterial &src)C {return super::equal(src);}
+   bool ElmMaterial::newer(C ElmMaterial &src)C {return super::newer(src);}
    bool ElmMaterial::usesTexAlpha()C {return FlagTest(flag, USES_TEX_ALPHA);}
    void ElmMaterial::usesTexAlpha(bool on) {return FlagSet(flag, USES_TEX_ALPHA, on);}
    bool ElmMaterial::usesTexBump()C {return FlagTest(flag, USES_TEX_BUMP );}
@@ -557,24 +557,24 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    uint ElmMaterial::undo(C ElmMaterial &src) // don't undo 'downsize_tex_mobile', 'flag' because they should be set only in 'from'
    {
-      uint   changed=::ElmData::undo(src);
+      uint   changed=super::undo(src);
       return changed; // don't adjust 'ver' here because it also relies on 'EditMaterial', because of that this is included in 'ElmFileInShort'
    }
    uint ElmMaterial::sync(C ElmMaterial &src) // don't sync 'downsize_tex_mobile', 'flag' because they should be set only in 'from'
    {
-      uint   changed=::ElmData::sync(src);
+      uint   changed=super::sync(src);
       return changed; // don't adjust 'ver' here because it also relies on 'EditMaterial', because of that this is included in 'ElmFileInShort'
    }
    bool ElmMaterial::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(4);
       f<<base_0_tex<<base_1_tex<<detail_tex<<macro_tex<<reflection_tex<<light_tex<<downsize_tex_mobile<<flag;
       return f.ok();
    }
    bool ElmMaterial::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 4:
          {
@@ -610,7 +610,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmMaterial::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
       if(    base_0_tex.valid())nodes.New().setFN("Base0"            ,     base_0_tex);
       if(    base_1_tex.valid())nodes.New().setFN("Base1"            ,     base_1_tex);
       if(    detail_tex.valid())nodes.New().setFN("Detail"           ,     detail_tex);
@@ -625,7 +625,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmMaterial::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -642,8 +642,8 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          if(n.name=="UsesTexGlow"      )FlagSet(flag, USES_TEX_GLOW , n.asBool1());
       }
    }
-   bool ElmWaterMtrl::equal(C ElmMaterial &src)C {return ::ElmData::equal(src);}
-   bool ElmWaterMtrl::newer(C ElmMaterial &src)C {return ::ElmData::newer(src);}
+   bool ElmWaterMtrl::equal(C ElmMaterial &src)C {return super::equal(src);}
+   bool ElmWaterMtrl::newer(C ElmMaterial &src)C {return super::newer(src);}
    bool ElmWaterMtrl::usesTexAlpha()C {return FlagTest(flag, USES_TEX_ALPHA);}
    void ElmWaterMtrl::usesTexAlpha(bool on) {return FlagSet(flag, USES_TEX_ALPHA, on);}
    bool ElmWaterMtrl::usesTexBump()C {return FlagTest(flag, USES_TEX_BUMP );}
@@ -658,8 +658,8 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    {
       FlagSet(flag, TEX_QUALITY_HI, q>0);
    }
-   bool ElmWaterMtrl::equal(C ElmWaterMtrl &src)C {return ::ElmData::equal(src);}
-   bool ElmWaterMtrl::newer(C ElmWaterMtrl &src)C {return ::ElmData::newer(src);}
+   bool ElmWaterMtrl::equal(C ElmWaterMtrl &src)C {return super::equal(src);}
+   bool ElmWaterMtrl::newer(C ElmWaterMtrl &src)C {return super::newer(src);}
    bool ElmWaterMtrl::mayContain(C UID &id)C {return false;}
    bool ElmWaterMtrl::containsTex(C UID &id, bool test_merged)C 
 {
@@ -687,18 +687,18 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       usesTexGlow (src.usesTexGlow ());
       texQuality  (src.tex_quality   );
    }
-   uint ElmWaterMtrl::undo(C ElmWaterMtrl &src) {return ::ElmData::undo(src);}
-   uint ElmWaterMtrl::sync(C ElmWaterMtrl &src) {return ::ElmData::sync(src);}
+   uint ElmWaterMtrl::undo(C ElmWaterMtrl &src) {return super::undo(src);}
+   uint ElmWaterMtrl::sync(C ElmWaterMtrl &src) {return super::sync(src);}
    bool ElmWaterMtrl::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(1);
       f<<base_0_tex<<base_1_tex<<reflection_tex<<flag;
       return f.ok();
    }
    bool ElmWaterMtrl::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 1:
          {
@@ -716,7 +716,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmWaterMtrl::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
       if(    base_0_tex.valid())nodes.New().setFN("Base0"       ,     base_0_tex);
       if(    base_1_tex.valid())nodes.New().setFN("Base1"       ,     base_1_tex);
       if(reflection_tex.valid())nodes.New().setFN("Reflection"  , reflection_tex);
@@ -727,7 +727,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmWaterMtrl::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -740,21 +740,21 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          if(n.name=="UsesTexGlow" )FlagSet(flag, USES_TEX_GLOW , n.asBool1());
       }
    }
-   bool ElmPhysMtrl::equal(C ElmPhysMtrl &src)C {return ::ElmData::equal(src);}
-   bool ElmPhysMtrl::newer(C ElmPhysMtrl &src)C {return ::ElmData::newer(src);}
+   bool ElmPhysMtrl::equal(C ElmPhysMtrl &src)C {return super::equal(src);}
+   bool ElmPhysMtrl::newer(C ElmPhysMtrl &src)C {return super::newer(src);}
    bool ElmPhysMtrl::mayContain(C UID &id)C {return false;}
    void ElmPhysMtrl::from(C EditPhysMtrl &src) {}
-   uint ElmPhysMtrl::undo(C  ElmPhysMtrl &src) {return ::ElmData::undo(src);}
-   uint ElmPhysMtrl::sync(C  ElmPhysMtrl &src) {return ::ElmData::sync(src);}
+   uint ElmPhysMtrl::undo(C  ElmPhysMtrl &src) {return super::undo(src);}
+   uint ElmPhysMtrl::sync(C  ElmPhysMtrl &src) {return super::sync(src);}
    bool ElmPhysMtrl::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(0);
       return f.ok();
    }
    bool ElmPhysMtrl::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 0:
          {
@@ -765,28 +765,28 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmPhysMtrl::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
    }
    void ElmPhysMtrl::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
       }
    }
-   bool ElmSkel::equal(C ElmSkel &src)C {return ::ElmData::equal(src) && file_time==src.file_time && EqualID(mesh_id, src.mesh_id);}
-   bool ElmSkel::newer(C ElmSkel &src)C {return ::ElmData::newer(src) || file_time> src.file_time || NewerID(mesh_id, src.mesh_id);}
+   bool ElmSkel::equal(C ElmSkel &src)C {return super::equal(src) && file_time==src.file_time && EqualID(mesh_id, src.mesh_id);}
+   bool ElmSkel::newer(C ElmSkel &src)C {return super::newer(src) || file_time> src.file_time || NewerID(mesh_id, src.mesh_id);}
    bool ElmSkel::mayContain(C UID &id)C {return id==mesh_id;}
    void ElmSkel::clearLinked(         )  {mesh_id.zero();}
    void ElmSkel::newData()
 {
-      ::ElmData::newData();
+      super::newData();
       file_time++;
    }
    uint ElmSkel::undo(C ElmSkel &src)
    {
-      uint changed=::ElmData::undo(src);
+      uint changed=super::undo(src);
 
       changed|=UndoID(mesh_id, src.mesh_id)*CHANGE_NORMAL;
 
@@ -795,7 +795,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    uint ElmSkel::sync(C ElmSkel &src)
    {
-      uint changed=::ElmData::sync(src);
+      uint changed=super::sync(src);
 
       changed|=SyncID(mesh_id, src.mesh_id)*CHANGE_NORMAL;
 
@@ -813,14 +813,14 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmSkel::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(0);
       f<<mesh_id<<transform<<file_time;
       return f.ok();
    }
    bool ElmSkel::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 0:
          {
@@ -832,14 +832,14 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmSkel::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
                          nodes.New().setRaw("Pose"    , transform);
       if(mesh_id.valid())nodes.New().setFN ("Mesh"    , mesh_id);
                          nodes.New().set   ("FileTime", file_time.text());
    }
    void ElmSkel::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -849,20 +849,20 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       }
    }
    bool ElmPhys::hasBody()C {return box.valid();}
-   bool ElmPhys::equal(C ElmPhys &src)C {return ::ElmData::equal(src) && file_time==src.file_time && mtrl_time==src.mtrl_time && density_time==src.density_time && EqualID(mesh_id, src.mesh_id);}
-   bool ElmPhys::newer(C ElmPhys &src)C {return ::ElmData::newer(src) || file_time> src.file_time || mtrl_time> src.mtrl_time || density_time> src.density_time || NewerID(mesh_id, src.mesh_id);}
+   bool ElmPhys::equal(C ElmPhys &src)C {return super::equal(src) && file_time==src.file_time && mtrl_time==src.mtrl_time && density_time==src.density_time && EqualID(mesh_id, src.mesh_id);}
+   bool ElmPhys::newer(C ElmPhys &src)C {return super::newer(src) || file_time> src.file_time || mtrl_time> src.mtrl_time || density_time> src.density_time || NewerID(mesh_id, src.mesh_id);}
    bool ElmPhys::mayContain(C UID &id)C {return id==mesh_id || id==mtrl_id;}
    void ElmPhys::clearLinked(         )  {mesh_id.zero();}
    void ElmPhys::newData()
 {
-      ::ElmData::newData();
+      super::newData();
       file_time++;
       mtrl_time++;
       density_time++;
    }
    uint ElmPhys::undo(C ElmPhys &src)
    {
-      uint changed=::ElmData::undo(src);
+      uint changed=super::undo(src);
 
       changed|=UndoID(mesh_id, src.mesh_id)*CHANGE_NORMAL;
       changed|=Undo(   mtrl_time, src.   mtrl_time, mtrl_id, src.mtrl_id)*CHANGE_AFFECT_FILE;
@@ -875,7 +875,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    uint ElmPhys::sync(C ElmPhys &src)
    {
-      uint changed=::ElmData::sync(src);
+      uint changed=super::sync(src);
 
       changed|=SyncID(mesh_id, src.mesh_id)*CHANGE_NORMAL;
       changed|=Sync(   mtrl_time, src.   mtrl_time, mtrl_id, src.mtrl_id)*CHANGE_AFFECT_FILE;
@@ -899,14 +899,14 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmPhys::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(0);
       f<<mesh_id<<mtrl_id<<density<<transform<<box<<file_time<<mtrl_time<<density_time;
       return f.ok();
    }
    bool ElmPhys::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 0:
          {
@@ -918,7 +918,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmPhys::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
                          nodes.New().setRaw("Pose"        , transform);
                          nodes.New().setRaw("Box"         , box      );
                          nodes.New().setRaw("Density"     , density  );
@@ -930,7 +930,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmPhys::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -948,8 +948,8 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    ElmAnim& ElmAnim::loop(bool on) {FlagSet(flag, LOOP  , on); return T;}
    bool ElmAnim::linear()C {return FlagTest(flag, LINEAR);}
    ElmAnim& ElmAnim::linear(bool on) {FlagSet(flag, LINEAR, on); return T;}
-   bool ElmAnim::equal(C ElmAnim &src)C {return ::ElmData::equal(src) && loop_time==src.loop_time && linear_time==src.linear_time && skel_time==src.skel_time && file_time==src.file_time;}
-   bool ElmAnim::newer(C ElmAnim &src)C {return ::ElmData::newer(src) || loop_time> src.loop_time || linear_time> src.linear_time || skel_time> src.skel_time || file_time> src.file_time;}
+   bool ElmAnim::equal(C ElmAnim &src)C {return super::equal(src) && loop_time==src.loop_time && linear_time==src.linear_time && skel_time==src.skel_time && file_time==src.file_time;}
+   bool ElmAnim::newer(C ElmAnim &src)C {return super::newer(src) || loop_time> src.loop_time || linear_time> src.linear_time || skel_time> src.skel_time || file_time> src.file_time;}
    bool ElmAnim::rootMove(           )C {return !EqualMem(root_move, VecZero);}
    bool ElmAnim::rootRot(           )C {return !EqualMem(root_rot , VecZero);}
    void ElmAnim::rootMoveZero(           )  {root_move.zero();}
@@ -973,7 +973,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    bool ElmAnim::mayContain(C UID &id)C {return id==skel_id;}
    void ElmAnim::newData()
 {
-      ::ElmData::newData();
+      super::newData();
       loop_time++;
       linear_time++;
       skel_time++;
@@ -982,7 +982,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    void ElmAnim::from(C Animation &anim) {}
    uint ElmAnim::undo(C ElmAnim &src)
    {
-      uint changed=::ElmData::undo(src);
+      uint changed=super::undo(src);
 
       changed|=Undo(skel_time, src.skel_time, skel_id, src.skel_id)*CHANGE_NORMAL;
       if(Undo(  loop_time, src.  loop_time)){changed|=CHANGE_AFFECT_FILE; loop  (src.loop  ());}
@@ -994,7 +994,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    uint ElmAnim::sync(C ElmAnim &src)
    {
-      uint changed=::ElmData::sync(src);
+      uint changed=super::sync(src);
 
       changed|=Sync(skel_time, src.skel_time, skel_id, src.skel_id)*CHANGE_NORMAL;
       if(Sync(  loop_time, src.  loop_time)){changed|=CHANGE_AFFECT_FILE; loop  (src.loop  ());}
@@ -1027,14 +1027,14 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmAnim::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(3);
       f<<skel_id<<transform<<root_move<<root_rot<<flag<<loop_time<<linear_time<<skel_time<<file_time;
       return f.ok();
    }
    bool ElmAnim::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 3:
          {
@@ -1064,7 +1064,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmAnim::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
       if(skel_id.valid())nodes.New().setFN ("Skeleton"    , skel_id);
                          nodes.New().setRaw("Pose"        , transform);
                          nodes.New().set   ("Loop"        , loop());
@@ -1081,7 +1081,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmAnim::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -1123,19 +1123,19 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    {
       sun_id=src.sun_id; star_id=src.star_id; skybox_id=src.skybox_id; REPAO(cloud_id)=src.cloud_id[i];
    }
-   uint ElmEnv::undo(C ElmEnv &src) {return ::ElmData::undo(src);}
-   uint ElmEnv::sync(C ElmEnv &src) {return ::ElmData::sync(src);}
+   uint ElmEnv::undo(C ElmEnv &src) {return super::undo(src);}
+   uint ElmEnv::sync(C ElmEnv &src) {return super::sync(src);}
    bool ElmEnv::mayContain(C UID &id)C {return id==sun_id || id==star_id || id==skybox_id || id==cloud_id[0] || id==cloud_id[1] || id==cloud_id[2] || id==cloud_id[3];}
    bool ElmEnv::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(0);
       f<<sun_id<<star_id<<skybox_id<<cloud_id;
       return f.ok();
    }
    bool ElmEnv::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 0:
          {
@@ -1147,7 +1147,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmEnv::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
       if(   sun_id.valid())nodes.New().setFN("Sun"   ,    sun_id);
       if(  star_id.valid())nodes.New().setFN("Stars" ,   star_id);
       if(skybox_id.valid())nodes.New().setFN("SkyBox", skybox_id);
@@ -1162,7 +1162,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmEnv::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -1178,14 +1178,14 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    bool ElmWorld::valid()C {return area_size>0;}
    bool ElmWorld::equal(C ElmWorld &src)C
    {
-      return ::ElmData::equal(src)
+      return super::equal(src)
           && hm_res_time==src.hm_res_time
           && ctrl_r_time==src.ctrl_r_time && ctrl_h_time==src.ctrl_h_time && max_climb_time==src.max_climb_time && max_slope_time==src.max_slope_time && cell_size_time==src.cell_size_time && cell_h_time==src.cell_h_time
           && env_time==src.env_time;
    }
    bool ElmWorld::newer(C ElmWorld &src)C
    {
-      return ::ElmData::newer(src)
+      return super::newer(src)
           || hm_res_time>src.hm_res_time
           || ctrl_r_time>src.ctrl_r_time || ctrl_h_time>src.ctrl_h_time || max_climb_time>src.max_climb_time || max_slope_time>src.max_slope_time || cell_size_time>src.cell_size_time || cell_h_time>src.cell_h_time
           || env_time>src.env_time;
@@ -1200,7 +1200,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    ElmWorld& ElmWorld::env(C UID &id) {env_id   =id                   ; env_time      .getUTC(); newVer(); return T;}
    void ElmWorld::newData()
 {
-      ::ElmData::newData();
+      super::newData();
       hm_res_time++;
       ctrl_r_time++;
       ctrl_h_time++;
@@ -1221,7 +1221,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    uint ElmWorld::undo(C ElmWorld &src)
    {
-      uint changed=::ElmData::undo(src);
+      uint changed=super::undo(src);
 
       if(!area_size && src.area_size){area_size=src.area_size; changed|=CHANGE_AFFECT_FILE;}
       changed|=Undo(hm_res_time   , src.hm_res_time   , hm_res   , src.hm_res   )*CHANGE_AFFECT_FILE;
@@ -1238,7 +1238,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    uint ElmWorld::sync(C ElmWorld &src)
    {
-      uint changed=::ElmData::sync(src);
+      uint changed=super::sync(src);
 
       if(!area_size && src.area_size){area_size=src.area_size; changed|=CHANGE_AFFECT_FILE;}
       changed|=Sync(hm_res_time   , src.hm_res_time   , hm_res   , src.hm_res   )*CHANGE_AFFECT_FILE;
@@ -1255,14 +1255,14 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmWorld::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(0);
       f<<area_size<<hm_res<<hm_res_time<<ctrl_r<<ctrl_h<<max_climb<<max_slope<<cell_size<<cell_h<<env_id<<ctrl_r_time<<ctrl_h_time<<max_climb_time<<max_slope_time<<cell_size_time<<cell_h_time<<env_time;
       return f.ok();
    }
    bool ElmWorld::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 0:
          {
@@ -1274,7 +1274,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmWorld::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
                         nodes.New().set   ("AreaSize"           , area_size);
                         nodes.New().set   ("HeightmapResolution", hm_res);
                         nodes.New().setRaw("ControllerRadius"   , ctrl_r);
@@ -1295,7 +1295,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmWorld::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -1320,17 +1320,17 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmEnum::mayContain(C UID &id)C {return false;}
    void ElmEnum::from(C EditEnums &enums) {type=enums.type;}
-   uint ElmEnum::undo(C  ElmEnum  &src) {return ::ElmData::undo(src);}
-   uint ElmEnum::sync(C  ElmEnum  &src) {return ::ElmData::sync(src);}
+   uint ElmEnum::undo(C  ElmEnum  &src) {return super::undo(src);}
+   uint ElmEnum::sync(C  ElmEnum  &src) {return super::sync(src);}
    bool ElmEnum::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(1)<<type;
       return f.ok();
    }
    bool ElmEnum::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 1:
          {
@@ -1348,12 +1348,12 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmEnum::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
       if(type)nodes.New().set("Type", type);
    }
    void ElmEnum::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -1378,16 +1378,16 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    IMAGE_TYPE ElmImage::androidType()C {return (type==COMPRESSED || type==COMPRESSED2) ? hasAlpha3()               ? (sRGB() ? IMAGE_ETC2_A8_SRGB  : IMAGE_ETC2_A8 ) : (sRGB() ? IMAGE_ETC2_SRGB : IMAGE_ETC2) : IMAGE_NONE;}
    IMAGE_TYPE     ElmImage::iOSType()C {return (type==COMPRESSED || type==COMPRESSED2) ?                             (sRGB() ? IMAGE_PVRTC1_4_SRGB : IMAGE_PVRTC1_4)                                           : IMAGE_NONE;}
    IMAGE_TYPE     ElmImage::webType()C {return (!WebBC7 && (type==COMPRESSED || type==COMPRESSED2) && hasAlpha3()) ? (sRGB() ? IMAGE_BC3_SRGB      : IMAGE_BC3     )                                           : IMAGE_NONE;}
-   bool ElmImage::equal(C ElmImage &src)C {return ::ElmData::equal(src) && mip_maps_time==src.mip_maps_time && pow2_time==src.pow2_time && srgb_time==src.srgb_time && alpha_lum_time==src.alpha_lum_time && type_time==src.type_time && mode_time==src.mode_time && size_time==src.size_time && file_time==src.file_time;}
-   bool ElmImage::newer(C ElmImage &src)C {return ::ElmData::newer(src) || mip_maps_time> src.mip_maps_time || pow2_time> src.pow2_time || srgb_time> src.srgb_time || alpha_lum_time> src.alpha_lum_time || type_time> src.type_time || mode_time> src.mode_time || size_time> src.size_time || file_time> src.file_time;}
+   bool ElmImage::equal(C ElmImage &src)C {return super::equal(src) && mip_maps_time==src.mip_maps_time && pow2_time==src.pow2_time && srgb_time==src.srgb_time && alpha_lum_time==src.alpha_lum_time && type_time==src.type_time && mode_time==src.mode_time && size_time==src.size_time && file_time==src.file_time;}
+   bool ElmImage::newer(C ElmImage &src)C {return super::newer(src) || mip_maps_time> src.mip_maps_time || pow2_time> src.pow2_time || srgb_time> src.srgb_time || alpha_lum_time> src.alpha_lum_time || type_time> src.type_time || mode_time> src.mode_time || size_time> src.size_time || file_time> src.file_time;}
    bool ElmImage::mayContain(C UID &id)C {return false;}
    void ElmImage::newData()
 {
-      ::ElmData::newData(); mip_maps_time++; pow2_time++; srgb_time++; alpha_lum_time++; type_time++; mode_time++; size_time++; file_time++;
+      super::newData(); mip_maps_time++; pow2_time++; srgb_time++; alpha_lum_time++; type_time++; mode_time++; size_time++; file_time++;
    }
    uint ElmImage::undo(C ElmImage &src)
    {
-      uint changed=::ElmData::undo(src);
+      uint changed=super::undo(src);
 
       changed|=Undo(type_time, src.type_time, type, src.type)*CHANGE_AFFECT_FILE;
       changed|=Undo(mode_time, src.mode_time, mode, src.mode)*CHANGE_AFFECT_FILE;
@@ -1405,7 +1405,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    uint ElmImage::sync(C ElmImage &src)
    {
-      uint changed=::ElmData::sync(src);
+      uint changed=super::sync(src);
 
       changed|=Sync(type_time, src.type_time, type, src.type)*CHANGE_AFFECT_FILE;
       changed|=Sync(mode_time, src.mode_time, mode, src.mode)*CHANGE_AFFECT_FILE;
@@ -1432,14 +1432,14 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmImage::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(3);
       f<<flag<<type<<mode<<size<<mip_maps_time<<pow2_time<<srgb_time<<alpha_lum_time<<type_time<<mode_time<<size_time<<file_time;
       return f.ok();
    }
    bool ElmImage::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 3:
          {
@@ -1469,7 +1469,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmImage::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
       if(InRange(type, ImageTypes))nodes.New().set("Type", ImageTypes[type].name);
       REPA(ImageModes)if(mode==ImageModes[i].mode){nodes.New().set("Mode", ImageModes[i].name); break;}
       if(size.any())nodes.New().set("Size"   , size);
@@ -1490,7 +1490,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmImage::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -1524,24 +1524,24 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
  C ::ElmImageAtlas::Img* ElmImageAtlas::find(C UID &id)C {return ConstCast(T).find(id);}
    ::ElmImageAtlas::Img* ElmImageAtlas::find(C UID &id)  {       return images.binaryFind  (id,    Img::Compare);}
    ::ElmImageAtlas::Img&  ElmImageAtlas::get(C UID &id)  {int i; return images.binarySearch(id, i, Img::Compare) ? images[i] : images.NewAt(i);}
-   void ElmImageAtlas::newData(){::ElmData::newData(); file_time++; mip_maps_time++; compress_time++;}
+   void ElmImageAtlas::newData(){super::newData(); file_time++; mip_maps_time++; compress_time++;}
    bool ElmImageAtlas::equal(C ElmImageAtlas &src)C
    {
       if(file_time!=src.file_time || mip_maps_time!=src.mip_maps_time || compress_time!=src.compress_time)return false;
       if(images.elms()!=src.images.elms())return false;
       REPA(images){C Img &img=images[i]; C Img *s=src.find(img.id); if(!s || !img.equal(*s))return false;}
-      return ::ElmData::equal(src);
+      return super::equal(src);
    }
    bool ElmImageAtlas::newer(C ElmImageAtlas &src)C
    {
       if(file_time>src.file_time || mip_maps_time>src.mip_maps_time || compress_time>src.compress_time)return true;
       REPA(images){C Img &img=images[i]; C Img *s=src.find(img.id); if(!s || img.newer(*s))return true;}
-      return ::ElmData::newer(src);
+      return super::newer(src);
    }
    bool ElmImageAtlas::mayContain(C UID &id)C {REPA(images)if(id==images[i].id)return true; return false;}
    uint ElmImageAtlas::undo(C ElmImageAtlas &src)
    {
-      uint changed=::ElmData::undo(src);
+      uint changed=super::undo(src);
 
       if(Undo(mip_maps_time, src.mip_maps_time)){changed|=CHANGE_AFFECT_FILE; mipMaps (src.mipMaps ());}
       if(Undo(compress_time, src.compress_time)){changed|=CHANGE_AFFECT_FILE; compress(src.compress());}
@@ -1564,7 +1564,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    uint ElmImageAtlas::sync(C ElmImageAtlas &src)
    {
-      uint changed=::ElmData::sync(src);
+      uint changed=super::sync(src);
 
       if(Sync(mip_maps_time, src.mip_maps_time)){changed|=CHANGE_AFFECT_FILE; mipMaps (src.mipMaps ());}
       if(Sync(compress_time, src.compress_time)){changed|=CHANGE_AFFECT_FILE; compress(src.compress());}
@@ -1589,7 +1589,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmImageAtlas::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(2);
       f<<flag<<file_time<<mip_maps_time<<compress_time;
       f.cmpUIntV(images.elms());
@@ -1598,7 +1598,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmImageAtlas::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 2:
          {
@@ -1629,7 +1629,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmImageAtlas::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
       nodes.New().set("MipMaps"     , mipMaps ());
       nodes.New().set("Compress"    , compress());
       nodes.New().set("MipMapsTime" , mip_maps_time.text());
@@ -1645,7 +1645,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmImageAtlas::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -1671,18 +1671,18 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmIconSetts::mayContain(C UID &id)C {return false;}
    void ElmIconSetts::from(C IconSettings &src) {type=src.type;}
-   uint ElmIconSetts::undo(C ElmIconSetts &src) {return ::ElmData::undo(src);}
-   uint ElmIconSetts::sync(C ElmIconSetts &src) {return ::ElmData::sync(src);}
+   uint ElmIconSetts::undo(C ElmIconSetts &src) {return super::undo(src);}
+   uint ElmIconSetts::sync(C ElmIconSetts &src) {return super::sync(src);}
    bool ElmIconSetts::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(1);
       f<<type;
       return f.ok();
    }
    bool ElmIconSetts::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 1:
          {
@@ -1700,12 +1700,12 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmIconSetts::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
       if(InRange(type, ElmImage::ImageTypes))nodes.New().set("Type", ElmImage::ImageTypes[type].name);
    }
    void ElmIconSetts::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -1720,12 +1720,12 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    IMAGE_TYPE ElmIcon::androidType(Project *proj)C {ElmImage::TYPE type=T.type(proj); return (type==ElmImage::COMPRESSED || type==ElmImage::COMPRESSED2) ? hasAlpha() ? IMAGE_ETC2_A8_SRGB : IMAGE_ETC2_SRGB : IMAGE_NONE;}
    IMAGE_TYPE     ElmIcon::iOSType(Project *proj)C {ElmImage::TYPE type=T.type(proj); return (type==ElmImage::COMPRESSED || type==ElmImage::COMPRESSED2) ?              IMAGE_PVRTC1_4_SRGB                  : IMAGE_NONE;}
    IMAGE_TYPE     ElmIcon::webType(Project *proj)C {ElmImage::TYPE type=T.type(proj); return (!WebBC7 && (type==ElmImage::COMPRESSED || type==ElmImage::COMPRESSED2) && hasAlpha()) ? IMAGE_BC3_SRGB         : IMAGE_NONE;}
-   bool ElmIcon::equal(C ElmIcon &src)C {return ::ElmData::equal(src) && icon_settings_time==src.icon_settings_time && obj_time==src.obj_time && file_time==src.file_time && anim_id_time==src.anim_id_time && anim_pos_time==src.anim_pos_time && variation_time==src.variation_time;}
-   bool ElmIcon::newer(C ElmIcon &src)C {return ::ElmData::newer(src) || icon_settings_time> src.icon_settings_time || obj_time> src.obj_time || file_time> src.file_time || anim_id_time> src.anim_id_time || anim_pos_time> src.anim_pos_time || variation_time> src.variation_time;}
+   bool ElmIcon::equal(C ElmIcon &src)C {return super::equal(src) && icon_settings_time==src.icon_settings_time && obj_time==src.obj_time && file_time==src.file_time && anim_id_time==src.anim_id_time && anim_pos_time==src.anim_pos_time && variation_time==src.variation_time;}
+   bool ElmIcon::newer(C ElmIcon &src)C {return super::newer(src) || icon_settings_time> src.icon_settings_time || obj_time> src.obj_time || file_time> src.file_time || anim_id_time> src.anim_id_time || anim_pos_time> src.anim_pos_time || variation_time> src.variation_time;}
    bool ElmIcon::mayContain(C UID &id)C {return id==icon_settings_id || id==obj_id || id==anim_id;}
    void ElmIcon::newData()
 {
-      ::ElmData::newData();
+      super::newData();
       icon_settings_time++;
       obj_time++;
       file_time++;
@@ -1735,7 +1735,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    uint ElmIcon::undo(C ElmIcon &src)
    {
-      uint changed=::ElmData::undo(src);
+      uint changed=super::undo(src);
 
       changed|=Undo(icon_settings_time, src.icon_settings_time, icon_settings_id, src.icon_settings_id)*CHANGE_AFFECT_FILE;
       changed|=Undo(          obj_time, src.          obj_time,           obj_id, src.          obj_id)*CHANGE_AFFECT_FILE;
@@ -1748,7 +1748,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    uint ElmIcon::sync(C ElmIcon &src)
    {
-      uint changed=::ElmData::sync(src);
+      uint changed=super::sync(src);
 
       changed|=Sync(icon_settings_time, src.icon_settings_time, icon_settings_id, src.icon_settings_id)*CHANGE_AFFECT_FILE;
       changed|=Sync(          obj_time, src.          obj_time,           obj_id, src.          obj_id)*CHANGE_AFFECT_FILE;
@@ -1770,14 +1770,14 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmIcon::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(2);
       f<<flag<<icon_settings_id<<obj_id<<anim_id<<anim_pos<<variation_id<<icon_settings_time<<obj_time<<anim_id_time<<anim_pos_time<<file_time<<variation_time;
       return f.ok();
    }
    bool ElmIcon::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 2:
          {
@@ -1801,7 +1801,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmIcon::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
       if(icon_settings_id.valid())nodes.New().setFN ("IconSettings"     , icon_settings_id);
       if(          obj_id.valid())nodes.New().setFN ("Object"           , obj_id);
       if(         anim_id.valid())nodes.New().setFN ("Animation"        , anim_id);
@@ -1818,7 +1818,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmIcon::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -1839,17 +1839,17 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmFont::mayContain(C UID &id)C {return false;}
    void ElmFont::from(C EditFont &font) {}
-   uint ElmFont::undo(C  ElmFont &src) {return ::ElmData::undo(src);}
-   uint ElmFont::sync(C  ElmFont &src) {return ::ElmData::sync(src);}
+   uint ElmFont::undo(C  ElmFont &src) {return super::undo(src);}
+   uint ElmFont::sync(C  ElmFont &src) {return super::sync(src);}
    bool ElmFont::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(0);
       return f.ok();
    }
    bool ElmFont::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 0:
          {
@@ -1860,11 +1860,11 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmFont::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
    }
    void ElmFont::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -1872,18 +1872,18 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmTextStyle::mayContain(C UID &id)C {return id==font_id;}
    void ElmTextStyle::from(C EditTextStyle &ts ) {font_id=ts.font;}
-   uint ElmTextStyle::undo(C  ElmTextStyle &src) {return ::ElmData::undo(src);}
-   uint ElmTextStyle::sync(C  ElmTextStyle &src) {return ::ElmData::sync(src);}
+   uint ElmTextStyle::undo(C  ElmTextStyle &src) {return super::undo(src);}
+   uint ElmTextStyle::sync(C  ElmTextStyle &src) {return super::sync(src);}
    bool ElmTextStyle::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(0);
       f<<font_id;
       return f.ok();
    }
    bool ElmTextStyle::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 0:
          {
@@ -1895,12 +1895,12 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmTextStyle::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
       if(font_id.valid())nodes.New().setFN("Font", font_id);
    }
    void ElmTextStyle::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -1913,11 +1913,11 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       Memt<UID> temp; pi.base.includeIDs(temp); image_ids=temp;
       compressed=pi.base.compressed;
    }
-   uint ElmPanelImage::undo(C ElmPanelImage &src) {return ::ElmData::undo(src);}
-   uint ElmPanelImage::sync(C ElmPanelImage &src) {return ::ElmData::sync(src);}
+   uint ElmPanelImage::undo(C ElmPanelImage &src) {return super::undo(src);}
+   uint ElmPanelImage::sync(C ElmPanelImage &src) {return super::sync(src);}
    bool ElmPanelImage::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(0);
       f<<compressed;
       image_ids.saveRaw(f);
@@ -1925,7 +1925,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmPanelImage::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 0:
          {
@@ -1938,7 +1938,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmPanelImage::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
       nodes.New().set("Compressed", compressed);
       {
          TextNode &images=nodes.New().setName("Images");
@@ -1947,7 +1947,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmPanelImage::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -1966,18 +1966,18 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    {
       Memt<UID> temp; panel.includeIDs(temp); image_ids=temp;
    }
-   uint ElmPanel::undo(C ElmPanel &src) {return ::ElmData::undo(src);}
-   uint ElmPanel::sync(C ElmPanel &src) {return ::ElmData::sync(src);}
+   uint ElmPanel::undo(C ElmPanel &src) {return super::undo(src);}
+   uint ElmPanel::sync(C ElmPanel &src) {return super::sync(src);}
    bool ElmPanel::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(2);
       image_ids.saveRaw(f);
       return f.ok();
    }
    bool ElmPanel::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 2:
          {
@@ -1992,7 +1992,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmPanel::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
       {
          TextNode &images=nodes.New().setName("Images");
          FREPA(image_ids)images.nodes.New().setValueFN(image_ids[i]); // list in order
@@ -2000,7 +2000,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmPanel::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -2018,18 +2018,18 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    {
       Memt<UID> temp; pi.base.includeIDs(temp); elm_ids=temp;
    }
-   uint ElmGuiSkin::undo(C ElmGuiSkin &src) {return ::ElmData::undo(src);}
-   uint ElmGuiSkin::sync(C ElmGuiSkin &src) {return ::ElmData::sync(src);}
+   uint ElmGuiSkin::undo(C ElmGuiSkin &src) {return super::undo(src);}
+   uint ElmGuiSkin::sync(C ElmGuiSkin &src) {return super::sync(src);}
    bool ElmGuiSkin::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(0);
       elm_ids.saveRaw(f);
       return f.ok();
    }
    bool ElmGuiSkin::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 0:
          {
@@ -2041,7 +2041,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmGuiSkin::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
       {
          TextNode &elms=nodes.New().setName("Elements");
          FREPA(elm_ids)elms.nodes.New().setValueFN(elm_ids[i]); // list in order
@@ -2049,7 +2049,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmGuiSkin::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -2062,22 +2062,22 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          }
       }
    }
-   bool ElmGui::equal(C ElmGui &src)C {return ::ElmData::equal(src) && file_time==src.file_time;}
-   bool ElmGui::newer(C ElmGui &src)C {return ::ElmData::newer(src) || file_time> src.file_time;}
+   bool ElmGui::equal(C ElmGui &src)C {return super::equal(src) && file_time==src.file_time;}
+   bool ElmGui::newer(C ElmGui &src)C {return super::newer(src) || file_time> src.file_time;}
    void ElmGui::newData()
 {
-      ::ElmData::newData();
+      super::newData();
       file_time++;
    }
    uint ElmGui::undo(C ElmGui &src)
    {
-      uint   changed=::ElmData::undo(src);
+      uint   changed=super::undo(src);
       if(    changed)newVer();
       return changed;
    }
    uint ElmGui::sync(C ElmGui &src)
    {
-      uint changed=::ElmData::sync(src);
+      uint changed=super::sync(src);
       if(equal(src))ver=src.ver;else if(changed)newVer();
       return changed;
    }
@@ -2092,14 +2092,14 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmGui::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(0);
       f<<file_time;
       return f.ok();
    }
    bool ElmGui::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 0:
          {
@@ -2111,35 +2111,35 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmGui::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
       nodes.New().set("FileTime", file_time.text());
    }
    void ElmGui::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
          if(n.name=="FileTime")file_time=n.asText();
       }
    }
-   bool ElmSound::equal(C ElmSound &src)C {return ::ElmData::equal(src) && file_time==src.file_time;}
-   bool ElmSound::newer(C ElmSound &src)C {return ::ElmData::newer(src) || file_time> src.file_time;}
+   bool ElmSound::equal(C ElmSound &src)C {return super::equal(src) && file_time==src.file_time;}
+   bool ElmSound::newer(C ElmSound &src)C {return super::newer(src) || file_time> src.file_time;}
    bool ElmSound::mayContain(C UID &id)C {return false;}
    void ElmSound::newData()
 {
-      ::ElmData::newData();
+      super::newData();
       file_time++;
    }
    uint ElmSound::undo(C ElmSound &src)
    {
-      uint   changed=::ElmData::undo(src);
+      uint   changed=super::undo(src);
       if(    changed)newVer();
       return changed;
    }
    uint ElmSound::sync(C ElmSound &src)
    {
-      uint changed=::ElmData::sync(src);
+      uint changed=super::sync(src);
       if(equal(src))ver=src.ver;else if(changed)newVer();
       return changed;
    }
@@ -2154,14 +2154,14 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmSound::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(0);
       f<<file_time;
       return f.ok();
    }
    bool ElmSound::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 0:
          {
@@ -2173,35 +2173,35 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmSound::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
       nodes.New().set("FileTime", file_time.text());
    }
    void ElmSound::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
          if(n.name=="FileTime")file_time=n.asText();
       }
    }
-   bool ElmVideo::equal(C ElmVideo &src)C {return ::ElmData::equal(src) && file_time==src.file_time;}
-   bool ElmVideo::newer(C ElmVideo &src)C {return ::ElmData::newer(src) || file_time> src.file_time;}
+   bool ElmVideo::equal(C ElmVideo &src)C {return super::equal(src) && file_time==src.file_time;}
+   bool ElmVideo::newer(C ElmVideo &src)C {return super::newer(src) || file_time> src.file_time;}
    bool ElmVideo::mayContain(C UID &id)C {return false;}
    void ElmVideo::newData()
 {
-      ::ElmData::newData();
+      super::newData();
       file_time++;
    }
    uint ElmVideo::undo(C ElmVideo &src)
    {
-      uint   changed=::ElmData::undo(src);
+      uint   changed=super::undo(src);
       if(    changed)newVer();
       return changed;
    }
    uint ElmVideo::sync(C ElmVideo &src)
    {
-      uint changed=::ElmData::sync(src);
+      uint changed=super::sync(src);
       if(equal(src))ver=src.ver;else if(changed)newVer();
       return changed;
    }
@@ -2216,14 +2216,14 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmVideo::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(0);
       f<<file_time;
       return f.ok();
    }
    bool ElmVideo::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 0:
          {
@@ -2235,35 +2235,35 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmVideo::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
       nodes.New().set("FileTime", file_time.text());
    }
    void ElmVideo::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
          if(n.name=="FileTime")file_time=n.asText();
       }
    }
-   bool ElmFile::equal(C ElmFile &src)C {return ::ElmData::equal(src) && file_time==src.file_time;}
-   bool ElmFile::newer(C ElmFile &src)C {return ::ElmData::newer(src) || file_time> src.file_time;}
+   bool ElmFile::equal(C ElmFile &src)C {return super::equal(src) && file_time==src.file_time;}
+   bool ElmFile::newer(C ElmFile &src)C {return super::newer(src) || file_time> src.file_time;}
    bool ElmFile::mayContain(C UID &id)C {return false;}
    void ElmFile::newData()
 {
-      ::ElmData::newData();
+      super::newData();
       file_time++;
    }
    uint ElmFile::undo(C ElmFile &src)
    {
-      uint   changed=::ElmData::undo(src);
+      uint   changed=super::undo(src);
       if(    changed)newVer();
       return changed;
    }
    uint ElmFile::sync(C ElmFile &src)
    {
-      uint changed=::ElmData::sync(src);
+      uint changed=super::sync(src);
       if(equal(src))ver=src.ver;else if(changed)newVer();
       return changed;
    }
@@ -2278,14 +2278,14 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmFile::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(0);
       f<<file_time;
       return f.ok();
    }
    bool ElmFile::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 0:
          {
@@ -2297,30 +2297,30 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmFile::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
       nodes.New().set("FileTime", file_time.text());
    }
    void ElmFile::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
          if(n.name=="FileTime")file_time=n.asText();
       }
    }
-   uint ElmCode::undo(C ElmCode &src) {return ::ElmData::undo(src);}
-   uint ElmCode::sync(C ElmCode &src) {return ::ElmData::sync(src);}
+   uint ElmCode::undo(C ElmCode &src) {return super::undo(src);}
+   uint ElmCode::sync(C ElmCode &src) {return super::sync(src);}
    void ElmCode::from(C Str &code) {}
    bool ElmCode::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(0);
       return f.ok();
    }
    bool ElmCode::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 0:
          {
@@ -2331,11 +2331,11 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmCode::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
    }
    void ElmCode::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -2343,7 +2343,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmApp::equal(C ElmApp &src)C
    {
-      return ::ElmData::equal(src)
+      return super::equal(src)
           && dirs_windows_time==src.dirs_windows_time && dirs_nonwindows_time==src.dirs_nonwindows_time
           && headers_windows_time==src.headers_windows_time && headers_mac_time==src.headers_mac_time && headers_linux_time==src.headers_linux_time && headers_android_time==src.headers_android_time && headers_ios_time==src.headers_ios_time
           && libs_windows_time==src.libs_windows_time && libs_mac_time==src.libs_mac_time && libs_linux_time==src.libs_linux_time && libs_android_time==src.libs_android_time && libs_ios_time==src.libs_ios_time
@@ -2357,7 +2357,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmApp::newer(C ElmApp &src)C
    {
-      return ::ElmData::newer(src)
+      return super::newer(src)
           || dirs_windows_time>src.dirs_windows_time || dirs_nonwindows_time>src.dirs_nonwindows_time
           || headers_windows_time>src.headers_windows_time || headers_mac_time>src.headers_mac_time || headers_linux_time>src.headers_linux_time || headers_android_time>src.headers_android_time || headers_ios_time>src.headers_ios_time
           || libs_windows_time>src.libs_windows_time || libs_mac_time>src.libs_mac_time || libs_linux_time>src.libs_linux_time || libs_android_time>src.libs_android_time || libs_ios_time>src.libs_ios_time
@@ -2386,7 +2386,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    ElmApp& ElmApp::androidExpansion(bool on) {FlagSet(flag, ANDROID_EXPANSION  , on); return T;}
    void ElmApp::newData()
 {
-      ::ElmData::newData();
+      super::newData();
       dirs_windows_time++; dirs_nonwindows_time++;
       headers_windows_time++; headers_mac_time++; headers_linux_time++; headers_android_time++; headers_ios_time++;
       libs_windows_time++; libs_mac_time++; libs_linux_time++; libs_android_time++; libs_ios_time++;
@@ -2399,7 +2399,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    uint ElmApp::undo(C ElmApp &src)
    {
-      uint changed=::ElmData::undo(src);
+      uint changed=super::undo(src);
       bool ch     =false;
 
       {
@@ -2450,7 +2450,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    uint ElmApp::sync(C ElmApp &src, bool manual)
    {
-      uint changed=::ElmData::sync(src);
+      uint changed=super::sync(src);
       bool ch     =false;
 
       if(manual) // these are advanced settings and can be synced only manually
@@ -2502,7 +2502,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmApp::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(17);
       f<<dirs_windows<<dirs_nonwindows;
       f<<headers_windows<<headers_mac<<headers_linux<<headers_android<<headers_ios;
@@ -2528,7 +2528,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       Str       headers_nonwindows;
       TimeStamp headers_nonwindows_time;
       T=ElmApp(); // reset to default, in case this is needed (for example when loading data from reused objects for code synchronization)
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 17:
          {
@@ -2787,7 +2787,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmApp::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
                       nodes.New().set("Build"  , build);
       if(package.is())nodes.New().set("Package", package);
 
@@ -2884,7 +2884,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmApp::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
@@ -2988,13 +2988,13 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
          if(n.name=="FacebookAppIDTime")fb_app_id_time=n.asText();
       }
    }
-   bool ElmMiniMap::equal(C ElmMiniMap &src)C {return ::ElmData::equal(src) && areas_per_image_time==src.areas_per_image_time && image_size_time==src.image_size_time && world_time==src.world_time && env_time==src.env_time;}
-   bool ElmMiniMap::newer(C ElmMiniMap &src)C {return ::ElmData::newer(src) || areas_per_image_time> src.areas_per_image_time || image_size_time> src.image_size_time || world_time> src.world_time || env_time> src.env_time;}
+   bool ElmMiniMap::equal(C ElmMiniMap &src)C {return super::equal(src) && areas_per_image_time==src.areas_per_image_time && image_size_time==src.image_size_time && world_time==src.world_time && env_time==src.env_time;}
+   bool ElmMiniMap::newer(C ElmMiniMap &src)C {return super::newer(src) || areas_per_image_time> src.areas_per_image_time || image_size_time> src.image_size_time || world_time> src.world_time || env_time> src.env_time;}
    bool ElmMiniMap::mayContain(C UID &id)C {return id==world_id || id==env_id;}
-   void ElmMiniMap::newData(){::ElmData::newData(); areas_per_image_time++; image_size_time++; world_time++; env_time++;}
+   void ElmMiniMap::newData(){super::newData(); areas_per_image_time++; image_size_time++; world_time++; env_time++;}
    uint ElmMiniMap::undo(C ElmMiniMap &src)
    {
-      uint changed=::ElmData::undo(src);
+      uint changed=super::undo(src);
 
       changed|=Undo(areas_per_image_time, src.areas_per_image_time, areas_per_image, src.areas_per_image)*CHANGE_AFFECT_FILE;
       changed|=Undo(     image_size_time, src.     image_size_time,      image_size, src.     image_size)*CHANGE_AFFECT_FILE;
@@ -3006,7 +3006,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    uint ElmMiniMap::sync(C ElmMiniMap &src)
    {
-      uint changed=::ElmData::sync(src);
+      uint changed=super::sync(src);
 
       changed|=Sync(areas_per_image_time, src.areas_per_image_time, areas_per_image, src.areas_per_image)*CHANGE_AFFECT_FILE;
       changed|=Sync(     image_size_time, src.     image_size_time,      image_size, src.     image_size)*CHANGE_AFFECT_FILE;
@@ -3023,14 +3023,14 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    bool ElmMiniMap::save(File &f)C 
 {
-      ::ElmData::save(f);
+      super::save(f);
       f.cmpUIntV(0);
       f<<areas_per_image<<image_size<<world_id<<env_id<<areas_per_image_time<<image_size_time<<world_time<<env_time;
       return f.ok();
    }
    bool ElmMiniMap::load(File &f)
 {
-      if(::ElmData::load(f))switch(f.decUIntV())
+      if(super::load(f))switch(f.decUIntV())
       {
          case 0:
          {
@@ -3042,7 +3042,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmMiniMap::save(MemPtr<TextNode> nodes)C 
 {
-      ::ElmData::save(nodes);
+      super::save(nodes);
                           nodes.New().set  ("AreasPerImage"    , areas_per_image);
                           nodes.New().set  ("ImageSize"        , image_size);
       if(world_id.valid())nodes.New().setFN("World"            , world_id);
@@ -3054,7 +3054,7 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    }
    void ElmMiniMap::load(C MemPtr<TextNode> &nodes)
 {
-      ::ElmData::load(nodes);
+      super::load(nodes);
       REPA(nodes)
       {
        C TextNode &n=nodes[i];

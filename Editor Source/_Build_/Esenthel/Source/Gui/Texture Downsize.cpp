@@ -267,10 +267,10 @@ TextureDownsize TexDownsize;
    void TextureDownsize::Inc(Property &prop) {prop.set(prop.asInt()+1);}
    ::TextureDownsize::Settings* TextureDownsize::curSettings()  {return mtrl_id.valid() ?           settings      (mtrl_id) : null;}
  C ::TextureDownsize::Settings* TextureDownsize::curSettings()C {return mtrl_id.valid() ? ConstCast(settings).find(mtrl_id) : null;}
-                    C Rect& TextureDownsize::rect(            ) {return ::EE::Region::rect();}
+                    C Rect& TextureDownsize::rect(            ) {return super::rect();}
    TextureDownsize& TextureDownsize::rect(C Rect &rect)
 {
-      ::EE::Region::rect(rect);
+      super::rect(rect);
       Rect r=T.rect()-T.rect().lu();
       mode      .rect(Rect_U (r.up(), 0.40f, 0.06f));
       mtrl_image.rect(Rect_RD(r.rd(), 0.25f));
@@ -347,7 +347,7 @@ TextureDownsize TexDownsize;
    {
       const flt padd=0.6f, prop_h=0.06f;
 
-      ::Viewport4Region::create(Draw, false, 0, PI); v4.toggleHorizontal();
+      super::create(Draw, false, 0, PI); v4.toggleHorizontal();
       wire.del(); cam_spherical.hide(); cam_lock.pos(cam_spherical.pos()); cam_tabs.hide();
       T+=mode      .create(ModeName, Elms(ModeName)).valid(true).set(OBJECT).func(ModeChanged, T);
       T+=light_dir .create(Rect_LU(ctrls.rect().ld(), 0.05f, 0.05f)).setImage(Proj.icon_env).focusable(false).desc("Set Vertical Light Direction\nKeyboard Shortcut: Alt+L"); light_dir.mode=BUTTON_TOGGLE;
@@ -571,7 +571,7 @@ TextureDownsize TexDownsize;
    }
    void TextureDownsize::update(C GuiPC &gpc)
 {
-      ::Viewport4Region::update(gpc);
+      super::update(gpc);
       if(visible() && gpc.visible)
       {
          Elm *elm=Proj.list(); if(elm)if(elm->type!=ELM_OBJ && elm->type!=ELM_MTRL)elm=null;

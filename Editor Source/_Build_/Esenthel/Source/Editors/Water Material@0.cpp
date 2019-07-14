@@ -106,7 +106,7 @@ WaterMtrlRegion WaterMtrlEdit;
    void WaterMtrlRegion::create()
    {
       undos.replaceClass<Change>();
-      ::MaterialRegion::create(); elm_type=ELM_WATER_MTRL; max_zoom=50; preview_cam.dist=15; preview_cam.pitch=-PI_6; preview_cam.setSpherical(); set_mtrl.del(); brightness.del(); preview_mode.del(); preview_big.range=preview.range=200;
+      super::create(); elm_type=ELM_WATER_MTRL; max_zoom=50; preview_cam.dist=15; preview_cam.pitch=-PI_6; preview_cam.setSpherical(); set_mtrl.del(); brightness.del(); preview_mode.del(); preview_big.range=preview.range=200;
 
       flt e=0.01f, prop_height=0.044f;
       props.clear();
