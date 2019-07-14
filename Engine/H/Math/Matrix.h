@@ -819,9 +819,10 @@ struct GpuMatrix // GPU Matrix (transposed Matrix)
        xy, yy, zy, _y,
        xz, yz, zz, _z;
 
-   GpuMatrix& fromMul(C Matrix  &a, C Matrix  &b); // set from "a*b"
-   GpuMatrix& fromMul(C Matrix  &a, C MatrixM &b); // set from "a*b"
-   GpuMatrix& fromMul(C MatrixM &a, C MatrixM &b); // set from "a*b"
+   GpuMatrix& fromMul(C Matrix  &a, C Matrix  &b)       ; // set from "a*b"
+   GpuMatrix& fromMul(C Matrix  &a, C MatrixM &b)       ; // set from "a*b"
+   GpuMatrix& fromMul(C MatrixM &a, C Matrix  &b)=delete; // set from "a*b"
+   GpuMatrix& fromMul(C MatrixM &a, C MatrixM &b)       ; // set from "a*b"
 
    GpuMatrix() {}
    GpuMatrix(C Matrix  &m);
