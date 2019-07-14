@@ -321,8 +321,8 @@ VecH4 PS
    VecH total_lum,
         total_specular=0;
 
-   if(bump_mode==SBUMP_ZERO     )total_lum =1;
-   else                          total_lum =AmbNSColor;
+   if(bump_mode==SBUMP_ZERO     )total_lum=1;
+   else                          total_lum=AmbNSColor;
    if(materials<=1 && !secondary) // ambient values are always disabled for secondary passes (so don't bother adding them)
    {
       if(light_map)total_lum+=AmbMaterial*MaterialAmbient()*Tex(Lum, I.tex).rgb;
@@ -427,7 +427,7 @@ VecH4 PS
 
    I.col.rgb=(I.col.rgb+Highlight.rgb)*total_lum + total_specular;
 
-   return Vec4(I.col.rgb, glow);
+   return VecH4(I.col.rgb, glow);
 }
 /******************************************************************************/
 // HULL / DOMAIN
