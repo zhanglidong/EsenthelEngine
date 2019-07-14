@@ -67,7 +67,7 @@
 /******************************************************************************/
 // DATA TYPES
 /******************************************************************************/
-#pragma pack_matrix(column_major) // always use "Column Major" matrix packing, TODO: should we use 'row_major ' "Row Major" and replace float4x3 with float3x4 and adjust operations on 'GpuMatrix'? first check if that can fit in Deferred shader, however it's possible Matrix can no longer be able to access vectors using [i], and "Transform(Vec v, Matrix m)" would need to be adjusted among others, possibly "v*m or mul(v,m)" replaced with "m*v or mul(m,v)"
+#pragma pack_matrix(column_major) // always use "Column Major" matrix packing for most efficient 'Matrix' packing (orn+scale+pos) to use only 3x Vec4
 
 #define Bool     bool
 #define Int      int
