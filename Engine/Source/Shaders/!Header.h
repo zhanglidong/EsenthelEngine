@@ -837,15 +837,27 @@ inline Flt  LerpR (Flt  from, Flt  to, Flt  v) {return     (v-from)/(to-from) ;}
 inline Half LerpRS(Half from, Half to, Half v) {return Sat((v-from)/(to-from));}
 inline Flt  LerpRS(Flt  from, Flt  to, Flt  v) {return Sat((v-from)/(to-from));}
 /******************************************************************************/
-inline VecH Transform (VecH v, MatrixH3 m) {return mul(v,           m)                      ;} // transform 'v' vector by 'm' orientation-scale             matrix
-inline VecH Transform3(VecH v, Matrix   m) {return mul(v, (MatrixH3)m)                      ;} // transform 'v' vector by 'm' orientation-scale             matrix, faster version of "v.x*m[0] + (v.y*m[1] + (v.z*m[2]))" TODO: #ShaderHalf
+inline Vec  Transform(Vec  v, Matrix3  m) {return mul(v, m);} // transform 'v' vector by 'm' orientation-scale matrix
+inline VecH Transform(VecH v, MatrixH3 m) {return mul(v, m);} // transform 'v' vector by 'm' orientation-scale matrix
+
 #if 1 // TODO: check if future generation GPU's have 'mul' faster (GeForce 650m GT has 'mul' slower)
-inline Vec  Transform (Vec  v, Matrix   m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' orientation-scale-translation matrix, faster version of "mul(Vec4(v, 1), m)"
-inline VecH Transform (VecH v, MatrixH  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' orientation-scale-translation matrix, faster version of "mul(Vec4(v, 1), m)"
-inline Vec4 Transform (Vec  v, Matrix4  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' 4x4                           matrix, faster version of "mul(Vec4(v, 1), m)"
+inline Vec  Transform(Vec  v, Matrix  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' orientation-scale-translation matrix, faster version of "mul(Vec4 (v, 1), m)"
+inline VecH Transform(VecH v, MatrixH m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' orientation-scale-translation matrix, faster version of "mul(VecH4(v, 1), m)"
+inline Vec4 Transform(Vec  v, Matrix4 m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' 4x4                           matrix, faster version of "mul(Vec4 (v, 1), m)"
 #else
-inline Vec  Transform (Vec  v, Matrix   m) {return mul(Vec4(v, 1), m);} // transform 'v' vector by 'm' orientation-scale-translation matrix
-inline Vec4 Transform (Vec  v, Matrix4  m) {return mul(Vec4(v, 1), m);} // transform 'v' vector by 'm' 4x4                           matrix
+inline Vec  Transform(Vec  v, Matrix  m) {return mul(Vec4 (v, 1), m);} // transform 'v' vector by 'm' orientation-scale-translation matrix
+inline VecH Transform(VecH v, MatrixH m) {return mul(VecH4(v, 1), m);} // transform 'v' vector by 'm' orientation-scale-translation matrix
+inline Vec4 Transform(Vec  v, Matrix4 m) {return mul(Vec4 (v, 1), m);} // transform 'v' vector by 'm' 4x4                           matrix
+#endif
+
+#if 1 // TODO: check which one is faster FIXME
+inline Vec  Transform3(Vec  v, Matrix  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix
+inline VecH Transform3(VecH v, MatrixH m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix
+inline VecH Transform3(VecH v, Matrix  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix, TODO: #ShaderHalf
+#else
+inline Vec  Transform3(Vec  v, Matrix  m) {return mul(v, (Matrix3 )m);} // transform 'v' vector by 'm' orientation-scale matrix
+inline VecH Transform3(VecH v, MatrixH m) {return mul(v, (MatrixH3)m);} // transform 'v' vector by 'm' orientation-scale matrix
+inline VecH Transform3(VecH v, Matrix  m) {return mul(v, (MatrixH3)m);} // transform 'v' vector by 'm' orientation-scale matrix, TODO: #ShaderHalf
 #endif
 
 inline Vec  TransformPos(Vec  pos) {return Transform (pos, ViewMatrix[0]);}

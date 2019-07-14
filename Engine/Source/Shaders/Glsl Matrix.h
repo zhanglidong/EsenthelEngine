@@ -13,12 +13,6 @@ MP Vec Transform(MP Vec v, MP Matrix3(m))
               Dot(v, m[1]),
               Dot(v, m[2]));
 }
-MP Vec Transform3(MP Vec v, MP Matrix(m))
-{
-   return Vec(Dot(v, m[0].xyz),
-              Dot(v, m[1].xyz),
-              Dot(v, m[2].xyz));
-}
 HP Vec Transform(HP Vec v, HP Matrix(m))
 {
    return Vec(Dot(v, m[0].xyz) + m[0].w,
@@ -31,4 +25,11 @@ HP Vec4 Transform(HP Vec v, HP Matrix4(m))
                Dot(v, m[1].xyz) + m[1].w,
                Dot(v, m[2].xyz) + m[2].w,
                Dot(v, m[3].xyz) + m[3].w);
+}
+
+MP Vec Transform3(MP Vec v, MP Matrix(m))
+{
+   return Vec(Dot(v, m[0].xyz),
+              Dot(v, m[1].xyz),
+              Dot(v, m[2].xyz));
 }
