@@ -318,7 +318,15 @@ Bool ImageRT::map()
    {
      _mode=IMAGE_RT; if(setInfo())
       {
-         adjustInfo(hwW(), hwH(), hwD(), hwType()); return createViews(false); // false to skip SRV-sRGB because it always causes exception
+         adjustInfo(hwW(), hwH(), hwD(), hwType()); if(createViews(false)) // false to skip SRV-sRGB because it always causes exception
+         {
+            if(LINEAR_GAMMA && hwType()==IMAGE_R8G8B8A8) // #WindowsNewSRGB WINDOWS_NEW may fail to create sRGB in that case create as linear and 'swapRTV' in 'Image.map'
+            {
+               if(!canSwapRTV())return false;
+               swapSRGB(); if(!_srv)Swap(_srv, _srv_srgb);
+            }
+            return true;
+         }
       }
    }
 #elif DX12

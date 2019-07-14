@@ -957,9 +957,10 @@ again:
 	Factory->CreateSwapChainForCoreWindow(D3D, (IUnknown*)App._hwnd, &SwapChainDesc, null, &SwapChain);
    if(!SwapChain)
    {
-      if(SwapChainDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT){SwapChainDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT ; goto again;} // if failed with 32-bit then try again with 16-bit
-      if(SwapChainDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with  8-bit
-      if(SwapChainDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with  8-bit
+      if(SwapChainDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT ){SwapChainDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT ; goto again;} // if failed with 32-bit then try again with 16-bit
+      if(SwapChainDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT ){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with  8-bit
+      if(SwapChainDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM  ){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with  8-bit
+      if(SwapChainDesc.Format==DXGI_FORMAT_R8G8B8A8_UNORM_SRGB){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // #WindowsNewSRGB WINDOWS_NEW may fail to create sRGB in that case create as linear and 'swapRTV' in 'Image.map'
    }
 #endif
    if(!SwapChain)Exit("Can't create Direct3D Swap Chain.");
@@ -1651,9 +1652,10 @@ again:
    if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with  8-bit
 #else
    if(OK(SwapChain->ResizeBuffers(SwapChainDesc.BufferCount, SwapChainDesc.Width, SwapChainDesc.Height, SwapChainDesc.Format, SwapChainDesc.Flags)))return true;
-   if(SwapChainDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT){SwapChainDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT ; goto again;} // if failed with 32-bit then try again with 16-bit
-   if(SwapChainDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with  8-bit
-   if(SwapChainDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with  8-bit
+   if(SwapChainDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT ){SwapChainDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT ; goto again;} // if failed with 32-bit then try again with 16-bit
+   if(SwapChainDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT ){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with  8-bit
+   if(SwapChainDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM  ){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with  8-bit
+   if(SwapChainDesc.Format==DXGI_FORMAT_R8G8B8A8_UNORM_SRGB){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // #WindowsNewSRGB WINDOWS_NEW may fail to create sRGB in that case create as linear and 'swapRTV' in 'Image.map'
 #endif
    return false;
 }
@@ -3180,12 +3182,18 @@ void Display::setFade(Flt seconds, Bool previous_frame)
          {
             SyncLocker locker(_lock);
             Renderer._fade.get(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha
+         #if WINDOWS_NEW
+            Bool swap=(Renderer._main.type()==IMAGE_R8G8B8A8 && Renderer._main.hwType()==IMAGE_R8G8B8A8_SRGB); if(swap)Renderer._fade->swapRTV(); // #WindowsNewSRGB WINDOWS_NEW may fail to create sRGB in that case create as linear and 'swapRTV' in 'Image.map'
+         #endif
          #if WEB // #WebSRGB
             Renderer._main_temp
          #else
             Renderer._main
          #endif
                .copyHw(*Renderer._fade, true, null, null, &_fade_flipped);
+         #if WINDOWS_NEW
+            if(swap)Renderer._fade->swapRTV();
+         #endif
            _fade_get =false  ;
            _fade_step=0      ;
            _fade_len =seconds;
@@ -3219,12 +3227,18 @@ void Display::fadeDraw()
      _fade_get =false;
      _fade_step=0    ;
       Renderer._fade.get(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha
+   #if WINDOWS_NEW
+      Bool swap=(Renderer._main.type()==IMAGE_R8G8B8A8 && Renderer._main.hwType()==IMAGE_R8G8B8A8_SRGB); if(swap)Renderer._fade->swapRTV(); // #WindowsNewSRGB WINDOWS_NEW may fail to create sRGB in that case create as linear and 'swapRTV' in 'Image.map'
+   #endif
    #if WEB // #WebSRGB
       Renderer._main_temp
    #else
       Renderer._main
    #endif
          .copyHw(*Renderer._fade, true, null, null, &_fade_flipped);
+   #if WINDOWS_NEW
+      if(swap)Renderer._fade->swapRTV();
+   #endif
    }
 }
 /******************************************************************************/
