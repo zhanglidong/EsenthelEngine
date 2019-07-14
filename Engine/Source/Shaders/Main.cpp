@@ -10,6 +10,20 @@
 #include "Volumetric.h"
 #include "Fog.h"
 #include "Fur.h"
+/******************************************************************************
+VecH4 Test_PS(NOPERSP Vec2 inTex:TEXCOORD,
+              uniform Int  mode):COLOR
+{
+   Vec v=Vec(1,2,3), r=Vec(0,0,0);
+   for(Int i=0; i<256; i++)
+   {
+      if(mode==0)r+=TransformA(v, m[i]);
+      if(mode==1)r+=TransformB(v, m[i]);
+   }
+   return VecH4(mode ? inTex.yx : inTex.xy, Sum(r), 1);
+}
+TECHNIQUE(Test , Draw_VS(), Test_PS(0));
+TECHNIQUE(Test1, Draw_VS(), Test_PS(1));
 /******************************************************************************/
 VecH4 TexCubicFast(Vec2 inTex)
 {
