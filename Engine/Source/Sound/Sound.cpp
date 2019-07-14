@@ -908,9 +908,6 @@ static Int CompareSound(C _Sound &a, C _Sound &b)
 }
 /******************************************************************************/
 static void UpdatePlaying(_Sound* &sound, Ptr user, Int thread_index) {sound->updatePlaying(thread_index);}
-#if UPDATE_2X
-static Bool UpdateStep;
-#endif
 static Bool UpdateSound2(Thread &thread)
 {
    SoundEvent.wait(SOUND_TIMER/(UPDATE_2X ? 2 : 1));
@@ -944,10 +941,8 @@ again:
       }
    }
 
-#if UPDATE_2X
-   if(UpdateStep^=1) // we have to update every 2nd step, because this function is called 2x more frequently
-#endif
-   {
+   // update sounds
+   { // use brace for locks
       UpdateMusic(); // !! do not surround music by any locks, because it doesn't need any, it operates only on 'Sound' which was designed to don't require any locks !!
       SoundMemxPlaying.clear();
       Int max_concurrent=SoundMaxConcurrent();
