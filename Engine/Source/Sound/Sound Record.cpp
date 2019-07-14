@@ -89,10 +89,10 @@ struct _SoundRecord
             wf->nBlockAlign    =channels*bytes;
             wf->nAvgBytesPerSec=wf->nBlockAlign*frequency;
 
-            UInt default_frames, fundamental_frames, min_frames, max_frames, frames;
-            if(OK(audio_client->GetSharedModeEnginePeriod(wf, &default_frames, &fundamental_frames, &min_frames, &max_frames)))
-            if(OK(audio_client->InitializeSharedAudioStream(AUDCLNT_STREAMFLAGS_EVENTCALLBACK, min_frames, wf, null)))
-            if(OK(audio_client->GetBufferSize(&frames)))
+            UInt default_frames, fundamental_frames, min_frames, max_frames;//, frames;
+            if(OK(audio_client->GetSharedModeEnginePeriod(wf, &default_frames, &fundamental_frames, &min_frames, &max_frames))) // get sample limits
+            if(OK(audio_client->InitializeSharedAudioStream(AUDCLNT_STREAMFLAGS_EVENTCALLBACK, min_frames, wf, null))) // use smallest supported sample count for low-latency
+          //if(OK(audio_client->GetBufferSize(&frames)))
             if(OK(audio_client->GetService(__uuidof(IAudioCaptureClient), (Ptr*)&audio_capture_client)))
             if(OK(audio_client->SetEventHandle(samples_ready.handle()))) // this is needed
             if(OK(audio_client->Start()))
