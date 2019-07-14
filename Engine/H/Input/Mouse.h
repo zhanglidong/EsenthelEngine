@@ -16,7 +16,7 @@ struct MouseCursorHW // Hardware Mouse Cursor
    #if WINDOWS_OLD
       HCURSOR _cursor;
    #elif WINDOWS_NEW
-      CoreCursor ^_cursor;
+      Windows::UI::Core::CoreCursor ^_cursor;
    #elif MAC
       NSCursor *_cursor;
    #elif LINUX
