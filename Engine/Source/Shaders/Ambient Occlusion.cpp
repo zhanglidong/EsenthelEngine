@@ -129,7 +129,7 @@ Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
 
    Flt  occl  =0,
         weight=HALF_MIN;
-   Vec2 offs_scale=Viewport.size_fov_tan*(0.5*AmbRange/Max(1.0, pos.z)); // use 0.5 because we're converting from -1..1 to 0..1 scale
+   Vec2 offs_scale=Viewport.size_fov_tan*(0.5*AmbRange/Max(1.0f, pos.z)); // use 0.5 because we're converting from -1..1 to 0..1 scale
 
 #if 0 // don't pack too many samples together, require them to be spread out, don't use for now, because forces big occlusion on distant objects
    this doesn't work with AmbBias already scaled by AmbRange, would have to make AmbBiasChangeable

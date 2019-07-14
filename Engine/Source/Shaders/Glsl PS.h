@@ -4,6 +4,7 @@ PAR Image     Col, Col1, Col2, Col3,
               Nrm, Nrm1, Nrm2, Nrm3,
               Lum;
 PAR ImageCube Rfl, Rfl1, Rfl2, Rfl3;
+PAR Image     Img, Img1, Img2, Img3;
 PAR Image     ImgX, ImgX1, ImgX2, ImgX3;
 PAR HP Image  ImgXF, ImgXF1, Depth;
 PAR Image     ImgXY;

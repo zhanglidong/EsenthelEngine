@@ -447,7 +447,7 @@ VecH4 Blur_PS(NOPERSP Vec2 inTex:TEXCOORD,
    blur=((Abs(blur-0.5)<=1.0/255) ? VecH4(0, 0, 0, 0) : blur*2-1); // this performs comparisons for all channels separately, force 0 when source value is close to 0.5, otherwise scale to -1..1
 #endif
 
-   Vec4 color=Vec4(TexLod(Img, inTex).rgb, 1); // force full alpha so back buffer effects can work ok, can't use 'TexPoint' because 'Img' can be supersampled, use HP because we operate on many samples
+   VecH4 color=VecH4(TexLod(Img, inTex).rgb, 1); // force full alpha so back buffer effects can work ok, can't use 'TexPoint' because 'Img' can be supersampled
 
    BRANCH if(any(blur)) // we can use 'any' here because small values got clipped out already in 'SetDirs'
    {
@@ -472,6 +472,7 @@ VecH4 Blur_PS(NOPERSP Vec2 inTex:TEXCOORD,
       dir0/=samples;
       dir1/=samples;
 
+      Vec color_hp=color.rgb; // use HP because we operate on many samples
    #if VARIABLE_BLUR_SAMPLES
       LOOP
    #else
@@ -480,10 +481,10 @@ VecH4 Blur_PS(NOPERSP Vec2 inTex:TEXCOORD,
          for(Int i=1; i<=samples; i++) // start from 1 because we've already got #0 before
       {
          // TODO: implement new high quality mode that doesn't use 'SetDirs' but calculates per-sample weights based on velocity and depth (for this have to use 'do_clamp')
-         color.rgb+=TexLod(Img, inTex+=dir0).rgb; // use linear filtering
-         color.rgb+=TexLod(Img,   t1 +=dir1).rgb; // use linear filtering
+         color_hp.rgb+=TexLod(Img, inTex+=dir0).rgb; // use linear filtering
+         color_hp.rgb+=TexLod(Img,   t1 +=dir1).rgb; // use linear filtering
       }
-      color.rgb/=samples*2+1;
+      color.rgb=color_hp.rgb/(samples*2+1);
 
    #if TEST_BLUR_PIXELS
       color.r=1;
