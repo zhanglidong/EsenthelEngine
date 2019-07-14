@@ -1,5 +1,6 @@
 /******************************************************************************/
 #include "iOS.h"
+#undef super // Objective-C has its own 'super'
 /******************************************************************************/
 Bool DontRemoveThisOrMyViewControllerClassWontBeLinked;
 namespace EE

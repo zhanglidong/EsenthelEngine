@@ -125,6 +125,7 @@ private:
    Byte _enc[256], _dec[256];
 };
 /******************************************************************************/
+ALIGN(16) // this is needed for Clang, which ignores alignment for members below - https://feedbackassistant.apple.com/feedback/5455235
 struct AES // Advanced Encryption Standard
 {
    Bool create(CPtr key, Int key_size); // create AES cipher, 'key'=pointer to symmetric key, 'key_size'=size of the key in bytes (must be 16, 24 or 32), returns false on fail

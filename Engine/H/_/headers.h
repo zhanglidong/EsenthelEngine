@@ -263,6 +263,7 @@
          #define  GLEW_STATIC
          #include "../../../ThirdPartyLibs/GL/glew.h"
          #include "../../../ThirdPartyLibs/GL/wglew.h"
+         #include <d3d11_4.h> // to support shader compilation
       #elif MAC
          #include <OpenGL/gl3.h>
          #include <OpenGL/gl3ext.h>

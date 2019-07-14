@@ -89,7 +89,7 @@
 #include <DirectXPackedVector.h>*/
 
 #include <assert.h>
-#include <malloc.h>
+//#include <malloc.h> ESENTHEL
 
 #include <algorithm>
 #include <map>

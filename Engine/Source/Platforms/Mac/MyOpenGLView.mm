@@ -1,5 +1,6 @@
 /******************************************************************************/
 #include "stdafx.h"
+#undef super // Objective-C has its own 'super'
 #include "MyOpenGLView.h"
 #include "MyWindow.h"
 namespace EE{

@@ -25,16 +25,18 @@
    #define _XM_NO_INTRINSICS_
    #define __cdecl
    typedef UInt DWORD;
-   typedef Int HRESULT;
-   #define _HRESULT_TYPEDEF_(_sc) ((HRESULT)_sc)
-   #define E_INVALIDARG                     _HRESULT_TYPEDEF_(0x80070057L)
-   #define E_OUTOFMEMORY                    _HRESULT_TYPEDEF_(0x8007000EL)
-   #define E_UNEXPECTED                     _HRESULT_TYPEDEF_(0x8000FFFFL)
-   #define E_FAIL                           _HRESULT_TYPEDEF_(0x80004005L)
-   #define E_POINTER                        _HRESULT_TYPEDEF_(0x80004003L)
-   #define S_OK                            ((HRESULT)0L)
+   #ifndef E_INVALIDARG // can be defined on Mac
+      typedef Int HRESULT;
+      #define _HRESULT_TYPEDEF_(_sc) ((HRESULT)_sc)
+      #define E_INVALIDARG                     _HRESULT_TYPEDEF_(0x80070057L)
+      #define E_OUTOFMEMORY                    _HRESULT_TYPEDEF_(0x8007000EL)
+      #define E_UNEXPECTED                     _HRESULT_TYPEDEF_(0x8000FFFFL)
+      #define E_FAIL                           _HRESULT_TYPEDEF_(0x80004005L)
+      #define E_POINTER                        _HRESULT_TYPEDEF_(0x80004003L)
+      #define S_OK                            ((HRESULT)0L)
+      #define FAILED(hr) (((HRESULT)(hr)) < 0)
+   #endif
    #define ERROR_ARITHMETIC_OVERFLOW 534L
-   #define FAILED(hr) (((HRESULT)(hr)) < 0)
    #define FACILITY_WIN32 7
    inline HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <= 0 ? (HRESULT)(x) : (HRESULT) (((x) & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000);}
    #include "../DirectX/dxgiformat.h"
