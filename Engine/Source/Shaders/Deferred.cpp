@@ -151,7 +151,7 @@ void VS
 
    if(bump_mode>SBUMP_FLAT)O.mtrx[1]=vtx.bin(O.mtrx[2], O.mtrx[0], heightmap);
    if((bump_mode>=SBUMP_PARALLAX_MIN && bump_mode<=SBUMP_PARALLAX_MAX)
-   || (bump_mode==SBUMP_RELIEF       && !RELIEF_TAN_POS              ))O._tpos=mul(O.mtrx, -O.pos);
+   || (bump_mode==SBUMP_RELIEF       && !RELIEF_TAN_POS              ))O._tpos=mul(O.mtrx, -O.pos); // 'TransformTP' #ShaderHalf
 
    O_vtx=Project(O.pos); CLIP(O.pos);
 }
@@ -217,7 +217,7 @@ void PS
              //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
 
             #if RELIEF_TAN_POS
-               Vec tpos=Normalize(mul(I.mtrx, -I.pos));
+               Vec tpos=Normalize(mul(I.mtrx, -I.pos)); // 'TransformTP' #ShaderHalf
             #else
                Vec tpos=I.tpos();
             #endif
@@ -433,7 +433,7 @@ void PS
 
                // TODO: #ShaderHalf
             #if RELIEF_TAN_POS
-               Vec tpos=Normalize(mul(I.mtrx, -I.pos));
+               Vec tpos=Normalize(mul(I.mtrx, -I.pos)); // 'TransformTP' #ShaderHalf
             #else
                Vec tpos=I.tpos();
             #endif

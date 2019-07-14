@@ -258,7 +258,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          mtrx[0]=MatrixX(ViewMatrix[0]);
          mtrx[1]=MatrixZ(ViewMatrix[0]);
          mtrx[2]=MatrixY(ViewMatrix[0]);
-         nrm=mul(mtrx, nrm);
+         nrm=mul(mtrx, nrm); // 'TransformTP' #ShaderHalf
          Vec2 refract=nrm.xy*Viewport.size;
 
          Flt dz   =solid_z-water_z;
@@ -318,7 +318,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          mtrx[0]=MatrixX(ViewMatrix[0]);
          mtrx[1]=MatrixZ(ViewMatrix[0]);
          mtrx[2]=MatrixY(ViewMatrix[0]);
-         nrm=mul(mtrx, nrm);
+         nrm=mul(mtrx, nrm); // 'TransformTP' #ShaderHalf
          Vec2 refract=nrm.xy*Viewport.size;
 
          // col light
