@@ -25,7 +25,8 @@ Tipsify           20.9          0.005
    #endif
    #include "../../../../ThirdPartyLibs/begin.h"
    #include "../../../../ThirdPartyLibs/DirectXMath/include.h"
-   #include "../../../../ThirdPartyLibs/DirectXMesh/DirectXMeshOptimize.cpp"
+   #include "../../../../ThirdPartyLibs/DirectXMesh/DirectXMeshOptimizeTVC.cpp"
+   #include "../../../../ThirdPartyLibs/DirectXMesh/DirectXMeshUtil.cpp"
    #include "../../../../ThirdPartyLibs/end.h"
 #endif
 /******************************************************************************/
@@ -1250,7 +1251,7 @@ MeshBase& MeshBase::optimizeCache(Bool faces, Bool vertexes)
       ASSERT(SIZE(tri.adjFace(0))==SIZE(uint32_t)*3);
       remap.reserve(Max(tris(), vertexes ? vtxs() : 0)); ASSERT(SIZE(Int)==SIZE(uint32_t));
       remap.setNum(tris());
-      if(DirectX::OptimizeFaces((uint32_t*)tri.ind(), tris(), (uint32_t*)tri.adjFace(), (uint32_t*)remap.data(), VTX_CACHE_SIZE, VTX_CACHE_SIZE))
+      if(OK(DirectX::OptimizeFaces((uint32_t*)tri.ind(), tris(), (uint32_t*)tri.adjFace(), (uint32_t*)remap.data(), VTX_CACHE_SIZE, VTX_CACHE_SIZE)))
       {
          MeshBase temp(0, 0, remap.elms(), 0, TRI_IND);
          REPA(remap)temp.tri.ind(i)=tri.ind(remap[i]);
@@ -1318,10 +1319,10 @@ MeshRender& MeshRender::optimize(Bool faces, Bool vertexes)
                BoneSplit &bs=_bone_split[i];
                REPD(t, bs.tris)attributes[processed_tris++]=i;
             }
-            ok=DirectX::OptimizeFacesEx((uint32_t*)temp.tri.ind(), tris(), (uint32_t*)temp.tri.adjFace(), attributes.data(), (uint32_t*)remap.data(), VTX_CACHE_SIZE, VTX_CACHE_SIZE);
+            ok=OK(DirectX::OptimizeFacesEx((uint32_t*)temp.tri.ind(), tris(), (uint32_t*)temp.tri.adjFace(), attributes.data(), (uint32_t*)remap.data(), VTX_CACHE_SIZE, VTX_CACHE_SIZE));
          }else
          {
-            ok=DirectX::OptimizeFaces((uint32_t*)temp.tri.ind(), tris(), (uint32_t*)temp.tri.adjFace(), (uint32_t*)remap.data(), VTX_CACHE_SIZE, VTX_CACHE_SIZE);
+            ok=OK(DirectX::OptimizeFaces((uint32_t*)temp.tri.ind(), tris(), (uint32_t*)temp.tri.adjFace(), (uint32_t*)remap.data(), VTX_CACHE_SIZE, VTX_CACHE_SIZE));
          }
          if(ok)if(ind=indLock(LOCK_WRITE))
          {

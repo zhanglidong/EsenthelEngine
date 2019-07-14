@@ -115,8 +115,7 @@ ASSERT(SIZE(Char8)==1); // size of Char8 must be 1 byte
 
 // alignment
 #undef  ALIGN
-#define ALIGN(    x) PLATFORM(__declspec(align(x)), )
-#define ALIGN_END(x) PLATFORM(, __attribute__((aligned(x))))
+#define ALIGN(x) __declspec(align(x)) // __attribute__((aligned(x)))
 /******************************************************************************/
 // FUNCTION DECLARATION
 /******************************************************************************/

@@ -135,8 +135,8 @@ struct AES // Advanced Encryption Standard
    AES();
 
 private:
-   ALIGN(16) U32 _encrypt_key[60] ALIGN_END(16);
-   ALIGN(16) U32 _decrypt_key[60] ALIGN_END(16);
+   ALIGN(16) U32 _encrypt_key[60];
+   ALIGN(16) U32 _decrypt_key[60];
              Int _rounds;
-}ALIGN_END(16); // this is needed for Apple
+};
 /******************************************************************************/

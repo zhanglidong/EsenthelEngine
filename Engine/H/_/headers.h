@@ -174,21 +174,16 @@
          #include "../../../ThirdPartyLibs/OpenAL for Windows/al.h"
          #include "../../../ThirdPartyLibs/OpenAL for Windows/alc.h"
       #endif
-      #include "../../../ThirdPartyLibs/DirectX/xinput.h"
+      #include <xinput.h>
       #if WINDOWS_OLD
          #define DIRECTINPUT_VERSION 0x0800
-         #include "../../../ThirdPartyLibs/DirectX/dinput.h"
+         #include <dinput.h>
       #endif
       #if DIRECT_SOUND
-         #include "../../../ThirdPartyLibs/DirectX/dsound.h"
+         #include <dsound.h>
       #elif XAUDIO
-         #if WINDOWS_OLD
-            #include "../../../ThirdPartyLibs/DirectX/old/xaudio2.h"
-            #include "../../../ThirdPartyLibs/DirectX/old/x3daudio.h"
-         #else
-            #include "../../../ThirdPartyLibs/DirectX/xaudio2.h"
-            #include "../../../ThirdPartyLibs/DirectX/x3daudio.h"
-         #endif
+         #include <xaudio2.h>
+         #include <x3daudio.h>
       #endif
    #elif APPLE // Apple
       #define Ptr       ApplePtr
@@ -252,19 +247,15 @@
 
    // Renderer
    #if DX11 // DirectX 11
-      #include "../../../ThirdPartyLibs/DirectX/dxgi1_6.h"
-      #include "../../../ThirdPartyLibs/DirectX/d3d11_4.h"
-      #if DX11
-         #include "../../../ThirdPartyLibs/DirectX/d3dcompiler.h"
-         #include "../../../ThirdPartyLibs/DirectX/d3dcommon.h"
-      #endif
+      #include <dxgi1_6.h>
+      #include <d3d11_4.h>
+      #include <d3dcompiler.h>
+      #include <d3dcommon.h>
    #elif GL // OpenGL
       #if WINDOWS
          #define  GLEW_STATIC
          #include "../../../ThirdPartyLibs/GL/glew.h"
          #include "../../../ThirdPartyLibs/GL/wglew.h"
-         // if we're compiling OpenGL on windows, then include DirectX headers as well, to support some basic DirectX functions
-         #include "../../../ThirdPartyLibs/DirectX/d3d11_4.h"
       #elif MAC
          #include <OpenGL/gl3.h>
          #include <OpenGL/gl3ext.h>
