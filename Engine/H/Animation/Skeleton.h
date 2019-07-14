@@ -72,8 +72,8 @@ struct BoneID
 };
 
 typedef SkeletonBone SkelBone;
-STRUCT2(SkeletonBone , OrientP , BoneID) // Skeleton Bone
-//{
+struct  SkeletonBone : OrientP, BoneID // Skeleton Bone
+{
    Byte    parent         , // bone parent index             , default=0xFF, 0xFF=none
            children_offset, // offset of children in 'Skeleton.bones'
            children_num   , // number of children
@@ -122,8 +122,8 @@ STRUCT2(SkeletonBone , OrientP , BoneID) // Skeleton Bone
 };
 
 typedef SkeletonSlot SkelSlot;
-STRUCT( SkeletonSlot , OrientP) // Skeleton Slot
-//{
+struct  SkeletonSlot : OrientP // Skeleton Slot
+{
    Char8 name[32]; // name
    Byte  bone    , //           bone index to which slot belongs, 0xFF=none
          bone1   ; // secondary bone index to which slot belongs, 0xFF=none, for best performance this should be set to the same value as 'bone' (to have only one parent), if this is different than 'bone' then slot will be set as average based on 2 bone parents

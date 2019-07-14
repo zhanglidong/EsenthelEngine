@@ -6,8 +6,8 @@
    Use 'SkelAnim'  to handle the relation between a skeleton and an animation.
 
 /******************************************************************************/
-STRUCT2(AnimBone , AnimKeys, BoneID) // Animation Bone - set of animation keyframes for a particular bone
-//{
+struct AnimBone : AnimKeys, BoneID // Animation Bone - set of animation keyframes for a particular bone
+{
    void save(TextNode &node)C; // save as text
 };
 /******************************************************************************/
