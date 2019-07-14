@@ -2585,7 +2585,6 @@ TECHNIQUE(ColLight2ACN, Draw_VS(), ColLight_PS(2, true , true , true));
 BUFFER(Particle)
    Vec2 ParticleFrames=Vec2(1, 1);
 BUFFER_END
-// #ShaderHalf
 void Particle_VS(VtxInput vtx,
              out Vec4  outVtx :POSITION ,
              out VecH4 outCol :COLOR    ,
@@ -2601,25 +2600,25 @@ void Particle_VS(VtxInput vtx,
    outTex=vtx.tex();
    outCol=(palette ? vtx.colorF() : vtx.colorFast()); // use linear color for palette
 
-   Flt  size  =vtx.size(),
-        angle =vtx._tan.w;
-   Vec  pos   =TransformPos(vtx.pos());
-   Vec2 offset=outTex*Vec2(2, -2)+Vec2(-1, 1), cos_sin; CosSin(cos_sin.x, cos_sin.y, angle); offset=Rotate(offset, cos_sin);
+   Half  size  =vtx.size(),
+         angle =vtx._tan.w;
+   Vec   pos   =TransformPos(vtx.pos());
+   VecH2 offset=outTex*VecH2(2, -2)+VecH2(-1, 1), cos_sin; CosSin(cos_sin.x, cos_sin.y, angle); offset=Rotate(offset, cos_sin);
 
    if(motion_stretch)
       if(pos.z>0)
    {
       #define PARTICLE_PROJECT 100
-      Vec  vel =TransformDir(vtx.tan()); if(vel.z<0)vel=-vel; // view space velocity, always make it along the camera direction, so we won't have a situation where the 'pos1' is behind the camera
-      Vec  pos1=pos+vel/PARTICLE_PROJECT;
-      Vec2 vel2=(pos1.xy/pos1.z - pos.xy/pos.z)*PARTICLE_PROJECT; // 2D velocity
-      Flt  len =Length(vel2)+HALF_MIN;
+      VecH  vel =TransformDir(vtx.tan()); if(vel.z<0)vel=-vel; // view space velocity, always make it along the camera direction, so we won't have a situation where the 'pos1' is behind the camera
+      Vec   pos1=pos+vel/PARTICLE_PROJECT;
+      VecH2 vel2=(pos1.xy/pos1.z - pos.xy/pos.z)*PARTICLE_PROJECT; // 2D velocity
+      Half  len =Length(vel2)+HALF_MIN;
     //if(len>0) // instead of using "if", add HALF_MIN line above - it's faster
       {
        //Flt  max_stretch=5; if(len>max_stretch){vel2*=max_stretch/len; len=max_stretch;} // NaN
-         Vec2 x=vel2*(vel2.x/len),
-              y=vel2*(vel2.y/len);
-         offset=Vec2(offset.x*(x.x+1) + offset.y*y.x, offset.x*x.y + offset.y*(y.y+1));
+         VecH2 x=vel2*(vel2.x/len),
+               y=vel2*(vel2.y/len);
+         offset=VecH2(offset.x*(x.x+1) + offset.y*y.x, offset.x*x.y + offset.y*(y.y+1));
          if(stretch_alpha)
          {
             if(palette)outCol  /=1+len; // in RM_PALETTE each component
@@ -2630,7 +2629,7 @@ void Particle_VS(VtxInput vtx,
    pos.xy+=offset*size;
 
    // sky
-   Flt d=Length(pos), opacity=Sat(d*SkyFracMulAdd.x + SkyFracMulAdd.y);
+   Flt d=Length(pos); Half opacity=Sat(d*SkyFracMulAdd.x + SkyFracMulAdd.y);
    if(palette)outCol  *=opacity; // in RM_PALETTE each component
    else       outCol.a*=opacity; // in RM_BLEND   only alpha
 
