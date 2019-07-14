@@ -327,8 +327,8 @@ const_mem_addr struct CodeEditor
       BuildFile() {mode=IGNORE; xcode_file_id=xcode_mac_id=xcode_ios_id=0;}
    };
 
-   STRUCT(BuildList , List<BuildResult>)
-   //{
+   struct BuildList : List<BuildResult>
+   {
       Int highlight_line;
       Dbl highlight_time;
 
@@ -396,8 +396,8 @@ const_mem_addr struct CodeEditor
    VecI4 devenv_version;
    Bool  devenv_express, devenv_com, build_msbuild;
 
-   STRUCT(GotoLineWindow , ClosableWindow)
-   //{
+   struct GotoLineWindow : ClosableWindow
+   {
       TextLine    textline;
       CodeEditor *ce;
 
@@ -408,16 +408,16 @@ const_mem_addr struct CodeEditor
    };
    GotoLineWindow goto_line_window;
 
-   STRUCT(Options , ClosableWindow)
-   //{
-      STRUCT(VSVersions , ClosableWindow)
-      //{
+   struct Options : ClosableWindow
+   {
+      struct VSVersions : ClosableWindow
+      {
          CodeEditor *ce;
 
          VSVersions() {ce=null;}
 
-         STRUCT(Version , Button)
-         //{
+         struct Version : Button
+         {
             static void OK(Version &ver)
             {
                Str msg; if(!CheckVisualStudio(ver.install.ver, &msg))Error(msg);else
@@ -466,8 +466,8 @@ const_mem_addr struct CodeEditor
          void save(  TextNode &node)C;
          void load(C TextNode &node);
       };
-      STRUCT(FontParams , FontData)
-      //{
+      struct FontParams : FontData
+      {
          Str  sample_text;
          Bool chinese, japanese, korean;
 
@@ -476,8 +476,8 @@ const_mem_addr struct CodeEditor
          void load(C TextNode &node);
       };
 
-      STRUCT(ColorThemeEditor, ClosableWindow)
-      //{
+      struct ColorThemeEditor : ClosableWindow
+      {
          TextStyle      ts;
          Memx<Property> props;
 
@@ -485,8 +485,8 @@ const_mem_addr struct CodeEditor
          void skinChanged();
       };
 
-      STRUCT(FontEditor, ClosableWindow)
-      //{
+      struct FontEditor : ClosableWindow
+      {
          TextStyle      ts;
          FontParams     params;
          Memx<Property> props;
@@ -535,8 +535,8 @@ const_mem_addr struct CodeEditor
    };
    Options options;
 
-   STRUCT(AndroidCertificate , ClosableWindow)
-   //{
+   struct AndroidCertificate : ClosableWindow
+   {
       Text    torg_name, tpass;
       TextLine org_name,  pass;
       Button   save;
@@ -571,8 +571,8 @@ const_mem_addr struct CodeEditor
 
    SaveChanges save_changes;
    
-   STRUCT(MenuBarEx , MenuBar)
-   //{
+   struct MenuBarEx : MenuBar
+   {
               C Rect&    rect                   ()C {return GuiObj::rect();}
       virtual MenuBarEx& rect                   (C Rect &rect);
       virtual void       parentClientRectChanged(C Rect *old_client, C Rect *new_client);

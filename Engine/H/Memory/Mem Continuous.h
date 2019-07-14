@@ -185,8 +185,8 @@ T2(A, B) struct std__pair
    std__pair() {}
    std__pair(C A &a, C B &b) : first(a), second(b) {}
 };
-T1(TYPE) STRUCT_PRIVATE(std__unique_ptr , Mems<TYPE>)
-//{
+T1(TYPE) struct std__unique_ptr : private Mems<TYPE>
+{
    TYPE& operator[](Int i)  {return super::operator[](i);}
  C TYPE& operator[](Int i)C {return super::operator[](i);}
 
@@ -200,8 +200,8 @@ T1(TYPE) STRUCT_PRIVATE(std__unique_ptr , Mems<TYPE>)
    std__unique_ptr(        ) {}
    std__unique_ptr(Int elms) {reset(elms);}
 };
-T1(TYPE) STRUCT_PRIVATE(std__vector , Memc<TYPE>)
-//{
+T1(TYPE) struct std__vector : private Memc<TYPE>
+{
    TYPE& operator[](Int i)  {return super::operator[](i);}
  C TYPE& operator[](Int i)C {return super::operator[](i);}
 

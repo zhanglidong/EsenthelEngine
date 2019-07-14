@@ -102,8 +102,8 @@ const_mem_addr struct Property // Class Member Gui Control !! must be stored in 
 #if !EE_PRIVATE
 private:
 #endif
-   STRUCT(Color , GuiCustom)
-   //{
+   struct Color : GuiCustom
+   {
       virtual void update(C GuiPC &gpc);
       virtual void draw  (C GuiPC &gpc);
    };

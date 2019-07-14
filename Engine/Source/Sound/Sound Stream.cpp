@@ -505,8 +505,8 @@ static OggVorbis_File* LoadOggVorbisHeader(File &f, SoundStream::Params &params)
    params.zero(); Free(vorbis); return null;
 }
 
-STRUCT(WebmVorbisFile , WebmFile)
-//{
+struct WebmVorbisFile : WebmFile
+{
    vorbis_info      vi;
    vorbis_dsp_state vd;
    vorbis_block     vb;
@@ -720,8 +720,8 @@ static OggOpusFile* LoadOggOpusHeader(File &f, SoundStream::Params &params)
    params.zero(); return null;
 }
 
-STRUCT(WebmOpusFile , WebmFile)
-//{
+struct WebmOpusFile : WebmFile
+{
    OpusDecoder od;
 
 #if USE_TIME_RAW

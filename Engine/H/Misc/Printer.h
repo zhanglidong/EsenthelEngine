@@ -45,8 +45,8 @@ private:
 #endif
    NO_COPY_CONSTRUCTOR(RawPrinter);
 };
-STRUCT_PRIVATE(ReceiptPrinter , RawPrinter)
-//{
+struct ReceiptPrinter : private RawPrinter
+{
    // manage
    Bool    connect(C Str &printer_name); // connect to 'printer_name' printer, false on fail
    void disconnect();
@@ -80,8 +80,8 @@ private:
    void lineHeight(           ); // set default line height
 #endif
 };
-STRUCT_PRIVATE(LabelPrinter , RawPrinter)
-//{
+struct LabelPrinter : private RawPrinter
+{
    // manage
    Bool    connect(C Str &printer_name); // connect to 'printer_name' printer, false on fail
    void disconnect();

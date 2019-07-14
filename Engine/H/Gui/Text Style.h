@@ -161,8 +161,8 @@ struct TextStyleParams // Text Style Params
 private:
    Font *_font;
 };
-STRUCT(TextStyle , TextStyleParams) // Text Style
-//{
+struct TextStyle : TextStyleParams // Text Style
+{
  C FontPtr& font()C {return _font;}   TextStyle& font(C FontPtr &font); // get/set Font
 
    // operations

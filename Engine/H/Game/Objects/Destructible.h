@@ -5,8 +5,8 @@
 /******************************************************************************/
 namespace Game{
 /******************************************************************************/
-STRUCT(Destructible , Obj) // Game Destructible Object
-//{
+struct Destructible : Obj // Game Destructible Object
+{
    enum MODE : Byte // each destructible object can be in different mode
    {
       STATIC   , // this object is                 the whole DestructMesh, it uses 1 Mesh and 1    static   Actor  , this object works as typical Static object, it cannot be broken into pieces until it's manually converted to different mode, it uses 1 Mesh and 1 Actor so the cost of displaying and physics processing is low

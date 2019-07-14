@@ -1,6 +1,6 @@
 /******************************************************************************/
-const_mem_addr STRUCT(Slider , GuiObj) // Gui Slider !! must be stored in constant memory address !!
-//{
+const_mem_addr struct Slider : GuiObj // Gui Slider !! must be stored in constant memory address !!
+{
    GuiSkinPtr skin; // skin override, default=null (if set to null then current value of 'Gui.skin' is used)
 
    // manage

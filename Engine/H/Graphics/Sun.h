@@ -41,8 +41,8 @@ struct Astro // Astronomical Object (Star/Planet/Moon)
 #endif
 };
 /******************************************************************************/
-STRUCT(SunClass , Astro) // Sun objects have default member values: 'glow'=128, 'light_color'=(0.7, 0.7, 0.7)
-//{
+struct SunClass : Astro // Sun objects have default member values: 'glow'=128, 'light_color'=(0.7, 0.7, 0.7)
+{
    Flt highlight_front, // amount of highlight applied on atmospheric sky, 0..Inf, default=0.20
        highlight_back ; // amount of highlight applied on atmospheric sky, 0..Inf, default=0.15
 

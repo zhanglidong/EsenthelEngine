@@ -65,8 +65,8 @@ struct Area // World Area
 {
    struct Data // Data of an World Area
    {
-      STRUCT(AreaObj , Object)
-      //{
+      struct AreaObj : Object
+      {
          UID id;
 
          Bool save(File &f, CChar *path=null)C; // 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail

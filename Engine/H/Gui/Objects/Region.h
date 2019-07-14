@@ -1,6 +1,6 @@
 /******************************************************************************/
-const_mem_addr STRUCT(Region , GuiObj) // Gui Region !! must be stored in constant memory address !!
-//{
+const_mem_addr struct Region : GuiObj // Gui Region !! must be stored in constant memory address !!
+{
    Bool     kb_lit     ; // if highlight when has keyboard focus, default=true
    Button   view       ; // view button
    SlideBar slidebar[2]; // 2 SlideBars (0=horizontal, 1=vertical)

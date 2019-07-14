@@ -1,6 +1,6 @@
 /******************************************************************************/
-const_mem_addr STRUCT(TextLine , GuiObj) // Gui TextLine !! must be stored in constant memory address !!
-//{
+const_mem_addr struct TextLine : GuiObj // Gui TextLine !! must be stored in constant memory address !!
+{
    Bool   kb_lit   , // if highlight when has keyboard focus           , default=true
           show_find; // if show find image when there's no text entered, default=false
    Str    hint     ; // hint displayed     when there's no text entered, default=""

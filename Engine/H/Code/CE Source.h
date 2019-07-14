@@ -39,10 +39,6 @@ struct LineMode // Line information, which can start with being inside comment o
 /******************************************************************************/
 struct Line : Str, Text, LineMode
 {
-#if !WINDOWS
-   typedef Text super;
-#endif
-
    Bool        changed, text_valid, tokens_preproc_use, tokens_preproc_condition_unavailable;
    Int         line; // original line index
    UID         id;
@@ -150,8 +146,8 @@ struct PrepCond // Preprocess Conditional (#if, #ifdef, #ifndef, #elif, #else, #
    void set(Bool can_enter, Bool currently_valid) {T.can_enter=can_enter; T.currently_valid=currently_valid;}
 };
 /******************************************************************************/
-const_mem_addr STRUCT(Source , Region)
-//{
+const_mem_addr struct Source : Region
+{
    enum UNDO_TYPE
    {
       DEFAULT ,
@@ -190,10 +186,6 @@ const_mem_addr STRUCT(Source , Region)
 
    struct ViewLine : CodeLine, Text
    {
-   #if !WINDOWS
-      typedef Text super;
-   #endif
-
       Bool    text_valid;
       Source *source;
 

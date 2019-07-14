@@ -3,8 +3,8 @@
    Use 'Pyramid' to handle pyramid shapes.
 
 /******************************************************************************/
-STRUCT(Pyramid , OrientP) // Pyramid Shape
-//{
+struct Pyramid : OrientP // Pyramid Shape
+{
    Flt scale, // proportional scale of side to height (0..Inf), default=1
        h    ; // height
 
@@ -38,8 +38,8 @@ STRUCT(Pyramid , OrientP) // Pyramid Shape
    Pyramid(Flt scale, Flt h, C Vec &pos=VecZero, C Vec &dir=Vec(0,1,0)) {set(scale, h, pos, dir);} // 'dir' must be normalized
 };
 /******************************************************************************/
-STRUCT(PyramidM , OrientM) // Pyramid Shape (mixed precision)
-//{
+struct PyramidM : OrientM // Pyramid Shape (mixed precision)
+{
    Flt scale, // proportional scale of side to height (0..Inf), default=1
        h    ; // height
 

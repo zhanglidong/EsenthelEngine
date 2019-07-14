@@ -1,8 +1,8 @@
 /******************************************************************************/
 namespace Edit{
 /******************************************************************************/
-STRUCT(SaveChanges , ClosableWindow)
-//{
+struct SaveChanges : ClosableWindow
+{
    struct Elm
    {
       Str name, display;

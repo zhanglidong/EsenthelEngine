@@ -289,8 +289,8 @@ struct MatrixD3 // Matrix 3x3 (orientation + scale, double precision)
    MatrixD3(C OrientD &o);
 };
 /******************************************************************************/
-STRUCT(Matrix , Matrix3) // Matrix 4x3 (orientation + scale + position)
-//{
+struct Matrix : Matrix3 // Matrix 4x3 (orientation + scale + position)
+{
    Vec pos; // position
 
    Matrix3& orn()  {return T;} // get reference to self as       'Matrix3'
@@ -489,8 +489,8 @@ extern    Matrix3 CamMatrixInvMotionScale; // 'ActiveCam.matrix' inversed and sc
 extern GpuMatrix *ViewMatrix             ;
 #endif
 /******************************************************************************/
-STRUCT(MatrixM , Matrix3) // Matrix 4x3 (orientation + scale + position, mixed precision, uses Flt for orientation+scale and Dbl for position)
-//{
+struct MatrixM : Matrix3 // Matrix 4x3 (orientation + scale + position, mixed precision, uses Flt for orientation+scale and Dbl for position)
+{
    VecD pos; // position
 
    Matrix3& orn()  {return T;} // get reference to self as       'Matrix3'
@@ -634,8 +634,8 @@ STRUCT(MatrixM , Matrix3) // Matrix 4x3 (orientation + scale + position, mixed p
 };extern MatrixM
    const MatrixMIdentity; // identity
 /******************************************************************************/
-STRUCT(MatrixD , MatrixD3) // Matrix 4x3 (orientation + scale + position, double precision)
-//{
+struct MatrixD : MatrixD3 // Matrix 4x3 (orientation + scale + position, double precision)
+{
    VecD pos; // position
 
    MatrixD3& orn()  {return T;} // get reference to self as       'MatrixD3'

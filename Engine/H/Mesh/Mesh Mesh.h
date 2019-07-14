@@ -12,8 +12,8 @@
    Use 'Meshes' cache for easy mesh accessing from files.
 
 /******************************************************************************/
-STRUCT(Mesh , MeshLod) // Mesh (array of Mesh Lod's)
-//{
+struct Mesh : MeshLod // Mesh (array of Mesh Lod's)
+{
    Extent ext       ; // bounding box
    Vec    lod_center; // mesh center position used for calculating lod level, usually equal to "ext.pos"
 

@@ -405,8 +405,8 @@ Bool ContainsElm(MemPtr<Elm> elms, C UID &parent_id, C UID &child_id); // if ele
 /******************************************************************************/
 struct EditorServer : ConnectionServer
 {
-   STRUCT(Client , ConnectionServer::Client)
-   //{
+   struct Client : ConnectionServer::Client
+   {
       Bool connection_version_ok;
 
       virtual Bool update();

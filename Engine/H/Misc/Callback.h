@@ -44,8 +44,8 @@ protected:
    Memc<CallbackUser> _callbacks_user, _temp_callbacks_user;
 };
 /******************************************************************************/
-STRUCT_PRIVATE(ThreadSafeCallbacks , Callbacks)
-//{
+struct ThreadSafeCallbacks : private Callbacks
+{
 #if EE_PRIVATE
    Bool initialized()C {return super::initialized();}
 #endif

@@ -141,8 +141,8 @@ struct SkeletonShaderMaterialMeshInstance
 };
 extern Memc<SkeletonShaderMaterialMeshInstance> SkeletonShadowShaderMaterialMeshInstances;
 
-STRUCT(SkeletonSolidShaderMaterialMeshInstance , SkeletonShaderMaterialMeshInstance)
-//{
+struct SkeletonSolidShaderMaterialMeshInstance : SkeletonShaderMaterialMeshInstance
+{
    Color highlight;
 
    void set(C MeshRender &mesh);
@@ -150,8 +150,8 @@ STRUCT(SkeletonSolidShaderMaterialMeshInstance , SkeletonShaderMaterialMeshInsta
 };
 extern Memc<SkeletonSolidShaderMaterialMeshInstance> SkeletonSolidShaderMaterialMeshInstances;
 
-STRUCT(SkeletonBlendShaderMaterialMeshInstance , SkeletonSolidShaderMaterialMeshInstance)
-//{
+struct SkeletonBlendShaderMaterialMeshInstance : SkeletonSolidShaderMaterialMeshInstance
+{
    STENCIL_MODE stencil_mode;
 
    void set(C MeshRender &mesh);
@@ -295,8 +295,8 @@ struct BlendInstance
   ~BlendInstance();
    BlendInstance() {} // needed because of union
 };
-STRUCT(BlendInstancesClass , Memc<BlendInstance>)
-//{
+struct BlendInstancesClass : Memc<BlendInstance>
+{
    BlendInstance& add   (Shader &shader, C Material &material, C MeshPart &mesh, C MeshPart::Variation &variation);
    BlendInstance& add   (BLST   &blst  , C Material &material, C MeshPart &mesh, C MeshPart::Variation &variation, C Vec &vel, C Vec &ang_vel_shader);
    BlendInstance& addFur(Shader &shader, C Material &material, C MeshPart &mesh, C MeshPart::Variation &variation, C Vec &vel);
@@ -322,8 +322,8 @@ struct ClothInstance
   ~ClothInstance() {if(material)material->decUsage();}
 #endif
 };
-STRUCT(ClothInstances , Memc<ClothInstance>)
-//{
+struct ClothInstances : Memc<ClothInstance>
+{
    void add(C Cloth &cloth, Shader &shader, C Material &material);
    void add(C Cloth &cloth, Shader &shader, C Material &material, C Vec &vel);
    void add(C Cloth &cloth, FRST   &frst  , C Material &material);
@@ -331,11 +331,11 @@ STRUCT(ClothInstances , Memc<ClothInstance>)
 /******************************************************************************/
 // MISC
 /******************************************************************************/
-STRUCT(GameObjects , Memc<Game::Obj*>)
-//{
+struct GameObjects : Memc<Game::Obj*>
+{
 };
-STRUCT(GameAreas, Memc<Game::Area::Data*>)
-//{
+struct GameAreas : Memc<Game::Area::Data*>
+{
 };
 /******************************************************************************/
 // VARIABLES

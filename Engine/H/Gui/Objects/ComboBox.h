@@ -6,8 +6,8 @@ enum COMBOBOX_FLAG // Combobox Flag
    COMBOBOX_SET_CLAMP  =0x4, // if calling 'set' with a value bigger than allowed, then clamp it to last value
 };
 /******************************************************************************/
-const_mem_addr STRUCT(ComboBox , Button) // Gui ComboBox !! must be stored in constant memory address !!
-//{
+const_mem_addr struct ComboBox : Button // Gui ComboBox !! must be stored in constant memory address !!
+{
    Byte flag      ; // COMBOBOX_FLAG, default=COMBOBOX_MOUSE_WHEEL
    Flt  menu_align; // menu horizontal alignment (-1 .. 1), default=1, this value specifies on which side (left or right) the menu should be activated
    Menu menu      ; // menu

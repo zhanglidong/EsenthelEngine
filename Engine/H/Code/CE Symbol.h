@@ -4,8 +4,8 @@ namespace Edit{
 /******************************************************************************/
 DECLARE_CACHE(Symbol, Symbols, SymbolPtr); // 'Symbols' cache storing 'Symbol' objects which can be accessed by 'SymbolPtr' pointer
 /******************************************************************************/
-STRUCT(Symbol , Str) // C++ Symbol
-//{
+struct Symbol : Str // C++ Symbol
+{
    enum TYPE : Byte
    {
       UNKNOWN  ,
@@ -103,8 +103,8 @@ STRUCT(Symbol , Str) // C++ Symbol
    static void SetProtected(UInt &modifiers) {modifiers&=~MODIF_ACCESS; modifiers|=MODIF_PROTECTED;}
    static void SetPublic   (UInt &modifiers) {modifiers&=~MODIF_ACCESS;                            }
 
-   STRUCT(Modif , SymbolPtr) // pointer to symbol with modifiers
-   //{
+   struct Modif : SymbolPtr // pointer to symbol with modifiers
+   {
       Byte        const_level   ; // bit mask where each bit specifies const for object or pointers (bit 0: "const TYPE obj", bit 1: "TYPE *const obj", bit 2: "TYPE * *const obj")
       SByte         ptr_level   , // amount of pointers "", "*", "**", ..
                   src_template_i;
@@ -350,8 +350,8 @@ STRUCT(Symbol , Str) // C++ Symbol
    void clearBody(); // set token parents of the wholy body of the function to the function itself (to remove any references from symbols created inside the function)
 };
 /******************************************************************************/
-STRUCT(SymbolDecl , SymbolPtr) // symbol forward declaration (used only for classes)
-//{
+struct SymbolDecl : SymbolPtr // symbol forward declaration (used only for classes)
+{
    SymbolDecl& set(C SymbolPtr &parent, Symbol::TYPE type, Int token_index, Source *source)
    {
       if(!T->valid) // allow modifying only once
@@ -393,8 +393,8 @@ STRUCT(SymbolDecl , SymbolPtr) // symbol forward declaration (used only for clas
    NO_COPY_CONSTRUCTOR(SymbolDecl);
 };
 /******************************************************************************/
-STRUCT(SymbolDef , SymbolPtr) // symbol definition (pointer to symbol which also acts as the creator of the symbol, by holding a 'valid' ref-count)
-//{
+struct SymbolDef : SymbolPtr // symbol definition (pointer to symbol which also acts as the creator of the symbol, by holding a 'valid' ref-count)
+{
    SymbolDef& set(C SymbolPtr &parent, Symbol::TYPE type, Int token_index, Source *source)
    {
       if(T->valid==1) // allow modifying only once

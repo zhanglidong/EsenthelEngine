@@ -1,6 +1,6 @@
 /******************************************************************************/
-const_mem_addr STRUCT(MenuBar , GuiObj) // Gui Menu Bar !! must be stored in constant memory address !!
-//{
+const_mem_addr struct MenuBar : GuiObj // Gui Menu Bar !! must be stored in constant memory address !!
+{
    struct Elm // Menu Element
    {
       Str  name        , //         name (used for code commands)

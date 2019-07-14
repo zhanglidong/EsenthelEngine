@@ -1,8 +1,8 @@
 /******************************************************************************/
 namespace Game{
 /******************************************************************************/
-STRUCT(ObjDecal , Obj) // Game Decal Object
-//{
+struct ObjDecal : Obj // Game Decal Object
+{
    Decal decal;
 
    // manage

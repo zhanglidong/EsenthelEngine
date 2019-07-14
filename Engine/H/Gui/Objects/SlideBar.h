@@ -6,8 +6,8 @@ enum SLIDEBAR_BACK_CLICK_MODE : Byte // action when clicking on the background o
    SBC_SMOOTH , // smooth scrolling  will be performed as long as the click is hold
    SBC_SET_POS, // slidebar position will be immediately set to the click position
 };
-const_mem_addr STRUCT(SlideBar , GuiObj) // Gui SlideBar !! must be stored in constant memory address !!
-//{
+const_mem_addr struct SlideBar : GuiObj // Gui SlideBar !! must be stored in constant memory address !!
+{
    Button                   button[3]; // 3 buttons (0=middle, 1=left/up, 2=right/down)
    SLIDEBAR_BACK_CLICK_MODE sbc      ; // default=SBC_STEP
 

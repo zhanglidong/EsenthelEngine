@@ -908,7 +908,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -std=c++11</AdditionalOptions>
+      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -fms-extensions -std=c++17</AdditionalOptions>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -977,7 +977,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -std=c++11</AdditionalOptions>
+      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -fms-extensions -std=c++17</AdditionalOptions>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -1424,7 +1424,7 @@
       </HeaderFileName>
     </Midl>
     <ClCompile>
-      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -std=c++11</AdditionalOptions>
+      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -fms-extensions -std=c++17</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -1494,7 +1494,7 @@
       </HeaderFileName>
     </Midl>
     <ClCompile>
-      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -std=c++11</AdditionalOptions>
+      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -fms-extensions -std=c++17</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -1768,7 +1768,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -std=c++11</AdditionalOptions>
+      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -fms-extensions -std=c++17</AdditionalOptions>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -2009,7 +2009,7 @@
       </HeaderFileName>
     </Midl>
     <ClCompile>
-      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -std=c++11</AdditionalOptions>
+      <AdditionalOptions>-Wno-invalid-offsetof -Wno-comment -Wno-parentheses -Wno-switch -Wno-empty-body -Wno-address-of-temporary -Wno-constant-logical-operand -fms-extensions -std=c++17</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>

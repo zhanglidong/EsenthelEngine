@@ -991,8 +991,8 @@ struct PakCreator
       }
    };
 
-   STRUCT(PakFileEx , PakFile)
-   //{
+   struct PakFileEx : PakFile
+   {
       Bool          ready;
       COMPRESS_MODE compress_mode;
       Str           name,

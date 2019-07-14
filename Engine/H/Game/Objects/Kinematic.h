@@ -5,8 +5,8 @@
 /******************************************************************************/
 namespace Game{
 /******************************************************************************/
-STRUCT(Kinematic , Obj) // Game Kinematic Object, these objects are created as kinematic actors, which means that their position is unaffected by other objects, but can be changed manually (this class is similar to Game::Static, with the exception that Static can't move at all)
-//{
+struct Kinematic : Obj // Game Kinematic Object, these objects are created as kinematic actors, which means that their position is unaffected by other objects, but can be changed manually (this class is similar to Game::Static, with the exception that Static can't move at all)
+{
    Vec       scale         ; // scale
    ObjectPtr base          ; // base object
    MeshPtr   mesh          ; // mesh

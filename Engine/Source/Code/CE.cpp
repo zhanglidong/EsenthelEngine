@@ -1001,8 +1001,10 @@ void CodeEditor::genSymbols(C Str &ee_editor_bin)
       "null"          , // use keyword instead of macro
       "null_t"        , // use keyword instead of macro
       "NULL"          , // use 'null' keyword
+   #if 0
       "STRUCT"        , // use "class A : B"
       "STRUCT_PRIVATE", // use "class A : private B"
+   #endif
    };
 #if 1
    REPAD(d, remove_macros)REPA(EEMacros)if(Equal(EEMacros[i].name, remove_macros[d], true))EEMacros.remove(i, true);

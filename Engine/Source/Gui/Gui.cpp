@@ -12,8 +12,8 @@ struct QueuedMsgBox // queue these commands for thread-safety, this is so that '
 static Memc<QueuedMsgBox> QueuedMsgBoxs;
 static SyncLock           QueuedMsgBoxLock;
 /******************************************************************************/
-STRUCT(MsgBox , Dialog)
-//{
+struct MsgBox : Dialog
+{
    static Memx<MsgBox> MsgBoxs;
 
    static void Del  (MsgBox &mb) {SyncLocker locker(Gui._lock); MsgBoxs.removeData(&mb);}

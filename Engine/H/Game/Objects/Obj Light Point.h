@@ -1,8 +1,8 @@
 /******************************************************************************/
 namespace Game{
 /******************************************************************************/
-STRUCT(ObjLightPoint , Obj) // Game Point Light Object
-//{
+struct ObjLightPoint : Obj // Game Point Light Object
+{
    Bool cast_shadows;
    Flt  range, volumetric;
    Vec  position, color;

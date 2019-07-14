@@ -315,8 +315,8 @@ private:
    VecI2 _pos , _pos_temp;
    Vec2  _posr, _step;
 };
-STRUCT(PixelWalkerMask , PixelWalker) // iterates through pixels of a rasterized edge only within a specified mask
-//{
+struct PixelWalkerMask : PixelWalker // iterates through pixels of a rasterized edge only within a specified mask
+{
    // set
    void start(C VecI2 &start, C VecI2 &end, C RectI &mask); // start walking from 'start' to 'end', 'mask'=process pixels only within this inclusive rectangle
    void start(C Vec2  &start, C Vec2  &end, C RectI &mask); // start walking from 'start' to 'end', 'mask'=process pixels only within this inclusive rectangle
@@ -355,8 +355,8 @@ private:
    Int  _steps, _pos;
    Vec2 _posr, _pos_next, _step, _pos_end;
 };
-STRUCT(PixelWalkerEdgeMask , PixelWalkerEdge) // iterates through pixels of a rasterized line and returns intersections with the edges only within a specified mask
-//{
+struct PixelWalkerEdgeMask : PixelWalkerEdge // iterates through pixels of a rasterized line and returns intersections with the edges only within a specified mask
+{
    // set
    void start(C Vec2 &start, C Vec2 &end, C RectI &mask); // start walking from 'start' to 'end', 'mask'=process pixels only within this inclusive rectangle
 

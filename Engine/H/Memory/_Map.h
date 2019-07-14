@@ -91,8 +91,8 @@ private:
    T2(KEY,DATA) friend struct  ThreadSafeMap;
 };
 /******************************************************************************/
-STRUCT(_MapTS , _Map) // Map Thread Safe (base) - Do not use this class, use 'ThreadSafeMap' instead
-//{
+struct _MapTS : _Map // Map Thread Safe (base) - Do not use this class, use 'ThreadSafeMap' instead
+{
    void   lock()C;
    void unlock()C;
 

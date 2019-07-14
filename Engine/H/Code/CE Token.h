@@ -33,8 +33,8 @@ enum TOKEN_TYPE : Byte
    TOKEN_TYPES              ,
 };
 /******************************************************************************/
-STRUCT(Token , BStr)
-//{
+struct Token : BStr
+{
    Bool       def_decl, ctor_initializer, macro;
    TOKEN_TYPE type;
    Int        col, // original position (column) in source where the token starts

@@ -1,6 +1,6 @@
 /******************************************************************************/
-const_mem_addr STRUCT(Viewport , GuiObj) // Viewport !! must be stored in constant memory address !!
-//{
+const_mem_addr struct Viewport : GuiObj // Viewport !! must be stored in constant memory address !!
+{
    // saved
    Color rect_color; // rectangle color, default=Gui.borderColor
 

@@ -48,8 +48,8 @@ struct DateTime
    Bool save(File &f)C; // false on fail
    Bool load(File &f) ; // false on fail
 };
-STRUCT(DateTimeMs , DateTime) // DateTime uncluding milliseconds
-//{
+struct DateTimeMs : DateTime // DateTime uncluding milliseconds
+{
    UShort millisecond; // 0..999
 
    Long milliseconds1970()C; // get milliseconds since 1 January 1970 year

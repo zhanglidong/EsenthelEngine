@@ -17,8 +17,8 @@ struct GuiSkin
       void reset();   Button() {reset();} // reset to default values
    };
 
-   STRUCT(ButtonImage , Button) // 'Button' with an 'Image' on top
-   //{
+   struct ButtonImage : Button // 'Button' with an 'Image' on top
+   {
       ImagePtr image;
       Color    image_color;
 
@@ -49,8 +49,8 @@ struct GuiSkin
       void reset();   Menu() {reset();} // reset to default values
    };
 
-   STRUCT(ComboBox , ButtonImage) // 'image' is used as the side arrow
-   //{
+   struct ComboBox : ButtonImage // 'image' is used as the side arrow
+   {
       Bool save(File &f, CChar *path=null)C; // save to   file, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
       Bool load(File &f, CChar *path=null) ; // load from file, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
       void reset();   ComboBox() {reset();} // reset to default values

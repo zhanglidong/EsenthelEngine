@@ -4425,7 +4425,10 @@
 					"../ThirdPartyLibs/FDK-AAC/lib/libAACenc/include",
 					"../ThirdPartyLibs/FDK-AAC/lib/libAACdec/include",
 				);
-				OTHER_CFLAGS = "-fshort-wchar";
+				OTHER_CFLAGS = (
+					"-fshort-wchar",
+					"-fms-extensions",
+				);
 				SEPARATE_STRIP = YES;
 				STRIP_INSTALLED_PRODUCT = NO;
 				WARNING_CFLAGS = (
@@ -4538,7 +4541,10 @@
 					"../ThirdPartyLibs/FDK-AAC/lib/libAACenc/include",
 					"../ThirdPartyLibs/FDK-AAC/lib/libAACdec/include",
 				);
-				OTHER_CFLAGS = "-fshort-wchar";
+				OTHER_CFLAGS = (
+					"-fshort-wchar",
+					"-fms-extensions",
+				);
 				SEPARATE_STRIP = YES;
 				WARNING_CFLAGS = (
 					"-Wno-address-of-temporary",

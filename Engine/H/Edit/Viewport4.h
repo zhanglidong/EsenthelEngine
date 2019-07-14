@@ -28,8 +28,8 @@ const_mem_addr struct Viewport4
       MOVE_ARROWS,
    };
 
-   STRUCT(ViewportEx , Viewport)
-   //{
+   struct ViewportEx : Viewport
+   {
       virtual void draw(C GuiPC &gpc);
    };
 
@@ -41,8 +41,8 @@ const_mem_addr struct Viewport4
       void setViewportCamera(); // manually activate the viewport and camera of this view
    }view[VIEW_NUM];
 
-   STRUCT(DPad , GuiCustom)
-   //{
+   struct DPad : GuiCustom
+   {
       Bool       touched;
       Flt        angle;
       VecI2      axis;
@@ -58,8 +58,8 @@ const_mem_addr struct Viewport4
       virtual void    draw  (C GuiPC &gpc);
    };
 
-   STRUCT(DPadY , GuiCustom)
-   //{
+   struct DPadY : GuiCustom
+   {
       Int        dir;
       Viewport4 *v4;
       View      *view;
@@ -72,8 +72,8 @@ const_mem_addr struct Viewport4
       virtual void draw  (C GuiPC &gpc);
    };
 
-   STRUCT(Zoom , GuiCustom)
-   //{
+   struct Zoom : GuiCustom
+   {
       Flt        zoom;
       Viewport4 *v4;
       View      *view;
@@ -139,8 +139,8 @@ const_mem_addr struct Viewport4
 #if !EE_PRIVATE
 private:
 #endif
-   STRUCT(Cube , GuiCustom)
-   //{
+   struct Cube : GuiCustom
+   {
       Int        part;
       MeshPtr    mesh;
       Viewport4 *v4;
@@ -159,8 +159,8 @@ private:
       virtual void    draw  (C GuiPC &gpc);
    };
 
-   STRUCT(APad , GuiCustom)
-   //{
+   struct APad : GuiCustom
+   {
       Bool       touched;
       Vec2       start, cur;
       Viewport4 *v4;
@@ -175,8 +175,8 @@ private:
       virtual void    draw  (C GuiPC &gpc);
    };
 
-   STRUCT(APadY , GuiCustom)
-   //{
+   struct APadY : GuiCustom
+   {
       Bool       touched;
       Flt        start, cur;
       Viewport4 *v4;
@@ -190,8 +190,8 @@ private:
       virtual void draw  (C GuiPC &gpc);
    };
 
-   STRUCT(Drag , GuiCustom)
-   //{
+   struct Drag : GuiCustom
+   {
       Viewport4 *v4;
       View      *view;
 
@@ -204,8 +204,8 @@ private:
       virtual void    draw  (C GuiPC &gpc);
    };
 
-   STRUCT(DragY , GuiCustom)
-   //{
+   struct DragY : GuiCustom
+   {
       Viewport4 *v4;
       View      *view;
 
@@ -217,8 +217,8 @@ private:
       virtual void draw  (C GuiPC &gpc);
    };
 
-   STRUCT(Arrows , GuiCustom)
-   //{
+   struct Arrows : GuiCustom
+   {
       Bool       arrow_pushed[DIR_NUM];
       Rect       arrow_rect  [DIR_NUM];
       Viewport4 *v4;

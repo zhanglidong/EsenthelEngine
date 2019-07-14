@@ -1,6 +1,6 @@
 /******************************************************************************/
-STRUCT_PRIVATE(MaterialPalette , Memc<MaterialPtr>)
-//{
+struct MaterialPalette : private Memc<MaterialPtr>
+{
    // get
    Int          elms      (     )C {return super::elms      ( );} // get number of elements
  C MaterialPtr& operator[](Int i)C {return super::operator[](i);} // get i-th material
@@ -28,8 +28,8 @@ private:
    Int _last;
 };
 /******************************************************************************/
-STRUCT_PRIVATE(IDPalette , Memc<UID>)
-//{
+struct IDPalette : private Memc<UID>
+{
    // get
    Int  elms      (     )C {return super::elms      ( );} // get number of elements
  C UID& operator[](Int i)C {return super::operator[](i);} // get i-th ID

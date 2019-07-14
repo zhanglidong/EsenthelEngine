@@ -60,8 +60,8 @@ extern WaterMtrl   *WaterMtrlLast; // Last set Water Material
 extern WaterMtrlPtr WaterMtrlNull;
 #endif
 /******************************************************************************/
-STRUCT(WaterClass , WaterMtrl) // Main water control
-//{
+struct WaterClass : WaterMtrl // Main water control
+{
    Bool   draw                 , // if draw the water plane      , true/false, default=false                  , it can be drawn only after setting 'draw' to true, and setting valid water images in parameters
           reflection_allow     , // if allow rendering reflection, true/false, default=true (false for Mobile)
           reflection_shadows   ; // if use shadows in reflection , true/false, default=false                  , to have shadows in reflection you must also enable global shadowing, and set reflection renderer != RT_SIMPLE

@@ -1,6 +1,6 @@
 /******************************************************************************/
-const_mem_addr STRUCT(GuiCustom , GuiObj) // Gui Custom Object !! must be stored in constant memory address !!
-//{
+const_mem_addr struct GuiCustom : GuiObj // Gui Custom Object !! must be stored in constant memory address !!
+{
    // manage
    GuiCustom& del   (                                );                                     // delete
    GuiCustom& create(                   Ptr user=null);                                     // create

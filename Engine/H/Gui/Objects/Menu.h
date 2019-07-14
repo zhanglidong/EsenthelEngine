@@ -70,8 +70,8 @@ private:
    NO_COPY_CONSTRUCTOR(MenuElm);
 };
 /******************************************************************************/
-const_mem_addr STRUCT(Menu , GuiObj) // Gui Menu !! must be stored in constant memory address !!
-//{
+const_mem_addr struct Menu : GuiObj // Gui Menu !! must be stored in constant memory address !!
+{
   _List list; // list
 
    // manage

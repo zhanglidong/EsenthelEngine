@@ -50,8 +50,8 @@ enum HTTP_TYPE : Byte // HTTP Parameter Type
    HTTP_POST  , // post   parameter
    HTTP_HEADER, // header parameter
 };
-STRUCT(HTTPParam , TextParam) // optional parameter that can be passed to the 'Download'
-//{
+struct HTTPParam : TextParam // optional parameter that can be passed to the 'Download'
+{
    HTTP_TYPE type=HTTP_GET; // parameter type
 
    HTTPParam& set(C Str &name, C Str &value, HTTP_TYPE type=HTTP_GET) {super::set(name, value); T.type=type; return T;}

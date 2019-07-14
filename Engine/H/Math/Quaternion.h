@@ -3,8 +3,8 @@
    Use 'Quaternion' for optional rotation representation.
 
 /******************************************************************************/
-STRUCT(Quaternion , Vec4)
-//{
+struct Quaternion : Vec4
+{
    Quaternion& operator*=(  Flt         f);
    Quaternion& operator*=(C Quaternion &q) {return mul(q);}
 

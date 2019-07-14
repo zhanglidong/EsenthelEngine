@@ -35,8 +35,8 @@ struct TitlesFx // Titles Swirl Effect
    TitlesFx() {reset();}
 };
 /******************************************************************************/
-STRUCT(ColorMatrix , Matrix) // Color Transformation Matrix
-//{
+struct ColorMatrix : Matrix // Color Transformation Matrix
+{
    ColorMatrix& setRGB (       ); // set RGB             transformation
    ColorMatrix& setRBG (       ); // set RBG             transformation
    ColorMatrix& setGRB (       ); // set GRB             transformation

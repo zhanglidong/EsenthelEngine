@@ -106,9 +106,6 @@ ASSERT(SIZE(Char8)==1); // size of Char8 must be 1 byte
 #define const_mem_addr // custom keyword specifying that the struct/class must be stored in constant memory address, if you see this keyword next to a struct/class declaration you must ensure that when defining objects of that struct/class you will store them in constant memory address (this can be either global namespace or inside 'Memx' 'Meml' containers)
 
 #define STRUCT(        Extended, Base       )   struct Extended :         Base        { PLATFORM(, typedef Base super;) // macro for declaring an 'Extended' class from 'Base'            , and declaring 'super' keyword at the same time (this is needed for non Windows platforms which don't declare 'super' automatically)
-#define STRUCT_PRIVATE(Extended, Base       )   struct Extended : private Base        { PLATFORM(, typedef Base super;) // macro for declaring an 'Extended' class from 'Base'            , and declaring 'super' keyword at the same time (this is needed for non Windows platforms which don't declare 'super' automatically)
-#define STRUCT2(       Extended, Base, Base1)   struct Extended :         Base, Base1 { PLATFORM(, typedef Base super;) // macro for declaring an 'Extended' class from 'Base' and 'Base1', and declaring 'super' keyword at the same time (this is needed for non Windows platforms which don't declare 'super' automatically)
-
 #define NO_COPY_CONSTRUCTOR(Class)       \
     void operator=(C Class &src)=delete; \
              Class(C Class &src)=delete; // when declared inside a class this macro disables the use of copy constructors

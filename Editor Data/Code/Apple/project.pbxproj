@@ -433,19 +433,20 @@
 /* ESENTHEL LIBRARY DIRS */
 				);
             ONLY_ACTIVE_ARCH = YES;
-            OTHER_CFLAGS = (
-               "-fshort-wchar",
-            );
+				OTHER_CFLAGS = (
+					"-fshort-wchar",
+					"-fms-extensions",
+				);
             SEPARATE_STRIP = YES;
             STRIP_INSTALLED_PRODUCT = NO;
 				WARNING_CFLAGS = (
-		"-Wno-address-of-temporary",
-		"-Wno-comment",
-		"-Wno-parentheses",
-		"-Wno-switch",
-		"-Wno-logical-op-parentheses",
-		"-Wno-null-dereference",
-		"-Wno-int-to-void-pointer-cast",
+					"-Wno-address-of-temporary",
+					"-Wno-comment",
+					"-Wno-parentheses",
+					"-Wno-switch",
+					"-Wno-logical-op-parentheses",
+					"-Wno-null-dereference",
+					"-Wno-int-to-void-pointer-cast",
             );
          };
          name = Debug;
@@ -477,19 +478,20 @@
 /* ESENTHEL LIBRARY DIRS */
 				);
             ONLY_ACTIVE_ARCH = NO;
-            OTHER_CFLAGS = (
-               "-fshort-wchar",
-            );
+				OTHER_CFLAGS = (
+					"-fshort-wchar",
+					"-fms-extensions",
+				);
             SEPARATE_STRIP = YES;
 				WARNING_CFLAGS = (
-		"-Wno-address-of-temporary",
-		"-Wno-comment",
-		"-Wno-parentheses",
-		"-Wno-switch",
-		"-Wno-logical-op-parentheses",
-		"-Wno-null-dereference",
-		"-Wno-int-to-void-pointer-cast",
-	);
+					"-Wno-address-of-temporary",
+					"-Wno-comment",
+					"-Wno-parentheses",
+					"-Wno-switch",
+					"-Wno-logical-op-parentheses",
+					"-Wno-null-dereference",
+					"-Wno-int-to-void-pointer-cast",
+				);
          };
          name = Release;
       };

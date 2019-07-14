@@ -36,8 +36,8 @@ enum BUTTON_TYPE : Byte // Button Type
 #endif
 };
 /******************************************************************************/
-const_mem_addr STRUCT(Button , GuiObj) // Gui Button !! must be stored in constant memory address !!
-//{
+const_mem_addr struct Button : GuiObj // Gui Button !! must be stored in constant memory address !!
+{
    BUTTON_MODE mode       ; // button mode     , default=BUTTON_DEFAULT
    Bool        sound      ; // play click sound, default=true, if enabled then 'Gui.playClickSound' will be called everytime this button is clicked
    Color       image_color; // image color     , default=WHITE (this is multiplied by 'GuiSkin.button.image_color')

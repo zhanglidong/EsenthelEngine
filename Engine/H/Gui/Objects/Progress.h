@@ -6,8 +6,8 @@ enum PROGRESS_MODE : Byte // Progress Bar Mode
    PROGRESS_REAL   , // draw text as real value 0..1
 };
 /******************************************************************************/
-const_mem_addr STRUCT(Progress , GuiObj) // Gui ProgressBar !! must be stored in constant memory address !!
-//{
+const_mem_addr struct Progress : GuiObj // Gui ProgressBar !! must be stored in constant memory address !!
+{
    PROGRESS_MODE mode; // progress mode
    GuiSkinPtr    skin; // skin override, default=null (if set to null then current value of 'Gui.skin' is used)
 

@@ -122,8 +122,8 @@ struct OrientD // Orientation (double precision)
    OrientD(C MatrixD3 &m);
 };
 /******************************************************************************/
-STRUCT(OrientP , Orient) // Positioned Orientation
-//{
+struct OrientP : Orient // Positioned Orientation
+{
    Vec pos; // position
 
    OrientP& operator+=(C Vec     &v) {pos+=v; return T;}
@@ -181,8 +181,8 @@ STRUCT(OrientP , Orient) // Positioned Orientation
    OrientP(C Quaternion &q);
 };
 /******************************************************************************/
-STRUCT(OrientM , Orient) // Positioned Orientation (mixed precision)
-//{
+struct OrientM : Orient // Positioned Orientation (mixed precision)
+{
    VecD pos; // position
 
    OrientM& operator+=(C VecD    &v) {pos+=v; return T;}

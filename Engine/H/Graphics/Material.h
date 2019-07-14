@@ -38,8 +38,8 @@ struct MaterialParams // Material Parameters
  C Vec4& colorL()C {return color_l;}   void colorL(C Vec4 &color_l) {T.color_l=color_l;} // get/set Linear Gamma color
    Vec4  colorS()C;                    void colorS(C Vec4 &color_s);                     // get/set sRGB   Gamma color
 };
-STRUCT(Material , MaterialParams) // Mesh Rendering Material - contains render parameters and textures
-//{
+struct Material : MaterialParams // Mesh Rendering Material - contains render parameters and textures
+{
    ImagePtr                 base_0    , // base       texture #0         , default=null, this texture contains data packed in following channel order: RGB, Alpha/Bump
                             base_1    , // base       texture #1         , default=null, this texture contains data packed in following channel order: NormalX, NormalY, Specular, Alpha/Glow
                           detail_map  , // detail     texture            , default=null

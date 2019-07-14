@@ -1,8 +1,8 @@
 /******************************************************************************/
 namespace Game{
 /******************************************************************************/
-STRUCT(ObjLightCone , Obj) // Game Cone Light Object
-//{
+struct ObjLightCone : Obj // Game Cone Light Object
+{
    Bool cast_shadows;
    Flt  range, volumetric, angle, falloff;
    Vec  position, direction, color;

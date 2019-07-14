@@ -137,11 +137,11 @@ private:
 };
 /******************************************************************************/
 #if EE_PRIVATE
-T1(const_mem_addr TYPE) STRUCT(FixedMems , Mems<TYPE>) // Unresizable Mems container
+T1(const_mem_addr TYPE) struct FixedMems : Mems<TYPE> // Unresizable Mems container
 #else
-T1(const_mem_addr TYPE) STRUCT_PRIVATE(FixedMems , Mems<TYPE>) // Unresizable Mems container
+T1(const_mem_addr TYPE) struct FixedMems : private Mems<TYPE> // Unresizable Mems container
 #endif
-//{
+{
    // get / set
    Int  elms    ()C {return super::elms    ();} // number of elements
    UInt elmSize ()C {return super::elmSize ();} // size   of element

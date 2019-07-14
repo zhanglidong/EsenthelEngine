@@ -1,6 +1,6 @@
 /******************************************************************************/
-const_mem_addr STRUCT(Text , GuiObj) // Gui Text !! must be stored in constant memory address !!
-//{
+const_mem_addr struct Text : GuiObj // Gui Text !! must be stored in constant memory address !!
+{
    AUTO_LINE_MODE auto_line; // automatically calculate new lines when drawing text, default=AUTO_LINE_NONE
    TextStylePtr  text_style; // text style   , default=null (if set to null then current value of 'skin.text.text_style' is used)
    GuiSkinPtr          skin; // skin override, default=null (if set to null then current value of 'Gui.skin'             is used)

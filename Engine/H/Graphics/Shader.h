@@ -186,8 +186,8 @@ struct ShaderBuffer // Constant Buffer
 
    NO_COPY_CONSTRUCTOR(ShaderBuffer);
 };
-STRUCT(ShaderParamName , ShaderParam)
-//{
+struct ShaderParamName : ShaderParam
+{
    Str8 name;
 
    Bool save(File &f)C {return super::save(f, name);}
@@ -214,8 +214,8 @@ struct ShaderShader
 #if EE_PRIVATE
 /******************************************************************************/
 #if WINDOWS
-STRUCT(ShaderVS11 , ShaderShader)
-//{
+struct ShaderVS11 : ShaderShader
+{
    ID3D11VertexShader *vs;
 
    ID3D11VertexShader* create();
@@ -224,8 +224,8 @@ STRUCT(ShaderVS11 , ShaderShader)
    ShaderVS11() {vs=null;}
    NO_COPY_CONSTRUCTOR(ShaderVS11);
 };
-STRUCT(ShaderHS11 , ShaderShader)
-//{
+struct ShaderHS11 : ShaderShader
+{
    ID3D11HullShader *hs;
 
    ID3D11HullShader* create();
@@ -234,8 +234,8 @@ STRUCT(ShaderHS11 , ShaderShader)
    ShaderHS11() {hs=null;}
    NO_COPY_CONSTRUCTOR(ShaderHS11);
 };
-STRUCT(ShaderDS11 , ShaderShader)
-//{
+struct ShaderDS11 : ShaderShader
+{
    ID3D11DomainShader *ds;
 
    ID3D11DomainShader* create();
@@ -244,8 +244,8 @@ STRUCT(ShaderDS11 , ShaderShader)
    ShaderDS11() {ds=null;}
    NO_COPY_CONSTRUCTOR(ShaderDS11);
 };
-STRUCT(ShaderPS11 , ShaderShader)
-//{
+struct ShaderPS11 : ShaderShader
+{
    ID3D11PixelShader *ps;
 
    ID3D11PixelShader* create();
@@ -256,8 +256,8 @@ STRUCT(ShaderPS11 , ShaderShader)
 };
 #endif
 /******************************************************************************/
-STRUCT(ShaderVSGL , ShaderShader)
-//{
+struct ShaderVSGL : ShaderShader
+{
    UInt vs;
 
    UInt create(Bool clean, Str *messages);
@@ -267,8 +267,8 @@ STRUCT(ShaderVSGL , ShaderShader)
    ShaderVSGL() {vs=0;}
    NO_COPY_CONSTRUCTOR(ShaderVSGL);
 };
-STRUCT(ShaderPSGL , ShaderShader)
-//{
+struct ShaderPSGL : ShaderShader
+{
    UInt ps;
 
    UInt create(Bool clean, Str *messages);

@@ -240,8 +240,8 @@ struct PhysxClass
    #define MAX_ACTOR_IGNORE_SHIFT 10
    #define MAX_ACTOR_IGNORE       (1<<MAX_ACTOR_IGNORE_SHIFT)
 
-   STRUCT(AllocatorCallback , PxDefaultAllocator)
-   //{
+   struct AllocatorCallback : PxDefaultAllocator
+   {
 	   virtual void*  allocate(size_t size, const char* typeName, const char* filename, int line)override;
 	   virtual void deallocate(void* ptr)override;
    };

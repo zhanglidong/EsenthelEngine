@@ -26,8 +26,8 @@ struct Local // function local variable
    Local() {block_scope=false; force_heap=false; stack_offset=-1; scope_start=scope_label=-1; token=null;}
 };
 /******************************************************************************/
-STRUCT(Expr , BStr)
-//{
+struct Expr : BStr
+{
    enum FUNC_CALL_MASK
    {
       FC_RESULT=0x1,

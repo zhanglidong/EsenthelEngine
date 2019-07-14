@@ -202,8 +202,8 @@ static struct OverlapFilterCallbackClass : btOverlapFilterCallback
    }
 }OverlapFilterCallback;
 
-STRUCT(CollisionDispatcher , btCollisionDispatcher)
-//{
+struct CollisionDispatcher : btCollisionDispatcher
+{
    bool needsCollision(btCollisionObject* body0, btCollisionObject* body1)
    {
       if(super::needsCollision(body0, body1))

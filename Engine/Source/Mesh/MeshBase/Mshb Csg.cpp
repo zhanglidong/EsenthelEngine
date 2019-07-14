@@ -39,8 +39,8 @@ UInt SolidSwap(UInt flag)
 /******************************************************************************/
 struct CSG // Constructive Solid Geometry
 {
-   STRUCT(Vtx , VtxFull) // vertex with enhanced position precision
-   //{
+   struct Vtx : VtxFull // vertex with enhanced position precision
+   {
       VecD posd; // position (double precision)
 
       void from(C MeshBase &mshb, Int i)

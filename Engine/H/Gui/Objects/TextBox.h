@@ -1,6 +1,6 @@
 /******************************************************************************/
-const_mem_addr STRUCT(TextBox , GuiObj) // Gui TextBox !! must be stored in constant memory address !!
-//{
+const_mem_addr struct TextBox : GuiObj // Gui TextBox !! must be stored in constant memory address !!
+{
    Bool     kb_lit     ; // if highlight when has keyboard focus       , default=true
    Str      hint       ; // hint displayed when there's no text entered, default=""
    Button   view       ; // view button

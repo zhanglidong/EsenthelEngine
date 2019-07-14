@@ -7,8 +7,8 @@ enum TABS_LAYOUT : Byte
    TABS_NUM       , // number of TABS_LAYOUT modes
 };
 /******************************************************************************/
-STRUCT(Tab , Button) // single Tab
-//{
+struct Tab : Button // single Tab
+{
    Tab&    del(           );
    Tab& create(C Str &text);
    Tab& create(C Tab &src ); // create from 'src'
@@ -32,8 +32,8 @@ protected:
    virtual Bool load(File &f, CChar *path=null);
 };
 /******************************************************************************/
-const_mem_addr STRUCT(Tabs , GuiObj) // Gui Tabs !! must be stored in constant memory address !!
-//{
+const_mem_addr struct Tabs : GuiObj // Gui Tabs !! must be stored in constant memory address !!
+{
    // manage
    Tabs& del   (                                                                     );                                                         // delete
    Tabs& create(                         CChar8 **text, Int num, Bool auto_size=false);                                                         // create

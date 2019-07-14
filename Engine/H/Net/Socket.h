@@ -171,8 +171,8 @@ private:
    NO_COPY_CONSTRUCTOR(Socket);
 };
 /******************************************************************************/
-STRUCT(SecureSocket , Socket)
-//{
+struct SecureSocket : Socket
+{
    enum RESULT
    {
       OK        = 0, // handshake succeeded (returned only for 'handshake')

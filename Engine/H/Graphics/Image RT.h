@@ -50,8 +50,8 @@ struct ImageRTDesc // Render Target Description
 };
 #endif
 /******************************************************************************/
-STRUCT(ImageRT , Image) // Image Render Target
-//{
+struct ImageRT : Image // Image Render Target
+{
    Bool create   (C VecI2 &size, IMAGE_TYPE type, IMAGE_MODE mode=IMAGE_RT, Byte samples=1); // create, false on fail
    Bool createTry()=delete;
 #if EE_PRIVATE

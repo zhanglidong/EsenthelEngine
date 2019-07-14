@@ -5,8 +5,8 @@ enum WIN_FLAG // Window Flags
    WIN_RESIZABLE=0x02, // resizable
 };
 /******************************************************************************/
-const_mem_addr STRUCT(Window , GuiObj) // Gui Window !! must be stored in constant memory address !!
-//{
+const_mem_addr struct Window : GuiObj // Gui Window !! must be stored in constant memory address !!
+{
    Byte      flag       , // WIN_FLAG      , default=WIN_MOVABLE
              resize_mask; // specifies which edges of the window can be resized, default=DIRF_RIGHT|DIRF_LEFT|DIRF_DOWN|DIRF_UP (used only if 'flag' has WIN_RESIZABLE enabled)
    Str       title      ; // title bar text, default=""
@@ -100,13 +100,13 @@ protected:
    NO_COPY_CONSTRUCTOR(Window);
 };
 /******************************************************************************/
-STRUCT(ClosableWindow , Window) // Closable Window (automatically hides on Escape or Middle Mouse Button)
-//{
+struct ClosableWindow : Window // Closable Window (automatically hides on Escape or Middle Mouse Button)
+{
    virtual void update(C GuiPC &gpc);
 };
 /******************************************************************************/
-STRUCT(ModalWindow , Window) // Modal Window (draws half transparent black color on entire desktop below the window, after clicking the background the window fades out)
-//{
+struct ModalWindow : Window // Modal Window (draws half transparent black color on entire desktop below the window, after clicking the background the window fades out)
+{
    virtual GuiObj* test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel);
    virtual void  update(C GuiPC &gpc);
    virtual void    draw(C GuiPC &gpc);
@@ -115,8 +115,8 @@ private:
    GuiObj _background;
 };
 /******************************************************************************/
-STRUCT(Dialog , Window) // Dialog (has text and custom amount of buttons, creating it automatically sets the correct rectangles for the window and its children)
-//{
+struct Dialog : Window // Dialog (has text and custom amount of buttons, creating it automatically sets the correct rectangles for the window and its children)
+{
    struct Text2 : Text
    {
       virtual GuiObj* test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel);

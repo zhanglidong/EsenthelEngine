@@ -1,6 +1,6 @@
 /******************************************************************************/
-const_mem_addr STRUCT(Desktop , GuiObj) // Gui Desktop !! must be stored in constant memory address !!
-//{
+const_mem_addr struct Desktop : GuiObj // Gui Desktop !! must be stored in constant memory address !!
+{
    // manage
    Desktop& del   (              ); // manually delete
    Desktop& create(              ); // create

@@ -1,8 +1,8 @@
 /******************************************************************************/
 namespace Game{
 /******************************************************************************/
-STRUCT(ObjParticles , Obj) // Game Particles Object
-//{
+struct ObjParticles : Obj // Game Particles Object
+{
    Particles particles;
 
    // manage

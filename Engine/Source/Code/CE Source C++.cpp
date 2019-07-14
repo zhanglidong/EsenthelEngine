@@ -174,7 +174,7 @@ void Source::writeTokens(CodeLine &cline, Int start, Int end, Bool gcc)
          Token &token=*tokens[i];
          Int    line = token.lineIndex();
          cline.includeLine(line);
-         if(MustSeparate(last_type, token.type) || gcc && (token==TMPL_B || token==TMPL_E))cline.append(' ', TOKEN_NONE); // GCC does not handle << >> double templates
+         if(MustSeparate(last_type, token.type) /*|| gcc && (token==TMPL_B || token==TMPL_E)*/)cline.append(' ', TOKEN_NONE); // GCC does not handle << >> double templates
          last_type=token.type;
          token.asText(temp);
          FREPAD(t, temp)cline.cols.New().set(temp[t], token.col, line, i, token.type);
@@ -305,8 +305,8 @@ void Source::adjustToken(Memc<CodeLine> &code_lines, Int i, Bool gcc)
          {
             Int col; if(CodeLine *cl=FindLineCol(code_lines, token.pos(), col))cl->remove(col).insert(col, dot, TOKEN_OPERATOR, i);
          }
-      }else
-      /*if(token.type==TOKEN_NUMBER) // convert 0.0f -> 0.0f, 0.0 -> 0.0f, 0.0d -> 0.0 (This was moved into 'Parse' because of issues with tokens generated from macros)
+      }
+      /*else if(token.type==TOKEN_NUMBER) // convert 0.0f -> 0.0f, 0.0 -> 0.0f, 0.0d -> 0.0 (This was moved into 'Parse' because of issues with tokens generated from macros)
       {
          FREPA(token)if(token[i]=='.') // if floating point
          {
@@ -319,8 +319,9 @@ void Source::adjustToken(Memc<CodeLine> &code_lines, Int i, Bool gcc)
             }
             break;
          }
-      }else*/
-      if(gcc)
+      }*/
+   #if 0
+      else if(gcc)
       {
          if(token==TMPL_E) // replace "Memc<Memc<TYPE>>" with "Memc<Memc<TYPE> >"
          {
@@ -344,6 +345,7 @@ void Source::adjustToken(Memc<CodeLine> &code_lines, Int i, Bool gcc)
                }
             }
          }else
+      #if 0
          if(token.type==TOKEN_KEYWORD && (token=="super" || token=="__super")) // replace 'super' with 'ClassName'
          {
             if(Symbol *symbol=finalSymbol(i+2)) // get 'symbol' from "super.symbol"
@@ -357,6 +359,7 @@ void Source::adjustToken(Memc<CodeLine> &code_lines, Int i, Bool gcc)
                }
             }
          }else
+      #endif
          if(token.type==TOKEN_KEYWORD && token=="friend") // replace "friend X;" with "friend struct X;"
          {
             if(InRange(i+1, tokens))
@@ -379,6 +382,7 @@ void Source::adjustToken(Memc<CodeLine> &code_lines, Int i, Bool gcc)
             }
          }
       }
+   #endif
    }
 }
 void Source::writeClassPath(CodeLine &line, Int col, Symbol *parent, Symbol *cur_namespace, Bool global, Memc<Symbol::Modif> *templates, bool start_separator)

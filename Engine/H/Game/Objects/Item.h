@@ -5,8 +5,8 @@
 /******************************************************************************/
 namespace Game{
 /******************************************************************************/
-STRUCT(Item , Obj) // Game Item Object
-//{
+struct Item : Obj // Game Item Object
+{
    Flt       scale         ; // scale
    ObjectPtr base          ; // base object
    MeshPtr   mesh          ; // mesh

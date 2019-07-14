@@ -74,8 +74,8 @@ struct FileInfoSystem : FileInfo // System File Information, this is the same th
 /******************************************************************************/
 // FILE FIND
 /******************************************************************************/
-STRUCT(FileFind , FileInfo) // File Finder
-//{
+struct FileFind : FileInfo // File Finder
+{
    Str name; // currently encountered file base name (does not include path), this is valid when "Bool operator()" returns true
 
    // operations

@@ -78,8 +78,8 @@ void PhysXCompileAll    (Ptr)
    if(WINDOWS)PhysXCompileWeb    ();
 }
 
-STRUCT(OptionsClass , ClosableWindow)
-//{
+struct OptionsClass : ClosableWindow
+{
    Text   t_vs_path, t_ndk_path, t_aac, t_physics;
    TextLine vs_path,   ndk_path;
    CheckBox aac;
@@ -1258,7 +1258,7 @@ static void PhysXCompileAndroid()
 "LOCAL_CPP_FEATURES := # rtti exceptions\n"
 "LOCAL_ARM_NEON     := true # force NEON usage for all files\n"
 "\n"
-"LOCAL_CPPFLAGS     := -O3 -fshort-wchar -ffast-math -fomit-frame-pointer -Wno-invalid-offsetof -Wno-invalid-noreturn -DPX_PHYSX_STATIC_LIB -DPX_COOKING -DPX_SUPPORT_PVD=0 -DNDEBUG"+PhysXAndroidFolders+"\n"
+"LOCAL_CPPFLAGS     := -O3 -fshort-wchar -ffast-math -fomit-frame-pointer -fms-extensions -Wno-invalid-offsetof -Wno-invalid-noreturn -DPX_PHYSX_STATIC_LIB -DPX_COOKING -DPX_SUPPORT_PVD=0 -DNDEBUG"+PhysXAndroidFolders+"\n"
 "\n"
 //"LOCAL_SRC_FILES := $(wildcard"+PhysXAndroidFiles+" \\\n)\n" this doesn't work
 "LOCAL_SRC_FILES :="+PhysXAndroidFiles+"\n"

@@ -5,8 +5,8 @@
 /******************************************************************************/
 namespace Game{
 /******************************************************************************/
-STRUCT(Static , Obj) // Game Static Object, these objects are static and can't be moved during game (this class is similar to Game::Kinematic, with the exception that Kinematic can be moved manually)
-//{
+struct Static : Obj // Game Static Object, these objects are static and can't be moved during game (this class is similar to Game::Kinematic, with the exception that Kinematic can be moved manually)
+{
    Vec       scale         ; // scale
    ObjectPtr base          ; // base object
    MeshPtr   mesh          ; // mesh

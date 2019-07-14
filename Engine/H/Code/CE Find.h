@@ -2,8 +2,8 @@
 #if EE_PRIVATE
 namespace Edit{
 /******************************************************************************/
-STRUCT(Find , Region)
-//{
+struct Find : Region
+{
    enum MODE
    {
       EXACT  ,
@@ -18,8 +18,8 @@ STRUCT(Find , Region)
       ALL     =CUR_FILE|ACT_APP|ESENTHEL,
    };
 
-   STRUCT(ResultRegion , Region)
-   //{
+   struct ResultRegion : Region
+   {
       struct Result
       {
          Bool         opened;
@@ -71,8 +71,8 @@ STRUCT(Find , Region)
    virtual void  update    (C GuiPC &gpc);
 };
 /******************************************************************************/
-STRUCT(ReplaceText , ClosableWindow)
-//{
+struct ReplaceText : ClosableWindow
+{
    Text   t_src, t_dest, t_scope;
    TextLine src,   dest;
    ComboBox scope;

@@ -1,6 +1,6 @@
 /******************************************************************************/
-const_mem_addr STRUCT(ColorPicker , Window) // !! must be stored in constant memory address !!
-//{
+const_mem_addr struct ColorPicker : Window // !! must be stored in constant memory address !!
+{
    MemberDesc md;
 
    // manage
@@ -33,18 +33,18 @@ const_mem_addr STRUCT(ColorPicker , Window) // !! must be stored in constant mem
 #if !EE_PRIVATE
 private:
 #endif
-   STRUCT(SatLum , GuiCustom)
-   //{
+   struct SatLum : GuiCustom
+   {
       virtual void update(C GuiPC &gpc);
       virtual void draw  (C GuiPC &gpc);
    };
-   STRUCT(Hue , GuiCustom)
-   //{
+   struct Hue : GuiCustom
+   {
       virtual void update(C GuiPC &gpc);
       virtual void draw  (C GuiPC &gpc);
    };
-   STRUCT(Colors , GuiCustom)
-   //{
+   struct Colors : GuiCustom
+   {
       virtual void update(C GuiPC &gpc);
       virtual void draw  (C GuiPC &gpc);
    };

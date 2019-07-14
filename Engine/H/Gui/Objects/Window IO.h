@@ -18,8 +18,8 @@ enum WIN_IO_EXT_MODE : Byte // WindowIO extension append mode
    WIN_IO_EXT_ALWAYS, // always append extension
 };
 /******************************************************************************/
-const_mem_addr STRUCT(QuickPathSelector , ComboBox)
-//{
+const_mem_addr struct QuickPathSelector : ComboBox
+{
    ComboBox& create();
    ComboBox& create(C Rect &rect) {return create().rect(rect);} // create and set rectangle
 
@@ -35,8 +35,8 @@ private:
    void (*_func)(Ptr user);
 };
 /******************************************************************************/
-const_mem_addr STRUCT(WindowIO , ClosableWindow) // Gui Window Input Output !! must be stored in constant memory address !!
-//{
+const_mem_addr struct WindowIO : ClosableWindow // Gui Window Input Output !! must be stored in constant memory address !!
+{
    WIN_IO_PATH_MODE path_mode; // path     display mode, default=WIN_IO_PM_FULL
    WIN_IO_EXT_MODE   ext_mode; // extension append mode, default=WIN_IO_EXT_ALWAYS
 
@@ -133,8 +133,8 @@ private:
       void set(FSTD_TYPE type, Long size, C Str &name) {T.type=type; T.size=size; T.name=name;}
    #endif
    };
-   const_mem_addr STRUCT(QPS , QuickPathSelector)
-   //{
+   const_mem_addr struct QPS : QuickPathSelector
+   {
       WindowIO &win_io;
       virtual Str  getPath(           );
       virtual void setPath(C Str &path);

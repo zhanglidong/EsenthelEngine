@@ -83,8 +83,8 @@ struct _ActorShapes
 
  ~_ActorShapes();
 };
-STRUCT(RigidBody , btRigidBody)
-//{
+struct RigidBody : btRigidBody
+{
    PhysMtrl                *material  ; // material index
    Ptr                      user, obj ; // user and obj pointers
    Vec                      offset_com; // offset applied only to Center of Mass

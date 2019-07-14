@@ -100,8 +100,8 @@ struct TextParam
    explicit TextParam(C Str &name, C Str &value=S) {set(name, value);}
 };
 /******************************************************************************/
-STRUCT(TextNode , TextParam)
-//{
+struct TextNode : TextParam
+{
    Memc<TextNode> nodes;
 
    // get / set

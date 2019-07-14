@@ -20,8 +20,8 @@ enum ACTION_TYPE // Character Action Type
    ACTION_MOVE_DIR, // move to direction
 };
 /******************************************************************************/
-STRUCT(Chr , Obj) // Game Character Object
-//{
+struct Chr : Obj // Game Character Object
+{
    struct Input // Movement Input
    {
       Bool  crouch, // if want to crouch
