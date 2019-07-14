@@ -35,7 +35,7 @@ void Explosion_VS(VtxInput vtx,
               out Vec  outVel:TEXCOORD1,
               out Vec4 outVtx:POSITION )
 {
-   outVel=mul((Matrix3)CamMatrix, Normalize(vtx.pos())*Step);
+   outVel=TransformTP(Normalize(vtx.pos())*Step, (Matrix3)CamMatrix);
    outPos=TransformPos(vtx.pos());
    outVtx=Project     ( outPos  );
 }

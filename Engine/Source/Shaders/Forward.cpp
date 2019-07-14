@@ -407,7 +407,7 @@ VecH4 PS
 
       // distance & angle
       Vec  delta=Light_cone.pos-I.pos; Flt dist=Length(delta);
-      Vec  dir  =mul(Light_cone.mtrx, delta); dir.xy/=dir.z; // clip(Vec(1-Abs(dir.xy), dir.z));
+      Vec  dir  =TransformTP(delta, Light_cone.mtrx); dir.xy/=dir.z; // clip(Vec(1-Abs(dir.xy), dir.z));
       Half power=LightConeAngle(dir.xy)*LightConeDist(dist); if(light_cone_shd)power*=shadow; power*=(dir.z>0);
 
       // diffuse

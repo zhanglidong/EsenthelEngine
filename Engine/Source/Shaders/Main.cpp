@@ -780,7 +780,7 @@ void FogBox_PS
    Flt z  =TexDepthPoint(PixelToScreen(pixel));
    Vec pos=inTex,
        dir=Normalize(inPos); dir*=Min((SQRT3*2)*inSize.w, (z-inPos.z)/dir.z);
-       dir=mul(inMat, dir); // convert to box space
+       dir=TransformTP(dir, inMat); // convert to box space
 
    // convert to texture space (0..1)
    dir=dir/(2*inSize.xyz);
@@ -838,7 +838,7 @@ void FogBoxI_PS
 {
    Vec pos=GetPosPoint(inTex, inPosXY),
        dir=Normalize(pos); dir*=Min((SQRT3*2)*inSize.w, (pos.z-Viewport.from)/dir.z);
-       dir=mul(inMat, dir); // convert to box space
+       dir=TransformTP(dir, inMat); // convert to box space
 
    // convert to texture space (0..1)
    pos=LocalFogInside/(2*inSize.xyz)+0.5;
@@ -1023,7 +1023,7 @@ void Volume_PS
    Flt z  =TexDepthPoint(PixelToScreen(pixel));
    Vec pos=inTex;
    Vec dir=Normalize(inPos); dir*=Min((SQRT3*2)*Max(Volume.size), (z-(inside ? Viewport.from : inPos.z))/dir.z);
-       dir=mul(inMat, dir); // convert to box space
+       dir=TransformTP(dir, inMat); // convert to box space
 
    // convert to texture space (0..1)
    dir=dir/(2*Volume.size);
@@ -2360,7 +2360,7 @@ VecH4 LightCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    // distance & angle
    Vec  pos  =GetPosPoint(inTex, inPosXY),
         delta=Light_cone.pos-pos,
-        dir  =mul(Light_cone.mtrx, delta); dir.xy/=dir.z; clip(Vec(1-Abs(dir.xy), dir.z));
+        dir  =TransformTP(delta, Light_cone.mtrx); dir.xy/=dir.z; clip(Vec(1-Abs(dir.xy), dir.z));
    Flt  dist =Length(delta);
    Half power=LightConeAngle(dir.xy)*LightConeDist(dist); if(shadow)power*=shd; clip(power-EPS_LUM);
 
@@ -2397,7 +2397,7 @@ VecH4 LightConeM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
    // distance & angle
    Vec  pos  =GetPosMS(pixel.xy, index, inPosXY),
         delta=Light_cone.pos-pos,
-        dir  =mul(Light_cone.mtrx, delta); dir.xy/=dir.z; clip(Vec(1-Abs(dir.xy), dir.z));
+        dir  =TransformTP(delta, Light_cone.mtrx); dir.xy/=dir.z; clip(Vec(1-Abs(dir.xy), dir.z));
    Flt  dist =Length(delta);
    Half power=LightConeAngle(dir.xy)*LightConeDist(dist); if(shadow)power*=shd; clip(power-EPS_LUM);
 
@@ -2792,7 +2792,7 @@ VecH4 Decal_PS(PIXEL,
        uniform Bool    palette            ):COLOR
 {
    Vec  pos  =GetPosPoint(PixelToScreen(pixel));
-        pos  =mul((Matrix3)inMatrix, pos-inMatrix[3]);
+        pos  =TransformTP(pos-inMatrix[3], (Matrix3)inMatrix);
    Half alpha=Sat(Half(Abs(pos.z))*DecalOpaqueFracMul()+DecalOpaqueFracAdd());
  
    clip(Vec(1-Abs(pos.xy), alpha-EPS_COL));

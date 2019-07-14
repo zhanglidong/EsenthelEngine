@@ -21,7 +21,7 @@ void VS
    m[0]=OverlayParams.mtrx[0]/Length2(OverlayParams.mtrx[0]);
    m[1]=OverlayParams.mtrx[1]/Length2(OverlayParams.mtrx[1]);
    m[2]=OverlayParams.mtrx[2]/Length2(OverlayParams.mtrx[2]);
-   outTex   =mul(m, vtx.pos()-OverlayParams.mtrx[3]);
+   outTex   =TransformTP(vtx.pos()-OverlayParams.mtrx[3], m);
    outTex.xy=outTex.xy*0.5+0.5;
    outTex.z =1 - (Abs(outTex.z)-OverlayOpaqueFrac())/(1-OverlayOpaqueFrac()); // Abs(outTex.z)/-(1-OverlayOpaqueFrac()) + (OverlayOpaqueFrac()/(1-OverlayOpaqueFrac())+1)
 

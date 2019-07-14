@@ -837,10 +837,15 @@ inline Flt  LerpR (Flt  from, Flt  to, Flt  v) {return     (v-from)/(to-from) ;}
 inline Half LerpRS(Half from, Half to, Half v) {return Sat((v-from)/(to-from));}
 inline Flt  LerpRS(Flt  from, Flt  to, Flt  v) {return Sat((v-from)/(to-from));}
 /******************************************************************************/
+#if 1 // faster (1.6 fps) tested on GeForce 1050 Ti
+inline Vec  Transform(Vec  v, Matrix3  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix
+inline VecH Transform(VecH v, MatrixH3 m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix
+#else // slower (1.0 fps)
 inline Vec  Transform(Vec  v, Matrix3  m) {return mul(v, m);} // transform 'v' vector by 'm' orientation-scale matrix
 inline VecH Transform(VecH v, MatrixH3 m) {return mul(v, m);} // transform 'v' vector by 'm' orientation-scale matrix
+#endif
 
-#if 1 // TODO: check if future generation GPU's have 'mul' faster (GeForce 650m GT has 'mul' slower)
+#if 1 // was faster on GeForce 650m, but on GeForce 1050 Ti performance is the same, however keep this version as in other cases 'mul' is slower
 inline Vec  Transform(Vec  v, Matrix  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' orientation-scale-translation matrix, faster version of "mul(Vec4 (v, 1), m)"
 inline VecH Transform(VecH v, MatrixH m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' orientation-scale-translation matrix, faster version of "mul(VecH4(v, 1), m)"
 inline Vec4 Transform(Vec  v, Matrix4 m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' 4x4                           matrix, faster version of "mul(Vec4 (v, 1), m)"
@@ -850,14 +855,22 @@ inline VecH Transform(VecH v, MatrixH m) {return mul(VecH4(v, 1), m);} // transf
 inline Vec4 Transform(Vec  v, Matrix4 m) {return mul(Vec4 (v, 1), m);} // transform 'v' vector by 'm' 4x4                           matrix
 #endif
 
-#if 1 // TODO: check which one is faster FIXME
+#if 1 // faster (1.6 fps) tested on GeForce 1050 Ti
 inline Vec  Transform3(Vec  v, Matrix  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix
 inline VecH Transform3(VecH v, MatrixH m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix
-inline VecH Transform3(VecH v, Matrix  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix, TODO: #ShaderHalf
-#else
+inline VecH Transform3(VecH v, Matrix  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2]));} // transform 'v' vector by 'm' orientation-scale matrix, TODO: #ShaderHalf would it be faster to cast 'v' to 'Vec' first? Mixing precisions is not perfect however alternative would require to store matrixes in additional half precision but that would slow down (calculating on CPU side and uploading to GPU)
+#else // slower (1.0 fps)
 inline Vec  Transform3(Vec  v, Matrix  m) {return mul(v, (Matrix3 )m);} // transform 'v' vector by 'm' orientation-scale matrix
 inline VecH Transform3(VecH v, MatrixH m) {return mul(v, (MatrixH3)m);} // transform 'v' vector by 'm' orientation-scale matrix
-inline VecH Transform3(VecH v, Matrix  m) {return mul(v, (MatrixH3)m);} // transform 'v' vector by 'm' orientation-scale matrix, TODO: #ShaderHalf
+inline VecH Transform3(VecH v, Matrix  m) {return mul(v, (MatrixH3)m);} // transform 'v' vector by 'm' orientation-scale matrix
+#endif
+
+#if 1 // faster 4.3 fps
+inline Vec  TransformTP(Vec  v, Matrix3  m) {return mul(m, v);} // transform 'v' vector by transposed 'm' orientation-scale matrix
+inline VecH TransformTP(VecH v, MatrixH3 m) {return mul(m, v);} // transform 'v' vector by transposed 'm' orientation-scale matrix
+#else // slower 3.2 fps
+inline Vec  TransformTP(Vec  v, Matrix3  m) {return Vec(Dot(v, m[0]), Dot(v, m[1]), Dot(v, m[2]));} // transform 'v' vector by transposed 'm' orientation-scale matrix
+inline VecH TransformTP(VecH v, MatrixH3 m) {return Vec(Dot(v, m[0]), Dot(v, m[1]), Dot(v, m[2]));} // transform 'v' vector by transposed 'm' orientation-scale matrix
 #endif
 
 inline Vec  TransformPos(Vec  pos) {return Transform (pos, ViewMatrix[0]);}
