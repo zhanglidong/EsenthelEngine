@@ -123,7 +123,7 @@ void Surface_PS
    {
       if(fake_reflection) // add fake reflection
       {
-         col.rgb+=TexCube(Rfl, Transform3(reflect(view, view_nrm), CamMatrix)).rgb*WaterRflFake;
+         col.rgb+=TexCube(Rfl, Transform3(reflect(view, view_nrm), CamMatrix)).rgb*WaterRflFake; // #ShaderHalf
       }
       // fresnel
       {
