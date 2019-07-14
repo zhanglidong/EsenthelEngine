@@ -16,7 +16,7 @@ namespace EE{
    #define kInputBus  1
 #endif
 /******************************************************************************/
-#if WINDOWS_NEW || !APPLE && !ANDROID && (DIRECT_SOUND || OPEN_AL)
+#if WINDOWS_NEW || !APPLE && !ANDROID && (DIRECT_SOUND_RECORD || OPEN_AL)
 Memc<SoundRecord*> SoundRecords;
 #endif
 /******************************************************************************/
@@ -134,7 +134,7 @@ SoundRecord::SoundRecord()
 #if APPLE
   _flags=0;
 #elif ANDROID
-#elif DIRECT_SOUND
+#elif DIRECT_SOUND_RECORD
   _dscb=null;
 #elif OPEN_AL
   _block=0;
@@ -170,7 +170,7 @@ void SoundRecord::del()
       }
      _handle=null;
    }
-#elif DIRECT_SOUND
+#elif DIRECT_SOUND_RECORD
    if(_handle || _dscb)
    {
       SafeSyncLocker locker(SoundAPILock);
@@ -413,7 +413,7 @@ Bool SoundRecord::create(Device *device, Int bits, Int channels, Int frequency) 
          return true;
       }
    }
-#elif DIRECT_SOUND
+#elif DIRECT_SOUND_RECORD
    SafeSyncLocker locker(SoundAPILock);
    del();
    if(channels>=1 && channels<=2 && (bits==8 || bits==16))
@@ -464,7 +464,7 @@ Bool SoundRecord::create(Device *device, Int bits, Int channels, Int frequency) 
    del(); return false;
 }
 /******************************************************************************/
-#if DIRECT_SOUND
+#if DIRECT_SOUND_RECORD
 static BOOL CALLBACK SoundRecordDeviceCallback(LPGUID lpGuid, LPCWSTR lpcstrDescription, LPCWSTR lpcstrModule, LPVOID lpContext)
 {
    MemPtr<SoundRecord::Device> &devices=*(MemPtr<SoundRecord::Device>*)lpContext;
@@ -566,7 +566,7 @@ void SoundRecord::GetDevices(MemPtr<Device> devices)
       if(JMethodID hasAudioRecord=jni.staticFunc(ActivityClass, "hasAudioRecord", "()Z"))
          if(jni->CallStaticBooleanMethod(ActivityClass, hasAudioRecord))
             devices.New().name="Microphone";
-#elif DIRECT_SOUND
+#elif DIRECT_SOUND_RECORD
    DirectSoundCaptureEnumerate(SoundRecordDeviceCallback, &devices);
 #elif OPEN_AL
    if(CChar8 *s=alcGetString(null, ALC_CAPTURE_DEVICE_SPECIFIER))
@@ -577,7 +577,7 @@ void SoundRecord::GetDevices(MemPtr<Device> devices)
 /******************************************************************************/
 Int SoundRecord::curPosNoLock()C
 {
-#if DIRECT_SOUND
+#if DIRECT_SOUND_RECORD
    DWORD capture=0, read=0; // The capture cursor is ahead of the read cursor. The data after the read position up to and including the capture position is not necessarily valid data.
    if(_dscb)_dscb->GetCurrentPosition(&capture, &read);
    return read;
@@ -591,7 +591,7 @@ void SoundRecord::updateNoLock()
    if(_handle)_handle->update(T);
 #elif APPLE
 #elif ANDROID
-#elif DIRECT_SOUND
+#elif DIRECT_SOUND_RECORD
    if(_dscb)
    {
       Int cur_pos =curPosNoLock();

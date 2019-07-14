@@ -66,7 +66,7 @@ private:
 #endif
 #if WINDOWS_OLD
 #if EE_PRIVATE
-   #if DIRECT_SOUND
+   #if DIRECT_SOUND_RECORD
       IDirectSoundCapture8      *_handle;
       IDirectSoundCaptureBuffer *_dscb;
    #elif OPEN_AL

@@ -89,10 +89,11 @@
    #endif
 
    // Sound
-   #define DIRECT_SOUND WINDOWS_OLD             // use DirectSound on Windows Classic
-   #define XAUDIO       WINDOWS_NEW             // use XAudio      on Windows Universal
-   #define OPEN_AL      (APPLE || LINUX || WEB) // use OpenAL      on Apple, Linux and Web. OpenAL on Windows requires OpenAL DLL file, however it can be enabled just for testing the implementation.
-   #define OPEN_SL      ANDROID                 // use OpenSL      on Android
+   #define DIRECT_SOUND        0                       //     DirectSound           is disabled
+   #define DIRECT_SOUND_RECORD WINDOWS_OLD             // use DirectSound Recording on Windows Classic
+   #define XAUDIO              WINDOWS                 // use XAudio                on Windows
+   #define OPEN_AL             (APPLE || LINUX || WEB) // use OpenAL                on Apple, Linux and Web. OpenAL on Windows requires OpenAL DLL file, however it can be enabled just for testing the implementation.
+   #define OPEN_SL             ANDROID                 // use OpenSL                on Android
    /******************************************************************************/
    // INCLUDE SYSTEM HEADERS
    /******************************************************************************/
@@ -179,11 +180,17 @@
          #define DIRECTINPUT_VERSION 0x0800
          #include <dinput.h>
       #endif
-      #if DIRECT_SOUND
+      #if DIRECT_SOUND || DIRECT_SOUND_RECORD
          #include <dsound.h>
-      #elif XAUDIO
-         #include <xaudio2.h>
-         #include <x3daudio.h>
+      #endif
+      #if XAUDIO
+         #if WINDOWS_NEW // this only supports Windows 8 and newer
+            #include <xaudio2.h>
+            #include <x3daudio.h>
+         #else // to support Windows 7 and older
+            #include "../../../ThirdPartyLibs/DirectX/DirectX SDK June 2010/xaudio2.h"
+            #include "../../../ThirdPartyLibs/DirectX/DirectX SDK June 2010/X3DAudio.h"
+         #endif
       #endif
    #elif APPLE // Apple
       #define Ptr       ApplePtr

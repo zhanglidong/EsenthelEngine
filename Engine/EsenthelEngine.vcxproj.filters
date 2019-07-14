@@ -53,15 +53,6 @@
     <Filter Include="H\_\Autodesk">
       <UniqueIdentifier>{be1075d9-eafc-473a-bf57-5f17a0a94e8d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="H\_\DirectX">
-      <UniqueIdentifier>{1ab49396-0595-4de6-acb2-76beee2dce65}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="H\_\DirectX\32">
-      <UniqueIdentifier>{44af411a-cb85-445e-b97e-bf63e386dae7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="H\_\DirectX\64">
-      <UniqueIdentifier>{30301bd7-52ff-4c52-9411-c96aa79f62db}</UniqueIdentifier>
-    </Filter>
     <Filter Include="H\Gui">
       <UniqueIdentifier>{f5170b63-65d8-413b-a289-a72d012f4b9e}</UniqueIdentifier>
     </Filter>
@@ -190,12 +181,6 @@
     <Filter Include="Source\Misc">
       <UniqueIdentifier>{56d0daf9-6aa9-446b-8341-c9cb4f96451b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="H\_\DirectX\64\Universal">
-      <UniqueIdentifier>{0f0a530e-b99a-4615-a3f2-4e293306ef2c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="H\_\DirectX\32\Universal">
-      <UniqueIdentifier>{144d4d04-3065-4c71-a357-e5646c57d90c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="H\_\Libs">
       <UniqueIdentifier>{f8511903-9dc4-4279-ae08-1e440bdc0e95}</UniqueIdentifier>
     </Filter>
@@ -216,9 +201,6 @@
     </Filter>
     <Filter Include="H\_\Bullet\ARM">
       <UniqueIdentifier>{56a9122a-5269-43bd-8010-113eead39f0f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="H\_\DirectX\ARM">
-      <UniqueIdentifier>{8d208c52-4a4a-4985-91d6-361ba1e35dd0}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Platforms\Windows">
       <UniqueIdentifier>{02e6e636-0322-42f4-a144-de626d374bf7}</UniqueIdentifier>
@@ -2196,39 +2178,6 @@
     <CustomBuild Include="..\ThirdPartyLibs\Bullet\Windows\x64\Release\LinearMath.lib">
       <Filter>H\_\Bullet\64</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x64\d3d10.lib">
-      <Filter>H\_\DirectX\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x64\d3d10_1.lib">
-      <Filter>H\_\DirectX\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x64\d3d11.lib">
-      <Filter>H\_\DirectX\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x64\d3d12.lib">
-      <Filter>H\_\DirectX\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x64\d3dcompiler.lib">
-      <Filter>H\_\DirectX\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\D3DX11\Bin\Desktop_2015\x64\Release\Effects11.lib">
-      <Filter>H\_\DirectX\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x64\dinput8.lib">
-      <Filter>H\_\DirectX\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x64\dsound.lib">
-      <Filter>H\_\DirectX\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x64\dxgi.lib">
-      <Filter>H\_\DirectX\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x64\dxguid.lib">
-      <Filter>H\_\DirectX\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x64\Xinput9_1_0.lib">
-      <Filter>H\_\DirectX\64</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\ThirdPartyLibs\Jpeg\Windows\Release\Jpeg.lib">
       <Filter>H\_\Libs\32</Filter>
     </CustomBuild>
@@ -2289,38 +2238,11 @@
     <CustomBuild Include="..\ThirdPartyLibs\SQLite\Windows\x64\Release\SQLite.lib">
       <Filter>H\_\Libs\64</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x86\d3d10.lib">
-      <Filter>H\_\DirectX\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x86\d3d10_1.lib">
-      <Filter>H\_\DirectX\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x86\d3d11.lib">
-      <Filter>H\_\DirectX\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x86\d3d12.lib">
-      <Filter>H\_\DirectX\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x86\d3dcompiler.lib">
-      <Filter>H\_\DirectX\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x86\dinput8.lib">
-      <Filter>H\_\DirectX\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x86\dsound.lib">
-      <Filter>H\_\DirectX\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x86\dxgi.lib">
-      <Filter>H\_\DirectX\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x86\dxguid.lib">
-      <Filter>H\_\DirectX\32</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\ThirdPartyLibs\D3DX11\Bin\Desktop_2015\Win32\Release\Effects11.lib">
-      <Filter>H\_\DirectX\32</Filter>
+      <Filter>H\_\Libs\32</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\DirectX\x86\Xinput9_1_0.lib">
-      <Filter>H\_\DirectX\32</Filter>
+    <CustomBuild Include="..\ThirdPartyLibs\D3DX11\Bin\Desktop_2015\x64\Release\Effects11.lib">
+      <Filter>H\_\Libs\64</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
@@ -2387,12 +2309,6 @@
     <Library Include="..\ThirdPartyLibs\Opus\Windows\x64\Release\silk_float.lib">
       <Filter>H\_\Libs\64</Filter>
     </Library>
-    <Library Include="..\ThirdPartyLibs\D3DX11\Bin\Windows10\Win32\Release\Effects11.lib">
-      <Filter>H\_\DirectX\32\Universal</Filter>
-    </Library>
-    <Library Include="..\ThirdPartyLibs\D3DX11\Bin\Windows10\x64\Release\Effects11.lib">
-      <Filter>H\_\DirectX\64\Universal</Filter>
-    </Library>
     <Library Include="..\ThirdPartyLibs\LZHAM\Windows\Release Universal\LZHAM.lib">
       <Filter>H\_\Libs\32\Universal</Filter>
     </Library>
@@ -2435,26 +2351,14 @@
     <Library Include="..\ThirdPartyLibs\Oculus\LibOVRKernel\Lib\Windows\x64\Release\VS2015\LibOVRKernel.lib">
       <Filter>H\_\Libs\64</Filter>
     </Library>
-    <Library Include="..\ThirdPartyLibs\DirectX\old\x64\X3DAudio.lib">
-      <Filter>H\_\DirectX\64</Filter>
-    </Library>
     <Library Include="..\ThirdPartyLibs\SQLite\Windows\Release Universal\SQLite\SQLite.lib">
       <Filter>H\_\Libs\32\Universal</Filter>
     </Library>
     <Library Include="..\ThirdPartyLibs\SQLite\Windows\x64\Release Universal\SQLite\SQLite.lib">
       <Filter>H\_\Libs\64\Universal</Filter>
     </Library>
-    <Library Include="..\ThirdPartyLibs\DirectX\x64\xinput.lib">
-      <Filter>H\_\DirectX\64\Universal</Filter>
-    </Library>
-    <Library Include="..\ThirdPartyLibs\DirectX\x86\xinput.lib">
-      <Filter>H\_\DirectX\32\Universal</Filter>
-    </Library>
     <Library Include="..\ThirdPartyLibs\Zlib\Windows\ARM\ReleaseWithoutAsm\Zlib.lib">
       <Filter>H\_\Libs\ARM</Filter>
-    </Library>
-    <Library Include="..\ThirdPartyLibs\DirectX\old\x86\X3DAudio.lib">
-      <Filter>H\_\DirectX\32</Filter>
     </Library>
     <Library Include="..\ThirdPartyLibs\Tiff\Windows\ARM\Release\Tiff.lib">
       <Filter>H\_\Libs\ARM</Filter>
@@ -2524,9 +2428,6 @@
     </Library>
     <Library Include="..\ThirdPartyLibs\JpegTurbo\WindowsArm\Release\turbojpeg-static.lib">
       <Filter>H\_\Libs\ARM</Filter>
-    </Library>
-    <Library Include="..\ThirdPartyLibs\D3DX11\Bin\Windows10\ARM\Release\Effects11.lib">
-      <Filter>H\_\DirectX\ARM</Filter>
     </Library>
     <Library Include="..\ThirdPartyLibs\VP\WindowsARM\ARM\Release\vpxmd.lib">
       <Filter>H\_\Libs\ARM</Filter>
@@ -2659,6 +2560,21 @@
     </Library>
     <Library Include="..\ThirdPartyLibs\QCMS\Windows\Release\QCMS.lib">
       <Filter>H\_\Libs\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\D3DX11\Bin\Windows10\Win32\Release\Effects11.lib">
+      <Filter>H\_\Libs\32\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\D3DX11\Bin\Windows10\x64\Release\Effects11.lib">
+      <Filter>H\_\Libs\64\Universal</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\D3DX11\Bin\Windows10\ARM\Release\Effects11.lib">
+      <Filter>H\_\Libs\ARM</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\DirectX\DirectX SDK June 2010\x86\X3DAudio.lib">
+      <Filter>H\_\Libs\32</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\DirectX\DirectX SDK June 2010\x64\X3DAudio.lib">
+      <Filter>H\_\Libs\64</Filter>
     </Library>
   </ItemGroup>
 </Project>
