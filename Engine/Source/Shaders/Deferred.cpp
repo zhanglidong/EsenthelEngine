@@ -219,7 +219,7 @@ void PS
              //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
 
             #if RELIEF_TAN_POS
-               Vec tpos=Normalize(TransformTP(-I.pos, I.mtrx)); // need high precision here for 'mul'
+               Vec tpos=Normalize(TransformTP(-I.pos, I.mtrx)); // need high precision here
             #else
                Vec tpos=I.tpos();
             #endif
@@ -434,7 +434,7 @@ void PS
              //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
 
             #if RELIEF_TAN_POS
-               Vec tpos=Normalize(TransformTP(-I.pos, I.mtrx)); // need high precision here for 'mul'
+               Vec tpos=Normalize(TransformTP(-I.pos, I.mtrx)); // need high precision here
             #else
                Vec tpos=I.tpos();
             #endif
