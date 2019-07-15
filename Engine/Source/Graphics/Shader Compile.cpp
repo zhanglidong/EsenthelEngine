@@ -1164,7 +1164,7 @@ static Bool ShaderCompileGL(Str name, C Str &dest, C MemPtr<ShaderMacro> &macros
                vs_cg_code=cgGetProgramString(cg_vs, CG_COMPILED_PROGRAM); if(!Is(vs_cg_code)){if(messages)messages->line()+=S+"Empty Vertex Shader Code in Technique \""+tech_name+"\""+context.error(); return false;}
                ps_cg_code=cgGetProgramString(cg_ps, CG_COMPILED_PROGRAM); if(!Is(ps_cg_code)){if(messages)messages->line()+=S+"Empty Pixel Shader Code in Technique \"" +tech_name+"\""+context.error(); return false;}
 
-               Bool ps_hp=true; // default all CG shaders to high precision, alternatively use (cgGetNamedTechniqueAnnotation(technique, "ForceHP")!=null;
+               Bool ps_hp=true;
 
                vs_code=GLSLVSShader(CleanCGShader(vs_cg_code));
                ps_code=GLSLPSShader(CleanCGShader(ps_cg_code), ps_hp);
