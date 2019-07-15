@@ -132,7 +132,7 @@ struct Include11 : ID3DInclude
 // ERRORS
 /******************************************************************************/
 #if WINDOWS
-static void Error(ID3D10Blob* &error, Str *messages)
+static void Error(ID3DBlob* &error, Str *messages)
 {
    if(error)
    {
@@ -274,7 +274,7 @@ static Bool ShaderCompile11(C Str &src, C Str &dest, C MemPtr<ShaderMacro> &macr
    File f; if(!f.readTry(src)){if(messages)messages->line()+="Failed to open file."; return false;}
    Mems<Byte> data; data.setNum(f.size()); if(!f.get(data.data(), f.size())){if(messages)messages->line()+="Failed to read from file."; return false;} f.del(); // release the file handle after reading
 
-   ID3D10Blob *buffer=null, *error=null;
+   ID3DBlob *buffer=null, *error=null;
    Mems<D3D_SHADER_MACRO> d3d_macros; d3d_macros.setNum(macros.elms()+1); FREPA(macros){D3D_SHADER_MACRO &m=d3d_macros[i]; m.Name=macros[i].name; m.Definition=macros[i].definition;} Zero(d3d_macros.last());
    D3DCompile(data.data(), data.elms(), null, d3d_macros.data(), &Include11(src), null, "fx_5_0", FLAGS_DX11, 0, &buffer, &error); Error(error, messages);
 
@@ -283,6 +283,7 @@ static Bool ShaderCompile11(C Str &src, C Str &dest, C MemPtr<ShaderMacro> &macr
    {
     //SyncLocker lock(D._lock); lock not needed for DX11 'D3D'
       D3DX11CreateEffectFromMemory(buffer->GetBufferPointer(), buffer->GetBufferSize(), 0, D3D, &effect);
+      buffer->Release();
    }
 
    if(effect)
