@@ -9,7 +9,7 @@ void VS(VtxInput vtx, out Vec4 O_vtx:POSITION)
 {
    O_vtx=vtx.pos4();
 }
-Vec4 PS():COLOR
+Vec4 PS():TARGET
 {
    return 0;
 }

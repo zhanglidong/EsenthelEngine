@@ -24,7 +24,7 @@ VecH4 LayeredClouds_PS(Vec   inPos :TEXCOORD0,
                        PIXEL                 ,
                    out VecH4 outMask:COLOR1  ,
                uniform Int   num             ,
-               uniform Bool  blend           ):COLOR
+               uniform Bool  blend           ):TARGET
 {
    Half a=Sat(inTex.w);
    if(blend)

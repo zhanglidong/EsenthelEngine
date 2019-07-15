@@ -14,6 +14,9 @@
       -use constants without any suffix (0.0 instead of 0.0f or 0.0h) - https://gpuopen.com/first-steps-implementing-fp16/ - "Using either the h or f suffix will result in a conversion. It is better to use the unadorned literal, such as 0.0, 1.5 and so on."
 
 /******************************************************************************/
+#include "!Header CPU.h"
+#define CONCAT(a,b) a##b
+/******************************************************************************/
 // MODEL AND TECHNIQUES
 /******************************************************************************/
 // Here are listed enums for different Shader Models:
@@ -122,8 +125,8 @@
    #define ImageCube   TextureCube<VecH4>
    #define ImageShadow Texture2D  <Half > // TODO: #ShaderHalf Half is used to get half output, however this internally operates on a F32 depth buffer, so do we need to use 'Flt' format?
 
-   #define        SAMPLER(name, index) sampler                name : register(s##index) //        sampler
-   #define SHADOW_SAMPLER(name, index) SamplerComparisonState name : register(s##index) // shadow sampler
+   #define        SAMPLER(name, index) sampler                name : register(CONCAT(s,index)) //        sampler
+   #define SHADOW_SAMPLER(name, index) SamplerComparisonState name : register(CONCAT(s,index)) // shadow sampler
 #elif GL
    #define ImageF      sampler2D
    #define ImageH      sampler2D
@@ -138,21 +141,33 @@
 // MODEL DEPENDENT FUNCTIONALITY
 /******************************************************************************/
 #if MODEL==SM_GL
-   #define PIXEL                     Vec4 pixel:WPOS                       // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (D.resW, D.resH)
-   #define IF_IS_FRONT               Bool front:VFACE,                     // face front side
-   #define IF_IS_CLIP            out Flt O_clip:BCOL1,                     // clip plane distance, this will generate "gl_BackSecondaryColor" which is later replaced with "gl_ClipDistance[0]"
-   #define CLIP(pos)             O_clip=Dot(Vec4((pos).xyz, 1), ClipPlane) // perform user plane clipping
-   #define BUFFER(name)                                                    // constant buffers (not available in OpenGL)
-   #define BUFFER_I(name, index)                                           // constant buffers (not available in OpenGL)
-   #define BUFFER_END                                                      // constant buffers (not available in OpenGL)
+   #define PIXEL                     Vec4 pixel:WPOS                        // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (D.resW, D.resH)
+   #define IF_IS_FRONT               Bool front:VFACE,                      // face front side
+   #define IF_IS_CLIP            out Flt O_clip:BCOL1,                      // clip plane distance, this will generate "gl_BackSecondaryColor" which is later replaced with "gl_ClipDistance[0]"
+   #define CLIP(pos)             O_clip=Dot(Vec4((pos).xyz, 1), ClipPlane)  // perform user plane clipping
+   #define BUFFER(name)                                                     // constant buffers (not available in OpenGL)
+   #define BUFFER_I(name, index)                                            // constant buffers (not available in OpenGL)
+   #define BUFFER_END                                                       // constant buffers (not available in OpenGL)
+ //#define DEPTH                 DEPTH
+   #define TARGET                COLOR
+   #define TARGET0               COLOR0
+   #define TARGET1               COLOR1
+   #define TARGET2               COLOR2
+   #define TARGET3               COLOR3
 #elif MODEL==SM_4
-   #define PIXEL                     Vec4 pixel :SV_Position               // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (D.resW, D.resH)
-   #define IF_IS_FRONT               Bool front :SV_IsFrontFace ,          // face front side
-   #define IF_IS_CLIP            out Flt  O_clip:SV_ClipDistance,          // clip plane distance
-   #define CLIP(pos)             O_clip=Dot(Vec4((pos).xyz, 1), ClipPlane) // perform user plane clipping
-   #define BUFFER(name)          cbuffer name {                            // declare a constant buffer
-   #define BUFFER_I(name, index) cbuffer name : register(b##index) {       // declare a constant buffer with custom buffer index
-   #define BUFFER_END            }                                         // end constant buffer declaration
+   #define PIXEL                     Vec4 pixel :SV_Position                // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (D.resW, D.resH)
+   #define IF_IS_FRONT               Bool front :SV_IsFrontFace ,           // face front side
+   #define IF_IS_CLIP            out Flt  O_clip:SV_ClipDistance,           // clip plane distance
+   #define CLIP(pos)             O_clip=Dot(Vec4((pos).xyz, 1), ClipPlane)  // perform user plane clipping
+   #define BUFFER(name)          cbuffer name {                             // declare a constant buffer
+   #define BUFFER_I(name, index) cbuffer name : register(CONCAT(b,index)) { // declare a constant buffer with custom buffer index
+   #define BUFFER_END            }                                          // end constant buffer declaration
+   #define DEPTH                 SV_Depth
+   #define TARGET                SV_Target
+   #define TARGET0               SV_Target0
+   #define TARGET1               SV_Target1
+   #define TARGET2               SV_Target2
+   #define TARGET3               SV_Target3
 #endif
 /******************************************************************************/
 // FUNCTIONS
@@ -275,8 +290,6 @@
 #define TexDepthLinear(   uv)        LinearizeDepth(TexLod   (Depth  , uv).x)
 #define TexDepthMSRaw(pixel, sample)                TexSample(DepthMS, pixel, sample).x
 #define TexDepthMS(   pixel, sample) LinearizeDepth(TexSample(DepthMS, pixel, sample).x)
-/******************************************************************************/
-#include "!Header CPU.h"
 /******************************************************************************/
 // CONSTANTS
 /******************************************************************************/
@@ -411,7 +424,7 @@ BUFFER(Constants)
 BUFFER_END
 
 BUFFER(Step)
-   Half Step;
+   Flt Step;
 BUFFER_END
 
 BUFFER(ImgSize)
@@ -1670,9 +1683,9 @@ inline Half ShadowConeValue(Vec pos, Vec2 jitter_value, uniform Bool jitter)
 struct DeferredSolidOutput // use this structure in Pixel Shader for setting the output of RT_DEFERRED solid modes
 {
    // !! if making any change here then adjust Water shader too !!
-   VecH4 out0:COLOR0,
-         out1:COLOR1,
-         out2:COLOR2;
+   VecH4 out0:TARGET0,
+         out1:TARGET1,
+         out2:TARGET2;
 
    // set components
    inline void color (VecH color ) {out0.rgb=color;}

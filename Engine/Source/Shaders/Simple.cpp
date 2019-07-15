@@ -143,7 +143,7 @@ VecH4 PS
    IF_IS_FRONT
 
    PARAMS
-):COLOR
+):TARGET
 {
    Half glow;
 

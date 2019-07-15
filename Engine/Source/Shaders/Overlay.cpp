@@ -51,7 +51,7 @@ VecH4 PS
    out VecH4 outNrm:COLOR1,
 
    PARAMS
-):COLOR
+):TARGET
 {
    VecH4 col  =Tex(Col, inTex.xy);
    Half  alpha=Sat((Half)inTex.z)*OverlayAlpha();

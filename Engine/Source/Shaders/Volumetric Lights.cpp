@@ -10,7 +10,7 @@ VecH4 VolDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                 NOPERSP Vec2 inPosXY:TEXCOORD1,
                 NOPERSP PIXEL                 ,
                 uniform Int  num              ,
-                uniform Bool cloud            ):COLOR
+                uniform Bool cloud            ):TARGET
 {
    Vec obj   =GetPosLinear(inTex, inPosXY); // use linear filtering because we may be drawing to a smaller RT
    Flt power =0,
@@ -39,7 +39,7 @@ VecH4 VolDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 /******************************************************************************/
 VecH4 VolPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                   NOPERSP Vec2 inPosXY:TEXCOORD1,
-                  NOPERSP PIXEL                 ):COLOR
+                  NOPERSP PIXEL                 ):TARGET
 {
    Vec obj   =GetPosLinear(inTex, inPosXY); // use linear filtering because we may be drawing to a smaller RT
    Flt power =0,
@@ -67,7 +67,7 @@ VecH4 VolPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 /******************************************************************************/
 VecH4 VolLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                    NOPERSP Vec2 inPosXY:TEXCOORD1,
-                   NOPERSP PIXEL                 ):COLOR
+                   NOPERSP PIXEL                 ):TARGET
 {
    Vec obj   =GetPosLinear(inTex, inPosXY); // use linear filtering because we may be drawing to a smaller RT
    Flt power =0,
@@ -94,7 +94,7 @@ VecH4 VolLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 /******************************************************************************/
 VecH4 VolCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                  NOPERSP Vec2 inPosXY:TEXCOORD1,
-                 NOPERSP PIXEL                 ):COLOR
+                 NOPERSP PIXEL                 ):TARGET
 {
    Vec obj   =GetPosLinear(inTex, inPosXY), // use linear filtering because we may be drawing to a smaller RT
        scale =Vec(Light_cone.scale, Light_cone.scale, 1);
@@ -126,7 +126,7 @@ VecH4 VolCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 /******************************************************************************/
 VecH4 Volumetric_PS(NOPERSP Vec2 inTex:TEXCOORD,
                     uniform Bool add           ,
-                    uniform Int  samples=6     ):COLOR
+                    uniform Int  samples=6     ):TARGET
 {
    VecH vol=TexLod(Img, inTex).rgb; // use linear filtering because 'Img' may be smaller
 

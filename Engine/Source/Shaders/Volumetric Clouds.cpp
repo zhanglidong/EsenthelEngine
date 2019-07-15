@@ -47,7 +47,7 @@ void Clouds_VS(VtxInput vtx,
    dir=Transform3(Vec(ScreenToPosXY(vtx.tex()), 1), CamMatrix); // world-space position
    outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
-VecH2 Clouds_PS(NOPERSP Vec dir:TEXCOORD):COLOR // 'dir'=world-space position
+VecH2 Clouds_PS(NOPERSP Vec dir:TEXCOORD):TARGET // 'dir'=world-space position
 {
    Flt a=Sat(dir.y*8); // alternatively, 'a' could be calculated as "a=Sat(max_from-from)"
 #if FLOW
@@ -118,7 +118,7 @@ void CloudsMap_VS(VtxInput vtx,
 }
 Half CloudsMap_PS(NOPERSP Vec pos:TEXCOORD0, // world-space position, relative to main camera
                   NOPERSP Vec dir:TEXCOORD1  // world-space direction
-                 ):COLOR
+                 ):TARGET
 {
 /* clouds = -Cloud.curve*x*x + Cloud.height
    ray    = pos + dir*t
@@ -185,7 +185,7 @@ void CloudsDraw_VS(VtxInput vtx,
 VecH4 CloudsDraw_PS(NOPERSP Vec2   inTex :TEXCOORD0,
                     NOPERSP Vec    inPos :TEXCOORD1,
                         out VecH4 outMask:COLOR1   ,
-                    uniform Bool  gamma            ):COLOR
+                    uniform Bool  gamma            ):TARGET
 {
    VecH2 clouds=TexLod(ImgXY, inTex).xy; // can't use TexPoint because image may be smaller
 #if 1

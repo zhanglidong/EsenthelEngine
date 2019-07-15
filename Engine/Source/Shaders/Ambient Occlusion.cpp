@@ -41,7 +41,7 @@ Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
            NOPERSP PIXEL                  ,
    uniform Int  mode                      ,
    uniform Bool jitter                    ,
-   uniform Bool normals                   ):COLOR
+   uniform Bool normals                   ):TARGET
 {
    const Bool geom=(normals && 0); // this is an alternative mode to AO formula which works on 3D space instead of 2D, currently disabled, because has some unresolved issues, doesn't work with flipped normals (leafs/grass), probably would require storing flipped information in Nrm RT W channel, which is currently used for specular
    const Bool linear_filter=1; // this removes some vertical lines on distant terrain (because multiple samples are clamped together), however introduces extra shadowing under distant objects

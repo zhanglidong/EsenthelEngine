@@ -39,7 +39,7 @@ VecH4 PS
    Vec  inPos:TEXCOORD2,
 
    PARAMS
-):COLOR
+):TARGET
 {
    // perform alpha testing
    if(textures==1)clip(Tex(Col, inTex).a + MaterialAlpha()-1);else // alpha in 'Col' texture

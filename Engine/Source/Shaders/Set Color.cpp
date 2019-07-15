@@ -47,7 +47,7 @@ VecH4 PS
    VS_PS I,
 
    PARAMS
-):COLOR
+):TARGET
 {
    if(textures==1)clip(Tex(Col, I.tex).a+(MaterialAlpha()-1));else
    if(textures==2)clip(Tex(Nrm, I.tex).a+(MaterialAlpha()-1)); // #MaterialTextureChannelOrder

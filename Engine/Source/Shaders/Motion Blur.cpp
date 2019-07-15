@@ -66,7 +66,7 @@ void ClearSkyVel_VS(VtxInput vtx,
    outVel.w=0;
    outVtx  =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
-VecH4 ClearSkyVel_PS(VecH4 inVel:TEXCOORD):COLOR {return inVel;} // yes, per-vertex precision is enough, as it generates the same results as if drawing a half sky ball mesh (results with the half ball mesh were the same as the one from this pixel shader)
+VecH4 ClearSkyVel_PS(VecH4 inVel:TEXCOORD):TARGET {return inVel;} // yes, per-vertex precision is enough, as it generates the same results as if drawing a half sky ball mesh (results with the half ball mesh were the same as the one from this pixel shader)
 TECHNIQUE(ClearSkyVel, ClearSkyVel_VS(), ClearSkyVel_PS());
 /******************************************************************************/
 void Convert_VS(VtxInput vtx,
@@ -86,7 +86,7 @@ VecH4 Convert_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                  NOPERSP Vec2 inPosXY:TEXCOORD2,
                  uniform Int  mode             ,
                  uniform Bool do_clamp         ,
-                 uniform Int  pixels=MAX_MOTION_BLUR_PIXEL_RANGE):COLOR
+                 uniform Int  pixels=MAX_MOTION_BLUR_PIXEL_RANGE):TARGET
 {
    Vec blur;
    if(mode==0)
@@ -124,7 +124,7 @@ VecH4 Convert_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 VecH4 Dilate_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
                 uniform Int  range=1                           ,
                 uniform Int  pixels=MAX_MOTION_BLUR_PIXEL_RANGE,
-                uniform Bool depth=false                       ):COLOR
+                uniform Bool depth=false                       ):TARGET
 {
    VecH4 blur;
    blur.xyz=TexPoint(Img, inTex).xyz;
@@ -175,7 +175,7 @@ VecH4 DilateX_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
                  uniform Int  range                             ,
                  uniform Bool diagonal=false                    ,
                  uniform Int  pixels=MAX_MOTION_BLUR_PIXEL_RANGE,
-                 uniform Bool depth=false                       ):COLOR
+                 uniform Bool depth=false                       ):TARGET
 {
    VecH4 blur=TexPoint(Img, inTex); // XY=Dir, Z=Max Dir length of all nearby pixels
 #if !SIGNED_VEL_RT
@@ -232,7 +232,7 @@ VecH4 DilateY_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
                  uniform Int  range                             ,
                  uniform Bool diagonal=false                    ,
                  uniform Int  pixels=MAX_MOTION_BLUR_PIXEL_RANGE,
-                 uniform Bool depth=false                       ):COLOR
+                 uniform Bool depth=false                       ):TARGET
 {
    VecH4 blur=TexPoint(Img, inTex); // XY=Dir, Z=Max Dir length of all nearby pixels
 #if !SIGNED_VEL_RT
@@ -286,7 +286,7 @@ VecH4 DilateY_PS(NOPERSP Vec2 inTex:TEXCOORD                    ,
 /******************************************************************************/
 VecH4 SetDirs_PS(NOPERSP Vec2 inTex:TEXCOORD, // goes simultaneously in both ways from starting point and notices how far it can go, travelled distance is put into texture
                  uniform Bool do_clamp      ,
-                 uniform Int  pixels=MAX_MOTION_BLUR_PIXEL_RANGE):COLOR
+                 uniform Int  pixels=MAX_MOTION_BLUR_PIXEL_RANGE):TARGET
 {
    // Input: ImgXY - pixel   velocity
    //        Img   - dilated velocity (main blur direction)
@@ -437,7 +437,7 @@ VecH4 SetDirs_PS(NOPERSP Vec2 inTex:TEXCOORD, // goes simultaneously in both way
 VecH4 Blur_PS(NOPERSP Vec2 inTex:TEXCOORD,
               NOPERSP PIXEL              ,
               uniform Bool dither        ,
-              uniform Bool do_clamp=false):COLOR // no need to do clamp because we've already done that in 'SetDirs'
+              uniform Bool do_clamp=false):TARGET // no need to do clamp because we've already done that in 'SetDirs'
 {
    // Input: Img  - color
    //        Img1 - 2 blur ranges (XY, ZW)

@@ -85,7 +85,7 @@ VS_PS FX_VS
 Vec4 Circle_PS
 (
    VS_PS I
-):COLOR
+):TARGET
 {
    Vec2 cos_sin; CosSin(cos_sin.x, cos_sin.y, XZAngle);
    Vec2 d=I.pos2D-XZPos; d=Rotate(d, cos_sin); d/=XZRange;
@@ -104,7 +104,7 @@ Vec4 Circle_PS
 Vec4 Square_PS
 (
    VS_PS I
-):COLOR
+):TARGET
 {
    Vec2 cos_sin; CosSin(cos_sin.x, cos_sin.y, XZAngle);
    Vec2 d=I.pos2D-XZPos; d=Rotate(d, cos_sin); d/=XZRange;
@@ -123,7 +123,7 @@ Vec4 Square_PS
 Vec4 Grid_PS
 (
    VS_PS_NOVTX I
-):COLOR
+):TARGET
 {
    Vec2 pos  =I.pos2D/XZRange;
    Vec2 xz   =Sat((Abs(Frac(pos)-0.5)-0.5)/XZSoft+1);

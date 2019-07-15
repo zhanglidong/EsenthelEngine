@@ -46,7 +46,7 @@ VecH4 PS
    VS_PS I,
 
    PARAMS
-):COLOR
+):TARGET
 {
    return Tex(Col, I.tex)*Color[0];
 }

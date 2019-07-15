@@ -31,7 +31,7 @@ VecH4 PS
    Vec2 inTex:TEXCOORD,
 
    PARAMS
-):COLOR
+):TARGET
 {
    if(alpha_test==1)clip(Tex(Col, inTex).a + MaterialAlpha()-1);else
    if(alpha_test==2)clip(Tex(Nrm, inTex).a + MaterialAlpha()-1); // #MaterialTextureChannelOrder

@@ -41,7 +41,7 @@ VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
                uniform Bool do_clamp      ,
                uniform Bool realistic     ,
                uniform Bool half_res      ,
-               uniform Bool gather        ):COLOR
+               uniform Bool gather        ):TARGET
 {
    VecH4 ret; // RGB=col, W=Blur
    Flt   depth;
@@ -129,7 +129,7 @@ inline Flt WeightSum(uniform Int range) {return range+1;} // Sum of all weights 
 
 #define SCALE 0.5 // at the end we need 0 .. 0.5 range, and since we start with 0..1 we need to scale by "0.5"
 VecH4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                  uniform Int  range         ):COLOR
+                  uniform Int  range         ):TARGET
 {  //  INPUT: Img: RGB         , Blur
    // OUTPUT:      RGB BlurredX, BlurSmooth
 
@@ -166,7 +166,7 @@ VecH4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
 #undef  SCALE
 #define SCALE 1.0 // at the end we need 0..1 range, and since we start with 0..1 we need to scale by "1"
 VecH4 DofBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                  uniform Int  range         ):COLOR
+                  uniform Int  range         ):TARGET
 {  //  INPUT: Img: RGB BlurredX , BlurSmooth
    // OUTPUT:      RGB BlurredXY, BlurSmooth
 
@@ -204,7 +204,7 @@ VecH4 DofBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
 VecH4 Dof_PS(NOPERSP Vec2 inTex:TEXCOORD,
              NOPERSP PIXEL              ,
              uniform Bool dither        ,
-             uniform Bool realistic     ):COLOR
+             uniform Bool realistic     ):TARGET
 {
    Flt z=TexDepthPoint(inTex),
        b=Blur(z, realistic);

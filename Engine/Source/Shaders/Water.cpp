@@ -230,7 +230,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                NOPERSP Vec2 inPosXY:TEXCOORD1,
                    out Flt  depth  :DEPTH    ,
                uniform Bool refract          ,
-               uniform Bool set_depth=false  ):COLOR
+               uniform Bool set_depth=false  ):TARGET
 {
    Flt  water_z    =TexPoint        (ImgXF, inTex).x,
         solid_z_raw=TexDepthRawPoint(       inTex);
@@ -343,7 +343,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 /******************************************************************************/
 VecH4 Under_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                NOPERSP Vec2 inPosXY:TEXCOORD1,
-               uniform Bool refract          ):COLOR
+               uniform Bool refract          ):TARGET
 {
    // underwater refraction
    if(refract)

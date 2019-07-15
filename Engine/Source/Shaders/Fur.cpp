@@ -130,7 +130,7 @@ VecH4 Soft_PS
    Half inLen :TEXCOORD2,
 
    SOFT_PARAMS
-):COLOR
+):TARGET
 {
    Half fur=Tex(FurCol, inTex*MaterialDetScale()).r;
 

@@ -10,7 +10,7 @@
 // HDR
 /******************************************************************************/
 Flt HdrDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
-             uniform Int  step          ):COLOR
+             uniform Int  step          ):TARGET
 {
    Vec2 tex_min=inTex-ImgSize.xy,
         tex_max=inTex+ImgSize.xy;
@@ -47,7 +47,7 @@ Flt HdrDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
    }
 }
 /******************************************************************************/
-Flt HdrUpdate_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR // here use full precision
+Flt HdrUpdate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // here use full precision
 {
    Flt lum=TexPoint(ImgXF, Vec2(0, 0)).x; // new luminance
 
@@ -64,12 +64,12 @@ Flt HdrUpdate_PS(NOPERSP Vec2 inTex:TEXCOORD):COLOR // here use full precision
    lum=HdrBrightness/Max(lum, (Flt)EPS_COL); // desired scale, (Flt) cast can be removed after CG compiler is removed
 
    lum=Mid(lum, HdrMaxDark, HdrMaxBright);
-   return Lerp(lum, TexPoint(ImgXF1, Vec2(0, 0)).x, (Flt)Step); // lerp new with old
+   return Lerp(lum, TexPoint(ImgXF1, Vec2(0, 0)).x, Step); // lerp new with old
 }
 /******************************************************************************/
 VecH4 Hdr_PS(NOPERSP Vec2 inTex:TEXCOORD,
              NOPERSP PIXEL              ,
-             uniform Bool dither        ):COLOR
+             uniform Bool dither        ):TARGET
 {
    VecH4 col=TexLod  (Img , inTex); // can't use 'TexPoint' because 'Img' can be supersampled
    Half  lum=TexPoint(ImgX, Vec2(0, 0)).x;

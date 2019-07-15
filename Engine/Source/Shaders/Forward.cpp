@@ -151,7 +151,7 @@ VecH4 PS
    IF_IS_FRONT
 
    PARAMS
-):COLOR
+):TARGET
 {
    Bool secondary=(light_point || light_linear || light_cone); // local lights are enabled only for secondary shader passes
 

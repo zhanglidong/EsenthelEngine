@@ -58,7 +58,7 @@ VecH4 PS
    VecH4 inColor:COLOR    ,
 
    PARAMS
-):COLOR
+):TARGET
 {
    VecH4 tex_nrm; // #MaterialTextureChannelOrder
 
