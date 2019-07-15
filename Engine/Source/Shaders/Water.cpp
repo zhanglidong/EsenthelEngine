@@ -254,11 +254,11 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          VecH4 lum=TexLod(Col , inTex); // water surface light
          VecH  nrm=GetNormal(inTex, false).xyz; // water surface normals
 
-         Matrix3 mtrx;
+         MatrixH3 mtrx;
          mtrx[0]=MatrixX(ViewMatrix[0]);
          mtrx[1]=MatrixZ(ViewMatrix[0]);
          mtrx[2]=MatrixY(ViewMatrix[0]);
-         nrm=mul(mtrx, nrm); // 'TransformTP' #ShaderHalf
+         nrm=TransformTP(nrm, mtrx);
          Vec2 refract=nrm.xy*Viewport.size;
 
          Flt dz   =solid_z-water_z;
@@ -314,11 +314,11 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                      lum=TexLod(Col , inTex); // water surface light
          VecH        nrm=GetNormal(inTex, false).xyz; // water surface normals
 
-         Matrix3 mtrx;
+         MatrixH3 mtrx;
          mtrx[0]=MatrixX(ViewMatrix[0]);
          mtrx[1]=MatrixZ(ViewMatrix[0]);
          mtrx[2]=MatrixY(ViewMatrix[0]);
-         nrm=mul(mtrx, nrm); // 'TransformTP' #ShaderHalf
+         nrm=TransformTP(nrm, mtrx);
          Vec2 refract=nrm.xy*Viewport.size;
 
          // col light

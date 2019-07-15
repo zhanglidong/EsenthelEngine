@@ -868,9 +868,11 @@ inline VecH Transform3(VecH v, Matrix  m) {return mul(v, (MatrixH3)m);} // trans
 #if 1 // faster 4.3 fps
 inline Vec  TransformTP(Vec  v, Matrix3  m) {return mul(m, v);} // transform 'v' vector by transposed 'm' orientation-scale matrix
 inline VecH TransformTP(VecH v, MatrixH3 m) {return mul(m, v);} // transform 'v' vector by transposed 'm' orientation-scale matrix
+inline Vec  TransformTP(Vec  v, MatrixH3 m) {return mul(m, v);} // transform 'v' vector by transposed 'm' orientation-scale matrix
 #else // slower 3.2 fps
 inline Vec  TransformTP(Vec  v, Matrix3  m) {return Vec(Dot(v, m[0]), Dot(v, m[1]), Dot(v, m[2]));} // transform 'v' vector by transposed 'm' orientation-scale matrix
 inline VecH TransformTP(VecH v, MatrixH3 m) {return Vec(Dot(v, m[0]), Dot(v, m[1]), Dot(v, m[2]));} // transform 'v' vector by transposed 'm' orientation-scale matrix
+inline Vec  TransformTP(Vec  v, MatrixH3 m) {return Vec(Dot(v, m[0]), Dot(v, m[1]), Dot(v, m[2]));} // transform 'v' vector by transposed 'm' orientation-scale matrix
 #endif
 
 inline Vec  TransformPos(Vec  pos) {return Transform (pos, ViewMatrix[0]);}

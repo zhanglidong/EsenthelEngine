@@ -37,14 +37,14 @@
 /******************************************************************************/
 struct VS_PS
 {
-   Vec2    tex     :TEXCOORD0;
-   Vec     pos     :TEXCOORD1;
-   Vec    _tpos    :TEXCOORD2;
-   Vec     vel     :TEXCOORD3;
-   Matrix3 mtrx    :TEXCOORD4; // !! may not be Normalized !! TODO: #ShaderHalf
-   Half    fade_out:TEXCOORD7;
-   VecH4   material:COLOR0   ;
-   VecH    col     :COLOR1   ;
+   Vec2     tex     :TEXCOORD0;
+   Vec      pos     :TEXCOORD1;
+   Vec     _tpos    :TEXCOORD2;
+   Vec      vel     :TEXCOORD3;
+   MatrixH3 mtrx    :TEXCOORD4; // !! may not be Normalized !!
+   Half     fade_out:TEXCOORD7;
+   VecH4    material:COLOR0   ;
+   VecH     col     :COLOR1   ;
 
    Vec tpos() {return Normalize(_tpos);}
 };
@@ -150,8 +150,9 @@ void VS
    }
 
    if(bump_mode>SBUMP_FLAT)O.mtrx[1]=vtx.bin(O.mtrx[2], O.mtrx[0], heightmap);
+
    if((bump_mode>=SBUMP_PARALLAX_MIN && bump_mode<=SBUMP_PARALLAX_MAX)
-   || (bump_mode==SBUMP_RELIEF       && !RELIEF_TAN_POS              ))O._tpos=mul(O.mtrx, -O.pos); // 'TransformTP' #ShaderHalf
+   || (bump_mode==SBUMP_RELIEF       && !RELIEF_TAN_POS              ))O._tpos=TransformTP(-O.pos, O.mtrx); // need high precision here, we can't Normalize because it's important to keep distances
 
    O_vtx=Project(O.pos); CLIP(O.pos);
 }
@@ -187,20 +188,20 @@ void PS
          {
             const Int steps=bump_mode-SBUMP_PARALLAX0;
 
-            Vec tpos=I.tpos();
+            VecH tpos=I.tpos();
          #if   PARALLAX_MODE==0 // too flat
-            Flt scale=MaterialBump()/steps;
+            Half scale=MaterialBump()/steps;
          #elif PARALLAX_MODE==1 // best results (not as flat, and not much aliasing)
-            Flt scale=MaterialBump()/(steps*Lerp(1, tpos.z, tpos.z)); // MaterialBump()/steps/Lerp(1, tpos.z, tpos.z);
+            Half scale=MaterialBump()/(steps*Lerp(1, tpos.z, tpos.z)); // MaterialBump()/steps/Lerp(1, tpos.z, tpos.z);
          #elif PARALLAX_MODE==2 // generates too steep walls (not good for parallax)
-            Flt scale=MaterialBump()/(steps*Lerp(1, tpos.z, Sat(tpos.z/0.5))); // MaterialBump()/steps/Lerp(1, tpos.z, tpos.z);
+            Half scale=MaterialBump()/(steps*Lerp(1, tpos.z, Sat(tpos.z/0.5))); // MaterialBump()/steps/Lerp(1, tpos.z, tpos.z);
          #elif PARALLAX_MODE==3 // introduces a bit too much aliasing/artifacts on surfaces perpendicular to view direction
-            Flt scale=MaterialBump()/steps*(2-tpos.z); // MaterialBump()/steps*Lerp(1, 1/tpos.z, tpos.z)
+            Half scale=MaterialBump()/steps*(2-tpos.z); // MaterialBump()/steps*Lerp(1, 1/tpos.z, tpos.z)
          #else // correct however introduces way too much aliasing/artifacts on surfaces perpendicular to view direction
-            Flt scale=MaterialBump()/steps/tpos.z;
+            Half scale=MaterialBump()/steps/tpos.z;
          #endif
-            tpos.xy*=scale;
-            UNROLL for(Int i=0; i<steps; i++)I.tex+=(Tex(Col, I.tex).w-0.5)*tpos.xy;
+            tpos.xy*=scale; VecH2 add=-0.5*tpos.xy;
+            UNROLL for(Int i=0; i<steps; i++)I.tex+=Tex(Col, I.tex).w*tpos.xy+add; // (tex-0.5)*tpos.xy = tex*tpos.xy + -0.5*tpos.xy
          }else
          if(bump_mode==SBUMP_RELIEF) // relief mapping
          {
@@ -213,11 +214,12 @@ void PS
             #else
                Flt TexWidth=DEFAULT_TEX_SIZE;
             #endif
+               // TODO: #ShaderHalf
                Flt lod=Max(0, GetLod(I.tex, TexWidth)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
              //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
 
             #if RELIEF_TAN_POS
-               Vec tpos=Normalize(mul(I.mtrx, -I.pos)); // 'TransformTP' #ShaderHalf
+               Vec tpos=Normalize(TransformTP(-I.pos, I.mtrx)); // need high precision here for 'mul'
             #else
                Vec tpos=I.tpos();
             #endif
@@ -242,7 +244,6 @@ void PS
 
                I.tex-=tpos.xy*0.5;
 
-               // TODO: #ShaderHalf
                Int  steps   =Mid(length, 0, RELIEF_STEPS_MAX);
                Flt  stp     =1.0/(steps+1),
                     ray     =1;
@@ -381,34 +382,34 @@ void PS
          {
             const Int steps=bump_mode-SBUMP_PARALLAX0;
 
-            Vec tpos=I.tpos();
+            VecH tpos=I.tpos();
          #if   PARALLAX_MODE==0 // too flat
-            Flt scale=1/steps;
+            Half scale=1/steps;
          #elif PARALLAX_MODE==1 // best results (not as flat, and not much aliasing)
-            Flt scale=1/(steps*Lerp(1, tpos.z, tpos.z)); // 1/steps/Lerp(1, tpos.z, tpos.z);
+            Half scale=1/(steps*Lerp(1, tpos.z, tpos.z)); // 1/steps/Lerp(1, tpos.z, tpos.z);
          #elif PARALLAX_MODE==2 // generates too steep walls (not good for parallax)
-            Flt scale=1/(steps*Lerp(1, tpos.z, Sat(tpos.z/0.5)));
+            Half scale=1/(steps*Lerp(1, tpos.z, Sat(tpos.z/0.5)));
          #elif PARALLAX_MODE==3 // introduces a bit too much aliasing/artifacts on surfaces perpendicular to view direction
-            Flt scale=1/steps*(2-tpos.z); // 1/steps*Lerp(1, 1/tpos.z, tpos.z)
+            Half scale=1/steps*(2-tpos.z); // 1/steps*Lerp(1, 1/tpos.z, tpos.z)
          #else // correct however introduces way too much aliasing/artifacts on surfaces perpendicular to view direction
-            Flt scale=1/steps/tpos.z;
+            Half scale=1/steps/tpos.z;
          #endif
             tpos.xy*=scale;
 
-            // (x-0.5)*bump_mul = x*bump_mul - 0.5*bump_mul
+            // h=(tex-0.5)*bump_mul = x*bump_mul - 0.5*bump_mul
             VecH4 bump_mul; bump_mul.x=MultiMaterial0Bump();
             VecH4 bump_add; bump_mul.y=MultiMaterial1Bump(); if(materials==2){bump_mul.xy  *=I.material.xy  ; bump_add.xy  =bump_mul.xy  *-0.5;}
             if(materials>=3)bump_mul.z=MultiMaterial2Bump(); if(materials==3){bump_mul.xyz *=I.material.xyz ; bump_add.xyz =bump_mul.xyz *-0.5;}
             if(materials>=4)bump_mul.w=MultiMaterial3Bump(); if(materials==4){bump_mul.xyzw*=I.material.xyzw; bump_add.xyzw=bump_mul.xyzw*-0.5;}
 
-            UNROLL for(Int i=0; i<steps; i++) // I.tex+=(Tex(Col, I.tex).w-0.5)*tpos.xy;
+            UNROLL for(Int i=0; i<steps; i++) // I.tex+=h*tpos.xy;
             {
                           Half h =Tex(Col , tex0).w*bump_mul.x+bump_add.x
                                  +Tex(Col1, tex1).w*bump_mul.y+bump_add.y;
                if(materials>=3)h+=Tex(Col2, tex2).w*bump_mul.z+bump_add.z;
                if(materials>=4)h+=Tex(Col3, tex3).w*bump_mul.w+bump_add.w;
 
-               Vec2 offset=h*tpos.xy;
+               Vec2 offset=h*tpos.xy; // keep as HP to avoid multiple conversions below
 
                                tex0+=offset;
                                tex1+=offset;
@@ -428,12 +429,12 @@ void PS
                if(materials>=4)bump_mul.w=MultiMaterial3Bump(); if(materials==4){bump_mul.xyzw*=I.material.xyzw; avg_bump=Sum(bump_mul.xyzw);}
 
                Flt TexWidth=DEFAULT_TEX_SIZE, // here we have 2..4 textures, so use a default value
+               // TODO: #ShaderHalf
                    lod=Max(0, GetLod(I.tex, TexWidth)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
              //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
 
-               // TODO: #ShaderHalf
             #if RELIEF_TAN_POS
-               Vec tpos=Normalize(mul(I.mtrx, -I.pos)); // 'TransformTP' #ShaderHalf
+               Vec tpos=Normalize(TransformTP(-I.pos, I.mtrx)); // need high precision here for 'mul'
             #else
                Vec tpos=I.tpos();
             #endif
