@@ -1318,13 +1318,13 @@ inline VecH4 GetNormalMS(VecI2 pixel, UInt sample, uniform Int quality)
 /******************************************************************************/
 // LOD INDEX
 /******************************************************************************/
-inline Half GetLod(Vec2 tex_coord, Flt tex_size)
+inline Flt GetLod(Vec2 tex_coord, Flt tex_size)
 {
    Vec2 tex=tex_coord*tex_size;
    return 0.5*log2(Max(Length2(ddx(tex)) , Length2(ddy(tex)))); // NVIDIA
  //return 0.5*log2(Max(Sqr    (ddx(tex)) + Sqr    (ddy(tex)))); // ATI
 }
-inline Half GetLod(Vec2 tex_coord, Vec2 tex_size)
+inline Flt GetLod(Vec2 tex_coord, Vec2 tex_size)
 {
    Vec2 tex=tex_coord*tex_size;
    return 0.5*log2(Max(Length2(ddx(tex)) , Length2(ddy(tex)))); // NVIDIA

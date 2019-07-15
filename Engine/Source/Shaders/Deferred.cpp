@@ -209,29 +209,30 @@ void PS
             BRANCH if(GetLod(I.tex, DEFAULT_TEX_SIZE)<=4)
          #endif
             {
+               Vec2 TexSize;
             #if MODEL>=SM_4
-               Flt TexWidth, TexHeight; Col.GetDimensions(TexWidth, TexHeight);
+               Col.GetDimensions(TexSize.x, TexSize.y);
+               Flt lod=Max(0, GetLod(I.tex, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
             #else
-               Flt TexWidth=DEFAULT_TEX_SIZE;
+               TexSize.x=DEFAULT_TEX_SIZE;
+               Flt lod=Max(0, GetLod(I.tex, TexSize.x)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
             #endif
-               // TODO: #ShaderHalf
-               Flt lod=Max(0, GetLod(I.tex, TexWidth)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
              //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
 
             #if RELIEF_TAN_POS
-               Vec tpos=Normalize(TransformTP(-I.pos, I.mtrx)); // need high precision here
+               VecH tpos=Normalize(TransformTP(-I.pos, I.mtrx)); // need high precision here for 'TransformTP'
             #else
-               Vec tpos=I.tpos();
+               VecH tpos=I.tpos();
             #endif
 
             #if   RELIEF_MODE==0
-               Flt scale=MaterialBump();
+               Half scale=MaterialBump();
             #elif RELIEF_MODE==1 // best
-               Flt scale=MaterialBump()/Lerp(1, tpos.z, Sat(tpos.z/RELIEF_Z_LIMIT));
+               Half scale=MaterialBump()/Lerp(1, tpos.z, Sat(tpos.z/RELIEF_Z_LIMIT));
             #elif RELIEF_MODE==2 // produces slight aliasing/artifacts on surfaces perpendicular to view direction
-               Flt scale=MaterialBump()/Max(tpos.z, RELIEF_Z_LIMIT);
+               Half scale=MaterialBump()/Max(tpos.z, RELIEF_Z_LIMIT);
             #else // correct however introduces way too much aliasing/artifacts on surfaces perpendicular to view direction
-               Flt scale=MaterialBump()/tpos.z;
+               Half scale=MaterialBump()/tpos.z;
             #endif
 
             #if RELIEF_DEC_NRM
@@ -239,19 +240,19 @@ void PS
             #endif
                tpos.xy*=-scale;
 
-               Flt length=Length(tpos.xy) * TexWidth / Pow(2, lod);
+               Flt length=Length(tpos.xy) * TexSize.x / Pow(2, lod); // how many pixels
                if(RELIEF_STEPS_MUL!=1)if(lod>0)length*=RELIEF_STEPS_MUL; // don't use this for first LOD
 
                I.tex-=tpos.xy*0.5;
 
                Int  steps   =Mid(length, 0, RELIEF_STEPS_MAX);
-               Flt  stp     =1.0/(steps+1),
+               Half stp     =1.0/(steps+1),
                     ray     =1;
-               Vec2 tex_step=tpos.xy*stp;
+               Vec2 tex_step=tpos.xy*stp; // keep as HP to avoid conversions several times in the loop below
 
             #if 1 // linear + interval search (faster)
                // linear search
-               Flt height_next, height_prev=0.5; // use 0.5 as approximate average value, we could do "TexLodI(Col, I.tex, lod).w", however in tests that wasn't needed but only reduced performance
+               Half height_next, height_prev=0.5; // use 0.5 as approximate average value, we could do "TexLodI(Col, I.tex, lod).w", however in tests that wasn't needed but only reduced performance
                LOOP for(Int i=0; ; i++)
                {
                   ray  -=stp;
@@ -264,18 +265,19 @@ void PS
                // interval search
                if(1)
                {
-                  Flt ray_prev=ray+stp;
+                  Half ray_prev=ray+stp;
                   // prev pos: I.tex-tex_step, height_prev-ray_prev
                   // next pos: I.tex         , height_next-ray
-                  Flt hn=height_next-ray, hp=height_prev-ray_prev,
-                      frac=Sat(hn/(hn-hp));
+                  Half hn=height_next-ray,
+                       hp=height_prev-ray_prev,
+                       frac=Sat(hn/(hn-hp));
                   I.tex-=tex_step*frac;
 
                   BRANCH if(lod<=0) // extra step (needed only for closeup)
                   {
-                     Flt ray_cur=ray+stp*frac,
-                         height_cur=TexLodI(Col, I.tex, lod).w;
-                     if( height_cur>=ray_cur) // if still below, then have to go back more, lerp between this position and prev pos
+                     Half ray_cur=ray+stp*frac,
+                          height_cur=TexLodI(Col, I.tex, lod).w;
+                     if(  height_cur>=ray_cur) // if still below, then have to go back more, lerp between this position and prev pos
                      {
                         // prev pos: I.tex-tex_step (BUT I.tex before adjustment), height_prev-ray_prev
                         // next pos: I.tex                                       , height_cur -ray_cur
@@ -303,12 +305,12 @@ void PS
 
                // binary search
                {
-                  Flt ray_prev=ray+stp,
-                      l=0, r=1, m=0.5;
+                  Half ray_prev=ray+stp,
+                       l=0, r=1, m=0.5;
                   UNROLL for(Int i=0; i<RELIEF_STEPS_BINARY; i++)
                   {
-                     Flt height=TexLodI(Col, I.tex-tex_step*m, lod).w;
-                     if( height>Lerp(ray, ray_prev, m))l=m;else r=m;
+                     Half height=TexLodI(Col, I.tex-tex_step*m, lod).w;
+                     if(  height>Lerp(ray, ray_prev, m))l=m;else r=m;
                      m=Avg(l, r);
                   }
                   I.tex-=tex_step*m;
@@ -428,25 +430,24 @@ void PS
                if(materials>=3)bump_mul.z=MultiMaterial2Bump(); if(materials==3){bump_mul.xyz *=I.material.xyz ; avg_bump=Sum(bump_mul.xyz );}
                if(materials>=4)bump_mul.w=MultiMaterial3Bump(); if(materials==4){bump_mul.xyzw*=I.material.xyzw; avg_bump=Sum(bump_mul.xyzw);}
 
-               Flt TexWidth=DEFAULT_TEX_SIZE, // here we have 2..4 textures, so use a default value
-               // TODO: #ShaderHalf
-                   lod=Max(0, GetLod(I.tex, TexWidth)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
+               Flt TexSize=DEFAULT_TEX_SIZE, // here we have 2..4 textures, so use a default value
+                   lod=Max(0, GetLod(I.tex, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
              //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
 
             #if RELIEF_TAN_POS
-               Vec tpos=Normalize(TransformTP(-I.pos, I.mtrx)); // need high precision here
+               VecH tpos=Normalize(TransformTP(-I.pos, I.mtrx)); // need high precision here for 'TransformTP'
             #else
-               Vec tpos=I.tpos();
+               VecH tpos=I.tpos();
             #endif
 
             #if   RELIEF_MODE==0
-               Flt scale=avg_bump;
+               Half scale=avg_bump;
             #elif RELIEF_MODE==1 // best
-               Flt scale=avg_bump/Lerp(1, tpos.z, Sat(tpos.z/RELIEF_Z_LIMIT));
+               Half scale=avg_bump/Lerp(1, tpos.z, Sat(tpos.z/RELIEF_Z_LIMIT));
             #elif RELIEF_MODE==2 // produces slight aliasing/artifacts on surfaces perpendicular to view direction
-               Flt scale=avg_bump/Max(tpos.z, RELIEF_Z_LIMIT);
+               Half scale=avg_bump/Max(tpos.z, RELIEF_Z_LIMIT);
             #else // correct however introduces way too much aliasing/artifacts on surfaces perpendicular to view direction
-               Flt scale=avg_bump/tpos.z;
+               Half scale=avg_bump/tpos.z;
             #endif
 
             #if RELIEF_DEC_NRM
@@ -454,24 +455,24 @@ void PS
             #endif
                tpos.xy*=-scale;
 
-               Flt length=Length(tpos.xy) * TexWidth / Pow(2, lod);
+               Flt length=Length(tpos.xy) * TexSize / Pow(2, lod); // how many pixels
                if(RELIEF_STEPS_MUL!=1)if(lod>0)length*=RELIEF_STEPS_MUL; // don't use this for first LOD
 
              //I.tex-=tpos.xy*0.5;
-               Vec2 offset=tpos.xy*0.5;
+               Vec2 offset=tpos.xy*0.5; // keep as HP to avoid multiple conversions below
                                tex0-=offset;
                                tex1-=offset;
                if(materials>=3)tex2-=offset;
                if(materials>=4)tex3-=offset;
 
                Int  steps   =Mid(length, 0, RELIEF_STEPS_MAX);
-               Flt  stp     =1.0/(steps+1),
+               Half stp     =1.0/(steps+1),
                     ray     =1;
-               Vec2 tex_step=tpos.xy*stp;
+               Vec2 tex_step=tpos.xy*stp; // keep as HP to avoid conversions several times in the loop below
 
             #if 1 // linear + interval search (faster)
                // linear search
-               Flt height_next, height_prev=0.5; // use 0.5 as approximate average value, we could do "TexLodI(Col, I.tex, lod).w", however in tests that wasn't needed but only reduced performance
+               Half height_next, height_prev=0.5; // use 0.5 as approximate average value, we could do "TexLodI(Col, I.tex, lod).w", however in tests that wasn't needed but only reduced performance
                LOOP for(Int i=0; ; i++)
                {
                   ray-=stp;
@@ -495,11 +496,11 @@ void PS
                // interval search
                if(1)
                {
-                  Flt ray_prev=ray+stp;
+                  Half ray_prev=ray+stp;
                   // prev pos: I.tex-tex_step, height_prev-ray_prev
                   // next pos: I.tex         , height_next-ray
-                  Flt hn=height_next-ray, hp=height_prev-ray_prev,
-                      frac=Sat(hn/(hn-hp));
+                  Half hn=height_next-ray, hp=height_prev-ray_prev,
+                       frac=Sat(hn/(hn-hp));
 
                 //I.tex-=tex_step*frac;
                   offset=tex_step*frac;
@@ -510,7 +511,7 @@ void PS
 
                   BRANCH if(lod<=0) // extra step (needed only for closeup)
                   {
-                     Flt ray_cur=ray+stp*frac,
+                     Half ray_cur=ray+stp*frac,
                        //height_cur=TexLodI(Col, I.tex, lod).w;
                                      height_cur =TexLodI(Col , tex0, lod).w*I.material.x
                                                 +TexLodI(Col1, tex1, lod).w*I.material.y;
@@ -553,8 +554,8 @@ void PS
 
                // binary search
                {
-                  Flt ray_prev=ray+stp,
-                      l=0, r=1, m=0.5;
+                  Half ray_prev=ray+stp,
+                       l=0, r=1, m=0.5;
                   UNROLL for(Int i=0; i<RELIEF_STEPS_BINARY; i++)
                   {
                      Half height=TexLodI(Col, I.tex-tex_step*m, lod).w;
