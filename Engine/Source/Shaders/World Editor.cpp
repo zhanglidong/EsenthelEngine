@@ -180,10 +180,10 @@ TECHNIQUE(Green   , Color_VS(    ), Color_PS(Vec(0, 1, 0), false));
 TECHNIQUE(Yellow  , Color_VS(    ), Color_PS(Vec(1, 1, 0), false));
 TECHNIQUE(Red     , Color_VS(    ), Color_PS(Vec(1, 0, 0), false));
 
-TECHNIQUE            (Circle <bool ForceHP=true;>, FX_VS(), Circle_PS());
-TECHNIQUE            (Square <bool ForceHP=true;>, FX_VS(), Square_PS());
-TECHNIQUE            (Grid   <bool ForceHP=true;>, FX_VS(),   Grid_PS());
-TECHNIQUE_TESSELATION(CircleT                    , FX_VS(), Circle_PS(), HS(), DS());
-TECHNIQUE_TESSELATION(SquareT                    , FX_VS(), Square_PS(), HS(), DS());
-TECHNIQUE_TESSELATION(GridT                      , FX_VS(),   Grid_PS(), HS(), DS());
+TECHNIQUE            (Circle , FX_VS(), Circle_PS());
+TECHNIQUE            (Square , FX_VS(), Square_PS());
+TECHNIQUE            (Grid   , FX_VS(),   Grid_PS());
+TECHNIQUE_TESSELATION(CircleT, FX_VS(), Circle_PS(), HS(), DS());
+TECHNIQUE_TESSELATION(SquareT, FX_VS(), Square_PS(), HS(), DS());
+TECHNIQUE_TESSELATION(GridT  , FX_VS(),   Grid_PS(), HS(), DS());
 /******************************************************************************/
