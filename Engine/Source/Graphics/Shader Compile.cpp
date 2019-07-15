@@ -276,7 +276,7 @@ static Bool ShaderCompile11(C Str &src, C Str &dest, C MemPtr<ShaderMacro> &macr
 
    ID3DBlob *buffer=null, *error=null;
    Mems<D3D_SHADER_MACRO> d3d_macros; d3d_macros.setNum(macros.elms()+1); FREPA(macros){D3D_SHADER_MACRO &m=d3d_macros[i]; m.Name=macros[i].name; m.Definition=macros[i].definition;} Zero(d3d_macros.last());
-   D3DCompile(data.data(), data.elms(), null, d3d_macros.data(), &Include11(src), null, "fx_5_0", FLAGS_DX11, 0, &buffer, &error); Error(error, messages);
+   D3DCompile(data.data(), data.elms(), (Str8)src, d3d_macros.data(), &Include11(src), null, "fx_5_0", FLAGS_DX11, 0, &buffer, &error); Error(error, messages);
 
    ID3DX11Effect *effect=null;
    if(buffer)
