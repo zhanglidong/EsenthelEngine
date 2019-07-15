@@ -1374,11 +1374,11 @@ TECHNIQUE(Ripple, Draw2DTex_VS(), Ripple_PS());
 /******************************************************************************/
 struct TitlesClass
 {
-   Flt stp,
-       center,
-       range,
-       smooth,
-       swirl;
+   Flt stp;
+   Flt center;
+   Flt range;
+   Flt smooth;
+   Flt swirl;
 };
 
 BUFFER(Titles)
