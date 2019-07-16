@@ -236,7 +236,8 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
         solid_z_raw=TexDepthRawPoint(       inTex);
    Half alpha=0;
 
-   if(set_depth)depth=water_z;
+ //if(set_depth) FIXME make this optional depending on macro
+      depth=water_z;
 
    if(refract)
    {
