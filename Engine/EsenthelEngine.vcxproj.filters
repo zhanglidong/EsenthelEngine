@@ -1958,9 +1958,6 @@
     <ClCompile Include="Android\jni\Platforms.cpp">
       <Filter>Source\Platforms\Android\Packed</Filter>
     </ClCompile>
-    <ClCompile Include="Android\jni\Shaders.cpp">
-      <Filter>Source\Platforms\Android\Packed</Filter>
-    </ClCompile>
     <ClCompile Include="Android\jni\Sound.cpp">
       <Filter>Source\Platforms\Android\Packed</Filter>
     </ClCompile>
