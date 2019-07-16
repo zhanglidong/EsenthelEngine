@@ -1,5 +1,121 @@
 /******************************************************************************/
 #include "stdafx.h"
+
+#if DX11 && 0
+#include "../../../ThirdPartyLibs/begin.h"
+#include <vector>
+#include <string>
+#include "C:\Users\esent\Desktop\dxc-artifacts\include\dxc\dxcapi.h"
+#include "C:\Users\esent\Desktop\dxc-artifacts\include\dxc\Support\microcom.h"
+#include "../../../ThirdPartyLibs/end.h"
+
+HRESULT CreateLibrary(IDxcLibrary **pLibrary) {
+  return DxcCreateInstance(CLSID_DxcLibrary, __uuidof(IDxcLibrary),
+                           (void **)pLibrary);
+}
+
+HRESULT CreateCompiler(IDxcCompiler **ppCompiler) {
+  return DxcCreateInstance(CLSID_DxcCompiler, __uuidof(IDxcCompiler),
+                           (void **)ppCompiler);
+}
+
+HRESULT CreateContainerReflection(IDxcContainerReflection **ppReflection) {
+  return DxcCreateInstance(CLSID_DxcContainerReflection,
+                           __uuidof(IDxcContainerReflection),
+                           (void **)ppReflection);
+}
+
+Bool CompileFromBlob(IDxcBlob *pSource, LPCWSTR pSourceName,
+                        const D3D_SHADER_MACRO *pDefines, IDxcIncludeHandler *pInclude,
+                        LPCSTR pEntrypoint, LPCSTR pTarget, UINT Flags1,
+                        UINT Flags2, ID3DBlob **ppCode,
+                        ID3DBlob **ppErrorMsgs) {
+  // Upconvert legacy targets
+  char Target[7] = "?s_6_0";
+  Target[6] = 0;
+  if (pTarget[3] < '6') {
+    Target[0] = pTarget[0];
+    pTarget = Target;
+  }
+
+    Str pEntrypointW(pEntrypoint);
+    Str pTargetProfileW(pTarget);
+    std::vector<std::wstring> defineValues;
+    std::vector<DxcDefine> defines;
+    if (pDefines) {
+      CONST D3D_SHADER_MACRO *pCursor = pDefines;
+
+      // Convert to UTF-16.
+      while (pCursor->Name) {
+        defineValues.push_back(std::wstring(Str(pCursor->Name)));
+        if (pCursor->Definition)
+          defineValues.push_back(std::wstring(Str(pCursor->Definition)));
+        else
+          defineValues.push_back(std::wstring());
+        ++pCursor;
+      }
+
+      // Build up array.
+      pCursor = pDefines;
+      size_t i = 0;
+      while (pCursor->Name) {
+        defines.push_back(
+            DxcDefine{defineValues[i++].c_str(), defineValues[i++].c_str()});
+        ++pCursor;
+      }
+    }
+
+    std::vector<LPCWSTR> arguments;
+    // /Gec, /Ges Not implemented:
+    //if(Flags1 & D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY) arguments.push_back(L"/Gec");
+    //if(Flags1 & D3DCOMPILE_ENABLE_STRICTNESS) arguments.push_back(L"/Ges");
+    if(Flags1 & D3DCOMPILE_IEEE_STRICTNESS) arguments.push_back(L"/Gis");
+    if(Flags1 & D3DCOMPILE_OPTIMIZATION_LEVEL2)
+    {
+      switch(Flags1 & D3DCOMPILE_OPTIMIZATION_LEVEL2)
+      {
+      case D3DCOMPILE_OPTIMIZATION_LEVEL0: arguments.push_back(L"/O0"); break;
+      case D3DCOMPILE_OPTIMIZATION_LEVEL2: arguments.push_back(L"/O2"); break;
+      case D3DCOMPILE_OPTIMIZATION_LEVEL3: arguments.push_back(L"/O3"); break;
+      }
+    }
+    // Currently, /Od turns off too many optimization passes, causing incorrect DXIL to be generated.
+    // Re-enable once /Od is implemented properly:
+    //if(Flags1 & D3DCOMPILE_SKIP_OPTIMIZATION) arguments.push_back(L"/Od");
+    if(Flags1 & D3DCOMPILE_DEBUG) arguments.push_back(L"/Zi");
+    if(Flags1 & D3DCOMPILE_PACK_MATRIX_ROW_MAJOR) arguments.push_back(L"/Zpr");
+    if(Flags1 & D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR) arguments.push_back(L"/Zpc");
+    if(Flags1 & D3DCOMPILE_AVOID_FLOW_CONTROL) arguments.push_back(L"/Gfa");
+    if(Flags1 & D3DCOMPILE_PREFER_FLOW_CONTROL) arguments.push_back(L"/Gfp");
+    // We don't implement this:
+    //if(Flags1 & D3DCOMPILE_PARTIAL_PRECISION) arguments.push_back(L"/Gpp");
+    if(Flags1 & D3DCOMPILE_RESOURCES_MAY_ALIAS) arguments.push_back(L"/res_may_alias");
+    arguments.push_back(L"-HV");
+    arguments.push_back(L"2016");
+
+  IDxcCompiler *compiler=null;
+    CreateCompiler(&compiler);
+    Bool ok=false;
+    if(compiler)
+    {
+      IDxcOperationResult *operationResult=null;
+      compiler->Compile(pSource, pSourceName, pEntrypointW, pTargetProfileW,
+                             arguments.data(), (UINT)arguments.size(),
+                             defines.data(), (UINT)defines.size(), pInclude,
+                             &operationResult);
+
+       if(operationResult)
+       {
+         if(ppErrorMsgs)operationResult->GetErrorBuffer((IDxcBlobEncoding **)ppErrorMsgs);
+         HRESULT hr; if(OK(operationResult->GetStatus(&hr)))if(OK(hr))ok=OK(operationResult->GetResult((IDxcBlob**)ppCode));
+         operationResult->Release();
+      }
+      compiler->Release();
+   }
+   return ok;
+}
+#endif
+
 #include "../Shaders/!Header CPU.h"
 /******************************************************************************
 
@@ -127,6 +243,39 @@ struct Include11 : ID3DInclude
       Set(root.path, GetPath(src));
    }
 };
+/*struct Include11Ex : IDxcIncludeHandler
+{
+   virtual HRESULT STDMETHODCALLTYPE LoadSource(_In_ LPCWSTR pFilename, _COM_Outptr_result_maybenull_ IDxcBlob **ppIncludeSource)override
+   {
+      if(ppIncludeSource)
+      {
+         FileText f; if(f.read(pFilename))
+         {
+            Str data; if(f.getAll(data).ok())
+            {
+               IDxcLibrary *lib=null; CreateLibrary(&lib); if(lib)
+               {
+                  const UINT32 CP_UTF16 = 1200;
+                  IDxcBlobEncoding *blob=null;
+                  lib->CreateBlobWithEncodingOnHeapCopy(data(), data.length()*SIZE(Char), CP_UTF16, &blob);
+                  lib->Release();
+                 *ppIncludeSource=blob;
+                  return S_OK;
+               }
+            }
+         }
+      }
+     *ppIncludeSource=null;
+      return E_FAIL;
+   }
+
+   Include11Ex(C Str &src) {m_dwRef++;}
+
+   DXC_MICROCOM_ADDREF_RELEASE_IMPL(m_dwRef);
+private:
+   DXC_MICROCOM_REF_FIELD(m_dwRef);
+   HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject) {return DoBasicQueryInterface<::IDxcIncludeHandler>(this, riid, ppvObject);}
+};*/
 #endif
 /******************************************************************************/
 // ERRORS
@@ -269,6 +418,32 @@ static Int Compare(C ShaderGL &a, C Str8     &b) {return CompareCS(a.name, b    
 static Bool ShaderCompile11(C Str &src, C Str &dest, C MemPtr<ShaderMacro> &macros, Str *messages)
 {
 #if DX11
+   /*{
+      if(messages)messages->clear();
+
+      FileText f; if(!f.read(src)){if(messages)messages->line()+="Failed to open file."; return false;}
+      Str data; if(!f.getAll(data).ok()){if(messages)messages->line()+="Failed to read from file."; return false;} f.del(); // release the file handle after reading
+
+      IDxcBlobEncoding *input=null;
+      ID3DBlob *buffer=null, *error=null;
+      IDxcLibrary *lib=null; CreateLibrary(&lib); if(lib)
+      {
+         const UINT32 CP_UTF16 = 1200;
+         lib->CreateBlobWithEncodingFromPinned(data(), data.length()*SIZE(Char), CP_UTF16, &input);
+         lib->Release();
+      }
+      Mems<D3D_SHADER_MACRO> d3d_macros; d3d_macros.setNum(macros.elms()+1); FREPA(macros){D3D_SHADER_MACRO &m=d3d_macros[i]; m.Name=macros[i].name; m.Definition=macros[i].definition;} Zero(d3d_macros.last());
+      int r=CompileFromBlob(input, src, d3d_macros.data(), &Include11Ex(src), "Test_PS", "ps_5_0", FLAGS_DX11, 0, &buffer, &error); Error(error, messages);
+      if(buffer)
+      {
+       //ID3DX11Effect *effect=null; D3DX11CreateEffectFromMemory(buffer->GetBufferPointer(), buffer->GetBufferSize(), 0, D3D, &effect);
+         ID3D11PixelShader *ps=null; D3D->CreatePixelShader(buffer->GetBufferPointer(), buffer->GetBufferSize(), null, &ps); // this is ok?
+         int z=0;
+      }
+      int z=0;
+      ClipSet(*messages);
+      Exit();
+   }*/
    if(messages)messages->clear();
 
    File f; if(!f.readTry(src)){if(messages)messages->line()+="Failed to open file."; return false;}

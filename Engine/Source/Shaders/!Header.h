@@ -89,31 +89,7 @@
 #define Matrix   float4x3
 #define Matrix4  float4x4
 
-#if MODEL==SM_GL || 1
-   #define Half     half
-   #define VecH2    half2
-   #define VecH     half3
-   #define VecH4    half4
-   #define MatrixH3 half3x3
-   #define MatrixH  half4x3
-   #define MatrixH4 half4x4
-#elif 1
-   #define Half     min16float
-   #define VecH2    min16float2
-   #define VecH     min16float3
-   #define VecH4    min16float4
-   #define MatrixH3 min16float3x3
-   #define MatrixH  min16float4x3
-   #define MatrixH4 min16float4x4
-#else
-   #define Half     float
-   #define VecH2    float2
-   #define VecH     float3
-   #define VecH4    float4
-   #define MatrixH3 float3x3
-   #define MatrixH  float4x3
-   #define MatrixH4 float4x4
-#endif
+#include "!Set LP.h"
 
 #if DX11
    #define ImageF      Texture2D  <Flt  >
@@ -141,7 +117,7 @@
 // MODEL DEPENDENT FUNCTIONALITY
 /******************************************************************************/
 #if MODEL==SM_GL
-   #define PIXEL                     Vec4 pixel:WPOS                        // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (D.resW, D.resH)
+   #define PIXEL                     Vec4 pixel:WPOS                        // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
    #define IF_IS_FRONT               Bool front:VFACE,                      // face front side
    #define IF_IS_CLIP            out Flt O_clip:BCOL1,                      // clip plane distance, this will generate "gl_BackSecondaryColor" which is later replaced with "gl_ClipDistance[0]"
    #define CLIP(pos)             O_clip=Dot(Vec4((pos).xyz, 1), ClipPlane)  // perform user plane clipping
@@ -155,7 +131,7 @@
    #define TARGET2               COLOR2
    #define TARGET3               COLOR3
 #elif MODEL==SM_4
-   #define PIXEL                     Vec4 pixel :SV_Position                // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (D.resW, D.resH)
+   #define PIXEL                     Vec4 pixel :SV_Position                // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
    #define IF_IS_FRONT               Bool front :SV_IsFrontFace ,           // face front side
    #define IF_IS_CLIP            out Flt  O_clip:SV_ClipDistance,           // clip plane distance
    #define CLIP(pos)             O_clip=Dot(Vec4((pos).xyz, 1), ClipPlane)  // perform user plane clipping
@@ -293,6 +269,8 @@
 /******************************************************************************/
 // CONSTANTS
 /******************************************************************************/
+#include "!Set HP.h"
+
 struct ViewportClass
 {
    Flt  from, range;
@@ -469,6 +447,10 @@ BUFFER_I(Mesh, SBI_MESH)
    VecH4 Highlight; // this can be modified by engine's 'SetHighlight' function
    VecH  ObjAngVel; // object angular velocity, pre-multiplied by 'D.motionScale', TODO: in the future merge this with 'ObjVel' as half3x2/half2x3 (also for GLSL and adjust everything related to 'ObjVel' in shaders and on CPU side, #VelAngVel)
 BUFFER_END
+
+BUFFER(Behind)
+   Half BehindBias; // this can be modified by engine's 'SetBehindBias' function
+BUFFER_END
 /******************************************************************************/
 // MATERIALS
 /******************************************************************************/
@@ -498,6 +480,8 @@ BUFFER_I(Material, SBI_MATERIAL)
    MaterialClass Material;
 BUFFER_END
 
+#include "!Set LP.h"
+
 inline VecH4 MaterialColor   () {return Material._color;}
 inline VecH  MaterialColor3  () {return Material._color.rgb;}
 inline Half  MaterialAlpha   () {return Material._color.a;}
@@ -511,6 +495,7 @@ inline Flt   MaterialDetScale() {return Material._texscale_detscale_detpower_ref
 inline Half  MaterialDetPower() {return Material._texscale_detscale_detpower_reflect.z;}
 inline Half  MaterialReflect () {return Material._texscale_detscale_detpower_reflect.w;}
 /******************************************************************************/
+#include "!Set HP.h"
 struct MultiMaterialClass // this is used when a MeshPart has multiple materials
 {
 #if 0 // methods produce compile errors in this case, instead of them use "MultiMaterial*()" global functions listed below
@@ -533,6 +518,7 @@ struct MultiMaterialClass // this is used when a MeshPart has multiple materials
    Vec4  _texscale_detscale_detmul_detadd;
    VecH  _bump_macro_reflect;
 };
+#include "!Set LP.h"
 
 BUFFER(MultiMaterial0) MultiMaterialClass MultiMaterial0; BUFFER_END
 BUFFER(MultiMaterial1) MultiMaterialClass MultiMaterial1; BUFFER_END
@@ -586,10 +572,6 @@ inline Half  MultiMaterial3DetAdd   () {return MultiMaterial3._texscale_detscale
 inline Half  MultiMaterial3Bump     () {return MultiMaterial3._bump_macro_reflect.x;}
 inline Half  MultiMaterial3Macro    () {return MultiMaterial3._bump_macro_reflect.y;}
 inline Half  MultiMaterial3Reflect  () {return MultiMaterial3._bump_macro_reflect.z;}
-/******************************************************************************/
-BUFFER(Behind)
-   Half BehindBias; // this can be modified by engine's 'SetBehindBias' function
-BUFFER_END
 /******************************************************************************/
 // IMAGES
 /******************************************************************************/
@@ -1526,6 +1508,7 @@ inline Half MultiMaterialWeight(Half weight, Half alpha) // 'weight'=weight of t
 /******************************************************************************/
 // LIGHTS
 /******************************************************************************/
+#include "!Set HP.h"
 struct LIGHT_DIR
 {
    VecH  dir;
@@ -1558,6 +1541,7 @@ struct LIGHT_CONE
    VecH4    color; // a=spec
    MatrixH3 mtrx;
 };
+#include "!Set LP.h"
 
 BUFFER(LightDir   ) LIGHT_DIR    Light_dir   ; BUFFER_END
 BUFFER(LightPoint ) LIGHT_POINT  Light_point ; BUFFER_END
@@ -1582,6 +1566,7 @@ inline Half LightSpecular(VecH nrm, Half specular, VecH light_dir, VecH eye_dir,
 /******************************************************************************/
 // SHADOWS
 /******************************************************************************/
+#include "!Set HP.h"
 BUFFER(Shadow)
    Flt     ShdRange      ,
            ShdStep[6]    ;
@@ -1591,6 +1576,7 @@ BUFFER(Shadow)
    Matrix  ShdMatrix     ;
    Matrix4 ShdMatrix4[6] ;
 BUFFER_END
+#include "!Set LP.h"
 
 ImageShadow ShdMap;
 ImageH      ShdMap1;
