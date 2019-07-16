@@ -1404,9 +1404,7 @@ Bool RendererClass::waterPostLight()
       if(  depth_test=src->multiSample()) // multi-sampled textures can't be sampled smoothly as there will be artifacts, so resolve them, also in this case we render back to '_col' (which is not set to a new RT because we have a copy of it in 'src') but only to pixels with depth FUNC_LESS, this solves the problem of AA with water
       {  // convert to 1 sample
          ImageRTPtr temp(ImageRTDesc(src->w(), src->h(), GetImageRTType(src->type())));
-      #if DX11
          src->copyMs(*temp, false, false, D.viewRect()); Swap(src, temp);
-      #endif
          D.depthLock (true); // we need depth testing
          D.depthWrite(false); // disable depth writing because we can't read and write to same DS
          D.depthFunc (FUNC_LESS); // process only pixels that are closer (which means water on top of existing solid)
@@ -1577,12 +1575,6 @@ void RendererClass::palette(Int index)
 
       D.stencil(STENCIL_NONE); // disable any stencil that might have been enabled
 
-   #if !DX11
-      if(intensity->multiSample()) // we need to resolve the multi-sampled surface first
-      {
-         ImageRTPtr src=intensity; intensity.get(ImageRTDesc(src->w(), src->h(), IMAGERT_RGBA)); src->copyHw(*intensity, false, D.viewRect()); // here Alpha is used for 4th palette channel
-      }
-   #endif
       set(_col, null, true);
       D .alpha(ALPHA_BLEND_DEC);
       Sh.Img[1]->set(palette());
@@ -1648,12 +1640,6 @@ void RendererClass::applyOutline()
       D.depthWrite(true);
 
       resolveMultiSample(); // don't do 'downSample' here because 'edgeSoften' will be called later and it requires to operate on full-sampled data
-   #if !DX11
-      if(_outline_rt->multiSample()) // we need to resolve the multi-sampled surface first
-      {
-         ImageRTPtr src=_outline_rt; _outline_rt.get(ImageRTDesc(src->w(), src->h(), IMAGERT_OUTLINE)); src->copyHw(*_outline_rt, false, D.viewRect()); // here Alpha is used for outline opacity
-      }
-   #endif
       ImageRT *ds=_ds_1s; // we've resolved multi-sample so have to use 1-sample
 
       if(!Sh.Outline)
@@ -1713,11 +1699,7 @@ void RendererClass::resolveMultiSample() // !! assumes that 'finalizeGlow' was c
    if(_col->multiSample())
    {
       ImageRTPtr src=_col; _col.get(ImageRTDesc(_col->w(), _col->h(), GetImageRTType(_has_glow, D.litColRTPrecision())));
-   #if DX11
       src->copyMs(*_col, false, true, D.viewRect());
-   #else
-      src->copyHw(*_col, false, D.viewRect());
-   #endif
    }
 }
 void RendererClass::downSample() // !! assumes that 'finalizeGlow' was called !!
@@ -1899,15 +1881,11 @@ void RendererClass::postProcess()
    {
       if(_col!=_final)
       {
-      #if DX11
          if(_col->multiSample())
          {
             if(_col->size()==_final->size()){_col->copyMs(*_final, false, true, D.viewRect()); _col=_final;}else resolveMultiSample(); // if the size is the same then we can resolve directly into the '_final', otherwise resolve first to temp RT and copy will be done below
          }
          if(_col!=_final) // if after resolve this is still not equal, then
-      #elif GL // in GL we can't read from '_main'
-         if(_col==&_main || _col->multiSample())_col->copyHw(*_final, false, D.viewRect());else
-      #endif
          {
             D.alpha(ALPHA_NONE);
             set(_final, null, true);
@@ -1934,7 +1912,7 @@ void RendererClass::postProcess()
             }
             if(!shader)
             {
-               if(dither && (_col->size()!=_final->size() || _col->highPrecision()))shader=Sh.Dither;  // allow dithering only if we're resizing (because that generates high precision too) or if the source has high precision
+               if(dither && (_col->highPrecision() || _col->size()!=_final->size()))shader=Sh.Dither;  // allow dithering only if the source has high precision, or if we're resizing (because that generates high precision too)
                else                                               {Sh.Step->set(1); shader=Sh.DrawA ;} // use 'DrawA' to set Alpha Channel
             }
             shader->draw(_col); alpha_set=true;

@@ -767,7 +767,7 @@ void WaterShader::load()
          }
       }
       REPD(r, 2)
-      REPD(d, DX11 ? 2 : 1)Apply[r][d]=shader->get(S8+"Apply"+(r?'R':'\0')+(d?'D':'\0'));
+      REPD(d, 2)Apply[r][d]=shader->get(S8+"Apply"+(r?'R':'\0')+(d?'D':'\0'));
 
       REPD(r, 2)Under[r]=shader->get(S8+"Under"+(r?'R':'\0'));
    }

@@ -2569,7 +2569,6 @@ UInt Image::typeMemUsage()C {return ImageSize(hwW(), hwH(), hwD(),   type(), mod
 /******************************************************************************/
 // HARDWARE
 /******************************************************************************/
-#if DX11
 void Image::copyMs(ImageRT &dest, Bool restore_rt, Bool multi_sample, C RectI *rect)C
 {
    if(this!=&dest)
@@ -2633,7 +2632,6 @@ void Image::copyMs(ImageRT &dest, Bool restore_rt, Bool multi_sample, C Rect &re
 {
    copyMs(dest, restore_rt, multi_sample, &Round(D.screenToUV(rect)*size()));
 }
-#endif
 /******************************************************************************/
 void Image::copyHw(ImageRT &dest, Bool restore_rt, C RectI *rect_src, C RectI *rect_dest, Bool *flipped)C
 {

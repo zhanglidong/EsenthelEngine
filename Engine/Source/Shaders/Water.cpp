@@ -412,10 +412,9 @@ VecH4 Under_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 /******************************************************************************/
 TECHNIQUE(Apply , DrawPosXY_VS(), Apply_PS(false));
 TECHNIQUE(ApplyR, DrawPosXY_VS(), Apply_PS(true ));
-#if DX11
+
 TECHNIQUE(ApplyD , DrawPosXY_VS(), Apply_PS(false, true));
 TECHNIQUE(ApplyRD, DrawPosXY_VS(), Apply_PS(true , true));
-#endif
 
 TECHNIQUE(Under , DrawPosXY_VS(), Under_PS(false));
 TECHNIQUE(UnderR, DrawPosXY_VS(), Under_PS(true ));
