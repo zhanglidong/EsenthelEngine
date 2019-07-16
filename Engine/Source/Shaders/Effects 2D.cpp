@@ -2,7 +2,7 @@
 #include "!Header.h"
 /******************************************************************************
 
-   These effects are rarely used.
+   Keep here effects that are rarely used.
 
 /******************************************************************************/
 #include "!Set HP.h"
