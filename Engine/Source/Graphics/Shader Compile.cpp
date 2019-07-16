@@ -197,13 +197,13 @@ static C Str8& Name(ShaderBuffer &buffer                                 ) {retu
 // INCLUDE
 /******************************************************************************/
 #if WINDOWS
-struct ShaderPath
-{
-   Char path[MAX_LONG_PATH];
-};
 /******************************************************************************/
 struct Include11 : ID3DInclude
 {
+   struct ShaderPath
+   {
+      Char path[MAX_LONG_PATH];
+   };
    ShaderPath root;
 
    HRESULT __stdcall Open(D3D_INCLUDE_TYPE IncludeType, LPCSTR pFileName, LPCVOID pParentData, LPCVOID *ppData, UINT *pBytes)
@@ -452,8 +452,6 @@ static Bool ShaderCompile11(C Str &src, C Str &dest, C MemPtr<ShaderMacro> &macr
    ID3DBlob *buffer=null, *error=null;
    Mems<D3D_SHADER_MACRO> d3d_macros; d3d_macros.setNum(macros.elms()+1); FREPA(macros){D3D_SHADER_MACRO &m=d3d_macros[i]; m.Name=macros[i].name; m.Definition=macros[i].definition;} Zero(d3d_macros.last());
    D3DCompile(data.data(), data.elms(), (Str8)src, d3d_macros.data(), &Include11(src), null, "fx_5_0", FLAGS_DX11|D3DCOMPILE_NO_PRESHADER, 0, &buffer, &error); Error(error, messages);
- //D3DCompile(data.data(), data.elms(), (Str8)src, d3d_macros.data(), &Include11(src), "Grid_PS", "ps_5_0", FLAGS_DX11, 0, &buffer, &error); Error(error, messages);
- //ID3D11PixelShader *ps=null; D3D->CreatePixelShader(buffer->GetBufferPointer(), buffer->GetBufferSize(), null, &ps);
 
    ID3DX11Effect *effect=null;
    if(buffer)

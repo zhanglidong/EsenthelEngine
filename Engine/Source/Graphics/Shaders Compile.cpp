@@ -8,7 +8,7 @@ namespace EE{
 #define FORCE_LOG      0
 
 #if DX11   // DirectX 10+
-   #define COMPILE_4 0
+   #define COMPILE_4 1
 #endif
 #if GL && !GL_ES // Desktop OpenGL
    #define COMPILE_GL 0
@@ -23,8 +23,9 @@ namespace EE{
 #define BLEND_LIGHT
 
 #define AMBIENT
-#define AMBIENT_OCCLUSION
-#define BEHIND
+#define AMBIENT_OCCLUSION*/
+#define AMBIENT_OCCLUSION_NEW
+/*#define BEHIND
 #define BLEND
 #define DEPTH_OF_FIELD
 #define EARLY_Z
@@ -250,8 +251,289 @@ struct ShaderCompiler
       }
    }
 };
+struct ShaderCompiler1
+{
+   struct Source;
+   struct Shader;
+   struct TextParam8
+   {
+      Str8 name, value;
+      void set(C Str8 &name, C Str8 &value) {T.name=name; T.value=value;}
+   };
+   struct Buffer
+   {
+      Str8 name;
+      Int  size, bind_slot;
+      Bool bind_explicit;
+   };
+   struct Image
+   {
+      Str8 name;
+      Int  bind_slot;
+   };
+   enum SHADER_TYPE : Byte
+   {
+      VS,
+      HS,
+      DS,
+      PS,
+      ST_NUM,
+   };
+   struct SubShader
+   {
+    C Shader      *shader;
+    C Source      *src;
+      SHADER_TYPE  type;
+      Str8         func_name,
+                   error;
+      Mems<Buffer> buffers;
+      Mems<Image > images;
+
+      Bool is()C {return func_name.is();}
+      void compile();
+   };
+   static void Compile(SubShader &shader, Ptr user, Int thread_index) {shader.compile();}
+   struct Shader
+   {
+      Str              name;
+      SHADER_MODEL     model;
+      Memc<TextParam8> params;
+      SubShader        sub[ST_NUM];
+
+      Shader& Model(SHADER_MODEL model) {T.model=model; return T;} // override model (needed for tesselation)
+
+      Shader& operator()(C Str &n0, C Str &v0                                                                  ) {params.New().set(n0, v0);                                                                               return T;}
+      Shader& operator()(C Str &n0, C Str &v0, C Str &n1, C Str &v1                                            ) {params.New().set(n0, v0); params.New().set(n1, v1);                                                     return T;}
+      Shader& operator()(C Str &n0, C Str &v0, C Str &n1, C Str &v1, C Str &n2, C Str &v2                      ) {params.New().set(n0, v0); params.New().set(n1, v1); params.New().set(n2, v2);                           return T;}
+      Shader& operator()(C Str &n0, C Str &v0, C Str &n1, C Str &v1, C Str &n2, C Str &v2, C Str &n3, C Str &v3) {params.New().set(n0, v0); params.New().set(n1, v1); params.New().set(n2, v2); params.New().set(n3, v3); return T;}
+
+      void finalizeName()
+      {
+         FREPA(params)
+         {
+          C TextParam8 &p=params[i]; if(p.value.length()!=1)Exit("Shader Param Value Length != 1");
+            name+=p.value;
+         }
+      }
+      // FIXME: verify that stages have matching input->output
+   };
+   struct Source
+   {
+      Str          file_name;
+      Mems<Byte>   file_data;
+      Memc<Shader> shaders;
+      SHADER_MODEL model;
+
+      Shader& New(C Str &name, C Str8 &vs, C Str8 &ps)
+      {
+         Shader &shader=shaders.New();
+         shader.model=model;
+         shader.name =name;
+         shader.sub[VS].func_name=vs;
+         shader.sub[PS].func_name=ps;
+         return shader;
+      }
+      Bool load()
+      {
+         File f; if(!f.readTry(file_name))return false;
+         file_data.setNum(f.size()); if(!f.getFast(file_data.data(), file_data.elms()))return false;
+         return true;
+      }
+   };
+   Str          dest, messages;
+   SHADER_MODEL model;
+   Memc<Source> sources;
+
+   void message(C Str &t) {messages.line()+=t;}
+   Bool error(C Str &t) {message(t); return false;}
+
+   ShaderCompiler1& set(C Str &dest, SHADER_MODEL model)
+   {
+      T.dest =dest ;
+      T.model=model;
+      return T;
+   }
+   Source& New(C Str &src)
+   {
+      Source &source=sources.New();
+      source.file_name=src;
+      source.model=model;
+      return source;
+   }
+   Bool compile(Threads &threads)
+   {
+      FREPA(sources)
+      {
+         Source &source=sources[i];
+   /*switch(model)
+   {
+      case SM_UNKNOWN: return false;
+
+      case SM_GL_ES_3:
+      case SM_GL     : temp.New().set("MODEL", "SM_GL"); break;
+
+      default        : temp.New().set("MODEL", "SM_4" ); break;*/
+
+         if(!source.load())return error(S+"Can't open file:"+source.file_name);
+         FREPA(source.shaders)
+         {
+            Shader &shader=source.shaders[i]; FREPA(shader.sub)
+            {
+               SubShader &sub=shader.sub[i]; if(sub.is())
+               {
+                  sub.type  =(SHADER_TYPE)i;
+                  sub.src   =&source;
+                  sub.shader=&shader;
+                  threads.queue(sub, Compile);
+               }
+            }
+         }
+         threads.wait();
+      }
+      return true;
+   }
+};
+struct Include11 : ID3DInclude
+{
+   struct ShaderPath
+   {
+      Char path[MAX_LONG_PATH];
+   };
+   ShaderPath root;
+
+   HRESULT __stdcall Open(D3D_INCLUDE_TYPE IncludeType, LPCSTR pFileName, LPCVOID pParentData, LPCVOID *ppData, UINT *pBytes)
+   {
+     *ppData=null;
+     *pBytes=0;
+
+      Str path=GetPath(pFileName);
+      if(!FullPath(path))
+         if(ShaderPath *parent=(pParentData ? (ShaderPath*)pParentData-1 : &root))
+            path=NormalizePath(Str(parent->path).tailSlash(true)+path);
+
+      File f; if(f.readStdTry(path.tailSlash(true)+GetBase(pFileName)))
+      {
+         Byte *data=Alloc<Byte>(SIZEU(ShaderPath)+f.size());
+         Set(((ShaderPath*)data)->path, path);
+         data+=SIZE(ShaderPath);
+         f.get(data, f.size());
+        *ppData=data;
+        *pBytes=f.size();
+         return S_OK;
+      }
+      return -1;
+   }
+   HRESULT __stdcall Close(LPCVOID pData)
+   {
+      if(pData)
+      {
+         Byte *data=((Byte*)pData)-SIZE(ShaderPath);
+         Free( data);
+      }
+      return S_OK;
+   }
+
+   Include11(C Str &src)
+   {
+      Set(root.path, GetPath(src));
+   }
+};
+void ShaderCompiler1::SubShader::compile()
+{
+   Char8 target[6+1];
+   switch(type)
+   {
+      case VS: target[0]='v'; break;
+      case HS: target[0]='h'; break;
+      case DS: target[0]='d'; break;
+      case PS: target[0]='p'; break;
+   }
+   target[1]='s';
+   target[2]='_';
+   target[4]='_';
+   target[6]='\0';
+   switch(shader->model)
+   {
+      case SM_4  : target[3]='4'; target[5]='0'; break;
+      case SM_4_1: target[3]='4'; target[5]='1'; break;
+      case SM_5  : target[3]='5'; target[5]='0'; break;
+      default    : Exit("Invalid Shader Model"); break;
+   }
+
+   MemtN<D3D_SHADER_MACRO, 64> macros;
+   macros.setNum(shader->params.elms()+2);
+   FREPA(shader->params)
+   {
+      D3D_SHADER_MACRO &macro=macros[i]; C TextParam8 &param=shader->params[i];
+      macro.Name      =param.name;
+      macro.Definition=param.value;
+   }
+   // FIXME use this to control GL shaders
+   macros[macros.elms()-2].Name      ="MODEL";
+   macros[macros.elms()-2].Definition="SM_4";
+   Zero(macros.last()); // must be null-terminated
+
+   ID3DBlob *buffer=null, *error_blob=null;
+   D3DCompile(src->file_data.data(), src->file_data.elms(), (Str8)src->file_name, macros.data(), &Include11(src->file_name), func_name, target, D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &buffer, &error_blob);
+   if(error_blob){error=(Char8*)error_blob->GetBufferPointer(); error_blob->Release();}
+   Bool ok=false;
+   if(buffer)
+   {
+      ID3D11ShaderReflection *reflection=null; D3DReflect(buffer->GetBufferPointer(), buffer->GetBufferSize(), IID_ID3D11ShaderReflection, (Ptr*)&reflection); if(reflection)
+      {
+         D3D11_SHADER_DESC desc; if(!OK(reflection->GetDesc(&desc))){error.line()+="'ID3D11ShaderReflection.GetDesc' failed.";}else
+         {
+            FREP(desc.BoundResources)
+            {
+               D3D11_SHADER_INPUT_BIND_DESC desc; if(!OK(reflection->GetResourceBindingDesc(i, &desc))){error.line()+="'GetResourceBindingDesc' failed."; goto error;}
+               switch(desc.Type)
+               {
+                  case D3D_SIT_TEXTURE:
+                  {
+                     if(!InRange(desc.BindPoint, MAX_TEXTURES)){error.line()+=S+"Texture index: "+desc.BindPoint+", is too big"; goto error;}
+                     Image &image=images.New(); image.name=desc.Name; image.bind_slot=desc.BindPoint;
+                  }break;
+
+                  case D3D_SIT_CBUFFER:
+                  {
+                     if(!InRange(desc.BindPoint, MAX_SHADER_BUFFERS)){error.line()+=S+"Constant Buffer index: "+desc.BindPoint+", is too big"; goto error;}
+                     Buffer &buffer=buffers.New();
+                     buffer.name=desc.Name;
+                     buffer.bind_slot=desc.BindPoint;
+                     buffer.bind_explicit=FlagTest(desc.uFlags, D3D_SIF_USERPACKED);
+                     ID3D11ShaderReflectionConstantBuffer *cb=reflection->GetConstantBufferByName(desc.Name); if(!cb){error.line()+="'GetConstantBufferByIndex' failed."; goto error;}
+                     {
+                        D3D11_SHADER_BUFFER_DESC desc; if(!OK(cb->GetDesc(&desc))){error.line()+="'ID3D11ShaderReflectionConstantBuffer.GetDesc' failed."; goto error;}
+                        buffer.size=desc.Size;
+                        FREP(desc.Variables)
+                        {
+                           ID3D11ShaderReflectionVariable *var=cb->GetVariableByIndex(i); if(!var){error.line()+="'GetVariableByIndex' failed."; goto error;}
+                           ID3D11ShaderReflectionType *type=var->GetType(); if(!type){error.line()+="'GetType' failed."; goto error;}
+                           D3D11_SHADER_VARIABLE_DESC var_desc; if(!OK( var->GetDesc(& var_desc))){error.line()+="'ID3D11ShaderReflectionVariable.GetDesc' failed."; goto error;}
+                           D3D11_SHADER_TYPE_DESC    type_desc; if(!OK(type->GetDesc(&type_desc))){error.line()+="'ID3D11ShaderReflectionType.GetDesc' failed."; goto error;}
+
+                           int z=0;
+                         //type->Release(); this doesn't have 'Release'
+                         //var ->Release(); this doesn't have 'Release'
+                        }
+                      //DEBUG_ASSERT(buffer.bind_explicit==FlagTest(desc.uFlags, D3D_CBF_USERPACKED), "bind_explicit mismatch"); ignore because looks like 'desc.uFlags' is not set
+                     }
+                  //cb->Release(); this doesn't have 'Release'
+                  }break;
+               }
+            }
+            ok=true;
+         }
+      error:
+         reflection->Release();
+      }
+      buffer->Release();
+   }
+   if(!ok)Exit(error);
+}
 /******************************************************************************/
 static Memc<ShaderCompiler> ShaderCompilers;
+static Memc<ShaderCompiler1> ShaderCompiler1s;
 /******************************************************************************/
 static void Add(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderGLSL> &glsl=null)
 {
@@ -666,6 +948,16 @@ static void Compile(SHADER_MODEL model)
    Add(src_path+"Ambient Occlusion.cpp", dest_path+"Ambient Occlusion", model);
 #endif
 
+#ifdef AMBIENT_OCCLUSION_NEW
+   {
+      ShaderCompiler1::Source &src=ShaderCompiler1s.New().set(dest_path+"Ambient Occlusion", model).New(src_path+"Ambient Occlusion.cpp");
+      REPD(mode  , 4)
+      REPD(jitter, 2)
+      REPD(normal, 2)
+         src.New("AO", "AO_VS", "AO_PS")("MODE", mode, "JITTER", jitter, "NORMALS", normal);
+   }
+#endif
+
 #ifdef DEPTH_OF_FIELD
    Add(src_path+"Depth of Field.cpp", dest_path+"Depth of Field", model);
 #endif
@@ -863,6 +1155,8 @@ void MainShaderClass::compile()
    ProcPriority(-1); // compiling shaders may slow down entire CPU, so make this process have smaller priority
    Dbl t=Time.curTime();
    MultiThreadedCall(ShaderCompilers, ThreadCompile);
+   Threads threads; threads.create(false, Cpu.threads()-1);
+   FREPAO(ShaderCompiler1s).compile(threads);
    LogN(S+"Shaders compiled in: "+Flt(Time.curTime()-t)+'s');
 
    App.stayAwake(AWAKE_OFF);
