@@ -2,9 +2,11 @@
 #include "!Header.h"
 #include "Sky.h"
 /******************************************************************************/
+#include "!Set HP.h"
 BUFFER(VolLight)
    VecH VolMax=Vec(1, 1, 1);
 BUFFER_END
+#include "!Set LP.h"
 /******************************************************************************/
 VecH4 VolDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                 NOPERSP Vec2 inPosXY:TEXCOORD1,

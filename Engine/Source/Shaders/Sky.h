@@ -1,4 +1,5 @@
 /******************************************************************************/
+#include "!Set HP.h"
 BUFFER(Sky)
    Flt      SkyDnsExp      ,
             SkyHorExp      ;
@@ -11,4 +12,5 @@ BUFFER(Sky)
    Vec      SkySunPos      ;
    MatrixH3 SkyStarOrn     ;
 BUFFER_END
+#include "!Set LP.h"
 /******************************************************************************/

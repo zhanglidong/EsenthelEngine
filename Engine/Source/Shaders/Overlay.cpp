@@ -48,7 +48,7 @@ VecH4 PS
    Vec     inTex   :TEXCOORD0,
    Matrix3 inMatrix:TEXCOORD1,
 
-   out VecH4 outNrm:COLOR1,
+   out VecH4 outNrm:TARGET1,
 
    PARAMS
 ):TARGET

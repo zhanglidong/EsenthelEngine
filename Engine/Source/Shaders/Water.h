@@ -1,4 +1,5 @@
 /******************************************************************************/
+#include "!Set HP.h"
 BUFFER(WaterSurface)
    Half WaterRgh_2,
         WaterFresnelRough,
@@ -31,4 +32,5 @@ BUFFER(Water)
    Vec  WaterPlnPos,
         WaterPlnNrm;
 BUFFER_END
+#include "!Set LP.h"
 /******************************************************************************/

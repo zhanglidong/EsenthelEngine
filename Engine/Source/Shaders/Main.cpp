@@ -621,6 +621,7 @@ TECHNIQUE(DrawCubeFace, DrawCubeFace_VS(), DrawCubeFace_PS());
 /******************************************************************************/
 // FONT
 /******************************************************************************/
+#include "!Set HP.h"
 BUFFER(Font)
    Half FontShadow,
         FontContrast=1,
@@ -628,6 +629,7 @@ BUFFER(Font)
    Flt  FontDepth;
    VecH FontLum;
 BUFFER_END
+#include "!Set LP.h"
 
 void Font_VS(VtxInput vtx,
          out Vec2 outTex  :TEXCOORD0,
@@ -769,11 +771,13 @@ Vec4 Simple_PS(Vec2  inTex:TEXCOORD,
 }
 TECHNIQUE(Simple, Simple_VS(), Simple_PS());
 /******************************************************************************/
+#include "!Set HP.h"
 BUFFER(LocalFog)
    VecH LocalFogColor;
    Flt  LocalFogDensity;
    Vec  LocalFogInside;
 BUFFER_END
+#include "!Set LP.h"
 /******************************************************************************/
 // TODO: optimize fog shaders
 void FogBox_VS(VtxInput vtx,
@@ -1321,10 +1325,12 @@ TECHNIQUE(MaxY, Draw_VS(), MaxY_PS());
 /******************************************************************************/
 // 2D FX
 /******************************************************************************/
+#include "!Set HP.h"
 BUFFER(ColTrans)
    MatrixH ColTransMatrix;
    Vec     ColTransHsb;
 BUFFER_END
+#include "!Set LP.h"
 
 VecH4 ColTrans_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
@@ -1908,6 +1914,7 @@ TECHNIQUE_4_1(FogM, DrawPosXY_VS(), FogM_PS());
 /******************************************************************************/
 // SUN
 /******************************************************************************/
+#include "!Set HP.h"
 struct SunClass
 {
    Vec2 pos2;
@@ -1917,6 +1924,7 @@ struct SunClass
 BUFFER(Sun)
    SunClass Sun;
 BUFFER_END
+#include "!Set LP.h"
 
 Half SunRaysMask_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                     NOPERSP Vec2 inPosXY:TEXCOORD1,
@@ -2466,9 +2474,11 @@ TECHNIQUE_4_1(LightConeSIM, DrawPosXY_VS(), LightConeM_PS(true , false, true ));
 /******************************************************************************/
 // COL LIGHT
 /******************************************************************************/
+#include "!Set HP.h"
 BUFFER(ColLight)
    VecH NightShadeColor;
 BUFFER_END
+#include "!Set LP.h"
 
 Half CelShade(Half lum) {return TexLod(Img2, VecH2(lum, 0.5)).x;} // have to use linear filtering
 
@@ -2777,9 +2787,11 @@ TECHNIQUE(PaletteDraw, Draw_VS(), PaletteDraw_PS());
 /******************************************************************************/
 // DECAL
 /******************************************************************************/
+#include "!Set HP.h"
 BUFFER(Decal)
    VecH DecalParams; // x=OpaqueFracMul, y=OpaqueFracAdd, z=alpha
 BUFFER_END
+#include "!Set LP.h"
 
 inline Half DecalOpaqueFracMul() {return DecalParams.x;}
 inline Half DecalOpaqueFracAdd() {return DecalParams.y;}
@@ -2816,7 +2828,7 @@ void Decal_VS(VtxInput vtx,
 VecH4 Decal_PS(PIXEL,
                Matrix  inMatrix :TEXCOORD0,
                Matrix3 inMatrixN:TEXCOORD3,
-           out Vec4    outNrm   :COLOR1   ,
+           out VecH4   outNrm   :TARGET1  ,
        uniform Bool    normal             ,
        uniform Bool    palette            ):TARGET
 {
@@ -2873,9 +2885,11 @@ TECHNIQUE(DecalFP, Decal_VS(true , false, true ), Decal_PS(false, true ));
 /******************************************************************************/
 // BLOOM
 /******************************************************************************/
+#include "!Set HP.h"
 BUFFER(Bloom)
    VecH BloomParams; // x=original, y=scale, z=cut
 BUFFER_END
+#include "!Set LP.h"
 
 void BloomDS_VS(VtxInput vtx,
             out Vec2 outTex:TEXCOORD,

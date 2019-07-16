@@ -124,6 +124,7 @@
    #define BUFFER(name)                                                     // constant buffers (not available in OpenGL)
    #define BUFFER_I(name, index)                                            // constant buffers (not available in OpenGL)
    #define BUFFER_END                                                       // constant buffers (not available in OpenGL)
+ //#define POSITION              POSITION
  //#define DEPTH                 DEPTH
    #define TARGET                COLOR
    #define TARGET0               COLOR0
@@ -138,6 +139,7 @@
    #define BUFFER(name)          cbuffer name {                             // declare a constant buffer
    #define BUFFER_I(name, index) cbuffer name : register(CONCAT(b,index)) { // declare a constant buffer with custom buffer index
    #define BUFFER_END            }                                          // end constant buffer declaration
+   #define POSITION              SV_Position
    #define DEPTH                 SV_Depth
    #define TARGET                SV_Target
    #define TARGET0               SV_Target0
@@ -475,12 +477,11 @@ struct MaterialClass // this is used when a MeshPart has only one material
          _sss_glow_rough_bump;
    Vec4  _texscale_detscale_detpower_reflect;
 };
+#include "!Set LP.h"
 
 BUFFER_I(Material, SBI_MATERIAL)
    MaterialClass Material;
 BUFFER_END
-
-#include "!Set LP.h"
 
 inline VecH4 MaterialColor   () {return Material._color;}
 inline VecH  MaterialColor3  () {return Material._color.rgb;}

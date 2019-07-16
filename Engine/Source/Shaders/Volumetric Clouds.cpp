@@ -19,7 +19,7 @@ struct VolCloudMapClass
    Vec  cam;
 };
 BUFFER(VolCloud)
-   VolCloudClass    Cloud;
+   VolCloudClass Cloud;
 BUFFER_END
 BUFFER(VolCloudMap)
    VolCloudMapClass CloudMap;
@@ -184,7 +184,7 @@ void CloudsDraw_VS(VtxInput vtx,
 }
 VecH4 CloudsDraw_PS(NOPERSP Vec2   inTex :TEXCOORD0,
                     NOPERSP Vec    inPos :TEXCOORD1,
-                        out VecH4 outMask:COLOR1   ,
+                        out VecH4 outMask:TARGET1  ,
                     uniform Bool  gamma            ):TARGET
 {
    VecH2 clouds=TexLod(ImgXY, inTex).xy; // can't use TexPoint because image may be smaller

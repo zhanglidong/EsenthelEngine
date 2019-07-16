@@ -39,9 +39,9 @@ void Explosion_VS(VtxInput vtx,
    outPos=TransformPos(vtx.pos());
    outVtx=Project     ( outPos  );
 }
-void Explosion_PS(Vec   inPos:TEXCOORD0,
-                  Vec   inVel:TEXCOORD1,
-              out Vec4 outVel:COLOR1   ) // #BlendRT
+void Explosion_PS(Vec    inPos:TEXCOORD0,
+                  Vec    inVel:TEXCOORD1,
+              out VecH4 outVel:TARGET1  ) // #BlendRT
 {
    // there's no NaN because inPos.z is always >0 in PixelShader
    inVel/=inPos.z;
