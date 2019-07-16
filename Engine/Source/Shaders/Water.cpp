@@ -90,8 +90,8 @@ void Surface_PS
    Half inPDF  :TEXCOORD5,
    PIXEL,
 
-   out VecH4 O_col:COLOR0,
-   out VecH4 O_nrm:COLOR1,
+   out VecH4 O_col:TARGET0,
+   out VecH4 O_nrm:TARGET1,
 
    uniform Bool waves                ,
    uniform Bool river                ,

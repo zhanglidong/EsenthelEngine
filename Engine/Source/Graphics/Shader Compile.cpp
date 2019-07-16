@@ -140,7 +140,7 @@ enum SHADER_TYPE : Byte // !! these enums are saved !!
    SHADER_DX11,
 };
 /******************************************************************************/
-#define FLAGS_DX11    (D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY|D3DCOMPILE_OPTIMIZATION_LEVEL3|D3DCOMPILE_NO_PRESHADER)
+#define FLAGS_DX11    (D3DCOMPILE_OPTIMIZATION_LEVEL3)
 #define SHOW_GLSL_SRC 0
 
 #if   0 // Test #1: shader size 6.61 MB, engine load+render 1 frame = 0.40s on Windows, decompression 10x faster
@@ -451,7 +451,9 @@ static Bool ShaderCompile11(C Str &src, C Str &dest, C MemPtr<ShaderMacro> &macr
 
    ID3DBlob *buffer=null, *error=null;
    Mems<D3D_SHADER_MACRO> d3d_macros; d3d_macros.setNum(macros.elms()+1); FREPA(macros){D3D_SHADER_MACRO &m=d3d_macros[i]; m.Name=macros[i].name; m.Definition=macros[i].definition;} Zero(d3d_macros.last());
-   D3DCompile(data.data(), data.elms(), (Str8)src, d3d_macros.data(), &Include11(src), null, "fx_5_0", FLAGS_DX11, 0, &buffer, &error); Error(error, messages);
+   D3DCompile(data.data(), data.elms(), (Str8)src, d3d_macros.data(), &Include11(src), null, "fx_5_0", FLAGS_DX11|D3DCOMPILE_NO_PRESHADER, 0, &buffer, &error); Error(error, messages);
+ //D3DCompile(data.data(), data.elms(), (Str8)src, d3d_macros.data(), &Include11(src), "Grid_PS", "ps_5_0", FLAGS_DX11, 0, &buffer, &error); Error(error, messages);
+ //ID3D11PixelShader *ps=null; D3D->CreatePixelShader(buffer->GetBufferPointer(), buffer->GetBufferSize(), null, &ps);
 
    ID3DX11Effect *effect=null;
    if(buffer)
@@ -553,6 +555,7 @@ static Bool ShaderCompile11(C Str &src, C Str &dest, C MemPtr<ShaderMacro> &macr
          Shader11 &tech=techs.New(); tech.name=tech_desc.Name;
 
          // get shader data
+         //ID3DBlob *blob=null; D3DStripShader(vsd.pBytecode, vsd.BytecodeLength, ~0, &blob); if(blob){Int size=blob->GetBufferSize(); ID3D11VertexShader *vs=null; blob->Release(); blob=null;} // FIXME
          Mems<Byte> vs_data; vs_data.setNum(vsd.BytecodeLength).copyFrom(vsd.pBytecode);
          Mems<Byte> hs_data; hs_data.setNum(hsd.BytecodeLength).copyFrom(hsd.pBytecode);
          Mems<Byte> ds_data; ds_data.setNum(dsd.BytecodeLength).copyFrom(dsd.pBytecode);
