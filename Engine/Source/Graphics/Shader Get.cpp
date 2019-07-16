@@ -194,7 +194,7 @@ Shader* DefaultShaders::Solid(Bool mirror)C
    {
       // !! Never return the same shader for Multi-Materials as Single-Materials !!
       if(fur)return ShaderFiles("Fur")->get(TechNameFurBase(skin, size, textures!=0));
-      Bool detail=T.detail, tess=T.tess; Byte bump=T.bump; if(mirror){detail=false; tess=false; MIN(bump, SBUMP_NORMAL);} // disable detail tesselation and fancy bump for mirror
+      Bool detail=T.detail, tess=T.tess; Byte bump=T.bump; if(mirror){detail=false; tess=false; MIN(bump, SBUMP_NORMAL);} // disable detail, tesselation and fancy bump for mirror
       Str8 name;
       if(normal      )name=TechNameDeferred(skin, materials, textures,  bump     , alpha_test, detail, macro, reflect, color, mtrl_blend, heightmap, fx, tess);else
       if(materials==1)name=TechNameDeferred(skin, materials,        0, SBUMP_ZERO, false     , false , false, reflect, color, mtrl_blend, heightmap, fx, tess);
