@@ -2433,8 +2433,9 @@ Display& Display::edgeSoften(EDGE_SOFTEN_MODE mode)
       {
          case EDGE_SOFTEN_FXAA: if(!Sh.FXAA[1])
          {
-            if(Sh.FXAA[0]=Sh.find("FXAA"))
-            if(Sh.FXAA[1]=Sh.find("FXAAG"))
+            ShaderFile &sf=*ShaderFiles("FXAA");
+            if(Sh.FXAA[0]=sf.find("FXAA" ))
+            if(Sh.FXAA[1]=sf.find("FXAAG"))
                break; // all OK
          }break;
 

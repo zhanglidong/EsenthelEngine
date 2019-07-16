@@ -16,25 +16,28 @@ namespace EE{
 
 /**
 #define MAIN
+
 #define SIMPLE
 #define DEFERRED
 #define FORWARD // Forward Shaders in OpenGL compile almost an entire day and use ~5 GB memory during compilation
 #define BLEND_LIGHT
+
 #define AMBIENT
-#define POSITION
-#define BLEND
-#define SET_COLOR
+#define AMBIENT_OCCLUSION
 #define BEHIND
-#define OVERLAY
+#define BLEND
+#define DEPTH_OF_FIELD
 #define EARLY_Z
 #define FUR
-#define AMBIENT_OCCLUSION
-#define VOLUMETRIC_LIGHTS
-#define VOLUMETRIC_CLOUDS
-#define LAYERED_CLOUDS
+#define FXAA
 #define HDR
+#define LAYERED_CLOUDS
 #define MOTION_BLUR
-#define DEPTH_OF_FIELD
+#define OVERLAY
+#define POSITION
+#define SET_COLOR
+#define VOLUMETRIC_CLOUDS
+#define VOLUMETRIC_LIGHTS
 #define WATER
 #define WORLD_EDITOR
 /******************************************************************************
@@ -575,6 +578,7 @@ static void Compile(SHADER_MODEL model)
 #endif
 
 #ifdef MAIN
+{
    Memc<ShaderGLSL> glsl;
 
    // Draw2DTex
@@ -629,14 +633,13 @@ static void Compile(SHADER_MODEL model)
    // AA
 #if 0 // disable GLSL versions because neither Mac/Linux succeed in compiling them
    REPD(g, 2) // gamma
-      glsl.New().set("FXAA", S+"FXAA"+(g?'G':'\0')).par("GAMMA", TextBool(g));
-   REPD(g, 2) // gamma
       glsl.New().set("SMAAEdge" , S+"SMAAEdgeColor"+(g?'G':'\0')).par("GAMMA", TextBool(g));
       glsl.New().set("SMAABlend", "SMAABlend");
       glsl.New().set("SMAA"     , "SMAA");
 #endif
 
    Add(src_path+"Main.cpp", dest_path+"Main", model, glsl);
+}
 #endif
 
 #ifdef BLEND
@@ -660,16 +663,23 @@ static void Compile(SHADER_MODEL model)
    Add(src_path+"Ambient Occlusion.cpp", dest_path+"Ambient Occlusion", model);
 #endif
 
-#ifdef VOLUMETRIC_LIGHTS
-   Add(src_path+"Volumetric Lights.cpp", dest_path+"Volumetric Lights", model);
-#endif
-
-#ifdef VOLUMETRIC_CLOUDS
-   Add(src_path+"Volumetric Clouds.cpp", dest_path+"Volumetric Clouds", model);
+#ifdef DEPTH_OF_FIELD
+   Add(src_path+"Depth of Field.cpp", dest_path+"Depth of Field", model);
 #endif
 
 #ifdef LAYERED_CLOUDS
    Add(src_path+"Layered Clouds.cpp", dest_path+"Layered Clouds", model);
+#endif
+
+#ifdef FXAA
+{
+   Memc<ShaderGLSL> glsl;
+#if 0 // disable GLSL versions because neither Mac/Linux succeed in compiling them
+   REPD(g, 2) // gamma
+      glsl.New().set("FXAA", S+"FXAA"+(g?'G':'\0')).par("GAMMA", TextBool(g));
+#endif
+   Add(src_path+"FXAA.cpp", dest_path+"FXAA", model, glsl);
+}
 #endif
 
 #ifdef HDR
@@ -680,8 +690,12 @@ static void Compile(SHADER_MODEL model)
    Add(src_path+"Motion Blur.cpp", dest_path+"Motion Blur", model);
 #endif
 
-#ifdef DEPTH_OF_FIELD
-   Add(src_path+"Depth of Field.cpp", dest_path+"Depth of Field", model);
+#ifdef VOLUMETRIC_CLOUDS
+   Add(src_path+"Volumetric Clouds.cpp", dest_path+"Volumetric Clouds", model);
+#endif
+
+#ifdef VOLUMETRIC_LIGHTS
+   Add(src_path+"Volumetric Lights.cpp", dest_path+"Volumetric Lights", model);
 #endif
 
 #ifdef WATER
