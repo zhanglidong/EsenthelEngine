@@ -201,14 +201,19 @@ struct MainShaderClass
       *YUVA[2], // [Gamma]
 
       // 2D FX
-      *ColTrans       ,
-      *ColTransHB     ,
-      *ColTransHSB    ,
-      *Ripple         ,
-      *Titles         ,
-      *Fade           ,
-      *Wave           ,
-      *RadialBlur     ,
+      *ColTrans   ,
+      *ColTransHB ,
+      *ColTransHSB,
+      *Ripple     ,
+      *Titles     ,
+      *Fade       ,
+      *Wave       ,
+      *RadialBlur ,
+
+      // 3D FX
+      *Decal[2][3], // [FullScreen][Mode]
+
+      // RENDERING
       *Outline        ,
       *OutlineDS      ,
       *OutlineClip    ,

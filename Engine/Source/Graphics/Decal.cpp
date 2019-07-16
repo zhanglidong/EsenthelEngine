@@ -29,7 +29,13 @@ void Decal::setShader()
    {
       if(_material && _material->base_0)
       {
-            _shader[f][p]=Sh.get(S+"Decal"+(f ? 'F' : '\0')+(p ? 'P' : _material->base_1 ? 'N' : '\0'));
+         Shader* &src=Sh.Decal[f][p ? 2 : _material->base_1 ? 1 : 0];
+         if(!src)
+         {
+            src=ShaderFiles("Effect 3D")->get(S+"Decal"+(f ? 'F' : '\0')+(p ? 'P' : _material->base_1 ? 'N' : '\0'));
+            Sh.DecalParams=GetShaderParam("DecalParams");
+         }
+            _shader[f][p]=src;
       }else _shader[f][p]=null;
    }
 }

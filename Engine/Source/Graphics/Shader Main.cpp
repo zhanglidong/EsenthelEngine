@@ -602,12 +602,7 @@ void MainShaderClass::getTechniques()
 #endif
 
    // DECAL
-   DecalParams  =GetShaderParam(  "DecalParams");
    OverlayParams=GetShaderParam("OverlayParams");
-
-   // OTHER
-   Laser[0]=get("Laser");
-   Laser[1]=get("LaserN");
 }
 void MainShaderClass::connectRT()
 {

@@ -88,7 +88,8 @@ void DrawLaser(C Color &color, C Color &middle_color, Flt middle_exponent, Flt r
          VI.color1(Color(255, 255, 255, 0));
       }else
       {
-         VI.shader(Sh.Laser[normals]);
+         Shader* &shader=Sh.Laser[normals]; if(!shader)shader=ShaderFiles("Effects 3D")->get(S8+"Laser"+(normals?'N':'\0'));
+         VI.shader(shader      );
          VI.color (       color);
          VI.color1(middle_color);
          Sh.Step->set(middle_exponent);

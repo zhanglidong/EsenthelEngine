@@ -969,10 +969,11 @@ void Image::drawVolume(C Color &color, C Color &color_add, C OBox &obox, Flt vox
    {
       if(!Sh.Volume)
       {
+         ShaderFile &sf=*ShaderFiles("Effects 3D");
+         Sh.Volume0[0]=sf.get("Volume0"); Sh.Volume0[1]=sf.get("Volume0LA");
+         Sh.Volume1[0]=sf.get("Volume1"); Sh.Volume1[1]=sf.get("Volume1LA");
+         Sh.Volume2[0]=sf.get("Volume2"); Sh.Volume2[1]=sf.get("Volume2LA");
          Sh.Volume=GetShaderParam("Volume");
-         Sh.Volume0[0]=Sh.get("Volume0"); Sh.Volume0[1]=Sh.get("Volume0LA");
-         Sh.Volume1[0]=Sh.get("Volume1"); Sh.Volume1[1]=Sh.get("Volume1LA");
-         Sh.Volume2[0]=Sh.get("Volume2"); Sh.Volume2[1]=Sh.get("Volume2LA");
       }
       GpuVolume v;
       Bool LA=(type()==IMAGE_R8G8); // check 'type' instead of 'hwType' because volumetric clouds may want to be set as RG, but got RGBA, however only RG was set
