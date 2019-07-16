@@ -588,6 +588,8 @@ ImageH    ImgX, ImgX1, ImgX2, ImgX3;
 ImageF    ImgXF, ImgXF1, Depth;
 ImageH2   ImgXY;
 ImageCube Cub, Cub1;
+Image3D   Vol;
+Image3DH2 VolXY, VolXY1;
 
 #if MODEL>=SM_4
 Texture2DMS<VecH4, MS_SAMPLES> ImgMS, ImgMS1;

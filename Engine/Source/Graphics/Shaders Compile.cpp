@@ -29,6 +29,7 @@ namespace EE{
 #define DEPTH_OF_FIELD
 #define EARLY_Z
 #define EFFECTS_2D
+#define EFFECTS_3D
 #define FOG_LOCAL
 #define FUR
 #define FXAA
@@ -675,6 +676,10 @@ static void Compile(SHADER_MODEL model)
 
 #ifdef EFFECTS_2D
    Add(src_path+"Effects 2D.cpp", dest_path+"Effects 2D", model);
+#endif
+
+#ifdef EFFECTS_3D
+   Add(src_path+"Effects 3D.cpp", dest_path+"Effects 3D", model);
 #endif
 
 #ifdef FOG_LOCAL

@@ -302,10 +302,10 @@ struct Shader11
    ID3D11DomainShader *ds;
    ID3D11PixelShader  *ps;
    Str8                name;
-   Int                 vs_index   , hs_index   , ds_index   , ps_index   ;
+   Int                 vs_index   , hs_index   , ds_index   , ps_index   ; // index of shader in 'ShaderFile' containers
    Mems<Texture      > vs_textures, hs_textures, ds_textures, ps_textures;
    Mems<      Buffer > vs_buffers , hs_buffers , ds_buffers , ps_buffers ;
-   Mems<ShaderBuffer*>    buffers;
+   Mems<ShaderBuffer*>    buffers; // shader buffers used by all shader stages (VS HS DS PS) combined into one array
 
    Bool validate (ShaderFile &shader, Str *messages=null);
    void commit   ();
