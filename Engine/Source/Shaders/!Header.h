@@ -1092,6 +1092,13 @@ void DrawPosXY_VS(VtxInput vtx,
    outPosXY=ScreenToPosXY(outTex);
    outVtx  =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
+void Draw2DTex_VS(VtxInput vtx,
+              out Vec2 outTex:TEXCOORD,
+              out Vec4 outVtx:POSITION)
+{
+   outTex=vtx.tex();
+   outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
+}
 /******************************************************************************/
 inline Half DistPointPlaneRay(VecH2 p,                  VecH2 plane_normal, VecH2 ray) {Half rd=Dot(ray, plane_normal); return rd ? Dot           (p,            plane_normal)/rd : 0;}
 inline Flt  DistPointPlaneRay(Vec2  p,                  Vec2  plane_normal, Vec2  ray) {Flt  rd=Dot(ray, plane_normal); return rd ? Dot           (p,            plane_normal)/rd : 0;}

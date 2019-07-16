@@ -1053,6 +1053,9 @@
     <ClInclude Include="Source\Shaders\!Set LP.h">
       <Filter>Source\Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Shaders\Effects 2D.h">
+      <Filter>Source\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -2094,6 +2097,9 @@
       <Filter>Source\Shaders</Filter>
     </ClCompile>
     <ClCompile Include="Source\Shaders\Fog Local.cpp">
+      <Filter>Source\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Shaders\Effects 2D.cpp">
       <Filter>Source\Shaders</Filter>
     </ClCompile>
   </ItemGroup>

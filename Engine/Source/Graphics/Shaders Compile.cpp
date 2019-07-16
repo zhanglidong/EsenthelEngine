@@ -28,6 +28,7 @@ namespace EE{
 #define BLEND
 #define DEPTH_OF_FIELD
 #define EARLY_Z
+#define EFFECTS_2D
 #define FOG_LOCAL
 #define FUR
 #define FXAA
@@ -670,6 +671,10 @@ static void Compile(SHADER_MODEL model)
 
 #ifdef LAYERED_CLOUDS
    Add(src_path+"Layered Clouds.cpp", dest_path+"Layered Clouds", model);
+#endif
+
+#ifdef EFFECTS_2D
+   Add(src_path+"Effects 2D.cpp", dest_path+"Effects 2D", model);
 #endif
 
 #ifdef FOG_LOCAL

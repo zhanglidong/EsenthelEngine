@@ -21,20 +21,6 @@ struct RippleFx // Ripple Effect
    RippleFx() {reset();}
 };
 /******************************************************************************/
-struct TitlesFx // Titles Swirl Effect
-{
-   Flt step  , // time     (0..Inf,                 default=Time.appTime()*2)
-       center, // center y (in UV coordinates 0..1, default=0.5  )
-       range , // range of sharp    visibility     (default=0.4  )
-       smooth, // range of smoothed visibility     (default=0.1  )
-       swirl ; // swirl amount                     (default=0.015)
-
-   TitlesFx& reset(); // reset to default values
-   void      draw (C Image &image); // draw 'image' using titles swirl effect
-
-   TitlesFx() {reset();}
-};
-/******************************************************************************/
 struct ColorMatrix : Matrix // Color Transformation Matrix
 {
    ColorMatrix& setRGB (       ); // set RGB             transformation

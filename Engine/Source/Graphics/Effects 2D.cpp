@@ -34,9 +34,10 @@ void ColorMatrix::draw(Flt alpha)
    if(alpha>0)
       if(C ImageRTPtr &back=Renderer.getBackBuffer())
    {
+      if(!Sh.ColTrans)Sh.ColTrans=ShaderFiles("Effects 2D")->get("ColTrans"); // load shader first to load constant buffers and images
       SPSet("ColTransMatrix", T);
       Sh.Step->set(alpha);
-      if(!Sh.ColTrans)Sh.ColTrans=Sh.get("ColTrans"); Sh.ColTrans->draw(back);
+      Sh.ColTrans->draw(back);
    }
 }
 void ColorTransHB(Flt hue, Flt brightness, Flt alpha)
@@ -44,10 +45,11 @@ void ColorTransHB(Flt hue, Flt brightness, Flt alpha)
    if(alpha>0)
       if(C ImageRTPtr &back=Renderer.getBackBuffer())
    {
+      if(!Sh.ColTransHB)Sh.ColTransHB=ShaderFiles("Effects 2D")->get("ColTransHB"); // load shader first to load constant buffers and images
       SPSet("ColTransMatrix", ColorMatrix().setHue(hue));
       SPSet("ColTransHsb"   , Vec(0, 0, brightness));
       Sh.Step->set(alpha);
-      if(!Sh.ColTransHB)Sh.ColTransHB=Sh.get("ColTransHB"); Sh.ColTransHB->draw(back);
+      Sh.ColTransHB->draw(back);
    }
 }
 void ColorTransHSB(Flt hue, Flt saturation, Flt brightness, Flt alpha)
@@ -55,9 +57,10 @@ void ColorTransHSB(Flt hue, Flt saturation, Flt brightness, Flt alpha)
    if(alpha>0)
       if(C ImageRTPtr &back=Renderer.getBackBuffer())
    {
+      if(!Sh.ColTransHSB)Sh.ColTransHSB=ShaderFiles("Effects 2D")->get("ColTransHSB"); // load shader first to load constant buffers and images
       SPSet("ColTransHsb", Vec(hue, saturation, brightness));
       Sh.Step->set(alpha);
-      if(!Sh.ColTransHSB)Sh.ColTransHSB=Sh.get("ColTransHSB"); Sh.ColTransHSB->draw(back);
+      Sh.ColTransHSB->draw(back);
    }
 }
 /******************************************************************************/
@@ -93,15 +96,28 @@ RippleFx& RippleFx::reset()
 }
 void RippleFx::draw(C Image &image, C Rect &rect)
 {
-   if(!Sh.Ripple)
+   if(!Sh.Ripple) // load shader first to load constant buffers and images
    {
-      Sh.Ripple      =Sh.get("Ripple");
+      Sh.Ripple      =ShaderFiles("Effects 2D")->get("Ripple");
       Sh.RippleParams=GetShaderParam("Rppl");
    }
    Sh.RippleParams->set(T);
    VI.shader(Sh.Ripple); image.draw(rect);
 }
-/******************************************************************************/
+/******************************************************************************
+struct TitlesFx // Titles Swirl Effect
+{
+   Flt step  , // time     (0..Inf,                 default=Time.appTime()*2)
+       center, // center y (in UV coordinates 0..1, default=0.5  )
+       range , // range of sharp    visibility     (default=0.4  )
+       smooth, // range of smoothed visibility     (default=0.1  )
+       swirl ; // swirl amount                     (default=0.015)
+
+   TitlesFx& reset(); // reset to default values
+   void      draw (C Image &image); // draw 'image' using titles swirl effect
+
+   TitlesFx() {reset();}
+};
 TitlesFx& TitlesFx::reset()
 {
    step  =Time.appTime()*2;
@@ -113,16 +129,17 @@ TitlesFx& TitlesFx::reset()
 }
 void TitlesFx::draw(C Image &image)
 {
+   if(!Sh.Titles)Sh.Titles=ShaderFiles("Effects 2D")->get("Titles"); // load shader first to load constant buffers and images
    SPSet("Ttls", T);
-   Sh.imgSize(image);
-   if(!Sh.Titles)Sh.Titles=Sh.get("Titles"); Sh.Titles->draw(image);
+   Sh.imgSize(image); Sh.Titles->draw(image);
 }
 /******************************************************************************/
 void FadeFx(C Image &image, Flt time, Image *fade_modifier)
 {
+   if(!Sh.Fade)Sh.Fade=ShaderFiles("Effects 2D")->get("Fade"); // load shader first to load constant buffers and images
    Sh.Img[1]->set(fade_modifier);
    Sh.Step  ->set(time         );
-   if(!Sh.Fade)Sh.Fade=Sh.get("Fade"); Sh.Fade->draw(image);
+   Sh.Fade  ->draw(image);
 }
 /******************************************************************************/
 void WaveFx(Flt time, Flt scale)
@@ -130,13 +147,14 @@ void WaveFx(Flt time, Flt scale)
    if(scale>0 && scale<1)
       if(C ImageRTPtr &back=Renderer.getBackBuffer())
    {
+      if(!Sh.Wave)Sh.Wave=ShaderFiles("Effects 2D")->get("Wave"); // load shader first to load constant buffers and images
       Matrix m;
       m.setPos(Vec2(-0.5f)).scale(Vec(Cos(time), Sin(time), 0), scale)
        .move  (Vec2( 0.5f));
       Sh.Color[0]->set(Vec(m.x.x, m.x.y, m.pos.x));
       Sh.Color[1]->set(Vec(m.y.x, m.y.y, m.pos.y));
       ALPHA_MODE alpha=D.alpha(ALPHA_NONE); // disable alpha blending
-      if(!Sh.Wave)Sh.Wave=Sh.get("Wave"); Sh.Wave->draw(back);
+      Sh.Wave->draw(back);
       D.alpha(alpha);
    }
 }
@@ -146,8 +164,9 @@ void RadialBlurFx(Flt scale, Flt alpha, C Vec2 &center)
    if(scale>0 && alpha>0)
       if(C ImageRTPtr &back=Renderer.getBackBuffer())
    {
+      if(!Sh.RadialBlur)Sh.RadialBlur=ShaderFiles("Effects 2D")->get("RadialBlur"); // load shader first to load constant buffers and images
       Sh.Color[0]->set(Vec4(D.screenToUV(center), 1+Abs(scale), alpha));
-      if(!Sh.RadialBlur)Sh.RadialBlur=Sh.get("RadialBlur"); Sh.RadialBlur->draw(back);
+      Sh.RadialBlur->draw(back);
    }
 }
 /******************************************************************************/

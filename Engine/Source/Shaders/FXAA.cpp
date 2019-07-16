@@ -1,5 +1,9 @@
 /******************************************************************************/
 #include "!Header.h"
+/******************************************************************************
+
+   FXAA unlike SMAA is kept outside of Main shader, because it's rarely used.
+
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
 
