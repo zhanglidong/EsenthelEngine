@@ -1,12 +1,6 @@
 /******************************************************************************/
 #include "!Header.h"
-#include "!Set HP.h"
-BUFFER(LocalFog)
-   VecH LocalFogColor;
-   Flt  LocalFogDensity;
-   Vec  LocalFogInside;
-BUFFER_END
-#include "!Set LP.h"
+#include "Fog.h"
 /******************************************************************************/
 // TODO: optimize fog shaders
 void FogBox_VS(VtxInput vtx,
