@@ -215,27 +215,30 @@ void MainShaderClass::initFogBoxShaders()
 {
    if(!FogBox) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
    {
-      FogBox =get("FogBox"  );
-      FogBox0=get("FogBox0" );
-      FogBox1=get("FogBox1" );
+      ShaderFile &sf=*ShaderFiles("Fog Local");
+      FogBox =sf.get("FogBox"  );
+      FogBox0=sf.get("FogBox0" );
+      FogBox1=sf.get("FogBox1" );
    }
 }
 void MainShaderClass::initFogHgtShaders()
 {
    if(!FogHgt) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
    {
-      FogHgt =get("FogHgt"  );
-      FogHgt0=get("FogHgt0" );
-      FogHgt1=get("FogHgt1" );
+      ShaderFile &sf=*ShaderFiles("Fog Local");
+      FogHgt =sf.get("FogHgt"  );
+      FogHgt0=sf.get("FogHgt0" );
+      FogHgt1=sf.get("FogHgt1" );
    }
 }
 void MainShaderClass::initFogBallShaders()
 {
    if(!FogBall) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
    {
-      FogBall =get("FogBall" );
-      FogBall0=get("FogBall0");
-      FogBall1=get("FogBall1");
+      ShaderFile &sf=*ShaderFiles("Fog Local");
+      FogBall =sf.get("FogBall" );
+      FogBall0=sf.get("FogBall0");
+      FogBall1=sf.get("FogBall1");
    }
 }
 
