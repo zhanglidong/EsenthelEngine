@@ -601,7 +601,7 @@ void MainShaderClass::getTechniques()
    initFogBallShaders();
 #endif
 
-   // DECAL
+   // OVERLAY
    OverlayParams=GetShaderParam("OverlayParams");
 }
 void MainShaderClass::connectRT()
