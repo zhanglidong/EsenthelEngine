@@ -252,7 +252,6 @@ struct ShaderCompiler
    }
 };
 #if WINDOWS
-// FIXME don't list constant buffers that have 'bind_explicit' in vs_buffers, etc, but LIST in buffers
 static Bool HasData(CPtr data, Int size)
 {
    if(C Byte *b=(Byte*)data)REP(size)if(*b++)return true;
@@ -428,6 +427,7 @@ struct ShaderCompiler1
       Mems<Image > images;
       Mems<IO    > inputs, outputs;
       Mems<Byte  > shader_data;
+      Int          shader_data_index;
 
       Bool is()C {return func_name.is();}
       void compile();
@@ -518,6 +518,42 @@ struct ShaderCompiler1
       source.compiler =this;
       return source;
    }
+   Bool save()C
+   {
+      File f; if(f.writeTry(dest))
+      {
+         f.putUInt (CC4_SHDR   ); // cc4
+         f.putByte (SHADER_DX11); // type
+         f.cmpUIntV(0          ); // version
+
+         // constants
+         f.cmpUIntV(buffers.elms()); FREPA(buffers)
+         {
+          C ShaderBufferParams &buf=buffers[i];
+
+            // constant buffer
+            f.putStr(Name(*buf.buffer)).cmpUIntV(buf.buffer->size()).putSByte(buf.index); DYNAMIC_ASSERT(buf.index>=-1 && buf.index<=127, "buf.index out of range");
+
+            // params
+            if(!buf.params.save(f))return false;
+         }
+
+         // images
+         f.cmpUIntV(images.elms());
+         FREPA(images)f.putStr(Name(*images[i]));
+
+         if(vs   .save(f)) // shaders
+         if(hs   .save(f))
+         if(ds   .save(f))
+         if(ps   .save(f))
+      // FIXME don't list constant buffers that have 'bind_explicit' in vs_buffers, etc, but LIST in buffers
+         if(techs.save(f, buffers, images)) // techniques
+            if(f.flushOK())return true;
+
+         f.del(); FDelFile(name);
+      }
+      return false;
+   }
    Bool compileTry(Threads &threads)
    {
       FREPA(sources)
@@ -542,6 +578,7 @@ struct ShaderCompiler1
       threads.wait();
       Map<Str8, Buffer*> buffers(CompareCS);
       Memc<Str8>         images;
+      Mems< Mems<Byte> > shader_datas[ST_NUM];
       FREPA(sources)
       {
          Source &source=sources[i]; FREPA(source.shaders)
@@ -556,6 +593,15 @@ struct ShaderCompiler1
                   if(!buffer)buffer=&sub_buffer;else if(*buffer!=sub_buffer)return error(S+"Buffer \""+buffer->name+"\" is not always the same in all shaders");
                }
                FREPA(sub.images)images.binaryInclude(sub.images[i].name, CompareCS);
+
+               sub.shader_data_index=-1; if(sub.shader_data.elms())
+               {
+                  Mems< Mems<Byte> > &sds=shader_datas[i];
+                  FREPA(sds){Mems<Byte> &sd=sds[i]; if(sd.elms()==sub.shader_data.elms() && EqualMem(sd.data(), sub.shader_data.data(), sd.elms())){sub.shader_data_index=i; goto have;}} // find same
+                  sub.shader_data_index=sds.elms(); Swap(sds.New(), sub.shader_data); // add new, just swap
+               have:
+                  sub.shader_data.del(); // no longer needed
+               }
             }
          }
       }
@@ -736,6 +782,18 @@ void ShaderCompiler1::SubShader::compile()
              inputs.setNum(desc. InputParameters); FREPA( inputs){D3D11_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetInputParameterDesc (i, &desc)))Exit("'GetInputParameterDesc' failed" );  inputs[i]=desc;}
             outputs.setNum(desc.OutputParameters); FREPA(outputs){D3D11_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetOutputParameterDesc(i, &desc)))Exit("'GetOutputParameterDesc' failed"); outputs[i]=desc;}
             
+         #if DEBUG && 0 // use this for generation of a basic Vertex Shader which can be used for Input Layout creation (see 'DX10_INPUT_LAYOUT' and 'VS_Code')
+            if(type==VS)
+            {
+               Byte *data=(Byte*)buffer->GetBufferPointer(); Int size=buffer->GetBufferSize();
+               Str t=S+"static Byte VS_Code["+size+"]={";
+               FREP(size){if(i)t+=','; t+=data[i];}
+               t+="};\n";
+               ClipSet(t);
+               Exit(t);
+            }
+         #endif
+
             if(compiler->api==API_DX) // strip
             {
                ID3DBlob *stripped=null; D3DStripShader(buffer->GetBufferPointer(), buffer->GetBufferSize(), ~0, &stripped);
