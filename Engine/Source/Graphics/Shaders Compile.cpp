@@ -282,38 +282,34 @@ struct ShaderCompiler1
          */
          if(type_desc.Elements)offset=Ceil16(offset); // arrays are 16-byte aligned (even 1-element arrays "f[1]"), non-arrays have Elements=0, so check Elements!=0
          Int  elms=Max(type_desc.Elements, 1), last=elms-1; // 'Elements' is array size (it's 0 for non-arrays)
-         FREP(elms)
+         FREP(elms)switch(type_desc.Class)
          {
-            if(type_desc.Class==D3D_SVC_SCALAR || type_desc.Class==D3D_SVC_VECTOR) // for example: Flt f,f[]; Vec2 v,v[]; Vec v,v[]; Vec4 v,v[];
+            case D3D_SVC_SCALAR        : // for example: Flt f,f[];
+            case D3D_SVC_VECTOR        : // for example: Vec2 v,v[]; Vec v,v[]; Vec4 v,v[];
+            case D3D_SVC_MATRIX_COLUMNS: // for example: Matrix m,m[];
             {
-               if(type_desc.Rows!=1)Exit("Shader Param Rows!=1");
-               if(type_desc.Type==D3D_SVT_FLOAT) // !! when allowing HALF's, have to check 'offset' codes !!
+               if(type_desc.Rows   <=0 || type_desc.Rows   >4)Exit("Invalid Shader Param Rows");
+               if(type_desc.Columns<=0 || type_desc.Columns>4)Exit("Invalid Shader Param Cols");
+               Bool half=(type_desc.Type==D3D_SVT_MIN16FLOAT);
+               if(type_desc.Type==D3D_SVT_FLOAT /*|| half*/) // !! when allowing HALF's, have to check 'offset' codes !!
                {
-                  Bool half=(type_desc.Type==D3D_SVT_MIN16FLOAT);
-                  Int  size=(half ? SIZE(Half) : SIZE(Flt))*type_desc.Columns;
+                  Int base_size=(half ? SIZE(Half) : SIZE(Flt)),
+                           size=base_size*type_desc.Rows*type_desc.Columns;
                   if(offset/16 != (offset+size-1)/16 || (was_half>=0 && was_half!=(Byte)half))offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary."
-                  translation.New().set(cpu_data_size, offset, size);
+
+                  if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)translation.New().set(cpu_data_size, offset, size);else
+                  {
+                     FREPD(y, type_desc.Columns)
+                     FREPD(x, type_desc.Rows   )translation.New().set(cpu_data_size+base_size*(y+x*type_desc.Columns), offset+base_size*(x+y*4), base_size);
+                  }
+                  
                   cpu_data_size+=size;
-                         offset+=(i==last) ? Ceil4(size) : Ceil16(size); // arrays are 16-byte aligned, and last element is 'size' only
+                         offset+=((i==last) ? Ceil4(size) : Ceil16(size)); // arrays are 16-byte aligned, and last element is 'size' only, have to do 'Ceil4' because of Half's
                   was_half=half;
                }else Exit(S+"Unhandled Shader Parameter Type for \""+name+'"');
-            }else
-            if(type_desc.Class==D3D_SVC_MATRIX_COLUMNS)
-            {
-               if(type_desc.Rows   >4)Exit("Shader Param Matrix Rows>4");
-               if(type_desc.Columns>4)Exit("Shader Param Matrix Cols>4");
-               if(type_desc.Type!=D3D_SVT_FLOAT)Exit(S+"Unhandled Shader Parameter Type for \""+name+'"');
-
-               Bool half=(type_desc.Type==D3D_SVT_MIN16FLOAT);
-               Int  size=(half ? SIZE(Half) : SIZE(Flt))*type_desc.Rows*type_desc.Columns;
-               if(offset/16 != (offset+size-1)/16 || (was_half>=0 && was_half!=(Byte)half))offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary."
-               FREPD(y, type_desc.Columns)
-               FREPD(x, type_desc.Rows   )translation.New().set(cpu_data_size+SIZE(Flt)*(y+x*type_desc.Columns), offset+SIZE(Flt)*(x+y*4), SIZE(Flt));
-               cpu_data_size+=size;
-                      offset+=(i==last) ? Ceil4(size) : Ceil16(size); // arrays are 16-byte aligned, and last element is 'size' only
-               was_half=half;
-            }else
-            if(type_desc.Class==D3D_SVC_STRUCT)
+            }break;
+            
+            case D3D_SVC_STRUCT:
             {
                offset=Ceil16(offset); // "Each structure forces the next variable to start on the next four-component vector."
                FREP(type_desc.Members) // iterate all struct members
@@ -323,7 +319,7 @@ struct ShaderCompiler1
                   addTranslation(member, member_desc, type->GetMemberTypeName(i), offset, was_half);
                }
              //offset=Ceil16(offset); // "Each structure forces the next variable to start on the next four-component vector." even though documentation examples indicate this should align too, actual tests confirm that's not the case
-            }
+            }break;
          }
       }
    };
