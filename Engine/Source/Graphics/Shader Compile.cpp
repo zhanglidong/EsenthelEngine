@@ -283,6 +283,7 @@ private:
 /******************************************************************************/
 // COMPILER
 /******************************************************************************/
+#if WINDOWS
 void ShaderCompiler::Param::addTranslation(ID3D11ShaderReflectionType *type, C D3D11_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, SByte &was_min16) // 'was_min16'=if last inserted parameter was of min16 type (-1=no last parameter)
 {
    // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-packing-rules
@@ -352,6 +353,7 @@ void ShaderCompiler::Param::addTranslation(ID3D11ShaderReflectionType *type, C D
       }break;
    }
 }
+#endif
 Bool ShaderCompiler::Param::operator==(C Param &p)C
 {
    if(translation.elms()!=p.translation.elms())return false; REPA(translation)if(translation[i]!=p.translation[i])return false;
@@ -407,6 +409,7 @@ static Bool Match(C ShaderCompiler::SubShader &output, C ShaderCompiler::SubShad
 }
 void ShaderCompiler::SubShader::compile()
 {
+#if WINDOWS
  C Source         *source  =shader->source;
  C ShaderCompiler *compiler=source->compiler;
    Char8 target[6+1];
@@ -565,6 +568,9 @@ void ShaderCompiler::SubShader::compile()
       }
       buffer->Release();
    }
+#else
+   result=FAIL;
+#endif
    if(result!=GOOD)Exit(S+"Compiling \""+shader->name+"\" in \""+source->file_name+"\" failed:\n"+error);
 }
 /******************************************************************************/
