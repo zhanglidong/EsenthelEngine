@@ -268,7 +268,7 @@ struct ShaderCompiler1
       Int  elms, cpu_data_size=0;
       Mems<ShaderParam::Translation> translation;
 
-      void addTranslation(ID3D11ShaderReflectionType *type, C D3D11_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, SByte &was_half)
+      void addTranslation(ID3D11ShaderReflectionType *type, C D3D11_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, SByte &was_half) // 'was_half'=if last inserted parameter was of half type (-1=no last parameter)
       {
          // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-packing-rules
          /* D3DCompile introduces some weird packing rules for min16float:
@@ -278,7 +278,7 @@ struct ShaderCompiler1
                min16float b1; // offset=0
                     float b2; // offset=16
 
-            Looks like 'min16float' and 'float' can't be together on the same Vec4, so when a change is detected, switch to new Vec4
+            Looks like 'min16float' and 'float' can't be together on the same Vec4, so when a change is detected (using 'was_half'), switch to new Vec4
          */
          if(type_desc.Elements)offset=Ceil16(offset); // arrays are 16-byte aligned (even 1-element arrays "f[1]"), non-arrays have Elements=0, so check Elements!=0
          Int  elms=Max(type_desc.Elements, 1), last_index=elms-1; // 'Elements' is array size (it's 0 for non-arrays)
