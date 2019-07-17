@@ -80,7 +80,7 @@ struct ShaderCompiler
       Mems<Buffer> buffers;
       Mems<Image > images;
       Mems<IO    > inputs, outputs;
-      Mems<Byte  > shader_data;
+      ShaderData   shader_data;
       Int          shader_data_index;
 
       Bool is()C {return func_name.is();}

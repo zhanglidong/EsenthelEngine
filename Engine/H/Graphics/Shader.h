@@ -186,21 +186,19 @@ struct ShaderBuffer // Constant Buffer
 };
 #endif
 /******************************************************************************/
-struct ShaderShader
+struct ShaderData : Mems<Byte>
 {
 #if EE_PRIVATE
-   Mems<Byte> data;
+   void clean() {super::del();}
 
-   void clean() {data.del();}
-
-   Bool save(File &f)C {return data.saveRaw(f);}
-   Bool load(File &f)  {return data.loadRaw(f);}
+   Bool save(File &f)C {return super::saveRaw(f);}
+   Bool load(File &f)  {return super::loadRaw(f);}
 #endif
 };
 #if EE_PRIVATE
 /******************************************************************************/
 #if WINDOWS
-struct ShaderVS11 : ShaderShader
+struct ShaderVS11 : ShaderData
 {
    ID3D11VertexShader *vs;
 
@@ -210,7 +208,7 @@ struct ShaderVS11 : ShaderShader
    ShaderVS11() {vs=null;}
    NO_COPY_CONSTRUCTOR(ShaderVS11);
 };
-struct ShaderHS11 : ShaderShader
+struct ShaderHS11 : ShaderData
 {
    ID3D11HullShader *hs;
 
@@ -220,7 +218,7 @@ struct ShaderHS11 : ShaderShader
    ShaderHS11() {hs=null;}
    NO_COPY_CONSTRUCTOR(ShaderHS11);
 };
-struct ShaderDS11 : ShaderShader
+struct ShaderDS11 : ShaderData
 {
    ID3D11DomainShader *ds;
 
@@ -230,7 +228,7 @@ struct ShaderDS11 : ShaderShader
    ShaderDS11() {ds=null;}
    NO_COPY_CONSTRUCTOR(ShaderDS11);
 };
-struct ShaderPS11 : ShaderShader
+struct ShaderPS11 : ShaderData
 {
    ID3D11PixelShader *ps;
 
@@ -242,7 +240,7 @@ struct ShaderPS11 : ShaderShader
 };
 #endif
 /******************************************************************************/
-struct ShaderVSGL : ShaderShader
+struct ShaderVSGL : ShaderData
 {
    UInt vs;
 
@@ -253,7 +251,7 @@ struct ShaderVSGL : ShaderShader
    ShaderVSGL() {vs=0;}
    NO_COPY_CONSTRUCTOR(ShaderVSGL);
 };
-struct ShaderPSGL : ShaderShader
+struct ShaderPSGL : ShaderData
 {
    UInt ps;
 
@@ -423,15 +421,15 @@ private:
       Mems<ShaderDS11> _ds;
       Mems<ShaderPS11> _ps;
    #elif GL
-      Mems<ShaderVSGL  > _vs;
-      Mems<ShaderShader> _hs;
-      Mems<ShaderShader> _ds;
-      Mems<ShaderPSGL  > _ps;
+      Mems<ShaderVSGL> _vs;
+      Mems<ShaderData> _hs;
+      Mems<ShaderData> _ds;
+      Mems<ShaderPSGL> _ps;
    #endif
 #else
-   Mems<ShaderShader> _vs, _hs, _ds, _ps;
+   Mems<ShaderData> _vs, _hs, _ds, _ps;
 #endif
-   Mems<Shader      > _shaders;
+   Mems<Shader    > _shaders;
    NO_COPY_CONSTRUCTOR(ShaderFile);
 };
 /******************************************************************************/

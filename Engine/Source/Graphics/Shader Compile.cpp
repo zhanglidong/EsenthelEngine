@@ -616,7 +616,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
    threads.wait();
    Map<Str8, Buffer*> buffers(CompareCS);
    Memc<Str8>         images;
-   Mems< Mems<Byte> > shader_datas[ST_NUM];
+   Mems<ShaderData>   shader_datas[ST_NUM];
    FREPA(sources)
    {
       Source &source=sources[i]; FREPA(source.shaders)
@@ -634,8 +634,8 @@ Bool ShaderCompiler::compileTry(Threads &threads)
 
             sub.shader_data_index=-1; if(sub.shader_data.elms())
             {
-               Mems< Mems<Byte> > &sds=shader_datas[i];
-               FREPA(sds){Mems<Byte> &sd=sds[i]; if(sd.elms()==sub.shader_data.elms() && EqualMem(sd.data(), sub.shader_data.data(), sd.elms())){sub.shader_data_index=i; goto have;}} // find same
+               Mems<ShaderData> &sds=shader_datas[i];
+               FREPA(sds){ShaderData &sd=sds[i]; if(sd.elms()==sub.shader_data.elms() && EqualMem(sd.data(), sub.shader_data.data(), sd.elms())){sub.shader_data_index=i; goto have;}} // find same
                sub.shader_data_index=sds.elms(); Swap(sds.New(), sub.shader_data); // add new, just swap
             have:
                sub.shader_data.del(); // no longer needed
@@ -659,22 +659,27 @@ Bool ShaderCompiler::compileTry(Threads &threads)
          f.putStr(buf.name).cmpUIntV(buf.size).putSByte(buf.explicitBindSlot());
 
          // params
-         if(!buf.params.save(f))return false;
+         if(!buf.params.save(f))goto error;
       }
 
       // images
       f.cmpUIntV(images.elms());
       FREPA(images)f.putStr(images[i]);
 
-      if(vs   .save(f)) // shaders
-      if(hs   .save(f))
-      if(ds   .save(f))
-      if(ps   .save(f))
+      // shader data
+      FREPA(shader_datas)
+      {
+         Mems<ShaderData> &shader_data=shader_datas[i];
+         if(!shader_data.save(f))goto error;
+      }
+
+      // shaders
    // FIXME don't list constant buffers that have 'bind_explicit' in vs_buffers, etc, but LIST in buffers
       if(techs.save(f, buffers, images)) // techniques
          if(f.flushOK())return true;
 
-      f.del(); FDelFile(name);
+   error:
+      f.del(); FDelFile(dest);
    }
    return false;
 }
@@ -864,7 +869,7 @@ Bool ShaderFile::load(C Str &name)
                }
             }break;
          #elif GL
-            case SHADER_GL:
+            case API_GL:
             {
                switch(f.decUIntV()) // version
                {

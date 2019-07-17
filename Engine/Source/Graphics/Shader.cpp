@@ -729,10 +729,10 @@ ShaderPSGL::~ShaderPSGL() {if(ps){if(D.created())glDeleteShader(ps); ps=0;}} // 
 #if DX11
 // lock not needed for DX11 'D3D', however we need a lock because this may get called from multiple threads at the same time, but we can use another lock to allow processing during rendering (when D._lock is locked)
 static SyncLock ShaderLock; // use custom lock instead of 'D._lock' to allow shader creation while rendering
-ID3D11VertexShader* ShaderVS11::create() {if(!vs && data.elms()){SyncLocker locker(ShaderLock); if(!vs && data.elms() && D3D){D3D->CreateVertexShader(data.data(), data.elms(), null, &vs); clean();}} return vs;}
-ID3D11HullShader  * ShaderHS11::create() {if(!hs && data.elms()){SyncLocker locker(ShaderLock); if(!hs && data.elms() && D3D){D3D->CreateHullShader  (data.data(), data.elms(), null, &hs); clean();}} return hs;}
-ID3D11DomainShader* ShaderDS11::create() {if(!ds && data.elms()){SyncLocker locker(ShaderLock); if(!ds && data.elms() && D3D){D3D->CreateDomainShader(data.data(), data.elms(), null, &ds); clean();}} return ds;}
-ID3D11PixelShader * ShaderPS11::create() {if(!ps && data.elms()){SyncLocker locker(ShaderLock); if(!ps && data.elms() && D3D){D3D->CreatePixelShader (data.data(), data.elms(), null, &ps); clean();}} return ps;}
+ID3D11VertexShader* ShaderVS11::create() {if(!vs && elms()){SyncLocker locker(ShaderLock); if(!vs && elms() && D3D){D3D->CreateVertexShader(data(), elms(), null, &vs); clean();}} return vs;}
+ID3D11HullShader  * ShaderHS11::create() {if(!hs && elms()){SyncLocker locker(ShaderLock); if(!hs && elms() && D3D){D3D->CreateHullShader  (data(), elms(), null, &hs); clean();}} return hs;}
+ID3D11DomainShader* ShaderDS11::create() {if(!ds && elms()){SyncLocker locker(ShaderLock); if(!ds && elms() && D3D){D3D->CreateDomainShader(data(), elms(), null, &ds); clean();}} return ds;}
+ID3D11PixelShader * ShaderPS11::create() {if(!ps && elms()){SyncLocker locker(ShaderLock); if(!ps && elms() && D3D){D3D->CreatePixelShader (data(), elms(), null, &ps); clean();}} return ps;}
 #elif GL
 static void SetMaxMatrix(Str8 &code)
 {
@@ -767,13 +767,13 @@ CChar8* GLSLVersion()
 static SyncLock ShaderLock; // use custom lock instead of 'D._lock' to allow shader creation while rendering
 UInt ShaderVSGL::create(Bool clean, Str *messages)
 {
-   if(!vs && data.elms())
+   if(!vs && elms())
    {
       SyncLocker locker(GL_LOCK ? D._lock : ShaderLock);
-      if(!vs && data.elms())
+      if(!vs && elms())
       {
          UInt vs=glCreateShader(GL_VERTEX_SHADER); if(!vs)Exit("Can't create GL_VERTEX_SHADER"); // create into temp var first and set to this only after fully initialized
-         File src, temp; src.readMem(data.data(), data.elms()); Decompress(src, temp, true); temp.pos(0); // decompress shader
+         File src, temp; src.readMem(data(), elms()); Decompress(src, temp, true); temp.pos(0); // decompress shader
          Str8 code; temp.getStr(code); // read code
          SetMaxMatrix(code);
       #if GL_ES
@@ -802,13 +802,13 @@ UInt ShaderVSGL::create(Bool clean, Str *messages)
 }
 UInt ShaderPSGL::create(Bool clean, Str *messages)
 {
-   if(!ps && data.elms())
+   if(!ps && elms())
    {
       SyncLocker locker(GL_LOCK ? D._lock : ShaderLock);
-      if(!ps && data.elms())
+      if(!ps && elms())
       {
          UInt ps=glCreateShader(GL_FRAGMENT_SHADER); if(!ps)Exit("Can't create GL_FRAGMENT_SHADER"); // create into temp var first and set to this only after fully initialized
-         File  src, temp; src.readMem(data.data(), data.elms()); Decompress(src, temp, true); temp.pos(0); // decompress shader
+         File  src, temp; src.readMem(data(), elms()); Decompress(src, temp, true); temp.pos(0); // decompress shader
          Str8 code; temp.getStr(code); // read code
          SetMaxMatrix(code);
 
