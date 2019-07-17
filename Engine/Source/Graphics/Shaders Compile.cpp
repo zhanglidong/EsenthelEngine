@@ -252,6 +252,7 @@ struct ShaderCompiler
    }
 };
 #if WINDOWS
+// FIXME don't list constant buffers that have 'bind_explicit' in vs_buffers, etc, but LIST in buffers
 struct ShaderCompiler1
 {
    struct Source;
@@ -261,11 +262,65 @@ struct ShaderCompiler1
       Str8 name, value;
       void set(C Str8 &name, C Str8 &value) {T.name=name; T.value=value;}
    };
+   struct Param
+   {
+      Str8 name;
+      Int  elms, cpu_data_size=0;
+      Mems<ShaderParam::Translation> translation;
+
+      void addTranslation(ID3D11ShaderReflectionType *type, C D3D11_SHADER_TYPE_DESC &type_desc, Int &offset, CChar8 *name)
+      {
+         // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-packing-rules
+         Int  elms=Max(type_desc.Elements, 1), last=elms-1; // 'Elements' is array size (it's 0 for non-arrays)
+         FREP(elms)
+         {
+            if(type_desc.Class==D3D_SVC_SCALAR || type_desc.Class==D3D_SVC_VECTOR) // for example: Flt f,f[]; Vec2 v,v[]; Vec v,v[]; Vec4 v,v[];
+            {
+               if(type_desc.Rows!=1)Exit("Shader Param Rows!=1");
+               if(type_desc.Type==D3D_SVT_FLOAT)
+               {
+                  Int size=SIZE(Flt)*type_desc.Columns,
+                    stride=(i==last) ? size : Ceil16(size); // arrays are aligned on Vec4's (size 16), and last element is 'size' only;
+                  if(offset/16 != (offset+stride-1)/16)offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary.", use 'stride' instead of 'size' because we have to arrays have to start aligned too
+                  translation.New().set(cpu_data_size, offset, size);
+                  cpu_data_size+=size;
+                         offset+=stride;
+               }else Exit(S+"Unhandled Shader Parameter Type for \""+name+'"');
+            }else
+            if(type_desc.Class==D3D_SVC_MATRIX_COLUMNS)
+            {
+               if(type_desc.Rows   >4)Exit("Shader Param Matrix Rows>4");
+               if(type_desc.Columns>4)Exit("Shader Param Matrix Cols>4");
+               if(type_desc.Type!=D3D_SVT_FLOAT)Exit(S+"Unhandled Shader Parameter Type for \""+name+'"');
+
+               Int size=SIZE(Flt)*type_desc.Rows*type_desc.Columns,
+                 stride=(i==last) ? size : Ceil16(size); // arrays are aligned on Vec4's (size 16), and last element is 'size' only;
+               if(offset/16 != (offset+stride-1)/16)offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary.", use 'stride' instead of 'size' because we have to arrays have to start aligned too
+               FREPD(y, type_desc.Columns)
+               FREPD(x, type_desc.Rows   )translation.New().set(cpu_data_size+SIZE(Flt)*(y+x*type_desc.Columns), offset+SIZE(Flt)*(x+y*4), SIZE(Flt));
+               cpu_data_size+=size;
+                      offset+=stride;
+            }else
+            if(type_desc.Class==D3D_SVC_STRUCT)
+            {
+               offset=Ceil16(offset); // "Each structure forces the next variable to start on the next four-component vector."
+               FREP(type_desc.Members) // iterate all struct members
+               {
+                  ID3D11ShaderReflectionType *member=type->GetMemberTypeByIndex(i); if(!member)Exit("'GetMemberTypeByIndex' failed");
+                  D3D11_SHADER_TYPE_DESC member_desc; if(!OK(member->GetDesc(&member_desc)))Exit("'ID3D11ShaderReflectionType.GetDesc' failed");
+                  addTranslation(member, member_desc, offset, type->GetMemberTypeName(i));
+               }
+               offset=Ceil16(offset); // "Each structure forces the next variable to start on the next four-component vector." this applies to elements after too
+            }
+         }
+      }
+   };
    struct Buffer
    {
       Str8 name;
       Int  size, bind_slot;
       Bool bind_explicit;
+      Mems<Param> params;
    };
    struct Image
    {
@@ -500,6 +555,18 @@ void ShaderCompiler1::SubShader::compile()
       {
          D3D11_SHADER_DESC desc; if(!OK(reflection->GetDesc(&desc))){error.line()+="'ID3D11ShaderReflection.GetDesc' failed.";}else
          {
+            Int images_elms=0, buffers_elms=0;
+            FREP(desc.BoundResources)
+            {
+               D3D11_SHADER_INPUT_BIND_DESC desc; if(!OK(reflection->GetResourceBindingDesc(i, &desc))){error.line()+="'GetResourceBindingDesc' failed."; goto error;}
+               switch(desc.Type)
+               {
+                  case D3D_SIT_TEXTURE:  images_elms++; break;
+                  case D3D_SIT_CBUFFER: buffers_elms++; break;
+               }
+            }
+             images.setNum( images_elms);  images_elms=0;
+            buffers.setNum(buffers_elms); buffers_elms=0;
             FREP(desc.BoundResources)
             {
                D3D11_SHADER_INPUT_BIND_DESC desc; if(!OK(reflection->GetResourceBindingDesc(i, &desc))){error.line()+="'GetResourceBindingDesc' failed."; goto error;}
@@ -508,13 +575,13 @@ void ShaderCompiler1::SubShader::compile()
                   case D3D_SIT_TEXTURE:
                   {
                      if(!InRange(desc.BindPoint, MAX_TEXTURES)){error.line()+=S+"Texture index: "+desc.BindPoint+", is too big"; goto error;}
-                     Image &image=images.New(); image.name=desc.Name; image.bind_slot=desc.BindPoint;
+                     Image &image=images[images_elms++]; image.name=desc.Name; image.bind_slot=desc.BindPoint;
                   }break;
 
                   case D3D_SIT_CBUFFER:
                   {
                      if(!InRange(desc.BindPoint, MAX_SHADER_BUFFERS)){error.line()+=S+"Constant Buffer index: "+desc.BindPoint+", is too big"; goto error;}
-                     Buffer &buffer=buffers.New();
+                     Buffer &buffer=buffers[buffers_elms++];
                      buffer.name=desc.Name;
                      buffer.bind_slot=desc.BindPoint;
                      buffer.bind_explicit=FlagTest(desc.uFlags, D3D_SIF_USERPACKED);
@@ -522,6 +589,7 @@ void ShaderCompiler1::SubShader::compile()
                      {
                         D3D11_SHADER_BUFFER_DESC desc; if(!OK(cb->GetDesc(&desc))){error.line()+="'ID3D11ShaderReflectionConstantBuffer.GetDesc' failed."; goto error;}
                         buffer.size=desc.Size;
+                        buffer.params.setNum(desc.Variables);
                         FREP(desc.Variables)
                         {
                            ID3D11ShaderReflectionVariable *var=cb->GetVariableByIndex(i); if(!var){error.line()+="'GetVariableByIndex' failed."; goto error;}
@@ -529,7 +597,20 @@ void ShaderCompiler1::SubShader::compile()
                            D3D11_SHADER_VARIABLE_DESC var_desc; if(!OK( var->GetDesc(& var_desc))){error.line()+="'ID3D11ShaderReflectionVariable.GetDesc' failed."; goto error;}
                            D3D11_SHADER_TYPE_DESC    type_desc; if(!OK(type->GetDesc(&type_desc))){error.line()+="'ID3D11ShaderReflectionType.GetDesc' failed."; goto error;}
 
-                           int z=0;
+                           Param &param=buffer.params[i];
+                           param.name=var_desc.Name;
+                           param.elms=type_desc.Elements;
+                           var_desc.DefaultValue; // FIXME
+                           Int offset=var_desc.StartOffset; param.addTranslation(type, type_desc, offset, var_desc.Name);
+               
+               /*sp._gpu_data_size=type.UnpackedSize;
+             //sp._constant_count= unused on DX10+
+
+               if(sp._cpu_data_size!=type.  PackedSize
+               || sp._gpu_data_size!=type.UnpackedSize)Exit("Incorrect Shader Param size.\nPlease contact Developer.");
+               if(sp._gpu_data_size+sp._full_translation[0].gpu_offset>buf.size())Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer.");
+             //if(SIZE(Vec4)       +sp._full_translation[0].gpu_offset>buf.size())Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer."); some functions assume that '_gpu_data_size' is at least as big as 'Vec4' to set values without checking for size, !! this is not needed and shouldn't be called because in DX10+ Shader Params are stored in Shader Buffers, and 'ShaderBuffer' already allocates padding for Vec4*/
+
                          //type->Release(); this doesn't have 'Release'
                          //var ->Release(); this doesn't have 'Release'
                         }
