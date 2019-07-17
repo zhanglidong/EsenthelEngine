@@ -120,8 +120,6 @@ struct ShaderParam // Shader Parameter
           void optimize();
           void initAsElement(ShaderParam &parent, Int index);
 
-   Bool save(File &f, C Str8 &name)C;
-
    INLINE GpuMatrix* asGpuMatrix() {return (GpuMatrix*)_data;}
 
   ~ShaderParam();
@@ -185,18 +183,6 @@ struct ShaderBuffer // Constant Buffer
   ~ShaderBuffer();
 
    NO_COPY_CONSTRUCTOR(ShaderBuffer);
-};
-struct ShaderParamName : ShaderParam
-{
-   Str8 name;
-
-   Bool save(File &f)C {return super::save(f, name);}
-};
-struct ShaderBufferParams
-{
-   ShaderBuffer         *buffer;
-   Int                   index;
-   Mems<ShaderParamName> params;
 };
 #endif
 /******************************************************************************/
@@ -312,7 +298,6 @@ struct Shader11
    void commitTex();
    void start    ();
    void begin    ();
-   Bool save     (File &f, C Memc <ShaderBufferParams> &buffers, C Memc <ShaderImage*     > &images)C;
    Bool load     (File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images);
 
    Shader11();
@@ -366,7 +351,6 @@ struct ShaderGL
    void commitTex();
    void start    ();
    void begin    ();
-   Bool save     (File &f, C Map  <Str8, ShaderParam> &params, C Memc <ShaderImage*     > &images)C;
    Bool load     (File &f, C MemtN<ShaderParam*, 256> &params, C MemtN<ShaderImage*, 256> &images);
 
    ShaderGL();

@@ -621,6 +621,7 @@ struct ShaderCompiler
       if(!compileTry(threads))Exit(S+"Failed to compile:"+messages);
    }
 };
+/******************************************************************************/
 struct Include11 : ID3DInclude
 {
    struct ShaderPath
@@ -666,6 +667,7 @@ struct Include11 : ID3DInclude
       Set(root.path, GetPath(src));
    }
 };
+/******************************************************************************/
 void ShaderCompiler::SubShader::compile()
 {
  C Source         *source  =shader->source;
