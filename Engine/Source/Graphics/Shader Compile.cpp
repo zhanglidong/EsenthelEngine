@@ -123,16 +123,14 @@ namespace EE{
 /******************************************************************************/
 #define CC4_SHDR CC4('S','H','D','R')
 /******************************************************************************/
-enum SHADER_TYPE : Byte // !! these enums are saved !!
+static const CChar8* APIName[]=
 {
-   SHADER_GL  ,
-   SHADER_DX9 ,
-   SHADER_DX11,
-};
+   "DX"    , // 0
+   "GL"    , // 1
+   "VULKAN", // 2
+   "METAL" , // 3
+}; ASSERT(API_DX==0 && API_GL==1 && API_VULKAN==2 && API_METAL==3 && API_NUM==4);
 /******************************************************************************/
-#define FLAGS_DX11    (D3DCOMPILE_OPTIMIZATION_LEVEL3)
-#define SHOW_GLSL_SRC 0
-
 #if   0 // Test #1: shader size 6.61 MB, engine load+render 1 frame = 0.40s on Windows, decompression 10x faster
    #define COMPRESS_GL       COMPRESS_LZ4
    #define COMPRESS_GL_LEVEL 11
@@ -752,7 +750,7 @@ Bool ShaderFile::load(C Str &name)
          switch(f.getByte()) // type
          {
          #if DX11
-            case SHADER_DX11:
+            case API_DX:
             {
                switch(f.decUIntV()) // version
                {
@@ -1066,9 +1064,9 @@ static Bool ShaderSave(C Str &name, C Memc<ShaderBufferParams> &buffers, C Memc<
 {
    File f; if(f.writeTry(name))
    {
-      f.putUInt (CC4_SHDR   ); // cc4
-      f.putByte (SHADER_DX11); // type
-      f.cmpUIntV(0          ); // version
+      f.putUInt (CC4_SHDR); // cc4
+      f.putByte (API_DX  ); // type
+      f.cmpUIntV(0       ); // version
 
       // constants
       f.cmpUIntV(buffers.elms()); FREPA(buffers)
@@ -1114,9 +1112,9 @@ static Bool ShaderSave(C Str &name, C Map<Str8, ShaderParamEx> &params, C Memc<S
 {
    File f; if(f.writeTry(name))
    {
-      f.putUInt (CC4_SHDR ); // cc4
-      f.putByte (SHADER_GL); // type
-      f.cmpUIntV(0        ); // version
+      f.putUInt (CC4_SHDR); // cc4
+      f.putByte (API_GL  ); // type
+      f.cmpUIntV(0       ); // version
 
       // params
       f.cmpUIntV(params.elms());
@@ -1162,7 +1160,7 @@ static Bool ShaderCompile11(C Str &src, C Str &dest, C MemPtr<ShaderMacro> &macr
          lib->Release();
       }
       Mems<D3D_SHADER_MACRO> d3d_macros; d3d_macros.setNum(macros.elms()+1); FREPA(macros){D3D_SHADER_MACRO &m=d3d_macros[i]; m.Name=macros[i].name; m.Definition=macros[i].definition;} Zero(d3d_macros.last());
-      int r=CompileFromBlob(input, src, d3d_macros.data(), &Include12(src), "Test_PS", "ps_5_0", FLAGS_DX11, 0, &buffer, &error); Error(error, messages);
+      int r=CompileFromBlob(input, src, d3d_macros.data(), &Include12(src), "Test_PS", "ps_5_0", D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &buffer, &error); Error(error, messages);
       if(buffer)
       {
        //ID3DX11Effect *effect=null; D3DX11CreateEffectFromMemory(buffer->GetBufferPointer(), buffer->GetBufferSize(), 0, D3D, &effect);
@@ -1180,7 +1178,7 @@ static Bool ShaderCompile11(C Str &src, C Str &dest, C MemPtr<ShaderMacro> &macr
 
    ID3DBlob *buffer=null, *error=null;
    Mems<D3D_SHADER_MACRO> d3d_macros; d3d_macros.setNum(macros.elms()+1); FREPA(macros){D3D_SHADER_MACRO &m=d3d_macros[i]; m.Name=macros[i].name; m.Definition=macros[i].definition;} Zero(d3d_macros.last());
-   D3DCompile(data.data(), data.elms(), (Str8)src, d3d_macros.data(), &Include11(src), null, "fx_5_0", FLAGS_DX11|D3DCOMPILE_NO_PRESHADER, 0, &buffer, &error); Error(error, messages);
+   D3DCompile(data.data(), data.elms(), (Str8)src, d3d_macros.data(), &Include11(src), null, "fx_5_0", D3DCOMPILE_OPTIMIZATION_LEVEL3|D3DCOMPILE_NO_PRESHADER, 0, &buffer, &error); Error(error, messages);
 
    ID3DX11Effect *effect=null;
    if(buffer)
@@ -1970,6 +1968,7 @@ struct CGEFFECT
    explicit CGEFFECT(CGeffect fx) {_=fx;}
 };
 #endif
+#define SHOW_GLSL_SRC 0
 static Bool ShaderCompileGL(Str name, C Str &dest, C MemPtr<ShaderMacro> &macros, Str *messages, C MemPtr<ShaderGLSL> &stg)
 {
 #if GL && !GL_ES && WINDOWS

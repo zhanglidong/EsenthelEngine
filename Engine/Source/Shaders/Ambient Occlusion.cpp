@@ -38,14 +38,14 @@ void AO_VS(VtxInput vtx,
 Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
            NOPERSP Vec2 inPosXY :TEXCOORD1,
            NOPERSP Vec2 inPosXY1:TEXCOORD2,
-           NOPERSP PIXEL                  /*,
+           NOPERSP PIXEL                  ,
    uniform Int  mode=0                    ,
    uniform Bool jitter=false              ,
-   uniform Bool normals=false             */):TARGET
+   uniform Bool normals=false             ):TARGET
 {
-Int mode=0;
+/*Int mode=0;
 Bool jitter=false;
-Bool normals=false;
+Bool normals=false;*/
    const Bool geom=(normals && 0); // this is an alternative mode to AO formula which works on 3D space instead of 2D, currently disabled, because has some unresolved issues, doesn't work with flipped normals (leafs/grass), probably would require storing flipped information in Nrm RT W channel, which is currently used for specular
    const Bool linear_filter=1; // this removes some vertical lines on distant terrain (because multiple samples are clamped together), however introduces extra shadowing under distant objects
 
@@ -262,7 +262,7 @@ Bool normals=false;
    }
    return 1-AmbContrast*Half(occl/weight); // result is stored in One Channel 1 Byte RT so it doesn't need 'Sat' saturation
 }
-/******************************************************************************
+/******************************************************************************/
 TECHNIQUE(AO0  , AO_VS(), AO_PS(0, false, false));
 TECHNIQUE(AO1  , AO_VS(), AO_PS(1, false, false));
 TECHNIQUE(AO2  , AO_VS(), AO_PS(2, false, false));

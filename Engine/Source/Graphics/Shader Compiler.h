@@ -1,22 +1,14 @@
 /******************************************************************************/
+enum API : Byte // !! These enums are saved !!
+{
+   API_DX,
+   API_GL,
+   API_VULKAN,
+   API_METAL,
+   API_NUM,
+};
 struct ShaderCompiler
 {
-   enum API : Byte
-   {
-      API_DX,
-      API_GL,
-      API_VULKAN,
-      API_METAL,
-      API_NUM,
-   };
-   static inline CChar8* APIName[]=
-   {
-      "DX",
-      "GL",
-      "VULKAN",
-      "METAL",
-   };
-
    enum SHADER_TYPE : Byte
    {
       VS,
@@ -36,7 +28,9 @@ struct ShaderCompiler
       Bool operator==(C Param &p)C;
       Bool operator!=(C Param &p)C {return !(T==p);}
 
+   #if WINDOWS
       void addTranslation(ID3D11ShaderReflectionType *type, C D3D11_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, SByte &was_min16); // 'was_min16'=if last inserted parameter was of min16 type (-1=no last parameter)
+   #endif
    };
    struct Buffer
    {
@@ -60,7 +54,9 @@ struct ShaderCompiler
       Str8 name;
       Int  index, reg;
 
+   #if WINDOWS
       void operator=(C D3D11_SIGNATURE_PARAMETER_DESC &desc) {name=desc.SemanticName; index=desc.SemanticIndex; reg=desc.Register;}
+   #endif
       Bool operator==(C IO &io)C {return name==io.name && index==io.index && reg==io.reg;}
       Bool operator!=(C IO &io)C {return !(T==io);}
    };

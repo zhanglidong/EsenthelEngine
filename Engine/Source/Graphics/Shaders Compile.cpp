@@ -6,7 +6,6 @@ namespace EE{
 /******************************************************************************/
 #define BUMP_MAPPING   1
 #define MULTI_MATERIAL 1
-#define FORCE_LOG      0
 
 #if DX11   // DirectX 10+
    #define COMPILE_4 1
@@ -15,7 +14,7 @@ namespace EE{
    #define COMPILE_GL 0
 #endif
 
-/**
+/**/
 #define MAIN
 
 #define SIMPLE
@@ -23,10 +22,10 @@ namespace EE{
 #define FORWARD // Forward Shaders in OpenGL compile almost an entire day and use ~5 GB memory during compilation
 #define BLEND_LIGHT
 
-#define AMBIENT*/
-//#define AMBIENT_OCCLUSION
-#define AMBIENT_OCCLUSION_NEW // FIXME
-/*#define BEHIND
+#define AMBIENT
+#define AMBIENT_OCCLUSION
+//#define AMBIENT_OCCLUSION_NEW // FIXME
+#define BEHIND
 #define BLEND
 #define DEPTH_OF_FIELD
 #define EARLY_Z
@@ -80,6 +79,7 @@ void ShaderCompile   (C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<Shad
 Bool ShaderCompileTry(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros=null, Str *messages=null); // compile shader from 'src' file to 'dest' using additional 'macros', false on fail, 'messages'=optional parameter which will receive any messages that occurred during compilation
 void ShaderCompile   (C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros=null                    ); // compile shader from 'src' file to 'dest' using additional 'macros', Exit  on fail
 
+#define FORCE_LOG      0
 struct OldShaderCompiler
 {
    Str               src, dest;
