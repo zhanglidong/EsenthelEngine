@@ -296,6 +296,7 @@ struct ShaderCompiler1
                   Int base_size=(half ? SIZE(Half) : SIZE(Flt)),
                            size=base_size*type_desc.Rows*type_desc.Columns;
                   if(offset/16 != (offset+size-1)/16 || (was_half>=0 && was_half!=(Byte)half))offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary."
+                  if(!half)cpu_data_size=Ceil4(cpu_data_size); // float's are 4-byte aligned on CPU, double too if using #pragma pack(4)
 
                   if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)translation.New().set(cpu_data_size, offset, size);else
                   {
