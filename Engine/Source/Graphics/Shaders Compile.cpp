@@ -309,7 +309,7 @@ struct ShaderCompiler1
                   D3D11_SHADER_TYPE_DESC member_desc; if(!OK(member->GetDesc(&member_desc)))Exit("'ID3D11ShaderReflectionType.GetDesc' failed");
                   addTranslation(member, member_desc, offset, type->GetMemberTypeName(i));
                }
-               offset=Ceil16(offset); // "Each structure forces the next variable to start on the next four-component vector." this applies to elements after too
+             //offset=Ceil16(offset); // "Each structure forces the next variable to start on the next four-component vector." even though documentation examples indicate this should align too, actual tests confirm that's not the case
             }
          }
       }
