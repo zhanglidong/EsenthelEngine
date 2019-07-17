@@ -271,6 +271,7 @@ struct ShaderCompiler1
       void addTranslation(ID3D11ShaderReflectionType *type, C D3D11_SHADER_TYPE_DESC &type_desc, Int &offset, CChar8 *name)
       {
          // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-packing-rules
+         if(type_desc.Elements)offset=Ceil16(offset); // arrays are 16 aligned (even 1-element arrays "f[1]"), non-arrays have Elements=0, so check Elements!=0
          Int  elms=Max(type_desc.Elements, 1), last=elms-1; // 'Elements' is array size (it's 0 for non-arrays)
          FREP(elms)
          {
@@ -279,12 +280,11 @@ struct ShaderCompiler1
                if(type_desc.Rows!=1)Exit("Shader Param Rows!=1");
                if(type_desc.Type==D3D_SVT_FLOAT)
                {
-                  Int size=SIZE(Flt)*type_desc.Columns,
-                    stride=(i==last) ? size : Ceil16(size); // arrays are aligned on Vec4's (size 16), and last element is 'size' only;
-                  if(offset/16 != (offset+stride-1)/16)offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary.", use 'stride' instead of 'size' because we have to arrays have to start aligned too
+                  Int size=SIZE(Flt)*type_desc.Columns;
+                  if(offset/16 != (offset+size-1)/16)offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary."
                   translation.New().set(cpu_data_size, offset, size);
                   cpu_data_size+=size;
-                         offset+=stride;
+                         offset+=(i==last) ? size : Ceil16(size); // arrays are aligned on Vec4's (size 16), and last element is 'size' only
                }else Exit(S+"Unhandled Shader Parameter Type for \""+name+'"');
             }else
             if(type_desc.Class==D3D_SVC_MATRIX_COLUMNS)
@@ -293,13 +293,12 @@ struct ShaderCompiler1
                if(type_desc.Columns>4)Exit("Shader Param Matrix Cols>4");
                if(type_desc.Type!=D3D_SVT_FLOAT)Exit(S+"Unhandled Shader Parameter Type for \""+name+'"');
 
-               Int size=SIZE(Flt)*type_desc.Rows*type_desc.Columns,
-                 stride=(i==last) ? size : Ceil16(size); // arrays are aligned on Vec4's (size 16), and last element is 'size' only;
-               if(offset/16 != (offset+stride-1)/16)offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary.", use 'stride' instead of 'size' because we have to arrays have to start aligned too
+               Int size=SIZE(Flt)*type_desc.Rows*type_desc.Columns;
+               if(offset/16 != (offset+size-1)/16)offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary."
                FREPD(y, type_desc.Columns)
                FREPD(x, type_desc.Rows   )translation.New().set(cpu_data_size+SIZE(Flt)*(y+x*type_desc.Columns), offset+SIZE(Flt)*(x+y*4), SIZE(Flt));
                cpu_data_size+=size;
-                      offset+=stride;
+                      offset+=(i==last) ? size : Ceil16(size); // arrays are aligned on Vec4's (size 16), and last element is 'size' only
             }else
             if(type_desc.Class==D3D_SVC_STRUCT)
             {
