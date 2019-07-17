@@ -745,7 +745,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
 
       // shaders
       shaders.sort(); // sort by name so we can do binary search when looking for shaders
-      FREPA(shaders)
+      f.cmpUIntV(shaders.elms()); FREPA(shaders)
       {
        C Shader &shader=*shaders[i];
          if(!shader.save(f, buffers, images))goto error;
