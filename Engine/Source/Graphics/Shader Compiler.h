@@ -40,6 +40,7 @@ struct ShaderCompiler
     //Mems<Byte>  data;
       Mems<Param> params;
 
+      Int  explicitBindSlot()C {return bind_explicit ? bind_slot : -1;}
       Bool operator==(C Buffer &b)C;
       Bool operator!=(C Buffer &b)C {return !(T==b);}
    };
@@ -132,42 +133,7 @@ struct ShaderCompiler
 
    ShaderCompiler& set(C Str &dest, SHADER_MODEL model, API api=API_DX);
    Source& New(C Str &file_name);
-   /*Bool save()C
-   {
-      File f; if(f.writeTry(dest))
-      {
-         f.putUInt (CC4_SHDR   ); // cc4
-         f.putByte (SHADER_DX11); // type
-         f.cmpUIntV(0          ); // version
 
-         // constants
-         f.cmpUIntV(buffers.elms()); FREPA(buffers)
-         {
-          C ShaderBufferParams &buf=buffers[i];
-
-            // constant buffer
-            f.putStr(Name(*buf.buffer)).cmpUIntV(buf.buffer->size()).putSByte(buf.index); DYNAMIC_ASSERT(buf.index>=-1 && buf.index<=127, "buf.index out of range");
-
-            // params
-            if(!buf.params.save(f))return false;
-         }
-
-         // images
-         f.cmpUIntV(images.elms());
-         FREPA(images)f.putStr(Name(*images[i]));
-
-         if(vs   .save(f)) // shaders
-         if(hs   .save(f))
-         if(ds   .save(f))
-         if(ps   .save(f))
-      // FIXME don't list constant buffers that have 'bind_explicit' in vs_buffers, etc, but LIST in buffers
-         if(techs.save(f, buffers, images)) // techniques
-            if(f.flushOK())return true;
-
-         f.del(); FDelFile(name);
-      }
-      return false;
-   }*/
    Bool compileTry(Threads &threads);
    void compile   (Threads &threads);
 };

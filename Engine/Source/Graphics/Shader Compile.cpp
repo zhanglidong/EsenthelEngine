@@ -643,7 +643,40 @@ Bool ShaderCompiler::compileTry(Threads &threads)
          }
       }
    }
-   return true;
+
+   File f; if(f.writeTry(dest))
+   {
+      f.putUInt (CC4_SHDR); // cc4
+      f.putByte (api     ); // API
+      f.cmpUIntV(0       ); // version
+
+      // constants
+      f.cmpUIntV(buffers.elms()); FREPA(buffers)
+      {
+       C Buffer &buf=*buffers[i];
+
+         // constant buffer
+         f.putStr(buf.name).cmpUIntV(buf.size).putSByte(buf.explicitBindSlot());
+
+         // params
+         if(!buf.params.save(f))return false;
+      }
+
+      // images
+      f.cmpUIntV(images.elms());
+      FREPA(images)f.putStr(images[i]);
+
+      if(vs   .save(f)) // shaders
+      if(hs   .save(f))
+      if(ds   .save(f))
+      if(ps   .save(f))
+   // FIXME don't list constant buffers that have 'bind_explicit' in vs_buffers, etc, but LIST in buffers
+      if(techs.save(f, buffers, images)) // techniques
+         if(f.flushOK())return true;
+
+      f.del(); FDelFile(name);
+   }
+   return false;
 }
 void ShaderCompiler::compile(Threads &threads)
 {
@@ -753,7 +786,7 @@ Bool ShaderFile::load(C Str &name)
    {
       if(f.getUInt()==CC4_SHDR) // cc4
       {
-         switch(f.getByte()) // type
+         switch(f.getByte()) // API
          {
          #if DX11
             case API_DX:
@@ -1071,7 +1104,7 @@ static Bool ShaderSave(C Str &name, C Memc<ShaderBufferParams> &buffers, C Memc<
    File f; if(f.writeTry(name))
    {
       f.putUInt (CC4_SHDR); // cc4
-      f.putByte (API_DX  ); // type
+      f.putByte (API_DX  ); // API
       f.cmpUIntV(0       ); // version
 
       // constants
@@ -1119,7 +1152,7 @@ static Bool ShaderSave(C Str &name, C Map<Str8, ShaderParamEx> &params, C Memc<S
    File f; if(f.writeTry(name))
    {
       f.putUInt (CC4_SHDR); // cc4
-      f.putByte (API_GL  ); // type
+      f.putByte (API_GL  ); // API
       f.cmpUIntV(0       ); // version
 
       // params
