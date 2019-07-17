@@ -272,10 +272,12 @@ struct ShaderCompiler1
       Str8 name;
       Int  elms, cpu_data_size=0, gpu_data_size;
       Mems<ShaderParam::Translation> translation;
+      Mems<Byte> data;
 
       Bool operator==(C Param &p)C
       {
          if(translation.elms()!=p.translation.elms())return false; REPA(translation)if(translation[i]!=p.translation[i])return false;
+         if(data.elms()!=p.data.elms() || !EqualMem(data.data(), p.data.data(), data.elms()))return false;
          return Equal(name, p.name, true) && elms==p.elms && cpu_data_size==p.cpu_data_size && gpu_data_size==p.gpu_data_size;
       }
       Bool operator!=(C Param &p)C {return !(T==p);}
@@ -355,12 +357,12 @@ struct ShaderCompiler1
       Str8 name;
       Int  size, bind_slot;
       Bool bind_explicit;
-      Mems<Byte>  data;
+    //Mems<Byte>  data;
       Mems<Param> params;
 
       Bool operator==(C Buffer &b)C
       {
-         if(data  .elms()!=b.data  .elms() || !EqualMem(data.data(), b.data.data(), data.elms()))return false;
+       //if(data  .elms()!=b.data  .elms() || !EqualMem(data.data(), b.data.data(), data.elms()))return false;
          if(params.elms()!=b.params.elms())return false; REPA(params)if(params[i]!=b.params[i])return false;
          if(bind_explicit && bind_slot!=b.bind_slot)return false; // check only for explicit
          return Equal(name, b.name, true) && size==b.size && bind_explicit==b.bind_explicit;
@@ -714,8 +716,12 @@ void ShaderCompiler1::SubShader::compile()
 
                            if(HasData(var_desc.DefaultValue, var_desc.Size)) // if parameter has any data
                            {
+                           #if 1 // store in parameter
+                              param.data.setNum(param.gpu_data_size).copyFrom((Byte*)var_desc.DefaultValue);
+                           #else // store in buffer
                               buffer.data.setNumZero(buffer.size); // allocate entire buffer
                               CopyFast(buffer.data.data()+var_desc.StartOffset, var_desc.DefaultValue, param.gpu_data_size); // copy param data to buffer data
+                           #endif
                            }
                            
                          //type->Release(); this doesn't have 'Release'
