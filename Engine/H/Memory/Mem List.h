@@ -83,9 +83,9 @@ T1(TYPE) struct Meml : _Meml // List Based Container
    T1(VALUE) Bool binarySearch(C VALUE &value, Int &index, Int compare(C TYPE &a, C VALUE &b)=Compare)C; // search sorted container for presence of 'value' and return if it was found in the container, 'index'=if the function returned true then this index points to the location where the 'value' is located in the container, if the function returned false then it means that 'value' was not found in the container however the 'index' points to the place where it should be added in the container while preserving sorted data, 'index' will always be in range (0..elms) inclusive
 
    // order
-   Meml&         sort(Int compare(C TYPE &a, C TYPE &b)); // sort elements with custom comparing function, method does not change the memory address of any of the elements
-   Meml& reverseOrder(                                 ); // reverse order of elements          (reversing modifies only indexes), this method does not change the memory address of any of the elements
-   Meml&    swapOrder(Int i, Int j                     ); // swap order of 'i' and 'j' elements (swapping  modifies only indexes), this method does not change the memory address of any of the elements
+   Meml&         sort(Int compare(C TYPE &a, C TYPE &b)=Compare); // sort elements with custom comparing function, method does not change the memory address of any of the elements
+   Meml& reverseOrder(                                         ); // reverse order of elements          (reversing modifies only indexes), this method does not change the memory address of any of the elements
+   Meml&    swapOrder(Int i, Int j                             ); // swap order of 'i' and 'j' elements (swapping  modifies only indexes), this method does not change the memory address of any of the elements
 
    // misc
                       Meml& operator=(C Mems  <TYPE      >  &src); // copy elements using assignment operator

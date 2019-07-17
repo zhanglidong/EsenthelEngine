@@ -67,12 +67,12 @@ T1(TYPE) struct Memx : _Memx // Block Based Extended Container
    T1(VALUE)   Bool  binaryToggle (C VALUE &value,             Int compare(C TYPE &a, C VALUE &b)=Compare)  {Int i; if(   !binarySearch(value, i, compare)){NewAt      (i)=value; return true;} removeValid(i, true); return false;} // toggle   'value' (using binary search)    presence in container                , returns true if value is now present in container        , this method does not change the memory address of any of the elements
 
    // order
-   Memx&         sort(Int compare(C TYPE &a, C TYPE &b)); // sort elements with custom comparing function (sorting   modifies only "valid indexes"), this method does not change the memory address of any of the elements
-   Memx& reverseOrder(                                 ); // reverse order of elements                    (reversing modifies only "valid indexes"), this method does not change the memory address of any of the elements
-   Memx&    swapOrder(Int i  , Int j                   ); // swap    order of 'i' and 'j' valid elements  (swapping  modifies only "valid indexes"), this method does not change the memory address of any of the elements
-   Memx& moveElm     (Int elm, Int new_index           ); // move 'elm' valid element to 'new_index'      (moving    modifies only "valid indexes"), this method does not change the memory address of any of the elements
-   Memx& moveToStart (Int elm                          ); // move 'elm' valid element to the start        (moving    modifies only "valid indexes"), this method does not change the memory address of any of the elements
-   Memx& moveToEnd   (Int elm                          ); // move 'elm' valid element to the end          (moving    modifies only "valid indexes"), this method does not change the memory address of any of the elements
+   Memx&         sort(Int compare(C TYPE &a, C TYPE &b)=Compare); // sort elements with custom comparing function (sorting   modifies only "valid indexes"), this method does not change the memory address of any of the elements
+   Memx& reverseOrder(                                         ); // reverse order of elements                    (reversing modifies only "valid indexes"), this method does not change the memory address of any of the elements
+   Memx&    swapOrder(Int i  , Int j                           ); // swap    order of 'i' and 'j' valid elements  (swapping  modifies only "valid indexes"), this method does not change the memory address of any of the elements
+   Memx& moveElm     (Int elm, Int new_index                   ); // move 'elm' valid element to 'new_index'      (moving    modifies only "valid indexes"), this method does not change the memory address of any of the elements
+   Memx& moveToStart (Int elm                                  ); // move 'elm' valid element to the start        (moving    modifies only "valid indexes"), this method does not change the memory address of any of the elements
+   Memx& moveToEnd   (Int elm                                  ); // move 'elm' valid element to the end          (moving    modifies only "valid indexes"), this method does not change the memory address of any of the elements
 
    // misc
                       Memx& operator=(C Mems  <TYPE      >  &src); // copy elements using assignment operator

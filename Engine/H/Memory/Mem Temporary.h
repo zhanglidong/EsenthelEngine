@@ -94,12 +94,12 @@ template<const_mem_addr typename TYPE, Int size> struct Memt // Temporary Memory
    T1(VALUE)   Bool  binaryToggle (C VALUE &value,             Int compare(C TYPE &a, C VALUE &b)=Compare)  {Int i; if(   !binarySearch(value, i, compare)){NewAt (i)=value; return true;} remove(i, true); return false;} // toggle   'value' (using binary search)    presence in container                , returns true if value is now present in container        , this method may change the memory address of all elements
 
    // order
-   Memt&           sort(Int compare(C TYPE &a, C TYPE &b)); // sort elements with custom comparing function
-   Memt&   reverseOrder(                                 ); // reverse   order of elements
-   Memt& randomizeOrder(                                 ); // randomize order of elements
-   Memt&    rotateOrder(Int offset                       ); // rotate    order of elements, changes the order of elements so "new_index=old_index+offset", 'offset'=offset of moving the original indexes into target indexes (-Inf..Inf)
-   Memt&      swapOrder(Int i  , Int j                   ); // swap      order of 'i' and 'j' elements
-   Memt&      moveElm  (Int elm, Int new_index           ); // move 'elm' element to new position located at 'new_index'
+   Memt&           sort(Int compare(C TYPE &a, C TYPE &b)=Compare); // sort elements with custom comparing function
+   Memt&   reverseOrder(                                         ); // reverse   order of elements
+   Memt& randomizeOrder(                                         ); // randomize order of elements
+   Memt&    rotateOrder(Int offset                               ); // rotate    order of elements, changes the order of elements so "new_index=old_index+offset", 'offset'=offset of moving the original indexes into target indexes (-Inf..Inf)
+   Memt&      swapOrder(Int i  , Int j                           ); // swap      order of 'i' and 'j' elements
+   Memt&      moveElm  (Int elm, Int new_index                   ); // move 'elm' element to new position located at 'new_index'
 
    // misc
                           Memt& operator=(C Mems  <TYPE          > &src); // copy elements using assignment operator

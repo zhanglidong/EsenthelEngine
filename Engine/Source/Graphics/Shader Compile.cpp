@@ -433,9 +433,8 @@ void ShaderCompiler::SubShader::compile()
       default    : Exit("Invalid Shader Model"); break;
    }
 
-   MemtN<D3D_SHADER_MACRO, 64> macros;
    Int params=shader->params.elms();
-   macros.setNum(params+API_NUM+1);
+   MemtN<D3D_SHADER_MACRO, 64> macros; macros.setNum(params+API_NUM+1);
    FREP(params)
    {
       D3D_SHADER_MACRO &macro=macros[i]; C TextParam8 &param=shader->params[i];
@@ -659,12 +658,15 @@ Bool ShaderCompiler::Shader::save(File &f, C Map<Str8, Buffer*> &buffers, C Memc
 /******************************************************************************/
 static void Compile(ShaderCompiler::SubShader &shader, Ptr user, Int thread_index) {shader.compile();}
 static Bool Create(ShaderCompiler::Buffer* &data, C Str8 &key, Ptr user) {data=null; return true;}
+static Int Compare(ShaderCompiler::Shader*C &a, ShaderCompiler::Shader*C &b) {return CompareCS(a->name, b->name);}
 Bool ShaderCompiler::compileTry(Threads &threads)
 {
+   Int shaders_num=0;
    FREPA(sources)
    {
       Source &source=sources[i];
       if(!source.load())return error(S+"Can't open file:"+source.file_name);
+      shaders_num+=source.shaders.elms();
       FREPA(source.shaders)
       {
          Shader &shader=source.shaders[i];
@@ -684,8 +686,8 @@ Bool ShaderCompiler::compileTry(Threads &threads)
    threads.wait();
    Map<Str8, Buffer*> buffers(CompareCS, Create);
    Memc<Str8>         images;
-   Mems<ShaderData>   shader_datas[ST_NUM];
-   Int                shaders=0;
+   Memc<ShaderData>   shader_datas[ST_NUM];
+   Mems<Shader*>      shaders(shaders_num); shaders_num=0;
    FREPA(sources)
    {
       Source &source=sources[i]; FREPA(source.shaders)
@@ -703,15 +705,15 @@ Bool ShaderCompiler::compileTry(Threads &threads)
 
             sub.shader_data_index=-1; if(sub.shader_data.elms())
             {
-               Mems<ShaderData> &sds=shader_datas[i];
+               Memc<ShaderData> &sds=shader_datas[i];
                FREPA(sds){ShaderData &sd=sds[i]; if(sd.elms()==sub.shader_data.elms() && EqualMem(sd.data(), sub.shader_data.data(), sd.elms())){sub.shader_data_index=i; goto have;}} // find same
                sub.shader_data_index=sds.elms(); Swap(sds.New(), sub.shader_data); // add new, just swap
             have:
                sub.shader_data.del(); // no longer needed
             }
          }
+         shaders[shaders_num++]=&shader;
       }
-      shaders+=source.shaders.elms();
    }
 
    File f; if(f.writeTry(dest))
@@ -738,18 +740,15 @@ Bool ShaderCompiler::compileTry(Threads &threads)
       // shader data
       FREPA(shader_datas)
       {
-         Mems<ShaderData> &shader_data=shader_datas[i]; if(!shader_data.save(f))goto error;
+         Memc<ShaderData> &shader_data=shader_datas[i]; if(!shader_data.save(f))goto error;
       }
 
       // shaders
-      f.cmpUIntV(shaders);
-      FREPA(sources)
+      shaders.sort(); // sort by name so we can do binary search when looking for shaders
+      FREPA(shaders)
       {
-         Source &source=sources[i]; FREPA(source.shaders)
-         {
-            Shader &shader=source.shaders[i];
-            if(!shader.save(f, buffers, images))goto error;
-         }
+       C Shader &shader=*shaders[i];
+         if(!shader.save(f, buffers, images))goto error;
       }
 
       if(f.flushOK())return true;

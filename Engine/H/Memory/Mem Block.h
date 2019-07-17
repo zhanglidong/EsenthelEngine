@@ -73,10 +73,10 @@ T1(const_mem_addr TYPE) struct Memb : _Memb // Block Based Container
    T1(VALUE)   Bool  binaryToggle (C VALUE &value,             Int compare(C TYPE &a, C VALUE &b)=Compare)  {Int i; if(   !binarySearch(value, i, compare)){NewAt (i)=value; return true;} remove(i, true); return false;} // toggle   'value' (using binary search)    presence in container                , returns true if value is now present in container        , this method may change the memory address of some elements
 
    // order
-   Memb&         sort(Int compare(C TYPE &a, C TYPE &b)); // sort elements with custom comparing function, this method may change the memory address of all elements
-   Memb& reverseOrder(                                 ); // swap order of elements, this method may change the memory address of all elements
-   Memb&    swapOrder(Int i  , Int j                   ); // swap order of 'i' and 'j' valid elements
-   Memb&      moveElm(Int elm, Int new_index           ); // move 'elm' element to new position located at 'new_index'
+   Memb&         sort(Int compare(C TYPE &a, C TYPE &b)=Compare); // sort elements with custom comparing function, this method may change the memory address of all elements
+   Memb& reverseOrder(                                         ); // swap order of elements, this method may change the memory address of all elements
+   Memb&    swapOrder(Int i  , Int j                           ); // swap order of 'i' and 'j' valid elements
+   Memb&      moveElm(Int elm, Int new_index                   ); // move 'elm' element to new position located at 'new_index'
 
    // misc
                       Memb& operator=(C Mems  <TYPE      >  &src); // copy elements using assignment operator
