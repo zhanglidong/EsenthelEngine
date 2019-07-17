@@ -100,7 +100,6 @@ void VS
 
    if(!skin)
    {
-   #if MODEL>=SM_4 || MODEL==SM_GL
       if(true) // instance
       {
          O.vel=ObjVel[vtx.instance()]; // #PER_INSTANCE_VEL
@@ -115,7 +114,6 @@ void VS
          }
          UpdateVelocities_VS(O.vel, pos, O.pos, vtx.instance());
       }else
-   #endif
       {
          O.vel=ObjVel[0];
          O.pos=TransformPos(pos);
@@ -210,7 +208,7 @@ void PS
          #endif
             {
                Vec2 TexSize;
-            #if MODEL>=SM_4
+            #if !CG
                Col.GetDimensions(TexSize.x, TexSize.y);
                Flt lod=Max(0, GetLod(I.tex, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
             #else
@@ -685,7 +683,7 @@ void PS
 /******************************************************************************/
 // HULL / DOMAIN
 /******************************************************************************/
-#if MODEL>=SM_4
+#if !CG
 HSData HSConstant(InputPatch<VS_PS,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].mtrx[2], I[1].mtrx[2], I[2].mtrx[2]);}
 [maxtessfactor(5.0)]
 [domain("tri")]

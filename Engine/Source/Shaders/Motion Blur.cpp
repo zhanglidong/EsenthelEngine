@@ -352,8 +352,6 @@ VecH4 SetDirs_PS(NOPERSP Vec2 inTex:TEXCOORD, // goes simultaneously in both way
       Vec2 t0=inTex, t1=inTex;
    #if 0 // slower
       Int samples=pixels; UNROLL for(Int i=1; i<=samples; i++)
-   #elif MODEL==SM_GL
-      Int samples=Round(blur_dir.z*pixels); LOOP for(Int i=1; i<=samples; i++) // GL version breaks when 'Ceil' is used so for GL we always have to use 'Round'
    #else
       Int samples=Round(blur_dir.z*pixels); LOOP for(Int i=1; i<=samples; i++)
    #endif

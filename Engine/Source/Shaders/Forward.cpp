@@ -91,7 +91,6 @@ void VS
 
    if(!skin)
    {
-   #if MODEL>=SM_4 || MODEL==SM_GL
       if(true) // instance
       {
          O.pos=TransformPos(pos, vtx.instance());
@@ -104,7 +103,6 @@ void VS
             O.fade_out=GrassFadeOut(vtx.instance());
          }
       }else
-   #endif
       {
          O.pos=TransformPos(pos);
 
@@ -342,9 +340,7 @@ VecH4 PS
       Half lum      =LightDiffuse(nrm, light_dir); if(light_dir_shd)lum*=shadow;
 
       // specular
-   #if MODEL>=SM_4
       BRANCH if(lum*specular>EPS_LUM)
-   #endif
       {
          VecH eye_dir=Normalize    (-I.pos);
          Half spec   =LightSpecular(   nrm, specular, light_dir, eye_dir); if(light_dir_shd)spec*=shadow;
@@ -366,9 +362,7 @@ VecH4 PS
       Half lum      =LightDiffuse(nrm, light_dir);
 
       // specular
-   #if MODEL>=SM_4
       BRANCH if(lum*specular>EPS_LUM)
-   #endif
       {
          VecH eye_dir=Normalize    (-I.pos);
          Half spec   =LightSpecular(   nrm, specular, light_dir, eye_dir);
@@ -390,9 +384,7 @@ VecH4 PS
       Half lum      =LightDiffuse(nrm, light_dir);
 
       // specular
-   #if MODEL>=SM_4
       BRANCH if(lum*specular>EPS_LUM)
-   #endif
       {
          VecH eye_dir=Normalize    (-I.pos);
          Half spec   =LightSpecular(   nrm, specular, light_dir, eye_dir);
@@ -415,9 +407,7 @@ VecH4 PS
       Half lum      =LightDiffuse(nrm, light_dir);
 
       // specular
-   #if MODEL>=SM_4
       BRANCH if(lum*specular>EPS_LUM)
-   #endif
       {
          VecH eye_dir=Normalize    (-I.pos);
          Half spec   =LightSpecular(   nrm, specular, light_dir, eye_dir);
@@ -432,7 +422,7 @@ VecH4 PS
 /******************************************************************************/
 // HULL / DOMAIN
 /******************************************************************************/
-#if MODEL>=SM_4
+#if !CG
 HSData HSConstant(InputPatch<VS_PS,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].mtrx[2], I[1].mtrx[2], I[2].mtrx[2]);}
 [maxtessfactor(5.0)]
 [domain("tri")]

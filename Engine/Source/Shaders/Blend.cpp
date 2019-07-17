@@ -27,13 +27,11 @@ void VS
    Vec pos; VecH nrm;
    if(!skin)
    {
-   #if MODEL>=SM_4 || MODEL==SM_GL
       if(true) // instance
       {
                   pos=TransformPos(vtx.pos(), vtx.instance());
          if(rflct)nrm=TransformDir(vtx.nrm(), vtx.instance());
       }else
-   #endif
       {
                   pos=TransformPos(vtx.pos());
          if(rflct)nrm=TransformDir(vtx.nrm());

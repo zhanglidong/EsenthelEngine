@@ -6,7 +6,7 @@
 #undef MatrixH
 #undef MatrixH4
 
-#if MODEL==SM_GL || 1
+#if CG || 1
    #define Half     half
    #define VecH2    half2
    #define VecH     half3

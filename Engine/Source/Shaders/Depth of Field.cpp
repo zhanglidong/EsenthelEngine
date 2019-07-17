@@ -48,7 +48,7 @@ VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
    if(half_res)
    {
       ret.rgb=TexLod(Img, UVClamp(inTex, do_clamp)).rgb; // use linear filtering because we're downsampling
-   #if MODEL>=SM_4
+   #if !GL // gather not available on GL ES 3.0 (starting from 3.1)
       if(gather)depth=DEPTH_MIN(Depth.Gather(SamplerPoint, inTex));else
    #endif
       {
@@ -72,7 +72,7 @@ VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
               +TexLod(Img, t10).rgb
               +TexLod(Img, t01).rgb
               +TexLod(Img, t11).rgb)/4;
-   #if MODEL>=SM_4
+   #if !GL // gather not available on GL ES 3.0 (starting from 3.1)
       if(gather)depth=DEPTH_MIN(DEPTH_MIN(Depth.Gather(SamplerPoint, t00)),
                                 DEPTH_MIN(Depth.Gather(SamplerPoint, t10)),
                                 DEPTH_MIN(Depth.Gather(SamplerPoint, t01)),
@@ -95,7 +95,7 @@ inline Flt Center(Flt center_blur_u) // center_blur_u=0..1 (0.5=focus) here we c
    return center_blur_u*2-1;
 }
 inline Flt Weight(Flt center_blur, Flt test_blur_u, 
-   #if MODEL!=SM_GL // have to forget about uniform because it will fail on Mac
+   #if !CG // have to forget about uniform because it will fail on Mac
       uniform
    #endif
          Int dist, uniform Int range) // center_blur=-1..1 (0=focus), center_blur_u=0..1 (0.5=focus), test_blur_u=0..1 (0.5=focus)
@@ -144,11 +144,7 @@ VecH4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
       t.x=inTex.x+RTSize.x*i;
       Vec4 c=TexPoint(Img, t);
       Flt  test_blur=c.a,
-        #if MODEL==SM_GL
-           w=Weight(center_blur, test_blur, (i>=0) ? i : -i, range);
-        #else
            w=Weight(center_blur, test_blur, Abs(i), range);
-        #endif
       weight  +=w;
       color   +=w*    c;
       blur_abs+=w*Abs(c.a * (2*SCALE) - (1*SCALE)); // SCALE here so we don't have to do it later
@@ -181,11 +177,7 @@ VecH4 DofBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
       t.y=inTex.y+RTSize.y*i;
       Vec4 c=TexPoint(Img, t);
       Flt  test_blur=c.a,
-        #if MODEL==SM_GL
-           w=Weight(center_blur, test_blur, (i>=0) ? i : -i, range);
-        #else
            w=Weight(center_blur, test_blur, Abs(i), range);
-        #endif
       weight  +=w;
       color   +=w*    c;
       blur_abs+=w*Abs(c.a * (2*SCALE) - (1*SCALE)); // SCALE here so we don't have to do it later

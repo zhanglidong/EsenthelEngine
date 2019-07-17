@@ -9,7 +9,7 @@
 
 #define FxaaTex Image
 
-#if MODEL>=SM_4
+#if !CG
    #define FxaaInt2 VecI2
    #define FxaaTexTop(t, p      ) t.SampleLevel(SamplerLinearClamp, p, 0)
    #define FxaaTexOff(t, p, o, r) t.SampleLevel(SamplerLinearClamp, p, 0, o)

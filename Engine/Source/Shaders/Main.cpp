@@ -135,7 +135,7 @@ VecH TexCubicFastRGB(Vec2 inTex) // ignores alpha channel
 #define CUBIC_RANGE       2
 #define CUBIC_SHARPNESS   (2/2.5)
 #define CUBIC_QUALITY     2 // 0..2, 0=3.748 fps, 1=3.242 fps, 2=3.075 fps (however when using CUBIC_SKIP_SAMPLE it's now much faster)
-#if MODEL!=SM_GL
+#if !CG
    #define CUBIC_SKIP_SAMPLE (1 && CUBIC_QUALITY==2) // because the actual range is 2.5 then it means we need to process 5x5 samples (and not 6x6), this optimization can work only if actual range <= 2.5, also we can enable this only for CUBIC_QUALITY==2 because only this mode operates on single 1x1 pixels and not 2x2 blocks)
 #else
    #define CUBIC_SKIP_SAMPLE 1 // otherwise fails to compile
@@ -309,9 +309,9 @@ VecH4 DrawFlat_PS():TARGET {return Color[0];}
 
 TECHNIQUE(Draw2DFlat, Draw2DFlat_VS(), DrawFlat_PS());
 TECHNIQUE(Draw3DFlat, Draw3DFlat_VS(), DrawFlat_PS());
-#if !DX11 // THERE IS A BUG ON NVIDIA GEFORCE DX10+ when trying to clear normal render target using SetCol "Bool clear_nrm=(_nrm && !NRM_CLEAR_START && ClearNrm());", with D.depth2DOn(true) entire RT is cleared instead of background pixels only, this was verified on Windows 10 GeForce 650m, drivers 381, TODO: check again in the future
-TECHNIQUE(SetCol    , Draw_VS      (), DrawFlat_PS());
-#else // this version works OK
+#if GL || VULKAN || METAL // THERE IS A BUG ON NVIDIA GEFORCE DX10+ when trying to clear normal render target using SetCol "Bool clear_nrm=(_nrm && !NRM_CLEAR_START && ClearNrm());", with D.depth2DOn(true) entire RT is cleared instead of background pixels only, this was verified on Windows 10 GeForce 650m, drivers 381, TODO: check again in the future
+TECHNIQUE(SetCol    , Draw_VS      (), DrawFlat_PS()); // this version fails on DX
+#else // this version works OK on DX
 void SetCol_VS(VtxInput vtx,
            out VecH4 outCol:COLOR   ,
            out Vec4  outVtx:POSITION)
@@ -564,7 +564,7 @@ TECHNIQUE(DrawTexCubicD   ,      Draw_VS(), DrawTexCubic_PS(false, true ));
 TECHNIQUE(DrawTexCubicRGB ,      Draw_VS(), DrawTexCubicRGB_PS());
 TECHNIQUE(DrawTexCubicRGBD,      Draw_VS(), DrawTexCubicRGB_PS(true));
 /******************************************************************************/
-#if MODEL>=SM_4
+#if !CG
 VecH4 DrawMs1_PS(NOPERSP PIXEL):TARGET {return TexSample(ImgMS, pixel.xy, 0);}
 VecH4 DrawMsN_PS(NOPERSP PIXEL):TARGET
 {
@@ -650,7 +650,7 @@ VecH4 Font_PS
 
    // final=dest*(1-s)*(1-a) + c*a;
 
-#if DX11
+#if !CG
    VecH2 as=ImgXY.Sample(SamplerFont, inTex).rg; // #FontImageLayout
 #else
    VecH2 as=Tex(ImgXY, inTex).rg; // #FontImageLayout
@@ -1006,7 +1006,7 @@ VecH4 Combine_PS(NOPERSP Vec2 inTex:TEXCOORD,
                  uniform Int  sample        ):TARGET
 {
    VecH4 col=TexLod(Img, inTex); // use linear filtering because 'Img' can be of different size
-#if MODEL>=SM_4
+#if !CG
    if(sample==2) // multi sample
    {
       col.w =0; UNROLL for(Int i=0; i<MS_SAMPLES; i++)col.w+=DEPTH_FOREGROUND(TexDepthMSRaw(pixel.xy, i));
@@ -1031,11 +1031,11 @@ VecH4 Combine_PS(NOPERSP Vec2 inTex:TEXCOORD,
 TECHNIQUE(CombineSSAlpha, Draw_VS(), CombineSSAlpha_PS( ));
 TECHNIQUE(Combine       , Draw_VS(),        Combine_PS(0));
 TECHNIQUE(CombineSS     , Draw_VS(),        Combine_PS(1));
-#if MODEL>=SM_4
+#if !CG
 TECHNIQUE(CombineMS     , Draw_VS(),        Combine_PS(2));
 #endif
 /******************************************************************************/
-#if MODEL>=SM_4
+#if !CG
 void ResolveDepth_PS(NOPERSP PIXEL,
                          out Flt depth:DEPTH)
 {
@@ -1101,7 +1101,7 @@ Flt LinearizeDepth_PS(NOPERSP Vec2 inTex:TEXCOORD,
 }
 TECHNIQUE(LinearizeDepth0 , Draw_VS(), LinearizeDepth_PS(false));
 TECHNIQUE(LinearizeDepthP0, Draw_VS(), LinearizeDepth_PS(true ));
-#if MODEL>=SM_4
+#if !CG
 Flt LinearizeDepth1_PS(NOPERSP PIXEL,
                        uniform Bool perspective):TARGET
 {
@@ -1211,7 +1211,7 @@ VecH4 Sky_PS(PIXEL,
    if(dither)ApplyDither(col.rgb, pixel.xy);
    return col;
 }
-#if MODEL>=SM_4
+#if !CG
 VecH4 Sky1_PS(PIXEL,
               Vec  inPos     :TEXCOORD0,
               Vec  inTex     :TEXCOORD1,
@@ -1266,7 +1266,7 @@ TECHNIQUE    (SkyT10   , Sky_VS(false, false, false), Sky_PS (false, false, fals
 TECHNIQUE    (SkyT20   , Sky_VS(false, false, false), Sky_PS (false, false, false, 2, false, false, false));
 TECHNIQUE    (SkyT10D  , Sky_VS(false, false, false), Sky_PS (false, false, false, 1, false, false, true ));
 TECHNIQUE    (SkyT20D  , Sky_VS(false, false, false), Sky_PS (false, false, false, 2, false, false, true ));
-#if MODEL>=SM_4 // Multi Sample
+#if !CG // Multi Sample
 TECHNIQUE    (SkyT11   , Sky_VS(false, false, false), Sky1_PS(false, false, 1, false, false));
 TECHNIQUE    (SkyT21   , Sky_VS(false, false, false), Sky1_PS(false, false, 2, false, false));
 TECHNIQUE_4_1(SkyT12   , Sky_VS(false, false, false), Sky2_PS(false, false, 1, false, false));
@@ -1313,7 +1313,7 @@ TECHNIQUE    (SkyAVP0D , Sky_VS(true , false, false), Sky_PS(true , false, true 
 TECHNIQUE    (SkyASP0D , Sky_VS(false, true , false), Sky_PS(false, false, true , 0, true , false, true ));
 TECHNIQUE    (SkyAVSP0D, Sky_VS(true , true , false), Sky_PS(true , false, true , 0, true , false, true ));
 
-#if MODEL>=SM_4 // Multi Sample
+#if !CG // Multi Sample
 TECHNIQUE    (SkyA1    , Sky_VS(false, false, false), Sky1_PS(false, false, 0, false, false));
 TECHNIQUE    (SkyAV1   , Sky_VS(true , false, false), Sky1_PS(true , false, 0, false, false));
 TECHNIQUE    (SkyAS1   , Sky_VS(false, true , false), Sky1_PS(false, false, 0, true , false));
@@ -1359,7 +1359,7 @@ VecH4 Fog_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
    return VecH4(FogColor, dns);
 }
-#if MODEL>=SM_4
+#if !CG
 VecH4 FogN_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
               NOPERSP Vec2 inPosXY:TEXCOORD1,
               NOPERSP PIXEL                 ):TARGET
@@ -1386,7 +1386,7 @@ VecH4 FogM_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 }
 #endif
 TECHNIQUE    (Fog , DrawPosXY_VS(), Fog_PS ());
-#if MODEL>=SM_4 // multi sample
+#if !CG // multi sample
 TECHNIQUE    (FogN, DrawPosXY_VS(), FogN_PS());
 TECHNIQUE_4_1(FogM, DrawPosXY_VS(), FogM_PS());
 #endif
@@ -1544,7 +1544,7 @@ Half ShdDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 {
    return ShadowDirValue(GetPosPoint(inTex, inPosXY), ShadowJitter(pixel.xy), true, num, cloud);
 }
-#if MODEL>=SM_4
+#if !CG
 Half ShdDirM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                 NOPERSP Vec2 inPosXY:TEXCOORD1     ,
                 NOPERSP PIXEL                      ,
@@ -1575,7 +1575,7 @@ Half ShdPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 {
    return ShadowPointValue(GetPosPoint(inTex, inPosXY), ShadowJitter(pixel.xy), true);
 }
-#if MODEL>=SM_4
+#if !CG
 Half ShdPointM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                   NOPERSP Vec2 inPosXY:TEXCOORD1     ,
                   NOPERSP PIXEL,
@@ -1593,7 +1593,7 @@ Half ShdCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 {
    return ShadowConeValue(GetPosPoint(inTex, inPosXY), ShadowJitter(pixel.xy), true);
 }
-#if MODEL>=SM_4
+#if !CG
 Half ShdConeM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                  NOPERSP Vec2 inPosXY:TEXCOORD1     ,
                  NOPERSP PIXEL,
@@ -1703,7 +1703,7 @@ VecH4 LightDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
    return VecH4(Light_dir.color.rgb*lum, Light_dir.color.a*specular);
 }
-#if MODEL>=SM_4
+#if !CG
 VecH4 LightDirM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                    NOPERSP Vec2 inPosXY:TEXCOORD1     ,
                    NOPERSP PIXEL                      ,
@@ -1761,7 +1761,7 @@ VecH4 LightPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
    return VecH4(Light_point.color.rgb*lum, Light_point.color.a*specular);
 }
-#if MODEL>=SM_4
+#if !CG
 VecH4 LightPointM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                      NOPERSP Vec2 inPosXY:TEXCOORD1     ,
                      NOPERSP PIXEL                      ,
@@ -1825,7 +1825,7 @@ VecH4 LightLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
    return VecH4(Light_linear.color.rgb*lum, Light_linear.color.a*specular);
 }
-#if MODEL>=SM_4
+#if !CG
 VecH4 LightLinearM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                       NOPERSP Vec2 inPosXY:TEXCOORD1     ,
                       NOPERSP PIXEL                      ,
@@ -1899,7 +1899,7 @@ VecH4 LightCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       return VecH4(Light_cone.color.rgb*lum, Light_cone.color.a*specular);
    }
 }
-#if MODEL>=SM_4
+#if !CG
 VecH4 LightConeM_PS(NOPERSP Vec2 inTex  :TEXCOORD0     ,
                     NOPERSP Vec2 inPosXY:TEXCOORD1     ,
                     NOPERSP PIXEL                      ,
@@ -2008,7 +2008,7 @@ VecH4 ColLight_PS(NOPERSP Vec2 inTex:TEXCOORD   ,
 {
    const Bool ao_all=true; // !! must be the same as 'D._amb_all' !! if apply Ambient Occlusion to all lights (not just Ambient), this was disabled in the past, however in LINEAR_GAMMA the darkening was too strong in low light, enabling this option solves that problem
    Half ao; VecH ambient; if(ao_do){ao=TexLod(ImgX, inTex).x; if(!ao_all)ambient=AmbColor*ao;} // use 'TexLod' because AO can be of different size and we need to use tex filtering
-#if MODEL>=SM_4
+#if !CG
    VecI p=VecI(pixel.xy, 0);
    if(multi_sample)
    {
@@ -2061,7 +2061,7 @@ TECHNIQUE(ColLight0N  , Draw_VS(), ColLight_PS(0, false, false, true));
 TECHNIQUE(ColLight0AN , Draw_VS(), ColLight_PS(0, true , false, true));
 TECHNIQUE(ColLight0CN , Draw_VS(), ColLight_PS(0, false, true , true));
 TECHNIQUE(ColLight0ACN, Draw_VS(), ColLight_PS(0, true , true , true));
-#if MODEL>=SM_4 // multi sample
+#if !CG // multi sample
 TECHNIQUE(ColLight1   , Draw_VS(), ColLight_PS(1));
 TECHNIQUE(ColLight1A  , Draw_VS(), ColLight_PS(1, true));
 TECHNIQUE(ColLight1C  , Draw_VS(), ColLight_PS(1, false, true));
@@ -2155,7 +2155,7 @@ void Particle_VS(VtxInput vtx,
    {
       Flt frame=vtx.tex1().x;
    #if 0 // integer version
-      #if MODEL>=SM_4
+      #if !CG
          #define INT UInt
       #else
          #define INT Int
@@ -2435,7 +2435,7 @@ Vec4 MLAAEdge_PS(NOPERSP Vec2 texcoord :TEXCOORD0,
    return edges;
 }
 
-#if MODEL!=SM_GL
+#if !CG
 Flt MLAASearchXLeft (Vec2 texcoord) {Flt i, e=0; for(i=-1.5; i>-2*MLAA_MAX_SEARCH_STEPS; i-=2){e=TexLod(Img, texcoord+RTSize.xy*Vec2(i, 0)).g; FLATTEN if(e<0.9)break;} return Max(i+1.5-2*e, -2*MLAA_MAX_SEARCH_STEPS);}
 Flt MLAASearchXRight(Vec2 texcoord) {Flt i, e=0; for(i= 1.5; i< 2*MLAA_MAX_SEARCH_STEPS; i+=2){e=TexLod(Img, texcoord+RTSize.xy*Vec2(i, 0)).g; FLATTEN if(e<0.9)break;} return Min(i-1.5+2*e,  2*MLAA_MAX_SEARCH_STEPS);}
 Flt MLAASearchYUp   (Vec2 texcoord) {Flt i, e=0; for(i=-1.5; i>-2*MLAA_MAX_SEARCH_STEPS; i-=2){e=TexLod(Img, texcoord+RTSize.xy*Vec2(0, i)).r; FLATTEN if(e<0.9)break;} return Max(i+1.5-2*e, -2*MLAA_MAX_SEARCH_STEPS);}
@@ -2511,14 +2511,12 @@ TECHNIQUE(MLAA     , MLAA_VS(), MLAA_PS     ());
 /******************************************************************************/
 #define SMAA_FLATTEN FLATTEN
 #define SMAA_BRANCH  BRANCH
-#if DX11
+#if !CG
    #define SMAA_HLSL_4 1 // TODO: using SMAA_HLSL_4_1 would be faster, but it's not easy to mix SMAA 4.0 and 4.1 together in one shader, however it's only used for predication and SMAADepthEdgeDetectionPS which are not used
    #define PointSampler  SamplerPoint
    #define LinearSampler SamplerLinearClamp
 #else
    #define SMAA_HLSL_3 1
-#endif
-#if GL
    #define mad(a, b, c) ((a)*(b) + (c))
 #endif
 

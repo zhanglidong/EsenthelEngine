@@ -49,9 +49,7 @@ void Clouds_VS(VtxInput vtx,
 VecH2 Clouds_PS(NOPERSP Vec dir:TEXCOORD):TARGET // 'dir'=world-space position
 {
    Flt a=Sat(dir.y*8); // alternatively, 'a' could be calculated as "a=Sat(max_from-from)"
-#if FLOW
    BRANCH if(a<=EPS_COL)return 0;
-#endif
 
    dir/=Length(dir.xz);
 
@@ -68,7 +66,7 @@ VecH2 Clouds_PS(NOPERSP Vec dir:TEXCOORD):TARGET // 'dir'=world-space position
    Vec2 col=0;
    LOOP for(Int i=0; i<steps; i++)
    {
-   #if MODEL>=SM_4
+   #if !CG
       Vec2 sample=VolXY.SampleLevel(SamplerLinearCWW, pos, 0).rg;
       /* test code for adding detail if(Z)
       {
@@ -158,7 +156,7 @@ Half CloudsMap_PS(NOPERSP Vec pos:TEXCOORD0, // world-space position, relative t
    Flt density=0;
    LOOP for(Int i=0; i<steps; i++)
    {
-   #if MODEL>=SM_4
+   #if !CG
       Flt alpha=VolXY.SampleLevel(SamplerLinearCWW, pos, 0).g;
    #else
       Flt alpha=Tex3DLod(VolXY, pos).g;

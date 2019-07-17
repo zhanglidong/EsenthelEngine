@@ -61,7 +61,11 @@ Flt HdrUpdate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // here use full precision
 
    lum=Pow(lum, HdrExp); //lum=Sqrt(lum); // if further from the target brightness, apply the smaller scale. When using a smaller 'HdrExp' then scale will be stretched towards "1" (meaning smaller changes), using exp=0.5 gives Sqrt(lum)
 
-   lum=HdrBrightness/Max(lum, (Flt)EPS_COL); // desired scale, (Flt) cast can be removed after CG compiler is removed
+#if !CG
+   lum=HdrBrightness/Max(lum, EPS_COL); // desired scale
+#else // above fails to compile on CG
+   lum=HdrBrightness/Max(lum, (Flt)EPS_COL); // desired scale
+#endif
 
    lum=Mid(lum, HdrMaxDark, HdrMaxBright);
    return Lerp(lum, TexPoint(ImgXF1, Vec2(0, 0)).x, Step); // lerp new with old

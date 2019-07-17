@@ -66,7 +66,6 @@ void VS
 
    if(!skin)
    {
-   #if MODEL>=SM_4 || MODEL==SM_GL
       if(true) // instance
       {
                     O.pos=TransformPos(pos, vtx.instance());
@@ -80,7 +79,6 @@ void VS
          }
          if(use_vel){O.vel=ObjVel[vtx.instance()]; UpdateVelocities_VS(O.vel, pos, O.pos, vtx.instance());} // #PER_INSTANCE_VEL
       }else
-   #endif
       {
                     O.pos=TransformPos(pos);
 
@@ -212,9 +210,8 @@ out VecH4 outVel:TARGET1, // #BlendRT
          Half lum      =LightDiffuse(nrm, light_dir); if(shadow_maps)lum*=shd;
 
          // specular
-      /*#if MODEL>=SM_4 // don't use specular at all
+      /* don't use specular at all
          BRANCH if(lum*specular>EPS_LUM)
-      #endif
          {
             Vec eye_dir=Normalize    (-I.pos);
             Flt spec   =LightSpecular( nrm, specular, light_dir, eye_dir); if(shadow_maps)spec*=shd;

@@ -139,7 +139,7 @@ Vec4 Grid_PS
 /******************************************************************************/
 // HULL / DOMAIN
 /******************************************************************************/
-#if MODEL>=SM_4
+#if !CG
 HSData HSConstant(InputPatch<VS_PS_NOVTX,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].nrm, I[1].nrm, I[2].nrm);}
 [maxtessfactor(5.0)]
 [domain("tri")]

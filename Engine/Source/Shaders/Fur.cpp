@@ -35,7 +35,6 @@ void Base_VS
 
    if(!skin)
    {
-   #if MODEL>=SM_4 || MODEL==SM_GL
       if(true) // instance
       {
          outVel=ObjVel[vtx.instance()]; // #PER_INSTANCE_VEL
@@ -43,7 +42,6 @@ void Base_VS
          outNrm=TransformDir(vtx.nrm(), vtx.instance());
          UpdateVelocities_VS(outVel, vtx.pos(), outPos, vtx.instance());
       }else
-   #endif
       {
          outVel=ObjVel[0];
          outPos=TransformPos(vtx.pos());

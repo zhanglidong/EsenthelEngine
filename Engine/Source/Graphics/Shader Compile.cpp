@@ -1439,9 +1439,7 @@ Bool ShaderCompileTry(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<Shad
       case SM_UNKNOWN: return false;
 
       case SM_GL_ES_3:
-      case SM_GL     : temp.New().set("MODEL", "SM_GL"); break;
-
-      default        : temp.New().set("MODEL", "SM_4" ); break;
+      case SM_GL     : temp.New().set("GL", "1"); temp.New().set("CG", "1"); break;
    }
    if(model>=SM_GL_ES_3 && model<=SM_GL)return ShaderCompileGL(src, dest, temp, messages, stg);
    if(                     model>=SM_4 )return ShaderCompile11(src, dest, temp, messages);

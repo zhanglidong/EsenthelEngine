@@ -17,55 +17,34 @@
 #include "!Header CPU.h"
 #define CONCAT(a,b) a##b
 /******************************************************************************/
-// MODEL AND TECHNIQUES
+// TECHNIQUES
 /******************************************************************************/
-// Here are listed enums for different Shader Models:
-#define SM_GL 0 //            (OpenGL     )
-#define SM_4  1 // Model 4.0+ (DirectX 10+) D3D_FEATURE_LEVEL_10_0+
-
-#ifndef MODEL // MODEL is a macro automatically defined by the engine, set to one of the SM_ values above
-   #define MODEL SM_4 // this line only makes Visual Studio properly highlight SM_4 parts of the codes when editing a shader file in Visual Studio
-#endif
-
-#define GL   (MODEL==SM_GL)
-#define DX11 (MODEL>=SM_4)
-
 #define LINEAR_GAMMA 1
 
-#if   MODEL==SM_GL
-   #define TECHNIQUE(name, vs, ps)   technique name{pass p0{VertexShader=compile glslv  vs; PixelShader=compile glslf  ps;}}
-#elif MODEL==SM_4
-   #define TECHNIQUE(name, vs, ps)   technique10 name{pass p0{SetVertexShader(CompileShader(vs_4_0, vs)); SetPixelShader(CompileShader(ps_4_0, ps));}}
-#endif
-
-#if MODEL>=SM_4
-   #define TECHNIQUE_4_1(name, vs, ps)   technique10 name{pass p0{SetVertexShader(CompileShader(vs_4_1, vs)); SetPixelShader(CompileShader(ps_4_1, ps));}}
-#else
-   #define TECHNIQUE_4_1(name, vs, ps)
-#endif
-
-#if   MODEL==SM_GL
-   #define TECHNIQUE_TESSELATION(name, vs, ps, hs, ds)   TECHNIQUE(name, vs, ps) // tesselation not supported in OpenGL
-#elif MODEL>=SM_4
+#if !CG
+   #define TECHNIQUE(            name, vs, ps        )   technique10 name{pass p0{SetVertexShader(CompileShader(vs_4_0, vs)); SetPixelShader(CompileShader(ps_4_0, ps));}}
+   #define TECHNIQUE_4_1(        name, vs, ps        )   technique10 name{pass p0{SetVertexShader(CompileShader(vs_4_1, vs)); SetPixelShader(CompileShader(ps_4_1, ps));}}
    #define TECHNIQUE_TESSELATION(name, vs, ps, hs, ds)   technique11 name{pass p0{SetVertexShader(CompileShader(vs_4_0, vs)); SetPixelShader(CompileShader(ps_4_0, ps)); SetHullShader(CompileShader(hs_5_0, hs)); SetDomainShader(CompileShader(ds_5_0, ds));}}
+#else
+   #define TECHNIQUE(            name, vs, ps        )   technique name{pass p0{VertexShader=compile glslv  vs; PixelShader=compile glslf  ps;}}
+   #define TECHNIQUE_4_1(        name, vs, ps        )
+   #define TECHNIQUE_TESSELATION(name, vs, ps, hs, ds)   TECHNIQUE(name, vs, ps) // tesselation not supported in CG
 #endif
 /******************************************************************************/
 // MODIFIERS
 /******************************************************************************/
-#if MODEL>=SM_4 // SM_4+
-   #define FLOW    1
+#if !CG
    #define FLATTEN [flatten]     // will make a conditional statement flattened, use before 'if'        statement
    #define BRANCH  [branch ]     // will make a conditional statement branched , use before 'if'        statement
    #define LOOP    [loop   ]     // will make a loop looped                    , use before 'for while' statements
    #define UNROLL  [unroll ]     // will make a loop unrolled                  , use before 'for while' statements
    #define NOPERSP noperspective // will disable perspective interpolation
-#else // SM_GL
-   #define FLOW    GL // there is flow control on GL however without the keywords
-   #define FLATTEN // not available in SM_GL
-   #define BRANCH  // not available in SM_GL
-   #define LOOP    // not available in SM_GL
-   #define UNROLL  // not available in SM_GL
-   #define NOPERSP // not available in SM_GL
+#else
+   #define FLATTEN
+   #define BRANCH
+   #define LOOP
+   #define UNROLL
+   #define NOPERSP
 #endif
 /******************************************************************************/
 // DATA TYPES
@@ -91,7 +70,7 @@
 
 #include "!Set LP.h"
 
-#if DX11
+#if !CG
    #define ImageF      Texture2D  <Flt  >
    #define ImageH      Texture2D  <Half >
    #define ImageH2     Texture2D  <VecH2>
@@ -103,7 +82,7 @@
 
    #define        SAMPLER(name, index) sampler                name : register(CONCAT(s,index)) //        sampler
    #define SHADOW_SAMPLER(name, index) SamplerComparisonState name : register(CONCAT(s,index)) // shadow sampler
-#elif GL
+#else
    #define ImageF      sampler2D
    #define ImageH      sampler2D
    #define ImageH2     sampler2D
@@ -116,22 +95,7 @@
 /******************************************************************************/
 // MODEL DEPENDENT FUNCTIONALITY
 /******************************************************************************/
-#if MODEL==SM_GL
-   #define PIXEL                     Vec4 pixel:WPOS                        // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
-   #define IF_IS_FRONT               Bool front:VFACE,                      // face front side
-   #define IF_IS_CLIP            out Flt O_clip:BCOL1,                      // clip plane distance, this will generate "gl_BackSecondaryColor" which is later replaced with "gl_ClipDistance[0]"
-   #define CLIP(pos)             O_clip=Dot(Vec4((pos).xyz, 1), ClipPlane)  // perform user plane clipping
-   #define BUFFER(name)                                                     // constant buffers (not available in OpenGL)
-   #define BUFFER_I(name, index)                                            // constant buffers (not available in OpenGL)
-   #define BUFFER_END                                                       // constant buffers (not available in OpenGL)
- //#define POSITION              POSITION
- //#define DEPTH                 DEPTH
-   #define TARGET                COLOR
-   #define TARGET0               COLOR0
-   #define TARGET1               COLOR1
-   #define TARGET2               COLOR2
-   #define TARGET3               COLOR3
-#elif MODEL==SM_4
+#if !CG
    #define PIXEL                     Vec4 pixel :SV_Position                // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
    #define IF_IS_FRONT               Bool front :SV_IsFrontFace ,           // face front side
    #define IF_IS_CLIP            out Flt  O_clip:SV_ClipDistance,           // clip plane distance
@@ -146,6 +110,21 @@
    #define TARGET1               SV_Target1
    #define TARGET2               SV_Target2
    #define TARGET3               SV_Target3
+#else
+   #define PIXEL                     Vec4 pixel:WPOS                        // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
+   #define IF_IS_FRONT               Bool front:VFACE,                      // face front side
+   #define IF_IS_CLIP            out Flt O_clip:BCOL1,                      // clip plane distance, this will generate "gl_BackSecondaryColor" which is later replaced with "gl_ClipDistance[0]"
+   #define CLIP(pos)             O_clip=Dot(Vec4((pos).xyz, 1), ClipPlane)  // perform user plane clipping
+   #define BUFFER(name)                                                     // constant buffers (not available in OpenGL)
+   #define BUFFER_I(name, index)                                            // constant buffers (not available in OpenGL)
+   #define BUFFER_END                                                       // constant buffers (not available in OpenGL)
+ //#define POSITION              POSITION
+ //#define DEPTH                 DEPTH
+   #define TARGET                COLOR
+   #define TARGET0               COLOR0
+   #define TARGET1               COLOR1
+   #define TARGET2               COLOR2
+   #define TARGET3               COLOR3
 #endif
 /******************************************************************************/
 // FUNCTIONS
@@ -172,7 +151,7 @@
 /******************************************************************************/
 // CONSTANTS
 /******************************************************************************/
-#if MODEL>=SM_4
+#if !CG
    #define MAX_MATRIX 256 // maximum number of matrixes
 #else
    #define MAX_MATRIX  60 // maximum number of matrixes
@@ -201,9 +180,9 @@
 /******************************************************************************/
 #define MS_SAMPLES 4 // number of samples in multi-sampled render targets
 
-#define SIGNED_NRM_RT       (MODEL>=SM_4) // Normal   Render Target is signed only on SM_4+, GL depends on GL_EXT_render_snorm
-#define SIGNED_VEL_RT       (MODEL>=SM_4) // Velocity Render Target is signed only on SM_4+, GL depends on GL_EXT_render_snorm
-#define FULL_PRECISION_SPEC 0             // if use full precision for specular intensity in SIGNED_NRM_RT, we can disable this because we lose only 1-bit of precision
+#define SIGNED_NRM_RT       (!GL) // Normal   Render Target is signed everywhere except GL because there it depends on GL_EXT_render_snorm
+#define SIGNED_VEL_RT       (!GL) // Velocity Render Target is signed everywhere except GL because there it depends on GL_EXT_render_snorm
+#define FULL_PRECISION_SPEC 0     // if use full precision for specular intensity in SIGNED_NRM_RT, we can disable this because we lose only 1-bit of precision
 
 #define REVERSE_DEPTH (!GL) // if Depth Buffer is reversed, GL uses different depth range -1..1
 #if     REVERSE_DEPTH
@@ -224,7 +203,7 @@
 /******************************************************************************/
 // TEXTURE ACCESSING
 /******************************************************************************/
-#if MODEL>=SM_4
+#if !CG
    #define Tex(    image, uv )   image.Sample(SamplerDefault, uv ) // access a 2D   texture
    #define Tex3D(  image, uvw)   image.Sample(SamplerDefault, uvw) // access a 3D   texture
    #define TexCube(image, uvw)   image.Sample(SamplerDefault, uvw) // access a Cube texture
@@ -238,12 +217,16 @@
 
    #define TexSample(image, pixel, i)   image.Load(pixel, i) // access i-th sample of a multi-sampled texture
 
+#if !GL
    #define TexShadow(image, uvw)   image.SampleCmpLevelZero(SamplerShadowMap, uvw.xy, uvw.z)
+#else
+   #define TexShadow(image, uvw)   image.SampleCmpLevelZero(SamplerShadowMap, uvw.xy, uvw.z*0.5+0.5) // adjust OpenGL depth scale (z' = z*0.5 + 0.5)
+#endif
 
    #define TexClamp(    image, uv )   image.Sample     (SamplerLinearClamp, uv    )
    #define TexLodClamp( image, uv )   image.SampleLevel(SamplerLinearClamp, uv , 0)
    #define Tex3DLodWrap(image, uvw)   image.SampleLevel(SamplerLinearWrap , uvw, 0)
-#elif MODEL==SM_GL
+#else
    #define Tex(    image, uv )   tex2D  (image, uv ) // access a 2D   texture
    #define Tex3D(  image, uvw)   tex3D  (image, uvw) // access a 3D   texture
    #define TexCube(image, uvw)   texCUBE(image, uvw) // access a Cube texture
@@ -591,13 +574,11 @@ ImageCube Cub, Cub1;
 Image3D   Vol;
 Image3DH2 VolXY, VolXY1;
 
-#if MODEL>=SM_4
+#if !CG
 Texture2DMS<VecH4, MS_SAMPLES> ImgMS, ImgMS1;
 Texture2DMS<Half , MS_SAMPLES> ImgXMS;
 Texture2DMS<Flt  , MS_SAMPLES> DepthMS;
-#endif
 
-#if DX11
        SAMPLER(SamplerDefault    , SSI_DEFAULT     );
        SAMPLER(SamplerPoint      , SSI_POINT       );
        SAMPLER(SamplerLinearClamp, SSI_LINEAR_CLAMP);
@@ -940,7 +921,7 @@ inline Flt DelinearizeDepth(Flt z, uniform Bool perspective=true)
        b=ProjMatrix[3][2], // ProjMatrix.pos.z
        w=(perspective ? (z*a+b)/z : (z*a+REVERSE_DEPTH));
 
-#if MODEL==SM_GL
+#if GL
    w=w*0.5+0.5;
 #endif
 
@@ -951,7 +932,7 @@ inline Flt LinearizeDepth(Flt w, uniform Bool perspective=true)
    Flt a=ProjMatrix[2][2], // ProjMatrix.z  .z
        b=ProjMatrix[3][2]; // ProjMatrix.pos.z
 
-#if MODEL==SM_GL
+#if GL
    w=w*2-1;
 #endif
 
@@ -978,7 +959,7 @@ inline Vec GetPosPoint (Vec2 tex             ) {return GetPos(TexDepthPoint (tex
 inline Vec GetPosPoint (Vec2 tex, Vec2 pos_xy) {return GetPos(TexDepthPoint (tex), pos_xy            );} // Get Viewspace Position at 'tex' screen coordinates, 'pos_xy'=known xy position at depth=1
 inline Vec GetPosLinear(Vec2 tex             ) {return GetPos(TexDepthLinear(tex), ScreenToPosXY(tex));} // Get Viewspace Position at 'tex' screen coordinates
 inline Vec GetPosLinear(Vec2 tex, Vec2 pos_xy) {return GetPos(TexDepthLinear(tex), pos_xy            );} // Get Viewspace Position at 'tex' screen coordinates, 'pos_xy'=known xy position at depth=1
-#if MODEL>=SM_4
+#if !CG
 inline Vec GetPosMS(VecI2 pixel, UInt sample, Vec2 pos_xy) {return GetPos(TexDepthMS(pixel, sample), pos_xy);}
 #endif
 /******************************************************************************/
@@ -1002,7 +983,7 @@ Half   SRGBLumOfSRGBColor  (VecH s) {return LinearToSRGBFast(Dot(SRGBToLinearFas
 /******************************************************************************/
 struct VtxInput // Vertex Input, use this class to access vertex data in vertex shaders
 {
-#if MODEL==SM_GL
+#if GL
    // !! must be in sync with GL_VTX_SEMANTIC !!
    Vec4  _pos     :ATTR0 ;
    VecH  _hlp     :ATTR9 ;
@@ -1064,10 +1045,10 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    VecH4 colorF    () {return _color                                       ;} // linear vertex color
    VecH  colorF3   () {return _color.rgb                                   ;} // linear vertex color
 
-#if MODEL>=SM_4
+#if !CG
    uint _instance:SV_InstanceID;
    uint  instance() {return _instance;}
-#elif MODEL==SM_GL
+#else
    uint _instance:ATTR15; // we can't use "gl_InstanceID/SV_InstanceID", so instead use ATTR15, which will generate "attribute ivec4 ATTR15;" and "int(ATTR15.x)" which we'll replace with "gl_InstanceID"
    uint  instance() {return _instance;}
 #endif
@@ -1310,7 +1291,7 @@ inline VecH4 GetNormal(Vec2 tex, uniform Int quality)
 #endif
    return nrm;
 }
-#if MODEL>=SM_4
+#if !CG
 inline VecH4 GetNormalMS(VecI2 pixel, UInt sample, uniform Int quality)
 {
    VecH4 nrm=TexSample(ImgMS, pixel, sample); UnpackNormal(nrm.xyz, quality);
@@ -1452,10 +1433,10 @@ inline VecH GetDetail(Vec2 tex)
 /******************************************************************************/
 // FACE NORMAL HANDLING
 /******************************************************************************/
-#if   MODEL==SM_GL
-   inline void BackFlip(in out VecH dir, Bool front) {if(front<=0)dir*=AllowBackFlip;} // keep this as "front<=0" instead of "!front" because Mac OpenGL drivers for Intel fail to compile this correctly, resulting in reversed lighting
-#else
+#if !CG
    inline void BackFlip(in out VecH dir, Bool front) {if(!front  )dir*=AllowBackFlip;}
+#else
+   inline void BackFlip(in out VecH dir, Bool front) {if(front<=0)dir*=AllowBackFlip;} // keep this as "front<=0" instead of "!front" because Mac OpenGL drivers for Intel fail to compile this correctly, resulting in reversed lighting
 #endif
 /******************************************************************************/
 // VELOCITIES

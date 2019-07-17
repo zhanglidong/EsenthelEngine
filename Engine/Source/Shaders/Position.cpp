@@ -43,14 +43,12 @@ void VS
 
    if(!skin)
    {
-   #if MODEL>=SM_4 || MODEL==SM_GL
       if(true) // instance
       {
                       O.pos=          TransformPos(pos, vtx.instance());
          if(tesselate)O.nrm=Normalize(TransformDir(nrm, vtx.instance()));
          if(fx==FX_GRASS)BendGrass(pos, O.pos, vtx.instance());
       }else
-   #endif
       {
                       O.pos=          TransformPos(pos);
          if(tesselate)O.nrm=Normalize(TransformDir(nrm));
@@ -82,7 +80,7 @@ void PS
 /******************************************************************************/
 // HULL / DOMAIN
 /******************************************************************************/
-#if MODEL>=SM_4
+#if !CG
 HSData HSConstant(InputPatch<VS_PS,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].nrm, I[1].nrm, I[2].nrm, true);}
 [maxtessfactor(5.0)]
 [domain("tri")]

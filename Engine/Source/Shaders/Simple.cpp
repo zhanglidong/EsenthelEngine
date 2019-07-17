@@ -74,7 +74,6 @@ void VS
 
    if(!skin)
    {
-   #if MODEL>=SM_4 || MODEL==SM_GL
       if(true) // instance
       {
                                   O.pos=TransformPos(pos, vtx.instance());
@@ -85,7 +84,6 @@ void VS
             O.fade_out=GrassFadeOut(vtx.instance());
          }
       }else
-   #endif
       {
                                   O.pos=TransformPos(pos);
          if(bump_mode>=SBUMP_FLAT)O.nrm=TransformDir(nrm);
@@ -236,7 +234,7 @@ VecH4 PS
 /******************************************************************************/
 // HULL / DOMAIN
 /******************************************************************************/
-#if MODEL>=SM_4
+#if !CG
 HSData HSConstant(InputPatch<VS_PS,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].nrm, I[1].nrm, I[2].nrm);}
 [maxtessfactor(5.0)]
 [domain("tri")]

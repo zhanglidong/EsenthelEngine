@@ -244,9 +244,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       Vec2  col_tex=inTex;
       VecH4 water_col=0;
 
-   #if FLOW
       BRANCH if(DEPTH_SMALLER(water_z, solid_z_raw)) // branch works faster when most of the screen is above water
-   #endif
       {
              water_z=LinearizeDepth(water_z    );
          Flt solid_z=LinearizeDepth(solid_z_raw);
@@ -298,9 +296,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    }else
    {
       VecH4 solid_col=TexLod(Img2, inTex);
-   #if FLOW
       BRANCH if(DEPTH_SMALLER(water_z, solid_z_raw)) // branch works faster when most of the screen is above water
-   #endif
       {
              water_z=LinearizeDepth(water_z    );
          Flt solid_z=LinearizeDepth(solid_z_raw);
