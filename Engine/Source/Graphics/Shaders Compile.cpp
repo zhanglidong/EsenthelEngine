@@ -24,7 +24,7 @@ namespace EE{
 
 #define AMBIENT*/
 //#define AMBIENT_OCCLUSION
-#define AMBIENT_OCCLUSION_NEW
+#define AMBIENT_OCCLUSION_NEW // FIXME
 /*#define BEHIND
 #define BLEND
 #define DEPTH_OF_FIELD
@@ -273,6 +273,13 @@ struct ShaderCompiler1
       Int  elms, cpu_data_size=0, gpu_data_size;
       Mems<ShaderParam::Translation> translation;
 
+      Bool operator==(C Param &p)C
+      {
+         if(translation.elms()!=p.translation.elms())return false; REPA(translation)if(translation[i]!=p.translation[i])return false;
+         return Equal(name, p.name, true) && elms==p.elms && cpu_data_size==p.cpu_data_size && gpu_data_size==p.gpu_data_size;
+      }
+      Bool operator!=(C Param &p)C {return !(T==p);}
+
       void addTranslation(ID3D11ShaderReflectionType *type, C D3D11_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, SByte &was_min16) // 'was_min16'=if last inserted parameter was of min16 type (-1=no last parameter)
       {
          // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-packing-rules
@@ -350,6 +357,15 @@ struct ShaderCompiler1
       Bool bind_explicit;
       Mems<Byte>  data;
       Mems<Param> params;
+
+      Bool operator==(C Buffer &b)C
+      {
+         if(data  .elms()!=b.data  .elms() || !EqualMem(data.data(), b.data.data(), data.elms()))return false;
+         if(params.elms()!=b.params.elms())return false; REPA(params)if(params[i]!=b.params[i])return false;
+         if(bind_explicit && bind_slot!=b.bind_slot)return false; // check only for explicit
+         return Equal(name, b.name, true) && size==b.size && bind_explicit==b.bind_explicit;
+      }
+      Bool operator!=(C Buffer &b)C {return !(T==b);}
    };
    struct Image
    {
@@ -500,7 +516,7 @@ struct ShaderCompiler1
       source.compiler =this;
       return source;
    }
-   Bool compile(Threads &threads)
+   Bool compileTry(Threads &threads)
    {
       FREPA(sources)
       {
@@ -522,7 +538,30 @@ struct ShaderCompiler1
          }
       }
       threads.wait();
+      Map<Str8, Buffer*> buffers(CompareCS);
+      Memc<Str8>         images;
+      FREPA(sources)
+      {
+         Source &source=sources[i]; FREPA(source.shaders)
+         {
+            Shader &shader=source.shaders[i]; FREPA(shader.sub)
+            {
+               SubShader &sub=shader.sub[i]; if(sub.result==FAIL)return error(S+"Compiling \""+shader.name+"\" in \""+source.file_name+"\" failed:\n"+sub.error);
+               FREPA(sub.buffers)
+               {
+                  Buffer  &sub_buffer=sub.buffers[i];
+                  Buffer* &    buffer=*buffers(sub_buffer.name);
+                  if(!buffer)buffer=&sub_buffer;else if(*buffer!=sub_buffer)return error(S+"Buffer \""+buffer->name+"\" is not always the same in all shaders");
+               }
+               FREPA(sub.images)images.binaryInclude(sub.images[i].name, CompareCS);
+            }
+         }
+      }
       return true;
+   }
+   void compile(Threads &threads)
+   {
+      if(!compileTry(threads))Exit(S+"Failed to compile:"+messages);
    }
 };
 struct Include11 : ID3DInclude
