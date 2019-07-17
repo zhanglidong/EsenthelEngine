@@ -409,6 +409,7 @@ struct ShaderCompiler1
       Mems<Buffer> buffers;
       Mems<Image > images;
       Mems<IO    > inputs, outputs;
+      Mems<Byte  > shader_data;
 
       Bool is()C {return func_name.is();}
       void compile();
@@ -613,7 +614,6 @@ void ShaderCompiler1::SubShader::compile()
    ID3DBlob *buffer=null, *error_blob=null;
    D3DCompile(src->file_data.data(), src->file_data.elms(), (Str8)src->file_name, macros.data(), &Include11(src->file_name), func_name, target, D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &buffer, &error_blob);
    if(error_blob){error=(Char8*)error_blob->GetBufferPointer(); error_blob->Release();}
-   Bool ok=false;
    if(buffer)
    {
       ID3D11ShaderReflection *reflection=null; D3DReflect(buffer->GetBufferPointer(), buffer->GetBufferSize(), IID_ID3D11ShaderReflection, (Ptr*)&reflection); if(reflection)
@@ -691,6 +691,13 @@ void ShaderCompiler1::SubShader::compile()
              inputs.setNum(desc. InputParameters); FREPA( inputs){D3D11_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetInputParameterDesc (i, &desc)))Exit("'GetInputParameterDesc' failed" );  inputs[i]=desc;}
             outputs.setNum(desc.OutputParameters); FREPA(outputs){D3D11_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetOutputParameterDesc(i, &desc)))Exit("'GetOutputParameterDesc' failed"); outputs[i]=desc;}
             
+            if(compiler->api==API_DX) // strip
+            {
+               ID3DBlob *stripped=null; D3DStripShader(buffer->GetBufferPointer(), buffer->GetBufferSize(), ~0, &stripped);
+               if(stripped){buffer->Release(); buffer=stripped;}
+            }
+            shader_data.setNum(buffer->GetBufferSize()).copyFrom((Byte*)buffer->GetBufferPointer());
+
             result=GOOD;
             // !! do not make any changes here after setting 'result' because other threads may access this data !!
 
