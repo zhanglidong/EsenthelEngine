@@ -253,6 +253,11 @@ struct ShaderCompiler
 };
 #if WINDOWS
 // FIXME don't list constant buffers that have 'bind_explicit' in vs_buffers, etc, but LIST in buffers
+static Bool HasData(CPtr data, Int size)
+{
+   if(C Byte *b=(Byte*)data)REP(size)if(*b++)return true;
+   return false;
+}
 struct ShaderCompiler1
 {
    struct Source;
@@ -265,7 +270,7 @@ struct ShaderCompiler1
    struct Param
    {
       Str8 name;
-      Int  elms, cpu_data_size=0;
+      Int  elms, cpu_data_size=0, gpu_data_size;
       Mems<ShaderParam::Translation> translation;
 
       void addTranslation(ID3D11ShaderReflectionType *type, C D3D11_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, SByte &was_min16) // 'was_min16'=if last inserted parameter was of min16 type (-1=no last parameter)
@@ -343,6 +348,7 @@ struct ShaderCompiler1
       Str8 name;
       Int  size, bind_slot;
       Bool bind_explicit;
+      Mems<Byte>  data;
       Mems<Param> params;
    };
    struct Image
@@ -623,17 +629,20 @@ void ShaderCompiler1::SubShader::compile()
                            Param &param=buffer.params[i];
                            param.name=var_desc.Name;
                            param.elms=type_desc.Elements;
-                           var_desc.DefaultValue; // FIXME
                            Int offset=var_desc.StartOffset; SByte was_min16=-1; param.addTranslation(type, type_desc, var_desc.Name, offset, was_min16);
-               
-               /*sp._gpu_data_size=type.UnpackedSize;
-             //sp._constant_count= unused on DX10+
+                           param.gpu_data_size=offset-var_desc.StartOffset;
+                           if(!param.translation.elms()                             )Exit("Shader Param is empty.\nPlease contact Developer.");
+                           if( param.gpu_data_size!=var_desc.Size                   )Exit("Incorrect Shader Param size.\nPlease contact Developer.");
+                           if( param.translation[0].gpu_offset!=var_desc.StartOffset)Exit("Incorrect Shader Param Offset.\nPlease contact Developer.");
+                           if( param.gpu_data_size+var_desc.StartOffset>buffer.size )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer.");
+                         //if( SIZE(Vec4)         +var_desc.StartOffset>buffer.size )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer."); some functions assume that '_gpu_data_size' is at least as big as 'Vec4' to set values without checking for size, !! this is not needed and shouldn't be called because in DX10+ Shader Params are stored in Shader Buffers, and 'ShaderBuffer' already allocates padding for Vec4
 
-               if(sp._cpu_data_size!=type.  PackedSize
-               || sp._gpu_data_size!=type.UnpackedSize)Exit("Incorrect Shader Param size.\nPlease contact Developer.");
-               if(sp._gpu_data_size+sp._full_translation[0].gpu_offset>buf.size())Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer.");
-             //if(SIZE(Vec4)       +sp._full_translation[0].gpu_offset>buf.size())Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer."); some functions assume that '_gpu_data_size' is at least as big as 'Vec4' to set values without checking for size, !! this is not needed and shouldn't be called because in DX10+ Shader Params are stored in Shader Buffers, and 'ShaderBuffer' already allocates padding for Vec4*/
-
+                           if(HasData(var_desc.DefaultValue, var_desc.Size)) // if parameter has any data
+                           {
+                              buffer.data.setNumZero(buffer.size); // allocate entire buffer
+                              CopyFast(buffer.data.data()+var_desc.StartOffset, var_desc.DefaultValue, param.gpu_data_size); // copy param data to buffer data
+                           }
+                           
                          //type->Release(); this doesn't have 'Release'
                          //var ->Release(); this doesn't have 'Release'
                         }
