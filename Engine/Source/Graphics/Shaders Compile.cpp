@@ -421,7 +421,7 @@ struct ShaderCompiler1
        C IO &in=input.inputs[i];
          if(!InRange(i, output.outputs) || in!=output.outputs[i])
          {
-            error.line()+=S+"Input/Output don't match for "+in.name+in.index+" register:"+in.reg;
+            error.line()+=S+"Input "+in.name+in.index+" register:"+in.reg+" in \""+input.func_name+"\" doesn't match output in \""+output.func_name+'"';
             ok=false;
          }
       }
@@ -519,8 +519,8 @@ struct ShaderCompiler1
                }
             }
          }
-         threads.wait();
       }
+      threads.wait();
       return true;
    }
 };
