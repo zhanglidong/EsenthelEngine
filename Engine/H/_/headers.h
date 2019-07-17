@@ -253,17 +253,18 @@
    #endif
 
    // Renderer
+   #if WINDOWS // always include on Windows to support shader compilation
+      #include <d3dcompiler.h>
+      #include <d3d11_4.h>
+   #endif
    #if DX11 // DirectX 11
       #include <dxgi1_6.h>
-      #include <d3d11_4.h>
-      #include <d3dcompiler.h>
       #include <d3dcommon.h>
    #elif GL // OpenGL
       #if WINDOWS
          #define  GLEW_STATIC
          #include "../../../ThirdPartyLibs/GL/glew.h"
          #include "../../../ThirdPartyLibs/GL/wglew.h"
-         #include <d3d11_4.h> // to support shader compilation
       #elif MAC
          #include <OpenGL/gl3.h>
          #include <OpenGL/gl3ext.h>

@@ -8,7 +8,7 @@ namespace EE{
 #define FORCE_LOG      0
 
 #if DX11   // DirectX 10+
-   #define COMPILE_4 1
+   #define COMPILE_4 0
 #endif
 #if GL && !GL_ES // Desktop OpenGL
    #define COMPILE_GL 0
@@ -23,9 +23,9 @@ namespace EE{
 #define BLEND_LIGHT
 
 #define AMBIENT
-#define AMBIENT_OCCLUSION*/
+#define AMBIENT_OCCLUSION
 #define AMBIENT_OCCLUSION_NEW
-/*#define BEHIND
+#define BEHIND
 #define BLEND
 #define DEPTH_OF_FIELD
 #define EARLY_Z
@@ -251,6 +251,7 @@ struct ShaderCompiler
       }
    }
 };
+#if WINDOWS
 struct ShaderCompiler1
 {
    struct Source;
@@ -279,10 +280,24 @@ struct ShaderCompiler1
       PS,
       ST_NUM,
    };
+   enum API : Byte
+   {
+      API_DX,
+      API_GL,
+      API_VULKAN,
+      API_METAL,
+      API_NUM,
+   };
+   static inline CChar8* APIName[]=
+   {
+      "DX",
+      "GL",
+      "VULKAN",
+      "METAL",
+   };
    struct SubShader
    {
     C Shader      *shader;
-    C Source      *src;
       SHADER_TYPE  type;
       Str8         func_name,
                    error;
@@ -299,6 +314,7 @@ struct ShaderCompiler1
       SHADER_MODEL     model;
       Memc<TextParam8> params;
       SubShader        sub[ST_NUM];
+    C Source          *src;
 
       Shader& Model(SHADER_MODEL model) {T.model=model; return T;} // override model (needed for tesselation)
 
@@ -315,14 +331,14 @@ struct ShaderCompiler1
             name+=p.value;
          }
       }
-      // FIXME: verify that stages have matching input->output
    };
    struct Source
    {
-      Str          file_name;
-      Mems<Byte>   file_data;
-      Memc<Shader> shaders;
-      SHADER_MODEL model;
+      Str              file_name;
+      Mems<Byte>       file_data;
+      Memc<Shader>     shaders;
+      SHADER_MODEL     model;
+      ShaderCompiler1 *compiler;
 
       Shader& New(C Str &name, C Str8 &vs, C Str8 &ps)
       {
@@ -342,22 +358,25 @@ struct ShaderCompiler1
    };
    Str          dest, messages;
    SHADER_MODEL model;
+   API          api;
    Memc<Source> sources;
 
    void message(C Str &t) {messages.line()+=t;}
    Bool error(C Str &t) {message(t); return false;}
 
-   ShaderCompiler1& set(C Str &dest, SHADER_MODEL model)
+   ShaderCompiler1& set(C Str &dest, SHADER_MODEL model, API api)
    {
       T.dest =dest ;
       T.model=model;
+      T.api  =api  ;
       return T;
    }
    Source& New(C Str &src)
    {
       Source &source=sources.New();
       source.file_name=src;
-      source.model=model;
+      source.model    =model;
+      source.compiler =this;
       return source;
    }
    Bool compile(Threads &threads)
@@ -365,24 +384,16 @@ struct ShaderCompiler1
       FREPA(sources)
       {
          Source &source=sources[i];
-   /*switch(model)
-   {
-      case SM_UNKNOWN: return false;
-
-      case SM_GL_ES_3:
-      case SM_GL     : temp.New().set("MODEL", "SM_GL"); break;
-
-      default        : temp.New().set("MODEL", "SM_4" ); break;*/
-
          if(!source.load())return error(S+"Can't open file:"+source.file_name);
          FREPA(source.shaders)
          {
-            Shader &shader=source.shaders[i]; FREPA(shader.sub)
+            Shader &shader=source.shaders[i];
+            shader.src=&source; // link only during compilation because sources use Memc container which could change addresses while new sources were being added, however at this stage all have already been created
+            FREPA(shader.sub)
             {
                SubShader &sub=shader.sub[i]; if(sub.is())
                {
                   sub.type  =(SHADER_TYPE)i;
-                  sub.src   =&source;
                   sub.shader=&shader;
                   threads.queue(sub, Compile);
                }
@@ -440,6 +451,8 @@ struct Include11 : ID3DInclude
 };
 void ShaderCompiler1::SubShader::compile()
 {
+ C Source          *src     =shader->src;
+ C ShaderCompiler1 *compiler=src->compiler;
    Char8 target[6+1];
    switch(type)
    {
@@ -452,7 +465,8 @@ void ShaderCompiler1::SubShader::compile()
    target[2]='_';
    target[4]='_';
    target[6]='\0';
-   switch(shader->model)
+   SHADER_MODEL model=shader->model; if(type==HS || type==DS)MAX(model, SM_5); // HS DS are supported only in SM5+
+   switch(model)
    {
       case SM_4  : target[3]='4'; target[5]='0'; break;
       case SM_4_1: target[3]='4'; target[5]='1'; break;
@@ -468,9 +482,8 @@ void ShaderCompiler1::SubShader::compile()
       macro.Name      =param.name;
       macro.Definition=param.value;
    }
-   // FIXME use this to control GL shaders
-   macros[macros.elms()-2].Name      ="MODEL";
-   macros[macros.elms()-2].Definition="SM_4";
+   macros[macros.elms()-2].Name      =APIName[compiler->api];
+   macros[macros.elms()-2].Definition="1";
    Zero(macros.last()); // must be null-terminated
 
    ID3DBlob *buffer=null, *error_blob=null;
@@ -523,6 +536,7 @@ void ShaderCompiler1::SubShader::compile()
                }
             }
             ok=true;
+      // FIXME: verify that stages have matching input->output
          }
       error:
          reflection->Release();
@@ -531,9 +545,10 @@ void ShaderCompiler1::SubShader::compile()
    }
    if(!ok)Exit(error);
 }
+static Memx<ShaderCompiler1> ShaderCompiler1s; // use Memx because we store pointers to 'ShaderCompiler1'
+#endif
 /******************************************************************************/
 static Memc<ShaderCompiler> ShaderCompilers;
-static Memc<ShaderCompiler1> ShaderCompiler1s;
 /******************************************************************************/
 static void Add(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderGLSL> &glsl=null)
 {
