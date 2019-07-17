@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "../Shaders/!Header CPU.h"
 namespace EE{
+#include "Shader Compiler.h"
 /******************************************************************************/
 #define BUMP_MAPPING   1
 #define MULTI_MATERIAL 1
@@ -65,6 +66,67 @@ Str8 TechNameFurSoft   (Int skin, Int size, Int diffuse) {return S8+"Soft"+skin+
 Str8 TechNameTattoo    (Int skin, Int tess             ) {return S8+"T"+skin+tess;}
 /******************************************************************************/
 #if COMPILE_4 || COMPILE_GL
+/******************************************************************************/
+static Memx<ShaderCompiler> ShaderCompilers; // use 'Memx' because we store pointers to 'ShaderCompiler'
+/******************************************************************************/
+// FIXME remove this
+// COMPILER
+/******************************************************************************/
+// compile
+#if EE_PRIVATE
+Bool ShaderCompileTry(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, C MemPtr<ShaderGLSL> &stg=null, Str *messages=null); // compile shader from 'src' file to 'dest' using additional 'macros', false on fail, 'messages'=optional parameter which will receive any messages that occurred during compilation
+void ShaderCompile   (C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, C MemPtr<ShaderGLSL> &stg                         ); // compile shader from 'src' file to 'dest' using additional 'macros', Exit  on fail
+#endif
+Bool ShaderCompileTry(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros=null, Str *messages=null); // compile shader from 'src' file to 'dest' using additional 'macros', false on fail, 'messages'=optional parameter which will receive any messages that occurred during compilation
+void ShaderCompile   (C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros=null                    ); // compile shader from 'src' file to 'dest' using additional 'macros', Exit  on fail
+
+struct OldShaderCompiler
+{
+   Str               src, dest;
+   SHADER_MODEL      model;
+   Memc<ShaderMacro> macros;
+   Memc<ShaderGLSL > glsl;
+
+   void compile()
+   {
+      Str messages; Bool ok=ShaderCompileTry(src, dest, model, macros, glsl, &messages);
+      if(!ok || DEBUG || FORCE_LOG)if(messages.is())LogN(S+"Shader\n\""+src+"\"\nto file\n\""+dest+"\"\n"+messages);
+      if(!ok)
+      {
+      #if !DX11
+         if(model>=SM_4)Exit("Can't compile DX10+ Shaders when not using DX10+ engine version");
+      #endif
+      #if !GL
+         if(model>=SM_GL_ES_3 && model<=SM_GL)Exit("Can't compile OpenGL Shaders when not using OpenGL engine version");
+      #endif
+         Exit(S+"Error compiling shader\n\""+src+"\"\nto file\n\""+dest+"\"."+(messages.is() ? S+"\n\nCompilation Messages:\n"+messages : S));
+      }
+   }
+};
+static Memc<OldShaderCompiler> OldShaderCompilers;
+static void ThreadCompile(OldShaderCompiler &shader_compiler, Ptr user, Int thread_index)
+{
+   ThreadMayUseGPUData();
+   shader_compiler.compile();
+}
+/******************************************************************************/
+static void Add(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderGLSL> &glsl=null)
+{
+   OldShaderCompiler &sc=OldShaderCompilers.New();
+   sc.src  =src  ;
+   sc.dest =dest ;
+   sc.model=model;
+   sc.glsl =glsl ;
+}
+static void Add(C Str &src, C Str &dest, SHADER_MODEL model, C Str &names, C MemPtr<ShaderGLSL> &glsl=null)
+{
+   OldShaderCompiler &sc=OldShaderCompilers.New();
+   sc.src  =src  ;
+   sc.dest =dest ;
+   sc.model=model;
+   sc.glsl =glsl ;
+   sc.macros.New().set("CUSTOM_TECHNIQUE", names);
+}
 /******************************************************************************/
 // SHADER TECHNIQUE DECLARATIONS
 /******************************************************************************/
@@ -224,633 +286,6 @@ static Str TechFurSoft(Int skin, Int size, Int diffuse)
    Str params=              S+skin+','+size+','+diffuse,
        name  =TechNameFurSoft(skin  ,  size  ,  diffuse);
    return S+"TECHNIQUE("+name+", Soft_VS("+params+"), Soft_PS("+params+"));";
-}
-/******************************************************************************/
-// COMPILER
-/******************************************************************************/
-// compile
-#if EE_PRIVATE
-Bool ShaderCompileTry(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, C MemPtr<ShaderGLSL> &stg=null, Str *messages=null); // compile shader from 'src' file to 'dest' using additional 'macros', false on fail, 'messages'=optional parameter which will receive any messages that occurred during compilation
-void ShaderCompile   (C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, C MemPtr<ShaderGLSL> &stg                         ); // compile shader from 'src' file to 'dest' using additional 'macros', Exit  on fail
-#endif
-Bool ShaderCompileTry(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros=null, Str *messages=null); // compile shader from 'src' file to 'dest' using additional 'macros', false on fail, 'messages'=optional parameter which will receive any messages that occurred during compilation
-void ShaderCompile   (C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros=null                    ); // compile shader from 'src' file to 'dest' using additional 'macros', Exit  on fail
-
-struct OldShaderCompiler
-{
-   Str               src, dest;
-   SHADER_MODEL      model;
-   Memc<ShaderMacro> macros;
-   Memc<ShaderGLSL > glsl;
-
-   void compile()
-   {
-      Str messages; Bool ok=ShaderCompileTry(src, dest, model, macros, glsl, &messages);
-      if(!ok || DEBUG || FORCE_LOG)if(messages.is())LogN(S+"Shader\n\""+src+"\"\nto file\n\""+dest+"\"\n"+messages);
-      if(!ok)
-      {
-      #if !DX11
-         if(model>=SM_4)Exit("Can't compile DX10+ Shaders when not using DX10+ engine version");
-      #endif
-      #if !GL
-         if(model>=SM_GL_ES_3 && model<=SM_GL)Exit("Can't compile OpenGL Shaders when not using OpenGL engine version");
-      #endif
-         Exit(S+"Error compiling shader\n\""+src+"\"\nto file\n\""+dest+"\"."+(messages.is() ? S+"\n\nCompilation Messages:\n"+messages : S));
-      }
-   }
-};
-#if WINDOWS
-static Bool HasData(CPtr data, Int size)
-{
-   if(C Byte *b=(Byte*)data)REP(size)if(*b++)return true;
-   return false;
-}
-struct ShaderCompiler
-{
-   struct Source;
-   struct Shader;
-   struct TextParam8
-   {
-      Str8 name, value;
-      void set(C Str8 &name, C Str8 &value) {T.name=name; T.value=value;}
-   };
-   struct Param
-   {
-      Str8 name;
-      Int  elms, cpu_data_size=0, gpu_data_size;
-      Mems<ShaderParam::Translation> translation;
-      Mems<Byte> data;
-
-      Bool operator==(C Param &p)C
-      {
-         if(translation.elms()!=p.translation.elms())return false; REPA(translation)if(translation[i]!=p.translation[i])return false;
-         if(data.elms()!=p.data.elms() || !EqualMem(data.data(), p.data.data(), data.elms()))return false;
-         return Equal(name, p.name, true) && elms==p.elms && cpu_data_size==p.cpu_data_size && gpu_data_size==p.gpu_data_size;
-      }
-      Bool operator!=(C Param &p)C {return !(T==p);}
-
-      void addTranslation(ID3D11ShaderReflectionType *type, C D3D11_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, SByte &was_min16) // 'was_min16'=if last inserted parameter was of min16 type (-1=no last parameter)
-      {
-         // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-packing-rules
-         /* D3DCompile introduces some weird packing rules for min16float:
-               min16float a; // offset=0
-               min16float b; // offset=4
-
-               min16float a; // offset=0
-                    float b; // offset=16
-
-            Looks like 'min16float' and 'float' can't be together on the same Vec4, so when a change is detected (using 'was_min16'), switch to new Vec4
-
-            Also:
-               min16float a; // offset=0
-               min16float b; // offset=4
-
-               min16float2 a; // offset=0
-               min16float  b; // offset=8
-
-               min16float3 a; // offset=0
-               min16float  b; // offset=12
-
-               min16float4 a; // offset=0
-               min16float  b; // offset=16
-         */
-         if(type_desc.Elements)offset=Ceil16(offset); // arrays are 16-byte aligned (even 1-element arrays "f[1]"), non-arrays have Elements=0, so check Elements!=0
-         Int  elms=Max(type_desc.Elements, 1), last_index=elms-1; // 'Elements' is array size (it's 0 for non-arrays)
-         FREP(elms)switch(type_desc.Class)
-         {
-            case D3D_SVC_SCALAR        : // for example: Flt f,f[];
-            case D3D_SVC_VECTOR        : // for example: Vec2 v,v[]; Vec v,v[]; Vec4 v,v[];
-            case D3D_SVC_MATRIX_COLUMNS: // for example: Matrix m,m[];
-            {
-            #define ALLOW_MIN16 0
-               if(type_desc.Rows   <=0 || type_desc.Rows   >4)Exit("Invalid Shader Param Rows");
-               if(type_desc.Columns<=0 || type_desc.Columns>4)Exit("Invalid Shader Param Cols");
-               Bool half=false, min16=(type_desc.Type==D3D_SVT_MIN16FLOAT);
-               if(type_desc.Type==D3D_SVT_FLOAT || (ALLOW_MIN16 && min16))
-               {
-                  Int base_size=(half ? SIZE(Half) : SIZE(Flt)),
-                           size=base_size*type_desc.Rows*type_desc.Columns;
-                  if(offset/16 != (offset+size-1)/16 || (ALLOW_MIN16 && was_min16>=0 && was_min16!=(Byte)min16))offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary."
-                  if(!half)cpu_data_size=Ceil4(cpu_data_size); // float's are 4-byte aligned on CPU, double too if using #pragma pack(4)
-
-                  if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)translation.New().set(cpu_data_size, offset, size);else
-                  {
-                     FREPD(y, type_desc.Columns)
-                     FREPD(x, type_desc.Rows   )translation.New().set(cpu_data_size+base_size*(y+x*type_desc.Columns), offset+base_size*(x+y*4), base_size);
-                  }
-                  
-                  cpu_data_size+=size;
-                         offset+=((i==last_index) ? size : Ceil16(size)); // arrays are 16-byte aligned, and last element is 'size' only
-                  was_min16=min16;
-               }else Exit(S+"Unhandled Shader Parameter Type for \""+name+'"');
-            }break;
-            
-            case D3D_SVC_STRUCT:
-            {
-               offset=Ceil16(offset); // "Each structure forces the next variable to start on the next four-component vector."
-               FREP(type_desc.Members) // iterate all struct members
-               {
-                  ID3D11ShaderReflectionType *member=type->GetMemberTypeByIndex(i); if(!member)Exit("'GetMemberTypeByIndex' failed");
-                  D3D11_SHADER_TYPE_DESC member_desc; if(!OK(member->GetDesc(&member_desc)))Exit("'ID3D11ShaderReflectionType.GetDesc' failed");
-                  addTranslation(member, member_desc, type->GetMemberTypeName(i), offset, was_min16);
-               }
-             //offset=Ceil16(offset); "Each structure forces the next variable to start on the next four-component vector." even though documentation examples indicate this should align too, actual tests confirm that's not the case
-            }break;
-         }
-      }
-   };
-   struct Buffer
-   {
-      Str8 name;
-      Int  size, bind_slot;
-      Bool bind_explicit;
-    //Mems<Byte>  data;
-      Mems<Param> params;
-
-      Bool operator==(C Buffer &b)C
-      {
-       //if(data  .elms()!=b.data  .elms() || !EqualMem(data.data(), b.data.data(), data.elms()))return false;
-         if(params.elms()!=b.params.elms())return false; REPA(params)if(params[i]!=b.params[i])return false;
-         if(bind_explicit && bind_slot!=b.bind_slot)return false; // check only for explicit
-         return Equal(name, b.name, true) && size==b.size && bind_explicit==b.bind_explicit;
-      }
-      Bool operator!=(C Buffer &b)C {return !(T==b);}
-   };
-   struct Image
-   {
-      Str8 name;
-      Int  bind_slot;
-   };
-   enum SHADER_TYPE : Byte
-   {
-      VS,
-      HS,
-      DS,
-      PS,
-      ST_NUM,
-   };
-   enum API : Byte
-   {
-      API_DX,
-      API_GL,
-      API_VULKAN,
-      API_METAL,
-      API_NUM,
-   };
-   static inline CChar8* APIName[]=
-   {
-      "DX",
-      "GL",
-      "VULKAN",
-      "METAL",
-   };
-   struct IO
-   {
-      Str8 name;
-      Int  index, reg;
-
-      void operator=(C D3D11_SIGNATURE_PARAMETER_DESC &desc)
-      {
-         name =desc.SemanticName;
-         index=desc.SemanticIndex;
-         reg  =desc.Register;
-      }
-      Bool operator==(C IO &io)C {return name==io.name && index==io.index && reg==io.reg;}
-      Bool operator!=(C IO &io)C {return !(T==io);}
-   };
-   enum RESULT : Byte
-   {
-      NONE,
-      FAIL,
-      GOOD,
-   };
-   struct SubShader
-   {
-    C Shader      *shader;
-      SHADER_TYPE  type;
-      RESULT       result=NONE;
-      Str8         func_name;
-      Str          error;
-      Mems<Buffer> buffers;
-      Mems<Image > images;
-      Mems<IO    > inputs, outputs;
-      Mems<Byte  > shader_data;
-      Int          shader_data_index;
-
-      Bool is()C {return func_name.is();}
-      void compile();
-   };
-   static Bool Match(C SubShader &output, C SubShader &input, Str &error)
-   {
-      Bool ok=true;
-      REPA(input.inputs) // have to check only inputs, we can ignore outputs not present in inputs
-      {
-       C IO &in=input.inputs[i];
-         if(!InRange(i, output.outputs) || in!=output.outputs[i])
-         {
-            error.line()+=S+"Input "+in.name+in.index+" register:"+in.reg+" in \""+input.func_name+"\" doesn't match output in \""+output.func_name+'"';
-            ok=false;
-         }
-      }
-      return ok;
-   }
-   struct Shader
-   {
-      Str              name;
-      SHADER_MODEL     model;
-      Memc<TextParam8> params;
-      SubShader        sub[ST_NUM];
-    C Source          *source;
-
-      Shader& Model(SHADER_MODEL model) {T.model=model; return T;} // override model (needed for tesselation)
-
-      Shader& operator()(C Str &n0, C Str &v0                                                                     ) {params.New().set(n0, v0);                                                                               return T;}
-      Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1                                              ) {params.New().set(n0, v0); params.New().set(n1, v1);                                                     return T;}
-      Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1,  C Str &n2, C Str &v2                       ) {params.New().set(n0, v0); params.New().set(n1, v1); params.New().set(n2, v2);                           return T;}
-      Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1,  C Str &n2, C Str &v2,  C Str &n3, C Str &v3) {params.New().set(n0, v0); params.New().set(n1, v1); params.New().set(n2, v2); params.New().set(n3, v3); return T;}
-
-      void finalizeName()
-      {
-         FREPA(params)
-         {
-          C TextParam8 &p=params[i]; if(p.value.length()!=1)Exit("Shader Param Value Length != 1");
-            name+=p.value;
-         }
-      }
-   };
-   struct Source
-   {
-      Str             file_name;
-      Mems<Byte>      file_data;
-      Memc<Shader>    shaders;
-      SHADER_MODEL    model;
-      ShaderCompiler *compiler;
-
-      Shader& New(C Str &name, C Str8 &vs, C Str8 &ps)
-      {
-         Shader &shader=shaders.New();
-         shader.model=model;
-         shader.name =name;
-         shader.sub[VS].func_name=vs;
-         shader.sub[PS].func_name=ps;
-         return shader;
-      }
-      Bool load()
-      {
-         File f; if(!f.readTry(file_name))return false;
-         file_data.setNum(f.size()); if(!f.getFast(file_data.data(), file_data.elms()))return false;
-         return true;
-      }
-   };
-   Str          dest, messages;
-   SHADER_MODEL model;
-   API          api;
-   Memc<Source> sources;
-
-   void message(C Str &t) {messages.line()+=t;}
-   Bool error(C Str &t) {message(t); return false;}
-
-   ShaderCompiler& set(C Str &dest, SHADER_MODEL model, API api=API_DX)
-   {
-      T.dest =dest ;
-      T.model=model;
-      T.api  =api  ;
-      return T;
-   }
-   Source& New(C Str &file_name)
-   {
-      Source &source=sources.New();
-      source.file_name=file_name;
-      source.model    =model;
-      source.compiler =this;
-      return source;
-   }
-   Bool save()C
-   {
-      File f; if(f.writeTry(dest))
-      {
-         f.putUInt (CC4_SHDR   ); // cc4
-         f.putByte (SHADER_DX11); // type
-         f.cmpUIntV(0          ); // version
-
-         // constants
-         f.cmpUIntV(buffers.elms()); FREPA(buffers)
-         {
-          C ShaderBufferParams &buf=buffers[i];
-
-            // constant buffer
-            f.putStr(Name(*buf.buffer)).cmpUIntV(buf.buffer->size()).putSByte(buf.index); DYNAMIC_ASSERT(buf.index>=-1 && buf.index<=127, "buf.index out of range");
-
-            // params
-            if(!buf.params.save(f))return false;
-         }
-
-         // images
-         f.cmpUIntV(images.elms());
-         FREPA(images)f.putStr(Name(*images[i]));
-
-         if(vs   .save(f)) // shaders
-         if(hs   .save(f))
-         if(ds   .save(f))
-         if(ps   .save(f))
-      // FIXME don't list constant buffers that have 'bind_explicit' in vs_buffers, etc, but LIST in buffers
-         if(techs.save(f, buffers, images)) // techniques
-            if(f.flushOK())return true;
-
-         f.del(); FDelFile(name);
-      }
-      return false;
-   }
-   static void Compile(SubShader &shader, Ptr user, Int thread_index) {shader.compile();}
-   Bool compileTry(Threads &threads)
-   {
-      FREPA(sources)
-      {
-         Source &source=sources[i];
-         if(!source.load())return error(S+"Can't open file:"+source.file_name);
-         FREPA(source.shaders)
-         {
-            Shader &shader=source.shaders[i];
-            shader.source=&source; // link only during compilation because sources use Memc container which could change addresses while new sources were being added, however at this stage all have already been created
-            shader.finalizeName();
-            FREPA(shader.sub)
-            {
-               SubShader &sub=shader.sub[i]; if(sub.is())
-               {
-                  sub.type  =(SHADER_TYPE)i;
-                  sub.shader=&shader;
-                  threads.queue(sub, Compile);
-               }
-            }
-         }
-      }
-      threads.wait();
-      Map<Str8, Buffer*> buffers(CompareCS);
-      Memc<Str8>         images;
-      Mems< Mems<Byte> > shader_datas[ST_NUM];
-      FREPA(sources)
-      {
-         Source &source=sources[i]; FREPA(source.shaders)
-         {
-            Shader &shader=source.shaders[i]; FREPA(shader.sub)
-            {
-               SubShader &sub=shader.sub[i]; if(sub.result==FAIL)return error(S+"Compiling \""+shader.name+"\" in \""+source.file_name+"\" failed:\n"+sub.error);
-               FREPA(sub.buffers)
-               {
-                  Buffer  &sub_buffer=sub.buffers[i];
-                  Buffer* &    buffer=*buffers(sub_buffer.name);
-                  if(!buffer)buffer=&sub_buffer;else if(*buffer!=sub_buffer)return error(S+"Buffer \""+buffer->name+"\" is not always the same in all shaders");
-               }
-               FREPA(sub.images)images.binaryInclude(sub.images[i].name, CompareCS);
-
-               sub.shader_data_index=-1; if(sub.shader_data.elms())
-               {
-                  Mems< Mems<Byte> > &sds=shader_datas[i];
-                  FREPA(sds){Mems<Byte> &sd=sds[i]; if(sd.elms()==sub.shader_data.elms() && EqualMem(sd.data(), sub.shader_data.data(), sd.elms())){sub.shader_data_index=i; goto have;}} // find same
-                  sub.shader_data_index=sds.elms(); Swap(sds.New(), sub.shader_data); // add new, just swap
-               have:
-                  sub.shader_data.del(); // no longer needed
-               }
-            }
-         }
-      }
-      return true;
-   }
-   void compile(Threads &threads)
-   {
-      if(!compileTry(threads))Exit(S+"Failed to compile:"+messages);
-   }
-};
-/******************************************************************************/
-struct Include11 : ID3DInclude
-{
-   struct ShaderPath
-   {
-      Char path[MAX_LONG_PATH];
-   };
-   ShaderPath root;
-
-   HRESULT __stdcall Open(D3D_INCLUDE_TYPE IncludeType, LPCSTR pFileName, LPCVOID pParentData, LPCVOID *ppData, UINT *pBytes)
-   {
-     *ppData=null;
-     *pBytes=0;
-
-      Str path=GetPath(pFileName);
-      if(!FullPath(path))
-         if(ShaderPath *parent=(pParentData ? (ShaderPath*)pParentData-1 : &root))
-            path=NormalizePath(Str(parent->path).tailSlash(true)+path);
-
-      File f; if(f.readStdTry(path.tailSlash(true)+GetBase(pFileName)))
-      {
-         Byte *data=Alloc<Byte>(SIZEU(ShaderPath)+f.size());
-         Set(((ShaderPath*)data)->path, path);
-         data+=SIZE(ShaderPath);
-         f.get(data, f.size());
-        *ppData=data;
-        *pBytes=f.size();
-         return S_OK;
-      }
-      return -1;
-   }
-   HRESULT __stdcall Close(LPCVOID pData)
-   {
-      if(pData)
-      {
-         Byte *data=((Byte*)pData)-SIZE(ShaderPath);
-         Free( data);
-      }
-      return S_OK;
-   }
-
-   Include11(C Str &src)
-   {
-      Set(root.path, GetPath(src));
-   }
-};
-/******************************************************************************/
-void ShaderCompiler::SubShader::compile()
-{
- C Source         *source  =shader->source;
- C ShaderCompiler *compiler=source->compiler;
-   Char8 target[6+1];
-   switch(type)
-   {
-      case VS: target[0]='v'; break;
-      case HS: target[0]='h'; break;
-      case DS: target[0]='d'; break;
-      case PS: target[0]='p'; break;
-   }
-   target[1]='s';
-   target[2]='_';
-   target[4]='_';
-   target[6]='\0';
-   SHADER_MODEL model=shader->model; if(type==HS || type==DS)MAX(model, SM_5); // HS DS are supported only in SM5+
-   switch(model)
-   {
-      case SM_4  : target[3]='4'; target[5]='0'; break;
-      case SM_4_1: target[3]='4'; target[5]='1'; break;
-      case SM_5  : target[3]='5'; target[5]='0'; break;
-      default    : Exit("Invalid Shader Model"); break;
-   }
-
-   MemtN<D3D_SHADER_MACRO, 64> macros;
-   Int params=shader->params.elms();
-   macros.setNum(params+API_NUM+1);
-   FREP(params)
-   {
-      D3D_SHADER_MACRO &macro=macros[i]; C TextParam8 &param=shader->params[i];
-      macro.Name      =param.name;
-      macro.Definition=param.value;
-   }
-   FREP(API_NUM)
-   {
-      macros[params+i].Name      =APIName[i];
-      macros[params+i].Definition=((compiler->api==i) ? "1" : "0");
-   }
-   Zero(macros.last()); // must be null-terminated
-
-   ID3DBlob *buffer=null, *error_blob=null;
-   D3DCompile(source->file_data.data(), source->file_data.elms(), (Str8)source->file_name, macros.data(), &Include11(source->file_name), func_name, target, D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &buffer, &error_blob);
-   if(error_blob){error=(Char8*)error_blob->GetBufferPointer(); error_blob->Release();}
-   if(buffer)
-   {
-      ID3D11ShaderReflection *reflection=null; D3DReflect(buffer->GetBufferPointer(), buffer->GetBufferSize(), IID_ID3D11ShaderReflection, (Ptr*)&reflection); if(reflection)
-      {
-         D3D11_SHADER_DESC desc; if(!OK(reflection->GetDesc(&desc))){error.line()+="'ID3D11ShaderReflection.GetDesc' failed.";}else
-         {
-            Int images_elms=0, buffers_elms=0;
-            FREP(desc.BoundResources)
-            {
-               D3D11_SHADER_INPUT_BIND_DESC desc; if(!OK(reflection->GetResourceBindingDesc(i, &desc))){error.line()+="'GetResourceBindingDesc' failed."; goto error;}
-               switch(desc.Type)
-               {
-                  case D3D_SIT_TEXTURE:  images_elms++; break;
-                  case D3D_SIT_CBUFFER: buffers_elms++; break;
-               }
-            }
-             images.setNum( images_elms);  images_elms=0;
-            buffers.setNum(buffers_elms); buffers_elms=0;
-            FREP(desc.BoundResources)
-            {
-               D3D11_SHADER_INPUT_BIND_DESC desc; if(!OK(reflection->GetResourceBindingDesc(i, &desc))){error.line()+="'GetResourceBindingDesc' failed."; goto error;}
-               switch(desc.Type)
-               {
-                  case D3D_SIT_TEXTURE:
-                  {
-                     if(!InRange(desc.BindPoint, MAX_TEXTURES)){error.line()+=S+"Texture index: "+desc.BindPoint+", is too big"; goto error;}
-                     Image &image=images[images_elms++]; image.name=desc.Name; image.bind_slot=desc.BindPoint;
-                  }break;
-
-                  case D3D_SIT_CBUFFER:
-                  {
-                     if(!InRange(desc.BindPoint, MAX_SHADER_BUFFERS)){error.line()+=S+"Constant Buffer index: "+desc.BindPoint+", is too big"; goto error;}
-                     Buffer &buffer=buffers[buffers_elms++];
-                     buffer.name=desc.Name;
-                     buffer.bind_slot=desc.BindPoint;
-                     buffer.bind_explicit=FlagTest(desc.uFlags, D3D_SIF_USERPACKED);
-                     ID3D11ShaderReflectionConstantBuffer *cb=reflection->GetConstantBufferByName(desc.Name); if(!cb){error.line()+="'GetConstantBufferByIndex' failed."; goto error;}
-                     {
-                        D3D11_SHADER_BUFFER_DESC desc; if(!OK(cb->GetDesc(&desc))){error.line()+="'ID3D11ShaderReflectionConstantBuffer.GetDesc' failed."; goto error;}
-                        buffer.size=desc.Size;
-                        buffer.params.setNum(desc.Variables);
-                        FREP(desc.Variables)
-                        {
-                           ID3D11ShaderReflectionVariable *var=cb->GetVariableByIndex(i); if(!var){error.line()+="'GetVariableByIndex' failed."; goto error;}
-                           ID3D11ShaderReflectionType *type=var->GetType(); if(!type){error.line()+="'GetType' failed."; goto error;}
-                           D3D11_SHADER_VARIABLE_DESC var_desc; if(!OK( var->GetDesc(& var_desc))){error.line()+="'ID3D11ShaderReflectionVariable.GetDesc' failed."; goto error;}
-                           D3D11_SHADER_TYPE_DESC    type_desc; if(!OK(type->GetDesc(&type_desc))){error.line()+="'ID3D11ShaderReflectionType.GetDesc' failed."; goto error;}
-
-                           Param &param=buffer.params[i];
-                           param.name=var_desc.Name;
-                           param.elms=type_desc.Elements;
-                           Int offset=var_desc.StartOffset; SByte was_min16=-1; param.addTranslation(type, type_desc, var_desc.Name, offset, was_min16);
-                           param.gpu_data_size=offset-var_desc.StartOffset;
-                           if(!param.translation.elms()                             )Exit("Shader Param is empty.\nPlease contact Developer.");
-                           if( param.gpu_data_size!=var_desc.Size                   )Exit("Incorrect Shader Param size.\nPlease contact Developer.");
-                           if( param.translation[0].gpu_offset!=var_desc.StartOffset)Exit("Incorrect Shader Param Offset.\nPlease contact Developer.");
-                           if( param.gpu_data_size+var_desc.StartOffset>buffer.size )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer.");
-                         //if( SIZE(Vec4)         +var_desc.StartOffset>buffer.size )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer."); some functions assume that '_gpu_data_size' is at least as big as 'Vec4' to set values without checking for size, !! this is not needed and shouldn't be called because in DX10+ Shader Params are stored in Shader Buffers, and 'ShaderBuffer' already allocates padding for Vec4
-
-                           if(HasData(var_desc.DefaultValue, var_desc.Size)) // if parameter has any data
-                           {
-                           #if 1 // store in parameter
-                              param.data.setNum(param.gpu_data_size).copyFrom((Byte*)var_desc.DefaultValue);
-                           #else // store in buffer
-                              buffer.data.setNumZero(buffer.size); // allocate entire buffer
-                              CopyFast(buffer.data.data()+var_desc.StartOffset, var_desc.DefaultValue, param.gpu_data_size); // copy param data to buffer data
-                           #endif
-                           }
-                           
-                         //type->Release(); this doesn't have 'Release'
-                         //var ->Release(); this doesn't have 'Release'
-                        }
-                      //DEBUG_ASSERT(buffer.bind_explicit==FlagTest(desc.uFlags, D3D_CBF_USERPACKED), "bind_explicit mismatch"); ignore because looks like 'desc.uFlags' is not set
-                     }
-                  //cb->Release(); this doesn't have 'Release'
-                  }break;
-               }
-            }
-             inputs.setNum(desc. InputParameters); FREPA( inputs){D3D11_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetInputParameterDesc (i, &desc)))Exit("'GetInputParameterDesc' failed" );  inputs[i]=desc;}
-            outputs.setNum(desc.OutputParameters); FREPA(outputs){D3D11_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetOutputParameterDesc(i, &desc)))Exit("'GetOutputParameterDesc' failed"); outputs[i]=desc;}
-            
-         #if DEBUG && 0 // use this for generation of a basic Vertex Shader which can be used for Input Layout creation (see 'DX10_INPUT_LAYOUT' and 'VS_Code')
-            if(type==VS)
-            {
-               Byte *data=(Byte*)buffer->GetBufferPointer(); Int size=buffer->GetBufferSize();
-               Str t=S+"static Byte VS_Code["+size+"]={";
-               FREP(size){if(i)t+=','; t+=data[i];}
-               t+="};\n";
-               ClipSet(t);
-               Exit(t);
-            }
-         #endif
-
-            if(compiler->api==API_DX) // strip
-            {
-               ID3DBlob *stripped=null; D3DStripShader(buffer->GetBufferPointer(), buffer->GetBufferSize(), ~0, &stripped);
-               if(stripped){buffer->Release(); buffer=stripped;}
-            }
-            shader_data.setNum(buffer->GetBufferSize()).copyFrom((Byte*)buffer->GetBufferPointer());
-
-            result=GOOD;
-            // !! do not make any changes here after setting 'result' because other threads may access this data !!
-
-            // verify that stages have matching output->input
-            for(Int i=type;         --i>=0      ; ){C SubShader &prev=shader->sub[i]; if(prev.is()){if(prev.result==GOOD && !Match(prev, T, error))goto error; break;}} // can check only if other shader also completed successfully, stop on first valid sub shader
-            for(Int i=type; InRange(++i, ST_NUM); ){C SubShader &next=shader->sub[i]; if(next.is()){if(next.result==GOOD && !Match(T, next, error))goto error; break;}} // can check only if other shader also completed successfully, stop on first valid sub shader
-
-            goto ok;
-         }
-      error:
-         result=FAIL;
-      ok:
-         reflection->Release();
-      }
-      buffer->Release();
-   }
-   if(result!=GOOD)Exit(S+"Compiling \""+shader->name+"\" in \""+source->file_name+"\" failed:\n"+error);
-}
-static Memx<ShaderCompiler> ShaderCompilers; // use 'Memx' because we store pointers to 'ShaderCompiler'
-#endif
-/******************************************************************************/
-static Memc<OldShaderCompiler> OldShaderCompilers;
-/******************************************************************************/
-static void Add(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderGLSL> &glsl=null)
-{
-   OldShaderCompiler &sc=OldShaderCompilers.New();
-   sc.src  =src  ;
-   sc.dest =dest ;
-   sc.model=model;
-   sc.glsl =glsl ;
-}
-static void Add(C Str &src, C Str &dest, SHADER_MODEL model, C Str &names, C MemPtr<ShaderGLSL> &glsl=null)
-{
-   OldShaderCompiler &sc=OldShaderCompilers.New();
-   sc.src  =src  ;
-   sc.dest =dest ;
-   sc.model=model;
-   sc.glsl =glsl ;
-   sc.macros.New().set("CUSTOM_TECHNIQUE", names);
 }
 /******************************************************************************/
 // LISTING ALL SHADER TECHNIQUES
@@ -1430,12 +865,6 @@ static void Compile(SHADER_MODEL model)
 #ifdef DX10_INPUT_LAYOUT
    Add(src_path+"DX10+ Input Layout.cpp", S, model);
 #endif
-}
-/******************************************************************************/
-static void ThreadCompile(OldShaderCompiler &shader_compiler, Ptr user, Int thread_index)
-{
-   ThreadMayUseGPUData();
-   shader_compiler.compile();
 }
 /******************************************************************************/
 #endif // COMPILE
