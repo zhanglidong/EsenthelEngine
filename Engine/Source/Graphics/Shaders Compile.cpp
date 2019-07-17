@@ -438,10 +438,10 @@ struct ShaderCompiler1
 
       Shader& Model(SHADER_MODEL model) {T.model=model; return T;} // override model (needed for tesselation)
 
-      Shader& operator()(C Str &n0, C Str &v0                                                                  ) {params.New().set(n0, v0);                                                                               return T;}
-      Shader& operator()(C Str &n0, C Str &v0, C Str &n1, C Str &v1                                            ) {params.New().set(n0, v0); params.New().set(n1, v1);                                                     return T;}
-      Shader& operator()(C Str &n0, C Str &v0, C Str &n1, C Str &v1, C Str &n2, C Str &v2                      ) {params.New().set(n0, v0); params.New().set(n1, v1); params.New().set(n2, v2);                           return T;}
-      Shader& operator()(C Str &n0, C Str &v0, C Str &n1, C Str &v1, C Str &n2, C Str &v2, C Str &n3, C Str &v3) {params.New().set(n0, v0); params.New().set(n1, v1); params.New().set(n2, v2); params.New().set(n3, v3); return T;}
+      Shader& operator()(C Str &n0, C Str &v0                                                                     ) {params.New().set(n0, v0);                                                                               return T;}
+      Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1                                              ) {params.New().set(n0, v0); params.New().set(n1, v1);                                                     return T;}
+      Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1,  C Str &n2, C Str &v2                       ) {params.New().set(n0, v0); params.New().set(n1, v1); params.New().set(n2, v2);                           return T;}
+      Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1,  C Str &n2, C Str &v2,  C Str &n3, C Str &v3) {params.New().set(n0, v0); params.New().set(n1, v1); params.New().set(n2, v2); params.New().set(n3, v3); return T;}
 
       void finalizeName()
       {
