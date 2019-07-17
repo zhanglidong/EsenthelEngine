@@ -364,7 +364,7 @@ struct ShaderCompiler1
    void message(C Str &t) {messages.line()+=t;}
    Bool error(C Str &t) {message(t); return false;}
 
-   ShaderCompiler1& set(C Str &dest, SHADER_MODEL model, API api)
+   ShaderCompiler1& set(C Str &dest, SHADER_MODEL model, API api=API_DX)
    {
       T.dest =dest ;
       T.model=model;
@@ -475,15 +475,19 @@ void ShaderCompiler1::SubShader::compile()
    }
 
    MemtN<D3D_SHADER_MACRO, 64> macros;
-   macros.setNum(shader->params.elms()+2);
-   FREPA(shader->params)
+   Int params=shader->params.elms();
+   macros.setNum(params+API_NUM+1);
+   FREP(params)
    {
       D3D_SHADER_MACRO &macro=macros[i]; C TextParam8 &param=shader->params[i];
       macro.Name      =param.name;
       macro.Definition=param.value;
    }
-   macros[macros.elms()-2].Name      =APIName[compiler->api];
-   macros[macros.elms()-2].Definition="1";
+   FREP(API_NUM)
+   {
+      macros[params+i].Name      =APIName[i];
+      macros[params+i].Definition=((compiler->api==i) ? "1" : "0");
+   }
    Zero(macros.last()); // must be null-terminated
 
    ID3DBlob *buffer=null, *error_blob=null;
