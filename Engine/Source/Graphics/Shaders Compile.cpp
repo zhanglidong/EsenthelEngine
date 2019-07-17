@@ -8,7 +8,7 @@ namespace EE{
 #define FORCE_LOG      0
 
 #if DX11   // DirectX 10+
-   #define COMPILE_4 0
+   #define COMPILE_4 1
 #endif
 #if GL && !GL_ES // Desktop OpenGL
    #define COMPILE_GL 0
@@ -22,10 +22,10 @@ namespace EE{
 #define FORWARD // Forward Shaders in OpenGL compile almost an entire day and use ~5 GB memory during compilation
 #define BLEND_LIGHT
 
-#define AMBIENT
-#define AMBIENT_OCCLUSION
+#define AMBIENT*/
+//#define AMBIENT_OCCLUSION
 #define AMBIENT_OCCLUSION_NEW
-#define BEHIND
+/*#define BEHIND
 #define BLEND
 #define DEPTH_OF_FIELD
 #define EARLY_Z
@@ -435,7 +435,7 @@ struct ShaderCompiler1
       SHADER_MODEL     model;
       Memc<TextParam8> params;
       SubShader        sub[ST_NUM];
-    C Source          *src;
+    C Source          *source;
 
       Shader& Model(SHADER_MODEL model) {T.model=model; return T;} // override model (needed for tesselation)
 
@@ -492,10 +492,10 @@ struct ShaderCompiler1
       T.api  =api  ;
       return T;
    }
-   Source& New(C Str &src)
+   Source& New(C Str &file_name)
    {
       Source &source=sources.New();
-      source.file_name=src;
+      source.file_name=file_name;
       source.model    =model;
       source.compiler =this;
       return source;
@@ -509,7 +509,7 @@ struct ShaderCompiler1
          FREPA(source.shaders)
          {
             Shader &shader=source.shaders[i];
-            shader.src=&source; // link only during compilation because sources use Memc container which could change addresses while new sources were being added, however at this stage all have already been created
+            shader.source=&source; // link only during compilation because sources use Memc container which could change addresses while new sources were being added, however at this stage all have already been created
             FREPA(shader.sub)
             {
                SubShader &sub=shader.sub[i]; if(sub.is())
@@ -572,8 +572,8 @@ struct Include11 : ID3DInclude
 };
 void ShaderCompiler1::SubShader::compile()
 {
- C Source          *src     =shader->src;
- C ShaderCompiler1 *compiler=src->compiler;
+ C Source          *source  =shader->source;
+ C ShaderCompiler1 *compiler=source->compiler;
    Char8 target[6+1];
    switch(type)
    {
@@ -612,7 +612,7 @@ void ShaderCompiler1::SubShader::compile()
    Zero(macros.last()); // must be null-terminated
 
    ID3DBlob *buffer=null, *error_blob=null;
-   D3DCompile(src->file_data.data(), src->file_data.elms(), (Str8)src->file_name, macros.data(), &Include11(src->file_name), func_name, target, D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &buffer, &error_blob);
+   D3DCompile(source->file_data.data(), source->file_data.elms(), (Str8)source->file_name, macros.data(), &Include11(source->file_name), func_name, target, D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &buffer, &error_blob);
    if(error_blob){error=(Char8*)error_blob->GetBufferPointer(); error_blob->Release();}
    if(buffer)
    {
@@ -714,9 +714,9 @@ void ShaderCompiler1::SubShader::compile()
       }
       buffer->Release();
    }
-   if(result!=GOOD)Exit(error);
+   if(result!=GOOD)Exit(S+"Compiling \""+shader->name+"\" in \""+source->file_name+"\" failed:\n"+error);
 }
-static Memx<ShaderCompiler1> ShaderCompiler1s; // use Memx because we store pointers to 'ShaderCompiler1'
+static Memx<ShaderCompiler1> ShaderCompiler1s; // use 'Memx' because we store pointers to 'ShaderCompiler1'
 #endif
 /******************************************************************************/
 static Memc<ShaderCompiler> ShaderCompilers;
