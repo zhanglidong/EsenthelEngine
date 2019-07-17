@@ -44,6 +44,10 @@ T2(KEY, DATA) struct Map : _Map // Map - container for dynamically created eleme
    DATA* get       (C KEY &key); // get     element,       create if not found, null on fail
    DATA* operator()(C KEY &key); // require element,       create if not found, Exit on fail (unless different MAP_MODE selected)
 
+   Int    findValidIndex(C KEY &key)C; // find    element valid index, don't create if not found,   -1 on fail
+   Int     getValidIndex(C KEY &key) ; // get     element valid index,       create if not found,   -1 on fail
+   Int requireValidIndex(C KEY &key) ; // require element valid index,       create if not found, Exit on fail (unless different MAP_MODE selected)
+
    Int    findAbsIndex(C KEY &key)C; // find    element absolute index, don't create if not found,   -1 on fail
    Int     getAbsIndex(C KEY &key) ; // get     element absolute index,       create if not found,   -1 on fail
    Int requireAbsIndex(C KEY &key) ; // require element absolute index,       create if not found, Exit on fail (unless different MAP_MODE selected)
@@ -95,6 +99,10 @@ T2(KEY, DATA) struct ThreadSafeMap : _MapTS // Thread Safe Map
    DATA* find      (C KEY &key); // find    element, don't create if not found, null on fail
    DATA* get       (C KEY &key); // get     element,       create if not found, null on fail
    DATA* operator()(C KEY &key); // require element,       create if not found, Exit on fail (unless different MAP_MODE selected)
+
+   Int    findValidIndex(C KEY &key)C; // find    element valid index, don't create if not found,   -1 on fail
+   Int     getValidIndex(C KEY &key) ; // get     element valid index,       create if not found,   -1 on fail
+   Int requireValidIndex(C KEY &key) ; // require element valid index,       create if not found, Exit on fail (unless different MAP_MODE selected)
 
    Int    findAbsIndex(C KEY &key)C; // find    element absolute index, don't create if not found,   -1 on fail
    Int     getAbsIndex(C KEY &key) ; // get     element absolute index,       create if not found,   -1 on fail

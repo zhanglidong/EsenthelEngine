@@ -358,7 +358,7 @@ Bool ShaderCompiler::Param::operator==(C Param &p)C
 {
    if(translation.elms()!=p.translation.elms())return false; REPA(translation)if(translation[i]!=p.translation[i])return false;
    if(data.elms()!=p.data.elms() || !EqualMem(data.data(), p.data.data(), data.elms()))return false;
-   return Equal(name, p.name, true) && elms==p.elms && cpu_data_size==p.cpu_data_size && gpu_data_size==p.gpu_data_size;
+   return Equal(name, p.name, true) && array_elms==p.array_elms && cpu_data_size==p.cpu_data_size && gpu_data_size==p.gpu_data_size;
 }
 Bool ShaderCompiler::Buffer::operator==(C Buffer &b)C
 {
@@ -502,7 +502,7 @@ void ShaderCompiler::SubShader::compile()
 
                            Param &param=buffer.params[i];
                            param.name=var_desc.Name;
-                           param.elms=type_desc.Elements;
+                           param.array_elms=type_desc.Elements;
                            Int offset=var_desc.StartOffset; SByte was_min16=-1; param.addTranslation(type, type_desc, var_desc.Name, offset, was_min16);
                            param.gpu_data_size=offset-var_desc.StartOffset;
                            if(!param.translation.elms()                             )Exit("Shader Param is empty.\nPlease contact Developer.");
@@ -590,6 +590,73 @@ ShaderCompiler::Source& ShaderCompiler::New(C Str &file_name)
    return source;
 }
 /******************************************************************************/
+#pragma pack(push, 1)
+struct ConstantIndex
+{
+   Byte  bind_index;
+   UShort src_index;
+
+        void set(Int bind_index, Int src_index) {_Unaligned(T.bind_index, bind_index); _Unaligned(T.src_index, src_index); DYNAMIC_ASSERT(T.bind_index==bind_index && T.src_index==src_index, "Constant index out of range");}
+   ConstantIndex(Int bind_index, Int src_index) {set(bind_index, src_index);}
+   ConstantIndex() {}
+};
+#pragma pack(pop)
+
+static UShort AsUShort(Int i) {DYNAMIC_ASSERT(InRange(i, USHORT_MAX+1), "Value too big to be represented as UShort"); return i;}
+
+Bool ShaderCompiler::Param::save(File &f)C
+{
+   f.putStr(name).putMulti(cpu_data_size, gpu_data_size, array_elms); // name+info
+   SaveTranslation(translation, f, array_elms);                       // translation
+   if(data.elms())                                                    // data
+   {
+      f.putBool(true);
+      data.saveRawData(f);
+   }else
+   {
+      f.putBool(false);
+   }
+   return f.ok();
+}
+Bool ShaderCompiler::Shader::save(File &f, C Map<Str8, Buffer*> &buffers, C Memc<Str8> &images)C
+{
+   // name
+   f.putStr(name).putMulti(sub[VS].shader_data_index, sub[HS].shader_data_index, sub[DS].shader_data_index, sub[PS].shader_data_index);
+
+   // images
+   FREPA(sub)
+   {
+    C SubShader &sub=T.sub[i];
+      f.cmpUIntV(sub.images.elms());
+      FREPA(sub.images)
+      {
+       C Image &image=sub.images[i];
+         Int src_index; if(!images.binarySearch(image.name, src_index, CompareCS))Exit("Image not found in Shader" );
+         f<<ConstantIndex(image.bind_slot, src_index);
+      }
+   }
+
+   // buffers
+   MemtN<UShort, 256> all;
+   FREPA(sub)
+   {
+    C SubShader &sub=T.sub[i];
+      MemtN<ConstantIndex, 256> save;
+      FREPA(sub.buffers)
+      {
+       C Buffer &buffer=sub.buffers[i];
+         Int src_index=buffers.findValidIndex(buffer.name); if(src_index<0)Exit("Buffer not found in Shader");
+         if(!buffer.bind_explicit) // here we have to save only buffers that don't have a constant bind point index
+            save.New().set(buffer.bind_slot, src_index); // save to which index this buffer should be bound for this shader, and index of buffer in 'file_buffers' array
+         all.binaryInclude(AsUShort(src_index));
+      }
+      save.saveRaw(f);
+   }
+   all.saveRaw(f);
+
+   return f.ok();
+}
+/******************************************************************************/
 static void Compile(ShaderCompiler::SubShader &shader, Ptr user, Int thread_index) {shader.compile();}
 Bool ShaderCompiler::compileTry(Threads &threads)
 {
@@ -617,6 +684,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
    Map<Str8, Buffer*> buffers(CompareCS);
    Memc<Str8>         images;
    Mems<ShaderData>   shader_datas[ST_NUM];
+   Int                shaders=0;
    FREPA(sources)
    {
       Source &source=sources[i]; FREPA(source.shaders)
@@ -642,6 +710,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
             }
          }
       }
+      shaders+=source.shaders.elms();
    }
 
    File f; if(f.writeTry(dest))
@@ -663,20 +732,26 @@ Bool ShaderCompiler::compileTry(Threads &threads)
       }
 
       // images
-      f.cmpUIntV(images.elms());
-      FREPA(images)f.putStr(images[i]);
+      f.cmpUIntV(images.elms()); FREPA(images)f.putStr(images[i]);
 
       // shader data
       FREPA(shader_datas)
       {
-         Mems<ShaderData> &shader_data=shader_datas[i];
-         if(!shader_data.save(f))goto error;
+         Mems<ShaderData> &shader_data=shader_datas[i]; if(!shader_data.save(f))goto error;
       }
 
       // shaders
-   // FIXME don't list constant buffers that have 'bind_explicit' in vs_buffers, etc, but LIST in buffers
-      if(techs.save(f, buffers, images)) // techniques
-         if(f.flushOK())return true;
+      f.cmpUIntV(shaders);
+      FREPA(sources)
+      {
+         Source &source=sources[i]; FREPA(source.shaders)
+         {
+            Shader &shader=source.shaders[i];
+            if(!shader.save(f, buffers, images))goto error;
+         }
+      }
+
+      if(f.flushOK())return true;
 
    error:
       f.del(); FDelFile(dest);
@@ -719,18 +794,6 @@ static void Test(Shader11::Buffer &b)
    }ASSERT(SBI_NUM==7);
 }
 #endif
-
-#pragma pack(push, 1)
-struct ConstantIndex
-{
-   Byte  bind_index;
-   UShort src_index;
-
-        void set(Int bind_index, Int src_index) {_Unaligned(T.bind_index, bind_index); _Unaligned(T.src_index, src_index); DYNAMIC_ASSERT(T.bind_index==bind_index && T.src_index==src_index, "Constant index out of range");}
-   ConstantIndex(Int bind_index, Int src_index) {set(bind_index, src_index);}
-   ConstantIndex() {}
-};
-#pragma pack(pop)
 
 Bool Shader11::load(File &f, C MemtN<ShaderBuffer*, 256> &file_buffers, C MemtN<ShaderImage*, 256> &images)
 {
@@ -1010,8 +1073,6 @@ static Int Compare(  ShaderImage*C      &a,   ShaderImage*C      &b) {return Com
 static Int GetIndex(C Memc<ShaderImage*       > & images, ShaderImage  *image ) {Int index; if(! images.binarySearch(image , index, Compare))Exit("Image not found in Shader" ); return index;}
 static Int GetIndex(C Map <Str8, ShaderParamEx> & params, ShaderParam  *param ) {Int index  =    params. dataToIndex((ShaderParamEx*)param); if(index<0)Exit("Param not found in Shader" ); return index;}
 static Int GetIndex(C Memc<ShaderBufferParams > &buffers, ShaderBuffer *buffer) {Int index; if(!buffers.binarySearch(buffer, index, Compare))Exit("Buffer not found in Shader"); return index;}
-
-static UShort AsUShort(Int i) {DYNAMIC_ASSERT(InRange(i, USHORT_MAX+1), "Value too big to be represented as UShort"); return i;}
 /******************************************************************************/
 // TRANSLATION
 /******************************************************************************/
@@ -1325,10 +1386,10 @@ static Bool ShaderCompile11(C Str &src, C Str &dest, C MemPtr<ShaderMacro> &macr
 
          // get shader data
          //ID3DBlob *blob=null; D3DStripShader(vsd.pBytecode, vsd.BytecodeLength, ~0, &blob); if(blob){Int size=blob->GetBufferSize(); ID3D11VertexShader *vs=null; blob->Release(); blob=null;} // FIXME
-         Mems<Byte> vs_data; vs_data.setNum(vsd.BytecodeLength).copyFrom(vsd.pBytecode);
-         Mems<Byte> hs_data; hs_data.setNum(hsd.BytecodeLength).copyFrom(hsd.pBytecode);
-         Mems<Byte> ds_data; ds_data.setNum(dsd.BytecodeLength).copyFrom(dsd.pBytecode);
-         Mems<Byte> ps_data; ps_data.setNum(psd.BytecodeLength).copyFrom(psd.pBytecode);
+         ShaderData vs_data; vs_data.setNum(vsd.BytecodeLength).copyFrom(vsd.pBytecode);
+         ShaderData hs_data; hs_data.setNum(hsd.BytecodeLength).copyFrom(hsd.pBytecode);
+         ShaderData ds_data; ds_data.setNum(dsd.BytecodeLength).copyFrom(dsd.pBytecode);
+         ShaderData ps_data; ps_data.setNum(psd.BytecodeLength).copyFrom(psd.pBytecode);
 
 #if DEBUG && 0 // use this for generation of a basic Vertex Shader which can be used for Input Layout creation (see 'DX10_INPUT_LAYOUT' and 'VS_Code')
    Str t=S+"static Byte VS_Code["+vs_data.elms()+"]={";
@@ -1339,10 +1400,10 @@ static Bool ShaderCompile11(C Str &src, C Str &dest, C MemPtr<ShaderMacro> &macr
 #endif
 
          // store shaders
-         if(vs_data.elms()){FREPA(vs)if(vs[i].data.elms()==vs_data.elms() && EqualMem(vs[i].data.data(), vs_data.data(), vs_data.elms())){tech.vs_index=i; break;} if(tech.vs_index<0){tech.vs_index=vs.elms(); Swap(vs.New().data, vs_data);}}
-         if(hs_data.elms()){FREPA(hs)if(hs[i].data.elms()==hs_data.elms() && EqualMem(hs[i].data.data(), hs_data.data(), hs_data.elms())){tech.hs_index=i; break;} if(tech.hs_index<0){tech.hs_index=hs.elms(); Swap(hs.New().data, hs_data);}}
-         if(ds_data.elms()){FREPA(ds)if(ds[i].data.elms()==ds_data.elms() && EqualMem(ds[i].data.data(), ds_data.data(), ds_data.elms())){tech.ds_index=i; break;} if(tech.ds_index<0){tech.ds_index=ds.elms(); Swap(ds.New().data, ds_data);}}
-         if(ps_data.elms()){FREPA(ps)if(ps[i].data.elms()==ps_data.elms() && EqualMem(ps[i].data.data(), ps_data.data(), ps_data.elms())){tech.ps_index=i; break;} if(tech.ps_index<0){tech.ps_index=ps.elms(); Swap(ps.New().data, ps_data);}}
+         if(vs_data.elms()){FREPA(vs)if(vs[i].elms()==vs_data.elms() && EqualMem(vs[i].data(), vs_data.data(), vs_data.elms())){tech.vs_index=i; break;} if(tech.vs_index<0){tech.vs_index=vs.elms(); Swap(SCAST(ShaderData, vs.New()), vs_data);}}
+         if(hs_data.elms()){FREPA(hs)if(hs[i].elms()==hs_data.elms() && EqualMem(hs[i].data(), hs_data.data(), hs_data.elms())){tech.hs_index=i; break;} if(tech.hs_index<0){tech.hs_index=hs.elms(); Swap(SCAST(ShaderData, hs.New()), hs_data);}}
+         if(ds_data.elms()){FREPA(ds)if(ds[i].elms()==ds_data.elms() && EqualMem(ds[i].data(), ds_data.data(), ds_data.elms())){tech.ds_index=i; break;} if(tech.ds_index<0){tech.ds_index=ds.elms(); Swap(SCAST(ShaderData, ds.New()), ds_data);}}
+         if(ps_data.elms()){FREPA(ps)if(ps[i].elms()==ps_data.elms() && EqualMem(ps[i].data(), ps_data.data(), ps_data.elms())){tech.ps_index=i; break;} if(tech.ps_index<0){tech.ps_index=ps.elms(); Swap(SCAST(ShaderData, ps.New()), ps_data);}}
 
          FREPD(shader, 4) // vs, hs, ds, ps
          {

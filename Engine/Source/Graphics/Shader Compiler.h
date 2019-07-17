@@ -21,13 +21,14 @@ struct ShaderCompiler
    struct Param
    {
       Str8 name;
-      Int  elms, cpu_data_size=0, gpu_data_size;
+      Int  array_elms, cpu_data_size=0, gpu_data_size;
       Mems<ShaderParam::Translation> translation;
       Mems<Byte> data;
 
       Bool operator==(C Param &p)C;
       Bool operator!=(C Param &p)C {return !(T==p);}
 
+      Bool save(File &f)C;
    #if WINDOWS
       void addTranslation(ID3D11ShaderReflectionType *type, C D3D11_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, SByte &was_min16); // 'was_min16'=if last inserted parameter was of min16 type (-1=no last parameter)
    #endif
@@ -110,6 +111,7 @@ struct ShaderCompiler
       Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1,  C Str &n2, C Str &v2,  C Str &n3, C Str &v3) {params.New().set(n0, v0); params.New().set(n1, v1); params.New().set(n2, v2); params.New().set(n3, v3); return T;}
 
       void finalizeName();
+      Bool save(File &f, C Map<Str8, Buffer*> &buffers, C Memc<Str8> &images)C;
    };
 
    struct Source

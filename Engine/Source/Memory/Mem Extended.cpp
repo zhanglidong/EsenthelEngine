@@ -245,6 +245,10 @@ Int _Memx::absIndex(CPtr elm)C
    }
    return -1;
 }
+Int _Memx::validIndexFastUnsafeValid(CPtr elm)C
+{
+   UInt index=((UInt*)elm)[-1]; return index;
+}
 Int _Memx::absIndexFastUnsafeValid(CPtr elm)C
 {
    UInt index=((UInt*)elm)[-1]; return _valid[index];

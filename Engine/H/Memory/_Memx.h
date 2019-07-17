@@ -28,7 +28,8 @@ struct _Memx // Block Based Extended Container Base - Do not use this class, use
    Int    absIndex     (CPtr elm  )C;
    Bool   contains     (CPtr elm  )C {return validIndex(elm)>=0;}
 #if EE_PRIVATE
-   Int    absIndexFastUnsafeValid(CPtr elm)C; // fast version that doesn't do any safety checks, assumes that "elm!=null" and points exactly to the element, and it is valid (not removed)
+   Int validIndexFastUnsafeValid(CPtr elm)C; // fast version that doesn't do any safety checks, assumes that "elm!=null" and points exactly to the element, and it is valid (not removed)
+   Int   absIndexFastUnsafeValid(CPtr elm)C; // fast version that doesn't do any safety checks, assumes that "elm!=null" and points exactly to the element, and it is valid (not removed)
 #endif
 
    void removeAbs  (Int  i  , Bool keep_order=false);
