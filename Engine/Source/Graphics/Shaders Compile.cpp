@@ -268,17 +268,30 @@ struct ShaderCompiler1
       Int  elms, cpu_data_size=0;
       Mems<ShaderParam::Translation> translation;
 
-      void addTranslation(ID3D11ShaderReflectionType *type, C D3D11_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, SByte &was_half) // 'was_half'=if last inserted parameter was of half type (-1=no last parameter)
+      void addTranslation(ID3D11ShaderReflectionType *type, C D3D11_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, SByte &was_min16) // 'was_min16'=if last inserted parameter was of min16 type (-1=no last parameter)
       {
          // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-packing-rules
          /* D3DCompile introduces some weird packing rules for min16float:
-               min16float b1; // offset=0
-               min16float b2; // offset=4
+               min16float a; // offset=0
+               min16float b; // offset=4
 
-               min16float b1; // offset=0
-                    float b2; // offset=16
+               min16float a; // offset=0
+                    float b; // offset=16
 
-            Looks like 'min16float' and 'float' can't be together on the same Vec4, so when a change is detected (using 'was_half'), switch to new Vec4
+            Looks like 'min16float' and 'float' can't be together on the same Vec4, so when a change is detected (using 'was_min16'), switch to new Vec4
+
+            Also:
+               min16float a; // offset=0
+               min16float b; // offset=4
+
+               min16float2 a; // offset=0
+               min16float  b; // offset=8
+
+               min16float3 a; // offset=0
+               min16float  b; // offset=12
+
+               min16float4 a; // offset=0
+               min16float  b; // offset=16
          */
          if(type_desc.Elements)offset=Ceil16(offset); // arrays are 16-byte aligned (even 1-element arrays "f[1]"), non-arrays have Elements=0, so check Elements!=0
          Int  elms=Max(type_desc.Elements, 1), last_index=elms-1; // 'Elements' is array size (it's 0 for non-arrays)
@@ -288,14 +301,15 @@ struct ShaderCompiler1
             case D3D_SVC_VECTOR        : // for example: Vec2 v,v[]; Vec v,v[]; Vec4 v,v[];
             case D3D_SVC_MATRIX_COLUMNS: // for example: Matrix m,m[];
             {
+            #define ALLOW_MIN16 0
                if(type_desc.Rows   <=0 || type_desc.Rows   >4)Exit("Invalid Shader Param Rows");
                if(type_desc.Columns<=0 || type_desc.Columns>4)Exit("Invalid Shader Param Cols");
-               Bool half=(type_desc.Type==D3D_SVT_MIN16FLOAT);
-               if(type_desc.Type==D3D_SVT_FLOAT /*|| half*/) // !! when allowing HALF's, have to check 'offset' codes !!
+               Bool half=false, min16=(type_desc.Type==D3D_SVT_MIN16FLOAT);
+               if(type_desc.Type==D3D_SVT_FLOAT || (ALLOW_MIN16 && min16))
                {
                   Int base_size=(half ? SIZE(Half) : SIZE(Flt)),
                            size=base_size*type_desc.Rows*type_desc.Columns;
-                  if(offset/16 != (offset+size-1)/16 || (was_half>=0 && was_half!=(Byte)half))offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary."
+                  if(offset/16 != (offset+size-1)/16 || (ALLOW_MIN16 && was_min16>=0 && was_min16!=(Byte)min16))offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary."
                   if(!half)cpu_data_size=Ceil4(cpu_data_size); // float's are 4-byte aligned on CPU, double too if using #pragma pack(4)
 
                   if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)translation.New().set(cpu_data_size, offset, size);else
@@ -306,7 +320,7 @@ struct ShaderCompiler1
                   
                   cpu_data_size+=size;
                          offset+=((i==last_index) ? Ceil4(size) : Ceil16(size)); // arrays are 16-byte aligned, and last element is 'size' only, have to do 'Ceil4' because of Half's
-                  was_half=half;
+                  was_min16=min16;
                }else Exit(S+"Unhandled Shader Parameter Type for \""+name+'"');
             }break;
             
@@ -317,7 +331,7 @@ struct ShaderCompiler1
                {
                   ID3D11ShaderReflectionType *member=type->GetMemberTypeByIndex(i); if(!member)Exit("'GetMemberTypeByIndex' failed");
                   D3D11_SHADER_TYPE_DESC member_desc; if(!OK(member->GetDesc(&member_desc)))Exit("'ID3D11ShaderReflectionType.GetDesc' failed");
-                  addTranslation(member, member_desc, type->GetMemberTypeName(i), offset, was_half);
+                  addTranslation(member, member_desc, type->GetMemberTypeName(i), offset, was_min16);
                }
              //offset=Ceil16(offset); "Each structure forces the next variable to start on the next four-component vector." even though documentation examples indicate this should align too, actual tests confirm that's not the case
             }break;
@@ -610,7 +624,7 @@ void ShaderCompiler1::SubShader::compile()
                            param.name=var_desc.Name;
                            param.elms=type_desc.Elements;
                            var_desc.DefaultValue; // FIXME
-                           Int offset=var_desc.StartOffset; SByte was_half=-1; param.addTranslation(type, type_desc, var_desc.Name, offset, was_half);
+                           Int offset=var_desc.StartOffset; SByte was_min16=-1; param.addTranslation(type, type_desc, var_desc.Name, offset, was_min16);
                
                /*sp._gpu_data_size=type.UnpackedSize;
              //sp._constant_count= unused on DX10+
