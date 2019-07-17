@@ -379,18 +379,54 @@ struct ShaderCompiler1
       "VULKAN",
       "METAL",
    };
+   struct IO
+   {
+      Str8 name;
+      Int  index, reg;
+
+      void operator=(C D3D11_SIGNATURE_PARAMETER_DESC &desc)
+      {
+         name =desc.SemanticName;
+         index=desc.SemanticIndex;
+         reg  =desc.Register;
+      }
+      Bool operator==(C IO &io)C {return name==io.name && index==io.index && reg==io.reg;}
+      Bool operator!=(C IO &io)C {return !(T==io);}
+   };
+   enum RESULT : Byte
+   {
+      NONE,
+      FAIL,
+      GOOD,
+   };
    struct SubShader
    {
     C Shader      *shader;
       SHADER_TYPE  type;
+      RESULT       result=NONE;
       Str8         func_name,
                    error;
       Mems<Buffer> buffers;
       Mems<Image > images;
+      Mems<IO    > inputs, outputs;
 
       Bool is()C {return func_name.is();}
       void compile();
    };
+   static Bool Match(C SubShader &output, C SubShader &input, Str8 &error)
+   {
+      Bool ok=true;
+      REPA(input.inputs) // have to check only inputs, we can ignore outputs not present in inputs
+      {
+       C IO &in=input.inputs[i];
+         if(!InRange(i, output.outputs) || in!=output.outputs[i])
+         {
+            error.line()+=S8+"Input/Output don't match for "+in.name+in.index+" register:"+in.reg;
+            ok=false;
+         }
+      }
+      return ok;
+   }
    static void Compile(SubShader &shader, Ptr user, Int thread_index) {shader.compile();}
    struct Shader
    {
@@ -652,15 +688,26 @@ void ShaderCompiler1::SubShader::compile()
                   }break;
                }
             }
-            ok=true;
-      // FIXME: verify that stages have matching input->output
+             inputs.setNum(desc. InputParameters); FREPA( inputs){D3D11_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetInputParameterDesc (i, &desc)))Exit("'GetInputParameterDesc' failed" );  inputs[i]=desc;}
+            outputs.setNum(desc.OutputParameters); FREPA(outputs){D3D11_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetOutputParameterDesc(i, &desc)))Exit("'GetOutputParameterDesc' failed"); outputs[i]=desc;}
+            
+            result=GOOD;
+            // !! do not make any changes here after setting 'result' because other threads may access this data !!
+
+            // verify that stages have matching output->input
+            for(Int i=type;         --i>=0      ; ){C SubShader &prev=shader->sub[i]; if(prev.is()){if(prev.result==GOOD && !Match(prev, T, error))goto error; break;}} // can check only if other shader also completed successfully, stop on first valid sub shader
+            for(Int i=type; InRange(++i, ST_NUM); ){C SubShader &next=shader->sub[i]; if(next.is()){if(next.result==GOOD && !Match(T, next, error))goto error; break;}} // can check only if other shader also completed successfully, stop on first valid sub shader
+
+            goto ok;
          }
       error:
+         result=FAIL;
+      ok:
          reflection->Release();
       }
       buffer->Release();
    }
-   if(!ok)Exit(error);
+   if(result!=GOOD)Exit(error);
 }
 static Memx<ShaderCompiler1> ShaderCompiler1s; // use Memx because we store pointers to 'ShaderCompiler1'
 #endif
