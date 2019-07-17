@@ -1385,7 +1385,6 @@ static Bool ShaderCompile11(C Str &src, C Str &dest, C MemPtr<ShaderMacro> &macr
          Shader11 &tech=techs.New(); tech.name=tech_desc.Name;
 
          // get shader data
-         //ID3DBlob *blob=null; D3DStripShader(vsd.pBytecode, vsd.BytecodeLength, ~0, &blob); if(blob){Int size=blob->GetBufferSize(); ID3D11VertexShader *vs=null; blob->Release(); blob=null;} // FIXME
          ShaderData vs_data; vs_data.setNum(vsd.BytecodeLength).copyFrom(vsd.pBytecode);
          ShaderData hs_data; hs_data.setNum(hsd.BytecodeLength).copyFrom(hsd.pBytecode);
          ShaderData ds_data; ds_data.setNum(dsd.BytecodeLength).copyFrom(dsd.pBytecode);
