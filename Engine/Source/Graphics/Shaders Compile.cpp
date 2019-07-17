@@ -228,7 +228,15 @@ static Str TechFurSoft(Int skin, Int size, Int diffuse)
 /******************************************************************************/
 // COMPILER
 /******************************************************************************/
-struct ShaderCompiler
+// compile
+#if EE_PRIVATE
+Bool ShaderCompileTry(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, C MemPtr<ShaderGLSL> &stg=null, Str *messages=null); // compile shader from 'src' file to 'dest' using additional 'macros', false on fail, 'messages'=optional parameter which will receive any messages that occurred during compilation
+void ShaderCompile   (C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, C MemPtr<ShaderGLSL> &stg                         ); // compile shader from 'src' file to 'dest' using additional 'macros', Exit  on fail
+#endif
+Bool ShaderCompileTry(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros=null, Str *messages=null); // compile shader from 'src' file to 'dest' using additional 'macros', false on fail, 'messages'=optional parameter which will receive any messages that occurred during compilation
+void ShaderCompile   (C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros=null                    ); // compile shader from 'src' file to 'dest' using additional 'macros', Exit  on fail
+
+struct OldShaderCompiler
 {
    Str               src, dest;
    SHADER_MODEL      model;
@@ -257,7 +265,7 @@ static Bool HasData(CPtr data, Int size)
    if(C Byte *b=(Byte*)data)REP(size)if(*b++)return true;
    return false;
 }
-struct ShaderCompiler1
+struct ShaderCompiler
 {
    struct Source;
    struct Shader;
@@ -446,7 +454,6 @@ struct ShaderCompiler1
       }
       return ok;
    }
-   static void Compile(SubShader &shader, Ptr user, Int thread_index) {shader.compile();}
    struct Shader
    {
       Str              name;
@@ -473,11 +480,11 @@ struct ShaderCompiler1
    };
    struct Source
    {
-      Str              file_name;
-      Mems<Byte>       file_data;
-      Memc<Shader>     shaders;
-      SHADER_MODEL     model;
-      ShaderCompiler1 *compiler;
+      Str             file_name;
+      Mems<Byte>      file_data;
+      Memc<Shader>    shaders;
+      SHADER_MODEL    model;
+      ShaderCompiler *compiler;
 
       Shader& New(C Str &name, C Str8 &vs, C Str8 &ps)
       {
@@ -503,7 +510,7 @@ struct ShaderCompiler1
    void message(C Str &t) {messages.line()+=t;}
    Bool error(C Str &t) {message(t); return false;}
 
-   ShaderCompiler1& set(C Str &dest, SHADER_MODEL model, API api=API_DX)
+   ShaderCompiler& set(C Str &dest, SHADER_MODEL model, API api=API_DX)
    {
       T.dest =dest ;
       T.model=model;
@@ -554,6 +561,7 @@ struct ShaderCompiler1
       }
       return false;
    }
+   static void Compile(SubShader &shader, Ptr user, Int thread_index) {shader.compile();}
    Bool compileTry(Threads &threads)
    {
       FREPA(sources)
@@ -564,6 +572,7 @@ struct ShaderCompiler1
          {
             Shader &shader=source.shaders[i];
             shader.source=&source; // link only during compilation because sources use Memc container which could change addresses while new sources were being added, however at this stage all have already been created
+            shader.finalizeName();
             FREPA(shader.sub)
             {
                SubShader &sub=shader.sub[i]; if(sub.is())
@@ -657,10 +666,10 @@ struct Include11 : ID3DInclude
       Set(root.path, GetPath(src));
    }
 };
-void ShaderCompiler1::SubShader::compile()
+void ShaderCompiler::SubShader::compile()
 {
- C Source          *source  =shader->source;
- C ShaderCompiler1 *compiler=source->compiler;
+ C Source         *source  =shader->source;
+ C ShaderCompiler *compiler=source->compiler;
    Char8 target[6+1];
    switch(type)
    {
@@ -819,14 +828,14 @@ void ShaderCompiler1::SubShader::compile()
    }
    if(result!=GOOD)Exit(S+"Compiling \""+shader->name+"\" in \""+source->file_name+"\" failed:\n"+error);
 }
-static Memx<ShaderCompiler1> ShaderCompiler1s; // use 'Memx' because we store pointers to 'ShaderCompiler1'
+static Memx<ShaderCompiler> ShaderCompilers; // use 'Memx' because we store pointers to 'ShaderCompiler'
 #endif
 /******************************************************************************/
-static Memc<ShaderCompiler> ShaderCompilers;
+static Memc<OldShaderCompiler> OldShaderCompilers;
 /******************************************************************************/
 static void Add(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderGLSL> &glsl=null)
 {
-   ShaderCompiler &sc=ShaderCompilers.New();
+   OldShaderCompiler &sc=OldShaderCompilers.New();
    sc.src  =src  ;
    sc.dest =dest ;
    sc.model=model;
@@ -834,7 +843,7 @@ static void Add(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderGLSL
 }
 static void Add(C Str &src, C Str &dest, SHADER_MODEL model, C Str &names, C MemPtr<ShaderGLSL> &glsl=null)
 {
-   ShaderCompiler &sc=ShaderCompilers.New();
+   OldShaderCompiler &sc=OldShaderCompilers.New();
    sc.src  =src  ;
    sc.dest =dest ;
    sc.model=model;
@@ -1239,7 +1248,7 @@ static void Compile(SHADER_MODEL model)
 
 #ifdef AMBIENT_OCCLUSION_NEW
    {
-      ShaderCompiler1::Source &src=ShaderCompiler1s.New().set(dest_path+"Ambient Occlusion", model).New(src_path+"Ambient Occlusion.cpp");
+      ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Ambient Occlusion", model).New(src_path+"Ambient Occlusion.cpp");
       REPD(mode  , 4)
       REPD(jitter, 2)
       REPD(normal, 2)
@@ -1421,7 +1430,7 @@ static void Compile(SHADER_MODEL model)
 #endif
 }
 /******************************************************************************/
-static void ThreadCompile(ShaderCompiler &shader_compiler, Ptr user, Int thread_index)
+static void ThreadCompile(OldShaderCompiler &shader_compiler, Ptr user, Int thread_index)
 {
    ThreadMayUseGPUData();
    shader_compiler.compile();
@@ -1443,11 +1452,11 @@ void MainShaderClass::compile()
 
    ProcPriority(-1); // compiling shaders may slow down entire CPU, so make this process have smaller priority
    Dbl t=Time.curTime();
-   MultiThreadedCall(ShaderCompilers, ThreadCompile);
-   if(ShaderCompiler1s.elms())
+   MultiThreadedCall(OldShaderCompilers, ThreadCompile);
+   if(ShaderCompilers.elms())
    {
       Threads threads; threads.create(false, Cpu.threads()-1);
-      FREPAO(ShaderCompiler1s).compile(threads);
+      FREPAO(ShaderCompilers).compile(threads);
    }
    LogN(S+"Shaders compiled in: "+Flt(Time.curTime()-t)+'s');
 

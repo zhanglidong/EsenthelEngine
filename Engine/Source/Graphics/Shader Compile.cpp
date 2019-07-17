@@ -1462,8 +1462,8 @@ void ShaderCompile(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderM
       Exit(S+"Error compiling shader\n\""+src+"\"\nto file\n\""+dest+"\"."+(messages.is() ? S+"\n\nCompilation Messages:\n"+messages : S));
    }
 }
-Bool ShaderCompileTry(Str src, Str dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, Str *messages) {return ShaderCompileTry(src, dest, model, macros, null, messages);}
-void ShaderCompile   (Str src, Str dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros               ) {       ShaderCompile   (src, dest, model, macros, null          );}
+Bool ShaderCompileTry(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, Str *messages) {return ShaderCompileTry(src, dest, model, macros, null, messages);}
+void ShaderCompile   (C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros               ) {       ShaderCompile   (src, dest, model, macros, null          );}
 /******************************************************************************/
 // IO
 /******************************************************************************/
