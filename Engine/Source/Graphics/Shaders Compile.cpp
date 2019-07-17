@@ -319,7 +319,7 @@ struct ShaderCompiler1
                   }
                   
                   cpu_data_size+=size;
-                         offset+=((i==last_index) ? Ceil4(size) : Ceil16(size)); // arrays are 16-byte aligned, and last element is 'size' only, have to do 'Ceil4' because of Half's
+                         offset+=((i==last_index) ? size : Ceil16(size)); // arrays are 16-byte aligned, and last element is 'size' only
                   was_min16=min16;
                }else Exit(S+"Unhandled Shader Parameter Type for \""+name+'"');
             }break;
