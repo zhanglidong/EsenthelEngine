@@ -404,8 +404,8 @@ struct ShaderCompiler1
     C Shader      *shader;
       SHADER_TYPE  type;
       RESULT       result=NONE;
-      Str8         func_name,
-                   error;
+      Str8         func_name;
+      Str          error;
       Mems<Buffer> buffers;
       Mems<Image > images;
       Mems<IO    > inputs, outputs;
@@ -413,7 +413,7 @@ struct ShaderCompiler1
       Bool is()C {return func_name.is();}
       void compile();
    };
-   static Bool Match(C SubShader &output, C SubShader &input, Str8 &error)
+   static Bool Match(C SubShader &output, C SubShader &input, Str &error)
    {
       Bool ok=true;
       REPA(input.inputs) // have to check only inputs, we can ignore outputs not present in inputs
@@ -421,7 +421,7 @@ struct ShaderCompiler1
        C IO &in=input.inputs[i];
          if(!InRange(i, output.outputs) || in!=output.outputs[i])
          {
-            error.line()+=S8+"Input/Output don't match for "+in.name+in.index+" register:"+in.reg;
+            error.line()+=S+"Input/Output don't match for "+in.name+in.index+" register:"+in.reg;
             ok=false;
          }
       }
@@ -1334,8 +1334,11 @@ void MainShaderClass::compile()
    ProcPriority(-1); // compiling shaders may slow down entire CPU, so make this process have smaller priority
    Dbl t=Time.curTime();
    MultiThreadedCall(ShaderCompilers, ThreadCompile);
-   Threads threads; threads.create(false, Cpu.threads()-1);
-   FREPAO(ShaderCompiler1s).compile(threads);
+   if(ShaderCompiler1s.elms())
+   {
+      Threads threads; threads.create(false, Cpu.threads()-1);
+      FREPAO(ShaderCompiler1s).compile(threads);
+   }
    LogN(S+"Shaders compiled in: "+Flt(Time.curTime()-t)+'s');
 
    App.stayAwake(AWAKE_OFF);
