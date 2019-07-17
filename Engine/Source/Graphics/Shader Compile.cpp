@@ -658,6 +658,7 @@ Bool ShaderCompiler::Shader::save(File &f, C Map<Str8, Buffer*> &buffers, C Memc
 }
 /******************************************************************************/
 static void Compile(ShaderCompiler::SubShader &shader, Ptr user, Int thread_index) {shader.compile();}
+static Bool Create(ShaderCompiler::Buffer* &data, C Str8 &key, Ptr user) {data=null; return true;}
 Bool ShaderCompiler::compileTry(Threads &threads)
 {
    FREPA(sources)
@@ -681,7 +682,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
       }
    }
    threads.wait();
-   Map<Str8, Buffer*> buffers(CompareCS);
+   Map<Str8, Buffer*> buffers(CompareCS, Create);
    Memc<Str8>         images;
    Mems<ShaderData>   shader_datas[ST_NUM];
    Int                shaders=0;
