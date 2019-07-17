@@ -281,7 +281,7 @@ struct ShaderCompiler1
             Looks like 'min16float' and 'float' can't be together on the same Vec4, so when a change is detected, switch to new Vec4
          */
          if(type_desc.Elements)offset=Ceil16(offset); // arrays are 16-byte aligned (even 1-element arrays "f[1]"), non-arrays have Elements=0, so check Elements!=0
-         Int  elms=Max(type_desc.Elements, 1), last=elms-1; // 'Elements' is array size (it's 0 for non-arrays)
+         Int  elms=Max(type_desc.Elements, 1), last_index=elms-1; // 'Elements' is array size (it's 0 for non-arrays)
          FREP(elms)switch(type_desc.Class)
          {
             case D3D_SVC_SCALAR        : // for example: Flt f,f[];
@@ -304,7 +304,7 @@ struct ShaderCompiler1
                   }
                   
                   cpu_data_size+=size;
-                         offset+=((i==last) ? Ceil4(size) : Ceil16(size)); // arrays are 16-byte aligned, and last element is 'size' only, have to do 'Ceil4' because of Half's
+                         offset+=((i==last_index) ? Ceil4(size) : Ceil16(size)); // arrays are 16-byte aligned, and last element is 'size' only, have to do 'Ceil4' because of Half's
                   was_half=half;
                }else Exit(S+"Unhandled Shader Parameter Type for \""+name+'"');
             }break;
