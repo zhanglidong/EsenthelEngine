@@ -915,7 +915,7 @@ Bool ShaderFile::load(C Str &name)
    Str8 temp_str;
    File f; if(f.readTry(Sh.path+name))
    {
-      if(f.getUInt()==CC4_SHDR) // cc4
+      if(f.getUInt()==CC4_SHDR) // CC4
       {
          switch(f.getByte()) // API
          {
@@ -1292,9 +1292,9 @@ static Bool ShaderSave(C Str &name, C Map<Str8, ShaderParamEx> &params, C Memc<S
       f.cmpUIntV(images.elms());
       FREPA(images)f.putStr(Name(*images[i]));
 
-      if(vs    .save(f)) // shaders
-      if(ps    .save(f))
-      if(techs .save(f, params, images)) // techniques
+      if(vs   .save(f)) // shaders
+      if(ps   .save(f))
+      if(techs.save(f, params, images)) // techniques
          if(f.flushOK())return true;
 
       f.del(); FDelFile(name);
