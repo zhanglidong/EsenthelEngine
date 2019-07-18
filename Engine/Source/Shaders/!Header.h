@@ -826,10 +826,12 @@ inline VecH Transform(VecH v, MatrixH3 m) {return mul(v, m);} // transform 'v' v
 
 #if 1 // was faster on GeForce 650m, but on GeForce 1050 Ti performance is the same, however keep this version as in other cases 'mul' is slower
 inline Vec  Transform(Vec  v, Matrix  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' orientation-scale-translation matrix, faster version of "mul(Vec4 (v, 1), m)"
+inline VecH Transform(VecH v, Matrix  m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' orientation-scale-translation matrix, faster version of "mul(Vec4 (v, 1), m)"
 inline VecH Transform(VecH v, MatrixH m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' orientation-scale-translation matrix, faster version of "mul(VecH4(v, 1), m)"
 inline Vec4 Transform(Vec  v, Matrix4 m) {return v.x*m[0] + (v.y*m[1] + (v.z*m[2] + m[3]));} // transform 'v' vector by 'm' 4x4                           matrix, faster version of "mul(Vec4 (v, 1), m)"
 #else
 inline Vec  Transform(Vec  v, Matrix  m) {return mul(Vec4 (v, 1), m);} // transform 'v' vector by 'm' orientation-scale-translation matrix
+inline VecH Transform(VecH v, Matrix  m) {return mul(VecH4(v, 1), m);} // transform 'v' vector by 'm' orientation-scale-translation matrix
 inline VecH Transform(VecH v, MatrixH m) {return mul(VecH4(v, 1), m);} // transform 'v' vector by 'm' orientation-scale-translation matrix
 inline Vec4 Transform(Vec  v, Matrix4 m) {return mul(Vec4 (v, 1), m);} // transform 'v' vector by 'm' 4x4                           matrix
 #endif

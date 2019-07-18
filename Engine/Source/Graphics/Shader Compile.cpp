@@ -117,6 +117,13 @@ Bool CompileFromBlob(IDxcBlob *pSource, LPCWSTR pSourceName,
 #endif
 
 #include "../Shaders/!Header CPU.h"
+
+#pragma warning(push)
+#pragma warning(disable:4267 4996)
+#include "../../../ThirdPartyLibs/begin.h"
+#include "../../../ThirdPartyLibs/HLSLcc/lib/include/hlslcc.h"
+#include "../../../ThirdPartyLibs/end.h"
+#pragma warning(pop)
 /******************************************************************************/
 namespace EE{
 #include "Shader Compiler.h"
@@ -659,6 +666,28 @@ Bool ShaderCompiler::Shader::save(File &f, C Map<Str8, Buffer*> &buffers, C Memc
 static void Compile(ShaderCompiler::SubShader &shader, Ptr user, Int thread_index) {shader.compile();}
 static Bool Create(ShaderCompiler::Buffer* &data, C Str8 &key, Ptr user) {data=null; return true;}
 static Int Compare(ShaderCompiler::Shader*C &a, ShaderCompiler::Shader*C &b) {return CompareCS(a->name, b->name);}
+struct Refl : HLSLccReflection
+{
+    // Called on errors or diagnostic messages
+    virtual void OnDiagnostics(const std::string &error, int line, bool isError)override {}
+
+    virtual void OnInputBinding(const std::string &name, int bindIndex)override {}
+
+    // Returns false if this constant buffer is not needed for this shader. This info can be used for pruning unused
+    // constant buffers and vars from compute shaders where we need broader context than a single kernel to know
+    // if something can be dropped, as the constant buffers are shared between all kernels in a .compute file.
+    virtual bool OnConstantBuffer(const std::string &name, size_t bufferSize, size_t memberCount)override { return true; }
+
+    // Returns false if this constant var is not needed for this shader. See above.
+    virtual bool OnConstant(const std::string &name, int bindIndex, SHADER_VARIABLE_TYPE cType, int rows, int cols, bool isMatrix, int arraySize, bool isUsed)override { return true; }
+
+    virtual void OnConstantBufferBinding(const std::string &name, int bindIndex)override {}
+    virtual void OnTextureBinding(const std::string &name, int bindIndex, int samplerIndex, bool multisampled, HLSLCC_TEX_DIMENSION dim, bool isUAV)override {}
+    virtual void OnBufferBinding(const std::string &name, int bindIndex, bool isUAV)override {}
+    virtual void OnThreadGroupSize(unsigned int xSize, unsigned int ySize, unsigned int zSize)override {}
+    virtual void OnTessellationInfo(uint32_t tessPartitionMode, uint32_t tessOutputWindingOrder, uint32_t tessMaxFactor, uint32_t tessNumPatchesInThreadGroup)override {}
+    virtual void OnTessellationKernelInfo(uint32_t patchKernelBufferCount)override {}
+};
 Bool ShaderCompiler::compileTry(Threads &threads)
 {
    Int shaders_num=0;
@@ -713,6 +742,40 @@ Bool ShaderCompiler::compileTry(Threads &threads)
             }
          }
          shaders[shaders_num++]=&shader;
+      }
+   }
+
+   if(api!=API_DX)
+   {
+      HLSLccSamplerPrecisionInfo sampler_precision;
+      sampler_precision.insert(std::pair<std::string, REFLECT_RESOURCE_PRECISION>("Depth" , REFLECT_RESOURCE_PRECISION_HIGHP));
+      sampler_precision.insert(std::pair<std::string, REFLECT_RESOURCE_PRECISION>("ImgXF" , REFLECT_RESOURCE_PRECISION_HIGHP));
+      sampler_precision.insert(std::pair<std::string, REFLECT_RESOURCE_PRECISION>("ImgXF1", REFLECT_RESOURCE_PRECISION_HIGHP));
+
+      GlExtensions ext; Zero(ext);
+      ext.ARB_explicit_uniform_location=true;
+      ext.ARB_explicit_attrib_location=true;
+      ext.ARB_shading_language_420pack=true;
+
+      Refl refl;
+      
+      /*FREPA(shaders)
+      {
+         Shader &shader=*shaders[i];
+         FREPA(shader.sub)
+         {
+            SubShader &sub=shader.sub[i];*/
+      FREPA(shader_datas)
+      {
+         Memc<ShaderData> &sds=shader_datas[i];
+         FREPA(sds)
+         {
+            ShaderData &sd=sds[i];
+            GLSLShader out;
+            TranslateHLSLFromMem((char*)sd.data(), HLSLCC_FLAG_UNIFORM_BUFFER_OBJECT, LANG_330, &ext, null, sampler_precision, refl, &out);
+            ClipSet(out.sourceCode.c_str());
+            sd.setNum((Int)out.sourceCode.length()).copyFrom((Byte*)out.sourceCode.c_str());
+         }
       }
    }
 

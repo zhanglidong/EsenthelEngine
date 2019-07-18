@@ -8,7 +8,7 @@ namespace EE{
 #define MULTI_MATERIAL 1
 
 #if DX11   // DirectX 10+
-   #define COMPILE_4 1
+   #define COMPILE_4 0
 #endif
 #if GL && !GL_ES // Desktop OpenGL
    #define COMPILE_GL 1
@@ -29,8 +29,9 @@ namespace EE{
 #define BLEND
 #define DEPTH_OF_FIELD*/
 //#define EARLY_Z
-/*#define EFFECTS_2D
-#define EFFECTS_3D
+//#define EFFECTS_2D_NEW
+#define EFFECTS_2D
+/*#define EFFECTS_3D
 #define FOG_LOCAL
 #define FUR
 #define FXAA
@@ -686,13 +687,27 @@ static void Compile(API api)
 #endif
 
 #ifdef AMBIENT_OCCLUSION_NEW
-   {
-      ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Ambient Occlusion", model, api).New(src_path+"Ambient Occlusion.cpp");
-      REPD(mode  , 4)
-      REPD(jitter, 2)
-      REPD(normal, 2)
-         src.New("AO", "AO_VS", "AO_PS")("MODE", mode, "JITTER", jitter, "NORMALS", normal);
-   }
+{
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Ambient Occlusion", model, api).New(src_path+"Ambient Occlusion.cpp");
+   REPD(mode  , 4)
+   REPD(jitter, 2)
+   REPD(normal, 2)
+      src.New("AO", "AO_VS", "AO_PS")("MODE", mode, "JITTER", jitter, "NORMALS", normal);
+}
+#endif
+
+#ifdef EFFECTS_2D_NEW
+{
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Effects 2D", model, api).New(src_path+"Effects 2D.cpp");
+   src.New("ColTrans"   , "Draw_VS", "ColTrans_PS");
+   src.New("ColTransHB" , "Draw_VS", "ColTransHB_PS");
+   src.New("ColTransHSB", "Draw_VS", "ColTransHSB_PS");
+
+   src.New("Ripple", "Draw2DTex_VS", "Ripple_PS");
+   src.New("Fade", "Draw_VS", "Fade_PS");
+   src.New("Wave", "Wave_VS", "Wave_PS");
+   src.New("RadialBlur", "Draw_VS", "RadialBlur_PS");
+}
 #endif
 
 #ifdef DEPTH_OF_FIELD
