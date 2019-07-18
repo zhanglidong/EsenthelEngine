@@ -964,216 +964,123 @@ Bool ShaderFile::load(C Str &name)
    del();
 
    Str8 temp_str;
-   File f; if(f.readTry(Sh.path+name))
+   File f; if(f.readTry(Sh.path+name) && f.getUInt()==CC4_SHDR && f.getByte()==GPU_API(API_DX, API_GL))switch(f.decUIntV()) // version
    {
-      if(f.getUInt()==CC4_SHDR) // CC4
+      case 0:
       {
-//FIXME
-if(Contains(name, "Effect"))
-{
-   f.getByte();
-               switch(f.decUIntV()) // version
+         // buffers
+         MemtN<ShaderBuffer*, 256> buffers; buffers.setNum(f.decUIntV());
+         ShaderBuffers.lock();
+         ShaderParams .lock();
+         FREPA(buffers)
+         {
+            // buffer
+            f.getStr(temp_str); ShaderBuffer &sb=*ShaderBuffers(temp_str); buffers[i]=&sb;
+            if(!sb.is()) // wasn't yet created
+            {
+               sb.create(f.decUIntV());
+               Int index=f.getSByte(); if(index>=0){SyncLocker lock(D._lock); sb.bind(index);}
+            }else // verify if it's identical to previously created
+            {
+               if(sb.size()!=f.decUIntV())ExitParam(temp_str, name);
+               sb.bindCheck(f.getSByte());
+            }
+
+            // params
+            REP(f.decUIntV())
+            {
+               f.getStr(temp_str); ShaderParam &sp=*ShaderParams(temp_str);
+               if(!sp.is()) // wasn't yet created
                {
-                  case 0:
-                  {
-                     // buffers
-                     MemtN<ShaderBuffer*, 256> buffers; buffers.setNum(f.decUIntV());
-                     ShaderBuffers.lock();
-                     ShaderParams .lock();
-                     FREPA(buffers)
-                     {
-                        // buffer
-                        f.getStr(temp_str); ShaderBuffer &sb=*ShaderBuffers(temp_str); buffers[i]=&sb;
-                        if(!sb.is()) // wasn't yet created
-                        {
-                           sb.create(f.decUIntV());
-                           Int index=f.getSByte(); if(index>=0){SyncLocker lock(D._lock); sb.bind(index);}
-                        }else // verify if it's identical to previously created
-                        {
-                           if(sb.size()!=f.decUIntV())ExitParam(temp_str, name);
-                           sb.bindCheck(f.getSByte());
-                        }
+                  sp._owns_data= false;
+                  sp._data     = sb.data;
+                  sp._changed  =&sb.changed;
+                  f.getMulti(sp._cpu_data_size, sp._gpu_data_size, sp._elements); // info
+                  LoadTranslation(sp._full_translation, f, sp._elements);         // translation
+                  Int offset=sp._full_translation[0].gpu_offset; sp._data+=offset; REPAO(sp._full_translation).gpu_offset-=offset; // apply offset
+                  if(f.getBool())f.get(sp._data, sp._gpu_data_size);              // load default value, no need to zero in other case, because data is stored in ShaderBuffer's, and they're always zeroed at start
+                  sp.optimize(); // optimize
+               }else // verify if it's identical to previously created
+               {
+                  Int cpu_data_size, gpu_data_size, elements; f.getMulti(cpu_data_size, gpu_data_size, elements);
+                  Memt<ShaderParam::Translation> translation;
+                  if(sp._changed      !=&sb.changed                               // check matching Constant Buffer
+                  || sp._cpu_data_size!= cpu_data_size                            // check cpu size
+                  || sp._gpu_data_size!= gpu_data_size                            // check gpu size
+                  || sp._elements     != elements     )ExitParam(temp_str, name); // check number of elements
+                  LoadTranslation(translation, f, sp._elements);                  // translation
+                  Int offset=translation[0].gpu_offset; REPAO(translation).gpu_offset-=offset; // apply offset
+                  if(f.getBool())f.skip(gpu_data_size);                           // ignore default value
 
-                        // params
-                        REP(f.decUIntV())
-                        {
-                           f.getStr(temp_str); ShaderParam &sp=*ShaderParams(temp_str);
-                           if(!sp.is()) // wasn't yet created
-                           {
-                              sp._owns_data= false;
-                              sp._data     = sb.data;
-                              sp._changed  =&sb.changed;
-                              f.getMulti(sp._cpu_data_size, sp._gpu_data_size, sp._elements); // info
-                              LoadTranslation(sp._full_translation, f, sp._elements);         // translation
-                              Int offset=sp._full_translation[0].gpu_offset; sp._data+=offset; REPAO(sp._full_translation).gpu_offset-=offset; // apply offset
-                              if(f.getBool())f.get(sp._data, sp._gpu_data_size);              // load default value, no need to zero in other case, because data is stored in ShaderBuffer's, and they're always zeroed at start
-                              sp.optimize(); // optimize
-                           }else // verify if it's identical to previously created
-                           {
-                              Int cpu_data_size, gpu_data_size, elements; f.getMulti(cpu_data_size, gpu_data_size, elements);
-                              Memt<ShaderParam::Translation> translation;
-                              /*if(sp._changed      !=&sb.changed                               // check matching Constant Buffer
-                              || FIXME sp._cpu_data_size!= cpu_data_size                            // check cpu size
-                              || sp._gpu_data_size!= gpu_data_size                            // check gpu size
-                              || sp._elements     != elements     )ExitParam(temp_str, name); // check number of elements*/
-                              LoadTranslation(translation, f, sp._elements);                  // translation
-                              Int offset=translation[0].gpu_offset; REPAO(translation).gpu_offset-=offset; // apply offset
-                              if(f.getBool())f.skip(gpu_data_size);                           // ignore default value
-
-                              // check translation
-                              if(                  translation.elms()!=sp._full_translation.elms())ExitParam(temp_str, name);
-                              FREPA(translation)if(translation[i]    !=sp._full_translation[i]    )ExitParam(temp_str, name);
-                           }
-                        }
-                     }
-                     ShaderParams .unlock();
-                     ShaderBuffers.unlock();
-
-                     // images
-                     MemtN<ShaderImage*, 256> images; images.setNum(f.decUIntV());
-                     FREPA(images){f.getStr(temp_str); images[i]=ShaderImages(temp_str);}
-
-                     // shaders
-                     if(_vs     .load(f))
-                     if(_hs     .load(f))
-                     if(_ds     .load(f))
-                     if(_ps     .load(f))
-                     if(_shaders.load(f, buffers, images))
-                        if(f.ok())return true;
-                  }break;
+                  // check translation
+                  if(                  translation.elms()!=sp._full_translation.elms())ExitParam(temp_str, name);
+                  FREPA(translation)if(translation[i]    !=sp._full_translation[i]    )ExitParam(temp_str, name);
                }
             }
-         switch(f.getByte()) // API
-         {
-         #if DX11
-            case API_DX:
-            {
-               switch(f.decUIntV()) // version
-               {
-                  case 0:
-                  {
-                     // buffers
-                     MemtN<ShaderBuffer*, 256> buffers; buffers.setNum(f.decUIntV());
-                     ShaderBuffers.lock();
-                     ShaderParams .lock();
-                     FREPA(buffers)
-                     {
-                        // buffer
-                        f.getStr(temp_str); ShaderBuffer &sb=*ShaderBuffers(temp_str); buffers[i]=&sb;
-                        if(!sb.is()) // wasn't yet created
-                        {
-                           sb.create(f.decUIntV());
-                           Int index=f.getSByte(); if(index>=0){SyncLocker lock(D._lock); sb.bind(index);}
-                        }else // verify if it's identical to previously created
-                        {
-                           if(sb.size()!=f.decUIntV())ExitParam(temp_str, name);
-                           sb.bindCheck(f.getSByte());
-                        }
-
-                        // params
-                        REP(f.decUIntV())
-                        {
-                           f.getStr(temp_str); ShaderParam &sp=*ShaderParams(temp_str);
-                           if(!sp.is()) // wasn't yet created
-                           {
-                              sp._owns_data= false;
-                              sp._data     = sb.data;
-                              sp._changed  =&sb.changed;
-                              f.getMulti(sp._cpu_data_size, sp._gpu_data_size, sp._elements); // info
-                              LoadTranslation(sp._full_translation, f, sp._elements);         // translation
-                              Int offset=sp._full_translation[0].gpu_offset; sp._data+=offset; REPAO(sp._full_translation).gpu_offset-=offset; // apply offset
-                              if(f.getBool())f.get(sp._data, sp._gpu_data_size);              // load default value, no need to zero in other case, because data is stored in ShaderBuffer's, and they're always zeroed at start
-                              sp.optimize(); // optimize
-                           }else // verify if it's identical to previously created
-                           {
-                              Int cpu_data_size, gpu_data_size, elements; f.getMulti(cpu_data_size, gpu_data_size, elements);
-                              Memt<ShaderParam::Translation> translation;
-                              if(sp._changed      !=&sb.changed                               // check matching Constant Buffer
-                              || sp._cpu_data_size!= cpu_data_size                            // check cpu size
-                              || sp._gpu_data_size!= gpu_data_size                            // check gpu size
-                              || sp._elements     != elements     )ExitParam(temp_str, name); // check number of elements
-                              LoadTranslation(translation, f, sp._elements);                  // translation
-                              Int offset=translation[0].gpu_offset; REPAO(translation).gpu_offset-=offset; // apply offset
-                              if(f.getBool())f.skip(gpu_data_size);                           // ignore default value
-
-                              // check translation
-                              if(                  translation.elms()!=sp._full_translation.elms())ExitParam(temp_str, name);
-                              FREPA(translation)if(translation[i]    !=sp._full_translation[i]    )ExitParam(temp_str, name);
-                           }
-                        }
-                     }
-                     ShaderParams .unlock();
-                     ShaderBuffers.unlock();
-
-                     // images
-                     MemtN<ShaderImage*, 256> images; images.setNum(f.decUIntV());
-                     FREPA(images){f.getStr(temp_str); images[i]=ShaderImages(temp_str);}
-
-                     // shaders
-                     if(_vs     .load(f))
-                     if(_hs     .load(f))
-                     if(_ds     .load(f))
-                     if(_ps     .load(f))
-                     if(_shaders.load(f, buffers, images))
-                        if(f.ok())return true;
-                  }break;
-               }
-            }break;
-         #elif GL
-            case API_GL:
-            {
-               switch(f.decUIntV()) // version
-               {
-                  case 0:
-                  {
-                     // params
-                     MemtN<ShaderParam*, 256> params; params.setNum(f.decUIntV());
-                     ShaderParams.lock();
-                     FREPA(params)
-                     {
-                        f.getStr(temp_str); ShaderParam &sp=*ShaderParams(temp_str); params[i]=&sp;
-                        if(!sp.is()) // wasn't yet created
-                        {
-                           sp._owns_data=true;
-                           f.getMulti(sp._cpu_data_size, sp._gpu_data_size, sp._elements); // info
-                           LoadTranslation(sp._full_translation, f, sp._elements);         // translation
-                           Alloc(sp._data, sp._gpu_data_size);                             // data
-                           Alloc(sp._changed                );
-                           if(f.getBool())f.get   (sp._data, sp._gpu_data_size);           // load default value
-                           else           ZeroFast(sp._data, sp._gpu_data_size);           // zero default value
-                           sp.optimize();
-                        }else // verify if it's identical to previously created
-                        {
-                           Int cpu_data_size, gpu_data_size, elements; f.getMulti(cpu_data_size, gpu_data_size, elements);
-                           Memt<ShaderParam::Translation> translation;
-                           if(sp._cpu_data_size!=cpu_data_size                            // check cpu size
-                           || sp._gpu_data_size!=gpu_data_size                            // check gpu size
-                           || sp._elements     !=elements     )ExitParam(temp_str, name); // check number of elements
-                           LoadTranslation(translation, f, elements);                     // translation
-                           if(f.getBool())f.skip(gpu_data_size);                          // ignore default value
-
-                           // check translation
-                           if(                  translation.elms()!=sp._full_translation.elms()) ExitParam(temp_str, name);else
-                           FREPA(translation)if(translation[i]    !=sp._full_translation[i]    ){ExitParam(temp_str, name); break;}
-                        }
-                     }
-                     ShaderParams.unlock();
-
-                     // images
-                     MemtN<ShaderImage*, 256> images; images.setNum(f.decUIntV());
-                     FREPA(images){f.getStr(temp_str); images[i]=ShaderImages(temp_str);}
-
-                     // shaders
-                     if(_vs     .load(f))
-                     if(_ps     .load(f))
-                     if(_shaders.load(f, params, images))
-                        if(f.ok())return true;
-                  }break;
-               }
-            }break;
-         #endif
          }
-      }
+         ShaderParams .unlock();
+         ShaderBuffers.unlock();
+
+         // images
+         MemtN<ShaderImage*, 256> images; images.setNum(f.decUIntV());
+         FREPA(images){f.getStr(temp_str); images[i]=ShaderImages(temp_str);}
+
+         // shaders
+         if(_vs     .load(f))
+         if(_hs     .load(f))
+         if(_ds     .load(f))
+         if(_ps     .load(f))
+         if(_shaders.load(f, buffers, images))
+            if(f.ok())return true;
+      }break;
+
+      /*CG
+      FIXME
+      case 0:
+      {
+         // params
+         MemtN<ShaderParam*, 256> params; params.setNum(f.decUIntV());
+         ShaderParams.lock();
+         FREPA(params)
+         {
+            f.getStr(temp_str); ShaderParam &sp=*ShaderParams(temp_str); params[i]=&sp;
+            if(!sp.is()) // wasn't yet created
+            {
+               sp._owns_data=true;
+               f.getMulti(sp._cpu_data_size, sp._gpu_data_size, sp._elements); // info
+               LoadTranslation(sp._full_translation, f, sp._elements);         // translation
+               Alloc(sp._data, sp._gpu_data_size);                             // data
+               Alloc(sp._changed                );
+               if(f.getBool())f.get   (sp._data, sp._gpu_data_size);           // load default value
+               else           ZeroFast(sp._data, sp._gpu_data_size);           // zero default value
+               sp.optimize();
+            }else // verify if it's identical to previously created
+            {
+               Int cpu_data_size, gpu_data_size, elements; f.getMulti(cpu_data_size, gpu_data_size, elements);
+               Memt<ShaderParam::Translation> translation;
+               if(sp._cpu_data_size!=cpu_data_size                            // check cpu size
+               || sp._gpu_data_size!=gpu_data_size                            // check gpu size
+               || sp._elements     !=elements     )ExitParam(temp_str, name); // check number of elements
+               LoadTranslation(translation, f, elements);                     // translation
+               if(f.getBool())f.skip(gpu_data_size);                          // ignore default value
+
+               // check translation
+               if(                  translation.elms()!=sp._full_translation.elms()) ExitParam(temp_str, name);else
+               FREPA(translation)if(translation[i]    !=sp._full_translation[i]    ){ExitParam(temp_str, name); break;}
+            }
+         }
+         ShaderParams.unlock();
+
+         // images
+         MemtN<ShaderImage*, 256> images; images.setNum(f.decUIntV());
+         FREPA(images){f.getStr(temp_str); images[i]=ShaderImages(temp_str);}
+
+         // shaders
+         if(_vs     .load(f))
+         if(_ps     .load(f))
+         if(_shaders.load(f, params, images))
+            if(f.ok())return true;
+      }break;*/
    }
 //error:
    del(); return false;
