@@ -718,7 +718,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
 
    File f; if(f.writeTry(dest))
    {
-      f.putUInt (CC4_SHDR); // cc4
+      f.putUInt (CC4_SHDR); // CC4
       f.putByte (api     ); // API
       f.cmpUIntV(0       ); // version
 
@@ -2267,8 +2267,8 @@ Bool ShaderCompileTry(C Str &src, C Str &dest, API api, SHADER_MODEL model, C Me
    switch(api)
    {
       default: return false;
-      case API_GL: temp.New().set("DX", "0"); temp.New().set("GL", "1"); temp.New().set("CG", "1"); return ShaderCompileGL(src, dest, temp, messages, stg);
       case API_DX: temp.New().set("DX", "1"); temp.New().set("GL", "0");                            return ShaderCompile11(src, dest, temp, messages);
+      case API_GL: temp.New().set("DX", "0"); temp.New().set("GL", "1"); temp.New().set("CG", "1"); return ShaderCompileGL(src, dest, temp, messages, stg);
    }
 }
 /******************************************************************************/
