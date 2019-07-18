@@ -1506,7 +1506,7 @@ void SetMatrixCount(Int num)
          #endif
          }
       }
-   #else
+   #elif GL
       // will affect 'ShaderBuffer::update()'
       SBObjMatrix->buffer.size=SIZE(GpuMatrix)*Matrixes;
       SBObjVel   ->buffer.size=SIZE(Vec4     )*Matrixes; // #VelAngVel
@@ -1521,7 +1521,7 @@ void SetFurVelCount(Int num) // !! unlike 'SetMatrixCount' this needs to be call
 
    #if DX11
       Int part=BoneNumToPart[num]; if(FurVelPart!=part)SBFurVel->setPart(FurVelPart=part);
-   #else
+   #elif GL
       SBFurVel->buffer.size=SIZE(Vec4)*num;
    #endif
    }
