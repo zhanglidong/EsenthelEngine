@@ -114,7 +114,7 @@ void _Map::removeFromOrder(Int index)
    MoveFastN(_order+index, _order+index+1, _elms-index); // faster version of: for(Int i=index; i<_elms; i++)_order[i]=_order[i+1];
 }
 /******************************************************************************/
-Int _Map::findAbsIndex(CPtr key)C {return dataInMapToAbsIndex  (find(key));}
+Int _Map::findAbsIndex(CPtr key)C {return dataInMapToAbsIndex(find(key));}
 Ptr _Map::find        (CPtr key)C
 {
    Int i; if(Elm *elm=findElm(key, i))if(!(elmDesc(*elm).flag&MAP_ELM_LOADING))return elmData(*elm);
@@ -145,7 +145,7 @@ Int _MapTS::findAbsIndex(CPtr key)C
 }
 /******************************************************************************/
 //Int _Map::getValidIndex(CPtr key);
-Int _Map::getAbsIndex  (CPtr key) {return dataInMapToAbsIndex  (get(key));}
+Int _Map::getAbsIndex  (CPtr key) {return dataInMapToAbsIndex(get(key));}
 Ptr _Map::get          (CPtr key)
 {
    Int stop;
