@@ -797,7 +797,7 @@ UInt ShaderVSGL::create(Bool clean, Str *messages)
                FREPA(srcs)*messages+=srcs[i];
                messages->line();
             }
-            glDeleteShader(vs); //vs=0;
+            glDeleteShader(vs); //vs=0; not needed since it's a temporary
          }
 
          if(clean)T.clean();
@@ -828,7 +828,7 @@ UInt ShaderPSGL::create(Bool clean, Str *messages)
                FREPA(srcs)*messages+=srcs[i];
                messages->line();
             }
-            glDeleteShader(ps); //ps=0;
+            glDeleteShader(ps); //ps=0; not needed since it's a temporary
          }
 
          if(clean)T.clean();
@@ -853,26 +853,23 @@ Str ShaderPSGL::source()
 /******************************************************************************/
 // SHADER TECHNIQUE
 /******************************************************************************/
-#if WINDOWS
-Shader11::Shader11()
-{
-   vs_index=
-   hs_index=
-   ds_index=
-   ps_index=-1;
-   vs=null;
-   hs=null;
-   ds=null;
-   ps=null;
-}
-#endif
-/******************************************************************************/
 #if DX11
 // these members must have native alignment because we use them in atomic operations for set on multiple threads
 ALIGN_ASSERT(Shader11, vs);
 ALIGN_ASSERT(Shader11, hs);
 ALIGN_ASSERT(Shader11, ds);
 ALIGN_ASSERT(Shader11, ps);
+Shader11::~Shader11()
+{
+   if(D.created())
+   {
+    //SyncLocker locker(D._lock); lock not needed for DX11 'Release'
+      if(vs)vs->Release();
+      if(hs)hs->Release();
+      if(ds)ds->Release();
+      if(ps)ps->Release();
+   }
+}
 Bool Shader11::validate(ShaderFile &shader, Str *messages) // this function should be multi-threaded safe
 {
    if(!vs && InRange(vs_index, shader._vs))AtomicSet(vs, shader._vs[vs_index].create());
@@ -957,11 +954,6 @@ void Shader11::begin()
    REPA(   buffers ){ShaderBuffer &b=  *buffers [i]; if(b.changed)b.update();}
 }
 #elif GL
-ShaderGL::ShaderGL()
-{
-   vs=ps=prog=0;
-   vs_index=ps_index=-1;
-}
 ShaderGL::~ShaderGL()
 {
    if(prog)

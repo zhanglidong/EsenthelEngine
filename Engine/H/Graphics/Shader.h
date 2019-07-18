@@ -284,12 +284,12 @@ struct Shader11
       void set(Int index, ShaderBuffer &buffer) {T.index=index; T.buffer=&buffer;}
    };
 
-   ID3D11VertexShader *vs;
-   ID3D11HullShader   *hs;
-   ID3D11DomainShader *ds;
-   ID3D11PixelShader  *ps;
+   ID3D11VertexShader *vs=null;
+   ID3D11HullShader   *hs=null;
+   ID3D11DomainShader *ds=null;
+   ID3D11PixelShader  *ps=null;
    Str8                name;
-   Int                 vs_index   , hs_index   , ds_index   , ps_index   ; // index of shader in 'ShaderFile' containers
+   Int                 vs_index=-1, hs_index=-1, ds_index=-1, ps_index=-1; // index of shader in 'ShaderFile' containers
    Mems<Texture      > vs_textures, hs_textures, ds_textures, ps_textures;
    Mems<      Buffer > vs_buffers , hs_buffers , ds_buffers , ps_buffers ;
    Mems<ShaderBuffer*>    buffers; // shader buffers used by all shader stages (VS HS DS PS) combined into one array
@@ -301,7 +301,7 @@ struct Shader11
    void begin    ();
    Bool load     (File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images);
 
-   Shader11();
+  ~Shader11();
 };
 #endif
 /******************************************************************************/
@@ -338,8 +338,8 @@ struct ShaderGL
    };
 
    Str8                name;
-   Int                 vs_index, ps_index;
-   UInt                vs, ps, prog;
+   Int                 vs_index=-1, ps_index=-1;
+   UInt                vs=0, ps=0, prog=0;
    Mems<Texture>       textures;
    Mems<Constant>      constants; // FIXME remove this
    Mems<GLSLParam>     glsl_params; // FIXME remove this
@@ -356,7 +356,6 @@ struct ShaderGL
    Bool load     (File &f, C MemtN<ShaderParam*, 256> &params, C MemtN<ShaderImage*, 256> &images); // FIXME remove this
    Bool load     (File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images);
 
-   ShaderGL();
   ~ShaderGL();
 };
 /******************************************************************************/
