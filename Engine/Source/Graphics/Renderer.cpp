@@ -1266,7 +1266,7 @@ inline Shader* AmbientOcclusion::get(Int quality, Bool jitter, Bool normal)
 void RendererClass::ao()
 {
    D.alpha(ALPHA_NONE);
-   Shader *tech_occl=AO.get(D.ambientMode()-1, D.ambientJitter(), D.ambientNormal() && _nrm);
+   Shader *ao=AO.get(D.ambientMode()-1, D.ambientJitter(), D.ambientNormal() && _nrm);
    VecI2 res=ByteScaleRes(fx(), D._amb_res); _ao.get(ImageRTDesc(res.x, res.y, IMAGERT_ONE));
 
    // always downsample and linearize at the same time
@@ -1282,7 +1282,7 @@ void RendererClass::ao()
    if(stage)if(stage==RS_AO || stage==RS_LIGHT_AO)foreground=false; // if we will display AO then set fully
    if(foreground)D.depth2DOn();
    set(_ao, foreground ? _ds_1s : null, true, NEED_DEPTH_READ); // use DS for 'D.depth2D'
-   REPS(_eye, _eye_num)tech_occl->draw(setEyeParams()); // calculate occlusion
+   REPS(_eye, _eye_num)ao->draw(setEyeParams()); // calculate occlusion
    ao_depth.clear(); // this one is no longer needed
    Sh.Depth->set(_ds_1s); // restore full resolution depth
 

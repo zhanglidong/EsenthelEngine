@@ -1719,16 +1719,16 @@ T2(KEY, DATA)  DATA*  ThreadSafeMap<KEY, DATA>::get       (C KEY &key) {return (
 T2(KEY, DATA)  DATA*  ThreadSafeMap<KEY, DATA>::operator()(C KEY &key) {return (DATA*)_MapTS::operator()(&key);}
 
 T2(KEY, DATA)  Int  Map<KEY, DATA>::   findValidIndex(C KEY &key)C {return _Map::   findValidIndex(&key);}
-T2(KEY, DATA)  Int  Map<KEY, DATA>::    getValidIndex(C KEY &key)  {return _Map::    getValidIndex(&key);}
-T2(KEY, DATA)  Int  Map<KEY, DATA>::requireValidIndex(C KEY &key)  {return _Map::requireValidIndex(&key);}
+//T2(KEY, DATA)  Int  Map<KEY, DATA>::    getValidIndex(C KEY &key)  {return _Map::    getValidIndex(&key);}
+//T2(KEY, DATA)  Int  Map<KEY, DATA>::requireValidIndex(C KEY &key)  {return _Map::requireValidIndex(&key);}
 
 T2(KEY, DATA)  Int  Map<KEY, DATA>::   findAbsIndex(C KEY &key)C {return _Map::   findAbsIndex(&key);}
 T2(KEY, DATA)  Int  Map<KEY, DATA>::    getAbsIndex(C KEY &key)  {return _Map::    getAbsIndex(&key);}
 T2(KEY, DATA)  Int  Map<KEY, DATA>::requireAbsIndex(C KEY &key)  {return _Map::requireAbsIndex(&key);}
 
 T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::   findValidIndex(C KEY &key)C {return _MapTS::   findValidIndex(&key);}
-T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::    getValidIndex(C KEY &key)  {return _MapTS::    getValidIndex(&key);}
-T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::requireValidIndex(C KEY &key)  {return _MapTS::requireValidIndex(&key);}
+//T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::    getValidIndex(C KEY &key)  {return _MapTS::    getValidIndex(&key);}
+//T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::requireValidIndex(C KEY &key)  {return _MapTS::requireValidIndex(&key);}
 
 T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::   findAbsIndex(C KEY &key)C {return _MapTS::   findAbsIndex(&key);}
 T2(KEY, DATA)  Int  ThreadSafeMap<KEY, DATA>::    getAbsIndex(C KEY &key)  {return _MapTS::    getAbsIndex(&key);}

@@ -44,8 +44,7 @@ private:
    void removeFromOrder(           Int  index);
    void       getFailed()C;
    Bool     containsElm(C Elm *elm)C {return _memx.contains(elm);}
-   Int  dataInMapToValidIndex(CPtr data)C;
-   Int  dataInMapToAbsIndex  (CPtr data)C;
+   Int  dataInMapToAbsIndex(CPtr data)C;
 
 private:
 #endif
@@ -66,8 +65,8 @@ private:
    Ptr operator()(CPtr key);
 
    Int    findValidIndex(CPtr key)C;
-   Int     getValidIndex(CPtr key);
-   Int requireValidIndex(CPtr key);
+ //Int     getValidIndex(CPtr key);
+ //Int requireValidIndex(CPtr key);
 
    Int    findAbsIndex(CPtr key)C;
    Int     getAbsIndex(CPtr key);
@@ -115,8 +114,8 @@ private:
    Ptr operator()(CPtr key);
 
    Int    findValidIndex(CPtr key)C;
-   Int     getValidIndex(CPtr key);
-   Int requireValidIndex(CPtr key);
+ //Int     getValidIndex(CPtr key);
+ //Int requireValidIndex(CPtr key);
 
    Int    findAbsIndex(CPtr key)C;
    Int     getAbsIndex(CPtr key);

@@ -49,8 +49,7 @@ CPtr _Map::key       (Int i)C {return elmKey (*_order[i]);}
 CPtr _Map::absKey (Int abs_i)C {return elmKey (_memx.absElm(abs_i));}
 CPtr _Map::absData(Int abs_i)C {return elmData(_memx.absElm(abs_i));}
 
-INLINE Int _Map::dataInMapToValidIndex(CPtr data)C {return data ? _memx.validIndexFastUnsafeValid(dataElm(data)) : -1;}
-INLINE Int _Map::dataInMapToAbsIndex  (CPtr data)C {return data ? _memx.  absIndexFastUnsafeValid(dataElm(data)) : -1;}
+INLINE Int _Map::dataInMapToAbsIndex(CPtr data)C {return data ? _memx.absIndexFastUnsafeValid(dataElm(data)) : -1;}
 /******************************************************************************/
 void _MapTS::lock()C
 {
@@ -115,12 +114,16 @@ void _Map::removeFromOrder(Int index)
    MoveFastN(_order+index, _order+index+1, _elms-index); // faster version of: for(Int i=index; i<_elms; i++)_order[i]=_order[i+1];
 }
 /******************************************************************************/
-Int _Map::findValidIndex(CPtr key)C {return dataInMapToValidIndex(find(key));}
-Int _Map::findAbsIndex  (CPtr key)C {return dataInMapToAbsIndex  (find(key));}
-Ptr _Map::find          (CPtr key)C
+Int _Map::findAbsIndex(CPtr key)C {return dataInMapToAbsIndex  (find(key));}
+Ptr _Map::find        (CPtr key)C
 {
    Int i; if(Elm *elm=findElm(key, i))if(!(elmDesc(*elm).flag&MAP_ELM_LOADING))return elmData(*elm);
    return null;
+}
+Int _Map::findValidIndex(CPtr key)C
+{
+   Int i; if(Elm *elm=findElm(key, i))if(!(elmDesc(*elm).flag&MAP_ELM_LOADING))return i;
+   return -1;
 }
 Ptr _MapTS::find(CPtr key)C
 {
@@ -141,7 +144,7 @@ Int _MapTS::findAbsIndex(CPtr key)C
    return super::findAbsIndex(key);
 }
 /******************************************************************************/
-Int _Map::getValidIndex(CPtr key) {return dataInMapToValidIndex(get(key));}
+//Int _Map::getValidIndex(CPtr key);
 Int _Map::getAbsIndex  (CPtr key) {return dataInMapToAbsIndex  (get(key));}
 Ptr _Map::get          (CPtr key)
 {
@@ -200,12 +203,12 @@ Ptr _MapTS::get(CPtr key)
    SyncLocker     locker(  _lock);
    return super::get(key);
 }
-Int _MapTS::getValidIndex(CPtr key)
+/*Int _MapTS::getValidIndex(CPtr key)
 {
    SyncUnlocker unlocker(D._lock);
    SyncLocker     locker(  _lock);
    return super::getValidIndex(key);
-}
+}*/
 Int _MapTS::getAbsIndex(CPtr key)
 {
    SyncUnlocker unlocker(D._lock);
@@ -219,8 +222,8 @@ void _Map::getFailed()C
 }
 Ptr _Map  ::operator()       (CPtr key) {if(Ptr        data=get          (key)                   )return        data; getFailed(); return null;}
 Ptr _MapTS::operator()       (CPtr key) {if(Ptr        data=get          (key)                   )return        data; getFailed(); return null;}
-Int _Map  ::requireValidIndex(CPtr key) {   Int valid_index=getValidIndex(key); if(valid_index>=0)return valid_index; getFailed(); return   -1;}
-Int _MapTS::requireValidIndex(CPtr key) {   Int valid_index=getValidIndex(key); if(valid_index>=0)return valid_index; getFailed(); return   -1;}
+//Int _Map  ::requireValidIndex(CPtr key) {   Int valid_index=getValidIndex(key); if(valid_index>=0)return valid_index; getFailed(); return   -1;}
+//Int _MapTS::requireValidIndex(CPtr key) {   Int valid_index=getValidIndex(key); if(valid_index>=0)return valid_index; getFailed(); return   -1;}
 Int _Map  ::requireAbsIndex  (CPtr key) {   Int   abs_index=getAbsIndex  (key); if(  abs_index>=0)return   abs_index; getFailed(); return   -1;}
 Int _MapTS::requireAbsIndex  (CPtr key) {   Int   abs_index=getAbsIndex  (key); if(  abs_index>=0)return   abs_index; getFailed(); return   -1;}
 /******************************************************************************/
