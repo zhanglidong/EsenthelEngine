@@ -270,10 +270,20 @@ void ShaderBuffer::Buffer::del()
 {
    if(buffer)
    {
-   #if DX11
-    //SyncLocker locker(D._lock); if(buffer) lock not needed for DX11 'Release'
-         {if(D.created())buffer->Release(); buffer=null;} // clear while in lock
+   #if GL_LOCK // lock not needed for DX11 'Release'
+      SafeSyncLocker lock(D._lock);
    #endif
+
+      if(D.created())
+      {
+      #if DX11
+         buffer->Release();
+      #elif GL
+         glDeleteBuffers(1, &buffer);
+      #endif
+      }
+      
+      buffer=GPU_API(null, 0);
    }
    size=0;
 }
@@ -281,13 +291,15 @@ void ShaderBuffer::Buffer::create(Int size)
 {
  //if(T.size!=size) can't check for this, because buffers can be dynamically resized
    {
-      del();
-      T.size=size;
+   #if GL_LOCK // lock not needed for DX11 'D3D'
+      SyncLocker locker(D._lock);
+   #endif
 
-   #if DX11
-      //SyncLocker lock(D._lock); lock not needed for DX11 'D3D'
-      if(D3D)
+      del();
+      if(D.created())
       {
+         T.size=size;
+      #if DX11
          D3D11_BUFFER_DESC desc;
          desc.ByteWidth          =size;
          desc.Usage              =(BUFFER_DYNAMIC ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT);
@@ -297,8 +309,13 @@ void ShaderBuffer::Buffer::create(Int size)
          desc.StructureByteStride=0;
 
          D3D->CreateBuffer(&desc, null, &buffer);
+      #elif GL
+         glGenBuffers(1, &buffer);
+         glBindBuffer(GL_UNIFORM_BUFFER, buffer);
+         glBufferData(GL_UNIFORM_BUFFER, size, null, GL_STREAM_DRAW);
+         glBindBuffer(GL_UNIFORM_BUFFER, 0);
+      #endif
       }
-   #endif
    }
    if(!buffer)Exit("Can't create Constant Buffer");
 }
@@ -968,7 +985,10 @@ ShaderGL::~ShaderGL()
 {
    if(prog)
    {
-      SyncLocker locker(D._lock); if(D.created())glDeleteProgram(prog); prog=0; // clear while in lock
+   #if GL_LOCK
+      SyncLocker locker(D._lock);
+   #endif
+      if(D.created())glDeleteProgram(prog); prog=0; // clear while in lock
    }
 }
 Str ShaderGL::source()

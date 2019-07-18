@@ -403,9 +403,9 @@ VtxBuf& VtxBuf::del()
    #endif
 
 	#if DX11
-      if(_buf){if(D.created())_buf->Release(); _buf=null;} // clear while in lock
+      if(D.created())_buf->Release();
    #elif GL
-      if(D.created())glDeleteBuffers(1, &_buf); _buf=0; // clear while in lock
+      if(D.created())glDeleteBuffers(1, &_buf);
       if(!IsMap(_dynamic))Free(_data);
    #endif
    }
@@ -421,9 +421,9 @@ IndBuf& IndBuf::del()
    #endif
 
    #if DX11
-      if(_buf){if(D.created())_buf->Release(); _buf=null;} // clear while in lock
+      if(D.created())_buf->Release();
    #elif GL
-      if(D.created())glDeleteBuffers(1, &_buf); _buf=0; // clear while in lock
+      if(D.created())glDeleteBuffers(1, &_buf);
       if(!IsMap(_dynamic))Free(_data);
    #endif
    }
@@ -465,8 +465,7 @@ Bool VtxBuf::createRaw(Int memory_size, Bool dynamic, CPtr data)
       }
       if(OK(D3D->CreateBuffer(&desc, initial_data, &_buf)))return true;
    #elif GL
-      glGenBuffers(1, &_buf);
-      if(_buf)
+      glGenBuffers(1, &_buf); if(_buf)
       {
          glBindBuffer(GL_ARRAY_BUFFER, _buf);
          glBufferData(GL_ARRAY_BUFFER, memory_size, data, dynamic ? GL_DYNAMIC : GL_STATIC_DRAW);
@@ -520,8 +519,7 @@ Bool IndBuf::create(Int indexes, Bool bit16, Bool dynamic, CPtr data)
          return true;
       }
    #elif GL
-      glGenBuffers(1, &_buf);
-      if(_buf)
+      glGenBuffers(1, &_buf); if(_buf)
       {
          BindIndexBuffer(_buf);
          glBufferData(GL_ELEMENT_ARRAY_BUFFER, memory_size, data, dynamic ? GL_DYNAMIC : GL_STATIC_DRAW);

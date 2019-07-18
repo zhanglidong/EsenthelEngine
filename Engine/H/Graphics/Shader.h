@@ -151,14 +151,14 @@ struct ShaderBuffer // Constant Buffer
 {
    struct Buffer
    {
-      GPU_API(ID3D11Buffer*, Ptr) buffer; // keep this is first member because it's used most often
-      Int                         size  ;
+      GPU_API(ID3D11Buffer*, UInt) buffer; // keep this is first member because it's used most often
+      Int                          size  ;
 
       void del   ();
       void create(Int size);
 
       Bool is()C {return size>0;}
-      void zero() {buffer=null; size=0;}
+      void zero() {buffer=GPU_API(null, 0); size=0;}
 
      ~Buffer() {del ();}
       Buffer() {zero();}

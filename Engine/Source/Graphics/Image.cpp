@@ -766,8 +766,8 @@ Image& Image::del()
       #endif
          if(D.created())
          {
-            glDeleteTextures     (1, &_txtr); _txtr=0; // clear while in lock
-            glDeleteRenderbuffers(1, &_rb  ); _rb  =0; // clear while in lock
+            glDeleteTextures     (1, &_txtr);
+            glDeleteRenderbuffers(1, &_rb  );
          }
       }
    #endif
@@ -1250,8 +1250,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
          case IMAGE_2D:
          case IMAGE_RT:
          {
-            glGenTextures(1, &_txtr);
-            if(_txtr)
+            glGenTextures(1, &_txtr); if(_txtr)
             {
                T._mms    =mip_maps;
                T._samples=1;
@@ -1306,8 +1305,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
 
          case IMAGE_3D:
          {
-            glGenTextures(1, &_txtr);
-            if(_txtr)
+            glGenTextures(1, &_txtr); if(_txtr)
             {
                T._mms    =mip_maps;
                T._samples=1;
@@ -1354,8 +1352,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
          case IMAGE_CUBE:
          case IMAGE_RT_CUBE:
          {
-            glGenTextures(1, &_txtr);
-            if(_txtr)
+            glGenTextures(1, &_txtr); if(_txtr)
             {
                T._mms    =mip_maps;
                T._samples=1;
@@ -1408,8 +1405,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
 
          case IMAGE_DS:
          {
-            glGenTextures(1, &_txtr);
-            if(_txtr)
+            glGenTextures(1, &_txtr); if(_txtr)
             {
                T._mms    =1;
                T._samples=1;
@@ -1431,8 +1427,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
 
          case IMAGE_SHADOW_MAP:
          {
-            glGenTextures(1, &_txtr);
-            if(_txtr)
+            glGenTextures(1, &_txtr); if(_txtr)
             {
                T._mms    =1;
                T._samples=1;
@@ -1456,8 +1451,7 @@ Bool Image::createTryEx(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, I
 
          case IMAGE_GL_RB:
          {
-            glGenRenderbuffers(1, &_rb);
-            if(_rb)
+            glGenRenderbuffers(1, &_rb); if(_rb)
             {
                T._mms    =1;
                T._samples=1;
