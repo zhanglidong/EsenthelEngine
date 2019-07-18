@@ -34,9 +34,9 @@ namespace EE{
 //#define EFFECTS_2D
 /*#define EFFECTS_3D
 #define FOG_LOCAL
-#define FUR
+#define FUR*/
 #define FXAA
-#define HDR
+/*#define HDR
 #define LAYERED_CLOUDS
 #define MOTION_BLUR
 #define OVERLAY*/
@@ -759,14 +759,10 @@ static void Compile(API api)
    Add(src_path+"Fog Local.cpp", dest_path+"Fog Local", api, model);
 #endif
 
-#ifdef FXAA
+#ifdef FXAA // FXAA unlike SMAA is kept outside of Main shader, because it's rarely used.
 {
-   Memc<ShaderGLSL> glsl;
-#if 0 // disable GLSL versions because neither Mac/Linux succeed in compiling them
-   REPD(g, 2) // gamma
-      glsl.New().set("FXAA", S+"FXAA"+(g?'G':'\0')).par("GAMMA", TextBool(g));
-#endif
-   Add(src_path+"FXAA.cpp", dest_path+"FXAA", api, model, glsl);
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"FXAA", model, api).New(src_path+"FXAA.cpp");
+   REPD(gamma, 2)src.New("FXAA", "Draw_VS", "FXAA_PS")("GAMMA", gamma);
 }
 #endif
 

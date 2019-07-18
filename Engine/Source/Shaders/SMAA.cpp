@@ -1,6 +1,10 @@
 /******************************************************************************/
 #include "!Header.h"
 /******************************************************************************/
+BUFFER(SMAA)
+   Flt SMAAThreshold=0.05;
+BUFFER_END
+
 #if !CG
    #define SMAA_HLSL_4 1 // TODO: using SMAA_HLSL_4_1 would be faster, but it's not easy to mix SMAA 4.0 and 4.1 together in one shader, however it's only used for predication and SMAADepthEdgeDetectionPS which are not used
    #define PointSampler  SamplerPoint
@@ -10,11 +14,18 @@
    #define mad(a, b, c) ((a)*(b) + (c))
 #endif
 
-BUFFER(SMAA)
-   Flt SMAAThreshold=0.05;
-BUFFER_END
+#define SMAA_AREATEX_SELECT(sample) sample.rg
+#define SMAA_RT_METRICS             RTSize // can use 'RTSize' instead of 'ImgSize' since there's no scale
+#define SMAA_THRESHOLD              SMAAThreshold // best noticable on "iloyjp6kr6q56_jzjamo0z6#" /* Vehicles\Cartoon\Tank */
+#define SMAA_MAX_SEARCH_STEPS       6
+#define SMAA_MAX_SEARCH_STEPS_DIAG  0
+#define SMAA_CORNER_ROUNDING        100
+#if SMAA_MAX_SEARCH_STEPS_DIAG==0
+   #define SMAA_DISABLE_DIAG_DETECTION
+#endif
+#define SMAA_COLOR_WEIGHT_USE 1 // enabling slightly increases performance
+#define SMAA_COLOR_WEIGHT     float3(0.509, 1.000, 0.194) // ClipSet(ColorLumWeight2/ColorLumWeight2.max());
 
-#include "SMAA_config.h"
 #include "SMAA.h"
 
 void SMAAEdge_VS(VtxInput vtx,
