@@ -11,15 +11,15 @@ namespace EE{
    #define COMPILE_4 1
 #endif
 #if GL && !GL_ES // Desktop OpenGL
-   #define COMPILE_GL 0
+   #define COMPILE_GL 1
 #endif
 
-/**/
+/**
 #define MAIN
 
 #define SIMPLE
 #define DEFERRED
-#define FORWARD // Forward Shaders in OpenGL compile almost an entire day and use ~5 GB memory during compilation
+//#define FORWARD // Forward Shaders in OpenGL compile almost an entire day and use ~5 GB memory during compilation
 #define BLEND_LIGHT
 
 #define AMBIENT
@@ -42,7 +42,7 @@ namespace EE{
 #define SET_COLOR
 #define VOLUMETRIC_CLOUDS
 #define VOLUMETRIC_LIGHTS
-#define WATER
+#define WATER*/
 #define WORLD_EDITOR
 /******************************************************************************
 #define DX10_INPUT_LAYOUT
@@ -73,31 +73,32 @@ static Memx<ShaderCompiler> ShaderCompilers; // use 'Memx' because we store poin
 /******************************************************************************/
 // compile
 #if EE_PRIVATE
-Bool ShaderCompileTry(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, C MemPtr<ShaderGLSL> &stg=null, Str *messages=null); // compile shader from 'src' file to 'dest' using additional 'macros', false on fail, 'messages'=optional parameter which will receive any messages that occurred during compilation
-void ShaderCompile   (C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, C MemPtr<ShaderGLSL> &stg                         ); // compile shader from 'src' file to 'dest' using additional 'macros', Exit  on fail
+Bool ShaderCompileTry(C Str &src, C Str &dest, API api, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, C MemPtr<ShaderGLSL> &stg=null, Str *messages=null); // compile shader from 'src' file to 'dest' using additional 'macros', false on fail, 'messages'=optional parameter which will receive any messages that occurred during compilation
+void ShaderCompile   (C Str &src, C Str &dest, API api, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, C MemPtr<ShaderGLSL> &stg                         ); // compile shader from 'src' file to 'dest' using additional 'macros', Exit  on fail
 #endif
-Bool ShaderCompileTry(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros=null, Str *messages=null); // compile shader from 'src' file to 'dest' using additional 'macros', false on fail, 'messages'=optional parameter which will receive any messages that occurred during compilation
-void ShaderCompile   (C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros=null                    ); // compile shader from 'src' file to 'dest' using additional 'macros', Exit  on fail
+Bool ShaderCompileTry(C Str &src, C Str &dest, API api, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros=null, Str *messages=null); // compile shader from 'src' file to 'dest' using additional 'macros', false on fail, 'messages'=optional parameter which will receive any messages that occurred during compilation
+void ShaderCompile   (C Str &src, C Str &dest, API api, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros=null                    ); // compile shader from 'src' file to 'dest' using additional 'macros', Exit  on fail
 
 #define FORCE_LOG      0
 struct OldShaderCompiler
 {
    Str               src, dest;
+   API               api;
    SHADER_MODEL      model;
    Memc<ShaderMacro> macros;
    Memc<ShaderGLSL > glsl;
 
    void compile()
    {
-      Str messages; Bool ok=ShaderCompileTry(src, dest, model, macros, glsl, &messages);
+      Str messages; Bool ok=ShaderCompileTry(src, dest, api, model, macros, glsl, &messages);
       if(!ok || DEBUG || FORCE_LOG)if(messages.is())LogN(S+"Shader\n\""+src+"\"\nto file\n\""+dest+"\"\n"+messages);
       if(!ok)
       {
       #if !DX11
-         if(model>=SM_4)Exit("Can't compile DX10+ Shaders when not using DX10+ engine version");
+         if(api==API_DX)Exit("Can't compile DX10+ Shaders when not using DX10+ engine version");
       #endif
       #if !GL
-         if(model>=SM_GL_ES_3 && model<=SM_GL)Exit("Can't compile OpenGL Shaders when not using OpenGL engine version");
+         if(api==API_GL)Exit("Can't compile OpenGL Shaders when not using OpenGL engine version");
       #endif
          Exit(S+"Error compiling shader\n\""+src+"\"\nto file\n\""+dest+"\"."+(messages.is() ? S+"\n\nCompilation Messages:\n"+messages : S));
       }
@@ -110,19 +111,21 @@ static void ThreadCompile(OldShaderCompiler &shader_compiler, Ptr user, Int thre
    shader_compiler.compile();
 }
 /******************************************************************************/
-static void Add(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderGLSL> &glsl=null)
+static void Add(C Str &src, C Str &dest, API api, SHADER_MODEL model, C MemPtr<ShaderGLSL> &glsl=null)
 {
    OldShaderCompiler &sc=OldShaderCompilers.New();
    sc.src  =src  ;
    sc.dest =dest ;
+   sc.api  =api  ;
    sc.model=model;
    sc.glsl =glsl ;
 }
-static void Add(C Str &src, C Str &dest, SHADER_MODEL model, C Str &names, C MemPtr<ShaderGLSL> &glsl=null)
+static void Add(C Str &src, C Str &dest, API api, SHADER_MODEL model, C Str &names, C MemPtr<ShaderGLSL> &glsl=null)
 {
    OldShaderCompiler &sc=OldShaderCompilers.New();
    sc.src  =src  ;
    sc.dest =dest ;
+   sc.api  =api  ;
    sc.model=model;
    sc.glsl =glsl ;
    sc.macros.New().set("CUSTOM_TECHNIQUE", names);
@@ -170,7 +173,7 @@ static Str TechForward(Int skin, Int materials, Int textures, Int bump_mode, Int
    return tess ? S+"TECHNIQUE_TESSELATION("+name+", VS("+params+"), PS("+params+"), HS("+params+"), DS("+params+"));"
                : S+"TECHNIQUE            ("+name+", VS("+params+"), PS("+params+")                                );";
 }
-static Str TechForwardLight(Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tess,   SHADER_MODEL model)
+static Str TechForwardLight(Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tess)
 {
    Str names;
    REPD(shd, 2)
@@ -290,23 +293,22 @@ static Str TechFurSoft(Int skin, Int size, Int diffuse)
 /******************************************************************************/
 // LISTING ALL SHADER TECHNIQUES
 /******************************************************************************/
-static void Compile(SHADER_MODEL model)
+static void Compile(API api)
 {
    if(!DataPath().is())Exit("Can't compile default shaders - 'DataPath' not specified");
 
    Str src,
        src_path=GetPath(GetPath(__FILE__))+"\\Shaders\\", // for example "C:/Esenthel/Engine/Src/Shaders/"
       dest_path=DataPath();                               // for example "C:/Esenthel/Data/Shader/4/"
-   switch(model)
+   switch(api)
    {
-      case SM_UNKNOWN: return;
+      default: return;
 
-      case SM_GL_ES_3:
-      case SM_GL     : dest_path+="Shader\\GL\\"; break;
-
-      default        : dest_path+="Shader\\4\\" ; break;
+      case API_GL: dest_path+="Shader\\GL\\"; break;
+      case API_DX: dest_path+="Shader\\4\\" ; break;
    }
    FCreateDirs(dest_path);
+   SHADER_MODEL model=SM_4;
 
    // list first those that take the most time to compile
 
@@ -330,12 +332,12 @@ static void Compile(SHADER_MODEL model)
       REPD(rflct , 2)
       REPD(color , 2)
       {
-         names+=TechForwardLight(skin, 1, 0, SBUMP_FLAT, false, false, detail, rflct, color, false, heightmap, FX_NONE, tess, model); // 1 material, 0 tex
+         names+=TechForwardLight(skin, 1, 0, SBUMP_FLAT, false, false, detail, rflct, color, false, heightmap, FX_NONE, tess); // 1 material, 0 tex
          REPD(alpha_test, heightmap ? 1 : 2)
          REPD(light_map , 2)
          {
-            names+=TechForwardLight(skin, 1, 1, SBUMP_FLAT, alpha_test, light_map, detail, rflct, color, false, heightmap, FX_NONE, tess, model); // 1 material, 1 tex
-            names+=TechForwardLight(skin, 1, 2, SBUMP_FLAT, alpha_test, light_map, detail, rflct, color, false, heightmap, FX_NONE, tess, model); // 1 material, 2 tex
+            names+=TechForwardLight(skin, 1, 1, SBUMP_FLAT, alpha_test, light_map, detail, rflct, color, false, heightmap, FX_NONE, tess); // 1 material, 1 tex
+            names+=TechForwardLight(skin, 1, 2, SBUMP_FLAT, alpha_test, light_map, detail, rflct, color, false, heightmap, FX_NONE, tess); // 1 material, 2 tex
          }
       }
 
@@ -346,7 +348,7 @@ static void Compile(SHADER_MODEL model)
       REPD(light_map , 2)
       REPD(detail    , 2)
       REPD(rflct     , 2)
-      REPD(color     , 2)names+=TechForwardLight(skin, 1, 2, SBUMP_NORMAL, alpha_test, light_map, detail, rflct, color, false, heightmap, FX_NONE, tess, model);
+      REPD(color     , 2)names+=TechForwardLight(skin, 1, 2, SBUMP_NORMAL, alpha_test, light_map, detail, rflct, color, false, heightmap, FX_NONE, tess);
    #endif
 
    #if MULTI_MATERIAL
@@ -356,11 +358,11 @@ static void Compile(SHADER_MODEL model)
       REPD(rflct     , 2)
       {
          // 2-4 materials, 1-2 textures, flat
-         for(Int textures=1; textures<=2; textures ++)names+=TechForwardLight(false, materials, textures, SBUMP_FLAT, false, false, false, rflct, color, mtrl_blend, heightmap, FX_NONE, tess, model);
+         for(Int textures=1; textures<=2; textures ++)names+=TechForwardLight(false, materials, textures, SBUMP_FLAT, false, false, false, rflct, color, mtrl_blend, heightmap, FX_NONE, tess);
 
       #if BUMP_MAPPING
          // 2-4 materials, 2 textures, normal
-         names+=TechForwardLight(false, materials, 2, SBUMP_NORMAL, false, false, false, rflct, color, mtrl_blend, heightmap, FX_NONE, tess, model);
+         names+=TechForwardLight(false, materials, 2, SBUMP_NORMAL, false, false, false, rflct, color, mtrl_blend, heightmap, FX_NONE, tess);
       #endif
       }
    #endif
@@ -370,18 +372,18 @@ static void Compile(SHADER_MODEL model)
    for(Int textures=1; textures<=2; textures++)
    REPD(color, 2)
    {
-      names+=TechForwardLight(false, 1, textures, SBUMP_FLAT, true, false, false, false, color, false, false, FX_GRASS, false, model); // 1 material, 1-2 tex, grass, flat
-      names+=TechForwardLight(false, 1, textures, SBUMP_FLAT, true, false, false, false, color, false, false, FX_LEAF , false, model); // 1 material, 1-2 tex, leaf , flat
-      names+=TechForwardLight(false, 1, textures, SBUMP_FLAT, true, false, false, false, color, false, false, FX_LEAFS, false, model); // 1 material, 1-2 tex, leafs, flat
+      names+=TechForwardLight(false, 1, textures, SBUMP_FLAT, true, false, false, false, color, false, false, FX_GRASS, false); // 1 material, 1-2 tex, grass, flat
+      names+=TechForwardLight(false, 1, textures, SBUMP_FLAT, true, false, false, false, color, false, false, FX_LEAF , false); // 1 material, 1-2 tex, leaf , flat
+      names+=TechForwardLight(false, 1, textures, SBUMP_FLAT, true, false, false, false, color, false, false, FX_LEAFS, false); // 1 material, 1-2 tex, leafs, flat
       if(textures==2)
       {
-         names+=TechForwardLight(false, 1, textures, SBUMP_NORMAL, true, false, false, false, color, false, false, FX_GRASS, false, model); // 1 material, 1-2 tex, grass, normal
-         names+=TechForwardLight(false, 1, textures, SBUMP_NORMAL, true, false, false, false, color, false, false, FX_LEAF , false, model); // 1 material, 1-2 tex, leaf , normal
-         names+=TechForwardLight(false, 1, textures, SBUMP_NORMAL, true, false, false, false, color, false, false, FX_LEAFS, false, model); // 1 material, 1-2 tex, leafs, normal
+         names+=TechForwardLight(false, 1, textures, SBUMP_NORMAL, true, false, false, false, color, false, false, FX_GRASS, false); // 1 material, 1-2 tex, grass, normal
+         names+=TechForwardLight(false, 1, textures, SBUMP_NORMAL, true, false, false, false, color, false, false, FX_LEAF , false); // 1 material, 1-2 tex, leaf , normal
+         names+=TechForwardLight(false, 1, textures, SBUMP_NORMAL, true, false, false, false, color, false, false, FX_LEAFS, false); // 1 material, 1-2 tex, leafs, normal
       }
    }
 
-   Add(src_path+"Forward.cpp", dest_path+"Forward", model, names);
+   Add(src_path+"Forward.cpp", dest_path+"Forward", api, model, names);
 }
 #endif
 
@@ -424,7 +426,7 @@ static void Compile(SHADER_MODEL model)
       }
    }
 
-   Add(src_path+"Blend Light.cpp", dest_path+"Blend Light", model, names, glsl);
+   Add(src_path+"Blend Light.cpp", dest_path+"Blend Light", api, model, names, glsl);
 }
 #endif
 
@@ -524,7 +526,7 @@ static void Compile(SHADER_MODEL model)
       }
    }
 
-   Add(src_path+"Deferred.cpp", dest_path+"Deferred", model, names);
+   Add(src_path+"Deferred.cpp", dest_path+"Deferred", api, model, names);
 }
 #endif
 
@@ -593,7 +595,7 @@ static void Compile(SHADER_MODEL model)
    // bone highlight
    REPD(skin, 2)names+=TechSimple(skin, 1, 0, SBUMP_FLAT, false, false, false, false, false, false, FX_BONE, true, false); // !! this name must be in sync with other calls in the engine that use FX_BONE !!
 
-   Add(src_path+"Simple.cpp", dest_path+"Simple", model, names, glsl);
+   Add(src_path+"Simple.cpp", dest_path+"Simple", api, model, names, glsl);
 }
 #endif
 
@@ -658,7 +660,7 @@ static void Compile(SHADER_MODEL model)
       glsl.New().set("SMAA"     , "SMAA");
 #endif
 
-   Add(src_path+"Main.cpp", dest_path+"Main", model, glsl);
+   Add(src_path+"Main.cpp", dest_path+"Main", api, model, glsl);
 }
 #endif
 
@@ -675,17 +677,17 @@ static void Compile(SHADER_MODEL model)
       glsl.add(TechBlendGlsl(skin, color, rflct, textures));
    }
 
-   Add(src_path+"Blend.cpp", dest_path+"Blend", model, names, glsl);
+   Add(src_path+"Blend.cpp", dest_path+"Blend", api, model, names, glsl);
 }
 #endif
 
 #ifdef AMBIENT_OCCLUSION
-   Add(src_path+"Ambient Occlusion.cpp", dest_path+"Ambient Occlusion", model);
+   Add(src_path+"Ambient Occlusion.cpp", dest_path+"Ambient Occlusion", api, model);
 #endif
 
 #ifdef AMBIENT_OCCLUSION_NEW
    {
-      ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Ambient Occlusion", model).New(src_path+"Ambient Occlusion.cpp");
+      ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Ambient Occlusion", model, api).New(src_path+"Ambient Occlusion.cpp");
       REPD(mode  , 4)
       REPD(jitter, 2)
       REPD(normal, 2)
@@ -694,23 +696,23 @@ static void Compile(SHADER_MODEL model)
 #endif
 
 #ifdef DEPTH_OF_FIELD
-   Add(src_path+"Depth of Field.cpp", dest_path+"Depth of Field", model);
+   Add(src_path+"Depth of Field.cpp", dest_path+"Depth of Field", api, model);
 #endif
 
 #ifdef LAYERED_CLOUDS
-   Add(src_path+"Layered Clouds.cpp", dest_path+"Layered Clouds", model);
+   Add(src_path+"Layered Clouds.cpp", dest_path+"Layered Clouds", api, model);
 #endif
 
 #ifdef EFFECTS_2D
-   Add(src_path+"Effects 2D.cpp", dest_path+"Effects 2D", model);
+   Add(src_path+"Effects 2D.cpp", dest_path+"Effects 2D", api, model);
 #endif
 
 #ifdef EFFECTS_3D
-   Add(src_path+"Effects 3D.cpp", dest_path+"Effects 3D", model);
+   Add(src_path+"Effects 3D.cpp", dest_path+"Effects 3D", api, model);
 #endif
 
 #ifdef FOG_LOCAL
-   Add(src_path+"Fog Local.cpp", dest_path+"Fog Local", model);
+   Add(src_path+"Fog Local.cpp", dest_path+"Fog Local", api, model);
 #endif
 
 #ifdef FXAA
@@ -720,28 +722,28 @@ static void Compile(SHADER_MODEL model)
    REPD(g, 2) // gamma
       glsl.New().set("FXAA", S+"FXAA"+(g?'G':'\0')).par("GAMMA", TextBool(g));
 #endif
-   Add(src_path+"FXAA.cpp", dest_path+"FXAA", model, glsl);
+   Add(src_path+"FXAA.cpp", dest_path+"FXAA", api, model, glsl);
 }
 #endif
 
 #ifdef HDR
-   Add(src_path+"Hdr.cpp", dest_path+"Hdr", model);
+   Add(src_path+"Hdr.cpp", dest_path+"Hdr", api, model);
 #endif
 
 #ifdef MOTION_BLUR
-   Add(src_path+"Motion Blur.cpp", dest_path+"Motion Blur", model);
+   Add(src_path+"Motion Blur.cpp", dest_path+"Motion Blur", api, model);
 #endif
 
 #ifdef VOLUMETRIC_CLOUDS
-   Add(src_path+"Volumetric Clouds.cpp", dest_path+"Volumetric Clouds", model);
+   Add(src_path+"Volumetric Clouds.cpp", dest_path+"Volumetric Clouds", api, model);
 #endif
 
 #ifdef VOLUMETRIC_LIGHTS
-   Add(src_path+"Volumetric Lights.cpp", dest_path+"Volumetric Lights", model);
+   Add(src_path+"Volumetric Lights.cpp", dest_path+"Volumetric Lights", api, model);
 #endif
 
 #ifdef WATER
-   Add(src_path+"Water.cpp", dest_path+"Water", model);
+   Add(src_path+"Water.cpp", dest_path+"Water", api, model);
 #endif
 
 #ifdef POSITION
@@ -765,7 +767,7 @@ static void Compile(SHADER_MODEL model)
       names+=TechPosition(0, textures, test_blend, FX_LEAFS, false);
    }
 
-   Add(src_path+"Position.cpp", dest_path+"Position", model, names);
+   Add(src_path+"Position.cpp", dest_path+"Position", api, model, names);
 }
 #endif
 
@@ -778,7 +780,7 @@ static void Compile(SHADER_MODEL model)
    REPD(skin    , 2)
    REPD(textures, 3)names+=TechSetColor(skin, textures, tess);
 
-   Add(src_path+"Set Color.cpp", dest_path+"Set Color", model, names);
+   Add(src_path+"Set Color.cpp", dest_path+"Set Color", api, model, names);
 }
 #endif
 
@@ -790,7 +792,7 @@ static void Compile(SHADER_MODEL model)
    REPD(skin    , 2)
    REPD(textures, 3)names+=TechBehind(skin, textures);
 
-   Add(src_path+"Behind.cpp", dest_path+"Behind", model, names);
+   Add(src_path+"Behind.cpp", dest_path+"Behind", api, model, names);
 }
 #endif
 
@@ -804,7 +806,7 @@ static void Compile(SHADER_MODEL model)
    REPD(light_map , 2)
       names+=TechAmbient(skin, alpha_test, light_map);
 
-   Add(src_path+"Ambient.cpp", dest_path+"Ambient", model, names);
+   Add(src_path+"Ambient.cpp", dest_path+"Ambient", api, model, names);
 }
 #endif
 
@@ -816,7 +818,7 @@ static void Compile(SHADER_MODEL model)
    REPD(skin  , 2)
    REPD(normal, 2)names+=TechOverlay(skin, normal);
 
-   Add(src_path+"Overlay.cpp", dest_path+"Overlay", model, names);
+   Add(src_path+"Overlay.cpp", dest_path+"Overlay", api, model, names);
 }
 {
    Str names;
@@ -825,7 +827,7 @@ static void Compile(SHADER_MODEL model)
    REPD(tess, (model>=SM_4) ? 2 : 1)
    REPD(skin, 2)names+=TechTattoo(skin, tess);
 
-   Add(src_path+"Tattoo.cpp", dest_path+"Tattoo", model, names);
+   Add(src_path+"Tattoo.cpp", dest_path+"Tattoo", api, model, names);
 }
 #endif
 
@@ -836,7 +838,7 @@ static void Compile(SHADER_MODEL model)
    // base
    REPD(skin, 2)names+=TechEarlyZ(skin);
 
-   Add(src_path+"Early Z.cpp", dest_path+"Early Z", model, names);
+   Add(src_path+"Early Z.cpp", dest_path+"Early Z", api, model, names);
 }
 #endif
 
@@ -854,16 +856,16 @@ static void Compile(SHADER_MODEL model)
    REPD(size   , 2)
    REPD(diffuse, 2)names+=TechFurSoft(skin, size, diffuse);
 
-   Add(src_path+"Fur.cpp", dest_path+"Fur", model, names);
+   Add(src_path+"Fur.cpp", dest_path+"Fur", api, model, names);
 }
 #endif
 
 #ifdef WORLD_EDITOR
-   Add(src_path+"World Editor.cpp", dest_path+"World Editor", model);
+   Add(src_path+"World Editor.cpp", dest_path+"World Editor", api, model);
 #endif
 
 #ifdef DX10_INPUT_LAYOUT
-   Add(src_path+"DX10+ Input Layout.cpp", S, model);
+   Add(src_path+"DX10+ Input Layout.cpp", S, api, model);
 #endif
 }
 /******************************************************************************/
@@ -875,10 +877,10 @@ void MainShaderClass::compile()
    App.stayAwake(AWAKE_SYSTEM);
 
 #if COMPILE_GL
-   Compile(SM_GL);
+   Compile(API_GL);
 #endif
 #if COMPILE_4
-   Compile(SM_4);
+   Compile(API_DX);
 #endif
 
    ProcPriority(-1); // compiling shaders may slow down entire CPU, so make this process have smaller priority

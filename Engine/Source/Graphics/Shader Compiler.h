@@ -133,7 +133,7 @@ struct ShaderCompiler
    void message(C Str &t) {messages.line()+=t;}
    Bool error  (C Str &t) {message(t); return false;}
 
-   ShaderCompiler& set(C Str &dest, SHADER_MODEL model, API api=API_DX);
+   ShaderCompiler& set(C Str &dest, SHADER_MODEL model, API api);
    Source& New(C Str &file_name);
 
    Bool compileTry(Threads &threads);

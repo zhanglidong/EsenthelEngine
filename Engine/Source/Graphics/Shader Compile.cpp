@@ -1921,14 +1921,14 @@ T1(TYPE) static Int StoreShader(C Str8 &code, Memc<TYPE> &shaders, File &src, Fi
    if(!Compress(src, temp.reset(), COMPRESS_GL, COMPRESS_GL_LEVEL, COMPRESS_GL_MT))Exit("Can't compress shader");
    REPA(shaders)
    {
-      Mems<Byte> &shader_data=shaders[i].data;
+      ShaderData &shader_data=shaders[i];
       if(shader_data.elms()==temp.size())
       {
          File data; data.readMem(shader_data.data(), shader_data.elms());
          temp.pos(0); if(temp.equal(data))return i;
       }
    }
-   Mems<Byte> &data=shaders.New().data;
+   ShaderData &data=shaders.New();
    temp.pos(0); temp.get(data.setNum(temp.size()).data(), temp.size());
    return shaders.elms()-1;
 }
@@ -2261,41 +2261,33 @@ static Bool ShaderCompileGL(Str name, C Str &dest, C MemPtr<ShaderMacro> &macros
    return false;
 }
 /******************************************************************************/
-Bool ShaderCompileTry(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, C MemPtr<ShaderGLSL> &stg, Str *messages)
+Bool ShaderCompileTry(C Str &src, C Str &dest, API api, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, C MemPtr<ShaderGLSL> &stg, Str *messages)
 {
-   if(model==SM_UNKNOWN)return false;
-
    Memc<ShaderMacro> temp; temp=macros;
-   switch(model)
+   switch(api)
    {
-      case SM_UNKNOWN: return false;
-
-      case SM_GL_ES_3:
-      case SM_GL     : temp.New().set("DX", "0"); temp.New().set("GL", "1"); temp.New().set("CG", "1"); break;
-
-      default        : temp.New().set("DX", "1"); temp.New().set("GL", "0"); break;
+      default: return false;
+      case API_GL: temp.New().set("DX", "0"); temp.New().set("GL", "1"); temp.New().set("CG", "1"); return ShaderCompileGL(src, dest, temp, messages, stg);
+      case API_DX: temp.New().set("DX", "1"); temp.New().set("GL", "0");                            return ShaderCompile11(src, dest, temp, messages);
    }
-   if(model>=SM_GL_ES_3 && model<=SM_GL)return ShaderCompileGL(src, dest, temp, messages, stg);
-   if(                     model>=SM_4 )return ShaderCompile11(src, dest, temp, messages);
-   return false;
 }
 /******************************************************************************/
-void ShaderCompile(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, C MemPtr<ShaderGLSL> &stg)
+void ShaderCompile(C Str &src, C Str &dest, API api, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, C MemPtr<ShaderGLSL> &stg)
 {
    Str messages;
-   if(!ShaderCompileTry(src, dest, model, macros, stg, &messages))
+   if(!ShaderCompileTry(src, dest, api, model, macros, stg, &messages))
    {
    #if !DX11
-      if(model>=SM_4)Exit("Can't compile DX10+ Shaders when not using DX10+ engine version");
+      if(api==API_DX)Exit("Can't compile DX10+ Shaders when not using DX10+ engine version");
    #endif
    #if !GL
-      if(model>=SM_GL_ES_3 && model<=SM_GL)Exit("Can't compile OpenGL Shaders when not using OpenGL engine version");
+      if(api==API_GL)Exit("Can't compile OpenGL Shaders when not using OpenGL engine version");
    #endif
       Exit(S+"Error compiling shader\n\""+src+"\"\nto file\n\""+dest+"\"."+(messages.is() ? S+"\n\nCompilation Messages:\n"+messages : S));
    }
 }
-Bool ShaderCompileTry(C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, Str *messages) {return ShaderCompileTry(src, dest, model, macros, null, messages);}
-void ShaderCompile   (C Str &src, C Str &dest, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros               ) {       ShaderCompile   (src, dest, model, macros, null          );}
+Bool ShaderCompileTry(C Str &src, C Str &dest, API api, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, Str *messages) {return ShaderCompileTry(src, dest, api, model, macros, null, messages);}
+void ShaderCompile   (C Str &src, C Str &dest, API api, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros               ) {       ShaderCompile   (src, dest, api, model, macros, null          );}
 /******************************************************************************/
 }
 /******************************************************************************/
