@@ -14,22 +14,22 @@ namespace EE{
    #define COMPILE_GL 1
 #endif
 
-/**
-#define MAIN
+/**/
+//#define MAIN
 
-#define SIMPLE
+/*#define SIMPLE
 #define DEFERRED
 //#define FORWARD // Forward Shaders in OpenGL compile almost an entire day and use ~5 GB memory during compilation
-#define BLEND_LIGHT
+//#define BLEND_LIGHT
 
 #define AMBIENT
-#define AMBIENT_OCCLUSION
+#define AMBIENT_OCCLUSION*/
 //#define AMBIENT_OCCLUSION_NEW // FIXME
-#define BEHIND
+/*#define BEHIND
 #define BLEND
-#define DEPTH_OF_FIELD
-#define EARLY_Z
-#define EFFECTS_2D
+#define DEPTH_OF_FIELD*/
+//#define EARLY_Z
+/*#define EFFECTS_2D
 #define EFFECTS_3D
 #define FOG_LOCAL
 #define FUR
@@ -37,12 +37,12 @@ namespace EE{
 #define HDR
 #define LAYERED_CLOUDS
 #define MOTION_BLUR
-#define OVERLAY
-#define POSITION
-#define SET_COLOR
+#define OVERLAY*/
+//#define POSITION
+/*#define SET_COLOR
 #define VOLUMETRIC_CLOUDS
 #define VOLUMETRIC_LIGHTS
-#define WATER*/
+#define WATER
 #define WORLD_EDITOR
 /******************************************************************************
 #define DX10_INPUT_LAYOUT

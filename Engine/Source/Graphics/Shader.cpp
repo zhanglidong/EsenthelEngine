@@ -380,7 +380,7 @@ void ShaderBuffer::bindCheck(Int index)
    #if DX11
       ID3D11Buffer *buf=vs_buf[index];
    #else
-      Ptr buf=null;
+      UInt buf=0;
    #endif
                  if(buffer  .buffer==buf)return;
       REPA(parts)if(parts[i].buffer==buf)return;

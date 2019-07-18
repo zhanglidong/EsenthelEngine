@@ -1259,7 +1259,7 @@ inline Shader* AmbientOcclusion::get(Int quality, Bool jitter, Bool normal)
    Shader* &s=AO[quality][jitter][normal]; if(!s)
    {
       if(!shader)shader=ShaderFiles("Ambient Occlusion");
-      s=shader->get(S8+"AO"+quality+(jitter?'J':'\0')+(normal?'N':'\0'));
+      s=shader->get(S8+"AO"+quality+jitter+normal);
    }
    return s;
 }
