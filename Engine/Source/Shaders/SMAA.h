@@ -536,8 +536,8 @@
 #define SMAASample(tex, coord) tex2D(tex, coord)
 #define SMAASamplePoint(tex, coord) tex2D(tex, coord)
 #define SMAASampleOffset(tex, coord, offset) tex2D(tex, coord + offset * SMAA_RT_METRICS.xy)
-//#define SMAA_FLATTEN [flatten] ESENTHEL
-//#define SMAA_BRANCH [branch] ESENTHEL
+#define SMAA_FLATTEN [flatten]
+#define SMAA_BRANCH [branch]
 #endif
 #if defined(SMAA_HLSL_4) || defined(SMAA_HLSL_4_1)
 //SamplerState LinearSampler { Filter = MIN_MAG_LINEAR_MIP_POINT; AddressU = Clamp; AddressV = Clamp; }; ESENTHEL
@@ -550,8 +550,8 @@
 #define SMAASample(tex, coord) tex.Sample(LinearSampler, coord)
 #define SMAASamplePoint(tex, coord) tex.Sample(PointSampler, coord)
 #define SMAASampleOffset(tex, coord, offset) tex.Sample(LinearSampler, coord, offset)
-//#define SMAA_FLATTEN [flatten] ESENTHEL
-//#define SMAA_BRANCH [branch] ESENTHEL
+#define SMAA_FLATTEN [flatten]
+#define SMAA_BRANCH [branch]
 #define SMAATexture2DMS2(tex) Texture2DMS<float4, 2> tex
 #define SMAALoad(tex, pos, sample) tex.Load(pos, sample)
 #if defined(SMAA_HLSL_4_1)

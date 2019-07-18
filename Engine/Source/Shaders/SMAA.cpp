@@ -1,8 +1,6 @@
 /******************************************************************************/
 #include "!Header.h"
 /******************************************************************************/
-#define SMAA_FLATTEN FLATTEN
-#define SMAA_BRANCH  BRANCH
 #if !CG
    #define SMAA_HLSL_4 1 // TODO: using SMAA_HLSL_4_1 would be faster, but it's not easy to mix SMAA 4.0 and 4.1 together in one shader, however it's only used for predication and SMAADepthEdgeDetectionPS which are not used
    #define PointSampler  SamplerPoint
