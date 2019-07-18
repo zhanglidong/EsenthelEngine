@@ -179,6 +179,10 @@ struct ShaderBuffer // Constant Buffer
    void    setPart (Int part );
    void createParts(C Int *elms, Int elms_num);
 
+#if GL
+   Int bindPoint()C;
+#endif
+
    ShaderBuffer();
   ~ShaderBuffer();
 
@@ -334,12 +338,13 @@ struct ShaderGL
       void set(Int gpu_offset, ShaderParam &param, C Str8 &glsl_name);
    };
 
-   Str8            name;
-   Int             vs_index, ps_index;
-   UInt            vs, ps, prog;
-   Mems<Texture>   textures;
-   Mems<Constant>  constants;
-   Mems<GLSLParam> glsl_params;
+   Str8                name;
+   Int                 vs_index, ps_index;
+   UInt                vs, ps, prog;
+   Mems<Texture>       textures;
+   Mems<Constant>      constants; // FIXME remove this
+   Mems<GLSLParam>     glsl_params; // FIXME remove this
+   Mems<ShaderBuffer*> buffers; // shader buffers used by all shader stages (VS HS DS PS) combined into one array
 
    Str  source   ();
    UInt compileEx(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array, Bool clean, ShaderFile *shader, Str *messages);
@@ -349,7 +354,8 @@ struct ShaderGL
    void commitTex();
    void start    ();
    void begin    ();
-   Bool load     (File &f, C MemtN<ShaderParam*, 256> &params, C MemtN<ShaderImage*, 256> &images);
+   Bool load     (File &f, C MemtN<ShaderParam*, 256> &params, C MemtN<ShaderImage*, 256> &images); // FIXME remove this
+   Bool load     (File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images);
 
    ShaderGL();
   ~ShaderGL();

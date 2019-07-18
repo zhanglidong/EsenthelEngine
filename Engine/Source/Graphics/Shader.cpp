@@ -313,7 +313,6 @@ void ShaderBuffer::Buffer::create(Int size)
          glGenBuffers(1, &buffer);
          glBindBuffer(GL_UNIFORM_BUFFER, buffer);
          glBufferData(GL_UNIFORM_BUFFER, size, null, GL_STREAM_DRAW);
-         glBindBuffer(GL_UNIFORM_BUFFER, 0);
       #endif
       }
    }
@@ -337,6 +336,9 @@ void ShaderBuffer::create(Int size) // no locks needed because this is called on
    buffer.create(size);
    AllocZero(data, Ceil4(size+SIZEI(Vec4))); // add extra "Vec4 padd" at the end, because all 'ShaderParam.set' for performance reasons assume that there is at least SIZE(Vec4) size, use "+" instead of "Max" in case we have "Flt p[2]" and we call 'ShaderParam.set(Vec4)' for ShaderParam created from "p[1]" which would overwrite "p[1..4]", and do 'Ceil4' because 'COPY' is used which copies 'Ceil4'
    changed=true;
+#if GL
+   if(buffer.is())glBindBufferRange(GL_UNIFORM_BUFFER, bindPoint(), buffer.buffer, 0, buffer.size);
+#endif
 }
 void ShaderBuffer::update()
 {
@@ -360,6 +362,9 @@ void ShaderBuffer::update()
    }else
 #endif
          D3DC ->UpdateSubresource (buffer.buffer, 0, null, data, 0, 0);
+#elif GL
+   glBindBuffer   (GL_UNIFORM_BUFFER, buffer.buffer);
+   glBufferSubData(GL_UNIFORM_BUFFER, 0, buffer.size, data);
 #endif
    changed=false;
 }
@@ -374,18 +379,16 @@ void ShaderBuffer::bind(Int index)
 }
 void ShaderBuffer::bindCheck(Int index)
 {
+#if DX11
    if(index>=0)
    {
       if(!InRange(index, MAX_SHADER_BUFFERS))Exit("Invalid ShaderBuffer bind index");
-   #if DX11
       ID3D11Buffer *buf=vs_buf[index];
-   #else
-      UInt buf=0;
-   #endif
                  if(buffer  .buffer==buf)return;
       REPA(parts)if(parts[i].buffer==buf)return;
       Exit(S+"ShaderBuffer was expected to be bound at slot "+index);
    }
+#endif
 }
 void ShaderBuffer::setPart(Int part)
 {
@@ -398,6 +401,13 @@ void ShaderBuffer::createParts(C Int *elms, Int elms_num)
    parts.setNum(elms_num);          parts[0]=buffer; // store a raw copy of the buffer that was already created in the first slot, so we can keep it as backup and use later
    for(Int i=1; i<parts.elms(); i++)parts[i].create(elm_size*elms[i]);
 }
+#if GL
+Int ShaderBuffer::bindPoint()C
+{
+   DEBUG_ASSERT(ShaderBuffers.containsData(this), "'ShaderBuffer' not inside 'ShaderBuffers'"); // needed to get correct abs index
+   return ShaderBuffers.dataInMapToAbsIndex(this)+1; // skip zero, because it's used for 'glBindBuffer'
+}
+#endif
 /******************************************************************************/
 // SHADER PARAM
 /******************************************************************************/
@@ -751,27 +761,6 @@ ID3D11HullShader  * ShaderHS11::create() {if(!hs && elms()){SyncLocker locker(Sh
 ID3D11DomainShader* ShaderDS11::create() {if(!ds && elms()){SyncLocker locker(ShaderLock); if(!ds && elms() && D3D){D3D->CreateDomainShader(data(), elms(), null, &ds); clean();}} return ds;}
 ID3D11PixelShader * ShaderPS11::create() {if(!ps && elms()){SyncLocker locker(ShaderLock); if(!ps && elms() && D3D){D3D->CreatePixelShader (data(), elms(), null, &ps); clean();}} return ps;}
 #elif GL
-static void SetMaxMatrix(Str8 &code)
-{
-#if VARIABLE_MAX_MATRIX
-   change 'Replace' to something else because it's slow
-   if(D.meshBoneSplit())
-   {
-      code=Replace(code, "MAX_MATRIX 256" , "MAX_MATRIX 60"  , true); // hand written GLSL
-      code=Replace(code, "ViewMatrix[768]", "ViewMatrix[180]", true); // from CG, 256*3, 60*3
-      code=Replace(code,     "ObjVel[256]",     "ObjVel[60]" , true); // from CG
-      code=Replace(code,     "FurVel[256]",     "FurVel[60]" , true); // from CG
-   }else
-   {
-   #if 0 // not needed because shaders by default have these values
-      code=Replace(code, "MAX_MATRIX 60"  , "MAX_MATRIX 256" , true);
-      code=Replace(code, "ViewMatrix[180]", "ViewMatrix[768]", true); // 60*3, 256*3
-      code=Replace(code,     "ObjVel[60]" ,     "ObjVel[256]", true);
-      code=Replace(code,     "FurVel[60]" ,     "FurVel[256]", true);
-   #endif
-   }
-#endif
-}
 CChar8* GLSLVersion()
 {
    switch(D.shaderModel())
@@ -789,10 +778,9 @@ UInt ShaderVSGL::create(Bool clean, Str *messages)
       SyncLocker locker(GL_LOCK ? D._lock : ShaderLock);
       if(!vs && elms())
       {
+         File src, temp; src.readMem(data(), elms()); if(!Decompress(src, temp, true))return 0; temp.pos(0); // decompress shader
          UInt vs=glCreateShader(GL_VERTEX_SHADER); if(!vs)Exit("Can't create GL_VERTEX_SHADER"); // create into temp var first and set to this only after fully initialized
-         File src, temp; src.readMem(data(), elms()); Decompress(src, temp, true); temp.pos(0); // decompress shader
-         Str8 code; temp.getStr(code); // read code
-         SetMaxMatrix(code);
+         CChar8 *code=(CChar8*)temp.mem(); // read code
       #if GL_ES
          for(; CChar8 *gl=TextPos(code, "gl_ClipDistance"); ){Char8 *t=(Char8*)gl; t[0]=t[1]='/';} // VS plane clipping not available on GLES 3
       #endif
@@ -824,16 +812,9 @@ UInt ShaderPSGL::create(Bool clean, Str *messages)
       SyncLocker locker(GL_LOCK ? D._lock : ShaderLock);
       if(!ps && elms())
       {
+         File src, temp; src.readMem(data(), elms()); if(!Decompress(src, temp, true))return 0; temp.pos(0); // decompress shader
          UInt ps=glCreateShader(GL_FRAGMENT_SHADER); if(!ps)Exit("Can't create GL_FRAGMENT_SHADER"); // create into temp var first and set to this only after fully initialized
-         File  src, temp; src.readMem(data(), elms()); Decompress(src, temp, true); temp.pos(0); // decompress shader
-         Str8 code; temp.getStr(code); // read code
-         SetMaxMatrix(code);
-
-         // if MRT is not supported then disable it in the shader codes, replace "\nRT.." instead of "RT=" because it can be also "RT.xyz=", check for new line because we also do "layout(location=1) out HP vec4 RT1;" and "#define RT1 gl_FragData[1]"
-         if(D._max_rt<2)for(Char8 *gl=(Char8*)code(); gl=(Char8*)TextPos(gl, "\nRT1", true, true); )gl[1]=gl[2]='/'; // start replacing with index=1, to keep '\n' and change RT into //
-         if(D._max_rt<3)for(Char8 *gl=(Char8*)code(); gl=(Char8*)TextPos(gl, "\nRT2", true, true); )gl[1]=gl[2]='/';
-         if(D._max_rt<4)for(Char8 *gl=(Char8*)code(); gl=(Char8*)TextPos(gl, "\nRT3", true, true); )gl[1]=gl[2]='/';
-
+         CChar8 *code=(CChar8*)temp.mem(); // read code
          CChar8 *srcs[]={GLSLVersion(), code}; // version must be first
          glShaderSource(ps, Elms(srcs), srcs, null); glCompileShader(ps); // compile
 
@@ -1054,61 +1035,66 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
          GLenum type;
          glGetActiveUniform(prog, i, Elms(glsl_name), null, &size, &type, glsl_name);
          Bool   found=false;
-         if(type==GL_SAMPLER_2D || type==GL_SAMPLER_CUBE
-      #ifdef GL_SAMPLER_3D
-         || type==GL_SAMPLER_3D
-      #endif
-      #ifdef GL_SAMPLER_2D_SHADOW
-         || type==GL_SAMPLER_2D_SHADOW
-      #endif
-      #ifdef GL_SAMPLER_2D_SHADOW_EXT
-         || type==GL_SAMPLER_2D_SHADOW_EXT
-      #endif
-         )
+         switch(type)
          {
-            Int tex_unit=textures.elms(); if(!InRange(tex_unit, Tex))Exit(S+"Texture index: "+tex_unit+", is too big");
-            Int location=glGetUniformLocation(prog, glsl_name); if(location<0)
+            case GL_SAMPLER_2D:
+            case GL_SAMPLER_CUBE:
+         #ifdef GL_SAMPLER_3D
+            case GL_SAMPLER_3D:
+         #endif
+         #ifdef GL_SAMPLER_2D_SHADOW
+            case GL_SAMPLER_2D_SHADOW:
+         #endif
+         #if defined GL_SAMPLER_2D_SHADOW_EXT && GL_SAMPLER_2D_SHADOW_EXT!=GL_SAMPLER_2D_SHADOW
+            case GL_SAMPLER_2D_SHADOW_EXT:
+         #endif
             {
-            #if WEB // this can happen on MS Edge for textures that aren't actually used
-               LogN
-            #else
-               Exit
-            #endif
-                  (S+"Invalid Uniform Location ("+location+") of GLSL Parameter \""+glsl_name+"\"");
-               continue;
-            }
-            textures.New().set(tex_unit, *GetShaderImage(glsl_name));
-
-            glUseProgram(prog);
-            glUniform1i (location, tex_unit); // set 'location' sampler to use 'tex_unit' texture unit
-
-            found=true;
-         }else
-         {
-            REPA(glsl_params)
-            {
-                 GLSLParam &gp=glsl_params[i];
-               ShaderParam &sp=*gp.param;
-             C Str8        &gp_name=ShaderParams.dataInMapToKey(sp);
-               if(Equal(gp_name     , glsl_name, true)
-               || Equal(gp.glsl_name, glsl_name, true))
+               Int tex_unit=textures.elms(); if(!InRange(tex_unit, Tex))Exit(S+"Texture index: "+tex_unit+", is too big");
+               Int location=glGetUniformLocation(prog, glsl_name); if(location<0)
                {
-                  if(gp.gpu_offset+SIZE(Flt)>sp._gpu_data_size)Exit(S+"Shader \""+name+"\" refers to Shader Param \""+gp_name+"\" with invalid offset");
-                  Int       l=glGetUniformLocation(prog, glsl_name); if(l<0)Exit(S+"Invalid Uniform Location ("+l+") of GLSL Parameter \""+glsl_name+"\"");
-                  Constant &c=constants.New();
-                  c.set(l, size, sp._data+gp.gpu_offset, sp);
-                  switch(type)
-                  {
-                     case GL_FLOAT     : c.uniform=glUniform1fv; break;
-                     case GL_FLOAT_VEC2: c.uniform=glUniform2fv; break;
-                     case GL_FLOAT_VEC3: c.uniform=glUniform3fv; break;
-                     case GL_FLOAT_VEC4: c.uniform=glUniform4fv; break;
-                     default           : Exit("Unrecognized Shader Parameter OpenGL Uniform Type"); break;
-                  }
-
-                  found=true; break;
+               #if WEB // this can happen on MS Edge for textures that aren't actually used
+                  LogN
+               #else
+                  Exit
+               #endif
+                     (S+"Invalid Uniform Location ("+location+") of GLSL Parameter \""+glsl_name+"\"");
+                  continue;
                }
-            }
+               textures.New().set(tex_unit, *GetShaderImage(glsl_name));
+
+               glUseProgram(prog);
+               glUniform1i (location, tex_unit); // set 'location' sampler to use 'tex_unit' texture unit
+
+               found=true;
+            }break;
+
+            default:
+            {
+               REPA(glsl_params)
+               {
+                    GLSLParam &gp=glsl_params[i];
+                  ShaderParam &sp=*gp.param;
+                C Str8        &gp_name=ShaderParams.dataInMapToKey(sp);
+                  if(Equal(gp_name     , glsl_name, true)
+                  || Equal(gp.glsl_name, glsl_name, true))
+                  {
+                     if(gp.gpu_offset+SIZE(Flt)>sp._gpu_data_size)Exit(S+"Shader \""+name+"\" refers to Shader Param \""+gp_name+"\" with invalid offset");
+                     Int       l=glGetUniformLocation(prog, glsl_name); if(l<0)Exit(S+"Invalid Uniform Location ("+l+") of GLSL Parameter \""+glsl_name+"\"");
+                     Constant &c=constants.New();
+                     c.set(l, size, sp._data+gp.gpu_offset, sp);
+                     switch(type)
+                     {
+                        case GL_FLOAT     : c.uniform=glUniform1fv; break;
+                        case GL_FLOAT_VEC2: c.uniform=glUniform2fv; break;
+                        case GL_FLOAT_VEC3: c.uniform=glUniform3fv; break;
+                        case GL_FLOAT_VEC4: c.uniform=glUniform4fv; break;
+                        default           : Exit("Unrecognized Shader Parameter OpenGL Uniform Type"); break;
+                     }
+
+                     found=true; break;
+                  }
+               }
+            }break;
          }
          if(!found)
          {
@@ -1120,12 +1106,23 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
          #endif
          }
       }
+      T.textures=textures;
 
-      T. textures= textures;
+      params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORM_BLOCKS, &params); buffers.setNum(params);
+      FREP(params)
+      {
+         //glGetActiveUniformBlockiv(prog, i, )
+         Char8 name[256]; name[0]='\0';
+         Int length=0;
+         glGetActiveUniformBlockName(prog, i, Elms(name), &length, name);
+         if(!name[0])Exit("Can't access UBO name");
+         buffers[i]=ShaderBuffers(Str8Temp(name));
+         glUniformBlockBinding(prog, i, buffers[i]->bindPoint());
+      }
+
+      // FIXME remove this
       T.constants=constants;
-
       // GL constants should not be joined/merged, because as noted in the 'glUniform*' docs: "GL_INVALID_OPERATION is generated if count is greater than 1 and the indicated uniform variable is not an array variable"
-
       // adjust final count after creating all constants (needed because constants are created dynamically inside, however 'final_count' may point to itself)
       REPA(T.constants)
       {
@@ -1134,8 +1131,6 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
                       || c.sp==Sh.ObjVel    
                       || c.sp==Sh.FurVel) ? &c.sp->_constant_count : &c.count); // if this constant is resizable, then point to the 'ShaderParam' count because we might resize it later, otherwise, use what was given, we can't check for 'fullConstantCount' here because it works only for Vec4's
       }
-
-      // release no longer needed
       glsl_params.del();
     //glsl_images.del();
 
@@ -1149,12 +1144,13 @@ void ShaderGL::commit()
    REPA(constants){Constant &c=constants[i]; if(*c.changed)c.uniform(c.index, *c.final_count, (Flt*)c.data);}
    // reset changed after all commits, in case constants point to parts of shader params (in such case setting one part, and clearing changed, would prevent from setting other parts of the same shader param)
    REPA(constants)(*constants[i].changed)=false;
+   REPA(buffers){ShaderBuffer &b=*buffers[i]; if(b.changed)b.update();}
 }
 void ShaderGL::commitTex()
 {
    REPA(textures){Texture &t=textures[i]; SetTexture(t.index, t.image->get(), t.image->_sampler);}
 }
-void ShaderGL::start() // same as 'begin' but without committing constants and textures
+void ShaderGL::start() // same as 'begin' but without committing buffers and textures
 {
    ShaderCur=this;
 
@@ -1166,7 +1162,8 @@ void ShaderGL::begin()
    ShaderCur=this;
 
    glUseProgram(prog);
-   REPA(textures ){Texture  &t= textures[i]; SetTexture(t.index, t.image->get(), t.image->_sampler);}
+   REPA(textures ){Texture      &t= textures[i]; SetTexture(t.index, t.image->get(), t.image->_sampler);}
+   REPA(buffers  ){ShaderBuffer &b=*buffers [i]; if(b.changed)b.update();}
    REPA(constants){Constant &c=constants[i]; c.uniform(c.index, *c.final_count, (Flt*)c.data); *c.changed=false;}
 }
 #endif

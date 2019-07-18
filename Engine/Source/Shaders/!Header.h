@@ -100,8 +100,13 @@
    #define IF_IS_FRONT               Bool front :SV_IsFrontFace ,           // face front side
    #define IF_IS_CLIP            out Flt  O_clip:SV_ClipDistance,           // clip plane distance
    #define CLIP(pos)             O_clip=Dot(Vec4((pos).xyz, 1), ClipPlane)  // perform user plane clipping
+#if GL // on GL buffer name can't be the same as any of its members, so prepend '_'
+   #define BUFFER(name)          cbuffer _##name {                             // declare a constant buffer
+   #define BUFFER_I(name, index) cbuffer _##name : register(CONCAT(b,index)) { // declare a constant buffer with custom buffer index
+#else
    #define BUFFER(name)          cbuffer name {                             // declare a constant buffer
    #define BUFFER_I(name, index) cbuffer name : register(CONCAT(b,index)) { // declare a constant buffer with custom buffer index
+#endif
    #define BUFFER_END            }                                          // end constant buffer declaration
    #define POSITION              SV_Position
    #define DEPTH                 SV_Depth

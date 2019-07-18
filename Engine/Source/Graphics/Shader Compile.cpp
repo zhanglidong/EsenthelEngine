@@ -630,35 +630,39 @@ Bool ShaderCompiler::Shader::save(File &f, C Map<Str8, Buffer*> &buffers, C Memc
    f.putStr(name).putMulti(sub[VS].shader_data_index, sub[HS].shader_data_index, sub[DS].shader_data_index, sub[PS].shader_data_index);
 
    // images
-   FREPA(sub)
+   if(source->compiler->api!=API_GL)
    {
-    C SubShader &sub=T.sub[i];
-      f.cmpUIntV(sub.images.elms());
-      FREPA(sub.images)
+      // images
+      FREPA(sub)
       {
-       C Image &image=sub.images[i];
-         Int src_index; if(!images.binarySearch(image.name, src_index, CompareCS))Exit("Image not found in Shader" );
-         f<<ConstantIndex(image.bind_slot, src_index);
+       C SubShader &sub=T.sub[i];
+         f.cmpUIntV(sub.images.elms());
+         FREPA(sub.images)
+         {
+          C Image &image=sub.images[i];
+            Int src_index; if(!images.binarySearch(image.name, src_index, CompareCS))Exit("Image not found in Shader" );
+            f<<ConstantIndex(image.bind_slot, src_index);
+         }
       }
-   }
 
-   // buffers
-   MemtN<UShort, 256> all;
-   FREPA(sub)
-   {
-    C SubShader &sub=T.sub[i];
-      MemtN<ConstantIndex, 256> save;
-      FREPA(sub.buffers)
+      // buffers
+      MemtN<UShort, 256> all;
+      FREPA(sub)
       {
-       C Buffer &buffer=sub.buffers[i];
-         Int src_index=buffers.findValidIndex(buffer.name); if(src_index<0)Exit("Buffer not found in Shader");
-         if(!buffer.bind_explicit) // here we have to save only buffers that don't have a constant bind point index
-            save.New().set(buffer.bind_slot, src_index); // save to which index this buffer should be bound for this shader, and index of buffer in 'file_buffers' array
-         all.binaryInclude(AsUShort(src_index));
+       C SubShader &sub=T.sub[i];
+         MemtN<ConstantIndex, 256> save;
+         FREPA(sub.buffers)
+         {
+          C Buffer &buffer=sub.buffers[i];
+            Int src_index=buffers.findValidIndex(buffer.name); if(src_index<0)Exit("Buffer not found in Shader");
+            if(!buffer.bind_explicit) // here we have to save only buffers that don't have a constant bind point index
+               save.New().set(buffer.bind_slot, src_index); // save to which index this buffer should be bound for this shader, and index of buffer in 'file_buffers' array
+            all.binaryInclude(AsUShort(src_index));
+         }
+         save.saveRaw(f);
       }
-      save.saveRaw(f);
+      all.saveRaw(f);
    }
-   all.saveRaw(f);
 
    return f.ok();
 }
@@ -765,16 +769,35 @@ Bool ShaderCompiler::compileTry(Threads &threads)
          FREPA(shader.sub)
          {
             SubShader &sub=shader.sub[i];*/
+      // FIXME make this multi-threaded
       FREPA(shader_datas)
       {
          Memc<ShaderData> &sds=shader_datas[i];
          FREPA(sds)
          {
-            ShaderData &sd=sds[i];
-            GLSLShader out;
-            TranslateHLSLFromMem((char*)sd.data(), HLSLCC_FLAG_UNIFORM_BUFFER_OBJECT, LANG_330, &ext, null, sampler_precision, refl, &out);
-            ClipSet(out.sourceCode.c_str());
-            sd.setNum((Int)out.sourceCode.length()).copyFrom((Byte*)out.sourceCode.c_str());
+            ShaderData &sd=sds[i]; if(sd.elms())
+            {
+               GLSLShader out;
+               TranslateHLSLFromMem((char*)sd.data(), HLSLCC_FLAG_UNIFORM_BUFFER_OBJECT, LANG_330, &ext, null, sampler_precision, refl, &out); // LANG_330, LANG_ES_300
+               Str8 code=out.sourceCode.c_str();
+               code=Replace(code, "#version 330\n", S);
+               code=Replace(code, "#version 300 es\n", S);
+               code=Replace(code, "in_ATTR", "ATTR", true);
+// FIXME
+/*code=Replace(code, "layout(binding = 6, std140) uniform _Color {", S, true);
+code=Replace(code, "};", S, true);
+code=Replace(code, "	vec4 Color[2];", "uniform vec4 Color[2];");*/
+ClipSet(code);
+
+               if(!code.length())return error("Can't convert HLSL to GLSL"); // this is also needed for null char
+            #if 0 // uncompressed
+               sd.setNum(code.length()+1).copyFrom((Byte*)code()); // include null char
+            #else // compressed
+               File f; f.readMem(code(), code.length()+1); // include null char
+               File cmp; if(!Compress(f, cmp.writeMem(), COMPRESS_GL, COMPRESS_GL_LEVEL, false))return error("Can't compress shader data");
+               f.del(); cmp.pos(0); sd.setNum(cmp.size()).loadRawData(cmp);
+            #endif
+            }
          }
       }
    }
@@ -897,7 +920,39 @@ Bool ShaderGL::load(File &f, C MemtN<ShaderParam*, 256> &params, C MemtN<ShaderI
    glsl_params.setNum(f.decUIntV()); FREPA (glsl_params){GLSLParam &param=glsl_params[i]; f>>param.gpu_offset; param.param=Get(f.getUShort(), params); f>>param.glsl_name;}
  //glsl_images.setNum(f.decUIntV()); FREPAO(glsl_images)=                                                                  Get(f.getUShort(), images);
    if(f.ok())return true;
-   /*del();*/ return false;
+  /*del();*/ return false;
+}
+Bool ShaderGL::load(File &f, C MemtN<ShaderBuffer*, 256> &file_buffers, C MemtN<ShaderImage*, 256> &images)
+{
+   // name
+   Int hs_index, ds_index;
+   f.getStr(name).getMulti(vs_index, hs_index, ds_index, ps_index);
+
+   /*FIXME don't save these
+   FIXME save only 'buffers'
+   // textures
+   vs_textures.setNum(f.decUIntV()); FREPA(vs_textures){Texture &t=vs_textures[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_TEXTURES))Exit(S+"Texture index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);}
+   hs_textures.setNum(f.decUIntV()); FREPA(hs_textures){Texture &t=hs_textures[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_TEXTURES))Exit(S+"Texture index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);}
+   ds_textures.setNum(f.decUIntV()); FREPA(ds_textures){Texture &t=ds_textures[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_TEXTURES))Exit(S+"Texture index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);}
+   ps_textures.setNum(f.decUIntV()); FREPA(ps_textures){Texture &t=ps_textures[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_TEXTURES))Exit(S+"Texture index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);}
+
+   // buffers
+   vs_buffers.setNum(f.decUIntV()); FREPA(vs_buffers){Buffer &b=vs_buffers[i]; ConstantIndex ci; f>>ci; b.index=ci.bind_index; if(!InRange(b.index, MAX_SHADER_BUFFERS))Exit(S+"Buffer index: "+b.index+", is too big"); b.buffer=Get(ci.src_index, file_buffers);}
+   hs_buffers.setNum(f.decUIntV()); FREPA(hs_buffers){Buffer &b=hs_buffers[i]; ConstantIndex ci; f>>ci; b.index=ci.bind_index; if(!InRange(b.index, MAX_SHADER_BUFFERS))Exit(S+"Buffer index: "+b.index+", is too big"); b.buffer=Get(ci.src_index, file_buffers);}
+   ds_buffers.setNum(f.decUIntV()); FREPA(ds_buffers){Buffer &b=ds_buffers[i]; ConstantIndex ci; f>>ci; b.index=ci.bind_index; if(!InRange(b.index, MAX_SHADER_BUFFERS))Exit(S+"Buffer index: "+b.index+", is too big"); b.buffer=Get(ci.src_index, file_buffers);}
+   ps_buffers.setNum(f.decUIntV()); FREPA(ps_buffers){Buffer &b=ps_buffers[i]; ConstantIndex ci; f>>ci; b.index=ci.bind_index; if(!InRange(b.index, MAX_SHADER_BUFFERS))Exit(S+"Buffer index: "+b.index+", is too big"); b.buffer=Get(ci.src_index, file_buffers);}
+      buffers.setNum(f.decUIntV()); FREPA(   buffers)              buffers[i]=Get(f.getUShort(), file_buffers);
+
+#if DEBUG && 1
+   //#pragma message("!! Warning: Use this only for debugging !!")
+   REPA(vs_buffers)Test(vs_buffers[i]);
+   REPA(hs_buffers)Test(hs_buffers[i]);
+   REPA(ds_buffers)Test(ds_buffers[i]);
+   REPA(ps_buffers)Test(ps_buffers[i]);
+#endif*/
+
+   if(f.ok())return true;
+  /*del();*/ return false;
 }
 #endif
 /******************************************************************************/
@@ -917,6 +972,82 @@ Bool ShaderFile::load(C Str &name)
    {
       if(f.getUInt()==CC4_SHDR) // CC4
       {
+//FIXME
+if(Contains(name, "Effect"))
+{
+   f.getByte();
+               switch(f.decUIntV()) // version
+               {
+                  case 0:
+                  {
+                     // buffers
+                     MemtN<ShaderBuffer*, 256> buffers; buffers.setNum(f.decUIntV());
+                     ShaderBuffers.lock();
+                     ShaderParams .lock();
+                     FREPA(buffers)
+                     {
+                        // buffer
+                        f.getStr(temp_str); ShaderBuffer &sb=*ShaderBuffers(temp_str); buffers[i]=&sb;
+                        if(!sb.is()) // wasn't yet created
+                        {
+                           sb.create(f.decUIntV());
+                           Int index=f.getSByte(); if(index>=0){SyncLocker lock(D._lock); sb.bind(index);}
+                        }else // verify if it's identical to previously created
+                        {
+                           if(sb.size()!=f.decUIntV())ExitParam(temp_str, name);
+                           sb.bindCheck(f.getSByte());
+                        }
+
+                        // params
+                        REP(f.decUIntV())
+                        {
+                           f.getStr(temp_str); ShaderParam &sp=*ShaderParams(temp_str);
+                           if(!sp.is()) // wasn't yet created
+                           {
+                              sp._owns_data= false;
+                              sp._data     = sb.data;
+                              sp._changed  =&sb.changed;
+                              f.getMulti(sp._cpu_data_size, sp._gpu_data_size, sp._elements); // info
+                            //sp._constant_count=                                             // unused on DX10+
+                              LoadTranslation(sp._full_translation, f, sp._elements);         // translation
+                              Int offset=sp._full_translation[0].gpu_offset; sp._data+=offset; REPAO(sp._full_translation).gpu_offset-=offset; // apply offset
+                              if(f.getBool())f.get(sp._data, sp._gpu_data_size);              // load default value, no need to zero in other case, because data is stored in ShaderBuffer's, and they're always zeroed at start
+                              sp.optimize(); // optimize
+                           }else // verify if it's identical to previously created
+                           {
+                              Int cpu_data_size, gpu_data_size, elements; f.getMulti(cpu_data_size, gpu_data_size, elements);
+                              Memt<ShaderParam::Translation> translation;
+                              /*if(sp._changed      !=&sb.changed                               // check matching Constant Buffer
+                              || FIXME sp._cpu_data_size!= cpu_data_size                            // check cpu size
+                              || sp._gpu_data_size!= gpu_data_size                            // check gpu size
+                              || sp._elements     != elements     )ExitParam(temp_str, name); // check number of elements*/
+                              LoadTranslation(translation, f, sp._elements);                  // translation
+                              Int offset=translation[0].gpu_offset; REPAO(translation).gpu_offset-=offset; // apply offset
+                              if(f.getBool())f.skip(gpu_data_size);                           // ignore default value
+
+                              // check translation
+                              if(                  translation.elms()!=sp._full_translation.elms())ExitParam(temp_str, name);
+                              FREPA(translation)if(translation[i]    !=sp._full_translation[i]    )ExitParam(temp_str, name);
+                           }
+                        }
+                     }
+                     ShaderParams .unlock();
+                     ShaderBuffers.unlock();
+
+                     // images
+                     MemtN<ShaderImage*, 256> images; images.setNum(f.decUIntV());
+                     FREPA(images){f.getStr(temp_str); images[i]=ShaderImages(temp_str);}
+
+                     // shaders
+                     if(_vs     .load(f))
+                     if(_hs     .load(f))
+                     if(_ds     .load(f))
+                     if(_ps     .load(f))
+                     if(_shaders.load(f, buffers, images))
+                        if(f.ok())return true;
+                  }break;
+               }
+            }
          switch(f.getByte()) // API
          {
          #if DX11
@@ -1980,7 +2111,8 @@ static void SpecifyCGPrecisionModifiers(Str8 &vs_code, Str8 &ps_code, Bool vs_hp
 }
 T1(TYPE) static Int StoreShader(C Str8 &code, Memc<TYPE> &shaders, File &src, File &temp)
 {
-   src.reset().putStr(code).pos(0);
+   if(!code.is())Exit("Shader is empty"); // needed for null char
+   src.reset().put(code(), code.length()+1); src.pos(0); // include null char
    if(!Compress(src, temp.reset(), COMPRESS_GL, COMPRESS_GL_LEVEL, COMPRESS_GL_MT))Exit("Can't compress shader");
    REPA(shaders)
    {
