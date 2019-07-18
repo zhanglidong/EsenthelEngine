@@ -109,12 +109,11 @@ struct ShaderParam // Shader Parameter
    };
 
    Byte *_data;
-   Int   _cpu_data_size, _gpu_data_size, _elements, _constant_count;
+   Int   _cpu_data_size, _gpu_data_size, _elements;
    Bool *_changed, _owns_data;
    Mems<Translation> _full_translation, _optimized_translation;
 
    Bool is()C {return _cpu_data_size>0;}
-   Int  fullConstantCount()C {return Ceil16(_gpu_data_size)/16;} // number of Vec4's, SIZE(Vec4)==16, DX10+ does not use this, for OpenGL this will work only for Vec4's
 
    INLINE void setChanged() {*_changed=true;}
           void optimize();
@@ -321,13 +320,13 @@ struct ShaderGL
       typedef void (PLATFORM(WINAPI,) *glUniformPtr) (GLint location, GLsizei count, const GLfloat *value);
    #endif
 
-      Int          index, count, *final_count; // 'final_count'=points to either 'Constant.count' or 'ShaderParam._constant_count' (for example 'ShaderParam ViewMatrix _constant_count' can be limited depending on 'SetMatrixCount')
+      Int          index, count;
       Ptr          data;
       Bool        *changed;
       ShaderParam *sp;
       GPU_API(Ptr, glUniformPtr) uniform;
 
-      void set(Int index, Int count, Ptr data, ShaderParam &sp) {T.index=index; T.count=count; T.final_count=&T.count; T.data=data; T.changed=sp._changed; T.sp=&sp;}
+      void set(Int index, Int count, Ptr data, ShaderParam &sp) {T.index=index; T.count=count; T.data=data; T.changed=sp._changed; T.sp=&sp;}
    };
    struct GLSLParam
    {

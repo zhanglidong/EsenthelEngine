@@ -426,13 +426,13 @@ ShaderParam::~ShaderParam()
    }
   _data   =null;
   _changed=null;
-  _cpu_data_size=_gpu_data_size=_elements=_constant_count=0;
+  _cpu_data_size=_gpu_data_size=_elements=0;
 }
 ShaderParam::ShaderParam()
 {
   _data   =null;
   _changed=null;
-  _cpu_data_size=_gpu_data_size=_elements=_constant_count=0;
+  _cpu_data_size=_gpu_data_size=_elements=0;
   _owns_data=false;
 }
 /******************************************************************************/
@@ -1111,9 +1111,7 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
       params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORM_BLOCKS, &params); buffers.setNum(params);
       FREP(params)
       {
-         //glGetActiveUniformBlockiv(prog, i, )
-         Char8 name[256]; name[0]='\0';
-         Int length=0;
+         Char8 name[256]; name[0]='\0'; Int length=0;
          glGetActiveUniformBlockName(prog, i, Elms(name), &length, name);
          if(!name[0])Exit("Can't access UBO name");
          buffers[i]=ShaderBuffers(Str8Temp(name));
@@ -1123,14 +1121,6 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
       // FIXME remove this
       T.constants=constants;
       // GL constants should not be joined/merged, because as noted in the 'glUniform*' docs: "GL_INVALID_OPERATION is generated if count is greater than 1 and the indicated uniform variable is not an array variable"
-      // adjust final count after creating all constants (needed because constants are created dynamically inside, however 'final_count' may point to itself)
-      REPA(T.constants)
-      {
-         Constant &c=T.constants[i];
-         c.final_count=((c.sp==Sh.ViewMatrix
-                      || c.sp==Sh.ObjVel    
-                      || c.sp==Sh.FurVel) ? &c.sp->_constant_count : &c.count); // if this constant is resizable, then point to the 'ShaderParam' count because we might resize it later, otherwise, use what was given, we can't check for 'fullConstantCount' here because it works only for Vec4's
-      }
       glsl_params.del();
     //glsl_images.del();
 
@@ -1141,7 +1131,7 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
 }
 void ShaderGL::commit()
 {
-   REPA(constants){Constant &c=constants[i]; if(*c.changed)c.uniform(c.index, *c.final_count, (Flt*)c.data);}
+   REPA(constants){Constant &c=constants[i]; if(*c.changed)c.uniform(c.index, c.count, (Flt*)c.data);}
    // reset changed after all commits, in case constants point to parts of shader params (in such case setting one part, and clearing changed, would prevent from setting other parts of the same shader param)
    REPA(constants)(*constants[i].changed)=false;
    REPA(buffers){ShaderBuffer &b=*buffers[i]; if(b.changed)b.update();}
@@ -1164,7 +1154,7 @@ void ShaderGL::begin()
    glUseProgram(prog);
    REPA(textures ){Texture      &t= textures[i]; SetTexture(t.index, t.image->get(), t.image->_sampler);}
    REPA(buffers  ){ShaderBuffer &b=*buffers [i]; if(b.changed)b.update();}
-   REPA(constants){Constant &c=constants[i]; c.uniform(c.index, *c.final_count, (Flt*)c.data); *c.changed=false;}
+   REPA(constants){Constant &c=constants[i]; c.uniform(c.index, c.count, (Flt*)c.data); *c.changed=false;}
 }
 #endif
 /******************************************************************************/
@@ -1472,9 +1462,8 @@ Shader* FRST::getShader()
 #if DX11
 static Int  MatrixesPart, FurVelPart;
 static Byte BoneNumToPart[256+1];
-
-static ShaderBuffer *SBObjMatrix, *SBObjVel, *SBFurVel;
 #endif
+static ShaderBuffer *SBObjMatrix, *SBObjVel, *SBFurVel;
 void SetMatrixCount(Int num)
 {
    if(Matrixes!=num)
@@ -1526,8 +1515,9 @@ void SetMatrixCount(Int num)
          }
       }
    #else
-      Sh.ViewMatrix->_constant_count=Min(Sh.ViewMatrix->fullConstantCount(), num*3); Sh.ViewMatrix->setChanged(); // unit of '_constant_count' is number of Vec4's (Matrix is 3*Vec4), 'setChanged' is needed in case we've committed only first few values and later we've used 'setConditional' which would not detect a change with the software buffer, then the next commit would not flush the changes
-      Sh.ObjVel    ->_constant_count=Min(Sh.ObjVel    ->fullConstantCount(), num  ); Sh.ObjVel    ->setChanged(); // unit of '_constant_count' is number of Vec4's (Vel    is   Vec4), 'setChanged' is needed in case we've committed only first few values and later we've used 'setConditional' which would not detect a change with the software buffer, then the next commit would not flush the changes
+      // will affect 'ShaderBuffer::update()'
+      SBObjMatrix->buffer.size=SIZE(GpuMatrix)*Matrixes;
+      SBObjVel   ->buffer.size=SIZE(Vec4     )*Matrixes; // #VelAngVel
    #endif
    }
 }
@@ -1540,7 +1530,7 @@ void SetFurVelCount(Int num) // !! unlike 'SetMatrixCount' this needs to be call
    #if DX11
       Int part=BoneNumToPart[num]; if(FurVelPart!=part)SBFurVel->setPart(FurVelPart=part);
    #else
-      Sh.FurVel->_constant_count=Min(Sh.FurVel->fullConstantCount(), num); Sh.FurVel->setChanged(); // unit of '_constant_count' is number of Vec4's (Vel is Vec4), 'setChanged' is needed in case we've committed only first few values and later we've used 'setConditional' which would not detect a change with the software buffer, then the next commit would not flush the changes
+      SBFurVel->buffer.size=SIZE(Vec4)*num;
    #endif
    }
 }
@@ -1553,11 +1543,11 @@ void InitMatrix()
    DYNAMIC_ASSERT(Sh.ViewMatrix->_cpu_data_size==SIZE(GpuMatrix)*matrixes, "Unexpected size of ViewMatrix");
    DYNAMIC_ASSERT(Sh.ObjVel    ->_cpu_data_size==SIZE(Vec      )*matrixes, "Unexpected size of ObjVel"); // #VelAngVel
    DYNAMIC_ASSERT(Sh.FurVel    ->_cpu_data_size==SIZE(Vec      )*matrixes, "Unexpected size of FurVel");
-   // !! if any other shader parameter can be resized, then we need to add it to "Bool ShaderGL::validate(ShaderFile &shader, Str *messages)" "c.final_count=((c.sp=="!!
-#if DX11
+
    SBObjMatrix=ShaderBuffers(Str8Temp("ObjMatrix")); DYNAMIC_ASSERT(SBObjMatrix->size()==SIZE(GpuMatrix)*matrixes, "Unexpected size of ObjMatrix");
    SBObjVel   =ShaderBuffers(Str8Temp("ObjVel"   )); DYNAMIC_ASSERT(SBObjVel   ->size()==SIZE(Vec4     )*matrixes, "Unexpected size of ObjVel"   ); // #VelAngVel
    SBFurVel   =ShaderBuffers(Str8Temp("FurVel"   )); DYNAMIC_ASSERT(SBFurVel   ->size()==SIZE(Vec4     )*matrixes, "Unexpected size of FurVel"   );
+#if DX11
    const Int parts[]={matrixes, 192, 160, 128, 96, 80, 64, 56, 48, 32, 16, 8, 1}; // start from the biggest, because 'ShaderBuffer.size' uses it as the total size
    if(!ALLOW_PARTIAL_BUFFERS || !D3DC1) // have to create parts only if we won't use partial buffers
    {

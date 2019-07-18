@@ -628,10 +628,6 @@ private:
       MainContext;
 
    extern UInt FBO, VAO;
-   #define VARIABLE_MAX_MATRIX 0 // GeForce 1080 has limit of 1024 uniform Vec4's which means that new GPU's don't support more than required, TODO: this could be done only if DX10+ style constant buffers are implemented for GL
-   #if     VARIABLE_MAX_MATRIX
-      extern Bool MeshBoneSplit;
-   #endif
    #if LINUX
       extern GLXFBConfig GLConfig;
    #endif

@@ -629,7 +629,6 @@ Bool ShaderCompiler::Shader::save(File &f, C Map<Str8, Buffer*> &buffers, C Memc
    // name
    f.putStr(name).putMulti(sub[VS].shader_data_index, sub[HS].shader_data_index, sub[DS].shader_data_index, sub[PS].shader_data_index);
 
-   // images
    if(source->compiler->api!=API_GL)
    {
       // images
@@ -958,9 +957,6 @@ Bool ShaderGL::load(File &f, C MemtN<ShaderBuffer*, 256> &file_buffers, C MemtN<
 /******************************************************************************/
 static void ExitParam(C Str &param_name, C Str &shader_name)
 {
-#if GL && VARIABLE_MAX_MATRIX
-   if(D.meshBoneSplit())if(param_name=="ViewMatrix" || param_name=="ObjVel" || param_name=="FurVel")return; // allow ViewMatrix and ObjVel to differ, because they're dynamically resized depending on GPU capabilities
-#endif
    Exit(S+"Shader Param \""+param_name+"\"\nfrom Shader File \""+shader_name+"\"\nAlready exists in Shader Constants Map but with different parameters.\nThis means that some of your shaders were compiled with different headers.\nPlease recompile your shaders.");
 }
 Bool ShaderFile::load(C Str &name)
@@ -1008,7 +1004,6 @@ if(Contains(name, "Effect"))
                               sp._data     = sb.data;
                               sp._changed  =&sb.changed;
                               f.getMulti(sp._cpu_data_size, sp._gpu_data_size, sp._elements); // info
-                            //sp._constant_count=                                             // unused on DX10+
                               LoadTranslation(sp._full_translation, f, sp._elements);         // translation
                               Int offset=sp._full_translation[0].gpu_offset; sp._data+=offset; REPAO(sp._full_translation).gpu_offset-=offset; // apply offset
                               if(f.getBool())f.get(sp._data, sp._gpu_data_size);              // load default value, no need to zero in other case, because data is stored in ShaderBuffer's, and they're always zeroed at start
@@ -1085,7 +1080,6 @@ if(Contains(name, "Effect"))
                               sp._data     = sb.data;
                               sp._changed  =&sb.changed;
                               f.getMulti(sp._cpu_data_size, sp._gpu_data_size, sp._elements); // info
-                            //sp._constant_count=                                             // unused on DX10+
                               LoadTranslation(sp._full_translation, f, sp._elements);         // translation
                               Int offset=sp._full_translation[0].gpu_offset; sp._data+=offset; REPAO(sp._full_translation).gpu_offset-=offset; // apply offset
                               if(f.getBool())f.get(sp._data, sp._gpu_data_size);              // load default value, no need to zero in other case, because data is stored in ShaderBuffer's, and they're always zeroed at start
@@ -1147,31 +1141,6 @@ if(Contains(name, "Effect"))
                            Alloc(sp._changed                );
                            if(f.getBool())f.get   (sp._data, sp._gpu_data_size);           // load default value
                            else           ZeroFast(sp._data, sp._gpu_data_size);           // zero default value
-                        #if VARIABLE_MAX_MATRIX
-                           when enabling VARIABLE_MAX_MATRIX then shaders need to be recompiled with "MAX_MATRIX 256" (for CG and GLSL) because we're only reducing in 'LimitTranslation' and when replacing shader codes
-                           if(D.meshBoneSplit())
-                           {
-                              if(temp_str=="ViewMatrix")
-                              {
-                                 sp._cpu_data_size=
-                                 sp._gpu_data_size=SIZE(GpuMatrix)*D.maxShaderMatrixes();
-                                 LimitTranslation(sp);
-                              }else
-                              if(temp_str=="ObjVel")
-                              {
-                                 sp._cpu_data_size=
-                                 sp._gpu_data_size=SIZE(Vec)*D.maxShaderMatrixes();
-                                 LimitTranslation(sp);
-                              }else
-                              if(temp_str=="FurVel")
-                              {
-                                 sp._cpu_data_size=
-                                 sp._gpu_data_size=SIZE(Vec)*D.maxShaderMatrixes();
-                                 LimitTranslation(sp);
-                              }
-                           }
-                        #endif
-                           sp._constant_count=sp.fullConstantCount();
                            sp.optimize();
                         }else // verify if it's identical to previously created
                         {
@@ -1542,7 +1511,6 @@ static Bool ShaderCompile11(C Str &src, C Str &dest, C MemPtr<ShaderMacro> &macr
 
                AddTranslation11(sp, member, desc, type);
                sp._gpu_data_size=type.UnpackedSize;
-             //sp._constant_count= unused on DX10+
 
                if(sp._cpu_data_size!=type.  PackedSize
                || sp._gpu_data_size!=type.UnpackedSize)Exit("Incorrect Shader Param size.\nPlease contact Developer.");
@@ -2312,7 +2280,6 @@ static Bool ShaderCompileGL(Str name, C Str &dest, C MemPtr<ShaderMacro> &macros
                   // alloc data
                   AllocZero(sp._data, sp._gpu_data_size);
                  *Alloc    (sp._changed)=true;
-                            sp._constant_count=sp.fullConstantCount();
 
                   // set default value
                   Flt temp[4*1024]; if(Int elms=cgGetParameterDefaultValuefc(par, Elms(temp), temp))sp.set(Ptr(temp), elms*SIZE(Flt));

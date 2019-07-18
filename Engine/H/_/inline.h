@@ -1920,11 +1920,7 @@ constexpr INLINE Int Display::maxShaderMatrixes()C
 #if DX11
    return MAX_MATRIX_DX10;
 #elif GL
-   #if VARIABLE_MAX_MATRIX
-      return MeshBoneSplit ? MAX_MATRIX_GL : MAX_MATRIX_DX10;
-   #else
-      return MAX_MATRIX_GL;
-   #endif
+   return MAX_MATRIX_GL;
 #endif
 }
 constexpr INLINE Bool Display::meshBoneSplit()C
@@ -1932,11 +1928,7 @@ constexpr INLINE Bool Display::meshBoneSplit()C
 #if DX11
    return false;
 #elif GL
-   #if VARIABLE_MAX_MATRIX
-      return MeshBoneSplit;
-   #else
-      return true;
-   #endif
+   return true;
 #endif
 }
 constexpr INLINE Bool Display::signedNrmRT()C // #SIGNED_NRM_RT

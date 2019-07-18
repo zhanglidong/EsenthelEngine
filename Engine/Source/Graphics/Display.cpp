@@ -66,9 +66,6 @@ Display D;
    static SyncLock        ContextLock;
    static SyncCounter     ContextUnlocked; // have to use counter and not event, because if there would be 2 unlocks at the same time while 2 other are waiting, then only 1 would get woken up with event
           UInt            FBO, VAO;
-       #if VARIABLE_MAX_MATRIX
-          Bool            MeshBoneSplit;
-       #endif
 #endif
 
 #if WINDOWS_NEW
@@ -1893,12 +1890,6 @@ void Display::getCaps()
    int max_draw_buffers=   1; glGetIntegerv(GL_MAX_DRAW_BUFFERS          , & max_draw_buffers);
    int max_col_attach  =   1; glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS     , & max_col_attach  ); _max_rt=Mid(Min(max_draw_buffers, max_col_attach), 1, 255);
 
-   #if VARIABLE_MAX_MATRIX
-      int max_vs_vectors=0, max_ps_vectors=0;
-      glGetIntegerv(GL_MAX_VERTEX_UNIFORM_VECTORS  , &max_vs_vectors);
-      glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_VECTORS, &max_ps_vectors);
-      MeshBoneSplit=(Min(max_vs_vectors, max_ps_vectors)<768+256+256); // 768 for ObjMatrix, 256 for ObjVel, 256 extra
-   #endif
    #if !GL_ES && (defined GL_INTERNALFORMAT_SUPPORTED || defined GL_COLOR_RENDERABLE || defined GL_DEPTH_RENDERABLE) // on GL_ES glGetInternalformativ works only for GL_RENDERBUFFER
    #if WINDOWS
       if(glGetInternalformativ)
