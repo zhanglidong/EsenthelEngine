@@ -669,7 +669,7 @@ Bool ShaderCompiler::Shader::save(File &f, C Map<Str8, Buffer*> &buffers, C Memc
 static void Compile(ShaderCompiler::SubShader &shader, Ptr user, Int thread_index) {shader.compile();}
 static Bool Create(ShaderCompiler::Buffer* &data, C Str8 &key, Ptr user) {data=null; return true;}
 static Int Compare(ShaderCompiler::Shader*C &a, ShaderCompiler::Shader*C &b) {return CompareCS(a->name, b->name);}
-struct Refl : HLSLccReflection
+/*struct Refl : HLSLccReflection
 {
     // Called on errors or diagnostic messages
     virtual void OnDiagnostics(const std::string &error, int line, bool isError)override {}
@@ -690,7 +690,49 @@ struct Refl : HLSLccReflection
     virtual void OnThreadGroupSize(unsigned int xSize, unsigned int ySize, unsigned int zSize)override {}
     virtual void OnTessellationInfo(uint32_t tessPartitionMode, uint32_t tessOutputWindingOrder, uint32_t tessMaxFactor, uint32_t tessNumPatchesInThreadGroup)override {}
     virtual void OnTessellationKernelInfo(uint32_t patchKernelBufferCount)override {}
+};*/
+struct ConvertContext
+{
+   ShaderCompiler &compiler;
+   HLSLccSamplerPrecisionInfo sampler_precision;
+   GlExtensions ext;
+
+   ConvertContext(ShaderCompiler &compiler) : compiler(compiler)
+   {
+      sampler_precision.insert(std::pair<std::string, REFLECT_RESOURCE_PRECISION>("Depth" , REFLECT_RESOURCE_PRECISION_HIGHP));
+      sampler_precision.insert(std::pair<std::string, REFLECT_RESOURCE_PRECISION>("ImgXF" , REFLECT_RESOURCE_PRECISION_HIGHP));
+      sampler_precision.insert(std::pair<std::string, REFLECT_RESOURCE_PRECISION>("ImgXF1", REFLECT_RESOURCE_PRECISION_HIGHP));
+
+      Zero(ext);
+      ext.ARB_explicit_uniform_location=true;
+      ext.ARB_explicit_attrib_location=true;
+      ext.ARB_shading_language_420pack=true;
+   }
 };
+static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_index)
+{
+   HLSLccReflection reflection;
+   GLSLShader       converted;
+   TranslateHLSLFromMem((char*)shader_data.data(), HLSLCC_FLAG_UNIFORM_BUFFER_OBJECT, LANG_330, &cc.ext, null, cc.sampler_precision, reflection, &converted); // LANG_330, LANG_ES_300
+   Str8 code=converted.sourceCode.c_str();
+   code=Replace(code, "#version 330\n", S);
+   code=Replace(code, "#version 300 es\n", S);
+   code=Replace(code, "in_ATTR", "ATTR", true);
+// FIXME
+/*code=Replace(code, "layout(binding = 6, std140) uniform _Color {", S, true);
+code=Replace(code, "};", S, true);
+code=Replace(code, "	vec4 Color[2];", "uniform vec4 Color[2];");
+ClipSet(code);*/
+
+   if(!code.length())Exit("Can't convert HLSL to GLSL"); // this is also needed for null char
+#if 0 // uncompressed
+   shader_data.setNum(code.length()+1).copyFrom((Byte*)code()); // include null char
+#else // compressed
+   File f; f.readMem(code(), code.length()+1); // include null char
+   File cmp; if(!Compress(f, cmp.writeMem(), COMPRESS_GL, COMPRESS_GL_LEVEL, false))Exit("Can't compress shader data");
+   f.del(); cmp.pos(0); shader_data.setNum(cmp.size()).loadRawData(cmp);
+#endif
+}
 Bool ShaderCompiler::compileTry(Threads &threads)
 {
    Int shaders_num=0;
@@ -750,55 +792,13 @@ Bool ShaderCompiler::compileTry(Threads &threads)
 
    if(api!=API_DX)
    {
-      HLSLccSamplerPrecisionInfo sampler_precision;
-      sampler_precision.insert(std::pair<std::string, REFLECT_RESOURCE_PRECISION>("Depth" , REFLECT_RESOURCE_PRECISION_HIGHP));
-      sampler_precision.insert(std::pair<std::string, REFLECT_RESOURCE_PRECISION>("ImgXF" , REFLECT_RESOURCE_PRECISION_HIGHP));
-      sampler_precision.insert(std::pair<std::string, REFLECT_RESOURCE_PRECISION>("ImgXF1", REFLECT_RESOURCE_PRECISION_HIGHP));
-
-      GlExtensions ext; Zero(ext);
-      ext.ARB_explicit_uniform_location=true;
-      ext.ARB_explicit_attrib_location=true;
-      ext.ARB_shading_language_420pack=true;
-
-      Refl refl;
-      
-      /*FREPA(shaders)
-      {
-         Shader &shader=*shaders[i];
-         FREPA(shader.sub)
-         {
-            SubShader &sub=shader.sub[i];*/
-      // FIXME make this multi-threaded
+      ConvertContext cc(T);
       FREPA(shader_datas)
       {
          Memc<ShaderData> &sds=shader_datas[i];
-         FREPA(sds)
-         {
-            ShaderData &sd=sds[i]; if(sd.elms())
-            {
-               GLSLShader out;
-               TranslateHLSLFromMem((char*)sd.data(), HLSLCC_FLAG_UNIFORM_BUFFER_OBJECT, LANG_330, &ext, null, sampler_precision, refl, &out); // LANG_330, LANG_ES_300
-               Str8 code=out.sourceCode.c_str();
-               code=Replace(code, "#version 330\n", S);
-               code=Replace(code, "#version 300 es\n", S);
-               code=Replace(code, "in_ATTR", "ATTR", true);
-// FIXME
-/*code=Replace(code, "layout(binding = 6, std140) uniform _Color {", S, true);
-code=Replace(code, "};", S, true);
-code=Replace(code, "	vec4 Color[2];", "uniform vec4 Color[2];");*/
-ClipSet(code);
-
-               if(!code.length())return error("Can't convert HLSL to GLSL"); // this is also needed for null char
-            #if 0 // uncompressed
-               sd.setNum(code.length()+1).copyFrom((Byte*)code()); // include null char
-            #else // compressed
-               File f; f.readMem(code(), code.length()+1); // include null char
-               File cmp; if(!Compress(f, cmp.writeMem(), COMPRESS_GL, COMPRESS_GL_LEVEL, false))return error("Can't compress shader data");
-               f.del(); cmp.pos(0); sd.setNum(cmp.size()).loadRawData(cmp);
-            #endif
-            }
-         }
+         FREPA(sds)threads.queue(sds[i], Convert, cc);
       }
+      threads.wait();
    }
 
    File f; if(f.writeTry(dest))

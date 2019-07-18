@@ -1538,8 +1538,8 @@ void SetFurVelCount(Int num) // !! unlike 'SetMatrixCount' this needs to be call
 void InitMatrix()
 {
    ViewMatrix=Sh.ViewMatrix->asGpuMatrix();
+
    const Int matrixes=D.maxShaderMatrixes();
-   // for GL 'ViewMatrix' and 'ObjVel' may be adjusted in "Bool ShaderFile::load(C Str &name)"
    DYNAMIC_ASSERT(Sh.ViewMatrix->_cpu_data_size==SIZE(GpuMatrix)*matrixes, "Unexpected size of ViewMatrix");
    DYNAMIC_ASSERT(Sh.ObjVel    ->_cpu_data_size==SIZE(Vec      )*matrixes, "Unexpected size of ObjVel"); // #VelAngVel
    DYNAMIC_ASSERT(Sh.FurVel    ->_cpu_data_size==SIZE(Vec      )*matrixes, "Unexpected size of FurVel");
@@ -1547,6 +1547,7 @@ void InitMatrix()
    SBObjMatrix=ShaderBuffers(Str8Temp("ObjMatrix")); DYNAMIC_ASSERT(SBObjMatrix->size()==SIZE(GpuMatrix)*matrixes, "Unexpected size of ObjMatrix");
    SBObjVel   =ShaderBuffers(Str8Temp("ObjVel"   )); DYNAMIC_ASSERT(SBObjVel   ->size()==SIZE(Vec4     )*matrixes, "Unexpected size of ObjVel"   ); // #VelAngVel
    SBFurVel   =ShaderBuffers(Str8Temp("FurVel"   )); DYNAMIC_ASSERT(SBFurVel   ->size()==SIZE(Vec4     )*matrixes, "Unexpected size of FurVel"   );
+
 #if DX11
    const Int parts[]={matrixes, 192, 160, 128, 96, 80, 64, 56, 48, 32, 16, 8, 1}; // start from the biggest, because 'ShaderBuffer.size' uses it as the total size
    if(!ALLOW_PARTIAL_BUFFERS || !D3DC1) // have to create parts only if we won't use partial buffers
