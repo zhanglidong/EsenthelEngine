@@ -250,8 +250,8 @@ void RendererClass::adaptEye(ImageRT &src, ImageRT &dest, Bool dither)
    Sh.ImgXF[0]->set(temp); Sh.ImgXF[1]->set(_eye_adapt_scale[_eye_adapt_scale_cur]); _eye_adapt_scale_cur^=1; _eye_adapt_scale[_eye_adapt_scale_cur].discard(); set(&_eye_adapt_scale[_eye_adapt_scale_cur], null, false); Hdr.HdrUpdate                                                  ->draw();
                            Sh.ImgX [0]->set(_eye_adapt_scale[_eye_adapt_scale_cur]);                                                                            set(&dest                                  , null, true ); Hdr.Hdr[dither && src.highPrecision() && !dest.highPrecision()]->draw(src);
 }
-INLINE Shader* GetBloomDS(Bool glow, Bool viewport_clamp, Bool half, Bool saturate, Bool gamma) {Shader* &s=Sh.BloomDS[glow][viewport_clamp][half][saturate][gamma]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow, viewport_clamp, half, saturate, gamma); return s;}
-INLINE Shader* GetBloom  (Bool dither, Bool gamma                                             ) {Shader* &s=Sh.Bloom  [dither][gamma]                              ; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (dither, gamma                              ); return s;}
+INLINE Shader* GetBloomDS(Bool glow, Bool uv_clamp, Bool half_res, Bool saturate, Bool gamma) {Shader* &s=Sh.BloomDS[glow][uv_clamp][half_res][saturate][gamma]; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloomDS(glow, uv_clamp, half_res, saturate, gamma); return s;}
+INLINE Shader* GetBloom  (Bool dither, Bool gamma                                           ) {Shader* &s=Sh.Bloom  [dither][gamma]                            ; if(SLOW_SHADER_LOAD && !s)s=Sh.getBloom  (dither, gamma                            ); return s;}
 // !! Assumes that 'ImgClamp' was already set !!
 void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool dither)
 {
@@ -271,15 +271,15 @@ void RendererClass::bloom(ImageRT &src, ImageRT &dest, Bool dither)
       Rect ext_rect, *rect=null; // set rect, after setting render target
       if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(Renderer.pixelToScreenSize((D.bloomMaximum()+D.bloomBlurs())*SHADER_BLUR_RANGE+1));} // when not rendering entire viewport, then extend the rectangle, add +1 because of texture filtering, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize'
 
-      Bool half=(Flt(src.h())/rt0->h() <= 2.5f); // half=scale 2, ..3.., quarter=scale 4, 2.5 was the biggest scale that didn't cause jittering when using half down-sampling
-      const Int  res=(half ? 2 : 4);
+      Bool half_res=(Flt(src.h())/rt0->h() <= 2.5f); // half_res=scale 2, ..3.., quarter=scale 4, 2.5 was the biggest scale that didn't cause jittering when using half down-sampling
+      const Int  res=(half_res ? 2 : 4);
       const Bool gamma_per_pixel=false; // !! must be the same as in shader !!
 
       Sh.BloomParams->setConditional(Vec(D.bloomOriginal(), _has_glow ? D.bloomScale()/((gamma && !gamma_per_pixel) ? res : Sqr(res)) // for "gamma && !gamma_per_pixel" use only res, because "LinearToSRGBFast(c.rgb/(res*res)) == LinearToSRGBFast(c.rgb)/Sqrt(res*res) == LinearToSRGBFast(c.rgb)/res"
-                                                               : half ? D.bloomScale()
+                                                           : half_res ? D.bloomScale()
                                                                       : D.bloomScale()/(gamma ? 2 : 4),
                                                                        -D.bloomCut()*D.bloomScale()));
-      Sh.imgSize( src); GetBloomDS(_has_glow, !D._view_main.full, half, D.bloomSaturate() || !D._bloom_cut, gamma)->draw(src, rect); // we can enable saturation (which is faster) if cut is zero, because zero cut won't change saturation
+      Sh.imgSize( src); GetBloomDS(_has_glow, !D._view_main.full, half_res, D.bloomSaturate() || !D._bloom_cut, gamma)->draw(src, rect); // we can enable saturation (which is faster) if cut is zero, because zero cut won't change saturation
     //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
       if(D.bloomMaximum())
       { // 'discard' before 'set' because it already may have requested discard, and if we 'discard' manually after 'set' then we might discard 2 times
@@ -411,17 +411,17 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
 
    return false;
 }
-INLINE Shader* GetDofDS(Bool clamp , Bool realistic, Bool half) {Shader* &s=Dof.DofDS[clamp ][realistic][half]; if(SLOW_SHADER_LOAD && !s)s=Dof.getDS(clamp , realistic, half); return s;}
-INLINE Shader* GetDof  (Bool dither, Bool realistic           ) {Shader* &s=Dof.Dof  [dither][realistic]      ; if(SLOW_SHADER_LOAD && !s)s=Dof.get  (dither, realistic      ); return s;}
+INLINE Shader* GetDofDS(Bool clamp , Bool realistic, Bool half_res) {Shader* &s=Dof.DofDS[clamp ][realistic][half_res]; if(SLOW_SHADER_LOAD && !s)s=Dof.getDS(clamp , realistic, half_res); return s;}
+INLINE Shader* GetDof  (Bool dither, Bool realistic               ) {Shader* &s=Dof.Dof  [dither][realistic]          ; if(SLOW_SHADER_LOAD && !s)s=Dof.get  (dither, realistic          ); return s;}
 // !! Assumes that 'ImgClamp' was already set !!
 void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool dither)
 { // Depth of Field shader does not require stereoscopic processing because it just reads the depth buffer
-   const Int   shift=1; // half
+   const Int   shift=1; // half_res
    ImageRTDesc rt_desc(fxW()>>shift, fxH()>>shift, src.highPrecision() ? IMAGERT_SRGBA_H : IMAGERT_SRGBA); // here Alpha is used to store amount of Blur, use high precision if source is to don't lose smooth gradients when having full blur (especially visible on sky), IMAGERT_SRGBA_H vs IMAGERT_SRGBA has no significant difference on GeForce 1050Ti
    ImageRTPtr  rt0(rt_desc),
                rt1(rt_desc);
 
-   Bool half=(Flt(src.h())/rt0->h() <= 2.5f); // half=scale 2, ..3.., quarter=scale 4, 2.5 was the biggest scale that didn't cause jittering when using half down-sampling
+   Bool half_res=(Flt(src.h())/rt0->h() <= 2.5f); // half_res=scale 2, ..3.., quarter=scale 4, 2.5 was the biggest scale that didn't cause jittering when using half down-sampling
    Dof.load();
  C DepthOfField::Pixel &pixel=Dof.pixel(Round(fxH()*(5.0f/1080))); // use 5 pixel range blur on a 1080 resolution
 
@@ -429,7 +429,7 @@ void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool dither)
    Dof.DofParams->setConditional(Vec4(D.dofIntensity(), D.dofFocus(), range_inv, -D.dofFocus()*range_inv));
 
    set(rt0, null, false); Rect ext_rect, *rect=null; if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(Renderer.pixelToScreenSize(pixel.pixels+1));} // when not rendering entire viewport, then extend the rectangle because of blurs checking neighbors, add +1 because of texture filtering, we can ignore stereoscopic there because that's always disabled for not full viewports, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize' and call after setting RT
-   Sh.imgSize( src); GetDofDS(!D._view_main.full, D.dofFocusMode(), half)->draw(src, rect);
+   Sh.imgSize( src); GetDofDS(!D._view_main.full, D.dofFocusMode(), half_res)->draw(src, rect);
  //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
    set(rt1, null, false);                 pixel.BlurX->draw(rt0, rect);
    set(rt0, null, false); rt0->discard(); pixel.BlurY->draw(rt1, rect);

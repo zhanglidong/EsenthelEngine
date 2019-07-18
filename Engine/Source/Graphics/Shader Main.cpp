@@ -177,8 +177,8 @@ void MainShaderClass::draw (C Image &image                  ,                   
 void MainShaderClass::draw (C Image &image, C   Vec4  &color, C   Vec4  &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC ->draw(image, rect);}
 void MainShaderClass::draw (C Image &image, C ::Color &color, C ::Color &color_add, C Rect *rect) {Sh.Color[0]->set(color); Sh.Color[1]->set(color_add); Sh.DrawC ->draw(image, rect);}
 /******************************************************************************/
-Shader* MainShaderClass::getBloomDS(Bool glow, Bool viewport_clamp, Bool half, Bool saturate, Bool gamma) {return get(S8+"Bloom"+(glow?'G':'\0')+"DS"+(viewport_clamp?'C':'\0')+(half?'H':'\0')+(saturate?'S':'\0')+(gamma?'G':'\0'));}
-Shader* MainShaderClass::getBloom  (Bool dither, Bool gamma                                             ) {return get(S8+"Bloom"+(dither?'D':'\0')+(gamma?'G':'\0'));}
+Shader* MainShaderClass::getBloomDS(Bool glow, Bool uv_clamp, Bool half_res, Bool saturate, Bool gamma) {return get(S8+"BloomDS"+glow+uv_clamp+half_res+saturate+gamma);}
+Shader* MainShaderClass::getBloom  (Bool dither, Bool gamma                                           ) {return get(S8+"Bloom"  +dither+gamma);}
 
 Shader* MainShaderClass::getShdDir  (Int map_num, Bool clouds, Bool multi_sample) {return get(S8+"ShdDir"+map_num+(clouds?'C':'\0')+(multi_sample?'M':'\0'));}
 Shader* MainShaderClass::getShdPoint(                          Bool multi_sample) {return get(S8+"ShdPoint"                        +(multi_sample?'M':'\0'));}
@@ -699,8 +699,8 @@ C MotionBlur::Pixel* MotionBlur::pixel(Int pixel, Bool diagonal)
    return p;
 }
 /******************************************************************************/
-Shader* DepthOfField::getDS(Bool clamp , Bool realistic, Bool half) {return shader->get(S8+"DofDS"+(clamp?'C':'\0')+(realistic?'R':'\0')+(half?'H':'\0')+(D.shaderModel()>=SM_4_1 ? 'G' : '\0'));}
-Shader* DepthOfField::get  (Bool dither, Bool realistic           ) {return shader->get(S8+"Dof"+(dither?'D':'\0')+(realistic?'R':'\0'));}
+Shader* DepthOfField::getDS(Bool clamp , Bool realistic, Bool half_res) {return shader->get(S8+"DofDS"+(clamp?'C':'\0')+(realistic?'R':'\0')+(half_res?'H':'\0')+(D.shaderModel()>=SM_4_1 ? 'G' : '\0'));}
+Shader* DepthOfField::get  (Bool dither, Bool realistic               ) {return shader->get(S8+"Dof"+(dither?'D':'\0')+(realistic?'R':'\0'));}
 
 void DepthOfField::load()
 {

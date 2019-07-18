@@ -21,6 +21,7 @@
 /******************************************************************************/
 #define LINEAR_GAMMA 1
 
+// FIXME remove this
 #if !CG
    #define TECHNIQUE(            name, vs, ps        )   technique10 name{pass p0{SetVertexShader(CompileShader(vs_4_0, vs)); SetPixelShader(CompileShader(ps_4_0, ps));}}
    #define TECHNIQUE_4_1(        name, vs, ps        )   technique10 name{pass p0{SetVertexShader(CompileShader(vs_4_1, vs)); SetPixelShader(CompileShader(ps_4_1, ps));}}

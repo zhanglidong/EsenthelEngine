@@ -2445,10 +2445,10 @@ Display& Display::edgeSoften(EDGE_SOFTEN_MODE mode)
          {
             Sh.SMAAThreshold=GetShaderParam("SMAAThreshold"); Sh.SMAAThreshold->set(D.smaaThreshold());
 
-            if(Sh.SMAAEdge[0]=Sh.find("SMAAEdgeColor" )) // use 'SMAAEdgeColor' instead of 'SMAAEdgeLuma' to differentiate between different colors
-            if(Sh.SMAAEdge[1]=Sh.find("SMAAEdgeColorG")) // use 'SMAAEdgeColor' instead of 'SMAAEdgeLuma' to differentiate between different colors
-            if(Sh.SMAABlend  =Sh.find("SMAABlend"     ))
-            if(Sh.SMAA       =Sh.find("SMAA"          ))
+            if(Sh.SMAAEdge[0]=Sh.find("SMAAEdge0"))
+            if(Sh.SMAAEdge[1]=Sh.find("SMAAEdge1"))
+            if(Sh.SMAABlend  =Sh.find("SMAABlend"))
+            if(Sh.SMAA       =Sh.find("SMAA"     ))
             if(Renderer._smaa_area  .get("Img/SMAA Area.img"))
             if(Renderer._smaa_search.get("Img/SMAA Search.img"))
                break; // all OK

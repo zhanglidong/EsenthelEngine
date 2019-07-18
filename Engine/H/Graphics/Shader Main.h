@@ -321,7 +321,7 @@ struct MainShaderClass
    Shader
       *BloomDS[2][2][2][2][2], // [Glow] [UVClamp] [HalfRes] [Saturate] [Gamma]
       *Bloom  [2][2]         ; // [Dither] [Gamma]
-   Shader* getBloomDS(Bool glow, Bool viewport_clamp, Bool half, Bool saturate, Bool gamma);
+   Shader* getBloomDS(Bool glow, Bool uv_clamp, Bool half_res, Bool saturate, Bool gamma);
    Shader* getBloom  (Bool dither, Bool gamma);
 
    // SKY
@@ -438,7 +438,7 @@ struct DepthOfField
    }pixels[11];
 
    void load();
-   Shader* getDS(Bool clamp , Bool realistic, Bool half);
+   Shader* getDS(Bool clamp , Bool realistic, Bool half_res);
    Shader* get  (Bool dither, Bool realistic);
  C Pixel& pixel(Int pixel);
 

@@ -2,9 +2,9 @@
 
    For AO shader, Depth is linearized to 0 .. Viewport.range
 
-   TODO: the 2d version "!geom" operates on 'nrm2' which assumes that depth changes are linear when iterating though pixels,
+   TODO: the 2d version "!GEOM" operates on 'nrm2' which assumes that depth changes are linear when iterating though pixels,
       however most likely they're not. (it's possible that deltas are linear when using the raw "Delinearized" depth buffer)
-   3D version 'geom' should be used, however it doesn't work with flipped normals.
+   3D version 'GEOM' should be used, however it doesn't work with flipped normals.
 
 /******************************************************************************/
 #include "!Header.h"
@@ -14,6 +14,10 @@
 #define AO1Elms 28
 #define AO2Elms 48
 #define AO3Elms 80
+
+// input: MODE, JITTER, NORMALS
+#define LINEAR_FILTER 1 // this removes some vertical lines on distant terrain (because multiple samples are clamped together), however introduces extra shadowing under distant objects
+#define GEOM (NORMALS && 0) // this is an alternative mode to AO formula which works on 3D space instead of 2D, currently disabled, because has some unresolved issues, doesn't work with flipped normals (leafs/grass), probably would require storing flipped information in Nrm RT W channel, which is currently used for specular
 /******************************************************************************/
 BUFFER(AOConstants) // z=1/xy.length()
    Vec AO0Vec[]={Vec(-0.707, -0.707, 1.000), Vec(0.000, -0.707, 1.414), Vec(0.707, -0.707, 1.000), Vec(-0.354, -0.354, 1.997), Vec(0.354, -0.354, 1.997), Vec(-0.707, 0.000, 1.414), Vec(0.707, 0.000, 1.414), Vec(-0.354, 0.354, 1.997), Vec(0.354, 0.354, 1.997), Vec(-0.707, 0.707, 1.000), Vec(0.000, 0.707, 1.414), Vec(0.707, 0.707, 1.000)};
@@ -38,21 +42,12 @@ void AO_VS(VtxInput vtx,
 Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
            NOPERSP Vec2 inPosXY :TEXCOORD1,
            NOPERSP Vec2 inPosXY1:TEXCOORD2,
-           NOPERSP PIXEL                  ,
-   uniform Int  mode=0                    ,
-   uniform Bool jitter=false              ,
-   uniform Bool normals=false             ):TARGET
+           NOPERSP PIXEL                  ):TARGET
 {
-/*Int mode=0;
-Bool jitter=false;
-Bool normals=false;*/
-   const Bool geom=(normals && 0); // this is an alternative mode to AO formula which works on 3D space instead of 2D, currently disabled, because has some unresolved issues, doesn't work with flipped normals (leafs/grass), probably would require storing flipped information in Nrm RT W channel, which is currently used for specular
-   const Bool linear_filter=1; // this removes some vertical lines on distant terrain (because multiple samples are clamped together), however introduces extra shadowing under distant objects
-
    Vec2 nrm2;
    Vec  nrm, pos;
 
-   if(normals)
+   if(NORMALS)
    {
       pos=GetPos(TexDepthRawPoint(inTex), inPosXY); // !! for AO shader depth is already linearized !!
    #if 1 // sharp normal, looks better
@@ -80,7 +75,7 @@ Bool normals=false;*/
       #endif
    #endif
       
-      if(geom)
+      if(GEOM)
       {
          nrm=Normalize(nrm);
       }else
@@ -122,7 +117,7 @@ Bool normals=false;*/
    }
 
    Vec2 cos_sin;
-   if(jitter)
+   if(JITTER)
    {
       Flt a    =Dot(pixel.xy, Vec2(0.5, 0.25)),
           angle=2.0/3; // good results were obtained with 0.666(2/3), 0.8, 1.0, however using smaller value increases performance because it affects texture cache
@@ -140,9 +135,9 @@ Bool normals=false;*/
    Flt AmbRangeChangeable=AmbRange;
    #define AmbRange AmbRangeChangeable
    Flt min_pixels;
-   if(mode==0)min_pixels=1/(0.707-0.354);else
-   if(mode==1)min_pixels=1/(0.943-0.707);else
-   if(mode==2)min_pixels=1/(0.884-0.707);else
+   if(MODE==0)min_pixels=1/(0.707-0.354);else
+   if(MODE==1)min_pixels=1/(0.943-0.707);else
+   if(MODE==2)min_pixels=1/(0.884-0.707);else
               min_pixels=1/(0.990-0.849);
    if(W && 0)if(pixels<min_pixels)
    {
@@ -160,7 +155,7 @@ Bool normals=false;*/
 
    // required for later optimizations
    Flt range2, scale;
-   if(geom)
+   if(GEOM)
    {
       range2=Sqr(AmbRange);
    }else
@@ -172,22 +167,22 @@ Bool normals=false;*/
    }
 
    Int        elms;
-   if(mode==0)elms=AO0Elms;else
-   if(mode==1)elms=AO1Elms;else
-   if(mode==2)elms=AO2Elms;else
+   if(MODE==0)elms=AO0Elms;else
+   if(MODE==1)elms=AO1Elms;else
+   if(MODE==2)elms=AO2Elms;else
               elms=AO3Elms;
  //using UNROLL didn't make a performance difference, however it made shader file bigger and compilation slower
    LOOP for(Int i=0; i<elms; i++)
    {
       Vec        pattern;
-      if(mode==0)pattern=AO0Vec[i];else
-      if(mode==1)pattern=AO1Vec[i];else
-      if(mode==2)pattern=AO2Vec[i];else
+      if(MODE==0)pattern=AO0Vec[i];else
+      if(MODE==1)pattern=AO1Vec[i];else
+      if(MODE==2)pattern=AO2Vec[i];else
                  pattern=AO3Vec[i];
 
       Vec2              offs=pattern.xy*offs_scale; // don't use 'VecH2' here because benefit looks small, and 'offs' has to be added to 'inTex' and multiplied by 'nrm2' which are 'Vec2' so probably there would be no performance benefits
-      if(jitter        )offs=Rotate(offs, cos_sin);
-      if(!linear_filter)offs=Round(offs*RTSize.zw)*RTSize.xy;
+      if(JITTER        )offs=Rotate(offs, cos_sin);
+      if(!LINEAR_FILTER)offs=Round(offs*RTSize.zw)*RTSize.xy;
 
       Vec2 t=inTex+offs;
       Flt  o, w;
@@ -195,8 +190,8 @@ Bool normals=false;*/
       if(all(Abs(t-Viewport.center)<=Viewport.size/2)) // UV inside viewport
       {
          // !! for AO shader depth is already linearized !!
-         Flt test_z=(linear_filter ? TexDepthRawLinear(t) : TexDepthRawPoint(t)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 't'
-         if(geom)
+         Flt test_z=(LINEAR_FILTER ? TexDepthRawLinear(t) : TexDepthRawPoint(t)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 't'
+         if(GEOM)
          {
             test_z+=AmbBias;
             Vec test_pos=GetPos(test_z, ScreenToPosXY(t)),
@@ -262,21 +257,4 @@ Bool normals=false;*/
    }
    return 1-AmbContrast*Half(occl/weight); // result is stored in One Channel 1 Byte RT so it doesn't need 'Sat' saturation
 }
-/******************************************************************************/
-TECHNIQUE(AO0  , AO_VS(), AO_PS(0, false, false));
-TECHNIQUE(AO1  , AO_VS(), AO_PS(1, false, false));
-TECHNIQUE(AO2  , AO_VS(), AO_PS(2, false, false));
-TECHNIQUE(AO3  , AO_VS(), AO_PS(3, false, false));
-TECHNIQUE(AO0J , AO_VS(), AO_PS(0, true , false));
-TECHNIQUE(AO1J , AO_VS(), AO_PS(1, true , false));
-TECHNIQUE(AO2J , AO_VS(), AO_PS(2, true , false));
-TECHNIQUE(AO3J , AO_VS(), AO_PS(3, true , false));
-TECHNIQUE(AO0N , AO_VS(), AO_PS(0, false, true ));
-TECHNIQUE(AO1N , AO_VS(), AO_PS(1, false, true ));
-TECHNIQUE(AO2N , AO_VS(), AO_PS(2, false, true ));
-TECHNIQUE(AO3N , AO_VS(), AO_PS(3, false, true ));
-TECHNIQUE(AO0JN, AO_VS(), AO_PS(0, true , true ));
-TECHNIQUE(AO1JN, AO_VS(), AO_PS(1, true , true ));
-TECHNIQUE(AO2JN, AO_VS(), AO_PS(2, true , true ));
-TECHNIQUE(AO3JN, AO_VS(), AO_PS(3, true , true ));
 /******************************************************************************/

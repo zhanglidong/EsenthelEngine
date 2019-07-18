@@ -8,14 +8,15 @@ namespace EE{
 #define MULTI_MATERIAL 1
 
 #if DX11   // DirectX 10+
-   #define COMPILE_4 0
+   #define COMPILE_4 1
 #endif
 #if GL && !GL_ES // Desktop OpenGL
-   #define COMPILE_GL 1
+   #define COMPILE_GL 0
 #endif
 
 /**/
 //#define MAIN
+#define MAIN_NEW
 
 /*#define SIMPLE
 #define DEFERRED
@@ -30,7 +31,7 @@ namespace EE{
 #define DEPTH_OF_FIELD*/
 //#define EARLY_Z
 //#define EFFECTS_2D_NEW
-#define EFFECTS_2D
+//#define EFFECTS_2D
 /*#define EFFECTS_3D
 #define FOG_LOCAL
 #define FUR
@@ -311,7 +312,35 @@ static void Compile(API api)
    FCreateDirs(dest_path);
    SHADER_MODEL model=SM_4;
 
-   // list first those that take the most time to compile
+#ifdef MAIN_NEW
+{
+   ShaderCompiler &compiler=ShaderCompilers.New().set(dest_path+"Main", model, api);
+   ShaderCompiler::Source &src=compiler.New(src_path+"Main.cpp");
+   {
+      ShaderCompiler::Source &src=compiler.New(src_path+"Bloom.cpp");
+      REPD(glow    , 2)
+      REPD(clamp   , 2)
+      REPD(half_res, 2)
+      REPD(saturate, 2)
+      REPD(gamma   , 2)src.New("BloomDS", "BloomDS_VS", "BloomDS_PS")("GLOW", glow, "CLAMP", clamp, "HALF_RES", half_res, "SATURATE", saturate)("GAMMA", gamma);
+
+      REPD(dither, 2)
+      REPD(gamma , 2)src.New("Bloom", "Draw_VS", "Bloom_PS")("DITHER", dither, "GAMMA", gamma);
+   }
+   {
+      ShaderCompiler::Source &src=compiler.New(src_path+"SMAA.cpp");
+      REPD(gamma, 2)src.New("SMAAEdge" , "SMAAEdge_VS" , "SMAAEdge_PS" )("GAMMA", gamma);
+                    src.New("SMAABlend", "SMAABlend_VS", "SMAABlend_PS");
+                    src.New("SMAA"     , "SMAA_VS"     , "SMAA_PS"     );
+                 #if SUPPORT_MLAA
+                    src.New("MLAAEdge" , "MLAA_VS", "MLAAEdge_PS" );
+                    src.New("MLAABlend", "MLAA_VS", "MLAABlend_PS");
+                    src.New("MLAA"     , "MLAA_VS", "MLAA_PS"     );
+                 #endif
+   }
+   if(api==API_GL)src.New("WebLToS", "Draw_VS", "WebLToS_PS"); // #WebSRGB
+}
+#endif
 
 #ifdef FORWARD
 {
@@ -703,10 +732,10 @@ static void Compile(API api)
    src.New("ColTransHB" , "Draw_VS", "ColTransHB_PS");
    src.New("ColTransHSB", "Draw_VS", "ColTransHSB_PS");
 
-   src.New("Ripple", "Draw2DTex_VS", "Ripple_PS");
    src.New("Fade", "Draw_VS", "Fade_PS");
-   src.New("Wave", "Wave_VS", "Wave_PS");
    src.New("RadialBlur", "Draw_VS", "RadialBlur_PS");
+   src.New("Ripple", "Draw2DTex_VS", "Ripple_PS");
+   src.New("Wave", "Wave_VS", "Wave_PS");
 }
 #endif
 

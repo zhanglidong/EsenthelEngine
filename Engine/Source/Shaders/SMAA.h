@@ -747,14 +747,17 @@ float2 SMAALumaEdgeDetectionPS(float2 texcoord,
  * IMPORTANT NOTICE: color edge detection requires gamma-corrected colors, and
  * thus 'colorTex' should be a non-sRGB texture.
  */
-float3 SMAASamplePointGamma(SMAATexture2D(colorTex), float2 texcoord, uniform Bool gamma)
+float3 SMAASamplePointGamma(SMAATexture2D(colorTex), float2 texcoord)
 {
-   float3 c=SMAASamplePoint(colorTex, texcoord).rgb; if(gamma)c=LinearToSRGBFast(c); return c;
+   float3 c=SMAASamplePoint(colorTex, texcoord).rgb;
+#if GAMMA
+   c=LinearToSRGBFast(c); // ESENTHEL CHANGED
+#endif
+   return c;
 }
 float2 SMAAColorEdgeDetectionPS(float2 texcoord,
                                 float4 offset[3],
-                                SMAATexture2D(colorTex),
-                        uniform Bool gamma // ESENTHEL CHANGED
+                                SMAATexture2D(colorTex)
                                 #if SMAA_PREDICATION
                                 , SMAATexture2D(predicationTex)
                                 #endif
@@ -768,13 +771,13 @@ float2 SMAAColorEdgeDetectionPS(float2 texcoord,
 
     // Calculate color deltas:
     float4 delta;
-    float3 C = SMAASamplePointGamma(colorTex, texcoord, gamma);
+    float3 C = SMAASamplePointGamma(colorTex, texcoord);
 
-    float3 Cleft = SMAASamplePointGamma(colorTex, offset[0].xy, gamma);
+    float3 Cleft = SMAASamplePointGamma(colorTex, offset[0].xy);
     float3 t = abs(C - Cleft); if(SMAA_COLOR_WEIGHT_USE)t*=SMAA_COLOR_WEIGHT; // ESENTHEL CHANGED
     delta.x = max(max(t.r, t.g), t.b);
 
-    float3 Ctop  = SMAASamplePointGamma(colorTex, offset[0].zw, gamma);
+    float3 Ctop  = SMAASamplePointGamma(colorTex, offset[0].zw);
     t = abs(C - Ctop); if(SMAA_COLOR_WEIGHT_USE)t*=SMAA_COLOR_WEIGHT; // ESENTHEL CHANGED
     delta.y = max(max(t.r, t.g), t.b);
 
@@ -786,11 +789,11 @@ float2 SMAAColorEdgeDetectionPS(float2 texcoord,
         discard;
 
     // Calculate right and bottom deltas:
-    float3 Cright = SMAASamplePointGamma(colorTex, offset[1].xy, gamma);
+    float3 Cright = SMAASamplePointGamma(colorTex, offset[1].xy);
     t = abs(C - Cright); if(SMAA_COLOR_WEIGHT_USE)t*=SMAA_COLOR_WEIGHT; // ESENTHEL CHANGED
     delta.z = max(max(t.r, t.g), t.b);
 
-    float3 Cbottom  = SMAASamplePointGamma(colorTex, offset[1].zw, gamma);
+    float3 Cbottom  = SMAASamplePointGamma(colorTex, offset[1].zw);
     t = abs(C - Cbottom); if(SMAA_COLOR_WEIGHT_USE)t*=SMAA_COLOR_WEIGHT; // ESENTHEL CHANGED
     delta.w = max(max(t.r, t.g), t.b);
 
@@ -798,11 +801,11 @@ float2 SMAAColorEdgeDetectionPS(float2 texcoord,
     float2 maxDelta = max(delta.xy, delta.zw);
 
     // Calculate left-left and top-top deltas:
-    float3 Cleftleft  = SMAASamplePointGamma(colorTex, offset[2].xy, gamma);
+    float3 Cleftleft  = SMAASamplePointGamma(colorTex, offset[2].xy);
     t = abs(C - Cleftleft); if(SMAA_COLOR_WEIGHT_USE)t*=SMAA_COLOR_WEIGHT; // ESENTHEL CHANGED
     delta.z = max(max(t.r, t.g), t.b);
 
-    float3 Ctoptop = SMAASamplePointGamma(colorTex, offset[2].zw, gamma);
+    float3 Ctoptop = SMAASamplePointGamma(colorTex, offset[2].zw);
     t = abs(C - Ctoptop); if(SMAA_COLOR_WEIGHT_USE)t*=SMAA_COLOR_WEIGHT; // ESENTHEL CHANGED
     delta.w = max(max(t.r, t.g), t.b);
 
