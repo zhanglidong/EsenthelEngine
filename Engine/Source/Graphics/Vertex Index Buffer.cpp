@@ -239,21 +239,7 @@ Bool VtxFormat::create(D3D11_INPUT_ELEMENT_DESC ve[], Int elms)
    return false;
 }
 #elif GL
-GL_VTX_SEMANTIC VtxSemanticToIndex(Int semantic)
-{
-   if(D._max_vtx_attribs<=semantic) // if GPU doesn't support this semantic
-   {
-      switch(semantic)
-      {
-         case GL_VTX_MATERIAL: semantic=GL_VTX_BONE    ; break; // re-use the same index, this assumes that material is used only for terrain, and no terrain is skinned
-         case GL_VTX_HLP     : semantic=GL_VTX_TEX1    ; break; // re-use the same index, this assumes that (helper position used for animating tree-leafs/grass) will not have tex1
-         case GL_VTX_SIZE    : semantic=GL_VTX_WEIGHT  ; break; // re-use the same index, this assumes that (helper position used for animating tree-leafs/grass) will not have bone weights
-         case GL_VTX_TEX2    : semantic=GL_VTX_MATERIAL; break; // re-use the same index, this assumes that shaders using 3rd set of UV's don't use material blending
-      }
-      if(D._max_vtx_attribs<=semantic)semantic=D._max_vtx_attribs-1; // if it still doesn't support it
-   }
-   return GL_VTX_SEMANTIC(semantic);
-}
+GL_VTX_SEMANTIC VtxSemanticToIndex(Int semantic) {return GL_VTX_SEMANTIC(semantic);}
 void BindIndexBuffer(UInt buf)
 {
    glBindVertexArray(0); // !! have to clear VAO before calling "glBindBuffer(GL_ELEMENT_ARRAY_BUFFER" to make sure it won't modify it, not needed for 'GL_ARRAY_BUFFER' because those are bound only with 'glVertexAttribPointer' !!

@@ -492,7 +492,7 @@ private:
                      _tesselation, _tesselation_heightmap, _tesselation_allow,
                      _bloom_allow, _glow_allow, _amb_all, _amb_jitter, _amb_normal, _shd_jitter, _shd_reduce, _grass_shadow, _grass_mirror, _vol_light, _vol_add, _dof_foc_mode, _color_palette_allow,
                      _gamma_all, _view_square_pixel, _initialized, _resetting, _no_gpu, _can_draw, _fade_get, _fade_flipped, _allow_stereo, _draw_null_mtrl, _mtrl_blend;
-   Byte              _density, _samples, _max_tex_filter, _max_vtx_attribs, _bloom_blurs, _max_rt,
+   Byte              _density, _samples, _max_tex_filter, _bloom_blurs, _max_rt,
                      _amb_soft, _amb_res,
                      _shd_soft, _shd_map_num,
                      _mtn_res,
