@@ -458,7 +458,7 @@ void MainShaderClass::getTechniques()
 
    // DEPTH
    REPD(m, (D.shaderModel()>=SM_4_1) ? 3 : (D.shaderModel()>=SM_4) ? 2 : 1)
-   REPD(p, 2)LinearizeDepth[p][m]=get(S8+"LinearizeDepth"+(p?'P':'\0')+m);
+   REPD(p, 2)LinearizeDepth[m][p]=get(S8+"LinearizeDepth"+m+p);
 
    SetDepth=get("SetDepth");
 

@@ -375,6 +375,19 @@ static void Compile(API api)
                      src.New("CombineSSAlpha", "Draw_VS", "CombineSSAlpha_PS");
       REPD(sample, 3)src.New("Combine"       , "Draw_VS", "Combine_PS")("SAMPLE", sample);
 
+      src.New("DetectMSCol", "DrawPixel_VS", "DetectMSCol_PS");
+
+      src.New("ResolveDepth", "DrawPixel_VS", "ResolveDepth_PS");
+      src.New("SetDepth", "Draw_VS", "SetDepth_PS");
+      src.New("DrawDepth", "Draw_VS", "DrawDepth_PS");
+
+      REPD(perspective, 2)
+      {
+         src.New("LinearizeDepth0", "Draw_VS"     , "LinearizeDepth0_PS")("PERSPECTIVE", perspective);
+         src.New("LinearizeDepth1", "DrawPixel_VS", "LinearizeDepth1_PS")("PERSPECTIVE", perspective);
+         src.New("LinearizeDepth2", "DrawPixel_VS", "LinearizeDepth2_PS")("PERSPECTIVE", perspective).multiSample(true);
+      }
+
       src.New("PaletteDraw", "Draw_VS", "PaletteDraw_PS");
 
       if(api==API_GL)src.New("WebLToS", "Draw_VS", "WebLToS_PS"); // #WebSRGB

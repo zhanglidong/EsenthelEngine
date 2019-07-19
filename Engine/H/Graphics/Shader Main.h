@@ -217,7 +217,7 @@ struct MainShaderClass
       *DetectMSCol    ,
     //*DetectMSNrm    ,
 
-      *LinearizeDepth[2][3], // [Perspective] [MultiSample]
+      *LinearizeDepth[3][2], // [MultiSample] [Perspective]
       *ResolveDepth,
       *SetDepth,
       *Dither,

@@ -371,16 +371,6 @@ VecH4 Combine_PS(NOPERSP Vec2 inTex:TEXCOORD,
    return col;
 }
 /******************************************************************************/
-#if !CG
-void ResolveDepth_PS(NOPERSP PIXEL,
-                         out Flt depth:DEPTH)
-{
-   // return the smallest of all samples
-                                         depth=                 TexSample(DepthMS, pixel.xy, 0).x;
-   UNROLL for(Int i=1; i<MS_SAMPLES; i++)depth=DEPTH_MIN(depth, TexSample(DepthMS, pixel.xy, i).x); // have to use minimum of depth samples to avoid shadow artifacts, by picking the samples that are closer to the camera, similar effect to what we do with view space bias (if Max is used, then shadow acne can occur for local lights)
-}
-TECHNIQUE(ResolveDepth, DrawPixel_VS(), ResolveDepth_PS());
-
 // 'Depth'   can't be used because it's            1-sample
 // 'DepthMs' can't be used because it's always multi-sampled (all samples are different)
 void DetectMSCol_PS(NOPERSP PIXEL)
@@ -399,7 +389,6 @@ void DetectMSCol_PS(NOPERSP PIXEL)
      +Dist2(cols[0], cols[3])<=0.000207612466)discard;
 #endif
 }
-TECHNIQUE(DetectMSCol, DrawPixel_VS(), DetectMSCol_PS());
 /*void DetectMSNrm_PS(NOPERSP PIXEL)
 {
    Vec2 nrms[4]={TexSample(ImgMS, pixel.xy, 0).xy, TexSample(ImgMS, pixel.xy, 1).xy, TexSample(ImgMS, pixel.xy, 2).xy, TexSample(ImgMS, pixel.xy, 3).xy}; // load 4-multi-samples of texel
@@ -411,15 +400,29 @@ TECHNIQUE(DetectMSCol, DrawPixel_VS(), DetectMSCol_PS());
      +Dist2(nrms[0], nrms[3])<=Half(some eps))discard;
 #endif
 }
-TECHNIQUE(DetectMSNrm, DrawPixel_VS(), DetectMSNrm_PS());*/
-#endif
+TECHNIQUE(DetectMSNrm, DrawPixel_VS(), DetectMSNrm_PS());
+/******************************************************************************/
+void ResolveDepth_PS(NOPERSP PIXEL,
+                         out Flt depth:DEPTH)
+{
+   // return the smallest of all samples
+                                         depth=                 TexSample(DepthMS, pixel.xy, 0).x;
+   UNROLL for(Int i=1; i<MS_SAMPLES; i++)depth=DEPTH_MIN(depth, TexSample(DepthMS, pixel.xy, i).x); // have to use minimum of depth samples to avoid shadow artifacts, by picking the samples that are closer to the camera, similar effect to what we do with view space bias (if Max is used, then shadow acne can occur for local lights)
+}
 
 void SetDepth_PS(NOPERSP Vec2 inTex:TEXCOORD,
                      out Flt  depth:DEPTH   )
 {
    depth=TexLod(Depth, inTex).x; // use linear filtering because this can be used for different size RT
 }
-TECHNIQUE(SetDepth, Draw_VS(), SetDepth_PS());
+
+Vec4 DrawDepth_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+{
+   Flt frac=TexDepthPoint(inTex)/Viewport.range; // can't filter depth, because if Depth image is smaller, then we will get borders around objects
+   Vec rgb=HsbToRgb(Vec(frac*2.57, 1, 1)); // the scale is set so the full range equals to blue color, to imitate sky color
+   if(LINEAR_GAMMA)rgb=SRGBToLinear(rgb);
+   return Vec4(rgb, 1);
+}
 
 /*void RebuildDepth_PS(NOPERSP Vec2 inTex:TEXCOORD,
                          out Flt  depth:DEPTH   ,
@@ -430,39 +433,21 @@ TECHNIQUE(SetDepth, Draw_VS(), SetDepth_PS());
 TECHNIQUE(RebuildDepth , Draw_VS(), RebuildDepth_PS(false));
 TECHNIQUE(RebuildDepthP, Draw_VS(), RebuildDepth_PS(true ));*/
 
-Flt LinearizeDepth_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                      uniform Bool perspective   ):TARGET
+#ifdef PERSPECTIVE
+Flt LinearizeDepth0_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
-   return LinearizeDepth(TexLod(Depth, inTex).x, perspective); // use linear filtering because this can be used for different size RT
+   return LinearizeDepth(TexLod(Depth, inTex).x, PERSPECTIVE); // use linear filtering because this can be used for different size RT
 }
-TECHNIQUE(LinearizeDepth0 , Draw_VS(), LinearizeDepth_PS(false));
-TECHNIQUE(LinearizeDepthP0, Draw_VS(), LinearizeDepth_PS(true ));
-#if !CG
-Flt LinearizeDepth1_PS(NOPERSP PIXEL,
-                       uniform Bool perspective):TARGET
+Flt LinearizeDepth1_PS(NOPERSP PIXEL):TARGET
 {
-   return LinearizeDepth(TexSample(DepthMS, pixel.xy, 0).x, perspective);
+   return LinearizeDepth(TexSample(DepthMS, pixel.xy, 0).x, PERSPECTIVE);
 }
 Flt LinearizeDepth2_PS(NOPERSP PIXEL,
-                               UInt index:SV_SampleIndex,
-                       uniform Bool perspective         ):TARGET
+                               UInt index:SV_SampleIndex):TARGET
 {
-   return LinearizeDepth(TexSample(DepthMS, pixel.xy, index).x, perspective);
+   return LinearizeDepth(TexSample(DepthMS, pixel.xy, index).x, PERSPECTIVE);
 }
-TECHNIQUE    (LinearizeDepth1 , DrawPixel_VS(), LinearizeDepth1_PS(false));
-TECHNIQUE    (LinearizeDepthP1, DrawPixel_VS(), LinearizeDepth1_PS(true ));
-TECHNIQUE_4_1(LinearizeDepth2 , DrawPixel_VS(), LinearizeDepth2_PS(false));
-TECHNIQUE_4_1(LinearizeDepthP2, DrawPixel_VS(), LinearizeDepth2_PS(true ));
 #endif
-
-Vec4 DrawDepth_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
-{
-   Flt frac=TexDepthPoint(inTex)/Viewport.range; // can't filter depth, because if Depth image is smaller, then we will get borders around objects
-   Vec rgb=HsbToRgb(Vec(frac*2.57, 1, 1)); // the scale is set so the full range equals to blue color, to imitate sky color
-   if(LINEAR_GAMMA)rgb=SRGBToLinear(rgb);
-   return Vec4(rgb, 1);
-}
-TECHNIQUE(DrawDepth, Draw_VS(), DrawDepth_PS());
 /******************************************************************************/
 VecH4 PaletteDraw_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {

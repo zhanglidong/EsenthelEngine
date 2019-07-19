@@ -202,9 +202,9 @@ void RendererClass::linearizeDepth(ImageRT &dest, ImageRT &depth)
 {
    D.alpha(ALPHA_NONE);
    set(&dest, null, true);
-   if(!depth.multiSample() || depth.size()!=dest.size()){Sh.Depth  ->set(depth); Sh.LinearizeDepth[FovPerspective(D.viewFovMode())][0]->draw(); Sh.Depth  ->set(_ds_1s);}else // 1s->1s, set and restore depth, if we're resizing then we also need to use the simple version
-   if(!dest .multiSample()                             ){Sh.DepthMS->set(depth); Sh.LinearizeDepth[FovPerspective(D.viewFovMode())][1]->draw(); Sh.DepthMS->set(_ds   );}else // ms->1s, set and restore depth
-                                                        {Sh.DepthMS->set(depth); Sh.LinearizeDepth[FovPerspective(D.viewFovMode())][2]->draw(); Sh.DepthMS->set(_ds   );}     // ms->ms, set and restore depth
+   if(!depth.multiSample() || depth.size()!=dest.size()){Sh.Depth  ->set(depth); Sh.LinearizeDepth[0][FovPerspective(D.viewFovMode())]->draw(); Sh.Depth  ->set(_ds_1s);}else // 1s->1s, set and restore depth, if we're resizing then we also need to use the simple version
+   if(!dest .multiSample()                             ){Sh.DepthMS->set(depth); Sh.LinearizeDepth[1][FovPerspective(D.viewFovMode())]->draw(); Sh.DepthMS->set(_ds   );}else // ms->1s, set and restore depth
+                                                        {Sh.DepthMS->set(depth); Sh.LinearizeDepth[2][FovPerspective(D.viewFovMode())]->draw(); Sh.DepthMS->set(_ds   );}     // ms->ms, set and restore depth
 }
 void RendererClass::setDepthForDebugDrawing()
 {
