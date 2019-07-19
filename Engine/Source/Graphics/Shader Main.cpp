@@ -201,14 +201,14 @@ Shader* MainShaderClass::getSkyA (Bool per_vertex, Bool stars, Bool density, Int
 
 void MainShaderClass::initCubicShaders()
 {
-   if(!DrawTexCubic) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
+   if(!DrawTexCubic[0]) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
    {
-      DrawTexCubic    =get("DrawTexCubic");
-      DrawTexCubicC   =get("DrawTexCubicC");
-      DrawTexCubic1   =get("DrawTexCubic1");
-      DrawTexCubicD   =get("DrawTexCubicD");
-      DrawTexCubicRGB =get("DrawTexCubicRGB");
-      DrawTexCubicRGBD=get("DrawTexCubicRGBD");
+      REPD(color , 2)DrawTexCubic[color]=get(S8+"DrawTexCubic"+color);
+      REPD(dither, 2)
+      {
+         DrawTexCubicF   [dither]=get(S8+"DrawTexCubicF"   +dither);
+         DrawTexCubicFRGB[dither]=get(S8+"DrawTexCubicFRGB"+dither);
+      }
    }
 }
 void MainShaderClass::initFogBoxShaders()
@@ -216,9 +216,9 @@ void MainShaderClass::initFogBoxShaders()
    if(!FogBox) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
    {
       ShaderFile &sf=*ShaderFiles("Fog Local");
-      FogBox =sf.get("FogBox"  );
-      FogBox0=sf.get("FogBox0" );
-      FogBox1=sf.get("FogBox1" );
+      FogBox =sf.get("FogBox" );
+      FogBox0=sf.get("FogBox0");
+      FogBox1=sf.get("FogBox1");
    }
 }
 void MainShaderClass::initFogHgtShaders()
@@ -226,9 +226,9 @@ void MainShaderClass::initFogHgtShaders()
    if(!FogHgt) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
    {
       ShaderFile &sf=*ShaderFiles("Fog Local");
-      FogHgt =sf.get("FogHgt"  );
-      FogHgt0=sf.get("FogHgt0" );
-      FogHgt1=sf.get("FogHgt1" );
+      FogHgt =sf.get("FogHgt" );
+      FogHgt0=sf.get("FogHgt0");
+      FogHgt1=sf.get("FogHgt1");
    }
 }
 void MainShaderClass::initFogBallShaders()
@@ -402,12 +402,12 @@ void MainShaderClass::getTechniques()
    DrawTexPointC=find("DrawTexPointC");
 
    // CUBIC (these can be null if failed to load)
-   DrawTexCubicFast    =find("DrawTexCubicFast");
-   DrawTexCubicFastC   =find("DrawTexCubicFastC");
-   DrawTexCubicFast1   =find("DrawTexCubicFast1");
-   DrawTexCubicFastD   =find("DrawTexCubicFastD");
-   DrawTexCubicFastRGB =find("DrawTexCubicFastRGB");
-   DrawTexCubicFastRGBD=find("DrawTexCubicFastRGBD");
+   REPD(color , 2)DrawTexCubicFast[color]=get(S8+"DrawTexCubicFast"+color);
+   REPD(dither, 2)
+   {
+      DrawTexCubicFastF   [dither]=find(S8+"DrawTexCubicFastF"   +dither);
+      DrawTexCubicFastFRGB[dither]=find(S8+"DrawTexCubicFastFRGB"+dither);
+   }
 #if !SLOW_SHADER_LOAD
    initCubicShaders();
 #endif

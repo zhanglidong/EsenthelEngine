@@ -516,14 +516,14 @@ void RendererClass::Combine(IMAGE_PRECISION rt_prec)
             case FILTER_CUBIC_FAST_SMOOTH:
             case FILTER_CUBIC_FAST_SHARP :
                pixels=2+1; // 2 for filtering + 1 for borders
-               Sh.imgSize(*_col); shader=(dither ? Sh.DrawTexCubicFastD : Sh.DrawTexCubicFast1); // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
+               Sh.imgSize(*_col); shader=Sh.DrawTexCubicFastF[dither]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
             break;
 
             case FILTER_BEST       :
             case FILTER_CUBIC      :
             case FILTER_CUBIC_SHARP:
                pixels=3+1; // 3 for filtering + 1 for borders
-               Sh.imgSize(*_col); Sh.loadCubicShaders(); shader=(dither ? Sh.DrawTexCubicD : Sh.DrawTexCubic1); // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
+               Sh.imgSize(*_col); Sh.loadCubicShaders(); shader=Sh.DrawTexCubicF[dither]; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
             break;
          }
          if(!D._view_main.full)
@@ -1904,11 +1904,11 @@ void RendererClass::postProcess()
 
                case FILTER_CUBIC_FAST       :
                case FILTER_CUBIC_FAST_SMOOTH:
-               case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(*_col); shader=(dither ? Sh.DrawTexCubicFastRGBD : Sh.DrawTexCubicFastRGB); break; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
+               case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(*_col); shader=Sh.DrawTexCubicFastFRGB[dither]; break; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
 
                case FILTER_BEST       :
                case FILTER_CUBIC      :
-               case FILTER_CUBIC_SHARP: Sh.imgSize(*_col); Sh.loadCubicShaders(); shader=(dither ? Sh.DrawTexCubicRGBD : Sh.DrawTexCubicRGB); break; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
+               case FILTER_CUBIC_SHARP: Sh.imgSize(*_col); Sh.loadCubicShaders(); shader=Sh.DrawTexCubicFRGB[dither]; break; // this doesn't need to check for "_col->highPrecision" because resizing and cubic filtering generates smooth values
             }
             if(!shader)
             {

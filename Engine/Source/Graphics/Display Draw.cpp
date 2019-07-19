@@ -156,11 +156,11 @@ void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
 
       case FILTER_CUBIC_FAST       :
       case FILTER_CUBIC_FAST_SMOOTH:
-      case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(T); VI.shader(Sh.DrawTexCubicFast); break;
+      case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(T); VI.shader(Sh.DrawTexCubicFast[0]); break;
 
       case FILTER_BEST       :
       case FILTER_CUBIC      :
-      case FILTER_CUBIC_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.DrawTexCubic); break;
+      case FILTER_CUBIC_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.DrawTexCubic[0]); break;
    }
    VI.image  (this);
    VI.setType(VI_2D_TEX, VI_STRIP);
@@ -204,11 +204,11 @@ void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_
 
       case FILTER_CUBIC_FAST       :
       case FILTER_CUBIC_FAST_SMOOTH:
-      case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(T); VI.shader(Sh.DrawTexCubicFastC); break;
+      case FILTER_CUBIC_FAST_SHARP : Sh.imgSize(T); VI.shader(Sh.DrawTexCubicFast[1]); break;
 
       case FILTER_BEST       :
       case FILTER_CUBIC      :
-      case FILTER_CUBIC_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.DrawTexCubicC); break;
+      case FILTER_CUBIC_SHARP: Sh.imgSize(T); Sh.loadCubicShaders(); VI.shader(Sh.DrawTexCubic[1]); break;
    }
    VI.color  (color    );
    VI.color1 (color_add);

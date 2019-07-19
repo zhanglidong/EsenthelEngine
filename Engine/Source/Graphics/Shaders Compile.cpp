@@ -401,6 +401,21 @@ static void Compile(API api)
          src.New("Particle", "Particle_VS", "Particle_PS")("PALETTE",       0, "SOFT",    0, "ANIM",    0)("MOTION_STRETCH", 0, "MOTION_AFFECTS_ALPHA",                    0);
    }
    {
+      ShaderCompiler::Source &src=compiler.New(src_path+"Cubic.cpp");
+      REPD(color, 2)
+      {
+         src.New("DrawTexCubicFast", "Draw2DTex_VS", "DrawTexCubicFast_PS")("COLORS", color);
+         src.New("DrawTexCubic"    , "Draw2DTex_VS", "DrawTexCubic_PS"    )("COLORS", color);
+      }
+      REPD(dither, 2)
+      {
+         src.New("DrawTexCubicFastF"   , "Draw_VS", "DrawTexCubicFast_PS"   )("DITHER", dither);
+         src.New("DrawTexCubicFastFRGB", "Draw_VS", "DrawTexCubicFastRGB_PS")("DITHER", dither);
+         src.New("DrawTexCubicF"       , "Draw_VS", "DrawTexCubic_PS"       )("DITHER", dither);
+         src.New("DrawTexCubicFRGB"    , "Draw_VS", "DrawTexCubicRGB_PS"    )("DITHER", dither);
+      }
+   }
+   {
       ShaderCompiler::Source &src=compiler.New(src_path+"Video.cpp");
       REPD(gamma, 2)
       REPD(alpha, 2)

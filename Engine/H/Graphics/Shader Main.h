@@ -272,18 +272,12 @@ struct MainShaderClass
       *DrawTexPointC,
 
       // CUBIC
-      *DrawTexCubicFast    ,
-      *DrawTexCubicFastC   ,
-      *DrawTexCubicFast1   ,
-      *DrawTexCubicFastD   ,
-      *DrawTexCubicFastRGB ,
-      *DrawTexCubicFastRGBD,
-      *DrawTexCubic        ,
-      *DrawTexCubicC       ,
-      *DrawTexCubic1       ,
-      *DrawTexCubicD       ,
-      *DrawTexCubicRGB     ,
-      *DrawTexCubicRGBD    ;
+      *DrawTexCubicFast    [2], // [Color]
+      *DrawTexCubicFastF   [2], // [Dither]
+      *DrawTexCubicFastFRGB[2], // [Dither]
+      *DrawTexCubic        [2], // [Color]
+      *DrawTexCubicF       [2], // [Dither]
+      *DrawTexCubicFRGB    [2]; // [Dither]
    void initCubicShaders();   INLINE void loadCubicShaders() {if(SLOW_SHADER_LOAD)initCubicShaders();}
 
    // SHADOWS

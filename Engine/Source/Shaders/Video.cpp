@@ -19,7 +19,7 @@ VecH4 YUV_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    col.r=y             + 1.5958*v;
    col.g=y - 0.39173*u - 0.8129*v;
    col.b=y + 2.017  *u           ;
-   col.a=(ALPHA ? TexLod(ImgX3, inTex).x*1.1643-0.07276875 : 1);} // need to MulAdd because alpha image assumes to come from another YUV video
+   col.a=(ALPHA ? TexLod(ImgX3, inTex).x*1.1643-0.07276875 : 1); // need to MulAdd because alpha image assumes to come from another YUV video
 
    if(GAMMA)col.rgb=SRGBToLinear(col.rgb);
    return   col;
