@@ -359,9 +359,11 @@ static void Compile(API api)
    }
    {
       ShaderCompiler::Source &src=compiler.New(src_path+"Font.cpp");
+      REPD(depth, 2)
       REPD(gamma, 2)
       {
-         REPD(depth, 2)
+         src.New("Font"  , "Font_VS"  , "Font_PS"  )("SET_DEPTH", depth, "GAMMA", gamma);
+         src.New("FontSP", "FontSP_VS", "FontSP_PS")("SET_DEPTH", depth, "GAMMA", gamma);
       }
    }
    {

@@ -14,19 +14,17 @@ BUFFER_END
 void Font_VS(VtxInput vtx,
          out Vec2 outTex  :TEXCOORD0,
          out Half outShade:TEXCOORD1,
-         out Vec4 outVtx  :POSITION ,
-     uniform Bool custom_depth)
+         out Vec4 outVtx  :POSITION )
 {
-                   outTex  =     vtx.tex ();
-                   outShade=     vtx.size();
-   if(custom_depth)outVtx  =Vec4(vtx.pos2()*Coords.xy+Coords.zw, DelinearizeDepth(FontDepth), 1);
-   else            outVtx  =Vec4(vtx.pos2()*Coords.xy+Coords.zw,               REVERSE_DEPTH, 1);
+                outTex  =     vtx.tex ();
+                outShade=     vtx.size();
+   if(SET_DEPTH)outVtx  =Vec4(vtx.pos2()*Coords.xy+Coords.zw, DelinearizeDepth(FontDepth), 1);
+   else         outVtx  =Vec4(vtx.pos2()*Coords.xy+Coords.zw,               REVERSE_DEPTH, 1);
 }
 VecH4 Font_PS
 (
    NOPERSP Vec2 inTex  :TEXCOORD0,
-   NOPERSP Half inShade:TEXCOORD1,
-   uniform Bool linear_gamma
+   NOPERSP Half inShade:TEXCOORD1
 ):TARGET
 {
    // c=color, s=shadow, a=alpha
@@ -46,7 +44,7 @@ VecH4 Font_PS
    Half  a =Sat(as.x*FontContrast), // font opacity, "Min(as.x*FontContrast, 1)", scale up by 'FontContrast' to improve quality when font is very small
          s =    as.y*FontShadow   ; // font shadow
 
-   if(linear_gamma)
+   if(GAMMA)
    {
       //a=  Sqr(  a); // good for bright text
       //a=1-Sqr(1-a); // good for dark   text
@@ -68,28 +66,24 @@ VecH4 Font_PS
    return VecH4(Color[0].rgb*(Lerp(FontShade, 1, Sat(inShade))*a*Color[0].a), Color[0].a*final_alpha);
 #endif
 }
-TECHNIQUE(Font  , Font_VS(false), Font_PS(false));
-TECHNIQUE(FontD , Font_VS(true ), Font_PS(false));
-TECHNIQUE(FontG , Font_VS(false), Font_PS(true ));
-TECHNIQUE(FontDG, Font_VS(true ), Font_PS(true ));
 /******************************************************************************/
-// FONT SUB-PIXEL
+// SUB-PIXEL
 /******************************************************************************/
 void FontSP_VS(VtxInput vtx,
            out Vec2 outTex:TEXCOORD,
            out Vec4 outVtx:POSITION)
 {
-   outTex=     vtx.tex ();
-   outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
+                outTex=     vtx.tex ();
+   if(SET_DEPTH)outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, DelinearizeDepth(FontDepth), 1);
+   else         outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw,               REVERSE_DEPTH, 1);
 }
 VecH4 FontSP_PS
 (
-   NOPERSP Vec2 inTex:TEXCOORD,
-   uniform Bool linear_gamma
+   NOPERSP Vec2 inTex:TEXCOORD
 ):TARGET
 {
    VecH4 c=Tex(Img, inTex);
-   if(linear_gamma)
+   if(GAMMA)
    {
     //c.rgb=  Sqr(  c.rgb); // good for bright text
     //c.rgb=1-Sqr(1-c.rgb); // good for dark   text
@@ -97,6 +91,4 @@ VecH4 FontSP_PS
    }
    return c*Color[0].a;
 }
-TECHNIQUE(FontSP , FontSP_VS(), FontSP_PS(false));
-TECHNIQUE(FontSPG, FontSP_VS(), FontSP_PS(true ));
 /******************************************************************************/

@@ -167,8 +167,8 @@ struct MainShaderClass
 
       *FontCur,
       *FontCurSP,
-      *Font[2][2], // [Depth][Gamma]
-      *FontSP [2], //        [Gamma]
+      *Font  [2][2], // [Depth][Gamma]
+      *FontSP[2][2], // [Depth][Gamma]
 
       *Laser[2],
 

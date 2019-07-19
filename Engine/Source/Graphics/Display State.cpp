@@ -690,8 +690,8 @@ void DisplayState::linearGamma(Bool on)
    {
       D._linear_gamma=on;
       SRGBToDisplayArray=(on ? ByteSRGBToLinearArray : ByteToFltArray);
-      Sh.FontCur  =Sh.Font[false][on];
-      Sh.FontCurSP=Sh.FontSP     [on];
+      Sh.FontCur  =Sh.Font  [false][on];
+      Sh.FontCurSP=Sh.FontSP[false][on];
       // alpha factor depends on gamma, have to reset it
    #if 1 // keep old value
       if(D._alpha_factor.any()) // we can do it only if 'any' because all zeroes have the same value for all gammas and don't need reset

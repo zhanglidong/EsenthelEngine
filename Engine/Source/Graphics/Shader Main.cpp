@@ -421,10 +421,10 @@ void MainShaderClass::getTechniques()
 
    REPD(depth, 2)
    REPD(gamma, 2)
-      Font[depth][gamma]=get(S8+"Font"+depth+gamma);
-
-   REPD(gamma, 2)
-      FontSP[gamma]=get(S8+"FontSP"+gamma);
+   {
+      Font  [depth][gamma]=get(S8+"Font"  +depth+gamma);
+      FontSP[depth][gamma]=get(S8+"FontSP"+depth+gamma);
+   }
 
    // BASIC 2D
    Dither=get("Dither");
