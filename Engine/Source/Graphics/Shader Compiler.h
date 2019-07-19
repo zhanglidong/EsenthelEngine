@@ -99,6 +99,7 @@ struct ShaderCompiler
    {
       Str              name;
       SHADER_MODEL     model;
+      Bool             dummy=false; // if skip saving this shader, this is used only to access info about ConstantBuffers/ShaderParams
       Memc<TextParam8> params;
       SubShader        sub[ST_NUM];
     C Source          *source;

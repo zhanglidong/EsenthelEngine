@@ -1,13 +1,10 @@
 /******************************************************************************/
 #include "!Header.h"
-// FIXME these headers are probably useless
 #include "Ambient Occlusion.h"
 #include "Sky.h"
 #include "Layered Clouds.h"
 #include "Hdr.h"
 #include "Water.h"
-#include "Overlay.h"
-#include "Simple.h"
 #include "Fog.h"
 #include "Fur.h"
 /******************************************************************************
@@ -561,4 +558,8 @@ TECHNIQUE(PaletteDraw, Draw_VS(), PaletteDraw_PS());
 VecH4 WebLToS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return LinearToSRGB(TexLod(Img, inTex));}
 TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
 #endif
+/******************************************************************************/
+// Dummy used only to obtain info about ConstantBuffers/ShaderParams
+Flt Params0_PS():TARGET {return VtxHeightmap+ObjVel[0].x+FurVel[0].x+MaterialAlpha()+MultiMaterial0TexScale()+MultiMaterial1TexScale()+MultiMaterial2TexScale()+MultiMaterial3TexScale()+Step+BehindBias;}
+Flt Params1_PS():TARGET {return AmbColor.x+AmbContrast+HdrBrightness;}
 /******************************************************************************/

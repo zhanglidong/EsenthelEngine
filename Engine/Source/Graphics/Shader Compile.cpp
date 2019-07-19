@@ -541,27 +541,30 @@ void ShaderCompiler::SubShader::compile()
                   }break;
                }
             }
-             inputs.setNum(desc. InputParameters); FREPA( inputs){D3D11_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetInputParameterDesc (i, &desc)))Exit("'GetInputParameterDesc' failed" );  inputs[i]=desc;}
-            outputs.setNum(desc.OutputParameters); FREPA(outputs){D3D11_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetOutputParameterDesc(i, &desc)))Exit("'GetOutputParameterDesc' failed"); outputs[i]=desc;}
+            if(!shader->dummy)
+            {
+                inputs.setNum(desc. InputParameters); FREPA( inputs){D3D11_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetInputParameterDesc (i, &desc)))Exit("'GetInputParameterDesc' failed" );  inputs[i]=desc;}
+               outputs.setNum(desc.OutputParameters); FREPA(outputs){D3D11_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetOutputParameterDesc(i, &desc)))Exit("'GetOutputParameterDesc' failed"); outputs[i]=desc;}
             
-         #if DEBUG && 0 // use this for generation of a basic Vertex Shader which can be used for Input Layout creation (see 'DX10_INPUT_LAYOUT' and 'VS_Code')
-            if(type==VS)
-            {
-               Byte *data=(Byte*)buffer->GetBufferPointer(); Int size=buffer->GetBufferSize();
-               Str t=S+"static Byte VS_Code["+size+"]={";
-               FREP(size){if(i)t+=','; t+=data[i];}
-               t+="};\n";
-               ClipSet(t);
-               Exit(t);
-            }
-         #endif
+            #if DEBUG && 0 // use this for generation of a basic Vertex Shader which can be used for Input Layout creation (see 'DX10_INPUT_LAYOUT' and 'VS_Code')
+               if(type==VS)
+               {
+                  Byte *data=(Byte*)buffer->GetBufferPointer(); Int size=buffer->GetBufferSize();
+                  Str t=S+"static Byte VS_Code["+size+"]={";
+                  FREP(size){if(i)t+=','; t+=data[i];}
+                  t+="};\n";
+                  ClipSet(t);
+                  Exit(t);
+               }
+            #endif
 
-            if(compiler->api==API_DX) // strip
-            {
-               ID3DBlob *stripped=null; D3DStripShader(buffer->GetBufferPointer(), buffer->GetBufferSize(), ~0, &stripped);
-               if(stripped){buffer->Release(); buffer=stripped;}
+               if(compiler->api==API_DX) // strip
+               {
+                  ID3DBlob *stripped=null; D3DStripShader(buffer->GetBufferPointer(), buffer->GetBufferSize(), ~0, &stripped);
+                  if(stripped){buffer->Release(); buffer=stripped;}
+               }
+               shader_data.setNum(buffer->GetBufferSize()).copyFrom((Byte*)buffer->GetBufferPointer());
             }
-            shader_data.setNum(buffer->GetBufferSize()).copyFrom((Byte*)buffer->GetBufferPointer());
 
             result=GOOD;
             // !! do not make any changes here after setting 'result' because other threads may access this data !!
@@ -672,8 +675,8 @@ Bool ShaderCompiler::Shader::save(File &f, C Map<Str8, Buffer*> &buffers, C Memc
 }
 /******************************************************************************/
 static void Compile(ShaderCompiler::SubShader &shader, Ptr user, Int thread_index) {shader.compile();}
-static Bool Create(ShaderCompiler::Buffer* &data, C Str8 &key, Ptr user) {data=null; return true;}
-static Int Compare(ShaderCompiler::Shader*C &a, ShaderCompiler::Shader*C &b) {return CompareCS(a->name, b->name);}
+static Bool Create (ShaderCompiler::Buffer* &data, C Str8 &key, Ptr user) {data=null; return true;}
+static Int  Compare(ShaderCompiler::Shader*C &a, ShaderCompiler::Shader*C &b) {return CompareCS(a->name, b->name);}
 /*struct Refl : HLSLccReflection
 {
     // Called on errors or diagnostic messages
@@ -745,12 +748,13 @@ Bool ShaderCompiler::compileTry(Threads &threads)
    {
       Source &source=sources[i];
       if(!source.load())return error(S+"Can't open file:"+source.file_name);
-      shaders_num+=source.shaders.elms();
+    //shaders_num+=source.shaders.elms(); need to check if dummy
       FREPA(source.shaders)
       {
          Shader &shader=source.shaders[i];
          shader.source=&source; // link only during compilation because sources use Memc container which could change addresses while new sources were being added, however at this stage all have already been created
          shader.finalizeName();
+         shaders_num+=!shader.dummy;
          FREPA(shader.sub)
          {
             SubShader &sub=shader.sub[i]; if(sub.is())
@@ -791,7 +795,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
                sub.shader_data.del(); // no longer needed
             }
          }
-         shaders[shaders_num++]=&shader;
+         if(!shader.dummy)shaders[shaders_num++]=&shader;
       }
    }
 
