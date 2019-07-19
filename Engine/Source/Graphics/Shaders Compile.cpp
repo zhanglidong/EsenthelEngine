@@ -400,6 +400,12 @@ static void Compile(API api)
          src.New("Particle", "Particle_VS", "Particle_PS")("PALETTE", palette, "SOFT", soft, "ANIM", anim)("MOTION_STRETCH", 1, "MOTION_AFFECTS_ALPHA", motion_affects_alpha);
          src.New("Particle", "Particle_VS", "Particle_PS")("PALETTE",       0, "SOFT",    0, "ANIM",    0)("MOTION_STRETCH", 0, "MOTION_AFFECTS_ALPHA",                    0);
    }
+   {
+      ShaderCompiler::Source &src=compiler.New(src_path+"Video.cpp");
+      REPD(gamma, 2)
+      REPD(alpha, 2)
+         src.New("YUV", "Draw2DTex_VS", "YUV_PS")("GAMMA", gamma, "ALPHA", alpha);
+   }
 }
 #endif
 

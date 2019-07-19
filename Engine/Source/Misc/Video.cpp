@@ -353,9 +353,9 @@ Bool Video::frameToImage(Int w, Int h, Int w2, Int h2, CPtr lum_data, CPtr u_dat
      _lum.setFrom(lum_data, lum_pitch);
    }else
    {
-      if(_lum.w()!=w  || _lum.h()!=h ){if(!_lum.create2DTry(w , h , IMAGE_R8, 1, false))return false; if(!Sh.YUV[1]){AtomicSet(Sh.YUV[0], Sh.get("YUV")); AtomicSet(Sh.YUV[1], Sh.get("YUVG"));}}
-      if(_u  .w()!=w2 || _u  .h()!=h2) if(!_u  .create2DTry(w2, h2, IMAGE_R8, 1, false))return false;
-      if(_v  .w()!=w2 || _v  .h()!=h2) if(!_v  .create2DTry(w2, h2, IMAGE_R8, 1, false))return false;
+      if(_lum.w()!=w  || _lum.h()!=h )if(!_lum.create2DTry(w , h , IMAGE_R8, 1, false))return false;
+      if(_u  .w()!=w2 || _u  .h()!=h2)if(!_u  .create2DTry(w2, h2, IMAGE_R8, 1, false))return false;
+      if(_v  .w()!=w2 || _v  .h()!=h2)if(!_v  .create2DTry(w2, h2, IMAGE_R8, 1, false))return false;
 
      _lum.setFrom(lum_data, lum_pitch);
      _u  .setFrom(  u_data,   u_pitch);
@@ -423,15 +423,15 @@ void Video::drawAlpha   (C Video &alpha, C Rect &rect)C
 {
    if(_lum.is() && Renderer._cur[0])
    {
-      if(!Sh.YUVA[1]){AtomicSet(Sh.YUVA[0], Sh.get("YUVA")); AtomicSet(Sh.YUVA[1], Sh.get("YUVAG"));}
       Sh .ImgX[0]->set(_lum);
       Sh .ImgX[1]->set(_u  );
       Sh .ImgX[2]->set(_v  );
       Sh .ImgX[3]->set(alpha._lum);
       Bool gamma=LINEAR_GAMMA, swap=(gamma && Renderer._cur[0]->canSwapRTV()); if(swap){gamma=false; Renderer._cur[0]->swapRTV(); Renderer.set(Renderer._cur[0], Renderer._cur_ds, true);}
-      VI .shader(Sh.YUVA[gamma]);
-     _lum.draw (rect); // Warning: this will result in a useless VI.image call inside, since we already set '_lum' above
-      VI .clear(); // force clear to reset custom shader, in case 'draw' doesn't process drawing
+      Shader* &shader=Sh.YUV[gamma][true]; if(!shader)AtomicSet(shader, Sh.get(S8+"YUV"+gamma+1));
+      VI .shader(shader);
+     _lum.draw  (rect); // Warning: this will result in a useless VI.image call inside, since we already set '_lum' above
+      VI .clear (); // force clear to reset custom shader, in case 'draw' doesn't process drawing
       if(swap){Renderer._cur[0]->swapRTV(); Renderer.set(Renderer._cur[0], Renderer._cur_ds, true);} // restore
    }
 }
@@ -446,9 +446,10 @@ void Video::draw   (C Rect &rect)C
       Sh .ImgX[0]->set(_lum);
       Sh .ImgX[1]->set(_u  );
       Sh .ImgX[2]->set(_v  );
-      VI .shader(Sh.YUV[gamma]);
-     _lum.draw (rect); // Warning: this will result in a useless VI.image call inside, since we already set '_lum' above
-      VI .clear(); // force clear to reset custom shader, in case 'draw' doesn't process drawing
+      Shader* &shader=Sh.YUV[gamma][false]; if(!shader)AtomicSet(shader, Sh.get(S8+"YUV"+gamma+0));
+      VI .shader(shader);
+     _lum.draw  (rect); // Warning: this will result in a useless VI.image call inside, since we already set '_lum' above
+      VI .clear (); // force clear to reset custom shader, in case 'draw' doesn't process drawing
       if(swap){Renderer._cur[0]->swapRTV(); Renderer.set(Renderer._cur[0], Renderer._cur_ds, true);} // restore
    }
 }

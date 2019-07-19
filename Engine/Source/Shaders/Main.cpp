@@ -728,36 +728,6 @@ Vec4 Simple_PS(Vec2  inTex:TEXCOORD,
 }
 TECHNIQUE(Simple, Simple_VS(), Simple_PS());
 /******************************************************************************/
-inline VecH TexYUV(Vec2 inTex,
-           uniform Bool gamma)
-{
- /*Half y=Tex(ImgX , inTex).x,
-        u=Tex(ImgX1, inTex).x,
-        v=Tex(ImgX2, inTex).x;
-
-   Half r=1.1643*(y-0.0625)                   + 1.5958*(v-0.5),
-        g=1.1643*(y-0.0625) - 0.39173*(u-0.5) - 0.8129*(v-0.5),
-        b=1.1643*(y-0.0625) + 2.017  *(u-0.5)                 ;*/
-
-   // keep 'Tex' in case images have LOD's (however unlikely)
-   Half y=Tex(ImgX , inTex).x*1.1643-0.07276875,
-        u=Tex(ImgX1, inTex).x       -0.5,
-        v=Tex(ImgX2, inTex).x       -0.5;
-
-   VecH rgb=VecH(y             + 1.5958*v,
-                 y - 0.39173*u - 0.8129*v,
-                 y + 2.017  *u          );
-   if(gamma)rgb=SRGBToLinear(rgb);
-   return   rgb;
-}
-VecH4 YUV_PS (NOPERSP Vec2 inTex:TEXCOORD, uniform Bool gamma):TARGET {return VecH4(TexYUV(inTex, gamma),                                     1);}
-VecH4 YUVA_PS(NOPERSP Vec2 inTex:TEXCOORD, uniform Bool gamma):TARGET {return VecH4(TexYUV(inTex, gamma), Tex(ImgX3, inTex).x*1.1643-0.07276875);} // need to MulAdd because alpha image assumes to come from another YUV video
-
-TECHNIQUE(YUV  , Draw2DTex_VS(), YUV_PS (false));
-TECHNIQUE(YUVG , Draw2DTex_VS(), YUV_PS (true ));
-TECHNIQUE(YUVA , Draw2DTex_VS(), YUVA_PS(false));
-TECHNIQUE(YUVAG, Draw2DTex_VS(), YUVA_PS(true ));
-/******************************************************************************/
 // BLUR
 /******************************************************************************/
 #define WEIGHT4_0 0.250000000

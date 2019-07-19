@@ -197,8 +197,7 @@ struct MainShaderClass
       *MaxY,
 
       // VIDEO
-      *YUV [2], // [Gamma]
-      *YUVA[2], // [Gamma]
+      *YUV[2][2], // [Gamma][Alpha]
 
       // 2D FX
       *ColTrans   ,
