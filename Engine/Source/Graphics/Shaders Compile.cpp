@@ -359,6 +359,22 @@ static void Compile(API api)
          REPD(fog, 2)src.New("Draw3DTex"     , "Draw3DTex_VS"     , "Draw3DTex_PS"     )("ALPHA_TEST", alpha_test, "COLORS", color, "FOG", fog);
       }
 
+      src.New("DrawMs1", "DrawPixel_VS", "DrawMs1_PS");
+      src.New("DrawMsN", "DrawPixel_VS", "DrawMsN_PS");
+      src.New("DrawMsM", "DrawPixel_VS", "DrawMsM_PS").multiSample(true);
+
+      src.New("DrawMask", "DrawMask_VS", "DrawMask_PS");
+      src.New("DrawCubeFace", "DrawCubeFace_VS", "DrawCubeFace_PS");
+      src.New("Simple", "Simple_VS", "Simple_PS");
+
+      src.New("EdgeDetect"     , "DrawPosXY_VS",      "EdgeDetect_PS");
+      src.New("EdgeDetectApply", "Draw_VS"     , "EdgeDetectApply_PS");
+
+      src.New("Dither", "Draw_VS", "Dither_PS");
+
+                     src.New("CombineSSAlpha", "Draw_VS", "CombineSSAlpha_PS");
+      REPD(sample, 3)src.New("Combine"       , "Draw_VS", "Combine_PS")("SAMPLE", sample);
+
       src.New("PaletteDraw", "Draw_VS", "PaletteDraw_PS");
 
       if(api==API_GL)src.New("WebLToS", "Draw_VS", "WebLToS_PS"); // #WebSRGB

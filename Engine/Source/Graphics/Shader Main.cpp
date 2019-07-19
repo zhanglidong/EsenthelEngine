@@ -470,9 +470,9 @@ void MainShaderClass::getTechniques()
    }
 
 #if !SLOW_SHADER_LOAD
-                            Combine       =get("Combine");
-   if(D.shaderModel()>=SM_4)CombineMS     =get("CombineMS");
-                            CombineSS     =get("CombineSS");
+                            Combine       =get("Combine0");
+                            CombineSS     =get("Combine1");
+   if(D.shaderModel()>=SM_4)CombineMS     =get("Combine2");
                             CombineSSAlpha=get("CombineSSAlpha");
 #endif
 

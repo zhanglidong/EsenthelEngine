@@ -438,9 +438,9 @@ void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool dither)
    Sh.Img[1]->set(rt0);
    GetDof(dither && (src.highPrecision() || rt0->highPrecision()) && !dest.highPrecision(), D.dofFocusMode())->draw(src);
 }
-INLINE Shader* GetCombine       () {Shader* &s=Sh.Combine       ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("Combine"       ); return s;}
-INLINE Shader* GetCombineMS     () {Shader* &s=Sh.CombineMS     ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("CombineMS"     ); return s;}
-INLINE Shader* GetCombineSS     () {Shader* &s=Sh.CombineSS     ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("CombineSS"     ); return s;}
+INLINE Shader* GetCombine       () {Shader* &s=Sh.Combine       ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("Combine0"      ); return s;}
+INLINE Shader* GetCombineSS     () {Shader* &s=Sh.CombineSS     ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("Combine1"      ); return s;}
+INLINE Shader* GetCombineMS     () {Shader* &s=Sh.CombineMS     ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("Combine2"      ); return s;}
 INLINE Shader* GetCombineSSAlpha() {Shader* &s=Sh.CombineSSAlpha; if(SLOW_SHADER_LOAD && !s)s=Sh.get("CombineSSAlpha"); return s;}
 void RendererClass::Combine(IMAGE_PRECISION rt_prec)
 {

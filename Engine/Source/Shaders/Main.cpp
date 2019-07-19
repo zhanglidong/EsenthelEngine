@@ -200,7 +200,6 @@ VecH4 Draw3DTex_PS(Vec2  inTex:TEXCOORD
    return col;
 }
 /******************************************************************************/
-#if !CG
 VecH4 DrawMs1_PS(NOPERSP PIXEL):TARGET {return TexSample(ImgMS, pixel.xy, 0);}
 VecH4 DrawMsN_PS(NOPERSP PIXEL):TARGET
 {
@@ -213,10 +212,6 @@ VecH4 DrawMsM_PS(NOPERSP PIXEL,
 {
    return TexSample(ImgMS, pixel.xy, index);
 }
-TECHNIQUE    (DrawMs1, DrawPixel_VS(), DrawMs1_PS());
-TECHNIQUE    (DrawMsN, DrawPixel_VS(), DrawMsN_PS());
-TECHNIQUE_4_1(DrawMsM, DrawPixel_VS(), DrawMsM_PS());
-#endif
 /******************************************************************************/
 void DrawMask_VS(VtxInput vtx,
              out Vec2 outTexC:TEXCOORD0,
@@ -234,7 +229,6 @@ VecH4 DrawMask_PS(NOPERSP Vec2 inTexC:TEXCOORD0,
           col.a*=Tex(Img1, inTexM).a;
    return col;
 }
-TECHNIQUE(DrawMask, DrawMask_VS(), DrawMask_PS());
 /******************************************************************************/
 void DrawCubeFace_VS(VtxInput vtx,
                  out Vec  outTex:TEXCOORD,
@@ -244,8 +238,6 @@ void DrawCubeFace_VS(VtxInput vtx,
    outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
 }
 VecH4 DrawCubeFace_PS(NOPERSP Vec inTex:TEXCOORD):TARGET {return TexCube(Cub, inTex)*Color[0]+Color[1];}
-
-TECHNIQUE(DrawCubeFace, DrawCubeFace_VS(), DrawCubeFace_PS());
 /******************************************************************************/
 void Simple_VS(VtxInput vtx,
            out Vec2  outTex:TEXCOORD,
@@ -261,7 +253,6 @@ Vec4 Simple_PS(Vec2  inTex:TEXCOORD,
 {
    return Tex(Img, inTex)*inCol;
 }
-TECHNIQUE(Simple, Simple_VS(), Simple_PS());
 /******************************************************************************/
 VecH4 Outline_PS(NOPERSP Vec2 inTex:TEXCOORD,
                  uniform Bool clip_do       ,
@@ -340,8 +331,6 @@ VecH4 EdgeDetectApply_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // use VecH4 becaus
    }
    return color/(samples+1); // Sqr could be used on the result, to make darkening much stronger
 }
-TECHNIQUE(EdgeDetect     , DrawPosXY_VS(),      EdgeDetect_PS());
-TECHNIQUE(EdgeDetectApply, Draw_VS     (), EdgeDetectApply_PS());
 /******************************************************************************/
 VecH4 Dither_PS(NOPERSP Vec2 inTex:TEXCOORD,
                 NOPERSP PIXEL):TARGET
@@ -350,45 +339,37 @@ VecH4 Dither_PS(NOPERSP Vec2 inTex:TEXCOORD,
    ApplyDither(col.rgb, pixel.xy);
    return col;
 }
-TECHNIQUE(Dither, Draw_VS(), Dither_PS());
 /******************************************************************************/
 Half CombineSSAlpha_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
    return DEPTH_FOREGROUND(TexDepthRawPoint(inTex));
 }
 VecH4 Combine_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                 NOPERSP PIXEL,
-                 uniform Int  sample        ):TARGET
+                 NOPERSP PIXEL              ):TARGET
 {
    VecH4 col=TexLod(Img, inTex); // use linear filtering because 'Img' can be of different size
-#if !CG
-   if(sample==2) // multi sample
-   {
-      col.w =0; UNROLL for(Int i=0; i<MS_SAMPLES; i++)col.w+=DEPTH_FOREGROUND(TexDepthMSRaw(pixel.xy, i));
-      col.w/=MS_SAMPLES;
-      // here col.rgb is not premultiplied by alpha (it is at full scale), which means that it will not work as smooth when doing the blended support below
 
-      // if any of the neighbor pixels are transparent then assume that there's no blended graphics in the area, and then return just the solid pixel to keep AA
-      // use linear filtering because 'Img' can be of different size
-      if(Max(TexLod(Img, inTex+ImgSize.xy*Vec2( 0, SQRT2)).rgb)<=0.15
-      || Max(TexLod(Img, inTex+ImgSize.xy*Vec2(-1,    -1)).rgb)<=0.15
-      || Max(TexLod(Img, inTex+ImgSize.xy*Vec2( 1,    -1)).rgb)<=0.15)return col; // there can be bloom around solid pixels, so allow some tolerance
-   }else
+#if   SAMPLE==0 // single sample
+   col.w=DEPTH_FOREGROUND(TexDepthRawPoint(inTex));
+#elif SAMPLE==1 // super sample
+   col.w=TexLod(Img1, inTex).x; // use linear filtering because 'Img' can be of different size
+#elif SAMPLE==2 // multi sample
+   col.w =0; UNROLL for(Int i=0; i<MS_SAMPLES; i++)col.w+=DEPTH_FOREGROUND(TexDepthMSRaw(pixel.xy, i));
+   col.w/=MS_SAMPLES;
+   // here col.rgb is not premultiplied by alpha (it is at full scale), which means that it will not work as smooth when doing the blended support below
+
+   // if any of the neighbor pixels are transparent then assume that there's no blended graphics in the area, and then return just the solid pixel to keep AA
+   // use linear filtering because 'Img' can be of different size
+   if(Max(TexLod(Img, inTex+ImgSize.xy*Vec2( 0, SQRT2)).rgb)<=0.15
+   || Max(TexLod(Img, inTex+ImgSize.xy*Vec2(-1,    -1)).rgb)<=0.15
+   || Max(TexLod(Img, inTex+ImgSize.xy*Vec2( 1,    -1)).rgb)<=0.15)return col; // there can be bloom around solid pixels, so allow some tolerance
 #endif
-   if(sample==1)col.w=TexLod(Img1, inTex).x; // super sample, use linear filtering because 'Img' can be of different size
-   else         col.w=DEPTH_FOREGROUND(TexDepthRawPoint(inTex)); // single sample
 
    // support blended graphics (pixels with colors but without depth)
       col.w=Max(col); // treat luminance as opacity
    if(col.w>0)col.rgb/=col.w;
    return col;
 }
-TECHNIQUE(CombineSSAlpha, Draw_VS(), CombineSSAlpha_PS( ));
-TECHNIQUE(Combine       , Draw_VS(),        Combine_PS(0));
-TECHNIQUE(CombineSS     , Draw_VS(),        Combine_PS(1));
-#if !CG
-TECHNIQUE(CombineMS     , Draw_VS(),        Combine_PS(2));
-#endif
 /******************************************************************************/
 #if !CG
 void ResolveDepth_PS(NOPERSP PIXEL,
