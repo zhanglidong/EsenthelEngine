@@ -457,10 +457,10 @@ void MainShaderClass::getTechniques()
 #endif
 
    // BLUR
-   REPD(h, 2)
+   REPD(samples, 2)
    {
-      BlurX[h]=get(S8+"BlurX"+(h?'H':'\0'));
-      BlurY[h]=get(S8+"BlurY"+(h?'H':'\0'));
+      BlurX[samples]=get(S8+"BlurX"+(samples?6:4));
+      BlurY[samples]=get(S8+"BlurY"+(samples?6:4));
    }
 
    // DEPTH

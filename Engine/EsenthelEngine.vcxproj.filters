@@ -2132,6 +2132,9 @@
     <ClCompile Include="Source\Shaders\Set Color.cpp">
       <Filter>Source\Shaders\3D</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Shaders\Blur.cpp">
+      <Filter>Source\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Source\Platforms\Mac\MyApplication.mm">

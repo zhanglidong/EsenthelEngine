@@ -330,6 +330,34 @@ static void Compile(API api)
       REPD(gamma , 2)src.New("Bloom", "Draw_VS", "Bloom_PS")("DITHER", dither, "GAMMA", gamma);
    }
    {
+      ShaderCompiler::Source &src=compiler.New(src_path+"Blur.cpp");
+      src.New("BlurX", "Draw_VS", "BlurX_PS")("SAMPLES", 4);
+      src.New("BlurX", "Draw_VS", "BlurX_PS")("SAMPLES", 6);
+      src.New("BlurY", "Draw_VS", "BlurY_PS")("SAMPLES", 4);
+      src.New("BlurY", "Draw_VS", "BlurY_PS")("SAMPLES", 6);
+
+      src.New("BlurX_X", "Draw_VS", "BlurX_X_PS");
+      src.New("BlurY_X", "Draw_VS", "BlurY_X_PS");
+
+      src.New("MaxX", "Draw_VS", "MaxX_PS");
+      src.New("MaxY", "Draw_VS", "MaxY_PS");
+   }
+   {
+      ShaderCompiler::Source &src=compiler.New(src_path+"Cubic.cpp");
+      REPD(color, 2)
+      {
+         src.New("DrawTexCubicFast", "Draw2DTex_VS", "DrawTexCubicFast_PS")("COLORS", color);
+         src.New("DrawTexCubic"    , "Draw2DTex_VS", "DrawTexCubic_PS"    )("COLORS", color);
+      }
+      REPD(dither, 2)
+      {
+         src.New("DrawTexCubicFastF"   , "Draw_VS", "DrawTexCubicFast_PS"   )("DITHER", dither);
+         src.New("DrawTexCubicFastFRGB", "Draw_VS", "DrawTexCubicFastRGB_PS")("DITHER", dither);
+         src.New("DrawTexCubicF"       , "Draw_VS", "DrawTexCubic_PS"       )("DITHER", dither);
+         src.New("DrawTexCubicFRGB"    , "Draw_VS", "DrawTexCubicRGB_PS"    )("DITHER", dither);
+      }
+   }
+   {
       ShaderCompiler::Source &src=compiler.New(src_path+"SMAA.cpp");
       REPD(gamma, 2)src.New("SMAAEdge" , "SMAAEdge_VS" , "SMAAEdge_PS" )("GAMMA", gamma);
                     src.New("SMAABlend", "SMAABlend_VS", "SMAABlend_PS");
@@ -399,21 +427,6 @@ static void Compile(API api)
       REPD(motion_affects_alpha, 2)
          src.New("Particle", "Particle_VS", "Particle_PS")("PALETTE", palette, "SOFT", soft, "ANIM", anim)("MOTION_STRETCH", 1, "MOTION_AFFECTS_ALPHA", motion_affects_alpha);
          src.New("Particle", "Particle_VS", "Particle_PS")("PALETTE",       0, "SOFT",    0, "ANIM",    0)("MOTION_STRETCH", 0, "MOTION_AFFECTS_ALPHA",                    0);
-   }
-   {
-      ShaderCompiler::Source &src=compiler.New(src_path+"Cubic.cpp");
-      REPD(color, 2)
-      {
-         src.New("DrawTexCubicFast", "Draw2DTex_VS", "DrawTexCubicFast_PS")("COLORS", color);
-         src.New("DrawTexCubic"    , "Draw2DTex_VS", "DrawTexCubic_PS"    )("COLORS", color);
-      }
-      REPD(dither, 2)
-      {
-         src.New("DrawTexCubicFastF"   , "Draw_VS", "DrawTexCubicFast_PS"   )("DITHER", dither);
-         src.New("DrawTexCubicFastFRGB", "Draw_VS", "DrawTexCubicFastRGB_PS")("DITHER", dither);
-         src.New("DrawTexCubicF"       , "Draw_VS", "DrawTexCubic_PS"       )("DITHER", dither);
-         src.New("DrawTexCubicFRGB"    , "Draw_VS", "DrawTexCubicRGB_PS"    )("DITHER", dither);
-      }
    }
    {
       ShaderCompiler::Source &src=compiler.New(src_path+"Video.cpp");
