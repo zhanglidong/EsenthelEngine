@@ -726,11 +726,6 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    code=Replace(code, "#version 330\n", S);
    code=Replace(code, "#version 300 es\n", S);
    code=Replace(code, "in_ATTR", "ATTR", true);
-// FIXME
-/*code=Replace(code, "layout(binding = 6, std140) uniform _Color {", S, true);
-code=Replace(code, "};", S, true);
-code=Replace(code, "	vec4 Color[2];", "uniform vec4 Color[2];");
-ClipSet(code);*/
 
    if(!code.length())Exit("Can't convert HLSL to GLSL"); // this is also needed for null char
 #if 0 // uncompressed

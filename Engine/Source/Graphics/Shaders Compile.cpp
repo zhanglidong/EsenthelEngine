@@ -8,13 +8,12 @@ namespace EE{
 #define MULTI_MATERIAL 1
 
 #if WINDOWS // DirectX 10+
-   #define COMPILE_4  1
-   #define COMPILE_GL 0
+   #define COMPILE_4  0
+   #define COMPILE_GL 1
 #endif
 
 /**/
-//#define MAIN FIXME
-#define MAIN_NEW
+#define MAIN
 
 /*#define DEFERRED
 #define BLEND_LIGHT
@@ -308,7 +307,7 @@ static void Compile(API api)
    FCreateDirs(dest_path);
    SHADER_MODEL model=SM_4;
 
-#ifdef MAIN_NEW
+#ifdef MAIN
 {
    ShaderCompiler &compiler=ShaderCompilers.New().set(dest_path+"Main", model, api);
    {
@@ -555,71 +554,6 @@ static void Compile(API api)
       REPD(alpha, 2)
          src.New("YUV", "Draw2DTex_VS", "YUV_PS")("GAMMA", gamma, "ALPHA", alpha);
    }
-}
-#endif
-
-#ifdef MAIN
-{
-   Memc<ShaderGLSL> glsl;
-
-   // Draw2DTex
-   REPD(c, 2) // color
-      glsl.New().set("Draw2DTex", S+"Draw2DTex"+(c?'C':'\0')).par("COLOR", c);
-
-   // Draw3DTex
-   REPD(c , 2) // color
-   REPD(at, 2) // alpha_test
-      glsl.New().set("Draw3DTex", S+"Draw3DTex"+(c?"Col":"")+(at?"AT":"")).par("COLOR", c).par("alpha_test", at);
-
-   // font
-   glsl.New().set("Font", "Font");
-
-   // blur
-   REPD(x, 2) // axis
-   REPD(h, 2) // high
-      glsl.New().set("Blur", S+"Blur"+(x?'X':'Y')+(h?'H':'\0')).par("axis", x ? '0' : '1').par("high", h);
-
-   // bloom downsample
-   REPD(g, 2) // glow
-   REPD(c, 2) // clamp
-   REPD(h, 2) // half
-   REPD(s, 2) // saturate
-      glsl.New().set("BloomDS", S+"Bloom"+(g?'G':'\0')+"DS"+(c?'C':'\0')+(h?'H':'\0')+(s?'S':'\0')).par("DoGlow", g).par("DoClamp", c).par("half", h).par("saturate", s);
-
-   // bloom
-   glsl.New().set("Bloom", "Bloom");
-
-   // shd blur
-   glsl.New().set("ShdBlurX", "ShdBlurX2").par("range", 2);
-   glsl.New().set("ShdBlurY", "ShdBlurY2").par("range", 2);
-
-   // particles
-   REPD(p, 2) // palette
-   REPD(a, 3) // anim
-   REPD(m, 2) // motion
-      glsl.New().set("Particle", S+"ParticleTex"+(p?'P':'\0')+((a==2)?"AA":(a==1)?"A":"")+(m?'M':'\0')).par("palette",  p ).par("anim",  a ).par("motion_stretch", "1").par("stretch_alpha",  m );
-      glsl.New().set("Particle", S+"Bilb"                                                             ).par("palette", "0").par("anim", "0").par("motion_stretch", "0").par("stretch_alpha", "0");
-
-   // sky
-      // Textures Flat
-      REPD(t, 2) // textures
-      REPD(c, 2) // clouds
-         glsl.New().set("Sky", S+"SkyTF"+(t+1)+(c?'C':'\0')).par("per_vertex", "0").par("DENSITY", "0").par("textures", t+1).par("stars", "0").par("clouds", c);
-      // Atmospheric Flat
-      REPD(v, 2) // per-vertex
-      REPD(s, 2) // stars
-      REPD(c, 2) // clouds
-         glsl.New().set("Sky", S+"SkyAF"+(v?'V':'\0')+(s?'S':'\0')+(c?'C':'\0')).par("per_vertex", v).par("DENSITY", "0").par("textures", "0").par("stars", s).par("clouds", c);
-
-   // AA
-#if 0 // disable GLSL versions because neither Mac/Linux succeed in compiling them
-   REPD(g, 2) // gamma
-      glsl.New().set("SMAAEdge" , S+"SMAAEdgeColor"+(g?'G':'\0')).par("GAMMA", TextBool(g));
-      glsl.New().set("SMAABlend", "SMAABlend");
-      glsl.New().set("SMAA"     , "SMAA");
-#endif
-
-   Add(src_path+"Main.cpp", dest_path+"Main", api, model, glsl);
 }
 #endif
 
