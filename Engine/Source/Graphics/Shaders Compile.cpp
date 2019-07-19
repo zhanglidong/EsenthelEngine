@@ -315,6 +315,7 @@ static void Compile(API api)
    ShaderCompiler &compiler=ShaderCompilers.New().set(dest_path+"Main", model, api);
    {
       ShaderCompiler::Source &src=compiler.New(src_path+"Main.cpp");
+      // FIXME all shaders
       src.New("PaletteDraw", "Draw_VS", "PaletteDraw_PS");
       if(api==API_GL)src.New("WebLToS", "Draw_VS", "WebLToS_PS"); // #WebSRGB
    }
