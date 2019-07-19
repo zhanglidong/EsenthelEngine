@@ -361,6 +361,27 @@ static void Compile(API api)
          src.New("ApplyLight", "Draw_VS", "ApplyLight_PS")("MULTI_SAMPLE", multi_sample, "AO", ao, "CEL_SHADE", cel_shade, "NIGHT_SHADE", night_shade);
    }
    {
+      ShaderCompiler::Source &src=compiler.New(src_path+"Shadow.cpp");
+      REPD(multi_sample, 2)
+      {
+         REPD(map_num, 6)
+         REPD(cloud  , 2)src.New("ShdDir"  , "DrawPosXY_VS", "ShdDir_PS"  ).multiSample(multi_sample)("MULTI_SAMPLE", multi_sample, "MAP_NUM", map_num+1, "CLOUD", cloud);
+                         src.New("ShdPoint", "DrawPosXY_VS", "ShdPoint_PS").multiSample(multi_sample)("MULTI_SAMPLE", multi_sample);
+                         src.New("ShdCone" , "DrawPosXY_VS", "ShdCone_PS" ).multiSample(multi_sample)("MULTI_SAMPLE", multi_sample);
+      }
+      src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("SAMPLES", 4);
+    //src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("SAMPLES", 5);
+      src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("SAMPLES", 6);
+      src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("SAMPLES", 8);
+    //src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("SAMPLES", 9);
+      src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("SAMPLES", 12);
+    //src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("SAMPLES", 13);
+    //src.New("ShdBlurX", "Draw_VS", "ShdBlurX_PS")("RANGE", 1);
+    //src.New("ShdBlurY", "Draw_VS", "ShdBlurY_PS")("RANGE", 1);
+      src.New("ShdBlurX", "Draw_VS", "ShdBlurX_PS")("RANGE", 2);
+      src.New("ShdBlurY", "Draw_VS", "ShdBlurY_PS")("RANGE", 2);
+   }
+   {
       ShaderCompiler::Source &src=compiler.New(src_path+"Particles.cpp");
       REPD(palette             , 2)
       REPD(soft                , 2)

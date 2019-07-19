@@ -180,9 +180,9 @@ void MainShaderClass::draw (C Image &image, C ::Color &color, C ::Color &color_a
 Shader* MainShaderClass::getBloomDS(Bool glow, Bool uv_clamp, Bool half_res, Bool saturate, Bool gamma) {return get(S8+"BloomDS"+glow+uv_clamp+half_res+saturate+gamma);}
 Shader* MainShaderClass::getBloom  (Bool dither, Bool gamma                                           ) {return get(S8+"Bloom"  +dither+gamma);}
 
-Shader* MainShaderClass::getShdDir  (Int map_num, Bool clouds, Bool multi_sample) {return get(S8+"ShdDir"+map_num+(clouds?'C':'\0')+(multi_sample?'M':'\0'));}
-Shader* MainShaderClass::getShdPoint(                          Bool multi_sample) {return get(S8+"ShdPoint"                        +(multi_sample?'M':'\0'));}
-Shader* MainShaderClass::getShdCone (                          Bool multi_sample) {return get(S8+"ShdCone"                         +(multi_sample?'M':'\0'));}
+Shader* MainShaderClass::getShdDir  (Int map_num, Bool clouds, Bool multi_sample) {return get(S8+"ShdDir"  +multi_sample+map_num+clouds);}
+Shader* MainShaderClass::getShdPoint(                          Bool multi_sample) {return get(S8+"ShdPoint"+multi_sample);}
+Shader* MainShaderClass::getShdCone (                          Bool multi_sample) {return get(S8+"ShdCone" +multi_sample);}
 
 Shader* MainShaderClass::getLightDir   (Bool shadow, Bool multi_sample, Bool quality            ) {return get(S8+"LightDir"   +shadow+multi_sample+(quality && !multi_sample)      );} // MSAA doesn't have quality version (to make it faster)
 Shader* MainShaderClass::getLightPoint (Bool shadow, Bool multi_sample, Bool quality            ) {return get(S8+"LightPoint" +shadow+multi_sample+(quality && !multi_sample)      );} // MSAA doesn't have quality version (to make it faster)

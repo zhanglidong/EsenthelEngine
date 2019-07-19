@@ -383,7 +383,7 @@ void ShaderCompiler::Shader::finalizeName()
 {
    FREPA(params)
    {
-    C TextParam8 &p=params[i]; if(p.value.length()!=1)Exit("Shader Param Value Length != 1");
+    C TextParam8 &p=params[i]; if(p.value.length()!=1 && i!=params.elms()-1)Exit("Shader Param Value Length != 1"); // allow last parameter to have length!=1
       name+=p.value;
    }
 }
