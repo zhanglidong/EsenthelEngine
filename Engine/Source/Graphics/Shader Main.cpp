@@ -364,26 +364,19 @@ void MainShaderClass::getTechniques()
    Draw2DTex   =get("Draw2DTex");
    Draw2DTexC  =get("Draw2DTexC");
    Draw2DTexCol=get("Draw2DTexCol");
-   REPD(at, 2)
-   REPD(f , 2)
+   REPD(alpha_test, 2)
+   REPD(color     , 2)
    {
-      Draw3DTex   [at][f]=get(S8+"Draw3DTex"   +(at?"AT":"")+(f?'F':'\0'));
-      Draw3DTexCol[at][f]=get(S8+"Draw3DTexCol"+(at?"AT":"")+(f?'F':'\0'));
-   }
-   REPD(at, 2)
-   {
-      Draw2DDepthTex   [at]=get(S8+"Draw2DDepthTex"   +(at?"AT":""));
-      Draw2DDepthTexCol[at]=get(S8+"Draw2DDepthTexCol"+(at?"AT":""));
+                  Draw2DDepthTex[alpha_test][color]     =get(S8+"Draw2DDepthTex"+alpha_test+color);
+      REPD(fog, 2)Draw3DTex     [alpha_test][color][fog]=get(S8+"Draw3DTex"     +alpha_test+color+fog);
    }
    PaletteDraw=get("PaletteDraw");
    Simple     =get("Simple");
 
-   DrawX   =get("DrawX");
-   DrawXG  =get("DrawXG");
-   DrawXC  =get("DrawXC");
-   DrawXCD =get("DrawXCD");
-   DrawXCG =get("DrawXCG");
-   DrawXCDG=get("DrawXCDG");
+   DrawX =get("DrawX");
+   DrawXG=get("DrawXG");
+   REPD(dither, 2)
+   REPD(gamma , 2)DrawXC[dither][gamma]=get(S8+"DrawXC"+dither+gamma);
 
  //DrawTexX  =get("DrawTexX"); used by Editor
  //DrawTexY  =get("DrawTexY"); used by Editor

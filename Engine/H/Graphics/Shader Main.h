@@ -143,24 +143,19 @@ struct MainShaderClass
 
    // SHADERS
    Shader
-      *Draw2DFlat          ,
-      *Draw3DFlat          ,
-      *Draw2DCol           ,
-      *Draw3DCol           ,
-      *Draw2DTex           ,
-      *Draw2DTexC          ,
-      *Draw2DTexCol        ,
-      *Draw3DTex   [2][2]  , // [AlphaTest] [Fog]
-      *Draw3DTexCol[2][2]  , // [AlphaTest] [Fog]
-      *Draw2DDepthTex   [2], // [AlphaTest]
-      *Draw2DDepthTexCol[2], // [AlphaTest]
-      *DrawX               ,
-      *DrawXG              ,
-      *DrawXC              ,
-      *DrawXCD             ,
-      *DrawXCG             ,
-      *DrawXCDG            ,
-      *Simple              ,
+      *Draw2DFlat             ,
+      *Draw3DFlat             ,
+      *Draw2DCol              ,
+      *Draw3DCol              ,
+      *Draw2DTex              ,
+      *Draw2DTexC             ,
+      *Draw2DTexCol           ,
+      *Draw3DTex     [2][2][2], // [AlphaTest] [Color] [Fog]
+      *Draw2DDepthTex[2][2]   , // [AlphaTest] [Color]
+      *DrawX                  ,
+      *DrawXG                 ,
+      *DrawXC[2][2]           , // [Dither] [Gamma]
+      *Simple                 ,
 
       *DrawMask,
       *DrawCubeFace,

@@ -708,7 +708,7 @@ RendererClass& RendererClass::operator()(void (&render)())
                   D.alpha(ALPHA_ADD);
                   Sh.Color[0]->set(Vec4(D.ambientColorD(), 0));
                   Sh.Color[1]->set(Vec4Zero                  );
-                  Sh.DrawXC->draw();
+                  Sh.DrawXC[0][0]->draw();
                }
             }
             if(show(_lum_1s, true))goto finished;
@@ -1141,7 +1141,7 @@ void RendererClass::solid()
                Sh.Color[0]->set(Vec4(1, 1, 1, 0));
                Sh.Color[1]->set(Vec4(0, 0, 0, 1));
                Sh.ImgX[0]->set(_ao);
-               Sh.DrawXC->draw();
+               Sh.DrawXC[0][0]->draw();
                D.depth2DOff();
             }
          }
@@ -1520,7 +1520,7 @@ void RendererClass::blend()
             D.alpha(ALPHA_ADD);
             Sh.Color[0]->set(Vec4(D.ambientColorD(), 0));
             Sh.Color[1]->set(Vec4Zero                  );
-            Sh.DrawXC->draw();
+            Sh.DrawXC[0][0]->draw();
          }
       }
       PrepareFur();

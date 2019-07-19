@@ -97,22 +97,19 @@ VecH4 DrawTexNrm_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 
 VecH4 DrawX_PS (NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(             Tex(ImgX, inTex)   .xxx, 1);}
 VecH4 DrawXG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(Tex(ImgX, inTex).x).xxx, 1);}
+
 VecH4 DrawXC_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                NOPERSP PIXEL,
-        uniform Bool dither=false,
-        uniform Bool gamma =false):TARGET
+                NOPERSP PIXEL              ):TARGET
 {
    VecH4 col=Tex(ImgX, inTex).x*Color[0]+Color[1];
-   if(dither)ApplyDither(col.rgb, pixel.xy, LINEAR_GAMMA && !gamma); // don't perform gamma conversions inside dither if "gamma==true", because this means we have sRGB color which we're going to convert to linear below
-   if(gamma )col.rgb=SRGBToLinearFast(col.rgb); // this is used for drawing sun rays, 'SRGBToLinearFast' works better here than 'SRGBToLinear' (gives high contrast, dark colors remain darker, while 'SRGBToLinear' highlights them more)
+#if DITHER
+   ApplyDither(col.rgb, pixel.xy, LINEAR_GAMMA && !GAMMA); // don't perform gamma conversions inside dither if "gamma==true", because this means we have sRGB color which we're going to convert to linear below
+#endif
+#if GAMMA
+   col.rgb=SRGBToLinearFast(col.rgb); // this is used for drawing sun rays, 'SRGBToLinearFast' works better here than 'SRGBToLinear' (gives high contrast, dark colors remain darker, while 'SRGBToLinear' highlights them more)
+#endif
    return col;
 }
-TECHNIQUE(DrawX   , Draw_VS(), DrawX_PS ());
-TECHNIQUE(DrawXG  , Draw_VS(), DrawXG_PS());
-TECHNIQUE(DrawXC  , Draw_VS(), DrawXC_PS(false));
-TECHNIQUE(DrawXCD , Draw_VS(), DrawXC_PS(true ));
-TECHNIQUE(DrawXCG , Draw_VS(), DrawXC_PS(false, true));
-TECHNIQUE(DrawXCDG, Draw_VS(), DrawXC_PS(true , true));
 
 VecH4 DrawTexPoint_PS (NOPERSP Vec2 inTex:TEXCOORD):TARGET {return TexPoint(Img, inTex);}
 VecH4 DrawTexPointC_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return TexPoint(Img, inTex)*Color[0]+Color[1];}
@@ -132,85 +129,76 @@ VecH4 Draw2DTexCol_PS(NOPERSP Vec2  inTex:TEXCOORD,
    return Tex(Img, inTex)*inCol;
 }
 /******************************************************************************/
-void Draw3DTex_VS(VtxInput vtx,
-              out Vec2  outTex:TEXCOORD,
-              out VecH4 outFog:COLOR   ,
-              out Vec4  outVtx:POSITION,
-          uniform Bool  fog=false)
-{
-   Vec pos=TransformPos(vtx.pos());
-          outTex=vtx.tex();
-   if(fog)outFog=VecH4(FogColor, AccumulatedDensity(FogDensity, Length(pos)));
-          outVtx=Project(pos);
-}
 void Draw2DDepthTex_VS(VtxInput vtx,
                    out Vec2  outTex:TEXCOORD,
-                   out VecH4 outFog:COLOR   ,
+                #if COLORS
+                   out VecH4 outCol:COLOR   ,
+                #endif
                    out Vec4  outVtx:POSITION)
 {
    outTex=vtx.tex();
+#if COLORS
+   outCol=vtx.color();
+#endif
    outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, DelinearizeDepth(vtx.posZ()), 1);
 }
-VecH4 Draw3DTex_PS(Vec2  inTex:TEXCOORD,
-                   VecH4 inFog:COLOR   ,
-           uniform Bool  alpha_test    ,
-           uniform Bool  fog           ):TARGET
+VecH4 Draw2DDepthTex_PS(NOPERSP Vec2  inTex:TEXCOORD
+                   #if COLORS
+                      , NOPERSP VecH4 inCol:COLOR
+                   #endif
+                       ):TARGET
 {
    VecH4 col=Tex(Img, inTex);
-   if(alpha_test)clip(col.a-0.5);
-   if(fog)col.rgb=Lerp(col.rgb, inFog.rgb, inFog.a);
+#if ALPHA_TEST
+   clip(col.a-0.5);
+#endif
+#if COLORS
+   col*=inCol;
+#endif
    return col;
 }
-TECHNIQUE(Draw3DTex   , Draw3DTex_VS(false), Draw3DTex_PS(false, false));
-TECHNIQUE(Draw3DTexAT , Draw3DTex_VS(false), Draw3DTex_PS(true , false));
-TECHNIQUE(Draw3DTexF  , Draw3DTex_VS(true ), Draw3DTex_PS(false, true ));
-TECHNIQUE(Draw3DTexATF, Draw3DTex_VS(true ), Draw3DTex_PS(true , true ));
-
-TECHNIQUE(Draw2DDepthTex  , Draw2DDepthTex_VS(), Draw3DTex_PS(false, false));
-TECHNIQUE(Draw2DDepthTexAT, Draw2DDepthTex_VS(), Draw3DTex_PS(true , false));
 /******************************************************************************/
-void Draw3DTexCol_VS(VtxInput vtx,
-                 out Vec2  outTex:TEXCOORD,
-                 out VecH4 outCol:COLOR   ,
-                 out VecH4 outFog:COLOR1  ,
-                 out Vec4  outVtx:POSITION,
-             uniform Bool  fog=false)
+void Draw3DTex_VS(VtxInput vtx,
+              out Vec2  outTex:TEXCOORD,
+           #if COLORS
+              out VecH4 outCol:COLOR   ,
+           #endif
+           #if FOG
+              out VecH4 outFog:COLOR1  ,
+           #endif
+              out Vec4  outVtx:POSITION)
 {
    Vec pos=TransformPos(vtx.pos());
-          outTex=vtx.tex  ();
-          outCol=vtx.color();
-   if(fog)outFog=VecH4(FogColor, AccumulatedDensity(FogDensity, Length(pos)));
-          outVtx=Project(pos);
-}
-void Draw2DDepthTexCol_VS(VtxInput vtx,
-                      out Vec2  outTex:TEXCOORD,
-                      out VecH4 outCol:COLOR   ,
-                      out VecH4 outFog:COLOR1  ,
-                      out Vec4  outVtx:POSITION)
-{
-   outTex=vtx.tex  ();
+   outTex=vtx.tex();
+#if COLORS
    outCol=vtx.color();
-   outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, DelinearizeDepth(vtx.posZ()), 1);
+#endif
+#if FOG
+   outFog=VecH4(FogColor, AccumulatedDensity(FogDensity, Length(pos)));
+#endif
+   outVtx=Project(pos);
 }
-Vec4 Draw3DTexCol_PS(Vec2  inTex:TEXCOORD,
-                     VecH4 inCol:COLOR   ,
-                     VecH4 inFog:COLOR1  ,
-             uniform Bool  alpha_test    ,
-             uniform Bool  fog           ):TARGET
+VecH4 Draw3DTex_PS(Vec2  inTex:TEXCOORD
+                #if COLORS
+                 , VecH4 inCol:COLOR
+                #endif
+                #if FOG
+                 , VecH4 inFog:COLOR1  
+                #endif
+                  ):TARGET
 {
    VecH4 col=Tex(Img, inTex);
-   if(alpha_test)clip(col.a-0.5);
+#if ALPHA_TEST
+   clip(col.a-0.5);
+#endif
+#if COLORS
    col*=inCol;
-   if(fog)col.rgb=Lerp(col.rgb, inFog.rgb, inFog.a);
+#endif
+#if FOG
+   col.rgb=Lerp(col.rgb, inFog.rgb, inFog.a);
+#endif
    return col;
 }
-TECHNIQUE(Draw3DTexCol   , Draw3DTexCol_VS(false), Draw3DTexCol_PS(false, false));
-TECHNIQUE(Draw3DTexColAT , Draw3DTexCol_VS(false), Draw3DTexCol_PS(true , false));
-TECHNIQUE(Draw3DTexColF  , Draw3DTexCol_VS(true ), Draw3DTexCol_PS(false, true ));
-TECHNIQUE(Draw3DTexColATF, Draw3DTexCol_VS(true ), Draw3DTexCol_PS(true , true ));
-
-TECHNIQUE(Draw2DDepthTexCol  , Draw2DDepthTexCol_VS(), Draw3DTexCol_PS(false, false));
-TECHNIQUE(Draw2DDepthTexColAT, Draw2DDepthTexCol_VS(), Draw3DTexCol_PS(true , false));
 /******************************************************************************/
 #if !CG
 VecH4 DrawMs1_PS(NOPERSP PIXEL):TARGET {return TexSample(ImgMS, pixel.xy, 0);}

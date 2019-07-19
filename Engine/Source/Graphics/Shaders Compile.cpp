@@ -7,10 +7,8 @@ namespace EE{
 #define BUMP_MAPPING   1
 #define MULTI_MATERIAL 1
 
-#if DX11   // DirectX 10+
-   #define COMPILE_4 1
-#endif
-#if GL && !GL_ES // Desktop OpenGL
+#if WINDOWS // DirectX 10+
+   #define COMPILE_4  1
    #define COMPILE_GL 0
 #endif
 
@@ -344,10 +342,22 @@ static void Compile(API api)
       src.New("DrawG"     ,      "Draw_VS", "DrawTexG_PS");
       src.New("DrawA"     ,      "Draw_VS", "Draw2DTexA_PS");
 
+      src.New("DrawX" , "Draw_VS", "DrawX_PS" );
+      src.New("DrawXG", "Draw_VS", "DrawXG_PS");
+      REPD(dither, 2)
+      REPD(gamma , 2)src.New("DrawXC", "Draw_VS", "DrawXC_PS")("DITHER", dither, "GAMMA", gamma);
+
       src.New("DrawTexPoint" , "Draw2DTex_VS", "DrawTexPoint_PS");
       src.New("DrawTexPointC", "Draw2DTex_VS", "DrawTexPointC_PS");
 
       src.New("Draw2DTexCol", "Draw2DTexCol_VS", "Draw2DTexCol_PS");
+
+      REPD(alpha_test, 2)
+      REPD(color     , 2)
+      {
+                     src.New("Draw2DDepthTex", "Draw2DDepthTex_VS", "Draw2DDepthTex_PS")("ALPHA_TEST", alpha_test, "COLORS", color);
+         REPD(fog, 2)src.New("Draw3DTex"     , "Draw3DTex_VS"     , "Draw3DTex_PS"     )("ALPHA_TEST", alpha_test, "COLORS", color, "FOG", fog);
+      }
 
       src.New("PaletteDraw", "Draw_VS", "PaletteDraw_PS");
 
