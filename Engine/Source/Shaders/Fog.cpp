@@ -2,6 +2,43 @@
 #include "!Header.h"
 #include "Fog.h"
 /******************************************************************************/
+// GLOBAL
+/******************************************************************************/
+VecH4 Fog_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
+             NOPERSP Vec2 inPosXY:TEXCOORD1
+         #if MULTI_SAMPLE
+           , NOPERSP PIXEL                 
+         #endif
+         #if MULTI_SAMPLE==2
+           ,         UInt index  :SV_SampleIndex
+         #endif
+            ):TARGET
+{
+#if MULTI_SAMPLE!=1
+   #if MULTI_SAMPLE==0 // 0: 1s->1s
+      Vec pos=GetPosPoint(inTex, inPosXY);
+   #else // 2: ms->ms
+      Vec pos=GetPosMS(pixel.xy, index, inPosXY);
+   #endif
+   Half dns=AccumulatedDensity(FogDensity, Length(pos));
+#else // 1: ms->1s
+   Half dns=0, valid=HALF_MIN;
+   UNROLL for(Int i=0; i<MS_SAMPLES; i++)
+   {
+      Flt depth=TexDepthMSRaw(pixel.xy, i); if(DEPTH_FOREGROUND(depth))
+      {
+         Vec pos =GetPos(LinearizeDepth(depth), inPosXY);
+             dns+=AccumulatedDensity(FogDensity, Length(pos));
+         valid++;
+      }
+   }
+   dns/=valid;
+#endif
+   return VecH4(FogColor, dns);
+}
+/******************************************************************************/
+// LOCAL
+/******************************************************************************/
 // TODO: optimize fog shaders
 void FogBox_VS(VtxInput vtx,
            out Vec4    outVtx :POSITION ,

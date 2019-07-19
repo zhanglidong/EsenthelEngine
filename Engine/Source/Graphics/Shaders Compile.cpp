@@ -358,6 +358,10 @@ static void Compile(API api)
       }
    }
    {
+      ShaderCompiler::Source &src=compiler.New(src_path+"Fog.cpp");
+      REPD(multi_sample, 3)src.New("Fog", "DrawPosXY_VS", "Fog_PS")("MULTI_SAMPLE", multi_sample).multiSample(multi_sample>=2);
+   }
+   {
       ShaderCompiler::Source &src=compiler.New(src_path+"Font.cpp");
       REPD(depth, 2)
       REPD(gamma, 2)
@@ -598,7 +602,7 @@ static void Compile(API api)
 #endif
 
 #ifdef FOG_LOCAL
-   Add(src_path+"Fog Local.cpp", dest_path+"Fog Local", api, model);
+   Add(src_path+"Fog.cpp", dest_path+"Fog Local", api, model);
 #endif
 
 #ifdef FUR

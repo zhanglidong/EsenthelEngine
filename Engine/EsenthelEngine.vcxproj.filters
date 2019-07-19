@@ -2057,9 +2057,6 @@
     <ClCompile Include="Source\Shaders\FXAA.cpp">
       <Filter>Source\Shaders</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Shaders\Fog Local.cpp">
-      <Filter>Source\Shaders</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Shaders\Effects 2D.cpp">
       <Filter>Source\Shaders</Filter>
     </ClCompile>
@@ -2136,6 +2133,9 @@
       <Filter>Source\Shaders</Filter>
     </ClCompile>
     <ClCompile Include="Source\Shaders\Font.cpp">
+      <Filter>Source\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Shaders\Fog.cpp">
       <Filter>Source\Shaders</Filter>
     </ClCompile>
   </ItemGroup>

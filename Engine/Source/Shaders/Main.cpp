@@ -758,48 +758,6 @@ TECHNIQUE_4_1(SkyASP2D , Sky_VS(false, true , false), Sky2_PS(false, true , 0, t
 TECHNIQUE_4_1(SkyAVSP2D, Sky_VS(true , true , false), Sky2_PS(true , true , 0, true , true ));
 #endif
 /******************************************************************************/
-// FOG
-/******************************************************************************/
-VecH4 Fog_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-             NOPERSP Vec2 inPosXY:TEXCOORD1):TARGET
-{
-   Vec  pos=GetPosPoint(inTex, inPosXY);
-   Half dns=AccumulatedDensity(FogDensity, Length(pos));
-
-   return VecH4(FogColor, dns);
-}
-#if !CG
-VecH4 FogN_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-              NOPERSP Vec2 inPosXY:TEXCOORD1,
-              NOPERSP PIXEL                 ):TARGET
-{
-   Half valid=HALF_MIN, dns=0;
-   UNROLL for(Int i=0; i<MS_SAMPLES; i++)
-   {
-      Flt depth=TexDepthMSRaw(pixel.xy, i); if(DEPTH_FOREGROUND(depth))
-      {
-         Vec pos =GetPos(LinearizeDepth(depth), inPosXY);
-             dns+=AccumulatedDensity(FogDensity, Length(pos));
-         valid++;
-      }
-   }
-   return VecH4(FogColor, dns/valid);
-}
-VecH4 FogM_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-              NOPERSP Vec2 inPosXY:TEXCOORD1,
-              NOPERSP PIXEL                 ,
-                      UInt index  :SV_SampleIndex):TARGET
-{
-   Vec pos=GetPosMS(pixel.xy, index, inPosXY);
-   return VecH4(FogColor, AccumulatedDensity(FogDensity, Length(pos)));
-}
-#endif
-TECHNIQUE    (Fog , DrawPosXY_VS(), Fog_PS ());
-#if !CG // multi sample
-TECHNIQUE    (FogN, DrawPosXY_VS(), FogN_PS());
-TECHNIQUE_4_1(FogM, DrawPosXY_VS(), FogM_PS());
-#endif
-/******************************************************************************/
 VecH4 PaletteDraw_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
    VecH4 particle=TexLod(Img, inTex); // use linear filtering in case in the future we support downsized palette intensities (for faster fill-rate)

@@ -588,11 +588,11 @@ void MainShaderClass::getTechniques()
    LocalFogColor  =GetShaderParam("LocalFogColor"  );
    LocalFogDensity=GetShaderParam("LocalFogDensity");
    LocalFogInside =GetShaderParam("LocalFogInside" );
-                                 Fog[0]=get("Fog");
+                                 Fog[0]=get("Fog0");
    if(D.shaderModel()>=SM_4)
    {
-                                 Fog[1]=get("FogN");
-      if(D.shaderModel()>=SM_4_1)Fog[2]=get("FogM");
+                                 Fog[1]=get("Fog1");
+      if(D.shaderModel()>=SM_4_1)Fog[2]=get("Fog2");
    }
 
 #if !SLOW_SHADER_LOAD
