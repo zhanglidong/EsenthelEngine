@@ -7,6 +7,7 @@
 #include "Water.h"
 #include "Fog.h"
 #include "Fur.h"
+#include "Overlay.h"
 /******************************************************************************
 VecH4 Test_PS(NOPERSP Vec2 inTex:TEXCOORD,
               uniform Int  mode):TARGET
@@ -430,8 +431,8 @@ VecH4 PaletteDraw_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 /******************************************************************************/
 // DUMMY - used only to obtain info about ConstantBuffers/ShaderParams
 /******************************************************************************/
-Flt Params0_PS():TARGET {return VtxHeightmap+ObjVel[0].x+FurVel[0].x+MaterialAlpha()+MultiMaterial0TexScale()+MultiMaterial1TexScale()+MultiMaterial2TexScale()+MultiMaterial3TexScale()+Step+BehindBias;}
-Flt Params1_PS():TARGET {return AmbColor.x+AmbContrast+HdrBrightness+LocalFogColor.x;}
+Flt Params0_PS():TARGET {return VtxHeightmap+ObjVel[0].x+FurVel[0].x+FurStep+MaterialAlpha()+MultiMaterial0TexScale()+MultiMaterial1TexScale()+MultiMaterial2TexScale()+MultiMaterial3TexScale()+Step+TexLod(FurCol, 0).x+TexLod(FurLight, 0).x;}
+Flt Params1_PS():TARGET {return AmbColor.x+AmbContrast+HdrBrightness+LocalFogColor.x+OverlayOpaqueFrac()+BehindBias;}
 /******************************************************************************/
 #if GL // #WebSRGB
 VecH4 WebLToS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return LinearToSRGB(TexLod(Img, inTex));}
