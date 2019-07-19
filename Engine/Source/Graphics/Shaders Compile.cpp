@@ -358,15 +358,11 @@ static void Compile(API api)
       }
    }
    {
-      ShaderCompiler::Source &src=compiler.New(src_path+"SMAA.cpp");
-      REPD(gamma, 2)src.New("SMAAEdge" , "SMAAEdge_VS" , "SMAAEdge_PS" )("GAMMA", gamma);
-                    src.New("SMAABlend", "SMAABlend_VS", "SMAABlend_PS");
-                    src.New("SMAA"     , "SMAA_VS"     , "SMAA_PS"     );
-                 #if SUPPORT_MLAA
-                    src.New("MLAAEdge" , "MLAA_VS", "MLAAEdge_PS" );
-                    src.New("MLAABlend", "MLAA_VS", "MLAABlend_PS");
-                    src.New("MLAA"     , "MLAA_VS", "MLAA_PS"     );
-                 #endif
+      ShaderCompiler::Source &src=compiler.New(src_path+"Font.cpp");
+      REPD(gamma, 2)
+      {
+         REPD(depth, 2)
+      }
    }
    {
       ShaderCompiler::Source &src=compiler.New(src_path+"Light.cpp");
@@ -408,6 +404,17 @@ static void Compile(API api)
     //src.New("ShdBlurY", "Draw_VS", "ShdBlurY_PS")("RANGE", 1);
       src.New("ShdBlurX", "Draw_VS", "ShdBlurX_PS")("RANGE", 2);
       src.New("ShdBlurY", "Draw_VS", "ShdBlurY_PS")("RANGE", 2);
+   }
+   {
+      ShaderCompiler::Source &src=compiler.New(src_path+"SMAA.cpp");
+      REPD(gamma, 2)src.New("SMAAEdge" , "SMAAEdge_VS" , "SMAAEdge_PS" )("GAMMA", gamma);
+                    src.New("SMAABlend", "SMAABlend_VS", "SMAABlend_PS");
+                    src.New("SMAA"     , "SMAA_VS"     , "SMAA_PS"     );
+                 #if SUPPORT_MLAA
+                    src.New("MLAAEdge" , "MLAA_VS", "MLAAEdge_PS" );
+                    src.New("MLAABlend", "MLAA_VS", "MLAABlend_PS");
+                    src.New("MLAA"     , "MLAA_VS", "MLAA_PS"     );
+                 #endif
    }
    {
       ShaderCompiler::Source &src=compiler.New(src_path+"Sun.cpp");

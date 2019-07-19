@@ -419,12 +419,12 @@ void MainShaderClass::getTechniques()
    FontShade   =GetShaderParam("FontShade"   );
    FontDepth   =GetShaderParam("FontDepth"   );
 
-   REPD(d, 2)
-   REPD(g, 2)
-      Font[d][g]=get(S8+"Font"+(d?'D':'\0')+(g?'G':'\0'));
+   REPD(depth, 2)
+   REPD(gamma, 2)
+      Font[depth][gamma]=get(S8+"Font"+depth+gamma);
 
-   REPD(g, 2)
-      FontSP[g]=get(S8+"FontSP"+(g?'G':'\0'));
+   REPD(gamma, 2)
+      FontSP[gamma]=get(S8+"FontSP"+gamma);
 
    // BASIC 2D
    Dither=get("Dither");
