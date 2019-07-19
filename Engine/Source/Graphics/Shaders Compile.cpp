@@ -506,7 +506,27 @@ static void Compile(API api)
    }
    { // SKY
       ShaderCompiler::Source &src=compiler.New(src_path+"Sky.cpp");
-      // FIXME
+      REPD(dither, 2)
+      REPD(cloud , 2)
+      {
+         // Textures Flat
+         REPD(textures, 2)src.New("Sky", "Sky_VS", "Sky_PS")("MULTI_SAMPLE", 0, "FLAT", 1, "DENSITY", 0, "TEXTURES", textures+1)("STARS", 0, "DITHER", dither, "PER_VERTEX", 0, "CLOUD", cloud);
+
+         // Atmospheric Flat
+         REPD(per_vertex, 2)
+         REPD(stars     , 2)src.New("Sky", "Sky_VS", "Sky_PS")("MULTI_SAMPLE", 0, "FLAT", 1, "DENSITY", 0, "TEXTURES", 0)("STARS", stars, "DITHER", dither, "PER_VERTEX", per_vertex, "CLOUD", cloud);
+
+         REPD(multi_sample, (D.shaderModel()>=SM_4_1) ? 3 : (D.shaderModel()>=SM_4) ? 2 : 1)
+         {
+            // Textures
+            REPD(textures, 2)src.New("Sky", "Sky_VS", "Sky_PS")("MULTI_SAMPLE", multi_sample, "FLAT", 0, "DENSITY", 0, "TEXTURES", textures+1)("STARS", 0, "DITHER", dither, "PER_VERTEX", 0, "CLOUD", cloud).multiSample(multi_sample>=2);
+
+            // Atmospheric
+            REPD(per_vertex, 2)
+            REPD(density   , 2)
+            REPD(stars     , 2)src.New("Sky", "Sky_VS", "Sky_PS")("MULTI_SAMPLE", multi_sample, "FLAT", 0, "DENSITY", density, "TEXTURES", 0)("STARS", stars, "DITHER", dither, "PER_VERTEX", per_vertex, "CLOUD", cloud).multiSample(multi_sample>=2);
+         }
+      }
    }
    { // SMAA
       ShaderCompiler::Source &src=compiler.New(src_path+"SMAA.cpp");

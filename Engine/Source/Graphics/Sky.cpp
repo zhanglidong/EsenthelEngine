@@ -135,10 +135,10 @@ void SkyClass::setFracMulAdd()
    }
 }
 /******************************************************************************/
-INLINE Shader* SkyTF(Int textures,                                    Bool cloud, Bool dither) {Shader* &s=Sh.SkyTF[textures-1][cloud][dither]                       ; if(SLOW_SHADER_LOAD && !s)s=Sh.getSkyTF(textures, cloud, dither);                          return s;}
-INLINE Shader* SkyT (Int textures,                              Int multi_sample, Bool dither) {Shader* &s=Sh.SkyT [textures-1][multi_sample][dither]                ; if(SLOW_SHADER_LOAD && !s)s=Sh.getSkyT (textures, multi_sample, dither);                   return s;}
-INLINE Shader* SkyAF(Bool per_vertex, Bool stars,                     Bool cloud, Bool dither) {Shader* &s=Sh.SkyAF[per_vertex][stars][cloud][dither]                ; if(SLOW_SHADER_LOAD && !s)s=Sh.getSkyAF(per_vertex, stars, cloud, dither);                 return s;}
-INLINE Shader* SkyA (Bool per_vertex, Bool stars, Bool density, Int multi_sample, Bool dither) {Shader* &s=Sh.SkyA [per_vertex][stars][density][multi_sample][dither]; if(SLOW_SHADER_LOAD && !s)s=Sh.getSkyA (per_vertex, stars, density, multi_sample, dither); return s;}
+INLINE Shader* SkyTF(                  Int  textures  ,                           Bool dither, Bool cloud) {Shader* &s=Sh.SkyTF              [textures-1]                [dither][cloud]; if(SLOW_SHADER_LOAD && !s)s=Sh.getSkyTF(              textures  ,                 dither, cloud); return s;}
+INLINE Shader* SkyT (Int multi_sample, Int  textures  ,                           Bool dither, Bool cloud) {Shader* &s=Sh.SkyT [multi_sample][textures-1]                [dither][cloud]; if(SLOW_SHADER_LOAD && !s)s=Sh.getSkyT (multi_sample, textures  ,                 dither, cloud); return s;}
+INLINE Shader* SkyAF(                  Bool per_vertex,               Bool stars, Bool dither, Bool cloud) {Shader* &s=Sh.SkyAF              [per_vertex]         [stars][dither][cloud]; if(SLOW_SHADER_LOAD && !s)s=Sh.getSkyAF(              per_vertex,          stars, dither, cloud); return s;}
+INLINE Shader* SkyA (Int multi_sample, Bool per_vertex, Bool density, Bool stars, Bool dither, Bool cloud) {Shader* &s=Sh.SkyA [multi_sample][per_vertex][density][stars][dither][cloud]; if(SLOW_SHADER_LOAD && !s)s=Sh.getSkyA (multi_sample, per_vertex, density, stars, dither, cloud); return s;}
 
 void SkyClass::draw()
 {
@@ -159,12 +159,12 @@ void SkyClass::draw()
 
       if(tex)
       {
-         if(blend){shader=SkyT (tex,     0, dither); if(multi)shader_multi=SkyT(tex, multi, dither);}
-         else      shader=SkyTF(tex, cloud, dither);
+         if(blend){shader=SkyT (0, tex, dither, cloud); if(multi)shader_multi=SkyT(multi, tex, dither, cloud);}
+         else      shader=SkyTF(   tex, dither, cloud);
       }else
       {
-         if(blend){shader=SkyA (vertex, stars, density, 0, dither); if(multi)shader_multi=SkyA(vertex, stars, density, multi, dither);}
-         else      shader=SkyAF(vertex, stars, cloud, dither);
+         if(blend){shader=SkyA (0, vertex, density, stars, dither, cloud); if(multi)shader_multi=SkyA(multi, vertex, density, stars, dither, cloud);}
+         else      shader=SkyAF(   vertex,          stars, dither, cloud);
       }
 
       // set shader parameters

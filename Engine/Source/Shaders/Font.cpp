@@ -16,10 +16,9 @@ void Font_VS(VtxInput vtx,
          out Half outShade:TEXCOORD1,
          out Vec4 outVtx  :POSITION )
 {
-                outTex  =     vtx.tex ();
-                outShade=     vtx.size();
-   if(SET_DEPTH)outVtx  =Vec4(vtx.pos2()*Coords.xy+Coords.zw, DelinearizeDepth(FontDepth), 1);
-   else         outVtx  =Vec4(vtx.pos2()*Coords.xy+Coords.zw,               REVERSE_DEPTH, 1);
+   outTex  =     vtx.tex ();
+   outShade=     vtx.size();
+   outVtx  =Vec4(vtx.pos2()*Coords.xy+Coords.zw, SET_DEPTH ? DelinearizeDepth(FontDepth) : REVERSE_DEPTH, 1);
 }
 VecH4 Font_PS
 (
@@ -73,9 +72,8 @@ void FontSP_VS(VtxInput vtx,
            out Vec2 outTex:TEXCOORD,
            out Vec4 outVtx:POSITION)
 {
-                outTex=     vtx.tex ();
-   if(SET_DEPTH)outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, DelinearizeDepth(FontDepth), 1);
-   else         outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw,               REVERSE_DEPTH, 1);
+   outTex=     vtx.tex ();
+   outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, SET_DEPTH ? DelinearizeDepth(FontDepth) : REVERSE_DEPTH, 1);
 }
 VecH4 FontSP_PS
 (

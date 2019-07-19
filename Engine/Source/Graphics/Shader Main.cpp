@@ -194,10 +194,12 @@ Shader* MainShaderClass::getApplyLight(Int multi_sample, Bool ao, Bool cel_shade
 Shader* MainShaderClass::getSunRaysMask(Bool mask                                      ) {return get(S8+"SunRaysMask"+mask);}
 Shader* MainShaderClass::getSunRays    (Bool mask, Bool dither, Bool jitter, Bool gamma) {return get(S8+"SunRays"    +mask+dither+jitter+gamma);}
 
-Shader* MainShaderClass::getSkyTF(Int textures,                Bool cloud  ,                   Bool dither) {return get(S8+"SkyTF"+textures+(cloud?'C':'\0')+(dither?'D':'\0'));}
-Shader* MainShaderClass::getSkyT (Int textures,                              Int multi_sample, Bool dither) {return get(S8+"SkyT" +textures+multi_sample+(dither?'D':'\0'));}
-Shader* MainShaderClass::getSkyAF(Bool per_vertex, Bool stars, Bool cloud  ,                   Bool dither) {return get(S8+"SkyAF"+(per_vertex?'V':'\0')+(stars?'S':'\0')+(cloud?'C':'\0')+(dither?'D':'\0'));}
-Shader* MainShaderClass::getSkyA (Bool per_vertex, Bool stars, Bool density, Int multi_sample, Bool dither) {return get(S8+"SkyA" +(per_vertex?'V':'\0')+(stars?'S':'\0')+(density?'P':'\0')+multi_sample+(dither?'D':'\0'));}
+Shader* MainShaderClass::getSky(Int multi_sample, Bool flat, Bool density, Int textures, Bool stars, Bool dither, Bool per_vertex, Bool cloud) {return get(S8+"Sky"+multi_sample+flat+density+textures+stars+dither+per_vertex+cloud);}
+
+Shader* MainShaderClass::getSkyTF(                  Int  textures  ,                           Bool dither, Bool cloud) {Int multi_sample=0;                 Bool flat=true , density=false, stars=false, per_vertex=false; return getSky(multi_sample, flat, density, textures, stars, dither, per_vertex, cloud);}
+Shader* MainShaderClass::getSkyT (Int multi_sample, Int  textures  ,                           Bool dither, Bool cloud) {                                    Bool flat=false, density=false, stars=false, per_vertex=false; return getSky(multi_sample, flat, density, textures, stars, dither, per_vertex, cloud);}
+Shader* MainShaderClass::getSkyAF(                  Bool per_vertex,               Bool stars, Bool dither, Bool cloud) {Int multi_sample=0; Int textures=0; Bool flat=true , density=false                               ; return getSky(multi_sample, flat, density, textures, stars, dither, per_vertex, cloud);}
+Shader* MainShaderClass::getSkyA (Int multi_sample, Bool per_vertex, Bool density, Bool stars, Bool dither, Bool cloud) {                    Int textures=0; Bool flat=false                                              ; return getSky(multi_sample, flat, density, textures, stars, dither, per_vertex, cloud);}
 
 void MainShaderClass::initCubicShaders()
 {
@@ -490,21 +492,24 @@ void MainShaderClass::getTechniques()
    SkySunPos      =GetShaderParam("SkySunPos"      );
 #if !SLOW_SHADER_LOAD
    REPD(dither, 2)
+   REPD(cloud , 2)
    {
-      REPD(t, 2)
-      REPD(c, 2)SkyTF[t][c][dither]=getSkyTF(t+1, c, dither);
+      // Textures Flat
+      REPD(textures, 2)SkyTF[textures][dither][cloud]=getSkyTF(textures+1, dither, cloud);
 
-      REPD(v, 2)
-      REPD(s, 2)
-      REPD(c, 2)SkyAF[v][s][c][dither]=getSkyAF(v, s, c, dither);
+      // Atmospheric Flat
+      REPD(per_vertex, 2)
+      REPD(stars     , 2)SkyAF[per_vertex][stars][dither][cloud]=getSkyAF(per_vertex, stars, dither, cloud);
 
-      REPD(m, (D.shaderModel()>=SM_4_1) ? 3 : (D.shaderModel()>=SM_4) ? 2 : 1)
+      REPD(multi_sample, (D.shaderModel()>=SM_4_1) ? 3 : (D.shaderModel()>=SM_4) ? 2 : 1)
       {
-         REPD(t, 2)SkyT[t][m][dither]=getSkyT(t+1, m, dither);
+         // Textures
+         REPD(textures, 2)SkyT[multi_sample][textures][dither][cloud]=getSkyT(multi_sample, textures+1, dither, cloud);
 
-         REPD(v, 2)
-         REPD(s, 2)
-         REPD(d, 2)SkyA[v][s][d][m][dither]=getSkyA(v, s, d, m, dither);
+         // Atmospheric
+         REPD(per_vertex, 2)
+         REPD(density   , 2)
+         REPD(stars     , 2)SkyA[multi_sample][per_vertex][density][stars][dither][cloud]=getSkyA(multi_sample, per_vertex, density, stars, dither, cloud);
       }
    }
 

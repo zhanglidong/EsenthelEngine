@@ -312,20 +312,25 @@ struct MainShaderClass
    Shader* getBloomDS(Bool glow, Bool uv_clamp, Bool half_res, Bool saturate, Bool gamma);
    Shader* getBloom  (Bool dither, Bool gamma);
 
-   // SKY
+   // SUN
    Shader
       *SunRaysMask[2]      , // [Mask]
-      *SunRays [2][2][2][2], // [Mask] [Dither] [Jitter] [Gamma]
-      *SkyTF[2]   [2]   [2], // [Textures(0->1, 1->2)]         [Cloud  ]               [Dither] (Textures   +Flat)
-      *SkyT [2]      [3][2], // [Textures(0->1, 1->2)]                   [MultiSample] [Dither] (Textures        )
-      *SkyAF[2][2][2]   [2], // [PerVertex           ] [Stars] [Cloud  ]               [Dither] (Atmospheric+Flat)
-      *SkyA [2][2][2][3][2]; // [PerVertex           ] [Stars] [Density] [MultiSample] [Dither] (Atmospheric     )
+      *SunRays [2][2][2][2]; // [Mask] [Dither] [Jitter] [Gamma]
    Shader* getSunRaysMask(Bool mask);
    Shader* getSunRays    (Bool mask, Bool dither, Bool jitter, Bool gamma);
-   Shader* getSkyTF(Int textures,                Bool cloud  ,                   Bool dither);
-   Shader* getSkyT (Int textures,                              Int multi_sample, Bool dither);
-   Shader* getSkyAF(Bool per_vertex, Bool stars, Bool cloud  ,                   Bool dither);
-   Shader* getSkyA (Bool per_vertex, Bool stars, Bool density, Int multi_sample, Bool dither);
+
+   // SKY
+   Shader
+      *SkyTF   [2]      [2][2], //               [Textures(0->1, 1->2)]                   [Dither] [Cloud]   Textures    Flat
+      *SkyT [3][2]      [2][2], // [MultiSample] [Textures(0->1, 1->2)]                   [Dither] [Cloud]   Textures
+      *SkyAF   [2]   [2][2][2], //               [PerVertex           ]           [Stars] [Dither] [Cloud]   Atmospheric Flat
+      *SkyA [3][2][2][2][2][2]; // [MultiSample] [PerVertex           ] [Density] [Stars] [Dither] [Cloud]   Atmospheric
+   Shader* getSkyTF(                  Int  textures  ,                           Bool dither, Bool cloud);
+   Shader* getSkyT (Int multi_sample, Int  textures  ,                           Bool dither, Bool cloud);
+   Shader* getSkyAF(                  Bool per_vertex,               Bool stars, Bool dither, Bool cloud);
+   Shader* getSkyA (Int multi_sample, Bool per_vertex, Bool density, Bool stars, Bool dither, Bool cloud);
+
+   Shader* getSky(Int multi_sample, Bool flat, Bool density, Int textures, Bool stars, Bool dither, Bool per_vertex, Bool cloud);
 }extern
    Sh;
 
