@@ -220,6 +220,9 @@
     <Filter Include="H\_\Bullet\64\Universal">
       <UniqueIdentifier>{a73bd686-7150-4190-af9e-13bc13ddb8c6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Shaders\3D">
+      <UniqueIdentifier>{5c68c5e3-1f15-4ed1-9b4f-5bacaf913596}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="H\EsenthelEngine.h">
@@ -858,9 +861,6 @@
     <ClInclude Include="Source\Shaders\Fog.h">
       <Filter>Source\Shaders</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Shaders\Fur.h">
-      <Filter>Source\Shaders</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Shaders\Glsl Light.h">
       <Filter>Source\Shaders</Filter>
     </ClInclude>
@@ -892,12 +892,6 @@
       <Filter>Source\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="Source\Shaders\Layered Clouds.h">
-      <Filter>Source\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Shaders\Overlay.h">
-      <Filter>Source\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Shaders\Simple.h">
       <Filter>Source\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="Source\Shaders\Sky.h">
@@ -1052,6 +1046,15 @@
     </ClInclude>
     <ClInclude Include="Source\Shaders\!Set LP.h">
       <Filter>Source\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Shaders\Fur.h">
+      <Filter>Source\Shaders\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Shaders\Overlay.h">
+      <Filter>Source\Shaders\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Shaders\Simple.h">
+      <Filter>Source\Shaders\3D</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1469,34 +1472,10 @@
     <ClCompile Include="Source\Shaders\Ambient Occlusion.cpp">
       <Filter>Source\Shaders</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Shaders\Ambient.cpp">
-      <Filter>Source\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Shaders\Behind.cpp">
-      <Filter>Source\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Shaders\Blend Light.cpp">
-      <Filter>Source\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Shaders\Blend.cpp">
-      <Filter>Source\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Shaders\Deferred.cpp">
-      <Filter>Source\Shaders</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Shaders\Depth of Field.cpp">
       <Filter>Source\Shaders</Filter>
     </ClCompile>
     <ClCompile Include="Source\Shaders\DX10+ Input Layout.cpp">
-      <Filter>Source\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Shaders\Early Z.cpp">
-      <Filter>Source\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Shaders\Forward.cpp">
-      <Filter>Source\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Shaders\Fur.cpp">
       <Filter>Source\Shaders</Filter>
     </ClCompile>
     <ClCompile Include="Source\Shaders\Hdr.cpp">
@@ -1509,21 +1488,6 @@
       <Filter>Source\Shaders</Filter>
     </ClCompile>
     <ClCompile Include="Source\Shaders\Motion Blur.cpp">
-      <Filter>Source\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Shaders\Overlay.cpp">
-      <Filter>Source\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Shaders\Position.cpp">
-      <Filter>Source\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Shaders\Set Color.cpp">
-      <Filter>Source\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Shaders\Simple.cpp">
-      <Filter>Source\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Shaders\Tattoo.cpp">
       <Filter>Source\Shaders</Filter>
     </ClCompile>
     <ClCompile Include="Source\Shaders\Volumetric Clouds.cpp">
@@ -2128,6 +2092,45 @@
     </ClCompile>
     <ClCompile Include="Source\Shaders\Cubic.cpp">
       <Filter>Source\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Shaders\Ambient.cpp">
+      <Filter>Source\Shaders\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Shaders\Behind.cpp">
+      <Filter>Source\Shaders\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Shaders\Blend Light.cpp">
+      <Filter>Source\Shaders\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Shaders\Blend.cpp">
+      <Filter>Source\Shaders\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Shaders\Deferred.cpp">
+      <Filter>Source\Shaders\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Shaders\Early Z.cpp">
+      <Filter>Source\Shaders\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Shaders\Forward.cpp">
+      <Filter>Source\Shaders\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Shaders\Fur.cpp">
+      <Filter>Source\Shaders\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Shaders\Overlay.cpp">
+      <Filter>Source\Shaders\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Shaders\Position.cpp">
+      <Filter>Source\Shaders\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Shaders\Simple.cpp">
+      <Filter>Source\Shaders\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Shaders\Tattoo.cpp">
+      <Filter>Source\Shaders\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Shaders\Set Color.cpp">
+      <Filter>Source\Shaders\3D</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
