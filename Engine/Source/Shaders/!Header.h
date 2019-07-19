@@ -94,13 +94,12 @@
    #define ImageShadow sampler2DShadow
 #endif
 /******************************************************************************/
-// MODEL DEPENDENT FUNCTIONALITY
+// HELPERS
 /******************************************************************************/
 #if !CG
    #define PIXEL                     Vec4 pixel :SV_Position                // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
    #define IF_IS_FRONT               Bool front :SV_IsFrontFace ,           // face front side
    #define IF_IS_CLIP            out Flt  O_clip:SV_ClipDistance,           // clip plane distance
-   #define CLIP(pos)             O_clip=Dot(Vec4((pos).xyz, 1), ClipPlane)  // perform user plane clipping
 #if GL // on GL buffer name can't be the same as any of its members, so prepend '_'
    #define BUFFER(name)          cbuffer _##name {                             // declare a constant buffer
    #define BUFFER_I(name, index) cbuffer _##name : register(CONCAT(b,index)) { // declare a constant buffer with custom buffer index
@@ -120,7 +119,6 @@
    #define PIXEL                     Vec4 pixel:WPOS                        // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
    #define IF_IS_FRONT               Bool front:VFACE,                      // face front side
    #define IF_IS_CLIP            out Flt O_clip:BCOL1,                      // clip plane distance, this will generate "gl_BackSecondaryColor" which is later replaced with "gl_ClipDistance[0]"
-   #define CLIP(pos)             O_clip=Dot(Vec4((pos).xyz, 1), ClipPlane)  // perform user plane clipping
    #define BUFFER(name)                                                     // constant buffers (not available in OpenGL)
    #define BUFFER_I(name, index)                                            // constant buffers (not available in OpenGL)
    #define BUFFER_END                                                       // constant buffers (not available in OpenGL)
@@ -132,6 +130,8 @@
    #define TARGET2               COLOR2
    #define TARGET3               COLOR3
 #endif
+
+#define CLIP_PLANE(pos)   O_clip=Dot(Vec4((pos).xyz, 1), ClipPlane) // perform user plane clipping
 /******************************************************************************/
 // FUNCTIONS
 /******************************************************************************/

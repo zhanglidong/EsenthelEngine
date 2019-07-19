@@ -131,7 +131,7 @@ void VS
       }
    }
 
-   O_vtx=Project(O.pos); CLIP(O.pos);
+   O_vtx=Project(O.pos); CLIP_PLANE(O.pos);
 }
 /******************************************************************************/
 VecH4 PS

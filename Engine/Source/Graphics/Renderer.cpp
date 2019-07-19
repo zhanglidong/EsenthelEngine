@@ -1644,9 +1644,9 @@ void RendererClass::applyOutline()
 
       if(!Sh.Outline)
       {
-         Sh.Outline     =Sh.get("Outline");
-         Sh.OutlineDS   =Sh.get("OutlineDS");
-         Sh.OutlineClip =Sh.get("OutlineClip");
+         Sh.Outline     =Sh.get("Outline00");
+         Sh.OutlineDS   =Sh.get("Outline10");
+         Sh.OutlineClip =Sh.get("Outline01");
          Sh.OutlineApply=Sh.get("OutlineApply");
       }
 

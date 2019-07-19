@@ -57,7 +57,7 @@ void Base_VS
       UpdateVelocities_VS(outVel, vtx.pos(), outPos);
    }
    if(size)outLen=vtx.size();
-   CLIP(outPos); outVtx=Project(outPos);
+   CLIP_PLANE(outPos); outVtx=Project(outPos);
 }
 /******************************************************************************/
 void Base_PS

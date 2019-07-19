@@ -23,7 +23,7 @@ void VS
    Vec      pos;
    if(!skin)pos=TransformPos(vtx.pos());
    else     pos=TransformPos(vtx.pos(), vtx.bone(), vtx.weight());
-       CLIP(pos); outVtx=Project(pos);
+ CLIP_PLANE(pos); outVtx=Project(pos);
 }
 /******************************************************************************/
 VecH4 PS

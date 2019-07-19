@@ -313,7 +313,6 @@ static void Compile(API api)
    ShaderCompiler &compiler=ShaderCompilers.New().set(dest_path+"Main", model, api);
    {
       ShaderCompiler::Source &src=compiler.New(src_path+"Main.cpp");
-      // FIXME all shaders
                      src.New("Draw2DFlat", "Draw2DFlat_VS", "DrawFlat_PS");
                      src.New("Draw3DFlat", "Draw3DFlat_VS", "DrawFlat_PS");
       if(api!=API_DX)src.New("SetCol"    , "Draw_VS"      , "DrawFlat_PS"); // this version fails on DX
@@ -367,9 +366,6 @@ static void Compile(API api)
       src.New("DrawCubeFace", "DrawCubeFace_VS", "DrawCubeFace_PS");
       src.New("Simple", "Simple_VS", "Simple_PS");
 
-      src.New("EdgeDetect"     , "DrawPosXY_VS",      "EdgeDetect_PS");
-      src.New("EdgeDetectApply", "Draw_VS"     , "EdgeDetectApply_PS");
-
       src.New("Dither", "Draw_VS", "Dither_PS");
 
                      src.New("CombineSSAlpha", "Draw_VS", "CombineSSAlpha_PS");
@@ -389,6 +385,9 @@ static void Compile(API api)
          src.New("LinearizeDepth2", "DrawPixel_VS", "LinearizeDepth2_PS")("PERSPECTIVE", perspective).multiSample(true);
       }
 
+      src.New("EdgeDetect"     , "DrawPosXY_VS",      "EdgeDetect_PS");
+      src.New("EdgeDetectApply", "Draw_VS"     , "EdgeDetectApply_PS");
+
       src.New("PaletteDraw", "Draw_VS", "PaletteDraw_PS");
 
       if(api==API_GL)src.New("WebLToS", "Draw_VS", "WebLToS_PS"); // #WebSRGB
@@ -396,7 +395,7 @@ static void Compile(API api)
       src.New("Params0", "Draw_VS", "Params0_PS").dummy=true;
       src.New("Params1", "Draw_VS", "Params1_PS").dummy=true;
    }
-   {
+   { // BLOOM
       ShaderCompiler::Source &src=compiler.New(src_path+"Bloom.cpp");
       REPD(glow    , 2)
       REPD(clamp   , 2)
@@ -407,7 +406,7 @@ static void Compile(API api)
       REPD(dither, 2)
       REPD(gamma , 2)src.New("Bloom", "Draw_VS", "Bloom_PS")("DITHER", dither, "GAMMA", gamma);
    }
-   {
+   { // BLUR
       ShaderCompiler::Source &src=compiler.New(src_path+"Blur.cpp");
       src.New("BlurX", "Draw_VS", "BlurX_PS")("SAMPLES", 4);
       src.New("BlurX", "Draw_VS", "BlurX_PS")("SAMPLES", 6);
@@ -420,7 +419,7 @@ static void Compile(API api)
       src.New("MaxX", "Draw_VS", "MaxX_PS");
       src.New("MaxY", "Draw_VS", "MaxY_PS");
    }
-   {
+   { // CUBIC
       ShaderCompiler::Source &src=compiler.New(src_path+"Cubic.cpp");
       REPD(color, 2)
       {
@@ -435,11 +434,11 @@ static void Compile(API api)
          src.New("DrawTexCubicFRGB"    , "Draw_VS", "DrawTexCubicRGB_PS"    )("DITHER", dither);
       }
    }
-   {
+   { // FOG
       ShaderCompiler::Source &src=compiler.New(src_path+"Fog.cpp");
       REPD(multi_sample, 3)src.New("Fog", "DrawPosXY_VS", "Fog_PS")("MULTI_SAMPLE", multi_sample).multiSample(multi_sample>=2);
    }
-   {
+   { // FONT
       ShaderCompiler::Source &src=compiler.New(src_path+"Font.cpp");
       REPD(depth, 2)
       REPD(gamma, 2)
@@ -448,7 +447,7 @@ static void Compile(API api)
          src.New("FontSP", "FontSP_VS", "FontSP_PS")("SET_DEPTH", depth, "GAMMA", gamma);
       }
    }
-   {
+   { // LIGHT
       ShaderCompiler::Source &src=compiler.New(src_path+"Light.cpp");
       REPD(shadow      , 2)
       REPD(multi_sample, 2)
@@ -460,7 +459,7 @@ static void Compile(API api)
          REPD(image, 2)src.New("LightCone"  , "DrawPosXY_VS", "LightCone_PS"  ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality, "IMAGE", image);
       }
    }
-   {
+   { // LIGHT APPLY
       ShaderCompiler::Source &src=compiler.New(src_path+"Light Apply.cpp");
       REPD(multi_sample, 3)
       REPD(ao          , 2)
@@ -468,7 +467,7 @@ static void Compile(API api)
       REPD(night_shade , 2)
          src.New("ApplyLight", "Draw_VS", "ApplyLight_PS")("MULTI_SAMPLE", multi_sample, "AO", ao, "CEL_SHADE", cel_shade, "NIGHT_SHADE", night_shade);
    }
-   {
+   { // SHADOW
       ShaderCompiler::Source &src=compiler.New(src_path+"Shadow.cpp");
       REPD(multi_sample, 2)
       {
@@ -489,11 +488,27 @@ static void Compile(API api)
       src.New("ShdBlurX", "Draw_VS", "ShdBlurX_PS")("RANGE", 2);
       src.New("ShdBlurY", "Draw_VS", "ShdBlurY_PS")("RANGE", 2);
    }
-   {
+   { // OUTLINE
+      ShaderCompiler::Source &src=compiler.New(src_path+"Outline.cpp");
+      src.New("Outline", "Draw_VS", "Outline_PS")("DOWN_SAMPLE", 0, "CLIP", 0);
+      src.New("Outline", "Draw_VS", "Outline_PS")("DOWN_SAMPLE", 1, "CLIP", 0);
+      src.New("Outline", "Draw_VS", "Outline_PS")("DOWN_SAMPLE", 0, "CLIP", 1);
+      src.New("OutlineApply", "Draw_VS", "OutlineApply_PS");
+   }
+   { // PARTICLES
+      ShaderCompiler::Source &src=compiler.New(src_path+"Particles.cpp");
+      REPD(palette             , 2)
+      REPD(soft                , 2)
+      REPD(anim                , 3)
+      REPD(motion_affects_alpha, 2)
+         src.New("Particle", "Particle_VS", "Particle_PS")("PALETTE", palette, "SOFT", soft, "ANIM", anim)("MOTION_STRETCH", 1, "MOTION_AFFECTS_ALPHA", motion_affects_alpha);
+         src.New("Particle", "Particle_VS", "Particle_PS")("PALETTE",       0, "SOFT",    0, "ANIM",    0)("MOTION_STRETCH", 0, "MOTION_AFFECTS_ALPHA",                    0);
+   }
+   { // SKY
       ShaderCompiler::Source &src=compiler.New(src_path+"Sky.cpp");
       // FIXME
    }
-   {
+   { // SMAA
       ShaderCompiler::Source &src=compiler.New(src_path+"SMAA.cpp");
       REPD(gamma, 2)src.New("SMAAEdge" , "SMAAEdge_VS" , "SMAAEdge_PS" )("GAMMA", gamma);
                     src.New("SMAABlend", "SMAABlend_VS", "SMAABlend_PS");
@@ -504,7 +519,7 @@ static void Compile(API api)
                     src.New("MLAA"     , "MLAA_VS", "MLAA_PS"     );
                  #endif
    }
-   {
+   { // SUN
       ShaderCompiler::Source &src=compiler.New(src_path+"Sun.cpp");
       REPD(mask, 2)src.New("SunRaysMask", "DrawPosXY_VS", "SunRaysMask_PS")("MASK", mask);
 
@@ -514,16 +529,7 @@ static void Compile(API api)
       REPD(gamma , 2)
          src.New("SunRays", "DrawPosXY_VS", "SunRays_PS")("MASK", mask, "DITHER", dither, "JITTER", jitter, "GAMMA", gamma);
    }
-   {
-      ShaderCompiler::Source &src=compiler.New(src_path+"Particles.cpp");
-      REPD(palette             , 2)
-      REPD(soft                , 2)
-      REPD(anim                , 3)
-      REPD(motion_affects_alpha, 2)
-         src.New("Particle", "Particle_VS", "Particle_PS")("PALETTE", palette, "SOFT", soft, "ANIM", anim)("MOTION_STRETCH", 1, "MOTION_AFFECTS_ALPHA", motion_affects_alpha);
-         src.New("Particle", "Particle_VS", "Particle_PS")("PALETTE",       0, "SOFT",    0, "ANIM",    0)("MOTION_STRETCH", 0, "MOTION_AFFECTS_ALPHA",                    0);
-   }
-   {
+   { // VIDEO
       ShaderCompiler::Source &src=compiler.New(src_path+"Video.cpp");
       REPD(gamma, 2)
       REPD(alpha, 2)

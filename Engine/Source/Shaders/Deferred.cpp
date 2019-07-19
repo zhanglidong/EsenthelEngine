@@ -152,7 +152,7 @@ void VS
    if((bump_mode>=SBUMP_PARALLAX_MIN && bump_mode<=SBUMP_PARALLAX_MAX)
    || (bump_mode==SBUMP_RELIEF       && !RELIEF_TAN_POS              ))O._tpos=TransformTP(-O.pos, O.mtrx); // need high precision here, we can't Normalize because it's important to keep distances
 
-   O_vtx=Project(O.pos); CLIP(O.pos);
+   O_vtx=Project(O.pos); CLIP_PLANE(O.pos);
 }
 /******************************************************************************/
 // PS

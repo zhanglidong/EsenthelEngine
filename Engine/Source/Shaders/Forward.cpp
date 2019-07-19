@@ -114,15 +114,15 @@ void VS
             O.fade_out=GrassFadeOut();
          }
       }
-      CLIP(O.pos);
    }else
    {
       VecI bone=vtx.bone();
-      O.pos=TransformPos(pos, bone, vtx.weight()); CLIP(O.pos);
+      O.pos=TransformPos(pos, bone, vtx.weight());
 
       if(bump_mode>=SBUMP_FLAT)O.mtrx[2]=TransformDir(nrm, bone, vtx.weight());
       if(bump_mode> SBUMP_FLAT)O.mtrx[0]=TransformDir(tan, bone, vtx.weight());
    }
+   CLIP_PLANE(O.pos);
 
    // normalize (have to do all at the same time, so all have the same lengths)
    if(bump_mode>SBUMP_FLAT // calculating binormal (this also covers the case when we have tangent from heightmap which is not Normalized)
