@@ -71,7 +71,7 @@ static struct CpuDispatcherClass : PxCpuDispatcher // !!!!!!!!!!!!! if PhysX cra
    void                  del()
    {
    #if HAS_THREADS
-      threads.wait(); // make sure all are processed because we need to release the 'PxBaseTask'
+      threads.wait1(); // make sure all are processed because we need to release the 'PxBaseTask'
    #endif
    }
    CpuDispatcherClass& create()
