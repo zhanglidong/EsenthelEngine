@@ -97,7 +97,7 @@ struct GpuSun
 #pragma pack(pop)
 
 static INLINE Shader* GetSunRaysMask(Bool mask                                      ) {Shader* &s=Sh.SunRaysMask[mask]                       ; if(SLOW_SHADER_LOAD && !s)s=Sh.getSunRaysMask(mask                       ); return s;}
-static INLINE Shader* GetSunRays    (Bool high, Bool dither, Bool jitter, Bool gamma) {Shader* &s=Sh.SunRays    [high][dither][jitter][gamma]; if(SLOW_SHADER_LOAD && !s)s=Sh.getSunRays    (high, dither, jitter, gamma); return s;}
+static INLINE Shader* GetSunRays    (Bool mask, Bool dither, Bool jitter, Bool gamma) {Shader* &s=Sh.SunRays    [mask][dither][jitter][gamma]; if(SLOW_SHADER_LOAD && !s)s=Sh.getSunRays    (mask, dither, jitter, gamma); return s;}
 
 void SunClass::drawRays(Image *coverage, Vec &color)
 {

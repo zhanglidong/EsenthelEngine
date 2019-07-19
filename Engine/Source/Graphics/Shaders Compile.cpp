@@ -382,6 +382,16 @@ static void Compile(API api)
       src.New("ShdBlurY", "Draw_VS", "ShdBlurY_PS")("RANGE", 2);
    }
    {
+      ShaderCompiler::Source &src=compiler.New(src_path+"Sun.cpp");
+      REPD(mask, 2)src.New("SunRaysMask", "DrawPosXY_VS", "SunRaysMask_PS")("MASK", mask);
+
+      REPD(mask  , 2)
+      REPD(dither, 2)
+      REPD(jitter, 2)
+      REPD(gamma , 2)
+         src.New("SunRays", "DrawPosXY_VS", "SunRays_PS")("MASK", mask, "DITHER", dither, "JITTER", jitter, "GAMMA", gamma);
+   }
+   {
       ShaderCompiler::Source &src=compiler.New(src_path+"Particles.cpp");
       REPD(palette             , 2)
       REPD(soft                , 2)

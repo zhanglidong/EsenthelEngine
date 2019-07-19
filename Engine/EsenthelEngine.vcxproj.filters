@@ -2120,6 +2120,9 @@
     <ClCompile Include="Source\Shaders\Shadow.cpp">
       <Filter>Source\Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Shaders\Sun.cpp">
+      <Filter>Source\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Source\Platforms\Mac\MyApplication.mm">
