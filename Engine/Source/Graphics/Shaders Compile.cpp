@@ -316,8 +316,43 @@ static void Compile(API api)
    {
       ShaderCompiler::Source &src=compiler.New(src_path+"Main.cpp");
       // FIXME all shaders
+                     src.New("Draw2DFlat", "Draw2DFlat_VS", "DrawFlat_PS");
+                     src.New("Draw3DFlat", "Draw3DFlat_VS", "DrawFlat_PS");
+      if(api!=API_DX)src.New("SetCol"    , "Draw_VS"      , "DrawFlat_PS"); // this version fails on DX
+      else           src.New("SetCol"    , "SetCol_VS"    , "SetCol_PS"  ); // THERE IS A BUG ON NVIDIA GEFORCE DX10+ when trying to clear normal render target using SetCol "Bool clear_nrm=(_nrm && !NRM_CLEAR_START && ClearNrm());", with D.depth2DOn(true) entire RT is cleared instead of background pixels only, this was verified on Windows 10 GeForce 650m, drivers 381, this version works OK on DX, TODO: check again in the future and remove SetCol_VS SetCol_PS
+
+      src.New("Draw2DCol", "Draw2DCol_VS", "Draw2DCol_PS");
+      src.New("Draw3DCol", "Draw3DCol_VS", "Draw3DCol_PS");
+
+      src.New("Draw2DTex" , "Draw2DTex_VS",  "Draw2DTex_PS");
+      src.New("Draw2DTexC", "Draw2DTex_VS", "Draw2DTexC_PS");
+
+      src.New("DrawTexX", "Draw2DTex_VS", "DrawTexX_PS");
+      src.New("DrawTexY", "Draw2DTex_VS", "DrawTexY_PS");
+      src.New("DrawTexZ", "Draw2DTex_VS", "DrawTexZ_PS");
+      src.New("DrawTexW", "Draw2DTex_VS", "DrawTexW_PS");
+
+      src.New("DrawTexXG", "Draw2DTex_VS", "DrawTexXG_PS");
+      src.New("DrawTexYG", "Draw2DTex_VS", "DrawTexYG_PS");
+      src.New("DrawTexZG", "Draw2DTex_VS", "DrawTexZG_PS");
+      src.New("DrawTexWG", "Draw2DTex_VS", "DrawTexWG_PS");
+
+      src.New("DrawTexNrm", "Draw2DTex_VS", "DrawTexNrm_PS");
+      src.New("Draw"      ,      "Draw_VS",  "Draw2DTex_PS");
+      src.New("DrawC"     ,      "Draw_VS", "Draw2DTexC_PS");
+      src.New("DrawCG"    ,      "Draw_VS", "DrawTexCG_PS");
+      src.New("DrawG"     ,      "Draw_VS", "DrawTexG_PS");
+      src.New("DrawA"     ,      "Draw_VS", "Draw2DTexA_PS");
+
+      src.New("DrawTexPoint" , "Draw2DTex_VS", "DrawTexPoint_PS");
+      src.New("DrawTexPointC", "Draw2DTex_VS", "DrawTexPointC_PS");
+
+      src.New("Draw2DTexCol", "Draw2DTexCol_VS", "Draw2DTexCol_PS");
+
       src.New("PaletteDraw", "Draw_VS", "PaletteDraw_PS");
+
       if(api==API_GL)src.New("WebLToS", "Draw_VS", "WebLToS_PS"); // #WebSRGB
+
       src.New("Params0", "Draw_VS", "Params0_PS").dummy=true;
       src.New("Params1", "Draw_VS", "Params1_PS").dummy=true;
    }

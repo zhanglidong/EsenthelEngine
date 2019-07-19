@@ -31,12 +31,6 @@ VecH4 Test_PS(NOPERSP Vec2 inTex:TEXCOORD,
       return VecH4(r, mode, 1);
    }
 }
-#define TECHNIQUE5(name, vs, ps)   technique11 name{pass p0{SetVertexShader(CompileShader(vs_5_0, vs)); SetPixelShader(CompileShader(ps_5_0, ps));}}
-TECHNIQUE5(Test , Draw_VS(), Test_PS(0));
-TECHNIQUE5(Test1, Draw_VS(), Test_PS(1));
-
-TECHNIQUE(Test , Draw_VS(), Test_PS(0));
-TECHNIQUE(Test1, Draw_VS(), Test_PS(1));
 /******************************************************************************/
 // SHADERS
 /******************************************************************************/
@@ -45,11 +39,6 @@ Vec4 Draw3DFlat_VS(VtxInput vtx):POSITION {return Project(TransformPos(vtx.pos()
 
 VecH4 DrawFlat_PS():TARGET {return Color[0];}
 
-TECHNIQUE(Draw2DFlat, Draw2DFlat_VS(), DrawFlat_PS());
-TECHNIQUE(Draw3DFlat, Draw3DFlat_VS(), DrawFlat_PS());
-#if !DX // THERE IS A BUG ON NVIDIA GEFORCE DX10+ when trying to clear normal render target using SetCol "Bool clear_nrm=(_nrm && !NRM_CLEAR_START && ClearNrm());", with D.depth2DOn(true) entire RT is cleared instead of background pixels only, this was verified on Windows 10 GeForce 650m, drivers 381, TODO: check again in the future
-TECHNIQUE(SetCol    , Draw_VS      (), DrawFlat_PS()); // this version fails on DX
-#else // this version works OK on DX
 void SetCol_VS(VtxInput vtx,
            out VecH4 outCol:COLOR   ,
            out Vec4  outVtx:POSITION)
@@ -58,8 +47,6 @@ void SetCol_VS(VtxInput vtx,
    outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
 VecH4 SetCol_PS(NOPERSP VecH4 inCol:COLOR):TARGET {return inCol;}
-TECHNIQUE(SetCol, SetCol_VS(), SetCol_PS());
-#endif
 /******************************************************************************/
 void Draw2DCol_VS(VtxInput vtx,
               out VecH4 outCol:COLOR   ,
@@ -69,8 +56,6 @@ void Draw2DCol_VS(VtxInput vtx,
    outVtx=Vec4(vtx.pos2 ()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
 }
 VecH4 Draw2DCol_PS(NOPERSP VecH4 inCol:COLOR):TARGET {return inCol;}
-
-TECHNIQUE(Draw2DCol, Draw2DCol_VS(), Draw2DCol_PS());
 /******************************************************************************/
 void Draw3DCol_VS(VtxInput vtx,
               out VecH4 outCol:COLOR   ,
@@ -80,8 +65,6 @@ void Draw3DCol_VS(VtxInput vtx,
    outVtx=Project(TransformPos(vtx.pos()));
 }
 VecH4 Draw3DCol_PS(VecH4 inCol:COLOR):TARGET {return inCol;}
-
-TECHNIQUE(Draw3DCol, Draw3DCol_VS(), Draw3DCol_PS());
 /******************************************************************************/
 VecH4 Draw2DTex_PS (NOPERSP Vec2 inTex:TEXCOORD):TARGET {return       Tex(Img, inTex);}
 VecH4 Draw2DTexC_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return       Tex(Img, inTex)*Color[0]+Color[1];}
@@ -112,26 +95,6 @@ VecH4 DrawTexNrm_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    return VecH4(nrm, 1);
 }
 
-TECHNIQUE(Draw2DTex , Draw2DTex_VS(),  Draw2DTex_PS());
-TECHNIQUE(Draw2DTexC, Draw2DTex_VS(), Draw2DTexC_PS());
-
-TECHNIQUE(DrawTexX, Draw2DTex_VS(), DrawTexX_PS());
-TECHNIQUE(DrawTexY, Draw2DTex_VS(), DrawTexY_PS());
-TECHNIQUE(DrawTexZ, Draw2DTex_VS(), DrawTexZ_PS());
-TECHNIQUE(DrawTexW, Draw2DTex_VS(), DrawTexW_PS());
-
-TECHNIQUE(DrawTexXG, Draw2DTex_VS(), DrawTexXG_PS());
-TECHNIQUE(DrawTexYG, Draw2DTex_VS(), DrawTexYG_PS());
-TECHNIQUE(DrawTexZG, Draw2DTex_VS(), DrawTexZG_PS());
-TECHNIQUE(DrawTexWG, Draw2DTex_VS(), DrawTexWG_PS());
-
-TECHNIQUE(DrawTexNrm, Draw2DTex_VS(), DrawTexNrm_PS());
-TECHNIQUE(Draw      ,      Draw_VS(),  Draw2DTex_PS());
-TECHNIQUE(DrawC     ,      Draw_VS(), Draw2DTexC_PS());
-TECHNIQUE(DrawCG    ,      Draw_VS(), DrawTexCG_PS());
-TECHNIQUE(DrawG     ,      Draw_VS(), DrawTexG_PS());
-TECHNIQUE(DrawA     ,      Draw_VS(), Draw2DTexA_PS());
-
 VecH4 DrawX_PS (NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(             Tex(ImgX, inTex)   .xxx, 1);}
 VecH4 DrawXG_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return VecH4(SRGBToLinear(Tex(ImgX, inTex).x).xxx, 1);}
 VecH4 DrawXC_PS(NOPERSP Vec2 inTex:TEXCOORD,
@@ -153,8 +116,6 @@ TECHNIQUE(DrawXCDG, Draw_VS(), DrawXC_PS(true , true));
 
 VecH4 DrawTexPoint_PS (NOPERSP Vec2 inTex:TEXCOORD):TARGET {return TexPoint(Img, inTex);}
 VecH4 DrawTexPointC_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return TexPoint(Img, inTex)*Color[0]+Color[1];}
-TECHNIQUE(DrawTexPoint , Draw2DTex_VS(), DrawTexPoint_PS ());
-TECHNIQUE(DrawTexPointC, Draw2DTex_VS(), DrawTexPointC_PS());
 /******************************************************************************/
 void Draw2DTexCol_VS(VtxInput vtx,
                  out Vec2  outTex:TEXCOORD,
@@ -170,7 +131,6 @@ VecH4 Draw2DTexCol_PS(NOPERSP Vec2  inTex:TEXCOORD,
 {
    return Tex(Img, inTex)*inCol;
 }
-TECHNIQUE(Draw2DTexCol, Draw2DTexCol_VS(), Draw2DTexCol_PS());
 /******************************************************************************/
 void Draw3DTex_VS(VtxInput vtx,
               out Vec2  outTex:TEXCOORD,
@@ -552,11 +512,9 @@ VecH4 PaletteDraw_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
                 +c2.rgb*c2.a
                 +c3.rgb*c3.a)/(a+HALF_MIN), a); // NaN
 }
-TECHNIQUE(PaletteDraw, Draw_VS(), PaletteDraw_PS());
 /******************************************************************************/
 #if GL // #WebSRGB
 VecH4 WebLToS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return LinearToSRGB(TexLod(Img, inTex));}
-TECHNIQUE(WebLToS, Draw_VS(), WebLToS_PS());
 #endif
 /******************************************************************************/
 // Dummy used only to obtain info about ConstantBuffers/ShaderParams
