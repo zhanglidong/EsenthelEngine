@@ -254,6 +254,16 @@ Vec4 Simple_PS(Vec2  inTex:TEXCOORD,
    return Tex(Img, inTex)*inCol;
 }
 /******************************************************************************/
+VecH4 Dither_PS(NOPERSP Vec2 inTex:TEXCOORD,
+                NOPERSP PIXEL):TARGET
+{
+   VecH4 col=VecH4(TexLod(Img, inTex).rgb, 1); // force full alpha so back buffer effects can work ok, can't use 'TexPoint' because 'Img' can be of different size
+   ApplyDither(col.rgb, pixel.xy);
+   return col;
+}
+/******************************************************************************/
+// OUTLINE
+/******************************************************************************/
 VecH4 Outline_PS(NOPERSP Vec2 inTex:TEXCOORD,
                  uniform Bool clip_do       ,
                  uniform Bool down_sample=false):TARGET
@@ -302,6 +312,8 @@ TECHNIQUE(OutlineDS   , Draw_VS(),      Outline_PS(false, true));
 TECHNIQUE(OutlineClip , Draw_VS(),      Outline_PS(true ));
 TECHNIQUE(OutlineApply, Draw_VS(), OutlineApply_PS());
 /******************************************************************************/
+// EDGE DETECT
+/******************************************************************************/
 VecH4 EdgeDetect_PS(NOPERSP Vec2 inTex  :TEXCOORD ,
                     NOPERSP Vec2 inPosXY:TEXCOORD1):TARGET // use VecH4 because we may want to apply this directly onto RGBA destination
 {
@@ -332,13 +344,7 @@ VecH4 EdgeDetectApply_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // use VecH4 becaus
    return color/(samples+1); // Sqr could be used on the result, to make darkening much stronger
 }
 /******************************************************************************/
-VecH4 Dither_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                NOPERSP PIXEL):TARGET
-{
-   VecH4 col=VecH4(TexLod(Img, inTex).rgb, 1); // force full alpha so back buffer effects can work ok, can't use 'TexPoint' because 'Img' can be of different size
-   ApplyDither(col.rgb, pixel.xy);
-   return col;
-}
+// COMBINE
 /******************************************************************************/
 Half CombineSSAlpha_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
@@ -371,6 +377,8 @@ VecH4 Combine_PS(NOPERSP Vec2 inTex:TEXCOORD,
    return col;
 }
 /******************************************************************************/
+// MULTI SAMPLE
+/******************************************************************************/
 // 'Depth'   can't be used because it's            1-sample
 // 'DepthMs' can't be used because it's always multi-sampled (all samples are different)
 void DetectMSCol_PS(NOPERSP PIXEL)
@@ -400,7 +408,8 @@ void DetectMSCol_PS(NOPERSP PIXEL)
      +Dist2(nrms[0], nrms[3])<=Half(some eps))discard;
 #endif
 }
-TECHNIQUE(DetectMSNrm, DrawPixel_VS(), DetectMSNrm_PS());
+/******************************************************************************/
+// DEPTH
 /******************************************************************************/
 void ResolveDepth_PS(NOPERSP PIXEL,
                          out Flt depth:DEPTH)
@@ -449,6 +458,8 @@ Flt LinearizeDepth2_PS(NOPERSP PIXEL,
 }
 #endif
 /******************************************************************************/
+// PALETTE
+/******************************************************************************/
 VecH4 PaletteDraw_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
    VecH4 particle=TexLod(Img, inTex); // use linear filtering in case in the future we support downsized palette intensities (for faster fill-rate)
@@ -467,11 +478,12 @@ VecH4 PaletteDraw_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
                 +c3.rgb*c3.a)/(a+HALF_MIN), a); // NaN
 }
 /******************************************************************************/
+// DUMMY - used only to obtain info about ConstantBuffers/ShaderParams
+/******************************************************************************/
+Flt Params0_PS():TARGET {return VtxHeightmap+ObjVel[0].x+FurVel[0].x+MaterialAlpha()+MultiMaterial0TexScale()+MultiMaterial1TexScale()+MultiMaterial2TexScale()+MultiMaterial3TexScale()+Step+BehindBias;}
+Flt Params1_PS():TARGET {return AmbColor.x+AmbContrast+HdrBrightness;}
+/******************************************************************************/
 #if GL // #WebSRGB
 VecH4 WebLToS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return LinearToSRGB(TexLod(Img, inTex));}
 #endif
-/******************************************************************************/
-// Dummy used only to obtain info about ConstantBuffers/ShaderParams
-Flt Params0_PS():TARGET {return VtxHeightmap+ObjVel[0].x+FurVel[0].x+MaterialAlpha()+MultiMaterial0TexScale()+MultiMaterial1TexScale()+MultiMaterial2TexScale()+MultiMaterial3TexScale()+Step+BehindBias;}
-Flt Params1_PS():TARGET {return AmbColor.x+AmbContrast+HdrBrightness;}
 /******************************************************************************/

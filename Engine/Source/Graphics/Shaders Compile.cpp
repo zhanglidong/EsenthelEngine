@@ -376,6 +376,7 @@ static void Compile(API api)
       REPD(sample, 3)src.New("Combine"       , "Draw_VS", "Combine_PS")("SAMPLE", sample);
 
       src.New("DetectMSCol", "DrawPixel_VS", "DetectMSCol_PS");
+    //src.New("DetectMSNrm", "DrawPixel_VS", "DetectMSNrm_PS");
 
       src.New("ResolveDepth", "DrawPixel_VS", "ResolveDepth_PS");
       src.New("SetDepth", "Draw_VS", "SetDepth_PS");
