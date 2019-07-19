@@ -1310,6 +1310,25 @@ void Threads::_wait(Ptr data, void func(Ptr data, Ptr user, Int thread_index), P
       }
    }
 }
+Threads& Threads::wait1()
+{
+   Call call;
+again:
+   if(callsLeft())
+   {
+      SyncLockerEx locker(_lock_calls); if(callsLeft())
+      {
+         if(_ordered){call=_calls[_calls_pos++]; checkEnd();}
+         else        {call=_calls.last(); _calls.removeLast();}
+         // can't check '_waiting' here during lock, because 'Threads.wait' could happen later, during the 'call.call'
+         locker.off();
+         call.call(threads()); // set 'thread_index' to be "last_thread_index+1", have to use 'threads' because we don't know which threads (with what indexes) are going to wake up, but we have to make sure they won't overlap
+         if(Int waiting=AtomicGet(_waiting))_queued_finished+=waiting; // notify of finished processing only if there are any waiting threads (to avoid overhead of +=), this is needed for 'Threads.wait', this is not perfect because there is a small possibility that when 2 threads are waiting, 1 of them would quickly consume both notifications
+         goto again;
+      }
+   }
+   return wait(); // wait until other threads finished their tasks
+}
 /******************************************************************************/
 Int Threads::queued()C
 {

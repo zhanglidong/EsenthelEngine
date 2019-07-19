@@ -412,6 +412,10 @@ static void Compile(API api)
       src.New("ShdBlurY", "Draw_VS", "ShdBlurY_PS")("RANGE", 2);
    }
    {
+      ShaderCompiler::Source &src=compiler.New(src_path+"Sky.cpp");
+      // FIXME
+   }
+   {
       ShaderCompiler::Source &src=compiler.New(src_path+"SMAA.cpp");
       REPD(gamma, 2)src.New("SMAAEdge" , "SMAAEdge_VS" , "SMAAEdge_PS" )("GAMMA", gamma);
                     src.New("SMAABlend", "SMAABlend_VS", "SMAABlend_PS");

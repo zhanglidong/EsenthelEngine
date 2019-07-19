@@ -762,7 +762,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
          }
       }
    }
-   threads.wait();
+   threads.wait1();
    Map<Str8, Buffer*> buffers(CompareCS, Create);
    Memc<Str8>         images;
    Memc<ShaderData>   shader_datas[ST_NUM];
@@ -803,7 +803,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
          Memc<ShaderData> &sds=shader_datas[i];
          FREPA(sds)threads.queue(sds[i], Convert, cc);
       }
-      threads.wait();
+      threads.wait1();
    }
 
    File f; if(f.writeTry(dest))
