@@ -331,18 +331,22 @@ void ShaderCompiler::Param::addTranslation(ID3D11ShaderReflectionType *type, C D
          if(type_desc.Type==D3D_SVT_FLOAT || (ALLOW_MIN16 && min16))
          {
             Int base_size=(half ? SIZE(Half) : SIZE(Flt)),
-                     size=base_size*type_desc.Rows*type_desc.Columns;
-            if(offset/16 != (offset+size-1)/16 || (ALLOW_MIN16 && was_min16>=0 && was_min16!=(Byte)min16))offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary."
+                 cpu_size=base_size*type_desc.Columns*   type_desc.Rows,
+                 gpu_size;
+            if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)gpu_size=cpu_size;
+            else                                       gpu_size=base_size*4             *(type_desc.Columns-1) // for matrixes, the lines use  4 X's
+                                                               +base_size*type_desc.Rows;                      //       except last line  uses what was specified
+            if(offset/16 != (offset+gpu_size-1)/16 || (ALLOW_MIN16 && was_min16>=0 && was_min16!=(Byte)min16))offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary."
             if(!half)cpu_data_size=Ceil4(cpu_data_size); // float's are 4-byte aligned on CPU, double too if using #pragma pack(4)
 
-            if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)translation.New().set(cpu_data_size, offset, size);else
+            if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)translation.New().set(cpu_data_size, offset, cpu_size);else
             {
                FREPD(y, type_desc.Columns)
                FREPD(x, type_desc.Rows   )translation.New().set(cpu_data_size+base_size*(y+x*type_desc.Columns), offset+base_size*(x+y*4), base_size);
             }
                   
-            cpu_data_size+=size;
-                   offset+=((i==last_index) ? size : Ceil16(size)); // arrays are 16-byte aligned, and last element is 'size' only
+            cpu_data_size+=cpu_size;
+                   offset+=((i==last_index) ? gpu_size : Ceil16(gpu_size)); // arrays are 16-byte aligned, and last element is 'gpu_size' only
             was_min16=min16;
          }else Exit(S+"Unhandled Shader Parameter Type for \""+name+'"');
       }break;

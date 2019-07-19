@@ -575,12 +575,12 @@ void MainShaderClass::getTechniques()
 
    // PARTICLE
    ParticleFrames=GetShaderParam("ParticleFrames");
-   Bilb          =get("Bilb");
-   REPD(p, 2)
-   REPD(s, 2)
-   REPD(a, 3)
-   REPD(m, 2)
-      Particle[p][s][a][m]=get(S8+"ParticleTex"+(p?'P':'\0')+(s?'S':'\0')+((a==0) ? "" : (a==1) ? "A" : "AA")+(m?'M':'\0'));
+   REPD(palette             , 2)
+   REPD(soft                , 2)
+   REPD(anim                , 3)
+   REPD(motion_affects_alpha, 2)
+      Particle[palette][soft][anim][motion_affects_alpha]=get(S8+"Particle"+palette+soft+anim+ 1 +motion_affects_alpha);
+      Bilb                                               =get(S8+"Particle"+      0+   0+   0+ 0 +                   0);
 
    // FOG
    FogColor       =GetShaderParam(     "FogColor"  );

@@ -338,6 +338,15 @@ static void Compile(API api)
                     src.New("MLAA"     , "MLAA_VS", "MLAA_PS"     );
                  #endif
    }
+   {
+      ShaderCompiler::Source &src=compiler.New(src_path+"Particles.cpp");
+      REPD(palette             , 2)
+      REPD(soft                , 2)
+      REPD(anim                , 3)
+      REPD(motion_affects_alpha, 2)
+         src.New("Particle", "Particle_VS", "Particle_PS")("PALETTE", palette, "SOFT", soft, "ANIM", anim)("MOTION_STRETCH", 1, "MOTION_AFFECTS_ALPHA", motion_affects_alpha);
+         src.New("Particle", "Particle_VS", "Particle_PS")("PALETTE",       0, "SOFT",    0, "ANIM",    0)("MOTION_STRETCH", 0, "MOTION_AFFECTS_ALPHA",                    0);
+   }
    if(api==API_GL)src.New("WebLToS", "Draw_VS", "WebLToS_PS"); // #WebSRGB
 }
 #endif

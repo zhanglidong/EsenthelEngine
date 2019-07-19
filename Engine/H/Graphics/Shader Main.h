@@ -266,7 +266,7 @@ struct MainShaderClass
 
       // PARTICLE
       *Bilb                ,
-      *Particle[2][2][3][2], // [Palette] [Soft] [Anim] [Motion stretch affects opacity]
+      *Particle[2][2][3][2], // [Palette] [Soft] [Anim] [MotionAffectsAlpha]
 
       // POINT
       *DrawTexPoint ,
