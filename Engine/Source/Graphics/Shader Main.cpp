@@ -184,12 +184,12 @@ Shader* MainShaderClass::getShdDir  (Int map_num, Bool clouds, Bool multi_sample
 Shader* MainShaderClass::getShdPoint(                          Bool multi_sample) {return get(S8+"ShdPoint"                        +(multi_sample?'M':'\0'));}
 Shader* MainShaderClass::getShdCone (                          Bool multi_sample) {return get(S8+"ShdCone"                         +(multi_sample?'M':'\0'));}
 
-Shader* MainShaderClass::getLightDir   (Bool shadow,             Bool multi_sample, Bool quality) {return get(S8+"LightDir"   +(shadow?'S':'\0')+((quality && !multi_sample)?'Q':'\0')                 +(multi_sample?'M':'\0'));} // MSAA doesn't have quality version (to make it faster)
-Shader* MainShaderClass::getLightPoint (Bool shadow,             Bool multi_sample, Bool quality) {return get(S8+"LightPoint" +(shadow?'S':'\0')+((quality && !multi_sample)?'Q':'\0')                 +(multi_sample?'M':'\0'));} // MSAA doesn't have quality version (to make it faster)
-Shader* MainShaderClass::getLightLinear(Bool shadow,             Bool multi_sample, Bool quality) {return get(S8+"LightLinear"+(shadow?'S':'\0')+((quality && !multi_sample)?'Q':'\0')                 +(multi_sample?'M':'\0'));} // MSAA doesn't have quality version (to make it faster)
-Shader* MainShaderClass::getLightCone  (Bool shadow, Bool image, Bool multi_sample, Bool quality) {return get(S8+"LightCone"  +(shadow?'S':'\0')+((quality && !multi_sample)?'Q':'\0')+(image?'I':'\0')+(multi_sample?'M':'\0'));} // MSAA doesn't have quality version (to make it faster)
+Shader* MainShaderClass::getLightDir   (Bool shadow, Bool multi_sample, Bool quality            ) {return get(S8+"LightDir"   +shadow+multi_sample+(quality && !multi_sample)      );} // MSAA doesn't have quality version (to make it faster)
+Shader* MainShaderClass::getLightPoint (Bool shadow, Bool multi_sample, Bool quality            ) {return get(S8+"LightPoint" +shadow+multi_sample+(quality && !multi_sample)      );} // MSAA doesn't have quality version (to make it faster)
+Shader* MainShaderClass::getLightLinear(Bool shadow, Bool multi_sample, Bool quality            ) {return get(S8+"LightLinear"+shadow+multi_sample+(quality && !multi_sample)      );} // MSAA doesn't have quality version (to make it faster)
+Shader* MainShaderClass::getLightCone  (Bool shadow, Bool multi_sample, Bool quality, Bool image) {return get(S8+"LightCone"  +shadow+multi_sample+(quality && !multi_sample)+image);} // MSAA doesn't have quality version (to make it faster)
 
-Shader* MainShaderClass::getColLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade) {return get(S8+"ColLight"+multi_sample+(ao?'A':'\0')+(cel_shade?'C':'\0')+(night_shade?'N':'\0'));}
+Shader* MainShaderClass::getApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade) {return get(S8+"ApplyLight"+multi_sample+ao+cel_shade+night_shade);}
 
 Shader* MainShaderClass::getSunRaysMask(Bool mask                                      ) {return get(S8+"SunRaysMask"+(mask?'1':'\0'));}
 Shader* MainShaderClass::getSunRays    (Bool high, Bool dither, Bool jitter, Bool gamma) {return get(S8+"SunRays"    +(high?'H':'\0')+(dither?'D':'\0')+(jitter?'J':'\0')+(gamma?'G':'\0'));}
@@ -559,17 +559,17 @@ void MainShaderClass::getTechniques()
       REPD(s, 2) // shadow
       REPD(q, 2) // quality unpack
       {
-                   LightDir   [s]   [m][q]=getLightDir   (s,    m, q);
-                   LightPoint [s]   [m][q]=getLightPoint (s,    m, q);
-                   LightLinear[s]   [m][q]=getLightLinear(s,    m, q);
-         REPD(i, 2)LightCone  [s][i][m][q]=getLightCone  (s, i, m, q);
+                   LightDir   [s][m][q]   =getLightDir   (s, m, q);
+                   LightPoint [s][m][q]   =getLightPoint (s, m, q);
+                   LightLinear[s][m][q]   =getLightLinear(s, m, q);
+         REPD(i, 2)LightCone  [s][m][q][i]=getLightCone  (s, m, q, i);
       }
 
       // COL LIGHT
       REPD(m, (D.shaderModel()>=SM_4_1) ? 3 : 1)
       REPD(a, 2)
       REPD(c, 2)
-      REPD(n, 2)ColLight[m][a][c][n]=getColLight(m, a, c, n);
+      REPD(n, 2)ApplyLight[m][a][c][n]=getApplyLight(m, a, c, n);
    }
 #endif
 

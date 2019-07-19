@@ -2111,6 +2111,12 @@
     <ClCompile Include="Source\Shaders\Particles.cpp">
       <Filter>Source\Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Shaders\Light.cpp">
+      <Filter>Source\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Shaders\Light Apply.cpp">
+      <Filter>Source\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Source\Platforms\Mac\MyApplication.mm">

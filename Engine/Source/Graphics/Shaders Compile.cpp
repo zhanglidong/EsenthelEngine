@@ -315,7 +315,11 @@ static void Compile(API api)
 #ifdef MAIN_NEW
 {
    ShaderCompiler &compiler=ShaderCompilers.New().set(dest_path+"Main", model, api);
-   ShaderCompiler::Source &src=compiler.New(src_path+"Main.cpp");
+   {
+      ShaderCompiler::Source &src=compiler.New(src_path+"Main.cpp");
+      src.New("PaletteDraw", "Draw_VS", "PaletteDraw_PS");
+      if(api==API_GL)src.New("WebLToS", "Draw_VS", "WebLToS_PS"); // #WebSRGB
+   }
    {
       ShaderCompiler::Source &src=compiler.New(src_path+"Bloom.cpp");
       REPD(glow    , 2)
@@ -339,6 +343,26 @@ static void Compile(API api)
                  #endif
    }
    {
+      ShaderCompiler::Source &src=compiler.New(src_path+"Light.cpp");
+      REPD(shadow      , 2)
+      REPD(multi_sample, 2)
+      REPD(quality     , multi_sample ? 1 : 2) // no Quality version for MSAA
+      {
+                       src.New("LightDir"   , "DrawPosXY_VS", "LightDir_PS"   ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality);
+                       src.New("LightPoint" , "DrawPosXY_VS", "LightPoint_PS" ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality);
+                       src.New("LightLinear", "DrawPosXY_VS", "LightLinear_PS").multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality);
+         REPD(image, 2)src.New("LightCone"  , "DrawPosXY_VS", "LightCone_PS"  ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality, "IMAGE", image);
+      }
+   }
+   {
+      ShaderCompiler::Source &src=compiler.New(src_path+"Light Apply.cpp");
+      REPD(multi_sample, 3)
+      REPD(ao          , 2)
+      REPD(  cel_shade , 2)
+      REPD(night_shade , 2)
+         src.New("ApplyLight", "Draw_VS", "ApplyLight_PS")("MULTI_SAMPLE", multi_sample, "AO", ao, "CEL_SHADE", cel_shade, "NIGHT_SHADE", night_shade);
+   }
+   {
       ShaderCompiler::Source &src=compiler.New(src_path+"Particles.cpp");
       REPD(palette             , 2)
       REPD(soft                , 2)
@@ -347,7 +371,6 @@ static void Compile(API api)
          src.New("Particle", "Particle_VS", "Particle_PS")("PALETTE", palette, "SOFT", soft, "ANIM", anim)("MOTION_STRETCH", 1, "MOTION_AFFECTS_ALPHA", motion_affects_alpha);
          src.New("Particle", "Particle_VS", "Particle_PS")("PALETTE",       0, "SOFT",    0, "ANIM",    0)("MOTION_STRETCH", 0, "MOTION_AFFECTS_ALPHA",                    0);
    }
-   if(api==API_GL)src.New("WebLToS", "Draw_VS", "WebLToS_PS"); // #WebSRGB
 }
 #endif
 

@@ -301,19 +301,19 @@ struct MainShaderClass
 
    // LIGHT
    Shader
-      *LightDir   [2]   [2][2], // [Shadow]         [MultiSample] [QualityUnpack]
-      *LightPoint [2]   [2][2], // [Shadow]         [MultiSample] [QualityUnpack]
-      *LightLinear[2]   [2][2], // [Shadow]         [MultiSample] [QualityUnpack]
-      *LightCone  [2][2][2][2]; // [Shadow] [Image] [MultiSample] [QualityUnpack]
-   Shader* getLightDir   (Bool shadow,             Bool multi_sample, Bool quality);
-   Shader* getLightPoint (Bool shadow,             Bool multi_sample, Bool quality);
-   Shader* getLightLinear(Bool shadow,             Bool multi_sample, Bool quality);
-   Shader* getLightCone  (Bool shadow, Bool image, Bool multi_sample, Bool quality);
+      *LightDir   [2][2][2]   , // [Shadow] [MultiSample] [QualityUnpack]
+      *LightPoint [2][2][2]   , // [Shadow] [MultiSample] [QualityUnpack]
+      *LightLinear[2][2][2]   , // [Shadow] [MultiSample] [QualityUnpack]
+      *LightCone  [2][2][2][2]; // [Shadow] [MultiSample] [QualityUnpack] [Image]
+   Shader* getLightDir   (Bool shadow, Bool multi_sample, Bool quality);
+   Shader* getLightPoint (Bool shadow, Bool multi_sample, Bool quality);
+   Shader* getLightLinear(Bool shadow, Bool multi_sample, Bool quality);
+   Shader* getLightCone  (Bool shadow, Bool multi_sample, Bool quality, Bool image);
 
-   // COL LIGHT
+   // APPLY LIGHT
    Shader
-      *ColLight[3][2][2][2]; // [Multisample] [AmbientOcclusion] [CelShade] [NightShade]
-   Shader* getColLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade);
+      *ApplyLight[3][2][2][2]; // [Multisample] [AmbientOcclusion] [CelShade] [NightShade]
+   Shader* getApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade);
 
    // BLOOM
    ShaderParam

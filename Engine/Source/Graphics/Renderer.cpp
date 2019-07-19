@@ -1303,7 +1303,7 @@ void RendererClass::ao()
    }
    if(foreground)D.depth2DOff();
 }
-INLINE Shader* GetColLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade) {Shader* &s=Sh.ColLight[multi_sample][ao][cel_shade][night_shade]; if(SLOW_SHADER_LOAD && !s)s=Sh.getColLight(multi_sample, ao, cel_shade, night_shade); return s;}
+INLINE Shader* GetApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade) {Shader* &s=Sh.ApplyLight[multi_sample][ao][cel_shade][night_shade]; if(SLOW_SHADER_LOAD && !s)s=Sh.getApplyLight(multi_sample, ao, cel_shade, night_shade); return s;}
 void RendererClass::light()
 {
    if(_cur_type==RT_DEFERRED) // on other renderers light is applied when rendering solid
@@ -1360,20 +1360,20 @@ void RendererClass::light()
 
       set(_col, _ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth2D' optimization and stencil tests
       if((_col==src || Sky.isActual()) && stage!=RS_LIT_COLOR)D.depth2DOn(); // we can skip background only if we're applying to the same RT or if the background will be later overwritten by Sky
-      if(!_col->multiSample())GetColLight(0, ao, cel_shade, night_shade)->draw(src);else
+      if(!_col->multiSample())GetApplyLight(0, ao, cel_shade, night_shade)->draw(src);else
       {
          Sh.ImgMS[0]->set( src);
          Sh.ImgMS[1]->set(_lum);
          if(hasStencilAttached())
          {
-            D.stencil   (STENCIL_MSAA_TEST, 0); GetColLight(1, ao, cel_shade, night_shade)->draw(); // 1 sample
-            if(Sky.isActual())D.depth2DOff();                                                       // multi-sampled always fill fully when sky will be rendered
-            D.stencilRef(STENCIL_REF_MSAA    ); GetColLight(2, ao, cel_shade, night_shade)->draw(); // n samples
+            D.stencil   (STENCIL_MSAA_TEST, 0); GetApplyLight(1, ao, cel_shade, night_shade)->draw(); // 1 sample
+            if(Sky.isActual())D.depth2DOff();                                                         // multi-sampled always fill fully when sky will be rendered
+            D.stencilRef(STENCIL_REF_MSAA    ); GetApplyLight(2, ao, cel_shade, night_shade)->draw(); // n samples
             D.stencil   (STENCIL_NONE        );
          }else
          {
-            if(Sky.isActual())D.depth2DOff();                   // multi-sampled always fill fully when sky will be rendered
-            GetColLight(2, ao, cel_shade, night_shade)->draw(); // n samples
+            if(Sky.isActual())D.depth2DOff();                     // multi-sampled always fill fully when sky will be rendered
+            GetApplyLight(2, ao, cel_shade, night_shade)->draw(); // n samples
          }
       }
       D.depth2DOff();

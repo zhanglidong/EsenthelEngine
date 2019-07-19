@@ -13,8 +13,8 @@ static const ImageRTType ImageRTTypes[]=
 {
 #if LINEAR_GAMMA
    {IMAGE_R8G8B8A8_SRGB                                                    }, // 0 IMAGERT_SRGBA
-   {IMAGE_R8G8B8A8_SRGB                                                    }, // 1 IMAGERT_SRGB   (can't use IMAGE_R10G10B10A2 because it's not sRGB and will have low quality in dark colors, can't use IMAGE_R11G11B10F because it's broken, ColLight looks like no light, can't use IMAGE_R9G9B9E5F because it's not supported for RT)
-   {IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 2 IMAGERT_SRGB_P (can't use IMAGE_R10G10B10A2 because it's not sRGB and will have low quality in dark colors, can't use IMAGE_R11G11B10F because it's broken, ColLight looks like no light, can't use IMAGE_R9G9B9E5F because it's not supported for RT)
+   {IMAGE_R8G8B8A8_SRGB                                                    }, // 1 IMAGERT_SRGB   (can't use IMAGE_R10G10B10A2 because it's not sRGB and will have low quality in dark colors, can't use IMAGE_R11G11B10F because it's broken, LitCol looks like no light, can't use IMAGE_R9G9B9E5F because it's not supported for RT)
+   {IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 2 IMAGERT_SRGB_P (can't use IMAGE_R10G10B10A2 because it's not sRGB and will have low quality in dark colors, can't use IMAGE_R11G11B10F because it's broken, LitCol looks like no light, can't use IMAGE_R9G9B9E5F because it's not supported for RT)
    {IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                                       }, // 3 IMAGERT_SRGBA_H
    {IMAGE_F16_3, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 4 IMAGERT_SRGB_H
    {IMAGE_F32_4, IMAGE_F16_4, IMAGE_R8G8B8A8_SRGB                          }, // 5 IMAGERT_SRGBA_F
