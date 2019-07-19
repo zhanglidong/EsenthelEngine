@@ -15,33 +15,31 @@ namespace EE{
 #endif
 
 /**/
-//#define MAIN
+//#define MAIN FIXME
 #define MAIN_NEW
 
-/*#define SIMPLE
-#define DEFERRED
-//#define FORWARD // Forward Shaders in OpenGL compile almost an entire day and use ~5 GB memory during compilation
-//#define BLEND_LIGHT
+/*#define DEFERRED
+#define BLEND_LIGHT
+#define SIMPLE
+#define FORWARD // Forward Shaders in OpenGL compile almost an entire day and use ~5 GB memory during compilation
 
 #define AMBIENT
-#define AMBIENT_OCCLUSION*/
-//#define AMBIENT_OCCLUSION_NEW // FIXME
-/*#define BEHIND
+#define AMBIENT_OCCLUSION
+#define BEHIND
 #define BLEND
-#define DEPTH_OF_FIELD*/
-//#define EARLY_Z
-//#define EFFECTS_2D_NEW
-//#define EFFECTS_2D
-/*#define EFFECTS_3D
+#define DEPTH_OF_FIELD
+#define EARLY_Z
+#define EFFECTS_2D
+#define EFFECTS_3D
 #define FOG_LOCAL
-#define FUR*/
+#define FUR
 #define FXAA
-/*#define HDR
+#define HDR
 #define LAYERED_CLOUDS
 #define MOTION_BLUR
-#define OVERLAY*/
-//#define POSITION
-/*#define SET_COLOR
+#define OVERLAY
+#define POSITION
+#define SET_COLOR
 #define VOLUMETRIC_CLOUDS
 #define VOLUMETRIC_LIGHTS
 #define WATER
@@ -374,122 +372,275 @@ static void Compile(API api)
 }
 #endif
 
-#ifdef FORWARD
+#ifdef MAIN
 {
-#if GL && !X64 && COMPILE_GL
-   #error "Can't compile GL forward shaders on 32-bit because you will run out of memory"
+   Memc<ShaderGLSL> glsl;
+
+   // Draw2DTex
+   REPD(c, 2) // color
+      glsl.New().set("Draw2DTex", S+"Draw2DTex"+(c?'C':'\0')).par("COLOR", c);
+
+   // Draw3DTex
+   REPD(c , 2) // color
+   REPD(at, 2) // alpha_test
+      glsl.New().set("Draw3DTex", S+"Draw3DTex"+(c?"Col":"")+(at?"AT":"")).par("COLOR", c).par("alpha_test", at);
+
+   // font
+   glsl.New().set("Font", "Font");
+
+   // blur
+   REPD(x, 2) // axis
+   REPD(h, 2) // high
+      glsl.New().set("Blur", S+"Blur"+(x?'X':'Y')+(h?'H':'\0')).par("axis", x ? '0' : '1').par("high", h);
+
+   // bloom downsample
+   REPD(g, 2) // glow
+   REPD(c, 2) // clamp
+   REPD(h, 2) // half
+   REPD(s, 2) // saturate
+      glsl.New().set("BloomDS", S+"Bloom"+(g?'G':'\0')+"DS"+(c?'C':'\0')+(h?'H':'\0')+(s?'S':'\0')).par("DoGlow", g).par("DoClamp", c).par("half", h).par("saturate", s);
+
+   // bloom
+   glsl.New().set("Bloom", "Bloom");
+
+   // shd blur
+   glsl.New().set("ShdBlurX", "ShdBlurX2").par("range", 2);
+   glsl.New().set("ShdBlurY", "ShdBlurY2").par("range", 2);
+
+   // particles
+   REPD(p, 2) // palette
+   REPD(a, 3) // anim
+   REPD(m, 2) // motion
+      glsl.New().set("Particle", S+"ParticleTex"+(p?'P':'\0')+((a==2)?"AA":(a==1)?"A":"")+(m?'M':'\0')).par("palette",  p ).par("anim",  a ).par("motion_stretch", "1").par("stretch_alpha",  m );
+      glsl.New().set("Particle", S+"Bilb"                                                             ).par("palette", "0").par("anim", "0").par("motion_stretch", "0").par("stretch_alpha", "0");
+
+   // sky
+      // Textures Flat
+      REPD(t, 2) // textures
+      REPD(c, 2) // clouds
+         glsl.New().set("Sky", S+"SkyTF"+(t+1)+(c?'C':'\0')).par("per_vertex", "0").par("DENSITY", "0").par("textures", t+1).par("stars", "0").par("clouds", c);
+      // Atmospheric Flat
+      REPD(v, 2) // per-vertex
+      REPD(s, 2) // stars
+      REPD(c, 2) // clouds
+         glsl.New().set("Sky", S+"SkyAF"+(v?'V':'\0')+(s?'S':'\0')+(c?'C':'\0')).par("per_vertex", v).par("DENSITY", "0").par("textures", "0").par("stars", s).par("clouds", c);
+
+   // AA
+#if 0 // disable GLSL versions because neither Mac/Linux succeed in compiling them
+   REPD(g, 2) // gamma
+      glsl.New().set("SMAAEdge" , S+"SMAAEdgeColor"+(g?'G':'\0')).par("GAMMA", TextBool(g));
+      glsl.New().set("SMAABlend", "SMAABlend");
+      glsl.New().set("SMAA"     , "SMAA");
 #endif
+
+   Add(src_path+"Main.cpp", dest_path+"Main", api, model, glsl);
+}
+#endif
+
+#ifdef AMBIENT
+{
    Str names;
 
-   // zero
-   REPD(skin , 2)
-   REPD(color, 2)names+=TechForward(skin, 1, 0, SBUMP_ZERO, false, false, false, false, color, false, false, FX_NONE,   false,false,0,   false,false,   false,false,   false,false,   false);
+   // base
+   REPD(skin      , 2)
+   REPD(alpha_test, 3)
+   REPD(light_map , 2)
+      names+=TechAmbient(skin, alpha_test, light_map);
 
-   REPD(tess     , (model>=SM_4) ? 2 : 1)
-   REPD(heightmap, 2)
-   {
-      // 1 material, 0-2 textures, flat
-      REPD(skin  , heightmap ? 1 : 2)
-      REPD(detail, 2)
-      REPD(rflct , 2)
-      REPD(color , 2)
-      {
-         names+=TechForwardLight(skin, 1, 0, SBUMP_FLAT, false, false, detail, rflct, color, false, heightmap, FX_NONE, tess); // 1 material, 0 tex
-         REPD(alpha_test, heightmap ? 1 : 2)
-         REPD(light_map , 2)
-         {
-            names+=TechForwardLight(skin, 1, 1, SBUMP_FLAT, alpha_test, light_map, detail, rflct, color, false, heightmap, FX_NONE, tess); // 1 material, 1 tex
-            names+=TechForwardLight(skin, 1, 2, SBUMP_FLAT, alpha_test, light_map, detail, rflct, color, false, heightmap, FX_NONE, tess); // 1 material, 2 tex
-         }
-      }
-
-   #if BUMP_MAPPING
-      // 1 material, 2 tex, normal
-      REPD(skin      , heightmap ? 1 : 2)
-      REPD(alpha_test, heightmap ? 1 : 2)
-      REPD(light_map , 2)
-      REPD(detail    , 2)
-      REPD(rflct     , 2)
-      REPD(color     , 2)names+=TechForwardLight(skin, 1, 2, SBUMP_NORMAL, alpha_test, light_map, detail, rflct, color, false, heightmap, FX_NONE, tess);
-   #endif
-
-   #if MULTI_MATERIAL
-      for(Int materials=2; materials<=MAX_MTRLS; materials++)
-      REPD(color     , 2)
-      REPD(mtrl_blend, 2)
-      REPD(rflct     , 2)
-      {
-         // 2-4 materials, 1-2 textures, flat
-         for(Int textures=1; textures<=2; textures ++)names+=TechForwardLight(false, materials, textures, SBUMP_FLAT, false, false, false, rflct, color, mtrl_blend, heightmap, FX_NONE, tess);
-
-      #if BUMP_MAPPING
-         // 2-4 materials, 2 textures, normal
-         names+=TechForwardLight(false, materials, 2, SBUMP_NORMAL, false, false, false, rflct, color, mtrl_blend, heightmap, FX_NONE, tess);
-      #endif
-      }
-   #endif
-   }
-
-   // grass + leaf
-   for(Int textures=1; textures<=2; textures++)
-   REPD(color, 2)
-   {
-      names+=TechForwardLight(false, 1, textures, SBUMP_FLAT, true, false, false, false, color, false, false, FX_GRASS, false); // 1 material, 1-2 tex, grass, flat
-      names+=TechForwardLight(false, 1, textures, SBUMP_FLAT, true, false, false, false, color, false, false, FX_LEAF , false); // 1 material, 1-2 tex, leaf , flat
-      names+=TechForwardLight(false, 1, textures, SBUMP_FLAT, true, false, false, false, color, false, false, FX_LEAFS, false); // 1 material, 1-2 tex, leafs, flat
-      if(textures==2)
-      {
-         names+=TechForwardLight(false, 1, textures, SBUMP_NORMAL, true, false, false, false, color, false, false, FX_GRASS, false); // 1 material, 1-2 tex, grass, normal
-         names+=TechForwardLight(false, 1, textures, SBUMP_NORMAL, true, false, false, false, color, false, false, FX_LEAF , false); // 1 material, 1-2 tex, leaf , normal
-         names+=TechForwardLight(false, 1, textures, SBUMP_NORMAL, true, false, false, false, color, false, false, FX_LEAFS, false); // 1 material, 1-2 tex, leafs, normal
-      }
-   }
-
-   Add(src_path+"Forward.cpp", dest_path+"Forward", api, model, names);
+   Add(src_path+"Ambient.cpp", dest_path+"Ambient", api, model, names);
 }
 #endif
 
-#ifdef BLEND_LIGHT
+#ifdef AMBIENT_OCCLUSION
 {
-#if GL && !X64 && COMPILE_GL
-   #error "Can't compile GL Blend Light shaders on 32-bit because you will run out of memory"
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Ambient Occlusion", model, api).New(src_path+"Ambient Occlusion.cpp");
+   REPD(mode  , 4)
+   REPD(jitter, 2)
+   REPD(normal, 2)
+      src.New("AO", "AO_VS", "AO_PS")("MODE", mode, "JITTER", jitter, "NORMALS", normal);
+}
 #endif
+
+#ifdef BEHIND
+{
+   Str names;
+
+   // base
+   REPD(skin    , 2)
+   REPD(textures, 3)names+=TechBehind(skin, textures);
+
+   Add(src_path+"Behind.cpp", dest_path+"Behind", api, model, names);
+}
+#endif
+
+#ifdef BLEND
+{
    Str names; Memc<ShaderGLSL> glsl;
 
-   REPD(per_pixel  , 2)
-   REPD(shadow_maps, per_pixel ? 7 : 1) // 7=(6+off), 1=off
+   REPD(skin    , 2)
+   REPD(color   , 2)
+   REPD(rflct   , 2)
+   REPD(textures, 3)
    {
-      // base
-      REPD(skin      , 2)
-      REPD(color     , 2)
-      REPD(textures  , 3)
-      REPD(bump_mode , (per_pixel && textures==2) ? 2 : 1)
-      REPD(alpha_test,               textures     ? 2 : 1)
-      REPD(alpha     ,               textures     ? 2 : 1)
-      REPD(light_map ,               textures     ? 2 : 1)
-      REPD(rflct     , 2)
-      {
-                                            names+=(TechBlendLight    (skin, color, textures, bump_mode ? SBUMP_NORMAL: SBUMP_FLAT, alpha_test, alpha, light_map, rflct, FX_NONE, per_pixel, shadow_maps));
-         if(shadow_maps==0 && bump_mode==0)glsl.add(TechBlendLightGlsl(skin, color, textures, bump_mode ? SBUMP_NORMAL: SBUMP_FLAT, alpha_test, alpha, light_map, rflct, FX_NONE, per_pixel, shadow_maps));
-      }
-
-      // grass+leaf
-      REPD(color     , 2)
-      REPD(textures  , 3)
-      REPD(bump_mode , (per_pixel && textures==2) ? 2 : 1)
-      REPD(alpha_test,               textures     ? 2 : 1)
-      {
-                                            names+=(TechBlendLight    (false, color, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, false, false, FX_GRASS, per_pixel, shadow_maps));
-                                            names+=(TechBlendLight    (false, color, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, false, false, FX_LEAF , per_pixel, shadow_maps));
-                                            names+=(TechBlendLight    (false, color, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, false, false, FX_LEAFS, per_pixel, shadow_maps));
-         if(shadow_maps==0 && bump_mode==0)glsl.add(TechBlendLightGlsl(false, color, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, false, false, FX_GRASS, per_pixel, shadow_maps));
-         if(shadow_maps==0 && bump_mode==0)glsl.add(TechBlendLightGlsl(false, color, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, false, false, FX_LEAF , per_pixel, shadow_maps));
-         if(shadow_maps==0 && bump_mode==0)glsl.add(TechBlendLightGlsl(false, color, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, false, false, FX_LEAFS, per_pixel, shadow_maps));
-      }
+       names+=(TechBlend    (skin, color, rflct, textures));
+      glsl.add(TechBlendGlsl(skin, color, rflct, textures));
    }
 
-   Add(src_path+"Blend Light.cpp", dest_path+"Blend Light", api, model, names, glsl);
+   Add(src_path+"Blend.cpp", dest_path+"Blend", api, model, names, glsl);
 }
+#endif
+
+#ifdef DEPTH_OF_FIELD
+   Add(src_path+"Depth of Field.cpp", dest_path+"Depth of Field", api, model);
+#endif
+
+#ifdef EARLY_Z
+{
+   Str names;
+
+   // base
+   REPD(skin, 2)names+=TechEarlyZ(skin);
+
+   Add(src_path+"Early Z.cpp", dest_path+"Early Z", api, model, names);
+}
+#endif
+
+#ifdef EFFECTS_2D
+{
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Effects 2D", model, api).New(src_path+"Effects 2D.cpp");
+   src.New("ColTrans"   , "Draw_VS", "ColTrans_PS");
+   src.New("ColTransHB" , "Draw_VS", "ColTransHB_PS");
+   src.New("ColTransHSB", "Draw_VS", "ColTransHSB_PS");
+
+   src.New("Fade", "Draw_VS", "Fade_PS");
+   src.New("RadialBlur", "Draw_VS", "RadialBlur_PS");
+   src.New("Ripple", "Draw2DTex_VS", "Ripple_PS");
+   src.New("Wave", "Wave_VS", "Wave_PS");
+}
+#endif
+
+#ifdef EFFECTS_3D
+   Add(src_path+"Effects 3D.cpp", dest_path+"Effects 3D", api, model);
+#endif
+
+#ifdef FOG_LOCAL
+   Add(src_path+"Fog Local.cpp", dest_path+"Fog Local", api, model);
+#endif
+
+#ifdef FUR
+{
+   Str names;
+
+   // base
+   REPD(skin   , 2)
+   REPD(size   , 2)
+   REPD(diffuse, 2)names+=TechFurBase(skin, size, diffuse);
+
+   // soft
+   REPD(skin   , 2)
+   REPD(size   , 2)
+   REPD(diffuse, 2)names+=TechFurSoft(skin, size, diffuse);
+
+   Add(src_path+"Fur.cpp", dest_path+"Fur", api, model, names);
+}
+#endif
+
+#ifdef FXAA // FXAA unlike SMAA is kept outside of Main shader, because it's rarely used.
+{
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"FXAA", model, api).New(src_path+"FXAA.cpp");
+   REPD(gamma, 2)src.New("FXAA", "Draw_VS", "FXAA_PS")("GAMMA", gamma);
+}
+#endif
+
+#ifdef HDR
+   Add(src_path+"Hdr.cpp", dest_path+"Hdr", api, model);
+#endif
+
+#ifdef LAYERED_CLOUDS
+   Add(src_path+"Layered Clouds.cpp", dest_path+"Layered Clouds", api, model);
+#endif
+
+#ifdef MOTION_BLUR
+   Add(src_path+"Motion Blur.cpp", dest_path+"Motion Blur", api, model);
+#endif
+
+#ifdef OVERLAY
+{
+   Str names;
+
+   // base
+   REPD(skin  , 2)
+   REPD(normal, 2)names+=TechOverlay(skin, normal);
+
+   Add(src_path+"Overlay.cpp", dest_path+"Overlay", api, model, names);
+}
+{
+   Str names;
+
+   // base
+   REPD(tess, (model>=SM_4) ? 2 : 1)
+   REPD(skin, 2)names+=TechTattoo(skin, tess);
+
+   Add(src_path+"Tattoo.cpp", dest_path+"Tattoo", api, model, names);
+}
+#endif
+
+#ifdef POSITION
+{
+   Str names;
+
+   REPD(tess, (model>=SM_4) ? 2 : 1)
+   {
+      // base
+      REPD(skin      , 2               )
+      REPD(textures  , 3               )
+      REPD(test_blend, textures ? 2 : 1)names+=TechPosition(skin, textures, test_blend, FX_NONE, tess);
+   }
+
+   // grass + leafs
+   for(Int textures=1; textures<=2; textures++)
+   REPD(test_blend, 2)
+   {
+      names+=TechPosition(0, textures, test_blend, FX_GRASS, false);
+      names+=TechPosition(0, textures, test_blend, FX_LEAF , false);
+      names+=TechPosition(0, textures, test_blend, FX_LEAFS, false);
+   }
+
+   Add(src_path+"Position.cpp", dest_path+"Position", api, model, names);
+}
+#endif
+
+#ifdef SET_COLOR
+{
+   Str names;
+
+   // base
+   REPD(tess    , (model>=SM_4) ? 2 : 1)
+   REPD(skin    , 2)
+   REPD(textures, 3)names+=TechSetColor(skin, textures, tess);
+
+   Add(src_path+"Set Color.cpp", dest_path+"Set Color", api, model, names);
+}
+#endif
+
+#ifdef VOLUMETRIC_CLOUDS
+   Add(src_path+"Volumetric Clouds.cpp", dest_path+"Volumetric Clouds", api, model);
+#endif
+
+#ifdef VOLUMETRIC_LIGHTS
+   Add(src_path+"Volumetric Lights.cpp", dest_path+"Volumetric Lights", api, model);
+#endif
+
+#ifdef WATER
+   Add(src_path+"Water.cpp", dest_path+"Water", api, model);
+#endif
+
+#ifdef WORLD_EDITOR
+   Add(src_path+"World Editor.cpp", dest_path+"World Editor", api, model);
+#endif
+
+#ifdef DX10_INPUT_LAYOUT
+   Add(src_path+"DX10+ Input Layout.cpp", S, api, model);
 #endif
 
 #ifdef DEFERRED
@@ -592,6 +743,46 @@ static void Compile(API api)
 }
 #endif
 
+#ifdef BLEND_LIGHT
+{
+   Str names; Memc<ShaderGLSL> glsl;
+
+   REPD(per_pixel  , 2)
+   REPD(shadow_maps, per_pixel ? 7 : 1) // 7=(6+off), 1=off
+   {
+      // base
+      REPD(skin      , 2)
+      REPD(color     , 2)
+      REPD(textures  , 3)
+      REPD(bump_mode , (per_pixel && textures==2) ? 2 : 1)
+      REPD(alpha_test,               textures     ? 2 : 1)
+      REPD(alpha     ,               textures     ? 2 : 1)
+      REPD(light_map ,               textures     ? 2 : 1)
+      REPD(rflct     , 2)
+      {
+                                            names+=(TechBlendLight    (skin, color, textures, bump_mode ? SBUMP_NORMAL: SBUMP_FLAT, alpha_test, alpha, light_map, rflct, FX_NONE, per_pixel, shadow_maps));
+         if(shadow_maps==0 && bump_mode==0)glsl.add(TechBlendLightGlsl(skin, color, textures, bump_mode ? SBUMP_NORMAL: SBUMP_FLAT, alpha_test, alpha, light_map, rflct, FX_NONE, per_pixel, shadow_maps));
+      }
+
+      // grass+leaf
+      REPD(color     , 2)
+      REPD(textures  , 3)
+      REPD(bump_mode , (per_pixel && textures==2) ? 2 : 1)
+      REPD(alpha_test,               textures     ? 2 : 1)
+      {
+                                            names+=(TechBlendLight    (false, color, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, false, false, FX_GRASS, per_pixel, shadow_maps));
+                                            names+=(TechBlendLight    (false, color, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, false, false, FX_LEAF , per_pixel, shadow_maps));
+                                            names+=(TechBlendLight    (false, color, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, false, false, FX_LEAFS, per_pixel, shadow_maps));
+         if(shadow_maps==0 && bump_mode==0)glsl.add(TechBlendLightGlsl(false, color, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, false, false, FX_GRASS, per_pixel, shadow_maps));
+         if(shadow_maps==0 && bump_mode==0)glsl.add(TechBlendLightGlsl(false, color, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, false, false, FX_LEAF , per_pixel, shadow_maps));
+         if(shadow_maps==0 && bump_mode==0)glsl.add(TechBlendLightGlsl(false, color, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, false, false, FX_LEAFS, per_pixel, shadow_maps));
+      }
+   }
+
+   Add(src_path+"Blend Light.cpp", dest_path+"Blend Light", api, model, names, glsl);
+}
+#endif
+
 #ifdef SIMPLE
 {
    Str names; Memc<ShaderGLSL> glsl;
@@ -661,283 +852,76 @@ static void Compile(API api)
 }
 #endif
 
-#ifdef MAIN
-{
-   Memc<ShaderGLSL> glsl;
-
-   // Draw2DTex
-   REPD(c, 2) // color
-      glsl.New().set("Draw2DTex", S+"Draw2DTex"+(c?'C':'\0')).par("COLOR", c);
-
-   // Draw3DTex
-   REPD(c , 2) // color
-   REPD(at, 2) // alpha_test
-      glsl.New().set("Draw3DTex", S+"Draw3DTex"+(c?"Col":"")+(at?"AT":"")).par("COLOR", c).par("alpha_test", at);
-
-   // font
-   glsl.New().set("Font", "Font");
-
-   // blur
-   REPD(x, 2) // axis
-   REPD(h, 2) // high
-      glsl.New().set("Blur", S+"Blur"+(x?'X':'Y')+(h?'H':'\0')).par("axis", x ? '0' : '1').par("high", h);
-
-   // bloom downsample
-   REPD(g, 2) // glow
-   REPD(c, 2) // clamp
-   REPD(h, 2) // half
-   REPD(s, 2) // saturate
-      glsl.New().set("BloomDS", S+"Bloom"+(g?'G':'\0')+"DS"+(c?'C':'\0')+(h?'H':'\0')+(s?'S':'\0')).par("DoGlow", g).par("DoClamp", c).par("half", h).par("saturate", s);
-
-   // bloom
-   glsl.New().set("Bloom", "Bloom");
-
-   // shd blur
-   glsl.New().set("ShdBlurX", "ShdBlurX2").par("range", 2);
-   glsl.New().set("ShdBlurY", "ShdBlurY2").par("range", 2);
-
-   // particles
-   REPD(p, 2) // palette
-   REPD(a, 3) // anim
-   REPD(m, 2) // motion
-      glsl.New().set("Particle", S+"ParticleTex"+(p?'P':'\0')+((a==2)?"AA":(a==1)?"A":"")+(m?'M':'\0')).par("palette",  p ).par("anim",  a ).par("motion_stretch", "1").par("stretch_alpha",  m );
-      glsl.New().set("Particle", S+"Bilb"                                                             ).par("palette", "0").par("anim", "0").par("motion_stretch", "0").par("stretch_alpha", "0");
-
-   // sky
-      // Textures Flat
-      REPD(t, 2) // textures
-      REPD(c, 2) // clouds
-         glsl.New().set("Sky", S+"SkyTF"+(t+1)+(c?'C':'\0')).par("per_vertex", "0").par("DENSITY", "0").par("textures", t+1).par("stars", "0").par("clouds", c);
-      // Atmospheric Flat
-      REPD(v, 2) // per-vertex
-      REPD(s, 2) // stars
-      REPD(c, 2) // clouds
-         glsl.New().set("Sky", S+"SkyAF"+(v?'V':'\0')+(s?'S':'\0')+(c?'C':'\0')).par("per_vertex", v).par("DENSITY", "0").par("textures", "0").par("stars", s).par("clouds", c);
-
-   // AA
-#if 0 // disable GLSL versions because neither Mac/Linux succeed in compiling them
-   REPD(g, 2) // gamma
-      glsl.New().set("SMAAEdge" , S+"SMAAEdgeColor"+(g?'G':'\0')).par("GAMMA", TextBool(g));
-      glsl.New().set("SMAABlend", "SMAABlend");
-      glsl.New().set("SMAA"     , "SMAA");
-#endif
-
-   Add(src_path+"Main.cpp", dest_path+"Main", api, model, glsl);
-}
-#endif
-
-#ifdef BLEND
-{
-   Str names; Memc<ShaderGLSL> glsl;
-
-   REPD(skin    , 2)
-   REPD(color   , 2)
-   REPD(rflct   , 2)
-   REPD(textures, 3)
-   {
-       names+=(TechBlend    (skin, color, rflct, textures));
-      glsl.add(TechBlendGlsl(skin, color, rflct, textures));
-   }
-
-   Add(src_path+"Blend.cpp", dest_path+"Blend", api, model, names, glsl);
-}
-#endif
-
-#ifdef AMBIENT_OCCLUSION
-   Add(src_path+"Ambient Occlusion.cpp", dest_path+"Ambient Occlusion", api, model);
-#endif
-
-#ifdef AMBIENT_OCCLUSION_NEW
-{
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Ambient Occlusion", model, api).New(src_path+"Ambient Occlusion.cpp");
-   REPD(mode  , 4)
-   REPD(jitter, 2)
-   REPD(normal, 2)
-      src.New("AO", "AO_VS", "AO_PS")("MODE", mode, "JITTER", jitter, "NORMALS", normal);
-}
-#endif
-
-#ifdef EFFECTS_2D_NEW
-{
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Effects 2D", model, api).New(src_path+"Effects 2D.cpp");
-   src.New("ColTrans"   , "Draw_VS", "ColTrans_PS");
-   src.New("ColTransHB" , "Draw_VS", "ColTransHB_PS");
-   src.New("ColTransHSB", "Draw_VS", "ColTransHSB_PS");
-
-   src.New("Fade", "Draw_VS", "Fade_PS");
-   src.New("RadialBlur", "Draw_VS", "RadialBlur_PS");
-   src.New("Ripple", "Draw2DTex_VS", "Ripple_PS");
-   src.New("Wave", "Wave_VS", "Wave_PS");
-}
-#endif
-
-#ifdef DEPTH_OF_FIELD
-   Add(src_path+"Depth of Field.cpp", dest_path+"Depth of Field", api, model);
-#endif
-
-#ifdef LAYERED_CLOUDS
-   Add(src_path+"Layered Clouds.cpp", dest_path+"Layered Clouds", api, model);
-#endif
-
-#ifdef EFFECTS_2D
-   Add(src_path+"Effects 2D.cpp", dest_path+"Effects 2D", api, model);
-#endif
-
-#ifdef EFFECTS_3D
-   Add(src_path+"Effects 3D.cpp", dest_path+"Effects 3D", api, model);
-#endif
-
-#ifdef FOG_LOCAL
-   Add(src_path+"Fog Local.cpp", dest_path+"Fog Local", api, model);
-#endif
-
-#ifdef FXAA // FXAA unlike SMAA is kept outside of Main shader, because it's rarely used.
-{
-   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"FXAA", model, api).New(src_path+"FXAA.cpp");
-   REPD(gamma, 2)src.New("FXAA", "Draw_VS", "FXAA_PS")("GAMMA", gamma);
-}
-#endif
-
-#ifdef HDR
-   Add(src_path+"Hdr.cpp", dest_path+"Hdr", api, model);
-#endif
-
-#ifdef MOTION_BLUR
-   Add(src_path+"Motion Blur.cpp", dest_path+"Motion Blur", api, model);
-#endif
-
-#ifdef VOLUMETRIC_CLOUDS
-   Add(src_path+"Volumetric Clouds.cpp", dest_path+"Volumetric Clouds", api, model);
-#endif
-
-#ifdef VOLUMETRIC_LIGHTS
-   Add(src_path+"Volumetric Lights.cpp", dest_path+"Volumetric Lights", api, model);
-#endif
-
-#ifdef WATER
-   Add(src_path+"Water.cpp", dest_path+"Water", api, model);
-#endif
-
-#ifdef POSITION
+#ifdef FORWARD
 {
    Str names;
 
-   REPD(tess, (model>=SM_4) ? 2 : 1)
+   // zero
+   REPD(skin , 2)
+   REPD(color, 2)names+=TechForward(skin, 1, 0, SBUMP_ZERO, false, false, false, false, color, false, false, FX_NONE,   false,false,0,   false,false,   false,false,   false,false,   false);
+
+   REPD(tess     , (model>=SM_4) ? 2 : 1)
+   REPD(heightmap, 2)
    {
-      // base
-      REPD(skin      , 2               )
-      REPD(textures  , 3               )
-      REPD(test_blend, textures ? 2 : 1)names+=TechPosition(skin, textures, test_blend, FX_NONE, tess);
+      // 1 material, 0-2 textures, flat
+      REPD(skin  , heightmap ? 1 : 2)
+      REPD(detail, 2)
+      REPD(rflct , 2)
+      REPD(color , 2)
+      {
+         names+=TechForwardLight(skin, 1, 0, SBUMP_FLAT, false, false, detail, rflct, color, false, heightmap, FX_NONE, tess); // 1 material, 0 tex
+         REPD(alpha_test, heightmap ? 1 : 2)
+         REPD(light_map , 2)
+         {
+            names+=TechForwardLight(skin, 1, 1, SBUMP_FLAT, alpha_test, light_map, detail, rflct, color, false, heightmap, FX_NONE, tess); // 1 material, 1 tex
+            names+=TechForwardLight(skin, 1, 2, SBUMP_FLAT, alpha_test, light_map, detail, rflct, color, false, heightmap, FX_NONE, tess); // 1 material, 2 tex
+         }
+      }
+
+   #if BUMP_MAPPING
+      // 1 material, 2 tex, normal
+      REPD(skin      , heightmap ? 1 : 2)
+      REPD(alpha_test, heightmap ? 1 : 2)
+      REPD(light_map , 2)
+      REPD(detail    , 2)
+      REPD(rflct     , 2)
+      REPD(color     , 2)names+=TechForwardLight(skin, 1, 2, SBUMP_NORMAL, alpha_test, light_map, detail, rflct, color, false, heightmap, FX_NONE, tess);
+   #endif
+
+   #if MULTI_MATERIAL
+      for(Int materials=2; materials<=MAX_MTRLS; materials++)
+      REPD(color     , 2)
+      REPD(mtrl_blend, 2)
+      REPD(rflct     , 2)
+      {
+         // 2-4 materials, 1-2 textures, flat
+         for(Int textures=1; textures<=2; textures ++)names+=TechForwardLight(false, materials, textures, SBUMP_FLAT, false, false, false, rflct, color, mtrl_blend, heightmap, FX_NONE, tess);
+
+      #if BUMP_MAPPING
+         // 2-4 materials, 2 textures, normal
+         names+=TechForwardLight(false, materials, 2, SBUMP_NORMAL, false, false, false, rflct, color, mtrl_blend, heightmap, FX_NONE, tess);
+      #endif
+      }
+   #endif
    }
 
-   // grass + leafs
+   // grass + leaf
    for(Int textures=1; textures<=2; textures++)
-   REPD(test_blend, 2)
+   REPD(color, 2)
    {
-      names+=TechPosition(0, textures, test_blend, FX_GRASS, false);
-      names+=TechPosition(0, textures, test_blend, FX_LEAF , false);
-      names+=TechPosition(0, textures, test_blend, FX_LEAFS, false);
+      names+=TechForwardLight(false, 1, textures, SBUMP_FLAT, true, false, false, false, color, false, false, FX_GRASS, false); // 1 material, 1-2 tex, grass, flat
+      names+=TechForwardLight(false, 1, textures, SBUMP_FLAT, true, false, false, false, color, false, false, FX_LEAF , false); // 1 material, 1-2 tex, leaf , flat
+      names+=TechForwardLight(false, 1, textures, SBUMP_FLAT, true, false, false, false, color, false, false, FX_LEAFS, false); // 1 material, 1-2 tex, leafs, flat
+      if(textures==2)
+      {
+         names+=TechForwardLight(false, 1, textures, SBUMP_NORMAL, true, false, false, false, color, false, false, FX_GRASS, false); // 1 material, 1-2 tex, grass, normal
+         names+=TechForwardLight(false, 1, textures, SBUMP_NORMAL, true, false, false, false, color, false, false, FX_LEAF , false); // 1 material, 1-2 tex, leaf , normal
+         names+=TechForwardLight(false, 1, textures, SBUMP_NORMAL, true, false, false, false, color, false, false, FX_LEAFS, false); // 1 material, 1-2 tex, leafs, normal
+      }
    }
 
-   Add(src_path+"Position.cpp", dest_path+"Position", api, model, names);
+   Add(src_path+"Forward.cpp", dest_path+"Forward", api, model, names);
 }
-#endif
-
-#ifdef SET_COLOR
-{
-   Str names;
-
-   // base
-   REPD(tess    , (model>=SM_4) ? 2 : 1)
-   REPD(skin    , 2)
-   REPD(textures, 3)names+=TechSetColor(skin, textures, tess);
-
-   Add(src_path+"Set Color.cpp", dest_path+"Set Color", api, model, names);
-}
-#endif
-
-#ifdef BEHIND
-{
-   Str names;
-
-   // base
-   REPD(skin    , 2)
-   REPD(textures, 3)names+=TechBehind(skin, textures);
-
-   Add(src_path+"Behind.cpp", dest_path+"Behind", api, model, names);
-}
-#endif
-
-#ifdef AMBIENT
-{
-   Str names;
-
-   // base
-   REPD(skin      , 2)
-   REPD(alpha_test, 3)
-   REPD(light_map , 2)
-      names+=TechAmbient(skin, alpha_test, light_map);
-
-   Add(src_path+"Ambient.cpp", dest_path+"Ambient", api, model, names);
-}
-#endif
-
-#ifdef OVERLAY
-{
-   Str names;
-
-   // base
-   REPD(skin  , 2)
-   REPD(normal, 2)names+=TechOverlay(skin, normal);
-
-   Add(src_path+"Overlay.cpp", dest_path+"Overlay", api, model, names);
-}
-{
-   Str names;
-
-   // base
-   REPD(tess, (model>=SM_4) ? 2 : 1)
-   REPD(skin, 2)names+=TechTattoo(skin, tess);
-
-   Add(src_path+"Tattoo.cpp", dest_path+"Tattoo", api, model, names);
-}
-#endif
-
-#ifdef EARLY_Z
-{
-   Str names;
-
-   // base
-   REPD(skin, 2)names+=TechEarlyZ(skin);
-
-   Add(src_path+"Early Z.cpp", dest_path+"Early Z", api, model, names);
-}
-#endif
-
-#ifdef FUR
-{
-   Str names;
-
-   // base
-   REPD(skin   , 2)
-   REPD(size   , 2)
-   REPD(diffuse, 2)names+=TechFurBase(skin, size, diffuse);
-
-   // soft
-   REPD(skin   , 2)
-   REPD(size   , 2)
-   REPD(diffuse, 2)names+=TechFurSoft(skin, size, diffuse);
-
-   Add(src_path+"Fur.cpp", dest_path+"Fur", api, model, names);
-}
-#endif
-
-#ifdef WORLD_EDITOR
-   Add(src_path+"World Editor.cpp", dest_path+"World Editor", api, model);
-#endif
-
-#ifdef DX10_INPUT_LAYOUT
-   Add(src_path+"DX10+ Input Layout.cpp", S, api, model);
 #endif
 }
 /******************************************************************************/
