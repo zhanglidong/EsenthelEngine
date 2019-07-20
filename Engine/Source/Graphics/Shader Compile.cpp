@@ -1,13 +1,23 @@
 /******************************************************************************/
 #include "stdafx.h"
 
-#if DX11 && 0
+#define NEW_COMPILER 0
+
+#if WINDOWS && NEW_COMPILER
+const UINT32 CP_UTF16=1200;
 #include "../../../ThirdPartyLibs/begin.h"
 #include <vector>
 #include <string>
 #include "C:\Users\esent\Desktop\dxc-artifacts\include\dxc\dxcapi.h"
 #include "C:\Users\esent\Desktop\dxc-artifacts\include\dxc\Support\microcom.h"
 #include "../../../ThirdPartyLibs/end.h"
+namespace llvm
+{
+   namespace sys
+   {
+      typedef UInt cas_flag;
+   }
+}
 
 HRESULT CreateLibrary(IDxcLibrary **pLibrary) {
   return DxcCreateInstance(CLSID_DxcLibrary, __uuidof(IDxcLibrary),
@@ -93,7 +103,7 @@ Bool CompileFromBlob(IDxcBlob *pSource, LPCWSTR pSourceName,
     arguments.push_back(L"-HV");
     arguments.push_back(L"2016");
 
-  IDxcCompiler *compiler=null;
+    IDxcCompiler *compiler=null;
     CreateCompiler(&compiler);
     Bool ok=false;
     if(compiler)
@@ -228,12 +238,14 @@ struct Include11 : ID3DInclude
 
       File f; if(f.readStdTry(path.tailSlash(true)+GetBase(pFileName)))
       {
-         Byte *data=Alloc<Byte>(SIZEU(ShaderPath)+f.size());
+         DYNAMIC_ASSERT(LoadEncoding(f)==ANSI, "File expected to be in ANSI encoding for performance reasons");
+         Int   size=f.left();
+         Byte *data=Alloc<Byte>(SIZEU(ShaderPath)+size);
          Set(((ShaderPath*)data)->path, path);
          data+=SIZE(ShaderPath);
-         f.get(data, f.size());
+         f.get(data, size);
         *ppData=data;
-        *pBytes=f.size();
+        *pBytes=size;
          return S_OK;
       }
       return -1;
@@ -253,29 +265,37 @@ struct Include11 : ID3DInclude
       Set(root.path, GetPath(src));
    }
 };
-/*struct Include12 : IDxcIncludeHandler
+#if NEW_COMPILER
+struct Include12 : IDxcIncludeHandler
 {
    virtual HRESULT STDMETHODCALLTYPE LoadSource(_In_ LPCWSTR pFilename, _COM_Outptr_result_maybenull_ IDxcBlob **ppIncludeSource)override
    {
       if(ppIncludeSource)
       {
-         FileText f; if(f.read(pFilename))
+         File f; if(f.readTry(pFilename))
          {
-            Str data; if(f.getAll(data).ok())
+            UInt code_page;
+            switch(LoadEncoding(f))
+            {
+               case ANSI  : code_page=CP_ACP  ; break;
+               case UTF_8 : code_page=CP_UTF8 ; break;
+               case UTF_16: code_page=CP_UTF16; break;
+               default    : Exit("Invalid encoding"); break;
+            }
+            Mems<Byte> file_data(f.left()); if(f.getFast(file_data.data(), file_data.elms()))
             {
                IDxcLibrary *lib=null; CreateLibrary(&lib); if(lib)
                {
-                  const UINT32 CP_UTF16 = 1200;
                   IDxcBlobEncoding *blob=null;
-                  lib->CreateBlobWithEncodingOnHeapCopy(data(), data.length()*SIZE(Char), CP_UTF16, &blob);
+                  lib->CreateBlobWithEncodingOnHeapCopy(file_data.data(), file_data.elms(), code_page, &blob);
                   lib->Release();
                  *ppIncludeSource=blob;
                   return S_OK;
                }
             }
          }
+        *ppIncludeSource=null;
       }
-     *ppIncludeSource=null;
       return E_FAIL;
    }
 
@@ -285,7 +305,8 @@ struct Include11 : ID3DInclude
 private:
    DXC_MICROCOM_REF_FIELD(m_dwRef);
    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject) {return DoBasicQueryInterface<::IDxcIncludeHandler>(this, riid, ppvObject);}
-};*/
+};
+#endif
 #endif
 /******************************************************************************/
 // COMPILER
@@ -397,10 +418,36 @@ ShaderCompiler::Shader& ShaderCompiler::Source::New(C Str &name, C Str8 &vs, C S
    shader.sub[PS].func_name=ps;
    return shader;
 }
+ShaderCompiler::Source::~Source()
+{
+#if WINDOWS && NEW_COMPILER
+   RELEASE(file_blob);
+#endif
+}
 Bool ShaderCompiler::Source::load()
 {
    File f; if(!f.readTry(file_name))return false;
-   file_data.setNum(f.size()); if(!f.getFast(file_data.data(), file_data.elms()))return false;
+   ENCODING encoding=LoadEncoding(f);
+#if WINDOWS && NEW_COMPILER
+   IDxcLibrary *lib=null; CreateLibrary(&lib); if(lib)
+   {
+      UInt code_page;
+      switch(encoding)
+      {
+         case ANSI  : code_page=CP_ACP  ; break;
+         case UTF_8 : code_page=CP_UTF8 ; break;
+         case UTF_16: code_page=CP_UTF16; break;
+         default    : Exit("Invalid encoding"); break;
+      }
+      file_data.setNum(f.left()); if(!f.getFast(file_data.data(), file_data.elms()))return false;
+      lib->CreateBlobWithEncodingFromPinned(file_data.data(), file_data.elms(), code_page, &file_blob);
+      lib->Release();
+   }
+   if(!file_blob)return false;
+#else
+   DYNAMIC_ASSERT(encoding==ANSI, "File expected to be in ANSI encoding for performance reasons");
+   file_data.setNum(f.left()); if(!f.getFast(file_data.data(), file_data.elms()))return false;
+#endif
    return true;
 }
 /******************************************************************************/
@@ -461,8 +508,18 @@ void ShaderCompiler::SubShader::compile()
    Zero(macros.last()); // must be null-terminated
 
    ID3DBlob *buffer=null, *error_blob=null;
+#if NEW_COMPILER
+   CompileFromBlob(source->file_blob, source->file_name, macros.data(), &Include12(source->file_name), func_name, target, D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &buffer, &error_blob);
+#else
    D3DCompile(source->file_data.data(), source->file_data.elms(), (Str8)source->file_name, macros.data(), &Include11(source->file_name), func_name, target, D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &buffer, &error_blob);
-   if(error_blob){error=(Char8*)error_blob->GetBufferPointer(); error_blob->Release();}
+#endif
+   if(error_blob)
+   {
+      CChar8 *e=(Char8*)error_blob->GetBufferPointer();
+      Int     l=        error_blob->GetBufferSize   ();
+      error.reserveAdd(l); REP(l)error+=*e++;
+      error_blob->Release();
+   }
    if(buffer)
    {
       ID3D11ShaderReflection *reflection=null; D3DReflect(buffer->GetBufferPointer(), buffer->GetBufferSize(), IID_ID3D11ShaderReflection, (Ptr*)&reflection); if(reflection)
@@ -1334,7 +1391,6 @@ static Bool ShaderCompile11(C Str &src, C Str &dest, C MemPtr<ShaderMacro> &macr
       ID3DBlob *buffer=null, *error=null;
       IDxcLibrary *lib=null; CreateLibrary(&lib); if(lib)
       {
-         const UINT32 CP_UTF16 = 1200;
          lib->CreateBlobWithEncodingFromPinned(data(), data.length()*SIZE(Char), CP_UTF16, &input);
          lib->Release();
       }

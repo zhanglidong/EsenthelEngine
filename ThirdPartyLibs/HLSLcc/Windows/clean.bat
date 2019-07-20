@@ -1,5 +1,6 @@
 rmdir /s /q .vs
 rmdir /s /q Debug
+rmdir /s /q x64\Debug
 rmdir /s /q "Generated Files"
 
 del *.sdf

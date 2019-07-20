@@ -112,5 +112,7 @@ struct FileTextEx : FileText
    void getOut(           );                      // get out from current   '}' level
    Bool level (           );                      // if still in current level
 };
+
+ENCODING LoadEncoding(File &f);
 #endif
 /******************************************************************************/

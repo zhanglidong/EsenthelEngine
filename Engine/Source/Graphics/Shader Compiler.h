@@ -117,14 +117,20 @@ struct ShaderCompiler
 
    struct Source
    {
-      Str             file_name;
-      Mems<Byte>      file_data;
-      Memc<Shader>    shaders;
-      SHADER_MODEL    model;
-      ShaderCompiler *compiler;
+      Str               file_name;
+      Mems<Byte>        file_data;
+   #if WINDOWS && NEW_COMPILER
+      IDxcBlobEncoding *file_blob=null;
+   #else
+      Ptr               file_blob=null;
+   #endif
+      Memc<Shader>      shaders;
+      SHADER_MODEL      model;
+      ShaderCompiler   *compiler;
 
       Shader& New(C Str &name, C Str8 &vs, C Str8 &ps);
       Bool    load();
+     ~Source();
    };
    Str          dest, messages;
    SHADER_MODEL model;
