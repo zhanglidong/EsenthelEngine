@@ -203,42 +203,38 @@ struct ShaderData : Mems<Byte>
 #if WINDOWS
 struct ShaderVS11 : ShaderData
 {
-   ID3D11VertexShader *vs;
+   ID3D11VertexShader *vs=null;
 
    ID3D11VertexShader* create();
 
   ~ShaderVS11();
-   ShaderVS11() {vs=null;}
    NO_COPY_CONSTRUCTOR(ShaderVS11);
 };
 struct ShaderHS11 : ShaderData
 {
-   ID3D11HullShader *hs;
+   ID3D11HullShader *hs=null;
 
    ID3D11HullShader* create();
 
   ~ShaderHS11();
-   ShaderHS11() {hs=null;}
    NO_COPY_CONSTRUCTOR(ShaderHS11);
 };
 struct ShaderDS11 : ShaderData
 {
-   ID3D11DomainShader *ds;
+   ID3D11DomainShader *ds=null;
 
    ID3D11DomainShader* create();
 
   ~ShaderDS11();
-   ShaderDS11() {ds=null;}
    NO_COPY_CONSTRUCTOR(ShaderDS11);
 };
 struct ShaderPS11 : ShaderData
 {
-   ID3D11PixelShader *ps;
+   ID3D11PixelShader *ps=null;
 
    ID3D11PixelShader* create();
 
   ~ShaderPS11();
-   ShaderPS11() {ps=null;}
    NO_COPY_CONSTRUCTOR(ShaderPS11);
 };
 #endif
@@ -301,7 +297,7 @@ struct Shader11
    void begin    ();
    Bool load     (File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images);
 
-  ~Shader11();
+//~Shader11(); no need to release 'vs,hs,ds,ps' shaders since they're just copies from 'Shader*11'
 };
 #endif
 /******************************************************************************/

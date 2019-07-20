@@ -859,8 +859,9 @@ ALIGN_ASSERT(Shader11, vs);
 ALIGN_ASSERT(Shader11, hs);
 ALIGN_ASSERT(Shader11, ds);
 ALIGN_ASSERT(Shader11, ps);
-Shader11::~Shader11()
+/*Shader11::~Shader11()
 {
+   /* no need to release 'vs,hs,ds,ps', shaders since they're just copies from 'Shader*11'
    if(D.created())
    {
     //SyncLocker locker(D._lock); lock not needed for DX11 'Release'
@@ -868,8 +869,8 @@ Shader11::~Shader11()
       if(hs)hs->Release();
       if(ds)ds->Release();
       if(ps)ps->Release();
-   }
-}
+   }*
+}*/
 Bool Shader11::validate(ShaderFile &shader, Str *messages) // this function should be multi-threaded safe
 {
    if(!vs && InRange(vs_index, shader._vs))AtomicSet(vs, shader._vs[vs_index].create());

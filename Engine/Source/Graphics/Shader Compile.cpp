@@ -64,7 +64,7 @@ static const CChar8* APIName[]=
    #define COMPRESS_GL       COMPRESS_ZSTD
    #define COMPRESS_GL_LEVEL 99
 #elif 1 // Test #1: shader size 5.15 MB, engine load+render 1 frame = 0.45s on Windows, decompression 10x slower, Test #2: Shaders compiled in: 50.791s, load+draw 1 frame: 0.88s, Main size 337 KB
-   #define COMPRESS_GL       COMPRESS_LZMA
+   #define COMPRESS_GL       COMPRESS_LZMA // FIXME still needed?
    #define COMPRESS_GL_LEVEL 9 // shader files are small, so we can use high compression level and still get small dictionary size / memory usage
 #else // shader size was slightly bigger than LZMA, and loading all shader techs was bit slower
    #define COMPRESS_GL       COMPRESS_LZHAM
@@ -1070,7 +1070,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
       FREPA(source.shaders)
       {
          Shader &shader=source.shaders[i];
-         shader.source=&source; // link only during compilation because sources use Memc container which could change addresses while new sources were being added, however at this stage all have already been created
+         shader.source=&source; // link only during compilation because sources use 'Memc' container which could change addresses while new sources were being added, however at this stage all have already been created
          shader.finalizeName();
          shaders_num+=!shader.dummy;
          FREPA(shader.sub)
