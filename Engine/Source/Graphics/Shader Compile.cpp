@@ -129,12 +129,15 @@ Bool CompileFromBlob(IDxcBlob *pSource, LPCWSTR pSourceName,
 
 #include "../Shaders/!Header CPU.h"
 
+#define HLSL_CC 0
+#if HLSL_CC
 #pragma warning(push)
 #pragma warning(disable:4267 4996)
 #include "../../../ThirdPartyLibs/begin.h"
 #include "../../../ThirdPartyLibs/HLSLcc/lib/include/hlslcc.h"
 #include "../../../ThirdPartyLibs/end.h"
 #pragma warning(pop)
+#endif
 /******************************************************************************/
 namespace EE{
 #include "Shader Compiler.h"
@@ -940,11 +943,14 @@ static Int  Compare(ShaderCompiler::Shader*C &a, ShaderCompiler::Shader*C &b) {r
 struct ConvertContext
 {
    ShaderCompiler &compiler;
+#if HLSL_CC
    HLSLccSamplerPrecisionInfo sampler_precision;
    GlExtensions ext;
+#endif
 
    ConvertContext(ShaderCompiler &compiler) : compiler(compiler)
    {
+   #if HLSL_CC
       sampler_precision.insert(std::pair<std::string, REFLECT_RESOURCE_PRECISION>("Depth" , REFLECT_RESOURCE_PRECISION_HIGHP));
       sampler_precision.insert(std::pair<std::string, REFLECT_RESOURCE_PRECISION>("ImgXF" , REFLECT_RESOURCE_PRECISION_HIGHP));
       sampler_precision.insert(std::pair<std::string, REFLECT_RESOURCE_PRECISION>("ImgXF1", REFLECT_RESOURCE_PRECISION_HIGHP));
@@ -953,18 +959,21 @@ struct ConvertContext
       ext.ARB_explicit_uniform_location=true;
       ext.ARB_explicit_attrib_location=true;
       ext.ARB_shading_language_420pack=true;
+   #endif
    }
 };
 static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_index)
 {
+   Str8 code;
+#if HLSL_CC
    HLSLccReflection reflection;
    GLSLShader       converted;
    TranslateHLSLFromMem((char*)shader_data.data(), HLSLCC_FLAG_UNIFORM_BUFFER_OBJECT, LANG_330, &cc.ext, null, cc.sampler_precision, reflection, &converted); // LANG_330, LANG_ES_300
-   Str8 code=converted.sourceCode.c_str();
+   code=converted.sourceCode.c_str();
    code=Replace(code, "#version 330\n", S);
    code=Replace(code, "#version 300 es\n", S);
    code=Replace(code, "in_ATTR", "ATTR", true);
-
+#endif
    if(!code.length())Exit("Can't convert HLSL to GLSL"); // this is also needed for null char
 #if 0 // uncompressed
    shader_data.setNum(code.length()+1).copyFrom((Byte*)code()); // include null char
