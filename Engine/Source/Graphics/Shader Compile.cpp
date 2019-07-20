@@ -2,15 +2,17 @@
 #include "stdafx.h"
 
 #define NEW_COMPILER 0
+#define SPIRV_CROSS 1
+#define HLSL_CC 0
 
 #if WINDOWS && NEW_COMPILER
 const UINT32 CP_UTF16=1200;
 #include "../../../ThirdPartyLibs/begin.h"
 #include <vector>
 #include <string>
-#include "C:/Users/esent/Desktop/dxc-artifacts/include/dxc/dxcapi.h"
-#include "C:/Users/esent/Desktop/dxc-artifacts/include/dxc/Support/microcom.h"
-#include "C:/Users/esent/Desktop/dxc-artifacts/include/dxc/DxilContainer/DxilContainer.h"
+#include "../../../ThirdPartyLibs/DirectXShaderCompiler/include/dxc/dxcapi.h"
+#include "../../../ThirdPartyLibs/DirectXShaderCompiler/include/dxc/Support/microcom.h"
+#include "../../../ThirdPartyLibs/DirectXShaderCompiler/include/dxc/DxilContainer/DxilContainer.h"
 #include "../../../ThirdPartyLibs/end.h"
 namespace llvm
 {
@@ -26,7 +28,13 @@ static HRESULT CreateContainerReflection(IDxcContainerReflection **ppReflection)
 
 #include "../Shaders/!Header CPU.h"
 
-#define HLSL_CC 0
+#if SPIRV_CROSS
+#include "../../../ThirdPartyLibs/begin.h"
+#include "../../../ThirdPartyLibs/SPIRV-Cross/include/spirv_cross/spirv_cross_c.h"
+#include "../../../ThirdPartyLibs/SPIRV-Cross/include/spirv_cross/spirv_glsl.hpp"
+#include "../../../ThirdPartyLibs/end.h"
+#endif
+
 #if HLSL_CC
 #pragma warning(push)
 #pragma warning(disable:4267 4996)
@@ -417,6 +425,10 @@ static Bool Match(C ShaderCompiler::SubShader &output, C ShaderCompiler::SubShad
    }
    return ok;
 }
+static void ErrorCallback(void *userdata, const char *error)
+{
+   int z=0; // FIXME
+}
 void ShaderCompiler::SubShader::compile()
 {
 #if WINDOWS
@@ -514,6 +526,97 @@ void ShaderCompiler::SubShader::compile()
    if(buffer)
    {
    #if NEW_COMPILER
+      if(compiler->api!=API_DX)
+      {
+      #if SPIRV_CROSS
+         /*Int size=buffer->GetBufferSize();
+         std::vector<uint32_t> spirv_binary;
+         spirv_binary.resize(DivCeil4(size));
+         CopyFast(spirv_binary.data(), buffer->GetBufferPointer(), size);
+         spirv_cross::CompilerGLSL glsl(std::move(spirv_binary));
+
+	      // The SPIR-V is now parsed, and we can perform reflection on it.
+	      spirv_cross::ShaderResources resources = glsl.get_shader_resources();
+
+	      // Get all sampled images in the shader.
+	      for (auto &resource : resources.sampled_images)
+	      {
+		      unsigned set = glsl.get_decoration(resource.id, spv::DecorationDescriptorSet);
+		      unsigned binding = glsl.get_decoration(resource.id, spv::DecorationBinding);
+		      printf("Image %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
+
+		      // Modify the decoration to prepare it for GLSL.
+		      glsl.unset_decoration(resource.id, spv::DecorationDescriptorSet);
+
+		      // Some arbitrary remapping if we want.
+		      glsl.set_decoration(resource.id, spv::DecorationBinding, set * 16 + binding);
+	      }
+
+	      // Set some options.
+	      spirv_cross::CompilerGLSL::Options options;
+	      options.version = 330;
+	      options.es = false; // true;
+         options.vertex.support_nonzero_base_instance=false;
+	      glsl.set_common_options(options);
+
+	      // Compile to GLSL, ready to give to GL driver.
+	      Str8 source=glsl.compile().c_str();
+         result=(source.is() ? GOOD : FAIL);*/
+
+         // FIXME don't call this here, but later
+         const SpvId *spirv=(SpvId*)buffer->GetBufferPointer();
+         size_t word_count=buffer->GetBufferSize()/SIZE(SpvId);
+         if(word_count*SIZE(SpvId)!=buffer->GetBufferSize())Exit("Incorrect Spir-V size");
+
+         spvc_context context=null; spvc_context_create(&context); if(!context)Exit("Can't create context");
+         spvc_context_set_error_callback(context, ErrorCallback, null); // Set debug callback
+         spvc_parsed_ir ir=null; spvc_context_parse_spirv(context, spirv, word_count, &ir); if(!ir)Exit("'spvc_context_parse_spirv' failed");
+
+         // Hand it off to a compiler instance and give it ownership of the IR.
+         spvc_compiler compiler_glsl=null; spvc_context_create_compiler(context, SPVC_BACKEND_GLSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler_glsl);
+         if(!compiler_glsl)Exit("'spvc_context_create_compiler' failed");
+
+         // Do some basic reflection.
+         spvc_resources resources=null; spvc_compiler_create_shader_resources(compiler_glsl, &resources);
+         const spvc_reflected_resource *list=null; size_t count; spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count);
+
+         for(size_t i=0; i<count; i++)
+         {
+             printf("ID: %u, BaseTypeID: %u, TypeID: %u, Name: %s\n", list[i].id, list[i].base_type_id, list[i].type_id, list[i].name);
+             printf("  Set: %u, Binding: %u\n", spvc_compiler_get_decoration(compiler_glsl, list[i].id, SpvDecorationDescriptorSet),
+                                                spvc_compiler_get_decoration(compiler_glsl, list[i].id, SpvDecorationBinding));
+         }
+
+         // Modify options.
+         spvc_compiler_options options=null;
+         spvc_compiler_create_compiler_options(compiler_glsl, &options); if(!options)Exit("'spvc_compiler_create_compiler_options' failed");
+         spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, 330);
+         spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_FALSE);
+         spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_SUPPORT_NONZERO_BASE_INSTANCE, SPVC_FALSE);
+         spvc_compiler_install_compiler_options(compiler_glsl, options);
+
+         const char *glsl=null; spvc_compiler_compile(compiler_glsl, &glsl);
+         Str8 code=glsl;
+         code=Replace(code, "in_var_ATTR", "ATTR", true);
+
+         if(!code.length())Exit("Can't convert HLSL to GLSL"); // this is also needed for null char
+      #if 0 // uncompressed
+         shader_data.setNum(code.length()+1).copyFrom((Byte*)code()); // include null char
+      #else // compressed
+         File f; f.readMem(code(), code.length()+1); // include null char
+         File cmp; if(!Compress(f, cmp.writeMem(), COMPRESS_GL, COMPRESS_GL_LEVEL, false))Exit("Can't compress shader data");
+         f.del(); cmp.pos(0); shader_data.setNum(cmp.size()).loadRawData(cmp);
+      #endif
+         ClipSet(code);
+
+         // Frees all memory we allocated so far.
+         spvc_context_destroy(context);
+         result=GOOD; // FIXME
+      #else
+         result=FAIL;
+      #endif
+      }else
+      {
       IDxcContainerReflection *container_reflection=null; CreateContainerReflection(&container_reflection); if(container_reflection)
       {
          UINT32 part_index;
@@ -639,6 +742,7 @@ void ShaderCompiler::SubShader::compile()
             }
          }
          container_reflection->Release();
+      }
       }
    #else
       ID3D11ShaderReflection *reflection=null; D3DReflect(buffer->GetBufferPointer(), buffer->GetBufferSize(), IID_ID3D11ShaderReflection, (Ptr*)&reflection); if(reflection)
