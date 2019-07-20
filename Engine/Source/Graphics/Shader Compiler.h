@@ -31,6 +31,7 @@ struct ShaderCompiler
       Bool save(File &f)C;
    #if WINDOWS
       void addTranslation(ID3D11ShaderReflectionType *type, C D3D11_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, SByte &was_min16); // 'was_min16'=if last inserted parameter was of min16 type (-1=no last parameter)
+      void addTranslation(ID3D12ShaderReflectionType *type, C D3D12_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, SByte &was_min16); // 'was_min16'=if last inserted parameter was of min16 type (-1=no last parameter)
    #endif
    };
    struct Buffer
@@ -58,6 +59,7 @@ struct ShaderCompiler
 
    #if WINDOWS
       void operator=(C D3D11_SIGNATURE_PARAMETER_DESC &desc) {name=desc.SemanticName; index=desc.SemanticIndex; reg=desc.Register;}
+      void operator=(C D3D12_SIGNATURE_PARAMETER_DESC &desc) {name=desc.SemanticName; index=desc.SemanticIndex; reg=desc.Register;}
    #endif
       Bool operator==(C IO &io)C {return name==io.name && index==io.index && reg==io.reg;}
       Bool operator!=(C IO &io)C {return !(T==io);}

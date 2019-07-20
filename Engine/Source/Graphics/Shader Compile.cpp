@@ -8,8 +8,9 @@ const UINT32 CP_UTF16=1200;
 #include "../../../ThirdPartyLibs/begin.h"
 #include <vector>
 #include <string>
-#include "C:\Users\esent\Desktop\dxc-artifacts\include\dxc\dxcapi.h"
-#include "C:\Users\esent\Desktop\dxc-artifacts\include\dxc\Support\microcom.h"
+#include "C:/Users/esent/Desktop/dxc-artifacts/include/dxc/dxcapi.h"
+#include "C:/Users/esent/Desktop/dxc-artifacts/include/dxc/Support/microcom.h"
+#include "C:/Users/esent/Desktop/dxc-artifacts/include/dxc/DxilContainer/DxilContainer.h"
 #include "../../../ThirdPartyLibs/end.h"
 namespace llvm
 {
@@ -38,8 +39,8 @@ HRESULT CreateContainerReflection(IDxcContainerReflection **ppReflection) {
 Bool CompileFromBlob(IDxcBlob *pSource, LPCWSTR pSourceName,
                         const D3D_SHADER_MACRO *pDefines, IDxcIncludeHandler *pInclude,
                         LPCSTR pEntrypoint, LPCSTR pTarget, UINT Flags1,
-                        UINT Flags2, ID3DBlob **ppCode,
-                        ID3DBlob **ppErrorMsgs) {
+                        UINT Flags2, IDxcBlob **ppCode,
+                        IDxcBlobEncoding **ppErrorMsgs) {
   // Upconvert legacy targets
   char Target[7] = "?s_6_0";
   Target[6] = 0;
@@ -116,8 +117,8 @@ Bool CompileFromBlob(IDxcBlob *pSource, LPCWSTR pSourceName,
 
        if(operationResult)
        {
-         if(ppErrorMsgs)operationResult->GetErrorBuffer((IDxcBlobEncoding **)ppErrorMsgs);
-         HRESULT hr; if(OK(operationResult->GetStatus(&hr)))if(OK(hr))ok=OK(operationResult->GetResult((IDxcBlob**)ppCode));
+         if(ppErrorMsgs)operationResult->GetErrorBuffer(ppErrorMsgs);
+         HRESULT hr; if(OK(operationResult->GetStatus(&hr)))if(OK(hr))ok=OK(operationResult->GetResult(ppCode));
          operationResult->Release();
       }
       compiler->Release();
@@ -312,31 +313,31 @@ private:
 // COMPILER
 /******************************************************************************/
 #if WINDOWS
+// https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-packing-rules
+/* D3DCompile introduces some weird packing rules for min16float:
+      min16float a; // offset=0
+      min16float b; // offset=4
+
+      min16float a; // offset=0
+           float b; // offset=16
+
+   Looks like 'min16float' and 'float' can't be together on the same Vec4, so when a change is detected (using 'was_min16'), switch to new Vec4
+
+   Also:
+      min16float a; // offset=0
+      min16float b; // offset=4
+
+      min16float2 a; // offset=0
+      min16float  b; // offset=8
+
+      min16float3 a; // offset=0
+      min16float  b; // offset=12
+
+      min16float4 a; // offset=0
+      min16float  b; // offset=16
+*/
 void ShaderCompiler::Param::addTranslation(ID3D11ShaderReflectionType *type, C D3D11_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, SByte &was_min16) // 'was_min16'=if last inserted parameter was of min16 type (-1=no last parameter)
 {
-   // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-packing-rules
-   /* D3DCompile introduces some weird packing rules for min16float:
-         min16float a; // offset=0
-         min16float b; // offset=4
-
-         min16float a; // offset=0
-              float b; // offset=16
-
-      Looks like 'min16float' and 'float' can't be together on the same Vec4, so when a change is detected (using 'was_min16'), switch to new Vec4
-
-      Also:
-         min16float a; // offset=0
-         min16float b; // offset=4
-
-         min16float2 a; // offset=0
-         min16float  b; // offset=8
-
-         min16float3 a; // offset=0
-         min16float  b; // offset=12
-
-         min16float4 a; // offset=0
-         min16float  b; // offset=16
-   */
    if(type_desc.Elements)offset=Ceil16(offset); // arrays are 16-byte aligned (even 1-element arrays "f[1]"), non-arrays have Elements=0, so check Elements!=0
    Int  elms=Max(type_desc.Elements, 1), last_index=elms-1; // 'Elements' is array size (it's 0 for non-arrays)
    FREP(elms)switch(type_desc.Class)
@@ -379,6 +380,56 @@ void ShaderCompiler::Param::addTranslation(ID3D11ShaderReflectionType *type, C D
          {
             ID3D11ShaderReflectionType *member=type->GetMemberTypeByIndex(i); if(!member)Exit("'GetMemberTypeByIndex' failed");
             D3D11_SHADER_TYPE_DESC member_desc; if(!OK(member->GetDesc(&member_desc)))Exit("'ID3D11ShaderReflectionType.GetDesc' failed");
+            addTranslation(member, member_desc, type->GetMemberTypeName(i), offset, was_min16);
+         }
+       //offset=Ceil16(offset); "Each structure forces the next variable to start on the next four-component vector." even though documentation examples indicate this should align too, actual tests confirm that's not the case
+      }break;
+   }
+}
+void ShaderCompiler::Param::addTranslation(ID3D12ShaderReflectionType *type, C D3D12_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, SByte &was_min16) // 'was_min16'=if last inserted parameter was of min16 type (-1=no last parameter)
+{
+   if(type_desc.Elements)offset=Ceil16(offset); // arrays are 16-byte aligned (even 1-element arrays "f[1]"), non-arrays have Elements=0, so check Elements!=0
+   Int  elms=Max(type_desc.Elements, 1), last_index=elms-1; // 'Elements' is array size (it's 0 for non-arrays)
+   FREP(elms)switch(type_desc.Class)
+   {
+      case D3D_SVC_SCALAR        : // for example: Flt f,f[];
+      case D3D_SVC_VECTOR        : // for example: Vec2 v,v[]; Vec v,v[]; Vec4 v,v[];
+      case D3D_SVC_MATRIX_COLUMNS: // for example: Matrix m,m[];
+      {
+      #define ALLOW_MIN16 0
+         if(type_desc.Rows   <=0 || type_desc.Rows   >4)Exit("Invalid Shader Param Rows");
+         if(type_desc.Columns<=0 || type_desc.Columns>4)Exit("Invalid Shader Param Cols");
+         Bool half=false, min16=(type_desc.Type==D3D_SVT_MIN16FLOAT);
+         if(type_desc.Type==D3D_SVT_FLOAT || (ALLOW_MIN16 && min16))
+         {
+            Int base_size=(half ? SIZE(Half) : SIZE(Flt)),
+                 cpu_size=base_size*type_desc.Columns*   type_desc.Rows,
+                 gpu_size;
+            if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)gpu_size=cpu_size;
+            else                                       gpu_size=base_size*4             *(type_desc.Columns-1) // for matrixes, the lines use  4 X's
+                                                               +base_size*type_desc.Rows;                      //       except last line  uses what was specified
+            if(offset/16 != (offset+gpu_size-1)/16 || (ALLOW_MIN16 && was_min16>=0 && was_min16!=(Byte)min16))offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary."
+            if(!half)cpu_data_size=Ceil4(cpu_data_size); // float's are 4-byte aligned on CPU, double too if using #pragma pack(4)
+
+            if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)translation.New().set(cpu_data_size, offset, cpu_size);else
+            {
+               FREPD(y, type_desc.Columns)
+               FREPD(x, type_desc.Rows   )translation.New().set(cpu_data_size+base_size*(y+x*type_desc.Columns), offset+base_size*(x+y*4), base_size);
+            }
+                  
+            cpu_data_size+=cpu_size;
+                   offset+=((i==last_index) ? gpu_size : Ceil16(gpu_size)); // arrays are 16-byte aligned, and last element is 'gpu_size' only
+            was_min16=min16;
+         }else Exit(S+"Unhandled Shader Parameter Type for \""+name+'"');
+      }break;
+
+      case D3D_SVC_STRUCT:
+      {
+         offset=Ceil16(offset); // "Each structure forces the next variable to start on the next four-component vector."
+         FREP(type_desc.Members) // iterate all struct members
+         {
+            ID3D12ShaderReflectionType *member=type->GetMemberTypeByIndex(i); if(!member)Exit("'GetMemberTypeByIndex' failed");
+            D3D12_SHADER_TYPE_DESC member_desc; if(!OK(member->GetDesc(&member_desc)))Exit("'ID3D12ShaderReflectionType.GetDesc' failed");
             addTranslation(member, member_desc, type->GetMemberTypeName(i), offset, was_min16);
          }
        //offset=Ceil16(offset); "Each structure forces the next variable to start on the next four-component vector." even though documentation examples indicate this should align too, actual tests confirm that's not the case
@@ -507,10 +558,11 @@ void ShaderCompiler::SubShader::compile()
    }
    Zero(macros.last()); // must be null-terminated
 
-   ID3DBlob *buffer=null, *error_blob=null;
 #if NEW_COMPILER
+   IDxcBlob *buffer=null; IDxcBlobEncoding *error_blob=null;
    CompileFromBlob(source->file_blob, source->file_name, macros.data(), &Include12(source->file_name), func_name, target, D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &buffer, &error_blob);
 #else
+   ID3DBlob *buffer=null, *error_blob=null;
    D3DCompile(source->file_data.data(), source->file_data.elms(), (Str8)source->file_name, macros.data(), &Include11(source->file_name), func_name, target, D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &buffer, &error_blob);
 #endif
    if(error_blob)
@@ -522,6 +574,134 @@ void ShaderCompiler::SubShader::compile()
    }
    if(buffer)
    {
+   #if NEW_COMPILER
+      IDxcContainerReflection *container_reflection=null; CreateContainerReflection(&container_reflection); if(container_reflection)
+      {
+         UINT32 part_index;
+         if(OK(container_reflection->Load(buffer)))
+         if(OK(container_reflection->FindFirstPartKind(hlsl::DFCC_DXIL, &part_index)))
+         {
+            ID3D12ShaderReflection *reflection=null; container_reflection->GetPartReflection(part_index, __uuidof(ID3D12ShaderReflection), (Ptr*)&reflection);
+            if(reflection)
+            {
+               D3D12_SHADER_DESC desc; if(!OK(reflection->GetDesc(&desc))){error.line()+="'ID3D12ShaderReflection.GetDesc' failed.";}else
+               {
+                  Int images_elms=0, buffers_elms=0;
+                  FREP(desc.BoundResources)
+                  {
+                     D3D12_SHADER_INPUT_BIND_DESC desc; if(!OK(reflection->GetResourceBindingDesc(i, &desc))){error.line()+="'GetResourceBindingDesc' failed."; goto error;}
+                     switch(desc.Type)
+                     {
+                        case D3D_SIT_TEXTURE:  images_elms++; break;
+                        case D3D_SIT_CBUFFER: buffers_elms++; break;
+                     }
+                  }
+                   images.setNum( images_elms);  images_elms=0;
+                  buffers.setNum(buffers_elms); buffers_elms=0;
+                  FREP(desc.BoundResources)
+                  {
+                     D3D12_SHADER_INPUT_BIND_DESC desc; if(!OK(reflection->GetResourceBindingDesc(i, &desc))){error.line()+="'GetResourceBindingDesc' failed."; goto error;}
+                     switch(desc.Type)
+                     {
+                        case D3D_SIT_TEXTURE:
+                        {
+                           if(!InRange(desc.BindPoint, MAX_TEXTURES)){error.line()+=S+"Texture index: "+desc.BindPoint+", is too big"; goto error;}
+                           Image &image=images[images_elms++]; image.name=desc.Name; image.bind_slot=desc.BindPoint;
+                        }break;
+
+                        case D3D_SIT_CBUFFER:
+                        {
+                           if(!InRange(desc.BindPoint, MAX_SHADER_BUFFERS)){error.line()+=S+"Constant Buffer index: "+desc.BindPoint+", is too big"; goto error;}
+                           Buffer &buffer=buffers[buffers_elms++];
+                           buffer.name=desc.Name;
+                           buffer.bind_slot=desc.BindPoint;
+                           buffer.bind_explicit=FlagTest(desc.uFlags, D3D_SIF_USERPACKED); // FIXME this is not set https://github.com/microsoft/DirectXShaderCompiler/issues/2356
+                           ID3D12ShaderReflectionConstantBuffer *cb=reflection->GetConstantBufferByName(desc.Name); if(!cb){error.line()+="'GetConstantBufferByIndex' failed."; goto error;}
+                           {
+                              D3D12_SHADER_BUFFER_DESC desc; if(!OK(cb->GetDesc(&desc))){error.line()+="'ID3D12ShaderReflectionConstantBuffer.GetDesc' failed."; goto error;}
+                              buffer.size=desc.Size;
+                              buffer.params.setNum(desc.Variables);
+                              FREP(desc.Variables)
+                              {
+                                 ID3D12ShaderReflectionVariable *var=cb->GetVariableByIndex(i); if(!var){error.line()+="'GetVariableByIndex' failed."; goto error;}
+                                 ID3D12ShaderReflectionType *type=var->GetType(); if(!type){error.line()+="'GetType' failed."; goto error;}
+                                 D3D12_SHADER_VARIABLE_DESC var_desc; if(!OK( var->GetDesc(& var_desc))){error.line()+="'ID3D12ShaderReflectionVariable.GetDesc' failed."; goto error;}
+                                 D3D12_SHADER_TYPE_DESC    type_desc; if(!OK(type->GetDesc(&type_desc))){error.line()+="'ID3D12ShaderReflectionType.GetDesc' failed."; goto error;}
+
+                                 Param &param=buffer.params[i];
+                                 param.name=var_desc.Name;
+                                 param.array_elms=type_desc.Elements;
+                                 Int offset=var_desc.StartOffset; SByte was_min16=-1; param.addTranslation(type, type_desc, var_desc.Name, offset, was_min16);
+                                 param.gpu_data_size=offset-var_desc.StartOffset;
+                                 if(!param.translation.elms()                             )Exit("Shader Param is empty.\nPlease contact Developer.");
+                                 if( param.gpu_data_size!=var_desc.Size                   )Exit("Incorrect Shader Param size.\nPlease contact Developer.");
+                                 if( param.translation[0].gpu_offset!=var_desc.StartOffset)Exit("Incorrect Shader Param Offset.\nPlease contact Developer.");
+                                 if( param.gpu_data_size+var_desc.StartOffset>buffer.size )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer.");
+                               //if( SIZE(Vec4)         +var_desc.StartOffset>buffer.size )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer."); some functions assume that '_gpu_data_size' is at least as big as 'Vec4' to set values without checking for size, !! this is not needed and shouldn't be called because in DX10+ Shader Params are stored in Shader Buffers, and 'ShaderBuffer' already allocates padding for Vec4
+
+                                 if(HasData(var_desc.DefaultValue, var_desc.Size)) // if parameter has any data
+                                 {
+                                 #if 1 // store in parameter
+                                    param.data.setNum(param.gpu_data_size).copyFrom((Byte*)var_desc.DefaultValue);
+                                 #else // store in buffer
+                                    buffer.data.setNumZero(buffer.size); // allocate entire buffer
+                                    CopyFast(buffer.data.data()+var_desc.StartOffset, var_desc.DefaultValue, param.gpu_data_size); // copy param data to buffer data
+                                 #endif
+                                 }
+                           
+                               //type->Release(); this doesn't have 'Release'
+                               //var ->Release(); this doesn't have 'Release'
+                              }
+                              DEBUG_ASSERT(buffer.bind_explicit==FlagTest(desc.uFlags, D3D_CBF_USERPACKED), "bind_explicit mismatch"); 
+                           }
+                        //cb->Release(); this doesn't have 'Release'
+                        }break;
+                     }
+                  }
+                  if(!shader->dummy)
+                  {
+                      inputs.setNum(desc. InputParameters); FREPA( inputs){D3D12_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetInputParameterDesc (i, &desc)))Exit("'GetInputParameterDesc' failed" );  inputs[i]=desc;}
+                     outputs.setNum(desc.OutputParameters); FREPA(outputs){D3D12_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetOutputParameterDesc(i, &desc)))Exit("'GetOutputParameterDesc' failed"); outputs[i]=desc;}
+            
+                  #if DEBUG && 0 // use this for generation of a basic Vertex Shader which can be used for Input Layout creation (see 'DX10_INPUT_LAYOUT' and 'VS_Code')
+                     if(type==VS)
+                     {
+                        Byte *data=(Byte*)buffer->GetBufferPointer(); Int size=buffer->GetBufferSize();
+                        Str t=S+"static Byte VS_Code["+size+"]={";
+                        FREP(size){if(i)t+=','; t+=data[i];}
+                        t+="};\n";
+                        ClipSet(t);
+                        Exit(t);
+                     }
+                  #endif
+
+                     if(compiler->api==API_DX) // strip
+                     {
+                        // FIXME
+                        //ID3DBlob *stripped=null; D3DStripShader(buffer->GetBufferPointer(), buffer->GetBufferSize(), ~0, &stripped);
+                        //if(stripped){buffer->Release(); buffer=stripped;}
+                     }
+                     shader_data.setNum(buffer->GetBufferSize()).copyFrom((Byte*)buffer->GetBufferPointer());
+                  }
+
+                  result=GOOD;
+                  // !! do not make any changes here after setting 'result' because other threads may access this data !!
+
+                  // verify that stages have matching output->input
+                  for(Int i=type;         --i>=0      ; ){C SubShader &prev=shader->sub[i]; if(prev.is()){if(prev.result==GOOD && !Match(prev, T, error))goto error; break;}} // can check only if other shader also completed successfully, stop on first valid sub shader
+                  for(Int i=type; InRange(++i, ST_NUM); ){C SubShader &next=shader->sub[i]; if(next.is()){if(next.result==GOOD && !Match(T, next, error))goto error; break;}} // can check only if other shader also completed successfully, stop on first valid sub shader
+
+                  goto ok;
+               }
+            error:
+               result=FAIL;
+            ok:
+               reflection->Release();
+            }
+         }
+         container_reflection->Release();
+      }
+   #else
       ID3D11ShaderReflection *reflection=null; D3DReflect(buffer->GetBufferPointer(), buffer->GetBufferSize(), IID_ID3D11ShaderReflection, (Ptr*)&reflection); if(reflection)
       {
          D3D11_SHADER_DESC desc; if(!OK(reflection->GetDesc(&desc))){error.line()+="'ID3D11ShaderReflection.GetDesc' failed.";}else
@@ -637,6 +817,7 @@ void ShaderCompiler::SubShader::compile()
       ok:
          reflection->Release();
       }
+   #endif
       buffer->Release();
    }
 #else
