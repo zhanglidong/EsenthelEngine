@@ -472,6 +472,7 @@ Str8 Display::shaderModelName()C
       case SM_4      : return "4";
       case SM_4_1    : return "4.1";
       case SM_5      : return "5";
+      case SM_6      : return "6";
    }
 }
 Str8 Display::apiName()C
@@ -888,7 +889,7 @@ void Display::createDevice()
 
    D3DC->QueryInterface(__uuidof(ID3D11DeviceContext1), (Ptr*)&D3DC1);
 
-  _shader_model=((FeatureLevel>=D3D_FEATURE_LEVEL_11_0) ? SM_5 : (FeatureLevel>=D3D_FEATURE_LEVEL_10_1) ? SM_4_1 : SM_4);
+  _shader_model=((FeatureLevel>=D3D_FEATURE_LEVEL_12_0) ? SM_6 : (FeatureLevel>=D3D_FEATURE_LEVEL_11_0) ? SM_5 : (FeatureLevel>=D3D_FEATURE_LEVEL_10_1) ? SM_4_1 : SM_4);
 
    IDXGIDevice1 *device=null; D3D->QueryInterface(__uuidof(IDXGIDevice1), (Ptr*)&device); if(device)
    {

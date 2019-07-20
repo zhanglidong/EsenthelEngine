@@ -19,112 +19,9 @@ namespace llvm
       typedef UInt cas_flag;
    }
 }
-
-HRESULT CreateLibrary(IDxcLibrary **pLibrary) {
-  return DxcCreateInstance(CLSID_DxcLibrary, __uuidof(IDxcLibrary),
-                           (void **)pLibrary);
-}
-
-HRESULT CreateCompiler(IDxcCompiler **ppCompiler) {
-  return DxcCreateInstance(CLSID_DxcCompiler, __uuidof(IDxcCompiler),
-                           (void **)ppCompiler);
-}
-
-HRESULT CreateContainerReflection(IDxcContainerReflection **ppReflection) {
-  return DxcCreateInstance(CLSID_DxcContainerReflection,
-                           __uuidof(IDxcContainerReflection),
-                           (void **)ppReflection);
-}
-
-Bool CompileFromBlob(IDxcBlob *pSource, LPCWSTR pSourceName,
-                        const D3D_SHADER_MACRO *pDefines, IDxcIncludeHandler *pInclude,
-                        LPCSTR pEntrypoint, LPCSTR pTarget, UINT Flags1,
-                        UINT Flags2, IDxcBlob **ppCode,
-                        IDxcBlobEncoding **ppErrorMsgs) {
-  // Upconvert legacy targets
-  char Target[7] = "?s_6_0";
-  Target[6] = 0;
-  if (pTarget[3] < '6') {
-    Target[0] = pTarget[0];
-    pTarget = Target;
-  }
-
-    Str pEntrypointW(pEntrypoint);
-    Str pTargetProfileW(pTarget);
-    std::vector<std::wstring> defineValues;
-    std::vector<DxcDefine> defines;
-    if (pDefines) {
-      CONST D3D_SHADER_MACRO *pCursor = pDefines;
-
-      // Convert to UTF-16.
-      while (pCursor->Name) {
-        defineValues.push_back(std::wstring(Str(pCursor->Name)));
-        if (pCursor->Definition)
-          defineValues.push_back(std::wstring(Str(pCursor->Definition)));
-        else
-          defineValues.push_back(std::wstring());
-        ++pCursor;
-      }
-
-      // Build up array.
-      pCursor = pDefines;
-      size_t i = 0;
-      while (pCursor->Name) {
-        defines.push_back(
-            DxcDefine{defineValues[i++].c_str(), defineValues[i++].c_str()});
-        ++pCursor;
-      }
-    }
-
-    std::vector<LPCWSTR> arguments;
-    // /Gec, /Ges Not implemented:
-    //if(Flags1 & D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY) arguments.push_back(L"/Gec");
-    //if(Flags1 & D3DCOMPILE_ENABLE_STRICTNESS) arguments.push_back(L"/Ges");
-    if(Flags1 & D3DCOMPILE_IEEE_STRICTNESS) arguments.push_back(L"/Gis");
-    if(Flags1 & D3DCOMPILE_OPTIMIZATION_LEVEL2)
-    {
-      switch(Flags1 & D3DCOMPILE_OPTIMIZATION_LEVEL2)
-      {
-      case D3DCOMPILE_OPTIMIZATION_LEVEL0: arguments.push_back(L"/O0"); break;
-      case D3DCOMPILE_OPTIMIZATION_LEVEL2: arguments.push_back(L"/O2"); break;
-      case D3DCOMPILE_OPTIMIZATION_LEVEL3: arguments.push_back(L"/O3"); break;
-      }
-    }
-    // Currently, /Od turns off too many optimization passes, causing incorrect DXIL to be generated.
-    // Re-enable once /Od is implemented properly:
-    //if(Flags1 & D3DCOMPILE_SKIP_OPTIMIZATION) arguments.push_back(L"/Od");
-    if(Flags1 & D3DCOMPILE_DEBUG) arguments.push_back(L"/Zi");
-    if(Flags1 & D3DCOMPILE_PACK_MATRIX_ROW_MAJOR) arguments.push_back(L"/Zpr");
-    if(Flags1 & D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR) arguments.push_back(L"/Zpc");
-    if(Flags1 & D3DCOMPILE_AVOID_FLOW_CONTROL) arguments.push_back(L"/Gfa");
-    if(Flags1 & D3DCOMPILE_PREFER_FLOW_CONTROL) arguments.push_back(L"/Gfp");
-    // We don't implement this:
-    //if(Flags1 & D3DCOMPILE_PARTIAL_PRECISION) arguments.push_back(L"/Gpp");
-    if(Flags1 & D3DCOMPILE_RESOURCES_MAY_ALIAS) arguments.push_back(L"/res_may_alias");
-    arguments.push_back(L"-HV");
-    arguments.push_back(L"2016");
-
-    IDxcCompiler *compiler=null;
-    CreateCompiler(&compiler);
-    Bool ok=false;
-    if(compiler)
-    {
-      IDxcOperationResult *operationResult=null;
-      compiler->Compile(pSource, pSourceName, pEntrypointW, pTargetProfileW,
-                             arguments.data(), (UINT)arguments.size(),
-                             defines.data(), (UINT)defines.size(), pInclude,
-                             &operationResult);
-
-       if(operationResult)
-       {
-         if(ppErrorMsgs)operationResult->GetErrorBuffer(ppErrorMsgs);
-         HRESULT hr; if(OK(operationResult->GetStatus(&hr)))if(OK(hr))ok=OK(operationResult->GetResult(ppCode));
-         operationResult->Release();
-      }
-      compiler->Release();
-   }
-   return ok;
-}
+static HRESULT CreateLibrary            (IDxcLibrary             **pLibrary    ) {return DxcCreateInstance(CLSID_DxcLibrary            , __uuidof(IDxcLibrary            ), (void**)pLibrary    );}
+static HRESULT CreateCompiler           (IDxcCompiler            **ppCompiler  ) {return DxcCreateInstance(CLSID_DxcCompiler           , __uuidof(IDxcCompiler           ), (void**)ppCompiler  );}
+static HRESULT CreateContainerReflection(IDxcContainerReflection **ppReflection) {return DxcCreateInstance(CLSID_DxcContainerReflection, __uuidof(IDxcContainerReflection), (void**)ppReflection);}
 #endif
 
 #include "../Shaders/!Header CPU.h"
@@ -538,14 +435,57 @@ void ShaderCompiler::SubShader::compile()
    target[4]='_';
    target[6]='\0';
    SHADER_MODEL model=shader->model; if(type==HS || type==DS)MAX(model, SM_5); // HS DS are supported only in SM5+
+#if NEW_COMPILER
+   MAX(model, SM_6);
+#endif
    switch(model)
    {
       case SM_4  : target[3]='4'; target[5]='0'; break;
       case SM_4_1: target[3]='4'; target[5]='1'; break;
       case SM_5  : target[3]='5'; target[5]='0'; break;
+      case SM_6  : target[3]='6'; target[5]='0'; break;
       default    : Exit("Invalid Shader Model"); break;
    }
 
+#if NEW_COMPILER
+   Int params=shader->params.elms();
+   MemtN<DxcDefine, 64  > defines; defines.setNum(params  +API_NUM);
+   MemtN<Str      , 64*2> temp   ; temp   .setNum(params*2+API_NUM); Int temps=0;
+   FREP(params)
+   {
+      DxcDefine &define=defines[i]; C TextParam8 &param=shader->params[i];
+      define.Name =(temp[temps++]=param.name );
+      define.Value=(temp[temps++]=param.value);
+   }
+   FREP(API_NUM)
+   {
+      defines[params+i].Name =(temp[temps++]=APIName[i]);
+      defines[params+i].Value=((compiler->api==i) ? L"1" : L"0");
+   }
+
+   MemtN<LPCWSTR, 16> arguments;
+   arguments.add(L"/O3");
+   arguments.add(L"-HV");
+   arguments.add(L"2016");
+   if(compiler->api!=API_DX)arguments.add(L"-spirv");
+   //if(Flags1 & D3DCOMPILE_IEEE_STRICTNESS) arguments.add(L"/Gis");
+   //if(Flags1 & D3DCOMPILE_RESOURCES_MAY_ALIAS) arguments.add(L"/res_may_alias");
+
+   Bool ok=false;
+   IDxcBlob *buffer=null; IDxcBlobEncoding *error_blob=null;
+   IDxcCompiler *dxc_compiler=null; CreateCompiler(&dxc_compiler); if(dxc_compiler)
+   {
+      IDxcOperationResult *op_result=null;
+      dxc_compiler->Compile(source->file_blob, source->file_name, (Str)func_name, (Str)target, arguments.data(), arguments.elms(), defines.data(), defines.elms(), &Include12(source->file_name), &op_result);
+      if(op_result)
+      {
+         op_result->GetErrorBuffer(&error_blob);
+         HRESULT hr; if(OK(op_result->GetStatus(&hr)))if(OK(hr))ok=OK(op_result->GetResult(&buffer));
+         op_result->Release();
+      }
+      dxc_compiler->Release();
+   }
+#else
    Int params=shader->params.elms();
    MemtN<D3D_SHADER_MACRO, 64> macros; macros.setNum(params+API_NUM+1);
    FREP(params)
@@ -561,10 +501,6 @@ void ShaderCompiler::SubShader::compile()
    }
    Zero(macros.last()); // must be null-terminated
 
-#if NEW_COMPILER
-   IDxcBlob *buffer=null; IDxcBlobEncoding *error_blob=null;
-   CompileFromBlob(source->file_blob, source->file_name, macros.data(), &Include12(source->file_name), func_name, target, D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &buffer, &error_blob);
-#else
    ID3DBlob *buffer=null, *error_blob=null;
    D3DCompile(source->file_data.data(), source->file_data.elms(), (Str8)source->file_name, macros.data(), &Include11(source->file_name), func_name, target, D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &buffer, &error_blob);
 #endif
