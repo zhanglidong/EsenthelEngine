@@ -241,24 +241,22 @@ struct ShaderPS11 : ShaderData
 /******************************************************************************/
 struct ShaderVSGL : ShaderData
 {
-   UInt vs;
+   UInt vs=0;
 
    UInt create(Bool clean, Str *messages);
    Str  source();
 
   ~ShaderVSGL();
-   ShaderVSGL() {vs=0;}
    NO_COPY_CONSTRUCTOR(ShaderVSGL);
 };
 struct ShaderPSGL : ShaderData
 {
-   UInt ps;
+   UInt ps=0;
 
    UInt create(Bool clean, Str *messages);
    Str  source();
 
   ~ShaderPSGL();
-   ShaderPSGL() {ps=0;}
    NO_COPY_CONSTRUCTOR(ShaderPSGL);
 };
 /******************************************************************************/

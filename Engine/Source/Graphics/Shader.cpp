@@ -964,6 +964,7 @@ ShaderGL::~ShaderGL()
    #endif
       if(D.created())glDeleteProgram(prog); prog=0; // clear while in lock
    }
+   // no need to release 'vs,ps' shaders since they're just copies from 'Shader*GL'
 }
 Str ShaderGL::source()
 {
