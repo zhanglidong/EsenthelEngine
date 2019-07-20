@@ -425,10 +425,6 @@ static Bool Match(C ShaderCompiler::SubShader &output, C ShaderCompiler::SubShad
    }
    return ok;
 }
-static void ErrorCallback(void *userdata, const char *error)
-{
-   int z=0; // FIXME
-}
 void ShaderCompiler::SubShader::compile()
 {
 #if WINDOWS
@@ -476,6 +472,7 @@ void ShaderCompiler::SubShader::compile()
    }
 
    MemtN<LPCWSTR, 16> arguments;
+   arguments.add(L"/Zpc"); // D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR
    arguments.add(L"/O3");
    arguments.add(L"-HV");
    arguments.add(L"2016");
@@ -528,93 +525,8 @@ void ShaderCompiler::SubShader::compile()
    #if NEW_COMPILER
       if(compiler->api!=API_DX)
       {
-      #if SPIRV_CROSS
-         /*Int size=buffer->GetBufferSize();
-         std::vector<uint32_t> spirv_binary;
-         spirv_binary.resize(DivCeil4(size));
-         CopyFast(spirv_binary.data(), buffer->GetBufferPointer(), size);
-         spirv_cross::CompilerGLSL glsl(std::move(spirv_binary));
-
-	      // The SPIR-V is now parsed, and we can perform reflection on it.
-	      spirv_cross::ShaderResources resources = glsl.get_shader_resources();
-
-	      // Get all sampled images in the shader.
-	      for (auto &resource : resources.sampled_images)
-	      {
-		      unsigned set = glsl.get_decoration(resource.id, spv::DecorationDescriptorSet);
-		      unsigned binding = glsl.get_decoration(resource.id, spv::DecorationBinding);
-		      printf("Image %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
-
-		      // Modify the decoration to prepare it for GLSL.
-		      glsl.unset_decoration(resource.id, spv::DecorationDescriptorSet);
-
-		      // Some arbitrary remapping if we want.
-		      glsl.set_decoration(resource.id, spv::DecorationBinding, set * 16 + binding);
-	      }
-
-	      // Set some options.
-	      spirv_cross::CompilerGLSL::Options options;
-	      options.version = 330;
-	      options.es = false; // true;
-         options.vertex.support_nonzero_base_instance=false;
-	      glsl.set_common_options(options);
-
-	      // Compile to GLSL, ready to give to GL driver.
-	      Str8 source=glsl.compile().c_str();
-         result=(source.is() ? GOOD : FAIL);*/
-
-         // FIXME don't call this here, but later
-         const SpvId *spirv=(SpvId*)buffer->GetBufferPointer();
-         size_t word_count=buffer->GetBufferSize()/SIZE(SpvId);
-         if(word_count*SIZE(SpvId)!=buffer->GetBufferSize())Exit("Incorrect Spir-V size");
-
-         spvc_context context=null; spvc_context_create(&context); if(!context)Exit("Can't create context");
-         spvc_context_set_error_callback(context, ErrorCallback, null); // Set debug callback
-         spvc_parsed_ir ir=null; spvc_context_parse_spirv(context, spirv, word_count, &ir); if(!ir)Exit("'spvc_context_parse_spirv' failed");
-
-         // Hand it off to a compiler instance and give it ownership of the IR.
-         spvc_compiler compiler_glsl=null; spvc_context_create_compiler(context, SPVC_BACKEND_GLSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler_glsl);
-         if(!compiler_glsl)Exit("'spvc_context_create_compiler' failed");
-
-         // Do some basic reflection.
-         spvc_resources resources=null; spvc_compiler_create_shader_resources(compiler_glsl, &resources);
-         const spvc_reflected_resource *list=null; size_t count; spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count);
-
-         for(size_t i=0; i<count; i++)
-         {
-             printf("ID: %u, BaseTypeID: %u, TypeID: %u, Name: %s\n", list[i].id, list[i].base_type_id, list[i].type_id, list[i].name);
-             printf("  Set: %u, Binding: %u\n", spvc_compiler_get_decoration(compiler_glsl, list[i].id, SpvDecorationDescriptorSet),
-                                                spvc_compiler_get_decoration(compiler_glsl, list[i].id, SpvDecorationBinding));
-         }
-
-         // Modify options.
-         spvc_compiler_options options=null;
-         spvc_compiler_create_compiler_options(compiler_glsl, &options); if(!options)Exit("'spvc_compiler_create_compiler_options' failed");
-         spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, 330);
-         spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_FALSE);
-         spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_SUPPORT_NONZERO_BASE_INSTANCE, SPVC_FALSE);
-         spvc_compiler_install_compiler_options(compiler_glsl, options);
-
-         const char *glsl=null; spvc_compiler_compile(compiler_glsl, &glsl);
-         Str8 code=glsl;
-         code=Replace(code, "in_var_ATTR", "ATTR", true);
-
-         if(!code.length())Exit("Can't convert HLSL to GLSL"); // this is also needed for null char
-      #if 0 // uncompressed
-         shader_data.setNum(code.length()+1).copyFrom((Byte*)code()); // include null char
-      #else // compressed
-         File f; f.readMem(code(), code.length()+1); // include null char
-         File cmp; if(!Compress(f, cmp.writeMem(), COMPRESS_GL, COMPRESS_GL_LEVEL, false))Exit("Can't compress shader data");
-         f.del(); cmp.pos(0); shader_data.setNum(cmp.size()).loadRawData(cmp);
-      #endif
-         ClipSet(code);
-
-         // Frees all memory we allocated so far.
-         spvc_context_destroy(context);
-         result=GOOD; // FIXME
-      #else
-         result=FAIL;
-      #endif
+         shader_data.setNum(buffer->GetBufferSize()).copyFrom((Byte*)buffer->GetBufferPointer());
+         result=GOOD;
       }else
       {
       IDxcContainerReflection *container_reflection=null; CreateContainerReflection(&container_reflection); if(container_reflection)
@@ -987,8 +899,37 @@ struct ConvertContext
    HLSLccSamplerPrecisionInfo sampler_precision;
    GlExtensions ext;
 #endif
+#if DEBUG
+   Memc<                ShaderData> (&shader_datas)[ShaderCompiler::ST_NUM];
+   Mems<ShaderCompiler::Shader   *>  &shaders;
 
-   ConvertContext(ShaderCompiler &compiler) : compiler(compiler)
+   ShaderCompiler::Shader& shader(C ShaderData &shader_data)C
+   {
+      FREPAD(type, shader_datas)
+      {
+         Int shader_data_index=shader_datas[type].index(&shader_data); if(shader_data_index>=0)
+         {
+            FREPAD(si, shaders)
+            {
+               ShaderCompiler::Shader &shader=*shaders[si]; if(shader.sub[type].shader_data_index==shader_data_index)return shader;
+            }
+            break;
+         }
+      }
+      Exit("Can't find shader");
+      return *(ShaderCompiler::Shader*)null;
+   }
+#endif
+
+   ConvertContext(ShaderCompiler &compiler
+   #if DEBUG
+    , Memc<                ShaderData> (&shader_datas)[ShaderCompiler::ST_NUM]
+    , Mems<ShaderCompiler::Shader*   >  &shaders
+   #endif
+   ) : compiler(compiler)
+   #if DEBUG
+     , shader_datas(shader_datas), shaders(shaders)
+   #endif
    {
    #if HLSL_CC
       sampler_precision.insert(std::pair<std::string, REFLECT_RESOURCE_PRECISION>("Depth" , REFLECT_RESOURCE_PRECISION_HIGHP));
@@ -1002,9 +943,97 @@ struct ConvertContext
    #endif
    }
 };
+static void ErrorCallback(void *userdata, const char *error)
+{
+   Exit(error);
+}
 static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_index)
 {
    Str8 code;
+   ShaderCompiler &compiler=cc.compiler;
+
+#if SPIRV_CROSS
+   const SpvId *spirv=(SpvId*)shader_data.data();
+   size_t word_count=shader_data.elms()/SIZE(SpvId);
+   if(word_count*SIZE(SpvId)!=shader_data.elms())Exit("Incorrect Spir-V size");
+
+   spvc_context context=null; spvc_context_create(&context); if(!context)Exit("Can't create context");
+   spvc_context_set_error_callback(context, ErrorCallback, null);
+   spvc_parsed_ir ir=null; spvc_context_parse_spirv(context, spirv, word_count, &ir); if(!ir)Exit("'spvc_context_parse_spirv' failed");
+   spvc_compiler spirv_compiler=null; spvc_context_create_compiler(context, (compiler.api==API_METAL) ? SPVC_BACKEND_MSL : SPVC_BACKEND_GLSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &spirv_compiler);
+   if(!spirv_compiler)Exit("'spvc_context_create_compiler' failed");
+
+   spvc_resources resources=null; spvc_compiler_create_shader_resources(spirv_compiler, &resources);
+// FIXME
+   /*LogN("Buffers:");
+   const spvc_reflected_resource *list=null; size_t count; spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count);
+   for(size_t i=0; i<count; i++)
+   {
+         LogN(S+"ID:"+list[i].id+" base_type_id:"+list[i].base_type_id+", type_id:"+list[i].type_id+", name:"+list[i].name);
+         //LogN("  Set: %u, Binding: %u\n", spvc_compiler_get_decoration(spirv_compiler, list[i].id, SpvDecorationDescriptorSet),
+         //                                   spvc_compiler_get_decoration(spirv_compiler, list[i].id, SpvDecorationBinding));
+   }*/
+
+   // FIXME
+   /*ShaderResources res = compiler->get_shader_resources();
+    for (const Resource& ub_res : res.uniform_buffers) {
+        const SPIRType& ub_type = compiler->get_type(ub_res.base_type_id);
+        for (int m_index = 0; m_index < int(ub_type.member_types.size()); m_index++) {
+            const SPIRType& m_type = compiler->get_type(ub_type.member_types[m_index]);
+            if ((m_type.basetype == SPIRType::Float) && (m_type.vecsize > 1) && (m_type.columns > 1)) {
+                compiler->set_member_decoration(ub_res.base_type_id, m_index, DecorationColMajor);
+            }
+        }
+    }
+    or alternative replace "row_major" with "column/col_major" ?*/
+
+   spvc_compiler_options options=null;
+   spvc_compiler_create_compiler_options(spirv_compiler, &options); if(!options)Exit("'spvc_compiler_create_compiler_options' failed");
+   switch(compiler.api)
+   {
+      case API_GL:
+      {
+         // FIXME
+         //spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, 330);
+         //spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_FALSE);
+         spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, 300);
+         spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_TRUE);
+         spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_SUPPORT_NONZERO_BASE_INSTANCE, SPVC_FALSE);
+         //spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ENABLE_420PACK_EXTENSION, SPVC_FALSE);
+         
+      }break;
+
+      case API_METAL:
+      {
+      }break;
+   }
+   spvc_compiler_install_compiler_options(spirv_compiler, options);
+
+   spvc_compiler_build_combined_image_samplers(spirv_compiler);
+   const spvc_combined_image_sampler *samplers=null; size_t num_samplers=0;
+   spvc_compiler_get_combined_image_samplers(spirv_compiler, &samplers, &num_samplers);
+   FREP(num_samplers)
+   {
+    C spvc_combined_image_sampler &cis=samplers[i];
+      CChar8 *  image_name=spvc_compiler_get_name(spirv_compiler, cis.  image_id);
+    //CChar8 *sampler_name=spvc_compiler_get_name(spirv_compiler, cis.sampler_id);
+      spvc_compiler_set_name(spirv_compiler, cis.combined_id, image_name);
+   }
+
+   const char *glsl=null; spvc_compiler_compile(spirv_compiler, &glsl);
+   code=glsl;
+   spvc_context_destroy(context); // Frees all memory we allocated so far
+
+   code=Replace(code, "in_var_ATTR", "ATTR", true);
+
+   //FIXME
+   //ClipSet(code);
+   //LogN("/******************************************************************************/");
+   //LogN(S+"Shader:"+cc.shader(shader_data).name);
+   //LogN(code);
+
+#endif
+
 #if HLSL_CC
    HLSLccReflection reflection;
    GLSLShader       converted;
@@ -1014,7 +1043,14 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    code=Replace(code, "#version 300 es\n", S);
    code=Replace(code, "in_ATTR", "ATTR", true);
 #endif
-   if(!code.length())Exit("Can't convert HLSL to GLSL"); // this is also needed for null char
+
+   if(!code.length()) // this is also needed for null char below
+   {
+   #if DEBUG
+      ShaderCompiler::Shader &shader=cc.shader(shader_data);
+   #endif
+      Exit("Can't convert HLSL to GLSL");
+   }
 #if 0 // uncompressed
    shader_data.setNum(code.length()+1).copyFrom((Byte*)code()); // include null char
 #else // compressed
@@ -1080,10 +1116,15 @@ Bool ShaderCompiler::compileTry(Threads &threads)
          if(!shader.dummy)shaders[shaders_num++]=&shader;
       }
    }
+   shaders.sort(); // sort by name so we can do binary search when looking for shaders
 
    if(api!=API_DX)
    {
-      ConvertContext cc(T);
+      ConvertContext cc(T
+      #if DEBUG
+       , shader_datas, shaders
+      #endif
+      );
       FREPA(shader_datas)
       {
          Memc<ShaderData> &sds=shader_datas[i];
@@ -1120,7 +1161,6 @@ Bool ShaderCompiler::compileTry(Threads &threads)
       }
 
       // shaders
-      shaders.sort(); // sort by name so we can do binary search when looking for shaders
       f.cmpUIntV(shaders.elms()); FREPA(shaders)
       {
        C Shader &shader=*shaders[i];

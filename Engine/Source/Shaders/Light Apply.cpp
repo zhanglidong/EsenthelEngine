@@ -55,9 +55,15 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 inTex:TEXCOORD,
    VecI p=VecI(pixel.xy, 0);
    if(MULTI_SAMPLE==0)
    {
-      VecH4  color=Img .Load(p),
-             lum  =Img1.Load(p); if(AO && !AO_ALL)lum.rgb+=ambient;
-             color.rgb =LitCol(color, lum, ao, NightShadeColor, AO && !AO_ALL); if(AO && AO_ALL)color*=ao;
+   #if !GL // does not work on SpirV -> GLSL
+      VecH4 color=Img .Load(p),
+            lum  =Img1.Load(p);
+   #else
+      VecH4 color=TexPoint(Img , inTex),
+            lum  =TexPoint(Img1, inTex);
+   #endif
+      if(AO && !AO_ALL)lum.rgb+=ambient;
+             color.rgb=LitCol(color, lum, ao, NightShadeColor, AO && !AO_ALL); if(AO && AO_ALL)color*=ao;
       return color;
    }else
    if(MULTI_SAMPLE==1) // 1 sample

@@ -993,6 +993,7 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
 {
 #if GL
    // !! must be in sync with GL_VTX_SEMANTIC !!
+   // FIXME: can replace these with DX style names, and adjust GL_VTX_SEMANTIC to be GL_VTX_POS 0, GL_VTX_HLP 1, .. ?
    Vec4  _pos     :ATTR0 ;
    VecH  _hlp     :ATTR9 ;
    VecH  _nrm     :ATTR1 ;

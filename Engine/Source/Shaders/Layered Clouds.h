@@ -7,10 +7,10 @@ struct CloudLayer
 };
 
 BUFFER(CloudLayer)
-   Flt  LCScaleY;
-   Vec2 LCRange;
-
    CloudLayer CL[4];
+
+   Vec2 LCRange;
+   Flt  LCScaleY;
 BUFFER_END
 #include "!Set LP.h"
 /******************************************************************************/

@@ -307,6 +307,8 @@ static void Compile(API api)
    FCreateDirs(dest_path);
    SHADER_MODEL model=SM_4;
 
+   Bool ms=(api==API_DX); // if support multi-sampling in shaders
+
 #ifdef MAIN
 {
    ShaderCompiler &compiler=ShaderCompilers.New().set(dest_path+"Main", model, api);
@@ -357,9 +359,15 @@ static void Compile(API api)
          REPD(fog, 2)src.New("Draw3DTex"     , "Draw3DTex_VS"     , "Draw3DTex_PS"     )("ALPHA_TEST", alpha_test, "COLORS", color, "FOG", fog);
       }
 
-      src.New("DrawMs1", "DrawPixel_VS", "DrawMs1_PS");
-      src.New("DrawMsN", "DrawPixel_VS", "DrawMsN_PS");
-      src.New("DrawMsM", "DrawPixel_VS", "DrawMsM_PS").multiSample(true);
+      if(ms) // Multi-Sampling
+      {
+         src.New("DrawMs1", "DrawPixel_VS", "DrawMs1_PS");
+         src.New("DrawMsN", "DrawPixel_VS", "DrawMsN_PS");
+         src.New("DrawMsM", "DrawPixel_VS", "DrawMsM_PS").multiSample();
+
+         src.New("DetectMSCol", "DrawPixel_VS", "DetectMSCol_PS");
+       //src.New("DetectMSNrm", "DrawPixel_VS", "DetectMSNrm_PS");
+      }
 
       src.New("DrawMask", "DrawMask_VS", "DrawMask_PS");
       src.New("DrawCubeFace", "DrawCubeFace_VS", "DrawCubeFace_PS");
@@ -367,21 +375,19 @@ static void Compile(API api)
 
       src.New("Dither", "Draw_VS", "Dither_PS");
 
-                     src.New("CombineSSAlpha", "Draw_VS", "CombineSSAlpha_PS");
-      REPD(sample, 3)src.New("Combine"       , "Draw_VS", "Combine_PS")("SAMPLE", sample);
+                              src.New("CombineSSAlpha", "Draw_VS", "CombineSSAlpha_PS");
+      REPD(sample, ms ? 3 : 2)src.New("Combine"       , "Draw_VS", "Combine_PS")("SAMPLE", sample);
 
-      src.New("DetectMSCol", "DrawPixel_VS", "DetectMSCol_PS");
-    //src.New("DetectMSNrm", "DrawPixel_VS", "DetectMSNrm_PS");
-
-      src.New("ResolveDepth", "DrawPixel_VS", "ResolveDepth_PS");
+      if(ms)src.New("ResolveDepth", "DrawPixel_VS", "ResolveDepth_PS");
       src.New("SetDepth", "Draw_VS", "SetDepth_PS");
       src.New("DrawDepth", "Draw_VS", "DrawDepth_PS");
 
       REPD(perspective, 2)
       {
-         src.New("LinearizeDepth0", "Draw_VS"     , "LinearizeDepth0_PS")("PERSPECTIVE", perspective);
-         src.New("LinearizeDepth1", "DrawPixel_VS", "LinearizeDepth1_PS")("PERSPECTIVE", perspective);
-         src.New("LinearizeDepth2", "DrawPixel_VS", "LinearizeDepth2_PS")("PERSPECTIVE", perspective).multiSample(true);
+                src.New("LinearizeDepth0", "Draw_VS"     , "LinearizeDepth0_PS")("PERSPECTIVE", perspective);
+         if(ms){src.New("LinearizeDepth1", "DrawPixel_VS", "LinearizeDepth1_PS")("PERSPECTIVE", perspective);
+                src.New("LinearizeDepth2", "DrawPixel_VS", "LinearizeDepth2_PS")("PERSPECTIVE", perspective).multiSample();
+         }
       }
 
       src.New("EdgeDetect"     , "DrawPosXY_VS",      "EdgeDetect_PS");
@@ -435,7 +441,7 @@ static void Compile(API api)
    }
    { // FOG
       ShaderCompiler::Source &src=compiler.New(src_path+"Fog.cpp");
-      REPD(multi_sample, 3)src.New("Fog", "DrawPosXY_VS", "Fog_PS")("MULTI_SAMPLE", multi_sample).multiSample(multi_sample>=2);
+      REPD(multi_sample, ms ? 3 : 1)src.New("Fog", "DrawPosXY_VS", "Fog_PS")("MULTI_SAMPLE", multi_sample).multiSample(multi_sample>=2);
    }
    { // FONT
       ShaderCompiler::Source &src=compiler.New(src_path+"Font.cpp");
@@ -449,7 +455,7 @@ static void Compile(API api)
    { // LIGHT
       ShaderCompiler::Source &src=compiler.New(src_path+"Light.cpp");
       REPD(shadow      , 2)
-      REPD(multi_sample, 2)
+      REPD(multi_sample, ms ? 2 : 1)
       REPD(quality     , multi_sample ? 1 : 2) // no Quality version for MSAA
       {
                        src.New("LightDir"   , "DrawPosXY_VS", "LightDir_PS"   ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality);
@@ -460,7 +466,7 @@ static void Compile(API api)
    }
    { // LIGHT APPLY
       ShaderCompiler::Source &src=compiler.New(src_path+"Light Apply.cpp");
-      REPD(multi_sample, 3)
+      REPD(multi_sample, ms ? 3 : 1)
       REPD(ao          , 2)
       REPD(  cel_shade , 2)
       REPD(night_shade , 2)
@@ -468,7 +474,7 @@ static void Compile(API api)
    }
    { // SHADOW
       ShaderCompiler::Source &src=compiler.New(src_path+"Shadow.cpp");
-      REPD(multi_sample, 2)
+      REPD(multi_sample, ms ? 2 : 1)
       {
          REPD(map_num, 6)
          REPD(cloud  , 2)src.New("ShdDir"  , "DrawPosXY_VS", "ShdDir_PS"  ).multiSample(multi_sample)("MULTI_SAMPLE", multi_sample, "MAP_NUM", map_num+1, "CLOUD", cloud);
@@ -515,7 +521,7 @@ static void Compile(API api)
          REPD(per_vertex, 2)
          REPD(stars     , 2)src.New("Sky", "Sky_VS", "Sky_PS")("MULTI_SAMPLE", 0, "FLAT", 1, "DENSITY", 0, "TEXTURES", 0)("STARS", stars, "DITHER", dither, "PER_VERTEX", per_vertex, "CLOUD", cloud);
 
-         REPD(multi_sample, (D.shaderModel()>=SM_4_1) ? 3 : (D.shaderModel()>=SM_4) ? 2 : 1)
+         REPD(multi_sample, ms ? 3 : 1)
          {
             // Textures
             REPD(textures, 2)src.New("Sky", "Sky_VS", "Sky_PS")("MULTI_SAMPLE", multi_sample, "FLAT", 0, "DENSITY", 0, "TEXTURES", textures+1)("STARS", 0, "DITHER", dither, "PER_VERTEX", 0, "CLOUD", cloud).multiSample(multi_sample>=2);

@@ -6,7 +6,8 @@
 #undef MatrixH
 #undef MatrixH4
 
-#if CG || 1
+         // FIXME
+#if CG
    #define Half     half
    #define VecH2    half2
    #define VecH     half3
