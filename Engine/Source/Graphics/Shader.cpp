@@ -458,7 +458,7 @@ void ShaderParam::initAsElement(ShaderParam &parent, Int index)
    Int offset=_full_translation[0].gpu_offset; _data+=offset; REPAO(_full_translation).gpu_offset-=offset; // apply offset
        offset=_full_translation[0].cpu_offset;                REPAO(_full_translation).cpu_offset-=offset; // apply offset
    optimize();
-   REPA(_optimized_translation)MAX(_gpu_data_size, _optimized_translation[i].gpu_offset+_optimized_translation[i].elm_size);
+  _gpu_data_size=0; REPA(_optimized_translation)MAX(_gpu_data_size, _optimized_translation[i].gpu_offset+_optimized_translation[i].elm_size);
 }
 /******************************************************************************/
 void ShaderParam::set(  Bool   b          ) {setChanged(); *(Flt *)_data=b;}
@@ -483,6 +483,7 @@ void ShaderParam::set(C Vec   *v, Int elms)
    Vec4 *gpu=(Vec4*)_data;
    REP(Min(elms, (_gpu_data_size+SIZEU(Flt))/SIZEU(Vec4)))gpu[i].xyz=v[i]; // add SIZE(Flt) because '_gpu_data_size' may be SIZE(Vec) and div by SIZE(Vec4) would return 0 even though one Vec would fit (elements are aligned by 'Vec4' but we're writing only 'Vec')
 #elif GL
+   // FIXME
    COPY(_data, v, Min(_gpu_data_size, SIZEU(*v)*elms));
 #endif
 }
@@ -500,6 +501,7 @@ void ShaderParam::set(C Matrix3 &matrix)
       gpu[2].xyz.set(matrix.x.z, matrix.y.z, matrix.z.z); // SIZE(Vec )
    }
 #elif GL
+   // FIXME
    if(_gpu_data_size>=SIZE(matrix))
    {
       setChanged();
@@ -577,6 +579,7 @@ void ShaderParam::set(C Vec &v, Int elm)
       gpu[elm].xyz=v;
    }
 #elif GL
+   // FIXME
    if(_gpu_data_size>=SIZE(v)*(elm+1))
    {
       setChanged();
@@ -718,6 +721,7 @@ void ShaderParam::setConditional(C Vec &v, Int elm)
       if(  dest!=v){setChanged(); dest=v;}
    }
 #elif GL
+   // FIXME
    if(_gpu_data_size>=SIZE(v)*(elm+1))
    {
       Vec &dest=((Vec*)_data)[elm];

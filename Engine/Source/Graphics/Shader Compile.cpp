@@ -77,6 +77,8 @@ static Bool HasData(CPtr data, Int size)
    if(C Byte *b=(Byte*)data)REP(size)if(*b++)return true;
    return false;
 }
+// FIXME can use gpu_offset already relative to start of cbuffer?
+// FIXME is this correct for GL?
 static void SaveTranslation(C Mems<ShaderParam::Translation> &translation, File &f, Int elms)
 {
    if(elms<=1)translation.saveRaw(f);else
@@ -88,6 +90,7 @@ static void SaveTranslation(C Mems<ShaderParam::Translation> &translation, File 
       FREP(single_translations)f<<translation[i]; // save 1st element translation
    }
 }
+// FIXME is this correct for GL?
 static void LoadTranslation(MemPtr<ShaderParam::Translation> translation, File &f, Int elms)
 {
    if(elms<=1)translation.loadRaw(f);else
@@ -108,19 +111,6 @@ static void LoadTranslation(MemPtr<ShaderParam::Translation> translation, File &
          }
       }
    }
-}
-static void LimitTranslation(ShaderParam &sp)
-{
-   Memt<ShaderParam::Translation> translation;
-   FREPA(sp._full_translation) // go from the start
-   {
-      ShaderParam::Translation &t=sp._full_translation[i];
-      Int size=t.elm_size; // copy to temp var in case original is unsigned
-      Int end=Min(t.cpu_offset+size, sp._cpu_data_size); MIN(size, end-t.cpu_offset);
-          end=Min(t.gpu_offset+size, sp._gpu_data_size); MIN(size, end-t.gpu_offset);
-      if(size>0){t.elm_size=size; translation.add(t);}
-   }
-   sp._full_translation=translation;
 }
 /******************************************************************************/
 // INCLUDE
@@ -345,17 +335,17 @@ void ShaderCompiler::Param::addTranslation(ID3D12ShaderReflectionType *type, C D
    }
 }
 #if SPIRV_CROSS
-void ShaderCompiler::Param::addTranslation(spvc_compiler compiler, spvc_type var, Int offset)
+void ShaderCompiler::Param::addTranslation(spvc_compiler compiler, spvc_type parent, spvc_type var, Int var_i, Int offset)
 {
-   auto array_dimensions=spvc_type_get_num_array_dimensions(var); if(array_dimensions>1)Exit("Multi-dimensional arrays are not supported");
-   auto array_elms      =(array_dimensions ? spvc_type_get_array_dimension(var, 0) : 0); // use 0 for non-arrays to match DX behavior
-   Bool is_struct       =(spvc_type_get_basetype(var)==SPVC_BASETYPE_STRUCT);
+   auto     array_dimensions=spvc_type_get_num_array_dimensions(var); if(array_dimensions>1)Exit("Multi-dimensional arrays are not supported");
+   auto     array_elms      =(array_dimensions ? spvc_type_get_array_dimension(var, 0) : 0); // use 0 for non-arrays to match DX behavior
+   unsigned array_stride=0; if(array_elms>1)spvc_compiler_type_struct_member_array_stride(compiler, parent, var_i, &array_stride);
+   Bool     is_struct       =(spvc_type_get_basetype(var)==SPVC_BASETYPE_STRUCT);
    Int  elms=Max(array_elms, 1), last_index=elms-1; // 'array_elms' is 0 for non-arrays
    FREP(elms)
    {
       if(!is_struct)
       {
-         //FIXME offset+=;
       }else
       {
          auto members=spvc_type_get_num_member_types(var);
@@ -364,10 +354,10 @@ void ShaderCompiler::Param::addTranslation(spvc_compiler compiler, spvc_type var
             auto member=spvc_type_get_member_type(var, i);
             auto member_handle=spvc_compiler_get_type_handle(compiler, member);
             unsigned member_offset=0; spvc_compiler_type_struct_member_offset(compiler, var, i, &member_offset);
-            addTranslation(compiler, member_handle, offset+member_offset);
+            addTranslation(compiler, var, member_handle, i, offset+member_offset);
          }
-         //FIXME offset+=;
       }
+      offset+=array_stride;
    }
 }
 #endif
@@ -514,8 +504,8 @@ void ShaderCompiler::SubShader::compile()
    arguments.add(L"-HV");
    arguments.add(L"2016");
    if(compiler->api!=API_DX)arguments.add(L"-spirv");
-   //if(Flags1 & D3DCOMPILE_IEEE_STRICTNESS    )arguments.add(L"/Gis");
-   //if(Flags1 & D3DCOMPILE_RESOURCES_MAY_ALIAS)arguments.add(L"/res_may_alias");
+   //D3DCOMPILE_IEEE_STRICTNESS     arguments.add(L"/Gis");
+   //D3DCOMPILE_RESOURCES_MAY_ALIAS arguments.add(L"/res_may_alias");
 
    Bool ok=false;
    IDxcBlob *buffer=null; IDxcBlobEncoding *error_blob=null;
@@ -1040,8 +1030,10 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
          spvc_basetype member_type=spvc_type_get_basetype(member_handle);
          auto array_dimensions=spvc_type_get_num_array_dimensions(member_handle); if(array_dimensions>1)Exit("Multi-dimensional arrays are not supported");
          param.array_elms=(array_dimensions ? spvc_type_get_array_dimension(member_handle, 0) : 0); // use 0 for non-arrays to match DX behavior
+         // FIXME can offset,start be removed and calculated inside 'addTranslation'?
          unsigned offset=0; spvc_compiler_type_struct_member_offset(spirv_compiler, buffer_handle, i, &offset); unsigned start=offset;
-         param.addTranslation(spirv_compiler, member_handle, offset); param.sortTranslation();
+
+         param.addTranslation(spirv_compiler, buffer_handle, member_handle, i, offset); param.sortTranslation();
 
          Int member_size=0;
          if(param.array_elms)
@@ -1076,13 +1068,11 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
 
          param.gpu_data_size=0; REPA(param.translation){ShaderParam::Translation &translation=param.translation[i]; MAX(param.gpu_data_size, translation.gpu_offset+translation.elm_size);}
 
-         /*FIXME
          if(!param.translation.elms()                   )Exit("Shader Param is empty.\nPlease contact Developer.");
          if( param.gpu_data_size!=member_size           )Exit("Incorrect Shader Param size.\nPlease contact Developer.");
-         if( param.translation[0].gpu_offset!=start     )Exit("Incorrect Shader Param Offset.\nPlease contact Developer.");
          if( param.gpu_data_size+start>buffer.size      )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer.");
        //if( SIZE(Vec4)+var_desc.StartOffset>buffer.size)Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer."); some functions assume that '_gpu_data_size' is at least as big as 'Vec4' to set values without checking for size, !! this is not needed and shouldn't be called because in DX10+ Shader Params are stored in Shader Buffers, and 'ShaderBuffer' already allocates padding for Vec4
-       */
+
          //FIXME if(HasData(var_desc.DefaultValue, var_desc.Size)) // if parameter has any data
          //   param.data.setNum(param.gpu_data_size).copyFrom((Byte*)var_desc.DefaultValue);
 /*
@@ -1143,7 +1133,6 @@ spvc_result spvc_compiler_type_struct_member_matrix_stride(spvc_compiler compile
          //spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ENABLE_420PACK_EXTENSION, SPVC_FALSE);
          //SPVC_COMPILER_OPTION_GLSL_ES_DEFAULT_FLOAT_PRECISION_HIGHP
          //SPVC_COMPILER_OPTION_GLSL_ES_DEFAULT_INT_PRECISION_HIGHP
-         
       }break;
 
       case API_METAL:
