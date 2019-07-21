@@ -1059,9 +1059,15 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
                  cols    =spvc_type_get_columns    (member_handle);
             if(cols>1) // matrix
             {
-               unsigned     stride=0; spvc_compiler_type_struct_member_matrix_stride(spirv_compiler, buffer_handle, i, &stride);
-               member_size+=stride*(cols-1)     //  all vectors except last
+               unsigned stride=0; spvc_compiler_type_struct_member_matrix_stride(spirv_compiler, buffer_handle, i, &stride);
+               // FIXME
+            #if 0
+               member_size+=(cols-1)*stride     //  all vectors except last
                            +vec_size*SIZE(Flt); // last vector
+            #else
+               member_size+=(vec_size-1)*stride     //  all vectors except last
+                           +cols        *SIZE(Flt); // last vector
+            #endif
             }else // scalar, vector
             {
                member_size+=vec_size*SIZE(Flt);
