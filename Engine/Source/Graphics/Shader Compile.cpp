@@ -1061,11 +1061,11 @@ static ShaderImage * Get(Int i, C MemtN<ShaderImage *, 256> &images ) {if(!InRan
 static ShaderBuffer* Get(Int i, C MemtN<ShaderBuffer*, 256> &buffers) {if(!InRange(i, buffers))Exit("Invalid ShaderBuffer index"); return buffers[i];}
 
 #if DEBUG
-static C Str8& Name(ShaderImage  &image                                  ) {C Str8 *name=ShaderImages .dataToKey(&image ); if(!name)Exit("Can't find ShaderImage name" ); return *name;}
-static C Str8& Name(ShaderBuffer &buffer                                 ) {C Str8 *name=ShaderBuffers.dataToKey(&buffer); if(!name)Exit("Can't find ShaderBuffer name"); return *name;}
+static C Str8& Name(ShaderImage  &image ) {C Str8 *name=ShaderImages .dataToKey(&image ); if(!name)Exit("Can't find ShaderImage name" ); return *name;}
+static C Str8& Name(ShaderBuffer &buffer) {C Str8 *name=ShaderBuffers.dataToKey(&buffer); if(!name)Exit("Can't find ShaderBuffer name"); return *name;}
 #else
-static C Str8& Name(ShaderImage  &image                                  ) {return ShaderImages .dataInMapToKey(image );}
-static C Str8& Name(ShaderBuffer &buffer                                 ) {return ShaderBuffers.dataInMapToKey(buffer);}
+static C Str8& Name(ShaderImage  &image ) {return ShaderImages .dataInMapToKey(image );}
+static C Str8& Name(ShaderBuffer &buffer) {return ShaderBuffers.dataInMapToKey(buffer);}
 #endif
 
 #if DEBUG
