@@ -1057,7 +1057,6 @@ void MainShaderClass::compile()
       Threads threads; threads.create(false, Cpu.threads()-1);
       FREPAO(ShaderCompilers).compile(threads);
    }
-   LogN(S+"Shaders compiled in: "+Flt(Time.curTime()-t)+'s');
 
    App.stayAwake(AWAKE_OFF);
 #endif
