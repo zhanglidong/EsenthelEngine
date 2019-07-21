@@ -344,6 +344,11 @@ void ShaderCompiler::Param::addTranslation(ID3D12ShaderReflectionType *type, C D
       }break;
    }
 }
+#if SPIRV_CROSS
+void ShaderCompiler::Param::addTranslation(spvc_type var, unsigned &offset)
+{
+}
+#endif
 #endif
 Bool ShaderCompiler::Param::operator==(C Param &p)C
 {
@@ -478,6 +483,8 @@ void ShaderCompiler::SubShader::compile()
    }
 
    MemtN<LPCWSTR, 16> arguments;
+   arguments.add(L"-flegacy-macro-expansion"); // without this have to use "#define CONCAT(a,b) a##b"
+   arguments.add(L"-flegacy-resource-reservation"); // will prevent other cbuffers from reusing indexes from explicit buffers
    arguments.add(L"/Zpc"); // D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR
    arguments.add(L"/O3");
    arguments.add(L"-HV");
@@ -898,6 +905,7 @@ ShaderCompiler::ShaderCompiler() : buffers(CompareCS, Create) {}
 struct ConvertContext
 {
    ShaderCompiler &compiler;
+   SyncLock        lock;
 #if HLSL_CC
    HLSLccSamplerPrecisionInfo sampler_precision;
    GlExtensions ext;
@@ -967,15 +975,9 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    if(!spirv_compiler)Exit("'spvc_context_create_compiler' failed");
 
    spvc_resources resources=null; spvc_compiler_create_shader_resources(spirv_compiler, &resources);
-// FIXME
-   const spvc_reflected_resource *list=null; size_t count; spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count);
-   for(size_t i=0; i<count; i++)
+   const spvc_reflected_resource *list=null; size_t count=0; spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count);
+   Memc<ShaderCompiler::Buffer> buffers; buffers.setNum((Int)count); FREPA(buffers)
    {
-         LogN(S+"ID:"+list[i].id+" base_type_id:"+list[i].base_type_id+", type_id:"+list[i].type_id+", name:"+list[i].name);
-         //LogN("  Set: %u, Binding: %u\n", spvc_compiler_get_decoration(spirv_compiler, list[i].id, SpvDecorationDescriptorSet),
-         //                                   spvc_compiler_get_decoration(spirv_compiler, list[i].id, SpvDecorationBinding));
-   }
-
    // FIXME
    /*ShaderResources res = compiler->get_shader_resources();
     for (const Resource& ub_res : res.uniform_buffers) {
@@ -988,6 +990,96 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
         }
     }
     or alternative replace "row_major" with "column/col_major" ?*/
+
+      ShaderCompiler::Buffer  &buffer=buffers[i];
+    C spvc_reflected_resource &res   =list[i]; auto buffer_handle=spvc_compiler_get_type_handle(spirv_compiler, res.type_id);
+    //CChar8 *base_type_name=spvc_compiler_get_name(spirv_compiler, res.base_type_id);
+    //CChar8 *     type_name=spvc_compiler_get_name(spirv_compiler, res.type_id);
+
+      buffer.name=spvc_compiler_get_name(spirv_compiler, res.id);
+      buffer.bind_slot=0; // FIXME
+      buffer.bind_explicit=false; // FIXME
+      size_t size=0; spvc_compiler_get_declared_struct_size(spirv_compiler, buffer_handle, &size); buffer.size=(Int)size;
+
+      //auto a=spvc_type_get_bit_width(spvc_compiler_get_type_handle(spirv_compiler, res.base_type_id));
+      //auto b=spvc_type_get_bit_width(spvc_compiler_get_type_handle(spirv_compiler, res.     type_id));
+      //size_t c=0; spvc_compiler_get_declared_struct_size(spirv_compiler, buffer_handle, &c);
+      //size_t d=0; spvc_compiler_get_declared_struct_size(spirv_compiler, spvc_compiler_get_type_handle(spirv_compiler, res.base_type_id), &d);
+      
+      buffer.params.setNum(spvc_type_get_num_member_types(buffer_handle));
+      FREPA(buffer.params)
+      {
+         ShaderCompiler::Param &param=buffer.params[i];
+         param.name=spvc_compiler_get_member_name(spirv_compiler, res.base_type_id, i);
+         auto member=spvc_type_get_member_type(buffer_handle, i);
+         auto member_handle=spvc_compiler_get_type_handle(spirv_compiler, member);
+         spvc_basetype member_type=spvc_type_get_basetype(member_handle);
+         auto array_dimensions=spvc_type_get_num_array_dimensions(member_handle); if(array_dimensions>1)Exit("Multi-dimensional arrays are not supported");
+         param.array_elms=(array_dimensions ? spvc_type_get_array_dimension(member_handle, 0) : 0); // use 0 for non-arrays to match DX behavior
+         unsigned offset=0; spvc_compiler_type_struct_member_offset(spirv_compiler, buffer_handle, i, &offset); unsigned start=offset;
+         param.addTranslation(member_handle, offset);
+         size_t member_size=0;
+         if(member_type==SPVC_BASETYPE_STRUCT)
+         {
+            spvc_compiler_get_declared_struct_size(spirv_compiler, member_handle, &member_size); member_size*=Max(1, param.array_elms);
+         }else
+         {
+            auto vec_size=spvc_type_get_vector_size(member_handle);
+            auto cols=spvc_type_get_columns(member_handle);
+            member_size=vec_size*cols*SIZE(Flt);
+         }
+
+         param.gpu_data_size=offset-start;
+         if(!param.translation.elms()                   )Exit("Shader Param is empty.\nPlease contact Developer.");
+         if( param.gpu_data_size!=member_size           )Exit("Incorrect Shader Param size.\nPlease contact Developer.");
+         if( param.translation[0].gpu_offset!=start     )Exit("Incorrect Shader Param Offset.\nPlease contact Developer.");
+         if( param.gpu_data_size+start>buffer.size      )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer.");
+       //if( SIZE(Vec4)+var_desc.StartOffset>buffer.size)Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer."); some functions assume that '_gpu_data_size' is at least as big as 'Vec4' to set values without checking for size, !! this is not needed and shouldn't be called because in DX10+ Shader Params are stored in Shader Buffers, and 'ShaderBuffer' already allocates padding for Vec4
+
+         //FIXME if(HasData(var_desc.DefaultValue, var_desc.Size)) // if parameter has any data
+         //   param.data.setNum(param.gpu_data_size).copyFrom((Byte*)var_desc.DefaultValue);
+/*
+unsigned spvc_compiler_get_member_decoration(spvc_compiler compiler, spvc_type_id id, unsigned member_index, SpvDecoration decoration);
+const char *spvc_compiler_get_member_name(spvc_compiler compiler, spvc_type_id id, unsigned member_index);
+
+spvc_basetype spvc_type_get_basetype(spvc_type type);
+unsigned spvc_type_get_bit_width(spvc_type type);
+unsigned spvc_type_get_vector_size(spvc_type type);
+unsigned spvc_type_get_columns(spvc_type type);
+unsigned spvc_type_get_num_array_dimensions(spvc_type type);
+spvc_bool spvc_type_array_dimension_is_literal(spvc_type type, unsigned dimension);
+SpvId spvc_type_get_array_dimension(spvc_type type, unsigned dimension);
+unsigned spvc_type_get_num_member_types(spvc_type type);
+spvc_type_id spvc_type_get_member_type(spvc_type type, unsigned index);
+SpvStorageClass spvc_type_get_storage_class(spvc_type type);
+
+spvc_result spvc_compiler_get_declared_struct_size(spvc_compiler compiler, spvc_type struct_type, size_t *size);
+spvc_result spvc_compiler_get_declared_struct_size_runtime_array(spvc_compiler compiler, spvc_type struct_type, size_t array_size, size_t *size);
+
+spvc_result spvc_compiler_type_struct_member_offset(spvc_compiler compiler, spvc_type type, unsigned index, unsigned *offset);
+spvc_result spvc_compiler_type_struct_member_array_stride(spvc_compiler compiler, spvc_type type, unsigned index, unsigned *stride);
+spvc_result spvc_compiler_type_struct_member_matrix_stride(spvc_compiler compiler, spvc_type type, unsigned index, unsigned *stride);
+      {
+         Int loc  =spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationLocation);
+         Int comp =spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationComponent);
+         Int index=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationIndex);
+         Int bind =spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationBinding);
+         Int offs =spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationOffset);
+         Int arr_s=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationArrayStride);
+         Int mt_s =spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationMatrixStride);
+         Int uni  =spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationUniform);
+      }
+      {
+         Int loc  =spvc_compiler_get_decoration(spirv_compiler, res.type_id, SpvDecorationLocation);
+         Int comp =spvc_compiler_get_decoration(spirv_compiler, res.type_id, SpvDecorationComponent);
+         Int index=spvc_compiler_get_decoration(spirv_compiler, res.type_id, SpvDecorationIndex);
+         Int bind =spvc_compiler_get_decoration(spirv_compiler, res.type_id, SpvDecorationBinding);
+         Int offs =spvc_compiler_get_decoration(spirv_compiler, res.type_id, SpvDecorationOffset);
+         Int arr_s=spvc_compiler_get_decoration(spirv_compiler, res.type_id, SpvDecorationArrayStride);
+         Int mt_s =spvc_compiler_get_decoration(spirv_compiler, res.type_id, SpvDecorationMatrixStride);
+         Int uni  =spvc_compiler_get_decoration(spirv_compiler, res.type_id, SpvDecorationUniform);*/
+      }
+   }
 
    spvc_compiler_options options=null;
    spvc_compiler_create_compiler_options(spirv_compiler, &options); if(!options)Exit("'spvc_compiler_create_compiler_options' failed");
@@ -1002,6 +1094,8 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
          spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_TRUE);
          spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_SUPPORT_NONZERO_BASE_INSTANCE, SPVC_FALSE);
          //spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ENABLE_420PACK_EXTENSION, SPVC_FALSE);
+         //SPVC_COMPILER_OPTION_GLSL_ES_DEFAULT_FLOAT_PRECISION_HIGHP
+         //SPVC_COMPILER_OPTION_GLSL_ES_DEFAULT_INT_PRECISION_HIGHP
          
       }break;
 
@@ -1020,6 +1114,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
       CChar8 *  image_name=spvc_compiler_get_name(spirv_compiler, cis.  image_id);
     //CChar8 *sampler_name=spvc_compiler_get_name(spirv_compiler, cis.sampler_id);
       spvc_compiler_set_name(spirv_compiler, cis.combined_id, image_name);
+      {SyncLocker lock(cc.lock); compiler.images.binaryInclude(Str8(image_name), CompareCS);}
    }
 
    const char *glsl=null; spvc_compiler_compile(spirv_compiler, &glsl);
@@ -1184,7 +1279,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
    threads.wait1();
    Memc<BindMap   > buffer_maps, image_maps;
    Memc<ShaderData> shader_datas[ST_NUM];
-   Mems<Shader*>    shaders(shaders_num); shaders_num=0;
+   Mems<Shader*   > shaders(shaders_num); shaders_num=0;
    FREPA(sources)
    {
       Source &source=sources[i]; FREPA(source.shaders)

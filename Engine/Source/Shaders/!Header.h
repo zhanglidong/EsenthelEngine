@@ -15,7 +15,6 @@
 
 /******************************************************************************/
 #include "!Header CPU.h"
-#define CONCAT(a,b) a##b
 /******************************************************************************/
 // TECHNIQUES
 /******************************************************************************/
@@ -81,8 +80,8 @@
    #define ImageCube   TextureCube<VecH4>
    #define ImageShadow Texture2D  <Half > // TODO: #ShaderHalf Half is used to get half output, however this internally operates on a F32 depth buffer, so do we need to use 'Flt' format?
 
-   #define        SAMPLER(name, index) sampler                name : register(CONCAT(s,index)) //        sampler
-   #define SHADOW_SAMPLER(name, index) SamplerComparisonState name : register(CONCAT(s,index)) // shadow sampler
+   #define        SAMPLER(name, index) sampler                name : register(s##index) //        sampler
+   #define SHADOW_SAMPLER(name, index) SamplerComparisonState name : register(s##index) // shadow sampler
 #else
    #define ImageF      sampler2D
    #define ImageH      sampler2D
@@ -97,17 +96,17 @@
 // HELPERS
 /******************************************************************************/
 #if !CG
-   #define PIXEL                     Vec4 pixel :SV_Position                // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
-   #define IF_IS_FRONT               Bool front :SV_IsFrontFace ,           // face front side
-   #define IF_IS_CLIP            out Flt  O_clip:SV_ClipDistance,           // clip plane distance
+   #define PIXEL                     Vec4 pixel :SV_Position            // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
+   #define IF_IS_FRONT               Bool front :SV_IsFrontFace ,       // face front side
+   #define IF_IS_CLIP            out Flt  O_clip:SV_ClipDistance,       // clip plane distance
 #if GL // on GL buffer name can't be the same as any of its members, so prepend '_'
-   #define BUFFER(name)          cbuffer _##name {                             // declare a constant buffer
-   #define BUFFER_I(name, index) cbuffer _##name : register(CONCAT(b,index)) { // declare a constant buffer with custom buffer index
+   #define BUFFER(name)          cbuffer _##name {                      // declare a constant buffer
+   #define BUFFER_I(name, index) cbuffer _##name : register(b##index) { // declare a constant buffer with custom buffer index
 #else
-   #define BUFFER(name)          cbuffer name {                             // declare a constant buffer
-   #define BUFFER_I(name, index) cbuffer name : register(CONCAT(b,index)) { // declare a constant buffer with custom buffer index
+   #define BUFFER(name)          cbuffer name {                         // declare a constant buffer
+   #define BUFFER_I(name, index) cbuffer name : register(b##index) {    // declare a constant buffer with custom buffer index
 #endif
-   #define BUFFER_END            }                                          // end constant buffer declaration
+   #define BUFFER_END            }                                      // end constant buffer declaration
    #define POSITION              SV_Position
    #define DEPTH                 SV_Depth
    #define TARGET                SV_Target
@@ -116,12 +115,12 @@
    #define TARGET2               SV_Target2
    #define TARGET3               SV_Target3
 #else
-   #define PIXEL                     Vec4 pixel:WPOS                        // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
-   #define IF_IS_FRONT               Bool front:VFACE,                      // face front side
-   #define IF_IS_CLIP            out Flt O_clip:BCOL1,                      // clip plane distance, this will generate "gl_BackSecondaryColor" which is later replaced with "gl_ClipDistance[0]"
-   #define BUFFER(name)                                                     // constant buffers (not available in OpenGL)
-   #define BUFFER_I(name, index)                                            // constant buffers (not available in OpenGL)
-   #define BUFFER_END                                                       // constant buffers (not available in OpenGL)
+   #define PIXEL                     Vec4 pixel:WPOS                    // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
+   #define IF_IS_FRONT               Bool front:VFACE,                  // face front side
+   #define IF_IS_CLIP            out Flt O_clip:BCOL1,                  // clip plane distance, this will generate "gl_BackSecondaryColor" which is later replaced with "gl_ClipDistance[0]"
+   #define BUFFER(name)                                                 // constant buffers (not available in OpenGL)
+   #define BUFFER_I(name, index)                                        // constant buffers (not available in OpenGL)
+   #define BUFFER_END                                                   // constant buffers (not available in OpenGL)
  //#define POSITION              POSITION
  //#define DEPTH                 DEPTH
    #define TARGET                COLOR
