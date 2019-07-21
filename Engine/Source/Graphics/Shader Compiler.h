@@ -110,6 +110,17 @@ struct ShaderCompiler
       Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1,  C Str &n2, C Str &v2                       ) {params.New().set(n0, v0); params.New().set(n1, v1); params.New().set(n2, v2);                           return T;}
       Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1,  C Str &n2, C Str &v2,  C Str &n3, C Str &v3) {params.New().set(n0, v0); params.New().set(n1, v1); params.New().set(n2, v2); params.New().set(n3, v3); return T;}
 
+      Shader& tesselate(Bool tesselate)
+      {
+         if(tesselate)
+         {
+            sub[ST_HS].func_name="HS";
+            sub[ST_DS].func_name="DS";
+         }
+         return T("TESSELATE", tesselate);
+      }
+      Shader& position(Int skin, Int textures, Int test_blend, Int fx, Int tesselate) {return T("SKIN", skin, "TEXTURES", textures, "TEST_BLEND", test_blend, "FX", fx).tesselate(tesselate);}
+
       void finalizeName();
       Bool save(File &f, C ShaderCompiler &compiler)C;
    };
@@ -127,7 +138,7 @@ struct ShaderCompiler
       SHADER_MODEL      model;
       ShaderCompiler   *compiler;
 
-      Shader& New(C Str &name, C Str8 &vs, C Str8 &ps);
+      Shader& New(C Str &name=S, C Str8 &vs_func_name="VS", C Str8 &ps_func_name="PS");
       Bool    load();
      ~Source();
    };

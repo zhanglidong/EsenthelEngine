@@ -66,9 +66,7 @@ void FogBox_PS
    Matrix3 inMat :TEXCOORD3,
 
    out VecH4 color:TARGET0,
-   out VecH4 mask :TARGET1,
-
-   uniform Bool height
+   out VecH4 mask :TARGET1
 )
 {
    Flt z  =TexDepthPoint(PixelToScreen(pixel));
@@ -93,7 +91,9 @@ void FogBox_PS
    Flt len =Length(dir)/inSize.w;
 
    Flt dns=LocalFogDensity;
-   if(height){dns*=1-Avg(pos.y, end.y); len*=3;}
+#if HEIGHT
+   dns*=1-Avg(pos.y, end.y); len*=3;
+#endif
 
    color.rgb=LocalFogColor;
    color.a  =AccumulatedDensity(dns, len);
@@ -124,10 +124,7 @@ void FogBoxI_PS
    NOPERSP Matrix3 inMat  :TEXCOORD3,
 
    out VecH4 color:TARGET0,
-   out VecH4 mask :TARGET1,
-
-   uniform Int  inside,
-   uniform Bool height
+   out VecH4 mask :TARGET1
 )
 {
    Vec pos=GetPosPoint(inTex, inPosXY),
@@ -138,15 +135,14 @@ void FogBoxI_PS
    pos=LocalFogInside/(2*inSize.xyz)+0.5;
    dir=dir           /(2*inSize.xyz);
 
-   if(inside==0)
-   {
-      if(pos.x<0)pos+=(0-pos.x)/dir.x*dir;
-      if(pos.x>1)pos+=(1-pos.x)/dir.x*dir;
-      if(pos.y<0)pos+=(0-pos.y)/dir.y*dir;
-      if(pos.y>1)pos+=(1-pos.y)/dir.y*dir;
-      if(pos.z<0)pos+=(0-pos.z)/dir.z*dir;
-      if(pos.z>1)pos+=(1-pos.z)/dir.z*dir;
-   }
+#if INSIDE==0
+   if(pos.x<0)pos+=(0-pos.x)/dir.x*dir;
+   if(pos.x>1)pos+=(1-pos.x)/dir.x*dir;
+   if(pos.y<0)pos+=(0-pos.y)/dir.y*dir;
+   if(pos.y>1)pos+=(1-pos.y)/dir.y*dir;
+   if(pos.z<0)pos+=(0-pos.z)/dir.z*dir;
+   if(pos.z>1)pos+=(1-pos.z)/dir.z*dir;
+#endif
 
    Vec end=pos+dir;
 
@@ -162,7 +158,9 @@ void FogBoxI_PS
    Flt len =Length(dir)/inSize.w;
 
    Flt dns=LocalFogDensity;
-   if(height){dns*=1-Avg(pos.y, end.y); len*=3;}
+#if HEIGHT
+   dns*=1-Avg(pos.y, end.y); len*=3;
+#endif
 
    color.rgb=LocalFogColor;
    color.a  =AccumulatedDensity(dns, len);
@@ -229,9 +227,7 @@ void FogBallI_PS
    NOPERSP Flt  inSize :TEXCOORD2,
 
    out VecH4 color:TARGET0,
-   out VecH4 mask :TARGET1,
-
-   uniform Int inside
+   out VecH4 mask :TARGET1
 )
 {
    Vec pos=GetPosPoint(inTex, inPosXY),
@@ -254,16 +250,4 @@ void FogBallI_PS
    color.a  =AccumulatedDensity(dns, len);
    mask.rgb=0; mask.a=color.a;
 }
-/******************************************************************************/
-TECHNIQUE(FogBox ,  FogBox_VS(),  FogBox_PS(   false));
-TECHNIQUE(FogBox0, FogBoxI_VS(), FogBoxI_PS(0, false));
-TECHNIQUE(FogBox1, FogBoxI_VS(), FogBoxI_PS(1, false));
-
-TECHNIQUE(FogHgt ,  FogBox_VS(),  FogBox_PS(   true));
-TECHNIQUE(FogHgt0, FogBoxI_VS(), FogBoxI_PS(0, true));
-TECHNIQUE(FogHgt1, FogBoxI_VS(), FogBoxI_PS(1, true));
-
-TECHNIQUE(FogBall ,  FogBall_VS(),  FogBall_PS( ));
-TECHNIQUE(FogBall0, FogBallI_VS(), FogBallI_PS(0));
-TECHNIQUE(FogBall1, FogBallI_VS(), FogBallI_PS(1));
 /******************************************************************************/

@@ -8,17 +8,17 @@ namespace EE{
 #define MULTI_MATERIAL 1
 
 #if WINDOWS // DirectX 10+
-   #define COMPILE_4  0
-   #define COMPILE_GL 1
+   #define COMPILE_4  1
+   #define COMPILE_GL 0
 #endif
 
-/**/
+/**
 #define MAIN
 
-/*#define DEFERRED
+#define DEFERRED
 #define BLEND_LIGHT
 #define SIMPLE
-#define FORWARD // Forward Shaders in OpenGL compile almost an entire day and use ~5 GB memory during compilation
+#define FORWARD // Forward Shaders in OpenGL compile .. FIXME
 
 #define AMBIENT
 #define AMBIENT_OCCLUSION
@@ -46,20 +46,20 @@ namespace EE{
 /******************************************************************************/
 // SHADER TECHNIQUE NAMES
 /******************************************************************************/
-Str8 TechNameSimple    (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int reflect, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel, Int tess) {return S8+"T"+skin+materials+textures+bump_mode+alpha_test+light_map+reflect+color+mtrl_blend+heightmap+fx+per_pixel+tess;}
-Str8 TechNameDeferred  (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int detail, Int macro, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tess) {return S8+"T"+skin+materials+textures+bump_mode+alpha_test+detail+macro+rflct+color+mtrl_blend+heightmap+fx+tess;}
-Str8 TechNameForward   (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tess) {return S8+"T"+skin+materials+textures+bump_mode+alpha_test+light_map+detail+rflct+color+mtrl_blend+heightmap+fx+light_dir+light_dir_shd+light_dir_shd_num+light_point+light_point_shd+light_linear+light_linear_shd+light_cone+light_cone_shd+tess;}
-Str8 TechNameBlendLight(Int skin, Int color    , Int textures, Int bump_mode, Int alpha_test, Int alpha, Int light_map, Int rflct, Int fx, Int per_pixel, Int shadow_maps) {return S8+"T"+skin+color+textures+bump_mode+alpha_test+alpha+light_map+rflct+fx+per_pixel+shadow_maps;}
-Str8 TechNamePosition  (Int skin, Int textures, Int test_blend, Int fx, Int tess) {return S8+"T"+skin+textures+test_blend+fx+tess;}
-Str8 TechNameBlend     (Int skin, Int color, Int rflct, Int textures) {return S8+"T"+skin+color+rflct+textures;}
-Str8 TechNameSetColor  (Int skin, Int textures, Int tess) {return S8+"T"+skin+textures+tess;}
-Str8 TechNameBehind    (Int skin, Int textures) {return S8+"T"+skin+textures;}
-Str8 TechNameEarlyZ    (Int skin) {return S8+"T"+skin;}
-Str8 TechNameAmbient   (Int skin, Int alpha_test, Int light_map) {return S8+"T"+skin+alpha_test+light_map;}
-Str8 TechNameOverlay   (Int skin, Int normal) {return S8+"T"+skin+normal;}
+Str8 TechNameSimple    (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int reflect, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel, Int tess) {return S8+skin+materials+textures+bump_mode+alpha_test+light_map+reflect+color+mtrl_blend+heightmap+fx+per_pixel+tess;}
+Str8 TechNameDeferred  (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int detail, Int macro, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tess) {return S8+skin+materials+textures+bump_mode+alpha_test+detail+macro+rflct+color+mtrl_blend+heightmap+fx+tess;}
+Str8 TechNameForward   (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tess) {return S8+skin+materials+textures+bump_mode+alpha_test+light_map+detail+rflct+color+mtrl_blend+heightmap+fx+light_dir+light_dir_shd+light_dir_shd_num+light_point+light_point_shd+light_linear+light_linear_shd+light_cone+light_cone_shd+tess;}
+Str8 TechNameBlendLight(Int skin, Int color    , Int textures, Int bump_mode, Int alpha_test, Int alpha, Int light_map, Int rflct, Int fx, Int per_pixel, Int shadow_maps) {return S8+skin+color+textures+bump_mode+alpha_test+alpha+light_map+rflct+fx+per_pixel+shadow_maps;}
+Str8 TechNamePosition  (Int skin, Int textures, Int test_blend, Int fx, Int tess) {return S8+skin+textures+test_blend+fx+tess;}
+Str8 TechNameBlend     (Int skin, Int color, Int rflct, Int textures) {return S8+skin+color+rflct+textures;}
+Str8 TechNameSetColor  (Int skin, Int textures, Int tess) {return S8+skin+textures+tess;}
+Str8 TechNameBehind    (Int skin, Int textures) {return S8+skin+textures;}
+Str8 TechNameEarlyZ    (Int skin) {return S8+skin;}
+Str8 TechNameAmbient   (Int skin, Int alpha_test, Int light_map) {return S8+skin+alpha_test+light_map;}
+Str8 TechNameOverlay   (Int skin, Int normal) {return S8+skin+normal;}
 Str8 TechNameFurBase   (Int skin, Int size, Int diffuse) {return S8+"Base"+skin+size+diffuse;}
 Str8 TechNameFurSoft   (Int skin, Int size, Int diffuse) {return S8+"Soft"+skin+size+diffuse;}
-Str8 TechNameTattoo    (Int skin, Int tess             ) {return S8+"T"+skin+tess;}
+Str8 TechNameTattoo    (Int skin, Int tess             ) {return S8+skin+tess;}
 /******************************************************************************/
 #if COMPILE_4 || COMPILE_GL
 /******************************************************************************/
@@ -185,14 +185,6 @@ static Str TechForwardLight(Int skin, Int materials, Int textures, Int bump_mode
    return names;
 }
 
-static Str TechPosition(Int skin, Int textures, Int test_blend, Int fx, Int tess)
-{
-   Str params=               S+skin+','+textures+','+test_blend+','+fx+','+tess,
-       name  =TechNamePosition(skin  ,  textures  ,  test_blend  ,  fx  ,  tess);
-   return tess ? S+"TECHNIQUE_TESSELATION("+name+", VS("+params+"), PS("+params+"), HS("+params+"), DS("+params+"));"
-               : S+"TECHNIQUE            ("+name+", VS("+params+"), PS("+params+")                                );";
-}
-
 static Str TechBlend(Int skin, Int color, Int rflct, Int textures)
 {
    Str params=            S+skin+','+color+','+rflct+','+textures,
@@ -242,13 +234,6 @@ static Str TechBehind(Int skin, Int textures)
 {
    Str params=             S+skin+','+textures,
        name  =TechNameBehind(skin  ,  textures);
-   return S+"TECHNIQUE("+name+", VS("+params+"), PS("+params+"));";
-}
-
-static Str TechEarlyZ(Int skin)
-{
-   Str params=             S+skin,
-       name  =TechNameEarlyZ(skin);
    return S+"TECHNIQUE("+name+", VS("+params+"), PS("+params+"));";
 }
 
@@ -622,12 +607,8 @@ static void Compile(API api)
 
 #ifdef EARLY_Z
 {
-   Str names;
-
-   // base
-   REPD(skin, 2)names+=TechEarlyZ(skin);
-
-   Add(src_path+"Early Z.cpp", dest_path+"Early Z", api, model, names);
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Early Z", model, api).New(src_path+"Early Z.cpp");
+   REPD(skin, 2)src.New(S, "VS", "PS")("SKIN", skin);
 }
 #endif
 
@@ -650,7 +631,16 @@ static void Compile(API api)
 #endif
 
 #ifdef FOG_LOCAL
-   Add(src_path+"Fog.cpp", dest_path+"Fog Local", api, model);
+{
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Fog Local", model, api).New(src_path+"Fog.cpp");
+   REPD(height, 2)
+   {
+                     src.New("FogBox"  , "FogBox_VS"  , "FogBox_PS"  )("HEIGHT", height);
+      REPD(inside, 2)src.New("FogBoxI" , "FogBoxI_VS" , "FogBoxI_PS" )("HEIGHT", height)("INSIDE", inside);
+   }
+                     src.New("FogBall" , "FogBall_VS" , "FogBall_PS" );
+      REPD(inside, 2)src.New("FogBallI", "FogBallI_VS", "FogBallI_PS")("INSIDE", inside);
+}
 #endif
 
 #ifdef FUR
@@ -713,26 +703,20 @@ static void Compile(API api)
 
 #ifdef POSITION
 {
-   Str names;
-
-   REPD(tess, (model>=SM_4) ? 2 : 1)
-   {
-      // base
-      REPD(skin      , 2               )
-      REPD(textures  , 3               )
-      REPD(test_blend, textures ? 2 : 1)names+=TechPosition(skin, textures, test_blend, FX_NONE, tess);
-   }
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Position", model, api).New(src_path+"Position.cpp");
+   REPD(tesselate , 2)
+   REPD(skin      , 2)
+   REPD(textures  , 3)
+   REPD(test_blend, textures ? 2 : 1)src.New().position(skin, textures, test_blend, FX_NONE, tesselate);
 
    // grass + leafs
    for(Int textures=1; textures<=2; textures++)
    REPD(test_blend, 2)
    {
-      names+=TechPosition(0, textures, test_blend, FX_GRASS, false);
-      names+=TechPosition(0, textures, test_blend, FX_LEAF , false);
-      names+=TechPosition(0, textures, test_blend, FX_LEAFS, false);
+      src.New().position(0, textures, test_blend, FX_GRASS, 0);
+      src.New().position(0, textures, test_blend, FX_LEAF , 0);
+      src.New().position(0, textures, test_blend, FX_LEAFS, 0);
    }
-
-   Add(src_path+"Position.cpp", dest_path+"Position", api, model, names);
 }
 #endif
 
@@ -1067,7 +1051,7 @@ void MainShaderClass::compile()
 
    ProcPriority(-1); // compiling shaders may slow down entire CPU, so make this process have smaller priority
    Dbl t=Time.curTime();
-   MultiThreadedCall(OldShaderCompilers, ThreadCompile);
+   //FIXME MultiThreadedCall(OldShaderCompilers, ThreadCompile);
    if(ShaderCompilers.elms())
    {
       Threads threads; threads.create(false, Cpu.threads()-1);

@@ -1257,7 +1257,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
       // images
       f.cmpUIntV(images.elms()); FREPA(images)f.putStr(images[i]);
 
-      // buffer image map
+      // buffer+image map
       if(api!=API_GL)
       {
          if(!buffer_maps.save(f, T   ))goto error;
