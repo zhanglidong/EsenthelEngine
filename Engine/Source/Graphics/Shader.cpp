@@ -409,10 +409,6 @@ Int ShaderBuffer::bindPoint()C
 /******************************************************************************/
 // SHADER PARAM
 /******************************************************************************/
-static Int Compare(C ShaderParam::Translation &a, C ShaderParam::Translation &b)
-{
-   return Compare(a.cpu_offset, b.cpu_offset);
-}
 ThreadSafeMap<Str8, ShaderParam> ShaderParams(CompareCS);
 /******************************************************************************/
 ShaderParam::~ShaderParam()
@@ -437,7 +433,6 @@ ShaderParam::ShaderParam()
 void ShaderParam::optimize()
 {
   _optimized_translation=_full_translation;
-  _optimized_translation.sort(Compare);
    REPA(_optimized_translation)if(i)
    {
       Translation &prev=_optimized_translation[i-1],

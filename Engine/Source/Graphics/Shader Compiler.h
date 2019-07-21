@@ -24,8 +24,9 @@ struct ShaderCompiler
       void addTranslation(ID3D11ShaderReflectionType *type, C D3D11_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, SByte &was_min16); // 'was_min16'=if last inserted parameter was of min16 type (-1=no last parameter)
       void addTranslation(ID3D12ShaderReflectionType *type, C D3D12_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, SByte &was_min16); // 'was_min16'=if last inserted parameter was of min16 type (-1=no last parameter)
    #if SPIRV_CROSS
-      void addTranslation(spvc_type var, unsigned &offset);
+      void addTranslation(spvc_compiler compiler, spvc_type var, Int offset);
    #endif
+      void sortTranslation();
    #endif
    };
    struct Bind

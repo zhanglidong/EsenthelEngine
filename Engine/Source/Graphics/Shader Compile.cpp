@@ -270,9 +270,9 @@ void ShaderCompiler::Param::addTranslation(ID3D11ShaderReflectionType *type, C D
             if(!half)cpu_data_size=Ceil4(cpu_data_size); // float's are 4-byte aligned on CPU, double too if using #pragma pack(4)
 
             if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)translation.New().set(cpu_data_size, offset, cpu_size);else
-            {
-               FREPD(y, type_desc.Columns)
-               FREPD(x, type_desc.Rows   )translation.New().set(cpu_data_size+base_size*(y+x*type_desc.Columns), offset+base_size*(x+y*4), base_size);
+            { // !! process y's first to add translation sorted by 'cpu_offset' to make later sorting faster !!
+               FREPD(y, type_desc.Rows   )
+               FREPD(x, type_desc.Columns)translation.New().set(cpu_data_size+base_size*(x+y*type_desc.Columns), offset+base_size*(y+x*4), base_size);
             }
                   
             cpu_data_size+=cpu_size;
@@ -320,9 +320,9 @@ void ShaderCompiler::Param::addTranslation(ID3D12ShaderReflectionType *type, C D
             if(!half)cpu_data_size=Ceil4(cpu_data_size); // float's are 4-byte aligned on CPU, double too if using #pragma pack(4)
 
             if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)translation.New().set(cpu_data_size, offset, cpu_size);else
-            {
-               FREPD(y, type_desc.Columns)
-               FREPD(x, type_desc.Rows   )translation.New().set(cpu_data_size+base_size*(y+x*type_desc.Columns), offset+base_size*(x+y*4), base_size);
+            { // !! process y's first to add translation sorted by 'cpu_offset' to make later sorting faster !!
+               FREPD(y, type_desc.Rows   )
+               FREPD(x, type_desc.Columns)translation.New().set(cpu_data_size+base_size*(x+y*type_desc.Columns), offset+base_size*(y+x*4), base_size);
             }
                   
             cpu_data_size+=cpu_size;
@@ -345,11 +345,35 @@ void ShaderCompiler::Param::addTranslation(ID3D12ShaderReflectionType *type, C D
    }
 }
 #if SPIRV_CROSS
-void ShaderCompiler::Param::addTranslation(spvc_type var, unsigned &offset)
+void ShaderCompiler::Param::addTranslation(spvc_compiler compiler, spvc_type var, Int offset)
 {
+   auto array_dimensions=spvc_type_get_num_array_dimensions(var); if(array_dimensions>1)Exit("Multi-dimensional arrays are not supported");
+   auto array_elms      =(array_dimensions ? spvc_type_get_array_dimension(var, 0) : 0); // use 0 for non-arrays to match DX behavior
+   Bool is_struct       =(spvc_type_get_basetype(var)==SPVC_BASETYPE_STRUCT);
+   Int  elms=Max(array_elms, 1), last_index=elms-1; // 'array_elms' is 0 for non-arrays
+   FREP(elms)
+   {
+      if(!is_struct)
+      {
+         //FIXME offset+=;
+      }else
+      {
+         auto members=spvc_type_get_num_member_types(var);
+         FREP(members)
+         {
+            auto member=spvc_type_get_member_type(var, i);
+            auto member_handle=spvc_compiler_get_type_handle(compiler, member);
+            unsigned member_offset=0; spvc_compiler_type_struct_member_offset(compiler, var, i, &member_offset);
+            addTranslation(compiler, member_handle, offset+member_offset);
+         }
+         //FIXME offset+=;
+      }
+   }
 }
 #endif
 #endif
+static Int Compare(C ShaderParam::Translation &a, C ShaderParam::Translation &b) {return Compare(a.cpu_offset, b.cpu_offset);}
+void ShaderCompiler::Param::sortTranslation() {translation.sort(Compare);} // this is useful for Translation optimization
 Bool ShaderCompiler::Param::operator==(C Param &p)C
 {
    if(translation.elms()!=p.translation.elms())return false; REPA(translation)if(translation[i]!=p.translation[i])return false;
@@ -598,7 +622,7 @@ void ShaderCompiler::SubShader::compile()
                                  Param &param=buffer.params[i];
                                  param.name=var_desc.Name;
                                  param.array_elms=type_desc.Elements;
-                                 Int offset=var_desc.StartOffset; SByte was_min16=-1; param.addTranslation(type, type_desc, var_desc.Name, offset, was_min16);
+                                 Int offset=var_desc.StartOffset; SByte was_min16=-1; param.addTranslation(type, type_desc, var_desc.Name, offset, was_min16); param.sortTranslation();
                                  param.gpu_data_size=offset-var_desc.StartOffset;
                                  if(!param.translation.elms()                             )Exit("Shader Param is empty.\nPlease contact Developer.");
                                  if( param.gpu_data_size!=var_desc.Size                   )Exit("Incorrect Shader Param size.\nPlease contact Developer.");
@@ -711,7 +735,7 @@ void ShaderCompiler::SubShader::compile()
                            Param &param=buffer.params[i];
                            param.name=var_desc.Name;
                            param.array_elms=type_desc.Elements;
-                           Int offset=var_desc.StartOffset; SByte was_min16=-1; param.addTranslation(type, type_desc, var_desc.Name, offset, was_min16);
+                           Int offset=var_desc.StartOffset; SByte was_min16=-1; param.addTranslation(type, type_desc, var_desc.Name, offset, was_min16); param.sortTranslation();
                            param.gpu_data_size=offset-var_desc.StartOffset;
                            if(!param.translation.elms()                             )Exit("Shader Param is empty.\nPlease contact Developer.");
                            if( param.gpu_data_size!=var_desc.Size                   )Exit("Incorrect Shader Param size.\nPlease contact Developer.");
@@ -1017,11 +1041,13 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
          auto array_dimensions=spvc_type_get_num_array_dimensions(member_handle); if(array_dimensions>1)Exit("Multi-dimensional arrays are not supported");
          param.array_elms=(array_dimensions ? spvc_type_get_array_dimension(member_handle, 0) : 0); // use 0 for non-arrays to match DX behavior
          unsigned offset=0; spvc_compiler_type_struct_member_offset(spirv_compiler, buffer_handle, i, &offset); unsigned start=offset;
-         param.addTranslation(member_handle, offset);
+         param.addTranslation(spirv_compiler, member_handle, offset); param.sortTranslation();
+
          size_t member_size=0;
          if(member_type==SPVC_BASETYPE_STRUCT)
          {
-            spvc_compiler_get_declared_struct_size(spirv_compiler, member_handle, &member_size); member_size*=Max(1, param.array_elms);
+            if(param.array_elms)spvc_compiler_get_declared_struct_size_runtime_array(spirv_compiler, member_handle, param.array_elms, &member_size);
+            else                spvc_compiler_get_declared_struct_size              (spirv_compiler, member_handle,                   &member_size);
          }else
          {
             auto vec_size=spvc_type_get_vector_size(member_handle);
@@ -1029,8 +1055,9 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
             member_size=vec_size*cols*SIZE(Flt);
          }
 
-         param.gpu_data_size=offset-start;
          if(!param.translation.elms()                   )Exit("Shader Param is empty.\nPlease contact Developer.");
+         ShaderParam::Translation &last_translation=param.translation.last();
+         param.gpu_data_size=last_translation.gpu_offset+last_translation.elm_size;
          if( param.gpu_data_size!=member_size           )Exit("Incorrect Shader Param size.\nPlease contact Developer.");
          if( param.translation[0].gpu_offset!=start     )Exit("Incorrect Shader Param Offset.\nPlease contact Developer.");
          if( param.gpu_data_size+start>buffer.size      )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer.");
@@ -1053,7 +1080,7 @@ unsigned spvc_type_get_num_member_types(spvc_type type);
 spvc_type_id spvc_type_get_member_type(spvc_type type, unsigned index);
 SpvStorageClass spvc_type_get_storage_class(spvc_type type);
 
-spvc_result spvc_compiler_get_declared_struct_size(spvc_compiler compiler, spvc_type struct_type, size_t *size);
+spvc_result spvc_compiler_get_declared_struct_size              (spvc_compiler compiler, spvc_type struct_type, size_t *size);
 spvc_result spvc_compiler_get_declared_struct_size_runtime_array(spvc_compiler compiler, spvc_type struct_type, size_t array_size, size_t *size);
 
 spvc_result spvc_compiler_type_struct_member_offset(spvc_compiler compiler, spvc_type type, unsigned index, unsigned *offset);
