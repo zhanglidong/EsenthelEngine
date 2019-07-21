@@ -354,65 +354,21 @@ void MeshBase::drawAuto(C Material *material)C
    }
 }
 /******************************************************************************/
-#if MAY_NEED_BONE_SPLITS
-void MeshRender::draw()C
-{
-   if(!D.meshBoneSplit() || !_bone_split || Matrixes<=1) // check for Matrixes in case this is a skinned mesh with bone splits, however we're drawing it using a single Matrix and not Skeleton, in that case 'GObjMatrix' which is needed for 'SetMatrixVelSplit' is not set
-   {
-      drawFull();
-   }else
-   {
-      Int ind_offset=0;
-      FREP(_bone_splits)
-      {
-         BoneSplit &bs=_bone_split[i];
-         SetMatrixVelSplit(bs.split_to_real, bs.bones); ShaderCur->commit(); // commit matrix changes to the shader
-         drawRange(bs.tris, ind_offset);
-         ind_offset+=bs.tris*3;
-      }
-      SetMatrixVelRestore(); ShaderCur->commit(); // restore default matrix set (in case just after bone_split there would be a part without bone_split), commit matrix changes to the shader
-   }
-}
-void MeshRender::drawFur()C
-{
-   if(!D.meshBoneSplit() || !_bone_split || Matrixes<=1) // check for Matrixes in case this is a skinned mesh with bone splits, however we're drawing it using a single Matrix and not Skeleton, in that case 'GObjMatrix' which is needed for 'SetMatrixVelSplit' is not set
-   {
-      drawFull();
-   }else
-   {
-      Int ind_offset=0;
-      FREP(_bone_splits)
-      {
-         BoneSplit &bs=_bone_split[i];
-         SetMatrixFurVelSplit(bs.split_to_real, bs.bones); ShaderCur->commit(); // commit matrix changes to the shader
-         drawRange(bs.tris, ind_offset);
-         ind_offset+=bs.tris*3;
-      }
-      SetMatrixFurVelRestore(); ShaderCur->commit(); // restore default matrix set (in case just after bone_split there would be a part without bone_split), commit matrix changes to the shader
-   }
-}
-#endif
 void MeshRender::drawBoneHighlight(Int bone, Shader *shader)C
 {
-   if(!D.meshBoneSplit() || !_bone_split) // we can't check for Matrixes<=1 here, because if there are bone splits, then we always need to process BoneHighlight per-split, instead we will call 'SetMatrixVelSplit' and 'SetMatrixVelRestore' only if necessary
+   SPSet("BoneHighlight", bone+1); shader->commit();
+   draw();
+/* Bone Splits
+   Int ind_offset=0;
+   FREP(_bone_splits)
    {
-      SPSet("BoneHighlight", bone+1); shader->commit(); // don't use 'ShaderCur' because it's not set in DX11
-      drawFull();
-   }else
-   {
-   #if MAY_NEED_BONE_SPLITS
-      Int ind_offset=0;
-      FREP(_bone_splits)
-      {
-         MeshRender::BoneSplit &bs=_bone_split[i];
-         SPSet("BoneHighlight", bs.realToSplit(bone+1));
-         if(Matrixes>1)SetMatrixVelSplit(bs.split_to_real, bs.bones); shader->commit(); // commit matrix changes to the shader
-         drawRange(bs.tris, ind_offset);
-         ind_offset+=bs.tris*3;
-      }
-      if(Matrixes>1)SetMatrixVelRestore(); shader->commit(); // restore default matrix set and commit matrix changes to the shader
-   #endif
+      MeshRender::BoneSplit &bs=_bone_split[i];
+      SPSet("BoneHighlight", bs.realToSplit(bone+1));
+      if(Matrixes>1)SetMatrixVelSplit(bs.split_to_real, bs.bones); shader->commit(); // commit matrix changes to the shader
+      drawRange(bs.tris, ind_offset);
+      ind_offset+=bs.tris*3;
    }
+   if(Matrixes>1)SetMatrixVelRestore(); shader->commit(); // restore default matrix set and commit matrix changes to the shader*/
 }
 /******************************************************************************/
 // INSTANCED DRAWING

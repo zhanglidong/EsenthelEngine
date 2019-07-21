@@ -150,7 +150,7 @@ void LayeredClouds::draw()
       REPS(Renderer._eye, Renderer._eye_num)
       {
          Renderer.setEyeViewport();
-         shader->begin(); _mshr.set().drawFull();
+         shader->begin(); _mshr.set().draw();
       }
       D.sampler2D ();
       D.depthWrite(true);

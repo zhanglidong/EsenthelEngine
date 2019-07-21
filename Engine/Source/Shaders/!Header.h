@@ -157,15 +157,11 @@
 /******************************************************************************/
 // CONSTANTS
 /******************************************************************************/
-#if !CG
-   #define MAX_MATRIX 256 // maximum number of matrixes
-#else
-   #define MAX_MATRIX  60 // maximum number of matrixes
-#endif
-#define HALF_MIN 0.00006103515625                   // Minimum positive value of 16-bit real (Half)
-#define EPS      0.0001                             // float epsilon
-#define EPS_COL  (1.0/256)                          // color epsilon
-#define EPS_LUM  (LINEAR_GAMMA ? 1.0/512 : EPS_COL) // light epsilon (need a little extra precision for linear gamma)
+#define MAX_MATRIX 256 // maximum number of matrixes
+#define HALF_MIN   0.00006103515625                   // Minimum positive value of 16-bit real (Half)
+#define EPS        0.0001                             // float epsilon
+#define EPS_COL    (1.0/256)                          // color epsilon
+#define EPS_LUM    (LINEAR_GAMMA ? 1.0/512 : EPS_COL) // light epsilon (need a little extra precision for linear gamma)
 
 #define PI_6    0.5235987755982988 // PI/6 ( 30 deg) Flt
 #define PI_4    0.7853981633974483 // PI/4 ( 45 deg) Flt

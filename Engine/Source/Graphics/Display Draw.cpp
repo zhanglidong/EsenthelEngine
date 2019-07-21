@@ -1019,12 +1019,12 @@ void Image::drawVolume(C Color &color, C Color &color_add, C OBox &obox, Flt vox
          && v.inside.y>=-v.size.y+e && v.inside.y<=v.size.y-e
          && v.inside.z>=-v.size.z+e && v.inside.z<=v.size.z-e)Sh.Volume2[LA]->begin();
          else                                                 Sh.Volume1[LA]->begin();
-         MshrBoxR.set().drawFull();
+         MshrBoxR.set().draw();
       }else
       {
          D .depth     (true );
          D .depthWrite(false);
-         Sh.Volume0[LA]->begin(); MshrBox.set().drawFull();
+         Sh.Volume0[LA]->begin(); MshrBox.set().draw();
       }
 
       si._sampler=null;

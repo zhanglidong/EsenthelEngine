@@ -71,23 +71,15 @@ struct MeshRender // Mesh Renderable (Hardware: contains Vertexes + Triangles)
 
    // draw
 #if DX11
-   void drawFull     (                         )C {D3DC->DrawIndexed         (_ib._ind_num,           0, 0);}
+   void draw         (                         )C {D3DC->DrawIndexed         (_ib._ind_num,           0, 0);}
    void drawRange    (Int tris                 )C {D3DC->DrawIndexed         (tris*3      ,           0, 0);}
    void drawRange    (Int tris, Int start_index)C {D3DC->DrawIndexed         (tris*3      , start_index, 0);}
    void drawInstanced(Int instances            )C {D3DC->DrawIndexedInstanced(_ib._ind_num,   instances, 0, 0, 0);}
 #elif GL
-   void drawFull     (                         )C {glDrawElements         (GL_TRIANGLES, _ib._ind_num, _ib.bit16() ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT,                                   null);}
+   void draw         (                         )C {glDrawElements         (GL_TRIANGLES, _ib._ind_num, _ib.bit16() ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT,                                   null);}
    void drawRange    (Int tris                 )C {glDrawElements         (GL_TRIANGLES,       tris*3, _ib.bit16() ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT,                                   null);}
    void drawRange    (Int tris, Int start_index)C {glDrawElements         (GL_TRIANGLES,       tris*3, _ib.bit16() ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, Ptr(start_index*(_ib.bit16() ? 2 : 4)));}
    void drawInstanced(Int instances            )C {glDrawElementsInstanced(GL_TRIANGLES, _ib._ind_num, _ib.bit16() ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT,                                   null, instances);}
-#endif
-
-#if MAY_NEED_BONE_SPLITS
-          void draw   ()C;              // this method supports BoneSplit's
-          void drawFur()C;              // this method supports BoneSplit's
-#else
-   INLINE void draw   ()C {drawFull();} // BoneSplit's aren't used
-   INLINE void drawFur()C {drawFull();} // BoneSplit's aren't used
 #endif
 
    void drawBoneHighlight(Int bone, Shader *shader)C;

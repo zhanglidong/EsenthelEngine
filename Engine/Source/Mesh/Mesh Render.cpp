@@ -142,7 +142,7 @@ Bool MeshRender::create(Int vtxs, Int tris, UInt flag, Bool compress)
    if((same_format && _vb.vtxs()==vtxs && !_vb._lock_mode) || _vb.create(vtxs  , flag         , compress_flag)) // do a separate check for '_vb' because its faster than 'create' method which may do some more checks for vtx size
    if(                                                        _ib.create(tris*3, vtxs<=0x10000               ))
    {
-      T._storage=(compress ? MSHR_COMPRESS : 0)|(MSHR_SIGNED)|(D.meshBoneSplit() ? MSHR_BONE_SPLIT : 0);
+      T._storage=(compress ? MSHR_COMPRESS : 0)|MSHR_SIGNED; // FIXME
       T._tris   =tris;
       T._flag   =flag;
       Free(_bone_split); _bone_splits=0;
@@ -264,7 +264,7 @@ Bool MeshRender::createRaw(C MeshBase &src, UInt flag_and, Bool optimize, Bool c
    }
    return false;
 }
-struct SplitPart
+/*struct SplitPart
 {
    Int  matrixes, temps;
    Bool matrix_used[256];
@@ -287,7 +287,7 @@ struct SplitPart
          if(!matrix_used[m.z] && w.z)addTemp(m.z);
          if(!matrix_used[m.w] && w.w)addTemp(m.w);
       }
-      return (matrixes+temps)<=MAX_MATRIX_HWMIN; // if amount of used matrixes along with new to be added is in range of supported matrixes by the gpu
+      return (matrixes+temps)<=MAX_MATRIX; // if amount of used matrixes along with new to be added is in range of supported matrixes by the gpu
    }
    void add(VecB4 *matrix, VecB4 *weight, Int elms)
    {
@@ -302,16 +302,17 @@ struct SplitPart
    }
 
    SplitPart() {matrixes=0; Zero(matrix_used);}
-};
+};*/
 Bool MeshRender::create(C MeshBase &src, UInt flag_and, Bool optimize, Bool compress)
 {
+ /*check if MAX_MATRIX limit is exceeded
    if((flag_and&VTX_MATRIX) && src.vtx.matrix())REPA(src.vtx)
    {
     C VecB4 &m=src.vtx.matrix(i);
-      if(m.x>=MAX_MATRIX_HWMIN  // we exceed the limit of available matrixes, so we need to create in parts
-      || m.y>=MAX_MATRIX_HWMIN  // MAX_MATRIX_HWMIN must be checked instead of MAX_MATRIX_HW because we're preparing splits for all platforms (in affected platforms we would then just adjust vertex matrixes instead of recalculating the splits)
-      || m.z>=MAX_MATRIX_HWMIN
-      || m.w>=MAX_MATRIX_HWMIN)
+      if(m.x>=MAX_MATRIX // we exceed the limit of available matrixes, so we need to create in parts
+      || m.y>=MAX_MATRIX  // MAX_MATRIX must be checked instead of MAX_MATRIX_HW because we're preparing splits for all platforms (in affected platforms we would then just adjust vertex matrixes instead of recalculating the splits)
+      || m.z>=MAX_MATRIX
+      || m.w>=MAX_MATRIX)
       {
          Memb<SplitPart> splits;
          Memc<MeshBase > mshbs ;
@@ -390,7 +391,7 @@ Bool MeshRender::create(C MeshBase &src, UInt flag_and, Bool optimize, Bool comp
          Free(bone_splits);
          return false;
       }
-   }
+   }*/
    return createRaw(src, flag_and, optimize, compress);
 }
 Bool MeshRender::create(C MeshRender *src[], Int elms, UInt flag_and, Bool optimize, Bool compress)
@@ -960,9 +961,9 @@ void MeshRender::transform(Matrix &matrix)
 /******************************************************************************/
 // OPERATIONS
 /******************************************************************************/
-void MeshRender::adjustToPlatform()
+void MeshRender::adjustToPlatform() // FIXME call only for old mesh formats
 {
-   const Bool bone_split       =D.meshBoneSplit();
+   const Bool bone_split       =false;
          Bool change_signed    =(storageCompress() && T.storageSigned   ()!=true       && (_flag&(VTX_NRM|VTX_TAN))),
               change_bone_split=(_bone_split       && T.storageBoneSplit()!=bone_split && (_flag&(VTX_MATRIX     )));
 

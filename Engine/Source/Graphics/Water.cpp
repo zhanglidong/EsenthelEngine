@@ -438,7 +438,7 @@ void WaterClass::drawSurfaces()
             SPSet("WaterPlnPos" , plane.pos   *CamMatrixInv      );
             SPSet("WaterPlnNrm" , plane.normal*CamMatrixInv.orn());
             SPSet("WaterYMulAdd", _y_mul_add                     );
-            shader->begin(); _mshr.set().drawFull();
+            shader->begin(); _mshr.set().draw();
          }else
          {
             VI.shader(shader);
@@ -574,7 +574,7 @@ void WaterMesh::draw()C
          {
             Water  .begin();
             mtrl  ->set  ();
-            shader->begin(); _mshr.set().drawFull();
+            shader->begin(); _mshr.set().draw();
          }
       }break;
 

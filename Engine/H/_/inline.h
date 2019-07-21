@@ -1915,22 +1915,6 @@ T1(TYPE)  ListColumn::ListColumn(Str (*data_to_text)(C TYPE &data), Flt width, C
 // GRAPHICS
 /******************************************************************************/
 #if EE_PRIVATE
-constexpr INLINE Int Display::maxShaderMatrixes()C
-{
-#if DX11
-   return MAX_MATRIX_DX10;
-#elif GL
-   return MAX_MATRIX_GL;
-#endif
-}
-constexpr INLINE Bool Display::meshBoneSplit()C
-{
-#if DX11
-   return false;
-#elif GL
-   return true;
-#endif
-}
 constexpr INLINE Bool Display::signedNrmRT()C // #SIGNED_NRM_RT
 {
 #if DX11

@@ -215,8 +215,6 @@ static INLINE void BufPS(Int index, ID3D11Buffer *buf) {if(ps_buf[index]!=buf ||
 #endif
 /******************************************************************************/
 Cache<ShaderFile> ShaderFiles("Shader");
-
-GPU_API(Shader11, ShaderGL) *ShaderCur;
 /******************************************************************************/
 INLINE static void COPY(Ptr dest, CPtr src, UInt size)
 {
@@ -975,8 +973,8 @@ UInt ShaderGL::compileEx(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_arra
 {
    // prepare shaders
    if(messages)messages->clear();
-   if(!vs && InRange(data_index[ST_VS], vs_array)){if(LogInit)LogN(S+"Compiling vertex shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\""); vs=vs_array[data_index[ST_VS]].create(clean, messages);} // no need for 'AtomicSet' because we don't need to be multi-thread safe here
-   if(!ps && InRange(data_index[ST_PS], ps_array)){if(LogInit)LogN(S+ "Compiling pixel shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\""); ps=ps_array[data_index[ST_PS]].create(clean, messages);} // no need for 'AtomicSet' because we don't need to be multi-thread safe here
+   if(!vs && InRange(vs_index, vs_array)){if(LogInit)LogN(S+"Compiling vertex shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\""); vs=vs_array[vs_index].create(clean, messages);} // no need for 'AtomicSet' because we don't need to be multi-thread safe here
+   if(!ps && InRange(ps_index, ps_array)){if(LogInit)LogN(S+ "Compiling pixel shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\""); ps=ps_array[ps_index].create(clean, messages);} // no need for 'AtomicSet' because we don't need to be multi-thread safe here
 
    // prepare program
    UInt prog=0; // have to operate on temp variable, so we can return it to 'validate' which still has to do some things before setting it into 'this'
@@ -1018,8 +1016,7 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
    if(!prog)
       if(UInt prog=compileEx(shader._vs, shader._ps, true, &shader, messages)) // create into temp var first and set to this only after fully initialized
    {
-      MemtN<Texture , 256>  textures;
-      MemtN<Constant, 256> constants;
+      MemtN<ImageLink, 256> images;
       Int  params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORMS, &params);
       FREP(params)
       {
@@ -1043,10 +1040,10 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
             case GL_SAMPLER_2D_SHADOW_EXT:
          #endif
             {
-               Int tex_unit=textures.elms(); if(!InRange(tex_unit, Tex))Exit(S+"Texture index: "+tex_unit+", is too big");
+               Int tex_unit=images.elms(); if(!InRange(tex_unit, Tex))Exit(S+"Texture index: "+tex_unit+", is too big");
                Int location=glGetUniformLocation(prog, glsl_name); if(location<0)
                {
-               #if WEB // this can happen on MS Edge for textures that aren't actually used
+               #if WEB // this can happen on MS Edge for images that aren't actually used
                   LogN
                #else
                   Exit
@@ -1054,7 +1051,7 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
                      (S+"Invalid Uniform Location ("+location+") of GLSL Parameter \""+glsl_name+"\"");
                   continue;
                }
-               textures.New().set(tex_unit, *GetShaderImage(glsl_name));
+               images.New().set(tex_unit, *GetShaderImage(glsl_name));
 
                glUseProgram(prog);
                glUniform1i (location, tex_unit); // set 'location' sampler to use 'tex_unit' texture unit
@@ -1062,7 +1059,8 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
                found=true;
             }break;
 
-            default:
+      // FIXME
+            /*default:
             {
                REPA(glsl_params)
                {
@@ -1088,9 +1086,9 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
                      found=true; break;
                   }
                }
-            }break;
+            }break;*/
          }
-         if(!found)
+         /*if(!found)
          {
             // Some OpenGL drivers (ATI or Apple) aren't that good in optimizing shaders, so they can sometimes return variables
             // which normally because of optimizations should be eliminated, in this case we'll just ignore them.
@@ -1098,25 +1096,20 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
             Str s=S+"Unrecognized GLSL Parameter \""+glsl_name+"\"";
             LogN(s); // Exit(s);
          #endif
-         }
+         }*/
       }
-      T.textures=textures;
+      T.images=images;
 
-      params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORM_BLOCKS, &params); buffers.setNum(params);
+      // FIXME
+      params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORM_BLOCKS, &params); all_buffers.setNum(params);
       FREP(params)
       {
          Char8 name[256]; name[0]='\0'; Int length=0;
          glGetActiveUniformBlockName(prog, i, Elms(name), &length, name);
          if(!name[0])Exit("Can't access UBO name");
-         buffers[i]=ShaderBuffers(Str8Temp(name));
-         glUniformBlockBinding(prog, i, buffers[i]->bindPoint());
+         all_buffers[i]=ShaderBuffers(Str8Temp(name));
+         glUniformBlockBinding(prog, i, all_buffers[i]->bindPoint());
       }
-
-      // FIXME remove this
-      T.constants=constants;
-      // GL constants should not be joined/merged, because as noted in the 'glUniform*' docs: "GL_INVALID_OPERATION is generated if count is greater than 1 and the indicated uniform variable is not an array variable"
-      glsl_params.del();
-    //glsl_images.del();
 
       // !! at the end !!
       T.prog=prog; // set to this only after all finished, so if another thread runs this method, it will detect 'prog' presence only after it was fully initialized
@@ -1125,30 +1118,23 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
 }
 void ShaderGL::commit()
 {
-   REPA(constants){Constant &c=constants[i]; if(*c.changed)c.uniform(c.index, c.count, (Flt*)c.data);}
-   // reset changed after all commits, in case constants point to parts of shader params (in such case setting one part, and clearing changed, would prevent from setting other parts of the same shader param)
-   REPA(constants)(*constants[i].changed)=false;
-   REPA(buffers){ShaderBuffer &b=*buffers[i]; if(b.changed)b.update();}
+   REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}
 }
 void ShaderGL::commitTex()
 {
-   REPA(textures){Texture &t=textures[i]; SetTexture(t.index, t.image->get(), t.image->_sampler);}
+   REPA(images){C ImageLink &t=images[i]; SetTexture(t.index, t.image->get(), t.image->_sampler);}
 }
 void ShaderGL::start() // same as 'begin' but without committing buffers and textures
 {
-   ShaderCur=this;
-
    glUseProgram(prog);
-   REPA(constants)*constants[i].changed=true; // mark all as changed to make sure next 'commit' will set them
+   REPA(buffers){C BufferLink &b=buffers[i]; glBindBufferBase(GL_UNIFORM_BUFFER, b.index, b.buffer);} // bind buffer
 }
 void ShaderGL::begin()
 {
-   ShaderCur=this;
-
    glUseProgram(prog);
-   REPA(textures ){Texture      &t= textures[i]; SetTexture(t.index, t.image->get(), t.image->_sampler);}
-   REPA(buffers  ){ShaderBuffer &b=*buffers [i]; if(b.changed)b.update();}
-   REPA(constants){Constant &c=constants[i]; c.uniform(c.index, c.count, (Flt*)c.data); *c.changed=false;}
+   REPA(all_buffers){ ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();} // 'commit'
+   REPA(     images){ C  ImageLink &t=      images[i]; SetTexture(t.index, t.image->get(), t.image->_sampler);} // 'commitTex'
+   REPA(    buffers){ C BufferLink &b=     buffers[i]; glBindBufferBase(GL_UNIFORM_BUFFER, b.index, b.buffer);} // bind buffer
 }
 #endif
 /******************************************************************************/
@@ -1537,17 +1523,16 @@ void InitMatrix()
 {
    ViewMatrix=Sh.ViewMatrix->asGpuMatrix();
 
-   const Int matrixes=D.maxShaderMatrixes();
-   DYNAMIC_ASSERT(Sh.ViewMatrix->_cpu_data_size==SIZE(GpuMatrix)*matrixes, "Unexpected size of ViewMatrix");
-   DYNAMIC_ASSERT(Sh.ObjVel    ->_cpu_data_size==SIZE(Vec      )*matrixes, "Unexpected size of ObjVel"); // #VelAngVel
-   DYNAMIC_ASSERT(Sh.FurVel    ->_cpu_data_size==SIZE(Vec      )*matrixes, "Unexpected size of FurVel");
+   DYNAMIC_ASSERT(Sh.ViewMatrix->_cpu_data_size==SIZE(GpuMatrix)*MAX_MATRIX, "Unexpected size of ViewMatrix");
+   DYNAMIC_ASSERT(Sh.ObjVel    ->_cpu_data_size==SIZE(Vec      )*MAX_MATRIX, "Unexpected size of ObjVel"); // #VelAngVel
+   DYNAMIC_ASSERT(Sh.FurVel    ->_cpu_data_size==SIZE(Vec      )*MAX_MATRIX, "Unexpected size of FurVel");
 
-   SBObjMatrix=ShaderBuffers(Str8Temp("ObjMatrix")); DYNAMIC_ASSERT(SBObjMatrix->size()==SIZE(GpuMatrix)*matrixes, "Unexpected size of ObjMatrix");
-   SBObjVel   =ShaderBuffers(Str8Temp("ObjVel"   )); DYNAMIC_ASSERT(SBObjVel   ->size()==SIZE(Vec4     )*matrixes, "Unexpected size of ObjVel"   ); // #VelAngVel
-   SBFurVel   =ShaderBuffers(Str8Temp("FurVel"   )); DYNAMIC_ASSERT(SBFurVel   ->size()==SIZE(Vec4     )*matrixes, "Unexpected size of FurVel"   );
+   SBObjMatrix=ShaderBuffers(Str8Temp("ObjMatrix")); DYNAMIC_ASSERT(SBObjMatrix->size()==SIZE(GpuMatrix)*MAX_MATRIX, "Unexpected size of ObjMatrix");
+   SBObjVel   =ShaderBuffers(Str8Temp("ObjVel"   )); DYNAMIC_ASSERT(SBObjVel   ->size()==SIZE(Vec4     )*MAX_MATRIX, "Unexpected size of ObjVel"   ); // #VelAngVel
+   SBFurVel   =ShaderBuffers(Str8Temp("FurVel"   )); DYNAMIC_ASSERT(SBFurVel   ->size()==SIZE(Vec4     )*MAX_MATRIX, "Unexpected size of FurVel"   );
 
 #if DX11
-   const Int parts[]={matrixes, 192, 160, 128, 96, 80, 64, 56, 48, 32, 16, 8, 1}; // start from the biggest, because 'ShaderBuffer.size' uses it as the total size
+   const Int parts[]={MAX_MATRIX, 192, 160, 128, 96, 80, 64, 56, 48, 32, 16, 8, 1}; // start from the biggest, because 'ShaderBuffer.size' uses it as the total size
    if(!ALLOW_PARTIAL_BUFFERS || !D3DC1) // have to create parts only if we won't use partial buffers
    {
       SBObjMatrix->createParts(parts, Elms(parts));

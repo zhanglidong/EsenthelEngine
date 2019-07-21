@@ -62,8 +62,8 @@ void DrawFur(C MeshRender &mshr, Shader &shader, Flt scale)
       layers++;
    #endif
       Vec2 s; s.x=f/FUR_LAYERS; s.y=s.x+1; FurStep->set(s);
-      shader.commit ();
-      mshr  .drawFur();
+      shader.commit();
+      mshr  .draw();
    }
 #if FUR_VEL_FIX
    D.colWrite(COL_WRITE_RGBA, 1); // restore writing

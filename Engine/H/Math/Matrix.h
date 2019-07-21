@@ -474,12 +474,7 @@ struct Matrix : Matrix3 // Matrix 4x3 (orientation + scale + position)
    const MatrixIdentity; // identity
 #if EE_PRIVATE
 
-#define MAX_MATRIX_GL    60 // max available Object Matrixes in OpenGL      Hardware GPU ( 60 Matrix * 3 Vec4 = 180 Vec4's)
-#define MAX_MATRIX_DX10 256 // max available Object Matrixes in DirectX 10+ Hardware GPU (256 Matrix * 3 Vec4 = 768 Vec4's)
-#define MAX_MATRIX_SW   256 // max available Object Matrixes in             Software CPU (256 Matrix * 3 Vec4 = 768 Vec4's)
-#define MAX_MATRIX_HWMIN 60 // max available Object Matrixes in worst       Hardware GPU ( 60 Matrix * 3 Vec4 = 180 Vec4's)
-
-#define MAY_NEED_BONE_SPLITS (GL)
+#define MAX_MATRIX 256 // max available Object Matrixes (256 Matrix * 3 Vec4 = 768 Vec4's)
 
 extern    MatrixM ObjMatrix              , // object matrix
                   CamMatrix              , // camera, this is always set, even when drawing shadows
@@ -897,12 +892,6 @@ void SetVelFur(C Matrix3 &view_matrix, C Vec &vel); // set velocity for fur effe
 
 void SetProjMatrix();
 void SetProjMatrix(Flt proj_offset);
-
-void SetMatrixVelRestore();
-void SetMatrixVelSplit  (Byte *matrix, Int matrixes);
-
-void SetMatrixFurVelRestore();
-void SetMatrixFurVelSplit  (Byte *matrix, Int matrixes);
 
 void SetAngVelShader(Vec &ang_vel_shader, C Vec &ang_vel, C Matrix3 &matrix);
 #endif

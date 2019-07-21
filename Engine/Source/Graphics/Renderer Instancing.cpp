@@ -26,8 +26,6 @@
 TODO: most of (highlight, shader_param_changes, stencil) instance parameters are never used, can we do something about it? to remove overhead and memory usage
 TODO: on stereo rendering some pixels are wasted, use a stencil mask, see - http://media.steampowered.com/apps/valve/2015/Alex_Vlachos_Advanced_VR_Rendering_GDC2015.pdf
 /******************************************************************************/
-#define MAX_MATRIX_INSTANCE (DX11 ? MAX_MATRIX_DX10 : MAX_MATRIX_GL) // if instancing is supported then we have all possible matrixes
-/******************************************************************************/
 namespace EE{
 /******************************************************************************/
 static Color    Highlight;
@@ -188,7 +186,7 @@ void DrawEarlyZInstances()
           C EarlyZInstance &instance=instances[i];
             SetViewMatrix(instance.view_matrix); Sh.ViewMatrix->setChanged();
             Renderer._shader_early_z->commit();
-            instance.mesh->set().drawFull();
+            instance.mesh->set().draw();
          }
       }
    }
@@ -271,10 +269,10 @@ static INLINE void DrawSolidInstances(Bool forward)
                   #if PER_INSTANCE_ANG_VEL
                      not supported
                   #endif
-                     if(++instances>=MAX_MATRIX_INSTANCE)break;
+                     if(++instances>=MAX_MATRIX)break;
                   }else break;
                }
-               SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.drawFull();
+               SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.draw();
 
                                                        if(instance->next_instance<0)break;
                instance=&SolidShaderMaterialMeshInstances[instance->next_instance];
@@ -312,7 +310,7 @@ static INLINE void DrawSolidInstances(Bool forward)
                   shader_params_changed|=_SetHighlight         (instance->highlight);
                   shader_params_changed|= SetShaderParamChanges(instance->shader_param_changes);
                if(shader_params_changed){shader_params_changed=false; shader.commit();}
-               instance->mesh->set().draw(); // for skeleton have to use 'draw' instead of 'drawFull'
+               instance->mesh->set().draw();
                                                                if(instance->next_instance<0)break;
                instance=&SkeletonSolidShaderMaterialMeshInstances[instance->next_instance];
             }
@@ -417,12 +415,12 @@ static INLINE void DrawSolidInstances(Bool forward)
                   #if PER_INSTANCE_ANG_VEL
                      not supported
                   #endif
-                     if(++instances>=MAX_MATRIX_INSTANCE)break;
+                     if(++instances>=MAX_MATRIX)break;
                   }else break;
                }
                SetMatrixCount(instances);
             #endif
-               shader.commit(); if(instances>1)render.drawInstanced(instances);else render.drawFull();
+               shader.commit(); if(instances>1)render.drawInstanced(instances);else render.draw();
 
                                                        if(instance->next_instance<0)break;
                instance=&SolidShaderMaterialMeshInstances[instance->next_instance];
@@ -524,7 +522,7 @@ void DrawAmbientInstances()
       material.setAmbient(); D.cull(material.cull);
       SetViewMatrix        (instance.view_matrix         ); Sh.ViewMatrix->setChanged();
       SetShaderParamChanges(instance.shader_param_changes);
-      shader.begin(); mesh.render.set().drawFull();
+      shader.begin(); mesh.render.set().draw();
       SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
    }
 
@@ -546,7 +544,7 @@ void DrawAmbientInstances()
       material.setAmbient(); D.cull(material.cull);
       instance.anim_skel->setMatrix();
       SetShaderParamChanges(instance.shader_param_changes);
-      shader.begin(); mesh.render.set().draw(); // for skeleton have to use 'draw' instead of 'drawFull'
+      shader.begin(); mesh.render.set().draw();
       SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
    }
 #endif
@@ -622,10 +620,10 @@ void DrawShadowInstances()
                   {
                      instance=&next;
                      ViewMatrix[instances]=next.view_matrix; // this doesn't need 'ViewOffset'
-                     if(++instances>=MAX_MATRIX_INSTANCE)break;
+                     if(++instances>=MAX_MATRIX)break;
                   }else break;
                }
-               SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.drawFull();
+               SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.draw();
 
                                                         if(instance->next_instance<0)break;
                instance=&ShadowShaderMaterialMeshInstances[instance->next_instance];
@@ -660,7 +658,7 @@ void DrawShadowInstances()
             {
                   shader_params_changed|= SetShaderParamChanges(instance->shader_param_changes);
                if(shader_params_changed){shader_params_changed=false; shader.commit();}
-               instance->mesh->set().draw(); // for skeleton have to use 'draw' instead of 'drawFull'
+               instance->mesh->set().draw();
                                                                 if(instance->next_instance<0)break;
                instance=&SkeletonShadowShaderMaterialMeshInstances[instance->next_instance];
             }
@@ -769,7 +767,7 @@ void DrawBlendInstances()
                      {
                         if(instancing_mesh)
                         {
-                           if(!InRange(instances, MAX_MATRIX_INSTANCE)) // there's no room for this instance
+                           if(!InRange(instances, MAX_MATRIX)) // there's no room for this instance
                            {
                               SetMatrixCount(instances); shader.commit(); render.drawInstanced(instances); // draw what we have
                               instances=0; Sh.ViewMatrix->setChanged(); // reset counter and mark as modified
@@ -778,23 +776,23 @@ void DrawBlendInstances()
                            instances++;
                         }else
                         {
-                           SetMatrixCount(); shader.commit(); render.drawFull(); // draw what we have
+                           SetMatrixCount(); shader.commit(); render.draw(); // draw what we have
                            SetViewMatrix(next.s.view_matrix); Sh.ViewMatrix->setChanged();
                         }
                      }else // we have the same shader/material, but different mesh/params
                      {
-                        SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.drawFull(); // draw what we have
+                        SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.draw(); // draw what we have
                         object=&next; goto solid_shader_material;
                      }
                   }else // we have the same shader, but different material/mesh/params
                   {
-                     SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.drawFull(); // draw what we have
+                     SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.draw(); // draw what we have
                      SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
                      object=&next; goto solid_shader;
                   }
                }else break;
             }
-            SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.drawFull();
+            SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.draw();
             SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
          }break;
 
@@ -839,7 +837,7 @@ void DrawBlendInstances()
                      {
                         if(instancing_mesh)
                         {
-                           if(!InRange(instances, MAX_MATRIX_INSTANCE)) // there's no room for this instance
+                           if(!InRange(instances, MAX_MATRIX)) // there's no room for this instance
                            {
                               SetMatrixCount(instances); shader.commit(); render.drawInstanced(instances); // draw what we have
                               instances=0; Sh.ViewMatrix->setChanged(); // reset counter and mark as modified
@@ -854,25 +852,25 @@ void DrawBlendInstances()
                            instances++;
                         }else
                         {
-                           SetMatrixCount(); shader.commit(); render.drawFull(); // draw what we have
+                           SetMatrixCount(); shader.commit(); render.draw(); // draw what we have
                            SetViewMatrix (next.s.view_matrix); Sh.ViewMatrix->setChanged();
                            SetFastVel    (next.s.vel);
                            SetFastAngVel (next.s.ang_vel_shader);
                         }
                      }else // we have the same shader/material, but different mesh/params
                      {
-                        SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.drawFull(); // draw what we have
+                        SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.draw(); // draw what we have
                         object=&next; goto solid_blst_shader_material;
                      }
                   }else // we have the same shader, but different material/mesh/params
                   {
-                     SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.drawFull(); // draw what we have
+                     SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.draw(); // draw what we have
                      SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
                      object=&next; goto solid_blst_shader;
                   }
                }else break;
             }
-            SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.drawFull();
+            SetMatrixCount(instances); shader.commit(); if(instances>1)render.drawInstanced(instances);else render.draw();
             SetShaderParamChanges(); // this must be called here before setting new shader params, because we may have some 'ShaderParamRestore' that we need to apply before any new shader params, for example if we don't call it here, and a new material is set, and we process 'SetShaderParamChanges' later, then it could restore the material values that are now old because new material was already set
          }break;
 
@@ -920,7 +918,7 @@ void DrawBlendInstances()
                         shader_params_changed|= SetShaderParamChanges(instance->shader_param_changes);
                      if(shader_params_changed){shader_params_changed=false; shader.commit();}
                                                                     instance->mesh->set();
-                     if(skel_shader->type!=BlendInstance::SOLID_FUR)instance->mesh->draw(); // for skeleton have to use 'draw' instead of 'drawFull'
+                     if(skel_shader->type!=BlendInstance::SOLID_FUR)instance->mesh->draw();
                      else                                  DrawFur(*instance->mesh, shader, fur_scale);
                                                                      if(instance->next_instance<0)break;
                      instance=&SkeletonBlendShaderMaterialMeshInstances[instance->next_instance];

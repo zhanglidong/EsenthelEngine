@@ -261,7 +261,7 @@ void ShaderCompiler::Param::addTranslation(ID3D11ShaderReflectionType *type, C D
          if(type_desc.Type==D3D_SVT_FLOAT || (ALLOW_MIN16 && min16))
          {
             Int base_size=(half ? SIZE(Half) : SIZE(Flt)),
-                 cpu_size=base_size*type_desc.Columns*   type_desc.Rows,
+                 cpu_size=base_size*type_desc.Columns*type_desc.Rows,
                  gpu_size;
             if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)gpu_size=cpu_size;
             else                                       gpu_size=base_size*4             *(type_desc.Columns-1) // for matrixes, the lines use  4 X's
@@ -311,7 +311,7 @@ void ShaderCompiler::Param::addTranslation(ID3D12ShaderReflectionType *type, C D
          if(type_desc.Type==D3D_SVT_FLOAT || (ALLOW_MIN16 && min16))
          {
             Int base_size=(half ? SIZE(Half) : SIZE(Flt)),
-                 cpu_size=base_size*type_desc.Columns*   type_desc.Rows,
+                 cpu_size=base_size*type_desc.Columns*type_desc.Rows,
                  gpu_size;
             if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)gpu_size=cpu_size;
             else                                       gpu_size=base_size*4             *(type_desc.Columns-1) // for matrixes, the lines use  4 X's
@@ -833,19 +833,20 @@ Bool ShaderCompiler::Shader::save(File &f, C ShaderCompiler &compiler)C
    // name
    f.putStr(name);
 
-   // indexes
-   Indexes indexes;
-   FREPA(sub)
-   {
-    C SubShader &sub=T.sub[i];
-      indexes.shader_data_index[i]=         sub.shader_data_index ;
-      indexes.buffer_bind_index[i]=AsUShort(sub.buffer_bind_index);
-      indexes. image_bind_index[i]=AsUShort(sub. image_bind_index);
-   }
-   f<<indexes;
-
    if(compiler.api!=API_GL)
    {
+      // indexes
+      Indexes indexes;
+      FREPA(sub)
+      {
+       C SubShader &sub=T.sub[i];
+         indexes.shader_data_index[i]=         sub.shader_data_index ;
+         indexes.buffer_bind_index[i]=AsUShort(sub.buffer_bind_index);
+         indexes. image_bind_index[i]=AsUShort(sub. image_bind_index);
+      }
+      f<<indexes;
+
+      // all buffers
       MemtN<UShort, 256> all_buffers;
       FREPA(sub)
       {
@@ -857,6 +858,10 @@ Bool ShaderCompiler::Shader::save(File &f, C ShaderCompiler &compiler)C
          }
       }
       all_buffers.saveRaw(f);
+   }else
+   {
+      // indexes
+      f.putMulti(sub[ST_VS].shader_data_index, sub[ST_PS].shader_data_index);
    }
 
    return f.ok();
@@ -1068,7 +1073,7 @@ static C Str8& Name(ShaderImage  &image ) {return ShaderImages .dataInMapToKey(i
 static C Str8& Name(ShaderBuffer &buffer) {return ShaderBuffers.dataInMapToKey(buffer);}
 #endif
 
-#if DEBUG
+#if DEBUG && !GL
 static void Test(BufferLink &b)
 {
    switch(b.index)
@@ -1138,6 +1143,7 @@ struct BindMap : Mems<ShaderCompiler::Bind>
       return f.ok();
    }
 };
+#if !GL
 Bool BufferLink::load(File &f, C MemtN<ShaderBuffer*, 256> &buffers)
 {
    ConstantIndex ci; f>>ci; index=ci.bind_index; if(!InRange(index, MAX_SHADER_BUFFERS))Exit(S+"Buffer index: "+index+", is too big"); buffer=Get(ci.src_index, buffers); if(DEBUG)Test(T);
@@ -1148,6 +1154,7 @@ Bool ImageLink::load(File &f, C MemtN<ShaderImage*, 256> &images)
    ConstantIndex ci; f>>ci; index=ci.bind_index; if(!InRange(index, MAX_SHADER_IMAGES))Exit(S+"Image index: "+index+", is too big"); image=Get(ci.src_index, images);
    return f.ok();
 }
+#endif
 /******************************************************************************/
 Bool ShaderCompiler::compileTry(Threads &threads)
 {
@@ -1306,45 +1313,10 @@ Bool Shader11::load(File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 2
 }
 /******************************************************************************/
 #if GL
-void ShaderGL::GLSLParam::set(Int gpu_offset, ShaderParam &param, C Str8 &glsl_name) {T.gpu_offset=gpu_offset; T.param=&param; DYNAMIC_ASSERT(T.gpu_offset==gpu_offset, "gpu_offset out of range"); T.glsl_name=glsl_name;}
-Bool ShaderGL::load(File &f, C MemtN<ShaderParam*, 256> &params, C MemtN<ShaderImage*, 256> &images)
+Bool ShaderGL::load(File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers)
 {
-   f.getStr(name);
-   f.getMulti(vs_index, ps_index);
-   glsl_params.setNum(f.decUIntV()); FREPA (glsl_params){GLSLParam &param=glsl_params[i]; f>>param.gpu_offset; param.param=Get(f.getUShort(), params); f>>param.glsl_name;}
- //glsl_images.setNum(f.decUIntV()); FREPAO(glsl_images)=                                                                  Get(f.getUShort(), images);
-   if(f.ok())return true;
-  /*del();*/ return false;
-}
-Bool ShaderGL::load(File &f, C MemtN<ShaderBuffer*, 256> &file_buffers, C MemtN<ShaderImage*, 256> &images)
-{
-   // name
-   Int hs_index, ds_index;
-   f.getStr(name).getMulti(vs_index, hs_index, ds_index, ps_index);
-
-   /*FIXME don't save these
-   FIXME save only 'buffers'
-   // textures
-   vs_textures.setNum(f.decUIntV()); FREPA(vs_textures){Texture &t=vs_textures[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_SHADER_IMAGES))Exit(S+"Image index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);}
-   hs_textures.setNum(f.decUIntV()); FREPA(hs_textures){Texture &t=hs_textures[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_SHADER_IMAGES))Exit(S+"Image index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);}
-   ds_textures.setNum(f.decUIntV()); FREPA(ds_textures){Texture &t=ds_textures[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_SHADER_IMAGES))Exit(S+"Image index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);}
-   ps_textures.setNum(f.decUIntV()); FREPA(ps_textures){Texture &t=ps_textures[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_SHADER_IMAGES))Exit(S+"Image index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);}
-
-   // buffers
-   vs_buffers.setNum(f.decUIntV()); FREPA(vs_buffers){Buffer &b=vs_buffers[i]; ConstantIndex ci; f>>ci; b.index=ci.bind_index; if(!InRange(b.index, MAX_SHADER_BUFFERS))Exit(S+"Buffer index: "+b.index+", is too big"); b.buffer=Get(ci.src_index, file_buffers);}
-   hs_buffers.setNum(f.decUIntV()); FREPA(hs_buffers){Buffer &b=hs_buffers[i]; ConstantIndex ci; f>>ci; b.index=ci.bind_index; if(!InRange(b.index, MAX_SHADER_BUFFERS))Exit(S+"Buffer index: "+b.index+", is too big"); b.buffer=Get(ci.src_index, file_buffers);}
-   ds_buffers.setNum(f.decUIntV()); FREPA(ds_buffers){Buffer &b=ds_buffers[i]; ConstantIndex ci; f>>ci; b.index=ci.bind_index; if(!InRange(b.index, MAX_SHADER_BUFFERS))Exit(S+"Buffer index: "+b.index+", is too big"); b.buffer=Get(ci.src_index, file_buffers);}
-   ps_buffers.setNum(f.decUIntV()); FREPA(ps_buffers){Buffer &b=ps_buffers[i]; ConstantIndex ci; f>>ci; b.index=ci.bind_index; if(!InRange(b.index, MAX_SHADER_BUFFERS))Exit(S+"Buffer index: "+b.index+", is too big"); b.buffer=Get(ci.src_index, file_buffers);}
-      buffers.setNum(f.decUIntV()); FREPA(   buffers)              buffers[i]=Get(f.getUShort(), file_buffers);
-
-#if DEBUG && 1
-   //#pragma message("!! Warning: Use this only for debugging !!")
-   REPA(vs_buffers)Test(vs_buffers[i]);
-   REPA(hs_buffers)Test(hs_buffers[i]);
-   REPA(ds_buffers)Test(ds_buffers[i]);
-   REPA(ps_buffers)Test(ps_buffers[i]);
-#endif*/
-
+   // name + indexes
+   f.getStr(name).getMulti(vs_index, ps_index);
    if(f.ok())return true;
   /*del();*/ return false;
 }
@@ -1421,8 +1393,10 @@ Bool ShaderFile::load(C Str &name)
          FREPA(images){f.getStr(temp_str); images[i]=ShaderImages(temp_str);}
 
          // shaders
+      #if !GL
          if(_buffer_links.load(f, buffers)) // buffer link map
          if( _image_links.load(f,  images)) //  image link map
+      #endif
          if(_vs     .load(f))
          if(_hs     .load(f))
          if(_ds     .load(f))

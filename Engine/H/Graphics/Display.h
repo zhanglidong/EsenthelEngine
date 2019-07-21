@@ -172,8 +172,6 @@ struct Display : DisplayState, DisplayDraw // Display Control
                                                                 Bool             multiSample      ()C {return _samples>1     ;} // get if Multi Sampling is used
                                                                 Bool             highPrecNrmCalcIs()C {return highPrecNrmCalc() && !highPrecNrmRT();}
                                                                 void             aspectRatioEx    (Bool force=true, Bool quiet=false);
-                                                      constexpr Int              maxShaderMatrixes()C; // max number of matrixes that can be set in shaders
-                                                      constexpr Bool             meshBoneSplit    ()C; // if requires usage of Bone Splits for meshes with big amount of bones
                                                       constexpr Bool             signedNrmRT      ()C; // if Normal   Render Target is signed
                                                       constexpr Bool             signedVelRT      ()C; // if Velocity Render Target is signed
 #endif

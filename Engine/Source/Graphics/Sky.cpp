@@ -217,8 +217,8 @@ void SkyClass::draw()
       REPS(Renderer._eye, Renderer._eye_num)
       {
          Renderer.setEyeViewport();
-         if(shader_multi){D.depth((multi==1) ? false : ds); D.stencilRef(STENCIL_REF_MSAA); shader_multi->begin(); _mshr.drawFull(); D.stencilRef(0);} // MS edges for deferred must not use depth testing
-                          D.depth(                     ds);                                 shader      ->begin(); _mshr.drawFull();
+         if(shader_multi){D.depth((multi==1) ? false : ds); D.stencilRef(STENCIL_REF_MSAA); shader_multi->begin(); _mshr.draw(); D.stencilRef(0);} // MS edges for deferred must not use depth testing
+                          D.depth(                     ds);                                 shader      ->begin(); _mshr.draw();
       }
       D.sampler2D (    );
       D.depthWrite(true);

@@ -211,22 +211,6 @@ enum SHADER_TYPE : Byte
    ST_NUM,
 };
 #if WINDOWS
-struct BufferLink
-{
-   Int           index ;
-   ShaderBuffer *buffer;
-
-   void set(Int index, ShaderBuffer &buffer) {T.index=index; T.buffer=&buffer;}
-   Bool load(File &f, C MemtN<ShaderBuffer*, 256> &buffers);
-};
-struct ImageLink
-{
-   Int          index;
-   ShaderImage *image;
-
-   void set(Int index, ShaderImage &image) {T.index=index; T.image=&image;}
-   Bool load(File &f, C MemtN<ShaderImage*, 256> &images);
-};
 struct ShaderVS11 : ShaderData
 {
    ID3D11VertexShader *vs=null;
@@ -277,6 +261,7 @@ struct ShaderVSGL : ShaderData
    Str  source();
 
   ~ShaderVSGL();
+   ShaderVSGL() {}
    NO_COPY_CONSTRUCTOR(ShaderVSGL);
 };
 struct ShaderPSGL : ShaderData
@@ -287,10 +272,26 @@ struct ShaderPSGL : ShaderData
    Str  source();
 
   ~ShaderPSGL();
+   ShaderPSGL() {}
    NO_COPY_CONSTRUCTOR(ShaderPSGL);
 };
 /******************************************************************************/
-#if WINDOWS
+struct BufferLink
+{
+   Int                          index;
+   GPU_API(ShaderBuffer*, UInt) buffer;
+
+   void set(Int index, GPU_API(ShaderBuffer*, UInt) buffer) {T.index=index; T.buffer=buffer;}
+   Bool load(File &f, C MemtN<ShaderBuffer*, 256> &buffers);
+};
+struct ImageLink
+{
+   Int          index;
+   ShaderImage *image;
+
+   void set(Int index, ShaderImage &image) {T.index=index; T.image=&image;}
+   Bool load(File &f, C MemtN<ShaderImage*, 256> &images);
+};
 struct BufferLinkPtr
 {
  C BufferLink *data=null;
@@ -309,6 +310,7 @@ struct ImageLinkPtr
 };
 inline Int Elms(C BufferLinkPtr &links) {return links.elms;}
 inline Int Elms(C  ImageLinkPtr &links) {return links.elms;}
+#if WINDOWS
 struct Shader11
 {
    ID3D11VertexShader *vs=null;
@@ -334,43 +336,12 @@ struct Shader11
 /******************************************************************************/
 struct ShaderGL
 {
-   struct Texture
-   {
-      Int          index;
-      ShaderImage *image;
-
-      void set(Int index, ShaderImage &image) {T.index=index; T.image=&image;}
-   };
-   const_mem_addr struct Constant
-   {
-   #if GL
-      typedef void (PLATFORM(WINAPI,) *glUniformPtr) (GLint location, GLsizei count, const GLfloat *value);
-   #endif
-
-      Int          index, count;
-      Ptr          data;
-      Bool        *changed;
-      ShaderParam *sp;
-      GPU_API(Ptr, glUniformPtr) uniform;
-
-      void set(Int index, Int count, Ptr data, ShaderParam &sp) {T.index=index; T.count=count; T.data=data; T.changed=sp._changed; T.sp=&sp;}
-   };
-   struct GLSLParam
-   {
-      U16          gpu_offset;
-      ShaderParam *param;
-      Str8         glsl_name;
-
-      void set(Int gpu_offset, ShaderParam &param, C Str8 &glsl_name);
-   };
-
-   Str8                name;
+   UInt                     prog=0, vs=0, ps=0;
    Int                 vs_index=-1, ps_index=-1;
-   UInt                vs=0, ps=0, prog=0;
-   Mems<Texture>       textures;
-   Mems<Constant>      constants; // FIXME remove this
-   Mems<GLSLParam>     glsl_params; // FIXME remove this
-   Mems<ShaderBuffer*> buffers; // shader buffers used by all shader stages (VS HS DS PS) combined into one array
+   Mems<ShaderBuffer*> all_buffers; // shader buffers used by all shader stages (VS HS DS PS) combined into one array
+   Mems<BufferLink>        buffers;
+   Mems< ImageLink>         images;
+   Str8                       name;
 
    Str  source   ();
    UInt compileEx(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_array, Bool clean, ShaderFile *shader, Str *messages);
@@ -380,8 +351,7 @@ struct ShaderGL
    void commitTex();
    void start    ();
    void begin    ();
-   Bool load     (File &f, C MemtN<ShaderParam*, 256> &params, C MemtN<ShaderImage*, 256> &images); // FIXME remove this
-   Bool load     (File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images);
+   Bool load     (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
 
   ~ShaderGL();
 };
@@ -495,7 +465,6 @@ struct BLST // Blend Light Shader Techniques
    Shader *dir[7];
 };
 /******************************************************************************/
-extern GPU_API(Shader11, ShaderGL) *ShaderCur;
 extern ThreadSafeMap<FRSTKey, FRST        > Frsts        ; // Forward Rendering Shader Techniques
 extern ThreadSafeMap<BLSTKey, BLST        > Blsts        ; // Blend   Light     Shader Techniques
 extern ThreadSafeMap<Str8   , ShaderImage > ShaderImages ; // Shader Images

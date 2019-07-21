@@ -20,11 +20,6 @@ const Matrix  MatrixIdentity (1);
 const MatrixM MatrixMIdentity(1);
 
    GpuMatrix *ViewMatrix;
-
-#if MAY_NEED_BONE_SPLITS
-static Vec           GObjVel   [MAX_MATRIX_SW], GFurVel[MAX_MATRIX_SW];
-static GpuMatrix     GObjMatrix[MAX_MATRIX_SW];
-#endif
 /******************************************************************************/
 Matrix3& Matrix3::operator*=(Flt f)
 {
@@ -3251,57 +3246,45 @@ void GetVel(VecD &vel, VecD &ang_vel, C MatrixD &from, C MatrixD &to, Dbl dt)
 /******************************************************************************/
 void AnimatedSkeleton::setMatrix()C
 {
-   Int matrixes=Min(bones.elms(), MAX_MATRIX_SW-VIRTUAL_ROOT_BONE); // this is the amount of matrixes for bones (without the virtual), leave room for root bone
+   Int matrixes=Min(bones.elms(), MAX_MATRIX-VIRTUAL_ROOT_BONE); // this is the amount of matrixes for bones (without the virtual), leave room for root bone
    SetMatrixCount(VIRTUAL_ROOT_BONE+matrixes); // root + bones
    ObjMatrix=matrix(); // 'Mesh.drawBlend' makes use of the 'ObjMatrix' so it must be set
    if(Renderer._mesh_shader_vel) // we need to process velocities
    {
       Vec v; if(VIRTUAL_ROOT_BONE){v=vel()-ActiveCam.vel; v*=CamMatrixInvMotionScale;}
-      if(!D.meshBoneSplit() || matrixes<=MAX_MATRIX_HWMIN-VIRTUAL_ROOT_BONE) // bone matrixes + VIRTUAL_ROOT_BONE <= MAX_MATRIX_HWMIN
+      if(VIRTUAL_ROOT_BONE)
       {
-         if(VIRTUAL_ROOT_BONE)
-         {
-            Sh.ViewMatrix->fromMul(matrix(), CamMatrixInv);
-            Sh.ObjVel    ->set    (v                     );
-         }
-         REP(matrixes)
-         {
-          C AnimSkelBone &bone=bones[i];
-            v=bone._vel-ActiveCam.vel; v*=CamMatrixInvMotionScale;
-            Sh.ViewMatrix->fromMul(bone._matrix, CamMatrixInv, VIRTUAL_ROOT_BONE+i);
-            Sh.ObjVel    ->set    (v                         , VIRTUAL_ROOT_BONE+i);
-         }
-      }else
-      {
-      #if MAY_NEED_BONE_SPLITS
-         if(VIRTUAL_ROOT_BONE)
-         {
-            Sh.ViewMatrix->set(GObjMatrix[0].fromMul(matrix(), CamMatrixInv));
-            Sh.ObjVel    ->set(GObjVel   [0]=v                              );
-         }
-         REP(matrixes)
-         {
-          C AnimSkelBone &bone=bones[i];
-            v=bone._vel-ActiveCam.vel; v*=CamMatrixInvMotionScale;
-            Sh.ViewMatrix->set(GObjMatrix[VIRTUAL_ROOT_BONE+i].fromMul(bone._matrix, CamMatrixInv), VIRTUAL_ROOT_BONE+i);
-            Sh.ObjVel    ->set(GObjVel   [VIRTUAL_ROOT_BONE+i]=v                                  , VIRTUAL_ROOT_BONE+i);
-         }
-      #endif
+         Sh.ViewMatrix->fromMul(matrix(), CamMatrixInv);
+         Sh.ObjVel    ->set    (v                     );
       }
+      REP(matrixes)
+      {
+       C AnimSkelBone &bone=bones[i];
+         v=bone._vel-ActiveCam.vel; v*=CamMatrixInvMotionScale;
+         Sh.ViewMatrix->fromMul(bone._matrix, CamMatrixInv, VIRTUAL_ROOT_BONE+i);
+         Sh.ObjVel    ->set    (v                         , VIRTUAL_ROOT_BONE+i);
+      }
+      /* Bone Splits
+      if(VIRTUAL_ROOT_BONE)
+      {
+         Sh.ViewMatrix->set(GObjMatrix[0].fromMul(matrix(), CamMatrixInv));
+         Sh.ObjVel    ->set(GObjVel   [0]=v                              );
+      }
+      REP(matrixes)
+      {
+         C AnimSkelBone &bone=bones[i];
+         v=bone._vel-ActiveCam.vel; v*=CamMatrixInvMotionScale;
+         Sh.ViewMatrix->set(GObjMatrix[VIRTUAL_ROOT_BONE+i].fromMul(bone._matrix, CamMatrixInv), VIRTUAL_ROOT_BONE+i);
+         Sh.ObjVel    ->set(GObjVel   [VIRTUAL_ROOT_BONE+i]=v                                  , VIRTUAL_ROOT_BONE+i);
+      }*/
       SetFastAngVel(); // 'SetFastAngVel' is not fully supported, because every bone has its own linear velocities (and that would also require their own angular velocity for each bone separately which wouldn't be efficient)
    }else
    {
-      if(!D.meshBoneSplit() || matrixes<=MAX_MATRIX_HWMIN-VIRTUAL_ROOT_BONE) // bone matrixes + VIRTUAL_ROOT_BONE <= MAX_MATRIX_HWMIN
-      {
-         if(VIRTUAL_ROOT_BONE)Sh.ViewMatrix->fromMul(          matrix(), CamMatrixInv);
-                 REP(matrixes)Sh.ViewMatrix->fromMul(bones[i]._matrix  , CamMatrixInv, VIRTUAL_ROOT_BONE+i);
-      }else
-      {
-      #if MAY_NEED_BONE_SPLITS
-         if(VIRTUAL_ROOT_BONE)Sh.ViewMatrix->set(GObjMatrix[0                  ].fromMul(          matrix(), CamMatrixInv));
-                 REP(matrixes)Sh.ViewMatrix->set(GObjMatrix[VIRTUAL_ROOT_BONE+i].fromMul(bones[i]._matrix  , CamMatrixInv), VIRTUAL_ROOT_BONE+i);
-      #endif
-      }
+      if(VIRTUAL_ROOT_BONE)Sh.ViewMatrix->fromMul(          matrix(), CamMatrixInv);
+              REP(matrixes)Sh.ViewMatrix->fromMul(bones[i]._matrix  , CamMatrixInv, VIRTUAL_ROOT_BONE+i);
+      /* Bone Splits
+      if(VIRTUAL_ROOT_BONE)Sh.ViewMatrix->set(GObjMatrix[0                  ].fromMul(          matrix(), CamMatrixInv));
+              REP(matrixes)Sh.ViewMatrix->set(GObjMatrix[VIRTUAL_ROOT_BONE+i].fromMul(bones[i]._matrix  , CamMatrixInv), VIRTUAL_ROOT_BONE+i);*/
    }
 }
 /******************************************************************************/
@@ -3319,51 +3302,14 @@ void SetVelFur(C Matrix3 &view_matrix, C Vec &vel)
 INLINE Vec FurVelShader(C Vec &vel, C Matrix3 &matrix) {return Vec().fromDivNormalized(vel, matrix)/=matrix.x.length();} // this is equal to dividing by normalized matrix, v/=matrix.normalize(), as a faster approximation because we use only 'x.length' ignoring y and z, yes in this case it should be 'length' and not 'length2'
 void AnimatedSkeleton::setFurVel()C
 {
-   Int matrixes=Min(bones.elms(), MAX_MATRIX_SW-VIRTUAL_ROOT_BONE); // this is the amount of matrixes for bones (without the virtual), leave room for root bone
+   Int matrixes=Min(bones.elms(), MAX_MATRIX-VIRTUAL_ROOT_BONE); // this is the amount of matrixes for bones (without the virtual), leave room for root bone
    SetFurVelCount(VIRTUAL_ROOT_BONE+matrixes); // root + bones
-   if(!D.meshBoneSplit() || matrixes<=MAX_MATRIX_HWMIN-VIRTUAL_ROOT_BONE) // bone matrixes + VIRTUAL_ROOT_BONE <= MAX_MATRIX_HWMIN
-   {
-      if(VIRTUAL_ROOT_BONE)Sh.FurVel->set(FurVelShader(    root._fur_vel,           matrix()));
-              REP(matrixes)Sh.FurVel->set(FurVelShader(bones[i]._fur_vel, bones[i]._matrix  ), VIRTUAL_ROOT_BONE+i);
-   }else
-   {
-   #if MAY_NEED_BONE_SPLITS
-      if(VIRTUAL_ROOT_BONE)Sh.FurVel->set(GFurVel[0                  ]=FurVelShader(    root._fur_vel,           matrix()));
-              REP(matrixes)Sh.FurVel->set(GFurVel[VIRTUAL_ROOT_BONE+i]=FurVelShader(bones[i]._fur_vel, bones[i]._matrix  ), VIRTUAL_ROOT_BONE+i);
-   #endif
-   }
+   if(VIRTUAL_ROOT_BONE)Sh.FurVel->set(FurVelShader(    root._fur_vel,           matrix()));
+           REP(matrixes)Sh.FurVel->set(FurVelShader(bones[i]._fur_vel, bones[i]._matrix  ), VIRTUAL_ROOT_BONE+i);
+   /* Bone Splits
+   if(VIRTUAL_ROOT_BONE)Sh.FurVel->set(GFurVel[0                  ]=FurVelShader(    root._fur_vel,           matrix()));
+   REP(matrixes)Sh.FurVel->set(GFurVel[VIRTUAL_ROOT_BONE+i]=FurVelShader(bones[i]._fur_vel, bones[i]._matrix  ), VIRTUAL_ROOT_BONE+i);*/
 }
-/******************************************************************************/
-#if MAY_NEED_BONE_SPLITS
-void SetMatrixVelRestore() // this function restores full set of matrixes/velocities to GPU
-{
-   Int m=Min(Matrixes, MAX_MATRIX_HWMIN);
-                                Sh.ViewMatrix->set(GObjMatrix, m); // matrixes
-   if(Renderer._mesh_shader_vel)Sh.ObjVel    ->set(GObjVel   , m); // velocities
-}
-void SetMatrixVelSplit(Byte *matrix, Int matrixes) // this function sets matrixes/velocities to GPU for a particular BoneSplit
-{
-                                REP(matrixes)Sh.ViewMatrix->set(GObjMatrix[matrix[i]], i); // matrixes
-   if(Renderer._mesh_shader_vel)REP(matrixes)Sh.ObjVel    ->set(GObjVel   [matrix[i]], i); // velocities
-}
-
-// FUR
-void SetMatrixFurVelRestore() // this function restores full set of matrixes/velocities to GPU
-{
-   Int m=Min(Matrixes, MAX_MATRIX_HWMIN);
-   Sh.ViewMatrix->set(GObjMatrix, m); // matrixes
-   Sh.FurVel    ->set(GFurVel   , m); // velocities
-}
-void SetMatrixFurVelSplit(Byte *matrix, Int matrixes) // this function sets matrixes/velocities to GPU for a particular BoneSplit
-{
-   REP(matrixes)
-   {
-      Byte m=matrix[i];
-      Sh.ViewMatrix->set(GObjMatrix[m], i); // matrixes
-      Sh.FurVel    ->set(GFurVel   [m], i); // velocities
-   }
-}
-#endif
 /******************************************************************************/
 void SetFastViewMatrix(        C Matrix  &view_matrix   ) {Sh.ViewMatrix->set           (        view_matrix                            );}
 void SetFastMatrix    (                                 ) {Sh.ViewMatrix->set           (                     CamMatrixInv              );}
