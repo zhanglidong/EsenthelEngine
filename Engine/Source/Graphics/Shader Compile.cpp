@@ -821,15 +821,28 @@ Bool ShaderCompiler::Param::save(File &f)C
    }
    return f.ok();
 }
+#pragma pack(push, 1)
+struct Indexes
+{
+   Int    shader_data_index[ST_NUM];
+   UShort buffer_bind_index[ST_NUM], image_bind_index[ST_NUM];
+};
+#pragma pack(pop)
 Bool ShaderCompiler::Shader::save(File &f, C ShaderCompiler &compiler)C
 {
    // name
    f.putStr(name);
+
+   // indexes
+   Indexes indexes;
    FREPA(sub)
    {
     C SubShader &sub=T.sub[i];
-      f.putMulti(sub.shader_data_index, AsUShort(sub.buffer_bind_index), AsUShort(sub.image_bind_index));
+      indexes.shader_data_index[i]=         sub.shader_data_index ;
+      indexes.buffer_bind_index[i]=AsUShort(sub.buffer_bind_index);
+      indexes. image_bind_index[i]=AsUShort(sub. image_bind_index);
    }
+   f<<indexes;
 
    if(compiler.api!=API_GL)
    {
@@ -1043,6 +1056,34 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    f.del(); cmp.pos(0); shader_data.setNum(cmp.size()).loadRawData(cmp);
 #endif
 }
+/******************************************************************************/
+static ShaderImage * Get(Int i, C MemtN<ShaderImage *, 256> &images ) {if(!InRange(i, images ))Exit("Invalid ShaderImage index" ); return  images[i];}
+static ShaderBuffer* Get(Int i, C MemtN<ShaderBuffer*, 256> &buffers) {if(!InRange(i, buffers))Exit("Invalid ShaderBuffer index"); return buffers[i];}
+
+#if DEBUG
+static C Str8& Name(ShaderImage  &image                                  ) {C Str8 *name=ShaderImages .dataToKey(&image ); if(!name)Exit("Can't find ShaderImage name" ); return *name;}
+static C Str8& Name(ShaderBuffer &buffer                                 ) {C Str8 *name=ShaderBuffers.dataToKey(&buffer); if(!name)Exit("Can't find ShaderBuffer name"); return *name;}
+#else
+static C Str8& Name(ShaderImage  &image                                  ) {return ShaderImages .dataInMapToKey(image );}
+static C Str8& Name(ShaderBuffer &buffer                                 ) {return ShaderBuffers.dataInMapToKey(buffer);}
+#endif
+
+#if DEBUG
+static void Test(BufferLink &b)
+{
+   switch(b.index)
+   {
+      case SBI_GLOBAL    : if(Name(*b.buffer)!="Global"   )error: Exit(S+"Invalid Shader Constant Index "+b.index+' '+Name(*b.buffer)); break;
+      case SBI_OBJ_MATRIX: if(Name(*b.buffer)!="ObjMatrix")goto error; break;
+      case SBI_OBJ_VEL   : if(Name(*b.buffer)!="ObjVel"   )goto error; break;
+      case SBI_MESH      : if(Name(*b.buffer)!="Mesh"     )goto error; break;
+      case SBI_MATERIAL  : if(Name(*b.buffer)!="Material" )goto error; break;
+      case SBI_VIEWPORT  : if(Name(*b.buffer)!="Viewport" )goto error; break;
+      case SBI_COLOR     : if(Name(*b.buffer)!="Color"    )goto error; break;
+   }ASSERT(SBI_NUM==7);
+}
+#endif
+/******************************************************************************/
 // FIXME store buffers+images in one map?
 struct BindMap : Mems<ShaderCompiler::Bind>
 {
@@ -1097,6 +1138,17 @@ struct BindMap : Mems<ShaderCompiler::Bind>
       return f.ok();
    }
 };
+Bool BufferLink::load(File &f, C MemtN<ShaderBuffer*, 256> &buffers)
+{
+   ConstantIndex ci; f>>ci; index=ci.bind_index; if(!InRange(index, MAX_SHADER_BUFFERS))Exit(S+"Buffer index: "+index+", is too big"); buffer=Get(ci.src_index, buffers); if(DEBUG)Test(T);
+   return f.ok();
+}
+Bool ImageLink::load(File &f, C MemtN<ShaderImage*, 256> &images)
+{
+   ConstantIndex ci; f>>ci; index=ci.bind_index; if(!InRange(index, MAX_SHADER_IMAGES))Exit(S+"Image index: "+index+", is too big"); image=Get(ci.src_index, images);
+   return f.ok();
+}
+/******************************************************************************/
 Bool ShaderCompiler::compileTry(Threads &threads)
 {
    Int shaders_num=0;
@@ -1239,51 +1291,16 @@ void ShaderCompiler::compile(Threads &threads)
 /******************************************************************************/
 // IO
 /******************************************************************************/
-static ShaderImage * Get(Int i, C MemtN<ShaderImage *, 256> &images ) {if(!InRange(i, images ))Exit("Invalid ShaderImage index" ); return  images[i];}
-static ShaderParam * Get(Int i, C MemtN<ShaderParam *, 256> &params ) {if(!InRange(i, params ))Exit("Invalid ShaderParam index" ); return  params[i];}
-static ShaderBuffer* Get(Int i, C MemtN<ShaderBuffer*, 256> &buffers) {if(!InRange(i, buffers))Exit("Invalid ShaderBuffer index"); return buffers[i];}
-
-#if DEBUG
-static C Str8& Name(ShaderImage  &image                                  ) {C Str8 *name=ShaderImages .dataToKey(&image ); if(!name)Exit("Can't find ShaderImage name" ); return *name;}
-static C Str8& Name(ShaderParam  &param, C Map<Str8, ShaderParam> &params) {C Str8 *name=      params .dataToKey(&param ); if(!name)Exit("Can't find ShaderParam name" ); return *name;}
-static C Str8& Name(ShaderBuffer &buffer                                 ) {C Str8 *name=ShaderBuffers.dataToKey(&buffer); if(!name)Exit("Can't find ShaderBuffer name"); return *name;}
-#else
-static C Str8& Name(ShaderImage  &image                                  ) {return ShaderImages .dataInMapToKey(image );}
-static C Str8& Name(ShaderParam  &param, C Map<Str8, ShaderParam> &params) {return       params .dataInMapToKey(param );}
-static C Str8& Name(ShaderBuffer &buffer                                 ) {return ShaderBuffers.dataInMapToKey(buffer);}
-#endif
-
-#if DEBUG
-static void Test(BufferLink &b)
+Bool Shader11::load(File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &file_buffers)
 {
-   switch(b.index)
+   Indexes indexes; f.getStr(name)>>indexes;
+   FREPA(data_index)
    {
-      case SBI_GLOBAL    : if(Name(*b.buffer)!="Global"   )error: Exit(S+"Invalid Shader Constant Index "+b.index+' '+Name(*b.buffer)); break;
-      case SBI_OBJ_MATRIX: if(Name(*b.buffer)!="ObjMatrix")goto error; break;
-      case SBI_OBJ_VEL   : if(Name(*b.buffer)!="ObjVel"   )goto error; break;
-      case SBI_MESH      : if(Name(*b.buffer)!="Mesh"     )goto error; break;
-      case SBI_MATERIAL  : if(Name(*b.buffer)!="Material" )goto error; break;
-      case SBI_VIEWPORT  : if(Name(*b.buffer)!="Viewport" )goto error; break;
-      case SBI_COLOR     : if(Name(*b.buffer)!="Color"    )goto error; break;
-   }ASSERT(SBI_NUM==7);
-}
-#endif
-
-Bool BufferImageLinks::load(File &f, C MemtN<ShaderBuffer*, 256> &file_buffers, C MemtN<ShaderImage*, 256> &file_images)
-{
-   buffers.setNum(f.decUIntV()); FREPA(buffers){BufferLink &b=buffers[i]; ConstantIndex ci; f>>ci; b.index=ci.bind_index; if(!InRange(b.index, MAX_SHADER_BUFFERS))Exit(S+"Buffer index: "+b.index+", is too big"); b.buffer=Get(ci.src_index, file_buffers); if(DEBUG)Test(b);}
-    images.setNum(f.decUIntV()); FREPA( images){ ImageLink &t= images[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_SHADER_IMAGES ))Exit(S+"Image index: " +t.index+", is too big"); t.image =Get(ci.src_index,  file_images);}
-   return f.ok();
-}
-Bool ShaderVS11::load(File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images) {return super::load(f) && super::load(f, buffers, images);}
-Bool ShaderHS11::load(File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images) {return super::load(f) && super::load(f, buffers, images);}
-Bool ShaderDS11::load(File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images) {return super::load(f) && super::load(f, buffers, images);}
-Bool ShaderPS11::load(File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images) {return super::load(f) && super::load(f, buffers, images);}
-
-Bool Shader11::load(File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images)
-{
-   f.getStr(name).getMulti(vs_index, hs_index, ds_index, ps_index);
-   all_buffers.setNum(f.decUIntV()); FREPAO(all_buffers)=Get(f.getUShort(), buffers);
+      data_index[i]=indexes.shader_data_index[i];
+      DYNAMIC_ASSERT(InRange(indexes.buffer_bind_index[i], shader_file._buffer_links), "Buffer Bind Index out of range"); buffers[i]=shader_file._buffer_links[indexes.buffer_bind_index[i]];
+      DYNAMIC_ASSERT(InRange(indexes. image_bind_index[i], shader_file. _image_links),  "Image Bind Index out of range");  images[i]=shader_file. _image_links[indexes. image_bind_index[i]];
+   }
+   all_buffers.setNum(f.decUIntV()); FREPAO(all_buffers)=Get(f.getUShort(), file_buffers);
    if(f.ok())return true;
   /*del();*/ return false;
 }
@@ -1404,11 +1421,13 @@ Bool ShaderFile::load(C Str &name)
          FREPA(images){f.getStr(temp_str); images[i]=ShaderImages(temp_str);}
 
          // shaders
-         if(_vs     .load(f, buffers, images))
-         if(_hs     .load(f, buffers, images))
-         if(_ds     .load(f, buffers, images))
-         if(_ps     .load(f, buffers, images))
-         if(_shaders.load(f, buffers, images))
+         if(_buffer_links.load(f, buffers)) // buffer link map
+         if( _image_links.load(f,  images)) //  image link map
+         if(_vs     .load(f))
+         if(_hs     .load(f))
+         if(_ds     .load(f))
+         if(_ps     .load(f))
+         if(_shaders.load(f, T, buffers))
             if(f.ok())return true;
       }break;
 
@@ -1484,6 +1503,9 @@ static void Error(ID3DBlob* &error, Str *messages)
    }
 }
 #endif
+static ShaderParam * Get(Int i, C MemtN<ShaderParam *, 256> &params ) {if(!InRange(i, params ))Exit("Invalid ShaderParam index" ); return  params[i];}
+static C Str8& Name(ShaderParam  &param, C Map<Str8, ShaderParam> &params) {C Str8 *name=      params .dataToKey(&param ); if(!name)Exit("Can't find ShaderParam name" ); return *name;}
+static C Str8& Name(ShaderParam  &param, C Map<Str8, ShaderParam> &params) {return       params .dataInMapToKey(param );}
 /******************************************************************************/
 struct ShaderParamEx : ShaderParam 
 {

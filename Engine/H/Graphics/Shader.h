@@ -217,6 +217,7 @@ struct BufferLink
    ShaderBuffer *buffer;
 
    void set(Int index, ShaderBuffer &buffer) {T.index=index; T.buffer=&buffer;}
+   Bool load(File &f, C MemtN<ShaderBuffer*, 256> &buffers);
 };
 struct ImageLink
 {
@@ -224,53 +225,43 @@ struct ImageLink
    ShaderImage *image;
 
    void set(Int index, ShaderImage &image) {T.index=index; T.image=&image;}
+   Bool load(File &f, C MemtN<ShaderImage*, 256> &images);
 };
-struct BufferImageLinks
-{
-   Mems<BufferLink> buffers;
-   Mems< ImageLink>  images;
-
-   Bool load(File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images);
-};
-struct ShaderVS11 : ShaderData, BufferImageLinks
+struct ShaderVS11 : ShaderData
 {
    ID3D11VertexShader *vs=null;
 
    ID3D11VertexShader* create();
-   Bool load(File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images);
 
   ~ShaderVS11();
    ShaderVS11() {}
    NO_COPY_CONSTRUCTOR(ShaderVS11);
 };
-struct ShaderHS11 : ShaderData, BufferImageLinks
+struct ShaderHS11 : ShaderData
 {
    ID3D11HullShader *hs=null;
 
    ID3D11HullShader* create();
-   Bool load(File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images);
 
   ~ShaderHS11();
    ShaderHS11() {}
    NO_COPY_CONSTRUCTOR(ShaderHS11);
 };
-struct ShaderDS11 : ShaderData, BufferImageLinks
+struct ShaderDS11 : ShaderData
 {
    ID3D11DomainShader *ds=null;
 
    ID3D11DomainShader* create();
-   Bool load(File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images);
 
   ~ShaderDS11();
    ShaderDS11() {}
    NO_COPY_CONSTRUCTOR(ShaderDS11);
 };
-struct ShaderPS11 : ShaderData, BufferImageLinks
+struct ShaderPS11 : ShaderData
 {
    ID3D11PixelShader *ps=null;
 
    ID3D11PixelShader* create();
-   Bool load(File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images);
 
   ~ShaderPS11();
    ShaderPS11() {}
@@ -302,19 +293,19 @@ struct ShaderPSGL : ShaderData
 #if WINDOWS
 struct BufferLinkPtr
 {
-   BufferLink *data=null;
+ C BufferLink *data=null;
    Int         elms=0;
 
-   BufferLink& operator[](Int i) {RANGE_ASSERT(i, elms); return data[i];}
-   void operator=(Mems<BufferLink> &links) {data=links.data(); elms=links.elms();}
+ C BufferLink& operator[](Int i) {RANGE_ASSERT(i, elms); return data[i];}
+   void operator=(C Mems<BufferLink> &links) {data=links.data(); elms=links.elms();}
 };
 struct ImageLinkPtr
 {
-   ImageLink *data=null;
+ C ImageLink *data=null;
    Int        elms=0;
 
-   ImageLink& operator[](Int i) {RANGE_ASSERT(i, elms); return data[i];}
-   void operator=(Mems<ImageLink> &links) {data=links.data(); elms=links.elms();}
+ C ImageLink& operator[](Int i) {RANGE_ASSERT(i, elms); return data[i];}
+   void operator=(C Mems<ImageLink> &links) {data=links.data(); elms=links.elms();}
 };
 inline Int Elms(C BufferLinkPtr &links) {return links.elms;}
 inline Int Elms(C  ImageLinkPtr &links) {return links.elms;}
@@ -327,15 +318,15 @@ struct Shader11
    Mems<ShaderBuffer*> all_buffers; // shader buffers used by all shader stages (VS HS DS PS) combined into one array
    BufferLinkPtr           buffers[ST_NUM];
     ImageLinkPtr            images[ST_NUM];
-   Str8                name;
-   Int                 vs_index=-1, hs_index=-1, ds_index=-1, ps_index=-1; // index of 'ShaderData' in 'ShaderFile' containers
+   Int                  data_index[ST_NUM]={-1, -1, -1, -1}; ASSERT(ST_NUM==4);
+   Str8                       name;
 
    Bool validate (ShaderFile &shader, Str *messages=null);
    void commit   ();
    void commitTex();
    void start    ();
    void begin    ();
-   Bool load     (File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images);
+   Bool load     (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
 
 //~Shader11(); no need to release 'vs,hs,ds,ps' or 'buffers,images' since they're just copies from 'Shader*11'
 };
@@ -466,8 +457,10 @@ private:
       Mems<ShaderData> _ds;
       Mems<ShaderPSGL> _ps;
    #endif
+   Mems<Mems<BufferLink>> _buffer_links;
+   Mems<Mems< ImageLink>>  _image_links;
 #else
-   Mems<ShaderData> _vs, _hs, _ds, _ps;
+   Mems<ShaderData> _vs, _hs, _ds, _ps, _buffer_links, _image_links;
 #endif
    Mems<Shader    > _shaders;
    NO_COPY_CONSTRUCTOR(ShaderFile);

@@ -873,10 +873,10 @@ ALIGN_ASSERT(Shader11, ps);
 }*/
 Bool Shader11::validate(ShaderFile &shader, Str *messages) // this function should be multi-threaded safe
 {
-   if(!vs && InRange(vs_index, shader._vs))AtomicSet(vs, shader._vs[vs_index].create());
-   if(!hs && InRange(hs_index, shader._hs))AtomicSet(hs, shader._hs[hs_index].create());
-   if(!ds && InRange(ds_index, shader._ds))AtomicSet(ds, shader._ds[ds_index].create());
-   if(!ps && InRange(ps_index, shader._ps))AtomicSet(ps, shader._ps[ps_index].create());
+   if(!vs && InRange(data_index[ST_VS], shader._vs))AtomicSet(vs, shader._vs[data_index[ST_VS]].create());
+   if(!hs && InRange(data_index[ST_HS], shader._hs))AtomicSet(hs, shader._hs[data_index[ST_HS]].create());
+   if(!ds && InRange(data_index[ST_DS], shader._ds))AtomicSet(ds, shader._ds[data_index[ST_DS]].create());
+   if(!ps && InRange(data_index[ST_PS], shader._ps))AtomicSet(ps, shader._ps[data_index[ST_PS]].create());
    return vs && ps;
 }
 #if 0 // did not make any performance difference (set together with 'SetPrimitiveTopology' from "Vertex Index Buffer.cpp")
@@ -975,8 +975,8 @@ UInt ShaderGL::compileEx(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_arra
 {
    // prepare shaders
    if(messages)messages->clear();
-   if(!vs && InRange(vs_index, vs_array)){if(LogInit)LogN(S+"Compiling vertex shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\""); vs=vs_array[vs_index].create(clean, messages);} // no need for 'AtomicSet' because we don't need to be multi-thread safe here
-   if(!ps && InRange(ps_index, ps_array)){if(LogInit)LogN(S+ "Compiling pixel shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\""); ps=ps_array[ps_index].create(clean, messages);} // no need for 'AtomicSet' because we don't need to be multi-thread safe here
+   if(!vs && InRange(data_index[ST_VS], vs_array)){if(LogInit)LogN(S+"Compiling vertex shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\""); vs=vs_array[data_index[ST_VS]].create(clean, messages);} // no need for 'AtomicSet' because we don't need to be multi-thread safe here
+   if(!ps && InRange(data_index[ST_PS], ps_array)){if(LogInit)LogN(S+ "Compiling pixel shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\""); ps=ps_array[data_index[ST_PS]].create(clean, messages);} // no need for 'AtomicSet' because we don't need to be multi-thread safe here
 
    // prepare program
    UInt prog=0; // have to operate on temp variable, so we can return it to 'validate' which still has to do some things before setting it into 'this'
@@ -1162,10 +1162,14 @@ void ShaderFile::del()
 {
    // !! keep this to properly delete '_shaders', because type sizes and constructors are hidden !!
   _shaders.del(); // first delete this, then individual shaders
-  _vs     .del();
-  _hs     .del();
-  _ds     .del();
-  _ps     .del();
+
+  _vs.del();
+  _hs.del();
+  _ds.del();
+  _ps.del();
+
+  _buffer_links.del();
+   _image_links.del();
 }
 /******************************************************************************/
 // GET / SET
