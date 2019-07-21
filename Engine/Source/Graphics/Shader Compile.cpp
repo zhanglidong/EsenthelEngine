@@ -1068,7 +1068,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
             }
          }
 
-         param.gpu_data_size=0; REPA(param.translation){ShaderParam::Translation &translation=param.translation[i]; MAX(param.gpu_data_size, translation.gpu_offset+translation.elm_size);
+         param.gpu_data_size=0; REPA(param.translation){ShaderParam::Translation &translation=param.translation[i]; MAX(param.gpu_data_size, translation.gpu_offset+translation.elm_size);}
 
          /*FIXME
          if(!param.translation.elms()                   )Exit("Shader Param is empty.\nPlease contact Developer.");
