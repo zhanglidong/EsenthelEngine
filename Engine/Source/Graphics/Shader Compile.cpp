@@ -1043,26 +1043,40 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
          unsigned offset=0; spvc_compiler_type_struct_member_offset(spirv_compiler, buffer_handle, i, &offset); unsigned start=offset;
          param.addTranslation(spirv_compiler, member_handle, offset); param.sortTranslation();
 
-         size_t member_size=0;
+         Int member_size=0;
+         if(param.array_elms)
+         {
+            unsigned    stride=0; spvc_compiler_type_struct_member_array_stride(spirv_compiler, buffer_handle, i, &stride);
+            member_size=stride*(param.array_elms-1); // all elements except last
+         }
+         // add last element
          if(member_type==SPVC_BASETYPE_STRUCT)
          {
-            if(param.array_elms)spvc_compiler_get_declared_struct_size_runtime_array(spirv_compiler, member_handle, param.array_elms, &member_size);
-            else                spvc_compiler_get_declared_struct_size              (spirv_compiler, member_handle,                   &member_size);
+            size_t struct_size=0; spvc_compiler_get_declared_struct_size(spirv_compiler, member_handle, &struct_size); member_size+=(Int)struct_size;
          }else
          {
-            auto vec_size=spvc_type_get_vector_size(member_handle);
-            auto cols=spvc_type_get_columns(member_handle);
-            member_size=vec_size*cols*SIZE(Flt);
+            auto vec_size=spvc_type_get_vector_size(member_handle),
+                 cols    =spvc_type_get_columns    (member_handle);
+            if(cols>1) // matrix
+            {
+               unsigned     stride=0; spvc_compiler_type_struct_member_matrix_stride(spirv_compiler, buffer_handle, i, &stride);
+               member_size+=stride*(cols-1)     //  all vectors except last
+                           +vec_size*SIZE(Flt); // last vector
+            }else // scalar, vector
+            {
+               member_size+=vec_size*SIZE(Flt);
+            }
          }
 
+         param.gpu_data_size=0; REPA(param.translation){ShaderParam::Translation &translation=param.translation[i]; MAX(param.gpu_data_size, translation.gpu_offset+translation.elm_size);
+
+         /*FIXME
          if(!param.translation.elms()                   )Exit("Shader Param is empty.\nPlease contact Developer.");
-         ShaderParam::Translation &last_translation=param.translation.last();
-         param.gpu_data_size=last_translation.gpu_offset+last_translation.elm_size;
          if( param.gpu_data_size!=member_size           )Exit("Incorrect Shader Param size.\nPlease contact Developer.");
          if( param.translation[0].gpu_offset!=start     )Exit("Incorrect Shader Param Offset.\nPlease contact Developer.");
          if( param.gpu_data_size+start>buffer.size      )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer.");
        //if( SIZE(Vec4)+var_desc.StartOffset>buffer.size)Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer."); some functions assume that '_gpu_data_size' is at least as big as 'Vec4' to set values without checking for size, !! this is not needed and shouldn't be called because in DX10+ Shader Params are stored in Shader Buffers, and 'ShaderBuffer' already allocates padding for Vec4
-
+       */
          //FIXME if(HasData(var_desc.DefaultValue, var_desc.Size)) // if parameter has any data
          //   param.data.setNum(param.gpu_data_size).copyFrom((Byte*)var_desc.DefaultValue);
 /*
