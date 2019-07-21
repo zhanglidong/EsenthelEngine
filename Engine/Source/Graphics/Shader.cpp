@@ -1452,6 +1452,7 @@ void SetMatrixCount(Int num)
    if(Matrixes!=num)
    {
       Matrixes=num;
+      // !! Warning: for performance reasons this doesn't adjust 'ShaderParam.translation', so using 'ShaderParam.set*' based on translation will use full size, so make sure that method isn't called for 'ObjMatrix' and 'ObjVel' !!
    #if DX11
    #if ALLOW_PARTIAL_BUFFERS
       if(D3DC1)
