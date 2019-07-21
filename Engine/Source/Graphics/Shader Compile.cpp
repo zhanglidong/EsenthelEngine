@@ -353,28 +353,34 @@ Bool ShaderCompiler::Param::operator==(C Param &p)C
 }
 Bool ShaderCompiler::Buffer::operator==(C Buffer &b)C
 {
- //if(data  .elms()!=b.data  .elms() || !EqualMem(data.data(), b.data.data(), data.elms()))return false;
    if(params.elms()!=b.params.elms())return false; REPA(params)if(params[i]!=b.params[i])return false;
-   if(bind_explicit && bind_slot!=b.bind_slot)return false; // check only for explicit
+   if(bind_explicit && bind_slot!=b.bind_slot)return false; // check 'bind_slot' only if they are explicit
    return Equal(name, b.name, true) && size==b.size && bind_explicit==b.bind_explicit;
 }
+static Int Compare(C ShaderCompiler::Bind &a, C ShaderCompiler::Bind &b)
+{
+   if(Int c=Compare(a.name     , b.name, true))return c;
+   return   Compare(a.bind_slot, b.bind_slot );
+}
+static Int CompareBind(C ShaderCompiler::Buffer &a, C ShaderCompiler::Buffer &b) {return Compare(SCAST(C ShaderCompiler::Bind, a), SCAST(C ShaderCompiler::Bind, b));}
+static Int CompareBind(C ShaderCompiler::Image  &a, C ShaderCompiler::Image  &b) {return Compare(SCAST(C ShaderCompiler::Bind, a), SCAST(C ShaderCompiler::Bind, b));}
 /******************************************************************************/
 void ShaderCompiler::Shader::finalizeName()
 {
    FREPA(params)
    {
-    C TextParam8 &p=params[i]; if(p.value.length()!=1 && i!=params.elms()-1)Exit("Shader Param Value Length != 1"); // allow last parameter to have length!=1
+    C TextParam8 &p=params[i]; if(p.value.length()!=1 && i!=params.elms()-1)Exit("Shader Param Value Length != 1"); // allow last parameter to have length!=1 because it won't introduce conflicts
       name+=p.value;
    }
 }
 /******************************************************************************/
-ShaderCompiler::Shader& ShaderCompiler::Source::New(C Str &name, C Str8 &vs, C Str8 &ps)
+ShaderCompiler::Shader& ShaderCompiler::Source::New(C Str &name, C Str8 &vs_func_name, C Str8 &ps_func_name)
 {
    Shader &shader=shaders.New();
    shader.model=model;
    shader.name =name;
-   shader.sub[VS].func_name=vs;
-   shader.sub[PS].func_name=ps;
+   shader.sub[ST_VS].func_name=vs_func_name;
+   shader.sub[ST_PS].func_name=ps_func_name;
    return shader;
 }
 ShaderCompiler::Source::~Source()
@@ -433,16 +439,16 @@ void ShaderCompiler::SubShader::compile()
    Char8 target[6+1];
    switch(type)
    {
-      case VS: target[0]='v'; break;
-      case HS: target[0]='h'; break;
-      case DS: target[0]='d'; break;
-      case PS: target[0]='p'; break;
+      case ST_VS: target[0]='v'; break;
+      case ST_HS: target[0]='h'; break;
+      case ST_DS: target[0]='d'; break;
+      case ST_PS: target[0]='p'; break;
    }
    target[1]='s';
    target[2]='_';
    target[4]='_';
    target[6]='\0';
-   SHADER_MODEL model=shader->model; if(type==HS || type==DS)MAX(model, SM_5); // HS DS are supported only in SM5+
+   SHADER_MODEL model=shader->model; if(type==ST_HS || type==ST_DS)MAX(model, SM_5); // HS DS are supported only in SM5+
 #if NEW_COMPILER
    MAX(model, SM_6);
 #endif
@@ -477,8 +483,8 @@ void ShaderCompiler::SubShader::compile()
    arguments.add(L"-HV");
    arguments.add(L"2016");
    if(compiler->api!=API_DX)arguments.add(L"-spirv");
-   //if(Flags1 & D3DCOMPILE_IEEE_STRICTNESS) arguments.add(L"/Gis");
-   //if(Flags1 & D3DCOMPILE_RESOURCES_MAY_ALIAS) arguments.add(L"/res_may_alias");
+   //if(Flags1 & D3DCOMPILE_IEEE_STRICTNESS    )arguments.add(L"/Gis");
+   //if(Flags1 & D3DCOMPILE_RESOURCES_MAY_ALIAS)arguments.add(L"/res_may_alias");
 
    Bool ok=false;
    IDxcBlob *buffer=null; IDxcBlobEncoding *error_blob=null;
@@ -559,7 +565,7 @@ void ShaderCompiler::SubShader::compile()
                      {
                         case D3D_SIT_TEXTURE:
                         {
-                           if(!InRange(desc.BindPoint, MAX_TEXTURES)){error.line()+=S+"Texture index: "+desc.BindPoint+", is too big"; goto error;}
+                           if(!InRange(desc.BindPoint, MAX_SHADER_IMAGES)){error.line()+=S+"Image index: "+desc.BindPoint+", is too big"; goto error;}
                            Image &image=images[images_elms++]; image.name=desc.Name; image.bind_slot=desc.BindPoint;
                         }break;
 
@@ -594,14 +600,7 @@ void ShaderCompiler::SubShader::compile()
                                //if( SIZE(Vec4)         +var_desc.StartOffset>buffer.size )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer."); some functions assume that '_gpu_data_size' is at least as big as 'Vec4' to set values without checking for size, !! this is not needed and shouldn't be called because in DX10+ Shader Params are stored in Shader Buffers, and 'ShaderBuffer' already allocates padding for Vec4
 
                                  if(HasData(var_desc.DefaultValue, var_desc.Size)) // if parameter has any data
-                                 {
-                                 #if 1 // store in parameter
                                     param.data.setNum(param.gpu_data_size).copyFrom((Byte*)var_desc.DefaultValue);
-                                 #else // store in buffer
-                                    buffer.data.setNumZero(buffer.size); // allocate entire buffer
-                                    CopyFast(buffer.data.data()+var_desc.StartOffset, var_desc.DefaultValue, param.gpu_data_size); // copy param data to buffer data
-                                 #endif
-                                 }
                            
                                //type->Release(); this doesn't have 'Release'
                                //var ->Release(); this doesn't have 'Release'
@@ -614,6 +613,10 @@ void ShaderCompiler::SubShader::compile()
                   }
                   if(!shader->dummy)
                   {
+                     // sort by bind members, to increase chance of generating the same bind map for multiple shaders
+                     buffers.sort(CompareBind);
+                      images.sort(CompareBind);
+
                       inputs.setNum(desc. InputParameters); FREPA( inputs){D3D12_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetInputParameterDesc (i, &desc)))Exit("'GetInputParameterDesc' failed" );  inputs[i]=desc;}
                      outputs.setNum(desc.OutputParameters); FREPA(outputs){D3D12_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetOutputParameterDesc(i, &desc)))Exit("'GetOutputParameterDesc' failed"); outputs[i]=desc;}
             
@@ -640,11 +643,6 @@ void ShaderCompiler::SubShader::compile()
 
                   result=GOOD;
                   // !! do not make any changes here after setting 'result' because other threads may access this data !!
-
-                  // verify that stages have matching output->input
-                  for(Int i=type;         --i>=0      ; ){C SubShader &prev=shader->sub[i]; if(prev.is()){if(prev.result==GOOD && !Match(prev, T, error))goto error; break;}} // can check only if other shader also completed successfully, stop on first valid sub shader
-                  for(Int i=type; InRange(++i, ST_NUM); ){C SubShader &next=shader->sub[i]; if(next.is()){if(next.result==GOOD && !Match(T, next, error))goto error; break;}} // can check only if other shader also completed successfully, stop on first valid sub shader
-
                   goto ok;
                }
             error:
@@ -680,7 +678,7 @@ void ShaderCompiler::SubShader::compile()
                {
                   case D3D_SIT_TEXTURE:
                   {
-                     if(!InRange(desc.BindPoint, MAX_TEXTURES)){error.line()+=S+"Texture index: "+desc.BindPoint+", is too big"; goto error;}
+                     if(!InRange(desc.BindPoint, MAX_SHADER_IMAGES)){error.line()+=S+"Image index: "+desc.BindPoint+", is too big"; goto error;}
                      Image &image=images[images_elms++]; image.name=desc.Name; image.bind_slot=desc.BindPoint;
                   }break;
 
@@ -715,14 +713,7 @@ void ShaderCompiler::SubShader::compile()
                          //if( SIZE(Vec4)         +var_desc.StartOffset>buffer.size )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer."); some functions assume that '_gpu_data_size' is at least as big as 'Vec4' to set values without checking for size, !! this is not needed and shouldn't be called because in DX10+ Shader Params are stored in Shader Buffers, and 'ShaderBuffer' already allocates padding for Vec4
 
                            if(HasData(var_desc.DefaultValue, var_desc.Size)) // if parameter has any data
-                           {
-                           #if 1 // store in parameter
                               param.data.setNum(param.gpu_data_size).copyFrom((Byte*)var_desc.DefaultValue);
-                           #else // store in buffer
-                              buffer.data.setNumZero(buffer.size); // allocate entire buffer
-                              CopyFast(buffer.data.data()+var_desc.StartOffset, var_desc.DefaultValue, param.gpu_data_size); // copy param data to buffer data
-                           #endif
-                           }
                            
                          //type->Release(); this doesn't have 'Release'
                          //var ->Release(); this doesn't have 'Release'
@@ -735,6 +726,10 @@ void ShaderCompiler::SubShader::compile()
             }
             if(!shader->dummy)
             {
+               // sort by bind members, to increase chance of generating the same bind map for multiple shaders
+               buffers.sort(CompareBind);
+                images.sort(CompareBind);
+
                 inputs.setNum(desc. InputParameters); FREPA( inputs){D3D11_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetInputParameterDesc (i, &desc)))Exit("'GetInputParameterDesc' failed" );  inputs[i]=desc;}
                outputs.setNum(desc.OutputParameters); FREPA(outputs){D3D11_SIGNATURE_PARAMETER_DESC desc; if(!OK(reflection->GetOutputParameterDesc(i, &desc)))Exit("'GetOutputParameterDesc' failed"); outputs[i]=desc;}
             
@@ -760,11 +755,6 @@ void ShaderCompiler::SubShader::compile()
 
             result=GOOD;
             // !! do not make any changes here after setting 'result' because other threads may access this data !!
-
-            // verify that stages have matching output->input
-            for(Int i=type;         --i>=0      ; ){C SubShader &prev=shader->sub[i]; if(prev.is()){if(prev.result==GOOD && !Match(prev, T, error))goto error; break;}} // can check only if other shader also completed successfully, stop on first valid sub shader
-            for(Int i=type; InRange(++i, ST_NUM); ){C SubShader &next=shader->sub[i]; if(next.is()){if(next.result==GOOD && !Match(T, next, error))goto error; break;}} // can check only if other shader also completed successfully, stop on first valid sub shader
-
             goto ok;
          }
       error:
@@ -778,6 +768,12 @@ void ShaderCompiler::SubShader::compile()
 #else
    result=FAIL;
 #endif
+   if(result==GOOD)
+   {
+      // verify that stages have matching output->input
+      for(Int i=type;         --i>=0      ; ){C SubShader &prev=shader->sub[i]; if(prev.is()){if(prev.result==GOOD && !Match(prev, T, error))result=FAIL; break;}} // can check only if other shader also completed successfully, stop on first valid sub shader
+      for(Int i=type; InRange(++i, ST_NUM); ){C SubShader &next=shader->sub[i]; if(next.is()){if(next.result==GOOD && !Match(T, next, error))result=FAIL; break;}} // can check only if other shader also completed successfully, stop on first valid sub shader
+   }
    if(result!=GOOD)Exit(S+"Compiling \""+shader->name+"\" in \""+source->file_name+"\" failed:\n"+error);
 }
 /******************************************************************************/
@@ -825,51 +821,40 @@ Bool ShaderCompiler::Param::save(File &f)C
    }
    return f.ok();
 }
-Bool ShaderCompiler::Shader::save(File &f, C Map<Str8, Buffer*> &buffers, C Memc<Str8> &images)C
+Bool ShaderCompiler::Shader::save(File &f, C ShaderCompiler &compiler)C
 {
    // name
-   f.putStr(name).putMulti(sub[VS].shader_data_index, sub[HS].shader_data_index, sub[DS].shader_data_index, sub[PS].shader_data_index);
-
-   if(source->compiler->api!=API_GL)
+   f.putStr(name);
+   FREPA(sub)
    {
-      // images
-      FREPA(sub)
-      {
-       C SubShader &sub=T.sub[i];
-         f.cmpUIntV(sub.images.elms());
-         FREPA(sub.images)
-         {
-          C Image &image=sub.images[i];
-            Int src_index; if(!images.binarySearch(image.name, src_index, CompareCS))Exit("Image not found in Shader" );
-            f<<ConstantIndex(image.bind_slot, src_index);
-         }
-      }
+    C SubShader &sub=T.sub[i];
+      f.putMulti(sub.shader_data_index, AsUShort(sub.buffer_bind_index), AsUShort(sub.image_bind_index));
+   }
 
-      // buffers
-      MemtN<UShort, 256> all;
+   if(compiler.api!=API_GL)
+   {
+      MemtN<UShort, 256> all_buffers;
       FREPA(sub)
       {
-       C SubShader &sub=T.sub[i];
-         MemtN<ConstantIndex, 256> save;
-         FREPA(sub.buffers)
+       C SubShader &sub=T.sub[i]; FREPA(sub.buffers)
          {
           C Buffer &buffer=sub.buffers[i];
-            Int src_index=buffers.findValidIndex(buffer.name); if(src_index<0)Exit("Buffer not found in Shader");
-            if(!buffer.bind_explicit) // here we have to save only buffers that don't have a constant bind point index
-               save.New().set(buffer.bind_slot, src_index); // save to which index this buffer should be bound for this shader, and index of buffer in 'file_buffers' array
-            all.binaryInclude(AsUShort(src_index));
+            Int src_index=compiler.buffers.findValidIndex(buffer.name); if(src_index<0)Exit("Buffer not found in Shader");
+            all_buffers.binaryInclude(AsUShort(src_index));
          }
-         save.saveRaw(f);
       }
-      all.saveRaw(f);
+      all_buffers.saveRaw(f);
    }
 
    return f.ok();
 }
 /******************************************************************************/
 static void Compile(ShaderCompiler::SubShader &shader, Ptr user, Int thread_index) {shader.compile();}
-static Bool Create (ShaderCompiler::Buffer* &data, C Str8 &key, Ptr user) {data=null; return true;}
+static Bool Create (ShaderCompiler::Buffer* &buffer, C Str8 &name, Ptr user) {buffer=null; return true;}
 static Int  Compare(ShaderCompiler::Shader*C &a, ShaderCompiler::Shader*C &b) {return CompareCS(a->name, b->name);}
+   
+ShaderCompiler::ShaderCompiler() : buffers(CompareCS, Create) {}
+
 /*struct Refl : HLSLccReflection
 {
     // Called on errors or diagnostic messages
@@ -900,10 +885,10 @@ struct ConvertContext
    GlExtensions ext;
 #endif
 #if DEBUG
-   Memc<                ShaderData> (&shader_datas)[ShaderCompiler::ST_NUM];
-   Mems<ShaderCompiler::Shader   *>  &shaders;
+   Memc<                ShaderData> (&shader_datas)[ST_NUM];
+   Mems<ShaderCompiler::Shader*   >  &shaders;
 
-   ShaderCompiler::Shader& shader(C ShaderData &shader_data)C
+   ShaderCompiler::Shader& shader(C ShaderData &shader_data)C // get first 'Shader' using 'shader_data'
    {
       FREPAD(type, shader_datas)
       {
@@ -923,7 +908,7 @@ struct ConvertContext
 
    ConvertContext(ShaderCompiler &compiler
    #if DEBUG
-    , Memc<                ShaderData> (&shader_datas)[ShaderCompiler::ST_NUM]
+    , Memc<                ShaderData> (&shader_datas)[ST_NUM]
     , Mems<ShaderCompiler::Shader*   >  &shaders
    #endif
    ) : compiler(compiler)
@@ -965,14 +950,13 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
 
    spvc_resources resources=null; spvc_compiler_create_shader_resources(spirv_compiler, &resources);
 // FIXME
-   /*LogN("Buffers:");
    const spvc_reflected_resource *list=null; size_t count; spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count);
    for(size_t i=0; i<count; i++)
    {
          LogN(S+"ID:"+list[i].id+" base_type_id:"+list[i].base_type_id+", type_id:"+list[i].type_id+", name:"+list[i].name);
          //LogN("  Set: %u, Binding: %u\n", spvc_compiler_get_decoration(spirv_compiler, list[i].id, SpvDecorationDescriptorSet),
          //                                   spvc_compiler_get_decoration(spirv_compiler, list[i].id, SpvDecorationBinding));
-   }*/
+   }
 
    // FIXME
    /*ShaderResources res = compiler->get_shader_resources();
@@ -1059,6 +1043,60 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    f.del(); cmp.pos(0); shader_data.setNum(cmp.size()).loadRawData(cmp);
 #endif
 }
+// FIXME store buffers+images in one map?
+struct BindMap : Mems<ShaderCompiler::Bind>
+{
+   void operator=(C Mems<ShaderCompiler::Image > & images) {setNum( images.elms()); FREPAO(T)= images[i];}
+ //void operator=(C Mems<ShaderCompiler::Buffer> &buffers) {setNum(buffers.elms()); FREPAO(T)=buffers[i];}
+   void operator=(C Mems<ShaderCompiler::Buffer> &buffers) // !! we shouldn't store buffers with explicit bind slots, because they're always bound at their creation, this will avoid overhead when drawing shaders !!
+   {
+                Int elms=0; FREPA(buffers)elms+=!buffers[i].bind_explicit; // skip explicit
+      setNum(elms); elms=0; FREPA(buffers)   if(!buffers[i].bind_explicit)T[elms++]=buffers[i];
+   }
+
+   Bool operator==(C Mems<ShaderCompiler::Image > & images)C {if(elms()!= images.elms())return false; REPA(T)if(T[i]!= images[i])return false; return true;}
+ //Bool operator==(C Mems<ShaderCompiler::Buffer> &buffers)C {if(elms()!=buffers.elms())return false; REPA(T)if(T[i]!=buffers[i])return false; return true;}
+   Bool operator==(C Mems<ShaderCompiler::Buffer> &buffers)C // !! we shouldn't store buffers with explicit bind slots, because they're always bound at their creation, this will avoid overhead when drawing shaders !!
+   {
+      Int elms=0;
+      FREPA(buffers)
+      {
+       C ShaderCompiler::Buffer &buffer=buffers[i]; if(!buffer.bind_explicit) // skip explicit
+         {
+            if(!InRange(elms, T) || T[elms]!=buffer)return false; elms++;
+         }
+      }
+      return elms==T.elms();
+   }
+
+   // BUFFERS
+   Bool save       (File &f, C ShaderCompiler &compiler)C {return saveBuffers(f, compiler);}
+   Bool saveBuffers(File &f, C ShaderCompiler &compiler)C
+   {
+      MemtN<ConstantIndex, 256> save;
+      FREPA(T)
+      {
+       C ShaderCompiler::Bind &bind=T[i];
+         Int src_index=compiler.buffers.findValidIndex(bind.name); if(src_index<0)Exit("Buffer not found in Shader");
+         save.New().set(bind.bind_slot, src_index); // save to which index this buffer should be bound for this shader, and index of buffer in 'file_buffers' array
+      }
+      return save.saveRaw(f);
+   }
+
+   // IMAGES
+   Bool save      (File &f, C ShaderCompiler &compiler, C ShaderCompiler &)C {return saveImages(f, compiler);}
+   Bool saveImages(File &f, C ShaderCompiler &compiler)C
+   {
+      f.cmpUIntV(elms());
+      FREPA(T)
+      {
+       C ShaderCompiler::Bind &bind=T[i];
+         Int src_index; if(!compiler.images.binarySearch(bind.name, src_index, CompareCS))Exit("Image not found in Shader");
+         f<<ConstantIndex(bind.bind_slot, src_index);
+      }
+      return f.ok();
+   }
+};
 Bool ShaderCompiler::compileTry(Threads &threads)
 {
    Int shaders_num=0;
@@ -1085,10 +1123,9 @@ Bool ShaderCompiler::compileTry(Threads &threads)
       }
    }
    threads.wait1();
-   Map<Str8, Buffer*> buffers(CompareCS, Create);
-   Memc<Str8>         images;
-   Memc<ShaderData>   shader_datas[ST_NUM];
-   Mems<Shader*>      shaders(shaders_num); shaders_num=0;
+   Memc<BindMap   > buffer_maps, image_maps;
+   Memc<ShaderData> shader_datas[ST_NUM];
+   Mems<Shader*>    shaders(shaders_num); shaders_num=0;
    FREPA(sources)
    {
       Source &source=sources[i]; FREPA(source.shaders)
@@ -1104,13 +1141,27 @@ Bool ShaderCompiler::compileTry(Threads &threads)
             }
             FREPA(sub.images)images.binaryInclude(sub.images[i].name, CompareCS);
 
-            sub.shader_data_index=-1; if(sub.shader_data.elms())
+            if(!shader.dummy)
             {
-               Memc<ShaderData> &sds=shader_datas[i];
-               FREPA(sds){ShaderData &sd=sds[i]; if(sd.elms()==sub.shader_data.elms() && EqualMem(sd.data(), sub.shader_data.data(), sd.elms())){sub.shader_data_index=i; goto have;}} // find same
-               sub.shader_data_index=sds.elms(); Swap(sds.New(), sub.shader_data); // add new, just swap
-            have:
-               sub.shader_data.del(); // no longer needed
+               // buffer map
+               FREPA(buffer_maps)if(buffer_maps[i]==sub.buffers){sub.buffer_bind_index=i; goto got_buffer;} // find same
+               sub.buffer_bind_index=buffer_maps.elms(); buffer_maps.add(sub.buffers);
+            got_buffer:
+            
+               // image map
+               FREPA(image_maps)if(image_maps[i]==sub.images){sub.image_bind_index=i; goto got_image;} // find same
+               sub.image_bind_index=image_maps.elms(); image_maps.add(sub.images);
+            got_image:
+
+               // shader data
+               if(sub.shader_data.elms())
+               {
+                  Memc<ShaderData> &sds=shader_datas[i];
+                  FREPA(sds)if(sds[i]==sub.shader_data){sub.shader_data_index=i; goto got_shader_data;} // find same
+                  sub.shader_data_index=sds.elms(); Swap(sds.New(), sub.shader_data); // add new, just swap
+               got_shader_data:
+                  sub.shader_data.del(); // no longer needed
+               }
             }
          }
          if(!shader.dummy)shaders[shaders_num++]=&shader;
@@ -1154,6 +1205,13 @@ Bool ShaderCompiler::compileTry(Threads &threads)
       // images
       f.cmpUIntV(images.elms()); FREPA(images)f.putStr(images[i]);
 
+      // buffer image map
+      if(api!=API_GL)
+      {
+         if(!buffer_maps.save(f, T   ))goto error;
+         if(! image_maps.save(f, T, T))goto error; // use T,T to call secondary 'save' method for images
+      }
+
       // shader data
       FREPA(shader_datas)
       {
@@ -1164,7 +1222,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
       f.cmpUIntV(shaders.elms()); FREPA(shaders)
       {
        C Shader &shader=*shaders[i];
-         if(!shader.save(f, buffers, images))goto error;
+         if(!shader.save(f, T))goto error;
       }
 
       if(f.flushOK())return true;
@@ -1196,7 +1254,7 @@ static C Str8& Name(ShaderBuffer &buffer                                 ) {retu
 #endif
 
 #if DEBUG
-static void Test(Shader11::Buffer &b)
+static void Test(BufferLink &b)
 {
    switch(b.index)
    {
@@ -1211,34 +1269,23 @@ static void Test(Shader11::Buffer &b)
 }
 #endif
 
-Bool Shader11::load(File &f, C MemtN<ShaderBuffer*, 256> &file_buffers, C MemtN<ShaderImage*, 256> &images)
+Bool BufferImageLinks::load(File &f, C MemtN<ShaderBuffer*, 256> &file_buffers, C MemtN<ShaderImage*, 256> &file_images)
 {
-   // name
+   buffers.setNum(f.decUIntV()); FREPA(buffers){BufferLink &b=buffers[i]; ConstantIndex ci; f>>ci; b.index=ci.bind_index; if(!InRange(b.index, MAX_SHADER_BUFFERS))Exit(S+"Buffer index: "+b.index+", is too big"); b.buffer=Get(ci.src_index, file_buffers); if(DEBUG)Test(b);}
+    images.setNum(f.decUIntV()); FREPA( images){ ImageLink &t= images[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_SHADER_IMAGES ))Exit(S+"Image index: " +t.index+", is too big"); t.image =Get(ci.src_index,  file_images);}
+   return f.ok();
+}
+Bool ShaderVS11::load(File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images) {return super::load(f) && super::load(f, buffers, images);}
+Bool ShaderHS11::load(File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images) {return super::load(f) && super::load(f, buffers, images);}
+Bool ShaderDS11::load(File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images) {return super::load(f) && super::load(f, buffers, images);}
+Bool ShaderPS11::load(File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images) {return super::load(f) && super::load(f, buffers, images);}
+
+Bool Shader11::load(File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images)
+{
    f.getStr(name).getMulti(vs_index, hs_index, ds_index, ps_index);
-
-   // textures
-   vs_textures.setNum(f.decUIntV()); FREPA(vs_textures){Texture &t=vs_textures[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_TEXTURES))Exit(S+"Texture index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);}
-   hs_textures.setNum(f.decUIntV()); FREPA(hs_textures){Texture &t=hs_textures[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_TEXTURES))Exit(S+"Texture index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);}
-   ds_textures.setNum(f.decUIntV()); FREPA(ds_textures){Texture &t=ds_textures[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_TEXTURES))Exit(S+"Texture index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);}
-   ps_textures.setNum(f.decUIntV()); FREPA(ps_textures){Texture &t=ps_textures[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_TEXTURES))Exit(S+"Texture index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);}
-
-   // buffers
-   vs_buffers.setNum(f.decUIntV()); FREPA(vs_buffers){Buffer &b=vs_buffers[i]; ConstantIndex ci; f>>ci; b.index=ci.bind_index; if(!InRange(b.index, MAX_SHADER_BUFFERS))Exit(S+"Buffer index: "+b.index+", is too big"); b.buffer=Get(ci.src_index, file_buffers);}
-   hs_buffers.setNum(f.decUIntV()); FREPA(hs_buffers){Buffer &b=hs_buffers[i]; ConstantIndex ci; f>>ci; b.index=ci.bind_index; if(!InRange(b.index, MAX_SHADER_BUFFERS))Exit(S+"Buffer index: "+b.index+", is too big"); b.buffer=Get(ci.src_index, file_buffers);}
-   ds_buffers.setNum(f.decUIntV()); FREPA(ds_buffers){Buffer &b=ds_buffers[i]; ConstantIndex ci; f>>ci; b.index=ci.bind_index; if(!InRange(b.index, MAX_SHADER_BUFFERS))Exit(S+"Buffer index: "+b.index+", is too big"); b.buffer=Get(ci.src_index, file_buffers);}
-   ps_buffers.setNum(f.decUIntV()); FREPA(ps_buffers){Buffer &b=ps_buffers[i]; ConstantIndex ci; f>>ci; b.index=ci.bind_index; if(!InRange(b.index, MAX_SHADER_BUFFERS))Exit(S+"Buffer index: "+b.index+", is too big"); b.buffer=Get(ci.src_index, file_buffers);}
-      buffers.setNum(f.decUIntV()); FREPA(   buffers)              buffers[i]=Get(f.getUShort(), file_buffers);
-
-#if DEBUG && 1
-   //#pragma message("!! Warning: Use this only for debugging !!")
-   REPA(vs_buffers)Test(vs_buffers[i]);
-   REPA(hs_buffers)Test(hs_buffers[i]);
-   REPA(ds_buffers)Test(ds_buffers[i]);
-   REPA(ps_buffers)Test(ps_buffers[i]);
-#endif
-
+   all_buffers.setNum(f.decUIntV()); FREPAO(all_buffers)=Get(f.getUShort(), buffers);
    if(f.ok())return true;
-   /*del();*/ return false;
+  /*del();*/ return false;
 }
 /******************************************************************************/
 #if GL
@@ -1261,10 +1308,10 @@ Bool ShaderGL::load(File &f, C MemtN<ShaderBuffer*, 256> &file_buffers, C MemtN<
    /*FIXME don't save these
    FIXME save only 'buffers'
    // textures
-   vs_textures.setNum(f.decUIntV()); FREPA(vs_textures){Texture &t=vs_textures[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_TEXTURES))Exit(S+"Texture index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);}
-   hs_textures.setNum(f.decUIntV()); FREPA(hs_textures){Texture &t=hs_textures[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_TEXTURES))Exit(S+"Texture index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);}
-   ds_textures.setNum(f.decUIntV()); FREPA(ds_textures){Texture &t=ds_textures[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_TEXTURES))Exit(S+"Texture index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);}
-   ps_textures.setNum(f.decUIntV()); FREPA(ps_textures){Texture &t=ps_textures[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_TEXTURES))Exit(S+"Texture index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);}
+   vs_textures.setNum(f.decUIntV()); FREPA(vs_textures){Texture &t=vs_textures[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_SHADER_IMAGES))Exit(S+"Image index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);}
+   hs_textures.setNum(f.decUIntV()); FREPA(hs_textures){Texture &t=hs_textures[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_SHADER_IMAGES))Exit(S+"Image index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);}
+   ds_textures.setNum(f.decUIntV()); FREPA(ds_textures){Texture &t=ds_textures[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_SHADER_IMAGES))Exit(S+"Image index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);}
+   ps_textures.setNum(f.decUIntV()); FREPA(ps_textures){Texture &t=ps_textures[i]; ConstantIndex ci; f>>ci; t.index=ci.bind_index; if(!InRange(t.index, MAX_SHADER_IMAGES))Exit(S+"Image index: "+t.index+", is too big"); t.image=Get(ci.src_index, images);}
 
    // buffers
    vs_buffers.setNum(f.decUIntV()); FREPA(vs_buffers){Buffer &b=vs_buffers[i]; ConstantIndex ci; f>>ci; b.index=ci.bind_index; if(!InRange(b.index, MAX_SHADER_BUFFERS))Exit(S+"Buffer index: "+b.index+", is too big"); b.buffer=Get(ci.src_index, file_buffers);}
@@ -1357,10 +1404,10 @@ Bool ShaderFile::load(C Str &name)
          FREPA(images){f.getStr(temp_str); images[i]=ShaderImages(temp_str);}
 
          // shaders
-         if(_vs     .load(f))
-         if(_hs     .load(f))
-         if(_ds     .load(f))
-         if(_ps     .load(f))
+         if(_vs     .load(f, buffers, images))
+         if(_hs     .load(f, buffers, images))
+         if(_ds     .load(f, buffers, images))
+         if(_ps     .load(f, buffers, images))
          if(_shaders.load(f, buffers, images))
             if(f.ok())return true;
       }break;
@@ -1420,6 +1467,7 @@ Bool ShaderFile::load(C Str &name)
 // FIXME remove: ThirdPartyLibs\D3DX11
 // FIXME remove codes below
 /******************************************************************************/
+#if 0
 #if WINDOWS
 }
 #define THIS void
@@ -1819,7 +1867,7 @@ static Bool ShaderCompile11(C Str &src, C Str &dest, C MemPtr<ShaderMacro> &macr
                   switch(desc.Type)
                   {
                      case D3D_SIT_CBUFFER: if(!InRange(desc.BindPoint, MAX_SHADER_BUFFERS))Exit(S+"Constant Buffer index: "+desc.BindPoint+", is too big");  buffers.New().set(desc.BindPoint, *ShaderBuffers(Str8Temp(desc.Name))); break;
-                     case D3D_SIT_TEXTURE: if(!InRange(desc.BindPoint, MAX_TEXTURES      ))Exit(S+"Texture index: "        +desc.BindPoint+", is too big"); textures.New().set(desc.BindPoint, *ShaderImages (Str8Temp(desc.Name))); break;
+                     case D3D_SIT_TEXTURE: if(!InRange(desc.BindPoint, MAX_SHADER_IMAGES ))Exit(S+"Image index: "          +desc.BindPoint+", is too big"); textures.New().set(desc.BindPoint, *ShaderImages (Str8Temp(desc.Name))); break;
                   }
                }
 
@@ -2688,5 +2736,6 @@ void ShaderCompile(C Str &src, C Str &dest, API api, SHADER_MODEL model, C MemPt
 Bool ShaderCompileTry(C Str &src, C Str &dest, API api, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, Str *messages) {return ShaderCompileTry(src, dest, api, model, macros, null, messages);}
 void ShaderCompile   (C Str &src, C Str &dest, API api, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros               ) {       ShaderCompile   (src, dest, api, model, macros, null          );}
 /******************************************************************************/
+#endif
 }
 /******************************************************************************/

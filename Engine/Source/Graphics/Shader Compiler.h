@@ -9,15 +9,6 @@ enum API : Byte // !! These enums are saved !!
 };
 struct ShaderCompiler
 {
-   enum SHADER_TYPE : Byte
-   {
-      VS,
-      HS,
-      DS,
-      PS,
-      ST_NUM,
-   };
-
    struct Param
    {
       Str8 name;
@@ -34,24 +25,27 @@ struct ShaderCompiler
       void addTranslation(ID3D12ShaderReflectionType *type, C D3D12_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, SByte &was_min16); // 'was_min16'=if last inserted parameter was of min16 type (-1=no last parameter)
    #endif
    };
-   struct Buffer
-   {
-      Str8 name;
-      Int  size, bind_slot;
-      Bool bind_explicit;
-    //Mems<Byte>  data;
-      Mems<Param> params;
-
-      Int  explicitBindSlot()C {return bind_explicit ? bind_slot : -1;}
-      Bool operator==(C Buffer &b)C;
-      Bool operator!=(C Buffer &b)C {return !(T==b);}
-   };
-   struct Image
+   struct Bind
    {
       Str8 name;
       Int  bind_slot;
-   };
 
+      Bool operator==(C Bind &b)C {return bind_slot==b.bind_slot && Equal(name, b.name, true);}
+      Bool operator!=(C Bind &b)C {return !(T==b);}
+   };
+   struct Buffer : Bind
+   {
+      Int         size;
+      Bool        bind_explicit;
+      Mems<Param> params;
+
+      Int  explicitBindSlot()C {return bind_explicit ? bind_slot : -1;}
+      Bool operator==(C Buffer &b)C; // this checks 'bind_slot' only for 'bind_explicit'
+      Bool operator!=(C Buffer &b)C {return !(T==b);}
+   };
+   struct Image : Bind
+   {
+   };
    struct IO
    {
       Str8 name;
@@ -61,7 +55,7 @@ struct ShaderCompiler
       void operator=(C D3D11_SIGNATURE_PARAMETER_DESC &desc) {name=desc.SemanticName; index=desc.SemanticIndex; reg=desc.Register;}
       void operator=(C D3D12_SIGNATURE_PARAMETER_DESC &desc) {name=desc.SemanticName; index=desc.SemanticIndex; reg=desc.Register;}
    #endif
-      Bool operator==(C IO &io)C {return name==io.name && index==io.index && reg==io.reg;}
+      Bool operator==(C IO &io)C {return index==io.index && reg==io.reg && Equal(name, io.name, true);}
       Bool operator!=(C IO &io)C {return !(T==io);}
    };
 
@@ -84,7 +78,9 @@ struct ShaderCompiler
       Mems<Image > images;
       Mems<IO    > inputs, outputs;
       ShaderData   shader_data;
-      Int          shader_data_index;
+      Int          shader_data_index=-1, // index of 'ShaderData' in 'ShaderFile'
+                   buffer_bind_index=-1, // index of buffer binds in 'ShaderFile'
+                    image_bind_index=-1; // index of image  binds in 'ShaderFile'
 
       Bool is()C {return func_name.is();}
       void compile();
@@ -115,7 +111,7 @@ struct ShaderCompiler
       Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1,  C Str &n2, C Str &v2,  C Str &n3, C Str &v3) {params.New().set(n0, v0); params.New().set(n1, v1); params.New().set(n2, v2); params.New().set(n3, v3); return T;}
 
       void finalizeName();
-      Bool save(File &f, C Map<Str8, Buffer*> &buffers, C Memc<Str8> &images)C;
+      Bool save(File &f, C ShaderCompiler &compiler)C;
    };
 
    struct Source
@@ -135,10 +131,12 @@ struct ShaderCompiler
       Bool    load();
      ~Source();
    };
-   Str          dest, messages;
-   SHADER_MODEL model;
-   API          api;
-   Memc<Source> sources;
+   Str                 dest, messages;
+   SHADER_MODEL        model;
+   API                 api;
+   Memc<Source>        sources;
+   Map <Str8, Buffer*> buffers;
+   Memc<Str8         > images;
 
    void message(C Str &t) {messages.line()+=t;}
    Bool error  (C Str &t) {message(t); return false;}
@@ -148,5 +146,7 @@ struct ShaderCompiler
 
    Bool compileTry(Threads &threads);
    void compile   (Threads &threads);
+
+   ShaderCompiler();
 };
 /******************************************************************************/

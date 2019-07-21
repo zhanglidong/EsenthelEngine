@@ -194,47 +194,86 @@ struct ShaderData : Mems<Byte>
 #if EE_PRIVATE
    void clean() {super::del();}
 
+   Bool operator==(C ShaderData &sd)C {return elms()==sd.elms() && EqualMem(data(), sd.data(), elms());}
+
    Bool save(File &f)C {return super::saveRaw(f);}
    Bool load(File &f)  {return super::loadRaw(f);}
 #endif
 };
 #if EE_PRIVATE
 /******************************************************************************/
+enum SHADER_TYPE : Byte
+{
+   ST_VS,
+   ST_HS,
+   ST_DS,
+   ST_PS,
+   ST_NUM,
+};
 #if WINDOWS
-struct ShaderVS11 : ShaderData
+struct BufferLink
+{
+   Int           index ;
+   ShaderBuffer *buffer;
+
+   void set(Int index, ShaderBuffer &buffer) {T.index=index; T.buffer=&buffer;}
+};
+struct ImageLink
+{
+   Int          index;
+   ShaderImage *image;
+
+   void set(Int index, ShaderImage &image) {T.index=index; T.image=&image;}
+};
+struct BufferImageLinks
+{
+   Mems<BufferLink> buffers;
+   Mems< ImageLink>  images;
+
+   Bool load(File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images);
+};
+struct ShaderVS11 : ShaderData, BufferImageLinks
 {
    ID3D11VertexShader *vs=null;
 
    ID3D11VertexShader* create();
+   Bool load(File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images);
 
   ~ShaderVS11();
+   ShaderVS11() {}
    NO_COPY_CONSTRUCTOR(ShaderVS11);
 };
-struct ShaderHS11 : ShaderData
+struct ShaderHS11 : ShaderData, BufferImageLinks
 {
    ID3D11HullShader *hs=null;
 
    ID3D11HullShader* create();
+   Bool load(File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images);
 
   ~ShaderHS11();
+   ShaderHS11() {}
    NO_COPY_CONSTRUCTOR(ShaderHS11);
 };
-struct ShaderDS11 : ShaderData
+struct ShaderDS11 : ShaderData, BufferImageLinks
 {
    ID3D11DomainShader *ds=null;
 
    ID3D11DomainShader* create();
+   Bool load(File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images);
 
   ~ShaderDS11();
+   ShaderDS11() {}
    NO_COPY_CONSTRUCTOR(ShaderDS11);
 };
-struct ShaderPS11 : ShaderData
+struct ShaderPS11 : ShaderData, BufferImageLinks
 {
    ID3D11PixelShader *ps=null;
 
    ID3D11PixelShader* create();
+   Bool load(File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images);
 
   ~ShaderPS11();
+   ShaderPS11() {}
    NO_COPY_CONSTRUCTOR(ShaderPS11);
 };
 #endif
@@ -261,32 +300,35 @@ struct ShaderPSGL : ShaderData
 };
 /******************************************************************************/
 #if WINDOWS
+struct BufferLinkPtr
+{
+   BufferLink *data=null;
+   Int         elms=0;
+
+   BufferLink& operator[](Int i) {RANGE_ASSERT(i, elms); return data[i];}
+   void operator=(Mems<BufferLink> &links) {data=links.data(); elms=links.elms();}
+};
+struct ImageLinkPtr
+{
+   ImageLink *data=null;
+   Int        elms=0;
+
+   ImageLink& operator[](Int i) {RANGE_ASSERT(i, elms); return data[i];}
+   void operator=(Mems<ImageLink> &links) {data=links.data(); elms=links.elms();}
+};
+inline Int Elms(C BufferLinkPtr &links) {return links.elms;}
+inline Int Elms(C  ImageLinkPtr &links) {return links.elms;}
 struct Shader11
 {
-   struct Texture
-   {
-      Int          index;
-      ShaderImage *image;
-
-      void set(Int index, ShaderImage &image) {T.index=index; T.image=&image;}
-   };
-   struct Buffer
-   {
-      Int           index ;
-      ShaderBuffer *buffer;
-
-      void set(Int index, ShaderBuffer &buffer) {T.index=index; T.buffer=&buffer;}
-   };
-
    ID3D11VertexShader *vs=null;
    ID3D11HullShader   *hs=null;
    ID3D11DomainShader *ds=null;
    ID3D11PixelShader  *ps=null;
+   Mems<ShaderBuffer*> all_buffers; // shader buffers used by all shader stages (VS HS DS PS) combined into one array
+   BufferLinkPtr           buffers[ST_NUM];
+    ImageLinkPtr            images[ST_NUM];
    Str8                name;
-   Int                 vs_index=-1, hs_index=-1, ds_index=-1, ps_index=-1; // index of shader in 'ShaderFile' containers
-   Mems<Texture      > vs_textures, hs_textures, ds_textures, ps_textures;
-   Mems<      Buffer > vs_buffers , hs_buffers , ds_buffers , ps_buffers ;
-   Mems<ShaderBuffer*>    buffers; // shader buffers used by all shader stages (VS HS DS PS) combined into one array
+   Int                 vs_index=-1, hs_index=-1, ds_index=-1, ps_index=-1; // index of 'ShaderData' in 'ShaderFile' containers
 
    Bool validate (ShaderFile &shader, Str *messages=null);
    void commit   ();
@@ -295,7 +337,7 @@ struct Shader11
    void begin    ();
    Bool load     (File &f, C MemtN<ShaderBuffer*, 256> &buffers, C MemtN<ShaderImage*, 256> &images);
 
-//~Shader11(); no need to release 'vs,hs,ds,ps' shaders since they're just copies from 'Shader*11'
+//~Shader11(); no need to release 'vs,hs,ds,ps' or 'buffers,images' since they're just copies from 'Shader*11'
 };
 #endif
 /******************************************************************************/

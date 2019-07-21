@@ -23,9 +23,9 @@ namespace EE{
 #define BUFFER_DYNAMIC        0 // for ALLOW_PARTIAL_BUFFERS=0, using 1 made no difference in performance, so use 0 to reduce API calls. But for ALLOW_PARTIAL_BUFFERS=1 using 1 was slower
 /******************************************************************************/
 #if DX11
-static ID3D11ShaderResourceView *VSTex[MAX_TEXTURES], *HSTex[MAX_TEXTURES], *DSTex[MAX_TEXTURES], *PSTex[MAX_TEXTURES];
+static ID3D11ShaderResourceView *VSTex[MAX_SHADER_IMAGES], *HSTex[MAX_SHADER_IMAGES], *DSTex[MAX_SHADER_IMAGES], *PSTex[MAX_SHADER_IMAGES];
 #elif GL
-static UInt                      Tex[MAX_TEXTURES];
+static UInt                      Tex[MAX_SHADER_IMAGES];
 #endif
 INLINE void DisplayState::texVS(Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex)
 {
@@ -897,17 +897,17 @@ static INLINE void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY pt) {D3DC->IASe
 
 void Shader11::commit()
 {
-   REPA(buffers){ShaderBuffer &b=*buffers[i]; if(b.changed)b.update();}
+   REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}
 }
 void Shader11::commitTex()
 {
    if(hs)
    {
-      REPA(hs_textures){C Texture &t=hs_textures[i]; D.texHS(t.index, t.image->getSRV());}
-      REPA(ds_textures){C Texture &t=ds_textures[i]; D.texDS(t.index, t.image->getSRV());}
+      REPA(images[ST_HS]){C ImageLink &t=images[ST_HS][i]; D.texHS(t.index, t.image->getSRV());}
+      REPA(images[ST_DS]){C ImageLink &t=images[ST_DS][i]; D.texDS(t.index, t.image->getSRV());}
    }
-   REPA(vs_textures){C Texture &t=vs_textures[i]; D.texVS(t.index, t.image->getSRV());}
-   REPA(ps_textures){C Texture &t=ps_textures[i]; D.texPS(t.index, t.image->getSRV());}
+   REPA(images[ST_VS]){C ImageLink &t=images[ST_VS][i]; D.texVS(t.index, t.image->getSRV());}
+   REPA(images[ST_PS]){C ImageLink &t=images[ST_PS][i]; D.texPS(t.index, t.image->getSRV());}
 }
 void Shader11::start() // same as 'begin' but without committing buffers and textures
 {
@@ -918,16 +918,16 @@ void Shader11::start() // same as 'begin' but without committing buffers and tex
       SetHS(hs);
       SetDS(ds);
       SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-      REPA(hs_buffers){C Buffer &b=hs_buffers[i]; BufHS(b.index, b.buffer->buffer.buffer);}
-      REPA(ds_buffers){C Buffer &b=ds_buffers[i]; BufDS(b.index, b.buffer->buffer.buffer);}
+      REPA(buffers[ST_HS]){C BufferLink &b=buffers[ST_HS][i]; BufHS(b.index, b.buffer->buffer.buffer);}
+      REPA(buffers[ST_DS]){C BufferLink &b=buffers[ST_DS][i]; BufDS(b.index, b.buffer->buffer.buffer);}
    }else
    {
       SetHS(null);
       SetDS(null);
       SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
    }
-   REPA(vs_buffers){C Buffer &b=vs_buffers[i]; BufVS(b.index, b.buffer->buffer.buffer);}
-   REPA(ps_buffers){C Buffer &b=ps_buffers[i]; BufPS(b.index, b.buffer->buffer.buffer);}
+   REPA(buffers[ST_VS]){C BufferLink &b=buffers[ST_VS][i]; BufVS(b.index, b.buffer->buffer.buffer);}
+   REPA(buffers[ST_PS]){C BufferLink &b=buffers[ST_PS][i]; BufPS(b.index, b.buffer->buffer.buffer);}
 }
 void Shader11::begin()
 {
@@ -938,21 +938,21 @@ void Shader11::begin()
       SetHS(hs);
       SetDS(ds);
       SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-      REPA(hs_textures){C Texture &t=hs_textures[i]; D.texHS(t.index, t.image->getSRV());}
-      REPA(ds_textures){C Texture &t=ds_textures[i]; D.texDS(t.index, t.image->getSRV());}
-      REPA(hs_buffers ){C Buffer  &b=hs_buffers [i]; BufHS(b.index, b.buffer->buffer.buffer);}
-      REPA(ds_buffers ){C Buffer  &b=ds_buffers [i]; BufDS(b.index, b.buffer->buffer.buffer);}
+      REPA( images[ST_HS]){C  ImageLink &t= images[ST_HS][i]; D.texHS(t.index, t.image->getSRV());}
+      REPA( images[ST_DS]){C  ImageLink &t= images[ST_DS][i]; D.texDS(t.index, t.image->getSRV());}
+      REPA(buffers[ST_HS]){C BufferLink &b=buffers[ST_HS][i];   BufHS(b.index, b.buffer->buffer.buffer);}
+      REPA(buffers[ST_DS]){C BufferLink &b=buffers[ST_DS][i];   BufDS(b.index, b.buffer->buffer.buffer);}
    }else
    {
       SetHS(null);
       SetDS(null);
       SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
    }
-   REPA(vs_textures){C    Texture &t=vs_textures[i]; D.texVS(t.index, t.image->getSRV());}
-   REPA(ps_textures){C    Texture &t=ps_textures[i]; D.texPS(t.index, t.image->getSRV());}
-   REPA(vs_buffers ){C     Buffer &b=vs_buffers [i]; BufVS(b.index, b.buffer->buffer.buffer);}
-   REPA(ps_buffers ){C     Buffer &b=ps_buffers [i]; BufPS(b.index, b.buffer->buffer.buffer);}
-   REPA(   buffers ){ShaderBuffer &b=  *buffers [i]; if(b.changed)b.update();}
+   REPA(     images[ST_VS]){C      ImageLink &t=      images[ST_VS][i]; D.texVS(t.index, t.image->getSRV());}
+   REPA(     images[ST_PS]){C      ImageLink &t=      images[ST_PS][i]; D.texPS(t.index, t.image->getSRV());}
+   REPA(    buffers[ST_VS]){C     BufferLink &b=     buffers[ST_VS][i];   BufVS(b.index, b.buffer->buffer.buffer);}
+   REPA(    buffers[ST_PS]){C     BufferLink &b=     buffers[ST_PS][i];   BufPS(b.index, b.buffer->buffer.buffer);}
+   REPA(all_buffers       ){ShaderBuffer     &b=*all_buffers       [i]; if(b.changed)b.update();}
 }
 #elif GL
 ShaderGL::~ShaderGL()
