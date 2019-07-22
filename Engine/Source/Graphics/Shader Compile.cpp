@@ -1132,6 +1132,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
       spvc_compiler_set_name(spirv_compiler, res.id, instance_name);
       spvc_compiler_set_name(spirv_compiler, res.base_type_id, (compiler.api==API_GL) ? S8+'_'+buffer.name : buffer.name); // prefix all cbuffers on GL with '_' to avoid buffer/param name conflicts
 
+      //spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationBinding) not needed for GL, because we obtain it in 'ShaderGL.validate'
       buffer.bind_slot    =ExpectedBufferSlot(buffer.name);
       buffer.bind_explicit=(buffer.bind_slot>=0);
       size_t size=0; spvc_compiler_get_declared_struct_size(spirv_compiler, buffer_handle, &size); buffer.size=(Int)size;
