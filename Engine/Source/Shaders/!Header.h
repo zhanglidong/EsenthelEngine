@@ -96,17 +96,12 @@
 // HELPERS
 /******************************************************************************/
 #if !CG
-   #define PIXEL                     Vec4 pixel :SV_Position            // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
-   #define IF_IS_FRONT               Bool front :SV_IsFrontFace ,       // face front side
-   #define IF_IS_CLIP            out Flt  O_clip:SV_ClipDistance,       // clip plane distance
-#if GL // on GL buffer name can't be the same as any of its members, so prepend '_'
-   #define BUFFER(name)          cbuffer _##name {                      // declare a constant buffer
-   #define BUFFER_I(name, index) cbuffer _##name : register(b##index) { // declare a constant buffer with custom buffer index
-#else
-   #define BUFFER(name)          cbuffer name {                         // declare a constant buffer
-   #define BUFFER_I(name, index) cbuffer name : register(b##index) {    // declare a constant buffer with custom buffer index
-#endif
-   #define BUFFER_END            }                                      // end constant buffer declaration
+   #define PIXEL                     Vec4 pixel :SV_Position         // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
+   #define IF_IS_FRONT               Bool front :SV_IsFrontFace ,    // face front side
+   #define IF_IS_CLIP            out Flt  O_clip:SV_ClipDistance,    // clip plane distance
+   #define BUFFER(name)          cbuffer name {                      // declare a constant buffer
+   #define BUFFER_I(name, index) cbuffer name : register(b##index) { // declare a constant buffer with custom buffer index
+   #define BUFFER_END            }                                   // end constant buffer declaration
    #define POSITION              SV_Position
    #define DEPTH                 SV_Depth
    #define TARGET                SV_Target
@@ -115,12 +110,12 @@
    #define TARGET2               SV_Target2
    #define TARGET3               SV_Target3
 #else
-   #define PIXEL                     Vec4 pixel:WPOS                    // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
-   #define IF_IS_FRONT               Bool front:VFACE,                  // face front side
-   #define IF_IS_CLIP            out Flt O_clip:BCOL1,                  // clip plane distance, this will generate "gl_BackSecondaryColor" which is later replaced with "gl_ClipDistance[0]"
-   #define BUFFER(name)                                                 // constant buffers (not available in OpenGL)
-   #define BUFFER_I(name, index)                                        // constant buffers (not available in OpenGL)
-   #define BUFFER_END                                                   // constant buffers (not available in OpenGL)
+   #define PIXEL                     Vec4 pixel:WPOS   // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
+   #define IF_IS_FRONT               Bool front:VFACE, // face front side
+   #define IF_IS_CLIP            out Flt O_clip:BCOL1, // clip plane distance, this will generate "gl_BackSecondaryColor" which is later replaced with "gl_ClipDistance[0]"
+   #define BUFFER(name)                                // constant buffers (not available in OpenGL)
+   #define BUFFER_I(name, index)                       // constant buffers (not available in OpenGL)
+   #define BUFFER_END                                  // constant buffers (not available in OpenGL)
  //#define POSITION              POSITION
  //#define DEPTH                 DEPTH
    #define TARGET                COLOR
@@ -214,7 +209,11 @@
    #define Tex3DLod(  image, uvw   )   image.SampleLevel(SamplerDefault, uvw, 0) // access 3D   texture's 0-th MipMap (LOD level=0)
    #define TexCubeLod(image, uvw   )   image.SampleLevel(SamplerDefault, uvw, 0) // access Cube texture's 0-th MipMap (LOD level=0)
 
+#if !GL
    #define TexPoint(image, uv)   image.SampleLevel(SamplerPoint, uv, 0)
+#else
+   #define TexPoint(image, uv)   image.SampleLevel(SamplerDefault, uv, 0) // use default sampler on GL because it would create a secondary "sampler2D" in GLSL and we would have to set 2 ShaderImage's
+#endif
 
    #define TexSample(image, pixel, i)   image.Load(pixel, i) // access i-th sample of a multi-sampled texture
 

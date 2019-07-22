@@ -1038,6 +1038,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
 
    spvc_resources resources=null; spvc_compiler_create_shader_resources(spirv_compiler, &resources);
    const spvc_reflected_resource *list=null; size_t count=0; spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count);
+   Memc<Str8> buffer_instances;
    Memc<ShaderCompiler::Buffer> buffers; buffers.setNum((Int)count); FREPA(buffers)
    {
    // FIXME
@@ -1055,10 +1056,14 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
 
       ShaderCompiler::Buffer  &buffer=buffers[i];
     C spvc_reflected_resource &res   =list[i]; auto buffer_handle=spvc_compiler_get_type_handle(spirv_compiler, res.type_id);
-    //CChar8 *base_type_name=spvc_compiler_get_name(spirv_compiler, res.base_type_id);
+    //CChar8 *base_type_name=spvc_compiler_get_name(spirv_compiler, res.base_type_id); // "type_##NAME" name prefixed with "type_", "layout(std140) uniform type_Viewport {"
     //CChar8 *     type_name=spvc_compiler_get_name(spirv_compiler, res.type_id);
+                 buffer.name=spvc_compiler_get_name(spirv_compiler, res.id); // actual buffer name as defined in HLSL, "layout(std140) uniform .. {} NAME"
 
-      buffer.name=spvc_compiler_get_name(spirv_compiler, res.id);
+      Str8 &instance_name=buffer_instances.New(); instance_name=S+"_BufferInstance_"+i;
+      spvc_compiler_set_name(spirv_compiler, res.id, instance_name);
+      spvc_compiler_set_name(spirv_compiler, res.base_type_id, (compiler.api==API_GL) ? S8+'_'+buffer.name : buffer.name); // prefix all cbuffers on GL with '_' to avoid buffer/param name conflicts
+
       buffer.bind_slot=0; // FIXME
       buffer.bind_explicit=false; // FIXME
       size_t size=0; spvc_compiler_get_declared_struct_size(spirv_compiler, buffer_handle, &size); buffer.size=(Int)size;
@@ -1220,12 +1225,18 @@ spvc_result spvc_compiler_type_struct_member_matrix_stride(spvc_compiler compile
    code=Replace(code, "#version 330\n", S);
    code=Replace(code, "#version 300 es\n", S);
    code=Replace(code, "in_var_ATTR", "ATTR", true);
+   // FIXME optimize by removing useless spaces
+
+   FREPA(buffer_instances)
+   {
+      Str8 &inst=buffer_instances[i];
+      code=Replace(code, inst+'.', S, true, true);
+      code=Replace(code, inst    , S, true, true);
+   }
 
    //FIXME
    //ClipSet(code);
-   //LogN("/******************************************************************************/");
-   //LogN(S+"Shader:"+cc.shader(shader_data).name);
-   //LogN(code);
+   //LogN(S+"/******************************************************************************/\nShader:"+cc.shaderName(shader_data)+'\n'+code);
 
 #endif
 

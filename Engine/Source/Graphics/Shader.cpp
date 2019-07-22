@@ -1122,7 +1122,8 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
       {
          Char8 name[256]; name[0]='\0'; Int length=0;
          glGetActiveUniformBlockName(prog, i, Elms(name), &length, name);
-         all_buffers[i]=GetShaderBuffer(name);
+         if(name[0]!='_')Exit("Invalid buffer name"); // all GL buffers assume to start with '_' this is adjusted in 'ShaderCompiler'
+         all_buffers[i]=GetShaderBuffer(name+1);
          glUniformBlockBinding(prog, i, all_buffers[i]->bindPoint());
       }
 
