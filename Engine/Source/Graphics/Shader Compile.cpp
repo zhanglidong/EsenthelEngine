@@ -377,8 +377,8 @@ void ShaderCompiler::Param::addTranslation(spvc_compiler compiler, spvc_type par
          #else
             //member_size+=(vec_size-1)*stride     //  all vectors except last
             //            +cols        *SIZE(Flt); // last vector
-            FREPD(y, vec_size)
-            FREPD(x, cols    )translation.New().set(cpu_data_size + base_size*(x+y*cols), offset + base_size*y + x*matrix_stride, base_size);
+            FREPD(y, cols    )
+            FREPD(x, vec_size)translation.New().set(cpu_data_size + base_size*(x+y*vec_size), offset + base_size*y + x*matrix_stride, base_size);
          #endif
          }else // scalar, vector
          {
