@@ -496,19 +496,13 @@ void ShaderParam::set(C Color &color      ) {setChanged(); *(Vec4*)_data=SRGBToD
 void ShaderParam::set(C Vec   *v, Int elms)
 {
    setChanged();
-#if DX11
    Vec4 *gpu=(Vec4*)_data;
    REP(Min(elms, (_gpu_data_size+SIZEU(Flt))/SIZEU(Vec4)))gpu[i].xyz=v[i]; // add SIZE(Flt) because '_gpu_data_size' may be SIZE(Vec) and div by SIZE(Vec4) would return 0 even though one Vec would fit (elements are aligned by 'Vec4' but we're writing only 'Vec')
-#elif GL
-   // FIXME
-   COPY(_data, v, Min(_gpu_data_size, SIZEU(*v)*elms));
-#endif
 }
 void ShaderParam::set(C Vec4 *v, Int elms) {setChanged(); COPY(_data, v, Min(_gpu_data_size, SIZEU(*v)*elms));}
 
 void ShaderParam::set(C Matrix3 &matrix)
 {
-#if DX11
    if(_gpu_data_size>=SIZE(Vec4)+SIZE(Vec4)+SIZE(Vec)) // do not test for 'SIZE(Matrix)' !! because '_gpu_data_size' may be SIZE(Matrix) minus last Flt, because it's not really used (this happens on DX10+)
    {
       setChanged();
@@ -517,17 +511,6 @@ void ShaderParam::set(C Matrix3 &matrix)
       gpu[1].xyz.set(matrix.x.y, matrix.y.y, matrix.z.y); // SIZE(Vec4)
       gpu[2].xyz.set(matrix.x.z, matrix.y.z, matrix.z.z); // SIZE(Vec )
    }
-#elif GL
-   // FIXME
-   if(_gpu_data_size>=SIZE(matrix))
-   {
-      setChanged();
-      Vec *gpu=(Vec*)_data;
-      gpu[0].set(matrix.x.x, matrix.y.x, matrix.z.x);
-      gpu[1].set(matrix.x.y, matrix.y.y, matrix.z.y);
-      gpu[2].set(matrix.x.z, matrix.y.z, matrix.z.z);
-   }
-#endif
 }
 void ShaderParam::set(C Matrix &matrix)
 {
@@ -588,22 +571,12 @@ void ShaderParam::set(CPtr data, Int size) // !! Warning: 'size' is ignored here
 
 void ShaderParam::set(C Vec &v, Int elm)
 {
-#if DX11
    if(_gpu_data_size>=SIZE(Vec4)*elm+SIZE(Vec)) // elements are aligned by 'Vec4' but we're writing only 'Vec'
    {
       setChanged();
       Vec4 *gpu=(Vec4*)_data;
       gpu[elm].xyz=v;
    }
-#elif GL
-   // FIXME
-   if(_gpu_data_size>=SIZE(v)*(elm+1))
-   {
-      setChanged();
-      Vec *gpu=(Vec*)_data;
-      gpu[elm]=v;
-   }
-#endif
 }
 void ShaderParam::set(C Vec4 &v, Int elm)
 {
@@ -731,20 +704,11 @@ void ShaderParam::setConditional(C Rect &r)
 
 void ShaderParam::setConditional(C Vec &v, Int elm)
 {
-#if DX11
    if(_gpu_data_size>=SIZE(Vec4)*elm+SIZE(Vec)) // elements are aligned by 'Vec4' but we're writing only 'Vec'
    {
       Vec &dest=((Vec4*)_data)[elm].xyz;
       if(  dest!=v){setChanged(); dest=v;}
    }
-#elif GL
-   // FIXME
-   if(_gpu_data_size>=SIZE(v)*(elm+1))
-   {
-      Vec &dest=((Vec*)_data)[elm];
-      if(  dest!=v){setChanged(); dest=v;}
-   }
-#endif
 }
 
 void ShaderParam::setSafe(C Vec4 &v) {setChanged(); COPY(_data, &v, Min(_gpu_data_size, SIZEU(v)));}
@@ -1036,12 +1000,7 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
       Int  params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORMS, &params);
       FREP(params)
       {
-         // GLSL name
-         Char8  glsl_name[1024]; glsl_name[0]=0;
-         Int    size=0;
-         GLenum type;
-         glGetActiveUniform(prog, i, Elms(glsl_name), null, &size, &type, glsl_name);
-         Bool   found=false;
+         Char8 glsl_name[1024]; glsl_name[0]=0; Int size=0; GLenum type=0; glGetActiveUniform(prog, i, Elms(glsl_name), null, &size, &type, glsl_name);
          switch(type)
          {
             case GL_SAMPLER_2D:
@@ -1071,48 +1030,8 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
 
                glUseProgram(prog);
                glUniform1i (location, tex_unit); // set 'location' sampler to use 'tex_unit' texture unit
-
-               found=true;
             }break;
-
-      // FIXME
-            /*default:
-            {
-               REPA(glsl_params)
-               {
-                    GLSLParam &gp=glsl_params[i];
-                  ShaderParam &sp=*gp.param;
-                C Str8        &gp_name=ShaderParams.dataInMapToKey(sp);
-                  if(Equal(gp_name     , glsl_name, true)
-                  || Equal(gp.glsl_name, glsl_name, true))
-                  {
-                     if(gp.gpu_offset+SIZE(Flt)>sp._gpu_data_size)Exit(S+"Shader \""+name+"\" refers to Shader Param \""+gp_name+"\" with invalid offset");
-                     Int       l=glGetUniformLocation(prog, glsl_name); if(l<0)Exit(S+"Invalid Uniform Location ("+l+") of GLSL Parameter \""+glsl_name+"\"");
-                     Constant &c=constants.New();
-                     c.set(l, size, sp._data+gp.gpu_offset, sp);
-                     switch(type)
-                     {
-                        case GL_FLOAT     : c.uniform=glUniform1fv; break;
-                        case GL_FLOAT_VEC2: c.uniform=glUniform2fv; break;
-                        case GL_FLOAT_VEC3: c.uniform=glUniform3fv; break;
-                        case GL_FLOAT_VEC4: c.uniform=glUniform4fv; break;
-                        default           : Exit("Unrecognized Shader Parameter OpenGL Uniform Type"); break;
-                     }
-
-                     found=true; break;
-                  }
-               }
-            }break;*/
          }
-         /*if(!found)
-         {
-            // Some OpenGL drivers (ATI or Apple) aren't that good in optimizing shaders, so they can sometimes return variables
-            // which normally because of optimizations should be eliminated, in this case we'll just ignore them.
-         #if DEBUG && !GL_ES
-            Str s=S+"Unrecognized GLSL Parameter \""+glsl_name+"\"";
-            LogN(s); // Exit(s);
-         #endif
-         }*/
       }
       T.images=images;
 

@@ -378,17 +378,8 @@ void ShaderCompiler::Param::addTranslation(spvc_compiler compiler, spvc_type par
          if(cols>1) // matrix
          {
             unsigned matrix_stride=0; spvc_compiler_type_struct_member_matrix_stride(compiler, parent, var_i, &matrix_stride);
-            // FIXME
-         #if 0
-            //member_size+=(cols-1)*stride     //  all vectors except last
-            //            +vec_size*SIZE(Flt); // last vector
-            here
-         #else
-            //member_size+=(vec_size-1)*stride     //  all vectors except last
-            //            +cols        *SIZE(Flt); // last vector
             FREPD(y, cols    )
             FREPD(x, vec_size)translation.New().set(cpu_data_size + base_size*(x+y*vec_size), offset + base_size*y + x*matrix_stride, base_size);
-         #endif
          }else // scalar, vector
          {
             translation.New().set(cpu_data_size, offset, cpu_size);
@@ -1106,19 +1097,6 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    Memc<Str8> buffer_instances;
    Memc<ShaderCompiler::Buffer> buffers; buffers.setNum((Int)count); FREPA(buffers)
    {
-   // FIXME
-   /*ShaderResources res = compiler->get_shader_resources();
-    for (const Resource& ub_res : res.uniform_buffers) {
-        const SPIRType& ub_type = compiler->get_type(ub_res.base_type_id);
-        for (int m_index = 0; m_index < int(ub_type.member_types.size()); m_index++) {
-            const SPIRType& m_type = compiler->get_type(ub_type.member_types[m_index]);
-            if ((m_type.basetype == SPIRType::Float) && (m_type.vecsize > 1) && (m_type.columns > 1)) {
-                compiler->set_member_decoration(ub_res.base_type_id, m_index, DecorationColMajor);
-            }
-        }
-    }
-    or alternative replace "row_major" with "column/col_major" ?*/
-
       ShaderCompiler::Buffer  &buffer=buffers[i];
     C spvc_reflected_resource &res   =list[i]; auto buffer_handle=spvc_compiler_get_type_handle(spirv_compiler, res.type_id);
     //CChar8 *base_type_name=spvc_compiler_get_name(spirv_compiler, res.base_type_id); // "type_##NAME" name prefixed with "type_", "layout(std140) uniform type_Viewport {"
@@ -1132,11 +1110,6 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
       buffer.bind_slot=0; // FIXME
       buffer.bind_explicit=false; // FIXME
       size_t size=0; spvc_compiler_get_declared_struct_size(spirv_compiler, buffer_handle, &size); buffer.size=(Int)size;
-
-      //auto a=spvc_type_get_bit_width(spvc_compiler_get_type_handle(spirv_compiler, res.base_type_id));
-      //auto b=spvc_type_get_bit_width(spvc_compiler_get_type_handle(spirv_compiler, res.     type_id));
-      //size_t c=0; spvc_compiler_get_declared_struct_size(spirv_compiler, buffer_handle, &c);
-      //size_t d=0; spvc_compiler_get_declared_struct_size(spirv_compiler, spvc_compiler_get_type_handle(spirv_compiler, res.base_type_id), &d);
       
       buffer.params.setNum(spvc_type_get_num_member_types(buffer_handle));
       FREPA(buffer.params)
@@ -1148,7 +1121,6 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
          spvc_basetype member_type=spvc_type_get_basetype(member_handle);
          auto array_dimensions=spvc_type_get_num_array_dimensions(member_handle); if(array_dimensions>1)Exit("Multi-dimensional arrays are not supported");
          param.array_elms=(array_dimensions ? spvc_type_get_array_dimension(member_handle, 0) : 0); // use 0 for non-arrays to match DX behavior
-         // FIXME can offset,start be removed and calculated inside 'addTranslation'?
          unsigned offset=0; spvc_compiler_type_struct_member_offset(spirv_compiler, buffer_handle, i, &offset);
 
          param.addTranslation(spirv_compiler, buffer_handle, member_handle, i, offset); param.sortTranslation();
@@ -1170,14 +1142,8 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
             if(cols>1) // matrix
             {
                unsigned stride=0; spvc_compiler_type_struct_member_matrix_stride(spirv_compiler, buffer_handle, i, &stride);
-               // FIXME
-            #if 0
-               member_size+=(cols-1)*stride     //  all vectors except last
-                           +vec_size*SIZE(Flt); // last vector
-            #else
                member_size+=(vec_size-1)*stride     //  all vectors except last
                            +cols        *SIZE(Flt); // last vector
-            #endif
             }else // scalar, vector
             {
                member_size+=vec_size*SIZE(Flt);
@@ -1195,46 +1161,6 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
 
          //FIXME if(HasData(var_desc.DefaultValue, var_desc.Size)) // if parameter has any data
          //   param.data.setNum(param.gpu_data_size).copyFrom((Byte*)var_desc.DefaultValue);
-/*
-unsigned spvc_compiler_get_member_decoration(spvc_compiler compiler, spvc_type_id id, unsigned member_index, SpvDecoration decoration);
-const char *spvc_compiler_get_member_name(spvc_compiler compiler, spvc_type_id id, unsigned member_index);
-
-spvc_basetype spvc_type_get_basetype(spvc_type type);
-unsigned spvc_type_get_bit_width(spvc_type type);
-unsigned spvc_type_get_vector_size(spvc_type type);
-unsigned spvc_type_get_columns(spvc_type type);
-unsigned spvc_type_get_num_array_dimensions(spvc_type type);
-spvc_bool spvc_type_array_dimension_is_literal(spvc_type type, unsigned dimension);
-SpvId spvc_type_get_array_dimension(spvc_type type, unsigned dimension);
-unsigned spvc_type_get_num_member_types(spvc_type type);
-spvc_type_id spvc_type_get_member_type(spvc_type type, unsigned index);
-SpvStorageClass spvc_type_get_storage_class(spvc_type type);
-
-spvc_result spvc_compiler_get_declared_struct_size              (spvc_compiler compiler, spvc_type struct_type, size_t *size);
-spvc_result spvc_compiler_get_declared_struct_size_runtime_array(spvc_compiler compiler, spvc_type struct_type, size_t array_size, size_t *size);
-
-spvc_result spvc_compiler_type_struct_member_offset(spvc_compiler compiler, spvc_type type, unsigned index, unsigned *offset);
-spvc_result spvc_compiler_type_struct_member_array_stride(spvc_compiler compiler, spvc_type type, unsigned index, unsigned *stride);
-spvc_result spvc_compiler_type_struct_member_matrix_stride(spvc_compiler compiler, spvc_type type, unsigned index, unsigned *stride);
-      {
-         Int loc  =spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationLocation);
-         Int comp =spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationComponent);
-         Int index=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationIndex);
-         Int bind =spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationBinding);
-         Int offs =spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationOffset);
-         Int arr_s=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationArrayStride);
-         Int mt_s =spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationMatrixStride);
-         Int uni  =spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationUniform);
-      }
-      {
-         Int loc  =spvc_compiler_get_decoration(spirv_compiler, res.type_id, SpvDecorationLocation);
-         Int comp =spvc_compiler_get_decoration(spirv_compiler, res.type_id, SpvDecorationComponent);
-         Int index=spvc_compiler_get_decoration(spirv_compiler, res.type_id, SpvDecorationIndex);
-         Int bind =spvc_compiler_get_decoration(spirv_compiler, res.type_id, SpvDecorationBinding);
-         Int offs =spvc_compiler_get_decoration(spirv_compiler, res.type_id, SpvDecorationOffset);
-         Int arr_s=spvc_compiler_get_decoration(spirv_compiler, res.type_id, SpvDecorationArrayStride);
-         Int mt_s =spvc_compiler_get_decoration(spirv_compiler, res.type_id, SpvDecorationMatrixStride);
-         Int uni  =spvc_compiler_get_decoration(spirv_compiler, res.type_id, SpvDecorationUniform);*/
       }
    }
 
@@ -1703,54 +1629,6 @@ Bool ShaderFile::load(C Str &name)
          if(_shaders.load(f, T, buffers))
             if(f.ok())return true;
       }break;
-
-      /*CG
-      FIXME
-      case 0:
-      {
-         // params
-         MemtN<ShaderParam*, 256> params; params.setNum(f.decUIntV());
-         ShaderParams.lock();
-         FREPA(params)
-         {
-            f.getStr(temp_str); ShaderParam &sp=*ShaderParams(temp_str); params[i]=&sp;
-            if(!sp.is()) // wasn't yet created
-            {
-               sp._owns_data=true;
-               f.getMulti(sp._cpu_data_size, sp._gpu_data_size, sp._elements); // info
-               LoadTranslation(sp._full_translation, f, sp._elements);         // translation
-               Alloc(sp._data, sp._gpu_data_size);                             // data
-               Alloc(sp._changed                );
-               if(f.getBool())f.get   (sp._data, sp._gpu_data_size);           // load default value
-               else           ZeroFast(sp._data, sp._gpu_data_size);           // zero default value
-               sp.optimize();
-            }else // verify if it's identical to previously created
-            {
-               Int cpu_data_size, gpu_data_size, elements; f.getMulti(cpu_data_size, gpu_data_size, elements);
-               Memt<ShaderParam::Translation> translation;
-               if(sp._cpu_data_size!=cpu_data_size                            // check cpu size
-               || sp._gpu_data_size!=gpu_data_size                            // check gpu size
-               || sp._elements     !=elements     )ExitParam(temp_str, name); // check number of elements
-               LoadTranslation(translation, f, elements);                     // translation
-               if(f.getBool())f.skip(gpu_data_size);                          // ignore default value
-
-               // check translation
-               if(                  translation.elms()!=sp._full_translation.elms()) ExitParam(temp_str, name);else
-               FREPA(translation)if(translation[i]    !=sp._full_translation[i]    ){ExitParam(temp_str, name); break;}
-            }
-         }
-         ShaderParams.unlock();
-
-         // images
-         MemtN<ShaderImage*, 256> images; images.setNum(f.decUIntV());
-         FREPA(images){f.getStr(temp_str); images[i]=ShaderImages(temp_str);}
-
-         // shaders
-         if(_vs     .load(f))
-         if(_ps     .load(f))
-         if(_shaders.load(f, params, images))
-            if(f.ok())return true;
-      }break;*/
    }
 //error:
    del(); return false;

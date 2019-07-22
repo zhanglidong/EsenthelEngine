@@ -57,10 +57,10 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\ThirdPartyLibs\DirectXShaderCompiler\lib\dxcompiler.lib">
-      <Filter>Src</Filter>
+      <Filter>H</Filter>
     </Library>
     <Library Include="..\ThirdPartyLibs\SPIRV-Cross\lib\spirv-cross-c-shared.lib">
-      <Filter>Src</Filter>
+      <Filter>H</Filter>
     </Library>
   </ItemGroup>
 </Project>
