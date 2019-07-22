@@ -77,36 +77,51 @@ static Bool HasData(CPtr data, Int size)
    if(C Byte *b=(Byte*)data)REP(size)if(*b++)return true;
    return false;
 }
-// FIXME is this correct for GL?
 static void SaveTranslation(C Mems<ShaderParam::Translation> &translation, File &f, Int elms)
 {
    if(elms<=1)translation.saveRaw(f);else
    {
+      // save translations only for the first element, remaining elements will be reconstructed based on the first element translation and offets between elements
+      if(translation.elms()%elms)Exit("ShaderParam.Translation mod");
       UShort single_translations=translation.elms()/elms,
-         gpu_offset=translation[single_translations].gpu_offset-translation[0].gpu_offset,
-         cpu_offset=translation[single_translations].cpu_offset-translation[0].cpu_offset;
+         gpu_offset=translation[single_translations].gpu_offset-translation[0].gpu_offset, // gpu offset between the next array element and previous
+         cpu_offset=translation[single_translations].cpu_offset-translation[0].cpu_offset; // cpu offset between the next array element and previous
       f.putMulti(gpu_offset, cpu_offset, single_translations);
       FREP(single_translations)f<<translation[i]; // save 1st element translation
+
+   #if DEBUG // verify that all elements have same translation
+      for(Int e=1, co=0, go=0, t=single_translations; e<elms; e++) // add rest of the elements
+      {
+         co+=cpu_offset; // offset between elements
+         go+=gpu_offset; // offset between elements
+         FREP(single_translations)
+         {
+          C ShaderParam::Translation &first=translation[i], &trans=translation[t++];
+            DYNAMIC_ASSERT(first.cpu_offset+co==trans.cpu_offset
+                        && first.gpu_offset+go==trans.gpu_offset
+                        && first.elm_size     ==trans.elm_size  , "ShaderParam has irregular translation");
+         }
+      }
+   #endif
    }
 }
-// FIXME is this correct for GL?
 static void LoadTranslation(MemPtr<ShaderParam::Translation> translation, File &f, Int elms)
 {
    if(elms<=1)translation.loadRaw(f);else
    {
-      translation.clear();
       UShort single_translations, gpu_offset, cpu_offset; f.getMulti(gpu_offset, cpu_offset, single_translations);
-      FREP(  single_translations)f>>translation.New(); // load 1st element translation
+      translation.setNum(single_translations*elms);
+      Int t=0; FREPS(t, single_translations)f>>translation[t]; // load 1st element translation
       for(Int e=1, co=0, go=0; e<elms; e++) // add rest of the elements
       {
-         co+=cpu_offset; // element offset
-         go+=gpu_offset; // element offset
+         co+=cpu_offset; // offset between elements
+         go+=gpu_offset; // offset between elements
          FREP(single_translations)
          {
-            ShaderParam::Translation &t=translation.New(); // create and store reference !! memory address changes, do not perform adding new element and referencing previous element in one line of code !!
-            t=translation[i];
-            t.cpu_offset+=co;
-            t.gpu_offset+=go;
+            ShaderParam::Translation &trans=translation[t++];
+            trans=translation[i];
+            trans.cpu_offset+=co;
+            trans.gpu_offset+=go;
          }
       }
    }
@@ -345,6 +360,31 @@ void ShaderCompiler::Param::addTranslation(spvc_compiler compiler, spvc_type par
    {
       if(!is_struct)
       {
+         auto vec_size=spvc_type_get_vector_size(var),
+              cols    =spvc_type_get_columns    (var);
+         if(vec_size<=0 || vec_size>4)Exit("Invalid Shader Param Vector Size");
+         if(cols    <=0 || cols    >4)Exit("Invalid Shader Param Columns");
+         Int base_size=SIZE(Flt),
+              cpu_size=base_size*cols*vec_size;
+         if(cols>1) // matrix
+         {
+            unsigned matrix_stride=0; spvc_compiler_type_struct_member_matrix_stride(compiler, parent, var_i, &matrix_stride);
+            // FIXME
+         #if 0
+            //member_size+=(cols-1)*stride     //  all vectors except last
+            //            +vec_size*SIZE(Flt); // last vector
+            here
+         #else
+            //member_size+=(vec_size-1)*stride     //  all vectors except last
+            //            +cols        *SIZE(Flt); // last vector
+            FREPD(y, vec_size)
+            FREPD(x, cols    )translation.New().set(cpu_data_size + base_size*(x+y*cols), offset + base_size*y + x*matrix_stride, base_size);
+         #endif
+         }else // scalar, vector
+         {
+            translation.New().set(cpu_data_size, offset, cpu_size);
+         }
+         cpu_data_size+=cpu_size;
       }else
       {
          auto members=spvc_type_get_num_member_types(var);
@@ -1030,7 +1070,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
          auto array_dimensions=spvc_type_get_num_array_dimensions(member_handle); if(array_dimensions>1)Exit("Multi-dimensional arrays are not supported");
          param.array_elms=(array_dimensions ? spvc_type_get_array_dimension(member_handle, 0) : 0); // use 0 for non-arrays to match DX behavior
          // FIXME can offset,start be removed and calculated inside 'addTranslation'?
-         unsigned offset=0; spvc_compiler_type_struct_member_offset(spirv_compiler, buffer_handle, i, &offset); unsigned start=offset;
+         unsigned offset=0; spvc_compiler_type_struct_member_offset(spirv_compiler, buffer_handle, i, &offset);
 
          param.addTranslation(spirv_compiler, buffer_handle, member_handle, i, offset); param.sortTranslation();
 
@@ -1065,12 +1105,14 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
             }
          }
 
-         param.gpu_data_size=0; REPA(param.translation){ShaderParam::Translation &translation=param.translation[i]; MAX(param.gpu_data_size, translation.gpu_offset+translation.elm_size);} // iterate all translations just for safety (normally checking just the last one should be enough)
+         Int min=INT_MAX, max=0; REPA(param.translation){ShaderParam::Translation &translation=param.translation[i]; MIN(min, translation.gpu_offset); MAX(max, translation.gpu_offset+translation.elm_size);} // iterate all translations just for safety (normally checking just the first and last one should be enough)
+         param.gpu_data_size=max-min;
 
-         if(!param.translation.elms()                   )Exit("Shader Param is empty.\nPlease contact Developer.");
-         if( param.gpu_data_size!=member_size           )Exit("Incorrect Shader Param size.\nPlease contact Developer.");
-         if( param.gpu_data_size+start>buffer.size      )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer.");
-       //if( SIZE(Vec4)+var_desc.StartOffset>buffer.size)Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer."); some functions assume that '_gpu_data_size' is at least as big as 'Vec4' to set values without checking for size, !! this is not needed and shouldn't be called because in DX10+ Shader Params are stored in Shader Buffers, and 'ShaderBuffer' already allocates padding for Vec4
+         if(!param.translation.elms()                              )Exit("Shader Param is empty.\nPlease contact Developer.");
+         if( param.gpu_data_size!=member_size                      )Exit("Incorrect Shader Param size.\nPlease contact Developer.");
+         if( param.translation[0].gpu_offset!=offset || offset!=min)Exit("Incorrect Shader Param Offset.\nPlease contact Developer.");
+         if( param.gpu_data_size+offset>buffer.size                )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer.");
+       //if( SIZE(Vec4)+var_desc.StartOffset>buffer.size           )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer."); some functions assume that '_gpu_data_size' is at least as big as 'Vec4' to set values without checking for size, !! this is not needed and shouldn't be called because in DX10+ Shader Params are stored in Shader Buffers, and 'ShaderBuffer' already allocates padding for Vec4
 
          //FIXME if(HasData(var_desc.DefaultValue, var_desc.Size)) // if parameter has any data
          //   param.data.setNum(param.gpu_data_size).copyFrom((Byte*)var_desc.DefaultValue);

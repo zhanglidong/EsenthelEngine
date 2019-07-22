@@ -446,7 +446,7 @@ ShaderParam::ShaderParam()
   _owns_data=false;
 }
 /******************************************************************************/
-void ShaderParam::initAsElement(ShaderParam &parent, Int index)
+void ShaderParam::initAsElement(ShaderParam &parent, Int index) // this is called after 'parent' was already loaded, so 'gpu_offset' are relative to parameter (not cbuffer)
 {
    DEBUG_ASSERT(this!=&parent, "Can't init from self");
    RANGE_ASSERT(index, parent._elements);
@@ -460,7 +460,7 @@ void ShaderParam::initAsElement(ShaderParam &parent, Int index)
    {
      _full_translation=parent._full_translation;
       Translation &t=_full_translation[0];
-      if(t.elm_size% parent._elements || parent._gpu_data_size%parent._elements)Exit("ShaderParam Mod");
+      if(t.elm_size% parent._elements || parent._gpu_data_size%parent._elements)Exit("ShaderParam.Translation mod");
          t.elm_size/=parent._elements;
       DEBUG_ASSERT(t.cpu_offset==0 && t.gpu_offset==0, "Invalid translation offsets");
      _data+=t.elm_size*index;
@@ -468,7 +468,7 @@ void ShaderParam::initAsElement(ShaderParam &parent, Int index)
      _gpu_data_size        =parent._gpu_data_size/parent._elements;
    }else*/
    {
-      if(                  parent._full_translation.elms()%parent._elements)Exit("ShaderParam Mod");
+      if(                  parent._full_translation.elms()%parent._elements)Exit("ShaderParam.Translation mod");
       Int elm_translations=parent._full_translation.elms()/parent._elements; // calculate number of translations for a single element
      _full_translation.clear(); FREP(elm_translations)_full_translation.add(parent._full_translation[index*elm_translations+i]); // add translations for 'index-th' single element
       Int offset=_full_translation[0].gpu_offset; _data+=offset; REPAO(_full_translation).gpu_offset-=offset; // apply offset
