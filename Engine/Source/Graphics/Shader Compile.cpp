@@ -931,6 +931,31 @@ static void Compile(ShaderCompiler::SubShader &shader, Ptr user, Int thread_inde
 //static Bool Create (ShaderCompiler::Buffer* &buffer, C Str8 &name, Ptr user) {buffer=null; return true;}
 static Int  Compare(ShaderCompiler::Shader*C &a, ShaderCompiler::Shader*C &b) {return CompareCS(a->name, b->name);}
    
+static Int ExpectedBufferSlot(C Str8 &name)
+{
+   if(name=="Global"   )return SBI_GLOBAL;
+   if(name=="ObjMatrix")return SBI_OBJ_MATRIX;
+   if(name=="ObjVel"   )return SBI_OBJ_VEL;
+   if(name=="Mesh"     )return SBI_MESH;
+   if(name=="Material" )return SBI_MATERIAL;
+   if(name=="Viewport" )return SBI_VIEWPORT;
+   if(name=="Color"    )return SBI_COLOR;
+                        ASSERT(SBI_NUM==7);
+                        return -1;
+}
+static void TestBuffer(C Str8 &name, Int bind_slot)
+{
+   Int expected=ExpectedBufferSlot(name);
+   if( expected==bind_slot
+   ||  expected<0 && (bind_slot<0 || bind_slot>=SBI_NUM))return;
+   Exit(S+"Shader Buffer \""+name+"\" was expected to be at slot: "+expected+", but got: "+bind_slot);
+}
+static void TestBuffer(C ShaderBuffer *buffer, Int bind_slot)
+{
+ C Str8 *name=ShaderBuffers.dataToKey(buffer); if(!name)Exit("Can't find ShaderBuffer name");
+   return TestBuffer(*name, bind_slot);
+}
+
 ShaderCompiler::ShaderCompiler() : buffers(CompareCS) {}
 
 /*struct Refl : HLSLccReflection
@@ -1107,8 +1132,8 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
       spvc_compiler_set_name(spirv_compiler, res.id, instance_name);
       spvc_compiler_set_name(spirv_compiler, res.base_type_id, (compiler.api==API_GL) ? S8+'_'+buffer.name : buffer.name); // prefix all cbuffers on GL with '_' to avoid buffer/param name conflicts
 
-      buffer.bind_slot=0; // FIXME
-      buffer.bind_explicit=false; // FIXME
+      buffer.bind_slot    =ExpectedBufferSlot(buffer.name);
+      buffer.bind_explicit=(buffer.bind_slot>=0);
       size_t size=0; spvc_compiler_get_declared_struct_size(spirv_compiler, buffer_handle, &size); buffer.size=(Int)size;
       
       buffer.params.setNum(spvc_type_get_num_member_types(buffer_handle));
@@ -1179,7 +1204,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    {
     C spvc_reflected_resource &res=list[i];
     //CChar8 *name=spvc_compiler_get_name(spirv_compiler, res.id); name=_SkipStart(name, "out_var_");
-      Int loc=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationLocation); DYNAMIC_ASSERT(loc==i, "location!=i");
+      Int loc=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationLocation); DYNAMIC_ASSERT(loc==i, S+"location!=i "+cc.shaderName(shader_data));
       Set(start, (type==ST_PS) ? "RT" : "IO"); Append(start, TextInt(i, temp)); // OUTPUT name must match INPUT name, this solves problem when using "TEXCOORD" and "TEXCOORD0"
       spvc_compiler_set_name(spirv_compiler, res.id, start);
    }
@@ -1187,7 +1212,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    {
     C spvc_reflected_resource &res=list[i];
       CChar8 *name=spvc_compiler_get_name(spirv_compiler, res.id); name=_SkipStart(name, "in_var_");
-      Int loc=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationLocation); DYNAMIC_ASSERT(loc==i, "location!=i");
+      Int loc=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationLocation); DYNAMIC_ASSERT(loc==i, S+"location!=i "+cc.shaderName(shader_data));
       if(Starts(name, "ATTR"))DYNAMIC_ASSERT(TextInt(name+4)==i, "ATTR index!=i"); // verify vtx input ATTR index
       Set(start, (type==ST_VS) ? "ATTR" : "IO"); Append(start, TextInt(i, temp)); // OUTPUT name must match INPUT name, this solves problem when using "TEXCOORD" and "TEXCOORD0"
       spvc_compiler_set_name(spirv_compiler, res.id, start);
@@ -1278,30 +1303,6 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
 /******************************************************************************/
 static ShaderImage * Get(Int i, C MemtN<ShaderImage *, 256> &images ) {RANGE_ASSERT_ERROR(i, images , "Invalid ShaderImage index" ); return  images[i];}
 static ShaderBuffer* Get(Int i, C MemtN<ShaderBuffer*, 256> &buffers) {RANGE_ASSERT_ERROR(i, buffers, "Invalid ShaderBuffer index"); return buffers[i];}
-
-#if DEBUG
-static C Str8& Name(ShaderImage  &image ) {C Str8 *name=ShaderImages .dataToKey(&image ); if(!name)Exit("Can't find ShaderImage name" ); return *name;}
-static C Str8& Name(ShaderBuffer &buffer) {C Str8 *name=ShaderBuffers.dataToKey(&buffer); if(!name)Exit("Can't find ShaderBuffer name"); return *name;}
-#else
-static C Str8& Name(ShaderImage  &image ) {return ShaderImages .dataInMapToKey(image );}
-static C Str8& Name(ShaderBuffer &buffer) {return ShaderBuffers.dataInMapToKey(buffer);}
-#endif
-
-#if DEBUG && !GL
-static void Test(BufferLink &b)
-{
-   switch(b.index)
-   {
-      case SBI_GLOBAL    : if(Name(*b.buffer)!="Global"   )error: Exit(S+"Invalid Shader Constant Index "+b.index+' '+Name(*b.buffer)); break;
-      case SBI_OBJ_MATRIX: if(Name(*b.buffer)!="ObjMatrix")goto error; break;
-      case SBI_OBJ_VEL   : if(Name(*b.buffer)!="ObjVel"   )goto error; break;
-      case SBI_MESH      : if(Name(*b.buffer)!="Mesh"     )goto error; break;
-      case SBI_MATERIAL  : if(Name(*b.buffer)!="Material" )goto error; break;
-      case SBI_VIEWPORT  : if(Name(*b.buffer)!="Viewport" )goto error; break;
-      case SBI_COLOR     : if(Name(*b.buffer)!="Color"    )goto error; break;
-   }ASSERT(SBI_NUM==7);
-}
-#endif
 /******************************************************************************/
 // FIXME store buffers+images in one map?
 struct BindMap : Mems<ShaderCompiler::Bind>
@@ -1360,7 +1361,7 @@ struct BindMap : Mems<ShaderCompiler::Bind>
 #if !GL
 Bool BufferLink::load(File &f, C MemtN<ShaderBuffer*, 256> &buffers)
 {
-   ConstantIndex ci; f>>ci; index=ci.bind_index; RANGE_ASSERT_ERROR(index, MAX_SHADER_BUFFERS, S+"Buffer index: "+index+", is too big"); buffer=Get(ci.src_index, buffers); if(DEBUG)Test(T);
+   ConstantIndex ci; f>>ci; index=ci.bind_index; RANGE_ASSERT_ERROR(index, MAX_SHADER_BUFFERS, S+"Buffer index: "+index+", is too big"); buffer=Get(ci.src_index, buffers); if(DEBUG)TestBuffer(buffer, index);
    return f.ok();
 }
 Bool ImageLink::load(File &f, C MemtN<ShaderImage*, 256> &images)
@@ -1571,7 +1572,8 @@ Bool ShaderFile::load(C Str &name)
             if(!sb.is()) // wasn't yet created
             {
                sb.create(f.decUIntV());
-               Int index=f.getSByte(); if(index>=0){SyncLocker lock(D._lock); sb.bind(index);}
+               f>>sb.explicit_bind_slot; if(sb.explicit_bind_slot>=0){SyncLocker lock(D._lock); sb.bind(sb.explicit_bind_slot);}
+               if(DEBUG)TestBuffer(temp_str, sb.explicit_bind_slot);
             }else // verify if it's identical to previously created
             {
                if(sb.size()!=f.decUIntV())ExitParam(temp_str, name);

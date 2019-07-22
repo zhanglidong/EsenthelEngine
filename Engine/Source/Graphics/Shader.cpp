@@ -334,9 +334,6 @@ void ShaderBuffer::create(Int size) // no locks needed because this is called on
    buffer.create(size);
    AllocZero(data, Ceil4(size+SIZEI(Vec4))); // add extra "Vec4 padd" at the end, because all 'ShaderParam.set' for performance reasons assume that there is at least SIZE(Vec4) size, use "+" instead of "Max" in case we have "Flt p[2]" and we call 'ShaderParam.set(Vec4)' for ShaderParam created from "p[1]" which would overwrite "p[1..4]", and do 'Ceil4' because 'COPY' is used which copies 'Ceil4'
    changed=true;
-#if GL
-   if(buffer.is())glBindBufferBase(GL_UNIFORM_BUFFER, bindPoint(), buffer.buffer); //glBindBufferRange(GL_UNIFORM_BUFFER, bindPoint(), buffer.buffer, 0, buffer.size);
-#endif
 }
 void ShaderBuffer::update()
 {
@@ -373,20 +370,24 @@ void ShaderBuffer::bind(Int index)
    BufHS(index, buffer.buffer);
    BufDS(index, buffer.buffer);
    BufPS(index, buffer.buffer);
+#elif GL
+   glBindBufferBase(GL_UNIFORM_BUFFER, index, buffer.buffer);
 #endif
 }
 void ShaderBuffer::bindCheck(Int index)
 {
-#if DX11
+#if 1
+   if(explicit_bind_slot==index)return;
+#elif DX11
    if(index>=0)
    {
       RANGE_ASSERT_ERROR(index, MAX_SHADER_BUFFERS, "Invalid ShaderBuffer bind index");
       ID3D11Buffer *buf=vs_buf[index];
                  if(buffer  .buffer==buf)return;
       REPA(parts)if(parts[i].buffer==buf)return;
-      Exit(S+"ShaderBuffer was expected to be bound at slot "+index);
    }
 #endif
+   Exit(S+"ShaderBuffer was expected to be bound at slot "+index);
 }
 void ShaderBuffer::setPart(Int part)
 {
@@ -399,13 +400,6 @@ void ShaderBuffer::createParts(C Int *elms, Int elms_num)
    parts.setNum(elms_num);          parts[0]=buffer; // store a raw copy of the buffer that was already created in the first slot, so we can keep it as backup and use later
    for(Int i=1; i<parts.elms(); i++)parts[i].create(elm_size*elms[i]);
 }
-#if GL
-Int ShaderBuffer::bindPoint()C
-{
-   DEBUG_ASSERT(ShaderBuffers.containsData(this), "'ShaderBuffer' not inside 'ShaderBuffers'"); // needed to get correct abs index
-   return ShaderBuffers.dataInMapToAbsIndex(this)+1; // skip zero, because it's used for 'glBindBuffer'
-}
-#endif
 /******************************************************************************/
 // SHADER PARAM
 /******************************************************************************/
@@ -1035,16 +1029,22 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
       }
       T.images=images;
 
-      // FIXME
-      params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORM_BLOCKS, &params); all_buffers.setNum(params);
+      MemtN<BufferLink, 256> buffers; Int variable_slot_index=SBI_NUM;
+           params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORM_BLOCKS, &params); all_buffers.setNum(params);
       FREP(params)
       {
          Char8 name[256]; name[0]='\0'; Int length=0;
          glGetActiveUniformBlockName(prog, i, Elms(name), &length, name);
          if(name[0]!='_')Exit("Invalid buffer name"); // all GL buffers assume to start with '_' this is adjusted in 'ShaderCompiler'
-         all_buffers[i]=GetShaderBuffer(name+1); // skip '_'
-         glUniformBlockBinding(prog, i, all_buffers[i]->bindPoint());
+         ShaderBuffer *buffer=all_buffers[i]=GetShaderBuffer(name+1); // skip '_'
+         if(buffer->explicit_bind_slot>=0)glUniformBlockBinding(prog, i, buffer->explicit_bind_slot);else // explicit bind slot buffers are always bound to the same slot, and linked with the GL program
+         { // non-explicit buffers will be assigned to slots starting from SBI_NUM (to avoid conflict with explicits)
+            glUniformBlockBinding(prog, i, variable_slot_index); // link with 'variable_slot_index' slot
+            buffers.New().set(variable_slot_index, buffer->buffer.buffer); // request linking buffer with 'variable_slot_index' slot
+            variable_slot_index++;
+         }
       }
+      T.buffers=buffers;
 
       // !! at the end !!
       T.prog=prog; // set to this only after all finished, so if another thread runs this method, it will detect 'prog' presence only after it was fully initialized

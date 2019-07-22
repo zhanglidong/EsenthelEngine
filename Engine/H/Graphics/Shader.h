@@ -169,6 +169,7 @@ struct ShaderBuffer // Constant Buffer
    Buffer       buffer; // keep this is first member because it's used most often
    Byte        *data;
    Bool         changed;
+   SByte        explicit_bind_slot; // -1=any available
    Mems<Buffer> parts;
 
    Bool is         ()C {return buffer.is();}
@@ -179,10 +180,6 @@ struct ShaderBuffer // Constant Buffer
    void bindCheck  (Int index);
    void    setPart (Int part );
    void createParts(C Int *elms, Int elms_num);
-
-#if GL
-   Int bindPoint()C;
-#endif
 
    ShaderBuffer();
   ~ShaderBuffer();

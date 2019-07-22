@@ -292,7 +292,8 @@ static void Compile(API api)
    FCreateDirs(dest_path);
    SHADER_MODEL model=SM_4;
 
-   Bool ms=(api==API_DX); // if support multi-sampling in shaders
+   Bool ms  =(api==API_DX), // if support multi-sampling in shaders
+        tess=(api==API_DX); // if support tesselation    in shaders
 
 #ifdef MAIN
 {
@@ -704,7 +705,7 @@ static void Compile(API api)
 #ifdef POSITION
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Position", model, api).New(src_path+"Position.cpp");
-   REPD(tesselate , 2)
+   REPD(tesselate , tess ? 2 : 1)
    REPD(skin      , 2)
    REPD(textures  , 3)
    REPD(test_blend, textures ? 2 : 1)src.New().position(skin, textures, test_blend, FX_NONE, tesselate);
