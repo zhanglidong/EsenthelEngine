@@ -1122,8 +1122,7 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
       {
          Char8 name[256]; name[0]='\0'; Int length=0;
          glGetActiveUniformBlockName(prog, i, Elms(name), &length, name);
-         if(!name[0])Exit("Can't access UBO name");
-         all_buffers[i]=ShaderBuffers(Str8Temp(name));
+         all_buffers[i]=GetShaderBuffer(name);
          glUniformBlockBinding(prog, i, all_buffers[i]->bindPoint());
       }
 
@@ -1544,9 +1543,9 @@ void InitMatrix()
    DYNAMIC_ASSERT(Sh.ObjVel    ->_cpu_data_size==SIZE(Vec      )*MAX_MATRIX, "Unexpected size of ObjVel"); // #VelAngVel
    DYNAMIC_ASSERT(Sh.FurVel    ->_cpu_data_size==SIZE(Vec      )*MAX_MATRIX, "Unexpected size of FurVel");
 
-   SBObjMatrix=ShaderBuffers(Str8Temp("ObjMatrix")); DYNAMIC_ASSERT(SBObjMatrix->size()==SIZE(GpuMatrix)*MAX_MATRIX, "Unexpected size of ObjMatrix");
-   SBObjVel   =ShaderBuffers(Str8Temp("ObjVel"   )); DYNAMIC_ASSERT(SBObjVel   ->size()==SIZE(Vec4     )*MAX_MATRIX, "Unexpected size of ObjVel"   ); // #VelAngVel
-   SBFurVel   =ShaderBuffers(Str8Temp("FurVel"   )); DYNAMIC_ASSERT(SBFurVel   ->size()==SIZE(Vec4     )*MAX_MATRIX, "Unexpected size of FurVel"   );
+   SBObjMatrix=GetShaderBuffer("ObjMatrix"); DYNAMIC_ASSERT(SBObjMatrix->size()==SIZE(GpuMatrix)*MAX_MATRIX, "Unexpected size of ObjMatrix");
+   SBObjVel   =GetShaderBuffer("ObjVel"   ); DYNAMIC_ASSERT(SBObjVel   ->size()==SIZE(Vec4     )*MAX_MATRIX, "Unexpected size of ObjVel"   ); // #VelAngVel
+   SBFurVel   =GetShaderBuffer("FurVel"   ); DYNAMIC_ASSERT(SBFurVel   ->size()==SIZE(Vec4     )*MAX_MATRIX, "Unexpected size of FurVel"   );
 
 #if DX11
    const Int parts[]={MAX_MATRIX, 192, 160, 128, 96, 80, 64, 56, 48, 32, 16, 8, 1}; // start from the biggest, because 'ShaderBuffer.size' uses it as the total size

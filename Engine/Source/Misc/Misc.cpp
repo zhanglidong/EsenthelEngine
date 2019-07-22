@@ -781,7 +781,7 @@ void Log    (C Str &text)
       // write to file log
       if(Is(LogFile))
       {
-         FileText f; SyncLocker lock(LogLock); if(f.append(LogFile))f.putText(t); // use lock to prevent 2 threads appending the same file at the same time
+         SyncLocker lock(LogLock); FileText f; if(f.append(LogFile))f.putText(t); // use lock to prevent 2 threads appending the same file at the same time
       }
    }
 }

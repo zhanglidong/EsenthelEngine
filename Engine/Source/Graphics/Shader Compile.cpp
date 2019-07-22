@@ -928,10 +928,10 @@ Bool ShaderCompiler::Shader::save(File &f, C ShaderCompiler &compiler)C
 }
 /******************************************************************************/
 static void Compile(ShaderCompiler::SubShader &shader, Ptr user, Int thread_index) {shader.compile();}
-static Bool Create (ShaderCompiler::Buffer* &buffer, C Str8 &name, Ptr user) {buffer=null; return true;}
+//static Bool Create (ShaderCompiler::Buffer* &buffer, C Str8 &name, Ptr user) {buffer=null; return true;}
 static Int  Compare(ShaderCompiler::Shader*C &a, ShaderCompiler::Shader*C &b) {return CompareCS(a->name, b->name);}
    
-ShaderCompiler::ShaderCompiler() : buffers(CompareCS, Create) {}
+ShaderCompiler::ShaderCompiler() : buffers(CompareCS) {}
 
 /*struct Refl : HLSLccReflection
 {
@@ -967,7 +967,7 @@ struct ConvertContext
    Memc<                ShaderData> (&shader_datas)[ST_NUM];
    Mems<ShaderCompiler::Shader*   >  &shaders;
 
-   ShaderCompiler::Shader& shader(C ShaderData &shader_data)C // get first 'Shader' using 'shader_data'
+   ShaderCompiler::Shader* findShader(C ShaderData &shader_data)C // find first 'Shader' using 'shader_data'
    {
       FREPAD(type, shader_datas)
       {
@@ -975,13 +975,22 @@ struct ConvertContext
          {
             FREPAD(si, shaders)
             {
-               ShaderCompiler::Shader &shader=*shaders[si]; if(shader.sub[type].shader_data_index==shader_data_index)return shader;
+               ShaderCompiler::Shader &shader=*shaders[si]; if(shader.sub[type].shader_data_index==shader_data_index)return &shader;
             }
             break;
          }
       }
-      Exit("Can't find shader");
-      return *(ShaderCompiler::Shader*)null;
+      return null;
+   }
+   ShaderCompiler::Shader& shader(C ShaderData &shader_data)C // get first 'Shader' using 'shader_data'
+   {
+      ShaderCompiler::Shader *shader=findShader(shader_data); if(!shader)Exit("Can't find shader using 'shader_data'");
+      return *shader;
+   }
+   Str shaderName(C ShaderData &shader_data)C
+   {
+      if(ShaderCompiler::Shader *shader=findShader(shader_data))return shader->name;
+      return S;
    }
 #endif
 
@@ -1159,6 +1168,16 @@ spvc_result spvc_compiler_type_struct_member_matrix_stride(spvc_compiler compile
       }
    }
 
+   if(buffers.elms())
+   {
+      SyncLocker lock(cc.lock); FREPA(buffers)
+      {
+       C ShaderCompiler::Buffer &src = buffers[i];
+         ShaderCompiler::Buffer &dest=*compiler.buffers(src.name);
+         if(!dest.name.is())dest=src;else if(dest!=src)Exit(S+"Buffer \""+dest.name+"\" is not always the same in all shaders");
+      }
+   }
+
    spvc_compiler_options options=null;
    spvc_compiler_create_compiler_options(spirv_compiler, &options); if(!options)Exit("'spvc_compiler_create_compiler_options' failed");
    switch(compiler.api)
@@ -1198,6 +1217,8 @@ spvc_result spvc_compiler_type_struct_member_matrix_stride(spvc_compiler compile
    code=glsl;
    spvc_context_destroy(context); // Frees all memory we allocated so far
 
+   code=Replace(code, "#version 330\n", S);
+   code=Replace(code, "#version 300 es\n", S);
    code=Replace(code, "in_var_ATTR", "ATTR", true);
 
    //FIXME
@@ -1366,9 +1387,9 @@ Bool ShaderCompiler::compileTry(Threads &threads)
             SubShader &sub=shader.sub[i]; if(sub.result==FAIL)return error(S+"Compiling \""+shader.name+"\" in \""+source.file_name+"\" failed:\n"+sub.error);
             FREPA(sub.buffers)
             {
-               Buffer  &sub_buffer=sub.buffers[i];
-               Buffer* &    buffer=*buffers(sub_buffer.name);
-               if(!buffer)buffer=&sub_buffer;else if(*buffer!=sub_buffer)return error(S+"Buffer \""+buffer->name+"\" is not always the same in all shaders");
+               Buffer &sub_buffer=sub.buffers[i];
+               Buffer &    buffer=*buffers(sub_buffer.name);
+               if(!buffer.name.is())buffer=sub_buffer;else if(buffer!=sub_buffer)return error(S+"Buffer \""+buffer.name+"\" is not always the same in all shaders");
             }
             FREPA(sub.images)images.binaryInclude(sub.images[i].name, CompareCS);
 
@@ -1412,6 +1433,17 @@ Bool ShaderCompiler::compileTry(Threads &threads)
          Memc<ShaderData> &sds=shader_datas[i];
          FREPA(sds)threads.queue(sds[i], Convert, cc);
       }
+      // process dummies to get buffers and images
+      FREPA(sources)
+      {
+         Source &source=sources[i]; FREPA(source.shaders)
+         {
+            Shader &shader=source.shaders[i]; if(shader.dummy)FREPA(shader.sub)
+            {
+               ShaderData &sd=shader.sub[i].shader_data; if(sd.elms())threads.queue(sd, Convert, cc);
+            }
+         }
+      }
       threads.wait1();
    }
 
@@ -1424,7 +1456,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
       // constants
       f.cmpUIntV(buffers.elms()); FREPA(buffers)
       {
-       C Buffer &buf=*buffers[i];
+       C Buffer &buf=buffers[i];
 
          // constant buffer
          f.putStr(buf.name).cmpUIntV(buf.size).putSByte(buf.explicitBindSlot());

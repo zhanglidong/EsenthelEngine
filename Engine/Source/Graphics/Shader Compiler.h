@@ -146,12 +146,12 @@ struct ShaderCompiler
       Bool    load();
      ~Source();
    };
-   Str                 dest, messages;
-   SHADER_MODEL        model;
-   API                 api;
-   Memc<Source>        sources;
-   Map <Str8, Buffer*> buffers;
-   Memc<Str8         > images;
+   Str                dest, messages;
+   SHADER_MODEL       model;
+   API                api;
+   Memc<Source>       sources;
+   Map <Str8, Buffer> buffers;
+   Memc<Str8        > images;
 
    void message(C Str &t) {messages.line()+=t;}
    Bool error  (C Str &t) {message(t); return false;}
