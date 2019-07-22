@@ -10,8 +10,8 @@ struct _Memb // Block Based Container Base - Do not use this class, use 'Memb' i
    UInt blockSize ()C {return _block_elms*_elm_size;}
    UInt   memUsage()C {return _blocks*blockSize();}
 
-   Ptr addr      (Int i)C {return InRange(i, _elms) ?       _element(i) : null;}
-   Ptr operator[](Int i)C {  RANGE_ASSERT(i, _elms); return _element(i);}
+   Ptr addr      (Int i)C {return     InRange(i, _elms) ?       _element(i) : null;}
+   Ptr operator[](Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _element(i);}
    Ptr operator()(Int i);
    Ptr first     (     )C {return T[0        ];}
    Ptr last      (     )C {return T[elms()-1 ];}

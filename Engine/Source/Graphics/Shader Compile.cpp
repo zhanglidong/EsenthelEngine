@@ -77,7 +77,6 @@ static Bool HasData(CPtr data, Int size)
    if(C Byte *b=(Byte*)data)REP(size)if(*b++)return true;
    return false;
 }
-// FIXME can use gpu_offset already relative to start of cbuffer?
 // FIXME is this correct for GL?
 static void SaveTranslation(C Mems<ShaderParam::Translation> &translation, File &f, Int elms)
 {
@@ -826,7 +825,7 @@ struct ConstantIndex
 };
 #pragma pack(pop)
 
-static UShort AsUShort(Int i) {DYNAMIC_ASSERT(InRange(i, USHORT_MAX+1), "Value too big to be represented as UShort"); return i;}
+static UShort AsUShort(Int i) {RANGE_ASSERT_ERROR(i, USHORT_MAX+1, "Value too big to be represented as UShort"); return i;}
 
 Bool ShaderCompiler::Param::save(File &f)C
 {
@@ -1066,7 +1065,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
             }
          }
 
-         param.gpu_data_size=0; REPA(param.translation){ShaderParam::Translation &translation=param.translation[i]; MAX(param.gpu_data_size, translation.gpu_offset+translation.elm_size);}
+         param.gpu_data_size=0; REPA(param.translation){ShaderParam::Translation &translation=param.translation[i]; MAX(param.gpu_data_size, translation.gpu_offset+translation.elm_size);} // iterate all translations just for safety (normally checking just the last one should be enough)
 
          if(!param.translation.elms()                   )Exit("Shader Param is empty.\nPlease contact Developer.");
          if( param.gpu_data_size!=member_size           )Exit("Incorrect Shader Param size.\nPlease contact Developer.");
@@ -1193,8 +1192,8 @@ spvc_result spvc_compiler_type_struct_member_matrix_stride(spvc_compiler compile
 #endif
 }
 /******************************************************************************/
-static ShaderImage * Get(Int i, C MemtN<ShaderImage *, 256> &images ) {if(!InRange(i, images ))Exit("Invalid ShaderImage index" ); return  images[i];}
-static ShaderBuffer* Get(Int i, C MemtN<ShaderBuffer*, 256> &buffers) {if(!InRange(i, buffers))Exit("Invalid ShaderBuffer index"); return buffers[i];}
+static ShaderImage * Get(Int i, C MemtN<ShaderImage *, 256> &images ) {RANGE_ASSERT_ERROR(i, images , "Invalid ShaderImage index" ); return  images[i];}
+static ShaderBuffer* Get(Int i, C MemtN<ShaderBuffer*, 256> &buffers) {RANGE_ASSERT_ERROR(i, buffers, "Invalid ShaderBuffer index"); return buffers[i];}
 
 #if DEBUG
 static C Str8& Name(ShaderImage  &image ) {C Str8 *name=ShaderImages .dataToKey(&image ); if(!name)Exit("Can't find ShaderImage name" ); return *name;}
@@ -1277,12 +1276,12 @@ struct BindMap : Mems<ShaderCompiler::Bind>
 #if !GL
 Bool BufferLink::load(File &f, C MemtN<ShaderBuffer*, 256> &buffers)
 {
-   ConstantIndex ci; f>>ci; index=ci.bind_index; if(!InRange(index, MAX_SHADER_BUFFERS))Exit(S+"Buffer index: "+index+", is too big"); buffer=Get(ci.src_index, buffers); if(DEBUG)Test(T);
+   ConstantIndex ci; f>>ci; index=ci.bind_index; RANGE_ASSERT_ERROR(index, MAX_SHADER_BUFFERS, S+"Buffer index: "+index+", is too big"); buffer=Get(ci.src_index, buffers); if(DEBUG)Test(T);
    return f.ok();
 }
 Bool ImageLink::load(File &f, C MemtN<ShaderImage*, 256> &images)
 {
-   ConstantIndex ci; f>>ci; index=ci.bind_index; if(!InRange(index, MAX_SHADER_IMAGES))Exit(S+"Image index: "+index+", is too big"); image=Get(ci.src_index, images);
+   ConstantIndex ci; f>>ci; index=ci.bind_index; RANGE_ASSERT_ERROR(index, MAX_SHADER_IMAGES, S+"Image index: "+index+", is too big"); image=Get(ci.src_index, images);
    return f.ok();
 }
 #endif
@@ -1435,8 +1434,8 @@ Bool Shader11::load(File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 2
    FREPA(data_index)
    {
       data_index[i]=indexes.shader_data_index[i];
-      DYNAMIC_ASSERT(InRange(indexes.buffer_bind_index[i], shader_file._buffer_links), "Buffer Bind Index out of range"); buffers[i]=shader_file._buffer_links[indexes.buffer_bind_index[i]];
-      DYNAMIC_ASSERT(InRange(indexes. image_bind_index[i], shader_file. _image_links),  "Image Bind Index out of range");  images[i]=shader_file. _image_links[indexes. image_bind_index[i]];
+      RANGE_ASSERT_ERROR(indexes.buffer_bind_index[i], shader_file._buffer_links, "Buffer Bind Index out of range"); buffers[i]=shader_file._buffer_links[indexes.buffer_bind_index[i]];
+      RANGE_ASSERT_ERROR(indexes. image_bind_index[i], shader_file. _image_links,  "Image Bind Index out of range");  images[i]=shader_file. _image_links[indexes. image_bind_index[i]];
    }
    all_buffers.setNum(f.decUIntV()); FREPAO(all_buffers)=Get(f.getUShort(), file_buffers);
    if(f.ok())return true;
@@ -1495,7 +1494,7 @@ Bool ShaderFile::load(C Str &name)
                   sp._changed  =&sb.changed;
                   f.getMulti(sp._cpu_data_size, sp._gpu_data_size, sp._elements); // info
                   LoadTranslation(sp._full_translation, f, sp._elements);         // translation
-                  Int offset=sp._full_translation[0].gpu_offset; sp._data+=offset; REPAO(sp._full_translation).gpu_offset-=offset; // apply offset
+                  Int offset=sp._full_translation[0].gpu_offset; sp._data+=offset; REPAO(sp._full_translation).gpu_offset-=offset; // apply offset. 'gpu_offset' is stored relative to start of cbuffer, however when loading we want to adjust 'sp.data' to point to the start of the param, so since we're adjusting it we have to adjust 'gpu_offset' too.
                   if(f.getBool())f.get(sp._data, sp._gpu_data_size);              // load default value, no need to zero in other case, because data is stored in ShaderBuffer's, and they're always zeroed at start
                   sp.optimize(); // optimize
                }else // verify if it's identical to previously created

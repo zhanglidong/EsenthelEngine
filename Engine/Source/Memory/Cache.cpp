@@ -523,7 +523,7 @@ void _Cache::_lockedFrom(C _Cache &src)
    Alloc(_order, _memx.maxElms()); // initialize order exactly the same way as source
    REPA(src)                       //      setup order exactly the same way as source
    {
-    C Elm  & src_elm =   *src._order[i]; Int memx_index=src._memx.validIndex(&src_elm); DYNAMIC_ASSERT(InRange(memx_index, _memx), "Invalid element index in Cache.operator=(C Cache &src)"); // get valid index of i-th element in memx container
+    C Elm  & src_elm =   *src._order[i]; Int memx_index=src._memx.validIndex(&src_elm); RANGE_ASSERT_ERROR(memx_index, _memx, "Invalid element index in Cache.operator=(C Cache &src)"); // get valid index of i-th element in memx container
       Elm  &dest_elm =_memx[memx_index]; _order[i]=&dest_elm; // set valid index of i-th element
     C Desc & src_desc=src.elmDesc( src_elm);
       Desc &dest_desc=    elmDesc(dest_elm);

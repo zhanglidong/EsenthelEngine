@@ -8,8 +8,8 @@ struct _Meml // List Based Container Base - Do not use this class, use 'Meml' in
    UInt elmSize ()C {return _elm_size;}
    UInt memUsage()C {return  elms()*elmSize();}
 
-   Ptr addr      (Int i)C {return InRange(i, _elms) ?       _element(i) : null;}
-   Ptr operator[](Int i)C {  RANGE_ASSERT(i, _elms); return _element(i);}
+   Ptr addr      (Int i)C {return     InRange(i, _elms) ?       _element(i) : null;}
+   Ptr operator[](Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _element(i);}
    Ptr operator()(Int i);
    Ptr New       (     );
    Ptr NewAt     (Int i);

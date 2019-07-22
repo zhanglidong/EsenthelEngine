@@ -380,7 +380,7 @@ void ShaderBuffer::bindCheck(Int index)
 #if DX11
    if(index>=0)
    {
-      if(!InRange(index, MAX_SHADER_BUFFERS))Exit("Invalid ShaderBuffer bind index");
+      RANGE_ASSERT_ERROR(index, MAX_SHADER_BUFFERS, "Invalid ShaderBuffer bind index");
       ID3D11Buffer *buf=vs_buf[index];
                  if(buffer  .buffer==buf)return;
       REPA(parts)if(parts[i].buffer==buf)return;
@@ -411,6 +411,22 @@ Int ShaderBuffer::bindPoint()C
 /******************************************************************************/
 ThreadSafeMap<Str8, ShaderParam> ShaderParams(CompareCS);
 /******************************************************************************/
+void ShaderParam::OptimizeTranslation(C MemPtr<Translation> &src, Mems<Translation> &dest)
+{
+   dest=src;
+   REPA(dest)if(i)
+   {
+      Translation &prev=dest[i-1],
+                  &next=dest[i  ];
+      if(prev.cpu_offset+prev.elm_size==next.cpu_offset
+      && prev.gpu_offset+prev.elm_size==next.gpu_offset)
+      {
+         prev.elm_size+=next.elm_size;
+         dest.remove(i, true);
+      }
+   }
+}
+/******************************************************************************/
 ShaderParam::~ShaderParam()
 {
    if(_owns_data)
@@ -430,35 +446,36 @@ ShaderParam::ShaderParam()
   _owns_data=false;
 }
 /******************************************************************************/
-void ShaderParam::optimize()
-{
-  _optimized_translation=_full_translation;
-   REPA(_optimized_translation)if(i)
-   {
-      Translation &prev=_optimized_translation[i-1],
-                  &next=_optimized_translation[i  ];
-      if(prev.cpu_offset+prev.elm_size==next.cpu_offset
-      && prev.gpu_offset+prev.elm_size==next.gpu_offset)
-      {
-         prev.elm_size+=next.elm_size;
-        _optimized_translation.remove(i, true);
-      }
-   }
-}
 void ShaderParam::initAsElement(ShaderParam &parent, Int index)
 {
+   DEBUG_ASSERT(this!=&parent, "Can't init from self");
+   RANGE_ASSERT(index, parent._elements);
+
   _owns_data    =false;
-  _cpu_data_size=parent._cpu_data_size/parent._elements; // set size of single element
+  _cpu_data_size=parent._cpu_data_size/parent._elements; // set size of a single element
   _data         =parent._data;
   _changed      =parent._changed;
 
-   if(                   parent._full_translation.elms()%parent._elements)Exit("Shader Mod");
-   Int  elm_translations=parent._full_translation.elms()/parent._elements; // single element translations
-   FREP(elm_translations)_full_translation.add(parent._full_translation[index*elm_translations+i]);
-   Int offset=_full_translation[0].gpu_offset; _data+=offset; REPAO(_full_translation).gpu_offset-=offset; // apply offset
-       offset=_full_translation[0].cpu_offset;                REPAO(_full_translation).cpu_offset-=offset; // apply offset
-   optimize();
-  _gpu_data_size=0; REPA(_optimized_translation)MAX(_gpu_data_size, _optimized_translation[i].gpu_offset+_optimized_translation[i].elm_size);
+   if(parent._full_translation.elms()==1)
+   {
+     _full_translation=parent._full_translation;
+      Translation &t=_full_translation[0];
+      if(t.elm_size% parent._elements || parent._gpu_data_size%parent._elements)Exit("ShaderParam Mod");
+         t.elm_size/=parent._elements;
+      DEBUG_ASSERT(t.cpu_offset==0 && t.gpu_offset==0, "Invalid translation offsets");
+     _data+=t.elm_size*index;
+     _optimized_translation=_full_translation;
+     _gpu_data_size        =parent._gpu_data_size/parent._elements;
+   }else
+   {
+      if(                  parent._full_translation.elms()%parent._elements)Exit("ShaderParam Mod");
+      Int elm_translations=parent._full_translation.elms()/parent._elements; // calculate number of translations for a single element
+     _full_translation.clear(); FREP(elm_translations)_full_translation.add(parent._full_translation[index*elm_translations+i]); // add translations for 'index-th' single element
+      Int offset=_full_translation[0].gpu_offset; _data+=offset; REPAO(_full_translation).gpu_offset-=offset; // apply offset
+          offset=_full_translation[0].cpu_offset;                REPAO(_full_translation).cpu_offset-=offset; // apply offset
+      optimize();
+     _gpu_data_size=0; REPA(_optimized_translation)MAX(_gpu_data_size, _optimized_translation[i].gpu_offset+_optimized_translation[i].elm_size);
+   }
 }
 /******************************************************************************/
 void ShaderParam::set(  Bool   b          ) {setChanged(); *(Flt *)_data=b;}

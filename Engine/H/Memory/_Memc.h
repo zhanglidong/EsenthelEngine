@@ -13,10 +13,10 @@ struct _Memc // Continuous Memory Based Container Base - Do not use this class, 
    Bool initialized()C {return _elm_size>0;}
 #endif
 
-   Ptr addr      (Int i)C {return InRange(i, _elms) ?       _element(      i) : null;}
-   Ptr addrFirst (     )C {return            _elms  ?       _data             : null;}
-   Ptr addrLast  (     )C {return            _elms  ?       _element(_elms-1) : null;}
-   Ptr operator[](Int i)C {  RANGE_ASSERT(i, _elms); return _element(      i);}
+   Ptr addr      (Int i)C {return     InRange(i, _elms) ?       _element(      i) : null;}
+   Ptr addrFirst (     )C {return                _elms  ?       _data             : null;}
+   Ptr addrLast  (     )C {return                _elms  ?       _element(_elms-1) : null;}
+   Ptr operator[](Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _element(      i);}
    Ptr operator()(Int i);
    Ptr first     (     )C {return T[0        ];}
    Ptr last      (     )C {return T[elms()-1 ];}

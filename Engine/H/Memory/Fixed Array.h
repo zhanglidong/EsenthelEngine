@@ -20,8 +20,8 @@
 /******************************************************************************/
 template<typename TYPE, Int NUM> struct FixedArray // array of fixed size, with the option to dynamically replace the type of elements
 {
-   TYPE& operator[](Int i)  {RANGE_ASSERT(i, NUM); return _data ? *(TYPE*)((Byte*)_data+i*_elm_size) : _data_org[i];} // get i-th element in the container
- C TYPE& operator[](Int i)C {RANGE_ASSERT(i, NUM); return _data ? *(TYPE*)((Byte*)_data+i*_elm_size) : _data_org[i];} // get i-th element in the container
+   TYPE& operator[](Int i)  {DEBUG_RANGE_ASSERT(i, NUM); return _data ? *(TYPE*)((Byte*)_data+i*_elm_size) : _data_org[i];} // get i-th element in the container
+ C TYPE& operator[](Int i)C {DEBUG_RANGE_ASSERT(i, NUM); return _data ? *(TYPE*)((Byte*)_data+i*_elm_size) : _data_org[i];} // get i-th element in the container
 
    Int elms   ()C {return  NUM     ;} // get number of          elements in this container
    Int elmSize()C {return _elm_size;} // get size   of a single element  in this container

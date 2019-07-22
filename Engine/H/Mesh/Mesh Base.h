@@ -139,37 +139,37 @@ struct VtxFull // Vertex containing all possible data
 /******************************************************************************/
 struct MeshVtxs // Mesh Vertexes
 {
-   Int    elms    ()C {return _elms    ;}                                                                            // get number of vertexes
-   Vec  * pos     ()  {return _pos     ;}     Vec  & pos     (Int i)  {RANGE_ASSERT(i, _elms); return _pos     [i];} // get i-th vertex position
- C Vec  * pos     ()C {return _pos     ;}   C Vec  & pos     (Int i)C {RANGE_ASSERT(i, _elms); return _pos     [i];} // get i-th vertex position
-   Vec  * nrm     ()  {return _nrm     ;}     Vec  & nrm     (Int i)  {RANGE_ASSERT(i, _elms); return _nrm     [i];} // get i-th vertex normal
- C Vec  * nrm     ()C {return _nrm     ;}   C Vec  & nrm     (Int i)C {RANGE_ASSERT(i, _elms); return _nrm     [i];} // get i-th vertex normal
-   Vec  * tan     ()  {return _tan     ;}     Vec  & tan     (Int i)  {RANGE_ASSERT(i, _elms); return _tan     [i];} // get i-th vertex tangent
- C Vec  * tan     ()C {return _tan     ;}   C Vec  & tan     (Int i)C {RANGE_ASSERT(i, _elms); return _tan     [i];} // get i-th vertex tangent
-   Vec  * bin     ()  {return _bin     ;}     Vec  & bin     (Int i)  {RANGE_ASSERT(i, _elms); return _bin     [i];} // get i-th vertex binormal
- C Vec  * bin     ()C {return _bin     ;}   C Vec  & bin     (Int i)C {RANGE_ASSERT(i, _elms); return _bin     [i];} // get i-th vertex binormal
-   Vec  * hlp     ()  {return _hlp     ;}     Vec  & hlp     (Int i)  {RANGE_ASSERT(i, _elms); return _hlp     [i];} // get i-th vertex helper
- C Vec  * hlp     ()C {return _hlp     ;}   C Vec  & hlp     (Int i)C {RANGE_ASSERT(i, _elms); return _hlp     [i];} // get i-th vertex helper
-   Vec2 * tex0    ()  {return _tex0    ;}     Vec2 & tex0    (Int i)  {RANGE_ASSERT(i, _elms); return _tex0    [i];} // get i-th vertex texture UV 0
- C Vec2 * tex0    ()C {return _tex0    ;}   C Vec2 & tex0    (Int i)C {RANGE_ASSERT(i, _elms); return _tex0    [i];} // get i-th vertex texture UV 0
-   Vec2 * tex1    ()  {return _tex1    ;}     Vec2 & tex1    (Int i)  {RANGE_ASSERT(i, _elms); return _tex1    [i];} // get i-th vertex texture UV 1
- C Vec2 * tex1    ()C {return _tex1    ;}   C Vec2 & tex1    (Int i)C {RANGE_ASSERT(i, _elms); return _tex1    [i];} // get i-th vertex texture UV 1
-   Vec2 * tex2    ()  {return _tex2    ;}     Vec2 & tex2    (Int i)  {RANGE_ASSERT(i, _elms); return _tex2    [i];} // get i-th vertex texture UV 2
- C Vec2 * tex2    ()C {return _tex2    ;}   C Vec2 & tex2    (Int i)C {RANGE_ASSERT(i, _elms); return _tex2    [i];} // get i-th vertex texture UV 2
-   Color* color   ()  {return _color   ;}     Color& color   (Int i)  {RANGE_ASSERT(i, _elms); return _color   [i];} // get i-th vertex color
- C Color* color   ()C {return _color   ;}   C Color& color   (Int i)C {RANGE_ASSERT(i, _elms); return _color   [i];} // get i-th vertex color
-   VecB4* material()  {return _material;}     VecB4& material(Int i)  {RANGE_ASSERT(i, _elms); return _material[i];} // get i-th vertex material blend
- C VecB4* material()C {return _material;}   C VecB4& material(Int i)C {RANGE_ASSERT(i, _elms); return _material[i];} // get i-th vertex material blend
-   VecB4* matrix  ()  {return _matrix  ;}     VecB4& matrix  (Int i)  {RANGE_ASSERT(i, _elms); return _matrix  [i];} // get i-th vertex bone/matrix index , index maps to a specific bone of a skeleton, where 0=skeleton root bone, 1=skeleton bone #0, 2=skeleton bone #1, 3=skeleton bone #2, and so on, this can be summarized in the following : bone = (index ? skeleton.bone[index-1] : skeleton.root), only xyz components are used which point to 3 bones, w is unused and should be set to 0
- C VecB4* matrix  ()C {return _matrix  ;}   C VecB4& matrix  (Int i)C {RANGE_ASSERT(i, _elms); return _matrix  [i];} // get i-th vertex bone/matrix index , index maps to a specific bone of a skeleton, where 0=skeleton root bone, 1=skeleton bone #0, 2=skeleton bone #1, 3=skeleton bone #2, and so on, this can be summarized in the following : bone = (index ? skeleton.bone[index-1] : skeleton.root), only xyz components are used which point to 3 bones, w is unused and should be set to 0
-   VecB4* blend   ()  {return _blend   ;}     VecB4& blend   (Int i)  {RANGE_ASSERT(i, _elms); return _blend   [i];} // get i-th vertex bone/matrix weight, weight factor between corresponding matrix.xyzw bones, only xyz components are used, their sum must be equal to 255 !! w is unused and should be set to 0
- C VecB4* blend   ()C {return _blend   ;}   C VecB4& blend   (Int i)C {RANGE_ASSERT(i, _elms); return _blend   [i];} // get i-th vertex bone/matrix weight, weight factor between corresponding matrix.xyzw bones, only xyz components are used, their sum must be equal to 255 !! w is unused and should be set to 0
-   Flt  * size    ()  {return _size    ;}     Flt  & size    (Int i)  {RANGE_ASSERT(i, _elms); return _size    [i];} // get i-th vertex size
- C Flt  * size    ()C {return _size    ;}   C Flt  & size    (Int i)C {RANGE_ASSERT(i, _elms); return _size    [i];} // get i-th vertex size
-   Byte * flag    ()  {return _flag    ;}     Byte & flag    (Int i)  {RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th vertex VTX_FLAGS
- C Byte * flag    ()C {return _flag    ;}   C Byte & flag    (Int i)C {RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th vertex VTX_FLAGS
-   Int  * dup     ()  {return _dup     ;}     Int  & dup     (Int i)  {RANGE_ASSERT(i, _elms); return _dup     [i];} // get i-th vertex duplicate, index of identical vertex
- C Int  * dup     ()C {return _dup     ;}   C Int  & dup     (Int i)C {RANGE_ASSERT(i, _elms); return _dup     [i];} // get i-th vertex duplicate, index of identical vertex
+   Int    elms    ()C {return _elms    ;}                                                                                  // get number of vertexes
+   Vec  * pos     ()  {return _pos     ;}     Vec  & pos     (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _pos     [i];} // get i-th vertex position
+ C Vec  * pos     ()C {return _pos     ;}   C Vec  & pos     (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _pos     [i];} // get i-th vertex position
+   Vec  * nrm     ()  {return _nrm     ;}     Vec  & nrm     (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _nrm     [i];} // get i-th vertex normal
+ C Vec  * nrm     ()C {return _nrm     ;}   C Vec  & nrm     (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _nrm     [i];} // get i-th vertex normal
+   Vec  * tan     ()  {return _tan     ;}     Vec  & tan     (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _tan     [i];} // get i-th vertex tangent
+ C Vec  * tan     ()C {return _tan     ;}   C Vec  & tan     (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _tan     [i];} // get i-th vertex tangent
+   Vec  * bin     ()  {return _bin     ;}     Vec  & bin     (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _bin     [i];} // get i-th vertex binormal
+ C Vec  * bin     ()C {return _bin     ;}   C Vec  & bin     (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _bin     [i];} // get i-th vertex binormal
+   Vec  * hlp     ()  {return _hlp     ;}     Vec  & hlp     (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _hlp     [i];} // get i-th vertex helper
+ C Vec  * hlp     ()C {return _hlp     ;}   C Vec  & hlp     (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _hlp     [i];} // get i-th vertex helper
+   Vec2 * tex0    ()  {return _tex0    ;}     Vec2 & tex0    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _tex0    [i];} // get i-th vertex texture UV 0
+ C Vec2 * tex0    ()C {return _tex0    ;}   C Vec2 & tex0    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _tex0    [i];} // get i-th vertex texture UV 0
+   Vec2 * tex1    ()  {return _tex1    ;}     Vec2 & tex1    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _tex1    [i];} // get i-th vertex texture UV 1
+ C Vec2 * tex1    ()C {return _tex1    ;}   C Vec2 & tex1    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _tex1    [i];} // get i-th vertex texture UV 1
+   Vec2 * tex2    ()  {return _tex2    ;}     Vec2 & tex2    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _tex2    [i];} // get i-th vertex texture UV 2
+ C Vec2 * tex2    ()C {return _tex2    ;}   C Vec2 & tex2    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _tex2    [i];} // get i-th vertex texture UV 2
+   Color* color   ()  {return _color   ;}     Color& color   (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _color   [i];} // get i-th vertex color
+ C Color* color   ()C {return _color   ;}   C Color& color   (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _color   [i];} // get i-th vertex color
+   VecB4* material()  {return _material;}     VecB4& material(Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _material[i];} // get i-th vertex material blend
+ C VecB4* material()C {return _material;}   C VecB4& material(Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _material[i];} // get i-th vertex material blend
+   VecB4* matrix  ()  {return _matrix  ;}     VecB4& matrix  (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _matrix  [i];} // get i-th vertex bone/matrix index , index maps to a specific bone of a skeleton, where 0=skeleton root bone, 1=skeleton bone #0, 2=skeleton bone #1, 3=skeleton bone #2, and so on, this can be summarized in the following : bone = (index ? skeleton.bone[index-1] : skeleton.root), only xyz components are used which point to 3 bones, w is unused and should be set to 0
+ C VecB4* matrix  ()C {return _matrix  ;}   C VecB4& matrix  (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _matrix  [i];} // get i-th vertex bone/matrix index , index maps to a specific bone of a skeleton, where 0=skeleton root bone, 1=skeleton bone #0, 2=skeleton bone #1, 3=skeleton bone #2, and so on, this can be summarized in the following : bone = (index ? skeleton.bone[index-1] : skeleton.root), only xyz components are used which point to 3 bones, w is unused and should be set to 0
+   VecB4* blend   ()  {return _blend   ;}     VecB4& blend   (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _blend   [i];} // get i-th vertex bone/matrix weight, weight factor between corresponding matrix.xyzw bones, only xyz components are used, their sum must be equal to 255 !! w is unused and should be set to 0
+ C VecB4* blend   ()C {return _blend   ;}   C VecB4& blend   (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _blend   [i];} // get i-th vertex bone/matrix weight, weight factor between corresponding matrix.xyzw bones, only xyz components are used, their sum must be equal to 255 !! w is unused and should be set to 0
+   Flt  * size    ()  {return _size    ;}     Flt  & size    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _size    [i];} // get i-th vertex size
+ C Flt  * size    ()C {return _size    ;}   C Flt  & size    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _size    [i];} // get i-th vertex size
+   Byte * flag    ()  {return _flag    ;}     Byte & flag    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th vertex VTX_FLAGS
+ C Byte * flag    ()C {return _flag    ;}   C Byte & flag    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th vertex VTX_FLAGS
+   Int  * dup     ()  {return _dup     ;}     Int  & dup     (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _dup     [i];} // get i-th vertex duplicate, index of identical vertex
+ C Int  * dup     ()C {return _dup     ;}   C Int  & dup     (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _dup     [i];} // get i-th vertex duplicate, index of identical vertex
 
    MeshVtxs() {}
 #if !EE_PRIVATE
@@ -182,16 +182,16 @@ private:
 struct MeshEdges // Mesh Edges
 {
    Int    elms   ()C {return _elms    ;}                                                                           // get number of edges
-   VecI2* ind    ()  {return _ind     ;}     VecI2& ind    (Int i)  {RANGE_ASSERT(i, _elms); return _ind     [i];} // get i-th edge vertex indexes
- C VecI2* ind    ()C {return _ind     ;}   C VecI2& ind    (Int i)C {RANGE_ASSERT(i, _elms); return _ind     [i];} // get i-th edge vertex indexes
-   VecI2* adjFace()  {return _adj_face;}     VecI2& adjFace(Int i)  {RANGE_ASSERT(i, _elms); return _adj_face[i];} // get i-th edge adjacent faces, index to faces adjacent to the edge encoded in following way : if(adj_face==-1) -> no face, else if(adj_face&SIGN_BIT)adj_quad_index=adj_face^SIGN_BIT, else adj_tri_index=adj_face
- C VecI2* adjFace()C {return _adj_face;}   C VecI2& adjFace(Int i)C {RANGE_ASSERT(i, _elms); return _adj_face[i];} // get i-th edge adjacent faces, index to faces adjacent to the edge encoded in following way : if(adj_face==-1) -> no face, else if(adj_face&SIGN_BIT)adj_quad_index=adj_face^SIGN_BIT, else adj_tri_index=adj_face
-   Vec  * nrm    ()  {return _nrm     ;}     Vec  & nrm    (Int i)  {RANGE_ASSERT(i, _elms); return _nrm     [i];} // get i-th edge normal
- C Vec  * nrm    ()C {return _nrm     ;}   C Vec  & nrm    (Int i)C {RANGE_ASSERT(i, _elms); return _nrm     [i];} // get i-th edge normal
-   Byte * flag   ()  {return _flag    ;}     Byte & flag   (Int i)  {RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th edge flag
- C Byte * flag   ()C {return _flag    ;}   C Byte & flag   (Int i)C {RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th edge flag
-   Int  * id     ()  {return _id      ;}     Int  & id     (Int i)  {RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th edge id
- C Int  * id     ()C {return _id      ;}   C Int  & id     (Int i)C {RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th edge id
+   VecI2* ind    ()  {return _ind     ;}     VecI2& ind    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _ind     [i];} // get i-th edge vertex indexes
+ C VecI2* ind    ()C {return _ind     ;}   C VecI2& ind    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _ind     [i];} // get i-th edge vertex indexes
+   VecI2* adjFace()  {return _adj_face;}     VecI2& adjFace(Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _adj_face[i];} // get i-th edge adjacent faces, index to faces adjacent to the edge encoded in following way : if(adj_face==-1) -> no face, else if(adj_face&SIGN_BIT)adj_quad_index=adj_face^SIGN_BIT, else adj_tri_index=adj_face
+ C VecI2* adjFace()C {return _adj_face;}   C VecI2& adjFace(Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _adj_face[i];} // get i-th edge adjacent faces, index to faces adjacent to the edge encoded in following way : if(adj_face==-1) -> no face, else if(adj_face&SIGN_BIT)adj_quad_index=adj_face^SIGN_BIT, else adj_tri_index=adj_face
+   Vec  * nrm    ()  {return _nrm     ;}     Vec  & nrm    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _nrm     [i];} // get i-th edge normal
+ C Vec  * nrm    ()C {return _nrm     ;}   C Vec  & nrm    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _nrm     [i];} // get i-th edge normal
+   Byte * flag   ()  {return _flag    ;}     Byte & flag   (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th edge flag
+ C Byte * flag   ()C {return _flag    ;}   C Byte & flag   (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th edge flag
+   Int  * id     ()  {return _id      ;}     Int  & id     (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th edge id
+ C Int  * id     ()C {return _id      ;}   C Int  & id     (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th edge id
 
    MeshEdges() {}
 #if !EE_PRIVATE
@@ -204,18 +204,18 @@ private:
 struct MeshTris // Mesh Triangles
 {
    Int   elms   ()C {return _elms    ;}                                                                           // get number of triangles
-   VecI* ind    ()  {return _ind     ;}     VecI& ind    (Int i)  {RANGE_ASSERT(i, _elms); return _ind     [i];} // get i-th triangle vertex indexes
- C VecI* ind    ()C {return _ind     ;}   C VecI& ind    (Int i)C {RANGE_ASSERT(i, _elms); return _ind     [i];} // get i-th triangle vertex indexes
-   VecI* adjFace()  {return _adj_face;}     VecI& adjFace(Int i)  {RANGE_ASSERT(i, _elms); return _adj_face[i];} // get i-th triangle adjacent faces, index to faces adjacent to the triangle encoded in following way : if(adj_face==-1) -> no face, else if(adj_face&SIGN_BIT)adj_quad_index=adj_face^SIGN_BIT, else adj_tri_index=adj_face
- C VecI* adjFace()C {return _adj_face;}   C VecI& adjFace(Int i)C {RANGE_ASSERT(i, _elms); return _adj_face[i];} // get i-th triangle adjacent faces, index to faces adjacent to the triangle encoded in following way : if(adj_face==-1) -> no face, else if(adj_face&SIGN_BIT)adj_quad_index=adj_face^SIGN_BIT, else adj_tri_index=adj_face
-   VecI* adjEdge()  {return _adj_edge;}     VecI& adjEdge(Int i)  {RANGE_ASSERT(i, _elms); return _adj_edge[i];} // get i-th triangle adjacent edges, index to edges adjacent to the triangle encoded in following way : if(adj_edge==-1) -> no edge, else adj_edge_index=adj_edge
- C VecI* adjEdge()C {return _adj_edge;}   C VecI& adjEdge(Int i)C {RANGE_ASSERT(i, _elms); return _adj_edge[i];} // get i-th triangle adjacent edges, index to edges adjacent to the triangle encoded in following way : if(adj_edge==-1) -> no edge, else adj_edge_index=adj_edge
-   Vec * nrm    ()  {return _nrm     ;}     Vec & nrm    (Int i)  {RANGE_ASSERT(i, _elms); return _nrm     [i];} // get i-th triangle normal
- C Vec * nrm    ()C {return _nrm     ;}   C Vec & nrm    (Int i)C {RANGE_ASSERT(i, _elms); return _nrm     [i];} // get i-th triangle normal
-   Byte* flag   ()  {return _flag    ;}     Byte& flag   (Int i)  {RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th triangle flag
- C Byte* flag   ()C {return _flag    ;}   C Byte& flag   (Int i)C {RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th triangle flag
-   Int * id     ()  {return _id      ;}     Int & id     (Int i)  {RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th triangle id
- C Int * id     ()C {return _id      ;}   C Int & id     (Int i)C {RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th triangle id
+   VecI* ind    ()  {return _ind     ;}     VecI& ind    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _ind     [i];} // get i-th triangle vertex indexes
+ C VecI* ind    ()C {return _ind     ;}   C VecI& ind    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _ind     [i];} // get i-th triangle vertex indexes
+   VecI* adjFace()  {return _adj_face;}     VecI& adjFace(Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _adj_face[i];} // get i-th triangle adjacent faces, index to faces adjacent to the triangle encoded in following way : if(adj_face==-1) -> no face, else if(adj_face&SIGN_BIT)adj_quad_index=adj_face^SIGN_BIT, else adj_tri_index=adj_face
+ C VecI* adjFace()C {return _adj_face;}   C VecI& adjFace(Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _adj_face[i];} // get i-th triangle adjacent faces, index to faces adjacent to the triangle encoded in following way : if(adj_face==-1) -> no face, else if(adj_face&SIGN_BIT)adj_quad_index=adj_face^SIGN_BIT, else adj_tri_index=adj_face
+   VecI* adjEdge()  {return _adj_edge;}     VecI& adjEdge(Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _adj_edge[i];} // get i-th triangle adjacent edges, index to edges adjacent to the triangle encoded in following way : if(adj_edge==-1) -> no edge, else adj_edge_index=adj_edge
+ C VecI* adjEdge()C {return _adj_edge;}   C VecI& adjEdge(Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _adj_edge[i];} // get i-th triangle adjacent edges, index to edges adjacent to the triangle encoded in following way : if(adj_edge==-1) -> no edge, else adj_edge_index=adj_edge
+   Vec * nrm    ()  {return _nrm     ;}     Vec & nrm    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _nrm     [i];} // get i-th triangle normal
+ C Vec * nrm    ()C {return _nrm     ;}   C Vec & nrm    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _nrm     [i];} // get i-th triangle normal
+   Byte* flag   ()  {return _flag    ;}     Byte& flag   (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th triangle flag
+ C Byte* flag   ()C {return _flag    ;}   C Byte& flag   (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th triangle flag
+   Int * id     ()  {return _id      ;}     Int & id     (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th triangle id
+ C Int * id     ()C {return _id      ;}   C Int & id     (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th triangle id
 
    MeshTris() {}
 #if !EE_PRIVATE
@@ -228,18 +228,18 @@ private:
 struct MeshQuads // Mesh Quads
 {
    Int    elms   ()C {return _elms    ;}                                                                           // get number of quads
-   VecI4* ind    ()  {return _ind     ;}     VecI4& ind    (Int i)  {RANGE_ASSERT(i, _elms); return _ind     [i];} // get i-th quad vertex indexes
- C VecI4* ind    ()C {return _ind     ;}   C VecI4& ind    (Int i)C {RANGE_ASSERT(i, _elms); return _ind     [i];} // get i-th quad vertex indexes
-   VecI4* adjFace()  {return _adj_face;}     VecI4& adjFace(Int i)  {RANGE_ASSERT(i, _elms); return _adj_face[i];} // get i-th quad adjacent faces, index to faces adjacent to the quad encoded in following way : if(adj_face==-1) -> no face, else if(adj_face&SIGN_BIT)adj_quad_index=adj_face^SIGN_BIT, else adj_tri_index=adj_face
- C VecI4* adjFace()C {return _adj_face;}   C VecI4& adjFace(Int i)C {RANGE_ASSERT(i, _elms); return _adj_face[i];} // get i-th quad adjacent faces, index to faces adjacent to the quad encoded in following way : if(adj_face==-1) -> no face, else if(adj_face&SIGN_BIT)adj_quad_index=adj_face^SIGN_BIT, else adj_tri_index=adj_face
-   VecI4* adjEdge()  {return _adj_edge;}     VecI4& adjEdge(Int i)  {RANGE_ASSERT(i, _elms); return _adj_edge[i];} // get i-th quad adjacent edges, index to edges adjacent to the quad encoded in following way : if(adj_edge==-1) -> no edge, else adj_edge_index=adj_edge
- C VecI4* adjEdge()C {return _adj_edge;}   C VecI4& adjEdge(Int i)C {RANGE_ASSERT(i, _elms); return _adj_edge[i];} // get i-th quad adjacent edges, index to edges adjacent to the quad encoded in following way : if(adj_edge==-1) -> no edge, else adj_edge_index=adj_edge
-   Vec  * nrm    ()  {return _nrm     ;}     Vec  & nrm    (Int i)  {RANGE_ASSERT(i, _elms); return _nrm     [i];} // get i-th quad normal
- C Vec  * nrm    ()C {return _nrm     ;}   C Vec  & nrm    (Int i)C {RANGE_ASSERT(i, _elms); return _nrm     [i];} // get i-th quad normal
-   Byte * flag   ()  {return _flag    ;}     Byte & flag   (Int i)  {RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th quad flag
- C Byte * flag   ()C {return _flag    ;}   C Byte & flag   (Int i)C {RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th quad flag
-   Int  * id     ()  {return _id      ;}     Int  & id     (Int i)  {RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th quad id
- C Int  * id     ()C {return _id      ;}   C Int  & id     (Int i)C {RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th quad id
+   VecI4* ind    ()  {return _ind     ;}     VecI4& ind    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _ind     [i];} // get i-th quad vertex indexes
+ C VecI4* ind    ()C {return _ind     ;}   C VecI4& ind    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _ind     [i];} // get i-th quad vertex indexes
+   VecI4* adjFace()  {return _adj_face;}     VecI4& adjFace(Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _adj_face[i];} // get i-th quad adjacent faces, index to faces adjacent to the quad encoded in following way : if(adj_face==-1) -> no face, else if(adj_face&SIGN_BIT)adj_quad_index=adj_face^SIGN_BIT, else adj_tri_index=adj_face
+ C VecI4* adjFace()C {return _adj_face;}   C VecI4& adjFace(Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _adj_face[i];} // get i-th quad adjacent faces, index to faces adjacent to the quad encoded in following way : if(adj_face==-1) -> no face, else if(adj_face&SIGN_BIT)adj_quad_index=adj_face^SIGN_BIT, else adj_tri_index=adj_face
+   VecI4* adjEdge()  {return _adj_edge;}     VecI4& adjEdge(Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _adj_edge[i];} // get i-th quad adjacent edges, index to edges adjacent to the quad encoded in following way : if(adj_edge==-1) -> no edge, else adj_edge_index=adj_edge
+ C VecI4* adjEdge()C {return _adj_edge;}   C VecI4& adjEdge(Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _adj_edge[i];} // get i-th quad adjacent edges, index to edges adjacent to the quad encoded in following way : if(adj_edge==-1) -> no edge, else adj_edge_index=adj_edge
+   Vec  * nrm    ()  {return _nrm     ;}     Vec  & nrm    (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _nrm     [i];} // get i-th quad normal
+ C Vec  * nrm    ()C {return _nrm     ;}   C Vec  & nrm    (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _nrm     [i];} // get i-th quad normal
+   Byte * flag   ()  {return _flag    ;}     Byte & flag   (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th quad flag
+ C Byte * flag   ()C {return _flag    ;}   C Byte & flag   (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _flag    [i];} // get i-th quad flag
+   Int  * id     ()  {return _id      ;}     Int  & id     (Int i)  {DEBUG_RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th quad id
+ C Int  * id     ()C {return _id      ;}   C Int  & id     (Int i)C {DEBUG_RANGE_ASSERT(i, _elms); return _id      [i];} // get i-th quad id
 
    MeshQuads() {}
 #if !EE_PRIVATE

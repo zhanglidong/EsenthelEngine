@@ -301,7 +301,7 @@ void Material::setShadow()C
 }
 void Material::setMulti(Int i)C
 {
-   RANGE_ASSERT(i, Sh.MultiMaterial);
+   DEBUG_RANGE_ASSERT(i, Sh.MultiMaterial);
    if(MaterialLast4[i]!=this)
    {
             MaterialLast4[i]=this;

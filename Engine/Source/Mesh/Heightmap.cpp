@@ -1091,7 +1091,7 @@ struct Builder
       UInt i=vmc_first[y][x];
       if(  i==~0) // not yet added
       {
-         RANGE_ASSERT(vmc_elms, vmc);
+         DEBUG_RANGE_ASSERT(vmc_elms, vmc);
          VtxMtrlCombo &v=vmc[vmc_elms]; vmc_first[y][x]=vmc_elms++;
          v.next_add    =0;
          v.mtrl_combo  =mtrl_combo;
@@ -1103,7 +1103,7 @@ struct Builder
          if(c.mtrl_combo==mtrl_combo)return; // already listed by this mtrl combo
          if(c.next_add)i+=c.next_add;else    // proceed to the next one
          { // add new one
-            RANGE_ASSERT(vmc_elms, vmc);
+            DEBUG_RANGE_ASSERT(vmc_elms, vmc);
             c.next_add=vmc_elms-i;
             VtxMtrlCombo &v=vmc[vmc_elms++];
             v.next_add    =0;
@@ -1116,7 +1116,7 @@ struct Builder
    {
       for(UInt i=vmc_first[y][x]; ; )
       {
-         RANGE_ASSERT(i, vmc_elms);
+         DEBUG_RANGE_ASSERT(i, vmc_elms);
          VtxMtrlCombo &v=vmc[i];
          if(v.mtrl_combo==mtrl_combo)return v.mc_vtx_index;
          DEBUG_ASSERT(v.next_add!=0, "vtxIndexInMtrlCombo");
@@ -1481,7 +1481,7 @@ struct Builder
             Vec4  &mb=T.mtrl_blend[sy][sx]; this could be VecB4
             REPA(mi)
             {
-               RANGE_ASSERT(mtrl_indexes_num, mtrl_indexes);
+               DEBUG_RANGE_ASSERT(mtrl_indexes_num, mtrl_indexes);
                mtrl_indexes[mtrl_indexes_num++]=mi.c[i];
                material_blends[mi.c[i]]+=mb.c[i];
             }

@@ -273,7 +273,7 @@ Bool MeshRender::createRaw(C MeshBase &src, UInt flag_and, Bool optimize, Bool c
    void addTemp(Byte matrix)
    {
       REP(temps)if(temp_matrix[i]==matrix)return; // if already added then don't add anymore
-      if(!InRange(temps, temp_matrix))Exit("SplitPart.addTemp"); // shouldn't happen
+      RANGE_ASSERT_ERROR(temps, temp_matrix, "SplitPart.addTemp"); // shouldn't happen
       temp_matrix[temps++]=matrix; // add to helper array
    }
    Bool canFit(VecB4 *matrix, VecB4 *weight, Int elms)

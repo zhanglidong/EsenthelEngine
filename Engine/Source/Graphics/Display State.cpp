@@ -570,7 +570,7 @@ void DisplayState::alphaFactor(C Color &factor) // 'MaterialClear' must be calle
 /******************************************************************************/
 void DisplayState::colWrite(Byte color_mask, Byte index)
 {
-   RANGE_ASSERT(index, D._col_write);
+   DEBUG_RANGE_ASSERT(index, D._col_write);
 #if DX11
    // color writes are not supported on DX10+ implementation
 #elif GL

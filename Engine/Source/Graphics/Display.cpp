@@ -3021,7 +3021,7 @@ void Display::clearCol(C Vec4  &     color)
 
 void Display::clearCol(Int i, C Vec4 &color)
 {
-   RANGE_ASSERT(i, Renderer._cur);
+   DEBUG_RANGE_ASSERT(i, Renderer._cur);
 #if DX11
    if(ImageRT *image=Renderer._cur[i])image->clearHw(color);
 #elif GL

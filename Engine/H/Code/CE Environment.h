@@ -141,7 +141,7 @@ struct Call
 
           Func   func;
           Int    params;
-   INLINE Param& param(Int i) {RANGE_ASSERT(i, params); return ((Param*)(this+1))[i];}
+   INLINE Param& param(Int i) {DEBUG_RANGE_ASSERT(i, params); return ((Param*)(this+1))[i];}
 };
 /******************************************************************************/
 } // namespace

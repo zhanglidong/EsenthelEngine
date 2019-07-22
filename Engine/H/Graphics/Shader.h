@@ -101,12 +101,14 @@ struct ShaderParam // Shader Parameter
 #if EE_PRIVATE
    struct Translation
    {
-      Int cpu_offset, gpu_offset, elm_size;
+      Int cpu_offset, gpu_offset, elm_size; // 'gpu_offset'=during shader creation and saving it's set relative to start of cbuffer, but while loading it's adjusted to be relative to start of param. This is done because 'ShaderParam.data' is adjusted to point directly to param (so 'set' methods can work correctly), since 'data' is adjusted then we have to adjust 'gpu_offset' too.
 
       Bool operator!=(C Translation &trans)C {return T.cpu_offset!=trans.cpu_offset || T.gpu_offset!=trans.gpu_offset || T.elm_size!=trans.elm_size;}
 
       void set(Int cpu_offset, Int gpu_offset, Int elm_size) {T.cpu_offset=cpu_offset; T.gpu_offset=gpu_offset; T.elm_size=elm_size;}
    };
+
+   static void OptimizeTranslation(C MemPtr<Translation> &src, Mems<Translation> &dest);
 
    Byte *_data;
    Int   _cpu_data_size, _gpu_data_size, _elements;
@@ -116,7 +118,7 @@ struct ShaderParam // Shader Parameter
    Bool is()C {return _cpu_data_size>0;}
 
    INLINE void setChanged() {*_changed=true;}
-          void optimize();
+          void optimize  () {OptimizeTranslation(_full_translation, _optimized_translation);}
           void initAsElement(ShaderParam &parent, Int index);
 
    INLINE GpuMatrix* asGpuMatrix() {return (GpuMatrix*)_data;}
@@ -297,7 +299,7 @@ struct BufferLinkPtr
  C BufferLink *data=null;
    Int         elms=0;
 
- C BufferLink& operator[](Int i) {RANGE_ASSERT(i, elms); return data[i];}
+ C BufferLink& operator[](Int i) {DEBUG_RANGE_ASSERT(i, elms); return data[i];}
    void operator=(C Mems<BufferLink> &links) {data=links.data(); elms=links.elms();}
 };
 struct ImageLinkPtr
@@ -305,7 +307,7 @@ struct ImageLinkPtr
  C ImageLink *data=null;
    Int        elms=0;
 
- C ImageLink& operator[](Int i) {RANGE_ASSERT(i, elms); return data[i];}
+ C ImageLink& operator[](Int i) {DEBUG_RANGE_ASSERT(i, elms); return data[i];}
    void operator=(C Mems<ImageLink> &links) {data=links.data(); elms=links.elms();}
 };
 inline Int Elms(C BufferLinkPtr &links) {return links.elms;}

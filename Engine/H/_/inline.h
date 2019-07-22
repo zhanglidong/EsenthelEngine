@@ -193,9 +193,9 @@ T1(TYPE)  Int   Mems<TYPE>::elms    ()C {return _elms;}
 T1(TYPE)  UInt  Mems<TYPE>::elmSize ()C {return SIZE(TYPE);}
 T1(TYPE)  UInt  Mems<TYPE>::memUsage()C {return elms()*elmSize();}
 
-T1(TYPE)  TYPE*  Mems<TYPE>::data      (     ) {                          return _data   ;}
-T1(TYPE)  TYPE*  Mems<TYPE>::addr      (Int i) {return InRange(i, _elms) ?      &_data[i] : null;}
-T1(TYPE)  TYPE&  Mems<TYPE>::operator[](Int i) {  RANGE_ASSERT(i, _elms); return _data[i];}
+T1(TYPE)  TYPE*  Mems<TYPE>::data      (     ) {                              return _data   ;}
+T1(TYPE)  TYPE*  Mems<TYPE>::addr      (Int i) {return     InRange(i, _elms) ?      &_data[i] : null;}
+T1(TYPE)  TYPE&  Mems<TYPE>::operator[](Int i) {DEBUG_RANGE_ASSERT(i, _elms); return _data[i];}
 T1(TYPE)  TYPE&  Mems<TYPE>::first     (     ) {return T[       0];}
 T1(TYPE)  TYPE&  Mems<TYPE>::last      (     ) {return T[elms()-1];}
 
@@ -604,10 +604,10 @@ template<typename TYPE, Int size>  Int   Memt<TYPE, size>::elms    ()C {return _
 template<typename TYPE, Int size>  UInt  Memt<TYPE, size>::elmSize ()C {return SIZE(TYPE);}
 template<typename TYPE, Int size>  UInt  Memt<TYPE, size>::memUsage()C {return SIZE(T) + (_data ? elmSize()*maxElms() : 0);}
 
-template<typename TYPE, Int size>  TYPE*  Memt<TYPE, size>::data      (     ) {                          return _data ? _data    :  (TYPE*)_temp    ;}
-template<typename TYPE, Int size>  TYPE&  Memt<TYPE, size>::_element  (Int i) {                          return _data ? _data[i] : ((TYPE*)_temp)[i];}
-template<typename TYPE, Int size>  TYPE&  Memt<TYPE, size>::operator[](Int i) {  RANGE_ASSERT(i, _elms); return _element(i);}
-template<typename TYPE, Int size>  TYPE*  Memt<TYPE, size>::addr      (Int i) {return InRange(i, _elms)   ?    &_element(i) : null;}
+template<typename TYPE, Int size>  TYPE*  Memt<TYPE, size>::data      (     ) {                              return _data ? _data    :  (TYPE*)_temp    ;}
+template<typename TYPE, Int size>  TYPE&  Memt<TYPE, size>::_element  (Int i) {                              return _data ? _data[i] : ((TYPE*)_temp)[i];}
+template<typename TYPE, Int size>  TYPE&  Memt<TYPE, size>::operator[](Int i) {DEBUG_RANGE_ASSERT(i, _elms); return _element(i);}
+template<typename TYPE, Int size>  TYPE*  Memt<TYPE, size>::addr      (Int i) {return     InRange(i, _elms)   ?    &_element(i) : null;}
 template<typename TYPE, Int size>  TYPE&  Memt<TYPE, size>::first     (     ) {return T[       0];}
 template<typename TYPE, Int size>  TYPE&  Memt<TYPE, size>::last      (     ) {return T[elms()-1];}
 
@@ -1252,7 +1252,7 @@ template<typename TYPE, Int Memt_size>  TYPE&  MemPtr<TYPE, Memt_size>::operator
 {
    switch(_mode)
    {
-      default  : RANGE_ASSERT(i, _elms); return _ptr[i]; // PTR
+      default  : DEBUG_RANGE_ASSERT(i, _elms); return _ptr[i]; // PTR
       case MEMS: return (*_mems)[i];
       case MEMC: return (*_memc)[i];
       case MEMT: return (*_memt)[i];
@@ -1265,7 +1265,7 @@ template<typename TYPE, Int Memt_size>  TYPE&  MemPtr<TYPE, Memt_size>::operator
 {
    switch(_mode)
    {
-      default  : if(!InRange(i, _elms))Exit("'MemPtr.operator(Int)' PTR mode out of range"); return _ptr[i]; // PTR
+      default  : RANGE_ASSERT(i, _elms); return _ptr[i]; // PTR
       case MEMS: return (*_mems)(i);
       case MEMC: return (*_memc)(i);
       case MEMT: return (*_memt)(i);

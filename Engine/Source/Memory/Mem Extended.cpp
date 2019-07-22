@@ -273,7 +273,7 @@ void _Memx::verify()C
    REPA(T)
    {
       Int abs=validToAbsIndex(i);
-      if(!InRange(abs, _abs))Exit("Invalid abs index");
+      RANGE_ASSERT_ERROR(abs, _abs, "Invalid abs index");
       Int valid=absToValidIndex(abs);
       if( valid!=i)Exit("Invalid valid index");
    }
