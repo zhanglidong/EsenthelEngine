@@ -456,7 +456,7 @@ void ShaderParam::initAsElement(ShaderParam &parent, Int index)
   _data         =parent._data;
   _changed      =parent._changed;
 
-   if(parent._full_translation.elms()==1)
+ /*if(parent._full_translation.elms()==1)
    {
      _full_translation=parent._full_translation;
       Translation &t=_full_translation[0];
@@ -466,7 +466,7 @@ void ShaderParam::initAsElement(ShaderParam &parent, Int index)
      _data+=t.elm_size*index;
      _optimized_translation=_full_translation;
      _gpu_data_size        =parent._gpu_data_size/parent._elements;
-   }else
+   }else*/
    {
       if(                  parent._full_translation.elms()%parent._elements)Exit("ShaderParam Mod");
       Int elm_translations=parent._full_translation.elms()/parent._elements; // calculate number of translations for a single element
