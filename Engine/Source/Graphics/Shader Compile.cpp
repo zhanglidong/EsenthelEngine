@@ -5,6 +5,8 @@
 #define SPIRV_CROSS 1
 #define HLSL_CC 0
 
+#define FORCE_LOG_SHADER_CODE (DEBUG && 0)
+
 #if WINDOWS && NEW_COMPILER
 const UINT32 CP_UTF16=1200;
 #include "../../../ThirdPartyLibs/begin.h"
@@ -49,13 +51,20 @@ namespace EE{
 /******************************************************************************/
 #define CC4_SHDR CC4('S','H','D','R')
 /******************************************************************************/
-static const CChar8* APIName[]=
+static const CChar8 *APIName[]=
 {
    "DX"    , // 0
    "GL"    , // 1
    "VULKAN", // 2
    "METAL" , // 3
 }; ASSERT(API_DX==0 && API_GL==1 && API_VULKAN==2 && API_METAL==3 && API_NUM==4);
+static const CChar8 *ShaderTypeName[]=
+{
+   "VS", // 0
+   "HS", // 1
+   "DS", // 2
+   "PS", // 3
+}; ASSERT(ST_VS==0 && ST_HS==1 && ST_DS==2 && ST_PS==3 && ST_NUM==4);
 /******************************************************************************/
 #if   0 // Test #1: shader size 6.61 MB, engine load+render 1 frame = 0.40s on Windows, decompression 10x faster
    #define COMPRESS_GL       COMPRESS_LZ4
@@ -1020,6 +1029,51 @@ static void ErrorCallback(void *userdata, const char *error)
 {
    Exit(error);
 }
+static Str8 RemoveSpaces(C Str8 &str)
+{
+   Str8 s; if(str.is())
+   {
+      s.reserve(str.length());
+      Bool possible_preproc=true, preproc=false;
+      CChar8 *text=str; for(Char8 last=0;;)
+      {
+         if(text[0]==' '
+         && (CharType(last)!=CHART_CHAR || CharType(text[1])!=CHART_CHAR)
+         && (preproc ? last!=')' && text[1]!='(' : true) // don't remove spaces around brackets when in preprocessor mode "#define X(a) a" would turn into "#define X(a)a", same thing for "#define X (X+1)" would turn into "#define X(X+1)"
+         && (last!='/' || text[1]!='*')  // don't remove spaces around / * because this could trigger comment mode
+         && (last!='*' || text[1]!='/')  // don't remove spaces around * / because this could trigger comment mode
+         )
+         {
+            text+=1;
+            last =s.last();
+         }else
+         {
+            last=*text++; if(!last)break;
+            s+=last;
+            if(last=='\n'){possible_preproc=true; preproc=false;}else
+            if(last!=' ' && last!='\t' && last!='#')possible_preproc=false;else
+            if(last=='#' && possible_preproc)preproc=true;
+         }
+      }
+   }
+   return s;
+}
+static Str8 RemoveEmptyLines(C Str8 &str)
+{
+   Str8 s; if(str.is())
+   {
+      s.reserve(str.length());
+      CChar8 *text=str;
+      for(Char8 last='\n'; ; )
+      {
+         Char8 c=*text++; if(!c)break;
+         if(c=='\n' && (last=='\n' || !*text))continue;
+         s+=c; last=c;
+      }
+      if(s.last()=='\n')s.removeLast();
+   }
+   return s;
+}
 static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_index)
 {
    Str8 code;
@@ -1035,6 +1089,17 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    spvc_parsed_ir ir=null; spvc_context_parse_spirv(context, spirv, word_count, &ir); if(!ir)Exit("'spvc_context_parse_spirv' failed");
    spvc_compiler spirv_compiler=null; spvc_context_create_compiler(context, (compiler.api==API_METAL) ? SPVC_BACKEND_MSL : SPVC_BACKEND_GLSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &spirv_compiler);
    if(!spirv_compiler)Exit("'spvc_context_create_compiler' failed");
+
+   SHADER_TYPE type;
+   switch(spvc_compiler_get_execution_model(spirv_compiler))
+   {
+      case SpvExecutionModelVertex                : type=ST_VS; break;
+      case SpvExecutionModelTessellationControl   : type=ST_HS; break;
+      case SpvExecutionModelTessellationEvaluation: type=ST_DS; break;
+    //case SpvExecutionModelGeometry              : type=ST_GS; break;
+      case SpvExecutionModelFragment              : type=ST_PS; break;
+      default: Exit("Invalid Execution model"); break;
+   }
 
    spvc_resources resources=null; spvc_compiler_create_shader_resources(spirv_compiler, &resources);
    const spvc_reflected_resource *list=null; size_t count=0; spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, &list, &count);
@@ -1183,6 +1248,25 @@ spvc_result spvc_compiler_type_struct_member_matrix_stride(spvc_compiler compile
       }
    }
 
+   Char8 start[256], temp[256];
+   list=null; count=0; spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_STAGE_OUTPUT, &list, &count); FREP(count)
+   {
+    C spvc_reflected_resource &res=list[i];
+    //CChar8 *name=spvc_compiler_get_name(spirv_compiler, res.id); name=_SkipStart(name, "out_var_");
+      Int loc=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationLocation); DYNAMIC_ASSERT(loc==i, "location!=i");
+      Set(start, (type==ST_PS) ? "RT" : "IO"); Append(start, TextInt(i, temp)); // OUTPUT name must match INPUT name, this solves problem when using "TEXCOORD" and "TEXCOORD0"
+      spvc_compiler_set_name(spirv_compiler, res.id, start);
+   }
+   list=null; count=0; spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_STAGE_INPUT, &list, &count); FREP(count)
+   {
+    C spvc_reflected_resource &res=list[i];
+      CChar8 *name=spvc_compiler_get_name(spirv_compiler, res.id); name=_SkipStart(name, "in_var_");
+      Int loc=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationLocation); DYNAMIC_ASSERT(loc==i, "location!=i");
+      if(Starts(name, "ATTR"))DYNAMIC_ASSERT(TextInt(name+4)==i, "ATTR index!=i"); // verify vtx input ATTR index
+      Set(start, (type==ST_VS) ? "ATTR" : "IO"); Append(start, TextInt(i, temp)); // OUTPUT name must match INPUT name, this solves problem when using "TEXCOORD" and "TEXCOORD0"
+      spvc_compiler_set_name(spirv_compiler, res.id, start);
+   }
+
    spvc_compiler_options options=null;
    spvc_compiler_create_compiler_options(spirv_compiler, &options); if(!options)Exit("'spvc_compiler_create_compiler_options' failed");
    switch(compiler.api)
@@ -1224,8 +1308,7 @@ spvc_result spvc_compiler_type_struct_member_matrix_stride(spvc_compiler compile
 
    code=Replace(code, "#version 330\n", S);
    code=Replace(code, "#version 300 es\n", S);
-   code=Replace(code, "in_var_ATTR", "ATTR", true);
-   // FIXME optimize by removing useless spaces
+   code=RemoveEmptyLines(RemoveSpaces(code));
 
    FREPA(buffer_instances)
    {
@@ -1234,9 +1317,10 @@ spvc_result spvc_compiler_type_struct_member_matrix_stride(spvc_compiler compile
       code=Replace(code, inst    , S, true, true);
    }
 
-   //FIXME
-   //ClipSet(code);
-   //LogN(S+"/******************************************************************************/\nShader:"+cc.shaderName(shader_data)+'\n'+code);
+#if FORCE_LOG_SHADER_CODE
+   #pragma message("!! Warning: Use this only for debugging !!")
+   LogN(S+"/******************************************************************************/\nShader:"+cc.shaderName(shader_data)+' '+ShaderTypeName[type]+'\n'+code);
+#endif
 
 #endif
 

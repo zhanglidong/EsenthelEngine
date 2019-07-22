@@ -998,7 +998,7 @@ UInt ShaderGL::compileEx(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_arra
    {
       if(LogInit)Log(S+"Linking vertex+pixel shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\": ");
       prog=glCreateProgram(); if(!prog)Exit("Can't create GL Shader Program");
-      FREP(16)
+      FREP(GL_VTX_NUM) // this is for GL_VTX_SEMANTIC, keep just in case we don't want to store "layout(location=I)" inside shaders
       {
          Char8 name[16], temp[256]; Set(name, "ATTR"); Append(name, TextInt(i, temp));
          glBindAttribLocation(prog, VtxSemanticToIndex(i), name);
@@ -1123,7 +1123,7 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
          Char8 name[256]; name[0]='\0'; Int length=0;
          glGetActiveUniformBlockName(prog, i, Elms(name), &length, name);
          if(name[0]!='_')Exit("Invalid buffer name"); // all GL buffers assume to start with '_' this is adjusted in 'ShaderCompiler'
-         all_buffers[i]=GetShaderBuffer(name+1);
+         all_buffers[i]=GetShaderBuffer(name+1); // skip '_'
          glUniformBlockBinding(prog, i, all_buffers[i]->bindPoint());
       }
 

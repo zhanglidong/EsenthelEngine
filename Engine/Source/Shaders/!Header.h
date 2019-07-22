@@ -986,20 +986,19 @@ Half   SRGBLumOfSRGBColor  (VecH s) {return LinearToSRGBFast(Dot(SRGBToLinearFas
 struct VtxInput // Vertex Input, use this class to access vertex data in vertex shaders
 {
 #if GL
-   // !! must be in sync with GL_VTX_SEMANTIC !!
-   // FIXME: can replace these with DX style names, and adjust GL_VTX_SEMANTIC to be GL_VTX_POS 0, GL_VTX_HLP 1, .. ?
+   // !! both ATTR numbers and list order, must be in sync with GL_VTX_SEMANTIC !!
    Vec4  _pos     :ATTR0 ;
-   VecH  _hlp     :ATTR9 ;
-   VecH  _nrm     :ATTR1 ;
-   VecH4 _tan     :ATTR2 ;
-   Vec2  _tex     :ATTR3 ;
-   Vec2  _tex1    :ATTR4 ;
-   Vec2  _tex2    :ATTR11;
-   Half  _size    :ATTR10;
-   Vec4  _bone    :ATTR5 ;
-   VecH4 _weight  :ATTR6 ;
-   VecH4 _material:ATTR8 ;
-   VecH4 _color   :ATTR7 ;
+   VecH  _hlp     :ATTR1 ;
+   VecH  _nrm     :ATTR2 ;
+   VecH4 _tan     :ATTR3 ;
+   Vec2  _tex     :ATTR4 ;
+   Vec2  _tex1    :ATTR5 ;
+   Vec2  _tex2    :ATTR6 ;
+   Half  _size    :ATTR7 ;
+   Vec4  _bone    :ATTR8 ;
+   VecH4 _weight  :ATTR9 ;
+   VecH4 _material:ATTR10;
+   VecH4 _color   :ATTR11;
 #else
    Vec4  _pos     :POSITION0   ;
    VecH  _hlp     :POSITION1   ;

@@ -34,19 +34,17 @@ struct VtxFormatKey
 enum GL_VTX_SEMANTIC : Byte // !! must be in sync with all "ATTR*" mentions in the engine !!
 {
    GL_VTX_POS     , // 0
-   GL_VTX_NRM     , // 1
-   GL_VTX_TAN     , // 2
-   GL_VTX_TEX0    , // 3
-   GL_VTX_TEX1    , // 4, used for lightmaps
-   GL_VTX_BONE    , // 5
-   GL_VTX_WEIGHT  , // 6
-   GL_VTX_COLOR   , // 7
-   // Galaxy Tab 2 (PowerVR SGX 540) has only 8 vertex attributes
-   GL_VTX_MATERIAL, // 8
-   GL_VTX_HLP     , // 9
-   // Galaxy Tab 3/4 have only 10 vertex attributes
-   GL_VTX_SIZE    , // 10
-   GL_VTX_TEX2    , // 11
+   GL_VTX_HLP     , // 1
+   GL_VTX_NRM     , // 2
+   GL_VTX_TAN     , // 3
+   GL_VTX_TEX0    , // 4
+   GL_VTX_TEX1    , // 5
+   GL_VTX_TEX2    , // 6
+   GL_VTX_SIZE    , // 7
+   GL_VTX_BONE    , // 8
+   GL_VTX_WEIGHT  , // 9
+   GL_VTX_MATERIAL, // 10
+   GL_VTX_COLOR   , // 11
    GL_VTX_NUM     , // 12
 };
 GL_VTX_SEMANTIC VtxSemanticToIndex(Int semantic);
