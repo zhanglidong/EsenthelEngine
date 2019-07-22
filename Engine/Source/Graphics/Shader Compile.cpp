@@ -1109,7 +1109,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
          param.gpu_data_size=max-min;
 
          if(!param.translation.elms()                              )Exit("Shader Param is empty.\nPlease contact Developer.");
-         if( param.gpu_data_size!=member_size                      )Exit("Incorrect Shader Param size.\nPlease contact Developer.");
+         if( param.gpu_data_size>member_size                       )Exit("Incorrect Shader Param size.\nPlease contact Developer."); // SPIR-V returns padded struct sizes, so it can be a little bigger than actually used 'gpu_data_size'
          if( param.translation[0].gpu_offset!=offset || offset!=min)Exit("Incorrect Shader Param Offset.\nPlease contact Developer.");
          if( param.gpu_data_size+offset>buffer.size                )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer.");
        //if( SIZE(Vec4)+var_desc.StartOffset>buffer.size           )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer."); some functions assume that '_gpu_data_size' is at least as big as 'Vec4' to set values without checking for size, !! this is not needed and shouldn't be called because in DX10+ Shader Params are stored in Shader Buffers, and 'ShaderBuffer' already allocates padding for Vec4
