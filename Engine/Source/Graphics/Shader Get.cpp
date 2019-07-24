@@ -176,18 +176,6 @@ Shader* DefaultShaders::EarlyZ()C
 #endif
    return null;
 }
-Shader* DefaultShaders::Simple()C
-{
-   if(valid && !alpha_blend)
-   {
-      // !! Never return the same shader for Multi-Materials as Single-Materials !!
-      Str8 name;
-      if(normal      )name=TechNameSimple(skin, materials, (materials>1) ? 1 : textures, SBUMP_FLAT, alpha_test, light_map, reflect, color, mtrl_blend, heightmap, fx, Renderer.simplePrecision(), tess);else // simple supports only 1 texture for multi-materials (there's no alpha testing/blending, and no support for 0 textures)
-      if(materials==1)name=TechNameSimple(skin, materials,                            0, SBUMP_ZERO, false     , light_map, reflect, color, mtrl_blend, heightmap, fx, Renderer.simplePrecision(), tess);
-      return ShaderFiles("Simple")->get(name);
-   }
-   return null;
-}
 Shader* DefaultShaders::Solid(Bool mirror)C
 {
    if(valid && !alpha_blend && Renderer.anyDeferred())
@@ -246,7 +234,6 @@ Shader* DefaultShaders::get(RENDER_MODE mode)C
    {
       default        : return null;
       case RM_EARLY_Z: return EarlyZ();
-      case RM_SIMPLE : return Simple();
       case RM_SOLID  : return Solid();
       case RM_SOLID_M: return Solid(true);
       case RM_AMBIENT: return Ambient();
@@ -275,6 +262,7 @@ FRST* DefaultShaders::Frst()C
       key.mtrl_blend=mtrl_blend;
       key.fx        =fx;
       key.heightmap =heightmap;
+      key.per_pixel =Renderer.forwardPrecision();
       key.tess      =tess;
       return Frsts(key);
    }
@@ -289,10 +277,10 @@ BLST* DefaultShaders::Blst()C
    )
    {
       BLSTKey key;
-      key.per_pixel =((Renderer.type()==RT_SIMPLE) ? Renderer.simplePrecision() : true);
+      key.per_pixel =((Renderer.type()==RT_FORWARD) ? Renderer.forwardPrecision() : true);
       key.color     =color;
       key.textures  =textures;
-      key.bump_mode =Min(bump, (Renderer.type()==RT_SIMPLE) ? SBUMP_FLAT : SBUMP_NORMAL); // blend light supports only flat/normal bump
+      key.bump_mode =Min(bump, SBUMP_NORMAL); // blend light supports only flat/normal bump
       key.alpha_test=alpha_test;
       key.alpha     =alpha;
       key.light_map =light_map;
@@ -308,7 +296,6 @@ void DefaultShaders::set(Shader *shader[RM_SHADER_NUM], FRST **frst, BLST **blst
    if(shader)
    {
       shader[RM_EARLY_Z]=EarlyZ();
-      shader[RM_SIMPLE ]=Simple();
       shader[RM_SOLID  ]=Solid();
       shader[RM_SOLID_M]=Solid(true);
       shader[RM_AMBIENT]=Ambient();

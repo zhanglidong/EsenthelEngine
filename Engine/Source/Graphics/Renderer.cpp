@@ -14,8 +14,6 @@ inline Bool ClearNrm() {return D.aoWant() && D.ambientNormal() || Renderer.stage
       Reading and Writing to the same Render Target - Yes: GL         No: DX10+
       Deferred Multi-Sampling                       - Yes: DX>=10.1   No: DX10.0, GL
 
-   TODO: remove RT_SIMPLE, simplePrecision
-
 /******************************************************************************/
 RendererClass Renderer;
 MeshRender    MshrBox ,
@@ -50,7 +48,7 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
    ms_samples_color.zero();
    target=null;
 
-  _mode=RM_SIMPLE;
+  _mode=RM_SOLID;
   _mesh_blend_alpha=ALPHA_NONE;
   _has_glow=_fur_is=_mirror=_mirror_want=_mirror_shadows=_palette_mode=_eye_adapt_scale_cur=_t_measure=_set_depth_needed=_get_target=_stereo=_mesh_early_z=_mesh_shader_vel=false;
   _outline=0;
@@ -68,20 +66,15 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
    REPAO(_t_reflection)=0; REPAO(_t_prepare)=0; REPAO(_t_solid)=0; REPAO(_t_overlay)=0; REPAO(_t_water)=0; REPAO(_t_light)=0; REPAO(_t_sky)=0; REPAO(_t_edge_detect)=0; REPAO(_t_blend)=0; REPAO(_t_palette)=0; REPAO(_t_behind)=0; REPAO(_t_rays)=0; REPAO(_t_refract)=0; REPAO(_t_volumetric)=0; REPAO(_t_post_process)=0; REPAO(_t_gpu_wait)=0;
 #endif
 
-  _solid_mode_index=RM_SIMPLE;
+  _solid_mode_index=RM_SOLID;
 
    lowest_visible_point=-DBL_MAX;
 
   _first_pass=true;
   _eye=0; _eye_num=1;
 
-  _type=_cur_type=(MOBILE ? RT_SIMPLE : RT_DEFERRED);
-
-#if MOBILE
-  _simple_prec=false;
-#else
-  _simple_prec=true;
-#endif
+  _type=_cur_type=(MOBILE ? RT_FORWARD : RT_DEFERRED);
+  _forward_prec=!MOBILE;
 
   _mesh_blend_alpha  =ALPHA_BLEND_FACTOR;
   _mesh_stencil_value=STENCIL_REF_ZERO;
@@ -166,7 +159,7 @@ void RendererClass::mode(RENDER_MODE mode)
    T._mode            =mode;
    T._palette_mode    =(mode==RM_PALETTE || mode==RM_PALETTE1);
    T._mesh_shader_vel =(_vel && (mode==RM_SOLID || mode==RM_BLEND));
-   T._solid_mode_index=((_cur_type==RT_SIMPLE) ? RM_SIMPLE : mirror() ? RM_SOLID_M : RM_SOLID);
+   T._solid_mode_index=(mirror() ? RM_SOLID_M : RM_SOLID);
 #if DX11
    T._cull_mode[1]    =((mirror() && mode!=RM_SHADOW) ? 2 : 1);
 #elif GL
@@ -747,7 +740,7 @@ RendererClass& RendererClass::operator()(void (&render)())
    {
      _render=null; // this specifies that we're outside of Rendering
      _final.clear();
-      D.alpha(ALPHA_BLEND); mode(RM_SIMPLE);
+      D.alpha(ALPHA_BLEND); mode(RM_SOLID);
       set(_cur_main, _cur_main_ds, true);
 
       Sky.setFracMulAdd(); // in case user draws billboards/particles outside of Renderer, call before 'cleanup' because this relies on depth buffer being available
@@ -1058,12 +1051,6 @@ start:
          set(_col, _ds, true);
          if(clear_col)D.clearCol(combine ? TRANSPARENT : Color(clear_color.r, clear_color.g, clear_color.b, 0));
       }break;
-
-      case RT_SIMPLE:
-      {
-         set(_col, _ds, true);
-         if(clear_col)D.clearCol(combine ? TRANSPARENT : Color(clear_color.r, clear_color.g, clear_color.b, 0));
-      }break;
    }
    if(clear_ds)D.clearDS();
 }
@@ -1165,28 +1152,6 @@ void RendererClass::solid()
 
        //resolveDepth(); was already called for the main light
       }break;
-
-      case RT_SIMPLE:
-      {
-         // Light + Solid
-         SortLights();
-
-         // set light
-         if(Lights.elms() && Lights[0].type==LIGHT_DIR)Lights[0].dir.set();else LightDir(Vec(0, -1, 0), VecZero).set();
-
-         // solid
-         D.alpha  (fastCombine() ? ALPHA_NONE_ADD : ALPHA_NONE);
-         D.stencil(STENCIL_ALWAYS_SET, 0); D.set3D(); mode(RM_SOLID);
-         REPS(_eye, _eye_num)
-         {
-            setEyeViewport();
-            DrawSolidInstances(); _render();
-         }
-         ClearSolidInstances();
-         D.stencil(STENCIL_NONE); D.set2D();
-
-         resolveDepth();
-      }break;
    }
 }
 void RendererClass::resolveDepth()
@@ -1251,7 +1216,7 @@ void RendererClass::waterPreLight()
    Water._use_secondary_rt=(!Water.max1Light()
                           && canReadDepth()
                           && D._max_rt>=2 // col+nrm
-                          && _cur_type!=RT_FORWARD && _cur_type!=RT_SIMPLE); // for forward/simple for the moment we can't do it, because all lights have already been applied, but in current mode we expect solids to be drawn (so we have depth set because we copy it, and stencil set because we swap DS to preserve it and restore later)
+                          && _cur_type!=RT_FORWARD); // for forward for the moment we can't do it, because all lights have already been applied, but in current mode we expect solids to be drawn (so we have depth set because we copy it, and stencil set because we swap DS to preserve it and restore later)
    if(Water._use_secondary_rt)Water.drawSurfaces(); // if we use secondary RT's then we need to draw water surfaces before we calculate lights (otherwise setup lights first and then draw surfaces having shadow-maps known)
 }
 inline Shader* AmbientOcclusion::get(Int quality, Bool jitter, Bool normal)

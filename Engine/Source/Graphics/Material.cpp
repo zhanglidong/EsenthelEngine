@@ -324,8 +324,7 @@ void Material::setAuto()C
       case RM_EARLY_Z :
       case RM_PREPARE :
       case RM_SOLID   :
-      case RM_SOLID_M :
-      case RM_SIMPLE  : setSolid(); break;
+      case RM_SOLID_M : setSolid(); break;
 
       case RM_AMBIENT : setAmbient(); break;
 

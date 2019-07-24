@@ -7,9 +7,8 @@
 /******************************************************************************/
 enum RENDER_TYPE // Rendering Type, please check documentation for more info
 {
-   RT_DEFERRED, // full             bump mapping, multiple lights           , full shadows, full    special effects, good for complex scenes with          many lights
-   RT_FORWARD , // only flat/normal bump mapping, multiple lights           , full shadows, limited special effects, good for simple  scenes with low number of lights (ideally 1 directional light only)
-   RT_SIMPLE  , // only flat        bump mapping, only 1 light (directional), no shadows  , limited special effects, good for editors - fastest rendering
+   RT_DEFERRED, // full             bump mapping, multiple lights, full shadows, full    special effects, good for complex scenes with          many lights
+   RT_FORWARD , // only flat/normal bump mapping, multiple lights, full shadows, limited special effects, good for simple  scenes with low number of lights (ideally 1 directional light only)
    RT_NUM     , // number of Rendering Types
 };
 #if EE_PRIVATE
@@ -17,7 +16,6 @@ ASSERT(RT_DEFERRED==0); // keep Deferred as the first value as it's the most imp
 #endif
 enum RENDER_MODE // Rendering Mode, rendering phase of the rendering process
 {
-   RM_SIMPLE  , // simple
    RM_SOLID   , // solid
    RM_SOLID_M , // solid in mirrors/reflections
    RM_AMBIENT , // ambient
@@ -34,7 +32,7 @@ enum RENDER_MODE // Rendering Mode, rendering phase of the rendering process
    RM_PALETTE1, // color palette #1 (rendering is performed using 'D.colorPalette1' texture)
    RM_PREPARE , // render all objects here using 'Mesh.draw', and add all lights to the scene using 'Light*.add'
 
-   RM_SHADER_NUM=RM_EARLY_Z+SUPPORT_EARLY_Z, // all modes from start RM_SIMPLE to RM_EARLY_Z are included in the 'MeshPart' shader lookup list
+   RM_SHADER_NUM=RM_EARLY_Z+SUPPORT_EARLY_Z, // all modes from start RM_SOLID to RM_EARLY_Z are included in the 'MeshPart' shader lookup list
 };
 enum RENDER_STAGE : Byte // Rendering Stage, allows displaying only desired rendering stages
 {
@@ -73,7 +71,7 @@ struct RendererClass // handles rendering
    RENDER_STAGE stage               ; // display desired rendering stage, default=RS_DEFAULT
    Bool         combine             , // if enabled this will apply the final rendered image onto the previous background instead of overwriting it, default=false
                 wire                ; // if use wireframe during rendering (not available under OpenGL ES), default=false
-   Color        clear_color         , // screen clearing color, default=BLACK, used only for RT_SIMPLE and RT_FORWARD rendering types
+   Color        clear_color         , // screen clearing color, default=BLACK, used only for RT_FORWARD renderer
                 ms_samples_color    ; // visualize multi-sampled pixels, default=TRANSPARENT (off)
    Dbl          lowest_visible_point; // Y coordinates of lowest visible point on the scene, by default=-DBL_MAX (which means full visibility), you can optionally set this to a custom value before the shadow rendering stage, the value should be world-space Y coordinate of the lowest visible point on the scene below which you don't expect any objects to be visible, for example if your scene has heightmaps and there won't be anything visible under the heightmaps, then you can set this value to the minimum of all heightmap mesh box Y coordinates, setting the value will improve shadow quality and rendering performance
    ImageRT     *target              ; // render target destination, this can be set to a custom 'ImageRT' of IMAGE_RT mode, in that case the rendering will be performed onto the selected image, this image should have its aspect (proportions) the same as the screen (D.resW, D.resH), if set to null then rendering is performed to the screen, default=null
@@ -111,13 +109,13 @@ struct RendererClass // handles rendering
 #endif
 
    // get / set
-   RendererClass& type           (RENDER_TYPE type);   RENDER_TYPE type             ()C {return _type       ;} // set/get Rendering Type, default=RT_DEFERRED (RT_SIMPLE for Mobile), the change is NOT instant, avoid calling real-time
-                                                       RENDER_MODE operator()       ()C {return _mode       ;} //     get active RENDER_MODE, call this inside custom 'Render' function to obtain current phase of rendering process
-                                                       Bool        mirror           ()C {return _mirror     ;} // if      currently rendering mirrored/reflection side
-                                                       Bool            firstPass    ()C {return  _first_pass;} // if      currently rendering the first   pass (    the main one) of the Forward Renderer
-                                                       Bool        secondaryPass    ()C {return !_first_pass;} // if      currently rendering a secondary pass (not the main one) of the Forward Renderer
-   RendererClass& simplePrecision(Bool   per_pixel);   Bool        simplePrecision  ()C {return _simple_prec;} // set/get precision of the RT_SIMPLE renderer, default=true  (false for Mobile), the change is NOT instant, avoid calling real-time
-                                                       Bool        lowDepthPrecision()C;                       //     get if current depth buffer has low precision (16-bits) for which you may want to increase viewport near plane "D.viewFrom" to avoid depth artifacts, such low precision can be encountered on old graphic cards or some mobile devices
+   RendererClass& type            (RENDER_TYPE type);   RENDER_TYPE type             ()C {return _type        ;} // set/get Rendering Type, default=RT_DEFERRED (RT_FORWARD for Mobile), the change is NOT instant, avoid calling real-time
+                                                        RENDER_MODE operator()       ()C {return _mode        ;} //     get active RENDER_MODE, call this inside custom 'Render' function to obtain current phase of rendering process
+                                                        Bool        mirror           ()C {return _mirror      ;} // if      currently rendering mirrored/reflection side
+                                                        Bool            firstPass    ()C {return  _first_pass ;} // if      currently rendering the first   pass (    the main one) of the Forward Renderer
+                                                        Bool        secondaryPass    ()C {return !_first_pass ;} // if      currently rendering a secondary pass (not the main one) of the Forward Renderer
+   RendererClass& forwardPrecision(Bool   per_pixel);   Bool        forwardPrecision ()C {return _forward_prec;} // set/get precision of the RT_FORWARD renderer, default=true (false for Mobile), the change is NOT instant, avoid calling real-time
+                                                        Bool        lowDepthPrecision()C;                        //     get if current depth buffer has low precision (16-bits) for which you may want to increase viewport near plane "D.viewFrom" to avoid depth artifacts, such low precision can be encountered on old graphic cards or some mobile devices
 
    // operations
    RendererClass& operator()(void (&render)()); // perform 3D rendering using custom 'render' callback function
@@ -254,7 +252,7 @@ private:
    RENDER_TYPE   _type, _cur_type;
    RENDER_MODE   _mode;
    ALPHA_MODE    _mesh_blend_alpha;
-   Bool          _has_glow, _fur_is, _simple_prec, _mirror, _mirror_want, _mirror_shadows, _first_pass, _palette_mode, _eye_adapt_scale_cur, _t_measure, _set_depth_needed, _get_target, _stereo, _mesh_early_z, _mesh_shader_vel;
+   Bool          _has_glow, _fur_is, _forward_prec, _mirror, _mirror_want, _mirror_shadows, _first_pass, _palette_mode, _eye_adapt_scale_cur, _t_measure, _set_depth_needed, _get_target, _stereo, _mesh_early_z, _mesh_shader_vel;
    Byte          _cull_mode[2], _solid_mode_index, _mesh_stencil_value, _mesh_stencil_mode, _outline;
    Int           _eye, _eye_num, _mirror_priority, _mirror_resolution, _mesh_variation_1;
    UInt          _frst_light_offset, _blst_light_offset, _mesh_draw_mask;

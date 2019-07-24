@@ -459,7 +459,6 @@ extern ShaderImage::Sampler SamplerPoint, SamplerLinearWrap, SamplerLinearWCC, S
 void CreateAnisotropicSampler();
 void CreateFontSampler       ();
 
-Str8 TechNameSimple    (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel, Int tess);
 Str8 TechNameDeferred  (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int detail, Int macro, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tess);
 Str8 TechNameForward   (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tess);
 Str8 TechNameBlendLight(Int skin, Int color    , Int textures, Int bump_mode, Int alpha_test, Int alpha, Int light_map, Int rflct, Int fx, Int per_pixel, Int shadow_maps);
@@ -492,7 +491,6 @@ struct DefaultShaders
    DefaultShaders(C Material *material   , UInt mesh_base_flag, Int lod_index, Bool heightmap);
 
    Shader* EarlyZ ()C;
-   Shader* Simple ()C;
    Shader* Solid  (Bool mirror=false)C;
    Shader* Ambient()C;
    Shader* Outline()C;

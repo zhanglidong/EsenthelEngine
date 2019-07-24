@@ -799,22 +799,6 @@ void MeshPart::draw(C MatrixM &matrix, C Vec &vel, C Vec &ang_vel)C
                if(               variation.blst            )BlendInstances.add(*variation.blst, variation.getMaterial(), T, variation, VecZero, VecZero).setMatrix(matrix);
             }
          }break;
-
-         case RT_SIMPLE:
-         {
-            if(Shader *shader=variation.shader[RM_SIMPLE])
-            {
-               if(variation.last_solid_instance<0)
-               {
-                  if(_umm)NewInstance(MultiMaterialShaderDraws, SolidShaderMaterialMeshInstances.elms(), *shader, &          _umm               ->material_shader, T, variation);
-                  else    NewInstance(             ShaderDraws, SolidShaderMaterialMeshInstances.elms(), *shader, &variation.getMaterial()._solid_material_shader, T, variation);
-               }else                                            SolidShaderMaterialMeshInstances[variation.last_solid_instance].next_instance=SolidShaderMaterialMeshInstances.elms();
-                                                                                                 variation.last_solid_instance               =SolidShaderMaterialMeshInstances.elms();
-               SetViewMatrix(SolidShaderMaterialMeshInstances.New().setSkipVel(/*vel, ang_vel_shader*/).view_matrix, matrix); // velocities not needed for RT_SIMPLE
-            }else
-            if(Shader *shader=variation.shader[RM_BLEND])BlendInstances.add(*shader        , variation.getMaterial(), T, variation                  ).setMatrix(matrix);else
-            if(               variation.blst            )BlendInstances.add(*variation.blst, variation.getMaterial(), T, variation, VecZero, VecZero).setMatrix(matrix);
-         }break;
       }
    }
 }
@@ -863,18 +847,6 @@ void MeshPart::draw(C AnimatedSkeleton &anim_skel)C
                if(               variation.blst            )BlendInstances.getSkeletonInstance(anim_skel).addBlend(*variation.blst, material, T);
             }
          }break;
-
-         case RT_SIMPLE:
-         {
-            if(Shader *shader=variation.shader[RM_SIMPLE])
-            {
-               SkeletonSolidInstances.getSkeletonInstanceSolid(anim_skel)
-                                     .newInstance(*shader, material, SkeletonSolidShaderMaterialMeshInstances);
-               SkeletonSolidShaderMaterialMeshInstances.New().set(T);
-            }else
-            if(Shader *shader=variation.shader[RM_BLEND])BlendInstances.getSkeletonInstance(anim_skel).addBlend(*        shader, material, T);else
-            if(               variation.blst            )BlendInstances.getSkeletonInstance(anim_skel).addBlend(*variation.blst, material, T);
-         }break;
       }
    }
 }
@@ -922,18 +894,6 @@ void MeshPart::draw(C AnimatedSkeleton &anim_skel, C Material &material)C
                if(Shader *shader=variation.shader[RM_BLEND])BlendInstances.getSkeletonInstance(anim_skel).addBlend(*        shader, material, T);else
                if(               variation.blst            )BlendInstances.getSkeletonInstance(anim_skel).addBlend(*variation.blst, material, T);
             }
-         }break;
-
-         case RT_SIMPLE:
-         {
-            if(Shader *shader=variation.shader[RM_SIMPLE])
-            {
-               SkeletonSolidInstances.getSkeletonInstanceSolid(anim_skel)
-                                     .newInstance(*shader, material, SkeletonSolidShaderMaterialMeshInstances);
-               SkeletonSolidShaderMaterialMeshInstances.New().set(T);
-            }else
-            if(Shader *shader=variation.shader[RM_BLEND])BlendInstances.getSkeletonInstance(anim_skel).addBlend(*        shader, material, T);else
-            if(               variation.blst            )BlendInstances.getSkeletonInstance(anim_skel).addBlend(*variation.blst, material, T);
          }break;
       }
    }
@@ -1065,30 +1025,6 @@ void MeshLod::draw(C MatrixM &matrix)C
             }
          }
       }break;
-
-      case RT_SIMPLE:
-      {
-         FREPA(T) // process in order
-         {
-          C MeshPart &part=parts[i]; if(part._draw_mask&Renderer._mesh_draw_mask)
-            {
-             C MeshPart::Variation &variation=part.getVariation();
-
-               if(Shader *shader=variation.shader[RM_SIMPLE])
-               {
-                  if(variation.last_solid_instance<0)
-                  {
-                     if(part._umm)NewInstance(MultiMaterialShaderDraws, SolidShaderMaterialMeshInstances.elms(), *shader, &     part._umm               ->material_shader, part, variation);
-                     else         NewInstance(             ShaderDraws, SolidShaderMaterialMeshInstances.elms(), *shader, &variation.getMaterial()._solid_material_shader, part, variation);
-                  }else                                                 SolidShaderMaterialMeshInstances[variation.last_solid_instance].next_instance=SolidShaderMaterialMeshInstances.elms();
-                                                                                                         variation.last_solid_instance               =SolidShaderMaterialMeshInstances.elms();
-                  SolidShaderMaterialMeshInstances.New().setSkipVel(/*vel, ang_vel_shader*/).view_matrix=view_matrix; // velocities not needed for RT_SIMPLE
-               }else
-               if(Shader *shader=variation.shader[RM_BLEND])BlendInstances.add(*shader        , variation.getMaterial(), part, variation                  ).setViewMatrix(view_matrix);else
-               if(               variation.blst            )BlendInstances.add(*variation.blst, variation.getMaterial(), part, variation, VecZero, VecZero).setViewMatrix(view_matrix);
-            }
-         }
-      }break;
    }
 }
 /******************************************************************************/
@@ -1173,30 +1109,6 @@ void MeshLod::draw(C MatrixM &matrix, C Vec &vel, C Vec &ang_vel)C
             }
          }
       }break;
-
-      case RT_SIMPLE:
-      {
-         FREPA(T) // process in order
-         {
-          C MeshPart &part=parts[i]; if(part._draw_mask&Renderer._mesh_draw_mask)
-            {
-             C MeshPart::Variation &variation=part.getVariation();
-
-               if(Shader *shader=variation.shader[RM_SIMPLE])
-               {
-                  if(variation.last_solid_instance<0)
-                  {
-                     if(part._umm)NewInstance(MultiMaterialShaderDraws, SolidShaderMaterialMeshInstances.elms(), *shader, &     part._umm               ->material_shader, part, variation);
-                     else         NewInstance(             ShaderDraws, SolidShaderMaterialMeshInstances.elms(), *shader, &variation.getMaterial()._solid_material_shader, part, variation);
-                  }else                                                 SolidShaderMaterialMeshInstances[variation.last_solid_instance].next_instance=SolidShaderMaterialMeshInstances.elms();
-                                                                                                         variation.last_solid_instance               =SolidShaderMaterialMeshInstances.elms();
-                  SolidShaderMaterialMeshInstances.New().setSkipVel(/*vel, ang_vel_shader*/).view_matrix=view_matrix; // velocities not needed for RT_SIMPLE
-               }else
-               if(Shader *shader=variation.shader[RM_BLEND])BlendInstances.add(*shader        , variation.getMaterial(), part, variation                  ).setViewMatrix(view_matrix);else
-               if(               variation.blst            )BlendInstances.add(*variation.blst, variation.getMaterial(), part, variation, VecZero, VecZero).setViewMatrix(view_matrix);
-            }
-         }
-      }break;
    }
 }
 /******************************************************************************/
@@ -1260,27 +1172,6 @@ void MeshLod::draw(C AnimatedSkeleton &anim_skel)C
             }
          }
       }break;
-
-      case RT_SIMPLE:
-      {
-         FREPA(T) // process in order
-         {
-          C MeshPart &part=parts[i]; if(part._draw_mask&Renderer._mesh_draw_mask)
-            {
-             C MeshPart::Variation &variation=part     .getVariation();
-             C Material            &material =variation.getMaterial ();
-
-               if(Shader *shader=variation.shader[RM_SIMPLE])
-               {
-                  if(!solid_skeleton)solid_skeleton=&SkeletonSolidInstances.getSkeletonInstanceSolid(anim_skel);
-                                     solid_skeleton->newInstance(*shader, material, SkeletonSolidShaderMaterialMeshInstances);
-                  SkeletonSolidShaderMaterialMeshInstances.New().set(part);
-               }else
-               if(Shader *shader=variation.shader[RM_BLEND]){if(!blend_skeleton)blend_skeleton=&BlendInstances.getSkeletonInstance(anim_skel); blend_skeleton->addBlend(*        shader, material, part);}else
-               if(               variation.blst            ){if(!blend_skeleton)blend_skeleton=&BlendInstances.getSkeletonInstance(anim_skel); blend_skeleton->addBlend(*variation.blst, material, part);}
-            }
-         }
-      }break;
    }
 }
 /******************************************************************************/
@@ -1341,27 +1232,6 @@ void MeshLod::draw(C AnimatedSkeleton &anim_skel, C Material &material)C
                   if(Shader *shader=variation.shader[RM_BLEND]){if(!blend_skeleton)blend_skeleton=&BlendInstances.getSkeletonInstance(anim_skel); blend_skeleton->addBlend(*        shader, material, part);}else
                   if(               variation.blst            ){if(!blend_skeleton)blend_skeleton=&BlendInstances.getSkeletonInstance(anim_skel); blend_skeleton->addBlend(*variation.blst, material, part);}
                }
-            }
-         }
-      }break;
-
-      case RT_SIMPLE:
-      {
-         FREPA(T) // process in order
-         {
-          C MeshPart &part=parts[i]; if(part._draw_mask&Renderer._mesh_draw_mask)
-            {
-             C MeshPart::Variation &variation=part     .getVariation();
-           //C Material            &material =variation.getMaterial (); use custom material instead
-
-               if(Shader *shader=variation.shader[RM_SIMPLE])
-               {
-                  if(!solid_skeleton)solid_skeleton=&SkeletonSolidInstances.getSkeletonInstanceSolid(anim_skel);
-                                     solid_skeleton->newInstance(*shader, material, SkeletonSolidShaderMaterialMeshInstances);
-                  SkeletonSolidShaderMaterialMeshInstances.New().set(part);
-               }else
-               if(Shader *shader=variation.shader[RM_BLEND]){if(!blend_skeleton)blend_skeleton=&BlendInstances.getSkeletonInstance(anim_skel); blend_skeleton->addBlend(*        shader, material, part);}else
-               if(               variation.blst            ){if(!blend_skeleton)blend_skeleton=&BlendInstances.getSkeletonInstance(anim_skel); blend_skeleton->addBlend(*variation.blst, material, part);}
             }
          }
       }break;
@@ -1436,7 +1306,6 @@ void Cloth::drawSkinned(C AnimatedSkeleton &anim_skel)C
       switch(Renderer._cur_type)
       {
          case RT_DEFERRED:
-         case RT_SIMPLE:
          {
             if(Shader *shader=_cloth_mesh->_skin_shader[Renderer._solid_mode_index])
             {
@@ -1522,7 +1391,7 @@ void Mesh   ::drawBlend(C AnimatedSkeleton &anim_skel,                          
 void MeshPart::drawBoneHighlight(Int bone)C
 {
    if(_draw_mask&Renderer._mesh_draw_mask)
-      if(Shader *s=ShaderFiles("Simple")->get(TechNameSimple(FlagAll(render.flag(), VTX_SKIN), 1, 0, SBUMP_FLAT, false, false, false, false, false, false, FX_BONE, true, false))) // !! this name must be in sync with other calls in the engine that use FX_BONE !!
+      if(Shader *s=ShaderFiles("Bone Highlight")->get(S+FlagAll(render.flag(), VTX_SKIN)+(FlagTest(render.flag(), VTX_NRM) ? SBUMP_FLAT : SBUMP_ZERO)))
    {
     C Variation &variation=          getVariation();
     C Material  &material =variation.getMaterial ();

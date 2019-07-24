@@ -578,8 +578,7 @@ void Cloth::drawPhysical(C Vec &vel)C
     C Material &material=GetMaterial(_cloth_mesh->material()());
       switch(Renderer._cur_type)
       {
-         case RT_DEFERRED:
-         case RT_SIMPLE  : if(Shader *shader=_cloth_mesh->_phys_shader[Renderer._solid_mode_index])
+         case RT_DEFERRED: if(Shader *shader=_cloth_mesh->_phys_shader[Renderer._solid_mode_index])
          {
             SolidClothInstances.add(T, *shader, material, vel);
          }break;

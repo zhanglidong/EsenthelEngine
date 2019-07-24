@@ -929,7 +929,7 @@ void Light::set()
 /******************************************************************************/
 static Bool CanDoShadow()
 {
-   return D.shadowMode() && D.shadowSupported() && Renderer._cur_type!=RT_SIMPLE && FovPerspective(D.viewFovMode());
+   return D.shadowMode() && D.shadowSupported() && FovPerspective(D.viewFovMode());
 }
 void Light::set(LightDir    &light,               Bool shadow        , CPtr light_src) {Zero(T); type=LIGHT_DIR   ; dir   =light; T.rect=D.viewRect(); T.shadow=(shadow                 && CanDoShadow()); T.shadow_opacity=(T.shadow                          ); T.src=light_src;}
 void Light::set(LightPoint  &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src) {Zero(T); type=LIGHT_POINT ; point =light; T.rect=        rect; T.shadow=(shadow_opacity>EPS_COL && CanDoShadow()); T.shadow_opacity=(T.shadow ? Sat(shadow_opacity) : 0); T.src=light_src;}
@@ -1547,7 +1547,7 @@ void LimitLights()
 }
 void SortLights()
 {
-   // put main directional light at start (this is needed for RM_BLEND_LIGHT*, RT_FORWARD and RT_SIMPLE)
+   // put main directional light at start (this is needed for RM_BLEND_LIGHT* and RT_FORWARD)
    if(Lights.elms()>1)
    {
       Int main =-1;

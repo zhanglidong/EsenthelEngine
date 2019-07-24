@@ -146,11 +146,11 @@ void Image::drawFilter(C Rect &rect, FILTER_TYPE filter)C
     //case FILTER_LINEAR: VI.shader(null); break;
 
       case FILTER_NONE:
-      #if DX11
+      #if GL // in GL 'ShaderImage.Sampler' does not affect filtering, so modify it manually
+         D.texBind(GL_TEXTURE_2D, _txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      #else
          VI.shader(Sh.DrawTexPoint);
        //SamplerPoint.setPS(SSI_DEFAULT);
-      #elif GL // in GL 'ShaderImage.Sampler' does not affect filtering, so modify it manually
-         D.texBind(GL_TEXTURE_2D, _txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       #endif
       break;
 
@@ -194,11 +194,11 @@ void Image::drawFilter(C Color &color, C Color &color_add, C Rect &rect, FILTER_
     //case FILTER_LINEAR: VI.shader(null); break;
 
       case FILTER_NONE:
-      #if DX11
+      #if GL // in GL 'ShaderImage.Sampler' does not affect filtering, so modify it manually
+         D.texBind(GL_TEXTURE_2D, _txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      #else
          VI.shader(Sh.DrawTexPointC);
        //SamplerPoint.setPS(SSI_DEFAULT);
-      #elif GL // in GL 'ShaderImage.Sampler' does not affect filtering, so modify it manually
-         D.texBind(GL_TEXTURE_2D, _txtr); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       #endif
       break;
 

@@ -8,35 +8,35 @@ namespace EE{
 #define MULTI_MATERIAL 1
 
 #if WINDOWS // DirectX 10+
-   #define COMPILE_4  1
+   #define COMPILE_4  0
    #define COMPILE_GL 0
 #endif
 
-/**
+/**/
 #define MAIN
 
-#define DEFERRED
+/*#define DEFERRED
 #define BLEND_LIGHT
-#define SIMPLE
 #define FORWARD // Forward Shaders in OpenGL compile .. FIXME
 
 #define AMBIENT
 #define AMBIENT_OCCLUSION
 #define BEHIND
 #define BLEND
-#define DEPTH_OF_FIELD
+#define BONE_HIGHLIGHT
+#define DEPTH_OF_FIELD*/
 #define EARLY_Z
 #define EFFECTS_2D
-#define EFFECTS_3D
+/*#define EFFECTS_3D*/
 #define FOG_LOCAL
-#define FUR
+/*#define FUR
 #define FXAA
 #define HDR
 #define LAYERED_CLOUDS
 #define MOTION_BLUR
-#define OVERLAY
+#define OVERLAY*/
 #define POSITION
-#define SET_COLOR
+/*#define SET_COLOR
 #define VOLUMETRIC_CLOUDS
 #define VOLUMETRIC_LIGHTS
 #define WATER
@@ -46,7 +46,6 @@ namespace EE{
 /******************************************************************************/
 // SHADER TECHNIQUE NAMES
 /******************************************************************************/
-Str8 TechNameSimple    (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int reflect, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel, Int tess) {return S8+skin+materials+textures+bump_mode+alpha_test+light_map+reflect+color+mtrl_blend+heightmap+fx+per_pixel+tess;}
 Str8 TechNameDeferred  (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int detail, Int macro, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tess) {return S8+skin+materials+textures+bump_mode+alpha_test+detail+macro+rflct+color+mtrl_blend+heightmap+fx+tess;}
 Str8 TechNameForward   (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tess) {return S8+skin+materials+textures+bump_mode+alpha_test+light_map+detail+rflct+color+mtrl_blend+heightmap+fx+light_dir+light_dir_shd+light_dir_shd_num+light_point+light_point_shd+light_linear+light_linear_shd+light_cone+light_cone_shd+tess;}
 Str8 TechNameBlendLight(Int skin, Int color    , Int textures, Int bump_mode, Int alpha_test, Int alpha, Int light_map, Int rflct, Int fx, Int per_pixel, Int shadow_maps) {return S8+skin+color+textures+bump_mode+alpha_test+alpha+light_map+rflct+fx+per_pixel+shadow_maps;}
@@ -130,31 +129,6 @@ static void Add(C Str &src, C Str &dest, API api, SHADER_MODEL model, C Str &nam
 /******************************************************************************/
 // SHADER TECHNIQUE DECLARATIONS
 /******************************************************************************/
-static Str TechSimple(Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int reflect, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel, Int tess)
-{
-   Str params=             S+skin+','+materials+','+textures+','+bump_mode+','+alpha_test+','+light_map+','+reflect+','+color+','+mtrl_blend+','+heightmap+','+fx+','+per_pixel+','+tess,
-       name  =TechNameSimple(skin  ,  materials  ,  textures  ,  bump_mode  ,  alpha_test  ,  light_map  ,  reflect  ,  color  ,  mtrl_blend  ,  heightmap  ,  fx  ,  per_pixel  ,  tess);
-   return tess ? S+"TECHNIQUE_TESSELATION("+name+", VS("+params+"), PS("+params+"), HS("+params+"), DS("+params+"));"
-               : S+"TECHNIQUE            ("+name+", VS("+params+"), PS("+params+")                                );";
-}
-static ShaderGLSL TechSimpleGlsl(Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int reflect, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel, Int tess)
-{
-   return ShaderGLSL().set("Main", TechNameSimple(skin, materials, textures, bump_mode, alpha_test, light_map, reflect, color, mtrl_blend, heightmap, fx, per_pixel, tess))
-      .par("skin"      , skin      )
-      .par("materials" , materials )
-      .par("textures"  , textures  )
-      .par("bump_mode" , bump_mode )
-      .par("alpha_test", alpha_test)
-      .par("light_map" , light_map )
-      .par("rflct"     , reflect   )
-      .par("COLOR"     , color     )
-      .par("mtrl_blend", mtrl_blend)
-      .par("heightmap" , heightmap )
-      .par("fx"        , fx        )
-      .par("per_pixel" , per_pixel )
-      .par("tesselate" , tess      );
-}
-
 static Str TechDeferred(Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int detail, Int macro, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tess)
 {
    Str params=               S+skin+','+materials+','+textures+','+bump_mode+','+alpha_test+','+detail+','+macro+','+rflct+','+color+','+mtrl_blend+','+heightmap+','+fx+','+tess,
@@ -599,6 +573,14 @@ static void Compile(API api)
    }
 
    Add(src_path+"Blend.cpp", dest_path+"Blend", api, model, names, glsl);
+}
+#endif
+
+#ifdef BONE_HIGHLIGHT
+{
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Bone Highlight", model, api).New(src_path+"Bone Highlight.cpp");
+   REPD(skin     , 2)
+   REPD(bump_mode, 2)src.New(S, "VS", "PS")("SKIN", skin, "BUMP_MODE", bump_mode ? SBUMP_FLAT : SBUMP_ZERO);
 }
 #endif
 

@@ -1053,9 +1053,6 @@
     <ClInclude Include="Source\Shaders\Overlay.h">
       <Filter>Source\Shaders\3D</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Shaders\Simple.h">
-      <Filter>Source\Shaders\3D</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -2120,9 +2117,6 @@
     <ClCompile Include="Source\Shaders\Position.cpp">
       <Filter>Source\Shaders\3D</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Shaders\Simple.cpp">
-      <Filter>Source\Shaders\3D</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Shaders\Tattoo.cpp">
       <Filter>Source\Shaders\3D</Filter>
     </ClCompile>
@@ -2143,6 +2137,9 @@
     </ClCompile>
     <ClCompile Include="Source\Shaders\Outline.cpp">
       <Filter>Source\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Shaders\Bone Highlight.cpp">
+      <Filter>Source\Shaders\3D</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

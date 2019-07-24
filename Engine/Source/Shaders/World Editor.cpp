@@ -138,8 +138,7 @@ Vec4 Grid_PS
 }
 /******************************************************************************/
 // HULL / DOMAIN
-/******************************************************************************/
-#if !CG
+/******************************************************************************
 HSData HSConstant(InputPatch<VS_PS_NOVTX,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].nrm, I[1].nrm, I[2].nrm);}
 [maxtessfactor(5.0)]
 [domain("tri")]
@@ -158,7 +157,7 @@ VS_PS_NOVTX HS
    O.pos2D=I[cp_id].pos2D;
    return O;
 }
-/******************************************************************************/
+
 [domain("tri")]
 VS_PS DS
 (
@@ -174,7 +173,6 @@ VS_PS DS
 
    return O;
 }
-#endif
 /******************************************************************************/
 TECHNIQUE(WhiteVtx, Color_VS(true), Color_PS(Vec(1, 1, 1), true ));
 TECHNIQUE(White   , Color_VS(    ), Color_PS(Vec(1, 1, 1), false));
@@ -182,10 +180,7 @@ TECHNIQUE(Green   , Color_VS(    ), Color_PS(Vec(0, 1, 0), false));
 TECHNIQUE(Yellow  , Color_VS(    ), Color_PS(Vec(1, 1, 0), false));
 TECHNIQUE(Red     , Color_VS(    ), Color_PS(Vec(1, 0, 0), false));
 
-TECHNIQUE            (Circle , FX_VS(), Circle_PS());
-TECHNIQUE            (Square , FX_VS(), Square_PS());
-TECHNIQUE            (Grid   , FX_VS(),   Grid_PS());
-TECHNIQUE_TESSELATION(CircleT, FX_VS(), Circle_PS(), HS(), DS());
-TECHNIQUE_TESSELATION(SquareT, FX_VS(), Square_PS(), HS(), DS());
-TECHNIQUE_TESSELATION(GridT  , FX_VS(),   Grid_PS(), HS(), DS());
+TECHNIQUE(Circle , FX_VS(), Circle_PS());
+TECHNIQUE(Square , FX_VS(), Square_PS());
+TECHNIQUE(Grid   , FX_VS(),   Grid_PS());
 /******************************************************************************/
