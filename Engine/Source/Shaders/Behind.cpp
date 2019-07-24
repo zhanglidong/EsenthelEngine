@@ -1,9 +1,7 @@
 /******************************************************************************/
 #include "!Header.h"
-/******************************************************************************/
-#define PARAMS           \
-   uniform Bool skin    ,\
-   uniform Int  textures
+/******************************************************************************
+SKIN, TEXTURES
 /******************************************************************************/
 void VS
 (
@@ -17,7 +15,7 @@ void VS
 {
    outTex=vtx.tex();
 
-   if(!skin)
+   if(!SKIN)
    {
                      outNrm=TransformDir(vtx.nrm());
       outVtx=Project(outPos=TransformPos(vtx.pos()));
@@ -38,8 +36,8 @@ VecH4 PS
 ):TARGET
 {
    // perform alpha testing
-   if(textures==1)clip(Tex(Col, inTex).a + MaterialAlpha()-1);else // alpha in 'Col' texture
-   if(textures==2)clip(Tex(Nrm, inTex).a + MaterialAlpha()-1);     // alpha in 'Nrm' texture, #MaterialTextureChannelOrder
+   if(TEXTURES==1)clip(Tex(Col, inTex).a + MaterialAlpha()-1);else // alpha in 'Col' texture
+   if(TEXTURES==2)clip(Tex(Nrm, inTex).a + MaterialAlpha()-1);     // alpha in 'Nrm' texture, #MaterialTextureChannelOrder
 
    Half alpha=Sat((Half(inPos.z-TexDepthPoint(PixelToScreen(pixel)))-BehindBias)/0.3);
 

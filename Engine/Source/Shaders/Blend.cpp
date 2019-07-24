@@ -1,12 +1,8 @@
 /******************************************************************************/
 #include "!Header.h"
 #include "Sky.h"
-/******************************************************************************/
-#define PARAMS           \
-   uniform Bool skin    ,\
-   uniform Bool color   ,\
-   uniform Bool rflct   ,\
-   uniform Int  textures
+/******************************************************************************
+SKIN, COLORS, REFLECT, TEXTURES
 /******************************************************************************/
 void VS
 (
@@ -18,29 +14,29 @@ void VS
    out Vec4  outVtx  :POSITION
 )
 {
-   if(textures)outTex   =vtx.tex();
+   if(TEXTURES)outTex   =vtx.tex();
                outColor =MaterialColor();
-   if(color   )outColor*=vtx.colorFast();
+   if(COLORS  )outColor*=vtx.colorFast();
 
    Vec pos; VecH nrm;
-   if(!skin)
+   if(!SKIN)
    {
       if(true) // instance
       {
-                  pos=TransformPos(vtx.pos(), vtx.instance());
-         if(rflct)nrm=TransformDir(vtx.nrm(), vtx.instance());
+                    pos=TransformPos(vtx.pos(), vtx.instance());
+         if(REFLECT)nrm=TransformDir(vtx.nrm(), vtx.instance());
       }else
       {
-                  pos=TransformPos(vtx.pos());
-         if(rflct)nrm=TransformDir(vtx.nrm());
+                    pos=TransformPos(vtx.pos());
+         if(REFLECT)nrm=TransformDir(vtx.nrm());
       }
    }else
    {
-      VecI    bone=vtx.bone();
-               pos=TransformPos(vtx.pos(), bone, vtx.weight());
-      if(rflct)nrm=TransformDir(vtx.nrm(), bone, vtx.weight());
+      VecI      bone=vtx.bone();
+                 pos=TransformPos(vtx.pos(), bone, vtx.weight());
+      if(REFLECT)nrm=TransformDir(vtx.nrm(), bone, vtx.weight());
    }
-   if(rflct)outRfl=Transform3(reflect((VecH)Normalize(pos), Normalize(nrm)), CamMatrix);
+   if(REFLECT)outRfl=Transform3(reflect((VecH)Normalize(pos), Normalize(nrm)), CamMatrix);
 
    outVtx=Project(pos);
 
@@ -56,13 +52,13 @@ VecH4 PS
 {
    VecH4 tex_nrm; // #MaterialTextureChannelOrder
 
-   if(textures==1) inColor    *=Tex(Col, inTex);else                                                 // alpha in 'Col' texture
-   if(textures==2){inColor.rgb*=Tex(Col, inTex).rgb; tex_nrm=Tex(Nrm, inTex); inColor.a*=tex_nrm.a;} // alpha in 'Nrm' texture
+   if(TEXTURES==1) inColor    *=Tex(Col, inTex);else                                                 // alpha in 'Col' texture
+   if(TEXTURES==2){inColor.rgb*=Tex(Col, inTex).rgb; tex_nrm=Tex(Nrm, inTex); inColor.a*=tex_nrm.a;} // alpha in 'Nrm' texture
 
    inColor.rgb+=Highlight.rgb;
 
    // reflection
-   if(rflct)inColor.rgb+=TexCube(Rfl, inRfl).rgb*((textures==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
+   if(REFLECT)inColor.rgb+=TexCube(Rfl, inRfl).rgb*((TEXTURES==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
 
    return inColor;
 }

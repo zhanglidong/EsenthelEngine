@@ -861,33 +861,6 @@
     <ClInclude Include="Source\Shaders\Fog.h">
       <Filter>Source\Shaders</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Shaders\Glsl Light.h">
-      <Filter>Source\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Shaders\Glsl Material.h">
-      <Filter>Source\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Shaders\Glsl Matrix.h">
-      <Filter>Source\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Shaders\Glsl PS 2D.h">
-      <Filter>Source\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Shaders\Glsl PS.h">
-      <Filter>Source\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Shaders\Glsl VS 2D.h">
-      <Filter>Source\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Shaders\Glsl VS 3D.h">
-      <Filter>Source\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Shaders\Glsl VS.h">
-      <Filter>Source\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Shaders\Glsl.h">
-      <Filter>Source\Shaders</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Shaders\Hdr.h">
       <Filter>Source\Shaders</Filter>
     </ClInclude>
@@ -932,9 +905,6 @@
     </ClInclude>
     <ClInclude Include="Source\Code\Compile\CE Func List.h">
       <Filter>Source\Code\Compile</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Shaders\Glsl 3D.h">
-      <Filter>Source\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="H\Platforms\Android.h">
       <Filter>H\Platforms</Filter>
@@ -1021,12 +991,6 @@
       <Filter>Source\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="Source\Shaders\!Header CPU.h">
-      <Filter>Source\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Shaders\Glsl Depth.h">
-      <Filter>Source\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Shaders\Glsl MultiMaterial.h">
       <Filter>Source\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="H\Memory\Counted Pointer.h">

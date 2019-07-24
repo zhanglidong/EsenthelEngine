@@ -1705,9 +1705,6 @@
     <ClInclude Include="Source\Shaders\!Set HP.h" />
     <ClInclude Include="Source\Shaders\!Set LP.h" />
     <ClInclude Include="Source\Shaders\FXAA.h" />
-    <ClInclude Include="Source\Shaders\Glsl 3D.h" />
-    <ClInclude Include="Source\Shaders\Glsl Depth.h" />
-    <ClInclude Include="Source\Shaders\Glsl MultiMaterial.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="H\_\structs.h" />
     <ClInclude Include="H\_\types.h" />
@@ -1826,15 +1823,6 @@
     <ClInclude Include="Source\Shaders\!Header CPU.h" />
     <ClInclude Include="Source\Shaders\Fog.h" />
     <ClInclude Include="Source\Shaders\Fur.h" />
-    <ClInclude Include="Source\Shaders\Glsl Light.h" />
-    <ClInclude Include="Source\Shaders\Glsl Material.h" />
-    <ClInclude Include="Source\Shaders\Glsl Matrix.h" />
-    <ClInclude Include="Source\Shaders\Glsl PS 2D.h" />
-    <ClInclude Include="Source\Shaders\Glsl PS.h" />
-    <ClInclude Include="Source\Shaders\Glsl VS 2D.h" />
-    <ClInclude Include="Source\Shaders\Glsl VS 3D.h" />
-    <ClInclude Include="Source\Shaders\Glsl VS.h" />
-    <ClInclude Include="Source\Shaders\Glsl.h" />
     <ClInclude Include="Source\Shaders\Hdr.h" />
     <ClInclude Include="Source\Shaders\Layered Clouds.h" />
     <ClInclude Include="Source\Shaders\Overlay.h" />
