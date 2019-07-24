@@ -12,9 +12,7 @@ void VS
 
    out Vec     outTex   :TEXCOORD0, // xy=uv, z=alpha
    out Matrix3 outMatrix:TEXCOORD1,
-   out Vec4    outVtx   :POSITION ,
-
-   PARAMS
+   out Vec4    outVtx   :POSITION
 )
 {
    Matrix3 m;
@@ -48,9 +46,7 @@ VecH4 PS
    Vec     inTex   :TEXCOORD0,
    Matrix3 inMatrix:TEXCOORD1,
 
-   out VecH4 outNrm:TARGET1,
-
-   PARAMS
+   out VecH4 outNrm:TARGET1
 ):TARGET
 {
    VecH4 col  =Tex(Col, inTex.xy);
@@ -80,6 +76,4 @@ VecH4 PS
    if(normal)outNrm.w=col.a;
    return col;
 }
-/******************************************************************************/
-CUSTOM_TECHNIQUE
 /******************************************************************************/

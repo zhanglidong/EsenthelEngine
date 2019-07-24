@@ -95,37 +95,20 @@
 /******************************************************************************/
 // HELPERS
 /******************************************************************************/
-#if !CG
-   #define PIXEL                     Vec4 pixel :SV_Position         // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
-   #define IF_IS_FRONT               Bool front :SV_IsFrontFace ,    // face front side
-   #define IF_IS_CLIP            out Flt  O_clip:SV_ClipDistance,    // clip plane distance
-   #define BUFFER(name)          cbuffer name {                      // declare a constant buffer
-   #define BUFFER_I(name, index) cbuffer name : register(b##index) { // declare a constant buffer with custom buffer index
-   #define BUFFER_END            }                                   // end constant buffer declaration
-   #define POSITION              SV_Position
-   #define DEPTH                 SV_Depth
-   #define TARGET                SV_Target
-   #define TARGET0               SV_Target0
-   #define TARGET1               SV_Target1
-   #define TARGET2               SV_Target2
-   #define TARGET3               SV_Target3
-#else
-   #define PIXEL                     Vec4 pixel:WPOS   // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
-   #define IF_IS_FRONT               Bool front:VFACE, // face front side
-   #define IF_IS_CLIP            out Flt O_clip:BCOL1, // clip plane distance, this will generate "gl_BackSecondaryColor" which is later replaced with "gl_ClipDistance[0]"
-   #define BUFFER(name)                                // constant buffers (not available in OpenGL)
-   #define BUFFER_I(name, index)                       // constant buffers (not available in OpenGL)
-   #define BUFFER_END                                  // constant buffers (not available in OpenGL)
- //#define POSITION              POSITION
- //#define DEPTH                 DEPTH
-   #define TARGET                COLOR
-   #define TARGET0               COLOR0
-   #define TARGET1               COLOR1
-   #define TARGET2               COLOR2
-   #define TARGET3               COLOR3
-#endif
-
-#define CLIP_PLANE(pos)   O_clip=Dot(Vec4((pos).xyz, 1), ClipPlane) // perform user plane clipping
+#define PIXEL                     Vec4 pixel :SV_Position               // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
+#define IS_FRONT                  Bool front :SV_IsFrontFace            // face front side
+#define CLIP_DIST             out Flt  O_clip:SV_ClipDistance           // clip plane distance
+#define CLIP_PLANE(pos)       O_clip=Dot(Vec4((pos).xyz, 1), ClipPlane) // perform user plane clipping
+#define BUFFER(name)          cbuffer name {                            // declare a constant buffer
+#define BUFFER_I(name, index) cbuffer name : register(b##index) {       // declare a constant buffer with custom buffer index
+#define BUFFER_END            }                                         // end constant buffer declaration
+#define POSITION              SV_Position
+#define DEPTH                 SV_Depth
+#define TARGET                SV_Target
+#define TARGET0               SV_Target0
+#define TARGET1               SV_Target1
+#define TARGET2               SV_Target2
+#define TARGET3               SV_Target3
 /******************************************************************************/
 // FUNCTIONS
 /******************************************************************************/

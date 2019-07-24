@@ -15,9 +15,7 @@ void VS
    out Vec2  outTex  :TEXCOORD0,
    out VecH  outRfl  :TEXCOORD1,
    out VecH4 outColor:COLOR    ,
-   out Vec4  outVtx  :POSITION ,
-
-   PARAMS
+   out Vec4  outVtx  :POSITION
 )
 {
    if(textures)outTex   =vtx.tex();
@@ -53,9 +51,7 @@ VecH4 PS
 (
    Vec2  inTex  :TEXCOORD0,
    VecH  inRfl  :TEXCOORD1,
-   VecH4 inColor:COLOR    ,
-
-   PARAMS
+   VecH4 inColor:COLOR
 ):TARGET
 {
    VecH4 tex_nrm; // #MaterialTextureChannelOrder
@@ -70,6 +66,4 @@ VecH4 PS
 
    return inColor;
 }
-/******************************************************************************/
-CUSTOM_TECHNIQUE // this is defined in C++ as a macro
 /******************************************************************************/

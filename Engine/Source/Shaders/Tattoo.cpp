@@ -19,9 +19,7 @@ void VS
    VtxInput vtx,
 
    out VS_PS O,
-   out Vec4  O_vtx:POSITION,
-
-   PARAMS
+   out Vec4  O_vtx:POSITION
 )
 {
    O.tex=vtx.tex();
@@ -43,9 +41,7 @@ void VS
 /******************************************************************************/
 VecH4 PS
 (
-   VS_PS I,
-
-   PARAMS
+   VS_PS I
 ):TARGET
 {
    return Tex(Col, I.tex)*Color[0];
@@ -63,8 +59,7 @@ HSData HSConstant(InputPatch<VS_PS,3> I) {return GetHSData(I[0].pos, I[1].pos, I
 [outputcontrolpoints(3)]
 VS_PS HS
 (
-   InputPatch<VS_PS,3> I, UInt cp_id:SV_OutputControlPointID,
-   PARAMS
+   InputPatch<VS_PS,3> I, UInt cp_id:SV_OutputControlPointID
 )
 {
    VS_PS O;
@@ -80,9 +75,7 @@ void DS
    HSData hs_data, const OutputPatch<VS_PS,3> I, Vec B:SV_DomainLocation,
 
    out VS_PS O,
-   out Vec4  O_vtx:POSITION,
-
-   PARAMS
+   out Vec4  O_vtx:POSITION
 )
 {
    O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
@@ -91,6 +84,4 @@ void DS
    O_vtx=Project(O.pos);
 }
 #endif
-/******************************************************************************/
-CUSTOM_TECHNIQUE
 /******************************************************************************/

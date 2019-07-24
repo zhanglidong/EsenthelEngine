@@ -36,7 +36,7 @@ void VS
    O_vtx=Project(TransformPos(vtx.pos()));
 }
 /******************************************************************************/
-VecH4 PS(VS_PS I, IF_IS_FRONT):TARGET
+VecH4 PS(VS_PS I, IS_FRONT):TARGET
 {
    I.col.rgb+=Highlight.rgb;
 

@@ -7,15 +7,15 @@ namespace EE{
 #define BUMP_MAPPING   1
 #define MULTI_MATERIAL 1
 
-#if WINDOWS // DirectX 10+
-   #define COMPILE_4  0
+#if WINDOWS
+   #define COMPILE_DX 1
    #define COMPILE_GL 0
 #endif
 
 /**/
 #define MAIN
 
-/*#define DEFERRED
+#define DEFERRED
 #define BLEND_LIGHT
 #define FORWARD // Forward Shaders in OpenGL compile .. FIXME
 
@@ -24,19 +24,19 @@ namespace EE{
 #define BEHIND
 #define BLEND
 #define BONE_HIGHLIGHT
-#define DEPTH_OF_FIELD*/
+#define DEPTH_OF_FIELD
 #define EARLY_Z
 #define EFFECTS_2D
-/*#define EFFECTS_3D*/
+#define EFFECTS_3D
 #define FOG_LOCAL
-/*#define FUR
+#define FUR
 #define FXAA
 #define HDR
 #define LAYERED_CLOUDS
 #define MOTION_BLUR
-#define OVERLAY*/
+#define OVERLAY
 #define POSITION
-/*#define SET_COLOR
+#define SET_COLOR
 #define VOLUMETRIC_CLOUDS
 #define VOLUMETRIC_LIGHTS
 #define WATER
@@ -60,72 +60,9 @@ Str8 TechNameFurBase   (Int skin, Int size, Int diffuse) {return S8+"Base"+skin+
 Str8 TechNameFurSoft   (Int skin, Int size, Int diffuse) {return S8+"Soft"+skin+size+diffuse;}
 Str8 TechNameTattoo    (Int skin, Int tess             ) {return S8+skin+tess;}
 /******************************************************************************/
-#if COMPILE_4 || COMPILE_GL
+#if COMPILE_DX || COMPILE_GL
 /******************************************************************************/
 static Memx<ShaderCompiler> ShaderCompilers; // use 'Memx' because we store pointers to 'ShaderCompiler'
-/******************************************************************************/
-// FIXME remove this
-// COMPILER
-/******************************************************************************/
-// compile
-#if EE_PRIVATE
-Bool ShaderCompileTry(C Str &src, C Str &dest, API api, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, C MemPtr<ShaderGLSL> &stg=null, Str *messages=null); // compile shader from 'src' file to 'dest' using additional 'macros', false on fail, 'messages'=optional parameter which will receive any messages that occurred during compilation
-void ShaderCompile   (C Str &src, C Str &dest, API api, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros, C MemPtr<ShaderGLSL> &stg                         ); // compile shader from 'src' file to 'dest' using additional 'macros', Exit  on fail
-#endif
-Bool ShaderCompileTry(C Str &src, C Str &dest, API api, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros=null, Str *messages=null); // compile shader from 'src' file to 'dest' using additional 'macros', false on fail, 'messages'=optional parameter which will receive any messages that occurred during compilation
-void ShaderCompile   (C Str &src, C Str &dest, API api, SHADER_MODEL model, C MemPtr<ShaderMacro> &macros=null                    ); // compile shader from 'src' file to 'dest' using additional 'macros', Exit  on fail
-
-#define FORCE_LOG      0
-struct OldShaderCompiler
-{
-   Str               src, dest;
-   API               api;
-   SHADER_MODEL      model;
-   Memc<ShaderMacro> macros;
-   Memc<ShaderGLSL > glsl;
-
-   void compile()
-   {
-      Str messages; Bool ok=ShaderCompileTry(src, dest, api, model, macros, glsl, &messages);
-      if(!ok || DEBUG || FORCE_LOG)if(messages.is())LogN(S+"Shader\n\""+src+"\"\nto file\n\""+dest+"\"\n"+messages);
-      if(!ok)
-      {
-      #if !DX11
-         if(api==API_DX)Exit("Can't compile DX10+ Shaders when not using DX10+ engine version");
-      #endif
-      #if !GL
-         if(api==API_GL)Exit("Can't compile OpenGL Shaders when not using OpenGL engine version");
-      #endif
-         Exit(S+"Error compiling shader\n\""+src+"\"\nto file\n\""+dest+"\"."+(messages.is() ? S+"\n\nCompilation Messages:\n"+messages : S));
-      }
-   }
-};
-static Memc<OldShaderCompiler> OldShaderCompilers;
-static void ThreadCompile(OldShaderCompiler &shader_compiler, Ptr user, Int thread_index)
-{
-   ThreadMayUseGPUData();
-   shader_compiler.compile();
-}
-/******************************************************************************/
-static void Add(C Str &src, C Str &dest, API api, SHADER_MODEL model, C MemPtr<ShaderGLSL> &glsl=null)
-{
-   OldShaderCompiler &sc=OldShaderCompilers.New();
-   sc.src  =src  ;
-   sc.dest =dest ;
-   sc.api  =api  ;
-   sc.model=model;
-   sc.glsl =glsl ;
-}
-static void Add(C Str &src, C Str &dest, API api, SHADER_MODEL model, C Str &names, C MemPtr<ShaderGLSL> &glsl=null)
-{
-   OldShaderCompiler &sc=OldShaderCompilers.New();
-   sc.src  =src  ;
-   sc.dest =dest ;
-   sc.api  =api  ;
-   sc.model=model;
-   sc.glsl =glsl ;
-   sc.macros.New().set("CUSTOM_TECHNIQUE", names);
-}
 /******************************************************************************/
 // SHADER TECHNIQUE DECLARATIONS
 /******************************************************************************/
@@ -525,15 +462,12 @@ static void Compile(API api)
 
 #ifdef AMBIENT
 {
-   Str names;
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Ambient", model, api).New(src_path+"Ambient.cpp");
 
-   // base
    REPD(skin      , 2)
    REPD(alpha_test, 3)
    REPD(light_map , 2)
-      names+=TechAmbient(skin, alpha_test, light_map);
-
-   Add(src_path+"Ambient.cpp", dest_path+"Ambient", api, model, names);
+      src.New(S, "VS", "PS")("SKIN", skin, "ALPHA_TEST", alpha_test, "LIGHT_MAP", light_map);
 }
 #endif
 
@@ -549,30 +483,23 @@ static void Compile(API api)
 
 #ifdef BEHIND
 {
-   Str names;
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Behind", model, api).New(src_path+"Behind.cpp");
 
-   // base
    REPD(skin    , 2)
-   REPD(textures, 3)names+=TechBehind(skin, textures);
-
-   Add(src_path+"Behind.cpp", dest_path+"Behind", api, model, names);
+   REPD(textures, 3)
+      src.New(S, "VS", "PS")("SKIN", skin, "TEXTURES", textures);
 }
 #endif
 
 #ifdef BLEND
 {
-   Str names; Memc<ShaderGLSL> glsl;
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Blend", model, api).New(src_path+"Blend.cpp");
 
    REPD(skin    , 2)
    REPD(color   , 2)
    REPD(rflct   , 2)
    REPD(textures, 3)
-   {
-       names+=(TechBlend    (skin, color, rflct, textures));
-      glsl.add(TechBlendGlsl(skin, color, rflct, textures));
-   }
-
-   Add(src_path+"Blend.cpp", dest_path+"Blend", api, model, names, glsl);
+      src.New(S, "VS", "PS")("SKIN", skin, "COLORS", color, "REFLECT", rflct, "TEXTURES", textures);
 }
 #endif
 
@@ -729,7 +656,18 @@ static void Compile(API api)
 #endif
 
 #ifdef WORLD_EDITOR
-   Add(src_path+"World Editor.cpp", dest_path+"World Editor", api, model);
+{
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"World Editor", model, api).New(src_path+"World Editor.cpp");
+   src.New("WhiteVtx", "Color_VS", "Color_PS").extra("COL_VALUE", "1, 1, 1", "VTX_COL", 1);
+   src.New("White"   , "Color_VS", "Color_PS").extra("COL_VALUE", "1, 1, 1");
+   src.New("Green"   , "Color_VS", "Color_PS").extra("COL_VALUE", "0, 1, 0");
+   src.New("Yellow"  , "Color_VS", "Color_PS").extra("COL_VALUE", "1, 1, 0");
+   src.New("Red"     , "Color_VS", "Color_PS").extra("COL_VALUE", "1, 0, 0");
+
+   src.New("Circle" , "FX_VS", "Circle_PS");
+   src.New("Square" , "FX_VS", "Square_PS");
+   src.New("Grid"   , "FX_VS",   "Grid_PS");
+}
 #endif
 
 #ifdef DX10_INPUT_LAYOUT
@@ -876,75 +814,6 @@ static void Compile(API api)
 }
 #endif
 
-#ifdef SIMPLE
-{
-   Str names; Memc<ShaderGLSL> glsl;
-
-   REPD(per_pixel, 2)
-   {
-      // zero
-      REPD(skin , 2)
-      REPD(color, 2)
-      {
-          names+=(TechSimple    (skin, 1, 0, SBUMP_ZERO, false, false, false, color, false, false, FX_NONE, per_pixel, false));
-         glsl.add(TechSimpleGlsl(skin, 1, 0, SBUMP_ZERO, false, false, false, color, false, false, FX_NONE, per_pixel, false));
-      }
-
-      REPD(tess     , (model>=SM_4) ? 2 : 1)
-      REPD(heightmap, 2)
-      {
-         // 1 material, 0-2 textures
-         REPD(skin    , heightmap ? 1 : 2)
-         REPD(rflct   , 2)
-         REPD(color   , 2)
-       //REPD(instance, (model>=SM_4 && !skin) ? 2 : 1)
-         {
-             names+=(TechSimple    (skin, 1, 0, SBUMP_FLAT, false, false, rflct, color, false, heightmap, FX_NONE, per_pixel, tess)); // 1 material, 0 tex
-            glsl.add(TechSimpleGlsl(skin, 1, 0, SBUMP_FLAT, false, false, rflct, color, false, heightmap, FX_NONE, per_pixel, tess));
-            REPD(alpha_test, heightmap ? 1 : 2)
-            REPD(light_map , 2)
-            {
-                names+=(TechSimple    (skin, 1, 1, SBUMP_FLAT, alpha_test, light_map, rflct, color, false, heightmap, FX_NONE, per_pixel, tess)); // 1 material, 1 tex
-                names+=(TechSimple    (skin, 1, 2, SBUMP_FLAT, alpha_test, light_map, rflct, color, false, heightmap, FX_NONE, per_pixel, tess)); // 1 material, 2 tex
-               glsl.add(TechSimpleGlsl(skin, 1, 1, SBUMP_FLAT, alpha_test, light_map, rflct, color, false, heightmap, FX_NONE, per_pixel, tess));
-               glsl.add(TechSimpleGlsl(skin, 1, 2, SBUMP_FLAT, alpha_test, light_map, rflct, color, false, heightmap, FX_NONE, per_pixel, tess));
-            }
-         }
-
-      #if MULTI_MATERIAL
-         // 2-4 materials, 1 textures
-         for(Int materials=2; materials<=MAX_MTRLS; materials++)
-         REPD(color     , 2)
-         REPD(mtrl_blend, 2)
-         REPD(rflct     , 2)
-         {
-                       names+=(TechSimple    (false, materials, 1, SBUMP_FLAT, false, false, rflct, color, mtrl_blend, heightmap, FX_NONE, per_pixel, tess));
-            if(!rflct)glsl.add(TechSimpleGlsl(false, materials, 1, SBUMP_FLAT, false, false, rflct, color, mtrl_blend, heightmap, FX_NONE, per_pixel, tess));
-         }
-      #endif
-      }
-
-      // grass + leaf
-    //REPD(instance, (model>=SM_4) ? 2 : 1)
-      REPD(color, 2)
-      for(Int textures=1; textures<=2; textures++)
-      {
-          names+=(TechSimple    (false, 1, textures, SBUMP_FLAT, true, false, false, color, false, false, FX_GRASS, per_pixel, false));
-          names+=(TechSimple    (false, 1, textures, SBUMP_FLAT, true, false, false, color, false, false, FX_LEAF , per_pixel, false));
-          names+=(TechSimple    (false, 1, textures, SBUMP_FLAT, true, false, false, color, false, false, FX_LEAFS, per_pixel, false));
-         glsl.add(TechSimpleGlsl(false, 1, textures, SBUMP_FLAT, true, false, false, color, false, false, FX_GRASS, per_pixel, false));
-         glsl.add(TechSimpleGlsl(false, 1, textures, SBUMP_FLAT, true, false, false, color, false, false, FX_LEAF , per_pixel, false));
-         glsl.add(TechSimpleGlsl(false, 1, textures, SBUMP_FLAT, true, false, false, color, false, false, FX_LEAFS, per_pixel, false));
-      }
-   }
-
-   // bone highlight
-   REPD(skin, 2)names+=TechSimple(skin, 1, 0, SBUMP_FLAT, false, false, false, false, false, false, FX_BONE, true, false); // !! this name must be in sync with other calls in the engine that use FX_BONE !!
-
-   Add(src_path+"Simple.cpp", dest_path+"Simple", api, model, names, glsl);
-}
-#endif
-
 #ifdef FORWARD
 {
    Str names;
@@ -1022,24 +891,23 @@ static void Compile(API api)
 /******************************************************************************/
 void MainShaderClass::compile()
 {
-#if COMPILE_4 || COMPILE_GL
+#if COMPILE_DX || COMPILE_GL
    App.stayAwake(AWAKE_SYSTEM);
 
 #if COMPILE_GL
    Compile(API_GL);
 #endif
-#if COMPILE_4
+#if COMPILE_DX
    Compile(API_DX);
 #endif
 
    ProcPriority(-1); // compiling shaders may slow down entire CPU, so make this process have smaller priority
-   Dbl t=Time.curTime();
-   //FIXME MultiThreadedCall(OldShaderCompilers, ThreadCompile);
    if(ShaderCompilers.elms())
    {
       Threads threads; threads.create(false, Cpu.threads()-1);
       FREPAO(ShaderCompilers).compile(threads);
    }
+   ProcPriority(0);
 
    App.stayAwake(AWAKE_OFF);
 #endif

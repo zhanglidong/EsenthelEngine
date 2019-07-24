@@ -7,34 +7,42 @@ void Color_VS
 (
    VtxInput vtx,
 
+#if VTX_COL
    out VecH4 outCol:COLOR    ,
+#endif
    out VecH  outNrm:TEXCOORD0,
    out Vec   outPos:TEXCOORD1,
-   out Vec4  outVtx:POSITION ,
-
-   uniform Bool vtx_col=false
+   out Vec4  outVtx:POSITION
 )
 {  
-   if(vtx_col)outCol=vtx.colorFast();
+#if VTX_COL
+   outCol=vtx.colorFast();
+#endif
 
    outNrm=Normalize(TransformDir(vtx.nrm()));
    outPos=          TransformPos(vtx.pos()) ;
    outVtx=          Project     ( outPos  ) ;
 }
 /******************************************************************************/
+#ifndef COL_VALUE
+#define COL_VALUE 0
+#endif
 void Color_PS
 (
+#if VTX_COL
    VecH4 inCol:COLOR    ,
+#endif
    VecH  inNrm:TEXCOORD0,
    Vec   inPos:TEXCOORD1,
 
-   out DeferredSolidOutput output,
-
-   uniform VecH color  ,
-   uniform Bool vtx_col=false
+   out DeferredSolidOutput output
 )
 {
-   output.color   ((vtx_col ? color*inCol.rgb : color)+Highlight.rgb);
+#if VTX_COL
+   output.color   (VecH(COL_VALUE)*inCol.rgb+Highlight.rgb);
+#else
+   output.color   (VecH(COL_VALUE)+Highlight.rgb);
+#endif
    output.glow    (0);
    output.normal  (Normalize(inNrm));
    output.specular(0);
@@ -173,14 +181,4 @@ VS_PS DS
 
    return O;
 }
-/******************************************************************************/
-TECHNIQUE(WhiteVtx, Color_VS(true), Color_PS(Vec(1, 1, 1), true ));
-TECHNIQUE(White   , Color_VS(    ), Color_PS(Vec(1, 1, 1), false));
-TECHNIQUE(Green   , Color_VS(    ), Color_PS(Vec(0, 1, 0), false));
-TECHNIQUE(Yellow  , Color_VS(    ), Color_PS(Vec(1, 1, 0), false));
-TECHNIQUE(Red     , Color_VS(    ), Color_PS(Vec(1, 0, 0), false));
-
-TECHNIQUE(Circle , FX_VS(), Circle_PS());
-TECHNIQUE(Square , FX_VS(), Square_PS());
-TECHNIQUE(Grid   , FX_VS(),   Grid_PS());
 /******************************************************************************/

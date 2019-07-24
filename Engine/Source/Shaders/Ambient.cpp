@@ -1,11 +1,6 @@
 /******************************************************************************/
 #include "!Header.h"
 /******************************************************************************/
-#define PARAMS             \
-   uniform Bool skin      ,\
-   uniform Int  alpha_test,\
-   uniform Bool light_map
-/******************************************************************************/
 void VS
 (
    VtxInput vtx,
@@ -13,31 +8,25 @@ void VS
    out Vec2 outTex:TEXCOORD,
    out Vec4 outVtx:POSITION,
 
-   IF_IS_CLIP
-
-   PARAMS
+   CLIP_DIST
 )
 {
-   if(alpha_test || light_map)outTex=vtx.tex();
+   if(ALPHA_TEST || LIGHT_MAP)outTex=vtx.tex();
 
    Vec      pos;
-   if(!skin)pos=TransformPos(vtx.pos());
+   if(!SKIN)pos=TransformPos(vtx.pos());
    else     pos=TransformPos(vtx.pos(), vtx.bone(), vtx.weight());
  CLIP_PLANE(pos); outVtx=Project(pos);
 }
 /******************************************************************************/
 VecH4 PS
 (
-   Vec2 inTex:TEXCOORD,
-
-   PARAMS
+   Vec2 inTex:TEXCOORD
 ):TARGET
 {
-   if(alpha_test==1)clip(Tex(Col, inTex).a + MaterialAlpha()-1);else
-   if(alpha_test==2)clip(Tex(Nrm, inTex).a + MaterialAlpha()-1); // #MaterialTextureChannelOrder
+   if(ALPHA_TEST==1)clip(Tex(Col, inTex).a + MaterialAlpha()-1);else
+   if(ALPHA_TEST==2)clip(Tex(Nrm, inTex).a + MaterialAlpha()-1); // #MaterialTextureChannelOrder
 
-   return VecH4(light_map ? Tex(Lum, inTex).rgb*MaterialAmbient() : MaterialAmbient(), 0);
+   return VecH4(LIGHT_MAP ? Tex(Lum, inTex).rgb*MaterialAmbient() : MaterialAmbient(), 0);
 }
-/******************************************************************************/
-CUSTOM_TECHNIQUE
 /******************************************************************************/

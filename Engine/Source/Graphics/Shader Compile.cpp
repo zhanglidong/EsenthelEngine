@@ -520,19 +520,26 @@ void ShaderCompiler::SubShader::compile()
    }
 
 #if NEW_COMPILER
-   Int params=shader->params.elms();
-   MemtN<DxcDefine, 64  > defines; defines.setNum(params  +API_NUM);
+   Int params=shader->params.elms()+shader->extra_params.elms();
+   MemtN<DxcDefine, 64  > defines; defines.setNum(params  +API_NUM); Int defs =0;
    MemtN<Str      , 64*2> temp   ; temp   .setNum(params*2+API_NUM); Int temps=0;
    FREP(params)
    {
-      DxcDefine &define=defines[i]; C TextParam8 &param=shader->params[i];
+      DxcDefine &define=defines[defs++]; C TextParam8 &param=shader->params[i];
+      define.Name =(temp[temps++]=param.name );
+      define.Value=(temp[temps++]=param.value);
+   }
+   FREP(extra_params)
+   {
+      DxcDefine &define=defines[defs++]; C TextParam8 &param=shader->extra_params[i];
       define.Name =(temp[temps++]=param.name );
       define.Value=(temp[temps++]=param.value);
    }
    FREP(API_NUM)
    {
-      defines[params+i].Name =(temp[temps++]=APIName[i]);
-      defines[params+i].Value=((compiler->api==i) ? L"1" : L"0");
+      DxcDefine &define=defines[defs++];
+      define.Name =(temp[temps++]=APIName[i]);
+      define.Value=((compiler->api==i) ? L"1" : L"0");
    }
 
    MemtN<LPCWSTR, 16> arguments;

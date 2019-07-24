@@ -15,7 +15,6 @@
 #define FX_GRASS 1
 #define FX_LEAF  2
 #define FX_LEAFS 3
-#define FX_BONE  4
 
 #define REVERSE_DEPTH false
 

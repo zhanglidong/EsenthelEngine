@@ -58,9 +58,7 @@ void VS
    out VS_PS O,
    out Vec4  O_vtx:POSITION,
 
-   IF_IS_CLIP
-
-   PARAMS
+   CLIP_DIST
 )
 {
    Vec  pos=vtx.pos();
@@ -161,11 +159,9 @@ void PS
 (
    VS_PS I,
 
-   IF_IS_FRONT
+   IS_FRONT,
 
-   out DeferredSolidOutput output,
-
-   PARAMS
+   out DeferredSolidOutput output
 )
 {
    VecH nrm;
@@ -693,8 +689,7 @@ HSData HSConstant(InputPatch<VS_PS,3> I) {return GetHSData(I[0].pos, I[1].pos, I
 [outputcontrolpoints(3)]
 VS_PS HS
 (
-   InputPatch<VS_PS,3> I, UInt cp_id:SV_OutputControlPointID,
-   PARAMS
+   InputPatch<VS_PS,3> I, UInt cp_id:SV_OutputControlPointID
 )
 {
    VS_PS O;
@@ -719,9 +714,7 @@ void DS
    HSData hs_data, const OutputPatch<VS_PS,3> I, Vec B:SV_DomainLocation,
 
    out VS_PS O,
-   out Vec4  O_vtx:POSITION,
-
-   PARAMS
+   out Vec4  O_vtx:POSITION
 )
 {
    if(materials<=1 /*|| !mtrl_blend*/ || color)O.col     =I[0].col     *B.z + I[1].col     *B.x + I[2].col     *B.y;
@@ -744,8 +737,4 @@ void DS
    O_vtx=Project(O.pos);
 }
 #endif
-/******************************************************************************/
-// TECHNIQUES
-/******************************************************************************/
-CUSTOM_TECHNIQUE
 /******************************************************************************/

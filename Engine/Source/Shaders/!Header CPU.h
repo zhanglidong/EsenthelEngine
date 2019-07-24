@@ -19,7 +19,6 @@
 #define FX_GRASS 1
 #define FX_LEAF  2
 #define FX_LEAFS 3
-#define FX_BONE  4
 
 #define MAX_MOTION_BLUR_PIXEL_RANGE 24
 

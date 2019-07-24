@@ -102,7 +102,8 @@ struct ShaderCompiler
       Str              name;
       SHADER_MODEL     model;
       Bool             dummy=false; // if skip saving this shader, this is used only to access info about ConstantBuffers/ShaderParams
-      Memc<TextParam8> params;
+      Memc<TextParam8> params,
+                       extra_params; // params not affecting shader name
       SubShader        sub[ST_NUM];
     C Source          *source;
 
@@ -113,6 +114,11 @@ struct ShaderCompiler
       Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1                                              ) {params.New().set(n0, v0); params.New().set(n1, v1);                                                     return T;}
       Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1,  C Str &n2, C Str &v2                       ) {params.New().set(n0, v0); params.New().set(n1, v1); params.New().set(n2, v2);                           return T;}
       Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1,  C Str &n2, C Str &v2,  C Str &n3, C Str &v3) {params.New().set(n0, v0); params.New().set(n1, v1); params.New().set(n2, v2); params.New().set(n3, v3); return T;}
+
+      Shader& extra(C Str &n0, C Str &v0                                                                     ) {extra_params.New().set(n0, v0);                                                                                                 return T;}
+      Shader& extra(C Str &n0, C Str &v0,  C Str &n1, C Str &v1                                              ) {extra_params.New().set(n0, v0); extra_params.New().set(n1, v1);                                                                 return T;}
+      Shader& extra(C Str &n0, C Str &v0,  C Str &n1, C Str &v1,  C Str &n2, C Str &v2                       ) {extra_params.New().set(n0, v0); extra_params.New().set(n1, v1); extra_params.New().set(n2, v2);                                 return T;}
+      Shader& extra(C Str &n0, C Str &v0,  C Str &n1, C Str &v1,  C Str &n2, C Str &v2,  C Str &n3, C Str &v3) {extra_params.New().set(n0, v0); extra_params.New().set(n1, v1); extra_params.New().set(n2, v2); extra_params.New().set(n3, v3); return T;}
 
       Shader& tesselate(Bool tesselate)
       {

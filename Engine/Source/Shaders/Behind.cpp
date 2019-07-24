@@ -12,9 +12,7 @@ void VS
    out Vec4 outVtx:POSITION ,
    out Vec2 outTex:TEXCOORD0,
    out VecH outNrm:TEXCOORD1, // !! not Normalized !!
-   out Vec  outPos:TEXCOORD2,
-
-   PARAMS
+   out Vec  outPos:TEXCOORD2
 )
 {
    outTex=vtx.tex();
@@ -36,9 +34,7 @@ VecH4 PS
    PIXEL,
    Vec2 inTex:TEXCOORD0,
    VecH inNrm:TEXCOORD1,
-   Vec  inPos:TEXCOORD2,
-
-   PARAMS
+   Vec  inPos:TEXCOORD2
 ):TARGET
 {
    // perform alpha testing
@@ -51,6 +47,4 @@ VecH4 PS
           col.a*=alpha;
    return col;
 }
-/******************************************************************************/
-CUSTOM_TECHNIQUE // this is defined in C++ as a macro
 /******************************************************************************/

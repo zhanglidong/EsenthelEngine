@@ -38,9 +38,7 @@ void VS
    VtxInput vtx,
 
    out VS_PS O,
-   out Vec4  O_vtx:POSITION,
-
-   PARAMS
+   out Vec4  O_vtx:POSITION
 )
 {
    Bool heightmap=false, tesselate=false;
@@ -141,12 +139,10 @@ void PS
 (
    VS_PS I,
  //PIXEL,
-   IF_IS_FRONT
+   IS_FRONT,
 
 out VecH4 outCol:TARGET0,
-out VecH4 outVel:TARGET1, // #BlendRT
-
-   PARAMS
+out VecH4 outVel:TARGET1  // #BlendRT
 )
 {
    VecH  nrm;
@@ -226,8 +222,4 @@ out VecH4 outVel:TARGET1, // #BlendRT
    outCol=I.col;
    if(use_vel){UpdateVelocities_PS(I.vel, I.pos); outVel.xyz=I.vel; outVel.w=I.col.a;} // alpha needed because of blending
 }
-/******************************************************************************/
-// TECHNIQUES
-/******************************************************************************/
-CUSTOM_TECHNIQUE
 /******************************************************************************/

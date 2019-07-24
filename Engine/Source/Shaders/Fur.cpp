@@ -26,9 +26,7 @@ void Base_VS
    out Half outLen:TEXCOORD4,
    out Vec4 outVtx:POSITION ,
 
-   IF_IS_CLIP
-
-   BASE_PARAMS
+   CLIP_DIST
 )
 {
    outTex=vtx.tex();
@@ -140,8 +138,4 @@ VecH4 Soft_PS
               color.rgb =(color.rgb*MaterialColor3()+Highlight.rgb)*TexPoint(FurLight, PosToScreen(inPos4)).rgb; // we need to access the un-expanded pixel and not current pixel
    return     color;
 }
-/******************************************************************************/
-// TECHNIQUES
-/******************************************************************************/
-CUSTOM_TECHNIQUE
 /******************************************************************************/
