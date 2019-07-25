@@ -111,10 +111,10 @@ void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_
    detail   =false;
    macro    =false;
    reflect  =false;
-   Bool tex =((mesh_base_flag&VTX_TEX0 )!=0);
-   normal   =((mesh_base_flag&VTX_NRM  )!=0);
-   color    =((mesh_base_flag&VTX_COLOR)!=0);
-   size     =((mesh_base_flag&VTX_SIZE )!=0);
+   Bool tex =FlagTest(mesh_base_flag, VTX_TEX0 );
+   normal   =FlagTest(mesh_base_flag, VTX_NRM  );
+   color    =FlagTest(mesh_base_flag, VTX_COLOR);
+   size     =FlagTest(mesh_base_flag, VTX_SIZE );
 
    if(material)
    {
