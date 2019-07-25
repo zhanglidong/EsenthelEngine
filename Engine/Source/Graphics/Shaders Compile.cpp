@@ -11,14 +11,14 @@ namespace EE{
    #define COMPILE_GL 0
 #endif
 
-/**/
-#define MAIN
+/**
+#define MAIN*/
 
 #define DEFERRED
 #define BLEND_LIGHT
-#define FORWARD // Forward Shaders in OpenGL compile .. FIXME
+#define FORWARD
 
-#define AMBIENT
+/*#define AMBIENT
 #define AMBIENT_OCCLUSION
 #define BEHIND
 #define BLEND
@@ -39,7 +39,7 @@ namespace EE{
 #define VOLUMETRIC_CLOUDS
 #define VOLUMETRIC_LIGHTS
 #define WATER
-#define WORLD_EDITOR
+//#define WORLD_EDITOR
 /******************************************************************************
 #define DX10_INPUT_LAYOUT
 /******************************************************************************/
@@ -608,7 +608,27 @@ static void Compile(API api)
 #ifdef WATER
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Water", model, api).New(src_path+"Water.cpp");
-   FIXME
+   REPD(refract  , 2)
+   REPD(set_depth, 2)
+      src.New("Apply", "DrawPosXY_VS", "Apply_PS")("REFRACT", refract, "SET_DEPTH", set_depth);
+
+   REPD(refract, 2)
+      src.New("Under", "DrawPosXY_VS", "Under_PS")("REFRACT", refract);
+
+   REPD(fake_reflection, 2)
+   {
+      src.New("Lake" , "Surface_VS", "Surface_PS")("LIGHT", 0, "SHADOW", 0, "SOFT", 0, "FAKE_REFLECTION", fake_reflection).extra("WAVES", 0, "RIVER", 0);
+      src.New("River", "Surface_VS", "Surface_PS")("LIGHT", 0, "SHADOW", 0, "SOFT", 0, "FAKE_REFLECTION", fake_reflection).extra("WAVES", 0, "RIVER", 1);
+      src.New("Ocean", "Surface_VS", "Surface_PS")("LIGHT", 0, "SHADOW", 0, "SOFT", 0, "FAKE_REFLECTION", fake_reflection).extra("WAVES", 1, "RIVER", 0);
+
+      REPD(shadow, 7)
+      REPD(soft  , 2)
+      {
+         src.New("Lake" , "Surface_VS", "Surface_PS")("LIGHT", 1, "SHADOW", shadow, "SOFT", soft, "FAKE_REFLECTION", fake_reflection).extra("WAVES", 0, "RIVER", 0);
+         src.New("River", "Surface_VS", "Surface_PS")("LIGHT", 1, "SHADOW", shadow, "SOFT", soft, "FAKE_REFLECTION", fake_reflection).extra("WAVES", 0, "RIVER", 1);
+         src.New("Ocean", "Surface_VS", "Surface_PS")("LIGHT", 1, "SHADOW", shadow, "SOFT", soft, "FAKE_REFLECTION", fake_reflection).extra("WAVES", 1, "RIVER", 0);
+      }
+   }
 }
 #endif
 

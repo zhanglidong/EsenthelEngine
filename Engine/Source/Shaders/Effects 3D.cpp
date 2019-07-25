@@ -118,7 +118,6 @@ void Volume_PS
       if(LINEAR_GAMMA)col.r=SRGBToLinearFast(col.r);
 
       color=col.rrrg*Color[0]+Color[1];
-      mask.rgb=0; mask.a=color.a;
    }else
    {
       Vec4 col=0;
@@ -137,8 +136,8 @@ void Volume_PS
       col.rgb/=col.a+HALF_MIN; // NaN
 
       color=col*Color[0]+Color[1];
-      mask.rgb=0; mask.a=color.a;
    }
+   mask.rgb=0; mask.a=color.a;
 }
 /******************************************************************************/
 // LASER
@@ -218,11 +217,12 @@ void Decal_VS(VtxInput vtx,
 #endif
 }
 VecH4 Decal_PS(PIXEL,
-               Matrix  inMatrix :TEXCOORD0,
+               Matrix  inMatrix :TEXCOORD0
             #if MODE==1
-               Matrix3 inMatrixN:TEXCOORD3,
+         ,     Matrix3 inMatrixN:TEXCOORD3
+         , out VecH4   outNrm   :TARGET1  
             #endif
-           out VecH4   outNrm   :TARGET1  ):TARGET
+              ):TARGET
 {
    Vec  pos  =GetPosPoint(PixelToScreen(pixel));
         pos  =TransformTP(pos-inMatrix[3], (Matrix3)inMatrix);

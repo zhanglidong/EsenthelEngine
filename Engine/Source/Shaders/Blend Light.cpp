@@ -18,7 +18,8 @@
    uniform Bool per_pixel  ,\
    uniform Int  shadow_maps
 // when adding "Bool tesselate" here, then remove "Bool tesselate=false;" below
-#define use_vel alpha_test
+
+#define USE_VEL ALPHA_TEST
 /******************************************************************************/
 struct VS_PS
 {
@@ -75,7 +76,9 @@ void VS
               BendGrass(pos, O.pos, vtx.instance());
             O.col.a*=1-GrassFadeOut(vtx.instance());
          }
-         if(use_vel){O.vel=ObjVel[vtx.instance()]; UpdateVelocities_VS(O.vel, pos, O.pos, vtx.instance());} // #PER_INSTANCE_VEL
+      #if USE_VEL
+         O.vel=ObjVel[vtx.instance()]; UpdateVelocities_VS(O.vel, pos, O.pos, vtx.instance()); // #PER_INSTANCE_VEL
+      #endif
       }else
       {
                     O.pos=TransformPos(pos);
@@ -87,7 +90,9 @@ void VS
             BendGrass(pos, O.pos);
             O.col.a*=1-GrassFadeOut();
          }
-         if(use_vel){O.vel=ObjVel[0]; UpdateVelocities_VS(O.vel, pos, O.pos);}
+      #if USE_VEL
+         O.vel=ObjVel[0]; UpdateVelocities_VS(O.vel, pos, O.pos);
+      #endif
       }
    }else
    {
@@ -95,7 +100,9 @@ void VS
                                    O.pos=TransformPos(pos, bone, vtx.weight());
       if(bump_mode>=SBUMP_FLAT)O.mtrx[2]=TransformDir(nrm, bone, vtx.weight());
       if(bump_mode> SBUMP_FLAT)O.mtrx[0]=TransformDir(tan, bone, vtx.weight());
-      if(use_vel){O.vel=GetBoneVel(bone, vtx.weight()); UpdateVelocities_VS(O.vel, pos, O.pos);}
+   #if USE_VEL
+      O.vel=GetBoneVel(bone, vtx.weight()); UpdateVelocities_VS(O.vel, pos, O.pos);
+   #endif
    }
 
    // normalize (have to do all at the same time, so all have the same lengths)
@@ -141,8 +148,10 @@ void PS
  //PIXEL,
    IS_FRONT,
 
-out VecH4 outCol:TARGET0,
-out VecH4 outVel:TARGET1  // #BlendRT
+  out VecH4 outCol:TARGET0
+#if USE_VEL
+, out VecH4 outVel:TARGET1 // #BlendRT
+#endif
 )
 {
    VecH  nrm;
@@ -220,6 +229,8 @@ out VecH4 outVel:TARGET1  // #BlendRT
    }
    I.col.rgb+=I.col_add; // add after lighting because this could have fog
    outCol=I.col;
-   if(use_vel){UpdateVelocities_PS(I.vel, I.pos); outVel.xyz=I.vel; outVel.w=I.col.a;} // alpha needed because of blending
+#if USE_VEL
+   UpdateVelocities_PS(I.vel, I.pos); outVel.xyz=I.vel; outVel.w=I.col.a; // alpha needed because of blending
+#endif
 }
 /******************************************************************************/

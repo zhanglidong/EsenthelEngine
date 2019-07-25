@@ -58,8 +58,7 @@ void Explosion_PS(Vec    inPos:TEXCOORD0,
 #if !SIGNED_VEL_RT
    inVel=inVel*0.5+0.5;
 #endif
-   outVel.xyz=inVel.xyz;
-   outVel.w  =0;
+   outVel.xyz=inVel.xyz; outVel.w=0;
 }
 /******************************************************************************/
 void ClearSkyVel_VS(VtxInput vtx,

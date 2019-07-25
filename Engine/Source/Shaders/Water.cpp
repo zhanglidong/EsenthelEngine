@@ -4,6 +4,16 @@
 /******************************************************************************/
 #define DEFAULT_DEPTH 1.0
 /******************************************************************************/
+// LIGHT, SHADOW, SOFT, FAKE_REFLECTION, WAVES, RIVER
+#ifndef WAVES
+#define WAVES 0
+#endif
+#ifndef RIVER
+#define RIVER 0
+#endif
+#ifndef REFRACT
+#define REFRACT 0
+#endif
 void Surface_VS
 (
    VtxInput vtx,
@@ -12,17 +22,17 @@ void Surface_VS
    out Vec2 outTex  :TEXCOORD1,
    out Vec4 outTexN0:TEXCOORD2,
    out Vec4 outTexN1:TEXCOORD3,
+#if WAVES
    out Vec4 outTexB :TEXCOORD4,
+#endif
+#if LIGHT
    out Half outPDF  :TEXCOORD5,
-   out Vec4 outVtx  :POSITION ,
-
-   uniform Bool waves,
-   uniform Bool river,
-   uniform Bool light=false
+#endif
+   out Vec4 outVtx  :POSITION
 )
 {
    Vec pos=vtx.pos();
-   if(waves)
+   if(WAVES)
    {
       pos.y=pos.y*WaterYMulAdd.x + WaterYMulAdd.y;
 
@@ -40,7 +50,7 @@ void Surface_VS
       pos   =Transform(pos, CamMatrix);
    }
 
-   if(river)
+   if(RIVER)
    {
       Vec2 tex=vtx.tex(); tex.y-=WaterFlow;
       outTex     =( tex  )/WaterScaleDif  +      WaterOfs ;
@@ -48,8 +58,10 @@ void Surface_VS
       outTexN0.zw=(-tex  )/WaterScaleNrm  +      WaterOfs ;
       outTexN1.xy=( tex/8)/WaterScaleNrm  + Perp(WaterOfs);
       outTexN1.zw=(-tex/8)/WaterScaleNrm  + Perp(WaterOfs);
+   #if WAVES
       outTexB .xy=( tex  )/WaterScaleBump +      WaterOfs ;
       outTexB .zw=(-tex  )/WaterScaleBump +      WaterOfs ;
+   #endif
    }else
    {
       outTex     =( pos.xz  )/WaterScaleDif  +      WaterOfs ;
@@ -57,21 +69,25 @@ void Surface_VS
       outTexN0.zw=(-pos.xz  )/WaterScaleNrm  +      WaterOfs ;
       outTexN1.xy=( pos.xz/8)/WaterScaleNrm  + Perp(WaterOfs);
       outTexN1.zw=(-pos.xz/8)/WaterScaleNrm  + Perp(WaterOfs);
+   #if WAVES
       outTexB .xy=( pos.xz  )/WaterScaleBump +      WaterOfs ;
       outTexB .zw=(-pos.xz  )/WaterScaleBump +      WaterOfs ;
+   #endif
    }
 
-   if(waves)
-   {
-      Flt dist_scale=LerpRS(Sqr(150.0f), Sqr(100.0f), Length2(outPos)),
-          bump      =TexLod(Col, outTexB.xy).a+TexLod(Col, outTexB.zw).a;
-          bump      =bump-1; // Avg(a,b)*2-1 = (a+b)-1
-          outPos   +=(WaterPlnNrm*WaterWave)*bump*dist_scale;
-   }else
-   {
-      outPos=TransformPos(pos);
-   }
-   if(light)outPDF=2-Abs(DistPointPlane(outPos, WaterPlnPos, WaterPlnNrm)); // plane distance factor, must be = 1 for dist=0..1 (wave scale)
+#if WAVES
+   Flt dist_scale=LerpRS(Sqr(150.0f), Sqr(100.0f), Length2(outPos)),
+       bump      =TexLod(Col, outTexB.xy).a+TexLod(Col, outTexB.zw).a;
+       bump      =bump-1; // Avg(a,b)*2-1 = (a+b)-1
+       outPos   +=(WaterPlnNrm*WaterWave)*bump*dist_scale;
+#else
+   outPos=TransformPos(pos);
+#endif
+
+#if LIGHT
+   outPDF=2-Abs(DistPointPlane(outPos, WaterPlnPos, WaterPlnNrm)); // plane distance factor, must be = 1 for dist=0..1 (wave scale)
+#endif
+
    outVtx=Project(outPos);
 }
 /******************************************************************************/
@@ -86,25 +102,26 @@ void Surface_PS
    Vec2 inTex  :TEXCOORD1,
    Vec4 inTexN0:TEXCOORD2,
    Vec4 inTexN1:TEXCOORD3,
+#if WAVES
    Vec4 inTexB :TEXCOORD4,
+#endif
+#if LIGHT
    Half inPDF  :TEXCOORD5,
+#endif
    PIXEL,
 
-   out VecH4 O_col:TARGET0,
-   out VecH4 O_nrm:TARGET1,
-
-   uniform Bool waves                ,
-   uniform Bool river                ,
-   uniform Bool light                ,
-   uniform Bool fake_reflection=false,
-   uniform Int  shadow         =0    ,
-   uniform Bool soft           =false
+   out VecH4 O_col:TARGET0
+#if !LIGHT
+ , out VecH4 O_nrm:TARGET1
+#endif
 )
 {
-   VecH     nrm; // #MaterialTextureChannelOrder
-            nrm.xy =(Tex(Nrm, inTexN0.xy).xy - Tex(Nrm, inTexN0.zw).xy + Tex(Nrm, inTexN1.xy).xy - Tex(Nrm, inTexN1.zw).xy)*WaterRgh_2; // (Avg(Tex(Nrm, inTexN0.xy).xy, 1-Tex(Nrm, inTexN0.zw).xy, Tex(Nrm, inTexN1.xy).xy, 1-Tex(Nrm, inTexN1.zw).xy)*2-1)*WaterRgh
-   if(waves)nrm.xy+=(Tex(Nrm, inTexB .xy).xy - Tex(Nrm, inTexB .zw).xy                                                    )*WaterWave ; // (Avg(Tex(Nrm, inTexB .xy).xy, 1-Tex(Nrm, inTexB .zw).xy                                                    )*2-1)*WaterWave
-            nrm.z  =CalcZ(nrm.xy);
+   VecH nrm; // #MaterialTextureChannelOrder
+        nrm.xy=(Tex(Nrm, inTexN0.xy).xy - Tex(Nrm, inTexN0.zw).xy + Tex(Nrm, inTexN1.xy).xy - Tex(Nrm, inTexN1.zw).xy)*WaterRgh_2; // (Avg(Tex(Nrm, inTexN0.xy).xy, 1-Tex(Nrm, inTexN0.zw).xy, Tex(Nrm, inTexN1.xy).xy, 1-Tex(Nrm, inTexN1.zw).xy)*2-1)*WaterRgh
+#if WAVES
+   nrm.xy+=(Tex(Nrm, inTexB.xy).xy - Tex(Nrm, inTexB.zw).xy)*WaterWave; // (Avg(Tex(Nrm, inTexB.xy).xy, 1-Tex(Nrm, inTexB.zw).xy)*2-1)*WaterWave
+#endif
+   nrm.z=CalcZ(nrm.xy);
 
    Matrix3 mtrx;
    mtrx[0]=MatrixX(ViewMatrix[0]);
@@ -121,10 +138,9 @@ void Surface_PS
 
    VecH4 col=VecH4(WaterCol*Tex(Col, inTex).rgb, 0);
    {
-      if(fake_reflection) // add fake reflection
-      {
-         col.rgb+=TexCube(Rfl, Transform3(reflect(view, view_nrm), CamMatrix)).rgb*WaterRflFake; // #ShaderHalf
-      }
+   #if FAKE_REFLECTION // add fake reflection
+      col.rgb+=TexCube(Rfl, Transform3(reflect(view, view_nrm), CamMatrix)).rgb*WaterRflFake; // #ShaderHalf
+   #endif
       // fresnel
       {
          Half dot_prod=Sat(-Dot(view, fresnel_nrm)),
@@ -134,9 +150,8 @@ void Surface_PS
    }
    col.rgb=Sat(col.rgb);
 
-   if(!light)
-   {
-      O_col=col; // in O_col.w you can encode: reflection, refraction, glow
+#if !LIGHT
+   O_col=col; // in O_col.w you can encode: reflection, refraction, glow
 
    #if SIGNED_NRM_RT
       O_nrm.xyz=view_nrm;
@@ -149,97 +164,99 @@ void Surface_PS
    #else
       O_nrm.w=WaterSpc;
    #endif
-   }else
+#else
+        inTex      =PixelToScreen(pixel);
+   Flt  water_z    =inPos.z,
+        solid_z_raw=(SOFT ? TexPoint(ImgXF, inTex).x : 0),
+        solid_z    =(SOFT ? LinearizeDepth(solid_z_raw) : water_z+DEFAULT_DEPTH);
+   Half alpha=0;
+
+   Vec2    col_tex=inTex;
+   VecH4 water_col=col;
+
+   Vec2 refract=nrm.xy*Viewport.size;
+
+   Flt dz   =(SOFT ? solid_z-water_z : DEFAULT_DEPTH);
+       alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03);
+
+   Vec2 test_tex=Mid(col_tex+refract*WaterRfr*alpha/Max(1, water_z), WaterClamp.xy, WaterClamp.zw);
+   if(SOFT)
    {
-           inTex      =PixelToScreen(pixel);
-      Flt  water_z    =inPos.z,
-           solid_z_raw=(soft ? TexPoint(ImgXF, inTex).x : 0),
-           solid_z    =(soft ? LinearizeDepth(solid_z_raw) : water_z+DEFAULT_DEPTH);
-      Half alpha=0;
-
-      Vec2    col_tex=inTex;
-      VecH4 water_col=col;
-
-      Vec2 refract=nrm.xy*Viewport.size;
-
-      Flt dz   =(soft ? solid_z-water_z : DEFAULT_DEPTH);
-          alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03);
-
-      Vec2 test_tex=Mid(col_tex+refract*WaterRfr*alpha/Max(1, water_z), WaterClamp.xy, WaterClamp.zw);
-      if(soft)
+      Flt test_z=LinearizeDepth(TexLodClamp(ImgXF, test_tex).x); // use linear filtering because texcoords are not rounded
+      if( test_z>water_z)
       {
-         Flt test_z=LinearizeDepth(TexLodClamp(ImgXF, test_tex).x); // use linear filtering because texcoords are not rounded
-         if( test_z>water_z)
-         {
-            solid_z=test_z;
-            col_tex=test_tex;
-         }
-         if(DEPTH_BACKGROUND(solid_z_raw))alpha=1;else // always force full opacity when there's no solid pixel set to avoid remains in the RenderTarget from previous usage
-         {
-            dz   =solid_z-water_z;
-            alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03);
-         }
-      }else
-      {
+         solid_z=test_z;
          col_tex=test_tex;
       }
-
-      // light
-      VecH4 lum;
+      if(DEPTH_BACKGROUND(solid_z_raw))alpha=1;else // always force full opacity when there's no solid pixel set to avoid remains in the RenderTarget from previous usage
       {
-         // shadow
-         Half shd; if(shadow)shd=Sat(ShadowDirValue(inPos, ShadowJitter(pixel.xy), true, shadow, false));
-
-         // diffuse
-         Half diffuse=LightDiffuse(view_nrm, Light_dir.dir); if(shadow)diffuse*=shd;
-
-         // specular
-         Half specular=LightSpecular(view_nrm, WaterSpc, Light_dir.dir, -view); if(shadow)specular*=shd;
-
-         lum=VecH4(Light_dir.color.rgb*diffuse, Light_dir.color.a*specular);
+         dz   =solid_z-water_z;
+         alpha=Sat(AccumulatedDensity(WaterDns.x, dz) + WaterDns.y)*Sat(dz/0.03);
       }
-
-      // col light
-      water_col.rgb*=lum.rgb+AmbNSColor;
-
-      // reflection
-      Half  rfl=WaterRfl*Sat(inPDF);
-          inTex=Mid ((inTex+refract*WaterRfrRfl)*WaterRflMulAdd.xy+WaterRflMulAdd.zw, WaterClamp.xy, WaterClamp.zw);
-      water_col=Lerp(water_col, TexLodClamp(Img1, inTex), rfl); // use LOD to avoid anisotropic going out of clamp region
-
-      // glow and specular
-    //water_col.a  +=lum.w*      0.5; // glow
-      water_col.rgb+=lum.w*lum.w*0.5; // specular
-
-      if(soft)
-      {
-              VecH4 solid_col=TexLodClamp(Img2, col_tex);
-         O_col=Lerp(solid_col, water_col, alpha);
-      }else
-      {
-         O_col=water_col;
-      }
+   }else
+   {
+      col_tex=test_tex;
    }
+
+   // light
+   VecH4 lum;
+   {
+      // shadow
+      Half shd; if(SHADOW)shd=Sat(ShadowDirValue(inPos, ShadowJitter(pixel.xy), true, SHADOW, false));
+
+      // diffuse
+      Half diffuse=LightDiffuse(view_nrm, Light_dir.dir); if(SHADOW)diffuse*=shd;
+
+      // specular
+      Half specular=LightSpecular(view_nrm, WaterSpc, Light_dir.dir, -view); if(SHADOW)specular*=shd;
+
+      lum=VecH4(Light_dir.color.rgb*diffuse, Light_dir.color.a*specular);
+   }
+
+   // col light
+   water_col.rgb*=lum.rgb+AmbNSColor;
+
+   // reflection
+   Half  rfl=WaterRfl*Sat(inPDF);
+       inTex=Mid ((inTex+refract*WaterRfrRfl)*WaterRflMulAdd.xy+WaterRflMulAdd.zw, WaterClamp.xy, WaterClamp.zw);
+   water_col=Lerp(water_col, TexLodClamp(Img1, inTex), rfl); // use LOD to avoid anisotropic going out of clamp region
+
+   // glow and specular
+   //water_col.a  +=lum.w*      0.5; // glow
+   water_col.rgb+=lum.w*lum.w*0.5; // specular
+
+   if(SOFT)
+   {
+           VecH4 solid_col=TexLodClamp(Img2, col_tex);
+      O_col=Lerp(solid_col, water_col, alpha);
+   }else
+   {
+      O_col=water_col;
+   }
+#endif
 }
 /******************************************************************************/
 
 // Img=Water RT Nrm (this is required for 'GetNormal', 'GetNormalMS', which are used for Lights - Dir, Point, etc.), ImgXF=WaterDepth, Img3=Water RT Col, Col=Water RT Lum
 // these must be the same as "Surface" shader - Img1=reflection (2D image), Img2=solid underwater
+// REFRACT, SET_DEPTH
 
 VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-               NOPERSP Vec2 inPosXY:TEXCOORD1,
-                   out Flt  depth  :DEPTH    ,
-               uniform Bool refract          ,
-               uniform Bool set_depth=false  ):TARGET
+               NOPERSP Vec2 inPosXY:TEXCOORD1
+            #if SET_DEPTH
+                 , out Flt  depth  :DEPTH
+            #endif
+              ):TARGET
 {
    Flt  water_z    =TexPoint        (ImgXF, inTex).x,
         solid_z_raw=TexDepthRawPoint(       inTex);
    Half alpha=0;
 
- //if(set_depth) FIXME make this optional depending on macro
-      depth=water_z;
+#if SET_DEPTH
+   depth=water_z;
+#endif
 
-   if(refract)
+   if(REFRACT)
    {
       Vec2  col_tex=inTex;
       VecH4 water_col=0;
@@ -338,12 +355,12 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    }
 }
 /******************************************************************************/
+// REFRACT
 VecH4 Under_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-               NOPERSP Vec2 inPosXY:TEXCOORD1,
-               uniform Bool refract          ):TARGET
+               NOPERSP Vec2 inPosXY:TEXCOORD1):TARGET
 {
    // underwater refraction
-   if(refract)
+   if(REFRACT)
    {
       Flt dist      =Viewport.range;
       Flt to_surface=-DistPointPlaneRay(Vec(0, 0, 0), WaterPlnPos, WaterPlnNrm, Normalize(Vec(inPosXY, 1)));
@@ -360,7 +377,7 @@ VecH4 Under_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    #endif
    }
 
-   Vec pos       =(refract ? GetPosLinear(inTex) : GetPosPoint(inTex, inPosXY));
+   Vec pos       =(REFRACT ? GetPosLinear(inTex) : GetPosPoint(inTex, inPosXY));
    Flt dist      =Length(pos);
    Vec ray       =pos/dist; // Normalize(pos); should be no NaN because pos.z should be always >0
    Flt to_surface=-DistPointPlaneRay(Vec(0, 0, 0), WaterPlnPos, WaterPlnNrm, ray);
@@ -402,108 +419,7 @@ VecH4 Under_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
    VecH water_col=Lerp(WaterUnderCol0, WaterUnderCol1, water_density);
 
-   return refract ? Lerp(TexLod(Img, inTex), VecH4(water_col, 0), opacity)
+   return REFRACT ? Lerp(TexLod(Img, inTex), VecH4(water_col, 0), opacity)
                   :                          VecH4(water_col    , opacity);
 }
-/******************************************************************************/
-TECHNIQUE(Apply , DrawPosXY_VS(), Apply_PS(false));
-TECHNIQUE(ApplyR, DrawPosXY_VS(), Apply_PS(true ));
-
-TECHNIQUE(ApplyD , DrawPosXY_VS(), Apply_PS(false, true));
-TECHNIQUE(ApplyRD, DrawPosXY_VS(), Apply_PS(true , true));
-
-TECHNIQUE(Under , DrawPosXY_VS(), Under_PS(false));
-TECHNIQUE(UnderR, DrawPosXY_VS(), Under_PS(true ));
-
-TECHNIQUE(River , Surface_VS(false, true ), Surface_PS(false, true , false, false));
-TECHNIQUE(RiverF, Surface_VS(false, true ), Surface_PS(false, true , false, true ));
-TECHNIQUE(Lake  , Surface_VS(false, false), Surface_PS(false, false, false, false));
-TECHNIQUE(LakeF , Surface_VS(false, false), Surface_PS(false, false, false, true ));
-TECHNIQUE(Ocean , Surface_VS(true , false), Surface_PS(true , false, false, false));
-TECHNIQUE(OceanF, Surface_VS(true , false), Surface_PS(true , false, false, true ));
-
-TECHNIQUE(RiverL0  , Surface_VS(false, true , true), Surface_PS(false, true , true, false, 0, false));
-TECHNIQUE(RiverL0F , Surface_VS(false, true , true), Surface_PS(false, true , true, true , 0, false));
-TECHNIQUE(RiverL1  , Surface_VS(false, true , true), Surface_PS(false, true , true, false, 1, false));
-TECHNIQUE(RiverL1F , Surface_VS(false, true , true), Surface_PS(false, true , true, true , 1, false));
-TECHNIQUE(RiverL2  , Surface_VS(false, true , true), Surface_PS(false, true , true, false, 2, false));
-TECHNIQUE(RiverL2F , Surface_VS(false, true , true), Surface_PS(false, true , true, true , 2, false));
-TECHNIQUE(RiverL3  , Surface_VS(false, true , true), Surface_PS(false, true , true, false, 3, false));
-TECHNIQUE(RiverL3F , Surface_VS(false, true , true), Surface_PS(false, true , true, true , 3, false));
-TECHNIQUE(RiverL4  , Surface_VS(false, true , true), Surface_PS(false, true , true, false, 4, false));
-TECHNIQUE(RiverL4F , Surface_VS(false, true , true), Surface_PS(false, true , true, true , 4, false));
-TECHNIQUE(RiverL5  , Surface_VS(false, true , true), Surface_PS(false, true , true, false, 5, false));
-TECHNIQUE(RiverL5F , Surface_VS(false, true , true), Surface_PS(false, true , true, true , 5, false));
-TECHNIQUE(RiverL6  , Surface_VS(false, true , true), Surface_PS(false, true , true, false, 6, false));
-TECHNIQUE(RiverL6F , Surface_VS(false, true , true), Surface_PS(false, true , true, true , 6, false));
-TECHNIQUE(RiverL0S , Surface_VS(false, true , true), Surface_PS(false, true , true, false, 0, true ));
-TECHNIQUE(RiverL0SF, Surface_VS(false, true , true), Surface_PS(false, true , true, true , 0, true ));
-TECHNIQUE(RiverL1S , Surface_VS(false, true , true), Surface_PS(false, true , true, false, 1, true ));
-TECHNIQUE(RiverL1SF, Surface_VS(false, true , true), Surface_PS(false, true , true, true , 1, true ));
-TECHNIQUE(RiverL2S , Surface_VS(false, true , true), Surface_PS(false, true , true, false, 2, true ));
-TECHNIQUE(RiverL2SF, Surface_VS(false, true , true), Surface_PS(false, true , true, true , 2, true ));
-TECHNIQUE(RiverL3S , Surface_VS(false, true , true), Surface_PS(false, true , true, false, 3, true ));
-TECHNIQUE(RiverL3SF, Surface_VS(false, true , true), Surface_PS(false, true , true, true , 3, true ));
-TECHNIQUE(RiverL4S , Surface_VS(false, true , true), Surface_PS(false, true , true, false, 4, true ));
-TECHNIQUE(RiverL4SF, Surface_VS(false, true , true), Surface_PS(false, true , true, true , 4, true ));
-TECHNIQUE(RiverL5S , Surface_VS(false, true , true), Surface_PS(false, true , true, false, 5, true ));
-TECHNIQUE(RiverL5SF, Surface_VS(false, true , true), Surface_PS(false, true , true, true , 5, true ));
-TECHNIQUE(RiverL6S , Surface_VS(false, true , true), Surface_PS(false, true , true, false, 6, true ));
-TECHNIQUE(RiverL6SF, Surface_VS(false, true , true), Surface_PS(false, true , true, true , 6, true ));
-TECHNIQUE(LakeL0   , Surface_VS(false, false, true), Surface_PS(false, false, true, false, 0, false));
-TECHNIQUE(LakeL0F  , Surface_VS(false, false, true), Surface_PS(false, false, true, true , 0, false));
-TECHNIQUE(LakeL1   , Surface_VS(false, false, true), Surface_PS(false, false, true, false, 1, false));
-TECHNIQUE(LakeL1F  , Surface_VS(false, false, true), Surface_PS(false, false, true, true , 1, false));
-TECHNIQUE(LakeL2   , Surface_VS(false, false, true), Surface_PS(false, false, true, false, 2, false));
-TECHNIQUE(LakeL2F  , Surface_VS(false, false, true), Surface_PS(false, false, true, true , 2, false));
-TECHNIQUE(LakeL3   , Surface_VS(false, false, true), Surface_PS(false, false, true, false, 3, false));
-TECHNIQUE(LakeL3F  , Surface_VS(false, false, true), Surface_PS(false, false, true, true , 3, false));
-TECHNIQUE(LakeL4   , Surface_VS(false, false, true), Surface_PS(false, false, true, false, 4, false));
-TECHNIQUE(LakeL4F  , Surface_VS(false, false, true), Surface_PS(false, false, true, true , 4, false));
-TECHNIQUE(LakeL5   , Surface_VS(false, false, true), Surface_PS(false, false, true, false, 5, false));
-TECHNIQUE(LakeL5F  , Surface_VS(false, false, true), Surface_PS(false, false, true, true , 5, false));
-TECHNIQUE(LakeL6   , Surface_VS(false, false, true), Surface_PS(false, false, true, false, 6, false));
-TECHNIQUE(LakeL6F  , Surface_VS(false, false, true), Surface_PS(false, false, true, true , 6, false));
-TECHNIQUE(LakeL0S  , Surface_VS(false, false, true), Surface_PS(false, false, true, false, 0, true ));
-TECHNIQUE(LakeL0SF , Surface_VS(false, false, true), Surface_PS(false, false, true, true , 0, true ));
-TECHNIQUE(LakeL1S  , Surface_VS(false, false, true), Surface_PS(false, false, true, false, 1, true ));
-TECHNIQUE(LakeL1SF , Surface_VS(false, false, true), Surface_PS(false, false, true, true , 1, true ));
-TECHNIQUE(LakeL2S  , Surface_VS(false, false, true), Surface_PS(false, false, true, false, 2, true ));
-TECHNIQUE(LakeL2SF , Surface_VS(false, false, true), Surface_PS(false, false, true, true , 2, true ));
-TECHNIQUE(LakeL3S  , Surface_VS(false, false, true), Surface_PS(false, false, true, false, 3, true ));
-TECHNIQUE(LakeL3SF , Surface_VS(false, false, true), Surface_PS(false, false, true, true , 3, true ));
-TECHNIQUE(LakeL4S  , Surface_VS(false, false, true), Surface_PS(false, false, true, false, 4, true ));
-TECHNIQUE(LakeL4SF , Surface_VS(false, false, true), Surface_PS(false, false, true, true , 4, true ));
-TECHNIQUE(LakeL5S  , Surface_VS(false, false, true), Surface_PS(false, false, true, false, 5, true ));
-TECHNIQUE(LakeL5SF , Surface_VS(false, false, true), Surface_PS(false, false, true, true , 5, true ));
-TECHNIQUE(LakeL6S  , Surface_VS(false, false, true), Surface_PS(false, false, true, false, 6, true ));
-TECHNIQUE(LakeL6SF , Surface_VS(false, false, true), Surface_PS(false, false, true, true , 6, true ));
-TECHNIQUE(OceanL0  , Surface_VS(true , false, true), Surface_PS(true , false, true, false, 0, false));
-TECHNIQUE(OceanL0F , Surface_VS(true , false, true), Surface_PS(true , false, true, true , 0, false));
-TECHNIQUE(OceanL1  , Surface_VS(true , false, true), Surface_PS(true , false, true, false, 1, false));
-TECHNIQUE(OceanL1F , Surface_VS(true , false, true), Surface_PS(true , false, true, true , 1, false));
-TECHNIQUE(OceanL2  , Surface_VS(true , false, true), Surface_PS(true , false, true, false, 2, false));
-TECHNIQUE(OceanL2F , Surface_VS(true , false, true), Surface_PS(true , false, true, true , 2, false));
-TECHNIQUE(OceanL3  , Surface_VS(true , false, true), Surface_PS(true , false, true, false, 3, false));
-TECHNIQUE(OceanL3F , Surface_VS(true , false, true), Surface_PS(true , false, true, true , 3, false));
-TECHNIQUE(OceanL4  , Surface_VS(true , false, true), Surface_PS(true , false, true, false, 4, false));
-TECHNIQUE(OceanL4F , Surface_VS(true , false, true), Surface_PS(true , false, true, true , 4, false));
-TECHNIQUE(OceanL5  , Surface_VS(true , false, true), Surface_PS(true , false, true, false, 5, false));
-TECHNIQUE(OceanL5F , Surface_VS(true , false, true), Surface_PS(true , false, true, true , 5, false));
-TECHNIQUE(OceanL6  , Surface_VS(true , false, true), Surface_PS(true , false, true, false, 6, false));
-TECHNIQUE(OceanL6F , Surface_VS(true , false, true), Surface_PS(true , false, true, true , 6, false));
-TECHNIQUE(OceanL0S , Surface_VS(true , false, true), Surface_PS(true , false, true, false, 0, true ));
-TECHNIQUE(OceanL0SF, Surface_VS(true , false, true), Surface_PS(true , false, true, true , 0, true ));
-TECHNIQUE(OceanL1S , Surface_VS(true , false, true), Surface_PS(true , false, true, false, 1, true ));
-TECHNIQUE(OceanL1SF, Surface_VS(true , false, true), Surface_PS(true , false, true, true , 1, true ));
-TECHNIQUE(OceanL2S , Surface_VS(true , false, true), Surface_PS(true , false, true, false, 2, true ));
-TECHNIQUE(OceanL2SF, Surface_VS(true , false, true), Surface_PS(true , false, true, true , 2, true ));
-TECHNIQUE(OceanL3S , Surface_VS(true , false, true), Surface_PS(true , false, true, false, 3, true ));
-TECHNIQUE(OceanL3SF, Surface_VS(true , false, true), Surface_PS(true , false, true, true , 3, true ));
-TECHNIQUE(OceanL4S , Surface_VS(true , false, true), Surface_PS(true , false, true, false, 4, true ));
-TECHNIQUE(OceanL4SF, Surface_VS(true , false, true), Surface_PS(true , false, true, true , 4, true ));
-TECHNIQUE(OceanL5S , Surface_VS(true , false, true), Surface_PS(true , false, true, false, 5, true ));
-TECHNIQUE(OceanL5SF, Surface_VS(true , false, true), Surface_PS(true , false, true, true , 5, true ));
-TECHNIQUE(OceanL6S , Surface_VS(true , false, true), Surface_PS(true , false, true, false, 6, true ));
-TECHNIQUE(OceanL6SF, Surface_VS(true , false, true), Surface_PS(true , false, true, true , 6, true ));
 /******************************************************************************/

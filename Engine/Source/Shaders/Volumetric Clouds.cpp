@@ -193,8 +193,7 @@ VecH4 CloudsDraw_PS(NOPERSP Vec2   inTex :TEXCOORD0,
 #if GAMMA
    c=SRGBToLinear(c);
 #endif
-   outMask.rgb=0;
-   outMask.a  =clouds.y;
+   outMask.rgb=0; outMask.a=clouds.y;
    return VecH4(c, clouds.y);
 }
 /******************************************************************************/

@@ -41,8 +41,7 @@ VecH4 LayeredClouds_PS(Vec   inPos  :TEXCOORD0,
    if(NUM>=1){VecH4 tex=Tex(Img , uv*CL[0].scale + CL[0].position)*CL[0].color; if(NUM==1)color=tex;else color=Lerp(color, tex, tex.a);}
 
    color.a*=a;
-   outMask.rgb=0;
-   outMask.a  =color.a;
+   outMask.rgb=0; outMask.a=color.a;
    return color;
 }
 /******************************************************************************/

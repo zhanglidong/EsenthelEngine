@@ -750,22 +750,22 @@ void WaterShader::load()
    {
       REPD(fake_reflect, 2) // fake reflection
       {
-         Lake [fake_reflect]=shader->get(S8+"Lake" +(fake_reflect?'F':'\0'));
-         River[fake_reflect]=shader->get(S8+"River"+(fake_reflect?'F':'\0'));
-         Ocean[fake_reflect]=shader->get(S8+"Ocean"+(fake_reflect?'F':'\0'));
+         Lake [fake_reflect]=shader->get(S8+"Lake" +0+0+0+fake_reflect);
+         River[fake_reflect]=shader->get(S8+"River"+0+0+0+fake_reflect);
+         Ocean[fake_reflect]=shader->get(S8+"Ocean"+0+0+0+fake_reflect);
 
          REPD(shadow, 7)
          REPD(soft  , 2)
          {
-            LakeL [fake_reflect][shadow][soft]=shader->get(S8+"LakeL" +shadow+(soft?'S':'\0')+(fake_reflect?'F':'\0'));
-            RiverL[fake_reflect][shadow][soft]=shader->get(S8+"RiverL"+shadow+(soft?'S':'\0')+(fake_reflect?'F':'\0'));
-            OceanL[fake_reflect][shadow][soft]=shader->get(S8+"OceanL"+shadow+(soft?'S':'\0')+(fake_reflect?'F':'\0'));
+            LakeL [fake_reflect][shadow][soft]=shader->get(S8+"Lake" +1+shadow+soft+fake_reflect);
+            RiverL[fake_reflect][shadow][soft]=shader->get(S8+"River"+1+shadow+soft+fake_reflect);
+            OceanL[fake_reflect][shadow][soft]=shader->get(S8+"Ocean"+1+shadow+soft+fake_reflect);
          }
       }
       REPD(r, 2)
-      REPD(d, 2)Apply[r][d]=shader->get(S8+"Apply"+(r?'R':'\0')+(d?'D':'\0'));
+      REPD(d, 2)Apply[r][d]=shader->get(S8+"Apply"+r+d);
 
-      REPD(r, 2)Under[r]=shader->get(S8+"Under"+(r?'R':'\0'));
+      REPD(r, 2)Under[r]=shader->get(S8+"Under"+r);
    }
 }
 /******************************************************************************/
