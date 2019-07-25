@@ -538,8 +538,8 @@ static void Compile(API api)
    REPD (diagonal, 2)
    REPAD(range   , ranges)
    {
-      src.New("DilateX", "Draw_VS", "DilateX_PS")("DIAGONAL", diagonal, "RANGE", range);
-      src.New("DilateY", "Draw_VS", "DilateY_PS")("DIAGONAL", diagonal, "RANGE", range);
+      src.New("DilateX", "Draw_VS", "DilateX_PS")("DIAGONAL", diagonal, "RANGE", ranges[range]);
+      src.New("DilateY", "Draw_VS", "DilateY_PS")("DIAGONAL", diagonal, "RANGE", ranges[range]);
    }
 }
 #endif
