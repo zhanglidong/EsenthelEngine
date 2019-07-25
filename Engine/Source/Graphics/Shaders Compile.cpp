@@ -652,7 +652,7 @@ static void Compile(API api)
 #ifdef DX10_INPUT_LAYOUT
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(S, model, api).New(src_path+"DX10+ Input Layout.cpp");
-   src.New("S", "VS", "PS");
+   src.New("Shader", "VS", "PS");
 }
 #endif
 
@@ -662,7 +662,7 @@ static void Compile(API api)
 
    // zero
    REPD(skin , 2)
-   REPD(color, 2)names+=TechDeferred(skin, 1, 0, SBUMP_ZERO, false, false, false, false, color, false, false, FX_NONE, false);
+   REPD(color, 2)src.New().deferred(skin, 1, 0, SBUMP_ZERO, false, false, false, false, color, false, false, FX_NONE, false);
 
    REPD(tesselate, tess ? 2 : 1)
    REPD(heightmap, 2)
@@ -672,18 +672,14 @@ static void Compile(API api)
       REPD(detail , 2)
       REPD(reflect, 2)
       REPD(color  , 2)
-      {
-         names+=TechDeferred(skin, 1, 0, SBUMP_FLAT, false, detail, false, reflect, color, false, heightmap, FX_NONE, tesselate); // 1 material, 0 tex
-         REPD(alpha_test, heightmap ? 1 : 2)
-         {
-            names+=TechDeferred(skin, 1, 1, SBUMP_FLAT, alpha_test, detail, false, reflect, color, false, heightmap, FX_NONE, tesselate); // 1 material, 1 tex
-            names+=TechDeferred(skin, 1, 2, SBUMP_FLAT, alpha_test, detail, false, reflect, color, false, heightmap, FX_NONE, tesselate); // 1 material, 2 tex
-         }
-      }
+      for(Int textures=0; textures<=2; textures++)
+      REPD(alpha_test, (textures && !heightmap) ? 2 : 1)
+         src.New().deferred(skin, 1, textures, SBUMP_FLAT, alpha_test, detail, false, reflect, color, false, heightmap, FX_NONE, tesselate); // 1 material, 0 tex
 
       // 1 material, 1-2 tex, flat, macro
       REPD(color, 2)
-      for(Int textures=1; textures<=2; textures++)names+=TechDeferred(false, 1, textures, SBUMP_FLAT, false, false, true, false, color, false, heightmap, FX_NONE, tesselate);
+      for(Int textures=1; textures<=2; textures++)
+         src.New().deferred(false, 1, textures, SBUMP_FLAT, false, false, true, false, color, false, heightmap, FX_NONE, tesselate);
 
       // 1 material, 2 tex, normal + parallax
       REPD(skin      , heightmap ? 1 : 2)
@@ -692,18 +688,20 @@ static void Compile(API api)
       REPD(reflect   , 2)
       REPD(color     , 2)
       for(Int bump_mode=SBUMP_NORMAL; bump_mode<=SBUMP_PARALLAX_MAX; bump_mode++)if(bump_mode==SBUMP_NORMAL || bump_mode>=SBUMP_PARALLAX_MIN)
-         names+=TechDeferred(skin, 1, 2, bump_mode, alpha_test, detail, false, reflect, color, false, heightmap, FX_NONE, tesselate);
+         src.New().deferred(skin, 1, 2, bump_mode, alpha_test, detail, false, reflect, color, false, heightmap, FX_NONE, tesselate);
 
       // 1 material, 1-2 tex, normal, macro
       REPD(color, 2)
-      for(Int textures=1; textures<=2; textures++)names+=TechDeferred(false, 1, textures, SBUMP_NORMAL, false, false, true, false, color, false, heightmap, FX_NONE, tesselate);
+      for(Int textures=1; textures<=2; textures++)
+         src.New().deferred(false, 1, textures, SBUMP_NORMAL, false, false, true, false, color, false, heightmap, FX_NONE, tesselate);
 
       // 1 material, 2 tex, relief
       REPD(skin      , heightmap ? 1 : 2)
       REPD(alpha_test, heightmap ? 1 : 2)
       REPD(detail    , 2)
       REPD(reflect   , 2)
-      REPD(color     , 2)names+=TechDeferred(skin, 1, 2, SBUMP_RELIEF, alpha_test, detail, false, reflect, color, false, heightmap, FX_NONE, tesselate);
+      REPD(color     , 2)
+         src.New().deferred(skin, 1, 2, SBUMP_RELIEF, alpha_test, detail, false, reflect, color, false, heightmap, FX_NONE, tesselate);
 
    #if MULTI_MATERIAL
       for(Int materials=2; materials<=MAX_MTRLS; materials++)
@@ -713,22 +711,22 @@ static void Compile(API api)
       {
          // 2-4 materials, 1-2 tex, flat
          REPD(detail, 2)
-         for(Int textures=1; textures<=2; textures++)names+=TechDeferred(false, materials, textures, SBUMP_FLAT, false, detail, false, reflect, color, mtrl_blend, heightmap, FX_NONE, tesselate);
+         for(Int textures=1; textures<=2; textures++)src.New().deferred(false, materials, textures, SBUMP_FLAT, false, detail, false, reflect, color, mtrl_blend, heightmap, FX_NONE, tesselate);
 
          // 2-4 materials, 1-2 tex, flat, macro
-         for(Int textures=1; textures<=2; textures++)names+=TechDeferred(false, materials, textures, SBUMP_FLAT, false, false, true, reflect, color, mtrl_blend, heightmap, FX_NONE, tesselate);
+         for(Int textures=1; textures<=2; textures++)src.New().deferred(false, materials, textures, SBUMP_FLAT, false, false, true, reflect, color, mtrl_blend, heightmap, FX_NONE, tesselate);
 
          // 2-4 materials, 2 textures, normal + parallax
          REPD(detail, 2)
          for(Int bump_mode=SBUMP_NORMAL; bump_mode<=SBUMP_PARALLAX_MAX_MULTI; bump_mode++)if(bump_mode==SBUMP_NORMAL || bump_mode>=SBUMP_PARALLAX_MIN)
-            names+=TechDeferred(false, materials, 2, bump_mode, false, detail, false, reflect, color, mtrl_blend, heightmap, FX_NONE, tesselate);
+            src.New().deferred(false, materials, 2, bump_mode, false, detail, false, reflect, color, mtrl_blend, heightmap, FX_NONE, tesselate);
 
          // 2-4 materials, 2 textures, normal, macro
-         names+=TechDeferred(false, materials, 2, SBUMP_NORMAL, false, false, true, reflect, color, mtrl_blend, heightmap, FX_NONE, tesselate);
+         src.New().deferred(false, materials, 2, SBUMP_NORMAL, false, false, true, reflect, color, mtrl_blend, heightmap, FX_NONE, tesselate);
 
          // 2-4 materials, 2 textures, relief
          REPD(detail, 2)
-            names+=TechDeferred(false, materials, 2, SBUMP_RELIEF, false, detail, false, reflect, color, mtrl_blend, heightmap, FX_NONE, tesselate);
+            src.New().deferred(false, materials, 2, SBUMP_RELIEF, false, detail, false, reflect, color, mtrl_blend, heightmap, FX_NONE, tesselate);
       }
    #endif
    }
@@ -738,7 +736,7 @@ static void Compile(API api)
    REPD (bump_mode, (textures==2) ? 2 : 1)
    REPD (color    , 2)
    REPAD(fx       , fxs)
-      names+=TechDeferred(false, 1, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, true, false, false, false, color, false, false, fxs[fx], false);
+      src.New().deferred(false, 1, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, true, false, false, false, color, false, false, fxs[fx], false);
 }
 #endif
 
