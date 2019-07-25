@@ -146,8 +146,8 @@ class VideoOptions : PropWin
       static void ShadowFade   (  Advanced &adv, C Str &text) {D.shadowFade(TextFlt(text));}
       static Str  AllowGlow    (C Advanced &adv             ) {return D.glowAllow();}
       static void AllowGlow    (  Advanced &adv, C Str &text) {D.glowAllow(TextBool(text));}
-      static Str  SimplePrec   (C Advanced &adv             ) {return Renderer.simplePrecision();}
-      static void SimplePrec   (  Advanced &adv, C Str &text) {Renderer.simplePrecision(TextBool(text));}
+      static Str  ForwardPrec  (C Advanced &adv             ) {return Renderer.forwardPrecision();}
+      static void ForwardPrec  (  Advanced &adv, C Str &text) {Renderer.forwardPrecision(TextBool(text));}
       static Str  MaterialBlend(C Advanced &adv             ) {return D.materialBlend();}
       static void MaterialBlend(  Advanced &adv, C Str &text) {D.materialBlend(TextBool(text));}
       static Str  TexLod       (C Advanced &adv             ) {return D.texLod();}
@@ -211,7 +211,7 @@ class VideoOptions : PropWin
          props.New().create("Ambient Occlusion Range"    , MemberDesc(DATA_REAL).setFunc(AORange      , AORange      )).range(0, 2);
          props.New().create("Allow Glow"                 , MemberDesc(DATA_BOOL).setFunc(AllowGlow    , AllowGlow    )).desc("If allow glow effect on the scene when detected.");
          props.New().create("Material Blend Per Pixel"   , MemberDesc(DATA_BOOL).setFunc(MaterialBlend, MaterialBlend)).desc("If Multiple Materials should be blended with per-pixel precision.\nFor this effect to work, your Materials should have a bump map.");
-         props.New().create("Simple Renderer Per Pixel"  , MemberDesc(DATA_BOOL).setFunc(SimplePrec   , SimplePrec   )).desc("If Simple renderer should use per-pixel precision,\nper-vertex precision is used otherwise.");
+         props.New().create("Forward Renderer Per Pixel" , MemberDesc(DATA_BOOL).setFunc(ForwardPrec  , ForwardPrec  )).desc("If Forward renderer should use per-pixel precision,\nper-vertex precision is used otherwise.");
       #if WINDOWS
          props.New().create("Tex Lod"                    , MemberDesc(DATA_INT ).setFunc(TexLod       , TexLod       )).desc("Minimum Texture LOD usage").range(0, 14).mouseEditSpeed(1);
       #endif
@@ -230,8 +230,7 @@ class VideoOptions : PropWin
    {
       "Deferred", // 0
       "Forward" , // 1
-      "Simple"  , // 2
-   }; ASSERT(RT_DEFERRED==0 && RT_FORWARD==1 && RT_SIMPLE==2);
+   }; ASSERT(RT_DEFERRED==0 && RT_FORWARD==1 && RT_NUM==2);
    static cchar8 *EdgeSoften_t[]=
    {
       "Off" , // 0
@@ -339,7 +338,7 @@ class VideoOptions : PropWin
    static void ScaleWin   (  VideoOptions &vo, C Str &t) {       vo.setScaleWin(TextBool(t));}
    static void SkinChanged(  VideoOptions &vo          ) {if(vo.skin && InRange(vo.skin.combobox(), skins))SetGuiSkin(skins[vo.skin.combobox()].id);}
 
-   Property *full=null, *mode=null, *shd=null, *shd_siz=null, *shd_num=null, *shd_sft=null, *shd_jit=null, *bump=null, *ao=null, *skin=null;
+   Property *full=null, *mode=null, *shd_siz=null, *shd_num=null, *shd_sft=null, *shd_jit=null, *skin=null;
    Button    advanced_show;
    Advanced  advanced;
    flt       scale=1;
@@ -383,14 +382,14 @@ class VideoOptions : PropWin
    #endif
                props.New().create("Renderer"         , MemberDesc(         ).setFunc(Render    , Render    )).setEnum(Render_t    , Elms(Render_t    )).desc("Renderer type\nSimple and Forward renderers may work faster, but have limited number of special effects.");
                props.New().create("Edge Softening"   , MemberDesc(         ).setFunc(EdgeSoft  , EdgeSoft  )).setEnum(EdgeSoften_t, Elms(EdgeSoften_t)).desc("Set edge softening");
-      shd    =&props.New().create("Shadows"          , MemberDesc(DATA_BOOL).setFunc(Shadow    , Shadow    ))                                          .desc("Enable shadows");
+               props.New().create("Shadows"          , MemberDesc(DATA_BOOL).setFunc(Shadow    , Shadow    ))                                          .desc("Enable shadows");
       shd_siz=&props.New().create("Shadowmap Size"   , MemberDesc(         ).setFunc(ShadowSize, ShadowSize)).setEnum(ShadowSize_t, Elms(ShadowSize_t)).desc("Shadow map resolution\nhigher resolutions reduce blockiness of shadows.");
       shd_num=&props.New().create("Shadowmap Number" , MemberDesc(         ).setFunc(ShadowNum , ShadowNum )).setEnum(ShadowNum_t , Elms(ShadowNum_t )).desc("Shadow map number,\ndetermines the number of shadow maps used during rendering.");
       shd_sft=&props.New().create("Shadows Softing"  , MemberDesc(         ).setFunc(ShadowSoft, ShadowSoft)).setEnum(ShadowSoft_t, Elms(ShadowSoft_t)).desc("Enable shadows softing");
       shd_jit=&props.New().create("Shadows Jittering", MemberDesc(DATA_BOOL).setFunc(ShadowJit , ShadowJit ))                                          .desc("Enable jittering on shadows,\nworks best when enabled with shadow softing.");
-      bump   =&props.New().create("Bump Mapping"     , MemberDesc(         ).setFunc(BumpMode  , BumpMode  )).setEnum(BumpMode_t  , Elms(BumpMode_t  )).desc("Simulate bumpy surfaces");
+               props.New().create("Bump Mapping"     , MemberDesc(         ).setFunc(BumpMode  , BumpMode  )).setEnum(BumpMode_t  , Elms(BumpMode_t  )).desc("Simulate bumpy surfaces");
                props.New().create("Motion Blur"      , MemberDesc(         ).setFunc(MotionMode, MotionMode)).setEnum(MotionMode_t, Elms(MotionMode_t)).desc("Blur fast moving objects");
-      ao     =&props.New().create("Ambient Occlusion", MemberDesc(         ).setFunc(AO        , AO        )).setEnum(AO_t        , Elms(AO_t        )).desc("Darkens occluded areas");
+               props.New().create("Ambient Occlusion", MemberDesc(         ).setFunc(AO        , AO        )).setEnum(AO_t        , Elms(AO_t        )).desc("Darkens occluded areas");
                props.New().create("Eye Adaptation"   , MemberDesc(DATA_BOOL).setFunc(EyeAdapt  , EyeAdapt  ))                                          .desc("Enables automatic screen brightness adjustment");
 //if(D.shaderModel()>=SM_5)props.New().create("Tesselation", MemberDesc(DATA_BOOL).setFunc(Tesselation, Tesselation))                                  ;
                props.New().create("Gui Scale"        , MemberDesc(DATA_REAL).setFunc(Scale     , Scale     )).mouseEditSpeed(0.5)
@@ -415,13 +414,10 @@ class VideoOptions : PropWin
    }
    void setVis()
    {
-      if(shd    )shd    .visible(Renderer.type()!=RT_SIMPLE                                 );
-      if(shd_siz)shd_siz.visible(Renderer.type()!=RT_SIMPLE   && D.shadowMode()==SHADOW_MAP );
-      if(shd_num)shd_num.visible(Renderer.type()!=RT_SIMPLE   && D.shadowMode()==SHADOW_MAP );
+      if(shd_siz)shd_siz.visible(                                D.shadowMode()==SHADOW_MAP );
+      if(shd_num)shd_num.visible(                                D.shadowMode()==SHADOW_MAP );
       if(shd_sft)shd_sft.visible(Renderer.type()==RT_DEFERRED && D.shadowMode()!=SHADOW_NONE);
-      if(shd_jit)shd_jit.visible(Renderer.type()!=RT_SIMPLE   && D.shadowMode()==SHADOW_MAP );
-      if(bump   )bump   .visible(Renderer.type()!=RT_SIMPLE                                 );
-      if(ao     )ao     .visible(Renderer.type()!=RT_SIMPLE                                 );
+      if(shd_jit)shd_jit.visible(                                D.shadowMode()==SHADOW_MAP );
    }
    void hideAll()
    {

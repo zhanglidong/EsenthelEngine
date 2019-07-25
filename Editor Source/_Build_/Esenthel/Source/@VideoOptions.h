@@ -94,8 +94,8 @@ class VideoOptions : PropWin
       static void ShadowFade   (  Advanced &adv, C Str &text);
       static Str  AllowGlow    (C Advanced &adv             );
       static void AllowGlow    (  Advanced &adv, C Str &text);
-      static Str  SimplePrec   (C Advanced &adv             );
-      static void SimplePrec   (  Advanced &adv, C Str &text);
+      static Str  ForwardPrec  (C Advanced &adv             );
+      static void ForwardPrec  (  Advanced &adv, C Str &text);
       static Str  MaterialBlend(C Advanced &adv             );
       static void MaterialBlend(  Advanced &adv, C Str &text);
       static Str  TexLod       (C Advanced &adv             );
@@ -110,7 +110,7 @@ class VideoOptions : PropWin
    };
 
    static cchar8 *Render_t[]
-; ASSERT(RT_DEFERRED==0 && RT_FORWARD==1 && RT_SIMPLE==2);
+; ASSERT(RT_DEFERRED==0 && RT_FORWARD==1 && RT_NUM==2);
    static cchar8 *EdgeSoften_t[]
 ; ASSERT(EDGE_SOFTEN_NONE==0 && EDGE_SOFTEN_FXAA==1 && !SUPPORT_MLAA && EDGE_SOFTEN_SMAA==2+SUPPORT_MLAA);
    static cchar8 *ShadowSize_t[]
@@ -167,7 +167,7 @@ class VideoOptions : PropWin
    static void ScaleWin   (  VideoOptions &vo, C Str &t);
    static void SkinChanged(  VideoOptions &vo          );
 
-   Property *full, *mode, *shd, *shd_siz, *shd_num, *shd_sft, *shd_jit, *bump, *ao, *skin;
+   Property *full, *mode, *shd_siz, *shd_num, *shd_sft, *shd_jit, *skin;
    Button    advanced_show;
    Advanced  advanced;
    flt       scale;

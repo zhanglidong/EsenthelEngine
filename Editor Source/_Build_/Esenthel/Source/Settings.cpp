@@ -123,7 +123,7 @@ bool SaveSettings(C Str &name)
       video.nodes.New().set("MaxLights"               , D.maxLights());
       video.nodes.New().set("EdgeDetect"              , D.edgeDetect());
       video.nodes.New().set("AllowGlow"               , D.glowAllow());
-      video.nodes.New().set("SimpleRendererPerPixel"  , Renderer.simplePrecision());
+      video.nodes.New().set("ForwardPerPixel"         , Renderer.forwardPrecision());
       video.nodes.New().set("MaterialBlendPerPixel"   , D.materialBlend());
    }
 
@@ -185,7 +185,7 @@ void ApplyVideoSettings(C TextData &data)
       if(C TextParam *p=video->findNode("MaxLights"               ))D.maxLights(p->asInt());
       if(C TextParam *p=video->findNode("EdgeDetect"              ))D.edgeDetect(EDGE_DETECT_MODE(p->asInt()));
       if(C TextParam *p=video->findNode("AllowGlow"               ))D.glowAllow(p->asBool());
-      if(C TextParam *p=video->findNode("SimpleRendererPerPixel"  ))Renderer.simplePrecision(p->asBool());
+      if(C TextParam *p=video->findNode("ForwardPerPixel"         ))Renderer.forwardPrecision(p->asBool());
       if(C TextParam *p=video->findNode("MaterialBlendPerPixel"   ))D.materialBlend(p->asBool());
       D.mode(x, y, full);
 

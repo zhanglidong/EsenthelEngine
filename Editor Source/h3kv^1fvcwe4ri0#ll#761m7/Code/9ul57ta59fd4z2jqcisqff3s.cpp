@@ -144,7 +144,6 @@ void InitPre()
       App.flag|=APP_ALLOW_NO_GPU;
    #endif
       D.mode(App.desktopW()*0.4, App.desktopH()*0.6);
-      Renderer.type(RT_SIMPLE);
    }else
    {
       SupportCompressAll();

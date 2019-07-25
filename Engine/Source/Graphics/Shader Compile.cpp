@@ -2,7 +2,7 @@
 #include "stdafx.h"
 
 #define NEW_COMPILER 0
-#define SPIRV_CROSS 1
+#define SPIRV_CROSS 0
 #define HLSL_CC 0
 
 #define FORCE_LOG_SHADER_CODE (DEBUG && 0)
