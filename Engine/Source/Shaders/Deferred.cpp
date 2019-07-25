@@ -30,10 +30,13 @@ struct VS_PS
    Vec      pos :TEXCOORD1; // always needed for velocity
    Vec      vel :TEXCOORD3;
    MatrixH3 mtrx:TEXCOORD4; // !! may not be Normalized !!
-   VecH     col :COLOR1   ;
 
 #if MATERIALS>1
    VecH4 material:COLOR0;
+#endif
+
+#if COLORS
+   VecH col:COLOR1;
 #endif
 
 #if FAST_TPOS
@@ -69,19 +72,10 @@ void VS
    O.material=vtx.material();
 #endif
 
-   if(MATERIALS<=1)O.col.rgb=MaterialColor3();/*else
-   if(!MTRL_BLEND )
-   {
-                      O.col.rgb =O.material.x*MultiMaterial0Color3()
-                                +O.material.y*MultiMaterial1Color3();
-      if(MATERIALS>=3)O.col.rgb+=O.material.z*MultiMaterial2Color3();
-      if(MATERIALS>=4)O.col.rgb+=O.material.w*MultiMaterial3Color3();
-   }*/
-   if(COLORS)
-   {
-      if(MATERIALS<=1 /*|| !MTRL_BLEND*/)O.col.rgb*=vtx.colorFast3();
-      else                               O.col.rgb =vtx.colorFast3();
-   }
+#if COLORS
+   if(MATERIALS<=1)O.col=vtx.colorFast3()*MaterialColor3();
+   else            O.col=vtx.colorFast3();
+#endif
 
    if(HEIGHTMAP && (TEXTURES || DETAIL) && MATERIALS==1)O.tex*=MaterialTexScale();
 
@@ -165,12 +159,18 @@ void PS
    out DeferredSolidOutput output
 )
 {
-   VecH nrm;
+   VecH col, nrm;
    Half glow, specular;
+
+#if COLORS
+   col=I.col;
+#else
+   if(MATERIALS<=1)col=MaterialColor3();
+#endif
 
    if(BUMP_MODE==SBUMP_ZERO)
    {
-      glow    =MaterialGlow();
+      glow    =MaterialGlow    ();
       specular=MaterialSpecular();
       nrm     =0;
    }else
@@ -308,7 +308,7 @@ void PS
       VecH4 tex_nrm; // #MaterialTextureChannelOrder
       if(TEXTURES==0)
       {
-         if(DETAIL)I.col.rgb+=GetDetail(I.tex).z;
+         if(DETAIL)col+=GetDetail(I.tex).z;
          nrm     =Normalize(I.mtrx[2]);
          glow    =MaterialGlow    ();
          specular=MaterialSpecular();
@@ -323,10 +323,10 @@ void PS
          #endif
             AlphaTest(tex.a);
          }
-         I.col.rgb*=tex.rgb; if(DETAIL)I.col.rgb+=GetDetail(I.tex).z;
-         nrm       =Normalize(I.mtrx[2]);
-         glow      =MaterialGlow    ();
-         specular  =MaterialSpecular();
+         col    *=tex.rgb; if(DETAIL)col+=GetDetail(I.tex).z;
+         nrm     =Normalize(I.mtrx[2]);
+         glow    =MaterialGlow    ();
+         specular=MaterialSpecular();
       }else
       if(TEXTURES==2)
       {
@@ -342,8 +342,8 @@ void PS
          specular=MaterialSpecular()*tex_nrm.z;
          if(BUMP_MODE==SBUMP_FLAT)
          {
-            nrm       =Normalize(I.mtrx[2]);
-            I.col.rgb*=Tex(Col, I.tex).rgb; if(DETAIL)I.col.rgb+=GetDetail(I.tex).z;
+            nrm =Normalize(I.mtrx[2]);
+            col*=Tex(Col, I.tex).rgb; if(DETAIL)col+=GetDetail(I.tex).z;
          }else // normal mapping
          {
             VecH      det;
@@ -354,18 +354,18 @@ void PS
                       nrm.z  =CalcZ(nrm.xy);
                       nrm    =Normalize(Transform(nrm, I.mtrx));
 
-                      I.col.rgb*=Tex(Col, I.tex).rgb;
-            if(DETAIL)I.col.rgb+=det.z;
+                      col*=Tex(Col, I.tex).rgb;
+            if(DETAIL)col+=det.z;
          }
       }
 
-      if(MACRO)I.col.rgb=Lerp(I.col.rgb, Tex(Mac, I.tex*MacroScale).rgb, LerpRS(MacroFrom, MacroTo, I.pos.z)*MacroMax);
+      if(MACRO)col=Lerp(col, Tex(Mac, I.tex*MacroScale).rgb, LerpRS(MacroFrom, MacroTo, I.pos.z)*MacroMax);
 
       // reflection
       if(REFLECT)
       {
          Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
-         I.col.rgb+=TexCube(Rfl, rfl).rgb*((TEXTURES==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
+         col+=TexCube(Rfl, rfl).rgb*((TEXTURES==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
       }
    }else // MATERIALS>1
    {
@@ -599,8 +599,11 @@ void PS
          if(MATERIALS>=3){VecH col2=Tex(Col2, tex2).rgb; if(DETAIL)col2+=det2.z; if(MACRO)col2=Lerp(col2, Tex(Mac2, tex2*MacroScale).rgb, MultiMaterial2Macro()*mac_blend); tex+=I.material.z*col2*MultiMaterial2Color3();}
          if(MATERIALS>=4){VecH col3=Tex(Col3, tex3).rgb; if(DETAIL)col3+=det3.z; if(MACRO)col3=Lerp(col3, Tex(Mac3, tex3*MacroScale).rgb, MultiMaterial3Macro()*mac_blend); tex+=I.material.w*col3*MultiMaterial3Color3();}
       }
-      if(MATERIALS<=1 /*|| !MTRL_BLEND*/ || COLORS)I.col.rgb*=tex;
-      else                                         I.col.rgb =tex;
+   #if COLORS
+      col*=tex;
+   #else
+      col =tex;
+   #endif
 
       // normal, specular, glow !! do this second after modifying 'I.material' !!
       if(TEXTURES<=1)
@@ -619,10 +622,10 @@ void PS
          if(REFLECT)
          {
             Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
-                            I.col.rgb+=TexCube(Rfl , rfl).rgb*(MultiMaterial0Reflect()*I.material.x);
-                            I.col.rgb+=TexCube(Rfl1, rfl).rgb*(MultiMaterial1Reflect()*I.material.y);
-            if(MATERIALS>=3)I.col.rgb+=TexCube(Rfl2, rfl).rgb*(MultiMaterial2Reflect()*I.material.z);
-            if(MATERIALS>=4)I.col.rgb+=TexCube(Rfl3, rfl).rgb*(MultiMaterial3Reflect()*I.material.w);
+                            col+=TexCube(Rfl , rfl).rgb*(MultiMaterial0Reflect()*I.material.x);
+                            col+=TexCube(Rfl1, rfl).rgb*(MultiMaterial1Reflect()*I.material.y);
+            if(MATERIALS>=3)col+=TexCube(Rfl2, rfl).rgb*(MultiMaterial2Reflect()*I.material.z);
+            if(MATERIALS>=4)col+=TexCube(Rfl3, rfl).rgb*(MultiMaterial3Reflect()*I.material.w);
          }
       }else
       {
@@ -659,10 +662,10 @@ void PS
          if(REFLECT)
          {
             Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
-                            I.col.rgb+=TexCube(Rfl , rfl).rgb*(MultiMaterial0Reflect()*I.material.x*tex_spec[0]);
-                            I.col.rgb+=TexCube(Rfl1, rfl).rgb*(MultiMaterial1Reflect()*I.material.y*tex_spec[1]);
-            if(MATERIALS>=3)I.col.rgb+=TexCube(Rfl2, rfl).rgb*(MultiMaterial2Reflect()*I.material.z*tex_spec[2]);
-            if(MATERIALS>=4)I.col.rgb+=TexCube(Rfl3, rfl).rgb*(MultiMaterial3Reflect()*I.material.w*tex_spec[3]);
+                            col+=TexCube(Rfl , rfl).rgb*(MultiMaterial0Reflect()*I.material.x*tex_spec[0]);
+                            col+=TexCube(Rfl1, rfl).rgb*(MultiMaterial1Reflect()*I.material.y*tex_spec[1]);
+            if(MATERIALS>=3)col+=TexCube(Rfl2, rfl).rgb*(MultiMaterial2Reflect()*I.material.z*tex_spec[2]);
+            if(MATERIALS>=4)col+=TexCube(Rfl3, rfl).rgb*(MultiMaterial3Reflect()*I.material.w*tex_spec[3]);
          }
       }
    #endif
@@ -670,9 +673,9 @@ void PS
 
    if(FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS)BackFlip(nrm, front);
 
-   I.col.rgb+=Highlight.rgb;
+   col+=Highlight.rgb;
 
-   output.color   (I.col.rgb   );
+   output.color   (col         );
    output.glow    (glow        );
    output.normal  (nrm         );
    output.specular(specular    );
@@ -695,15 +698,18 @@ VS_PS HS
 )
 {
    VS_PS O;
-                                                O.pos     =I[cp_id].pos     ;
-   if(MATERIALS<=1 /*|| !MTRL_BLEND*/ || COLORS)O.col     =I[cp_id].col     ;
-                                                O.vel     =I[cp_id].vel     ;
-   if(TEXTURES || DETAIL                       )O.tex     =I[cp_id].tex     ;
-   if(BUMP_MODE==SBUMP_FLAT                    )O.mtrx[2] =I[cp_id].mtrx[2] ;
-   if(BUMP_MODE> SBUMP_FLAT                    )O.mtrx    =I[cp_id].mtrx    ;
+                            O.pos    =I[cp_id].pos    ;
+                            O.vel    =I[cp_id].vel    ;
+   if(TEXTURES || DETAIL   )O.tex    =I[cp_id].tex    ;
+   if(BUMP_MODE==SBUMP_FLAT)O.mtrx[2]=I[cp_id].mtrx[2];
+   if(BUMP_MODE> SBUMP_FLAT)O.mtrx   =I[cp_id].mtrx   ;
 
 #if MATERIALS>1
    O.material=I[cp_id].material;
+#endif
+
+#if COLORS
+   O.col=I[cp_id].col;
 #endif
 
 #if FAST_TPOS
@@ -726,9 +732,8 @@ void DS
    out Vec4  O_vtx:POSITION
 )
 {
-   if(MATERIALS<=1 /*|| !MTRL_BLEND*/ || COLORS)O.col=I[0].col*B.z + I[1].col*B.x + I[2].col*B.y;
-                                                O.vel=I[0].vel*B.z + I[1].vel*B.x + I[2].vel*B.y;
-   if(TEXTURES || DETAIL                       )O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
+                         O.vel=I[0].vel*B.z + I[1].vel*B.x + I[2].vel*B.y;
+   if(TEXTURES || DETAIL)O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
 
    if(BUMP_MODE>SBUMP_FLAT)
    {
@@ -739,6 +744,10 @@ void DS
 
 #if MATERIALS>1
    O.material=I[0].material*B.z + I[1].material*B.x + I[2].material*B.y;
+#endif
+
+#if COLORS
+   O.col=I[0].col*B.z + I[1].col*B.x + I[2].col*B.y;
 #endif
 
 #if FAST_TPOS
