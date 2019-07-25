@@ -742,34 +742,29 @@ static void Compile(API api)
 
 #ifdef BLEND_LIGHT
 {
-   Str names;
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Blend Light", model, api).New(src_path+"Blend Light.cpp");
 
    REPD(per_pixel  , 2)
    REPD(shadow_maps, 7) // 7=(6+off), 1=off
+   REPD(color      , 2)
    {
       // base
       REPD(skin      , 2)
-      REPD(color     , 2)
       REPD(textures  , 3)
       REPD(bump_mode , (per_pixel && textures==2) ? 2 : 1)
       REPD(alpha_test,               textures     ? 2 : 1)
       REPD(alpha     ,               textures     ? 2 : 1)
       REPD(light_map ,               textures     ? 2 : 1)
       REPD(reflect   , 2)
-      {
-         names+=TechBlendLight(skin, color, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, alpha, light_map, reflect, FX_NONE, per_pixel, shadow_maps);
-      }
+         src.New().blendLight(skin, color, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, alpha, light_map, reflect, FX_NONE, per_pixel, shadow_maps);
 
       // grass+leaf, 1 material, 1-2 tex
       for(Int textures=1; textures<=2; textures++)
       REPD (bump_mode , (per_pixel && textures==2) ? 2 : 1)
       REPD (alpha_test,               textures     ? 2 : 1)
-      REPD (color     , 2)
       REPAD(fx        , fxs)
-         names+=TechBlendLight(false, color, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, false, false, fxs[fx], per_pixel, shadow_maps);
+         src.New().blendLight(false, color, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, false, false, fxs[fx], per_pixel, shadow_maps);
    }
-
-   Add(src_path+"Blend Light.cpp", dest_path+"Blend Light", api, model, names);
 }
 #endif
 

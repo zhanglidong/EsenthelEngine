@@ -107,8 +107,8 @@ void VS
    {
       if(true) // instance
       {
-         O.vel=ObjVel[vtx.instance()]; // #PER_INSTANCE_VEL
          O.pos=TransformPos(pos, vtx.instance());
+         O.vel=ObjVel[vtx.instance()]; UpdateVelocities_VS(O.vel, pos, O.pos, vtx.instance()); // #PER_INSTANCE_VEL
 
       #if   BUMP_MODE> SBUMP_FLAT
          O.mtrx[2]=TransformDir(nrm, vtx.instance());
@@ -121,12 +121,10 @@ void VS
            BendGrass(pos, O.pos, vtx.instance());
          O.fade_out=GrassFadeOut(vtx.instance());
       #endif
-
-         UpdateVelocities_VS(O.vel, pos, O.pos, vtx.instance());
       }else
       {
-         O.vel=ObjVel[0];
          O.pos=TransformPos(pos);
+         O.vel=ObjVel[0]; UpdateVelocities_VS(O.vel, pos, O.pos);
 
       #if   BUMP_MODE> SBUMP_FLAT
          O.mtrx[2]=TransformDir(nrm);
@@ -139,13 +137,12 @@ void VS
          BendGrass(pos, O.pos);
          O.fade_out=GrassFadeOut();
       #endif
-         UpdateVelocities_VS(O.vel, pos, O.pos);
       }
    }else
    {
       VecI bone=vtx.bone();
-      O.vel=GetBoneVel  (     bone, vtx.weight());
       O.pos=TransformPos(pos, bone, vtx.weight());
+      O.vel=GetBoneVel  (     bone, vtx.weight()); UpdateVelocities_VS(O.vel, pos, O.pos);
 
    #if   BUMP_MODE> SBUMP_FLAT
       O.mtrx[2]=TransformDir(nrm, bone, vtx.weight());
@@ -153,8 +150,6 @@ void VS
    #elif BUMP_MODE==SBUMP_FLAT
       O.nrm    =TransformDir(nrm, bone, vtx.weight());
    #endif
-
-      UpdateVelocities_VS(O.vel, pos, O.pos);
    }
 
    // normalize (have to do all at the same time, so all have the same lengths)

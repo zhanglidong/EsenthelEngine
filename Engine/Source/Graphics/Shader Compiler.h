@@ -137,6 +137,9 @@ struct ShaderCompiler
       Shader& deferred(Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int detail, Int macro, Int reflect, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tesselate)
          {return T("SKIN", skin, "MATERIALS", materials, "TEXTURES", textures, "BUMP_MODE", bump_mode)("ALPHA_TEST", alpha_test)("DETAIL", detail, "MACRO", macro, "REFLECT", reflect)("COLORS", color, "MTRL_BLEND", mtrl_blend, "HEIGHTMAP", heightmap, "FX", fx).tesselate(tesselate);}
 
+      Shader& blendLight(Int skin, Int color, Int textures, Int bump_mode, Int alpha_test, Int alpha, Int light_map, Int reflect, Int fx, Int per_pixel, Int shadow_maps)
+         {return T("SKIN", skin, "COLORS", color, "TEXTURES", textures, "BUMP_MODE", bump_mode)("ALPHA_TEST", alpha_test, "ALPHA", alpha)("LIGHT_MAP", light_map, "REFLECT", reflect)("FX", fx, "PER_PIXEL", per_pixel, "SHADOW_MAPS", shadow_maps).tesselate(false);}
+
       void finalizeName();
       Bool save(File &f, C ShaderCompiler &compiler)C;
    };
