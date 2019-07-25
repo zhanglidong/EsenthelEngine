@@ -251,7 +251,7 @@ FRST* DefaultShaders::Frst()C
    {
       FRSTKey key;
       key.per_pixel =(Renderer.forwardPrecision() && bump>SBUMP_ZERO);
-      key.bump_mode =Min(bump, key.per_pixel ? SBUMP_NORMAL : SBUMP_FLAT); // forward supports only normal bump
+      key.bump_mode =Min(bump, key.per_pixel ? SBUMP_NORMAL : SBUMP_FLAT); // forward supports only up to normal mapping
 
       key.skin      =skin;
       key.materials =materials;
@@ -279,7 +279,7 @@ BLST* DefaultShaders::Blst()C
    {
       BLSTKey key;
       key.per_pixel =(((Renderer.type()==RT_FORWARD) ? Renderer.forwardPrecision() : true) && bump>SBUMP_ZERO);
-      key.bump_mode =Min(bump, key.per_pixel ? SBUMP_NORMAL : SBUMP_FLAT); // blend light supports only normal bump
+      key.bump_mode =Min(bump, key.per_pixel ? SBUMP_NORMAL : SBUMP_FLAT); // blend light supports only up to normal mapping
 
       key.color     =color;
       key.textures  =textures;
