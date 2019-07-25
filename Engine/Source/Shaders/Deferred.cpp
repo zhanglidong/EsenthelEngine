@@ -19,21 +19,33 @@
 #define RELIEF_MODE         1 // 1=best
 #define RELIEF_Z_LIMIT      0.4 // smaller values may cause leaking (UV swimming), and higher reduce bump intensity at angles, default=0.4
 #define RELIEF_LOD_TEST     0 // close to camera (test enabled=4.76 fps, test disabled=4.99 fps), far from camera (test enabled=9.83 fps, test disabled=9.52 fps), conclusion: this test reduces performance when close to camera by a similar factor to when far away, however since more likely pixels will be close to camera (as for distant LOD's other shaders are used) we prioritize close to camera performance, so this check should be disabled, default=0
+
+#define FAST_TPOS ((BUMP_MODE>=SBUMP_PARALLAX_MIN && BUMP_MODE<=SBUMP_PARALLAX_MAX) || (BUMP_MODE==SBUMP_RELIEF && !RELIEF_TAN_POS))
 /******************************************************************************
 SKIN, MATERIALS, TEXTURES, BUMP_MODE, ALPHA_TEST, DETAIL, MACRO, REFLECT, COLORS, MTRL_BLEND, HEIGHTMAP, FX, TESSELATE
 /******************************************************************************/
 struct VS_PS
 {
-   Vec2     tex     :TEXCOORD0;
-   Vec      pos     :TEXCOORD1;
-   Vec     _tpos    :TEXCOORD2;
-   Vec      vel     :TEXCOORD3;
-   MatrixH3 mtrx    :TEXCOORD4; // !! may not be Normalized !!
-   Half     fade_out:TEXCOORD7;
-   VecH4    material:COLOR0   ;
-   VecH     col     :COLOR1   ;
+   Vec2     tex :TEXCOORD0;
+   Vec      pos :TEXCOORD1; // always needed for velocity
+   Vec      vel :TEXCOORD3;
+   MatrixH3 mtrx:TEXCOORD4; // !! may not be Normalized !!
+   VecH     col :COLOR1   ;
 
-   Vec tpos() {return Normalize(_tpos);}
+#if MATERIALS>1
+   VecH4 material:COLOR0;
+#endif
+
+#if FAST_TPOS
+   Vec _tpos:TEXCOORD2;
+   Vec  tpos() {return Normalize(_tpos);}
+#else
+   Vec  tpos() {return Normalize(TransformTP(-pos, mtrx));} // need high precision here for 'TransformTP'
+#endif
+
+#if FX==FX_GRASS
+   Half fade_out:TEXCOORD7;
+#endif
 };
 /******************************************************************************/
 // VS
@@ -51,8 +63,11 @@ void VS
    Vec  pos=vtx.pos();
    VecH nrm, tan; if(BUMP_MODE>=SBUMP_FLAT)nrm=vtx.nrm(); if(BUMP_MODE>SBUMP_FLAT)tan=vtx.tan(nrm, HEIGHTMAP);
 
-   if(TEXTURES || DETAIL)O.tex     =vtx.tex     (HEIGHTMAP);
-   if(MATERIALS>1       )O.material=vtx.material();
+   if(TEXTURES || DETAIL)O.tex=vtx.tex(HEIGHTMAP);
+
+#if MATERIALS>1
+   O.material=vtx.material();
+#endif
 
    if(MATERIALS<=1)O.col.rgb=MaterialColor3();/*else
    if(!MTRL_BLEND )
@@ -68,7 +83,7 @@ void VS
       else                               O.col.rgb =vtx.colorFast3();
    }
 
-   if(HEIGHTMAP && TEXTURES && MATERIALS==1)O.tex*=MaterialTexScale();
+   if(HEIGHTMAP && (TEXTURES || DETAIL) && MATERIALS==1)O.tex*=MaterialTexScale();
 
    if(FX==FX_LEAF)
    {
@@ -92,11 +107,10 @@ void VS
 
          if(BUMP_MODE>=SBUMP_FLAT)O.mtrx[2]=TransformDir(nrm, vtx.instance());
          if(BUMP_MODE> SBUMP_FLAT)O.mtrx[0]=TransformDir(tan, vtx.instance());
-         if(FX==FX_GRASS)
-         {
-              BendGrass(pos, O.pos, vtx.instance());
-            O.fade_out=GrassFadeOut(vtx.instance());
-         }
+      #if FX==FX_GRASS
+           BendGrass(pos, O.pos, vtx.instance());
+         O.fade_out=GrassFadeOut(vtx.instance());
+      #endif
          UpdateVelocities_VS(O.vel, pos, O.pos, vtx.instance());
       }else
       {
@@ -105,11 +119,10 @@ void VS
 
          if(BUMP_MODE>=SBUMP_FLAT)O.mtrx[2]=TransformDir(nrm);
          if(BUMP_MODE> SBUMP_FLAT)O.mtrx[0]=TransformDir(tan);
-         if(FX==FX_GRASS)
-         {
-            BendGrass(pos, O.pos);
-            O.fade_out=GrassFadeOut();
-         }
+      #if FX==FX_GRASS
+         BendGrass(pos, O.pos);
+         O.fade_out=GrassFadeOut();
+      #endif
          UpdateVelocities_VS(O.vel, pos, O.pos);
       }
    }else
@@ -134,8 +147,9 @@ void VS
 
    if(BUMP_MODE>SBUMP_FLAT)O.mtrx[1]=vtx.bin(O.mtrx[2], O.mtrx[0], HEIGHTMAP);
 
-   if((BUMP_MODE>=SBUMP_PARALLAX_MIN && BUMP_MODE<=SBUMP_PARALLAX_MAX)
-   || (BUMP_MODE==SBUMP_RELIEF       && !RELIEF_TAN_POS              ))O._tpos=TransformTP(-O.pos, O.mtrx); // need high precision here, we can't Normalize because it's important to keep distances
+#if FAST_TPOS
+   O._tpos=TransformTP(-O.pos, O.mtrx); // need high precision here, we can't Normalize because it's important to keep distances
+#endif
 
    O_vtx=Project(O.pos); CLIP_PLANE(O.pos);
 }
@@ -195,12 +209,7 @@ void PS
                Flt lod=Max(0, GetLod(I.tex, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
              //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
 
-            #if RELIEF_TAN_POS
-               VecH tpos=Normalize(TransformTP(-I.pos, I.mtrx)); // need high precision here for 'TransformTP'
-            #else
                VecH tpos=I.tpos();
-            #endif
-
             #if   RELIEF_MODE==0
                Half scale=MaterialBump();
             #elif RELIEF_MODE==1 // best
@@ -306,15 +315,29 @@ void PS
       }else
       if(TEXTURES==1)
       {
-         VecH4  tex=Tex(Col, I.tex); if(ALPHA_TEST)AlphaTest(tex.w, I.fade_out, FX);
-         I.col.rgb*=tex.rgb        ; if(DETAIL    )I.col.rgb+=GetDetail(I.tex).z;
+         VecH4 tex=Tex(Col, I.tex);
+         if(ALPHA_TEST)
+         {
+         #if FX==FX_GRASS
+            tex.a-=I.fade_out;
+         #endif
+            AlphaTest(tex.a);
+         }
+         I.col.rgb*=tex.rgb; if(DETAIL)I.col.rgb+=GetDetail(I.tex).z;
          nrm       =Normalize(I.mtrx[2]);
          glow      =MaterialGlow    ();
          specular  =MaterialSpecular();
       }else
       if(TEXTURES==2)
       {
-         tex_nrm =Tex(Nrm, I.tex);    if( ALPHA_TEST)AlphaTest(tex_nrm.a, I.fade_out, FX);
+         tex_nrm=Tex(Nrm, I.tex); // #MaterialTextureChannelOrder
+         if(ALPHA_TEST)
+         {
+         #if FX==FX_GRASS
+            tex_nrm.w-=I.fade_out;
+         #endif
+            AlphaTest(tex_nrm.w);
+         }
          glow    =MaterialGlow    (); if(!ALPHA_TEST)glow*=tex_nrm.a;
          specular=MaterialSpecular()*tex_nrm.z;
          if(BUMP_MODE==SBUMP_FLAT)
@@ -346,6 +369,7 @@ void PS
       }
    }else // MATERIALS>1
    {
+   #if MATERIALS>1
       // assuming that in multi materials TEXTURES!=0
       Vec2 tex0, tex1, tex2, tex3;
                       tex0=I.tex*MultiMaterial0TexScale();
@@ -410,12 +434,7 @@ void PS
                    lod=Max(0, GetLod(I.tex, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
              //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
 
-            #if RELIEF_TAN_POS
-               VecH tpos=Normalize(TransformTP(-I.pos, I.mtrx)); // need high precision here for 'TransformTP'
-            #else
                VecH tpos=I.tpos();
-            #endif
-
             #if   RELIEF_MODE==0
                Half scale=avg_bump;
             #elif RELIEF_MODE==1 // best
@@ -646,6 +665,7 @@ void PS
             if(MATERIALS>=4)I.col.rgb+=TexCube(Rfl3, rfl).rgb*(MultiMaterial3Reflect()*I.material.w*tex_spec[3]);
          }
       }
+   #endif
    }
 
    if(FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS)BackFlip(nrm, front);
@@ -679,13 +699,20 @@ VS_PS HS
    if(MATERIALS<=1 /*|| !MTRL_BLEND*/ || COLORS)O.col     =I[cp_id].col     ;
                                                 O.vel     =I[cp_id].vel     ;
    if(TEXTURES || DETAIL                       )O.tex     =I[cp_id].tex     ;
-   if(MATERIALS>1                              )O.material=I[cp_id].material;
-   if(FX==FX_GRASS                             )O.fade_out=I[cp_id].fade_out;
    if(BUMP_MODE==SBUMP_FLAT                    )O.mtrx[2] =I[cp_id].mtrx[2] ;
    if(BUMP_MODE> SBUMP_FLAT                    )O.mtrx    =I[cp_id].mtrx    ;
 
-   if((BUMP_MODE>=SBUMP_PARALLAX_MIN && BUMP_MODE<=SBUMP_PARALLAX_MAX)
-   || (BUMP_MODE==SBUMP_RELIEF       && !RELIEF_TAN_POS              ))O._tpos=I[cp_id]._tpos;
+#if MATERIALS>1
+   O.material=I[cp_id].material;
+#endif
+
+#if FAST_TPOS
+   O._tpos=I[cp_id]._tpos;
+#endif
+
+#if FX==FX_GRASS
+   O.fade_out=I[cp_id].fade_out;
+#endif
 
    return O;
 }
@@ -699,11 +726,9 @@ void DS
    out Vec4  O_vtx:POSITION
 )
 {
-   if(MATERIALS<=1 /*|| !MTRL_BLEND*/ || COLORS)O.col     =I[0].col     *B.z + I[1].col     *B.x + I[2].col     *B.y;
-                                                O.vel     =I[0].vel     *B.z + I[1].vel     *B.x + I[2].vel     *B.y;
-   if(TEXTURES || DETAIL                       )O.tex     =I[0].tex     *B.z + I[1].tex     *B.x + I[2].tex     *B.y;
-   if(MATERIALS>1                              )O.material=I[0].material*B.z + I[1].material*B.x + I[2].material*B.y;
-   if(FX==FX_GRASS                             )O.fade_out=I[0].fade_out*B.z + I[1].fade_out*B.x + I[2].fade_out*B.y;
+   if(MATERIALS<=1 /*|| !MTRL_BLEND*/ || COLORS)O.col=I[0].col*B.z + I[1].col*B.x + I[2].col*B.y;
+                                                O.vel=I[0].vel*B.z + I[1].vel*B.x + I[2].vel*B.y;
+   if(TEXTURES || DETAIL                       )O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
 
    if(BUMP_MODE>SBUMP_FLAT)
    {
@@ -712,8 +737,17 @@ void DS
       //mtrx[2] is handled below
    }
 
-   if((BUMP_MODE>=SBUMP_PARALLAX_MIN && BUMP_MODE<=SBUMP_PARALLAX_MAX)
-   || (BUMP_MODE==SBUMP_RELIEF       && !RELIEF_TAN_POS              ))O._tpos=I[0]._tpos*B.z + I[1]._tpos*B.x + I[2]._tpos*B.y;
+#if MATERIALS>1
+   O.material=I[0].material*B.z + I[1].material*B.x + I[2].material*B.y;
+#endif
+
+#if FAST_TPOS
+   O._tpos=I[0]._tpos*B.z + I[1]._tpos*B.x + I[2]._tpos*B.y;
+#endif
+
+#if FX==FX_GRASS
+   O.fade_out=I[0].fade_out*B.z + I[1].fade_out*B.x + I[2].fade_out*B.y;
+#endif
 
    SetDSPosNrm(O.pos, O.mtrx[2], I[0].pos, I[1].pos, I[2].pos, I[0].mtrx[2], I[1].mtrx[2], I[2].mtrx[2], B, hs_data, false, 0);
    O_vtx=Project(O.pos);

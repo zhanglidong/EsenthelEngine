@@ -176,7 +176,14 @@ VecH4 PS
       }else
       if(textures==1)
       {
-         VecH4 tex_col=Tex(Col, I.tex); if(alpha_test)AlphaTest(tex_col.w, I.fade_out, fx);
+         VecH4 tex_col=Tex(Col, I.tex);
+         if(ALPHA_TEST)
+         {
+         #if FX==FX_GRASS
+            tex_col.a-=I.fade_out;
+         #endif
+            AlphaTest(tex_col.a);
+         }
          nrm     =Normalize(I.mtrx[2]);
          glow    =MaterialGlow    ();
          specular=MaterialSpecular();
@@ -185,9 +192,16 @@ VecH4 PS
       }else
       if(textures==2)
       {
-         tex_nrm     =Tex(Nrm, I.tex)   ; if( alpha_test)AlphaTest(tex_nrm.a, I.fade_out, fx); // #MaterialTextureChannelOrder
-         glow        =MaterialGlow    (); if(!alpha_test)glow*=tex_nrm.a;
-         specular    =MaterialSpecular()*tex_nrm.z;
+         tex_nrm=Tex(Nrm, I.tex); // #MaterialTextureChannelOrder
+         if(ALPHA_TEST)
+         {
+         #if FX==FX_GRASS
+            tex_nrm.w-=I.fade_out;
+         #endif
+            AlphaTest(tex_nrm.w);
+         }
+         glow    =MaterialGlow    (); if(!alpha_test)glow*=tex_nrm.a;
+         specular=MaterialSpecular()*tex_nrm.z;
          if(bump_mode==SBUMP_FLAT)
          {
             nrm=Normalize(I.mtrx[2]);

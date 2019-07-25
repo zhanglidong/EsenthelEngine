@@ -1186,9 +1186,8 @@ inline Vec HsbToRgb(Vec hsb)
 /******************************************************************************/
 // ALPHA TEST
 /******************************************************************************/
-inline void AlphaTest(Half alpha, Half fade_out, Int fx)
+inline void AlphaTest(Half alpha)
 {
-   if(fx==FX_GRASS)alpha-=fade_out;
    clip(alpha+MaterialAlpha()-1);
 }
 /******************************************************************************/
