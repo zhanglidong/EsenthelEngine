@@ -998,9 +998,10 @@ struct ConvertContext
 #if DEBUG
    Memc<                ShaderData> (&shader_datas)[ST_NUM];
    Mems<ShaderCompiler::Shader*   >  &shaders;
-
+#endif
    ShaderCompiler::Shader* findShader(C ShaderData &shader_data)C // find first 'Shader' using 'shader_data'
    {
+   #if DEBUG
       FREPAD(type, shader_datas)
       {
          Int shader_data_index=shader_datas[type].index(&shader_data); if(shader_data_index>=0)
@@ -1012,6 +1013,7 @@ struct ConvertContext
             break;
          }
       }
+   #endif
       return null;
    }
    ShaderCompiler::Shader& shader(C ShaderData &shader_data)C // get first 'Shader' using 'shader_data'
@@ -1024,7 +1026,6 @@ struct ConvertContext
       if(ShaderCompiler::Shader *shader=findShader(shader_data))return shader->name;
       return S;
    }
-#endif
 
    ConvertContext(ShaderCompiler &compiler
    #if DEBUG

@@ -7,16 +7,16 @@ namespace EE{
 #define MULTI_MATERIAL 1
 
 #if WINDOWS
-   #define COMPILE_DX 1
+   #define COMPILE_DX 0
    #define COMPILE_GL 0
 #endif
 
 /**
-#define MAIN*/
+#define MAIN
 
 #define DEFERRED
 #define BLEND_LIGHT
-#define FORWARD
+//#define FORWARD
 
 /*#define AMBIENT
 #define AMBIENT_OCCLUSION
