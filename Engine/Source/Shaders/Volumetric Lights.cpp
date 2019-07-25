@@ -10,9 +10,7 @@ BUFFER_END
 /******************************************************************************/
 VecH4 VolDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                 NOPERSP Vec2 inPosXY:TEXCOORD1,
-                NOPERSP PIXEL                 ,
-                uniform Int  num              ,
-                uniform Bool cloud            ):TARGET
+                NOPERSP PIXEL                 ):TARGET
 {
    Vec obj   =GetPosLinear(inTex, inPosXY); // use linear filtering because we may be drawing to a smaller RT
    Flt power =0,
@@ -28,8 +26,8 @@ VecH4 VolDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    Int  steps=80;
    LOOP for(Int i=0; i<steps; i++)
    {
-      Vec pos=ShadowDirTransform(obj*(Flt(i+1)/(steps+1)), num);
-      if(cloud)power+=CompareDepth(pos, jitter_value, true)*CompareDepth2(pos);
+      Vec pos=ShadowDirTransform(obj*(Flt(i+1)/(steps+1)), NUM);
+      if(CLOUD)power+=CompareDepth(pos, jitter_value, true)*CompareDepth2(pos);
       else     power+=CompareDepth(pos, jitter_value, true);
    }
 
@@ -126,12 +124,11 @@ VecH4 VolCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    return VecH4(Light_cone.color.rgb*Min(Light_cone.vol_max, Light_cone.vol*power*(length/steps)), 0);
 }
 /******************************************************************************/
-VecH4 Volumetric_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                    uniform Bool add           ,
-                    uniform Int  samples=6     ):TARGET
+VecH4 Volumetric_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
    VecH vol=TexLod(Img, inTex).rgb; // use linear filtering because 'Img' may be smaller
 
+   const Int samples=6;
    UNROLL for(Int i=0; i<samples; i++)
    {
       Vec2 t;
@@ -148,23 +145,7 @@ VecH4 Volumetric_PS(NOPERSP Vec2 inTex:TEXCOORD,
    vol/=samples+1;
    vol =Min(vol, VolMax);
 
-   if(add)return VecH4(vol, 0);                                       // alpha blending : ALPHA_ADD
+   if(ADD)return VecH4(vol, 0);                                       // alpha blending : ALPHA_ADD
    else   {Half max=Max(vol); return VecH4(vol/(HALF_MIN+max), max);} // alpha blending : ALPHA_BLEND_DEC
 }
-/******************************************************************************/
-// TECHNIQUES
-/******************************************************************************/
-TECHNIQUE(VolDir1, DrawPosXY_VS(), VolDir_PS(1, false));   TECHNIQUE(VolDir1C, DrawPosXY_VS(), VolDir_PS(1, true));
-TECHNIQUE(VolDir2, DrawPosXY_VS(), VolDir_PS(2, false));   TECHNIQUE(VolDir2C, DrawPosXY_VS(), VolDir_PS(2, true));
-TECHNIQUE(VolDir3, DrawPosXY_VS(), VolDir_PS(3, false));   TECHNIQUE(VolDir3C, DrawPosXY_VS(), VolDir_PS(3, true));
-TECHNIQUE(VolDir4, DrawPosXY_VS(), VolDir_PS(4, false));   TECHNIQUE(VolDir4C, DrawPosXY_VS(), VolDir_PS(4, true));
-TECHNIQUE(VolDir5, DrawPosXY_VS(), VolDir_PS(5, false));   TECHNIQUE(VolDir5C, DrawPosXY_VS(), VolDir_PS(5, true));
-TECHNIQUE(VolDir6, DrawPosXY_VS(), VolDir_PS(6, false));   TECHNIQUE(VolDir6C, DrawPosXY_VS(), VolDir_PS(6, true));
-
-TECHNIQUE(VolPoint , DrawPosXY_VS(), VolPoint_PS ());
-TECHNIQUE(VolLinear, DrawPosXY_VS(), VolLinear_PS());
-TECHNIQUE(VolCone  , DrawPosXY_VS(), VolCone_PS  ());
-
-TECHNIQUE(Volumetric , Draw_VS(), Volumetric_PS(false));
-TECHNIQUE(VolumetricA, Draw_VS(), Volumetric_PS(true ));
 /******************************************************************************/

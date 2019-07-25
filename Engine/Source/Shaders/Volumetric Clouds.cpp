@@ -181,8 +181,7 @@ void CloudsDraw_VS(VtxInput vtx,
 }
 VecH4 CloudsDraw_PS(NOPERSP Vec2   inTex :TEXCOORD0,
                     NOPERSP Vec    inPos :TEXCOORD1,
-                        out VecH4 outMask:TARGET1  ,
-                    uniform Bool  gamma            ):TARGET
+                        out VecH4 outMask:TARGET1  ):TARGET
 {
    VecH2 clouds=TexLod(ImgXY, inTex).xy; // can't use TexPoint because image may be smaller
 #if 1
@@ -190,16 +189,12 @@ VecH4 CloudsDraw_PS(NOPERSP Vec2   inTex :TEXCOORD0,
 #else
    Vec pos=GetPosPoint(inTex, inPosXY); clouds.y*=(Half)Sat(Length(pos)*SkyFracMulAdd.x+SkyFracMulAdd.y);
 #endif
-   VecH c=Color[0].rgb*clouds.x; if(gamma)c=SRGBToLinear(c);
+   VecH c=Color[0].rgb*clouds.x;
+#if GAMMA
+   c=SRGBToLinear(c);
+#endif
    outMask.rgb=0;
    outMask.a  =clouds.y;
    return VecH4(c, clouds.y);
 }
-/******************************************************************************/
-// TECHNIQUES
-/******************************************************************************/
-TECHNIQUE(Clouds     , Clouds_VS    (), Clouds_PS    ());
-TECHNIQUE(CloudsMap  , CloudsMap_VS (), CloudsMap_PS ());
-TECHNIQUE(CloudsDraw , CloudsDraw_VS(), CloudsDraw_PS(false));
-TECHNIQUE(CloudsDrawG, CloudsDraw_VS(), CloudsDraw_PS(true ));
 /******************************************************************************/

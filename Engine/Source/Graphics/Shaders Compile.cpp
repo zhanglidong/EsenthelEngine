@@ -550,8 +550,8 @@ static void Compile(API api)
 }
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Tattoo", model, api).New(src_path+"Tattoo.cpp");
-   REPD(skin     , 2           )
-   REPD(tesselate, tess ? 2 : 1)src.New(S, "VS", "PS")("SKIN", skin).tesselate(tesselate);
+   REPD(tesselate, tess ? 2 : 1)
+   REPD(skin     , 2           )src.New(S, "VS", "PS")("SKIN", skin).tesselate(tesselate);
 }
 #endif
 
@@ -573,27 +573,43 @@ static void Compile(API api)
 
 #ifdef SET_COLOR
 {
-   Str names;
-
-   // base
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Set Color", model, api).New(src_path+"Set Color.cpp");
    REPD(tesselate, tess ? 2 : 1)
    REPD(skin     , 2)
-   REPD(textures , 3)names+=TechSetColor(skin, textures, tesselate);
-
-   Add(src_path+"Set Color.cpp", dest_path+"Set Color", api, model, names);
+   REPD(textures , 3)
+      src.New(S, "VS", "PS")("SKIN", skin, "TEXTURES", textures).tesselate(tesselate);
 }
 #endif
 
 #ifdef VOLUMETRIC_CLOUDS
-   Add(src_path+"Volumetric Clouds.cpp", dest_path+"Volumetric Clouds", api, model);
+{
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Volumetric Clouds", model, api).New(src_path+"Volumetric Clouds.cpp");
+                 src.New("Clouds"    , "Clouds_VS"    , "Clouds_PS"    );
+                 src.New("CloudsMap" , "CloudsMap_VS" , "CloudsMap_PS" );
+   REPD(gamma, 2)src.New("CloudsDraw", "CloudsDraw_VS", "CloudsDraw_PS")("GAMMA", gamma);
+}
 #endif
 
 #ifdef VOLUMETRIC_LIGHTS
-   Add(src_path+"Volumetric Lights.cpp", dest_path+"Volumetric Lights", api, model);
+{
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Volumetric Lights", model, api).New(src_path+"Volumetric Lights.cpp");
+   REPD(num  , 2)
+   REPD(cloud, 2)
+      src.New("VolDir", "DrawPosXY_VS", "VolDir_PS")("NUM", num, "CLOUD", cloud);
+
+   src.New("VolPoint" , "DrawPosXY_VS", "VolPoint_PS" );
+   src.New("VolLinear", "DrawPosXY_VS", "VolLinear_PS");
+   src.New("VolCone"  , "DrawPosXY_VS", "VolCone_PS"  );
+
+   REPD(add, 2)src.New("Volumetric", "Draw_VS", "Volumetric_PS")("ADD", add);
+}
 #endif
 
 #ifdef WATER
-   Add(src_path+"Water.cpp", dest_path+"Water", api, model);
+{
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Water", model, api).New(src_path+"Water.cpp");
+   FIXME
+}
 #endif
 
 #ifdef WORLD_EDITOR

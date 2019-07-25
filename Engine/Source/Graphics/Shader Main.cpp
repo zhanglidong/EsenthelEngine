@@ -618,7 +618,7 @@ void VolumetricCloudsFx::load()
       CloudMap  =GetShaderParam("CloudMap");
       Clouds    =shader->get("Clouds");
       CloudsMap =shader->get("CloudsMap");
-      REPD(g, 2)CloudsDraw[g]=shader->get(S8+"CloudsDraw"+(g?'G':'\0'));
+      REPD(g, 2)CloudsDraw[g]=shader->get(S8+"CloudsDraw"+g);
    }
 }
 /******************************************************************************/
@@ -627,12 +627,12 @@ void VolumetricLights::load()
    if(!shader)if(shader=ShaderFiles("Volumetric Lights"))
    {
       REPD(n, 6)
-      REPD(c, 2)VolDir[n][c]=shader->get(S8+"VolDir"+(n+1)+(c?'C':'\0'));
+      REPD(c, 2)VolDir[n][c]=shader->get(S8+"VolDir"+(n+1)+c);
                 VolPoint    =shader->get(   "VolPoint" );
                 VolLinear   =shader->get(   "VolLinear");
                 VolCone     =shader->get(   "VolCone"  );
-      Volumetric =shader->get("Volumetric" );
-      VolumetricA=shader->get("VolumetricA");
+      Volumetric =shader->get("Volumetric0");
+      VolumetricA=shader->get("Volumetric1");
    }
 }
 /******************************************************************************/
