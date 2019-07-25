@@ -39,11 +39,11 @@ namespace EE{
 #define VOLUMETRIC_CLOUDS
 #define VOLUMETRIC_LIGHTS
 #define WATER
-//#define WORLD_EDITOR
+#define WORLD_EDITOR
 /******************************************************************************
 #define DX10_INPUT_LAYOUT
 /******************************************************************************/
-// SHADER TECHNIQUE NAMES
+// SHADER NAMES
 /******************************************************************************/
 Str8 TechNameDeferred  (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int detail, Int macro, Int reflect, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tesselate) {return S8+skin+materials+textures+bump_mode+alpha_test+detail+macro+reflect+color+mtrl_blend+heightmap+fx+tesselate;}
 Str8 TechNameBlendLight(Int skin, Int color    , Int textures, Int bump_mode, Int alpha_test, Int alpha, Int light_map, Int reflect, Int fx, Int per_pixel, Int shadow_maps) {return S8+skin+color+textures+bump_mode+alpha_test+alpha+light_map+reflect+fx+per_pixel+shadow_maps;}
@@ -523,6 +523,8 @@ static void Compile(API api)
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Motion Blur", model, api).New(src_path+"Motion Blur.cpp");
    src.New("Explosion", "Explosion_VS", "Explosion_PS");
 
+   src.New("ClearSkyVel", "ClearSkyVel_VS", "ClearSkyVel_PS");
+
    REPD(mode , 2)
    REPD(clamp, 2)src.New("Convert", "Convert_VS", "Convert_PS")("MODE", mode, "CLAMP", clamp);
 
@@ -648,7 +650,10 @@ static void Compile(API api)
 #endif
 
 #ifdef DX10_INPUT_LAYOUT
-   Add(src_path+"DX10+ Input Layout.cpp", S, api, model);
+{
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(S, model, api).New(src_path+"DX10+ Input Layout.cpp");
+   src.New("S", "VS", "PS");
+}
 #endif
 
 #ifdef DEFERRED

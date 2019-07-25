@@ -51,7 +51,6 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 inTex:TEXCOORD,
                     NOPERSP PIXEL):TARGET
 {
    Half ao; VecH ambient; if(AO){ao=TexLod(ImgX, inTex).x; if(!AO_ALL)ambient=AmbColor*ao;} // use 'TexLod' because AO can be of different size and we need to use tex filtering
-#if !CG
    VecI p=VecI(pixel.xy, 0);
    if(MULTI_SAMPLE==0)
    {
@@ -93,11 +92,5 @@ VecH4 ApplyLight_PS(NOPERSP Vec2 inTex:TEXCOORD,
       else            color_sum/=   valid_samples; // MS_SAMPLES
       return color_sum;
    }
-#else
-   Vec4   color=TexPoint(Img , inTex),
-          lum  =TexPoint(Img1, inTex); if(AO && !AO_ALL)lum.rgb+=ambient;
-          color.rgb =LitCol(color, lum, ao, NightShadeColor, AO && !AO_ALL, night_shade); if(AO && AO_ALL)color*=ao;
-   return color;
-#endif
 }
 /******************************************************************************/

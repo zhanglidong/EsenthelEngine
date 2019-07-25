@@ -76,27 +76,21 @@ void Particle_VS(VtxInput vtx,
    {
       Flt frame=vtx.tex1().x;
    #if 0 // integer version
-      #if !CG
-         #define INT UInt
-      #else
-         #define INT Int
+      UInt frames=ParticleFrames.x*ParticleFrames.y;
+      UInt f     =UInt(frame)%frames; // Trunc(frame)%frames; don't know why but doesn't work correctly
+      #if ANIM==ANIM_SMOOTH // frame blending
+      {
+         UInt f1=(f+1)%frames;
+         outAnim.xy =outTex;
+         outAnim.z  =Frac(frame);
+         outAnim.x +=f1%UInt(ParticleFrames.x);
+         outAnim.y +=f1/UInt(ParticleFrames.x);
+         outAnim.xy/=        ParticleFrames   ;
+      }
       #endif
-         INT frames=ParticleFrames.x*ParticleFrames.y;
-         INT f     =INT(frame)%frames; // Trunc(frame)%frames; don't know why but doesn't work correctly
-         #if ANIM==ANIM_SMOOTH // frame blending
-         {
-            INT f1=(f+1)%frames;
-            outAnim.xy =outTex;
-            outAnim.z  =Frac(frame);
-            outAnim.x +=f1%INT(ParticleFrames.x);
-            outAnim.y +=f1/INT(ParticleFrames.x);
-            outAnim.xy/=       ParticleFrames   ;
-         }
-         #endif
-         outTex.x+=f%INT(ParticleFrames.x);
-         outTex.y+=f/INT(ParticleFrames.x);
-         outTex  /=      ParticleFrames   ;
-      #undef INT
+      outTex.x+=f%UInt(ParticleFrames.x);
+      outTex.y+=f/UInt(ParticleFrames.x);
+      outTex  /=       ParticleFrames   ;
    #else // float version
       Flt frames=ParticleFrames.x*ParticleFrames.y; frame=Frac(frame/frames)*frames; // frame=[0..frames)
       Flt f; frame=modf(frame, f);
@@ -105,13 +99,13 @@ void Particle_VS(VtxInput vtx,
          Flt f1=f+1; if(f1+0.5>=frames)f1=0; // f1=(f+1)%frames;
                 outAnim.xy =outTex;
                 outAnim.z  =frame ; // frame step [0..1)
-         Flt y; outAnim.x +=ParticleFrames.x*modf(f1/ParticleFrames.x, y); // outAnim.x+=f1%INT(ParticleFrames.x);
-                outAnim.y +=y                                            ; // outAnim.y+=f1/INT(ParticleFrames.x);
+         Flt y; outAnim.x +=ParticleFrames.x*modf(f1/ParticleFrames.x, y); // outAnim.x+=f1%UInt(ParticleFrames.x);
+                outAnim.y +=y                                            ; // outAnim.y+=f1/UInt(ParticleFrames.x);
                 outAnim.xy/=ParticleFrames                               ;
       }
       #endif
-      Flt y; outTex.x+=ParticleFrames.x*modf(f/ParticleFrames.x, y); // outTex.x+=f%INT(ParticleFrames.x);
-             outTex.y+=y                                           ; // outTex.y+=f/INT(ParticleFrames.x);
+      Flt y; outTex.x+=ParticleFrames.x*modf(f/ParticleFrames.x, y); // outTex.x+=f%UInt(ParticleFrames.x);
+             outTex.y+=y                                           ; // outTex.y+=f/UInt(ParticleFrames.x);
              outTex  /=ParticleFrames                              ;
    #endif
    }

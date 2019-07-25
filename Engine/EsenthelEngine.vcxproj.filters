@@ -2256,12 +2256,6 @@
     <CustomBuild Include="..\ThirdPartyLibs\SQLite\Windows\x64\Release\SQLite.lib">
       <Filter>H\_\Libs\64</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\D3DX11\Bin\Desktop_2015\Win32\Release\Effects11.lib">
-      <Filter>H\_\Libs\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\D3DX11\Bin\Desktop_2015\x64\Release\Effects11.lib">
-      <Filter>H\_\Libs\64</Filter>
-    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\ThirdPartyLibs\VP\Windows32\Win32\Release\vpxmt.lib">
@@ -2578,15 +2572,6 @@
     </Library>
     <Library Include="..\ThirdPartyLibs\QCMS\Windows\Release\QCMS.lib">
       <Filter>H\_\Libs\32</Filter>
-    </Library>
-    <Library Include="..\ThirdPartyLibs\D3DX11\Bin\Windows10\Win32\Release\Effects11.lib">
-      <Filter>H\_\Libs\32\Universal</Filter>
-    </Library>
-    <Library Include="..\ThirdPartyLibs\D3DX11\Bin\Windows10\x64\Release\Effects11.lib">
-      <Filter>H\_\Libs\64\Universal</Filter>
-    </Library>
-    <Library Include="..\ThirdPartyLibs\D3DX11\Bin\Windows10\ARM\Release\Effects11.lib">
-      <Filter>H\_\Libs\ARM</Filter>
     </Library>
     <Library Include="..\ThirdPartyLibs\DirectX\DirectX SDK June 2010\x86\X3DAudio.lib">
       <Filter>H\_\Libs\32</Filter>

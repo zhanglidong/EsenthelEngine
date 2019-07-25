@@ -394,13 +394,7 @@ Bool has_func_param=false; REPA(func.params)if(func.params[i]->type==Symbol::FUN
 #if 0
    ft.putLine("static FuncCall FC[]=");
    ft.putLine("{"); ft.depth++;
-   FREPA(funcs)
-   {
-      Bool shader_compile=(Contains(funcs[i], "EE.ShaderCompile", true, true) || Contains(funcs[i], "EE.ShaderCompileTry", true, true));
-      if(shader_compile){ft.depth--; ft.putLine("#if !MAC // disable this on Mac, because compiling shaders on Mac requires CG framework installed and thus all EE based applications would not run without CG"); ft.depth++;}
-      ft.putLine(S+"{\""+funcs[i]+"\", "+SymbolToCppName(funcs[i])+"},");
-      if(shader_compile){ft.depth--; ft.putLine("#endif"); ft.depth++;}
-   }
+   FREPA(funcs)ft.putLine(S+"{\""+funcs[i]+"\", "+SymbolToCppName(funcs[i])+"},");
    ft.depth--; ft.putLine("};");
    ft.putLine("static Int ElmsFC=Elms(FC);");
    ft.putLine("static void InitFC() {}");
@@ -413,24 +407,12 @@ Bool has_func_param=false; REPA(func.params)if(func.params[i]->type==Symbol::FUN
    #if 1 // makes .exe files smallest
       ft.putLine("static FuncCall FC2[]=");
       ft.putLine("{"); ft.depth++;
-      FREPA(funcs)
-      {
-         Bool shader_compile=(Contains(funcs[i], "EE.ShaderCompile", true, true) || Contains(funcs[i], "EE.ShaderCompileTry", true, true));
-         if(shader_compile){ft.depth--; ft.putLine("#if !MAC // disable this on Mac, because compiling shaders on Mac requires CG framework installed and thus all EE based applications would not run without CG"); ft.depth++;}
-         ft.putLine(S+"{\""+funcs[i]+"\", "+SymbolToCppName(funcs[i])+"},");
-         if(shader_compile){ft.depth--; ft.putLine("#endif"); ft.depth++;}
-      }
+      FREPA(funcs)ft.putLine(S+"{\""+funcs[i]+"\", "+SymbolToCppName(funcs[i])+"},");
       ft.depth--; ft.putLine("};");
       ft.putLine("CopyN(FC, FC2, ElmsFC=Elms(FC2));");
    #else
       ft.putLine("int i=0;");
-      FREPA(funcs)
-      {
-         Bool shader_compile=(Contains(funcs[i], "EE.ShaderCompile", true, true) || Contains(funcs[i], "EE.ShaderCompileTry", true, true));
-         if(shader_compile){ft.depth--; ft.putLine("#if !MAC // disable this on Mac, because compiling shaders on Mac requires CG framework installed and thus all EE based applications would not run without CG"); ft.depth++;}
-         ft.putLine(S+"FC[i].name=\""+funcs[i]+"\"; FC[i].func="+SymbolToCppName(funcs[i])+"; i++;");
-         if(shader_compile){ft.depth--; ft.putLine("#endif"); ft.depth++;}
-      }
+      FREPA(funcs)ft.putLine(S+"FC[i].name=\""+funcs[i]+"\"; FC[i].func="+SymbolToCppName(funcs[i])+"; i++;");
       ft.putLine("ElmsFC=i;");
    #endif
    ft.depth--; ft.putLine("}");

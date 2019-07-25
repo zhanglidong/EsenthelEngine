@@ -5,14 +5,9 @@ BUFFER(SMAA)
    Flt SMAAThreshold=0.05;
 BUFFER_END
 
-#if !CG
-   #define SMAA_HLSL_4 1 // TODO: using SMAA_HLSL_4_1 would be faster, but it's not easy to mix SMAA 4.0 and 4.1 together in one shader, however it's only used for predication and SMAADepthEdgeDetectionPS which are not used
-   #define PointSampler  SamplerPoint
-   #define LinearSampler SamplerLinearClamp
-#else
-   #define SMAA_HLSL_3 1
-   #define mad(a, b, c) ((a)*(b) + (c))
-#endif
+#define SMAA_HLSL_4 1 // TODO: using SMAA_HLSL_4_1 would be faster, but it's not easy to mix SMAA 4.0 and 4.1 together in one shader, however it's only used for predication and SMAADepthEdgeDetectionPS which are not used
+#define PointSampler  SamplerPoint
+#define LinearSampler SamplerLinearClamp
 
 #define SMAA_AREATEX_SELECT(sample) sample.rg
 #define SMAA_RT_METRICS             RTSize // can use 'RTSize' instead of 'ImgSize' since there's no scale
@@ -121,17 +116,10 @@ Vec4 MLAAEdge_PS(NOPERSP Vec2 texcoord :TEXCOORD0,
    return edges;
 }
 
-#if !CG
 Flt MLAASearchXLeft (Vec2 texcoord) {Flt i, e=0; for(i=-1.5; i>-2*MLAA_MAX_SEARCH_STEPS; i-=2){e=TexLod(Img, texcoord+RTSize.xy*Vec2(i, 0)).g; FLATTEN if(e<0.9)break;} return Max(i+1.5-2*e, -2*MLAA_MAX_SEARCH_STEPS);}
 Flt MLAASearchXRight(Vec2 texcoord) {Flt i, e=0; for(i= 1.5; i< 2*MLAA_MAX_SEARCH_STEPS; i+=2){e=TexLod(Img, texcoord+RTSize.xy*Vec2(i, 0)).g; FLATTEN if(e<0.9)break;} return Min(i-1.5+2*e,  2*MLAA_MAX_SEARCH_STEPS);}
 Flt MLAASearchYUp   (Vec2 texcoord) {Flt i, e=0; for(i=-1.5; i>-2*MLAA_MAX_SEARCH_STEPS; i-=2){e=TexLod(Img, texcoord+RTSize.xy*Vec2(0, i)).r; FLATTEN if(e<0.9)break;} return Max(i+1.5-2*e, -2*MLAA_MAX_SEARCH_STEPS);}
 Flt MLAASearchYDown (Vec2 texcoord) {Flt i, e=0; for(i= 1.5; i< 2*MLAA_MAX_SEARCH_STEPS; i+=2){e=TexLod(Img, texcoord+RTSize.xy*Vec2(0, i)).r; FLATTEN if(e<0.9)break;} return Min(i-1.5+2*e,  2*MLAA_MAX_SEARCH_STEPS);}
-#else // CG doesn't properly compile "break"
-Flt MLAASearchXLeft (Vec2 texcoord) {Flt i, e=0; for(i=-1.5; i>-2*MLAA_MAX_SEARCH_STEPS; i-=2){e=TexLod(Img, texcoord+RTSize.xy*Vec2(i, 0)).g; if(e<0.9)return Max(i+1.5-2*e, -2*MLAA_MAX_SEARCH_STEPS);} return Max(i+1.5-2*e, -2*MLAA_MAX_SEARCH_STEPS);}
-Flt MLAASearchXRight(Vec2 texcoord) {Flt i, e=0; for(i= 1.5; i< 2*MLAA_MAX_SEARCH_STEPS; i+=2){e=TexLod(Img, texcoord+RTSize.xy*Vec2(i, 0)).g; if(e<0.9)return Min(i-1.5+2*e,  2*MLAA_MAX_SEARCH_STEPS);} return Min(i-1.5+2*e,  2*MLAA_MAX_SEARCH_STEPS);}
-Flt MLAASearchYUp   (Vec2 texcoord) {Flt i, e=0; for(i=-1.5; i>-2*MLAA_MAX_SEARCH_STEPS; i-=2){e=TexLod(Img, texcoord+RTSize.xy*Vec2(0, i)).r; if(e<0.9)return Max(i+1.5-2*e, -2*MLAA_MAX_SEARCH_STEPS);} return Max(i+1.5-2*e, -2*MLAA_MAX_SEARCH_STEPS);}
-Flt MLAASearchYDown (Vec2 texcoord) {Flt i, e=0; for(i= 1.5; i< 2*MLAA_MAX_SEARCH_STEPS; i+=2){e=TexLod(Img, texcoord+RTSize.xy*Vec2(0, i)).r; if(e<0.9)return Min(i-1.5+2*e,  2*MLAA_MAX_SEARCH_STEPS);} return Min(i-1.5+2*e,  2*MLAA_MAX_SEARCH_STEPS);}
-#endif
 
 Vec4 MLAABlend_PS(NOPERSP Vec2 texcoord:TEXCOORD):TARGET
 {

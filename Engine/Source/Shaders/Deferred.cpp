@@ -204,13 +204,8 @@ void PS
          #endif
             {
                Vec2 TexSize;
-            #if !CG
                Col.GetDimensions(TexSize.x, TexSize.y);
                Flt lod=Max(0, GetLod(I.tex, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
-            #else
-               TexSize.x=DEFAULT_TEX_SIZE;
-               Flt lod=Max(0, GetLod(I.tex, TexSize.x)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
-            #endif
              //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
 
             #if RELIEF_TAN_POS
@@ -679,7 +674,7 @@ void PS
 /******************************************************************************/
 // HULL / DOMAIN
 /******************************************************************************/
-#if !CG
+#if TESSELATE
 HSData HSConstant(InputPatch<VS_PS,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].mtrx[2], I[1].mtrx[2], I[2].mtrx[2]);}
 [maxtessfactor(5.0)]
 [domain("tri")]

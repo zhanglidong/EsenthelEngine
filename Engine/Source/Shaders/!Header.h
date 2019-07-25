@@ -15,37 +15,7 @@
 
 /******************************************************************************/
 #include "!Header CPU.h"
-/******************************************************************************/
-// TECHNIQUES
-/******************************************************************************/
 #define LINEAR_GAMMA 1
-
-// FIXME remove this
-#if !CG
-   #define TECHNIQUE(            name, vs, ps        )   technique10 name{pass p0{SetVertexShader(CompileShader(vs_4_0, vs)); SetPixelShader(CompileShader(ps_4_0, ps));}}
-   #define TECHNIQUE_4_1(        name, vs, ps        )   technique10 name{pass p0{SetVertexShader(CompileShader(vs_4_1, vs)); SetPixelShader(CompileShader(ps_4_1, ps));}}
-   #define TECHNIQUE_TESSELATION(name, vs, ps, hs, ds)   technique11 name{pass p0{SetVertexShader(CompileShader(vs_4_0, vs)); SetPixelShader(CompileShader(ps_4_0, ps)); SetHullShader(CompileShader(hs_5_0, hs)); SetDomainShader(CompileShader(ds_5_0, ds));}}
-#else
-   #define TECHNIQUE(            name, vs, ps        )   technique name{pass p0{VertexShader=compile glslv  vs; PixelShader=compile glslf  ps;}}
-   #define TECHNIQUE_4_1(        name, vs, ps        )
-   #define TECHNIQUE_TESSELATION(name, vs, ps, hs, ds)   TECHNIQUE(name, vs, ps) // tesselation not supported in CG
-#endif
-/******************************************************************************/
-// MODIFIERS
-/******************************************************************************/
-#if !CG
-   #define FLATTEN [flatten]     // will make a conditional statement flattened, use before 'if'        statement
-   #define BRANCH  [branch ]     // will make a conditional statement branched , use before 'if'        statement
-   #define LOOP    [loop   ]     // will make a loop looped                    , use before 'for while' statements
-   #define UNROLL  [unroll ]     // will make a loop unrolled                  , use before 'for while' statements
-   #define NOPERSP noperspective // will disable perspective interpolation
-#else
-   #define FLATTEN
-   #define BRANCH
-   #define LOOP
-   #define UNROLL
-   #define NOPERSP
-#endif
 /******************************************************************************/
 // DATA TYPES
 /******************************************************************************/
@@ -70,45 +40,43 @@
 
 #include "!Set LP.h"
 
-#if !CG
-   #define ImageF      Texture2D  <Flt  >
-   #define ImageH      Texture2D  <Half >
-   #define ImageH2     Texture2D  <VecH2>
-   #define Image       Texture2D  <VecH4>
-   #define Image3D     Texture3D  <VecH4>
-   #define Image3DH2   Texture3D  <VecH2>
-   #define ImageCube   TextureCube<VecH4>
-   #define ImageShadow Texture2D  <Half > // TODO: #ShaderHalf Half is used to get half output, however this internally operates on a F32 depth buffer, so do we need to use 'Flt' format?
+#define ImageF      Texture2D  <Flt  >
+#define ImageH      Texture2D  <Half >
+#define ImageH2     Texture2D  <VecH2>
+#define Image       Texture2D  <VecH4>
+#define Image3D     Texture3D  <VecH4>
+#define Image3DH2   Texture3D  <VecH2>
+#define ImageCube   TextureCube<VecH4>
+#define ImageShadow Texture2D  <Half > // TODO: #ShaderHalf Half is used to get half output, however this internally operates on a F32 depth buffer, so do we need to use 'Flt' format?
 
-   #define        SAMPLER(name, index) sampler                name : register(s##index) //        sampler
-   #define SHADOW_SAMPLER(name, index) SamplerComparisonState name : register(s##index) // shadow sampler
-#else
-   #define ImageF      sampler2D
-   #define ImageH      sampler2D
-   #define ImageH2     sampler2D
-   #define Image       sampler2D
-   #define Image3D     sampler3D
-   #define Image3DH2   sampler3D
-   #define ImageCube   samplerCUBE
-   #define ImageShadow sampler2DShadow
-#endif
+#define        SAMPLER(name, index) sampler                name : register(s##index) //        sampler
+#define SHADOW_SAMPLER(name, index) SamplerComparisonState name : register(s##index) // shadow sampler
 /******************************************************************************/
 // HELPERS
 /******************************************************************************/
-#define PIXEL                     Vec4 pixel :SV_Position               // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
-#define IS_FRONT                  Bool front :SV_IsFrontFace            // face front side
-#define CLIP_DIST             out Flt  O_clip:SV_ClipDistance           // clip plane distance
-#define CLIP_PLANE(pos)       O_clip=Dot(Vec4((pos).xyz, 1), ClipPlane) // perform user plane clipping
-#define BUFFER(name)          cbuffer name {                            // declare a constant buffer
-#define BUFFER_I(name, index) cbuffer name : register(b##index) {       // declare a constant buffer with custom buffer index
-#define BUFFER_END            }                                         // end constant buffer declaration
-#define POSITION              SV_Position
-#define DEPTH                 SV_Depth
-#define TARGET                SV_Target
-#define TARGET0               SV_Target0
-#define TARGET1               SV_Target1
-#define TARGET2               SV_Target2
-#define TARGET3               SV_Target3
+#define PIXEL               Vec4 pixel :SV_Position               // pixel coordinates, integer based in format Vec4(x, y, 0, 0) ranges from (0, 0) to (RenderTarget.w(), RenderTarget.h())
+#define IS_FRONT            Bool front :SV_IsFrontFace            // face front side
+#define CLIP_DIST       out Flt  O_clip:SV_ClipDistance           // clip plane distance
+#define CLIP_PLANE(pos) O_clip=Dot(Vec4((pos).xyz, 1), ClipPlane) // perform user plane clipping
+
+#define BUFFER(name)          cbuffer name {                      // declare a constant buffer
+#define BUFFER_I(name, index) cbuffer name : register(b##index) { // declare a constant buffer with custom buffer index
+#define BUFFER_END            }                                   // end constant buffer declaration
+
+#define POSITION SV_Position
+#define DEPTH    SV_Depth
+#define TARGET   SV_Target
+#define TARGET0  SV_Target0
+#define TARGET1  SV_Target1
+#define TARGET2  SV_Target2
+#define TARGET3  SV_Target3
+
+#define NOPERSP noperspective // will disable perspective interpolation
+
+#define FLATTEN [flatten] // will make a conditional statement flattened, use before 'if'        statement
+#define BRANCH  [branch ] // will make a conditional statement branched , use before 'if'        statement
+#define LOOP    [loop   ] // will make a loop looped                    , use before 'for while' statements
+#define UNROLL  [unroll ] // will make a loop unrolled                  , use before 'for while' statements
 /******************************************************************************/
 // FUNCTIONS
 /******************************************************************************/
@@ -182,51 +150,32 @@
 /******************************************************************************/
 // TEXTURE ACCESSING
 /******************************************************************************/
-#if !CG
-   #define Tex(    image, uv )   image.Sample(SamplerDefault, uv ) // access a 2D   texture
-   #define Tex3D(  image, uvw)   image.Sample(SamplerDefault, uvw) // access a 3D   texture
-   #define TexCube(image, uvw)   image.Sample(SamplerDefault, uvw) // access a Cube texture
+#define Tex(    image, uv )   image.Sample(SamplerDefault, uv ) // access a 2D   texture
+#define Tex3D(  image, uvw)   image.Sample(SamplerDefault, uvw) // access a 3D   texture
+#define TexCube(image, uvw)   image.Sample(SamplerDefault, uvw) // access a Cube texture
 
-   #define TexLod(    image, uv    )   image.SampleLevel(SamplerDefault, uv , 0) // access 2D   texture's 0-th MipMap (LOD level=0)
-   #define TexLodI(   image, uv , i)   image.SampleLevel(SamplerDefault, uv , i) // access 2D   texture's i-th MipMap (LOD level=i)
-   #define Tex3DLod(  image, uvw   )   image.SampleLevel(SamplerDefault, uvw, 0) // access 3D   texture's 0-th MipMap (LOD level=0)
-   #define TexCubeLod(image, uvw   )   image.SampleLevel(SamplerDefault, uvw, 0) // access Cube texture's 0-th MipMap (LOD level=0)
-
-#if !GL
-   #define TexPoint(image, uv)   image.SampleLevel(SamplerPoint, uv, 0)
-#else
-   #define TexPoint(image, uv)   image.SampleLevel(SamplerDefault, uv, 0) // use default sampler on GL because it would create a secondary "sampler2D" in GLSL and we would have to set 2 ShaderImage's
-#endif
-
-   #define TexSample(image, pixel, i)   image.Load(pixel, i) // access i-th sample of a multi-sampled texture
+#define TexLod(    image, uv    )   image.SampleLevel(SamplerDefault, uv , 0) // access 2D   texture's 0-th MipMap (LOD level=0)
+#define TexLodI(   image, uv , i)   image.SampleLevel(SamplerDefault, uv , i) // access 2D   texture's i-th MipMap (LOD level=i)
+#define Tex3DLod(  image, uvw   )   image.SampleLevel(SamplerDefault, uvw, 0) // access 3D   texture's 0-th MipMap (LOD level=0)
+#define TexCubeLod(image, uvw   )   image.SampleLevel(SamplerDefault, uvw, 0) // access Cube texture's 0-th MipMap (LOD level=0)
 
 #if !GL
-   #define TexShadow(image, uvw)   image.SampleCmpLevelZero(SamplerShadowMap, uvw.xy, uvw.z)
+#define TexPoint(image, uv)   image.SampleLevel(SamplerPoint, uv, 0)
 #else
-   #define TexShadow(image, uvw)   image.SampleCmpLevelZero(SamplerShadowMap, uvw.xy, uvw.z*0.5+0.5) // adjust OpenGL depth scale (z' = z*0.5 + 0.5)
+#define TexPoint(image, uv)   image.SampleLevel(SamplerDefault, uv, 0) // use default sampler on GL because it would create a secondary "sampler2D" in GLSL and we would have to set 2 ShaderImage's
 #endif
 
-   #define TexClamp(    image, uv )   image.Sample     (SamplerLinearClamp, uv    )
-   #define TexLodClamp( image, uv )   image.SampleLevel(SamplerLinearClamp, uv , 0)
-   #define Tex3DLodWrap(image, uvw)   image.SampleLevel(SamplerLinearWrap , uvw, 0)
+#define TexSample(image, pixel, i)   image.Load(pixel, i) // access i-th sample of a multi-sampled texture
+
+#if !GL
+#define TexShadow(image, uvw)   image.SampleCmpLevelZero(SamplerShadowMap, uvw.xy, uvw.z)
 #else
-   #define Tex(    image, uv )   tex2D  (image, uv ) // access a 2D   texture
-   #define Tex3D(  image, uvw)   tex3D  (image, uvw) // access a 3D   texture
-   #define TexCube(image, uvw)   texCUBE(image, uvw) // access a Cube texture
-
-   #define TexLod(    image, uv    )   tex2Dlod  (image, Vec4(uv, 0, 0)) // access 2D   texture's 0-th MipMap (LOD level=0)
-   #define TexLodI(   image, uv , i)   tex2Dlod  (image, Vec4(uv, 0, i)) // access 2D   texture's i-th MipMap (LOD level=i)
-   #define Tex3DLod(  image, uvw   )   tex3Dlod  (image, Vec4(uvw  , 0)) // access 3D   texture's 0-th MipMap (LOD level=0)
-   #define TexCubeLod(image, uvw   )   texCUBElod(image, Vec4(uvw  , 0)) // access Cube texture's 0-th MipMap (LOD level=0)
-
-   #define TexPoint(image, uv)   TexLod(image, uv)
-
-   #define TexClamp(    image, uv )   Tex     (image, uv )
-   #define TexLodClamp( image, uv )   TexLod  (image, uv )
-   #define Tex3DLodWrap(image, uvw)   Tex3DLod(image, uvw)
-
-   #define TexShadow(image, uvw)   tex2Dproj(image, Vec4(uvw.xy, uvw.z*0.5+0.5, 1)) // adjust OpenGL depth scale (z' = z*0.5 + 0.5), have to use 'tex2Dproj' because on Windows GL 'tex2Dlod' doesn't work here, perhaps it's a problem with CG that converts HLSL to GLSL, can't return .x because it's not Vec4 but a Flt already (since we're using 'sampler2DShadow')
+#define TexShadow(image, uvw)   image.SampleCmpLevelZero(SamplerShadowMap, uvw.xy, uvw.z*0.5+0.5) // adjust OpenGL depth scale (z' = z*0.5 + 0.5)
 #endif
+
+#define TexClamp(    image, uv )   image.Sample     (SamplerLinearClamp, uv    )
+#define TexLodClamp( image, uv )   image.SampleLevel(SamplerLinearClamp, uv , 0)
+#define Tex3DLodWrap(image, uvw)   image.SampleLevel(SamplerLinearWrap , uvw, 0)
 
 #define TexDepthRawPoint( uv)                       TexPoint (Depth  , uv).x
 #define TexDepthRawLinear(uv)                       TexLod   (Depth  , uv).x
@@ -557,7 +506,6 @@ ImageCube Cub, Cub1;
 Image3D   Vol;
 Image3DH2 VolXY, VolXY1;
 
-#if !CG
 Texture2DMS<VecH4, MS_SAMPLES> ImgMS, ImgMS1;
 Texture2DMS<Half , MS_SAMPLES> ImgXMS;
 Texture2DMS<Flt  , MS_SAMPLES> DepthMS;
@@ -569,7 +517,6 @@ Texture2DMS<Flt  , MS_SAMPLES> DepthMS;
        SAMPLER(SamplerLinearCWW  , SSI_LINEAR_CWW  );
 SHADOW_SAMPLER(SamplerShadowMap  , SSI_SHADOW      );
        SAMPLER(SamplerFont       , SSI_FONT        );
-#endif
 /******************************************************************************/
 inline Int   Min(Int   x, Int   y                  ) {return min(x, y);}
 inline Half  Min(Half  x, Half  y                  ) {return min(x, y);}
@@ -842,8 +789,8 @@ inline Vec  TransformTP(Vec  v, MatrixH3 m) {return Vec(Dot(v, m[0]), Dot(v, m[1
 inline Vec  TransformPos(Vec  pos) {return Transform (pos, ViewMatrix[0]);}
 inline VecH TransformDir(VecH dir) {return Transform3(dir, ViewMatrix[0]);}
 
-inline Vec  TransformPos(Vec  pos, uint mtrx) {return Transform (pos, ViewMatrix[mtrx]);}
-inline VecH TransformDir(VecH dir, uint mtrx) {return Transform3(dir, ViewMatrix[mtrx]);}
+inline Vec  TransformPos(Vec  pos, UInt mtrx) {return Transform (pos, ViewMatrix[mtrx]);}
+inline VecH TransformDir(VecH dir, UInt mtrx) {return Transform3(dir, ViewMatrix[mtrx]);}
 
 inline Vec  TransformPos(Vec  pos, VecI bone, Vec  weight) {return weight.x*Transform (pos, ViewMatrix[bone.x]) + weight.y*Transform (pos, ViewMatrix[bone.y]) + weight.z*Transform (pos, ViewMatrix[bone.z]);}
 inline VecH TransformDir(VecH dir, VecI bone, VecH weight) {return weight.x*Transform3(dir, ViewMatrix[bone.x]) + weight.y*Transform3(dir, ViewMatrix[bone.y]) + weight.z*Transform3(dir, ViewMatrix[bone.z]);}
@@ -867,7 +814,7 @@ inline VecH MatrixZ  (MatrixH m) {return m[2];}
 inline Vec  MatrixPos(Matrix  m) {return m[3];}
 inline VecH MatrixPos(MatrixH m) {return m[3];}
 
-inline Vec ObjWorldPos(uint mtrx=0) {return Transform(MatrixPos(ViewMatrix[mtrx]), CamMatrix);} // get the world position of the object matrix
+inline Vec ObjWorldPos(UInt mtrx=0) {return Transform(MatrixPos(ViewMatrix[mtrx]), CamMatrix);} // get the world position of the object matrix
 /******************************************************************************/
 inline Vec2 UVClamp(Vec2 screen, Bool do_clamp=true)
 {
@@ -944,9 +891,8 @@ inline Vec GetPosPoint (Vec2 tex             ) {return GetPos(TexDepthPoint (tex
 inline Vec GetPosPoint (Vec2 tex, Vec2 pos_xy) {return GetPos(TexDepthPoint (tex), pos_xy            );} // Get Viewspace Position at 'tex' screen coordinates, 'pos_xy'=known xy position at depth=1
 inline Vec GetPosLinear(Vec2 tex             ) {return GetPos(TexDepthLinear(tex), ScreenToPosXY(tex));} // Get Viewspace Position at 'tex' screen coordinates
 inline Vec GetPosLinear(Vec2 tex, Vec2 pos_xy) {return GetPos(TexDepthLinear(tex), pos_xy            );} // Get Viewspace Position at 'tex' screen coordinates, 'pos_xy'=known xy position at depth=1
-#if !CG
+
 inline Vec GetPosMS(VecI2 pixel, UInt sample, Vec2 pos_xy) {return GetPos(TexDepthMS(pixel, sample), pos_xy);}
-#endif
 /******************************************************************************/
 // sRGB
 /******************************************************************************/
@@ -996,6 +942,7 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    VecH4 _material:COLOR0      ;
    VecH4 _color   :COLOR1      ;
 #endif
+   UInt  _instance:SV_InstanceID;
 
    VecH  nrm      (                                        ) {return _nrm                                                                  ;} // vertex normal
    VecH  tan      (VecH nrm          , Bool heightmap=false) {return heightmap ? VecH(1-nrm.x*nrm.x, -nrm.y*nrm.x, -nrm.z*nrm.x) : _tan.xyz;} // vertex tangent, for heightmap: PointOnPlane(Vec(1,0,0), nrm()), Vec(1,0,0)-nrm*nrm.x, which gives a perpendicular however not Normalized !!
@@ -1030,13 +977,7 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    VecH4 colorF    () {return _color                                       ;} // linear vertex color
    VecH  colorF3   () {return _color.rgb                                   ;} // linear vertex color
 
-#if !CG
-   uint _instance:SV_InstanceID;
-   uint  instance() {return _instance;}
-#else
-   uint _instance:ATTR15; // we can't use "gl_InstanceID/SV_InstanceID", so instead use ATTR15, which will generate "attribute ivec4 ATTR15;" and "int(ATTR15.x)" which we'll replace with "gl_InstanceID"
-   uint  instance() {return _instance;}
-#endif
+   UInt instance() {return _instance;}
 };
 /******************************************************************************/
 void DrawPixel_VS(VtxInput vtx,
@@ -1276,7 +1217,6 @@ inline VecH4 GetNormal(Vec2 tex, Int quality)
 #endif
    return nrm;
 }
-#if !CG
 inline VecH4 GetNormalMS(VecI2 pixel, UInt sample, Int quality)
 {
    VecH4 nrm=TexSample(ImgMS, pixel, sample); UnpackNormal(nrm.xyz, quality);
@@ -1285,7 +1225,6 @@ inline VecH4 GetNormalMS(VecI2 pixel, UInt sample, Int quality)
 #endif
    return nrm;
 }
-#endif
 /******************************************************************************/
 // LOD INDEX
 /******************************************************************************/
@@ -1330,11 +1269,11 @@ inline VecH2 GetLeafsBend(VecH center)
                 (0.18*LeafsBendScale)*(Half)Sin(offset+BendFactor.z) + (0.24*LeafsBendScale)*(Half)Sin(offset+BendFactor.w));
 }
 /******************************************************************************/
-inline Half GrassFadeOut(uint mtrx=0)
+inline Half GrassFadeOut(UInt mtrx=0)
 {
    return Sat(Length2(MatrixPos(ViewMatrix[mtrx]))*GrassRangeMulAdd.x+GrassRangeMulAdd.y);
 }
-inline void BendGrass(Vec local_pos, in out Vec view_pos, uint mtrx=0)
+inline void BendGrass(Vec local_pos, in out Vec view_pos, UInt mtrx=0)
 {
    Flt  b   =Cube(Sat(local_pos.y));
    Vec2 bend=GetGrassBend(ObjWorldPos(mtrx))*(b*Length(MatrixY(ViewMatrix[mtrx])));
@@ -1418,15 +1357,11 @@ inline VecH GetDetail(Vec2 tex)
 /******************************************************************************/
 // FACE NORMAL HANDLING
 /******************************************************************************/
-#if !CG
-   inline void BackFlip(in out VecH dir, Bool front) {if(!front  )dir*=AllowBackFlip;}
-#else
-   inline void BackFlip(in out VecH dir, Bool front) {if(front<=0)dir*=AllowBackFlip;} // keep this as "front<=0" instead of "!front" because Mac OpenGL drivers for Intel fail to compile this correctly, resulting in reversed lighting
-#endif
+inline void BackFlip(in out VecH dir, Bool front) {if(!front)dir*=AllowBackFlip;}
 /******************************************************************************/
 // VELOCITIES
 /******************************************************************************/
-inline void UpdateVelocities_VS(in out Vec vel, VecH local_pos, Vec view_space_pos, uint mtrx=0) // TODO: #ShaderHalf
+inline void UpdateVelocities_VS(in out Vec vel, VecH local_pos, Vec view_space_pos, UInt mtrx=0) // TODO: #ShaderHalf
 {
    // on start 'vel'=object linear velocity in view space
    vel-=Transform3(Cross(local_pos      , ObjAngVel), ViewMatrix[mtrx]); // add object angular velocity in view space

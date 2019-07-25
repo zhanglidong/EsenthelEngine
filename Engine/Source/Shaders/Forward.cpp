@@ -419,7 +419,7 @@ VecH4 PS
 /******************************************************************************/
 // HULL / DOMAIN
 /******************************************************************************/
-#if !CG
+#if TESSELATE
 HSData HSConstant(InputPatch<VS_PS,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].mtrx[2], I[1].mtrx[2], I[2].mtrx[2]);}
 [maxtessfactor(5.0)]
 [domain("tri")]

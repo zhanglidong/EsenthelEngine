@@ -823,7 +823,7 @@ Str ShaderPSGL::source()
 }
 #endif
 /******************************************************************************/
-// SHADER TECHNIQUE
+// SHADER
 /******************************************************************************/
 #if DX11
 // these members must have native alignment because we use them in atomic operations for set on multiple threads
@@ -1278,7 +1278,7 @@ void DisplayState::clearShader()
 #endif
 }
 /******************************************************************************/
-// FORWARD RENDERER SHADER TECHNIQUE
+// FORWARD RENDERER SHADER
 /******************************************************************************/
 static Int Compare(C FRSTKey &a, C FRSTKey &b)
 {
@@ -1341,7 +1341,7 @@ static Bool Create(FRST &frst, C FRSTKey &key, Ptr)
 }
 ThreadSafeMap<FRSTKey, FRST> Frsts(Compare, Create);
 /******************************************************************************/
-// BLEND LIGHT SHADER TECHNIQUE
+// BLEND LIGHT SHADER
 /******************************************************************************/
 static Int Compare(C BLSTKey &a, C BLSTKey &b)
 {

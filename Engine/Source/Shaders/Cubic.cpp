@@ -96,11 +96,7 @@ VecH TexCubicFastRGB(Vec2 inTex) // ignores alpha channel
 #define CUBIC_RANGE       2
 #define CUBIC_SHARPNESS   (2/2.5)
 #define CUBIC_QUALITY     2 // 0..2, 0=3.748 fps, 1=3.242 fps, 2=3.075 fps (however when using CUBIC_SKIP_SAMPLE it's now much faster)
-#if !CG
-   #define CUBIC_SKIP_SAMPLE (1 && CUBIC_QUALITY==2) // because the actual range is 2.5 then it means we need to process 5x5 samples (and not 6x6), this optimization can work only if actual range <= 2.5, also we can enable this only for CUBIC_QUALITY==2 because only this mode operates on single 1x1 pixels and not 2x2 blocks)
-#else
-   #define CUBIC_SKIP_SAMPLE 1 // otherwise fails to compile
-#endif
+#define CUBIC_SKIP_SAMPLE (1 && CUBIC_QUALITY==2) // because the actual range is 2.5 then it means we need to process 5x5 samples (and not 6x6), this optimization can work only if actual range <= 2.5, also we can enable this only for CUBIC_QUALITY==2 because only this mode operates on single 1x1 pixels and not 2x2 blocks)
 
 inline Flt Cubic(Flt x, Flt blur, Flt sharpen)
 {

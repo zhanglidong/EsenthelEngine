@@ -29,9 +29,6 @@ VecH4 ColTransHSB_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    Vec hsb=RgbToHsb(Tex(Img, inTex).rgb);
    return VecH4(HsbToRgb(Vec(hsb.x+ColTransHsb.x, hsb.y*ColTransHsb.y, hsb.z*ColTransHsb.z)), Step);
 }
-TECHNIQUE(ColTrans   , Draw_VS(),    ColTrans_PS());
-TECHNIQUE(ColTransHB , Draw_VS(),  ColTransHB_PS());
-TECHNIQUE(ColTransHSB, Draw_VS(), ColTransHSB_PS());
 /******************************************************************************/
 struct RippleClass
 {
@@ -56,7 +53,6 @@ VecH4 Ripple_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    VecH4  c=Tex(Img, inTex); c.a*=Sat((Rppl.alpha_scale*2)*Length(inTex-Rppl.center)+Rppl.alpha_add);
    return c;
 }
-TECHNIQUE(Ripple, Draw2DTex_VS(), Ripple_PS());
 /******************************************************************************
 struct TitlesClass
 {
@@ -87,7 +83,6 @@ VecH4 Fade_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    VecH4  c=Tex(Img, inTex); c.a*=Sat(Step*3+(inTex.x+inTex.y)*0.5-1-Tex(Img1, inTex).a);
    return c;
 }
-TECHNIQUE(Fade, Draw_VS(), Fade_PS());
 /******************************************************************************/
 void Wave_VS(VtxInput vtx,
          out Vec2 outTex:TEXCOORD,
@@ -101,7 +96,6 @@ VecH4 Wave_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
    return Tex(Img, inTex);
 }
-TECHNIQUE(Wave, Wave_VS(), Wave_PS());
 /******************************************************************************/
 VecH4 RadialBlur_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
@@ -111,5 +105,4 @@ VecH4 RadialBlur_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    for(Int i=0; i<steps; i++)color+=Tex(Img, Lerp(inTex, tex, i/Flt(steps-1))).rgb;
    return VecH4(color/steps, Color[0].w);
 }
-TECHNIQUE(RadialBlur, Draw_VS(), RadialBlur_PS());
 /******************************************************************************/

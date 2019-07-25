@@ -5,15 +5,9 @@
 
 #define FxaaTex Image
 
-#if !CG
-   #define FxaaInt2 VecI2
-   #define FxaaTexTop(t, p      ) t.SampleLevel(SamplerLinearClamp, p, 0)
-   #define FxaaTexOff(t, p, o, r) t.SampleLevel(SamplerLinearClamp, p, 0, o)
-#else
-   #define FxaaInt2 Vec2
-   #define FxaaTexTop(t, p      ) TexLod(t, p)
-   #define FxaaTexOff(t, p, o, r) TexLod(t, p+o*RTSize.xy)
-#endif
+#define FxaaInt2 VecI2
+#define FxaaTexTop(t, p      ) t.SampleLevel(SamplerLinearClamp, p, 0)
+#define FxaaTexOff(t, p, o, r) t.SampleLevel(SamplerLinearClamp, p, 0, o)
 
 #define FXAA_PC               1
 #define FXAA_GREEN_AS_LUMA    1
