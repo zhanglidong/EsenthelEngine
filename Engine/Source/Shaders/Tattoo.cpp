@@ -1,15 +1,15 @@
 /******************************************************************************/
 #include "!Header.h"
-/******************************************************************************/
-#define PARAMS            \
-   uniform Bool skin     ,\
-   uniform Bool tesselate
+/******************************************************************************
+SKIN, TESSELATE
 /******************************************************************************/
 struct VS_PS
 {
    Vec2 tex:TEXCOORD0;
+#if TESSELATE
    Vec  pos:TEXCOORD1;
    VecH nrm:TEXCOORD2;
+#endif
 };
 /******************************************************************************/
 // VS
@@ -24,17 +24,25 @@ void VS
 {
    O.tex=vtx.tex();
 
-   if(!skin)
+   Vec pos;
+   if(!SKIN)
    {
-      if(tesselate)O.nrm=Normalize(TransformDir(vtx.nrm()));
-                   O.pos=          TransformPos(vtx.pos());
+   #if TESSELATE
+      O.nrm=Normalize(TransformDir(vtx.nrm()));
+   #endif
+        pos=          TransformPos(vtx.pos());
    }else
    {
       VecI bone=vtx.bone();
-      if(tesselate)O.nrm=Normalize(TransformDir(vtx.nrm(), bone, vtx.weight()));
-                   O.pos=          TransformPos(vtx.pos(), bone, vtx.weight());
+   #if TESSELATE
+      O.nrm=Normalize(TransformDir(vtx.nrm(), bone, vtx.weight()));
+   #endif
+        pos=          TransformPos(vtx.pos(), bone, vtx.weight());
    }
-   O_vtx=Project(O.pos);
+#if TESSELATE
+   O.pos=pos;
+#endif
+   O_vtx=Project(pos);
 }
 /******************************************************************************/
 // PS
@@ -49,7 +57,7 @@ VecH4 PS
 /******************************************************************************/
 // HULL / DOMAIN
 /******************************************************************************/
-#if !CG
+#if TESSELATE
 HSData HSConstant(InputPatch<VS_PS,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].nrm, I[1].nrm, I[2].nrm);}
 [maxtessfactor(5.0)]
 [domain("tri")]

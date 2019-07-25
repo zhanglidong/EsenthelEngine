@@ -5,15 +5,7 @@
 /******************************************************************************/
 inline VecH GetBoneFurVel(VecI bone, VecH weight) {return weight.x*FurVel[bone.x] + weight.y*FurVel[bone.y] + weight.z*FurVel[bone.z];}
 /******************************************************************************/
-#define BASE_PARAMS     \
-   uniform Bool skin   ,\
-   uniform Bool size   ,\
-   uniform Bool diffuse
-
-#define SOFT_PARAMS     \
-   uniform Bool skin   ,\
-   uniform Bool size   ,\
-   uniform Bool diffuse
+// SKIN, SIZE, DIFFUSE
 /******************************************************************************/
 void Base_VS
 (
@@ -23,7 +15,9 @@ void Base_VS
    out VecH outNrm:TEXCOORD1, // !! not Normalized !!
    out Vec  outPos:TEXCOORD2,
    out Vec  outVel:TEXCOORD3,
+#if SIZE
    out Half outLen:TEXCOORD4,
+#endif
    out Vec4 outVtx:POSITION ,
 
    CLIP_DIST
@@ -31,7 +25,7 @@ void Base_VS
 {
    outTex=vtx.tex();
 
-   if(!skin)
+   if(!SKIN)
    {
       if(true) // instance
       {
@@ -54,7 +48,9 @@ void Base_VS
       outNrm=TransformDir(vtx.nrm(), bone, vtx.weight());
       UpdateVelocities_VS(outVel, vtx.pos(), outPos);
    }
-   if(size)outLen=vtx.size();
+#if SIZE
+   outLen=vtx.size();
+#endif
    CLIP_PLANE(outPos); outVtx=Project(outPos);
 }
 /******************************************************************************/
@@ -64,16 +60,20 @@ void Base_PS
    VecH inNrm:TEXCOORD1,
    Vec  inPos:TEXCOORD2,
    Vec  inVel:TEXCOORD3,
+#if SIZE
    Half inLen:TEXCOORD4,
+#endif
 
-   out DeferredSolidOutput output,
-
-   BASE_PARAMS
+   out DeferredSolidOutput output
 )
 {
    Half fur=Tex(FurCol, inTex*MaterialDetScale()).r;
-   VecH col=Sat(size ? inLen*-fur+1 : fur*FACTOR+1); // inLen*-fur+step+1 : fur*FACTOR+step+1, here step=0
-   if(diffuse)col*=Tex(Col, inTex).rgb;
+#if SIZE
+   VecH col=Sat(inLen*-fur+1); // inLen*-fur+step+1 : fur*FACTOR+step+1, here step=0
+#else
+   VecH col=Sat(fur*FACTOR+1); // inLen*-fur+step+1 : fur*FACTOR+step+1, here step=0
+#endif
+   if(DIFFUSE)col*=Tex(Col, inTex).rgb;
    col=col*MaterialColor3()+Highlight.rgb;
 
    inNrm=Normalize(inNrm);
@@ -91,10 +91,10 @@ void Soft_VS
 
    out Vec2 outTex :TEXCOORD0,
    out Vec4 outPos4:TEXCOORD1,
+#if SIZE
    out Half outLen :TEXCOORD2,
-   out Vec4 outVtx :POSITION ,
-
-   SOFT_PARAMS
+#endif
+   out Vec4 outVtx :POSITION
 )
 {
    Vec  pos=vtx.pos();
@@ -102,7 +102,7 @@ void Soft_VS
 
    outTex=vtx.tex();
 
-   if(!skin)
+   if(!SKIN)
    {
       pos=TransformPos(pos); nrm+=FurVel[0]; nrm=Normalize(nrm);
       nrm=TransformDir(nrm);
@@ -114,27 +114,34 @@ void Soft_VS
       nrm =TransformDir (nrm, bone, vtx.weight());
    }
    outPos4=Project(pos); // set in 'outPos4' the original position without expansion
-   if(size)outLen=vtx.size();
-   pos+=nrm*(size ? vtx.size()*MaterialDetPower()*FurStep.x : MaterialDetPower()*FurStep.x);
+#if SIZE
+   outLen=vtx.size();
+#endif
+   pos+=nrm*(SIZE ? vtx.size()*MaterialDetPower()*FurStep.x : MaterialDetPower()*FurStep.x);
    outVtx=Project(pos);
 }
 /******************************************************************************/
 VecH4 Soft_PS
 (
    Vec2 inTex :TEXCOORD0,
-   Vec4 inPos4:TEXCOORD1,
-   Half inLen :TEXCOORD2,
-
-   SOFT_PARAMS
+   Vec4 inPos4:TEXCOORD1
+#if SIZE
+ , Half inLen :TEXCOORD2
+#endif
 ):TARGET
 {
    Half fur=Tex(FurCol, inTex*MaterialDetScale()).r;
 
    VecH4 color;
-   color.rgb=Sat(size ? inLen*-fur+FurStep.y    : fur*FACTOR+FurStep.y); // inLen*-fur+step+1 : fur*FACTOR+step+1
-   color.a  =Sat(size ? inLen*(1-FurStep.x/fur) : 1-FurStep.x/fur     ); // alternative: Sat(1-FurStep.x/(fur*inLen))
+#if SIZE
+   color.rgb=Sat(inLen*-fur+FurStep.y   ); // inLen*-fur+step+1 : fur*FACTOR+step+1
+   color.a  =Sat(inLen*(1-FurStep.x/fur)); // alternative: Sat(1-FurStep.x/(fur*inLen))
+#else
+   color.rgb=Sat(fur*FACTOR+FurStep.y); // inLen*-fur+step+1 : fur*FACTOR+step+1
+   color.a  =Sat(1-FurStep.x/fur     ); // alternative: Sat(1-FurStep.x/(fur*inLen))
+#endif
 
-   if(diffuse)color.rgb*=Tex(Col, inTex).rgb;
+   if(DIFFUSE)color.rgb*=Tex(Col, inTex).rgb;
               color.rgb =(color.rgb*MaterialColor3()+Highlight.rgb)*TexPoint(FurLight, PosToScreen(inPos4)).rgb; // we need to access the un-expanded pixel and not current pixel
    return     color;
 }

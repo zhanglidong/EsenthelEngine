@@ -169,11 +169,11 @@ void RendererClass::mode(RENDER_MODE mode)
    D.lodSetCurrentFactor();
    MaterialClear(); // must be called when changing rendering modes, because when setting materials, we may set only some of their shader values depending on mode
 }
-RendererClass& RendererClass::simplePrecision(Bool per_pixel)
+RendererClass& RendererClass::forwardPrecision(Bool per_pixel)
 {
-   if(T._simple_prec!=per_pixel)
+   if(T._forward_prec!=per_pixel)
    {
-      T._simple_prec=per_pixel;
+      T._forward_prec=per_pixel;
       D.setShader();
    }
    return T;

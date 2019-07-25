@@ -571,6 +571,10 @@ private:
           void fadeUpdate    ();
           void fadeDraw      ();
 
+#if GL
+   VecI2 glVer()C;
+#endif
+   Bool gatherAvailable      ()C;
    Bool deferredUnavailable  ()C;
    Bool deferredMSUnavailable()C;
 

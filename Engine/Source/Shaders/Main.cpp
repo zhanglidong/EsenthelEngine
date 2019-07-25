@@ -9,28 +9,25 @@
 #include "Fur.h"
 #include "Overlay.h"
 /******************************************************************************
-VecH4 Test_PS(NOPERSP Vec2 inTex:TEXCOORD,
-              uniform Int  mode):TARGET
+VecH4 Test_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
-   if(mode) // half
+#if MODE // half
+   min16float2 t=(min16float2)inTex;
+   min16float2 r=1;
+   LOOP for(Int i=0; i<256; i++)
    {
-      min16float2 t=(min16float2)inTex;
-      min16float2 r=1;
-      LOOP for(Int i=0; i<256; i++)
-      {
-         r+=t*r;
-      }
-      return VecH4((VecH2)r, mode, 1);
-   }else
-   {
-      Vec2 t=inTex;
-      Vec2 r=1;
-      LOOP for(Int i=0; i<256; i++)
-      {
-         r+=t*r;
-      }
-      return VecH4(r, mode, 1);
+      r+=t*r;
    }
+   return VecH4((VecH2)r, mode, 1);
+#else
+   Vec2 t=inTex;
+   Vec2 r=1;
+   LOOP for(Int i=0; i<256; i++)
+   {
+      r+=t*r;
+   }
+   return VecH4(r, mode, 1);
+#endif
 }
 /******************************************************************************/
 // SHADERS
@@ -384,15 +381,6 @@ Vec4 DrawDepth_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    return Vec4(rgb, 1);
 }
 
-/*void RebuildDepth_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                         out Flt  depth:DEPTH   ,
-                     uniform Bool perspective   )
-{
-   depth=DelinearizeDepth(TexLod(Depth, inTex).x, perspective); // use linear filtering because this can be used for different size RT
-}
-TECHNIQUE(RebuildDepth , Draw_VS(), RebuildDepth_PS(false));
-TECHNIQUE(RebuildDepthP, Draw_VS(), RebuildDepth_PS(true ));*/
-
 #ifdef PERSPECTIVE
 Flt LinearizeDepth0_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
@@ -407,6 +395,11 @@ Flt LinearizeDepth2_PS(NOPERSP PIXEL,
 {
    return LinearizeDepth(TexSample(DepthMS, pixel.xy, index).x, PERSPECTIVE);
 }
+/*void RebuildDepth_PS(NOPERSP Vec2 inTex:TEXCOORD,
+                         out Flt  depth:DEPTH   )
+{
+   depth=DelinearizeDepth(TexLod(Depth, inTex).x, PERSPECTIVE); // use linear filtering because this can be used for different size RT
+}*/
 #endif
 /******************************************************************************/
 // PALETTE

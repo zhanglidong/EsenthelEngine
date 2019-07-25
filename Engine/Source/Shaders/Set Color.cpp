@@ -1,16 +1,17 @@
 /******************************************************************************/
 #include "!Header.h"
-/******************************************************************************/
-#define PARAMS            \
-   uniform Bool skin     ,\
-   uniform Int  textures ,\
-   uniform Bool tesselate
+/******************************************************************************
+SKIN, TEXTURES, TESSELATE
 /******************************************************************************/
 struct VS_PS
 {
-   Vec2 tex:TEXCOORD0;
+#if TESSELATE
    Vec  pos:TEXCOORD1;
    VecH nrm:TEXCOORD2;
+#endif
+#if TEXTURES
+   Vec2 tex:TEXCOORD0;
+#endif
 };
 /******************************************************************************/
 // VS
@@ -23,19 +24,29 @@ void VS
    out Vec4  O_vtx:POSITION
 )
 {
-   if(textures)O.tex=vtx.tex();
+#if TEXTURES
+   O.tex=vtx.tex();
+#endif
 
-   if(!skin)
+   Vec pos;
+   if(!SKIN)
    {
-       if(tesselate)O.nrm=Normalize(TransformDir(vtx.nrm()));
-                    O.pos=          TransformPos(vtx.pos());
+   #if TESSELATE
+      O.nrm=Normalize(TransformDir(vtx.nrm()));
+   #endif
+        pos=          TransformPos(vtx.pos());
    }else
    {
       VecI bone=vtx.bone();
-      if(tesselate)O.nrm=Normalize(TransformDir(vtx.nrm(), bone, vtx.weight()));
-                   O.pos=          TransformPos(vtx.pos(), bone, vtx.weight());
+   #if TESSELATE
+      O.nrm=Normalize(TransformDir(vtx.nrm(), bone, vtx.weight()));
+   #endif
+        pos=          TransformPos(vtx.pos(), bone, vtx.weight());
    }
-   O_vtx=Project(O.pos);
+#if TESSELATE
+   O.pos=pos;
+#endif
+   O_vtx=Project(pos);
 }
 /******************************************************************************/
 // PS
@@ -45,15 +56,17 @@ VecH4 PS
    VS_PS I
 ):TARGET
 {
-   if(textures==1)clip(Tex(Col, I.tex).a+(MaterialAlpha()-1));else
-   if(textures==2)clip(Tex(Nrm, I.tex).a+(MaterialAlpha()-1)); // #MaterialTextureChannelOrder
+#if TEXTURES
+   if(TEXTURES==1)clip(Tex(Col, I.tex).a+(MaterialAlpha()-1));else
+   if(TEXTURES==2)clip(Tex(Nrm, I.tex).a+(MaterialAlpha()-1)); // #MaterialTextureChannelOrder
+#endif
 
    return Highlight;
 }
 /******************************************************************************/
 // HULL / DOMAIN
 /******************************************************************************/
-#if !CG
+#if TESSELATE
 HSData HSConstant(InputPatch<VS_PS,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].nrm, I[1].nrm, I[2].nrm);}
 [maxtessfactor(5.0)]
 [domain("tri")]
@@ -67,9 +80,11 @@ VS_PS HS
 )
 {
    VS_PS O;
-               O.pos=I[cp_id].pos;
-               O.nrm=I[cp_id].nrm;
-   if(textures)O.tex=I[cp_id].tex;
+   O.pos=I[cp_id].pos;
+   O.nrm=I[cp_id].nrm;
+#if TEXTURES
+   O.tex=I[cp_id].tex;
+#endif
    return O;
 }
 /******************************************************************************/
@@ -82,7 +97,9 @@ void DS
    out Vec4  O_vtx:POSITION
 )
 {
-   if(textures)O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
+#if TEXTURES
+   O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
+#endif
 
    SetDSPosNrm(O.pos, O.nrm, I[0].pos, I[1].pos, I[2].pos, I[0].nrm, I[1].nrm, I[2].nrm, B, hs_data, false, 0);
    O_vtx=Project(O.pos);

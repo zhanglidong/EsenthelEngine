@@ -111,10 +111,10 @@ void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_
    detail   =false;
    macro    =false;
    reflect  =false;
-   Bool tex =((mesh_base_flag&VTX_TEX0  )!=0);
-   normal   =((mesh_base_flag&VTX_NRM   )!=0);
-   color    =((mesh_base_flag&VTX_COLOR )!=0);
-   size     =((mesh_base_flag&VTX_SIZE  )!=0);
+   Bool tex =((mesh_base_flag&VTX_TEX0 )!=0);
+   normal   =((mesh_base_flag&VTX_NRM  )!=0);
+   color    =((mesh_base_flag&VTX_COLOR)!=0);
+   size     =((mesh_base_flag&VTX_SIZE )!=0);
 
    if(material)
    {
@@ -165,14 +165,14 @@ void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_
    skin             =((mesh_base_flag&VTX_SKIN)==VTX_SKIN && materials==1 &&                !heightmap && !grass && !leaf         );
    fx               =(grass ? FX_GRASS : leaf ? (size ? FX_LEAFS : FX_LEAF) : FX_NONE);
    light_map        =(                                       materials==1 && textures>=1 && m->light_map && !fx && ambient);
-   tess             =((lod_index<=0) && D.shaderModel()>=SM_5 && D.tesselation() && (!heightmap || D.tesselationHeightmap()) && normal && !fx);
+   tesselate        =((lod_index<=0) && D.shaderModel()>=SM_5 && D.tesselation() && (!heightmap || D.tesselationHeightmap()) && normal && !fx);
 
    if(fx){detail=macro=false; MIN(bump, SBUMP_NORMAL);} // currently shaders with effects don't support detail/macro/fancy bump
 }
 Shader* DefaultShaders::EarlyZ()C
 {
 #if SUPPORT_EARLY_Z
-   if(valid && !alpha_blend && !alpha_test && !fx && !tess)return ShaderFiles("Early Z")->get(TechNameEarlyZ(skin));
+   if(valid && !alpha_blend && !alpha_test && !fx && !tesselate)return ShaderFiles("Early Z")->get(TechNameEarlyZ(skin));
 #endif
    return null;
 }
@@ -182,10 +182,10 @@ Shader* DefaultShaders::Solid(Bool mirror)C
    {
       // !! Never return the same shader for Multi-Materials as Single-Materials !!
       if(fur)return ShaderFiles("Fur")->get(TechNameFurBase(skin, size, textures!=0));
-      Bool detail=T.detail, tess=T.tess; Byte bump=T.bump; if(mirror){detail=false; tess=false; MIN(bump, SBUMP_NORMAL);} // disable detail, tesselation and fancy bump for mirror
+      Bool detail=T.detail, tesselate=T.tesselate; Byte bump=T.bump; if(mirror){detail=false; tesselate=false; MIN(bump, SBUMP_NORMAL);} // disable detail, tesselation and fancy bump for mirror
       Str8 name;
-      if(normal      )name=TechNameDeferred(skin, materials, textures,  bump     , alpha_test, detail, macro, reflect, color, mtrl_blend, heightmap, fx, tess);else
-      if(materials==1)name=TechNameDeferred(skin, materials,        0, SBUMP_ZERO, false     , false , false, reflect, color, mtrl_blend, heightmap, fx, tess);
+      if(normal      )name=TechNameDeferred(skin, materials, textures,  bump     , alpha_test, detail, macro, reflect, color, mtrl_blend, heightmap, fx, tesselate);else
+      if(materials==1)name=TechNameDeferred(skin, materials,        0, SBUMP_ZERO, false     , false , false, reflect, color, mtrl_blend, heightmap, fx, tesselate);
       return ShaderFiles("Deferred")->get(name);
    }
    return null;
@@ -199,7 +199,7 @@ Shader* DefaultShaders::Ambient()C
 }
 Shader* DefaultShaders::Outline()C
 {
-   if(valid && !alpha_blend && !fx)return ShaderFiles("Set Color")->get(TechNameSetColor(skin, alpha_test ? textures : 0, tess));
+   if(valid && !alpha_blend && !fx)return ShaderFiles("Set Color")->get(TechNameSetColor(skin, alpha_test ? textures : 0, tesselate));
    return null;
 }
 Shader* DefaultShaders::Behind()C
@@ -214,7 +214,7 @@ Shader* DefaultShaders::Fur()C
 }
 Shader* DefaultShaders::Shadow()C
 {
-   if(valid && (!alpha_blend || alpha_test))return ShaderFiles("Position")->get(TechNamePosition(skin, alpha_test ? textures : 0, alpha_test && alpha_blend_light, fx, tess));
+   if(valid && (!alpha_blend || alpha_test))return ShaderFiles("Position")->get(TechNamePosition(skin, alpha_test ? textures : 0, alpha_test && alpha_blend_light, fx, tesselate));
    return null;
 }
 Shader* DefaultShaders::Blend()C
@@ -225,7 +225,7 @@ Shader* DefaultShaders::Blend()C
 }
 Shader* DefaultShaders::Overlay()C
 {
-   if(valid)return ShaderFiles("Tattoo")->get(TechNameTattoo(skin, tess));
+   if(valid)return ShaderFiles("Tattoo")->get(TechNameTattoo(skin, tesselate));
    return null;
 }
 Shader* DefaultShaders::get(RENDER_MODE mode)C
@@ -250,20 +250,21 @@ FRST* DefaultShaders::Frst()C
    if(valid && !alpha_blend && Renderer.anyForward())
    {
       FRSTKey key;
+      key.per_pixel =(Renderer.forwardPrecision() && bump>SBUMP_ZERO);
+      key.bump_mode =Min(bump, key.per_pixel ? SBUMP_NORMAL : SBUMP_FLAT); // forward supports only normal bump
+
       key.skin      =skin;
       key.materials =materials;
       key.textures  =textures;
-      key.bump_mode =Min(bump, SBUMP_NORMAL); // forward supports only normal bump
       key.alpha_test=alpha_test;
       key.light_map =light_map;
       key.detail    =(detail && materials==1); // forward doesn't support detail in multi-material
-      key.rflct     =reflect;
+      key.reflect   =reflect;
       key.color     =color;
       key.mtrl_blend=mtrl_blend;
       key.fx        =fx;
       key.heightmap =heightmap;
-      key.per_pixel =Renderer.forwardPrecision();
-      key.tess      =tess;
+      key.tesselate =tesselate;
       return Frsts(key);
    }
    return null;
@@ -277,14 +278,15 @@ BLST* DefaultShaders::Blst()C
    )
    {
       BLSTKey key;
-      key.per_pixel =((Renderer.type()==RT_FORWARD) ? Renderer.forwardPrecision() : true);
+      key.per_pixel =(((Renderer.type()==RT_FORWARD) ? Renderer.forwardPrecision() : true) && bump>SBUMP_ZERO);
+      key.bump_mode =Min(bump, key.per_pixel ? SBUMP_NORMAL : SBUMP_FLAT); // blend light supports only normal bump
+
       key.color     =color;
       key.textures  =textures;
-      key.bump_mode =Min(bump, SBUMP_NORMAL); // blend light supports only flat/normal bump
       key.alpha_test=alpha_test;
       key.alpha     =alpha;
       key.light_map =light_map;
-      key.rflct     =reflect;
+      key.reflect   =reflect;
       key.skin      =skin;
       key.fx        =fx;
       return Blsts(key);

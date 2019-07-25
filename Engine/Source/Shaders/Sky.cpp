@@ -13,9 +13,15 @@ inline VecH4 SkyColor(Vec inTex)
 void Sky_VS
 (
    VtxInput vtx,
-   out Vec4 outVtx:POSITION ,
-   out Vec  outPos:TEXCOORD0,
-   out Vec  outTex:TEXCOORD1
+   out Vec4 outVtx:POSITION
+
+#if !FLAT
+ , out Vec outPos:TEXCOORD0
+#endif
+
+#if TEXTURES || !PER_VERTEX
+ , out Vec outTex:TEXCOORD1
+#endif
 
 #if STARS && TEXTURES==0
  , out Vec outTexStar:TEXCOORD2
@@ -31,8 +37,14 @@ void Sky_VS
 #endif
 )
 {
-   outTex=                            vtx.pos();
-   outVtx=Project(outPos=TransformPos(vtx.pos()));
+   Vec pos=TransformPos(vtx.pos()); outVtx=Project(pos);
+#if !FLAT
+   outPos=pos;
+#endif
+
+#if TEXTURES || !PER_VERTEX
+   outTex=vtx.pos();
+#endif
 
 #if STARS && TEXTURES==0
    outTexStar=Transform(vtx.pos(), SkyStarOrn);
@@ -50,9 +62,15 @@ void Sky_VS
 /******************************************************************************/
 VecH4 Sky_PS
 (
-   PIXEL,
-   Vec inPos:TEXCOORD0,
-   Vec inTex:TEXCOORD1
+   PIXEL
+
+#if !FLAT
+ , Vec inPos:TEXCOORD0
+#endif
+
+#if TEXTURES || !PER_VERTEX
+ , Vec inTex:TEXCOORD1
+#endif
 
 #if STARS && TEXTURES==0
  , Vec inTexStar:TEXCOORD2

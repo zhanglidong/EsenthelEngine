@@ -481,7 +481,7 @@ static Bool Match(C ShaderCompiler::SubShader &output, C ShaderCompiler::SubShad
    {
     C ShaderCompiler::IO &in=input.inputs[i];
       if(!InRange(i, output.outputs) || in!=output.outputs[i])
-         if(in.name!="SV_SampleIndex")
+         if(in.name!="SV_SampleIndex" && in.name!="SV_IsFrontFace")
       {
          error.line()+=S+"Input "+in.name+in.index+" register:"+in.reg+" in \""+input.func_name+"\" doesn't match output in \""+output.func_name+'"';
          ok=false;

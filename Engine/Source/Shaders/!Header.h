@@ -842,8 +842,8 @@ inline Vec  TransformTP(Vec  v, MatrixH3 m) {return Vec(Dot(v, m[0]), Dot(v, m[1
 inline Vec  TransformPos(Vec  pos) {return Transform (pos, ViewMatrix[0]);}
 inline VecH TransformDir(VecH dir) {return Transform3(dir, ViewMatrix[0]);}
 
-inline Vec  TransformPos(Vec  pos, uniform uint mtrx) {return Transform (pos, ViewMatrix[mtrx]);}
-inline VecH TransformDir(VecH dir, uniform uint mtrx) {return Transform3(dir, ViewMatrix[mtrx]);}
+inline Vec  TransformPos(Vec  pos, uint mtrx) {return Transform (pos, ViewMatrix[mtrx]);}
+inline VecH TransformDir(VecH dir, uint mtrx) {return Transform3(dir, ViewMatrix[mtrx]);}
 
 inline Vec  TransformPos(Vec  pos, VecI bone, Vec  weight) {return weight.x*Transform (pos, ViewMatrix[bone.x]) + weight.y*Transform (pos, ViewMatrix[bone.y]) + weight.z*Transform (pos, ViewMatrix[bone.z]);}
 inline VecH TransformDir(VecH dir, VecI bone, VecH weight) {return weight.x*Transform3(dir, ViewMatrix[bone.x]) + weight.y*Transform3(dir, ViewMatrix[bone.y]) + weight.z*Transform3(dir, ViewMatrix[bone.z]);}
@@ -867,9 +867,9 @@ inline VecH MatrixZ  (MatrixH m) {return m[2];}
 inline Vec  MatrixPos(Matrix  m) {return m[3];}
 inline VecH MatrixPos(MatrixH m) {return m[3];}
 
-inline Vec ObjWorldPos(uniform uint mtrx=0) {return Transform(MatrixPos(ViewMatrix[mtrx]), CamMatrix);} // get the world position of the object matrix
+inline Vec ObjWorldPos(uint mtrx=0) {return Transform(MatrixPos(ViewMatrix[mtrx]), CamMatrix);} // get the world position of the object matrix
 /******************************************************************************/
-inline Vec2 UVClamp(Vec2 screen, uniform Bool do_clamp=true)
+inline Vec2 UVClamp(Vec2 screen, Bool do_clamp=true)
 {
    return do_clamp ? Mid(screen, ImgClamp.xy, ImgClamp.zw) : screen;
 }
@@ -900,7 +900,7 @@ inline Vec2 PixelToScreen(Vec4 pixel) // faster and more accurate than 'PosToScr
 /******************************************************************************/
 // DEPTH
 /******************************************************************************/
-inline Flt DelinearizeDepth(Flt z, uniform Bool perspective=true)
+inline Flt DelinearizeDepth(Flt z, Bool perspective=true)
 {
    Flt a=ProjMatrix[2][2], // ProjMatrix.z  .z
        b=ProjMatrix[3][2], // ProjMatrix.pos.z
@@ -912,7 +912,7 @@ inline Flt DelinearizeDepth(Flt z, uniform Bool perspective=true)
 
    return w;
 }
-inline Flt LinearizeDepth(Flt w, uniform Bool perspective=true)
+inline Flt LinearizeDepth(Flt w, Bool perspective=true)
 {
    Flt a=ProjMatrix[2][2], // ProjMatrix.z  .z
        b=ProjMatrix[3][2]; // ProjMatrix.pos.z
@@ -997,23 +997,23 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    VecH4 _color   :COLOR1      ;
 #endif
 
-   VecH  nrm      (                                                ) {return _nrm                                                                  ;} // vertex normal
-   VecH  tan      (VecH nrm          , uniform Bool heightmap=false) {return heightmap ? VecH(1-nrm.x*nrm.x, -nrm.y*nrm.x, -nrm.z*nrm.x) : _tan.xyz;} // vertex tangent, for heightmap: PointOnPlane(Vec(1,0,0), nrm()), Vec(1,0,0)-nrm*nrm.x, which gives a perpendicular however not Normalized !!
-   VecH  bin      (VecH nrm, VecH tan, uniform Bool heightmap=false) {return heightmap ? Cross(nrm, tan) : Cross(nrm, tan)*_tan.w                  ;} // binormal from transformed normal and tangent
-   Vec2  pos2     (                                                ) {return _pos.xy                                                               ;} // vertex position
-   Vec   pos      (                                                ) {return _pos.xyz                                                              ;} // vertex position
-   Vec4  pos4     (                                                ) {return _pos                                                                  ;} // vertex position in Vec4(pos.xyz, 1) format
-   Flt   posZ     (                                                ) {return _pos.z                                                                ;} // vertex position Z
-   VecH  hlp      (                                                ) {return _hlp                                                                  ;} // helper position
-   VecH  tan      (                                                ) {return _tan.xyz                                                              ;} // helper position
-   Vec2  tex      (                    uniform Bool heightmap=false) {return heightmap ? _pos.xz*Vec2(VtxHeightmap, -VtxHeightmap) : _tex          ;} // tex coords 0
-   Vec2  tex1     (                                                ) {return                                                         _tex1         ;} // tex coords 1
-   Vec2  tex2     (                                                ) {return                                                         _tex2         ;} // tex coords 2
-   VecI  bone     (                                                ) {return  VtxSkinning ? _bone.xyz : VecI(0, 0, 0)                              ;} // bone matrix indexes
-   VecH  weight   (                                                ) {return _weight.xyz                                                           ;} // bone matrix weights
-   VecH4 material (                                                ) {return _material                                                             ;} // material    weights
-   VecH  material3(                                                ) {return _material.xyz                                                         ;} // material    weights
-   Half  size     (                                                ) {return _size                                                                 ;} // point size
+   VecH  nrm      (                                        ) {return _nrm                                                                  ;} // vertex normal
+   VecH  tan      (VecH nrm          , Bool heightmap=false) {return heightmap ? VecH(1-nrm.x*nrm.x, -nrm.y*nrm.x, -nrm.z*nrm.x) : _tan.xyz;} // vertex tangent, for heightmap: PointOnPlane(Vec(1,0,0), nrm()), Vec(1,0,0)-nrm*nrm.x, which gives a perpendicular however not Normalized !!
+   VecH  bin      (VecH nrm, VecH tan, Bool heightmap=false) {return heightmap ? Cross(nrm, tan) : Cross(nrm, tan)*_tan.w                  ;} // binormal from transformed normal and tangent
+   Vec2  pos2     (                                        ) {return _pos.xy                                                               ;} // vertex position
+   Vec   pos      (                                        ) {return _pos.xyz                                                              ;} // vertex position
+   Vec4  pos4     (                                        ) {return _pos                                                                  ;} // vertex position in Vec4(pos.xyz, 1) format
+   Flt   posZ     (                                        ) {return _pos.z                                                                ;} // vertex position Z
+   VecH  hlp      (                                        ) {return _hlp                                                                  ;} // helper position
+   VecH  tan      (                                        ) {return _tan.xyz                                                              ;} // helper position
+   Vec2  tex      (                    Bool heightmap=false) {return heightmap ? _pos.xz*Vec2(VtxHeightmap, -VtxHeightmap) : _tex          ;} // tex coords 0
+   Vec2  tex1     (                                        ) {return                                                         _tex1         ;} // tex coords 1
+   Vec2  tex2     (                                        ) {return                                                         _tex2         ;} // tex coords 2
+   VecI  bone     (                                        ) {return  VtxSkinning ? _bone.xyz : VecI(0, 0, 0)                              ;} // bone matrix indexes
+   VecH  weight   (                                        ) {return _weight.xyz                                                           ;} // bone matrix weights
+   VecH4 material (                                        ) {return _material                                                             ;} // material    weights
+   VecH  material3(                                        ) {return _material.xyz                                                         ;} // material    weights
+   Half  size     (                                        ) {return _size                                                                 ;} // point size
 
    // need to apply gamma correction in the shader because R8G8B8A8_SRGB can't be specified in vertex buffer
 #if LINEAR_GAMMA
@@ -1086,7 +1086,7 @@ inline Vec2  PointOnPlaneRay(Vec2  p, Vec2  plane_pos, Vec2  plane_normal, Vec2 
 inline VecH  PointOnPlaneRay(VecH  p, VecH  plane_pos, VecH  plane_normal, VecH  ray) {return p-ray*DistPointPlaneRay(p, plane_pos, plane_normal, ray);}
 inline Vec   PointOnPlaneRay(Vec   p, Vec   plane_pos, Vec   plane_normal, Vec   ray) {return p-ray*DistPointPlaneRay(p, plane_pos, plane_normal, ray);}
 /******************************************************************************/
-inline Matrix3 Inverse(Matrix3 m, uniform Bool normalized)
+inline Matrix3 Inverse(Matrix3 m, Bool normalized)
 {
    m=transpose(m);
    if(!normalized)
@@ -1195,7 +1195,7 @@ inline Half DitherValue(Vec2 pixel)
    VecI2 xy=Trunc(pixel)%8; return OrderDither[xy.x + xy.y*8]; // -1..1 / 256 range
 #endif
 }
-inline void ApplyDither(inout VecH col, Vec2 pixel, uniform Bool linear_gamma=LINEAR_GAMMA)
+inline void ApplyDither(inout VecH col, Vec2 pixel, Bool linear_gamma=LINEAR_GAMMA)
 {
    if(linear_gamma)col=LinearToSRGBFast(col);
    col+=DitherValue(pixel)*(1.5/256);
@@ -1245,7 +1245,7 @@ inline Vec HsbToRgb(Vec hsb)
 /******************************************************************************/
 // ALPHA TEST
 /******************************************************************************/
-inline void AlphaTest(Half alpha, Half fade_out, uniform Int fx)
+inline void AlphaTest(Half alpha, Half fade_out, Int fx)
 {
    if(fx==FX_GRASS)alpha-=fade_out;
    clip(alpha+MaterialAlpha()-1);
@@ -1253,7 +1253,7 @@ inline void AlphaTest(Half alpha, Half fade_out, uniform Int fx)
 /******************************************************************************/
 // NORMAL
 /******************************************************************************/
-inline void UnpackNormal(in out VecH nrm, uniform Int quality)
+inline void UnpackNormal(in out VecH nrm, Int quality)
 {
 #if !SIGNED_NRM_RT
    nrm=nrm*2-1;
@@ -1268,7 +1268,7 @@ inline void UnpackNormal(in out VecH nrm, uniform Int quality)
                     {nrm.z=Lerp((nrm.z>=0) ? z : -z, nrm.z, Length(nrm.xy)); nrm=Normalize(nrm);} // error 5425
    }
 }
-inline VecH4 GetNormal(Vec2 tex, uniform Int quality)
+inline VecH4 GetNormal(Vec2 tex, Int quality)
 {
    VecH4 nrm=TexPoint(Img, tex); UnpackNormal(nrm.xyz, quality);
 #if SIGNED_NRM_RT && FULL_PRECISION_SPEC
@@ -1277,7 +1277,7 @@ inline VecH4 GetNormal(Vec2 tex, uniform Int quality)
    return nrm;
 }
 #if !CG
-inline VecH4 GetNormalMS(VecI2 pixel, UInt sample, uniform Int quality)
+inline VecH4 GetNormalMS(VecI2 pixel, UInt sample, Int quality)
 {
    VecH4 nrm=TexSample(ImgMS, pixel, sample); UnpackNormal(nrm.xyz, quality);
 #if SIGNED_NRM_RT && FULL_PRECISION_SPEC
@@ -1330,11 +1330,11 @@ inline VecH2 GetLeafsBend(VecH center)
                 (0.18*LeafsBendScale)*(Half)Sin(offset+BendFactor.z) + (0.24*LeafsBendScale)*(Half)Sin(offset+BendFactor.w));
 }
 /******************************************************************************/
-inline Half GrassFadeOut(uniform uint mtrx=0)
+inline Half GrassFadeOut(uint mtrx=0)
 {
    return Sat(Length2(MatrixPos(ViewMatrix[mtrx]))*GrassRangeMulAdd.x+GrassRangeMulAdd.y);
 }
-inline void BendGrass(Vec local_pos, in out Vec view_pos, uniform uint mtrx=0)
+inline void BendGrass(Vec local_pos, in out Vec view_pos, uint mtrx=0)
 {
    Flt  b   =Cube(Sat(local_pos.y));
    Vec2 bend=GetGrassBend(ObjWorldPos(mtrx))*(b*Length(MatrixY(ViewMatrix[mtrx])));
@@ -1426,7 +1426,7 @@ inline VecH GetDetail(Vec2 tex)
 /******************************************************************************/
 // VELOCITIES
 /******************************************************************************/
-inline void UpdateVelocities_VS(in out Vec vel, VecH local_pos, Vec view_space_pos, uniform uint mtrx=0) // TODO: #ShaderHalf
+inline void UpdateVelocities_VS(in out Vec vel, VecH local_pos, Vec view_space_pos, uint mtrx=0) // TODO: #ShaderHalf
 {
    // on start 'vel'=object linear velocity in view space
    vel-=Transform3(Cross(local_pos      , ObjAngVel), ViewMatrix[mtrx]); // add object angular velocity in view space
@@ -1559,7 +1559,7 @@ ImageH      ShdMap1;
 
 inline Half ShadowFinal(Half shadow) {return shadow*ShdOpacity.x+ShdOpacity.y;}
 
-inline Vec ShadowDirTransform(Vec pos, uniform Int num)
+inline Vec ShadowDirTransform(Vec pos, Int num)
 {  // using "Int/UInt matrix_index" and "matrix_index=.."  and "ShdMatrix4[matrix_index]" was slower 
    // using "Matrix4  m"            and "m=ShdMatrix4[..]" and "p=Transform(pos, m)"      had the same performance as version below
    // imitate binary search
@@ -1614,7 +1614,7 @@ inline Vec2 ShadowJitter(Vec2 pixel)
    return offset*ShdJitter.xy+ShdJitter.zw;
 }
 /******************************************************************************/
-inline Half CompareDepth(Vec pos, Vec2 jitter_value, uniform Bool jitter)
+inline Half CompareDepth(Vec pos, Vec2 jitter_value, Bool jitter)
 {
    if(jitter)pos.xy+=jitter_value;
    return TexShadow(ShdMap, pos);
@@ -1624,19 +1624,19 @@ inline Half CompareDepth2(Vec pos) // 'ShdMap1' is not a Shadow Map Depth Buffer
    return Tex(ShdMap1, pos.xy).x;
 }
 /******************************************************************************/
-inline Half ShadowDirValue(Vec pos, Vec2 jitter_value, uniform Bool jitter, uniform Int num, uniform Bool cloud)
+inline Half ShadowDirValue(Vec pos, Vec2 jitter_value, Bool jitter, Int num, Bool cloud)
 {
    Half fade=Sat(Length2(pos)*ShdRangeMulAdd.x+ShdRangeMulAdd.y);
    Vec  p=ShadowDirTransform(pos, num);
    if(cloud)return fade+CompareDepth(p, jitter_value, jitter)*CompareDepth2(p);
    else     return fade+CompareDepth(p, jitter_value, jitter);
 }
-inline Half ShadowPointValue(Vec pos, Vec2 jitter_value, uniform Bool jitter)
+inline Half ShadowPointValue(Vec pos, Vec2 jitter_value, Bool jitter)
 {
    Vec p=ShadowPointTransform(pos);
    return CompareDepth(p, jitter_value, jitter);
 }
-inline Half ShadowConeValue(Vec pos, Vec2 jitter_value, uniform Bool jitter)
+inline Half ShadowConeValue(Vec pos, Vec2 jitter_value, Bool jitter)
 {
    Vec4 p=Transform(pos, ShdMatrix4[0]); p.xyz/=p.w;
    return CompareDepth(p.xyz, jitter_value, jitter);
@@ -1693,7 +1693,7 @@ inline Vec2 ToScreen(Vec pos)
 {
    return pos.xy/Max(0.1, pos.z);
 }
-inline HSData GetHSData(Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nrm2, uniform Bool shadow_map=false)
+inline HSData GetHSData(Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nrm2, Bool shadow_map=false)
 {
    HSData O;
 
@@ -1743,7 +1743,7 @@ inline HSData GetHSData(Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nr
    return O;
 }
 /******************************************************************************/
-inline void SetDSPosNrm(out Vec pos, out Vec nrm, Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nrm2, Vec B, HSData hs_data, uniform Bool clamp_tess, Flt clamp_tess_factor)
+inline void SetDSPosNrm(out Vec pos, out Vec nrm, Vec pos0, Vec pos1, Vec pos2, Vec nrm0, Vec nrm1, Vec nrm2, Vec B, HSData hs_data, Bool clamp_tess, Flt clamp_tess_factor)
 {
    // TODO: we could encode 'clamp_tess_factor' in vtx.nrm.w
 

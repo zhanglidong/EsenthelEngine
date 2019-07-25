@@ -517,6 +517,29 @@ Flt Display::browserZoom()C
    return 1;
 #endif
 }
+#if GL
+VecI2 Display::glVer()C
+{
+   if(created())
+   {
+      int major=0, minor=0;
+      glGetIntegerv(GL_MAJOR_VERSION, &major);
+      glGetIntegerv(GL_MINOR_VERSION, &minor);
+      return VecI2(major, minor);
+   }
+   return 0;
+}
+#endif
+Bool Display::gatherAvailable()C
+{
+#if DX11
+   return shaderModel()>=SM_4_1;
+#elif GL_ES
+   return Compare(glVer(), VecI2(3, 1))>=0; // 3.1+ GLES required
+#elif GL
+   return Compare(glVer(), VecI2(4, 0))>=0; // 4.0  GL   required
+#endif
+}
 Bool Display::deferredUnavailable  ()C {return created() &&       _max_rt<2     ;} // deferred requires at least 2 MRT's (#0 Color, #1 Nrm, #2 Vel optional)
 Bool Display::deferredMSUnavailable()C {return created() && shaderModel()<SM_4_1;} // only Shader Model 4.1 (DX 10.1) and above support multi-sampled RT's
 /******************************************************************************/

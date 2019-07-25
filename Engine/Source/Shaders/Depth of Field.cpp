@@ -1,5 +1,14 @@
 /******************************************************************************/
 #include "!Header.h"
+#ifndef RANGE
+#define RANGE 0
+#endif
+#ifndef HALF_RES
+#define HALF_RES 0
+#endif
+#ifndef CLAMP
+#define CLAMP 0
+#endif
 /******************************************************************************
 TODO: add slow but high quality circular bokeh DoF
    -create small / quarter res (or maybe even smaller) RT containing info about biggest blur radius
@@ -25,44 +34,41 @@ inline Flt DofFocus    () {return DofParams.y;}
 inline Flt DofMul      () {return DofParams.z;}
 inline Flt DofAdd      () {return DofParams.w;}
 /******************************************************************************/
-inline Flt Blur(Flt z, uniform Bool realistic)
+inline Flt Blur(Flt z)
 {
-   if(realistic)
-   {
+#if REALISTIC
    #if 0 // F makes almost no difference
       Flt F=0.075; return DofIntensity() /* * F */ * (z - DofFocus()) / (z * (DofFocus() - F));
    #else
       return DofIntensity()*(z-DofFocus())/(z*DofFocus()); // 'DofRange' ignored
    #endif
-   }else return DofIntensity()*Mid(z*DofMul() + DofAdd(), -1, 1); // (z-DofFocus())/DofRange, z/DofRange - DofFocus()/DofRange
+#else
+   return DofIntensity()*Mid(z*DofMul() + DofAdd(), -1, 1); // (z-DofFocus())/DofRange, z/DofRange - DofFocus()/DofRange
+#endif
 }
 /******************************************************************************/
-VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
-               uniform Bool do_clamp      ,
-               uniform Bool realistic     ,
-               uniform Bool half_res      ,
-               uniform Bool gather        ):TARGET
+// CLAMP, REALISTIC, HALF_RES, GATHER
+VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
    VecH4 ret; // RGB=col, W=Blur
    Flt   depth;
-   if(half_res)
+   if(HALF_RES)
    {
-      ret.rgb=TexLod(Img, UVClamp(inTex, do_clamp)).rgb; // use linear filtering because we're downsampling
-   #if !GL // gather not available on GL ES 3.0 (starting from 3.1)
-      if(gather)depth=DEPTH_MIN(Depth.Gather(SamplerPoint, inTex));else
+      ret.rgb=TexLod(Img, UVClamp(inTex, CLAMP)).rgb; // use linear filtering because we're downsampling
+   #if GATHER // gather available since SM_4_1, GL 4.0, GL ES 3.1
+      depth=DEPTH_MIN(Depth.Gather(SamplerPoint, inTex));
+   #else
+      Vec2 tex_min=inTex-ImgSize.xy*0.5,
+           tex_max=inTex+ImgSize.xy*0.5;
+      depth=DEPTH_MIN(TexDepthRawPoint(Vec2(tex_min.x, tex_min.y)),
+                      TexDepthRawPoint(Vec2(tex_max.x, tex_min.y)),
+                      TexDepthRawPoint(Vec2(tex_min.x, tex_max.y)),
+                      TexDepthRawPoint(Vec2(tex_max.x, tex_max.y)));
    #endif
-      {
-         Vec2 tex_min=inTex-ImgSize.xy*0.5,
-              tex_max=inTex+ImgSize.xy*0.5;
-         depth=DEPTH_MIN(TexDepthRawPoint(Vec2(tex_min.x, tex_min.y)),
-                         TexDepthRawPoint(Vec2(tex_max.x, tex_min.y)),
-                         TexDepthRawPoint(Vec2(tex_min.x, tex_max.y)),
-                         TexDepthRawPoint(Vec2(tex_max.x, tex_max.y)));
-      }
    }else // quarter
    {
-      Vec2 tex_min=UVClamp(inTex-ImgSize.xy, do_clamp),
-           tex_max=UVClamp(inTex+ImgSize.xy, do_clamp);
+      Vec2 tex_min=UVClamp(inTex-ImgSize.xy, CLAMP),
+           tex_max=UVClamp(inTex+ImgSize.xy, CLAMP);
       Vec2 t00=Vec2(tex_min.x, tex_min.y),
            t10=Vec2(tex_max.x, tex_min.y),
            t01=Vec2(tex_min.x, tex_max.y),
@@ -72,21 +78,20 @@ VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
               +TexLod(Img, t10).rgb
               +TexLod(Img, t01).rgb
               +TexLod(Img, t11).rgb)/4;
-   #if !GL // gather not available on GL ES 3.0 (starting from 3.1)
-      if(gather)depth=DEPTH_MIN(DEPTH_MIN(Depth.Gather(SamplerPoint, t00)),
-                                DEPTH_MIN(Depth.Gather(SamplerPoint, t10)),
-                                DEPTH_MIN(Depth.Gather(SamplerPoint, t01)),
-                                DEPTH_MIN(Depth.Gather(SamplerPoint, t11)));else
+   #if GATHER // gather available since SM_4_1, GL 4.0, GL ES 3.1
+      depth=DEPTH_MIN(DEPTH_MIN(Depth.Gather(SamplerPoint, t00)),
+                      DEPTH_MIN(Depth.Gather(SamplerPoint, t10)),
+                      DEPTH_MIN(Depth.Gather(SamplerPoint, t01)),
+                      DEPTH_MIN(Depth.Gather(SamplerPoint, t11)));
+   #else
+      // this is approximation because we would have to take 16 samples
+      depth=DEPTH_MIN(TexDepthRawPoint(t00),
+                      TexDepthRawPoint(t10),
+                      TexDepthRawPoint(t01),
+                      TexDepthRawPoint(t11));
    #endif
-      {
-         // this is approximation because we would have to take 16 samples
-         depth=DEPTH_MIN(TexDepthRawPoint(t00),
-                         TexDepthRawPoint(t10),
-                         TexDepthRawPoint(t01),
-                         TexDepthRawPoint(t11));
-      }
    }
-   ret.w=Blur(LinearizeDepth(depth), realistic)*0.5+0.5;
+   ret.w=Blur(LinearizeDepth(depth))*0.5+0.5;
    return ret;
 }
 /******************************************************************************/
@@ -94,11 +99,7 @@ inline Flt Center(Flt center_blur_u) // center_blur_u=0..1 (0.5=focus) here we c
 {
    return center_blur_u*2-1;
 }
-inline Flt Weight(Flt center_blur, Flt test_blur_u, 
-   #if !CG // have to forget about uniform because it will fail on Mac
-      uniform
-   #endif
-         Int dist, uniform Int range) // center_blur=-1..1 (0=focus), center_blur_u=0..1 (0.5=focus), test_blur_u=0..1 (0.5=focus)
+inline Flt Weight(Flt center_blur, Flt test_blur_u, Int dist, Int range) // center_blur=-1..1 (0=focus), center_blur_u=0..1 (0.5=focus), test_blur_u=0..1 (0.5=focus)
 {
    Flt f=dist/Flt(range+1),
      //center_blur=center_blur_u*2-1, // -1..1, we've already done this in 'Center'
@@ -122,14 +123,14 @@ inline Flt FinalBlur(Flt blur, Flt blur_smooth) // 'blur'=-Inf .. Inf, 'blur_smo
  //blur_smooth=(FINAL_MODE ? Sat(blur_smooth*-2+1) : Abs(blur_smooth*2-1)); already done in 'DofBlurY_PS'
    return Sat(Max(Abs(blur), blur_smooth)*FINAL_SCALE);
 }
-inline Flt WeightSum(uniform Int range) {return range+1;} // Sum of all weights for all "-range..range" steps, calculated using "Flt weight=0; for(Int dist=-range; dist<=range; dist++)weight+=BlendSmoothCube(dist/Flt(range+1));"
+inline Flt WeightSum(Int range) {return range+1;} // Sum of all weights for all "-range..range" steps, calculated using "Flt weight=0; for(Int dist=-range; dist<=range; dist++)weight+=BlendSmoothCube(dist/Flt(range+1));"
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
 // Use HighPrec because we operate on lot of samples
+// RANGE
 
 #define SCALE 0.5 // at the end we need 0 .. 0.5 range, and since we start with 0..1 we need to scale by "0.5"
-VecH4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                  uniform Int  range         ):TARGET
+VecH4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {  //  INPUT: Img: RGB         , Blur
    // OUTPUT:      RGB BlurredX, BlurSmooth
 
@@ -139,18 +140,18 @@ VecH4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
         blur_abs=0;
    Vec4 color =0;
    Vec2 t; t.y=inTex.y;
-   UNROLL for(Int i=-range; i<=range; i++)if(i)
+   UNROLL for(Int i=-RANGE; i<=RANGE; i++)if(i)
    {
       t.x=inTex.x+RTSize.x*i;
       Vec4 c=TexPoint(Img, t);
       Flt  test_blur=c.a,
-           w=Weight(center_blur, test_blur, Abs(i), range);
+           w=Weight(center_blur, test_blur, Abs(i), RANGE);
       weight  +=w;
       color   +=w*    c;
       blur_abs+=w*Abs(c.a * (2*SCALE) - (1*SCALE)); // SCALE here so we don't have to do it later
    }
    Flt b=Abs(center_blur),
-       w=Lerp(WeightSum(range)-weight, 1, b);
+       w=Lerp(WeightSum(RANGE)-weight, 1, b);
    color   +=w*    center;
    blur_abs+=w*Abs(center.a * (2*SCALE) - (1*SCALE)); // SCALE here so we don't have to do it later
    weight  +=w;
@@ -161,8 +162,7 @@ VecH4 DofBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD,
 }
 #undef  SCALE
 #define SCALE 1.0 // at the end we need 0..1 range, and since we start with 0..1 we need to scale by "1"
-VecH4 DofBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
-                  uniform Int  range         ):TARGET
+VecH4 DofBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {  //  INPUT: Img: RGB BlurredX , BlurSmooth
    // OUTPUT:      RGB BlurredXY, BlurSmooth
 
@@ -172,18 +172,18 @@ VecH4 DofBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
         blur_abs=0;
    Vec4 color =0;
    Vec2 t; t.x=inTex.x;
-   UNROLL for(Int i=-range; i<=range; i++)if(i)
+   UNROLL for(Int i=-RANGE; i<=RANGE; i++)if(i)
    {
       t.y=inTex.y+RTSize.y*i;
       Vec4 c=TexPoint(Img, t);
       Flt  test_blur=c.a,
-           w=Weight(center_blur, test_blur, Abs(i), range);
+           w=Weight(center_blur, test_blur, Abs(i), RANGE);
       weight  +=w;
       color   +=w*    c;
       blur_abs+=w*Abs(c.a * (2*SCALE) - (1*SCALE)); // SCALE here so we don't have to do it later
    }
    Flt b=Abs(center_blur),
-       w=Lerp(WeightSum(range)-weight, 1, b);
+       w=Lerp(WeightSum(RANGE)-weight, 1, b);
    color   +=w*    center;
    blur_abs+=w*Abs(center.a * (2*SCALE) - (1*SCALE)); // SCALE here so we don't have to do it later
    weight  +=w;
@@ -193,13 +193,12 @@ VecH4 DofBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD,
    return VecH4(color.rgb/weight, FINAL_MODE ? ((color.a>=0.5*weight) ? 0 : blur_abs) : blur_abs);
 }
 /******************************************************************************/
+// DITHER, REALISTIC
 VecH4 Dof_PS(NOPERSP Vec2 inTex:TEXCOORD,
-             NOPERSP PIXEL              ,
-             uniform Bool dither        ,
-             uniform Bool realistic     ):TARGET
+             NOPERSP PIXEL              ):TARGET
 {
    Flt z=TexDepthPoint(inTex),
-       b=Blur(z, realistic);
+       b=Blur(z);
 #if SHOW_BLUR
    b=1-Abs(b); return Vec4(b, b, b, 1);
 #endif
@@ -212,44 +211,9 @@ VecH4 Dof_PS(NOPERSP Vec2 inTex:TEXCOORD,
         col.rgb=Lerp(focus.rgb, blur.rgb, FinalBlur(b, blur.a));
      #endif
         col.a=1; // force full alpha so back buffer effects can work ok
-   if(dither)ApplyDither(col.rgb, pixel.xy);
+#if DITHER
+   ApplyDither(col.rgb, pixel.xy);
+#endif
    return col;
 }
-/******************************************************************************/
-// TECHNIQUES
-/******************************************************************************/
-TECHNIQUE    (DofDS    , Draw_VS(), DofDS_PS(false, false, false, false));
-TECHNIQUE    (DofDSC   , Draw_VS(), DofDS_PS(true , false, false, false));
-TECHNIQUE    (DofDSR   , Draw_VS(), DofDS_PS(false, true , false, false));
-TECHNIQUE    (DofDSCR  , Draw_VS(), DofDS_PS(true , true , false, false));
-TECHNIQUE    (DofDSH   , Draw_VS(), DofDS_PS(false, false, true , false));
-TECHNIQUE    (DofDSCH  , Draw_VS(), DofDS_PS(true , false, true , false));
-TECHNIQUE    (DofDSRH  , Draw_VS(), DofDS_PS(false, true , true , false));
-TECHNIQUE    (DofDSCRH , Draw_VS(), DofDS_PS(true , true , true , false));
-TECHNIQUE_4_1(DofDSG   , Draw_VS(), DofDS_PS(false, false, false, true ));
-TECHNIQUE_4_1(DofDSCG  , Draw_VS(), DofDS_PS(true , false, false, true ));
-TECHNIQUE_4_1(DofDSRG  , Draw_VS(), DofDS_PS(false, true , false, true ));
-TECHNIQUE_4_1(DofDSCRG , Draw_VS(), DofDS_PS(true , true , false, true ));
-TECHNIQUE_4_1(DofDSHG  , Draw_VS(), DofDS_PS(false, false, true , true ));
-TECHNIQUE_4_1(DofDSCHG , Draw_VS(), DofDS_PS(true , false, true , true ));
-TECHNIQUE_4_1(DofDSRHG , Draw_VS(), DofDS_PS(false, true , true , true ));
-TECHNIQUE_4_1(DofDSCRHG, Draw_VS(), DofDS_PS(true , true , true , true ));
-
-#define DOF_BLUR(range)   TECHNIQUE(DofBlurX##range, Draw_VS(), DofBlurX_PS(range));   TECHNIQUE(DofBlurY##range, Draw_VS(), DofBlurY_PS(range));
-DOF_BLUR(2)
-DOF_BLUR(3)
-DOF_BLUR(4)
-DOF_BLUR(5)
-DOF_BLUR(6)
-DOF_BLUR(7)
-DOF_BLUR(8)
-DOF_BLUR(9)
-DOF_BLUR(10)
-DOF_BLUR(11)
-DOF_BLUR(12)
-
-TECHNIQUE(Dof  , Draw_VS(), Dof_PS(false, false));
-TECHNIQUE(DofD , Draw_VS(), Dof_PS(true , false));
-TECHNIQUE(DofR , Draw_VS(), Dof_PS(false, true ));
-TECHNIQUE(DofDR, Draw_VS(), Dof_PS(true , true ));
 /******************************************************************************/

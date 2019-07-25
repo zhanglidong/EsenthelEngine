@@ -8,15 +8,19 @@ void VS
 (
    VtxInput vtx,
 
+#if TEXTURES
    out Vec2  outTex  :TEXCOORD0,
+#endif
    out VecH  outRfl  :TEXCOORD1,
    out VecH4 outColor:COLOR    ,
    out Vec4  outVtx  :POSITION
 )
 {
-   if(TEXTURES)outTex   =vtx.tex();
-               outColor =MaterialColor();
-   if(COLORS  )outColor*=vtx.colorFast();
+#if TEXTURES
+   outTex=vtx.tex();
+#endif
+             outColor =MaterialColor();
+   if(COLORS)outColor*=vtx.colorFast();
 
    Vec pos; VecH nrm;
    if(!SKIN)
@@ -45,15 +49,19 @@ void VS
 /******************************************************************************/
 VecH4 PS
 (
+#if TEXTURES
    Vec2  inTex  :TEXCOORD0,
+#endif
    VecH  inRfl  :TEXCOORD1,
    VecH4 inColor:COLOR
 ):TARGET
 {
    VecH4 tex_nrm; // #MaterialTextureChannelOrder
 
+#if TEXTURES
    if(TEXTURES==1) inColor    *=Tex(Col, inTex);else                                                 // alpha in 'Col' texture
    if(TEXTURES==2){inColor.rgb*=Tex(Col, inTex).rgb; tex_nrm=Tex(Nrm, inTex); inColor.a*=tex_nrm.a;} // alpha in 'Nrm' texture
+#endif
 
    inColor.rgb+=Highlight.rgb;
 

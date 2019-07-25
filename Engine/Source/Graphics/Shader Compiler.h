@@ -107,8 +107,10 @@ struct ShaderCompiler
       SubShader        sub[ST_NUM];
     C Source          *source;
 
+      Shader& gather     (       ) {MAX(model, SM_4_1);  return T;} // SM_4_1 needed for Texture Gather
+      Shader& gather     (Bool on) {if(on)gather();      return T;} // SM_4_1 needed for Texture Gather
       Shader& multiSample(       ) {MAX(model, SM_4_1);  return T;} // SM_4_1 needed for 'SV_SampleIndex'
-      Shader& multiSample(Bool ms) {if(ms)multiSample(); return T;} // SM_4_1 needed for 'SV_SampleIndex'
+      Shader& multiSample(Bool on) {if(on)multiSample(); return T;} // SM_4_1 needed for 'SV_SampleIndex'
 
       Shader& operator()(C Str &n0, C Str &v0                                                                     ) {params.New().set(n0, v0);                                                                               return T;}
       Shader& operator()(C Str &n0, C Str &v0,  C Str &n1, C Str &v1                                              ) {params.New().set(n0, v0); params.New().set(n1, v1);                                                     return T;}

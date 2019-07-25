@@ -102,14 +102,14 @@ VecH TexCubicFastRGB(Vec2 inTex) // ignores alpha channel
    #define CUBIC_SKIP_SAMPLE 1 // otherwise fails to compile
 #endif
 
-inline Flt Cubic(Flt x, uniform Flt blur, uniform Flt sharpen)
+inline Flt Cubic(Flt x, Flt blur, Flt sharpen)
 {
    Flt x2=x*x,
        x3=x*x*x;
    return (x<=1) ? ((12-9*blur-6*sharpen)/6*x3 + (-18+12*blur+6*sharpen)/6*x2 +                             (6-2*blur         )/6)
                  : ((-blur-6*sharpen    )/6*x3 + (6*blur+30*sharpen    )/6*x2 + (-12*blur-48*sharpen)/6*x + (8*blur+24*sharpen)/6);
 }
-inline Half Cubic(Half x, uniform Half blur, uniform Half sharpen)
+inline Half Cubic(Half x, Half blur, Half sharpen)
 {
    Half x2=x*x,
         x3=x*x*x;

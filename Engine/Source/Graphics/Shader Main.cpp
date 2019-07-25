@@ -218,9 +218,9 @@ void MainShaderClass::initFogBoxShaders()
    if(!FogBox) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
    {
       ShaderFile &sf=*ShaderFiles("Fog Local");
-      FogBox =sf.get("FogBox0"  );
-      FogBox0=sf.get("FogBoxI00");
-      FogBox1=sf.get("FogBoxI01");
+      FogBox =sf.get("FogBox"  );
+      FogBox0=sf.get("FogBoxI0");
+      FogBox1=sf.get("FogBoxI1");
    }
 }
 void MainShaderClass::initFogHgtShaders()
@@ -228,9 +228,9 @@ void MainShaderClass::initFogHgtShaders()
    if(!FogHgt) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
    {
       ShaderFile &sf=*ShaderFiles("Fog Local");
-      FogHgt =sf.get("FogBox1"  );
-      FogHgt0=sf.get("FogBoxI10");
-      FogHgt1=sf.get("FogBoxI11");
+      FogHgt =sf.get("FogHeight"  );
+      FogHgt0=sf.get("FogHeightI0");
+      FogHgt1=sf.get("FogHeightI1");
    }
 }
 void MainShaderClass::initFogBallShaders()
@@ -643,8 +643,8 @@ void HDR::load()
       HdrDS[0] =shader->get("HdrDS0"   );
       HdrDS[1] =shader->get("HdrDS1"   );
       HdrUpdate=shader->get("HdrUpdate");
-      Hdr[0]   =shader->get("Hdr"      );
-      Hdr[1]   =shader->get("HdrD"     );
+      Hdr[0]   =shader->get("Hdr0"     );
+      Hdr[1]   =shader->get("Hdr1"     );
    }   
 }
 /******************************************************************************/
@@ -661,13 +661,13 @@ void MotionBlur::load()
       ClearSkyVel=shader->get("ClearSkyVel");
 
       REPD(h, 2)
-      REPD(c, 2)Convert[h][c]=shader->get(S8+"Convert"+(h?'H':'\0')+(c?'C':'\0'));
+      REPD(c, 2)Convert[h][c]=shader->get(S8+"Convert"+h+c);
 
       Dilate=shader->get("Dilate");
 
-      REPD(c, 2)SetDirs[c]=shader->get(S8+"SetDirs"+(c?'C':'\0'));
+      REPD(c, 2)SetDirs[c]=shader->get(S8+"SetDirs"+c);
 
-      REPD(d, 2)Blur[d]=shader->get(S8+"Blur"+(d?'D':'\0'));
+      REPD(d, 2)Blur[d]=shader->get(S8+"Blur"+d);
 
       pixels[0].pixels=1;
       pixels[1].pixels=2;
@@ -691,14 +691,14 @@ C MotionBlur::Pixel* MotionBlur::pixel(Int pixel, Bool diagonal)
    }
    if(!p->DilateX[diagonal])
    {
-      p->DilateX[diagonal]=shader->get(S8+"DilateX"+(diagonal?'D':'\0')+p->pixels);
-      p->DilateY[diagonal]=shader->get(S8+"DilateY"+(diagonal?'D':'\0')+p->pixels);
+      p->DilateX[diagonal]=shader->get(S8+"DilateX"+diagonal+p->pixels);
+      p->DilateY[diagonal]=shader->get(S8+"DilateY"+diagonal+p->pixels);
    }
    return p;
 }
 /******************************************************************************/
-Shader* DepthOfField::getDS(Bool clamp , Bool realistic, Bool half_res) {return shader->get(S8+"DofDS"+(clamp?'C':'\0')+(realistic?'R':'\0')+(half_res?'H':'\0')+(D.shaderModel()>=SM_4_1 ? 'G' : '\0'));}
-Shader* DepthOfField::get  (Bool dither, Bool realistic               ) {return shader->get(S8+"Dof"+(dither?'D':'\0')+(realistic?'R':'\0'));}
+Shader* DepthOfField::getDS(Bool clamp , Bool realistic, Bool half_res) {return shader->get(S8+"DofDS"+clamp+realistic+half_res+D.gatherAvailable());}
+Shader* DepthOfField::get  (Bool dither, Bool realistic               ) {return shader->get(S8+"Dof"+dither+realistic);}
 
 void DepthOfField::load()
 {

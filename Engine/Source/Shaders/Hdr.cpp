@@ -9,42 +9,40 @@
 /******************************************************************************/
 // HDR
 /******************************************************************************/
-Flt HdrDS_PS(NOPERSP Vec2 inTex:TEXCOORD,
-             uniform Int  step          ):TARGET
+Flt HdrDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
    Vec2 tex_min=inTex-ImgSize.xy,
         tex_max=inTex+ImgSize.xy;
-   if(step==0)
-   {
-      // use linear filtering because we're downsampling, for the first step use half precision for high performance, because there's a lot of data
-      VecH sum=TexLod(Img, Vec2(tex_min.x, tex_min.y)).rgb
-              +TexLod(Img, Vec2(tex_max.x, tex_min.y)).rgb
-              +TexLod(Img, Vec2(tex_min.x, tex_max.y)).rgb
-              +TexLod(Img, Vec2(tex_max.x, tex_max.y)).rgb;
 
-   #if !LINEAR_GAMMA // convert from sRGB to linear
-      sum=SRGBToLinearFast(sum)/4; // SRGBToLinearFast(sum/4)*4
-   #endif
+#if STEP==0
+   // use linear filtering because we're downsampling, for the first step use half precision for high performance, because there's a lot of data
+   VecH sum=TexLod(Img, Vec2(tex_min.x, tex_min.y)).rgb
+           +TexLod(Img, Vec2(tex_max.x, tex_min.y)).rgb
+           +TexLod(Img, Vec2(tex_min.x, tex_max.y)).rgb
+           +TexLod(Img, Vec2(tex_max.x, tex_max.y)).rgb;
 
-      Flt lum=Dot(sum, HdrWeight);
+#if !LINEAR_GAMMA // convert from sRGB to linear
+   sum=SRGBToLinearFast(sum)/4; // SRGBToLinearFast(sum/4)*4
+#endif
 
-   // adjustment
-   #if BRIGHT
-      lum=Sqr(lum);
-   #endif
-   #if GEOMETRIC
-      lum=log2(Max(lum, HALF_MIN)); // NaN
-   #endif
+   Flt lum=Dot(sum, HdrWeight);
 
-      return lum;
-   }else
-   {
-      // use linear filtering because we're downsampling, here use full precision for more accuracy
-      return Avg(TexLod(ImgXF, Vec2(tex_min.x, tex_min.y)).x,
-                 TexLod(ImgXF, Vec2(tex_max.x, tex_min.y)).x,
-                 TexLod(ImgXF, Vec2(tex_min.x, tex_max.y)).x,
-                 TexLod(ImgXF, Vec2(tex_max.x, tex_max.y)).x);
-   }
+// adjustment
+#if BRIGHT
+   lum=Sqr(lum);
+#endif
+#if GEOMETRIC
+   lum=log2(Max(lum, HALF_MIN)); // NaN
+#endif
+
+   return lum;
+#else
+   // use linear filtering because we're downsampling, here use full precision for more accuracy
+   return Avg(TexLod(ImgXF, Vec2(tex_min.x, tex_min.y)).x,
+              TexLod(ImgXF, Vec2(tex_max.x, tex_min.y)).x,
+              TexLod(ImgXF, Vec2(tex_min.x, tex_max.y)).x,
+              TexLod(ImgXF, Vec2(tex_max.x, tex_max.y)).x);
+#endif
 }
 /******************************************************************************/
 Flt HdrUpdate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // here use full precision
@@ -72,8 +70,7 @@ Flt HdrUpdate_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET // here use full precision
 }
 /******************************************************************************/
 VecH4 Hdr_PS(NOPERSP Vec2 inTex:TEXCOORD,
-             NOPERSP PIXEL              ,
-             uniform Bool dither        ):TARGET
+             NOPERSP PIXEL              ):TARGET
 {
    VecH4 col=TexLod  (Img , inTex); // can't use 'TexPoint' because 'Img' can be supersampled
    Half  lum=TexPoint(ImgX, Vec2(0, 0)).x;
@@ -88,16 +85,9 @@ VecH4 Hdr_PS(NOPERSP Vec2 inTex:TEXCOORD,
 #endif
    col.rgb*=lum;
 
-   if(dither)ApplyDither(col.rgb, pixel.xy);
+#if DITHER
+   ApplyDither(col.rgb, pixel.xy);
+#endif
    return col;
 }
-/******************************************************************************/
-// TECHNIQUES
-/******************************************************************************/
-TECHNIQUE(HdrDS0, Draw_VS(), HdrDS_PS(0));
-TECHNIQUE(HdrDS1, Draw_VS(), HdrDS_PS(1));
-
-TECHNIQUE(HdrUpdate, Draw_VS(), HdrUpdate_PS());
-TECHNIQUE(Hdr      , Draw_VS(),       Hdr_PS(false));
-TECHNIQUE(HdrD     , Draw_VS(),       Hdr_PS(true ));
 /******************************************************************************/

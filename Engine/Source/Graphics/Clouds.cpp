@@ -90,7 +90,7 @@ inline void LayeredCloudsFx::load()
 }
 inline Shader* LayeredCloudsFx::get(Int layers, Bool blend)
 {
-   Shader* &s=Clouds[layers][blend]; if(!s)s=shader->get(S+"Clouds"+(layers+1)+(blend?'B':'\0'));
+   Shader* &s=Clouds[layers][blend]; if(!s)s=shader->get(S+"Clouds"+(layers+1)+blend);
    return   s;
 }
 void LayeredClouds::commit()

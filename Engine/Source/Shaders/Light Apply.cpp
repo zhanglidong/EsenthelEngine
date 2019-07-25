@@ -11,7 +11,7 @@ BUFFER_END
 /******************************************************************************/
 Half CelShade(Half lum) {return TexLod(Img2, VecH2(lum, 0.5)).x;} // have to use linear filtering
 /******************************************************************************/
-VecH LitCol(VecH4 color, VecH4 lum, Half ao, VecH night_shade_col, uniform Bool apply_ao)
+VecH LitCol(VecH4 color, VecH4 lum, Half ao, VecH night_shade_col, Bool apply_ao)
 {
    // treat glow as if it's a light source, this will have 2 effects: 1) pixels will have color even without any lights 2) this will disable night shade effects and retain original color (not covered by night shade), this is because 'night_shade_intensity' is multiplied by "Sat(1-max_lum)"
 #if 0 // simply adding doesn't provide good results

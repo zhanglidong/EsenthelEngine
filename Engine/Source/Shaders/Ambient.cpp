@@ -7,13 +7,17 @@ void VS
 (
    VtxInput vtx,
 
+#if ALPHA_TEST || LIGHT_MAP
    out Vec2 outTex:TEXCOORD,
+#endif
    out Vec4 outVtx:POSITION,
 
    CLIP_DIST
 )
 {
-   if(ALPHA_TEST || LIGHT_MAP)outTex=vtx.tex();
+#if ALPHA_TEST || LIGHT_MAP
+   outTex=vtx.tex();
+#endif
 
    Vec      pos;
    if(!SKIN)pos=TransformPos(vtx.pos());
@@ -23,12 +27,20 @@ void VS
 /******************************************************************************/
 VecH4 PS
 (
+#if ALPHA_TEST || LIGHT_MAP
    Vec2 inTex:TEXCOORD
+#endif
 ):TARGET
 {
+#if ALPHA_TEST
    if(ALPHA_TEST==1)clip(Tex(Col, inTex).a + MaterialAlpha()-1);else
    if(ALPHA_TEST==2)clip(Tex(Nrm, inTex).a + MaterialAlpha()-1); // #MaterialTextureChannelOrder
+#endif
 
-   return VecH4(LIGHT_MAP ? Tex(Lum, inTex).rgb*MaterialAmbient() : MaterialAmbient(), 0);
+#if LIGHT_MAP
+   return VecH4(Tex(Lum, inTex).rgb*MaterialAmbient(), 0);
+#else
+   return VecH4(MaterialAmbient(), 0);
+#endif
 }
 /******************************************************************************/

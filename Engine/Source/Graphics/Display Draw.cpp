@@ -970,9 +970,8 @@ void Image::drawVolume(C Color &color, C Color &color_add, C OBox &obox, Flt vox
       if(!Sh.Volume)
       {
          ShaderFile &sf=*ShaderFiles("Effects 3D");
-         Sh.Volume0[0]=sf.get("Volume0"); Sh.Volume0[1]=sf.get("Volume0LA");
-         Sh.Volume1[0]=sf.get("Volume1"); Sh.Volume1[1]=sf.get("Volume1LA");
-         Sh.Volume2[0]=sf.get("Volume2"); Sh.Volume2[1]=sf.get("Volume2LA");
+         REPD(inside, 3)
+         REPD(la    , 2)Sh.DrawVolume[inside][la]=sf.get(S8+"Volume"+inside+la);
          Sh.Volume=GetShaderParam("Volume");
       }
       GpuVolume v;
@@ -1017,14 +1016,14 @@ void Image::drawVolume(C Color &color, C Color &color_add, C OBox &obox, Flt vox
 
          if(v.inside.x>=-v.size.x+e && v.inside.x<=v.size.x-e
          && v.inside.y>=-v.size.y+e && v.inside.y<=v.size.y-e
-         && v.inside.z>=-v.size.z+e && v.inside.z<=v.size.z-e)Sh.Volume2[LA]->begin();
-         else                                                 Sh.Volume1[LA]->begin();
+         && v.inside.z>=-v.size.z+e && v.inside.z<=v.size.z-e)Sh.DrawVolume[2][LA]->begin();
+         else                                                 Sh.DrawVolume[1][LA]->begin();
          MshrBoxR.set().draw();
       }else
       {
          D .depth     (true );
          D .depthWrite(false);
-         Sh.Volume0[LA]->begin(); MshrBox.set().draw();
+         Sh.DrawVolume[0][LA]->begin(); MshrBox.set().draw();
       }
 
       si._sampler=null;
