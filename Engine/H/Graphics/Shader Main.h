@@ -457,19 +457,19 @@ extern ShaderImage::Sampler SamplerPoint, SamplerLinearWrap, SamplerLinearWCC, S
 void CreateAnisotropicSampler();
 void CreateFontSampler       ();
 
-Str8 TechNameDeferred  (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int detail, Int macro, Int reflect, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tesselate);
-Str8 TechNameForward   (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int reflect, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tesselate);
-Str8 TechNameBlendLight(Int skin, Int color    , Int textures, Int bump_mode, Int alpha_test, Int alpha, Int light_map, Int reflect, Int fx, Int per_pixel, Int shadow_maps);
-Str8 TechNamePosition  (Int skin, Int textures, Int test_blend, Int fx, Int tesselate);
-Str8 TechNameBlend     (Int skin, Int color, Int reflect, Int textures);
-Str8 TechNameSetColor  (Int skin, Int textures, Int tesselate);
-Str8 TechNameBehind    (Int skin, Int textures);
-Str8 TechNameEarlyZ    (Int skin);
-Str8 TechNameAmbient   (Int skin, Int alpha_test, Int light_map);
-Str8 TechNameOverlay   (Int skin, Int normal);
-Str8 TechNameFurBase   (Int skin, Int size, Int diffuse);
-Str8 TechNameFurSoft   (Int skin, Int size, Int diffuse);
-Str8 TechNameTattoo    (Int skin, Int tesselate);
+Str8 ShaderDeferred  (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int detail, Int macro, Int reflect, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tesselate);
+Str8 ShaderForward   (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int reflect, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tesselate);
+Str8 ShaderBlendLight(Int skin, Int color    , Int textures, Int bump_mode, Int alpha_test, Int alpha, Int light_map, Int reflect, Int fx, Int per_pixel, Int shadow_maps);
+Str8 ShaderPosition  (Int skin, Int textures, Int test_blend, Int fx, Int tesselate);
+Str8 ShaderBlend     (Int skin, Int color, Int reflect, Int textures);
+Str8 ShaderSetColor  (Int skin, Int textures, Int tesselate);
+Str8 ShaderBehind    (Int skin, Int textures);
+Str8 ShaderEarlyZ    (Int skin);
+Str8 ShaderAmbient   (Int skin, Int alpha_test, Int light_map);
+Str8 ShaderOverlay   (Int skin, Int normal);
+Str8 ShaderFurBase   (Int skin, Int size, Int diffuse);
+Str8 ShaderFurSoft   (Int skin, Int size, Int diffuse);
+Str8 ShaderTattoo    (Int skin, Int tesselate);
 
 struct DefaultShaders
 {

@@ -45,25 +45,25 @@ namespace EE{
 /******************************************************************************/
 // SHADER NAMES
 /******************************************************************************/
-Str8 TechNameDeferred  (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int detail, Int macro, Int reflect, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tesselate) {return S8+skin+materials+textures+bump_mode+alpha_test+detail+macro+reflect+color+mtrl_blend+heightmap+fx+tesselate;}
-Str8 TechNameBlendLight(Int skin, Int color    , Int textures, Int bump_mode, Int alpha_test, Int alpha, Int light_map, Int reflect, Int fx, Int per_pixel, Int shadow_maps) {return S8+skin+color+textures+bump_mode+alpha_test+alpha+light_map+reflect+fx+per_pixel+shadow_maps;}
-Str8 TechNameForward   (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int reflect, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tesselate) {return S8+skin+materials+textures+bump_mode+alpha_test+light_map+detail+reflect+color+mtrl_blend+heightmap+fx+per_pixel+light_dir+light_dir_shd+light_dir_shd_num+light_point+light_point_shd+light_linear+light_linear_shd+light_cone+light_cone_shd+tesselate;}
+Str8 ShaderDeferred  (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int detail, Int macro, Int reflect, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tesselate) {return S8+skin+materials+textures+bump_mode+alpha_test+detail+macro+reflect+color+mtrl_blend+heightmap+fx+tesselate;}
+Str8 ShaderBlendLight(Int skin, Int color    , Int textures, Int bump_mode, Int alpha_test, Int alpha, Int light_map, Int reflect, Int fx, Int per_pixel, Int shadow_maps) {return S8+skin+color+textures+bump_mode+alpha_test+alpha+light_map+reflect+fx+per_pixel+shadow_maps;}
+Str8 ShaderForward   (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int reflect, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tesselate) {return S8+skin+materials+textures+bump_mode+alpha_test+light_map+detail+reflect+color+mtrl_blend+heightmap+fx+per_pixel+light_dir+light_dir_shd+light_dir_shd_num+light_point+light_point_shd+light_linear+light_linear_shd+light_cone+light_cone_shd+tesselate;}
 
-Str8 TechNameAmbient   (Int skin, Int alpha_test, Int light_map) {return S8+skin+alpha_test+light_map;}
-Str8 TechNameBehind    (Int skin, Int textures) {return S8+skin+textures;}
-Str8 TechNameBlend     (Int skin, Int color, Int reflect, Int textures) {return S8+skin+color+reflect+textures;}
-Str8 TechNameEarlyZ    (Int skin) {return S8+skin;}
-Str8 TechNameFurBase   (Int skin, Int size, Int diffuse) {return S8+"Base"+skin+size+diffuse;}
-Str8 TechNameFurSoft   (Int skin, Int size, Int diffuse) {return S8+"Soft"+skin+size+diffuse;}
-Str8 TechNameOverlay   (Int skin, Int normal) {return S8+skin+normal;}
-Str8 TechNamePosition  (Int skin, Int textures, Int test_blend, Int fx, Int tesselate) {return S8+skin+textures+test_blend+fx+tesselate;}
-Str8 TechNameSetColor  (Int skin, Int textures, Int tesselate) {return S8+skin+textures+tesselate;}
-Str8 TechNameTattoo    (Int skin, Int tesselate) {return S8+skin+tesselate;}
+Str8 ShaderAmbient   (Int skin, Int alpha_test, Int light_map) {return S8+skin+alpha_test+light_map;}
+Str8 ShaderBehind    (Int skin, Int textures) {return S8+skin+textures;}
+Str8 ShaderBlend     (Int skin, Int color, Int reflect, Int textures) {return S8+skin+color+reflect+textures;}
+Str8 ShaderEarlyZ    (Int skin) {return S8+skin;}
+Str8 ShaderFurBase   (Int skin, Int size, Int diffuse) {return S8+"Base"+skin+size+diffuse;}
+Str8 ShaderFurSoft   (Int skin, Int size, Int diffuse) {return S8+"Soft"+skin+size+diffuse;}
+Str8 ShaderOverlay   (Int skin, Int normal) {return S8+skin+normal;}
+Str8 ShaderPosition  (Int skin, Int textures, Int test_blend, Int fx, Int tesselate) {return S8+skin+textures+test_blend+fx+tesselate;}
+Str8 ShaderSetColor  (Int skin, Int textures, Int tesselate) {return S8+skin+textures+tesselate;}
+Str8 ShaderTattoo    (Int skin, Int tesselate) {return S8+skin+tesselate;}
 /*FIXME
 static Str TechForward(Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tess)
 {
-   Str params=              S+skin+','+materials+','+textures+','+bump_mode+','+alpha_test+','+light_map+','+detail+','+rflct+','+color+','+mtrl_blend+','+heightmap+','+fx+','   +light_dir+','+light_dir_shd+','+light_dir_shd_num+   ','+light_point+','+light_point_shd+   ','+light_linear+','+light_linear_shd+   ','+light_cone+','+light_cone_shd+','+tess,
-       name  =TechNameForward(skin  ,  materials  ,  textures  ,  bump_mode  ,  alpha_test  ,  light_map  ,  detail  ,  rflct  ,  color  ,  mtrl_blend  ,  heightmap  ,  fx  ,     light_dir  ,  light_dir_shd  ,  light_dir_shd_num     ,  light_point  ,  light_point_shd     ,  light_linear  ,  light_linear_shd     ,  light_cone  ,  light_cone_shd  ,  tess);
+   Str params=            S+skin+','+materials+','+textures+','+bump_mode+','+alpha_test+','+light_map+','+detail+','+rflct+','+color+','+mtrl_blend+','+heightmap+','+fx+','   +light_dir+','+light_dir_shd+','+light_dir_shd_num+   ','+light_point+','+light_point_shd+   ','+light_linear+','+light_linear_shd+   ','+light_cone+','+light_cone_shd+','+tess,
+       name  =ShaderForward(skin  ,  materials  ,  textures  ,  bump_mode  ,  alpha_test  ,  light_map  ,  detail  ,  rflct  ,  color  ,  mtrl_blend  ,  heightmap  ,  fx  ,     light_dir  ,  light_dir_shd  ,  light_dir_shd_num     ,  light_point  ,  light_point_shd     ,  light_linear  ,  light_linear_shd     ,  light_cone  ,  light_cone_shd  ,  tess);
    return tess ? S+"TECHNIQUE_TESSELATION("+name+", VS("+params+"), PS("+params+"), HS("+params+"), DS("+params+"));"
                : S+"TECHNIQUE            ("+name+", VS("+params+"), PS("+params+")                                );";
 }
@@ -658,7 +658,7 @@ static void Compile(API api)
 
 #ifdef DEFERRED
 {
-   Str names;
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Deferred", model, api).New(src_path+"Deferred.cpp");
 
    // zero
    REPD(skin , 2)
@@ -739,8 +739,6 @@ static void Compile(API api)
    REPD (color    , 2)
    REPAD(fx       , fxs)
       names+=TechDeferred(false, 1, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, true, false, false, false, color, false, false, fxs[fx], false);
-
-   Add(src_path+"Deferred.cpp", dest_path+"Deferred", api, model, names);
 }
 #endif
 

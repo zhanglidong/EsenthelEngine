@@ -172,7 +172,7 @@ void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_
 Shader* DefaultShaders::EarlyZ()C
 {
 #if SUPPORT_EARLY_Z
-   if(valid && !alpha_blend && !alpha_test && !fx && !tesselate)return ShaderFiles("Early Z")->get(TechNameEarlyZ(skin));
+   if(valid && !alpha_blend && !alpha_test && !fx && !tesselate)return ShaderFiles("Early Z")->get(ShaderEarlyZ(skin));
 #endif
    return null;
 }
@@ -181,11 +181,11 @@ Shader* DefaultShaders::Solid(Bool mirror)C
    if(valid && !alpha_blend && Renderer.anyDeferred())
    {
       // !! Never return the same shader for Multi-Materials as Single-Materials !!
-      if(fur)return ShaderFiles("Fur")->get(TechNameFurBase(skin, size, textures!=0));
+      if(fur)return ShaderFiles("Fur")->get(ShaderFurBase(skin, size, textures!=0));
       Bool detail=T.detail, tesselate=T.tesselate; Byte bump=T.bump; if(mirror){detail=false; tesselate=false; MIN(bump, SBUMP_NORMAL);} // disable detail, tesselation and fancy bump for mirror
       Str8 name;
-      if(normal      )name=TechNameDeferred(skin, materials, textures,  bump     , alpha_test, detail, macro, reflect, color, mtrl_blend, heightmap, fx, tesselate);else
-      if(materials==1)name=TechNameDeferred(skin, materials,        0, SBUMP_ZERO, false     , false , false, reflect, color, mtrl_blend, heightmap, fx, tesselate);
+      if(normal      )name=ShaderDeferred(skin, materials, textures,  bump     , alpha_test, detail, macro, reflect, color, mtrl_blend, heightmap, fx, tesselate);else
+      if(materials==1)name=ShaderDeferred(skin, materials,        0, SBUMP_ZERO, false     , false , false, reflect, color, mtrl_blend, heightmap, fx, tesselate);
       return ShaderFiles("Deferred")->get(name);
    }
    return null;
@@ -193,39 +193,39 @@ Shader* DefaultShaders::Solid(Bool mirror)C
 Shader* DefaultShaders::Ambient()C
 {
 #if SUPPORT_MATERIAL_AMBIENT
-   if(valid && !alpha_blend && ambient && materials==1 && !heightmap && !fx)return ShaderFiles("Ambient")->get(TechNameAmbient(skin, alpha_test ? textures : 0, light_map));
+   if(valid && !alpha_blend && ambient && materials==1 && !heightmap && !fx)return ShaderFiles("Ambient")->get(ShaderAmbient(skin, alpha_test ? textures : 0, light_map));
 #endif
    return null;
 }
 Shader* DefaultShaders::Outline()C
 {
-   if(valid && !alpha_blend && !fx)return ShaderFiles("Set Color")->get(TechNameSetColor(skin, alpha_test ? textures : 0, tesselate));
+   if(valid && !alpha_blend && !fx)return ShaderFiles("Set Color")->get(ShaderSetColor(skin, alpha_test ? textures : 0, tesselate));
    return null;
 }
 Shader* DefaultShaders::Behind()C
 {
-   if(valid && !fx)return ShaderFiles("Behind")->get(TechNameBehind(skin, alpha_test ? textures : 0));
+   if(valid && !fx)return ShaderFiles("Behind")->get(ShaderBehind(skin, alpha_test ? textures : 0));
    return null;
 }
 Shader* DefaultShaders::Fur()C
 {
-   if(valid && fur)return ShaderFiles("Fur")->get(TechNameFurSoft(skin, size, textures!=0));
+   if(valid && fur)return ShaderFiles("Fur")->get(ShaderFurSoft(skin, size, textures!=0));
    return null;
 }
 Shader* DefaultShaders::Shadow()C
 {
-   if(valid && (!alpha_blend || alpha_test))return ShaderFiles("Position")->get(TechNamePosition(skin, alpha_test ? textures : 0, alpha_test && alpha_blend_light, fx, tesselate));
+   if(valid && (!alpha_blend || alpha_test))return ShaderFiles("Position")->get(ShaderPosition(skin, alpha_test ? textures : 0, alpha_test && alpha_blend_light, fx, tesselate));
    return null;
 }
 Shader* DefaultShaders::Blend()C
 {
    if(valid && blend) // "!blend" here will return null so BLST can be used in 'drawBlend'
-      return ShaderFiles("Blend")->get(TechNameBlend(skin, color, reflect, textures));
+      return ShaderFiles("Blend")->get(ShaderBlend(skin, color, reflect, textures));
    return null;
 }
 Shader* DefaultShaders::Overlay()C
 {
-   if(valid)return ShaderFiles("Tattoo")->get(TechNameTattoo(skin, tesselate));
+   if(valid)return ShaderFiles("Tattoo")->get(ShaderTattoo(skin, tesselate));
    return null;
 }
 Shader* DefaultShaders::get(RENDER_MODE mode)C
