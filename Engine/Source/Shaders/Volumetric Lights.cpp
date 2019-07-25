@@ -8,6 +8,7 @@ BUFFER(VolLight)
 BUFFER_END
 #include "!Set LP.h"
 /******************************************************************************/
+#ifdef NUM
 VecH4 VolDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                 NOPERSP Vec2 inPosXY:TEXCOORD1,
                 NOPERSP PIXEL                 ):TARGET
@@ -36,6 +37,7 @@ VecH4 VolDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    power*=Light_dir.vol_exponent_steam.x;
    return VecH4(Light_dir.color.rgb*power, 0);
 }
+#endif
 /******************************************************************************/
 VecH4 VolPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                   NOPERSP Vec2 inPosXY:TEXCOORD1,
@@ -145,7 +147,10 @@ VecH4 Volumetric_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    vol/=samples+1;
    vol =Min(vol, VolMax);
 
-   if(ADD)return VecH4(vol, 0);                                       // alpha blending : ALPHA_ADD
-   else   {Half max=Max(vol); return VecH4(vol/(HALF_MIN+max), max);} // alpha blending : ALPHA_BLEND_DEC
+#if ADD
+   return VecH4(vol, 0); // alpha blending : ALPHA_ADD
+#else
+   Half max=Max(vol); return VecH4(vol/(HALF_MIN+max), max); // alpha blending : ALPHA_BLEND_DEC
+#endif
 }
 /******************************************************************************/

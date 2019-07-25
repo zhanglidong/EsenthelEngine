@@ -25,7 +25,7 @@ void Color_VS
 }
 /******************************************************************************/
 #ifndef COL_VALUE
-#define COL_VALUE 0
+#define COL_VALUE 0,0,0
 #endif
 void Color_PS
 (
