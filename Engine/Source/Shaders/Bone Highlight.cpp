@@ -9,7 +9,7 @@ SKIN, BUMP_MODE
 struct VS_PS
 {
 #if BUMP_MODE>=SBUMP_FLAT
-   VecH nrm:TEXCOORD;
+   VecH nrm:NORMAL;
 #endif
    VecH col:COLOR;
 };

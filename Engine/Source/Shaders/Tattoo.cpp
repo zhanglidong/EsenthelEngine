@@ -5,10 +5,10 @@ SKIN, TESSELATE
 /******************************************************************************/
 struct VS_PS
 {
-   Vec2 tex:TEXCOORD0;
+   Vec2 tex:TEXCOORD;
 #if TESSELATE
-   Vec  pos:TEXCOORD1;
-   VecH nrm:TEXCOORD2;
+   Vec  pos:POS;
+   VecH nrm:NORMAL;
 #endif
 };
 /******************************************************************************/

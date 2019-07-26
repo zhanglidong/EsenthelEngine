@@ -9,10 +9,10 @@ void VS
    VtxInput vtx,
 
 #if TEXTURES
-   out Vec2  outTex  :TEXCOORD0,
+   out Vec2  outTex  :TEXCOORD  ,
 #endif
-   out VecH  outRfl  :TEXCOORD1,
-   out VecH4 outColor:COLOR    ,
+   out VecH  outRfl  :REFLECTION,
+   out VecH4 outColor:COLOR     ,
    out Vec4  outVtx  :POSITION
 )
 {
@@ -50,9 +50,9 @@ void VS
 VecH4 PS
 (
 #if TEXTURES
-   Vec2  inTex  :TEXCOORD0,
+   Vec2  inTex  :TEXCOORD  ,
 #endif
-   VecH  inRfl  :TEXCOORD1,
+   VecH  inRfl  :REFLECTION,
    VecH4 inColor:COLOR
 ):TARGET
 {

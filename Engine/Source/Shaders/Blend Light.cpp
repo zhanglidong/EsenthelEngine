@@ -13,32 +13,32 @@
 struct VS_PS
 {
 #if USE_POS
-   Vec pos:TEXCOORD0;
+   Vec pos:POS;
 #endif
 
 #if TEXTURES || LIGHT_MAP
-   Vec2 tex:TEXCOORD1;
+   Vec2 tex:TEXCOORD;
 #endif
 
-   VecH4 col    :COLOR0;
-   VecH  col_add:COLOR1;
+   VecH4 col    :COLOR;
+   VecH  col_add:COLOR_ADD;
 
 #if   BUMP_MODE> SBUMP_FLAT && PER_PIXEL
-   MatrixH3 mtrx:TEXCOORD2; // !! may not be Normalized !!
+   MatrixH3 mtrx:MATRIX; // !! may not be Normalized !!
    VecH Nrm() {return mtrx[2];}
 #elif BUMP_MODE==SBUMP_FLAT && PER_PIXEL
-   VecH nrm:TEXCOORD4; // !! may not be Normalized !!
+   VecH nrm:NORMAL; // !! may not be Normalized !!
    VecH Nrm() {return nrm;}
 #else
    VecH Nrm() {return 0;}
 #endif
 
 #if USE_VEL
-   Vec vel:TEXCOORD6;
+   Vec vel:VELOCITY;
 #endif
 
 #if REFLECT && !(PER_PIXEL && BUMP_MODE>SBUMP_FLAT)
-   VecH rfl:TEXCOORD5;
+   VecH rfl:REFLECTION;
 #endif
 
 #if !PER_PIXEL && BUMP_MODE>=SBUMP_FLAT && SHADOW_MAPS

@@ -26,30 +26,30 @@ SKIN, MATERIALS, TEXTURES, BUMP_MODE, ALPHA_TEST, DETAIL, MACRO, REFLECT, COLORS
 /******************************************************************************/
 struct VS_PS
 {
-   Vec2 tex:TEXCOORD0;
-   Vec  pos:TEXCOORD1; // always needed for velocity
-   Vec  vel:TEXCOORD3;
+   Vec2 tex:TEXCOORD;
+   Vec  pos:POS; // always needed for velocity
+   Vec  vel:VELOCITY;
 
 #if   BUMP_MODE> SBUMP_FLAT
-   MatrixH3 mtrx:TEXCOORD4; // !! may not be Normalized !!
+   MatrixH3 mtrx:MATRIX; // !! may not be Normalized !!
    VecH Nrm() {return mtrx[2];}
 #elif BUMP_MODE==SBUMP_FLAT
-   VecH nrm:TEXCOORD6; // !! may not be Normalized !!
+   VecH nrm:NORMAL; // !! may not be Normalized !!
    VecH Nrm() {return nrm;}
 #else
    VecH Nrm() {return 0;}
 #endif
 
 #if MATERIALS>1
-   VecH4 material:COLOR0;
+   VecH4 material:MATERIAL;
 #endif
 
 #if COLORS
-   VecH col:COLOR1;
+   VecH col:COLOR;
 #endif
 
 #if FAST_TPOS
-   Vec _tpos:TEXCOORD2;
+   Vec _tpos:TPOS;
    Vec  tpos() {return Normalize(_tpos);}
 #elif BUMP_MODE>SBUMP_FLAT
    Vec  tpos() {return Normalize(TransformTP(-pos, mtrx));} // need high precision here for 'TransformTP'
@@ -58,7 +58,7 @@ struct VS_PS
 #endif
 
 #if FX==FX_GRASS
-   Half fade_out:TEXCOORD7;
+   Half fade_out:FADE_OUT;
 #endif
 };
 /******************************************************************************/
@@ -77,7 +77,10 @@ void VS
    Vec  pos=vtx.pos();
    VecH nrm, tan; if(BUMP_MODE>=SBUMP_FLAT)nrm=vtx.nrm(); if(BUMP_MODE>SBUMP_FLAT)tan=vtx.tan(nrm, HEIGHTMAP);
 
-   if(TEXTURES || DETAIL)O.tex=vtx.tex(HEIGHTMAP);
+#if TEXTURES || DETAIL
+   O.tex=vtx.tex(HEIGHTMAP);
+   if(HEIGHTMAP && MATERIALS==1)O.tex*=MaterialTexScale();
+#endif
 
 #if MATERIALS>1
    O.material=vtx.material();
@@ -87,8 +90,6 @@ void VS
    if(MATERIALS<=1)O.col=vtx.colorFast3()*MaterialColor3();
    else            O.col=vtx.colorFast3();
 #endif
-
-   if(HEIGHTMAP && (TEXTURES || DETAIL) && MATERIALS==1)O.tex*=MaterialTexScale();
 
    if(FX==FX_LEAF)
    {
@@ -202,7 +203,7 @@ void PS
    nrm     =0;
 #elif MATERIALS==1
    // apply tex coord bump offset
-   if(TEXTURES==2)
+   #if TEXTURES==2
    {
       #if BUMP_MODE>=SBUMP_PARALLAX_MIN && BUMP_MODE<=SBUMP_PARALLAX_MAX // Parallax
       {
@@ -333,6 +334,7 @@ void PS
       }
       #endif
    }
+   #endif
 
    VecH4 tex_nrm; // #MaterialTextureChannelOrder
    if(TEXTURES==0)
@@ -721,9 +723,12 @@ VS_PS HS
 )
 {
    VS_PS O;
-                         O.pos=I[cp_id].pos;
-                         O.vel=I[cp_id].vel;
-   if(TEXTURES || DETAIL)O.tex=I[cp_id].tex;
+   O.pos=I[cp_id].pos;
+   O.vel=I[cp_id].vel;
+
+#if TEXTURES || DETAIL
+   O.tex=I[cp_id].tex;
+#endif
 
 #if   BUMP_MODE> SBUMP_FLAT
    O.mtrx=I[cp_id].mtrx;
@@ -759,15 +764,18 @@ void DS
    out Vec4  O_vtx:POSITION
 )
 {
-                         O.vel=I[0].vel*B.z + I[1].vel*B.x + I[2].vel*B.y;
-   if(TEXTURES || DETAIL)O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
-
 #if   BUMP_MODE> SBUMP_FLAT
    O.mtrx[0]=I[0].mtrx[0]*B.z + I[1].mtrx[0]*B.x + I[2].mtrx[0]*B.y;
    O.mtrx[1]=I[0].mtrx[1]*B.z + I[1].mtrx[1]*B.x + I[2].mtrx[1]*B.y;
    SetDSPosNrm(O.pos, O.mtrx[2], I[0].pos, I[1].pos, I[2].pos, I[0].Nrm(), I[1].Nrm(), I[2].Nrm(), B, hs_data, false, 0);
 #elif BUMP_MODE==SBUMP_FLAT
    SetDSPosNrm(O.pos, O.nrm    , I[0].pos, I[1].pos, I[2].pos, I[0].Nrm(), I[1].Nrm(), I[2].Nrm(), B, hs_data, false, 0);
+#endif
+
+   O.vel=I[0].vel*B.z + I[1].vel*B.x + I[2].vel*B.y;
+
+#if TEXTURES || DETAIL
+   O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
 #endif
 
 #if MATERIALS>1

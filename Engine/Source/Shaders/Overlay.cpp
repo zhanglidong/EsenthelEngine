@@ -8,9 +8,9 @@ void VS
 (
    VtxInput vtx,
 
-   out Vec     outTex   :TEXCOORD0, // xy=uv, z=alpha
+   out Vec     outTex   :TEXCOORD, // xy=uv, z=alpha
 #if NORMALS
-   out Matrix3 outMatrix:TEXCOORD1,
+   out Matrix3 outMatrix:MATRIX,
 #endif
    out Vec4    outVtx   :POSITION
 )
@@ -49,9 +49,9 @@ void VS
 /******************************************************************************/
 VecH4 PS
 (
-     Vec      inTex   :TEXCOORD0
+     Vec      inTex   :TEXCOORD
 #if NORMALS
- ,   Matrix3  inMatrix:TEXCOORD1
+ ,   Matrix3  inMatrix:MATRIX
  , out VecH4 outNrm   :TARGET1
 #endif
 ):TARGET

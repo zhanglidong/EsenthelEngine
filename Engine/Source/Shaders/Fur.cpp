@@ -11,14 +11,14 @@ void Base_VS
 (
    VtxInput vtx,
 
-   out Vec2 outTex:TEXCOORD0,
-   out VecH outNrm:TEXCOORD1, // !! not Normalized !!
-   out Vec  outPos:TEXCOORD2,
-   out Vec  outVel:TEXCOORD3,
+   out Vec2 outTex:TEXCOORD,
+   out VecH outNrm:NORMAL  , // !! not Normalized !!
+   out Vec  outPos:POS     ,
+   out Vec  outVel:VELOCITY,
 #if SIZE
-   out Half outLen:TEXCOORD4,
+   out Half outLen:LENGTH  ,
 #endif
-   out Vec4 outVtx:POSITION ,
+   out Vec4 outVtx:POSITION,
 
    CLIP_DIST
 )
@@ -56,12 +56,12 @@ void Base_VS
 /******************************************************************************/
 void Base_PS
 (
-   Vec2 inTex:TEXCOORD0,
-   VecH inNrm:TEXCOORD1,
-   Vec  inPos:TEXCOORD2,
-   Vec  inVel:TEXCOORD3,
+   Vec2 inTex:TEXCOORD,
+   VecH inNrm:NORMAL  ,
+   Vec  inPos:POS     ,
+   Vec  inVel:VELOCITY,
 #if SIZE
-   Half inLen:TEXCOORD4,
+   Half inLen:LENGTH  ,
 #endif
 
    out DeferredSolidOutput output
@@ -89,10 +89,10 @@ void Soft_VS
 (
    VtxInput vtx,
 
-   out Vec2 outTex :TEXCOORD0,
-   out Vec4 outPos4:TEXCOORD1,
+   out Vec2 outTex :TEXCOORD,
+   out Vec4 outPos4:POS4    ,
 #if SIZE
-   out Half outLen :TEXCOORD2,
+   out Half outLen :LENGTH  ,
 #endif
    out Vec4 outVtx :POSITION
 )
@@ -123,10 +123,10 @@ void Soft_VS
 /******************************************************************************/
 VecH4 Soft_PS
 (
-   Vec2 inTex :TEXCOORD0,
-   Vec4 inPos4:TEXCOORD1
+   Vec2 inTex :TEXCOORD,
+   Vec4 inPos4:POS4
 #if SIZE
- , Half inLen :TEXCOORD2
+ , Half inLen :LENGTH
 #endif
 ):TARGET
 {

@@ -6,11 +6,11 @@ SKIN, TEXTURES, TESSELATE
 struct VS_PS
 {
 #if TESSELATE
-   Vec  pos:TEXCOORD1;
-   VecH nrm:TEXCOORD2;
+   Vec  pos:POS;
+   VecH nrm:NORMAL;
 #endif
 #if TEXTURES
-   Vec2 tex:TEXCOORD0;
+   Vec2 tex:TEXCOORD;
 #endif
 };
 /******************************************************************************/

@@ -7,12 +7,12 @@ void VS
 (
    VtxInput vtx,
 
-   out Vec4 outVtx:POSITION ,
+   out Vec4 outVtx:POSITION,
 #if TEXTURES
-   out Vec2 outTex:TEXCOORD0,
+   out Vec2 outTex:TEXCOORD,
 #endif
-   out VecH outNrm:TEXCOORD1, // !! not Normalized !!
-   out Vec  outPos:TEXCOORD2
+   out VecH outNrm:NORMAL, // !! not Normalized !!
+   out Vec  outPos:POS
 )
 {
 #if TEXTURES
@@ -35,10 +35,10 @@ VecH4 PS
 (
    PIXEL,
 #if TEXTURES
-   Vec2 inTex:TEXCOORD0,
+   Vec2 inTex:TEXCOORD,
 #endif
-   VecH inNrm:TEXCOORD1,
-   Vec  inPos:TEXCOORD2
+   VecH inNrm:NORMAL,
+   Vec  inPos:POS
 ):TARGET
 {
 #if TEXTURES
