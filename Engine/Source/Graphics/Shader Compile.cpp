@@ -1590,7 +1590,7 @@ Bool ShaderFile::load(C Str &name)
                if(DEBUG)TestBuffer(temp_str, sb.explicit_bind_slot);
             }else // verify if it's identical to previously created
             {
-               if(sb.size()!=f.decUIntV())ExitParam(temp_str, name);
+               if(sb.full_size!=f.decUIntV())ExitParam(temp_str, name);
                sb.bindCheck(f.getSByte());
             }
 

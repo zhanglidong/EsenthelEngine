@@ -166,22 +166,25 @@ struct ShaderBuffer // Constant Buffer
       // intentionally keep copy constructor as raw member copy, because we expect this behavior
    };
 
-   Buffer       buffer; // keep this is first member because it's used most often
-   Byte        *data;
-   Bool         changed;
-   SByte        explicit_bind_slot; // -1=any available
+   Buffer buffer; // keep this is first member because it's used most often
+   Byte  *data=null;
+   Bool   changed=false;
+   SByte  explicit_bind_slot=-1; // -1=any available
+   Int    full_size=0; // remember full size, because 'buffer.size' can be dynamically adjusted
+
+#if DX11
    Mems<Buffer> parts;
+   void      setPart (Int part );
+   void   createParts(C Int *elms, Int elms_num);
+#endif
 
-   Bool is         ()C {return buffer.is();}
-   Int  size       ()C {return parts.elms() ? parts[0].size : buffer.size;} // first part always has the full size, so use it if available, because 'buffer' can be set to a smaller part
-   void create     (Int size );
-   void update     (         );
-   void bind       (Int index);
-   void bindCheck  (Int index);
-   void    setPart (Int part );
-   void createParts(C Int *elms, Int elms_num);
+   Bool is       ()C {return buffer.is();}
+   void create   (Int size );
+   void update   (         );
+   void bind     (Int index);
+   void bindCheck(Int index);
 
-   ShaderBuffer();
+   ShaderBuffer() {}
   ~ShaderBuffer();
 
    NO_COPY_CONSTRUCTOR(ShaderBuffer);

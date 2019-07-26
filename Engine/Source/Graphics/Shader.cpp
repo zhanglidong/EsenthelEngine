@@ -321,19 +321,17 @@ void ShaderBuffer::Buffer::create(Int size)
 /******************************************************************************/
 ShaderBuffer::~ShaderBuffer()
 {
+#if DX11
    if(parts.elms())buffer.zero(); // if we have any 'parts', then 'buffer' does not own the resources, so just zero it, and they will be released in the 'parts' container
+#endif
    Free(data);
-}
-ShaderBuffer::ShaderBuffer()
-{
-   changed=false;
-   data   =null;
 }
 void ShaderBuffer::create(Int size) // no locks needed because this is called only in shader loading, and there 'ShaderBuffers.lock' is called
 {
    buffer.create(size);
    AllocZero(data, Ceil4(size+SIZEI(Vec4))); // add extra "Vec4 padd" at the end, because all 'ShaderParam.set' for performance reasons assume that there is at least SIZE(Vec4) size, use "+" instead of "Max" in case we have "Flt p[2]" and we call 'ShaderParam.set(Vec4)' for ShaderParam created from "p[1]" which would overwrite "p[1..4]", and do 'Ceil4' because 'COPY' is used which copies 'Ceil4'
    changed=true;
+   full_size=buffer.size;
 }
 void ShaderBuffer::update()
 {
@@ -389,6 +387,7 @@ void ShaderBuffer::bindCheck(Int index)
 #endif
    Exit(S+"ShaderBuffer was expected to be bound at slot "+index);
 }
+#if DX11
 void ShaderBuffer::setPart(Int part)
 {
    buffer =parts[part]; // perform a raw copy
@@ -396,10 +395,11 @@ void ShaderBuffer::setPart(Int part)
 }
 void ShaderBuffer::createParts(C Int *elms, Int elms_num)
 {
-   Int elm_size=buffer.size/elms[0];
+   Int elm_size=full_size/elms[0];
    parts.setNum(elms_num);          parts[0]=buffer; // store a raw copy of the buffer that was already created in the first slot, so we can keep it as backup and use later
    for(Int i=1; i<parts.elms(); i++)parts[i].create(elm_size*elms[i]);
 }
+#endif
 /******************************************************************************/
 // SHADER PARAM
 /******************************************************************************/
@@ -1464,9 +1464,9 @@ void InitMatrix()
    DYNAMIC_ASSERT(Sh.ObjVel    ->_cpu_data_size==SIZE(Vec      )*MAX_MATRIX, "Unexpected size of ObjVel"); // #VelAngVel
    DYNAMIC_ASSERT(Sh.FurVel    ->_cpu_data_size==SIZE(Vec      )*MAX_MATRIX, "Unexpected size of FurVel");
 
-   SBObjMatrix=GetShaderBuffer("ObjMatrix"); DYNAMIC_ASSERT(SBObjMatrix->size()==SIZE(GpuMatrix)*MAX_MATRIX, "Unexpected size of ObjMatrix");
-   SBObjVel   =GetShaderBuffer("ObjVel"   ); DYNAMIC_ASSERT(SBObjVel   ->size()==SIZE(Vec4     )*MAX_MATRIX, "Unexpected size of ObjVel"   ); // #VelAngVel
-   SBFurVel   =GetShaderBuffer("FurVel"   ); DYNAMIC_ASSERT(SBFurVel   ->size()==SIZE(Vec4     )*MAX_MATRIX, "Unexpected size of FurVel"   );
+   SBObjMatrix=GetShaderBuffer("ObjMatrix"); DYNAMIC_ASSERT(SBObjMatrix->full_size==SIZE(GpuMatrix)*MAX_MATRIX, "Unexpected size of ObjMatrix");
+   SBObjVel   =GetShaderBuffer("ObjVel"   ); DYNAMIC_ASSERT(SBObjVel   ->full_size==SIZE(Vec4     )*MAX_MATRIX, "Unexpected size of ObjVel"   ); // #VelAngVel
+   SBFurVel   =GetShaderBuffer("FurVel"   ); DYNAMIC_ASSERT(SBFurVel   ->full_size==SIZE(Vec4     )*MAX_MATRIX, "Unexpected size of FurVel"   );
 
 #if DX11
    const Int parts[]={MAX_MATRIX, 192, 160, 128, 96, 80, 64, 56, 48, 32, 16, 8, 1}; // start from the biggest, because 'ShaderBuffer.size' uses it as the total size
