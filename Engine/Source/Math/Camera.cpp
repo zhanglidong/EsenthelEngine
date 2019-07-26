@@ -395,86 +395,76 @@ void ScreenToPosDir(C Vec2 &screen, VecD &pos, Vec &dir)
    }
 }
 /******************************************************************************/
+#define NO_BRANCH 1
 static Bool ToScreenRect(C Vec *point, Int points, Rect &rect)
 {
-   Bool in=false;
+   Bool in=false; if(NO_BRANCH)rect.set(FLT_MAX, FLT_MAX, -FLT_MAX, -FLT_MAX);
    Vec2 screen;
    REP(points)if(PosToScreen(point[i], screen))
    {
-      if(in)rect|=screen;
-      else  rect =screen;
-      in=true;
+      if(NO_BRANCH || in)rect|=screen;else{rect=screen; in=true;}
    }
-   return in;
+   return NO_BRANCH ? rect.validX() : in;
 }
 static Bool ToScreenRect(C Vec *point, C VecI2 *edge, Int edges, Rect &rect)
 {
-   Bool in  =false;
+   Bool in  =false; if(NO_BRANCH)rect.set(FLT_MAX, FLT_MAX, -FLT_MAX, -FLT_MAX);
    Vec  from=CamMatrix.pos+CamMatrix.z*D.viewFromActual();
+   Flt  dist=DistPointPlane(from, CamMatrix.z);
    REP(edges)
    {
-      Edge e(point[edge[i].x], point[edge[i].y]);
-      Flt  d0=DistPointPlane(e.p[0], from, CamMatrix.z),
-           d1=DistPointPlane(e.p[1], from, CamMatrix.z);
-      Int  s0=Sign(d0),
-           s1=Sign(d1);
-      if(s0>0 || s1>0)
+    C VecI2 &e =edge[i];
+    C Vec   &e0=point[e.x], &e1=point[e.y];
+      Flt    d0=DistPointPlane(e0, CamMatrix.z)-dist,
+             d1=DistPointPlane(e1, CamMatrix.z)-dist;
+      if(d0>=0 || d1>=0)
       {
-         if(s0<0)e.p[0]=PointOnPlane(e.p[0], e.p[1], d0, d1);else
-         if(s1<0)e.p[1]=PointOnPlane(e.p[0], e.p[1], d0, d1);
          Vec2 screen;
-         PosToScreen(e.p[0], screen); if(in)rect|=screen;else rect=screen;
-         PosToScreen(e.p[1], screen);       rect|=screen;
-         in=true;
+         PosToScreen((d0<0) ? PointOnPlane(e0, e1, d0, d1) : e0, screen); if(NO_BRANCH || in)rect|=screen;else{rect=screen; in=true;}
+         PosToScreen((d1<0) ? PointOnPlane(e0, e1, d0, d1) : e1, screen);                    rect|=screen;
       }
    }
-   return in;
+   return NO_BRANCH ? rect.validX() : in;
 }
 static Bool ToFullScreenRect(C Vec *point, C VecI2 *edge, Int edges, Rect &rect)
 {
-   Bool in  =false;
+   Bool in  =false; if(NO_BRANCH)rect.set(FLT_MAX, FLT_MAX, -FLT_MAX, -FLT_MAX);
    Vec  from=CamMatrix.pos+CamMatrix.z*D.viewFromActual();
+   Flt  dist=DistPointPlane(from, CamMatrix.z);
    REP(edges)
    {
-      Edge e(point[edge[i].x], point[edge[i].y]);
-      Flt  d0=DistPointPlane(e.p[0], from, CamMatrix.z),
-           d1=DistPointPlane(e.p[1], from, CamMatrix.z);
-      Int  s0=Sign(d0),
-           s1=Sign(d1);
-      if(s0>0 || s1>0)
+    C VecI2 &e =edge[i];
+    C Vec   &e0=point[e.x], &e1=point[e.y];
+      Flt    d0=DistPointPlane(e0, CamMatrix.z)-dist,
+             d1=DistPointPlane(e1, CamMatrix.z)-dist;
+      if(d0>=0 || d1>=0)
       {
-         if(s0<0)e.p[0]=PointOnPlane(e.p[0], e.p[1], d0, d1);else
-         if(s1<0)e.p[1]=PointOnPlane(e.p[0], e.p[1], d0, d1);
          Vec2 screen;
-         PosToFullScreen(e.p[0], screen); if(in)rect|=screen;else rect=screen;
-         PosToFullScreen(e.p[1], screen);       rect|=screen;
-         in=true;
+         PosToScreen((d0<0) ? PointOnPlane(e0, e1, d0, d1) : e0, screen); if(NO_BRANCH || in)rect|=screen;else{rect=screen; in=true;}
+         PosToScreen((d1<0) ? PointOnPlane(e0, e1, d0, d1) : e1, screen);                    rect|=screen;
       }
    }
-   return in;
+   return NO_BRANCH ? rect.validX() : in;
 }
 static Bool ToFullScreenRect(C VecD *point, C VecI2 *edge, Int edges, Rect &rect)
 {
-   Bool in  =false;
+   Bool in  =false; if(NO_BRANCH)rect.set(FLT_MAX, FLT_MAX, -FLT_MAX, -FLT_MAX);
    VecD from=CamMatrix.pos+CamMatrix.z*D.viewFromActual();
+   Dbl  dist=DistPointPlane(from, CamMatrix.z);
    REP(edges)
    {
-      EdgeD e(point[edge[i].x], point[edge[i].y]);
-      Dbl   d0=DistPointPlane(e.p[0], from, CamMatrix.z),
-            d1=DistPointPlane(e.p[1], from, CamMatrix.z);
-      Int   s0=Sign(d0),
-            s1=Sign(d1);
-      if(s0>0 || s1>0)
+    C VecI2 &e =edge[i];
+    C VecD  &e0=point[e.x], &e1=point[e.y];
+      Dbl    d0=DistPointPlane(e0, CamMatrix.z)-dist,
+             d1=DistPointPlane(e1, CamMatrix.z)-dist;
+      if(d0>=0 || d1>=0)
       {
-         if(s0<0)e.p[0]=PointOnPlane(e.p[0], e.p[1], d0, d1);else
-         if(s1<0)e.p[1]=PointOnPlane(e.p[0], e.p[1], d0, d1);
          Vec2 screen;
-         PosToFullScreen(e.p[0], screen); if(in)rect|=screen;else rect=screen;
-         PosToFullScreen(e.p[1], screen);       rect|=screen;
-         in=true;
+         PosToScreen((d0<0) ? PointOnPlane(e0, e1, d0, d1) : e0, screen); if(NO_BRANCH || in)rect|=screen;else{rect=screen; in=true;}
+         PosToScreen((d1<0) ? PointOnPlane(e0, e1, d0, d1) : e1, screen);                    rect|=screen;
       }
    }
-   return in;
+   return NO_BRANCH ? rect.validX() : in;
 }
 static const VecI2 BoxEdges[]=
 {
@@ -817,15 +807,15 @@ Bool ToScreenRect(C Shape &shape, Rect &rect)
 }
 Bool ToScreenRect(C Shape *shape, Int shapes, Rect &rect)
 {
-   Bool in=false;
+   Bool in=false; if(NO_BRANCH)rect.set(FLT_MAX, FLT_MAX, -FLT_MAX, -FLT_MAX);
    REP(shapes)
    {
       Rect r; if(ToScreenRect(shape[i], r))
       {
-         if(!in){in=true; rect=r;}else rect|=r;
+         if(NO_BRANCH || in)rect|=r;else{rect=r; in=true;}
       }
    }
-   return in;
+   return NO_BRANCH ? rect.validX() : in;
 }
 /******************************************************************************/
 Int CompareTransparencyOrderDepth(C Vec &pos_a, C Vec &pos_b)

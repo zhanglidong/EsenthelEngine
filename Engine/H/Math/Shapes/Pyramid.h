@@ -46,6 +46,18 @@ struct PyramidM : OrientM // Pyramid Shape (mixed precision)
    // set
    PyramidM& set(Flt scale, Flt h, C VecD &pos=0, C Vec &dir=Vec(0,1,0)) {T.scale=scale; T.h=h; setPosDir(pos, dir); return T;} // 'dir' must be normalized
 
+   // get
+   Flt side  ()C {return scale*h*2;} // get pyramid side size
+   Flt area  ()C;                    // get surface area
+   Flt volume()C;                    // get volume
+
+   Str asText()C {return S+"Scale: "+scale+", Height: "+h+", Pos: "+pos+", Dir: "+dir;} // get text description
+
+   void toCorners(VecD (&v)[5])C; // convert to 5 corner points, where v[0] is the pyramid tip, and v[1..4] are the pyramid base
+
+   // draw
+   void draw(Color color=WHITE, Bool fill=false)C; // this relies on active object matrix which can be set using 'SetMatrix' function
+
    PyramidM() {}
    PyramidM(Flt scale, Flt h, C VecD &pos=0, C Vec &dir=Vec(0,1,0)) {set(scale, h, pos, dir);} // 'dir' must be normalized
 };
