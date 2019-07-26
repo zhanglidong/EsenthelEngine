@@ -64,10 +64,10 @@ struct MainShaderClass
       *Material        ,
       *MultiMaterial[4],
 
-      *Light_dir   ,
-      *Light_point ,
-      *Light_linear,
-      *Light_cone  ,
+      *LightDir   ,
+      *LightPoint ,
+      *LightLinear,
+      *LightCone  ,
 
       *Step         ,
       *Color[2]     ,
@@ -287,14 +287,14 @@ struct MainShaderClass
 
    // LIGHT
    Shader
-      *LightDir   [2][2][2]   , // [Shadow] [MultiSample] [QualityUnpack]
-      *LightPoint [2][2][2]   , // [Shadow] [MultiSample] [QualityUnpack]
-      *LightLinear[2][2][2]   , // [Shadow] [MultiSample] [QualityUnpack]
-      *LightCone  [2][2][2][2]; // [Shadow] [MultiSample] [QualityUnpack] [Image]
-   Shader* getLightDir   (Bool shadow, Bool multi_sample, Bool quality);
-   Shader* getLightPoint (Bool shadow, Bool multi_sample, Bool quality);
-   Shader* getLightLinear(Bool shadow, Bool multi_sample, Bool quality);
-   Shader* getLightCone  (Bool shadow, Bool multi_sample, Bool quality, Bool image);
+      *DrawLightDir   [2][2][2]   , // [Shadow] [MultiSample] [QualityUnpack]
+      *DrawLightPoint [2][2][2]   , // [Shadow] [MultiSample] [QualityUnpack]
+      *DrawLightLinear[2][2][2]   , // [Shadow] [MultiSample] [QualityUnpack]
+      *DrawLightCone  [2][2][2][2]; // [Shadow] [MultiSample] [QualityUnpack] [Image]
+   Shader* getDrawLightDir   (Bool shadow, Bool multi_sample, Bool quality);
+   Shader* getDrawLightPoint (Bool shadow, Bool multi_sample, Bool quality);
+   Shader* getDrawLightLinear(Bool shadow, Bool multi_sample, Bool quality);
+   Shader* getDrawLightCone  (Bool shadow, Bool multi_sample, Bool quality, Bool image);
 
    // APPLY LIGHT
    Shader

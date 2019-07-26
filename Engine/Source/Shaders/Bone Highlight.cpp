@@ -45,8 +45,8 @@ VecH4 PS(VS_PS I, IS_FRONT):TARGET
    // perform lighting
 #if BUMP_MODE>=SBUMP_FLAT
    VecH nrm=Normalize(I.nrm); BackFlip(nrm, front);
-   Half d  =Sat(Dot(nrm, Light_dir.dir));
-   VecH lum=Light_dir.color.rgb*d + AmbNSColor;
+   Half d  =Sat(Dot(nrm, LightDir.dir));
+   VecH lum=LightDir.color.rgb*d + AmbNSColor;
    I.col.rgb*=lum;
 #endif
 

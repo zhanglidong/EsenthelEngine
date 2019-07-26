@@ -205,12 +205,12 @@ void Surface_PS
       Half shd; if(SHADOW)shd=Sat(ShadowDirValue(inPos, ShadowJitter(pixel.xy), true, SHADOW, false));
 
       // diffuse
-      Half diffuse=LightDiffuse(view_nrm, Light_dir.dir); if(SHADOW)diffuse*=shd;
+      Half diffuse=LightDiffuse(view_nrm, LightDir.dir); if(SHADOW)diffuse*=shd;
 
       // specular
-      Half specular=LightSpecular(view_nrm, WaterSpc, Light_dir.dir, -view); if(SHADOW)specular*=shd;
+      Half specular=LightSpecular(view_nrm, WaterSpc, LightDir.dir, -view); if(SHADOW)specular*=shd;
 
-      lum=VecH4(Light_dir.color.rgb*diffuse, Light_dir.color.a*specular);
+      lum=VecH4(LightDir.color.rgb*diffuse, LightDir.color.a*specular);
    }
 
    // col light

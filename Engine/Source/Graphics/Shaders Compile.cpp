@@ -11,14 +11,14 @@ namespace EE{
    #define COMPILE_GL 0
 #endif
 
-/**
+/**/
 #define MAIN
 
 #define DEFERRED
 #define BLEND_LIGHT
 //#define FORWARD
 
-/*#define AMBIENT
+#define AMBIENT
 #define AMBIENT_OCCLUSION
 #define BEHIND
 #define BLEND
@@ -59,28 +59,6 @@ Str8 ShaderOverlay   (Int skin, Int normal) {return S8+skin+normal;}
 Str8 ShaderPosition  (Int skin, Int textures, Int test_blend, Int fx, Int tesselate) {return S8+skin+textures+test_blend+fx+tesselate;}
 Str8 ShaderSetColor  (Int skin, Int textures, Int tesselate) {return S8+skin+textures+tesselate;}
 Str8 ShaderTattoo    (Int skin, Int tesselate) {return S8+skin+tesselate;}
-/*FIXME
-static Str TechForward(Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tess)
-{
-   Str params=            S+skin+','+materials+','+textures+','+bump_mode+','+alpha_test+','+light_map+','+detail+','+rflct+','+color+','+mtrl_blend+','+heightmap+','+fx+','   +light_dir+','+light_dir_shd+','+light_dir_shd_num+   ','+light_point+','+light_point_shd+   ','+light_linear+','+light_linear_shd+   ','+light_cone+','+light_cone_shd+','+tess,
-       name  =ShaderForward(skin  ,  materials  ,  textures  ,  bump_mode  ,  alpha_test  ,  light_map  ,  detail  ,  rflct  ,  color  ,  mtrl_blend  ,  heightmap  ,  fx  ,     light_dir  ,  light_dir_shd  ,  light_dir_shd_num     ,  light_point  ,  light_point_shd     ,  light_linear  ,  light_linear_shd     ,  light_cone  ,  light_cone_shd  ,  tess);
-   return tess ? S+"TECHNIQUE_TESSELATION("+name+", VS("+params+"), PS("+params+"), HS("+params+"), DS("+params+"));"
-               : S+"TECHNIQUE            ("+name+", VS("+params+"), PS("+params+")                                );";
-}
-static Str TechForwardLight(Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int rflct, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tess)
-{
-   Str names;
-   REPD(shd, 2)
-   {
-      if(shd)for(Int maps=2; maps<=6; maps+=2) // 2, 4, 6 maps
-      names+=TechForward(skin, materials, textures, bump_mode, alpha_test, light_map, detail, rflct, color, mtrl_blend, heightmap, fx,   true ,shd  ,maps,  false,false,  false,false,  false,false,  tess);else // light dir with shadow maps
-      names+=TechForward(skin, materials, textures, bump_mode, alpha_test, light_map, detail, rflct, color, mtrl_blend, heightmap, fx,   true ,false,   0,  false,false,  false,false,  false,false,  tess);     // light dir no   shadow
-      names+=TechForward(skin, materials, textures, bump_mode, alpha_test, light_map, detail, rflct, color, mtrl_blend, heightmap, fx,   false,false,   0,  true ,shd  ,  false,false,  false,false,  tess);     // light point
-      names+=TechForward(skin, materials, textures, bump_mode, alpha_test, light_map, detail, rflct, color, mtrl_blend, heightmap, fx,   false,false,   0,  false,false,  true ,shd  ,  false,false,  tess);     // light sqr
-      names+=TechForward(skin, materials, textures, bump_mode, alpha_test, light_map, detail, rflct, color, mtrl_blend, heightmap, fx,   false,false,   0,  false,false,  false,false,  true ,shd  ,  tess);     // light cone
-   }  names+=TechForward(skin, materials, textures, bump_mode, alpha_test, light_map, detail, rflct, color, mtrl_blend, heightmap, fx,   false,false,   0,  false,false,  false,false,  false,false,  tess);     // no light
-   return names;
-}
 /******************************************************************************/
 #if COMPILE_DX || COMPILE_GL
 /******************************************************************************/
@@ -257,10 +235,10 @@ static void Compile(API api)
       REPD(multi_sample, ms ? 2 : 1)
       REPD(quality     , multi_sample ? 1 : 2) // no Quality version for MSAA
       {
-                       src.New("LightDir"   , "DrawPosXY_VS", "LightDir_PS"   ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality);
-                       src.New("LightPoint" , "DrawPosXY_VS", "LightPoint_PS" ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality);
-                       src.New("LightLinear", "DrawPosXY_VS", "LightLinear_PS").multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality);
-         REPD(image, 2)src.New("LightCone"  , "DrawPosXY_VS", "LightCone_PS"  ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality, "IMAGE", image);
+                       src.New("DrawLightDir"   , "DrawPosXY_VS", "LightDir_PS"   ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality);
+                       src.New("DrawLightPoint" , "DrawPosXY_VS", "LightPoint_PS" ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality);
+                       src.New("DrawLightLinear", "DrawPosXY_VS", "LightLinear_PS").multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality);
+         REPD(image, 2)src.New("DrawLightCone"  , "DrawPosXY_VS", "LightCone_PS"  ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality, "IMAGE", image);
       }
    }
    { // LIGHT APPLY
@@ -770,11 +748,12 @@ static void Compile(API api)
 
 #ifdef FORWARD
 {
-   Str names;
+   ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Forward", model, api).New(src_path+"Forward.cpp");
 
    // zero
    REPD(skin , 2)
-   REPD(color, 2)names+=TechForward(skin, 1, 0, SBUMP_ZERO, false, false, false, false, color, false, false, FX_NONE, false,   false,false,0,   false,false,   false,false,   false,false,   false);
+   REPD(color, 2)
+      src.forward(skin, 1, 0, SBUMP_ZERO, false, false, false, false, color, false, false, FX_NONE, false,   false,false,0,   false,false,   false,false,   false,false,   false);
 
    REPD(tesselate, tess ? 2 : 1)
    REPD(heightmap, 2)
@@ -789,7 +768,7 @@ static void Compile(API api)
       REPD(alpha_test, (!heightmap && textures   ) ? 2 : 1)
       REPD(light_map , (!heightmap && textures   ) ? 2 : 1)
       REPD(detail    , 2)
-         names+=TechForwardLight(skin, 1, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, light_map, detail, reflect, color, false, heightmap, FX_NONE, per_pixel, tesselate);
+         src.forwardLight(skin, 1, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, light_map, detail, reflect, color, false, heightmap, FX_NONE, per_pixel, tesselate);
 
       // 2-4 materials, 1-2 textures
    #if MULTI_MATERIAL
@@ -797,7 +776,7 @@ static void Compile(API api)
       for(Int materials=2; materials<=MAX_MTRLS; materials++)
       for(Int textures =1; textures <=2        ; textures ++)
       REPD(bump_mode, (per_pixel && textures==2) ? 2 : 1)
-         names+=TechForwardLight(false, materials, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, false, false, false, reflect, color, mtrl_blend, heightmap, FX_NONE, per_pixel, tesselate);
+         src.forwardLight(false, materials, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, false, false, false, reflect, color, mtrl_blend, heightmap, FX_NONE, per_pixel, tesselate);
    #endif
    }
 
@@ -807,9 +786,7 @@ static void Compile(API api)
    REPD (bump_mode, (per_pixel && textures==2) ? 2 : 1)
    REPD (color    , 2)
    REPAD(fx       , fxs)
-      names+=TechForwardLight(false, 1, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, true, false, false, false, color, false, false, fxs[fx], per_pixel, false);
-
-   Add(src_path+"Forward.cpp", dest_path+"Forward", api, model, names);
+      src.forwardLight(false, 1, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, true, false, false, false, color, false, false, fxs[fx], per_pixel, false);
 }
 #endif
 }

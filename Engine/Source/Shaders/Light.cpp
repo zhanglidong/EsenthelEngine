@@ -29,13 +29,13 @@ VecH4 LightDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 #endif
 
    // diffuse
-   Half lum=LightDiffuse(nrm.xyz, Light_dir.dir); if(SHADOW)lum*=shd; clip(lum-EPS_LUM);
+   Half lum=LightDiffuse(nrm.xyz, LightDir.dir); if(SHADOW)lum*=shd; clip(lum-EPS_LUM);
 
    // specular
    VecH eye_dir =Normalize    (-Vec(inPosXY, 1));
-   Half specular=LightSpecular(nrm.xyz, nrm.w, Light_dir.dir, eye_dir); if(SHADOW)specular*=shd;
+   Half specular=LightSpecular(nrm.xyz, nrm.w, LightDir.dir, eye_dir); if(SHADOW)specular*=shd;
 
-   return VecH4(Light_dir.color.rgb*lum, Light_dir.color.a*specular);
+   return VecH4(LightDir.color.rgb*lum, LightDir.color.a*specular);
 }
 /******************************************************************************/
 VecH4 LightPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
@@ -59,7 +59,7 @@ VecH4 LightPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 #else
    Vec pos=GetPosPoint(inTex, inPosXY);
 #endif
-   Vec  delta=Light_point.pos-pos; Flt inv_dist2=1/Length2(delta);
+   Vec  delta=LightPoint.pos-pos; Flt inv_dist2=1/Length2(delta);
    Half power=LightPointDist(inv_dist2); if(SHADOW)power*=shd; clip(power-EPS_LUM);
 
    // normal
@@ -77,7 +77,7 @@ VecH4 LightPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    VecH eye_dir =Normalize    (-pos);
    Half specular=LightSpecular( nrm.xyz, nrm.w, light_dir, eye_dir)*power;
 
-   return VecH4(Light_point.color.rgb*lum, Light_point.color.a*specular);
+   return VecH4(LightPoint.color.rgb*lum, LightPoint.color.a*specular);
 }
 /******************************************************************************/
 VecH4 LightLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
@@ -101,7 +101,7 @@ VecH4 LightLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 #else
    Vec pos=GetPosPoint(inTex, inPosXY);
 #endif
-   Vec  delta=Light_linear.pos-pos; Flt dist=Length(delta);
+   Vec  delta=LightLinear.pos-pos; Flt dist=Length(delta);
    Half power=LightLinearDist(dist); if(SHADOW)power*=shd; clip(power-EPS_LUM);
 
    // normal
@@ -119,7 +119,7 @@ VecH4 LightLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    VecH eye_dir =Normalize    (-pos);
    Half specular=LightSpecular( nrm.xyz, nrm.w, light_dir, eye_dir)*power;
 
-   return VecH4(Light_linear.color.rgb*lum, Light_linear.color.a*specular);
+   return VecH4(LightLinear.color.rgb*lum, LightLinear.color.a*specular);
 }
 /******************************************************************************/
 VecH4 LightCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
@@ -143,8 +143,8 @@ VecH4 LightCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 #else
    Vec pos=GetPosPoint(inTex, inPosXY);
 #endif
-   Vec  delta=Light_cone.pos-pos,
-        dir  =TransformTP(delta, Light_cone.mtrx); dir.xy/=dir.z; clip(Vec(1-Abs(dir.xy), dir.z));
+   Vec  delta=LightCone.pos-pos,
+        dir  =TransformTP(delta, LightCone.mtrx); dir.xy/=dir.z; clip(Vec(1-Abs(dir.xy), dir.z));
    Flt  dist =Length(delta);
    Half power=LightConeAngle(dir.xy)*LightConeDist(dist); if(SHADOW)power*=shd; clip(power-EPS_LUM);
 
@@ -165,9 +165,9 @@ VecH4 LightCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
 #if IMAGE
    VecH map_col=Tex(Img1, dir.xy*(LightMapScale*0.5)+0.5).rgb;
-   return VecH4(Light_cone.color.rgb*lum*map_col, Light_cone.color.a*specular);
+   return VecH4(LightCone.color.rgb*lum*map_col, LightCone.color.a*specular);
 #else
-   return VecH4(Light_cone.color.rgb*lum, Light_cone.color.a*specular);
+   return VecH4(LightCone.color.rgb*lum, LightCone.color.a*specular);
 #endif
 }
 /******************************************************************************/

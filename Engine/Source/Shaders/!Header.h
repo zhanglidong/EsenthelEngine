@@ -1419,14 +1419,14 @@ inline Half MultiMaterialWeight(Half weight, Half alpha) // 'weight'=weight of t
 // LIGHTS
 /******************************************************************************/
 #include "!Set HP.h"
-struct LIGHT_DIR
+struct GpuLightDir
 {
    VecH  dir;
    VecH4 color; // a=spec
    VecH  vol_exponent_steam;
 };
 
-struct LIGHT_POINT
+struct GpuLightPoint
 {
    Flt   power;
    Half  lum_max, vol, vol_max;
@@ -1434,7 +1434,7 @@ struct LIGHT_POINT
    VecH4 color; // a=spec
 };
 
-struct LIGHT_LINEAR
+struct GpuLightLinear
 {
    Flt   neg_inv_range;
    Half  vol, vol_max;
@@ -1442,7 +1442,7 @@ struct LIGHT_LINEAR
    VecH4 color; // a=spec
 };
 
-struct LIGHT_CONE
+struct GpuLightCone
 {
    Flt      neg_inv_range;
    Half     scale, vol, vol_max;
@@ -1453,15 +1453,15 @@ struct LIGHT_CONE
 };
 #include "!Set LP.h"
 
-BUFFER(LightDir   ) LIGHT_DIR    Light_dir   ; BUFFER_END
-BUFFER(LightPoint ) LIGHT_POINT  Light_point ; BUFFER_END
-BUFFER(LightLinear) LIGHT_LINEAR Light_linear; BUFFER_END
-BUFFER(LightCone  ) LIGHT_CONE   Light_cone  ; BUFFER_END
+BUFFER(LightDir   ) GpuLightDir    LightDir   ; BUFFER_END
+BUFFER(LightPoint ) GpuLightPoint  LightPoint ; BUFFER_END
+BUFFER(LightLinear) GpuLightLinear LightLinear; BUFFER_END
+BUFFER(LightCone  ) GpuLightCone   LightCone  ; BUFFER_END
 /******************************************************************************/
-inline Half LightPointDist (Flt  inv_dist2) {return Min(Half(inv_dist2*Light_point .power    ), Light_point.lum_max);} // Light_point.power/Length2(pos), NaN
-inline Half LightLinearDist(Flt  dist     ) {return Sat(         dist *Light_linear.neg_inv_range + 1              );} // 1-Length(pos)/Light_linear.range
-inline Half LightConeDist  (Flt  dist     ) {return Sat(         dist *Light_cone  .neg_inv_range + 1              );} // 1-Length(pos)/Light_cone  .range
-inline Half LightConeAngle (Vec2 pos      ) {Half v=Sat(  Length(pos) *Light_cone  .falloff.x+Light_cone.falloff.y ); return v;} // alternative is Sqr(v)
+inline Half LightPointDist (Flt  inv_dist2) {return Min(Half(inv_dist2*LightPoint .power    ), LightPoint.lum_max);} // LightPoint.power/Length2(pos), NaN
+inline Half LightLinearDist(Flt  dist     ) {return Sat(         dist *LightLinear.neg_inv_range + 1             );} // 1-Length(pos)/LightLinear.range
+inline Half LightConeDist  (Flt  dist     ) {return Sat(         dist *LightCone  .neg_inv_range + 1             );} // 1-Length(pos)/LightCone  .range
+inline Half LightConeAngle (Vec2 pos      ) {Half v=Sat(  Length(pos) *LightCone  .falloff.x+LightCone.falloff.y ); return v;} // alternative is Sqr(v)
 
 inline Half LightDiffuse (VecH nrm,                VecH light_dir                             ) {return Sat(Dot(nrm, light_dir));}
 inline Half LightSpecular(VecH nrm, Half specular, VecH light_dir, VecH eye_dir, Half power=64)

@@ -32,10 +32,10 @@ VecH4 VolDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       else     power+=CompareDepth(pos, jitter_value, true);
    }
 
-   power =Pow(power /steps   , Light_dir.vol_exponent_steam.y);
-   power*=Pow(length/ShdRange, Light_dir.vol_exponent_steam.y*(1-Light_dir.vol_exponent_steam.z));
-   power*=Light_dir.vol_exponent_steam.x;
-   return VecH4(Light_dir.color.rgb*power, 0);
+   power =Pow(power /steps   , LightDir.vol_exponent_steam.y);
+   power*=Pow(length/ShdRange, LightDir.vol_exponent_steam.y*(1-LightDir.vol_exponent_steam.z));
+   power*=LightDir.vol_exponent_steam.x;
+   return VecH4(LightDir.color.rgb*power, 0);
 }
 #endif
 /******************************************************************************/
@@ -64,7 +64,7 @@ VecH4 VolPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       Vec pos=Lerp(from, to, Flt(i)/Flt(steps)); Flt inv_dist2=1/Length2(pos);
       power+=ShadowPointValue(obj*(Flt(i)/steps), jitter_value, true)*LightPointDist(inv_dist2);
    }
-   return VecH4(Light_point.color.rgb*Min(Light_point.vol_max, Light_point.vol*power*(length/steps)), 0);
+   return VecH4(LightPoint.color.rgb*Min(LightPoint.vol_max, LightPoint.vol*power*(length/steps)), 0);
 }
 /******************************************************************************/
 VecH4 VolLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
@@ -91,7 +91,7 @@ VecH4 VolLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
       Vec pos=Lerp(from, to, Flt(i)/Flt(steps));
       power+=ShadowPointValue(obj*(Flt(i)/steps), jitter_value, true)*LightLinearDist(Length(pos));
    }
-   return VecH4(Light_linear.color.rgb*Min(Light_linear.vol_max, Light_linear.vol*power*(length/steps)), 0);
+   return VecH4(LightLinear.color.rgb*Min(LightLinear.vol_max, LightLinear.vol*power*(length/steps)), 0);
 }
 /******************************************************************************/
 VecH4 VolCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
@@ -99,7 +99,7 @@ VecH4 VolCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
                  NOPERSP PIXEL                 ):TARGET
 {
    Vec obj   =GetPosLinear(inTex, inPosXY), // use linear filtering because we may be drawing to a smaller RT
-       scale =Vec(Light_cone.scale, Light_cone.scale, 1);
+       scale =Vec(LightCone.scale, LightCone.scale, 1);
    Flt power =0,
        length=Length(obj);
    if( length>Viewport.range)
@@ -123,7 +123,7 @@ VecH4 VolCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          power+=ShadowConeValue(obj*(Flt(i)/steps), jitter_value, true)*LightConeDist(Length(pos*scale))*LightConeAngle(pos.xy/pos.z);
       }
    }
-   return VecH4(Light_cone.color.rgb*Min(Light_cone.vol_max, Light_cone.vol*power*(length/steps)), 0);
+   return VecH4(LightCone.color.rgb*Min(LightCone.vol_max, LightCone.vol*power*(length/steps)), 0);
 }
 /******************************************************************************/
 VecH4 Volumetric_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET

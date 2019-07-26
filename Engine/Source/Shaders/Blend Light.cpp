@@ -172,8 +172,8 @@ void VS
    //  per-vertex light
    #if !PER_PIXEL && BUMP_MODE>=SBUMP_FLAT
    {
-      Half d  =Sat(Dot(nrm, Light_dir.dir));
-      VecH lum=Light_dir.color.rgb*d;
+      Half d  =Sat(Dot(nrm, LightDir.dir));
+      VecH lum=LightDir.color.rgb*d;
    #if SHADOW_MAPS
       O.lum=lum;
    #else
@@ -263,7 +263,7 @@ void PS
 
       // diffuse
    #if PER_PIXEL
-      VecH light_dir=Light_dir.dir;
+      VecH light_dir=LightDir.dir;
       Half lum      =LightDiffuse(nrm, light_dir); if(SHADOW_MAPS)lum*=shd;
 
       // specular
@@ -272,8 +272,8 @@ void PS
       {
          Vec eye_dir=Normalize    (-I.pos);
          Flt spec   =LightSpecular( nrm, specular, light_dir, eye_dir); if(SHADOW_MAPS)spec*=shd;
-         total_specular+=Light_dir.color.rgb*spec;
-      }*/total_lum     +=Light_dir.color.rgb*lum ;
+         total_specular+=LightDir.color.rgb*spec;
+      }*/total_lum     +=LightDir.color.rgb*lum ;
    #else
       if(SHADOW_MAPS)I.lum*=shd;
       total_lum+=I.lum;

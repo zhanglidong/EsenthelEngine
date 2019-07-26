@@ -157,8 +157,26 @@ struct ShaderCompiler
       SHADER_MODEL      model;
       ShaderCompiler   *compiler;
 
+      Bool load();
+
       Shader& New(C Str &name=S, C Str8 &vs_func_name="VS", C Str8 &ps_func_name="PS");
-      Bool    load();
+
+      Shader& forward(Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int reflect, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tesselate)
+         {return New()("SKIN", skin)("MATERIALS", materials, "TEXTURES", textures)("BUMP_MODE", bump_mode)("ALPHA_TEST", alpha_test)("LIGHT_MAP", light_map)("DETAIL", detail, "REFLECT", reflect)("COLORS", color, "MTRL_BLEND", mtrl_blend, "HEIGHTMAP", heightmap)("FX", fx)("PER_PIXEL", per_pixel)("LIGHT_DIR", light_dir, "LIGHT_DIR_SHD", light_dir_shd, "LIGHT_DIR_SHD_NUM", light_dir_shd_num)("LIGHT_POINT", light_point, "LIGHT_POINT_SHD", light_point_shd)("LIGHT_LINEAR", light_linear, "LIGHT_LINEAR_SHD", light_linear_shd)("LIGHT_CONE", light_cone, "LIGHT_CONE_SHD", light_cone_shd).tesselate(tesselate);}
+
+      void forwardLight(Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int reflect, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel, Int tesselate)
+      {
+         REPD(shd, 2)
+         {
+            if(shd)for(Int maps=2; maps<=6; maps+=2) // 2, 4, 6 maps
+            forward(skin, materials, textures, bump_mode, alpha_test, light_map, detail, reflect, color, mtrl_blend, heightmap, fx, per_pixel,   true ,shd  ,maps,  false,false,  false,false,  false,false,  tesselate);else // light dir with shadow maps
+            forward(skin, materials, textures, bump_mode, alpha_test, light_map, detail, reflect, color, mtrl_blend, heightmap, fx, per_pixel,   true ,false,   0,  false,false,  false,false,  false,false,  tesselate);     // light dir no   shadow
+            forward(skin, materials, textures, bump_mode, alpha_test, light_map, detail, reflect, color, mtrl_blend, heightmap, fx, per_pixel,   false,false,   0,  true ,shd  ,  false,false,  false,false,  tesselate);     // light point
+            forward(skin, materials, textures, bump_mode, alpha_test, light_map, detail, reflect, color, mtrl_blend, heightmap, fx, per_pixel,   false,false,   0,  false,false,  true ,shd  ,  false,false,  tesselate);     // light linear
+            forward(skin, materials, textures, bump_mode, alpha_test, light_map, detail, reflect, color, mtrl_blend, heightmap, fx, per_pixel,   false,false,   0,  false,false,  false,false,  true ,shd  ,  tesselate);     // light cone
+         }  forward(skin, materials, textures, bump_mode, alpha_test, light_map, detail, reflect, color, mtrl_blend, heightmap, fx, per_pixel,   false,false,   0,  false,false,  false,false,  false,false,  tesselate);     // no light
+      }
+
      ~Source();
    };
    Str                dest, messages;

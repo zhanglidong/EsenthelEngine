@@ -184,10 +184,10 @@ Shader* MainShaderClass::getShdDir  (Int map_num, Bool clouds, Bool multi_sample
 Shader* MainShaderClass::getShdPoint(                          Bool multi_sample) {return get(S8+"ShdPoint"+multi_sample);}
 Shader* MainShaderClass::getShdCone (                          Bool multi_sample) {return get(S8+"ShdCone" +multi_sample);}
 
-Shader* MainShaderClass::getLightDir   (Bool shadow, Bool multi_sample, Bool quality            ) {return get(S8+"LightDir"   +shadow+multi_sample+(quality && !multi_sample)      );} // MSAA doesn't have quality version (to make it faster)
-Shader* MainShaderClass::getLightPoint (Bool shadow, Bool multi_sample, Bool quality            ) {return get(S8+"LightPoint" +shadow+multi_sample+(quality && !multi_sample)      );} // MSAA doesn't have quality version (to make it faster)
-Shader* MainShaderClass::getLightLinear(Bool shadow, Bool multi_sample, Bool quality            ) {return get(S8+"LightLinear"+shadow+multi_sample+(quality && !multi_sample)      );} // MSAA doesn't have quality version (to make it faster)
-Shader* MainShaderClass::getLightCone  (Bool shadow, Bool multi_sample, Bool quality, Bool image) {return get(S8+"LightCone"  +shadow+multi_sample+(quality && !multi_sample)+image);} // MSAA doesn't have quality version (to make it faster)
+Shader* MainShaderClass::getDrawLightDir   (Bool shadow, Bool multi_sample, Bool quality            ) {return get(S8+"DrawLightDir"   +shadow+multi_sample+(quality && !multi_sample)      );} // MSAA doesn't have quality version (to make it faster)
+Shader* MainShaderClass::getDrawLightPoint (Bool shadow, Bool multi_sample, Bool quality            ) {return get(S8+"DrawLightPoint" +shadow+multi_sample+(quality && !multi_sample)      );} // MSAA doesn't have quality version (to make it faster)
+Shader* MainShaderClass::getDrawLightLinear(Bool shadow, Bool multi_sample, Bool quality            ) {return get(S8+"DrawLightLinear"+shadow+multi_sample+(quality && !multi_sample)      );} // MSAA doesn't have quality version (to make it faster)
+Shader* MainShaderClass::getDrawLightCone  (Bool shadow, Bool multi_sample, Bool quality, Bool image) {return get(S8+"DrawLightCone"  +shadow+multi_sample+(quality && !multi_sample)+image);} // MSAA doesn't have quality version (to make it faster)
 
 Shader* MainShaderClass::getApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade) {return get(S8+"ApplyLight"+multi_sample+ao+cel_shade+night_shade);}
 
@@ -322,10 +322,10 @@ void MainShaderClass::getTechniques()
    MultiMaterial[2]=GetShaderParam("MultiMaterial2");
    MultiMaterial[3]=GetShaderParam("MultiMaterial3");
 
-   Light_dir   =GetShaderParam("Light_dir"   );
-   Light_point =GetShaderParam("Light_point" );
-   Light_linear=GetShaderParam("Light_linear");
-   Light_cone  =GetShaderParam("Light_cone"  );
+   LightDir   =GetShaderParam("LightDir"   );
+   LightPoint =GetShaderParam("LightPoint" );
+   LightLinear=GetShaderParam("LightLinear");
+   LightCone  =GetShaderParam("LightCone"  );
 
    Step         =GetShaderParam("Step"         );
    Color[0]     =GetShaderParam("Color[0]"     );
@@ -557,10 +557,10 @@ void MainShaderClass::getTechniques()
       REPD(s, 2) // shadow
       REPD(q, 2) // quality unpack
       {
-                   LightDir   [s][m][q]   =getLightDir   (s, m, q);
-                   LightPoint [s][m][q]   =getLightPoint (s, m, q);
-                   LightLinear[s][m][q]   =getLightLinear(s, m, q);
-         REPD(i, 2)LightCone  [s][m][q][i]=getLightCone  (s, m, q, i);
+                   DrawLightDir   [s][m][q]   =getDrawLightDir   (s, m, q);
+                   DrawLightPoint [s][m][q]   =getDrawLightPoint (s, m, q);
+                   DrawLightLinear[s][m][q]   =getDrawLightLinear(s, m, q);
+         REPD(i, 2)DrawLightCone  [s][m][q][i]=getDrawLightCone  (s, m, q, i);
       }
 
       // COL LIGHT
