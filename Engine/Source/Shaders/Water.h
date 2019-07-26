@@ -15,6 +15,7 @@ BUFFER_END
 
 BUFFER(Water)
    Half WaterRfl;
+   Half WaterWave;
    Flt  WaterRfr,
         WaterRfrRfl,
         WaterUnder,
@@ -22,15 +23,13 @@ BUFFER(Water)
         WaterFlow;
    Vec2 WaterOfs;
    Vec2 WaterDns;
+   Vec2 WaterYMulAdd;
    Vec  WaterUnderCol0,
         WaterUnderCol1;
-   Vec4 WaterRflMulAdd,
-        WaterClamp;
-
-   Half WaterWave;
-   Vec2 WaterYMulAdd;
    Vec  WaterPlnPos,
         WaterPlnNrm;
+   Vec4 WaterRflMulAdd,
+        WaterClamp;
 BUFFER_END
 #include "!Set LP.h"
 /******************************************************************************/

@@ -523,13 +523,13 @@ void ShaderCompiler::SubShader::compile()
    Int params=shader->params.elms()+shader->extra_params.elms();
    MemtN<DxcDefine, 64  > defines; defines.setNum(params  +API_NUM); Int defs =0;
    MemtN<Str      , 64*2> temp   ; temp   .setNum(params*2+API_NUM); Int temps=0;
-   FREP(params)
+   FREPA(shader->params)
    {
       DxcDefine &define=defines[defs++]; C TextParam8 &param=shader->params[i];
       define.Name =(temp[temps++]=param.name );
       define.Value=(temp[temps++]=param.value);
    }
-   FREP(extra_params)
+   FREPA(shader->extra_params)
    {
       DxcDefine &define=defines[defs++]; C TextParam8 &param=shader->extra_params[i];
       define.Name =(temp[temps++]=param.name );
@@ -1210,21 +1210,25 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    }
 
    Char8 start[256], temp[256];
+   Memt<Int> locations;
    list=null; count=0; spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_STAGE_OUTPUT, &list, &count); FREP(count)
    {
     C spvc_reflected_resource &res=list[i];
     //CChar8 *name=spvc_compiler_get_name(spirv_compiler, res.id); name=_SkipStart(name, "out_var_");
-      Int loc=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationLocation); DYNAMIC_ASSERT(loc==i, S+"location!=i "+cc.shaderName(shader_data));
-      Set(start, (type==ST_PS) ? "RT" : "IO"); Append(start, TextInt(i, temp)); // OUTPUT name must match INPUT name, this solves problem when using "TEXCOORD" and "TEXCOORD0"
+      Int loc=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationLocation); //DYNAMIC_ASSERT(loc==i, S+"location!=i "+cc.shaderName(shader_data));
+      DYNAMIC_ASSERT(locations.binaryInclude(loc), "location included multiple times");
+      Set(start, (type==ST_PS) ? "RT" : "IO"); Append(start, TextInt(loc, temp)); // OUTPUT name must match INPUT name, this solves problem when using "TEXCOORD" and "TEXCOORD0"
       spvc_compiler_set_name(spirv_compiler, res.id, start);
    }
+   locations.clear();
    list=null; count=0; spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_STAGE_INPUT, &list, &count); FREP(count)
    {
     C spvc_reflected_resource &res=list[i];
       CChar8 *name=spvc_compiler_get_name(spirv_compiler, res.id); name=_SkipStart(name, "in_var_");
-      Int loc=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationLocation); DYNAMIC_ASSERT(loc==i, S+"location!=i "+cc.shaderName(shader_data));
-      if(Starts(name, "ATTR"))DYNAMIC_ASSERT(TextInt(name+4)==i, "ATTR index!=i"); // verify vtx input ATTR index
-      Set(start, (type==ST_VS) ? "ATTR" : "IO"); Append(start, TextInt(i, temp)); // OUTPUT name must match INPUT name, this solves problem when using "TEXCOORD" and "TEXCOORD0"
+      Int loc=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationLocation); //DYNAMIC_ASSERT(loc==i, S+"location!=i "+cc.shaderName(shader_data));
+      DYNAMIC_ASSERT(locations.binaryInclude(loc), "location included multiple times");
+      if(Starts(name, "ATTR"))DYNAMIC_ASSERT(TextInt(name+4)==loc, "ATTR index!=loc"); // verify vtx input ATTR index
+      Set(start, (type==ST_VS) ? "ATTR" : "IO"); Append(start, TextInt(loc, temp)); // OUTPUT name must match INPUT name, this solves problem when using "TEXCOORD" and "TEXCOORD0"
       spvc_compiler_set_name(spirv_compiler, res.id, start);
    }
 
