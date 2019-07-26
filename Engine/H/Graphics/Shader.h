@@ -111,8 +111,8 @@ struct ShaderParam // Shader Parameter
    static void OptimizeTranslation(C MemPtr<Translation> &src, Mems<Translation> &dest);
 
    Byte *_data;
+   Bool *_changed;
    Int   _cpu_data_size, _gpu_data_size, _elements;
-   Bool *_changed, _owns_data;
    Mems<Translation> _full_translation, _optimized_translation;
 
    Bool is()C {return _cpu_data_size>0;}
@@ -120,11 +120,12 @@ struct ShaderParam // Shader Parameter
    INLINE void setChanged() {*_changed=true;}
           void optimize  () {OptimizeTranslation(_full_translation, _optimized_translation);}
           void initAsElement(ShaderParam &parent, Int index);
+          void zero();
 
    INLINE GpuMatrix* asGpuMatrix() {return (GpuMatrix*)_data;}
 
-  ~ShaderParam();
-   ShaderParam();
+  ~ShaderParam() {zero();}
+   ShaderParam() {zero();}
 
    NO_COPY_CONSTRUCTOR(ShaderParam);
 #endif

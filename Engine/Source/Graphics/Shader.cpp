@@ -421,23 +421,11 @@ void ShaderParam::OptimizeTranslation(C MemPtr<Translation> &src, Mems<Translati
    }
 }
 /******************************************************************************/
-ShaderParam::~ShaderParam()
-{
-   if(_owns_data)
-   {
-      Free(_data   );
-      Free(_changed);
-   }
-  _data   =null;
-  _changed=null;
-  _cpu_data_size=_gpu_data_size=_elements=0;
-}
-ShaderParam::ShaderParam()
+void ShaderParam::zero()
 {
   _data   =null;
   _changed=null;
   _cpu_data_size=_gpu_data_size=_elements=0;
-  _owns_data=false;
 }
 /******************************************************************************/
 void ShaderParam::initAsElement(ShaderParam &parent, Int index) // this is called after 'parent' was already loaded, so 'gpu_offset' are relative to parameter (not cbuffer)
@@ -445,7 +433,6 @@ void ShaderParam::initAsElement(ShaderParam &parent, Int index) // this is calle
    DEBUG_ASSERT(this!=&parent, "Can't init from self");
    RANGE_ASSERT(index, parent._elements);
 
-  _owns_data    =false;
   _cpu_data_size=parent._cpu_data_size/parent._elements; // set size of a single element
   _data         =parent._data;
   _changed      =parent._changed;

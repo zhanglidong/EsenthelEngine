@@ -1600,9 +1600,8 @@ Bool ShaderFile::load(C Str &name)
                f.getStr(temp_str); ShaderParam &sp=*ShaderParams(temp_str);
                if(!sp.is()) // wasn't yet created
                {
-                  sp._owns_data= false;
-                  sp._data     = sb.data;
-                  sp._changed  =&sb.changed;
+                  sp._data   = sb.data;
+                  sp._changed=&sb.changed;
                   f.getMulti(sp._cpu_data_size, sp._gpu_data_size, sp._elements); // info
                   LoadTranslation(sp._full_translation, f, sp._elements);         // translation
                   Int offset=sp._full_translation[0].gpu_offset; sp._data+=offset; REPAO(sp._full_translation).gpu_offset-=offset; // apply offset. 'gpu_offset' is stored relative to start of cbuffer, however when loading we want to adjust 'sp.data' to point to the start of the param, so since we're adjusting it we have to adjust 'gpu_offset' too.
