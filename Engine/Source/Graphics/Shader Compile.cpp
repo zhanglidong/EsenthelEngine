@@ -1255,6 +1255,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    }
    spvc_compiler_install_compiler_options(spirv_compiler, options);
 
+ //spvc_variable_id dummy=0; spvc_compiler_build_dummy_sampler_for_combined_images(spirv_compiler, &dummy);
    spvc_compiler_build_combined_image_samplers(spirv_compiler);
    const spvc_combined_image_sampler *samplers=null; size_t num_samplers=0;
    spvc_compiler_get_combined_image_samplers(spirv_compiler, &samplers, &num_samplers);

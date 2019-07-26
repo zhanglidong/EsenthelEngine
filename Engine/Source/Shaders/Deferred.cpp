@@ -229,8 +229,11 @@ void PS
          BRANCH if(GetLod(I.tex, DEFAULT_TEX_SIZE)<=4)
       #endif
          {
-            Vec2 TexSize;
-            Col.GetDimensions(TexSize.x, TexSize.y);
+         #if !GL
+            Vec2 TexSize; Col.GetDimensions(TexSize.x, TexSize.y);
+         #else
+            Flt TexSize=DEFAULT_TEX_SIZE; // on GL using 'GetDimensions' would force create a secondary sampler for 'Col'
+         #endif
             Flt lod=Max(0, GetLod(I.tex, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
             //lod=Trunc(lod); don't do this as it would reduce performance and generate more artifacts, with this disabled, we generate fewer steps gradually, and blend with the next MIP level softening results
 
@@ -473,7 +476,7 @@ void PS
          #endif
             tpos.xy*=-scale;
 
-            Flt length=Length(tpos.xy) * TexSize / Pow(2, lod); // how many pixels
+            Flt length=Length(tpos.xy) * TexSize.x / Pow(2, lod); // how many pixels
             if(RELIEF_STEPS_MUL!=1)if(lod>0)length*=RELIEF_STEPS_MUL; // don't use this for first LOD
 
             //I.tex-=tpos.xy*0.5;
