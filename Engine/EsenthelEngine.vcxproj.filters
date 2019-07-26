@@ -35,12 +35,6 @@
     <Filter Include="H\_\OpenGL">
       <UniqueIdentifier>{e74cbded-02ef-47b8-a150-f13d4864cc7d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="H\_\OpenGL\32">
-      <UniqueIdentifier>{ff42a9ef-7c68-400f-8742-ed77ca8035f2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="H\_\OpenGL\64">
-      <UniqueIdentifier>{7c3757f0-6aaf-4519-9e90-e9f9d0d49a38}</UniqueIdentifier>
-    </Filter>
     <Filter Include="H\_\Bullet">
       <UniqueIdentifier>{99da7ff6-d5e8-4df5-af21-b8af85987d86}</UniqueIdentifier>
     </Filter>
@@ -2165,18 +2159,6 @@
     </CustomBuild>
     <CustomBuild Include="..\ThirdPartyLibs\Vorbis\Windows\x64\Release\Vorbis File.lib">
       <Filter>H\_\Libs\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\CG\Win\32\cg.lib">
-      <Filter>H\_\OpenGL\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\CG\Win\32\cgGL.lib">
-      <Filter>H\_\OpenGL\32</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\CG\Win\64\cg.lib">
-      <Filter>H\_\OpenGL\64</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\ThirdPartyLibs\CG\Win\64\cgGL.lib">
-      <Filter>H\_\OpenGL\64</Filter>
     </CustomBuild>
     <CustomBuild Include="..\ThirdPartyLibs\Bullet\Windows\Release\BulletCollision.lib">
       <Filter>H\_\Bullet\32</Filter>
