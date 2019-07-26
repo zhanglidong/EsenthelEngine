@@ -395,7 +395,7 @@ void ScreenToPosDir(C Vec2 &screen, VecD &pos, Vec &dir)
    }
 }
 /******************************************************************************/
-#define NO_BRANCH 1
+#define NO_BRANCH 1 // 1=faster
 static Bool ToScreenRect(C Vec *point, Int points, Rect &rect)
 {
    Bool in=false; if(NO_BRANCH)rect.set(FLT_MAX, FLT_MAX, -FLT_MAX, -FLT_MAX);
