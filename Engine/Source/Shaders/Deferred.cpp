@@ -346,15 +346,15 @@ void PS
    }else
    if(TEXTURES==1)
    {
-      VecH4 tex=Tex(Col, I.tex);
+      VecH4 tex_col=Tex(Col, I.tex);
       if(ALPHA_TEST)
       {
       #if FX==FX_GRASS
-         tex.a-=I.fade_out;
+         tex_col.a-=I.fade_out;
       #endif
-         AlphaTest(tex.a);
+         AlphaTest(tex_col.a);
       }
-      col    *=tex.rgb; if(DETAIL)col+=GetDetail(I.tex).z;
+      col    *=tex_col.rgb; if(DETAIL)col+=GetDetail(I.tex).z;
       nrm     =Normalize(I.Nrm());
       glow    =MaterialGlow    ();
       specular=MaterialSpecular();
@@ -659,30 +659,34 @@ void PS
    {
       Half tex_spec[4];
 
-   #if BUMP_MODE==SBUMP_FLAT
-      nrm=Normalize(I.Nrm());
+      #if BUMP_MODE==SBUMP_FLAT
+      {
+         nrm=Normalize(I.Nrm());
 
-                       VecH2 tex; // #MaterialTextureChannelOrder
-                      {VecH2 nrm0; nrm0=Tex(Nrm , tex0).zw; if(REFLECT)tex_spec[0]=nrm0.x; nrm0=nrm0*MultiMaterial0NormalMul().zw+MultiMaterial0NormalAdd().zw; tex =I.material.x*nrm0;}
-                      {VecH2 nrm1; nrm1=Tex(Nrm1, tex1).zw; if(REFLECT)tex_spec[1]=nrm1.x; nrm1=nrm1*MultiMaterial1NormalMul().zw+MultiMaterial1NormalAdd().zw; tex+=I.material.y*nrm1;}
-      if(MATERIALS>=3){VecH2 nrm2; nrm2=Tex(Nrm2, tex2).zw; if(REFLECT)tex_spec[2]=nrm2.x; nrm2=nrm2*MultiMaterial2NormalMul().zw+MultiMaterial2NormalAdd().zw; tex+=I.material.z*nrm2;}
-      if(MATERIALS>=4){VecH2 nrm3; nrm3=Tex(Nrm3, tex3).zw; if(REFLECT)tex_spec[3]=nrm3.x; nrm3=nrm3*MultiMaterial3NormalMul().zw+MultiMaterial3NormalAdd().zw; tex+=I.material.w*nrm3;}
+                          VecH2 tex; // #MaterialTextureChannelOrder
+                         {VecH2 nrm0; nrm0=Tex(Nrm , tex0).zw; if(REFLECT)tex_spec[0]=nrm0.x; nrm0=nrm0*MultiMaterial0NormalMul().zw+MultiMaterial0NormalAdd().zw; tex =I.material.x*nrm0;}
+                         {VecH2 nrm1; nrm1=Tex(Nrm1, tex1).zw; if(REFLECT)tex_spec[1]=nrm1.x; nrm1=nrm1*MultiMaterial1NormalMul().zw+MultiMaterial1NormalAdd().zw; tex+=I.material.y*nrm1;}
+         if(MATERIALS>=3){VecH2 nrm2; nrm2=Tex(Nrm2, tex2).zw; if(REFLECT)tex_spec[2]=nrm2.x; nrm2=nrm2*MultiMaterial2NormalMul().zw+MultiMaterial2NormalAdd().zw; tex+=I.material.z*nrm2;}
+         if(MATERIALS>=4){VecH2 nrm3; nrm3=Tex(Nrm3, tex3).zw; if(REFLECT)tex_spec[3]=nrm3.x; nrm3=nrm3*MultiMaterial3NormalMul().zw+MultiMaterial3NormalAdd().zw; tex+=I.material.w*nrm3;}
 
-      specular=tex.x;
-      glow    =tex.y;
-   #elif BUMP_MODE>SBUMP_FLAT // normal mapping
-                       VecH4 tex; // #MaterialTextureChannelOrder
-                      {VecH4 nrm0=Tex(Nrm , tex0); if(REFLECT)tex_spec[0]=nrm0.z; nrm0=nrm0*MultiMaterial0NormalMul()+MultiMaterial0NormalAdd(); if(DETAIL)nrm0.xy+=det0.xy; tex =I.material.x*nrm0;}
-                      {VecH4 nrm1=Tex(Nrm1, tex1); if(REFLECT)tex_spec[1]=nrm1.z; nrm1=nrm1*MultiMaterial1NormalMul()+MultiMaterial1NormalAdd(); if(DETAIL)nrm1.xy+=det1.xy; tex+=I.material.y*nrm1;}
-      if(MATERIALS>=3){VecH4 nrm2=Tex(Nrm2, tex2); if(REFLECT)tex_spec[2]=nrm2.z; nrm2=nrm2*MultiMaterial2NormalMul()+MultiMaterial2NormalAdd(); if(DETAIL)nrm2.xy+=det2.xy; tex+=I.material.z*nrm2;}
-      if(MATERIALS>=4){VecH4 nrm3=Tex(Nrm3, tex3); if(REFLECT)tex_spec[3]=nrm3.z; nrm3=nrm3*MultiMaterial3NormalMul()+MultiMaterial3NormalAdd(); if(DETAIL)nrm3.xy+=det3.xy; tex+=I.material.w*nrm3;}
+         specular=tex.x;
+         glow    =tex.y;
+      }
+      #elif BUMP_MODE>SBUMP_FLAT // normal mapping
+      {
+                          VecH4 tex; // #MaterialTextureChannelOrder
+                         {VecH4 nrm0=Tex(Nrm , tex0); if(REFLECT)tex_spec[0]=nrm0.z; nrm0=nrm0*MultiMaterial0NormalMul()+MultiMaterial0NormalAdd(); if(DETAIL)nrm0.xy+=det0.xy; tex =I.material.x*nrm0;}
+                         {VecH4 nrm1=Tex(Nrm1, tex1); if(REFLECT)tex_spec[1]=nrm1.z; nrm1=nrm1*MultiMaterial1NormalMul()+MultiMaterial1NormalAdd(); if(DETAIL)nrm1.xy+=det1.xy; tex+=I.material.y*nrm1;}
+         if(MATERIALS>=3){VecH4 nrm2=Tex(Nrm2, tex2); if(REFLECT)tex_spec[2]=nrm2.z; nrm2=nrm2*MultiMaterial2NormalMul()+MultiMaterial2NormalAdd(); if(DETAIL)nrm2.xy+=det2.xy; tex+=I.material.z*nrm2;}
+         if(MATERIALS>=4){VecH4 nrm3=Tex(Nrm3, tex3); if(REFLECT)tex_spec[3]=nrm3.z; nrm3=nrm3*MultiMaterial3NormalMul()+MultiMaterial3NormalAdd(); if(DETAIL)nrm3.xy+=det3.xy; tex+=I.material.w*nrm3;}
 
-      nrm=VecH(tex.xy, CalcZ(tex.xy));
-      nrm=Normalize(Transform(nrm, I.mtrx));
+         nrm=VecH(tex.xy, CalcZ(tex.xy));
+         nrm=Normalize(Transform(nrm, I.mtrx));
 
-      specular=tex.z;
-      glow    =tex.w;
-   #endif
+         specular=tex.z;
+         glow    =tex.w;
+      }
+      #endif
 
       // reflection
       if(REFLECT)

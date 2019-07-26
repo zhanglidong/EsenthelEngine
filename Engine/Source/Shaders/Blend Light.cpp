@@ -8,11 +8,11 @@
 //SKIN, COLORS, TEXTURES, BUMP_MODE, ALPHA_TEST, ALPHA, LIGHT_MAP, REFLECT, FX, PER_PIXEL, SHADOW_MAPS, TESSELATE
 #define USE_VEL   ALPHA_TEST
 #define HEIGHTMAP 0
-#define USE_POS   (USE_VEL || SHADOW_MAPS || (REFLECT && PER_PIXEL && BUMP_MODE>SBUMP_FLAT))
+#define SET_POS   (USE_VEL || SHADOW_MAPS || (REFLECT && PER_PIXEL && BUMP_MODE>SBUMP_FLAT))
 /******************************************************************************/
 struct VS_PS
 {
-#if USE_POS
+#if SET_POS
    Vec pos:POS;
 #endif
 
@@ -61,6 +61,7 @@ void VS
 
 #if TEXTURES || LIGHT_MAP
    O.tex=vtx.tex(HEIGHTMAP);
+   if(HEIGHTMAP)O.tex*=MaterialTexScale();
 #endif
 
              O.col =MaterialColor();
@@ -99,7 +100,7 @@ void VS
          if(FX==FX_GRASS)
          {
             BendGrass(local_pos, pos, vtx.instance());
-            O.col.a*=1-GrassFadeOut(vtx.instance());
+              O.col.a*=1-GrassFadeOut(vtx.instance());
          }
       }else
       {
@@ -183,7 +184,7 @@ void VS
    #endif
 
    O_vtx=Project(pos);
-#if USE_POS
+#if SET_POS
    O.pos=pos;
 #endif
 }
