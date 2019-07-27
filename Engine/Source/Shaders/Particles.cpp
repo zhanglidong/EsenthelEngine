@@ -28,7 +28,7 @@ void Particle_VS(VtxInput vtx,
    Half  size  =vtx.size(),
          angle =vtx._tan.w;
    Vec   pos   =TransformPos(vtx.pos());
-#if 0 // fails to compile
+#if 0 // fails to compile FIXME - https://github.com/microsoft/DirectXShaderCompiler/issues/2377
    VecH2 offset=VecH2(outTex)*VecH2(2, -2)+VecH2(-1, 1);
 #else
    VecH2 offset; offset.x=Half(outTex.x)*2-1; offset.y=-Half(outTex.y)*2+1;
