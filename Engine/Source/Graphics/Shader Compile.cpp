@@ -358,17 +358,20 @@ void ShaderCompiler::Param::addTranslation(ID3D12ShaderReflectionType *type, C D
    }
 }
 #if SPIRV_CROSS
-void ShaderCompiler::Param::addTranslation(spvc_compiler compiler, spvc_type parent, spvc_type var, Int var_i, Int offset)
+void ShaderCompiler::Param::addTranslation(spvc_compiler compiler, spvc_type_id parent_id, spvc_type parent, spvc_type_id var_id, spvc_type var, Int var_i, Int offset, C Str8 &names)
 {
-   auto     array_dimensions=spvc_type_get_num_array_dimensions(var); if(array_dimensions>1)Exit("Multi-dimensional arrays are not supported");
-   auto     array_elms      =(array_dimensions ? spvc_type_get_array_dimension(var, 0) : 0); // use 0 for non-arrays to match DX behavior
-   unsigned array_stride=0; if(array_elms>1)spvc_compiler_type_struct_member_array_stride(compiler, parent, var_i, &array_stride);
-   Bool     is_struct       =(spvc_type_get_basetype(var)==SPVC_BASETYPE_STRUCT);
+   auto          name            =spvc_compiler_get_member_name(compiler, parent_id, var_i);
+   auto          array_dimensions=spvc_type_get_num_array_dimensions(var); if(array_dimensions>1)Exit("Multi-dimensional arrays are not supported");
+   auto          array_elms      =(array_dimensions ? spvc_type_get_array_dimension(var, 0) : 0); // use 0 for non-arrays to match DX behavior
+   unsigned      array_stride    =0; if(array_elms>1)spvc_compiler_type_struct_member_array_stride(compiler, parent, var_i, &array_stride);
+   spvc_basetype type            =spvc_type_get_basetype(var);
+   Bool          is_struct       =(type==SPVC_BASETYPE_STRUCT); Str8 names_name; if(is_struct){names_name.reserve(names.length()+1+Length(name)); names_name=names; if(names_name.is())names_name+='.'; names_name+=name;}
    Int  elms=Max(array_elms, 1), last_index=elms-1; // 'array_elms' is 0 for non-arrays
    FREP(elms)
    {
       if(!is_struct)
       {
+         if(type!=SPVC_BASETYPE_FP32)Exit(S+"Unhandled Shader Parameter Type for \""+names+'.'+name+'"');
          auto vec_size=spvc_type_get_vector_size(var),
               cols    =spvc_type_get_columns    (var);
          if(vec_size<=0 || vec_size>4)Exit("Invalid Shader Param Vector Size");
@@ -393,7 +396,7 @@ void ShaderCompiler::Param::addTranslation(spvc_compiler compiler, spvc_type par
             auto member=spvc_type_get_member_type(var, i);
             auto member_handle=spvc_compiler_get_type_handle(compiler, member);
             unsigned member_offset=0; spvc_compiler_type_struct_member_offset(compiler, var, i, &member_offset);
-            addTranslation(compiler, var, member_handle, i, offset+member_offset);
+            addTranslation(compiler, var_id, var, member, member_handle, i, offset+member_offset, names_name);
          }
       }
       offset+=array_stride;
@@ -1157,7 +1160,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
          param.array_elms=(array_dimensions ? spvc_type_get_array_dimension(member_handle, 0) : 0); // use 0 for non-arrays to match DX behavior
          unsigned offset=0; spvc_compiler_type_struct_member_offset(spirv_compiler, buffer_handle, i, &offset);
 
-         param.addTranslation(spirv_compiler, buffer_handle, member_handle, i, offset); param.sortTranslation();
+         param.addTranslation(spirv_compiler, res.base_type_id, buffer_handle, member, member_handle, i, offset); param.sortTranslation();
 
          Int member_size=0;
          if(param.array_elms)
