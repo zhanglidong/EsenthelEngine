@@ -66,20 +66,22 @@ static const CChar8 *ShaderTypeName[]=
    "PS", // 3
 }; ASSERT(ST_VS==0 && ST_HS==1 && ST_DS==2 && ST_PS==3 && ST_NUM==4);
 /******************************************************************************/
-#if   0 // Test #1: shader size 6.61 MB, engine load+render 1 frame = 0.40s on Windows, decompression 10x faster
+#if   1 // with new shader compilers, the generated shaders are small, so disable compression to get best performance
+   #define COMPRESS_GL       COMPRESS_NONE
+   #define COMPRESS_GL_LEVEL 0
+#elif 0
    #define COMPRESS_GL       COMPRESS_LZ4
-   #define COMPRESS_GL_LEVEL 11
-#elif 0 // Test #2: Shaders compiled in: 50.527s, load+draw 1 frame: 0.86s, Main size 346 KB
+   #define COMPRESS_GL_LEVEL 99
+#elif 0
    #define COMPRESS_GL       COMPRESS_ZSTD
    #define COMPRESS_GL_LEVEL 99
-#elif 1 // Test #1: shader size 5.15 MB, engine load+render 1 frame = 0.45s on Windows, decompression 10x slower, Test #2: Shaders compiled in: 50.791s, load+draw 1 frame: 0.88s, Main size 337 KB
-   #define COMPRESS_GL       COMPRESS_LZMA // FIXME still needed?
+#elif 1
+   #define COMPRESS_GL       COMPRESS_LZMA
    #define COMPRESS_GL_LEVEL 9 // shader files are small, so we can use high compression level and still get small dictionary size / memory usage
-#else // shader size was slightly bigger than LZMA, and loading all shader techs was bit slower
+#else // shader size was slightly bigger than LZMA, and loading all shaders was bit slower
    #define COMPRESS_GL       COMPRESS_LZHAM
    #define COMPRESS_GL_LEVEL 5
 #endif
-   #define COMPRESS_GL_MT    true
 /******************************************************************************/
 static Bool HasData(CPtr data, Int size)
 {
@@ -1338,13 +1340,15 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    #endif
       Exit("Can't convert HLSL to GLSL");
    }
-#if 0 // uncompressed
-   shader_data.setNum(code.length()+1).copyFrom((Byte*)code()); // include null char
-#else // compressed
-   File f; f.readMem(code(), code.length()+1); // include null char
-   File cmp; if(!Compress(f, cmp.writeMem(), COMPRESS_GL, COMPRESS_GL_LEVEL, false))Exit("Can't compress shader data");
-   f.del(); cmp.pos(0); shader_data.setNum(cmp.size()).loadRawData(cmp);
-#endif
+   if(COMPRESS_GL) // compressed
+   {
+      File f; f.readMem(code(), code.length()+1); // include null char
+      File cmp; if(!Compress(f, cmp.writeMem(), COMPRESS_GL, COMPRESS_GL_LEVEL, false))Exit("Can't compress shader data");
+      f.del(); cmp.pos(0); shader_data.setNum(cmp.size()).loadRawData(cmp);
+   }else // uncompressed
+   {
+      shader_data.setNum(code.length()+1).copyFrom((Byte*)code()); // include null char
+   }
 }
 /******************************************************************************/
 static ShaderImage * Get(Int i, C MemtN<ShaderImage *, 256> &images ) {RANGE_ASSERT_ERROR(i, images , "Invalid ShaderImage index" ); return  images[i];}

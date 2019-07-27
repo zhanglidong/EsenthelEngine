@@ -21,6 +21,7 @@ namespace EE{
 
 #define ALLOW_PARTIAL_BUFFERS 0 // using partial buffers (1) actually made things slower, 100fps(1) vs 102fps(0), so use default value (0), TODO: check on newer hardware
 #define BUFFER_DYNAMIC        0 // for ALLOW_PARTIAL_BUFFERS=0, using 1 made no difference in performance, so use 0 to reduce API calls. But for ALLOW_PARTIAL_BUFFERS=1 using 1 was slower
+#define COMPRESS_GL           0
 /******************************************************************************/
 #if DX11
 static ID3D11ShaderResourceView *VSTex[MAX_SHADER_IMAGES], *HSTex[MAX_SHADER_IMAGES], *DSTex[MAX_SHADER_IMAGES], *PSTex[MAX_SHADER_IMAGES];
@@ -737,13 +738,16 @@ UInt ShaderVSGL::create(Bool clean, Str *messages)
       SyncLocker locker(GL_LOCK ? D._lock : ShaderLock);
       if(!vs && elms())
       {
-         File src, temp; src.readMem(data(), elms()); if(!Decompress(src, temp, true))return 0; temp.pos(0); // decompress shader
-         UInt vs=glCreateShader(GL_VERTEX_SHADER); if(!vs)Exit("Can't create GL_VERTEX_SHADER"); // create into temp var first and set to this only after fully initialized
-         CChar8 *code=(CChar8*)temp.mem(); // read code
+      #if COMPRESS_GL // compressed
+         File src, temp; src.readMem(data(), elms()); if(!Decompress(src, temp, true))return 0; temp.pos(0); CChar8 *code=(CChar8*)temp.mem(); // decompress shader
+      #else // uncompressed
+         CChar8 *code=(CChar8*)data();
+      #endif
       #if GL_ES
          for(; CChar8 *gl=TextPos(code, "gl_ClipDistance"); ){Char8 *t=(Char8*)gl; t[0]=t[1]='/';} // VS plane clipping not available on GLES 3
       #endif
          CChar8 *srcs[]={GLSLVersion(), code}; // version must be first
+         UInt vs=glCreateShader(GL_VERTEX_SHADER); if(!vs)Exit("Can't create GL_VERTEX_SHADER"); // create into temp var first and set to this only after fully initialized
          glShaderSource(vs, Elms(srcs), srcs, null); glCompileShader(vs); // compile
 
          int ok; glGetShaderiv(vs, GL_COMPILE_STATUS, &ok);
@@ -771,10 +775,13 @@ UInt ShaderPSGL::create(Bool clean, Str *messages)
       SyncLocker locker(GL_LOCK ? D._lock : ShaderLock);
       if(!ps && elms())
       {
-         File src, temp; src.readMem(data(), elms()); if(!Decompress(src, temp, true))return 0; temp.pos(0); // decompress shader
-         UInt ps=glCreateShader(GL_FRAGMENT_SHADER); if(!ps)Exit("Can't create GL_FRAGMENT_SHADER"); // create into temp var first and set to this only after fully initialized
-         CChar8 *code=(CChar8*)temp.mem(); // read code
+      #if COMPRESS_GL // compressed
+         File src, temp; src.readMem(data(), elms()); if(!Decompress(src, temp, true))return 0; temp.pos(0); CChar8 *code=(CChar8*)temp.mem(); // decompress shader
+      #else // uncompressed
+         CChar8 *code=(CChar8*)data();
+      #endif
          CChar8 *srcs[]={GLSLVersion(), code}; // version must be first
+         UInt ps=glCreateShader(GL_FRAGMENT_SHADER); if(!ps)Exit("Can't create GL_FRAGMENT_SHADER"); // create into temp var first and set to this only after fully initialized
          glShaderSource(ps, Elms(srcs), srcs, null); glCompileShader(ps); // compile
 
          int ok; glGetShaderiv(ps, GL_COMPILE_STATUS, &ok);
