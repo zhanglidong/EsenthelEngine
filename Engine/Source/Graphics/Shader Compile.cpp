@@ -571,7 +571,7 @@ void ShaderCompiler::SubShader::compile()
          if(op_result)
          {
             op_result->GetErrorBuffer(&error_blob);
-            op_result->GetResult(&buffer);
+            HRESULT hr; if(OK(op_result->GetStatus(&hr)))if(OK(hr))op_result->GetResult(&buffer);
             op_result->Release();
          }
          dxc_compiler->Release();
@@ -579,10 +579,30 @@ void ShaderCompiler::SubShader::compile()
       if(error_blob)
       {
          BOOL known=false; UINT32 code_page=0; error_blob->GetEncoding(&known, &code_page);
-         // FIXME
-         CChar8 *e=(Char8*)error_blob->GetBufferPointer();
-         Int     l=        error_blob->GetBufferSize   ();
-         error.reserveAdd(l); REP(l)error+=*e++;
+         CPtr data=error_blob->GetBufferPointer();
+         Int  size=error_blob->GetBufferSize   ();
+         switch(code_page)
+         {
+            default:
+            {
+               // FIXME
+            }break;
+
+            case CP_UTF8:
+            {
+               Memt<Char8> utf; utf.setNum(size+1); CopyFast(utf.data(), data, size); utf[size]='\0'; error+=FromUTF8(utf.data());
+            }break;
+            
+            case CP_ACP:
+            {
+               CChar8 *e=(Char8*)data; error.reserveAdd(size); REP(size)error+=*e++;
+            }break;
+
+            case CP_UTF16:
+            {
+               CChar *e=(Char*)data; size/=SIZE(Char); error.reserveAdd(size); REP(size)error+=*e++;
+            }break;
+         }
          error_blob->Release();
       }
       if(buffer)

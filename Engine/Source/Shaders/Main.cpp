@@ -373,12 +373,12 @@ void SetDepth_PS(NOPERSP Vec2 inTex:TEXCOORD,
    depth=TexLod(Depth, inTex).x; // use linear filtering because this can be used for different size RT
 }
 
-Vec4 DrawDepth_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+VecH4 DrawDepth_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
    Flt frac=TexDepthPoint(inTex)/Viewport.range; // can't filter depth, because if Depth image is smaller, then we will get borders around objects
-   Vec rgb=HsbToRgb(Vec(frac*2.57, 1, 1)); // the scale is set so the full range equals to blue color, to imitate sky color
+   VecH rgb=HsbToRgb(Vec(frac*2.57, 1, 1)); // the scale is set so the full range equals to blue color, to imitate sky color
    if(LINEAR_GAMMA)rgb=SRGBToLinear(rgb);
-   return Vec4(rgb, 1);
+   return VecH4(rgb, 1);
 }
 
 #ifdef PERSPECTIVE

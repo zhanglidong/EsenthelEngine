@@ -1306,7 +1306,7 @@ inline void BendLeaf(VecH center, in out Vec pos, in out VecH nrm, in out VecH t
    pos=center+delta;
 }
 /******************************************************************************/
-inline void BendLeafs(VecH center, Flt offset, in out Vec pos)
+inline void BendLeafs(VecH center, Half offset, in out Vec pos)
 {
    VecH   delta=(VecH)pos-center;
    VecH2  cos_sin, bend=GetLeafsBend(center+offset);
@@ -1314,7 +1314,7 @@ inline void BendLeafs(VecH center, Flt offset, in out Vec pos)
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin);
    pos=center+delta;
 }
-inline void BendLeafs(VecH center, Flt offset, in out Vec pos, in out VecH nrm)
+inline void BendLeafs(VecH center, Half offset, in out Vec pos, in out VecH nrm)
 {
    VecH   delta=(VecH)pos-center;
    VecH2  cos_sin, bend=GetLeafsBend(center+offset);
@@ -1322,7 +1322,7 @@ inline void BendLeafs(VecH center, Flt offset, in out Vec pos, in out VecH nrm)
    CosSin(cos_sin.x, cos_sin.y, bend.y); delta.zy=Rotate(delta.zy, cos_sin); nrm.zy=Rotate(nrm.zy, cos_sin);
    pos=center+delta;
 }
-inline void BendLeafs(VecH center, Flt offset, in out Vec pos, in out VecH nrm, in out VecH tan)
+inline void BendLeafs(VecH center, Half offset, in out Vec pos, in out VecH nrm, in out VecH tan)
 {
    VecH   delta=(VecH)pos-center;
    VecH2  cos_sin, bend=GetLeafsBend(center+offset);

@@ -1,2 +1,2 @@
-// sets precision for structs
+// set precision for structs
 #include "!Set LP.h"
