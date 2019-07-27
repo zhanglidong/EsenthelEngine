@@ -1,6 +1,6 @@
 /******************************************************************************/
 #include "!Header.h"
-#include "!Set HP.h"
+#include "!Set SP.h"
 BUFFER(Bloom)
    VecH BloomParams; // x=original, y=scale, z=cut
 BUFFER_END

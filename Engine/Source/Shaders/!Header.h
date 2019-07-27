@@ -186,7 +186,7 @@
 /******************************************************************************/
 // CONSTANTS
 /******************************************************************************/
-#include "!Set HP.h"
+#include "!Set SP.h"
 
 struct ViewportClass
 {
@@ -411,7 +411,7 @@ inline Flt   MaterialDetScale() {return Material._texscale_detscale_detpower_ref
 inline Half  MaterialDetPower() {return Material._texscale_detscale_detpower_reflect.z;}
 inline Half  MaterialReflect () {return Material._texscale_detscale_detpower_reflect.w;}
 /******************************************************************************/
-#include "!Set HP.h"
+#include "!Set SP.h"
 struct MultiMaterialClass // this is used when a MeshPart has multiple materials
 {
 #if 0 // methods produce compile errors in this case, instead of them use "MultiMaterial*()" global functions listed below
@@ -1418,7 +1418,7 @@ inline Half MultiMaterialWeight(Half weight, Half alpha) // 'weight'=weight of t
 /******************************************************************************/
 // LIGHTS
 /******************************************************************************/
-#include "!Set HP.h"
+#include "!Set SP.h"
 struct GpuLightDir
 {
    VecH  dir;
@@ -1476,7 +1476,7 @@ inline Half LightSpecular(VecH nrm, Half specular, VecH light_dir, VecH eye_dir,
 /******************************************************************************/
 // SHADOWS
 /******************************************************************************/
-#include "!Set HP.h"
+#include "!Set SP.h"
 BUFFER(Shadow)
    Flt     ShdRange      ,
            ShdStep[6]    ;

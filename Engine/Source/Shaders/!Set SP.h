@@ -1,4 +1,6 @@
-#undef Half
+// sets precision for structs
+#include "!Set LP.h"
+/*#undef Half
 #undef VecH2
 #undef VecH
 #undef VecH4
@@ -13,3 +15,4 @@
 #define MatrixH3 float3x3
 #define MatrixH  float4x3
 #define MatrixH4 float4x4
+*/

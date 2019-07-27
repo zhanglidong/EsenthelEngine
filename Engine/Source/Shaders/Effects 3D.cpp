@@ -179,7 +179,7 @@ void Laser_PS(Vec                 inPos:TEXCOORD0,
 /******************************************************************************/
 // DECAL
 /******************************************************************************/
-#include "!Set HP.h"
+#include "!Set SP.h"
 BUFFER(Decal)
    VecH DecalParams; // x=OpaqueFracMul, y=OpaqueFracAdd, z=alpha
 BUFFER_END

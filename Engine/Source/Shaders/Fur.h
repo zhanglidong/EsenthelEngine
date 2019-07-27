@@ -1,5 +1,5 @@
 /******************************************************************************/
-#include "!Set HP.h"
+#include "!Set SP.h"
 BUFFER(FurVel) // this CB is dynamically resized, do not add other members
    VecH FurVel[MAX_MATRIX];
 BUFFER_END

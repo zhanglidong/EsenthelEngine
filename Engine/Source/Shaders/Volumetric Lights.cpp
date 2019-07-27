@@ -2,7 +2,7 @@
 #include "!Header.h"
 #include "Sky.h"
 /******************************************************************************/
-#include "!Set HP.h"
+#include "!Set SP.h"
 BUFFER(VolLight)
    VecH VolMax=Vec(1, 1, 1);
 BUFFER_END

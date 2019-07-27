@@ -1,5 +1,5 @@
 /******************************************************************************/
-#include "!Set HP.h"
+#include "!Set SP.h"
 BUFFER(Fog)
    VecH FogColor;
    Flt  FogDensity;

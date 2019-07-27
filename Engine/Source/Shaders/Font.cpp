@@ -1,7 +1,7 @@
 /******************************************************************************/
 #include "!Header.h"
 
-#include "!Set HP.h"
+#include "!Set SP.h"
 BUFFER(Font)
    Half FontShadow,
         FontContrast=1,

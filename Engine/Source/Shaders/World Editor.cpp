@@ -51,7 +51,7 @@ void Color_PS
 /******************************************************************************/
 // CIRCLE / SQUARE / GRID
 /******************************************************************************/
-#include "!Set HP.h"
+#include "!Set SP.h"
 BUFFER(WorldEditor)
    Flt  XZImageUse,
         XZPattern;

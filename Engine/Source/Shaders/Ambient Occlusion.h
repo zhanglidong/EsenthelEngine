@@ -1,5 +1,5 @@
 /******************************************************************************/
-#include "!Set HP.h"
+#include "!Set SP.h"
 BUFFER(AO)
    Flt  AmbRange   =0.4,
         AmbBias    =0.1*0.4; // BiasFrac*AmbRange

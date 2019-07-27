@@ -5,7 +5,7 @@
    Keep here effects that are rarely used.
 
 /******************************************************************************/
-#include "!Set HP.h"
+#include "!Set SP.h"
 BUFFER(ColTrans)
    MatrixH ColTransMatrix;
    Vec     ColTransHsb;

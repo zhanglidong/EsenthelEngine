@@ -1,6 +1,6 @@
 /******************************************************************************/
 #include "!Header.h"
-#include "!Set HP.h"
+#include "!Set SP.h"
 
 BUFFER(ApplyLight)
    VecH NightShadeColor;
