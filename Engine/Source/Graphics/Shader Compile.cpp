@@ -410,10 +410,35 @@ void ShaderCompiler::Param::addTranslation(spvc_compiler compiler, spvc_type_id 
 #endif
 static Int Compare(C ShaderParam::Translation &a, C ShaderParam::Translation &b) {return Compare(a.cpu_offset, b.cpu_offset);}
 void ShaderCompiler::Param::sortTranslation() {translation.sort(Compare);} // this is useful for Translation optimization
+static void AssertRange(Int offset, Int size, Int total_size)
+{
+   DYNAMIC_ASSERT(InRange(offset, total_size) && offset+size<=total_size, "Element out of range");
+}
 void ShaderCompiler::Param::setDataFrom(C Param &src)
 {
-   if(cpu_data_size!=src.cpu_data_size)Exit("Parameters have different size");
-   // FIXME
+   DYNAMIC_ASSERT(cpu_data_size==src.cpu_data_size, "Parameters have different size");
+   if(src.data.elms())
+   {
+      DYNAMIC_ASSERT(src.translation.elms() && translation.elms(), "Parameters have no translation");
+      Memt<Byte> cpu_data; cpu_data.setNumZero(src.cpu_data_size);
+      Int start=src.translation[0].gpu_offset;
+      FREPA(src.translation)
+      {
+       C ShaderParam::Translation &trans=src.translation[i]; Int gpu_offset=trans.gpu_offset-start;
+         AssertRange(trans.cpu_offset, trans.elm_size, cpu_data.elms());
+         AssertRange(      gpu_offset, trans.elm_size, src.data.elms());
+         CopyFast(cpu_data.data()+trans.cpu_offset, src.data.data()+gpu_offset, trans.elm_size);
+      }
+      data.setNumZero(gpu_data_size);
+      start=translation[0].gpu_offset;
+      FREPA(translation)
+      {
+       C ShaderParam::Translation &trans=translation[i]; Int gpu_offset=trans.gpu_offset-start;
+         AssertRange(trans.cpu_offset, trans.elm_size, cpu_data.elms());
+         AssertRange(      gpu_offset, trans.elm_size,     data.elms());
+         CopyFast(data.data()+gpu_offset, cpu_data.data()+trans.cpu_offset, trans.elm_size);
+      }
+   }
 }
 Bool ShaderCompiler::Param::operator==(C Param &p)C
 {
@@ -535,8 +560,10 @@ void ShaderCompiler::SubShader::compile()
    target[2]='_';
    target[4]='_';
    target[6]='\0';
+REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to process 2 times, first to extract default values, then to get actual results
+{
    SHADER_MODEL model=shader->model; if(type==ST_HS || type==ST_DS)MAX(model, SM_5); // HS DS are supported only in SM5+
-   if(compiler->api!=API_DX)MAX(model, SM_6); // need to use new compiler for DX-> conversions
+   if(!get_default_val && compiler->api!=API_DX)MAX(model, SM_6); // need to use new compiler for DX-> conversions
    switch(model)
    {
       case SM_4  : target[3]='4'; target[5]='0'; break;
@@ -571,9 +598,13 @@ void ShaderCompiler::SubShader::compile()
          define.Name =(temp[temps++]=APIName[i]);
          define.Value=((compiler->api==i) ? L"1" : L"0");
       }
+      if(get_default_val)
+      {
+         DxcDefine &define=defines.New();
+         define.Name =L"GET_DEFAULT_VALUE";
+         define.Value=L"1";
+      }
 
-   REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to process 2 times, first to extract default values, then to get actual results
-   {
       MemtN<LPCWSTR, 16> arguments;
       arguments.add(L"-flegacy-macro-expansion"); // without this have to use "#define CONCAT(a,b) a##b"
       arguments.add(L"-flegacy-resource-reservation"); // will prevent other cbuffers from reusing indexes from explicit buffers
@@ -583,8 +614,8 @@ void ShaderCompiler::SubShader::compile()
       //D3DCOMPILE_RESOURCES_MAY_ALIAS arguments.add(L"/res_may_alias");
       if(get_default_val)
       {
-         arguments.add(L"/Od");
-         arguments.add(L"-D"); arguments.add(L"GET_DEFAULT_VALUE=1");
+         arguments.add(L"/VD"); // skip validation
+         arguments.add(L"/Od"); // skip optimizations
       }else
       {
          arguments.add(L"/O3");
@@ -703,7 +734,7 @@ void ShaderCompiler::SubShader::compile()
                               }break;
                            }
                         }
-                        if(!get_default_val)images.del(); // we don't need images for default value, only buffers
+                        if(get_default_val)images.del(); // we don't need images for default value, only buffers
                         if(!shader->dummy)
                         {
                            // sort by bind members, to increase chance of generating the same bind map for multiple shaders
@@ -746,8 +777,6 @@ void ShaderCompiler::SubShader::compile()
          }
          buffer->Release();
       }
-      if(get_default_val){if(result!=GOOD)break; error.clear(); result=NONE;}
-   }
    #else
       error+="New Compiler not available";
    #endif
@@ -769,7 +798,7 @@ void ShaderCompiler::SubShader::compile()
       Zero(macros.last()); // must be null-terminated
 
       ID3DBlob *buffer=null, *error_blob=null;
-      D3DCompile(source->file_data.data(), source->file_data.elms(), (Str8)source->file_name, macros.data(), &Include11(source->file_name), func_name, target, D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &buffer, &error_blob);
+      D3DCompile(source->file_data.data(), source->file_data.elms(), (Str8)source->file_name, macros.data(), &Include11(source->file_name), func_name, target, get_default_val ? D3DCOMPILE_SKIP_VALIDATION|D3DCOMPILE_SKIP_OPTIMIZATION : D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &buffer, &error_blob);
       if(error_blob)
       {
          CChar8 *e=(Char8*)error_blob->GetBufferPointer();
@@ -848,6 +877,7 @@ void ShaderCompiler::SubShader::compile()
                      }break;
                   }
                }
+               if(get_default_val)images.del(); // we don't need images for default value, only buffers
                if(!shader->dummy)
                {
                   // sort by bind members, to increase chance of generating the same bind map for multiple shaders
@@ -874,7 +904,7 @@ void ShaderCompiler::SubShader::compile()
                      ID3DBlob *stripped=null; D3DStripShader(buffer->GetBufferPointer(), buffer->GetBufferSize(), ~0, &stripped);
                      if(stripped){buffer->Release(); buffer=stripped;}
                   }
-                  shader_data.setNum(buffer->GetBufferSize()).copyFrom((Byte*)buffer->GetBufferPointer());
+                  if(!get_default_val)shader_data.setNum(buffer->GetBufferSize()).copyFrom((Byte*)buffer->GetBufferPointer());
                }
 
                result=GOOD;
@@ -886,6 +916,8 @@ void ShaderCompiler::SubShader::compile()
          buffer->Release();
       }
    }
+   if(get_default_val){if(result!=GOOD)break; error.clear(); result=NONE;}
+}
 #else
    error+="Compiler not available";
 #endif
