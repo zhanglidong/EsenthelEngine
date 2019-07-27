@@ -473,6 +473,7 @@ Str8 Display::shaderModelName()C
       case SM_4_1    : return "4.1";
       case SM_5      : return "5";
       case SM_6      : return "6";
+      case SM_6_2    : return "6.2";
    }
 }
 Str8 Display::apiName()C

@@ -11,12 +11,12 @@ namespace EE{
    #define COMPILE_GL 0
 #endif
 
-/**/
+/**
 #define MAIN
 
 #define DEFERRED
 #define BLEND_LIGHT
-//#define FORWARD
+#define FORWARD
 
 #define AMBIENT
 #define AMBIENT_OCCLUSION
@@ -798,11 +798,11 @@ void MainShaderClass::compile()
 #if COMPILE_DX || COMPILE_GL
    App.stayAwake(AWAKE_SYSTEM);
 
-#if COMPILE_GL
-   Compile(API_GL);
-#endif
 #if COMPILE_DX
    Compile(API_DX);
+#endif
+#if COMPILE_GL
+   Compile(API_GL);
 #endif
 
    ProcPriority(-1); // compiling shaders may slow down entire CPU, so make this process have smaller priority

@@ -109,6 +109,7 @@ enum SHADER_MODEL : Byte
    SM_4_1    , // Model 4.1 (DirectX 10.1      )
    SM_5      , // Model 5.0 (DirectX 11        )
    SM_6      , // Model 6.0 (DirectX 12        )
+   SM_6_2    , // Model 6.2 (DirectX 12        )
 };
 #if EE_PRIVATE
 inline Bool FovPerspective(FOV_MODE mode) {return mode< FOV_ORTHO_Y               ;} // if fov mode is perspective

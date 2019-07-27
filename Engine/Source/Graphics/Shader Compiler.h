@@ -157,6 +157,7 @@ struct ShaderCompiler
       SHADER_MODEL      model;
       ShaderCompiler   *compiler;
 
+      Bool newCompiler()C {return model>=SM_6 || compiler->api!=API_DX;}
       Bool load();
 
       Shader& New(C Str &name=S, C Str8 &vs_func_name="VS", C Str8 &ps_func_name="PS");
