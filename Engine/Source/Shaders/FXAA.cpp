@@ -13,7 +13,9 @@
 #define FXAA_GREEN_AS_LUMA    1
 #define FXAA_QUALITY__PRESET 12
 
+#include "!Set IP.h"
 #include "FXAA.h"
+#include "!Set LP.h"
 
 VecH4 FXAA_PS(NOPERSP Vec2 pos:TEXCOORD):TARGET
 {

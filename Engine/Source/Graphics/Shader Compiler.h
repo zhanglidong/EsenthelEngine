@@ -28,6 +28,7 @@ struct ShaderCompiler
    #endif
       void sortTranslation();
    #endif
+      void setDataFrom(C Param &src);
    };
    struct Bind
    {
@@ -46,6 +47,8 @@ struct ShaderCompiler
       Int  explicitBindSlot()C {return bind_explicit ? bind_slot : -1;}
       Bool operator==(C Buffer &b)C; // this checks 'bind_slot' only for 'bind_explicit'
       Bool operator!=(C Buffer &b)C {return !(T==b);}
+      Param* findParam(C Str8 &name);
+      Param&  getParam(C Str8 &name);
    };
    struct Image : Bind
    {

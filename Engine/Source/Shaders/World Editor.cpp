@@ -52,6 +52,7 @@ void Color_PS
 // CIRCLE / SQUARE / GRID
 /******************************************************************************/
 #include "!Set SP.h"
+
 BUFFER(WorldEditor)
    Flt  XZImageUse,
         XZPattern;
@@ -62,9 +63,12 @@ BUFFER(WorldEditor)
    Vec2 XZPos;
    VecH XZCol;
 BUFFER_END
-#include "!Set LP.h"
+
+#include "!Set IP.h"
 
 Image XZImage;
+
+#include "!Set LP.h"
 /******************************************************************************/
 struct VS_PS
 {

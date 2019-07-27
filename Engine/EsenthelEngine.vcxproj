@@ -1703,6 +1703,7 @@
     <ClInclude Include="H\_\inline.h" />
     <ClInclude Include="Source\Platforms\iOS\iOS.h" />
     <ClInclude Include="Source\Shaders\!Set HP.h" />
+    <ClInclude Include="Source\Shaders\!Set IP.h" />
     <ClInclude Include="Source\Shaders\!Set LP.h" />
     <ClInclude Include="Source\Shaders\!Set SP.h" />
     <ClInclude Include="Source\Shaders\FXAA.h" />

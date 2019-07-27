@@ -21,7 +21,9 @@ BUFFER_END
 #define SMAA_COLOR_WEIGHT_USE 1 // enabling slightly increases performance
 #define SMAA_COLOR_WEIGHT     float3(0.509, 1.000, 0.194) // ClipSet(ColorLumWeight2/ColorLumWeight2.max());
 
+#include "!Set IP.h"
 #include "SMAA.h"
+#include "!Set LP.h"
 
 void SMAAEdge_VS(VtxInput vtx,
              out Vec2 texcoord :TEXCOORD0,

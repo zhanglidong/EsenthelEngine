@@ -408,6 +408,11 @@ void ShaderCompiler::Param::addTranslation(spvc_compiler compiler, spvc_type_id 
 #endif
 static Int Compare(C ShaderParam::Translation &a, C ShaderParam::Translation &b) {return Compare(a.cpu_offset, b.cpu_offset);}
 void ShaderCompiler::Param::sortTranslation() {translation.sort(Compare);} // this is useful for Translation optimization
+void ShaderCompiler::Param::setDataFrom(C Param &src)
+{
+   if(cpu_data_size!=src.cpu_data_size)Exit("Parameters have different size");
+   // FIXME
+}
 Bool ShaderCompiler::Param::operator==(C Param &p)C
 {
    if(translation.elms()!=p.translation.elms())return false; REPA(translation)if(translation[i]!=p.translation[i])return false;
@@ -419,6 +424,16 @@ Bool ShaderCompiler::Buffer::operator==(C Buffer &b)C
    if(params.elms()!=b.params.elms())return false; REPA(params)if(params[i]!=b.params[i])return false;
    if(bind_explicit && bind_slot!=b.bind_slot)return false; // check 'bind_slot' only if they are explicit
    return Equal(name, b.name, true) && size==b.size && bind_explicit==b.bind_explicit;
+}
+ShaderCompiler::Param* ShaderCompiler::Buffer::findParam(C Str8 &name)
+{
+   REPA(params)if(Equal(params[i].name, name, true))return &params[i];
+   return null;
+}
+ShaderCompiler::Param& ShaderCompiler::Buffer::getParam(C Str8 &name)
+{
+   Param  *param=findParam(name); if(!param)Exit(S+"Param \""+name+"\" not found");
+   return *param;
 }
 static Int Compare(C ShaderCompiler::Bind &a, C ShaderCompiler::Bind &b)
 {
@@ -555,15 +570,24 @@ void ShaderCompiler::SubShader::compile()
          define.Value=((compiler->api==i) ? L"1" : L"0");
       }
 
+   REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to process 2 times, first to extract default values, then to get actual results
+   {
       MemtN<LPCWSTR, 16> arguments;
       arguments.add(L"-flegacy-macro-expansion"); // without this have to use "#define CONCAT(a,b) a##b"
       arguments.add(L"-flegacy-resource-reservation"); // will prevent other cbuffers from reusing indexes from explicit buffers
       arguments.add(L"/Zpc"); // D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR
-      arguments.add(L"/O3");
       if(model>=SM_6_2)arguments.add(L"-enable-16bit-types");
-      if(compiler->api!=API_DX)arguments.add(L"-spirv");
       //D3DCOMPILE_IEEE_STRICTNESS     arguments.add(L"/Gis");
       //D3DCOMPILE_RESOURCES_MAY_ALIAS arguments.add(L"/res_may_alias");
+      if(get_default_val)
+      {
+         arguments.add(L"/Od");
+         arguments.add(L"-D"); arguments.add(L"GET_DEFAULT_VALUE=1");
+      }else
+      {
+         arguments.add(L"/O3");
+         if(compiler->api!=API_DX)arguments.add(L"-spirv");
+      }
 
       IDxcBlob *buffer=null; IDxcBlobEncoding *error_blob=null;
       IDxcCompiler *dxc_compiler=null; CreateCompiler(&dxc_compiler); if(dxc_compiler)
@@ -594,7 +618,7 @@ void ShaderCompiler::SubShader::compile()
       }
       if(buffer)
       {
-         if(compiler->api!=API_DX)
+         if(!get_default_val && compiler->api!=API_DX)
          {
             shader_data.setNum(buffer->GetBufferSize()).copyFrom((Byte*)buffer->GetBufferPointer());
             result=GOOD;
@@ -676,6 +700,7 @@ void ShaderCompiler::SubShader::compile()
                               }break;
                            }
                         }
+                        if(!get_default_val)images.del(); // we don't need images for default value, only buffers
                         if(!shader->dummy)
                         {
                            // sort by bind members, to increase chance of generating the same bind map for multiple shaders
@@ -703,7 +728,7 @@ void ShaderCompiler::SubShader::compile()
                               //ID3DBlob *stripped=null; D3DStripShader(buffer->GetBufferPointer(), buffer->GetBufferSize(), ~0, &stripped);
                               //if(stripped){buffer->Release(); buffer=stripped;}
                            }
-                           shader_data.setNum(buffer->GetBufferSize()).copyFrom((Byte*)buffer->GetBufferPointer());
+                           if(!get_default_val)shader_data.setNum(buffer->GetBufferSize()).copyFrom((Byte*)buffer->GetBufferPointer());
                         }
 
                         result=GOOD;
@@ -718,6 +743,8 @@ void ShaderCompiler::SubShader::compile()
          }
          buffer->Release();
       }
+      if(get_default_val){if(result!=GOOD)break; error.clear(); result=NONE;}
+   }
    #else
       error+="New Compiler not available";
    #endif
@@ -1495,6 +1522,8 @@ Bool ShaderCompiler::compileTry(Threads &threads)
 
    if(api!=API_DX)
    {
+      Map<Str8, Buffer> def_val_buffers(CompareCS); Swap(buffers, def_val_buffers);
+
       ConvertContext cc(T
       #if DEBUG
        , shader_datas, shaders
@@ -1517,6 +1546,17 @@ Bool ShaderCompiler::compileTry(Threads &threads)
          }
       }
       threads.wait1();
+
+      REPA(buffers)
+      {
+         Buffer &dest=buffers[i], *src=def_val_buffers.find(dest.name);
+         if(!src)Exit(S+"def_val_buffer \""+dest.name+"\" not found");
+         REPA(dest.params)
+         {
+            Param &param=dest.params[i], &src_p=src->getParam(param.name);
+            param.setDataFrom(src_p);
+         }
+      }
    }
 
    File f; if(f.writeTry(dest))

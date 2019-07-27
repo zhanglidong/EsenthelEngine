@@ -38,8 +38,6 @@
 #define Matrix   float4x3
 #define Matrix4  float4x4
 
-#include "!Set LP.h"
-
 #define ImageF      Texture2D  <Flt  >
 #define ImageH      Texture2D  <Half >
 #define ImageH2     Texture2D  <VecH2>
@@ -491,6 +489,7 @@ inline Half  MultiMaterial3Reflect  () {return MultiMaterial3._bump_macro_reflec
 /******************************************************************************/
 // IMAGES
 /******************************************************************************/
+#include "!Set IP.h"
 Image     Col, Col1, Col2, Col3,
           Nrm, Nrm1, Nrm2, Nrm3,
           Det, Det1, Det2, Det3,
@@ -509,6 +508,7 @@ Image3DH2 VolXY, VolXY1;
 Texture2DMS<VecH4, MS_SAMPLES> ImgMS, ImgMS1;
 Texture2DMS<Half , MS_SAMPLES> ImgXMS;
 Texture2DMS<Flt  , MS_SAMPLES> DepthMS;
+#include "!Set LP.h"
 
        SAMPLER(SamplerDefault    , SSI_DEFAULT     );
        SAMPLER(SamplerPoint      , SSI_POINT       );
