@@ -745,7 +745,7 @@ Vec Randomizer::operator()(C MeshRender &mshr, C AnimatedSkeleton *anim_skel)
                Byte msb_a=bone_a.c[weight_a.maxI()],
                     msb_b=bone_b.c[weight_b.maxI()],
                     msb_c=bone_c.c[weight_c.maxI()];
-               if(mshr._bone_split)
+             /*if(mshr._bone_split)
                {
                   Int tris=0; FREP(mshr._bone_splits)
                   {
@@ -759,7 +759,7 @@ Vec Randomizer::operator()(C MeshRender &mshr, C AnimatedSkeleton *anim_skel)
                      }
                      tris+=bs.tris;
                   }
-               }
+               }*/
                out=T(Tri(a*anim_skel->boneRoot(msb_a-1).matrix(),
                          b*anim_skel->boneRoot(msb_b-1).matrix(),
                          c*anim_skel->boneRoot(msb_c-1).matrix()));

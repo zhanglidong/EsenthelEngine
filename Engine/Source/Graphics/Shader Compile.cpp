@@ -1284,8 +1284,8 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
          if( param.gpu_data_size+offset>buffer.size                )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer.");
        //if( SIZE(Vec4)+var_desc.StartOffset>buffer.size           )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer."); some functions assume that '_gpu_data_size' is at least as big as 'Vec4' to set values without checking for size, !! this is not needed and shouldn't be called because in DX10+ Shader Params are stored in Shader Buffers, and 'ShaderBuffer' already allocates padding for Vec4
 
-         //FIXME if(HasData(var_desc.DefaultValue, var_desc.Size)) // if parameter has any data
-         //   param.data.setNum(param.gpu_data_size).copyFrom((Byte*)var_desc.DefaultValue);
+         //if(HasData(var_desc.DefaultValue, var_desc.Size)) // if parameter has any data
+         //   param.data.setNum(param.gpu_data_size).copyFrom((Byte*)var_desc.DefaultValue); FIXME - https://github.com/KhronosGroup/SPIRV-Cross/issues/1094   https://github.com/KhronosGroup/SPIRV-Headers/issues/125
       }
    }
 
@@ -1416,7 +1416,6 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
 static ShaderImage * Get(Int i, C MemtN<ShaderImage *, 256> &images ) {RANGE_ASSERT_ERROR(i, images , "Invalid ShaderImage index" ); return  images[i];}
 static ShaderBuffer* Get(Int i, C MemtN<ShaderBuffer*, 256> &buffers) {RANGE_ASSERT_ERROR(i, buffers, "Invalid ShaderBuffer index"); return buffers[i];}
 /******************************************************************************/
-// FIXME store buffers+images in one map?
 struct BindMap : Mems<ShaderCompiler::Bind>
 {
    void operator=(C Mems<ShaderCompiler::Image > & images) {setNum( images.elms()); FREPAO(T)= images[i];}

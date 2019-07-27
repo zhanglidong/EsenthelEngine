@@ -8,9 +8,15 @@
 #if EE_PRIVATE
 enum MSHR_FLAG
 {
-   MSHR_COMPRESS  =1<<0, // Nrm,Tan,Bin are compressed into VecB4
-   MSHR_SIGNED    =1<<1, // compressed VecB4 is stored as Signed Byte
-   MSHR_BONE_SPLIT=1<<2, // vertex buffer is split into bone splits
+   MSHR_COMPRESS=1<<0, // Nrm,Tan,Bin are compressed into VecB4
+};
+struct BoneSplit
+{
+   Byte split_to_real[256];
+   Int  vtxs, tris, bones;
+
+   Int realToSplit (Int bone)C; // -1 on fail
+   Int realToSplit0(Int bone)C; //  0 on fail
 };
 #endif
 /******************************************************************************/
@@ -61,10 +67,8 @@ struct MeshRender // Mesh Renderable (Hardware: contains Vertexes + Triangles)
    void indUnlock    (                              )C {       _ib.unlock      (    );} // unlock index data
 
 #if EE_PRIVATE
-   Int  triIndSize      ()C {return indBit16() ? SIZE(U16)*3 : SIZE(U32)*3;} // get triangle indexes size
-   Bool storageCompress ()C {return FlagTest(_storage, MSHR_COMPRESS  );}
-   Bool storageSigned   ()C {return FlagTest(_storage, MSHR_SIGNED    );}
-   Bool storageBoneSplit()C {return FlagTest(_storage, MSHR_BONE_SPLIT);}
+   Int  triIndSize     ()C {return indBit16() ? SIZE(U16)*3 : SIZE(U32)*3;} // get triangle indexes size
+   Bool storageCompress()C {return FlagTest(_storage, MSHR_COMPRESS);}
 
    void     setUsedBones(Bool (&bones)[256])C;
    void includeUsedBones(Bool (&bones)[256])C;
@@ -90,7 +94,7 @@ struct MeshRender // Mesh Renderable (Hardware: contains Vertexes + Triangles)
 
    MeshRender& optimize        (Bool faces=true, Bool vertexes=true); // this method will re-order elements for best rendering performance, 'faces'=if re-order faces, 'vertexes'=if re-order vertexes
    MeshRender& freeOpenGLESData(); // this method is used only under OpenGL ES (on other platforms it is ignored), the method frees the software copy of the GPU data which increases available memory, however after calling this method the data can no longer be accessed on the CPU (can no longer be locked or saved to file)
-   void        adjustToPlatform();
+   void        adjustToPlatform(Bool compressed, Bool sign, Bool bone_split, C MemPtr<BoneSplit> &bone_splits);
 
    // io
 #if EE_PRIVATE
@@ -104,15 +108,6 @@ struct MeshRender // Mesh Renderable (Hardware: contains Vertexes + Triangles)
    Bool load     (  File &f   ) ; // load binary, false on fail
 
    explicit MeshRender(C MeshBase &mshb, UInt flag_and=~0, Bool optimize=true) : MeshRender() {create(mshb, flag_and, optimize);}
-
-   struct BoneSplit
-   {
-      Byte split_to_real[256];
-      Int  vtxs, tris, bones;
-
-      Int realToSplit (Int bone)C; // -1 on fail
-      Int realToSplit0(Int bone)C; //  0 on fail
-   };
 #endif
 
               ~MeshRender() {del();}
@@ -128,13 +123,12 @@ private:
    IndBuf _ib;
    Bool   _vao_reset;
    Byte   _storage;
-   Int    _tris, _bone_splits;
+   Int    _tris;
    UInt   _flag;
 #if EE_PRIVATE
-   BoneSplit *_bone_split;
    GPU_API(ID3D11InputLayout *_vf, union{UInt _vao; VtxFormatGL *_vf;});
 #else
-   Ptr    _bone_split, _vf;
+   Ptr    _vf;
 #endif
 };
 /******************************************************************************/

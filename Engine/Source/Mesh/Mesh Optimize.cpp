@@ -1311,7 +1311,7 @@ MeshRender& MeshRender::optimize(Bool faces, Bool vertexes)
          remap.reserve(Max(tris(), vertexes ? vtxs() : 0));
          remap.setNum(tris());
          Bool ok=false;
-         if(_bone_split)
+       /*if(_bone_split)
          {
             Int processed_tris=0; Memt<uint32_t> attributes; attributes.setNum(tris());
             FREP(_bone_splits)
@@ -1320,7 +1320,7 @@ MeshRender& MeshRender::optimize(Bool faces, Bool vertexes)
                REPD(t, bs.tris)attributes[processed_tris++]=i;
             }
             ok=OK(DirectX::OptimizeFacesEx((uint32_t*)temp.tri.ind(), tris(), (uint32_t*)temp.tri.adjFace(), attributes.data(), (uint32_t*)remap.data(), VTX_CACHE_SIZE, VTX_CACHE_SIZE));
-         }else
+         }else*/
          {
             ok=OK(DirectX::OptimizeFaces((uint32_t*)temp.tri.ind(), tris(), (uint32_t*)temp.tri.adjFace(), (uint32_t*)remap.data(), VTX_CACHE_SIZE, VTX_CACHE_SIZE));
          }
@@ -1338,7 +1338,7 @@ MeshRender& MeshRender::optimize(Bool faces, Bool vertexes)
          if(indBit16())Copy16To32(org, ind, tris()*3);
          else          Copy32To32(org, ind, tris()*3);
 
-         if(_bone_split)
+       /*if(_bone_split)
          {
             Int processed_tris=0;
             FREP(_bone_splits)
@@ -1355,7 +1355,7 @@ MeshRender& MeshRender::optimize(Bool faces, Bool vertexes)
             #endif
                processed_tris+=bs.tris;
             }
-         }else
+         }else*/
          {
          #if   METHOD==METHOD_FORSYTH
             Forsyth::OptimizeFaces(org->c, tris()*3, vtxs(), reordered->c, VTX_CACHE_SIZE);

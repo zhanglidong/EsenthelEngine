@@ -634,7 +634,7 @@ const int           ForceInstaller=-2, // -2=disable and don't update, -1=disabl
 const uint          MeshJoinAllTestVtxFlag=VTX_HLP|VTX_SIZE;
 const uint          NewElmTime=1;
 const uint ProjectVersion     =66, // !! increase this by one if any of engine/editor asset formats have changed !!
-           ClientServerVersion=62;
+           ClientServerVersion=63;
 const int           ServerNetworkCompressionLevel=9           , ClientNetworkCompressionLevel=5            , EsenthelProjectCompressionLevel=5;
 /******************************************************************************/
 // TYPEDEFS

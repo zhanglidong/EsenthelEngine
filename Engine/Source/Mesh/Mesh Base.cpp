@@ -764,7 +764,7 @@ MeshBase& MeshBase::create(Int vtxs, Int edges, Int tris, Int quads, UInt flag)
 /******************************************************************************/
 T1(TYPE) static void Set(C Byte* &v, Int i, TYPE *data, UInt flag) {if(data)data[i]=*(TYPE*)v; if(flag)v+=SIZE(TYPE);}
 
-Bool MeshBase::createVtx(C VtxBuf &vb, UInt flag, UInt storage, MeshRender::BoneSplit *bone_split, Int bone_splits, UInt flag_and)
+Bool MeshBase::createVtx(C VtxBuf &vb, UInt flag, UInt storage, /*MeshRender::BoneSplit *bone_split, Int bone_splits, */UInt flag_and)
 {
    exclude(VTX_ALL);
 
@@ -775,12 +775,11 @@ Bool MeshBase::createVtx(C VtxBuf &vb, UInt flag, UInt storage, MeshRender::Bone
       vtx._elms=vb._vtx_num; include(VTX_ALL&flag&flag_and);
       if(storage&MSHR_COMPRESS)
       {
-         Bool sign=FlagTest(storage, MSHR_SIGNED);
          FREPA(vtx)
          {
             Set(v, i, vtx.pos     (), flag&VTX_POS     );
-            if(vtx.nrm()             )vtx.nrm(i)=(sign ? SByte4ToNrm : UByte4ToNrm)(*(VecB4*)v); if(flag&VTX_NRM)v+=SIZE(VecB4);
-            if(vtx.tan() || vtx.bin())(sign ? SByte4ToTan : UByte4ToTan)(*(VecB4*)v, vtx.tan() ? &vtx.tan(i) : null, vtx.bin() ? &vtx.bin(i) : null, vtx.nrm() ? &vtx.nrm(i) : null); if(flag&VTX_TAN_BIN)v+=SIZE(VecB4);
+            if(vtx.nrm()             )vtx.nrm(i)=SByte4ToNrm(*(VecB4*)v); if(flag&VTX_NRM)v+=SIZE(VecB4);
+            if(vtx.tan() || vtx.bin())           SByte4ToTan(*(VecB4*)v, vtx.tan() ? &vtx.tan(i) : null, vtx.bin() ? &vtx.bin(i) : null, vtx.nrm() ? &vtx.nrm(i) : null); if(flag&VTX_TAN_BIN)v+=SIZE(VecB4);
             Set(v, i, vtx.hlp     (), flag&VTX_HLP     );
             Set(v, i, vtx.tex0    (), flag&VTX_TEX0    );
             Set(v, i, vtx.tex1    (), flag&VTX_TEX1    );
@@ -812,7 +811,7 @@ Bool MeshBase::createVtx(C VtxBuf &vb, UInt flag, UInt storage, MeshRender::Bone
       }
       vb.unlock();
 
-      // restore real bone matrix indexes
+      /*// restore real bone matrix indexes
       if((storage&MSHR_BONE_SPLIT) && bone_split)if(VecB4 *matrix=vtx.matrix())FREP(bone_splits)
       {
        C MeshRender::BoneSplit &split=bone_split[i];
@@ -824,7 +823,7 @@ Bool MeshBase::createVtx(C VtxBuf &vb, UInt flag, UInt storage, MeshRender::Bone
             matrix->w=split.split_to_real[matrix->w];
             matrix++;
          }
-      }
+      }*/
       return true;
    }
    return false;
@@ -853,7 +852,7 @@ Bool MeshBase::createInd(C IndBuf &ib)
 MeshBase& MeshBase::create(C MeshRender &src, UInt flag_and)
 {
    del();
-   if(createVtx(src._vb, src.flag(), src._storage, src._bone_split, src._bone_splits, flag_and))
+   if(createVtx(src._vb, src.flag(), src._storage, flag_and))
       createInd(src._ib);
    return T;
 }

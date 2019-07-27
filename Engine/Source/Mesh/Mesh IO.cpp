@@ -411,13 +411,13 @@ Bool MeshBase::load(C Str &name)
 /******************************************************************************/
 Bool MeshRender::saveData(File &f)C
 {
-   f.cmpUIntV(5); // version
+   f.cmpUIntV(6); // version
    if(_vb.save(f))
    if(_ib.save(f))
    {
       if(_vb._vtx_num || _ib._ind_num)
       {
-         f.putMulti(_storage, _flag, _bone_splits).putN(_bone_split, _bone_splits);
+         f.putMulti(_storage, _flag);
       }
       return f.ok();
    }
@@ -442,6 +442,22 @@ Bool MeshRender::loadData(File &f)
 {
    del(); switch(f.decUIntV()) // version
    {
+      case 6:
+      {
+         if(_vb.load(f))
+         if(_ib.load(f))
+         {
+            if(_vb._vtx_num || _ib._ind_num)
+            {
+               f.getMulti(_storage, _flag);
+              _tris=_ib._ind_num/3;
+               if(!setVF())goto error; // !! call at the end (when have VB IB and flag/storage) !!
+            }
+          //if(App.flag&APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA)freeOpenGLESData(); don't free here because skinning information may be needed for Mesh-Skeleton link (in Mesh.loadData)
+            if(f.ok())return true;
+         }
+      }break;
+
       case 5:
       {
          if(_vb.load(f))
@@ -449,10 +465,10 @@ Bool MeshRender::loadData(File &f)
          {
             if(_vb._vtx_num || _ib._ind_num)
             {
-               f.getMulti(_storage, _flag, _bone_splits);
-               f.getN(Alloc(_bone_split, _bone_splits), _bone_splits); // !! keep as a separate command because if f.get().get() are merged then 'Alloc' may be called before the first get !!
+               Byte storage; f.getMulti(storage, _flag); _storage=(FlagTest(storage, 1<<0) ? MSHR_COMPRESS : 0);
+               Mems<BoneSplit> bone_split; bone_split._loadRaw(f);
               _tris=_ib._ind_num/3;
-               adjustToPlatform();
+               adjustToPlatform(FlagTest(storage, 1<<0), FlagTest(storage, 1<<1), FlagTest(storage, 1<<2), bone_split);
                if(!setVF())goto error; // !! call at the end (when have VB IB and flag/storage) !!
             }
           //if(App.flag&APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA)freeOpenGLESData(); don't free here because skinning information may be needed for Mesh-Skeleton link (in Mesh.loadData)
@@ -467,9 +483,10 @@ Bool MeshRender::loadData(File &f)
          {
             if(_vb._vtx_num || _ib._ind_num)
             {
-               f>>_storage>>_flag>>_bone_splits; f.getN(Alloc(_bone_split, _bone_splits), _bone_splits);
+               Byte storage; f.getMulti(storage, _flag); _storage=(FlagTest(storage, 1<<0) ? MSHR_COMPRESS : 0);
+               Mems<BoneSplit> bone_split; bone_split._loadRaw(f);
               _tris=_ib._ind_num/3;
-               adjustToPlatform();
+               adjustToPlatform(FlagTest(storage, 1<<0), FlagTest(storage, 1<<1), FlagTest(storage, 1<<2), bone_split);
                if(!setVF())goto error; // !! call at the end (when have VB IB and flag/storage) !!
                Fix(T, false, true);
             }
@@ -485,10 +502,11 @@ Bool MeshRender::loadData(File &f)
          {
             if(_vb._vtx_num || _ib._ind_num)
             {
-               Bool compress, dx10; f>>compress>>dx10; _storage=(compress?MSHR_COMPRESS:0)|(dx10?MSHR_SIGNED:MSHR_BONE_SPLIT);
-               f>>_flag>>_bone_splits; f.getN(Alloc(_bone_split, _bone_splits), _bone_splits);
+               Bool compressed, dx10; f>>compressed>>dx10; _storage=(compressed?MSHR_COMPRESS:0);
+               f>>_flag;
+               Mems<BoneSplit> bone_split; bone_split._loadRaw(f);
               _tris=_ib._ind_num/3;
-               adjustToPlatform();
+               adjustToPlatform(compressed, dx10, !dx10, bone_split);
                if(!setVF())goto error; // !! call at the end (when have VB IB and flag/storage) !!
                Fix(T, true, true);
             }
@@ -504,10 +522,11 @@ Bool MeshRender::loadData(File &f)
          {
             if(_vb._vtx_num || _ib._ind_num)
             {
-               Bool compress; f>>compress; _storage=MSHR_BONE_SPLIT|(compress?MSHR_COMPRESS:0);
-               f>>_flag>>_bone_splits; f.getN(Alloc(_bone_split, _bone_splits), _bone_splits);
+               Bool compressed; f>>compressed; _storage=(compressed?MSHR_COMPRESS:0);
+               f>>_flag;
+               Mems<BoneSplit> bone_split; bone_split._loadRaw(f);
               _tris=_ib._ind_num/3;
-               adjustToPlatform();
+               adjustToPlatform(compressed, false, true, bone_split);
                if(!setVF())goto error; // !! call at the end (when have VB IB and flag/storage) !!
                Fix(T, true, true);
             }
@@ -524,18 +543,19 @@ Bool MeshRender::loadData(File &f)
             Bool bit16       =!f.getBool();
             Int  vtx_size    = f.getInt ();
             Int  tri_ind_size= f.getInt ();
-            Int  bone_splits = f.getInt ();
+            Mems<BoneSplit> bone_split; bone_split.setNum(f.getInt());
             UInt flag        = f.getUInt();
 
             if(_vb.createNum(vtx_size, vtxs ))
             if(_ib.create   (tris*3  , bit16))
             {
-               T._storage=MSHR_BONE_SPLIT;
+               T._storage=0;
                T._tris   =tris;
                T._flag   =flag;
-                                             if(!f.getN(Alloc(_bone_split, T._bone_splits=bone_splits), bone_splits))goto error;
-               Ptr data=vtxLock(LOCK_WRITE); if(!f.get (data, vtxs*vtxSize()   ))goto error; vtxUnlock();
-                   data=indLock(LOCK_WRITE); if(!f.get (data, tris*tri_ind_size))goto error; indUnlock();
+                                             if(!bone_split.loadRawData(f)     )goto error;
+               Ptr data=vtxLock(LOCK_WRITE); if(!f.get(data, vtxs*vtxSize()   ))goto error; vtxUnlock();
+                   data=indLock(LOCK_WRITE); if(!f.get(data, tris*tri_ind_size))goto error; indUnlock();
+               adjustToPlatform(false, false, true, bone_split);
                if(!setVF())goto error; // !! call at the end (when have VB IB and flag/storage) !!
 
                Fix(T, true, true);

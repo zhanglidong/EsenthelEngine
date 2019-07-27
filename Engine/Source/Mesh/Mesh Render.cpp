@@ -7,8 +7,8 @@ namespace EE{
 static Memc<UInt> VAOs; // list of released VAO's !! must be handled only under D._lock !! we could optionally 'glDeleteVertexArrays' them at app shut down but it's not needed
 #endif
 /******************************************************************************/
-Int MeshRender::BoneSplit::realToSplit0(Int bone)C {return Max(0, realToSplit(bone));}
-Int MeshRender::BoneSplit::realToSplit (Int bone)C
+Int BoneSplit::realToSplit0(Int bone)C {return Max(0, realToSplit(bone));}
+Int BoneSplit::realToSplit (Int bone)C
 {
    REP(bones)if(split_to_real[i]==bone)return i;
    return -1;
@@ -23,9 +23,8 @@ void MeshRender::zero()
   _vao_reset=false;
 #endif
   _storage=0;
-  _tris=_bone_splits=0;
+  _tris=0;
   _flag=0;
-  _bone_split=null;
   _vf=null;
 }
 MeshRender::MeshRender(                 )                {zero();}
@@ -88,7 +87,6 @@ MeshRender& MeshRender::del()
 #endif
   _vb.del();
   _ib.del();
-   Free(_bone_split);
    zero(); return T;
 }
 Bool MeshRender::setVF()
@@ -142,10 +140,9 @@ Bool MeshRender::create(Int vtxs, Int tris, UInt flag, Bool compress)
    if((same_format && _vb.vtxs()==vtxs && !_vb._lock_mode) || _vb.create(vtxs  , flag         , compress_flag)) // do a separate check for '_vb' because its faster than 'create' method which may do some more checks for vtx size
    if(                                                        _ib.create(tris*3, vtxs<=0x10000               ))
    {
-      T._storage=(compress ? MSHR_COMPRESS : 0)|MSHR_SIGNED; // FIXME
+      T._storage=(compress ? MSHR_COMPRESS : 0);
       T._tris   =tris;
       T._flag   =flag;
-      Free(_bone_split); _bone_splits=0;
       if(GL)return setVF(); // set VAO
       return same_format || setVF(); // skip setting VF if we already have same format
    }
@@ -165,18 +162,17 @@ Bool MeshRender::createRaw(C MeshBase &src, UInt flag_and, Bool optimize, Bool c
              C Vec   *vtx_nrm     =                         src.vtx.nrm     ();
              C VecB4 *vtx_material=((flag()&VTX_MATERIAL) ? src.vtx.material() : null);
              C Color *vtx_color   =                         src.vtx.color   ();
-               VecB4 (*NrmToByte4)(C Vec &v)=(storageSigned() ? NrmToSByte4 : NrmToUByte4);
                if(vtx_material)REPA(src.vtx)
                {
-                  Set(v,            *vtx_pos     ++ );
-                  Set(v, NrmToByte4(*vtx_nrm     ++));
-                  Set(v,            *vtx_material++ );
-                  Set(v,            *vtx_color   ++ );
+                  Set(v,             *vtx_pos     ++ );
+                  Set(v, NrmToSByte4(*vtx_nrm     ++));
+                  Set(v,             *vtx_material++ );
+                  Set(v,             *vtx_color   ++ );
                }else REPA(src.vtx)
                {
-                  Set(v,            *vtx_pos  ++ );
-                  Set(v, NrmToByte4(*vtx_nrm  ++));
-                  Set(v,            *vtx_color++ );
+                  Set(v,             *vtx_pos  ++ );
+                  Set(v, NrmToSByte4(*vtx_nrm  ++));
+                  Set(v,             *vtx_color++ );
                }
             }else
             {
@@ -197,15 +193,8 @@ Bool MeshRender::createRaw(C MeshBase &src, UInt flag_and, Bool optimize, Bool c
                FREPA(src.vtx)
                {
                   Set(v, i, vtx_pos);
-                  if(storageSigned())
-                  {
-                     if(vtx_nrm           )Set(v, NrmToSByte4(vtx_nrm[i]));
-                     if(vtx_tan || vtx_bin)Set(v, TBNToSByte4(vtx_tan ? &vtx_tan[i] : null, vtx_bin ? &vtx_bin[i] : null, vtx_nrm ? &vtx_nrm[i] : null));
-                  }else
-                  {
-                     if(vtx_nrm           )Set(v, NrmToUByte4(vtx_nrm[i]));
-                     if(vtx_tan || vtx_bin)Set(v, TBNToUByte4(vtx_tan ? &vtx_tan[i] : null, vtx_bin ? &vtx_bin[i] : null, vtx_nrm ? &vtx_nrm[i] : null));
-                  }
+                  if(vtx_nrm           )Set(v, NrmToSByte4(vtx_nrm[i]));
+                  if(vtx_tan || vtx_bin)Set(v, TBNToSByte4(vtx_tan ? &vtx_tan[i] : null, vtx_bin ? &vtx_bin[i] : null, vtx_nrm ? &vtx_nrm[i] : null));
                   Set(v, i, vtx_hlp     );
                   Set(v, i, vtx_tex0    );
                   Set(v, i, vtx_tex1    );
@@ -396,14 +385,14 @@ Bool MeshRender::create(C MeshBase &src, UInt flag_and, Bool optimize, Bool comp
 }
 Bool MeshRender::create(C MeshRender *src[], Int elms, UInt flag_and, Bool optimize, Bool compress)
 {
-   // check for bone splits
+   /*// check for bone splits
    REP(elms)if(C MeshRender *mesh=src[i])if(mesh->_bone_splits) // if any of the meshes have bone splits
    { // we need to convert to MeshBase first
       Memt<MeshBase> base; base.setNum(elms);
       REPA(base)if(C MeshRender *mesh=src[i])base[i].create(*mesh, flag_and);
       MeshBase all; all.create(base.data(), base.elms());
       return create(all, flag_and, optimize, compress);
-   }
+   }*/
 
    // do fast merge
    Int  vtxs=0, tris=0;
@@ -451,10 +440,10 @@ Bool MeshRender::create(C MeshRender *src[], Int elms, UInt flag_and, Bool optim
                      {
                         if(temp.storageCompress())
                         {
-                           if(vtx_nrm>=0)if(mesh->storageCompress())Set(v, *(VecB4*)(src+vtx_nrm));else Set(v, (temp.storageSigned() ? NrmToSByte4 : NrmToUByte4)(*(Vec*)(src+vtx_nrm)));else Set(v, VecB4(temp.storageSigned() ? 0 : 128));
+                           if(vtx_nrm>=0)if(mesh->storageCompress())Set(v, *(VecB4*)(src+vtx_nrm));else Set(v, NrmToSByte4(*(Vec*)(src+vtx_nrm)));else Set(v, VecB4(0));
                         }else
                         {
-                           if(vtx_nrm>=0)if(mesh->storageCompress())Set(v, (mesh->storageSigned() ? SByte4ToNrm : UByte4ToNrm)(*(VecB4*)(src+vtx_nrm)));else Set(v, *(Vec*)(src+vtx_nrm));else Set(v, VecZero);
+                           if(vtx_nrm>=0)if(mesh->storageCompress())Set(v, SByte4ToNrm(*(VecB4*)(src+vtx_nrm)));else Set(v, *(Vec*)(src+vtx_nrm));else Set(v, VecZero);
                         }
                      }
                      if(temp.flag()&VTX_TAN_BIN)
@@ -465,9 +454,9 @@ Bool MeshRender::create(C MeshRender *src[], Int elms, UInt flag_and, Bool optim
                            {
                               if(mesh->storageCompress())Set(v, *(VecB4*)(src+vtx_tan));else
                               {
-                                 Set(v, (temp.storageSigned() ? TBNToSByte4 : TBNToUByte4)((vtx_tan>=0) ? (Vec*)(src+vtx_tan) : null, (vtx_bin>=0) ? (Vec*)(src+vtx_bin) : null, (vtx_nrm>=0) ? (Vec*)(src+vtx_nrm) : null));
+                                 Set(v, TBNToSByte4((vtx_tan>=0) ? (Vec*)(src+vtx_tan) : null, (vtx_bin>=0) ? (Vec*)(src+vtx_bin) : null, (vtx_nrm>=0) ? (Vec*)(src+vtx_nrm) : null));
                               }
-                           }else Set(v, VecB4(temp.storageSigned() ? 0 : 128));
+                           }else Set(v, VecB4(0));
                         }else
                         {
                            if(temp.flag()&VTX_TAN)
@@ -476,7 +465,7 @@ Bool MeshRender::create(C MeshRender *src[], Int elms, UInt flag_and, Bool optim
                               {
                                  if(!mesh->storageCompress())Set(v, *(Vec*)(src+vtx_tan));else
                                  {
-                                    Set(v, (mesh->storageSigned() ? SByte4ToNrm : UByte4ToNrm)(*(VecB4*)(src+vtx_tan)));
+                                    Set(v, SByte4ToNrm(*(VecB4*)(src+vtx_tan)));
                                  }
                               }else Set(v, VecZero);
                            }
@@ -487,7 +476,7 @@ Bool MeshRender::create(C MeshRender *src[], Int elms, UInt flag_and, Bool optim
                                  if(!mesh->storageCompress())Set(v, *(Vec*)(src+vtx_bin));else
                                  {
                                     Vec bin;
-                                    (mesh->storageSigned() ? SByte4ToTan : UByte4ToTan) (*(VecB4*)(src+vtx_bin), null, &bin, (vtx_nrm>=0) ? &(mesh->storageSigned() ? SByte4ToNrm : UByte4ToNrm)(*(VecB4*)(src+vtx_nrm)) : null);
+                                    SByte4ToTan(*(VecB4*)(src+vtx_bin), null, &bin, (vtx_nrm>=0) ? &SByte4ToNrm(*(VecB4*)(src+vtx_nrm)) : null);
                                     Set(v, bin);
                                  }
                               }else Set(v, VecZero);
@@ -561,10 +550,6 @@ Bool MeshRender::create(C MeshRender &src)
      _tris   =src._tris   ;
      _flag   =src._flag   ;
       if(GL)setVF();else _vf=src._vf; // VAO
-
-      // copy splits
-      Alloc(_bone_split,     _bone_splits= src._bone_splits);
-      CopyN(_bone_split, src._bone_split , src._bone_splits);
       return true;
    }
    return false;
@@ -961,11 +946,12 @@ void MeshRender::transform(Matrix &matrix)
 /******************************************************************************/
 // OPERATIONS
 /******************************************************************************/
-void MeshRender::adjustToPlatform() // FIXME call only for old mesh formats
+void MeshRender::adjustToPlatform(Bool compressed, Bool sign, Bool bone_split, C MemPtr<BoneSplit> &bone_splits)
 {
-   const Bool bone_split       =false;
-         Bool change_signed    =(storageCompress() && T.storageSigned   ()!=true       && (_flag&(VTX_NRM|VTX_TAN))),
-              change_bone_split=(_bone_split       && T.storageBoneSplit()!=bone_split && (_flag&(VTX_MATRIX     )));
+   const Bool want_bone_split  =false,
+              want_sign        =true,
+              change_signed    =(compressed         && sign      !=want_sign       && (_flag&(VTX_NRM|VTX_TAN))),
+              change_bone_split=(bone_splits.elms() && bone_split!=want_bone_split && (_flag&(VTX_MATRIX     )));
 
    if(change_signed || change_bone_split)
    {
@@ -993,14 +979,12 @@ void MeshRender::adjustToPlatform() // FIXME call only for old mesh formats
 
          if(change_bone_split && bone_ofs>=0)
          {
-            Byte *v=vtx+bone_ofs;
-            FREP(_bone_splits)
+            Byte *v=vtx+bone_ofs; FREPA(bone_splits)
             {
-               BoneSplit &split=_bone_split[i];
-               FREP(split.vtxs)
+             C BoneSplit &split=bone_splits[i]; FREP(split.vtxs)
                {
                   VecB4 &matrix=*(VecB4*)v;
-                  if(bone_split)
+                  if(want_bone_split)
                   {
                      matrix.x=split.realToSplit0(matrix.x);
                      matrix.y=split.realToSplit0(matrix.y);
@@ -1019,9 +1003,6 @@ void MeshRender::adjustToPlatform() // FIXME call only for old mesh formats
          }
 
          vtxUnlock();
-
-         FlagSet(_storage, MSHR_SIGNED    , true      );
-         FlagSet(_storage, MSHR_BONE_SPLIT, bone_split);
       }
    }
 }
@@ -1033,7 +1014,7 @@ void MeshRender::includeUsedBones(Bool (&bones)[256])C
    {
       Int    blend_ofs=vtxOfs(VTX_BLEND);
     C Byte *vtx_matrix=vtx+matrix_ofs, *vtx_blend=((blend_ofs>=0) ? vtx+blend_ofs : null);
-      if(_bone_split && storageBoneSplit())FREP(_bone_splits)
+    /*if(_bone_split && storageBoneSplit())FREP(_bone_splits)
       {
        C MeshRender::BoneSplit &split=_bone_split[i];
          FREP(split.vtxs)
@@ -1050,7 +1031,7 @@ void MeshRender::includeUsedBones(Bool (&bones)[256])C
                          vtx_matrix+=vtxSize();
             if(vtx_blend)vtx_blend +=vtxSize();
          }
-      }else
+      }else*/
       REP(vtxs())
       {
          REP(4) // 4 bytes in VecB4
