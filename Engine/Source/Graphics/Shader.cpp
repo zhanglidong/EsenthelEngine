@@ -1461,12 +1461,7 @@ void InitMatrix()
    {
       SBObjMatrix->createParts(parts, Elms(parts));
       SBObjVel   ->createParts(parts, Elms(parts));
-   }else
-   { // when we use ALLOW_PARTIAL_BUFFERS then for now we still have to create at least 1 part, because ShaderBuffer.size needs it to know the full size, which we dynamically resize (needed when loading other shaders and comparing that buffer total size matches)
-      SBObjMatrix->createParts(parts, 1);
-      SBObjVel   ->createParts(parts, 1);
-   }
-      SBFurVel   ->createParts(parts, Elms(parts));
+   }  SBFurVel   ->createParts(parts, Elms(parts));
    Int end=Elms(BoneNumToPart); for(Int i=0; i<Elms(parts)-1; i++){Int start=parts[i+1]+1; SetMem(&BoneNumToPart[start], i, end-start); end=start;} REP(end)BoneNumToPart[i]=Elms(parts)-1;
 #endif
 }
