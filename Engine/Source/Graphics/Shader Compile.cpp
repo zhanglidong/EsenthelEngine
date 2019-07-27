@@ -236,6 +236,8 @@ private:
 // COMPILER
 /******************************************************************************/
 #if WINDOWS
+void ShaderCompiler::Param::addTranslation(ID3D11ShaderReflectionType *type, C D3D11_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, SByte &was_min16) // 'was_min16'=if last inserted parameter was of min16 type (-1=no last parameter)
+{
 // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-packing-rules
 /* D3DCompile introduces some weird packing rules for min16float:
       min16float a; // offset=0
@@ -259,8 +261,6 @@ private:
       min16float4 a; // offset=0
       min16float  b; // offset=16
 */
-void ShaderCompiler::Param::addTranslation(ID3D11ShaderReflectionType *type, C D3D11_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, SByte &was_min16) // 'was_min16'=if last inserted parameter was of min16 type (-1=no last parameter)
-{
    if(type_desc.Elements)offset=Ceil16(offset); // arrays are 16-byte aligned (even 1-element arrays "f[1]"), non-arrays have Elements=0, so check Elements!=0
    Int  elms=Max(type_desc.Elements, 1), last_index=elms-1; // 'Elements' is array size (it's 0 for non-arrays)
    FREP(elms)switch(type_desc.Class)
@@ -269,20 +269,18 @@ void ShaderCompiler::Param::addTranslation(ID3D11ShaderReflectionType *type, C D
       case D3D_SVC_VECTOR        : // for example: Vec2 v,v[]; Vec v,v[]; Vec4 v,v[];
       case D3D_SVC_MATRIX_COLUMNS: // for example: Matrix m,m[];
       {
-      #define ALLOW_MIN16 1
          if(type_desc.Rows   <=0 || type_desc.Rows   >4)Exit("Invalid Shader Param Rows");
          if(type_desc.Columns<=0 || type_desc.Columns>4)Exit("Invalid Shader Param Cols");
-         Bool half=false, min16=(type_desc.Type==D3D_SVT_MIN16FLOAT);
-         if(type_desc.Type==D3D_SVT_FLOAT || (ALLOW_MIN16 && min16))
+         Bool min16=(type_desc.Type==D3D_SVT_MIN16FLOAT);
+         if(type_desc.Type==D3D_SVT_FLOAT || min16)
          {
-            Int base_size=(half ? SIZE(Half) : SIZE(Flt)),
+            Int base_size=SIZE(Flt),
                  cpu_size=base_size*type_desc.Columns*type_desc.Rows,
                  gpu_size;
             if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)gpu_size=cpu_size;
             else                                       gpu_size=base_size*4             *(type_desc.Columns-1) // for matrixes, the lines use  4 X's
                                                                +base_size*type_desc.Rows;                      //       except last line  uses what was specified
-            if(offset/16 != (offset+gpu_size-1)/16 || (ALLOW_MIN16 && was_min16>=0 && was_min16!=(Byte)min16))offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary."
-            if(!half)cpu_data_size=Ceil4(cpu_data_size); // float's are 4-byte aligned on CPU, double too if using #pragma pack(4)
+            if(offset/16 != (offset+gpu_size-1)/16 || (was_min16>=0 && was_min16!=(Byte)min16))offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary."
 
             if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)translation.New().set(cpu_data_size, offset, cpu_size);else
             { // !! process y's first to add translation sorted by 'cpu_offset' to make later sorting faster !!
@@ -309,7 +307,7 @@ void ShaderCompiler::Param::addTranslation(ID3D11ShaderReflectionType *type, C D
       }break;
    }
 }
-void ShaderCompiler::Param::addTranslation(ID3D12ShaderReflectionType *type, C D3D12_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, SByte &was_min16) // 'was_min16'=if last inserted parameter was of min16 type (-1=no last parameter)
+void ShaderCompiler::Param::addTranslation(ID3D12ShaderReflectionType *type, C D3D12_SHADER_TYPE_DESC &type_desc, CChar8 *name, Int &offset, Bool true_half)
 {
    if(type_desc.Elements)offset=Ceil16(offset); // arrays are 16-byte aligned (even 1-element arrays "f[1]"), non-arrays have Elements=0, so check Elements!=0
    Int  elms=Max(type_desc.Elements, 1), last_index=elms-1; // 'Elements' is array size (it's 0 for non-arrays)
@@ -319,30 +317,34 @@ void ShaderCompiler::Param::addTranslation(ID3D12ShaderReflectionType *type, C D
       case D3D_SVC_VECTOR        : // for example: Vec2 v,v[]; Vec v,v[]; Vec4 v,v[];
       case D3D_SVC_MATRIX_COLUMNS: // for example: Matrix m,m[];
       {
-      #define ALLOW_MIN16 1
          if(type_desc.Rows   <=0 || type_desc.Rows   >4)Exit("Invalid Shader Param Rows");
          if(type_desc.Columns<=0 || type_desc.Columns>4)Exit("Invalid Shader Param Cols");
-         Bool half=false, min16=(type_desc.Type==D3D_SVT_MIN16FLOAT);
-         if(type_desc.Type==D3D_SVT_FLOAT || (ALLOW_MIN16 && min16))
+         if(type_desc.Type==D3D_SVT_FLOAT || type_desc.Type==D3D_SVT_MIN16FLOAT)
          {
-            Int base_size=(half ? SIZE(Half) : SIZE(Flt)),
+            Bool half=(type_desc.Type==D3D_SVT_MIN16FLOAT && true_half);
+            Int base_size=((type_desc.Type==D3D_SVT_DOUBLE) ? SIZE(Dbl) : half ? SIZE(Half) : SIZE(Flt)),
+                  up_size=Max(base_size, SIZE(Flt)), // some half-sizes are upped to flt
                  cpu_size=base_size*type_desc.Columns*type_desc.Rows,
                  gpu_size;
             if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)gpu_size=cpu_size;
-            else                                       gpu_size=base_size*4             *(type_desc.Columns-1) // for matrixes, the lines use  4 X's
-                                                               +base_size*type_desc.Rows;                      //       except last line  uses what was specified
-            if(offset/16 != (offset+gpu_size-1)/16 || (ALLOW_MIN16 && was_min16>=0 && was_min16!=(Byte)min16))offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary."
-            if(!half)cpu_data_size=Ceil4(cpu_data_size); // float's are 4-byte aligned on CPU, double too if using #pragma pack(4)
+            else                                       gpu_size= up_size*          4   *(type_desc.Columns-1) // for matrixes, the lines use  4 X's
+                                                               + up_size*type_desc.Rows                     ; //       except last line  uses what was specified
+            if(!half)
+            {
+                                                 cpu_data_size=Ceil4(cpu_data_size); // float's are 4-byte aligned on CPU, double too if using #pragma pack(4)
+               if(type_desc.Type==D3D_SVT_DOUBLE)offset       =Ceil8(offset       ); // on GPU Dbl is 8-byte aligned
+               else                              offset       =Ceil4(offset       ); // on GPU Flt is 4-byte aligned
+            }
+            if(offset/16 != (offset+gpu_size-1)/16)offset=Ceil16(offset); // "Additionally, HLSL packs data so that it does not cross a 16-byte boundary."
 
             if(type_desc.Class!=D3D_SVC_MATRIX_COLUMNS)translation.New().set(cpu_data_size, offset, cpu_size);else
             { // !! process y's first to add translation sorted by 'cpu_offset' to make later sorting faster !!
                FREPD(y, type_desc.Rows   )
-               FREPD(x, type_desc.Columns)translation.New().set(cpu_data_size+base_size*(x+y*type_desc.Columns), offset+base_size*(y+x*4), base_size);
+               FREPD(x, type_desc.Columns)translation.New().set(cpu_data_size+base_size*(x+y*type_desc.Columns), offset+base_size*y+x*up_size*4, base_size);
             }
                   
             cpu_data_size+=cpu_size;
                    offset+=((i==last_index) ? gpu_size : Ceil16(gpu_size)); // arrays are 16-byte aligned, and last element is 'gpu_size' only
-            was_min16=min16;
          }else Exit(S+"Unhandled Shader Parameter Type for \""+name+'"');
       }break;
 
@@ -353,7 +355,7 @@ void ShaderCompiler::Param::addTranslation(ID3D12ShaderReflectionType *type, C D
          {
             ID3D12ShaderReflectionType *member=type->GetMemberTypeByIndex(i); if(!member)Exit("'GetMemberTypeByIndex' failed");
             D3D12_SHADER_TYPE_DESC member_desc; if(!OK(member->GetDesc(&member_desc)))Exit("'ID3D12ShaderReflectionType.GetDesc' failed");
-            addTranslation(member, member_desc, type->GetMemberTypeName(i), offset, was_min16);
+            addTranslation(member, member_desc, type->GetMemberTypeName(i), offset, true_half);
          }
        //offset=Ceil16(offset); "Each structure forces the next variable to start on the next four-component vector." even though documentation examples indicate this should align too, actual tests confirm that's not the case
       }break;
@@ -680,10 +682,11 @@ void ShaderCompiler::SubShader::compile()
                                        Param &param=buffer.params[i];
                                        param.name=var_desc.Name;
                                        param.array_elms=type_desc.Elements;
-                                       Int offset=var_desc.StartOffset; SByte was_min16=-1; param.addTranslation(type, type_desc, var_desc.Name, offset, was_min16); param.sortTranslation();
+                                       Int offset=var_desc.StartOffset; param.addTranslation(type, type_desc, var_desc.Name, offset, model>=SM_6_2); param.sortTranslation();
                                        param.gpu_data_size=offset-var_desc.StartOffset;
                                        if(!param.translation.elms()                             )Exit("Shader Param is empty.\nPlease contact Developer.");
-                                       if( param.gpu_data_size!=var_desc.Size                   )Exit("Incorrect Shader Param size.\nPlease contact Developer.");
+                                       if(        param.gpu_data_size >        var_desc.Size
+                                       ||  Ceil16(param.gpu_data_size)!=Ceil16(var_desc.Size)   )Exit("Incorrect Shader Param size.\nPlease contact Developer."); // FIXME DX Compiler returns padded struct sizes, so it can be a little bigger than actually used 'gpu_data_size' - https://github.com/microsoft/DirectXShaderCompiler/issues/2376
                                        if( param.translation[0].gpu_offset!=var_desc.StartOffset)Exit("Incorrect Shader Param Offset.\nPlease contact Developer.");
                                        if( param.gpu_data_size+var_desc.StartOffset>buffer.size )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer.");
                                      //if( SIZE(Vec4)         +var_desc.StartOffset>buffer.size )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer."); some functions assume that '_gpu_data_size' is at least as big as 'Vec4' to set values without checking for size, !! this is not needed and shouldn't be called because in DX10+ Shader Params are stored in Shader Buffers, and 'ShaderBuffer' already allocates padding for Vec4

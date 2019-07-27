@@ -28,7 +28,12 @@ void Particle_VS(VtxInput vtx,
    Half  size  =vtx.size(),
          angle =vtx._tan.w;
    Vec   pos   =TransformPos(vtx.pos());
-   VecH2 offset=outTex*VecH2(2, -2)+VecH2(-1, 1), cos_sin; CosSin(cos_sin.x, cos_sin.y, angle); offset=Rotate(offset, cos_sin);
+#if 0 // fails to compile
+   VecH2 offset=VecH2(outTex)*VecH2(2, -2)+VecH2(-1, 1);
+#else
+   VecH2 offset; offset.x=Half(outTex.x)*2-1; offset.y=-Half(outTex.y)*2+1;
+#endif
+   VecH2 cos_sin; CosSin(cos_sin.x, cos_sin.y, angle); offset=Rotate(offset, cos_sin);
 
    if(MOTION_STRETCH)
       if(pos.z>0)

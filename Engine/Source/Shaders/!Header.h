@@ -1488,10 +1488,13 @@ BUFFER(Shadow)
    Matrix  ShdMatrix     ;
    Matrix4 ShdMatrix4[6] ;
 BUFFER_END
-#include "!Set LP.h"
+
+#include "!Set IP.h"
 
 ImageShadow ShdMap;
 ImageH      ShdMap1;
+
+#include "!Set LP.h"
 
 inline Half ShadowFinal(Half shadow) {return shadow*ShdOpacity.x+ShdOpacity.y;}
 
