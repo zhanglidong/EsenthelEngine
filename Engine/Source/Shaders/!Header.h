@@ -1366,15 +1366,17 @@ inline void UpdateVelocities_VS(in out Vec vel, VecH local_pos, Vec view_space_p
    vel-=Transform3(Cross(local_pos      , ObjAngVel), ViewMatrix[mtrx]); // add object angular velocity in view space
    vel+=           Cross( view_space_pos, CamAngVel);                    // add camera angular velocity
 }
-inline void UpdateVelocities_PS(in out Vec vel, Vec view_space_pos)
+inline VecH GetVelocity_PS(Vec vel, Vec view_space_pos)
 {
    // divide by distance to camera (there is no NaN because in PixelShader view_space_pos.z>0)
  //if(ORTHO_SUPPORT && !Viewport.ortho)
-      vel/=view_space_pos.z;
+   VecH vel_ps=vel/view_space_pos.z;
 
 #if !SIGNED_VEL_RT
-   vel=vel*0.5+0.5; // scale from signed to unsigned (-1..1 -> 0..1)
+   vel_ps=vel_ps*0.5+0.5; // scale from signed to unsigned (-1..1 -> 0..1)
 #endif
+
+   return vel_ps;
 }
 inline Vec GetVelocitiesCameraOnly(Vec view_space_pos)
 {
@@ -1601,7 +1603,7 @@ struct DeferredSolidOutput // use this structure in Pixel Shader for setting the
    inline void specular(Half specular) {out1.w=specular;}
 #endif
 
-   inline void velocity(Vec vel, Vec view_space_pos) {UpdateVelocities_PS(vel, view_space_pos); out2.xyz=vel; out2.w=0;}
+   inline void velocity(Vec vel, Vec view_space_pos) {out2.xyz=GetVelocity_PS(vel, view_space_pos); out2.w=0;}
 };
 /******************************************************************************/
 // TESSELATION

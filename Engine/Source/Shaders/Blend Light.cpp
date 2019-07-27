@@ -288,7 +288,7 @@ void PS
    outCol=I.col;
 
 #if USE_VEL
-   UpdateVelocities_PS(I.vel, I.pos); outVel.xyz=I.vel; outVel.w=I.col.a; // alpha needed because of blending
+   outVel.xyz=GetVelocity_PS(I.vel, I.pos); outVel.w=I.col.a; // alpha needed because of blending
 #endif
 }
 /******************************************************************************/

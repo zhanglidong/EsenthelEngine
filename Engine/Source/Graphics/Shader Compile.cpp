@@ -583,25 +583,10 @@ void ShaderCompiler::SubShader::compile()
          Int  size=error_blob->GetBufferSize   ();
          switch(code_page)
          {
-            default:
-            {
-               // FIXME
-            }break;
-
-            case CP_UTF8:
-            {
-               Memt<Char8> utf; utf.setNum(size+1); CopyFast(utf.data(), data, size); utf[size]='\0'; error+=FromUTF8(utf.data());
-            }break;
-            
-            case CP_ACP:
-            {
-               CChar8 *e=(Char8*)data; error.reserveAdd(size); REP(size)error+=*e++;
-            }break;
-
-            case CP_UTF16:
-            {
-               CChar *e=(Char*)data; size/=SIZE(Char); error.reserveAdd(size); REP(size)error+=*e++;
-            }break;
+            default      : {Memt<wchar_t> w  ; w  .setNum(size+1); Int out=MultiByteToWideChar(code_page, 0, (LPCCH)data, size, w.data(), size); w   [out]='\0'; error+=           w.data() ;} break;
+            case CP_UTF8 : {Memt<Char8  > utf; utf.setNum(size+1); CopyFast(utf.data(), data, size);                                             utf[size]='\0'; error+=FromUTF8(utf.data());} break;
+          //case CP_ACP  : {CChar8 *e=(Char8*)data;                   error.reserveAdd(size); REP(size)error+=*e++;} break;
+            case CP_UTF16: {CChar  *e=(Char* )data; size/=SIZE(Char); error.reserveAdd(size); REP(size)error+=*e++;} break;
          }
          error_blob->Release();
       }
