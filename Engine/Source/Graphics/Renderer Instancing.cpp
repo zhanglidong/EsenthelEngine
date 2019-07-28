@@ -209,7 +209,7 @@ static INLINE void DrawSolidInstances(Bool forward)
    D.depth(true);
 
    // solid
-   SetMatrixCount();
+ //SetMatrixCount(); not needed since we always call this before drawing
    DisableSkinning();
    FREPA(ShaderDraws)
    {
