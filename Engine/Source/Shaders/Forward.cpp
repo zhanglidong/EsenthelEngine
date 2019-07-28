@@ -170,7 +170,7 @@ void VS
    O.mtrx[0]=tan;
    O.mtrx[2]=nrm;
    O.mtrx[1]=vtx.bin(nrm, tan, HEIGHTMAP);
-#elif BUMP_MODE==SBUMP_FLAT && PER_PIXEL
+#elif BUMP_MODE==SBUMP_FLAT && (PER_PIXEL || TESSELATE)
    O.nrm=nrm;
 #endif
 
