@@ -627,7 +627,7 @@ VS_PS HS
 #if   BUMP_MODE> SBUMP_FLAT
    O.mtrx=I[cp_id].mtrx;
 #elif BUMP_MODE==SBUMP_FLAT
-   O.nrm =I[cp_id].nrm ;
+   O.nrm =I[cp_id].nrm;
 #endif
 
 
