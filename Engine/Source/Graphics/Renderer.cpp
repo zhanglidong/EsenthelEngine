@@ -1061,13 +1061,11 @@ void RendererClass::aoApply()
       ao(); if(_ao)
       {
          set(_col, _ds, true); // restore rendering RT's after calculating AO
-         D.alpha(ALPHA_MUL);
-         D.depth2DOn();
-         Sh.Color[0]->set(Vec4(1, 1, 1, 0));
-         Sh.Color[1]->set(Vec4(0, 0, 0, 1));
+         D .alpha(ALPHA_MUL);
+         D .depth2DOn();
          Sh.ImgX[0]->set(_ao);
-         Sh.DrawXC[0][0]->draw();
-         D.depth2DOff();
+         Sh.DrawX->draw();
+         D .depth2DOff();
       }
    }
 }
@@ -1096,6 +1094,7 @@ void RendererClass::solid()
           SortLights();
 
          // find initial directional light
+         // FIXME
          Int start_light=-1;
          if(Lights.elms() && (D.aoAll() || !hasAO())) // if we do AO then first we need to draw without lights (ambient only)
          {
