@@ -51,7 +51,7 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
   _mode=RM_SOLID;
   _mesh_blend_alpha=ALPHA_NONE;
   _has_glow=_fur_is=_mirror=_mirror_want=_mirror_shadows=_palette_mode=_eye_adapt_scale_cur=_t_measure=_set_depth_needed=_get_target=_stereo=_mesh_early_z=_mesh_shader_vel=false;
-  _outline=0;
+  _outline=_clear=0;
   _mirror_priority=_mirror_resolution=0;
   _frst_light_offset=_blst_light_offset=0;
   _shd_range=0;
@@ -1041,15 +1041,25 @@ start:
             if(clear_nrm)D.clearCol(1, D.signedNrmRT() ? SNRM_CLEAR : NRM_CLEAR);
             if(clear_vel)D.clearCol(2, D.signedVelRT() ? SVEL_CLEAR : VEL_CLEAR);
          }
+         if(clear_ds)D.clearDS();
       }break;
 
       case RT_FORWARD:
       {
-         set(_col, _ds, true);
-         if(clear_col)D.clearCol(combine ? TRANSPARENT : Color(clear_color.r, clear_color.g, clear_color.b, 0));
+        _clear=((clear_col?1:0) | (clear_ds?2:0)); // set '_clear' to be checked later
+         // don't set RT or clear here, because it's very likely we will draw shadows first, before drawing to '_col', this will avoid setting useless '_col' which is very important for Mobile platforms with tile-based deferred renderers, instead we will check this in 'setForwardCol'
       }break;
    }
-   if(clear_ds)D.clearDS();
+}
+void RendererClass::setForwardCol()
+{
+   set(_col, _ds, true);
+   if(_clear) // need to clear something
+   {
+      if(_clear&1)D.clearCol(combine ? TRANSPARENT : Color(clear_color.r, clear_color.g, clear_color.b, 0));
+      if(_clear&2)D.clearDS ();
+     _clear=0; // cleared
+   }
 }
 void RendererClass::aoApply()
 {
@@ -1112,9 +1122,10 @@ void RendererClass::solid()
          // draw main light
          if(first_light>=0)
          {
-            Lights[first_light].drawForward(_col, fastCombine() ? ALPHA_NONE_ADD : ALPHA_NONE);
+            Lights[first_light].drawForward(fastCombine() ? ALPHA_NONE_ADD : ALPHA_NONE);
          }else // no light
          {
+            setForwardCol();
            _frst_light_offset=OFFSET(FRST, none);
             D.alpha(fastCombine() ? ALPHA_NONE_ADD : ALPHA_NONE);
             D.stencil(STENCIL_ALWAYS_SET, 0); D.set3D(); mode(RM_SOLID);
@@ -1139,7 +1150,7 @@ void RendererClass::solid()
             Bool clip=D._clip, clip_allow=D._clip_allow; T._clip=(clip ? D._clip_rect : D.rect()); // remember clipping because 'drawForward' may change it
             Sh.AmbientColorNS_l->set(VecZero); Sh.AmbientMaterial->set(0); // disable ambient lighting
             D.depthFunc(FUNC_LESS_EQUAL); // need to make sure we can apply lights on existing depth
-            REPA(Lights)if(i!=first_light)Lights[i].drawForward(_col, ALPHA_ADD_KEEP); // draw 0-th at the end to setup shadow maps (needed for BLEND_LIGHT), keep alpha which is glow
+            REPA(Lights)if(i!=first_light)Lights[i].drawForward(ALPHA_ADD_KEEP); // draw 0-th at the end to setup shadow maps (needed for BLEND_LIGHT), keep alpha which is glow
             D.clip(clip ? &T._clip : null); D.clipAllow(clip_allow);
             D.depthFunc(FUNC_LESS);
            _first_pass=true;

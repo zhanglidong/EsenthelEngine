@@ -1256,7 +1256,7 @@ void Light::draw()
    Renderer._shd_ms.clear();
 }
 /******************************************************************************/
-void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
+void Light::drawForward(ALPHA_MODE alpha)
 {
    SetShadowOpacity(shadow_opacity);
 
@@ -1276,7 +1276,7 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
             Renderer._frst_light_offset=OFFSET(FRST, dir);
          }
 
-         Renderer.set(dest, Renderer._ds, true);
+         Renderer.setForwardCol();
          D.alpha(alpha);
          D.set3D();
          if(Renderer.firstPass())
@@ -1334,7 +1334,7 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
             Renderer._frst_light_offset=OFFSET(FRST, point);
          }
 
-         Renderer.set(dest, Renderer._ds, true);
+         Renderer.setForwardCol();
          D.alpha(alpha);
          D.set3D();
          if(Renderer.firstPass())
@@ -1394,7 +1394,7 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
             Renderer._frst_light_offset=OFFSET(FRST, linear);
          }
 
-         Renderer.set(dest, Renderer._ds, true);
+         Renderer.setForwardCol();
          D.alpha(alpha);
          D.set3D();
          if(Renderer.firstPass())
@@ -1454,7 +1454,7 @@ void Light::drawForward(ImageRT *dest, ALPHA_MODE alpha)
             Renderer._frst_light_offset=OFFSET(FRST, cone);
          }
 
-         Renderer.set(dest, Renderer._ds, true);
+         Renderer.setForwardCol();
          D.alpha(alpha);
          D.set3D();
          if(Renderer.firstPass())

@@ -136,7 +136,7 @@ struct Light
    void set(LightCone   &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src);
 
    void draw       ();
-   void drawForward(ImageRT *dest, ALPHA_MODE alpha);
+   void drawForward(ALPHA_MODE alpha);
 #endif
 }extern
    CurrentLight; // this contains information about the light which is currently rendered
