@@ -7,7 +7,7 @@ BUFFER(ApplyLight)
 BUFFER_END
 #include "!Set LP.h"
 
-#define AO_ALL 1  // !! must be the same as 'D._amb_all' !! if apply Ambient Occlusion to all lights (not just Ambient), this was disabled in the past, however in LINEAR_GAMMA the darkening was too strong in low light, enabling this option solves that problem
+#define AO_ALL 1  // !! must be the same as 'D.aoAll()' !! if apply Ambient Occlusion to all lights (not just Ambient), this was disabled in the past, however in LINEAR_GAMMA the darkening was too strong in low light, enabling this option solves that problem
 /******************************************************************************/
 Half CelShade(Half lum) {return TexLod(Img2, VecH2(lum, 0.5)).x;} // have to use linear filtering
 /******************************************************************************/

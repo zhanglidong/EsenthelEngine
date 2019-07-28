@@ -190,6 +190,7 @@ struct RendererClass // handles rendering
    void edgeSoften        ();
    void outline           ();
    void ao                ();
+   void aoApply           ();
    void resolveMultiSample();
    void downSample        ();
    void applyOutline      ();

@@ -680,9 +680,9 @@ Display::Display() : _monitors(Compare, Create, null, 4)
   _window_pixel_to_screen_add=0;
   _window_pixel_to_screen_scale=1;
 
+  _ao_all      =true;
   _amb_mode    =AMBIENT_FLAT;
   _amb_soft    =1;
-  _amb_all     =true;
   _amb_jitter  =true;
   _amb_normal  =true;
   _amb_res     =FltToByteScale(0.5f);
@@ -2792,8 +2792,9 @@ void Display::shadowJitterSet()
 /******************************************************************************/
 Bool Display::aoWant()C
 {
-   return ambientMode()!=AMBIENT_FLAT
-     && (_amb_all || (ambientColorS()+nightShadeColorS()).max()>EPS_COL); // no need to calculate AO if it's too small
+   return ambientMode    ()!=AMBIENT_FLAT
+      &&  ambientContrast()> EPS_COL
+      && (aoAll() || (ambientColorS()+nightShadeColorS()).max()>EPS_COL); // no need to calculate AO if it's too small
 }
 Flt Display::ambientRes   ()C {return ByteScaleToFlt(_amb_res);}
 Flt Display::ambientPowerS()C {return LinearToSRGB(ambientPowerL());}

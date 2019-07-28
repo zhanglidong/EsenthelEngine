@@ -671,7 +671,7 @@ RendererClass& RendererClass::operator()(void (&render)())
 
          case RS_LIGHT: if(_lum_1s)
          {
-            if(_ao && !D._amb_all) // if there's AO available, then it means that ambient hasn't been applied yet to '_lum_1s', to keep consistency with '_lum_1s' when AO is disabled, apply flat ambient here
+            if(_ao && !D.aoAll()) // if there's AO available, then it means that ambient hasn't been applied yet to '_lum_1s', to keep consistency with '_lum_1s' when AO is disabled, apply flat ambient here
             {
                set(_lum_1s, null, true);
                D.alpha(ALPHA_ADD);
@@ -692,7 +692,7 @@ RendererClass& RendererClass::operator()(void (&render)())
             {
                set(_lum_1s, null, true);
                Sh.ImgX[0]->set(_ao);
-               if(D._amb_all)
+               if(D.aoAll())
                {
                   D.alpha(ALPHA_MUL);
                   Sh.DrawX->draw();
@@ -1054,6 +1054,23 @@ start:
    }
    if(clear_ds)D.clearDS();
 }
+void RendererClass::aoApply()
+{
+   if(hasAO())
+   {
+      ao(); if(_ao)
+      {
+         set(_col, _ds, true); // restore rendering RT's after calculating AO
+         D.alpha(ALPHA_MUL);
+         D.depth2DOn();
+         Sh.Color[0]->set(Vec4(1, 1, 1, 0));
+         Sh.Color[1]->set(Vec4(0, 0, 0, 1));
+         Sh.ImgX[0]->set(_ao);
+         Sh.DrawXC[0][0]->draw();
+         D.depth2DOff();
+      }
+   }
+}
 void RendererClass::solid()
 {
    switch(_cur_type)
@@ -1080,7 +1097,7 @@ void RendererClass::solid()
 
          // find initial directional light
          Int start_light=-1;
-         if(Lights.elms() && !hasAO()) // if we do AO then first we need to draw without lights (ambient only)
+         if(Lights.elms() && (D.aoAll() || !hasAO())) // if we do AO then first we need to draw without lights (ambient only)
          {
             if(Lights[0].type==LIGHT_DIR && Lights[0].shadow) // for shadow mapping 0-th light is the most significant, its shadow map must be rendered last to be used by BLEND_LIGHT
             {
@@ -1118,20 +1135,7 @@ void RendererClass::solid()
          }
 
          // apply ambient occlusion
-         if(hasAO())
-         {
-            ao(); if(_ao)
-            {
-               set(_col, _ds, true); // restore rendering RT's after calculating AO
-               D.alpha(ALPHA_MUL);
-               D.depth2DOn();
-               Sh.Color[0]->set(Vec4(1, 1, 1, 0));
-               Sh.Color[1]->set(Vec4(0, 0, 0, 1));
-               Sh.ImgX[0]->set(_ao);
-               Sh.DrawXC[0][0]->draw();
-               D.depth2DOff();
-            }
-         }
+         if(!D.aoAll())aoApply();
 
          // draw rest of the lights
          if(Lights.elms()-(start_light>=0)>0)
@@ -1149,6 +1153,9 @@ void RendererClass::solid()
             D.ambientSet(); Sh.AmbientMaterial->set(1); // restore ambient lighting
             Frustum.set(); // restore frustum after it being potentially changed when drawing shadow maps or setting frustum for visible objects for lights
          }
+
+         // apply ambient occlusion
+         if(D.aoAll())aoApply();
 
        //resolveDepth(); was already called for the main light
       }break;
@@ -1476,7 +1483,7 @@ void RendererClass::blend()
       {
          set(_lum_1s, null, true);
          Sh.ImgX[0]->set(_ao);
-         if(D._amb_all)
+         if(D.aoAll())
          {
             D.alpha(ALPHA_MUL);
             Sh.DrawX->draw();
