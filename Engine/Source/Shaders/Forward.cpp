@@ -10,7 +10,7 @@ TESSELATE
 /******************************************************************************/
 #define LIGHT          (LIGHT_DIR || LIGHT_POINT || LIGHT_LINEAR || LIGHT_CONE)
 #define SHADOW         (LIGHT_DIR_SHD || LIGHT_POINT_SHD || LIGHT_LINEAR_SHD || LIGHT_CONE_SHD)
-#define SECONDARY_PASS (LIGHT_POINT || LIGHT_LINEAR || LIGHT_CONE) // local lights are enabled only for secondary shader passes
+#define SECONDARY_PASS 0
 #define SET_POS        ((LIGHT && PER_PIXEL) || SHADOW || (REFLECT && PER_PIXEL && BUMP_MODE>SBUMP_FLAT) || TESSELATE)
 /******************************************************************************/
 struct VS_PS
@@ -386,12 +386,12 @@ VecH4 PS
         total_specular=0;
 
    FIXME
-   if(BUMP_MODE==SBUMP_ZERO     )total_lum=1;
-   else                          total_lum=AmbNSColor;
-   if(MATERIALS<=1 && !SECONDARY_PASS) // ambient values are always disabled for secondary passes (so don't bother adding them)
+   if(BUMP_MODE==SBUMP_ZERO)total_lum=1;
+   else                     total_lum=AmbNSColor;
+   if(MATERIALS<=1 && !SECONDARY_PASS && AmbMaterial) // ambient values are always disabled for secondary passes (so don't bother adding them)
    {
-      if(LIGHT_MAP)total_lum+=AmbMaterial*MaterialAmbient()*Tex(Lum, I.tex).rgb;
-      else         total_lum+=AmbMaterial*MaterialAmbient();
+      if(LIGHT_MAP)total_lum+=MaterialAmbient()*Tex(Lum, I.tex).rgb;
+      else         total_lum+=MaterialAmbient();
    }
 
    Vec2 jitter_value; if(SHADOW)jitter_value=ShadowJitter(pixel.xy);

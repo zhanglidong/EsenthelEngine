@@ -247,8 +247,11 @@ void PS
  //VecH total_specular=0;
 
    VecH total_lum=AmbNSColor;
- //if(LIGHT_MAP)total_lum+=AmbMaterial*MaterialAmbient()*Tex(Lum, I.tex).rgb;
- //else         total_lum+=AmbMaterial*MaterialAmbient();
+ /*if(AmbMaterial)
+   {
+      if(LIGHT_MAP)total_lum+=MaterialAmbient()*Tex(Lum, I.tex).rgb;
+      else         total_lum+=MaterialAmbient();
+   }*/
 
 #if PER_PIXEL && FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
    BackFlip(nrm, front);
