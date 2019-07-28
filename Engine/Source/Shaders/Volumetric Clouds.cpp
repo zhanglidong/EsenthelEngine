@@ -40,8 +40,8 @@ BUFFER_END
           x1=(SqrtDelta-m)*A2_inv
 /******************************************************************************/
 void Clouds_VS(VtxInput vtx,
-           out Vec  dir   :TEXCOORD,
-           out Vec4 outVtx:POSITION)
+   NOPERSP out Vec  dir   :TEXCOORD,
+   NOPERSP out Vec4 outVtx:POSITION)
 {
    dir=Transform3(Vec(ScreenToPosXY(vtx.tex()), 1), CamMatrix); // world-space position
    outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
@@ -98,9 +98,9 @@ VecH2 Clouds_PS(NOPERSP Vec dir:TEXCOORD):TARGET // 'dir'=world-space position
 // SHADOW MAP
 /******************************************************************************/
 void CloudsMap_VS(VtxInput vtx,
-              out Vec  outPos:TEXCOORD0,
-              out Vec  outDir:TEXCOORD1,
-              out Vec4 outVtx:POSITION )
+      NOPERSP out Vec  outPos:TEXCOORD0,
+      NOPERSP out Vec  outDir:TEXCOORD1,
+      NOPERSP out Vec4 outVtx:POSITION )
 {
    outPos=CloudMap.cam // this is CamMatrix.pos-ActiveCam.matrix.pos (light camera relative to main camera)
          +CamMatrix[0]*(vtx.pos2().x/ProjMatrix[0][0])  // ProjMatrix.x.x which is 1/fov.x
@@ -162,9 +162,9 @@ Half CloudsMap_PS(NOPERSP Vec pos:TEXCOORD0, // world-space position, relative t
 // DRAW
 /******************************************************************************/
 void CloudsDraw_VS(VtxInput vtx,
-               out Vec2 outTex:TEXCOORD0,
-               out Vec  outPos:TEXCOORD1,
-               out Vec4 outVtx:POSITION )
+       NOPERSP out Vec2 outTex:TEXCOORD0,
+       NOPERSP out Vec  outPos:TEXCOORD1,
+       NOPERSP out Vec4 outVtx:POSITION )
 {
    outTex=vtx.tex();
    outPos=Vec(ScreenToPosXY(vtx.tex()), 1);

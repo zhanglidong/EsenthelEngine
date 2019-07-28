@@ -27,11 +27,11 @@ BUFFER(AOConstants) // z=1/xy.length()
 BUFFER_END
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
-void AO_VS(VtxInput vtx,
-       out Vec2 outTex   :TEXCOORD0,
-       out Vec2 outPosXY :TEXCOORD1,
-       out Vec2 outPosXY1:TEXCOORD2,
-       out Vec4 outVtx   :POSITION )
+void AO_VS( VtxInput vtx,
+NOPERSP out Vec2 outTex   :TEXCOORD0,
+NOPERSP out Vec2 outPosXY :TEXCOORD1,
+NOPERSP out Vec2 outPosXY1:TEXCOORD2,
+NOPERSP out Vec4 outVtx   :POSITION )
 {
    outTex   =vtx.tex();
    outPosXY =ScreenToPosXY(outTex);

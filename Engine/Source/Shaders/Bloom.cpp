@@ -26,8 +26,8 @@ BUFFER_END
 #endif
 /******************************************************************************/
 void BloomDS_VS(VtxInput vtx,
-            out Vec2 outTex:TEXCOORD,
-            out Vec4 outVtx:POSITION)
+    NOPERSP out Vec2 outTex:TEXCOORD,
+    NOPERSP out Vec4 outVtx:POSITION)
 {
    outTex=vtx.tex (); if(GLOW)outTex-=ImgSize.xy*Vec2(HALF_RES ? 0.5 : 1.5, HALF_RES ? 0.5 : 1.5);
    outVtx=vtx.pos4();

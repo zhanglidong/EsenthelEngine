@@ -26,28 +26,28 @@ BUFFER_END
 #include "!Set LP.h"
 
 void SMAAEdge_VS(VtxInput vtx,
-             out Vec2 texcoord :TEXCOORD0,
-             out Vec4 offset[3]:TEXCOORD1,
-             out Vec4 position :POSITION )
+     NOPERSP out Vec2 texcoord :TEXCOORD0,
+     NOPERSP out Vec4 offset[3]:TEXCOORD1,
+     NOPERSP out Vec4 position :POSITION )
 {
    position=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
    texcoord=vtx.tex();
    SMAAEdgeDetectionVS(texcoord, offset);
 }
 void SMAABlend_VS(VtxInput vtx,
-              out Vec2 texcoord :TEXCOORD0,
-              out Vec2 pixcoord :TEXCOORD1,
-              out Vec4 offset[3]:TEXCOORD2,
-              out Vec4 position :POSITION )
+      NOPERSP out Vec2 texcoord :TEXCOORD0,
+      NOPERSP out Vec2 pixcoord :TEXCOORD1,
+      NOPERSP out Vec4 offset[3]:TEXCOORD2,
+      NOPERSP out Vec4 position :POSITION )
 {
    position=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
    texcoord=vtx.tex();
    SMAABlendingWeightCalculationVS(texcoord, pixcoord, offset);
 }
 void SMAA_VS(VtxInput vtx,
-         out Vec2 texcoord:TEXCOORD0,
-         out Vec4 offset  :TEXCOORD1,
-         out Vec4 position:POSITION )
+ NOPERSP out Vec2 texcoord:TEXCOORD0,
+ NOPERSP out Vec4 offset  :TEXCOORD1,
+ NOPERSP out Vec4 position:POSITION )
 {
    position=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
    texcoord=vtx.tex();
@@ -92,9 +92,9 @@ Vec2 MLAAArea(Vec2 distance, Flt e1, Flt e2)
    return TexLod(Img1, texcoord).rg; // AreaMap
 }
 void MLAA_VS(VtxInput vtx,
-         out Vec2 outTex         :TEXCOORD0,
-         out Vec4 outTexOffset[2]:TEXCOORD1,
-         out Vec4 outVtx         :POSITION )
+ NOPERSP out Vec2 outTex         :TEXCOORD0,
+ NOPERSP out Vec4 outTexOffset[2]:TEXCOORD1,
+ NOPERSP out Vec4 outVtx         :POSITION )
 {
    outVtx         =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
    outTex         =vtx.tex();

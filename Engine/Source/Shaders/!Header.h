@@ -988,29 +988,29 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
 };
 /******************************************************************************/
 void DrawPixel_VS(VtxInput vtx,
-              out Vec4 outVtx:POSITION)
+      NOPERSP out Vec4 outVtx:POSITION)
 {
    outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
 void Draw_VS(VtxInput vtx,
-         out Vec2 outTex:TEXCOORD0,
-         out Vec4 outVtx:POSITION )
+ NOPERSP out Vec2 outTex:TEXCOORD0,
+ NOPERSP out Vec4 outVtx:POSITION )
 {
    outTex=vtx.tex();
    outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
 void DrawPosXY_VS(VtxInput vtx,
-              out Vec2 outTex  :TEXCOORD0,
-              out Vec2 outPosXY:TEXCOORD1,
-              out Vec4 outVtx  :POSITION )
+      NOPERSP out Vec2 outTex  :TEXCOORD0,
+      NOPERSP out Vec2 outPosXY:TEXCOORD1,
+      NOPERSP out Vec4 outVtx  :POSITION )
 {
    outTex  =vtx.tex();
    outPosXY=ScreenToPosXY(outTex);
    outVtx  =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
 void Draw2DTex_VS(VtxInput vtx,
-              out Vec2 outTex:TEXCOORD,
-              out Vec4 outVtx:POSITION)
+      NOPERSP out Vec2 outTex:TEXCOORD,
+      NOPERSP out Vec4 outVtx:POSITION)
 {
    outTex=vtx.tex();
    outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);

@@ -34,14 +34,14 @@ VecH4 Test_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 /******************************************************************************/
 // SHADERS
 /******************************************************************************/
-Vec4 Draw2DFlat_VS(VtxInput vtx):POSITION {return Vec4(vtx.pos2()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);}
-Vec4 Draw3DFlat_VS(VtxInput vtx):POSITION {return Project(TransformPos(vtx.pos()));}
+NOPERSP Vec4 Draw2DFlat_VS(VtxInput vtx):POSITION {return Vec4(vtx.pos2()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);}
+        Vec4 Draw3DFlat_VS(VtxInput vtx):POSITION {return Project(TransformPos(vtx.pos()));}
 
 VecH4 DrawFlat_PS():TARGET {return Color[0];}
 
 void SetCol_VS(VtxInput vtx,
-           out VecH4 outCol:COLOR   ,
-           out Vec4  outVtx:POSITION)
+   NOPERSP out VecH4 outCol:COLOR   ,
+   NOPERSP out Vec4  outVtx:POSITION)
 {
    outCol=Color[0];
    outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
@@ -49,8 +49,8 @@ void SetCol_VS(VtxInput vtx,
 VecH4 SetCol_PS(NOPERSP VecH4 inCol:COLOR):TARGET {return inCol;}
 /******************************************************************************/
 void Draw2DCol_VS(VtxInput vtx,
-              out VecH4 outCol:COLOR   ,
-              out Vec4  outVtx:POSITION)
+      NOPERSP out VecH4 outCol:COLOR   ,
+      NOPERSP out Vec4  outVtx:POSITION)
 {
    outCol=     vtx.color();
    outVtx=Vec4(vtx.pos2 ()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
@@ -115,9 +115,9 @@ VecH4 DrawTexPoint_PS (NOPERSP Vec2 inTex:TEXCOORD):TARGET {return TexPoint(Img,
 VecH4 DrawTexPointC_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET {return TexPoint(Img, inTex)*Color[0]+Color[1];}
 /******************************************************************************/
 void Draw2DTexCol_VS(VtxInput vtx,
-                 out Vec2  outTex:TEXCOORD,
-                 out VecH4 outCol:COLOR   ,
-                 out Vec4  outVtx:POSITION)
+         NOPERSP out Vec2  outTex:TEXCOORD,
+         NOPERSP out VecH4 outCol:COLOR   ,
+         NOPERSP out Vec4  outVtx:POSITION)
 {
    outTex=     vtx.tex  ();
    outCol=     vtx.color();
@@ -130,11 +130,11 @@ VecH4 Draw2DTexCol_PS(NOPERSP Vec2  inTex:TEXCOORD,
 }
 /******************************************************************************/
 void Draw2DDepthTex_VS(VtxInput vtx,
-                   out Vec2  outTex:TEXCOORD,
+           NOPERSP out Vec2  outTex:TEXCOORD,
                 #if COLORS
-                   out VecH4 outCol:COLOR   ,
+           NOPERSP out VecH4 outCol:COLOR   ,
                 #endif
-                   out Vec4  outVtx:POSITION)
+           NOPERSP out Vec4  outVtx:POSITION)
 {
    outTex=vtx.tex();
 #if COLORS
@@ -214,9 +214,9 @@ VecH4 DrawMsM_PS(NOPERSP PIXEL,
 }
 /******************************************************************************/
 void DrawMask_VS(VtxInput vtx,
-             out Vec2 outTexC:TEXCOORD0,
-             out Vec2 outTexM:TEXCOORD1,
-             out Vec4 outVtx :POSITION )
+     NOPERSP out Vec2 outTexC:TEXCOORD0,
+     NOPERSP out Vec2 outTexM:TEXCOORD1,
+     NOPERSP out Vec4 outVtx :POSITION )
 {
    outTexC=vtx.tex ();
    outTexM=vtx.tex1();
@@ -231,8 +231,8 @@ VecH4 DrawMask_PS(NOPERSP Vec2 inTexC:TEXCOORD0,
 }
 /******************************************************************************/
 void DrawCubeFace_VS(VtxInput vtx,
-                 out Vec  outTex:TEXCOORD,
-                 out Vec4 outVtx:POSITION)
+         NOPERSP out Vec  outTex:TEXCOORD,
+         NOPERSP out Vec4 outVtx:POSITION)
 {
    outTex=Vec (vtx.tex(), vtx.size());
    outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);

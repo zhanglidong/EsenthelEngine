@@ -12,9 +12,9 @@ BUFFER_END
 #include "!Set LP.h"
 /******************************************************************************/
 void Font_VS(VtxInput vtx,
-         out Vec2 outTex  :TEXCOORD0,
-         out Half outShade:TEXCOORD1,
-         out Vec4 outVtx  :POSITION )
+ NOPERSP out Vec2 outTex  :TEXCOORD0,
+ NOPERSP out Half outShade:TEXCOORD1,
+ NOPERSP out Vec4 outVtx  :POSITION )
 {
    outTex  =     vtx.tex ();
    outShade=     vtx.size();
@@ -65,8 +65,8 @@ VecH4 Font_PS
 // SUB-PIXEL
 /******************************************************************************/
 void FontSP_VS(VtxInput vtx,
-           out Vec2 outTex:TEXCOORD,
-           out Vec4 outVtx:POSITION)
+   NOPERSP out Vec2 outTex:TEXCOORD,
+   NOPERSP out Vec4 outVtx:POSITION)
 {
    outTex=     vtx.tex ();
    outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, SET_DEPTH ? DelinearizeDepth(FontDepth) : REVERSE_DEPTH, 1);
