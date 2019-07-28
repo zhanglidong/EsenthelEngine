@@ -1017,11 +1017,8 @@ start:
    {
       case RT_DEFERRED:
       {
-         const Bool merged_clear=D._view_main.full // use when possible, should improve performance on tile-based renderers
-                           #if GL && WINDOWS
-                              && glClearBufferfv!=null // on Desktop GL we need this function to make "D.clearCol(Int i, .." work, on GLES3 it's always available
-                           #endif
-                   , clear_nrm  =(NRM_CLEAR_START && ClearNrm()),
+         const Bool merged_clear=D._view_main.full, // use when possible, should improve performance on tile-based renderers
+                     clear_nrm  =(NRM_CLEAR_START && ClearNrm()),
                      clear_vel  =false; // this is not needed because "ClearSkyVel" is used later, performance tests suggested it's better don't clear unless necessary, instead 'Image.discard' is used and improves performance (at least on Mobile)
 
          if(D.motionMode()==MOTION_CAMERA_OBJECT && hasMotion() && D._max_rt>=3)
