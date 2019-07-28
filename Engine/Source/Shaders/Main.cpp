@@ -8,27 +8,29 @@
 #include "Fog.h"
 #include "Fur.h"
 #include "Overlay.h"
-/******************************************************************************
+/******************************************************************************/
+#ifdef MODE
 VecH4 Test_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
 #if MODE // half
-   min16float2 t=(min16float2)inTex;
-   min16float2 r=1;
+   VecH4 t=inTex.xyyx;
+   VecH4 r=VecH4(0.1, 0.2, 0.3, 0.4);
    LOOP for(Int i=0; i<256; i++)
    {
       r+=t*r;
    }
-   return VecH4((VecH2)r, mode, 1);
+   return VecH4(r.xy+r.yx, MODE, 1);
 #else
-   Vec2 t=inTex;
-   Vec2 r=1;
+   Vec4 t=inTex.xyyx;
+   Vec4 r=Vec4(0.1, 0.2, 0.3, 0.4);
    LOOP for(Int i=0; i<256; i++)
    {
       r+=t*r;
    }
-   return VecH4(r, mode, 1);
+   return VecH4(r.xy+r.yx, MODE, 1);
 #endif
 }
+#endif
 /******************************************************************************/
 // SHADERS
 /******************************************************************************/

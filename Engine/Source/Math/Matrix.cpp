@@ -3374,6 +3374,15 @@ void SetMatrix(C MatrixM &matrix, C Vec &vel, C Vec &ang_vel)
    SetFastAngVel (ang_vel_shader);
 }
 /******************************************************************************/
+INLINE void TestProjMatrix(Matrix4 &m)
+{
+#if DEBUG
+   if(Any(           m.x.y, m.x.z, m.x.w)
+   || Any(  m.y.x,          m.y.z, m.y.w)
+   || Any(/*m.z.x,*/ m.z.y              ) // 'm.z.x' can be adjusted for VR Stereo
+   || Any(m.pos.x, m.pos.y              ))Exit("Shader 'Project' needs to be adjusted"); // 'm.pos.x' could be adjusted, however it's possible only for orthogonal mode, which is not used in VR (shadows are not stereo, and main view is always perspective based on VR FOV)
+#endif
+}
 void SetProjMatrix() // this needs to be additionally called when switching between '_main' and some other RT on OpenGL
 {
    if(Sh.ProjMatrix)
@@ -3384,7 +3393,7 @@ void SetProjMatrix() // this needs to be additionally called when switching betw
          Matrix4 m=ProjMatrix; CHS(m.y.y); Sh.ProjMatrix->set(m); // in OpenGL when drawing to a RenderTarget the 'dest.pos.y' must be flipped
       }
    #else
-      Sh.ProjMatrix->set(ProjMatrix);
+      Sh.ProjMatrix->set(ProjMatrix); TestProjMatrix(ProjMatrix);
    #endif
    }
 }
@@ -3405,7 +3414,7 @@ void SetProjMatrix(Flt proj_offset)
       if(!D.mainFBO())CHS(m.y.y); // in OpenGL when drawing to a RenderTarget the 'dest.pos.y' must be flipped
    #endif
 
-      Sh.ProjMatrix->set(m);
+      Sh.ProjMatrix->set(m); TestProjMatrix(m);
    }
 }
 /******************************************************************************/

@@ -796,7 +796,14 @@ inline Vec  TransformPos(Vec  pos, VecI bone, Vec  weight) {return weight.x*Tran
 inline VecH TransformDir(VecH dir, VecI bone, VecH weight) {return weight.x*Transform3(dir, ViewMatrix[bone.x]) + weight.y*Transform3(dir, ViewMatrix[bone.y]) + weight.z*Transform3(dir, ViewMatrix[bone.z]);}
 inline VecH GetBoneVel  (          VecI bone, VecH weight) {return weight.x*          (     ObjVel    [bone.x]) + weight.y*          (     ObjVel    [bone.y]) + weight.z*          (     ObjVel    [bone.z]);}
 
-inline Vec4 Project(Vec pos) {return Transform(pos, ProjMatrix);}
+inline Vec4 Project(Vec pos)
+{
+#if 1 // 2x faster on Intel (made no difference for GeForce)
+   return Vec4(pos.x*ProjMatrix[0].x + pos.z*ProjMatrix[2].x, pos.y*ProjMatrix[1].y, pos.z*ProjMatrix[2].z + ProjMatrix[3].z, pos.z*ProjMatrix[2].w + ProjMatrix[3].w);
+#else // slower
+   return Transform(pos, ProjMatrix);
+#endif
+}
 /******************************************************************************/
 inline Vec  MatrixX(Matrix3  m) {return m[0];}
 inline VecH MatrixX(MatrixH3 m) {return m[0];}

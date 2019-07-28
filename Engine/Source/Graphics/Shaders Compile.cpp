@@ -91,6 +91,11 @@ static void Compile(API api)
    ShaderCompiler &compiler=ShaderCompilers.New().set(dest_path+"Main", model, api);
    {
       ShaderCompiler::Source &src=compiler.New(src_path+"Main.cpp");
+   #if DEBUG && 0
+      #pragma message("!! Warning: Use this only for debugging !!")
+      src.New("Test", "Draw_VS", "Test_PS")("MODE", 0);
+      src.New("Test", "Draw_VS", "Test_PS")("MODE", 1);
+   #endif
                      src.New("Draw2DFlat", "Draw2DFlat_VS", "DrawFlat_PS");
                      src.New("Draw3DFlat", "Draw3DFlat_VS", "DrawFlat_PS");
       if(api!=API_DX)src.New("SetCol"    , "Draw_VS"      , "DrawFlat_PS"); // this version fails on DX
