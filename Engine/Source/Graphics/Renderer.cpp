@@ -1093,30 +1093,29 @@ void RendererClass::solid()
          LimitLights();
           SortLights();
 
-         // find initial directional light
-         // FIXME
-         Int start_light=-1;
-         if(Lights.elms() && (D.aoAll() || !hasAO())) // if we do AO then first we need to draw without lights (ambient only)
+         // find initial light
+         Int first_light=-1;
+         if(Lights.elms() && (D.aoAll() || !hasAO())) // if we do "AO && !aoAll" then first we need to draw without lights (ambient only)
          {
-            if(Lights[0].type==LIGHT_DIR && Lights[0].shadow) // for shadow mapping 0-th light is the most significant, its shadow map must be rendered last to be used by BLEND_LIGHT
+            // lights are already sorted, and 0-th light is the most significant, its shadow map must be rendered last to be used by BLEND_LIGHT which happens at a later stage
+            Int skip_light=-1;
+            if(Lights[0].type==LIGHT_DIR && Lights[0].shadow) // 0-th is LightDir (which BlendLight only supports) and needs shadows
+               for(Int i=Lights.elms(); --i>=1; )if(Lights[i].shadow) // if at least one different light needs shadows
+                  {skip_light=0; break;} // it means we can't start with 0-th, because drawing another light will overwrite shadow map, so skip #0 when choosing the 'first_light'
+
+            // find the best light
+            Int complexity=INT_MAX;
+            FREPA(Lights)if(i!=skip_light) // go from the start because most likely LIGHT_DIR are at the start and we can break early
             {
-               start_light=0; // assume it's 0-th
-               REPA(Lights)if(i!=0) // check all other lights
-                  if(Lights[i].shadow) // if at least one has shadows
-               {
-                  if(Lights[i].type==LIGHT_DIR){start_light=i; break;} // if it's some other directional light, we can draw it first
-                  start_light=-1; // if it's not directional light, we can't use 0-th light as the starting light, but keep on checking for other directional lights
-               }
-            }else // most significant light doesn't require shadows, so pick any directional light
-            {
-               REPA(Lights)if(Lights[i].type==LIGHT_DIR){start_light=i; break;} // find any directional light
+             C Light &light=Lights[i]; if(light.type==LIGHT_DIR){first_light=i; break;} // if found any directional light, then we can use it without looking any further, because it will cover entire screen and no pixel processing will be wasted
+               Int  c=light.shaderComplexity(); if(c<complexity){complexity=c; first_light=i;} // otherwise find a light with smallest shader complexity, because most likely local lights (non-directional) will cover only part of the screen, however since this is a light for first pass, we will have to render all objects so pick smallest complexity to make pixel processing waste minimal
             }
          }
 
          // draw main light
-         if(start_light>=0)
+         if(first_light>=0)
          {
-            Lights[start_light].drawForward(_col, fastCombine() ? ALPHA_NONE_ADD : ALPHA_NONE);
+            Lights[first_light].drawForward(_col, fastCombine() ? ALPHA_NONE_ADD : ALPHA_NONE);
          }else // no light
          {
            _frst_light_offset=OFFSET(FRST, none);
@@ -1137,13 +1136,13 @@ void RendererClass::solid()
          if(!D.aoAll())aoApply();
 
          // draw rest of the lights
-         if(Lights.elms()-(start_light>=0)>0)
+         if(Lights.elms()-(first_light>=0)>0)
          {
            _first_pass=false;
             Bool clip=D._clip, clip_allow=D._clip_allow; T._clip=(clip ? D._clip_rect : D.rect()); // remember clipping because 'drawForward' may change it
             Sh.AmbientColorNS_l->set(VecZero); Sh.AmbientMaterial->set(0); // disable ambient lighting
             D.depthFunc(FUNC_LESS_EQUAL); // need to make sure we can apply lights on existing depth
-            REPA(Lights)if(i!=start_light)Lights[i].drawForward(_col, ALPHA_ADD_KEEP); // draw 0-th at the end to setup shadow maps (needed for BLEND_LIGHT), keep alpha which is glow
+            REPA(Lights)if(i!=first_light)Lights[i].drawForward(_col, ALPHA_ADD_KEEP); // draw 0-th at the end to setup shadow maps (needed for BLEND_LIGHT), keep alpha which is glow
             D.clip(clip ? &T._clip : null); D.clipAllow(clip_allow);
             D.depthFunc(FUNC_LESS);
            _first_pass=true;

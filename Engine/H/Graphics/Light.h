@@ -122,6 +122,8 @@ struct Light
    Light() {} // needed because of union
 
 #if EE_PRIVATE
+   Int shaderComplexity()C;
+
    Bool toScreenRect(Rect &rect)C;
 
    void fade(Flt fade);

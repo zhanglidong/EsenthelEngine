@@ -883,6 +883,18 @@ VecD Light::pos()C
       default          : return 0                 ;
    }
 }
+Int Light::shaderComplexity()C
+{
+   Int shadow=(T.shadow ? 16 : 0);
+   switch(type)
+   {
+      case LIGHT_DIR   : return 1+shadow;
+      case LIGHT_POINT : return 2+shadow;
+      case LIGHT_LINEAR: return 2+shadow;
+      case LIGHT_CONE  : return 3+shadow;
+      default          : return 0;
+   }
+}
 Bool Light::toScreenRect(Rect &rect)C
 {
    switch(type)
