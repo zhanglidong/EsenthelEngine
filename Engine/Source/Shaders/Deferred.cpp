@@ -183,7 +183,9 @@ void PS
 (
    VS_PS I,
 
+#if FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
    IS_FRONT,
+#endif
 
    out DeferredSolidOutput output
 )
@@ -700,9 +702,11 @@ void PS
    }
 #endif
 
-   if(FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS)BackFlip(nrm, front);
-
    col+=Highlight.rgb;
+
+#if FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
+   BackFlip(nrm, front);
+#endif
 
    output.color   (col         );
    output.glow    (glow        );

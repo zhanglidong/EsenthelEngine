@@ -195,7 +195,10 @@ void PS
 (
    VS_PS I,
  //PIXEL,
+
+#if PER_PIXEL && FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
    IS_FRONT,
+#endif
 
   out VecH4 outCol:TARGET0
 #if USE_VEL

@@ -1306,6 +1306,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
     C spvc_reflected_resource &res=list[i];
     //CChar8 *name=spvc_compiler_get_name(spirv_compiler, res.id); name=_SkipStart(name, "out_var_");
       Int loc=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationLocation); //DYNAMIC_ASSERT(loc==i, S+"location!=i "+cc.shaderName(shader_data));
+    //Bool no_persp=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationNoPerspective);
       DYNAMIC_ASSERT(locations.binaryInclude(loc), "location included multiple times");
       Set(start, (type==ST_PS) ? "RT" : "IO"); Append(start, TextInt(loc, temp)); // OUTPUT name must match INPUT name, this solves problem when using "TEXCOORD" and "TEXCOORD0"
       spvc_compiler_set_name(spirv_compiler, res.id, start);
@@ -1316,6 +1317,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
     C spvc_reflected_resource &res=list[i];
       CChar8 *name=spvc_compiler_get_name(spirv_compiler, res.id); name=_SkipStart(name, "in_var_");
       Int loc=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationLocation); //DYNAMIC_ASSERT(loc==i, S+"location!=i "+cc.shaderName(shader_data));
+    //Bool no_persp=spvc_compiler_get_decoration(spirv_compiler, res.id, SpvDecorationNoPerspective);
       DYNAMIC_ASSERT(locations.binaryInclude(loc), "location included multiple times");
       if(Starts(name, "ATTR"))DYNAMIC_ASSERT(TextInt(name+4)==loc, "ATTR index!=loc"); // verify vtx input ATTR index
       Set(start, (type==ST_VS) ? "ATTR" : "IO"); Append(start, TextInt(loc, temp)); // OUTPUT name must match INPUT name, this solves problem when using "TEXCOORD" and "TEXCOORD0"

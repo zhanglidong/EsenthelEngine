@@ -7,11 +7,22 @@ LIGHT_POINT, LIGHT_POINT_SHD
 LIGHT_LINEAR, LIGHT_LINEAR_SHD
 LIGHT_CONE, LIGHT_CONE_SHD
 TESSELATE
+
+FinalLight = Ambient + Light*Shadow
+Final = (TexCol*MtrlCol*VtxCol+Detail)*FinalLight
 /******************************************************************************/
+#define NO_AMBIENT  0 // this could be set to 1 for Secondary Passes, if we would use this then we could remove 'AmbMaterial'
+#define HAS_AMBIENT (!NO_AMBIENT)
+
 #define LIGHT          (LIGHT_DIR || LIGHT_POINT || LIGHT_LINEAR || LIGHT_CONE)
 #define SHADOW         (LIGHT_DIR_SHD || LIGHT_POINT_SHD || LIGHT_LINEAR_SHD || LIGHT_CONE_SHD)
-#define SECONDARY_PASS 0
+#define VTX_LIGHT      (LIGHT && !PER_PIXEL)
+#define AMBIENT_IN_VTX (VTX_LIGHT && !SHADOW && !LIGHT_MAP) // if stored in 'vtx.col' or 'vtx.lum'
+#define LIGHT_IN_COL   (VTX_LIGHT && !DETAIL && (NO_AMBIENT || !SHADOW))
 #define SET_POS        ((LIGHT && PER_PIXEL) || SHADOW || (REFLECT && PER_PIXEL && BUMP_MODE>SBUMP_FLAT) || TESSELATE)
+#define SET_COL        (COLORS || LIGHT_IN_COL)
+#define SET_LUM        (VTX_LIGHT && !LIGHT_IN_COL)
+#define VTX_REFLECT    (REFLECT && !(PER_PIXEL && BUMP_MODE>SBUMP_FLAT))
 /******************************************************************************/
 struct VS_PS
 {
@@ -35,11 +46,11 @@ struct VS_PS
    VecH4 material:MATERIAL;
 #endif
 
-#if COLORS
+#if SET_COL
    VecH col:COLOR;
 #endif
 
-#if REFLECT && !(PER_PIXEL && BUMP_MODE>SBUMP_FLAT)
+#if VTX_REFLECT
    VecH rfl:REFLECTION;
 #endif
 
@@ -47,7 +58,7 @@ struct VS_PS
    Half fade_out:FADE_OUT;
 #endif
 
-#if !PER_PIXEL && LIGHT && SHADOW
+#if SET_LUM
    VecH lum:LUM;
 #endif
 };
@@ -143,15 +154,15 @@ void VS
 
    // normalize (have to do all at the same time, so all have the same lengths)
    if(BUMP_MODE>SBUMP_FLAT // calculating binormal (this also covers the case when we have tangent from heightmap which is not Normalized)
-   || REFLECT && !(PER_PIXEL && BUMP_MODE>SBUMP_FLAT) // per-vertex reflection
-   || !PER_PIXEL && LIGHT // per-vertex lighting
-   || TESSELATE) // needed for tesselation
+   || VTX_REFLECT // per-vertex reflection
+   || VTX_LIGHT   // per-vertex lighting
+   || TESSELATE)  // needed for tesselation
    {
                               nrm=Normalize(nrm);
       if(BUMP_MODE>SBUMP_FLAT)tan=Normalize(tan);
    }
 
-#if REFLECT && !(PER_PIXEL && BUMP_MODE>SBUMP_FLAT)
+#if VTX_REFLECT
    O.rfl=Transform3(reflect((VecH)Normalize(pos), nrm), CamMatrix);
 #endif
 
@@ -164,9 +175,79 @@ void VS
 #endif
 
    //  per-vertex light
-   #if !PER_PIXEL && LIGHT
+   #if VTX_LIGHT
    {
-      FIXME
+      VecH total_lum;
+
+      // AMBIENT
+      if(HAS_AMBIENT && AMBIENT_IN_VTX)
+      {
+         total_lum=AmbNSColor;
+         if(MATERIALS<=1 && AmbMaterial)total_lum+=MaterialAmbient();
+      }else total_lum=0;
+
+      // LIGHTS
+      #if LIGHT_DIR
+      {
+         // diffuse
+         VecH light_dir=LightDir.dir;
+         Half lum      =LightDiffuse(nrm, light_dir);
+
+         total_lum+=LightDir.color.rgb*lum;
+      }
+      #endif
+
+      #if LIGHT_POINT
+      {
+         // distance
+         Vec  delta=LightPoint.pos-pos; Flt inv_dist2=1/Length2(delta);
+         Half power=LightPointDist(inv_dist2);
+
+         // diffuse
+         VecH light_dir=delta*Sqrt(inv_dist2); // Normalize(delta);
+         Half lum      =LightDiffuse(nrm, light_dir);
+
+         total_lum+=LightPoint.color.rgb*(lum*power);
+      }
+      #endif
+
+      #if LIGHT_LINEAR
+      {
+         // distance
+         Vec  delta=LightLinear.pos-pos; Flt dist=Length(delta);
+         Half power=LightLinearDist(dist);
+
+         // diffuse
+         VecH light_dir=delta/dist; // Normalize(delta);
+         Half lum      =LightDiffuse(nrm, light_dir);
+
+         total_lum+=LightLinear.color.rgb*(lum*power);
+      }
+      #endif
+
+      #if LIGHT_CONE
+      {
+         // distance & angle
+         Vec  delta=LightCone.pos-pos; Flt dist=Length(delta);
+         Vec  dir  =TransformTP(delta, LightCone.mtrx); dir.xy/=dir.z;
+         Half power=LightConeAngle(dir.xy)*LightConeDist(dist); power*=(dir.z>0);
+
+         // diffuse
+         VecH light_dir=delta/dist; // Normalize(delta);
+         Half lum      =LightDiffuse(nrm, light_dir);
+
+         total_lum+=LightCone.color.rgb*(lum*power);
+      }
+      #endif
+
+      // STORE
+      #if LIGHT_IN_COL
+         if(COLORS      )O.col*=total_lum                 ;else
+         if(MATERIALS<=1)O.col =total_lum*MaterialColor3();else
+                         O.col =total_lum                 ;
+      #else
+         O.lum=total_lum;
+      #endif
    }
    #endif
 
@@ -181,14 +262,18 @@ void VS
 VecH4 PS
 (
    VS_PS I,
-   PIXEL,
-   IS_FRONT
+   PIXEL
+
+#if PER_PIXEL && LIGHT && FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
+ , IS_FRONT
+#endif
+
 ):TARGET
 {
    VecH col, nrm;
    Half glow, specular;
 
-#if COLORS
+#if SET_COL
    col=I.col;
 #else
    if(MATERIALS<=1)col=MaterialColor3();
@@ -259,10 +344,10 @@ VecH4 PS
    // reflection
    #if REFLECT
    {
-   #if PER_PIXEL && BUMP_MODE>SBUMP_FLAT
-      Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
-   #else
+   #if VTX_REFLECT
       Vec rfl=I.rfl;
+   #else
+      Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
    #endif
       col+=TexCube(Rfl, rfl).rgb * ((TEXTURES==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
    }
@@ -296,7 +381,7 @@ VecH4 PS
       if(MATERIALS>=3)tex+=I.material.z*Tex(Col2, tex2).rgb*MultiMaterial2Color3();
       if(MATERIALS>=4)tex+=I.material.w*Tex(Col3, tex3).rgb*MultiMaterial3Color3();
    }
-#if COLORS
+#if SET_COL
    col*=tex;
 #else
    col =tex;
@@ -318,10 +403,10 @@ VecH4 PS
       // reflection
       #if REFLECT
       {
-      #if PER_PIXEL && BUMP_MODE>SBUMP_FLAT
-         Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
-      #else
+      #if VTX_REFLECT
          Vec rfl=I.rfl;
+      #else
+         Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
       #endif
                          col+=TexCube(Rfl , rfl).rgb*(MultiMaterial0Reflect()*I.material.x);
                          col+=TexCube(Rfl1, rfl).rgb*(MultiMaterial1Reflect()*I.material.y);
@@ -365,10 +450,10 @@ VecH4 PS
       // reflection
       #if REFLECT
       {
-      #if PER_PIXEL && BUMP_MODE>SBUMP_FLAT
-         Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
-      #else
+      #if VTX_REFLECT
          Vec rfl=I.rfl;
+      #else
+         Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
       #endif
                          col+=TexCube(Rfl , rfl).rgb*(MultiMaterial0Reflect()*I.material.x*tex_spec[0]);
                          col+=TexCube(Rfl1, rfl).rgb*(MultiMaterial1Reflect()*I.material.y*tex_spec[1]);
@@ -379,114 +464,144 @@ VecH4 PS
    }
 #endif
 
-   if(FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS)BackFlip(nrm, front);
+   col+=Highlight.rgb;
 
-   // lighting
-   VecH total_lum,
-        total_specular=0;
-
-   FIXME
-   if(BUMP_MODE==SBUMP_ZERO)total_lum=1;
-   else                     total_lum=AmbNSColor;
-   if(MATERIALS<=1 && !SECONDARY_PASS && AmbMaterial) // ambient values are always disabled for secondary passes (so don't bother adding them)
-   {
-      if(LIGHT_MAP)total_lum+=MaterialAmbient()*Tex(Lum, I.tex).rgb;
-      else         total_lum+=MaterialAmbient();
-   }
+#if PER_PIXEL && LIGHT && FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
+   BackFlip(nrm, front);
+#endif
 
    Vec2 jitter_value; if(SHADOW)jitter_value=ShadowJitter(pixel.xy);
 
-   FIXME
-   #if LIGHT_DIR
+   VecH ambient;
+   if(HAS_AMBIENT && !AMBIENT_IN_VTX)
    {
-      // shadow
-      Half shadow; if(LIGHT_DIR_SHD)shadow=Sat(ShadowDirValue(I.pos, jitter_value, true, LIGHT_DIR_SHD_NUM, false));
-
-      // diffuse
-      VecH light_dir=LightDir.dir;
-      Half lum      =LightDiffuse(nrm, light_dir); if(LIGHT_DIR_SHD)lum*=shadow;
-
-      // specular
-      BRANCH if(lum*specular>EPS_LUM)
+      ambient=AmbNSColor;
+      if(MATERIALS<=1 && AmbMaterial)
       {
-         VecH eye_dir=Normalize    (-I.pos);
-         Half spec   =LightSpecular(   nrm, specular, light_dir, eye_dir); if(LIGHT_DIR_SHD)spec*=shadow;
-         total_specular+=LightDir.color.rgb*spec;
-      }  total_lum     +=LightDir.color.rgb*lum ;
-   }
+         if(LIGHT_MAP)ambient+=MaterialAmbient()*Tex(Lum, I.tex).rgb;
+         else         ambient+=MaterialAmbient();
+      }
+   }else ambient=0;
+
+   // lighting
+   #if VTX_LIGHT
+   {
+      Half shadow;
+   #if SHADOW
+      if(LIGHT_DIR_SHD   )shadow=Sat        (ShadowDirValue  (I.pos, jitter_value, true, LIGHT_DIR_SHD_NUM, false));
+      if(LIGHT_POINT_SHD )shadow=ShadowFinal(ShadowPointValue(I.pos, jitter_value, true));
+      if(LIGHT_LINEAR_SHD)shadow=ShadowFinal(ShadowPointValue(I.pos, jitter_value, true));
+      if(LIGHT_CONE_SHD  )shadow=ShadowFinal(ShadowConeValue (I.pos, jitter_value, true));
+   #else
+      shadow=1;
    #endif
 
-   #if LIGHT_POINT
-   {
-      // shadow
-      Half shadow; if(LIGHT_POINT_SHD)shadow=ShadowFinal(ShadowPointValue(I.pos, jitter_value, true));
-
-      // distance
-      Vec  delta=LightPoint.pos-I.pos; Flt inv_dist2=1/Length2(delta);
-      Half power=LightPointDist(inv_dist2); if(LIGHT_POINT_SHD)power*=shadow;
-
-      // diffuse
-      VecH light_dir=delta*Sqrt(inv_dist2); // Normalize(delta);
-      Half lum      =LightDiffuse(nrm, light_dir);
-
-      // specular
-      BRANCH if(lum*specular>EPS_LUM)
-      {
-         VecH eye_dir=Normalize    (-I.pos);
-         Half spec   =LightSpecular(   nrm, specular, light_dir, eye_dir);
-         total_specular+=LightPoint.color.rgb*(spec*power);
-      }  total_lum     +=LightPoint.color.rgb*(lum *power);
-   }
+      VecH light;
+   #if SET_LUM
+      light=I.lum;
+   #else
+      light=1;
    #endif
 
-   #if LIGHT_LINEAR
+      col*=light*shadow+ambient;
+   }
+   #else
    {
-      // shadow
-      Half shadow; if(LIGHT_LINEAR_SHD)shadow=ShadowFinal(ShadowPointValue(I.pos, jitter_value, true));
+      VecH total_lum=ambient,
+           total_specular=0;
 
-      // distance
-      Vec  delta=LightLinear.pos-I.pos; Flt dist=Length(delta);
-      Half power=LightLinearDist(dist); if(LIGHT_LINEAR_SHD)power*=shadow;
-
-      // diffuse
-      VecH light_dir=delta/dist; // Normalize(delta);
-      Half lum      =LightDiffuse(nrm, light_dir);
-
-      // specular
-      BRANCH if(lum*specular>EPS_LUM)
+      #if LIGHT_DIR
       {
-         VecH eye_dir=Normalize    (-I.pos);
-         Half spec   =LightSpecular(   nrm, specular, light_dir, eye_dir);
-         total_specular+=LightLinear.color.rgb*(spec*power);
-      }  total_lum     +=LightLinear.color.rgb*(lum *power);
+         // shadow
+         Half shadow; if(LIGHT_DIR_SHD)shadow=Sat(ShadowDirValue(I.pos, jitter_value, true, LIGHT_DIR_SHD_NUM, false));
+
+         // diffuse
+         VecH light_dir=LightDir.dir;
+         Half lum      =LightDiffuse(nrm, light_dir); if(LIGHT_DIR_SHD)lum*=shadow;
+
+         // specular
+         BRANCH if(lum*specular>EPS_LUM)
+         {
+            VecH eye_dir=Normalize    (-I.pos);
+            Half spec   =LightSpecular(   nrm, specular, light_dir, eye_dir); if(LIGHT_DIR_SHD)spec*=shadow;
+            total_specular+=LightDir.color.rgb*spec;
+         }  total_lum     +=LightDir.color.rgb*lum ;
+      }
+      #endif
+
+      #if LIGHT_POINT
+      {
+         // shadow
+         Half shadow; if(LIGHT_POINT_SHD)shadow=ShadowFinal(ShadowPointValue(I.pos, jitter_value, true));
+
+         // distance
+         Vec  delta=LightPoint.pos-I.pos; Flt inv_dist2=1/Length2(delta);
+         Half power=LightPointDist(inv_dist2); if(LIGHT_POINT_SHD)power*=shadow;
+
+         // diffuse
+         VecH light_dir=delta*Sqrt(inv_dist2); // Normalize(delta);
+         Half lum      =LightDiffuse(nrm, light_dir);
+
+         // specular
+         BRANCH if(lum*specular>EPS_LUM)
+         {
+            VecH eye_dir=Normalize    (-I.pos);
+            Half spec   =LightSpecular(   nrm, specular, light_dir, eye_dir);
+            total_specular+=LightPoint.color.rgb*(spec*power);
+         }  total_lum     +=LightPoint.color.rgb*(lum *power);
+      }
+      #endif
+
+      #if LIGHT_LINEAR
+      {
+         // shadow
+         Half shadow; if(LIGHT_LINEAR_SHD)shadow=ShadowFinal(ShadowPointValue(I.pos, jitter_value, true));
+
+         // distance
+         Vec  delta=LightLinear.pos-I.pos; Flt dist=Length(delta);
+         Half power=LightLinearDist(dist); if(LIGHT_LINEAR_SHD)power*=shadow;
+
+         // diffuse
+         VecH light_dir=delta/dist; // Normalize(delta);
+         Half lum      =LightDiffuse(nrm, light_dir);
+
+         // specular
+         BRANCH if(lum*specular>EPS_LUM)
+         {
+            VecH eye_dir=Normalize    (-I.pos);
+            Half spec   =LightSpecular(   nrm, specular, light_dir, eye_dir);
+            total_specular+=LightLinear.color.rgb*(spec*power);
+         }  total_lum     +=LightLinear.color.rgb*(lum *power);
+      }
+      #endif
+
+      #if LIGHT_CONE
+      {
+         // shadow
+         Half shadow; if(LIGHT_CONE_SHD)shadow=ShadowFinal(ShadowConeValue(I.pos, jitter_value, true));
+
+         // distance & angle
+         Vec  delta=LightCone.pos-I.pos; Flt dist=Length(delta);
+         Vec  dir  =TransformTP(delta, LightCone.mtrx); dir.xy/=dir.z; // clip(Vec(1-Abs(dir.xy), dir.z));
+         Half power=LightConeAngle(dir.xy)*LightConeDist(dist); if(LIGHT_CONE_SHD)power*=shadow; power*=(dir.z>0);
+
+         // diffuse
+         VecH light_dir=delta/dist; // Normalize(delta);
+         Half lum      =LightDiffuse(nrm, light_dir);
+
+         // specular
+         BRANCH if(lum*specular>EPS_LUM)
+         {
+            VecH eye_dir=Normalize    (-I.pos);
+            Half spec   =LightSpecular(   nrm, specular, light_dir, eye_dir);
+            total_specular+=LightCone.color.rgb*(spec*power);
+         }  total_lum     +=LightCone.color.rgb*(lum *power);
+      }
+      #endif
+
+      col=col*total_lum + total_specular;
    }
    #endif
-
-   #if LIGHT_CONE
-   {
-      // shadow
-      Half shadow; if(LIGHT_CONE_SHD)shadow=ShadowFinal(ShadowConeValue(I.pos, jitter_value, true));
-
-      // distance & angle
-      Vec  delta=LightCone.pos-I.pos; Flt dist=Length(delta);
-      Vec  dir  =TransformTP(delta, LightCone.mtrx); dir.xy/=dir.z; // clip(Vec(1-Abs(dir.xy), dir.z));
-      Half power=LightConeAngle(dir.xy)*LightConeDist(dist); if(LIGHT_CONE_SHD)power*=shadow; power*=(dir.z>0);
-
-      // diffuse
-      VecH light_dir=delta/dist; // Normalize(delta);
-      Half lum      =LightDiffuse(nrm, light_dir);
-
-      // specular
-      BRANCH if(lum*specular>EPS_LUM)
-      {
-         VecH eye_dir=Normalize    (-I.pos);
-         Half spec   =LightSpecular(   nrm, specular, light_dir, eye_dir);
-         total_specular+=LightCone.color.rgb*(spec*power);
-      }  total_lum     +=LightCone.color.rgb*(lum *power);
-   }
-   #endif
-
-   col=(col+Highlight.rgb)*total_lum + total_specular;
 
    return VecH4(col, glow);
 }
@@ -494,7 +609,7 @@ VecH4 PS
 // HULL / DOMAIN
 /******************************************************************************/
 #if TESSELATE
-HSData HSConstant(InputPatch<VS_PS,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].mtrx[2], I[1].mtrx[2], I[2].mtrx[2]);}
+HSData HSConstant(InputPatch<VS_PS,3> I) {return GetHSData(I[0].pos, I[1].pos, I[2].pos, I[0].Nrm(), I[1].Nrm(), I[2].Nrm());}
 [maxtessfactor(5.0)]
 [domain("tri")]
 [partitioning("fractional_odd")] // use 'odd' because it supports range from 1.0 ('even' supports range from 2.0)
@@ -524,7 +639,7 @@ VS_PS HS
    O.material=I[cp_id].material;
 #endif
 
-#if COLORS
+#if SET_COL
    O.col=I[cp_id].col;
 #endif
 
@@ -532,8 +647,12 @@ VS_PS HS
    O.fade_out=I[cp_id].fade_out;
 #endif
 
-#if REFLECT && !(PER_PIXEL && BUMP_MODE>SBUMP_FLAT)
+#if VTX_REFLECT
    O.rfl=I[cp_id].rfl;
+#endif
+
+#if SET_LUM
+   O.lum=I[cp_id].lum;
 #endif
 
    return O;
@@ -564,7 +683,7 @@ void DS
    O.material=I[0].material*B.z + I[1].material*B.x + I[2].material*B.y;
 #endif
 
-#if COLORS
+#if SET_COL
    O.col=I[0].col*B.z + I[1].col*B.x + I[2].col*B.y;
 #endif
 
@@ -572,8 +691,12 @@ void DS
    O.fade_out=I[0].fade_out*B.z + I[1].fade_out*B.x + I[2].fade_out*B.y;
 #endif
 
-#if REFLECT && !(PER_PIXEL && BUMP_MODE>SBUMP_FLAT)
+#if VTX_REFLECT
    O.rfl=I[0].rfl*B.z + I[1].rfl*B.x + I[2].rfl*B.y;
+#endif
+
+#if SET_LUM
+   O.lum=I[0].lum*B.z + I[1].lum*B.x + I[2].lum*B.y;
 #endif
 
    O_vtx=Project(O.pos);
