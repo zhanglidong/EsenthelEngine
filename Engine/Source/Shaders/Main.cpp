@@ -329,6 +329,8 @@ VecH4 Combine_PS(NOPERSP Vec2 inTex:TEXCOORD,
 /******************************************************************************/
 // MULTI SAMPLE
 /******************************************************************************/
+// !! Warning: if MS looks like it has artifacts/jitter it's because multi-sampled shadows are not blurred for performance reasons        !!
+// !! Warning: if MS looks like it has outlines         it's because multi-sample detection tests only colors, ignoring normals and depth !!
 // 'Depth'   can't be used because it's            1-sample
 // 'DepthMs' can't be used because it's always multi-sampled (all samples are different)
 void DetectMSCol_PS(NOPERSP PIXEL)
