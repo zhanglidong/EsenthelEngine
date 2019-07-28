@@ -45,7 +45,7 @@
 #define Image3D     Texture3D  <VecH4>
 #define Image3DH2   Texture3D  <VecH2>
 #define ImageCube   TextureCube<VecH4>
-#define ImageShadow Texture2D  <Half > // TODO: #ShaderHalf Half is used to get half output, however this internally operates on a F32 depth buffer, so do we need to use 'Flt' format?
+#define ImageShadow Texture2D  <Half >
 
 #define        SAMPLER(name, index) sampler                name : register(s##index) //        sampler
 #define SHADOW_SAMPLER(name, index) SamplerComparisonState name : register(s##index) // shadow sampler
