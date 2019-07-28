@@ -484,7 +484,7 @@ VecH4 PS
    }else ambient=0;
 
    // lighting
-   #if VTX_LIGHT
+   #if VTX_LIGHT // per-vertex
    {
       Half shadow;
    #if SHADOW
@@ -505,7 +505,7 @@ VecH4 PS
 
       col*=light*shadow+ambient;
    }
-   #else
+   #else // per-pixel
    {
       VecH total_lum=ambient,
            total_specular=0;
