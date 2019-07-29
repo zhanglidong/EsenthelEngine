@@ -631,6 +631,7 @@ static CChar8 *ExcludeHeaders[]=
    "Display Viewport.h",
    "Fur.h",
    "Renderer Instancing.h",
+   "Shader Compiler.h",
    "Shader Main.h",
    "Sound Buffer.h",
    "Aggregate.h",

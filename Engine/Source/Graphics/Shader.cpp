@@ -21,7 +21,6 @@ namespace EE{
 
 #define ALLOW_PARTIAL_BUFFERS 0 // using partial buffers (1) actually made things slower, 100fps(1) vs 102fps(0), so use default value (0), TODO: check on newer hardware
 #define BUFFER_DYNAMIC        0 // for ALLOW_PARTIAL_BUFFERS=0, using 1 made no difference in performance, so use 0 to reduce API calls. But for ALLOW_PARTIAL_BUFFERS=1 using 1 was slower
-#define COMPRESS_GL           0
 /******************************************************************************/
 #if DX11
 static ID3D11ShaderResourceView *VSTex[MAX_SHADER_IMAGES], *HSTex[MAX_SHADER_IMAGES], *DSTex[MAX_SHADER_IMAGES], *PSTex[MAX_SHADER_IMAGES];
@@ -741,7 +740,7 @@ UInt ShaderVSGL::create(Bool clean, Str *messages)
       SyncLocker locker(GL_LOCK ? D._lock : ShaderLock);
       if(!vs && elms())
       {
-      #if COMPRESS_GL // compressed
+      #if COMPRESS_GL_SHADER // compressed
          File src, temp; src.readMem(data(), elms()); if(!Decompress(src, temp, true))return 0; temp.pos(0); CChar8 *code=(CChar8*)temp.mem(); // decompress shader
       #else // uncompressed
          CChar8 *code=(CChar8*)data();
@@ -782,7 +781,7 @@ UInt ShaderPSGL::create(Bool clean, Str *messages)
       SyncLocker locker(GL_LOCK ? D._lock : ShaderLock);
       if(!ps && elms())
       {
-      #if COMPRESS_GL // compressed
+      #if COMPRESS_GL_SHADER // compressed
          File src, temp; src.readMem(data(), elms()); if(!Decompress(src, temp, true))return 0; temp.pos(0); CChar8 *code=(CChar8*)temp.mem(); // decompress shader
       #else // uncompressed
          CChar8 *code=(CChar8*)data();
@@ -1294,6 +1293,184 @@ void Shader::draw(                C Rect *rect, C Rect &tex)
    #endif
    }
    VI.end();
+}
+/******************************************************************************/
+// IO
+/******************************************************************************/
+static ShaderImage * Get(Int i, C MemtN<ShaderImage *, 256> &images ) {RANGE_ASSERT_ERROR(i, images , "Invalid ShaderImage index" ); return  images[i];}
+static ShaderBuffer* Get(Int i, C MemtN<ShaderBuffer*, 256> &buffers) {RANGE_ASSERT_ERROR(i, buffers, "Invalid ShaderBuffer index"); return buffers[i];}
+/******************************************************************************/
+Int ExpectedBufferSlot(C Str8 &name)
+{
+   if(name=="Global"   )return SBI_GLOBAL;
+   if(name=="ObjMatrix")return SBI_OBJ_MATRIX;
+   if(name=="ObjVel"   )return SBI_OBJ_VEL;
+   if(name=="Mesh"     )return SBI_MESH;
+   if(name=="Material" )return SBI_MATERIAL;
+   if(name=="Viewport" )return SBI_VIEWPORT;
+   if(name=="Color"    )return SBI_COLOR;
+                        ASSERT(SBI_NUM==7);
+                        return -1;
+}
+static void TestBuffer(C Str8 &name, Int bind_slot)
+{
+   Int expected=ExpectedBufferSlot(name);
+   if( expected==bind_slot
+   ||  expected<0 && (bind_slot<0 || bind_slot>=SBI_NUM))return;
+   Exit(S+"Shader Buffer \""+name+"\" was expected to be at slot: "+expected+", but got: "+bind_slot);
+}
+static void TestBuffer(C ShaderBuffer *buffer, Int bind_slot)
+{
+ C Str8 *name=ShaderBuffers.dataToKey(buffer); if(!name)Exit("Can't find ShaderBuffer name");
+   return TestBuffer(*name, bind_slot);
+}
+static void LoadTranslation(MemPtr<ShaderParam::Translation> translation, File &f, Int elms)
+{
+   if(elms<=1)translation.loadRaw(f);else
+   {
+      UShort single_translations, gpu_offset, cpu_offset; f.getMulti(gpu_offset, cpu_offset, single_translations);
+      translation.setNum(single_translations*elms);
+      Int t=0; FREPS(t, single_translations)f>>translation[t]; // load 1st element translation
+      for(Int e=1, co=0, go=0; e<elms; e++) // add rest of the elements
+      {
+         co+=cpu_offset; // offset between elements
+         go+=gpu_offset; // offset between elements
+         FREP(single_translations)
+         {
+            ShaderParam::Translation &trans=translation[t++];
+            trans=translation[i];
+            trans.cpu_offset+=co;
+            trans.gpu_offset+=go;
+         }
+      }
+   }
+}
+void ConstantIndex::set(Int bind_index, Int src_index) {_Unaligned(T.bind_index, bind_index); _Unaligned(T.src_index, src_index); DYNAMIC_ASSERT(T.bind_index==bind_index && T.src_index==src_index, "Constant index out of range");}
+/******************************************************************************/
+#if !GL
+Bool BufferLink::load(File &f, C MemtN<ShaderBuffer*, 256> &buffers)
+{
+   ConstantIndex ci; f>>ci; index=ci.bind_index; RANGE_ASSERT_ERROR(index, MAX_SHADER_BUFFERS, S+"Buffer index: "+index+", is too big"); buffer=Get(ci.src_index, buffers); if(DEBUG)TestBuffer(buffer, index);
+   return f.ok();
+}
+Bool ImageLink::load(File &f, C MemtN<ShaderImage*, 256> &images)
+{
+   ConstantIndex ci; f>>ci; index=ci.bind_index; RANGE_ASSERT_ERROR(index, MAX_SHADER_IMAGES, S+"Image index: "+index+", is too big"); image=Get(ci.src_index, images);
+   return f.ok();
+}
+#endif
+/******************************************************************************/
+#if WINDOWS
+Bool Shader11::load(File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &file_buffers)
+{
+   ShaderIndexes indexes; f.getStr(name)>>indexes;
+   FREPA(data_index)
+   {
+      data_index[i]=indexes.shader_data_index[i];
+      RANGE_ASSERT_ERROR(indexes.buffer_bind_index[i], shader_file._buffer_links, "Buffer Bind Index out of range"); buffers[i]=shader_file._buffer_links[indexes.buffer_bind_index[i]];
+      RANGE_ASSERT_ERROR(indexes. image_bind_index[i], shader_file. _image_links,  "Image Bind Index out of range");  images[i]=shader_file. _image_links[indexes. image_bind_index[i]];
+   }
+   all_buffers.setNum(f.decUIntV()); FREPAO(all_buffers)=Get(f.getUShort(), file_buffers);
+   if(f.ok())return true;
+  /*del();*/ return false;
+}
+#endif
+/******************************************************************************/
+#if GL
+Bool ShaderGL::load(File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers)
+{
+   // name + indexes
+   f.getStr(name).getMulti(vs_index, ps_index);
+   if(f.ok())return true;
+  /*del();*/ return false;
+}
+#endif
+/******************************************************************************/
+static void ExitParam(C Str &param_name, C Str &shader_name)
+{
+   Exit(S+"Shader Param \""+param_name+"\"\nfrom Shader File \""+shader_name+"\"\nAlready exists in Shader Constants Map but with different parameters.\nThis means that some of your shaders were compiled with different headers.\nPlease recompile your shaders.");
+}
+Bool ShaderFile::load(C Str &name)
+{
+   del();
+
+   Str8 temp_str;
+   File f; if(f.readTry(Sh.path+name) && f.getUInt()==CC4_SHDR && f.getByte()==GPU_API(API_DX, API_GL))switch(f.decUIntV()) // version
+   {
+      case 0:
+      {
+         // buffers
+         MemtN<ShaderBuffer*, 256> buffers; buffers.setNum(f.decUIntV());
+         ShaderBuffers.lock();
+         ShaderParams .lock();
+         FREPA(buffers)
+         {
+            // buffer
+            f.getStr(temp_str); ShaderBuffer &sb=*ShaderBuffers(temp_str); buffers[i]=&sb;
+            if(!sb.is()) // wasn't yet created
+            {
+               sb.create(f.decUIntV());
+               f>>sb.explicit_bind_slot; if(sb.explicit_bind_slot>=0){SyncLocker lock(D._lock); sb.bind(sb.explicit_bind_slot);}
+               if(DEBUG)TestBuffer(temp_str, sb.explicit_bind_slot);
+            }else // verify if it's identical to previously created
+            {
+               if(sb.full_size!=f.decUIntV())ExitParam(temp_str, name);
+               sb.bindCheck(f.getSByte());
+            }
+
+            // params
+            REP(f.decUIntV())
+            {
+               f.getStr(temp_str); ShaderParam &sp=*ShaderParams(temp_str);
+               if(!sp.is()) // wasn't yet created
+               {
+                  sp._data   = sb.data;
+                  sp._changed=&sb.changed;
+                  f.getMulti(sp._cpu_data_size, sp._gpu_data_size, sp._elements); // info
+                  LoadTranslation(sp._full_translation, f, sp._elements);         // translation
+                  Int offset=sp._full_translation[0].gpu_offset; sp._data+=offset; REPAO(sp._full_translation).gpu_offset-=offset; // apply offset. 'gpu_offset' is stored relative to start of cbuffer, however when loading we want to adjust 'sp.data' to point to the start of the param, so since we're adjusting it we have to adjust 'gpu_offset' too.
+                  if(f.getBool())f.get(sp._data, sp._gpu_data_size);              // load default value, no need to zero in other case, because data is stored in ShaderBuffer's, and they're always zeroed at start
+                  sp.optimize(); // optimize
+               }else // verify if it's identical to previously created
+               {
+                  Int cpu_data_size, gpu_data_size, elements; f.getMulti(cpu_data_size, gpu_data_size, elements);
+                  Memt<ShaderParam::Translation> translation;
+                  if(sp._changed      !=&sb.changed                               // check matching Constant Buffer
+                  || sp._cpu_data_size!= cpu_data_size                            // check cpu size
+                  || sp._gpu_data_size!= gpu_data_size                            // check gpu size
+                  || sp._elements     != elements     )ExitParam(temp_str, name); // check number of elements
+                  LoadTranslation(translation, f, sp._elements);                  // translation
+                  Int offset=translation[0].gpu_offset; REPAO(translation).gpu_offset-=offset; // apply offset
+                  if(f.getBool())f.skip(gpu_data_size);                           // ignore default value
+
+                  // check translation
+                  if(                  translation.elms()!=sp._full_translation.elms())ExitParam(temp_str, name);
+                  FREPA(translation)if(translation[i]    !=sp._full_translation[i]    )ExitParam(temp_str, name);
+               }
+            }
+         }
+         ShaderParams .unlock();
+         ShaderBuffers.unlock();
+
+         // images
+         MemtN<ShaderImage*, 256> images; images.setNum(f.decUIntV());
+         FREPA(images){f.getStr(temp_str); images[i]=ShaderImages(temp_str);}
+
+         // shaders
+      #if !GL
+         if(_buffer_links.load(f, buffers)) // buffer link map
+         if( _image_links.load(f,  images)) //  image link map
+      #endif
+         if(_vs     .load(f))
+         if(_hs     .load(f))
+         if(_ds     .load(f))
+         if(_ps     .load(f))
+         if(_shaders.load(f, T, buffers))
+            if(f.ok())return true;
+      }break;
+   }
+//error:
+   del(); return false;
 }
 /******************************************************************************/
 void DisplayState::clearShader()

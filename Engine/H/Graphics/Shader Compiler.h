@@ -1,4 +1,44 @@
 /******************************************************************************/
+#if EE_PRIVATE
+
+#define CC4_SHDR CC4('S','H','D','R')
+
+#if   1 // with new shader compilers, the generated shaders are small, so disable compression to get best performance
+   #define COMPRESS_GL_SHADER       COMPRESS_NONE
+   #define COMPRESS_GL_SHADER_LEVEL 0
+#elif 0
+   #define COMPRESS_GL_SHADER       COMPRESS_LZ4
+   #define COMPRESS_GL_SHADER_LEVEL 99
+#elif 0
+   #define COMPRESS_GL_SHADER       COMPRESS_ZSTD
+   #define COMPRESS_GL_SHADER_LEVEL 99
+#elif 1
+   #define COMPRESS_GL_SHADER       COMPRESS_LZMA
+   #define COMPRESS_GL_SHADER_LEVEL 9 // shader files are small, so we can use high compression level and still get small dictionary size / memory usage
+#else // shader size was slightly bigger than LZMA, and loading all shaders was bit slower
+   #define COMPRESS_GL_SHADER       COMPRESS_LZHAM
+   #define COMPRESS_GL_SHADER_LEVEL 5
+#endif
+
+#pragma pack(push, 1)
+struct ConstantIndex
+{
+   Byte  bind_index;
+   UShort src_index;
+
+        void set(Int bind_index, Int src_index);
+   ConstantIndex(Int bind_index, Int src_index) {set(bind_index, src_index);}
+   ConstantIndex() {}
+};
+struct ShaderIndexes
+{
+   Int    shader_data_index[ST_NUM];
+   UShort buffer_bind_index[ST_NUM], image_bind_index[ST_NUM];
+};
+#pragma pack(pop)
+
+Int ExpectedBufferSlot(C Str8 &name);
+
 enum API : Byte // !! These enums are saved !!
 {
    API_DX,
@@ -151,7 +191,7 @@ struct ShaderCompiler
    {
       Str               file_name;
       Mems<Byte>        file_data;
-   #if WINDOWS && NEW_COMPILER
+   #if DX_SHADER_COMPILER
       IDxcBlobEncoding *file_blob=null;
    #else
       Ptr               file_blob=null;
@@ -201,4 +241,5 @@ struct ShaderCompiler
 
    ShaderCompiler();
 };
+#endif
 /******************************************************************************/

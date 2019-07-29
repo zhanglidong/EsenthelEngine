@@ -1017,6 +1017,9 @@
     <ClInclude Include="Source\Shaders\!Set IP.h">
       <Filter>Source\Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="H\Graphics\Shader Compiler.h">
+      <Filter>H\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

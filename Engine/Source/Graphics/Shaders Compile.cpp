@@ -2,7 +2,6 @@
 #include "stdafx.h"
 #include "../Shaders/!Header CPU.h"
 namespace EE{
-#include "Shader Compiler.h"
 /******************************************************************************/
 #define MULTI_MATERIAL 1
 

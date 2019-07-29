@@ -622,6 +622,21 @@
       #include "../../../ThirdPartyLibs/mbedTLS/lib/include/mbedtls/certs.h"
    #endif
 
+   // DirectX Shader Compiler
+   #define DX_SHADER_COMPILER (WINDOWS_OLD && X64)
+   #if     DX_SHADER_COMPILER
+      #include "../../../ThirdPartyLibs/DirectXShaderCompiler/include/dxc/dxcapi.h"
+      #include "../../../ThirdPartyLibs/DirectXShaderCompiler/include/dxc/Support/microcom.h"
+      #include "../../../ThirdPartyLibs/DirectXShaderCompiler/include/dxc/DxilContainer/DxilContainer.h"
+   #endif
+
+   // SPIR-V Cross
+   #define SPIRV_CROSS (WINDOWS_OLD && X64)
+   #if     SPIRV_CROSS
+      #include "../../../ThirdPartyLibs/SPIRV-Cross/include/spirv_cross/spirv_cross_c.h"
+      #include "../../../ThirdPartyLibs/SPIRV-Cross/include/spirv_cross/spirv_glsl.hpp"
+   #endif
+
    #include <algorithm> // must be after PhysX or compile errors will show on Android
    /******************************************************************************/
    // Finish including headers - this needs to be included after all headers

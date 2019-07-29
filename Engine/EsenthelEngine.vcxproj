@@ -1581,6 +1581,7 @@
     <ClInclude Include="H\EsenthelEngine.h" />
     <ClInclude Include="H\Graphics\Image Atlas.h" />
     <ClInclude Include="H\Graphics\Image RT.h" />
+    <ClInclude Include="H\Graphics\Shader Compiler.h" />
     <ClInclude Include="H\Gui\Gui Skin.h" />
     <ClInclude Include="H\Gui\Panel Image.h" />
     <ClInclude Include="H\Math\Calculate.h" />

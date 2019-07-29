@@ -1,21 +1,11 @@
 /******************************************************************************/
 #include "stdafx.h"
-
-#define NEW_COMPILER (WINDOWS_OLD && X64)
-#define SPIRV_CROSS  (WINDOWS_OLD && X64)
-#define HLSL_CC      0
-
+#include "../Shaders/!Header CPU.h"
+/******************************************************************************/
 #define FORCE_LOG_SHADER_CODE (DEBUG && 0)
 
-#if WINDOWS && NEW_COMPILER
+#if DX_SHADER_COMPILER
 const UINT32 CP_UTF16=1200;
-#include "../../../ThirdPartyLibs/begin.h"
-#include <vector>
-#include <string>
-#include "../../../ThirdPartyLibs/DirectXShaderCompiler/include/dxc/dxcapi.h"
-#include "../../../ThirdPartyLibs/DirectXShaderCompiler/include/dxc/Support/microcom.h"
-#include "../../../ThirdPartyLibs/DirectXShaderCompiler/include/dxc/DxilContainer/DxilContainer.h"
-#include "../../../ThirdPartyLibs/end.h"
 namespace llvm
 {
    namespace sys
@@ -28,16 +18,8 @@ static HRESULT CreateCompiler           (IDxcCompiler            **ppCompiler  )
 static HRESULT CreateContainerReflection(IDxcContainerReflection **ppReflection) {return DxcCreateInstance(CLSID_DxcContainerReflection, __uuidof(IDxcContainerReflection), (void**)ppReflection);}
 #endif
 
-#include "../Shaders/!Header CPU.h"
-
-#if SPIRV_CROSS
-#include "../../../ThirdPartyLibs/begin.h"
-#include "../../../ThirdPartyLibs/SPIRV-Cross/include/spirv_cross/spirv_cross_c.h"
-#include "../../../ThirdPartyLibs/SPIRV-Cross/include/spirv_cross/spirv_glsl.hpp"
-#include "../../../ThirdPartyLibs/end.h"
-#endif
-
-#if HLSL_CC
+#define HLSL_CC 0
+#if     HLSL_CC
 #pragma warning(push)
 #pragma warning(disable:4267 4996)
 #include "../../../ThirdPartyLibs/begin.h"
@@ -47,9 +29,6 @@ static HRESULT CreateContainerReflection(IDxcContainerReflection **ppReflection)
 #endif
 /******************************************************************************/
 namespace EE{
-#include "Shader Compiler.h"
-/******************************************************************************/
-#define CC4_SHDR CC4('S','H','D','R')
 /******************************************************************************/
 static const CChar8 *APIName[]=
 {
@@ -65,23 +44,6 @@ static const CChar8 *ShaderTypeName[]=
    "DS", // 2
    "PS", // 3
 }; ASSERT(ST_VS==0 && ST_HS==1 && ST_DS==2 && ST_PS==3 && ST_NUM==4);
-/******************************************************************************/
-#if   1 // with new shader compilers, the generated shaders are small, so disable compression to get best performance
-   #define COMPRESS_GL       COMPRESS_NONE
-   #define COMPRESS_GL_LEVEL 0
-#elif 0
-   #define COMPRESS_GL       COMPRESS_LZ4
-   #define COMPRESS_GL_LEVEL 99
-#elif 0
-   #define COMPRESS_GL       COMPRESS_ZSTD
-   #define COMPRESS_GL_LEVEL 99
-#elif 1
-   #define COMPRESS_GL       COMPRESS_LZMA
-   #define COMPRESS_GL_LEVEL 9 // shader files are small, so we can use high compression level and still get small dictionary size / memory usage
-#else // shader size was slightly bigger than LZMA, and loading all shaders was bit slower
-   #define COMPRESS_GL       COMPRESS_LZHAM
-   #define COMPRESS_GL_LEVEL 5
-#endif
 /******************************************************************************/
 static Bool HasData(CPtr data, Int size)
 {
@@ -114,27 +76,6 @@ static void SaveTranslation(C Mems<ShaderParam::Translation> &translation, File 
          }
       }
    #endif
-   }
-}
-static void LoadTranslation(MemPtr<ShaderParam::Translation> translation, File &f, Int elms)
-{
-   if(elms<=1)translation.loadRaw(f);else
-   {
-      UShort single_translations, gpu_offset, cpu_offset; f.getMulti(gpu_offset, cpu_offset, single_translations);
-      translation.setNum(single_translations*elms);
-      Int t=0; FREPS(t, single_translations)f>>translation[t]; // load 1st element translation
-      for(Int e=1, co=0, go=0; e<elms; e++) // add rest of the elements
-      {
-         co+=cpu_offset; // offset between elements
-         go+=gpu_offset; // offset between elements
-         FREP(single_translations)
-         {
-            ShaderParam::Translation &trans=translation[t++];
-            trans=translation[i];
-            trans.cpu_offset+=co;
-            trans.gpu_offset+=go;
-         }
-      }
    }
 }
 /******************************************************************************/
@@ -189,7 +130,8 @@ struct Include11 : ID3DInclude
       Set(root.path, GetPath(src));
    }
 };
-#if NEW_COMPILER
+#endif
+#if DX_SHADER_COMPILER
 struct Include12 : IDxcIncludeHandler
 {
    virtual HRESULT STDMETHODCALLTYPE LoadSource(_In_ LPCWSTR pFilename, _COM_Outptr_result_maybenull_ IDxcBlob **ppIncludeSource)override
@@ -230,7 +172,6 @@ private:
    DXC_MICROCOM_REF_FIELD(m_dwRef);
    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject) {return DoBasicQueryInterface<::IDxcIncludeHandler>(this, riid, ppvObject);}
 };
-#endif
 #endif
 /******************************************************************************/
 // COMPILER
@@ -361,6 +302,7 @@ void ShaderCompiler::Param::addTranslation(ID3D12ShaderReflectionType *type, C D
       }break;
    }
 }
+#endif
 #if SPIRV_CROSS
 void ShaderCompiler::Param::addTranslation(spvc_compiler compiler, spvc_type_id parent_id, spvc_type parent, spvc_type_id var_id, spvc_type var, Int var_i, Int offset, C Str8 &names)
 {
@@ -406,7 +348,6 @@ void ShaderCompiler::Param::addTranslation(spvc_compiler compiler, spvc_type_id 
       offset+=array_stride;
    }
 }
-#endif
 #endif
 static Int Compare(C ShaderParam::Translation &a, C ShaderParam::Translation &b) {return Compare(a.cpu_offset, b.cpu_offset);}
 void ShaderCompiler::Param::sortTranslation() {translation.sort(Compare);} // this is useful for Translation optimization
@@ -490,7 +431,7 @@ ShaderCompiler::Shader& ShaderCompiler::Source::New(C Str &name, C Str8 &vs_func
 }
 ShaderCompiler::Source::~Source()
 {
-#if WINDOWS && NEW_COMPILER
+#if DX_SHADER_COMPILER
    RELEASE(file_blob);
 #endif
 }
@@ -500,7 +441,7 @@ Bool ShaderCompiler::Source::load()
    ENCODING encoding=LoadEncoding(f);
    if(newCompiler())
    {
-   #if WINDOWS && NEW_COMPILER
+   #if DX_SHADER_COMPILER
       IDxcLibrary *lib=null; CreateLibrary(&lib); if(lib)
       {
          UInt code_page;
@@ -576,7 +517,7 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
 
    if(model>=SM_6)
    {
-   #if NEW_COMPILER
+   #if DX_SHADER_COMPILER
       Int params=shader->params.elms()+shader->extra_params.elms();
       MemtN<DxcDefine, 64  > defines; defines.setNum(params  +API_NUM); Int defs =0;
       MemtN<Str      , 64*2> temp   ; temp   .setNum(params*2+API_NUM); Int temps=0;
@@ -950,18 +891,6 @@ ShaderCompiler::Source& ShaderCompiler::New(C Str &file_name)
    return source;
 }
 /******************************************************************************/
-#pragma pack(push, 1)
-struct ConstantIndex
-{
-   Byte  bind_index;
-   UShort src_index;
-
-        void set(Int bind_index, Int src_index) {_Unaligned(T.bind_index, bind_index); _Unaligned(T.src_index, src_index); DYNAMIC_ASSERT(T.bind_index==bind_index && T.src_index==src_index, "Constant index out of range");}
-   ConstantIndex(Int bind_index, Int src_index) {set(bind_index, src_index);}
-   ConstantIndex() {}
-};
-#pragma pack(pop)
-
 static UShort AsUShort(Int i) {RANGE_ASSERT_ERROR(i, USHORT_MAX+1, "Value too big to be represented as UShort"); return i;}
 
 Bool ShaderCompiler::Param::save(File &f)C
@@ -978,13 +907,6 @@ Bool ShaderCompiler::Param::save(File &f)C
    }
    return f.ok();
 }
-#pragma pack(push, 1)
-struct Indexes
-{
-   Int    shader_data_index[ST_NUM];
-   UShort buffer_bind_index[ST_NUM], image_bind_index[ST_NUM];
-};
-#pragma pack(pop)
 Bool ShaderCompiler::Shader::save(File &f, C ShaderCompiler &compiler)C
 {
    // name
@@ -993,7 +915,7 @@ Bool ShaderCompiler::Shader::save(File &f, C ShaderCompiler &compiler)C
    if(compiler.api!=API_GL)
    {
       // indexes
-      Indexes indexes;
+      ShaderIndexes indexes;
       FREPA(sub)
       {
        C SubShader &sub=T.sub[i];
@@ -1028,31 +950,6 @@ static void Compile(ShaderCompiler::SubShader &shader, Ptr user, Int thread_inde
 //static Bool Create (ShaderCompiler::Buffer* &buffer, C Str8 &name, Ptr user) {buffer=null; return true;}
 static Int  Compare(ShaderCompiler::Shader*C &a, ShaderCompiler::Shader*C &b) {return CompareCS(a->name, b->name);}
    
-static Int ExpectedBufferSlot(C Str8 &name)
-{
-   if(name=="Global"   )return SBI_GLOBAL;
-   if(name=="ObjMatrix")return SBI_OBJ_MATRIX;
-   if(name=="ObjVel"   )return SBI_OBJ_VEL;
-   if(name=="Mesh"     )return SBI_MESH;
-   if(name=="Material" )return SBI_MATERIAL;
-   if(name=="Viewport" )return SBI_VIEWPORT;
-   if(name=="Color"    )return SBI_COLOR;
-                        ASSERT(SBI_NUM==7);
-                        return -1;
-}
-static void TestBuffer(C Str8 &name, Int bind_slot)
-{
-   Int expected=ExpectedBufferSlot(name);
-   if( expected==bind_slot
-   ||  expected<0 && (bind_slot<0 || bind_slot>=SBI_NUM))return;
-   Exit(S+"Shader Buffer \""+name+"\" was expected to be at slot: "+expected+", but got: "+bind_slot);
-}
-static void TestBuffer(C ShaderBuffer *buffer, Int bind_slot)
-{
- C Str8 *name=ShaderBuffers.dataToKey(buffer); if(!name)Exit("Can't find ShaderBuffer name");
-   return TestBuffer(*name, bind_slot);
-}
-
 ShaderCompiler::ShaderCompiler() : buffers(CompareCS) {}
 
 /*struct Refl : HLSLccReflection
@@ -1404,19 +1301,16 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    #endif
       Exit("Can't convert HLSL to GLSL");
    }
-   if(COMPRESS_GL) // compressed
+   if(COMPRESS_GL_SHADER) // compressed
    {
       File f; f.readMem(code(), code.length()+1); // include null char
-      File cmp; if(!Compress(f, cmp.writeMem(), COMPRESS_GL, COMPRESS_GL_LEVEL, false))Exit("Can't compress shader data");
+      File cmp; if(!Compress(f, cmp.writeMem(), COMPRESS_GL_SHADER, COMPRESS_GL_SHADER_LEVEL, false))Exit("Can't compress shader data");
       f.del(); cmp.pos(0); shader_data.setNum(cmp.size()).loadRawData(cmp);
    }else // uncompressed
    {
       shader_data.setNum(code.length()+1).copyFrom((Byte*)code()); // include null char
    }
 }
-/******************************************************************************/
-static ShaderImage * Get(Int i, C MemtN<ShaderImage *, 256> &images ) {RANGE_ASSERT_ERROR(i, images , "Invalid ShaderImage index" ); return  images[i];}
-static ShaderBuffer* Get(Int i, C MemtN<ShaderBuffer*, 256> &buffers) {RANGE_ASSERT_ERROR(i, buffers, "Invalid ShaderBuffer index"); return buffers[i];}
 /******************************************************************************/
 struct BindMap : Mems<ShaderCompiler::Bind>
 {
@@ -1471,18 +1365,6 @@ struct BindMap : Mems<ShaderCompiler::Bind>
       return f.ok();
    }
 };
-#if !GL
-Bool BufferLink::load(File &f, C MemtN<ShaderBuffer*, 256> &buffers)
-{
-   ConstantIndex ci; f>>ci; index=ci.bind_index; RANGE_ASSERT_ERROR(index, MAX_SHADER_BUFFERS, S+"Buffer index: "+index+", is too big"); buffer=Get(ci.src_index, buffers); if(DEBUG)TestBuffer(buffer, index);
-   return f.ok();
-}
-Bool ImageLink::load(File &f, C MemtN<ShaderImage*, 256> &images)
-{
-   ConstantIndex ci; f>>ci; index=ci.bind_index; RANGE_ASSERT_ERROR(index, MAX_SHADER_IMAGES, S+"Image index: "+index+", is too big"); image=Get(ci.src_index, images);
-   return f.ok();
-}
-#endif
 /******************************************************************************/
 Bool ShaderCompiler::compileTry(Threads &threads)
 {
@@ -1646,121 +1528,6 @@ Bool ShaderCompiler::compileTry(Threads &threads)
 void ShaderCompiler::compile(Threads &threads)
 {
    if(!compileTry(threads))Exit(S+"Failed to compile:"+messages);
-}
-/******************************************************************************/
-// IO
-/******************************************************************************/
-#if WINDOWS
-Bool Shader11::load(File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &file_buffers)
-{
-   Indexes indexes; f.getStr(name)>>indexes;
-   FREPA(data_index)
-   {
-      data_index[i]=indexes.shader_data_index[i];
-      RANGE_ASSERT_ERROR(indexes.buffer_bind_index[i], shader_file._buffer_links, "Buffer Bind Index out of range"); buffers[i]=shader_file._buffer_links[indexes.buffer_bind_index[i]];
-      RANGE_ASSERT_ERROR(indexes. image_bind_index[i], shader_file. _image_links,  "Image Bind Index out of range");  images[i]=shader_file. _image_links[indexes. image_bind_index[i]];
-   }
-   all_buffers.setNum(f.decUIntV()); FREPAO(all_buffers)=Get(f.getUShort(), file_buffers);
-   if(f.ok())return true;
-  /*del();*/ return false;
-}
-#endif
-/******************************************************************************/
-#if GL
-Bool ShaderGL::load(File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers)
-{
-   // name + indexes
-   f.getStr(name).getMulti(vs_index, ps_index);
-   if(f.ok())return true;
-  /*del();*/ return false;
-}
-#endif
-/******************************************************************************/
-static void ExitParam(C Str &param_name, C Str &shader_name)
-{
-   Exit(S+"Shader Param \""+param_name+"\"\nfrom Shader File \""+shader_name+"\"\nAlready exists in Shader Constants Map but with different parameters.\nThis means that some of your shaders were compiled with different headers.\nPlease recompile your shaders.");
-}
-Bool ShaderFile::load(C Str &name)
-{
-   del();
-
-   Str8 temp_str;
-   File f; if(f.readTry(Sh.path+name) && f.getUInt()==CC4_SHDR && f.getByte()==GPU_API(API_DX, API_GL))switch(f.decUIntV()) // version
-   {
-      case 0:
-      {
-         // buffers
-         MemtN<ShaderBuffer*, 256> buffers; buffers.setNum(f.decUIntV());
-         ShaderBuffers.lock();
-         ShaderParams .lock();
-         FREPA(buffers)
-         {
-            // buffer
-            f.getStr(temp_str); ShaderBuffer &sb=*ShaderBuffers(temp_str); buffers[i]=&sb;
-            if(!sb.is()) // wasn't yet created
-            {
-               sb.create(f.decUIntV());
-               f>>sb.explicit_bind_slot; if(sb.explicit_bind_slot>=0){SyncLocker lock(D._lock); sb.bind(sb.explicit_bind_slot);}
-               if(DEBUG)TestBuffer(temp_str, sb.explicit_bind_slot);
-            }else // verify if it's identical to previously created
-            {
-               if(sb.full_size!=f.decUIntV())ExitParam(temp_str, name);
-               sb.bindCheck(f.getSByte());
-            }
-
-            // params
-            REP(f.decUIntV())
-            {
-               f.getStr(temp_str); ShaderParam &sp=*ShaderParams(temp_str);
-               if(!sp.is()) // wasn't yet created
-               {
-                  sp._data   = sb.data;
-                  sp._changed=&sb.changed;
-                  f.getMulti(sp._cpu_data_size, sp._gpu_data_size, sp._elements); // info
-                  LoadTranslation(sp._full_translation, f, sp._elements);         // translation
-                  Int offset=sp._full_translation[0].gpu_offset; sp._data+=offset; REPAO(sp._full_translation).gpu_offset-=offset; // apply offset. 'gpu_offset' is stored relative to start of cbuffer, however when loading we want to adjust 'sp.data' to point to the start of the param, so since we're adjusting it we have to adjust 'gpu_offset' too.
-                  if(f.getBool())f.get(sp._data, sp._gpu_data_size);              // load default value, no need to zero in other case, because data is stored in ShaderBuffer's, and they're always zeroed at start
-                  sp.optimize(); // optimize
-               }else // verify if it's identical to previously created
-               {
-                  Int cpu_data_size, gpu_data_size, elements; f.getMulti(cpu_data_size, gpu_data_size, elements);
-                  Memt<ShaderParam::Translation> translation;
-                  if(sp._changed      !=&sb.changed                               // check matching Constant Buffer
-                  || sp._cpu_data_size!= cpu_data_size                            // check cpu size
-                  || sp._gpu_data_size!= gpu_data_size                            // check gpu size
-                  || sp._elements     != elements     )ExitParam(temp_str, name); // check number of elements
-                  LoadTranslation(translation, f, sp._elements);                  // translation
-                  Int offset=translation[0].gpu_offset; REPAO(translation).gpu_offset-=offset; // apply offset
-                  if(f.getBool())f.skip(gpu_data_size);                           // ignore default value
-
-                  // check translation
-                  if(                  translation.elms()!=sp._full_translation.elms())ExitParam(temp_str, name);
-                  FREPA(translation)if(translation[i]    !=sp._full_translation[i]    )ExitParam(temp_str, name);
-               }
-            }
-         }
-         ShaderParams .unlock();
-         ShaderBuffers.unlock();
-
-         // images
-         MemtN<ShaderImage*, 256> images; images.setNum(f.decUIntV());
-         FREPA(images){f.getStr(temp_str); images[i]=ShaderImages(temp_str);}
-
-         // shaders
-      #if !GL
-         if(_buffer_links.load(f, buffers)) // buffer link map
-         if( _image_links.load(f,  images)) //  image link map
-      #endif
-         if(_vs     .load(f))
-         if(_hs     .load(f))
-         if(_ds     .load(f))
-         if(_ps     .load(f))
-         if(_shaders.load(f, T, buffers))
-            if(f.ok())return true;
-      }break;
-   }
-//error:
-   del(); return false;
 }
 /******************************************************************************/
 }
