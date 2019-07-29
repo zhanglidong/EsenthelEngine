@@ -1105,9 +1105,9 @@ void ShaderGL::start() // same as 'begin' but without committing buffers and tex
 void ShaderGL::begin()
 {
    glUseProgram(prog);
-   REPA(all_buffers){ ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();} // 'commit'
-   REPA(     images){ C  ImageLink &t=      images[i]; SetTexture(t.index, t.image->get(), t.image->_sampler);} // 'commitTex'
-   REPA(    buffers){ C BufferLink &b=     buffers[i]; glBindBufferBase(GL_UNIFORM_BUFFER, b.index, b.buffer);} // bind buffer
+   REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();} // 'commit'
+   REPA(     images){C  ImageLink &t=      images[i]; SetTexture(t.index, t.image->get(), t.image->_sampler);} // 'commitTex'
+   REPA(    buffers){C BufferLink &b=     buffers[i]; glBindBufferBase(GL_UNIFORM_BUFFER, b.index, b.buffer);} // bind buffer
 }
 #endif
 /******************************************************************************/
