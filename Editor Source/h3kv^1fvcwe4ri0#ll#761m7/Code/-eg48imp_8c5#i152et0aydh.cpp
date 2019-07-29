@@ -99,7 +99,7 @@ class MiscRegion : Region
    {
       Str about=S+AppName+(STEAM ? " Steam Edition" : "")+"\nEngine Build: "+ENGINE_BUILD+", Editor Build: "+EE_APP_BUILD+", Network Protocol: "+ClientServerVersion;
       about+='\n'; about+=D.apiName();
-      if(D.shaderModel()!=SM_GL)about+=S+" Shader Model "+D.shaderModelName();
+      about+=S+" Shader Model "+D.shaderModelName();
       about+=(X64 ? ", 64-bit" : ", 32-bit");
       switch(Physics.engine())
       {

@@ -26,8 +26,8 @@ struct ShaderCompiler
    #if SPIRV_CROSS
       void addTranslation(spvc_compiler compiler, spvc_type_id parent_id, spvc_type parent, spvc_type_id var_id, spvc_type var, Int var_i, Int offset, C Str8 &names=S8);
    #endif
-      void sortTranslation();
    #endif
+      void sortTranslation();
       void setDataFrom(C Param &src);
    };
    struct Bind

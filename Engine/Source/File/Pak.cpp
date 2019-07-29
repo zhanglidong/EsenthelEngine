@@ -210,10 +210,10 @@ struct PakFile0
 #pragma pack(pop)
 Byte GetOldFlag(Byte flag)
 {
-   return FlagTest(flag, 1<<1)*PF_REMOVED
-        | FlagTest(flag, 1<<2)*PF_STD_DIR
-      //| FlagTest(flag, 1<<3)*PF_NO_COMPRESS
-        | FlagTest(flag, 1<<4)*PF_STD_LINK;
+   return (FlagTest(flag, 1<<1) ? PF_REMOVED     : 0)
+        | (FlagTest(flag, 1<<2) ? PF_STD_DIR     : 0)
+      //| (FlagTest(flag, 1<<3) ? PF_NO_COMPRESS : 0)
+        | (FlagTest(flag, 1<<4) ? PF_STD_LINK    : 0);
 }
 /******************************************************************************/
 Bool Pak::saveHeader(File &f)C

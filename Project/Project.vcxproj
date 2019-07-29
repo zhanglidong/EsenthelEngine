@@ -538,7 +538,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
@@ -602,7 +602,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
@@ -667,7 +667,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <SmallerTypeCheck>false</SmallerTypeCheck>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
@@ -731,7 +731,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <SmallerTypeCheck>false</SmallerTypeCheck>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
@@ -793,7 +793,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
@@ -858,7 +858,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <SmallerTypeCheck>false</SmallerTypeCheck>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
@@ -1058,7 +1058,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
@@ -1123,7 +1123,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
@@ -1191,7 +1191,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
@@ -1258,7 +1258,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
@@ -1321,7 +1321,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
@@ -1388,7 +1388,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
@@ -1591,7 +1591,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
@@ -1655,7 +1655,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
@@ -1718,7 +1718,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
@@ -1849,7 +1849,7 @@
       <PreprocessorDefinitions>DEBUG=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
@@ -1913,7 +1913,7 @@
       <PreprocessorDefinitions>DEBUG=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
@@ -1975,7 +1975,7 @@
       <PreprocessorDefinitions>DEBUG=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <DisableSpecificWarnings>4244;4312;4521;</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4312;4521</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
