@@ -1060,10 +1060,10 @@ again:
          }
       }
    #endif
-      VecI2 ver=glVer();
       /* No need to use this, 'wglCreateContext' already guarantees latest version available
       if(wglCreateContextAttribsARB)
       {
+         VecI2 ver=glVer();
          const int attribs[]={WGL_CONTEXT_MAJOR_VERSION_ARB, ver.x,
                               WGL_CONTEXT_MINOR_VERSION_ARB, ver.y,
                               NULL}; // end of list
@@ -1074,9 +1074,6 @@ again:
             MainContext.lock();
          }
       }*/
-      if(Compare(ver, VecI2(4, 0))>=0)_shader_model=SM_GL_4;else
-      if(Compare(ver, VecI2(3, 2))>=0)_shader_model=SM_GL_3;else
-                                       Exit("OpenGL 3.2 support not available.\nGraphics Driver not installed or better video card is required.");
 
       // enumerate display modes
       MemtN<VecI2, 128> modes;
@@ -1118,11 +1115,6 @@ again:
       if(!MainContext.context)Exit("Can't create an OpenGL Context.");
       if(MAC_GL_MT)Bool mt_ok=(CGLEnable(MainContext.context, kCGLCEMPEngine)!=kCGLNoError);
       MainContext.lock();
-      VecI2 ver=glVer();
-      if(Compare(ver, VecI2(4, 0))>=0)_shader_model=SM_GL_4;else
-      if(Compare(ver, VecI2(3, 2))>=0)_shader_model=SM_GL_3;else
-                                       Exit("OpenGL 3.2 support not available.\nGraphics Driver not installed or better video card is required.");
-
       OpenGLContext=[[NSOpenGLContext alloc] initWithCGLContextObj:MainContext.context];
       [OpenGLContext setView:OpenGLView];
       [App.Hwnd() makeKeyAndOrderFront:NSApp]; // show only after everything finished (including GL context to avoid any flickering)
@@ -1167,11 +1159,6 @@ again:
          #endif
          XSync(XDisplay, false); // Forcibly wait on any resulting X errors
          MainContext.lock();
-         VecI2 ver=glVer();
-         if(Compare(ver, VecI2(4, 0))>=0)_shader_model=SM_GL_4;else
-         if(Compare(ver, VecI2(3, 2))>=0)_shader_model=SM_GL_3;else
-                                          Exit("OpenGL 3.2 support not available.\nGraphics Driver not installed or better video card is required.");
-
          glXSwapInterval=(glXSwapIntervalType)glXGetProcAddressARB((C GLubyte*)"glXSwapIntervalEXT"); // access it via 'glXGetProcAddressARB' because some people have linker errors "undefined reference to 'glXSwapIntervalEXT'
 
          // get available modes
@@ -1240,10 +1227,7 @@ again:
       Exit("Can't create an OpenGL Context.");
    context_ok:
       MainContext.lock();
-      VecI2 ver=glVer();
-      if(Compare(ver, VecI2(3, 1))>=0)_shader_model=SM_GL_ES_3_1;else
-                                      _shader_model=SM_GL_ES_3  ;
-      if(LogInit)LogN(S+"EGL OK ctx:"+ver);
+      if(LogInit)LogN("EGL OK");
       EGLint width, height;
       eglQuerySurface(GLDisplay, MainContext.surface, EGL_WIDTH , &width );
       eglQuerySurface(GLDisplay, MainContext.surface, EGL_HEIGHT, &height);
@@ -1254,9 +1238,6 @@ again:
       MainContext.context=[[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3]; if(!MainContext.context)Exit("Can't create an OpenGL Context.");
       MainContext.context.multiThreaded=false; // disable multi-threaded rendering as enabled actually made things slower, TOOD: check again in the future !! if enabling then probably all contexts have to be enabled as well, secondary too, because VAO from VBO's on a secondary thread could fail, as in Dungeon Hero, needs checking !!
       MainContext.lock();
-      VecI2 ver=glVer();
-      if(Compare(ver, VecI2(3, 1))>=0)_shader_model=SM_GL_ES_3_1;else
-                                      _shader_model=SM_GL_ES_3  ;
    #elif WEB
       EmscriptenWebGLContextAttributes attrs;
       emscripten_webgl_init_context_attributes(&attrs);
@@ -1276,14 +1257,21 @@ again:
       Exit("Can't create an OpenGL Context.");
    context_ok:
       MainContext.lock();
-      VecI2 ver=glVer();
-      LogN(S+"WebGL ctx:"+ver); // FIXME
-      if(Compare(ver, VecI2(3, 1))>=0)_shader_model=SM_GL_ES_3_1;else
-                                      _shader_model=SM_GL_ES_3  ;
       Byte samples=(attrs.antialias ? 4 : 1);
       int  width, height; emscripten_get_canvas_element_size(null, &width, &height);
       Renderer._main   .forceInfo(width, height, 1,/*LINEAR_GAMMA  ? IMAGE_R8G8B8A8_SRGB :*/IMAGE_R8G8B8A8, IMAGE_GL_RB, samples); // #WebSRGB currently web doesn't support SRGB SwapChain
       Renderer._main_ds.forceInfo(width, height, 1,  attrs.stencil ? IMAGE_D24S8         :  IMAGE_D24X8   , IMAGE_GL_RB, samples);
+   #endif
+
+      VecI2 ver=glVer();
+   #if GL_ES
+      if(Compare(ver, VecI2(3, 1))>=0)_shader_model=SM_GL_ES_3_1;else
+      if(Compare(ver, VecI2(3, 0))>=0)_shader_model=SM_GL_ES_3  ;else
+                                       Exit("OpenGL ES 3.0 support not available.\nGraphics Driver not installed or better video card is required.");
+   #else
+      if(Compare(ver, VecI2(4, 0))>=0)_shader_model=SM_GL_4;else
+      if(Compare(ver, VecI2(3, 2))>=0)_shader_model=SM_GL_3;else
+                                       Exit("OpenGL 3.2 support not available.\nGraphics Driver not installed or better video card is required.");
    #endif
 
    if(!deviceName().is())
