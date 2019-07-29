@@ -1055,10 +1055,12 @@ again:
             Bool ok=SetPixelFormat(hDC, pixel_formats[0], &pfd);
       }
    #endif
+      /* No need to use this, 'wglCreateContext' already guarantees latest version available
       if(wglCreateContextAttribsARB)
       {
-         const int attribs[]={WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-                              WGL_CONTEXT_MINOR_VERSION_ARB, 2,
+         VecI2 ver=glVer();
+         const int attribs[]={WGL_CONTEXT_MAJOR_VERSION_ARB, ver.x,
+                              WGL_CONTEXT_MINOR_VERSION_ARB, ver.y,
                               NULL}; // end of list
          if(HGLRC context=wglCreateContextAttribsARB(hDC, 0, attribs))
          {
@@ -1066,7 +1068,7 @@ again:
             MainContext.context=context;
             MainContext.lock();
          }
-      }
+      }*/
      _shader_model=SM_GL;
 
       // enumerate display modes

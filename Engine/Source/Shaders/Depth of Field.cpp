@@ -56,7 +56,7 @@ VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    {
       ret.rgb=TexLod(Img, UVClamp(inTex, CLAMP)).rgb; // use linear filtering because we're downsampling
    #if GATHER // gather available since SM_4_1, GL 4.0, GL ES 3.1
-      depth=DEPTH_MIN(Depth.Gather(SamplerPoint, inTex));
+      depth=DEPTH_MIN(TexDepthGather(inTex));
    #else
       Vec2 tex_min=inTex-ImgSize.xy*0.5,
            tex_max=inTex+ImgSize.xy*0.5;
@@ -79,10 +79,10 @@ VecH4 DofDS_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
               +TexLod(Img, t01).rgb
               +TexLod(Img, t11).rgb)/4;
    #if GATHER // gather available since SM_4_1, GL 4.0, GL ES 3.1
-      depth=DEPTH_MIN(DEPTH_MIN(Depth.Gather(SamplerPoint, t00)),
-                      DEPTH_MIN(Depth.Gather(SamplerPoint, t10)),
-                      DEPTH_MIN(Depth.Gather(SamplerPoint, t01)),
-                      DEPTH_MIN(Depth.Gather(SamplerPoint, t11)));
+      depth=DEPTH_MIN(DEPTH_MIN(TexDepthGather(t00)),
+                      DEPTH_MIN(TexDepthGather(t10)),
+                      DEPTH_MIN(TexDepthGather(t01)),
+                      DEPTH_MIN(TexDepthGather(t11)));
    #else
       // this is approximation because we would have to take 16 samples
       depth=DEPTH_MIN(TexDepthRawPoint(t00),

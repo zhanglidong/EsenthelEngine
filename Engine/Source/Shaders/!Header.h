@@ -163,6 +163,8 @@
 #define TexPoint(image, uv)   image.SampleLevel(SamplerDefault, uv, 0) // use default sampler on GL because it would create a secondary "sampler2D" in GLSL and we would have to set 2 ShaderImage's
 #endif
 
+#define TexGather(image, uv)   image.Gather(SamplerPoint, uv) // gather available since SM_4_1, GL 4.0, GL ES 3.1
+
 #define TexSample(image, pixel, i)   image.Load(pixel, i) // access i-th sample of a multi-sampled texture
 
 #if !GL
@@ -179,6 +181,7 @@
 #define TexDepthRawLinear(uv)                       TexLod   (Depth  , uv).x
 #define TexDepthPoint(    uv)        LinearizeDepth(TexPoint (Depth  , uv).x)
 #define TexDepthLinear(   uv)        LinearizeDepth(TexLod   (Depth  , uv).x)
+#define TexDepthGather(   uv)                       TexGather(Depth  , uv)
 #define TexDepthMSRaw(pixel, sample)                TexSample(DepthMS, pixel, sample).x
 #define TexDepthMS(   pixel, sample) LinearizeDepth(TexSample(DepthMS, pixel, sample).x)
 /******************************************************************************/
