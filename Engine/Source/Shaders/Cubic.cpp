@@ -60,7 +60,7 @@ VecH4 TexCubicFast(Vec2 inTex)
          +TexPoint(Img, Vec2(tc3.x, tc2.y))*(w3.x*w2.y)
          +TexPoint(Img, Vec2(tc2.x, tc3.y))*(w2.x*w3.y)
          +TexPoint(Img, Vec2(tc3.x, tc3.y))*(w3.x*w3.y);
-#else // 5 tex reads, corners are ignored because they're insignificant, 
+#else // 5 tex reads, corners are ignored because they're insignificant
    VecH2 w12=w1+w2; Vec2 p=tc+(w2/w12)*ImgSize.xy;
    Half  wu=w12.x*w0.y, wd=w12.x*w3.y, wl=w12.y*w0.x, wr=w12.y*w3.x, wc=w12.x*w12.y;
    // keep 'Tex' in case we need LOD's (for example stretching in 1 dimension but shrinking in another)
