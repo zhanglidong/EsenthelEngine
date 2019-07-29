@@ -263,17 +263,20 @@ static void Compile(API api)
                          src.New("ShdPoint", "DrawPosXY_VS", "ShdPoint_PS").multiSample(multi_sample)("MULTI_SAMPLE", multi_sample);
                          src.New("ShdCone" , "DrawPosXY_VS", "ShdCone_PS" ).multiSample(multi_sample)("MULTI_SAMPLE", multi_sample);
       }
-      src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("SAMPLES", 4);
-    //src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("SAMPLES", 5);
-      src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("SAMPLES", 6);
-      src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("SAMPLES", 8);
-    //src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("SAMPLES", 9);
-      src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("SAMPLES", 12);
-    //src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("SAMPLES", 13);
-    //src.New("ShdBlurX", "Draw_VS", "ShdBlurX_PS")("RANGE", 1);
-    //src.New("ShdBlurY", "Draw_VS", "ShdBlurY_PS")("RANGE", 1);
-      src.New("ShdBlurX", "Draw_VS", "ShdBlurX_PS")("RANGE", 2);
-      src.New("ShdBlurY", "Draw_VS", "ShdBlurY_PS")("RANGE", 2);
+      REPD(gather, (api==API_GL) ? 2 : 1) // GATHER version needed for GL_ES
+      {
+         src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("GATHER", gather)("SAMPLES",  4).gather(gather);
+       //src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("GATHER", gather)("SAMPLES",  5).gather(gather);
+         src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("GATHER", gather)("SAMPLES",  6).gather(gather);
+         src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("GATHER", gather)("SAMPLES",  8).gather(gather);
+       //src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("GATHER", gather)("SAMPLES",  9).gather(gather);
+         src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("GATHER", gather)("SAMPLES", 12).gather(gather);
+       //src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("GATHER", gather)("SAMPLES", 13).gather(gather);
+       //src.New("ShdBlurX", "Draw_VS", "ShdBlurX_PS")("GATHER", gather)("RANGE"  ,  1).gather(gather);
+       //src.New("ShdBlurY", "Draw_VS", "ShdBlurY_PS")("GATHER", gather)("RANGE"  ,  1).gather(gather);
+         src.New("ShdBlurX", "Draw_VS", "ShdBlurX_PS")("GATHER", gather)("RANGE"  ,  2).gather(gather);
+         src.New("ShdBlurY", "Draw_VS", "ShdBlurY_PS")("GATHER", gather)("RANGE"  ,  2).gather(gather);
+      }
    }
    { // OUTLINE
       ShaderCompiler::Source &src=compiler.New(src_path+"Outline.cpp");

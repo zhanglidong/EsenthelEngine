@@ -725,9 +725,12 @@ CChar8* GLSLVersion()
 {
    switch(D.shaderModel())
    {
-      default        : return ""; // avoid null in case some drivers will crash
-      case SM_GL     : return "#version 330\n"; // needed for Mac and Win when using GL3
-      case SM_GL_ES_3: return "#version 300 es\n";
+      // https://en.wikipedia.org/wiki/OpenGL_Shading_Language
+      default          : return ""; // avoid null in case some drivers will crash
+      case SM_GL_3     : return "#version 330\n";
+      case SM_GL_4     : return "#version 400\n";
+      case SM_GL_ES_3  : return "#version 300 es\n";
+      case SM_GL_ES_3_1: return "#version 310 es\n";
    }
 }
 static SyncLock ShaderLock; // use custom lock instead of 'D._lock' to allow shader creation while rendering

@@ -533,12 +533,13 @@ void MainShaderClass::getTechniques()
    REPAO(ShdMatrix4   )=GetShaderParam(S8+"ShdMatrix4["+i+']');
 
    // can be used for shadows in deferred and AO
-   ShdBlur[0]=get("ShdBlur4");
-   ShdBlur[1]=get("ShdBlur6");
-   ShdBlur[2]=get("ShdBlur8");
-   ShdBlur[3]=get("ShdBlur12");
-   ShdBlurX  =get("ShdBlurX2");
-   ShdBlurY  =get("ShdBlurY2");
+   Bool gather=(GL_ES && D.gatherAvailable()); // GL_ES can't filter depth textures, so have to use special shader based on gather, all other platforms just use depth filtering, so no need
+   ShdBlur[0]=get(S8+"ShdBlur" +gather+4);
+   ShdBlur[1]=get(S8+"ShdBlur" +gather+6);
+   ShdBlur[2]=get(S8+"ShdBlur" +gather+8);
+   ShdBlur[3]=get(S8+"ShdBlur" +gather+12);
+   ShdBlurX  =get(S8+"ShdBlurX"+gather+2);
+   ShdBlurY  =get(S8+"ShdBlurY"+gather+2);
 
 #if !SLOW_SHADER_LOAD
    if(!D.deferredUnavailable())

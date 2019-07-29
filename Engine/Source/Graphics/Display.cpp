@@ -60,6 +60,7 @@ Display D;
    #elif ANDROID
       static EGLConfig  GLConfig;
       static EGLDisplay GLDisplay;
+      static Int        GLCtxVer;
    #endif
                GLContext       MainContext;
    static Mems<GLContext> SecondaryContexts;
@@ -297,7 +298,7 @@ Bool GLContext::createSecondary()
    EGLint attribs[]={EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE}; // end of list
    if(surface=eglCreatePbufferSurface(GLDisplay, GLConfig, attribs))
    {
-      EGLint ctx_attribs[]={EGL_CONTEXT_CLIENT_VERSION, (D.shaderModel()==SM_GL_ES_3) ? 3 : 2, EGL_NONE}; // end of list
+      EGLint ctx_attribs[]={EGL_CONTEXT_CLIENT_VERSION, GLCtxVer, EGL_NONE}; // end of list
       context=eglCreateContext(GLDisplay, GLConfig, MainContext.context, ctx_attribs);
    }
 #elif IOS
@@ -466,14 +467,16 @@ Str8 Display::shaderModelName()C
 {
    switch(shaderModel())
    {
-      default        : return "Unknown"; // SM_UNKNOWN
-      case SM_GL_ES_3: return "GL ES 3";
-      case SM_GL     : return "GL";
-      case SM_4      : return "4";
-      case SM_4_1    : return "4.1";
-      case SM_5      : return "5";
-      case SM_6      : return "6";
-      case SM_6_2    : return "6.2";
+      default          : return "Unknown"; // SM_UNKNOWN
+      case SM_GL_ES_3  : return "GL ES 3";
+      case SM_GL_ES_3_1: return "GL ES 3.1";
+      case SM_GL_3     : return "GL 3";
+      case SM_GL_4     : return "GL 4";
+      case SM_4        : return "4";
+      case SM_4_1      : return "4.1";
+      case SM_5        : return "5";
+      case SM_6        : return "6";
+      case SM_6_2      : return "6.2";
    }
 }
 Str8 Display::apiName()C
@@ -536,9 +539,9 @@ Bool Display::gatherAvailable()C
 #if DX11
    return shaderModel()>=SM_4_1;
 #elif GL_ES
-   return Compare(glVer(), VecI2(3, 1))>=0; // 3.1+ GLES required
+   return shaderModel()>=SM_GL_ES_3_1; // 3.1+ GLES required
 #elif GL
-   return Compare(glVer(), VecI2(4, 0))>=0; // 4.0  GL   required
+   return shaderModel()>=SM_GL_4; // 4.0+ GL required
 #endif
 }
 Bool Display::deferredUnavailable  ()C {return created() &&       _max_rt<2     ;} // deferred requires at least 2 MRT's (#0 Color, #1 Nrm, #2 Vel optional)
@@ -1040,7 +1043,7 @@ again:
             WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
             WGL_DOUBLE_BUFFER_ARB , GL_TRUE,
             WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, LINEAR_GAMMA,
-            WGL_COLORSPACE_EXT, LINEAR_GAMMA ? WGL_COLORSPACE_SRGB_EXT : WGL_COLORSPACE_LINEAR_EXT,
+          //WGL_COLORSPACE_EXT, LINEAR_GAMMA ? WGL_COLORSPACE_SRGB_EXT : WGL_COLORSPACE_LINEAR_EXT, fails
             WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
             WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
             WGL_COLOR_BITS_ARB  , 32,
@@ -1052,13 +1055,15 @@ again:
          UINT numFormatsAvailable=0;
          if(wglChoosePixelFormatARB(hDC, pf_attribs, null, Elms(pixel_formats), pixel_formats, &numFormatsAvailable))
          if(numFormatsAvailable)
-            Bool ok=SetPixelFormat(hDC, pixel_formats[0], &pfd);
+         {
+            Bool ok=SetPixelFormat(hDC, pixel_formats[0], &pfd); DEBUG_ASSERT(ok, "SetPixelFormat failed");
+         }
       }
    #endif
+      VecI2 ver=glVer();
       /* No need to use this, 'wglCreateContext' already guarantees latest version available
       if(wglCreateContextAttribsARB)
       {
-         VecI2 ver=glVer();
          const int attribs[]={WGL_CONTEXT_MAJOR_VERSION_ARB, ver.x,
                               WGL_CONTEXT_MINOR_VERSION_ARB, ver.y,
                               NULL}; // end of list
@@ -1069,7 +1074,9 @@ again:
             MainContext.lock();
          }
       }*/
-     _shader_model=SM_GL;
+      if(Compare(ver, VecI2(4, 0))>=0)_shader_model=SM_GL_4;else
+      if(Compare(ver, VecI2(3, 2))>=0)_shader_model=SM_GL_3;else
+                                       Exit("OpenGL 3.2 support not available.\nGraphics Driver not installed or better video card is required.");
 
       // enumerate display modes
       MemtN<VecI2, 128> modes;
@@ -1111,7 +1118,10 @@ again:
       if(!MainContext.context)Exit("Can't create an OpenGL Context.");
       if(MAC_GL_MT)Bool mt_ok=(CGLEnable(MainContext.context, kCGLCEMPEngine)!=kCGLNoError);
       MainContext.lock();
-     _shader_model=SM_GL;
+      VecI2 ver=glVer();
+      if(Compare(ver, VecI2(4, 0))>=0)_shader_model=SM_GL_4;else
+      if(Compare(ver, VecI2(3, 2))>=0)_shader_model=SM_GL_3;else
+                                       Exit("OpenGL 3.2 support not available.\nGraphics Driver not installed or better video card is required.");
 
       OpenGLContext=[[NSOpenGLContext alloc] initWithCGLContextObj:MainContext.context];
       [OpenGLContext setView:OpenGLView];
@@ -1157,7 +1167,10 @@ again:
          #endif
          XSync(XDisplay, false); // Forcibly wait on any resulting X errors
          MainContext.lock();
-        _shader_model=SM_GL;
+         VecI2 ver=glVer();
+         if(Compare(ver, VecI2(4, 0))>=0)_shader_model=SM_GL_4;else
+         if(Compare(ver, VecI2(3, 2))>=0)_shader_model=SM_GL_3;else
+                                          Exit("OpenGL 3.2 support not available.\nGraphics Driver not installed or better video card is required.");
 
          glXSwapInterval=(glXSwapIntervalType)glXGetProcAddressARB((C GLubyte*)"glXSwapIntervalEXT"); // access it via 'glXGetProcAddressARB' because some people have linker errors "undefined reference to 'glXSwapIntervalEXT'
 
@@ -1186,11 +1199,11 @@ again:
       #endif
          EGL_NONE // end of list
       };
-      for(Int gl_ver=3; gl_ver>=3; gl_ver--) // start from OpenGL ES 3.0 (ES3)
+      for(GLCtxVer=3; GLCtxVer>=3; GLCtxVer--) // start from OpenGL ES 3
       {
          EGLint ctx_attribs[]=
          {
-            EGL_CONTEXT_CLIENT_VERSION, gl_ver,
+            EGL_CONTEXT_CLIENT_VERSION, GLCtxVer,
             EGL_NONE // end of list
          };
          FREPD(d, 3) // depth   - process this with priority #1
@@ -1200,7 +1213,7 @@ again:
             EGLint attribs[]=
             {
                EGL_SURFACE_TYPE   , EGL_WINDOW_BIT,
-               EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR, // depends on 'gl_ver'
+               EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR, // depends on 'GLCtxVer'
                EGL_BLUE_SIZE      , 8,
                EGL_GREEN_SIZE     , 8,
                EGL_RED_SIZE       , 8,
@@ -1209,7 +1222,7 @@ again:
                EGL_STENCIL_SIZE   , (s==0) ?  8 : 0,
                EGL_NONE // end of list
             };
-            if(LogInit)LogN(S+"Trying config GL:"+gl_ver+", D:"+d+", S:"+s);
+            if(LogInit)LogN(S+"Trying config GL:"+GLCtxVer+", D:"+d+", S:"+s);
             EGLint num_configs=0;
             if(eglChooseConfig(GLDisplay, attribs, &GLConfig, 1, &num_configs)==EGL_TRUE)
                if(num_configs>=1)
@@ -1218,11 +1231,7 @@ again:
                ANativeWindow_setBuffersGeometry(AndroidApp->window, 0, 0, format);
                if(MainContext.surface=eglCreateWindowSurface(GLDisplay, GLConfig, AndroidApp->window, win_attribs))
                {
-                  if(MainContext.context=eglCreateContext(GLDisplay, GLConfig, null, ctx_attribs))
-                  {
-                     if(gl_ver==3)_shader_model=SM_GL_ES_3; // we succeeded with creating a 3.0 context
-                     goto context_ok;
-                  }
+                  if(MainContext.context=eglCreateContext(GLDisplay, GLConfig, null, ctx_attribs))goto context_ok;
                   MainContext.del();
                }
             }
@@ -1231,7 +1240,10 @@ again:
       Exit("Can't create an OpenGL Context.");
    context_ok:
       MainContext.lock();
-      if(LogInit)LogN("EGL OK");
+      VecI2 ver=glVer();
+      if(Compare(ver, VecI2(3, 1))>=0)_shader_model=SM_GL_ES_3_1;else
+                                      _shader_model=SM_GL_ES_3  ;
+      if(LogInit)LogN(S+"EGL OK ctx:"+ver);
       EGLint width, height;
       eglQuerySurface(GLDisplay, MainContext.surface, EGL_WIDTH , &width );
       eglQuerySurface(GLDisplay, MainContext.surface, EGL_HEIGHT, &height);
@@ -1239,10 +1251,12 @@ again:
       Renderer._main_ds.forceInfo(width, height, 1, ds_type                                            , IMAGE_GL_RB, samples);
       if(LogInit)LogN(S+"Renderer._main: "+Renderer._main.w()+'x'+Renderer._main.h()+", type: "+ImageTI[Renderer._main.hwType()].name+", ds_type: "+ImageTI[Renderer._main_ds.hwType()].name);
    #elif IOS
-      if(MainContext.context=[[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3])_shader_model=SM_GL_ES_3;else
-         Exit("Can't create an OpenGL Context.");
+      MainContext.context=[[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3]; if(!MainContext.context)Exit("Can't create an OpenGL Context.");
       MainContext.context.multiThreaded=false; // disable multi-threaded rendering as enabled actually made things slower, TOOD: check again in the future !! if enabling then probably all contexts have to be enabled as well, secondary too, because VAO from VBO's on a secondary thread could fail, as in Dungeon Hero, needs checking !!
       MainContext.lock();
+      VecI2 ver=glVer();
+      if(Compare(ver, VecI2(3, 1))>=0)_shader_model=SM_GL_ES_3_1;else
+                                      _shader_model=SM_GL_ES_3  ;
    #elif WEB
       EmscriptenWebGLContextAttributes attrs;
       emscripten_webgl_init_context_attributes(&attrs);
@@ -1254,18 +1268,18 @@ again:
       attrs.preserveDrawingBuffer=false;
       attrs.enableExtensionsByDefault=true;
       attrs.preferLowPowerToHighPerformance=false;
-      for(Int gl_ver=2; gl_ver>=2; gl_ver--) // start from WebGL 2.0 (ES3)
+      for(Int GLCtxVer=2; GLCtxVer>=2; GLCtxVer--) // start from WebGL 2.0 (ES3)
       {
-         attrs.majorVersion=gl_ver;
-         if(MainContext.context=emscripten_webgl_create_context(null, &attrs))
-         {
-            if(gl_ver==2)_shader_model=SM_GL_ES_3;
-            goto context_ok;
-         }
+         attrs.majorVersion=GLCtxVer;
+         if(MainContext.context=emscripten_webgl_create_context(null, &attrs))goto context_ok;
       }
       Exit("Can't create an OpenGL Context.");
    context_ok:
       MainContext.lock();
+      VecI2 ver=glVer();
+      LogN(S+"WebGL ctx:"+ver); // FIXME
+      if(Compare(ver, VecI2(3, 1))>=0)_shader_model=SM_GL_ES_3_1;else
+                                      _shader_model=SM_GL_ES_3  ;
       Byte samples=(attrs.antialias ? 4 : 1);
       int  width, height; emscripten_get_canvas_element_size(null, &width, &height);
       Renderer._main   .forceInfo(width, height, 1,/*LINEAR_GAMMA  ? IMAGE_R8G8B8A8_SRGB :*/IMAGE_R8G8B8A8, IMAGE_GL_RB, samples); // #WebSRGB currently web doesn't support SRGB SwapChain

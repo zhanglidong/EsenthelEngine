@@ -158,12 +158,12 @@
 #define TexCubeLod(image, uvw   )   image.SampleLevel(SamplerDefault, uvw, 0) // access Cube texture's 0-th MipMap (LOD level=0)
 
 #if !GL
-#define TexPoint(image, uv)   image.SampleLevel(SamplerPoint, uv, 0)
-#else
-#define TexPoint(image, uv)   image.SampleLevel(SamplerDefault, uv, 0) // use default sampler on GL because it would create a secondary "sampler2D" in GLSL and we would have to set 2 ShaderImage's
+#define TexPoint( image, uv)   image.SampleLevel(SamplerPoint, uv, 0)
+#define TexGather(image, uv)   image.Gather     (SamplerPoint, uv   ) // gather available since SM_4_1, GL 4.0, GL ES 3.1
+#else // use default sampler on GL because it would create a secondary "sampler2D" in GLSL and we would have to set 2 ShaderImage's
+#define TexPoint( image, uv)   image.SampleLevel(SamplerDefault, uv, 0)
+#define TexGather(image, uv)   image.Gather     (SamplerDefault, uv   ) // gather available since SM_4_1, GL 4.0, GL ES 3.1
 #endif
-
-#define TexGather(image, uv)   image.Gather(SamplerPoint, uv) // gather available since SM_4_1, GL 4.0, GL ES 3.1
 
 #define TexSample(image, pixel, i)   image.Load(pixel, i) // access i-th sample of a multi-sampled texture
 

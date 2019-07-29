@@ -63,6 +63,22 @@ Half ShdCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 // SHADOW BLUR
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
+#if GATHER
+#undef TexDepthLinear
+Flt    TexDepthLinear(Vec2 uv) // because GL ES 3 can't do 'TexDepthLinear'
+{
+   Vec2 pixel =uv*RTSize.zw+0.5,
+        pixeli=Floor(pixel),
+        f     =pixel-pixeli; Flt fx1=1-f.x;
+        uv    =pixeli*RTSize.xy;
+   Vec4 t=TexDepthGather(uv);
+
+   Flt v=Lerp(t.w*fx1 + t.z*f.x,
+              t.x*fx1 + t.y*f.x, f.y);
+
+   return LinearizeDepth(v);
+}
+#endif
 Half ShdBlur_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
    Half weight=0.25,
