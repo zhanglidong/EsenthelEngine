@@ -1146,17 +1146,23 @@ again:
          #else // 3.0+ context (this does not link on some old graphics drivers when compiling, "undefined reference to glXCreateContextAttribsARB", it would need to be accessed using 'glXGetProcAddress')
             // access 'glXCreateContextAttribsARB', on Linux we don't need an existing GL context to be able to load extensions via 'glXGetProcAddressARB'
             typedef GLXContext (*PFNGLXCREATECONTEXTATTRIBSARBPROC) (::Display* dpy, GLXFBConfig config, GLXContext share_context, Bool direct, const int *attrib_list);
-            PFNGLXCREATECONTEXTATTRIBSARBPROC glXCreateContextAttribsARB=(PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddressARB((C GLubyte*)"glXCreateContextAttribsARB");
-            const int attribs[]=
+            if(PFNGLXCREATECONTEXTATTRIBSARBPROC glXCreateContextAttribsARB=(PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddressARB((C GLubyte*)"glXCreateContextAttribsARB"))
             {
-               GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
-               GLX_CONTEXT_MINOR_VERSION_ARB, 2,
-               NULL // end of list
-            };
-            // create context
-            if(!glXCreateContextAttribsARB
-            || !(MainContext.context=glXCreateContextAttribsARB(XDisplay, GLConfig, null, true, attribs)))Exit("Can't create a OpenGL 3.2 Context.");
+               const VecB2 ctx_vers[]={{3,2}, {4,0}};
+               REPA(ctx_vers) // try to create different versions in case 'glXCreateContextAttribsARB' behaves differently depending on the system
+               {
+                  const int attribs[]=
+                  { // for 'glXCreateContextAttribsARB' these should specify the MINIMUM version, which means that a newer version may actually be obtained (which is what we want)
+                     GLX_CONTEXT_MAJOR_VERSION_ARB, ctx_vers[i].x,
+                     GLX_CONTEXT_MINOR_VERSION_ARB, ctx_vers[i].y,
+                     NULL // end of list
+                  };
+                  // create context
+                  if(MainContext.context=glXCreateContextAttribsARB(XDisplay, GLConfig, null, true, attribs))break;
+               }
+            }
          #endif
+         if(!MainContext.context)Exit("Can't create a OpenGL 3.2 Context.");
          XSync(XDisplay, false); // Forcibly wait on any resulting X errors
          MainContext.lock();
          glXSwapInterval=(glXSwapIntervalType)glXGetProcAddressARB((C GLubyte*)"glXSwapIntervalEXT"); // access it via 'glXGetProcAddressARB' because some people have linker errors "undefined reference to 'glXSwapIntervalEXT'
