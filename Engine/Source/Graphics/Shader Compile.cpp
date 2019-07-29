@@ -519,8 +519,8 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
    {
    #if DX_SHADER_COMPILER
       Int params=shader->params.elms()+shader->extra_params.elms();
-      MemtN<DxcDefine, 64  > defines; defines.setNum(params  +API_NUM); Int defs =0;
-      MemtN<Str      , 64*2> temp   ; temp   .setNum(params*2+API_NUM); Int temps=0;
+      MemtN<DxcDefine, 64  > defines; defines.setNum(params  +API_NUM+get_default_val+1); Int defs =0;
+      MemtN<Str      , 64*2> temp   ; temp   .setNum(params*2+API_NUM                  ); Int temps=0;
       FREPA(shader->params)
       {
          DxcDefine &define=defines[defs++]; C TextParam8 &param=shader->params[i];
@@ -541,8 +541,13 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
       }
       if(get_default_val)
       {
-         DxcDefine &define=defines.New();
+         DxcDefine &define=defines[defs++];
          define.Name =L"GET_DEFAULT_VALUE";
+         define.Value=L"1";
+      }
+      {
+         DxcDefine &define=defines[defs++];
+         define.Name =L"DX_SHADER_COMPILER";
          define.Value=L"1";
       }
 

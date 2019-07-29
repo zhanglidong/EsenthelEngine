@@ -75,6 +75,12 @@
 #define BRANCH  [branch ] // will make a conditional statement branched , use before 'if'        statement
 #define LOOP    [loop   ] // will make a loop looped                    , use before 'for while' statements
 #define UNROLL  [unroll ] // will make a loop unrolled                  , use before 'for while' statements
+
+#if DX_SHADER_COMPILER
+   #define LOC(i) [[vk::location(i)]]
+#else
+   #define LOC(i)
+#endif
 /******************************************************************************/
 // FUNCTIONS
 /******************************************************************************/
@@ -925,19 +931,19 @@ Half   SRGBLumOfSRGBColor  (VecH s) {return LinearToSRGBFast(Dot(SRGBToLinearFas
 struct VtxInput // Vertex Input, use this class to access vertex data in vertex shaders
 {
 #if GL
-   // !! both ATTR numbers and list order, must be in sync with GL_VTX_SEMANTIC !!
-   Vec4  _pos     :ATTR0 ;
-   VecH  _hlp     :ATTR1 ;
-   VecH  _nrm     :ATTR2 ;
-   VecH4 _tan     :ATTR3 ;
-   Vec2  _tex     :ATTR4 ;
-   Vec2  _tex1    :ATTR5 ;
-   Vec2  _tex2    :ATTR6 ;
-   Half  _size    :ATTR7 ;
-   Vec4  _bone    :ATTR8 ;
-   VecH4 _weight  :ATTR9 ;
-   VecH4 _material:ATTR10;
-   VecH4 _color   :ATTR11;
+   // !! LOC, ATTR numbers AND list order, must be in sync with GL_VTX_SEMANTIC !!
+   LOC( 0) Vec4  _pos     :ATTR0 ;
+   LOC( 1) VecH  _hlp     :ATTR1 ;
+   LOC( 2) VecH  _nrm     :ATTR2 ;
+   LOC( 3) VecH4 _tan     :ATTR3 ;
+   LOC( 4) Vec2  _tex     :ATTR4 ;
+   LOC( 5) Vec2  _tex1    :ATTR5 ;
+   LOC( 6) Vec2  _tex2    :ATTR6 ;
+   LOC( 7) Half  _size    :ATTR7 ;
+   LOC( 8) Vec4  _bone    :ATTR8 ;
+   LOC( 9) VecH4 _weight  :ATTR9 ;
+   LOC(10) VecH4 _material:ATTR10;
+   LOC(11) VecH4 _color   :ATTR11;
 #else
    Vec4  _pos     :POSITION0   ;
    VecH  _hlp     :POSITION1   ;

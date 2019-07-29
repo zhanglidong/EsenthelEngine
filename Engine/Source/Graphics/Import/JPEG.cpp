@@ -4,6 +4,7 @@
 #if SUPPORT_JPG
    #include "../../../../ThirdPartyLibs/begin.h"
 
+   #undef EXTERN
    #include <setjmp.h>
    #if 1 // JpegTurbo
       #include "../../../../ThirdPartyLibs/JpegTurbo/lib/jpeglib.h"
