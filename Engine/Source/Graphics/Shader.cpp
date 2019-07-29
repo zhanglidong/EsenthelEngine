@@ -750,8 +750,8 @@ UInt ShaderVSGL::create(Bool clean, Str *messages)
          UInt vs=glCreateShader(GL_VERTEX_SHADER); if(!vs)Exit("Can't create GL_VERTEX_SHADER"); // create into temp var first and set to this only after fully initialized
          glShaderSource(vs, Elms(srcs), srcs, null); glCompileShader(vs); // compile
 
-         int ok; glGetShaderiv(vs, GL_COMPILE_STATUS, &ok);
-         if( ok)T.vs=vs;else // set to this only after all finished, so if another thread runs this method, it will detect 'vs' presence only after it was fully initialized
+         GLint ok; glGetShaderiv(vs, GL_COMPILE_STATUS, &ok);
+         if(   ok)T.vs=vs;else // set to this only after all finished, so if another thread runs this method, it will detect 'vs' presence only after it was fully initialized
          {
             if(messages)
             {
@@ -784,8 +784,8 @@ UInt ShaderPSGL::create(Bool clean, Str *messages)
          UInt ps=glCreateShader(GL_FRAGMENT_SHADER); if(!ps)Exit("Can't create GL_FRAGMENT_SHADER"); // create into temp var first and set to this only after fully initialized
          glShaderSource(ps, Elms(srcs), srcs, null); glCompileShader(ps); // compile
 
-         int ok; glGetShaderiv(ps, GL_COMPILE_STATUS, &ok);
-         if( ok)T.ps=ps;else // set to this only after all finished, so if another thread runs this method, it will detect 'ps' presence only after it was fully initialized
+         GLint ok; glGetShaderiv(ps, GL_COMPILE_STATUS, &ok);
+         if(   ok)T.ps=ps;else // set to this only after all finished, so if another thread runs this method, it will detect 'ps' presence only after it was fully initialized
          {
             if(messages)
             {
@@ -958,10 +958,10 @@ UInt ShaderGL::compileEx(MemPtr<ShaderVSGL> vs_array, MemPtr<ShaderPSGL> ps_arra
       glAttachShader(prog, vs);
       glAttachShader(prog, ps);
       glLinkProgram (prog);
-      int ok; glGetProgramiv(prog, GL_LINK_STATUS, &ok);
-      if(!ok)
+      GLint ok; glGetProgramiv(prog, GL_LINK_STATUS, &ok);
+      if(  !ok)
       {
-         int max_length; glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &max_length);
+         GLint max_length; glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &max_length);
          Mems<char> error; error.setNumZero(max_length+1); glGetProgramInfoLog(prog, max_length, null, error.data());
          if(messages)messages->line()+=(S+"Error linking vertex+pixel shader in technique \""+name+"\" of shader \""+ShaderFiles.name(shader)+"\"\n"+error.data()).line()+source().line();
          glDeleteProgram(prog); prog=0;
@@ -988,7 +988,7 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
       Int  params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORMS, &params);
       FREP(params)
       {
-         Char8 glsl_name[1024]; glsl_name[0]=0; Int size=0; GLenum type=0; glGetActiveUniform(prog, i, Elms(glsl_name), null, &size, &type, glsl_name);
+         Char8 name[1024]; name[0]=0; Int elms=0; GLenum type=0; glGetActiveUniform(prog, i, Elms(name), null, &elms, &type, name);
          switch(type)
          {
             case GL_SAMPLER_2D:
@@ -1004,17 +1004,17 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
          #endif
             {
                Int tex_unit=images.elms(); if(!InRange(tex_unit, Tex))Exit(S+"Texture index: "+tex_unit+", is too big");
-               Int location=glGetUniformLocation(prog, glsl_name); if(location<0)
+               Int location=glGetUniformLocation(prog, name); if(location<0)
                {
                #if WEB // this can happen on MS Edge for images that aren't actually used
                   LogN
                #else
                   Exit
                #endif
-                     (S+"Invalid Uniform Location ("+location+") of GLSL Parameter \""+glsl_name+"\"");
+                     (S+"Invalid Uniform Location ("+location+") of GLSL Parameter \""+name+"\"");
                   continue;
                }
-               images.New().set(tex_unit, *GetShaderImage(glsl_name));
+               images.New().set(tex_unit, *GetShaderImage(name));
 
                glUseProgram(prog);
                glUniform1i (location, tex_unit); // set 'location' sampler to use 'tex_unit' texture unit
@@ -1037,6 +1037,36 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
             buffers.New().set(variable_slot_index, buffer->buffer.buffer); // request linking buffer with 'variable_slot_index' slot
             variable_slot_index++;
          }
+      #if DEBUG // verify sizes and offsets
+         GLint size=0; glGetActiveUniformBlockiv(prog, i, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
+         DYNAMIC_ASSERT(Ceil16(size)==Ceil16(buffer->full_size), "UBO has different size than expected");
+         GLint uniforms=0; glGetActiveUniformBlockiv(prog, i, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &uniforms);
+         MemtN<GLint, 256> uniform; uniform.setNum(uniforms); glGetActiveUniformBlockiv(prog, i, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, uniform.data());
+         REPA(uniform)
+         {
+            Char8 name[1024]; name[0]=0; Int elms=0; GLenum type=0; glGetActiveUniform(prog, uniform[i], Elms(name), null, &elms, &type, name);
+            GLint location=-1; GLuint uni=uniform[i]; glGetActiveUniformsiv(prog, 1, &uni, GL_UNIFORM_OFFSET, &location);
+            if(ShaderParam *param=FindShaderParam(name))
+            {
+               DYNAMIC_ASSERT(param->_changed==&buffer->changed, "ShaderParam does not belong to ShaderBuffer");
+               DYNAMIC_ASSERT(param->_full_translation.elms(), "ShaderParam has no translation");
+               Int gpu_offset=param->_full_translation[0].gpu_offset+(param->_data-buffer->data);
+               DYNAMIC_ASSERT(location==gpu_offset, "Invalid ShaderParam gpu_offset");
+               Int size; switch(type)
+               {
+                  case GL_FLOAT       : size=SIZE(Flt    ); break;
+                  case GL_FLOAT_VEC2  : size=SIZE(Vec2   ); break;
+                  case GL_FLOAT_VEC3  : size=SIZE(Vec    ); break;
+                  case GL_FLOAT_VEC4  : size=SIZE(Vec4   ); break;
+                  case GL_FLOAT_MAT3  : size=SIZE(Matrix3); break;
+                  case GL_FLOAT_MAT4  : size=SIZE(Matrix4); break;
+                  case GL_FLOAT_MAT4x3: size=SIZE(Matrix ); break;
+                  default             : Exit("Invalid ShaderParam type"); break;
+               }
+               DYNAMIC_ASSERT(size==param->_cpu_data_size, "Invalid ShaderParam size");
+            }//else Exit(S+"ShaderParam \""+name+"\" not found"); disable because currently 'FindShaderParam' does not support finding members, such as "Viewport.size_fov_tan"
+         }
+      #endif
       }
       T.buffers=buffers;
 
