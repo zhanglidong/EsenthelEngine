@@ -1003,6 +1003,9 @@ again:
      _can_draw=true;
      _no_gpu  =false;
    }
+
+   const VecB2 ctx_vers[]={{3,2}, {4,0}}; // set highest at the end, 4.0 needed for 'TexGather', 3.2 needed for 'glDrawElementsBaseVertex', 3.1 needed for instancing, 3.0 needed for 'glColorMaski', 'gl_ClipDistance', 'glClearBufferfv', 'glGenVertexArrays', 'glMapBufferRange'
+
    #if WINDOWS
       PIXELFORMATDESCRIPTOR pfd=
       {
@@ -1031,7 +1034,7 @@ again:
       if(!(MainContext.context= wglCreateContext(hDC                   )))Exit("Can't create an OpenGL Context.");
            MainContext.lock();
 
-      if(glewInit()!=GLEW_OK || !GLEW_VERSION_3_2)Exit("OpenGL 3.2 support not available.\nGraphics Driver not installed or better video card is required."); // 3.2 needed for 'glDrawElementsBaseVertex', 3.1 needed for instancing, 3.0 needed for 'glColorMaski', 'gl_ClipDistance', 'glClearBufferfv', 'glGenVertexArrays', 'glMapBufferRange', otherwise 2.0 is good enough
+      if(glewInit()!=GLEW_OK)Exit("Can't init OpenGL");
          glewSafe();
 
    #if LINEAR_GAMMA
@@ -1054,26 +1057,27 @@ again:
          int  pixel_formats[1]; // just need the first one
          UINT numFormatsAvailable=0;
          if(wglChoosePixelFormatARB(hDC, pf_attribs, null, Elms(pixel_formats), pixel_formats, &numFormatsAvailable))
-         if(numFormatsAvailable)
-         {
-            Bool ok=SetPixelFormat(hDC, pixel_formats[0], &pfd); DEBUG_ASSERT(ok, "SetPixelFormat failed");
-         }
+         if(numFormatsAvailable){Bool ok=SetPixelFormat(hDC, pixel_formats[0], &pfd); DEBUG_ASSERT(ok, "SetPixelFormat failed");}
       }
    #endif
-      /* No need to use this, 'wglCreateContext' already guarantees latest version available
-      if(wglCreateContextAttribsARB)
       {
-         VecI2 ver=glVer();
-         const int attribs[]={WGL_CONTEXT_MAJOR_VERSION_ARB, ver.x,
-                              WGL_CONTEXT_MINOR_VERSION_ARB, ver.y,
-                              NULL}; // end of list
-         if(HGLRC context=wglCreateContextAttribsARB(hDC, 0, attribs))
+         // in tests 'wglCreateContext' returned highest possible context, however do these checks just in case
+         VecI2 ver=glVer(); if(Compare(ver, (VecI2)ctx_vers[Elms(ctx_vers)-1])<0 && wglCreateContextAttribsARB) // if it's smaller than highest needed
+            REPA(ctx_vers) // go from the end, to try highest first
          {
-            MainContext.del();
-            MainContext.context=context;
-            MainContext.lock();
+            VecI2 v=ctx_vers[i]; if(Compare(v, ver)<=0)break; // if <= than what we already have then stop
+            const int attribs[]={WGL_CONTEXT_MAJOR_VERSION_ARB, v.x,
+                                 WGL_CONTEXT_MINOR_VERSION_ARB, v.y,
+                                 NULL}; // end of list
+            if(HGLRC context=wglCreateContextAttribsARB(hDC, 0, attribs))
+            {
+               MainContext.del();
+               MainContext.context=context;
+               MainContext.lock();
+               break; // stop on first found
+            }
          }
-      }*/
+      }
 
       // enumerate display modes
       MemtN<VecI2, 128> modes;
@@ -1141,27 +1145,27 @@ again:
    #elif LINUX
       if(XDisplay)
       {
-         #if 0 // 2.0 context
-            if(!(MainContext.context=glXCreateNewContext(XDisplay, GLConfig, GLX_RGBA_TYPE, null, true)))Exit("Can't create a OpenGL Context.");
-         #else // 3.0+ context (this does not link on some old graphics drivers when compiling, "undefined reference to glXCreateContextAttribsARB", it would need to be accessed using 'glXGetProcAddress')
-            // access 'glXCreateContextAttribsARB', on Linux we don't need an existing GL context to be able to load extensions via 'glXGetProcAddressARB'
-            typedef GLXContext (*PFNGLXCREATECONTEXTATTRIBSARBPROC) (::Display* dpy, GLXFBConfig config, GLXContext share_context, Bool direct, const int *attrib_list);
-            if(PFNGLXCREATECONTEXTATTRIBSARBPROC glXCreateContextAttribsARB=(PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddressARB((C GLubyte*)"glXCreateContextAttribsARB"))
+      #if 0 // 2.0 context
+         if(!(MainContext.context=glXCreateNewContext(XDisplay, GLConfig, GLX_RGBA_TYPE, null, true)))Exit("Can't create a OpenGL Context.");
+      #else // 3.0+ context (this does not link on some old graphics drivers when compiling, "undefined reference to glXCreateContextAttribsARB", it would need to be accessed using 'glXGetProcAddress')
+         // access 'glXCreateContextAttribsARB', on Linux we don't need an existing GL context to be able to load extensions via 'glXGetProcAddressARB'
+         typedef GLXContext (*PFNGLXCREATECONTEXTATTRIBSARBPROC) (::Display* dpy, GLXFBConfig config, GLXContext share_context, Bool direct, const int *attrib_list);
+         if(PFNGLXCREATECONTEXTATTRIBSARBPROC glXCreateContextAttribsARB=(PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddressARB((C GLubyte*)"glXCreateContextAttribsARB"))
+         {
+            // in tests 'glXCreateContextAttribsARB' returned higher version than what was requested (which is what we want)
+            REPA(ctx_vers) // go from the end, to try highest first
             {
-               const VecB2 ctx_vers[]={{3,2}, {4,0}};
-               REPA(ctx_vers) // try to create different versions in case 'glXCreateContextAttribsARB' behaves differently depending on the system
+               const int attribs[]=
                {
-                  const int attribs[]=
-                  { // for 'glXCreateContextAttribsARB' these should specify the MINIMUM version, which means that a newer version may actually be obtained (which is what we want)
-                     GLX_CONTEXT_MAJOR_VERSION_ARB, ctx_vers[i].x,
-                     GLX_CONTEXT_MINOR_VERSION_ARB, ctx_vers[i].y,
-                     NULL // end of list
-                  };
-                  // create context
-                  if(MainContext.context=glXCreateContextAttribsARB(XDisplay, GLConfig, null, true, attribs))break;
-               }
+                  GLX_CONTEXT_MAJOR_VERSION_ARB, ctx_vers[i].x,
+                  GLX_CONTEXT_MINOR_VERSION_ARB, ctx_vers[i].y,
+                  NULL // end of list
+               };
+               // create context
+               if(MainContext.context=glXCreateContextAttribsARB(XDisplay, GLConfig, null, true, attribs))break; // stop on first found
             }
-         #endif
+         }
+      #endif
          if(!MainContext.context)Exit("Can't create a OpenGL 3.2 Context.");
          XSync(XDisplay, false); // Forcibly wait on any resulting X errors
          MainContext.lock();
