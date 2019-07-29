@@ -980,12 +980,14 @@ void Image::setGLParams()
       D.texBind(target, _txtr);
 
       // first call those that can generate GL ERROR and we're OK with that, so we will call 'glGetError' to clear them
-                  {glTexParameteri(target, GL_TEXTURE_MAX_LEVEL     , mip_maps ? mipMaps()-1 : 0); glGetError();} // clear error in case GL_TEXTURE_MAX_LEVEL is not supported (can happen on GLES2)
-      if(mip_maps){glTexParameteri(target, GL_TEXTURE_MAX_ANISOTROPY,      Max(D.texFilter(), 1)); glGetError();} // clear error in case anisotropy is not supported (can happen when using ETC2 on "Galaxy Note 4")
+                  glTexParameteri(target, GL_TEXTURE_MAX_LEVEL     , mip_maps ? mipMaps()-1 : 0);
+      if(mip_maps)glTexParameteri(target, GL_TEXTURE_MAX_ANISOTROPY,      Max(D.texFilter(), 1));
+                  glTexParameteri(target, GL_TEXTURE_MIN_FILTER    , mip_maps ? (filterable ? D.texMipFilter() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST : GL_NEAREST_MIPMAP_NEAREST) : filterable ? GL_LINEAR : GL_NEAREST);
+                  glTexParameteri(target, GL_TEXTURE_MAG_FILTER    , (filterable && (D.texFilter() || mode()!=IMAGE_2D)) ? GL_LINEAR : GL_NEAREST);
+      glGetError(); // clear error in case GL_TEXTURE_MAX_LEVEL, anisotropy, .. are not supported
 
       // now call thost that must succeed
-                   glTexParameteri(target, GL_TEXTURE_MIN_FILTER    , mip_maps ? (filterable ? D.texMipFilter() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_NEAREST : GL_NEAREST_MIPMAP_NEAREST) : filterable ? GL_LINEAR : GL_NEAREST);
-                   glTexParameteri(target, GL_TEXTURE_MAG_FILTER    , (filterable && (D.texFilter() || mode()!=IMAGE_2D)) ? GL_LINEAR : GL_NEAREST);
+
    #if GL_SWIZZLE
       switch(hwType())
       {
