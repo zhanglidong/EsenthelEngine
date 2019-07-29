@@ -265,7 +265,7 @@ void MainShaderClass::getTechniques()
    ImgXY    =ShaderImages("ImgXY" );
 
    Cub[0]=ShaderImages("Cub");
-   Cub[1]=ShaderImages("Cub");
+   Cub[1]=ShaderImages("Cub1");
 
    Vol     =ShaderImages("Vol"    );
    VolXY[0]=ShaderImages("VolXY"  );
