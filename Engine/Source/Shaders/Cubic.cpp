@@ -63,12 +63,11 @@ VecH4 TexCubicFast(Vec2 inTex)
 #else // 5 tex reads, corners are ignored because they're insignificant
    VecH2 w12=w1+w2; Vec2 p=tc+(w2/w12)*ImgSize.xy;
    Half  wu=w12.x*w0.y, wd=w12.x*w3.y, wl=w12.y*w0.x, wr=w12.y*w3.x, wc=w12.x*w12.y;
-   // keep 'Tex' in case we need LOD's (for example stretching in 1 dimension but shrinking in another)
-   return(Tex(Img, Vec2(  p.x, tc0.y))*wu // sample upper edge (2 texels), both weights are negative
-         +Tex(Img, Vec2(  p.x, tc3.y))*wd // sample lower edge (2 texels), both weights are negative
-         +Tex(Img, Vec2(tc0.x,   p.y))*wl // sample left  edge (2 texels), both weights are negative
-         +Tex(Img, Vec2(tc3.x,   p.y))*wr // sample right edge (2 texels), both weights are negative
-         +Tex(Img, Vec2(  p.x,   p.y))*wc // sample center     (4 texels), all  weights are positive
+   return(TexLod(Img, Vec2(  p.x, tc0.y))*wu // sample upper edge (2 texels), both weights are negative
+         +TexLod(Img, Vec2(  p.x, tc3.y))*wd // sample lower edge (2 texels), both weights are negative
+         +TexLod(Img, Vec2(tc0.x,   p.y))*wl // sample left  edge (2 texels), both weights are negative
+         +TexLod(Img, Vec2(tc3.x,   p.y))*wr // sample right edge (2 texels), both weights are negative
+         +TexLod(Img, Vec2(  p.x,   p.y))*wc // sample center     (4 texels), all  weights are positive
          )/(wu+wd+wl+wr+wc);
 #endif
 #endif
@@ -84,12 +83,11 @@ VecH TexCubicFastRGB(Vec2 inTex) // ignores alpha channel
    Vec2  tc0=tc-ImgSize.xy, tc3=tc+ImgSize.xy*2;
    VecH2 w12=w1+w2; Vec2 p=tc+(w2/w12)*ImgSize.xy;
    Half  wu =w12.x*w0.y, wd=w12.x*w3.y, wl=w12.y*w0.x, wr=w12.y*w3.x, wc=w12.x*w12.y;
-   // keep 'Tex' in case we need LOD's (for example stretching in 1 dimension but shrinking in another)
-   return(Tex(Img, Vec2(  p.x, tc0.y)).rgb*wu
-         +Tex(Img, Vec2(  p.x, tc3.y)).rgb*wd
-         +Tex(Img, Vec2(tc0.x,   p.y)).rgb*wl
-         +Tex(Img, Vec2(tc3.x,   p.y)).rgb*wr
-         +Tex(Img, Vec2(  p.x,   p.y)).rgb*wc)/(wu+wd+wl+wr+wc);
+   return(TexLod(Img, Vec2(  p.x, tc0.y)).rgb*wu
+         +TexLod(Img, Vec2(  p.x, tc3.y)).rgb*wd
+         +TexLod(Img, Vec2(tc0.x,   p.y)).rgb*wl
+         +TexLod(Img, Vec2(tc3.x,   p.y)).rgb*wr
+         +TexLod(Img, Vec2(  p.x,   p.y)).rgb*wc)/(wu+wd+wl+wr+wc);
 }
 /******************************************************************************/
 #define CUBIC_SAMPLES     3
