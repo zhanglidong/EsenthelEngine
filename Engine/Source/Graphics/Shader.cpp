@@ -749,7 +749,11 @@ UInt ShaderVSGL::create(Bool clean, Str *messages)
       #if GL_ES
          for(; CChar8 *gl=TextPos(code, "gl_ClipDistance"); ){Char8 *t=(Char8*)gl; t[0]=t[1]='/';} // VS plane clipping not available on GLES 3
       #endif
-         CChar8 *srcs[]={GLSLVersion(), code}; // version must be first
+         CChar8 *srcs[]={GLSLVersion(), // version must be first
+         #if WEB
+            "#define noperspective\n", // 'noperspective' not available on WebGL
+         #endif
+            code};
          UInt vs=glCreateShader(GL_VERTEX_SHADER); if(!vs)Exit("Can't create GL_VERTEX_SHADER"); // create into temp var first and set to this only after fully initialized
          glShaderSource(vs, Elms(srcs), srcs, null); glCompileShader(vs); // compile
 
@@ -783,7 +787,11 @@ UInt ShaderPSGL::create(Bool clean, Str *messages)
       #else // uncompressed
          CChar8 *code=(CChar8*)data();
       #endif
-         CChar8 *srcs[]={GLSLVersion(), code}; // version must be first
+         CChar8 *srcs[]={GLSLVersion(), // version must be first
+         #if WEB
+            "#define noperspective\n", // 'noperspective' not available on WebGL
+         #endif
+            code};
          UInt ps=glCreateShader(GL_FRAGMENT_SHADER); if(!ps)Exit("Can't create GL_FRAGMENT_SHADER"); // create into temp var first and set to this only after fully initialized
          glShaderSource(ps, Elms(srcs), srcs, null); glCompileShader(ps); // compile
 
