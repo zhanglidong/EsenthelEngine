@@ -657,7 +657,7 @@ Display::Display() : _monitors(Compare, Create, null, 4)
   _monitor_prec    =IMAGE_PRECISION_8;
   _lit_col_rt_prec =IMAGE_PRECISION_8;
   _aspect_mode     =(MOBILE ? ASPECT_SMALLER : ASPECT_Y);
-  _tex_filter      =(MOBILE ? 2 : 16);
+  _tex_filter      =(MOBILE ? 4 : 16);
   _tex_mip_filter  =!MOBILE;
   _tex_detail      =(MOBILE ? TEX_USE_DISABLE : TEX_USE_MULTI);
   _density_filter  =(MOBILE ? FILTER_LINEAR : FILTER_CUBIC_FAST);
