@@ -545,9 +545,9 @@ static Bool Match(C ShaderCompiler::SubShader &output, C ShaderCompiler::SubShad
 }
 void ShaderCompiler::SubShader::compile()
 {
-#if WINDOWS
  C Source         *source  =shader->source;
  C ShaderCompiler *compiler=source->compiler;
+#if WINDOWS
    Char8 target[6+1];
    switch(type)
    {
@@ -1554,7 +1554,7 @@ Bool ShaderCompiler::compileTry(Threads &threads)
          if(!shader.dummy)shaders[shaders_num++]=&shader;
       }
    }
-   shaders.sort(); // sort by name so we can do binary search when looking for shaders
+   shaders.sort(Compare); // sort by name so we can do binary search when looking for shaders
 
    if(api!=API_DX)
    {
@@ -1650,6 +1650,7 @@ void ShaderCompiler::compile(Threads &threads)
 /******************************************************************************/
 // IO
 /******************************************************************************/
+#if WINDOWS
 Bool Shader11::load(File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &file_buffers)
 {
    Indexes indexes; f.getStr(name)>>indexes;
@@ -1663,6 +1664,7 @@ Bool Shader11::load(File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 2
    if(f.ok())return true;
   /*del();*/ return false;
 }
+#endif
 /******************************************************************************/
 #if GL
 Bool ShaderGL::load(File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers)
