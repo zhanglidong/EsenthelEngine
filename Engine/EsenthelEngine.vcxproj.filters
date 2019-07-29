@@ -2567,5 +2567,11 @@
     <Library Include="..\ThirdPartyLibs\DirectX\DirectX SDK June 2010\x64\X3DAudio.lib">
       <Filter>H\_\Libs\64</Filter>
     </Library>
+    <Library Include="..\ThirdPartyLibs\DirectXShaderCompiler\lib\dxcompiler.lib">
+      <Filter>H\_\Libs\64</Filter>
+    </Library>
+    <Library Include="..\ThirdPartyLibs\SPIRV-Cross\lib\spirv-cross-c-shared.lib">
+      <Filter>H\_\Libs\64</Filter>
+    </Library>
   </ItemGroup>
 </Project>

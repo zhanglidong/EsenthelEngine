@@ -14,7 +14,7 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>H</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Private\Project.cpp">
+    <ClCompile Include="Source\Esenthel Builder.cpp">
       <Filter>Src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -54,13 +54,5 @@
     <ResourceCompile Include="resource.rc">
       <Filter>H</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\ThirdPartyLibs\DirectXShaderCompiler\lib\dxcompiler.lib">
-      <Filter>H</Filter>
-    </Library>
-    <Library Include="..\ThirdPartyLibs\SPIRV-Cross\lib\spirv-cross-c-shared.lib">
-      <Filter>H</Filter>
-    </Library>
   </ItemGroup>
 </Project>

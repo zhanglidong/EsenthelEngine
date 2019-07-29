@@ -1,8 +1,8 @@
 /******************************************************************************/
 #include "stdafx.h"
 
-#define NEW_COMPILER 1
-#define SPIRV_CROSS  1
+#define NEW_COMPILER (WINDOWS_OLD && X64)
+#define SPIRV_CROSS  (WINDOWS_OLD && X64)
 #define HLSL_CC      0
 
 #define FORCE_LOG_SHADER_CODE (DEBUG && 0)
