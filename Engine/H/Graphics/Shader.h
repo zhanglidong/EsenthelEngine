@@ -116,6 +116,7 @@ struct ShaderParam // Shader Parameter
    Mems<Translation> _full_translation, _optimized_translation;
 
    Bool is()C {return _cpu_data_size>0;}
+   Int  gpuArrayStride()C;
 
    INLINE void setChanged() {*_changed=true;}
           void optimize  () {OptimizeTranslation(_full_translation, _optimized_translation);}

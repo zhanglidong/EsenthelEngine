@@ -428,14 +428,26 @@ void ShaderParam::zero()
   _cpu_data_size=_gpu_data_size=_elements=0;
 }
 /******************************************************************************/
+Int ShaderParam::gpuArrayStride()C
+{
+   if(_elements>1)
+   {
+      if(                  _full_translation.elms()%_elements)Exit("ShaderParam.Translation mod");
+      Int elm_translations=_full_translation.elms()/_elements; // calculate number of translations for a single element
+      RANGE_ASSERT(elm_translations, _full_translation);
+      return _full_translation[elm_translations].gpu_offset - _full_translation[0].gpu_offset;
+   }
+   return -1;
+}
 void ShaderParam::initAsElement(ShaderParam &parent, Int index) // this is called after 'parent' was already loaded, so 'gpu_offset' are relative to parameter (not cbuffer)
 {
    DEBUG_ASSERT(this!=&parent, "Can't init from self");
    RANGE_ASSERT(index, parent._elements);
 
-  _cpu_data_size=parent._cpu_data_size/parent._elements; // set size of a single element
   _data         =parent._data;
   _changed      =parent._changed;
+  _cpu_data_size=parent._cpu_data_size/parent._elements; // set size of a single element
+  _elements     =0; // 0 means not an array
 
  /*if(parent._full_translation.elms()==1)
    {
@@ -1041,10 +1053,11 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
            params=0; glGetProgramiv(prog, GL_ACTIVE_UNIFORM_BLOCKS, &params); all_buffers.setNum(params);
       FREP(params)
       {
-         Char8 name[256]; name[0]='\0'; Int length=0;
-         glGetActiveUniformBlockName(prog, i, Elms(name), &length, name);
-         if(name[0]!='_')Exit("Invalid buffer name"); // all GL buffers assume to start with '_' this is adjusted in 'ShaderCompiler'
-         ShaderBuffer *buffer=all_buffers[i]=GetShaderBuffer(name+1); // skip '_'
+         Char8 _name[256]; _name[0]='\0'; Int length=0;
+         glGetActiveUniformBlockName(prog, i, Elms(_name), &length, _name);
+         if(_name[0]!='_')Exit("Invalid buffer name"); // all GL buffers assume to start with '_' this is adjusted in 'ShaderCompiler'
+         CChar8 *name=_name+1; // skip '_'
+         ShaderBuffer *buffer=all_buffers[i]=GetShaderBuffer(name);
          if(buffer->explicit_bind_slot>=0)glUniformBlockBinding(prog, i, buffer->explicit_bind_slot);else // explicit bind slot buffers are always bound to the same slot, and linked with the GL program
          { // non-explicit buffers will be assigned to slots starting from SBI_NUM (to avoid conflict with explicits)
             glUniformBlockBinding(prog, i, variable_slot_index); // link with 'variable_slot_index' slot
@@ -1053,32 +1066,40 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
          }
       #if DEBUG // verify sizes and offsets
          GLint size=0; glGetActiveUniformBlockiv(prog, i, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
-         DYNAMIC_ASSERT(Ceil16(size)==Ceil16(buffer->full_size), "UBO has different size than expected");
+         DYNAMIC_ASSERT(Ceil16(size)==Ceil16(buffer->full_size), S+"UBO \""+name+"\" has different size: "+size+", than expected: "+buffer->full_size+"\n"+source());
          GLint uniforms=0; glGetActiveUniformBlockiv(prog, i, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &uniforms);
          MemtN<GLint, 256> uniform; uniform.setNum(uniforms); glGetActiveUniformBlockiv(prog, i, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, uniform.data());
          REPA(uniform)
          {
-            Char8 name[1024]; name[0]=0; Int elms=0; GLenum type=0; glGetActiveUniform(prog, uniform[i], Elms(name), null, &elms, &type, name);
-            GLint location=-1; GLuint uni=uniform[i]; glGetActiveUniformsiv(prog, 1, &uni, GL_UNIFORM_OFFSET, &location);
+            Char8 name[1024]; name[0]=0; Int elms=0; GLenum type=0; glGetActiveUniform(prog, uniform[i], Elms(name), null, &elms, &type, name); GLuint uni=uniform[i];
+            GLint offset       =-1; glGetActiveUniformsiv(prog, 1, &uni, GL_UNIFORM_OFFSET       , &offset       );
+            GLint  array_stride=-1; glGetActiveUniformsiv(prog, 1, &uni, GL_UNIFORM_ARRAY_STRIDE , & array_stride);
+            GLint matrix_stride=-1; glGetActiveUniformsiv(prog, 1, &uni, GL_UNIFORM_MATRIX_STRIDE, &matrix_stride);
+            if(elms>1)
+               if(ShaderParam *param=GetShaderParam((Str8)SkipEnd(name, "[0]"))) // GL may add [0] to name when using arrays
+            {
+               DYNAMIC_ASSERT(param->_elements       ==elms        , "Invalid ShaderParam array elements");
+               DYNAMIC_ASSERT(param->gpuArrayStride()==array_stride, "Invalid ShaderParam array stride");
+            }
             if(ShaderParam *param=FindShaderParam(name))
             {
                DYNAMIC_ASSERT(param->_changed==&buffer->changed, "ShaderParam does not belong to ShaderBuffer");
                DYNAMIC_ASSERT(param->_full_translation.elms(), "ShaderParam has no translation");
                Int gpu_offset=param->_full_translation[0].gpu_offset+(param->_data-buffer->data);
-               DYNAMIC_ASSERT(location==gpu_offset, "Invalid ShaderParam gpu_offset");
+               DYNAMIC_ASSERT(offset==gpu_offset, "Invalid ShaderParam gpu_offset");
                Int size; switch(type)
                {
                   case GL_FLOAT       : size=SIZE(Flt    ); break;
                   case GL_FLOAT_VEC2  : size=SIZE(Vec2   ); break;
                   case GL_FLOAT_VEC3  : size=SIZE(Vec    ); break;
                   case GL_FLOAT_VEC4  : size=SIZE(Vec4   ); break;
-                  case GL_FLOAT_MAT3  : size=SIZE(Matrix3); break;
-                  case GL_FLOAT_MAT4  : size=SIZE(Matrix4); break;
-                  case GL_FLOAT_MAT4x3: size=SIZE(Matrix ); break;
+                  case GL_FLOAT_MAT3  : size=SIZE(Matrix3); DYNAMIC_ASSERT(matrix_stride==SIZE(Vec4), S+"Invalid ShaderParam \""+name+"\" matrix stride: "+matrix_stride); break;
+                  case GL_FLOAT_MAT4  : size=SIZE(Matrix4); DYNAMIC_ASSERT(matrix_stride==SIZE(Vec4), S+"Invalid ShaderParam \""+name+"\" matrix stride: "+matrix_stride); break;
+                  case GL_FLOAT_MAT4x3: size=SIZE(Matrix ); DYNAMIC_ASSERT(matrix_stride==SIZE(Vec4), S+"Invalid ShaderParam \""+name+"\" matrix stride: "+matrix_stride); break;
                   default             : Exit("Invalid ShaderParam type"); break;
                }
                DYNAMIC_ASSERT(size==param->_cpu_data_size, "Invalid ShaderParam size");
-            }//else Exit(S+"ShaderParam \""+name+"\" not found"); disable because currently 'FindShaderParam' does not support finding members, such as "Viewport.size_fov_tan"
+            }//else Exit(S+"ShaderParam \""+name+"\" not found"); disable because currently 'FindShaderParam' does not support finding members, such as "Viewport.size_fov_tan" etc.
          }
       #endif
       }
