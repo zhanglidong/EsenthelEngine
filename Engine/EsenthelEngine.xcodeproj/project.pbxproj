@@ -1618,6 +1618,7 @@
 		3716E2E31BB8EC7E0037177D /* libWebP.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libWebP.a; path = "../ThirdPartyLibs/Webp/Mac/build/Release-iphoneos/libWebP.a"; sourceTree = "<group>"; };
 		3716E2E51BB8EC840037177D /* libWebP.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libWebP.a; path = "../ThirdPartyLibs/Webp/Mac/build/Release-iphonesimulator/libWebP.a"; sourceTree = "<group>"; };
 		371FF5FC1B9BEB550088713B /* inline.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = inline.h; path = H/_/inline.h; sourceTree = "<group>"; };
+		372569C822F007E5008FA9B5 /* Shader Compiler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Shader Compiler.h"; sourceTree = "<group>"; };
 		372EF8A81C88F919005BEB51 /* Steam.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Steam.h; sourceTree = "<group>"; };
 		373A78FC1CB74CCA00C1685F /* VorbisEncoder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VorbisEncoder.cpp; sourceTree = "<group>"; };
 		3744B39D20707570004E3CFE /* Counted Pointer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Counted Pointer.h"; sourceTree = "<group>"; };
@@ -2592,6 +2593,7 @@
 				0B189D7912DA42B500499CA9 /* Particle.h */,
 				0B189D7A12DA42B500499CA9 /* Renderer Instancing.h */,
 				0B189D7B12DA42B500499CA9 /* Renderer.h */,
+				372569C822F007E5008FA9B5 /* Shader Compiler.h */,
 				0B189D7C12DA42B500499CA9 /* Shader Main.h */,
 				0B189D7D12DA42B500499CA9 /* Shader.h */,
 				0B189D7E12DA42B500499CA9 /* Sky.h */,
