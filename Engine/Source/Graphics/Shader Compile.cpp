@@ -1140,6 +1140,8 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
       buffer.params.setNum(spvc_type_get_num_member_types(buffer_handle));
       FREPA(buffer.params)
       {
+         spvc_compiler_set_decoration(spirv_compiler, res.id, SpvDecorationRowMajor, true); // workaround for Arm Mali bug which will force "row_major" for all uniforms - https://community.arm.com/developer/tools-software/graphics/f/discussions/43743/serious-problems-with-handling-of-mat4x3
+
          ShaderCompiler::Param &param=buffer.params[i];
          param.name=spvc_compiler_get_member_name(spirv_compiler, res.base_type_id, i);
          auto member=spvc_type_get_member_type(buffer_handle, i);
@@ -1274,7 +1276,6 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    code=Replace(code, "#version 330\n", S);
    code=Replace(code, "#version 300 es\n", S);
    code=RemoveEmptyLines(RemoveSpaces(code));
-   code=Replace(code, "layout(std140)", "layout(std140,row_major)", true); // workaround for Arm Mali bug - https://community.arm.com/developer/tools-software/graphics/f/discussions/43743/serious-problems-with-handling-of-mat4x3
 
    FREPA(buffer_instances)
    {
