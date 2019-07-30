@@ -10,7 +10,7 @@ BUFFER(Sky)
             SkyDnsMulAdd   ;
    VecH2    SkySunHighlight;
    Vec      SkySunPos      ;
-   MatrixH3 SkyStarOrn     ;
+   MatrixH3 SkyStarOrn     ; // !! define Matrix last to avoid potential alignment issues on Arm Mali !!
 BUFFER_END
 #include "!Set LP.h"
 /******************************************************************************/

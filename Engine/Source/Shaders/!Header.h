@@ -348,13 +348,13 @@ BUFFER_END
 /******************************************************************************/
 BUFFER_I(Global, SBI_GLOBAL)
    Matrix4 ProjMatrix                    ; // projection  matrix
-   Vec     CamAngVel                     ; // camera      angular velocity, pre-multiplied by 'D.motionScale'
-   Matrix  CamMatrix                     ; // camera      matrix
    Vec4    ClipPlane    =Vec4(0, 0, 0, 1); // clipping    plane
    Half    AllowBackFlip=              -1; // normal      flipping TODO: this probably needs to be handled differently, so it can work for mirrored reflections too
    Flt     TesselationDensity            ; // tesselation density
    Vec2    GrassRangeMulAdd              ; // factors used for grass opacity      calculation
    VecH4   BendFactor                    ; // factors used for grass/leaf bending calculation
+   Vec     CamAngVel                     ; // camera      angular velocity, pre-multiplied by 'D.motionScale'
+   Matrix  CamMatrix                     ; // camera      matrix !! define Matrix last to avoid potential alignment issues on Arm Mali !!
 BUFFER_END
 
 BUFFER_I(ObjMatrix, SBI_OBJ_MATRIX) // !! WARNING: this CB is dynamically resized, do not add other members !!
@@ -1467,7 +1467,7 @@ struct GpuLightCone
    Vec2     falloff;
    Vec      pos;
    VecH4    color; // a=spec
-   MatrixH3 mtrx;
+   MatrixH3 mtrx; // !! define Matrix last to avoid potential alignment issues on Arm Mali !!
 };
 #include "!Set LP.h"
 
@@ -1501,8 +1501,8 @@ BUFFER(Shadow)
    Vec2    ShdRangeMulAdd;
    VecH2   ShdOpacity    ;
    Vec4    ShdJitter     ;
-   Matrix  ShdMatrix     ;
    Matrix4 ShdMatrix4[6] ;
+   Matrix  ShdMatrix     ; // !! define Matrix last to avoid potential alignment issues on Arm Mali !!
 BUFFER_END
 
 #include "!Set IP.h"
