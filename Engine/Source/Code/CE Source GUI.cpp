@@ -965,7 +965,8 @@ void Source::draw(C GuiPC &gpc)
          {
             Int  line=cur.y; if(CE.view_mode())line=realToView(line);
             Vec2 pos =offset+posVisual(VecI2(0, line));
-            Rect(_crect.min.x, pos.y-CE.ts.lineHeight(), _crect.max.x, pos.y).drawBorder(Theme.colors[TOKEN_LINE_HIGHLIGHT], CE.ts.lineHeight()*-0.06f);
+            Rect rect(_crect.min.x, pos.y-CE.ts.lineHeight(), _crect.max.x, pos.y);
+            Flt  h=CE.ts.lineHeight()*-0.06f; if(h<=D.pixelToScreenSize().y)rect.draw(Theme.colors[TOKEN_LINE_HIGHLIGHT], false);else rect.drawBorder(Theme.colors[TOKEN_LINE_HIGHLIGHT], h);
          }
       }
 
