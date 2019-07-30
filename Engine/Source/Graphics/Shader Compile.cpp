@@ -1274,6 +1274,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    code=Replace(code, "#version 330\n", S);
    code=Replace(code, "#version 300 es\n", S);
    code=RemoveEmptyLines(RemoveSpaces(code));
+   code=Replace(code, "layout(std140)", "layout(std140,row_major)", true); // workaround for Arm Mali bug - https://community.arm.com/developer/tools-software/graphics/f/discussions/43743/serious-problems-with-handling-of-mat4x3
 
    FREPA(buffer_instances)
    {
