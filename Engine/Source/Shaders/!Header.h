@@ -357,11 +357,11 @@ BUFFER_I(Global, SBI_GLOBAL)
    VecH4   BendFactor                    ; // factors used for grass/leaf bending calculation
 BUFFER_END
 
-BUFFER_I(ObjMatrix, SBI_OBJ_MATRIX) // this CB is dynamically resized, do not add other members
+BUFFER_I(ObjMatrix, SBI_OBJ_MATRIX) // !! WARNING: this CB is dynamically resized, do not add other members !!
    Matrix ViewMatrix[MAX_MATRIX]; // object transformation matrixes relative to view space (this is object matrix * inversed camera matrix = object matrix / camera matrix)
 BUFFER_END
 
-BUFFER_I(ObjVel, SBI_OBJ_VEL) // this CB is dynamically resized, do not add other members
+BUFFER_I(ObjVel, SBI_OBJ_VEL) // !! WARNING: this CB is dynamically resized, do not add other members !!
    VecH  ObjVel[MAX_MATRIX]; // object linear velocities (use this for skinning) (this is the linear velocity in view space, pre-multiplied by 'D.motionScale'), use VecH to allow 'GetBoneVel' work faster
 BUFFER_END
 
