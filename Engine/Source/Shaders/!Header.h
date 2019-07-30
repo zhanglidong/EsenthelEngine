@@ -992,7 +992,7 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    LOC( 5) Vec2  _tex1    :ATTR5 ;
    LOC( 6) Vec2  _tex2    :ATTR6 ;
    LOC( 7) Half  _size    :ATTR7 ;
-   LOC( 8) VecU4 _bone    :ATTR8 ;
+   LOC( 8) Vec4  _bone    :ATTR8 ; // this has to be Vec4 because VecI4 and VecU4 don't work for some reason
    LOC( 9) VecH4 _weight  :ATTR9 ;
    LOC(10) VecH4 _material:ATTR10;
    LOC(11) VecH4 _color   :ATTR11;
