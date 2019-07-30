@@ -314,10 +314,8 @@ namespace DXIL {
     Sampler,
     TBuffer,
     RTAccelerationStructure,
-    FeedbackTexture2DMinLOD,
-    FeedbackTexture2DTiled,
-    FeedbackTexture2DArrayMinLOD,
-    FeedbackTexture2DArrayTiled,
+    FeedbackTexture2D,
+    FeedbackTexture2DArray,
     NumEntries,
   };
 
@@ -484,6 +482,10 @@ namespace DXIL {
     InnerCoverage = 92, // returns underestimated coverage input from conservative rasterization in a pixel shader
     SampleIndex = 90, // returns the sample index in a sample-frequency pixel shader
   
+    // Quad Wave Ops
+    QuadOp = 123, // returns the result of a quad-level operation
+    QuadReadLaneAt = 122, // reads from a lane in the quad
+  
     // Quaternary
     Bfi = 53, // Given a bit range from the LSB of a number, places that number of bits in another number at any offset
   
@@ -620,8 +622,6 @@ namespace DXIL {
     FirstbitHi = 33, // Returns the location of the first set bit starting from the highest order bit and working downward.
   
     // Wave
-    QuadOp = 123, // returns the result of a quad-level operation
-    QuadReadLaneAt = 122, // reads from a lane in the quad
     WaveActiveAllEqual = 115, // returns 1 if all the lanes have the same value
     WaveActiveBallot = 116, // returns a struct with a bit set for each lane where the condition is true
     WaveActiveBit = 120, // returns the result of the operation across all lanes
@@ -772,6 +772,10 @@ namespace DXIL {
     SampleIndex,
     Unary,
   
+    // Quad Wave Ops
+    QuadOp,
+    QuadReadLaneAt,
+  
     // Quaternary
     Quaternary,
   
@@ -867,8 +871,6 @@ namespace DXIL {
     UnaryBits,
   
     // Wave
-    QuadOp,
-    QuadReadLaneAt,
     WaveActiveAllEqual,
     WaveActiveBallot,
     WaveActiveBit,
@@ -1269,6 +1271,12 @@ namespace DXIL {
     None = 0x00,
     TriangleFrontFace = 0xFE,
     TriangleBackFace = 0xFF,
+  };
+
+  enum class SamplerFeedbackType : uint8_t {
+    MinMip = 0,
+    MipRegionUsed = 1,
+    LastEntry = 2
   };
 
   // Constant for Container.

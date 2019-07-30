@@ -73,12 +73,12 @@ struct DxilFunctionProps {
       unsigned maxVertexCount;
       unsigned maxPrimitiveCount;
       DXIL::MeshOutputTopology outputTopology;
-      // The following doesn't go into metadata
-      unsigned payloadByteSize;
+      unsigned payloadSizeInBytes;
     } MS;
     // Amplification shader.
     struct {
       unsigned numThreads[3];
+      unsigned payloadSizeInBytes;
     } AS;
   } ShaderProps;
   DXIL::ShaderKind shaderKind;
