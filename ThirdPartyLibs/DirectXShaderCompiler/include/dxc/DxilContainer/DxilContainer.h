@@ -16,8 +16,8 @@
 
 #include <stdint.h>
 #include <iterator>
-#include "../DXIL/DxilConstants.h"
-#include "../Support/WinAdapter.h"
+#include "../DXIL/DxilConstants.h" // ESENTHEL
+#include "../Support/WinAdapter.h" // ESENTHEL
 
 struct IDxcContainerReflection;
 namespace llvm { class Module; }
