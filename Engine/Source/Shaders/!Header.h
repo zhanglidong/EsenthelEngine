@@ -357,10 +357,6 @@ BUFFER_I(Global, SBI_GLOBAL)
    Matrix  CamMatrix                     ; // camera      matrix !! define Matrix last to avoid potential alignment issues on Arm Mali !!
 BUFFER_END
 
-BUFFER_I(ObjMatrix, SBI_OBJ_MATRIX) // !! WARNING: this CB is dynamically resized, do not add other members !!
-   Matrix ViewMatrix[MAX_MATRIX]; // object transformation matrixes relative to view space (this is object matrix * inversed camera matrix = object matrix / camera matrix)
-BUFFER_END
-
 BUFFER_I(ObjVel, SBI_OBJ_VEL) // !! WARNING: this CB is dynamically resized, do not add other members !!
    VecH  ObjVel[MAX_MATRIX]; // object linear velocities (use this for skinning) (this is the linear velocity in view space, pre-multiplied by 'D.motionScale'), use VecH to allow 'GetBoneVel' work faster
 BUFFER_END
@@ -794,17 +790,73 @@ inline Vec  TransformTP(Vec  v, Matrix3  m) {return Vec(Dot(v, m[0]), Dot(v, m[1
 inline VecH TransformTP(VecH v, MatrixH3 m) {return Vec(Dot(v, m[0]), Dot(v, m[1]), Dot(v, m[2]));} // transform 'v' vector by transposed 'm' orientation-scale matrix
 inline Vec  TransformTP(Vec  v, MatrixH3 m) {return Vec(Dot(v, m[0]), Dot(v, m[1]), Dot(v, m[2]));} // transform 'v' vector by transposed 'm' orientation-scale matrix
 #endif
+/******************************************************************************/
+#if !GL
+BUFFER_I(ObjMatrix, SBI_OBJ_MATRIX) // !! WARNING: this CB is dynamically resized, do not add other members !!
+   Matrix ViewMatrix[MAX_MATRIX]; // object transformation matrixes relative to view space (this is object matrix * inversed camera matrix = object matrix / camera matrix)
+BUFFER_END
 
-inline Vec  TransformPos(Vec  pos) {return Transform (pos, ViewMatrix[0]);}
-inline VecH TransformDir(VecH dir) {return Transform3(dir, ViewMatrix[0]);}
+inline Vec  TransformPos(Vec  pos, UInt mtrx=0) {return Transform (pos, ViewMatrix[mtrx]);}
+inline VecH TransformDir(VecH dir, UInt mtrx=0) {return Transform3(dir, ViewMatrix[mtrx]);}
 
-inline Vec  TransformPos(Vec  pos, UInt mtrx) {return Transform (pos, ViewMatrix[mtrx]);}
-inline VecH TransformDir(VecH dir, UInt mtrx) {return Transform3(dir, ViewMatrix[mtrx]);}
+inline Vec  TransformPos(Vec  pos, VecU bone, Vec  weight) {return weight.x*Transform (pos, ViewMatrix[bone.x]) + weight.y*Transform (pos, ViewMatrix[bone.y]) + weight.z*Transform (pos, ViewMatrix[bone.z]);}
+inline VecH TransformDir(VecH dir, VecU bone, VecH weight) {return weight.x*Transform3(dir, ViewMatrix[bone.x]) + weight.y*Transform3(dir, ViewMatrix[bone.y]) + weight.z*Transform3(dir, ViewMatrix[bone.z]);}
+inline VecH GetBoneVel  (          VecU bone, VecH weight) {return weight.x*          (     ObjVel    [bone.x]) + weight.y*          (     ObjVel    [bone.y]) + weight.z*          (     ObjVel    [bone.z]);}
 
-inline Vec  TransformPos(Vec  pos, VecI bone, Vec  weight) {return weight.x*Transform (pos, ViewMatrix[bone.x]) + weight.y*Transform (pos, ViewMatrix[bone.y]) + weight.z*Transform (pos, ViewMatrix[bone.z]);}
-inline VecH TransformDir(VecH dir, VecI bone, VecH weight) {return weight.x*Transform3(dir, ViewMatrix[bone.x]) + weight.y*Transform3(dir, ViewMatrix[bone.y]) + weight.z*Transform3(dir, ViewMatrix[bone.z]);}
-inline VecH GetBoneVel  (          VecI bone, VecH weight) {return weight.x*          (     ObjVel    [bone.x]) + weight.y*          (     ObjVel    [bone.y]) + weight.z*          (     ObjVel    [bone.z]);}
+inline Vec ViewMatrixX  (UInt mtrx=0) {return ViewMatrix[mtrx][0];}
+inline Vec ViewMatrixY  (UInt mtrx=0) {return ViewMatrix[mtrx][1];}
+inline Vec ViewMatrixZ  (UInt mtrx=0) {return ViewMatrix[mtrx][2];}
+inline Vec ViewMatrixPos(UInt mtrx=0) {return ViewMatrix[mtrx][3];}
 
+inline Matrix GetViewMatrix() {return ViewMatrix[0];}
+#else // Arm Mali has a bug on Android GL ES, where it expects 4xVec4 array stride for 'Matrix' - https://community.arm.com/developer/tools-software/graphics/f/discussions/43743/serious-problems-with-handling-of-mat4x3
+BUFFER_I(ObjMatrix, SBI_OBJ_MATRIX) // !! WARNING: this CB is dynamically resized, do not add other members !!
+   Vec4 ViewMatrix[MAX_MATRIX*3]; // object transformation matrixes relative to view space (this is object matrix * inversed camera matrix = object matrix / camera matrix)
+BUFFER_END
+
+inline Vec TransformPos(Vec pos)
+{
+   return Vec(Dot(pos, ViewMatrix[0].xyz) + ViewMatrix[0].w,
+              Dot(pos, ViewMatrix[1].xyz) + ViewMatrix[1].w,
+              Dot(pos, ViewMatrix[2].xyz) + ViewMatrix[2].w);
+}
+inline VecH TransformDir(VecH dir)
+{
+   return VecH(Dot(dir, ViewMatrix[0].xyz),
+               Dot(dir, ViewMatrix[1].xyz),
+               Dot(dir, ViewMatrix[2].xyz));
+}
+
+inline Vec TransformPos(Vec pos, UInt mtrx)
+{
+   mtrx*=3;
+   return Vec(Dot(pos, ViewMatrix[mtrx  ].xyz) + ViewMatrix[mtrx  ].w,
+              Dot(pos, ViewMatrix[mtrx+1].xyz) + ViewMatrix[mtrx+1].w,
+              Dot(pos, ViewMatrix[mtrx+2].xyz) + ViewMatrix[mtrx+2].w);
+}
+inline VecH TransformDir(VecH dir, UInt mtrx)
+{
+   mtrx*=3;
+   return VecH(Dot(dir, ViewMatrix[mtrx  ].xyz),
+               Dot(dir, ViewMatrix[mtrx+1].xyz),
+               Dot(dir, ViewMatrix[mtrx+2].xyz));
+}
+
+inline Vec  TransformPos(Vec  pos, VecU bone, Vec  weight) {return weight.x*TransformPos(pos, bone.x) + weight.y*TransformPos(pos, bone.y) + weight.z*TransformPos(pos, bone.z);}
+inline VecH TransformDir(VecH dir, VecU bone, VecH weight) {return weight.x*TransformDir(dir, bone.x) + weight.y*TransformDir(dir, bone.y) + weight.z*TransformDir(dir, bone.z);}
+inline VecH GetBoneVel  (          VecU bone, VecH weight) {return weight.x*           ObjVel[bone.x] + weight.y*           ObjVel[bone.y] + weight.z*           ObjVel[bone.z];}
+
+inline Vec ViewMatrixX  () {return Vec(ViewMatrix[0].x, ViewMatrix[1].x, ViewMatrix[2].x);}
+inline Vec ViewMatrixY  () {return Vec(ViewMatrix[0].y, ViewMatrix[1].y, ViewMatrix[2].y);}
+inline Vec ViewMatrixZ  () {return Vec(ViewMatrix[0].z, ViewMatrix[1].z, ViewMatrix[2].z);}
+inline Vec ViewMatrixPos() {return Vec(ViewMatrix[0].w, ViewMatrix[1].w, ViewMatrix[2].w);}
+
+inline Vec ViewMatrixY  (UInt mtrx) {mtrx*=3; return Vec(ViewMatrix[mtrx].y, ViewMatrix[mtrx+1].y, ViewMatrix[mtrx+2].y);}
+inline Vec ViewMatrixPos(UInt mtrx) {mtrx*=3; return Vec(ViewMatrix[mtrx].w, ViewMatrix[mtrx+1].w, ViewMatrix[mtrx+2].w);}
+
+inline Matrix GetViewMatrix() {Matrix m; m[0]=ViewMatrixX(); m[1]=ViewMatrixY(); m[2]=ViewMatrixZ(); m[3]=ViewMatrixPos(); return m;}
+#endif
+/******************************************************************************/
 inline Vec4 Project(Vec pos)
 {
 #if 1 // 2x faster on Intel (made no difference for GeForce)
@@ -830,7 +882,7 @@ inline VecH MatrixZ  (MatrixH m) {return m[2];}
 inline Vec  MatrixPos(Matrix  m) {return m[3];}
 inline VecH MatrixPos(MatrixH m) {return m[3];}
 
-inline Vec ObjWorldPos(UInt mtrx=0) {return Transform(MatrixPos(ViewMatrix[mtrx]), CamMatrix);} // get the world position of the object matrix
+inline Vec ObjWorldPos(UInt mtrx=0) {return Transform(ViewMatrixPos(mtrx), CamMatrix);} // get the world position of the object matrix
 /******************************************************************************/
 inline Vec2 UVClamp(Vec2 screen, Bool do_clamp=true)
 {
@@ -940,7 +992,7 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    LOC( 5) Vec2  _tex1    :ATTR5 ;
    LOC( 6) Vec2  _tex2    :ATTR6 ;
    LOC( 7) Half  _size    :ATTR7 ;
-   LOC( 8) Vec4  _bone    :ATTR8 ;
+   LOC( 8) VecU4 _bone    :ATTR8 ;
    LOC( 9) VecH4 _weight  :ATTR9 ;
    LOC(10) VecH4 _material:ATTR10;
    LOC(11) VecH4 _color   :ATTR11;
@@ -972,7 +1024,7 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    Vec2  tex      (                    Bool heightmap=false) {return heightmap ? _pos.xz*Vec2(VtxHeightmap, -VtxHeightmap) : _tex          ;} // tex coords 0
    Vec2  tex1     (                                        ) {return                                                         _tex1         ;} // tex coords 1
    Vec2  tex2     (                                        ) {return                                                         _tex2         ;} // tex coords 2
-   VecI  bone     (                                        ) {return  VtxSkinning ? _bone.xyz : VecI(0, 0, 0)                              ;} // bone matrix indexes
+   VecU  bone     (                                        ) {return  VtxSkinning ? _bone.xyz : VecU(0, 0, 0)                              ;} // bone matrix indexes
    VecH  weight   (                                        ) {return _weight.xyz                                                           ;} // bone matrix weights
    VecH4 material (                                        ) {return _material                                                             ;} // material    weights
    VecH  material3(                                        ) {return _material.xyz                                                         ;} // material    weights
@@ -1286,12 +1338,12 @@ inline VecH2 GetLeafsBend(VecH center)
 /******************************************************************************/
 inline Half GrassFadeOut(UInt mtrx=0)
 {
-   return Sat(Length2(MatrixPos(ViewMatrix[mtrx]))*GrassRangeMulAdd.x+GrassRangeMulAdd.y);
+   return Sat(Length2(ViewMatrixPos(mtrx))*GrassRangeMulAdd.x+GrassRangeMulAdd.y);
 }
 inline void BendGrass(Vec local_pos, in out Vec view_pos, UInt mtrx=0)
 {
    Flt  b   =Cube(Sat(local_pos.y));
-   Vec2 bend=GetGrassBend(ObjWorldPos(mtrx))*(b*Length(MatrixY(ViewMatrix[mtrx])));
+   Vec2 bend=GetGrassBend(ObjWorldPos(mtrx))*(b*Length(ViewMatrixY(mtrx)));
 
    view_pos+=Vec(CamMatrix[0].x, CamMatrix[1].x, CamMatrix[2].x)*bend.x;
    view_pos+=Vec(CamMatrix[0].y, CamMatrix[1].y, CamMatrix[2].y)*bend.y;
@@ -1379,8 +1431,8 @@ inline void BackFlip(in out VecH dir, Bool front) {if(!front)dir*=AllowBackFlip;
 inline void UpdateVelocities_VS(in out Vec vel, VecH local_pos, Vec view_space_pos, UInt mtrx=0) // TODO: #ShaderHalf
 {
    // on start 'vel'=object linear velocity in view space
-   vel-=Transform3(Cross(local_pos      , ObjAngVel), ViewMatrix[mtrx]); // add object angular velocity in view space
-   vel+=           Cross( view_space_pos, CamAngVel);                    // add camera angular velocity
+   vel-=TransformDir(Cross(local_pos      , ObjAngVel), mtrx); // add object angular velocity in view space
+   vel+=             Cross( view_space_pos, CamAngVel);        // add camera angular velocity
 }
 inline VecH GetVelocity_PS(Vec vel, Vec view_space_pos)
 {

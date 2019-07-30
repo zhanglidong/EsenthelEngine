@@ -33,7 +33,7 @@ void VS
       outVtx=Project(TransformPos(vtx.pos()));
    }else
    {
-      VecI bone=vtx.bone();
+      VecU bone=vtx.bone();
 
    #if NORMALS
       outMatrix[1]=Normalize(TransformDir(OverlayParams.mtrx[1], bone, vtx.weight()));

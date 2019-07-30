@@ -124,7 +124,7 @@ void VS
       }
    }else
    {
-      VecI bone=vtx.bone();
+      VecU bone=vtx.bone();
       pos=TransformPos(pos, bone, vtx.weight());
    #if USE_VEL
       O.vel=GetBoneVel(bone, vtx.weight()); UpdateVelocities_VS(O.vel, local_pos, pos);

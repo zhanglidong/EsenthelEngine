@@ -25,7 +25,7 @@ void VS
       outVtx=Project(outPos=TransformPos(vtx.pos()));
    }else
    {
-      VecI bone=vtx.bone();
+      VecU bone=vtx.bone();
                      outNrm=TransformDir(vtx.nrm(), bone, vtx.weight());
       outVtx=Project(outPos=TransformPos(vtx.pos(), bone, vtx.weight()));
    }

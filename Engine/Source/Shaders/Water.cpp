@@ -124,9 +124,9 @@ void Surface_PS
    nrm.z=CalcZ(nrm.xy);
 
    Matrix3 mtrx;
-   mtrx[0]=MatrixX(ViewMatrix[0]);
-   mtrx[1]=MatrixZ(ViewMatrix[0]);
-   mtrx[2]=MatrixY(ViewMatrix[0]);
+   mtrx[0]=ViewMatrixX();
+   mtrx[1]=ViewMatrixZ();
+   mtrx[2]=ViewMatrixY();
 
    VecH fresnel_nrm    =nrm;
         fresnel_nrm.xy*=WaterFresnelRough;
@@ -271,9 +271,9 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          VecH  nrm=GetNormal(inTex, false).xyz; // water surface normals
 
          MatrixH3 mtrx;
-         mtrx[0]=MatrixX(ViewMatrix[0]);
-         mtrx[1]=MatrixZ(ViewMatrix[0]);
-         mtrx[2]=MatrixY(ViewMatrix[0]);
+         mtrx[0]=ViewMatrixX();
+         mtrx[1]=ViewMatrixZ();
+         mtrx[2]=ViewMatrixY();
          nrm=TransformTP(nrm, mtrx);
          Vec2 refract=nrm.xy*Viewport.size;
 
@@ -329,9 +329,9 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
          VecH        nrm=GetNormal(inTex, false).xyz; // water surface normals
 
          MatrixH3 mtrx;
-         mtrx[0]=MatrixX(ViewMatrix[0]);
-         mtrx[1]=MatrixZ(ViewMatrix[0]);
-         mtrx[2]=MatrixY(ViewMatrix[0]);
+         mtrx[0]=ViewMatrixX();
+         mtrx[1]=ViewMatrixZ();
+         mtrx[2]=ViewMatrixY();
          nrm=TransformTP(nrm, mtrx);
          Vec2 refract=nrm.xy*Viewport.size;
 

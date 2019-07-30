@@ -37,9 +37,9 @@ void Volume_VS(VtxInput vtx,
            out Vec     outTex:TEXCOORD1,
            out Matrix3 outMat:TEXCOORD2)
 {
-   outMat[0]=Normalize(MatrixX(ViewMatrix[0]));
-   outMat[1]=Normalize(MatrixY(ViewMatrix[0]));
-   outMat[2]=Normalize(MatrixZ(ViewMatrix[0]));
+   outMat[0]=Normalize(ViewMatrixX());
+   outMat[1]=Normalize(ViewMatrixY());
+   outMat[2]=Normalize(ViewMatrixZ());
 
    // convert to texture space (0..1)
    if(INSIDE)outTex=Volume.inside/(2*Volume.size)+0.5;
@@ -199,7 +199,7 @@ void Decal_VS(VtxInput vtx,
        #endif
 )
 {
-   outMatrix=ViewMatrix[0];
+   outMatrix=GetViewMatrix();
    outMatrix[0]/=Length2(outMatrix[0]);
    outMatrix[1]/=Length2(outMatrix[1]);
    outMatrix[2]/=Length2(outMatrix[2]);

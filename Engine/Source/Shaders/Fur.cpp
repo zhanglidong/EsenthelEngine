@@ -3,7 +3,7 @@
 #include "Fur.h"
 #define FACTOR (-0.7) // prevents complete darkness at the bottom layers, gives ambient=0.3, it will match the 'size' version
 /******************************************************************************/
-inline VecH GetBoneFurVel(VecI bone, VecH weight) {return weight.x*FurVel[bone.x] + weight.y*FurVel[bone.y] + weight.z*FurVel[bone.z];}
+inline VecH GetBoneFurVel(VecU bone, VecH weight) {return weight.x*FurVel[bone.x] + weight.y*FurVel[bone.y] + weight.z*FurVel[bone.z];}
 /******************************************************************************/
 // SKIN, SIZE, DIFFUSE
 /******************************************************************************/
@@ -42,7 +42,7 @@ void Base_VS
       }
    }else
    {
-      VecI bone=vtx.bone();
+      VecU bone=vtx.bone();
       outVel=GetBoneVel  (           bone, vtx.weight());
       outPos=TransformPos(vtx.pos(), bone, vtx.weight());
       outNrm=TransformDir(vtx.nrm(), bone, vtx.weight());
@@ -108,7 +108,7 @@ void Soft_VS
       nrm=TransformDir(nrm);
    }else
    {
-      VecI bone=vtx.bone();
+      VecU bone=vtx.bone();
       pos =TransformPos (pos, bone, vtx.weight());
       nrm+=GetBoneFurVel(     bone, vtx.weight()); nrm=Normalize(nrm);
       nrm =TransformDir (nrm, bone, vtx.weight());

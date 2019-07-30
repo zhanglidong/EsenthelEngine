@@ -36,7 +36,7 @@ void VS
       }
    }else
    {
-      VecI      bone=vtx.bone();
+      VecU      bone=vtx.bone();
                  pos=TransformPos(vtx.pos(), bone, vtx.weight());
       if(REFLECT)nrm=TransformDir(vtx.nrm(), bone, vtx.weight());
    }

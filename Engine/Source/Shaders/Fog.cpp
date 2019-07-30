@@ -47,10 +47,10 @@ void FogBox_VS(VtxInput vtx,
            out Vec4    outSize:TEXCOORD2,
            out Matrix3 outMat :TEXCOORD3)
 {
-   outMat[0]=Normalize(MatrixX(ViewMatrix[0])); outSize.x=Length(MatrixX(ViewMatrix[0]));
-   outMat[1]=Normalize(MatrixY(ViewMatrix[0])); outSize.y=Length(MatrixY(ViewMatrix[0]));
-   outMat[2]=Normalize(MatrixZ(ViewMatrix[0])); outSize.z=Length(MatrixZ(ViewMatrix[0]));
-                                                outSize.w=Max(outSize.xyz);
+   outMat[0]=ViewMatrixX(); outSize.x=Length(outMat[0]); outMat[0]/=outSize.x;
+   outMat[1]=ViewMatrixY(); outSize.y=Length(outMat[1]); outMat[1]/=outSize.y;
+   outMat[2]=ViewMatrixZ(); outSize.z=Length(outMat[2]); outMat[2]/=outSize.z;
+                            outSize.w=Max(outSize.xyz);
 
    // convert to texture space (0..1)
    outTex=vtx.pos()*0.5+0.5;
@@ -107,10 +107,10 @@ void FogBoxI_VS(VtxInput vtx,
             out Matrix3 outMat  :TEXCOORD3,
             out Vec4    outVtx  :POSITION )
 {
-   outMat[0]=Normalize(MatrixX(ViewMatrix[0])); outSize.x=Length(MatrixX(ViewMatrix[0]));
-   outMat[1]=Normalize(MatrixY(ViewMatrix[0])); outSize.y=Length(MatrixY(ViewMatrix[0]));
-   outMat[2]=Normalize(MatrixZ(ViewMatrix[0])); outSize.z=Length(MatrixZ(ViewMatrix[0]));
-                                                outSize.w=Max(outSize.xyz);
+   outMat[0]=ViewMatrixX(); outSize.x=Length(outMat[0]); outMat[0]/=outSize.x;
+   outMat[1]=ViewMatrixY(); outSize.y=Length(outMat[1]); outMat[1]/=outSize.y;
+   outMat[2]=ViewMatrixZ(); outSize.z=Length(outMat[2]); outMat[2]/=outSize.z;
+                            outSize.w=Max(outSize.xyz);
 
    outVtx  =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
    outTex  =vtx.tex();
@@ -174,7 +174,7 @@ void FogBall_VS(VtxInput vtx,
             out Flt  outSize:TEXCOORD2)
 {
    outTex =vtx.pos();
-   outSize=Length(MatrixX(ViewMatrix[0]));
+   outSize=Length(ViewMatrixX());
    outVtx =Project(outPos=TransformPos(vtx.pos()));
 }
 void FogBall_PS
@@ -218,7 +218,7 @@ void FogBallI_VS(VtxInput vtx,
    outVtx  =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
    outTex  =vtx.tex();
    outPosXY=ScreenToPosXY(outTex);
-   outSize =Length(MatrixX(ViewMatrix[0]));
+   outSize =Length(ViewMatrixX());
 }
 void FogBallI_PS
 (
