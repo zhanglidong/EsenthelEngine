@@ -13,7 +13,7 @@
 #define __DXC_MICROCOM__
 
 #include <atomic>
-//#include "llvm/Support/Atomic.h"
+//#include "llvm/Support/Atomic.h" ESENTHEL
 
 template <typename TIface>
 class CComInterfaceArray {
