@@ -191,7 +191,7 @@
 		0B1899A812DA3FD300499CA9 /* Renderer Instancing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992812DA3FD300499CA9 /* Renderer Instancing.cpp */; };
 		0B1899A912DA3FD300499CA9 /* Renderer Targets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992912DA3FD300499CA9 /* Renderer Targets.cpp */; };
 		0B1899AA12DA3FD300499CA9 /* Renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992A12DA3FD300499CA9 /* Renderer.cpp */; };
-		0B1899AB12DA3FD300499CA9 /* Shader Compile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992B12DA3FD300499CA9 /* Shader Compile.cpp */; };
+		0B1899AB12DA3FD300499CA9 /* Shader Compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992B12DA3FD300499CA9 /* Shader Compiler.cpp */; };
 		0B1899AC12DA3FD300499CA9 /* Shader Get.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992C12DA3FD300499CA9 /* Shader Get.cpp */; };
 		0B1899AD12DA3FD300499CA9 /* Shader Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992D12DA3FD300499CA9 /* Shader Main.cpp */; };
 		0B1899AE12DA3FD300499CA9 /* Shader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992E12DA3FD300499CA9 /* Shader.cpp */; };
@@ -252,7 +252,7 @@
 		0B189A2312DA3FD300499CA9 /* Renderer Instancing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992812DA3FD300499CA9 /* Renderer Instancing.cpp */; };
 		0B189A2412DA3FD300499CA9 /* Renderer Targets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992912DA3FD300499CA9 /* Renderer Targets.cpp */; };
 		0B189A2512DA3FD300499CA9 /* Renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992A12DA3FD300499CA9 /* Renderer.cpp */; };
-		0B189A2612DA3FD300499CA9 /* Shader Compile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992B12DA3FD300499CA9 /* Shader Compile.cpp */; };
+		0B189A2612DA3FD300499CA9 /* Shader Compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992B12DA3FD300499CA9 /* Shader Compiler.cpp */; };
 		0B189A2712DA3FD300499CA9 /* Shader Get.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992C12DA3FD300499CA9 /* Shader Get.cpp */; };
 		0B189A2812DA3FD300499CA9 /* Shader Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992D12DA3FD300499CA9 /* Shader Main.cpp */; };
 		0B189A2912DA3FD300499CA9 /* Shader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992E12DA3FD300499CA9 /* Shader.cpp */; };
@@ -308,7 +308,7 @@
 		0B189A9E12DA3FD300499CA9 /* Renderer Instancing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992812DA3FD300499CA9 /* Renderer Instancing.cpp */; };
 		0B189A9F12DA3FD300499CA9 /* Renderer Targets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992912DA3FD300499CA9 /* Renderer Targets.cpp */; };
 		0B189AA012DA3FD300499CA9 /* Renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992A12DA3FD300499CA9 /* Renderer.cpp */; };
-		0B189AA112DA3FD300499CA9 /* Shader Compile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992B12DA3FD300499CA9 /* Shader Compile.cpp */; };
+		0B189AA112DA3FD300499CA9 /* Shader Compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992B12DA3FD300499CA9 /* Shader Compiler.cpp */; };
 		0B189AA212DA3FD300499CA9 /* Shader Get.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992C12DA3FD300499CA9 /* Shader Get.cpp */; };
 		0B189AA312DA3FD300499CA9 /* Shader Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992D12DA3FD300499CA9 /* Shader Main.cpp */; };
 		0B189AA412DA3FD300499CA9 /* Shader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B18992E12DA3FD300499CA9 /* Shader.cpp */; };
@@ -1136,7 +1136,7 @@
 		0B18992812DA3FD300499CA9 /* Renderer Instancing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Renderer Instancing.cpp"; sourceTree = "<group>"; };
 		0B18992912DA3FD300499CA9 /* Renderer Targets.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Renderer Targets.cpp"; sourceTree = "<group>"; };
 		0B18992A12DA3FD300499CA9 /* Renderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Renderer.cpp; sourceTree = "<group>"; };
-		0B18992B12DA3FD300499CA9 /* Shader Compile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Shader Compile.cpp"; sourceTree = "<group>"; };
+		0B18992B12DA3FD300499CA9 /* Shader Compiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Shader Compiler.cpp"; sourceTree = "<group>"; };
 		0B18992C12DA3FD300499CA9 /* Shader Get.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Shader Get.cpp"; sourceTree = "<group>"; };
 		0B18992D12DA3FD300499CA9 /* Shader Main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Shader Main.cpp"; sourceTree = "<group>"; };
 		0B18992E12DA3FD300499CA9 /* Shader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Shader.cpp; sourceTree = "<group>"; };
@@ -2063,7 +2063,7 @@
 				0B18992812DA3FD300499CA9 /* Renderer Instancing.cpp */,
 				0B18992912DA3FD300499CA9 /* Renderer Targets.cpp */,
 				0B18992A12DA3FD300499CA9 /* Renderer.cpp */,
-				0B18992B12DA3FD300499CA9 /* Shader Compile.cpp */,
+				0B18992B12DA3FD300499CA9 /* Shader Compiler.cpp */,
 				0B18992C12DA3FD300499CA9 /* Shader Get.cpp */,
 				0B18992D12DA3FD300499CA9 /* Shader Main.cpp */,
 				0B18992E12DA3FD300499CA9 /* Shader.cpp */,
@@ -3232,7 +3232,7 @@
 				0B189A9E12DA3FD300499CA9 /* Renderer Instancing.cpp in Sources */,
 				0B189A9F12DA3FD300499CA9 /* Renderer Targets.cpp in Sources */,
 				0B189AA012DA3FD300499CA9 /* Renderer.cpp in Sources */,
-				0B189AA112DA3FD300499CA9 /* Shader Compile.cpp in Sources */,
+				0B189AA112DA3FD300499CA9 /* Shader Compiler.cpp in Sources */,
 				37FA23A41D229F2200EEFAAE /* Oculus Rift.cpp in Sources */,
 				0B189AA212DA3FD300499CA9 /* Shader Get.cpp in Sources */,
 				0B189AA312DA3FD300499CA9 /* Shader Main.cpp in Sources */,
@@ -3529,7 +3529,7 @@
 				0B1899A912DA3FD300499CA9 /* Renderer Targets.cpp in Sources */,
 				0B1899AA12DA3FD300499CA9 /* Renderer.cpp in Sources */,
 				370E5A37195FE0A700A719A5 /* Undo.cpp in Sources */,
-				0B1899AB12DA3FD300499CA9 /* Shader Compile.cpp in Sources */,
+				0B1899AB12DA3FD300499CA9 /* Shader Compiler.cpp in Sources */,
 				378655F121D4AE7E00CD0D7F /* Printer.cpp in Sources */,
 				37BC9F551A1A158A00B50C55 /* Hash.cpp in Sources */,
 				0B1899AC12DA3FD300499CA9 /* Shader Get.cpp in Sources */,
@@ -3836,7 +3836,7 @@
 				0B189A2412DA3FD300499CA9 /* Renderer Targets.cpp in Sources */,
 				0B189A2512DA3FD300499CA9 /* Renderer.cpp in Sources */,
 				37FA239A1D229F2000EEFAAE /* Oculus Rift.cpp in Sources */,
-				0B189A2612DA3FD300499CA9 /* Shader Compile.cpp in Sources */,
+				0B189A2612DA3FD300499CA9 /* Shader Compiler.cpp in Sources */,
 				0B189A2712DA3FD300499CA9 /* Shader Get.cpp in Sources */,
 				0B189A2812DA3FD300499CA9 /* Shader Main.cpp in Sources */,
 				0B189A2912DA3FD300499CA9 /* Shader.cpp in Sources */,

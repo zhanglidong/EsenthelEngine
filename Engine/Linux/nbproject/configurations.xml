@@ -405,7 +405,7 @@
         <itemPath>../Source/Graphics/Renderer Instancing.cpp</itemPath>
         <itemPath>../Source/Graphics/Renderer Targets.cpp</itemPath>
         <itemPath>../Source/Graphics/Renderer.cpp</itemPath>
-        <itemPath>../Source/Graphics/Shader Compile.cpp</itemPath>
+        <itemPath>../Source/Graphics/Shader Compiler.cpp</itemPath>
         <itemPath>../Source/Graphics/Shader Get.cpp</itemPath>
         <itemPath>../Source/Graphics/Shader Main.cpp</itemPath>
         <itemPath>../Source/Graphics/Shader.cpp</itemPath>
@@ -1520,7 +1520,7 @@
       </item>
       <item path="../Source/Graphics/Renderer.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../Source/Graphics/Shader Compile.cpp"
+      <item path="../Source/Graphics/Shader Compiler.cpp"
             ex="false"
             tool="1"
             flavor2="0">
@@ -2930,7 +2930,7 @@
       </item>
       <item path="../Source/Graphics/Renderer.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../Source/Graphics/Shader Compile.cpp"
+      <item path="../Source/Graphics/Shader Compiler.cpp"
             ex="false"
             tool="1"
             flavor2="0">

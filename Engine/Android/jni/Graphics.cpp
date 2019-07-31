@@ -17,7 +17,7 @@
 #include "../../Source/Graphics/Renderer Instancing.cpp"
 #include "../../Source/Graphics/Renderer Targets.cpp"
 #include "../../Source/Graphics/Shader.cpp"
-#include "../../Source/Graphics/Shader Compile.cpp"
+#include "../../Source/Graphics/Shader Compiler.cpp"
 #include "../../Source/Graphics/Shader Get.cpp"
 #include "../../Source/Graphics/Shader Main.cpp"
 #include "../../Source/Graphics/Shaders Compile.cpp"
