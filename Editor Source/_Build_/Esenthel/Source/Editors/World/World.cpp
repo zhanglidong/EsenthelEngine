@@ -145,9 +145,7 @@ WorldView WorldEdit;
 
          case RM_SHADOW:
          {
-            flt lod_s=D.lodFactorShadow(); D.lodFactorShadow(1);
             grid.func(visibleArea(), AreaDrawShadow);
-            D.lodFactorShadow(lod_s);
             REPAO(obj_visible)->drawShadow();
          }break;
 
