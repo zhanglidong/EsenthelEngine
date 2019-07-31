@@ -227,19 +227,19 @@ struct MainShaderClass
       *CombineSSAlpha,
 
       // FOG
-      *Fog[3]  , // [MultiSample]
-      *FogBox  ,
-      *FogBox0 ,
-      *FogBox1 ,
-      *FogHgt  ,
-      *FogHgt0 ,
-      *FogHgt1 ,
-      *FogBall ,
-      *FogBall0,
-      *FogBall1;
-   void initFogBoxShaders ();   INLINE void loadFogBoxShaders () {if(SLOW_SHADER_LOAD)initFogBoxShaders ();}
-   void initFogHgtShaders ();   INLINE void loadFogHgtShaders () {if(SLOW_SHADER_LOAD)initFogHgtShaders ();}
-   void initFogBallShaders();   INLINE void loadFogBallShaders() {if(SLOW_SHADER_LOAD)initFogBallShaders();}
+      *Fog[3]    , // [MultiSample]
+      *FogBox    ,
+      *FogBox0   ,
+      *FogBox1   ,
+      *FogHeight ,
+      *FogHeight0,
+      *FogHeight1,
+      *FogBall   ,
+      *FogBall0  ,
+      *FogBall1  ;
+   void loadFogBoxShaders   ();
+   void loadFogHeightShaders();
+   void loadFogBallShaders  ();
 
    Shader
       // VOLUME
@@ -298,8 +298,8 @@ struct MainShaderClass
 
    // APPLY LIGHT
    Shader
-      *ApplyLight[3][2][2][2]; // [Multisample] [AmbientOcclusion] [CelShade] [NightShade]
-   Shader* getApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade);
+      *ApplyLight[3][2][2][2][2]; // [Multisample] [AmbientOcclusion] [CelShade] [NightShade] [Glow]
+   Shader* getApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade, Bool glow);
 
    // BLOOM
    ShaderParam

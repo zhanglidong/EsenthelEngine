@@ -13,14 +13,16 @@ Half CelShade(Half lum) {return TexLod(Img2, VecH2(lum, 0.5)).x;} // have to use
 /******************************************************************************/
 VecH LitCol(VecH4 color, VecH4 lum, Half ao, VecH night_shade_col, Bool apply_ao)
 {
-   // treat glow as if it's a light source, this will have 2 effects: 1) pixels will have color even without any lights 2) this will disable night shade effects and retain original color (not covered by night shade), this is because 'night_shade_intensity' is multiplied by "Sat(1-max_lum)"
-#if 0 // simply adding doesn't provide good results
-   lum.rgb+=color.w;
-#else // instead lerp to 1, to avoid glow pixels getting too bright, because if color is mostly red (255, 40, 20), but if too much light is applied, then it could become more white 10*(255, 40, 20)=(2550, 400, 200), and we want pixels to glow with exact color as on the texture
-   #if 0 // slower
-      lum.rgb=Lerp(lum.rgb, 1, color.w);
-   #else // faster
-      lum.rgb=lum.rgb*(1-color.w) + color.w;
+#if GLOW
+      // treat glow as if it's a light source, this will have 2 effects: 1) pixels will have color even without any lights 2) this will disable night shade effects and retain original color (not covered by night shade), this is because 'night_shade_intensity' is multiplied by "Sat(1-max_lum)"
+   #if 0 // simply adding doesn't provide good results
+      lum.rgb+=color.w;
+   #else // instead lerp to 1, to avoid glow pixels getting too bright, because if color is mostly red (255, 40, 20), but if too much light is applied, then it could become more white 10*(255, 40, 20)=(2550, 400, 200), and we want pixels to glow with exact color as on the texture
+      #if 0 // slower
+         lum.rgb=Lerp(lum.rgb, 1, color.w);
+      #else // faster
+         lum.rgb=lum.rgb*(1-color.w) + color.w;
+      #endif
    #endif
 #endif
    Half max_lum=Max(lum.rgb);

@@ -146,7 +146,7 @@ void HeightFogDraw(C OBox &obox, Flt density, C Vec &color_l)
 {
    if(Frustum(obox) && Renderer.canReadDepth())
    {
-      Sh.loadFogHgtShaders();
+      Sh.loadFogHeightShaders();
       Renderer.needDepthRead();
       D .alpha(ALPHA_BLEND_DEC);
       Sh.LocalFogColor  ->set(LinearToDisplay(color_l));
@@ -175,14 +175,14 @@ void HeightFogDraw(C OBox &obox, Flt density, C Vec &color_l)
             
          if(inside.x>=-size.x+e && inside.x<=size.x-e
          && inside.y>=-size.y+e && inside.y<=size.y-e
-         && inside.z>=-size.z+e && inside.z<=size.z-e)Sh.FogHgt1->draw();
-         else                                         Sh.FogHgt0->draw();
+         && inside.z>=-size.z+e && inside.z<=size.z-e)Sh.FogHeight1->draw();
+         else                                         Sh.FogHeight0->draw();
       }else
       {
          D .depth     (true );
          D .depthWrite(false);
          D .cull      (true );
-         Sh.FogHgt->begin(); MshrBox.set().draw();
+         Sh.FogHeight->begin(); MshrBox.set().draw();
       }
    }
 }

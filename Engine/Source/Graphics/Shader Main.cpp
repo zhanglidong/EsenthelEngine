@@ -189,7 +189,7 @@ Shader* MainShaderClass::getDrawLightPoint (Bool shadow, Bool multi_sample, Bool
 Shader* MainShaderClass::getDrawLightLinear(Bool shadow, Bool multi_sample, Bool quality            ) {return get(S8+"DrawLightLinear"+shadow+multi_sample+(quality && !multi_sample)      );} // MSAA doesn't have quality version (to make it faster)
 Shader* MainShaderClass::getDrawLightCone  (Bool shadow, Bool multi_sample, Bool quality, Bool image) {return get(S8+"DrawLightCone"  +shadow+multi_sample+(quality && !multi_sample)+image);} // MSAA doesn't have quality version (to make it faster)
 
-Shader* MainShaderClass::getApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade) {return get(S8+"ApplyLight"+multi_sample+ao+cel_shade+night_shade);}
+Shader* MainShaderClass::getApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade, Bool glow) {return get(S8+"ApplyLight"+multi_sample+ao+cel_shade+night_shade+glow);}
 
 Shader* MainShaderClass::getSunRaysMask(Bool mask                                      ) {return get(S8+"SunRaysMask"+mask);}
 Shader* MainShaderClass::getSunRays    (Bool mask, Bool dither, Bool jitter, Bool gamma) {return get(S8+"SunRays"    +mask+dither+jitter+gamma);}
@@ -213,9 +213,9 @@ void MainShaderClass::initCubicShaders()
       }
    }
 }
-void MainShaderClass::initFogBoxShaders()
+void MainShaderClass::loadFogBoxShaders()
 {
-   if(!FogBox) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
+   if(!FogBox) // check if not yet initialized because this is called multiple times
    {
       ShaderFile &sf=*ShaderFiles("Fog Local");
       FogBox =sf.get("FogBox"  );
@@ -223,19 +223,19 @@ void MainShaderClass::initFogBoxShaders()
       FogBox1=sf.get("FogBoxI1");
    }
 }
-void MainShaderClass::initFogHgtShaders()
+void MainShaderClass::loadFogHeightShaders()
 {
-   if(!FogHgt) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
+   if(!FogHeight) // check if not yet initialized because this is called multiple times
    {
       ShaderFile &sf=*ShaderFiles("Fog Local");
-      FogHgt =sf.get("FogHeight"  );
-      FogHgt0=sf.get("FogHeightI0");
-      FogHgt1=sf.get("FogHeightI1");
+      FogHeight =sf.get("FogHeight"  );
+      FogHeight0=sf.get("FogHeightI0");
+      FogHeight1=sf.get("FogHeightI1");
    }
 }
-void MainShaderClass::initFogBallShaders()
+void MainShaderClass::loadFogBallShaders()
 {
-   if(!FogBall) // check if not yet initialized because this is called multiple times for SLOW_SHADER_LOAD
+   if(!FogBall) // check if not yet initialized because this is called multiple times
    {
       ShaderFile &sf=*ShaderFiles("Fog Local");
       FogBall =sf.get("FogBall"  );
@@ -545,30 +545,32 @@ void MainShaderClass::getTechniques()
    if(!D.deferredUnavailable())
    {
       // SHADOW
-      REPD(m, (D.shaderModel()>=SM_4_1) ? 2 : 1)
+      REPD(multi_sample, (D.shaderModel()>=SM_4_1) ? 2 : 1)
       {
          REPD(n, 6)
-         REPD(c, 2)ShdDir[n][c][m]=getShdDir  (n+1, c, m);
-                   ShdPoint    [m]=getShdPoint(        m);
-                   ShdCone     [m]=getShdCone (        m);
+         REPD(c, 2)ShdDir[n][c][multi_sample]=getShdDir  (n+1, c, multi_sample);
+                   ShdPoint    [multi_sample]=getShdPoint(        multi_sample);
+                   ShdCone     [multi_sample]=getShdCone (        multi_sample);
       }
 
       // LIGHT
-      REPD(m, (D.shaderModel()>=SM_4_1) ? 2 : 1) // multisample
-      REPD(s, 2) // shadow
-      REPD(q, 2) // quality unpack
+      REPD(multi_sample, (D.shaderModel()>=SM_4_1) ? 2 : 1)
+      REPD(shadow      , 2)
+      REPD(quality     , 2)
       {
-                   DrawLightDir   [s][m][q]   =getDrawLightDir   (s, m, q);
-                   DrawLightPoint [s][m][q]   =getDrawLightPoint (s, m, q);
-                   DrawLightLinear[s][m][q]   =getDrawLightLinear(s, m, q);
-         REPD(i, 2)DrawLightCone  [s][m][q][i]=getDrawLightCone  (s, m, q, i);
+                       DrawLightDir   [shadow][multi_sample][quality]       =getDrawLightDir   (shadow, multi_sample, quality);
+                       DrawLightPoint [shadow][multi_sample][quality]       =getDrawLightPoint (shadow, multi_sample, quality);
+                       DrawLightLinear[shadow][multi_sample][quality]       =getDrawLightLinear(shadow, multi_sample, quality);
+         REPD(image, 2)DrawLightCone  [shadow][multi_sample][quality][image]=getDrawLightCone  (shadow, multi_sample, quality, image);
       }
 
       // COL LIGHT
-      REPD(m, (D.shaderModel()>=SM_4_1) ? 3 : 1)
-      REPD(a, 2)
-      REPD(c, 2)
-      REPD(n, 2)ApplyLight[m][a][c][n]=getApplyLight(m, a, c, n);
+      REPD(multi_sample, (D.shaderModel()>=SM_4_1) ? 3 : 1)
+      REPD(ao          , 2)
+      REPD(  cel_shade , 2)
+      REPD(night_shade , 2)
+      REPD(glow        , 2)
+         ApplyLight[multi_sample][ao][cel_shade][night_shade][glow]=getApplyLight(multi_sample, ao, cel_shade, night_shade, glow);
    }
 #endif
 
@@ -595,9 +597,9 @@ void MainShaderClass::getTechniques()
    }
 
 #if !SLOW_SHADER_LOAD
-   initFogBoxShaders ();
-   initFogHgtShaders ();
-   initFogBallShaders();
+   initFogBoxShaders   ();
+   initFogHeightShaders();
+   initFogBallShaders  ();
 #endif
 
    // OVERLAY
