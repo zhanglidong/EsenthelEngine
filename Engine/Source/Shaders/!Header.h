@@ -993,7 +993,7 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    LOC( 6) Vec2  _tex2    :ATTR6 ;
    LOC( 7) Half  _size    :ATTR7 ;
    LOC( 8) Vec4  _bone    :ATTR8 ; // this has to be Vec4 because VecI4 and VecU4 don't work for some reason
-   LOC( 9) VecH4 _weight  :ATTR9 ;
+   LOC( 9) Vec4  _weight  :ATTR9 ; // this has to be Vec4 instead of VecH4 because of 2 reasons, we need sum of weights to be equal to 1.0 (half's can't do that), also when converting to GLSL the explicit casts to "Vec weight" precision are optimized away and perhaps some GLSL compilers may want to perform optimizations where Half*Vec is converted to VecH which would destroy precision for skinned characters
    LOC(10) VecH4 _material:ATTR10;
    LOC(11) VecH4 _color   :ATTR11;
 #else
@@ -1006,7 +1006,7 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    Vec2  _tex2    :TEXCOORD2   ;
    Half  _size    :PSIZE       ;
    VecU4 _bone    :BLENDINDICES;
-   VecH4 _weight  :BLENDWEIGHT ;
+   Vec4  _weight  :BLENDWEIGHT ; // this has to be Vec4 instead of VecH4 because of 2 reasons, we need sum of weights to be equal to 1.0 (half's can't do that), also when converting to GLSL the explicit casts to "Vec weight" precision are optimized away and perhaps some GLSL compilers may want to perform optimizations where Half*Vec is converted to VecH which would destroy precision for skinned characters
    VecH4 _material:COLOR0      ;
    VecH4 _color   :COLOR1      ;
 #endif
@@ -1024,8 +1024,12 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    Vec2  tex      (                    Bool heightmap=false) {return heightmap ? _pos.xz*Vec2(VtxHeightmap, -VtxHeightmap) : _tex          ;} // tex coords 0
    Vec2  tex1     (                                        ) {return                                                         _tex1         ;} // tex coords 1
    Vec2  tex2     (                                        ) {return                                                         _tex2         ;} // tex coords 2
-   VecU  bone     (                                        ) {return  VtxSkinning ? _bone.xyz : VecU(0, 0, 0)                              ;} // bone matrix indexes
-   VecH  weight   (                                        ) {return _weight.xyz                                                           ;} // bone matrix weights
+#if GL
+   VecU  bone     (                                        ) {return  VtxSkinning ? VecU(_bone.xyz) : VecU(0, 0, 0)                        ;} // bone matrix indexes
+#else
+   VecU  bone     (                                        ) {return  VtxSkinning ?      _bone.xyz  : VecU(0, 0, 0)                        ;} // bone matrix indexes
+#endif
+   Vec   weight   (                                        ) {return _weight.xyz                                                           ;} // bone matrix weights
    VecH4 material (                                        ) {return _material                                                             ;} // material    weights
    VecH  material3(                                        ) {return _material.xyz                                                         ;} // material    weights
    Half  size     (                                        ) {return _size                                                                 ;} // point size

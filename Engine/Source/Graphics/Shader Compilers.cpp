@@ -548,7 +548,8 @@ static void Compile(API api)
    REPD(tesselate , tess ? 2 : 1)
    REPD(skin      , 2)
    REPD(textures  , 3)
-   REPD(test_blend, textures ? 2 : 1)src.New().position(skin, textures, test_blend, FX_NONE, tesselate);
+   REPD(test_blend, textures ? 2 : 1)
+      src.New().position(skin, textures, test_blend, FX_NONE, tesselate);
 
    // grass + leafs
    for(Int textures=1; textures<=2; textures++)
