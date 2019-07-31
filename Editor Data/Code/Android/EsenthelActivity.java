@@ -398,7 +398,8 @@ public class EsenthelActivity extends NativeActivity
       startService(new Intent(this, DetectForceKill.class)); // start service that detects force kill
 
 		// detect showing nav bar by the user manually in order to hide it automatically
-		system_bars=systemBarsActual();
+		if(system_bars<0)system_bars=systemBarsActual(); // when starting  , get what we have
+		else             systemBars(system_bars);        // when restarting, set what last requested (this can happen when opening app when it was closed using 'WindowMinimize')
 		Window window=activity.getWindow(); if(window!=null)
 		{
 			View view=window.getDecorView(); if(view!=null)view.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener()
@@ -712,7 +713,7 @@ public class EsenthelActivity extends NativeActivity
 		return 0;
 	}
 
-	static int system_bars;
+	static int system_bars=-1;
 	public static final int systemBars      () {return system_bars;} // what requested by code
 	public static final int systemBarsActual()							  // what we actually have
 	{
