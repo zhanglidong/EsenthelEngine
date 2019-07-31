@@ -204,9 +204,7 @@ void WorldManager::draw()
          FREPAO(_area_draw_shadow)->drawObjShadow(); // draw in order
 
          // terrain
-         Flt lod_factor_shadow=D.lodFactorShadow(); D.lodFactorShadow(1); // disable lod shadow factors
          FREPAO(_area_draw_shadow)->drawTerrainShadow(); // draw in order
-         D.lodFactorShadow(lod_factor_shadow); // restore lod shadow factors
       }break;
 
       // overlays and decals

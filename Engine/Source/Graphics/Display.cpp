@@ -753,7 +753,6 @@ Display::Display() : _monitors(Compare, Create, null, 4)
   _color_palette_allow=!MOBILE;
 
   _lod_factor       =1;
-  _lod_factor_shadow=2;
   _lod_factor_mirror=2;
 
   _tesselation          =false;
@@ -1415,7 +1414,7 @@ D._linear_gamma^=1; D.linearGamma(!D._linear_gamma); // set after loading shader
    {auto v=edgeSoften  (); _edge_soften    =EDGE_SOFTEN_NONE; edgeSoften  (v);} // resetting will load shaders
    {auto v=edgeDetect  (); _edge_detect    =EDGE_DETECT_NONE; edgeDetect  (v);} // resetting will load shaders
    {Flt  v=grassRange  (); _grass_range    =-1              ; grassRange  (v);}
-   lod               (_lod_factor, _lod_factor_shadow, _lod_factor_mirror);
+   lod               (_lod_factor, _lod_factor_mirror);
    shadowJitterSet   ();
    MotionScaleChanged();
    SetMatrix         ();
@@ -2919,40 +2918,35 @@ Display& Display::furStaticVelScale(Flt vel_scale) {_fur_vel_scale=vel_scale; re
 void Display::lodSetCurrentFactor()
 {
    // '_lod_current_factor' contains information about '_lod_factors_fov' in current rendering mode
-  _lod_current_factor=_lod_factors_fov[Renderer()==RM_SHADOW][Renderer.mirror()];
+  _lod_current_factor=_lod_factors_fov[Renderer.mirror()];
 }
 void Display::lodUpdateFactors()
 {
    // '_lod_fov2' is a value based on Fov (viewFovY()), squared
    if(FovPerspective(viewFovMode()))_lod_fov2=Sqr(Tan(viewFovY()*0.5f));
    else                             _lod_fov2=Sqr(    viewFovY()      );
-   REPD(s, 2)
-   REPD(m, 2)_lod_factors_fov[s][m]=_lod_factors[s][m]*_lod_fov2;
+   REPD(m, 2)_lod_factors_fov[m]=_lod_factors[m]*_lod_fov2;
    lodSetCurrentFactor();
 }
-Display& Display::lod(Flt general, Flt shadow, Flt mirror)
+Display& Display::lod(Flt general, Flt mirror)
 {
    // set values
   _lod_factor       =Max(0, general);
-  _lod_factor_shadow=Max(0, shadow );
   _lod_factor_mirror=Max(0, mirror );
 
    // build precomputed helper array
-   REPD(s, 2)
    REPD(m, 2)
    {
-      Flt &factor =_lod_factors[s][m];
+      Flt &factor =_lod_factors[m];
            factor =_lod_factor;
-      if(s)factor*=_lod_factor_shadow;
       if(m)factor*=_lod_factor_mirror;
            factor*=     factor; // make square
    }
    lodUpdateFactors();
    return T;
 }
-Display& Display::lodFactor      (Flt factor) {return lod(     factor, _lod_factor_shadow, _lod_factor_mirror);}
-Display& Display::lodFactorShadow(Flt factor) {return lod(_lod_factor,      factor       , _lod_factor_mirror);}
-Display& Display::lodFactorMirror(Flt factor) {return lod(_lod_factor, _lod_factor_shadow,      factor       );}
+Display& Display::lodFactor      (Flt factor) {return lod(     factor, _lod_factor_mirror);}
+Display& Display::lodFactorMirror(Flt factor) {return lod(_lod_factor,      factor       );}
 /******************************************************************************/
 Display& Display::tesselationAllow    (Bool on     ) {                       if(_tesselation_allow    !=on     ) _tesselation_allow    =on     ;               return T;}
 Display& Display::tesselation         (Bool on     ) {                       if(_tesselation          !=on     ){_tesselation          =on     ; setShader();} return T;}

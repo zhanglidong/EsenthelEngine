@@ -330,9 +330,8 @@ struct Display : DisplayState, DisplayDraw // Display Control
    void lodSetCurrentFactor();
    void lodUpdateFactors   ();
 #endif
-   Display& lod            (Flt general, Flt shadow, Flt mirror);                              // set     Level of Detail factors, the change is instant, you can call it real-time
+   Display& lod            (Flt general, Flt mirror);                                          // set     Level of Detail factors, the change is instant, you can call it real-time
    Display& lodFactor      (Flt factor);   Flt lodFactor      ()C {return _lod_factor       ;} // set/get Level of Detail general factor which determines                                    Lod selection, 0..Inf, default=1, it's a scaling factor: values from 0..1 increase details and values from 1..Inf decrease details, the change is instant, you can call it real-time
-   Display& lodFactorShadow(Flt factor);   Flt lodFactorShadow()C {return _lod_factor_shadow;} // set/get Level of Detail shadows factor which is also applied to shadows                    Lod selection, 0..Inf, defailt=2, it's a scaling factor: values from 0..1 increase details and values from 1..Inf decrease details, the change is instant, you can call it real-time
    Display& lodFactorMirror(Flt factor);   Flt lodFactorMirror()C {return _lod_factor_mirror;} // set/get Level of Detail mirror  factor which is also applied to meshes rendered in mirrors Lod selection, 0..Inf, defailt=2, it's a scaling factor: values from 0..1 increase details and values from 1..Inf decrease details, the change is instant, you can call it real-time
 
    // Tesselation
@@ -515,7 +514,7 @@ private:
                      _dof_focus, _dof_range, _dof_intensity,
                      _vol_max,
                      _grass_range, _grass_range_sqr, _grass_density,
-                     _lod_factor, _lod_factor_shadow, _lod_factor_mirror, _lod_factors[2][2], _lod_factors_fov[2][2], _lod_fov2, _lod_current_factor,
+                     _lod_factor, _lod_factor_mirror, _lod_factors[2], _lod_factors_fov[2], _lod_fov2, _lod_current_factor,
                      _tesselation_density,
                      _fur_gravity, _fur_vel_scale,
                      _view_fov, _view_from,
