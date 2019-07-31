@@ -816,7 +816,7 @@ void MainShaderClass::compile()
    ProcPriority(-1); // compiling shaders may slow down entire CPU, so make this process have smaller priority
    if(ShaderCompilers.elms())
    {
-      Threads threads; threads.create(false, Cpu.threads()-1);
+      Threads threads; threads.create(false, Cpu.threads()-1, 0, "EE.ShaderCompiler #");
       FREPAO(ShaderCompilers).compile(threads);
    }
    ProcPriority(0);
