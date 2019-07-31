@@ -3894,7 +3894,7 @@
     <ClCompile Include="Source\Graphics\Shader Get.cpp" />
     <ClCompile Include="Source\Graphics\Shader Main.cpp" />
     <ClCompile Include="Source\Graphics\Shader.cpp" />
-    <ClCompile Include="Source\Graphics\Shaders Compile.cpp" />
+    <ClCompile Include="Source\Graphics\Shader Compilers.cpp" />
     <ClCompile Include="Source\Graphics\Sky.cpp" />
     <ClCompile Include="Source\Graphics\Sun.cpp" />
     <ClCompile Include="Source\Graphics\Vertex Index Buffer.cpp" />

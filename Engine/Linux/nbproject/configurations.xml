@@ -409,7 +409,7 @@
         <itemPath>../Source/Graphics/Shader Get.cpp</itemPath>
         <itemPath>../Source/Graphics/Shader Main.cpp</itemPath>
         <itemPath>../Source/Graphics/Shader.cpp</itemPath>
-        <itemPath>../Source/Graphics/Shaders Compile.cpp</itemPath>
+        <itemPath>../Source/Graphics/Shader Compilers.cpp</itemPath>
         <itemPath>../Source/Graphics/Sky.cpp</itemPath>
         <itemPath>../Source/Graphics/Sun.cpp</itemPath>
         <itemPath>../Source/Graphics/Vertex Index Buffer.cpp</itemPath>
@@ -1531,7 +1531,7 @@
       </item>
       <item path="../Source/Graphics/Shader.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../Source/Graphics/Shaders Compile.cpp"
+      <item path="../Source/Graphics/Shader Compilers.cpp"
             ex="false"
             tool="1"
             flavor2="0">
@@ -2941,7 +2941,7 @@
       </item>
       <item path="../Source/Graphics/Shader.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../Source/Graphics/Shaders Compile.cpp"
+      <item path="../Source/Graphics/Shader Compilers.cpp"
             ex="false"
             tool="1"
             flavor2="0">

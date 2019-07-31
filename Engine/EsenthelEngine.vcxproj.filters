@@ -1619,9 +1619,6 @@
     <ClCompile Include="Source\Graphics\Shader.cpp">
       <Filter>Source\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Graphics\Shaders Compile.cpp">
-      <Filter>Source\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Graphics\Sky.cpp">
       <Filter>Source\Graphics</Filter>
     </ClCompile>
@@ -2106,6 +2103,9 @@
       <Filter>Source\Shaders\3D</Filter>
     </ClCompile>
     <ClCompile Include="Source\Graphics\Shader Compiler.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Shader Compilers.cpp">
       <Filter>Source\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
