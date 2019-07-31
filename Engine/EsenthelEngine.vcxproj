@@ -3890,7 +3890,7 @@
     <ClCompile Include="Source\Graphics\Renderer Instancing.cpp" />
     <ClCompile Include="Source\Graphics\Renderer Targets.cpp" />
     <ClCompile Include="Source\Graphics\Renderer.cpp" />
-    <ClCompile Include="Source\Graphics\Shader Compile.cpp" />
+    <ClCompile Include="Source\Graphics\Shader Compiler.cpp" />
     <ClCompile Include="Source\Graphics\Shader Get.cpp" />
     <ClCompile Include="Source\Graphics\Shader Main.cpp" />
     <ClCompile Include="Source\Graphics\Shader.cpp" />

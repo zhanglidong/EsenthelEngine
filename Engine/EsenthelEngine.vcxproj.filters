@@ -1610,9 +1610,6 @@
     <ClCompile Include="Source\Graphics\Renderer.cpp">
       <Filter>Source\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Graphics\Shader Compile.cpp">
-      <Filter>Source\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Graphics\Shader Get.cpp">
       <Filter>Source\Graphics</Filter>
     </ClCompile>
@@ -2107,6 +2104,9 @@
     </ClCompile>
     <ClCompile Include="Source\Shaders\Bone Highlight.cpp">
       <Filter>Source\Shaders\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Graphics\Shader Compiler.cpp">
+      <Filter>Source\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
