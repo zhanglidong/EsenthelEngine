@@ -356,8 +356,12 @@ void ShaderBuffer::update()
 #endif
          D3DC ->UpdateSubresource (buffer.buffer, 0, null, data, 0, 0);
 #elif GL
-   glBindBuffer   (GL_UNIFORM_BUFFER, buffer.buffer);
+   glBindBuffer(GL_UNIFORM_BUFFER, buffer.buffer);
+#if GL_ES // FIXME
+   glBufferData(GL_UNIFORM_BUFFER, buffer.size, data, GL_STREAM_DRAW);
+#else
    glBufferSubData(GL_UNIFORM_BUFFER, 0, buffer.size, data);
+#endif
 #endif
    changed=false;
 }
