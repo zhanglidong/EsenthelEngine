@@ -596,12 +596,6 @@ void MainShaderClass::getTechniques()
       if(D.shaderModel()>=SM_4_1)Fog[2]=get("Fog2");
    }
 
-#if !SLOW_SHADER_LOAD
-   initFogBoxShaders   ();
-   initFogHeightShaders();
-   initFogBallShaders  ();
-#endif
-
    // OVERLAY
    OverlayParams=GetShaderParam("OverlayParams");
 }
