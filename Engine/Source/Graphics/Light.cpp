@@ -424,7 +424,7 @@ static void ApplyVolumetric(LightCone &light)
    }
 }
 /******************************************************************************/
-static Bool StereoCurrentLightRect() // this relies on current Camera Matrix
+static Bool StereoCurrentLightRect() // this relies on current Camera Matrix and 'Frustum'
 {
    if(!CurrentLight.toScreenRect(CurrentLight.rect))return false;
 
