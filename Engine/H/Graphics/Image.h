@@ -193,6 +193,9 @@ struct ImageTypeInfo // Image Type Information
 
    Bool highPrecision()C {return precision>IMAGE_PRECISION_8;} // more than 8 bits
    Byte usage        ()C {return _usage;} // get a combination of USAGE_FLAG, available only on DX11, OpenGL 4.2
+#if EE_PRIVATE
+   constexpr Bool filterable()C {return (!GL_ES) || (precision<IMAGE_PRECISION_32 && !d);} // GLES3 doesn't support filtering F32/Depth textures - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml , "depth textures are not filterable" - https://arm-software.github.io/opengl-es-sdk-for-android/occlusion_culling.html
+#endif
 
 #if !EE_PRIVATE
 private:
@@ -270,6 +273,9 @@ struct Image // Image (Texture)
    IMAGE_PRECISION     precision()C {return ImageTI[_hw_type].    precision  ;} // get image precision
    Bool            highPrecision()C {return ImageTI[_hw_type].highPrecision();} // if  any channel of the image uses more than 8 bits
    Bool                     sRGB()C {return  IsSRGB(_hw_type)                ;} // if  this is a sRGB image
+#if EE_PRIVATE
+   constexpr Bool     filterable()C {return ImageTI[_hw_type].   filterable();}
+#endif
 
    CUBE_LAYOUT cubeLayout()C; // auto-detect cube layout based on image size
 

@@ -960,10 +960,7 @@ void Image::setGLParams()
 #endif
    if(D.created() && _txtr)
    {
-      Bool mip_maps=(mipMaps()>1), filterable=true;
-   #if GL_ES
-      filterable=(ImageTI[hwType()].precision<IMAGE_PRECISION_32); // GLES3 doesn't support filtering F32 textures, without this check reading from F32 textures will fail - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml
-   #endif
+      Bool mip_maps=(mipMaps()>1), filterable=T.filterable();
       UInt target;
       switch(mode())
       {

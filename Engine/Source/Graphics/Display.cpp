@@ -1313,11 +1313,6 @@ again:
       LogN(S+"Device Vendor: "    +(CChar8*)glGetString(GL_VENDOR    ));
       LogN(S+"Device Version: "   +(CChar8*)glGetString(GL_VERSION   ));
       LogN(S+"Device Extensions: "+(CChar8*)glGetString(GL_EXTENSIONS));
-   #if GL_ES
-      int i;
-      glGetIntegerv(GL_MAX_VERTEX_UNIFORM_VECTORS  , &i); LogN(S+"GL_MAX_VERTEX_UNIFORM_VECTORS: "+i);
-      glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_VECTORS, &i); LogN(S+"GL_MAX_FRAGMENT_UNIFORM_VECTORS: "+i);
-   #endif
    }
 
    if(!findMode())Exit("Valid display mode not found.");

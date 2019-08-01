@@ -11,11 +11,7 @@ SkyClass::SkyClass()
    atmosphericHorizonExponent (3.5f); // !! if changing default value, then also change in 'Environment.Sky' !!
    atmosphericColorS          (Vec4(0.32f, 0.46f, 0.58f, 1.0f), Vec4(0.16f, 0.36f, 0.54f, 1.0f)); // !! if changing default value, then also change in 'Environment.Sky' !!
    atmosphericStarsOrientation(MatrixIdentity.orn());
-#if MOBILE
-   atmosphericPrecision       (false);
-#else
-   atmosphericPrecision       (true);
-#endif
+   atmosphericPrecision       (!MOBILE);
    skyboxBlend                (0.5f);
 }
 SkyClass& SkyClass::del()

@@ -240,7 +240,7 @@ GuiObj& GuiObj::kbSet() // this means setting keyboard focus to this element
 {
    if(is()) // allow setting focus only if created, to keep consistency with clearing kb focus when deleting object
    {
-      if(MOBILE                                 // do this for all types on Mobile platforms, because of the soft keyboard overlay, which could keep popping up annoyingly and occlude big portion of the screen
+      if(MOBILE // do this for all types on Mobile platforms, because of the soft keyboard overlay, which could keep popping up annoyingly and occlude big portion of the screen
       || type()==GO_DESKTOP || type()==GO_LIST) // if this is a 'Desktop' or a 'List' then clear the sub kb focus so children won't have it, and only this object will
          if(GuiObjChildren *children=T.children())children->kb=null;
 
