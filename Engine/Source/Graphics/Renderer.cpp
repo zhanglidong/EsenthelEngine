@@ -835,7 +835,7 @@ Bool RendererClass::reflection()
       Sh.AllowBackFlip->set(-1); // re-enable back flipping
      _mirror=false;              // !! set before viewport and camera, because it affects the Frustum, and after 'cleanup' !!
       // <- reset viewport here if needed
-      cam.set();                 // camera
+      cam.set();                 // camera, this will also reset 'Frustum'
 
       if(stage==RS_REFLECTION && show(_mirror_rt, true))return true;
    }
