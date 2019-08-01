@@ -1293,7 +1293,8 @@ void Light::drawForward(ALPHA_MODE alpha)
             D.stencil(STENCIL_ALWAYS_SET, 0);
          }else
          {  // we need to generate list of objects
-            Renderer.mode(RM_PREPARE); Frustum.set(); Renderer._render(); // set frustum after setting render mode
+            Frustum=FrustumMain;
+            Renderer.mode(RM_PREPARE); Renderer._render();
             D.clipAllow(true);
          }
          Renderer.mode(RM_SOLID);
@@ -1351,8 +1352,8 @@ void Light::drawForward(ALPHA_MODE alpha)
             D.stencil(STENCIL_ALWAYS_SET, 0);
          }else
          {  // we need to generate list of objects
-            Renderer.mode(RM_PREPARE); Frustum.from(BoxD(CurrentLight.point.range(), CurrentLight.point.pos)); // set frustum after setting render mode
-            Renderer._render();
+            Frustum.from(BoxD(CurrentLight.point.range(), CurrentLight.point.pos));
+            Renderer.mode(RM_PREPARE); Renderer._render();
             D.clipAllow(true);
          }
          Renderer.mode(RM_SOLID);
@@ -1411,8 +1412,8 @@ void Light::drawForward(ALPHA_MODE alpha)
             D.stencil(STENCIL_ALWAYS_SET, 0);
          }else
          {  // we need to generate list of objects
-            Renderer.mode(RM_PREPARE); Frustum.from(BoxD(CurrentLight.linear.range, CurrentLight.linear.pos)); // set frustum after setting render mode
-            Renderer._render();
+            Frustum.from(BoxD(CurrentLight.linear.range, CurrentLight.linear.pos));
+            Renderer.mode(RM_PREPARE); Renderer._render();
             D.clipAllow(true);
          }
          Renderer.mode(RM_SOLID);
@@ -1471,8 +1472,8 @@ void Light::drawForward(ALPHA_MODE alpha)
             D.stencil(STENCIL_ALWAYS_SET, 0);
          }else
          {  // we need to generate list of objects
-            Renderer.mode(RM_PREPARE); Frustum.from(CurrentLight.cone.pyramid); // set frustum after setting render mode
-            Renderer._render();
+            Frustum.from(CurrentLight.cone.pyramid);
+            Renderer.mode(RM_PREPARE); Renderer._render();
             D.clipAllow(true);
          }
          Renderer.mode(RM_SOLID);

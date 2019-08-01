@@ -1156,7 +1156,7 @@ void RendererClass::solid()
 
             // restore settings
             D.ambientSet(); Sh.AmbientMaterial->set(1); // restore ambient lighting
-            Frustum.set(); // restore frustum after it being potentially changed when drawing shadow maps or setting frustum for visible objects for lights
+            Frustum=FrustumMain; // restore frustum after it being potentially changed when drawing shadow maps or setting frustum for visible objects for lights
          }
 
          // apply ambient occlusion
