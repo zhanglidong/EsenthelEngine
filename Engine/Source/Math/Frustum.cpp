@@ -176,7 +176,7 @@ void FrustumClass::set(Flt range, C Vec2 &fov, C MatrixM &camera)
 void FrustumClass::set()
 {
    set(D._view_active.range, D._view_active.fov, CamMatrix);
-   if(Renderer()!=RM_SHADOW)FrustumMain=T;
+   FrustumMain=T;
 }
 /******************************************************************************/
 void FrustumClass::from(C BoxD &box)
