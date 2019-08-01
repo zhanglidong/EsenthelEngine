@@ -402,7 +402,9 @@ static Bool ToScreenRect(C Vec *point, Int points, Rect &rect)
    Vec2 screen;
    REP(points)if(PosToScreen(point[i], screen))
    {
-      if(NO_BRANCH || in)rect|=screen;else{rect=screen; in=true;}
+      if(NO_BRANCH)rect.     include(screen);else
+      if(in       )rect.validInclude(screen);else
+                  {rect=screen; in=true;}
    }
    return NO_BRANCH ? rect.validX() : in;
 }
@@ -420,8 +422,8 @@ static Bool ToScreenRect(C Vec *point, C VecI2 *edge, Int edges, Rect &rect)
       if(d0>=0 || d1>=0)
       {
          Vec2 screen;
-         PosToScreen((d0<0) ? PointOnPlane(e0, e1, d0, d1) : e0, screen); if(NO_BRANCH || in)rect|=screen;else{rect=screen; in=true;}
-         PosToScreen((d1<0) ? PointOnPlane(e0, e1, d0, d1) : e1, screen);                    rect|=screen;
+         PosToScreen((d0<0) ? PointOnPlane(e0, e1, d0, d1) : e0, screen); if(NO_BRANCH)rect.include(screen);else if(in)rect.validInclude(screen);else{rect=screen; in=true;}
+         PosToScreen((d1<0) ? PointOnPlane(e0, e1, d0, d1) : e1, screen);                                              rect.validInclude(screen);
       }
    }
    return NO_BRANCH ? rect.validX() : in;
@@ -440,8 +442,8 @@ static Bool ToFullScreenRect(C Vec *point, C VecI2 *edge, Int edges, Rect &rect)
       if(d0>=0 || d1>=0)
       {
          Vec2 screen;
-         PosToScreen((d0<0) ? PointOnPlane(e0, e1, d0, d1) : e0, screen); if(NO_BRANCH || in)rect|=screen;else{rect=screen; in=true;}
-         PosToScreen((d1<0) ? PointOnPlane(e0, e1, d0, d1) : e1, screen);                    rect|=screen;
+         PosToScreen((d0<0) ? PointOnPlane(e0, e1, d0, d1) : e0, screen); if(NO_BRANCH)rect.include(screen);else if(in)rect.validInclude(screen);else{rect=screen; in=true;}
+         PosToScreen((d1<0) ? PointOnPlane(e0, e1, d0, d1) : e1, screen);                                              rect.validInclude(screen);
       }
    }
    return NO_BRANCH ? rect.validX() : in;
@@ -460,8 +462,8 @@ static Bool ToFullScreenRect(C VecD *point, C VecI2 *edge, Int edges, Rect &rect
       if(d0>=0 || d1>=0)
       {
          Vec2 screen;
-         PosToScreen((d0<0) ? PointOnPlane(e0, e1, d0, d1) : e0, screen); if(NO_BRANCH || in)rect|=screen;else{rect=screen; in=true;}
-         PosToScreen((d1<0) ? PointOnPlane(e0, e1, d0, d1) : e1, screen);                    rect|=screen;
+         PosToScreen((d0<0) ? PointOnPlane(e0, e1, d0, d1) : e0, screen); if(NO_BRANCH)rect.include(screen);else if(in)rect.validInclude(screen);else{rect=screen; in=true;}
+         PosToScreen((d1<0) ? PointOnPlane(e0, e1, d0, d1) : e1, screen);                                              rect.validInclude(screen);
       }
    }
    return NO_BRANCH ? rect.validX() : in;

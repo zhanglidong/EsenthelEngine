@@ -77,38 +77,66 @@ RectI& RectI::extend(Int x, Int y)
    return T;
 }
 /******************************************************************************/
-Rect & Rect ::includeX(Flt x           ) {if(  x<  min.x)  min.x=x;else if(  x>  max.x)  max.x=x  ; return T;}
-RectD& RectD::includeX(Dbl x           ) {if(  x<  min.x)  min.x=x;else if(  x>  max.x)  max.x=x  ; return T;}
-RectI& RectI::includeX(Int x           ) {if(  x<  min.x)  min.x=x;else if(  x>  max.x)  max.x=x  ; return T;}
-Rect & Rect ::includeY(Flt y           ) {if(  y<  min.y)  min.y=y;else if(  y>  max.y)  max.y=y  ; return T;}
-RectD& RectD::includeY(Dbl y           ) {if(  y<  min.y)  min.y=y;else if(  y>  max.y)  max.y=y  ; return T;}
-RectI& RectI::includeY(Int y           ) {if(  y<  min.y)  min.y=y;else if(  y>  max.y)  max.y=y  ; return T;}
-Rect & Rect ::includeX(Flt min, Flt max) {if(min<T.min.x)T.min.x=min;   if(max>T.max.x)T.max.x=max; return T;}
-RectD& RectD::includeX(Dbl min, Dbl max) {if(min<T.min.x)T.min.x=min;   if(max>T.max.x)T.max.x=max; return T;}
-RectI& RectI::includeX(Int min, Int max) {if(min<T.min.x)T.min.x=min;   if(max>T.max.x)T.max.x=max; return T;}
-Rect & Rect ::includeY(Flt min, Flt max) {if(min<T.min.y)T.min.y=min;   if(max>T.max.y)T.max.y=max; return T;}
-RectD& RectD::includeY(Dbl min, Dbl max) {if(min<T.min.y)T.min.y=min;   if(max>T.max.y)T.max.y=max; return T;}
-RectI& RectI::includeY(Int min, Int max) {if(min<T.min.y)T.min.y=min;   if(max>T.max.y)T.max.y=max; return T;}
+Rect & Rect ::validIncludeX(Flt x           ) {if(  x<  min.x)  min.x=x;else if(  x>  max.x)  max.x=x  ; return T;}
+RectD& RectD::validIncludeX(Dbl x           ) {if(  x<  min.x)  min.x=x;else if(  x>  max.x)  max.x=x  ; return T;}
+RectI& RectI::validIncludeX(Int x           ) {if(  x<  min.x)  min.x=x;else if(  x>  max.x)  max.x=x  ; return T;}
+Rect & Rect ::validIncludeY(Flt y           ) {if(  y<  min.y)  min.y=y;else if(  y>  max.y)  max.y=y  ; return T;}
+RectD& RectD::validIncludeY(Dbl y           ) {if(  y<  min.y)  min.y=y;else if(  y>  max.y)  max.y=y  ; return T;}
+RectI& RectI::validIncludeY(Int y           ) {if(  y<  min.y)  min.y=y;else if(  y>  max.y)  max.y=y  ; return T;}
+Rect & Rect ::     includeX(Flt x           ) {if(  x<  min.x)  min.x=x;     if(  x>  max.x)  max.x=x  ; return T;}
+RectD& RectD::     includeX(Dbl x           ) {if(  x<  min.x)  min.x=x;     if(  x>  max.x)  max.x=x  ; return T;}
+RectI& RectI::     includeX(Int x           ) {if(  x<  min.x)  min.x=x;     if(  x>  max.x)  max.x=x  ; return T;}
+Rect & Rect ::     includeY(Flt y           ) {if(  y<  min.y)  min.y=y;     if(  y>  max.y)  max.y=y  ; return T;}
+RectD& RectD::     includeY(Dbl y           ) {if(  y<  min.y)  min.y=y;     if(  y>  max.y)  max.y=y  ; return T;}
+RectI& RectI::     includeY(Int y           ) {if(  y<  min.y)  min.y=y;     if(  y>  max.y)  max.y=y  ; return T;}
+Rect & Rect ::     includeX(Flt min, Flt max) {if(min<T.min.x)T.min.x=min;   if(max>T.max.x)T.max.x=max; return T;}
+RectD& RectD::     includeX(Dbl min, Dbl max) {if(min<T.min.x)T.min.x=min;   if(max>T.max.x)T.max.x=max; return T;}
+RectI& RectI::     includeX(Int min, Int max) {if(min<T.min.x)T.min.x=min;   if(max>T.max.x)T.max.x=max; return T;}
+Rect & Rect ::     includeY(Flt min, Flt max) {if(min<T.min.y)T.min.y=min;   if(max>T.max.y)T.max.y=max; return T;}
+RectD& RectD::     includeY(Dbl min, Dbl max) {if(min<T.min.y)T.min.y=min;   if(max>T.max.y)T.max.y=max; return T;}
+RectI& RectI::     includeY(Int min, Int max) {if(min<T.min.y)T.min.y=min;   if(max>T.max.y)T.max.y=max; return T;}
 
-Rect& Rect::include(C Vec2 &v)
+Rect& Rect::validInclude(C Vec2 &v)
 {
    Flt x=v.x, y=v.y;
    if(x<min.x)min.x=x;else if(x>max.x)max.x=x;
    if(y<min.y)min.y=y;else if(y>max.y)max.y=y;
    return T;
 }
-RectD& RectD::include(C VecD2 &v)
+RectD& RectD::validInclude(C VecD2 &v)
 {
    Dbl x=v.x, y=v.y;
    if(x<min.x)min.x=x;else if(x>max.x)max.x=x;
    if(y<min.y)min.y=y;else if(y>max.y)max.y=y;
    return T;
 }
-RectI& RectI::include(C VecI2 &v)
+RectI& RectI::validInclude(C VecI2 &v)
 {
    Int x=v.x, y=v.y;
    if(x<min.x)min.x=x;else if(x>max.x)max.x=x;
    if(y<min.y)min.y=y;else if(y>max.y)max.y=y;
+   return T;
+}
+
+Rect& Rect::include(C Vec2 &v)
+{
+   Flt x=v.x, y=v.y;
+   if(x<min.x)min.x=x; if(x>max.x)max.x=x;
+   if(y<min.y)min.y=y; if(y>max.y)max.y=y;
+   return T;
+}
+RectD& RectD::include(C VecD2 &v)
+{
+   Dbl x=v.x, y=v.y;
+   if(x<min.x)min.x=x; if(x>max.x)max.x=x;
+   if(y<min.y)min.y=y; if(y>max.y)max.y=y;
+   return T;
+}
+RectI& RectI::include(C VecI2 &v)
+{
+   Int x=v.x, y=v.y;
+   if(x<min.x)min.x=x; if(x>max.x)max.x=x;
+   if(y<min.y)min.y=y; if(y>max.y)max.y=y;
    return T;
 }
 
@@ -813,7 +841,7 @@ Bool BestFit(Vec2 *point, Int points, Vec2 &axis)
             REP(convex_points.elms()-1)
             {
              C Vec2 &p=convex_points[i];
-               r.includeX(Dot(p, dir)).includeY(Dot(p, perp));
+               r.validIncludeX(Dot(p, dir)).validIncludeY(Dot(p, perp));
             }
             Flt area=r.area(); if(area<best_area){best_area=area; axis=dir;}
          }
@@ -839,7 +867,7 @@ Bool BestFit(VecD2 *point, Int points, VecD2 &axis)
             REP(convex_points.elms()-1)
             {
              C VecD2 &p=convex_points[i];
-               r.includeX(Dot(p, dir)).includeY(Dot(p, perp));
+               r.validIncludeX(Dot(p, dir)).validIncludeY(Dot(p, perp));
             }
             Dbl area=r.area(); if(area<best_area){best_area=area; axis=dir;}
          }

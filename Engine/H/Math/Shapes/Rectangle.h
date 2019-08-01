@@ -135,6 +135,10 @@ struct Rect // Rectangle Shape
    Rect& swapY     (                    ); // swap 'min.y' with 'max.y'
    Rect& rotatePI_2(  Int rotations     ); // rotate rectangle by "rotations*PI_2" angle
 
+   Rect& validIncludeX(  Flt   x); // extend rectangle to include 'x'   , this method is faster than 'includeX' but assumes rectangle is valid
+   Rect& validIncludeY(  Flt   y); // extend rectangle to include 'y'   , this method is faster than 'includeY' but assumes rectangle is valid
+   Rect& validInclude (C Vec2 &v); // extend rectangle to include vector, this method is faster than 'include'  but assumes rectangle is valid
+
    // draw
    void draw            (C Color &color , Bool fill=true                 )C; // draw
    void drawBorder      (C Color &color ,                    Flt   border)C; // draw border
@@ -261,6 +265,10 @@ struct RectD // Rectangle Shape (double precision)
    RectD& swapY     (                      ); // swap 'min.y' with 'max.y'
    RectD& rotatePI_2(  Int rotations       ); // rotate rectangle by "rotations*PI_2" angle
 
+   RectD& validIncludeX(  Dbl    x); // extend rectangle to include 'x'   , this method is faster than 'includeX' but assumes rectangle is valid
+   RectD& validIncludeY(  Dbl    y); // extend rectangle to include 'y'   , this method is faster than 'includeY' but assumes rectangle is valid
+   RectD& validInclude (C VecD2 &v); // extend rectangle to include vector, this method is faster than 'include'  but assumes rectangle is valid
+
    RectD() {}
    RectD(C VecD2 &vec                              ) {set(vec, vec);}
    RectD(C VecD2 &min, C VecD2 &max                ) {set(min, max);}
@@ -366,6 +374,10 @@ struct RectI // Rectangle Shape (integer)
    RectI& include   (C RectI &r            ); // extend rectangle to include rectangle
    RectI& from      (C VecI2 &a, C VecI2 &b); // create from 2 points
    RectI& rotatePI_2(  Int rotations       ); // rotate rectangle by "rotations*PI_2" angle
+
+   RectI& validIncludeX(  Int    x); // extend rectangle to include 'x'   , this method is faster than 'includeX' but assumes rectangle is valid
+   RectI& validIncludeY(  Int    y); // extend rectangle to include 'y'   , this method is faster than 'includeY' but assumes rectangle is valid
+   RectI& validInclude (C VecI2 &v); // extend rectangle to include vector, this method is faster than 'include'  but assumes rectangle is valid
 
    RectI() {}
    RectI(C VecI2 &vec                                        ) {set(vec, vec);}

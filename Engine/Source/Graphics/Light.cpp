@@ -895,7 +895,7 @@ VecD Light::pos()C
 }
 Int Light::shaderComplexity()C
 {
-   Int shadow=(T.shadow ? 16 : 0);
+   Int shadow=(T.shadow + (T.image!=null))*16;
    switch(type)
    {
       case LIGHT_DIR   : return 1+shadow;

@@ -729,11 +729,8 @@ static INLINE void ProcessPos(C VecI2 &pos, C RectI &rect, Memt<VecI2> &row_min_
    if(rect.includesY(pos.y))
    {
       VecI2 &min_max_x=row_min_max_x[pos.y-rect.min.y];
-      if(min_max_x.y<min_max_x.x)min_max_x=pos.x;else // if invalid (not yet set) then set,
-      { // extend
-         if(pos.x<min_max_x.x)min_max_x.x=pos.x;else
-         if(pos.x>min_max_x.y)min_max_x.y=pos.x;
-      }
+      if(pos.x<min_max_x.x)min_max_x.x=pos.x;
+      if(pos.x>min_max_x.y)min_max_x.y=pos.x;
    }
 }
 void FrustumClass::getIntersectingAreas(MemPtr<VecI2> area_pos, Flt area_size, Bool distance_check, Bool sort_by_distance, Bool extend, C RectI *clamp)C
@@ -743,14 +740,14 @@ void FrustumClass::getIntersectingAreas(MemPtr<VecI2> area_pos, Flt area_size, B
    Memt<VecD2> convex_points; CreateConvex2Dxz(convex_points, point, points); if(!convex_points.elms())return;
 
    RectI rect; // inclusive
-   Bool  is;
 
    // set min_y..max_y visibility
-   is=false; REPA(convex_points)
+   rect.setY(INT_MAX, INT_MIN); // set invalid "max<min"
+   REPA(convex_points)
    {
       VecD2 &p=convex_points[i]; p/=area_size;
       Int    y=Floor(extend ? p.y-0.5f : p.y);
-      if(is)rect.includeY(y);else{rect.setY(y); is=true;}
+      rect.includeY(y);
    }
    if(extend)rect.max.y++;
    if(clamp )rect&=*clamp;
@@ -758,7 +755,7 @@ void FrustumClass::getIntersectingAreas(MemPtr<VecI2> area_pos, Flt area_size, B
 
    // set min_x..max_x per row in 'row_min_max_x'
    Memt<VecI2> row_min_max_x; row_min_max_x.setNum(rect.h()+1); // +1 because it's inclusive
-   REPAO(row_min_max_x).set(0, -1); // on start set invalid range ("max<min")
+   REPAO(row_min_max_x).set(INT_MAX, INT_MIN); // on start set invalid range ("max<min")
 
    REPA(convex_points) // warning: this needs to work as well for "convex_points.elms()==1"
    {
@@ -778,16 +775,15 @@ void FrustumClass::getIntersectingAreas(MemPtr<VecI2> area_pos, Flt area_size, B
    }
 
    // set min_x..max_x visibility (this is more precise than what can be calculated from just 'convex_points', because here, we've clipped the edges to min_y..max_y range)
-   is=false; REPA(row_min_max_x)
+   rect.setX(INT_MAX, INT_MIN); // set invalid "max<min"
+   REPA(row_min_max_x)
    {
       VecI2 &min_max_x=row_min_max_x[i];
       if(min_max_x.y>=min_max_x.x) // if valid
-      {
-         if(is)rect.includeX(min_max_x.x, min_max_x.y);else{rect.setX(min_max_x.x, min_max_x.y); is=true;}
-      }
+         rect.includeX(min_max_x.x, min_max_x.y);
    }
    if(clamp)rect&=*clamp;
-   if(!is || !rect.validX())return;
+   if(!rect.validX())return;
 
    const Bool fast=true; // if use ~2x faster 'Dist2PointSquare' instead of 'Dist2(Vec2 point, RectI rect)'
 

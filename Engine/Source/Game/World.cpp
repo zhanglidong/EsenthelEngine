@@ -744,8 +744,8 @@ struct RectSetter
    Bool   active_set ,  loaded_set;
    RectI *active_rect, *loaded_rect;
 
-   void includeActive(C VecI2 &xy) {if(active_set)active_rect->include(xy);else{active_set=true; *active_rect=xy;}}
-   void includeLoaded(C VecI2 &xy) {if(loaded_set)loaded_rect->include(xy);else{loaded_set=true; *loaded_rect=xy;}}
+   void includeActive(C VecI2 &xy) {if(active_set)active_rect->validInclude(xy);else{active_set=true; *active_rect=xy;}}
+   void includeLoaded(C VecI2 &xy) {if(loaded_set)loaded_rect->validInclude(xy);else{loaded_set=true; *loaded_rect=xy;}}
 
    RectSetter(RectI &active_rect, RectI &loaded_rect) {active_set=loaded_set=false; T.active_rect=&active_rect.zero(); T.loaded_rect=&loaded_rect.zero();}
 

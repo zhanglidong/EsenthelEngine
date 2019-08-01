@@ -40,7 +40,7 @@ struct FrustumClass // Frustum
    Bool operator()(C Mesh &mesh, C MatrixM &matrix)C {return T(mesh.ext, matrix);} // 'mesh.ext' transformed by 'matrix'
 
 #if EE_PRIVATE
-   Bool operator()(C FrustumClass &frustum                 )C;
+   Bool operator()(C FrustumClass &frustum)C;
 
    void set (Flt range, C Vec2 &fov, C MatrixM &camera); // set from active viewport
    void set (                                         ); // set from active viewport and camera

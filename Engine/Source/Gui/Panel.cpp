@@ -33,20 +33,20 @@ void Panel::extendedRect(C Rect &rect, Rect &extended)C
          {rect.min.x-   left_right_offset.x, rect.max.x+   left_right_offset.x},
          {rect.min.x-bottom_corner_offset.x, rect.max.x+bottom_corner_offset.x},
       };
-      if(       top_image)r.includeY(y[1]   +       top_size);
-      if(    bottom_image)r.includeY(y[0]   -    bottom_size);
-      if(left_right_image)r.includeX(x[1][0]-left_right_size, x[1][1]+left_right_size);
+      if(       top_image)r.validIncludeY(y[1]   +       top_size);
+      if(    bottom_image)r.validIncludeY(y[0]   -    bottom_size);
+      if(left_right_image)r.     includeX(x[1][0]-left_right_size, x[1][1]+left_right_size);
       if(top_corner_image)
       {
          Flt w=top_corner_size*top_corner_image->aspect(),
              h=top_corner_size;
-         r.includeY(y[1]+h).includeX(x[0][0]-w, x[0][1]+w);
+         r.validIncludeY(y[1]+h).includeX(x[0][0]-w, x[0][1]+w);
       }
       if(bottom_corner_image)
       {
          Flt w=bottom_corner_size*bottom_corner_image->aspect(),
              h=bottom_corner_size;
-         r.includeY(y[0]-h).includeX(x[2][0]-w, x[2][1]+w);
+         r.validIncludeY(y[0]-h).includeX(x[2][0]-w, x[2][1]+w);
       }
    }else
    {
