@@ -753,7 +753,7 @@ RendererClass& RendererClass::operator()(void (&render)())
             D.clearCol(); // normally after rendering has finished we expect to draw on top of the result, however for stereoscopic, we've rendered to a separate render target, that won't be used for 2D drawing now, instead we're now back to '_cur_main' which is not yet initialized, so we need to clear it here
             // restore settings to centered (not one of the eyes)
             D._view_main.setShader().setProjMatrix(); // viewport
-            SetCam(ActiveCam.matrix); Frustum=FrustumMain; // camera and frustum
+            SetCam(ActiveCam.matrix); // camera, 'Frustum' remains the same
          }
       }
    }

@@ -229,8 +229,6 @@ void FrustumClass::from(C BoxD &box)
    }
    points=8;
    edges =12;
-
-   // this method is called only inside 'Light.drawForward', we don't set here FrustumMain
 }
 /******************************************************************************/
 void FrustumClass::from(C PyramidM &pyramid)
@@ -293,8 +291,6 @@ void FrustumClass::from(C PyramidM &pyramid)
    }
    points=5;
    edges =8;
-
-   // this method is called only inside 'Light.drawForward', we don't set here FrustumMain
 }
 /******************************************************************************/
 Bool FrustumClass::operator()(C Vec &point)C

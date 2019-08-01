@@ -126,7 +126,7 @@ void LayeredClouds::draw()
       Renderer.set(Renderer._col, Renderer._sky_coverage, null, null, Renderer._ds, true, WANT_DEPTH_READ); // use DS for depth tests
       Flt from=D.viewRange()*frac(),
           to  =D.viewRange();
-      MAX(from, FrustumMain.view_quad_max_dist/CLOUD_MESH_MIN_DIST); // make sure we don't intersect with the near plane
+      MAX(from, Frustum.view_quad_max_dist/CLOUD_MESH_MIN_DIST); // make sure we don't intersect with the near plane
       Bool blend=(Renderer.canReadDepth1S() && from<to-EPS_SKY_MIN_LERP_DIST); // !! set after 'Renderer.set' !! set blend mode if 'from' is far from 'to', and yes use < and not <= in case of precision issues for big values
       if(  blend)
       {
