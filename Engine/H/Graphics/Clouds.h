@@ -173,7 +173,7 @@ struct AllClouds
    void del      ()  {layered.del(); volumetric.del();}
    void create   ()  {draw=true; layered.create();}
    void drawAll  ();
-   void shadowMap()  {layered.shadowMap(); volumetric.shadowMap();}
+   void shadowMap()  {layered.shadowMap(); volumetric.shadowMap();} // !! Warning: 'Frustum' is not set here !!
    Bool wantDepth()C {return draw && (layered.wantDepth() || volumetric.wantDepth());}
 #endif
 }extern

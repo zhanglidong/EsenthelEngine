@@ -6,9 +6,7 @@ namespace EE{
    Order of planes is set based on performance tests.
 
 /******************************************************************************/
-FrustumClass Frustum     ,
-             FrustumMain ,
-             FrustumGrass;
+FrustumClass Frustum, FrustumMain;
 /******************************************************************************/
 void FrustumClass::set(Flt range, C Vec2 &fov, C MatrixM &camera)
 {
@@ -178,12 +176,7 @@ void FrustumClass::set(Flt range, C Vec2 &fov, C MatrixM &camera)
 void FrustumClass::set()
 {
    set(D._view_active.range, D._view_active.fov, CamMatrix);
-
-   if(Renderer()!=RM_SHADOW)
-   {
-      FrustumMain=T;
-      FrustumGrass.set(Min(D._view_active.range, D.grassRange()), D._view_active.fov, CamMatrix);
-   }
+   if(Renderer()!=RM_SHADOW)FrustumMain=T;
 }
 /******************************************************************************/
 void FrustumClass::from(C BoxD &box)

@@ -560,7 +560,7 @@ void RendererClass::setMainViewport()
    {
       D._view_active.setRect(Renderer.screenToPixelI(D._view_rect)).setViewport().setShader();
       SetProjMatrix();
-      SetCam(ActiveCam.matrix, false);
+      SetCam(ActiveCam.matrix); // 'Frustum' remains the same
       D.validateCoords();
       D.setViewFovTan();
    }
@@ -571,7 +571,7 @@ void RendererClass::setEyeViewport()
    {
       D._view_active.setRect(Renderer.screenToPixelI(D._view_eye_rect[_eye])).setViewport().setShader(&ProjMatrixEyeOffset[_eye]); // 'setShader' needed for 'PosToScreen' and 'fur'
       SetProjMatrix(ProjMatrixEyeOffset[_eye]);
-      SetCam(EyeMatrix[_eye], false);
+      SetCam(EyeMatrix[_eye]); // 'Frustum' remains the same
       D.validateCoords(_eye);
       D.setViewFovTan();
    }

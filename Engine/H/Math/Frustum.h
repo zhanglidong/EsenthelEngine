@@ -66,6 +66,6 @@ private:
 }extern
    Frustum; // Active Frustum
 #if EE_PRIVATE
-extern FrustumClass FrustumMain, FrustumGrass;
+extern FrustumClass FrustumMain;
 #endif
 /******************************************************************************/

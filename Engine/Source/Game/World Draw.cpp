@@ -62,7 +62,8 @@ inline void Area::drawObjAndTerrain()
          if(D.grassRange()>EPS_GRASS_RANGE)
          {
           C Memc<Data::GrassObj> &fo=_data->foliage_objs;
-            if(fo.elms() && FrustumGrass(_data->foliage_objs_box, fully_inside))
+          C FrustumClass &frustum=world()->_frustum_grass;
+            if(fo.elms() && frustum(_data->foliage_objs_box, fully_inside))
             {
                UInt density=RoundPos(D.grassDensity()*256);
                REPA(fo)
@@ -76,7 +77,7 @@ inline void Area::drawObjAndTerrain()
                      {
                       C Data::GrassObj::Instance &instance=obj.instances[i];
                         Flt dist2=Dist2(instance.matrix.pos, ActiveCam.matrix.pos);
-                        if( dist2<D._grass_range_sqr && (fully_inside || FrustumGrass(ball*instance.matrix)))
+                        if( dist2<D._grass_range_sqr && (fully_inside || frustum(ball*instance.matrix)))
                         {
                            if(!obj.shrink)mesh->draw(instance.matrix);else
                            {
@@ -186,7 +187,8 @@ void WorldManager::draw()
       case RM_PREPARE:
       {
          // objects and terrain
-         if(Renderer.firstPass() || CurrentLight.type==LIGHT_DIR)
+         if(Renderer.firstPass())_frustum_grass.set(Min(D._view_active.range, D.grassRange()), D._view_active.fov, CamMatrix);
+         if(Renderer.firstPass() || CurrentLight.type==LIGHT_DIR) // directional lights cover entire screen, so we don't have to recalculate visible areas and just use '_area_draw'
          { // '_area_draw' were calculated in MODE_UNDERWATER
             FREPAO(_area_draw)->drawObjAndTerrain(); // draw in order
          }else

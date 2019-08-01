@@ -2975,7 +2975,7 @@ void Display::viewUpdate()
    {
      _view_active=_view_main;
       if(_lock.owned())_view_active.setViewport(); // set actual viewport only if we own the lock, this is because this method can be called outside of 'Draw' where we don't have the lock, however to avoid locking which could affect performance (for example GPU still owning the lock on other thread, for example for flipping back buffer, we would have to wait until it finished), we can skip setting the viewport because drawing is not allowed in update anyway. To counteract this skip here, instead we always reset the viewport at the start of Draw in 'DrawState'
-     _view_active.setShader().setProjMatrix(true);
+     _view_active.setShader().setProjMatrix(); Frustum.set();
    }
 
   _view_from  =(FovPerspective(viewFovMode()) ? viewFrom() : 0);

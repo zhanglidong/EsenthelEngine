@@ -114,12 +114,11 @@ Camera& Camera::updateVelocities(CAM_ATTACHMENT attachment)
    return T;
 }
 /******************************************************************************/
-void SetCam(C MatrixM &matrix, Bool set_frustum)
+void SetCam(C MatrixM &matrix)
 {
    CamMatrix=matrix;
    CamMatrix.inverse(CamMatrixInv, true);
    Sh.CamMatrix->set(CamMatrix);
-   if(set_frustum)Frustum.set();
 }
 void Camera::set()C // this should be called only outside of 'Renderer' rendering
 {
@@ -129,7 +128,7 @@ void Camera::set()C // this should be called only outside of 'Renderer' renderin
       Vec eye_ofs=matrix.x*(D.eyeDistance()*0.5f);
       EyeMatrix[0]=matrix; EyeMatrix[0].pos-=eye_ofs;
       EyeMatrix[1]=matrix; EyeMatrix[1].pos+=eye_ofs;
-      SetCam(matrix);
+      SetCam(matrix); Frustum.set();
 
       // set velocity related things !! the same must be done below in 'MotionScaleChanged' !!
       CamMatrixInvMotionScale=CamMatrixInv.orn(); CamMatrixInvMotionScale.scale(D.motionScale());

@@ -157,7 +157,7 @@ void LayeredClouds::draw()
       D.depthFunc (FUNC_LESS);
    }
 }
-void LayeredClouds::shadowMap()
+void LayeredClouds::shadowMap() // !! Warning: 'Frustum' is not set here !!
 {
 }
 /******************************************************************************/
@@ -666,7 +666,7 @@ void VolumetricClouds::draw()
       if(swap)Renderer._col->swapRTV(); // restore
    }
 }
-void VolumetricClouds::shadowMap()
+void VolumetricClouds::shadowMap() // !! Warning: 'Frustum' is not set here !!
 {
    if(drawable() && Renderer._cld_map.is())
    {

@@ -459,7 +459,7 @@ private:
       Viewport& set          (C RectI &recti, Flt from, Flt range, C Vec2 &fov, FOV_MODE fov_mode);
       Viewport& setViewport  ();
       Viewport& setShader    (Flt *offset=null);
-      Viewport& setProjMatrix(Bool set_frustum);
+      Viewport& setProjMatrix(); // 'Frustum' may have to be reset after calling this method
    #endif
    };
    struct Monitor

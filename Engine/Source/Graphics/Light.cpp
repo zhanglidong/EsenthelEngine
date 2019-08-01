@@ -165,12 +165,11 @@ static void MapSoft()
 }
 static void RestoreLightSettings()
 {
-   SetCam(ActiveCam.matrix, false); Frustum=FrustumMain;
+   SetCam(ActiveCam.matrix); Frustum=FrustumMain;
 }
 static void RestoreShadowMapSettings()
 {
-   D._view_active.set3DFrom(D._view_main).setProjMatrix(false);
-   RestoreLightSettings();
+   D._view_active.set3DFrom(D._view_main).setProjMatrix(); RestoreLightSettings();
 }
 /******************************************************************************/
 LightCone::LightCone(Flt length, C VecD &pos, C Vec &dir, C Vec &color_l, Flt vol, Flt vol_max)
@@ -322,13 +321,11 @@ static void DrawShadowMap(DIR_ENUM dir, C MatrixM &cam_matrix, UInt flag, Flt vi
 
       viewport_rect.extend(-border);
       D._view_active.set(viewport_rect, view_from, view_range, fov, fov_mode);
-      SetCam(cam_matrix_biased, false); // camera without frustum
-
+      SetCam(cam_matrix_biased);
       if(frustum)Frustum.set(D._view_active.range,       frustum->fov, frustum->matrix);
       else       Frustum.set(D._view_active.range, D._view_active.fov,      cam_matrix);
-
       if(flag&SM_FRUSTUM)if(!FrustumMain(Frustum))return; // check if shadow frustum is visible (lies in main camera view frustum)
-      D._view_active.setViewport().setProjMatrix(false);
+      D._view_active.setViewport().setProjMatrix(); // we set 'Frustum' above
 
       // set matrix converting from shadow map to main camera space (required for tesselation - adaptive tesselation factors)
       Matrix temp; cam_matrix.divNormalized(ActiveCam.matrix, temp); // temp = cam_matrix/ActiveCam.matrix
@@ -343,20 +340,22 @@ static void DrawShadowMap(DIR_ENUM dir, C MatrixM &cam_matrix, UInt flag, Flt vi
                   y =HsmY(dir);
          ImageRT *rt=Renderer._cur[0], *rtz=Renderer._cur_ds;
          Renderer      .set      (&Renderer._cld_map, null, false);
-         D._view_active.set      (RectI(x*D.cloudsMapSize(), y*D.cloudsMapSize(), (x+1)*D.cloudsMapSize(), (y+1)*D.cloudsMapSize()), view_from, view_range, fov, fov_mode).setViewport().setProjMatrix(false); // viewport
-         SetCam                  (cam_matrix, true); // camera and frustum
+         D._view_active.set      (RectI(x*D.cloudsMapSize(), y*D.cloudsMapSize(), (x+1)*D.cloudsMapSize(), (y+1)*D.cloudsMapSize()), view_from, view_range, fov, fov_mode).setViewport().setProjMatrix(); // viewport
+         SetCam                  (cam_matrix); // camera only, frustum not needed for cloud shadows
          Clouds        .shadowMap();
          Renderer      .set      (rt, rtz, false);
       }
    }
 #else
    {
-                         Renderer      .setCube   (null, &Renderer._shd_map, dir);
-                         D._view_active.set       (RectI(0, 0, Renderer.resW(), Renderer.resH()), view_from, view_range, fov, fov_mode).setViewport().setProjMatrix(false); // viewport
-                         SetCam                   (cam_matrix, true); // camera and frustum
-      if(flag&SM_FRUSTUM)if(!FrustumMain          (Frustum))return;
-                         Sh            .clear     (Vec4(D._view_active.range*2));
-                         D             .clearDepth();
+      Renderer.setCube(null, &Renderer._shd_map, dir);
+      D._view_active.set(RectI(0, 0, Renderer.resW(), Renderer.resH()), view_from, view_range, fov, fov_mode).setViewport().setProjMatrix(); // viewport
+      SetCam(cam_matrix);
+      if(frustum)Frustum.set(D._view_active.range,       frustum->fov, frustum->matrix);
+      else       Frustum.set(D._view_active.range, D._view_active.fov,      cam_matrix);
+      if(flag&SM_FRUSTUM)if(!FrustumMain(Frustum))return;
+      Sh.clear     (Vec4(D._view_active.range*2));
+      D .clearDepth();
 
       D.sampler3D(); D.bias(BIAS_SHADOW); D.depth(true); PrepareShadowInstances(); Renderer._render(); DrawShadowInstances();
       D.sampler2D(); D.bias(BIAS_ZERO);
@@ -364,8 +363,8 @@ static void DrawShadowMap(DIR_ENUM dir, C MatrixM &cam_matrix, UInt flag, Flt vi
       if((flag&SM_CLOUDS) && Renderer._cld_map.is())
       {
          Renderer      .setCube  (Renderer._cld_map, null, dir);
-         D._view_active.set      (RectI(0, 0, Renderer.resW(), Renderer.resH()), view_from, view_range, fov, fov_mode).setViewport().setProjMatrix(false); // viewport
-         SetCam                  (cam_matrix, true); // camera and frustum
+         D._view_active.set      (RectI(0, 0, Renderer.resW(), Renderer.resH()), view_from, view_range, fov, fov_mode).setViewport().setProjMatrix(); // viewport
+         SetCam                  (cam_matrix); // camera only, frustum not needed for cloud shadows
          Clouds        .shadowMap();
       }
    }
@@ -386,7 +385,7 @@ static void StartVol()
 
    if(Renderer._stereo) // for stereoscopic we need to set correct eye, otherwise it was already set
    {
-    //SetCam(EyeMatrix[Renderer._eye], false); this is not needed because all positions in shaders are based on ShdMatrix
+    //SetCam(EyeMatrix[Renderer._eye]); this is not needed because all positions in shaders are based on ShdMatrix, 'Frustum' not needed too
       SetShdMatrix();
       Renderer.setEyeParams();
    }
@@ -454,7 +453,7 @@ static Bool SetLightEye(Bool shadow=false)
    CurrentLightOn[Renderer._eye]=false;
    if(Renderer._stereo)
    {
-      SetCam(EyeMatrix[Renderer._eye], false);
+      SetCam(EyeMatrix[Renderer._eye]); // 'Frustum' remains the same
       if(!StereoCurrentLightRect())return false;
       Renderer.setEyeParams();
    }
@@ -610,7 +609,7 @@ static Bool ShadowMap(LightDir &light)
          if(points<3) // min 3 points required to construct a volume, otherwise we would have zero dimension frustum or even "points_1==-1"
          {
             light_matrix.pos.zero(); REPA(point)light_matrix.pos+=point[i]; light_matrix.pos/=Elms(point); // set position in the center of all points
-            D._view_active.setFrom(0).setRange(range).setFov(1, FOV_ORTHO).setProjMatrix(false); // set 'ProjMatrix' projection matrix needed below to calculate correct transformation matrix, needed in case there will be some pixels outside of the 'Renderer.lowest_visible_point'
+            D._view_active.setFrom(0).setRange(range).setFov(1, FOV_ORTHO).setProjMatrix(); // set 'ProjMatrix' projection matrix needed below to calculate correct transformation matrix, needed in case there will be some pixels outside of the 'Renderer.lowest_visible_point', changing 'Frustum' not needed because it's not needed here and will be set/reset later
             goto skip;
          }
          points_1=points-1;

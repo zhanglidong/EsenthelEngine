@@ -301,6 +301,7 @@ private:
    Grid<Area>         _grid;
    PathWorld          _path;
    WorldSettings      _settings;
+   FrustumClass       _frustum_grass;
 
    UInt     _path_iteration;
    PathFind _path_find;

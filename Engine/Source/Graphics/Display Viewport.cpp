@@ -244,7 +244,7 @@ Flt DepthError(Dbl from, Dbl range, Dbl z, Bool perspective, Int bits)
       z1=  LinearizeDepth(w1, mp_z_z, mp_w_z, perspective);
    return Abs(z1-z);
 }
-Display::Viewport& Display::Viewport::setProjMatrix(Bool set_frustum) // !! must be the same as "Flt DepthError" !!
+Display::Viewport& Display::Viewport::setProjMatrix() // !! must be the same as "Flt DepthError" !!
 {
    Dbl z, from, range=T.range; // use 'Dbl' to perform computations in best precision because we need 'ProjMatrix' to be as precise as possible
    if(FovPerspective(fov_mode)) // in perspective we have viewport depth ranges from "from .. range"
@@ -290,8 +290,6 @@ Display::Viewport& Display::Viewport::setProjMatrix(Bool set_frustum) // !! must
 #endif
 
    SetProjMatrix();
-
-   if(set_frustum)Frustum.set();
 
    return T;
 }

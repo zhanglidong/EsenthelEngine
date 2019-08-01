@@ -752,8 +752,8 @@ RendererClass& RendererClass::operator()(void (&render)())
          {
             D.clearCol(); // normally after rendering has finished we expect to draw on top of the result, however for stereoscopic, we've rendered to a separate render target, that won't be used for 2D drawing now, instead we're now back to '_cur_main' which is not yet initialized, so we need to clear it here
             // restore settings to centered (not one of the eyes)
-            D._view_main.setShader().setProjMatrix(false); // viewport
-            SetCam(ActiveCam.matrix, false); Frustum=FrustumMain; // camera and frustum
+            D._view_main.setShader().setProjMatrix(); // viewport
+            SetCam(ActiveCam.matrix); Frustum=FrustumMain; // camera and frustum
          }
       }
    }
@@ -793,11 +793,11 @@ Bool RendererClass::reflection()
       Byte             density        =D.densityByte      ();                     D.densityFast     (Mid(((D.densityByte()+1)>>_mirror_resolution)-1, 0, 255));
 
       // set new settings
-     _mirror=true;                                                                 // set before viewport and camera
+     _mirror=true;                                                                                // set before viewport and camera
       // <- change viewport here if needed
-      ConstCast(ActiveCam).matrix.mirror(_mirror_plane); SetCam(ActiveCam.matrix); // set mirrored camera
-      D.clipPlane(_mirror_plane);                                                  // set clip plane after viewport and camera
-      Sh.AllowBackFlip->set(1);                                                    // disable back flipping
+      ConstCast(ActiveCam).matrix.mirror(_mirror_plane); SetCam(ActiveCam.matrix); Frustum.set(); // set mirrored camera and frustum
+      D.clipPlane(_mirror_plane);                                                                 // set clip plane after viewport and camera
+      Sh.AllowBackFlip->set(1);                                                                   // disable back flipping
 
       // render !! adding new modes here will require setting there D.clipPlane !!
       prepare();
@@ -990,7 +990,7 @@ start:
    D.alpha(ALPHA_NONE);
 
    mode(RM_PREPARE); AstroPrepare(); // !! call after obtaining '_col', '_ds' and '_ds_1s' because we rely on having them, and after RM_PREPARE because we may add lights !!
-  _eye=0; if(_stereo)SetCam(EyeMatrix[_eye], false); // start with the first eye and set camera so we can calculate view_matrix for instances, this is important, because precalculated view_matrix is assumed to be for the first eye, so when rendering instances we need to adjust the projection matrix for next eye, this affects 'BeginPrecomputedViewMatrix'
+  _eye=0; if(_stereo)SetCam(EyeMatrix[_eye]); // start with the first eye and set camera so we can calculate view_matrix for instances, this is important, because precalculated view_matrix is assumed to be for the first eye, so when rendering instances we need to adjust the projection matrix for next eye, this affects 'BeginPrecomputedViewMatrix', 'Frustum' remains the same
   _render(); // we can call '_render' only once for RM_PREPARE
    Bool clear_ds=true; // if need to clear depth
 
