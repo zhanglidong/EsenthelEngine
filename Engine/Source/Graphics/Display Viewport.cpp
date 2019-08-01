@@ -281,6 +281,7 @@ Display::Viewport& Display::Viewport::setProjMatrix() // !! must be the same as 
       ProjMatrix.pos.z=z*-from;
    }
 #endif
+
 #if DEBUG && 0
    #pragma message("!! Warning: Use this only for debugging !!")
    Vec4 p; Dbl w;
