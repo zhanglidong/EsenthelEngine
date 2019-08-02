@@ -76,8 +76,8 @@ VecH2 Clouds_PS(NOPERSP Vec dir:TEXCOORD):TARGET // 'dir'=world-space position
          if(X)m=0.5*Sat(sample.y*10)*s;else
                  m=3*sample.y*s;
 
-              sample.y+=(VolXY1.SampleLevel(SamplerLinearWrap, pos*S*Z  , 0).r)*m;
-         if(Y)sample.y+=(VolXY1.SampleLevel(SamplerLinearWrap, pos*S*Z*2, 0).r)*m/2;
+              sample.y+=(Tex3DLodWrap(VolXY1, pos*S*Z  ).r)*m;
+         if(Y)sample.y+=(Tex3DLodWrap(VolXY1, pos*S*Z*2).r)*m/2;
 
          sample.y=Sat(sample.y);
       }*/

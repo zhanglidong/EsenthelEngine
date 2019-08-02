@@ -163,25 +163,15 @@
 #define Tex3DLod(  image, uvw   )   image.SampleLevel(SamplerDefault, uvw, 0) // access 3D   texture's 0-th MipMap (LOD level=0)
 #define TexCubeLod(image, uvw   )   image.SampleLevel(SamplerDefault, uvw, 0) // access Cube texture's 0-th MipMap (LOD level=0)
 
-#if !GL
-#define TexPoint( image, uv)   image.SampleLevel(SamplerPoint, uv, 0)
-#define TexGather(image, uv)   image.Gather     (SamplerPoint, uv   ) // gather available since SM_4_1, GL 4.0, GL ES 3.1
-#else // use default sampler on GL because it would create a secondary "sampler2D" in GLSL and we would have to set 2 ShaderImage's
-#define TexPoint( image, uv)   image.SampleLevel(SamplerDefault, uv, 0)
-#define TexGather(image, uv)   image.Gather     (SamplerDefault, uv   ) // gather available since SM_4_1, GL 4.0, GL ES 3.1
-#endif
+#define TexPoint(image, uv)   image.SampleLevel(SamplerPoint, uv, 0)
 
-#define TexSample(image, pixel, i)   image.Load(pixel, i) // access i-th sample of a multi-sampled texture
-
-#if !GL
-#define TexShadow(image, uvw)   image.SampleCmpLevelZero(SamplerShadowMap, uvw.xy, uvw.z)
-#else
-#define TexShadow(image, uvw)   image.SampleCmpLevelZero(SamplerShadowMap, uvw.xy, uvw.z*0.5+0.5) // adjust OpenGL depth scale (z' = z*0.5 + 0.5)
-#endif
+#define TexGather(image, uv)   image.Gather(SamplerPoint, uv) // gather available since SM_4_1, GL 4.0, GL ES 3.1
 
 #define TexClamp(    image, uv )   image.Sample     (SamplerLinearClamp, uv    )
 #define TexLodClamp( image, uv )   image.SampleLevel(SamplerLinearClamp, uv , 0)
 #define Tex3DLodWrap(image, uvw)   image.SampleLevel(SamplerLinearWrap , uvw, 0)
+
+#define TexSample(image, pixel, i)   image.Load(pixel, i) // access i-th sample of a multi-sampled texture
 
 #define TexDepthRawPoint( uv)                       TexPoint (Depth  , uv).x
 #define TexDepthRawLinear(uv)                       TexLod   (Depth  , uv).x
@@ -190,6 +180,12 @@
 #define TexDepthGather(   uv)                       TexGather(Depth  , uv)
 #define TexDepthMSRaw(pixel, sample)                TexSample(DepthMS, pixel, sample).x
 #define TexDepthMS(   pixel, sample) LinearizeDepth(TexSample(DepthMS, pixel, sample).x)
+
+#if !GL
+#define TexShadow(image, uvw)   image.SampleCmpLevelZero(SamplerShadowMap, uvw.xy, uvw.z)
+#else
+#define TexShadow(image, uvw)   image.SampleCmpLevelZero(SamplerShadowMap, uvw.xy, uvw.z*0.5+0.5) // adjust OpenGL depth scale (z' = z*0.5 + 0.5)
+#endif
 /******************************************************************************/
 // CONSTANTS
 /******************************************************************************/
@@ -522,6 +518,11 @@ Texture2DMS<Flt  , MS_SAMPLES> DepthMS;
        SAMPLER(SamplerLinearCWW  , SSI_LINEAR_CWW  );
 SHADOW_SAMPLER(SamplerShadowMap  , SSI_SHADOW      );
        SAMPLER(SamplerFont       , SSI_FONT        );
+#if GL // use default sampler on GL because it would create a secondary "sampler2D" in GLSL and we would have to set 2 ShaderImage's
+   #define SamplerPoint       SamplerDefault
+   #define SamplerLinearClamp SamplerDefault
+   #define SamplerLinearWrap  SamplerDefault
+#endif
 /******************************************************************************/
 inline Int   Min(Int   x, Int   y                  ) {return min(x, y);}
 inline Half  Min(Half  x, Half  y                  ) {return min(x, y);}
