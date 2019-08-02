@@ -1,6 +1,8 @@
 /******************************************************************************/
 #include "stdafx.h"
 namespace EE{
+/******************************************************************************
+!! WARNING: all 'ToScreenRect' functions use 'FrustumMain' instead of 'Frustum' so they can't be used when drawing shadows !! this is so we don't have to restore 'Frustum' after every drawing light, see ALWAYS_RESTORE_FRUSTUM
 /******************************************************************************/
   Camera       Cam;
 C Camera ActiveCam;
@@ -403,6 +405,8 @@ void ScreenToPosDir(C Vec2 &screen, VecD &pos, Vec &dir)
       dir=CamMatrix.z;
    }
 }
+/******************************************************************************
+!! WARNING: all 'ToScreenRect' functions use 'FrustumMain' instead of 'Frustum' so they can't be used when drawing shadows !! this is so we don't have to restore 'Frustum' after every drawing light, see ALWAYS_RESTORE_FRUSTUM
 /******************************************************************************/
 #define NO_BRANCH 1 // 1=faster
 static Bool ToScreenRect(C Vec *point, Int points, Rect &rect)
@@ -514,7 +518,7 @@ Bool ToScreenRect(C OBox &obox, Rect &rect)
 }
 Bool ToScreenRect(C Ball &ball, Rect &rect)
 {
-   if(!Frustum(ball))return false;
+   if(!FrustumMain(ball))return false;
    if(Cuts(CamMatrix.pos, ball)){rect=D.viewRect(); return true;}
 #if 1
    Flt  l, s, c;
@@ -545,7 +549,7 @@ Bool ToScreenRect(C Ball &ball, Rect &rect)
 }
 Bool ToScreenRect(C BallM &ball, Rect &rect)
 {
-   if(!Frustum(ball))return false;
+   if(!FrustumMain(ball))return false;
    if(Cuts(CamMatrix.pos, ball)){rect=D.viewRect(); return true;}
 #if 1
    Flt  l, s, c;
@@ -577,7 +581,7 @@ Bool ToScreenRect(C BallM &ball, Rect &rect)
 }
 Bool ToFullScreenRect(C Ball &ball, Rect &rect)
 {
-   if(!Frustum(ball))return false;
+   if(!FrustumMain(ball))return false;
    if(Cuts(CamMatrix.pos, ball)){rect=D.viewRect(); return true;}
 #if 1
    Flt  l, s, c;
@@ -608,7 +612,7 @@ Bool ToFullScreenRect(C Ball &ball, Rect &rect)
 }
 Bool ToFullScreenRect(C BallM &ball, Rect &rect)
 {
-   if(!Frustum(ball))return false;
+   if(!FrustumMain(ball))return false;
    if(Cuts(CamMatrix.pos, ball)){rect=D.viewRect(); return true;}
 #if 1
    Flt  l, s, c;
@@ -640,7 +644,7 @@ Bool ToFullScreenRect(C BallM &ball, Rect &rect)
 }
 Bool ToScreenRect(C Capsule &capsule, Rect &rect)
 {
-   if(!Frustum(capsule))return false;
+   if(!FrustumMain(capsule))return false;
    if(Cuts(CamMatrix.pos, capsule)){rect=D.viewRect(); return true;}
 #if 1
    Flt  l, s, c;
@@ -703,7 +707,7 @@ Bool ToScreenRect(C Capsule &capsule, Rect &rect)
 }
 Bool ToScreenRect(C CapsuleM &capsule, Rect &rect)
 {
-   if(!Frustum(capsule))return false;
+   if(!FrustumMain(capsule))return false;
    if(Cuts(CamMatrix.pos, capsule)){rect=D.viewRect(); return true;}
    Flt   l, s, c;
    Vec2  screen;

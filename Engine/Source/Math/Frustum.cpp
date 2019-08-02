@@ -231,6 +231,10 @@ void FrustumClass::from(C BoxD &box)
    points=8;
    edges =12;
 }
+void FrustumClass::fromBall(Flt r, C VecD &pos)
+{
+   from(BoxD(r, pos));
+}
 /******************************************************************************/
 void FrustumClass::from(C PyramidM &pyramid)
 {

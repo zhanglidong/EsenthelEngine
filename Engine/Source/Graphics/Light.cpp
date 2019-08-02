@@ -4,6 +4,12 @@
 #define FLAT_SHADOW_MAP 1 // TODO try implementing DX11 Cube Shadow Maps?
 #define LOCAL_SHADOW_MAP_FROM (1.0f/64) // 0.015625m, 1.5 cm
 
+#define ALWAYS_RESTORE_FRUSTUM 0 // 0=skip (faster)
+/* !! WARNING: For performance reasons 'Frustum' is not restored after (drawing shadows AND custom frustum for forward local lights), but only after all lights finished
+   !! instead we set 'Frustum' only when needed
+   !! however when processing lights we have to use 'toScreenRect' which needs a frustum, since we don't restore it, those functions were made to always use 'FrustumMain'
+   !! because of that we can't use 'toScreenRect' for shadows to get the rect in shadow RT */
+
 namespace EE{
 /******************************************************************************
 
@@ -163,13 +169,9 @@ static void MapSoft()
       Sh.ImgX[0]->set(Renderer._shd_1s);
    }
 }
-static void RestoreLightSettings()
-{
-   SetCam(ActiveCam.matrix); Frustum=FrustumMain;
-}
 static void RestoreShadowMapSettings()
 {
-   D._view_active.set3DFrom(D._view_main).setProjMatrix(); RestoreLightSettings();
+   D._view_active.set3DFrom(D._view_main).setProjMatrix(); SetCam(ActiveCam.matrix); if(ALWAYS_RESTORE_FRUSTUM)Frustum=FrustumMain;
 }
 /******************************************************************************/
 LightCone::LightCone(Flt length, C VecD &pos, C Vec &dir, C Vec &color_l, Flt vol, Flt vol_max)
@@ -424,7 +426,7 @@ static void ApplyVolumetric(LightCone &light)
    }
 }
 /******************************************************************************/
-static Bool StereoCurrentLightRect() // this relies on current Camera Matrix and 'Frustum'
+static Bool StereoCurrentLightRect() // this relies on current Camera Matrix and 'Frustum' (actually right now 'toScreenRect' are based on 'FrustumMain' so we don't have to restore 'Frustum')
 {
    if(!CurrentLight.toScreenRect(CurrentLight.rect))return false;
 
@@ -616,7 +618,7 @@ static Bool ShadowMap(LightDir &light)
       }
 
       {
-         // convert Frustum points onto 2D light orientation space
+         // convert frustum points onto 2D light orientation space
          VecD2 frustum_points_2D[Elms(point_temp)];
          REP(points){C VecD &p=point_ptr[i]; frustum_points_2D[i].set(Dot(p, light_matrix.x), Dot(p, light_matrix.y));}
          MatrixFovFrac frustum;
@@ -1288,12 +1290,13 @@ void Light::drawForward(ALPHA_MODE alpha)
          Renderer.setForwardCol();
          D.alpha(alpha);
          D.set3D();
+         if(!ALWAYS_RESTORE_FRUSTUM) // here use !ALWAYS_RESTORE_FRUSTUM because we have to set frustum only if it wasn't restored before, if it was then it means we already have 'FrustumMain'
+            Frustum=FrustumMain; // directional lights always use original frustum
          if(Renderer.firstPass())
          {
             D.stencil(STENCIL_ALWAYS_SET, 0);
          }else
          {  // we need to generate list of objects
-            Frustum=FrustumMain;
             Renderer.mode(RM_PREPARE); Renderer._render();
             D.clipAllow(true);
          }
@@ -1350,10 +1353,13 @@ void Light::drawForward(ALPHA_MODE alpha)
          if(Renderer.firstPass())
          {
             D.stencil(STENCIL_ALWAYS_SET, 0);
+            if(!ALWAYS_RESTORE_FRUSTUM) // here use !ALWAYS_RESTORE_FRUSTUM because we have to set frustum only if it wasn't restored before, if it was then it means we already have 'FrustumMain'
+               Frustum=FrustumMain; // need to use entire Frustum for first pass
          }else
          {  // we need to generate list of objects
-            Frustum.from(BoxD(CurrentLight.point.range(), CurrentLight.point.pos));
+            Frustum.fromBall(CurrentLight.point.range(), CurrentLight.point.pos);
             Renderer.mode(RM_PREPARE); Renderer._render();
+            if(ALWAYS_RESTORE_FRUSTUM)Frustum=FrustumMain;
             D.clipAllow(true);
          }
          Renderer.mode(RM_SOLID);
@@ -1410,10 +1416,13 @@ void Light::drawForward(ALPHA_MODE alpha)
          if(Renderer.firstPass())
          {
             D.stencil(STENCIL_ALWAYS_SET, 0);
+            if(!ALWAYS_RESTORE_FRUSTUM) // here use !ALWAYS_RESTORE_FRUSTUM because we have to set frustum only if it wasn't restored before, if it was then it means we already have 'FrustumMain'
+               Frustum=FrustumMain; // need to use entire Frustum for first pass
          }else
          {  // we need to generate list of objects
-            Frustum.from(BoxD(CurrentLight.linear.range, CurrentLight.linear.pos));
+            Frustum.fromBall(CurrentLight.linear.range, CurrentLight.linear.pos);
             Renderer.mode(RM_PREPARE); Renderer._render();
+            if(ALWAYS_RESTORE_FRUSTUM)Frustum=FrustumMain;
             D.clipAllow(true);
          }
          Renderer.mode(RM_SOLID);
@@ -1470,10 +1479,13 @@ void Light::drawForward(ALPHA_MODE alpha)
          if(Renderer.firstPass())
          {
             D.stencil(STENCIL_ALWAYS_SET, 0);
+            if(!ALWAYS_RESTORE_FRUSTUM) // here use !ALWAYS_RESTORE_FRUSTUM because we have to set frustum only if it wasn't restored before, if it was then it means we already have 'FrustumMain'
+               Frustum=FrustumMain; // need to use entire Frustum for first pass
          }else
          {  // we need to generate list of objects
             Frustum.from(CurrentLight.cone.pyramid);
             Renderer.mode(RM_PREPARE); Renderer._render();
+            if(ALWAYS_RESTORE_FRUSTUM)Frustum=FrustumMain;
             D.clipAllow(true);
          }
          Renderer.mode(RM_SOLID);
@@ -1590,7 +1602,9 @@ void DrawLights()
    if(Lights.elms())
    {
       REPAO(Lights).draw(); // apply in backward order to leave main shadow map in the end
-      RestoreLightSettings(); // restore this because camera matrix may have changed even when not rendering shadows, but when using stereoscopic rendering and setting cameras for each eye
+
+      if(!ALWAYS_RESTORE_FRUSTUM) // here use !ALWAYS_RESTORE_FRUSTUM because we have to set frustum only if it wasn't restored before, if it was then it means we already have 'FrustumMain'
+         Frustum=FrustumMain; // restore 'Frustum' because it could've changed when drawing shadows
    }
 }
 /******************************************************************************/
