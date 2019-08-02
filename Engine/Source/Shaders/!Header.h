@@ -343,18 +343,18 @@ BUFFER_END
 
 BUFFER(Ambient)
    VecH AmbColor, AmbNSColor;
-   Half AmbMaterial=1; // if apply Material Ambient
+   Bool AmbMaterial=true; // if apply Material Ambient
 BUFFER_END
 /******************************************************************************/
 BUFFER_I(Global, SBI_GLOBAL)
-   Matrix4 ProjMatrix                    ; // projection  matrix
-   Vec4    ClipPlane    =Vec4(0, 0, 0, 1); // clipping    plane
-   Half    AllowBackFlip=              -1; // normal      flipping TODO: this probably needs to be handled differently, so it can work for mirrored reflections too
-   Flt     TesselationDensity            ; // tesselation density
-   Vec2    GrassRangeMulAdd              ; // factors used for grass opacity      calculation
-   VecH4   BendFactor                    ; // factors used for grass/leaf bending calculation
-   Vec     CamAngVel                     ; // camera      angular velocity, pre-multiplied by 'D.motionScale'
-   Matrix  CamMatrix                     ; // camera      matrix !! define Matrix last to avoid potential alignment issues on Arm Mali !!
+   Matrix4 ProjMatrix                ; // projection  matrix
+   Vec4    ClipPlane=Vec4(0, 0, 0, 1); // clipping    plane
+   Bool    FrontFace=true            ; // normal      flipping
+   Flt     TesselationDensity        ; // tesselation density
+   Vec2    GrassRangeMulAdd          ; // factors used for grass opacity      calculation
+   VecH4   BendFactor                ; // factors used for grass/leaf bending calculation
+   Vec     CamAngVel                 ; // camera      angular velocity, pre-multiplied by 'D.motionScale'
+   Matrix  CamMatrix                 ; // camera      matrix !! define Matrix last to avoid potential alignment issues on Arm Mali !!
 BUFFER_END
 
 BUFFER_I(ObjVel, SBI_OBJ_VEL) // !! WARNING: this CB is dynamically resized, do not add other members !!
@@ -363,7 +363,7 @@ BUFFER_END
 
 BUFFER_I(Mesh, SBI_MESH)
    Flt   VtxHeightmap;
-   Flt   VtxSkinning ;
+   Bool  VtxSkinning;
    VecH4 Highlight; // this can be modified by engine's 'SetHighlight' function
    VecH  ObjAngVel; // object angular velocity, pre-multiplied by 'D.motionScale', TODO: in the future merge this with 'ObjVel' as half3x2/half2x3 (also for GLSL and adjust everything related to 'ObjVel' in shaders and on CPU side, #VelAngVel)
 BUFFER_END
@@ -1025,9 +1025,9 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
    Vec2  tex1     (                                        ) {return                                                         _tex1         ;} // tex coords 1
    Vec2  tex2     (                                        ) {return                                                         _tex2         ;} // tex coords 2
 #if GL
-   VecU  bone     (                                        ) {return  VtxSkinning ? VecU(_bone.xyz) : VecU(0, 0, 0)                        ;} // bone matrix indexes
+   VecU  bone     (                                        ) {return VtxSkinning ? VecU(_bone.xyz) : VecU(0, 0, 0)                         ;} // bone matrix indexes
 #else
-   VecU  bone     (                                        ) {return  VtxSkinning ?      _bone.xyz  : VecU(0, 0, 0)                        ;} // bone matrix indexes
+   VecU  bone     (                                        ) {return VtxSkinning ?      _bone.xyz  : VecU(0, 0, 0)                         ;} // bone matrix indexes
 #endif
    Vec   weight   (                                        ) {return _weight.xyz                                                           ;} // bone matrix weights
    VecH4 material (                                        ) {return _material                                                             ;} // material    weights
@@ -1428,7 +1428,7 @@ inline VecH GetDetail(Vec2 tex)
 /******************************************************************************/
 // FACE NORMAL HANDLING
 /******************************************************************************/
-inline void BackFlip(in out VecH dir, Bool front) {if(!front)dir*=AllowBackFlip;}
+inline void BackFlip(in out VecH dir, Bool front) {if(front!=FrontFace)dir=-dir;}
 /******************************************************************************/
 // VELOCITIES
 /******************************************************************************/

@@ -75,9 +75,7 @@ struct MainShaderClass
       *Step         ,
       *Color[2]  ={&Dummy, &Dummy},
       *BehindBias= &Dummy,
-      *AllowBackFlip,
 
-      *VtxSkinning ,
       *VtxHeightmap,
 
       *FontShadow  ,
@@ -95,7 +93,6 @@ struct MainShaderClass
 
       *RippleParams,
 
-      *AmbientMaterial,
       *AmbientContrast =&Dummy,
       *AmbientRange    =&Dummy,
       *AmbientBias     =&Dummy,
@@ -143,6 +140,11 @@ struct MainShaderClass
       *OverlayParams,
       
       *SMAAThreshold=&Dummy;
+
+   ShaderParamBool
+      *AmbientMaterial,
+      *VtxSkinning,
+      *FrontFace;
 
    // SHADERS
    Shader

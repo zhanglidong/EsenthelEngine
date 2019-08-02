@@ -332,27 +332,28 @@ void MainShaderClass::getTechniques()
    LightLinear=GetShaderParam("LightLinear");
    LightCone  =GetShaderParam("LightCone"  );
 
-   Step         =GetShaderParam("Step"         );
-   Color[0]     =GetShaderParam("Color[0]"     );
-   Color[1]     =GetShaderParam("Color[1]"     );
-   BehindBias   =GetShaderParam("BehindBias"   );
-   AllowBackFlip=GetShaderParam("AllowBackFlip");
+   Step      =GetShaderParam("Step"      );
+   Color[0]  =GetShaderParam("Color[0]"  );
+   Color[1]  =GetShaderParam("Color[1]"  );
+   BehindBias=GetShaderParam("BehindBias");
 
-   VtxSkinning =GetShaderParam("VtxSkinning" );
-   VtxHeightmap=GetShaderParam("VtxHeightmap");
+   FrontFace=GetShaderParamBool("FrontFace");
+
+   VtxSkinning =GetShaderParamBool("VtxSkinning" );
+   VtxHeightmap=GetShaderParam    ("VtxHeightmap");
 
    LightMapScale=GetShaderParam("LightMapScale");
 
    GrassRangeMulAdd=GetShaderParam("GrassRangeMulAdd");
    BendFactor      =GetShaderParam("BendFactor");
 
-   NightShadeColor =GetShaderParam("NightShadeColor"); // set in 'D.ambientSet()'
-   AmbientColor_l  =GetShaderParam("AmbColor"       ); // set in 'D.ambientSet()'
-   AmbientColorNS_l=GetShaderParam("AmbNSColor"     ); // set in 'D.ambientSet()'
-   AmbientMaterial =GetShaderParam("AmbMaterial"    );
-   AmbientContrast =GetShaderParam("AmbContrast"    ); AmbientContrast->set(D.ambientContrast());
-   AmbientRange    =GetShaderParam("AmbRange"       );
-   AmbientBias     =GetShaderParam("AmbBias"        );
+   NightShadeColor =GetShaderParam    ("NightShadeColor"); // set in 'D.ambientSet()'
+   AmbientColor_l  =GetShaderParam    ("AmbColor"       ); // set in 'D.ambientSet()'
+   AmbientColorNS_l=GetShaderParam    ("AmbNSColor"     ); // set in 'D.ambientSet()'
+   AmbientMaterial =GetShaderParamBool("AmbMaterial"    );
+   AmbientContrast =GetShaderParam    ("AmbContrast"    ); AmbientContrast->set(D.ambientContrast());
+   AmbientRange    =GetShaderParam    ("AmbRange"       );
+   AmbientBias     =GetShaderParam    ("AmbBias"        );
    D.ambientSet(); D.ambientSetRangeBias();
 
    HdrBrightness=GetShaderParam("HdrBrightness"); HdrBrightness->set(D.eyeAdaptationBrightness());

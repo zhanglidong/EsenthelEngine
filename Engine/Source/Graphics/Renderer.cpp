@@ -796,7 +796,7 @@ Bool RendererClass::reflection()
       // <- change viewport here if needed
       ConstCast(ActiveCam).matrix.mirror(_mirror_plane); ActiveCamChanged(); // set mirrored camera and frustum
       D.clipPlane(_mirror_plane);                                            // set clip plane after viewport and camera
-      Sh.AllowBackFlip->set(1);                                              // disable back flipping
+      Sh.FrontFace->set(false);                                              // adjust back flipping for mirrored
       D.lodSetCurrentFactor();
 
       // render !! adding new modes here will require setting there D.clipPlane !!
@@ -832,10 +832,10 @@ Bool RendererClass::reflection()
       D.densityFast     (density       );
 
       // restore previous settings (mirror, viewport and camera)
-     _mirror=false;              // !! set before viewport and camera, because it affects the Frustum, and after 'cleanup' !!
+     _mirror=false;            // !! set before viewport and camera, because it affects the Frustum, and after 'cleanup' !!
       // <- reset viewport here if needed
-      cam.set();                 // camera, this will also reset 'Frustum'
-      Sh.AllowBackFlip->set(-1); // re-enable back flipping
+      cam.set();               // camera, this will also reset 'Frustum'
+      Sh.FrontFace->set(true); // restore back flipping
       D.lodSetCurrentFactor();
 
       if(stage==RS_REFLECTION && show(_mirror_rt, true))return true;
@@ -1148,7 +1148,7 @@ void RendererClass::solid()
          {
            _first_pass=false;
             Bool clip=D._clip, clip_allow=D._clip_allow; T._clip=(clip ? D._clip_rect : D.rect()); // remember clipping because 'drawForward' may change it
-            Sh.AmbientColorNS_l->set(VecZero); Sh.AmbientMaterial->set(0); // disable ambient lighting
+            Sh.AmbientColorNS_l->set(VecZero); Sh.AmbientMaterial->set(false); // disable ambient lighting
             D.depthFunc(FUNC_LESS_EQUAL); // need to make sure we can apply lights on existing depth
             REPA(Lights)if(i!=first_light)Lights[i].drawForward(ALPHA_ADD_KEEP); // draw 0-th at the end to setup shadow maps (needed for BLEND_LIGHT), keep alpha which is glow
             D.clip(clip ? &T._clip : null); D.clipAllow(clip_allow);
@@ -1156,7 +1156,7 @@ void RendererClass::solid()
            _first_pass=true;
 
             // restore settings
-            D.ambientSet(); Sh.AmbientMaterial->set(1); // restore ambient lighting
+            D.ambientSet(); Sh.AmbientMaterial->set(true); // restore ambient lighting
             Frustum=FrustumMain; // restore frustum after it being potentially changed when drawing shadow maps or setting frustum for visible objects for lights
          }
 

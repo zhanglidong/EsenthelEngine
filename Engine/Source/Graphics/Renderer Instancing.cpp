@@ -43,8 +43,8 @@ void SetBlendAlpha  (ALPHA_MODE alpha       ) {Renderer._mesh_blend_alpha  =alph
 void SetEarlyZ      (  Bool     on          ) {Renderer._mesh_early_z      =on;}
 void SetBehindBias  (  Flt      distance    ) {Sh.BehindBias->setConditional(distance);}
 
-static INLINE void DisableSkinning() {Sh.VtxSkinning->setConditional(0.0f);}
-static INLINE void  EnableSkinning() {Sh.VtxSkinning->setConditional(1.0f);}
+static INLINE void DisableSkinning() {Sh.VtxSkinning->setConditional(false);}
+static INLINE void  EnableSkinning() {Sh.VtxSkinning->setConditional(true );}
 /******************************************************************************
 // SHADER PARAM CHANGES
 /******************************************************************************/

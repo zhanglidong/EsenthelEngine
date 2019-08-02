@@ -131,6 +131,13 @@ struct ShaderParam // Shader Parameter
    NO_COPY_CONSTRUCTOR(ShaderParam);
 #endif
 };
+struct ShaderParamBool : ShaderParam // Shader Parameter
+{
+   void set(Bool b); // set boolean value
+#if EE_PRIVATE
+   void setConditional(Bool b); // set boolean value only if it's different
+#endif
+};
 /******************************************************************************/
 struct ShaderParamChange // Shader Parameter Change
 {
@@ -502,6 +509,8 @@ ShaderImage*  GetShaderImage(CChar8 *name); // find shader image, Exit on fail (
 // shader parameter
 ShaderParam* FindShaderParam(CChar8 *name); // find shader parameter, null on fail (shader parameter can be returned only after loading a shader which contains the parameter)
 ShaderParam*  GetShaderParam(CChar8 *name); // find shader parameter, Exit on fail (shader parameter can be returned only after loading a shader which contains the parameter)
+
+inline ShaderParamBool* GetShaderParamBool(CChar8 *name) {return (ShaderParamBool*)GetShaderParam(name);}
 
          inline void SPSet(CChar8 *name,   Bool     b               ) {if(ShaderParam *sp=FindShaderParam(name))sp->set(b           );} // set boolean  value
          inline void SPSet(CChar8 *name,   Int      i               ) {if(ShaderParam *sp=FindShaderParam(name))sp->set(i           );} // set integer  value
