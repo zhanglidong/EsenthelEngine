@@ -75,8 +75,6 @@
 
    #define REVERSE_DEPTH (!GL) // if Depth Buffer is reversed
 
-   #define TILE_BASED_GPU MOBILE // assume all mobile GPU's are tile-based
-
    #define PHYSX_DLL_ACTUAL (PHYSX && PHYSX_DLL && (WINDOWS_OLD || LINUX))
 
    #if PHYSX
