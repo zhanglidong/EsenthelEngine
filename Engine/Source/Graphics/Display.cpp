@@ -677,7 +677,8 @@ Display::Display() : _monitors(Compare, Create, null, 4)
   _density=127;
   _samples=1;
   _scale=1;
-  _aspect_ratio=_aspect_ratio_want=_pixel_aspect=0;
+  _aspect_ratio=_aspect_ratio_want=0;
+  _pixel_aspect=1;
   _pixel_size=_pixel_size_2=_pixel_size_inv=0;
   _window_pixel_to_screen_mul=1; // init to 1 to avoid div by 0 at app startup which could cause crash on Web
   _window_pixel_to_screen_add=0;
@@ -1395,6 +1396,7 @@ if(LogInit)LogN("Display.create");
 D._linear_gamma^=1; D.linearGamma(!D._linear_gamma); // set after loading shaders
              InitMatrix(); // !! call this after creating main shaders, because it creates the "ObjMatrix, ObjVel" shader buffers !!
   if(!Renderer.rtCreate())Exit("Can't create Render Targets."); // !! call this after creating shaders because it modifies shader values !!
+         D.viewRect(null); // reset full viewport in case user made some changes to view rect in 'InitPre' which would be actually invalid since resolutions were not yet known
              InitVtxInd();
         Renderer.create();
            colorPalette(ImagePtr().get("Img/color palette.img"));
@@ -2966,12 +2968,9 @@ void Display::setViewFovTan()
 }
 void Display::viewUpdate()
 {
-   if(created())
-   {
-     _view_active=_view_main;
-      if(_lock.owned())_view_active.setViewport(); // set actual viewport only if we own the lock, this is because this method can be called outside of 'Draw' where we don't have the lock, however to avoid locking which could affect performance (for example GPU still owning the lock on other thread, for example for flipping back buffer, we would have to wait until it finished), we can skip setting the viewport because drawing is not allowed in update anyway. To counteract this skip here, instead we always reset the viewport at the start of Draw in 'DrawState'
-     _view_active.setShader().setProjMatrix(); Frustum.set();
-   }
+  _view_active=_view_main;
+   if(_lock.owned())_view_active.setViewport(); // set actual viewport only if we own the lock, this is because this method can be called outside of 'Draw' where we don't have the lock, however to avoid locking which could affect performance (for example GPU still owning the lock on other thread, for example for flipping back buffer, we would have to wait until it finished), we can skip setting the viewport because drawing is not allowed in update anyway. To counteract this skip here, instead we always reset the viewport at the start of Draw in 'DrawState'
+  _view_active.setShader().setProjMatrix(); Frustum.set();
 
   _view_from  =(FovPerspective(viewFovMode()) ? viewFrom() : 0);
   _view_fov   =(FovHorizontal (viewFovMode()) ? viewFovX() : viewFovY());
