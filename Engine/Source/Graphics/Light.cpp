@@ -8,7 +8,8 @@
 /* !! WARNING: For performance reasons 'Frustum' is not restored after (drawing shadows AND custom frustum for forward local lights), but only after all lights finished
    !! instead we set 'Frustum' only when needed
    !! however when processing lights we have to use 'toScreenRect' which needs a frustum, since we don't restore it, those functions were made to always use 'FrustumMain'
-   !! because of that we can't use 'toScreenRect' for shadows to get the rect in shadow RT */
+   !! because of that we can't use 'toScreenRect' for shadows to get the rect in shadow RT
+   Camera however is always reset after drawing shadows */
 
 namespace EE{
 /******************************************************************************
