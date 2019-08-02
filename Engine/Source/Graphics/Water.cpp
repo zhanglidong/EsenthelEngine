@@ -290,7 +290,7 @@ void WaterClass::begin()
      _began=true;
 
       WS.load();
-      Renderer._has_glow=true;
+    //Renderer._has_glow=true;
       D.alpha(ALPHA_NONE);
 
       if(_use_secondary_rt)
