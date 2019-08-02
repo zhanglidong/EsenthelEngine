@@ -742,18 +742,25 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
    #endif
    }else
    {
-      Int params=shader->params.elms();
-      MemtN<D3D_SHADER_MACRO, 64> macros; macros.setNum(params+API_NUM+1);
-      FREP(params)
+      Int params=shader->params.elms()+shader->extra_params.elms();
+      MemtN<D3D_SHADER_MACRO, 64> macros; macros.setNum(params+API_NUM+1); params=0;
+      FREPA(shader->params)
       {
-         D3D_SHADER_MACRO &macro=macros[i]; C TextParam8 &param=shader->params[i];
+         D3D_SHADER_MACRO &macro=macros[params++]; C TextParam8 &param=shader->params[i];
+         macro.Name      =param.name;
+         macro.Definition=param.value;
+      }
+      FREPA(shader->extra_params)
+      {
+         D3D_SHADER_MACRO &macro=macros[params++]; C TextParam8 &param=shader->extra_params[i];
          macro.Name      =param.name;
          macro.Definition=param.value;
       }
       FREP(API_NUM)
       {
-         macros[params+i].Name      =APIName[i];
-         macros[params+i].Definition=((compiler->api==i) ? "1" : "0");
+         D3D_SHADER_MACRO &macro=macros[params++];
+         macro.Name      =APIName[i];
+         macro.Definition=((compiler->api==i) ? "1" : "0");
       }
       Zero(macros.last()); // must be null-terminated
 
