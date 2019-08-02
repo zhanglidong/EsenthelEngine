@@ -6,7 +6,8 @@ namespace EE{
    Order of planes is set based on performance tests.
 
 /******************************************************************************/
-FrustumClass Frustum, FrustumMain;
+FrustumClass Frustum,
+             FrustumMain; // it's set as the #1 Main Frustum, #2 Mirrored Frustum (for Reflections), but NOT set when rendering shadows.
 /******************************************************************************/
 void FrustumClass::set(Flt range, C Vec2 &fov, C MatrixM &camera)
 {

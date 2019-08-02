@@ -530,5 +530,7 @@ T1(TYPE) inline void SPSet(CChar8 *name, C TYPE    &data            ) {if(Shader
 #if EE_PRIVATE
 ShaderBuffer* FindShaderBuffer(CChar8 *name);
 ShaderBuffer*  GetShaderBuffer(CChar8 *name);
+
+#define MIN_SHADER_PARAM_DATA_SIZE SIZE(Vec4)
 #endif
 /******************************************************************************/

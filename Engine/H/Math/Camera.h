@@ -124,8 +124,10 @@ Bool ToFullScreenRect(C PyramidM &pyramid, Rect &rect); // project 3D pyramid to
 #endif
 /******************************************************************************/
 #if EE_PRIVATE
-void InitCamera();
-void  SetCam   (C MatrixM &matrix); // 'Frustum' may have to be reset after calling this method
+void InitCamera   ();
+void  SetCam      (C MatrixM &matrix); // 'Frustum' may have to be reset after calling this method
+void  SetEyeMatrix();
+void  ActiveCamChanged();
 void  MotionScaleChanged();
 #endif
 /******************************************************************************/

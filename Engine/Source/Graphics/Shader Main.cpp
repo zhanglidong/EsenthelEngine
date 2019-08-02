@@ -50,8 +50,13 @@ void CreateFontSampler()
 }
 #endif
 /******************************************************************************/
-Shader* MainShaderClass::find(C Str8 &name) {return shader->find(name);}
-Shader* MainShaderClass:: get(C Str8 &name) {return shader-> get(name);}
+static Vec4 DummyData; ASSERT(SIZE(DummyData)==MIN_SHADER_PARAM_DATA_SIZE); // use Vec4 because all ShaderParams assume to have at least that amount of data
+MainShaderClass::MainShaderClass()
+{
+   // 'Dummy' is used so we can already pre-assign some shader handles to this 'Dummy' at engine startup, so we don't have to check if they're not null "if(Sh.param)Sh.param->set(..)" but just operate on them straight away "Sh.param->set(..)"
+   Dummy._data   =(Byte*)&DummyData;
+   Dummy._changed=(Bool*)&DummyData;
+}
 /******************************************************************************/
 void MainShaderClass::del()
 {

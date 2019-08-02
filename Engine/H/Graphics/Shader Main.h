@@ -6,8 +6,8 @@ struct MainShaderClass
    ShaderFile *shader;
 
    // get
-   Shader* find(C Str8 &name); // find shader, null on fail
-   Shader*  get(C Str8 &name); //  get shader, Exit on fail
+   Shader* find(C Str8 &name) {return shader->find(name);} // find shader, null on fail
+   Shader*  get(C Str8 &name) {return shader-> get(name);} //  get shader, Exit on fail
 
    // effects
    static void clear(                C Vec4  &color,                                 C Rect *rect=null);
@@ -25,6 +25,8 @@ struct MainShaderClass
    void compile       ();
    void getTechniques ();
    void connectRT     ();
+
+   MainShaderClass();
 
    ShaderImage
       *Img  [4], *ImgMS[2],
@@ -45,19 +47,20 @@ struct MainShaderClass
       *Lum;
 
    ShaderParam
-      *ImgSize    ,
-      *ImgClamp   ,
-      *RTSize     ,
-      *Coords     ,
-      *Viewport   ,
-      *DepthWeightScale,
+       Dummy,
+      *ImgSize ,
+      *ImgClamp,
+      *RTSize  ,
+      *Coords  =&Dummy,
+      *Viewport=&Dummy,
+      *DepthWeightScale=&Dummy,
 
-      *CamAngVel ,
-      *ObjAngVel ,
-      *ObjVel    ,
-      *ViewMatrix,
-      *CamMatrix ,
-      *ProjMatrix,
+      *CamAngVel =&Dummy,
+      *ObjAngVel =&Dummy,
+      *ObjVel    =&Dummy,
+      *ViewMatrix=&Dummy,
+      *CamMatrix =&Dummy,
+      *ProjMatrix=&Dummy,
       *FurVel    ,
       *ClipPlane ,
 
@@ -70,8 +73,8 @@ struct MainShaderClass
       *LightCone  ,
 
       *Step         ,
-      *Color[2]     ,
-      *BehindBias   ,
+      *Color[2]  ={&Dummy, &Dummy},
+      *BehindBias= &Dummy,
       *AllowBackFlip,
 
       *VtxSkinning ,
@@ -81,44 +84,44 @@ struct MainShaderClass
       *FontLum     ,
       *FontContrast,
       *FontShade   ,
-      *FontDepth   ,
+      *FontDepth   =&Dummy,
 
       *LightMapScale,
 
-      *GrassRangeMulAdd,
-      *BendFactor,
+      *GrassRangeMulAdd=&Dummy,
+      *BendFactor      =&Dummy,
 
       *Volume,
 
       *RippleParams,
 
-      *AmbientMaterial ,
-      *AmbientContrast ,
-      *AmbientRange    ,
-      *AmbientBias     ,
-      *AmbientColor_l  , // Vec Linear Gamma
-      *AmbientColorNS_l, // Vec Linear Gamma + NightShade
-      *NightShadeColor ,
+      *AmbientMaterial,
+      *AmbientContrast =&Dummy,
+      *AmbientRange    =&Dummy,
+      *AmbientBias     =&Dummy,
+      *AmbientColor_l  =&Dummy, // Vec Linear Gamma
+      *AmbientColorNS_l=&Dummy, // Vec Linear Gamma + NightShade
+      *NightShadeColor =&Dummy,
 
-      *HdrBrightness,
-      *HdrExp,
-      *HdrMaxDark,
-      *HdrMaxBright,
-      *HdrWeight,
+      *HdrBrightness=&Dummy,
+      *HdrExp       =&Dummy,
+      *HdrMaxDark   =&Dummy,
+      *HdrMaxBright =&Dummy,
+      *HdrWeight    =&Dummy,
 
-      *TesselationDensity,
+      *TesselationDensity=&Dummy,
 
-      *Sun            ,
-      *SkyFracMulAdd  ,
-      *SkyDnsMulAdd   ,
-      *SkyDnsExp      ,
-      *SkyHorExp      ,
-      *SkyBoxBlend    ,
-      *SkyHorCol      ,
-      *SkySkyCol      ,
-      *SkyStarOrn     ,
-      *SkySunHighlight,
-      *SkySunPos      ,
+      *Sun,
+      *SkyFracMulAdd  =&Dummy,
+      *SkyDnsMulAdd   =&Dummy,
+      *SkyDnsExp      =&Dummy,
+      *SkyHorExp      =&Dummy,
+      *SkyBoxBlend    =&Dummy,
+      *SkyHorCol      =&Dummy,
+      *SkySkyCol      =&Dummy,
+      *SkyStarOrn     =&Dummy,
+      *SkySunHighlight=&Dummy,
+      *SkySunPos      =&Dummy,
 
       *FogColor       ,
       *FogDensity     ,
@@ -126,7 +129,7 @@ struct MainShaderClass
       *LocalFogDensity,
       *LocalFogInside ,
 
-      *ShdJitter     ,
+      *ShdJitter     =&Dummy,
       *ShdRange      ,
       *ShdRangeMulAdd,
       *ShdOpacity    ,
@@ -139,7 +142,7 @@ struct MainShaderClass
       *DecalParams,
       *OverlayParams,
       
-      *SMAAThreshold;
+      *SMAAThreshold=&Dummy;
 
    // SHADERS
    Shader

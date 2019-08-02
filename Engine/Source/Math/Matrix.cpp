@@ -3385,37 +3385,31 @@ INLINE void TestProjMatrix(Matrix4 &m)
 }
 void SetProjMatrix() // this needs to be additionally called when switching between '_main' and some other RT on OpenGL
 {
-   if(Sh.ProjMatrix)
+#if GL
+   if(D.mainFBO())Sh.ProjMatrix->set(ProjMatrix);else
    {
-   #if GL
-      if(D.mainFBO())Sh.ProjMatrix->set(ProjMatrix);else
-      {
-         Matrix4 m=ProjMatrix; CHS(m.y.y); Sh.ProjMatrix->set(m); // in OpenGL when drawing to a RenderTarget the 'dest.pos.y' must be flipped
-      }
-   #else
-      Sh.ProjMatrix->set(ProjMatrix); TestProjMatrix(ProjMatrix);
-   #endif
+      Matrix4 m=ProjMatrix; CHS(m.y.y); Sh.ProjMatrix->set(m); // in OpenGL when drawing to a RenderTarget the 'dest.pos.y' must be flipped
    }
+#else
+   Sh.ProjMatrix->set(ProjMatrix); TestProjMatrix(ProjMatrix);
+#endif
 }
 void SetProjMatrix(Flt proj_offset)
 {
- //if(Sh.ProjMatrix) this is called always when display is already created
-   {
-      Matrix4 m=ProjMatrix;
+   Matrix4 m=ProjMatrix;
 
-      m.x  .x+=m.x  .w*proj_offset;
-      m.y  .x+=m.y  .w*proj_offset;
-      m.z  .x+=m.z  .w*proj_offset;
-      m.pos.x+=m.pos.w*proj_offset;
+   m.x  .x+=m.x  .w*proj_offset;
+   m.y  .x+=m.y  .w*proj_offset;
+   m.z  .x+=m.z  .w*proj_offset;
+   m.pos.x+=m.pos.w*proj_offset;
 
-    //Flt cam_offset; m.pos.x+=m.x.x*cam_offset; // this matches "m=Matrix().setPos(cam_offset, 0, 0)*m"
+ //Flt cam_offset; m.pos.x+=m.x.x*cam_offset; // this matches "m=Matrix().setPos(cam_offset, 0, 0)*m"
 
-   #if GL
-      if(!D.mainFBO())CHS(m.y.y); // in OpenGL when drawing to a RenderTarget the 'dest.pos.y' must be flipped
-   #endif
+#if GL
+   if(!D.mainFBO())CHS(m.y.y); // in OpenGL when drawing to a RenderTarget the 'dest.pos.y' must be flipped
+#endif
 
-      Sh.ProjMatrix->set(m); TestProjMatrix(m);
-   }
+   Sh.ProjMatrix->set(m); TestProjMatrix(m);
 }
 /******************************************************************************/
 // LOD

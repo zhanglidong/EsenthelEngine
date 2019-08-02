@@ -329,7 +329,7 @@ ShaderBuffer::~ShaderBuffer()
 void ShaderBuffer::create(Int size) // no locks needed because this is called only in shader loading, and there 'ShaderBuffers.lock' is called
 {
    buffer.create(size);
-   AllocZero(data, Ceil4(size+SIZEI(Vec4))); // add extra "Vec4 padd" at the end, because all 'ShaderParam.set' for performance reasons assume that there is at least SIZE(Vec4) size, use "+" instead of "Max" in case we have "Flt p[2]" and we call 'ShaderParam.set(Vec4)' for ShaderParam created from "p[1]" which would overwrite "p[1..4]", and do 'Ceil4' because 'COPY' is used which copies 'Ceil4'
+   AllocZero(data, Ceil4(size+MIN_SHADER_PARAM_DATA_SIZE)); // add extra "Vec4 padd" at the end, because all 'ShaderParam.set' for performance reasons assume that there is at least MIN_SHADER_PARAM_DATA_SIZE size, use "+" instead of "Max" in case we have "Flt p[2]" and we call 'ShaderParam.set(Vec4)' for ShaderParam created from "p[1]" which would overwrite "p[1..4]", and do 'Ceil4' because 'COPY' is used which copies 'Ceil4'
    changed=true;
    full_size=buffer.size;
 }

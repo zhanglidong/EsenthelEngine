@@ -6,13 +6,14 @@ SkyClass Sky;
 /******************************************************************************/
 SkyClass::SkyClass()
 {
-   frac                       (0.8f); // !! if changing default value, then also change in 'Environment.Sky' !!
-   atmosphericDensityExponent (1);
-   atmosphericHorizonExponent (3.5f); // !! if changing default value, then also change in 'Environment.Sky' !!
-   atmosphericColorS          (Vec4(0.32f, 0.46f, 0.58f, 1.0f), Vec4(0.16f, 0.36f, 0.54f, 1.0f)); // !! if changing default value, then also change in 'Environment.Sky' !!
-   atmosphericStarsOrientation(MatrixIdentity.orn());
-   atmosphericPrecision       (!MOBILE);
-   skyboxBlend                (0.5f);
+   frac(0.8f); // !! if changing default value, then also change in 'Environment.Sky' !!
+  _dns_exp=1;
+  _hor_exp=3.5f; // !! if changing default value, then also change in 'Environment.Sky' !!
+  _hor_col_l=SRGBToLinear(Vec4(0.32f, 0.46f, 0.58f, 1.0f)); // !! if changing default value, then also change in 'Environment.Sky' !!
+  _sky_col_l=SRGBToLinear(Vec4(0.16f, 0.36f, 0.54f, 1.0f)); // !! if changing default value, then also change in 'Environment.Sky' !!
+  _stars_m.identity();
+  _box_blend=0.5f;
+   atmosphericPrecision(!MOBILE);
 }
 SkyClass& SkyClass::del()
 {
@@ -80,31 +81,28 @@ SkyClass& SkyClass::atmosphericHorizonColorS(C Vec4 &color_s) {return atmospheri
 SkyClass& SkyClass::atmosphericSkyColorS    (C Vec4 &color_s) {return atmosphericSkyColorL    (SRGBToLinear(color_s));}
 
 SkyClass& SkyClass::frac                       (  Flt       frac     ) {SAT(frac  );                                                                         T._frac         =frac               ; return T;}
-SkyClass& SkyClass::atmosphericHorizonExponent (  Flt       exp      ) {MAX(exp, 0);              if(exp        !=T._hor_exp                               ){T._hor_exp      =exp                ; if(Sh.SkyHorExp  )Sh.SkyHorExp  ->set(Max(T._hor_exp, EPS_GPU)                                              );} return T;} // avoid zero in case "Pow(1-Sat(inTex.y), SkyHorExp)" in shader would cause NaN or slow-downs
-SkyClass& SkyClass::atmosphericHorizonColorL   (C Vec4     &color_l  ) {Flt alpha=Sat(color_l.w); if(color_l.xyz!=T._hor_col_l.xyz || alpha!=T._hor_col_l.w){T._hor_col_l.set(color_l.xyz, alpha); if(Sh.SkyHorCol  )Sh.SkyHorCol  ->set(LINEAR_GAMMA ? atmosphericHorizonColorL() : atmosphericHorizonColorS());} return T;} // alpha must be saturated
-SkyClass& SkyClass::atmosphericSkyColorL       (C Vec4     &color_l  ) {Flt alpha=Sat(color_l.w); if(color_l.xyz!=T._sky_col_l.xyz || alpha!=T._sky_col_l.w){T._sky_col_l.set(color_l.xyz, alpha); if(Sh.SkySkyCol  )Sh.SkySkyCol  ->set(LINEAR_GAMMA ? atmosphericSkyColorL    () : atmosphericSkyColorS    ());} return T;} // alpha must be saturated
-SkyClass& SkyClass::skyboxBlend                (  Flt       blend    ) {SAT(blend );              if(blend      !=T._box_blend                             ){T._box_blend    =blend              ; if(Sh.SkyBoxBlend)Sh.SkyBoxBlend->set(T._box_blend                                                          );} return T;}
+SkyClass& SkyClass::atmosphericHorizonExponent (  Flt       exp      ) {MAX(exp, 0);              if(exp        !=T._hor_exp                               ){T._hor_exp      =exp                ; Sh.SkyHorExp  ->set(Max(T._hor_exp, EPS_GPU)                                              );} return T;} // avoid zero in case "Pow(1-Sat(inTex.y), SkyHorExp)" in shader would cause NaN or slow-downs
+SkyClass& SkyClass::atmosphericHorizonColorL   (C Vec4     &color_l  ) {Flt alpha=Sat(color_l.w); if(color_l.xyz!=T._hor_col_l.xyz || alpha!=T._hor_col_l.w){T._hor_col_l.set(color_l.xyz, alpha); Sh.SkyHorCol  ->set(LINEAR_GAMMA ? atmosphericHorizonColorL() : atmosphericHorizonColorS());} return T;} // alpha must be saturated
+SkyClass& SkyClass::atmosphericSkyColorL       (C Vec4     &color_l  ) {Flt alpha=Sat(color_l.w); if(color_l.xyz!=T._sky_col_l.xyz || alpha!=T._sky_col_l.w){T._sky_col_l.set(color_l.xyz, alpha); Sh.SkySkyCol  ->set(LINEAR_GAMMA ? atmosphericSkyColorL    () : atmosphericSkyColorS    ());} return T;} // alpha must be saturated
+SkyClass& SkyClass::skyboxBlend                (  Flt       blend    ) {SAT(blend );              if(blend      !=T._box_blend                             ){T._box_blend    =blend              ; Sh.SkyBoxBlend->set(T._box_blend                                                          );} return T;}
 SkyClass& SkyClass::atmosphericStars           (C ImagePtr &cube     ) {                                                                                     T._stars        =cube               ; return T;}
-SkyClass& SkyClass::atmosphericStarsOrientation(C Matrix3  &orn      ) {                                                                                    {T._stars_m      =orn                ; if(Sh.SkyStarOrn )Sh.SkyStarOrn ->set(T._stars_m                                                            );} return T;}
+SkyClass& SkyClass::atmosphericStarsOrientation(C Matrix3  &orn      ) {                                                                                    {T._stars_m      =orn                ; Sh.SkyStarOrn ->set(T._stars_m                                                            );} return T;}
 SkyClass& SkyClass::atmosphericPrecision       (  Bool      per_pixel) {                                                                                     T._precision    =per_pixel          ; return T;}
 SkyClass& SkyClass::atmosphericDensityExponent (  Flt       exp      )
 {
    SAT(exp); if(exp!=T._dns_exp)
    {
       T._dns_exp=exp;
-      if(Sh.SkyDnsExp)
-      {
-         /* shader uses the formula based on "Flt AccumulatedDensity(Flt density, Flt range) {return 1-Pow(1-density, range);}"
-            "1-Pow(SkyDnsExp, alpha)" but that gives the range 0..(1-SkyDnsExp), however we need it normalized, so:
-            (1-Pow(SkyDnsExp, alpha)) / (1-SkyDnsExp) gives the range 0..1
-              -Pow(SkyDnsExp, alpha) / (1-SkyDnsExp) + 1/(1-SkyDnsExp)
-               Pow(SkyDnsExp, alpha) * -(1/(1-SkyDnsExp)) + 1/(1-SkyDnsExp)
-               Pow(SkyDnsExp, alpha) *   mul              + add
-         */
-         Flt v=1-exp; if(v)v=1/v;
-         Sh.SkyDnsExp   ->set(Max(T._dns_exp, EPS_GPU)); // avoid zero in case "Pow(0, alpha)" in shader would cause NaN or slow-downs
-         Sh.SkyDnsMulAdd->set(Vec2(-v, v));
-      }
+      /* shader uses the formula based on "Flt AccumulatedDensity(Flt density, Flt range) {return 1-Pow(1-density, range);}"
+         "1-Pow(SkyDnsExp, alpha)" but that gives the range 0..(1-SkyDnsExp), however we need it normalized, so:
+         (1-Pow(SkyDnsExp, alpha)) / (1-SkyDnsExp) gives the range 0..1
+           -Pow(SkyDnsExp, alpha) / (1-SkyDnsExp) + 1/(1-SkyDnsExp)
+            Pow(SkyDnsExp, alpha) * -(1/(1-SkyDnsExp)) + 1/(1-SkyDnsExp)
+            Pow(SkyDnsExp, alpha) *   mul              + add
+      */
+      Flt v=1-exp; if(v)v=1/v;
+      Sh.SkyDnsExp   ->set(Max(T._dns_exp, EPS_GPU)); // avoid zero in case "Pow(0, alpha)" in shader would cause NaN or slow-downs
+      Sh.SkyDnsMulAdd->set(Vec2(-v, v));
    }
    return T;
 }

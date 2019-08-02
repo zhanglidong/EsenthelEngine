@@ -120,20 +120,30 @@ void SetCam(C MatrixM &matrix)
    CamMatrix.inverse(CamMatrixInv, true);
    Sh.CamMatrix->set(CamMatrix);
 }
+void SetEyeMatrix()
+{
+   Vec  eye_ofs=ActiveCam.matrix.x*(D.eyeDistance()*0.5f);
+   EyeMatrix[0]=ActiveCam.matrix; EyeMatrix[0].pos-=eye_ofs;
+   EyeMatrix[1]=ActiveCam.matrix; EyeMatrix[1].pos+=eye_ofs;
+}
+static void SetCamAngVel()
+{
+   Sh.CamAngVel->setConditional(ActiveCam.ang_vel*CamMatrixInvMotionScale);
+}
+void ActiveCamChanged()
+{
+   SetEyeMatrix(); SetCam(ActiveCam.matrix); Frustum.set();
+
+   // set velocity related things !! the same must be done below in 'MotionScaleChanged' !!
+   CamMatrixInvMotionScale=CamMatrixInv.orn(); CamMatrixInvMotionScale.scale(D.motionScale());
+   SetCamAngVel();
+}
 void Camera::set()C // this should be called only outside of 'Renderer' rendering
 {
+   Bool changed_matrix=(matrix!=ActiveCam.matrix);
    ConstCast(ActiveCam)=T; // always backup to 'ActiveCam' even if display not yet created, so we can activate it later
-   if(D.created()) // do the rest only if display is created because we need some shader handles which could've been null
-   {
-      Vec eye_ofs=matrix.x*(D.eyeDistance()*0.5f);
-      EyeMatrix[0]=matrix; EyeMatrix[0].pos-=eye_ofs;
-      EyeMatrix[1]=matrix; EyeMatrix[1].pos+=eye_ofs;
-      SetCam(matrix); Frustum.set();
-
-      // set velocity related things !! the same must be done below in 'MotionScaleChanged' !!
-      CamMatrixInvMotionScale=CamMatrixInv.orn(); CamMatrixInvMotionScale.scale(D.motionScale());
-      Sh.CamAngVel->set(ang_vel*CamMatrixInvMotionScale);
-   }
+   if(changed_matrix)ActiveCamChanged();
+   else              SetCamAngVel    (); // if haven't changed matrix, then just update velocity, don't do it conditionally, because we would have to make additional "if" before "ConstCast(ActiveCam)=T" to check for vel changes, which would be a slow down
 }
 void MotionScaleChanged() // !! this must match codes above !!
 {
@@ -141,7 +151,7 @@ void MotionScaleChanged() // !! this must match codes above !!
    CamMatrixInvMotionScale.x.setLength(l);
    CamMatrixInvMotionScale.y.setLength(l);
    CamMatrixInvMotionScale.z.setLength(l);
-   if(Sh.CamAngVel)Sh.CamAngVel->set(ActiveCam.ang_vel*CamMatrixInvMotionScale);
+   SetCamAngVel();
 }
 /******************************************************************************/
 Bool Camera::save(File &f)C
@@ -838,7 +848,7 @@ Int CompareTransparencyOrderDist(C VecD &pos_a, C VecD &pos_b)
 /******************************************************************************/
 void InitCamera()
 {
-   ActiveCam.set(); // put values to shaders
+   ActiveCamChanged(); // put values to shaders
 }
 /******************************************************************************/
 }

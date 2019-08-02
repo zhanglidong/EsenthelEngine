@@ -166,7 +166,6 @@ void RendererClass::mode(RENDER_MODE mode)
    D.cullGL();
 #endif
    Bool cull=D._cull; D.cull(false); D.cull(cull); // force reset
-   D.lodSetCurrentFactor();
    MaterialClear(); // must be called when changing rendering modes, because when setting materials, we may set only some of their shader values depending on mode
 }
 RendererClass& RendererClass::forwardPrecision(Bool per_pixel)
@@ -793,11 +792,12 @@ Bool RendererClass::reflection()
       Byte             density        =D.densityByte      ();                     D.densityFast     (Mid(((D.densityByte()+1)>>_mirror_resolution)-1, 0, 255));
 
       // set new settings
-     _mirror=true;                                                                                // set before viewport and camera
+     _mirror=true;                                                           // set before viewport and camera
       // <- change viewport here if needed
-      ConstCast(ActiveCam).matrix.mirror(_mirror_plane); SetCam(ActiveCam.matrix); Frustum.set(); // set mirrored camera and frustum
-      D.clipPlane(_mirror_plane);                                                                 // set clip plane after viewport and camera
-      Sh.AllowBackFlip->set(1);                                                                   // disable back flipping
+      ConstCast(ActiveCam).matrix.mirror(_mirror_plane); ActiveCamChanged(); // set mirrored camera and frustum
+      D.clipPlane(_mirror_plane);                                            // set clip plane after viewport and camera
+      Sh.AllowBackFlip->set(1);                                              // disable back flipping
+      D.lodSetCurrentFactor();
 
       // render !! adding new modes here will require setting there D.clipPlane !!
       prepare();
@@ -832,10 +832,11 @@ Bool RendererClass::reflection()
       D.densityFast     (density       );
 
       // restore previous settings (mirror, viewport and camera)
-      Sh.AllowBackFlip->set(-1); // re-enable back flipping
      _mirror=false;              // !! set before viewport and camera, because it affects the Frustum, and after 'cleanup' !!
       // <- reset viewport here if needed
       cam.set();                 // camera, this will also reset 'Frustum'
+      Sh.AllowBackFlip->set(-1); // re-enable back flipping
+      D.lodSetCurrentFactor();
 
       if(stage==RS_REFLECTION && show(_mirror_rt, true))return true;
    }
