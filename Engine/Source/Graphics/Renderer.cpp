@@ -796,7 +796,9 @@ Bool RendererClass::reflection()
       // <- change viewport here if needed
       ConstCast(ActiveCam).matrix.mirror(_mirror_plane); ActiveCamChanged(); // set mirrored camera and frustum
       D.clipPlane(_mirror_plane);                                            // set clip plane after viewport and camera
+   #if !GL // not needed for GL
       Sh.FrontFace->set(false);                                              // adjust back flipping for mirrored
+   #endif
       D.lodSetCurrentFactor();
 
       // render !! adding new modes here will require setting there D.clipPlane !!
@@ -835,7 +837,9 @@ Bool RendererClass::reflection()
      _mirror=false;            // !! set before viewport and camera, because it affects the Frustum, and after 'cleanup' !!
       // <- reset viewport here if needed
       cam.set();               // camera, this will also reset 'Frustum'
+   #if !GL // not needed for GL
       Sh.FrontFace->set(true); // restore back flipping
+   #endif
       D.lodSetCurrentFactor();
 
       if(stage==RS_REFLECTION && show(_mirror_rt, true))return true;

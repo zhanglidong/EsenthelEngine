@@ -1429,7 +1429,11 @@ inline VecH GetDetail(Vec2 tex)
 /******************************************************************************/
 // FACE NORMAL HANDLING
 /******************************************************************************/
-inline void BackFlip(in out VecH dir, Bool front) {if(front!=FrontFace)dir=-dir;}
+#if !GL
+inline void BackFlip(in out VecH dir, Bool front) {if(front!=FrontFace)dir=-dir;} // 'FrontFace' depends on mirrored
+#else
+inline void BackFlip(in out VecH dir, Bool front) {if(front!=true     )dir=-dir;} // on GL front face orientation doesn't change when mirrored
+#endif
 /******************************************************************************/
 // VELOCITIES
 /******************************************************************************/
