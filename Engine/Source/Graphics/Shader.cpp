@@ -1097,6 +1097,7 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
                DYNAMIC_ASSERT(offset==gpu_offset, "Invalid ShaderParam gpu_offset");
                Int size; switch(type)
                {
+                  case GL_UNSIGNED_INT: size=SIZE(UInt   ); break;
                   case GL_FLOAT       : size=SIZE(Flt    ); break;
                   case GL_FLOAT_VEC2  : size=SIZE(Vec2   ); break;
                   case GL_FLOAT_VEC3  : size=SIZE(Vec    ); break;
