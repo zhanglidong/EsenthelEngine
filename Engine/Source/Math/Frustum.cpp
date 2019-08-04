@@ -298,6 +298,17 @@ void FrustumClass::from(C PyramidM &pyramid)
    edges =8;
 }
 /******************************************************************************/
+Dbl FrustumClass::volume()C
+{
+   if(persp)
+   {
+      return (fov_tan.x*fov_tan.y*(4.0f/3))*Cube(Dbl(range));
+   }else
+   {
+      return Dbl(size.x*8)*size.y*size.z; // 2*2*2
+   }
+}
+/******************************************************************************/
 Bool FrustumClass::operator()(C Vec &point)C
 {
    Vec pos=point-matrix.pos; // no need for 'VecD'

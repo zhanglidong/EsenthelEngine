@@ -1115,11 +1115,10 @@ void RendererClass::solid()
                   {skip_light=0; break;} // it means we can't start with 0-th, because drawing another light will overwrite shadow map, so skip #0 when choosing the 'first_light'
 
             // find the best light
-            Int complexity=INT_MAX;
-            FREPA(Lights)if(i!=skip_light) // go from the start because most likely LIGHT_DIR are at the start and we can break early
+            Flt cost=FLT_MAX, view_rect_area=D.viewRect().area(); Dbl frustum_volume=Frustum.volume();
+            REPA(Lights)if(i!=skip_light)
             {
-             C Light &light=Lights[i]; if(light.type==LIGHT_DIR){first_light=i; break;} // if found any directional light, then we can use it without looking any further, because it will cover entire screen and no pixel processing will be wasted
-               Int  c=light.shaderComplexity(); if(c<complexity){complexity=c; first_light=i;} // otherwise find a light with smallest shader complexity, because most likely local lights (non-directional) will cover only part of the screen, however since this is a light for first pass, we will have to render all objects so pick smallest complexity to make pixel processing waste minimal
+               Flt c=Lights[i].firstLightCost(view_rect_area, frustum_volume); if(c<cost){cost=c; first_light=i;} // find light with smallest cost
             }
          }
 

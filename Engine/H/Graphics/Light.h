@@ -122,7 +122,7 @@ struct Light
    Light() {} // needed because of union
 
 #if EE_PRIVATE
-   Int shaderComplexity()C;
+   Flt firstLightCost(Flt view_rect_area, Dbl frustum_volume)C; // cost for selecting first light in forward renderer
 
    Bool toScreenRect(Rect &rect)C;
 

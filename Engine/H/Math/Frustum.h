@@ -42,6 +42,8 @@ struct FrustumClass // Frustum
 #if EE_PRIVATE
    Bool operator()(C FrustumClass &frustum)C;
 
+   Dbl volume()C;
+
    void set     (Flt range, C Vec2 &fov, C MatrixM &camera); // set from active viewport
    void set     (                                         ); // set from active viewport and camera
    void from    (C BoxD     &box                          ); // set from box

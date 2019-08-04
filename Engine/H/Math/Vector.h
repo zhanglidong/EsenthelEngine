@@ -121,7 +121,9 @@ constexpr Flt   Min(Int   x, Flt   y) {return (x<y) ? x : y;}
 constexpr Flt   Min(Flt   x, Int   y) {return (x<y) ? x : y;}
 constexpr Dbl   Min(Dbl   x, Dbl   y) {return (x<y) ? x : y;}
 constexpr Dbl   Min(Int   x, Dbl   y) {return (x<y) ? x : y;}
+constexpr Dbl   Min(Flt   x, Dbl   y) {return (x<y) ? x : y;}
 constexpr Dbl   Min(Dbl   x, Int   y) {return (x<y) ? x : y;}
+constexpr Dbl   Min(Dbl   x, Flt   y) {return (x<y) ? x : y;}
 
 constexpr Int   Max(Int   x, Int   y) {return (x>y) ? x : y;}
 constexpr UInt  Max(UInt  x, Int   y) {return (Long(x)>y) ? x : y;}
@@ -140,7 +142,9 @@ constexpr Flt   Max(Int   x, Flt   y) {return (x>y) ? x : y;}
 constexpr Flt   Max(Flt   x, Int   y) {return (x>y) ? x : y;}
 constexpr Dbl   Max(Dbl   x, Dbl   y) {return (x>y) ? x : y;}
 constexpr Dbl   Max(Int   x, Dbl   y) {return (x>y) ? x : y;}
+constexpr Dbl   Max(Flt   x, Dbl   y) {return (x>y) ? x : y;}
 constexpr Dbl   Max(Dbl   x, Int   y) {return (x>y) ? x : y;}
+constexpr Dbl   Max(Dbl   x, Flt   y) {return (x>y) ? x : y;}
 
 inline Int  Min(Int  x, Int  y, Int  z        ) {return Min(x, Min(y, z));}
 inline Long Min(Long x, Long y, Long z        ) {return Min(x, Min(y, z));}

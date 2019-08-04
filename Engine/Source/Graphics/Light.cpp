@@ -895,17 +895,35 @@ VecD Light::pos()C
       default          : return 0                 ;
    }
 }
-Int Light::shaderComplexity()C
+Flt Light::firstLightCost(Flt view_rect_area, Dbl frustum_volume)C
 {
-   Int shadow=(T.shadow + (T.image!=null))*16;
+/* Normally we draw lights clipped to their screen rect and its frustum volume
+   however for the first light we have to draw entire view rect and entire frustum
+   which means that some pixels     (based on 2D area  ) are processed unnecessarily (they're wasted)
+                and some draw calls (based on 3D volume) are processed unnecessarily (they're wasted)
+
+   Shader cost was measured by drawing 1000 fullscreen images "ALPHA_MODE alpha=D.alpha(ALPHA_NONE); REP(1000)box.parts[0].material()->base_0->draw(D.rect());"
+      got FPS=8.7
+   Then drawing 1000 fullscreen 3D box with the same material texture, normal mapping, and lights (tested for all light types with shadows on/off and "D.depthFunc(FUNC_LESS_EQUAL);" added before drawing lights in RM_PREPARE
+      light shader cost = 2D-FPS / 3D-FPS = 8.7-FPS / 3D-FPS
+   The results are divided using 8.7 fps to simulate cost relative to tex read + RT write (approximate cost for flushing/restoring RT on TILE_BASED_GPU)
+   Measured on GeForce 1050 Ti
+*/
+   Flt shader_cost, waste_3d, light_vol;
    switch(type)
    {
-      case LIGHT_DIR   : return 1+shadow;
-      case LIGHT_POINT : return 2+shadow;
-      case LIGHT_LINEAR: return 2+shadow;
-      case LIGHT_CONE  : return 3+shadow;
-      default          : return 0;
+      case LIGHT_DIR   : shader_cost=(shadow ? 8.7f/5.10f : 8.7f/7.70f);                                                   waste_3d=    0                                          ; break;
+      case LIGHT_POINT : shader_cost=(shadow ? 8.7f/4.25f : 8.7f/6.30f); light_vol=(PI*4/3)*Cube(point .range         ()); waste_3d=Max(0, frustum_volume-light_vol)/frustum_volume; break;
+      case LIGHT_LINEAR: shader_cost=(shadow ? 8.7f/4.30f : 8.7f/6.40f); light_vol=(PI*4/3)*Cube(linear.range           ); waste_3d=Max(0, frustum_volume-light_vol)/frustum_volume; break;
+      case LIGHT_CONE  : shader_cost=(shadow ? 8.7f/4.35f : 8.7f/5.60f); light_vol=              cone  .pyramid.volume() ; waste_3d=Max(0, frustum_volume-light_vol)/frustum_volume; break;
+      default          : return FLT_MAX;
    }
+   Flt wasted_area=view_rect_area-(rect&D.viewRect()).area(), // wasted area = total area - needed area
+       waste_2d=shader_cost*wasted_area;
+#if TILE_BASED_GPU
+   if(shadow)waste_2d-=view_rect_area*2; // (*2 because there are 2 transfers) for tile-based GPU's prefer choosing lights with shadows first, to avoid the cost of transferring RT to AND from chip fast memory (example: drawing #1 non-shadow light, #2 shadow light = draw light #1, flush RT, draw shadows for #2, restore RT, draw light #2), (example: drawing #1 shadow light, #2 non-shadow light = draw shadows for #1, draw light #1, draw light #2)
+#endif
+   return waste_2d/view_rect_area*16 + waste_3d; // since it's difficult to estimate 2D pixel vs 3D volume cost, they're just normalized to approximate 0..1 ranges and added together, with 2D having bigger weight
 }
 Bool Light::toScreenRect(Rect &rect)C
 {
