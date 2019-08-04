@@ -181,7 +181,7 @@ Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
             if(Dot(delta, nrm)>AmbBias)
             {
 //if(W)w=BlendSqr((pos.z-test_z)*scale);else
-//if(E)w=1-Length2(delta)/range2;else // FIXME
+//if(E)w=1-Length2(delta)/range2;else
                   w=(Length2(delta)<=range2);
                   o=1;
                   if(w<=0)
@@ -214,11 +214,11 @@ Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
             {
 /*if(W)
 {Vec test_pos=GetPos(test_z, ScreenToPosXY(t)), delta=test_pos-pos;
-w=(Length2(delta)<=Sqr(AmbRange)); // FIXME range2
+w=(Length2(delta)<=Sqr(AmbRange)); // use range2
 }else
 if(E)
 {Vec test_pos=GetPos(test_z, ScreenToPosXY(t)), delta=test_pos-pos;
-w=BlendSqr(Length(delta)/AmbRange); // FIXME range2
+w=BlendSqr(Length(delta)/AmbRange); // use range2
 }else*/
                w=BlendSqr((pos.z-test_z)*scale);
          #else // Unoptimized
