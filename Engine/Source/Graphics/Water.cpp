@@ -134,7 +134,7 @@ WaterClass::WaterClass()
   _use_secondary_rt     =false;
   _began                =false;
   _swapped_ds           =false;
-  _reflect_renderer     =RT_DEFERRED;
+  _reflect_renderer     =(MOBILE ? RT_FORWARD : RT_DEFERRED);
 }
 void WaterClass::del()
 {

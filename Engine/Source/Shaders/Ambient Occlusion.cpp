@@ -2,10 +2,6 @@
 
    For AO shader, Depth is linearized to 0 .. Viewport.range
 
-   TODO: the 2d version "!GEOM" operates on 'nrm2' which assumes that depth changes are linear when iterating though pixels,
-      however most likely they're not. (it's possible that deltas are linear when using the raw "Delinearized" depth buffer)
-   3D version 'GEOM' should be used, however it doesn't work with flipped normals.
-
 /******************************************************************************/
 #include "!Header.h"
 #include "Ambient Occlusion.h"
@@ -17,7 +13,8 @@
 
 // input: MODE, JITTER, NORMALS
 #define LINEAR_FILTER 1 // this removes some vertical lines on distant terrain (because multiple samples are clamped together), however introduces extra shadowing under distant objects
-#define GEOM (NORMALS && 0) // this is an alternative mode to AO formula which works on 3D space instead of 2D, currently disabled, because has some unresolved issues, doesn't work with flipped normals (leafs/grass), probably would require storing flipped information in Nrm RT W channel, which is currently used for specular
+#define GEOM (NORMALS && 1) // this is an alternative mode to AO formula which works on 3D space instead of 2D, TODO: however it doesn't work with flipped normals (leafs/grass), probably would require storing flipped information in Nrm RT W channel, which is currently used for specular
+#define PRECISION 0 // 1=operate on delinearized depth which will give a little more precise position calculations for expected depth, disable beacuse not much noticable
 /******************************************************************************/
 BUFFER(AOConstants) // z=1/xy.length()
    Vec AO0Vec[]={Vec(-0.707, -0.707, 1.000), Vec(0.000, -0.707, 1.414), Vec(0.707, -0.707, 1.000), Vec(-0.354, -0.354, 1.997), Vec(0.354, -0.354, 1.997), Vec(-0.707, 0.000, 1.414), Vec(0.707, 0.000, 1.414), Vec(-0.354, 0.354, 1.997), Vec(0.354, 0.354, 1.997), Vec(-0.707, 0.707, 1.000), Vec(0.000, 0.707, 1.414), Vec(0.707, 0.707, 1.000)};
@@ -61,7 +58,6 @@ Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
       }else
       {
          // 'nrm' does not need to be normalized, because following codes don't require that
-
       #if 0
          Vec dir_right=Normalize(Vec(ScreenToPosXY(inTex+Vec2(RTSize.x, 0)), 1)), // get view space direction that points slightly to the right of 'pos'
              dir_up   =Normalize(Vec(ScreenToPosXY(inTex+Vec2(0, RTSize.y)), 1)); // get view space direction that points slightly to the top   of 'pos'
@@ -69,8 +65,7 @@ Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
          Vec pr=PointOnPlaneRay(Vec(0, 0, 0), pos, nrm, dir_right), // get intersection point when casting ray from view space camera (0,0,0) to 'pos,nrm' plane using 'dir_right' ray
              pu=PointOnPlaneRay(Vec(0, 0, 0), pos, nrm, dir_up   ); // get intersection point when casting ray from view space camera (0,0,0) to 'pos,nrm' plane using 'dir_up'    ray
 
-         nrm2=Vec2(pr.z-pos.z, pu.z-pos.z) // this gives the expected delta between depths (for right-center, and top-center pixels)
-             *RTSize.zw; // have to scale because we will multiply 'nrm2' by 'offs' below, and it operates on texture coordinates, so the next pixel uses 'RTSize.xy' offset, however we want 1 offset, so scale it by '1/RTSize.xy' which is 'RTSize.zw'
+         nrm2=Vec2(pr.z-pos.z, pu.z-pos.z); // this gives the expected delta between depths (for right-center, and top-center pixels)
       #else // optimized
          Vec dir_right=Normalize(Vec(inPosXY1.x, inPosXY .y, 1)),
              dir_up   =Normalize(Vec(inPosXY .x, inPosXY1.y, 1));
@@ -78,7 +73,7 @@ Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
          Flt pr_z=dir_right.z*Dot(pos, nrm)/Dot(dir_right, nrm),
              pu_z=dir_up   .z*Dot(pos, nrm)/Dot(dir_up   , nrm);
 
-         nrm2=Vec2(pr_z-pos.z, pu_z-pos.z)*RTSize.zw;
+         nrm2=Vec2(pr_z-pos.z, pu_z-pos.z);
       #endif
       }
    }else
@@ -93,7 +88,34 @@ Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
           dd=pos.z-zd, du=zu-pos.z;
 
       nrm2=Vec2((Abs(dl)<Abs(dr)) ? dl : dr,
-                (Abs(dd)<Abs(du)) ? dd : du)*RTSize.zw;
+                (Abs(dd)<Abs(du)) ? dd : du);
+   }
+
+   // required for later optimizations
+   Flt range2, scale, pos_z_bias, pos_w_bias;
+   if(GEOM)
+   {
+      range2=Sqr(AmbRange);
+      pos_w_bias=DelinearizeDepth(pos.z);
+      DEPTH_DEC(pos_w_bias, 0.00000007); // value tested on fov 20 deg, 1000 view range
+      pos.z=LinearizeDepth(pos_w_bias); // convert back to linear
+   }else
+   {
+      scale=1/AmbRange;
+
+      pos_z_bias=pos.z-AmbBias;
+      // add some distance based bias, which reduces flickering for distant pixels
+      // must be in delinearized space, which will not affect much pixels close to camera, or when we have high precision depth (high fov, high view from).
+      pos_w_bias=DelinearizeDepth(pos_z_bias);
+      if(PRECISION)
+      {
+         Flt pos_wx=DelinearizeDepth(pos_z_bias+nrm2.x);
+         Flt pos_wy=DelinearizeDepth(pos_z_bias+nrm2.y);
+         nrm2=Vec2(pos_wx-pos_w_bias, pos_wy-pos_w_bias);
+      }
+      DEPTH_DEC(pos_w_bias, 0.00000007); // value tested on fov 20 deg, 1000 view range
+      if(!PRECISION)pos_z_bias=LinearizeDepth(pos_w_bias); // convert back to linear
+      nrm2*=RTSize.zw; // have to scale because we will multiply 'nrm2' by 'offs' below, and it operates on texture coordinates, so the next pixel uses 'RTSize.xy' offset, however we want 1 offset, so scale it by '1/RTSize.xy' which is 'RTSize.zw'
    }
 
    Vec2 cos_sin;
@@ -127,25 +149,6 @@ Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
    }
 #endif
 
-   // add some distance based bias, which reduces flickering for distant pixels
-   { // must be in delinearized space, which will not affect much pixels close to camera, or when we have high precision depth (high fov, high view from).
-      pos.z=DelinearizeDepth(pos.z); DEPTH_DEC(pos.z, 0.00000007); // value tested on fov 20 deg, 1000 view range
-      pos.z=  LinearizeDepth(pos.z);
-   }
-
-   // required for later optimizations
-   Flt range2, scale;
-   if(GEOM)
-   {
-      range2=Sqr(AmbRange);
-   }else
-   {
-   #if 1 // Optimized
-      scale=1/AmbRange;
-      pos.z-=AmbBias;
-   #endif
-   }
-
    Int        elms;
    if(MODE==0)elms=AO0Elms;else
    if(MODE==1)elms=AO1Elms;else
@@ -173,11 +176,12 @@ Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
          Flt test_z=(LINEAR_FILTER ? TexDepthRawLinear(t) : TexDepthRawPoint(t)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 't'
          if(GEOM)
          {
-            test_z+=AmbBias;
             Vec test_pos=GetPos(test_z, ScreenToPosXY(t)),
                 delta=test_pos-pos;
-            if(Dot(delta, nrm)>0)
+            if(Dot(delta, nrm)>AmbBias)
             {
+//if(W)w=BlendSqr((pos.z-test_z)*scale);else
+//if(E)w=1-Length2(delta)/range2;else // FIXME
                   w=(Length2(delta)<=range2);
                   o=1;
                   if(w<=0)
@@ -206,11 +210,19 @@ Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
          }else
          {
          #if 1 // Optimized
-            Flt expected=pos.z+Dot(nrm2, offs); if(test_z<expected)
+            Flt expected=(PRECISION ? pos_w_bias : pos_z_bias)+Dot(nrm2, offs); if(PRECISION)expected=LinearizeDepth(expected); if(test_z<expected)
             {
+/*if(W)
+{Vec test_pos=GetPos(test_z, ScreenToPosXY(t)), delta=test_pos-pos;
+w=(Length2(delta)<=Sqr(AmbRange)); // FIXME range2
+}else
+if(E)
+{Vec test_pos=GetPos(test_z, ScreenToPosXY(t)), delta=test_pos-pos;
+w=BlendSqr(Length(delta)/AmbRange); // FIXME range2
+}else*/
                w=BlendSqr((pos.z-test_z)*scale);
          #else // Unoptimized
-            Flt expected=pos.z+Dot(nrm2, offs); test_z+=AmbBias; if(test_z<expected)
+            Flt expected=pos.z-AmbBias+Dot(nrm2, offs); if(test_z<expected)
             {
                w=BlendSqr((pos.z-test_z)/AmbRange);
          #endif
