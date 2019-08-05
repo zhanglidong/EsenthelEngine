@@ -262,7 +262,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
    Bool aoWant()C;
    Bool aoAll ()C {return _ao_all;}
    void ambientSet()C;
-   void ambientSetRangeBias()C;
+   void ambientSetRange()C;
 #if LINEAR_GAMMA
    INLINE C Vec&    ambientColorD()C {return    ambientColorL();}
    INLINE C Vec& nightShadeColorD()C {return nightShadeColorL();}
@@ -282,7 +282,6 @@ struct Display : DisplayState, DisplayDraw // Display Control
    Display& ambientColorS  (C Vec       &srgb_color);   Vec          ambientColorS  ()C;                             // set/get Ambient Color sRGB   Gamma (0..1                 , default=         0.4), the change is instant, you can call it real-time
    Display& ambientContrast(  Flt        contrast  );   Flt          ambientContrast()C {return _amb_contrast     ;} // set/get Ambient Contrast           (0..Inf               , default=         1.0), the change is instant, you can call it real-time
    Display& ambientRange   (  Flt        range     );   Flt          ambientRange   ()C {return _amb_range        ;} // set/get Ambient Range              (0..Inf               , default=         0.4), the change is instant, you can call it real-time
-   Display& ambientBias    (  Flt        bias      );   Flt          ambientBias    ()C {return _amb_bias         ;} // set/get Ambient Bias               (0..1                 , default=        0.15), the change is instant, you can call it real-time
 
    // Night Shade
    Display& nightShadeColorL(C Vec & lin_color);   C Vec& nightShadeColorL()C {return _ns_color_l;} // set/get Night Shade color Linear Gamma (0..1, default=0), the change is instant, you can call it real-time, setting color to 0 disables Night Shade effect
@@ -505,7 +504,7 @@ private:
    Long              _device_mem;
    VecI2             _res, _render_res;
    Flt               _aspect_ratio, _aspect_ratio_want, _pixel_aspect, _gamma, _font_sharpness, _scale,
-                     _amb_range, _amb_contrast, _amb_bias,
+                     _amb_range, _amb_contrast,
                      _eye_adapt_brightness, _eye_adapt_exp, _eye_adapt_max_dark, _eye_adapt_max_bright, _eye_adapt_speed,
                      _eye_dist,
                      _shd_frac, _shd_fade, _shd_map_size_l, _shd_map_size_c,

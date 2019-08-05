@@ -12,8 +12,12 @@
 #define AO3Elms 80
 
 // input: MODE, JITTER, NORMALS
+#ifndef NORMALS
+#define NORMALS 1
+#endif
+
 #define LINEAR_FILTER 1 // this removes some vertical lines on distant terrain (because multiple samples are clamped together), however introduces extra shadowing under distant objects
-#define GEOM (NORMALS && 1) // this is an alternative mode to AO formula which works on 3D space instead of 2D, TODO: however it doesn't work with flipped normals (leafs/grass), probably would require storing flipped information in Nrm RT W channel, which is currently used for specular
+#define GEOM 1 // this is an alternative mode to AO formula which works on 3D space instead of 2D, TODO: however it doesn't work with flipped normals (leafs/grass), probably would require storing flipped information in Nrm RT W channel, which is currently used for specular
 #define PRECISION 0 // 1=operate on delinearized depth which will give a little more precise position calculations for expected depth, disable beacuse not much noticable
 /******************************************************************************/
 BUFFER(AOConstants) // z=1/xy.length()
@@ -24,38 +28,50 @@ BUFFER(AOConstants) // z=1/xy.length()
 BUFFER_END
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
-void AO_VS( VtxInput vtx,
-NOPERSP out Vec2 outTex   :TEXCOORD0,
-NOPERSP out Vec2 outPosXY :TEXCOORD1,
-NOPERSP out Vec2 outPosXY1:TEXCOORD2,
-NOPERSP out Vec4 outVtx   :POSITION )
+void AO_VS
+(
+   VtxInput vtx,
+   NOPERSP out Vec2 outTex   :TEXCOORD0,
+   NOPERSP out Vec2 outPosXY :TEXCOORD1,
+#if (NORMALS && !GEOM) || (!NORMALS && GEOM)
+   NOPERSP out Vec2 outPosXY1:TEXCOORD2,
+#endif
+   NOPERSP out Vec4 outVtx   :POSITION
+)
 {
    outTex   =vtx.tex();
    outPosXY =ScreenToPosXY(outTex);
+#if (NORMALS && !GEOM) || (!NORMALS && GEOM)
    outPosXY1=ScreenToPosXY(outTex+RTSize.xy);
+#endif
    outVtx   =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
+
 // Img=Nrm, Depth=depth
-Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
-           NOPERSP Vec2 inPosXY :TEXCOORD1,
-           NOPERSP Vec2 inPosXY1:TEXCOORD2,
-           NOPERSP PIXEL                  ):TARGET
+Half AO_PS
+(
+   NOPERSP Vec2 inTex   :TEXCOORD ,
+   NOPERSP Vec2 inPosXY :TEXCOORD1,
+#if (NORMALS && !GEOM) || (!NORMALS && GEOM)
+   NOPERSP Vec2 inPosXY1:TEXCOORD2,
+#endif
+   NOPERSP PIXEL
+):TARGET
 {
    Vec2 nrm2;
    Vec  nrm, pos;
 
-   if(NORMALS)
+   if(GEOM)pos  =GetPos(TexDepthRawPoint(inTex), inPosXY); // !! for AO shader depth is already linearized !!
+   else    pos.z=       TexDepthRawPoint(inTex);
+
+   #if NORMALS
    {
-      pos=GetPos(TexDepthRawPoint(inTex), inPosXY); // !! for AO shader depth is already linearized !!
       nrm=TexLod(Img, inTex).xyz; // use filtering because 'Img' may be bigger, especially important for pixels in the distance (there are some cases however when point filtering improves quality, although not always)
    #if !SIGNED_NRM_RT
       nrm-=0.5; // normally it should be "nrm=nrm*2-1", however since the normal doesn't need to be normalized, we can just do -0.5
    #endif
       
-      if(GEOM)
-      {
-         nrm=Normalize(nrm);
-      }else
+      #if !GEOM
       {
          // 'nrm' does not need to be normalized, because following codes don't require that
       #if 0
@@ -76,10 +92,11 @@ Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
          nrm2=Vec2(pr_z-pos.z, pu_z-pos.z);
       #endif
       }
-   }else
+      #endif
+   }
+   #else // NORMALS
    {
       // !! for AO shader depth is already linearized !!
-      pos.z =TexDepthRawPoint(inTex);
       Flt zl=TexDepthRawPoint(inTex-Vec2(RTSize.x, 0)),
           zr=TexDepthRawPoint(inTex+Vec2(RTSize.x, 0)),
           zd=TexDepthRawPoint(inTex-Vec2(0, RTSize.y)),
@@ -87,23 +104,39 @@ Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
           dl=pos.z-zl, dr=zr-pos.z,
           dd=pos.z-zd, du=zu-pos.z;
 
-      nrm2=Vec2((Abs(dl)<Abs(dr)) ? dl : dr,
-                (Abs(dd)<Abs(du)) ? dd : du);
+      #if GEOM
+      {
+         #if 0 // made no difference
+            Vec up=((Abs(dd)<Abs(du)) ? pos-GetPos(zd, Vec2(inPosXY.x                       , ScreenToPosXY(inTex-RTSize.xy).y)) : GetPos(zu, Vec2(inPosXY .x, inPosXY1.y))-pos),
+                rg=((Abs(dl)<Abs(dr)) ? pos-GetPos(zl, Vec2(ScreenToPosXY(inTex-RTSize.xy).x, inPosXY.y                       )) : GetPos(zr, Vec2(inPosXY1.x, inPosXY .y))-pos);
+            nrm=Cross(rg, up);
+         #else
+            Vec up=GetPos((Abs(dd)<Abs(du)) ? pos.z+dd : zu, Vec2(inPosXY .x, inPosXY1.y)),
+                rg=GetPos((Abs(dl)<Abs(dr)) ? pos.z+dl : zr, Vec2(inPosXY1.x, inPosXY .y));
+            nrm=Cross(rg-pos, up-pos);
+         #endif
+      }
+      #else
+      {
+         nrm2=Vec2((Abs(dl)<Abs(dr)) ? dl : dr,
+                   (Abs(dd)<Abs(du)) ? dd : du);
+      }
+      #endif
    }
+   #endif // NORMALS
 
    // required for later optimizations
-   Flt range2, scale, pos_z_bias, pos_w_bias;
-   if(GEOM)
+   #if GEOM
    {
-      range2=Sqr(AmbRange);
-      pos_w_bias=DelinearizeDepth(pos.z);
-      DEPTH_DEC(pos_w_bias, 0.00000007); // value tested on fov 20 deg, 1000 view range
-      pos.z=LinearizeDepth(pos_w_bias); // convert back to linear
-   }else
+      nrm=Normalize(nrm);
+      pos.z=DelinearizeDepth(pos.z);
+      DEPTH_DEC(pos.z, 0.00000007); // value tested on fov 20 deg, 1000 view range
+      pos.z=LinearizeDepth(pos.z); // convert back to linear
+   }
+   #else
+   Flt pos_z_bias, pos_w_bias;
    {
-      scale=1/AmbRange;
-
-      pos_z_bias=pos.z-AmbBias;
+      pos_z_bias=pos.z-AmbientBias;
       // add some distance based bias, which reduces flickering for distant pixels
       // must be in delinearized space, which will not affect much pixels close to camera, or when we have high precision depth (high fov, high view from).
       pos_w_bias=DelinearizeDepth(pos_z_bias);
@@ -117,6 +150,7 @@ Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
       if(!PRECISION)pos_z_bias=LinearizeDepth(pos_w_bias); // convert back to linear
       nrm2*=RTSize.zw; // have to scale because we will multiply 'nrm2' by 'offs' below, and it operates on texture coordinates, so the next pixel uses 'RTSize.xy' offset, however we want 1 offset, so scale it by '1/RTSize.xy' which is 'RTSize.zw'
    }
+   #endif
 
    Vec2 cos_sin;
    if(JITTER)
@@ -129,25 +163,7 @@ Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
 
    Flt  occl  =0,
         weight=HALF_MIN;
-   Vec2 offs_scale=Viewport.size_fov_tan*(0.5*AmbRange/Max(1.0f, pos.z)); // use 0.5 because we're converting from -1..1 to 0..1 scale
-
-#if 0 // don't pack too many samples together, require them to be spread out, don't use for now, because forces big occlusion on distant objects
-   this doesn't work with AmbBias already scaled by AmbRange, would have to make AmbBiasChangeable
-   Flt pixels=Min(offs_scale*RTSize.zw);
-   Flt AmbRangeChangeable=AmbRange;
-   #define AmbRange AmbRangeChangeable
-   Flt min_pixels;
-   if(MODE==0)min_pixels=1/(0.707-0.354);else
-   if(MODE==1)min_pixels=1/(0.943-0.707);else
-   if(MODE==2)min_pixels=1/(0.884-0.707);else
-              min_pixels=1/(0.990-0.849);
-   if(W && 0)if(pixels<min_pixels)
-   {
-      Flt scale=min_pixels/pixels;
-      AmbRange*=scale;
-      offs_scale*=scale;
-   }
-#endif
+   Vec2 offs_scale=Viewport.size_fov_tan*(AmbientRange_2/Max(1.0f, pos.z)); // use /2 because we're converting from -1..1 to 0..1 scale
 
    Int        elms;
    if(MODE==0)elms=AO0Elms;else
@@ -174,57 +190,34 @@ Half AO_PS(NOPERSP Vec2 inTex   :TEXCOORD ,
       {
          // !! for AO shader depth is already linearized !!
          Flt test_z=(LINEAR_FILTER ? TexDepthRawLinear(t) : TexDepthRawPoint(t)); // !! for AO shader depth is already linearized !! can use point filtering because we've rounded 't'
-         if(GEOM)
+         #if GEOM
          {
             Vec test_pos=GetPos(test_z, ScreenToPosXY(t)),
-                delta=test_pos-pos;
-            if(Dot(delta, nrm)>AmbBias)
-            {
-//if(W)w=BlendSqr((pos.z-test_z)*scale);else
-//if(E)w=1-Length2(delta)/range2;else
-                  w=(Length2(delta)<=range2);
-                  o=1;
-                  if(w<=0)
-                  {
-                     w=1.0/3;
-                     o=0;
-                  }
-               /*if(W)
-               {
-                  Flt f=Length(delta)/AmbRange;
-                  //if(E)w=Sat(1-Length2(delta)/range2);else
-                  w=Sat(1.5-Sqr(f));
-                  o=1;
-               }else
-               {
-                  w=(Length2(delta)<=(W ? 2 : 1.0)*range2);
-                  o=1;
-               }
+                delta   =test_pos-pos;
+            w=Sat(2-Length2(delta)/AmbientRangeSqr); // alternative "Length2(delta)<=AmbientRangeSqr"
 
-               o=Sat(Dot(delta, nrm)/AmbBias-(E?0:1));*/
-            }else
+            Flt y=Dot(delta, nrm); if(y>0)
             {
-               w=1;
-               o=0;
-            }
-         }else
+               Vec on_plane=delta-y*nrm;
+            #if 0
+               Flt x=Length(on_plane); o=Sat(y/x);
+            #else // o=Sqr(o), use Sqr because at narrow angles the light shouldn't be strong, because "light=Dot(N, L)"
+               Flt x2=Length2(on_plane); o=Sat(Sqr(y)/x2);
+            #endif
+               o*=w; // fix artifacts
+            }else o=0;
+            w=Max(0.1, w); // fix artifacts
+         }
+         #else
          {
          #if 1 // Optimized
             Flt expected=(PRECISION ? pos_w_bias : pos_z_bias)+Dot(nrm2, offs); if(PRECISION)expected=LinearizeDepth(expected); if(test_z<expected)
             {
-/*if(W)
-{Vec test_pos=GetPos(test_z, ScreenToPosXY(t)), delta=test_pos-pos;
-w=(Length2(delta)<=Sqr(AmbRange)); // use range2
-}else
-if(E)
-{Vec test_pos=GetPos(test_z, ScreenToPosXY(t)), delta=test_pos-pos;
-w=BlendSqr(Length(delta)/AmbRange); // use range2
-}else*/
-               w=BlendSqr((pos.z-test_z)*scale);
+               w=BlendSqr((pos.z-test_z)/AmbientRange);
          #else // Unoptimized
-            Flt expected=pos.z-AmbBias+Dot(nrm2, offs); if(test_z<expected)
+            Flt expected=pos.z-AmbientBias+Dot(nrm2, offs); if(test_z<expected)
             {
-               w=BlendSqr((pos.z-test_z)/AmbRange);
+               w=BlendSqr((pos.z-test_z)/AmbientRange);
          #endif
                o=1;
                if(w<=0)
@@ -238,15 +231,16 @@ w=BlendSqr(Length(delta)/AmbRange); // use range2
                o=0;
             }
          }
+         #endif
       }else // UV outside viewport
       {
          o=0; w=0.5; // set as brightening but use small weight
       }
 
-      w     *=pattern.z; // focus on samples near to the center
+    //w     *=pattern.z; // focus on samples near to the center
       occl  +=w*o;
       weight+=w;
    }
-   return 1-AmbContrast*Half(occl/weight); // result is stored in One Channel 1 Byte RT so it doesn't need 'Sat' saturation
+   return 1-AmbientContrast*Half(occl/weight); // result is stored in One Channel 1 Byte RT so it doesn't need 'Sat' saturation
 }
 /******************************************************************************/
