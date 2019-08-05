@@ -18,6 +18,7 @@
 
 #define LINEAR_FILTER 1 // this removes some vertical lines on distant terrain (because multiple samples are clamped together), however introduces extra shadowing under distant objects
 #define GEOM 1 // this is an alternative mode to AO formula which works on 3D space instead of 2D, TODO: however it doesn't work with flipped normals (leafs/grass), probably would require storing flipped information in Nrm RT W channel, which is currently used for specular
+#define BRIGHTEN 0.5 // how much to brighten pixels that have not enough close objects
 #define PRECISION 0 // 1=operate on delinearized depth which will give a little more precise position calculations for expected depth, disable beacuse not much noticable
 /******************************************************************************/
 BUFFER(AOConstants) // z=1/xy.length()
@@ -206,7 +207,7 @@ Half AO_PS
             #endif
                o*=w; // fix artifacts
             }else o=0;
-            w=Max(0.1, w); // fix artifacts
+            w=Max(BRIGHTEN, w); // fix artifacts
          }
          #else
          {
