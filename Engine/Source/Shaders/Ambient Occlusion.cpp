@@ -163,7 +163,7 @@ Half AO_PS
    }
 
    Flt  occl  =0,
-        weight=HALF_MIN;
+        weight=0;
    Vec2 offs_scale=Viewport.size_fov_tan*(AmbientRange_2/Max(1.0f, pos.z)); // use /2 because we're converting from -1..1 to 0..1 scale
 
    Int        elms;
