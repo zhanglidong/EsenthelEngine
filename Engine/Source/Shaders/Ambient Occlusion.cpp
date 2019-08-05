@@ -18,7 +18,6 @@
 
 #define LINEAR_FILTER 1 // this removes some vertical lines on distant terrain (because multiple samples are clamped together), however introduces extra shadowing under distant objects
 #define GEOM 1 // this is an alternative mode to AO formula which works on 3D space instead of 2D, TODO: however it doesn't work with flipped normals (leafs/grass), probably would require storing flipped information in Nrm RT W channel, which is currently used for specular
-#define BRIGHTEN 0.75 // how much to brighten pixels that have not enough close objects
 #define PRECISION 0 // 1=operate on delinearized depth which will give a little more precise position calculations for expected depth, disable beacuse not much noticable
 /******************************************************************************/
 BUFFER(AOConstants) // z=1/xy.length()
@@ -207,7 +206,7 @@ Half AO_PS
             #endif
                o*=w; // fix artifacts
             }else o=0;
-            w=Max(BRIGHTEN, w); // fix artifacts
+            w=Max((test_pos.z>pos.z) ? 1 : 0.25, w); // fix artifacts, fully brighten if test sample is behind us, but if in front then brighten only a little
          }
          #else
          {
@@ -235,13 +234,13 @@ Half AO_PS
          #endif
       }else // UV outside viewport
       {
-         o=0; w=0.5; // set as brightening but use small weight
+         o=0; w=0.25; // set as brightening but use small weight
       }
 
     //w     *=pattern.z; // focus on samples near to the center
       occl  +=w*o;
       weight+=w;
    }
-   return 1-AmbientContrast*Half(occl/weight); // result is stored in One Channel 1 Byte RT so it doesn't need 'Sat' saturation
+   return Max(AmbientMin, 1-AmbientContrast*Half(occl/weight));
 }
 /******************************************************************************/

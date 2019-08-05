@@ -691,6 +691,7 @@ Display::Display() : _monitors(Compare, Create, null, 4)
   _amb_normal  =true;
   _amb_res     =FltToByteScale(0.5f);
   _amb_contrast=1.5f;
+  _amb_min     =0.2f;
   _amb_range   =0.4f;
   _amb_color_l =SRGBToLinear(0.4f);
 
@@ -2834,10 +2835,11 @@ Display& Display::ambientJitter  (  Bool         jitter    ) {_amb_jitter=jitter
 Display& Display::ambientNormal  (  Bool         normal    ) {_amb_normal=normal;                                                                          return T;}
 Display& Display::ambientPowerS  (  Flt          srgb_power) {return ambientPowerL(SRGBToLinear(srgb_power));}
 Display& Display::ambientColorS  (C Vec         &srgb_color) {return ambientColorL(SRGBToLinear(srgb_color));}
-Display& Display::ambientPowerL  (  Flt           lin_power) {MAX(lin_power, 0);                                                     if(_amb_color_l !=lin_power){_amb_color_l =lin_power; ambientSet();} return T;}
-Display& Display::ambientColorL  (C Vec         & lin_color) {Vec  c(Max(lin_color.x, 0), Max(lin_color.y, 0), Max(lin_color.z, 0)); if(_amb_color_l !=c        ){_amb_color_l =c        ; ambientSet();} return T;}
-Display& Display::ambientContrast(  Flt          contrast  ) {MAX(contrast, 0);                                                      if(_amb_contrast!=contrast ){_amb_contrast=contrast ; Sh.AmbientContrast->set(ambientContrast());} return T;}
-Display& Display::ambientRange   (  Flt          range     ) {MAX(range, 0);                                                         if(_amb_range   !=range    ){_amb_range   =range    ; ambientSetRange();} return T;}
+Display& Display::ambientPowerL  (  Flt           lin_power) {MAX(lin_power, 0);                                                    if(_amb_color_l !=lin_power){_amb_color_l =lin_power; ambientSet();} return T;}
+Display& Display::ambientColorL  (C Vec         & lin_color) {Vec c(Max(lin_color.x, 0), Max(lin_color.y, 0), Max(lin_color.z, 0)); if(_amb_color_l !=c        ){_amb_color_l =c        ; ambientSet();} return T;}
+Display& Display::ambientContrast(  Flt          contrast  ) {MAX(contrast, 0);                                                     if(_amb_contrast!=contrast ){_amb_contrast=contrast ; Sh.AmbientContrast->set(ambientContrast());} return T;}
+Display& Display::ambientMin     (  Flt          min       ) {SAT(min        );                                                     if(_amb_min     !=min      ){_amb_min     =min      ; Sh.AmbientMin     ->set(ambientMin     ());} return T;}
+Display& Display::ambientRange   (  Flt          range     ) {MAX(range   , 0);                                                     if(_amb_range   !=range    ){_amb_range   =range    ; ambientSetRange();} return T;}
 /******************************************************************************/
 Vec      Display::nightShadeColorS(                 )C {return LinearToSRGB(nightShadeColorL());}
 Display& Display::nightShadeColorS(C Vec &srgb_color)  {return nightShadeColorL(SRGBToLinear(srgb_color));}

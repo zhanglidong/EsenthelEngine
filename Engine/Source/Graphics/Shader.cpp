@@ -357,9 +357,9 @@ void ShaderBuffer::update()
          D3DC ->UpdateSubresource (buffer.buffer, 0, null, data, 0, 0);
 #elif GL
    glBindBuffer(GL_UNIFORM_BUFFER, buffer.buffer);
-#if GL_ES // FIXME
+#if GL_ES // this is faster for GL ES
    glBufferData(GL_UNIFORM_BUFFER, buffer.size, data, GL_STREAM_DRAW);
-#else
+#else // this is faster for GL
    glBufferSubData(GL_UNIFORM_BUFFER, 0, buffer.size, data);
 #endif
 #endif

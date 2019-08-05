@@ -96,6 +96,7 @@ struct MainShaderClass
       *AmbientRange_2  =&Dummy,
       *AmbientRangeSqr =&Dummy,
       *AmbientContrast =&Dummy,
+      *AmbientMin      =&Dummy,
       *AmbientColor_l  =&Dummy, // Vec Linear Gamma
       *AmbientColorNS_l=&Dummy, // Vec Linear Gamma + NightShade
       *NightShadeColor =&Dummy,

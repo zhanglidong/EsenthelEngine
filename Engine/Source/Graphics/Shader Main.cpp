@@ -352,6 +352,7 @@ void MainShaderClass::getTechniques()
    AmbientColorNS_l=GetShaderParam    ("AmbNSColor"     ); // set in 'D.ambientSet()'
    AmbientMaterial =GetShaderParamBool("AmbMaterial"    );
    AmbientContrast =GetShaderParam    ("AmbientContrast"); AmbientContrast->set(D.ambientContrast());
+   AmbientMin      =GetShaderParam    ("AmbientMin"     ); AmbientMin     ->set(D.ambientMin     ());
    AmbientRange_2  =GetShaderParam    ("AmbientRange_2" );
    AmbientRangeSqr =GetShaderParam    ("AmbientRangeSqr");
    D.ambientSet(); D.ambientSetRange();

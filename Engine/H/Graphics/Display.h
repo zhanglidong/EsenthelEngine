@@ -281,6 +281,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
    Display& ambientColorL  (C Vec       & lin_color); C Vec&         ambientColorL  ()C {return _amb_color_l      ;} // set/get Ambient Color Linear Gamma (0..1                                       ), the change is instant, you can call it real-time
    Display& ambientColorS  (C Vec       &srgb_color);   Vec          ambientColorS  ()C;                             // set/get Ambient Color sRGB   Gamma (0..1                 , default=         0.4), the change is instant, you can call it real-time
    Display& ambientContrast(  Flt        contrast  );   Flt          ambientContrast()C {return _amb_contrast     ;} // set/get Ambient Contrast           (0..Inf               , default=         1.5), the change is instant, you can call it real-time
+   Display& ambientMin     (  Flt        min       );   Flt          ambientMin     ()C {return _amb_min          ;} // set/get Ambient Minimum            (0..1                 , default=         0.2), controls the limit that AO can darken, the change is instant, you can call it real-time
    Display& ambientRange   (  Flt        range     );   Flt          ambientRange   ()C {return _amb_range        ;} // set/get Ambient Range              (0..Inf               , default=         0.4), the change is instant, you can call it real-time
 
    // Night Shade
@@ -504,7 +505,7 @@ private:
    Long              _device_mem;
    VecI2             _res, _render_res;
    Flt               _aspect_ratio, _aspect_ratio_want, _pixel_aspect, _gamma, _font_sharpness, _scale,
-                     _amb_range, _amb_contrast,
+                     _amb_range, _amb_contrast, _amb_min,
                      _eye_adapt_brightness, _eye_adapt_exp, _eye_adapt_max_dark, _eye_adapt_max_bright, _eye_adapt_speed,
                      _eye_dist,
                      _shd_frac, _shd_fade, _shd_map_size_l, _shd_map_size_c,
