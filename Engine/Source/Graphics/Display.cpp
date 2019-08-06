@@ -2012,9 +2012,12 @@ Bool Display::flip()
          [MainContext.context presentRenderbuffer:GL_RENDERBUFFER];
       #elif WEB
          // this is done automatically on Web
+
          // #WebSRGB
          Renderer.set(&Renderer._main, null, false);
+         ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
          Sh.get("WebLToS")->draw(Renderer._main_temp);
+         D.alpha(alpha);
          Renderer.set(Renderer._cur_main, Renderer._cur_main_ds, false);
       #endif
    #endif
@@ -3182,6 +3185,30 @@ void Display::alignScreenYToPixel(Flt &screen_y)
 /******************************************************************************/
 // FADE
 /******************************************************************************/
+#if GL
+static void FixSRGB() // on GL reading from 'Renderer._main' gives results as if it's RGB and not sRGB, so we have to convert it manually
+{
+   const Bool restore_rt=true;
+   ImageRTPtr temp(ImageRTDesc(Renderer._fade->w(), Renderer._fade->h(), IMAGERT_SRGB)); // doesn't use Alpha
+
+   ImageRT *rt[Elms(Renderer._cur)], *ds;
+   Bool     restore_viewport;
+   if(restore_rt)
+   {
+      REPAO(rt)=Renderer._cur[i];
+            ds =Renderer._cur_ds;
+      restore_viewport=!D._view_active.full;
+   }
+   Renderer.set(temp, null, false); // put '_main' to FBO
+   ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
+   Sh.DrawG->draw(Renderer._fade, D._fade_flipped ? &Rect(-D.w(), D.h(), D.w(), -D.h()) : null);
+   D.alpha(alpha);
+   if(restore_rt)Renderer.set(rt[0], rt[1], rt[2], rt[3], ds, restore_viewport);
+
+   D._fade_flipped=false;
+   Swap(temp, Renderer._fade);
+}
+#endif
 Bool Display::fading()C {return Renderer._fade || _fade_get;}
 void Display::setFade(Flt seconds, Bool previous_frame)
 {
@@ -3208,6 +3235,8 @@ void Display::setFade(Flt seconds, Bool previous_frame)
                .copyHw(*Renderer._fade, true, null, null, &_fade_flipped);
          #if WINDOWS_NEW
             if(swap)Renderer._fade->swapRTV();
+         #elif GL && LINEAR_GAMMA && !WEB // for #WebSRGB we're copying from 'Renderer._main_temp' so there's no need to fix sRGB
+            FixSRGB();
          #endif
            _fade_get =false  ;
            _fade_step=0      ;
@@ -3253,6 +3282,8 @@ void Display::fadeDraw()
          .copyHw(*Renderer._fade, true, null, null, &_fade_flipped);
    #if WINDOWS_NEW
       if(swap)Renderer._fade->swapRTV();
+   #elif GL && LINEAR_GAMMA && !WEB // for #WebSRGB we're copying from 'Renderer._main_temp' so there's no need to fix sRGB
+      FixSRGB();
    #endif
    }
 }
