@@ -26,6 +26,30 @@ BUFFER(AOConstants) // z=1/xy.length()
    Vec AO2Vec[]={Vec(-0.177, -0.884, 1.109), Vec(0.177, -0.884, 1.109), Vec(-0.707, -0.707, 1.000), Vec(-0.354, -0.707, 1.265), Vec(0.000, -0.707, 1.414), Vec(0.354, -0.707, 1.265), Vec(0.707, -0.707, 1.000), Vec(-0.530, -0.530, 1.334), Vec(-0.177, -0.530, 1.790), Vec(0.177, -0.530, 1.790), Vec(0.530, -0.530, 1.334), Vec(-0.707, -0.354, 1.265), Vec(-0.354, -0.354, 1.997), Vec(0.000, -0.354, 2.825), Vec(0.354, -0.354, 1.997), Vec(0.707, -0.354, 1.265), Vec(-0.884, -0.177, 1.109), Vec(-0.530, -0.177, 1.790), Vec(-0.177, -0.177, 3.995), Vec(0.177, -0.177, 3.995), Vec(0.530, -0.177, 1.790), Vec(0.884, -0.177, 1.109), Vec(-0.707, 0.000, 1.414), Vec(-0.354, 0.000, 2.825), Vec(0.354, 0.000, 2.825), Vec(0.707, 0.000, 1.414), Vec(-0.884, 0.177, 1.109), Vec(-0.530, 0.177, 1.790), Vec(-0.177, 0.177, 3.995), Vec(0.177, 0.177, 3.995), Vec(0.530, 0.177, 1.790), Vec(0.884, 0.177, 1.109), Vec(-0.707, 0.354, 1.265), Vec(-0.354, 0.354, 1.997), Vec(0.000, 0.354, 2.825), Vec(0.354, 0.354, 1.997), Vec(0.707, 0.354, 1.265), Vec(-0.530, 0.530, 1.334), Vec(-0.177, 0.530, 1.790), Vec(0.177, 0.530, 1.790), Vec(0.530, 0.530, 1.334), Vec(-0.707, 0.707, 1.000), Vec(-0.354, 0.707, 1.265), Vec(0.000, 0.707, 1.414), Vec(0.354, 0.707, 1.265), Vec(0.707, 0.707, 1.000), Vec(-0.177, 0.884, 1.109), Vec(0.177, 0.884, 1.109)};
    Vec AO3Vec[]={Vec(-0.141, -0.990, 1.000), Vec(0.141, -0.990, 1.000), Vec(-0.283, -0.849, 1.117), Vec(0.000, -0.849, 1.178), Vec(0.283, -0.849, 1.117), Vec(-0.707, -0.707, 1.000), Vec(-0.424, -0.707, 1.213), Vec(-0.141, -0.707, 1.387), Vec(0.141, -0.707, 1.387), Vec(0.424, -0.707, 1.213), Vec(0.707, -0.707, 1.000), Vec(-0.566, -0.566, 1.249), Vec(-0.283, -0.566, 1.580), Vec(0.000, -0.566, 1.767), Vec(0.283, -0.566, 1.580), Vec(0.566, -0.566, 1.249), Vec(-0.707, -0.424, 1.213), Vec(-0.424, -0.424, 1.668), Vec(-0.141, -0.424, 2.238), Vec(0.141, -0.424, 2.238), Vec(0.424, -0.424, 1.668), Vec(0.707, -0.424, 1.213), Vec(-0.849, -0.283, 1.117), Vec(-0.566, -0.283, 1.580), Vec(-0.283, -0.283, 2.499), Vec(0.000, -0.283, 3.534), Vec(0.283, -0.283, 2.499), Vec(0.566, -0.283, 1.580), Vec(0.849, -0.283, 1.117), Vec(-0.990, -0.141, 1.000), Vec(-0.707, -0.141, 1.387), Vec(-0.424, -0.141, 2.238), Vec(-0.141, -0.141, 5.015), Vec(0.141, -0.141, 5.015), Vec(0.424, -0.141, 2.238), Vec(0.707, -0.141, 1.387), Vec(0.990, -0.141, 1.000), Vec(-0.849, 0.000, 1.178), Vec(-0.566, 0.000, 1.767), Vec(-0.283, 0.000, 3.534), Vec(0.283, 0.000, 3.534), Vec(0.566, 0.000, 1.767), Vec(0.849, 0.000, 1.178), Vec(-0.990, 0.141, 1.000), Vec(-0.707, 0.141, 1.387), Vec(-0.424, 0.141, 2.238), Vec(-0.141, 0.141, 5.015), Vec(0.141, 0.141, 5.015), Vec(0.424, 0.141, 2.238), Vec(0.707, 0.141, 1.387), Vec(0.990, 0.141, 1.000), Vec(-0.849, 0.283, 1.117), Vec(-0.566, 0.283, 1.580), Vec(-0.283, 0.283, 2.499), Vec(0.000, 0.283, 3.534), Vec(0.283, 0.283, 2.499), Vec(0.566, 0.283, 1.580), Vec(0.849, 0.283, 1.117), Vec(-0.707, 0.424, 1.213), Vec(-0.424, 0.424, 1.668), Vec(-0.141, 0.424, 2.238), Vec(0.141, 0.424, 2.238), Vec(0.424, 0.424, 1.668), Vec(0.707, 0.424, 1.213), Vec(-0.566, 0.566, 1.249), Vec(-0.283, 0.566, 1.580), Vec(0.000, 0.566, 1.767), Vec(0.283, 0.566, 1.580), Vec(0.566, 0.566, 1.249), Vec(-0.707, 0.707, 1.000), Vec(-0.424, 0.707, 1.213), Vec(-0.141, 0.707, 1.387), Vec(0.141, 0.707, 1.387), Vec(0.424, 0.707, 1.213), Vec(0.707, 0.707, 1.000), Vec(-0.283, 0.849, 1.117), Vec(0.000, 0.849, 1.178), Vec(0.283, 0.849, 1.117), Vec(-0.141, 0.990, 1.000), Vec(0.141, 0.990, 1.000)};
 BUFFER_END
+/******************************************************************************
+static Flt ObstacleDotToLight(Flt dot) // calculate amount of received light based on obstacle dot product
+{
+#if 0 // test method
+   Flt  angle=Asin(dot); // angle relative to Vec2(1,0)
+   Dbl  v=0, total=0;
+   Vec2 n(0, 1);
+   const Int res=1024; REP(res+1) // iterate light samples
+   {
+      Flt  a=i/Flt(res)*PI_2; // angle of this light sample
+      Vec2 cs(Cos(a), Sin(a)); // position of this light sample
+      Flt  l, d=Dot(cs, n); l=d; // light amount (based on angle-dot), d == cs.y
+      total+=l; // total light of all samples (needed for normalization to 0..1 range)
+      // if sample is above obstacle, then contribute its light to received light, all 3 methods below are the same:
+      if(d   >=dot  )v+=l;
+    //if(cs.y>=dot  )v+=l;
+    //if(a   >=angle)v+=l;
+   }
+   return total ? v/total : 0;
+#else // optimized result based on test method
+   return CosSin(dot);
+#endif
+}
+Occlusion = 1-Light
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
 void AO_VS
@@ -198,15 +222,15 @@ Half AO_PS
 
             Flt y=Dot(delta, nrm); if(y>0)
             {
-               Vec on_plane=delta-y*nrm;
-            #if 0
-               Flt x=Length(on_plane); o=Sat(y/x);
-            #else // o=Sqr(o), use Sqr because at narrow angles the light shouldn't be strong, because "light=Dot(N, L)"
-               Flt x2=Length2(on_plane); o=Sat(Sqr(y)/x2);
+               Flt dot=y/Length(delta);
+            #if 1 // precise, calculated based on 'ObstacleDotToLight'
+               o=1-CosSin(dot);
+            #else // faster approximation, requires AmbientContrast to be 1.25 smaller
+               o=Sqr(dot);
             #endif
-               o*=w; // fix artifacts
+               o*=w; // fix artifacts (occlusion can be strong only as weight)
             }else o=0;
-            w=Max((test_pos.z>pos.z) ? 1 : 0.25, w); // fix artifacts, fully brighten if test sample is behind us, but if in front then brighten only a little
+            w=Max((test_pos.z>pos.z) ? 1 : 0.25, w); // fix artifacts, fully brighten if test sample is behind us, but if in front then brighten only a little. this increases weight if it's small, which results in brightening because we don't touch occlusion
          }
          #else
          {

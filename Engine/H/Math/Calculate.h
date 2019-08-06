@@ -113,6 +113,7 @@ struct CalcValue // Calculator Value
    Bool     acos(); // arc cosine
    Bool     asin(); // arc   sine
    Bool     atan(); // arc tangent
+   Bool   cosSin(); // cos <-> sin
    Bool degToRad(); // convert angle degrees to radians
    Bool radToDeg(); // convert angle radians to degrees
    

@@ -1022,6 +1022,15 @@ Bool CalcValue::atan()
    }
    return false;
 }
+Bool CalcValue::cosSin()
+{
+   switch(type)
+   {
+      case CVAL_INT : r=CosSin(Dbl(i)); type=CVAL_REAL; return true;
+      case CVAL_REAL: r=CosSin(    r );                 return true;
+   }
+   return false;
+}
 Bool CalcValue::degToRad()
 {
    switch(type)
@@ -1148,6 +1157,7 @@ static Bool CCtg     (CalcValue &x) {return x.ctg     ();}
 static Bool CAcos    (CalcValue &x) {return x.acos    ();}
 static Bool CAsin    (CalcValue &x) {return x.asin    ();}
 static Bool CAtan    (CalcValue &x) {return x.atan    ();}
+static Bool CCosSin  (CalcValue &x) {return x.cosSin  ();}
 static Bool CDegToRad(CalcValue &x) {return x.degToRad();}
 static Bool CRadToDeg(CalcValue &x) {return x.radToDeg();}
 
@@ -1514,6 +1524,7 @@ static struct CalcFuncInfo
    {1, "Acos"            , (Ptr)CAcos            },
    {1, "Asin"            , (Ptr)CAsin            },
    {1, "Atan"            , (Ptr)CAtan            },
+   {1, "CosSin"          , (Ptr)CCosSin          },
    {1, "DegToRad"        , (Ptr)CDegToRad        },
    {1, "RadToDeg"        , (Ptr)CRadToDeg        },
    {2, "Angle"           , (Ptr)CAngle           },
