@@ -2,7 +2,7 @@
 #include "!Set SP.h"
 BUFFER(AO)
    Flt  AmbientRange_2,
-        AmbientRangeSqr;
+        AmbientRangeInvSqr;
    Half AmbientContrast,
         AmbientMin;
 BUFFER_END

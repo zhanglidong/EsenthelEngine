@@ -347,14 +347,14 @@ void MainShaderClass::getTechniques()
    GrassRangeMulAdd=GetShaderParam("GrassRangeMulAdd");
    BendFactor      =GetShaderParam("BendFactor");
 
-   NightShadeColor =GetShaderParam    ("NightShadeColor"); // set in 'D.ambientSet()'
-   AmbientColor_l  =GetShaderParam    ("AmbColor"       ); // set in 'D.ambientSet()'
-   AmbientColorNS_l=GetShaderParam    ("AmbNSColor"     ); // set in 'D.ambientSet()'
-   AmbientMaterial =GetShaderParamBool("AmbMaterial"    );
-   AmbientContrast =GetShaderParam    ("AmbientContrast"); AmbientContrast->set(D.ambientContrast());
-   AmbientMin      =GetShaderParam    ("AmbientMin"     ); AmbientMin     ->set(D.ambientMin     ());
-   AmbientRange_2  =GetShaderParam    ("AmbientRange_2" );
-   AmbientRangeSqr =GetShaderParam    ("AmbientRangeSqr");
+   NightShadeColor   =GetShaderParam    ("NightShadeColor"   ); // set in 'D.ambientSet()'
+   AmbientColor_l    =GetShaderParam    ("AmbColor"          ); // set in 'D.ambientSet()'
+   AmbientColorNS_l  =GetShaderParam    ("AmbNSColor"        ); // set in 'D.ambientSet()'
+   AmbientMaterial   =GetShaderParamBool("AmbMaterial"       );
+   AmbientContrast   =GetShaderParam    ("AmbientContrast"   ); AmbientContrast->set(D.ambientContrast());
+   AmbientMin        =GetShaderParam    ("AmbientMin"        ); AmbientMin     ->set(D.ambientMin     ());
+   AmbientRange_2    =GetShaderParam    ("AmbientRange_2"    );
+   AmbientRangeInvSqr=GetShaderParam    ("AmbientRangeInvSqr");
    D.ambientSet(); D.ambientSetRange();
 
    HdrBrightness=GetShaderParam("HdrBrightness"); HdrBrightness->set(D.eyeAdaptationBrightness());

@@ -2824,8 +2824,8 @@ void Display::ambientSet()C
 }
 void Display::ambientSetRange()C
 {
-   Sh.AmbientRange_2 ->set(    D.ambientRange()/2);
-   Sh.AmbientRangeSqr->set(Sqr(D.ambientRange()) );
+   Sh.AmbientRange_2    ->set(         D.ambientRange()/2);
+   Sh.AmbientRangeInvSqr->set(Sqr(1.0f/D.ambientRange()) );
 }
 
 Display& Display::ambientRes     (  Flt          scale     ) {Byte res=FltToByteScale( scale  );    if(res!=_amb_res){_amb_res =res ; Renderer.rtClean();} return T;}

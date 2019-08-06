@@ -71,6 +71,33 @@ void AO_VS
    outVtx   =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
 
+/*#define NUM_DIRECTIONS 16
+#define NUM_STEPS      12
+Vec FetchEyePos(Vec2 UV) {return GetPos(TexDepthRawLinear(UV), ScreenToPosXY(UV));}
+Flt ComputeAO(Vec P, Vec N, Vec S)
+{
+   Vec delta = S - P;
+   Flt len2=Length2(delta);
+   Flt NdotV = dot(N, delta) * rsqrt(len2);
+   return Sat(NdotV) * Sat(2 - len2 * AmbientRangeInvSqr);
+}
+Half HBAO(Vec2 uv, Vec nrm, Vec pos, Vec2 g_fRadiusToScreen)
+{
+   Flt AO=0;
+   for(Int DirectionIndex=0; DirectionIndex<NUM_DIRECTIONS; DirectionIndex++)
+   {
+      Flt  Angle=DirectionIndex*(PI2/NUM_DIRECTIONS);
+      Vec2 dir  =Vec2(cos(Angle), sin(Angle))*g_fRadiusToScreen/NUM_STEPS;
+      for(Int StepIndex=0; StepIndex<NUM_STEPS; StepIndex++)
+      {
+         Vec S=FetchEyePos(uv + dir * (StepIndex+1));
+         AO+=ComputeAO(pos, nrm, S);
+      }
+   }
+   AO/=(NUM_DIRECTIONS*NUM_STEPS);
+   return 1-AO*2;
+}*/
+
 // Img=Nrm, Depth=depth
 Half AO_PS
 (
@@ -218,7 +245,7 @@ Half AO_PS
          {
             Vec test_pos=GetPos(test_z, ScreenToPosXY(t)),
                 delta   =test_pos-pos;
-            w=Sat(2-Length2(delta)/AmbientRangeSqr); // alternative "Length2(delta)<=AmbientRangeSqr"
+            w=Sat(2-Length2(delta)*AmbientRangeInvSqr); // alternative "Length2(delta)<=AmbientRangeSqr"
 
             Flt y=Dot(delta, nrm); if(y>0)
             {
