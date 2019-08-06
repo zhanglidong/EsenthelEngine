@@ -19,6 +19,7 @@
 #define LINEAR_FILTER 1 // this removes some vertical lines on distant terrain (because multiple samples are clamped together), however introduces extra shadowing under distant objects
 #define GEOM 1 // this is an alternative mode to AO formula which works on 3D space instead of 2D, TODO: however it doesn't work with flipped normals (leafs/grass), probably would require storing flipped information in Nrm RT W channel, which is currently used for specular
 #define PRECISION 0 // 1=operate on delinearized depth which will give a little more precise position calculations for expected depth, disable beacuse not much noticable
+//#define THICKNESS 0.05 // assume all pixels are at least 5 cm thick, slightly improves quality
 /******************************************************************************/
 BUFFER(AOConstants) // z=1/xy.length()
    Vec AO0Vec[]={Vec(-0.707, -0.707, 1.000), Vec(0.000, -0.707, 1.414), Vec(0.707, -0.707, 1.000), Vec(-0.354, -0.354, 1.997), Vec(0.354, -0.354, 1.997), Vec(-0.707, 0.000, 1.414), Vec(0.707, 0.000, 1.414), Vec(-0.354, 0.354, 1.997), Vec(0.354, 0.354, 1.997), Vec(-0.707, 0.707, 1.000), Vec(0.000, 0.707, 1.414), Vec(0.707, 0.707, 1.000)};
@@ -245,7 +246,13 @@ Half AO_PS
          {
             Vec test_pos=GetPos(test_z, ScreenToPosXY(t)),
                 delta   =test_pos-pos;
+
+         #ifdef THICKNESS
+            Vec d=delta; if(d.z<0)d.z=Min(0, d.z+THICKNESS); // move pixels in front closer to center, to simulate thickness
+            w=Sat(2-Length2(d)*AmbientRangeInvSqr); // alternative "Length2(delta)<=AmbientRangeSqr"
+         #else
             w=Sat(2-Length2(delta)*AmbientRangeInvSqr); // alternative "Length2(delta)<=AmbientRangeSqr"
+         #endif
 
             Flt y=Dot(delta, nrm); if(y>0)
             {
@@ -257,7 +264,7 @@ Half AO_PS
             #endif
                o*=w; // fix artifacts (occlusion can be strong only as weight)
             }else o=0;
-            w=Max((test_pos.z>pos.z) ? 1 : 0.25, w); // fix artifacts, fully brighten if test sample is behind us, but if in front then brighten only a little. this increases weight if it's small, which results in brightening because we don't touch occlusion
+            w=Max((delta.z>0) ? 1 : 0.25, w); // fix artifacts, fully brighten if test sample is behind us, but if in front then brighten only a little. this increases weight if it's small, which results in brightening because we don't touch occlusion
          }
          #else
          {
