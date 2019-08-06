@@ -61,6 +61,8 @@ Display D;
       static EGLConfig  GLConfig;
       static EGLDisplay GLDisplay;
       static Int        GLCtxVer;
+   #elif IOS
+      UInt FBO1;
    #endif
                GLContext       MainContext;
    static Mems<GLContext> SecondaryContexts;
@@ -837,6 +839,9 @@ void Display::del()
    RELEASE(D3DC);
    RELEASE(D3D);
 #elif GL
+   #if IOS
+      if(FBO1){glDeleteFramebuffers(1, &FBO1); FBO1=0;}
+   #endif
       if(FBO){glDeleteFramebuffers(1, &FBO); FBO=0;}
       if(VAO){glDeleteVertexArrays(1, &VAO); VAO=0;}
       SecondaryContexts.del();
@@ -1337,7 +1342,8 @@ again:
    #elif LINUX
       if(full()){if(!SetDisplayMode(2))Exit("Can't set display mode."); adjustWindow();} // 'adjustWindow' because we need to set fullscreen state
    #elif IOS
-      fbo(FBO); // set custom frame buffer, on iOS there's only one FBO and one FBO change, and it is here, this is because there's no default(0) fbo on this platform
+      glGenFramebuffers(1, &FBO1); if(!FBO1)Exit("Couldn't create OpenGL Frame Buffer Object (FBO)");
+      fbo(FBO); // set custom frame buffer, on iOS there's only one FBO and one FBO change, and it is here, this is because there's no default(0) FBO on this platform
    #endif
 
    // call these as soon as possible because they affect all images (including those created in the renderer)
@@ -3185,30 +3191,6 @@ void Display::alignScreenYToPixel(Flt &screen_y)
 /******************************************************************************/
 // FADE
 /******************************************************************************/
-#if GL
-static void FixSRGB() // on GL reading from 'Renderer._main' gives results as if it's RGB and not sRGB, so we have to convert it manually
-{
-   const Bool restore_rt=true;
-   ImageRTPtr temp(ImageRTDesc(Renderer._fade->w(), Renderer._fade->h(), IMAGERT_SRGB)); // doesn't use Alpha
-
-   ImageRT *rt[Elms(Renderer._cur)], *ds;
-   Bool     restore_viewport;
-   if(restore_rt)
-   {
-      REPAO(rt)=Renderer._cur[i];
-            ds =Renderer._cur_ds;
-      restore_viewport=!D._view_active.full;
-   }
-   Renderer.set(temp, null, false); // put '_main' to FBO
-   ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
-   Sh.DrawG->draw(Renderer._fade, D._fade_flipped ? &Rect(-D.w(), D.h(), D.w(), -D.h()) : null);
-   D.alpha(alpha);
-   if(restore_rt)Renderer.set(rt[0], rt[1], rt[2], rt[3], ds, restore_viewport);
-
-   D._fade_flipped=false;
-   Swap(temp, Renderer._fade);
-}
-#endif
 Bool Display::fading()C {return Renderer._fade || _fade_get;}
 void Display::setFade(Flt seconds, Bool previous_frame)
 {
@@ -3232,11 +3214,9 @@ void Display::setFade(Flt seconds, Bool previous_frame)
          #else
             Renderer._main
          #endif
-               .copyHw(*Renderer._fade, true, null, null, &_fade_flipped);
+               .copyHw(*Renderer._fade, true);
          #if WINDOWS_NEW
             if(swap)Renderer._fade->swapRTV();
-         #elif GL && LINEAR_GAMMA && !WEB // for #WebSRGB we're copying from 'Renderer._main_temp' so there's no need to fix sRGB
-            FixSRGB();
          #endif
            _fade_get =false  ;
            _fade_step=0      ;
@@ -3252,7 +3232,7 @@ void Display::setFade(Flt seconds, Bool previous_frame)
 void Display::clearFade()
 {
    Renderer._fade.clear();
-  _fade_get=_fade_flipped=false;
+  _fade_get=false;
   _fade_step=_fade_len=0;
 }
 void Display::fadeUpdate()
@@ -3264,7 +3244,7 @@ void Display::fadeDraw()
    if(Renderer._fade)
    {
       Sh.Step->set(1-_fade_step);
-      Sh.DrawA->draw(Renderer._fade, _fade_flipped ? &Rect(-w(), h(), w(), -h()) : null);
+      Sh.DrawA->draw(Renderer._fade);
    }
    if(_fade_get)
    {
@@ -3279,11 +3259,9 @@ void Display::fadeDraw()
    #else
       Renderer._main
    #endif
-         .copyHw(*Renderer._fade, true, null, null, &_fade_flipped);
+         .copyHw(*Renderer._fade, true);
    #if WINDOWS_NEW
       if(swap)Renderer._fade->swapRTV();
-   #elif GL && LINEAR_GAMMA && !WEB // for #WebSRGB we're copying from 'Renderer._main_temp' so there's no need to fix sRGB
-      FixSRGB();
    #endif
    }
 }

@@ -2626,9 +2626,8 @@ void Image::copyMs(ImageRT &dest, Bool restore_rt, Bool multi_sample, C Rect &re
    copyMs(dest, restore_rt, multi_sample, &Round(D.screenToUV(rect)*size()));
 }
 /******************************************************************************/
-void Image::copyHw(ImageRT &dest, Bool restore_rt, C RectI *rect_src, C RectI *rect_dest, Bool *flipped)C
+void Image::copyHw(ImageRT &dest, Bool restore_rt, C RectI *rect_src, C RectI *rect_dest)C
 {
-   if(flipped)*flipped=false;
    if(this!=&dest)
    {
    #if GL
@@ -2639,39 +2638,6 @@ void Image::copyHw(ImageRT &dest, Bool restore_rt, C RectI *rect_src, C RectI *r
             RectI rs(0, 0,    T.w(),    T.h()); if(rect_src )rs&=*rect_src ; if(rs.min.x>=rs.max.x || rs.min.y>=rs.max.y)return;
             RectI rd(0, 0, dest.w(), dest.h()); if(rect_dest)rd&=*rect_dest; if(rd.min.x>=rd.max.x || rd.min.y>=rd.max.y)return;
 
-         #if GL_ES
-            // remember render target settings
-            ImageRT *rt[Elms(Renderer._cur)], *ds;
-            Bool     restore_viewport;
-            if(restore_rt)
-            {
-               REPAO(rt)=Renderer._cur[i];
-                     ds =Renderer._cur_ds;
-               restore_viewport=!D._view_active.full;
-            }
-            Renderer.set(&Renderer._main, null, false); // put '_main' to FBO
-
-            dest._discard=false;
-            if(rs.w()==rd.w() && rs.h()==rd.h() && hwType()==dest.hwType() && flipped) // 'glCopyTexSubImage2D' flips image, does not support stretching and format conversion
-            {
-              *flipped=true;
-               D.texBind          (GL_TEXTURE_2D, dest._txtr); // set destination texture
-               glCopyTexSubImage2D(GL_TEXTURE_2D, 0, rd.min.x, rd.min.y, rs.min.x, rs.min.y, rs.w(), rs.h()); // copy partial FBO to texture (this will copy the image flipped vertically)
-            }else
-            {
-               ImageRTPtr temp(ImageRTDesc(w(), h(), GetImageRTType(type())));
-
-               D.texBind          (GL_TEXTURE_2D, temp->_txtr); // set destination texture
-               glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, temp->w(), temp->h()); // copy entire FBO to texture (this will copy the image flipped vertically)
-
-               // flip
-               RectI rect_src_flipped; if(rect_src)rect_src_flipped=*rect_src;else rect_src_flipped.set(0, 0, w(), h()); Swap(rect_src_flipped.min.y, rect_src_flipped.max.y); // set flipped rectangle
-               temp->copyHw(dest, false, &rect_src_flipped, rect_dest); // perform additional copy
-            }
-
-            // restore settings
-            if(restore_rt)Renderer.set(rt[0], rt[1], rt[2], rt[3], ds, restore_viewport);
-         #else
             // remember settings
             ImageRT *rt[Elms(Renderer._cur)], *ds;
             Bool     restore_viewport;
@@ -2683,15 +2649,23 @@ void Image::copyHw(ImageRT &dest, Bool restore_rt, C RectI *rect_src, C RectI *r
             }
 
             Renderer.set(&dest, null, false); // put 'dest' to FBO
-            glBindFramebuffer(GL_READ_FRAMEBUFFER,   0);
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FBO);
+         #if IOS // there is no default frame buffer on iOS
+            glBindFramebuffer        (GL_READ_FRAMEBUFFER, FBO1); // for unknown reason we can't use 'FBO' here, needs to be different
+            glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _rb);
+         #else
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // read from default FBO
+         #endif
+         #if LINEAR_GAMMA && defined GL_FRAMEBUFFER_SRGB // on GL (not GL ES) reading from 'Renderer._main' gives results as if it's RGB and not sRGB, so we have to set as if we're writing RGB
+            glDisable(GL_FRAMEBUFFER_SRGB);
+         #endif
             glBlitFramebuffer(rs.min.x, h()-rs.min.y, rs.max.x, h()-rs.max.y,
                               rd.min.x,     rd.min.y, rd.max.x,     rd.max.y, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-            glBindFramebuffer(GL_FRAMEBUFFER, D._fbo); // restore framebuffer, for this function GL_FRAMEBUFFER acts as both GL_READ_FRAMEBUFFER and GL_DRAW_FRAMEBUFFER at the same time
-
             // restore settings
-            if(restore_rt)Renderer.set(rt[0], rt[1], rt[2], rt[3], ds, restore_viewport);
+         #if LINEAR_GAMMA && defined GL_FRAMEBUFFER_SRGB
+            glEnable(GL_FRAMEBUFFER_SRGB);
          #endif
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, D._fbo);
+            if(restore_rt)Renderer.set(rt[0], rt[1], rt[2], rt[3], ds, restore_viewport);
          }
          return;
       }
