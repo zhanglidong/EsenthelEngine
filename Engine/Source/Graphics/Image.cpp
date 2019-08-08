@@ -2680,6 +2680,9 @@ void Image::copyHw(ImageRT &dest, Bool restore_rt, C RectI *rect_src, C RectI *r
          restore_viewport=!D._view_active.full;
       }
 
+   #if WINDOWS_NEW && LINEAR_GAMMA
+      Bool swap=(this==&Renderer._main && type()==IMAGE_R8G8B8A8 && hwType()==IMAGE_R8G8B8A8_SRGB && dest.canSwapRTV()); if(swap)dest.swapRTV(); // #WindowsNewSRGB WINDOWS_NEW may fail to create '_main' as sRGB in that case create as linear and 'swapRTV' in 'Image.map'
+   #endif
       Renderer.set(&dest, null, false);
       ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
 
@@ -2732,6 +2735,9 @@ void Image::copyHw(ImageRT &dest, Bool restore_rt, C RectI *rect_src, C RectI *r
       VI.end();
 
       // restore settings
+   #if WINDOWS_NEW
+      if(swap)dest.swapRTV();
+   #endif
       D.alpha(alpha);
       if(restore_rt)Renderer.set(rt[0], rt[1], rt[2], rt[3], ds, restore_viewport);
    }

@@ -3206,18 +3206,12 @@ void Display::setFade(Flt seconds, Bool previous_frame)
          {
             SyncLocker locker(_lock);
             Renderer._fade.get(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha
-         #if WINDOWS_NEW
-            Bool swap=(Renderer._main.type()==IMAGE_R8G8B8A8 && Renderer._main.hwType()==IMAGE_R8G8B8A8_SRGB); if(swap)Renderer._fade->swapRTV(); // #WindowsNewSRGB WINDOWS_NEW may fail to create sRGB in that case create as linear and 'swapRTV' in 'Image.map'
-         #endif
          #if WEB // #WebSRGB
             Renderer._main_temp
          #else
             Renderer._main
          #endif
                .copyHw(*Renderer._fade, true);
-         #if WINDOWS_NEW
-            if(swap)Renderer._fade->swapRTV();
-         #endif
            _fade_get =false  ;
            _fade_step=0      ;
            _fade_len =seconds;
@@ -3251,18 +3245,12 @@ void Display::fadeDraw()
      _fade_get =false;
      _fade_step=0    ;
       Renderer._fade.get(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha
-   #if WINDOWS_NEW
-      Bool swap=(Renderer._main.type()==IMAGE_R8G8B8A8 && Renderer._main.hwType()==IMAGE_R8G8B8A8_SRGB); if(swap)Renderer._fade->swapRTV(); // #WindowsNewSRGB WINDOWS_NEW may fail to create sRGB in that case create as linear and 'swapRTV' in 'Image.map'
-   #endif
    #if WEB // #WebSRGB
       Renderer._main_temp
    #else
       Renderer._main
    #endif
          .copyHw(*Renderer._fade, true);
-   #if WINDOWS_NEW
-      if(swap)Renderer._fade->swapRTV();
-   #endif
    }
 }
 /******************************************************************************/
