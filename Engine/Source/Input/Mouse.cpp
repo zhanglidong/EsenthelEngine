@@ -657,7 +657,7 @@ void Mouse::update()
          // need to check buttons manually, because 'OnPointerPressed' will not catch events for other buttons if one button is already pressed
          REP(Min(Elms(_button), Elms(Keys)))
          {
-         #if 1 // this is faster
+         #if 0 // this is faster, however is broken in latest SDK
             Int on=((Int)App.Hwnd()->GetKeyState     (VirtualKey(Keys[i])) & (Int)CoreVirtualKeyStates::Down);
          #else
             Int on=((Int)App.Hwnd()->GetAsyncKeyState(VirtualKey(Keys[i])) & (Int)CoreVirtualKeyStates::Down);
