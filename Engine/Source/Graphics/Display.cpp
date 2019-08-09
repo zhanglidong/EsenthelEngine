@@ -1533,7 +1533,7 @@ Bool Display::findMode()
       Int nearest=-1; Int desired_area=res().mul(), area_error;
       REPA(_modes)
       {
-         C VecI2 &mode=_modes[i];
+       C VecI2 &mode=_modes[i];
          if(mode==res()){nearest=i; break;} // exact match
          Int ae=Abs(mode.mul()-desired_area);
          if(nearest<0 || ae<area_error){nearest=i; area_error=ae;}
