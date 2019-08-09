@@ -78,7 +78,7 @@ void Render()
          // solid objects
                        box .draw(MatrixIdentity);
          REPA(ball_pos)ball.draw(Matrix(ball_pos[i]));
-         LightSqr(2, Vec(0, 0.8, 0)).add();
+         LightLinear(2, Vec(0, 0.8, 0)).add();
       }break;
 
       case RM_SHADOW:

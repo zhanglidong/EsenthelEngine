@@ -8,6 +8,7 @@
    #include "../../../ThirdPartyLibs/begin.h"
    #include "../../../ThirdPartyLibs/OpenVR/headers/openvr.h"
    #include "../../../ThirdPartyLibs/end.h"
+   #define COLOR_SPACE (LINEAR_GAMMA ? vr::ColorSpace_Auto : vr::ColorSpace_Gamma) // can't use ColorSpace_Linear because it won't work properly for 8-bit sRGB textures
 #endif
 /******************************************************************************/
 namespace EE{
@@ -280,7 +281,7 @@ void OpenVRApi::draw()
       if(!VR._has_render)_render.clearFull(Vec4Zero, true); // if render was not set, then clear
 
       vr::Texture_t t;
-      t.eType=GPU_API(vr::API_DirectX, vr::API_OpenGL);
+      t.eType=GPU_API(vr::TextureType_DirectX, vr::TextureType_OpenGL);
 
       if(_overlay && _overlay_id!=vr::k_ulOverlayHandleInvalid)
       {
@@ -292,13 +293,13 @@ void OpenVRApi::draw()
          if(_overlay_visible) // this needs to be called per-frame
          {
             t.handle=(Ptr)_gui._txtr;
-            t.eColorSpace=(LINEAR_GAMMA ? vr::ColorSpace_Linear : vr::ColorSpace_Gamma);
+            t.eColorSpace=COLOR_SPACE;
 	        _overlay->SetOverlayTexture(_overlay_id, &t);
          }
       }
 
       t.handle=(Ptr)_render._txtr;
-      t.eColorSpace=(LINEAR_GAMMA ? vr::ColorSpace_Linear : vr::ColorSpace_Gamma);
+      t.eColorSpace=COLOR_SPACE;
 
       vr::VRTextureBounds_t rect;
    #if GL // for OpenGL need to flip vertically
@@ -330,8 +331,8 @@ Bool OpenVRApi::createGuiImage()
       {
          vr::Texture_t t;
          t.handle=(Ptr)_gui._txtr;
-         t.eType=GPU_API(vr::API_DirectX, vr::API_OpenGL);
-         t.eColorSpace=(LINEAR_GAMMA ? vr::ColorSpace_Linear : vr::ColorSpace_Gamma);
+         t.eType=GPU_API(vr::TextureType_DirectX, vr::TextureType_OpenGL);
+         t.eColorSpace=COLOR_SPACE;
 	     _overlay->SetOverlayTexture(_overlay_id, &t);
          setOverlaySizeDepth();
       }
