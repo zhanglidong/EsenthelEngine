@@ -543,6 +543,7 @@ void RendererClass::Combine(IMAGE_PRECISION rt_prec)
 /******************************************************************************/
 void RendererClass::cleanup()
 {
+//_final       .clear(); do not clear '_final' because this is called also for reflections, after which we still need '_final'
   _ds          .clear();
 //_ds_1s       .clear(); do not clear '_ds_1s' because 'setDepthForDebugDrawing' may be called after rendering finishes, also 'capture' makes use of it
   _nrm         .clear();
