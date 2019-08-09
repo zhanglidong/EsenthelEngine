@@ -231,7 +231,7 @@ void ImageRT::clearViewport(C Vec4 &color, Bool restore_rt)
 void ImageRT:: zero   () {_srv_srgb=null; _rtv=_rtv_srgb=null; _dsv=_rdsv=null;} // don't zero '_ptr_num' here, because this is called in 'delThis', however ref count should be kept
      ImageRT:: ImageRT() {_ptr_num=0; zero();}
      ImageRT::~ImageRT() {delThis();} // delete children first, 'super.del' already called automatically in '~Image'
-void ImageRT:: delThis() // delete only this class members without super
+void ImageRT:: delThis() // delete only this class members without super and without '_ptr_num'
 {
 #if DX11
    if(_srv_srgb || _rtv || _rtv_srgb || _dsv || _rdsv)
@@ -250,7 +250,7 @@ void ImageRT:: delThis() // delete only this class members without super
 #endif
    zero();
 }
-void ImageRT::del()
+void ImageRT::del() // this keeps '_ptr_num'
 {
    delThis(); // delete children first
    super::del();
@@ -350,7 +350,7 @@ Bool ImageRT::map()
 #elif ANDROID || WEB
    // on Android and Web 'Renderer._main' has 'setInfo' called externally in the main loop
    return true;
-#elif DESKTOP
+#elif GL
    forceInfo(D.resW(), D.resH(), 1, type() ? type() : LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, IMAGE_GL_RB, samples()); return true;
 #endif
    return false;

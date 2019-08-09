@@ -6,7 +6,6 @@ namespace EE{
 #define MT_FLIP (DX11 || DX12) // if use Multi-Threaded flipping which performs 'D.flip' on the secondary thread, allowing the CPU 'Update' to run while flipping is still executing, this will improve performance only if the 'Update' is time consuming, however the performance benefit will not be full if the user tries to modify the GPU data (by using 'D._lock', which will have to wait until flip has finished)
 #define MT_SPIN 0 // spin is ~2x faster (0.000015s vs 0.000030s), however may cause slow downs if other threads catch sync lock before 'DisplayFlipThread' does
 /******************************************************************************/
-static Bool      DisplayFlipOk=true;
 #if MT_FLIP
 #if MT_SPIN
 static Bool      DisplayFlipLocked;
@@ -29,7 +28,7 @@ static Bool      DisplayFlipFunc(Thread &thread)
     //ThreadMayUseGPUData(); glFlush(); didn't help
     //glFinish(); didn't help
    #endif
-      DisplayFlipOk=D.flip();
+      D.flip();
    #if GL
     //glFlush(); didn't help
     //glFinish(); didn't help
@@ -160,33 +159,30 @@ Bool DrawState()
 
          // flip
          if(Renderer._t_measure){D.finish(); flip_time=Time.curTime();}
-      #if MT_FLIP
-         if(DisplayFlipOk) // flip only if there was no error before
-            if(DisplayFlipThread.active()
-         #if WINDOWS_OLD && DX11
-            && SwapChainDesc.Windowed // on DX10+ we can't do this when in full screen (only in windowed), because Alt+Tab will freeze the app, http://msdn.microsoft.com/en-us/library/windows/desktop/bb205075(v=vs.85).aspx#Multithread_Considerations
-         #endif
-            )
-            {
-            #if GL
-               glFlush();
-            #endif
-               locker.off(); // release lock
-               DisplayFlipDo.on(); // enable flip
-               // wait for flip to enter lock
-            #if MT_SPIN
-               for(; !DisplayFlipLocked; )_mm_pause(); DisplayFlipLocked=false;
-            #else
-               DisplayFlipLocked.wait();
-            #endif
-            }else
+   #if MT_FLIP
+         if(DisplayFlipThread.active()
+      #if WINDOWS_OLD && DX11
+         && SwapChainDesc.Windowed // on DX10+ we can't do this when in full screen (only in windowed), because Alt+Tab will freeze the app, http://msdn.microsoft.com/en-us/library/windows/desktop/bb205075(v=vs.85).aspx#Multithread_Considerations
       #endif
-            {
-               DisplayFlipOk=D.flip();
-               if(Renderer._t_measure)D.finish();
-            }
-
-         if(!DisplayFlipOk)DisplayFlipOk=true;
+         )
+         {
+         #if GL
+            glFlush();
+         #endif
+            locker.off(); // release lock
+            DisplayFlipDo.on(); // enable flip
+            // wait for flip to enter lock
+         #if MT_SPIN
+            for(; !DisplayFlipLocked; )_mm_pause(); DisplayFlipLocked=false;
+         #else
+            DisplayFlipLocked.wait();
+         #endif
+         }else
+   #endif
+         {
+            D.flip();
+            if(Renderer._t_measure)D.finish();
+         }
       }
 
       Dbl cur_time=Time.curTime();
