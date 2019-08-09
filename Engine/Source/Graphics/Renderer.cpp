@@ -1261,8 +1261,10 @@ void RendererClass::ao()
    Bool foreground=_ao->compatible(*_ds_1s);
    if(_col->multiSample())foreground&=Sky.isActual(); // when having multi-sampling, then allow this optimization only if we're rendering Sky, this is related to smooth edges between solid and sky pixels
    if(stage)if(stage==RS_AO || stage==RS_LIGHT_AO)foreground=false; // if we will display AO then set fully
+
    if(foreground)D.depth2DOn();
-   set(_ao, foreground ? _ds_1s : null, true, NEED_DEPTH_READ); // use DS for 'D.depth2D'
+   ImageRT *depth=(foreground ? _ds_1s() : null);
+   set(_ao, depth, true, NEED_DEPTH_READ); // use DS for 'D.depth2D'
    REPS(_eye, _eye_num)ao->draw(setEyeParams()); // calculate occlusion
    ao_depth.clear(); // this one is no longer needed
    Sh.Depth->set(_ds_1s); // restore full resolution depth
@@ -1279,12 +1281,12 @@ void RendererClass::ao()
       if(D.ambientSoft()>=5)
       {
          ImageRTPtr temp; temp.get(rt_desc);
-         set(temp, foreground ? _ds_1s : null, true, NEED_DEPTH_READ);                 Sh.ImgX[0]->set( _ao); Sh.ShdBlurX->draw(); // use DS for 'D.depth2D'
-         set( _ao, foreground ? _ds_1s : null, true, NEED_DEPTH_READ); _ao->discard(); Sh.ImgX[0]->set(temp); Sh.ShdBlurY->draw(); // use DS for 'D.depth2D'
+         set(temp, depth, true, NEED_DEPTH_READ);                 Sh.ImgX[0]->set( _ao); Sh.ShdBlurX->draw(); // use DS for 'D.depth2D'
+         set( _ao, depth, true, NEED_DEPTH_READ); _ao->discard(); Sh.ImgX[0]->set(temp); Sh.ShdBlurY->draw(); // use DS for 'D.depth2D'
       }else
       {
          ImageRTPtr src=_ao; _ao.get(rt_desc);
-         set(_ao, foreground ? _ds_1s : null, true, NEED_DEPTH_READ); Sh.ImgX[0]->set(src); Sh.ShdBlur[D.ambientSoft()-1]->draw(); // use DS for 'D.depth2D'
+         set(_ao, depth, true, NEED_DEPTH_READ); Sh.ImgX[0]->set(src); Sh.ShdBlur[D.ambientSoft()-1]->draw(); // use DS for 'D.depth2D'
       }
    #if GL && !GL_ES
       D.texBind(GL_TEXTURE_2D, Renderer._ds_1s->_txtr);
@@ -1521,7 +1523,7 @@ void RendererClass::blend()
    D.stencilRef(STENCIL_REF_TERRAIN); // set in case draw codes will use stencil
 
    const Bool blend_affect_vel=true; // #BlendRT
-   set(_col, blend_affect_vel ? _vel : null, null, null, _ds, true); setDSLookup(); // 'setDSLookup' after 'set'
+   set(_col, blend_affect_vel ? _vel() : null, null, null, _ds, true); setDSLookup(); // 'setDSLookup' after 'set'
    D.alpha(ALPHA_BLEND_FACTOR);
    D.set3D(); D.depthWrite(false); D.depthFunc(FUNC_LESS_EQUAL); D.depth(true); mode(RM_BLEND); // use less equal for blend because we may want to draw blend graphics on top of existing pixels (for example world editor terrain highlight)
    SortBlendInstances();
