@@ -546,6 +546,7 @@ void RendererClass::cleanup()
 //_final       .clear(); do not clear '_final' because this is called also for reflections, after which we still need '_final'
   _ds          .clear();
 //_ds_1s       .clear(); do not clear '_ds_1s' because 'setDepthForDebugDrawing' may be called after rendering finishes, also 'capture' makes use of it
+   if(!_get_target)_col.clear();
   _nrm         .clear();
   _vel         .clear();
   _lum         .clear();
@@ -773,6 +774,7 @@ Bool RendererClass::reflection()
       // remember current settings and disable fancy effects
       Camera           cam            =ActiveCam            ;
       Bool             combine        =T. combine           ;                     T. combine        =false             ;
+      Bool             get_target     =T._get_target        ;                     T._get_target     =true              ;
       Bool             stereo         =T._stereo            ;                     T._stereo         =false             ; // don't reset FOV because we want to render the reflection with the same exact FOV settings as only one eye, because this reflection will be reused for both eyes
       Int              eye_num        =T._eye_num           ;                     T._eye_num        =1                 ;
       RENDER_TYPE      render_type    =T._cur_type          ;                     T._cur_type       =Water.reflectionRenderer();
@@ -815,6 +817,7 @@ Bool RendererClass::reflection()
 
       // restore effects (before viewport and camera, because stereoscopic affects viewport fov)
       T. combine        =combine        ;
+      T._get_target     =get_target     ;
       T._stereo         =stereo         ;
       T._eye_num        =eye_num        ;
       T._cur_type       =render_type    ;
@@ -963,7 +966,7 @@ void RendererClass::prepare()
 start:
    IMAGE_PRECISION prec=((_cur_type==RT_DEFERRED) ? D.highPrecColRT() ? IMAGE_PRECISION_10 : IMAGE_PRECISION_8 : D.litColRTPrecision()); // for deferred renderer we first render to col and only after that we mix it with light, other modes render color already mixed with light, for high precision we need only 10-bit, no need for 16-bit
   _col=_final;
-   if(_cur_type==RT_DEFERRED || mirror() || _get_target // <- these always require
+   if(_cur_type==RT_DEFERRED /*|| mirror() _get_target already enabled for mirror*/ || _get_target // <- these always require
    || _col->size()!=rt_size || _col->samples()!=samples || _col->precision()<prec // if current RT does not match the requested rendering settings
    || wantBloom() || wantEdgeSoften() || wantMotion() || wantDof() || wantEyeAdapt() // if we want to perform post process effects then we will be rendering to a secondary RT anyway, so let's start with secondary with a chance that during the effect we can render directly to '_final'
    || (D.glowAllow() && ImageTI[_col->hwType()].a<8) // we need alpha for glow, this check is needed for example if we have IMAGE_R10G10B10A2
