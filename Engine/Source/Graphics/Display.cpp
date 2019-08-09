@@ -3194,7 +3194,7 @@ void Display::alignScreenYToPixel(Flt &screen_y)
 Bool Display::fading()C {return Renderer._fade || _fade_get;}
 void Display::setFade(Flt seconds, Bool previous_frame)
 {
-   if(!VR.active()) // fading is currently not supported in VR mode
+   if(!VR.active()) // fading is currently not supported in VR mode, because that would be a static image not rotating when moving headset
    {
       if(seconds<=0)
       {

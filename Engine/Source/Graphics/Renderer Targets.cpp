@@ -224,7 +224,7 @@ void RendererClass::update()
 void RendererClass::setMain() // !! requires 'D._lock' !! this is called after RT creation, and when VR GuiTexture is created/deleted/changed, and at the end of frame drawing for stereo mode (to advance to the next VR frame)
 {
 #if DX12
-   map needs to be called for all images, cache the values, and call setMain in every frame
+   map needs to be called for all images, cache the values, and adjust '_main' in every frame, possibly setRT too
 #endif
    if(VR.active() && (_gui=VR.getNewGui()))
    {
