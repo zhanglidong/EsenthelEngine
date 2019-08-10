@@ -174,6 +174,7 @@ void   VirtualReality::recenter ()  {       _api->recenter ();}
 void   VirtualReality::update   ()  {       _api->update   ();}
 void   VirtualReality::draw     ()
 {
+   // !! it's very important to clear '_render' and '_ui' !!
    if(active())
    {
      _api->draw(); // submit VR layers (Render+UI)
@@ -197,7 +198,7 @@ void   VirtualReality::draw     ()
          #endif
            _render->drawPart(Fit(_left_eye_tex_aspect, D.rect(), FIT_FILL), _left_eye_tex_rect);
             D.alpha(alpha);
-           _render.clear(); // clear because we no longer need it, this is very important because it allows to select the new RT in the VR swapchain
+           _render.clear(); // !! clear because we no longer need it, this is very important because it allows to select the new RT in the VR swapchain !!
          }else D.clearCol(); // clear because UI may not cover the entire window
 
          if(_ui)
@@ -207,7 +208,7 @@ void   VirtualReality::draw     ()
                Rect screen=_ui->fit(D.rect(), FIT_FULL);
               _ui->draw(screen);
             }
-           _ui.clear(); // clear because we no longer need it, this is very important because it allows to select the new RT in the VR swapchain
+           _ui.clear(); // !! clear because we no longer need it, this is very important because it allows to select the new RT in the VR swapchain !!
          }
       } // <- this will call 'Renderer._cur_main_ds.discard', because 'ds' is being deleted
 
