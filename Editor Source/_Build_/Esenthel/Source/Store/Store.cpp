@@ -1356,7 +1356,7 @@ StoreClass AppStore;
    }
    void StoreClass::openDeveloper(int id, C Str &name, C Str &support, C Str &paypal, C DateTime &date, int discount)
    {
-      D.setFade(0.1f, true);
+      D.setFade(0.07f, true);
       cur_dev=id;
       cur_dev_name    =name;
       cur_dev_support =support;
@@ -1375,7 +1375,7 @@ StoreClass AppStore;
    }
    void StoreClass::openItem(int id)
    {
-      D.setFade(0.1f, true);
+      D.setFade(0.07f, true);
       rename_file.hide();
       remove_file.hide();
       publish_confirm.hide();

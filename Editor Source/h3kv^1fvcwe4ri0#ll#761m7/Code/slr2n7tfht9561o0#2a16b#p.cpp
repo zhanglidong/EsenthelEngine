@@ -1572,7 +1572,7 @@ class StoreClass : ClosableWindow
    }
    void openDeveloper(int id, C Str &name=S, C Str &support=S, C Str &paypal=S, C DateTime &date=DateTime().zero(), int discount=0)
    {
-      D.setFade(0.1, true);
+      D.setFade(0.07, true);
       cur_dev=id;
       cur_dev_name    =name;
       cur_dev_support =support;
@@ -1591,7 +1591,7 @@ class StoreClass : ClosableWindow
    }
    void openItem(int id)
    {
-      D.setFade(0.1, true);
+      D.setFade(0.07, true);
       rename_file.hide();
       remove_file.hide();
       publish_confirm.hide();
