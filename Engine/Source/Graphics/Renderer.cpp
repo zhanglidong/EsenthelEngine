@@ -965,13 +965,13 @@ void RendererClass::prepare()
 
 start:
    IMAGE_PRECISION prec=((_cur_type==RT_DEFERRED) ? D.highPrecColRT() ? IMAGE_PRECISION_10 : IMAGE_PRECISION_8 : D.litColRTPrecision()); // for deferred renderer we first render to col and only after that we mix it with light, other modes render color already mixed with light, for high precision we need only 10-bit, no need for 16-bit
-  _col=_final;
    if(_cur_type==RT_DEFERRED /*|| mirror() _get_target already enabled for mirror*/ || _get_target // <- these always require
-   || _col->size()!=rt_size || _col->samples()!=samples || _col->precision()<prec // if current RT does not match the requested rendering settings
+   || _final->size()!=rt_size || _final->samples()!=samples || _final->precision()<prec // if current RT does not match the requested rendering settings
    || wantBloom() || wantEdgeSoften() || wantMotion() || wantDof() || wantEyeAdapt() // if we want to perform post process effects then we will be rendering to a secondary RT anyway, so let's start with secondary with a chance that during the effect we can render directly to '_final'
-   || (D.glowAllow() && ImageTI[_col->hwType()].a<8) // we need alpha for glow, this check is needed for example if we have IMAGE_R10G10B10A2
-   || (_col==&_main && !_main_ds.depthTexture() && wantDepth()) // if we're setting '_main' which is always paired with '_main_ds', and that is not a depth texture but we need to access depth, then try getting custom RT with depth texture (don't check for '_cur_main' and '_cur_main_ds' because depth buffers other than '_main_ds' are always tried to be created as depth texture first, so if that failed, then there's no point in trying to create one again)
-   )_col.get(ImageRTDesc(rt_size.x, rt_size.y, GetImageRTType(D.glowAllow(), prec), samples)); // here Alpha is used for glow
+   || (D.glowAllow() && ImageTI[_final->hwType()].a<8) // we need alpha for glow, this check is needed for example if we have IMAGE_R10G10B10A2
+   || (_final==&_main && !_main_ds.depthTexture() && wantDepth()) // if we're setting '_main' which is always paired with '_main_ds', and that is not a depth texture but we need to access depth, then try getting custom RT with depth texture (don't check for '_cur_main' and '_cur_main_ds' because depth buffers other than '_main_ds' are always tried to be created as depth texture first, so if that failed, then there's no point in trying to create one again)
+   )    _col.get(ImageRTDesc(rt_size.x, rt_size.y, GetImageRTType(D.glowAllow(), prec), samples)); // here Alpha is used for glow
+   else _col=_final;
 
    // depth stencil buffer
    setDS();
@@ -988,7 +988,10 @@ start:
       goto start;
    }
 
-   if(!_ds->multiSample ())_ds_1s=_ds;else // if the source is not multisampled then reuse it
+   // if we're going to completely replace '_final' then we can discard it
+   if(D._view_main.full && !_get_target && !combine)_final->discard();
+
+   if(!_ds->multiSample ())_ds_1s=_ds;else // if the source is not multi-sampled then reuse it
    if( _ds->depthTexture())_ds_1s.getDS(_ds->w(), _ds->h());else // create new only if we can resolve multi-sample onto 1-sample
                            _ds_1s.clear(); // there's no point in creating a 1-sampled depth buffer if we can't resolve from the multi-sampled
    Sh.Depth  ->set(_ds_1s);
@@ -1827,7 +1830,6 @@ void RendererClass::postProcess()
    if(eye_adapt || bloom || motion || dof || combine || _get_target)resolveMultiSample(); // we need to resolve the MS Image so it's smooth for the effects
 
    Int fxs=((upscale || _get_target) ? -1 : eye_adapt+bloom+motion+dof+combine); // this counter specifies how many effects are still left in the queue, and if we can render directly to '_final', when up sampling then don't render to '_final'
-   if( D._view_main.full && !_get_target && !combine && _col!=_final)_final->discard();
    if(!D._view_main.full)Sh.ImgClamp->setConditional(imgClamp(size)); // set 'ImgClamp' that may be needed for Bloom, DoF, MotionBlur, this is the viewport rect within texture, so reading will be clamped to what was rendered inside the viewport
 
    IMAGE_PRECISION rt_prec=D.litColRTPrecision();

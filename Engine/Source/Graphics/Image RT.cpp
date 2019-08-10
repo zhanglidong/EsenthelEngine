@@ -117,7 +117,7 @@ void ResetImageTypeCreateResult()
     C ImageRTType &src=ImageRTTypes[rt_type]; REPD(ms, 2) // have to separately for multi-sampled
       {
          IMAGE_TYPE &dest=ImageRTTypesOK[ms][rt_type];
-         UInt flag=(ms ? ImageTypeInfo::USAGE_IMAGE_MS : (ImageTypeInfo::USAGE_IMAGE_RT|ImageTypeInfo::USAGE_IMAGE_DS)); // for multi-sampling 'ms' we need USAGE_IMAGE_MS (this implies multisampled RT or DS), otherwise RT or DS is enough
+         UInt flag=(ms ? ImageTypeInfo::USAGE_IMAGE_MS : (ImageTypeInfo::USAGE_IMAGE_RT|ImageTypeInfo::USAGE_IMAGE_DS)); // for multi-sampling 'ms' we need USAGE_IMAGE_MS (this implies multi-sampled RT or DS), otherwise RT or DS is enough
          FREPA(src.types){IMAGE_TYPE type=src.types[i]; if(ImageTI[type].usage()&flag){dest=type; goto set;}} // find first matching
          dest=IMAGE_NONE;
       set:;
