@@ -1300,6 +1300,40 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
       code=Replace(code, inst+'.', S, true, true);
       code=Replace(code, inst    , S, true, true);
    }
+#if 1 // texture precision - https://github.com/microsoft/DirectXShaderCompiler/issues/2399
+   static CChar8 *sampler2D[]=
+   {
+      "Col", "Col1", "Col2", "Col3",
+      "Nrm", "Nrm1", "Nrm2", "Nrm3",
+      "Det", "Det1", "Det2", "Det3",
+      "Mac", "Mac1", "Mac2", "Mac3",
+      "Lum",
+      "Img", "Img1", "Img2", "Img3",
+      "ImgX", "ImgX1", "ImgX2", "ImgX3",
+      "ImgXY",
+      "ShdMap1",
+      "FurCol", "FurLight",
+      "XZImage",
+   };
+   static CChar8 *sampler3D[]=
+   {
+      "Vol",
+      "VolXY", "VolXY1",
+   };
+   static CChar8 *samplerCube[]=
+   {
+      "Rfl", "Rfl1", "Rfl2", "Rfl3",
+      "Cub", "Cub1",
+   };
+   static CChar8 *sampler2DShadow[]=
+   {
+      "ShdMap",
+   };
+   REPA(sampler2D      )code=Replace(code, S+"uniform highp sampler2D "      +sampler2D      [i], S+"uniform mediump sampler2D "      +sampler2D      [i], true, true);
+   REPA(sampler3D      )code=Replace(code, S+"uniform highp sampler3D "      +sampler3D      [i], S+"uniform mediump sampler3D "      +sampler3D      [i], true, true);
+   REPA(samplerCube    )code=Replace(code, S+"uniform highp samplerCube "    +samplerCube    [i], S+"uniform mediump samplerCube "    +samplerCube    [i], true, true);
+   REPA(sampler2DShadow)code=Replace(code, S+"uniform highp sampler2DShadow "+sampler2DShadow[i], S+"uniform mediump sampler2DShadow "+sampler2DShadow[i], true, true);
+#endif
 
 #if FORCE_LOG_SHADER_CODE
    #pragma message("!! Warning: Use this only for debugging !!")
