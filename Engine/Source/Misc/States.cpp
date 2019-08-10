@@ -48,12 +48,12 @@ void State::set()
 {
    StateNext=this;
 }
-void State::set(Flt fade_time, Bool fade_previous_frame)
+void State::set(Flt fade_time, Bool fade_immediate)
 {
    if(StateNext!=this)
    {
+      D.setFade(fade_time, fade_immediate); // 'setFade' before changing state
       set();
-      D.setFade(fade_time, fade_previous_frame);
    }
 }
 /******************************************************************************/

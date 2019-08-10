@@ -12,8 +12,8 @@ struct State // Application State
    void (*draw)();
 
    // set
-   void set(                                             ); // set as active state (this sets current State to the StateNext, and in the next frame it will be set also as StateActive)
-   void set(Flt fade_time, Bool fade_previous_frame=false); // set as active state and use screen fade effect between states, that lasts 'fade_time' number of seconds, 'fade_previous_frame'=if use result of previous frame instead of the next frame for fading
+   void set(                                        ); // set as active state (this sets current State to the StateNext, and in the next frame it will be set also as StateActive)
+   void set(Flt fade_time, Bool fade_immediate=false); // set as active state and use screen fade effect between states, that lasts 'fade_time' number of seconds, 'fade_immediate'=if make an immediate copy of the screen when calling this function with current application state (this is slower because it re-draws entire screen, but uses current application state), false=use the next frame result (faster but uses next frame which may not have current application state)
 
    State(Bool (*update)(), void (*draw)(), Bool (*init)()=null, void (*shut)()=null); // 'init' and 'shut' may be set to null
 

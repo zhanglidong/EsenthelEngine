@@ -218,9 +218,9 @@ struct Display : DisplayState, DisplayDraw // Display Control
                                                          static Bool created                       ();                           //     get if display is created, this can be false when the Engine still hasn't finished initializing (before 'Init'), or on Linux if XDisplay is not available and APP_ALLOW_NO_XDISPLAY was specified
 
    // screen fading
-   Bool      fading()C;                                      // if    fading is currently enabled
-   void   setFade  (Flt seconds, Bool previous_frame=false); // start fading the nearest screen result for the following 'seconds', 'previous_frame'=if use result of previous frame instead of the next frame
-   void clearFade  (                                      ); // clear any active fading, the change is instant, you can call it real-time
+   Bool      fading()C;                                 // if    fading is currently enabled
+   void   setFade  (Flt seconds, Bool immediate=false); // start fading screen for the following 'seconds', 'immediate'=if make an immediate copy of the screen when calling this function with current application state (this is slower because it re-draws entire screen, but uses current application state), false=use the next frame result (faster but uses next frame which may not have current application state)
+   void clearFade  (                                 ); // clear any active fading, the change is instant, you can call it real-time
 
    // Color Palette
    Display& colorPaletteAllow(  Bool      on     );   Bool      colorPaletteAllow()C {return _color_palette_allow;} // set/get if RM_PALETTE/RM_PALETTE1 rendering modes are allowed, disabling them increases rendering performance, default=true (false for Mobile)

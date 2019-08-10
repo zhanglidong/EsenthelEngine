@@ -3237,7 +3237,8 @@ void Display::setFade(Flt seconds, Bool previous_frame)
             fadeDraw(); // draw old fade if any
            _fade_step=0; _fade_len=seconds; // set after calling 'fadeDraw'
             Swap(Renderer._fade, temp); // swap RT as new fade
-            Renderer._cur_main=cur_main; Renderer._cur_main_ds=cur_main_ds; Renderer._ui=ui; Renderer._ui_ds=ui_ds;
+            Renderer._cur_main   =cur_main   ; Renderer._ui   =ui   ;
+            Renderer._cur_main_ds=cur_main_ds; Renderer._ui_ds=ui_ds;
             Renderer.set(Renderer._cur_main, Renderer._cur_main_ds, true);
          }
       #endif
