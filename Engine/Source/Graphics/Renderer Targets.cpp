@@ -86,7 +86,7 @@ void RendererClass::rtClear()
   _mirror_rt   .clear();
   _outline_rt  .clear();
   _sky_coverage.clear();
-  _final       .clear();
+  _final       =null;
    // don't clear '_back' and '_back_ds' here in case they are used
 }
 void RendererClass::rtClean()
@@ -123,11 +123,11 @@ void RendererClass::rtDel()
   _back_ds.clear();
 
 #if WEB // #WebSRGB
-  _gui   =_cur_main   =&_main_temp;
-  _gui_ds=_cur_main_ds=&_main_temp_ds;
+  _ui   =_cur_main   =&_main_temp;
+  _ui_ds=_cur_main_ds=&_main_temp_ds;
 #else
-  _gui   =_cur_main   =&_main;
-  _gui_ds=_cur_main_ds=&_main_ds;
+  _ui   =_cur_main   =&_main;
+  _ui_ds=_cur_main_ds=&_main_ds;
 #endif
 
    unmapMain();
@@ -226,21 +226,21 @@ void RendererClass::setMain() // !! requires 'D._lock' !! this is called after R
 #if DX12
    map needs to be called for all images, cache the values, and adjust '_main' in every frame, possibly setRT too
 #endif
-   if(VR.active() && (_gui=VR.getNewGui()))
+   if(VR.active() && (_ui=VR.getUI()))
    {
-     _gui_ds.getDS(_gui->w(), _gui->h());
+     _ui_ds=&VR._ui_ds;
    }else
    {
    #if WEB // #WebSRGB
-     _gui   =&_main_temp;
-     _gui_ds=&_main_temp_ds;
+     _ui   =&_main_temp;
+     _ui_ds=&_main_temp_ds;
    #else
-     _gui   =&_main;
-     _gui_ds=&_main_ds;
+     _ui   =&_main;
+     _ui_ds=&_main_ds;
    #endif
    }
-  _cur_main   =_gui;
-  _cur_main_ds=_gui_ds;
+  _cur_main   =_ui;
+  _cur_main_ds=_ui_ds;
 
    set(_cur_main, _cur_main_ds, false);
 }

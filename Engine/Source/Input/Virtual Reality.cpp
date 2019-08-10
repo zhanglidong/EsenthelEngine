@@ -2,28 +2,28 @@
 
    Rendering to VR works in a following way:
       -3D is rendered into RenderTexture
-      -2D is drawn    into    GuiTexture (assumed to have pixel_aspect=1)
+      -2D is drawn    into     UITexture (assumed to have pixel_aspect=1)
       -the textures are submitted to HMD ('ovr_SubmitFrame' OculusRift, 'Submit' OpenVR)
       -the textures are also drawn to the System Window (without any warp shaders):
          -RenderTexture is drawn with FIT_FILL for the Left Eye only (with correct scale and position so that the eye focus is at the window center)
-         -   GuiTexture is drawn with FIT_FULL
+         -    UITexture is drawn with FIT_FULL
 
-   Since VR GuiTexture can be set to a custom size, most likely it will be different than System Window size/resolution.
-   Because of that, most display members are set based on VR GuiTexture, and not Window size, this includes:
+   Since VR UITexture can be set to a custom size, most likely it will be different than System Window size/resolution.
+   Because of that, most display members are set based on VR UITexture, and not Window size, this includes:
       D.w, D.h, D.w2, D.h2, D.pixelToScreen, D.pixelToScreenSize, D.screenToPixel, D.screenToPixelSize, ..
    But DOES NOT INCLUDE:
       D.mode, D.res, D.resW, D.resH
 
-   RenderTexture for simplicity, uses the same D.w and D.h values as GuiTexture.
+   RenderTexture for simplicity, uses the same D.w and D.h values as UITexture.
       In both cases range (-D.w, -D.h) .. (D.w, D.h) covers the entire textures.
       However since the textures are not displayed with the same scale, visible screen position in one texture is not the same as in the other.
-      To compensate for different texture sizes, 'D.viewFovTan' is calculated differently for RenderTexture/GuiTexture,
+      To compensate for different texture sizes, 'D.viewFovTan' is calculated differently for RenderTexture/UITexture,
          to do correct mapping between 2D<->3D space.
 
    Just before doing drawing to the System Window, D.w, D.h are recalculated based on window size,
-      to maintain correct aspect. Once window drawing is finished, D.w D.h are restored to the VR GuiTexture values.
+      to maintain correct aspect. Once window drawing is finished, D.w D.h are restored to the VR UITexture values.
 
-   D.windowPixelToScreen is used to convert pixel in the System Window, to screen position on VR GuiTexture.
+   D.windowPixelToScreen is used to convert pixel in the System Window, to screen position on VR UITexture.
       This is used for converting mouse/touch pointer positions.
 
    To detect if we're rendering into VR, use:
@@ -53,26 +53,24 @@ static struct VirtualRealityDummyApi : VirtualRealityApi
      _active=false; VR.disconnected(); // set active before calling connected
    }
 
-   virtual Bool   active         ()C override {return _active;}
-   virtual Matrix matrixCur      ()C override {return MatrixIdentity;}
-   virtual void   recenter       ()  override {}
-   virtual void   changedGuiDepth()  override {}
-   virtual void   changedGuiSize ()  override {}
-   virtual void   update         ()  override {}
-   virtual void   draw           ()  override {}
+   virtual Bool   active        ()C override {return _active;}
+   virtual Matrix matrixCur     ()C override {return MatrixIdentity;}
+   virtual void   recenter      ()  override {}
+   virtual void   changedUIDepth()  override {}
+   virtual void   changedUISize ()  override {}
+   virtual void   update        ()  override {}
+   virtual void   draw          ()  override {}
 
-   virtual void          delImages()override {_render.del(); _gui.del();}
-   virtual Bool    createGuiImage ()override {return _gui   .create(VR.guiRes()     , LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8);}
+   virtual void          delImages()override {_render.del(); _ui.del();}
+   virtual Bool     createUIImage ()override {return _ui    .create(VR.guiRes()     , LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8);}
    virtual Bool createRenderImage ()override {return _render.create(VecI2(1280, 720), LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8);}
 
-   virtual ImageRT* getNewRender ()override {return  _render.is() ? &_render : null;}
-   virtual ImageRT* getNewGui    ()override {return  _gui   .is() ? &_gui    : null;}
-   virtual ImageRT* getLastRender()override {return &_render;}
-   virtual ImageRT* getLastGui   ()override {return &_gui   ;}
+   virtual ImageRT* getNewRender()override {return _render.is() ? &_render : null;}
+   virtual ImageRT* getNewUI    ()override {return _ui    .is() ? &_ui     : null;}
 
 private:
    Bool    _active;
-   ImageRT _render, _gui;
+   ImageRT _render, _ui;
 }VirtualRealityDummy;
 /******************************************************************************/
        VirtualReality    VR;
@@ -100,7 +98,6 @@ static void ClampTexSize(Int &w, Int &h)
 VirtualReality::VirtualReality()
 {
    draw_2d=true;
-  _has_render=false;
   _name[0]='\0';
   _eye_dist=0.064f;
   _density=1;
@@ -128,8 +125,8 @@ Bool VirtualReality::init(VirtualRealityApi &api)
    if(api.init()) // if API initialized OK
    {
       // put to API what was set earlier
-      api.changedGuiDepth();
-      api.changedGuiSize ();
+      api.changedUIDepth();
+      api.changedUISize ();
       return true;
    }
   _api=&VrNull; return false; // if failed then revert back to null
@@ -175,23 +172,47 @@ Bool   VirtualReality::active   ()C {return _api->active   ();}
 Matrix VirtualReality::matrixCur()C {return _api->matrixCur();}
 void   VirtualReality::recenter ()  {       _api->recenter ();}
 void   VirtualReality::update   ()  {       _api->update   ();}
-void   VirtualReality::draw     ()  {       _api->draw     ();}
-void   VirtualReality::drawMain () // remember that we're rendering left eye, so it will be offsetted by eye distance
+void   VirtualReality::draw     ()
 {
-   if(Image *render=getLastRender())
+   if(active())
    {
-      ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
-   #if DEBUG && 1
-      if(Kb.b(KB_NPMUL)){D.clearCol(); render->drawFs(FIT_FULL, FILTER_LINEAR);}else
-   #endif
-      render->drawPart(Fit(_left_eye_tex_aspect, D.rect(), FIT_FILL), _left_eye_tex_rect);
-      D.alpha(alpha);
-   }else D.clearCol(); // clear because Gui may not cover the entire window
+     _api->draw(); // submit VR layers (Render+UI)
 
-   if(draw_2d)if(Image *image=getLastGui())
-   {
-      Rect screen=image->fit(D.rect(), FIT_FULL);
-      image->draw(screen);
+      const Bool use_ds=false; // no need for depth buffer because we will only copy VR results
+      Renderer._ui   =Renderer._cur_main   =&Renderer._main   ;
+      Renderer._ui_ds=Renderer._cur_main_ds=&Renderer._main_ds;
+      Renderer.set(Renderer._cur_main, use_ds ? Renderer._cur_main_ds : null, false);
+
+                   D._flip.clear()=Renderer._cur_main; // clear (in case it wasn't) to make sure setting new will call 'discard', this is needed to hold ref count until 'D.flip' is called
+      {ImageRTPtr ds; if(use_ds)ds=Renderer._cur_main_ds; // this will call 'discard', this is needed to hold ref count until DS is no longer needed
+
+         D._allow_stereo=false; D.aspectRatioEx(true, true); Frustum.set(); // !! call in this order !!
+
+       //D.viewRect(null); // reset viewport, not needed since we've reset this already above in 'Renderer.set'
+         if(_render)
+         {
+            ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
+         #if DEBUG && 1
+            if(Kb.b(KB_NPMUL)){D.clearCol(); _render->drawFs(FIT_FULL, FILTER_LINEAR);}else
+         #endif
+           _render->drawPart(Fit(_left_eye_tex_aspect, D.rect(), FIT_FILL), _left_eye_tex_rect);
+            D.alpha(alpha);
+           _render.clear(); // clear because we no longer need it, this is very important because it allows to select the new RT in the VR swapchain
+         }else D.clearCol(); // clear because UI may not cover the entire window
+
+         if(_ui)
+         {
+            if(draw_2d)
+            {
+               Rect screen=_ui->fit(D.rect(), FIT_FULL);
+              _ui->draw(screen);
+            }
+           _ui.clear(); // clear because we no longer need it, this is very important because it allows to select the new RT in the VR swapchain
+         }
+      } // <- this will call 'Renderer._cur_main_ds.discard', because 'ds' is being deleted
+
+      Renderer.setMain(); // restore the main RT (that includes advancing to the next VR texture)
+      D._allow_stereo=true; D.aspectRatioEx(true, true); Frustum.set(); // !! call in this order !!
    }
 }
 /******************************************************************************/
@@ -215,27 +236,32 @@ VirtualReality& VirtualReality::pixelDensity(Flt density)
 }
 VirtualReality& VirtualReality::guiRes(Int w, Int h)
 {
-   ClampTexSize(w, h); if(_gui_res.x!=w || _gui_res.y!=h){_gui_res.set(w, h); createGuiImage();} return T;
+   ClampTexSize(w, h); if(_gui_res.x!=w || _gui_res.y!=h){_gui_res.set(w, h); createUIImage();} return T;
 }
 VirtualReality& VirtualReality::guiDepth(Flt depth)
 {
-   MAX(depth, 0); if(_gui_depth!=depth){_gui_depth=depth; _api->changedGuiDepth();} return T;
+   MAX(depth, 0); if(_gui_depth!=depth){_gui_depth=depth; _api->changedUIDepth();} return T;
 }
 VirtualReality& VirtualReality::guiSize(Flt size)
 {
-   MAX(size, 0); if(_gui_size!=size){_gui_size=size; _api->changedGuiSize(); D.setViewFovTan();} return T;
+   MAX(size, 0); if(_gui_size!=size){_gui_size=size; _api->changedUISize(); D.setViewFovTan();} return T;
 }
 
 void VirtualReality::delImages()
 {
-  _has_render=false; _api->delImages();
+  _render.clear(); _ui.clear(); _ui_ds.del(); _api->delImages();
 }
-Bool VirtualReality::createGuiImage()
+Bool VirtualReality::createUIImage()
 {
    if(D.created() && active())
    {
+     _ui.clear();
       ClampTexSize(_gui_res.x, _gui_res.y);
-      if(_api->createGuiImage())
+      if(_api->createUIImage()
+      && (_ui_ds.create(guiRes(), IMAGE_D24S8, IMAGE_DS)
+       || _ui_ds.create(guiRes(), IMAGE_D32  , IMAGE_DS)
+         )
+      )
       {
          SyncLockerEx locker(D._lock);
          Renderer.setMain();
@@ -250,9 +276,9 @@ Bool VirtualReality::createRenderImage()
 {
    if(D.created() && active())
    {
+     _render.clear();
       if(_api->createRenderImage())
       {
-        _has_render=false;
          return true;
       }
       shut(); return false;
@@ -261,13 +287,11 @@ Bool VirtualReality::createRenderImage()
 }
 Bool VirtualReality::createImages()
 {
-   return createRenderImage() && createGuiImage();
+   return createRenderImage() && createUIImage();
 }
 
-ImageRT* VirtualReality::getNewRender () {   if(ImageRT *image=_api->getNewRender ()){_has_render=true; return image;} return null;}
-ImageRT* VirtualReality::getNewGui    () {return               _api->getNewGui    ()       ;}
-ImageRT* VirtualReality::getLastRender() {return _has_render ? _api->getLastRender() : null;}
-ImageRT* VirtualReality::getLastGui   () {return               _api->getLastGui   ()       ;}
+ImageRT* VirtualReality::getRender() {if(!_render)_render=_api->getNewRender(); return _render;} // this will call 'discard', have to keep as 'ImageRTPtr' as long as we need it
+ImageRT* VirtualReality::getUI    () {if(!_ui    )_ui    =_api->getNewUI    (); return _ui    ;} // this will call 'discard', have to keep as 'ImageRTPtr' as long as we need it
 /******************************************************************************/
 }
 /******************************************************************************/

@@ -128,34 +128,17 @@ Bool DrawState()
       {
          SyncLockerEx locker(D._lock);
          if(Renderer._t_measure)D.finish(); start_time=Time.curTime();
-         Renderer._cur_main   ->discard();
-         Renderer._cur_main_ds->discard();
-         D._view_main.setViewport(); // user may have called 'D.viewRect' during 'Update', in which setting the viewport can be ignored, so force it always here
-         StateActive->draw();
-         Physics.step(); // step after all drawing completed (in case it used current state of physics)
+         D._flip.clear()=Renderer._cur_main; // clear (in case it wasn't) to make sure setting new will call 'discard', this is needed to hold ref count until 'D.flip' is called
+         { ImageRTPtr ds=Renderer._cur_main_ds; // this will call 'discard', this is needed to hold ref count until DS is no longer needed
+            D._view_main.setViewport(); // user may have called 'D.viewRect' during 'Update', in which setting the viewport can be ignored, so force it always here
+            StateActive->draw();
+            Physics.step(); // step after all drawing completed (in case it used current state of physics), call this ASAP so physics can continue as fast as possible
+            Renderer._ds_1s.clear(); // '_ds_1s' isn't cleared in 'Renderer.cleanup' in case it's used for drawing, so clear it here to make sure we can call discard
+         } // <- this will call 'Renderer._cur_main_ds.discard', because 'ds' is being deleted
          D  .fadeDraw();
          Gui.dragDraw();
          Ms .    draw();
          VR .    draw();
-         Renderer._cur_main_ds->discard();
-
-         if(VR.active())
-         {
-            const Bool ds=false; // no need for depth buffer because we will only copy VR results
-            Renderer._gui   =&Renderer._main   ; Renderer._cur_main   =Renderer._gui   ;
-            Renderer._gui_ds=&Renderer._main_ds; Renderer._cur_main_ds=Renderer._gui_ds;
-            Renderer.set(Renderer._cur_main, ds ? Renderer._cur_main_ds : null, false);
-                  Renderer._cur_main   ->discard();
-            if(ds)Renderer._cur_main_ds->discard();
-            D._allow_stereo=false; D.aspectRatioEx(true, true); Frustum.set(); // !! call in this order !!
-
-          //D.viewRect(null); // reset viewport, not needed since we've reset this already above in 'Renderer.set'
-            VR.drawMain();
-
-            if(ds)Renderer._cur_main_ds->discard();
-            Renderer.setMain(); // restore the main RT (that includes advancing to the next VR texture)
-            D._allow_stereo=true; D.aspectRatioEx(true, true); Frustum.set(); // !! call in this order !!
-         }
 
          // flip
          if(Renderer._t_measure){D.finish(); flip_time=Time.curTime();}

@@ -175,14 +175,14 @@ void Panel::draw(C Rect &rect)C
    {
       const Bool    hi   =true;
       const Int     shift=(hi ? 1 : 2);
-      ImageRTPtrRef rt0(hi ? Renderer._h0 : Renderer._q0); rt0.get(ImageRTDesc(Renderer._gui->w()>>shift, Renderer._gui->h()>>shift, IMAGERT_SRGB));
-      ImageRTPtrRef rt1(hi ? Renderer._h1 : Renderer._q1); rt1.get(ImageRTDesc(Renderer._gui->w()>>shift, Renderer._gui->h()>>shift, IMAGERT_SRGB));
+      ImageRTPtrRef rt0(hi ? Renderer._h0 : Renderer._q0); rt0.get(ImageRTDesc(Renderer._ui->w()>>shift, Renderer._ui->h()>>shift, IMAGERT_SRGB));
+      ImageRTPtrRef rt1(hi ? Renderer._h1 : Renderer._q1); rt1.get(ImageRTDesc(Renderer._ui->w()>>shift, Renderer._ui->h()>>shift, IMAGERT_SRGB));
       ImageRT      *cur      =Renderer._cur[0], *ds=Renderer._cur_ds;
       Rect          re       =r; re.extend(D.pixelToScreenSize(SHADER_BLUR_RANGE<<shift));
-      Bool          secondary=(Renderer._gui!=cur); // required when "window.fade && blur" is used
+      Bool          secondary=(Renderer._ui!=cur); // required when "window.fade && blur" is used
 
-                   Renderer._gui->copyHw(*rt0, false, re); // use 'Renderer.gui' instead of 'Renderer.cur[0]' in case we're drawing transparent Window and we're inside 'D.fxBegin' but need to access default gui RT
-      if(secondary)Renderer._gui->copyHw(*cur, false, r ); // set background to be a copy
+                   Renderer._ui->copyHw(*rt0, false, re); // use 'Renderer.gui' instead of 'Renderer.cur[0]' in case we're drawing transparent Window and we're inside 'D.fxBegin' but need to access default gui RT
+      if(secondary)Renderer._ui->copyHw(*cur, false, r ); // set background to be a copy
 
     //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
       ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Renderer.set(rt1, null, false); Sh.BlurX[true]->draw(rt0, &re);
@@ -325,14 +325,14 @@ void Panel::draw(C Color &color, C Rect &rect)C
    {
       const Bool    hi   =true;
       const Int     shift=(hi ? 1 : 2);
-      ImageRTPtrRef rt0(hi ? Renderer._h0 : Renderer._q0); rt0.get(ImageRTDesc(Renderer._gui->w()>>shift, Renderer._gui->h()>>shift, IMAGERT_SRGB));
-      ImageRTPtrRef rt1(hi ? Renderer._h1 : Renderer._q1); rt1.get(ImageRTDesc(Renderer._gui->w()>>shift, Renderer._gui->h()>>shift, IMAGERT_SRGB));
+      ImageRTPtrRef rt0(hi ? Renderer._h0 : Renderer._q0); rt0.get(ImageRTDesc(Renderer._ui->w()>>shift, Renderer._ui->h()>>shift, IMAGERT_SRGB));
+      ImageRTPtrRef rt1(hi ? Renderer._h1 : Renderer._q1); rt1.get(ImageRTDesc(Renderer._ui->w()>>shift, Renderer._ui->h()>>shift, IMAGERT_SRGB));
       ImageRT      *cur      =Renderer._cur[0], *ds=Renderer._cur_ds;
       Rect          re       =r; re.extend(D.pixelToScreenSize(SHADER_BLUR_RANGE<<shift));
-      Bool          secondary=(Renderer._gui!=cur); // required when "window.fade && blur" is used
+      Bool          secondary=(Renderer._ui!=cur); // required when "window.fade && blur" is used
 
-                   Renderer._gui->copyHw(*rt0, false, re); // use 'Renderer.gui' instead of 'Renderer.cur[0]' in case we're drawing transparent Window and we're inside 'D.fxBegin' but need to access default gui RT
-      if(secondary)Renderer._gui->copyHw(*cur, false, r ); // set background to be a copy
+                   Renderer._ui->copyHw(*rt0, false, re); // use 'Renderer.gui' instead of 'Renderer.cur[0]' in case we're drawing transparent Window and we're inside 'D.fxBegin' but need to access default gui RT
+      if(secondary)Renderer._ui->copyHw(*cur, false, r ); // set background to be a copy
 
     //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
       ALPHA_MODE alpha=D.alpha(ALPHA_NONE); Renderer.set(rt1, null, false); Sh.BlurX[true]->draw(rt0, &re);

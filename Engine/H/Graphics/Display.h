@@ -534,6 +534,7 @@ private:
    SyncLock          _lock;
  C Material*         _set_shader_material;
    Map<Ptr, Monitor> _monitors;
+   ImageRTPtr        _flip;
 
 #if EE_PRIVATE
    // manage

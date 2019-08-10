@@ -18,22 +18,20 @@ static struct OpenVRApi : VirtualRealityApi
    virtual Bool init()override;
    virtual void shut()override;
 
-   virtual Bool   active         ()C override;
-   virtual Matrix matrixCur      ()C override;
-   virtual void   recenter       ()  override;
-   virtual void   changedGuiDepth()  override;
-   virtual void   changedGuiSize ()  override;
-   virtual void   update         ()  override;
-   virtual void   draw           ()  override;
+   virtual Bool   active        ()C override;
+   virtual Matrix matrixCur     ()C override;
+   virtual void   recenter      ()  override;
+   virtual void   changedUIDepth()  override;
+   virtual void   changedUISize ()  override;
+   virtual void   update        ()  override;
+   virtual void   draw          ()  override;
 
    virtual void          delImages()override;
-   virtual Bool    createGuiImage ()override;
+   virtual Bool     createUIImage ()override;
    virtual Bool createRenderImage ()override;
 
-   virtual ImageRT* getNewRender ()override;
-   virtual ImageRT* getNewGui    ()override;
-   virtual ImageRT* getLastRender()override;
-   virtual ImageRT* getLastGui   ()override;
+   virtual ImageRT* getNewRender()override;
+   virtual ImageRT* getNewUI    ()override;
 
    OpenVRApi();
 
@@ -48,7 +46,7 @@ private:
    vr::IVROverlay       *_overlay;
    vr::VROverlayHandle_t _overlay_id;
    Bool                  _overlay_visible, _connected;
-   ImageRT               _render, _gui;
+   ImageRT               _render, _ui;
 #endif
 }OpenVR;
 #if SUPPORT_OPEN_VR
@@ -159,7 +157,7 @@ Bool OpenVRApi::init()
            _compositor->SetTrackingSpace(vr::TrackingUniverseSeated); // this will have 2 effects: 1) 'ResetSeatedZeroPose' will affect Matrix returned by 'WaitGetPoses' (correct behavior, because without this call, calling recenter does not affect 'WaitGetPoses') 2) it will make "chaperone" bounds disappear (the blue circle at the bottom which specifies play area size)
             if(_overlay=vr::VROverlay())
             {
-              _overlay->CreateOverlay("Esenthel", "Gui", &_overlay_id); if(_overlay_id!=vr::k_ulOverlayHandleInvalid)
+              _overlay->CreateOverlay("Esenthel", "UI", &_overlay_id); if(_overlay_id!=vr::k_ulOverlayHandleInvalid)
                {
                  _overlay->SetHighQualityOverlay(_overlay_id);
                  _overlay->HideOverlay(_overlay_id); _overlay_visible=false;
@@ -236,18 +234,17 @@ void OpenVRApi::setOverlaySizeDepth()
       Matrix m; m.setPos(0, 0, VR.guiDepth());
       vr::HmdMatrix34_t pose; SetPose(pose, m);
      _overlay->SetOverlayTransformTrackedDeviceRelative(_overlay_id, vr::k_unTrackedDeviceIndex_Hmd, &pose);
-     _overlay->SetOverlayWidthInMeters(_overlay_id, VR.guiSize()*VR.guiDepth()*_gui.aspect());
+     _overlay->SetOverlayWidthInMeters(_overlay_id, VR.guiSize()*VR.guiDepth()*_ui.aspect());
    }
 #endif
 }
-void OpenVRApi::changedGuiDepth() {setOverlaySizeDepth();}
-void OpenVRApi::changedGuiSize () {setOverlaySizeDepth();}
+void OpenVRApi::changedUIDepth() {setOverlaySizeDepth();}
+void OpenVRApi::changedUISize () {setOverlaySizeDepth();}
 void OpenVRApi::update()
 {
 #if SUPPORT_OPEN_VR
    if(_vr)
    {
-      VR._has_render=false;
 	   vr::VREvent_t event; while(_vr->PollNextEvent(&event, SIZE(event))) {}
       vr::TrackedDevicePose_t pose;
       vr::EVRCompositorError error;
@@ -278,21 +275,22 @@ void OpenVRApi::draw()
 #if SUPPORT_OPEN_VR
    if(active())
    {
-      if(!VR._has_render)_render.clearFull(Vec4Zero, true); // if render was not set, then clear
+      if(!VR._render)_render.clearFull(Vec4Zero, true); // if render was not set, then clear
 
       vr::Texture_t t;
       t.eType=GPU_API(vr::TextureType_DirectX, vr::TextureType_OpenGL);
 
       if(_overlay && _overlay_id!=vr::k_ulOverlayHandleInvalid)
       {
-         if(_overlay_visible!=VR.draw_2d)
+         Bool vis=(VR._ui && VR.draw_2d);
+         if(_overlay_visible!=vis)
          {
-            if(_overlay_visible=VR.draw_2d)_overlay->ShowOverlay(_overlay_id);
-            else                           _overlay->HideOverlay(_overlay_id);
+            if(_overlay_visible=vis)_overlay->ShowOverlay(_overlay_id);
+            else                    _overlay->HideOverlay(_overlay_id);
          }
          if(_overlay_visible) // this needs to be called per-frame
          {
-            t.handle=(Ptr)_gui._txtr;
+            t.handle=(Ptr)_ui._txtr;
             t.eColorSpace=COLOR_SPACE;
 	        _overlay->SetOverlayTexture(_overlay_id, &t);
          }
@@ -319,18 +317,18 @@ void OpenVRApi::delImages()
 #if SUPPORT_OPEN_VR
    if(_overlay && _overlay_id!=vr::k_ulOverlayHandleInvalid)_overlay->ClearOverlayTexture(_overlay_id);
   _render.del();
-  _gui   .del();
+  _ui    .del();
 #endif
 }
-Bool OpenVRApi::createGuiImage()
+Bool OpenVRApi::createUIImage()
 {
 #if SUPPORT_OPEN_VR
-   if(_gui.create(VR.guiRes(), LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8))
+   if(_ui.create(VR.guiRes(), LINEAR_GAMMA ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8))
    {
       if(_overlay && _overlay_id!=vr::k_ulOverlayHandleInvalid)
       {
          vr::Texture_t t;
-         t.handle=(Ptr)_gui._txtr;
+         t.handle=(Ptr)_ui._txtr;
          t.eType=GPU_API(vr::TextureType_DirectX, vr::TextureType_OpenGL);
          t.eColorSpace=COLOR_SPACE;
 	     _overlay->SetOverlayTexture(_overlay_id, &t);
@@ -361,24 +359,10 @@ ImageRT* OpenVRApi::getNewRender()
 #endif
    return null;
 }
-ImageRT* OpenVRApi::getNewGui()
+ImageRT* OpenVRApi::getNewUI()
 {
 #if SUPPORT_OPEN_VR
-   if(_gui.is())return &_gui;
-#endif
-   return null;
-}
-ImageRT* OpenVRApi::getLastRender()
-{
-#if SUPPORT_OPEN_VR
-   return &_render;
-#endif
-   return null;
-}
-ImageRT* OpenVRApi::getLastGui()
-{
-#if SUPPORT_OPEN_VR
-   return &_gui;
+   if(_ui.is())return &_ui;
 #endif
    return null;
 }

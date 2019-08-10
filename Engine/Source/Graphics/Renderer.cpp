@@ -89,11 +89,11 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
 #endif
 
 #if WEB // #WebSRGB
-  _gui   =_cur_main   =&_main_temp;
-  _gui_ds=_cur_main_ds=&_main_temp_ds;
+  _ui   =_cur_main   =&_main_temp;
+  _ui_ds=_cur_main_ds=&_main_temp_ds;
 #else
-  _gui   =_cur_main   =&_main;
-  _gui_ds=_cur_main_ds=&_main_ds;
+  _ui   =_cur_main   =&_main;
+  _ui_ds=_cur_main_ds=&_main_ds;
 #endif
 }
 void RendererClass::del()
@@ -543,7 +543,7 @@ void RendererClass::Combine(IMAGE_PRECISION rt_prec)
 /******************************************************************************/
 void RendererClass::cleanup()
 {
-//_final       .clear(); do not clear '_final' because this is called also for reflections, after which we still need '_final'
+//_final       =null   ; do not clear '_final' because this is called also for reflections, after which we still need '_final'
   _ds          .clear();
 //_ds_1s       .clear(); do not clear '_ds_1s' because 'setDepthForDebugDrawing' may be called after rendering finishes, also 'capture' makes use of it
    if(!_get_target)_col.clear();
@@ -608,7 +608,7 @@ RendererClass& RendererClass::operator()(void (&render)())
   _fur_is     =false;
   _mirror_want=false;
   _outline    =0;
-  _final      =(target ? target : _stereo ? VR.getNewRender() : _cur_main);
+  _final      =(target ? target : _stereo ? VR.getRender() : _cur_main);
 
    if(VR.active())D.setViewFovTan(); // !! call after setting _stereo and _render !!
 
@@ -739,7 +739,7 @@ RendererClass& RendererClass::operator()(void (&render)())
    // cleanup
    {
      _render=null; // this specifies that we're outside of Rendering
-     _final.clear();
+     _final =null;
       D.alpha(ALPHA_BLEND); mode(RM_SOLID);
       set(_cur_main, _cur_main_ds, true);
 

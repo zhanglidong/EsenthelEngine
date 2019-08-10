@@ -277,13 +277,14 @@ private:
                  _shd_map, _cld_map,
                  _eye_adapt_scale[2],
                 *_cur_main, *_cur_main_ds,
-                *_cur[4], *_cur_ds;
+                *_cur[4], *_cur_ds,
+                *_ui, *_ui_ds,
+                *_final;
    ImageRTPtr    _h0, _h1, _q0, _q1, // <- these members are to be used only temporarily
-                 _gui, _gui_ds,
                  _col, _ds, _ds_1s, _nrm, _vel,
                  _lum, _lum_1s, _shd_1s, _shd_ms,
                  _water_col, _water_nrm, _water_ds, _water_lum,
-                 _vol, _ao, _fade, _back, _back_ds, _mirror_rt, _outline_rt, _sky_coverage, _final;
+                 _vol, _ao, _fade, _back, _back_ds, _mirror_rt, _outline_rt, _sky_coverage;
    Memx<ImageRT> _rts;
 #if EE_PRIVATE
    GPU_API(ID3D11RenderTargetView *_cur_id[4]    , union{UInt _cur_id[4]    ; Ptr _cur_id_ptr[4]    ;});

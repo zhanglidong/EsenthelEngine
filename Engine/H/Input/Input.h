@@ -54,7 +54,7 @@ void MagnetometerDisable(                    ); // after calling this function t
 /******************************************************************************/
 struct VirtualReality // Virtual Reality - Head Mounted Display (HMD)
 {
-   Bool draw_2d; // if draw 2D layer on top of 3D (this includes manually drawn 2D graphics, Gui and mouse cursor), if you don't use these, then disable this parameter for better performance, default=true
+   Bool draw_2d; // if draw 2D layer on top of 3D (this includes manually drawn 2D graphics, UI and mouse cursor), if you don't use these, then disable this parameter for better performance, default=true
 
    // OpenVR SDK (usage of these methods requires linking to OpenVR SDK, increasing your executable file size and requiring the OpenVR DLL file to be present in the app folder)
    Bool OpenVRDetected()C; // if         OpenVR-compatible HMD is currently connected to the computer
@@ -90,7 +90,6 @@ struct VirtualReality // Virtual Reality - Head Mounted Display (HMD)
 #if !EE_PRIVATE
 private:
 #endif
-   Bool               _has_render;
    Char8              _name[64];
    Flt                _eye_dist, _density, _refresh, _gui_depth, _gui_size, _left_eye_tex_aspect;
    Vec2               _fov;
@@ -98,26 +97,25 @@ private:
    Rect               _left_eye_tex_rect;
    Matrix             _matrix, _left, _right;
    U64                _adapter_id;
+   ImageRT            _ui_ds;
+   ImageRTPtr         _render, _ui;
    VirtualRealityApi *_api;
 
 #if EE_PRIVATE
    Bool init        (VirtualRealityApi &api);
    void update      ();
    void draw        ();
-   void drawMain    ();
    Bool    connected();
    void disconnected();
    void setFOVTan   (Flt left, Flt right, Flt up, Flt down);
 
    void          delImages();
    Bool       createImages();
-   Bool    createGuiImage ();
+   Bool     createUIImage ();
    Bool createRenderImage ();
 
-   ImageRT* getNewRender ();
-   ImageRT* getNewGui    ();
-   ImageRT* getLastRender();
-   ImageRT* getLastGui   ();
+   ImageRT* getRender();
+   ImageRT* getUI    ();
 #endif
    VirtualReality();
    NO_COPY_CONSTRUCTOR(VirtualReality);
@@ -129,22 +127,20 @@ struct VirtualRealityApi
    virtual Bool init() {return false;}
    virtual void shut() {}
 
-   virtual Bool   active         ()C {return false;}
-   virtual Matrix matrixCur      ()C {return VR._matrix;} // return last known matrix
-   virtual void   recenter       ()  {}
-   virtual void   changedGuiDepth()  {}
-   virtual void   changedGuiSize ()  {}
-   virtual void   update         ()  {}
-   virtual void   draw           ()  {}
+   virtual Bool   active        ()C {return false;}
+   virtual Matrix matrixCur     ()C {return VR._matrix;} // return last known matrix
+   virtual void   recenter      ()  {}
+   virtual void   changedUIDepth()  {}
+   virtual void   changedUISize ()  {}
+   virtual void   update        ()  {}
+   virtual void   draw          ()  {}
 
    virtual void          delImages() {}
-   virtual Bool    createGuiImage () {return false;}
+   virtual Bool     createUIImage () {return false;}
    virtual Bool createRenderImage () {return false;}
 
-   virtual ImageRT* getNewRender () {return null;}
-   virtual ImageRT* getNewGui    () {return null;}
-   virtual ImageRT* getLastRender() {return null;}
-   virtual ImageRT* getLastGui   () {return null;}
+   virtual ImageRT* getNewRender() {return null;}
+   virtual ImageRT* getNewUI    () {return null;}
 
    virtual ~VirtualRealityApi() {shut();}
 }extern

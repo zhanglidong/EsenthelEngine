@@ -21,28 +21,26 @@ static struct OculusRiftApi : VirtualRealityApi
    virtual Bool init()override;
    virtual void shut()override;
 
-   virtual Bool   active         ()C override;
-   virtual Matrix matrixCur      ()C override;
-   virtual void   recenter       ()  override;
-   virtual void   changedGuiDepth()  override;
-   virtual void   changedGuiSize ()  override;
-   virtual void   update         ()  override;
-   virtual void   draw           ()  override;
+   virtual Bool   active        ()C override;
+   virtual Matrix matrixCur     ()C override;
+   virtual void   recenter      ()  override;
+   virtual void   changedUIDepth()  override;
+   virtual void   changedUISize ()  override;
+   virtual void   update        ()  override;
+   virtual void   draw          ()  override;
 
    virtual void          delImages()override;
-   virtual Bool    createGuiImage ()override;
+   virtual Bool     createUIImage ()override;
    virtual Bool createRenderImage ()override;
 
-   virtual ImageRT* getNewRender ()override;
-   virtual ImageRT* getNewGui    ()override;
-   virtual ImageRT* getLastRender()override;
-   virtual ImageRT* getLastGui   ()override;
+   virtual ImageRT* getNewRender()override;
+   virtual ImageRT* getNewUI    ()override;
 
    Bool    connect();
    void disconnect();
 
-   void setGuiSizeX();
-   void setGuiSize ();
+   void setUISizeX();
+   void setUISize ();
 
    OculusRiftApi();
 
@@ -153,12 +151,13 @@ static struct ovrTexture
          image._txtr=tex.D3D11.pTexture;
          image._rtv =rtv[i];
          image._srv =srv[i];
+         // FIXME rtv_srgb, srv_srgb
       #endif
          return &image;
       }
       return null;
    }
-}RenderTexture, GuiTexture;
+}RenderTexture, UITexture;
 
 static void SetPose(Matrix &m, C ovrPosef &pose)
 {
@@ -287,30 +286,30 @@ Matrix OculusRiftApi::matrixCur()C
    return VR._matrix; // return last known matrix
 }
 /******************************************************************************/
-void OculusRiftApi::setGuiSizeX()
+void OculusRiftApi::setUISizeX()
 {
 #if SUPPORT_OCULUS
-  _layer_gui.QuadSize.x=_layer_gui.QuadSize.y*GuiTexture.image.aspect();
+  _layer_gui.QuadSize.x=_layer_gui.QuadSize.y*UITexture.image.aspect();
 #endif
 }
-void OculusRiftApi::setGuiSize()
+void OculusRiftApi::setUISize()
 {
 #if SUPPORT_OCULUS
   _layer_gui.QuadSize.y=VR._gui_size*-_layer_gui.QuadPoseCenter.Position.z; // Oculus is right-handed
 #endif
-   setGuiSizeX();
+   setUISizeX();
 }
-void OculusRiftApi::changedGuiDepth()
+void OculusRiftApi::changedUIDepth()
 {
 #if SUPPORT_OCULUS
   _layer_gui.QuadPoseCenter.Position.z=-VR.guiDepth(); // Oculus is right-handed
-   setGuiSize();
+   setUISize();
 #endif
 }
-void OculusRiftApi::changedGuiSize()
+void OculusRiftApi::changedUISize()
 {
 #if SUPPORT_OCULUS
-   setGuiSize();
+   setUISize();
 #endif
 }
 /******************************************************************************/
@@ -318,19 +317,19 @@ void OculusRiftApi::delImages()
 {
 #if SUPPORT_OCULUS
    RenderTexture.del();
-      GuiTexture.del();
+       UITexture.del();
 #endif
 }
-Bool OculusRiftApi::createGuiImage()
+Bool OculusRiftApi::createUIImage()
 {
 #if SUPPORT_OCULUS
-   if(GuiTexture.create(VR.guiRes().x, VR.guiRes().y))
+   if(UITexture.create(VR.guiRes().x, VR.guiRes().y))
    {
-     _layer_gui.ColorTexture=GuiTexture.texture_set;
+     _layer_gui.ColorTexture=UITexture.texture_set;
      _layer_gui.Viewport.Pos .x=_layer_gui.Viewport.Pos.y=0;
-     _layer_gui.Viewport.Size.w=GuiTexture.image.w();
-     _layer_gui.Viewport.Size.h=GuiTexture.image.h();
-      setGuiSizeX();
+     _layer_gui.Viewport.Size.w=UITexture.image.w();
+     _layer_gui.Viewport.Size.h=UITexture.image.h();
+      setUISizeX();
       return true;
    }
 #endif
@@ -363,24 +362,10 @@ ImageRT* OculusRiftApi::getNewRender()
 #endif
    return null;
 }
-ImageRT* OculusRiftApi::getNewGui()
+ImageRT* OculusRiftApi::getNewUI()
 {
 #if SUPPORT_OCULUS
-   return GuiTexture.getImage();
-#endif
-   return null;
-}
-ImageRT* OculusRiftApi::getLastRender()
-{
-#if SUPPORT_OCULUS
-   return &RenderTexture.image;
-#endif
-   return null;
-}
-ImageRT* OculusRiftApi::getLastGui()
-{
-#if SUPPORT_OCULUS
-   return &GuiTexture.image;
+   return UITexture.getImage();
 #endif
    return null;
 }
@@ -397,8 +382,6 @@ void OculusRiftApi::update()
 #if SUPPORT_OCULUS
    if(_initialized)
    {
-      VR._has_render=false;
-
       if(_session)
       {
         _layer_render.SensorSampleTime=ovr_GetTimeInSeconds(); // needs to be set at the same time when obtaining sensor data
@@ -447,8 +430,8 @@ void OculusRiftApi::draw()
    #endif
 
       ovrLayerHeader *layer[2]; Int layers=0;
-      if(VR._has_render)layer[layers++]=&_layer_render.Header;
-      if(VR. draw_2d   )layer[layers++]=&_layer_gui   .Header;
+      if(VR._render          )layer[layers++]=&_layer_render.Header;
+      if(VR._ui && VR.draw_2d)layer[layers++]=&_layer_gui   .Header;
       ovr_SubmitFrame(_session, 0, null, layer, layers);
    }
 #endif
