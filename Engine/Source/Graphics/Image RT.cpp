@@ -255,7 +255,7 @@ void ImageRT::del() // this keeps '_ptr_num'
    delThis(); // delete children first
    super::del();
 }
-Bool ImageRT::createViews(Bool srv_srgb)
+Bool ImageRT::createViews()
 {
    switch(mode())
    {
@@ -274,8 +274,8 @@ Bool ImageRT::createViews(Bool srv_srgb)
             else             {srvd.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D  ; srvd.Texture2D.MipLevels=mipMaps();}
             srvd.Format=rtvd.Format=ImageTI[type_srgb].format;
             // lock not needed for DX11 'D3D'
-            if(srv_srgb)D3D->CreateShaderResourceView(_txtr, &srvd, &_srv_srgb);
-                        D3D->CreateRenderTargetView  (_txtr, &rtvd, &_rtv_srgb);
+            D3D->CreateShaderResourceView(_txtr, &srvd, &_srv_srgb);
+            D3D->CreateRenderTargetView  (_txtr, &rtvd, &_rtv_srgb);
          #endif
          }
       }break;
@@ -318,9 +318,9 @@ Bool ImageRT::map()
    {
      _mode=IMAGE_RT; if(setInfo())
       {
-         adjustInfo(hwW(), hwH(), hwD(), hwType()); if(createViews(false)) // false to skip SRV-sRGB because it always causes exception
+         adjustInfo(hwW(), hwH(), hwD(), hwType()); if(createViews())
          {
-            if(LINEAR_GAMMA && hwType()==IMAGE_R8G8B8A8) // #WindowsNewSRGB WINDOWS_NEW may fail to create sRGB in that case create as linear and 'swapRTV' in 'Image.map'
+            if(LINEAR_GAMMA && hwType()==IMAGE_R8G8B8A8) // #SwapFlipSRGB may fail to create sRGB in that case create as linear and 'swapRTV' in 'ImageRT.map'
             {
                if(!canSwapRTV())return false;
                swapSRGB(); if(!_srv)Swap(_srv, _srv_srgb);

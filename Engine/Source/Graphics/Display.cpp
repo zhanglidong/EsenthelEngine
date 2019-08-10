@@ -977,9 +977,10 @@ again:
    Factory->CreateSwapChain(D3D, &SwapChainDesc, &SwapChain);
    if(!SwapChain)
    {
-      if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT ; goto again;} // if failed with 32-bit then try again with 16-bit
-      if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with  8-bit
-      if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with  8-bit
+      if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT ; goto again;} // if failed with 32-bit then try again with 16-bit
+      if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with  8-bit
+      if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM  ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with  8-bit
+      if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R8G8B8A8_UNORM_SRGB){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // #SwapFlipSRGB may fail to create sRGB in that case create as linear and 'swapRTV' in 'ImageRT.map'
    }
    Factory->MakeWindowAssociation(App.Hwnd(), DXGI_MWA_NO_ALT_ENTER|DXGI_MWA_NO_WINDOW_CHANGES|DXGI_MWA_NO_PRINT_SCREEN); // this needs to be called after 'CreateSwapChain'
 #else
@@ -990,7 +991,7 @@ again:
       if(SwapChainDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT ){SwapChainDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT ; goto again;} // if failed with 32-bit then try again with 16-bit
       if(SwapChainDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT ){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with  8-bit
       if(SwapChainDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM  ){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with  8-bit
-      if(SwapChainDesc.Format==DXGI_FORMAT_R8G8B8A8_UNORM_SRGB){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // #WindowsNewSRGB WINDOWS_NEW may fail to create sRGB in that case create as linear and 'swapRTV' in 'Image.map'
+      if(SwapChainDesc.Format==DXGI_FORMAT_R8G8B8A8_UNORM_SRGB){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // #SwapFlipSRGB may fail to create sRGB in that case create as linear and 'swapRTV' in 'ImageRT.map'
    }
 #endif
    if(!SwapChain)Exit("Can't create Direct3D Swap Chain.");
@@ -1674,9 +1675,10 @@ static Bool ResizeTarget()
 #if WINDOWS_OLD
 again:
    if(OK(SwapChain->ResizeTarget(&SwapChainDesc.BufferDesc)))return true;
-   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT ; goto again;} // if failed with 32-bit then try again with 16-bit
-   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with  8-bit
-   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with  8-bit
+   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT ; goto again;} // if failed with 32-bit then try again with 16-bit
+   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with  8-bit
+   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM  ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with  8-bit
+   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R8G8B8A8_UNORM_SRGB){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // #SwapFlipSRGB may fail to create sRGB in that case create as linear and 'swapRTV' in 'ImageRT.map'
 #endif
    return false;
 }
@@ -1685,15 +1687,16 @@ static Bool ResizeBuffers()
 again:
 #if WINDOWS_OLD
    if(OK(SwapChain->ResizeBuffers(SwapChainDesc.BufferCount, SwapChainDesc.BufferDesc.Width, SwapChainDesc.BufferDesc.Height, SwapChainDesc.BufferDesc.Format, SwapChainDesc.Flags)))return true;
-   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT ; goto again;} // if failed with 32-bit then try again with 16-bit
-   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with  8-bit
-   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with  8-bit
+   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT ; goto again;} // if failed with 32-bit then try again with 16-bit
+   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with  8-bit
+   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM  ){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with  8-bit
+   if(SwapChainDesc.BufferDesc.Format==DXGI_FORMAT_R8G8B8A8_UNORM_SRGB){SwapChainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // #SwapFlipSRGB may fail to create sRGB in that case create as linear and 'swapRTV' in 'ImageRT.map'
 #else
    if(OK(SwapChain->ResizeBuffers(SwapChainDesc.BufferCount, SwapChainDesc.Width, SwapChainDesc.Height, SwapChainDesc.Format, SwapChainDesc.Flags)))return true;
    if(SwapChainDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT ){SwapChainDesc.Format=DXGI_FORMAT_R16G16B16A16_FLOAT ; goto again;} // if failed with 32-bit then try again with 16-bit
    if(SwapChainDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT ){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; goto again;} // if failed with 16-bit then try again with  8-bit
    if(SwapChainDesc.Format==DXGI_FORMAT_R10G10B10A2_UNORM  ){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // if failed with 10-bit then try again with  8-bit
-   if(SwapChainDesc.Format==DXGI_FORMAT_R8G8B8A8_UNORM_SRGB){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // #WindowsNewSRGB WINDOWS_NEW may fail to create sRGB in that case create as linear and 'swapRTV' in 'Image.map'
+   if(SwapChainDesc.Format==DXGI_FORMAT_R8G8B8A8_UNORM_SRGB){SwapChainDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM     ; goto again;} // #SwapFlipSRGB may fail to create sRGB in that case create as linear and 'swapRTV' in 'ImageRT.map'
 #endif
    return false;
 }

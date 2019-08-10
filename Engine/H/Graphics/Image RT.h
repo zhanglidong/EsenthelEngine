@@ -77,7 +77,7 @@ struct ImageRT : Image // Image Render Target
    void delThis    ();
    void del        ();
    Bool createTryEx()=delete;
-   Bool createViews(Bool srv_srgb=true);
+   Bool createViews();
    Bool   map      ();
    void unmap      ();
    void swapSRV    ();
