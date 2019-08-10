@@ -133,7 +133,7 @@ Bool DrawState()
             D._view_main.setViewport(); // user may have called 'D.viewRect' during 'Update', in which setting the viewport can be ignored, so force it always here
             StateActive->draw();
             Physics.step(); // step after all drawing completed (in case it used current state of physics), call this ASAP so physics can continue as fast as possible
-            Renderer._ds_1s.clear(); // '_ds_1s' isn't cleared in 'Renderer.cleanup' in case it's used for drawing, so clear it here to make sure we can call discard
+            Renderer.cleanup1();
          } // <- this will call 'Renderer._cur_main_ds.discard', because 'ds' is being deleted
          D  .fadeDraw();
          Gui.dragDraw();

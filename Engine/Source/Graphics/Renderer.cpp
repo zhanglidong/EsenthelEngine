@@ -541,7 +541,8 @@ void RendererClass::Combine(IMAGE_PRECISION rt_prec)
    }
 }
 /******************************************************************************/
-void RendererClass::cleanup()
+void RendererClass::cleanup1() {_ds_1s.clear();} // '_ds_1s' isn't cleared in 'cleanup' in case it's used for drawing, so clear it here to make sure we can call discard
+void RendererClass::cleanup ()
 {
 //_final       =null   ; do not clear '_final' because this is called also for reflections, after which we still need '_final'
   _ds          .clear();

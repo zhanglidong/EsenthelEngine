@@ -199,6 +199,7 @@ struct RendererClass // handles rendering
    void refract           ();
    void postProcess       ();
    void cleanup           ();
+   void cleanup1          ();
 
    // render target methods
 #if DX11 // needed on DX11 because it doesn't allow reading and writing to RT's and Depth Buffer at the same time

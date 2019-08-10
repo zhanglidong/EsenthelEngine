@@ -406,6 +406,16 @@ static void Set(ImageRTPtr &p, ImageRT &rt, Bool want_srgb) // this is called on
    rt._ptr_num++; p._data=&rt; rt.discard();
 }
 /******************************************************************************/
+ImageRTPtr& ImageRTPtr::clearNoDiscard()
+{
+   if(_data)
+   {
+      DEBUG_ASSERT(_data->_ptr_num, "ImageRT._ptr_num should be >0");
+     _data->_ptr_num--;
+     _data=null;
+   }
+   return T;
+}
 ImageRTPtr& ImageRTPtr::clear()
 {
    if(_data)
@@ -510,14 +520,8 @@ ImageRTPtr& ImageRTPtr::getDS(Int w, Int h, Byte samples, Bool reuse_main)
    if(reuse_main)
    {
       ImageRT &ds=Renderer._main_ds, *cur_ds=Renderer._cur_main_ds;
-   #if GL
-      // on OpenGL we can't reuse '_main_ds' because it has different flipping orientation as it is always paired with '_main' in the main FBO
-      // <- here don't check for 'ds'
-      if(cur_ds==&ds)cur_ds=null; // if 'cur_ds' is 'ds' then don't check it either
-   #else
-      if(              /*ds .available() && */    ds .accessible() &&     ds .w()==w &&     ds .h()==h &&     ds .samples()==samples){T=   &ds; return T;} // if ds is not used (actually don't check this because '_gui_ds' can be set to it at the start of each frame), accessible and compatible then we can use it
-   #endif
-      if(cur_ds && /*cur_ds->available() && */cur_ds->accessible() && cur_ds->w()==w && cur_ds->h()==h && cur_ds->samples()==samples){T=cur_ds; return T;} // if ds is not used (actually don't check this because '_gui_ds' can be set to it at the start of each frame), accessible and compatible then we can use it
+      if(                             /*ds .available() && */    ds .accessible() &&     ds .w()==w &&     ds .h()==h &&     ds .samples()==samples){T=   &ds; return T;} // if ds is not used (actually don't check this because an 'ImageRTPtr ds' handle can be set to it at the start of each frame), accessible and compatible then we can use it
+      if(cur_ds && cur_ds!=&ds && /*cur_ds->available() && */cur_ds->accessible() && cur_ds->w()==w && cur_ds->h()==h && cur_ds->samples()==samples){T=cur_ds; return T;} // if ds is not used (actually don't check this because an 'ImageRTPtr ds' handle can be set to it at the start of each frame), accessible and compatible then we can use it
    }
    get(ImageRTDesc(w, h, IMAGERT_DS, samples)); return T;
 }

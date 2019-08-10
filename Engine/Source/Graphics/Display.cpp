@@ -2030,6 +2030,7 @@ Bool Display::flip()
          Renderer.set(Renderer._cur_main, Renderer._cur_main_ds, false);
       #endif
    #endif
+      D._flip.clearNoDiscard(); // can't discard here, because on Nvidia GeForce artifacts may occur for slow-downs (for example when browsing Esenthel Store and switching tabs/categories)
    }
    return true;
 }
@@ -3197,7 +3198,7 @@ void Display::alignScreenYToPixel(Flt &screen_y)
 Bool Display::fading()C {return Renderer._fade || _fade_get;}
 void Display::setFade(Flt seconds, Bool previous_frame)
 {
-   if(!VR.active()) // fading is currently not supported in VR mode, because that would be a static image not rotating when moving headset
+   if(!VR.active()) // fading is currently not supported in VR mode, because fading operates on a static image that's not rotating when moving headset
    {
       if(seconds<=0)
       {
@@ -3205,6 +3206,7 @@ void Display::setFade(Flt seconds, Bool previous_frame)
       }else
       if(previous_frame)
       {
+      #if 0 // copy 'Renderer._main' from previous frame (not supported on GL ES or when calling 'discard' after 'D.flip')
          if(Renderer._main.is())
          {
             SyncLocker locker(_lock);
@@ -3219,6 +3221,26 @@ void Display::setFade(Flt seconds, Bool previous_frame)
            _fade_step=0      ;
            _fade_len =seconds;
          }
+      #else // draw now
+        _fade_get=false; // disable before calling 'fadeDraw'
+         if(created() && StateActive && StateActive->draw)
+         {
+            SyncLocker locker(_lock);
+            ImageRTPtr temp(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha, use a temporary instead of 'Renderer._fade' because we might still need it
+            ImageRTPtr ds; ds.getDS(temp->w(), temp->h(), temp->samples()); // this will call 'discard', this is needed to hold ref count until DS is no longer needed
+            ImageRT *cur_main=Renderer._cur_main, *cur_main_ds=Renderer._cur_main_ds, *ui=Renderer._ui, *ui_ds=Renderer._ui_ds;
+            Renderer._ui   =Renderer._cur_main   =temp;
+            Renderer._ui_ds=Renderer._cur_main_ds=ds;
+            Renderer.set(temp, ds, true); // draw directly to new RT
+            StateActive->draw();
+            Renderer.cleanup1();
+            fadeDraw(); // draw old fade if any
+           _fade_step=0; _fade_len=seconds; // set after calling 'fadeDraw'
+            Swap(Renderer._fade, temp); // swap RT as new fade
+            Renderer._cur_main=cur_main; Renderer._cur_main_ds=cur_main_ds; Renderer._ui=ui; Renderer._ui_ds=ui_ds;
+            Renderer.set(Renderer._cur_main, Renderer._cur_main_ds, true);
+         }
+      #endif
       }else
       {
         _fade_get=true;

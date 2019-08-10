@@ -146,6 +146,7 @@ struct ImageRTPtr // Render Target Pointer
    ImageRTPtr(C ImageRTPtr &p);
    ImageRTPtr(  ImageRT    *p);
 #if EE_PRIVATE
+   ImageRTPtr& clearNoDiscard(); // clear the pointer to null, this automatically decreases the reference count of current data, without discarding
    explicit ImageRTPtr(C ImageRTDesc &desc) {_data=null; _last_index=-1; get(desc);}
 #endif
   ~ImageRTPtr(               ) {clear();}
