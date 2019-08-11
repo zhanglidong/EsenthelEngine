@@ -356,6 +356,10 @@ void RendererClass::setDS(UInt ds_txtr_id)
 void RendererClass::needDepthTest() {setDS(R._cur_ds_ids[NO_DEPTH_READ]);}
 #endif
 #undef R
+#define DEBUG_DISCARD 0
+#if     DEBUG_DISCARD
+   #pragma message("!! Warning: Use this only for debugging !!")
+#endif
 void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, ImageRT *ds, Bool custom_viewport, DEPTH_READ_MODE depth_read_mode)
 {
    Bool changed=false;
@@ -418,11 +422,16 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
          if(glInvalidateFramebuffer) // requires GL 4.3, GL ES 3.0
       #endif
          {
+         #if DEBUG_DISCARD
+            if(_main   ._discard){_main   ._discard=false; D.clearCol(PURPLE);}
+            if(_main_ds._discard){_main_ds._discard=false; D.clearDS (      );}
+         #else
             // discard, for main FBO we need to setup different values - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glInvalidateFramebuffer.xhtml
             GLenum attachment[3]; GLsizei attachments=0; // RT0+Depth+Stencil
             if(_main   ._discard){_main   ._discard=false; attachment[attachments++]=GL_COLOR;}
             if(_main_ds._discard){_main_ds._discard=false; attachment[attachments++]=GL_DEPTH; if(ImageTI[_main_ds.hwType()].s)attachment[attachments++]=GL_STENCIL;}
             if(attachments)glInvalidateFramebuffer(GL_FRAMEBUFFER, attachments, attachment);
+         #endif
          }
       #endif
       }else
@@ -480,6 +489,13 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
          if(glInvalidateFramebuffer) // requires GL 4.3, GL ES 3.0
       #endif
          {
+         #if DEBUG_DISCARD
+            if(t0     &&     t0->_discard){    t0->_discard=false; _cur[0]=t0; D.clearCol(0, PURPLE);}
+            if(t1     &&     t1->_discard){    t1->_discard=false; _cur[1]=t1; D.clearCol(1, PURPLE);}
+            if(t2     &&     t2->_discard){    t2->_discard=false; _cur[2]=t2; D.clearCol(2, PURPLE);}
+            if(t3     &&     t3->_discard){    t3->_discard=false; _cur[3]=t3; D.clearCol(3, PURPLE);}
+            if(set_ds && set_ds->_discard){set_ds->_discard=false; _cur_ds=ds; D.clearDS (         );}
+         #else
             GLenum attachment[ELMS(_cur)+1]; GLsizei attachments=0; // RT's+DS
             if(t0     &&     t0->_discard){    t0->_discard=false; attachment[attachments++]=GL_COLOR_ATTACHMENT0;}
             if(t1     &&     t1->_discard){    t1->_discard=false; attachment[attachments++]=GL_COLOR_ATTACHMENT1;}
@@ -487,6 +503,7 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
             if(t3     &&     t3->_discard){    t3->_discard=false; attachment[attachments++]=GL_COLOR_ATTACHMENT3;}
             if(set_ds && set_ds->_discard){set_ds->_discard=false; attachment[attachments++]=(ImageTI[set_ds->hwType()].s ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT);}
             if(attachments)glInvalidateFramebuffer(GL_FRAMEBUFFER, attachments, attachment);
+         #endif
          }
       #endif
 

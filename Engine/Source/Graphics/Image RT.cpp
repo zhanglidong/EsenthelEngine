@@ -137,7 +137,7 @@ Bool ImageRT::depthTexture()C
 #endif
 }
 /******************************************************************************/
-#define DEBUG_DISCARD 1
+#define DEBUG_DISCARD 0
 #if     DEBUG_DISCARD
    #pragma message("!! Warning: Use this only for debugging !!")
 #endif
@@ -155,7 +155,7 @@ void ImageRT::discard()
       if(Renderer._cur[2]==this                              )D.clearCol(2, PURPLE);else
       if(Renderer._cur[3]==this                              )D.clearCol(3, PURPLE);else
          {_discard=true; return;} // discard at next opportunity when we want to attach it to FBO
-     _discard=false;
+     _discard=false; // discarded
    }else
 #if WINDOWS
    if(glInvalidateFramebuffer) // requires GL 4.3, GL ES 3.0
@@ -187,7 +187,7 @@ void ImageRT::discard()
          if(Renderer._cur[2]==this                              )attachment=GL_COLOR_ATTACHMENT2;else // check '_cur' because '_txtr' can be 0 for RenderBuffers
          if(Renderer._cur[3]==this                              )attachment=GL_COLOR_ATTACHMENT3;else // check '_cur' because '_txtr' can be 0 for RenderBuffers
             {_discard=true; return;} // discard at next opportunity when we want to attach it to FBO
-         glInvalidateFramebuffer(GL_FRAMEBUFFER, 1, &attachment); _discard=false;
+         glInvalidateFramebuffer(GL_FRAMEBUFFER, 1, &attachment); _discard=false; // discarded
       }
    }
 #endif
