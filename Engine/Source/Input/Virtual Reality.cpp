@@ -184,7 +184,7 @@ void   VirtualReality::draw     ()
       Renderer._ui_ds=Renderer._cur_main_ds=&Renderer._main_ds;
       Renderer.set(Renderer._cur_main, use_ds ? Renderer._cur_main_ds : null, false);
 
-                   D._flip.clear()=Renderer._cur_main; // clear (in case it wasn't) to make sure setting new will call 'discard', this is needed to hold ref count until 'D.flip' is called
+                           D._flip=Renderer._cur_main   ; // this will call 'discard', this is needed to hold ref count until 'D.flip' is called
       {ImageRTPtr ds; if(use_ds)ds=Renderer._cur_main_ds; // this will call 'discard', this is needed to hold ref count until DS is no longer needed
 
          D._allow_stereo=false; D.aspectRatioEx(true, true); Frustum.set(); // !! call in this order !!

@@ -3225,18 +3225,20 @@ void Display::setFade(Flt seconds, Bool previous_frame)
         _fade_get=false; // disable before calling 'fadeDraw'
          if(created() && StateActive && StateActive->draw)
          {
-            SyncLocker locker(_lock);
-            ImageRTPtr temp(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha, use a temporary instead of 'Renderer._fade' because we might still need it
-            ImageRTPtr ds; ds.getDS(temp->w(), temp->h(), temp->samples()); // this will call 'discard', this is needed to hold ref count until DS is no longer needed
             ImageRT *cur_main=Renderer._cur_main, *cur_main_ds=Renderer._cur_main_ds, *ui=Renderer._ui, *ui_ds=Renderer._ui_ds;
-            Renderer._ui   =Renderer._cur_main   =temp;
-            Renderer._ui_ds=Renderer._cur_main_ds=ds;
-            Renderer.set(temp, ds, true); // draw directly to new RT
-            StateActive->draw();
-            Renderer.cleanup1();
-            fadeDraw(); // draw old fade if any
-           _fade_step=0; _fade_len=seconds; // set after calling 'fadeDraw'
-            Swap(Renderer._fade, temp); // swap RT as new fade
+            SyncLocker locker(_lock);
+            {
+               ImageRTPtr temp(ImageRTDesc(Renderer._main.w(), Renderer._main.h(), IMAGERT_SRGB)); // doesn't use Alpha, use a temporary instead of 'Renderer._fade' because we might still need it
+               ImageRTPtr ds; ds.getDS(temp->w(), temp->h(), temp->samples()); // this will call 'discard', this is needed to hold ref count until DS is no longer needed
+               Renderer._ui   =Renderer._cur_main   =temp;
+               Renderer._ui_ds=Renderer._cur_main_ds=ds;
+               Renderer.set(temp, ds, true); // draw directly to new RT
+               StateActive->draw();
+               Renderer.cleanup1();
+               fadeDraw(); // draw old fade if any
+              _fade_step=0; _fade_len=seconds; // set after calling 'fadeDraw'
+               Swap(Renderer._fade, temp); // swap RT as new fade
+            } // <- 'discard' will be called for 'temp' and 'ds'
             Renderer._cur_main   =cur_main   ; Renderer._ui   =ui   ;
             Renderer._cur_main_ds=cur_main_ds; Renderer._ui_ds=ui_ds;
             Renderer.set(Renderer._cur_main, Renderer._cur_main_ds, true);

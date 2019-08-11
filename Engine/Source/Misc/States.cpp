@@ -128,8 +128,8 @@ Bool DrawState()
       {
          SyncLockerEx locker(D._lock);
          if(Renderer._t_measure)D.finish(); start_time=Time.curTime();
-         D._flip.clear()=Renderer._cur_main; // clear (in case it wasn't) to make sure setting new will call 'discard', this is needed to hold ref count until 'D.flip' is called
-         { ImageRTPtr ds=Renderer._cur_main_ds; // this will call 'discard', this is needed to hold ref count until DS is no longer needed
+                D._flip=Renderer._cur_main   ; // this will call 'discard', this is needed to hold ref count until 'D.flip' is called
+         {ImageRTPtr ds=Renderer._cur_main_ds; // this will call 'discard', this is needed to hold ref count until DS is no longer needed
             D._view_main.setViewport(); // user may have called 'D.viewRect' during 'Update', in which setting the viewport can be ignored, so force it always here
             StateActive->draw();
             Physics.step(); // step after all drawing completed (in case it used current state of physics), call this ASAP so physics can continue as fast as possible
