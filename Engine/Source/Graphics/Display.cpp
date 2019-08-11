@@ -2177,7 +2177,7 @@ Display::RESET_RESULT Display::modeTry(Int w, Int h, Int full)
       if(cur_x==T.resW() && cur_y==T.resH() && cur_full==T.full())return RESET_OK; // new mode matches the current one, need to check again since 'findMode' may have adjusted the T.resW T.resH T.full values
       RESET_RESULT result=ResetTry();         if(result!=RESET_OK)return result  ; // reset the device
 
-      Ms.clipUpdate();
+      Ms.clipUpdateConditional();
    }else
    {
       T._res.x=w;

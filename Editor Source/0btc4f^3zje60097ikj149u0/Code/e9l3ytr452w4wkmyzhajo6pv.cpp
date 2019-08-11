@@ -6,16 +6,21 @@ dbl      size=1;
 Vec2     val[RES];
 Str      func[3];
 TextEdit ed;
-Int      edit;
+int      edit, skip_mouse;
 CalcVar  var[2];
 /******************************************************************************/
+void Resumed()
+{
+   skip_mouse=1;
+}
 void InitPre()
 {
    EE_INIT(false, false);
    App.flag=APP_RESIZABLE|APP_MINIMIZABLE|APP_MAXIMIZABLE|APP_FULL_TOGGLE;
+   App.resumed=Resumed;
    flt scale=D.screenH()/1080.0;
    D.mode(500*scale, 500*scale).shadowMapSize(0);
-   Ms.clip(0, 1).hide();
+   Ms.clip(null, 1).hide().smooth(SV_NONE);
 #if DEBUG
    Paks.add(EE_ENGINE_PATH);
 #else
@@ -53,7 +58,7 @@ bool Update()
    if(Kb.k(KB_DOWN))if(edit<2){ed.cur=func[++edit].length(); ed.sel=-1;}
    EditText(func[edit], ed);
 
-   center+=Ms.d()*flt(size);
+   if(skip_mouse)skip_mouse--;else center+=Ms.d()*flt(size);
    if(Ms.wheel()<0)size*=1.4;
    if(Ms.wheel()>0)size/=1.4;
    return true;

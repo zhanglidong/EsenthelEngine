@@ -125,7 +125,7 @@ struct Mouse // Mouse Input
    void push      (Byte b, Flt double_click_time=DoubleClickTime);
    void release   (Byte b);
    void update    ();
-   void clipUpdate();
+   void clipUpdate();   void clipUpdateConditional();
    void draw      ();
 #endif
 

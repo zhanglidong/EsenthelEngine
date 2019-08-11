@@ -394,7 +394,7 @@ static void Clip(RectI *rect) // 'rect' is in window client space, full rect is 
    else    emscripten_exit_pointerlock   ();
 #endif
 }
-void Mouse::clipUpdate()
+void Mouse::clipUpdate() // !! Don't call always, to avoid changing clip for other apps when inactive !!
 {
    if(App.active() && (_freezed || _clip_rect_on || _clip_window))
    {
@@ -437,6 +437,10 @@ void Mouse::clipUpdate()
       Clip(&recti);
    }else Clip(null);
 }
+void Mouse::clipUpdateConditional()
+{
+   if(App.active() && (/*_freezed || */_clip_rect_on || _clip_window))clipUpdate(); // update only if clipping to rect/window (this ignores freeze because cases calling this method don't need it)
+}
 Mouse& Mouse::clip(C Rect *rect, Int window)
 {
    Bool rect_on=(rect!=null),
@@ -445,7 +449,7 @@ Mouse& Mouse::clip(C Rect *rect, Int window)
    {
       if(_clip_rect_on=rect_on)_clip_rect=*rect;
      _clip_window=win;
-      clipUpdate();
+      if(App.active())clipUpdate();
    }
    return T;
 }
@@ -534,7 +538,7 @@ void Mouse::acquire(Bool on)
    if(on)SetHook();else UnHook();
 #endif
 #endif
-   clipUpdate();
+   if(_freezed || _clip_rect_on || _clip_window)clipUpdate(); // this gets called when app gets de/activated, so we have to update clip only if we want any clip (to enable it when activating and disable when deactivating)
    resetCursor();
 }
 /******************************************************************************/

@@ -162,10 +162,10 @@ void VirtualReality::disconnected()
    #if GL // for OpenGL we need to adjust screen synchronization, DirectX can control sync real-time in the 'Present' function
       D.setSync();
    #endif
+      Ms.clipUpdateConditional(); // call 'clipUpdate' after 'aspectRatioEx', as display size affects mouse clip rect
+      Ms.resetCursor();
+      Frustum.set();
    }
-   Ms.clipUpdate(); // call 'clipUpdate' after 'aspectRatioEx', as display size affects mouse clip rect
-   Ms.resetCursor();
-   Frustum.set();
 }
 /******************************************************************************/
 Bool   VirtualReality::active   ()C {return _api->active   ();}
@@ -266,7 +266,7 @@ Bool VirtualReality::createUIImage()
       {
          SyncLockerEx locker(D._lock);
          Renderer.setMain();
-         D.aspectRatioEx(); Ms.clipUpdate(); // call in this order, as display size affects mouse clip rect
+         D.aspectRatioEx(); Ms.clipUpdateConditional(); // call in this order, as display size affects mouse clip rect
          return true;
       }
       shut(); return false;

@@ -1232,7 +1232,7 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
       }break;
 
       case WM_WINDOWPOSCHANGED: // called when moved/resized (dragged by title bar, resized by edge/corner, snapped by User/OS, maximized, minimized)
-         Ms.clipUpdate();
+         Ms.clipUpdateConditional();
       break;
 
       case WM_DISPLAYCHANGE: if(D.initialized()) // needed only if device already initialized (to skip setting mouse cursor and screen size when initializing)
