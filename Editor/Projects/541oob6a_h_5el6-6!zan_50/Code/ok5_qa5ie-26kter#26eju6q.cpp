@@ -1,8 +1,6 @@
 /******************************************************************************/
-Mesh       box ,
-           ball;
-ImageRT    rt  ; // Render Target Image (of IMAGE_RT mode), must be 'ImageRT' and not 'Image'
-ImageRTPtr rtp ; // Render Target pointer
+Mesh box ,
+     ball;
 /******************************************************************************/
 void InitPre()
 {
@@ -13,17 +11,9 @@ void InitPre()
    D.ambientPowerL(0);
 }
 /******************************************************************************/
-void InitRT()
-{
-   int tex_size=256;
-   rt.create(VecI2(tex_size, tex_size), IMAGE_R8G8B8A8_SRGB);
-   rtp=&rt; // assign a pointer to make sure render target will always have a reference and will not be discarded
-}
 bool Init()
 {
    Cam.dist=3;
-
-   InitRT();
 
    MaterialPtr material=UID(2123216029, 1141820639, 615850919, 3316401700);
 
@@ -60,24 +50,17 @@ void Render()
       }break;
    }
 }
-void RenderToTexture()
-{
-   // render to texture
-   Renderer.target=&rt;  // specify custom render target
-   Renderer(Render);     // perform rendering
-   Renderer.target=null; // disable custom render target
-}
 void Draw()
 {
    // first handle rendering to texture before anyother drawing/rendering
-   RenderToTexture();
+   ImageRTPtr rt=Renderer.get(Render);
 
    // render normally
    Renderer(Render);
 
    // now we can use previously rendered texture
    ALPHA_MODE alpha=D.alpha(ALPHA_NONE);                  // the rendering result's alpha channel is undefined so we can't use it, for that we need to disable alpha blending
-   rt.drawRotate(Vec2(0, 0), Vec2(1, 1), Time.appTime()); // draw texture
+   rt->drawRotate(Vec2(0, 0), Vec2(1, 1), Time.appTime()); // draw texture
    D.alpha(alpha);                                        // restore previously modified alpha mode
 }
 /******************************************************************************/
