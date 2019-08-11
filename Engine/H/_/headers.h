@@ -331,6 +331,7 @@
       #include <wctype.h>
       #include <dirent.h>
       #include <locale.h>
+      #include <string.h>
       #include <sys/types.h>
       #include <sys/stat.h>
       #include <sys/statvfs.h>
