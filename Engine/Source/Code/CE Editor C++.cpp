@@ -2409,6 +2409,7 @@ Bool CodeEditor::generateAndroidProj()
          if(C PaksFile *pf=Paks.find(src_path)){if(!FCopy(*pf->pak, *pf->file, dest_path, FILE_OVERWRITE_DIFFERENT))return ErrorWrite(dest_path);}else return ErrorRead(src_path); // copy from "Editor.pak" to 'android_libs_path'
          project.putLine(S+"android.library.reference."+(i+1)+"="+UnixPath(GetRelativePath(build_path+"Android", dest_path)));
          if(!OverwriteOnChangeLoud(local, dest_path+"/local.properties"))return false; // this file is not included in "Editor.pak", it's skipped in 'FilterEditorPak' function from "Esenthel Builder"
+         FCreateDir(dest_path+"/src"); // an empty folder "src" is required in each library, or else compilation will fail, we can't just create them in "Esenthel\Editor Data\Code\Android" because Git doesn't allow empty folders
       }
       if(!OverwriteOnChangeLoud(project, build_path+"Android/project.properties"))return false;
    }

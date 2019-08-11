@@ -7,7 +7,7 @@ Google Play Services libs were copied from Android SDK in the following way:
 2. download "Google Repository" (and not "Google Play Services")
 3. go to "AndroidSDK\extras\google\m2repository\com\google\android\gms"
 4. extract required libs from *.aar files (they are actually ZIP files and can be opened using WinRar) into "Editor Data\Code\Android"
-5. create empty "src" folders in each library (without this empty folder, compilation will fail)
+5. normally an empty "src" folder must be created in each library folder or compilation will fail, however since Git doesn't allow empty folders, they're instead created by Esenthel Editor
 
 After adding all libraries, they need to be "updated" with the console command, that needs to be executed from each library path location:
 C:\Progs\AndroidSDK\tools\android update lib-project --path . --target X
