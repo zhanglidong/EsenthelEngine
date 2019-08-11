@@ -711,7 +711,7 @@ void DisplayState::fbo(UInt fbo)
 #if IOS
 Bool DisplayState::mainFBO()C
 {
-   return Renderer._cur[0]==&Renderer._main || Renderer._cur_ds==&Renderer._main_ds; // check both, because only one of them can be attached
+   return Renderer._cur[0]==&Renderer._main || Renderer._cur_ds==&Renderer._main_ds; // check both, because it's possible only one of them is attached
 }
 #endif
 /******************************************************************************/
