@@ -332,6 +332,7 @@
       #include <dirent.h>
       #include <locale.h>
       #include <string.h>
+      #include <string>
       #include <sys/types.h>
       #include <sys/stat.h>
       #include <sys/statvfs.h>
