@@ -137,11 +137,26 @@ Bool ImageRT::depthTexture()C
 #endif
 }
 /******************************************************************************/
+#define DEBUG_DISCARD 1
+#if     DEBUG_DISCARD
+   #pragma message("!! Warning: Use this only for debugging !!")
+#endif
 void ImageRT::discard()
 {
 #if DX11
+   if(DEBUG_DISCARD)clearHw(PURPLE);else
    if(D3DC1)D3DC1->DiscardView(_rtv ? &SCAST(ID3D11View, *_rtv) : &SCAST(ID3D11View, *_dsv)); // will not crash if parameter is null
 #elif GL && !MAC
+   if(DEBUG_DISCARD)
+   {
+      if(Renderer._cur_ds==this && Renderer._cur_ds_id==_txtr)D.clearDS (         );else
+      if(Renderer._cur[0]==this                              )D.clearCol(0, PURPLE);else
+      if(Renderer._cur[1]==this                              )D.clearCol(1, PURPLE);else
+      if(Renderer._cur[2]==this                              )D.clearCol(2, PURPLE);else
+      if(Renderer._cur[3]==this                              )D.clearCol(3, PURPLE);else
+         {_discard=true; return;} // discard at next opportunity when we want to attach it to FBO
+     _discard=false;
+   }else
 #if WINDOWS
    if(glInvalidateFramebuffer) // requires GL 4.3, GL ES 3.0
 #endif
@@ -154,13 +169,13 @@ void ImageRT::discard()
       { // for main FBO we need to setup different values - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glInvalidateFramebuffer.xhtml
          if(Renderer._cur_ds==this) // no need to check '_cur_ds_id' because main FBO always has texture 0
          {
-            GLenum attachments[]={GL_DEPTH, GL_STENCIL};
-            glInvalidateFramebuffer(GL_FRAMEBUFFER, ImageTI[hwType()].s ? 2 : 1, attachments); _discard=false;
+            GLenum attachments[]={GL_DEPTH, GL_STENCIL}; glInvalidateFramebuffer(GL_FRAMEBUFFER, ImageTI[hwType()].s ? 2 : 1, attachments);
+           _discard=false;
          }else
          if(Renderer._cur[0]==this) // check '_cur' because '_txtr' can be 0 for RenderBuffers
          {
-            GLenum attachment=GL_COLOR;
-            glInvalidateFramebuffer(GL_FRAMEBUFFER, 1, &attachment); _discard=false;
+            GLenum attachment=GL_COLOR; glInvalidateFramebuffer(GL_FRAMEBUFFER, 1, &attachment);
+           _discard=false;
          }else
            _discard=true; // discard at next opportunity when we want to attach it to FBO
       }else
