@@ -3060,7 +3060,7 @@ void Display::clearCol(Int i, C Vec4 &color)
 #if DX11
    if(ImageRT *image=Renderer._cur[i])image->clearHw(color);
 #elif GL
-   if(Renderer._cur[i])glClearBufferfv(GL_COLOR, i, color.c); // 'glClearBufferfv' always clears full RT (viewport is ignored)
+   if(Renderer._cur[i]){if(D._clip_real)glDisable(GL_SCISSOR_TEST); glClearBufferfv(GL_COLOR, i, color.c); if(D._clip_real)glEnable(GL_SCISSOR_TEST);} // 'glClearBufferfv' always clears full RT (viewport is ignored)
 #endif
 }
 #if DX11
