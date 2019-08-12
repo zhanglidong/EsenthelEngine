@@ -1684,6 +1684,7 @@ struct DeferredSolidOutput // use this structure in Pixel Shader for setting the
 #endif
 
    inline void velocity(Vec vel, Vec view_space_pos) {out2.xyz=GetVelocity_PS(vel, view_space_pos); out2.w=0;}
+   inline void velocityZero() {out2.xyz=(SIGNED_VEL_RT ? 0 : 0.5); out2.w=0;}
 };
 /******************************************************************************/
 // TESSELATION

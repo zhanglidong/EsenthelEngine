@@ -46,7 +46,7 @@ void Color_PS
    output.glow    (0);
    output.normal  (Normalize(inNrm));
    output.specular(0);
-   output.velocity(0, inPos);
+   output.velocityZero();
 }
 /******************************************************************************/
 // CIRCLE / SQUARE / GRID

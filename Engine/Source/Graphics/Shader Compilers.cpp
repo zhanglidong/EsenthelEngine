@@ -100,6 +100,8 @@ static void Compile(API api)
       if(api!=API_DX)src.New("SetCol"    , "Draw_VS"      , "DrawFlat_PS"); // this version fails on DX
       else           src.New("SetCol"    , "SetCol_VS"    , "SetCol_PS"  ); // THERE IS A BUG ON NVIDIA GEFORCE DX10+ when trying to clear normal render target using SetCol "Bool clear_nrm=(_nrm && !NRM_CLEAR_START && ClearNrm());", with D.depth2DOn(true) entire RT is cleared instead of background pixels only, this was verified on Windows 10 GeForce 650m, drivers 381, this version works OK on DX, TODO: check again in the future and remove SetCol_VS SetCol_PS
 
+      src.New("ClearDeferred", "Draw_VS", "ClearDeferred");
+
       src.New("Draw2DCol", "Draw2DCol_VS", "Draw2DCol_PS");
       src.New("Draw3DCol", "Draw3DCol_VS", "Draw3DCol_PS");
 

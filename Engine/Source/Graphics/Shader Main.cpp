@@ -551,6 +551,9 @@ void MainShaderClass::getTechniques()
 #if !SLOW_SHADER_LOAD
    if(!D.deferredUnavailable())
    {
+      // CLEAR
+      ClearDeferred=get("ClearDeferred");
+
       // SHADOW
       REPD(multi_sample, (D.shaderModel()>=SM_4_1) ? 2 : 1)
       {
