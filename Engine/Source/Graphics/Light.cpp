@@ -104,15 +104,6 @@ static void GetLum()
                                    Renderer._lum   .get(ImageRTDesc(Renderer._col->w(), Renderer._col->h(), D.highPrecLumRT() ? IMAGERT_SRGBA_H : IMAGERT_SRGBA, Renderer._col->samples())); // here Alpha is used for specular
    if(Renderer._lum->multiSample())Renderer._lum_1s.get(ImageRTDesc(Renderer._lum->w(), Renderer._lum->h(), D.highPrecLumRT() ? IMAGERT_SRGBA_H : IMAGERT_SRGBA));else Renderer._lum_1s=Renderer._lum;
 }
-void RendererClass::getLumRT()
-{
-   if(!_lum)
-   {
-      GetLum();
-      if(_lum_1s!=_lum)_lum_1s->clearViewport();
-                       _lum   ->clearViewport((_ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0)); // if '_ao' is not available then set '_lum' to 'ambientColor' (set '_lum' instead of '_lum_1s' because it is the one that is read in both 1-sample and multi-sample ApplyLight shaders, if this is changed then adjust all clears to '_lum_1s' and '_lum' in this file)
-   }
-}
 static Bool SetLum()
 {
    Bool set=!Renderer._lum; if(set)GetLum();
@@ -124,6 +115,15 @@ static Bool SetLum()
    }
    D.alpha(ALPHA_ADD); Sh.Img[0]->set(Renderer._nrm); Sh.ImgMS[0]->set(Renderer._nrm);
    return set;
+}
+void RendererClass::getLumRT() // this is called after drawing all lights, in order to make sure we have some RT's (in case there are no lights), after this ambient meshes will be drawn
+{
+   if(!_lum)
+   {
+      GetLum();
+      if(_lum_1s!=_lum)_lum_1s->clearViewport();
+                       _lum   ->clearViewport((_ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0)); // if '_ao' is not available then set '_lum' to 'ambientColor' (set '_lum' instead of '_lum_1s' because it is the one that is read in both 1-sample and multi-sample ApplyLight shaders, if this is changed then adjust all clears to '_lum_1s' and '_lum' in this file)
+   }
 }
 
 static void                GetWaterLum  () {Renderer._water_lum.get(ImageRTDesc(Renderer._water_ds->w(), Renderer._water_ds->h(), IMAGERT_SRGBA));} // here Alpha is used for specular
