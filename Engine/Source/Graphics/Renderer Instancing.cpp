@@ -201,7 +201,7 @@ void ClearEarlyZInstances()
 /******************************************************************************/
 // SOLID
 /******************************************************************************/
-static INLINE void DrawSolidInstances(Bool forward)
+static INLINE void DrawSolidInstances(Bool forward) // !! this function should be safe to call 2 times in a row for both eyes, so can't do any clearing/unlinking that would break things !!
 {
    SetViewOffset();
    BeginPrecomputedViewMatrix();
@@ -290,6 +290,7 @@ static INLINE void DrawSolidInstances(Bool forward)
       }
    }
    D.stencilRef(0);
+   // can't clear 'ShaderDraws' because we might need it for second eye rendering
 
    EndPrecomputedViewMatrix();
 
@@ -322,6 +323,7 @@ static INLINE void DrawSolidInstances(Bool forward)
          skel_shader=&SkeletonShaders[skel_shader->next_skeleton_shader];
       }
    }
+   // can't clear 'SkeletonSolidInstances' because we might need it for second eye rendering
 
    // cloth
    if(SolidClothInstances.elms())
@@ -436,6 +438,7 @@ static INLINE void DrawSolidInstances(Bool forward)
       }
    }
    D.stencilRef(0);
+   // can't clear 'MultiMaterialShaderDraws' because we might need it for second eye rendering
 
    // finish
   _SetHighlight(TRANSPARENT);
@@ -499,7 +502,7 @@ void SortAmbientInstances()
    SkeletonAmbientInstances.sort(Compare);
 #endif
 }
-void DrawAmbientInstances()
+void DrawAmbientInstances() // !! this function should be safe to call 2 times in a row for both eyes, so can't do any clearing/unlinking that would break things !!
 {
 #if SUPPORT_MATERIAL_AMBIENT
    SetViewOffset();
@@ -572,7 +575,7 @@ void PrepareShadowInstances()
    SkeletonShadersNum        =SkeletonShaders        .elms();
    SkeletonShaderMaterialsNum=SkeletonShaderMaterials.elms();
 }
-void DrawShadowInstances()
+void DrawShadowInstances() // this is called only 1 time and not for each eye
 {
    // this doesn't require 'ViewOffset' and 'BeginPrecomputedViewMatrix' because shadows are drawn only 1 time, and not for each eye
 
@@ -721,7 +724,7 @@ void ClearBlendInstances()
    SkeletonBlendShaderMaterials            .clear();
    SkeletonBlendShaderMaterialMeshInstances.clear();
 }
-void DrawBlendInstances()
+void DrawBlendInstances() // !! this function should be safe to call 2 times in a row for both eyes, so can't do any clearing/unlinking that would break things !!
 {
    SetViewOffset();
    EyeCache ec;
