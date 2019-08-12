@@ -449,7 +449,7 @@ static Bool StereoCurrentLightRect() // this relies on current Viewport, Camera 
 }
 static Bool GetCurrentLightRect()
 {
-   return Renderer._stereo ? StereoCurrentLightRect() : true;
+   return Renderer._stereo ? StereoCurrentLightRect() : true; // for non-stereo the rect is already valid (if light was not visible then it wouldn't be added to the light list)
 }
 static Bool SetLightEye(Bool shadow=false)
 {
@@ -1322,7 +1322,7 @@ void Light::drawForward(ALPHA_MODE alpha)
          Renderer.mode(RM_SOLID);
          REPS(Renderer._eye, Renderer._eye_num)
          {
-            Renderer.setEyeViewport();
+            Renderer.setEyeViewportCam();
             if(CurrentLight.shadow)SetShdMatrix();
             CurrentLight.dir.set();
             if(Renderer.secondaryPass())D.clip(Renderer._clip); // clip rendering to area affected by the light
@@ -1384,12 +1384,14 @@ void Light::drawForward(ALPHA_MODE alpha)
          Renderer.mode(RM_SOLID);
          REPS(Renderer._eye, Renderer._eye_num)
          {
-            Renderer.setEyeViewport();
-            GetCurrentLightRect(); // if(.. would require ClearSolidInstances afterwards, call this after setting viewport and camera
-            if(CurrentLight.shadow)SetShdMatrix();
-            CurrentLight.point.set(CurrentLight.shadow_opacity);
-            if(Renderer.secondaryPass())D.clip(CurrentLight.rect&Renderer._clip); // clip rendering to area affected by the light
-            DrawSolidInstances(); Renderer._render();
+            Renderer.setEyeViewportCam();
+            if(GetCurrentLightRect()) // check this after setting viewport and camera
+            {
+               if(CurrentLight.shadow)SetShdMatrix();
+               CurrentLight.point.set(CurrentLight.shadow_opacity);
+               if(Renderer.secondaryPass())D.clip(CurrentLight.rect&Renderer._clip); // clip rendering to area affected by the light
+               DrawSolidInstances(); Renderer._render();
+            }
          }
          ClearSolidInstances();
          D.set2D();
@@ -1447,12 +1449,14 @@ void Light::drawForward(ALPHA_MODE alpha)
          Renderer.mode(RM_SOLID);
          REPS(Renderer._eye, Renderer._eye_num)
          {
-            Renderer.setEyeViewport();
-            GetCurrentLightRect(); // if(.. would require ClearSolidInstances afterwards, call this after setting viewport and camera
-            if(CurrentLight.shadow)SetShdMatrix();
-            CurrentLight.linear.set(CurrentLight.shadow_opacity);
-            if(Renderer.secondaryPass())D.clip(CurrentLight.rect&Renderer._clip); // clip rendering to area affected by the light
-            DrawSolidInstances(); Renderer._render();
+            Renderer.setEyeViewportCam();
+            if(GetCurrentLightRect()) // check this after setting viewport and camera
+            {
+               if(CurrentLight.shadow)SetShdMatrix();
+               CurrentLight.linear.set(CurrentLight.shadow_opacity);
+               if(Renderer.secondaryPass())D.clip(CurrentLight.rect&Renderer._clip); // clip rendering to area affected by the light
+               DrawSolidInstances(); Renderer._render();
+            }
          }
          ClearSolidInstances();
          D.set2D();
@@ -1510,12 +1514,14 @@ void Light::drawForward(ALPHA_MODE alpha)
          Renderer.mode(RM_SOLID);
          REPS(Renderer._eye, Renderer._eye_num)
          {
-            Renderer.setEyeViewport();
-            GetCurrentLightRect(); // if(.. would require ClearSolidInstances afterwards, call this after setting viewport and camera
-            if(CurrentLight.shadow)SetShdMatrix();
-            CurrentLight.cone.set(CurrentLight.shadow_opacity);
-            if(Renderer.secondaryPass())D.clip(CurrentLight.rect&Renderer._clip); // clip rendering to area affected by the light
-            DrawSolidInstances(); Renderer._render();
+            Renderer.setEyeViewportCam();
+            if(GetCurrentLightRect()) // check this after setting viewport and camera
+            {
+               if(CurrentLight.shadow)SetShdMatrix();
+               CurrentLight.cone.set(CurrentLight.shadow_opacity);
+               if(Renderer.secondaryPass())D.clip(CurrentLight.rect&Renderer._clip); // clip rendering to area affected by the light
+               DrawSolidInstances(); Renderer._render();
+            }
          }
          ClearSolidInstances();
          D.set2D();

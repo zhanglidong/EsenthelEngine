@@ -1015,7 +1015,7 @@ start:
       D.set3D();
 
    early_z:
-      setEyeViewport();
+      setEyeViewportCam();
       DrawEarlyZInstances();
       if(++_eye<_eye_num)goto early_z;
 
@@ -1097,7 +1097,7 @@ void RendererClass::solid()
          D.stencil(STENCIL_ALWAYS_SET, 0); D.set3D(); mode(RM_SOLID);
          REPS(_eye, _eye_num)
          {
-            setEyeViewport();
+            setEyeViewportCam();
             DrawSolidInstances(); _render();
          }
          ClearSolidInstances();
@@ -1142,7 +1142,7 @@ void RendererClass::solid()
             D.stencil(STENCIL_ALWAYS_SET, 0); D.set3D(); mode(RM_SOLID);
             REPS(_eye, _eye_num)
             {
-               setEyeViewport();
+               setEyeViewportCam();
                DrawSolidInstances(); _render();
             }
             ClearSolidInstances();
@@ -1226,7 +1226,7 @@ void RendererClass::overlay()
    D.set3D(); D.depthWrite(false); D.bias(BIAS_OVERLAY); D.depthFunc(FUNC_LESS_EQUAL); D.depth(true); mode(RM_OVERLAY); // overlay requires BIAS because we may use 'MeshOverlay' which generates triangles by clipping existing ones
    REPS(_eye, _eye_num)
    {
-      setEyeViewport();
+      setEyeViewportCam();
       DrawOverlayObjects(); _render();
    }
    D.set2D(); D.depthWrite(true); D.bias(BIAS_ZERO); D.depthFunc(FUNC_LESS);
@@ -1342,7 +1342,7 @@ void RendererClass::light()
       SortAmbientInstances();
       REPS(_eye, _eye_num)
       {
-         setEyeViewport();
+         setEyeViewportCam();
          DrawAmbientInstances(); _render();
       }
       ClearAmbientInstances();
@@ -1423,7 +1423,7 @@ Bool RendererClass::waterPostLight()
       Sh.Col[0]->set(_water_lum); MaterialClear(); // have to re-use Material texture shader image, because there are no other left, so have to call 'MaterialClear', no need for 'WaterMtrlLast' because we will don't draw any water after this, and later 'WaterMtrlLast' is automatically cleared at start of new water rendering
       REPS(_eye, _eye_num)
       {
-         Water.setEyeViewport();
+         Water.setEyeViewportCam();
          WS.Apply[refract][depth_test]->draw(); // we need to output depth only if we need it for depth testing
       }
       if(depth_test)
@@ -1537,7 +1537,7 @@ void RendererClass::blend()
    SortBlendInstances();
    REPS(_eye, _eye_num)
    {
-      setEyeViewport();
+      setEyeViewportCam();
    #if 1
      _render(); DrawBlendInstances(); // first call '_render' to for example get 'getBackBuffer' and then draw objects in 'DrawBlendInstances'
    #else
@@ -1569,7 +1569,7 @@ void RendererClass::palette(Int index)
       D.set3D(); D.depthWrite(false); mode(index ? RM_PALETTE1 : RM_PALETTE);
       REPS(_eye, _eye_num)
       {
-         setEyeViewport();
+         setEyeViewportCam();
         _render(); if(index)DrawPalette1Objects();else DrawPaletteObjects();
       }
       D.set2D(); D.depthWrite(true);
@@ -1602,7 +1602,7 @@ void RendererClass::behind()
       D.set3D(); D.depthWrite(false); D.depthFunc(FUNC_GREATER); D.depth(true); mode(RM_BEHIND);
       REPS(_eye, _eye_num)
       {
-         setEyeViewport();
+         setEyeViewportCam();
         _render(); DrawBehindObjects();
       }
       D.set2D(); D.depthWrite(true); D.depthFunc(FUNC_LESS);
@@ -1628,7 +1628,7 @@ void RendererClass::setOutline(C Color &color)
    if(!(_outline&outline_eye)) // not yet enabled for this eye
    {
      _outline|=outline_eye; // enable
-      setEyeViewport(); // set viewport if needed
+      setEyeViewportCam(); // set viewport if needed
    }
 }
 void RendererClass::applyOutline()
@@ -1689,7 +1689,7 @@ void RendererClass::outline()
       mode(RM_OUTLINE); // 'sampler3D/2D' is called in 'setOutline' and 'applyOutline'
       REPS(_eye, _eye_num)
       {
-       //setEyeViewport(); viewport is set in 'setOutline' method
+       //setEyeViewportCam(); viewport is set in 'setOutline' method
          DrawOutlineObjects(); _render();
       }
    }

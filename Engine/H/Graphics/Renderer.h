@@ -226,9 +226,9 @@ struct RendererClass // handles rendering
 
    Bool swapDS1S(ImageRTPtr &ds_1s);
 
-   void  setMainViewport(); // set main viewport
-   void  setEyeViewport (); // set viewport current eye
-   Rect* setEyeParams   (); // set params   current eye without setting the viewport
+   void  setMainViewportCam(); // set main        viewport and camera
+   void  setEyeViewportCam (); // set current eye viewport and camera
+   Rect* setEyeParams      (); // set current eye params without setting the viewport
 
    void createShadowMap();
    void rtClear        ();

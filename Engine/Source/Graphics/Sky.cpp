@@ -207,10 +207,10 @@ void SkyClass::draw()
       D.sampler3D (     ); // set in case of drawing clouds
       if(shader_multi)D.stencil(STENCIL_MSAA_TEST);
      _mshr.set();
-      SetOneMatrix(MatrixM(sky_ball_mesh_size, CamMatrix.pos)); // normally we have to set matrixes after 'setEyeViewport', however since matrixes are always relative to the camera, and here we set exactly at the camera position, so the matrix will be the same for both eyes
+      SetOneMatrix(MatrixM(sky_ball_mesh_size, CamMatrix.pos)); // normally we have to set matrixes after 'setEyeViewportCam', however since matrixes are always relative to the camera, and here we set exactly at the camera position, so the matrix will be the same for both eyes
       REPS(Renderer._eye, Renderer._eye_num)
       {
-         Renderer.setEyeViewport();
+         Renderer.setEyeViewportCam();
          if(shader_multi){D.depth((multi==1) ? false : ds); D.stencilRef(STENCIL_REF_MSAA); shader_multi->begin(); _mshr.draw(); D.stencilRef(0);} // MS edges for deferred must not use depth testing
                           D.depth(                     ds);                                 shader      ->begin(); _mshr.draw();
       }

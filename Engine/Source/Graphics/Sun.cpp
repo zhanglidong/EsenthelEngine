@@ -170,9 +170,9 @@ void AstroDraw()
    if(AstrosDraw)
    {
       Renderer.set(Renderer._col, Renderer._ds, true); // use DS for depth tests
-      SetOneMatrix(MatrixM(CamMatrix.pos)); // normally we have to set matrixes after 'setEyeViewport', however since matrixes are always relative to the camera, and here we set exactly at the camera position, so the matrix will be the same for both eyes
+      SetOneMatrix(MatrixM(CamMatrix.pos)); // normally we have to set matrixes after 'setEyeViewportCam', however since matrixes are always relative to the camera, and here we set exactly at the camera position, so the matrix will be the same for both eyes
       Sh.SkyFracMulAdd->set(Vec2(0, 1)); // astronomical objects are drawn as billboards which make use of sky fraction, so be sure to disable it before drawing
-      D.depthWrite(false); D.depthFunc(FUNC_LESS_EQUAL); REPS(Renderer._eye, Renderer._eye_num){Renderer.setEyeViewport(); Sun.Draw(); FREPAO(Astros).Draw();}
+      D.depthWrite(false); D.depthFunc(FUNC_LESS_EQUAL); REPS(Renderer._eye, Renderer._eye_num){Renderer.setEyeViewportCam(); Sun.Draw(); FREPAO(Astros).Draw();}
       D.depthWrite(true ); D.depthFunc(FUNC_LESS      );
    }
 }

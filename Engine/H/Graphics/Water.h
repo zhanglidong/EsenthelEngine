@@ -84,16 +84,16 @@ struct WaterClass : WaterMtrl // Main water control
    Bool    ocean ();
    Shader* shader();
 
-   void del           ();
-   void create        ();
-   void prepare       ();
-   void begin         (); // this is called just before       WaterPlane and WaterMesh drawing
-   void end           (); // this is called at the end of all WaterPlane and WaterMesh drawing
-   void under         (C PlaneM &plane, WaterMtrl &mtrl); // set if camera is under custom water plane
-   void setImages     (Image *src, Image *depth);
-   void endImages     ();
-   void drawSurfaces  ();
-   void setEyeViewport();
+   void del              ();
+   void create           ();
+   void prepare          ();
+   void begin            (); // this is called just before       WaterPlane and WaterMesh drawing
+   void end              (); // this is called at the end of all WaterPlane and WaterMesh drawing
+   void under            (C PlaneM &plane, WaterMtrl &mtrl); // set if camera is under custom water plane
+   void setImages        (Image *src, Image *depth);
+   void endImages        ();
+   void drawSurfaces     ();
+   void setEyeViewportCam();
 #endif
 
 #if !EE_PRIVATE

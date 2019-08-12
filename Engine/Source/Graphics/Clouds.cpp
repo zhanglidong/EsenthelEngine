@@ -149,7 +149,7 @@ void LayeredClouds::draw()
       Shader *shader=LC.get(_layers-1, blend);
       REPS(Renderer._eye, Renderer._eye_num)
       {
-         Renderer.setEyeViewport();
+         Renderer.setEyeViewportCam();
          shader->begin(); _mshr.set().draw();
       }
       D.sampler2D ();
@@ -709,7 +709,7 @@ void AllClouds::drawAll()
 
          Renderer.set(Renderer._col, Renderer._sky_coverage, null, null, Renderer._ds, true, WANT_DEPTH_READ); Renderer.setDSLookup(); // we may use soft cloud, 'setDSLookup' after 'set'
          D.alpha     (ALPHA_BLEND_DEC);
-         D.depthWrite(false); REPS(Renderer._eye, Renderer._eye_num){Renderer.setEyeViewport(); Renderer.mode(RM_CLOUD); Renderer._render();}
+         D.depthWrite(false); REPS(Renderer._eye, Renderer._eye_num){Renderer.setEyeViewportCam(); Renderer.mode(RM_CLOUD); Renderer._render();}
          D.depthWrite(true );
       }
    }

@@ -571,7 +571,7 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
    }
 }
 /******************************************************************************/
-void RendererClass::setMainViewport()
+void RendererClass::setMainViewportCam()
 {
    if(_stereo)
    {
@@ -582,7 +582,7 @@ void RendererClass::setMainViewport()
       D.setViewFovTan();
    }
 }
-void RendererClass::setEyeViewport()
+void RendererClass::setEyeViewportCam()
 {
    if(_stereo)
    {

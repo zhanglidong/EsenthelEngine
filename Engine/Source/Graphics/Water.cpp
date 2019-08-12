@@ -263,9 +263,9 @@ void WaterClass::prepare() // this is called at the start
    }
 }
 /******************************************************************************/
-void WaterClass::setEyeViewport()
+void WaterClass::setEyeViewportCam()
 {
-   Renderer.setEyeViewport();
+   Renderer.setEyeViewportCam();
    if(Renderer._mirror_rt)
    {
       Vec2 scale=1,
@@ -352,7 +352,7 @@ void WaterClass::begin()
          SPSet("WaterPlnNrm", Renderer._mirror_plane.normal*CamMatrixInv.orn());
       }
       SPSet("WaterClamp", uv);
-      setEyeViewport();
+      setEyeViewportCam();
    }
 }
 void WaterClass::end()
@@ -425,7 +425,7 @@ void WaterClass::drawSurfaces()
 
    REPS(Renderer._eye, Renderer._eye_num)
    {
-      setEyeViewport();
+      setEyeViewportCam();
 
       if(_draw_plane_surface)
          if(Shader *shader=T.shader())
