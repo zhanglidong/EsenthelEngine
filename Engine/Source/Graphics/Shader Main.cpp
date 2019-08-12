@@ -548,12 +548,12 @@ void MainShaderClass::getTechniques()
    ShdBlurX  =get(S8+"ShdBlurX"+gather+2);
    ShdBlurY  =get(S8+"ShdBlurY"+gather+2);
 
-#if !SLOW_SHADER_LOAD
    if(!D.deferredUnavailable())
    {
       // CLEAR
       ClearDeferred=get("ClearDeferred");
 
+   #if !SLOW_SHADER_LOAD
       // SHADOW
       REPD(multi_sample, (D.shaderModel()>=SM_4_1) ? 2 : 1)
       {
@@ -581,8 +581,8 @@ void MainShaderClass::getTechniques()
       REPD(night_shade , 2)
       REPD(glow        , 2)
          ApplyLight[multi_sample][ao][cel_shade][night_shade][glow]=getApplyLight(multi_sample, ao, cel_shade, night_shade, glow);
+   #endif
    }
-#endif
 
    // PARTICLE
    ParticleFrames=GetShaderParam("ParticleFrames");

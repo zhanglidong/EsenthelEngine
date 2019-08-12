@@ -4,8 +4,8 @@
 namespace EE{
 #define SVEL_CLEAR Vec4Zero
 #define  VEL_CLEAR Vec4(0.5f, 0.5f, 0.5f, 0)
-#define SNRM_CLEAR Vec4(0   , 0   , -1, 0) // set Z to 0   to set VecZero normals, however Z set to -1 makes ambient occlusion more precise when it uses normals (because ambient occlusion will not work good on the VecZero normals)
-#define  NRM_CLEAR Vec4(0.5f, 0.5f,  0, 0) // set Z to 0.5 to set VecZero normals, however Z set to  0 makes ambient occlusion more precise when it uses normals (because ambient occlusion will not work good on the VecZero normals)
+#define SNRM_CLEAR Vec4(0   , 0   , -1, 0) // set Z to 0   to set VecZero normals, however Z set to -1 makes ambient occlusion more precise when it uses normals (because ambient occlusion will not work good on the VecZero normals) #NRM_CLEAR
+#define  NRM_CLEAR Vec4(0.5f, 0.5f,  0, 0) // set Z to 0.5 to set VecZero normals, however Z set to  0 makes ambient occlusion more precise when it uses normals (because ambient occlusion will not work good on the VecZero normals) #NRM_CLEAR
 #define  NRM_CLEAR_START 1 // 1 works faster on GeForce 650m GT, TODO: check on newer hardware
 inline Bool ClearNrm() {return D.aoWant() && D.ambientNormal() || Renderer.stage==RS_NORMAL;}
 /******************************************************************************
@@ -1029,7 +1029,7 @@ start:
    {
       case RT_DEFERRED:
       {
-         const Bool merged_clear=D._view_main.full, // use when possible, should improve performance on tile-based renderers
+         const Bool merged_clear=(D._view_main.full || TILE_BASED_GPU), // use only when having full viewport ('clearCol' ignores viewport), or when having a tile-based GPU to avoid overhead of RT transfers. Don't enable in other cases, because on Intel GPU Windows it made things much slower, on GeForce 1050 Ti it made no difference.
                      clear_nrm  =(NRM_CLEAR_START && ClearNrm()),
                      clear_vel  =false; // this is not needed because "ClearSkyVel" is used later, performance tests suggested it's better don't clear unless necessary, instead 'Image.discard' is used and improves performance (at least on Mobile)
 
@@ -1049,9 +1049,13 @@ start:
          set(_col, _nrm, _vel, null, _ds, true);
          if(merged_clear)
          {
-            if(clear_col)D.clearCol(0, Vec4Zero);
-            if(clear_nrm)D.clearCol(1, D.signedNrmRT() ? SNRM_CLEAR : NRM_CLEAR);
-            if(clear_vel)D.clearCol(2, D.signedVelRT() ? SVEL_CLEAR : VEL_CLEAR);
+            if(D._view_main.full)
+            {
+               if(clear_col)D.clearCol(0, Vec4Zero);
+               if(clear_nrm)D.clearCol(1, D.signedNrmRT() ? SNRM_CLEAR : NRM_CLEAR);
+               if(clear_vel)D.clearCol(2, D.signedVelRT() ? SVEL_CLEAR : VEL_CLEAR);
+            }else
+            if(clear_col || clear_nrm || (clear_vel && _vel))Sh.ClearDeferred->draw();
          }
          if(clear_ds)D.clearDS();
       }break;

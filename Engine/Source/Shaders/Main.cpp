@@ -426,6 +426,15 @@ VecH4 PaletteDraw_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
                 +c3.rgb*c3.a)/(a+HALF_MIN), a); // NaN
 }
 /******************************************************************************/
+void ClearDeferred(out DeferredSolidOutput output)
+{
+   output.color   (0);
+   output.glow    (0);
+   output.normal  (Vec(0, 0, -1)); // set -1 because of AO #NRM_CLEAR
+   output.specular(0);
+   output.velocityZero();
+}
+/******************************************************************************/
 // DUMMY - used only to obtain info about ConstantBuffers/ShaderParams
 /******************************************************************************/
 Flt Params0_PS():TARGET {return VtxHeightmap+ObjVel[0].x+FurVel[0].x+FurStep+MaterialAlpha()+MultiMaterial0TexScale()+MultiMaterial1TexScale()+MultiMaterial2TexScale()+MultiMaterial3TexScale()+Step+TexLod(FurCol, 0).x+TexLod(FurLight, 0).x;}
