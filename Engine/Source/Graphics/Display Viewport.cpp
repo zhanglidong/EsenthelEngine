@@ -48,8 +48,8 @@ Display::Viewport& Display::Viewport::setRect(C RectI &recti)
 {
    T.recti=recti;
 
-   Clamp(T.recti.min.x, 0, Renderer.resW()-1); Clamp(T.recti.max.x, T.recti.min.x, Renderer.resW());
-   Clamp(T.recti.min.y, 0, Renderer.resH()-1); Clamp(T.recti.max.y, T.recti.min.y, Renderer.resH());
+   Clamp(T.recti.min.x, 0, Renderer.resW()); Clamp(T.recti.max.x, T.recti.min.x, Renderer.resW());
+   Clamp(T.recti.min.y, 0, Renderer.resH()); Clamp(T.recti.max.y, T.recti.min.y, Renderer.resH());
 
    T.full=(T.recti.min.x==0 && T.recti.min.y==0 && T.recti.max.x==Renderer.resW() && T.recti.max.y==Renderer.resH());
 
