@@ -423,8 +423,8 @@ void RendererClass::set(ImageRT *t0, ImageRT *t1, ImageRT *t2, ImageRT *t3, Imag
       #endif
          {
          #if DEBUG_DISCARD
-            if(_main   ._discard){_main   ._discard=false; D.clearCol(PURPLE);}
-            if(_main_ds._discard){_main_ds._discard=false; D.clearDS (      );}
+            if(_main   ._discard){_main   ._discard=false; D.clearCol(0, PURPLE);} // use indexed version to ignore the viewport
+            if(_main_ds._discard){_main_ds._discard=false; D.clearDS (         );}
          #else
             // discard, for main FBO we need to setup different values - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glInvalidateFramebuffer.xhtml
             GLenum attachment[3]; GLsizei attachments=0; // RT0+Depth+Stencil

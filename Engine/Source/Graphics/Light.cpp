@@ -32,6 +32,7 @@ static Memc<FloatIndex> LightImportance;
             Light       CurrentLight;
 static Bool             CurrentLightOn  [2];
 static Rect             CurrentLightRect[2];
+static MeshRender       LightBallMesh;
 /******************************************************************************/
 static inline Int      HsmX        (DIR_ENUM dir) {return dir& 1;}
 static inline Int      HsmY        (DIR_ENUM dir) {return dir>>1;}
@@ -1633,7 +1634,7 @@ void DrawLights()
    }
 }
 /******************************************************************************/
-void ShutLight() {Lights.del(); LightImportance.del();}
+void ShutLight() {Lights.del(); LightImportance.del(); LightBallMesh.del();}
 void InitLight()
 {
    HsmMatrix.x  .x= 0.5f/2;

@@ -3054,7 +3054,7 @@ void Display::clearCol(C Vec4  &     color)
    }
 }
 
-void Display::clearCol(Int i, C Vec4 &color)
+void Display::clearCol(Int i, C Vec4 &color) // !! this ignores the viewport !!
 {
    DEBUG_RANGE_ASSERT(i, Renderer._cur);
 #if DX11
