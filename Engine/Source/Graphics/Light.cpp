@@ -1632,7 +1632,7 @@ void Light::drawForward(ALPHA_MODE alpha)
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetDrawLightCone(CurrentLight.shadow, false, true, CurrentLight.image?1:0)->draw(&CurrentLight.rect); // always use Quality Specular for Water
 
             Sh.Depth->set(Renderer._ds_1s); // restore default depth
-            D.depth2DOff(); D.stencil(STENCIL_NONE);
+            D.depth2DOff(); D.depthClip(true); D.stencil(STENCIL_NONE);
          }
       }break;
    }
