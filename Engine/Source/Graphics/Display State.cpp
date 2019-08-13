@@ -370,7 +370,7 @@ void DisplayState::depthClip(Bool on)
    {
       D._depth_clip=on;
    #ifdef GL_DEPTH_CLAMP
-      if(on)glEnable(GL_DEPTH_CLAMP);else glDisable(GL_DEPTH_CLAMP);
+      if(on)glDisable(GL_DEPTH_CLAMP);else glEnable(GL_DEPTH_CLAMP); // !! on GL enabling GL_DEPTH_CLAMP actually disables clipping !!
    #endif
    }
 }

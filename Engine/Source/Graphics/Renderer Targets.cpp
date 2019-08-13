@@ -598,7 +598,7 @@ Rect* RendererClass::setEyeParams()
    if(_stereo)
    {
       RectI rect=D._view_active.recti;
-      D._view_active.setRect(Renderer.screenToPixelI(D._view_eye_rect[_eye])).setShader(&ProjMatrixEyeOffset[_eye]).setRect(rect);
+      D._view_active.setRect(Renderer.screenToPixelI(D._view_eye_rect[_eye])).setShader(&ProjMatrixEyeOffset[_eye]).setRect(rect); // set rect temporarily to set shader params and restore it afterwards
       return &D._view_eye_rect[_eye];
    }
    return &D._view_rect;
