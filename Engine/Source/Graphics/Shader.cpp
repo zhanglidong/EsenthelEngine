@@ -5,8 +5,6 @@
 
    Depth/Stencil tests however are always performed on a per-sample basis.
 
-   TODO: !! All GLSL shaders need to be optimized either by hand or with a better converter, this could give performance boost even 2x !!
-
 /******************************************************************************/
 #include "stdafx.h"
 #include "../Shaders/!Header CPU.h"

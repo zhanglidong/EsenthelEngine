@@ -7,7 +7,8 @@
 #define LIGHT_MESH_BALL_RES    2 // res 2 gives 'dist'=0.971646905, make radius bigger to make sure ball covers all pixels with radius=1, use only res 2, to avoid having too many triangles/edges because GPU's have to process pixels always in 2x2 blocks, so due to edges, some pixels are wasted
 #define LIGHT_MESH_BALL_RADIUS (1/0.971646905f)
 
-#define LIGHT_MESH_CONE_RES 2
+#define LIGHT_MESH_CONE_RES 16 // use only res 16, to avoid having too many triangles/edges because GPU's have to process pixels always in 2x2 blocks, so due to edges, some pixels are wasted
+// FIXME tweak scale
 
 #define ALWAYS_RESTORE_FRUSTUM 0 // 0=skip (faster)
 /* !! WARNING: For performance reasons 'Frustum' is not restored after (drawing shadows AND custom frustum for forward local lights), but only after all lights finished
@@ -1774,7 +1775,7 @@ void InitLight()
 #endif
 
    // FIXME
-   mshb.create(Cone(0, 1, 1), 0, LIGHT_MESH_CONE_RES);
+   mshb.create(Cone(0, 1, 1, VecZero, Vec(0,0,1)), 0, LIGHT_MESH_CONE_RES);
    LightMeshCone.create(mshb);
 }
 /******************************************************************************/
