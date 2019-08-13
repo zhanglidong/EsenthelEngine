@@ -982,50 +982,46 @@ INLINE Shader* GetDrawLightCone  (Bool shadow, Bool multi_sample, Bool quality, 
 /******************************************************************************/
 static void DrawLightDir(Bool multi_sample, Bool quality)
 {
+   // Flat
    Shader *shader=GetDrawLightDir(CurrentLight.shadow, multi_sample, quality);
    REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())shader->draw(&CurrentLight.rect);
-#if TEST_LIGHT_RECT
-   REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
-#endif
+   if(TEST_LIGHT_RECT)REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
 }
 static void DrawLightPoint(C MatrixM &light_matrix, Bool multi_sample, Bool quality)
 {
-   if(Kb.ctrl()) // FIXME
-   {
-      LightMeshBall.set();
-      Shader *shader=Sh.get(S8+"DrawLightPointG"+CurrentLight.shadow+multi_sample+quality+GL_ES); shader->startTex();
-      REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye()){SetFastMatrix(light_matrix); shader->commit(); LightMeshBall.draw();}
-   }else
-   {
-      Shader *shader=GetDrawLightPoint(CurrentLight.shadow, multi_sample, quality);
-      REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())shader->draw(&CurrentLight.rect);
-   #if TEST_LIGHT_RECT
-      REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
-   #endif
-   }
+#if 1 // Geom
+   LightMeshBall.set();
+   Shader *shader=Sh.get(S8+"DrawLightPointG"+CurrentLight.shadow+multi_sample+quality+GL_ES); shader->startTex();
+   REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye()){SetFastMatrix(light_matrix); shader->commit(); LightMeshBall.draw();}
+#else // Flat
+   D.depth2DOn();
+   Shader *shader=GetDrawLightPoint(CurrentLight.shadow, multi_sample, quality);
+   REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())shader->draw(&CurrentLight.rect);
+   if(TEST_LIGHT_RECT)REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
+#endif
 }
 static void DrawLightLinear(C MatrixM &light_matrix, Bool multi_sample, Bool quality)
 {
-   if(Kb.ctrl()) // FIXME
-   {
-      LightMeshBall.set();
-      Shader *shader=Sh.get(S8+"DrawLightLinearG"+CurrentLight.shadow+multi_sample+quality+GL_ES); shader->startTex();
-      REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye()){SetFastMatrix(light_matrix); shader->commit(); LightMeshBall.draw();}
-   }else
-   {
-      Shader *shader=GetDrawLightLinear(CurrentLight.shadow, multi_sample, quality);
-      REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())shader->draw(&CurrentLight.rect);
-   #if TEST_LIGHT_RECT
-      REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
-   #endif
-   }
+#if 1 // Geom
+   LightMeshBall.set();
+   Shader *shader=Sh.get(S8+"DrawLightLinearG"+CurrentLight.shadow+multi_sample+quality+GL_ES); shader->startTex();
+   REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye()){SetFastMatrix(light_matrix); shader->commit(); LightMeshBall.draw();}
+#else // Flat
+   D.depth2DOn();
+   Shader *shader=GetDrawLightLinear(CurrentLight.shadow, multi_sample, quality);
+   REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())shader->draw(&CurrentLight.rect);
+   if(TEST_LIGHT_RECT)REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
+#endif
 }
-static void DrawLightCone(Bool multi_sample, Bool quality)
+static void DrawLightCone(C MatrixM &light_matrix, Bool multi_sample, Bool quality)
 {
+#if 0 // Geom
+   FIXME
+#else // Flat
+   D.depth2DOn();
    Shader *shader=GetDrawLightCone(CurrentLight.shadow, multi_sample, quality, CurrentLight.image?1:0);
    REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())shader->draw(&CurrentLight.rect);
-#if TEST_LIGHT_RECT
-   REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
+   if(TEST_LIGHT_RECT)REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
 #endif
 }
 /******************************************************************************/
@@ -1036,6 +1032,15 @@ static Bool LightFrontFaceBall(Flt range, C VecD &light_pos)
    {
       Flt d2=Dist2(light_pos, ActiveCam.matrix.pos); // use 'ActiveCam' instead of 'CamMatrix' because it's not affected by eyes
       if( d2<=Sqr(range*LIGHT_MESH_BALL_RADIUS+FrustumMain.view_quad_max_dist+D.eyeDistance_2()))front_face=false; // if camera intersects with light mesh, then we can't use front
+   }
+   return front_face;
+}
+static Bool LightFrontFace(C PyramidM &pyramid)
+{
+   Bool front_face=Renderer.indoor; // draw as front only for in-door scenes, which will allow to hide the light by occluders, in other cases, we will most likely have to process fewer pixels if not using front
+   if(  front_face)
+   {
+      // FIXME
    }
    return front_face;
 }
@@ -1264,9 +1269,6 @@ void Light::draw()
          if(!Renderer._ds->multiSample()) // 1-sample
          {
             DrawLightLinear(light_matrix, false, D.highPrecNrmCalcIs());
-         #if TEST_LIGHT_RECT
-            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
-         #endif
          }else // multi-sample
          {
             if(Renderer.hasStencilAttached()) // if we can use stencil tests, then process 1-sample pixels using 1-sample shader, if we can't use stencil then all pixels will be processed using multi-sample shader later below
@@ -1293,9 +1295,11 @@ void Light::draw()
             D.depthClip(true);
             ShadowMap(CurrentLight.cone);
          }
-
-         D.depthClip(true);
-         D.depth2DOn();
+         Bool    front_face =LightFrontFace(CurrentLight.cone.pyramid);
+         UInt    depth_func =(front_face ? FUNC_LESS : FUNC_GREATER);
+         MatrixM light_matrix; // FIXME reverse faces
+         D.depthClip(!front_face); // Warning: not available on GL ES
+         SetMatrixCount(); // needed for drawing light mesh
 
          // water lum first, as noted above in the comments
          if(Renderer._water_nrm)
@@ -1308,11 +1312,13 @@ void Light::draw()
                // no need for view space bias, because we're calculating shadow for water surfaces, which by themself don't cast shadows and are usually above shadow surfaces
                Renderer.getShdRT();
                Renderer.set(Renderer._shd_1s, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
+               D.depth2DOn();
                REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdCone(false)->draw(&CurrentLight.rect);
             }
 
             SetWaterLum();
-            DrawLightCone(false, true); // always use Quality Specular for Water
+            D.depth2DOn(depth_func);
+            DrawLightCone(light_matrix, false, true); // always use Quality Specular for Water
 
             Sh.Depth->set(Renderer._ds_1s); // restore default depth
             D.stencil(STENCIL_NONE);
@@ -1322,6 +1328,7 @@ void Light::draw()
          if(CurrentLight.shadow)
          {
             Renderer.getShdRT();
+            D.depth2DOn();
             Flt mp_z_z; ApplyViewSpaceBias(mp_z_z);
             if(!Renderer._ds->multiSample())
             {
@@ -1342,15 +1349,16 @@ void Light::draw()
             Sh.Img[1]       ->set(CurrentLight.image      );
          }
          Bool clear=SetLum();
+         D.depth2DOn(depth_func);
          if(!Renderer._ds->multiSample()) // 1-sample
          {
-            DrawLightCone(false, D.highPrecNrmCalcIs());
+            DrawLightCone(light_matrix, false, D.highPrecNrmCalcIs());
          }else // multi-sample
          {
             if(Renderer.hasStencilAttached()) // if we can use stencil tests, then process 1-sample pixels using 1-sample shader, if we can't use stencil then all pixels will be processed using multi-sample shader later below
             {
                D.stencil(STENCIL_MSAA_TEST, 0);
-               DrawLightCone(false, D.highPrecNrmCalcIs());
+               DrawLightCone(light_matrix, false, D.highPrecNrmCalcIs());
             }
             Renderer.set(Renderer._lum, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
             if(clear)
@@ -1359,7 +1367,7 @@ void Light::draw()
                D.depthLock  (true);
             }
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
-            DrawLightCone(true, D.highPrecNrmCalcIs());
+            DrawLightCone(light_matrix, true, D.highPrecNrmCalcIs());
             D.stencil(STENCIL_NONE);
          }
       }break;
@@ -1630,19 +1638,26 @@ void Light::drawForward(ALPHA_MODE alpha)
          // water lum
          if(Renderer._water_nrm)
          {
-            D.depth2DOn(); D.stencil(STENCIL_WATER_TEST, STENCIL_REF_WATER);
+            D.stencil(STENCIL_WATER_TEST, STENCIL_REF_WATER);
             Sh.Depth->set(Renderer._water_ds); // set water depth
+            Bool    front_face =LightFrontFace(CurrentLight.cone.pyramid);
+            UInt    depth_func =(front_face ? FUNC_LESS : FUNC_GREATER);
+            MatrixM light_matrix; // FIXME reverse faces
+            D.depthClip(!front_face); // Warning: not available on GL ES
+            SetMatrixCount(); // needed for drawing light mesh
 
             if(CurrentLight.shadow)
             {
                // no need for view space bias, because we're calculating shadow for water surfaces, which by themself don't cast shadows and are usually above shadow surfaces
                Renderer.getShdRT();
                Renderer.set(Renderer._shd_1s, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
+               D.depth2DOn();
                REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdCone(false)->draw(&CurrentLight.rect);
             }
 
             SetWaterLum();
-            DrawLightCone(false, true); // always use Quality Specular for Water
+            D.depth2DOn(depth_func);
+            DrawLightCone(light_matrix, false, true); // always use Quality Specular for Water
 
             Sh.Depth->set(Renderer._ds_1s); // restore default depth
             D.depth2DOff(); D.depthClip(true); D.stencil(STENCIL_NONE);
