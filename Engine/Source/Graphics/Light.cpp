@@ -1031,16 +1031,15 @@ void Light::draw()
    {
       case LIGHT_DIR:
       {
+         D.depthClip(true);
          Int  shd_map_num;
          Bool cloud=false;
          if(CurrentLight.shadow)
          {
-            D.depthClip(true);
             shd_map_num=D.shadowMapNumActual();
             cloud=ShadowMap(CurrentLight.dir);
          }
 
-         D.depthClip(true);
          D.depth2DOn();
 
          // water lum first, as noted above in the comments
