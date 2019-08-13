@@ -345,7 +345,6 @@ BUFFER_END
 BUFFER_I(Global, SBI_GLOBAL)
    Matrix4 ProjMatrix                ; // projection  matrix
    Vec4    ClipPlane=Vec4(0, 0, 0, 1); // clipping    plane
-   Bool    FrontFace=true            ; // normal      flipping
    Flt     TesselationDensity        ; // tesselation density
    Vec2    GrassRangeMulAdd          ; // factors used for grass opacity      calculation
    VecH4   BendFactor                ; // factors used for grass/leaf bending calculation
@@ -1429,11 +1428,7 @@ inline VecH GetDetail(Vec2 tex)
 /******************************************************************************/
 // FACE NORMAL HANDLING
 /******************************************************************************/
-#if !GL
-inline void BackFlip(in out VecH dir, Bool front) {if(front!=FrontFace)dir=-dir;} // 'FrontFace' depends on mirrored
-#else
-inline void BackFlip(in out VecH dir, Bool front) {if(front!=true     )dir=-dir;} // on GL front face orientation doesn't change when mirrored
-#endif
+inline void BackFlip(in out VecH dir, Bool front) {if(!front)dir=-dir;}
 /******************************************************************************/
 // VELOCITIES
 /******************************************************************************/

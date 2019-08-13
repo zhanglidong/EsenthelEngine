@@ -144,8 +144,7 @@ struct MainShaderClass
 
    ShaderParamBool
       *AmbientMaterial,
-      *VtxSkinning,
-      *FrontFace;
+      *VtxSkinning;
 
    // SHADERS
    Shader

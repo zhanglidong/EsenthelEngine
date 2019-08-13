@@ -39,7 +39,8 @@ struct BlendState
    {
     //SyncLocker locker(D._lock); lock not needed for DX11 'D3D'
       del();
-      if(D3D)D3D->CreateBlendState(&desc, &state);
+      if(D3D && OK(D3D->CreateBlendState(&desc, &state)))return;
+      Exit("Can't create a Blend State");
    }
    void set()
    {
@@ -65,7 +66,8 @@ struct DepthState
    {
     //SyncLocker locker(D._lock); lock not needed for DX11 'D3D'
       del();
-      if(D3D)D3D->CreateDepthStencilState(&desc, &state);
+      if(D3D && OK(D3D->CreateDepthStencilState(&desc, &state)))return;
+      Exit("Can't create a DepthStencil State");
    }
    void set()
    {
@@ -91,7 +93,8 @@ struct RasterizerState
    {
     //SyncLocker locker(D._lock); lock not needed for DX11 'D3D'
       del();
-      if(D3D)D3D->CreateRasterizerState(&desc, &state);
+      if(D3D && OK(D3D->CreateRasterizerState(&desc, &state)))return;
+      Exit("Can't create a Rasterizer State");
    }
    void set()
    {
@@ -102,9 +105,9 @@ struct RasterizerState
 };
 /******************************************************************************/
 // set order that first array sizes are those not pow2, and followed by pow2 (faster accessing)
-static BlendState      BS   [  ALPHA_NUM]         ; // [AlphaMode]
-static DepthState      DS   [STENCIL_NUM][2][2][8]; // [StencilMode][DepthUse][DepthWrite][DepthFunc]
-static RasterizerState RS[3][   BIAS_NUM][2][2][2]; // [Cull][Bias][LineSmooth][Wire][Clip]
+static BlendState      BS[  ALPHA_NUM]                  ; // [AlphaMode]
+static DepthState      DS[STENCIL_NUM][2][2][8]         ; // [StencilMode][DepthUse][DepthWrite][DepthFunc]
+static RasterizerState RS[   BIAS_NUM][2][2][2][2][2][2]; // [Bias][Cull][LineSmooth][Wire][Clip][DepthClip][FrontFace]
 #elif GL
 static Bool DepthAllow=true, DepthReal;
 static Byte Col0WriteAllow=COL_WRITE_RGBA, Col0WriteReal=COL_WRITE_RGBA;
@@ -134,7 +137,9 @@ DisplayState::DisplayState()
   _depth_lock      =false;
   _depth           =false;
   _depth_write     =true;
+  _depth_clip      =true;
   _depth_func      =FUNC_LESS;
+  _front_face      =false;
   _alpha           =ALPHA_BLEND;
   _stencil         =STENCIL_NONE;
   _stencil_ref     =0;
@@ -309,11 +314,13 @@ void DisplayState::stencil(STENCIL_MODE stencil)
 // RASTERIZER
 /******************************************************************************/
 #if DX11
-static void SetRS() {RS[Renderer._cull_mode[D._cull]][D._bias][D._line_smooth][D._wire][D._clip_real].set();}
+static void SetRS() {RS[D._bias][D._cull][D._line_smooth][D._wire][D._clip_real][D._depth_clip][D._front_face].set();}
 Bool DisplayState::lineSmooth(Bool      on  ) {Bool old=D._line_smooth; if(D._line_smooth!=on){D._line_smooth=on; if(D3DC)SetRS();} return old;}
-void DisplayState::wire      (Bool      on  ) {if(D._wire!=on  ){D._wire=on  ; SetRS();}}
-void DisplayState::cull      (Bool      on  ) {if(D._cull!=on  ){D._cull=on  ; SetRS();}}
-void DisplayState::bias      (BIAS_MODE bias) {if(D._bias!=bias){D._bias=bias; SetRS();}}
+void DisplayState::wire      (Bool      on  ) {if(D._wire      !=on  ){D._wire      =on  ; SetRS();}}
+void DisplayState::cull      (Bool      on  ) {if(D._cull      !=on  ){D._cull      =on  ; SetRS();}}
+void DisplayState::bias      (BIAS_MODE bias) {if(D._bias      !=bias){D._bias      =bias; SetRS();}}
+void DisplayState::depthClip (Bool      on  ) {if(D._depth_clip!=on  ){D._depth_clip=on  ; SetRS();}}
+void DisplayState::frontFace (Bool      ccw ) {if(D._front_face!=ccw ){D._front_face=ccw ; SetRS();}}
 #elif GL
 Bool DisplayState::lineSmooth(Bool on)
 {
@@ -333,13 +340,7 @@ void DisplayState::wire(Bool on)
 	if(D._wire!=on)glPolygonMode(GL_FRONT_AND_BACK, (D._wire=on) ? GL_LINE : GL_FILL);
 #endif
 }
-void DisplayState::cull  (Bool on) {if(D._cull!=on)if(D._cull=on)glEnable(GL_CULL_FACE);else glDisable(GL_CULL_FACE);}
-void DisplayState::cullGL(       )
-{
-   Bool front=(Renderer()==RM_SHADOW || !Renderer.mirror());
-   if(!D.mainFBO())front^=1;
-   glFrontFace(front ? GL_CW : GL_CCW);
-}
+void DisplayState::cull(Bool on) {if(D._cull!=on)if(D._cull=on)glEnable(GL_CULL_FACE);else glDisable(GL_CULL_FACE);}
 void DisplayState::bias(BIAS_MODE bias)
 {
    if(D._bias!=bias)switch(D._bias=bias)
@@ -363,7 +364,33 @@ void DisplayState::bias(BIAS_MODE bias)
       }break;
    }
 }
+void DisplayState::depthClip(Bool on)
+{
+   if(D._depth_clip!=on)
+   {
+      D._depth_clip=on;
+   #ifdef GL_DEPTH_CLAMP
+      if(on)glEnable(GL_DEPTH_CLAMP);else glDisable(GL_DEPTH_CLAMP);
+   #endif
+   }
+}
+void DisplayState::frontFace(Bool ccw)
+{
+   if(D._front_face!=ccw)
+   {
+      D._front_face=ccw;
+      glFrontFace(ccw ? GL_CCW : GL_CW);
+   }
+}
 #endif
+void DisplayState::setFrontFace()
+{
+   Bool ccw=(Renderer.mirror() && Renderer()!=RM_SHADOW);
+#if GL
+   if(!D.mainFBO())ccw^=1;
+#endif
+   frontFace(ccw);
+}
 /******************************************************************************/
 static void SetClip()
 {
@@ -457,6 +484,9 @@ void DisplayState::clipPlane(C PlaneM &plane)
 /******************************************************************************/
 // OUTPUT MERGER
 /******************************************************************************/
+#if DX11
+static void SetBS() {BS[D._alpha].set();}
+#endif
 ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
 {
    ALPHA_MODE prev=D.alpha();
@@ -560,8 +590,7 @@ void DisplayState::alphaFactor(C Color &factor) // 'MaterialClear' must be calle
    {
       D._alpha_factor=factor;
 	#if DX11
-      D._alpha_factor_v4=SRGBToDisplay(factor);
-      BS[D._alpha].set();
+      D._alpha_factor_v4=SRGBToDisplay(factor); SetBS();
    #elif GL
       glBlendColor(ByteSRGBToDisplay(factor.r), ByteSRGBToDisplay(factor.g), ByteSRGBToDisplay(factor.b), ByteToFlt(factor.a));
    #endif
@@ -607,7 +636,7 @@ void DisplayState::colWriteAllow(Byte color_mask) // this operates only on "inde
 #if DX11
 void DisplayState::sampleMask(UInt mask)
 {
-   if(mask!=D._sample_mask){D._sample_mask=mask; BS[D._alpha].set();}
+   if(mask!=D._sample_mask){D._sample_mask=mask; SetBS();}
 }
 #endif
 /******************************************************************************/
@@ -748,33 +777,41 @@ void DisplayState::setDeviceSettings()
 
   _linear_gamma^=1; linearGamma(!_linear_gamma);
 
+#if DX11
+   SetDS();
+   SetRS();
+   SetBS();
+#else
   _depth      ^=1; depth     (old._depth      );
   _depth_write^=1; depthWrite(old._depth_write);
+  _depth_clip ^=1; depthClip (old._depth_clip );
   _depth_func ^=1; depthFunc (old._depth_func );
-
-  _line_smooth^=1; lineSmooth(!_line_smooth);
-  _wire       ^=1; wire      (!_wire       );
-  _cull       ^=1; cull      (!_cull       );
-
-  _bias          ^=                  1 ; bias       ((BIAS_MODE)old._bias        );
-  _alpha          =ALPHA_MODE(_alpha^1); alpha      (           old._alpha       );
-  _alpha_factor.r^=                  1 ; alphaFactor(           old._alpha_factor);
-
-  _clip_recti.set(0, -1);
-  _clip      ^=1; clip     (old._clip ? &old._clip_rect : null);
-  _clip_allow^=1; clipAllow(old._clip_allow);
-
-  _col_write[0]^=1; colWrite(old._col_write[0], 0);
-  _col_write[1]^=1; colWrite(old._col_write[1], 1);
-  _col_write[2]^=1; colWrite(old._col_write[2], 2);
-  _col_write[3]^=1; colWrite(old._col_write[3], 3);
-
-  _viewport.set(0, -1); viewport(old._viewport);
 
                    stencil   ( STENCIL_ALWAYS_SET           ); // required for GL because of 'LastStencilMode'
                    stencil   ( STENCIL_TERRAIN_TEST         );
                    stencil   ((STENCIL_MODE)old._stencil    );
   _stencil_ref^=1; stencilRef(              old._stencil_ref);
+
+  _line_smooth^=1; lineSmooth(!_line_smooth       );
+  _wire       ^=1; wire      (!_wire              );
+  _cull       ^=1; cull      (!_cull              );
+  _front_face ^=1; frontFace (!_front_face        );
+  _bias       ^=1; bias      ((BIAS_MODE)old._bias);
+
+  _alpha          =ALPHA_MODE(_alpha^1); alpha      (old._alpha       );
+  _alpha_factor.r^=                  1 ; alphaFactor(old._alpha_factor);
+
+  _col_write[0]^=1; colWrite(old._col_write[0], 0);
+  _col_write[1]^=1; colWrite(old._col_write[1], 1);
+  _col_write[2]^=1; colWrite(old._col_write[2], 2);
+  _col_write[3]^=1; colWrite(old._col_write[3], 3);
+#endif
+
+  _clip_recti.set(0, -1);
+  _clip      ^=1; clip     (old._clip ? &old._clip_rect : null);
+  _clip_allow^=1; clipAllow(old._clip_allow);
+
+  _viewport.set(0, -1); viewport(old._viewport);
 
    clearShader();
 }
@@ -784,7 +821,7 @@ void DisplayState::del()
 #if DX11
    REPAO(BS).del();
    REPAD(i, DS)REPAD(j, DS[i])REPAD(k, DS[i][j])REPAOD(l, DS[i][j][k]).del();
-   REPAD(i, RS)REPAD(j, RS[i])REPAD(k, RS[i][j])REPAD (l, RS[i][j][k])REPAOD(m, RS[i][j][k][l]).del();
+   REPAD(i, RS)REPAD(j, RS[i])REPAD(k, RS[i][j])REPAD (l, RS[i][j][k])REPAD(m, RS[i][j][k][l])REPAD(n, RS[i][j][k][l][m])REPAOD(o, RS[i][j][k][l][m][n]).del();
 #endif
 }
 void DisplayState::create()
@@ -1162,17 +1199,20 @@ void DisplayState::create()
       DS[stencil][depth_use][depth_write][depth_func].create(desc);
    }
 
-   REPD(cull, 3)
    REPD(bias, BIAS_NUM)
+   REPD(cull, 2)
    REPD(line, 2)
    REPD(wire, 2)
    REPD(clip, 2)
+   REPD(depth_clip, 2)
+   REPD(front_face, 2)
    {
       D3D11_RASTERIZER_DESC desc; Zero(desc);
-      desc.FillMode       =(wire ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID);
-      desc.CullMode       =((cull==0) ? D3D11_CULL_NONE : (cull==1) ? D3D11_CULL_BACK : D3D11_CULL_FRONT);
-      desc.ScissorEnable  =clip;
-      desc.DepthClipEnable=true;
+      desc.FillMode             =(wire ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID);
+      desc.CullMode             =((cull==0) ? D3D11_CULL_NONE : (cull==1) ? D3D11_CULL_BACK : D3D11_CULL_FRONT); // D3D11_CULL_FRONT is not used (instead 'FrontCounterClockwise' is used, so we don't have to make "BackFlip" in shader conditional on a constant)
+      desc.ScissorEnable        =clip;
+      desc.DepthClipEnable      =depth_clip;
+      desc.FrontCounterClockwise=front_face;
       if(D.shaderModel()>=SM_4_1) // in 4.1 following members affect only lines
       {
          desc.MultisampleEnable    =false;
@@ -1188,7 +1228,7 @@ void DisplayState::create()
          case BIAS_SHADOW : desc.DepthBias=DEPTH_BIAS_SHADOW ; desc.SlopeScaledDepthBias=SLOPE_SCALED_DEPTH_BIAS_SHADOW ; break;
          case BIAS_OVERLAY: desc.DepthBias=DEPTH_BIAS_OVERLAY; desc.SlopeScaledDepthBias=SLOPE_SCALED_DEPTH_BIAS_OVERLAY; break;
       }
-      RS[cull][bias][line][wire][clip].create(desc);
+      RS[bias][cull][line][wire][clip][depth_clip][front_face].create(desc);
    }
 #endif
    setDeviceSettings();

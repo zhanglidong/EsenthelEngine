@@ -83,11 +83,6 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
   _mesh_draw_mask    =0xFFFFFFFF;
    SetVariation(0);
 
-#if DX11
-  _cull_mode[0]=0;
-  _cull_mode[1]=1;
-#endif
-
 #if WEB // #WebSRGB
   _ui   =_cur_main   =&_main_temp;
   _ui_ds=_cur_main_ds=&_main_temp_ds;
@@ -160,12 +155,7 @@ void RendererClass::mode(RENDER_MODE mode)
    T._palette_mode    =(mode==RM_PALETTE || mode==RM_PALETTE1);
    T._mesh_shader_vel =(_vel && (mode==RM_SOLID || mode==RM_BLEND));
    T._solid_mode_index=(mirror() ? RM_SOLID_M : RM_SOLID);
-#if DX11
-   T._cull_mode[1]    =((mirror() && mode!=RM_SHADOW) ? 2 : 1);
-#elif GL
-   D.cullGL();
-#endif
-   Bool cull=D._cull; D.cull(false); D.cull(cull); // force reset
+   D.setFrontFace();
    MaterialClear(); // must be called when changing rendering modes, because when setting materials, we may set only some of their shader values depending on mode
 }
 RendererClass& RendererClass::forwardPrecision(Bool per_pixel)
@@ -800,9 +790,6 @@ Bool RendererClass::reflection()
       // <- change viewport here if needed
       ConstCast(ActiveCam).matrix.mirror(_mirror_plane); ActiveCamChanged(); // set mirrored camera and frustum
       D.clipPlane(_mirror_plane);                                            // set clip plane after viewport and camera
-   #if !GL // not needed for GL
-      Sh.FrontFace->set(false);                                              // adjust back flipping for mirrored
-   #endif
       D.lodSetCurrentFactor();
 
       // render !! adding new modes here will require setting there D.clipPlane !!
@@ -842,9 +829,6 @@ Bool RendererClass::reflection()
      _mirror=false;            // !! set before viewport and camera, because it affects the Frustum, and after 'cleanup' !!
       // <- reset viewport here if needed
       cam.set();               // camera, this will also reset 'Frustum'
-   #if !GL // not needed for GL
-      Sh.FrontFace->set(true); // restore back flipping
-   #endif
       D.lodSetCurrentFactor();
 
       if(stage==RS_REFLECTION && show(_mirror_rt, true))return true;

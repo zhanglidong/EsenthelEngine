@@ -294,8 +294,8 @@ Vec2 RendererClass::screenToPixelSize(C Vec2 &screen)
 static void SwitchedFBO()
 {
    // update settings that depend on main FBO being active 
-   D.cullGL     (); // adjust culling according to Y axis
-   SetProjMatrix(); // flip Y 3D coords when Rendering To Texture
+   D.setFrontFace(); // adjust culling according to Y axis
+   SetProjMatrix (); // flip Y 3D coords when Rendering To Texture
 }
 static inline Bool EqualRT(C Image *a, C Image *b)
 {

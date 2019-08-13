@@ -337,8 +337,6 @@ void MainShaderClass::getTechniques()
    Color[1]  =GetShaderParam("Color[1]"  );
    BehindBias=GetShaderParam("BehindBias");
 
-   FrontFace=GetShaderParamBool("FrontFace");
-
    VtxSkinning =GetShaderParamBool("VtxSkinning" );
    VtxHeightmap=GetShaderParam    ("VtxHeightmap");
 

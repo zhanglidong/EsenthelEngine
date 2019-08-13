@@ -104,10 +104,12 @@ struct DisplayState // Display States Control, this class methods can be called 
 
    static void depth        (Bool      on    );
    static void depthAllow   (Bool      on    );
+   static void depthClip    (Bool      on    ); // !! not available on GL ES !!
    static void depthFunc    (UInt      func  );
+   static void    frontFace (Bool      ccw   );
+   static void setFrontFace (                );
    static void wire         (Bool      on    );
    static void cull         (Bool      on    );
-   static void cullGL       (                );
    static void alphaFactor  (C Color  &factor);
    static void clipAllow    (C RectI  &rect  );
    static void clipAllow    (Bool      on    );
@@ -148,7 +150,7 @@ struct DisplayState // Display States Control, this class methods can be called 
 private:
 #endif
    ALPHA_MODE _alpha;
-   Bool       _depth_lock, _depth, _depth_write, _cull, _line_smooth, _wire, _clip, _clip_allow, _clip_real, _clip_plane_allow, _sampler2D, _linear_gamma;
+   Bool       _depth_lock, _depth, _depth_write, _depth_clip, _cull, _line_smooth, _wire, _clip, _clip_allow, _clip_real, _clip_plane_allow, _front_face, _sampler2D, _linear_gamma;
    Byte       _col_write[4], _stencil, _stencil_ref, _bias;
    UInt       _depth_func, _sampler_filter[3], _sampler_address, _sample_mask, _fbo;
    RectI      _viewport, _clip_recti;
