@@ -6,13 +6,15 @@ BUFFER_END
 /******************************************************************************/
 // Img=Nrm (this also used for Water Apply shader), ImgMS=NrmMS, Img1=ConeLight.Lightmap, ImgX=shadow
 /******************************************************************************/
-VecH4 LightDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                  NOPERSP Vec2 inPosXY:TEXCOORD1
-               #if MULTI_SAMPLE
-                , NOPERSP PIXEL                      
-                ,         UInt index  :SV_SampleIndex
-               #endif
-                  ):TARGET
+VecH4 LightDir_PS
+(
+   NOPERSP Vec2 inTex  :TEXCOORD0,
+   NOPERSP Vec2 inPosXY:TEXCOORD1
+#if MULTI_SAMPLE
+ , NOPERSP PIXEL // 2D
+ ,         UInt index  :SV_SampleIndex
+#endif
+):TARGET
 {
    // shadow
 #if MULTI_SAMPLE
@@ -38,14 +40,25 @@ VecH4 LightDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    return VecH4(LightDir.color.rgb*lum, LightDir.color.a*specular);
 }
 /******************************************************************************/
-VecH4 LightPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                    NOPERSP Vec2 inPosXY:TEXCOORD1
-                 #if MULTI_SAMPLE
-                  , NOPERSP PIXEL                      
-                  ,         UInt index  :SV_SampleIndex
-                 #endif
-                   ):TARGET
+VecH4 LightPoint_PS
+(
+#if GL_ES // doesn't support NOPERSP
+   PIXEL // 3D
+#else
+   NOPERSP Vec2 inTex  :TEXCOORD0,
+   NOPERSP Vec2 inPosXY:TEXCOORD1
+#if MULTI_SAMPLE
+ ,         PIXEL // 3D
+ ,         UInt index  :SV_SampleIndex
+#endif
+#endif
+):TARGET
 {
+#if GL_ES // doesn't support NOPERSP
+   Vec2 inTex  =PixelToScreen(pixel);
+   Vec2 inPosXY=ScreenToPosXY(inTex);
+#endif
+
    // shadow
 #if MULTI_SAMPLE
    Half shd; if(SHADOW){shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
@@ -80,14 +93,25 @@ VecH4 LightPoint_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    return VecH4(LightPoint.color.rgb*lum, LightPoint.color.a*specular);
 }
 /******************************************************************************/
-VecH4 LightLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                     NOPERSP Vec2 inPosXY:TEXCOORD1
-                  #if MULTI_SAMPLE
-                   , NOPERSP PIXEL                      
-                   ,         UInt index  :SV_SampleIndex
-                  #endif
-                    ):TARGET
+VecH4 LightLinear_PS
+(
+#if GL_ES // doesn't support NOPERSP
+   PIXEL // 3D
+#else
+   NOPERSP Vec2 inTex  :TEXCOORD0,
+   NOPERSP Vec2 inPosXY:TEXCOORD1
+#if MULTI_SAMPLE
+ ,         PIXEL // 3D
+ ,         UInt index  :SV_SampleIndex
+#endif
+#endif
+):TARGET
 {
+#if GL_ES // doesn't support NOPERSP
+   Vec2 inTex  =PixelToScreen(pixel);
+   Vec2 inPosXY=ScreenToPosXY(inTex);
+#endif
+
    // shadow
 #if MULTI_SAMPLE
    Half shd; if(SHADOW){shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x); clip(shd-EPS_LUM);}
@@ -122,14 +146,25 @@ VecH4 LightLinear_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
    return VecH4(LightLinear.color.rgb*lum, LightLinear.color.a*specular);
 }
 /******************************************************************************/
-VecH4 LightCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
-                   NOPERSP Vec2 inPosXY:TEXCOORD1
-                #if MULTI_SAMPLE
-                 , NOPERSP PIXEL                      
-                 ,         UInt index  :SV_SampleIndex
-                #endif
-                  ):TARGET
+VecH4 LightCone_PS
+(
+#if GL_ES // doesn't support NOPERSP
+   PIXEL // 3D
+#else
+   NOPERSP Vec2 inTex  :TEXCOORD0,
+   NOPERSP Vec2 inPosXY:TEXCOORD1
+#if MULTI_SAMPLE
+ ,         PIXEL // 3D
+ ,         UInt index  :SV_SampleIndex
+#endif
+#endif
+):TARGET
 {
+#if GL_ES // doesn't support NOPERSP
+   Vec2 inTex  =PixelToScreen(pixel);
+   Vec2 inPosXY=ScreenToPosXY(inTex);
+#endif
+
    // shadow
 #if MULTI_SAMPLE
    Half shd; if(SHADOW){shd=ShadowFinal(TexSample(ImgXMS, pixel.xy, index).x); clip(shd-EPS_LUM);}

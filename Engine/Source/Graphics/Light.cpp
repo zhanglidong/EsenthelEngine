@@ -108,8 +108,8 @@ static Bool SetLum()
    Renderer.set(Renderer._lum_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests, start with '_lum_1s' so '_lum' will be processed later, because at the end we still have to render ambient from 3d meshes to '_lum' this way we avoid changing RT's
    if(set)
    {
-      D.depth2DOff(); D.clearCol((Renderer._lum_1s!=Renderer._lum || (Renderer._ao && !D.aoAll())) ? Vec4Zero : Vec4(D.ambientColorD(), 0));
-      D.depth2DOn ();
+      D.depthUnlock(    ); D.clearCol((Renderer._lum_1s!=Renderer._lum || (Renderer._ao && !D.aoAll())) ? Vec4Zero : Vec4(D.ambientColorD(), 0));
+      D.depthLock  (true);
    }
    D.alpha(ALPHA_ADD); Sh.Img[0]->set(Renderer._nrm); Sh.ImgMS[0]->set(Renderer._nrm);
    return set;
@@ -132,8 +132,8 @@ static void                SetWaterLum  ()
    Renderer.set(Renderer._water_lum, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
    if(set)
    {
-      D.depth2DOff(); D.clearCol(Vec4(D.ambientColorD(), 0));
-      D.depth2DOn ();
+      D.depthUnlock(    ); D.clearCol(Vec4(D.ambientColorD(), 0));
+      D.depthLock  (true);
    }
    D.alpha(ALPHA_ADD); Sh.Img[0]->set(Renderer._water_nrm); Sh.ImgMS[0]->set(Renderer._water_nrm);
 }
@@ -1056,8 +1056,8 @@ void Light::draw()
             Renderer.set(Renderer._lum, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
             if(clear)
             {
-               D.depth2DOff(); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0));
-               D.depth2DOn ();
+               D.depthUnlock(    ); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0));
+               D.depthLock  (true);
             }
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetDrawLightDir(CurrentLight.shadow, true, D.highPrecNrmCalcIs())->draw(&CurrentLight.rect);
@@ -1200,8 +1200,8 @@ void Light::draw()
             Renderer.set(Renderer._lum, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
             if(clear)
             {
-               D.depth2DOff(); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0));
-               D.depth2DOn ();
+               D.depthUnlock(    ); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0));
+               D.depthLock  (true);
             }
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetDrawLightLinear(CurrentLight.shadow, true, D.highPrecNrmCalcIs())->draw(&CurrentLight.rect);
@@ -1276,8 +1276,8 @@ void Light::draw()
             Renderer.set(Renderer._lum, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
             if(clear)
             {
-               D.depth2DOff(); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0));
-               D.depth2DOn ();
+               D.depthUnlock(    ); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0));
+               D.depthLock  (true);
             }
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
             REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetDrawLightCone(CurrentLight.shadow, true, D.highPrecNrmCalcIs(), CurrentLight.image?1:0)->draw(&CurrentLight.rect);
@@ -1636,6 +1636,8 @@ void DrawLights()
 
       if(!ALWAYS_RESTORE_FRUSTUM) // here use !ALWAYS_RESTORE_FRUSTUM because we have to set frustum only if it wasn't restored before, if it was then it means we already have 'FrustumMain'
          Frustum=FrustumMain; // restore 'Frustum' because it could've changed when drawing shadows
+
+      D.depthClip(true); // restore default
    }
 }
 /******************************************************************************/

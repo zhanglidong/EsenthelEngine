@@ -636,7 +636,7 @@ RendererClass& RendererClass::operator()(void (&render)())
          if(  clear_nrm || _vel)
          {
             D.alpha    (ALPHA_NONE);
-            D.depth2DOn(true);
+            D.depth2DOn(FUNC_BACKGROUND);
             if(clear_nrm)
             {
                set(_nrm, _ds, true); Sh.clear(D.signedNrmRT() ? SNRM_CLEAR : NRM_CLEAR); // use DS because we use it for 'D.depth2D' optimization

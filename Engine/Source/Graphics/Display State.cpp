@@ -203,9 +203,8 @@ void DisplayState::depthAllow(Bool on)
 }
 #endif
 /******************************************************************************/
-void DisplayState::depth2DOn(Bool background)
+void DisplayState::depth2DOn(UInt func)
 {
-   UInt func=(background ? FUNC_LESS_EQUAL : FUNC_GREATER);
 #if DX11
    if(D._depth!=true || D._depth_write!=false || D._depth_func!=func)
    {
@@ -223,7 +222,7 @@ void DisplayState::depth2DOn(Bool background)
 }
 void DisplayState::depth2DOff()
 {
-   UInt func=FUNC_LESS_EQUAL;
+   UInt func=FUNC_LESS_EQUAL; // FIXME
 #if DX11
    if(D._depth_write!=true || D._depth_func!=func)
    {
