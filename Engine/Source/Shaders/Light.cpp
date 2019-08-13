@@ -4,6 +4,32 @@ BUFFER(LightMap)
    Flt LightMapScale=1;
 BUFFER_END
 /******************************************************************************/
+void VS
+(
+           VtxInput vtx,
+#if !GL_ES
+   out NOPERSP Vec2 outTex  :TEXCOORD0,
+   out NOPERSP Vec2 outPosXY:TEXCOORD1,
+#endif
+   out         Vec4 outPos  :POSITION
+)
+{
+   outPos=Project(TransformPos(vtx.pos()));
+
+#if GL_ES // simulate D.depthClip(false), needed for GL ES which doesn't support it, Warning: this introdocues a bit too much clipping at the viewport end, because the neighboring vertexes remain the same, and only the vertex behind the viewport gets repositioned, the line between them won't cover entire original area (however it's small)
+   #if REVERSE_DEPTH
+      outPos.z=Max(outPos.z, 0);
+   #else
+      outPos.z=Min(outPos.z, outPos.w);
+   #endif
+#endif
+
+#if !GL_ES
+   outTex  =PosToScreen  (outPos);
+   outPosXY=ScreenToPosXY(outTex);
+#endif
+}
+/******************************************************************************/
 // Img=Nrm (this also used for Water Apply shader), ImgMS=NrmMS, Img1=ConeLight.Lightmap, ImgX=shadow
 /******************************************************************************/
 VecH4 LightDir_PS
