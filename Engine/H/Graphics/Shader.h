@@ -338,6 +338,7 @@ struct Shader11
    void commit   ();
    void commitTex();
    void start    ();
+   void startTex ();
    void begin    ();
    Bool load     (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
 
@@ -361,6 +362,7 @@ struct ShaderGL
    void commit   ();
    void commitTex();
    void start    ();
+   void startTex ();
    void begin    ();
    Bool load     (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
 

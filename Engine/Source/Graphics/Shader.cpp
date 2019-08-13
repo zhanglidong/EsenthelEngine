@@ -929,6 +929,30 @@ void Shader11::start() // same as 'begin' but without committing buffers and tex
    REPA(buffers[ST_VS]){C BufferLink &b=buffers[ST_VS][i]; BufVS(b.index, b.buffer->buffer.buffer);}
    REPA(buffers[ST_PS]){C BufferLink &b=buffers[ST_PS][i]; BufPS(b.index, b.buffer->buffer.buffer);}
 }
+void Shader11::startTex() // same as 'begin' but without committing buffers
+{
+   SetVS(vs);
+   SetPS(ps);
+   if(hs/* && D.tesselationAllow()*/) // currently disabled to avoid extra overhead as tesselation isn't generally used, TODO:
+   {
+      SetHS(hs);
+      SetDS(ds);
+      SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+      REPA( images[ST_HS]){C  ImageLink &t= images[ST_HS][i]; D.texHS(t.index, t.image ->getSRV());}
+      REPA( images[ST_DS]){C  ImageLink &t= images[ST_DS][i]; D.texDS(t.index, t.image ->getSRV());}
+      REPA(buffers[ST_HS]){C BufferLink &b=buffers[ST_HS][i];   BufHS(b.index, b.buffer->buffer.buffer);}
+      REPA(buffers[ST_DS]){C BufferLink &b=buffers[ST_DS][i];   BufDS(b.index, b.buffer->buffer.buffer);}
+   }else
+   {
+      SetHS(null);
+      SetDS(null);
+      SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+   }
+   REPA( images[ST_VS]){C  ImageLink &t= images[ST_VS][i]; D.texVS(t.index, t.image ->getSRV());}
+   REPA( images[ST_PS]){C  ImageLink &t= images[ST_PS][i]; D.texPS(t.index, t.image ->getSRV());}
+   REPA(buffers[ST_VS]){C BufferLink &b=buffers[ST_VS][i];   BufVS(b.index, b.buffer->buffer.buffer);}
+   REPA(buffers[ST_PS]){C BufferLink &b=buffers[ST_PS][i];   BufPS(b.index, b.buffer->buffer.buffer);}
+}
 void Shader11::begin()
 {
    SetVS(vs);
@@ -938,8 +962,8 @@ void Shader11::begin()
       SetHS(hs);
       SetDS(ds);
       SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-      REPA( images[ST_HS]){C  ImageLink &t= images[ST_HS][i]; D.texHS(t.index, t.image->getSRV());}
-      REPA( images[ST_DS]){C  ImageLink &t= images[ST_DS][i]; D.texDS(t.index, t.image->getSRV());}
+      REPA( images[ST_HS]){C  ImageLink &t= images[ST_HS][i]; D.texHS(t.index, t.image ->getSRV());}
+      REPA( images[ST_DS]){C  ImageLink &t= images[ST_DS][i]; D.texDS(t.index, t.image ->getSRV());}
       REPA(buffers[ST_HS]){C BufferLink &b=buffers[ST_HS][i];   BufHS(b.index, b.buffer->buffer.buffer);}
       REPA(buffers[ST_DS]){C BufferLink &b=buffers[ST_DS][i];   BufDS(b.index, b.buffer->buffer.buffer);}
    }else
@@ -948,8 +972,8 @@ void Shader11::begin()
       SetDS(null);
       SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
    }
-   REPA(     images[ST_VS]){C      ImageLink &t=      images[ST_VS][i]; D.texVS(t.index, t.image->getSRV());}
-   REPA(     images[ST_PS]){C      ImageLink &t=      images[ST_PS][i]; D.texPS(t.index, t.image->getSRV());}
+   REPA(     images[ST_VS]){C      ImageLink &t=      images[ST_VS][i]; D.texVS(t.index, t.image ->getSRV());}
+   REPA(     images[ST_PS]){C      ImageLink &t=      images[ST_PS][i]; D.texPS(t.index, t.image ->getSRV());}
    REPA(    buffers[ST_VS]){C     BufferLink &b=     buffers[ST_VS][i];   BufVS(b.index, b.buffer->buffer.buffer);}
    REPA(    buffers[ST_PS]){C     BufferLink &b=     buffers[ST_PS][i];   BufPS(b.index, b.buffer->buffer.buffer);}
    REPA(all_buffers       ){ShaderBuffer     &b=*all_buffers       [i]; if(b.changed)b.update();}
@@ -1130,6 +1154,12 @@ void ShaderGL::commitTex()
 void ShaderGL::start() // same as 'begin' but without committing buffers and textures
 {
    glUseProgram(prog);
+   REPA(buffers){C BufferLink &b=buffers[i]; glBindBufferBase(GL_UNIFORM_BUFFER, b.index, b.buffer);} // bind buffer
+}
+void ShaderGL::startTex() // same as 'begin' but without committing buffers
+{
+   glUseProgram(prog);
+   REPA( images){C  ImageLink &t= images[i]; SetTexture(t.index, t.image->get(), t.image->_sampler);} // 'commitTex'
    REPA(buffers){C BufferLink &b=buffers[i]; glBindBufferBase(GL_UNIFORM_BUFFER, b.index, b.buffer);} // bind buffer
 }
 void ShaderGL::begin()

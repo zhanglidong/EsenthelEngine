@@ -44,6 +44,7 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
    stage=RS_DEFAULT;
    combine=false;
    wire=false;
+   indoor=false;
    clear_color.zero();
    ms_samples_color.zero();
    target=null;

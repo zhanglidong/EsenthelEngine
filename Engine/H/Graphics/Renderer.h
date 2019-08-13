@@ -70,7 +70,8 @@ struct RendererClass // handles rendering
 {
    RENDER_STAGE stage               ; // display desired rendering stage, default=RS_DEFAULT
    Bool         combine             , // if enabled this will apply the final rendered image onto the previous background instead of overwriting it, default=false
-                wire                ; // if use wireframe during rendering (not available under OpenGL ES), default=false
+                wire                , // if use wireframe during rendering (not available under OpenGL ES), default=false
+                indoor              ; // if current rendering is in-door (has a lot of overlapping occluders), this affects how non-directional lights are rendered, this is only a performance hint (it does NOT affect rendering result, but only affects performance), default=false
    Color        clear_color         , // screen clearing color, default=BLACK, used only for RT_FORWARD renderer
                 ms_samples_color    ; // visualize multi-sampled pixels, default=TRANSPARENT (off)
    Dbl          lowest_visible_point; // Y coordinates of lowest visible point on the scene, by default=-DBL_MAX (which means full visibility), you can optionally set this to a custom value before the shadow rendering stage, the value should be world-space Y coordinate of the lowest visible point on the scene below which you don't expect any objects to be visible, for example if your scene has heightmaps and there won't be anything visible under the heightmaps, then you can set this value to the minimum of all heightmap mesh box Y coordinates, setting the value will improve shadow quality and rendering performance
