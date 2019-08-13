@@ -979,6 +979,7 @@ INLINE Shader* GetDrawLightDir   (Bool shadow, Bool multi_sample, Bool quality  
 INLINE Shader* GetDrawLightPoint (Bool shadow, Bool multi_sample, Bool quality            ) {Shader* &s=Sh.DrawLightPoint [shadow][multi_sample][quality]       ; if(SLOW_SHADER_LOAD && !s)s=Sh.getDrawLightPoint (shadow, multi_sample, quality       ); return s;}
 INLINE Shader* GetDrawLightLinear(Bool shadow, Bool multi_sample, Bool quality            ) {Shader* &s=Sh.DrawLightLinear[shadow][multi_sample][quality]       ; if(SLOW_SHADER_LOAD && !s)s=Sh.getDrawLightLinear(shadow, multi_sample, quality       ); return s;}
 INLINE Shader* GetDrawLightCone  (Bool shadow, Bool multi_sample, Bool quality, Bool image) {Shader* &s=Sh.DrawLightCone  [shadow][multi_sample][quality][image]; if(SLOW_SHADER_LOAD && !s)s=Sh.getDrawLightCone  (shadow, multi_sample, quality, image); return s;}
+/******************************************************************************/
 static void DrawLightPoint(C MatrixM &light_matrix, Bool multi_sample, Bool quality)
 {
    if(Kb.ctrl()) // FIXME
@@ -1011,6 +1012,15 @@ static void DrawLightLinear(C MatrixM &light_matrix, Bool multi_sample, Bool qua
    #endif
    }
 }
+static void DrawLightCone(Bool multi_sample, Bool quality)
+{
+   Shader *shader=GetDrawLightCone(CurrentLight.shadow, multi_sample, quality, CurrentLight.image?1:0);
+   REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())shader->draw(&CurrentLight.rect);
+#if TEST_LIGHT_RECT
+   REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
+#endif
+}
+/******************************************************************************/
 static Bool LightFrontFaceBall(Flt range, C VecD &light_pos)
 {
    Bool front_face=Renderer.indoor; // draw as front only for in-door scenes, which will allow to hide the light by occluders, in other cases, we will most likely have to process fewer pixels if not using front
@@ -1021,6 +1031,7 @@ static Bool LightFrontFaceBall(Flt range, C VecD &light_pos)
    }
    return front_face;
 }
+/******************************************************************************/
 void Light::draw()
 {
    // !! Here process water lum first, because after drawing all lights, we still have to apply ambient from meshes, so if we process water lum first, and then lum, then we don't need to change RT's to lum again when drawing ambient from meshes !!
@@ -1296,7 +1307,7 @@ void Light::draw()
             }
 
             SetWaterLum();
-            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetDrawLightCone(CurrentLight.shadow, false, true, CurrentLight.image?1:0)->draw(&CurrentLight.rect); // always use Quality Specular for Water
+            DrawLightCone(false, true); // always use Quality Specular for Water
 
             Sh.Depth->set(Renderer._ds_1s); // restore default depth
             D.stencil(STENCIL_NONE);
@@ -1328,16 +1339,13 @@ void Light::draw()
          Bool clear=SetLum();
          if(!Renderer._ds->multiSample()) // 1-sample
          {
-            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetDrawLightCone(CurrentLight.shadow, false, D.highPrecNrmCalcIs(), CurrentLight.image?1:0)->draw(&CurrentLight.rect);
-         #if TEST_LIGHT_RECT
-            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
-         #endif
+            DrawLightCone(false, D.highPrecNrmCalcIs());
          }else // multi-sample
          {
             if(Renderer.hasStencilAttached()) // if we can use stencil tests, then process 1-sample pixels using 1-sample shader, if we can't use stencil then all pixels will be processed using multi-sample shader later below
             {
                D.stencil(STENCIL_MSAA_TEST, 0);
-               REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetDrawLightCone(CurrentLight.shadow, false, D.highPrecNrmCalcIs(), CurrentLight.image?1:0)->draw(&CurrentLight.rect);
+               DrawLightCone(false, D.highPrecNrmCalcIs());
             }
             Renderer.set(Renderer._lum, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
             if(clear)
@@ -1346,7 +1354,7 @@ void Light::draw()
                D.depthLock  (true);
             }
           /*if(Renderer.hasStencilAttached()) not needed because stencil tests are disabled without stencil RT */D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA);
-            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetDrawLightCone(CurrentLight.shadow, true, D.highPrecNrmCalcIs(), CurrentLight.image?1:0)->draw(&CurrentLight.rect);
+            DrawLightCone(true, D.highPrecNrmCalcIs());
             D.stencil(STENCIL_NONE);
          }
       }break;
@@ -1629,7 +1637,7 @@ void Light::drawForward(ALPHA_MODE alpha)
             }
 
             SetWaterLum();
-            REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())GetDrawLightCone(CurrentLight.shadow, false, true, CurrentLight.image?1:0)->draw(&CurrentLight.rect); // always use Quality Specular for Water
+            DrawLightCone(false, true); // always use Quality Specular for Water
 
             Sh.Depth->set(Renderer._ds_1s); // restore default depth
             D.depth2DOff(); D.depthClip(true); D.stencil(STENCIL_NONE);
