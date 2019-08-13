@@ -222,7 +222,7 @@ void DisplayState::depth2DOn(UInt func)
 }
 void DisplayState::depth2DOff()
 {
-   UInt func=FUNC_LESS_EQUAL; // FIXME
+   UInt func=(Renderer.firstPass() ? FUNC_LESS : FUNC_LESS_EQUAL); // this can be called while rendering secondary lights for forward renderer, in that case we're using FUNC_LESS_EQUAL
 #if DX11
    if(D._depth_write!=true || D._depth_func!=func)
    {
