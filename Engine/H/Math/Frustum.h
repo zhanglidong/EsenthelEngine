@@ -61,7 +61,7 @@ private:
    VecD    point[ 8]; Int points;
    VecI2   edge [12]; Int edges ;
    Bool    persp, use_extra_plane;
-   Flt     range, eye, view_quad_max_dist;
+   Flt     range, eye_dist_2, view_quad_max_dist;
    Vec2    fov_tan, fov_cos_inv;
    Vec     size, plane_n_abs[DIR_NUM], extra_plane_n_abs;
    PlaneM  plane[DIR_NUM], extra_plane;

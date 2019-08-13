@@ -21,7 +21,7 @@ void FrustumClass::set(Flt range, C Vec2 &fov, C MatrixM &camera)
 
       if(VR.active() && D._allow_stereo)
       {
-         eye=D.eyeDistance()*0.5f;
+         eye_dist_2=D.eyeDistance_2();
          fov_tan.y=D._view_active.fov_tan.y;
          fov_sin.y=D._view_active.fov_sin.y;
          fov_cos.y=D._view_active.fov_cos.y;
@@ -34,7 +34,7 @@ void FrustumClass::set(Flt range, C Vec2 &fov, C MatrixM &camera)
          CosSin(fov_cos.x, fov_sin.x, Atan(fov_tan.x));
       }else
       {
-         eye=0;
+         eye_dist_2=0;
          fov_tan=D._view_active.fov_tan;
          fov_sin=D._view_active.fov_sin;
          fov_cos=D._view_active.fov_cos;
@@ -44,8 +44,8 @@ void FrustumClass::set(Flt range, C Vec2 &fov, C MatrixM &camera)
       Vec view_quad_max(fov_tan.x*D._view_active.from, fov_tan.y*D._view_active.from, D._view_active.from);
           view_quad_max_dist=view_quad_max.length();
 
-      plane[DIR_RIGHT  ].normal.set(    fov_cos.x, 0, -fov_sin.x); plane[DIR_RIGHT  ].pos.set ( eye, 0, 0                ); // right
-      plane[DIR_LEFT   ].normal.set(   -fov_cos.x, 0, -fov_sin.x); plane[DIR_LEFT   ].pos.set (-eye, 0, 0                ); // left
+      plane[DIR_RIGHT  ].normal.set(    fov_cos.x, 0, -fov_sin.x); plane[DIR_RIGHT  ].pos.set ( eye_dist_2, 0, 0         ); // right
+      plane[DIR_LEFT   ].normal.set(   -fov_cos.x, 0, -fov_sin.x); plane[DIR_LEFT   ].pos.set (-eye_dist_2, 0, 0         ); // left
       plane[DIR_UP     ].normal.set(0,  fov_cos.y,    -fov_sin.y); plane[DIR_UP     ].pos.zero(                          ); // up
       plane[DIR_DOWN   ].normal.set(0, -fov_cos.y,    -fov_sin.y); plane[DIR_DOWN   ].pos.zero(                          ); // down
       plane[DIR_FORWARD].normal.set(0,          0,     1        ); plane[DIR_FORWARD].pos.set (0, 0,                range); // front
@@ -53,7 +53,7 @@ void FrustumClass::set(Flt range, C Vec2 &fov, C MatrixM &camera)
    }else
    {
       view_quad_max_dist=0;
-      eye=0;
+      eye_dist_2=0;
       size.xy=fov;
       size.z =         range*0.5f; // set as half because we're extending both ways
       matrix.pos+=matrix.z*size.z; // set 'pos' in the center, ortho mode was designed to always have the position in the center so we can use fast frustum culling for Z axis the same way as for XY axes
@@ -193,9 +193,9 @@ void FrustumClass::from(C BoxD &box)
    // set helpers
    use_extra_plane=false;
    view_quad_max_dist=0;
-   eye   =0;
-   persp =false;
-   size  =box.size()*0.5f;
+   eye_dist_2=0;
+   persp=false;
+   size=box.size()*0.5f;
    matrix.setPos(box.center());
    REPA(plane)plane_n_abs[i]=Abs(plane[i].normal);
 
@@ -265,13 +265,13 @@ void FrustumClass::from(C PyramidM &pyramid)
    }
 
    // set helpers
-   eye=0;
+   eye_dist_2=0;
    view_quad_max_dist=0;
    use_extra_plane=false;
-   persp  =true;
+   persp=true;
    fov_tan=pyramid.scale;
    Vec2 fov_cos=d.y; fov_cos_inv=1.0f/fov_cos;
-   range  =pyramid.h;
+   range=pyramid.h;
    REPA(plane)plane_n_abs[i]=Abs(plane[i].normal);
 
    // points
@@ -314,9 +314,9 @@ Bool FrustumClass::operator()(C Vec &point)C
    Vec pos=point-matrix.pos; // no need for 'VecD'
    if(persp)
    {
-      Flt z=Dot(pos, matrix.z);                if(z<0 || z>range)return false;
-      Flt x=Dot(pos, matrix.x), bx=fov_tan.x*z+eye; if(Abs(x)>bx)return false;
-      Flt y=Dot(pos, matrix.y), by=fov_tan.y*z    ; if(Abs(y)>by)return false;
+      Flt z=Dot(pos, matrix.z);                       if(z<0 || z>range)return false;
+      Flt x=Dot(pos, matrix.x), bx=fov_tan.x*z+eye_dist_2; if(Abs(x)>bx)return false;
+      Flt y=Dot(pos, matrix.y), by=fov_tan.y*z           ; if(Abs(y)>by)return false;
 
       if(use_extra_plane && Dist(point, extra_plane)>0)return false;
    }else
@@ -332,9 +332,9 @@ Bool FrustumClass::operator()(C VecD &point)C
    Vec pos=point-matrix.pos; // no need for 'VecD'
    if(persp)
    {
-      Flt z=Dot(pos, matrix.z);                if(z<0 || z>range)return false;
-      Flt x=Dot(pos, matrix.x), bx=fov_tan.x*z+eye; if(Abs(x)>bx)return false;
-      Flt y=Dot(pos, matrix.y), by=fov_tan.y*z    ; if(Abs(y)>by)return false;
+      Flt z=Dot(pos, matrix.z);                       if(z<0 || z>range)return false;
+      Flt x=Dot(pos, matrix.x), bx=fov_tan.x*z+eye_dist_2; if(Abs(x)>bx)return false;
+      Flt y=Dot(pos, matrix.y), by=fov_tan.y*z           ; if(Abs(y)>by)return false;
 
       if(use_extra_plane && Dist(point, extra_plane)>0)return false;
    }else
@@ -351,9 +351,9 @@ Bool FrustumClass::operator()(C Ball &ball)C
    Vec pos=ball.pos-matrix.pos; // no need for 'VecD'
    if(persp)
    {
-      Flt z=Dot(pos, matrix.z);                        if(z<-ball.r || z>range+ball.r)return false; MAX(z, 0);
-      Flt x=Dot(pos, matrix.x), bx=fov_tan.x*z+ball.r*fov_cos_inv.x+eye; if(Abs(x)>bx)return false;
-      Flt y=Dot(pos, matrix.y), by=fov_tan.y*z+ball.r*fov_cos_inv.y    ; if(Abs(y)>by)return false;
+      Flt z=Dot(pos, matrix.z);                               if(z<-ball.r || z>range+ball.r)return false; MAX(z, 0);
+      Flt x=Dot(pos, matrix.x), bx=fov_tan.x*z+ball.r*fov_cos_inv.x+eye_dist_2; if(Abs(x)>bx)return false;
+      Flt y=Dot(pos, matrix.y), by=fov_tan.y*z+ball.r*fov_cos_inv.y           ; if(Abs(y)>by)return false;
 
       if(use_extra_plane && Dist(ball, extra_plane)>0)return false;
    }else
@@ -369,9 +369,9 @@ Bool FrustumClass::operator()(C BallM &ball)C
    Vec pos=ball.pos-matrix.pos; // no need for 'VecD'
    if(persp)
    {
-      Flt z=Dot(pos, matrix.z);                        if(z<-ball.r || z>range+ball.r)return false; MAX(z, 0);
-      Flt x=Dot(pos, matrix.x), bx=fov_tan.x*z+ball.r*fov_cos_inv.x+eye; if(Abs(x)>bx)return false;
-      Flt y=Dot(pos, matrix.y), by=fov_tan.y*z+ball.r*fov_cos_inv.y    ; if(Abs(y)>by)return false;
+      Flt z=Dot(pos, matrix.z);                               if(z<-ball.r || z>range+ball.r)return false; MAX(z, 0);
+      Flt x=Dot(pos, matrix.x), bx=fov_tan.x*z+ball.r*fov_cos_inv.x+eye_dist_2; if(Abs(x)>bx)return false;
+      Flt y=Dot(pos, matrix.y), by=fov_tan.y*z+ball.r*fov_cos_inv.y           ; if(Abs(y)>by)return false;
 
       if(use_extra_plane && Dist(ball, extra_plane)>0)return false;
    }else
@@ -391,9 +391,9 @@ Bool FrustumClass::operator()(C Capsule &capsule)C
    down-=d;
    if(persp)
    {
-      Flt zu=Dot(up, matrix.z), zd=Dot(down, matrix.z);     if((zu<-capsule.r && zd<-capsule.r) || (zu>range+capsule.r && zd>range+capsule.r))return false; MAX(zu, 0); MAX(zd, 0);
-      Flt xu=Dot(up, matrix.x), xd=Dot(down, matrix.x), bx=capsule.r*fov_cos_inv.x+eye; if(Abs(xu)>bx+fov_tan.x*zu && Abs(xd)>bx+fov_tan.x*zd)return false;
-      Flt yu=Dot(up, matrix.y), yd=Dot(down, matrix.y), by=capsule.r*fov_cos_inv.y    ; if(Abs(yu)>by+fov_tan.y*zu && Abs(yd)>by+fov_tan.y*zd)return false;
+      Flt zu=Dot(up, matrix.z), zd=Dot(down, matrix.z);            if((zu<-capsule.r && zd<-capsule.r) || (zu>range+capsule.r && zd>range+capsule.r))return false; MAX(zu, 0); MAX(zd, 0);
+      Flt xu=Dot(up, matrix.x), xd=Dot(down, matrix.x), bx=capsule.r*fov_cos_inv.x+eye_dist_2; if(Abs(xu)>bx+fov_tan.x*zu && Abs(xd)>bx+fov_tan.x*zd)return false;
+      Flt yu=Dot(up, matrix.y), yd=Dot(down, matrix.y), by=capsule.r*fov_cos_inv.y           ; if(Abs(yu)>by+fov_tan.y*zu && Abs(yd)>by+fov_tan.y*zd)return false;
 
       if(use_extra_plane && Dist(capsule, extra_plane)>0)return false;
    }else
@@ -413,9 +413,9 @@ Bool FrustumClass::operator()(C CapsuleM &capsule)C
    down-=d;
    if(persp)
    {
-      Flt zu=Dot(up, matrix.z), zd=Dot(down, matrix.z);     if((zu<-capsule.r && zd<-capsule.r) || (zu>range+capsule.r && zd>range+capsule.r))return false; MAX(zu, 0); MAX(zd, 0);
-      Flt xu=Dot(up, matrix.x), xd=Dot(down, matrix.x), bx=capsule.r*fov_cos_inv.x+eye; if(Abs(xu)>bx+fov_tan.x*zu && Abs(xd)>bx+fov_tan.x*zd)return false;
-      Flt yu=Dot(up, matrix.y), yd=Dot(down, matrix.y), by=capsule.r*fov_cos_inv.y    ; if(Abs(yu)>by+fov_tan.y*zu && Abs(yd)>by+fov_tan.y*zd)return false;
+      Flt zu=Dot(up, matrix.z), zd=Dot(down, matrix.z);            if((zu<-capsule.r && zd<-capsule.r) || (zu>range+capsule.r && zd>range+capsule.r))return false; MAX(zu, 0); MAX(zd, 0);
+      Flt xu=Dot(up, matrix.x), xd=Dot(down, matrix.x), bx=capsule.r*fov_cos_inv.x+eye_dist_2; if(Abs(xu)>bx+fov_tan.x*zu && Abs(xd)>bx+fov_tan.x*zd)return false;
+      Flt yu=Dot(up, matrix.y), yd=Dot(down, matrix.y), by=capsule.r*fov_cos_inv.y           ; if(Abs(yu)>by+fov_tan.y*zu && Abs(yd)>by+fov_tan.y*zd)return false;
 
       if(use_extra_plane && Dist(capsule, extra_plane)>0)return false;
    }else
@@ -458,7 +458,7 @@ Bool FrustumClass::operator()(C Extent &ext)C
          MAX(z, 0);
       }
 
-      Flt x=Dot(pos, matrix.x), bx=fov_tan.x*z+eye;
+      Flt x=Dot(pos, matrix.x), bx=fov_tan.x*z+eye_dist_2;
       if(Abs(x)>bx)
       {
          if(x> bx + BoxLengthAbs(ext.ext, plane_n_abs[DIR_RIGHT])*fov_cos_inv.x)return false; // r
@@ -511,7 +511,7 @@ Bool FrustumClass::operator()(C Extent &ext, C Matrix &matrix)C
          MAX(z, 0);
       }
 
-      Flt x=Dot(pos, T.matrix.x), bx=fov_tan.x*z+eye;
+      Flt x=Dot(pos, T.matrix.x), bx=fov_tan.x*z+eye_dist_2;
       if(Abs(x)>bx)
       {
          if(x> bx + OBoxLength(dx, dy, dz, plane[DIR_RIGHT].normal)*fov_cos_inv.x)return false; // r
@@ -560,7 +560,7 @@ Bool FrustumClass::operator()(C Extent &ext, C MatrixM &matrix)C
          MAX(z, 0);
       }
 
-      Flt x=Dot(pos, T.matrix.x), bx=fov_tan.x*z+eye;
+      Flt x=Dot(pos, T.matrix.x), bx=fov_tan.x*z+eye_dist_2;
       if(Abs(x)>bx)
       {
          if(x> bx + OBoxLength(dx, dy, dz, plane[DIR_RIGHT].normal)*fov_cos_inv.x)return false; // r
@@ -613,7 +613,7 @@ Bool FrustumClass::operator()(C OBox &obox)C // here we assume that 'obox.matrix
          MAX(z, 0);
       }
 
-      Flt x=Dot(pos, matrix.x), bx=fov_tan.x*z+eye;
+      Flt x=Dot(pos, matrix.x), bx=fov_tan.x*z+eye_dist_2;
       if(Abs(x)>bx)
       {
          if(x> bx + OBoxLength(dx, dy, dz, plane[DIR_RIGHT].normal)*fov_cos_inv.x)return false; // r
@@ -662,7 +662,7 @@ Bool FrustumClass::operator()(C Extent &ext, Bool &fully_inside)C
          MAX(z, 0);
       }
 
-      Flt x=Dot(pos, matrix.x), bx=fov_tan.x*z+eye;
+      Flt x=Dot(pos, matrix.x), bx=fov_tan.x*z+eye_dist_2;
     //if(Abs(x)>bx)
       {
          Flt bxr=BoxLengthAbs(ext.ext, plane_n_abs[DIR_RIGHT])*fov_cos_inv.x; if(x> bx-bxr){if(x> bx+bxr)return false; fully_inside=false;} // r

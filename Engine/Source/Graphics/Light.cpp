@@ -3,6 +3,8 @@
 #define TEST_LIGHT_RECT (DEBUG && 0)
 #define FLAT_SHADOW_MAP 1 // TODO try implementing DX11 Cube Shadow Maps?
 #define LOCAL_SHADOW_MAP_FROM (1.0f/64) // 0.015625m, 1.5 cm
+#define LIGHT_MESH_BALL_RES    2 // res 2 gives 'dist'=0.971646905, make radius bigger to make sure ball covers all pixels with radius=1, use only res 2, to avoid having too many triangles/edges because GPU's have to process pixels always in 2x2 blocks, so due to edges, some pixels are wasted
+#define LIGHT_MESH_BALL_RADIUS (1/0.971646905f)
 
 #define ALWAYS_RESTORE_FRUSTUM 0 // 0=skip (faster)
 /* !! WARNING: For performance reasons 'Frustum' is not restored after (drawing shadows AND custom frustum for forward local lights), but only after all lights finished
@@ -32,7 +34,7 @@ static Memc<FloatIndex> LightImportance;
             Light       CurrentLight;
 static Bool             CurrentLightOn  [2];
 static Rect             CurrentLightRect[2];
-static MeshRender       LightBallMesh;
+static MeshRender       LightMeshBall;
 /******************************************************************************/
 static inline Int      HsmX        (DIR_ENUM dir) {return dir& 1;}
 static inline Int      HsmY        (DIR_ENUM dir) {return dir>>1;}
@@ -1634,7 +1636,7 @@ void DrawLights()
    }
 }
 /******************************************************************************/
-void ShutLight() {Lights.del(); LightImportance.del(); LightBallMesh.del();}
+void ShutLight() {Lights.del(); LightImportance.del(); LightMeshBall.del();}
 void InitLight()
 {
    HsmMatrix.x  .x= 0.5f/2;
@@ -1645,6 +1647,16 @@ void InitLight()
    HsmMatrixCone=HsmMatrix;
    HsmMatrixCone.pos.x=0.5f;
    HsmMatrixCone.pos.y=Avg(0, 2.0f/3);
+
+   MeshBase mshb; mshb.createIco(Ball(LIGHT_MESH_BALL_RADIUS), 0, LIGHT_MESH_BALL_RES);
+   LightMeshBall.create(mshb);
+#if DEBUG && 0 // calculate actual distance
+   mshb.createIco(Ball(1), 0, 2);
+   Flt dist=1; C Vec *pos=mshb.vtx.pos();
+   REPA(mshb.tri ){C VecI  &t=mshb.tri .ind(i); MIN(dist, Dist(VecZero, Tri (pos[t.x], pos[t.y], pos[t.z])));}
+   REPA(mshb.quad){C VecI4 &q=mshb.quad.ind(i); MIN(dist, Dist(VecZero, Quad(pos[q.x], pos[q.y], pos[q.z], pos[q.w])));}
+   int z=0;
+#endif
 }
 /******************************************************************************/
 }

@@ -52,9 +52,6 @@
       #error Unsupported platform detected
    #endif
 
-   #define LINEAR_GAMMA 1
-   #define CAN_SWAP_SRGB DX11
-
    #define GL_ES (GL && (IOS || ANDROID || WEB))
 
    #define GL_LOCK (GL && 0) // if surround all GL calls with a lock
@@ -67,11 +64,10 @@
       #define GPU_API(dx11, gl) gl
    #endif
 
-   #if GL_ES
-      #define GPU_HALF_SUPPORTED 0 // depends on "GL_OES_vertex_half_float" GLES extension
-   #else
-      #define GPU_HALF_SUPPORTED 1
-   #endif
+   #define LINEAR_GAMMA 1
+   #define CAN_SWAP_SRGB DX11
+   #define GPU_HALF_SUPPORTED   (!GL_ES) // depends on "GL_OES_vertex_half_float" GLES extension
+   #define DEPTH_CLIP_SUPPORTED (!GL_ES)
 
    #define REVERSE_DEPTH (!GL) // if Depth Buffer is reversed
 

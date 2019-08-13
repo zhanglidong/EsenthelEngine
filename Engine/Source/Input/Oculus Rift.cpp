@@ -399,8 +399,8 @@ void OculusRiftApi::update()
             #if 0 // slower
                ovrVector3f HmdToEyeViewOffset[2]=
                {
-                  {D.eyeDistance()*-0.5f, 0, 0},
-                  {D.eyeDistance()* 0.5f, 0, 0},
+                  {-D.eyeDistance_2(), 0, 0},
+                  { D.eyeDistance_2(), 0, 0},
                };
                ovr_CalcEyePoses(ts.HeadPose.ThePose, HmdToEyeViewOffset, _layer_render.RenderPose);
             #else

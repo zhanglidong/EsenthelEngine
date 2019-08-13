@@ -177,6 +177,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
                                                                 void             aspectRatioEx    (Bool force=true, Bool quiet=false);
                                                       constexpr Bool             signedNrmRT      ()C; // if Normal   Render Target is signed
                                                       constexpr Bool             signedVelRT      ()C; // if Velocity Render Target is signed
+                                                                Flt              eyeDistance_2    ()C {return _eye_dist_2     ;}
 #endif
                                                                 Rect             rect             ()C {return Rect(-w(), -h(), w(), h());} // get full screen rectangle
    Display& exclusive        (Bool             exclusive   );   Bool             exclusive        ()C {return _exclusive      ;} // get/set if fullscreen mode should be exclusive (true/false                         , default=             true                             ), this affects only Windows DirectX fullscreen mode, exclusive offers better performance, non-exclusive offers faster Alt+Tab switching
@@ -507,7 +508,7 @@ private:
    Flt               _aspect_ratio, _aspect_ratio_want, _pixel_aspect, _gamma, _font_sharpness, _scale,
                      _amb_range, _amb_contrast, _amb_min,
                      _eye_adapt_brightness, _eye_adapt_exp, _eye_adapt_max_dark, _eye_adapt_max_bright, _eye_adapt_speed,
-                     _eye_dist,
+                     _eye_dist, _eye_dist_2,
                      _shd_frac, _shd_fade, _shd_map_size_l, _shd_map_size_c,
                      _bloom_original, _bloom_scale, _bloom_cut,
                      _mtn_scale,

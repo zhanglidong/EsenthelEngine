@@ -124,7 +124,7 @@ void SetCam(C MatrixM &matrix)
 }
 void SetEyeMatrix()
 {
-   Vec  eye_ofs=ActiveCam.matrix.x*(D.eyeDistance()*0.5f);
+   Vec  eye_ofs=ActiveCam.matrix.x*D.eyeDistance_2();
    EyeMatrix[0]=ActiveCam.matrix; EyeMatrix[0].pos-=eye_ofs;
    EyeMatrix[1]=ActiveCam.matrix; EyeMatrix[1].pos+=eye_ofs;
 }

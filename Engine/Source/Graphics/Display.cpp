@@ -770,7 +770,7 @@ Display::Display() : _monitors(Compare, Create, null, 4)
   _fur_gravity  =-1    ;
   _fur_vel_scale=-0.75f;
 
-  _eye_dist          =0.064f;
+  _eye_dist=0.064f; _eye_dist_2=_eye_dist/2;
 
   _view_square_pixel =false;
   _view_main.fov_mode=FOV_Y;
@@ -2450,9 +2450,9 @@ Display& Display::particlesSmoothAnim(Bool             on       ) {             
 
 Display& Display::eyeDistance(Flt dist)
 {
-   if(T._eye_dist!=dist)
+   if(_eye_dist!=dist)
    {
-      T._eye_dist=dist;
+     _eye_dist=dist; _eye_dist_2=_eye_dist/2;
       SetEyeMatrix();
       Frustum.set();
    }
