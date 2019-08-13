@@ -3,8 +3,11 @@
 #define TEST_LIGHT_RECT (DEBUG && 0)
 #define FLAT_SHADOW_MAP 1 // TODO try implementing DX11 Cube Shadow Maps?
 #define LOCAL_SHADOW_MAP_FROM (1.0f/64) // 0.015625m, 1.5 cm
+
 #define LIGHT_MESH_BALL_RES    2 // res 2 gives 'dist'=0.971646905, make radius bigger to make sure ball covers all pixels with radius=1, use only res 2, to avoid having too many triangles/edges because GPU's have to process pixels always in 2x2 blocks, so due to edges, some pixels are wasted
 #define LIGHT_MESH_BALL_RADIUS (1/0.971646905f)
+
+#define LIGHT_MESH_CONE_RES 2
 
 #define ALWAYS_RESTORE_FRUSTUM 0 // 0=skip (faster)
 /* !! WARNING: For performance reasons 'Frustum' is not restored after (drawing shadows AND custom frustum for forward local lights), but only after all lights finished
@@ -34,7 +37,7 @@ static Memc<FloatIndex> LightImportance;
             Light       CurrentLight;
 static Bool             CurrentLightOn  [2];
 static Rect             CurrentLightRect[2];
-static MeshRender       LightMeshBall;
+static MeshRender       LightMeshBall, LightMeshCone;
 /******************************************************************************/
 static inline Int      HsmX        (DIR_ENUM dir) {return dir& 1;}
 static inline Int      HsmY        (DIR_ENUM dir) {return dir>>1;}
@@ -57,10 +60,6 @@ static inline void SetShdMatrix()
          Sh.ShdMatrix    ->set(ShdMatrix    [Renderer._eye]);
    REP(6)Sh.ShdMatrix4[i]->set(ShdMatrix4[i][Renderer._eye]);
 }
-/******************************************************************************/
-INLINE Shader* GetShdDir  (Int map_num, Bool clouds, Bool multi_sample) {Shader* &s=Sh.ShdDir[map_num-1][clouds][multi_sample]; if(SLOW_SHADER_LOAD && !s)s=Sh.getShdDir  (map_num, clouds, multi_sample); return s;}
-INLINE Shader* GetShdPoint(                          Bool multi_sample) {Shader* &s=Sh.ShdPoint                 [multi_sample]; if(SLOW_SHADER_LOAD && !s)s=Sh.getShdPoint(                 multi_sample); return s;}
-INLINE Shader* GetShdCone (                          Bool multi_sample) {Shader* &s=Sh.ShdCone                  [multi_sample]; if(SLOW_SHADER_LOAD && !s)s=Sh.getShdCone (                 multi_sample); return s;}
 /******************************************************************************/
 static Flt ShadowStep(Int i, Int num) // 0..1
 {
@@ -975,6 +974,10 @@ void Light::set(LightPoint  &light, C Rect &rect, Flt  shadow_opacity, CPtr ligh
 void Light::set(LightLinear &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src) {Zero(T); type=LIGHT_LINEAR; linear=light; T.rect=        rect; T.shadow=(shadow_opacity>EPS_COL && CanDoShadow()); T.shadow_opacity=(T.shadow ? Sat(shadow_opacity) : 0); T.src=light_src;}
 void Light::set(LightCone   &light, C Rect &rect, Flt  shadow_opacity, CPtr light_src) {Zero(T); type=LIGHT_CONE  ; cone  =light; T.rect=        rect; T.shadow=(shadow_opacity>EPS_COL && CanDoShadow()); T.shadow_opacity=(T.shadow ? Sat(shadow_opacity) : 0); T.src=light_src;}
 /******************************************************************************/
+INLINE Shader* GetShdDir  (Int map_num, Bool clouds, Bool multi_sample) {Shader* &s=Sh.ShdDir[map_num-1][clouds][multi_sample]; if(SLOW_SHADER_LOAD && !s)s=Sh.getShdDir  (map_num, clouds, multi_sample); return s;}
+INLINE Shader* GetShdPoint(                          Bool multi_sample) {Shader* &s=Sh.ShdPoint                 [multi_sample]; if(SLOW_SHADER_LOAD && !s)s=Sh.getShdPoint(                 multi_sample); return s;}
+INLINE Shader* GetShdCone (                          Bool multi_sample) {Shader* &s=Sh.ShdCone                  [multi_sample]; if(SLOW_SHADER_LOAD && !s)s=Sh.getShdCone (                 multi_sample); return s;}
+/******************************************************************************/
 INLINE Shader* GetDrawLightDir   (Bool shadow, Bool multi_sample, Bool quality            ) {Shader* &s=Sh.DrawLightDir   [shadow][multi_sample][quality]       ; if(SLOW_SHADER_LOAD && !s)s=Sh.getDrawLightDir   (shadow, multi_sample, quality       ); return s;}
 INLINE Shader* GetDrawLightPoint (Bool shadow, Bool multi_sample, Bool quality            ) {Shader* &s=Sh.DrawLightPoint [shadow][multi_sample][quality]       ; if(SLOW_SHADER_LOAD && !s)s=Sh.getDrawLightPoint (shadow, multi_sample, quality       ); return s;}
 INLINE Shader* GetDrawLightLinear(Bool shadow, Bool multi_sample, Bool quality            ) {Shader* &s=Sh.DrawLightLinear[shadow][multi_sample][quality]       ; if(SLOW_SHADER_LOAD && !s)s=Sh.getDrawLightLinear(shadow, multi_sample, quality       ); return s;}
@@ -989,37 +992,36 @@ static void DrawLightDir(Bool multi_sample, Bool quality)
 }
 static void DrawLightPoint(C MatrixM &light_matrix, Bool multi_sample, Bool quality)
 {
-#if 1 // Geom
-   LightMeshBall.set();
-   Shader *shader=Sh.get(S8+"DrawLightPointG"+CurrentLight.shadow+multi_sample+quality+GL_ES); shader->startTex();
-   REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye()){SetFastMatrix(light_matrix); shader->commit(); LightMeshBall.draw();}
-#else // Flat
-   D.depth2DOn();
    Shader *shader=GetDrawLightPoint(CurrentLight.shadow, multi_sample, quality);
+#if 1 // Geom
+   shader->startTex(); LightMeshBall.set();
+   REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye()){SetFastMatrix(light_matrix); shader->commit(); LightMeshBall.draw();}
+#else // Flat, would have to use "DrawPosXY_VS" Vertex Shader
+   D.depth2DOn();
    REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())shader->draw(&CurrentLight.rect);
    if(TEST_LIGHT_RECT)REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
 #endif
 }
 static void DrawLightLinear(C MatrixM &light_matrix, Bool multi_sample, Bool quality)
 {
-#if 1 // Geom
-   LightMeshBall.set();
-   Shader *shader=Sh.get(S8+"DrawLightLinearG"+CurrentLight.shadow+multi_sample+quality+GL_ES); shader->startTex();
-   REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye()){SetFastMatrix(light_matrix); shader->commit(); LightMeshBall.draw();}
-#else // Flat
-   D.depth2DOn();
    Shader *shader=GetDrawLightLinear(CurrentLight.shadow, multi_sample, quality);
+#if 1 // Geom
+   shader->startTex(); LightMeshBall.set();
+   REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye()){SetFastMatrix(light_matrix); shader->commit(); LightMeshBall.draw();}
+#else // Flat, would have to use "DrawPosXY_VS" Vertex Shader
+   D.depth2DOn();
    REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())shader->draw(&CurrentLight.rect);
    if(TEST_LIGHT_RECT)REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
 #endif
 }
 static void DrawLightCone(C MatrixM &light_matrix, Bool multi_sample, Bool quality)
 {
-#if 0 // Geom
-   FIXME
-#else // Flat
-   D.depth2DOn();
    Shader *shader=GetDrawLightCone(CurrentLight.shadow, multi_sample, quality, CurrentLight.image?1:0);
+#if 1 // Geom
+   shader->startTex(); LightMeshCone.set();
+   REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye()){SetFastMatrix(light_matrix); shader->commit(); LightMeshCone.draw();}
+#else // Flat, would have to use "DrawPosXY_VS" Vertex Shader
+   D.depth2DOn();
    REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())shader->draw(&CurrentLight.rect);
    if(TEST_LIGHT_RECT)REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
 #endif
@@ -1749,7 +1751,7 @@ void DrawLights()
    }
 }
 /******************************************************************************/
-void ShutLight() {Lights.del(); LightImportance.del(); LightMeshBall.del();}
+void ShutLight() {Lights.del(); LightImportance.del(); LightMeshBall.del(); LightMeshCone.del();}
 void InitLight()
 {
    HsmMatrix.x  .x= 0.5f/2;
@@ -1770,6 +1772,10 @@ void InitLight()
    REPA(mshb.quad){C VecI4 &q=mshb.quad.ind(i); MIN(dist, Dist(VecZero, Quad(pos[q.x], pos[q.y], pos[q.z], pos[q.w])));}
    int z=0;
 #endif
+
+   // FIXME
+   mshb.create(Cone(0, 1, 1), 0, LIGHT_MESH_CONE_RES);
+   LightMeshCone.create(mshb);
 }
 /******************************************************************************/
 }
