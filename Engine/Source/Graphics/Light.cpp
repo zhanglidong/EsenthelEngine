@@ -1139,7 +1139,7 @@ void Light::draw()
          Bool    front_face =LightFrontFaceBall(range, CurrentLight.point.pos);
          UInt    depth_func =(front_face ? FUNC_LESS : FUNC_GREATER);
          MatrixM light_matrix(front_face ? range : -range, CurrentLight.point.pos); // reverse faces
-         D.depthClip(!front_face); // Warning: not available on GL ES
+         D.depthClip(front_face); // Warning: not available on GL ES
          SetMatrixCount(); // needed for drawing light mesh
 
          // water lum first, as noted above in the comments
@@ -1219,7 +1219,7 @@ void Light::draw()
          Bool    front_face =LightFrontFaceBall(range, CurrentLight.linear.pos);
          UInt    depth_func =(front_face ? FUNC_LESS : FUNC_GREATER);
          MatrixM light_matrix(front_face ? range : -range, CurrentLight.linear.pos); // reverse faces
-         D.depthClip(!front_face); // Warning: not available on GL ES
+         D.depthClip(front_face); // Warning: not available on GL ES
          SetMatrixCount(); // needed for drawing light mesh
 
          // water lum first, as noted above in the comments
@@ -1298,7 +1298,7 @@ void Light::draw()
          Bool    front_face =LightFrontFace(CurrentLight.cone.pyramid);
          UInt    depth_func =(front_face ? FUNC_LESS : FUNC_GREATER);
          MatrixM light_matrix; // FIXME reverse faces
-         D.depthClip(!front_face); // Warning: not available on GL ES
+         D.depthClip(front_face); // Warning: not available on GL ES
          SetMatrixCount(); // needed for drawing light mesh
 
          // water lum first, as noted above in the comments
@@ -1498,7 +1498,7 @@ void Light::drawForward(ALPHA_MODE alpha)
             Bool    front_face =LightFrontFaceBall(range, CurrentLight.point.pos);
             UInt    depth_func =(front_face ? FUNC_LESS : FUNC_GREATER);
             MatrixM light_matrix(front_face ? range : -range, CurrentLight.point.pos); // reverse faces
-            D.depthClip(!front_face); // Warning: not available on GL ES
+            D.depthClip(front_face); // Warning: not available on GL ES
             SetMatrixCount(); // needed for drawing light mesh
 
             if(CurrentLight.shadow)
@@ -1571,7 +1571,7 @@ void Light::drawForward(ALPHA_MODE alpha)
             Bool    front_face =LightFrontFaceBall(range, CurrentLight.linear.pos);
             UInt    depth_func =(front_face ? FUNC_LESS : FUNC_GREATER);
             MatrixM light_matrix(front_face ? range : -range, CurrentLight.linear.pos); // reverse faces
-            D.depthClip(!front_face); // Warning: not available on GL ES
+            D.depthClip(front_face); // Warning: not available on GL ES
             SetMatrixCount(); // needed for drawing light mesh
 
             if(CurrentLight.shadow)
@@ -1643,7 +1643,7 @@ void Light::drawForward(ALPHA_MODE alpha)
             Bool    front_face =LightFrontFace(CurrentLight.cone.pyramid);
             UInt    depth_func =(front_face ? FUNC_LESS : FUNC_GREATER);
             MatrixM light_matrix; // FIXME reverse faces
-            D.depthClip(!front_face); // Warning: not available on GL ES
+            D.depthClip(front_face); // Warning: not available on GL ES
             SetMatrixCount(); // needed for drawing light mesh
 
             if(CurrentLight.shadow)
