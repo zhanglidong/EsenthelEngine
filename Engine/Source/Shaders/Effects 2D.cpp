@@ -8,7 +8,7 @@
 #include "!Set SP.h"
 BUFFER(ColTrans)
    Vec     ColTransHsb;
-   MatrixH ColTransMatrix; // !! define Matrix last to avoid potential alignment issues on Arm Mali !!
+   MatrixH ColTransMatrix;
 BUFFER_END
 #include "!Set LP.h"
 

@@ -343,13 +343,13 @@ BUFFER(Ambient)
 BUFFER_END
 /******************************************************************************/
 BUFFER_I(Global, SBI_GLOBAL)
-   Matrix4 ProjMatrix                ; // projection  matrix
-   Vec4    ClipPlane=Vec4(0, 0, 0, 1); // clipping    plane
+   Matrix4 ProjMatrix                ; // projection matrix
+   Vec     CamAngVel                 ; // camera angular velocity, pre-multiplied by 'D.motionScale'
    Flt     TesselationDensity        ; // tesselation density
    Vec2    GrassRangeMulAdd          ; // factors used for grass opacity      calculation
+   Vec4    ClipPlane=Vec4(0, 0, 0, 1); // clipping plane
    VecH4   BendFactor                ; // factors used for grass/leaf bending calculation
-   Vec     CamAngVel                 ; // camera      angular velocity, pre-multiplied by 'D.motionScale'
-   Matrix  CamMatrix                 ; // camera      matrix !! define Matrix last to avoid potential alignment issues on Arm Mali !!
+   Matrix  CamMatrix                 ; // camera matrix
 BUFFER_END
 
 BUFFER_I(ObjVel, SBI_OBJ_VEL) // !! WARNING: this CB is dynamically resized, do not add other members !!
@@ -1523,7 +1523,7 @@ struct GpuLightCone
    Vec2     falloff;
    Vec      pos;
    VecH4    color; // a=spec
-   MatrixH3 mtrx; // !! define Matrix last to avoid potential alignment issues on Arm Mali !!
+   MatrixH3 mtrx;
 };
 #include "!Set LP.h"
 
@@ -1557,8 +1557,8 @@ BUFFER(Shadow)
    Vec2    ShdRangeMulAdd;
    VecH2   ShdOpacity    ;
    Vec4    ShdJitter     ;
+   Matrix  ShdMatrix     ;
    Matrix4 ShdMatrix4[6] ;
-   Matrix  ShdMatrix     ; // !! define Matrix last to avoid potential alignment issues on Arm Mali !!
 BUFFER_END
 
 #include "!Set IP.h"

@@ -3,7 +3,7 @@
 struct OverlayClass
 {
    VecH4  param;
-   Matrix mtrx ; // !! define Matrix last to avoid potential alignment issues on Arm Mali !!
+   Matrix mtrx ;
 };
 
 BUFFER(Overlay)
