@@ -73,6 +73,7 @@ class FontEditor : PropWin
             }
          }
       }
+      D.flush(); // needed for Mac
    }
    static bool Make(Thread &thread) {return (*(FontEditor*)thread.user).make();}
           bool make()

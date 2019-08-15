@@ -54,6 +54,7 @@ FontEditor FontEdit;
             }
          }
       }
+      D.flush(); // needed for Mac
    }
    bool FontEditor::Make(Thread &thread) {return (*(FontEditor*)thread.user).make();}
           bool FontEditor::make()
