@@ -1,7 +1,7 @@
 /******************************************************************************/
 #include "stdafx.h"
 #define TEST_LIGHT_RECT (DEBUG && 0)
-#define FLAT_SHADOW_MAP 1 // TODO try implementing DX11 Cube Shadow Maps?
+#define FLAT_SHADOW_MAP 1 // TODO try implementing Cube Shadow Maps?
 #define LOCAL_SHADOW_MAP_FROM (1.0f/64) // 0.015625m, 1.5 cm
 
 #define LIGHT_MESH_BALL_RES    2 // res 2 gives 'dist'=0.971646905, make radius bigger to make sure ball covers all pixels with radius=1, use only res 2, to avoid having too many triangles/edges because GPU's have to process pixels always in 2x2 blocks, so due to edges, some pixels are wasted
@@ -989,37 +989,56 @@ INLINE Shader* GetDrawLightConeFlat(Bool shadow, Bool multi_sample, Bool quality
 /******************************************************************************/
 static void DrawLightDir(Bool multi_sample, Bool quality)
 {
+   if(TEST_LIGHT_RECT){D.depthUnlock(); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect); D.depthLock(true);}
    // Flat
    Shader *shader=GetDrawLightDir(CurrentLight.shadow, multi_sample, quality);
    REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())shader->draw(&CurrentLight.rect);
-   if(TEST_LIGHT_RECT)REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
 }
 static void DrawLightPoint(C MatrixM &light_matrix, Bool multi_sample, Bool quality)
 {
-   Shader *shader=GetDrawLightPoint(CurrentLight.shadow, multi_sample, quality);
+   if(TEST_LIGHT_RECT){D.depthUnlock(); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect); D.depthLock(true);}
 #if 1 // Geom
-   shader->startTex(); LightMeshBall.set();
+   Shader *shader=GetDrawLightPoint(CurrentLight.shadow, multi_sample, quality); shader->startTex(); LightMeshBall.set();
    REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye()){SetFastMatrix(light_matrix); shader->commit(); LightMeshBall.draw();}
-#else // Flat, would have to use "DrawPosXY_VS" Vertex Shader
-   D.depth2DOn();
+#else // Flat
+   Shader *shader=GetDrawLightPointFlat(CurrentLight.shadow, multi_sample, quality); D.depth2DOn();
    REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())shader->draw(&CurrentLight.rect);
-   if(TEST_LIGHT_RECT)REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
 #endif
 }
 static void DrawLightLinear(C MatrixM &light_matrix, Bool multi_sample, Bool quality)
 {
-   Shader *shader=GetDrawLightLinear(CurrentLight.shadow, multi_sample, quality);
+   if(TEST_LIGHT_RECT){D.depthUnlock(); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect); D.depthLock(true);}
 #if 1 // Geom
-   shader->startTex(); LightMeshBall.set();
+   Shader *shader=GetDrawLightLinear(CurrentLight.shadow, multi_sample, quality); shader->startTex(); LightMeshBall.set();
    REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye()){SetFastMatrix(light_matrix); shader->commit(); LightMeshBall.draw();}
-#else // Flat, would have to use "DrawPosXY_VS" Vertex Shader
-   D.depth2DOn();
+#else // Flat
+   Shader *shader=GetDrawLightLinearFlat(CurrentLight.shadow, multi_sample, quality); D.depth2DOn();
    REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())shader->draw(&CurrentLight.rect);
-   if(TEST_LIGHT_RECT)REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
 #endif
 }
 static void DrawLightCone(C MatrixM &light_matrix, Bool multi_sample, Bool quality)
 {
+   if(TEST_LIGHT_RECT){D.depthUnlock(); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect); D.depthLock(true);}
+#if !DEPTH_CLIP_SUPPORTED // Flat
+   if(!D._depth_clip)
+   {
+      VecD p[5]; CurrentLight.cone.pyramid.toCorners(p);
+      Dbl  dist=Dot(ActiveCam.matrix.pos, ActiveCam.matrix.z),
+            max=Dot(p[4], ActiveCam.matrix.z);// min=max;
+      REP(Elms(p)-1)
+      {
+         Dbl d=Dot(p[i], ActiveCam.matrix.z);
+       //if(d<min)min=d;else
+         if(d>max)max=d;
+      }
+      if(max>dist+D.viewRange()) // if any of the points is behind far plane
+      { // draw as Flat
+         Shader *shader=GetDrawLightConeFlat(CurrentLight.shadow, multi_sample, quality, CurrentLight.image?1:0);
+         REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())shader->draw(&CurrentLight.rect);
+         return;
+      }
+   }
+#endif
    // Geom
    Shader *shader=GetDrawLightCone(CurrentLight.shadow, multi_sample, quality, CurrentLight.image?1:0);
    shader->startTex(); LightMeshCone.set();
