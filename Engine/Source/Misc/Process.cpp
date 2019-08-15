@@ -330,7 +330,7 @@ static Bool ConsoleProcessFunc(Thread &thread)
          if(available)
             if(DuplicateHandle(GetCurrentProcess(), cp._out_read, GetCurrentProcess(), &temp, 0, true, DUPLICATE_SAME_ACCESS))
       {
-         Char8 buf[65536+1]; MIN(available, SIZE(buf)-1);
+         Char8 buf[65536+1]; MIN(available, SIZE(buf)-1); // make room for '\0'
       read_again:;
          locker.off();
          DWORD read=0; ReadFile(temp, buf, available, &read, null); // read without 'SyncLock' on handle duplicate
