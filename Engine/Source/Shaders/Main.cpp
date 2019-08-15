@@ -34,7 +34,7 @@ VecH4 Test_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 /******************************************************************************/
 // SHADERS
 /******************************************************************************/
-NOPERSP Vec4 Draw2DFlat_VS(VtxInput vtx):POSITION {return Vec4(vtx.pos2()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);}
+NOPERSP Vec4 Draw2DFlat_VS(VtxInput vtx):POSITION {return Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);}
         Vec4 Draw3DFlat_VS(VtxInput vtx):POSITION {return Project(TransformPos(vtx.pos()));}
 
 VecH4 DrawFlat_PS():TARGET {return Color[0];}
@@ -53,7 +53,7 @@ void Draw2DCol_VS(VtxInput vtx,
       NOPERSP out Vec4  outVtx:POSITION)
 {
    outCol=     vtx.color();
-   outVtx=Vec4(vtx.pos2 ()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
+   outVtx=Vec4(vtx.pos2 ()*Coords.xy+Coords.zw, Z_FRONT, 1);
 }
 VecH4 Draw2DCol_PS(NOPERSP VecH4 inCol:COLOR):TARGET {return inCol;}
 /******************************************************************************/
@@ -121,7 +121,7 @@ void Draw2DTexCol_VS(VtxInput vtx,
 {
    outTex=     vtx.tex  ();
    outCol=     vtx.color();
-   outVtx=Vec4(vtx.pos2 ()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
+   outVtx=Vec4(vtx.pos2 ()*Coords.xy+Coords.zw, Z_FRONT, 1);
 }
 VecH4 Draw2DTexCol_PS(NOPERSP Vec2  inTex:TEXCOORD,
                       NOPERSP VecH4 inCol:COLOR   ):TARGET
@@ -220,7 +220,7 @@ void DrawMask_VS(VtxInput vtx,
 {
    outTexC=vtx.tex ();
    outTexM=vtx.tex1();
-   outVtx =Vec4(vtx.pos2()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
+   outVtx =Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);
 }
 VecH4 DrawMask_PS(NOPERSP Vec2 inTexC:TEXCOORD0,
                   NOPERSP Vec2 inTexM:TEXCOORD1):TARGET
@@ -235,7 +235,7 @@ void DrawCubeFace_VS(VtxInput vtx,
          NOPERSP out Vec4 outVtx:POSITION)
 {
    outTex=Vec (vtx.tex(), vtx.size());
-   outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
+   outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);
 }
 VecH4 DrawCubeFace_PS(NOPERSP Vec inTex:TEXCOORD):TARGET {return TexCube(Cub, inTex)*Color[0]+Color[1];}
 /******************************************************************************/

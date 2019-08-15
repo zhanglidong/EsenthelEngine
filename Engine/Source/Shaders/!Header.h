@@ -1082,7 +1082,7 @@ void Draw2DTex_VS(VtxInput vtx,
       NOPERSP out Vec4 outVtx:POSITION)
 {
    outTex=vtx.tex();
-   outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, REVERSE_DEPTH, 1);
+   outVtx=Vec4(vtx.pos2()*Coords.xy+Coords.zw, Z_FRONT, 1);
 }
 /******************************************************************************/
 inline Half DistPointPlaneRay(VecH2 p,                  VecH2 plane_normal, VecH2 ray) {Half rd=Dot(ray, plane_normal); return rd ? Dot           (p,            plane_normal)/rd : 0;}
