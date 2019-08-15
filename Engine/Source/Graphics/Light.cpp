@@ -7,8 +7,8 @@
 #define LIGHT_MESH_BALL_RES    2 // res 2 gives 'dist'=0.971646905, make radius bigger to make sure ball covers all pixels with radius=1, use only res 2, to avoid having too many triangles/edges because GPU's have to process pixels always in 2x2 blocks, so due to edges, some pixels are wasted
 #define LIGHT_MESH_BALL_RADIUS (1/0.971646905f)
 
-#define LIGHT_MESH_CONE_RES 16 // use only res 16, to avoid having too many triangles/edges because GPU's have to process pixels always in 2x2 blocks, so due to edges, some pixels are wasted
-// FIXME tweak scale
+#define LIGHT_MESH_CONE_RES 16 // res 16 gives 'dist'=0.980785191, make radius bigger to make sure cone covers all pixels with radius=1, use only res 16, to avoid having too many triangles/edges because GPU's have to process pixels always in 2x2 blocks, so due to edges, some pixels are wasted
+#define LIGHT_MESH_CONE_RADIUS (1/0.980785191f)
 
 #define ALWAYS_RESTORE_FRUSTUM 0 // 0=skip (faster)
 /* !! WARNING: For performance reasons 'Frustum' is not restored after (drawing shadows AND custom frustum for forward local lights), but only after all lights finished
@@ -1033,8 +1033,8 @@ static Bool LightFrontFaceBall(Flt range, C VecD &light_pos)
    Bool front_face=Renderer.indoor; // draw as front only for in-door scenes, which will allow to hide the light by occluders, in other cases, we will most likely have to process fewer pixels if not using front
    if(  front_face)
    {
-      Flt d2=Dist2(light_pos, ActiveCam.matrix.pos); // use 'ActiveCam' instead of 'CamMatrix' because it's not affected by eyes
-      if( d2<=Sqr(range*LIGHT_MESH_BALL_RADIUS+FrustumMain.view_quad_max_dist+D.eyeDistance_2()))front_face=false; // if camera intersects with light mesh, then we can't use front
+      Flt dist2 =Dist2(ActiveCam.matrix.pos, light_pos); // use 'ActiveCam' instead of 'CamMatrix' because it's not affected by eyes
+      if( dist2<=Sqr  (range*LIGHT_MESH_BALL_RADIUS+FrustumMain.view_quad_max_dist+D.eyeDistance_2()))front_face=false; // if camera intersects with light mesh, then we can't use front
    }
    return front_face;
 }
@@ -1043,7 +1043,9 @@ static Bool LightFrontFace(C PyramidM &pyramid)
    Bool front_face=Renderer.indoor; // draw as front only for in-door scenes, which will allow to hide the light by occluders, in other cases, we will most likely have to process fewer pixels if not using front
    if(  front_face)
    {
-      // FIXME
+      ConeM cone(0, LIGHT_MESH_CONE_RADIUS*pyramid.scale*pyramid.h, pyramid.h, pyramid.pos, pyramid.dir);
+      Flt dist =Dist(ActiveCam.matrix.pos, cone); // use 'ActiveCam' instead of 'CamMatrix' because it's not affected by eyes
+      if( dist<=FrustumMain.view_quad_max_dist+D.eyeDistance_2())front_face=false; // if camera intersects with light mesh, then we can't use front
    }
    return front_face;
 }
@@ -1764,19 +1766,29 @@ void InitLight()
    HsmMatrixCone.pos.x=0.5f;
    HsmMatrixCone.pos.y=Avg(0, 2.0f/3);
 
-   MeshBase mshb; mshb.createIco(Ball(LIGHT_MESH_BALL_RADIUS), 0, LIGHT_MESH_BALL_RES);
-   LightMeshBall.create(mshb);
+   MeshBase mshb;
+
+   mshb.createIco(Ball(LIGHT_MESH_BALL_RADIUS), 0, LIGHT_MESH_BALL_RES); LightMeshBall.create(mshb);
 #if DEBUG && 0 // calculate actual distance
-   mshb.createIco(Ball(1), 0, 2);
+   mshb.createIco(Ball(1), 0, LIGHT_MESH_BALL_RES);
    Flt dist=1; C Vec *pos=mshb.vtx.pos();
    REPA(mshb.tri ){C VecI  &t=mshb.tri .ind(i); MIN(dist, Dist(VecZero, Tri (pos[t.x], pos[t.y], pos[t.z])));}
    REPA(mshb.quad){C VecI4 &q=mshb.quad.ind(i); MIN(dist, Dist(VecZero, Quad(pos[q.x], pos[q.y], pos[q.z], pos[q.w])));}
    int z=0;
 #endif
 
-   // FIXME
-   mshb.create(Cone(0, 1, 1, VecZero, Vec(0,0,1)), 0, LIGHT_MESH_CONE_RES);
-   LightMeshCone.create(mshb);
+   mshb.create(Cone(0, LIGHT_MESH_CONE_RADIUS, 1, VecZero, Vec(0,0,1)), 0, LIGHT_MESH_CONE_RES); LightMeshCone.create(mshb);
+#if DEBUG && 0 // calculate actual distance
+   mshb.createEdge(Circle(1), false, LIGHT_MESH_CONE_RES); // use a circle
+   Flt dist=1; C Vec *pos=mshb.vtx.pos();
+   REPA(mshb.edge)
+   {
+    C VecI2 &e=mshb.edge.ind(i);
+    C Vec2  &a=pos[e.x].xy, &b=pos[e.y].xy;
+      MIN(dist, DistPointEdge(Vec2Zero, a, b));
+   }
+   int z=0;
+#endif
 }
 /******************************************************************************/
 }

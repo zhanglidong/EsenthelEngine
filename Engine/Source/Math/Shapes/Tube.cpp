@@ -64,9 +64,10 @@ void Tube::draw(C Color &color, Bool fill, Int resolution)C
 /******************************************************************************/
 Bool Cuts(C Vec &point, C Tube &tube)
 {
-   Flt dist_y=DistPointPlane(point, tube.pos, tube.up);
-   if( dist_y>=-tube.h*0.5f
-   &&  dist_y<= tube.h*0.5f)return DistPointStr(point, tube.pos, tube.up)<=tube.r;
+   Flt h_2   =tube.h*0.5f,
+       dist_y=DistPointPlane(point, tube.pos, tube.up);
+   if( dist_y>=-h_2
+   &&  dist_y<= h_2)return DistPointStr(point, tube.pos, tube.up)<=tube.r;
    return false;
 }
 Bool Cuts(C Edge &edge, C Tube &tube)

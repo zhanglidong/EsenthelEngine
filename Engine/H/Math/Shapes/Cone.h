@@ -42,5 +42,29 @@ struct Cone // Cone Shape
    Cone(Flt r_low, Flt r_high, Flt h, C Vec &pos=VecZero, C Vec &up=Vec(0,1,0)) {set(r_low, r_high, h, pos, up);}
 };
 /******************************************************************************/
+struct ConeM // Cone Shape (mixed precision)
+{
+   Flt  r_low , // lower  radius
+        r_high; // higher radius
+   Flt  h     ; // height
+   VecD pos   ; // bottom position
+   Vec  up    ; // up     direction
+
+   // set
+   ConeM& set(Flt r_low, Flt r_high, Flt h, C VecD &pos=0, C Vec &up=Vec(0,1,0)) {T.r_low=r_low; T.r_high=r_high; T.h=h; T.pos=pos; T.up=up; return T;}
+
+   // get
+   Flt area  ()C; // get surface area
+   Flt volume()C; // get volume
+
+   Str asText()C {return S+"LowerRadius: "+r_low+", HigherRadius: "+r_high+", Height: "+h+", Pos: "+pos+", Up: "+up;} // get text description
+
+   ConeM() {}
+   ConeM(Flt r_low, Flt r_high, Flt h, C VecD &pos=0, C Vec &up=Vec(0,1,0)) {set(r_low, r_high, h, pos, up);}
+};
+/******************************************************************************/
 Bool Cuts(C Vec &point, C Cone &cone); // if point cuts cone
+
+Flt Dist(C Vec  &point, C Cone  &cone); // distance between point and a cone
+Dbl Dist(C VecD &point, C ConeM &cone); // distance between point and a cone
 /******************************************************************************/
