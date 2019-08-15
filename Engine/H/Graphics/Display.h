@@ -427,6 +427,8 @@ struct Display : DisplayState, DisplayDraw // Display Control
    // operations
    void setShader(C Material *material=null); // manually trigger resetting shaders for all meshes, 'material'=if reset shaders only for meshes having specified material (use null for all meshes)
 
+   static void flush(); // flush queued commands to the GPU
+
 #if !EE_PRIVATE
 private:
 #endif
@@ -567,7 +569,6 @@ private:
           void after         (Bool resize_callback);
           Bool initialized   ()C {return _initialized;}
    static Bool flip          ();
-   static void flush         ();
    static void finish        ();
           void adjustWindow  ();
           void screenChanged (Flt old_width, Flt old_height);
