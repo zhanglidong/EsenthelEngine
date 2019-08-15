@@ -358,6 +358,7 @@ void ShaderBuffer::update()
 #if GL_ES || MAC // this is faster for GL ES and Mac (slower for GL)
    glBufferData(GL_UNIFORM_BUFFER, buffer.size, data, GL_STREAM_DRAW);
 #else // this is faster for GL (slower for GL ES)
+   if(Kb.ctrl())glBufferData(GL_UNIFORM_BUFFER, buffer.size, data, GL_STREAM_DRAW);else
    glBufferSubData(GL_UNIFORM_BUFFER, 0, buffer.size, data);
 #endif
 #endif
