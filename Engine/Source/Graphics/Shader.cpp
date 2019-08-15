@@ -355,10 +355,9 @@ void ShaderBuffer::update()
          D3DC ->UpdateSubresource (buffer.buffer, 0, null, data, 0, 0);
 #elif GL
    glBindBuffer(GL_UNIFORM_BUFFER, buffer.buffer);
-#if GL_ES || MAC // this is faster for GL ES and Mac (slower for GL)
+#if MAC || LINUX || GL_ES // this is faster for Mac, Linux and GL ES (slower for Win GL)
    glBufferData(GL_UNIFORM_BUFFER, buffer.size, data, GL_STREAM_DRAW);
-#else // this is faster for GL (slower for GL ES)
-   //if(Kb.ctrl())glBufferData(GL_UNIFORM_BUFFER, buffer.size, data, GL_STREAM_DRAW);else
+#else // this is faster for Win GL
    glBufferSubData(GL_UNIFORM_BUFFER, 0, buffer.size, data);
 #endif
 #endif
