@@ -63,7 +63,8 @@ struct ConeM // Cone Shape (mixed precision)
    ConeM(Flt r_low, Flt r_high, Flt h, C VecD &pos=0, C Vec &up=Vec(0,1,0)) {set(r_low, r_high, h, pos, up);}
 };
 /******************************************************************************/
-Bool Cuts(C Vec &point, C Cone &cone); // if point cuts cone
+Bool Cuts(C Vec  &point, C Cone  &cone); // if point cuts cone
+Bool Cuts(C VecD &point, C ConeM &cone); // if point cuts cone
 
 Flt Dist(C Vec  &point, C Cone  &cone); // distance between point and a cone
 Dbl Dist(C VecD &point, C ConeM &cone); // distance between point and a cone

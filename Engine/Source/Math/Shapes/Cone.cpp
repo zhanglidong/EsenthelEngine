@@ -110,6 +110,19 @@ Bool Cuts(C Vec &point, C Cone &cone)
    }
    return false;
 }
+Bool Cuts(C VecD &point, C ConeM &cone)
+{
+   Dbl z=DistPointPlane(point, cone.pos, cone.up);
+   if( z>=0 && z<=cone.h)
+   {
+      VecD   on_line=cone.pos+cone.up*z;
+      Flt    dist2  =Dist2(point, on_line),
+             r2     =Sqr  ((cone.h>0) ? Lerp(cone.r_low, cone.r_high, Flt(z)/cone.h) : Max(cone.r_low, cone.r_high));
+      return dist2<=r2;
+   }
+   return false;
+}
+/******************************************************************************/
 Flt Dist(C Vec &point, C Cone &cone)
 {
    Flt z        =DistPointPlane(point, cone.pos, cone.up);
