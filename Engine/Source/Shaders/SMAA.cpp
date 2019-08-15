@@ -30,7 +30,7 @@ void SMAAEdge_VS(VtxInput vtx,
      NOPERSP out Vec4 offset[3]:TEXCOORD1,
      NOPERSP out Vec4 position :POSITION )
 {
-   position=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   position=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
    texcoord=vtx.tex();
    SMAAEdgeDetectionVS(texcoord, offset);
 }
@@ -40,7 +40,7 @@ void SMAABlend_VS(VtxInput vtx,
       NOPERSP out Vec4 offset[3]:TEXCOORD2,
       NOPERSP out Vec4 position :POSITION )
 {
-   position=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   position=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
    texcoord=vtx.tex();
    SMAABlendingWeightCalculationVS(texcoord, pixcoord, offset);
 }
@@ -49,7 +49,7 @@ void SMAA_VS(VtxInput vtx,
  NOPERSP out Vec4 offset  :TEXCOORD1,
  NOPERSP out Vec4 position:POSITION )
 {
-   position=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   position=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
    texcoord=vtx.tex();
    SMAANeighborhoodBlendingVS(texcoord, offset);
 }
@@ -96,7 +96,7 @@ void MLAA_VS(VtxInput vtx,
  NOPERSP out Vec4 outTexOffset[2]:TEXCOORD1,
  NOPERSP out Vec4 outVtx         :POSITION )
 {
-   outVtx         =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   outVtx         =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
    outTex         =vtx.tex();
    outTexOffset[0]=RTSize.xyxy*Vec4(-1, 0, 0,-1)+outTex.xyxy;
    outTexOffset[1]=RTSize.xyxy*Vec4( 1, 0, 0, 1)+outTex.xyxy;

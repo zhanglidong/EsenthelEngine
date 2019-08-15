@@ -73,7 +73,7 @@ void ClearSkyVel_VS(VtxInput vtx,
 #endif
 
    outVel.w=0;
-   outVtx  =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   outVtx  =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
 VecH4 ClearSkyVel_PS(NOPERSP VecH4 inVel:TEXCOORD):TARGET {return inVel;} // yes, per-vertex precision is enough, as it generates the same results as if drawing a half sky ball mesh (results with the half ball mesh were the same as the one from this pixel shader)
 /******************************************************************************/

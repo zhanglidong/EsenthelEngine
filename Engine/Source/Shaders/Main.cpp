@@ -44,7 +44,7 @@ void SetCol_VS(VtxInput vtx,
    NOPERSP out Vec4  outVtx:POSITION)
 {
    outCol=Color[0];
-   outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
 VecH4 SetCol_PS(NOPERSP VecH4 inCol:COLOR):TARGET {return inCol;}
 /******************************************************************************/

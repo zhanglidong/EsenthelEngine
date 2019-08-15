@@ -137,17 +137,21 @@
 
 #define REVERSE_DEPTH (!GL) // if Depth Buffer is reversed, GL uses different depth range -1..1
 #if     REVERSE_DEPTH
-   #define DEPTH_MIN Max
-   #define DEPTH_MAX Min
-   #define DEPTH_FOREGROUND(x) ((x)> 0.0)
-   #define DEPTH_BACKGROUND(x) ((x)<=0.0)
+   #define Z_FRONT             1.0
+   #define Z_BACK              0.0
+   #define DEPTH_MIN           Max
+   #define DEPTH_MAX           Min
+   #define DEPTH_FOREGROUND(x) ((x)> Z_BACK)
+   #define DEPTH_BACKGROUND(x) ((x)<=Z_BACK)
    #define DEPTH_SMALLER(x, y) ((x)> (y))
    #define DEPTH_DEC(x, y)     ((x)+=(y))
 #else
-   #define DEPTH_MIN Min
-   #define DEPTH_MAX Max
-   #define DEPTH_FOREGROUND(x) ((x)< 1.0)
-   #define DEPTH_BACKGROUND(x) ((x)>=1.0)
+   #define Z_FRONT             0.0
+   #define Z_BACK              1.0
+   #define DEPTH_MIN           Min
+   #define DEPTH_MAX           Max
+   #define DEPTH_FOREGROUND(x) ((x)< Z_BACK)
+   #define DEPTH_BACKGROUND(x) ((x)>=Z_BACK)
    #define DEPTH_SMALLER(x, y) ((x)< (y))
    #define DEPTH_DEC(x, y)     ((x)-=(y))
 #endif
@@ -1055,14 +1059,14 @@ struct VtxInput // Vertex Input, use this class to access vertex data in vertex 
 void DrawPixel_VS(VtxInput vtx,
       NOPERSP out Vec4 outVtx:POSITION)
 {
-   outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
 void Draw_VS(VtxInput vtx,
  NOPERSP out Vec2 outTex:TEXCOORD0,
  NOPERSP out Vec4 outVtx:POSITION )
 {
    outTex=vtx.tex();
-   outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
 void DrawPosXY_VS(VtxInput vtx,
       NOPERSP out Vec2 outTex  :TEXCOORD0,
@@ -1071,7 +1075,7 @@ void DrawPosXY_VS(VtxInput vtx,
 {
    outTex  =vtx.tex();
    outPosXY=ScreenToPosXY(outTex);
-   outVtx  =Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   outVtx  =Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 }
 void Draw2DTex_VS(VtxInput vtx,
       NOPERSP out Vec2 outTex:TEXCOORD,

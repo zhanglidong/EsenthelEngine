@@ -193,6 +193,9 @@ Shader* MainShaderClass::getDrawLightDir   (Bool shadow, Bool multi_sample, Bool
 Shader* MainShaderClass::getDrawLightPoint (Bool shadow, Bool multi_sample, Bool quality            ) {return get(S8+"DrawLightPoint" +shadow+multi_sample+(quality && !multi_sample)      +GL_ES);} // MSAA doesn't have quality version (to make it faster)
 Shader* MainShaderClass::getDrawLightLinear(Bool shadow, Bool multi_sample, Bool quality            ) {return get(S8+"DrawLightLinear"+shadow+multi_sample+(quality && !multi_sample)      +GL_ES);} // MSAA doesn't have quality version (to make it faster)
 Shader* MainShaderClass::getDrawLightCone  (Bool shadow, Bool multi_sample, Bool quality, Bool image) {return get(S8+"DrawLightCone"  +shadow+multi_sample+(quality && !multi_sample)+image+GL_ES);} // MSAA doesn't have quality version (to make it faster)
+#if !DEPTH_CLIP_SUPPORTED
+Shader* MainShaderClass::getDrawLightConeFlat(Bool shadow, Bool multi_sample, Bool quality, Bool image) {return get(S8+"DrawLightConeFlat"+shadow+multi_sample+(quality && !multi_sample)+image);} // MSAA doesn't have quality version (to make it faster)
+#endif
 
 Shader* MainShaderClass::getApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade, Bool glow) {return get(S8+"ApplyLight"+multi_sample+ao+cel_shade+night_shade+glow);}
 
@@ -566,10 +569,14 @@ void MainShaderClass::getTechniques()
       REPD(shadow      , 2)
       REPD(quality     , 2)
       {
-                       DrawLightDir   [shadow][multi_sample][quality]       =getDrawLightDir   (shadow, multi_sample, quality);
-                       DrawLightPoint [shadow][multi_sample][quality]       =getDrawLightPoint (shadow, multi_sample, quality);
-                       DrawLightLinear[shadow][multi_sample][quality]       =getDrawLightLinear(shadow, multi_sample, quality);
-         REPD(image, 2)DrawLightCone  [shadow][multi_sample][quality][image]=getDrawLightCone  (shadow, multi_sample, quality, image);
+                        DrawLightDir   [shadow][multi_sample][quality]       =getDrawLightDir   (shadow, multi_sample, quality);
+                        DrawLightPoint [shadow][multi_sample][quality]       =getDrawLightPoint (shadow, multi_sample, quality);
+                        DrawLightLinear[shadow][multi_sample][quality]       =getDrawLightLinear(shadow, multi_sample, quality);
+         REPD(image, 2){DrawLightCone  [shadow][multi_sample][quality][image]=getDrawLightCone  (shadow, multi_sample, quality, image);
+                     #if !DEPTH_CLIP_SUPPORTED
+                        DrawLightConeFlat[shadow][multi_sample][quality][image]=getDrawLightConeFlat(shadow, multi_sample, quality, image);
+                     #endif
+                       }
       }
 
       // COL LIGHT

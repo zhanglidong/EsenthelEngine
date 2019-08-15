@@ -301,6 +301,10 @@ struct MainShaderClass
    Shader* getDrawLightPoint (Bool shadow, Bool multi_sample, Bool quality);
    Shader* getDrawLightLinear(Bool shadow, Bool multi_sample, Bool quality);
    Shader* getDrawLightCone  (Bool shadow, Bool multi_sample, Bool quality, Bool image);
+#if !DEPTH_CLIP_SUPPORTED
+   Shader *   DrawLightConeFlat[2][2][2][2]; // [Shadow] [MultiSample] [QualityUnpack] [Image]
+   Shader* getDrawLightConeFlat(Bool shadow, Bool multi_sample, Bool quality, Bool image);
+#endif
 
    // APPLY LIGHT
    Shader

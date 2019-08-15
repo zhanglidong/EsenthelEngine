@@ -241,12 +241,13 @@ static void Compile(API api)
       REPD(multi_sample, ms ? 2 : 1)
       REPD(quality     , multi_sample ? 1 : 2) // no Quality version for MSAA
       {
-                          src.New("DrawLightDir"   , "DrawPosXY_VS", "LightDir_PS"   ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality                ); // Directional light is always fullscreen, so can use 2D shader
+                           src.New("DrawLightDir"     , "DrawPosXY_VS", "LightDir_PS"   ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality                ); // Directional light is always fullscreen, so can use 2D shader
          REPD(gl_es, (api==API_GL) ? 2 : 1)
          {
-                          src.New("DrawLightPoint" , "VS"          , "LightPoint_PS" ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality                )("GL_ES", gl_es); // 3D Geom Mesh
-                          src.New("DrawLightLinear", "VS"          , "LightLinear_PS").multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality                )("GL_ES", gl_es); // 3D Geom Mesh
-            REPD(image, 2)src.New("DrawLightCone"  , "VS"          , "LightCone_PS"  ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality, "IMAGE", image)("GL_ES", gl_es); // 3D Geom Mesh
+                           src.New("DrawLightPoint"   , "VS"          , "LightPoint_PS" ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality                )("GL_ES", gl_es);  // 3D Geom Mesh
+                           src.New("DrawLightLinear"  , "VS"          , "LightLinear_PS").multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality                )("GL_ES", gl_es);  // 3D Geom Mesh
+            REPD(image, 2){src.New("DrawLightCone"    , "VS"          , "LightCone_PS"  ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality, "IMAGE", image)("GL_ES", gl_es);  // 3D Geom Mesh
+                  if(gl_es)src.New("DrawLightConeFlat", "DrawPosXY_VS", "LightCone_PS"  ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality, "IMAGE", image)                ;} // 2D Flat
          }
       }
    }

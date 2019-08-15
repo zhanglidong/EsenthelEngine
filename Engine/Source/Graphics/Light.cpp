@@ -425,7 +425,7 @@ static void ApplyVolumetric(LightCone &light)
    }
 }
 /******************************************************************************/
-static Bool StereoCurrentLightRect() // this relies on current Viewport, Camera Matrix and 'Frustum' (actually right now 'toScreenRect' are based on 'FrustumMain' so we don't have to restore 'Frustum')
+static Bool StereoCurrentLightRect() // this relies on current Viewport, Camera Matrix and 'Frustum' (!! Actually right now 'toScreenRect' are based on 'FrustumMain' so we don't have to restore 'Frustum' !!)
 {
    if(!CurrentLight.toScreenRect(CurrentLight.rect))return false;
 
@@ -983,6 +983,9 @@ INLINE Shader* GetDrawLightDir   (Bool shadow, Bool multi_sample, Bool quality  
 INLINE Shader* GetDrawLightPoint (Bool shadow, Bool multi_sample, Bool quality            ) {Shader* &s=Sh.DrawLightPoint [shadow][multi_sample][quality]       ; if(SLOW_SHADER_LOAD && !s)s=Sh.getDrawLightPoint (shadow, multi_sample, quality       ); return s;}
 INLINE Shader* GetDrawLightLinear(Bool shadow, Bool multi_sample, Bool quality            ) {Shader* &s=Sh.DrawLightLinear[shadow][multi_sample][quality]       ; if(SLOW_SHADER_LOAD && !s)s=Sh.getDrawLightLinear(shadow, multi_sample, quality       ); return s;}
 INLINE Shader* GetDrawLightCone  (Bool shadow, Bool multi_sample, Bool quality, Bool image) {Shader* &s=Sh.DrawLightCone  [shadow][multi_sample][quality][image]; if(SLOW_SHADER_LOAD && !s)s=Sh.getDrawLightCone  (shadow, multi_sample, quality, image); return s;}
+#if !DEPTH_CLIP_SUPPORTED
+INLINE Shader* GetDrawLightConeFlat(Bool shadow, Bool multi_sample, Bool quality, Bool image) {Shader* &s=Sh.DrawLightConeFlat[shadow][multi_sample][quality][image]; if(SLOW_SHADER_LOAD && !s)s=Sh.getDrawLightConeFlat(shadow, multi_sample, quality, image); return s;}
+#endif
 /******************************************************************************/
 static void DrawLightDir(Bool multi_sample, Bool quality)
 {
@@ -1017,15 +1020,10 @@ static void DrawLightLinear(C MatrixM &light_matrix, Bool multi_sample, Bool qua
 }
 static void DrawLightCone(C MatrixM &light_matrix, Bool multi_sample, Bool quality)
 {
+   // Geom
    Shader *shader=GetDrawLightCone(CurrentLight.shadow, multi_sample, quality, CurrentLight.image?1:0);
-#if 1 // Geom
    shader->startTex(); LightMeshCone.set();
    REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye()){SetFastMatrix(light_matrix); shader->commit(); LightMeshCone.draw();}
-#else // Flat, would have to use "DrawPosXY_VS" Vertex Shader
-   D.depth2DOn();
-   REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())shader->draw(&CurrentLight.rect);
-   if(TEST_LIGHT_RECT)REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect);
-#endif
 }
 /******************************************************************************/
 static Bool LightFrontFaceBall(Flt range, C VecD &light_pos)

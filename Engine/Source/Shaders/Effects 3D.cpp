@@ -211,7 +211,7 @@ void Decal_VS(VtxInput vtx,
 #endif
 
 #if FULLSCREEN
-   outVtx=Vec4(vtx.pos2(), !REVERSE_DEPTH, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+   outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
 #else
    outVtx=Project(TransformPos(vtx.pos()));
 #endif
