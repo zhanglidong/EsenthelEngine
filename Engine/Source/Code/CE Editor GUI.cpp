@@ -346,6 +346,7 @@ static void Preview(Viewport &viewport) {((CodeEditor::Options::FontEditor*)view
 
    rect.draw(WHITE);
    D.text(ts, rect.extend(-0.01f), Replace(params.sample_text, "\\n", "\n"));
+   D.flush(); // needed for Mac
 }
 static Bool Make(Thread &thread) {return (*(CodeEditor::Options::FontEditor*)thread.user).make();}
        Bool CodeEditor::Options::FontEditor::make()
