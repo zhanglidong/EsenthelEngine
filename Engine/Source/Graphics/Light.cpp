@@ -1049,6 +1049,15 @@ static Bool LightFrontFace(C PyramidM &pyramid)
    }
    return front_face;
 }
+static void SetLightMatrixCone(MatrixM &light_matrix, Bool front_face)
+{
+   Flt s=CurrentLight.cone.pyramid.h*CurrentLight.cone.pyramid.scale;
+   light_matrix.orn().setDir(CurrentLight.cone.pyramid.dir);
+   light_matrix.x *=(front_face ? s : -s); // reverse faces
+   light_matrix.y *=s;
+   light_matrix.z *=CurrentLight.cone.pyramid.h;
+   light_matrix.pos=CurrentLight.cone.pyramid.pos;
+}
 /******************************************************************************/
 void Light::draw()
 {
@@ -1302,7 +1311,7 @@ void Light::draw()
          }
          Bool    front_face =LightFrontFace(CurrentLight.cone.pyramid);
          UInt    depth_func =(front_face ? FUNC_LESS : FUNC_GREATER);
-         MatrixM light_matrix; // FIXME reverse faces
+         MatrixM light_matrix; SetLightMatrixCone(light_matrix, front_face);
          D.depthClip(front_face); // Warning: not available on GL ES
          SetMatrixCount(); // needed for drawing light mesh
 
@@ -1647,7 +1656,7 @@ void Light::drawForward(ALPHA_MODE alpha)
             Sh.Depth->set(Renderer._water_ds); // set water depth
             Bool    front_face =LightFrontFace(CurrentLight.cone.pyramid);
             UInt    depth_func =(front_face ? FUNC_LESS : FUNC_GREATER);
-            MatrixM light_matrix; // FIXME reverse faces
+            MatrixM light_matrix; SetLightMatrixCone(light_matrix, front_face);
             D.depthClip(front_face); // Warning: not available on GL ES
             SetMatrixCount(); // needed for drawing light mesh
 
