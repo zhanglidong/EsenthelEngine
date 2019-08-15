@@ -355,7 +355,7 @@ void ShaderBuffer::update()
          D3DC ->UpdateSubresource (buffer.buffer, 0, null, data, 0, 0);
 #elif GL
    glBindBuffer(GL_UNIFORM_BUFFER, buffer.buffer);
-#if GL_ES // this is faster for GL ES (slower for GL)
+#if GL_ES || MAC // this is faster for GL ES and Mac (slower for GL)
    glBufferData(GL_UNIFORM_BUFFER, buffer.size, data, GL_STREAM_DRAW);
 #else // this is faster for GL (slower for GL ES)
    glBufferSubData(GL_UNIFORM_BUFFER, 0, buffer.size, data);
@@ -770,6 +770,9 @@ UInt ShaderVSGL::create(Bool clean, Str *messages)
             "#define noperspective\n"                 // 'noperspective'   not available on GL ES
             "#define gl_ClipDistance ClipDistance\n", // 'gl_ClipDistance' not available on GL ES
          #endif
+         #if LINUX
+            "#define mediump\n#define highp\n#define precision\n", // Linux drivers fail to process constants VS "mediump float v;" PS "precision mediump float; float v;"
+         #endif
             code
          };
          UInt vs=glCreateShader(GL_VERTEX_SHADER); if(!vs)Exit("Can't create GL_VERTEX_SHADER"); // create into temp var first and set to this only after fully initialized
@@ -810,6 +813,9 @@ UInt ShaderPSGL::create(Bool clean, Str *messages)
             GLSLVersion(), // version must be first
          #if GL_ES
             "#define noperspective\n", // 'noperspective' not available on GL ES
+         #endif
+         #if LINUX
+            "#define mediump\n#define highp\n#define precision\n", // Linux drivers fail to process constants VS "mediump float v;" PS "precision mediump float; float v;"
          #endif
             code
          };
