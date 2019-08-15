@@ -455,8 +455,8 @@ static Bool ToFullScreenRect(C Vec *point, C VecI2 *edge, Int edges, Rect &rect)
       if(d0>=0 || d1>=0)
       {
          Vec2 screen;
-         PosToScreen((d0<0) ? PointOnPlane(e0, e1, d0, d1) : e0, screen); if(NO_BRANCH)rect.include(screen);else if(in)rect.validInclude(screen);else{rect=screen; in=true;}
-         PosToScreen((d1<0) ? PointOnPlane(e0, e1, d0, d1) : e1, screen);                                              rect.validInclude(screen);
+         PosToFullScreen((d0<0) ? PointOnPlane(e0, e1, d0, d1) : e0, screen); if(NO_BRANCH)rect.include(screen);else if(in)rect.validInclude(screen);else{rect=screen; in=true;}
+         PosToFullScreen((d1<0) ? PointOnPlane(e0, e1, d0, d1) : e1, screen);                                              rect.validInclude(screen);
       }
    }
    return NO_BRANCH ? rect.validX() : in;
@@ -475,8 +475,8 @@ static Bool ToFullScreenRect(C VecD *point, C VecI2 *edge, Int edges, Rect &rect
       if(d0>=0 || d1>=0)
       {
          Vec2 screen;
-         PosToScreen((d0<0) ? PointOnPlane(e0, e1, d0, d1) : e0, screen); if(NO_BRANCH)rect.include(screen);else if(in)rect.validInclude(screen);else{rect=screen; in=true;}
-         PosToScreen((d1<0) ? PointOnPlane(e0, e1, d0, d1) : e1, screen);                                              rect.validInclude(screen);
+         PosToFullScreen((d0<0) ? PointOnPlane(e0, e1, d0, d1) : e0, screen); if(NO_BRANCH)rect.include(screen);else if(in)rect.validInclude(screen);else{rect=screen; in=true;}
+         PosToFullScreen((d1<0) ? PointOnPlane(e0, e1, d0, d1) : e1, screen);                                              rect.validInclude(screen);
       }
    }
    return NO_BRANCH ? rect.validX() : in;
@@ -775,37 +775,19 @@ static const VecI2 PyramidEdges[]=
 Bool ToScreenRect(C Pyramid &pyramid, Rect &rect)
 {
    if(Cuts(CamMatrix.pos, pyramid)){rect=D.viewRect(); return true;}
-
-   Vec point[5], x=pyramid.cross();
-   point[0]=pyramid.pos;
-   point[1]=pyramid.pos+(pyramid.dir+(-x+pyramid.perp)*pyramid.scale)*pyramid.h;
-   point[2]=pyramid.pos+(pyramid.dir+( x+pyramid.perp)*pyramid.scale)*pyramid.h;
-   point[3]=pyramid.pos+(pyramid.dir+( x-pyramid.perp)*pyramid.scale)*pyramid.h;
-   point[4]=pyramid.pos+(pyramid.dir+(-x-pyramid.perp)*pyramid.scale)*pyramid.h;
+   Vec point[5]; pyramid.toCorners(point);
    return ToScreenRect(point, PyramidEdges, Elms(PyramidEdges), rect);
 }
 Bool ToFullScreenRect(C Pyramid &pyramid, Rect &rect)
 {
    if(Cuts(CamMatrix.pos, pyramid)){rect=D.viewRect(); return true;}
-
-   Vec point[5], x=pyramid.cross();
-   point[0]=pyramid.pos;
-   point[1]=pyramid.pos+(pyramid.dir+(-x+pyramid.perp)*pyramid.scale)*pyramid.h;
-   point[2]=pyramid.pos+(pyramid.dir+( x+pyramid.perp)*pyramid.scale)*pyramid.h;
-   point[3]=pyramid.pos+(pyramid.dir+( x-pyramid.perp)*pyramid.scale)*pyramid.h;
-   point[4]=pyramid.pos+(pyramid.dir+(-x-pyramid.perp)*pyramid.scale)*pyramid.h;
+   Vec point[5]; pyramid.toCorners(point);
    return ToFullScreenRect(point, PyramidEdges, Elms(PyramidEdges), rect);
 }
 Bool ToFullScreenRect(C PyramidM &pyramid, Rect &rect)
 {
    if(Cuts(CamMatrix.pos, pyramid)){rect=D.viewRect(); return true;}
-
-   VecD point[5]; Vec x=pyramid.cross();
-   point[0]=pyramid.pos;
-   point[1]=pyramid.pos+(pyramid.dir+(-x+pyramid.perp)*pyramid.scale)*pyramid.h;
-   point[2]=pyramid.pos+(pyramid.dir+( x+pyramid.perp)*pyramid.scale)*pyramid.h;
-   point[3]=pyramid.pos+(pyramid.dir+( x-pyramid.perp)*pyramid.scale)*pyramid.h;
-   point[4]=pyramid.pos+(pyramid.dir+(-x-pyramid.perp)*pyramid.scale)*pyramid.h;
+   VecD point[5]; pyramid.toCorners(point);
    return ToFullScreenRect(point, PyramidEdges, Elms(PyramidEdges), rect);
 }
 Bool ToScreenRect(C Shape &shape, Rect &rect)

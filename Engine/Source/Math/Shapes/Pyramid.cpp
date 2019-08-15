@@ -57,6 +57,7 @@ void Pyramid::toCorners(Vec (&v)[5])C
        z     =dir    * h,
        center=pos    + z;
 
+   // !! Do not change order as it affects 'draw' and 'PyramidEdges' for 'ToScreenRect' !!
    v[0]=pos;
    v[1]=center-x+y;
    v[2]=center+x+y;
@@ -70,6 +71,7 @@ void PyramidM::toCorners(VecD (&v)[5])C
         z     =dir    * h;
    VecD center=pos    + z;
 
+   // !! Do not change order as it affects 'draw' and 'PyramidEdges' for 'ToScreenRect' !!
    v[0]=pos;
    v[1]=center-x+y;
    v[2]=center+x+y;
