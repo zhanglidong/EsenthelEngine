@@ -840,13 +840,15 @@ private:
 }extern
    EmulatedThreads;
 
-   #if HAS_THREADS
-      INLINE void UpdateThreads() {}
-   #else
-      INLINE void UpdateThreads() {EmulatedThreads.update();}
-   #endif
+#if HAS_THREADS
+   INLINE void UpdateThreads() {}
+#else
+   INLINE void UpdateThreads() {EmulatedThreads.update();}
+#endif
 
-        INLINE UIntPtr _GetThreadId() {return PLATFORM(GetCurrentThreadId(), (UIntPtr)pthread_self());}
-   #define GetThreadId _GetThreadId // use this macro so all engine functions access '_GetThreadId' directly
+     INLINE UIntPtr _GetThreadId() {return PLATFORM(GetCurrentThreadId(), (UIntPtr)pthread_self());}
+#define GetThreadId _GetThreadId // use this macro so all engine functions access '_GetThreadId' directly
+
+INLINE void Yield() {std::this_thread::yield();}
 #endif
 /******************************************************************************/

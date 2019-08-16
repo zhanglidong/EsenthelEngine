@@ -134,60 +134,6 @@
       #define Font         WindowsFont
       #define FontPtr      WindowsFontPtr
       #define _ALLOW_RTCc_IN_STL
-
-      #pragma warning(disable:4091) // 'typedef ': ignored on left of '' when no variable is declared
-      #include <stdio.h>
-      #include <new.h>
-      #include <typeinfo>
-      #include <type_traits>
-      #include <atomic>
-      #include <process.h>
-      #include <winsock2.h>
-      #include <ws2tcpip.h>
-      #include <windows.h>
-      #include <io.h>
-      #include <share.h>
-      #include <fcntl.h>
-      #include <sys/stat.h>
-      #include <intrin.h>
-      #include <locale.h>
-      #include <IPHlpApi.h>
-      #if WINDOWS_OLD
-         #include <shlobj.h>
-         #include <psapi.h>
-         #include <wbemidl.h>
-         #include <tlhelp32.h>
-         #define SECURITY_WIN32
-         #include <Security.h>
-         #include <comdef.h>
-      #else
-         #include <collection.h>
-         #include <ppltasks.h>
-         #include <mmdeviceapi.h>
-         #include <audioclient.h>
-         #include <wrl/implements.h>
-      #endif
-      #if OPEN_AL
-         #include "../../../ThirdPartyLibs/OpenAL for Windows/al.h"
-         #include "../../../ThirdPartyLibs/OpenAL for Windows/alc.h"
-      #endif
-      #include <xinput.h>
-      #if WINDOWS_OLD
-         #define DIRECTINPUT_VERSION 0x0800
-         #include <dinput.h>
-      #endif
-      #if DIRECT_SOUND || DIRECT_SOUND_RECORD
-         #include <dsound.h>
-      #endif
-      #if XAUDIO
-         #if WINDOWS_NEW // this only supports Windows 8 and newer
-            #include <xaudio2.h>
-            #include <x3daudio.h>
-         #else // to support Windows 7 and older
-            #include "../../../ThirdPartyLibs/DirectX/DirectX SDK June 2010/xaudio2.h"
-            #include "../../../ThirdPartyLibs/DirectX/DirectX SDK June 2010/X3DAudio.h"
-         #endif
-      #endif
    #elif APPLE // Apple
       #define Ptr       ApplePtr
       #define Point     ApplePoint
@@ -207,89 +153,81 @@
       #define Region LinuxRegion
       #define Window XWindow
       #define Cursor XCursor
-   #elif ANDROID // Android
-      #include <stdio.h>
-      #include <new>
-      #include <typeinfo>
-      #include <type_traits>
-      #include <atomic>
-      #include <fcntl.h>
-      #include <stdlib.h>
-      #include <unistd.h>
-      #include <pthread.h>
-      #include <signal.h>
-      #include <locale.h>
-      #include <errno.h>
-      #include <wctype.h>
-      #include <dirent.h>
-      #include <sys/types.h>
-      #include <sys/stat.h>
-      #include <sys/time.h>
-      #include <sys/mount.h>
-      #include <sys/ioctl.h>
-      #include <sys/socket.h>
-      #include <sys/wait.h>
-      #include <netdb.h>
-      #include <netinet/in.h>
-      #include <netinet/tcp.h>
-      #include <linux/if.h>
-      #include <arpa/inet.h>
-      #include <android/log.h>
-      #include <android/sensor.h>
-      #include <android/asset_manager.h>
-      #include <android/api-level.h> // needed for __ANDROID_API__
-      #include <android_native_app_glue.h>
-      #include <SLES/OpenSLES.h>
-      #include <SLES/OpenSLES_Android.h>
-   #if __ANDROID_API__>=21
-      #include <sys/statvfs.h>
-   #endif
-      #undef LOCK_READ
-      #undef LOCK_WRITE
    #endif
 
-   // Renderer
-   #if WINDOWS // always include on Windows to support shader compilation
+   #include <stdio.h>
+   #include <new>
+   #include <typeinfo>
+   #include <type_traits>
+   #include <atomic>
+   #include <thread>
+   #include <fcntl.h>
+   #include <locale.h>
+   #include <string.h>
+
+   #if WINDOWS
+      #include <winsock2.h>
+      #include <ws2tcpip.h>
+      #include <process.h>
+      #include <windows.h>
+      #include <io.h>
+      #include <share.h>
+      #include <sys/stat.h>
+      #include <intrin.h>
+      #include <IPHlpApi.h>
+      #if WINDOWS_OLD
+         #include <shlobj.h>
+         #include <psapi.h>
+         #include <wbemidl.h>
+         #include <tlhelp32.h>
+         #define SECURITY_WIN32
+         #include <Security.h>
+         #include <comdef.h>
+      #else
+         #include <collection.h>
+         #include <ppltasks.h>
+         #include <mmdeviceapi.h>
+         #include <audioclient.h>
+         #include <wrl/implements.h>
+      #endif
+
+      #include <xinput.h>
+      #if WINDOWS_OLD
+         #define DIRECTINPUT_VERSION 0x0800
+         #include <dinput.h>
+      #endif
+
+      #if DIRECT_SOUND || DIRECT_SOUND_RECORD
+         #include <dsound.h>
+      #endif
+
+      #if XAUDIO
+         #if WINDOWS_NEW // this only supports Windows 8 and newer
+            #include <xaudio2.h>
+            #include <x3daudio.h>
+         #else // to support Windows 7 and older
+            #include "../../../ThirdPartyLibs/DirectX/DirectX SDK June 2010/xaudio2.h"
+            #include "../../../ThirdPartyLibs/DirectX/DirectX SDK June 2010/X3DAudio.h"
+         #endif
+      #endif
+
+      #if OPEN_AL
+         #include "../../../ThirdPartyLibs/OpenAL for Windows/al.h"
+         #include "../../../ThirdPartyLibs/OpenAL for Windows/alc.h"
+      #endif
+
+      // always include these Windows to support shader compilation
       #include <d3dcompiler.h>
       #include <d3d11_4.h>
-   #endif
-   #if DX11 // DirectX 11
-      #include <dxgi1_6.h>
-      #include <d3dcommon.h>
-   #elif GL // OpenGL
-      #if WINDOWS
+      #if DX11 // DirectX 11
+         #include <dxgi1_6.h>
+         #include <d3dcommon.h>
+      #elif GL // OpenGL
          #define  GLEW_STATIC
          #include "../../../ThirdPartyLibs/GL/glew.h"
          #include "../../../ThirdPartyLibs/GL/wglew.h"
-      #elif MAC
-         #include <OpenGL/gl3.h>
-         #include <OpenGL/gl3ext.h>
-      #elif LINUX
-         #define GL_GLEXT_PROTOTYPES
-         #define GLX_GLXEXT_PROTOTYPES
-         #include <GL/gl.h>
-         #include <GL/glext.h>
-         #include <GL/glx.h>
-      #elif ANDROID // Android OpenGL ES
-         #include <EGL/egl.h>
-         #include <EGL/eglext.h>
-         #include <GLES3/gl3.h>
-         #include <GLES3/gl3ext.h>
-      #elif IOS // iOS OpenGL ES
-         #include <UIKit/UIKit.h>
-         #include <QuartzCore/QuartzCore.h>
-         #include <OpenGLES/EAGL.h>
-         #include <OpenGLES/EAGLDrawable.h>
-         #include <OpenGLES/ES3/gl.h>
-         #include <OpenGLES/ES3/glext.h>
-      #elif WEB // WebGL
-         #define  GL_GLEXT_PROTOTYPES
-         #include <EGL/egl.h>
-         #include <GLES3/gl3.h>
       #endif
-   #endif
 
-   #if WINDOWS
       #undef GetComputerName
       #undef THIS
       #undef IGNORE
@@ -310,15 +248,8 @@
       #undef RGB
       #undef ReplaceText
       #undef FindText
-   #endif
-
-   #if APPLE // Mac, iOS
-      #include <stdio.h>
-      #include <new>
-      #include <typeinfo>
-      #include <type_traits>
-      #include <atomic>
-      #include <fcntl.h>
+      #undef Yield
+   #elif APPLE // Mac, iOS
       #include <stdlib.h>
       #include <unistd.h>
       #include <pthread.h>
@@ -326,8 +257,6 @@
       #include <errno.h>
       #include <wctype.h>
       #include <dirent.h>
-      #include <locale.h>
-      #include <string.h>
       #include <string>
       #include <sys/types.h>
       #include <sys/stat.h>
@@ -353,29 +282,41 @@
       #include <CoreFoundation/CoreFoundation.h>
       #include <StoreKit/StoreKit.h>
       #include <AudioToolbox/AudioToolbox.h>
-   #if MAC
-      #include <smmintrin.h>
-      #include <wmmintrin.h>
-      #include <CoreAudio/CoreAudio.h>
-      #include <net/if_types.h>
-      #include <IOKit/hid/IOHIDLib.h>
-      #include <IOKit/pwr_mgt/IOPMLib.h>
-      #include <Carbon/Carbon.h>
-      #include <OpenGL/OpenGL.h>
-      #ifdef __OBJC__
-         #include <Cocoa/Cocoa.h>
+      #if MAC
+         #include <smmintrin.h>
+         #include <wmmintrin.h>
+         #include <CoreAudio/CoreAudio.h>
+         #include <net/if_types.h>
+         #include <IOKit/hid/IOHIDLib.h>
+         #include <IOKit/pwr_mgt/IOPMLib.h>
+         #include <Carbon/Carbon.h>
+         #include <OpenGL/OpenGL.h>
+         #ifdef __OBJC__
+            #include <Cocoa/Cocoa.h>
+         #endif
+         #if GL
+            #include <OpenGL/gl3.h>
+            #include <OpenGL/gl3ext.h>
+         #endif
+      #elif IOS
+         #define IFT_ETHER 0x06 // iOS does not have this in headers
+         #include <UIKit/UIKit.h>
+         #include <QuartzCore/QuartzCore.h>
+         #include <CoreMotion/CoreMotion.h>
+         #include <CoreLocation/CoreLocation.h>
+         #include <AVFoundation/AVFoundation.h>
+         #include <AdSupport/ASIdentifierManager.h>
+         #include <FBSDKCoreKit/FBSDKCoreKit.h>
+         #include <FBSDKLoginKit/FBSDKLoginKit.h>
+         #include <FBSDKShareKit/FBSDKShareKit.h>
+         #include "../../../ThirdPartyLibs/Chartboost/Headers/Chartboost.h"
+         #if GL
+            #include <OpenGLES/EAGL.h>
+            #include <OpenGLES/EAGLDrawable.h>
+            #include <OpenGLES/ES3/gl.h>
+            #include <OpenGLES/ES3/glext.h>
+         #endif
       #endif
-   #elif IOS
-      #define IFT_ETHER 0x06 // iOS does not have this in headers
-      #include <CoreMotion/CoreMotion.h>
-      #include <CoreLocation/CoreLocation.h>
-      #include <AVFoundation/AVFoundation.h>
-      #include <AdSupport/ASIdentifierManager.h>
-      #include <FBSDKCoreKit/FBSDKCoreKit.h>
-      #include <FBSDKLoginKit/FBSDKLoginKit.h>
-      #include <FBSDKShareKit/FBSDKShareKit.h>
-      #include "../../../ThirdPartyLibs/Chartboost/Headers/Chartboost.h"
-   #endif
       #undef Ptr
       #undef Point
       #undef Cell
@@ -392,16 +333,8 @@
       #undef MIN
       #undef MAX
       #undef ABS
-   #endif
-
-   #if LINUX // Linux
-      #include <stdio.h>
-      #include <new>
+   #elif LINUX // Linux
       #include <malloc.h>
-      #include <typeinfo>
-      #include <type_traits>
-      #include <atomic>
-      #include <fcntl.h>
       #include <stdlib.h>
       #include <unistd.h>
       #include <pthread.h>
@@ -409,7 +342,6 @@
       #include <errno.h>
       #include <wctype.h>
       #include <dirent.h>
-      #include <locale.h>
       #include <cpuid.h>
       #include <pwd.h>
       #include <smmintrin.h>
@@ -429,7 +361,6 @@
       #include <ifaddrs.h>
       #include <linux/if.h>
       #include <arpa/inet.h>
-      #include <string.h>
       #include <X11/Xatom.h>
       #include <X11/XKBlib.h>
       #include <X11/Xmu/WinUtil.h>
@@ -437,6 +368,13 @@
       #include <X11/extensions/xf86vmode.h>
       #include <X11/extensions/XInput2.h>
       #include <Xm/MwmUtil.h>
+      #if GL
+         #define GL_GLEXT_PROTOTYPES
+         #define GLX_GLXEXT_PROTOTYPES
+         #include <GL/gl.h>
+         #include <GL/glext.h>
+         #include <GL/glx.h>
+      #endif
       #if OPEN_AL
          #include "AL/al.h"
          #include "AL/alc.h"
@@ -461,17 +399,7 @@
       #undef Success
       #undef B32
       #undef B16
-   #endif
-
-   #if WEB // Web
-      #include <emscripten.h>
-      #include <emscripten/html5.h>
-      #include <stdio.h>
-      #include <new>
-      #include <typeinfo>
-      #include <type_traits>
-      #include <atomic>
-      #include <fcntl.h>
+   #elif ANDROID // Android
       #include <stdlib.h>
       #include <unistd.h>
       #include <pthread.h>
@@ -479,7 +407,48 @@
       #include <errno.h>
       #include <wctype.h>
       #include <dirent.h>
-      #include <locale.h>
+      #include <sys/types.h>
+      #include <sys/stat.h>
+      #include <sys/time.h>
+      #include <sys/mount.h>
+      #include <sys/ioctl.h>
+      #include <sys/socket.h>
+      #include <sys/wait.h>
+      #include <netdb.h>
+      #include <netinet/in.h>
+      #include <netinet/tcp.h>
+      #include <linux/if.h>
+      #include <arpa/inet.h>
+      #include <android/log.h>
+      #include <android/sensor.h>
+      #include <android/asset_manager.h>
+      #include <android_native_app_glue.h>
+      #if GL
+         #include <EGL/egl.h>
+         #include <EGL/eglext.h>
+         #include <GLES3/gl3.h>
+         #include <GLES3/gl3ext.h>
+      #endif
+      #if OPEN_SL
+         #include <SLES/OpenSLES.h>
+         #include <SLES/OpenSLES_Android.h>
+      #endif
+      #include <android/api-level.h> // needed for __ANDROID_API__
+      #if __ANDROID_API__>=21
+         #include <sys/statvfs.h>
+      #endif
+      #undef LOCK_READ
+      #undef LOCK_WRITE
+   #elif WEB // Web
+      #include <emscripten.h>
+      #include <emscripten/html5.h>
+      #include <stdlib.h>
+      #include <unistd.h>
+      #include <pthread.h>
+      #include <signal.h>
+      #include <errno.h>
+      #include <wctype.h>
+      #include <dirent.h>
       #include <sys/types.h>
       #include <sys/stat.h>
       #include <sys/statvfs.h>
@@ -492,10 +461,14 @@
       #include <netinet/in.h>
       #include <netinet/tcp.h>
       #include <arpa/inet.h>
-      #include <string.h>
       #include <X11/Xatom.h>
       #include <X11/Xlib.h>
       #include <X11/Xutil.h>
+      #if GL
+         #define  GL_GLEXT_PROTOTYPES
+         #include <EGL/egl.h>
+         #include <GLES3/gl3.h>
+      #endif
       #if OPEN_AL
          #include "AL/al.h"
          #include "AL/alc.h"

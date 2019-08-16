@@ -708,7 +708,7 @@ void Thread::kill()
          stop(); resume(); wait();
       #endif
       #if !WINDOWS
-         for(; active(); )sched_yield(); // !! wait until '_active' was actually disabled, which means that 'Thread.func' has exited, without this wait we could potentially delete the thread and release its memory, while the thread func was still running and setting '_active' to false !!
+         for(; active(); )Yield(); // !! wait until '_active' was actually disabled, which means that 'Thread.func' has exited, without this wait we could potentially delete the thread and release its memory, while the thread func was still running and setting '_active' to false !!
       #endif
       }
    #if WINDOWS
