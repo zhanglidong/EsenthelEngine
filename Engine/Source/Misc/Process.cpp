@@ -563,7 +563,8 @@ Bool ConsoleProcess::create(C Str &name, C Str &params, Bool hidden, Bool binary
 
                   locker.off(); // UNLOCK, so we can create thread (which deletes if needed)
 
-                  if(!_thread.active() || exiting)_thread.create(ConsoleProcessFunc, this);
+                  if(!_thread.active() || exiting)
+                     if(!_thread.create(ConsoleProcessFunc, this))del();
                }
             }
             CloseHandle(in_read); in_read=null;
@@ -581,7 +582,8 @@ Bool ConsoleProcess::create(C Str &name, C Str &params, Bool hidden, Bool binary
 
          locker.off(); // UNLOCK, so we can create thread (which deletes if needed)
 
-         if(!_thread.active() || exiting)_thread.create(ConsoleProcessFunc, this);
+         if(!_thread.active() || exiting)
+            if(!_thread.create(ConsoleProcessFunc, this))del();
       }
    #endif
    }
