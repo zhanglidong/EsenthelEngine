@@ -702,12 +702,13 @@ void Thread::kill()
    {
       if(active())
       {
-      #if WINDOWS_NEW || ANDROID // WINDOWS_NEW doesn't have 'TerminateThread', ANDROID doesn't have 'pthread_cancel'
-         stop(); resume(); wait();
-      #elif WINDOWS_OLD
+      #if WINDOWS_OLD // WINDOWS_NEW doesn't have 'TerminateThread'
          TerminateThread(_handle, 0);
       #else
-         pthread_cancel(_handle);
+         stop(); resume(); wait();
+      #endif
+      #if !WINDOWS
+         for(; active(); )sched_yield(); // !! wait until '_active' was actually disabled, which means that 'Thread.func' has exited, without this wait we could potentially delete the thread and release its memory, while the thread func was still running and setting '_active' to false !!
       #endif
       }
    #if WINDOWS
@@ -715,7 +716,7 @@ void Thread::kill()
    #else
     //pthread_join(_handle, null); this has to be called for joinable threads to release system resources, but we use detached, which auto-release when threads finish
      _handle=NULL;
-   //_finished.off(); don't do this here, instead do it in 'create', to give other threads waiting for this one longer chance to detect finish
+   //_finished.off(); don't do this here, instead do it in 'create', to give other threads waiting for this one, a longer chance to detect finish
    #endif
      _resume.off();
       zero();
