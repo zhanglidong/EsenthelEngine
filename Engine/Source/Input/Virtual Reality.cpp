@@ -182,10 +182,10 @@ void   VirtualReality::draw     ()
       const Bool use_ds=false; // no need for depth buffer because we will only copy VR results
       Renderer._ui   =Renderer._cur_main   =&Renderer._main   ;
       Renderer._ui_ds=Renderer._cur_main_ds=&Renderer._main_ds;
-      Renderer.set(Renderer._cur_main, use_ds ? Renderer._cur_main_ds : null, false);
 
                            D._flip=Renderer._cur_main   ; // this will call 'discard', this is needed to hold ref count until 'D.flip' is called
       {ImageRTPtr ds; if(use_ds)ds=Renderer._cur_main_ds; // this will call 'discard', this is needed to hold ref count until DS is no longer needed
+         Renderer.set(Renderer._cur_main, ds, false); // set RT's after discarding
 
          D._allow_stereo=false; D.aspectRatioEx(true, true); Frustum.set(); // !! call in this order !!
 
@@ -212,7 +212,7 @@ void   VirtualReality::draw     ()
          }
       } // <- this will call 'Renderer._cur_main_ds.discard', because 'ds' is being deleted
 
-      Renderer.setMain(); // restore the main RT (that includes advancing to the next VR texture)
+      Renderer.setMain(); // restore the main RT (that includes advancing to the next VR texture) after discarding '_cur_main_ds'
       D._allow_stereo=true; D.aspectRatioEx(true, true); Frustum.set(); // !! call in this order !!
    }
 }

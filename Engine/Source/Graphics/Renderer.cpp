@@ -414,8 +414,8 @@ void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool dither)
    set(rt0, null, false); Rect ext_rect, *rect=null; if(!D._view_main.full){ext_rect=D.viewRect(); rect=&ext_rect.extend(Renderer.pixelToScreenSize(pixel.pixels+1));} // when not rendering entire viewport, then extend the rectangle because of blurs checking neighbors, add +1 because of texture filtering, we can ignore stereoscopic there because that's always disabled for not full viewports, have to use 'Renderer.pixelToScreenSize' and not 'D.pixelToScreenSize' and call after setting RT
    Sh.imgSize( src); GetDofDS(!D._view_main.full, D.dofFocusMode(), half_res)->draw(src, rect);
  //Sh.imgSize(*rt0); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
-   set(rt1, null, false);                 pixel.BlurX->draw(rt0, rect);
-   set(rt0, null, false); rt0->discard(); pixel.BlurY->draw(rt1, rect);
+                   set(rt1, null, false); pixel.BlurX->draw(rt0, rect);
+   rt0->discard(); set(rt0, null, false); pixel.BlurY->draw(rt1, rect);
 
    set(&dest, null, true);
    Sh.Img[1]->set(rt0);
@@ -1278,8 +1278,8 @@ void RendererClass::ao()
       if(D.ambientSoft()>=5)
       {
          ImageRTPtr temp; temp.get(rt_desc);
-         set(temp, depth, true, NEED_DEPTH_READ);                 Sh.ImgX[0]->set( _ao); Sh.ShdBlurX->draw(); // use DS for 'D.depth2D'
-         set( _ao, depth, true, NEED_DEPTH_READ); _ao->discard(); Sh.ImgX[0]->set(temp); Sh.ShdBlurY->draw(); // use DS for 'D.depth2D'
+                        set(temp, depth, true, NEED_DEPTH_READ); Sh.ImgX[0]->set( _ao); Sh.ShdBlurX->draw(); // use DS for 'D.depth2D'
+        _ao->discard(); set( _ao, depth, true, NEED_DEPTH_READ); Sh.ImgX[0]->set(temp); Sh.ShdBlurY->draw(); // use DS for 'D.depth2D'
       }else
       {
          ImageRTPtr src=_ao; _ao.get(rt_desc);
