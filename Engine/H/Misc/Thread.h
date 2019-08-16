@@ -697,12 +697,12 @@ struct ConsoleProcess // allows running console processes and reading their outp
    Str get(); // read new data that the console did output
 
   ~ConsoleProcess() {del(); _thread.del();} // make sure 'thread' is deleted before other members
-   ConsoleProcess() {_exiting=_binary=false; _exit_code=-1; _proc_id=0; _proc=_out_read=_in_write=PLATFORM(null, 0);}
+   ConsoleProcess() {_binary=_thread_exiting=_proc_exited=false; _exit_code=-1; _proc_id=0; _proc=_out_read=_in_write=PLATFORM(null, 0);}
 
 #if !EE_PRIVATE
 private:
 #endif
-   Bool               _exiting, _binary;
+   Bool               _binary, _thread_exiting, _proc_exited;
    Int                _exit_code;
    UInt               _proc_id;
 #if EE_PRIVATE

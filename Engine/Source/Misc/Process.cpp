@@ -2,6 +2,12 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
+#if !WINDOWS
+/* "A child that terminates, but has not been waited for becomes a "zombie"" - https://linux.die.net/man/2/waitpid
+   Remember unwaited-for Process ID's to wait for them later which will release some memory info about them */
+MemcThreadSafe<UInt> ZombiePIDs;
+#endif
+/******************************************************************************/
 void ProcPriority(Int priority)
 {
 #if WINDOWS_OLD
@@ -377,7 +383,11 @@ start:
    #else
       int  status; pid_t pid=waitpid(proc_id, &status, WNOHANG);
       Bool active=(pid==0);
-      if( !active)cp._exit_code=(WIFEXITED(status) ? WEXITSTATUS(status) : -1); // set while in lock to make sure we're setting for this process
+      if( !active)
+      {
+         cp._exit_code=(WIFEXITED(status) ? WEXITSTATUS(status) : -1); // set while in lock to make sure we're setting for this process
+         cp._proc_exited=true; // mark that the process has exited
+      }
    #endif
 
       locker.off(); // UNLOCK
@@ -454,18 +464,25 @@ start:
    #endif
       if(!same_process)goto start; // if started a different process, then process it instead of exiting thread
    }
-   cp._exiting=true; // have to operate on '_exiting' instead of 'Thread._active' which is outside of lock
+   cp._thread_exiting=true; // have to operate on '_thread_exiting' instead of 'Thread._active' which is outside of lock
    return false;
 }
 /******************************************************************************/
+#if !WINDOWS
+static void ProcessZombies()
+{
+      ZombiePIDs.  lock(); REPA(ZombiePIDs){int status; pid_t pid=waitpid(ZombiePIDs.lockedElm(i), &status, WNOHANG); Bool active=(pid==0); if(!active)ZombiePIDs.remove(i);}
+      ZombiePIDs.unlock();
+   if(ZombiePIDs.elms())App._callbacks.include(ProcessZombies); // queue again if we still have some zombies
+}
+#endif
 void ConsoleProcess::del()
 {
    stop(); // request process to close, but don't wait for it
 
    SyncLocker locker(_lock);
   _data.clear();
-  _exit_code=-1; _binary=false; // !! do not clear '_exiting' !!
-  _proc_id=0;
+  _exit_code=-1; _binary=false; // !! do not clear '_thread_exiting' !!
 #if WINDOWS
    if(_proc){CloseHandle(_proc); _proc=null;}
 
@@ -474,7 +491,14 @@ void ConsoleProcess::del()
 #else
    if(_out_read){close(_out_read); _out_read=0;}
    if(_in_write){close(_in_write); _in_write=0;}
+   if(_proc_id && !_proc_exited) // if we have a Process ID but it still hasn't exited
+   {
+      ZombiePIDs.include(_proc_id); // add to the list of zombie PID's
+      App._callbacks.include(ProcessZombies); // start callback to remove them
+   }
+  _proc_exited=false;
 #endif
+  _proc_id=0;
 }
 /******************************************************************************/
 Bool ConsoleProcess::create(C Str &name, C Str &params, Bool hidden, Bool binary)
@@ -535,7 +559,7 @@ Bool ConsoleProcess::create(C Str &name, C Str &params, Bool hidden, Bool binary
                  _proc   =pi.hProcess;
                  _proc_id=pi.dwProcessId;
                  _binary =binary;
-                  Bool exiting=_exiting; _exiting=false;
+                  Bool exiting=_thread_exiting; _thread_exiting=false;
 
                   locker.off(); // UNLOCK, so we can create thread (which deletes if needed)
 
@@ -553,7 +577,7 @@ Bool ConsoleProcess::create(C Str &name, C Str &params, Bool hidden, Bool binary
       if(_proc_id=popen2(cur_dir, command, null, &_out_read))
       {
         _binary=binary;
-         Bool exiting=_exiting; _exiting=false;
+         Bool exiting=_thread_exiting; _thread_exiting=false;
 
          locker.off(); // UNLOCK, so we can create thread (which deletes if needed)
 
@@ -606,7 +630,7 @@ Bool ConsoleProcess::createMem(C Str &script, C Str &cur_dir, Bool hidden, Bool 
                     _proc   =pi.hProcess;
                     _proc_id=pi.dwProcessId;
                     _binary =binary;
-                     Bool exiting=_exiting; _exiting=false;
+                     Bool exiting=_thread_exiting; _thread_exiting=false;
 
                      locker.off(); // UNLOCK, so we can create thread (which deletes if needed)
 
