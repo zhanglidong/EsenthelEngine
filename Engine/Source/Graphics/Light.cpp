@@ -151,8 +151,7 @@ static void MapSoft()
    #endif
       if(D.shadowSoft()>=5)
       {
-         ImageRTPtr temp; temp.get(rt_desc);
-                                      Renderer.set(            temp, Renderer._ds_1s, true, NEED_DEPTH_READ);                        REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.ShdBlurX->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth' optimization
+         ImageRTPtr temp(rt_desc);    Renderer.set(            temp, Renderer._ds_1s, true, NEED_DEPTH_READ);                        REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.ShdBlurX->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth' optimization
          Renderer._shd_1s->discard(); Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); Sh.ImgX[0]->set(temp); REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.ShdBlurY->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth' optimization
       }else
       {

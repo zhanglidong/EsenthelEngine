@@ -3241,7 +3241,7 @@ void Display::setFade(Flt seconds, Bool previous_frame)
             } // <- 'discard' will be called for 'temp' and 'ds'
             Renderer._cur_main   =cur_main   ; Renderer._ui   =ui   ;
             Renderer._cur_main_ds=cur_main_ds; Renderer._ui_ds=ui_ds;
-            Renderer.set(Renderer._cur_main, Renderer._cur_main_ds, true);
+            Renderer.set(Renderer._cur_main, Renderer._cur_main_ds, true); // set RT's after 'temp' and 'ds' are discarded
          }
       #endif
       }else
