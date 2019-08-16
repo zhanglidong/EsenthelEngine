@@ -5,7 +5,7 @@ namespace EE{
 #if !WINDOWS
 /* "A child that terminates, but has not been waited for becomes a "zombie"" - https://linux.die.net/man/2/waitpid
    Remember unwaited-for Process ID's to wait for them later which will release some memory info about them */
-MemcThreadSafe<UInt> ZombiePIDs;
+static MemcThreadSafe<UInt> ZombiePIDs;
 #endif
 /******************************************************************************/
 void ProcPriority(Int priority)
