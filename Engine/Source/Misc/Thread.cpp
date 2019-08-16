@@ -352,13 +352,16 @@ Bool SyncEvent::wait(Int milliseconds)C
          }else
          if(milliseconds>0) // timed wait
          {
+         #if 1
+            timespec ts; clock_gettime(CLOCK_REALTIME, &ts);
+         #else
             timeval  tv; gettimeofday(&tv, null);
             timespec ts; ts.tv_sec  =tv.tv_sec      ;
                          ts.tv_nsec =tv.tv_usec*1000;
-
-                         ts.tv_nsec+=(milliseconds%1000)*1000000;
-                         ts.tv_sec +=(milliseconds/1000) + ts.tv_nsec/1000000000;
-                         ts.tv_nsec%=1000000000;
+         #endif
+            ts.tv_nsec+=(milliseconds%1000)*1000000;
+            ts.tv_sec +=(milliseconds/1000) + ts.tv_nsec/1000000000;
+            ts.tv_nsec%=1000000000;
 
             // 'ts' specifies the end time at which waiting always fails (this is the "time position" and not "time duration")
             for(; !_condition && !pthread_cond_timedwait(_handle, _mutex, &ts); ); // 'pthread_cond_timedwait' automatically unlocks and locks the mutex, keep waiting in the loop in case it returns multiple times before the end of the time, but somehow with the condition still set to false, in that case keep waiting still as long as it returns success and not timeout or other error
