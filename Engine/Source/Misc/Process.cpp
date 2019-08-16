@@ -447,8 +447,8 @@ start:
             if(read>0) // if read anything, then it's possible we've got more data waiting
             {
                locker.off(); // UNLOCK
-               if(active)goto peek;
-                         goto read;
+               if(active)goto peek; // if active then check first if we have data to avoid freezes
+                         goto read; // if inactive then we can read straight away and it won't block, on WINDOWS 'available' is already set to 'total'
             }
          }
       }
