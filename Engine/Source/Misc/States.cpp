@@ -156,7 +156,7 @@ Bool DrawState()
             DisplayFlipDo.on(); // enable flip
             // wait for flip to enter lock
          #if MT_SPIN
-            for(; !DisplayFlipLocked; )_mm_pause(); DisplayFlipLocked=false;
+            for(; !DisplayFlipLocked; )Yield(); DisplayFlipLocked=false;
          #else
             DisplayFlipLocked.wait();
          #endif
