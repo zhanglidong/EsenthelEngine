@@ -297,16 +297,61 @@ again:;
 /******************************************************************************/
 // CONSOLE PROCESS
 /******************************************************************************/
-#if WINDOWS_OLD
-Bool ConsoleProcess::created(                )C {return _proc!=null;}
-Bool ConsoleProcess::active (                )C {return _proc!=null && _thread.active();}
-Bool ConsoleProcess::wait   (Int milliseconds)  {return _proc==null || _thread.wait  (milliseconds);}
+#if !WINDOWS
+#define FD_READ  0
+#define FD_WRITE 1
+static pid_t popen2(CChar8 *cur_dir, CChar8 *command, int *in_fd, int *out_fd)
+{
+   if( in_fd)* in_fd=0;
+   if(out_fd)*out_fd=0;
+
+   int p_stdin[2], p_stdout[2];
+   if(pipe(p_stdin ))                                       return 0;  // error
+   if(pipe(p_stdout)){close(p_stdin[0]); close(p_stdin[1]); return 0;} // error
+   pid_t pid=fork();
+   if(pid==0) // this code gets executed on the child process
+   {
+      close(p_stdin [FD_WRITE]);
+      close(p_stdout[FD_READ ]);
+      dup2 (p_stdin [FD_READ ],  STDIN_FILENO);
+      dup2 (p_stdout[FD_WRITE], STDOUT_FILENO);
+      dup2 (p_stdout[FD_WRITE], STDERR_FILENO);
+      close(p_stdin [FD_READ ]);
+      close(p_stdout[FD_WRITE]);
+      if(Is(cur_dir))chdir(cur_dir);
+      execl("/bin/sh", "sh", "-c", command, __null);
+      perror(null);
+     _exit(0);
+   }else
+   if(pid<0) // error
+   {
+      close(p_stdin[0]); close(p_stdout[0]);
+      close(p_stdin[1]); close(p_stdout[1]);
+      pid=0; // return 0
+   }else // success
+   {
+      close(p_stdin [FD_READ ]);
+      close(p_stdout[FD_WRITE]);
+      if( in_fd)* in_fd=p_stdin [FD_WRITE];else close(p_stdin [FD_WRITE]);
+      if(out_fd)*out_fd=p_stdout[FD_READ ];else close(p_stdout[FD_READ ]);
+   }
+   return pid;
+}
+#endif
+/******************************************************************************/
+Bool ConsoleProcess::created(                )C {return _proc_id!=0;}
+Bool ConsoleProcess::active (                )C {return _proc_id!=0 && _thread.active();}
+Bool ConsoleProcess::wait   (Int milliseconds)  {return _proc_id==0 || _thread.wait  (milliseconds);}
 void ConsoleProcess::stop   (                )  {ProcClose(_proc_id);}
 void ConsoleProcess::kill   (                )
 {
-   if(_proc)
+   if(_proc_id)
    {
+   #if WINDOWS
       TerminateProcess(_proc, 0);
+   #else
+      ProcKill(_proc_id);
+   #endif
       del();
    }
 }
@@ -315,30 +360,70 @@ static Bool ConsoleProcessFunc(Thread &thread)
 {
    ConsoleProcess &cp=*(ConsoleProcess*)thread.user;
    SyncLockerEx locker(cp._lock);
-   if(cp._proc && cp._out_read)
+start:
+   if(cp._proc_id && cp._out_read)
    {
-      HANDLE temp     =null;
-      UInt   proc_id  =cp._proc_id;
-      DWORD  available=0;
-      Bool   active   =(WaitForSingleObject(cp._proc, 0)==WAIT_TIMEOUT);
-      if(   !active)
+      auto out_read=cp._out_read; cp._out_read=NULL; // take ownership of handle
+      UInt proc_id =cp._proc_id ; // remember process ID
+
+   same_process:
+   #if WINDOWS
+      Bool active=(WaitForSingleObject(cp._proc, 0)==WAIT_TIMEOUT);
+      if( !active)
       {
          DWORD exit_code=0; GetExitCodeProcess(cp._proc, &exit_code); // warning: process may have used 'STILL_ACTIVE' for the 'ExitProcess'
-         cp._exit_code=((exit_code==STILL_ACTIVE) ? -1 : exit_code);
+         cp._exit_code=((exit_code!=STILL_ACTIVE) ? exit_code : -1); // set while in lock to make sure we're setting for this process
       }
-      if(PeekNamedPipe(cp._out_read, null, 0, null, &available, null)) // check if there's any data available, this is to prevent freezes in 'ReadFile' when there's nothing available
-         if(available)
-            if(DuplicateHandle(GetCurrentProcess(), cp._out_read, GetCurrentProcess(), &temp, 0, true, DUPLICATE_SAME_ACCESS))
+   #else
+      int  status; pid_t pid=waitpid(proc_id, &status, WNOHANG);
+      Bool active=(pid==0);
+      if( !active)cp._exit_code=(WIFEXITED(status) ? WEXITSTATUS(status) : -1); // set while in lock to make sure we're setting for this process
+   #endif
+
+      locker.off(); // UNLOCK
+
+      Char8 buf[65536+1];
+      const UInt total=SIZE(buf)-1; // make room for '\0'
+
+   #if WINDOWS
+      DWORD available;
+      if(active) // if process active
       {
-         Char8 buf[65536+1]; MIN(available, SIZE(buf)-1); // make room for '\0'
-      read_again:;
-         locker.off();
-         DWORD read=0; ReadFile(temp, buf, available, &read, null); // read without 'SyncLock' on handle duplicate
-         if(   read)
+         available=0; PeekNamedPipe(out_read, null, 0, null, &available, null); if(available)goto read_clamp; Time.wait(1); // if have data then read, if not then wait
+      }else
+      {
+         available=total; goto read; // we can always read from inactive pipe without freezing
+      }
+
+   peek:
+      available=0; PeekNamedPipe(out_read, null, 0, null, &available, null); if(available) // check if there's any data available, this is to prevent freezes in 'ReadFile' when there's nothing available
+      {
+      read_clamp:
+         MIN(available, total);
+
+      read:
+         DWORD read=0; ReadFile(out_read, buf, available, &read, null); if(read>0)
+   #else
+      const UInt time_ms=1;
+      fd_set fd; FD_ZERO(&fd); FD_SET(out_read, &fd);
+      timeval tv; tv.tv_sec=time_ms/1000; tv.tv_usec=(time_ms%1000)*1000;
+   peek:
+      if(select(out_read+1, &fd, null, null, &tv)>0) // if there's data available
+      {
+      read:
+         UInt available=total;
+      #if APPLE // do this only on Apple, as on Linux 'fstat' will give zero even if there's data available
+         struct stat s; fstat(out_read, &s); MIN(available, s.st_size); // limit reading to remaining file size, to avoid freezes when trying to read from empty file
+      #endif
+         Int read=::read(out_read, buf, available); if(read>0)
+   #endif
          {
             buf[read]='\0'; if(!cp._binary)ReplaceSelf(buf, '\r', '\0');
-            locker.on();
-            if(proc_id==cp._proc_id) // if it's still the same process then append the data
+
+            // store data
+            locker.on(); // LOCK
+
+            if(proc_id==cp._proc_id && !cp._out_read) // if it's still the same process then append the data
             {
                if(!cp._binary)cp._data+=buf;else // append string in text mode
                {
@@ -347,41 +432,58 @@ static Bool ConsoleProcessFunc(Thread &thread)
                   CopyFast(cp._data._d.data()+cp._data.length(), buf, read+1); // append read data (including null character)
                   cp._data._length=length; // adjust length
                }
-               if(!active && read==available){available=SIZE(buf)-1; goto read_again;} // if the process ended and full buffer was read then read again (there will be no delay this time) because we must access all output before closing the thread
-            }else active=true; // if process changed then set active to true because we want the thread to keep on running and check for new process data in next step
-            locker.off();
+            }else read=0; // clear 'read' so we don't try reading again from this pipe
+
+            if(read>0) // if read anything, then it's possible we've got more data waiting
+            {
+               locker.off(); // UNLOCK
+               if(active)goto peek;
+                         goto read;
+            }
          }
-         CloseHandle(temp);
       }
-      if(active)
-      {
-      #if HAS_THREADS
-         locker.off();
-         Time.wait(1);
-      #endif
-         return true;
-      }
+
+      locker.on(); // LOCK
+
+      Bool same_process=(proc_id==cp._proc_id && !cp._out_read);
+      if(  same_process && active)goto same_process; // if it's still the same process and active
+   #if WINDOWS
+      CloseHandle(out_read); // we won't use this handle any more
+   #else
+      close(out_read); // we won't use this handle any more
+   #endif
+      if(!same_process)goto start; // if started a different process, then process it instead of exiting thread
    }
+   cp._exiting=true; // have to operate on '_exiting' instead of 'Thread._active' which is outside of lock
    return false;
 }
+/******************************************************************************/
 void ConsoleProcess::del()
 {
-   stop();
+   stop(); // request process to close, but don't wait for it
 
    SyncLocker locker(_lock);
-      _data.clear();
-      _exit_code=-1; _binary=false;
-      _proc_id=0;
+  _data.clear();
+  _exit_code=-1; _binary=false; // !! do not clear '_exiting' !!
+  _proc_id=0;
+#if WINDOWS
    if(_proc){CloseHandle(_proc); _proc=null;}
 
    if(_out_read){CloseHandle(_out_read); _out_read=null;}
    if(_in_write){CloseHandle(_in_write); _in_write=null;}
+#else
+   if(_out_read){close(_out_read); _out_read=0;}
+   if(_in_write){close(_in_write); _in_write=0;}
+#endif
 }
+/******************************************************************************/
 Bool ConsoleProcess::create(C Str &name, C Str &params, Bool hidden, Bool binary)
 {
+   SyncLockerEx locker(_lock);
    del();
    if(name.is())
    {
+   #if WINDOWS_OLD
       HANDLE out_write=null,
               in_read =null;
 
@@ -390,7 +492,6 @@ Bool ConsoleProcess::create(C Str &name, C Str &params, Bool hidden, Bool binary
       sa.nLength=SIZE(sa);
       sa.bInheritHandle=TRUE;
 
-      SyncLockerEx locker(_lock);
       if(CreatePipe(&_out_read, &out_write, &sa, 0)) // Create the child output pipe
       {
          if(SetHandleInformation(_out_read, HANDLE_FLAG_INHERIT, 0)) // Ensure the read handle to the pipe for STDOUT is not inherited
@@ -398,12 +499,10 @@ Bool ConsoleProcess::create(C Str &name, C Str &params, Bool hidden, Bool binary
          {
             if(SetHandleInformation(_in_write, HANDLE_FLAG_INHERIT, 0)) // Ensure the write handle to the pipe for STDIN is not inherited
             {
-               locker.off();
-
                PROCESS_INFORMATION pi;
                STARTUPINFOW        si; Zero(si); si.cb=SIZE(si);
                si.dwFlags   =STARTF_USESTDHANDLES;
-               si.hStdInput =in_read;
+               si.hStdInput = in_read;
                si.hStdOutput=out_write;
                si.hStdError =out_write;
                if(hidden)
@@ -433,24 +532,42 @@ Bool ConsoleProcess::create(C Str &name, C Str &params, Bool hidden, Bool binary
                Memt<Char> cmd_temp; cmd_temp.setNum(cmd.length()+1); Set(cmd_temp.data(), cmd, cmd_temp.elms()); // can be very long, copy to 'cmd_temp' because 'CreateProcessW' can modify it
                if(CreateProcessW(app, WChar(cmd_temp.data()), null, null, TRUE, CREATE_NEW_CONSOLE, null, cur_dir, &si, &pi))
                {
-                  locker.on();
                  _proc   =pi.hProcess;
                  _proc_id=pi.dwProcessId;
                  _binary =binary;
-                  locker.off();
-                  if(!_thread.active() || _thread.wantStop())_thread.create(ConsoleProcessFunc, this);
+                  Bool exiting=_exiting; _exiting=false;
+
+                  locker.off(); // UNLOCK, so we can create thread (which deletes if needed)
+
+                  if(!_thread.active() || exiting)_thread.create(ConsoleProcessFunc, this);
                }
             }
             CloseHandle(in_read); in_read=null;
          }
          CloseHandle(out_write); out_write=null;
       }
+   #elif WINDOWS_NEW
+   #else
+      Str8 cur_dir=UnixPathUTF8(S), command=S+'"'+UnixPathUTF8(name)+'"';
+      if(params.is())command.space()+=UnixPathUTF8(params);
+      if(_proc_id=popen2(cur_dir, command, null, &_out_read))
+      {
+        _binary=binary;
+         Bool exiting=_exiting; _exiting=false;
+
+         locker.off(); // UNLOCK, so we can create thread (which deletes if needed)
+
+         if(!_thread.active() || exiting)_thread.create(ConsoleProcessFunc, this);
+      }
+   #endif
    }
-   return _proc!=null;
+   return _proc_id!=0;
 }
 Bool ConsoleProcess::createMem(C Str &script, C Str &cur_dir, Bool hidden, Bool binary)
 {
+   SyncLockerEx locker(_lock);
    del();
+#if WINDOWS_OLD
    if(script.is())
    {
       wchar_t comspec[MAX_LONG_PATH]; comspec[0]='\0'; if(GetEnvironmentVariable(L"COMSPEC", comspec, Elms(comspec)))
@@ -463,7 +580,6 @@ Bool ConsoleProcess::createMem(C Str &script, C Str &cur_dir, Bool hidden, Bool 
          sa.nLength=SIZE(sa);
          sa.bInheritHandle=TRUE;
 
-         SyncLockerEx locker(_lock);
          if(CreatePipe(&_out_read, &out_write, &sa, 0)) // Create the child output pipe
          {
             if(SetHandleInformation(_out_read, HANDLE_FLAG_INHERIT, 0)) // Ensure the read handle to the pipe for STDOUT is not inherited
@@ -471,12 +587,10 @@ Bool ConsoleProcess::createMem(C Str &script, C Str &cur_dir, Bool hidden, Bool 
             {
                if(SetHandleInformation(_in_write, HANDLE_FLAG_INHERIT, 0)) // Ensure the write handle to the pipe for STDIN is not inherited
                {
-                  locker.off();
-
                   PROCESS_INFORMATION pi;
                   STARTUPINFOW        si; Zero(si); si.cb=SIZE(si);
                   si.dwFlags   =STARTF_USESTDHANDLES;
-                  si.hStdInput =in_read;
+                  si.hStdInput = in_read;
                   si.hStdOutput=out_write;
                   si.hStdError =out_write;
                   if(hidden)
@@ -489,12 +603,14 @@ Bool ConsoleProcess::createMem(C Str &script, C Str &cur_dir, Bool hidden, Bool 
                   Memt<Char> cmd_temp; cmd_temp.setNum(cmd.length()+1); Set(cmd_temp.data(), cmd, cmd_temp.elms()); // can be very long, copy to 'cmd_temp' because 'CreateProcessW' can modify it
                   if(CreateProcessW(comspec, WChar(cmd_temp.data()), null, null, TRUE, CREATE_NEW_CONSOLE, null, cur_dir, &si, &pi))
                   {
-                     locker.on();
                     _proc   =pi.hProcess;
                     _proc_id=pi.dwProcessId;
                     _binary =binary;
-                     locker.off();
-                     if(!_thread.active() || _thread.wantStop())_thread.create(ConsoleProcessFunc, this);
+                     Bool exiting=_exiting; _exiting=false;
+
+                     locker.off(); // UNLOCK, so we can create thread (which deletes if needed)
+
+                     if(!_thread.active() || exiting)_thread.create(ConsoleProcessFunc, this);
                   }
                }
                CloseHandle(in_read); in_read=null;
@@ -503,152 +619,9 @@ Bool ConsoleProcess::createMem(C Str &script, C Str &cur_dir, Bool hidden, Bool 
          }
       }
    }
-   return _proc!=null;
-}
-/******************************************************************************/
-#elif WINDOWS_NEW
-Bool ConsoleProcess::created  (                )C {return false;}
-Bool ConsoleProcess::active   (                )C {return false;}
-Bool ConsoleProcess::wait     (Int milliseconds)  {return false;}
-void ConsoleProcess::stop     (                )  {}
-void ConsoleProcess::kill     (                )  {}
-void ConsoleProcess::del      (                )  {}
-Bool ConsoleProcess::create   (C Str &name  , C Str &params , Bool hidden, Bool binary) {return false;}
-Bool ConsoleProcess::createMem(C Str &script, C Str &cur_dir, Bool hidden, Bool binary) {return false;}
-#else
-#define FD_READ  0
-#define FD_WRITE 1
-static pid_t popen2(CChar8 *cur_dir, CChar8 *command, int *in_fd, int *out_fd)
-{
-   if( in_fd)* in_fd=0;
-   if(out_fd)*out_fd=0;
-
-   int p_stdin[2], p_stdout[2];
-   if(pipe(p_stdin ))return -1;
-   if(pipe(p_stdout)){close(p_stdin[0]); close(p_stdin[1]); return -1;}
-   pid_t pid=fork();
-   if(pid==0) // this code gets executed on the child process
-   {
-      close(p_stdin [FD_WRITE]); dup2(p_stdin [FD_READ ],  STDIN_FILENO);
-      close(p_stdout[FD_READ ]); dup2(p_stdout[FD_WRITE], STDOUT_FILENO);
-                                 dup2(p_stdout[FD_WRITE], STDERR_FILENO);
-      if(Is(cur_dir))chdir(cur_dir);
-      execl("/bin/sh", "sh", "-c", command, __null);
-      perror(null);
-     _exit(0);
-   }else
-   if(pid<0) // error
-   {
-      close(p_stdin[0]); close(p_stdout[0]);
-      close(p_stdin[1]); close(p_stdout[1]);
-      pid=0; // return 0
-   }else // success
-   {
-      if( in_fd)* in_fd=p_stdin [FD_WRITE];else close(p_stdin [FD_WRITE]);
-      if(out_fd)*out_fd=p_stdout[FD_READ ];else close(p_stdout[FD_READ ]);
-   }
-   return pid;
-}
-Bool ConsoleProcess::created(                )C {return _proc_id!=0;}
-Bool ConsoleProcess::active (                )C {return _proc_id!=0 && _thread.active();}
-Bool ConsoleProcess::wait   (Int milliseconds)  {return _proc_id==0 || _thread.wait  (milliseconds);}
-void ConsoleProcess::stop   () {} // do nothing
-void ConsoleProcess::kill   () {if(_proc_id){ProcKill(_proc_id); del();}}
-void ConsoleProcess::del    ()
-{
-   stop();
-
-   SyncLocker locker(_lock);
-  _data.clear();
-  _exit_code=-1; _binary=false;
-  _proc_id=0;
-
-   if(_out_read){close(_out_read); _out_read=0;}
-   if(_in_write){close(_in_write); _in_write=0;}
-}
-static Bool ConsoleProcessFunc(Thread &thread)
-{
-   ConsoleProcess &cp=*(ConsoleProcess*)thread.user;
-   SyncLockerEx locker(cp._lock);
-   if(cp._proc_id && cp._out_read)
-   {
-      UInt proc_id=cp._proc_id;
-      int  status; pid_t pid=waitpid(proc_id, &status, WNOHANG);
-      Bool active=(pid==0);
-      if( !active)cp._exit_code=(WIFEXITED(status) ? WEXITSTATUS(status) : -1);
-      // read
-      {
-         int temp =dup(cp._out_read);
-         if( temp>=0)
-         {
-         read_again:;
-            locker.off();
-
-            fd_set fd; int time=0;
-         #if WINDOWS
-            fd.fd_count=1; fd.fd_array[0]=temp;
-         #else
-            FD_ZERO(&fd); FD_SET(temp, &fd);
-         #endif
-            timeval tv; tv.tv_sec=time/1000; tv.tv_usec=(time%1000)*1000;
-            if(select(temp+1, &fd, null, null, &tv)>0) // if there's data available
-            {
-               Char8 buf[65536+1]; Int to_read=SIZE(buf)-1; // make room for '\0'
-            #if APPLE // do this only on Apple, as on Linux 'fstat' will give zero even if there's data available
-               struct stat s; fstat(temp, &s); MIN(to_read, s.st_size); // limit reading to remaining file size, to avoid freezes when trying to read from empty file
-            #endif
-               Int r=read(temp, buf, to_read);
-               if( r>0)
-               {
-                  buf[r]='\0'; if(!cp._binary)ReplaceSelf(buf, '\r', '\0');
-                  locker.on();
-                  if(proc_id==cp._proc_id) // if it's still the same process then append the data
-                  {
-                     if(!cp._binary)cp._data+=buf;else // append string in text mode
-                     {
-                        Int length=cp._data.length()+r, total=length+1; // get length, and total size (+ null character)
-                        if( total >cp._data._d.elms())cp._data._d.setNum(total);
-                        CopyFast(cp._data._d.data()+cp._data.length(), buf, r+1); // append read data (including null character)
-                        cp._data._length=length; // adjust length
-                     }
-                     if(!active && r==to_read)goto read_again;// if the process ended and full buffer was read then read again (there will be no delay this time) because we must access all output before closing the thread
-                  }else active=true; // if process changed then set active to true because we want the thread to keep on running and check for new process data in next step
-                  locker.off();
-               }
-            }
-            close(temp);
-         }
-      }
-      if(active)
-      {
-      #if HAS_THREADS
-         locker.off();
-         Time.wait(1);
-      #endif
-         return true;
-      }
-   }
-   return false;
-}
-Bool ConsoleProcess::create(C Str &name, C Str &params, Bool hidden, Bool binary)
-{
-   del();
-   if(name.is())
-   {
-      Str8 cur_dir=UnixPathUTF8(S), command=S+'"'+UnixPathUTF8(name)+'"';
-      if(params.is())command.space()+=UnixPathUTF8(params);
-      SyncLockerEx locker(_lock);
-      if(_proc_id=popen2(cur_dir, command, null, &_out_read))
-      {
-        _binary=binary;
-         locker.off();
-         if(!_thread.active() || _thread.wantStop())_thread.create(ConsoleProcessFunc, this);
-      }
-   }
+#endif
    return _proc_id!=0;
 }
-Bool ConsoleProcess::createMem(C Str &script, C Str &cur_dir, Bool hidden, Bool binary) {del(); return false;}
-#endif
 /******************************************************************************/
 Str ConsoleProcess::get()
 {
