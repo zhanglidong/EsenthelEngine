@@ -15,6 +15,7 @@ namespace llvm
 }
 static HRESULT CreateLibrary            (IDxcLibrary             **pLibrary    ) {return DxcCreateInstance(CLSID_DxcLibrary            , __uuidof(IDxcLibrary            ), (void**)pLibrary    );}
 static HRESULT CreateCompiler           (IDxcCompiler            **ppCompiler  ) {return DxcCreateInstance(CLSID_DxcCompiler           , __uuidof(IDxcCompiler           ), (void**)ppCompiler  );}
+static HRESULT CreateContainerBuilder   (IDxcContainerBuilder    **ppContainer ) {return DxcCreateInstance(CLSID_DxcContainerBuilder   , __uuidof(IDxcContainerBuilder   ), (void**)ppContainer );}
 static HRESULT CreateContainerReflection(IDxcContainerReflection **ppReflection) {return DxcCreateInstance(CLSID_DxcContainerReflection, __uuidof(IDxcContainerReflection), (void**)ppReflection);}
 #endif
 
@@ -718,9 +719,29 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
 
                            if(compiler->api==API_DX) // strip
                            {
-                              // FIXME - https://github.com/microsoft/DirectXShaderCompiler/issues/2374
-                              //ID3DBlob *stripped=null; D3DStripShader(buffer->GetBufferPointer(), buffer->GetBufferSize(), ~0, &stripped);
-                              //if(stripped){buffer->Release(); buffer=stripped;}
+                           #if 0 // FIXME - https://github.com/microsoft/DirectXShaderCompiler/issues/2374
+                              IDxcContainerBuilder *container_builder=null; CreateContainerBuilder(&container_builder); if(container_builder)
+                              {
+                                 if(OK(container_builder->Load(buffer)))
+                                 {
+                                    container_builder->RemovePart(hlsl::DFCC_ShaderDebugInfoDXIL);
+                                    container_builder->RemovePart(hlsl::DFCC_ShaderDebugName);
+                                    container_builder->RemovePart(hlsl::DFCC_RootSignature);
+                                    container_builder->RemovePart(hlsl::DFCC_PrivateData);
+                                    container_builder->RemovePart(hlsl::DFCC_ShaderStatistics);
+                                    IDxcOperationResult *result=null; container_builder->SerializeContainer(&result); if(result)
+                                    {
+                                       HRESULT hr; if(OK(result->GetStatus(&hr)))if(OK(hr))
+                                       {
+                                          IDxcBlob *stripped=null; result->GetResult(&stripped);
+                                          if(stripped){buffer->Release(); buffer=stripped;} // swap 'stripped' with 'buffer'
+                                       }
+                                       result->Release();
+                                    }
+                                 }
+                                 container_builder->Release();
+                              }
+                           #endif
                            }
                            if(!get_default_val)shader_data.setNum(buffer->GetBufferSize()).copyFrom((Byte*)buffer->GetBufferPointer());
                         }
