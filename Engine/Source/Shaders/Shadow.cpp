@@ -89,7 +89,7 @@ Half ShdCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 // SHADOW BLUR
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
-#if GL_ES==2
+#if GL_ES==2 // GL ES with GATHER support
 #undef TexDepthLinear
 Flt    TexDepthLinear(Vec2 uv) // because GL ES 3 can't do 'TexDepthLinear'
 {
