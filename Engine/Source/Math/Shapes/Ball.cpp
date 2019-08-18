@@ -383,7 +383,7 @@ Int CutsStrBall(C Vec &str_pos, C Vec &str_dir, C Ball &ball, Vec *contact_a, Ve
    if(s==1){if(contact_a)*contact_a=p; return 1;}
    if(contact_a || contact_b)
    {
-      s=Sqrt(1-s*s)*ball.r;
+      s=CosSin(s)*ball.r;
       if(contact_a)*contact_a=p-s*str_dir;
       if(contact_b)*contact_b=p+s*str_dir;
    }
