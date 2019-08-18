@@ -34,6 +34,8 @@ namespace EE{
       SS
       SS
 
+   TODO: calculating shadows could use 3D Geom Mesh shaders if shadow map softing is disabled
+
 /******************************************************************************/
 static Matrix           ShdMatrix    [2]; //           [Eye]
 static Matrix4          ShdMatrix4[6][2]; // [MapIndex][Eye]
