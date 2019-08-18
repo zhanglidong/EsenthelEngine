@@ -636,6 +636,12 @@ Flt Dist2(C Vec &point, C Extent &ext)
                 Max(0, Abs(point.y-ext.pos.y)-ext.ext.y),
                 Max(0, Abs(point.z-ext.pos.z)-ext.ext.z));
 }
+Dbl Dist2(C VecD &point, C Extent &ext)
+{
+   return Dist2(Max(0, Abs(point.x-ext.pos.x)-ext.ext.x),
+                Max(0, Abs(point.y-ext.pos.y)-ext.ext.y),
+                Max(0, Abs(point.z-ext.pos.z)-ext.ext.z));
+}
 /******************************************************************************/
 Flt Dist2(C Edge &edge, C Box &box)
 {
