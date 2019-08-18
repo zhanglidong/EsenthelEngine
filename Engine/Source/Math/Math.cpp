@@ -682,7 +682,7 @@ Int Polynominal2(Flt a, Flt b, Flt c, Flt &x0, Flt &x1)
    if(!a)return Polynominal1(b, c, x0);
    Flt delta=b*b-4*a*c;
    if( delta<0)return 0; a+=a;
-   if(!delta){x0= -b       /a; return 1;} delta=Sqrt(delta);
+   if(!delta){x0= -b       /a; return 1;} delta=SqrtFast(delta);
               x0=(-b-delta)/a;
               x1=(-b+delta)/a; return 2;
 }
@@ -691,7 +691,7 @@ Int Polynominal2(Dbl a, Dbl b, Dbl c, Dbl &x0, Dbl &x1)
    if(!a)return Polynominal1(b, c, x0);
    Dbl delta=b*b-4*a*c;
    if( delta<0)return 0; a+=a;
-   if(!delta){x0= -b       /a; return 1;} delta=Sqrt(delta);
+   if(!delta){x0= -b       /a; return 1;} delta=SqrtFast(delta);
               x0=(-b-delta)/a;
               x1=(-b+delta)/a; return 2;
 }
@@ -705,7 +705,7 @@ Int Polynominal3(Flt a, Flt b, Flt c, Flt d, Flt &x0, Flt &x1, Flt &x2)
    if(h>0)
    {
       g/=-2;
-      h =Sqrt(h);
+      h =SqrtFast(h);
       x0=Cbrt(g+h)+Cbrt(g-h) - b/(3*a);
       return 1;
    }else
@@ -718,7 +718,7 @@ Int Polynominal3(Flt a, Flt b, Flt c, Flt d, Flt &x0, Flt &x1, Flt &x2)
    {
       Flt i= g*g/4 - h,
           p=-b/(3*a),
-          m, n; CosSin(m, n, Acos(-0.5f*g/Sqrt(i))/3);
+          m, n; CosSin(m, n, Acos(-0.5f*g/SqrtFast(i))/3); // here "i>=0"
       i=Pow(i, 1.0f/6); n*=SQRT3;
       x0=2*i* m   +p;
       x1= -i*(m+n)+p;
@@ -737,7 +737,7 @@ Int Polynominal3(Dbl a, Dbl b, Dbl c, Dbl d, Dbl &x0, Dbl &x1, Dbl &x2)
    if(h>0)
    {
       g/=-2;
-      h =Sqrt(h);
+      h =SqrtFast(h);
       x0=Cbrt(g+h)+Cbrt(g-h) - b/(3*a);
       return 1;
    }else
@@ -750,7 +750,7 @@ Int Polynominal3(Dbl a, Dbl b, Dbl c, Dbl d, Dbl &x0, Dbl &x1, Dbl &x2)
    {
       Dbl i= g*g/4 - h,
           p=-b/(3*a),
-          m, n; CosSin(m, n, Acos(-0.5*g/Sqrt(i))/3);
+          m, n; CosSin(m, n, Acos(-0.5*g/SqrtFast(i))/3); // here "i>=0"
       i=Pow(i, 1.0/6); n*=SQRT3;
       x0=2*i* m   +p;
       x1= -i*(m+n)+p;

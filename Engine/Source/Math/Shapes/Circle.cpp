@@ -164,7 +164,7 @@ Int CutsCircleCircle(C Circle &c1, C Circle &c2, Vec2 *contact_a, Vec2 *contact_
    Flt c =c1.r*c1.r - c2.r*c2.r;
    Flt x1=c1.pos.x, x2=c2.pos.x, a=2*(x2-x1); c+=x2*x2 - x1*x1;
    Flt y1=c1.pos.y, y2=c2.pos.y, b=2*(y2-y1); c+=y2*y2 - y1*y1;
-   Flt l =Sqrt(a*a + b*b);
+   Flt l =SqrtFast(a*a + b*b);
    a/=l;
    b/=l;
    c/=l;

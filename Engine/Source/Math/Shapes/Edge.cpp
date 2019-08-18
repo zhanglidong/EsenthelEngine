@@ -615,7 +615,7 @@ Flt Dist2(C Edge2 &a, C Edge2 &b)
               Dist2(b.p[0], a),
               Dist2(b.p[1], a));
 }
-Flt Dist(C Edge2 &a, C Edge2 &b) {return Sqrt(Dist2(a, b));} // safe in case 'a' or 'b' are zero length
+Flt Dist(C Edge2 &a, C Edge2 &b) {return SqrtFast(Dist2(a, b));} // safe in case 'a' or 'b' are zero length
 /******************************************************************************/
 Flt Dist2(C Edge &a, C Edge &b) // safe in case 'a' or 'b' are zero length
 {
@@ -635,7 +635,7 @@ Flt Dist2(C Edge &a, C Edge &b) // safe in case 'a' or 'b' are zero length
               Dist2(b.p[0], a),
               Dist2(b.p[1], a));
 }
-Flt Dist(C Edge &a, C Edge &b) {return Sqrt(Dist2(a, b));} // safe in case 'a' or 'b' are zero length
+Flt Dist(C Edge &a, C Edge &b) {return SqrtFast(Dist2(a, b));} // safe in case 'a' or 'b' are zero length
 /******************************************************************************/
 Flt Dist(C Edge &edge, C Plane &plane) // safe in case 'a' or 'b' are zero length
 {

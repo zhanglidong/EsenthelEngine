@@ -374,7 +374,7 @@ void Rects::set(C Rect &rect, Int elms)
    VecI2 cells;
    Vec2  size=rect.size();
    Flt   area=size.mul(),
-         mul =Sqrt(elms/area); // = 1/avg_cell_size
+         mul =SqrtFast(elms/area); // = 1/avg_cell_size
 
    if(size.x<size.y)
    {

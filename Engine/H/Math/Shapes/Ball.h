@@ -95,18 +95,20 @@ struct BallD // Ball Shape (double precision)
 Ball Avg(C Ball &a, C Ball &b);
 
 // distance
-       Flt Dist         (C Vec   &point, C Ball   &ball                ); // distance between point    and a ball
-       Flt Dist         (C Edge  &edge , C Ball   &ball                ); // distance between edge     and a ball
-       Flt Dist         (C Tri   &tri  , C Ball   &ball                ); // distance between triangle and a ball
-       Flt Dist         (C Box   &box  , C Ball   &ball                ); // distance between box      and a ball
-       Flt Dist         (C OBox  &obox , C Ball   &ball                ); // distance between box      and a ball
-       Flt Dist         (C Ball  &a    , C Ball   &b                   ); // distance between ball     and a ball
-       Flt DistBallPlane(C Ball  &ball , C Vec    &plane, C Vec &normal); // distance between ball     and a plane
-       Dbl DistBallPlane(C Ball  &ball , C VecD   &plane, C Vec &normal); // distance between ball     and a plane
-       Dbl DistBallPlane(C BallM &ball , C VecD   &plane, C Vec &normal); // distance between ball     and a plane
-inline Flt Dist         (C Ball  &ball , C Plane  &plane               ) {return DistBallPlane(ball, plane.pos, plane.normal);} // distance between ball and a plane
-inline Dbl Dist         (C Ball  &ball , C PlaneM &plane               ) {return DistBallPlane(ball, plane.pos, plane.normal);} // distance between ball and a plane
-inline Dbl Dist         (C BallM &ball , C PlaneM &plane               ) {return DistBallPlane(ball, plane.pos, plane.normal);} // distance between ball and a plane
+       Flt Dist         (C Vec    &point, C Ball   &ball                ); // distance between point    and a ball
+       Dbl Dist         (C VecD   &point, C BallM  &ball                ); // distance between point    and a ball
+       Flt Dist         (C Edge   &edge , C Ball   &ball                ); // distance between edge     and a ball
+       Flt Dist         (C Tri    &tri  , C Ball   &ball                ); // distance between triangle and a ball
+       Flt Dist         (C Box    &box  , C Ball   &ball                ); // distance between box      and a ball
+       Flt Dist         (C OBox   &obox , C Ball   &ball                ); // distance between box      and a ball
+       Flt Dist         (C Extent &ext  , C Ball   &ball                ); // distance between extent   and a ball
+       Flt Dist         (C Ball   &a    , C Ball   &b                   ); // distance between ball     and a ball
+       Flt DistBallPlane(C Ball   &ball , C Vec    &plane, C Vec &normal); // distance between ball     and a plane
+       Dbl DistBallPlane(C Ball   &ball , C VecD   &plane, C Vec &normal); // distance between ball     and a plane
+       Dbl DistBallPlane(C BallM  &ball , C VecD   &plane, C Vec &normal); // distance between ball     and a plane
+inline Flt Dist         (C Ball   &ball , C Plane  &plane               ) {return DistBallPlane(ball, plane.pos, plane.normal);} // distance between ball and a plane
+inline Dbl Dist         (C Ball   &ball , C PlaneM &plane               ) {return DistBallPlane(ball, plane.pos, plane.normal);} // distance between ball and a plane
+inline Dbl Dist         (C BallM  &ball , C PlaneM &plane               ) {return DistBallPlane(ball, plane.pos, plane.normal);} // distance between ball and a plane
 
 // cuts
 Bool Cuts(C Vec    &point, C Ball  &ball); // if point    cuts a ball

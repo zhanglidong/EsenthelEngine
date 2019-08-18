@@ -345,7 +345,7 @@ Flt Dist(C Vec2 &point, C Tri2 &tri, DIST_TYPE *_type)
    {
          type=DIST_PLANE;
          dist=0;
-   }else dist=Sqrt(dist);
+   }else dist=SqrtFast(dist);
    if(_type)*_type=type; return dist;
 }
 Flt Dist(C Vec &point, C Tri &tri, DIST_TYPE *_type)
@@ -360,7 +360,7 @@ Flt Dist(C Vec &point, C Tri &tri, DIST_TYPE *_type)
    {
          type=DIST_PLANE;
          dist=Abs(DistPointPlane(point, tri));
-   }else dist=Sqrt(dist);
+   }else dist=SqrtFast(dist);
    if(_type)*_type=type; return dist;
 }
 /******************************************************************************/
@@ -417,8 +417,8 @@ Flt Dist2(C Tri &a, C Tri &b)
                   Dist2(b.edge2(), a)));
 }
 /******************************************************************************/
-Flt Dist(C Edge &edge, C Tri &tri) {return Sqrt(Dist2(edge, tri));}
-Flt Dist(C Tri  &a   , C Tri &b  ) {return Sqrt(Dist2(a   , b  ));}
+Flt Dist(C Edge &edge, C Tri &tri) {return SqrtFast(Dist2(edge, tri));}
+Flt Dist(C Tri  &a   , C Tri &b  ) {return SqrtFast(Dist2(a   , b  ));}
 /******************************************************************************/
 Bool Cuts(C Vec &point, C Tri &tri, C Vec (&tri_cross)[3])
 {

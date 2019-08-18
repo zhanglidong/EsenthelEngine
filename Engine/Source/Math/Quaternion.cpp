@@ -111,7 +111,7 @@ Quaternion::Quaternion(C Matrix3 &m)
    Flt f=m.x.x+m.y.y+m.z.z+1;
    if( f>0.4f)
    {
-      w=0.5f *Sqrt(f);
+      w=0.5f *SqrtFast(f);
       f=0.25f/w;
 	   x=(m.z.y-m.y.z)*f;
 	   y=(m.x.z-m.z.x)*f;

@@ -215,6 +215,10 @@ Flt Dist(C Vec &point, C Ball &ball)
 {
    return Max(0, Dist(point, ball.pos)-ball.r);
 }
+Dbl Dist(C VecD &point, C BallM &ball)
+{
+   return Max(0, Dist(point, ball.pos)-ball.r);
+}
 Flt Dist(C Edge &edge, C Ball &ball)
 {
    return Max(0, Dist(ball.pos, edge)-ball.r);
@@ -242,6 +246,10 @@ Flt Dist(C OBox &obox, C Ball &ball)
 {
    Ball   temp=ball; temp.pos.divNormalized(obox.matrix);
    return Dist(obox.box, temp);
+}
+Flt Dist(C Extent &ext, C Ball &ball)
+{
+   return Max(0, Dist(ball.pos, ext)-ball.r);
 }
 Flt Dist(C Ball &a, C Ball &b)
 {

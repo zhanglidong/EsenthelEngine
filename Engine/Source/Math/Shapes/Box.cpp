@@ -444,7 +444,7 @@ void Boxes::set(C Box &box, Int elms)
    Int smallest=cells.c[i0]=Max(1, Round(size.c[i0]*mul)); // set number of cells in the smallest dimension
 
    Flt area=size.c[i1]*size.c[i2]; // calculate area of remaining 2 dimensions (middle and biggest)
-       mul =Sqrt(elms/(smallest*area)); // = 1/avg_cell_size
+       mul =SqrtFast(elms/(smallest*area)); // = 1/avg_cell_size
 
    Int middle=cells.c[i1]=Max(1, Round(size.c[i1]*mul)); // set number of cells in the middle dimension
 
@@ -697,7 +697,7 @@ Flt Dist2(C Edge &edge, C Box &box)
    REP(edges)MIN(dist2, Dist2(VecZero, edge_list[list_cur][i]));
    return        dist2;
 }
-Flt Dist(C Edge &edge, C Box &box) {return Sqrt(Dist2(edge, box));}
+Flt Dist(C Edge &edge, C Box &box) {return SqrtFast(Dist2(edge, box));}
 /******************************************************************************/
 Flt Dist(C Box &a, C Box &b)
 {
