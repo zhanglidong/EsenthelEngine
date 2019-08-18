@@ -36,6 +36,13 @@ namespace EE{
 
    TODO: calculating shadows could use 3D Geom Mesh shaders if shadow map softing is disabled
 
+   1. Shadows are set for CurrentLight.rect (2D)
+   2. Shadows are blurred using 3D Geom Mesh shaders (3D) (except first pass for 2-pass blurs)
+   3. Light is calculated using 3D Geom Mesh shaders
+
+   if DEPTH_CLIP_SUPPORTED not supported and it wanted to be used, then Cone Lights are processed as 2D shaders,
+      Point/Linear/Ball Lights are ignored because clipped artifacts (using simulated clipping in the shader) are minimal.
+
 /******************************************************************************/
 static Matrix           ShdMatrix    [2]; //           [Eye]
 static Matrix4          ShdMatrix4[6][2]; // [MapIndex][Eye]
