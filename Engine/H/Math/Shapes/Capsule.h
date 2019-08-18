@@ -134,6 +134,8 @@ Bool Cuts(C Tri     &tri  , C Capsule  &capsule); // if triangle cuts a capsule
 Bool Cuts(C Box     &box  , C Capsule  &capsule); // if box      cuts a capsule
 Bool Cuts(C OBox    &obox , C Capsule  &capsule); // if box      cuts a capsule
 Bool Cuts(C Ball    &ball , C Capsule  &capsule); // if ball     cuts a capsule
+Bool Cuts(C BallM   &ball , C Capsule  &capsule); // if ball     cuts a capsule
+Bool Cuts(C BallM   &ball , C CapsuleM &capsule); // if ball     cuts a capsule
 Bool Cuts(C Capsule &a    , C Capsule  &b      ); // if capsule  cuts a capsule
 
 // sweep
