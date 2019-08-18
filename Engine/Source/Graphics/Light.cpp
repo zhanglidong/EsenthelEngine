@@ -381,7 +381,7 @@ static void StartVol()
       VL.load();
    }
    D       .alpha(ALPHA_ADD);
-   Renderer.set  (Renderer._vol, null, false); if(clear)D.clearCol();
+   Renderer.set  (Renderer._vol, null, false); if(clear)D.clearCol(); // no need to disable 'D.depth' optimization because we're not setting Depth buffer
 
    if(Renderer._stereo) // for stereoscopic we need to set correct eye, otherwise it was already set
    {
