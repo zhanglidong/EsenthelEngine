@@ -338,14 +338,14 @@ Flt Dist(C Vec2 &point, C Tri2 &tri, DIST_TYPE *_type)
    Flt       d, dist=0;
    UInt         sign=(tri.clockwise() ? 0 : SIGN_BIT); // counter-clockwise tris require changing sign
 
-   Vec2 p=point-tri.p[1]; if(Xor(DistPointPlane(p    ,           Perp(tri.p[0]-tri.p[1])), sign)>0){d=DistPointEdge(point, tri.p[0], tri.p[1], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT0, DIST_POINT1, DIST_EDGE0);}}
-                          if(Xor(DistPointPlane(p    ,           Perp(tri.p[1]-tri.p[2])), sign)>0){d=DistPointEdge(point, tri.p[1], tri.p[2], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT1, DIST_POINT2, DIST_EDGE1);}}
-                          if(Xor(DistPointPlane(point, tri.p[2], Perp(tri.p[2]-tri.p[0])), sign)>0){d=DistPointEdge(point, tri.p[2], tri.p[0], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT2, DIST_POINT0, DIST_EDGE2);}}
+   Vec2 p=point-tri.p[1]; if(Xor(DistPointPlane(p    ,           Perp(tri.p[0]-tri.p[1])), sign)>0){d=Dist2PointEdge(point, tri.p[0], tri.p[1], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT0, DIST_POINT1, DIST_EDGE0);}}
+                          if(Xor(DistPointPlane(p    ,           Perp(tri.p[1]-tri.p[2])), sign)>0){d=Dist2PointEdge(point, tri.p[1], tri.p[2], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT1, DIST_POINT2, DIST_EDGE1);}}
+                          if(Xor(DistPointPlane(point, tri.p[2], Perp(tri.p[2]-tri.p[0])), sign)>0){d=Dist2PointEdge(point, tri.p[2], tri.p[0], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT2, DIST_POINT0, DIST_EDGE2);}}
    if(!type)
    {
-      type=DIST_PLANE;
-      dist=0;
-   }
+         type=DIST_PLANE;
+         dist=0;
+   }else dist=Sqrt(dist);
    if(_type)*_type=type; return dist;
 }
 Flt Dist(C Vec &point, C Tri &tri, DIST_TYPE *_type)
@@ -353,36 +353,72 @@ Flt Dist(C Vec &point, C Tri &tri, DIST_TYPE *_type)
    DIST_TYPE t, type=DIST_NONE;
    Flt       d, dist=0;
 
-   Vec p=point-tri.p[1]; if(DistPointPlane(p    ,           Cross(tri.n, tri.p[0]-tri.p[1]))>0){d=DistPointEdge(point, tri.p[0], tri.p[1], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT0, DIST_POINT1, DIST_EDGE0);}}
-                         if(DistPointPlane(p    ,           Cross(tri.n, tri.p[1]-tri.p[2]))>0){d=DistPointEdge(point, tri.p[1], tri.p[2], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT1, DIST_POINT2, DIST_EDGE1);}}
-                         if(DistPointPlane(point, tri.p[2], Cross(tri.n, tri.p[2]-tri.p[0]))>0){d=DistPointEdge(point, tri.p[2], tri.p[0], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT2, DIST_POINT0, DIST_EDGE2);}}
+   Vec p=point-tri.p[1]; if(DistPointPlane(p    ,           Cross(tri.n, tri.p[0]-tri.p[1]))>0){d=Dist2PointEdge(point, tri.p[0], tri.p[1], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT0, DIST_POINT1, DIST_EDGE0);}}
+                         if(DistPointPlane(p    ,           Cross(tri.n, tri.p[1]-tri.p[2]))>0){d=Dist2PointEdge(point, tri.p[1], tri.p[2], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT1, DIST_POINT2, DIST_EDGE1);}}
+                         if(DistPointPlane(point, tri.p[2], Cross(tri.n, tri.p[2]-tri.p[0]))>0){d=Dist2PointEdge(point, tri.p[2], tri.p[0], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT2, DIST_POINT0, DIST_EDGE2);}}
+   if(!type)
+   {
+         type=DIST_PLANE;
+         dist=Abs(DistPointPlane(point, tri));
+   }else dist=Sqrt(dist);
+   if(_type)*_type=type; return dist;
+}
+/******************************************************************************/
+Flt Dist2(C Vec2 &point, C Tri2 &tri, DIST_TYPE *_type)
+{
+   DIST_TYPE t, type=DIST_NONE;
+   Flt       d, dist=0;
+   UInt         sign=(tri.clockwise() ? 0 : SIGN_BIT); // counter-clockwise tris require changing sign
+
+   Vec2 p=point-tri.p[1]; if(Xor(DistPointPlane(p    ,           Perp(tri.p[0]-tri.p[1])), sign)>0){d=Dist2PointEdge(point, tri.p[0], tri.p[1], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT0, DIST_POINT1, DIST_EDGE0);}}
+                          if(Xor(DistPointPlane(p    ,           Perp(tri.p[1]-tri.p[2])), sign)>0){d=Dist2PointEdge(point, tri.p[1], tri.p[2], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT1, DIST_POINT2, DIST_EDGE1);}}
+                          if(Xor(DistPointPlane(point, tri.p[2], Perp(tri.p[2]-tri.p[0])), sign)>0){d=Dist2PointEdge(point, tri.p[2], tri.p[0], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT2, DIST_POINT0, DIST_EDGE2);}}
    if(!type)
    {
       type=DIST_PLANE;
-      dist=Abs(DistPointPlane(point, tri));
+      dist=0;
    }
    if(_type)*_type=type; return dist;
 }
-Flt Dist(C Edge &edge, C Tri &tri)
+Flt Dist2(C Vec &point, C Tri &tri, DIST_TYPE *_type)
+{
+   DIST_TYPE t, type=DIST_NONE;
+   Flt       d, dist=0;
+
+   Vec p=point-tri.p[1]; if(DistPointPlane(p    ,           Cross(tri.n, tri.p[0]-tri.p[1]))>0){d=Dist2PointEdge(point, tri.p[0], tri.p[1], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT0, DIST_POINT1, DIST_EDGE0);}}
+                         if(DistPointPlane(p    ,           Cross(tri.n, tri.p[1]-tri.p[2]))>0){d=Dist2PointEdge(point, tri.p[1], tri.p[2], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT1, DIST_POINT2, DIST_EDGE1);}}
+                         if(DistPointPlane(point, tri.p[2], Cross(tri.n, tri.p[2]-tri.p[0]))>0){d=Dist2PointEdge(point, tri.p[2], tri.p[0], &t); if(!type || d<dist){dist=d; type=UpdateTypeT(t, DIST_POINT2, DIST_POINT0, DIST_EDGE2);}}
+   if(!type)
+   {
+      type=DIST_PLANE;
+      dist=Sqr(DistPointPlane(point, tri));
+   }
+   if(_type)*_type=type; return dist;
+}
+/******************************************************************************/
+Flt Dist2(C Edge &edge, C Tri &tri)
 {
    // TODO: optimize
    if(Cuts(edge, tri))return 0;
-   return Min(Min(Dist(edge     , tri.edge0()),
-                  Dist(edge     , tri.edge1()),
-                  Dist(edge     , tri.edge2())),
-                  Dist(edge.p[0], tri        ),
-                  Dist(edge.p[1], tri        ));
+   return Min(Min(Dist2(edge     , tri.edge0()),
+                  Dist2(edge     , tri.edge1()),
+                  Dist2(edge     , tri.edge2())),
+                  Dist2(edge.p[0], tri        ),
+                  Dist2(edge.p[1], tri        ));
 }
-Flt Dist(C Tri &a, C Tri &b)
+Flt Dist2(C Tri &a, C Tri &b)
 {
    // TODO: optimize
-   return Min(Min(Dist(a.edge0(), b),
-                  Dist(a.edge1(), b),
-                  Dist(a.edge2(), b)),
-              Min(Dist(b.edge0(), a),
-                  Dist(b.edge1(), a),
-                  Dist(b.edge2(), a)));
+   return Min(Min(Dist2(a.edge0(), b),
+                  Dist2(a.edge1(), b),
+                  Dist2(a.edge2(), b)),
+              Min(Dist2(b.edge0(), a),
+                  Dist2(b.edge1(), a),
+                  Dist2(b.edge2(), a)));
 }
+/******************************************************************************/
+Flt Dist(C Edge &edge, C Tri &tri) {return Sqrt(Dist2(edge, tri));}
+Flt Dist(C Tri  &a   , C Tri &b  ) {return Sqrt(Dist2(a   , b  ));}
 /******************************************************************************/
 Bool Cuts(C Vec &point, C Tri &tri, C Vec (&tri_cross)[3])
 {

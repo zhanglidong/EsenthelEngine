@@ -190,6 +190,11 @@ Flt Dist(C Vec  &point, C Tri  &tri, DIST_TYPE *type=null); // distance between 
 Flt Dist(C Edge &edge , C Tri  &tri); // distance between edge     and a triangle
 Flt Dist(C Tri  &a    , C Tri  &b  ); // distance between triangle and a triangle
 
+Flt Dist2(C Vec2 &point, C Tri2 &tri, DIST_TYPE *type=null); // squared distance between point and a triangle
+Flt Dist2(C Vec  &point, C Tri  &tri, DIST_TYPE *type=null); // squared distance between point and a triangle
+Flt Dist2(C Edge &edge , C Tri &tri); // squared distance between edge     and a triangle
+Flt Dist2(C Tri  &a    , C Tri &b  ); // squared distance between triangle and a triangle
+
 // distance between point and plane (from triangle)
 inline Flt DistPointPlane(C Vec  &point, C Tri  &tri) {return DistPointPlane(point, tri.p[0], tri.n);}
 inline Dbl DistPointPlane(C VecD &point, C TriD &tri) {return DistPointPlane(point, tri.p[0], tri.n);}
