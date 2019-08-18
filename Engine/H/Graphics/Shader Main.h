@@ -284,9 +284,9 @@ struct MainShaderClass
       *ShdDir[6][2][2], // [NumberOfMaps] [Clouds] [MultiSample]
       *ShdPoint    [2], //                         [MultiSample]
       *ShdCone     [2], //                         [MultiSample]
-      *ShdBlur     [4], // [Quality]
-      *ShdBlurX       ,
-      *ShdBlurY       ;
+      *ShdBlur  [2][4], // [Geom] [Quality]
+      *ShdBlurX [2]   , // [Geom]
+      *ShdBlurY [2]   ; // [Geom]
    Shader* getShdDir  (Int map_num, Bool clouds, Bool multi_sample);
    Shader* getShdPoint(                          Bool multi_sample);
    Shader* getShdCone (                          Bool multi_sample);

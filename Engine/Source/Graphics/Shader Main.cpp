@@ -541,13 +541,18 @@ void MainShaderClass::getTechniques()
    REPAO(ShdMatrix4   )=GetShaderParam(S8+"ShdMatrix4["+i+']');
 
    // can be used for shadows in deferred and AO
-   Bool gather=(GL_ES && D.gatherAvailable()); // GL_ES can't filter depth textures, so have to use special shader based on gather, all other platforms just use depth filtering, so no need
-   ShdBlur[0]=get(S8+"ShdBlur" +gather+4);
-   ShdBlur[1]=get(S8+"ShdBlur" +gather+6);
-   ShdBlur[2]=get(S8+"ShdBlur" +gather+8);
-   ShdBlur[3]=get(S8+"ShdBlur" +gather+12);
-   ShdBlurX  =get(S8+"ShdBlurX"+gather+2);
-   ShdBlurY  =get(S8+"ShdBlurY"+gather+2);
+   {
+      Byte gl_es=(GL_ES ? D.gatherAvailable() ? 2 : 1 : 0); // GL_ES can't filter depth textures, so have to use special shader based on gather, all other platforms just use depth filtering, so no need, also GL_ES doesn't support NOPERSP
+      REPD(geom, 2)
+      {
+         ShdBlur [geom][0]=get(S8+"ShdBlur" +geom+gl_es+4);
+         ShdBlur [geom][1]=get(S8+"ShdBlur" +geom+gl_es+6);
+         ShdBlur [geom][2]=get(S8+"ShdBlur" +geom+gl_es+8);
+         ShdBlur [geom][3]=get(S8+"ShdBlur" +geom+gl_es+12);
+         ShdBlurX[geom]   =get(S8+"ShdBlurX"+geom+gl_es+2);
+         ShdBlurY[geom]   =get(S8+"ShdBlurY"+geom+gl_es+2);
+      }
+   }
 
    if(!D.deferredUnavailable())
    {

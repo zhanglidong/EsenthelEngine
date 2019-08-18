@@ -13,6 +13,32 @@
 #define RANGE 0
 #endif
 /******************************************************************************/
+void Geom_VS // for 3D Geom
+(
+           VtxInput vtx,
+#if !GL_ES
+   out NOPERSP Vec2 outTex  :TEXCOORD0,
+ //out NOPERSP Vec2 outPosXY:TEXCOORD1,
+#endif
+   out         Vec4 outPos  :POSITION
+)
+{
+   outPos=Project(TransformPos(vtx.pos()));
+
+#if GL_ES // simulate D.depthClip(false), needed for GL ES which doesn't support it, Warning: this introdocues a bit too much clipping at the viewport end, because the neighboring vertexes remain the same, and only the vertex behind the viewport gets repositioned, the line between them won't cover entire original area (however it's small)
+   #if REVERSE_DEPTH
+      outPos.z=Max(outPos.z, 0);
+   #else
+      outPos.z=Min(outPos.z, outPos.w);
+   #endif
+#endif
+
+#if !GL_ES
+   outTex  =PosToScreen  (outPos);
+ //outPosXY=ScreenToPosXY(outTex);
+#endif
+}
+/******************************************************************************/
 // SHADOW SET
 /******************************************************************************/
 Half ShdDir_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
@@ -63,7 +89,7 @@ Half ShdCone_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 // SHADOW BLUR
 /******************************************************************************/
 // can use 'RTSize' instead of 'ImgSize' since there's no scale
-#if GATHER
+#if GL_ES==2
 #undef TexDepthLinear
 Flt    TexDepthLinear(Vec2 uv) // because GL ES 3 can't do 'TexDepthLinear'
 {
@@ -79,8 +105,19 @@ Flt    TexDepthLinear(Vec2 uv) // because GL ES 3 can't do 'TexDepthLinear'
    return LinearizeDepth(v);
 }
 #endif
-Half ShdBlur_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+Half ShdBlur_PS
+(
+#if GL_ES && GEOM // doesn't support NOPERSP
+   PIXEL // 3D
+#else
+   NOPERSP Vec2 inTex:TEXCOORD
+#endif
+):TARGET
 {
+#if GL_ES && GEOM // doesn't support NOPERSP
+   Vec2 inTex=PixelToScreen(pixel);
+#endif
+
    Half weight=0.25,
         color =TexPoint(ImgX, inTex).x*weight;
    Flt  z     =TexDepthPoint(inTex);
@@ -102,8 +139,19 @@ Half ShdBlur_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    }
    return color/weight;
 }
-Half ShdBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+Half ShdBlurX_PS
+(
+#if GL_ES && GEOM // doesn't support NOPERSP
+   PIXEL // 3D
+#else
+   NOPERSP Vec2 inTex:TEXCOORD
+#endif
+):TARGET
 {
+#if GL_ES && GEOM // doesn't support NOPERSP
+   Vec2 inTex=PixelToScreen(pixel);
+#endif
+
    Half weight=0.5,
         color =TexPoint(ImgX, inTex).x*weight;
    Flt  z     =TexDepthPoint(inTex);
@@ -118,8 +166,19 @@ Half ShdBlurX_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
    }
    return color/weight;
 }
-Half ShdBlurY_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
+Half ShdBlurY_PS
+(
+#if GL_ES && GEOM // doesn't support NOPERSP
+   PIXEL // 3D
+#else
+   NOPERSP Vec2 inTex:TEXCOORD
+#endif
+):TARGET
 {
+#if GL_ES && GEOM // doesn't support NOPERSP
+   Vec2 inTex=PixelToScreen(pixel);
+#endif
+
    Half weight=0.5,
         color =TexPoint(ImgX, inTex).x*weight;
    Flt  z     =TexDepthPoint(inTex);

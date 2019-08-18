@@ -242,11 +242,11 @@ static void Compile(API api)
       REPD(quality     , multi_sample ? 1 : 2) // no Quality version for MSAA
       {
                            src.New("DrawLightDir"     , "DrawPosXY_VS", "LightDir_PS"   ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality                ); // Directional light is always fullscreen, so can use 2D shader
-         REPD(gl_es, (api==API_GL) ? 2 : 1)
+         REPD(gl_es, (api==API_GL) ? 2 : 1) // GL ES doesn't support NOPERSP
          {
-                           src.New("DrawLightPoint"   , "VS"          , "LightPoint_PS" ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality                )("GL_ES", gl_es);  // 3D Geom Mesh
-                           src.New("DrawLightLinear"  , "VS"          , "LightLinear_PS").multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality                )("GL_ES", gl_es);  // 3D Geom Mesh
-            REPD(image, 2){src.New("DrawLightCone"    , "VS"          , "LightCone_PS"  ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality, "IMAGE", image)("GL_ES", gl_es);  // 3D Geom Mesh
+                           src.New("DrawLightPoint"   , "Geom_VS"     , "LightPoint_PS" ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality                )("GL_ES", gl_es);  // 3D Geom Mesh
+                           src.New("DrawLightLinear"  , "Geom_VS"     , "LightLinear_PS").multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality                )("GL_ES", gl_es);  // 3D Geom Mesh
+            REPD(image, 2){src.New("DrawLightCone"    , "Geom_VS"     , "LightCone_PS"  ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality, "IMAGE", image)("GL_ES", gl_es);  // 3D Geom Mesh
                   if(gl_es)src.New("DrawLightConeFlat", "DrawPosXY_VS", "LightCone_PS"  ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality, "IMAGE", image)                ;} // 2D Flat
          }
       }
@@ -269,19 +269,22 @@ static void Compile(API api)
                          src.New("ShdPoint", "DrawPosXY_VS", "ShdPoint_PS").multiSample(multi_sample)("MULTI_SAMPLE", multi_sample);
                          src.New("ShdCone" , "DrawPosXY_VS", "ShdCone_PS" ).multiSample(multi_sample)("MULTI_SAMPLE", multi_sample);
       }
-      REPD(gather, (api==API_GL) ? 2 : 1) // GATHER version needed for GL_ES
+      REPD(gl_es, (api==API_GL) ? 3 : 1) // GL ES doesn't support NOPERSP and TexDepthLinear (0=no GL ES, 1=GL ES, 2=GL ES with GATHER support)
+      REPD(geom , 2)
       {
-         src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("GATHER", gather)("SAMPLES",  4).gather(gather);
-       //src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("GATHER", gather)("SAMPLES",  5).gather(gather);
-         src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("GATHER", gather)("SAMPLES",  6).gather(gather);
-         src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("GATHER", gather)("SAMPLES",  8).gather(gather);
-       //src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("GATHER", gather)("SAMPLES",  9).gather(gather);
-         src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("GATHER", gather)("SAMPLES", 12).gather(gather);
-       //src.New("ShdBlur" , "Draw_VS", "ShdBlur_PS" )("GATHER", gather)("SAMPLES", 13).gather(gather);
-       //src.New("ShdBlurX", "Draw_VS", "ShdBlurX_PS")("GATHER", gather)("RANGE"  ,  1).gather(gather);
-       //src.New("ShdBlurY", "Draw_VS", "ShdBlurY_PS")("GATHER", gather)("RANGE"  ,  1).gather(gather);
-         src.New("ShdBlurX", "Draw_VS", "ShdBlurX_PS")("GATHER", gather)("RANGE"  ,  2).gather(gather);
-         src.New("ShdBlurY", "Draw_VS", "ShdBlurY_PS")("GATHER", gather)("RANGE"  ,  2).gather(gather);
+         CChar8 *vs=(geom ? "Geom_VS" : "Draw_VS");
+         Bool    gather=(gl_es==2);
+         src.New("ShdBlur" , vs, "ShdBlur_PS" )("GEOM", geom)("GL_ES", gl_es)("SAMPLES",  4).gather(gather);
+       //src.New("ShdBlur" , vs, "ShdBlur_PS" )("GEOM", geom)("GL_ES", gl_es)("SAMPLES",  5).gather(gather);
+         src.New("ShdBlur" , vs, "ShdBlur_PS" )("GEOM", geom)("GL_ES", gl_es)("SAMPLES",  6).gather(gather);
+         src.New("ShdBlur" , vs, "ShdBlur_PS" )("GEOM", geom)("GL_ES", gl_es)("SAMPLES",  8).gather(gather);
+       //src.New("ShdBlur" , vs, "ShdBlur_PS" )("GEOM", geom)("GL_ES", gl_es)("SAMPLES",  9).gather(gather);
+         src.New("ShdBlur" , vs, "ShdBlur_PS" )("GEOM", geom)("GL_ES", gl_es)("SAMPLES", 12).gather(gather);
+       //src.New("ShdBlur" , vs, "ShdBlur_PS" )("GEOM", geom)("GL_ES", gl_es)("SAMPLES", 13).gather(gather);
+       //src.New("ShdBlurX", vs, "ShdBlurX_PS")("GEOM", geom)("GL_ES", gl_es)("RANGE"  ,  1).gather(gather);
+       //src.New("ShdBlurY", vs, "ShdBlurY_PS")("GEOM", geom)("GL_ES", gl_es)("RANGE"  ,  1).gather(gather);
+         src.New("ShdBlurX", vs, "ShdBlurX_PS")("GEOM", geom)("GL_ES", gl_es)("RANGE"  ,  2).gather(gather);
+         src.New("ShdBlurY", vs, "ShdBlurY_PS")("GEOM", geom)("GL_ES", gl_es)("RANGE"  ,  2).gather(gather);
       }
    }
    { // OUTLINE

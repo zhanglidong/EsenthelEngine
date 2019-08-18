@@ -4,7 +4,7 @@ BUFFER(LightMap)
    Flt LightMapScale=1;
 BUFFER_END
 /******************************************************************************/
-void VS // for 3D Geom
+void Geom_VS // for 3D Geom
 (
            VtxInput vtx,
 #if !GL_ES

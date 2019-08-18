@@ -911,10 +911,9 @@ inline Vec2 PosToScreen(Vec4 pos)
    return (pos.xy/pos.w) * Viewport.PosToScreen.xy + Viewport.PosToScreen.zw;
 }
 /******************************************************************************/
-inline Vec2 PixelToScreen(Vec4 pixel) // faster and more accurate than 'PosToScreen'
+inline Vec2 PixelToScreen(Vec4 pixel) // faster and more accurate than 'PosToScreen', returns (0,0)..(1,1) range
 {
-          pixel.xy*=RTSize.xy;
-   return pixel.xy;
+   return pixel.xy*RTSize.xy;
 }
 /******************************************************************************/
 // DEPTH
