@@ -497,6 +497,9 @@ Flt Dist (C Box  &a    , C Box    &b    ); //         distance between box   and
 Flt Dist (C Box  &box  , C Plane  &plane); //         distance between box   and a  plane
 Flt Dist (C OBox &obox , C Plane  &plane); //         distance between box   and a  plane
 
+Flt Dist2(C VecD &point, C Extent &ext, C Matrix  &ext_matrix); // squared distance between point and an extent transformed by matrix
+Flt Dist2(C VecD &point, C Extent &ext, C MatrixM &ext_matrix); // squared distance between point and an extent transformed by matrix
+
 // if cuts
 inline Bool Cuts(C Vec    &point, C Box    &box ) {return box.includes(point);} // if point     cuts a  box
 inline Bool Cuts(C VecD   &point, C BoxD   &box ) {return box.includes(point);} // if point     cuts a  box
