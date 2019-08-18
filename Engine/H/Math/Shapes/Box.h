@@ -490,6 +490,8 @@ Flt Dist2(C Vec  &point, C OBox   &obox ); // squared distance between point and
 Flt Dist2(C Vec  &point, C Extent &ext  ); // squared distance between point and an extent
 Flt Dist (C Edge &edge , C Box    &box  ); //         distance between edge  and a  box
 Flt Dist (C Edge &edge , C OBox   &obox ); //         distance between edge  and a  box
+Flt Dist2(C Edge &edge , C Box    &box  ); // squared distance between edge  and a  box
+Flt Dist2(C Edge &edge , C OBox   &obox ); // squared distance between edge  and a  box
 Flt Dist (C Box  &a    , C Box    &b    ); //         distance between box   and a  box
 Flt Dist (C Box  &box  , C Plane  &plane); //         distance between box   and a  plane
 Flt Dist (C OBox &obox , C Plane  &plane); //         distance between box   and a  plane

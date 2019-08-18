@@ -284,6 +284,14 @@ Bool Cuts(C Ball &a, C Ball &b)
 {
    return Dist2(a.pos, b.pos)<=Sqr(a.r+b.r);
 }
+Bool Cuts(C Ball &a, C BallM &b)
+{
+   return Dist2(a.pos, b.pos)<=Sqr(a.r+b.r);
+}
+Bool Cuts(C BallM &a, C BallM &b)
+{
+   return Dist2(a.pos, b.pos)<=Sqr(a.r+b.r);
+}
 Bool Cuts(C Box &box, C Ball &ball)
 {
 #if 1 // fastest
@@ -344,6 +352,12 @@ Bool Cuts(C Extent &ext, C Ball &ball)
    d=Abs(ext.pos.z-ball.pos.z)-ext.ext.z; if(d>0)dist2+=Sqr(d);
    return dist2<=Sqr(ball.r);
 #endif
+}
+Bool Cuts(C Extent &ext, C BallM &ball)
+{
+   return Dist2(Max(0, Abs(ext.pos.x-ball.pos.x)-ext.ext.x),
+                Max(0, Abs(ext.pos.y-ball.pos.y)-ext.ext.y),
+                Max(0, Abs(ext.pos.z-ball.pos.z)-ext.ext.z))<=Sqr(ball.r);
 }
 Bool Cuts(C OBox &obox, C Ball &ball)
 {

@@ -117,7 +117,10 @@ Bool Cuts(C Tri    &tri  , C Ball  &ball); // if triangle cuts a ball
 Bool Cuts(C Box    &box  , C Ball  &ball); // if box      cuts a ball
 Bool Cuts(C OBox   &obox , C Ball  &ball); // if box      cuts a ball
 Bool Cuts(C Extent &ext  , C Ball  &ball); // if extent   cuts a ball
+Bool Cuts(C Extent &ext  , C BallM &ball); // if extent   cuts a ball
 Bool Cuts(C Ball   &a    , C Ball  &b   ); // if ball     cuts a ball
+Bool Cuts(C Ball   &a    , C BallM &b   ); // if ball     cuts a ball
+Bool Cuts(C BallM  &a    , C BallM &b   ); // if ball     cuts a ball
 
 Int CutsStrBall (C Vec & str_pos  , C Vec & str_dir, C Ball &ball, Vec *contact_a=null, Vec *contact_b=null); // if straight infinite line cuts a ball, return number of contacts, 'str_dir'=straight line direction (must be normalized)
 Int CutsEdgeBall(C Vec &edge_start, C Vec &edge_end, C Ball &ball, Vec *contact_a=null, Vec *contact_b=null); // if edge                   cuts a ball, return number of contacts

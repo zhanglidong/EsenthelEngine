@@ -23,7 +23,8 @@ struct Edge2 // Edge 2D
    Vec2 dir    (     )C {return                  !delta() ;} // direction
    Vec2 perp   (     )C {return             Perp (delta());} // perpendicular
    Vec2 perpN  (     )C {return             PerpN(delta());} // perpendicular normalized
-   Flt  length (     )C {return    Dist(p[0]  , p[1]     );} // length
+   Flt  length (     )C {return   Dist (p[0]  , p[1]     );} //         length
+   Flt  length2(     )C {return   Dist2(p[0]  , p[1]     );} // squared length
    Vec2 lerp   (Flt s)C {return    Lerp(p[0]  , p[1]  , s);} // lerp from p[0]   to p[1]
    Flt  lerpX  (Flt s)C {return    Lerp(p[0].x, p[1].x, s);} // lerp from p[0].x to p[1].x
    Flt  lerpY  (Flt s)C {return    Lerp(p[0].y, p[1].y, s);} // lerp from p[0].y to p[1].y
@@ -80,10 +81,11 @@ struct EdgeD2 // Edge 2D (double precision)
    VecD2 dir    (     )C {return                   !delta() ;} // direction
    VecD2 perp   (     )C {return              Perp (delta());} // perpendicular
    VecD2 perpN  (     )C {return              PerpN(delta());} // perpendicular normalized
-   Dbl   length (     )C {return    Dist(p[0]  , p[1]     );} // length
-   VecD2 lerp   (Dbl s)C {return    Lerp(p[0]  , p[1]  , s);} // lerp from p[0]   to p[1]
-   Dbl   lerpX  (Dbl s)C {return    Lerp(p[0].x, p[1].x, s);} // lerp from p[0].x to p[1].x
-   Dbl   lerpY  (Dbl s)C {return    Lerp(p[0].y, p[1].y, s);} // lerp from p[0].y to p[1].y
+   Dbl   length (     )C {return    Dist (p[0]  , p[1]     );} //         length
+   Dbl   length2(     )C {return    Dist2(p[0]  , p[1]     );} // squared length
+   VecD2 lerp   (Dbl s)C {return     Lerp(p[0]  , p[1]  , s);} // lerp from p[0]   to p[1]
+   Dbl   lerpX  (Dbl s)C {return     Lerp(p[0].x, p[1].x, s);} // lerp from p[0].x to p[1].x
+   Dbl   lerpY  (Dbl s)C {return     Lerp(p[0].y, p[1].y, s);} // lerp from p[0].y to p[1].y
 
    // draw
    void draw(C Color &color=WHITE            )C; // draw
@@ -131,7 +133,8 @@ struct Edge // Edge 3D
    Vec   center (     )C {return Vec(centerX(), centerY(), centerZ());} // center
    Vec   delta  (     )C {return                            p[1]-p[0];} // delta
    Vec   dir    (     )C {return                             !delta();} // direction
-   Flt   length (     )C {return              Dist(p[0]  , p[1]     );} // length
+   Flt   length (     )C {return             Dist (p[0]  , p[1]     );} //         length
+   Flt   length2(     )C {return             Dist2(p[0]  , p[1]     );} // squared length
    Vec   lerp   (Flt s)C {return              Lerp(p[0]  , p[1]  , s);} // lerp from p[0]   to p[1]
    Flt   lerpX  (Flt s)C {return              Lerp(p[0].x, p[1].x, s);} // lerp from p[0].x to p[1].x
    Flt   lerpY  (Flt s)C {return              Lerp(p[0].y, p[1].y, s);} // lerp from p[0].y to p[1].y
@@ -198,7 +201,8 @@ struct EdgeD // Edge 3D (double precision)
    VecD center (     )C {return VecD(centerX(), centerY(), centerZ());} // center
    VecD delta  (     )C {return                             p[1]-p[0];} // delta
    VecD dir    (     )C {return                              !delta();} // direction
-   Dbl  length (     )C {return               Dist(p[0]  , p[1]     );} // length
+   Dbl  length (     )C {return              Dist (p[0]  , p[1]     );} //         length
+   Dbl  length2(     )C {return              Dist2(p[0]  , p[1]     );} // squared length
    VecD lerp   (Dbl s)C {return               Lerp(p[0]  , p[1]  , s);} // lerp from p[0]   to p[1]
    Dbl  lerpX  (Dbl s)C {return               Lerp(p[0].x, p[1].x, s);} // lerp from p[0].x to p[1].x
    Dbl  lerpY  (Dbl s)C {return               Lerp(p[0].y, p[1].y, s);} // lerp from p[0].y to p[1].y
@@ -409,6 +413,13 @@ Flt DistPointStr(C Vec   &point, C Vec   &str, C Vec   &dir);
 Dbl DistPointStr(C VecD  &point, C Vec   &str, C Vec   &dir);
 Dbl DistPointStr(C VecD  &point, C VecD  &str, C VecD  &dir);
 
+// squared distance between point and a straight line
+Flt Dist2PointStr(C Vec2  &point, C Vec2  &str, C Vec2  &dir);
+Dbl Dist2PointStr(C VecD2 &point, C VecD2 &str, C VecD2 &dir);
+Flt Dist2PointStr(C Vec   &point, C Vec   &str, C Vec   &dir);
+Dbl Dist2PointStr(C VecD  &point, C Vec   &str, C Vec   &dir);
+Dbl Dist2PointStr(C VecD  &point, C VecD  &str, C VecD  &dir);
+
 // distance between 2 straight lines
 Flt DistStrStr(C Vec &pos_a, C Vec &dir_a, C Vec &pos_b, C Vec &dir_b);
 
@@ -421,11 +432,28 @@ Flt DistStrStr(C Vec &pos_a, C Vec &dir_a, C Vec &pos_b, C Vec &dir_b);
 inline Flt Dist         (C Vec2  &point, C Edge2  &edge  ,                  DIST_TYPE *type=null) {return DistPointEdge(point, edge.p[0], edge.p[1], type);}
 inline Dbl Dist         (C VecD2 &point, C EdgeD2 &edge  ,                  DIST_TYPE *type=null) {return DistPointEdge(point, edge.p[0], edge.p[1], type);}
 inline Flt Dist         (C Vec   &point, C Edge   &edge  ,                  DIST_TYPE *type=null) {return DistPointEdge(point, edge.p[0], edge.p[1], type);}
+inline Dbl Dist         (C VecD  &point, C Edge   &edge  ,                  DIST_TYPE *type=null) {return DistPointEdge(point, edge.p[0], edge.p[1], type);}
 inline Dbl Dist         (C VecD  &point, C EdgeD  &edge  ,                  DIST_TYPE *type=null) {return DistPointEdge(point, edge.p[0], edge.p[1], type);}
+
+// squared distance between point and an edge
+       Flt Dist2PointEdge(C Vec2  &point, C Vec2   &edge_a, C Vec2  &edge_b, DIST_TYPE *type=null);
+       Dbl Dist2PointEdge(C VecD2 &point, C VecD2  &edge_a, C VecD2 &edge_b, DIST_TYPE *type=null);
+       Flt Dist2PointEdge(C Vec   &point, C Vec    &edge_a, C Vec   &edge_b, DIST_TYPE *type=null);
+       Dbl Dist2PointEdge(C VecD  &point, C Vec    &edge_a, C Vec   &edge_b, DIST_TYPE *type=null);
+       Dbl Dist2PointEdge(C VecD  &point, C VecD   &edge_a, C VecD  &edge_b, DIST_TYPE *type=null);
+inline Flt Dist2         (C Vec2  &point, C Edge2  &edge  ,                  DIST_TYPE *type=null) {return Dist2PointEdge(point, edge.p[0], edge.p[1], type);}
+inline Dbl Dist2         (C VecD2 &point, C EdgeD2 &edge  ,                  DIST_TYPE *type=null) {return Dist2PointEdge(point, edge.p[0], edge.p[1], type);}
+inline Flt Dist2         (C Vec   &point, C Edge   &edge  ,                  DIST_TYPE *type=null) {return Dist2PointEdge(point, edge.p[0], edge.p[1], type);}
+inline Dbl Dist2         (C VecD  &point, C Edge   &edge  ,                  DIST_TYPE *type=null) {return Dist2PointEdge(point, edge.p[0], edge.p[1], type);}
+inline Dbl Dist2         (C VecD  &point, C EdgeD  &edge  ,                  DIST_TYPE *type=null) {return Dist2PointEdge(point, edge.p[0], edge.p[1], type);}
 
 // distance between 2 edges
 Flt Dist(C Edge2 &a, C Edge2 &b);
 Flt Dist(C Edge  &a, C Edge  &b);
+
+// squared distance between 2 edges
+Flt Dist2(C Edge2 &a, C Edge2 &b);
+Flt Dist2(C Edge  &a, C Edge  &b);
 
 // distance between edge and a plane
 Flt Dist(C Edge &edge, C Plane &plane);

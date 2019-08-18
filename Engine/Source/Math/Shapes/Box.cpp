@@ -637,7 +637,7 @@ Flt Dist2(C Vec &point, C Extent &ext)
                 Max(0, Abs(point.z-ext.pos.z)-ext.ext.z));
 }
 /******************************************************************************/
-Flt Dist(C Edge &edge, C Box &box)
+Flt Dist2(C Edge &edge, C Box &box)
 {
    Edge edge_list[2][3*3*3];
    Int  edges=0, list_cur=0;
@@ -693,10 +693,11 @@ Flt Dist(C Edge &edge, C Box &box)
       }
    }
    
-   Flt           dist=FLT_MAX;
-   REP(edges)MIN(dist, Dist(VecZero, edge_list[list_cur][i]));
-   return        dist;
+   Flt           dist2=FLT_MAX;
+   REP(edges)MIN(dist2, Dist2(VecZero, edge_list[list_cur][i]));
+   return        dist2;
 }
+Flt Dist(C Edge &edge, C Box &box) {return Sqrt(Dist2(edge, box));}
 /******************************************************************************/
 Flt Dist(C Box &a, C Box &b)
 {
@@ -886,6 +887,7 @@ Flt  Dist (C Vec  &point, C OBox &obox) {return Dist (Vec ().fromDivNormalized(p
 Flt  Dist2(C Vec  &point, C OBox &obox) {return Dist2(Vec ().fromDivNormalized(point, obox.matrix), obox.box);}
 Bool Cuts (C Vec  &point, C OBox &obox) {return Cuts (Vec ().fromDivNormalized(point, obox.matrix), obox.box);}
 Flt  Dist (C Edge &edge , C OBox &obox) {return Dist (Edge(edge).divNormalized(       obox.matrix), obox.box);}
+Flt  Dist2(C Edge &edge , C OBox &obox) {return Dist2(Edge(edge).divNormalized(       obox.matrix), obox.box);}
 Bool Cuts (C Edge &edge , C OBox &obox) {return Cuts (Edge(edge).divNormalized(       obox.matrix), obox.box);}
 Bool Cuts (C OBox &a    , C OBox &b   ) {return Cuts (a.box, OBox(b).div(a.matrix, true));}
 /******************************************************************************/

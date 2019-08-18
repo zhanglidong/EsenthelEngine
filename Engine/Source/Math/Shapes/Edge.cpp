@@ -507,14 +507,20 @@ Dbl DistPointStr(C VecD2 &point, C VecD2 &str, C VecD2 &dir) {return  Abs(DistPo
 Flt DistPointStr(C Vec   &point, C Vec   &str, C Vec   &dir) {return Dist(  PointOnPlane(point, str,      dir ), str);}
 Dbl DistPointStr(C VecD  &point, C Vec   &str, C Vec   &dir) {return Dist(  PointOnPlane(point, str,      dir ), str);}
 Dbl DistPointStr(C VecD  &point, C VecD  &str, C VecD  &dir) {return Dist(  PointOnPlane(point, str,      dir ), str);}
-
+/******************************************************************************/
+Flt Dist2PointStr(C Vec2  &point, C Vec2  &str, C Vec2  &dir) {return   Sqr(DistPointPlane(point, str, Perp(dir))     );}
+Dbl Dist2PointStr(C VecD2 &point, C VecD2 &str, C VecD2 &dir) {return   Sqr(DistPointPlane(point, str, Perp(dir))     );}
+Flt Dist2PointStr(C Vec   &point, C Vec   &str, C Vec   &dir) {return Dist2(  PointOnPlane(point, str,      dir ), str);}
+Dbl Dist2PointStr(C VecD  &point, C Vec   &str, C Vec   &dir) {return Dist2(  PointOnPlane(point, str,      dir ), str);}
+Dbl Dist2PointStr(C VecD  &point, C VecD  &str, C VecD  &dir) {return Dist2(  PointOnPlane(point, str,      dir ), str);}
+/******************************************************************************/
 Flt DistStrStr(C Vec &pos_a, C Vec &dir_a, C Vec &pos_b, C Vec &dir_b)
 {
    Vec normal=Cross(dir_a, dir_b);
    if( normal.normalize())return Abs(DistPointPlane(pos_b, pos_a, normal));
                           return     Dist          (pos_a, NearestPointOnStr(pos_a, pos_b, dir_b)); // if they're parallel, find closest point on straight 'pos_b' towards point 'pos_a' and return distance between them
 }
-
+/******************************************************************************/
 Flt DistPointEdge(C Vec2 &point, C Vec2 &edge_a, C Vec2 &edge_b, DIST_TYPE *type) // safe in case 'edge' is zero length because 'd' would be zero, and 'DistPointPlane' would be zero
 {
    Vec2 d=edge_b-edge_a;
@@ -551,7 +557,43 @@ Dbl DistPointEdge(C VecD &point, C VecD &edge_a, C VecD &edge_b, DIST_TYPE *type
                                            if(type)*type=DIST_EDGE  ; return DistPointStr(point, edge_a, !d);
 }
 /******************************************************************************/
-Flt Dist(C Edge2 &a, C Edge2 &b)
+Flt Dist2PointEdge(C Vec2 &point, C Vec2 &edge_a, C Vec2 &edge_b, DIST_TYPE *type) // safe in case 'edge' is zero length because 'd' would be zero, and 'DistPointPlane' would be zero
+{
+   Vec2 d=edge_b-edge_a;
+   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist2        (point, edge_a    );}
+   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist2        (point, edge_b    );}
+                                           if(type)*type=DIST_EDGE  ; return Dist2PointStr(point, edge_a, !d);
+}
+Dbl Dist2PointEdge(C VecD2 &point, C VecD2 &edge_a, C VecD2 &edge_b, DIST_TYPE *type) // safe in case 'edge' is zero length because 'd' would be zero, and 'DistPointPlane' would be zero
+{
+   VecD2 d=edge_b-edge_a;
+   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist2        (point, edge_a    );}
+   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist2        (point, edge_b    );}
+                                           if(type)*type=DIST_EDGE  ; return Dist2PointStr(point, edge_a, !d);
+}
+Flt Dist2PointEdge(C Vec &point, C Vec &edge_a, C Vec &edge_b, DIST_TYPE *type) // safe in case 'edge' is zero length because 'd' would be zero, and 'DistPointPlane' would be zero
+{
+   Vec d=edge_b-edge_a;
+   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist2        (point, edge_a    );}
+   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist2        (point, edge_b    );}
+                                           if(type)*type=DIST_EDGE  ; return Dist2PointStr(point, edge_a, !d);
+}
+Dbl Dist2PointEdge(C VecD &point, C Vec &edge_a, C Vec &edge_b, DIST_TYPE *type) // safe in case 'edge' is zero length because 'd' would be zero, and 'DistPointPlane' would be zero
+{
+   Vec d=edge_b-edge_a;
+   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist2        (point, edge_a    );}
+   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist2        (point, edge_b    );}
+                                           if(type)*type=DIST_EDGE  ; return Dist2PointStr(point, edge_a, !d);
+}
+Dbl Dist2PointEdge(C VecD &point, C VecD &edge_a, C VecD &edge_b, DIST_TYPE *type) // safe in case 'edge' is zero length because 'd' would be zero, and 'DistPointPlane' would be zero
+{
+   VecD d=edge_b-edge_a;
+   if(DistPointPlane(point, edge_a, d)<=0){if(type)*type=DIST_POINT0; return Dist2        (point, edge_a    );}
+   if(DistPointPlane(point, edge_b, d)>=0){if(type)*type=DIST_POINT1; return Dist2        (point, edge_b    );}
+                                           if(type)*type=DIST_EDGE  ; return Dist2PointStr(point, edge_a, !d);
+}
+/******************************************************************************/
+Flt Dist2(C Edge2 &a, C Edge2 &b)
 {
    // check if they're cutting each other
    Vec2 a_dir =a.delta(); Flt a_length=a_dir.normalize();
@@ -568,12 +610,14 @@ Flt Dist(C Edge2 &a, C Edge2 &b)
    }
 
    // they don't cut
-   return Min(Dist(a.p[0], b),
-              Dist(a.p[1], b),
-              Dist(b.p[0], a),
-              Dist(b.p[1], a));
+   return Min(Dist2(a.p[0], b),
+              Dist2(a.p[1], b),
+              Dist2(b.p[0], a),
+              Dist2(b.p[1], a));
 }
-Flt Dist(C Edge &a, C Edge &b) // safe in case 'a' or 'b' are zero length
+Flt Dist(C Edge2 &a, C Edge2 &b) {return Sqrt(Dist2(a, b));} // safe in case 'a' or 'b' are zero length
+/******************************************************************************/
+Flt Dist2(C Edge &a, C Edge &b) // safe in case 'a' or 'b' are zero length
 {
    // check if they're cutting each other
    Edge c;
@@ -582,15 +626,16 @@ Flt Dist(C Edge &a, C Edge &b) // safe in case 'a' or 'b' are zero length
    if(NearestPointOnStr(a.p[0], a_dir, b.p[0], b_dir, c)) // safe in case 'a' or 'b' are zero length
    {
       if(DistPointPlane(c.p[0], a.p[0], a_dir)>=0 && DistPointPlane(c.p[0], a.p[1], a_dir)<=0
-      && DistPointPlane(c.p[1], b.p[0], b_dir)>=0 && DistPointPlane(c.p[1], b.p[1], b_dir)<=0)return c.length();
+      && DistPointPlane(c.p[1], b.p[0], b_dir)>=0 && DistPointPlane(c.p[1], b.p[1], b_dir)<=0)return c.length2();
    }
 
    // they don't cut
-   return Min(Dist(a.p[0], b),
-              Dist(a.p[1], b),
-              Dist(b.p[0], a),
-              Dist(b.p[1], a));
+   return Min(Dist2(a.p[0], b),
+              Dist2(a.p[1], b),
+              Dist2(b.p[0], a),
+              Dist2(b.p[1], a));
 }
+Flt Dist(C Edge &a, C Edge &b) {return Sqrt(Dist2(a, b));} // safe in case 'a' or 'b' are zero length
 /******************************************************************************/
 Flt Dist(C Edge &edge, C Plane &plane) // safe in case 'a' or 'b' are zero length
 {
