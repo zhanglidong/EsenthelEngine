@@ -129,5 +129,7 @@ void  SetCam      (C MatrixM &matrix); // 'Frustum' may have to be reset after c
 void  SetEyeMatrix();
 void  ActiveCamChanged();
 void  MotionScaleChanged();
+
+extern Dbl ActiveCamZ;
 #endif
 /******************************************************************************/

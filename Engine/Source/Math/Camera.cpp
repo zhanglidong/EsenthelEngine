@@ -6,6 +6,7 @@ namespace EE{
 /******************************************************************************/
   Camera       Cam;
 C Camera ActiveCam;
+  Dbl    ActiveCamZ; // camera position distance along its Z direction
 /******************************************************************************/
 Camera::Camera()
 {
@@ -135,6 +136,7 @@ static void SetCamAngVel()
 void ActiveCamChanged()
 {
    SetEyeMatrix(); SetCam(ActiveCam.matrix); Frustum.set();
+   ActiveCamZ=Dot(ActiveCam.matrix.pos, ActiveCam.matrix.z);
 
    // set velocity related things !! the same must be done below in 'MotionScaleChanged' !!
    CamMatrixInvMotionScale=CamMatrixInv.orn(); CamMatrixInvMotionScale.scale(D.motionScale());

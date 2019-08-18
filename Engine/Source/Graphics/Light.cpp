@@ -17,6 +17,11 @@
    !! because of that we can't use 'toScreenRect' for shadows to get the rect in shadow RT
    Camera however is always reset after drawing shadows */
 
+#if DX12
+   use ID3D12GraphicsCommandList1::OMSetDepthBounds to process only shadow/light pixels within depth ranges (including drawForward secondary pass)
+      https://docs.microsoft.com/en-us/windows/win32/api/d3d12/nf-d3d12-id3d12graphicscommandlist1-omsetdepthbounds
+#endif
+
 namespace EE{
 /******************************************************************************
 
@@ -38,6 +43,7 @@ static Memc<FloatIndex> LightImportance;
             Light       CurrentLight;
 static Bool             CurrentLightOn  [2];
 static Rect             CurrentLightRect[2];
+static Vec2             CurrentLightZRange;
 static MeshRender       LightMeshBall, LightMeshCone;
 /******************************************************************************/
 static inline Int      HsmX        (DIR_ENUM dir) {return dir& 1;}
@@ -150,9 +156,13 @@ static void MapSoft(UInt depth_func=FUNC_FOREGROUND, C MatrixM *light_matrix=nul
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
    #endif
       Bool geom=(CurrentLight.type!=LIGHT_DIR);
-      // FIXME GL_ES
+   #if !DEPTH_CLIP_SUPPORTED // Flat
+      if(CurrentLight.type==LIGHT_CONE && !D._depth_clip && CurrentLightZRange.y>D.viewRange()) // if light is behind far plane
+         geom=false; // draw as Flat
+   #endif
+
       MeshRender *mesh; if(geom)mesh=((CurrentLight.type==LIGHT_CONE) ? &LightMeshCone : &LightMeshBall);
-      if(D.shadowSoft()>=5)
+      if(D.shadowSoft()>=5) // use 2 pass blur (BlurX, BlurY)
       {
          // first pass has to be flat (!geom) and cover full screen, because second pass gathers nearby pixels
          ImageRTPtr temp(rt_desc);    Renderer.set(            temp, Renderer._ds_1s, true, NEED_DEPTH_READ); REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.ShdBlurX[0]->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders
@@ -165,7 +175,7 @@ static void MapSoft(UInt depth_func=FUNC_FOREGROUND, C MatrixM *light_matrix=nul
                Renderer.setEyeViewportCam(); SetFastMatrix(*light_matrix); shader->commit(); mesh->draw();
             }else shader->draw(&CurrentLightRect[Renderer._eye]);
          }
-      }else
+      }else // use single pass
       {
          ImageRTPtr src=Renderer._shd_1s; Renderer._shd_1s.get(rt_desc);
          Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders
@@ -1038,23 +1048,11 @@ static void DrawLightCone(C MatrixM &light_matrix, Bool multi_sample, Bool quali
 {
    if(TEST_LIGHT_RECT){D.depthUnlock(); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())Sh.clear(Vec4(0.3f, 0.3f, 0.3f, 0), &CurrentLight.rect); D.depthLock(true);}
 #if !DEPTH_CLIP_SUPPORTED // Flat
-   if(!D._depth_clip)
-   {
-      VecD p[5]; CurrentLight.cone.pyramid.toCorners(p);
-      Dbl  dist=Dot(ActiveCam.matrix.pos, ActiveCam.matrix.z),
-            max=Dot(p[4], ActiveCam.matrix.z);// min=max;
-      REP(Elms(p)-1)
-      {
-         Dbl d=Dot(p[i], ActiveCam.matrix.z);
-       //if(d<min)min=d;else
-         if(d>max)max=d;
-      }
-      if(max>dist+D.viewRange()) // if any of the points is behind far plane
-      { // draw as Flat
-         Shader *shader=GetDrawLightConeFlat(CurrentLight.shadow, multi_sample, quality, CurrentLight.image?1:0);
-         REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())shader->draw(&CurrentLight.rect);
-         return;
-      }
+   if(!D._depth_clip && CurrentLightZRange.y>D.viewRange()) // if light is behind far plane
+   { // draw as Flat
+      Shader *shader=GetDrawLightConeFlat(CurrentLight.shadow, multi_sample, quality, CurrentLight.image?1:0);
+      REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye())shader->draw(&CurrentLight.rect);
+      return;
    }
 #endif
    // Geom
@@ -1092,6 +1090,18 @@ static void SetLightMatrixCone(MatrixM &light_matrix, Bool front_face)
    light_matrix.y *=s;
    light_matrix.z *=CurrentLight.cone.pyramid.h;
    light_matrix.pos=CurrentLight.cone.pyramid.pos;
+}
+static void SetLightZRangeCone()
+{
+   VecD p[5]; CurrentLight.cone.pyramid.toCorners(p);
+   Dbl  max=Dot(p[4], ActiveCam.matrix.z), min=max;
+   REP(Elms(p)-1)
+   {
+      Dbl d=Dot(p[i], ActiveCam.matrix.z);
+      if(d<min)min=d;else
+      if(d>max)max=d;
+   }
+   CurrentLightZRange.set(min-ActiveCamZ, max-ActiveCamZ); // Z relative to camera position
 }
 /******************************************************************************/
 void Light::draw()
@@ -1179,7 +1189,10 @@ void Light::draw()
 
       case LIGHT_POINT:
       {
-         Flt range=CurrentLight.point.range();
+         Flt range=CurrentLight.point.range(),
+             z_center=Dot(CurrentLight.point.pos, ActiveCam.matrix.z)-ActiveCamZ; // Z relative to camera position
+         CurrentLightZRange.set(z_center-range, z_center+range); // use for DX12 OMSetDepthBounds
+
          if(CurrentLight.shadow)
          {
             D.depthClip(true);
@@ -1259,7 +1272,10 @@ void Light::draw()
 
       case LIGHT_LINEAR:
       {
-         Flt range=CurrentLight.linear.range;
+         Flt range=CurrentLight.linear.range,
+             z_center=Dot(CurrentLight.linear.pos, ActiveCam.matrix.z)-ActiveCamZ; // Z relative to camera position
+         CurrentLightZRange.set(z_center-range, z_center+range); // use for DX12 OMSetDepthBounds
+
          if(CurrentLight.shadow)
          {
             D.depthClip(true);
@@ -1311,7 +1327,6 @@ void Light::draw()
             }
             RestoreViewSpaceBias(mp_z_z);
             MapSoft(depth_func, &light_matrix);
-if(Kb.b(KB_NP4)){Swap(Renderer._shd_1s, Renderer._lum_1s); Renderer._lum=Renderer._lum_1s; break;}
             ApplyVolumetric(CurrentLight.linear);
          }
          Bool clear=SetLum();
@@ -1340,6 +1355,8 @@ if(Kb.b(KB_NP4)){Swap(Renderer._shd_1s, Renderer._lum_1s); Renderer._lum=Rendere
 
       case LIGHT_CONE:
       {
+         SetLightZRangeCone();
+
          if(CurrentLight.shadow)
          {
             D.depthClip(true);
@@ -1498,7 +1515,10 @@ void Light::drawForward(ALPHA_MODE alpha)
 
       case LIGHT_POINT:
       {
-         Flt range=CurrentLight.point.range();
+         Flt range=CurrentLight.point.range(),
+             z_center=Dot(CurrentLight.point.pos, ActiveCam.matrix.z)-ActiveCamZ; // Z relative to camera position
+         CurrentLightZRange.set(z_center-range, z_center+range); // use for DX12 OMSetDepthBounds
+
          if(CurrentLight.shadow)
          {
             ShadowMap(range, CurrentLight.point.pos);
@@ -1571,7 +1591,10 @@ void Light::drawForward(ALPHA_MODE alpha)
 
       case LIGHT_LINEAR:
       {
-         Flt range=CurrentLight.linear.range;
+         Flt range=CurrentLight.linear.range,
+             z_center=Dot(CurrentLight.linear.pos, ActiveCam.matrix.z)-ActiveCamZ; // Z relative to camera position
+         CurrentLightZRange.set(z_center-range, z_center+range); // use for DX12 OMSetDepthBounds
+
          if(CurrentLight.shadow)
          {
             ShadowMap(range, CurrentLight.linear.pos);
@@ -1644,6 +1667,8 @@ void Light::drawForward(ALPHA_MODE alpha)
 
       case LIGHT_CONE:
       {
+         SetLightZRangeCone(); // Z relative to camera position
+
          if(CurrentLight.shadow)
          {
             ShadowMap(CurrentLight.cone);
