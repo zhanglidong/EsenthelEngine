@@ -105,7 +105,7 @@ static void GetLum()
 static Bool SetLum()
 {
    Bool set=!Renderer._lum; if(set)GetLum();
-   Renderer.set(Renderer._lum_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests, start with '_lum_1s' so '_lum' will be processed later, because at the end we still have to render ambient from 3d meshes to '_lum' this way we avoid changing RT's
+   Renderer.set(Renderer._lum_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests, start with '_lum_1s' so '_lum' will be processed later, because at the end we still have to render ambient from 3d meshes to '_lum' this way we avoid changing RT's
    if(set)
    {
       D.depthUnlock(    ); D.clearCol((Renderer._lum_1s!=Renderer._lum || (Renderer._ao && !D.aoAll())) ? Vec4Zero : Vec4(D.ambientColorD(), 0));
@@ -129,7 +129,7 @@ static void                GetWaterLum  () {Renderer._water_lum.get(ImageRTDesc(
 static void                SetWaterLum  ()
 {
    Bool set=!Renderer._water_lum; if(set)GetWaterLum();
-   Renderer.set(Renderer._water_lum, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
+   Renderer.set(Renderer._water_lum, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
    if(set)
    {
       D.depthUnlock(    ); D.clearCol(Vec4(D.ambientColorD(), 0));
@@ -138,9 +138,9 @@ static void                SetWaterLum  ()
    D.alpha(ALPHA_ADD); Sh.Img[0]->set(Renderer._water_nrm); Sh.ImgMS[0]->set(Renderer._water_nrm);
 }
 
-static void MapSoft()
+static void MapSoft(UInt depth_func=FUNC_FOREGROUND, C MatrixM *light_matrix=null)
 {
-   if(D.shadowSoft()) // this needs to be in sync with 'D.ambientSoft'
+   if(D.shadowSoft()) // !! 'D.shadowSoft' values need to be in sync with 'D.ambientSoft' !!
    {
       ImageRTDesc rt_desc(Renderer._shd_1s->w(), Renderer._shd_1s->h(), IMAGERT_ONE);
     //Sh.imgSize(*Renderer._shd_1s); we can just use 'RTSize' instead of 'ImgSize' since there's no scale
@@ -149,15 +149,34 @@ static void MapSoft()
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
    #endif
+      Bool geom=(CurrentLight.type!=LIGHT_DIR);
+      // FIXME GL_ES
+      MeshRender *mesh; if(geom)mesh=((CurrentLight.type==LIGHT_CONE) ? &LightMeshCone : &LightMeshBall);
       if(D.shadowSoft()>=5)
       {
-         ImageRTPtr temp(rt_desc);    Renderer.set(            temp, Renderer._ds_1s, true, NEED_DEPTH_READ);                        REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.ShdBlurX[0]->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth' optimization
-         Renderer._shd_1s->discard(); Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); Sh.ImgX[0]->set(temp); REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.ShdBlurY[0]->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth' optimization
+         // first pass has to be flat (!geom) and cover full screen, because second pass gathers nearby pixels
+         ImageRTPtr temp(rt_desc);    Renderer.set(            temp, Renderer._ds_1s, true, NEED_DEPTH_READ); REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.ShdBlurX[0]->draw(&CurrentLightRect[Renderer._eye]); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders
+         Renderer._shd_1s->discard(); Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); Sh.ImgX[0]->set(temp); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders
+         Shader *shader=Sh.ShdBlurY[geom]; if(geom){D.depth2DOn(depth_func); shader->startTex(); mesh->set();}
+         REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])
+         {
+            if(geom)
+            {
+               Renderer.setEyeViewportCam(); SetFastMatrix(*light_matrix); shader->commit(); mesh->draw();
+            }else shader->draw(&CurrentLightRect[Renderer._eye]);
+         }
       }else
       {
          ImageRTPtr src=Renderer._shd_1s; Renderer._shd_1s.get(rt_desc);
-         Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization
-         REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])Sh.ShdBlur[0][D.shadowSoft()-1]->draw(&CurrentLightRect[Renderer._eye]);
+         Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders
+         Shader *shader=Sh.ShdBlur[geom][D.shadowSoft()-1]; if(geom){D.depth2DOn(depth_func); shader->startTex(); mesh->set();}
+         REPS(Renderer._eye, Renderer._eye_num)if(CurrentLightOn[Renderer._eye])
+         {
+            if(geom)
+            {
+               Renderer.setEyeViewportCam(); SetFastMatrix(*light_matrix); shader->commit(); mesh->draw();
+            }else shader->draw(&CurrentLightRect[Renderer._eye]);
+         }
       }
    #if GL && !GL_ES
       D.texBind(GL_TEXTURE_2D, Renderer._ds_1s->_txtr);
@@ -1106,7 +1125,7 @@ void Light::draw()
             {
                // no need for view space bias, because we're calculating shadow for water surfaces, which by themself don't cast shadows and are usually above shadow surfaces
                Renderer.getShdRT();
-               Renderer.set(Renderer._shd_1s, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
+               Renderer.set(Renderer._shd_1s, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
                REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdDir(Mid(shd_map_num, 1, 6), cloud, false)->draw(&CurrentLight.rect);
             }
 
@@ -1124,12 +1143,12 @@ void Light::draw()
             Flt mp_z_z; ApplyViewSpaceBias(mp_z_z);
             if(!Renderer._ds->multiSample())
             {
-               Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization
+               Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders
                REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdDir(shd_map_num, cloud, false)->draw(&CurrentLight.rect);
             }else
             { // we can ignore 'Renderer.hasStencilAttached' because we would have to apply for all samples of '_shd_ms' and '_shd_1s' which will happen anyway below
-               Renderer.set(Renderer._shd_ms, Renderer._ds   , true, NEED_DEPTH_READ); D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdDir(shd_map_num, cloud, true )->draw(&CurrentLight.rect); // use DS because it may be used for 'D.depth' optimization
-               Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); D.stencil(STENCIL_NONE                       ); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdDir(shd_map_num, cloud, false)->draw(&CurrentLight.rect); // use DS because it may be used for 'D.depth' optimization, for all stencil samples because they are needed for smoothing
+               Renderer.set(Renderer._shd_ms, Renderer._ds   , true, NEED_DEPTH_READ); D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdDir(shd_map_num, cloud, true )->draw(&CurrentLight.rect); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders
+               Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); D.stencil(STENCIL_NONE                       ); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdDir(shd_map_num, cloud, false)->draw(&CurrentLight.rect); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders, for all stencil samples because they are needed for smoothing
             }
             RestoreViewSpaceBias(mp_z_z);
             MapSoft();
@@ -1146,7 +1165,7 @@ void Light::draw()
                D.stencil(STENCIL_MSAA_TEST, 0);
                DrawLightDir(false, D.highPrecNrmCalcIs());
             }
-            Renderer.set(Renderer._lum, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
+            Renderer.set(Renderer._lum, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
             if(clear)
             {
                D.depthUnlock(    ); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0));
@@ -1182,7 +1201,7 @@ void Light::draw()
             {
                // no need for view space bias, because we're calculating shadow for water surfaces, which by themself don't cast shadows and are usually above shadow surfaces
                Renderer.getShdRT();
-               Renderer.set(Renderer._shd_1s, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
+               Renderer.set(Renderer._shd_1s, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
                D.depth2DOn();
                REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(false)->draw(&CurrentLight.rect);
             }
@@ -1203,15 +1222,15 @@ void Light::draw()
             Flt mp_z_z; ApplyViewSpaceBias(mp_z_z);
             if(!Renderer._ds->multiSample())
             {
-               Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization
+               Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders
                REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(false)->draw(&CurrentLight.rect);
             }else
             { // we can ignore 'Renderer.hasStencilAttached' because we would have to apply for all samples of '_shd_ms' and '_shd_1s' which will happen anyway below
-               Renderer.set(Renderer._shd_ms, Renderer._ds   , true, NEED_DEPTH_READ); D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(true )->draw(&CurrentLight.rect); // use DS because it may be used for 'D.depth' optimization
-               Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); D.stencil(STENCIL_NONE                       ); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(false)->draw(&CurrentLight.rect); // use DS because it may be used for 'D.depth' optimization, for all stencil samples because they are needed for smoothing
+               Renderer.set(Renderer._shd_ms, Renderer._ds   , true, NEED_DEPTH_READ); D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(true )->draw(&CurrentLight.rect); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders
+               Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); D.stencil(STENCIL_NONE                       ); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(false)->draw(&CurrentLight.rect); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders, for all stencil samples because they are needed for smoothing
             }
             RestoreViewSpaceBias(mp_z_z);
-            MapSoft();
+            MapSoft(depth_func, &light_matrix);
             ApplyVolumetric(CurrentLight.point);
          }
          Bool clear=SetLum();
@@ -1226,7 +1245,7 @@ void Light::draw()
                D.stencil(STENCIL_MSAA_TEST, 0);
                DrawLightPoint(light_matrix, false, D.highPrecNrmCalcIs());
             }
-            Renderer.set(Renderer._lum, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
+            Renderer.set(Renderer._lum, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
             if(clear)
             {
                D.depthUnlock(    ); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0));
@@ -1262,7 +1281,7 @@ void Light::draw()
             {
                // no need for view space bias, because we're calculating shadow for water surfaces, which by themself don't cast shadows and are usually above shadow surfaces
                Renderer.getShdRT();
-               Renderer.set(Renderer._shd_1s, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
+               Renderer.set(Renderer._shd_1s, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
                D.depth2DOn();
                REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(false)->draw(&CurrentLight.rect);
             }
@@ -1283,15 +1302,16 @@ void Light::draw()
             Flt mp_z_z; ApplyViewSpaceBias(mp_z_z);
             if(!Renderer._ds->multiSample())
             {
-               Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization
+               Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders
                REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(false)->draw(&CurrentLight.rect);
             }else
             { // we can ignore 'Renderer.hasStencilAttached' because we would have to apply for all samples of '_shd_ms' and '_shd_1s' which will happen anyway below
-               Renderer.set(Renderer._shd_ms, Renderer._ds   , true, NEED_DEPTH_READ); D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(true )->draw(&CurrentLight.rect); // use DS because it may be used for 'D.depth' optimization
-               Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); D.stencil(STENCIL_NONE                       ); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(false)->draw(&CurrentLight.rect); // use DS because it may be used for 'D.depth' optimization, for all stencil samples because they are needed for smoothing
+               Renderer.set(Renderer._shd_ms, Renderer._ds   , true, NEED_DEPTH_READ); D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(true )->draw(&CurrentLight.rect); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders
+               Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); D.stencil(STENCIL_NONE                       ); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(false)->draw(&CurrentLight.rect); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders, for all stencil samples because they are needed for smoothing
             }
             RestoreViewSpaceBias(mp_z_z);
-            MapSoft();
+            MapSoft(depth_func, &light_matrix);
+if(Kb.b(KB_NP4)){Swap(Renderer._shd_1s, Renderer._lum_1s); Renderer._lum=Renderer._lum_1s; break;}
             ApplyVolumetric(CurrentLight.linear);
          }
          Bool clear=SetLum();
@@ -1306,7 +1326,7 @@ void Light::draw()
                D.stencil(STENCIL_MSAA_TEST, 0);
                DrawLightLinear(light_matrix, false, D.highPrecNrmCalcIs());
             }
-            Renderer.set(Renderer._lum, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
+            Renderer.set(Renderer._lum, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
             if(clear)
             {
                D.depthUnlock(    ); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0));
@@ -1341,7 +1361,7 @@ void Light::draw()
             {
                // no need for view space bias, because we're calculating shadow for water surfaces, which by themself don't cast shadows and are usually above shadow surfaces
                Renderer.getShdRT();
-               Renderer.set(Renderer._shd_1s, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
+               Renderer.set(Renderer._shd_1s, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
                D.depth2DOn();
                REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdCone(false)->draw(&CurrentLight.rect);
             }
@@ -1362,15 +1382,15 @@ void Light::draw()
             Flt mp_z_z; ApplyViewSpaceBias(mp_z_z);
             if(!Renderer._ds->multiSample())
             {
-               Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization
+               Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders
                REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdCone(false)->draw(&CurrentLight.rect);
             }else
             { // we can ignore 'Renderer.hasStencilAttached' because we would have to apply for all samples of '_shd_ms' and '_shd_1s' which will happen anyway below
-               Renderer.set(Renderer._shd_ms, Renderer._ds   , true, NEED_DEPTH_READ); D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdCone(true )->draw(&CurrentLight.rect); // use DS because it may be used for 'D.depth' optimization
-               Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); D.stencil(STENCIL_NONE                       ); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdCone(false)->draw(&CurrentLight.rect); // use DS because it may be used for 'D.depth' optimization, for all stencil samples because they are needed for smoothing
+               Renderer.set(Renderer._shd_ms, Renderer._ds   , true, NEED_DEPTH_READ); D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdCone(true )->draw(&CurrentLight.rect); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders
+               Renderer.set(Renderer._shd_1s, Renderer._ds_1s, true, NEED_DEPTH_READ); D.stencil(STENCIL_NONE                       ); REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdCone(false)->draw(&CurrentLight.rect); // use DS because it may be used for 'D.depth' optimization and 3D geometric shaders, for all stencil samples because they are needed for smoothing
             }
             RestoreViewSpaceBias(mp_z_z);
-            MapSoft();
+            MapSoft(depth_func, &light_matrix);
             ApplyVolumetric(CurrentLight.cone);
          }
          if(CurrentLight.image)
@@ -1390,7 +1410,7 @@ void Light::draw()
                D.stencil(STENCIL_MSAA_TEST, 0);
                DrawLightCone(light_matrix, false, D.highPrecNrmCalcIs());
             }
-            Renderer.set(Renderer._lum, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
+            Renderer.set(Renderer._lum, Renderer._ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
             if(clear)
             {
                D.depthUnlock(    ); D.stencil(STENCIL_NONE); D.clearCol((Renderer._ao && !D.aoAll()) ? Vec4Zero : Vec4(D.ambientColorD(), 0));
@@ -1464,7 +1484,7 @@ void Light::drawForward(ALPHA_MODE alpha)
             {
                // no need for view space bias, because we're calculating shadow for water surfaces, which by themself don't cast shadows and are usually above shadow surfaces
                Renderer.getShdRT();
-               Renderer.set(Renderer._shd_1s, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
+               Renderer.set(Renderer._shd_1s, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
                REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdDir(Mid(shd_map_num, 1, 6), false, false)->draw(&CurrentLight.rect);
             }
 
@@ -1535,7 +1555,7 @@ void Light::drawForward(ALPHA_MODE alpha)
             {
                // no need for view space bias, because we're calculating shadow for water surfaces, which by themself don't cast shadows and are usually above shadow surfaces
                Renderer.getShdRT();
-               Renderer.set(Renderer._shd_1s, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
+               Renderer.set(Renderer._shd_1s, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
                D.depth2DOn();
                REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(false)->draw(&CurrentLight.rect);
             }
@@ -1608,7 +1628,7 @@ void Light::drawForward(ALPHA_MODE alpha)
             {
                // no need for view space bias, because we're calculating shadow for water surfaces, which by themself don't cast shadows and are usually above shadow surfaces
                Renderer.getShdRT();
-               Renderer.set(Renderer._shd_1s, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
+               Renderer.set(Renderer._shd_1s, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
                D.depth2DOn();
                REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdPoint(false)->draw(&CurrentLight.rect);
             }
@@ -1680,7 +1700,7 @@ void Light::drawForward(ALPHA_MODE alpha)
             {
                // no need for view space bias, because we're calculating shadow for water surfaces, which by themself don't cast shadows and are usually above shadow surfaces
                Renderer.getShdRT();
-               Renderer.set(Renderer._shd_1s, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization and stencil tests
+               Renderer.set(Renderer._shd_1s, Renderer._water_ds, true, NEED_DEPTH_READ); // use DS because it may be used for 'D.depth' optimization, 3D geometric shaders and stencil tests
                D.depth2DOn();
                REPS(Renderer._eye, Renderer._eye_num)if(SetLightEye(true))GetShdCone(false)->draw(&CurrentLight.rect);
             }
