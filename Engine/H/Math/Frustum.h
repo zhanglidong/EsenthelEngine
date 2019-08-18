@@ -50,6 +50,8 @@ struct FrustumClass // Frustum
    void from    (C PyramidM &pyramid                      ); // set from pyramid
    void fromBall(Flt r, C VecD &pos                       ); // set from ball
 
+   void setExtraPlane(C PlaneM &plane, Bool chs=false);
+
    void draw(C Color &color=WHITE)C; // this relies on active object matrix which can be set using 'SetMatrix' function
 #endif
 

@@ -34,14 +34,24 @@ namespace EE{
       SS
       SS
 
-   TODO: calculating shadows could use 3D Geom Mesh shaders if shadow map softing is disabled
-
    1. Shadows are set for CurrentLight.rect (2D)
    2. Shadows are blurred using 3D Geom Mesh shaders (3D) (except first pass for 2-pass blurs)
    3. Light is calculated using 3D Geom Mesh shaders
 
    if DEPTH_CLIP_SUPPORTED not supported and it wanted to be used, then Cone Lights are processed as 2D shaders,
       Point/Linear/Ball Lights are ignored because clipped artifacts (using simulated clipping in the shader) are minimal.
+
+   TODO: calculating shadows could use 3D Geom Mesh shaders if shadow map softing is disabled
+
+   TODO: currently non-directional && secondary Lights for Forward renderer, set Frustum based on light volume only,
+      however this should be intersected with FrustumMain, to don't draw objects that are within light, but outside of view.
+      However this is only for Forward renderer, and would never be used for Deferred, so while it could improve performance on Forward,
+      it would slow down Deferred due to extra checks.
+   Some ideas:
+      Point/Linear lights should operate on BallM
+      Cone lights struct FrustumClass{Frustum *secondary=null;} check 'this' and 'secondary' too.
+      we already do checks if(use_extra_plane) this could be replaced with "if(extra_checks){if(use_extra_plane)..; if(extra_ball)..; if(secondary)..;} ?
+      Also have to adjust 'getIntersectingAreas' to calc intersection of all.
 
 /******************************************************************************/
 static Matrix           ShdMatrix    [2]; //           [Eye]

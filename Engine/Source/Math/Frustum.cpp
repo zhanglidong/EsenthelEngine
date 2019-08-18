@@ -9,6 +9,14 @@ namespace EE{
 FrustumClass Frustum,
              FrustumMain; // it's set as the #1 Main Frustum, #2 Mirrored Frustum (for Reflections), but NOT set when rendering shadows.
 /******************************************************************************/
+void FrustumClass::setExtraPlane(C PlaneM &plane, Bool chs)
+{
+   use_extra_plane=true;
+   extra_plane=plane;
+   if(chs)extra_plane.normal.chs();
+   extra_plane_n_abs=Abs(extra_plane.normal);
+}
+/******************************************************************************/
 void FrustumClass::set(Flt range, C Vec2 &fov, C MatrixM &camera)
 {
    T.range =range;
@@ -74,13 +82,8 @@ void FrustumClass::set(Flt range, C Vec2 &fov, C MatrixM &camera)
    }
 
    use_extra_plane=false;
-   if(Renderer.mirror())
-   {
-      use_extra_plane=true;
-      extra_plane=Renderer._mirror_plane;
-      extra_plane.normal.chs();
-      extra_plane_n_abs=Abs(extra_plane.normal);
-   }/*else
+   if(Renderer.mirror())setExtraPlane(Renderer._mirror_plane, true);
+   /*else
    if(Water.draw_plane_surface)
    {
       Flt density=Water.density+Water.density_add;
@@ -231,12 +234,13 @@ void FrustumClass::from(C BoxD &box)
    points=8;
    edges =12;
 }
-void FrustumClass::fromBall(Flt r, C VecD &pos)
+void FrustumClass::fromBall(Flt r, C VecD &pos) // used for ball lights
 {
    from(BoxD(r, pos));
+   if(Renderer.mirror())setExtraPlane(Renderer._mirror_plane, true);
 }
 /******************************************************************************/
-void FrustumClass::from(C PyramidM &pyramid)
+void FrustumClass::from(C PyramidM &pyramid) // used for cone lights
 {
    // set planes
    Vec2 d(pyramid.scale, 1); d.normalize();
@@ -267,7 +271,7 @@ void FrustumClass::from(C PyramidM &pyramid)
    // set helpers
    eye_dist_2=0;
    view_quad_max_dist=0;
-   use_extra_plane=false;
+   use_extra_plane=false; if(Renderer.mirror())setExtraPlane(Renderer._mirror_plane, true);
    persp=true;
    fov_tan=pyramid.scale;
    Vec2 fov_cos=d.y; fov_cos_inv=1.0f/fov_cos;
