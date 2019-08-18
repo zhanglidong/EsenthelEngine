@@ -52,7 +52,7 @@ static Memc<FloatIndex> LightImportance;
             Light       CurrentLight;
 static Bool             CurrentLightOn  [2];
 static Rect             CurrentLightRect[2];
-static Vec2             CurrentLightZRange;
+static Vec2             CurrentLightZRange; // Current Light Z range, relative to Camera position, to be used for 'OMSetDepthBounds'. Dbl precision not required since it's relative to Camera
 static MeshRender       LightMeshBall, LightMeshCone;
 /******************************************************************************/
 static inline Int      HsmX        (DIR_ENUM dir) {return dir& 1;}
