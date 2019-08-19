@@ -11,10 +11,15 @@ FrustumClass Frustum,
 /******************************************************************************/
 void FrustumClass::setExtraPlane(C PlaneM &plane, Bool chs)
 {
-   use_extra_plane=true;
+   extra|=PLANE;
    extra_plane=plane;
    if(chs)extra_plane.normal.chs();
    extra_plane_n_abs=Abs(extra_plane.normal);
+}
+void FrustumClass::setExtraBall(C BallM &ball)
+{
+   extra|=BALL;
+   extra_ball=ball; extra_ball_r2=Sqr(ball.r);
 }
 /******************************************************************************/
 void FrustumClass::set(Flt range, C Vec2 &fov, C MatrixM &camera)
@@ -81,7 +86,7 @@ void FrustumClass::set(Flt range, C Vec2 &fov, C MatrixM &camera)
       plane_n_abs[i]  =Abs(plane[i].normal);
    }
 
-   use_extra_plane=false;
+   extra=0;
    if(Renderer.mirror())setExtraPlane(Renderer._mirror_plane, true);
    /*else
    if(Water.draw_plane_surface)
@@ -194,7 +199,7 @@ void FrustumClass::from(C BoxD &box)
    plane[DIR_BACK   ].normal.set( 0, 0,-1); plane[DIR_BACK   ].pos.set(0, 0, box.min.z); // back
 
    // set helpers
-   use_extra_plane=false;
+   extra=0;
    view_quad_max_dist=0;
    eye_dist_2=0;
    persp=false;
@@ -234,11 +239,6 @@ void FrustumClass::from(C BoxD &box)
    points=8;
    edges =12;
 }
-void FrustumClass::fromBall(Flt r, C VecD &pos) // used for ball lights
-{
-   from(BoxD(r, pos));
-   if(Renderer.mirror())setExtraPlane(Renderer._mirror_plane, true);
-}
 /******************************************************************************/
 void FrustumClass::from(C PyramidM &pyramid) // used for cone lights
 {
@@ -271,7 +271,7 @@ void FrustumClass::from(C PyramidM &pyramid) // used for cone lights
    // set helpers
    eye_dist_2=0;
    view_quad_max_dist=0;
-   use_extra_plane=false; if(Renderer.mirror())setExtraPlane(Renderer._mirror_plane, true);
+   extra=0; if(Renderer.mirror())setExtraPlane(Renderer._mirror_plane, true);
    persp=true;
    fov_tan=pyramid.scale;
    Vec2 fov_cos=d.y; fov_cos_inv=1.0f/fov_cos;
@@ -302,7 +302,7 @@ void FrustumClass::from(C PyramidM &pyramid) // used for cone lights
    edges =8;
 }
 /******************************************************************************/
-Dbl FrustumClass::volume()C
+Dbl FrustumClass::volume()C // !! Warning: this ignores 'extra' !!
 {
    if(persp)
    {
@@ -322,7 +322,11 @@ Bool FrustumClass::operator()(C Vec &point)C
       Flt x=Dot(pos, matrix.x), bx=fov_tan.x*z+eye_dist_2; if(Abs(x)>bx)return false;
       Flt y=Dot(pos, matrix.y), by=fov_tan.y*z           ; if(Abs(y)>by)return false;
 
-      if(use_extra_plane && Dist(point, extra_plane)>0)return false;
+      if(extra)
+      {
+         if(extraPlane() && Dist (point, extra_plane   )>            0)return false;
+         if(extraBall () && Dist2(point, extra_ball.pos)>extra_ball_r2)return false;
+      }
    }else
    {
       Flt y=Dot(pos, matrix.y), by=size.y; if(Abs(y)>by)return false;
@@ -340,7 +344,11 @@ Bool FrustumClass::operator()(C VecD &point)C
       Flt x=Dot(pos, matrix.x), bx=fov_tan.x*z+eye_dist_2; if(Abs(x)>bx)return false;
       Flt y=Dot(pos, matrix.y), by=fov_tan.y*z           ; if(Abs(y)>by)return false;
 
-      if(use_extra_plane && Dist(point, extra_plane)>0)return false;
+      if(extra)
+      {
+         if(extraPlane() && Dist (point, extra_plane   )>            0)return false;
+         if(extraBall () && Dist2(point, extra_ball.pos)>extra_ball_r2)return false;
+      }
    }else
    {
       Flt y=Dot(pos, matrix.y), by=size.y; if(Abs(y)>by)return false;
@@ -359,7 +367,11 @@ Bool FrustumClass::operator()(C Ball &ball)C
       Flt x=Dot(pos, matrix.x), bx=fov_tan.x*z+ball.r*fov_cos_inv.x+eye_dist_2; if(Abs(x)>bx)return false;
       Flt y=Dot(pos, matrix.y), by=fov_tan.y*z+ball.r*fov_cos_inv.y           ; if(Abs(y)>by)return false;
 
-      if(use_extra_plane && Dist(ball, extra_plane)>0)return false;
+      if(extra)
+      {
+         if(extraPlane() &&  Dist(ball, extra_plane)>0)return false;
+         if(extraBall () && !Cuts(ball, extra_ball )  )return false;
+      }
    }else
    {
       Flt y=Dot(pos, matrix.y), by=size.y+ball.r; if(Abs(y)>by)return false;
@@ -377,7 +389,11 @@ Bool FrustumClass::operator()(C BallM &ball)C
       Flt x=Dot(pos, matrix.x), bx=fov_tan.x*z+ball.r*fov_cos_inv.x+eye_dist_2; if(Abs(x)>bx)return false;
       Flt y=Dot(pos, matrix.y), by=fov_tan.y*z+ball.r*fov_cos_inv.y           ; if(Abs(y)>by)return false;
 
-      if(use_extra_plane && Dist(ball, extra_plane)>0)return false;
+      if(extra)
+      {
+         if(extraPlane() &&  Dist(ball, extra_plane)>0)return false;
+         if(extraBall () && !Cuts(ball, extra_ball )  )return false;
+      }
    }else
    {
       Flt y=Dot(pos, matrix.y), by=size.y+ball.r; if(Abs(y)>by)return false;
@@ -399,7 +415,11 @@ Bool FrustumClass::operator()(C Capsule &capsule)C
       Flt xu=Dot(up, matrix.x), xd=Dot(down, matrix.x), bx=capsule.r*fov_cos_inv.x+eye_dist_2; if(Abs(xu)>bx+fov_tan.x*zu && Abs(xd)>bx+fov_tan.x*zd)return false;
       Flt yu=Dot(up, matrix.y), yd=Dot(down, matrix.y), by=capsule.r*fov_cos_inv.y           ; if(Abs(yu)>by+fov_tan.y*zu && Abs(yd)>by+fov_tan.y*zd)return false;
 
-      if(use_extra_plane && Dist(capsule, extra_plane)>0)return false;
+      if(extra)
+      {
+         if(extraPlane() &&  Dist(capsule, extra_plane)>0)return false;
+         if(extraBall () && !Cuts(extra_ball,  capsule)  )return false;
+      }
    }else
    {
       Flt yu=Dot(up, matrix.y), yd=Dot(down, matrix.y), by=size.y+capsule.r; if(Abs(yu)>by && Abs(yd)>by)return false;
@@ -421,7 +441,11 @@ Bool FrustumClass::operator()(C CapsuleM &capsule)C
       Flt xu=Dot(up, matrix.x), xd=Dot(down, matrix.x), bx=capsule.r*fov_cos_inv.x+eye_dist_2; if(Abs(xu)>bx+fov_tan.x*zu && Abs(xd)>bx+fov_tan.x*zd)return false;
       Flt yu=Dot(up, matrix.y), yd=Dot(down, matrix.y), by=capsule.r*fov_cos_inv.y           ; if(Abs(yu)>by+fov_tan.y*zu && Abs(yd)>by+fov_tan.y*zd)return false;
 
-      if(use_extra_plane && Dist(capsule, extra_plane)>0)return false;
+      if(extra)
+      {
+         if(extraPlane() &&  Dist(capsule, extra_plane)>0)return false;
+         if(extraBall () && !Cuts(extra_ball,  capsule)  )return false;
+      }
    }else
    {
       Flt yu=Dot(up, matrix.y), yd=Dot(down, matrix.y), by=size.y+capsule.r; if(Abs(yu)>by && Abs(yd)>by)return false;
@@ -476,10 +500,14 @@ Bool FrustumClass::operator()(C Extent &ext)C
          if(y<-by - BoxLengthAbs(ext.ext, plane_n_abs[DIR_DOWN ])*fov_cos_inv.y)return false; // d
       }
 
-      if(use_extra_plane)
+      if(extra)
       {
-         Flt e=Dist(pos+matrix.pos, extra_plane);
-         if( e>0)if(e>BoxLengthAbs(ext.ext, extra_plane_n_abs))return false;
+         if(extraPlane())
+         {
+            Flt e=Dist(pos+matrix.pos, extra_plane);
+            if( e>0)if(e>BoxLengthAbs(ext.ext, extra_plane_n_abs))return false; // do a fast "e>0" check first to avoid calculating 'BoxLengthAbs' when unnecessary
+         }
+         if(extraBall() && Dist2(extra_ball.pos, ext)>extra_ball_r2)return false;
       }
    }else
    {
@@ -529,10 +557,14 @@ Bool FrustumClass::operator()(C Extent &ext, C Matrix &matrix)C
          if(y<-by - OBoxLength(dx, dy, dz, plane[DIR_DOWN ].normal)*fov_cos_inv.y)return false; // d
       }
 
-      if(use_extra_plane)
+      if(extra)
       {
-         Flt e=Dist(pos+T.matrix.pos, extra_plane);
-         if( e>0)if(e>OBoxLength(dx, dy, dz, extra_plane.normal))return false;
+         if(extraPlane())
+         {
+            Flt e=Dist(pos+T.matrix.pos, extra_plane);
+            if( e>0)if(e>OBoxLength(dx, dy, dz, extra_plane.normal))return false; // do a fast "e>0" check first to avoid calculating 'OBoxLengthAbs' when unnecessary
+         }
+         if(extraBall() && Dist2(extra_ball.pos, ext, matrix)>extra_ball_r2)return false;
       }
    }else
    {
@@ -578,10 +610,14 @@ Bool FrustumClass::operator()(C Extent &ext, C MatrixM &matrix)C
          if(y<-by - OBoxLength(dx, dy, dz, plane[DIR_DOWN ].normal)*fov_cos_inv.y)return false; // d
       }
 
-      if(use_extra_plane)
+      if(extra)
       {
-         Flt e=Dist(pos+T.matrix.pos, extra_plane);
-         if( e>0)if(e>OBoxLength(dx, dy, dz, extra_plane.normal))return false;
+         if(extraPlane())
+         {
+            Flt e=Dist(pos+T.matrix.pos, extra_plane);
+            if( e>0)if(e>OBoxLength(dx, dy, dz, extra_plane.normal))return false; // do a fast "e>0" check first to avoid calculating 'OBoxLengthAbs' when unnecessary
+         }
+         if(extraBall() && Dist2(extra_ball.pos, ext, matrix)>extra_ball_r2)return false;
       }
    }else
    {
@@ -592,59 +628,6 @@ Bool FrustumClass::operator()(C Extent &ext, C MatrixM &matrix)C
       if( x>bx)if(x>bx+OBoxLength(dx, dy, dz, plane[DIR_RIGHT  ].normal))return false; // rl
 
       Flt z=Abs(Dot(pos, T.matrix.z)), bz=T.size.z;
-      if( z>bz)if(z>bz+OBoxLength(dx, dy, dz, plane[DIR_FORWARD].normal))return false; // fb
-   }
-   return true;
-}
-Bool FrustumClass::operator()(C OBox &obox)C // here we assume that 'obox.matrix' can be scaled
-{
-   Vec dx =(obox.box.w()*0.5f)*obox.matrix.x,
-       dy =(obox.box.h()*0.5f)*obox.matrix.y,
-       dz =(obox.box.d()*0.5f)*obox.matrix.z,
-    #if 0
-       pos= obox.center()-matrix.pos; // no need for 'VecD'
-    #else // faster than above
-       pos= obox.box.center(); pos*=obox.matrix; pos-=matrix.pos; // #VecMulMatrix
-    #endif
-
-   if(persp)
-   {
-      Flt z=Dot(pos, matrix.z);
-      if( z<0 || z>range)
-      {
-         Flt bz=OBoxLength(dx, dy, dz, plane[DIR_FORWARD].normal);
-         if(z<-bz || z>range+bz)return false; // fb
-         MAX(z, 0);
-      }
-
-      Flt x=Dot(pos, matrix.x), bx=fov_tan.x*z+eye_dist_2;
-      if(Abs(x)>bx)
-      {
-         if(x> bx + OBoxLength(dx, dy, dz, plane[DIR_RIGHT].normal)*fov_cos_inv.x)return false; // r
-         if(x<-bx - OBoxLength(dx, dy, dz, plane[DIR_LEFT ].normal)*fov_cos_inv.x)return false; // l
-      }
-
-      Flt y=Dot(pos, matrix.y), by=fov_tan.y*z;
-      if(Abs(y)>by)
-      {
-         if(y> by + OBoxLength(dx, dy, dz, plane[DIR_UP   ].normal)*fov_cos_inv.y)return false; // u
-         if(y<-by - OBoxLength(dx, dy, dz, plane[DIR_DOWN ].normal)*fov_cos_inv.y)return false; // d
-      }
-
-      if(use_extra_plane)
-      {
-         Flt e=Dist(pos+matrix.pos, extra_plane);
-         if( e>0)if(e>OBoxLength(dx, dy, dz, extra_plane.normal))return false;
-      }
-   }else
-   {
-      Flt y=Abs(Dot(pos, matrix.y)), by=T.size.y;
-      if( y>by)if(y>by+OBoxLength(dx, dy, dz, plane[DIR_UP     ].normal))return false; // ud
-
-      Flt x=Abs(Dot(pos, matrix.x)), bx=T.size.x;
-      if( x>bx)if(x>bx+OBoxLength(dx, dy, dz, plane[DIR_RIGHT  ].normal))return false; // rl
-
-      Flt z=Abs(Dot(pos, matrix.z)), bz=T.size.z;
       if( z>bz)if(z>bz+OBoxLength(dx, dy, dz, plane[DIR_FORWARD].normal))return false; // fb
    }
    return true;
@@ -680,9 +663,24 @@ Bool FrustumClass::operator()(C Extent &ext, Bool &fully_inside)C
          Flt bxd=BoxLengthAbs(ext.ext, plane_n_abs[DIR_DOWN ])*fov_cos_inv.y; if(y<-by+bxd){if(y<-by-bxd)return false; fully_inside=false;} // d
       }
 
-      if(use_extra_plane)
+      if(extra)
       {
-         Flt e=Dist(pos+matrix.pos, extra_plane), be=BoxLengthAbs(ext.ext, extra_plane_n_abs); if(e>-be){if(e>be)return false; fully_inside=false;}
+         if(extraPlane())
+         {
+            Flt e=Dist(pos+matrix.pos, extra_plane), be=BoxLengthAbs(ext.ext, extra_plane_n_abs); if(e>-be){if(e>be)return false; fully_inside=false;}
+         }
+         if(extraBall())
+         {
+            Vec d=extra_ball.pos-ext.pos; d.abs(); // no need for 'VecD'
+
+            if(Dist2(Max(0, d.x-ext.ext.x),
+                     Max(0, d.y-ext.ext.y),
+                     Max(0, d.z-ext.ext.z))>extra_ball_r2)return false; // check minimum distance, if overlapping
+
+            if(Dist2(       d.x+ext.ext.x ,
+                            d.y+ext.ext.y ,
+                            d.z+ext.ext.z )>extra_ball_r2)fully_inside=false; // check maximum distance, if fully inside
+         }
       }
    }else
    {
@@ -693,10 +691,11 @@ Bool FrustumClass::operator()(C Extent &ext, Bool &fully_inside)C
    return true;
 }
 /******************************************************************************/
-Bool FrustumClass::operator()(C Box &box                         )C {return T(Extent(box)              );}
-Bool FrustumClass::operator()(C Box &box, C Matrix  &matrix      )C {return T(Extent(box), matrix      );}
-Bool FrustumClass::operator()(C Box &box, C MatrixM &matrix      )C {return T(Extent(box), matrix      );}
-Bool FrustumClass::operator()(C Box &box,   Bool    &fully_inside)C {return T(Extent(box), fully_inside);}
+Bool FrustumClass::operator()(C Box  &box                         )C {return T(Extent(box     )              );}
+Bool FrustumClass::operator()(C Box  &box, C Matrix  &matrix      )C {return T(Extent(box     ), matrix      );}
+Bool FrustumClass::operator()(C Box  &box, C MatrixM &matrix      )C {return T(Extent(box     ), matrix      );}
+Bool FrustumClass::operator()(C Box  &box,   Bool    &fully_inside)C {return T(Extent(box     ), fully_inside);}
+Bool FrustumClass::operator()(C OBox &obox                        )C {return T(Extent(obox.box), obox.matrix );} // here we assume that 'obox.matrix' can be scaled
 /******************************************************************************/
 Bool FrustumClass::operator()(C Shape &shape)C
 {
@@ -748,7 +747,19 @@ void FrustumClass::getIntersectingAreas(MemPtr<VecI2> area_pos, Flt area_size, B
 
    Memt<VecD2> convex_points; CreateConvex2Dxz(convex_points, point, points); if(!convex_points.elms())return;
 
-   RectI rect; // inclusive
+   Bool   mask_do;
+   RectI  mask, rect; // inclusive
+   Circle circle;
+   if(clamp      ){mask=*clamp; mask_do=true;}else mask_do=false;
+   if(extraBall())
+   {
+      circle.pos.x=extra_ball.pos.x/area_size;
+      circle.pos.y=extra_ball.pos.z/area_size;
+      circle.r    =extra_ball.r    /area_size; if(extend)circle.r+=0.5f;
+      RectI r(Floor(circle.pos.x-circle.r), Floor(circle.pos.y-circle.r),
+              Floor(circle.pos.x+circle.r), Floor(circle.pos.y+circle.r));
+      if(mask_do)mask&=r;else{mask=r; mask_do=true;}
+   }
 
    // set min_y..max_y visibility
    rect.setY(INT_MAX, INT_MIN); // set invalid "max<min"
@@ -758,9 +769,19 @@ void FrustumClass::getIntersectingAreas(MemPtr<VecI2> area_pos, Flt area_size, B
       Int    y=Floor(extend ? p.y-0.5f : p.y);
       rect.includeY(y);
    }
-   if(extend)rect.max.y++;
-   if(clamp )rect&=*clamp;
+   if(extend )rect.max.y++;
+   if(mask_do)rect.clampY(mask.min.y, mask.max.y);
    if(!rect.validY())return;
+
+   // clamp convex edges, so 'PixelWalker' doesn't have to walk too much
+   if(mask_do)
+   {
+      Memt<VecD2> temp; PlaneD2 plane;
+      plane.pos=mask.min  ; plane.normal.set(-1,  0); ClipPoly(convex_points, plane, temp         ); // left
+                            plane.normal.set( 0, -1); ClipPoly(temp         , plane, convex_points); // bottom
+      plane.pos=mask.max+1; plane.normal.set( 1,  0); ClipPoly(convex_points, plane, temp         ); // right
+                            plane.normal.set( 0,  1); ClipPoly(temp         , plane, convex_points); // top
+   }
 
    // set min_x..max_x per row in 'row_min_max_x'
    Memt<VecI2> row_min_max_x; row_min_max_x.setNum(rect.h()+1); // +1 because it's inclusive
@@ -791,7 +812,7 @@ void FrustumClass::getIntersectingAreas(MemPtr<VecI2> area_pos, Flt area_size, B
       if(min_max_x.y>=min_max_x.x) // if valid
          rect.includeX(min_max_x.x, min_max_x.y);
    }
-   if(clamp)rect&=*clamp;
+   if(mask_do)rect.clampX(mask.min.x, mask.max.x);
    if(!rect.validX())return;
 
    const Bool fast=true; // if use ~2x faster 'Dist2PointSquare' instead of 'Dist2(Vec2 point, RectI rect)'
@@ -800,8 +821,13 @@ void FrustumClass::getIntersectingAreas(MemPtr<VecI2> area_pos, Flt area_size, B
    Flt  distance_range2;
    if(  distance_check&=persp) // can do range tests only in perspective mode (orthogonal mode is used for shadows, and there we need full range, and also in that mode 'matrix.pos' is in the center, so it can't be used as 'distance_pos')
    { // convert to area space
-      distance_pos   =matrix.pos.xz()/area_size; if(fast  )distance_pos   -=0.5f; // since in fast mode we're testing against a square of radius 0.5, instead of setting each square as "pos+0.5f", we offset the 'distance_pos' by the negative (this was tested and works OK - the same results as when 'fast'=false)
+      distance_pos   =matrix.pos.xz()/area_size; if(fast  )distance_pos   -=0.5f; // since in fast mode we're testing against a square of radius 0.5, instead of setting each square as "pos+0.5", we offset the 'distance_pos' by the negative (this was tested and works OK - the same results as when 'fast'=false)
       distance_range2=          range/area_size; if(extend)distance_range2+=0.5f; distance_range2*=distance_range2;
+   }
+   if(extraBall())
+   {
+      if(fast)circle.pos-=0.5f; // since in fast mode we're testing against a square of radius 0.5, instead of setting each square as "pos+0.5", we offset the 'circle.pos' by the negative (this was tested and works OK - the same results as when 'fast'=false)
+      SQR(circle.r);
    }
 
    // set areas for drawing
@@ -823,6 +849,7 @@ void FrustumClass::getIntersectingAreas(MemPtr<VecI2> area_pos, Flt area_size, B
             VecI2 &min_max_x=row_min_max_x[pos.y-rect.min.y];
             if(pos.x>=min_max_x.x && pos.x<=min_max_x.y)
                if(!distance_check || (fast ? Dist2PointSquare(distance_pos, pos, 0.5f) : Dist2(distance_pos, RectI(pos, pos+1)))<=distance_range2)
+               if(!extraBall()    || (fast ? Dist2PointSquare(  circle.pos, pos, 0.5f) : Dist2(  circle.pos, RectI(pos, pos+1)))<=  circle.r     )
                   area_pos.add(pos); // add to array
 
             pos+=perp; if(!rect.includes(pos))break; // go along the parallel until you can't
@@ -839,6 +866,7 @@ void FrustumClass::getIntersectingAreas(MemPtr<VecI2> area_pos, Flt area_size, B
          MIN(min_max_x.y, rect.max.x);
          for(pos.x=min_max_x.x; pos.x<=min_max_x.y; pos.x++)
             if(!distance_check || (fast ? Dist2PointSquare(distance_pos, pos, 0.5f) : Dist2(distance_pos, RectI(pos, pos+1)))<=distance_range2)
+            if(!extraBall()    || (fast ? Dist2PointSquare(  circle.pos, pos, 0.5f) : Dist2(  circle.pos, RectI(pos, pos+1)))<=  circle.r     )
                area_pos.add(pos); // add to array
       }
    }

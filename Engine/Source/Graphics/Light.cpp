@@ -43,15 +43,9 @@ namespace EE{
 
    TODO: calculating shadows could use 3D Geom Mesh shaders if shadow map softing is disabled
 
-   TODO: currently non-directional && secondary Lights for Forward renderer, set Frustum based on light volume only,
+   TODO: currently Cone Light for Forward renderer, set Frustum based on light volume only,
       however this should be intersected with FrustumMain, to don't draw objects that are within light, but outside of view.
-      However this is only for Forward renderer, and would never be used for Deferred, so while it could improve performance on Forward,
-      it would slow down Deferred due to extra checks.
-   Some ideas:
-      Point/Linear lights should operate on BallM
-      Cone lights struct FrustumClass{Frustum *secondary=null;} check 'this' and 'secondary' too.
-      we already do checks if(use_extra_plane) this could be replaced with "if(extra_checks){if(use_extra_plane)..; if(extra_ball)..; if(secondary)..;} ?
-      Also have to adjust 'getIntersectingAreas' to calc intersection of all.
+      Try to don't slow down Deferred renderer when implementing this.
 
 /******************************************************************************/
 static Matrix           ShdMatrix    [2]; //           [Eye]
@@ -1550,16 +1544,17 @@ void Light::drawForward(ALPHA_MODE alpha)
          Renderer.setForwardCol();
          D.alpha(alpha);
          D.set3D();
+         if(!ALWAYS_RESTORE_FRUSTUM) // here use !ALWAYS_RESTORE_FRUSTUM because we have to set frustum only if it wasn't restored before, if it was then it means we already have 'FrustumMain'
+            Frustum=FrustumMain;
          if(Renderer.firstPass())
          {
             D.stencil(STENCIL_ALWAYS_SET, 0);
-            if(!ALWAYS_RESTORE_FRUSTUM) // here use !ALWAYS_RESTORE_FRUSTUM because we have to set frustum only if it wasn't restored before, if it was then it means we already have 'FrustumMain'
-               Frustum=FrustumMain; // need to use entire Frustum for first pass
+            // need to use entire Frustum for first pass
          }else
          {  // we need to generate list of objects
-            Frustum.fromBall(range, CurrentLight.point.pos);
+            Frustum.setExtraBall(BallM(range, CurrentLight.point.pos));
             Renderer.mode(RM_PREPARE); Renderer._render();
-            if(ALWAYS_RESTORE_FRUSTUM)Frustum=FrustumMain;
+            if(ALWAYS_RESTORE_FRUSTUM)Frustum.clearExtraBall();
             D.clipAllow(true);
          }
          Renderer.mode(RM_SOLID);
@@ -1626,16 +1621,17 @@ void Light::drawForward(ALPHA_MODE alpha)
          Renderer.setForwardCol();
          D.alpha(alpha);
          D.set3D();
+         if(!ALWAYS_RESTORE_FRUSTUM) // here use !ALWAYS_RESTORE_FRUSTUM because we have to set frustum only if it wasn't restored before, if it was then it means we already have 'FrustumMain'
+            Frustum=FrustumMain;
          if(Renderer.firstPass())
          {
             D.stencil(STENCIL_ALWAYS_SET, 0);
-            if(!ALWAYS_RESTORE_FRUSTUM) // here use !ALWAYS_RESTORE_FRUSTUM because we have to set frustum only if it wasn't restored before, if it was then it means we already have 'FrustumMain'
-               Frustum=FrustumMain; // need to use entire Frustum for first pass
+            // need to use entire Frustum for first pass
          }else
          {  // we need to generate list of objects
-            Frustum.fromBall(range, CurrentLight.linear.pos);
+            Frustum.setExtraBall(BallM(range, CurrentLight.linear.pos));
             Renderer.mode(RM_PREPARE); Renderer._render();
-            if(ALWAYS_RESTORE_FRUSTUM)Frustum=FrustumMain;
+            if(ALWAYS_RESTORE_FRUSTUM)Frustum.clearExtraBall();
             D.clipAllow(true);
          }
          Renderer.mode(RM_SOLID);

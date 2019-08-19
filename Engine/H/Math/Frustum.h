@@ -44,13 +44,13 @@ struct FrustumClass // Frustum
 
    Dbl volume()C;
 
-   void set     (Flt range, C Vec2 &fov, C MatrixM &camera); // set from active viewport
-   void set     (                                         ); // set from active viewport and camera
-   void from    (C BoxD     &box                          ); // set from box
-   void from    (C PyramidM &pyramid                      ); // set from pyramid
-   void fromBall(Flt r, C VecD &pos                       ); // set from ball
+   void set (Flt range, C Vec2 &fov, C MatrixM &camera); // set from active viewport
+   void set (                                         ); // set from active viewport and camera
+   void from(C BoxD     &box                          ); // set from box
+   void from(C PyramidM &pyramid                      ); // set from pyramid
 
-   void setExtraPlane(C PlaneM &plane, Bool chs=false);
+   void setExtraPlane(C PlaneM &plane, Bool chs=false);   Bool extraPlane()C {return FlagTest(extra, PLANE);}
+   void setExtraBall (C BallM  &ball                 );   Bool extraBall ()C {return FlagTest(extra, BALL );}   void clearExtraBall() {FlagDisable(extra, BALL);}
 
    void draw(C Color &color=WHITE)C; // this relies on active object matrix which can be set using 'SetMatrix' function
 #endif
@@ -60,13 +60,22 @@ struct FrustumClass // Frustum
 #if !EE_PRIVATE
 private:
 #endif
+#if EE_PRIVATE
+   enum EXTRA
+   {
+      PLANE=1<<0,
+      BALL =1<<1,
+   };
+#endif
    VecD    point[ 8]; Int points;
    VecI2   edge [12]; Int edges ;
-   Bool    persp, use_extra_plane;
+   Bool    persp;
+   Byte    extra;
    Flt     range, eye_dist_2, view_quad_max_dist;
    Vec2    fov_tan, fov_cos_inv;
    Vec     size, plane_n_abs[DIR_NUM], extra_plane_n_abs;
    PlaneM  plane[DIR_NUM], extra_plane;
+   BallM   extra_ball; Flt extra_ball_r2;
    MatrixM matrix;
 }extern
    Frustum; // Active Frustum
