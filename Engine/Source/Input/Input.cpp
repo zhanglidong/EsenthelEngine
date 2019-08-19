@@ -671,7 +671,7 @@ Bool EditText(Str &str, TextEdit &edit, Bool multi_line)
    if(edit.cur>str.length() || edit.cur<0)edit.cur=str.length();
    if(edit.sel>str.length()              )edit.sel=str.length();
 
-   if(Ms.bp(4)) // make 4-th mouse button as Backspace
+   if(Ms.bp(MOUSE_BACK))
    {
       Keyboard::Key key; key.clear();
       key.k=KB_BACK;

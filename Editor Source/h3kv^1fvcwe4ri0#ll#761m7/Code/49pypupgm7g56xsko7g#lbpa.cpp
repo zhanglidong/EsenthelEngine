@@ -1185,7 +1185,7 @@ bool UpdatePublish()
    Time.wait(sleep);
        Gui.update();
     Server.update(null, true); // it's very important to set 'busy' so no commands are processed during publishing
-   if(Ms.bp(3))WindowToggle();
+   if(Ms.bp(MOUSE_MAXIMIZE))WindowToggle();
    PublishSkipOptimize.visible(PublishStage==PUBLISH_TEX_OPTIMIZE && !Publish.progress.stop);
    return true;
 }

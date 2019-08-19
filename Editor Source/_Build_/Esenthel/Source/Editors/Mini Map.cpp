@@ -69,7 +69,7 @@ bool UpdateMiniMap()
    WindowSetProgress(UpdateProgress());
      //Gui.update(); do not update gui as it's not hidden
     Server.update(null, true);
-   if(Ms.bp(3))WindowToggle();
+   if(Ms.bp(MOUSE_MAXIMIZE))WindowToggle();
    return true;
 }
 /******************************************************************************/

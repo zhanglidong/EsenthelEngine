@@ -1047,7 +1047,7 @@ bool UpdateImport()
    }
    Time.wait(1000/30); // limit to 30 fps
    Server.update(null, true);
-   if(Ms.bp(3))WindowToggle();
+   if(Ms.bp(MOUSE_MAXIMIZE))WindowToggle();
    return true;
 }
 /******************************************************************************/

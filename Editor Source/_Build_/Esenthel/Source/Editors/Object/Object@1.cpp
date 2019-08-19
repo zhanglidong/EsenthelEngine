@@ -345,7 +345,7 @@ cur_skel_to_saved_skel= ObjEdit.cur_skel_to_saved_skel;
             {
                SetVariation(visibleVariation());
                if(group.groups_l.lit>=0)SetDrawMask(IndexToFlag(group.groups_l.lit));
-               bool     allow_lit=!(Kb.win() || Kb.b(KB_SPACE) || Ms.b(2) || Ms.b(3) || Ms.b(4));
+               bool     allow_lit=!(Kb.win() || Kb.b(KB_SPACE) || Ms.b(2) || Ms.b(MOUSE_MAXIMIZE) || Ms.b(MOUSE_BACK));
                MeshLod &lod=getDrawLod();
                bool     custom_matrix=customDrawMatrix();
                Matrix   matrix; if(custom_matrix)setMatrixAtDist(matrix, NewLod.draw_distance);

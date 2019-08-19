@@ -158,7 +158,7 @@ PhysMtrlEditor PhysMtrlEdit;
       super::update(gpc);
       if(visible() && gpc.visible)
       {
-         if(Gui.ms   ()==&viewport)if(Ms.b(0) || Ms.b(4)){cam.yaw-=Ms.d().x; cam.pitch+=Ms.d().y; Ms.freeze();}
+         if(Gui.ms   ()==&viewport)if(Ms.b(0) || Ms.b(MOUSE_BACK)){cam.yaw-=Ms.d().x; cam.pitch+=Ms.d().y; Ms.freeze();}
          if(Gui.wheel()==&viewport)Clamp(cam.dist*=ScaleFactor(Ms.wheel()*-0.2f), 10, 36);
          REPA(Touches)if(Touches[i].guiObj()==&viewport && Touches[i].on()){cam.yaw-=Touches[i].ad().x*2.0f; cam.pitch+=Touches[i].ad().y*2.0f;}
 

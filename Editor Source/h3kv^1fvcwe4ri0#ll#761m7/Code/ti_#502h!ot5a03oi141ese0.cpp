@@ -382,7 +382,7 @@ bool UpdateIDReplace()
    Time.wait(1000/30);
      //Gui.update(); this may cause conflicts with 'Proj.elmChanged'
     Server.update(null, true);
-   if(Ms.bp(3))WindowToggle();
+   if(Ms.bp(MOUSE_MAXIMIZE))WindowToggle();
    return true;
 }
 /******************************************************************************/

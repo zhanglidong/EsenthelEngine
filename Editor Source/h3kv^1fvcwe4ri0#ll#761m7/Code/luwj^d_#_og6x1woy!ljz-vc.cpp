@@ -342,7 +342,7 @@ bool UpdateUpdate()
    Time.wait(1000/30);
    Gui.update();
    Server.update(null, true);
-   if(Ms.bp(3))WindowToggle();
+   if(Ms.bp(MOUSE_MAXIMIZE))WindowToggle();
 
    UpdateMessage.clear();
    Memc<uint> proc; ProcList(proc);
@@ -432,7 +432,7 @@ bool UpdateInstall()
    }
    if(!InstallIO.visible())WindowSetProgress(Updater.progress());
    UpdateProgress.set(Updater.progress());
-   if(Ms.bp(3))WindowToggle();
+   if(Ms.bp(MOUSE_MAXIMIZE))WindowToggle();
    return true;
 }
 void DrawInstall()

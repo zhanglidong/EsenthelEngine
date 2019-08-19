@@ -2936,7 +2936,7 @@ class ProjectEx : ProjectHierarchy
                }
             }else Misc.hide_proj.push(); // hide project view
          }else
-         if(Ms.bp(4))
+         if(Ms.bp(MOUSE_BACK))
          {
             if(ListElm *elm=list.litToListElm())
             {
@@ -4740,7 +4740,7 @@ bool UpdateProject()
    Physics  .stopSimulation().startSimulation(); // to visualize actors used in physical material editors
 
    // mouse maximize window
-   if(Ms.bp(3))
+   if(Ms.bp(MOUSE_MAXIMIZE))
       if(!ObjEdit.contains(Gui.ms()) && !AnimEdit.contains(Gui.ms()) && !WorldEdit.contains(Gui.ms()) && !TexDownsize.contains(Gui.ms()))WindowToggle();
 
    // open element

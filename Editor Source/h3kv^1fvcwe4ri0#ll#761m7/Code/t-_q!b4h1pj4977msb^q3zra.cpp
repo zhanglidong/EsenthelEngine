@@ -628,7 +628,7 @@ bool UpdateProjectList()
    Gui   .update();
    Server.update(null, false);
    Projs .update();
-   if(Ms.bp(3))WindowToggle();
+   if(Ms.bp(MOUSE_MAXIMIZE))WindowToggle();
    return true;
 }
 void DrawProjectList()

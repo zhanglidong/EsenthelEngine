@@ -639,7 +639,7 @@ void WindowIO::update(C GuiPC &gpc)
    disabled(rename_window.visible() || remove_window.visible() || overwrite_window.visible());
    if(Gui.window()==this && enabled())
    {
-      if((Gui.kb()==&list && Kb.k(KB_BACK)) || (Gui.ms()==&list && (Ms.bp(4) || Ms.bp(1))))
+      if((Gui.kb()==&list && Kb.k(KB_BACK)) || (Gui.ms()==&list && (Ms.bp(MOUSE_BACK) || Ms.bp(1))))
       {
          Kb.eatKey();
          Ms.eat(1);
