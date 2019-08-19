@@ -490,7 +490,7 @@ p_scale=&add("Item 3D Scale"          , MemberDesc(MEMBER(Options, item_3d_scale
                if(Kb.shift()){options.scaleFactor( Ms.wheel()*0.1f); Ms.eatWheel();}else
                if(Kb.alt  ()){options. sizeFactor( Ms.wheel()*0.1f); Ms.eatWheel();}
             }
-            if(Ms.b(2) || Ms.b(MOUSE_BACK) || Kb.win())
+            if(Ms.b(2) || Ms.b(MS_BACK) || Kb.win())
             {
                Ms.freeze();
                if(!(!Kb.ctrlCmd() &&  Kb.alt()))options.angle.x+=Ms.d().x; // disable X rotation when only alt  pressed

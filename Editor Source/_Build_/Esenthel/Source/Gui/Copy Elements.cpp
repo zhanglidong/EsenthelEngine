@@ -193,7 +193,7 @@ bool UpdateCopyElms()
    Time.wait(1000/30);
       Gui.update();
    Server.update(null, true);
-   if(Ms.bp(MOUSE_MAXIMIZE))WindowToggle();
+   if(Ms.bp(MS_MAXIMIZE))WindowToggle();
    return true;
 }
 void DrawCopyElms()

@@ -116,7 +116,7 @@ bool UpdateProject()
    Physics  .stopSimulation().startSimulation(); // to visualize actors used in physical material editors
 
    // mouse maximize window
-   if(Ms.bp(MOUSE_MAXIMIZE))
+   if(Ms.bp(MS_MAXIMIZE))
       if(!ObjEdit.contains(Gui.ms()) && !AnimEdit.contains(Gui.ms()) && !WorldEdit.contains(Gui.ms()) && !TexDownsize.contains(Gui.ms()))WindowToggle();
 
    // open element
@@ -2931,7 +2931,7 @@ void DrawProject()
                }
             }else Misc.hide_proj.push(); // hide project view
          }else
-         if(Ms.bp(MOUSE_BACK))
+         if(Ms.bp(MS_BACK))
          {
             if(ListElm *elm=list.litToListElm())
             {

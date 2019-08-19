@@ -86,8 +86,8 @@ void Viewport4::Cube::update(C GuiPC &gpc)
       if(touch || Gui.ms()==this)
       {
          Bool possible_drag=(touch ? touch->life()>=DragTime+Time.ad() || touch->selecting() : Ms.life()>=DragTime+Time.ad()),
-              rot          =(touch ? touch->on() : (Ms.b(0) || Ms.b(2) || Ms.b(4))),
-              move         =(touch ? false       : (Ms.b(1) || Ms.b(3)           ));
+              rot          =(touch ? touch->on() : (Ms.b(0) || Ms.b(2) || Ms.b(MS_BACK))),
+              move         =(touch ? false       : (Ms.b(1) || Ms.b(MS_MAXIMIZE)       ));
          if(rot && !move)
          {
             if(!touch)Ms.freeze();
@@ -877,10 +877,10 @@ void Viewport4::update()
 
    // update camera change
    Bool zoom       =(Ms.wheel() && !Kb.ctrlCmd() && !Kb.shift() && !Kb.alt() && !fpp()),
-        zoom_manual=(                             (Ms.b(2) &&   Kb.alt() && Kb.ctrlCmd()                 )),
-        rotate_ex  =(Ms.b(4) || Kb.winCtrl()   || Kb.b(KB_FIND)),
-        rotate     =(rotate_ex                 || (Ms.b(2) && (!Kb.alt() || Kb.ctrlCmd()) && !zoom_manual)),
-        move       =(Ms.b(3) || Kb.b(KB_SPACE) || (Ms.b(2) && ( Kb.alt() || Kb.ctrlCmd()) && !zoom_manual)),
+        zoom_manual=(                                       (Ms.b(2) &&   Kb.alt() && Kb.ctrlCmd()                 )),
+        rotate_ex  =(Ms.b(MS_BACK)     || Kb.winCtrl()   || Kb.b(KB_FIND)),
+        rotate     =(rotate_ex                           || (Ms.b(2) && (!Kb.alt() || Kb.ctrlCmd()) && !zoom_manual)),
+        move       =(Ms.b(MS_MAXIMIZE) || Kb.b(KB_SPACE) || (Ms.b(2) && ( Kb.alt() || Kb.ctrlCmd()) && !zoom_manual)),
         rotate_move=(rotate && move); if(rotate_move)rotate=move=false;
 
    // set main camera

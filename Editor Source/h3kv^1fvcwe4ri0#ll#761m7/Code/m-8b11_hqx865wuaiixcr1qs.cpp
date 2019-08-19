@@ -1115,7 +1115,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       preview_big.visible(bigVisible());
       if(Gui.ms()==&preview || Gui.ms()==&preview_big)
       {
-         bool rot_cam=(Ms.b(0) || Ms.b(MOUSE_BACK)), rot_light=Ms.b(1);
+         bool rot_cam=(Ms.b(0) || Ms.b(MS_BACK)), rot_light=Ms.b(1);
          preview_cam.transformByMouse(min_zoom, max_zoom, (rot_cam ? CAMH_ROT : 0)|CAMH_ZOOM);
          if(rot_light)light_angle+=Ms.d()*Vec2(-1,  1);
          if(rot_cam || rot_light)Ms.freeze();

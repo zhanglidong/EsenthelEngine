@@ -671,7 +671,7 @@ Bool EditText(Str &str, TextEdit &edit, Bool multi_line)
    if(edit.cur>str.length() || edit.cur<0)edit.cur=str.length();
    if(edit.sel>str.length()              )edit.sel=str.length();
 
-   if(Ms.bp(MOUSE_BACK))
+   if(Ms.bp(MS_BACK))
    {
       Keyboard::Key key; key.clear();
       key.k=KB_BACK;

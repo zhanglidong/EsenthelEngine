@@ -161,6 +161,7 @@ private:
    Ms;
 /******************************************************************************/
 #define MOUSE_IMAGE_SIZE 0.05f
-#define MOUSE_BACK     3
-#define MOUSE_MAXIMIZE 4
+
+#define MS_BACK     3
+#define MS_MAXIMIZE 4
 /******************************************************************************/

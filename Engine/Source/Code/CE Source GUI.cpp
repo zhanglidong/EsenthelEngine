@@ -797,7 +797,7 @@ void Source::update(C GuiPC &gpc)
       {
          clearSuggestions();
       }else
-      if(Ms.bp(MOUSE_BACK))
+      if(Ms.bp(MS_BACK))
       {
          delBack();
       }

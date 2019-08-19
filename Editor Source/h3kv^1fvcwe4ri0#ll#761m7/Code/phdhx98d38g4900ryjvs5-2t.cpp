@@ -400,7 +400,7 @@ bool UpdateMiniMap()
    WindowSetProgress(UpdateProgress());
      //Gui.update(); do not update gui as it's not hidden
     Server.update(null, true);
-   if(Ms.bp(MOUSE_MAXIMIZE))WindowToggle();
+   if(Ms.bp(MS_MAXIMIZE))WindowToggle();
    return true;
 }
 /******************************************************************************/

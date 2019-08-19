@@ -596,9 +596,9 @@ TextureDownsize TexDownsize;
          {
             if(Edit::Viewport4::View *view=v4.getView(Gui.ms()))
             {
-               if(Ms.b(1)                                 ){light_angle+=Ms.d()*Vec2(-1, 1);                        Ms.freeze();}
-               if(Ms.b(0) && !Ms.b(2) && !Ms.b(MOUSE_BACK)){view->camera.yaw-=Ms.d().x; view->camera.pitch+=Ms.d().y; Ms.freeze();}
-               if(Ms.bd(0)                                )MtrlEdit.activate(Proj.findElm(mtrl_id));
+               if(Ms.b(1)                              ){light_angle+=Ms.d()*Vec2(-1, 1);                        Ms.freeze();}
+               if(Ms.b(0) && !Ms.b(2) && !Ms.b(MS_BACK)){view->camera.yaw-=Ms.d().x; view->camera.pitch+=Ms.d().y; Ms.freeze();}
+               if(Ms.bd(0)                             )MtrlEdit.activate(Proj.findElm(mtrl_id));
             }
          }
          if(Ms.bp(0) && Gui.ms()==&mtrl_image)MtrlEdit.activate(Proj.findElm(mtrl_id));

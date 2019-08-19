@@ -440,7 +440,7 @@ class AnimEditor : Viewport4Region
                if(play .pd() || play2.pd()){play.eat(); play2.eat(); AnimEdit.playToggle();}
                if(Gui.kb().type()!=GO_TEXTLINE && Gui.kb().type()!=GO_CHECKBOX && Kb.bp(KB_SPACE)){Kb.eat(KB_SPACE); AnimEdit.playToggle();}
             }
-            if(Gui.ms   ()==&viewport)if(Ms.b(0) || Ms.b(MOUSE_BACK)){cam_yaw-=Ms.d().x; cam_pitch+=Ms.d().y; Ms.freeze();}
+            if(Gui.ms   ()==&viewport)if(Ms.b(0) || Ms.b(MS_BACK)){cam_yaw-=Ms.d().x; cam_pitch+=Ms.d().y; Ms.freeze();}
             if(Gui.wheel()==&viewport)Clamp(cam_zoom*=ScaleFactor(Ms.wheel()*-0.2), 0.1, 32);
             REPA(Touches)if(Touches[i].guiObj()==&viewport && Touches[i].on()){cam_yaw-=Touches[i].ad().x*2.0; cam_pitch+=Touches[i].ad().y*2.0;}
 

@@ -1521,7 +1521,7 @@ StoreClass AppStore;
       super::update(gpc);
       if(visible() && gpc.visible)
       {
-         if((Ms.tapped(1) && Gui.window()==this) || (Ms.bp(MOUSE_BACK) && Gui.window()==this && !(Gui.kb() && Gui.kb()->type()==GO_TEXTLINE)))back.push();
+         if((Ms.tapped(1) && Gui.window()==this) || (Ms.bp(MS_BACK) && Gui.window()==this && !(Gui.kb() && Gui.kb()->type()==GO_TEXTLINE)))back.push();
          REPA(MT)if(MT.tapped(i) && MT.guiObj(i)==&items_list)if(Item *item=items_list())openItem(item->id);
 
          bool preview=false;

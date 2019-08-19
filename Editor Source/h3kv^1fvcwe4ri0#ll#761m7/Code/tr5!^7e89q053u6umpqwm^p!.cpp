@@ -37,7 +37,7 @@ bool UpdateProjectUpdate()
    Time.wait(1000/30);
      //Gui.update(); this may cause conflicts with 'Proj.elmChanged'
     Server.update(null, true);
-   if(Ms.bp(MOUSE_MAXIMIZE))WindowToggle();
+   if(Ms.bp(MS_MAXIMIZE))WindowToggle();
    return true;
 }
 /******************************************************************************/
