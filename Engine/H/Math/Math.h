@@ -185,6 +185,14 @@ constexpr Long  SqrS (  Long  x) {return (x>=0) ? Sqr(x) : -Sqr(x);} // sign pre
 constexpr Flt   SqrS (  Flt   x) {return (x>=0) ? Sqr(x) : -Sqr(x);} // sign preserving square
 constexpr Dbl   SqrS (  Dbl   x) {return (x>=0) ? Sqr(x) : -Sqr(x);} // sign preserving square
 
+// make square
+inline Int  & SQR(Int   &x) {return x*=x;}
+inline UInt & SQR(UInt  &x) {return x*=x;}
+inline Long & SQR(Long  &x) {return x*=x;}
+inline ULong& SQR(ULong &x) {return x*=x;}
+inline Flt  & SQR(Flt   &x) {return x*=x;}
+inline Dbl  & SQR(Dbl   &x) {return x*=x;}
+
 #if EE_PRIVATE
       UInt  SqrtI(UInt  x               ); // integer square root (binary    method, fastest)
        Int  SqrtI( Int  x               ); // integer square root (binary    method, fastest)

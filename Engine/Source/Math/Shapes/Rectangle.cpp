@@ -96,6 +96,13 @@ Rect & Rect ::     includeY(Flt min, Flt max) {if(min<T.min.y)T.min.y=min;   if(
 RectD& RectD::     includeY(Dbl min, Dbl max) {if(min<T.min.y)T.min.y=min;   if(max>T.max.y)T.max.y=max; return T;}
 RectI& RectI::     includeY(Int min, Int max) {if(min<T.min.y)T.min.y=min;   if(max>T.max.y)T.max.y=max; return T;}
 
+Rect & Rect ::clampX(Flt min, Flt max) {MAX(T.min.x, min); MIN(T.max.x, max); return T;}
+Rect & Rect ::clampY(Flt min, Flt max) {MAX(T.min.y, min); MIN(T.max.y, max); return T;}
+RectD& RectD::clampX(Dbl min, Dbl max) {MAX(T.min.x, min); MIN(T.max.x, max); return T;}
+RectD& RectD::clampY(Dbl min, Dbl max) {MAX(T.min.y, min); MIN(T.max.y, max); return T;}
+RectI& RectI::clampX(Int min, Int max) {MAX(T.min.x, min); MIN(T.max.x, max); return T;}
+RectI& RectI::clampY(Int min, Int max) {MAX(T.min.y, min); MIN(T.max.y, max); return T;}
+
 Rect& Rect::validInclude(C Vec2 &v)
 {
    Flt x=v.x, y=v.y;

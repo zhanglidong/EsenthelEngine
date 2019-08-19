@@ -124,10 +124,12 @@ struct Rect // Rectangle Shape
    Rect& extend    (  Flt   x  , Flt y  ); // extend rectangle
    Rect& includeX  (  Flt   x           ); // extend rectangle to include 'x'
    Rect& includeY  (  Flt   y           ); // extend rectangle to include 'y'
-   Rect& includeX  (  Flt   min, Flt max); // extend rectangle to include min..max range
-   Rect& includeY  (  Flt   min, Flt max); // extend rectangle to include min..max range
+   Rect& includeX  (  Flt   min, Flt max); // extend rectangle to include min..max X range
+   Rect& includeY  (  Flt   min, Flt max); // extend rectangle to include min..max Y range
    Rect& include   (C Vec2 &v           ); // extend rectangle to include vector
    Rect& include   (C Rect &r           ); // extend rectangle to include rectangle
+   Rect& clampX    (  Flt   min, Flt max); // clamp  rectangle to intersect min..max X range
+   Rect& clampY    (  Flt   min, Flt max); // clamp  rectangle to intersect min..max Y range
    Rect& moveX     (  Flt   dx          ); // move   rectangle X's by 'dx'
    Rect& moveY     (  Flt   dy          ); // move   rectangle Y's by 'dy'
    Rect& from      (C Vec2 &a, C Vec2 &b); // create from 2 points
@@ -254,10 +256,12 @@ struct RectD // Rectangle Shape (double precision)
    RectD& extend    (  Dbl    x  , Dbl y   ); // extend rectangle
    RectD& includeX  (  Dbl    x            ); // extend rectangle to include x
    RectD& includeY  (  Dbl    y            ); // extend rectangle to include y
-   RectD& includeX  (  Dbl    min, Dbl max ); // extend rectangle to include min..max range
-   RectD& includeY  (  Dbl    min, Dbl max ); // extend rectangle to include min..max range
+   RectD& includeX  (  Dbl    min, Dbl max ); // extend rectangle to include min..max X range
+   RectD& includeY  (  Dbl    min, Dbl max ); // extend rectangle to include min..max Y range
    RectD& include   (C VecD2 &v            ); // extend rectangle to include vector
    RectD& include   (C RectD &r            ); // extend rectangle to include rectangle
+   RectD& clampX    (  Dbl    min, Dbl max ); // clamp  rectangle to intersect min..max X range
+   RectD& clampY    (  Dbl    min, Dbl max ); // clamp  rectangle to intersect min..max Y range
    RectD& moveX     (  Dbl    dx           ); // move   rectangle X's by 'dx'
    RectD& moveY     (  Dbl    dy           ); // move   rectangle Y's by 'dy'
    RectD& from      (C VecD2 &a, C VecD2 &b); // create from 2 points
@@ -368,10 +372,12 @@ struct RectI // Rectangle Shape (integer)
    RectI& extend    (  Int    x  , Int y   ); // extend     by 'x, y'
    RectI& includeX  (  Int    x            ); // extend rectangle to include 'x'
    RectI& includeY  (  Int    y            ); // extend rectangle to include 'y'
-   RectI& includeX  (  Int    min, Int max ); // extend rectangle to include min..max range
-   RectI& includeY  (  Int    min, Int max ); // extend rectangle to include min..max range
+   RectI& includeX  (  Int    min, Int max ); // extend rectangle to include min..max X range
+   RectI& includeY  (  Int    min, Int max ); // extend rectangle to include min..max Y range
    RectI& include   (C VecI2 &v            ); // extend rectangle to include vector
    RectI& include   (C RectI &r            ); // extend rectangle to include rectangle
+   RectI& clampX    (  Int    min, Int max ); // clamp  rectangle to intersect min..max X range
+   RectI& clampY    (  Int    min, Int max ); // clamp  rectangle to intersect min..max Y range
    RectI& from      (C VecI2 &a, C VecI2 &b); // create from 2 points
    RectI& rotatePI_2(  Int rotations       ); // rotate rectangle by "rotations*PI_2" angle
 

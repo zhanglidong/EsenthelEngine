@@ -638,8 +638,47 @@ void ClipPoly(C MemPtr<Vec> &poly, C Plane &plane, MemPtr<Vec> output)
                {
                   output.add(Lerp(prev, next, prev_dist/(prev_dist-next_dist))); // -prev_dist/(next_dist-prev_dist)
                }
+            }else // prev_dist>=0
+            {
+               if(next_dist<0) // change of side
+               {
+                  output.add(Lerp(prev, next, prev_dist/(prev_dist-next_dist)));
+               }
             }
-            else // prev_dist>=0
+            prev     =next;
+            prev_dist=next_dist;
+         }
+      }break;
+   }
+}
+void ClipPoly(C MemPtr<VecD2> &poly, C PlaneD2 &plane, MemPtr<VecD2> output)
+{
+   output.clear();
+
+   switch(poly.elms())
+   {
+      case 0: break;
+
+      case 1:
+         if(Dist(poly[0], plane)<0)output.add(poly[0]);
+      break;
+
+      default: // >=2
+      {
+         VecD2 prev     =poly.last();
+         Dbl   prev_dist=Dist(prev, plane);
+         FREPA(poly) // preserve order
+         {
+          C VecD2 &next     =poly[i];
+            Dbl    next_dist=Dist(next, plane);
+            if(    prev_dist<0)
+            {
+               output.add(prev);
+               if(next_dist>=0) // change of side
+               {
+                  output.add(Lerp(prev, next, prev_dist/(prev_dist-next_dist))); // -prev_dist/(next_dist-prev_dist)
+               }
+            }else // prev_dist>=0
             {
                if(next_dist<0) // change of side
                {
@@ -679,8 +718,7 @@ void ClipPoly(C MemPtr<VtxFull> &poly, C Plane &plane, MemPtr<VtxFull> output)
                {
                   output.New().lerp(*prev, next, prev_dist/(prev_dist-next_dist)); // -prev_dist/(next_dist-prev_dist)
                }
-            }
-            else // prev_dist>=0
+            }else // prev_dist>=0
             {
                if(next_dist<0) // change of side
                {
