@@ -551,7 +551,7 @@ Ptr Display::glGetProcAddress(CChar8 *name)
    }
    return null;
 #elif LINUX
-   return glXGetProcAddressARB(name);
+   return (Ptr)glXGetProcAddressARB((C GLubyte*)name);
 #elif ANDROID || WEB
    return (Ptr)eglGetProcAddress(name);
 #else
