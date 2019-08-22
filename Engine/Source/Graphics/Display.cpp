@@ -64,6 +64,9 @@ Display D;
    #elif IOS
       UInt FBO1;
    #endif
+   #if APPLE
+      static CFBundleRef OpenGLBundle;
+   #endif
                GLContext       MainContext;
    static Mems<GLContext> SecondaryContexts;
    static SyncLock        ContextLock;
@@ -524,7 +527,7 @@ Flt Display::browserZoom()C
 #endif
 }
 #if GL
-VecI2 Display::glVer()C
+VecI2 Display::glVer()
 {
    if(created())
    {
@@ -534,6 +537,26 @@ VecI2 Display::glVer()C
       return VecI2(major, minor);
    }
    return 0;
+}
+Ptr Display::glGetProcAddress(CChar8 *name)
+{
+#if WINDOWS
+   return wglGetProcAddress(name);
+#elif APPLE
+   if(OpenGLBundle)
+      if(CFStringRef cf_name=CFStringCreateWithCString(kCFAllocatorDefault, name, kCFStringEncodingASCII))
+   {
+      Ptr    proc=CFBundleGetFunctionPointerForName(OpenGLBundle, cf_name); CFRelease(cf_name);
+      return proc;
+   }
+   return null;
+#elif LINUX
+   return glXGetProcAddressARB(name);
+#elif ANDROID || WEB
+   return (Ptr)eglGetProcAddress(name);
+#else
+   #error
+#endif
 }
 #endif
 Bool Display::gatherAvailable()C
@@ -857,6 +880,9 @@ void Display::del()
    #elif ANDROID
       if(GLDisplay){eglTerminate(GLDisplay); GLDisplay=null;}
    #endif
+   #if APPLE
+      if(OpenGLBundle){CFRelease(OpenGLBundle); OpenGLBundle=null;}
+   #endif
 #endif
 }
 /******************************************************************************/
@@ -1012,6 +1038,9 @@ again:
 
    const VecB2 ctx_vers[]={{3,2}, {4,0}}; // set highest at the end, 4.0 needed for 'TexGather', 3.2 needed for 'glDrawElementsBaseVertex', 3.1 needed for instancing, 3.0 needed for 'glColorMaski', 'gl_ClipDistance', 'glClearBufferfv', 'glGenVertexArrays', 'glMapBufferRange'
 
+   #if APPLE
+      OpenGLBundle=CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengl"));
+   #endif
    #if WINDOWS
       PIXELFORMATDESCRIPTOR pfd=
       {
@@ -1153,10 +1182,10 @@ again:
       {
       #if 0 // 2.0 context
          if(!(MainContext.context=glXCreateNewContext(XDisplay, GLConfig, GLX_RGBA_TYPE, null, true)))Exit("Can't create a OpenGL Context.");
-      #else // 3.0+ context (this does not link on some old graphics drivers when compiling, "undefined reference to glXCreateContextAttribsARB", it would need to be accessed using 'glXGetProcAddress')
-         // access 'glXCreateContextAttribsARB', on Linux we don't need an existing GL context to be able to load extensions via 'glXGetProcAddressARB'
+      #else // 3.0+ context (this does not link on some old graphics drivers when compiling, "undefined reference to glXCreateContextAttribsARB", it would need to be accessed using 'glGetProcAddress')
+         // access 'glXCreateContextAttribsARB', on Linux we don't need an existing GL context to be able to load extensions via 'glGetProcAddress'
          typedef GLXContext (*PFNGLXCREATECONTEXTATTRIBSARBPROC) (::Display* dpy, GLXFBConfig config, GLXContext share_context, Bool direct, const int *attrib_list);
-         if(PFNGLXCREATECONTEXTATTRIBSARBPROC glXCreateContextAttribsARB=(PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddressARB((C GLubyte*)"glXCreateContextAttribsARB"))
+         if(PFNGLXCREATECONTEXTATTRIBSARBPROC glXCreateContextAttribsARB=(PFNGLXCREATECONTEXTATTRIBSARBPROC)glGetProcAddress("glXCreateContextAttribsARB"))
          {
             // in tests 'glXCreateContextAttribsARB' returned higher version than what was requested (which is what we want)
             REPA(ctx_vers) // go from the end, to try highest first
@@ -1175,7 +1204,7 @@ again:
          if(!MainContext.context)Exit("Can't create a OpenGL 3.2 Context.");
          XSync(XDisplay, false); // Forcibly wait on any resulting X errors
          MainContext.lock();
-         glXSwapInterval=(glXSwapIntervalType)glXGetProcAddressARB((C GLubyte*)"glXSwapIntervalEXT"); // access it via 'glXGetProcAddressARB' because some people have linker errors "undefined reference to 'glXSwapIntervalEXT'
+         glXSwapInterval=(glXSwapIntervalType)glGetProcAddress("glXSwapIntervalEXT"); // access it via 'glGetProcAddress' because some people have linker errors "undefined reference to 'glXSwapIntervalEXT'
 
          // get available modes
          MemtN<VecI2, 128> modes;

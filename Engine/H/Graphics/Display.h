@@ -578,7 +578,8 @@ private:
           void fadeDraw      ();
 
 #if GL
-   VecI2 glVer()C;
+   static VecI2 glVer();
+   static Ptr   glGetProcAddress(CChar8 *name);
 #endif
    Bool gatherAvailable      ()C;
    Bool deferredUnavailable  ()C;

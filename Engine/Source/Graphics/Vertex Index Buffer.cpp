@@ -133,6 +133,9 @@ static Bool Create(VtxFormat &vf, C VtxFormatKey &key, Ptr) {return vf.create(ke
 IndBuf    IndBuf16384Quads, IndBufBorder, IndBufPanel, IndBufPanelEx, IndBufRectBorder, IndBufRectShaded;
 VtxIndBuf VI;
 ThreadSafeMap<VtxFormatKey, VtxFormat> VtxFormats(Compare, Create);
+#if GL_ES
+static void (*glDrawElementsBaseVertex) (GLenum mode, GLsizei count, GLenum type, void *indices, GLint basevertex);
+#endif
 /******************************************************************************
 255.0 scales (and not 256.0) are correct:
    https://msdn.microsoft.com/en-us/library/windows/desktop/bb173059%28v=vs.85%29.aspx
@@ -1382,6 +1385,9 @@ void VtxIndBuf::create()
      _vf3D_full.create(ve, Elms(ve));
    }
 #elif GL
+   #if GL_ES
+      glDrawElementsBaseVertex=(decltype(glDrawElementsBaseVertex))D.glGetProcAddress("glDrawElementsBaseVertex");
+   #endif
    MemtN<VtxFormatGL::Elm, 32> ve;
    {
       ve.New().set(GL_VTX_POS, 2, GL_FLOAT, false, OFFSET(Vtx2DFlat, pos));
