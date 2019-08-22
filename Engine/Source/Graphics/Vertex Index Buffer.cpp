@@ -32,33 +32,15 @@ namespace EE{
    #define GL_LOCK_MAP_RING            9 // on GL ES this is conditional depending if 'glDrawElementsBaseVertex' is available (GL ES 3.2), falls back to GL_LOCK_MAP
    #define GL_LOCK_NUM                10
 
-   // TODO: test on newer hardware
-   #if WINDOWS // tested on GeForce 650m GT
-      #define MEM        (32*1024)
-      #define BUFFERS    1
-      #define GL_VI_LOCK GL_LOCK_MAP_RING
-   #elif MAC // tested on MacBook Air Intel HD 5000
-      #define MEM        (32*1024)
-      #define BUFFERS    1
-      #define GL_VI_LOCK GL_LOCK_SUB_RESET_PART_FROM // perf. similar to GL_LOCK_MAP
-   #elif LINUX // untested
-      #define MEM        (32*1024)
-      #define BUFFERS    1
-      #define GL_VI_LOCK GL_LOCK_MAP_RING
-   #elif ANDROID // tested on Note 4
-      #define MEM        (32*1024)
-      #define BUFFERS    1
-      #define GL_VI_LOCK GL_LOCK_SUB_RESET_PART_FROM
-   #elif IOS // tested on iPad Mini 2
-      #define MEM        (8*1024)
-      #define BUFFERS    1024
-      #define GL_VI_LOCK GL_LOCK_SUB
-   #elif WEB // untested
+   // TODO: test on newer iOS hardware (because on iPad Mini 2 GL_LOCK_SUB_RESET_PART_FROM is fastest, however newer hardware may have GL_LOCK_MAP_RING faster)
+   #if WEB // untested
       #define MEM        (32*1024)
       #define BUFFERS    1
       #define GL_VI_LOCK GL_LOCK_SUB_RESET_PART_FROM // Map is not available on WebGL - https://www.khronos.org/registry/webgl/specs/latest/2.0/#5.14
    #else
-      #error
+      #define MEM        (32*1024)
+      #define BUFFERS    1
+      #define GL_VI_LOCK GL_LOCK_MAP_RING // best results on Win, Mac, Linux, Android
    #endif
 #endif
 
@@ -107,7 +89,7 @@ namespace EE{
    }
 #endif
 
-   #define GL_RING (GL_VI_LOCK==GL_LOCK_SUB_RING || GL_VI_LOCK==GL_LOCK_SUB_RING_RESET || GL_VI_LOCK==GL_LOCK_SUB_RING_RESET_FROM || GL_VI_LOCK==GL_LOCK_MAP_RING)
+   #define GL_RING ((GL_VI_LOCK==GL_LOCK_SUB_RING || GL_VI_LOCK==GL_LOCK_SUB_RING_RESET || GL_VI_LOCK==GL_LOCK_SUB_RING_RESET_FROM || GL_VI_LOCK==GL_LOCK_MAP_RING) && (!GL_ES || glDrawElementsBaseVertex))
 
    static INLINE Bool IsMap(Bool dynamic) {return GL_VI_LOCK>=GL_LOCK_MAP && dynamic;}
 #endif
@@ -607,9 +589,9 @@ Byte* VtxBuf::lockDynamic()
 #elif GL
    if(IsMap(true))
    {
-                                                                          glBindBuffer    (GL_ARRAY_BUFFER, _buf);
-      if(!GL_RING)                                           _data=(Byte*)glMapBufferRange(GL_ARRAY_BUFFER,       0, MEM       , GL_MAP_WRITE_BIT|GL_MAP_FLUSH_EXPLICIT_BIT|                      GL_MAP_INVALIDATE_BUFFER_BIT);
-      if( GL_RING){UInt offset=VI._vtx_drawing*_vtx_size; if(_data=(Byte*)glMapBufferRange(GL_ARRAY_BUFFER,  offset, MEM-offset, GL_MAP_WRITE_BIT|GL_MAP_FLUSH_EXPLICIT_BIT|((lock==LOCK_WRITE) ? GL_MAP_INVALIDATE_BUFFER_BIT : /*made things slower GL_MAP_INVALIDATE_RANGE_BIT|*/GL_MAP_UNSYNCHRONIZED_BIT)))_data-=offset;}
+                                                                         glBindBuffer    (GL_ARRAY_BUFFER, _buf);
+      if(GL_RING){UInt offset=VI._vtx_drawing*_vtx_size; if(_data=(Byte*)glMapBufferRange(GL_ARRAY_BUFFER,  offset, MEM-offset, GL_MAP_WRITE_BIT|GL_MAP_FLUSH_EXPLICIT_BIT|((lock==LOCK_WRITE) ? GL_MAP_INVALIDATE_BUFFER_BIT : /*made things slower GL_MAP_INVALIDATE_RANGE_BIT|*/GL_MAP_UNSYNCHRONIZED_BIT)))_data-=offset;}
+      else                                                  _data=(Byte*)glMapBufferRange(GL_ARRAY_BUFFER,       0, MEM       , GL_MAP_WRITE_BIT|GL_MAP_FLUSH_EXPLICIT_BIT|                      GL_MAP_INVALIDATE_BUFFER_BIT);
    }else
    {
       // data for dynamic is already allocated and ready to use
