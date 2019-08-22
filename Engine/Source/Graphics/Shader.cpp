@@ -306,6 +306,9 @@ void ShaderBuffer::Buffer::create(Int size)
 
          D3D->CreateBuffer(&desc, null, &buffer);
       #elif GL
+         #if WEB
+            size=Ceil16(size); // needed for WebGL because it will complain "GL_INVALID_OPERATION: It is undefined behaviour to use a uniform buffer that is too small." #WebUBO
+         #endif
          glGenBuffers(1, &buffer);
          glBindBuffer(GL_UNIFORM_BUFFER, buffer);
          glBufferData(GL_UNIFORM_BUFFER, size, null, GL_STREAM_DRAW);
@@ -355,7 +358,7 @@ void ShaderBuffer::update()
          D3DC ->UpdateSubresource (buffer.buffer, 0, null, data, 0, 0);
 #elif GL
    glBindBuffer(GL_UNIFORM_BUFFER, buffer.buffer);
-#if MAC || LINUX || GL_ES // this is faster for Mac, Linux and GL ES (slower for Win GL)
+#if (MAC || LINUX || GL_ES) && !WEB // this is faster for Mac, Linux and GL ES (slower for Win GL), however can't be used for WebGL because it will complain "GL_INVALID_OPERATION: It is undefined behaviour to use a uniform buffer that is too small." #WebUBO
    glBufferData(GL_UNIFORM_BUFFER, buffer.size, data, GL_STREAM_DRAW);
 #else // this is faster for Win GL
    glBufferSubData(GL_UNIFORM_BUFFER, 0, buffer.size, data);
