@@ -242,12 +242,12 @@ static void Compile(API api)
       REPD(quality     , multi_sample ? 1 : 2) // no Quality version for MSAA
       {
                            src.New("DrawLightDir"     , "DrawPosXY_VS", "LightDir_PS"   ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality                ); // Directional light is always fullscreen, so can use 2D shader
-         REPD(gl_es, (api==API_GL) ? 2 : 1) // GL ES doesn't support NOPERSP
+         REPD(gl_es, (api==API_GL) ? 2 : 1) // GL ES doesn't support NOPERSP and 'D.depthClip'
          {
-                           src.New("DrawLightPoint"   , "Geom_VS"     , "LightPoint_PS" ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality                )("GL_ES", gl_es);  // 3D Geom Mesh
-                           src.New("DrawLightLinear"  , "Geom_VS"     , "LightLinear_PS").multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality                )("GL_ES", gl_es);  // 3D Geom Mesh
-            REPD(image, 2){src.New("DrawLightCone"    , "Geom_VS"     , "LightCone_PS"  ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality, "IMAGE", image)("GL_ES", gl_es);  // 3D Geom Mesh
-                  if(gl_es)src.New("DrawLightConeFlat", "DrawPosXY_VS", "LightCone_PS"  ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality, "IMAGE", image)                ;} // 2D Flat
+                           src.New("DrawLightPoint"   , "Geom_VS"     , "LightPoint_PS" ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality                )("GL_ES", gl_es).extra("CLAMP_DEPTH", gl_es);  // 3D Geom Mesh (only ball based are depth-clamped, because Dir is fullscreen and Cone has too many artifacts when depth clamping)
+                           src.New("DrawLightLinear"  , "Geom_VS"     , "LightLinear_PS").multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality                )("GL_ES", gl_es).extra("CLAMP_DEPTH", gl_es);  // 3D Geom Mesh (only ball based are depth-clamped, because Dir is fullscreen and Cone has too many artifacts when depth clamping)
+            REPD(image, 2){src.New("DrawLightCone"    , "Geom_VS"     , "LightCone_PS"  ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality, "IMAGE", image)("GL_ES", gl_es)                            ;  // 3D Geom Mesh
+                  if(gl_es)src.New("DrawLightConeFlat", "DrawPosXY_VS", "LightCone_PS"  ).multiSample(multi_sample)("SHADOW", shadow, "MULTI_SAMPLE", multi_sample, "QUALITY", quality, "IMAGE", image)                                            ;} // 2D Flat
          }
       }
    }
@@ -269,7 +269,7 @@ static void Compile(API api)
                          src.New("ShdPoint", "DrawPosXY_VS", "ShdPoint_PS").multiSample(multi_sample)("MULTI_SAMPLE", multi_sample);
                          src.New("ShdCone" , "DrawPosXY_VS", "ShdCone_PS" ).multiSample(multi_sample)("MULTI_SAMPLE", multi_sample);
       }
-      REPD(gl_es, (api==API_GL) ? 3 : 1) // GL ES doesn't support NOPERSP and TexDepthLinear (0=no GL ES, 1=GL ES, 2=GL ES with GATHER support)
+      REPD(gl_es, (api==API_GL) ? 3 : 1) // GL ES doesn't support NOPERSP, 'D.depthClip' and TexDepthLinear (0=no GL ES, 1=GL ES, 2=GL ES with GATHER support)
       REPD(geom , 2)
       {
          CChar8 *vs=(geom ? "Geom_VS" : "Draw_VS");
