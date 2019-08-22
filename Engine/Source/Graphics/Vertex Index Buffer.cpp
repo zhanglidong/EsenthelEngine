@@ -66,8 +66,6 @@ namespace EE{
    #define BUFFERS_USE BUFFERS // 'BUFFERS' is the max amount of buffers allocated at app startup, but 'BUFFERS_USE' is the amount we want to use (can be lower for resting)
 
    #define GL_DYNAMIC GL_STREAM_DRAW // same performance as GL_DYNAMIC_DRAW
-
-   #define GL_WRITE_ONLY 0x88B9
 #endif
 
 #if 0 // Test
@@ -101,11 +99,11 @@ namespace EE{
       Clamp(lock   , 0, GL_LOCK_NUM-1);
       if(VIMem!=mem || VIBuffers!=buffers || VILock!=lock)
       {
-         VI.lost(); // call before changing params
+         VI.del(); // call before changing params
          VIMem    =mem;
          VIBuffers=buffers;
          VILock   =lock;
-         VI.reset();
+         VI.create();
       }
    }
 #endif
@@ -609,8 +607,8 @@ Byte* VtxBuf::lockDynamic()
    if(IsMap(true))
    {
                                                                           glBindBuffer    (GL_ARRAY_BUFFER, _buf);
-      if(!GL_RING)                                           _data=(Byte*)glMapBufferRange(GL_ARRAY_BUFFER,       0, MEM       , GL_MAP_WRITE_BIT|GL_MAP_FLUSH_EXPLICIT_BIT|GL_MAP_INVALIDATE_BUFFER_BIT);
-      if( GL_RING){UInt offset=VI._vtx_drawing*_vtx_size; if(_data=(Byte*)glMapBufferRange(GL_ARRAY_BUFFER,  offset, MEM-offset, GL_MAP_WRITE_BIT|GL_MAP_FLUSH_EXPLICIT_BIT|(lock==LOCK_WRITE ? GL_MAP_INVALIDATE_BUFFER_BIT : /*made things slower GL_MAP_INVALIDATE_RANGE_BIT|*/GL_MAP_UNSYNCHRONIZED_BIT)))_data-=offset;}
+      if(!GL_RING)                                           _data=(Byte*)glMapBufferRange(GL_ARRAY_BUFFER,       0, MEM       , GL_MAP_WRITE_BIT|GL_MAP_FLUSH_EXPLICIT_BIT|                      GL_MAP_INVALIDATE_BUFFER_BIT);
+      if( GL_RING){UInt offset=VI._vtx_drawing*_vtx_size; if(_data=(Byte*)glMapBufferRange(GL_ARRAY_BUFFER,  offset, MEM-offset, GL_MAP_WRITE_BIT|GL_MAP_FLUSH_EXPLICIT_BIT|((lock==LOCK_WRITE) ? GL_MAP_INVALIDATE_BUFFER_BIT : /*made things slower GL_MAP_INVALIDATE_RANGE_BIT|*/GL_MAP_UNSYNCHRONIZED_BIT)))_data-=offset;}
    }else
    {
       // data for dynamic is already allocated and ready to use
@@ -638,7 +636,7 @@ void VtxBuf::unlockDynamic()
    }else
    switch(GL_VI_LOCK)
    {
-      default                         :                                                                                                                                                   glBufferSubData(GL_ARRAY_BUFFER,      0, VI._vtx_queued*_vtx_size, _data       );  break;
+      default /*GL_LOCK_SUB*/         :                                                                                                                                                   glBufferSubData(GL_ARRAY_BUFFER,      0, VI._vtx_queued*_vtx_size, _data       );  break;
       case GL_LOCK_SUB_RESET_PART     :                           glBufferData(GL_ARRAY_BUFFER, VI._vtx_queued*_vtx_size,  null, GL_DYNAMIC);                                             glBufferSubData(GL_ARRAY_BUFFER,      0, VI._vtx_queued*_vtx_size, _data       );  break;
       case GL_LOCK_SUB_RESET_FULL     :                           glBufferData(GL_ARRAY_BUFFER,                      MEM,  null, GL_DYNAMIC);                                             glBufferSubData(GL_ARRAY_BUFFER,      0, VI._vtx_queued*_vtx_size, _data       );  break;
       case GL_LOCK_SUB_RESET_PART_FROM:                           glBufferData(GL_ARRAY_BUFFER, VI._vtx_queued*_vtx_size, _data, GL_DYNAMIC);                                                                                                                                break;
@@ -1764,20 +1762,18 @@ void VtxIndBuf::flush()
          #if DX11
           //if(VI._prim_type!=D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST)SetPrimitiveTopology(VI._prim_type); must be after 'shader->begin', not needed since 'quad_ind' always uses TRIANGLELIST mode
             D3DC->DrawIndexed(quads*(2*3), 0, VI._vtx_drawing); VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;
-         #elif GL_ES
-            glDrawElements(GL_TRIANGLES, quads*(2*3), IndBuf16384Quads.bit16() ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, null);
          #elif GL
-            glDrawElementsBaseVertex(GL_TRIANGLES, quads*(2*3), IndBuf16384Quads.bit16() ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, null, VI._vtx_drawing); if(GL_RING){VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;}
+            if(GL_RING){glDrawElementsBaseVertex(GL_TRIANGLES, quads*(2*3), IndBuf16384Quads.bit16() ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, null, VI._vtx_drawing); VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;}
+            else        glDrawElements          (GL_TRIANGLES, quads*(2*3), IndBuf16384Quads.bit16() ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, null);
          #endif
          }else
          {
          #if DX11
             if(VI._prim_type!=D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST)SetPrimitiveTopology(VI._prim_type); // must be after 'shader->begin'
             D3DC->Draw(VI._vtx_queued, VI._vtx_drawing); VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;
-         #elif GL_ES
-            glDrawArrays(VI._prim_type, 0, VI._vtx_queued);
          #elif GL
-            glDrawArrays(VI._prim_type, VI._vtx_drawing, VI._vtx_queued); if(GL_RING){VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;}
+            if(GL_RING){glDrawArrays(VI._prim_type, VI._vtx_drawing, VI._vtx_queued); VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;}
+            else        glDrawArrays(VI._prim_type,               0, VI._vtx_queued);
          #endif
          }
       }
@@ -1795,10 +1791,9 @@ void VtxIndBuf::flushIndexed(IndBuf &ib, Int ind_num)
       #if DX11
          if(VI._prim_type!=D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST)SetPrimitiveTopology(VI._prim_type); // must be after 'shader->begin'
          D3DC->DrawIndexed(ind_num, 0, VI._vtx_drawing); VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;
-      #elif GL_ES
-         glDrawElements(VI._prim_type, ind_num, ib.bit16() ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, null);
       #elif GL
-         glDrawElementsBaseVertex(VI._prim_type, ind_num, ib.bit16() ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, null, VI._vtx_drawing); if(GL_RING){VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;}
+         if(GL_RING){glDrawElementsBaseVertex(VI._prim_type, ind_num, ib.bit16() ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, null, VI._vtx_drawing); VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;}
+         else        glDrawElements          (VI._prim_type, ind_num, ib.bit16() ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, null);
       #endif
       }
       VI._vtx_queued=0;

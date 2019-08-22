@@ -779,7 +779,7 @@ void Source::update(C GuiPC &gpc)
             sel=sel_temp;
             if(sel==cur)sel=-1;
          }else
-         if(MT.bp(i, 4))delBack();
+         if(MT.bp(i, MS_BACK))delBack();
       }
    }
    if(Gui.ms()==&suggestions_list)
