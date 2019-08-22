@@ -29,7 +29,7 @@ namespace EE{
    #define GL_LOCK_SUB_RING_RESET      6
    #define GL_LOCK_SUB_RING_RESET_FROM 7
    #define GL_LOCK_MAP                 8
-   #define GL_LOCK_MAP_RING            9
+   #define GL_LOCK_MAP_RING            9 // on GL ES this is conditional depending if 'glDrawElementsBaseVertex' is available (GL ES 3.2), falls back to GL_LOCK_MAP
    #define GL_LOCK_NUM                10
 
    // TODO: test on newer hardware
