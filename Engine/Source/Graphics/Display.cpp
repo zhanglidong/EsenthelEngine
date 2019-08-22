@@ -1038,9 +1038,6 @@ again:
 
    const VecB2 ctx_vers[]={{3,2}, {4,0}}; // set highest at the end, 4.0 needed for 'TexGather', 3.2 needed for 'glDrawElementsBaseVertex', 3.1 needed for instancing, 3.0 needed for 'glColorMaski', 'gl_ClipDistance', 'glClearBufferfv', 'glGenVertexArrays', 'glMapBufferRange'
 
-   #if APPLE
-      OpenGLBundle=CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengl"));
-   #endif
    #if WINDOWS
       PIXELFORMATDESCRIPTOR pfd=
       {
@@ -1125,6 +1122,8 @@ again:
      _modes=modes;
      _modes.sort(Compare);
    #elif MAC
+      OpenGLBundle=CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengl"));
+
       const CGLPixelFormatAttribute profile_versions[]=
       {
          (CGLPixelFormatAttribute)kCGLOGLPVersion_Legacy  , // NSOpenGLProfileVersionLegacy
@@ -1280,6 +1279,8 @@ again:
       Renderer._main_ds.forceInfo(width, height, 1, ds_type                                            , IMAGE_GL_RB, samples);
       if(LogInit)LogN(S+"Renderer._main: "+Renderer._main.w()+'x'+Renderer._main.h()+", type: "+ImageTI[Renderer._main.hwType()].name+", ds_type: "+ImageTI[Renderer._main_ds.hwType()].name);
    #elif IOS
+      OpenGLBundle=CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengles"));
+
       MainContext.context=[[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3]; if(!MainContext.context)Exit("Can't create an OpenGL Context.");
       MainContext.context.multiThreaded=false; // disable multi-threaded rendering as enabled actually made things slower, TOOD: check again in the future !! if enabling then probably all contexts have to be enabled as well, secondary too, because VAO from VBO's on a secondary thread could fail, as in Dungeon Hero, needs checking !!
       MainContext.lock();
