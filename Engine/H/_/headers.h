@@ -69,7 +69,7 @@
    #define GPU_HALF_SUPPORTED   (!GL_ES) // depends on "GL_OES_vertex_half_float" GLES extension
    #define DEPTH_CLIP_SUPPORTED (!GL_ES)
 
-   #define REVERSE_DEPTH (!GL) // if Depth Buffer is reversed
+   #define REVERSE_DEPTH 1 // if Depth Buffer is reversed
 
    #define PHYSX_DLL_ACTUAL (PHYSX && PHYSX_DLL && (WINDOWS_OLD || LINUX))
 

@@ -135,7 +135,7 @@
 #define SIGNED_VEL_RT       (!GL) // Velocity Render Target is signed everywhere except GL because there it depends on GL_EXT_render_snorm
 #define FULL_PRECISION_SPEC 0     // if use full precision for specular intensity in SIGNED_NRM_RT, we can disable this because we lose only 1-bit of precision
 
-#define REVERSE_DEPTH (!GL) // if Depth Buffer is reversed, GL uses different depth range -1..1
+#define REVERSE_DEPTH 1 // if Depth Buffer is reversed
 #if     REVERSE_DEPTH
    #define Z_FRONT             1.0
    #define Z_BACK              0.0

@@ -12,8 +12,8 @@ namespace EE{
 // #ShadowBias
 
 #if GL
-   #define DEPTH_BIAS_SHADOW  DEPTH_VALUE( 0.0f           )
-   #define DEPTH_BIAS_OVERLAY DEPTH_VALUE(-1.0f/(1ull<<24)) // 24-bit depth buffer
+   #define DEPTH_BIAS_SHADOW  DEPTH_VALUE( 0.0f)
+   #define DEPTH_BIAS_OVERLAY DEPTH_VALUE(-1.0f)
 #elif DX11
    #define DEPTH_BIAS_SHADOW  DEPTH_VALUE( 0)
    #define DEPTH_BIAS_OVERLAY DEPTH_VALUE(-1)
