@@ -66,7 +66,6 @@ namespace EE{
    #define BUFFERS_USE BUFFERS // 'BUFFERS' is the max amount of buffers allocated at app startup, but 'BUFFERS_USE' is the amount we want to use (can be lower for resting)
 
    #define GL_DYNAMIC GL_STREAM_DRAW // same performance as GL_DYNAMIC_DRAW
-#endif
 
 #if 0 // Test
    #pragma message("!! Warning: Use this only for debugging !!")
@@ -108,7 +107,6 @@ namespace EE{
    }
 #endif
 
-#if GL
    #define GL_RING (GL_VI_LOCK==GL_LOCK_SUB_RING || GL_VI_LOCK==GL_LOCK_SUB_RING_RESET || GL_VI_LOCK==GL_LOCK_SUB_RING_RESET_FROM || GL_VI_LOCK==GL_LOCK_MAP_RING)
 
    static INLINE Bool IsMap(Bool dynamic) {return GL_VI_LOCK>=GL_LOCK_MAP && dynamic;}
