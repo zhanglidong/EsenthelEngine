@@ -1421,7 +1421,7 @@ void ConstantIndex::set(Int bind_index, Int src_index) {_Unaligned(T.bind_index,
 #if !GL
 Bool BufferLink::load(File &f, C MemtN<ShaderBuffer*, 256> &buffers)
 {
-   ConstantIndex ci; f>>ci; index=ci.bind_index; RANGE_ASSERT_ERROR(index, MAX_SHADER_BUFFERS, S+"Buffer index: "+index+", is too big"); buffer=Get(ci.src_index, buffers); if(DEBUG)TestBuffer(buffer, index);
+   ConstantIndex ci; f>>ci; index=ci.bind_index; RANGE_ASSERT_ERROR(index, MAX_SHADER_BUFFERS, S+"Buffer index: "+index+", is too big"); buffer=Get(ci.src_index, buffers); if(DEBUG){TestBuffer(buffer, index); DYNAMIC_ASSERT(index>=SBI_NUM, "This buffer should be always bound at startup and not while setting shader");}
    return f.ok();
 }
 Bool ImageLink::load(File &f, C MemtN<ShaderImage*, 256> &images)

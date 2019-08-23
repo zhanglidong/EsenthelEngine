@@ -420,8 +420,8 @@ ShaderCompiler::Param& ShaderCompiler::Buffer::getParam(C Str8 &name)
 }
 static Int Compare(C ShaderCompiler::Bind &a, C ShaderCompiler::Bind &b)
 {
-   if(Int c=Compare(a.name     , b.name, true))return c;
-   return   Compare(a.bind_slot, b.bind_slot );
+   if(Int c=Compare(a.bind_slot, b.bind_slot ))return c; // !! it's important to compare by bind slot first, so we can easily merge setting multiple buffers with API calls !!
+   return   Compare(a.name     , b.name, true);
 }
 static Int CompareBind(C ShaderCompiler::Buffer &a, C ShaderCompiler::Buffer &b) {return Compare(SCAST(C ShaderCompiler::Bind, a), SCAST(C ShaderCompiler::Bind, b));}
 static Int CompareBind(C ShaderCompiler::Image  &a, C ShaderCompiler::Image  &b) {return Compare(SCAST(C ShaderCompiler::Bind, a), SCAST(C ShaderCompiler::Bind, b));}
@@ -1391,9 +1391,24 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    }
 }
 /******************************************************************************/
-struct BindMap : Mems<ShaderCompiler::Bind>
+struct ImageBindMap : Mems<ShaderCompiler::Bind>
 {
-   void operator=(C Mems<ShaderCompiler::Image > & images) {setNum( images.elms()); FREPAO(T)= images[i];}
+   void operator =(C Mems<ShaderCompiler::Image> &images)  {setNum(images.elms()); FREPAO(T)=images[i];}
+   Bool operator==(C Mems<ShaderCompiler::Image> &images)C {if(elms()!=images.elms())return false; REPA(T)if(T[i]!=images[i])return false; return true;}
+   Bool save(File &f, C ShaderCompiler &compiler)C
+   {
+      f.cmpUIntV(elms());
+      FREPA(T)
+      {
+       C ShaderCompiler::Bind &bind=T[i];
+         Int src_index; if(!compiler.images.binarySearch(bind.name, src_index, CompareCS))Exit("Image not found in Shader");
+         f<<ConstantIndex(bind.bind_slot, src_index);
+      }
+      return f.ok();
+   }
+};
+struct BufferBindMap : Mems<ShaderCompiler::Bind>
+{
  //void operator=(C Mems<ShaderCompiler::Buffer> &buffers) {setNum(buffers.elms()); FREPAO(T)=buffers[i];}
    void operator=(C Mems<ShaderCompiler::Buffer> &buffers) // !! we shouldn't store buffers with explicit bind slots, because they're always bound at their creation, this will avoid overhead when drawing shaders !!
    {
@@ -1401,7 +1416,6 @@ struct BindMap : Mems<ShaderCompiler::Bind>
       setNum(elms); elms=0; FREPA(buffers)   if(!buffers[i].bind_explicit)T[elms++]=buffers[i];
    }
 
-   Bool operator==(C Mems<ShaderCompiler::Image > & images)C {if(elms()!= images.elms())return false; REPA(T)if(T[i]!= images[i])return false; return true;}
  //Bool operator==(C Mems<ShaderCompiler::Buffer> &buffers)C {if(elms()!=buffers.elms())return false; REPA(T)if(T[i]!=buffers[i])return false; return true;}
    Bool operator==(C Mems<ShaderCompiler::Buffer> &buffers)C // !! we shouldn't store buffers with explicit bind slots, because they're always bound at their creation, this will avoid overhead when drawing shaders !!
    {
@@ -1416,32 +1430,16 @@ struct BindMap : Mems<ShaderCompiler::Bind>
       return elms==T.elms();
    }
 
-   // BUFFERS
-   Bool save       (File &f, C ShaderCompiler &compiler)C {return saveBuffers(f, compiler);}
-   Bool saveBuffers(File &f, C ShaderCompiler &compiler)C
+   Bool save(File &f, C ShaderCompiler &compiler)C
    {
       MemtN<ConstantIndex, 256> save;
-      FREPA(T)
+      FREPA(T) // save all, because buffers with explicit bind slots were already ignored when creating using "operator="
       {
        C ShaderCompiler::Bind &bind=T[i];
          Int src_index=compiler.buffers.findValidIndex(bind.name); if(src_index<0)Exit("Buffer not found in Shader");
          save.New().set(bind.bind_slot, src_index); // save to which index this buffer should be bound for this shader, and index of buffer in 'file_buffers' array
       }
       return save.saveRaw(f);
-   }
-
-   // IMAGES
-   Bool save      (File &f, C ShaderCompiler &compiler, C ShaderCompiler &)C {return saveImages(f, compiler);}
-   Bool saveImages(File &f, C ShaderCompiler &compiler)C
-   {
-      f.cmpUIntV(elms());
-      FREPA(T)
-      {
-       C ShaderCompiler::Bind &bind=T[i];
-         Int src_index; if(!compiler.images.binarySearch(bind.name, src_index, CompareCS))Exit("Image not found in Shader");
-         f<<ConstantIndex(bind.bind_slot, src_index);
-      }
-      return f.ok();
    }
 };
 /******************************************************************************/
@@ -1471,9 +1469,10 @@ Bool ShaderCompiler::compileTry(Threads &threads)
       }
    }
    threads.wait1();
-   Memc<BindMap   > buffer_maps, image_maps;
-   Memc<ShaderData> shader_datas[ST_NUM];
-   Mems<Shader*   > shaders(shaders_num); shaders_num=0;
+   Memc< ImageBindMap>  image_maps;
+   Memc<BufferBindMap> buffer_maps;
+   Memc<ShaderData   > shader_datas[ST_NUM];
+   Mems<Shader*      > shaders(shaders_num); shaders_num=0;
    FREPA(sources)
    {
       Source &source=sources[i]; FREPA(source.shaders)
@@ -1580,8 +1579,8 @@ Bool ShaderCompiler::compileTry(Threads &threads)
       // buffer+image map
       if(api!=API_GL)
       {
-         if(!buffer_maps.save(f, T   ))goto error;
-         if(! image_maps.save(f, T, T))goto error; // use T,T to call secondary 'save' method for images
+         if(!buffer_maps.save(f, T))goto error;
+         if(! image_maps.save(f, T))goto error;
       }
 
       // shader data

@@ -20,27 +20,27 @@ namespace EE{
    #define MEM     (32*1024)
    #define BUFFERS 1
 #elif GL
-   #define GL_LOCK_SUB                 0
-   #define GL_LOCK_SUB_RESET_PART      1
-   #define GL_LOCK_SUB_RESET_FULL      2
-   #define GL_LOCK_SUB_RESET_PART_FROM 3
-   #define GL_LOCK_SUB_RESET_FULL_FROM 4
-   #define GL_LOCK_SUB_RING            5
-   #define GL_LOCK_SUB_RING_RESET      6
-   #define GL_LOCK_SUB_RING_RESET_FROM 7
-   #define GL_LOCK_MAP                 8
-   #define GL_LOCK_MAP_RING            9 // on GL ES this is conditional depending if 'glDrawElementsBaseVertex' is available (GL ES 3.2+), falls back to GL_LOCK_MAP
-   #define GL_LOCK_NUM                10
+   #define GL_BUFFER_SUB                 0
+   #define GL_BUFFER_SUB_RESET_PART      1
+   #define GL_BUFFER_SUB_RESET_FULL      2
+   #define GL_BUFFER_SUB_RESET_PART_FROM 3
+   #define GL_BUFFER_SUB_RESET_FULL_FROM 4
+   #define GL_BUFFER_SUB_RING            5
+   #define GL_BUFFER_SUB_RING_RESET      6
+   #define GL_BUFFER_SUB_RING_RESET_FROM 7
+   #define GL_BUFFER_MAP                 8
+   #define GL_BUFFER_MAP_RING            9 // on GL ES this is conditional depending if 'glDrawElementsBaseVertex' is available (GL ES 3.2+), falls back to GL_BUFFER_MAP
+   #define GL_BUFFER_NUM                10
 
-   // TODO: test on newer iOS hardware (because on iPad Mini 2 GL_LOCK_SUB_RESET_PART_FROM is fastest, however newer hardware may have GL_LOCK_MAP_RING faster just like all other platforms)
+   // TODO: test on newer iOS hardware (because on iPad Mini 2 GL_BUFFER_SUB_RESET_PART_FROM is fastest, however newer hardware may have GL_BUFFER_MAP_RING faster just like all other platforms)
    #if WEB
       #define MEM        (32*1024)
       #define BUFFERS    1
-      #define GL_VI_LOCK GL_LOCK_SUB // GL_LOCK_SUB was the fastest, Map is not available on WebGL - https://www.khronos.org/registry/webgl/specs/latest/2.0/#5.14
+      #define GL_VI_MODE GL_BUFFER_SUB // GL_BUFFER_SUB was the fastest, Map is not available on WebGL - https://www.khronos.org/registry/webgl/specs/latest/2.0/#5.14
    #else
       #define MEM        (32*1024)
       #define BUFFERS    1
-      #define GL_VI_LOCK GL_LOCK_MAP_RING // best results on Win, Mac, Linux, Android
+      #define GL_VI_MODE GL_BUFFER_MAP_RING // best results on Win, Mac, Linux, Android
    #endif
 
    #define BUFFERS_USE BUFFERS // 'BUFFERS' is the max amount of buffers allocated at app startup, but 'BUFFERS_USE' is the amount we want to use (can be lower for resting)
@@ -54,42 +54,42 @@ namespace EE{
    #ifndef BUFFERS
       #define BUFFERS 1
    #endif
-   #ifndef    GL_VI_LOCK
-      #define GL_VI_LOCK GL_LOCK_SUB
+   #ifndef    GL_VI_MODE
+      #define GL_VI_MODE GL_BUFFER_SUB
    #endif
    Int VIMem    =MEM;
    Int VIBuffers=BUFFERS;
-   Int VILock   =GL_VI_LOCK;
+   Int VIMode   =GL_VI_MODE;
 
    // clear defaults and make them variable
    #undef MEM
    #undef BUFFERS
    #undef BUFFERS_USE
-   #undef GL_VI_LOCK
+   #undef GL_VI_MODE
    #define MEM         VIMem
    #define BUFFERS     1024
    #define BUFFERS_USE VIBuffers
-   #define GL_VI_LOCK  VILock
+   #define GL_VI_MODE  VIMode
 
-   void VISet(Int mem, Int buffers, Int lock)
+   void VISet(Int mem, Int buffers, Int mode)
    {
       Clamp(mem    , 1024, 1024*1024);
       Clamp(buffers, 1, BUFFERS);
-      Clamp(lock   , 0, GL_LOCK_NUM-1);
-      if(VIMem!=mem || VIBuffers!=buffers || VILock!=lock)
+      Clamp(mode   , 0, GL_BUFFER_NUM-1);
+      if(VIMem!=mem || VIBuffers!=buffers || VIMode!=mode)
       {
          VI.del(); // call before changing params
          VIMem    =mem;
          VIBuffers=buffers;
-         VILock   =lock;
+         VIMode   =mode;
          VI.create();
       }
    }
 #endif
 
-   #define GL_RING ((GL_VI_LOCK==GL_LOCK_SUB_RING || GL_VI_LOCK==GL_LOCK_SUB_RING_RESET || GL_VI_LOCK==GL_LOCK_SUB_RING_RESET_FROM || GL_VI_LOCK==GL_LOCK_MAP_RING) && (!GL_ES || glDrawElementsBaseVertex))
+   #define GL_RING ((GL_VI_MODE==GL_BUFFER_SUB_RING || GL_VI_MODE==GL_BUFFER_SUB_RING_RESET || GL_VI_MODE==GL_BUFFER_SUB_RING_RESET_FROM || GL_VI_MODE==GL_BUFFER_MAP_RING) && (!GL_ES || glDrawElementsBaseVertex))
 
-   static INLINE Bool IsMap(Bool dynamic) {return GL_VI_LOCK>=GL_LOCK_MAP && dynamic;}
+   static INLINE Bool IsMap(Bool dynamic) {return GL_VI_MODE>=GL_BUFFER_MAP && dynamic;}
 #endif
 
 #if BUFFERS>1
@@ -615,16 +615,16 @@ void VtxBuf::unlockDynamic()
       glUnmapBuffer           (GL_ARRAY_BUFFER);
      _data=null;
    }else
-   switch(GL_VI_LOCK)
+   switch(GL_VI_MODE)
    {
-      default /*GL_LOCK_SUB*/         :                                                                                                                                                   glBufferSubData(GL_ARRAY_BUFFER,      0, VI._vtx_queued*_vtx_size, _data       );  break;
-      case GL_LOCK_SUB_RESET_PART     :                           glBufferData(GL_ARRAY_BUFFER, VI._vtx_queued*_vtx_size,  null, GL_DYNAMIC);                                             glBufferSubData(GL_ARRAY_BUFFER,      0, VI._vtx_queued*_vtx_size, _data       );  break;
-      case GL_LOCK_SUB_RESET_FULL     :                           glBufferData(GL_ARRAY_BUFFER,                      MEM,  null, GL_DYNAMIC);                                             glBufferSubData(GL_ARRAY_BUFFER,      0, VI._vtx_queued*_vtx_size, _data       );  break;
-      case GL_LOCK_SUB_RESET_PART_FROM:                           glBufferData(GL_ARRAY_BUFFER, VI._vtx_queued*_vtx_size, _data, GL_DYNAMIC);                                                                                                                                break;
-      case GL_LOCK_SUB_RESET_FULL_FROM:                           glBufferData(GL_ARRAY_BUFFER,                      MEM, _data, GL_DYNAMIC);                                                                                                                                break;
-      case GL_LOCK_SUB_RING           :                                                                                                           {UInt offset=VI._vtx_drawing*_vtx_size; glBufferSubData(GL_ARRAY_BUFFER, offset, VI._vtx_queued*_vtx_size, _data+offset);} break;
-      case GL_LOCK_SUB_RING_RESET     : if(_lock_mode==LOCK_WRITE)glBufferData(GL_ARRAY_BUFFER,                      MEM,  null, GL_DYNAMIC);     {UInt offset=VI._vtx_drawing*_vtx_size; glBufferSubData(GL_ARRAY_BUFFER, offset, VI._vtx_queued*_vtx_size, _data+offset);} break;
-      case GL_LOCK_SUB_RING_RESET_FROM: if(_lock_mode==LOCK_WRITE)glBufferData(GL_ARRAY_BUFFER,                      MEM, _data, GL_DYNAMIC);else {UInt offset=VI._vtx_drawing*_vtx_size; glBufferSubData(GL_ARRAY_BUFFER, offset, VI._vtx_queued*_vtx_size, _data+offset);} break;
+      default /*GL_BUFFER_SUB*/         :                                                                                                                                                   glBufferSubData(GL_ARRAY_BUFFER,      0, VI._vtx_queued*_vtx_size, _data       );  break;
+      case GL_BUFFER_SUB_RESET_PART     :                           glBufferData(GL_ARRAY_BUFFER, VI._vtx_queued*_vtx_size,  null, GL_DYNAMIC);                                             glBufferSubData(GL_ARRAY_BUFFER,      0, VI._vtx_queued*_vtx_size, _data       );  break;
+      case GL_BUFFER_SUB_RESET_FULL     :                           glBufferData(GL_ARRAY_BUFFER,                      MEM,  null, GL_DYNAMIC);                                             glBufferSubData(GL_ARRAY_BUFFER,      0, VI._vtx_queued*_vtx_size, _data       );  break;
+      case GL_BUFFER_SUB_RESET_PART_FROM:                           glBufferData(GL_ARRAY_BUFFER, VI._vtx_queued*_vtx_size, _data, GL_DYNAMIC);                                                                                                                                break;
+      case GL_BUFFER_SUB_RESET_FULL_FROM:                           glBufferData(GL_ARRAY_BUFFER,                      MEM, _data, GL_DYNAMIC);                                                                                                                                break;
+      case GL_BUFFER_SUB_RING           :                                                                                                           {UInt offset=VI._vtx_drawing*_vtx_size; glBufferSubData(GL_ARRAY_BUFFER, offset, VI._vtx_queued*_vtx_size, _data+offset);} break;
+      case GL_BUFFER_SUB_RING_RESET     : if(_lock_mode==LOCK_WRITE)glBufferData(GL_ARRAY_BUFFER,                      MEM,  null, GL_DYNAMIC);     {UInt offset=VI._vtx_drawing*_vtx_size; glBufferSubData(GL_ARRAY_BUFFER, offset, VI._vtx_queued*_vtx_size, _data+offset);} break;
+      case GL_BUFFER_SUB_RING_RESET_FROM: if(_lock_mode==LOCK_WRITE)glBufferData(GL_ARRAY_BUFFER,                      MEM, _data, GL_DYNAMIC);else {UInt offset=VI._vtx_drawing*_vtx_size; glBufferSubData(GL_ARRAY_BUFFER, offset, VI._vtx_queued*_vtx_size, _data+offset);} break;
    }
  //glFlush(); no need to flush because it meant to be called only on the main thread for VI
 #endif
