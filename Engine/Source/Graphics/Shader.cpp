@@ -59,6 +59,20 @@ void DisplayState::texClear(GPU_API(ID3D11ShaderResourceView*, UInt) tex)
    if(tex)REPA(Tex)if(Tex[i]==tex)Tex[i]=~0;
 #endif
 }
+void DisplayState::texClearAll(GPU_API(ID3D11ShaderResourceView*, UInt) tex)
+{
+#if DX11
+   if(tex)
+   {
+      REPA(VSTex)if(VSTex[i]==tex)VSTex[i]=null;
+      REPA(HSTex)if(HSTex[i]==tex)HSTex[i]=null;
+      REPA(DSTex)if(DSTex[i]==tex)DSTex[i]=null;
+      REPA(PSTex)if(PSTex[i]==tex)PSTex[i]=null;
+   }
+#elif GL
+   if(tex)REPA(Tex)if(Tex[i]==tex)Tex[i]=~0;
+#endif
+}
 #if GL
        static UInt ActiveTexture=0;
 INLINE static void ActivateTexture(Int index)

@@ -747,7 +747,7 @@ Image& Image::del()
    #if DX11
       if(_txtr || _srv)
       {
-         D.texClear(_srv);
+         D.texClearAll(_srv);
        //SyncLocker locker(D._lock); lock not needed for DX11 'Release'
          if(D.created())
          {
@@ -760,7 +760,7 @@ Image& Image::del()
    #elif GL
       if(_txtr || _rb)
       {
-         D.texClear(_txtr);
+         D.texClearAll(_txtr);
       #if GL_LOCK
          SyncLocker locker(D._lock);
       #endif

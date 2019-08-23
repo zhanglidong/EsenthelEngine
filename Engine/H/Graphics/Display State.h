@@ -127,6 +127,7 @@ struct DisplayState // Display States Control, this class methods can be called 
    static void texDS        (Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex);
    static void texPS        (Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex);
    static void texClear     (           GPU_API(ID3D11ShaderResourceView*, UInt) tex);
+   static void texClearAll  (           GPU_API(ID3D11ShaderResourceView*, UInt) tex);
    static void texBind      (UInt mode, UInt tex); // needs to be called on OpenGL instead of calling 'glBindTexture'
    static void bias         (BIAS_MODE    bias);
    static void stencil      (STENCIL_MODE mode);
