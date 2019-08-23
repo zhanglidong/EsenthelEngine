@@ -230,13 +230,6 @@ static INLINE void BufPS(Int index, ID3D11Buffer *buf) {if(PSBuf[index]!=buf || 
 /******************************************************************************/
 Cache<ShaderFile> ShaderFiles("Shader");
 /******************************************************************************/
-INLINE static void COPY(Ptr dest, CPtr src, UInt size)
-{
-   U32 *d=(U32*)dest,
-       *s=(U32*)src ;
-   REP(DivCeil4(size))*d++=*s++;
-}
-/******************************************************************************/
 // SHADER IMAGE
 /******************************************************************************/
 ThreadSafeMap<Str8, ShaderImage> ShaderImages(CompareCS);
@@ -346,7 +339,7 @@ ShaderBuffer::~ShaderBuffer()
 void ShaderBuffer::create(Int size) // no locks needed because this is called only in shader loading, and there 'ShaderBuffers.lock' is called
 {
    buffer.create(size);
-   AllocZero(data, Ceil4(size+MIN_SHADER_PARAM_DATA_SIZE)); // add extra "Vec4 padd" at the end, because all 'ShaderParam.set' for performance reasons assume that there is at least MIN_SHADER_PARAM_DATA_SIZE size, use "+" instead of "Max" in case we have "Flt p[2]" and we call 'ShaderParam.set(Vec4)' for ShaderParam created from "p[1]" which would overwrite "p[1..4]", and do 'Ceil4' because 'COPY' is used which copies 'Ceil4'
+   AllocZero(data, size+MIN_SHADER_PARAM_DATA_SIZE); // add extra "Vec4 padd" at the end, because all 'ShaderParam.set' for performance reasons assume that there is at least MIN_SHADER_PARAM_DATA_SIZE size, use "+" instead of "Max" in case we have "Flt p[2]" and we call 'ShaderParam.set(Vec4)' for ShaderParam created from "p[1]" which would overwrite "p[1..4]"
    changed=true;
    full_size=buffer.size;
 }
@@ -358,8 +351,7 @@ void ShaderBuffer::update()
       D3D11_MAPPED_SUBRESOURCE map;
       if(OK(D3DC->Map(buffer.buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map)))
       {
-         if(0)CopyFast(map.pData, data, buffer.size);
-         else COPY    (map.pData, data, buffer.size);
+         CopyFast(map.pData, data, buffer.size);
          D3DC->Unmap(buffer.buffer, 0);
       }
    }else
@@ -518,7 +510,7 @@ void ShaderParam::set(C Vec *v, Int elms)
    Vec4 *gpu=(Vec4*)_data;
    REP(Min(elms, (_gpu_data_size+SIZEU(Flt))/SIZEU(Vec4)))gpu[i].xyz=v[i]; // add SIZE(Flt) because '_gpu_data_size' may be SIZE(Vec) and div by SIZE(Vec4) would return 0 even though one Vec would fit (elements are aligned by 'Vec4' but we're writing only 'Vec')
 }
-void ShaderParam::set(C Vec4 *v, Int elms) {setChanged(); COPY(_data, v, Min(_gpu_data_size, SIZEU(*v)*elms));}
+void ShaderParam::set(C Vec4 *v, Int elms) {setChanged(); CopyFast(_data, v, Min(_gpu_data_size, SIZEU(*v)*elms));}
 
 void ShaderParam::set(C Matrix3 &matrix)
 {
@@ -584,7 +576,7 @@ void ShaderParam::set(CPtr data, Int size) // !! Warning: 'size' is ignored here
    REPA(_optimized_translation)
    {
     C ShaderParam::Translation &trans=_optimized_translation[i];
-      COPY(T._data+trans.gpu_offset, (Byte*)data+trans.cpu_offset, trans.elm_size);
+      CopyFast(T._data+trans.gpu_offset, (Byte*)data+trans.cpu_offset, trans.elm_size);
    }
 }
 
@@ -691,7 +683,7 @@ void ShaderParam::set(C GpuMatrix &matrix, Int elm)
 void ShaderParam::set(C GpuMatrix *matrix, Int elms)
 {
    setChanged();
-   COPY(_data, matrix, Min(_gpu_data_size, SIZEU(*matrix)*elms));
+   CopyFast(_data, matrix, Min(_gpu_data_size, SIZEU(*matrix)*elms));
 }
 
 void ShaderParam::setConditional(C Flt &f)
@@ -730,7 +722,7 @@ void ShaderParam::setConditional(C Vec &v, Int elm)
    }
 }
 
-void ShaderParam::setSafe(C Vec4 &v) {setChanged(); COPY(_data, &v, Min(_gpu_data_size, SIZEU(v)));}
+void ShaderParam::setSafe(C Vec4 &v) {setChanged(); CopyFast(_data, &v, Min(_gpu_data_size, SIZEU(v)));}
 /******************************************************************************/
 // SHADERS
 /******************************************************************************/
