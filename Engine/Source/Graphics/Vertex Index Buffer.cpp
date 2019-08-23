@@ -1604,12 +1604,12 @@ void VtxIndBuf::setType(VI_TYPE vtx_type, UInt flag)
    if(VI._quad_ind   =FlagTest(flag, VI_QUAD_IND))IndBuf16384Quads.set(); // !! set after 'glBindVertexArray' !!
    if(flag&VI_LINE)
    {
-      if(flag&VI_STRIP){VI._prim_type=GPU_API(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP, GL_LINE_STRIP); VI._ind_div=1; VI._ind_sub=1;}
-      else             {VI._prim_type=GPU_API(D3D11_PRIMITIVE_TOPOLOGY_LINELIST , GL_LINES     ); VI._ind_div=2; VI._ind_sub=0;}
+      if(flag&VI_STRIP){VI._prim_type=GPU_API(D3D_PRIMITIVE_TOPOLOGY_LINESTRIP, GL_LINE_STRIP); VI._ind_div=1; VI._ind_sub=1;}
+      else             {VI._prim_type=GPU_API(D3D_PRIMITIVE_TOPOLOGY_LINELIST , GL_LINES     ); VI._ind_div=2; VI._ind_sub=0;}
    }else
    {
-      if(flag&VI_STRIP){VI._prim_type=GPU_API(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, GL_TRIANGLE_STRIP); VI._ind_div=1; VI._ind_sub=2;}
-      else             {VI._prim_type=GPU_API(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST , GL_TRIANGLES     ); VI._ind_div=3; VI._ind_sub=0;}
+      if(flag&VI_STRIP){VI._prim_type=GPU_API(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, GL_TRIANGLE_STRIP); VI._ind_div=1; VI._ind_sub=2;}
+      else             {VI._prim_type=GPU_API(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST , GL_TRIANGLES     ); VI._ind_div=3; VI._ind_sub=0;}
    }
 
 #if BUFFERS<=1
@@ -1725,13 +1725,6 @@ void VtxIndBuf::wrapY()
 #endif
 }
 /******************************************************************************/
-#if DX11
-   #if 0
-      extern void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY pt);
-   #else
-      INLINE void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY pt) {D3DC->IASetPrimitiveTopology(pt);}
-   #endif
-#endif
 void VtxIndBuf::flush()
 {
    if(VI._vtx_queued>0)
@@ -1739,12 +1732,12 @@ void VtxIndBuf::flush()
       unlockVtx();
       if(VI._shader)
       {
-         VI._shader->begin();
+         VI._shader->begin(); // !! this calls 'D.primType(TRIANGLELIST)' so we have to set 'D.primType' below !!
          if(VI._quad_ind) // this is always TRIANGLELIST
          {
             UInt quads=Unsigned(VI._vtx_queued)/4;
          #if DX11
-          //if(VI._prim_type!=D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST)SetPrimitiveTopology(VI._prim_type); must be after 'shader->begin', not needed since 'quad_ind' always uses TRIANGLELIST mode
+          //D.primType(/*VI._prim_type*/ D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // !! must be after 'shader->begin' !! not needed since 'quad_ind' always uses TRIANGLELIST mode which is already set above in 'shader->begin'
             D3DC->DrawIndexed(quads*(2*3), 0, VI._vtx_drawing); VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;
          #elif GL
             if(GL_RING){glDrawElementsBaseVertex(GL_TRIANGLES, quads*(2*3), IndBuf16384Quads.bit16() ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, null, VI._vtx_drawing); VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;}
@@ -1753,7 +1746,7 @@ void VtxIndBuf::flush()
          }else
          {
          #if DX11
-            if(VI._prim_type!=D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST)SetPrimitiveTopology(VI._prim_type); // must be after 'shader->begin'
+            D.primType(VI._prim_type); // !! must be after 'shader->begin' !!
             D3DC->Draw(VI._vtx_queued, VI._vtx_drawing); VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;
          #elif GL
             if(GL_RING){glDrawArrays(VI._prim_type, VI._vtx_drawing, VI._vtx_queued); VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;}
@@ -1773,7 +1766,7 @@ void VtxIndBuf::flushIndexed(IndBuf &ib, Int ind_num)
       {
          ib.set(); VI._shader->begin();
       #if DX11
-         if(VI._prim_type!=D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST)SetPrimitiveTopology(VI._prim_type); // must be after 'shader->begin'
+         D.primType(VI._prim_type); // !! must be after 'shader->begin' !!
          D3DC->DrawIndexed(ind_num, 0, VI._vtx_drawing); VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;
       #elif GL
          if(GL_RING){glDrawElementsBaseVertex(VI._prim_type, ind_num, ib.bit16() ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, null, VI._vtx_drawing); VI._vtx_drawing+=VI._vtx_queued; VI._vtx_drawing_raw=VI._vtx_drawing*VI._vb._vtx_size;}

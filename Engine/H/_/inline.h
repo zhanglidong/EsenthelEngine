@@ -1931,6 +1931,16 @@ constexpr INLINE Bool Display::signedVelRT()C // #SIGNED_VEL_RT
    return false;
 #endif
 }
+INLINE void DisplayState::primType(UInt prim_type)
+{
+   if(D._prim_type!=prim_type)
+   {
+      D._prim_type=prim_type;
+   #if DX11
+      D3DC->IASetPrimitiveTopology((D3D_PRIMITIVE_TOPOLOGY)prim_type);
+   #endif
+   }
+}
 #endif
 /******************************************************************************/
 // SOUND

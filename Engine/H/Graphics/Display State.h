@@ -138,6 +138,7 @@ struct DisplayState // Display States Control, this class methods can be called 
    static void sampler3D    ();
    static void samplerShadow();
    static void linearGamma  (Bool on);
+   static void primType     (UInt prim_type);
    static void set2D        ();
    static void set3D        ();
    static void fbo          (UInt fbo);
@@ -159,6 +160,7 @@ private:
    Rect       _clip_rect;
    Color      _alpha_factor;
    Vec4       _alpha_factor_v4, _clip_plane;
+   UInt       _prim_type;
 #if EE_PRIVATE
    GPU_API(ID3D11InputLayout, VtxFormatGL) *_vf;
 #else

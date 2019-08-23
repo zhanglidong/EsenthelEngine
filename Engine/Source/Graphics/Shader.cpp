@@ -10,11 +10,13 @@
 #include "../Shaders/!Header CPU.h"
 namespace EE{
 #if DEBUG
-   #define FORCE_TEX 0
-   #define FORCE_BUF 0
+   #define FORCE_TEX    0
+   #define FORCE_BUF    0
+   #define FORCE_SHADER 0
 #else
-   #define FORCE_TEX 0
-   #define FORCE_BUF 0
+   #define FORCE_TEX    0
+   #define FORCE_BUF    0
+   #define FORCE_SHADER 0
 #endif
 
 #define ALLOW_PARTIAL_BUFFERS 0 // using partial buffers (1) actually made things slower, 100fps(1) vs 102fps(0), so use default value (0), TODO: check on newer hardware
@@ -886,20 +888,16 @@ Bool Shader11::validate(ShaderFile &shader, Str *messages) // this function shou
    if(!ps && InRange(data_index[ST_PS], shader._ps))AtomicSet(ps, shader._ps[data_index[ST_PS]].create());
    return vs && ps;
 }
-#if 0 // did not make any performance difference (set together with 'SetPrimitiveTopology' from "Vertex Index Buffer.cpp")
-static ID3D11VertexShader *VS;   static INLINE void SetVS(ID3D11VertexShader *shader) {if(VS!=shader)D3DC->VSSetShader(VS=shader, null, 0);}
-static ID3D11HullShader   *HS;   static INLINE void SetHS(ID3D11HullShader   *shader) {if(HS!=shader)D3DC->HSSetShader(HS=shader, null, 0);}
-static ID3D11DomainShader *DS;   static INLINE void SetDS(ID3D11DomainShader *shader) {if(DS!=shader)D3DC->DSSetShader(DS=shader, null, 0);}
-static ID3D11PixelShader  *PS;   static INLINE void SetPS(ID3D11PixelShader  *shader) {if(PS!=shader)D3DC->PSSetShader(PS=shader, null, 0);}
-
-static D3D11_PRIMITIVE_TOPOLOGY PT;   INLINE void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY pt) {if(PT!=pt)D3DC->IASetPrimitiveTopology(PT=pt);}
+#if 1
+static ID3D11VertexShader *VShader;   static INLINE void SetVS(ID3D11VertexShader *shader) {if(VShader!=shader || FORCE_SHADER)D3DC->VSSetShader(VShader=shader, null, 0);}
+static ID3D11HullShader   *HShader;   static INLINE void SetHS(ID3D11HullShader   *shader) {if(HShader!=shader || FORCE_SHADER)D3DC->HSSetShader(HShader=shader, null, 0);}
+static ID3D11DomainShader *DShader;   static INLINE void SetDS(ID3D11DomainShader *shader) {if(DShader!=shader || FORCE_SHADER)D3DC->DSSetShader(DShader=shader, null, 0);}
+static ID3D11PixelShader  *PShader;   static INLINE void SetPS(ID3D11PixelShader  *shader) {if(PShader!=shader || FORCE_SHADER)D3DC->PSSetShader(PShader=shader, null, 0);}
 #else
 static INLINE void SetVS(ID3D11VertexShader *shader) {D3DC->VSSetShader(shader, null, 0);}
 static INLINE void SetHS(ID3D11HullShader   *shader) {D3DC->HSSetShader(shader, null, 0);}
 static INLINE void SetDS(ID3D11DomainShader *shader) {D3DC->DSSetShader(shader, null, 0);}
 static INLINE void SetPS(ID3D11PixelShader  *shader) {D3DC->PSSetShader(shader, null, 0);}
-
-static INLINE void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY pt) {D3DC->IASetPrimitiveTopology(pt);}
 #endif
 
 #if 1 // set multiple in 1 API call
@@ -994,16 +992,16 @@ void Shader11::start() // same as 'begin' but without committing buffers and tex
    SetPS(ps);
    if(hs/* && D.tesselationAllow()*/) // currently disabled to avoid extra overhead as tesselation isn't generally used, TODO:
    {
+      D.primType(D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
       SetHS(hs);
       SetDS(ds);
-      SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
       setHSBuffers();
       setDSBuffers();
    }else
    {
+      D.primType(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
       SetHS(null);
       SetDS(null);
-      SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
    }
    setVSBuffers();
    setPSBuffers();
@@ -1014,18 +1012,18 @@ void Shader11::startTex() // same as 'begin' but without committing buffers
    SetPS(ps);
    if(hs/* && D.tesselationAllow()*/) // currently disabled to avoid extra overhead as tesselation isn't generally used, TODO:
    {
+      D.primType(D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
       SetHS(hs);
       SetDS(ds);
-      SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
       setHSImages();
       setDSImages();
       setHSBuffers();
       setDSBuffers();
    }else
    {
+      D.primType(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
       SetHS(null);
       SetDS(null);
-      SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
    }
    setVSImages();
    setPSImages();
@@ -1038,18 +1036,18 @@ void Shader11::begin()
    SetPS(ps);
    if(hs/* && D.tesselationAllow()*/) // currently disabled to avoid extra overhead as tesselation isn't generally used, TODO:
    {
+      D.primType(D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
       SetHS(hs);
       SetDS(ds);
-      SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
       setHSImages();
       setDSImages();
       setHSBuffers();
       setDSBuffers();
    }else
    {
+      D.primType(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
       SetHS(null);
       SetDS(null);
-      SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
    }
    setVSImages();
    setPSImages();
@@ -1654,6 +1652,10 @@ void DisplayState::clearShader()
    SetMem(HSBuf, ~0);
    SetMem(DSBuf, ~0);
    SetMem(PSBuf, ~0);
+   SetMem(VShader, ~0);
+   SetMem(HShader, ~0);
+   SetMem(DShader, ~0);
+   SetMem(PShader, ~0);
 #elif GL
    SetMem(Tex, ~0);
 #endif

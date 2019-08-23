@@ -11,6 +11,7 @@ Bool LogInit=false;
 
   ASSERT(MEMBER_SIZE(ImageTypeInfo,  format   )==SIZE(UInt));
   ASSERT(MEMBER_SIZE(VtxIndBuf    , _prim_type)==SIZE(UInt));
+  ASSERT(MEMBER_SIZE(DisplayState , _prim_type)==SIZE(UInt));
 #if WINDOWS_OLD
    #define SM_DIGITIZER      94
    #define SM_MAXIMUMTOUCHES 95

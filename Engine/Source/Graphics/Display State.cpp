@@ -105,9 +105,9 @@ struct RasterizerState
 };
 /******************************************************************************/
 // set order that first array sizes are those not pow2, and followed by pow2 (faster accessing)
-static BlendState      BS[  ALPHA_NUM]                  ; // [AlphaMode]
-static DepthState      DS[STENCIL_NUM][2][2][8]         ; // [StencilMode][DepthUse][DepthWrite][DepthFunc]
-static RasterizerState RS[   BIAS_NUM][2][2][2][2][2][2]; // [Bias][Cull][LineSmooth][Wire][Clip][DepthClip][FrontFace]
+static BlendState       BlendStates[  ALPHA_NUM]                  ; // [AlphaMode]
+static DepthState       DepthStates[STENCIL_NUM][2][2][8]         ; // [StencilMode][DepthUse][DepthWrite][DepthFunc]
+static RasterizerState RasterStates[   BIAS_NUM][2][2][2][2][2][2]; // [Bias][Cull][LineSmooth][Wire][Clip][DepthClip][FrontFace]
 #elif GL
 static Bool DepthAllow=true, DepthReal;
 static Byte Col0WriteAllow=COL_WRITE_RGBA, Col0WriteReal=COL_WRITE_RGBA;
@@ -122,37 +122,41 @@ static STENCIL_MODE LastStencilMode;
 /******************************************************************************/
 DisplayState::DisplayState()
 {
-  _linear_gamma    =LINEAR_GAMMA;
+#if 0 // there's only one 'DisplayState' global 'D' and it doesn't need clearing members to zero
   _cull            =false;
   _line_smooth     =false;
   _wire            =false;
   _clip            =false;
-  _clip_allow      =true;
   _clip_real       =false;
   _clip_rect       .zero();
   _clip_recti      .zero();
   _clip_plane_allow=false;
   _clip_plane      .zero();
-  _sampler2D       =true;
   _depth_lock      =false;
   _depth           =false;
+  _front_face      =false;
+  _stencil_ref     =0;
+  _viewport        .zero();
+  _alpha_factor    .zero();
+  _alpha_factor_v4 .zero();
+  _vf              =null;
+  _prim_type       =0;
+#endif
+
+  _linear_gamma    =LINEAR_GAMMA;
+  _clip_allow      =true;
+  _sampler2D       =true;
   _depth_write     =true;
   _depth_clip      =true;
   _depth_func      =FUNC_LESS;
-  _front_face      =false;
   _alpha           =ALPHA_BLEND;
   _stencil         =STENCIL_NONE;
-  _stencil_ref     =0;
   _bias            =BIAS_ZERO;
   _col_write[0]    =COL_WRITE_RGBA;
   _col_write[1]    =COL_WRITE_RGBA;
   _col_write[2]    =COL_WRITE_RGBA;
   _col_write[3]    =COL_WRITE_RGBA;
   _sample_mask     =~0;
-  _viewport        .zero();
-  _alpha_factor    .zero();
-  _alpha_factor_v4 .zero();
-  _vf              =null;
 }
 
 void DisplayState::depthUnlock(       ) {           D._depth_lock=false;}
@@ -160,7 +164,7 @@ void DisplayState::depthLock  (Bool on) {depth(on); D._depth_lock=true ;}
 /******************************************************************************/
 #if DX11
    #define D3D11_COMPARISON_FIRST D3D11_COMPARISON_NEVER
-static void SetDS() {DS[D._stencil][D._depth][D._depth_write][D._depth_func-D3D11_COMPARISON_FIRST].set();}
+static void SetDS() {DepthStates[D._stencil][D._depth][D._depth_write][D._depth_func-D3D11_COMPARISON_FIRST].set();}
 void DisplayState::depth     (Bool on  ) {                          if(D._depth      !=on && !D._depth_lock   ){D._depth      =on  ;                  SetDS();}}
 Bool DisplayState::depthWrite(Bool on  ) {Bool last=D._depth_write; if(D._depth_write!=on                     ){D._depth_write=on  ;                  SetDS();} return last;}
 void DisplayState::depthFunc (UInt func) {                          if(D._depth_func !=func                   ){D._depth_func =func;                  SetDS();}}
@@ -313,7 +317,7 @@ void DisplayState::stencil(STENCIL_MODE stencil)
 // RASTERIZER
 /******************************************************************************/
 #if DX11
-static void SetRS() {RS[D._bias][D._cull][D._line_smooth][D._wire][D._clip_real][D._depth_clip][D._front_face].set();}
+static void SetRS() {RasterStates[D._bias][D._cull][D._line_smooth][D._wire][D._clip_real][D._depth_clip][D._front_face].set();}
 Bool DisplayState::lineSmooth(Bool      on  ) {Bool old=D._line_smooth; if(D._line_smooth!=on){D._line_smooth=on; if(D3DC)SetRS();} return old;}
 void DisplayState::wire      (Bool      on  ) {if(D._wire      !=on  ){D._wire      =on  ; SetRS();}}
 void DisplayState::cull      (Bool      on  ) {if(D._cull      !=on  ){D._cull      =on  ; SetRS();}}
@@ -484,13 +488,13 @@ void DisplayState::clipPlane(C PlaneM &plane)
 // OUTPUT MERGER
 /******************************************************************************/
 #if DX11
-static void SetBS() {BS[D._alpha].set();}
+static void SetBS() {BlendStates[D._alpha].set();}
 #endif
 ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
 {
    ALPHA_MODE prev=D.alpha();
 #if DX11
-   if(D._alpha!=alpha)BS[D._alpha=alpha].set();
+   if(D._alpha!=alpha)BlendStates[D._alpha=alpha].set();
 #elif GL
    if(D._alpha!=alpha)switch(D._alpha=alpha)
    {
@@ -812,15 +816,17 @@ void DisplayState::setDeviceSettings()
 
   _viewport.set(0, -1); viewport(old._viewport);
 
+  _prim_type^=1; primType(old._prim_type);
+
    clearShader();
 }
 /******************************************************************************/
 void DisplayState::del()
 {
 #if DX11
-   REPAO(BS).del();
-   REPAD(i, DS)REPAD(j, DS[i])REPAD(k, DS[i][j])REPAOD(l, DS[i][j][k]).del();
-   REPAD(i, RS)REPAD(j, RS[i])REPAD(k, RS[i][j])REPAD (l, RS[i][j][k])REPAD(m, RS[i][j][k][l])REPAD(n, RS[i][j][k][l][m])REPAOD(o, RS[i][j][k][l][m][n]).del();
+   REPAO(BlendStates).del();
+   REPAD(i, DepthStates)REPAD(j, DepthStates[i])REPAD(k, DepthStates[i][j])REPAOD(l, DepthStates[i][j][k]).del();
+   REPAD(i, RasterStates)REPAD(j, RasterStates[i])REPAD(k, RasterStates[i][j])REPAD (l, RasterStates[i][j][k])REPAD(m, RasterStates[i][j][k][l])REPAD(n, RasterStates[i][j][k][l][m])REPAOD(o, RasterStates[i][j][k][l][m][n]).del();
 #endif
 }
 void DisplayState::create()
@@ -834,7 +840,7 @@ void DisplayState::create()
       desc.IndependentBlendEnable=false;
       desc.RenderTarget[0].BlendEnable=false;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BS[ALPHA_NONE].create(desc);
+      BlendStates[ALPHA_NONE].create(desc);
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -847,7 +853,7 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_INV_DEST_ALPHA;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ONE;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BS[ALPHA_BLEND].create(desc);
+      BlendStates[ALPHA_BLEND].create(desc);
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -860,7 +866,7 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ZERO;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_INV_SRC_ALPHA;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BS[ALPHA_BLEND_DEC].create(desc);
+      BlendStates[ALPHA_BLEND_DEC].create(desc);
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -871,7 +877,7 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlend=desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ONE;
       desc.RenderTarget[0].DestBlend=desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ONE;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BS[ALPHA_ADD].create(desc);
+      BlendStates[ALPHA_ADD].create(desc);
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -883,7 +889,7 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_DEST_ALPHA;
       desc.RenderTarget[0].DestBlend     =desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ZERO;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BS[ALPHA_MUL].create(desc);
+      BlendStates[ALPHA_MUL].create(desc);
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -896,7 +902,7 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_INV_DEST_ALPHA;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ONE;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BS[ALPHA_MERGE].create(desc);
+      BlendStates[ALPHA_MERGE].create(desc);
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -909,7 +915,7 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ZERO;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ONE ;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BS[ALPHA_ADDBLEND_KEEP].create(desc);
+      BlendStates[ALPHA_ADDBLEND_KEEP].create(desc);
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -922,7 +928,7 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ZERO;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ONE ;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BS[ALPHA_ADD_KEEP].create(desc);
+      BlendStates[ALPHA_ADD_KEEP].create(desc);
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -935,7 +941,7 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_BLEND_FACTOR ;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_INV_SRC_ALPHA;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BS[ALPHA_BLEND_FACTOR].create(desc);
+      BlendStates[ALPHA_BLEND_FACTOR].create(desc);
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -948,7 +954,7 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_BLEND_FACTOR;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ONE;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BS[ALPHA_ADD_FACTOR].create(desc);
+      BlendStates[ALPHA_ADD_FACTOR].create(desc);
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -961,7 +967,7 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ONE;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ZERO;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BS[ALPHA_SETBLEND_SET].create(desc);
+      BlendStates[ALPHA_SETBLEND_SET].create(desc);
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -974,7 +980,7 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_BLEND_FACTOR;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_INV_BLEND_FACTOR;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BS[ALPHA_FACTOR].create(desc);
+      BlendStates[ALPHA_FACTOR].create(desc);
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -986,7 +992,7 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_INV_DEST_ALPHA;
       desc.RenderTarget[0].DestBlend     =desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ZERO;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BS[ALPHA_INVERT].create(desc);
+      BlendStates[ALPHA_INVERT].create(desc);
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -999,7 +1005,7 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ONE;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_INV_SRC_ALPHA;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BS[ALPHA_FONT].create(desc);
+      BlendStates[ALPHA_FONT].create(desc);
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -1012,7 +1018,7 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ZERO;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_INV_SRC_ALPHA;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BS[ALPHA_FONT_DEC].create(desc);
+      BlendStates[ALPHA_FONT_DEC].create(desc);
    }
    /*{
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -1020,7 +1026,7 @@ void DisplayState::create()
       desc.IndependentBlendEnable=false;
       desc.RenderTarget[0].BlendEnable=false;
       desc.RenderTarget[0].RenderTargetWriteMask=0;
-      BS[ALPHA_NULL].create(desc);
+      BlendStates[ALPHA_NULL].create(desc);
    }*/
    /*{
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -1028,7 +1034,7 @@ void DisplayState::create()
       desc.IndependentBlendEnable=false;
       desc.RenderTarget[0].BlendEnable=false;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALPHA;
-      BS[ALPHA_NONE_WRITE_A].create(desc);
+      BlendStates[ALPHA_NONE_WRITE_A].create(desc);
    }*/
    /*{
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -1036,7 +1042,7 @@ void DisplayState::create()
       desc.IndependentBlendEnable=false;
       desc.RenderTarget[0].BlendEnable=false;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_RED|D3D11_COLOR_WRITE_ENABLE_GREEN|D3D11_COLOR_WRITE_ENABLE_BLUE;
-      BS[ALPHA_NONE_WRITE_RGB].create(desc);
+      BlendStates[ALPHA_NONE_WRITE_RGB].create(desc);
    }*/
    /*{
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -1050,7 +1056,7 @@ void DisplayState::create()
             desc.RenderTarget[0].DestBlend     =D3D11_BLEND_ZERO;
             desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ZERO;
             desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ZERO;
-      BS[ALPHA_NONE_COVERAGE].create(desc);
+      BlendStates[ALPHA_NONE_COVERAGE].create(desc);
    }*/
    /*{
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -1064,7 +1070,7 @@ void DisplayState::create()
             desc.RenderTarget[0].DestBlend     =D3D11_BLEND_ONE ;
             desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ZERO;
             desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ONE ;
-      BS[ALPHA_ADD_COVERAGE].create(desc);
+      BlendStates[ALPHA_ADD_COVERAGE].create(desc);
    }*/
    {
       D3D11_BLEND_DESC desc; Zero(desc);
@@ -1077,7 +1083,7 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ONE ;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ONE ;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BS[ALPHA_NONE_ADD].create(desc);
+      BlendStates[ALPHA_NONE_ADD].create(desc);
    }
 
    // depth stencil state
@@ -1195,7 +1201,7 @@ void DisplayState::create()
          break;
       }
 
-      DS[stencil][depth_use][depth_write][depth_func].create(desc);
+      DepthStates[stencil][depth_use][depth_write][depth_func].create(desc);
    }
 
    REPD(bias, BIAS_NUM)
@@ -1227,7 +1233,7 @@ void DisplayState::create()
          case BIAS_SHADOW : desc.DepthBias=DEPTH_BIAS_SHADOW ; desc.SlopeScaledDepthBias=SLOPE_SCALED_DEPTH_BIAS_SHADOW ; break;
          case BIAS_OVERLAY: desc.DepthBias=DEPTH_BIAS_OVERLAY; desc.SlopeScaledDepthBias=SLOPE_SCALED_DEPTH_BIAS_OVERLAY; break;
       }
-      RS[bias][cull][line][wire][clip][depth_clip][front_face].create(desc);
+      RasterStates[bias][cull][line][wire][clip][depth_clip][front_face].create(desc);
    }
 #endif
    setDeviceSettings();
