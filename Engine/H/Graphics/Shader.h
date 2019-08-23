@@ -308,7 +308,7 @@ struct BufferLinkPtr
  C BufferLink *data=null;
    Int         elms=0;
 
- C BufferLink& operator[](Int i) {DEBUG_RANGE_ASSERT(i, elms); return data[i];}
+ C BufferLink& operator[](Int i)C {DEBUG_RANGE_ASSERT(i, elms); return data[i];}
    void operator=(C Mems<BufferLink> &links) {data=links.data(); elms=links.elms();}
 };
 struct ImageLinkPtr
@@ -316,7 +316,7 @@ struct ImageLinkPtr
  C ImageLink *data=null;
    Int        elms=0;
 
- C ImageLink& operator[](Int i) {DEBUG_RANGE_ASSERT(i, elms); return data[i];}
+ C ImageLink& operator[](Int i)C {DEBUG_RANGE_ASSERT(i, elms); return data[i];}
    void operator=(C Mems<ImageLink> &links) {data=links.data(); elms=links.elms();}
 };
 inline Int Elms(C BufferLinkPtr &links) {return links.elms;}
@@ -341,6 +341,16 @@ struct Shader11
    void startTex ();
    void begin    ();
    Bool load     (File &f, C ShaderFile &shader_file, C MemtN<ShaderBuffer*, 256> &buffers);
+
+   void setVSBuffers();
+   void setHSBuffers();
+   void setDSBuffers();
+   void setPSBuffers();
+
+   void setVSImages();
+   void setHSImages();
+   void setDSImages();
+   void setPSImages();
 
 //~Shader11(); no need to release 'vs,hs,ds,ps' or 'buffers,images' since they're just copies from 'Shader*11'
 };

@@ -28,19 +28,19 @@ static UInt                      Tex[MAX_SHADER_IMAGES];
 INLINE void DisplayState::texVS(Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex)
 {
 #if DX11
-   if(VSTex[index]!=tex)D3DC->VSSetShaderResources(index, 1, &(VSTex[index]=tex));
+   if(VSTex[index]!=tex || FORCE_TEX)D3DC->VSSetShaderResources(index, 1, &(VSTex[index]=tex));
 #endif
 }
 INLINE void DisplayState::texHS(Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex)
 {
 #if DX11
-   if(HSTex[index]!=tex)D3DC->HSSetShaderResources(index, 1, &(HSTex[index]=tex));
+   if(HSTex[index]!=tex || FORCE_TEX)D3DC->HSSetShaderResources(index, 1, &(HSTex[index]=tex));
 #endif
 }
 INLINE void DisplayState::texDS(Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex)
 {
 #if DX11
-   if(DSTex[index]!=tex)D3DC->DSSetShaderResources(index, 1, &(DSTex[index]=tex));
+   if(DSTex[index]!=tex || FORCE_TEX)D3DC->DSSetShaderResources(index, 1, &(DSTex[index]=tex));
 #endif
 }
 INLINE void DisplayState::texPS(Int index, GPU_API(ID3D11ShaderResourceView*, UInt) tex)
@@ -204,12 +204,12 @@ static void SetTexture(Int index, C Image *image, ShaderImage::Sampler *sampler)
 #endif
 /******************************************************************************/
 #if DX11
-static ID3D11Buffer *vs_buf[MAX_SHADER_BUFFERS], *hs_buf[MAX_SHADER_BUFFERS], *ds_buf[MAX_SHADER_BUFFERS], *ps_buf[MAX_SHADER_BUFFERS];
+static ID3D11Buffer *VSBuf[MAX_SHADER_BUFFERS], *HSBuf[MAX_SHADER_BUFFERS], *DSBuf[MAX_SHADER_BUFFERS], *PSBuf[MAX_SHADER_BUFFERS];
 
-static INLINE void BufVS(Int index, ID3D11Buffer *buf) {if(vs_buf[index]!=buf || FORCE_BUF)D3DC->VSSetConstantBuffers(index, 1, &(vs_buf[index]=buf));}
-static INLINE void BufHS(Int index, ID3D11Buffer *buf) {if(hs_buf[index]!=buf || FORCE_BUF)D3DC->HSSetConstantBuffers(index, 1, &(hs_buf[index]=buf));}
-static INLINE void BufDS(Int index, ID3D11Buffer *buf) {if(ds_buf[index]!=buf || FORCE_BUF)D3DC->DSSetConstantBuffers(index, 1, &(ds_buf[index]=buf));}
-static INLINE void BufPS(Int index, ID3D11Buffer *buf) {if(ps_buf[index]!=buf || FORCE_BUF)D3DC->PSSetConstantBuffers(index, 1, &(ps_buf[index]=buf));}
+static INLINE void BufVS(Int index, ID3D11Buffer *buf) {if(VSBuf[index]!=buf || FORCE_BUF)D3DC->VSSetConstantBuffers(index, 1, &(VSBuf[index]=buf));}
+static INLINE void BufHS(Int index, ID3D11Buffer *buf) {if(HSBuf[index]!=buf || FORCE_BUF)D3DC->HSSetConstantBuffers(index, 1, &(HSBuf[index]=buf));}
+static INLINE void BufDS(Int index, ID3D11Buffer *buf) {if(DSBuf[index]!=buf || FORCE_BUF)D3DC->DSSetConstantBuffers(index, 1, &(DSBuf[index]=buf));}
+static INLINE void BufPS(Int index, ID3D11Buffer *buf) {if(PSBuf[index]!=buf || FORCE_BUF)D3DC->PSSetConstantBuffers(index, 1, &(PSBuf[index]=buf));}
 #endif
 /******************************************************************************/
 Cache<ShaderFile> ShaderFiles("Shader");
@@ -385,7 +385,7 @@ void ShaderBuffer::bindCheck(Int index)
    if(index>=0)
    {
       RANGE_ASSERT_ERROR(index, MAX_SHADER_BUFFERS, "Invalid ShaderBuffer bind index");
-      ID3D11Buffer *buf=vs_buf[index];
+      ID3D11Buffer *buf=VSBuf[index];
                  if(buffer  .buffer==buf)return;
       REPA(parts)if(parts[i].buffer==buf)return;
    }
@@ -887,12 +887,12 @@ Bool Shader11::validate(ShaderFile &shader, Str *messages) // this function shou
    return vs && ps;
 }
 #if 0 // did not make any performance difference (set together with 'SetPrimitiveTopology' from "Vertex Index Buffer.cpp")
-static ID3D11VertexShader *VS;   static INLINE void SetVS(ID3D11VertexShader *shader) {if(VS!=shader || Kb.shift())D3DC->VSSetShader(VS=shader, null, 0);}
-static ID3D11HullShader   *HS;   static INLINE void SetHS(ID3D11HullShader   *shader) {if(HS!=shader || Kb.shift())D3DC->HSSetShader(HS=shader, null, 0);}
-static ID3D11DomainShader *DS;   static INLINE void SetDS(ID3D11DomainShader *shader) {if(DS!=shader || Kb.shift())D3DC->DSSetShader(DS=shader, null, 0);}
-static ID3D11PixelShader  *PS;   static INLINE void SetPS(ID3D11PixelShader  *shader) {if(PS!=shader || Kb.shift())D3DC->PSSetShader(PS=shader, null, 0);}
+static ID3D11VertexShader *VS;   static INLINE void SetVS(ID3D11VertexShader *shader) {if(VS!=shader)D3DC->VSSetShader(VS=shader, null, 0);}
+static ID3D11HullShader   *HS;   static INLINE void SetHS(ID3D11HullShader   *shader) {if(HS!=shader)D3DC->HSSetShader(HS=shader, null, 0);}
+static ID3D11DomainShader *DS;   static INLINE void SetDS(ID3D11DomainShader *shader) {if(DS!=shader)D3DC->DSSetShader(DS=shader, null, 0);}
+static ID3D11PixelShader  *PS;   static INLINE void SetPS(ID3D11PixelShader  *shader) {if(PS!=shader)D3DC->PSSetShader(PS=shader, null, 0);}
 
-static D3D11_PRIMITIVE_TOPOLOGY PT;   INLINE void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY pt) {if(PT!=pt || Kb.shift())D3DC->IASetPrimitiveTopology(PT=pt);}
+static D3D11_PRIMITIVE_TOPOLOGY PT;   INLINE void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY pt) {if(PT!=pt)D3DC->IASetPrimitiveTopology(PT=pt);}
 #else
 static INLINE void SetVS(ID3D11VertexShader *shader) {D3DC->VSSetShader(shader, null, 0);}
 static INLINE void SetHS(ID3D11HullShader   *shader) {D3DC->HSSetShader(shader, null, 0);}
@@ -900,6 +900,78 @@ static INLINE void SetDS(ID3D11DomainShader *shader) {D3DC->DSSetShader(shader, 
 static INLINE void SetPS(ID3D11PixelShader  *shader) {D3DC->PSSetShader(shader, null, 0);}
 
 static INLINE void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY pt) {D3DC->IASetPrimitiveTopology(pt);}
+#endif
+
+#if 1 // set multiple in 1 API call
+// !! 'links' are assumed to be sorted by 'index' and all consecutive elements have 'index+1' !!
+static INLINE void SetBuffers(C BufferLinkPtr &links, ID3D11Buffer *buf[MAX_SHADER_BUFFERS], void (ID3D11DeviceContext::*SetConstantBuffers)(UINT StartSlot, UINT NumBuffers, ID3D11Buffer*C *ppConstantBuffers)) // use INLINE to allow directly using virtual func calls
+{
+   REPA(links) // go from the end
+   {
+    C BufferLink     &link=links[i];
+      ID3D11Buffer *buffer=link.buffer->buffer.buffer;
+      Int       last_index=link.index;
+      if(buf[last_index]!=buffer || FORCE_BUF) // find first that's different
+      {
+         buf[last_index]=buffer;
+         Int first_index=last_index; // initially this is also the first index
+         for(; --i>=0; ) // check all previous
+         {
+          C BufferLink     &link=links[i];
+            ID3D11Buffer *buffer=link.buffer->buffer.buffer;
+            Int            index=link.index;
+            if(buf[            index]!=buffer || FORCE_BUF) // if another is different too
+               buf[first_index=index] =buffer; // set this buffer and change first index
+         }
+         (D3DC->*SetConstantBuffers)(first_index, last_index-first_index+1, buf+first_index); // set all from 'first_index' until 'last_index' (inclusive) in 1 API call
+         break; // finished
+      }
+   }
+}
+static INLINE void SetImages(C ImageLinkPtr &links, ID3D11ShaderResourceView *tex[MAX_SHADER_IMAGES], void (ID3D11DeviceContext::*SetShaderResources)(UINT StartSlot, UINT NumViews, ID3D11ShaderResourceView*C *ppShaderResourceViews)) // use INLINE to allow directly using virtual func calls
+{
+   REPA(links) // go from the end
+   {
+    C ImageLink               &link=links[i];
+      ID3D11ShaderResourceView *srv=link.image->getSRV();
+      Int                last_index=link.index;
+      if(tex[last_index]!=srv || FORCE_TEX) // find first that's different
+      {
+         tex[last_index]=srv;
+         Int first_index=last_index; // initially this is also the first index
+         for(; --i>=0; ) // check all previous
+         {
+          C ImageLink               &link=links[i];
+            ID3D11ShaderResourceView *srv=link.image->getSRV();
+            Int                     index=link.index;
+            if(tex[            index]!=srv || FORCE_TEX) // if another is different too
+               tex[first_index=index] =srv; // set this image and change first index
+         }
+         (D3DC->*SetShaderResources)(first_index, last_index-first_index+1, tex+first_index); // set all from 'first_index' until 'last_index' (inclusive) in 1 API call
+         break; // finished
+      }
+   }
+}
+
+INLINE void Shader11::setVSBuffers() {SetBuffers(buffers[ST_VS], VSBuf, &ID3D11DeviceContext::VSSetConstantBuffers);}
+INLINE void Shader11::setHSBuffers() {SetBuffers(buffers[ST_HS], HSBuf, &ID3D11DeviceContext::HSSetConstantBuffers);}
+INLINE void Shader11::setDSBuffers() {SetBuffers(buffers[ST_DS], DSBuf, &ID3D11DeviceContext::DSSetConstantBuffers);}
+INLINE void Shader11::setPSBuffers() {SetBuffers(buffers[ST_PS], PSBuf, &ID3D11DeviceContext::PSSetConstantBuffers);}
+
+INLINE void Shader11::setVSImages() {SetImages(images[ST_VS], VSTex, &ID3D11DeviceContext::VSSetShaderResources);}
+INLINE void Shader11::setHSImages() {SetImages(images[ST_HS], HSTex, &ID3D11DeviceContext::HSSetShaderResources);}
+INLINE void Shader11::setDSImages() {SetImages(images[ST_DS], DSTex, &ID3D11DeviceContext::DSSetShaderResources);}
+INLINE void Shader11::setPSImages() {SetImages(images[ST_PS], PSTex, &ID3D11DeviceContext::PSSetShaderResources);}
+#else // set separately
+INLINE void Shader11::setVSBuffers() {REPA(buffers[ST_VS]){C BufferLink &link=buffers[ST_VS][i]; BufVS(link.index, link.buffer->buffer.buffer);}}
+INLINE void Shader11::setHSBuffers() {REPA(buffers[ST_HS]){C BufferLink &link=buffers[ST_HS][i]; BufHS(link.index, link.buffer->buffer.buffer);}}
+INLINE void Shader11::setDSBuffers() {REPA(buffers[ST_DS]){C BufferLink &link=buffers[ST_DS][i]; BufDS(link.index, link.buffer->buffer.buffer);}}
+INLINE void Shader11::setPSBuffers() {REPA(buffers[ST_PS]){C BufferLink &link=buffers[ST_PS][i]; BufPS(link.index, link.buffer->buffer.buffer);}}
+
+INLINE void Shader11::setVSImages() {REPA(images[ST_VS]){C ImageLink &link=images[ST_VS][i]; D.texVS(link.index, link.image->getSRV());}}
+INLINE void Shader11::setHSImages() {REPA(images[ST_HS]){C ImageLink &link=images[ST_HS][i]; D.texHS(link.index, link.image->getSRV());}}
+INLINE void Shader11::setDSImages() {REPA(images[ST_DS]){C ImageLink &link=images[ST_DS][i]; D.texDS(link.index, link.image->getSRV());}}
+INLINE void Shader11::setPSImages() {REPA(images[ST_PS]){C ImageLink &link=images[ST_PS][i]; D.texPS(link.index, link.image->getSRV());}}
 #endif
 
 void Shader11::commit()
@@ -910,11 +982,11 @@ void Shader11::commitTex()
 {
    if(hs)
    {
-      REPA(images[ST_HS]){C ImageLink &t=images[ST_HS][i]; D.texHS(t.index, t.image->getSRV());}
-      REPA(images[ST_DS]){C ImageLink &t=images[ST_DS][i]; D.texDS(t.index, t.image->getSRV());}
+      setHSImages();
+      setDSImages();
    }
-   REPA(images[ST_VS]){C ImageLink &t=images[ST_VS][i]; D.texVS(t.index, t.image->getSRV());}
-   REPA(images[ST_PS]){C ImageLink &t=images[ST_PS][i]; D.texPS(t.index, t.image->getSRV());}
+   setVSImages();
+   setPSImages();
 }
 void Shader11::start() // same as 'begin' but without committing buffers and textures
 {
@@ -925,16 +997,16 @@ void Shader11::start() // same as 'begin' but without committing buffers and tex
       SetHS(hs);
       SetDS(ds);
       SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-      REPA(buffers[ST_HS]){C BufferLink &b=buffers[ST_HS][i]; BufHS(b.index, b.buffer->buffer.buffer);}
-      REPA(buffers[ST_DS]){C BufferLink &b=buffers[ST_DS][i]; BufDS(b.index, b.buffer->buffer.buffer);}
+      setHSBuffers();
+      setDSBuffers();
    }else
    {
       SetHS(null);
       SetDS(null);
       SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
    }
-   REPA(buffers[ST_VS]){C BufferLink &b=buffers[ST_VS][i]; BufVS(b.index, b.buffer->buffer.buffer);}
-   REPA(buffers[ST_PS]){C BufferLink &b=buffers[ST_PS][i]; BufPS(b.index, b.buffer->buffer.buffer);}
+   setVSBuffers();
+   setPSBuffers();
 }
 void Shader11::startTex() // same as 'begin' but without committing buffers
 {
@@ -945,20 +1017,20 @@ void Shader11::startTex() // same as 'begin' but without committing buffers
       SetHS(hs);
       SetDS(ds);
       SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-      REPA( images[ST_HS]){C  ImageLink &t= images[ST_HS][i]; D.texHS(t.index, t.image ->getSRV());}
-      REPA( images[ST_DS]){C  ImageLink &t= images[ST_DS][i]; D.texDS(t.index, t.image ->getSRV());}
-      REPA(buffers[ST_HS]){C BufferLink &b=buffers[ST_HS][i];   BufHS(b.index, b.buffer->buffer.buffer);}
-      REPA(buffers[ST_DS]){C BufferLink &b=buffers[ST_DS][i];   BufDS(b.index, b.buffer->buffer.buffer);}
+      setHSImages();
+      setDSImages();
+      setHSBuffers();
+      setDSBuffers();
    }else
    {
       SetHS(null);
       SetDS(null);
       SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
    }
-   REPA( images[ST_VS]){C  ImageLink &t= images[ST_VS][i]; D.texVS(t.index, t.image ->getSRV());}
-   REPA( images[ST_PS]){C  ImageLink &t= images[ST_PS][i]; D.texPS(t.index, t.image ->getSRV());}
-   REPA(buffers[ST_VS]){C BufferLink &b=buffers[ST_VS][i];   BufVS(b.index, b.buffer->buffer.buffer);}
-   REPA(buffers[ST_PS]){C BufferLink &b=buffers[ST_PS][i];   BufPS(b.index, b.buffer->buffer.buffer);}
+   setVSImages();
+   setPSImages();
+   setVSBuffers();
+   setPSBuffers();
 }
 void Shader11::begin()
 {
@@ -969,21 +1041,21 @@ void Shader11::begin()
       SetHS(hs);
       SetDS(ds);
       SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-      REPA( images[ST_HS]){C  ImageLink &t= images[ST_HS][i]; D.texHS(t.index, t.image ->getSRV());}
-      REPA( images[ST_DS]){C  ImageLink &t= images[ST_DS][i]; D.texDS(t.index, t.image ->getSRV());}
-      REPA(buffers[ST_HS]){C BufferLink &b=buffers[ST_HS][i];   BufHS(b.index, b.buffer->buffer.buffer);}
-      REPA(buffers[ST_DS]){C BufferLink &b=buffers[ST_DS][i];   BufDS(b.index, b.buffer->buffer.buffer);}
+      setHSImages();
+      setDSImages();
+      setHSBuffers();
+      setDSBuffers();
    }else
    {
       SetHS(null);
       SetDS(null);
       SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
    }
-   REPA(     images[ST_VS]){C      ImageLink &t=      images[ST_VS][i]; D.texVS(t.index, t.image ->getSRV());}
-   REPA(     images[ST_PS]){C      ImageLink &t=      images[ST_PS][i]; D.texPS(t.index, t.image ->getSRV());}
-   REPA(    buffers[ST_VS]){C     BufferLink &b=     buffers[ST_VS][i];   BufVS(b.index, b.buffer->buffer.buffer);}
-   REPA(    buffers[ST_PS]){C     BufferLink &b=     buffers[ST_PS][i];   BufPS(b.index, b.buffer->buffer.buffer);}
-   REPA(all_buffers       ){ShaderBuffer     &b=*all_buffers       [i]; if(b.changed)b.update();}
+   setVSImages();
+   setPSImages();
+   setVSBuffers();
+   setPSBuffers();
+   REPA(all_buffers){ShaderBuffer &b=*all_buffers[i]; if(b.changed)b.update();}
 }
 #elif GL
 ShaderGL::~ShaderGL()
@@ -1395,6 +1467,28 @@ static void TestBuffer(C ShaderBuffer *buffer, Int bind_slot)
  C Str8 *name=ShaderBuffers.dataToKey(buffer); if(!name)Exit("Can't find ShaderBuffer name");
    return TestBuffer(*name, bind_slot);
 }
+static Bool Test(C MemPtr<Mems<BufferLink>> &links)
+{
+   REPA(links)
+   {
+    C Mems<BufferLink> &link=links[i]; if(link.elms()>1)
+      {
+         Int first=link[0].index; for(Int i=1; i<link.elms(); i++)if(link[i].index!=first+i)Exit("Invalid Buffer index");
+      }
+   }
+   return true;
+}
+static Bool Test(C MemPtr<Mems<ImageLink>> &links)
+{
+   REPA(links)
+   {
+    C Mems<ImageLink> &link=links[i]; if(link.elms()>1)
+      {
+         Int first=link[0].index; for(Int i=1; i<link.elms(); i++)if(link[i].index!=first+i)Exit("Invalid Image index");
+      }
+   }
+   return true;
+}
 static void LoadTranslation(MemPtr<ShaderParam::Translation> translation, File &f, Int elms)
 {
    if(elms<=1)translation.loadRaw(f);else
@@ -1531,6 +1625,10 @@ Bool ShaderFile::load(C Str &name)
       #if !GL
          if(_buffer_links.load(f, buffers)) // buffer link map
          if( _image_links.load(f,  images)) //  image link map
+      #if DEBUG
+         if(Test(_buffer_links))
+         if(Test( _image_links))
+      #endif
       #endif
          if(_vs     .load(f))
          if(_hs     .load(f))
@@ -1552,10 +1650,10 @@ void DisplayState::clearShader()
    SetMem(HSTex, ~0);
    SetMem(DSTex, ~0);
    SetMem(PSTex, ~0);
-   SetMem(vs_buf, ~0);
-   SetMem(hs_buf, ~0);
-   SetMem(ds_buf, ~0);
-   SetMem(ps_buf, ~0);
+   SetMem(VSBuf, ~0);
+   SetMem(HSBuf, ~0);
+   SetMem(DSBuf, ~0);
+   SetMem(PSBuf, ~0);
 #elif GL
    SetMem(Tex, ~0);
 #endif
