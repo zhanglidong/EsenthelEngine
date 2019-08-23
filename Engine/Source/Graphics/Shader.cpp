@@ -358,7 +358,8 @@ void ShaderBuffer::update()
       D3D11_MAPPED_SUBRESOURCE map;
       if(OK(D3DC->Map(buffer.buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map)))
       {
-         COPY(map.pData, data, buffer.size);
+         if(0)CopyFast(map.pData, data, buffer.size);
+         else COPY    (map.pData, data, buffer.size);
          D3DC->Unmap(buffer.buffer, 0);
       }
    }else
