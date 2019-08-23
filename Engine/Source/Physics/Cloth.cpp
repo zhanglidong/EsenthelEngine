@@ -528,8 +528,7 @@ void Cloth::_drawPhysical()C
   _cloth_mesh->_ind_buf.set();
    D3DC->DrawIndexed(_cloth_mesh->_ind_buf._ind_num, 0, 0);
 #elif GL
-   SetDefaultVAO(); _vtx_buf.set(); D.vf(VI._vf3D_cloth.vf); // OpenGL requires setting 1)VAO 2)VB+IB 3)VF
-  _cloth_mesh->_ind_buf.set();
+   SetDefaultVAO(); _vtx_buf.set(); _cloth_mesh->_ind_buf.set(); D.vf(VI._vf3D_cloth.vf); // OpenGL requires setting 1)VAO 2)VB+IB 3)VF
    glDrawElements(GL_TRIANGLES, _cloth_mesh->_ind_buf._ind_num, _cloth_mesh->_ind_buf.bit16() ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, null);
 #endif
 }

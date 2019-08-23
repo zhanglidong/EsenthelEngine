@@ -29,22 +29,20 @@ namespace EE{
    #define GL_LOCK_SUB_RING_RESET      6
    #define GL_LOCK_SUB_RING_RESET_FROM 7
    #define GL_LOCK_MAP                 8
-   #define GL_LOCK_MAP_RING            9 // on GL ES this is conditional depending if 'glDrawElementsBaseVertex' is available (GL ES 3.2), falls back to GL_LOCK_MAP
+   #define GL_LOCK_MAP_RING            9 // on GL ES this is conditional depending if 'glDrawElementsBaseVertex' is available (GL ES 3.2+), falls back to GL_LOCK_MAP
    #define GL_LOCK_NUM                10
 
-   // TODO: test on newer iOS hardware (because on iPad Mini 2 GL_LOCK_SUB_RESET_PART_FROM is fastest, however newer hardware may have GL_LOCK_MAP_RING faster)
-   #if WEB // untested
+   // TODO: test on newer iOS hardware (because on iPad Mini 2 GL_LOCK_SUB_RESET_PART_FROM is fastest, however newer hardware may have GL_LOCK_MAP_RING faster just like all other platforms)
+   #if WEB
       #define MEM        (32*1024)
       #define BUFFERS    1
-      #define GL_VI_LOCK GL_LOCK_SUB_RESET_PART_FROM // Map is not available on WebGL - https://www.khronos.org/registry/webgl/specs/latest/2.0/#5.14
+      #define GL_VI_LOCK GL_LOCK_SUB // GL_LOCK_SUB was the fastest, Map is not available on WebGL - https://www.khronos.org/registry/webgl/specs/latest/2.0/#5.14
    #else
       #define MEM        (32*1024)
       #define BUFFERS    1
       #define GL_VI_LOCK GL_LOCK_MAP_RING // best results on Win, Mac, Linux, Android
    #endif
-#endif
 
-#if GL
    #define BUFFERS_USE BUFFERS // 'BUFFERS' is the max amount of buffers allocated at app startup, but 'BUFFERS_USE' is the amount we want to use (can be lower for resting)
 
    #define GL_DYNAMIC GL_STREAM_DRAW // same performance as GL_DYNAMIC_DRAW
@@ -200,7 +198,7 @@ VtxFormat& VtxFormat::del()
    if(vf)
    {
       SafeSyncLocker lock(D._lock);
-      if(D._vf==vf)D.vf(null);
+      if(D._vf==vf){SetDefaultVAO(); D.vf(null);}
    #if DX11
       if(vf){if(D.created())vf->Release(); vf=null;} // clear while in lock
    #elif GL
