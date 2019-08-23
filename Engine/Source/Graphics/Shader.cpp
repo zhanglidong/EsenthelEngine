@@ -1002,8 +1002,6 @@ void Shader11::commitTex()
 }
 void Shader11::start() // same as 'begin' but without committing buffers and textures
 {
-   SetVS(vs);
-   SetPS(ps);
    if(hs/* && D.tesselationAllow()*/) // currently disabled to avoid extra overhead as tesselation isn't generally used, TODO:
    {
       D.primType(D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
@@ -1017,13 +1015,13 @@ void Shader11::start() // same as 'begin' but without committing buffers and tex
       SetHS(null);
       SetDS(null);
    }
+   SetVS(vs);
+   SetPS(ps);
    setVSBuffers();
    setPSBuffers();
 }
 void Shader11::startTex() // same as 'begin' but without committing buffers
 {
-   SetVS(vs);
-   SetPS(ps);
    if(hs/* && D.tesselationAllow()*/) // currently disabled to avoid extra overhead as tesselation isn't generally used, TODO:
    {
       D.primType(D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
@@ -1039,6 +1037,8 @@ void Shader11::startTex() // same as 'begin' but without committing buffers
       SetHS(null);
       SetDS(null);
    }
+   SetVS(vs);
+   SetPS(ps);
    setVSImages();
    setPSImages();
    setVSBuffers();
@@ -1046,8 +1046,6 @@ void Shader11::startTex() // same as 'begin' but without committing buffers
 }
 void Shader11::begin()
 {
-   SetVS(vs);
-   SetPS(ps);
    if(hs/* && D.tesselationAllow()*/) // currently disabled to avoid extra overhead as tesselation isn't generally used, TODO:
    {
       D.primType(D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
@@ -1063,6 +1061,8 @@ void Shader11::begin()
       SetHS(null);
       SetDS(null);
    }
+   SetVS(vs);
+   SetPS(ps);
    setVSImages();
    setPSImages();
    setVSBuffers();
