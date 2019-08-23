@@ -19,8 +19,40 @@ namespace EE{
    #define FORCE_SHADER 0
 #endif
 
-#define ALLOW_PARTIAL_BUFFERS 0 // using partial buffers (1) actually made things slower, 100fps(1) vs 102fps(0), so use default value (0), TODO: check on newer hardware
-#define BUFFER_DYNAMIC        0 // for ALLOW_PARTIAL_BUFFERS=0, using 1 made no difference in performance, so use 0 to reduce API calls. But for ALLOW_PARTIAL_BUFFERS=1 using 1 was slower. Probably it could improve performance if 'ShaderBuffer.data' was not allocated manually but obtained from D3D 'Map', however this would make things complicated, because 'data' always needs to be available for 'ShaderParam.set', we don't always change entire 'data', and 'Map'/'Unmap' most likely always return different 'data' memory address (allocates new memory underneath because of D3D11_MAP_WRITE_DISCARD), this would not work well with instanced rendering, which at the start we don't know how many matrixes (what CB) we need, so we can't map it at the start, because we still need to iterate all instances, count how many, during the process matrixes are already copied to 'data' memory.
+#if DX11
+   #define ALLOW_PARTIAL_BUFFERS 0 // using partial buffers (1) actually made things slower, 100fps(1) vs 102fps(0), so use default value (0), TODO: check on newer hardware
+   #define BUFFER_DYNAMIC        0 // for ALLOW_PARTIAL_BUFFERS=0, using 1 made no difference in performance, so use 0 to reduce API calls. But for ALLOW_PARTIAL_BUFFERS=1 using 1 was slower. Probably it could improve performance if 'ShaderBuffer.data' was not allocated manually but obtained from D3D 'Map', however this would make things complicated, because 'data' always needs to be available for 'ShaderParam.set', we don't always change entire 'data', and 'Map'/'Unmap' most likely always return different 'data' memory address (allocates new memory underneath because of D3D11_MAP_WRITE_DISCARD), this would not work well with instanced rendering, which at the start we don't know how many matrixes (what CB) we need, so we can't map it at the start, because we still need to iterate all instances, count how many, during the process matrixes are already copied to 'data' memory.
+#elif GL
+   #define GL_BUFFER_SUB                 0
+   #define GL_BUFFER_SUB_RESET_PART      1
+   #define GL_BUFFER_SUB_RESET_FULL      2
+   #define GL_BUFFER_SUB_RESET_PART_FROM 3
+   #define GL_BUFFER_SUB_RESET_FULL_FROM 4
+   #define GL_BUFFER_SUB_RING            5
+   #define GL_BUFFER_SUB_RING_RESET      6
+   #define GL_BUFFER_SUB_RING_RESET_FROM 7
+   #define GL_BUFFER_MAP                 8
+   #define GL_BUFFER_MAP_RING            9
+   #define GL_BUFFER_NUM                10
+
+   #define GL_DYNAMIC GL_STREAM_DRAW // same performance as GL_DYNAMIC_DRAW
+
+   #if WINDOWS
+      #define GL_UBO_MODE GL_BUFFER_SUB
+   #elif WEB
+      #define GL_UBO_MODE GL_BUFFER_SUB
+      //FIXME WEB needs to use either GL_BUFFER_SUB or 'glBufferData' with Ceil16(full_size) #define GL_UBO_MODE GL_BUFFER_SUB // Web doesn't support Map
+   #else
+      #define GL_UBO_MODE GL_BUFFER_SUB_RESET_PART_FROM
+   #endif
+
+   #if 0 // Test
+      #pragma message("!! Warning: Use this only for debugging !!")
+      Int UBOMode=GL_UBO_MODE;
+      #undef  GL_UBO_MODE
+      #define GL_UBO_MODE UBOMode
+   #endif
+#endif
 /******************************************************************************/
 #if DX11
 static ID3D11ShaderResourceView *VSTex[MAX_SHADER_IMAGES], *HSTex[MAX_SHADER_IMAGES], *DSTex[MAX_SHADER_IMAGES], *PSTex[MAX_SHADER_IMAGES];
@@ -320,7 +352,7 @@ void ShaderBuffer::Buffer::create(Int size)
          #endif
          glGenBuffers(1, &buffer);
          glBindBuffer(GL_UNIFORM_BUFFER, buffer);
-         glBufferData(GL_UNIFORM_BUFFER, size, null, GL_STREAM_DRAW);
+         glBufferData(GL_UNIFORM_BUFFER, size, null, GL_DYNAMIC);
       #endif
       }
    }
@@ -367,11 +399,19 @@ void ShaderBuffer::update()
       D3DC ->UpdateSubresource (buffer.buffer, 0, null, data, 0, 0);
 #elif GL
    glBindBuffer(GL_UNIFORM_BUFFER, buffer.buffer);
-#if (MAC || LINUX || GL_ES) && !WEB // this is faster for Mac, Linux and GL ES (slower for Win GL), however can't be used for WebGL because it will complain "GL_INVALID_OPERATION: It is undefined behaviour to use a uniform buffer that is too small." #WebUBO
-   glBufferData(GL_UNIFORM_BUFFER, buffer.size, data, GL_STREAM_DRAW);
-#else // this is faster for Win GL
-   glBufferSubData(GL_UNIFORM_BUFFER, 0, buffer.size, data);
-#endif
+   switch(GL_UBO_MODE)
+   {
+      default /*GL_BUFFER_SUB*/         :                                                                 glBufferSubData(GL_UNIFORM_BUFFER, 0, buffer.size, data); break;
+      case GL_BUFFER_SUB_RESET_PART     : glBufferData(GL_UNIFORM_BUFFER, buffer.size, null, GL_DYNAMIC); glBufferSubData(GL_UNIFORM_BUFFER, 0, buffer.size, data); break;
+      case GL_BUFFER_SUB_RESET_FULL     : glBufferData(GL_UNIFORM_BUFFER,   full_size, null, GL_DYNAMIC); glBufferSubData(GL_UNIFORM_BUFFER, 0, buffer.size, data); break;
+      case GL_BUFFER_SUB_RESET_PART_FROM: glBufferData(GL_UNIFORM_BUFFER, buffer.size, data, GL_DYNAMIC);                                                           break;
+      case GL_BUFFER_SUB_RESET_FULL_FROM: glBufferData(GL_UNIFORM_BUFFER,   full_size, data, GL_DYNAMIC);                                                           break;
+      case GL_BUFFER_MAP                : if(Ptr dest=glMapBufferRange(GL_UNIFORM_BUFFER, 0, buffer.size, GL_MAP_WRITE_BIT|GL_MAP_INVALIDATE_BUFFER_BIT))
+      {
+         CopyFast(dest, data, buffer.size);
+         glUnmapBuffer(GL_UNIFORM_BUFFER);
+      }break;
+   }
 #endif
    changed=false;
 }
