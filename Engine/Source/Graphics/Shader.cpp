@@ -20,7 +20,7 @@ namespace EE{
 #endif
 
 #define ALLOW_PARTIAL_BUFFERS 0 // using partial buffers (1) actually made things slower, 100fps(1) vs 102fps(0), so use default value (0), TODO: check on newer hardware
-#define BUFFER_DYNAMIC        0 // for ALLOW_PARTIAL_BUFFERS=0, using 1 made no difference in performance, so use 0 to reduce API calls. But for ALLOW_PARTIAL_BUFFERS=1 using 1 was slower
+#define BUFFER_DYNAMIC        0 // for ALLOW_PARTIAL_BUFFERS=0, using 1 made no difference in performance, so use 0 to reduce API calls. But for ALLOW_PARTIAL_BUFFERS=1 using 1 was slower. Probably it could improve performance if 'ShaderBuffer.data' was not allocated manually but obtained from D3D 'Map', however this would make things complicated, because 'data' always needs to be available for 'ShaderParam.set', we don't always change entire 'data', and 'Map'/'Unmap' most likely always return different 'data' memory address (allocates new memory underneath because of D3D11_MAP_WRITE_DISCARD).
 /******************************************************************************/
 #if DX11
 static ID3D11ShaderResourceView *VSTex[MAX_SHADER_IMAGES], *HSTex[MAX_SHADER_IMAGES], *DSTex[MAX_SHADER_IMAGES], *PSTex[MAX_SHADER_IMAGES];
@@ -361,10 +361,10 @@ void ShaderBuffer::update()
       D3D11_BOX box;
       box.front=box.top=box.left=0;
       box.right=Ceil16(buffer.size); box.back=box.bottom=1; // must be 16-byte aligned or DX will fail
-         D3DC1->UpdateSubresource1(buffer.buffer, 0, &box, data, 0, 0, D3D11_COPY_DISCARD);
+      D3DC1->UpdateSubresource1(buffer.buffer, 0, &box, data, 0, 0, D3D11_COPY_DISCARD);
    }else
 #endif
-         D3DC ->UpdateSubresource (buffer.buffer, 0, null, data, 0, 0);
+      D3DC ->UpdateSubresource (buffer.buffer, 0, null, data, 0, 0);
 #elif GL
    glBindBuffer(GL_UNIFORM_BUFFER, buffer.buffer);
 #if (MAC || LINUX || GL_ES) && !WEB // this is faster for Mac, Linux and GL ES (slower for Win GL), however can't be used for WebGL because it will complain "GL_INVALID_OPERATION: It is undefined behaviour to use a uniform buffer that is too small." #WebUBO
