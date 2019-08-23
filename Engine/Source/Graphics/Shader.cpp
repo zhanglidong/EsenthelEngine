@@ -54,7 +54,7 @@ INLINE void DisplayState::texPS(Int index, GPU_API(ID3D11ShaderResourceView*, UI
 void DisplayState::texClear(GPU_API(ID3D11ShaderResourceView*, UInt) tex)
 {
 #if DX11
-   if(tex)REPA(PSTex)if(PSTex[i]==tex)PSTex[i]=null;
+   if(tex)REPA(PSTex)if(PSTex[i]==tex)PSTex[i]=null; // for performance reasons this clears only from Pixel Shader, to clear from all shaders use 'clearAll'
 #elif GL
    if(tex)REPA(Tex)if(Tex[i]==tex)Tex[i]=~0;
 #endif
