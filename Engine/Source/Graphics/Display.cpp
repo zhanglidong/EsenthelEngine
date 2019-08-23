@@ -2507,7 +2507,7 @@ Display& Display::edgeSoften(EDGE_SOFTEN_MODE mode)
    {
       T._edge_soften=mode; if(created())switch(mode) // techniques can be null if failed to load
       {
-         case EDGE_SOFTEN_FXAA: if(!Sh.FXAA[1])
+         case EDGE_SOFTEN_FXAA: if(!Sh.FXAA[0])
          {
             ShaderFile &sf=*ShaderFiles("FXAA");
             if(Sh.FXAA[0]=sf.find("FXAA0"))
@@ -2526,7 +2526,7 @@ Display& Display::edgeSoften(EDGE_SOFTEN_MODE mode)
          }break;
       #endif
 
-         case EDGE_SOFTEN_SMAA: if(!Sh.SMAAThreshold)
+         case EDGE_SOFTEN_SMAA: if(!Sh.SMAAEdge[0])
          {
             Sh.SMAAThreshold=GetShaderParam("SMAAThreshold"); Sh.SMAAThreshold->set(D.smaaThreshold());
 
