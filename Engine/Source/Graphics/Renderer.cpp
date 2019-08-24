@@ -706,9 +706,9 @@ RendererClass& RendererClass::operator()(void (&render)())
       sky       (); MEASURE(_t_sky[1])
       edgeDetect(); MEASURE(_t_edge_detect[1])
       blend     (); MEASURE(_t_blend[1])
-    /*if(stage)switch(stage)
+    /*if(stage)switch(stage) check this earlier together with other stages, to avoid doing a single extra check here
       {
-         case RS_DEPTH: if(set(_ds_1s))goto finished; break;
+         case RS_DEPTH: if(show(_ds_1s, false))goto finished; break;
       }*/
 
       palette(0);

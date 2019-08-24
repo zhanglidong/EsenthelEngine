@@ -135,7 +135,7 @@
 #define SIGNED_VEL_RT       (!GL) // Velocity Render Target is signed everywhere except GL because there it depends on GL_EXT_render_snorm
 #define FULL_PRECISION_SPEC 0     // if use full precision for specular intensity in SIGNED_NRM_RT, we can disable this because we lose only 1-bit of precision
 
-#define REVERSE_DEPTH 1 // if Depth Buffer is reversed
+#define REVERSE_DEPTH (!GL) // if Depth Buffer is reversed. Can't enable on GL because for some reason (might be related to #glClipControl) it disables far-plane depth clipping, which can be observed when using func=FUNC_ALWAYS inside D.depthFunc. Even though we clear the depth buffer, there may still be performance hit, because normally geometry would already get clipped due to far plane, but without it, per-pixel depth tests need to be performed.
 #if     REVERSE_DEPTH
    #define Z_FRONT             1.0
    #define Z_BACK              0.0
@@ -924,7 +924,7 @@ inline Flt DelinearizeDepth(Flt z, Bool perspective=true)
        w=(perspective ? (z*a+b)/z : (z*a+REVERSE_DEPTH));
 
 #if GL
-   w=w*0.5+0.5;
+   w=w*0.5+0.5; // #glClipControl
 #endif
 
    return w;
@@ -935,7 +935,7 @@ inline Flt LinearizeDepth(Flt w, Bool perspective=true)
        b=ProjMatrix[3][2]; // ProjMatrix.pos.z
 
 #if GL
-   w=w*2-1;
+   w=w*2-1; // #glClipControl
 #endif
 
    // w   = (z*a+b)/z

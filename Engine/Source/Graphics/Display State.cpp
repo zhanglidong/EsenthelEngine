@@ -764,9 +764,9 @@ void DisplayState::setDeviceSettings()
 #elif GL
       glEnable     (GL_DITHER);
    #if GL_ES
-      glClearDepthf(REVERSE_DEPTH ? 0.0f : 1.0f);
+      glClearDepthf(REVERSE_DEPTH ? 0.5f : 1.0f); // #glClipControl
    #else
-      glClearDepth (REVERSE_DEPTH ? 0.0  : 1.0);
+      glClearDepth (REVERSE_DEPTH ? 0.5  : 1.0 ); // #glClipControl
     //glAlphaFunc  (GL_GREATER, 0);
       glHint       (GL_LINE_SMOOTH_HINT, GL_NICEST); 
    #endif
