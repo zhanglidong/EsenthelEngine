@@ -40,8 +40,9 @@ namespace EE{
    #if WINDOWS
       #define GL_UBO_MODE GL_BUFFER_SUB
    #elif WEB
-      #define GL_UBO_MODE GL_BUFFER_SUB
-      //FIXME WEB needs to use either GL_BUFFER_SUB or 'glBufferData' with Ceil16(full_size) #define GL_UBO_MODE GL_BUFFER_SUB // Web doesn't support Map
+      #define GL_UBO_MODE GL_BUFFER_SUB //FIXME WEB needs to use either GL_BUFFER_SUB or 'glBufferData' with Ceil16(full_size) // Web doesn't support Map
+   #elif LINUX
+      #define GL_UBO_MODE GL_BUFFER_SUB // currently Linux has a bug on Intel GPU's in which other modes don't work
    #else
       #define GL_UBO_MODE GL_BUFFER_SUB_RESET_PART_FROM
    #endif
