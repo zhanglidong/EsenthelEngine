@@ -38,17 +38,17 @@ namespace EE{
    #define GL_DYNAMIC GL_STREAM_DRAW // same performance as GL_DYNAMIC_DRAW
 
    #if WINDOWS
-      #define GL_UBO_MODE GL_BUFFER_SUB // GeForce 1050 Ti: GL_BUFFER_SUB, Intel UHD 630: GL_BUFFER_SUB_RESET_PART, GL_BUFFER_SUB_RESET_PART_FROM, GL_BUFFER_SUB_RESET_FULL_FROM (all same perf.)
+      #define GL_UBO_MODE GL_BUFFER_SUB // GeForce 1050 Ti: GL_BUFFER_SUB. Intel UHD 630: GL_BUFFER_SUB_RESET_PART, GL_BUFFER_SUB_RESET_PART_FROM, GL_BUFFER_SUB_RESET_FULL_FROM (all same perf.)
    #elif MAC
-      #define GL_UBO_MODE GL_BUFFER_SUB // FIXME
+      #define GL_UBO_MODE GL_BUFFER_SUB // FIXME can't test because Mac is broken due to https://feedbackassistant.apple.com/feedback/7116525
    #elif LINUX
-      #define GL_UBO_MODE GL_BUFFER_SUB // currently Linux has a bug on Intel GPU's in which only GL_BUFFER_SUB works, while others have flickering
+      #define GL_UBO_MODE GL_BUFFER_SUB // FIXME currently Linux has a bug on Intel GPU's in which only GL_BUFFER_SUB works, while others have flickering https://forums.intel.com/s/question/0D50P00004QebSqSAJ/graphics-driver-bug-linux-updating-ubos?language=en_US
    #elif ANDROID
       #define GL_UBO_MODE GL_BUFFER_SUB_RESET_FULL // GL_BUFFER_SUB_RESET_PART, GL_BUFFER_SUB_RESET_FULL, GL_BUFFER_SUB_RESET_PART_FROM, GL_BUFFER_SUB_RESET_FULL_FROM, GL_BUFFER_MAP (all same perf. Mali-G76 MP10)
    #elif IOS
-      #define GL_UBO_MODE GL_BUFFER_SUB_RESET_PART_FROM // GL_BUFFER_SUB_RESET_PART, GL_BUFFER_SUB_RESET_PART_FROM (all same perf. iPad Mini 2)
+      #define GL_UBO_MODE GL_BUFFER_SUB_RESET_PART_FROM // FIXME test on newer iOS Device. GL_BUFFER_SUB_RESET_PART, GL_BUFFER_SUB_RESET_PART_FROM (all same perf. iPad Mini 2)
    #elif WEB
-      #define GL_UBO_MODE GL_BUFFER_SUB //FIXME WEB needs to use either GL_BUFFER_SUB or 'glBufferData' with Ceil16(full_size) // Web doesn't support Map
+      #define GL_UBO_MODE GL_BUFFER_SUB // GL_BUFFER_SUB, GL_BUFFER_SUB_RESET_FULL, GL_BUFFER_SUB_RESET_FULL_FROM (all same perf. Chrome GeForce 1050 Ti Windows), for WEB we need buffer size >= what was defined in the shader because it will complain "GL_INVALID_OPERATION: It is undefined behaviour to use a uniform buffer that is too small." #WebUBO, so would have to use Ceil16(full_size), also WEB doesn't support Map - https://www.khronos.org/registry/webgl/specs/latest/2.0/#5.14
    #else
       #error
    #endif
