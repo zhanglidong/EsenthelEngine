@@ -28,23 +28,29 @@ namespace EE{
    #define GL_BUFFER_SUB_RESET_FULL      2
    #define GL_BUFFER_SUB_RESET_PART_FROM 3
    #define GL_BUFFER_SUB_RESET_FULL_FROM 4
-   #define GL_BUFFER_SUB_RING            5
-   #define GL_BUFFER_SUB_RING_RESET      6
-   #define GL_BUFFER_SUB_RING_RESET_FROM 7
+ //#define GL_BUFFER_SUB_RING            5
+ //#define GL_BUFFER_SUB_RING_RESET      6
+ //#define GL_BUFFER_SUB_RING_RESET_FROM 7
    #define GL_BUFFER_MAP                 8
-   #define GL_BUFFER_MAP_RING            9
+ //#define GL_BUFFER_MAP_RING            9
    #define GL_BUFFER_NUM                10
 
    #define GL_DYNAMIC GL_STREAM_DRAW // same performance as GL_DYNAMIC_DRAW
 
    #if WINDOWS
-      #define GL_UBO_MODE GL_BUFFER_SUB
+      #define GL_UBO_MODE GL_BUFFER_SUB // GeForce 1050 Ti: GL_BUFFER_SUB, Intel UHD 630: GL_BUFFER_SUB_RESET_PART, GL_BUFFER_SUB_RESET_PART_FROM, GL_BUFFER_SUB_RESET_FULL_FROM (all same perf.)
+   #elif MAC
+      #define GL_UBO_MODE GL_BUFFER_SUB // FIXME
+   #elif LINUX
+      #define GL_UBO_MODE GL_BUFFER_SUB // currently Linux has a bug on Intel GPU's in which only GL_BUFFER_SUB works, while others have flickering
+   #elif ANDROID
+      #define GL_UBO_MODE GL_BUFFER_SUB_RESET_FULL // GL_BUFFER_SUB_RESET_PART, GL_BUFFER_SUB_RESET_FULL, GL_BUFFER_SUB_RESET_PART_FROM, GL_BUFFER_SUB_RESET_FULL_FROM, GL_BUFFER_MAP (all same perf. Mali-G76 MP10)
+   #elif IOS
+      #define GL_UBO_MODE GL_BUFFER_SUB_RESET_PART_FROM // GL_BUFFER_SUB_RESET_PART, GL_BUFFER_SUB_RESET_PART_FROM (all same perf. iPad Mini 2)
    #elif WEB
       #define GL_UBO_MODE GL_BUFFER_SUB //FIXME WEB needs to use either GL_BUFFER_SUB or 'glBufferData' with Ceil16(full_size) // Web doesn't support Map
-   #elif LINUX
-      #define GL_UBO_MODE GL_BUFFER_SUB // currently Linux has a bug on Intel GPU's in which other modes don't work
    #else
-      #define GL_UBO_MODE GL_BUFFER_SUB_RESET_PART_FROM
+      #error
    #endif
 
    #if 0 // Test
