@@ -1469,6 +1469,11 @@ Bool CodeEditor::generateVSProj(Int version)
                dest.remove(pos, len+1);
                dest.insert(0, S+'"'+bin_path+lib+"\";");
             }
+            XmlParam *condition=item->findParam("Condition");
+            if(condition && Contains(condition->value, "Emscripten", false, true))
+            {
+               // Web
+            }else
             FREPA(libs){if(dest.is() && dest.last()!=';')dest+=';'; dest.space()+=S+'"'+libs[i]+'"';}
           //if(version>=14)dest=Replace(dest, "libcpmt.lib;", "libcpmt.lib;libucrt.lib;libvcruntime.lib;"); // for VS 2015 (x86 and x64) we need to add libucrt.lib; libvcruntime.lib; libraries, this is now set in the project file by default
          }
@@ -1479,6 +1484,11 @@ Bool CodeEditor::generateVSProj(Int version)
             if(XmlNode *directories=compile->findNode("AdditionalIncludeDirectories"))
          {
             Str dest; FREPA(directories->data)dest.space()+=directories->data[i];
+            XmlParam *condition=item->findParam("Condition");
+            if(condition && Contains(condition->value, "Emscripten", false, true))
+            {
+               // Web
+            }else
             FREPA(dirs){if(dest.is() && dest.last()!=';')dest+=';'; dest.space()+=S+'"'+dirs[i]+'"';}
             Swap(directories->data.setNum(1)[0], dest);
          }
