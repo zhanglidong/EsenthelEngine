@@ -217,9 +217,6 @@ void SkyClass::draw()
       D.depthWrite(true);
       D.depthFunc (FUNC_LESS);
       D.stencil   (STENCIL_NONE);
-   #if DX11
-      D.flush(); // FIXME this is a workaround for Nvidia GeForce bug https://devtalk.nvidia.com/default/topic/1038873/directx-and-direct-compute/geforce-1050-ti-bug/ remove this line once the bug is fixed
-   #endif
    }
 }
 /******************************************************************************/
