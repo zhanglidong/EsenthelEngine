@@ -32,7 +32,7 @@ void Decal::setShader()
          Shader* &src=Sh.Decal[f][p ? 2 : _material->base_1 ? 1 : 0];
          if(!src)
          {
-            src=ShaderFiles("Effect 3D")->get(S8+"Decal"+f+(p ? 2 : _material->base_1 ? 1 : 0));
+            src=ShaderFiles("Effects 3D")->get(S8+"Decal"+f+(p ? 2 : _material->base_1 ? 1 : 0));
             Sh.DecalParams=GetShaderParam("DecalParams");
          }
             _shader[f][p]=src;
