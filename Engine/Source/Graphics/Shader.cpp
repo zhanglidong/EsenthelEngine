@@ -829,7 +829,7 @@ UInt ShaderVSGL::create(Bool clean, Str *messages)
             "#define noperspective\n"                 // 'noperspective'   not available on GL ES
             "#define gl_ClipDistance ClipDistance\n", // 'gl_ClipDistance' not available on GL ES
          #endif
-         #if LINUX
+         #if LINUX // FIXME - https://forums.intel.com/s/question/0D50P00004QfQyQSAV/graphics-driver-bug-linux-glsl-cant-handle-precisions
             "#define mediump\n#define highp\n#define precision\n", // Linux drivers fail to process constants VS "mediump float v;" PS "precision mediump float; float v;"
          #endif
             code
@@ -873,7 +873,7 @@ UInt ShaderPSGL::create(Bool clean, Str *messages)
          #if GL_ES
             "#define noperspective\n", // 'noperspective' not available on GL ES
          #endif
-         #if LINUX
+         #if LINUX // FIXME - https://forums.intel.com/s/question/0D50P00004QfQyQSAV/graphics-driver-bug-linux-glsl-cant-handle-precisions
             "#define mediump\n#define highp\n#define precision\n", // Linux drivers fail to process constants VS "mediump float v;" PS "precision mediump float; float v;"
          #endif
             code
