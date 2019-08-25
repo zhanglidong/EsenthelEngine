@@ -40,7 +40,7 @@ namespace EE{
    #if WINDOWS
       #define GL_UBO_MODE GL_BUFFER_SUB // GeForce 1050 Ti: GL_BUFFER_SUB. Intel UHD 630: GL_BUFFER_SUB_RESET_PART, GL_BUFFER_SUB_RESET_PART_FROM, GL_BUFFER_SUB_RESET_FULL_FROM (all same perf.)
    #elif MAC
-      #define GL_UBO_MODE GL_BUFFER_SUB // FIXME can't test because Mac is broken due to https://feedbackassistant.apple.com/feedback/7116525
+      #define GL_UBO_MODE GL_BUFFER_SUB // FIXME 16 fps for GL_BUFFER_SUB, others show 30-40fps but really look like 8 fps - https://feedbackassistant.apple.com/feedback/7117741
    #elif LINUX
       #define GL_UBO_MODE GL_BUFFER_SUB // FIXME currently Linux has a bug on Intel GPU's in which only GL_BUFFER_SUB works, while others have flickering https://forums.intel.com/s/question/0D50P00004QebSqSAJ/graphics-driver-bug-linux-updating-ubos?language=en_US
    #elif ANDROID
