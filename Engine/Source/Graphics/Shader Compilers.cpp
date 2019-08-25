@@ -590,9 +590,9 @@ static void Compile(API api)
 #ifdef VOLUMETRIC_LIGHTS
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Volumetric Lights", model, api).New(src_path+"Volumetric Lights.cpp");
-   REPD(num  , 2)
+   REPD(num  , 6)
    REPD(cloud, 2)
-      src.New("VolDir", "DrawPosXY_VS", "VolDir_PS")("NUM", num, "CLOUD", cloud);
+      src.New("VolDir", "DrawPosXY_VS", "VolDir_PS")("NUM", num+1, "CLOUD", cloud);
 
    src.New("VolPoint" , "DrawPosXY_VS", "VolPoint_PS" );
    src.New("VolLinear", "DrawPosXY_VS", "VolLinear_PS");
