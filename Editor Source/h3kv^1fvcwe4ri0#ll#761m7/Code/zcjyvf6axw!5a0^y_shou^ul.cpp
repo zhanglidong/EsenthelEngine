@@ -30,7 +30,6 @@ void InitPre()
       Paks.add("Bin/Engine.pak");
    #endif
    }
-   Renderer.type(RT_SIMPLE);
    D.screen_changed=ScreenChanged;
    D.shadowMode(SHADOW_NONE).shadowMapSize(0);
    flt scale=D.screenH()/1080.0;

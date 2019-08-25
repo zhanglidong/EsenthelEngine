@@ -619,7 +619,7 @@ RendererClass& RendererClass::operator()(void (&render)())
 
       prepare(); MEASURE(_t_prepare[1])
       solid  (); MEASURE(_t_solid  [1])
-   #if TILE_BASED_GPU && !WEB // we need to make sure that depth RT is flushed to depth texture on tile-based deferred renderers, this is because on those devices the RT's (including depth buffer) are stored in fast on-chip memory and to be able to read from them, we need to flush them to the texture memory. This is done after reading solid's and before we may read from the depth buffer. No need to do on WEB because there we can never read from depth while writing to it.
+   #if GL && TILE_BASED_GPU && !WEB // we need to make sure that depth RT is flushed to depth texture on tile-based deferred renderers, this is because on those devices the RT's (including depth buffer) are stored in fast on-chip memory and to be able to read from them, we need to flush them to the texture memory. This is done after reading solid's and before we may read from the depth buffer. No need to do on WEB because there we can never read from depth while writing to it.
       if(canReadDepth())
          if(D.edgeDetect() || D.particlesSoft() || Sky.wantDepth() || Clouds.wantDepth() || Fog.draw/* || Sun.wantDepth()*/) // here we need to check only effects that may read from depth without changing any RT's, because on any RT change the depth is flushed. Sun doesn't bind DS to FBO when drawing rays. TODO: we wouldn't need to do this if all shaders reading from the depth would use gl_LastFragDepth - https://www.khronos.org/registry/OpenGL/extensions/ARM/ARM_shader_framebuffer_fetch_depth_stencil.txt
       { // unbinding will force the flush (calling just 'glFlush' was not enough)

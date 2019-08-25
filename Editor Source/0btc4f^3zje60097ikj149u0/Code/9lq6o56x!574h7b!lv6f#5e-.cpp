@@ -1,7 +1,7 @@
 /******************************************************************************/
       Thread        CompressThread;
-const COMPRESS_TYPE CompressionType=COMPRESS_LZMA;
-const int           CompressionLevel=5;
+const COMPRESS_TYPE CompressionType=COMPRESS_ZSTD;
+const int           CompressionLevel=3;
 /******************************************************************************/
 bool CompressFunc(Thread &thread)
 {
