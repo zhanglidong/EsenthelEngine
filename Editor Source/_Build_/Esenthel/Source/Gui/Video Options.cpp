@@ -97,6 +97,8 @@ VideoOptions VidOpt;
       "1024",
       "1536",
       "2048",
+      "3072",
+      "4096",
    };
    cchar8 *VideoOptions::ShadowNum_t[]=
    {

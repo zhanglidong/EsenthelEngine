@@ -247,6 +247,8 @@ class VideoOptions : PropWin
       "1024",
       "1536",
       "2048",
+      "3072",
+      "4096",
    };
    static cchar8 *ShadowNum_t[]=
    {
