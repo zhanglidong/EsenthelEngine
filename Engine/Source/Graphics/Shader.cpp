@@ -572,7 +572,7 @@ void ShaderParam::set(C Matrix3 &matrix)
 }
 void ShaderParam::set(C Matrix &matrix)
 {
-   if(_gpu_data_size>=SIZE(matrix))
+   if(_gpu_data_size>=SIZE(GpuMatrix))
    {
       setChanged();
       Vec4 *gpu=(Vec4*)_data;
@@ -583,7 +583,7 @@ void ShaderParam::set(C Matrix &matrix)
 }
 void ShaderParam::set(C MatrixM &matrix)
 {
-   if(_gpu_data_size>=SIZE(Matrix)) // we're setting as 'Matrix' and not 'MatrixM'
+   if(_gpu_data_size>=SIZE(GpuMatrix)) // we're setting as 'GpuMatrix' and not 'MatrixM'
    {
       setChanged();
       Vec4 *gpu=(Vec4*)_data;
@@ -608,7 +608,7 @@ void ShaderParam::set(C Matrix *matrix, Int elms)
 {
    setChanged();
    Vec4 *gpu=(Vec4*)_data;
-   REP(Min(elms, UInt(_gpu_data_size)/SIZEU(*matrix)))
+   REP(Min(elms, Signed(_gpu_data_size/SIZEU(GpuMatrix))))
    {
       gpu[0].set(matrix->x.x, matrix->y.x, matrix->z.x, matrix->pos.x);
       gpu[1].set(matrix->x.y, matrix->y.y, matrix->z.y, matrix->pos.y);
@@ -627,7 +627,7 @@ void ShaderParam::set(CPtr data, Int size) // !! Warning: 'size' is ignored here
    }
 }
 
-void ShaderParam::set(C Vec &v, Int elm)
+void ShaderParam::set(C Vec &v, UInt elm) // use unsigned to ignore negative indexes
 {
    if(_gpu_data_size>=SIZE(Vec4)*elm+SIZE(Vec)) // elements are aligned by 'Vec4' but we're writing only 'Vec'
    {
@@ -645,9 +645,9 @@ void ShaderParam::set(C Vec4 &v, Int elm)
       gpu[elm]=v;
    }
 }
-void ShaderParam::set(C Matrix &matrix, Int elm)
+void ShaderParam::set(C Matrix &matrix, UInt elm) // use unsigned to ignore negative indexes
 {
-   if(_gpu_data_size>=SIZE(matrix)*(elm+1))
+   if(_gpu_data_size>=SIZE(GpuMatrix)*(elm+1))
    {
       setChanged();
       Vec4 *gpu=(Vec4*)&(((GpuMatrix*)_data)[elm]);
@@ -681,7 +681,7 @@ void ShaderParam::fromMul(C MatrixM &a, C MatrixM &b)
       ((GpuMatrix*)_data)->fromMul(a, b);
    }
 }
-void ShaderParam::fromMul(C Matrix &a, C Matrix &b, Int elm)
+void ShaderParam::fromMul(C Matrix &a, C Matrix &b, UInt elm) // use unsigned to ignore negative indexes
 {
    if(_gpu_data_size>=SIZE(GpuMatrix)*(elm+1))
    {
@@ -690,7 +690,7 @@ void ShaderParam::fromMul(C Matrix &a, C Matrix &b, Int elm)
       gpu[elm].fromMul(a, b);
    }
 }
-void ShaderParam::fromMul(C Matrix &a, C MatrixM &b, Int elm)
+void ShaderParam::fromMul(C Matrix &a, C MatrixM &b, UInt elm) // use unsigned to ignore negative indexes
 {
    if(_gpu_data_size>=SIZE(GpuMatrix)*(elm+1))
    {
@@ -699,7 +699,7 @@ void ShaderParam::fromMul(C Matrix &a, C MatrixM &b, Int elm)
       gpu[elm].fromMul(a, b);
    }
 }
-void ShaderParam::fromMul(C MatrixM &a, C MatrixM &b, Int elm)
+void ShaderParam::fromMul(C MatrixM &a, C MatrixM &b, UInt elm) // use unsigned to ignore negative indexes
 {
    if(_gpu_data_size>=SIZE(GpuMatrix)*(elm+1))
    {
@@ -711,7 +711,7 @@ void ShaderParam::fromMul(C MatrixM &a, C MatrixM &b, Int elm)
 
 void ShaderParam::set(C GpuMatrix &matrix)
 {
-   if(_gpu_data_size>=SIZE(matrix))
+   if(_gpu_data_size>=SIZE(GpuMatrix))
    {
       setChanged();
       GpuMatrix &gpu=*(GpuMatrix*)_data;
@@ -720,7 +720,7 @@ void ShaderParam::set(C GpuMatrix &matrix)
 }
 void ShaderParam::set(C GpuMatrix &matrix, Int elm)
 {
-   if(_gpu_data_size>=SIZE(matrix)*(elm+1))
+   if(_gpu_data_size>=SIZE(GpuMatrix)*(elm+1))
    {
       setChanged();
       GpuMatrix *gpu=(GpuMatrix*)_data;
@@ -760,7 +760,7 @@ void ShaderParam::setConditional(C Rect &r)
    if(   dest!=r){setChanged(); dest=r;}
 }
 
-void ShaderParam::setConditional(C Vec &v, Int elm)
+void ShaderParam::setConditional(C Vec &v, UInt elm) // use unsigned to ignore negative indexes
 {
    if(_gpu_data_size>=SIZE(Vec4)*elm+SIZE(Vec)) // elements are aligned by 'Vec4' but we're writing only 'Vec'
    {
@@ -1250,7 +1250,7 @@ Bool ShaderGL::validate(ShaderFile &shader, Str *messages) // this function shou
                DYNAMIC_ASSERT(param->_full_translation.elms(), "ShaderParam has no translation");
                Int gpu_offset=param->_full_translation[0].gpu_offset+(param->_data-buffer->data);
                DYNAMIC_ASSERT(offset==gpu_offset, "Invalid ShaderParam gpu_offset");
-               Int size; switch(type)
+               UInt size; switch(type)
                {
                   case GL_UNSIGNED_INT: size=SIZE(UInt   ); break;
                   case GL_FLOAT       : size=SIZE(Flt    ); break;
@@ -1650,7 +1650,7 @@ Bool ShaderFile::load(C Str &name)
                   sp.optimize(); // optimize
                }else // verify if it's identical to previously created
                {
-                  Int cpu_data_size, gpu_data_size, elements; f.getMulti(cpu_data_size, gpu_data_size, elements);
+                  UInt cpu_data_size, gpu_data_size, elements; f.getMulti(cpu_data_size, gpu_data_size, elements);
                   Memt<ShaderParam::Translation> translation;
                   if(sp._changed      !=&sb.changed                               // check matching Constant Buffer
                   || sp._cpu_data_size!= cpu_data_size                            // check cpu size
