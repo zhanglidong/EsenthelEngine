@@ -555,9 +555,9 @@ void ShaderParam::set(C Vec *v, Int elms)
 {
    setChanged();
    Vec4 *gpu=(Vec4*)_data;
-   REP(Min(elms, (_gpu_data_size+SIZEU(Flt))/SIZEU(Vec4)))gpu[i].xyz=v[i]; // add SIZE(Flt) because '_gpu_data_size' may be SIZE(Vec) and div by SIZE(Vec4) would return 0 even though one Vec would fit (elements are aligned by 'Vec4' but we're writing only 'Vec')
+   REP(Min(elms, Signed((_gpu_data_size+SIZEU(Flt))/SIZEU(Vec4))))gpu[i].xyz=v[i]; // add SIZE(Flt) because '_gpu_data_size' may be SIZE(Vec) and div by SIZE(Vec4) would return 0 even though one Vec would fit (elements are aligned by 'Vec4' but we're writing only 'Vec')
 }
-void ShaderParam::set(C Vec4 *v, Int elms) {setChanged(); CopyFast(_data, v, Min(_gpu_data_size, SIZEU(*v)*elms));}
+void ShaderParam::set(C Vec4 *v, Int elms) {setChanged(); CopyFast(_data, v, Min(Signed(_gpu_data_size), SIZEI(*v)*elms));}
 
 void ShaderParam::set(C Matrix3 &matrix)
 {
