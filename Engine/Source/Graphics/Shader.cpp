@@ -718,7 +718,7 @@ void ShaderParam::set(C GpuMatrix &matrix)
       gpu=matrix;
    }
 }
-void ShaderParam::set(C GpuMatrix &matrix, Int elm)
+void ShaderParam::set(C GpuMatrix &matrix, UInt elm) // use unsigned to ignore negative indexes
 {
    if(_gpu_data_size>=SIZE(GpuMatrix)*(elm+1))
    {
@@ -730,7 +730,7 @@ void ShaderParam::set(C GpuMatrix &matrix, Int elm)
 void ShaderParam::set(C GpuMatrix *matrix, Int elms)
 {
    setChanged();
-   CopyFast(_data, matrix, Min(_gpu_data_size, SIZEU(*matrix)*elms));
+   CopyFast(_data, matrix, Min(Signed(_gpu_data_size), SIZEI(GpuMatrix)*elms));
 }
 
 void ShaderParam::setConditional(C Flt &f)
