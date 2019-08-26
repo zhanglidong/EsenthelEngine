@@ -8,7 +8,7 @@ void InitPre()
 /******************************************************************************/
 Bool Init()
 {
-   image.create2D(256, 256, IMAGE_B8G8R8A8, 1); // create 256X256 image, B8G8R8A8 type, 1 mipmap
+   image.create2D(256, 256, IMAGE_R8G8B8A8_SRGB, 1); // create 256X256 image, IMAGE_R8G8B8A8_SRGB type, 1 mipmap
 
    if(image.lock()) // in order to edit the texture we must first lock it
    {
