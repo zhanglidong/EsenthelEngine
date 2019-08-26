@@ -636,7 +636,27 @@ void ShaderParam::set(C Vec &v, UInt elm) // use unsigned to ignore negative ind
       gpu[elm].xyz=v;
    }
 }
-void ShaderParam::set(C Vec4 &v, Int elm)
+void ShaderParam::set(C Vec &a, C Vec &b)
+{
+   if(_gpu_data_size>=SIZE(Vec4)+SIZE(Vec)) // elements are aligned by 'Vec4'*2 but we're writing only 'Vec4'+'Vec'
+   {
+      setChanged();
+      Vec4 *gpu=(Vec4*)_data;
+      gpu[0].xyz=a;
+      gpu[1].xyz=b;
+   }
+}
+void ShaderParam::set(C Vec &a, C Vec &b, UInt elm) // use unsigned to ignore negative indexes
+{
+   if(_gpu_data_size>=(SIZE(Vec4)*2)*elm+(SIZE(Vec4)+SIZE(Vec))) // elements are aligned by 'Vec4'*2 but we're writing only 'Vec4'+'Vec'
+   {
+      setChanged();
+      Vec4 *gpu=(Vec4*)_data;
+      gpu[elm*2  ].xyz=a;
+      gpu[elm*2+1].xyz=b;
+   }
+}
+void ShaderParam::set(C Vec4 &v, UInt elm) // use unsigned to ignore negative indexes
 {
    if(_gpu_data_size>=SIZE(v)*(elm+1))
    {
@@ -766,6 +786,36 @@ void ShaderParam::setConditional(C Vec &v, UInt elm) // use unsigned to ignore n
    {
       Vec &dest=((Vec4*)_data)[elm].xyz;
       if(  dest!=v){setChanged(); dest=v;}
+   }
+}
+void ShaderParam::setConditional(C Vec &a, C Vec &b)
+{
+   if(_gpu_data_size>=SIZE(Vec4)+SIZE(Vec)) // elements are aligned by 'Vec4'*2 but we're writing only 'Vec4'+'Vec'
+   {
+      Vec4 *gpu=(Vec4*)_data;
+      Vec &A=gpu[0].xyz,
+          &B=gpu[1].xyz;
+      if(A!=a || B!=b)
+      {
+         setChanged();
+         A=a;
+         B=b;
+      }
+   }
+}
+void ShaderParam::setConditional(C Vec &a, C Vec &b, UInt elm) // use unsigned to ignore negative indexes
+{
+   if(_gpu_data_size>=(SIZE(Vec4)*2)*elm+(SIZE(Vec4)+SIZE(Vec))) // elements are aligned by 'Vec4'*2 but we're writing only 'Vec4'+'Vec'
+   {
+      Vec4 *gpu=(Vec4*)_data;
+      Vec &A=gpu[elm*2  ].xyz,
+          &B=gpu[elm*2+1].xyz;
+      if(A!=a || B!=b)
+      {
+         setChanged();
+         A=a;
+         B=b;
+      }
    }
 }
 
