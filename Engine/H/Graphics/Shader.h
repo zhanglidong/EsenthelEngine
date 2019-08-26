@@ -75,25 +75,29 @@ struct ShaderParam // Shader Parameter
             void set(  CPtr     data  , Int size); // set memory
    T1(TYPE) void set(C TYPE    &data            ) {set((CPtr)&data, SIZE(data));}
          #if EE_PRIVATE
-            void set    (C Vec       &v              , Int elm ); // set vector3D array element value
-            void set    (C Vec4      &v              , Int elm ); // set vector4D array element value
-            void set    (C Matrix    &matrix         , Int elm ); // set matrix   array element value
-            void fromMul(C Matrix    &a, C Matrix  &b          ); // set matrix                 value from "a*b"
-            void fromMul(C Matrix    &a, C MatrixM &b          ); // set matrix                 value from "a*b"
-            void fromMul(C MatrixM   &a, C MatrixM &b          ); // set matrix                 value from "a*b"
-            void fromMul(C Matrix    &a, C Matrix  &b, Int elm ); // set matrix   array element value from "a*b"
-            void fromMul(C Matrix    &a, C MatrixM &b, Int elm ); // set matrix   array element value from "a*b"
-            void fromMul(C MatrixM   &a, C MatrixM &b, Int elm ); // set matrix   array element value from "a*b"
-            void set    (C GpuMatrix &matrix                   ); // set matrix                 value
-            void set    (C GpuMatrix &matrix         , Int elm ); // set matrix   array element value
-            void set    (C GpuMatrix *matrix         , Int elms); // set matrix   array
+            void set    (C Vec       &v              , UInt elm ); // set vector3D   array element value
+            void set    (C Vec       &a, C Vec &b               ); // set vector3Dx2               value
+            void set    (C Vec       &a, C Vec &b    , UInt elm ); // set vector3Dx2 array element value
+            void set    (C Vec4      &v              , UInt elm ); // set vector4D   array element value
+            void set    (C Matrix    &matrix         , UInt elm ); // set matrix     array element value
+            void fromMul(C Matrix    &a, C Matrix  &b           ); // set matrix                   value from "a*b"
+            void fromMul(C Matrix    &a, C MatrixM &b           ); // set matrix                   value from "a*b"
+            void fromMul(C MatrixM   &a, C MatrixM &b           ); // set matrix                   value from "a*b"
+            void fromMul(C Matrix    &a, C Matrix  &b, UInt elm ); // set matrix     array element value from "a*b"
+            void fromMul(C Matrix    &a, C MatrixM &b, UInt elm ); // set matrix     array element value from "a*b"
+            void fromMul(C MatrixM   &a, C MatrixM &b, UInt elm ); // set matrix     array element value from "a*b"
+            void set    (C GpuMatrix &matrix                    ); // set matrix                   value
+            void set    (C GpuMatrix &matrix         , UInt elm ); // set matrix     array element value
+            void set    (C GpuMatrix *matrix         ,  Int elms); // set matrix     array
 
-            void setConditional(C Flt  &f         ); // set float                  value only if it's different
-            void setConditional(C Vec2 &v         ); // set vector2D               value only if it's different
-            void setConditional(C Vec  &v         ); // set vector3D               value only if it's different
-            void setConditional(C Vec4 &v         ); // set vector4D               value only if it's different
-            void setConditional(C Vec  &v, Int elm); // set vector3D array element value only if it's different
-            void setConditional(C Rect &r         ); // set vector4D               value only if it's different
+            void setConditional(C Flt  &f                    ); // set float                    value only if it's different
+            void setConditional(C Vec2 &v                    ); // set vector2D                 value only if it's different
+            void setConditional(C Vec  &v                    ); // set vector3D                 value only if it's different
+            void setConditional(C Vec4 &v                    ); // set vector4D                 value only if it's different
+            void setConditional(C Vec  &v,           UInt elm); // set vector3D   array element value only if it's different
+            void setConditional(C Vec  &a, C Vec &b          ); // set vector3Dx2               value only if it's different
+            void setConditional(C Vec  &a, C Vec &b, UInt elm); // set vector3Dx2 array element value only if it's different
+            void setConditional(C Rect &r                    ); // set vector4D                 value only if it's different
 
             void setSafe(C Vec4 &v); // set from vector4D value, but limit the actual size copied based on 'ShaderParam' size
          #endif
@@ -112,7 +116,7 @@ struct ShaderParam // Shader Parameter
 
    Byte *_data;
    Bool *_changed;
-   Int   _cpu_data_size, _gpu_data_size, _elements;
+   UInt  _cpu_data_size, _gpu_data_size, _elements;
    Mems<Translation> _full_translation, _optimized_translation;
 
    Bool is()C {return _cpu_data_size>0;}
