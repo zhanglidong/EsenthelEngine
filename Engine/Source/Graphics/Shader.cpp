@@ -532,7 +532,8 @@ void ShaderParam::initAsElement(ShaderParam &parent, Int index) // this is calle
    }
 }
 /******************************************************************************/
-void ShaderParamBool::set           (Bool b) {                                         setChanged(); *(U32*)_data=b;}
+// can write small types without checking for size, because all 'ShaderParam' data are allocated with MIN_SHADER_PARAM_DATA_SIZE=SIZE(Vec4) padding
+void ShaderParamBool::set           (Bool b) {                                         setChanged(); *(U32*)_data=b; }
 void ShaderParamBool::setConditional(Bool b) {U32 &dest=*(U32*)_data; if(dest!=(U32)b){setChanged();         dest=b;}}
 
 void ShaderParam::set(  Bool   b    ) {setChanged(); *(Flt *)_data=b;}
@@ -561,7 +562,7 @@ void ShaderParam::set(C Vec4 *v, Int elms) {setChanged(); CopyFast(_data, v, Min
 
 void ShaderParam::set(C Matrix3 &matrix)
 {
-   if(_gpu_data_size>=SIZE(Vec4)+SIZE(Vec4)+SIZE(Vec)) // do not test for 'SIZE(Matrix)' !! because '_gpu_data_size' may be SIZE(Matrix) minus last Flt, because it's not really used (this happens on DX10+)
+   if(_gpu_data_size>=SIZE(Vec4)+SIZE(Vec4)+SIZE(Vec)) // do not test for 'SIZE(GpuMatrix)' !! because '_gpu_data_size' may be SIZE(GpuMatrix) minus last Flt, because it's not really used (this happens on DX10+)
    {
       setChanged();
       Vec4 *gpu=(Vec4*)_data;
@@ -629,19 +630,20 @@ void ShaderParam::set(CPtr data, Int size) // !! Warning: 'size' is ignored here
 
 void ShaderParam::set(C Vec &v, UInt elm) // use unsigned to ignore negative indexes
 {
-   if(_gpu_data_size>=SIZE(Vec4)*elm+SIZE(Vec)) // elements are aligned by 'Vec4' but we're writing only 'Vec'
+   UInt offset=SIZE(Vec4)*elm; // elements are aligned by 'Vec4'
+   if(_gpu_data_size>=offset+SIZE(Vec)) // we're writing only 'Vec'
    {
       setChanged();
-      Vec4 *gpu=(Vec4*)_data;
-      gpu[elm].xyz=v;
+      Vec *gpu=(Vec*)(_data+offset);
+     *gpu=v;
    }
 }
 void ShaderParam::set(C Vec &a, C Vec &b)
 {
-   if(_gpu_data_size>=SIZE(Vec4)+SIZE(Vec)) // elements are aligned by 'Vec4'*2 but we're writing only 'Vec4'+'Vec'
+   if(_gpu_data_size>=SIZE(Vec4)+SIZE(Vec)) // elements are aligned by 'Vec4' but we're writing only 'Vec4'+'Vec'
    {
       setChanged();
-      Vec4 *gpu=(Vec4*)_data;
+      Vec4 *gpu=(Vec4*)_data; // elements are aligned by 'Vec4'
       gpu[0].xyz=a;
       gpu[1].xyz=b;
    }
@@ -652,26 +654,28 @@ void ShaderParam::set(C Vec &a, C Vec &b, UInt elm) // use unsigned to ignore ne
    if(_gpu_data_size>=offset+(SIZE(Vec4)+SIZE(Vec))) // we're writing only 'Vec4'+'Vec'
    {
       setChanged();
-      Vec4 *gpu=(Vec4*)(_data+offset);
+      Vec4 *gpu=(Vec4*)(_data+offset); // elements are aligned by 'Vec4'
       gpu[0].xyz=a;
       gpu[1].xyz=b;
    }
 }
 void ShaderParam::set(C Vec4 &v, UInt elm) // use unsigned to ignore negative indexes
 {
-   if(_gpu_data_size>=SIZE(v)*(elm+1))
+   UInt offset=SIZE(Vec4)*elm; // elements are aligned by 'Vec4'
+   if(_gpu_data_size>=offset+SIZE(Vec4))
    {
       setChanged();
-      Vec4 *gpu=(Vec4*)_data;
-      gpu[elm]=v;
+      Vec4 *gpu=(Vec4*)(_data+offset);
+     *gpu=v;
    }
 }
 void ShaderParam::set(C Matrix &matrix, UInt elm) // use unsigned to ignore negative indexes
 {
-   if(_gpu_data_size>=SIZE(GpuMatrix)*(elm+1))
+   UInt offset=SIZE(GpuMatrix)*elm;
+   if(_gpu_data_size>=offset+SIZE(GpuMatrix))
    {
       setChanged();
-      Vec4 *gpu=(Vec4*)&(((GpuMatrix*)_data)[elm]);
+      Vec4 *gpu=(Vec4*)(_data+offset);
       gpu[0].set(matrix.x.x, matrix.y.x, matrix.z.x, matrix.pos.x);
       gpu[1].set(matrix.x.y, matrix.y.y, matrix.z.y, matrix.pos.y);
       gpu[2].set(matrix.x.z, matrix.y.z, matrix.z.z, matrix.pos.z);
@@ -704,29 +708,32 @@ void ShaderParam::fromMul(C MatrixM &a, C MatrixM &b)
 }
 void ShaderParam::fromMul(C Matrix &a, C Matrix &b, UInt elm) // use unsigned to ignore negative indexes
 {
-   if(_gpu_data_size>=SIZE(GpuMatrix)*(elm+1))
+   UInt offset=SIZE(GpuMatrix)*elm;
+   if(_gpu_data_size>=offset+SIZE(GpuMatrix))
    {
       setChanged();
-      GpuMatrix *gpu=(GpuMatrix*)_data;
-      gpu[elm].fromMul(a, b);
+      GpuMatrix *gpu=(GpuMatrix*)(_data+offset);
+      gpu->fromMul(a, b);
    }
 }
 void ShaderParam::fromMul(C Matrix &a, C MatrixM &b, UInt elm) // use unsigned to ignore negative indexes
 {
-   if(_gpu_data_size>=SIZE(GpuMatrix)*(elm+1))
+   UInt offset=SIZE(GpuMatrix)*elm;
+   if(_gpu_data_size>=offset+SIZE(GpuMatrix))
    {
       setChanged();
-      GpuMatrix *gpu=(GpuMatrix*)_data;
-      gpu[elm].fromMul(a, b);
+      GpuMatrix *gpu=(GpuMatrix*)(_data+offset);
+      gpu->fromMul(a, b);
    }
 }
 void ShaderParam::fromMul(C MatrixM &a, C MatrixM &b, UInt elm) // use unsigned to ignore negative indexes
 {
-   if(_gpu_data_size>=SIZE(GpuMatrix)*(elm+1))
+   UInt offset=SIZE(GpuMatrix)*elm;
+   if(_gpu_data_size>=offset+SIZE(GpuMatrix))
    {
       setChanged();
-      GpuMatrix *gpu=(GpuMatrix*)_data;
-      gpu[elm].fromMul(a, b);
+      GpuMatrix *gpu=(GpuMatrix*)(_data+offset);
+      gpu->fromMul(a, b);
    }
 }
 
@@ -741,11 +748,12 @@ void ShaderParam::set(C GpuMatrix &matrix)
 }
 void ShaderParam::set(C GpuMatrix &matrix, UInt elm) // use unsigned to ignore negative indexes
 {
-   if(_gpu_data_size>=SIZE(GpuMatrix)*(elm+1))
+   UInt offset=SIZE(GpuMatrix)*elm;
+   if(_gpu_data_size>=offset+SIZE(GpuMatrix))
    {
       setChanged();
-      GpuMatrix *gpu=(GpuMatrix*)_data;
-      gpu[elm]=matrix;
+      GpuMatrix *gpu=(GpuMatrix*)(_data+offset);
+     *gpu=matrix;
    }
 }
 void ShaderParam::set(C GpuMatrix *matrix, Int elms)
@@ -783,9 +791,10 @@ void ShaderParam::setConditional(C Rect &r)
 
 void ShaderParam::setConditional(C Vec &v, UInt elm) // use unsigned to ignore negative indexes
 {
-   if(_gpu_data_size>=SIZE(Vec4)*elm+SIZE(Vec)) // elements are aligned by 'Vec4' but we're writing only 'Vec'
+   UInt offset=SIZE(Vec4)*elm; // elements are aligned by 'Vec4'
+   if(_gpu_data_size>=offset+SIZE(Vec)) // we're writing only 'Vec'
    {
-      Vec &dest=((Vec4*)_data)[elm].xyz;
+      Vec &dest=*(Vec*)(_data+offset);
       if(  dest!=v){setChanged(); dest=v;}
    }
 }
