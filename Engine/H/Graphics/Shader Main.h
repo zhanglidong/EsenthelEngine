@@ -56,7 +56,6 @@ struct MainShaderClass
       *DepthWeightScale=&Dummy,
 
       *CamAngVel =&Dummy,
-      *ObjAngVel =&Dummy,
       *ObjVel    =&Dummy,
       *ViewMatrix=&Dummy,
       *CamMatrix =&Dummy,

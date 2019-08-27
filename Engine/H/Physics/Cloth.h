@@ -116,12 +116,12 @@ struct Cloth // Physical Cloth
    Cloth& setCollisionCapsules(C MemPtr<VecI2> &capsules); // set capsules that collide with this Cloth (up to 32 capsules are supported), they are specified using indexes for both ends of capsule balls from the 'balls' specified using 'setCollisionBalls' (they must be set prior to calling 'setCollisionCapsules')
 
    // draw
-   void drawSkinned        (C AnimatedSkeleton &anim_skel                      )C; // draw   normally skinned   cloth part using 'anim_skel', doesn't       use  Frustum culling, this can be called only in RM_PREPARE
-   void drawSkinnedShadow  (C AnimatedSkeleton &anim_skel                      )C; // draw   normally skinned   cloth part using 'anim_skel', doesn't       use  Frustum culling, this can be called only in RM_SHADOW
-   void drawSkinnedOutline (C AnimatedSkeleton &anim_skel, C Color &color      )C; // draw   normally skinned   cloth part using 'anim_skel', doesn't       use  Frustum culling, this can be called only in RM_OUTLINE in order to outline the mesh
-   void drawPhysical       (                               C Vec   &vel=VecZero)C; // draw physically simulated cloth part                  , automatically uses Frustum culling, this can be called only in RM_PREPARE
-   void drawPhysicalShadow (                                                   )C; // draw physically simulated cloth part                  , automatically uses Frustum culling, this can be called only in RM_SHADOW
-   void drawPhysicalOutline(                               C Color &color      )C; // draw physically simulated cloth part                  , automatically uses Frustum culling, this can be called only in RM_OUTLINE in order to outline the mesh
+   void drawSkinned        (C AnimatedSkeleton &anim_skel                                              )C; // draw   normally skinned   cloth part using 'anim_skel', doesn't       use  Frustum culling, this can be called only in RM_PREPARE
+   void drawSkinnedShadow  (C AnimatedSkeleton &anim_skel                                              )C; // draw   normally skinned   cloth part using 'anim_skel', doesn't       use  Frustum culling, this can be called only in RM_SHADOW
+   void drawSkinnedOutline (C AnimatedSkeleton &anim_skel, C Color &color                              )C; // draw   normally skinned   cloth part using 'anim_skel', doesn't       use  Frustum culling, this can be called only in RM_OUTLINE in order to outline the mesh
+   void drawPhysical       (                               C Vec   &vel=VecZero, C Vec &ang_vel=VecZero)C; // draw physically simulated cloth part                  , automatically uses Frustum culling, this can be called only in RM_PREPARE
+   void drawPhysicalShadow (                                                                           )C; // draw physically simulated cloth part                  , automatically uses Frustum culling, this can be called only in RM_SHADOW
+   void drawPhysicalOutline(                               C Color &color                              )C; // draw physically simulated cloth part                  , automatically uses Frustum culling, this can be called only in RM_OUTLINE in order to outline the mesh
 
   ~Cloth() {del();}
    Cloth();

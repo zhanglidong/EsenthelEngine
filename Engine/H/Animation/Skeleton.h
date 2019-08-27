@@ -259,9 +259,9 @@ struct  AnimatedSkeletonBone // Bone of an Animated Skeleton
             scale; // scale    factor
 
    // these parameters may be accessed after animation and matrix updates (using 'updateMatrix' method), they are in world space:
- C Vec   & center()C {return _center;} // bone center position, this parameter may be inaccurate for bones which don't have BONE_RAGDOLL flag enabled
- C Vec   & vel   ()C {return _vel   ;} // bone velocity       , this parameter may be inaccurate for bones which don't have BONE_RAGDOLL flag enabled
- C Matrix& matrix()C {return _matrix;} // this is the transformation matrix, which transforms source bone 'SkelBone' and source 'Mesh' into their final positions (source_data * matrix = final_world_space_position)
+ C Vec   &    vel()C {return     _vel;} // 'matrix' transformation         velocity, this parameter may be inaccurate for bones which don't have BONE_RAGDOLL flag enabled
+ C Vec   & angVel()C {return _ang_vel;} // 'matrix' transformation angular velocity, this parameter may be inaccurate for bones which don't have BONE_RAGDOLL flag enabled
+ C Matrix& matrix()C {return _matrix ;} // this is the transformation matrix, which transforms source bone 'SkelBone' and source 'Mesh' into their final positions (source_data * matrix = final_world_space_position)
 
    // operations
    void clear(         ); //           clear 'orn rot pos scale'
@@ -270,7 +270,7 @@ struct  AnimatedSkeletonBone // Bone of an Animated Skeleton
    void forceMatrix(C Matrix &matrix); // force usage of custom transformation 'matrix' for this bone, if used then the bone will ignore its transformations from the animations
 
 #if EE_PRIVATE
-   void operator+=(C Vec &d) {_center+=d; _matrix+=d;}
+   void operator+=(C Vec &d) {_matrix+=d; _matrix_prev+=d;}
    void zero() {Zero(T);}
 #endif
 
@@ -278,8 +278,8 @@ struct  AnimatedSkeletonBone // Bone of an Animated Skeleton
 private:
 #endif
    Bool   _disabled, _disabled_children, _force_custom, _world_space_transform;
-   Vec    _center, _vel, _fur_vel;
-   Matrix _matrix, _force_custom_matrix, _world_space_transform_matrix;
+   Vec    _vel, _ang_vel, _fur_vel;
+   Matrix _matrix, _matrix_prev, _force_custom_matrix, _world_space_transform_matrix;
 };
 /******************************************************************************/
 typedef AnimatedSkeleton AnimSkel;
@@ -304,7 +304,8 @@ struct  AnimatedSkeleton // Animated Skeleton - used for animating meshes
  C AnimSkelBone& boneRoot(Int i)C {return ConstCast(T).boneRoot(i)           ;} // get i-th transformed bone or root if index is out of range
  C Vec   &       pos     (     )C {return root.matrix().pos                  ;} // get root position
  C Matrix&       matrix  (     )C {return root.matrix()                      ;} // get root matrix
- C Vec   &       vel     (     )C {return root.vel   ()                      ;} // get root velocity
+ C Vec   &          vel  (     )C {return root.   vel()                      ;} // get root         velocity
+ C Vec   &       angVel  (     )C {return root.angVel()                      ;} // get root angular velocity
 
    SkelAnim*     findSkelAnim(C Str    &name                                  )C; // find skeleton    animation, null on fail
    SkelAnim*     findSkelAnim(C UID    &id                                    )C; // find skeleton    animation, null on fail
@@ -329,7 +330,7 @@ struct  AnimatedSkeleton // Animated Skeleton - used for animating meshes
    AnimatedSkeleton& disable        (Int i, Bool disable); // disables/enables animation of i-th bone
    AnimatedSkeleton& disableChildren(Int i, Bool disable); // disables/enables animation of i-th bone's children
  
-   AnimatedSkeleton& vel(C Vec &vel); // force custom velocity to root and all bones
+   AnimatedSkeleton& vel(C Vec &vel, C Vec &ang_vel=VecZero); // force custom velocity to root and all bones
 
    // animate
       // prepare
@@ -384,7 +385,6 @@ struct  AnimatedSkeleton // Animated Skeleton - used for animating meshes
 #if !EE_PRIVATE
 private:
 #endif
-   Bool      _updated_vel;
    Flt       _scale;
  C Skeleton *_skeleton;
    struct Instance

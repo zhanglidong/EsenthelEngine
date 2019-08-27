@@ -51,8 +51,8 @@ void AnimatedSkeleton::zero()
    root.zero();
 
   _updated_vel=false;
-  _scale      =0;
-  _skeleton   =null;
+  _scale   =0;
+  _skeleton=null;
 }
 AnimatedSkeleton::AnimatedSkeleton() {zero();}
 AnimatedSkeleton& AnimatedSkeleton::del()
@@ -63,11 +63,13 @@ AnimatedSkeleton& AnimatedSkeleton::del()
 }
 AnimatedSkeleton& AnimatedSkeleton::create(C Skeleton *skeleton, Flt scale, C Matrix &initial_matrix) // !! 'initial_matrix' can be 'root._matrix' !!
 {
-     _updated_vel=false;
+   Matrix temp=initial_matrix; // copy in case 'initial_matrix' belongs to this (for example 'root._matrix' and may get destroyed)
+   temp.orn().scale(scale); // apply custom 'scale'
+
       T._scale   =scale;
    if(T._skeleton=skeleton)
    {
-      bones.setNum(skeleton->bones.elms()); REPAO(bones).zero();
+      bones.setNum(skeleton->bones.elms()); REPA (bones){AnimSkelBone &bone=bones[i]; bone.zero(); bone._matrix_prev=bone._matrix=temp;}
       slots.setNum(skeleton->slots.elms()); REPAO(slots).zero();
    }else
    {
@@ -79,11 +81,8 @@ AnimatedSkeleton& AnimatedSkeleton::create(C Skeleton *skeleton, Flt scale, C Ma
    fur_gravity  =-1;
    fur_vel_scale=-0.75f;
 
-   Matrix temp=initial_matrix; // copy in case 'initial_matrix' is 'root._matrix'
    root.zero();
-   root._center=temp.pos;
-   root._matrix=temp;
-   root._matrix.normalize(scale);
+   root._matrix_prev=root._matrix=temp;
 
    return T;
 }
@@ -300,7 +299,7 @@ static void UpdateRootBoneMatrix(AnimatedSkeleton &anim_skel, C Matrix &body_mat
       bone._matrix.setScale(anim_skel._scale).mul(body_matrix);
    #else
       bone._matrix=body_matrix;
-      bone._matrix.orn().scale(anim_skel._scale);
+      if(anim_skel._scale!=1)bone._matrix.orn().scale(anim_skel._scale);
    #endif
    }else
    {
@@ -587,15 +586,17 @@ static Vec FurVel(C Vec &vel, Flt fur_vel_scale, Flt fur_gravity)
    Vec    fur_vel=vel*fur_vel_scale; fur_vel.y+=fur_gravity; fur_vel.clipLength(0.92f);
    return fur_vel;
 }
-AnimatedSkeleton& AnimatedSkeleton::vel(C Vec &vel)
+AnimatedSkeleton& AnimatedSkeleton::vel(C Vec &vel, C Vec &ang_vel)
 {
    Vec fur_vel=FurVel(vel, fur_vel_scale, fur_gravity);
-   root._vel    =    vel;
+   root.    _vel=    vel;
+   root._ang_vel=ang_vel;
    root._fur_vel=fur_vel;
    REPA(bones)
    {
       AnimSkelBone &bone=bones[i];
-      bone._vel    =    vel;
+      bone.    _vel=    vel;
+      bone._ang_vel=ang_vel;
       bone._fur_vel=fur_vel;
    }
    return T;

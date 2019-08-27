@@ -4,9 +4,6 @@
 // INSTANCE
 /******************************************************************************/
 #define INSTANCE_PTR 1 // if store 'MeshPart.Variation' as pointer or index (pointer uses 8 bytes of memory, index 4 bytes, pointer doesn't need 'if' in the draw call, while index needs it)
-
-#define PER_INSTANCE_VEL     1
-#define PER_INSTANCE_ANG_VEL 0 // TODO: add support for this
 /******************************************************************************/
 extern Memc<Material::MaterialShader> MaterialShaders;
 
@@ -74,7 +71,6 @@ struct SolidShaderMaterialMeshInstance
    Byte                     stencil_value;
 
    SolidShaderMaterialMeshInstance& set();
-   SolidShaderMaterialMeshInstance& setSkipVel();
    SolidShaderMaterialMeshInstance& set(C Vec &vel, C Vec &ang_vel_shader);
 };
 extern Memc<SolidShaderMaterialMeshInstance> SolidShaderMaterialMeshInstances;
@@ -315,7 +311,7 @@ struct ClothInstance
  C Cloth      *cloth;
    ShaderBase *shader;
  C Material   *material;
-   Vec         vel;
+   Vec         vel, ang_vel_shader;
    Color       highlight;
 
 #if COUNT_MATERIAL_USAGE
@@ -325,7 +321,7 @@ struct ClothInstance
 struct ClothInstances : Memc<ClothInstance>
 {
    void add(C Cloth &cloth, Shader &shader, C Material &material);
-   void add(C Cloth &cloth, Shader &shader, C Material &material, C Vec &vel);
+   void add(C Cloth &cloth, Shader &shader, C Material &material, C Vec &vel, C Vec &ang_vel_shader);
    void add(C Cloth &cloth, FRST   &frst  , C Material &material);
 };
 /******************************************************************************/
