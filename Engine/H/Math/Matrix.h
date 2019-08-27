@@ -878,11 +878,9 @@ void SetFastMatrix    (                      ); // set object matrix to 'MatrixI
 void SetFastMatrix    (C Matrix  &matrix     ); // set object matrix
 void SetFastMatrix    (C MatrixM &matrix     ); // set object matrix
 
-void SetFastVel   (Byte i, C Vec &vel           ); // set i-th object         velocity
-void SetFastVel   (        C Vec &vel           ); // set      object         velocity
-void SetFastVel   (                             ); // set      object         velocity to 'VecZero'
-void SetFastAngVel(        C Vec &ang_vel_shader); // set      object angular velocity
-void SetFastAngVel(                             ); // set      object angular velocity to 'VecZero'
+void SetFastVel(                                         ); // set      object velocity to 'VecZero'
+void SetFastVel(        C Vec &vel, C Vec &ang_vel_shader); // set      object velocity
+void SetFastVel(Byte i, C Vec &vel, C Vec &ang_vel_shader); // set i-th object velocity
 
 void SetOneMatrix(                 ); // set object matrix to 'MatrixIdentity' and number of used matrixes to 1
 void SetOneMatrix(C Matrix  &matrix); // set object matrix                     and number of used matrixes to 1
