@@ -240,35 +240,22 @@ static INLINE void DrawSolidInstances(Bool forward) // !! this function should b
 
             for(SolidShaderMaterialMeshInstance *instance=&SolidShaderMaterialMeshInstances[shader_material_mesh->first_instance]; ; )
             {
-               SetViewMatrix        (instance->view_matrix         ); Sh.ViewMatrix->setChanged();
-               SetFastVel           (instance->vel                 );
-               SetFastAngVel        (instance->ang_vel_shader      );
-              _SetHighlight         (instance->highlight           );
-               SetShaderParamChanges(instance->shader_param_changes);
-               D.stencilRef         (instance->stencil_value       );
+               SetViewMatrix        (instance->view_matrix                  ); Sh.ViewMatrix->setChanged();
+               SetFastVel           (instance->vel, instance->ang_vel_shader);
+              _SetHighlight         (instance->highlight                    );
+               SetShaderParamChanges(instance->shader_param_changes         );
+               D.stencilRef         (instance->stencil_value                );
                Int instances=1;
                if( instancing_mesh)for(; instance->next_instance>=0; )
                {
                   SolidShaderMaterialMeshInstance &next=SolidShaderMaterialMeshInstances[instance->next_instance];
                   if(next.highlight           ==instance->highlight
                   && next.shader_param_changes==instance->shader_param_changes
-                  && next.stencil_value       ==instance->stencil_value
-               #if !PER_INSTANCE_VEL
-                  && next.vel==instance->vel
-               #endif
-               #if !PER_INSTANCE_ANG_VEL
-                  && next.ang_vel_shader==instance->ang_vel_shader
-               #endif
-                  )
+                  && next.stencil_value       ==instance->stencil_value)
                   {
                      instance=&next;
                      SetViewMatrix(next.view_matrix, instances);
-                  #if PER_INSTANCE_VEL
-                     SetFastVel(instances, next.vel);
-                  #endif
-                  #if PER_INSTANCE_ANG_VEL
-                     not supported
-                  #endif
+                     SetFastVel(instances, next.vel, next.ang_vel_shader);
                      if(++instances>=MAX_MATRIX)break;
                   }else break;
                }
@@ -328,9 +315,7 @@ static INLINE void DrawSolidInstances(Bool forward) // !! this function should b
    // cloth
    if(SolidClothInstances.elms())
    {
-      SetOneMatrix ();
-      SetFastAngVel();
-
+      SetOneMatrix();
       {
          SetDefaultVAO(); D.vf(VI._vf3D_cloth.vf); // OpenGL requires setting 1)VAO 2)VB+IB 3)VF
          FREPA(SolidClothInstances)
@@ -338,7 +323,7 @@ static INLINE void DrawSolidInstances(Bool forward) // !! this function should b
             ClothInstance &ci=SolidClothInstances[i];
             Shader   &shader  = ci.shader  ->getShader(forward);
           C Material &material=*ci.material; material.setSolid(); D.cull(material.cull);
-            SetFastVel  (ci.vel      );
+            SetFastVel  (ci.vel, ci.ang_vel_shader);
            _SetHighlight(ci.highlight);
             shader.begin(); ci.cloth->_drawPhysical();
          }
@@ -387,12 +372,11 @@ static INLINE void DrawSolidInstances(Bool forward) // !! this function should b
 
             for(SolidShaderMaterialMeshInstance *instance=&SolidShaderMaterialMeshInstances[shader_material_mesh->first_instance]; ; )
             {
-               SetViewMatrix        (instance->view_matrix         ); Sh.ViewMatrix->setChanged();
-               SetFastVel           (instance->vel                 );
-               SetFastAngVel        (instance->ang_vel_shader      );
-              _SetHighlight         (instance->highlight           );
-               SetShaderParamChanges(instance->shader_param_changes);
-               D.stencilRef         (instance->stencil_value       );
+               SetViewMatrix        (instance->view_matrix                  ); Sh.ViewMatrix->setChanged();
+               SetFastVel           (instance->vel, instance->ang_vel_shader);
+              _SetHighlight         (instance->highlight                    );
+               SetShaderParamChanges(instance->shader_param_changes         );
+               D.stencilRef         (instance->stencil_value                );
                Int instances=1;
             #if MULTI_MATERIAL_INSTANCING
                if( instancing_mesh)for(; instance->next_instance>=0; )
@@ -400,23 +384,11 @@ static INLINE void DrawSolidInstances(Bool forward) // !! this function should b
                   SolidShaderMaterialMeshInstance &next=SolidShaderMaterialMeshInstances[instance->next_instance];
                   if(next.highlight           ==instance->highlight
                   && next.shader_param_changes==instance->shader_param_changes
-                  && next.stencil_value       ==instance->stencil_value
-               #if !PER_INSTANCE_VEL
-                  && next.vel==instance->vel
-               #endif
-               #if !PER_INSTANCE_ANG_VEL
-                  && next.ang_vel_shader==instance->ang_vel_shader
-               #endif
-                  )
+                  && next.stencil_value       ==instance->stencil_value)
                   {
                      instance=&next;
                      SetViewMatrix(next.view_matrix, instances);
-                  #if PER_INSTANCE_VEL
-                     SetFastVel(instances, next.vel);
-                  #endif
-                  #if PER_INSTANCE_ANG_VEL
-                     not supported
-                  #endif
+                     SetFastVel(instances, next.vel, next.ang_vel_shader);
                      if(++instances>=MAX_MATRIX)break;
                   }else break;
                }
@@ -812,8 +784,7 @@ void DrawBlendInstances() // !! this function should be safe to call 2 times in 
             D.stencil            (object->s.stencil_mode);
             SetShaderParamChanges(object->s.shader_param_changes);
             SetViewMatrix        (object->s.view_matrix); Sh.ViewMatrix->setChanged();
-            SetFastVel           (object->s.vel);
-            SetFastAngVel        (object->s.ang_vel_shader);
+            SetFastVel           (object->s.vel, object->s.ang_vel_shader);
             const Bool instancing_mesh=!(render.flag()&VTX_SKIN); // can do instancing only if mesh doesn't have skinning (otherwise a skinned shader is set which does not use instancing)
             Int instances=1;
             for(; i; ) // if there's next one
@@ -827,16 +798,10 @@ void DrawBlendInstances() // !! this function should be safe to call 2 times in 
                   i--; // we will process this instance
                   if(next.s.material==&material) // same material
                   {
-                     if(&next.s.mesh->render==&render
-                  #if !PER_INSTANCE_VEL
-                     && next.s.vel==object->s.vel
-                  #endif
-                  #if !PER_INSTANCE_ANG_VEL
-                     && next.s.ang_vel_shader==object->s.ang_vel_shader
-                  #endif
-                     && next.s.highlight==Highlight
-                     && next.s.shader_param_changes==LastChanges
-                     && next.s.stencil_mode==D._stencil)
+                     if(&next.s.mesh->render        ==&render
+                     &&  next.s.highlight           ==Highlight
+                     &&  next.s.shader_param_changes==LastChanges
+                     &&  next.s.stencil_mode        ==D._stencil)
                      {
                         if(instancing_mesh)
                         {
@@ -846,19 +811,13 @@ void DrawBlendInstances() // !! this function should be safe to call 2 times in 
                               instances=0; Sh.ViewMatrix->setChanged(); // reset counter and mark as modified
                            }
                            SetViewMatrix(next.s.view_matrix, instances);
-                        #if PER_INSTANCE_VEL
-                           SetFastVel(instances, next.s.vel);
-                        #endif
-                        #if PER_INSTANCE_ANG_VEL
-                           not supported
-                        #endif
+                           SetFastVel(instances, next.s.vel, next.s.ang_vel_shader);
                            instances++;
                         }else
                         {
                            SetMatrixCount(); shader.commit(); render.draw(); // draw what we have
                            SetViewMatrix (next.s.view_matrix); Sh.ViewMatrix->setChanged();
-                           SetFastVel    (next.s.vel);
-                           SetFastAngVel (next.s.ang_vel_shader);
+                           SetFastVel    (next.s.vel, next.s.ang_vel_shader);
                         }
                      }else // we have the same shader/material, but different mesh/params
                      {
