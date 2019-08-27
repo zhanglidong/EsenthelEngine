@@ -315,7 +315,6 @@ void MainShaderClass::getTechniques()
    DepthWeightScale=GetShaderParam("DepthWeightScale");
 
    CamAngVel =GetShaderParam("CamAngVel" );
-   ObjAngVel =GetShaderParam("ObjAngVel" );
    ObjVel    =GetShaderParam("ObjVel"    );
    ViewMatrix=GetShaderParam("ViewMatrix");
    CamMatrix =GetShaderParam("CamMatrix" );

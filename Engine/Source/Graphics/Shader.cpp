@@ -1892,11 +1892,11 @@ void SetMatrixCount(Int num)
    #if ALLOW_PARTIAL_BUFFERS
       if(D3DC1)
       {
-         SBObjMatrix->buffer.size=SIZE(GpuMatrix)*Matrixes;
-         SBObjVel   ->buffer.size=SIZE(Vec4     )*Matrixes; // #VelAngVel
+         SBObjMatrix->buffer.size= SIZE(GpuMatrix)   *Matrixes;
+         SBObjVel   ->buffer.size=(SIZE(Vec4     )*2)*Matrixes; // #VelAngVel
          Int m16=Ceil16(Matrixes*3);
       #if DEBUG
-         static Int old_vel_count; Int vel_count=Matrixes*1; if(MatrixesPart!=m16)old_vel_count=Ceil16(vel_count);else if(vel_count>old_vel_count)Exit("Need to test vel count separately"); // check if when not making a change below, we need more constants for vel buffer than what was set last time, currently keep *1 but replace with *2 when merging with angular velocities #VelAngVel
+         static Int old_vel_count; Int vel_count=Matrixes*2; if(MatrixesPart!=m16)old_vel_count=Ceil16(vel_count);else if(vel_count>old_vel_count)Exit("Need to test vel count separately"); // check if when not making a change below, we need more constants for vel buffer than what was set last time #VelAngVel
       #endif
          if(MatrixesPart!=m16)
          {
@@ -1904,7 +1904,7 @@ void SetMatrixCount(Int num)
             // Warning: code below does not set the cached buffers as 'bind' does, as it's not needed, because those buffers have constant bind index
             ASSERT(SBI_OBJ_VEL==SBI_OBJ_MATRIX+1); // can do this only if they're next to each other
             UInt        first[]={0, 0}, // must be provided or DX will fail
-                          num[]={Ceil16(Matrixes*3), Ceil16(Matrixes*1)}; // #VelAngVel
+                          num[]={Ceil16(Matrixes*3), Ceil16(Matrixes*2)}; // #VelAngVel
             ID3D11Buffer *buf[]={SBObjMatrix->buffer.buffer, SBObjVel->buffer.buffer};
             D3DC1->VSSetConstantBuffers1(SBI_OBJ_MATRIX, 2, buf, first, num);
             D3DC1->HSSetConstantBuffers1(SBI_OBJ_MATRIX, 2, buf, first, num);
@@ -1935,8 +1935,8 @@ void SetMatrixCount(Int num)
       }
    #elif GL
       // will affect 'ShaderBuffer::update()'
-      SBObjMatrix->buffer.size=SIZE(GpuMatrix)*Matrixes;
-      SBObjVel   ->buffer.size=SIZE(Vec4     )*Matrixes; // #VelAngVel
+      SBObjMatrix->buffer.size= SIZE(GpuMatrix)   *Matrixes;
+      SBObjVel   ->buffer.size=(SIZE(Vec4     )*2)*Matrixes; // #VelAngVel
    #endif
    }
 }
@@ -1958,13 +1958,13 @@ void InitMatrix()
 {
    ViewMatrix=Sh.ViewMatrix->asGpuMatrix();
 
-   DYNAMIC_ASSERT(Sh.ViewMatrix->_cpu_data_size==SIZE(GpuMatrix)*MAX_MATRIX, "Unexpected size of ViewMatrix");
-   DYNAMIC_ASSERT(Sh.ObjVel    ->_cpu_data_size==SIZE(Vec      )*MAX_MATRIX, "Unexpected size of ObjVel"); // #VelAngVel
-   DYNAMIC_ASSERT(Sh.FurVel    ->_cpu_data_size==SIZE(Vec      )*MAX_MATRIX, "Unexpected size of FurVel");
+   DYNAMIC_ASSERT(Sh.ViewMatrix->_cpu_data_size==SIZE(GpuMatrix)*  MAX_MATRIX, "Unexpected size of ViewMatrix");
+   DYNAMIC_ASSERT(Sh.ObjVel    ->_cpu_data_size==SIZE(Vec      )*2*MAX_MATRIX, "Unexpected size of ObjVel"); // #VelAngVel
+   DYNAMIC_ASSERT(Sh.FurVel    ->_cpu_data_size==SIZE(Vec      )*  MAX_MATRIX, "Unexpected size of FurVel");
 
-   SBObjMatrix=GetShaderBuffer("ObjMatrix"); DYNAMIC_ASSERT(SBObjMatrix->full_size==SIZE(GpuMatrix)*MAX_MATRIX, "Unexpected size of ObjMatrix");
-   SBObjVel   =GetShaderBuffer("ObjVel"   ); DYNAMIC_ASSERT(SBObjVel   ->full_size==SIZE(Vec4     )*MAX_MATRIX, "Unexpected size of ObjVel"   ); // #VelAngVel
-   SBFurVel   =GetShaderBuffer("FurVel"   ); DYNAMIC_ASSERT(SBFurVel   ->full_size==SIZE(Vec4     )*MAX_MATRIX, "Unexpected size of FurVel"   );
+   SBObjMatrix=GetShaderBuffer("ObjMatrix"); DYNAMIC_ASSERT(SBObjMatrix->full_size==SIZE(GpuMatrix)*  MAX_MATRIX, "Unexpected size of ObjMatrix");
+   SBObjVel   =GetShaderBuffer("ObjVel"   ); DYNAMIC_ASSERT(SBObjVel   ->full_size==SIZE(Vec4     )*2*MAX_MATRIX, "Unexpected size of ObjVel"   ); // #VelAngVel
+   SBFurVel   =GetShaderBuffer("FurVel"   ); DYNAMIC_ASSERT(SBFurVel   ->full_size==SIZE(Vec4     )*  MAX_MATRIX, "Unexpected size of FurVel"   );
 
 #if DX11
    const Int parts[]={MAX_MATRIX, 192, 160, 128, 96, 80, 64, 56, 48, 32, 16, 8, 1}; // start from the biggest, because 'ShaderBuffer.size' uses it as the total size

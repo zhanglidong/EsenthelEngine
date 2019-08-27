@@ -109,7 +109,7 @@ void VS
       if(true) // instance
       {
          O.pos=TransformPos(pos, vtx.instance());
-         O.vel=ObjVel[vtx.instance()]; UpdateVelocities_VS(O.vel, pos, O.pos, vtx.instance()); // #PER_INSTANCE_VEL
+         O.vel=ObjVel[vtx.instance()]; UpdateVelocities_VS(O.vel, pos, O.pos, vtx.instance());
 
       #if   BUMP_MODE> SBUMP_FLAT
          O.mtrx[2]=TransformDir(nrm, vtx.instance());

@@ -29,7 +29,7 @@ void Base_VS
    {
       if(true) // instance
       {
-         outVel=ObjVel[vtx.instance()]; // #PER_INSTANCE_VEL
+         outVel=ObjVel[vtx.instance()];
          outPos=TransformPos(vtx.pos(), vtx.instance());
          outNrm=TransformDir(vtx.nrm(), vtx.instance());
          UpdateVelocities_VS(outVel, vtx.pos(), outPos, vtx.instance());

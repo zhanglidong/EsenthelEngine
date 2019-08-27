@@ -3277,7 +3277,6 @@ void AnimatedSkeleton::setMatrix()C
          Sh.ViewMatrix->set(GObjMatrix[VIRTUAL_ROOT_BONE+i].fromMul(bone._matrix, CamMatrixInv), VIRTUAL_ROOT_BONE+i);
          Sh.ObjVel    ->set(GObjVel   [VIRTUAL_ROOT_BONE+i]=v                                  , VIRTUAL_ROOT_BONE+i);
       }*/
-      SetFastAngVel(); // 'SetFastAngVel' is not fully supported, because every bone has its own linear velocities (and that would also require their own angular velocity for each bone separately which wouldn't be efficient)
    }else
    {
       if(VIRTUAL_ROOT_BONE)Sh.ViewMatrix->fromMul(          matrix(), CamMatrixInv);
@@ -3311,15 +3310,14 @@ void AnimatedSkeleton::setFurVel()C
    REP(matrixes)Sh.FurVel->set(GFurVel[VIRTUAL_ROOT_BONE+i]=FurVelShader(bones[i]._fur_vel, bones[i]._matrix  ), VIRTUAL_ROOT_BONE+i);*/
 }
 /******************************************************************************/
-void SetFastViewMatrix(        C Matrix  &view_matrix   ) {Sh.ViewMatrix->set           (        view_matrix                            );}
-void SetFastMatrix    (                                 ) {Sh.ViewMatrix->set           (                     CamMatrixInv              );}
-void SetFastMatrix    (        C Matrix  &     matrix   ) {Sh.ViewMatrix->fromMul       (             matrix, CamMatrixInv              );}
-void SetFastMatrix    (        C MatrixM &     matrix   ) {Sh.ViewMatrix->fromMul       (             matrix, CamMatrixInv              );}
-void SetFastVel       (                                 ) {Sh.ObjVel    ->setConditional((   -ActiveCam.vel)*=CamMatrixInvMotionScale   );}
-void SetFastVel       (        C Vec     &    vel       ) {Sh.ObjVel    ->setConditional((vel-ActiveCam.vel)*=CamMatrixInvMotionScale   );}
-void SetFastVel       (Byte i, C Vec     &    vel       ) {Sh.ObjVel    ->setConditional((vel-ActiveCam.vel)*=CamMatrixInvMotionScale, i);}
-void SetFastAngVel    (        C Vec     &ang_vel_shader) {Sh.ObjAngVel ->setConditional(           ang_vel_shader                      );} // !! 'ang_vel_shader' must come from 'SetAngVelShader' !!
-void SetFastAngVel    (                                 ) {Sh.ObjAngVel ->setConditional(                                        VecZero);}
+void SetFastViewMatrix(C Matrix  &view_matrix) {Sh.ViewMatrix->set    (view_matrix         );}
+void SetFastMatrix    (                      ) {Sh.ViewMatrix->set    (        CamMatrixInv);}
+void SetFastMatrix    (C Matrix  &     matrix) {Sh.ViewMatrix->fromMul(matrix, CamMatrixInv);}
+void SetFastMatrix    (C MatrixM &     matrix) {Sh.ViewMatrix->fromMul(matrix, CamMatrixInv);}
+
+void SetFastVel(                                         ) {Sh.ObjVel->setConditional((   -ActiveCam.vel)*=CamMatrixInvMotionScale, VecZero          );}
+void SetFastVel(        C Vec &vel, C Vec &ang_vel_shader) {Sh.ObjVel->setConditional((vel-ActiveCam.vel)*=CamMatrixInvMotionScale, ang_vel_shader   );} // !! 'ang_vel_shader' must come from 'SetAngVelShader' !!
+void SetFastVel(Byte i, C Vec &vel, C Vec &ang_vel_shader) {Sh.ObjVel->setConditional((vel-ActiveCam.vel)*=CamMatrixInvMotionScale, ang_vel_shader, i);} // !! 'ang_vel_shader' must come from 'SetAngVelShader' !!
 /******************************************************************************/
 // To be used for drawing without any velocities
 void SetOneMatrix()
@@ -3345,7 +3343,6 @@ void SetMatrix(C Matrix &matrix)
    SetMatrixCount();
    SetFastMatrix (matrix);
    SetFastVel    ();
-   SetFastAngVel ();
 }
 void SetMatrix(C MatrixM &matrix)
 {
@@ -3353,7 +3350,6 @@ void SetMatrix(C MatrixM &matrix)
    SetMatrixCount();
    SetFastMatrix (matrix);
    SetFastVel    ();
-   SetFastAngVel ();
 }
 void SetMatrix(C Matrix &matrix, C Vec &vel, C Vec &ang_vel)
 {
@@ -3361,8 +3357,7 @@ void SetMatrix(C Matrix &matrix, C Vec &vel, C Vec &ang_vel)
    ObjMatrix=matrix;
    SetMatrixCount();
    SetFastMatrix (matrix);
-   SetFastVel    (vel);
-   SetFastAngVel (ang_vel_shader);
+   SetFastVel    (vel, ang_vel_shader);
 }
 void SetMatrix(C MatrixM &matrix, C Vec &vel, C Vec &ang_vel)
 {
@@ -3370,8 +3365,7 @@ void SetMatrix(C MatrixM &matrix, C Vec &vel, C Vec &ang_vel)
    ObjMatrix=matrix;
    SetMatrixCount();
    SetFastMatrix (matrix);
-   SetFastVel    (vel);
-   SetFastAngVel (ang_vel_shader);
+   SetFastVel    (vel, ang_vel_shader);
 }
 /******************************************************************************/
 INLINE void TestProjMatrix(Matrix4 &m)

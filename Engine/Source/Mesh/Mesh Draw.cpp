@@ -630,16 +630,6 @@ INLINE SolidShaderMaterialMeshInstance& SolidShaderMaterialMeshInstance::set()
    T.shader_param_changes=Renderer._shader_param_changes;
    return T;
 }
-INLINE SolidShaderMaterialMeshInstance& SolidShaderMaterialMeshInstance::setSkipVel()
-{
-#if !PER_INSTANCE_VEL
-   T.vel.zero(); // if we're going to compare then we have to zero to make sure instances will be merged
-#endif
-#if !PER_INSTANCE_ANG_VEL
-   T.ang_vel_shader.zero(); // if we're going to compare then we have to zero to make sure instances will be merged
-#endif
-   return set();
-}
 INLINE SolidShaderMaterialMeshInstance& SolidShaderMaterialMeshInstance::set(C Vec &vel, C Vec &ang_vel_shader)
 {
    T.vel=vel;
@@ -718,7 +708,7 @@ INLINE BlendInstance& BlendInstancesClass::addFur(Shader &shader, C Material &ma
 #endif
    obj.s.mesh     =&mesh;
    obj.s.vel           =vel;
- //obj.s.ang_vel_shader=;
+ //obj.s.ang_vel_shader=; ignored for fur
    obj.s.highlight           =Renderer._mesh_highlight;
  //obj.s.stencil_mode        =Renderer._mesh_stencil_mode; ignored for fur
    obj.s.shader_param_changes=Renderer._shader_param_changes;
@@ -790,7 +780,7 @@ void MeshPart::draw(C MatrixM &matrix, C Vec &vel, C Vec &ang_vel)C
                      else    NewInstance(             ShaderDraws, SolidShaderMaterialMeshInstances.elms(), *variation.frst, &variation.getMaterial()._solid_material_shader, T, variation);
                   }else                                            SolidShaderMaterialMeshInstances[variation.last_solid_instance].next_instance=SolidShaderMaterialMeshInstances.elms();
                                                                                                     variation.last_solid_instance               =SolidShaderMaterialMeshInstances.elms();
-                  SetViewMatrix(SolidShaderMaterialMeshInstances.New().setSkipVel(/*vel, ang_vel_shader*/).view_matrix, matrix); // velocities not needed for RT_FORWARD
+                  SetViewMatrix(SolidShaderMaterialMeshInstances.New().set(/*vel, ang_vel_shader*/).view_matrix, matrix); // velocities not needed for RT_FORWARD
                }
             }else
             if(Renderer.firstPass())
@@ -1014,7 +1004,7 @@ void MeshLod::draw(C MatrixM &matrix)C
                         else         NewInstance(             ShaderDraws, SolidShaderMaterialMeshInstances.elms(), *variation.frst, &variation.getMaterial()._solid_material_shader, part, variation);
                      }else                                                 SolidShaderMaterialMeshInstances[variation.last_solid_instance].next_instance=SolidShaderMaterialMeshInstances.elms();
                                                                                                             variation.last_solid_instance               =SolidShaderMaterialMeshInstances.elms();
-                     SolidShaderMaterialMeshInstances.New().setSkipVel(/*vel, ang_vel_shader*/).view_matrix=view_matrix; // velocities not needed for RT_FORWARD
+                     SolidShaderMaterialMeshInstances.New().set(/*vel, ang_vel_shader*/).view_matrix=view_matrix; // velocities not needed for RT_FORWARD
                   }
                }else
                if(Renderer.firstPass())
@@ -1098,7 +1088,7 @@ void MeshLod::draw(C MatrixM &matrix, C Vec &vel, C Vec &ang_vel)C
                         else         NewInstance(             ShaderDraws, SolidShaderMaterialMeshInstances.elms(), *variation.frst, &variation.getMaterial()._solid_material_shader, part, variation);
                      }else                                                 SolidShaderMaterialMeshInstances[variation.last_solid_instance].next_instance=SolidShaderMaterialMeshInstances.elms();
                                                                                                             variation.last_solid_instance               =SolidShaderMaterialMeshInstances.elms();
-                     SolidShaderMaterialMeshInstances.New().setSkipVel(/*vel, ang_vel_shader*/).view_matrix=view_matrix; // velocities not needed for RT_FORWARD
+                     SolidShaderMaterialMeshInstances.New().set(/*vel, ang_vel_shader*/).view_matrix=view_matrix; // velocities not needed for RT_FORWARD
                   }
                }else
                if(Renderer.firstPass())
@@ -1383,10 +1373,10 @@ void MeshPart::drawBlend(C Vec4 *color)C
       }
    }
 }
-void MeshLod::drawBlend(                                                           C Vec4 *color)C {                                                                                                                                                             FREPAO(parts).drawBlend(color);}
-void Mesh   ::drawBlend(                                                           C Vec4 *color)C {                                                                                                                                            getDrawLod(       ObjMatrix  ).drawBlend(color);}
-void Mesh   ::drawBlend(C MatrixM          &matrix   , C Vec &vel, C Vec &ang_vel, C Vec4 *color)C {Vec ang_vel_shader; SetAngVelShader(ang_vel_shader, ang_vel, matrix); SetOneMatrix(matrix); SetFastVel(vel); SetFastAngVel(ang_vel_shader); getDrawLod(          matrix  ).drawBlend(color);}
-void Mesh   ::drawBlend(C AnimatedSkeleton &anim_skel,                             C Vec4 *color)C {                                                                                                                     anim_skel.setMatrix(); getDrawLod(anim_skel.matrix()).drawBlend(color);}
+void MeshLod::drawBlend(                                                           C Vec4 *color)C {                                                                                                                                              FREPAO(parts).drawBlend(color);}
+void Mesh   ::drawBlend(                                                           C Vec4 *color)C {                                                                                                                             getDrawLod(       ObjMatrix  ).drawBlend(color);}
+void Mesh   ::drawBlend(C MatrixM          &matrix   , C Vec &vel, C Vec &ang_vel, C Vec4 *color)C {Vec ang_vel_shader; SetAngVelShader(ang_vel_shader, ang_vel, matrix); SetOneMatrix(matrix); SetFastVel(vel, ang_vel_shader); getDrawLod(          matrix  ).drawBlend(color);}
+void Mesh   ::drawBlend(C AnimatedSkeleton &anim_skel,                             C Vec4 *color)C {                                                                                                      anim_skel.setMatrix(); getDrawLod(anim_skel.matrix()).drawBlend(color);}
 /******************************************************************************/
 void MeshPart::drawBoneHighlight(Int bone)C
 {

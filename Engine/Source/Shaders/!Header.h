@@ -364,7 +364,6 @@ BUFFER_I(Mesh, SBI_MESH)
    Flt   VtxHeightmap;
    Bool  VtxSkinning;
    VecH4 Highlight; // this can be modified by engine's 'SetHighlight' function
-   VecH  ObjAngVel; // object angular velocity, pre-multiplied by 'D.motionScale', TODO: in the future merge this with 'ObjVel' as half3x2/half2x3 (also for GLSL and adjust everything related to 'ObjVel' in shaders and on CPU side, #VelAngVel)
 BUFFER_END
 
 BUFFER(Behind)
@@ -805,7 +804,6 @@ inline VecH TransformDir(VecH dir, UInt mtrx=0) {return Transform3(dir, ViewMatr
 
 inline Vec  TransformPos(Vec  pos, VecU bone, Vec  weight) {return weight.x*Transform (pos, ViewMatrix[bone.x]) + weight.y*Transform (pos, ViewMatrix[bone.y]) + weight.z*Transform (pos, ViewMatrix[bone.z]);}
 inline VecH TransformDir(VecH dir, VecU bone, VecH weight) {return weight.x*Transform3(dir, ViewMatrix[bone.x]) + weight.y*Transform3(dir, ViewMatrix[bone.y]) + weight.z*Transform3(dir, ViewMatrix[bone.z]);}
-inline VecH GetBoneVel  (          VecU bone, VecH weight) {return weight.x*          (     ObjVel    [bone.x]) + weight.y*          (     ObjVel    [bone.y]) + weight.z*          (     ObjVel    [bone.z]);}
 
 inline Vec ViewMatrixX  (UInt mtrx=0) {return ViewMatrix[mtrx][0];}
 inline Vec ViewMatrixY  (UInt mtrx=0) {return ViewMatrix[mtrx][1];}
@@ -848,7 +846,6 @@ inline VecH TransformDir(VecH dir, UInt mtrx)
 
 inline Vec  TransformPos(Vec  pos, VecU bone, Vec  weight) {return weight.x*TransformPos(pos, bone.x) + weight.y*TransformPos(pos, bone.y) + weight.z*TransformPos(pos, bone.z);}
 inline VecH TransformDir(VecH dir, VecU bone, VecH weight) {return weight.x*TransformDir(dir, bone.x) + weight.y*TransformDir(dir, bone.y) + weight.z*TransformDir(dir, bone.z);}
-inline VecH GetBoneVel  (          VecU bone, VecH weight) {return weight.x*           ObjVel[bone.x] + weight.y*           ObjVel[bone.y] + weight.z*           ObjVel[bone.z];}
 
 inline Vec ViewMatrixX  () {return Vec(ViewMatrix[0].x, ViewMatrix[1].x, ViewMatrix[2].x);}
 inline Vec ViewMatrixY  () {return Vec(ViewMatrix[0].y, ViewMatrix[1].y, ViewMatrix[2].y);}

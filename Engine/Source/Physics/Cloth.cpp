@@ -552,14 +552,15 @@ INLINE void ClothInstances::add(C Cloth &cloth, Shader &shader, C Material &mate
    ci.shader   =&shader;
    ci.material =&material; material.incUsage();
 }
-INLINE void ClothInstances::add(C Cloth &cloth, Shader &shader, C Material &material, C Vec &vel)
+INLINE void ClothInstances::add(C Cloth &cloth, Shader &shader, C Material &material, C Vec &vel, C Vec &ang_vel_shader)
 {
    ClothInstance &ci=New();
-   ci.cloth    =&cloth;
-   ci.shader   =&shader;
-   ci.material =&material; material.incUsage();
-   ci.vel      = vel;
-   ci.highlight= Renderer._mesh_highlight;
+   ci.cloth         =&cloth;
+   ci.shader        =&shader;
+   ci.material      =&material; material.incUsage();
+   ci.vel           = vel;
+   ci.ang_vel_shader= ang_vel_shader;
+   ci.highlight     = Renderer._mesh_highlight;
 }
 INLINE void ClothInstances::add(C Cloth &cloth, FRST &frst, C Material &material)
 {
@@ -569,7 +570,7 @@ INLINE void ClothInstances::add(C Cloth &cloth, FRST &frst, C Material &material
    ci.material =&material; material.incUsage();
    ci.highlight= Renderer._mesh_highlight;
 }
-void Cloth::drawPhysical(C Vec &vel)C
+void Cloth::drawPhysical(C Vec &vel, C Vec &ang_vel)C
 {
    if(_cloth && Frustum(box()))
    {

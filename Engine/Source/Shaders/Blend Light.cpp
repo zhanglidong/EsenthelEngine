@@ -87,7 +87,7 @@ void VS
       {
          pos=TransformPos(pos, vtx.instance());
       #if USE_VEL
-         O.vel=ObjVel[vtx.instance()]; UpdateVelocities_VS(O.vel, local_pos, pos, vtx.instance()); // #PER_INSTANCE_VEL
+         O.vel=ObjVel[vtx.instance()]; UpdateVelocities_VS(O.vel, local_pos, pos, vtx.instance());
       #endif
 
       #if   BUMP_MODE> SBUMP_FLAT
