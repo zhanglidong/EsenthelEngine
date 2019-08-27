@@ -612,7 +612,11 @@ void RendererClass::finalizeGlow()
 /******************************************************************************/
 Bool RendererClass::capture(Image &image, Int w, Int h, Int type, Int mode, Int mip_maps, Bool alpha)
 {
+#if WEB // #WebSRGB
+   if(image.capture(_main_temp))
+#else
    if(image.capture(_main))
+#endif
    {
       if(type<=0)type=image.type();else MIN(type, IMAGE_TYPES);
       if(!_ds_1s)alpha=false;
@@ -678,7 +682,11 @@ Bool RendererClass::screenShot(C Str &name, Bool alpha)
    {
       if(capture(temp, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1, true))return temp.Export(name);
    }else
+#if WEB // #WebSRGB
+   if(temp.capture(_main_temp)) // no alpha
+#else
    if(temp.capture(_main)) // no alpha
+#endif
    {
       if(ImageTI[temp.type()].a)temp.copyTry(temp, -1, -1, -1, IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1); // if captured image has alpha channel then let's remove it
       return temp.Export(name);
