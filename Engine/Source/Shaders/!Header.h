@@ -21,22 +21,22 @@
 /******************************************************************************/
 #pragma pack_matrix(column_major) // always use "Column Major" matrix packing for most efficient 'Matrix' packing (orn+scale+pos) to use only 3x Vec4
 
-#define Bool     bool
-#define Int      int
-#define UInt     uint
-#define Flt      float
-#define VecI2    int2
-#define VecI     int3
-#define VecI4    int4
-#define VecU2    uint2
-#define VecU     uint3
-#define VecU4    uint4
-#define Vec2     float2
-#define Vec      float3
-#define Vec4     float4
-#define Matrix3  float3x3
-#define Matrix   float4x3
-#define Matrix4  float4x4
+#define Bool    bool
+#define Int     int
+#define UInt    uint
+#define Flt     float
+#define VecI2   int2
+#define VecI    int3
+#define VecI4   int4
+#define VecU2   uint2
+#define VecU    uint3
+#define VecU4   uint4
+#define Vec2    float2
+#define Vec     float3
+#define Vec4    float4
+#define Matrix3 float3x3
+#define Matrix  float4x3
+#define Matrix4 float4x4
 
 #define ImageF      Texture2D  <Flt  >
 #define ImageH      Texture2D  <Half >
