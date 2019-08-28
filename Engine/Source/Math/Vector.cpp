@@ -123,13 +123,13 @@ Flt Dist2(C Vec4  &a, C Vec4  &b) {return Dist2(a.x-b.x, a.y-b.y, a.z-b.z, a.w-b
 Flt Cross(C Vec2  &a, C Vec2  &b) {return a.x*b.y - a.y*b.x;}
 Dbl Cross(C VecD2 &a, C VecD2 &b) {return a.x*b.y - a.y*b.x;}
 
-Vec Cross(C Vec &a, C Vec &b)
+Vec Cross(C Vec &a, C Vec &b) // the same version as "HLSL Cross"
 {
    return Vec(a.y*b.z - a.z*b.y,
               a.z*b.x - a.x*b.z,
               a.x*b.y - a.y*b.x);
 }
-VecD Cross(C VecD &a, C VecD &b)
+VecD Cross(C VecD &a, C VecD &b) // the same version as "HLSL Cross"
 {
    return VecD(a.y*b.z - a.z*b.y,
                a.z*b.x - a.x*b.z,
