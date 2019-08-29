@@ -2087,76 +2087,74 @@ MatrixD3& MatrixD3::setRotateXY(Dbl pitch, Dbl yaw)
    x.y=  0;
    return T;
 }
-Matrix3& Matrix3::setRotate(C Vec &axis, Flt angle)
+Matrix3& Matrix3::setRotate(C Vec &axis, Flt angle) // !! this must match 'setRotateCosSin' !!
 {
-   Flt c, s; CosSin(c, s, -angle); // !! this must match 'setRotateCosSin' !!
+   Flt cos, sin; CosSin(cos, sin, angle);
    Flt x  =axis.x,
        y  =axis.y,
        z  =axis.z,
-       cc = 1-c,
+       cc = 1-cos,
        ccx=cc*x,
        ccy=cc*y,
        ccz=cc*z,
        p, q;
 
-                   T.x.x=ccx*x+c; T.y.y=ccy*y+c; T.z.z=ccz*z+c;
-   p=x*s;          T.z.y=ccz*y+p; T.y.z=ccy*z-p;
-   p=y*s; q=ccx*z; T.x.z=    q+p; T.z.x=    q-p;
-   p=z*s; q=ccx*y; T.y.x=    q+p; T.x.y=    q-p;
+                     T.x.x=ccx*x+cos; T.y.y=ccy*y+cos; T.z.z=ccz*z+cos;
+   p=x*sin;          T.z.y=ccz*y-p  ; T.y.z=ccy*z+p  ;
+   p=y*sin; q=ccx*z; T.x.z=    q-p  ; T.z.x=    q+p  ;
+   p=z*sin; q=ccx*y; T.y.x=    q-p  ; T.x.y=    q+p  ;
    return T;
 }
-MatrixD3& MatrixD3::setRotate(C VecD &axis, Dbl angle)
+MatrixD3& MatrixD3::setRotate(C VecD &axis, Dbl angle) // !! this must match 'setRotateCosSin' !!
 {
-   Dbl c, s; CosSin(c, s, -angle); // !! this must match 'setRotateCosSin' !!
+   Dbl cos, sin; CosSin(cos, sin, angle);
    Dbl x  =axis.x,
        y  =axis.y,
        z  =axis.z,
-       cc = 1-c,
+       cc = 1-cos,
        ccx=cc*x,
        ccy=cc*y,
        ccz=cc*z,
        p, q;
 
-                   T.x.x=ccx*x+c; T.y.y=ccy*y+c; T.z.z=ccz*z+c;
-   p=x*s;          T.z.y=ccz*y+p; T.y.z=ccy*z-p;
-   p=y*s; q=ccx*z; T.x.z=    q+p; T.z.x=    q-p;
-   p=z*s; q=ccx*y; T.y.x=    q+p; T.x.y=    q-p;
+                     T.x.x=ccx*x+cos; T.y.y=ccy*y+cos; T.z.z=ccz*z+cos;
+   p=x*sin;          T.z.y=ccz*y-p  ; T.y.z=ccy*z+p  ;
+   p=y*sin; q=ccx*z; T.x.z=    q-p  ; T.z.x=    q+p  ;
+   p=z*sin; q=ccx*y; T.y.x=    q-p  ; T.x.y=    q+p  ;
    return T;
 }
-Matrix3& Matrix3::setRotateCosSin(C Vec &axis, Flt cos, Flt sin)
+Matrix3& Matrix3::setRotateCosSin(C Vec &axis, Flt cos, Flt sin) // !! this must match 'setRotate' !!
 {
-   Flt c=cos, s=-sin; // !! this must match 'setRotate' !!
    Flt x  =axis.x,
        y  =axis.y,
        z  =axis.z,
-       cc = 1-c,
+       cc = 1-cos,
        ccx=cc*x,
        ccy=cc*y,
        ccz=cc*z,
        p, q;
 
-                   T.x.x=ccx*x+c; T.y.y=ccy*y+c; T.z.z=ccz*z+c;
-   p=x*s;          T.z.y=ccz*y+p; T.y.z=ccy*z-p;
-   p=y*s; q=ccx*z; T.x.z=    q+p; T.z.x=    q-p;
-   p=z*s; q=ccx*y; T.y.x=    q+p; T.x.y=    q-p;
+                     T.x.x=ccx*x+cos; T.y.y=ccy*y+cos; T.z.z=ccz*z+cos;
+   p=x*sin;          T.z.y=ccz*y-p  ; T.y.z=ccy*z+p  ;
+   p=y*sin; q=ccx*z; T.x.z=    q-p  ; T.z.x=    q+p  ;
+   p=z*sin; q=ccx*y; T.y.x=    q-p  ; T.x.y=    q+p  ;
    return T;
 }
-MatrixD3& MatrixD3::setRotateCosSin(C VecD &axis, Dbl cos, Dbl sin)
+MatrixD3& MatrixD3::setRotateCosSin(C VecD &axis, Dbl cos, Dbl sin) // !! this must match 'setRotate' !!
 {
-   Dbl c=cos, s=-sin; // !! this must match 'setRotate' !!
    Dbl x  =axis.x,
        y  =axis.y,
        z  =axis.z,
-       cc = 1-c,
+       cc = 1-cos,
        ccx=cc*x,
        ccy=cc*y,
        ccz=cc*z,
        p, q;
 
-                   T.x.x=ccx*x+c; T.y.y=ccy*y+c; T.z.z=ccz*z+c;
-   p=x*s;          T.z.y=ccz*y+p; T.y.z=ccy*z-p;
-   p=y*s; q=ccx*z; T.x.z=    q+p; T.z.x=    q-p;
-   p=z*s; q=ccx*y; T.y.x=    q+p; T.x.y=    q-p;
+                     T.x.x=ccx*x+cos; T.y.y=ccy*y+cos; T.z.z=ccz*z+cos;
+   p=x*sin;          T.z.y=ccz*y-p  ; T.y.z=ccy*z+p  ;
+   p=y*sin; q=ccx*z; T.x.z=    q-p  ; T.z.x=    q+p  ;
+   p=z*sin; q=ccx*y; T.y.x=    q-p  ; T.x.y=    q+p  ;
    return T;
 }
 /******************************************************************************/
