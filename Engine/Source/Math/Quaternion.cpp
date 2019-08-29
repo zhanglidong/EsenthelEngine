@@ -119,7 +119,7 @@ Quaternion::Quaternion(C Matrix3 &m)
    }else
    if(m.x.x>m.y.y && m.x.x>m.z.z)
    {
-      x=-0.5f *Sqrt(1+m.x.x-m.y.y-m.z.z);
+      x=-0.5f *SqrtFast(1+m.x.x-m.y.y-m.z.z);
       f= 0.25f/x;
       y=(m.x.y+m.y.x)*f;
       z=(m.x.z+m.z.x)*f;
@@ -127,14 +127,14 @@ Quaternion::Quaternion(C Matrix3 &m)
    }else
    if(m.y.y>m.z.z)
    {
-      y=-0.5f *Sqrt(1+m.y.y-m.x.x-m.z.z);
+      y=-0.5f *SqrtFast(1+m.y.y-m.x.x-m.z.z);
       f= 0.25f/y;
       x=(m.x.y+m.y.x)*f;
       z=(m.y.z+m.z.y)*f;
       w=(m.x.z-m.z.x)*f;
    }else
    {
-      z=-0.5f *Sqrt(1+m.z.z-m.x.x-m.y.y);
+      z=-0.5f *SqrtFast(1+m.z.z-m.x.x-m.y.y);
       f= 0.25f/z;
       x=(m.x.z+m.z.x)*f;
       y=(m.y.z+m.z.y)*f;
