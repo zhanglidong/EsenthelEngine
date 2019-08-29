@@ -2530,9 +2530,9 @@ Flt Matrix3::angle(Bool normalized)C
             m->z.x - m->x.z,
             m->x.y - m->y.x);
 
-   if(axis.length()> EPS    )return Acos((m->x.x + m->y.y + m->z.z - 1)*0.5f);
-   if(m->x.x       >=EPS_COS)return 0;
-                             return PI;
+   if(axis.length2()> Sqr(EPS)   )return Acos((m->x.x + m->y.y + m->z.z - 1)*0.5f);
+   if(m->x.x        >=    EPS_COS)return 0;
+                                  return PI;
 }
 Dbl MatrixD3::angle(Bool normalized)C
 {
@@ -2543,9 +2543,9 @@ Dbl MatrixD3::angle(Bool normalized)C
              m->z.x - m->x.z,
              m->x.y - m->y.x);
 
-   if(axis.length()> EPSD    )return Acos((m->x.x + m->y.y + m->z.z - 1)*0.5);
-   if(m->x.x       >=EPSD_COS)return 0;
-                              return PID;
+   if(axis.length2()> Sqr(EPSD    ))return Acos((m->x.x + m->y.y + m->z.z - 1)*0.5);
+   if(m->x.x        >=    EPSD_COS )return 0;
+                                    return PID;
 }
 Flt Matrix3::angleY(Bool normalized)C
 {
