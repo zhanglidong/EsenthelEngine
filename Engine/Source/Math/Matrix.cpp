@@ -264,23 +264,7 @@ Bool MatrixD ::operator!=(C MatrixD  &m)C {return x!=m.x || y!=m.y || z!=m.z || 
 void Matrix3::mul(C Matrix3 &m, Matrix3 &dest)C
 {
    Flt x, y, z;
-   if(&dest==&m)
-   {
-               x=m.x.x;  y=m.y.x;  z=m.z.x;
-      dest.x.x=x*T.x.x + y*T.x.y + z*T.x.z;
-      dest.y.x=x*T.y.x + y*T.y.y + z*T.y.z;
-      dest.z.x=x*T.z.x + y*T.z.y + z*T.z.z;
-
-               x=m.x.y;  y=m.y.y;  z=m.z.y;
-      dest.x.y=x*T.x.x + y*T.x.y + z*T.x.z;
-      dest.y.y=x*T.y.x + y*T.y.y + z*T.y.z;
-      dest.z.y=x*T.z.x + y*T.z.y + z*T.z.z;
-
-               x=m.x.z;  y=m.y.z;  z=m.z.z;
-      dest.x.z=x*T.x.x + y*T.x.y + z*T.x.z;
-      dest.y.z=x*T.y.x + y*T.y.y + z*T.y.z;
-      dest.z.z=x*T.z.x + y*T.z.y + z*T.z.z;
-   }else
+   if(&dest!=&m) // here it's OK if "&dest==this"
    {
                x=T.x.x;  y=T.x.y;  z=T.x.z;
       dest.x.x=x*m.x.x + y*m.y.x + z*m.z.x;
@@ -296,6 +280,26 @@ void Matrix3::mul(C Matrix3 &m, Matrix3 &dest)C
       dest.z.x=x*m.x.x + y*m.y.x + z*m.z.x;
       dest.z.y=x*m.x.y + y*m.y.y + z*m.z.y;
       dest.z.z=x*m.x.z + y*m.y.z + z*m.z.z;
+   }else
+   if(&dest!=this) // here it's OK if "&dest==&m"
+   {
+               x=m.x.x;  y=m.y.x;  z=m.z.x;
+      dest.x.x=x*T.x.x + y*T.x.y + z*T.x.z;
+      dest.y.x=x*T.y.x + y*T.y.y + z*T.y.z;
+      dest.z.x=x*T.z.x + y*T.z.y + z*T.z.z;
+
+               x=m.x.y;  y=m.y.y;  z=m.z.y;
+      dest.x.y=x*T.x.x + y*T.x.y + z*T.x.z;
+      dest.y.y=x*T.y.x + y*T.y.y + z*T.y.z;
+      dest.z.y=x*T.z.x + y*T.z.y + z*T.z.z;
+
+               x=m.x.z;  y=m.y.z;  z=m.z.z;
+      dest.x.z=x*T.x.x + y*T.x.y + z*T.x.z;
+      dest.y.z=x*T.y.x + y*T.y.y + z*T.y.z;
+      dest.z.z=x*T.z.x + y*T.z.y + z*T.z.z;
+   }else // &dest==&m && &dest==this
+   {
+      Matrix3 temp=T; temp.mul(temp, dest); // have to operate on a temporary because all matrices are the same
    }
 }
 void MatrixD3::mul(C Matrix3 &m, MatrixD3 &dest)C
@@ -319,23 +323,7 @@ void MatrixD3::mul(C Matrix3 &m, MatrixD3 &dest)C
 void MatrixD3::mul(C MatrixD3 &m, MatrixD3 &dest)C
 {
    Dbl x, y, z;
-   if(&dest==&m)
-   {
-               x=m.x.x;  y=m.y.x;  z=m.z.x;
-      dest.x.x=x*T.x.x + y*T.x.y + z*T.x.z;
-      dest.y.x=x*T.y.x + y*T.y.y + z*T.y.z;
-      dest.z.x=x*T.z.x + y*T.z.y + z*T.z.z;
-
-               x=m.x.y;  y=m.y.y;  z=m.z.y;
-      dest.x.y=x*T.x.x + y*T.x.y + z*T.x.z;
-      dest.y.y=x*T.y.x + y*T.y.y + z*T.y.z;
-      dest.z.y=x*T.z.x + y*T.z.y + z*T.z.z;
-
-               x=m.x.z;  y=m.y.z;  z=m.z.z;
-      dest.x.z=x*T.x.x + y*T.x.y + z*T.x.z;
-      dest.y.z=x*T.y.x + y*T.y.y + z*T.y.z;
-      dest.z.z=x*T.z.x + y*T.z.y + z*T.z.z;
-   }else
+   if(&dest!=&m) // here it's OK if "&dest==this"
    {
                x=T.x.x;  y=T.x.y;  z=T.x.z;
       dest.x.x=x*m.x.x + y*m.y.x + z*m.z.x;
@@ -351,6 +339,26 @@ void MatrixD3::mul(C MatrixD3 &m, MatrixD3 &dest)C
       dest.z.x=x*m.x.x + y*m.y.x + z*m.z.x;
       dest.z.y=x*m.x.y + y*m.y.y + z*m.z.y;
       dest.z.z=x*m.x.z + y*m.y.z + z*m.z.z;
+   }else
+   if(&dest!=this) // here it's OK if "&dest==&m"
+   {
+               x=m.x.x;  y=m.y.x;  z=m.z.x;
+      dest.x.x=x*T.x.x + y*T.x.y + z*T.x.z;
+      dest.y.x=x*T.y.x + y*T.y.y + z*T.y.z;
+      dest.z.x=x*T.z.x + y*T.z.y + z*T.z.z;
+
+               x=m.x.y;  y=m.y.y;  z=m.z.y;
+      dest.x.y=x*T.x.x + y*T.x.y + z*T.x.z;
+      dest.y.y=x*T.y.x + y*T.y.y + z*T.y.z;
+      dest.z.y=x*T.z.x + y*T.z.y + z*T.z.z;
+
+               x=m.x.z;  y=m.y.z;  z=m.z.z;
+      dest.x.z=x*T.x.x + y*T.x.y + z*T.x.z;
+      dest.y.z=x*T.y.x + y*T.y.y + z*T.y.z;
+      dest.z.z=x*T.z.x + y*T.z.y + z*T.z.z;
+   }else // &dest==&m && &dest==this
+   {
+      MatrixD3 temp=T; temp.mul(temp, dest); // have to operate on a temporary because all matrices are the same
    }
 }
 /******************************************************************************/
@@ -359,23 +367,7 @@ void mulNormalized(C Matrix3 &matrix, Matrix3 &dest)C; // multiply self by 'matr
 void Matrix3::mulNormalized(C Matrix3 &m, Matrix3 &dest)C
 {
    Flt x, y, z;
-   if(&dest==&m)
-   {
-               x=m.x.x;  y=m.y.x;  z=m.z.x;
-    //dest.x.x=x*T.x.x + y*T.x.y + z*T.x.z;
-      dest.y.x=x*T.y.x + y*T.y.y + z*T.y.z;
-      dest.z.x=x*T.z.x + y*T.z.y + z*T.z.z;
-
-               x=m.x.y;  y=m.y.y;  z=m.z.y;
-    //dest.x.y=x*T.x.x + y*T.x.y + z*T.x.z;
-      dest.y.y=x*T.y.x + y*T.y.y + z*T.y.z;
-      dest.z.y=x*T.z.x + y*T.z.y + z*T.z.z;
-
-               x=m.x.z;  y=m.y.z;  z=m.z.z;
-    //dest.x.z=x*T.x.x + y*T.x.y + z*T.x.z;
-      dest.y.z=x*T.y.x + y*T.y.y + z*T.y.z;
-      dest.z.z=x*T.z.x + y*T.z.y + z*T.z.z;
-   }else
+   if(&dest!=&m) // here it's OK if "&dest==this"
    {
              /*x=T.x.x;  y=T.x.y;  z=T.x.z;
       dest.x.x=x*m.x.x + y*m.y.x + z*m.z.x;
@@ -391,6 +383,26 @@ void Matrix3::mulNormalized(C Matrix3 &m, Matrix3 &dest)C
       dest.z.x=x*m.x.x + y*m.y.x + z*m.z.x;
       dest.z.y=x*m.x.y + y*m.y.y + z*m.z.y;
       dest.z.z=x*m.x.z + y*m.y.z + z*m.z.z;
+   }else
+   if(&dest!=this) // here it's OK if "&dest==&m"
+   {
+               x=m.x.x;  y=m.y.x;  z=m.z.x;
+    //dest.x.x=x*T.x.x + y*T.x.y + z*T.x.z;
+      dest.y.x=x*T.y.x + y*T.y.y + z*T.y.z;
+      dest.z.x=x*T.z.x + y*T.z.y + z*T.z.z;
+
+               x=m.x.y;  y=m.y.y;  z=m.z.y;
+    //dest.x.y=x*T.x.x + y*T.x.y + z*T.x.z;
+      dest.y.y=x*T.y.x + y*T.y.y + z*T.y.z;
+      dest.z.y=x*T.z.x + y*T.z.y + z*T.z.z;
+
+               x=m.x.z;  y=m.y.z;  z=m.z.z;
+    //dest.x.z=x*T.x.x + y*T.x.y + z*T.x.z;
+      dest.y.z=x*T.y.x + y*T.y.y + z*T.y.z;
+      dest.z.z=x*T.z.x + y*T.z.y + z*T.z.z;
+   }else // &dest==&m && &dest==this
+   {
+      fixme
    }
  //dest.x=Cross(dest.y, dest.z);
    dest.x.x=dest.y.y*dest.z.z - dest.y.z*dest.z.y;
@@ -550,7 +562,33 @@ void Matrix::mul(C Matrix4 &m, Matrix4 &dest)C
 void Matrix4::mul(C Matrix4 &m, Matrix4 &dest)C
 {
    Flt x, y, z, w;
-   if(&dest==&m)
+   if(&dest!=&m) // here it's OK if "&dest==this"
+   {
+               x=T.x.x;  y=T.x.y;  z=T.x.z;  w=T.  x.w;
+      dest.x.x=x*m.x.x + y*m.y.x + z*m.z.x + w*m.pos.x;
+      dest.x.y=x*m.x.y + y*m.y.y + z*m.z.y + w*m.pos.y;
+      dest.x.z=x*m.x.z + y*m.y.z + z*m.z.z + w*m.pos.z;
+      dest.x.w=x*m.x.w + y*m.y.w + z*m.z.w + w*m.pos.w;
+
+               x=T.y.x;  y=T.y.y;  z=T.y.z;  w=T.  y.w;
+      dest.y.x=x*m.x.x + y*m.y.x + z*m.z.x + w*m.pos.x;
+      dest.y.y=x*m.x.y + y*m.y.y + z*m.z.y + w*m.pos.y;
+      dest.y.z=x*m.x.z + y*m.y.z + z*m.z.z + w*m.pos.z;
+      dest.y.w=x*m.x.w + y*m.y.w + z*m.z.w + w*m.pos.w;
+
+               x=T.z.x;  y=T.z.y;  z=T.z.z;  w=T.  z.w;
+      dest.z.x=x*m.x.x + y*m.y.x + z*m.z.x + w*m.pos.x;
+      dest.z.y=x*m.x.y + y*m.y.y + z*m.z.y + w*m.pos.y;
+      dest.z.z=x*m.x.z + y*m.y.z + z*m.z.z + w*m.pos.z;
+      dest.z.w=x*m.x.w + y*m.y.w + z*m.z.w + w*m.pos.w;
+
+               x=  pos.x;  y=pos.y;  z=pos.z;    w=pos.w;
+      dest.pos.x=x*m.x.x + y*m.y.x + z*m.z.x + w*m.pos.x;
+      dest.pos.y=x*m.x.y + y*m.y.y + z*m.z.y + w*m.pos.y;
+      dest.pos.z=x*m.x.z + y*m.y.z + z*m.z.z + w*m.pos.z;
+      dest.pos.w=x*m.x.w + y*m.y.w + z*m.z.w + w*m.pos.w;
+   }else
+   if(&dest!=this) // here it's OK if "&dest==&m"
    {
       x=m.x.x; y=m.y.x; z=m.z.x; w=m.pos.x;
       dest.x  .x=T.x.x*x + T.x.y*y + T.x.z*z + T.x.w*w;
@@ -577,29 +615,7 @@ void Matrix4::mul(C Matrix4 &m, Matrix4 &dest)C
       dest.pos.w=pos.x*x + pos.y*y + pos.z*z + pos.w*w;
    }else
    {
-               x=T.x.x;  y=T.x.y;  z=T.x.z;  w=T.  x.w;
-      dest.x.x=x*m.x.x + y*m.y.x + z*m.z.x + w*m.pos.x;
-      dest.x.y=x*m.x.y + y*m.y.y + z*m.z.y + w*m.pos.y;
-      dest.x.z=x*m.x.z + y*m.y.z + z*m.z.z + w*m.pos.z;
-      dest.x.w=x*m.x.w + y*m.y.w + z*m.z.w + w*m.pos.w;
-
-               x=T.y.x;  y=T.y.y;  z=T.y.z;  w=T.  y.w;
-      dest.y.x=x*m.x.x + y*m.y.x + z*m.z.x + w*m.pos.x;
-      dest.y.y=x*m.x.y + y*m.y.y + z*m.z.y + w*m.pos.y;
-      dest.y.z=x*m.x.z + y*m.y.z + z*m.z.z + w*m.pos.z;
-      dest.y.w=x*m.x.w + y*m.y.w + z*m.z.w + w*m.pos.w;
-
-               x=T.z.x;  y=T.z.y;  z=T.z.z;  w=T.  z.w;
-      dest.z.x=x*m.x.x + y*m.y.x + z*m.z.x + w*m.pos.x;
-      dest.z.y=x*m.x.y + y*m.y.y + z*m.z.y + w*m.pos.y;
-      dest.z.z=x*m.x.z + y*m.y.z + z*m.z.z + w*m.pos.z;
-      dest.z.w=x*m.x.w + y*m.y.w + z*m.z.w + w*m.pos.w;
-
-               x=  pos.x;  y=pos.y;  z=pos.z;    w=pos.w;
-      dest.pos.x=x*m.x.x + y*m.y.x + z*m.z.x + w*m.pos.x;
-      dest.pos.y=x*m.x.y + y*m.y.y + z*m.z.y + w*m.pos.y;
-      dest.pos.z=x*m.x.z + y*m.y.z + z*m.z.z + w*m.pos.z;
-      dest.pos.w=x*m.x.w + y*m.y.w + z*m.z.w + w*m.pos.w;
+      Matrix4 temp=T; temp.mul(temp, dest); // have to operate on a temporary because all matrices are the same
    }
 }
 /******************************************************************************/
@@ -668,7 +684,25 @@ void Matrix::mulTimes(Int n, C RevMatrix &matrix, Matrix &dest)C
 /******************************************************************************/
 void Matrix3::divNormalized(C Matrix3 &m, Matrix3 &dest)C
 {
-   if(&dest==&m)
+   if(&dest!=&m) // here it's OK if "&dest==this"
+   {
+      Flt x, y, z;
+               x=T.x.x;  y=T.x.y;  z=T.x.z;
+      dest.x.x=x*m.x.x + y*m.x.y + z*m.x.z;
+      dest.x.y=x*m.y.x + y*m.y.y + z*m.y.z;
+      dest.x.z=x*m.z.x + y*m.z.y + z*m.z.z;
+
+               x=T.y.x;  y=T.y.y;  z=T.y.z;
+      dest.y.x=x*m.x.x + y*m.x.y + z*m.x.z;
+      dest.y.y=x*m.y.x + y*m.y.y + z*m.y.z;
+      dest.y.z=x*m.z.x + y*m.z.y + z*m.z.z;
+
+               x=T.z.x;  y=T.z.y;  z=T.z.z;
+      dest.z.x=x*m.x.x + y*m.x.y + z*m.x.z;
+      dest.z.y=x*m.y.x + y*m.y.y + z*m.y.z;
+      dest.z.z=x*m.z.x + y*m.z.y + z*m.z.z;
+   }else
+   if(&dest!=this) // here it's OK if "&dest==&m"
    {
       Flt x_x=m.x.x, x_y=m.x.y, x_z=m.x.z;
                      dest.x.x=x_x*T.x.x + x_y*T.x.y + x_z*T.x.z;
@@ -686,21 +720,7 @@ void Matrix3::divNormalized(C Matrix3 &m, Matrix3 &dest)C
       dest.z.z=z_x*T.z.x + z_y*T.z.y + z_z*T.z.z;
    }else
    {
-      Flt x, y, z;
-               x=T.x.x;  y=T.x.y;  z=T.x.z;
-      dest.x.x=x*m.x.x + y*m.x.y + z*m.x.z;
-      dest.x.y=x*m.y.x + y*m.y.y + z*m.y.z;
-      dest.x.z=x*m.z.x + y*m.z.y + z*m.z.z;
-
-               x=T.y.x;  y=T.y.y;  z=T.y.z;
-      dest.y.x=x*m.x.x + y*m.x.y + z*m.x.z;
-      dest.y.y=x*m.y.x + y*m.y.y + z*m.y.z;
-      dest.y.z=x*m.z.x + y*m.z.y + z*m.z.z;
-
-               x=T.z.x;  y=T.z.y;  z=T.z.z;
-      dest.z.x=x*m.x.x + y*m.x.y + z*m.x.z;
-      dest.z.y=x*m.y.x + y*m.y.y + z*m.y.z;
-      dest.z.z=x*m.z.x + y*m.z.y + z*m.z.z;
+      Matrix3 temp=T; temp.divNormalized(temp, dest); // have to operate on a temporary because all matrices are the same
    }
 }
 void MatrixD3::divNormalized(C Matrix3 &m, MatrixD3 &dest)C
@@ -723,7 +743,25 @@ void MatrixD3::divNormalized(C Matrix3 &m, MatrixD3 &dest)C
 }
 void MatrixD3::divNormalized(C MatrixD3 &m, MatrixD3 &dest)C
 {
-   if(&dest==&m)
+   if(&dest!=&m) // here it's OK if "&dest==this"
+   {
+      Dbl x, y, z;
+               x=T.x.x;  y=T.x.y;  z=T.x.z;
+      dest.x.x=x*m.x.x + y*m.x.y + z*m.x.z;
+      dest.x.y=x*m.y.x + y*m.y.y + z*m.y.z;
+      dest.x.z=x*m.z.x + y*m.z.y + z*m.z.z;
+
+               x=T.y.x;  y=T.y.y;  z=T.y.z;
+      dest.y.x=x*m.x.x + y*m.x.y + z*m.x.z;
+      dest.y.y=x*m.y.x + y*m.y.y + z*m.y.z;
+      dest.y.z=x*m.z.x + y*m.z.y + z*m.z.z;
+
+               x=T.z.x;  y=T.z.y;  z=T.z.z;
+      dest.z.x=x*m.x.x + y*m.x.y + z*m.x.z;
+      dest.z.y=x*m.y.x + y*m.y.y + z*m.y.z;
+      dest.z.z=x*m.z.x + y*m.z.y + z*m.z.z;
+   }else
+   if(&dest!=this) // here it's OK if "&dest==&m"
    {
       Dbl x_x=m.x.x, x_y=m.x.y, x_z=m.x.z;
                      dest.x.x=x_x*T.x.x + x_y*T.x.y + x_z*T.x.z;
@@ -741,21 +779,7 @@ void MatrixD3::divNormalized(C MatrixD3 &m, MatrixD3 &dest)C
       dest.z.z=z_x*T.z.x + z_y*T.z.y + z_z*T.z.z;
    }else
    {
-      Dbl x, y, z;
-               x=T.x.x;  y=T.x.y;  z=T.x.z;
-      dest.x.x=x*m.x.x + y*m.x.y + z*m.x.z;
-      dest.x.y=x*m.y.x + y*m.y.y + z*m.y.z;
-      dest.x.z=x*m.z.x + y*m.z.y + z*m.z.z;
-
-               x=T.y.x;  y=T.y.y;  z=T.y.z;
-      dest.y.x=x*m.x.x + y*m.x.y + z*m.x.z;
-      dest.y.y=x*m.y.x + y*m.y.y + z*m.y.z;
-      dest.y.z=x*m.z.x + y*m.z.y + z*m.z.z;
-
-               x=T.z.x;  y=T.z.y;  z=T.z.z;
-      dest.z.x=x*m.x.x + y*m.x.y + z*m.x.z;
-      dest.z.y=x*m.y.x + y*m.y.y + z*m.y.z;
-      dest.z.z=x*m.z.x + y*m.z.y + z*m.z.z;
+      MatrixD3 temp=T; temp.divNormalized(temp, dest); // have to operate on a temporary because all matrices are the same
    }
 }
 /******************************************************************************/
