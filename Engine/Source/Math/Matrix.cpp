@@ -3246,7 +3246,7 @@ void AnimatedSkeleton::setMatrix()C
    Int matrixes=Min(bones.elms(), MAX_MATRIX-VIRTUAL_ROOT_BONE); // this is the amount of matrixes for bones (without the virtual), leave room for root bone
    SetMatrixCount(VIRTUAL_ROOT_BONE+matrixes); // root + bones
    ObjMatrix=matrix(); // 'Mesh.drawBlend' makes use of the 'ObjMatrix' so it must be set
-   if(Renderer._mesh_shader_vel) // we need to process velocities (this is disabled in 'Renderer.del' to prevent using shader handles)
+   if(Renderer._mesh_shader_vel) // we need to process velocities (this is disabled in 'Renderer.del' to prevent using shader handles after deletion)
    {
       Vec ang_vel_shader;
       if(VIRTUAL_ROOT_BONE)
