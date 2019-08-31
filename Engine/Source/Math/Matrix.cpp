@@ -3251,37 +3251,40 @@ void AnimatedSkeleton::setMatrix()C
       Vec ang_vel_shader;
       if(VIRTUAL_ROOT_BONE)
       {
-         Sh.ViewMatrix->fromMul(matrix(), CamMatrixInv);
-         Sh.ObjVel    ->set    (v                     );
+         ViewMatrix[0].fromMul(matrix(), CamMatrixInv); // Warning: this does not call 'setChanged'
+         SetAngVelShader(ang_vel_shader, angVel(), matrix());
+         SetFastVelUncondNoChanged(vel(), ang_vel_shader); // set un-conditionally because most likely velocities will change for animated meshes, and don't call 'setChanged', instead we call it manually below, index is always 'InRange'
       }
       REP(matrixes)
       {
        C AnimSkelBone &bone=bones[i];
-         v=bone._vel-ActiveCam.vel; v*=CamMatrixInvMotionScale;
-         Sh.ViewMatrix->fromMul(bone._matrix, CamMatrixInv, VIRTUAL_ROOT_BONE+i);
-         Sh.ObjVel    ->set    (v                         , VIRTUAL_ROOT_BONE+i);
+         ViewMatrix[VIRTUAL_ROOT_BONE+i].fromMul(bone.matrix(), CamMatrixInv); // Warning: this does not call 'setChanged'
+         SetAngVelShader(ang_vel_shader, bone.angVel(), bone.matrix());
+         SetFastVelUncondNoChanged(VIRTUAL_ROOT_BONE+i, bone.vel(), ang_vel_shader); // set un-conditionally because most likely velocities will change for animated meshes, and don't call 'setChanged', instead we call it manually below, index is always 'InRange'
       }
-      /* Bone Splits
+      Sh.ObjVel->setChanged();
+      /* Bone Splits old code
       if(VIRTUAL_ROOT_BONE)
       {
          Sh.ViewMatrix->set(GObjMatrix[0].fromMul(matrix(), CamMatrixInv));
-         Sh.ObjVel    ->set(GObjVel   [0]=v                              );
+         Sh.ObjVel    ->set(GObjVel   [0]=v, ang_vel_shader              );
       }
       REP(matrixes)
       {
          C AnimSkelBone &bone=bones[i];
          v=bone._vel-ActiveCam.vel; v*=CamMatrixInvMotionScale;
          Sh.ViewMatrix->set(GObjMatrix[VIRTUAL_ROOT_BONE+i].fromMul(bone._matrix, CamMatrixInv), VIRTUAL_ROOT_BONE+i);
-         Sh.ObjVel    ->set(GObjVel   [VIRTUAL_ROOT_BONE+i]=v                                  , VIRTUAL_ROOT_BONE+i);
+         Sh.ObjVel    ->set(GObjVel   [VIRTUAL_ROOT_BONE+i]=v, ang_vel_shader                  , VIRTUAL_ROOT_BONE+i);
       }*/
    }else
    {
-      if(VIRTUAL_ROOT_BONE)Sh.ViewMatrix->fromMul(          matrix(), CamMatrixInv);
-              REP(matrixes)Sh.ViewMatrix->fromMul(bones[i]._matrix  , CamMatrixInv, VIRTUAL_ROOT_BONE+i);
-      /* Bone Splits
+      if(VIRTUAL_ROOT_BONE)ViewMatrix[                  0].fromMul(         matrix(), CamMatrixInv); // Warning: this does not call 'setChanged'
+              REP(matrixes)ViewMatrix[VIRTUAL_ROOT_BONE+i].fromMul(bones[i].matrix(), CamMatrixInv); // Warning: this does not call 'setChanged'
+      /* Bone Splits old code
       if(VIRTUAL_ROOT_BONE)Sh.ViewMatrix->set(GObjMatrix[0                  ].fromMul(          matrix(), CamMatrixInv));
               REP(matrixes)Sh.ViewMatrix->set(GObjMatrix[VIRTUAL_ROOT_BONE+i].fromMul(bones[i]._matrix  , CamMatrixInv), VIRTUAL_ROOT_BONE+i);*/
    }
+   Sh.ViewMatrix->setChanged();
 }
 /******************************************************************************/
 void SetVelFur(C Matrix3 &view_matrix, C Vec &vel)
