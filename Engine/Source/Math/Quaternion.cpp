@@ -9,26 +9,29 @@ void Quaternion::mul(C Quaternion &q, Quaternion &dest)C
             y*q.x + w*q.z + z*q.w - x*q.y,
             w*q.w - x*q.x - y*q.y - z*q.z);
 }
-void Quaternion::inverseNormalized(Quaternion &dest)C
+void QuaternionD::mul(C QuaternionD &q, QuaternionD &dest)C
 {
-   dest.set(-x, -y, -z, w);
+   dest.set(z*q.y + w*q.x + x*q.w - y*q.z,
+            x*q.z + w*q.y + y*q.w - z*q.x,
+            y*q.x + w*q.z + z*q.w - x*q.y,
+            w*q.w - x*q.x - y*q.y - z*q.z);
 }
-void Quaternion::inverse(Quaternion &dest)C
-{
-   dest.set(-x, -y, -z, w);
-   dest/=length2();
-}
+void Quaternion ::inverseNormalized(Quaternion  &dest)C {dest.set(-x, -y, -z, w);}
+void QuaternionD::inverseNormalized(QuaternionD &dest)C {dest.set(-x, -y, -z, w);}
+void Quaternion ::inverse          (Quaternion  &dest)C {dest.set(-x, -y, -z, w); dest/=length2();}
+void QuaternionD::inverse          (QuaternionD &dest)C {dest.set(-x, -y, -z, w); dest/=length2();}
 /******************************************************************************/
-Quaternion& Quaternion::setRotate(C Vec &axis, Flt angle)
-{
-   Flt sin; CosSin(w, sin, angle*0.5f);
-   xyz=axis*sin;
-   return T;
-}
-Quaternion& Quaternion::setRotateX(Flt angle          ) {CosSin(w, x, angle*0.5f); y=z=0; return T;}
-Quaternion& Quaternion::setRotateY(Flt angle          ) {CosSin(w, y, angle*0.5f); x=z=0; return T;}
-Quaternion& Quaternion::setRotateZ(Flt angle          ) {CosSin(w, z, angle*0.5f); x=y=0; return T;}
-Quaternion& Quaternion::setRotate (Flt x, Flt y, Flt z)
+Quaternion & Quaternion ::setRotate(C Vec  &axis, Flt angle) {Flt sin; CosSin(w, sin, angle*0.5f); xyz=axis*sin; return T;}
+QuaternionD& QuaternionD::setRotate(C VecD &axis, Dbl angle) {Dbl sin; CosSin(w, sin, angle*0.5 ); xyz=axis*sin; return T;}
+
+Quaternion & Quaternion ::setRotateX(Flt angle) {CosSin(w, x, angle*0.5f); y=z=0; return T;}
+QuaternionD& QuaternionD::setRotateX(Dbl angle) {CosSin(w, x, angle*0.5 ); y=z=0; return T;}
+Quaternion & Quaternion ::setRotateY(Flt angle) {CosSin(w, y, angle*0.5f); x=z=0; return T;}
+QuaternionD& QuaternionD::setRotateY(Dbl angle) {CosSin(w, y, angle*0.5 ); x=z=0; return T;}
+Quaternion & Quaternion ::setRotateZ(Flt angle) {CosSin(w, z, angle*0.5f); x=y=0; return T;}
+QuaternionD& QuaternionD::setRotateZ(Dbl angle) {CosSin(w, z, angle*0.5 ); x=y=0; return T;}
+
+Quaternion& Quaternion::setRotate(Flt x, Flt y, Flt z)
 {
    Flt cos_x_2, sin_x_2; CosSin(cos_x_2, sin_x_2, x*0.5f);
    Flt cos_y_2, sin_y_2; CosSin(cos_y_2, sin_y_2, y*0.5f);
@@ -41,19 +44,28 @@ Quaternion& Quaternion::setRotate (Flt x, Flt y, Flt z)
 
    return T;
 }
+QuaternionD& QuaternionD::setRotate(Dbl x, Dbl y, Dbl z)
+{
+   Dbl cos_x_2, sin_x_2; CosSin(cos_x_2, sin_x_2, x*0.5);
+   Dbl cos_y_2, sin_y_2; CosSin(cos_y_2, sin_y_2, y*0.5);
+   Dbl cos_z_2, sin_z_2; CosSin(cos_z_2, sin_z_2, z*0.5);
+
+	T.x = cos_z_2*cos_y_2*sin_x_2 + sin_z_2*sin_y_2*cos_x_2;
+	T.y = cos_z_2*sin_y_2*cos_x_2 - sin_z_2*cos_y_2*sin_x_2;
+	T.z = sin_z_2*cos_y_2*cos_x_2 + cos_z_2*sin_y_2*sin_x_2;
+	T.w = cos_z_2*cos_y_2*cos_x_2 - sin_z_2*sin_y_2*sin_x_2;
+
+   return T;
+}
 /******************************************************************************/
-Flt Quaternion::angle()C
-{
-   return Acos(w)*2;
-}
-Vec Quaternion::axis()C
-{
-   Vec axis=xyz; axis.normalize(); return axis;
-}
-Vec Quaternion::axisAngle()C
-{
-   Vec axis=xyz; axis.setLength(Acos(w)*2); return axis;
-}
+Flt Quaternion ::angle()C {return Acos(w)*2;}
+Dbl QuaternionD::angle()C {return Acos(w)*2;}
+
+Vec  Quaternion ::axis()C {Vec  axis=xyz; axis.normalize(); return axis;}
+VecD QuaternionD::axis()C {VecD axis=xyz; axis.normalize(); return axis;}
+
+Vec  Quaternion ::axisAngle()C {Vec  axis=xyz; axis.setLength(Acos(w)*2); return axis;}
+VecD QuaternionD::axisAngle()C {VecD axis=xyz; axis.setLength(Acos(w)*2); return axis;}
 /******************************************************************************/
 Orient::Orient(C Quaternion &q)
 {
@@ -115,6 +127,36 @@ Matrix3::Matrix3(C Quaternion &q)
    T.z.y=(a-b)*mul;
    T.y.z=(a+b)*mul;
 }
+MatrixD3::MatrixD3(C QuaternionD &q)
+{
+   Dbl xx=q.x*q.x,
+       yy=q.y*q.y,
+       zz=q.z*q.z,
+       ww=q.w*q.w;
+
+   // 'mul' (inverse square length) is only required if quaternion is not already normalized
+   Dbl mul=1/(xx+yy+zz+ww);
+   T.x.x=( xx-yy-zz+ww)*mul;
+   T.y.y=(-xx+yy-zz+ww)*mul;
+   T.z.z=(-xx-yy+zz+ww)*mul;
+
+   mul*=2;
+
+   Dbl a=q.x*q.y,
+       b=q.z*q.w;
+   T.y.x=(a-b)*mul;
+   T.x.y=(a+b)*mul;
+
+   a=q.x*q.z;
+   b=q.y*q.w;
+   T.z.x=(a+b)*mul;
+   T.x.z=(a-b)*mul;
+
+   a=q.y*q.z;
+   b=q.x*q.w;
+   T.z.y=(a-b)*mul;
+   T.y.z=(a+b)*mul;
+}
 /******************************************************************************/
 Quaternion::Quaternion(C Matrix3 &m)
 {
@@ -143,6 +185,34 @@ Quaternion::Quaternion(C Matrix3 &m)
       }
    }
    T*=0.5f/SqrtFast(t);
+}
+QuaternionD::QuaternionD(C MatrixD3 &m)
+{
+   Dbl t;
+   if(m.z.z<0)
+   {
+      if(m.x.x>m.y.y)
+      {
+         t=1+m.x.x-m.y.y-m.z.z;
+         set(t, m.x.y+m.y.x, m.z.x+m.x.z, m.y.z-m.z.y);
+      }else
+      {
+         t=1-m.x.x+m.y.y-m.z.z;
+         set(m.x.y+m.y.x, t, m.y.z+m.z.y, m.z.x-m.x.z);
+      }
+   }else
+   {
+      if(m.x.x<-m.y.y)
+      {
+         t=1-m.x.x-m.y.y+m.z.z;
+         set(m.z.x+m.x.z, m.y.z+m.z.y, t, m.x.y-m.y.x);
+      }else
+      {
+         t=1+m.x.x+m.y.y+m.z.z;
+         set(m.y.z-m.z.y, m.z.x-m.x.z, m.x.y-m.y.x, t);
+      }
+   }
+   T*=0.5/SqrtFast(t);
 }
 /******************************************************************************/
 static Quaternion Log(C Quaternion &q)

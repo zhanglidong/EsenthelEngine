@@ -3173,55 +3173,29 @@ Matrix   GetTransform(                     C Matrix   &start, C Matrix   &result
 MatrixD  GetTransform(                     C MatrixD  &start, C MatrixD  &result) {MatrixD  transform; start.inverse(transform); transform*=result; return transform;}
 Matrix3  GetTransform(                     C Orient   &start, C Orient   &result) {Matrix3  transform;  GetTransform(transform, start, result);     return transform;}
 /******************************************************************************/
-static inline Vec GetRotation(C Vec &from, C Vec &to)
-{
-   Vec cross=Cross(from, to); if(Flt sin=cross.normalize())return cross*ACosSin(Dot(from, to), sin);
-   return VecZero;
-}
-static inline VecD GetRotation(C VecD &from, C VecD &to)
-{
-   VecD cross=Cross(from, to); if(Dbl sin=cross.normalize())return cross*ACosSin(Dot(from, to), sin);
-   return VecZero;
-}
-/******************************************************************************/
 void GetDelta(Vec &pos, Vec &angle, C Matrix &from, C Matrix &to)
 {
    // pos
    pos=to.pos-from.pos;
 
-   // angle
-   Vec cross=Cross(from.z, to.z); if(Flt sin=cross.normalize())
-   {
-      Flt cos=Dot(from.z, to.z);
-         angle=cross*ACosSin(cos, sin)
-              +GetRotation(from.y*Matrix3().setRotateCosSin(cross, cos, sin), to.y);
-   }else angle=GetRotation(from.y                                           , to.y);
+   // angle, use quaternions since it will be slightly faster, conversions to quaternions automatically normalize scale
+   Quaternion q=from; q.inverseNormalized(); q*=Quaternion(to); angle=q.axisAngle(); // this is equal to "GetTransform(from, to).axisAngle()"
 }
 void GetDelta(Vec &pos, Vec &angle, C MatrixM &from, C MatrixM &to)
 {
    // pos
    pos=to.pos-from.pos;
 
-   // angle
-   Vec cross=Cross(from.z, to.z); if(Flt sin=cross.normalize())
-   {
-      Flt cos=Dot(from.z, to.z);
-         angle=cross*ACosSin(cos, sin)
-              +GetRotation(from.y*Matrix3().setRotateCosSin(cross, cos, sin), to.y);
-   }else angle=GetRotation(from.y                                           , to.y);
+   // angle, use quaternions since it will be slightly faster, conversions to quaternions automatically normalize scale
+   Quaternion q=from; q.inverseNormalized(); q*=Quaternion(to); angle=q.axisAngle(); // this is equal to "GetTransform(from, to).axisAngle()"
 }
 void GetDelta(VecD &pos, VecD &angle, C MatrixD &from, C MatrixD &to)
 {
    // pos
    pos=to.pos-from.pos;
 
-   // angle
-   VecD cross=Cross(from.z, to.z); if(Dbl sin=cross.normalize())
-   {
-      Dbl cos=Dot(from.z, to.z);
-         angle=cross*ACosSin(cos, sin)
-              +GetRotation(from.y*MatrixD3().setRotateCosSin(cross, cos, sin), to.y);
-   }else angle=GetRotation(from.y                                            , to.y);
+   // angle, use quaternions since it will be slightly faster, conversions to quaternions automatically normalize scale
+   QuaternionD q=from; q.inverseNormalized(); q*=QuaternionD(to); angle=q.axisAngle(); // this is equal to "GetTransform(from, to).axisAngle()"
 }
 /******************************************************************************/
 void GetVel(Vec &vel, Vec &ang_vel, C Matrix &from, C Matrix &to, Flt dt)

@@ -77,6 +77,7 @@ struct OrientP;
 struct OrientM;
 
 struct Quaternion;
+struct QuaternionD;
 
 struct FrustumClass;
 
