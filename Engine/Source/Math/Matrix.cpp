@@ -3262,7 +3262,7 @@ void AnimatedSkeleton::setMatrix()C
          SetAngVelShader(ang_vel_shader, bone.angVel(), bone.matrix());
          SetFastVelUncondNoChanged(VIRTUAL_ROOT_BONE+i, bone.vel(), ang_vel_shader); // set un-conditionally because most likely velocities will change for animated meshes, and don't call 'setChanged', instead we call it manually below, index is always 'InRange'
       }
-      Sh.ObjVel->setChanged();
+      Sh.ObjVel->setChanged(); // call 'setChanged' only once, instead of for each bone
       /* Bone Splits old code
       if(VIRTUAL_ROOT_BONE)
       {
@@ -3284,7 +3284,7 @@ void AnimatedSkeleton::setMatrix()C
       if(VIRTUAL_ROOT_BONE)Sh.ViewMatrix->set(GObjMatrix[0                  ].fromMul(          matrix(), CamMatrixInv));
               REP(matrixes)Sh.ViewMatrix->set(GObjMatrix[VIRTUAL_ROOT_BONE+i].fromMul(bones[i]._matrix  , CamMatrixInv), VIRTUAL_ROOT_BONE+i);*/
    }
-   Sh.ViewMatrix->setChanged();
+   Sh.ViewMatrix->setChanged(); // call 'setChanged' only once, instead of for each bone
 }
 /******************************************************************************/
 void SetVelFur(C Matrix3 &view_matrix, C Vec &vel)
