@@ -10,7 +10,7 @@ extern Memc<Material::MaterialShader> MaterialShaders;
 struct EarlyZInstance
 {
  C MeshRender *mesh;
-   Matrix      view_matrix;
+   Matrix      view_matrix; // store as 'view_matrix' instead of 'obj_matrix' so we can use 'Matrix' instead of 'MatrixM'
 
    EarlyZInstance& set(C MeshRender &mesh);
 };
@@ -64,8 +64,8 @@ extern Memc<ShaderMaterialMesh> ShaderMaterialMeshes;
 struct SolidShaderMaterialMeshInstance
 {
    Int                      next_instance; // index of next instance in the same shader/material/mesh group in 'SolidShaderMaterialMeshInstances' container, keep 'next_instance' as first member, because it's used most often
-   Vec                      vel, ang_vel_shader;
-   Matrix                   view_matrix;
+   Vec                      vel, ang_vel_shader; // store as 'ang_vel_shader' instead of 'ang_vel' because 'SetAngVelShader' depends on 'obj_matrix' which is only available when creating this instance, and converted to 'view_matrix' to be used later
+   Matrix                   view_matrix; // store as 'view_matrix' instead of 'obj_matrix' so we can use 'Matrix' instead of 'MatrixM'
  C Memc<ShaderParamChange> *shader_param_changes;
    Color                    highlight;
    Byte                     stencil_value;
@@ -78,7 +78,7 @@ extern Memc<SolidShaderMaterialMeshInstance> SolidShaderMaterialMeshInstances;
 struct ShadowShaderMaterialMeshInstance
 {
    Int                      next_instance; // index of next instance in the same shader/material/mesh group in 'ShadowShaderMaterialMeshInstances' container, keep 'next_instance' as first member, because it's used most often
-   Matrix                   view_matrix;
+   Matrix                   view_matrix; // store as 'view_matrix' instead of 'obj_matrix' so we can use 'Matrix' instead of 'MatrixM'
  C Memc<ShaderParamChange> *shader_param_changes;
 
    ShadowShaderMaterialMeshInstance& set();
@@ -106,7 +106,7 @@ struct AmbientInstance // ambient instances are stored in a simple way, without 
      ~AmbientInstance() {Variation().material->decUsage();} // for ambient, material will always be != null, because only materials with ambient value can create ambient instances
    #endif
 #endif
-   Matrix                   view_matrix;
+   Matrix                   view_matrix; // store as 'view_matrix' instead of 'obj_matrix' so we can use 'Matrix' instead of 'MatrixM'
  C Memc<ShaderParamChange> *shader_param_changes;
 
    AmbientInstance& set(C MeshPart &mesh, C MeshPart::Variation &variation);
@@ -264,8 +264,8 @@ struct BlendInstance
     C MeshPart::Variation     *variation;
    #endif
     C MeshPart                *mesh;
-      Vec                      vel, ang_vel_shader;
-      Matrix                   view_matrix;
+      Vec                      vel, ang_vel_shader; // store as 'ang_vel_shader' instead of 'ang_vel' because 'SetAngVelShader' depends on 'obj_matrix' which is only available when creating this instance, and converted to 'view_matrix' to be used later
+      Matrix                   view_matrix; // store as 'view_matrix' instead of 'obj_matrix' so we can use 'Matrix' instead of 'MatrixM'
     C Memc<ShaderParamChange> *shader_param_changes;
       Color                    highlight;
       STENCIL_MODE             stencil_mode;
@@ -311,7 +311,7 @@ struct ClothInstance
  C Cloth      *cloth;
    ShaderBase *shader;
  C Material   *material;
-   Vec         vel, ang_vel_shader;
+   Vec         vel, ang_vel_shader; // store as 'ang_vel_shader' instead of 'ang_vel' because 'SetAngVelShader' depends on 'obj_matrix' which is only available when creating this instance, and converted to 'view_matrix' to be used later
    Color       highlight;
 
 #if COUNT_MATERIAL_USAGE

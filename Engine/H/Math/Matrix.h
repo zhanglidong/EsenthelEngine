@@ -892,7 +892,7 @@ void SetVelFur(C Matrix3 &view_matrix, C Vec &vel); // set velocity for fur effe
 void SetProjMatrix();
 void SetProjMatrix(Flt proj_offset);
 
-void SetAngVelShader(Vec &ang_vel_shader, C Vec &ang_vel, C Matrix3 &matrix);
+void SetAngVelShader(Vec &ang_vel_shader, C Vec &ang_vel, C Matrix3 &obj_matrix); // 'obj_matrix'=object matrix (not view matrix)
 #endif
 
 void SetMatrix(C Matrix  &matrix=MatrixIdentity                     ); // set active object rendering matrix and clear velocities to zero

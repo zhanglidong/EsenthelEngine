@@ -32,9 +32,9 @@ namespace EE{
       +Cross(vtx.pos, Obj.angVel/Obj.matrix.orn)*ViewMatrix
 
 /******************************************************************************/
-void SetAngVelShader(Vec &ang_vel_shader, C Vec &ang_vel, C Matrix3 &matrix)
-{//ang_vel_shader=(ang_vel/matrix.normalize())*D.motionScale()
-   ang_vel_shader.fromDivNormalized(ang_vel, matrix)*=D.motionScale()/matrix.x.length(); // faster approximation because we use only 'x.length' ignoring y and z, yes in this case it should be 'length' and not 'length2'
+void SetAngVelShader(Vec &ang_vel_shader, C Vec &ang_vel, C Matrix3 &obj_matrix)
+{//ang_vel_shader=(ang_vel/obj_matrix.normalize())*D.motionScale()
+   ang_vel_shader.fromDivNormalized(ang_vel, obj_matrix)*=D.motionScale()/obj_matrix.x.length(); // faster approximation because we use only 'x.length' ignoring y and z, yes in this case it should be 'length' and not 'length2'
 }
 static INLINE void SetViewMatrix(Matrix &view_matrix, C Matrix  &matrix) {matrix.mul(CamMatrixInv, view_matrix);}
 static INLINE void SetViewMatrix(Matrix &view_matrix, C MatrixM &matrix) {matrix.mul(CamMatrixInv, view_matrix);}
@@ -1402,7 +1402,7 @@ void MeshPart::drawBlend(C Vec4 *color)C
 }
 void MeshLod::drawBlend(                                                           C Vec4 *color)C {                                                                                                                                              FREPAO(parts).drawBlend(color);}
 void Mesh   ::drawBlend(                                                           C Vec4 *color)C {                                                                                                                             getDrawLod(       ObjMatrix  ).drawBlend(color);}
-void Mesh   ::drawBlend(C MatrixM          &matrix   , C Vec &vel, C Vec &ang_vel, C Vec4 *color)C {Vec ang_vel_shader; SetAngVelShader(ang_vel_shader, ang_vel, matrix); SetOneMatrix(matrix); SetFastVel(vel, ang_vel_shader); getDrawLod(          matrix  ).drawBlend(color);}
+void Mesh   ::drawBlend(C MatrixM          &matrix   , C Vec &vel, C Vec &ang_vel, C Vec4 *color)C {SetOneMatrix(matrix); Vec ang_vel_shader; SetAngVelShader(ang_vel_shader, ang_vel, matrix); SetFastVel(vel, ang_vel_shader); getDrawLod(          matrix  ).drawBlend(color);}
 void Mesh   ::drawBlend(C AnimatedSkeleton &anim_skel,                             C Vec4 *color)C {                                                                                                      anim_skel.setMatrix(); getDrawLod(anim_skel.matrix()).drawBlend(color);}
 /******************************************************************************/
 void MeshPart::drawBoneHighlight(Int bone)C
