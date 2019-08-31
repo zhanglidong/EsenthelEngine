@@ -235,36 +235,36 @@ Flt Acos(Flt cos)
 {
    if(cos>= 1)return  0;
    if(cos<=-1)return PI;
-              return acosf(cos);
+              return AcosFast(cos);
 }
 Dbl Acos(Dbl cos)
 {
    if(cos>= 1)return   0;
    if(cos<=-1)return PID;
-              return acos(cos);
+              return AcosFast(cos);
 }
 Flt Asin(Flt sin)
 {
    if(sin>= 1)return  PI_2;
    if(sin<=-1)return -PI_2;
-              return  asinf(sin);
+              return  AsinFast(sin);
 }
 Dbl Asin(Dbl sin)
 {
    if(sin>= 1)return  PID_2;
    if(sin<=-1)return -PID_2;
-              return  asin(sin);
+              return  AsinFast(sin);
 }
 
 Flt ACosSin(Flt cos, Flt sin) // assumes "sin>=0"
 { // use Acos for angles 45..135 deg
-   return (sin>=SQRT2_2) ?            Acos(cos)
-                         : (cos>=0) ? Asin(sin) : PI-Asin(sin);
+   return (sin>=SQRT2_2) ?            AcosFast(cos)                     // use fast version because we can assume 'cos' will be in -SQRT2_2..SQRT2_2 range
+                         : (cos>=0) ? AsinFast(sin) : PI-AsinFast(sin); // use fast version because we can assume 'sin' will be in        0..SQRT2_2 range
 }
 Dbl ACosSin(Dbl cos, Dbl sin) // assumes "sin>=0"
 { // use Acos for angles 45..135 deg
-   return (sin>=SQRT2_2) ?            Acos(cos)
-                         : (cos>=0) ? Asin(sin) : PID-Asin(sin);
+   return (sin>=SQRT2_2) ?            AcosFast(cos)                      // use fast version because we can assume 'cos' will be in -SQRT2_2..SQRT2_2 range
+                         : (cos>=0) ? AsinFast(sin) : PID-AsinFast(sin); // use fast version because we can assume 'sin' will be in        0..SQRT2_2 range
 }
 
 Vec2 Atan(C Vec2 &tan) {return Vec2(Atan(tan.x), Atan(tan.y));}
@@ -583,7 +583,7 @@ Flt SmoothCubeInv(Flt y)
 {
    if(y<=0)return 0;
    if(y>=1)return 1;
-   return 0.5f-Sin(asinf(1-2*y)/3);
+   return 0.5f-Sin(AsinFast(1-2*y)/3); // use 'AsinFast' version because we've already checked 'y' range
 }
 Flt SmoothCube2(Flt x)
 {

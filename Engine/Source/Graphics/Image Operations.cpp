@@ -3005,7 +3005,7 @@ struct BlurCube
         dest_res      =Max(1, dest.w()>>dest_mip);
          src_area_size=Flt(src_res)/dest_res;
          // calculate max angle between face direction vector and a point belonging to that face - this will be furthest point, so !Vec(1,1,1) is used and face direction Vec(0,0,1)
-         const Flt diag_angle=acosf(SQRT3_3), //Flt a=AbsAngleBetween(!Vec(1,1,1), Vec(0,0,1)); AbsAngleBetween(Vec(SQRT3_3, SQRT3_3, SQRT3_3), Vec(0,0,1)); Acos(Dot(Vec(SQRT3_3, SQRT3_3, SQRT3_3), Vec(0,0,1)));
+         const Flt diag_angle=AcosFast(SQRT3_3), //Flt a=AbsAngleBetween(!Vec(1,1,1), Vec(0,0,1)); AbsAngleBetween(Vec(SQRT3_3, SQRT3_3, SQRT3_3), Vec(0,0,1)); Acos(Dot(Vec(SQRT3_3, SQRT3_3, SQRT3_3), Vec(0,0,1)));
                    diag_angle_ext=diag_angle+angle;
          T.angle=angle; angle_eps=angle*SQRT2; // need to mul by SQRT2 because calculating bounds is an approximation so we need to extend the rect because normally it doesn't cover fully
                     cos_min=Cos(angle);

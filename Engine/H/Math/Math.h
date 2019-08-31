@@ -289,6 +289,11 @@ inline Dbl  Ctg   (  Dbl   angle) {return tan (PID_2-angle);} // get cotangent "
 inline Flt  Atan  (  Flt   tan  ) {return atanf(tan);}        // get arc tangent (angle which has specified tangent), -PI_2..PI_2
 inline Dbl  Atan  (  Dbl   tan  ) {return atan (tan);}        // get arc tangent (angle which has specified tangent), -PI_2..PI_2
        Vec2 Atan  (C Vec2 &tan  );                            // get arc tangent (angle which has specified tangent), -PI_2..PI_2
+
+inline Flt AcosFast(Flt cos) {return acosf(cos);} // get arc cosine (angle which has specified cosine),     0..PI  , returns NaN for values out of -1..1 range
+inline Dbl AcosFast(Dbl cos) {return acos (cos);} // get arc cosine (angle which has specified cosine),     0..PI  , returns NaN for values out of -1..1 range
+inline Flt AsinFast(Flt sin) {return asinf(sin);} // get arc   sine (angle which has specified   sine), -PI_2..PI_2, returns NaN for values out of -1..1 range
+inline Dbl AsinFast(Dbl sin) {return asin (sin);} // get arc   sine (angle which has specified   sine), -PI_2..PI_2, returns NaN for values out of -1..1 range
 #if EE_PRIVATE
 Flt ACosSin(Flt cos, Flt sin); // get angle which has specified cosine and sine, 0..PI (this assumes "sin>=0"), this is faster than 'Angle', however point needs to be normalized (X=cos, Y=sin), and remember that this function ignores "sin<0"
 Dbl ACosSin(Dbl cos, Dbl sin); // get angle which has specified cosine and sine, 0..PI (this assumes "sin>=0"), this is faster than 'Angle', however point needs to be normalized (X=cos, Y=sin), and remember that this function ignores "sin<0"
