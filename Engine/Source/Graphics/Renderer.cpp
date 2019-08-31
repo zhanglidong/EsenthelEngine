@@ -94,6 +94,8 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
 }
 void RendererClass::del()
 {
+  _mesh_shader_vel=false; // prevent setting velocities (which may ignore range checks) after deleting, because shader handles may be already released
+
    Sky   .del();
    Astros.del();
    Clouds.del();

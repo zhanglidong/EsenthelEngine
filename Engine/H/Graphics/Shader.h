@@ -99,10 +99,14 @@ struct ShaderParam // Shader Parameter
             void setConditional(C Vec  &a, C Vec &b, UInt elm); // set vector3Dx2 array element value only if it's different
             void setConditional(C Rect &r                    ); // set vector4D                 value only if it's different
 
+            void setInRangeConditional(C Vec &a, C Vec &b, UInt elm); // set vector3Dx2 array element value only if it's different, values assumed to be always in range
+
             void setSafe(C Vec4 &v); // set from vector4D value, but limit the actual size copied based on 'ShaderParam' size
          #endif
 
 #if EE_PRIVATE
+   #define MIN_SHADER_PARAM_DATA_SIZE (SIZE(Vec4)*2) // Vec4*2 needed for calling SetMatrix -> SetFastVel -> Sh.ObjVel->setConditional
+
    struct Translation
    {
       Int cpu_offset, gpu_offset, elm_size; // 'gpu_offset'=during shader creation and saving it's set relative to start of cbuffer, but while loading it's adjusted to be relative to start of param. This is done because 'ShaderParam.data' is adjusted to point directly to param (so 'set' methods can work correctly), since 'data' is adjusted then we have to adjust 'gpu_offset' too.
@@ -123,11 +127,14 @@ struct ShaderParam // Shader Parameter
    Int  gpuArrayStride()C;
 
    INLINE void setChanged() {*_changed=true;}
+constexpr Bool canFit   (UInt size)C {return MIN_SHADER_PARAM_DATA_SIZE>=size || _gpu_data_size>=size;} // use this if 'size' is known at compile-time
+   INLINE Bool canFitVar(UInt size)C {return                                     _gpu_data_size>=size;} // use this if 'size' is known at     run-time
           void optimize  () {OptimizeTranslation(_full_translation, _optimized_translation);}
           void initAsElement(ShaderParam &parent, Int index);
           void zero();
 
-   INLINE GpuMatrix* asGpuMatrix() {return (GpuMatrix*)_data;}
+   INLINE GpuMatrix  * asGpuMatrix  () {return (GpuMatrix  *)_data;}
+   INLINE GpuVelocity* asGpuVelocity() {return (GpuVelocity*)_data;}
 
   ~ShaderParam() {zero();}
    ShaderParam() {zero();}
@@ -555,7 +562,5 @@ T1(TYPE) inline void SPSet(CChar8 *name, C TYPE    &data            ) {if(Shader
 #if EE_PRIVATE
 ShaderBuffer* FindShaderBuffer(CChar8 *name);
 ShaderBuffer*  GetShaderBuffer(CChar8 *name);
-
-#define MIN_SHADER_PARAM_DATA_SIZE SIZE(Vec4)
 #endif
 /******************************************************************************/

@@ -477,12 +477,21 @@ struct Matrix : Matrix3 // Matrix 4x3 (orientation + scale + position)
 
 #define MAX_MATRIX 256 // max available Object Matrixes (256 Matrix * 3 Vec4 = 768 Vec4's)
 
-extern    MatrixM ObjMatrix              , // object matrix
-                  CamMatrix              , // camera, this is always set, even when drawing shadows
-                  CamMatrixInv           , // camera inversed = ~CamMatrix
-                  EyeMatrix[2]           ; // 'ActiveCam.matrix' adjusted for both eyes 0=left, 1=right
-extern    Matrix3 CamMatrixInvMotionScale; // 'ActiveCam.matrix' inversed and scaled by 'D.motionScale'
-extern GpuMatrix *ViewMatrix             ;
+struct GpuVelocity
+{
+   Vec lin; Flt padd0;
+   Vec ang; Flt padd1;
+
+   void set(C Vec &lin, C Vec &ang) {T.lin=lin; T.ang=ang;}
+};
+
+extern    MatrixM   ObjMatrix              , // object matrix
+                    CamMatrix              , // camera, this is always set, even when drawing shadows
+                    CamMatrixInv           , // camera inversed = ~CamMatrix
+                    EyeMatrix[2]           ; // 'ActiveCam.matrix' adjusted for both eyes 0=left, 1=right
+extern    Matrix3   CamMatrixInvMotionScale; // 'ActiveCam.matrix' inversed and scaled by 'D.motionScale'
+extern GpuMatrix   *ViewMatrix             ;
+extern GpuVelocity *ViewVel                ;
 #endif
 /******************************************************************************/
 struct MatrixM : Matrix3 // Matrix 4x3 (orientation + scale + position, mixed precision, uses Flt for orientation+scale and Dbl for position)
@@ -881,7 +890,10 @@ void SetFastMatrix    (C MatrixM &matrix     ); // set object matrix
 
 void SetFastVel(                                         ); // set      object velocity to 'VecZero'
 void SetFastVel(        C Vec &vel, C Vec &ang_vel_shader); // set      object velocity
-void SetFastVel(Byte i, C Vec &vel, C Vec &ang_vel_shader); // set i-th object velocity
+void SetFastVel(Byte i, C Vec &vel, C Vec &ang_vel_shader); // set i-th object velocity assumes that index is 'InRange'
+
+void SetFastVelUncondNoChanged(        C Vec &vel, C Vec &ang_vel_shader); // set      object velocity un-conditionally (assumes that most likely it will be different), don't call 'ShaderParam.setChanged' (assumed to be manually called later)
+void SetFastVelUncondNoChanged(Byte i, C Vec &vel, C Vec &ang_vel_shader); // set i-th object velocity un-conditionally (assumes that most likely it will be different), don't call 'ShaderParam.setChanged' (assumed to be manually called later) assumes that index is 'InRange'
 
 void SetOneMatrix(                 ); // set object matrix to 'MatrixIdentity' and number of used matrixes to 1
 void SetOneMatrix(C Matrix  &matrix); // set object matrix                     and number of used matrixes to 1

@@ -532,7 +532,6 @@ void ShaderParam::initAsElement(ShaderParam &parent, Int index) // this is calle
    }
 }
 /******************************************************************************/
-// can write small types without checking for size, because all 'ShaderParam' data are allocated with MIN_SHADER_PARAM_DATA_SIZE=SIZE(Vec4) padding
 void ShaderParamBool::set           (Bool b) {                                         setChanged(); *(U32*)_data=b; }
 void ShaderParamBool::setConditional(Bool b) {U32 &dest=*(U32*)_data; if(dest!=(U32)b){setChanged();         dest=b;}}
 
@@ -552,6 +551,8 @@ void ShaderParam::set(C VecI4 &v    ) {setChanged(); *(Vec4*)_data=v;}
 void ShaderParam::set(C Rect  &rect ) {setChanged(); *(Rect*)_data=rect;}
 void ShaderParam::set(C Color &color) {setChanged(); *(Vec4*)_data=SRGBToDisplay(color);}
 
+ASSERT(MIN_SHADER_PARAM_DATA_SIZE>=SIZE(Vec4)); // can write small types without checking for 'canFit', because all 'ShaderBuffer's for 'ShaderParam' data are allocated with MIN_SHADER_PARAM_DATA_SIZE=SIZE(Vec4) padding
+
 void ShaderParam::set(C Vec *v, Int elms)
 {
    setChanged();
@@ -562,7 +563,7 @@ void ShaderParam::set(C Vec4 *v, Int elms) {setChanged(); CopyFast(_data, v, Min
 
 void ShaderParam::set(C Matrix3 &matrix)
 {
-   if(_gpu_data_size>=SIZE(Vec4)+SIZE(Vec4)+SIZE(Vec)) // do not test for 'SIZE(GpuMatrix)' !! because '_gpu_data_size' may be SIZE(GpuMatrix) minus last Flt, because it's not really used (this happens on DX10+)
+   if(canFit(SIZE(Vec4)+SIZE(Vec4)+SIZE(Vec))) // do not test for 'SIZE(GpuMatrix)' !! because '_gpu_data_size' may be SIZE(GpuMatrix) minus last Flt, because it's not really used (this happens on DX10+)
    {
       setChanged();
       Vec4 *gpu=(Vec4*)_data;
@@ -573,7 +574,7 @@ void ShaderParam::set(C Matrix3 &matrix)
 }
 void ShaderParam::set(C Matrix &matrix)
 {
-   if(_gpu_data_size>=SIZE(GpuMatrix))
+   if(canFit(SIZE(GpuMatrix)))
    {
       setChanged();
       Vec4 *gpu=(Vec4*)_data;
@@ -584,7 +585,7 @@ void ShaderParam::set(C Matrix &matrix)
 }
 void ShaderParam::set(C MatrixM &matrix)
 {
-   if(_gpu_data_size>=SIZE(GpuMatrix)) // we're setting as 'GpuMatrix' and not 'MatrixM'
+   if(canFit(SIZE(GpuMatrix))) // we're setting as 'GpuMatrix' and not 'MatrixM'
    {
       setChanged();
       Vec4 *gpu=(Vec4*)_data;
@@ -595,7 +596,7 @@ void ShaderParam::set(C MatrixM &matrix)
 }
 void ShaderParam::set(C Matrix4 &matrix)
 {
-   if(_gpu_data_size>=SIZE(matrix))
+   if(canFit(SIZE(matrix)))
    {
       setChanged();
       Vec4 *gpu=(Vec4*)_data;
@@ -631,7 +632,7 @@ void ShaderParam::set(CPtr data, Int size) // !! Warning: 'size' is ignored here
 void ShaderParam::set(C Vec &v, UInt elm) // use unsigned to ignore negative indexes
 {
    UInt offset=SIZE(Vec4)*elm; // elements are aligned by 'Vec4'
-   if(_gpu_data_size>=offset+SIZE(Vec)) // we're writing only 'Vec'
+   if(canFitVar(offset+SIZE(Vec))) // we're writing only 'Vec'
    {
       setChanged();
       Vec *gpu=(Vec*)(_data+offset);
@@ -640,7 +641,7 @@ void ShaderParam::set(C Vec &v, UInt elm) // use unsigned to ignore negative ind
 }
 void ShaderParam::set(C Vec &a, C Vec &b)
 {
-   if(_gpu_data_size>=SIZE(Vec4)+SIZE(Vec)) // elements are aligned by 'Vec4' but we're writing only 'Vec4'+'Vec'
+   if(canFit(SIZE(Vec4)+SIZE(Vec))) // elements are aligned by 'Vec4' but we're writing only 'Vec4'+'Vec'
    {
       setChanged();
       Vec4 *gpu=(Vec4*)_data; // elements are aligned by 'Vec4'
@@ -651,7 +652,7 @@ void ShaderParam::set(C Vec &a, C Vec &b)
 void ShaderParam::set(C Vec &a, C Vec &b, UInt elm) // use unsigned to ignore negative indexes
 {
    UInt offset=(SIZE(Vec4)*2)*elm; // elements are aligned by 'Vec4'*2
-   if(_gpu_data_size>=offset+(SIZE(Vec4)+SIZE(Vec))) // we're writing only 'Vec4'+'Vec'
+   if(canFitVar(offset+(SIZE(Vec4)+SIZE(Vec)))) // we're writing only 'Vec4'+'Vec'
    {
       setChanged();
       Vec4 *gpu=(Vec4*)(_data+offset); // elements are aligned by 'Vec4'
@@ -662,7 +663,7 @@ void ShaderParam::set(C Vec &a, C Vec &b, UInt elm) // use unsigned to ignore ne
 void ShaderParam::set(C Vec4 &v, UInt elm) // use unsigned to ignore negative indexes
 {
    UInt offset=SIZE(Vec4)*elm; // elements are aligned by 'Vec4'
-   if(_gpu_data_size>=offset+SIZE(Vec4))
+   if(canFitVar(offset+SIZE(Vec4)))
    {
       setChanged();
       Vec4 *gpu=(Vec4*)(_data+offset);
@@ -672,7 +673,7 @@ void ShaderParam::set(C Vec4 &v, UInt elm) // use unsigned to ignore negative in
 void ShaderParam::set(C Matrix &matrix, UInt elm) // use unsigned to ignore negative indexes
 {
    UInt offset=SIZE(GpuMatrix)*elm;
-   if(_gpu_data_size>=offset+SIZE(GpuMatrix))
+   if(canFitVar(offset+SIZE(GpuMatrix)))
    {
       setChanged();
       Vec4 *gpu=(Vec4*)(_data+offset);
@@ -684,7 +685,7 @@ void ShaderParam::set(C Matrix &matrix, UInt elm) // use unsigned to ignore nega
 
 void ShaderParam::fromMul(C Matrix &a, C Matrix &b)
 {
-   if(_gpu_data_size>=SIZE(GpuMatrix))
+   if(canFit(SIZE(GpuMatrix)))
    {
       setChanged();
       ((GpuMatrix*)_data)->fromMul(a, b);
@@ -692,7 +693,7 @@ void ShaderParam::fromMul(C Matrix &a, C Matrix &b)
 }
 void ShaderParam::fromMul(C Matrix &a, C MatrixM &b)
 {
-   if(_gpu_data_size>=SIZE(GpuMatrix))
+   if(canFit(SIZE(GpuMatrix)))
    {
       setChanged();
       ((GpuMatrix*)_data)->fromMul(a, b);
@@ -700,7 +701,7 @@ void ShaderParam::fromMul(C Matrix &a, C MatrixM &b)
 }
 void ShaderParam::fromMul(C MatrixM &a, C MatrixM &b)
 {
-   if(_gpu_data_size>=SIZE(GpuMatrix))
+   if(canFit(SIZE(GpuMatrix)))
    {
       setChanged();
       ((GpuMatrix*)_data)->fromMul(a, b);
@@ -709,7 +710,7 @@ void ShaderParam::fromMul(C MatrixM &a, C MatrixM &b)
 void ShaderParam::fromMul(C Matrix &a, C Matrix &b, UInt elm) // use unsigned to ignore negative indexes
 {
    UInt offset=SIZE(GpuMatrix)*elm;
-   if(_gpu_data_size>=offset+SIZE(GpuMatrix))
+   if(canFitVar(offset+SIZE(GpuMatrix)))
    {
       setChanged();
       GpuMatrix *gpu=(GpuMatrix*)(_data+offset);
@@ -719,7 +720,7 @@ void ShaderParam::fromMul(C Matrix &a, C Matrix &b, UInt elm) // use unsigned to
 void ShaderParam::fromMul(C Matrix &a, C MatrixM &b, UInt elm) // use unsigned to ignore negative indexes
 {
    UInt offset=SIZE(GpuMatrix)*elm;
-   if(_gpu_data_size>=offset+SIZE(GpuMatrix))
+   if(canFitVar(offset+SIZE(GpuMatrix)))
    {
       setChanged();
       GpuMatrix *gpu=(GpuMatrix*)(_data+offset);
@@ -729,7 +730,7 @@ void ShaderParam::fromMul(C Matrix &a, C MatrixM &b, UInt elm) // use unsigned t
 void ShaderParam::fromMul(C MatrixM &a, C MatrixM &b, UInt elm) // use unsigned to ignore negative indexes
 {
    UInt offset=SIZE(GpuMatrix)*elm;
-   if(_gpu_data_size>=offset+SIZE(GpuMatrix))
+   if(canFitVar(offset+SIZE(GpuMatrix)))
    {
       setChanged();
       GpuMatrix *gpu=(GpuMatrix*)(_data+offset);
@@ -739,7 +740,7 @@ void ShaderParam::fromMul(C MatrixM &a, C MatrixM &b, UInt elm) // use unsigned 
 
 void ShaderParam::set(C GpuMatrix &matrix)
 {
-   if(_gpu_data_size>=SIZE(GpuMatrix))
+   if(canFit(SIZE(GpuMatrix)))
    {
       setChanged();
       GpuMatrix &gpu=*(GpuMatrix*)_data;
@@ -749,7 +750,7 @@ void ShaderParam::set(C GpuMatrix &matrix)
 void ShaderParam::set(C GpuMatrix &matrix, UInt elm) // use unsigned to ignore negative indexes
 {
    UInt offset=SIZE(GpuMatrix)*elm;
-   if(_gpu_data_size>=offset+SIZE(GpuMatrix))
+   if(canFitVar(offset+SIZE(GpuMatrix)))
    {
       setChanged();
       GpuMatrix *gpu=(GpuMatrix*)(_data+offset);
@@ -792,7 +793,7 @@ void ShaderParam::setConditional(C Rect &r)
 void ShaderParam::setConditional(C Vec &v, UInt elm) // use unsigned to ignore negative indexes
 {
    UInt offset=SIZE(Vec4)*elm; // elements are aligned by 'Vec4'
-   if(_gpu_data_size>=offset+SIZE(Vec)) // we're writing only 'Vec'
+   if(canFitVar(offset+SIZE(Vec))) // we're writing only 'Vec'
    {
       Vec &dest=*(Vec*)(_data+offset);
       if(  dest!=v){setChanged(); dest=v;}
@@ -800,7 +801,7 @@ void ShaderParam::setConditional(C Vec &v, UInt elm) // use unsigned to ignore n
 }
 void ShaderParam::setConditional(C Vec &a, C Vec &b)
 {
-   if(_gpu_data_size>=SIZE(Vec4)+SIZE(Vec)) // elements are aligned by 'Vec4'*2 but we're writing only 'Vec4'+'Vec'
+   if(canFit(SIZE(Vec4)+SIZE(Vec))) // elements are aligned by 'Vec4' but we're writing only 'Vec4'+'Vec'
    {
       Vec4 *gpu=(Vec4*)_data;
       Vec &A=gpu[0].xyz,
@@ -816,7 +817,7 @@ void ShaderParam::setConditional(C Vec &a, C Vec &b)
 void ShaderParam::setConditional(C Vec &a, C Vec &b, UInt elm) // use unsigned to ignore negative indexes
 {
    UInt offset=(SIZE(Vec4)*2)*elm; // elements are aligned by 'Vec4'*2
-   if(_gpu_data_size>=offset+(SIZE(Vec4)+SIZE(Vec))) // we're writing only 'Vec4'+'Vec'
+   if(canFitVar(offset+(SIZE(Vec4)+SIZE(Vec)))) // we're writing only 'Vec4'+'Vec'
    {
       Vec4 *gpu=(Vec4*)(_data+offset);
       Vec &A=gpu[0].xyz,
@@ -827,6 +828,18 @@ void ShaderParam::setConditional(C Vec &a, C Vec &b, UInt elm) // use unsigned t
          A=a;
          B=b;
       }
+   }
+}
+void ShaderParam::setInRangeConditional(C Vec &a, C Vec &b, UInt elm)
+{
+   Vec4 *gpu=(Vec4*)(_data+(SIZE(Vec4)*2)*elm); // elements are aligned by 'Vec4'*2
+   Vec &A=gpu[0].xyz,
+       &B=gpu[1].xyz;
+   if(A!=a || B!=b)
+   {
+      setChanged();
+      A=a;
+      B=b;
    }
 }
 
@@ -1956,7 +1969,8 @@ void SetFurVelCount(Int num) // !! unlike 'SetMatrixCount' this needs to be call
 /******************************************************************************/
 void InitMatrix()
 {
-   ViewMatrix=Sh.ViewMatrix->asGpuMatrix();
+   ViewMatrix=Sh.ViewMatrix->asGpuMatrix  ();
+   ViewVel   =Sh.ObjVel    ->asGpuVelocity();
 
    DYNAMIC_ASSERT(Sh.ViewMatrix->_cpu_data_size==SIZE(GpuMatrix)*  MAX_MATRIX, "Unexpected size of ViewMatrix");
    DYNAMIC_ASSERT(Sh.ObjVel    ->_cpu_data_size==SIZE(Vec      )*2*MAX_MATRIX, "Unexpected size of ObjVel"); // #VelAngVel

@@ -19,7 +19,8 @@ namespace EE{
 const Matrix  MatrixIdentity (1);
 const MatrixM MatrixMIdentity(1);
 
-   GpuMatrix *ViewMatrix;
+GpuMatrix   *ViewMatrix;
+GpuVelocity *ViewVel;
 /******************************************************************************/
 Matrix3& Matrix3::operator*=(Flt f)
 {
@@ -3245,9 +3246,9 @@ void AnimatedSkeleton::setMatrix()C
    Int matrixes=Min(bones.elms(), MAX_MATRIX-VIRTUAL_ROOT_BONE); // this is the amount of matrixes for bones (without the virtual), leave room for root bone
    SetMatrixCount(VIRTUAL_ROOT_BONE+matrixes); // root + bones
    ObjMatrix=matrix(); // 'Mesh.drawBlend' makes use of the 'ObjMatrix' so it must be set
-   if(Renderer._mesh_shader_vel) // we need to process velocities
+   if(Renderer._mesh_shader_vel) // we need to process velocities (this is disabled in 'Renderer.del' to prevent using shader handles)
    {
-      Vec v; if(VIRTUAL_ROOT_BONE){v=vel()-ActiveCam.vel; v*=CamMatrixInvMotionScale;}
+      Vec ang_vel_shader;
       if(VIRTUAL_ROOT_BONE)
       {
          Sh.ViewMatrix->fromMul(matrix(), CamMatrixInv);
@@ -3311,9 +3312,12 @@ void SetFastMatrix    (                      ) {Sh.ViewMatrix->set    (        C
 void SetFastMatrix    (C Matrix  &     matrix) {Sh.ViewMatrix->fromMul(matrix, CamMatrixInv);}
 void SetFastMatrix    (C MatrixM &     matrix) {Sh.ViewMatrix->fromMul(matrix, CamMatrixInv);}
 
-void SetFastVel(                                         ) {Sh.ObjVel->setConditional((   -ActiveCam.vel)*=CamMatrixInvMotionScale, VecZero          );}
-void SetFastVel(        C Vec &vel, C Vec &ang_vel_shader) {Sh.ObjVel->setConditional((vel-ActiveCam.vel)*=CamMatrixInvMotionScale, ang_vel_shader   );} // !! 'ang_vel_shader' must come from 'SetAngVelShader' !!
-void SetFastVel(Byte i, C Vec &vel, C Vec &ang_vel_shader) {Sh.ObjVel->setConditional((vel-ActiveCam.vel)*=CamMatrixInvMotionScale, ang_vel_shader, i);} // !! 'ang_vel_shader' must come from 'SetAngVelShader' !!
+void SetFastVel(                                         ) {Sh.ObjVel->setConditional       ((   -ActiveCam.vel)*=CamMatrixInvMotionScale, VecZero          );}
+void SetFastVel(        C Vec &vel, C Vec &ang_vel_shader) {Sh.ObjVel->setConditional       ((vel-ActiveCam.vel)*=CamMatrixInvMotionScale, ang_vel_shader   );} // !! 'ang_vel_shader' must come from 'SetAngVelShader' !!
+void SetFastVel(Byte i, C Vec &vel, C Vec &ang_vel_shader) {Sh.ObjVel->setInRangeConditional((vel-ActiveCam.vel)*=CamMatrixInvMotionScale, ang_vel_shader, i);} // !! 'ang_vel_shader' must come from 'SetAngVelShader', 'i' must be 'InRange' !!
+
+void SetFastVelUncondNoChanged(        C Vec &vel, C Vec &ang_vel_shader) {ViewVel[0].set((vel-ActiveCam.vel)*=CamMatrixInvMotionScale, ang_vel_shader);} // !! 'ang_vel_shader' must come from 'SetAngVelShader' !!
+void SetFastVelUncondNoChanged(Byte i, C Vec &vel, C Vec &ang_vel_shader) {ViewVel[i].set((vel-ActiveCam.vel)*=CamMatrixInvMotionScale, ang_vel_shader);} // !! 'ang_vel_shader' must come from 'SetAngVelShader', 'i' must be 'InRange' !!
 /******************************************************************************/
 // To be used for drawing without any velocities
 void SetOneMatrix()
