@@ -33,8 +33,8 @@ namespace EE{
 
 /******************************************************************************/
 void SetAngVelShader(Vec &ang_vel_shader, C Vec &ang_vel, C Matrix3 &matrix)
-{ // TODO: can this be done in the shader?
-   ang_vel_shader.fromDivNormalized(ang_vel, matrix)*=D.motionScale()/matrix.x.length(); // this is equal to dividing by normalized matrix, v/=matrix.normalize(), as a faster approximation because we use only 'x.length' ignoring y and z, yes in this case it should be 'length' and not 'length2'
+{//ang_vel_shader=(ang_vel/matrix.normalize())*D.motionScale()
+   ang_vel_shader.fromDivNormalized(ang_vel, matrix)*=D.motionScale()/matrix.x.length(); // faster approximation because we use only 'x.length' ignoring y and z, yes in this case it should be 'length' and not 'length2'
 }
 static INLINE void SetViewMatrix(Matrix &view_matrix, C Matrix  &matrix) {matrix.mul(CamMatrixInv, view_matrix);}
 static INLINE void SetViewMatrix(Matrix &view_matrix, C MatrixM &matrix) {matrix.mul(CamMatrixInv, view_matrix);}
