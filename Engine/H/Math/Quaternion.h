@@ -28,8 +28,9 @@ struct Quaternion : Vec4
    Quaternion& setRotate (C Vec &axis , Flt angle); // set axis  rotated identity
 
    // get
-   Flt angle()C; // get rotation angle
-   Vec axis ()C; // get rotation axis
+   Flt angle    ()C; // get rotation angle
+   Vec axis     ()C; // get rotation axis
+   Vec axisAngle()C; // get rotation axis scaled by angle
 
    Quaternion() {}
    Quaternion(C Vec4    &v) : Vec4(v) {}

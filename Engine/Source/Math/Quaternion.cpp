@@ -48,7 +48,11 @@ Flt Quaternion::angle()C
 }
 Vec Quaternion::axis()C
 {
-   Vec O=xyz; O.normalize(); return O;
+   Vec axis=xyz; axis.normalize(); return axis;
+}
+Vec Quaternion::axisAngle()C
+{
+   Vec axis=xyz; axis.setLength(Acos(w)*2); return axis;
 }
 /******************************************************************************/
 Orient::Orient(C Quaternion &q)
