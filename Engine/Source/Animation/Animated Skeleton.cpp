@@ -50,7 +50,6 @@ void AnimatedSkeleton::zero()
    fur_vel_scale=0;
    root.zero();
 
-  _updated_vel=false;
   _scale   =0;
   _skeleton=null;
 }
@@ -100,8 +99,6 @@ AnimatedSkeleton& AnimatedSkeleton::create(AnimatedSkeleton &src)
       fur_gravity  =src.fur_gravity  ;
       fur_stiffness=src.fur_stiffness;
       fur_vel_scale=src.fur_vel_scale;
-
-     _updated_vel=src._updated_vel;
    }
    return T;
 }
@@ -603,50 +600,42 @@ AnimatedSkeleton& AnimatedSkeleton::vel(C Vec &vel, C Vec &ang_vel)
 }
 void AnimatedSkeleton::updateVelocities(Bool according_to_physics_step, Bool ragdoll_bones_only)
 {
-   if(!_updated_vel) // not yet updated
+   Flt time_mul;
+
+   if(according_to_physics_step && Physics.created())
    {
-                                   root    ._center=pos();
-      if(skeleton())REP(minBones())bones[i]._center=skeleton()->bones[i].center()*bones[i].matrix();
-     _updated_vel=true;
+      if(!       Physics.updated    ())return;
+      time_mul=1/Physics.updatedTime();
    }else
    {
-      Flt time_mul;
-      Vec  fur_vel;
+      time_mul=((Time.d()>EPS) ? 1/Time.d() : 1);
+   }
 
-      if(according_to_physics_step && Physics.created())
-      {
-         if(!       Physics.updated    ())return;
-         time_mul=1/Physics.updatedTime();
-      }else
-      {
-         time_mul=((Time.d()>EPS) ? 1/Time.d() : 1);
-      }
+   // root
+   GetDelta(root._vel, root._ang_vel, root._matrix_prev, root._matrix); root._matrix_prev=root._matrix; // matrixes may not be normalized
+   root.    _vel*=time_mul;
+   root._ang_vel*=time_mul;
+   AdjustValTime(root._fur_vel, FurVel(vel(), fur_vel_scale, fur_gravity), fur_stiffness);
 
-      // root
-      root._vel    =(pos()-root._center)*time_mul;
-      root._center = pos(); fur_vel=FurVel(vel(), fur_vel_scale, fur_gravity);
-      AdjustValTime( root._fur_vel, fur_vel, fur_stiffness);
-
-      // bones
-      if(skeleton())
+   // bones
+   if(skeleton())
+   {
+      Int min_bones=minBones(); FREP(min_bones) // order is important (parents first)
       {
-         Int min_bones=minBones(); FREP(min_bones) // order is important (parents first)
+           C SkelBone & sbon=skeleton()->bones[i];
+         AnimSkelBone &asbon=            bones[i];
+         if(!ragdoll_bones_only || (sbon.flag&BONE_RAGDOLL))
          {
-              C SkelBone & sbon=skeleton()->bones[i];
-            AnimSkelBone &asbon=            bones[i];
-            if(!ragdoll_bones_only || (sbon.flag&BONE_RAGDOLL))
-            {
-               Vec         p=    sbon.center() *asbon.matrix();
-               asbon._vel   =(p-asbon.center())*time_mul      ; fur_vel=FurVel(asbon.vel(), fur_vel_scale, fur_gravity);
-               asbon._center= p;
-               AdjustValTime(asbon._fur_vel, fur_vel, fur_stiffness);
-            }else // inherit values from the parent
-            {
-               AnimSkelBone &parent=boneRoot(sbon.parent);
-               asbon._center =parent.  center();
-               asbon._vel    =parent.     vel();
-               asbon._fur_vel=parent._fur_vel  ;
-            }
+            GetDelta(asbon._vel, asbon._ang_vel, asbon._matrix_prev, asbon._matrix); asbon._matrix_prev=asbon._matrix; // matrixes may not be normalized
+            asbon.    _vel*=time_mul;
+            asbon._ang_vel*=time_mul;
+            AdjustValTime(asbon._fur_vel, FurVel(asbon.vel(), fur_vel_scale, fur_gravity), fur_stiffness);
+         }else // inherit values from the parent
+         {
+            AnimSkelBone &parent=boneRoot(sbon.parent);
+            asbon.    _vel=parent.     vel();
+            asbon._ang_vel=parent.  angVel();
+            asbon._fur_vel=parent._fur_vel  ;
          }
       }
    }
