@@ -4,6 +4,33 @@
 #include "stdafx.h"
 #include "../Shaders/!Header CPU.h"
 namespace EE{
+/******************************************************************************
+
+   Shader Velocity and Angular Velocity formula:
+
+      World Space Shader Vel:
+      VtxVelFromObjAndCamVel = Obj.vel - Cam.vel
+      VtxVelFromObjAngVel = Cross(vtx.pos*Obj.matrix.orn, Obj.angVel) // vtx.pos=local_pos, vtx.pos*Obj.matrix.orn=transformed_local_pos
+      VtxVelFromObjAngVel = Cross(vtx.pos, Obj.angVel/Obj.matrix.orn)*Obj.matrix.orn
+
+      View Space Shader Vel:
+      VtxVelFromCamAngVel = Cross(vtx.pos*ViewMatrix, -Cam.view_space_angVel) // vtx.pos*ViewMatrix=view_space_pos
+
+      View Space Total Vel:
+       VtxVelFromCamAngVel
+      +VtxVelFromObjAndCamVel/Cam.matrix.orn
+      +VtxVelFromObjAngVel   /Cam.matrix.orn
+
+       Cross(view_space_pos, -Cam.view_space_angVel)
+      +(Obj.vel - Cam.vel)/Cam.matrix.orn
+      +Cross(vtx.pos, Obj.angVel/Obj.matrix.orn)*Obj.matrix.orn/Cam.matrix.orn
+
+      Obj.matrix.orn/Cam.matrix.orn=ViewMatrix
+
+       Cross(view_space_pos, -Cam.view_space_angVel)
+      +(Obj.vel - Cam.vel)/Cam.matrix.orn
+      +Cross(vtx.pos, Obj.angVel/Obj.matrix.orn)*ViewMatrix
+
 /******************************************************************************/
 void SetAngVelShader(Vec &ang_vel_shader, C Vec &ang_vel, C Matrix3 &matrix)
 { // TODO: can this be done in the shader?
