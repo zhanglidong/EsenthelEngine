@@ -2034,7 +2034,16 @@ Bool Display::flip()
    if(created())
    {
    #if DX11
-      Bool sync=ActualSync(); if(!OK(SwapChain->Present(sync, sync ? 0 : PresentFlags)))return false; // we can use 'DXGI_PRESENT_ALLOW_TEARING' only when "sync==false", do this extra check here, because 'ActualSync' depends on VR which may disconnect after 'SwapChain' was created and 'PresentFlags' already set
+      Bool sync=ActualSync(); if(!OK(SwapChain->Present(sync, sync ? 0 : PresentFlags)))
+      {
+         static Bool showed=false; if(!showed) // check if not yet showed, because this can be called on another thread, while the main thread already started 'DrawState', which would then call this again, and show the message box 2 times
+         {
+            showed=true;
+            WindowMsgBox("Error", "DirectX Device lost, please restart application.", true);
+            StateExit.set();
+         }
+         return false; // we can use 'DXGI_PRESENT_ALLOW_TEARING' only when "sync==false", do this extra check here, because 'ActualSync' depends on VR which may disconnect after 'SwapChain' was created and 'PresentFlags' already set
+      }
       if(SwapChainDesc.SwapEffect!=DXGI_SWAP_EFFECT_DISCARD) // when using swap chain flip mode, 'Present' clears the backbuffer from 'OMSetRenderTargets', so reset it
          D3DC->OMSetRenderTargets(Elms(Renderer._cur_id), Renderer._cur_id, Renderer._cur_ds_id);
    #elif GL
