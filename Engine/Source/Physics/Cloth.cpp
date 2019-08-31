@@ -580,7 +580,8 @@ void Cloth::drawPhysical(C Vec &vel, C Vec &ang_vel)C
       {
          case RT_DEFERRED: if(Shader *shader=_cloth_mesh->_phys_shader[Renderer._solid_mode_index])
          {
-            SolidClothInstances.add(T, *shader, material, vel);
+            Vec ang_vel_shader; SetAngVelShader(ang_vel_shader, ang_vel, MatrixIdentity);
+            SolidClothInstances.add(T, *shader, material, vel, ang_vel_shader);
          }break;
 
          case RT_FORWARD: if(FRST *frst=_cloth_mesh->_phys_frst)if(Renderer.firstPass() || frst->all_passes)//if(Shader *shader=frst->getShader())
