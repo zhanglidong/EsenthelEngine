@@ -2317,6 +2317,7 @@ Display& Display::exclusive(Bool exclusive)
       if(created() && full())
       {
       #if DX11 // on DX11 have to disable 'SetFullscreenState' first, otherwise custom resolutions may get reverted to desktop resolution
+         SyncLocker locker(_lock);
          if(SwapChain)SwapChain->SetFullscreenState(false, null);
       #endif
          if(findMode())Reset();
