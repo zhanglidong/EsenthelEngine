@@ -2,21 +2,16 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
-Quaternion& Quaternion::operator*=(Flt f)
-{
-   x*=f;
-   y*=f;
-   z*=f;
-   w*=f;
-   return T;
-}
-/******************************************************************************/
 void Quaternion::mul(C Quaternion &q, Quaternion &dest)C
 {
-   dest.set(y*q.z - z*q.y + w*q.x + x*q.w,
-            z*q.x - x*q.z + w*q.y + y*q.w,
-            x*q.y - y*q.x + w*q.z + z*q.w,
+   dest.set(z*q.y + w*q.x + x*q.w - y*q.z,
+            x*q.z + w*q.y + y*q.w - z*q.x,
+            y*q.x + w*q.z + z*q.w - x*q.y,
             w*q.w - x*q.x - y*q.y - z*q.z);
+}
+void Quaternion::inverseNormalized(Quaternion &dest)C
+{
+   dest.set(-x, -y, -z, w);
 }
 void Quaternion::inverse(Quaternion &dest)C
 {
@@ -24,26 +19,26 @@ void Quaternion::inverse(Quaternion &dest)C
    dest/=length2();
 }
 /******************************************************************************/
-Quaternion& Quaternion::setRotateX(Flt angle          ) {CosSin(w, x, angle*-0.5f); y=z=0; return T;}
-Quaternion& Quaternion::setRotateY(Flt angle          ) {CosSin(w, y, angle*-0.5f); x=z=0; return T;}
-Quaternion& Quaternion::setRotateZ(Flt angle          ) {CosSin(w, z, angle*-0.5f); x=y=0; return T;}
-Quaternion& Quaternion::setRotate (Flt x, Flt y, Flt z)
-{
-   Flt cos_x_2, sin_x_2; CosSin(cos_x_2, sin_x_2, x*-0.5f);
-   Flt cos_y_2, sin_y_2; CosSin(cos_y_2, sin_y_2, y*-0.5f);
-   Flt cos_z_2, sin_z_2; CosSin(cos_z_2, sin_z_2, z*-0.5f);
-
-	T.x = cos_z_2*cos_y_2*sin_x_2 - sin_z_2*sin_y_2*cos_x_2;
-	T.y = cos_z_2*sin_y_2*cos_x_2 + sin_z_2*cos_y_2*sin_x_2;
-	T.z = sin_z_2*cos_y_2*cos_x_2 - cos_z_2*sin_y_2*sin_x_2;
-	T.w = cos_z_2*cos_y_2*cos_x_2 + sin_z_2*sin_y_2*sin_x_2;
-
-   return T;
-}
 Quaternion& Quaternion::setRotate(C Vec &axis, Flt angle)
 {
-   Flt sin; CosSin(w, sin, angle*-0.5f);
+   Flt sin; CosSin(w, sin, angle*0.5f);
    xyz=axis*sin;
+   return T;
+}
+Quaternion& Quaternion::setRotateX(Flt angle          ) {CosSin(w, x, angle*0.5f); y=z=0; return T;}
+Quaternion& Quaternion::setRotateY(Flt angle          ) {CosSin(w, y, angle*0.5f); x=z=0; return T;}
+Quaternion& Quaternion::setRotateZ(Flt angle          ) {CosSin(w, z, angle*0.5f); x=y=0; return T;}
+Quaternion& Quaternion::setRotate (Flt x, Flt y, Flt z)
+{
+   Flt cos_x_2, sin_x_2; CosSin(cos_x_2, sin_x_2, x*0.5f);
+   Flt cos_y_2, sin_y_2; CosSin(cos_y_2, sin_y_2, y*0.5f);
+   Flt cos_z_2, sin_z_2; CosSin(cos_z_2, sin_z_2, z*0.5f);
+
+	T.x = cos_z_2*cos_y_2*sin_x_2 + sin_z_2*sin_y_2*cos_x_2;
+	T.y = cos_z_2*sin_y_2*cos_x_2 - sin_z_2*cos_y_2*sin_x_2;
+	T.z = sin_z_2*cos_y_2*cos_x_2 + cos_z_2*sin_y_2*sin_x_2;
+	T.w = cos_z_2*cos_y_2*cos_x_2 - sin_z_2*sin_y_2*sin_x_2;
+
    return T;
 }
 /******************************************************************************/
@@ -53,93 +48,97 @@ Flt Quaternion::angle()C
 }
 Vec Quaternion::axis()C
 {
-   Vec O=-xyz; O.normalize(); return O;
+   Vec O=xyz; O.normalize(); return O;
 }
 /******************************************************************************/
 Orient::Orient(C Quaternion &q)
 {
    Flt xx=q.x*q.x,
-       xy=q.x*q.y,
-       xz=q.x*q.z,
-       xw=q.x*q.w,
        yy=q.y*q.y,
-       yz=q.y*q.z,
-       yw=q.y*q.w,
        zz=q.z*q.z,
-       zw=q.z*q.w;
+       ww=q.w*q.w;
 
-   perp.x=  2*(xy+zw);
-   perp.y=1-2*(xx+zz);
-   perp.z=  2*(yz-xw);
+   // 'mul' (inverse square length) is only required if quaternion is not already normalized
+   Flt mul=1/(xx+yy+zz+ww);
+ //T.cross.x=( xx-yy-zz+ww)*mul;
+   T.perp .y=(-xx+yy-zz+ww)*mul;
+   T.dir  .z=(-xx-yy+zz+ww)*mul;
 
-   dir.x=  2*(xz-yw);
-   dir.y=  2*(yz+xw);
-   dir.z=1-2*(xx+yy);
+   mul*=2;
 
-   perp.normalize();
-   dir .normalize();
+   Flt a=q.x*q.y,
+       b=q.z*q.w;
+   T.perp .x=(a-b)*mul;
+ //T.cross.y=(a+b)*mul;
+
+   a=q.x*q.z;
+   b=q.y*q.w;
+   T.dir  .x=(a+b)*mul;
+ //T.cross.z=(a-b)*mul;
+
+   a=q.y*q.z;
+   b=q.x*q.w;
+   T.dir .y=(a-b)*mul;
+   T.perp.z=(a+b)*mul;
 }
 Matrix3::Matrix3(C Quaternion &q)
 {
    Flt xx=q.x*q.x,
-       xy=q.x*q.y,
-       xz=q.x*q.z,
-       xw=q.x*q.w,
        yy=q.y*q.y,
-       yz=q.y*q.z,
-       yw=q.y*q.w,
        zz=q.z*q.z,
-       zw=q.z*q.w;
+       ww=q.w*q.w;
 
-   T.x.x=1-2*(yy+zz);
-   T.x.y=  2*(xy-zw);
-   T.x.z=  2*(xz+yw);
+   // 'mul' (inverse square length) is only required if quaternion is not already normalized
+   Flt mul=1/(xx+yy+zz+ww);
+   T.x.x=( xx-yy-zz+ww)*mul;
+   T.y.y=(-xx+yy-zz+ww)*mul;
+   T.z.z=(-xx-yy+zz+ww)*mul;
 
-   T.y.x=  2*(xy+zw);
-   T.y.y=1-2*(xx+zz);
-   T.y.z=  2*(yz-xw);
+   mul*=2;
 
-   T.z.x=  2*(xz-yw);
-   T.z.y=  2*(yz+xw);
-   T.z.z=1-2*(xx+yy);
+   Flt a=q.x*q.y,
+       b=q.z*q.w;
+   T.y.x=(a-b)*mul;
+   T.x.y=(a+b)*mul;
 
-   normalize();
+   a=q.x*q.z;
+   b=q.y*q.w;
+   T.z.x=(a+b)*mul;
+   T.x.z=(a-b)*mul;
+
+   a=q.y*q.z;
+   b=q.x*q.w;
+   T.z.y=(a-b)*mul;
+   T.y.z=(a+b)*mul;
 }
 /******************************************************************************/
 Quaternion::Quaternion(C Matrix3 &m)
 {
-   Flt f=m.x.x+m.y.y+m.z.z+1;
-   if( f>0.4f)
+   Flt t;
+   if(m.z.z<0)
    {
-      w=0.5f *SqrtFast(f);
-      f=0.25f/w;
-	   x=(m.z.y-m.y.z)*f;
-	   y=(m.x.z-m.z.x)*f;
-	   z=(m.y.x-m.x.y)*f;
-   }else
-   if(m.x.x>m.y.y && m.x.x>m.z.z)
-   {
-      x=-0.5f *SqrtFast(1+m.x.x-m.y.y-m.z.z);
-      f= 0.25f/x;
-      y=(m.x.y+m.y.x)*f;
-      z=(m.x.z+m.z.x)*f;
-      w=(m.z.y-m.y.z)*f;
-   }else
-   if(m.y.y>m.z.z)
-   {
-      y=-0.5f *SqrtFast(1+m.y.y-m.x.x-m.z.z);
-      f= 0.25f/y;
-      x=(m.x.y+m.y.x)*f;
-      z=(m.y.z+m.z.y)*f;
-      w=(m.x.z-m.z.x)*f;
+      if(m.x.x>m.y.y)
+      {
+         t=1+m.x.x-m.y.y-m.z.z;
+         set(t, m.x.y+m.y.x, m.z.x+m.x.z, m.y.z-m.z.y);
+      }else
+      {
+         t=1-m.x.x+m.y.y-m.z.z;
+         set(m.x.y+m.y.x, t, m.y.z+m.z.y, m.z.x-m.x.z);
+      }
    }else
    {
-      z=-0.5f *SqrtFast(1+m.z.z-m.x.x-m.y.y);
-      f= 0.25f/z;
-      x=(m.x.z+m.z.x)*f;
-      y=(m.y.z+m.z.y)*f;
-      w=(m.y.x-m.x.y)*f;
+      if(m.x.x<-m.y.y)
+      {
+         t=1-m.x.x-m.y.y+m.z.z;
+         set(m.z.x+m.x.z, m.y.z+m.z.y, t, m.x.y-m.y.x);
+      }else
+      {
+         t=1+m.x.x+m.y.y+m.z.z;
+         set(m.y.z-m.z.y, m.z.x-m.x.z, m.x.y-m.y.x, t);
+      }
    }
+   T*=0.5f/SqrtFast(t);
 }
 /******************************************************************************/
 static Quaternion Log(C Quaternion &q)
@@ -156,13 +155,11 @@ static Quaternion Exp(C Quaternion &q)
 }
 Quaternion GetTangent(C Quaternion &prev, C Quaternion &cur, C Quaternion &next)
 {
-   Quaternion a=cur; a.xyz.chs();
-   Quaternion b=a  ;
+   Quaternion cur_inv; cur.inverseNormalized(cur_inv);
 
-   a=Log(a*=prev) 
-    +Log(b*=next);
-   a*=-0.25f;
-   Quaternion O; cur.mul(Exp(a), O); return O;
+   Quaternion logs=(Log(cur_inv*prev)
+                   +Log(cur_inv*next))*-0.25f;
+   Quaternion O; cur.mul(Exp(logs), O); return O;
 }
 /******************************************************************************/
 static Quaternion SlerpNoInv(C Quaternion &a, C Quaternion &b, Flt step)
