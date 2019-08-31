@@ -145,7 +145,7 @@ Bool DrawState()
    #if MT_FLIP
          if(DisplayFlipThread.active()
       #if WINDOWS_OLD && DX11
-         && SwapChainDesc.Windowed // on DX10+ we can't do this when in full screen (only in windowed), because Alt+Tab will freeze the app, http://msdn.microsoft.com/en-us/library/windows/desktop/bb205075(v=vs.85).aspx#Multithread_Considerations
+         && SwapChainDesc.Windowed // on DX10+ we can't do this when in full screen (only in windowed), because Alt+Tab will freeze the app, https://docs.microsoft.com/en-au/windows/win32/direct3ddxgi/d3d10-graphics-programming-guide-dxgi#multithread-considerations
       #endif
          )
          {
