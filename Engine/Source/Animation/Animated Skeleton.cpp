@@ -72,8 +72,15 @@ AnimatedSkeleton& AnimatedSkeleton::create(C Skeleton *skeleton, Flt scale, C Ma
       T._scale   =scale;
    if(T._skeleton=skeleton)
    {
-      bones.setNum(skeleton->bones.elms()); REPA (bones){AnimSkelBone &bone=bones[i]; bone.zero(); bone._matrix_prev=bone._matrix=temp;}
       slots.setNum(skeleton->slots.elms()); REPAO(slots).zero();
+      bones.setNum(skeleton->bones.elms()); REPA (bones)
+      {
+           C SkelBone &sbon=skeleton->bones[i];
+         AnimSkelBone &bone=bones[i]; bone.zero();
+         bone._matrix=temp;
+         bone._matrix_prev.orn()=         bone.matrix();
+         bone._matrix_prev.pos  =sbon.pos*bone.matrix(); // !! Warning: for bones we're not setting 'bone.matrix().pos' but transformed world pos !! #AnimSkelBoneMatrixPrevPos
+      }
    }else
    {
       bones.clear();
@@ -626,31 +633,29 @@ void AnimatedSkeleton::updateVelocities(Bool according_to_physics_step, Bool rag
    {
       Int min_bones=minBones(); FREP(min_bones) // order is important (parents first)
       {
-           C SkelBone & sbon=skeleton()->bones[i];
-         AnimSkelBone &asbon=            bones[i];
+           C SkelBone &sbon=skeleton()->bones[i];
+         AnimSkelBone &bone=            bones[i];
          if(!ragdoll_bones_only || (sbon.flag&BONE_RAGDOLL))
          {
-          // FIXME adjust _matrix_prev.pos for bones as transformed pos?
+            GetDelta(bone._ang_vel, bone._matrix_prev, bone._matrix);
 
-            GetDelta(asbon._ang_vel, asbon._matrix_prev, asbon._matrix);
+            Vec trans_pos=sbon.pos; trans_pos*=bone.matrix();
 
-            Vec trans_pos=sbon.pos; trans_pos*=asbon.matrix();
+            bone._vel=trans_pos-bone._matrix_prev.pos // world pos movement
+                     -Cross(bone._ang_vel, sbon.pos); // subtract angular velocity based on 'sbon.pos' to make sure that it does not affect points on that line
 
-            asbon._vel=trans_pos-asbon._matrix_prev.pos // world pos movement
-                     -Cross(asbon._ang_vel, sbon.pos); // subtract angular velocity based on 'sbon.pos' to make sure that it does not affect points on that line
+            bone._matrix_prev.orn()=bone.matrix();
+            bone._matrix_prev.pos  =trans_pos; // !! Warning: for bones we're not setting 'bone.matrix().pos' but transformed world pos !! #AnimSkelBoneMatrixPrevPos
 
-            asbon._matrix_prev.orn()=asbon._matrix;
-            asbon._matrix_prev.pos=trans_pos; // !! Warning: for bones we're not setting 'asbon._matrix.pos' but transformed world pos !!
-
-            asbon.    _vel*=time_mul;
-            asbon._ang_vel*=time_mul;
-            AdjustValTime(asbon._fur_vel, FurVel(asbon.vel(), fur_vel_scale, fur_gravity), fur_stiffness);
+            bone.    _vel*=time_mul;
+            bone._ang_vel*=time_mul;
+            AdjustValTime(bone._fur_vel, FurVel(bone.vel(), fur_vel_scale, fur_gravity), fur_stiffness);
          }else // inherit values from the parent
          {
             AnimSkelBone &parent=boneRoot(sbon.parent);
-            asbon.    _vel=parent.     vel();
-            asbon._ang_vel=parent.  angVel();
-            asbon._fur_vel=parent._fur_vel  ;
+            bone.    _vel=parent.     vel();
+            bone._ang_vel=parent.  angVel();
+            bone._fur_vel=parent._fur_vel  ;
          }
       }
    }
