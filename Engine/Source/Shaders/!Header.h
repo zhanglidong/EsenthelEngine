@@ -1435,7 +1435,7 @@ inline void UpdateVelocities_VS(in out Vec vel, VecH local_pos, Vec view_space_p
 {
    // on start 'vel'=object linear velocity in view space
    vel-=TransformDir(Cross(local_pos      , ObjAngVel), mtrx); // add object angular velocity in view space
-   vel+=             Cross( view_space_pos, CamAngVel);        // add camera angular velocity
+   vel-=Cross(CamAngVel, view_space_pos); // subtract camera angular velocity
 }
 inline VecH GetVelocity_PS(Vec vel, Vec view_space_pos)
 {

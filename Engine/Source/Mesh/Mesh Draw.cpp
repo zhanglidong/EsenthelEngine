@@ -10,26 +10,26 @@ namespace EE{
 
       World Space Shader Vel:
       VtxVelFromObjAndCamVel = Obj.vel - Cam.vel
-      VtxVelFromObjAngVel = Cross(vtx.pos*Obj.matrix.orn, Obj.angVel) // vtx.pos=local_pos, vtx.pos*Obj.matrix.orn=transformed_local_pos
-      VtxVelFromObjAngVel = Cross(vtx.pos, Obj.angVel/Obj.matrix.orn)*Obj.matrix.orn
+      VtxVelFromObjAngVel = Cross(Obj.angVel, vtx.pos*Obj.matrix.orn) // vtx.pos=local_pos, vtx.pos*Obj.matrix.orn=transformed_local_pos
+      VtxVelFromObjAngVel = Cross(Obj.angVel/Obj.matrix.orn, vtx.pos)*Obj.matrix.orn
 
       View Space Shader Vel:
-      VtxVelFromCamAngVel = Cross(vtx.pos*ViewMatrix, -Cam.view_space_angVel) // vtx.pos*ViewMatrix=view_space_pos
+      VtxVelFromCamAngVel = Cross(-Cam.view_space_angVel, vtx.pos*ViewMatrix) // vtx.pos*ViewMatrix=view_space_pos
 
       View Space Total Vel:
       VtxVelFromCamAngVel
      +VtxVelFromObjAndCamVel/Cam.matrix.orn
      +VtxVelFromObjAngVel   /Cam.matrix.orn
 
-      Cross(view_space_pos, -Cam.view_space_angVel)
+      Cross(-Cam.view_space_angVel, view_space_pos)
      +(Obj.vel - Cam.vel)/Cam.matrix.orn
-     +Cross(vtx.pos, Obj.angVel/Obj.matrix.orn)*Obj.matrix.orn/Cam.matrix.orn
+     +Cross(Obj.angVel/Obj.matrix.orn, vtx.pos)*Obj.matrix.orn/Cam.matrix.orn
 
       Obj.matrix.orn/Cam.matrix.orn=ViewMatrix
 
-      Cross(view_space_pos, -Cam.view_space_angVel)
+      Cross(-Cam.view_space_angVel, view_space_pos)
      +(Obj.vel - Cam.vel)/Cam.matrix.orn
-     +Cross(vtx.pos, Obj.angVel/Obj.matrix.orn)*ViewMatrix
+     +Cross(Obj.angVel/Obj.matrix.orn, vtx.pos)*ViewMatrix
 
 /******************************************************************************/
 void SetAngVelShader(Vec &ang_vel_shader, C Vec &ang_vel, C Matrix3 &obj_matrix)
