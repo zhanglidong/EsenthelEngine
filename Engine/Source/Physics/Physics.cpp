@@ -47,7 +47,7 @@ static struct ErrorCallbackClass : PxErrorCallback
 
 Ptr PhysxClass::AllocatorCallback::allocate(size_t size, const char *typeName, const char *filename, int line)
 {
-	Ptr    ptr=super::allocate(size, typeName, filename, line);
+   Ptr    ptr=super::allocate(size, typeName, filename, line);
    if(    ptr)AtomicInc(Physx._mem_leaks);
    return ptr;
 }
@@ -82,7 +82,7 @@ static struct CpuDispatcherClass : PxCpuDispatcher // !!!!!!!!!!!!! if PhysX cra
    #endif
       return T;
    }
-	virtual PxU32 getWorkerCount()C override
+   virtual PxU32 getWorkerCount()C override
    {
    #if HAS_THREADS
       return threads.threads();
@@ -106,25 +106,25 @@ static PxDefaultCpuDispatcher *CpuDispatcher;
 
 static PxFilterFlags FilterFunc(PxFilterObjectAttributes attributes0, PxFilterData filterData0, PxFilterObjectAttributes attributes1, PxFilterData filterData1, PxPairFlags &pairFlags, const void *constantBlock, PxU32 constantBlockSize)
 {
-	// check triggers
-	if((attributes0 | attributes1) & PxFilterObjectFlag::eTRIGGER)
-	{
-		pairFlags=(PxPairFlag::eNOTIFY_TOUCH_FOUND | PxPairFlag::eNOTIFY_TOUCH_PERSISTS | PxPairFlag::eNOTIFY_TOUCH_LOST);
-		return PxFilterFlags();
-	}
+   // check triggers
+   if((attributes0 | attributes1) & PxFilterObjectFlag::eTRIGGER)
+   {
+      pairFlags=(PxPairFlag::eNOTIFY_TOUCH_FOUND | PxPairFlag::eNOTIFY_TOUCH_PERSISTS | PxPairFlag::eNOTIFY_TOUCH_LOST);
+      return PxFilterFlags();
+   }
 
-	// per-group filtering
-	if(!Physics.collides(filterData0.word0, filterData1.word0))return PxFilterFlag::eSUPPRESS;
-	// per-actor filtering
-	if(filterData0.word1 && filterData1.word1 && (Physx.ignoreMap(filterData0.word1, filterData1.word1)&(1<<(filterData1.word1&7))))return PxFilterFlag::eSUPPRESS;
+   // per-group filtering
+   if(!Physics.collides(filterData0.word0, filterData1.word0))return PxFilterFlag::eSUPPRESS;
+   // per-actor filtering
+   if(filterData0.word1 && filterData1.word1 && (Physx.ignoreMap(filterData0.word1, filterData1.word1)&(1<<(filterData1.word1&7))))return PxFilterFlag::eSUPPRESS;
 
-	// set default values
-	pairFlags=PxPairFlags(PxPairFlag::eCONTACT_DEFAULT | filterData0.word2 | filterData1.word2); // word2 has encoded PxPairFlags (for example 'ccd')
+   // set default values
+   pairFlags=PxPairFlags(PxPairFlag::eCONTACT_DEFAULT | filterData0.word2 | filterData1.word2); // word2 has encoded PxPairFlags (for example 'ccd')
 
-	// check for collision reports
-	if(Physics.reports(filterData0.word0, filterData1.word0))pairFlags|=(PxPairFlag::eNOTIFY_TOUCH_FOUND | PxPairFlag::eNOTIFY_TOUCH_PERSISTS | PxPairFlag::eNOTIFY_TOUCH_LOST | PxPairFlag::eNOTIFY_CONTACT_POINTS);
+   // check for collision reports
+   if(Physics.reports(filterData0.word0, filterData1.word0))pairFlags|=(PxPairFlag::eNOTIFY_TOUCH_FOUND | PxPairFlag::eNOTIFY_TOUCH_PERSISTS | PxPairFlag::eNOTIFY_TOUCH_LOST | PxPairFlag::eNOTIFY_CONTACT_POINTS);
 
-	return PxFilterFlags();
+   return PxFilterFlags();
 }
 
 static PxQueryHitType::Enum VehicleWheelRaycastFilterFunc(PxFilterData vehicle_susp, PxFilterData shape_fd, const void* constantBlock, PxU32 constantBlockSize, PxHitFlags& filterFlags)
@@ -134,48 +134,48 @@ static PxQueryHitType::Enum VehicleWheelRaycastFilterFunc(PxFilterData vehicle_s
 
 struct EventCallbackClass : PxSimulationEventCallback
 {
-	virtual void onConstraintBreak(PxConstraintInfo* constraints, PxU32 count)override {}
-	virtual void onWake(PxActor** actors, PxU32 count)override {}
-	virtual void onSleep(PxActor** actors, PxU32 count)override {}
-	virtual void onAdvance(const PxRigidBody*const* bodyBuffer, const PxTransform* poseBuffer, const PxU32 count)override {}
-	virtual void onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs)override
-	{
+   virtual void onConstraintBreak(PxConstraintInfo* constraints, PxU32 count)override {}
+   virtual void onWake(PxActor** actors, PxU32 count)override {}
+   virtual void onSleep(PxActor** actors, PxU32 count)override {}
+   virtual void onAdvance(const PxRigidBody*const* bodyBuffer, const PxTransform* poseBuffer, const PxU32 count)override {}
+   virtual void onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs)override
+   {
       void (*func)(ActorInfo &actor_a, ActorInfo &actor_b, C PhysContact *contact, Int contacts)=Physics._report_contact; // assign to temporary variable in order to avoid multi-threading issues
       if(func)
-	      if(!(pairHeader.flags&(PxContactPairHeaderFlag::eREMOVED_ACTOR_0 | PxContactPairHeaderFlag::eREMOVED_ACTOR_1))) // if both still exist
+         if(!(pairHeader.flags&(PxContactPairHeaderFlag::eREMOVED_ACTOR_0 | PxContactPairHeaderFlag::eREMOVED_ACTOR_1))) // if both still exist
             if(PxRigidActor *actor0=pairHeader.actors[0]->is<PxRigidActor>())
             if(PxRigidActor *actor1=pairHeader.actors[1]->is<PxRigidActor>())
-	   {
+      {
          PxShape *shape0, *shape1;
          if(actor0->getShapes(&shape0, 1))
          if(actor1->getShapes(&shape1, 1))
          {
             ActorInfo   actor_a, actor_b; actor_a.set(shape0); actor_b.set(shape1);
             PhysContact contact[MAX_CONTACTS]; Int contacts=0;
-	         REP(nbPairs)
-	         {
-	          C PxContactPair &pair=pairs[i];
-	            if(pair.flags&PxContactPairFlag::eINTERNAL_HAS_IMPULSES) // we can ignore 'eREMOVED_SHAPE_0' and 'eREMOVED_SHAPE_1' because we're just collecting pos/normal/force
-	            {
-	               PxContactPairPoint px_contact[MAX_CONTACTS]; Int px_contacts=pair.extractContacts(px_contact, Elms(px_contact));
-	               REP(px_contacts)
-	               {
-	                  if(InRange(contacts, contact))
-	                  {
-	                     contact[contacts].pos   =Physx.vec(px_contact[i].position);
-	                     contact[contacts].normal=Physx.vec(px_contact[i].normal  );
-	                     contact[contacts].force =Physx.vec(px_contact[i].impulse ); if(Physics.stepTime())contact[contacts].force/=Physics.stepTime(); // according to PhysX doc, impulse should be divided by simulation step to get force
-	                     contacts++;
-	                  }
-	               }
-	            }
-	         }
+            REP(nbPairs)
+            {
+             C PxContactPair &pair=pairs[i];
+               if(pair.flags&PxContactPairFlag::eINTERNAL_HAS_IMPULSES) // we can ignore 'eREMOVED_SHAPE_0' and 'eREMOVED_SHAPE_1' because we're just collecting pos/normal/force
+               {
+                  PxContactPairPoint px_contact[MAX_CONTACTS]; Int px_contacts=pair.extractContacts(px_contact, Elms(px_contact));
+                  REP(px_contacts)
+                  {
+                     if(InRange(contacts, contact))
+                     {
+                        contact[contacts].pos   =Physx.vec(px_contact[i].position);
+                        contact[contacts].normal=Physx.vec(px_contact[i].normal  );
+                        contact[contacts].force =Physx.vec(px_contact[i].impulse ); if(Physics.stepTime())contact[contacts].force/=Physics.stepTime(); // according to PhysX doc, impulse should be divided by simulation step to get force
+                        contacts++;
+                     }
+                  }
+               }
+            }
             func(actor_a, actor_b, contact, contacts);
          }
-	   }
-	}
-	virtual void onTrigger(PxTriggerPair* pairs, PxU32 count)override
-	{
+      }
+   }
+   virtual void onTrigger(PxTriggerPair* pairs, PxU32 count)override
+   {
       void (*func)(ActorInfo &trigger, ActorInfo &actor, PHYS_CONTACT contact)=Physics._report_trigger; // assign to temporary variable in order to avoid multi-threading issues
       if(func)FREP(count)
       {
@@ -189,7 +189,7 @@ struct EventCallbackClass : PxSimulationEventCallback
             ActorInfo trigger, actor; trigger.set(pair.triggerShape); actor.set(pair.otherShape); func(trigger, actor, contact);
          }
       }
-	}
+   }
 }EventCallback;
 /******************************************************************************/
 #else // BULLET
@@ -215,7 +215,7 @@ struct CollisionDispatcher : btCollisionDispatcher
       return false;
    }
 
-	CollisionDispatcher(btCollisionConfiguration* collisionConfiguration) : btCollisionDispatcher(collisionConfiguration) {}
+   CollisionDispatcher(btCollisionConfiguration* collisionConfiguration) : btCollisionDispatcher(collisionConfiguration) {}
 };
 /******************************************************************************/
 #endif
@@ -348,8 +348,8 @@ PhysicsClass& PhysicsClass::dominance(Int dominance_group_a, Int dominance_group
 #if PHYSX
    if(Physx.world)
    {
-	   PxDominanceGroupPair cd(a_factor, b_factor);
-   	Physx.world->setDominanceGroupPair(dominance_group_a, dominance_group_b, cd);
+      PxDominanceGroupPair cd(a_factor, b_factor);
+      Physx.world->setDominanceGroupPair(dominance_group_a, dominance_group_b, cd);
    }
 #endif
    return T;
@@ -400,10 +400,10 @@ PhysicsClass& PhysicsClass::startSimulation(Flt dt)
            _accumulated_time=0;
          }
          if(_step_left){_step_left--; _new_updated=true; Physx.world->simulate(_step_time);}
-	   #else
+      #else
          // remember that calling 'stepSimulation' will internally call '*StepCompleted' functions
-	      if(timestep()==PHYS_TIMESTEP_ROUND)
-	      {
+         if(timestep()==PHYS_TIMESTEP_ROUND)
+         {
            _step_time       =_prec_time; // have to set before 'stepSimulation' because it will use 'stepCompleted' callback inside which this is going to be accessed
             Int steps=Bullet.world->stepSimulation(_accumulated_time, max_steps, _prec_time); // number of steps processed in this update
            _new_updated     =(steps>0);         // if the number of steps is >0 then it means we've updated physics in this update
@@ -417,8 +417,8 @@ PhysicsClass& PhysicsClass::startSimulation(Flt dt)
            _new_updated_time=_accumulated_time; // always by the total of 'dt' time
          }
          joint_impulse_scale=Sqrt(_step_time/_accumulated_time)/PI; // Sqrt(fixedTimeStep/timeStep), div by PI to match PhysX scale
-	     _accumulated_time=0; // everything was pushed to Bullet counter
-	   #endif
+        _accumulated_time=0; // everything was pushed to Bullet counter
+      #endif
         _new_cpu_time=Time.curTime()-time;
       }
    }
@@ -753,11 +753,11 @@ Bool PhysxClass::create(Str dll_path, Bool hardware)
                PxInitVehicleSDK(*physics);
                MeshBase mesh; mesh.create(Tube(1.0f, 1.0f, VecZero, Vec(1,0,0)), 0, 8); if(wheel_mesh.createConvexTry(mesh))
                {
-	               PxBatchQueryDesc desc(Elms(raycast_query_result), 0, 0);
-	               desc.queryMemory.userRaycastResultBuffer=raycast_query_result;
-	               desc.queryMemory.userRaycastTouchBuffer =raycast_hit;
-	               desc.queryMemory.raycastTouchBufferSize =Elms(raycast_hit);
-	               desc.preFilterShader=VehicleWheelRaycastFilterFunc;
+                  PxBatchQueryDesc desc(Elms(raycast_query_result), 0, 0);
+                  desc.queryMemory.userRaycastResultBuffer=raycast_query_result;
+                  desc.queryMemory.userRaycastTouchBuffer =raycast_hit;
+                  desc.queryMemory.raycastTouchBufferSize =Elms(raycast_hit);
+                  desc.preFilterShader=VehicleWheelRaycastFilterFunc;
                   if(batch_query_4=world->createBatchQuery(desc))
                   {
                      // ok
@@ -779,25 +779,25 @@ static void BulletFree (Ptr    data) {return Free (data);}
 
 void BulletClass::del()
 {
-	if(world)
-	{
-	   REP(world->getNumConstraints     ())world->removeConstraint(world->getConstraint(i));
-	   REP(world->getNumCollisionObjects())
-	   {
-	      if(btCollisionObject *obj=world->getCollisionObjectArray()[i])
-	      {
-	         if(btRigidBody *body=CAST(btRigidBody, obj))if(btMotionState *motion=body->getMotionState())Delete(motion);
+   if(world)
+   {
+      REP(world->getNumConstraints     ())world->removeConstraint(world->getConstraint(i));
+      REP(world->getNumCollisionObjects())
+      {
+         if(btCollisionObject *obj=world->getCollisionObjectArray()[i])
+         {
+            if(btRigidBody *body=CAST(btRigidBody, obj))if(btMotionState *motion=body->getMotionState())Delete(motion);
 
-	         world->removeCollisionObject(obj);
-	      }
-	   }
-	}
+            world->removeCollisionObject(obj);
+         }
+      }
+   }
 
-	Delete(world);
-	Delete(solver);
-	Delete(broadphase);
-	Delete(dispatcher);
-	Delete(collision_config);
+   Delete(world);
+   Delete(solver);
+   Delete(broadphase);
+   Delete(dispatcher);
+   Delete(collision_config);
 }
 static bool MaterialCallback(btManifoldPoint& cp, const btCollisionObjectWrapper* colObj0Wrap, int partId0, int index0, const btCollisionObjectWrapper* colObj1Wrap, int partId1, int index1)
 {
