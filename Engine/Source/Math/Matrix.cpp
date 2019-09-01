@@ -2460,29 +2460,29 @@ Vec Matrix3::axis(Bool normalized)C
       if(m->x.x>=EPS_COS)axis.set(1, 0, 0);else
       {
          Flt xx=(m->x.x+1)*0.5f,
-		       yy=(m->y.y+1)*0.5f,
-		       zz=(m->z.z+1)*0.5f,
-		       xy=(m->x.y+m->y.x)*0.25f,
-		       xz=(m->x.z+m->z.x)*0.25f,
-		       yz=(m->y.z+m->z.y)*0.25f;
+             yy=(m->y.y+1)*0.5f,
+             zz=(m->z.z+1)*0.5f,
+             xy=(m->x.y+m->y.x)*0.25f,
+             xz=(m->x.z+m->z.x)*0.25f,
+             yz=(m->y.z+m->z.y)*0.25f;
 
          if(xx>=yy && xx>=zz)
          {
             axis.x=SqrtFast(xx);
             axis.y=xy/axis.x;
             axis.z=xz/axis.x;
-			}else
-			if(yy>=zz)
-			{
+         }else
+         if(yy>=zz)
+         {
             axis.y=SqrtFast(yy);
-				axis.x=xy/axis.y;
-				axis.z=yz/axis.y;
-			}else
-			{
-			   axis.z=SqrtFast(zz);
-				axis.x=xz/axis.z;
-				axis.y=yz/axis.z;
-			}
+            axis.x=xy/axis.y;
+            axis.z=yz/axis.y;
+         }else
+         {
+            axis.z=SqrtFast(zz);
+            axis.x=xz/axis.z;
+            axis.y=yz/axis.z;
+         }
       }
    }
    return axis;
@@ -2502,29 +2502,29 @@ VecD MatrixD3::axis(Bool normalized)C
       if(m->x.x>=EPSD_COS)axis.set(1, 0, 0);else
       {
          Dbl xx=(m->x.x+1)*0.5,
-		       yy=(m->y.y+1)*0.5,
-		       zz=(m->z.z+1)*0.5,
-		       xy=(m->x.y+m->y.x)*0.25,
-		       xz=(m->x.z+m->z.x)*0.25,
-		       yz=(m->y.z+m->z.y)*0.25;
+             yy=(m->y.y+1)*0.5,
+             zz=(m->z.z+1)*0.5,
+             xy=(m->x.y+m->y.x)*0.25,
+             xz=(m->x.z+m->z.x)*0.25,
+             yz=(m->y.z+m->z.y)*0.25;
 
          if(xx>=yy && xx>=zz)
          {
             axis.x=SqrtFast(xx);
             axis.y=xy/axis.x;
             axis.z=xz/axis.x;
-			}else
-			if(yy>=zz)
-			{
-			   axis.y=SqrtFast(yy);
-				axis.x=xy/axis.y;
-				axis.z=yz/axis.y;
-			}else
-			{
-			   axis.z=SqrtFast(zz);
-				axis.x=xz/axis.z;
-				axis.y=yz/axis.z;
-			}
+         }else
+         if(yy>=zz)
+         {
+            axis.y=SqrtFast(yy);
+            axis.x=xy/axis.y;
+            axis.z=yz/axis.y;
+         }else
+         {
+            axis.z=SqrtFast(zz);
+            axis.x=xz/axis.z;
+            axis.y=yz/axis.z;
+         }
       }
    }
    return axis;
@@ -2900,7 +2900,7 @@ Flt Matrix3::determinant()C
 // return Dot(x, Cross(y, z));
 
 // return x.x*y.y*z.z + x.y*y.z*z.x + x.z*y.x*z.y
-//	     - x.x*y.z*z.y - x.y*y.x*z.z - x.z*y.y*z.x;
+//      - x.x*y.z*z.y - x.y*y.x*z.z - x.z*y.y*z.x;
 
    return x.x*(y.y*z.z - y.z*z.y)
         + x.y*(y.z*z.x - y.x*z.z)
@@ -2911,7 +2911,7 @@ Dbl MatrixD3::determinant()C
 // return Dot(x, Cross(y, z));
 
 // return x.x*y.y*z.z + x.y*y.z*z.x + x.z*y.x*z.y
-//	     - x.x*y.z*z.y - x.y*y.x*z.z - x.z*y.y*z.x;
+//      - x.x*y.z*z.y - x.y*y.x*z.z - x.z*y.y*z.x;
 
    return x.x*(y.y*z.z - y.z*z.y)
         + x.y*(y.z*z.x - y.x*z.z)
