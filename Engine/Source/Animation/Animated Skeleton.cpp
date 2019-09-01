@@ -642,7 +642,7 @@ void AnimatedSkeleton::updateVelocities(Bool according_to_physics_step, Bool rag
             Vec rot_pos=sbon.pos; rot_pos*=bone.matrix().orn(); Vec trans_pos=rot_pos+bone.matrix().pos;
             Vec world_delta=trans_pos-bone._matrix_prev.pos; // world pos movement
             bone._vel=world_delta
-                     -Cross(bone._ang_vel, rot_pos); // subtract angular velocity based on 'sbon.pos' to make sure that it does not affect points on that line
+                     -Cross(bone._ang_vel, rot_pos); // subtract angular velocity based on 'sbon.pos' to make sure that it does not affect points on that line ("pointVelL(sbon.pos)" will be zero if only angular velocities are present)
 
             bone._matrix_prev.orn()=bone.matrix();
             bone._matrix_prev.pos  =trans_pos; // !! Warning: for bones we're not setting 'bone.matrix().pos' but transformed world pos !! #AnimSkelBoneMatrixPrevPos
