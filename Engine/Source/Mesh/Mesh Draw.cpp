@@ -17,9 +17,9 @@ namespace EE{
       VtxVelFromCamAngVel = -Cross(Cam.view_space_angVel, vtx.pos*ViewMatrix) // vtx.pos*ViewMatrix=view_space_pos
 
       View Space Total Vel:
-      VtxVelFromCamAngVel
      +VtxVelFromObjAndCamVel/Cam.matrix.orn
      +VtxVelFromObjAngVel   /Cam.matrix.orn
+     +VtxVelFromCamAngVel
 
      +(Obj.vel - Cam.vel)/Cam.matrix.orn
      +Cross(Obj.angVel/Obj.matrix.orn, vtx.pos)*Obj.matrix.orn/Cam.matrix.orn
