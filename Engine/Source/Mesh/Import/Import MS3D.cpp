@@ -4,7 +4,7 @@ namespace EE{
 namespace MS3D{ // so that local structures are unique
 /******************************************************************************
 
-   AngleQuaternion   (x, y, z) works the same like Quaternion.set(-x,-y,-z)
+   AngleQuaternion   (x, y, z) works the same like Quaternion
    R_ConcatTransforms(a, b, c) works the same like c=b*a
 
    performed modifications on ms3d source files:

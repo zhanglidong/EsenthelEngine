@@ -227,7 +227,7 @@ ASSERT(SIZE(Quaternion)==SIZE(PxQuat));
 ASSERT(SIZE(Matrix3   )==SIZE(PxMat33));
 Matrix3 PhysxClass::orn(C PxQuat &quat)
 {
-   Quaternion q; q.set(quat.x, quat.y, quat.z, -quat.w); return q;
+   return (Quaternion&)quat;
 }
 Matrix3 PhysxClass::orn(C PxMat33 &mat)
 {
@@ -236,14 +236,14 @@ Matrix3 PhysxClass::orn(C PxMat33 &mat)
 PxQuat PhysxClass::orn(C Matrix3 &matrix)
 {
    PxQuat q; (Quaternion&)q=matrix;
-   CHS(q.w);
    return q;
 }
 Matrix PhysxClass::matrix(C PxTransform &t)
 {
-   Matrix     m; m.pos.set(t.p.x, t.p.y, t.p.z);
-   Quaternion q; q.    set(t.q.x, t.q.y, t.q.z, -t.q.w); m.orn()=q;
-   return     m;
+   Matrix m;
+   m.orn()=(Quaternion&)t.q;
+   m.pos.set(t.p.x, t.p.y, t.p.z);
+   return m;
 }
 PxTransform PhysxClass::matrix(C Matrix &matrix)
 {
@@ -252,7 +252,6 @@ PxTransform PhysxClass::matrix(C Matrix &matrix)
    t.p.y=matrix.pos.y;
    t.p.z=matrix.pos.z;
    (Quaternion&)t.q=matrix;
-   CHS(t.q.w);
    return t;
 }
 #else // BULLET

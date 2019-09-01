@@ -97,8 +97,8 @@ static void CreateSkeleton(Skeleton &skeleton, Memc<VBone> &bones)
 
       sbon.parent=((i && InRange(ubon.ParentIndex, skeleton.bones)) ? ubon.ParentIndex : 0xFF);
 
-      if(!i)ubon.BonePos.Orientation.w*=-1; Matrix3 orient=ubon.BonePos.Orientation;
-      if(!i)ubon.BonePos.Orientation.w*=-1;
+      if(i)CHS(ubon.BonePos.Orientation.w); Matrix3 orient=ubon.BonePos.Orientation;
+      if(i)CHS(ubon.BonePos.Orientation.w);
 
       sbon.pos =ubon.BonePos.Position;
       sbon.dir =orient.z;
@@ -307,11 +307,11 @@ Bool ImportPSA(C Str &name, Skeleton *skeleton, MemPtr<XAnimation> animations)
 
                         // animate
                         {
-                           if(!i){ubon.BonePos.Orientation.w*=-1; key.Orientation.w*=-1;}
+                           if(i){CHS(ubon.BonePos.Orientation.w); CHS(key.Orientation.w);}
                            if(parent)orn.orn*=parent_matrix_temp_inv                                                   ; // transform bone from global space to local space relative to parent
                                      orn.orn*=GetTransform((Matrix3)ubon.BonePos.Orientation, (Matrix3)key.Orientation); // perform transformation from source to target matrix, looks like 'frame' is the target matrix
                            if(parent)orn.orn*=parent_matrix_temp                                                       ; // transform bone from local space to global space
-                           if(!i){ubon.BonePos.Orientation.w*=-1; key.Orientation.w*=-1;}
+                           if(i){CHS(ubon.BonePos.Orientation.w); CHS(key.Orientation.w);}
                         }
 
                         //

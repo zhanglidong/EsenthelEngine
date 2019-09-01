@@ -133,7 +133,7 @@ static void ImportB3DNode(File &f, Chunk &c, Memx<NODE> &nodes, NODE *parent, Te
    node.parent=parent;
    Vec        pos, scale;
    Quaternion quat;
-   f>>pos>>scale>>quat.w>>quat.xyz;
+   f>>pos>>scale>>quat.w>>quat.xyz; CHS(quat.w);
    node. local_matrix.orn()=Matrix3(quat).scale(scale);
    node. local_matrix.pos  =pos;
    node.global_matrix=node.local_matrix; if(parent)node.global_matrix*=parent->global_matrix;
@@ -208,9 +208,9 @@ static void ImportB3DNode(File &f, Chunk &c, Memx<NODE> &nodes, NODE *parent, Te
          {
             FRAME &frame=key.frames.New();
             f>>frame.frame;
-            if(key.has_pos  )f>>frame.pos  ;
-            if(key.has_scale)f>>frame.scale;
-            if(key.has_rot  )f>>frame.quat.w>>frame.quat.xyz;
+            if(key.has_pos  ) f>>frame.pos  ;
+            if(key.has_scale) f>>frame.scale;
+            if(key.has_rot  ){f>>frame.quat.w>>frame.quat.xyz; CHS(frame.quat.w);}
          }
       }else
       if(c.equal("ANIM"))

@@ -161,12 +161,12 @@ static struct ovrTexture
 
 static void SetPose(Matrix &m, C ovrPosef &pose)
 {
-   ASSERT(SIZE(pose.Orientation)==SIZE(Quaternion)); Quaternion q=(Quaternion&)pose.Orientation; CHS(q.z); m.orn()=q;
+   ASSERT(SIZE(pose.Orientation)==SIZE(Quaternion)); Quaternion q=(Quaternion&)pose.Orientation; CHS(q.z); CHS(q.w); m.orn()=q;
    ASSERT(SIZE(pose.Position   )==SIZE(Vec       )); m.pos.set(pose.Position.x, pose.Position.y, -pose.Position.z); // Oculus is right-handed
 }
 static void SetPose(ovrPosef &pose, C Matrix &m)
 {
-   ASSERT(SIZE(pose.Orientation)==SIZE(Quaternion)); (Quaternion&)pose.Orientation=Quaternion(m); CHS(pose.Orientation.z);
+   ASSERT(SIZE(pose.Orientation)==SIZE(Quaternion)); (Quaternion&)pose.Orientation=Quaternion(m); CHS(pose.Orientation.z); CHS(pose.Orientation.w);
    ASSERT(SIZE(pose.Position   )==SIZE(Vec       )); ((Vec&)pose.Position).set(m.pos.x, m.pos.y, -m.pos.z); // Oculus is right-handed
 }
 void OculusRiftApi::disconnect()
