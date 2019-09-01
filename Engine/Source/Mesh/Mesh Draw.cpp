@@ -14,22 +14,22 @@ namespace EE{
       VtxVelFromObjAngVel = Cross(Obj.angVel/Obj.matrix.orn, vtx.pos)*Obj.matrix.orn
 
       View Space Shader Vel:
-      VtxVelFromCamAngVel = Cross(-Cam.view_space_angVel, vtx.pos*ViewMatrix) // vtx.pos*ViewMatrix=view_space_pos
+      VtxVelFromCamAngVel = -Cross(Cam.view_space_angVel, vtx.pos*ViewMatrix) // vtx.pos*ViewMatrix=view_space_pos
 
       View Space Total Vel:
       VtxVelFromCamAngVel
      +VtxVelFromObjAndCamVel/Cam.matrix.orn
      +VtxVelFromObjAngVel   /Cam.matrix.orn
 
-      Cross(-Cam.view_space_angVel, view_space_pos)
      +(Obj.vel - Cam.vel)/Cam.matrix.orn
      +Cross(Obj.angVel/Obj.matrix.orn, vtx.pos)*Obj.matrix.orn/Cam.matrix.orn
+     -Cross(Cam.view_space_angVel, view_space_pos)
 
       Obj.matrix.orn/Cam.matrix.orn=ViewMatrix
 
-      Cross(-Cam.view_space_angVel, view_space_pos)
      +(Obj.vel - Cam.vel)/Cam.matrix.orn
      +Cross(Obj.angVel/Obj.matrix.orn, vtx.pos)*ViewMatrix
+     -Cross(Cam.view_space_angVel, view_space_pos)
 
 /******************************************************************************/
 void SetAngVelShader(Vec &ang_vel_shader, C Vec &ang_vel, C Matrix3 &obj_matrix)
