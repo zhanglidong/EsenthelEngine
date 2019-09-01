@@ -277,9 +277,9 @@ struct  AnimatedSkeletonBone // Bone of an Animated Skeleton
 #if !EE_PRIVATE
 private:
 #endif
-   Bool   _disabled, _disabled_children, _force_custom, _world_space_transform;
+   Bool   _disabled, _disabled_children, _force_matrix, _world_space_transform;
    Vec    _vel, _ang_vel, _fur_vel;
-   Matrix _matrix, _matrix_prev, _force_custom_matrix, _world_space_transform_matrix;
+   Matrix _matrix, _matrix_prev, _world_space_transform_matrix;
    friend struct AnimatedSkeleton;
 };
 /******************************************************************************/

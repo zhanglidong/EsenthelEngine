@@ -15,7 +15,7 @@ void AnimatedSkeletonBone::clear()
 #if HAS_ANIM_COLOR
    color.set(1);
 #endif
-  _force_custom=_world_space_transform=false;
+  _force_matrix=_world_space_transform=false;
 }
 void AnimatedSkeletonBone::clear(Flt blend)
 {
@@ -41,8 +41,8 @@ Vec AnimatedSkeletonBone::pointVelL(C Vec &local_pos)C
 }
 void AnimatedSkeletonBone::forceMatrix(C Matrix &matrix)
 {
-  _force_custom       =true;
-  _force_custom_matrix=matrix;
+  _force_matrix=true;
+  _matrix=matrix;
 }
 /******************************************************************************/
 // ANIM SKEL
@@ -373,13 +373,12 @@ static void UpdateRootBoneMatrix(AnimatedSkeleton &anim_skel, C Matrix &body_mat
 }
 static void UpdateBoneMatrix(AnimatedSkeleton &anim_skel, Int i)
 {
-   AnimSkelBone &bone                   =anim_skel.            bones[i];
+   AnimSkelBone &bone                   =anim_skel.            bones[i]; if(bone._force_matrix)return; // it's important to don't do any adjustments (for example '_world_space_transform') for '_matrix' if '_force_matrix' is enabled, because this function can be called several times before skeleton finishes animating, which would adjust several times
      C SkelBone &sbon                   =anim_skel.skeleton()->bones[i];
      C SkelBone *parent                 =anim_skel.skeleton()->bones.addr(sbon.parent);
-       Matrix   &parent_transform_matrix=anim_skel.            boneRoot  (sbon.parent)._matrix;
+     C auto     &parent_transform_matrix=anim_skel.            boneRoot  (sbon.parent)._matrix; // use 'auto' depending on matrix type
 
-   if(bone._force_custom)bone._matrix=bone._force_custom_matrix;else
-   if(bone._disabled    )bone._matrix=  parent_transform_matrix;else
+   if(bone._disabled)bone._matrix=parent_transform_matrix;else
    {
       Matrix3 parent_matrix; if(parent)parent_matrix=*parent;
       Orient  bone_orn=bone.orn;
