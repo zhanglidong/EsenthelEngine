@@ -3247,8 +3247,8 @@ void AnimatedSkeleton::setMatrix()C
       {
        C AnimSkelBone &bone=bones[i];
          ViewMatrix[VIRTUAL_ROOT_BONE+i].fromMul(bone.matrix(), CamMatrixInv); // Warning: this does not call 'setChanged'
-         SetAngVelShader(ang_vel_shader, bone.angVel(), bone.matrix());
-         SetFastVelUncondNoChanged(VIRTUAL_ROOT_BONE+i, bone.vel(), ang_vel_shader); // set un-conditionally because most likely velocities will change for animated meshes, and don't call 'setChanged', instead we call it manually below, index is always 'InRange'
+         SetAngVelShader(ang_vel_shader, bone._ang_vel, bone.matrix());
+         SetFastVelUncondNoChanged(VIRTUAL_ROOT_BONE+i, bone._vel, ang_vel_shader); // set un-conditionally because most likely velocities will change for animated meshes, and don't call 'setChanged', instead we call it manually below, index is always 'InRange'
       }
       Sh.ObjVel->setChanged(); // call 'setChanged' only once, instead of for each bone
       /* Bone Splits old code

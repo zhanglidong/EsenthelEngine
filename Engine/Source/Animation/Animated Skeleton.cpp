@@ -37,7 +37,7 @@ void AnimatedSkeletonBone::clear(Flt blend)
 }
 Vec AnimatedSkeletonBone::pointVelL(C Vec &local_pos)C
 {
-   return vel() + Cross(angVel(), local_pos);
+   return _vel + Cross(_ang_vel, local_pos*matrix().orn());
 }
 void AnimatedSkeletonBone::forceMatrix(C Matrix &matrix)
 {
@@ -639,23 +639,23 @@ void AnimatedSkeleton::updateVelocities(Bool according_to_physics_step, Bool rag
          {
             GetDelta(bone._ang_vel, bone._matrix_prev, bone._matrix);
 
-            Vec trans_pos=sbon.pos; trans_pos*=bone.matrix();
-
-            bone._vel=trans_pos-bone._matrix_prev.pos // world pos movement
-                     -Cross(bone._ang_vel, sbon.pos); // subtract angular velocity based on 'sbon.pos' to make sure that it does not affect points on that line
+            Vec rot_pos=sbon.pos; rot_pos*=bone.matrix().orn(); Vec trans_pos=rot_pos+bone.matrix().pos;
+            Vec world_delta=trans_pos-bone._matrix_prev.pos; // world pos movement
+            bone._vel=world_delta
+                     -Cross(bone._ang_vel, rot_pos); // subtract angular velocity based on 'sbon.pos' to make sure that it does not affect points on that line
 
             bone._matrix_prev.orn()=bone.matrix();
             bone._matrix_prev.pos  =trans_pos; // !! Warning: for bones we're not setting 'bone.matrix().pos' but transformed world pos !! #AnimSkelBoneMatrixPrevPos
 
             bone.    _vel*=time_mul;
             bone._ang_vel*=time_mul;
-            AdjustValTime(bone._fur_vel, FurVel(bone.vel(), fur_vel_scale, fur_gravity), fur_stiffness);
+            AdjustValTime(bone._fur_vel, FurVel(world_delta*time_mul, fur_vel_scale, fur_gravity), fur_stiffness); // set based only on linear movement
          }else // inherit values from the parent
          {
             AnimSkelBone &parent=boneRoot(sbon.parent);
-            bone.    _vel=parent.     vel();
-            bone._ang_vel=parent.  angVel();
-            bone._fur_vel=parent._fur_vel  ;
+            bone.    _vel=parent.    _vel;
+            bone._ang_vel=parent._ang_vel;
+            bone._fur_vel=parent._fur_vel;
          }
       }
    }

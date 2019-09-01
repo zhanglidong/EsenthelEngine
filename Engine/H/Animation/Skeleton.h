@@ -259,9 +259,7 @@ struct  AnimatedSkeletonBone // Bone of an Animated Skeleton
             scale; // scale    factor
 
    // these parameters may be accessed after animation and matrix updates (using 'updateMatrix' method), they are in world space:
- C Vec   &    vel()C {return     _vel;} // 'matrix' transformation         velocity, this parameter may be inaccurate for bones which don't have BONE_RAGDOLL flag enabled
- C Vec   & angVel()C {return _ang_vel;} // 'matrix' transformation angular velocity, this parameter may be inaccurate for bones which don't have BONE_RAGDOLL flag enabled
- C Matrix& matrix()C {return _matrix ;} // this is the transformation matrix, which transforms source bone 'SkelBone' and source 'Mesh' into their final positions (source_data * matrix = final_world_space_position)
+ C Matrix& matrix()C {return _matrix;} // this is the transformation matrix, which transforms source bone 'SkelBone' and source 'Mesh' into their final positions (source_data * matrix = final_world_space_position)
 
    Vec pointVelL(C Vec &local_pos)C; // get point velocity, 'local_pos' is in object local space, returned velocity is in world space
 
@@ -282,6 +280,7 @@ private:
    Bool   _disabled, _disabled_children, _force_custom, _world_space_transform;
    Vec    _vel, _ang_vel, _fur_vel;
    Matrix _matrix, _matrix_prev, _force_custom_matrix, _world_space_transform_matrix;
+   friend struct AnimatedSkeleton;
 };
 /******************************************************************************/
 typedef AnimatedSkeleton AnimSkel;
@@ -306,8 +305,8 @@ struct  AnimatedSkeleton // Animated Skeleton - used for animating meshes
  C AnimSkelBone& boneRoot(Int i)C {return ConstCast(T).boneRoot(i)           ;} // get i-th transformed bone or root if index is out of range
  C Vec   &       pos     (     )C {return root.matrix().pos                  ;} // get root position
  C Matrix&       matrix  (     )C {return root.matrix()                      ;} // get root matrix
- C Vec   &          vel  (     )C {return root.   vel()                      ;} // get root         velocity
- C Vec   &       angVel  (     )C {return root.angVel()                      ;} // get root angular velocity
+ C Vec   &          vel  (     )C {return root.    _vel                      ;} // get root         velocity
+ C Vec   &       angVel  (     )C {return root._ang_vel                      ;} // get root angular velocity
 
    SkelAnim*     findSkelAnim(C Str    &name                                  )C; // find skeleton    animation, null on fail
    SkelAnim*     findSkelAnim(C UID    &id                                    )C; // find skeleton    animation, null on fail
