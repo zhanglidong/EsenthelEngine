@@ -35,6 +35,10 @@ void AnimatedSkeletonBone::clear(Flt blend)
       }
    }
 }
+Vec AnimatedSkeletonBone::pointVelL(C Vec &local_pos)C
+{
+   return vel() + Cross(angVel(), local_pos);
+}
 void AnimatedSkeletonBone::forceMatrix(C Matrix &matrix)
 {
   _force_custom       =true;
@@ -612,7 +616,7 @@ void AnimatedSkeleton::updateVelocities(Bool according_to_physics_step, Bool rag
    }
 
    // root
-   GetDelta(root._vel, root._ang_vel, root._matrix_prev, root._matrix); root._matrix_prev=root._matrix; // matrixes may not be normalized
+   GetDelta(root._vel, root._ang_vel, root._matrix_prev, root._matrix); root._matrix_prev=root._matrix;
    root.    _vel*=time_mul;
    root._ang_vel*=time_mul;
    AdjustValTime(root._fur_vel, FurVel(vel(), fur_vel_scale, fur_gravity), fur_stiffness);
@@ -626,7 +630,18 @@ void AnimatedSkeleton::updateVelocities(Bool according_to_physics_step, Bool rag
          AnimSkelBone &asbon=            bones[i];
          if(!ragdoll_bones_only || (sbon.flag&BONE_RAGDOLL))
          {
-            GetDelta(asbon._vel, asbon._ang_vel, asbon._matrix_prev, asbon._matrix); asbon._matrix_prev=asbon._matrix; // matrixes may not be normalized
+          // FIXME adjust _matrix_prev.pos for bones as transformed pos?
+
+            GetDelta(asbon._ang_vel, asbon._matrix_prev, asbon._matrix);
+
+            Vec trans_pos=sbon.pos; trans_pos*=asbon.matrix();
+
+            asbon._vel=trans_pos-asbon._matrix_prev.pos // world pos movement
+                     -Cross(asbon._ang_vel, sbon.pos); // subtract angular velocity based on 'sbon.pos' to make sure that it does not affect points on that line
+
+            asbon._matrix_prev.orn()=asbon._matrix;
+            asbon._matrix_prev.pos=trans_pos; // !! Warning: for bones we're not setting 'asbon._matrix.pos' but transformed world pos !!
+
             asbon.    _vel*=time_mul;
             asbon._ang_vel*=time_mul;
             AdjustValTime(asbon._fur_vel, FurVel(asbon.vel(), fur_vel_scale, fur_gravity), fur_stiffness);

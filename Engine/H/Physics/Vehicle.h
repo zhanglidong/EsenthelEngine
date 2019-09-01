@@ -83,22 +83,22 @@ const_mem_addr struct Vehicle // Physical actor of vehicle type !! must be store
    Flt       suspCompress()C;   Vehicle&   suspCompress(Flt   compress); // get/set   suspension max compression,  0..1   , default=0.75 (1.0 means full wheel radius)
    WHEEL_DRIVE wheelDrive()C;   Vehicle&     wheelDrive(WHEEL_DRIVE wd); // get/set wheel drive                           , default=WHEEL_AWD
 
-   Flt      energy    (          )C;                                             // get     kinetic energy , 0..Inf
-   Flt      damping   (          )C;   Vehicle&  damping   (  Flt      damping); // get/set linear  damping, 0..Inf, default=0.05
-   Flt     adamping   (          )C;   Vehicle& adamping   (  Flt      damping); // get/set angular damping, 0..Inf, default=0.05
-   Flt     mass       (          )C;   Vehicle& mass       (  Flt      mass   ); // get/set mass           , 0..Inf
-   Vec     massCenterL(          )C;   Vehicle& massCenterL(C Vec     &center ); // get/set mass center in actor local space
-   Vec     massCenterW(          )C;   Vehicle& massCenterW(C Vec     &center ); // get/set mass center in world       space
-   Vec     inertia    (          )C;   Vehicle& inertia    (C Vec     &inertia); // get/set inertia tensor
-   Vec     pos        (          )C;   Vehicle& pos        (C Vec     &pos    ); // get/set position
-   Matrix3 orn        (          )C;   Vehicle& orn        (C Matrix3 &orn    ); // get/set orientation, 'orn'    must be normalized
-   Matrix  matrix     (          )C;   Vehicle& matrix     (C Matrix  &matrix ); // get/set matrix     , 'matrix' must be normalized
-   Vec          vel   (          )C;   Vehicle&    vel     (C Vec     &vel    ); // get/set         velocity
-   Vec       angVel   (          )C;   Vehicle& angVel     (C Vec     &vel    ); // get/set angular velocity
-   Vec     pointVelL  (C Vec &pos)C;                                             // get     point   velocity ('pos' is in actor local space)
-   Vec     pointVelW  (C Vec &pos)C;                                             // get     point   velocity ('pos' is in world       space)
-   Box     box        (          )C;                                             // get     bounding box in world space
-   Flt     scale      (          )C {return _scale;}                             // get     scale that was used during vehicle creation
+   Flt      energy    (                )C;                                             // get     kinetic energy , 0..Inf
+   Flt      damping   (                )C;   Vehicle&  damping   (  Flt      damping); // get/set linear  damping, 0..Inf, default=0.05
+   Flt     adamping   (                )C;   Vehicle& adamping   (  Flt      damping); // get/set angular damping, 0..Inf, default=0.05
+   Flt     mass       (                )C;   Vehicle& mass       (  Flt      mass   ); // get/set mass           , 0..Inf
+   Vec     massCenterL(                )C;   Vehicle& massCenterL(C Vec     &center ); // get/set mass center in actor local space
+   Vec     massCenterW(                )C;   Vehicle& massCenterW(C Vec     &center ); // get/set mass center in world       space
+   Vec     inertia    (                )C;   Vehicle& inertia    (C Vec     &inertia); // get/set inertia tensor
+   Vec     pos        (                )C;   Vehicle& pos        (C Vec     &pos    ); // get/set position
+   Matrix3 orn        (                )C;   Vehicle& orn        (C Matrix3 &orn    ); // get/set orientation, 'orn'    must be normalized
+   Matrix  matrix     (                )C;   Vehicle& matrix     (C Matrix  &matrix ); // get/set matrix     , 'matrix' must be normalized
+   Vec          vel   (                )C;   Vehicle&    vel     (C Vec     &vel    ); // get/set         velocity
+   Vec       angVel   (                )C;   Vehicle& angVel     (C Vec     &vel    ); // get/set angular velocity
+   Vec     pointVelL  (C Vec &local_pos)C;                                             // get     point   velocity, 'local_pos' is in actor local space, returned velocity is in world space
+   Vec     pointVelW  (C Vec &world_pos)C;                                             // get     point   velocity, 'world_pos' is in world       space, returned velocity is in world space
+   Box     box        (                )C;                                             // get     bounding box in world space
+   Flt     scale      (                )C {return _scale;}                             // get     scale that was used during vehicle creation
 
    Vehicle& addTorque (C Vec &torque             ); // add torque                         , unit = mass * rotation / time**2
    Vehicle& addAngVel (C Vec &ang_vel            ); // add angular velocity               , unit =        rotation / time

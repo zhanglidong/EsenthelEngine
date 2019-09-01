@@ -263,6 +263,8 @@ struct  AnimatedSkeletonBone // Bone of an Animated Skeleton
  C Vec   & angVel()C {return _ang_vel;} // 'matrix' transformation angular velocity, this parameter may be inaccurate for bones which don't have BONE_RAGDOLL flag enabled
  C Matrix& matrix()C {return _matrix ;} // this is the transformation matrix, which transforms source bone 'SkelBone' and source 'Mesh' into their final positions (source_data * matrix = final_world_space_position)
 
+   Vec pointVelL(C Vec &local_pos)C; // get point velocity, 'local_pos' is in object local space, returned velocity is in world space
+
    // operations
    void clear(         ); //           clear 'orn rot pos scale'
    void clear(Flt blend); // partially clear 'orn rot pos scale', this method is similar to 'clear()' however it does not perform full reset of the bone. Instead, smooth reset is applied depending on 'blend' value (0=no reset, 1=full reset)

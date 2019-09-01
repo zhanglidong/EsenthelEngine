@@ -184,21 +184,22 @@ Flt Vehicle::wheelLatSlip(WHEEL_TYPE wheel)C
          Flt         Vehicle::  suspCompress()C {return _susp_compress ;}   Vehicle& Vehicle::  suspCompress(Flt   compress) {T._susp_compress =Sat(compress            ); return T;}
 Vehicle::WHEEL_DRIVE Vehicle::  wheelDrive  ()C {return _wd            ;}   Vehicle& Vehicle::  wheelDrive  (WHEEL_DRIVE wd) {T._wd            =wd                       ; return T;}
 
-Flt     Vehicle::energy     (          )C {return _actor.energy     (   );}
-Flt     Vehicle::damping    (          )C {return _actor.damping    (   );}   Vehicle& Vehicle:: damping   (  Flt      damping) {_actor. damping   (damping); return T;}
-Flt     Vehicle::adamping   (          )C {return _actor.adamping   (   );}   Vehicle& Vehicle::adamping   (  Flt      damping) {_actor.adamping   (damping); return T;}
-Flt     Vehicle::mass       (          )C {return _actor.mass       (   );}   Vehicle& Vehicle::mass       (  Flt      mass   ) {_actor.mass       (mass   ); return T;}
-Vec     Vehicle::massCenterL(          )C {return _actor.massCenterL(   );}   Vehicle& Vehicle::massCenterL(C Vec     &center ) {_actor.massCenterL(center ); return T;}
-Vec     Vehicle::massCenterW(          )C {return _actor.massCenterW(   );}   Vehicle& Vehicle::massCenterW(C Vec     &center ) {_actor.massCenterW(center ); return T;}
-Vec     Vehicle::inertia    (          )C {return _actor.inertia    (   );}   Vehicle& Vehicle::inertia    (C Vec     &inertia) {_actor.inertia    (inertia); return T;}
-Vec     Vehicle::pos        (          )C {return _actor.pos        (   );}   Vehicle& Vehicle::pos        (C Vec     &pos    ) {_actor.pos        (pos    ); return T;}
-Matrix3 Vehicle::orn        (          )C {return _actor.orn        (   );}   Vehicle& Vehicle::orn        (C Matrix3 &orn    ) {_actor.orn        (orn    ); return T;}
-Matrix  Vehicle::matrix     (          )C {return _actor.matrix     (   );}   Vehicle& Vehicle::matrix     (C Matrix  &matrix ) {_actor.matrix     (matrix ); return T;}
-Vec     Vehicle::     vel   (          )C {return _actor.     vel   (   );}   Vehicle& Vehicle::   vel     (C Vec     &vel    ) {_actor.   vel     (vel    ); return T;}
-Vec     Vehicle::  angVel   (          )C {return _actor.  angVel   (   );}   Vehicle& Vehicle::angVel     (C Vec     &vel    ) {_actor.angVel     (vel    ); return T;}
-Vec     Vehicle::pointVelL  (C Vec &pos)C {return _actor.pointVelL  (pos);}
-Vec     Vehicle::pointVelW  (C Vec &pos)C {return _actor.pointVelW  (pos);}
-Box     Vehicle::box        (          )C {return _actor.box        (   );}
+Flt     Vehicle::energy     ()C {return _actor.energy     ();}
+Flt     Vehicle::damping    ()C {return _actor.damping    ();}   Vehicle& Vehicle:: damping   (  Flt      damping) {_actor. damping   (damping); return T;}
+Flt     Vehicle::adamping   ()C {return _actor.adamping   ();}   Vehicle& Vehicle::adamping   (  Flt      damping) {_actor.adamping   (damping); return T;}
+Flt     Vehicle::mass       ()C {return _actor.mass       ();}   Vehicle& Vehicle::mass       (  Flt      mass   ) {_actor.mass       (mass   ); return T;}
+Vec     Vehicle::massCenterL()C {return _actor.massCenterL();}   Vehicle& Vehicle::massCenterL(C Vec     &center ) {_actor.massCenterL(center ); return T;}
+Vec     Vehicle::massCenterW()C {return _actor.massCenterW();}   Vehicle& Vehicle::massCenterW(C Vec     &center ) {_actor.massCenterW(center ); return T;}
+Vec     Vehicle::inertia    ()C {return _actor.inertia    ();}   Vehicle& Vehicle::inertia    (C Vec     &inertia) {_actor.inertia    (inertia); return T;}
+Vec     Vehicle::pos        ()C {return _actor.pos        ();}   Vehicle& Vehicle::pos        (C Vec     &pos    ) {_actor.pos        (pos    ); return T;}
+Matrix3 Vehicle::orn        ()C {return _actor.orn        ();}   Vehicle& Vehicle::orn        (C Matrix3 &orn    ) {_actor.orn        (orn    ); return T;}
+Matrix  Vehicle::matrix     ()C {return _actor.matrix     ();}   Vehicle& Vehicle::matrix     (C Matrix  &matrix ) {_actor.matrix     (matrix ); return T;}
+Vec     Vehicle::   vel     ()C {return _actor.   vel     ();}   Vehicle& Vehicle::   vel     (C Vec     &vel    ) {_actor.   vel     (vel    ); return T;}
+Vec     Vehicle::angVel     ()C {return _actor.angVel     ();}   Vehicle& Vehicle::angVel     (C Vec     &vel    ) {_actor.angVel     (vel    ); return T;}
+Box     Vehicle::box        ()C {return _actor.box        ();}
+
+Vec Vehicle::pointVelL(C Vec &local_pos)C {return _actor.pointVelL(local_pos);}
+Vec Vehicle::pointVelW(C Vec &world_pos)C {return _actor.pointVelW(world_pos);}
 
 Vehicle& Vehicle::addTorque (C Vec &torque             ) {_actor.addTorque (torque      ); return T;}
 Vehicle& Vehicle::addAngVel (C Vec &ang_vel            ) {_actor.addAngVel (ang_vel     ); return T;}

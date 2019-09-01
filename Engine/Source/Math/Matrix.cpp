@@ -3142,29 +3142,49 @@ Matrix   GetTransform(                     C Matrix   &start, C Matrix   &result
 MatrixD  GetTransform(                     C MatrixD  &start, C MatrixD  &result) {MatrixD  transform; start.inverse(transform); transform*=result; return transform;}
 Matrix3  GetTransform(                     C Orient   &start, C Orient   &result) {Matrix3  transform;  GetTransform(transform, start, result);     return transform;}
 /******************************************************************************/
+void GetDelta(Vec &angle, C Matrix3 &from, C Matrix3 &to)
+{
+#if 1 // use quaternions since it will be slightly faster, conversions to quaternions automatically normalize scale
+   Quaternion q=from; q.inverseNormalized(); q*=Quaternion(to); angle=q.axisAngle();
+#else
+   Matrix3 t; GetTransform(t, from, to); angle=t.axisAngle();
+#endif
+}
 void GetDelta(Vec &pos, Vec &angle, C Matrix &from, C Matrix &to)
 {
    // pos
    pos=to.pos-from.pos;
 
-   // angle, use quaternions since it will be slightly faster, conversions to quaternions automatically normalize scale
-   Quaternion q=from; q.inverseNormalized(); q*=Quaternion(to); angle=q.axisAngle(); // this is equal to "GetTransform(from, to).axisAngle()"
+   // angle
+#if 1 // use quaternions since it will be slightly faster, conversions to quaternions automatically normalize scale
+   Quaternion q=from; q.inverseNormalized(); q*=Quaternion(to); angle=q.axisAngle();
+#else
+   Matrix3 t; GetTransform(t, from, to); angle=t.axisAngle();
+#endif
 }
 void GetDelta(Vec &pos, Vec &angle, C MatrixM &from, C MatrixM &to)
 {
    // pos
    pos=to.pos-from.pos;
 
-   // angle, use quaternions since it will be slightly faster, conversions to quaternions automatically normalize scale
-   Quaternion q=from; q.inverseNormalized(); q*=Quaternion(to); angle=q.axisAngle(); // this is equal to "GetTransform(from, to).axisAngle()"
+   // angle
+#if 1 // use quaternions since it will be slightly faster, conversions to quaternions automatically normalize scale
+   Quaternion q=from; q.inverseNormalized(); q*=Quaternion(to); angle=q.axisAngle();
+#else
+   Matrix3 t; GetTransform(t, from, to); angle=t.axisAngle();
+#endif
 }
 void GetDelta(VecD &pos, VecD &angle, C MatrixD &from, C MatrixD &to)
 {
    // pos
    pos=to.pos-from.pos;
 
-   // angle, use quaternions since it will be slightly faster, conversions to quaternions automatically normalize scale
-   QuaternionD q=from; q.inverseNormalized(); q*=QuaternionD(to); angle=q.axisAngle(); // this is equal to "GetTransform(from, to).axisAngle()"
+   // angle
+#if 1 // use quaternions since it will be slightly faster, conversions to quaternions automatically normalize scale
+   QuaternionD q=from; q.inverseNormalized(); q*=QuaternionD(to); angle=q.axisAngle();
+#else
+   MatrixD3 t; GetTransform(t, from, to); angle=t.axisAngle();
+#endif
 }
 /******************************************************************************/
 void GetVel(Vec &vel, Vec &ang_vel, C Matrix &from, C Matrix &to, Flt dt)

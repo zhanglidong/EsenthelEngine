@@ -158,24 +158,24 @@ struct Actor // Physical Object
    Bool createTry(C PhysBody    &phys   , Flt density=1, C Vec &scale =1   , Bool kinematic=false); // create from PhysBody    , false on fail, 'density'=density multiplier, 'scale '=custom body  scale   , 'kinematic'=if create actor as kinematic
 
    // get / set
-   Bool     is        (          )C {return _actor!=null;}                     // if      created
-   Flt      energy    (          )C;                                           // get     kinetic energy      , 0..Inf
-   Flt      damping   (          )C;   Actor&  damping   (  Flt      damping); // get/set linear  damping     , 0..Inf, default=0.05
-   Flt     adamping   (          )C;   Actor& adamping   (  Flt      damping); // get/set angular damping     , 0..Inf, default=0.05
-   Flt     maxAngVel  (          )C;   Actor& maxAngVel  (  Flt      vel    ); // get/set max angular velocity, 0..Inf
-   Flt     mass       (          )C;   Actor& mass       (  Flt      mass   ); // get/set mass                , 0..Inf
-   Vec     massCenterL(          )C;   Actor& massCenterL(C Vec     &center ); // get/set mass center in actor local space
-   Vec     massCenterW(          )C;   Actor& massCenterW(C Vec     &center ); // get/set mass center in world       space
-   Vec     inertia    (          )C;   Actor& inertia    (C Vec     &inertia); // get/set inertia tensor
-   Vec     pos        (          )C;   Actor& pos        (C Vec     &pos    ); // get/set position
-   Matrix3 orn        (          )C;   Actor& orn        (C Matrix3 &orn    ); // get/set orientation, 'orn'    must be normalized
-   Matrix  matrix     (          )C;   Actor& matrix     (C Matrix  &matrix ); // get/set matrix     , 'matrix' must be normalized
-   Vec          vel   (          )C;   Actor&    vel     (C Vec     &vel    ); // get/set         velocity
-   Vec       angVel   (          )C;   Actor& angVel     (C Vec     &vel    ); // get/set angular velocity
-   Vec     pointVelL  (C Vec &pos)C;                                           // get     point   velocity ('pos' is in actor local space)
-   Vec     pointVelW  (C Vec &pos)C;                                           // get     point   velocity ('pos' is in world       space)
-   Box     box        (          )C;                                           // get     bounding box in world space
-   Shape   shape      (Bool local)C;                                           // get     shape, 'local'=if in actor local space or world space !! only first actor's shape is used !!
+   Bool     is        (                )C {return _actor!=null;}                     // if      created
+   Flt      energy    (                )C;                                           // get     kinetic energy      , 0..Inf
+   Flt      damping   (                )C;   Actor&  damping   (  Flt      damping); // get/set linear  damping     , 0..Inf, default=0.05
+   Flt     adamping   (                )C;   Actor& adamping   (  Flt      damping); // get/set angular damping     , 0..Inf, default=0.05
+   Flt     maxAngVel  (                )C;   Actor& maxAngVel  (  Flt      vel    ); // get/set max angular velocity, 0..Inf
+   Flt     mass       (                )C;   Actor& mass       (  Flt      mass   ); // get/set mass                , 0..Inf
+   Vec     massCenterL(                )C;   Actor& massCenterL(C Vec     &center ); // get/set mass center in actor local space
+   Vec     massCenterW(                )C;   Actor& massCenterW(C Vec     &center ); // get/set mass center in world       space
+   Vec     inertia    (                )C;   Actor& inertia    (C Vec     &inertia); // get/set inertia tensor
+   Vec     pos        (                )C;   Actor& pos        (C Vec     &pos    ); // get/set position
+   Matrix3 orn        (                )C;   Actor& orn        (C Matrix3 &orn    ); // get/set orientation, 'orn'    must be normalized
+   Matrix  matrix     (                )C;   Actor& matrix     (C Matrix  &matrix ); // get/set matrix     , 'matrix' must be normalized
+   Vec          vel   (                )C;   Actor&    vel     (C Vec     &vel    ); // get/set         velocity
+   Vec       angVel   (                )C;   Actor& angVel     (C Vec     &vel    ); // get/set angular velocity
+   Vec     pointVelL  (C Vec &local_pos)C;                                           // get     point   velocity, 'local_pos' is in actor local space, returned velocity is in world space
+   Vec     pointVelW  (C Vec &world_pos)C;                                           // get     point   velocity, 'world_pos' is in world       space, returned velocity is in world space
+   Box     box        (                )C;                                           // get     bounding box in world space
+   Shape   shape      (Bool local      )C;                                           // get     shape, 'local'=if in actor local space or world space !! only first actor's shape is used !!
 
    Actor& kinematicMoveTo(C Vec     &pos   ); // move kinematic actor to position   , this is slightly different than 'pos'    method, 'pos'    method works more like "teleport to position"    while 'kinematicMoveTo' works by linearly moving from source to target position   , the position    isn't changed immediately - change occurs during the next physics simulation call, this method can be used only on kinematic actors
    Actor& kinematicMoveTo(C Matrix3 &orn   ); // move kinematic actor to orientation, this is slightly different than 'orn'    method, 'orn'    method works more like "teleport to orientation" while 'kinematicMoveTo' works by linearly moving from source to target orientation, the orientation isn't changed immediately - change occurs during the next physics simulation call, this method can be used only on kinematic actors, 'orn'    must be normalized

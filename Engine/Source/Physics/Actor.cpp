@@ -22,21 +22,22 @@ namespace EE{
         QueryFilterData(IndexToFlag(group), vehicle_id,          0, 0) (also in 'Vehicle')
 
 /******************************************************************************/
-Flt     Actor::energy     (          )C {return _dynamic ? (inertia().avg()*angVel().length2() + mass()*vel().length2())*0.5f : 0;}
-Flt     Actor:: damping   (          )C {return _dynamic ? _dynamic->getLinearDamping     () : 0;}
-Flt     Actor::adamping   (          )C {return _dynamic ? _dynamic->getAngularDamping    () : 0;}
-Flt     Actor::maxAngVel  (          )C {return _dynamic ? _dynamic->getMaxAngularVelocity() : 0;}
-Flt     Actor::mass       (          )C {return _dynamic ? _dynamic->getMass              () : 0;}
-Vec     Actor::massCenterL(          )C {return _dynamic ? Physx.vec   (_dynamic->getCMassLocalPose        ().p) : 0                   ;}
-Vec     Actor::massCenterW(          )C {return massCenterL()*matrix();}
-Vec     Actor::inertia    (          )C {return _dynamic ? Physx.vec   (_dynamic->getMassSpaceInertiaTensor()  ) : 0                   ;}
-Vec     Actor::pos        (          )C {return _actor   ? Physx.vec   (_actor  ->getGlobalPose            ().p) : 0                   ;}
-Matrix3 Actor::orn        (          )C {return _actor   ? Physx.orn   (_actor  ->getGlobalPose            ().q) : MatrixIdentity.orn();}
-Matrix  Actor::matrix     (          )C {return _actor   ? Physx.matrix(_actor  ->getGlobalPose            ()  ) : MatrixIdentity      ;}
-Vec     Actor::     vel   (          )C {return _dynamic ? Physx.vec   (_dynamic->getLinearVelocity        ()  ) : 0                   ;}
-Vec     Actor::  angVel   (          )C {return _dynamic ? Physx.vec   (_dynamic->getAngularVelocity       ()  ) : 0                   ;}
-Vec     Actor::pointVelL  (C Vec &pos)C {return vel() + Cross(angVel(), (pos-massCenterL())*orn());}
-Vec     Actor::pointVelW  (C Vec &pos)C {return vel() + Cross(angVel(),  pos-massCenterW()       );}
+Flt     Actor::energy     ()C {return _dynamic ? (inertia().avg()*angVel().length2() + mass()*vel().length2())*0.5f : 0;}
+Flt     Actor:: damping   ()C {return _dynamic ? _dynamic->getLinearDamping     () : 0;}
+Flt     Actor::adamping   ()C {return _dynamic ? _dynamic->getAngularDamping    () : 0;}
+Flt     Actor::maxAngVel  ()C {return _dynamic ? _dynamic->getMaxAngularVelocity() : 0;}
+Flt     Actor::mass       ()C {return _dynamic ? _dynamic->getMass              () : 0;}
+Vec     Actor::massCenterL()C {return _dynamic ? Physx.vec   (_dynamic->getCMassLocalPose        ().p) : 0                   ;}
+Vec     Actor::massCenterW()C {return massCenterL()*matrix();}
+Vec     Actor::inertia    ()C {return _dynamic ? Physx.vec   (_dynamic->getMassSpaceInertiaTensor()  ) : 0                   ;}
+Vec     Actor::pos        ()C {return _actor   ? Physx.vec   (_actor  ->getGlobalPose            ().p) : 0                   ;}
+Matrix3 Actor::orn        ()C {return _actor   ? Physx.orn   (_actor  ->getGlobalPose            ().q) : MatrixIdentity.orn();}
+Matrix  Actor::matrix     ()C {return _actor   ? Physx.matrix(_actor  ->getGlobalPose            ()  ) : MatrixIdentity      ;}
+Vec     Actor::     vel   ()C {return _dynamic ? Physx.vec   (_dynamic->getLinearVelocity        ()  ) : 0                   ;}
+Vec     Actor::  angVel   ()C {return _dynamic ? Physx.vec   (_dynamic->getAngularVelocity       ()  ) : 0                   ;}
+
+Vec Actor::pointVelL(C Vec &local_pos)C {return vel() + Cross(angVel(), (local_pos-massCenterL())*orn());}
+Vec Actor::pointVelW(C Vec &world_pos)C {return vel() + Cross(angVel(),  world_pos-massCenterW()       );}
 
 Actor& Actor:: damping   (  Flt      damping) {if(_dynamic)_dynamic->setLinearDamping         (damping           ); return T;}
 Actor& Actor::adamping   (  Flt      damping) {if(_dynamic)_dynamic->setAngularDamping        (damping           ); return T;}
@@ -701,8 +702,9 @@ Vec    Actor::   vel(              )C {return _actor ? Bullet.vec(_actor->getLin
 Actor& Actor::angVel(C Vec &ang_vel)  {if(_actor){_actor->setAngularVelocity(_actor->getAngularFactor()*Bullet.vec(ang_vel)); if(sleep() && ang_vel.any())sleep(false);} return T;}
 Actor& Actor::   vel(C Vec &    vel)  {if(_actor){_actor->setLinearVelocity (_actor->getLinearFactor ()*Bullet.vec(    vel)); if(sleep() &&     vel.any())sleep(false);} return T;}
 
-Vec    Actor::pointVelL       (C Vec &pos)C {return _actor ? Bullet.vec(_actor->getVelocityInLocalPoint(Bullet.vec(pos*matrix()-massCenterW()))) : 0;}
-Vec    Actor::pointVelW       (C Vec &pos)C {return _actor ? Bullet.vec(_actor->getVelocityInLocalPoint(Bullet.vec(pos         -massCenterW()))) : 0;}
+Vec Actor::pointVelL(C Vec &local_pos)C {return _actor ? Bullet.vec(_actor->getVelocityInLocalPoint(Bullet.vec(local_pos*matrix()-massCenterW()))) : 0;}
+Vec Actor::pointVelW(C Vec &world_pos)C {return _actor ? Bullet.vec(_actor->getVelocityInLocalPoint(Bullet.vec(world_pos         -massCenterW()))) : 0;}
+
 Vec    Actor::massCenterW     (          )C {return _actor ? Bullet.vec(_actor->getCenterOfMassPosition())+_actor->offset_com : 0;}
 Vec    Actor::massCenterL     (          )C {return massCenterW().divNormalized(matrix());}
 Matrix Actor::massCenterMatrix(          )C {return _actor ? Bullet.matrix(_actor->getWorldTransform()) : MatrixIdentity;}

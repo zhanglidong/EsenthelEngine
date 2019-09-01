@@ -868,6 +868,7 @@ MatrixD  GetTransform(                     C MatrixD  &start, C MatrixD  &result
 inline void GetTransform          (RevMatrix &transform, C Matrix &start, C Matrix &result) {result.div          (start, transform);} // get 'transform' matrix that transforms 'start' to 'result' according to following formula "start*transform=result"
 inline void GetTransformNormalized(RevMatrix &transform, C Matrix &start, C Matrix &result) {result.divNormalized(start, transform);} // get 'transform' matrix that transforms 'start' to 'result' according to following formula "start*transform=result", this function assumes that 'start' and 'result' are normalized
 
+void GetDelta(          Vec &angle, C Matrix3 &from, C Matrix3 &to); // get              angle axis delta from 'from' and 'to' matrixes !! matrixes DON'T have to be normalized !!
 void GetDelta(Vec &pos, Vec &angle, C Matrix  &from, C Matrix  &to); // get position and angle axis delta from 'from' and 'to' matrixes !! matrixes DON'T have to be normalized !!
 void GetDelta(Vec &pos, Vec &angle, C MatrixM &from, C MatrixM &to); // get position and angle axis delta from 'from' and 'to' matrixes !! matrixes DON'T have to be normalized !!
 

@@ -58,14 +58,14 @@ QuaternionD& QuaternionD::setRotate(Dbl x, Dbl y, Dbl z)
    return T;
 }
 /******************************************************************************/
-Flt Quaternion ::angle()C {return Acos(w)*2;}
-Dbl QuaternionD::angle()C {return Acos(w)*2;}
+Flt Quaternion ::angle()C {Flt angle=Acos(w)*2; return (angle>PI ) ? angle-PI2  : angle;} // wrap to -PI..PI range !! needed for 'GetDelta' to calculate correct velocities !!
+Dbl QuaternionD::angle()C {Dbl angle=Acos(w)*2; return (angle>PID) ? angle-PID2 : angle;} // wrap to -PI..PI range !! needed for 'GetDelta' to calculate correct velocities !!
 
 Vec  Quaternion ::axis()C {Vec  axis=xyz; axis.normalize(); return axis;}
 VecD QuaternionD::axis()C {VecD axis=xyz; axis.normalize(); return axis;}
 
-Vec  Quaternion ::axisAngle()C {Vec  axis=xyz; axis.setLength(Acos(w)*2); return axis;}
-VecD QuaternionD::axisAngle()C {VecD axis=xyz; axis.setLength(Acos(w)*2); return axis;}
+Vec  Quaternion ::axisAngle()C {Vec  axis=xyz; axis.setLength(angle()); return axis;}
+VecD QuaternionD::axisAngle()C {VecD axis=xyz; axis.setLength(angle()); return axis;}
 /******************************************************************************/
 Orient::Orient(C Quaternion &q)
 {
