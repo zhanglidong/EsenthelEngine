@@ -2424,7 +2424,7 @@ Flt  Matrix3 ::avgScale ()C {return          Avg (x.length (), y.length (), z.le
 Dbl  MatrixD3::avgScale ()C {return          Avg (x.length (), y.length (), z.length ()) ;}
 Flt  Matrix3 ::maxScale ()C {return SqrtFast(Max (x.length2(), y.length2(), z.length2()));}
 Dbl  MatrixD3::maxScale ()C {return SqrtFast(Max (x.length2(), y.length2(), z.length2()));}
-
+/******************************************************************************/
 Vec Matrix3::angles()C
 {
    Vec     O;
@@ -2444,6 +2444,7 @@ VecD MatrixD3::angles()C
    O.z= Angle(temp.x.xy  );
    return O;
 }
+/******************************************************************************/
 Vec Matrix3::axis(Bool normalized)C
 {
    Matrix3 temp;
@@ -2456,7 +2457,7 @@ Vec Matrix3::axis(Bool normalized)C
    if(axis.normalize()<=EPS)
    {
       // singularity
-      if(m->x.x>=EPS_COS)axis.set(1, 0, 0);else // identity
+      if(m->x.x>=EPS_COS)axis.set(1, 0, 0);else
       {
          Flt xx=(m->x.x+1)*0.5f,
 		       yy=(m->y.y+1)*0.5f,
@@ -2467,29 +2468,20 @@ Vec Matrix3::axis(Bool normalized)C
 
          if(xx>=yy && xx>=zz)
          {
-            if(xx<=EPS)axis.set(0, SQRT2_2, SQRT2_2);else
-            {
-               axis.x=SqrtFast(xx);
-               axis.y=xy/axis.x;
-               axis.z=xz/axis.x;
-            }
+            axis.x=SqrtFast(xx);
+            axis.y=xy/axis.x;
+            axis.z=xz/axis.x;
 			}else
 			if(yy>=zz)
 			{
-			   if(yy<=EPS)axis.set(SQRT2_2, 0, SQRT2_2);else
-			   {
-			      axis.y=SqrtFast(yy);
-				   axis.x=xy/axis.y;
-				   axis.z=yz/axis.y;
-				}
+            axis.y=SqrtFast(yy);
+				axis.x=xy/axis.y;
+				axis.z=yz/axis.y;
 			}else
 			{
-			   if(zz<=EPS)axis.set(SQRT2_2, SQRT2_2, 0);else
-			   {
-			      axis.z=SqrtFast(zz);
-				   axis.x=xz/axis.z;
-				   axis.y=yz/axis.z;
-				}
+			   axis.z=SqrtFast(zz);
+				axis.x=xz/axis.z;
+				axis.y=yz/axis.z;
 			}
       }
    }
@@ -2507,7 +2499,7 @@ VecD MatrixD3::axis(Bool normalized)C
    if(axis.normalize()<=EPSD)
    {
       // singularity
-      if(m->x.x>=EPSD_COS)axis.set(1, 0, 0);else // identity
+      if(m->x.x>=EPSD_COS)axis.set(1, 0, 0);else
       {
          Dbl xx=(m->x.x+1)*0.5,
 		       yy=(m->y.y+1)*0.5,
@@ -2518,34 +2510,26 @@ VecD MatrixD3::axis(Bool normalized)C
 
          if(xx>=yy && xx>=zz)
          {
-            if(xx<=EPSD)axis.set(0, SQRT2_2, SQRT2_2);else
-            {
-               axis.x=SqrtFast(xx);
-               axis.y=xy/axis.x;
-               axis.z=xz/axis.x;
-            }
+            axis.x=SqrtFast(xx);
+            axis.y=xy/axis.x;
+            axis.z=xz/axis.x;
 			}else
 			if(yy>=zz)
 			{
-			   if(yy<=EPSD)axis.set(SQRT2_2, 0, SQRT2_2);else
-			   {
-			      axis.y=SqrtFast(yy);
-				   axis.x=xy/axis.y;
-				   axis.z=yz/axis.y;
-				}
+			   axis.y=SqrtFast(yy);
+				axis.x=xy/axis.y;
+				axis.z=yz/axis.y;
 			}else
 			{
-			   if(zz<=EPSD)axis.set(SQRT2_2, SQRT2_2, 0);else
-			   {
-			      axis.z=SqrtFast(zz);
-				   axis.x=xz/axis.z;
-				   axis.y=yz/axis.z;
-				}
+			   axis.z=SqrtFast(zz);
+				axis.x=xz/axis.z;
+				axis.y=yz/axis.z;
 			}
       }
    }
    return axis;
 }
+/******************************************************************************/
 Flt Matrix3::angle(Bool normalized)C
 {
    Matrix3 temp;
@@ -2555,9 +2539,9 @@ Flt Matrix3::angle(Bool normalized)C
             m->z.x - m->x.z,
             m->x.y - m->y.x);
 
-   if(axis.length2()> Sqr(EPS)   )return Acos((m->x.x + m->y.y + m->z.z - 1)*0.5f);
-   if(m->x.x        >=    EPS_COS)return 0;
-                                  return PI;
+   if(axis.length2()> Sqr(EPS)                )return Acos((m->x.x + m->y.y + m->z.z - 1)*0.5f);
+   if(m->x.x        >=    EPS_COS && m->y.y>=0)return 0;
+                                               return PI;
 }
 Dbl MatrixD3::angle(Bool normalized)C
 {
@@ -2568,10 +2552,11 @@ Dbl MatrixD3::angle(Bool normalized)C
              m->z.x - m->x.z,
              m->x.y - m->y.x);
 
-   if(axis.length2()> Sqr(EPSD    ))return Acos((m->x.x + m->y.y + m->z.z - 1)*0.5);
-   if(m->x.x        >=    EPSD_COS )return 0;
-                                    return PID;
+   if(axis.length2()> Sqr(EPSD    )            )return Acos((m->x.x + m->y.y + m->z.z - 1)*0.5);
+   if(m->x.x        >=    EPSD_COS && m->y.y>=0)return 0;
+                                                return PID;
 }
+/******************************************************************************/
 Flt Matrix3::angleY(Bool normalized)C
 {
    Matrix3 temp;
@@ -2582,16 +2567,17 @@ Flt Matrix3::angleY(Bool normalized)C
             m->x.y - m->y.x);
 
    if(axis.normalize()> EPS    )return axis.y*Acos((m->x.x + m->y.y + m->z.z - 1)*0.5f);
-   if(m->x.x          >=EPS_COS)return 0; // identity
+   if(m->x.x          >=EPS_COS)return 0; // axis=(1,0,0) so axis.y==0
 
    Flt xx=m->x.x+1,
        yy=m->y.y+1,
        zz=m->z.z+1;
 
-   if(xx>=yy && xx>=zz)return (xx<=EPS) ? SQRT2_2*PI : (m->x.y+m->y.x)/SqrtFast(xx)*(PI_4*SQRT2);
-   if(yy>=zz          )return (yy<=EPS) ?          0 :                 SqrtFast(yy)*(PI  /SQRT2);
-                       return (zz<=EPS) ? SQRT2_2*PI : (m->y.z+m->z.y)/SqrtFast(zz)*(PI_4*SQRT2);
+   if(xx>=yy && xx>=zz)return (m->x.y+m->y.x)/SqrtFast(xx)*(PI_4*SQRT2);
+   if(yy>=zz          )return                 SqrtFast(yy)*(PI  /SQRT2);
+                       return (m->y.z+m->z.y)/SqrtFast(zz)*(PI_4*SQRT2);
 }
+/******************************************************************************/
 Flt Matrix3::axisAngle(Vec &axis, Bool normalized)C
 {
    Matrix3 temp;
@@ -2605,10 +2591,10 @@ Flt Matrix3::axisAngle(Vec &axis, Bool normalized)C
    if(axis.normalize()>EPS)angle=Acos((m->x.x + m->y.y + m->z.z - 1)*0.5f);else
    {
       // singularity
-      if(m->x.x>=EPS_COS) // identity
+      if(m->x.x>=EPS_COS)
       {
          axis.set(1, 0, 0);
-         angle=0;
+         angle=((m->y.y>=0) ? 0 : PI);
       }else
       {
          Flt xx=(m->x.x+1)*0.5f,
@@ -2620,29 +2606,20 @@ Flt Matrix3::axisAngle(Vec &axis, Bool normalized)C
 
          if(xx>=yy && xx>=zz)
          {
-            if(xx<=EPS)axis.set(0, SQRT2_2, SQRT2_2);else
-            {
-               axis.x=SqrtFast(xx);
-               axis.y=xy/axis.x;
-               axis.z=xz/axis.x;
-            }
+            axis.x=SqrtFast(xx);
+            axis.y=xy/axis.x;
+            axis.z=xz/axis.x;
          }else
          if(yy>=zz)
          {
-            if(yy<=EPS)axis.set(SQRT2_2, 0, SQRT2_2);else
-            {
-               axis.y=SqrtFast(yy);
-               axis.x=xy/axis.y;
-               axis.z=yz/axis.y;
-            }
+            axis.y=SqrtFast(yy);
+            axis.x=xy/axis.y;
+            axis.z=yz/axis.y;
          }else
          {
-            if(zz<=EPS)axis.set(SQRT2_2, SQRT2_2, 0);else
-            {
-               axis.z=SqrtFast(zz);
-               axis.x=xz/axis.z;
-               axis.y=yz/axis.z;
-            }
+            axis.z=SqrtFast(zz);
+            axis.x=xz/axis.z;
+            axis.y=yz/axis.z;
          }
          angle=PI;
       }
@@ -2663,10 +2640,10 @@ Dbl MatrixD3::axisAngle(VecD &axis, Bool normalized)C
    if(axis.normalize()>EPSD)angle=Acos((m->x.x + m->y.y + m->z.z - 1)*0.5);else
    {
       // singularity
-      if(m->x.x>=EPSD_COS) // identity
+      if(m->x.x>=EPSD_COS)
       {
          axis.set(1, 0, 0);
-         angle=0;
+         angle=((m->y.y>=0) ? 0 : PID);
       }else
       {
          Dbl xx=(m->x.x+1)*0.5,
@@ -2678,29 +2655,20 @@ Dbl MatrixD3::axisAngle(VecD &axis, Bool normalized)C
 
          if(xx>=yy && xx>=zz)
          {
-            if(xx<=EPSD)axis.set(0, SQRT2_2, SQRT2_2);else
-            {
-               axis.x=SqrtFast(xx);
-               axis.y=xy/axis.x;
-               axis.z=xz/axis.x;
-            }
+            axis.x=SqrtFast(xx);
+            axis.y=xy/axis.x;
+            axis.z=xz/axis.x;
          }else
          if(yy>=zz)
          {
-            if(yy<=EPSD)axis.set(SQRT2_2, 0, SQRT2_2);else
-            {
-               axis.y=SqrtFast(yy);
-               axis.x=xy/axis.y;
-               axis.z=yz/axis.y;
-            }
+            axis.y=SqrtFast(yy);
+            axis.x=xy/axis.y;
+            axis.z=yz/axis.y;
          }else
          {
-            if(zz<=EPSD)axis.set(SQRT2_2, SQRT2_2, 0);else
-            {
-               axis.z=SqrtFast(zz);
-               axis.x=xz/axis.z;
-               axis.y=yz/axis.z;
-            }
+            axis.z=SqrtFast(zz);
+            axis.x=xz/axis.z;
+            axis.y=yz/axis.z;
          }
          angle=PID;
       }
