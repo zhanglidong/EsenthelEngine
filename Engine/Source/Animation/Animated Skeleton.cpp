@@ -66,7 +66,7 @@ AnimatedSkeleton& AnimatedSkeleton::del()
 }
 AnimatedSkeleton& AnimatedSkeleton::create(C Skeleton *skeleton, Flt scale, C Matrix &initial_matrix) // !! 'initial_matrix' can be 'root._matrix' !!
 {
-   Matrix temp=initial_matrix; // copy in case 'initial_matrix' belongs to this (for example 'root._matrix' and may get destroyed)
+   auto temp=initial_matrix; // copy in case 'initial_matrix' belongs to this (for example 'root._matrix' and may get destroyed), use 'auto' depending on matrix type
    temp.orn().scale(scale); // apply custom 'scale'
 
       T._scale   =scale;
@@ -639,8 +639,9 @@ void AnimatedSkeleton::updateVelocities(Bool according_to_physics_step, Bool rag
          {
             GetDelta(bone._ang_vel, bone._matrix_prev, bone._matrix);
 
-            Vec rot_pos=sbon.pos; rot_pos*=bone.matrix().orn(); auto trans_pos=rot_pos+bone.matrix().pos; // trans_pos=sbon.pos*bone.matrix()
-            Vec world_delta=trans_pos-bone._matrix_prev.pos; // world pos movement
+            Vec     rot_pos=sbon.pos; rot_pos*=bone.matrix().orn(); // no need for VecD
+            auto  trans_pos=rot_pos+bone.matrix().pos; // trans_pos=sbon.pos*bone.matrix(), use 'auto' depending on vector type
+            Vec world_delta=trans_pos-bone._matrix_prev.pos; // world pos movement, no need for VecD
             bone._vel=world_delta
                      -Cross(bone._ang_vel, rot_pos); // subtract angular velocity based on 'sbon.pos' to make sure that it does not affect points on that line ("pointVelL(sbon.pos)" will be zero if only angular velocities are present)
 
