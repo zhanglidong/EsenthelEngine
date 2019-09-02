@@ -31,6 +31,11 @@ namespace EE{
      +Cross(Obj.angVel/Obj.matrix.orn, vtx.pos)*ViewMatrix.orn()
      -Cross(Cam.view_space_angVel, view_space_pos)
 
+     Shader Code:
+    +ObjVel[i].lin                                  // +(Obj.vel - Cam.vel)/Cam.matrix.orn
+    +TransformDir(Cross(ObjVel[i].ang, vtx.pos), i) // +Cross(Obj.angVel/Obj.matrix.orn, vtx.pos)*ViewMatrix.orn()
+    -Cross(CamAngVel, view_pos)                     // -Cross(Cam.view_space_angVel, view_space_pos)
+
 /******************************************************************************/
 void SetAngVelShader(Vec &ang_vel_shader, C Vec &ang_vel, C Matrix3 &obj_matrix)
 {//ang_vel_shader=(ang_vel/obj_matrix.normalize())*D.motionScale()
