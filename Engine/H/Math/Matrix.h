@@ -858,11 +858,13 @@ void     GetTransform(Matrix3  &transform, C Orient   &start, C Orient   &result
 void     GetTransform(Matrix3  &transform, C Matrix3  &start, C Matrix3  &result); // get 'transform' matrix that transforms 'start' to 'result' according to following formula "start*transform=result"
 void     GetTransform(MatrixD3 &transform, C MatrixD3 &start, C MatrixD3 &result); // get 'transform' matrix that transforms 'start' to 'result' according to following formula "start*transform=result"
 void     GetTransform(Matrix   &transform, C Matrix   &start, C Matrix   &result); // get 'transform' matrix that transforms 'start' to 'result' according to following formula "start*transform=result"
+void     GetTransform(MatrixM  &transform, C MatrixM  &start, C MatrixM  &result); // get 'transform' matrix that transforms 'start' to 'result' according to following formula "start*transform=result"
 void     GetTransform(MatrixD  &transform, C MatrixD  &start, C MatrixD  &result); // get 'transform' matrix that transforms 'start' to 'result' according to following formula "start*transform=result"
 Matrix3  GetTransform(                     C Orient   &start, C Orient   &result); // get 'transform' matrix that transforms 'start' to 'result' according to following formula "start*transform=result"
 Matrix3  GetTransform(                     C Matrix3  &start, C Matrix3  &result); // get 'transform' matrix that transforms 'start' to 'result' according to following formula "start*transform=result"
 MatrixD3 GetTransform(                     C MatrixD3 &start, C MatrixD3 &result); // get 'transform' matrix that transforms 'start' to 'result' according to following formula "start*transform=result"
 Matrix   GetTransform(                     C Matrix   &start, C Matrix   &result); // get 'transform' matrix that transforms 'start' to 'result' according to following formula "start*transform=result"
+MatrixM  GetTransform(                     C MatrixM  &start, C MatrixM  &result); // get 'transform' matrix that transforms 'start' to 'result' according to following formula "start*transform=result"
 MatrixD  GetTransform(                     C MatrixD  &start, C MatrixD  &result); // get 'transform' matrix that transforms 'start' to 'result' according to following formula "start*transform=result"
 
 inline void GetTransform          (RevMatrix &transform, C Matrix &start, C Matrix &result) {result.div          (start, transform);} // get 'transform' matrix that transforms 'start' to 'result' according to following formula "start*transform=result"

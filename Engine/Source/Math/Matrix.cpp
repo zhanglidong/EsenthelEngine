@@ -3135,10 +3135,12 @@ void GetTransform(Matrix3 &transform, C Orient &start, C Orient &result)
 void     GetTransform(Matrix3  &transform, C Matrix3  &start, C Matrix3  &result) {Matrix3  temp     ; start.inverse(temp     ); temp.mul(result, transform);} // use 'temp' in case "&transform==&result"
 void     GetTransform(MatrixD3 &transform, C MatrixD3 &start, C MatrixD3 &result) {MatrixD3 temp     ; start.inverse(temp     ); temp.mul(result, transform);} // use 'temp' in case "&transform==&result"
 void     GetTransform(Matrix   &transform, C Matrix   &start, C Matrix   &result) {Matrix   temp     ; start.inverse(temp     ); temp.mul(result, transform);} // use 'temp' in case "&transform==&result"
+void     GetTransform(MatrixM  &transform, C MatrixM  &start, C MatrixM  &result) {MatrixM  temp     ; start.inverse(temp     ); temp.mul(result, transform);} // use 'temp' in case "&transform==&result"
 void     GetTransform(MatrixD  &transform, C MatrixD  &start, C MatrixD  &result) {MatrixD  temp     ; start.inverse(temp     ); temp.mul(result, transform);} // use 'temp' in case "&transform==&result"
 Matrix3  GetTransform(                     C Matrix3  &start, C Matrix3  &result) {Matrix3  transform; start.inverse(transform); transform*=result; return transform;}
 MatrixD3 GetTransform(                     C MatrixD3 &start, C MatrixD3 &result) {MatrixD3 transform; start.inverse(transform); transform*=result; return transform;}
 Matrix   GetTransform(                     C Matrix   &start, C Matrix   &result) {Matrix   transform; start.inverse(transform); transform*=result; return transform;}
+MatrixM  GetTransform(                     C MatrixM  &start, C MatrixM  &result) {MatrixM  transform; start.inverse(transform); transform*=result; return transform;}
 MatrixD  GetTransform(                     C MatrixD  &start, C MatrixD  &result) {MatrixD  transform; start.inverse(transform); transform*=result; return transform;}
 Matrix3  GetTransform(                     C Orient   &start, C Orient   &result) {Matrix3  transform;  GetTransform(transform, start, result);     return transform;}
 /******************************************************************************/
