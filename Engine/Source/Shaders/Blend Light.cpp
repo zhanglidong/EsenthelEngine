@@ -87,7 +87,7 @@ void VS
       {
          pos=TransformPos(pos, vtx.instance());
       #if USE_VEL
-         O.vel=ObjVel[vtx.instance()]; UpdateVelocities_VS(O.vel, local_pos, pos, vtx.instance());
+         O.vel=GetObjVel(local_pos, pos, vtx.instance());
       #endif
 
       #if   BUMP_MODE> SBUMP_FLAT
@@ -106,7 +106,7 @@ void VS
       {
          pos=TransformPos(pos);
       #if USE_VEL
-         O.vel=ObjVel[0]; UpdateVelocities_VS(O.vel, local_pos, pos);
+         O.vel=GetObjVel(local_pos, pos);
       #endif
 
       #if   BUMP_MODE> SBUMP_FLAT
@@ -127,7 +127,7 @@ void VS
       VecU bone=vtx.bone();
       pos=TransformPos(pos, bone, vtx.weight());
    #if USE_VEL
-      O.vel=GetBoneVel(bone, vtx.weight()); UpdateVelocities_VS(O.vel, local_pos, pos);
+      O.vel=GetBoneVel(local_pos, pos, bone, vtx.weight());
    #endif
 
    #if   BUMP_MODE> SBUMP_FLAT

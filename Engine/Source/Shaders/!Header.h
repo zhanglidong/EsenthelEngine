@@ -356,8 +356,14 @@ BUFFER_I(Global, SBI_GLOBAL)
    Matrix  CamMatrix                 ; // camera matrix
 BUFFER_END
 
+struct Velocity
+{
+   VecH lin, //  linear, pre-multiplied by 'D.motionScale', use VecH to allow velocity functions work faster
+        ang; // angular, pre-multiplied by 'D.motionScale', use VecH to allow velocity functions work faster
+};
+
 BUFFER_I(ObjVel, SBI_OBJ_VEL) // !! WARNING: this CB is dynamically resized, do not add other members !!
-   VecH  ObjVel[MAX_MATRIX]; // object linear velocities (use this for skinning) (this is the linear velocity in view space, pre-multiplied by 'D.motionScale'), use VecH to allow 'GetBoneVel' work faster
+   Velocity ObjVel[MAX_MATRIX]; // object velocities
 BUFFER_END
 
 BUFFER_I(Mesh, SBI_MESH)
@@ -857,6 +863,56 @@ inline Vec ViewMatrixPos(UInt mtrx) {mtrx*=3; return Vec(ViewMatrix[mtrx].w, Vie
 
 inline Matrix GetViewMatrix() {Matrix m; m[0]=ViewMatrixX(); m[1]=ViewMatrixY(); m[2]=ViewMatrixZ(); m[3]=ViewMatrixPos(); return m;}
 #endif
+/******************************************************************************/
+// VELOCITIES
+/******************************************************************************/
+inline VecH GetVel(VecH local_pos, UInt mtrx=0) // does not include velocity from Camera Angle Vel
+{
+   return             ObjVel[mtrx].lin
+  +TransformDir(Cross(ObjVel[mtrx].ang, local_pos), mtrx);
+}
+inline Vec GetCamAngVel(Vec view_space_pos)
+{
+   return -Cross(CamAngVel, view_space_pos);
+}
+inline Vec GetObjVel(VecH local_pos, Vec view_space_pos, UInt mtrx=0)
+{
+   return GetVel      (local_pos, mtrx)
+         +GetCamAngVel(view_space_pos);
+}
+inline Vec GetBoneVel(VecH local_pos, Vec view_space_pos, VecU bone, VecH weight)
+{
+   return (GetVel      (local_pos, bone.x)*weight.x
+          +GetVel      (local_pos, bone.y)*weight.y
+          +GetVel      (local_pos, bone.z)*weight.z)
+          +GetCamAngVel(view_space_pos);
+}
+/******************************************************************************/
+inline VecH GetVelocity_PS(Vec vel, Vec view_space_pos)
+{
+   // divide by distance to camera (there is no NaN because in PixelShader view_space_pos.z>0)
+ //if(ORTHO_SUPPORT && !Viewport.ortho)
+   VecH vel_ps=vel/view_space_pos.z;
+
+#if !SIGNED_VEL_RT
+   vel_ps=vel_ps*0.5+0.5; // scale from signed to unsigned (-1..1 -> 0..1)
+#endif
+
+   return vel_ps;
+}
+inline Vec GetVelocitiesCameraOnly(Vec view_space_pos)
+{
+   Vec vel=ObjVel[0].lin // set to object linear velocity in view space
+          +GetCamAngVel(view_space_pos); // add camera angular velocity
+
+   // divide by distance to camera (there is no NaN because in PixelShader view_space_pos.z>0)
+ //if(ORTHO_SUPPORT && !Viewport.ortho)
+      vel/=view_space_pos.z;
+
+   vel=Mid(vel, Vec(-1, -1, -1), Vec(1, 1, 1)); // clamp to get the same results as if stored in a RT
+
+   return vel; // this function always returns signed -1..1 version
+}
 /******************************************************************************/
 inline Vec4 Project(Vec pos)
 {
@@ -1428,40 +1484,6 @@ inline VecH GetDetail(Vec2 tex)
 // FACE NORMAL HANDLING
 /******************************************************************************/
 inline void BackFlip(in out VecH dir, Bool front) {if(!front)dir=-dir;}
-/******************************************************************************/
-// VELOCITIES
-/******************************************************************************/
-inline void UpdateVelocities_VS(in out Vec vel, VecH local_pos, Vec view_space_pos, UInt mtrx=0) // TODO: #ShaderHalf
-{
-   // on start 'vel'=object linear velocity in view space
-   vel-=TransformDir(Cross(local_pos      , ObjAngVel), mtrx); // add object angular velocity in view space
-   vel-=Cross(CamAngVel, view_space_pos); // subtract camera angular velocity
-}
-inline VecH GetVelocity_PS(Vec vel, Vec view_space_pos)
-{
-   // divide by distance to camera (there is no NaN because in PixelShader view_space_pos.z>0)
- //if(ORTHO_SUPPORT && !Viewport.ortho)
-   VecH vel_ps=vel/view_space_pos.z;
-
-#if !SIGNED_VEL_RT
-   vel_ps=vel_ps*0.5+0.5; // scale from signed to unsigned (-1..1 -> 0..1)
-#endif
-
-   return vel_ps;
-}
-inline Vec GetVelocitiesCameraOnly(Vec view_space_pos)
-{
-   Vec vel=ObjVel[0] // set to object linear velocity in view space
-          +Cross(view_space_pos, CamAngVel); // add camera angular velocity
-
-   // divide by distance to camera (there is no NaN because in PixelShader view_space_pos.z>0)
- //if(ORTHO_SUPPORT && !Viewport.ortho)
-      vel/=view_space_pos.z;
-
-   vel=Mid(vel, Vec(-1, -1, -1), Vec(1, 1, 1)); // clamp to get the same results as if stored in a RT
-
-   return vel; // this function always returns signed -1..1 version
-}
 /******************************************************************************/
 inline Half MultiMaterialWeight(Half weight, Half alpha) // 'weight'=weight of this material, 'alpha'=color texture alpha (opacity or bump)
 {

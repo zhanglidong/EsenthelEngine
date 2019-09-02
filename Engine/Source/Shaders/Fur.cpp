@@ -29,24 +29,21 @@ void Base_VS
    {
       if(true) // instance
       {
-         outVel=ObjVel[vtx.instance()];
-         outPos=TransformPos(vtx.pos(), vtx.instance());
-         outNrm=TransformDir(vtx.nrm(), vtx.instance());
-         UpdateVelocities_VS(outVel, vtx.pos(), outPos, vtx.instance());
+         outPos=TransformPos(vtx.pos(),         vtx.instance());
+         outNrm=TransformDir(vtx.nrm(),         vtx.instance());
+         outVel=GetObjVel   (vtx.pos(), outPos, vtx.instance());
       }else
       {
-         outVel=ObjVel[0];
          outPos=TransformPos(vtx.pos());
          outNrm=TransformDir(vtx.nrm());
-         UpdateVelocities_VS(outVel, vtx.pos(), outPos);
+         outVel=GetObjVel   (vtx.pos(), outPos);
       }
    }else
    {
       VecU bone=vtx.bone();
-      outVel=GetBoneVel  (           bone, vtx.weight());
-      outPos=TransformPos(vtx.pos(), bone, vtx.weight());
-      outNrm=TransformDir(vtx.nrm(), bone, vtx.weight());
-      UpdateVelocities_VS(outVel, vtx.pos(), outPos);
+      outPos=TransformPos(vtx.pos(),         bone, vtx.weight());
+      outNrm=TransformDir(vtx.nrm(),         bone, vtx.weight());
+      outVel=GetBoneVel  (vtx.pos(), outPos, bone, vtx.weight());
    }
 #if SIZE
    outLen=vtx.size();

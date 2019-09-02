@@ -108,8 +108,8 @@ void VS
    {
       if(true) // instance
       {
-         O.pos=TransformPos(pos, vtx.instance());
-         O.vel=ObjVel[vtx.instance()]; UpdateVelocities_VS(O.vel, pos, O.pos, vtx.instance());
+         O.pos=TransformPos(pos,        vtx.instance());
+         O.vel=GetObjVel   (pos, O.pos, vtx.instance());
 
       #if   BUMP_MODE> SBUMP_FLAT
          O.mtrx[2]=TransformDir(nrm, vtx.instance());
@@ -125,7 +125,7 @@ void VS
       }else
       {
          O.pos=TransformPos(pos);
-         O.vel=ObjVel[0]; UpdateVelocities_VS(O.vel, pos, O.pos);
+         O.vel=GetObjVel   (pos, O.pos);
 
       #if   BUMP_MODE> SBUMP_FLAT
          O.mtrx[2]=TransformDir(nrm);
@@ -142,8 +142,8 @@ void VS
    }else
    {
       VecU bone=vtx.bone();
-      O.pos=TransformPos(pos, bone, vtx.weight());
-      O.vel=GetBoneVel  (     bone, vtx.weight()); UpdateVelocities_VS(O.vel, pos, O.pos);
+      O.pos=TransformPos(pos,        bone, vtx.weight());
+      O.vel=GetBoneVel  (pos, O.pos, bone, vtx.weight());
 
    #if   BUMP_MODE> SBUMP_FLAT
       O.mtrx[2]=TransformDir(nrm, bone, vtx.weight());
