@@ -25,10 +25,10 @@ namespace EE{
      +Cross(Obj.angVel/Obj.matrix.orn, vtx.pos)*Obj.matrix.orn/Cam.matrix.orn
      -Cross(Cam.view_space_angVel, view_space_pos)
 
-      Obj.matrix.orn/Cam.matrix.orn=ViewMatrix
+      Obj.matrix.orn/Cam.matrix.orn=ViewMatrix.orn()
 
      +(Obj.vel - Cam.vel)/Cam.matrix.orn
-     +Cross(Obj.angVel/Obj.matrix.orn, vtx.pos)*ViewMatrix
+     +Cross(Obj.angVel/Obj.matrix.orn, vtx.pos)*ViewMatrix.orn()
      -Cross(Cam.view_space_angVel, view_space_pos)
 
 /******************************************************************************/
