@@ -258,10 +258,12 @@ struct  AnimatedSkeletonBone // Bone of an Animated Skeleton
    Vec      pos  , // offset   position
             scale; // scale    factor
 
-   // these parameters may be accessed after animation and matrix updates (using 'updateMatrix' method), they are in world space:
- C Matrix& matrix()C {return _matrix;} // this is the transformation matrix, which transforms source bone 'SkelBone' and source 'Mesh' into their final positions (source_data * matrix = final_world_space_position)
+   // the following parameters are valid only after calling 'updateMatrix'
+ C Matrix& matrix()C {return _matrix;} // this is the transformation matrix, which transforms source bone 'SkelBone' and source 'Mesh' into their final positions (source_data * matrix = final_world_space_position), it's valid after animation and matrix updates (using 'updateMatrix' method)
 
-   Vec pointVelL(C Vec &local_pos)C; // get point velocity, 'local_pos' is in object local space, returned velocity is in world space
+   // the following parameters are valid only after calling 'updateVelocities'
+ C Vec& worldPos ()C {return _matrix_prev.pos;} // get bone transformer world space position, , it's valid after animation, matrix and velocity updates (using 'updateVelocities' method)
+   Vec  pointVelL(C Vec &local_pos)C; // get point velocity, 'local_pos' is in object local space, returned velocity is in world space, it's valid after animation, matrix and velocity updates (using 'updateVelocities' method)
 
    // operations
    void clear(         ); //           clear 'orn rot pos scale'

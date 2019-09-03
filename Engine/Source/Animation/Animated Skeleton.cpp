@@ -79,7 +79,7 @@ AnimatedSkeleton& AnimatedSkeleton::create(C Skeleton *skeleton, Flt scale, C Ma
          AnimSkelBone &bone=bones[i]; bone.zero();
          bone._matrix=temp;
          bone._matrix_prev.orn()=         bone.matrix();
-         bone._matrix_prev.pos  =sbon.pos*bone.matrix(); // !! Warning: for bones we're not setting 'bone.matrix().pos' but transformed world pos !! #AnimSkelBoneMatrixPrevPos
+         bone._matrix_prev.pos  =sbon.pos*bone.matrix(); // !! Warning: for bones we're not setting 'bone.matrix().pos' but transformed world pos !! this is needed for calculating velocities and 'worldPos' #AnimSkelBoneMatrixPrevPos
       }
    }else
    {
@@ -92,7 +92,7 @@ AnimatedSkeleton& AnimatedSkeleton::create(C Skeleton *skeleton, Flt scale, C Ma
    fur_vel_scale=-0.75f;
 
    root.zero();
-   root._matrix_prev=root._matrix=temp;
+   root._matrix_prev=root._matrix=temp; // 'root._matrix_prev.pos' is equal to 'root.matrix().pos' and "transformed world pos" at the same time #AnimSkelBoneMatrixPrevPos
 
    return T;
 }
@@ -622,7 +622,7 @@ void AnimatedSkeleton::updateVelocities(Bool according_to_physics_step, Bool rag
    }
 
    // root
-   GetDelta(root._vel, root._ang_vel, root._matrix_prev, root._matrix); root._matrix_prev=root._matrix;
+   GetDelta(root._vel, root._ang_vel, root._matrix_prev, root._matrix); root._matrix_prev=root._matrix; // 'root._matrix_prev.pos' is equal to 'root.matrix().pos' and "transformed world pos" at the same time #AnimSkelBoneMatrixPrevPos
    root.    _vel*=time_mul;
    root._ang_vel*=time_mul;
    AdjustValTime(root._fur_vel, FurVel(vel(), fur_vel_scale, fur_gravity), fur_stiffness);
@@ -645,7 +645,7 @@ void AnimatedSkeleton::updateVelocities(Bool according_to_physics_step, Bool rag
                      -Cross(bone._ang_vel, rot_pos); // subtract angular velocity based on 'sbon.pos' to make sure that it does not affect points on that line ("pointVelL(sbon.pos)" will be zero if only angular velocities are present)
 
             bone._matrix_prev.orn()=bone.matrix();
-            bone._matrix_prev.pos  =trans_pos; // !! Warning: for bones we're not setting 'bone.matrix().pos' but transformed world pos !! #AnimSkelBoneMatrixPrevPos
+            bone._matrix_prev.pos  =trans_pos; // !! Warning: for bones we're not setting 'bone.matrix().pos' but transformed world pos !! this is needed for calculating velocities and 'worldPos' #AnimSkelBoneMatrixPrevPos
 
             bone.    _vel*=time_mul;
             bone._ang_vel*=time_mul;
