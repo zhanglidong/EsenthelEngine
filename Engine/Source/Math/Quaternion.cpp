@@ -58,8 +58,8 @@ QuaternionD& QuaternionD::setRotate(Dbl x, Dbl y, Dbl z)
    return T;
 }
 /******************************************************************************/
-Flt Quaternion ::angle()C {Flt angle=Acos(w)*2; return (angle>PI ) ? angle-PI2  : angle;} // wrap to -PI..PI range !! needed for 'GetDelta' to calculate correct velocities !!
-Dbl QuaternionD::angle()C {Dbl angle=Acos(w)*2; return (angle>PID) ? angle-PID2 : angle;} // wrap to -PI..PI range !! needed for 'GetDelta' to calculate correct velocities !!
+Flt Quaternion ::angle()C {Flt angle=ACosSin(w, xyz.length())*2; return (angle>PI ) ? angle-PI2  : angle;} // Quaternion must be normalized, using 'ACosSin' is much more precise than just "Acos(w)", wrap to -PI..PI range !! needed for 'GetDelta' to calculate correct velocities !!
+Dbl QuaternionD::angle()C {Dbl angle=ACosSin(w, xyz.length())*2; return (angle>PID) ? angle-PID2 : angle;} // Quaternion must be normalized, using 'ACosSin' is much more precise than just "Acos(w)", wrap to -PI..PI range !! needed for 'GetDelta' to calculate correct velocities !!
 
 Vec  Quaternion ::axis()C {Vec  axis=xyz; axis.normalize(); return axis;}
 VecD QuaternionD::axis()C {VecD axis=xyz; axis.normalize(); return axis;}
