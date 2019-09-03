@@ -865,7 +865,8 @@ struct VecD // Vector 3D (double precision)
    VecD(C VecI  &v);
    VecD(C VecB  &v);
    VecD(C VecSB &v);
-};
+};extern const VecD
+   VecDZero; // VecD(0, 0, 0)
 /******************************************************************************/
 struct Vec4 // Vector 4D
 {

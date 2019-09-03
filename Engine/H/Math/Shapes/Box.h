@@ -168,8 +168,8 @@ struct BoxD // Box Shape (double precision)
    BoxD& zero(                                                                ) {min.zero(); max.zero(); return T;}
    BoxD& set (C VecD &min, C VecD &max                                        ) {T.min=min;  T.max=max;  return T;}
    BoxD& set (Dbl min_x, Dbl min_y, Dbl min_z, Dbl max_x, Dbl max_y, Dbl max_z) {min.set(min_x      , min_y      , min_z      ); max.set(max_x      , max_y      , max_z      ); return T;}
-   BoxD& set (Dbl r,               C VecD &pos=0                              ) {min.set(pos.x-r    , pos.y-r    , pos.z-r    ); max.set(pos.x+r    , pos.y+r    , pos.z+r    ); return T;}
-   BoxD& set (Dbl w, Dbl h, Dbl d, C VecD &pos=0                              ) {min.set(pos.x-w*0.5, pos.y-h*0.5, pos.z-d*0.5); max.set(pos.x+w*0.5, pos.y+h*0.5, pos.z+d*0.5); return T;}
+   BoxD& set (Dbl r,               C VecD &pos=VecDZero                       ) {min.set(pos.x-r    , pos.y-r    , pos.z-r    ); max.set(pos.x+r    , pos.y+r    , pos.z+r    ); return T;}
+   BoxD& set (Dbl w, Dbl h, Dbl d, C VecD &pos=VecDZero                       ) {min.set(pos.x-w*0.5, pos.y-h*0.5, pos.z-d*0.5); max.set(pos.x+w*0.5, pos.y+h*0.5, pos.z+d*0.5); return T;}
 
    BoxD& operator|=(C VecD &v) {return include(v);}
    BoxD& operator|=(C BoxD &b) {return include(b);}
@@ -219,8 +219,8 @@ struct BoxD // Box Shape (double precision)
    BoxD(C VecD  &vec                                                         ) {min=max=vec                                  ;}
    BoxD(C VecD  &min, C VecD &max                                            ) {set(min, max                                );}
    BoxD(  Dbl    min_x, Dbl min_y, Dbl min_z, Dbl max_x, Dbl max_y, Dbl max_z) {set(min_x, min_y, min_z, max_x, max_y, max_z);}
-   BoxD(  Dbl    r,               C VecD &pos=0                              ) {set(r,       pos                            );}
-   BoxD(  Dbl    w, Dbl h, Dbl d, C VecD &pos=0                              ) {set(w, h, d, pos                            );}
+   BoxD(  Dbl    r,               C VecD &pos=VecDZero                       ) {set(r,       pos                            );}
+   BoxD(  Dbl    w, Dbl h, Dbl d, C VecD &pos=VecDZero                       ) {set(w, h, d, pos                            );}
    BoxD(C EdgeD &edge);
    BoxD(C TriD  &tri );
    BoxD(C QuadD &quad);

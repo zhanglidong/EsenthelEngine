@@ -51,7 +51,7 @@ struct ConeM // Cone Shape (mixed precision)
    Vec  up    ; // up     direction
 
    // set
-   ConeM& set(Flt r_low, Flt r_high, Flt h, C VecD &pos=0, C Vec &up=Vec(0,1,0)) {T.r_low=r_low; T.r_high=r_high; T.h=h; T.pos=pos; T.up=up; return T;}
+   ConeM& set(Flt r_low, Flt r_high, Flt h, C VecD &pos=VecDZero, C Vec &up=Vec(0,1,0)) {T.r_low=r_low; T.r_high=r_high; T.h=h; T.pos=pos; T.up=up; return T;}
 
    // get
    Flt area  ()C; // get surface area
@@ -60,7 +60,7 @@ struct ConeM // Cone Shape (mixed precision)
    Str asText()C {return S+"LowerRadius: "+r_low+", HigherRadius: "+r_high+", Height: "+h+", Pos: "+pos+", Up: "+up;} // get text description
 
    ConeM() {}
-   ConeM(Flt r_low, Flt r_high, Flt h, C VecD &pos=0, C Vec &up=Vec(0,1,0)) {set(r_low, r_high, h, pos, up);}
+   ConeM(Flt r_low, Flt r_high, Flt h, C VecD &pos=VecDZero, C Vec &up=Vec(0,1,0)) {set(r_low, r_high, h, pos, up);}
 };
 /******************************************************************************/
 Bool Cuts(C Vec  &point, C Cone  &cone); // if point cuts cone

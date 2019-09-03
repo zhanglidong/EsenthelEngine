@@ -73,7 +73,7 @@ struct CapsuleM // Capsule Shape (mixed precision)
    Vec  up ; // up     direction
 
    // set
-   CapsuleM& set(Flt r, Flt h, C VecD &pos=0, C Vec &up=Vec(0,1,0)) {T.r=r; T.h=h; T.pos=pos; T.up=up; return T;}
+   CapsuleM& set(Flt r, Flt h, C VecD &pos=VecDZero, C Vec &up=Vec(0,1,0)) {T.r=r; T.h=h; T.pos=pos; T.up=up; return T;}
 
    // get
    Flt area  ()C {return PI2*r*   h            ;} // get surface area
@@ -107,7 +107,7 @@ struct CapsuleM // Capsule Shape (mixed precision)
    friend CapsuleM operator/ (C CapsuleM &capsule, C Vec     &v) {return CapsuleM(capsule)/=v;}
 
    CapsuleM() {}
-   CapsuleM(Flt r, Flt h, C VecD &pos=0, C Vec &up=Vec(0,1,0)) {set(r, h, pos , up);}
+   CapsuleM(Flt r, Flt h, C VecD &pos=VecDZero, C Vec &up=Vec(0,1,0)) {set(r, h, pos , up);}
 };
 /******************************************************************************/
 // distance

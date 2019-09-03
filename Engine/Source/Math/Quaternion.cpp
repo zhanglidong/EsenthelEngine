@@ -64,8 +64,8 @@ Dbl QuaternionD::angle()C {Dbl angle=ACosSin(w, xyz.length())*2; return (angle>P
 Vec  Quaternion ::axis()C {Vec  axis=xyz; axis.normalize(); return axis;}
 VecD QuaternionD::axis()C {VecD axis=xyz; axis.normalize(); return axis;}
 
-Vec  Quaternion ::axisAngle()C {Vec  axis=xyz; axis.setLength(angle()); return axis;}
-VecD QuaternionD::axisAngle()C {VecD axis=xyz; axis.setLength(angle()); return axis;}
+Vec  Quaternion ::axisAngle()C {Flt length=xyz.length(), angle=ACosSin(w, length)*2; if(angle>PI )angle-=PI2 ; return length ? xyz*(angle/length) : VecZero ;}
+VecD QuaternionD::axisAngle()C {Dbl length=xyz.length(), angle=ACosSin(w, length)*2; if(angle>PID)angle-=PID2; return length ? xyz*(angle/length) : VecDZero;}
 /******************************************************************************/
 Orient::Orient(C Quaternion &q)
 {

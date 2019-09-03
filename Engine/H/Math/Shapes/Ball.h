@@ -76,7 +76,7 @@ struct BallM // Ball Shape (mixed precision)
    BallM& extend(Flt e) {r+=e; return T;} // extend
 
    BallM() {}
-   BallM(Flt r, C VecD &pos=0) {set(r, pos);}
+   BallM(Flt r, C VecD &pos=VecDZero) {set(r, pos);}
 };
 /******************************************************************************/
 struct BallD // Ball Shape (double precision)
@@ -89,7 +89,7 @@ struct BallD // Ball Shape (double precision)
    BallD& extend(Dbl e) {r+=e; return T;} // extend
 
    BallD() {}
-   BallD(Dbl r, C VecD &pos=0) {set(r, pos);}
+   BallD(Dbl r, C VecD &pos=VecDZero) {set(r, pos);}
 };
 /******************************************************************************/
 Ball Avg(C Ball &a, C Ball &b);

@@ -44,7 +44,7 @@ struct PyramidM : OrientM // Pyramid Shape (mixed precision)
        h    ; // height
 
    // set
-   PyramidM& set(Flt scale, Flt h, C VecD &pos=0, C Vec &dir=Vec(0,1,0)) {T.scale=scale; T.h=h; setPosDir(pos, dir); return T;} // 'dir' must be normalized
+   PyramidM& set(Flt scale, Flt h, C VecD &pos=VecDZero, C Vec &dir=Vec(0,1,0)) {T.scale=scale; T.h=h; setPosDir(pos, dir); return T;} // 'dir' must be normalized
 
    // get
    Flt side  ()C {return scale*h*2;} // get pyramid side size
@@ -59,7 +59,7 @@ struct PyramidM : OrientM // Pyramid Shape (mixed precision)
    void draw(Color color=WHITE, Bool fill=false)C; // this relies on active object matrix which can be set using 'SetMatrix' function
 
    PyramidM() {}
-   PyramidM(Flt scale, Flt h, C VecD &pos=0, C Vec &dir=Vec(0,1,0)) {set(scale, h, pos, dir);} // 'dir' must be normalized
+   PyramidM(Flt scale, Flt h, C VecD &pos=VecDZero, C Vec &dir=Vec(0,1,0)) {set(scale, h, pos, dir);} // 'dir' must be normalized
 };
 /******************************************************************************/
 Bool Cuts(C Vec  &point, C Pyramid  &pyramid); // if point cuts a pyramid

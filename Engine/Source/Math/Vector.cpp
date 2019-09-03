@@ -32,6 +32,7 @@ const Vec VecDir[DIR_NUM]=
 };
 const Vec2 Vec2Zero(0);
 const Vec  VecZero (0), VecOne(1);
+const VecD VecDZero(0);
 const Vec4 Vec4Zero(0);
 /******************************************************************************/
 Int MinI(Int x, Int y              ) {return y<x;}
