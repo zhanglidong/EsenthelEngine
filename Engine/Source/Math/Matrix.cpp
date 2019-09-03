@@ -300,7 +300,7 @@ void Matrix3::mul(C Matrix3 &m, Matrix3 &dest)C
       dest.z.z=x*T.z.x + y*T.z.y + z*T.z.z;
    }else // &dest==&m && &dest==this
    {
-      Matrix3 temp=T; temp.mul(temp, dest); // have to operate on a temporary because all matrices are the same
+      Matrix3 temp=T; temp.mul(temp, dest); // have to operate on a temporary because all matrixes are the same
    }
 }
 void MatrixD3::mul(C Matrix3 &m, MatrixD3 &dest)C
@@ -359,7 +359,7 @@ void MatrixD3::mul(C MatrixD3 &m, MatrixD3 &dest)C
       dest.z.z=x*T.z.x + y*T.z.y + z*T.z.z;
    }else // &dest==&m && &dest==this
    {
-      MatrixD3 temp=T; temp.mul(temp, dest); // have to operate on a temporary because all matrices are the same
+      MatrixD3 temp=T; temp.mul(temp, dest); // have to operate on a temporary because all matrixes are the same
    }
 }
 /******************************************************************************/
@@ -616,7 +616,7 @@ void Matrix4::mul(C Matrix4 &m, Matrix4 &dest)C
       dest.pos.w=pos.x*x + pos.y*y + pos.z*z + pos.w*w;
    }else
    {
-      Matrix4 temp=T; temp.mul(temp, dest); // have to operate on a temporary because all matrices are the same
+      Matrix4 temp=T; temp.mul(temp, dest); // have to operate on a temporary because all matrixes are the same
    }
 }
 /******************************************************************************/
@@ -721,7 +721,7 @@ void Matrix3::divNormalized(C Matrix3 &m, Matrix3 &dest)C
       dest.z.z=z_x*T.z.x + z_y*T.z.y + z_z*T.z.z;
    }else
    {
-      Matrix3 temp=T; temp.divNormalized(temp, dest); // have to operate on a temporary because all matrices are the same
+      Matrix3 temp=T; temp.divNormalized(temp, dest); // have to operate on a temporary because all matrixes are the same
    }
 }
 void MatrixD3::divNormalized(C Matrix3 &m, MatrixD3 &dest)C
@@ -780,7 +780,7 @@ void MatrixD3::divNormalized(C MatrixD3 &m, MatrixD3 &dest)C
       dest.z.z=z_x*T.z.x + z_y*T.z.y + z_z*T.z.z;
    }else
    {
-      MatrixD3 temp=T; temp.divNormalized(temp, dest); // have to operate on a temporary because all matrices are the same
+      MatrixD3 temp=T; temp.divNormalized(temp, dest); // have to operate on a temporary because all matrixes are the same
    }
 }
 /******************************************************************************/
