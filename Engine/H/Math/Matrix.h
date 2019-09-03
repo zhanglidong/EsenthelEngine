@@ -870,12 +870,14 @@ MatrixD  GetTransform(                     C MatrixD  &start, C MatrixD  &result
 inline void GetTransform          (RevMatrix &transform, C Matrix &start, C Matrix &result) {result.div          (start, transform);} // get 'transform' matrix that transforms 'start' to 'result' according to following formula "start*transform=result"
 inline void GetTransformNormalized(RevMatrix &transform, C Matrix &start, C Matrix &result) {result.divNormalized(start, transform);} // get 'transform' matrix that transforms 'start' to 'result' according to following formula "start*transform=result", this function assumes that 'start' and 'result' are normalized
 
-void GetDelta(          Vec &angle, C Matrix3 &from, C Matrix3 &to); // get              angle axis delta from 'from' and 'to' matrixes !! matrixes DON'T have to be normalized !!
-void GetDelta(Vec &pos, Vec &angle, C Matrix  &from, C Matrix  &to); // get position and angle axis delta from 'from' and 'to' matrixes !! matrixes DON'T have to be normalized !!
-void GetDelta(Vec &pos, Vec &angle, C MatrixM &from, C MatrixM &to); // get position and angle axis delta from 'from' and 'to' matrixes !! matrixes DON'T have to be normalized !!
+void GetDelta(          Vec &angle,                    C Matrix3 &prev, C Matrix3 &cur); // get              angle axis delta from 'prev' and 'cur' matrixes !! matrixes DON'T have to be normalized !!
+void GetDelta(Vec &pos, Vec &angle,                    C Matrix  &prev, C Matrix  &cur); // get position and angle axis delta from 'prev' and 'cur' matrixes !! matrixes DON'T have to be normalized !!
+void GetDelta(Vec &pos, Vec &angle,                    C MatrixM &prev, C MatrixM &cur); // get position and angle axis delta from 'prev' and 'cur' matrixes !! matrixes DON'T have to be normalized !!
+void GetDelta(Vec &pos, Vec &angle, C VecD &prev2_pos, C MatrixM &prev, C MatrixM &cur); // get position and angle axis delta from 'prev' and 'cur' matrixes !! matrixes DON'T have to be normalized !! 'prev2_pos'=position one step before 'prev', used to calculate more smooth 'pos' delta
 
-void GetVel(Vec &vel, Vec &ang_vel, C Matrix  &from, C Matrix  &to, Flt dt=Time.d()); // get linear velocity and angular velocity from 'from' and 'to' matrixes using 'dt' time delta !! matrixes DON'T have to be normalized !!
-void GetVel(Vec &vel, Vec &ang_vel, C MatrixM &from, C MatrixM &to, Flt dt=Time.d()); // get linear velocity and angular velocity from 'from' and 'to' matrixes using 'dt' time delta !! matrixes DON'T have to be normalized !!
+void GetVel(Vec &vel, Vec &ang_vel,                    C Matrix  &prev, C Matrix  &cur, Flt dt=Time.d()); // get linear velocity and angular velocity from 'prev' and 'cur' matrixes using 'dt' time delta !! matrixes DON'T have to be normalized !!
+void GetVel(Vec &vel, Vec &ang_vel,                    C MatrixM &prev, C MatrixM &cur, Flt dt=Time.d()); // get linear velocity and angular velocity from 'prev' and 'cur' matrixes using 'dt' time delta !! matrixes DON'T have to be normalized !!
+void GetVel(Vec &vel, Vec &ang_vel, C VecD &prev2_pos, C MatrixM &prev, C MatrixM &cur, Flt dt=Time.d()); // get linear velocity and angular velocity from 'prev' and 'cur' matrixes using 'dt' time delta !! matrixes DON'T have to be normalized !! 'prev2_pos'=position one step before 'prev', used to calculate more smooth 'vel' velocity
 
 Flt GetLodDist2(C Vec &lod_center, C Matrix  &matrix); // calculate squared distance from 'lod_center' transformed by 'matrix' to active camera, returned value can be used as parameter for 'Mesh.getDrawLod' methods
 Flt GetLodDist2(C Vec &lod_center, C MatrixM &matrix); // calculate squared distance from 'lod_center' transformed by 'matrix' to active camera, returned value can be used as parameter for 'Mesh.getDrawLod' methods

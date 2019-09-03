@@ -67,6 +67,7 @@ struct Camera
 private:
 #endif
    MatrixM _matrix_prev;
+   VecD    _pos_prev1;
 };
 extern   Camera       Cam; // default camera, you can use it to manipulate the camera
 extern C Camera ActiveCam; // active  camera in read-only mode, this object is always changed when you activate any 'Camera' using its 'set' method, when rendering mirror/reflections, its 'matrix' temporarily gets adjusted

@@ -3144,56 +3144,83 @@ MatrixM  GetTransform(                     C MatrixM  &start, C MatrixM  &result
 MatrixD  GetTransform(                     C MatrixD  &start, C MatrixD  &result) {MatrixD  transform; start.inverse(transform); transform*=result; return transform;}
 Matrix3  GetTransform(                     C Orient   &start, C Orient   &result) {Matrix3  transform;  GetTransform(transform, start, result);     return transform;}
 /******************************************************************************/
-void GetDelta(Vec &angle, C Matrix3 &from, C Matrix3 &to)
+void GetDelta(Vec &angle, C Matrix3 &prev, C Matrix3 &cur)
 {
 #if 1 // use quaternions since it will be slightly faster, conversions to quaternions automatically normalize scale
-   Quaternion q=from; q.inverseNormalized(); q*=Quaternion(to); angle=q.axisAngle();
+   Quaternion q=prev; q.inverseNormalized(); q*=Quaternion(cur); angle=q.axisAngle();
 #else
-   Matrix3 t; GetTransform(t, from, to); angle=t.axisAngle();
+   Matrix3 t; GetTransform(t, prev, cur); angle=t.axisAngle();
 #endif
 }
-void GetDelta(Vec &pos, Vec &angle, C Matrix &from, C Matrix &to)
+void GetDelta(Vec &pos, Vec &angle, C Matrix &prev, C Matrix &cur)
 {
    // pos
-   pos=to.pos-from.pos;
+   pos=cur.pos-prev.pos;
 
    // angle
 #if 1 // use quaternions since it will be slightly faster, conversions to quaternions automatically normalize scale
-   Quaternion q=from; q.inverseNormalized(); q*=Quaternion(to); angle=q.axisAngle();
+   Quaternion q=prev; q.inverseNormalized(); q*=Quaternion(cur); angle=q.axisAngle();
 #else
-   Matrix3 t; GetTransform(t, from, to); angle=t.axisAngle();
+   Matrix3 t; GetTransform(t, prev, cur); angle=t.axisAngle();
 #endif
 }
-void GetDelta(Vec &pos, Vec &angle, C MatrixM &from, C MatrixM &to)
+void GetDelta(Vec &pos, Vec &angle, C MatrixM &prev, C MatrixM &cur)
 {
    // pos
-   pos=to.pos-from.pos;
+   pos=cur.pos-prev.pos;
 
    // angle
 #if 1 // use quaternions since it will be slightly faster, conversions to quaternions automatically normalize scale
-   Quaternion q=from; q.inverseNormalized(); q*=Quaternion(to); angle=q.axisAngle();
+   Quaternion q=prev; q.inverseNormalized(); q*=Quaternion(cur); angle=q.axisAngle();
 #else
-   Matrix3 t; GetTransform(t, from, to); angle=t.axisAngle();
+   Matrix3 t; GetTransform(t, prev, cur); angle=t.axisAngle();
 #endif
 }
-void GetDelta(VecD &pos, VecD &angle, C MatrixD &from, C MatrixD &to)
+void GetDelta(Vec &pos, Vec &angle, C VecD &prev2_pos, C MatrixM &prev, C MatrixM &cur)
 {
    // pos
-   pos=to.pos-from.pos;
+       pos  =cur .pos-prev .pos;
+   Vec pos0 =prev.pos-prev2_pos, // no need for VecD
+       cross=Cross(pos0, pos);
+
+   Flt sin=cross.normalize(); if(sin>EPS)
+   {
+      Flt cos=Dot(pos, pos0);
+      Flt angle=Angle(cos, sin);
+
+      // if one delta length is 2x smaller, then make angle 2x smaller
+      Flt l0=pos0.length2(), l1=pos.length2();
+      if(l0<l1)angle*=SqrtFast(l0/l1);
+      else     angle*=SqrtFast(l1/l0);
+
+      pos*=Matrix3().setRotate(cross, angle/2); // div by 2 because we want to have the average of normal and rotated
+   }
 
    // angle
 #if 1 // use quaternions since it will be slightly faster, conversions to quaternions automatically normalize scale
-   QuaternionD q=from; q.inverseNormalized(); q*=QuaternionD(to); angle=q.axisAngle();
+   Quaternion q=prev; q.inverseNormalized(); q*=Quaternion(cur); angle=q.axisAngle();
 #else
-   MatrixD3 t; GetTransform(t, from, to); angle=t.axisAngle();
+   Matrix3 t; GetTransform(t, prev, cur); angle=t.axisAngle();
+#endif
+}
+void GetDelta(VecD &pos, VecD &angle, C MatrixD &prev, C MatrixD &cur)
+{
+   // pos
+   pos=cur.pos-prev.pos;
+
+   // angle
+#if 1 // use quaternions since it will be slightly faster, conversions to quaternions automatically normalize scale
+   QuaternionD q=prev; q.inverseNormalized(); q*=QuaternionD(cur); angle=q.axisAngle();
+#else
+   MatrixD3 t; GetTransform(t, prev, cur); angle=t.axisAngle();
 #endif
 }
 /******************************************************************************/
-void GetVel(Vec &vel, Vec &ang_vel, C Matrix &from, C Matrix &to, Flt dt)
+void GetVel(Vec &vel, Vec &ang_vel, C Matrix &prev, C Matrix &cur, Flt dt)
 {
    if(dt>EPS)
    {
-      GetDelta(vel, ang_vel, from, to);
+      GetDelta(vel, ang_vel, prev, cur);
           vel/=dt;
       ang_vel/=dt;
    }else
@@ -3202,11 +3229,11 @@ void GetVel(Vec &vel, Vec &ang_vel, C Matrix &from, C Matrix &to, Flt dt)
       ang_vel.zero();
    }
 }
-void GetVel(Vec &vel, Vec &ang_vel, C MatrixM &from, C MatrixM &to, Flt dt)
+void GetVel(Vec &vel, Vec &ang_vel, C MatrixM &prev, C MatrixM &cur, Flt dt)
 {
    if(dt>EPS)
    {
-      GetDelta(vel, ang_vel, from, to);
+      GetDelta(vel, ang_vel, prev, cur);
           vel/=dt;
       ang_vel/=dt;
    }else
@@ -3215,11 +3242,24 @@ void GetVel(Vec &vel, Vec &ang_vel, C MatrixM &from, C MatrixM &to, Flt dt)
       ang_vel.zero();
    }
 }
-void GetVel(VecD &vel, VecD &ang_vel, C MatrixD &from, C MatrixD &to, Dbl dt)
+void GetVel(Vec &vel, Vec &ang_vel, C VecD &prev2_pos, C MatrixM &prev, C MatrixM &cur, Flt dt)
+{
+   if(dt>EPS)
+   {
+      GetDelta(vel, ang_vel, prev2_pos, prev, cur);
+          vel/=dt;
+      ang_vel/=dt;
+   }else
+   {
+          vel.zero();
+      ang_vel.zero();
+   }
+}
+void GetVel(VecD &vel, VecD &ang_vel, C MatrixD &prev, C MatrixD &cur, Dbl dt)
 {
    if(dt>EPSD)
    {
-      GetDelta(vel, ang_vel, from, to);
+      GetDelta(vel, ang_vel, prev, cur);
           vel/=dt;
       ang_vel/=dt;
    }else

@@ -20,6 +20,7 @@ Camera::Camera()
    ang_vel.zero();
 
   _matrix_prev=matrix;
+  _pos_prev1  =matrix.pos;
 }
 /******************************************************************************/
 Camera& Camera::set(C MatrixM &matrix)
@@ -88,6 +89,7 @@ Camera& Camera::setPosDir(C VecD &pos, C Vec &dir, C Vec &up)
 Camera& Camera::teleported()
 {
   _matrix_prev=matrix; // prevents velocity jump
+  _matrix_prev=matrix; _pos_prev1=matrix.pos; // prevents velocity jump
    return T;
 }
 Camera& Camera::updateVelocities(CAM_ATTACHMENT attachment)
@@ -112,7 +114,8 @@ Camera& Camera::updateVelocities(CAM_ATTACHMENT attachment)
       }break;
    }
 
-   GetVel(vel, ang_vel, _matrix_prev, matrix, dt);
+   GetVel(vel, ang_vel, _pos_prev1, _matrix_prev, matrix, dt);
+  _pos_prev1=_matrix_prev.pos;
   _matrix_prev=matrix;
    return T;
 }
@@ -171,6 +174,7 @@ Bool Camera::load(File &f)
       {
          f.getMulti(yaw, pitch, roll, dist, at, matrix, vel, ang_vel); // version
         _matrix_prev=matrix;
+        _matrix_prev=matrix; _pos_prev1=matrix.pos;
          if(f.ok())return true;
       }break;
    }
