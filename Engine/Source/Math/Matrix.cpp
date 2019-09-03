@@ -3185,8 +3185,8 @@ void GetDelta(Vec &pos, Vec &angle, C VecD &prev2_pos, C MatrixM &prev, C Matrix
 
    Flt sin=cross.normalize(); if(sin>EPS)
    {
-      Flt cos=Dot(pos, pos0);
-      Flt angle=Angle(cos, sin);
+      Flt cos  =Dot  (pos, pos0),
+          angle=Angle(cos, sin );
 
       // if one delta length is 2x smaller, then make angle 2x smaller
       Flt l0=pos0.length2(), l1=pos.length2();
