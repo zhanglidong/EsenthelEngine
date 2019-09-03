@@ -316,6 +316,8 @@ struct Str8Temp // allows casts from 'CChar8*' to 'Str8' without any memory allo
 {
    operator C Str8&()C {return _;} // cast to C Str8&
 
+   Int length()C {return _.length();}
+
    explicit Str8Temp(CChar8 *name)
    {
       if(name)

@@ -26,11 +26,14 @@ ShaderParam* FindShaderParam(CChar8 *name)
             i++; Set(parent_name, name, i); // copy all before '['
             if(ShaderParam *parent=ShaderParams.find(Str8Temp(parent_name)))
             {
-               Int index=TextInt(name+i); if(InRange(index, parent->_elements))
+               CalcValue val; CChar8 *end=TextValue(name+i, val); if(end && end[0]==']' && end[1]=='\0') // support only 1-dim arrays without further members "val[x]" but not "val[x][y].z"
                {
-                  ShaderParams.lock  (); ShaderParam &elm=*ShaderParams(key); if(!elm.is())elm.initAsElement(*parent, index); // init only if not initialized yet, in case it just got initialized on another thread before the lock
-                  ShaderParams.unlock();
-                  return &elm;
+                  Int index=val.asInt(); if(InRange(index, parent->_elements))
+                  {
+                     ShaderParams.lock  (); ShaderParam &elm=*ShaderParams(key); if(!elm.is())elm.initAsElement(*parent, index); // init only if not initialized yet, in case it just got initialized on another thread before the lock
+                     ShaderParams.unlock();
+                     return &elm;
+                  }
                }
             }
          }
