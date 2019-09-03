@@ -3176,25 +3176,22 @@ void GetDelta(Vec &pos, Vec &angle, C MatrixM &prev, C MatrixM &cur)
    Matrix3 t; GetTransform(t, prev, cur); angle=t.axisAngle();
 #endif
 }
-void GetDelta(Vec &pos, Vec &angle, C VecD &prev2_pos, C MatrixM &prev, C MatrixM &cur)
+INLINE void CalcPos(Vec &pos_delta, C Vec &pos_delta0, C Vec &pos_delta1)
 {
-   // pos
-       pos  =cur .pos-prev .pos;
-   Vec pos0 =prev.pos-prev2_pos, // no need for VecD
-       cross=Cross(pos0, pos);
-
-   Flt sin=cross.normalize(); if(sin>EPS)
+   pos_delta=pos_delta1;
+   Vec cross=Cross(pos_delta0, pos_delta1);
+   Flt sin  =cross.normalize(); if(sin>EPS) // here 'sin' is proportional to vector lengths
    {
-      Flt cos  =Dot  (pos, pos0),
-          angle=Angle(cos, sin );
+      Flt cos  =Dot  (pos_delta0, pos_delta1), // here 'cos' is proportional to vector lengths
+          angle=Angle(cos, sin); // can use 'Angle' because 'cos' and 'sin' have proportional lengths
 
       // if one delta length is 2x smaller, then make angle 2x smaller. This is to minimize rotations when one length is very big, and another very small
-      Flt l0=pos0.length2(), l1=pos.length2();
-      if(l0<l1)angle*=SqrtFast(l0/l1);
+      Flt l0=pos_delta0.length2(), l1=pos_delta1.length2(); // use 'length2' and do Sqrt below just one time
+      if(l0<l1)angle*=SqrtFast(l0/l1); // use Sqrt just one time instead of 2 times above if using 'length'
       else     angle*=SqrtFast(l1/l0);
     //if(angle>EPS)
       {
-         pos*=Matrix3().setRotate(cross, angle/2); // div angle by 2 because we want to have the average of normal and rotated
+         pos_delta*=Matrix3().setRotate(cross, angle/2); // div angle by 2 because we want to have the average of normal and rotated
 
          if(1) // high precision adjustment, this is needed because we use discrete points with timesteps, however precise movement on circle travels "angle" distance, but we operate on "Dist(a,b)" which is distance between 2 points on a circle in a straight line. The following code will make the adjustment for precise "angle" movement based on "Dist". To better understand this, draw a circle, and mark 2 points on the circle line. Travelled distance should be the circular line between them, and not the straight line.
          {
@@ -3204,13 +3201,30 @@ void GetDelta(Vec &pos, Vec &angle, C VecD &prev2_pos, C MatrixM &prev, C Matrix
             Flt  dist_actual =Dist(p, t), // distance between the 2 points is 'd'
                  dist_precise=angle, // however using precise circular movement we should get 'angle'
                  scale=dist_precise/dist_actual; // so scale by "expected/actual"
-            pos*=scale;
+            pos_delta*=scale;
          #else // optimized
-            CosSin(cos, sin, angle); pos*=angle/Dist(cos-1, sin);
+            CosSin(cos, sin, angle); pos_delta*=angle/Dist(cos-1, sin);
          #endif
          }
       }
    }
+}
+void GetDelta(Vec &pos, Vec &angle, C Vec &prev2_pos, C Matrix &prev, C Matrix &cur)
+{
+   // pos
+   CalcPos(pos, prev.pos-prev2_pos, cur.pos-prev.pos);
+
+   // angle
+#if 1 // use quaternions since it will be slightly faster, conversions to quaternions automatically normalize scale
+   Quaternion q=prev; q.inverseNormalized(); q*=Quaternion(cur); angle=q.axisAngle();
+#else
+   Matrix3 t; GetTransform(t, prev, cur); angle=t.axisAngle();
+#endif
+}
+void GetDelta(Vec &pos, Vec &angle, C VecD &prev2_pos, C MatrixM &prev, C MatrixM &cur)
+{
+   // pos
+   CalcPos(pos, prev.pos-prev2_pos, cur.pos-prev.pos); // no need for VecD
 
    // angle
 #if 1 // use quaternions since it will be slightly faster, conversions to quaternions automatically normalize scale
@@ -3250,6 +3264,19 @@ void GetVel(Vec &vel, Vec &ang_vel, C MatrixM &prev, C MatrixM &cur, Flt dt)
    if(dt>EPS)
    {
       GetDelta(vel, ang_vel, prev, cur);
+          vel/=dt;
+      ang_vel/=dt;
+   }else
+   {
+          vel.zero();
+      ang_vel.zero();
+   }
+}
+void GetVel(Vec &vel, Vec &ang_vel, C Vec &prev2_pos, C Matrix &prev, C Matrix &cur, Flt dt)
+{
+   if(dt>EPS)
+   {
+      GetDelta(vel, ang_vel, prev2_pos, prev, cur);
           vel/=dt;
       ang_vel/=dt;
    }else
