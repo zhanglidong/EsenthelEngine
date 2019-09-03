@@ -3188,12 +3188,28 @@ void GetDelta(Vec &pos, Vec &angle, C VecD &prev2_pos, C MatrixM &prev, C Matrix
       Flt cos  =Dot  (pos, pos0),
           angle=Angle(cos, sin );
 
-      // if one delta length is 2x smaller, then make angle 2x smaller
+      // if one delta length is 2x smaller, then make angle 2x smaller. This is to minimize rotations when one length is very big, and another very small
       Flt l0=pos0.length2(), l1=pos.length2();
       if(l0<l1)angle*=SqrtFast(l0/l1);
       else     angle*=SqrtFast(l1/l0);
+    //if(angle>EPS)
+      {
+         pos*=Matrix3().setRotate(cross, angle/2); // div angle by 2 because we want to have the average of normal and rotated
 
-      pos*=Matrix3().setRotate(cross, angle/2); // div by 2 because we want to have the average of normal and rotated
+         if(1) // high precision adjustment, this is needed because we use discrete points with timesteps, however precise movement on circle travels "angle" distance, but we operate on "Dist(a,b)" which is distance between 2 points on a circle in a straight line. The following code will make the adjustment for precise "angle" movement based on "Dist". To better understand this, draw a circle, and mark 2 points on the circle line. Travelled distance should be the circular line between them, and not the straight line.
+         {
+         #if 0
+            Vec2 p(1, 0), // CosSin(p.x, p.y, 0); point cos sin with angle=0
+                 t; CosSin(t.x, t.y, angle); // point cos sin with angle='angle'
+            Flt  dist_actual =Dist(p, t), // distance between the 2 points is 'd'
+                 dist_precise=angle, // however using precise circular movement we should get 'angle'
+                 scale=dist_precise/dist_actual; // so scale by "expected/actual"
+            pos*=scale;
+         #else // optimized
+            CosSin(cos, sin, angle); pos*=angle/Dist(cos-1, sin);
+         #endif
+         }
+      }
    }
 
    // angle
