@@ -643,15 +643,16 @@ inline Flt  Sum(Vec   v) {return v.x+v.y+v.z    ;}
 inline Half Sum(VecH4 v) {return v.x+v.y+v.z+v.w;}
 inline Flt  Sum(Vec4  v) {return v.x+v.y+v.z+v.w;}
 
-inline Int   Sqr (Int   x) {return x*x  ;}
-inline Half  Sqr (Half  x) {return x*x  ;}
-inline Flt   Sqr (Flt   x) {return x*x  ;}
-inline VecH2 Sqr (VecH2 x) {return x*x  ;}
-inline Vec2  Sqr (Vec2  x) {return x*x  ;}
-inline VecH  Sqr (VecH  x) {return x*x  ;}
-inline Vec   Sqr (Vec   x) {return x*x  ;}
-inline VecH4 Sqr (VecH4 x) {return x*x  ;}
-inline Vec4  Sqr (Vec4  x) {return x*x  ;}
+inline Int   Sqr (Int   x) {return x*x;}
+inline Half  Sqr (Half  x) {return x*x;}
+inline Flt   Sqr (Flt   x) {return x*x;}
+inline VecH2 Sqr (VecH2 x) {return x*x;}
+inline Vec2  Sqr (Vec2  x) {return x*x;}
+inline VecH  Sqr (VecH  x) {return x*x;}
+inline Vec   Sqr (Vec   x) {return x*x;}
+inline VecH4 Sqr (VecH4 x) {return x*x;}
+inline Vec4  Sqr (Vec4  x) {return x*x;}
+
 inline Int   Cube(Int   x) {return x*x*x;}
 inline Half  Cube(Half  x) {return x*x*x;}
 inline Flt   Cube(Flt   x) {return x*x*x;}
@@ -661,6 +662,26 @@ inline VecH  Cube(VecH  x) {return x*x*x;}
 inline Vec   Cube(Vec   x) {return x*x*x;}
 inline VecH4 Cube(VecH4 x) {return x*x*x;}
 inline Vec4  Cube(Vec4  x) {return x*x*x;}
+
+inline Int   Quart(Int   x) {return Sqr(x*x);}
+inline Half  Quart(Half  x) {return Sqr(x*x);}
+inline Flt   Quart(Flt   x) {return Sqr(x*x);}
+inline VecH2 Quart(VecH2 x) {return Sqr(x*x);}
+inline Vec2  Quart(Vec2  x) {return Sqr(x*x);}
+inline VecH  Quart(VecH  x) {return Sqr(x*x);}
+inline Vec   Quart(Vec   x) {return Sqr(x*x);}
+inline VecH4 Quart(VecH4 x) {return Sqr(x*x);}
+inline Vec4  Quart(Vec4  x) {return Sqr(x*x);}
+
+inline Int   Quint(Int   x) {return Sqr(x*x)*x;}
+inline Half  Quint(Half  x) {return Sqr(x*x)*x;}
+inline Flt   Quint(Flt   x) {return Sqr(x*x)*x;}
+inline VecH2 Quint(VecH2 x) {return Sqr(x*x)*x;}
+inline Vec2  Quint(Vec2  x) {return Sqr(x*x)*x;}
+inline VecH  Quint(VecH  x) {return Sqr(x*x)*x;}
+inline Vec   Quint(Vec   x) {return Sqr(x*x)*x;}
+inline VecH4 Quint(VecH4 x) {return Sqr(x*x)*x;}
+inline Vec4  Quint(Vec4  x) {return Sqr(x*x)*x;}
 
 inline Half Length(VecH2 v) {return length(v);}
 inline Flt  Length(Vec2  v) {return length(v);}
