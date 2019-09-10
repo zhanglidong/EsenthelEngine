@@ -10,8 +10,9 @@
 
 #include "../../../../ThirdPartyLibs/begin.h"
 
-#define BC_LIB_DIRECTX 1
-#define BC_LIB_ISPC    2 // much faster than BC_LIB_DIRECTX
+#define BC_LIB_DIRECTX  1
+#define BC_LIB_ISPC     2 // much faster than BC_LIB_DIRECTX
+#define BC_LIB_BC7ENC16 3 // fast but alpha channel quality is bad
 
 #define BC_ENC BC_LIB_ISPC
 
@@ -29,6 +30,8 @@
    #include "../../../../ThirdPartyLibs/DirectXMath/include.h"
    #include "../../../../ThirdPartyLibs/DirectXTex/BC.h"
    #include "../../../../ThirdPartyLibs/DirectXTex/BC6HBC7.cpp"
+#elif BC_ENC==BC_LIB_BC7ENC16
+   #include "../../../../ThirdPartyLibs/bc7enc16/bc7enc16.c"
 #endif
 
 #include "../../../../ThirdPartyLibs/end.h"
@@ -47,6 +50,9 @@ static struct BCThreads
       {
          SyncLocker locker(lock); if(!initialized)
          {
+         #if BC_ENC==BC_LIB_BC7ENC16
+            bc7enc16_compress_block_init();
+         #endif
             threads.create(false, Cpu.threads()-1); // -1 because we will do processing on the caller thread too
             initialized=true; // enable at the end
          }
@@ -62,6 +68,8 @@ struct Data
       bc6h_enc_settings bc6_settings;
       bc7_enc_settings  bc7_settings;
    };
+#elif BC_ENC==BC_LIB_BC7ENC16
+   bc7enc16_compress_block_params bc7_settings;
 #endif
  C Image *src;
    Image *dest;
@@ -81,6 +89,11 @@ struct Data
          GetProfile_alpha_basic(&bc7_settings);
       #endif
       }
+   #elif BC_ENC==BC_LIB_BC7ENC16
+      bc7enc16_compress_block_params_init(&bc7_settings);
+      bc7_settings.m_uber_level=BC7ENC16_MAX_UBER_LEVEL;
+      bc7_settings.m_mode1_partition_estimation_filterbank=false;
+      if()bc7enc16_compress_block_params_init_linear_weights(&bc7_settings);
    #endif
    }
    void init(C Image &src)
@@ -120,6 +133,24 @@ static void CompressBC67Block(IntPtr elm_index, Data &data, Int thread_index)
       data.src->gather((Vec4*)&dx_rgba[0][0], xo, Elms(xo), yo, Elms(yo));
       if(data.bc6)DirectX::D3DXEncodeBC6HU(data.dest->data() + bx*16 + (by+block_start)*data.dest->pitch(), &dx_rgba[0][0], 0);
       else        DirectX::D3DXEncodeBC7  (data.dest->data() + bx*16 + (by+block_start)*data.dest->pitch(), &dx_rgba[0][0], 0);
+   }
+#elif BC_ENC==BC_LIB_BC7ENC16
+   Int blocks_x=data.src->lw()/4,
+       blocks_y=((elm_index==data.threads-1) ? (data.src->lh()-y_start)/4 : data.thread_blocks); // last thread must process all remaining blocks
+   REPD(by, blocks_y)
+   REPD(bx, blocks_x)
+   {
+      Color color[4][4];
+      Int px=bx*4, py=by*4, // pixel
+          xo[4], yo[4];
+      REP(4)
+      {
+         xo[i]=px+i;
+         yo[i]=py+i+y_start;
+      }
+      data.src->gather(&color[0][0], xo, Elms(xo), yo, Elms(yo));
+      if(data.bc6)..
+      else        bc7enc16_compress_block(data.dest->data() + bx*16 + (by+block_start)*data.dest->pitch(), &color[0][0], &data.bc7_settings);
    }
 #endif
 }
