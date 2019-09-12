@@ -146,7 +146,7 @@ void ImageRT::discard()
 #if DX11
    if(DEBUG_DISCARD)clearHw(PURPLE);else
    if(D3DC1)D3DC1->DiscardView(_rtv ? &SCAST(ID3D11View, *_rtv) : &SCAST(ID3D11View, *_dsv)); // will not crash if parameter is null
-#elif GL && !MAC
+#elif GL && !MAC && !LINUX // Mac doesn't have GL 4.3 'glInvalidateFramebuffer', Linux GeForce drivers have bugs (TODO: check again in the future)
    if(DEBUG_DISCARD)
    {
       if(Renderer._cur_ds==this && Renderer._cur_ds_id==_txtr)D.clearDS (         );else
