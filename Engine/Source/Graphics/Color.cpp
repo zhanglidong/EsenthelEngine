@@ -389,6 +389,8 @@ Vec4 AdditiveBlend(C Vec4 &base, C Vec4 &color)
    return out;
 }
 /******************************************************************************/
+// SRGB
+/******************************************************************************/
 Flt SRGBToLinear(Flt s) {return (s<=0.04045f  ) ? s/12.92f : Pow((s+0.055f)/1.055f, 2.4f);} // convert 0..1 srgb   to 0..1 linear
 Flt LinearToSRGB(Flt l) {return (l<=0.0031308f) ? l*12.92f : Pow(l, 1/2.4f)*1.055f-0.055f;} // convert 0..1 linear to 0..1 srgb
 
@@ -404,12 +406,13 @@ Vec4 LinearToSRGB(C Vec4 &l) {return Vec4(LinearToSRGB(l.x), LinearToSRGB(l.y), 
 Vec4 SRGBToLinear(C Color &s) {return Vec4(ByteSRGBToLinear(s.r), ByteSRGBToLinear(s.g), ByteSRGBToLinear(s.b), ByteToFlt(s.a));}
 Vec4 LinearToSRGB(C Color &l) {return Vec4(LinearByteToSRGB(l.r), LinearByteToSRGB(l.g), LinearByteToSRGB(l.b), ByteToFlt(l.a));}
 
+Flt SignSRGBToLinear(Flt s) {return (s>=0) ? SRGBToLinear(s) : -SRGBToLinear(-s);}
+Flt SignLinearToSRGB(Flt l) {return (l>=0) ? LinearToSRGB(l) : -LinearToSRGB(-l);}
+
 Flt LinearLumOfLinearColor(C Vec &l) {return              Dot(      l        , ColorLumWeight2) ;}
 Flt LinearLumOfSRGBColor  (C Vec &s) {return              Dot(SRGBToLinear(s), ColorLumWeight2) ;}
 Flt   SRGBLumOfLinearColor(C Vec &l) {return LinearToSRGB(Dot(      l        , ColorLumWeight2));}
 Flt   SRGBLumOfSRGBColor  (C Vec &s) {return LinearToSRGB(Dot(SRGBToLinear(s), ColorLumWeight2));}
-/******************************************************************************/
-// SRGB
 /******************************************************************************/
 Byte  LinearToByteSRGB(  Flt   l) {return LinearToByteSRGBArray[Mid(RoundPos(l*(Elms(LinearToByteSRGBArray)-1)), 0, Elms(LinearToByteSRGBArray)-1)];}
 Byte  SRGBToLinearByte(  Flt   s) {return SRGBToLinearByteArray[Mid(RoundPos(s*(Elms(SRGBToLinearByteArray)-1)), 0, Elms(SRGBToLinearByteArray)-1)];}
