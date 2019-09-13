@@ -29,6 +29,7 @@
    namespace ETCPACK
    {
       #define EXHAUSTIVE_CODE_ACTIVE 0 // disable to reduce code size and because this mode is too slow
+      #define PGMOUT 0
       #define printf(x,...)
       #define   exit(x)
       #pragma warning(push)

@@ -545,6 +545,28 @@ Color DecompressPixelBC4(C Byte *b, Int x, Int y)
 
    return Color(red[ri], 0, 0, 255);
 }
+SByte DecompressPixelBC4S(C Byte *b, Int x, Int y)
+{
+   U64 ris=GetU64(b+2);
+   Int i  =x+(y<<2),         // pixel index
+      ri  =((ris>>(3*i))&7); // red   index
+
+   // red
+   SByte red[8];
+   red[0]=b[0];
+   red[1]=b[1];
+   switch(ri)
+   {
+      case 2: red[2]=((red[0]>red[1]) ? (red[0]*6 + red[1]*1 + 3)/7 : (red[0]*4 + red[1]*1 + 2)/5); break;
+      case 3: red[3]=((red[0]>red[1]) ? (red[0]*5 + red[1]*2 + 3)/7 : (red[0]*3 + red[1]*2 + 2)/5); break;
+      case 4: red[4]=((red[0]>red[1]) ? (red[0]*4 + red[1]*3 + 3)/7 : (red[0]*2 + red[1]*3 + 2)/5); break;
+      case 5: red[5]=((red[0]>red[1]) ? (red[0]*3 + red[1]*4 + 3)/7 : (red[0]*1 + red[1]*4 + 2)/5); break;
+      case 6: red[6]=((red[0]>red[1]) ? (red[0]*2 + red[1]*5 + 3)/7 :                        -127); break;
+      case 7: red[7]=((red[0]>red[1]) ? (red[0]*1 + red[1]*6 + 3)/7 :                         127); break;
+   }
+
+   return red[ri];
+}
 Color DecompressPixelBC5(C Byte *b, Int x, Int y)
 {
    U64 ris=GetU64(b+2), gis=GetU64(b+(8+2));
@@ -581,6 +603,43 @@ Color DecompressPixelBC5(C Byte *b, Int x, Int y)
    }
 
    return Color(red[ri], green[gi], 0, 255);
+}
+VecSB2 DecompressPixelBC5S(C Byte *b, Int x, Int y)
+{
+   U64 ris=GetU64(b+2), gis=GetU64(b+(8+2));
+   Int i  =x+(y<<2),         // pixel index
+      ri  =((ris>>(3*i))&7), // red   index
+      gi  =((gis>>(3*i))&7); // green index
+
+   // red
+   SByte red[8];
+   red[0]=b[0];
+   red[1]=b[1];
+   switch(ri)
+   {
+      case 2: red[2]=((red[0]>red[1]) ? (red[0]*6 + red[1]*1 + 3)/7 : (red[0]*4 + red[1]*1 + 2)/5); break;
+      case 3: red[3]=((red[0]>red[1]) ? (red[0]*5 + red[1]*2 + 3)/7 : (red[0]*3 + red[1]*2 + 2)/5); break;
+      case 4: red[4]=((red[0]>red[1]) ? (red[0]*4 + red[1]*3 + 3)/7 : (red[0]*2 + red[1]*3 + 2)/5); break;
+      case 5: red[5]=((red[0]>red[1]) ? (red[0]*3 + red[1]*4 + 3)/7 : (red[0]*1 + red[1]*4 + 2)/5); break;
+      case 6: red[6]=((red[0]>red[1]) ? (red[0]*2 + red[1]*5 + 3)/7 :                        -127); break;
+      case 7: red[7]=((red[0]>red[1]) ? (red[0]*1 + red[1]*6 + 3)/7 :                         127); break;
+   }
+
+   // green
+   SByte green[8];
+   green[0]=b[8+0];
+   green[1]=b[8+1];
+   switch(gi)
+   {
+      case 2: green[2]=((green[0]>green[1]) ? (green[0]*6 + green[1]*1 + 3)/7 : (green[0]*4 + green[1]*1 + 2)/5); break;
+      case 3: green[3]=((green[0]>green[1]) ? (green[0]*5 + green[1]*2 + 3)/7 : (green[0]*3 + green[1]*2 + 2)/5); break;
+      case 4: green[4]=((green[0]>green[1]) ? (green[0]*4 + green[1]*3 + 3)/7 : (green[0]*2 + green[1]*3 + 2)/5); break;
+      case 5: green[5]=((green[0]>green[1]) ? (green[0]*3 + green[1]*4 + 3)/7 : (green[0]*1 + green[1]*4 + 2)/5); break;
+      case 6: green[6]=((green[0]>green[1]) ? (green[0]*2 + green[1]*5 + 3)/7 :                            -127); break;
+      case 7: green[7]=((green[0]>green[1]) ? (green[0]*1 + green[1]*6 + 3)/7 :                             127); break;
+   }
+
+   return VecSB2(red[ri], green[gi]);
 }
 /******************************************************************************/
 VecH DecompressPixelBC6(C Byte *b, Int x, Int y)
@@ -620,9 +679,18 @@ struct BC3
    BC4 alpha;
    BC1 rgb  ;
 };
+struct BC4S
+{
+   SByte value[2] ; // values
+   Byte  bitmap[6]; // 3bpp value bitmap
+};
 struct BC5
 {
    BC4 red, green;
+};
+struct BC5S
+{
+   BC4S red, green;
 };
 static const Flt fEpsilon =Sqr(0.25f/64);
 static const Flt pC3    []={2.0f/2.0f, 1.0f/2.0f, 0.0f/2.0f};
@@ -686,7 +754,7 @@ static void OptimizeRGB(Vec &color_a, Vec &color_b, Vec4 (&color)[16], Int steps
 
    // Use Newton's Method to find local minima of sum-of-squares error
    Flt fSteps=steps-1;
-   REP(16) // original version had 8, but 16 generates better results
+   REP(16) // original version had 8 iterations, but 16 generates better results
    {
       // Calculate new steps
       Vec pSteps[4];
@@ -711,7 +779,7 @@ static void OptimizeRGB(Vec &color_a, Vec &color_b, Vec4 (&color)[16], Int steps
                         s=RoundPos(dot);
 
          Vec diff=pSteps[s]-color[i].xyz;
-         Flt fC=pC[s]/8, fD=pD[s]/8;
+         Flt fC=pC[s]/8, fD=pD[s]/8; // this should be 8 and not number of iterations (this was tested with 64 iters and /64 and results were worse)
 
          d2X+=fC*pC[s];
          dX +=fC*diff;
@@ -780,6 +848,7 @@ static void _CompressBC1(BC1 &bc, Vec4 (&color)[16], C Vec *weight, Bool dither_
       Vec clr=color[i].xyz;
       if(dither_rgb)clr+=error[i];
 
+      // align to actual value (needed for smooth gradients with dithering)
       col[i].x=RoundPos(clr.x*31)/31.0f;
       col[i].y=RoundPos(clr.y*63)/63.0f;
       col[i].z=RoundPos(clr.z*31)/31.0f;
@@ -872,7 +941,7 @@ static void _CompressBC1(BC1 &bc, Vec4 (&color)[16], C Vec *weight, Bool dither_
       if(steps==3 && color[i].w<alpha_ref)bitmap=(3<<30)|(bitmap>>2);else
       {
          Vec clr=color[i].xyz;
-         if(weight)clr*=*weight;
+         if(weight    )clr*=*weight;
          if(dither_rgb)clr+=error[i];
          Flt dot=Dot(clr, dir)-start;
 
@@ -930,12 +999,12 @@ static void CompressBC2(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_
       }
    }
 }
-static void OptimizeAlpha(Flt *pX, Flt *pY, const Flt *pPoints, Int cSteps)
+static void OptimizeAlpha(Flt *pX, Flt *pY, const Flt *pPoints, Int cSteps, Bool sign)
 {
    const Flt *pC=(6==cSteps) ? pC6 : pC8;
    const Flt *pD=(6==cSteps) ? pD6 : pD8;
 
-   const Flt MIN_VALUE=0;
+   const Flt MIN_VALUE=(sign ? -1 : 0);
    const Flt MAX_VALUE=1;
 
    // Find Min and Max points, as starting point
@@ -1043,8 +1112,8 @@ static void _CompressBC4(BC4 &bc, Vec4 (&color)[16], Bool dither)
    }
 
    // Optimize and Quantize Min and Max values
-   Int  uSteps=((fMinAlpha==0) || (fMaxAlpha==1)) ? 6 : 8;
-   Flt  fAlphaA, fAlphaB; OptimizeAlpha(&fAlphaA, &fAlphaB, fAlpha, uSteps);
+   Int  uSteps=(fMinAlpha<=0 || fMaxAlpha>=1) ? 6 : 8;
+   Flt  fAlphaA, fAlphaB; OptimizeAlpha(&fAlphaA, &fAlphaB, fAlpha, uSteps, false);
    Byte bAlphaA=RoundPos(fAlphaA*255); fAlphaA=bAlphaA/255.0f;
    Byte bAlphaB=RoundPos(fAlphaB*255); fAlphaB=bAlphaB/255.0f;
 
@@ -1102,8 +1171,125 @@ static void _CompressBC4(BC4 &bc, Vec4 (&color)[16], Bool dither)
          Flt fDot=(fAlph-fStep[0])*fScale;
 
          Int iStep;
-         if(fDot<=0     )iStep=(6==uSteps && (fAlph<= fStep[0]        *0.5f)) ? 6 : 0;else
-         if(fDot>=fSteps)iStep=(6==uSteps && (fAlph>=(fStep[1] + 1.0f)*0.5f)) ? 7 : 1;else
+         if(fDot<=0     )iStep=(6==uSteps && (fAlph<= fStep[0]   *0.5f)) ? 6 : 0;else
+         if(fDot>=fSteps)iStep=(6==uSteps && (fAlph>=(fStep[1]+1)*0.5f)) ? 7 : 1;else
+                         iStep=pSteps[RoundPos(fDot)];
+
+         dw=(iStep<<21)|(dw>>3);
+
+         if(dither)
+         {
+            Flt diff=fAlph-fStep[iStep];
+            if((i&3)!=3)error[i+1]+=diff*(7.0f/16);
+            if(i<12)
+            {
+               if( i&3    )error[i+3]+=diff*(3.0f/16);
+                           error[i+4]+=diff*(5.0f/16);
+               if((i&3)!=3)error[i+5]+=diff*(1.0f/16);
+            }
+         }
+      }
+
+      bc.bitmap[0+iSet*3]=((Byte*)&dw)[0];
+      bc.bitmap[1+iSet*3]=((Byte*)&dw)[1];
+      bc.bitmap[2+iSet*3]=((Byte*)&dw)[2];
+   }
+}
+static void _CompressBC4(BC4S &bc, Vec4 (&color)[16], Bool dither)
+{
+   dither=false; // disable dithering for BC4 because it actually looks worse
+   Flt fAlpha[16], error[16], fMinAlpha=color[0].x, fMaxAlpha=color[0].x;
+   if(dither)Zero(error);
+   FREPA(color)
+   {
+      Flt fAlph=color[i].x;
+      if(dither)fAlph+=error[i];
+      fAlpha[i]=SByteToSFlt(SFltToSByte(fAlph));
+      if(fAlpha[i]<fMinAlpha)fMinAlpha=fAlpha[i];else
+      if(fAlpha[i]>fMaxAlpha)fMaxAlpha=fAlpha[i];
+    
+      if(dither)
+      {
+         Flt diff=fAlph-fAlpha[i];
+         if((i&3)!=3)error[i+1]+=diff*(7.0f/16);
+         if(i<12)
+         {
+            if( i&3    )error[i+3]+=diff*(3.0f/16);
+                        error[i+4]+=diff*(5.0f/16);
+            if((i&3)!=3)error[i+5]+=diff*(1.0f/16);
+         }
+      }
+   }
+   if(fMinAlpha>=1)
+   {
+      bc.value[0]=127;
+      bc.value[1]=127;
+      Zero(bc.bitmap);
+      return;
+   }
+
+   // Optimize and Quantize Min and Max values
+   Int   uSteps=(fMinAlpha<=-1 || fMaxAlpha>=1) ? 6 : 8;
+   Flt   fAlphaA, fAlphaB; OptimizeAlpha(&fAlphaA, &fAlphaB, fAlpha, uSteps, true);
+   SByte bAlphaA=SFltToSByte(fAlphaA); fAlphaA=SByteToSFlt(bAlphaA);
+   SByte bAlphaB=SFltToSByte(fAlphaB); fAlphaB=SByteToSFlt(bAlphaB);
+
+   // Setup block
+   if(uSteps==8 && bAlphaA==bAlphaB)
+   {
+      bc.value[0]=bAlphaA;
+      bc.value[1]=bAlphaB;
+      Zero(bc.bitmap);
+      return;
+   }
+
+   const Int *pSteps;
+   Flt fStep[8];
+
+   if(uSteps==6)
+   {
+      bc.value[0]=bAlphaA;
+      bc.value[1]=bAlphaB;
+
+      fStep[0]=fAlphaA;
+      fStep[1]=fAlphaB;
+
+      for(Int i=1; i<5; i++)fStep[i+1]=(fStep[0]*(5-i) + fStep[1]*i)/5;
+
+      fStep[6]=-1;
+      fStep[7]= 1;
+
+      pSteps=pSteps6;
+   }else
+   {
+      bc.value[0]=bAlphaB;
+      bc.value[1]=bAlphaA;
+
+      fStep[0]=fAlphaB;
+      fStep[1]=fAlphaA;
+
+      for(Int i=1; i<7; i++)fStep[i+1]=(fStep[0]*(7-i) + fStep[1]*i)/7;
+
+      pSteps=pSteps8;
+   }
+
+   // Encode alpha bitmap
+   Flt fSteps=uSteps-1, fScale=(fStep[0]!=fStep[1]) ? (fSteps/(fStep[1]-fStep[0])) : 0;
+   if(dither)Zero(error);
+   for(Int iSet=0; iSet<2; iSet++)
+   {
+      UInt dw=0;
+      Int  iMin=iSet*8;
+      Int  iLim=iMin+8;
+      for(Int i=iMin; i<iLim; i++)
+      {
+         Flt fAlph=color[i].x;
+         if(dither)fAlph+=error[i];
+         Flt fDot=(fAlph-fStep[0])*fScale;
+
+         Int iStep;
+         if(fDot<=0     )iStep=(6==uSteps && (fAlph<= fStep[0]   *0.5f)) ? 6 : 0;else
+         if(fDot>=fSteps)iStep=(6==uSteps && (fAlph>=(fStep[1]+1)*0.5f)) ? 7 : 1;else
                          iStep=pSteps[RoundPos(fDot)];
 
          dw=(iStep<<21)|(dw>>3);
@@ -1138,7 +1324,16 @@ static void CompressBC4(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_
    BC4 &bc4=*(BC4*)bc;
   _CompressBC4(bc4, color, dither_rgb);
 #else
-   DirectX::D3DXEncodeBC5U(bc, (DirectX::XMVECTOR*)color, 0);
+   DirectX::D3DXEncodeBC4U(bc, (DirectX::XMVECTOR*)color, 0);
+#endif
+}
+static void CompressBC4S(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a)
+{
+#if 1
+   BC4S &bc4=*(BC4S*)bc;
+  _CompressBC4(bc4, color, dither_rgb);
+#else
+   DirectX::D3DXEncodeBC4S(bc, (DirectX::XMVECTOR*)color, 0);
 #endif
 }
 static void CompressBC5(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a)
@@ -1151,22 +1346,34 @@ static void CompressBC5(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_
    DirectX::D3DXEncodeBC5U(bc, (DirectX::XMVECTOR*)color, 0);
 #endif
 }
+static void CompressBC5S(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a)
+{
+#if 1
+   BC5S &bc5=*(BC5S*)bc;
+  _CompressBC4(bc5.red  ,              color     , dither_rgb);
+  _CompressBC4(bc5.green, (Vec4(&)[16])color[0].y, dither_rgb);
+#else
+   DirectX::D3DXEncodeBC5S(bc, (DirectX::XMVECTOR*)color, 0);
+#endif
+}
 /******************************************************************************/
 static const Vec BCWeights=ColorLumWeight*0.65f;
 Bool CompressBC(C Image &src, Image &dest, Bool mtrl_base_1) // no need to store this in a separate CPP file, because its code size is small
 {
-   if(dest.hwType()==IMAGE_BC1      || dest.hwType()==IMAGE_BC2      || dest.hwType()==IMAGE_BC3 || dest.hwType()==IMAGE_BC4 || dest.hwType()==IMAGE_BC5
-   || dest.hwType()==IMAGE_BC1_SRGB || dest.hwType()==IMAGE_BC2_SRGB || dest.hwType()==IMAGE_BC3_SRGB)
+   if(dest.hwType()==IMAGE_BC1      || dest.hwType()==IMAGE_BC2      || dest.hwType()==IMAGE_BC3      || dest.hwType()==IMAGE_BC4      || dest.hwType()==IMAGE_BC5
+   || dest.hwType()==IMAGE_BC1_SRGB || dest.hwType()==IMAGE_BC2_SRGB || dest.hwType()==IMAGE_BC3_SRGB || dest.hwType()==IMAGE_BC4_SIGN || dest.hwType()==IMAGE_BC5_SIGN)
  //if(dest.size3()==src.size3()) this check is not needed because the code below supports different sizes
    {
    #if 1
-      void (*compress_block)(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a)=((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB) ? CompressBC1 :
-                                                                                                          (dest.hwType()==IMAGE_BC2 || dest.hwType()==IMAGE_BC2_SRGB) ? CompressBC2 :
-                                                                                                          (dest.hwType()==IMAGE_BC3 || dest.hwType()==IMAGE_BC3_SRGB) ? CompressBC3 :
-                                                                                                          (dest.hwType()==IMAGE_BC4                                 ) ? CompressBC4 :
-                                                                                                          (dest.hwType()==IMAGE_BC5                                 ) ? CompressBC5 :
+      void (*compress_block)(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a)=((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB) ? CompressBC1  :
+                                                                                                          (dest.hwType()==IMAGE_BC2 || dest.hwType()==IMAGE_BC2_SRGB) ? CompressBC2  :
+                                                                                                          (dest.hwType()==IMAGE_BC3 || dest.hwType()==IMAGE_BC3_SRGB) ? CompressBC3  :
+                                                                                                          (dest.hwType()==IMAGE_BC4                                 ) ? CompressBC4  :
+                                                                                                          (dest.hwType()==IMAGE_BC4_SIGN                            ) ? CompressBC4S :
+                                                                                                          (dest.hwType()==IMAGE_BC5                                 ) ? CompressBC5  :
+                                                                                                          (dest.hwType()==IMAGE_BC5_SIGN                            ) ? CompressBC5S :
                                                                                                           null);
-      Int  x_mul     =((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB || dest.hwType()==IMAGE_BC4) ? 8 : 16),
+      Int  x_mul     =((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB || dest.hwType()==IMAGE_BC4 || dest.hwType()==IMAGE_BC4_SIGN) ? 8 : 16),
            src_faces1=src.faces()-1;
       Vec4 rgba[16];
       Vec  weight(1, 1, 0.5f); // #MaterialTextureChannelOrder - NrmX, NrmY, Spec, Alpha
@@ -1225,7 +1432,7 @@ Bool CompressBC(C Image &src, Image &dest, Bool mtrl_base_1) // no need to store
             ok=true;
             Int x_blocks=dest.hwW()/4, // operate on HW size to process partial and Pow2Padded blocks too
                 y_blocks=dest.hwH()/4,
-                x_mul   =((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB || dest.hwType()==IMAGE_BC4) ? 8 : 16);
+                x_mul   =((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB || dest.hwType()==IMAGE_BC4 || dest.hwType()==IMAGE_BC4_SIGN) ? 8 : 16);
             rgba_surface surf;
             surf.width =s->w    ();
             surf.height=s->h    ();
