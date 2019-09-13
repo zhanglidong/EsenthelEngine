@@ -241,7 +241,7 @@ int alphaBase[16][4] = {
 											};
 
 // Global variables
-int formatSigned = 0;
+//int formatSigned = 0;
 
 // Enums
  enum{PATTERN_H = 0, 
@@ -1774,7 +1774,7 @@ uint16 get16bits11bits(int base, int table, int mul, int index)
 
 // Decompresses a block using one of the GL_COMPRESSED_R11_EAC or GL_COMPRESSED_SIGNED_R11_EAC-formats
 // NO WARRANTY --- SEE STATEMENT IN TOP OF FILE (C) Ericsson AB 2005-2013. All Rights Reserved.
-void decompressBlockAlpha16bitC(uint8* data, uint8* img, int width, int height, int ix, int iy, int channels) 
+void decompressBlockAlpha16bitC(uint8* data, uint8* img, int width, int height, int ix, int iy, int channels, bool formatSigned) 
 {
 	int alpha = data[0];
 	int table = data[1];

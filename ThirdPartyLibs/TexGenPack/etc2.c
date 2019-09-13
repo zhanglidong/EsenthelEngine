@@ -1001,7 +1001,6 @@ int draw_block4x4_etc2_punchthrough(const unsigned char *bitstring, unsigned int
 	}
 }
 
-/*
 // Decode an 11-bit integer and store it in the first 16-bits in memory of each pixel in image_buffer if offset is zero,
 // in the last 16 bits in memory if offset is 1.
 
@@ -1030,7 +1029,7 @@ void decode_block4x4_11bits(uint64_t qword, unsigned int *image_buffer, int offs
 
 // Draw a 4x4 pixel block using 64-bit ETC2 R11_EAC compression data.
 
-int draw_block4x4_r11_eac(const unsigned char *bitstring, unsigned int *image_buffer, int offset) {
+int draw_block4x4_r11_eac(const unsigned char *bitstring, unsigned int *image_buffer) {
 	memset(image_buffer, 0, 64);
 	uint64_t qword = ((uint64_t)bitstring[0] << 56) | ((uint64_t)bitstring[1] << 48) | ((uint64_t)bitstring[2] << 40) |
 		((uint64_t)bitstring[3] << 32) | ((uint64_t)bitstring[4] << 24) |
@@ -1041,7 +1040,7 @@ int draw_block4x4_r11_eac(const unsigned char *bitstring, unsigned int *image_bu
 
 // Draw a 4x4 pixel block using 128-bit ETC2 RG11_EAC compression data.
 
-int draw_block4x4_rg11_eac(const unsigned char *bitstring, unsigned int *image_buffer, int flags) {
+int draw_block4x4_rg11_eac(const unsigned char *bitstring, unsigned int *image_buffer) {
 	uint64_t red_qword = ((uint64_t)bitstring[0] << 56) | ((uint64_t)bitstring[1] << 48) | ((uint64_t)bitstring[2] << 40) |
 		((uint64_t)bitstring[3] << 32) | ((uint64_t)bitstring[4] << 24) |
 		((uint64_t)bitstring[5] << 16) | ((uint64_t)bitstring[6] << 8) | bitstring[7];
@@ -1064,7 +1063,7 @@ static unsigned int replicate_11bits_signed_to_16bits(int value) {
 // Decode an 11-bit signed integer and store it in the first 16-bits in memory of each pixel in image_buffer if offset is
 // zero, in the last 16 bits in memory if offset is 1.
 
-int decode_block4x4_11bits_signed(uint64_t qword, unsigned int *image_buffer, int offset, int flags) {
+int decode_block4x4_11bits_signed(uint64_t qword, unsigned int *image_buffer, int offset) {
 	int base_codeword = (signed char)((qword & 0xFF00000000000000) >> 56);		// Signed 8 bits.
 	if (base_codeword == - 128) // && (flags & ENCODE_BIT)
 		// Not allowed in encoding. Decoder should handle it but we don't do that yet.
@@ -1094,31 +1093,31 @@ int decode_block4x4_11bits_signed(uint64_t qword, unsigned int *image_buffer, in
 
 // Draw a 4x4 pixel block using 64-bit ETC2 SIGNED_R11_EAC compression data.
 
-int draw_block4x4_signed_r11_eac(const unsigned char *bitstring, unsigned int *image_buffer, int flags) {
+int draw_block4x4_signed_r11_eac(const unsigned char *bitstring, unsigned int *image_buffer) {
 	memset(image_buffer, 0, 64);
 	uint64_t qword = ((uint64_t)bitstring[0] << 56) | ((uint64_t)bitstring[1] << 48) | ((uint64_t)bitstring[2] << 40) |
 		((uint64_t)bitstring[3] << 32) | ((uint64_t)bitstring[4] << 24) |
 		((uint64_t)bitstring[5] << 16) | ((uint64_t)bitstring[6] << 8) | bitstring[7];
-	return decode_block4x4_11bits_signed(qword, image_buffer, 0, flags);
+	return decode_block4x4_11bits_signed(qword, image_buffer, 0);
 }
 
 // Draw a 4x4 pixel block using 128-bit ETC2 SIGNED_RG11_EAC compression data.
 
-int draw_block4x4_signed_rg11_eac(const unsigned char *bitstring, unsigned int *image_buffer, int flags) {
+int draw_block4x4_signed_rg11_eac(const unsigned char *bitstring, unsigned int *image_buffer) {
 	uint64_t red_qword = ((uint64_t)bitstring[0] << 56) | ((uint64_t)bitstring[1] << 48) | ((uint64_t)bitstring[2] << 40) |
 		((uint64_t)bitstring[3] << 32) | ((uint64_t)bitstring[4] << 24) |
 		((uint64_t)bitstring[5] << 16) | ((uint64_t)bitstring[6] << 8) | bitstring[7];
-	int r = decode_block4x4_11bits_signed(red_qword, image_buffer, 0, flags);
+	int r = decode_block4x4_11bits_signed(red_qword, image_buffer, 0);
 	if (r == 0)
 		return 0;
 	uint64_t green_qword = ((uint64_t)bitstring[8] << 56) | ((uint64_t)bitstring[9] << 48) | ((uint64_t)bitstring[10] << 40) |
 		((uint64_t)bitstring[11] << 32) | ((uint64_t)bitstring[12] << 24) |
 		((uint64_t)bitstring[13] << 16) | ((uint64_t)bitstring[14] << 8) | bitstring[15];
-	decode_block4x4_11bits_signed(green_qword, image_buffer, 1, flags);
+	decode_block4x4_11bits_signed(green_qword, image_buffer, 1);
 	return 1;
 }
 
-// Manual optimization function for the alpha components of ETC2 PUNCHTHROUGH mode.
+/*// Manual optimization function for the alpha components of ETC2 PUNCHTHROUGH mode.
 
 void optimize_block_alpha_etc2_punchthrough(unsigned char *bitstring, unsigned char *alpha_values) {
 	if (bitstring[3] & 2)
