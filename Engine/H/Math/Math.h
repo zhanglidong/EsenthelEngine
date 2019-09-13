@@ -570,11 +570,11 @@ inline Flt RotpmToRadps(Flt x) {return x*(PI2/60         );} // convert "Rotatio
 inline Byte FltToByte(Flt  f) {return Mid(RoundPos(f*255), 0, 255);} // 0..1 -> 0..255, it's okay to clamp after converting to int for small values
 inline Flt  ByteToFlt(Byte b) {return              b/255.0f       ;} // 0..255 -> 0..1, faster than using 'ByteToFltArray'
 
-inline SByte SFltToSByte(Flt f) {return Mid(Round(f*(255.0f/2))    , -128, 127);} // -1..1 -> -128..127, it's okay to clamp after converting to int for small values
-inline  Byte SFltToUByte(Flt f) {return Mid(Round(f*(255.0f/2))+128,    0, 255);} // -1..1 ->    0..255, it's okay to clamp after converting to int for small values
+inline SByte SFltToSByte(Flt f) {return Mid(Round(f*127           ), -127, 127);} // -1..1 -> -127..127, it's okay to clamp after converting to int for small values
+inline  Byte SFltToUByte(Flt f) {return Mid(Round((f+1)*(255.0f/2)),    0, 255);} // -1..1 ->    0..255, it's okay to clamp after converting to int for small values
 
-inline Flt SByteToSFlt(SByte b) {return -1+(b+128)*(2.0f/255);} // -128..127 -> -1..1
-inline Flt UByteToSFlt( Byte b) {return -1+ b     *(2.0f/255);} //    0..255 -> -1..1
+inline Flt SByteToSFlt(SByte b) {return (b<=-127) ? -1 : b/127.0f      ;} // -127..127 -> -1..1
+inline Flt UByteToSFlt( Byte b) {return                  b*(2.0f/255)-1;} //    0..255 -> -1..1
 
 inline Byte FltToU2(Flt  f) {return Mid(RoundPos(f*3), 0, 3);} // 0..1 -> 0..3, it's okay to clamp after converting to int for small values
 inline Flt  U2ToFlt(Byte u) {return u/3.0f                  ;} // 0..3 -> 0..1
@@ -592,6 +592,8 @@ inline Byte U7ToByte(Byte x) {return (x*255  +63  )/127;} // 0..127 -> 0..255 (t
 
 inline Byte ByteToU2 (Byte x) {return (x>>6      )    ;} // 0..255 -> 0..3
 inline UInt ByteToU10(Byte x) {return (x*1023+127)/255;} // 0..255 -> 0..1023
+
+inline Byte SByteToByte(SByte s) {return (s<=0) ? 0 : (s*255+63)/127;}
 #endif
 /******************************************************************************/
 // TIME, DISTANCE, VELOCITY, ACCELERATION

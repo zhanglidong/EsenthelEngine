@@ -160,6 +160,29 @@ static inline void _DecompressBlockBC4(C Byte *b, Byte value[8], U64 &is)
    }
    is=GetU64(b+2);
 }
+static inline void _DecompressBlockBC4(C Byte *b, SByte value[8], U64 &is)
+{
+   value[0]=b[0];
+   value[1]=b[1];
+   if(value[0]>value[1])
+   {
+      value[2]=(value[0]*6 + value[1]*1 + 3)/7;
+      value[3]=(value[0]*5 + value[1]*2 + 3)/7;
+      value[4]=(value[0]*4 + value[1]*3 + 3)/7;
+      value[5]=(value[0]*3 + value[1]*4 + 3)/7;
+      value[6]=(value[0]*2 + value[1]*5 + 3)/7;
+      value[7]=(value[0]*1 + value[1]*6 + 3)/7;
+   }else
+   {
+      value[2]=(value[0]*4 + value[1]*1 + 2)/5;
+      value[3]=(value[0]*3 + value[1]*2 + 2)/5;
+      value[4]=(value[0]*2 + value[1]*3 + 2)/5;
+      value[5]=(value[0]*1 + value[1]*4 + 2)/5;
+      value[6]=                           -127;
+      value[7]=                            127;
+   }
+   is=GetU64(b+2);
+}
 /******************************************************************************/
 static inline void _DecompressBlockBC3(C Byte *b, Color color[4], UInt &cis, Byte alpha[8], U64 &ais)
 {
@@ -222,6 +245,43 @@ void DecompressBlockBC4(C Byte *b, Color *dest, Int pitch)
    }
 }
 /******************************************************************************/
+void DecompressBlockBC4S(C Byte *b, SByte (&block)[4][4])
+{
+   SByte red[8]; U64 ris; _DecompressBlockBC4(b, red, ris);
+   REPD(y, 4)
+   REPD(x, 4)
+   {
+      Int i=x+(y<<2),         // pixel index
+         ri=((ris>>(3*i))&7); // red   index
+      block[y][x]=red[ri];
+   }
+}
+void DecompressBlockBC4S(C Byte *b, Color (&block)[4][4])
+{
+   SByte red[8]; U64 ris; _DecompressBlockBC4(b, red, ris);
+   REPD(y, 4)
+   REPD(x, 4)
+   {
+      Int i=x+(y<<2),         // pixel index
+         ri=((ris>>(3*i))&7); // red   index
+      block[y][x].set(SByteToByte(red[ri]), 0, 0, 255);
+   }
+}
+void DecompressBlockBC4S(C Byte *b, SByte *dest, Int pitch)
+{
+   SByte red[8]; U64 ris; _DecompressBlockBC4(b, red, ris);
+   FREPD(y, 4) // move in forward order so 'dest' can be increased by pitch
+   {
+      REPD(x, 4)
+      {
+         Int i=x+(y<<2),      // pixel index
+         ri=((ris>>(3*i))&7); // red   index
+         dest[x]=red[ri];
+      }
+      dest=(SByte*)((Byte*)dest+pitch);
+   }
+}
+/******************************************************************************/
 void DecompressBlockBC5(C Byte *b, Color (&block)[4][4])
 {
    Byte red  [8]; U64 ris; _DecompressBlockBC4(b  , red  , ris);
@@ -249,6 +309,49 @@ void DecompressBlockBC5(C Byte *b, Color *dest, Int pitch)
          dest[x].set(red[ri], green[gi], 0, 255);
       }
       dest=(Color*)((Byte*)dest+pitch);
+   }
+}
+/******************************************************************************/
+void DecompressBlockBC5S(C Byte *b, VecSB2 (&block)[4][4])
+{
+   SByte red  [8]; U64 ris; _DecompressBlockBC4(b  , red  , ris);
+   SByte green[8]; U64 gis; _DecompressBlockBC4(b+8, green, gis);
+   REPD(y, 4)
+   REPD(x, 4)
+   {
+      Int i=x+(y<<2),         // pixel index
+         ri=((ris>>(3*i))&7), // red   index
+         gi=((gis>>(3*i))&7); // green index
+      block[y][x].set(red[ri], green[gi]);
+   }
+}
+void DecompressBlockBC5S(C Byte *b, Color (&block)[4][4])
+{
+   SByte red  [8]; U64 ris; _DecompressBlockBC4(b  , red  , ris);
+   SByte green[8]; U64 gis; _DecompressBlockBC4(b+8, green, gis);
+   REPD(y, 4)
+   REPD(x, 4)
+   {
+      Int i=x+(y<<2),         // pixel index
+         ri=((ris>>(3*i))&7), // red   index
+         gi=((gis>>(3*i))&7); // green index
+      block[y][x].set(SByteToByte(red[ri]), SByteToByte(green[gi]), 0, 255);
+   }
+}
+void DecompressBlockBC5S(C Byte *b, VecSB2 *dest, Int pitch)
+{
+   SByte red  [8]; U64 ris; _DecompressBlockBC4(b  , red  , ris);
+   SByte green[8]; U64 gis; _DecompressBlockBC4(b+8, green, gis);
+   FREPD(y, 4) // move in forward order so 'dest' can be increased by pitch
+   {
+      REPD(x, 4)
+      {
+         Int i=x+(y<<2),      // pixel index
+         ri=((ris>>(3*i))&7), // red   index
+         gi=((gis>>(3*i))&7); // green index
+         dest[x].set(red[ri], green[gi]);
+      }
+      dest=(VecSB2*)((Byte*)dest+pitch);
    }
 }
 /******************************************************************************/

@@ -398,7 +398,7 @@ static Color DecompressPixel(C Image &image, Int x, Int y)
       case IMAGE_BC1    : case IMAGE_BC1_SRGB    : return DecompressPixelBC1   (image.data() + (x>>2)* 8 + (y>>2)*image.pitch(), x&3, y&3);
       case IMAGE_BC2    : case IMAGE_BC2_SRGB    : return DecompressPixelBC2   (image.data() + (x>>2)*16 + (y>>2)*image.pitch(), x&3, y&3);
       case IMAGE_BC3    : case IMAGE_BC3_SRGB    : return DecompressPixelBC3   (image.data() + (x>>2)*16 + (y>>2)*image.pitch(), x&3, y&3);
-      case IMAGE_BC4    :                          return DecompressPixelBC4   (image.data() + (x>>2)*16 + (y>>2)*image.pitch(), x&3, y&3);
+      case IMAGE_BC4    :                          return DecompressPixelBC4   (image.data() + (x>>2)* 8 + (y>>2)*image.pitch(), x&3, y&3);
       case IMAGE_BC5    :                          return DecompressPixelBC5   (image.data() + (x>>2)*16 + (y>>2)*image.pitch(), x&3, y&3);
       case IMAGE_BC7    : case IMAGE_BC7_SRGB    : return DecompressPixelBC7   (image.data() + (x>>2)*16 + (y>>2)*image.pitch(), x&3, y&3);
       case IMAGE_ETC1   :                          return DecompressPixelETC1  (image.data() + (x>>2)* 8 + (y>>2)*image.pitch(), x&3, y&3);
@@ -415,7 +415,7 @@ static Color DecompressPixel(C Image &image, Int x, Int y, Int z)
       case IMAGE_BC1    : case IMAGE_BC1_SRGB    : return DecompressPixelBC1   (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
       case IMAGE_BC2    : case IMAGE_BC2_SRGB    : return DecompressPixelBC2   (image.data() + (x>>2)*16 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
       case IMAGE_BC3    : case IMAGE_BC3_SRGB    : return DecompressPixelBC3   (image.data() + (x>>2)*16 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
-      case IMAGE_BC4    :                          return DecompressPixelBC4   (image.data() + (x>>2)*16 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
+      case IMAGE_BC4    :                          return DecompressPixelBC4   (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
       case IMAGE_BC5    :                          return DecompressPixelBC5   (image.data() + (x>>2)*16 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
       case IMAGE_BC7    : case IMAGE_BC7_SRGB    : return DecompressPixelBC7   (image.data() + (x>>2)*16 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
       case IMAGE_ETC1   :                          return DecompressPixelETC1  (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
@@ -484,6 +484,9 @@ static inline Flt GetPixelF(C Byte *data, C Image &image, Bool _2d, Int x, Int y
 
       case IMAGE_BC6: return DecompressPixelBC6(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3).x;
 
+      case IMAGE_BC4_SIGN: return SByteToSFlt(DecompressPixelBC4S(image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3));
+      case IMAGE_BC5_SIGN: return SByteToSFlt(DecompressPixelBC4S(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3)); // can use 'DecompressPixelBC4S' because BC5 is made of 2xBC4
+
       case IMAGE_BC1    : case IMAGE_BC1_SRGB    :
       case IMAGE_BC2    : case IMAGE_BC2_SRGB    :
       case IMAGE_BC3    : case IMAGE_BC3_SRGB    :
@@ -510,12 +513,6 @@ Flt Image::pixel3DF(Int x, Int y, Int z)C
       return GetPixelF(data() + x*bytePP() + y*pitch() + z*pitch2(), T, false, x, y, z);
    return 0;
 }
-/******************************************************************************/
-#if 0 // faster, but reaches max 254 values instead of 255
-static inline Byte SByteToByte(SByte s) {return (s<=0) ? 0 : (s<<1);}
-#else
-static inline Byte SByteToByte(SByte s) {return (s<=0) ? 0 : (s*255+63)/127;}
-#endif
 /******************************************************************************/
 static inline Color GetColor(C Byte *data, C Image &image, Bool _2d, Int x, Int y, Int z=0)
 {

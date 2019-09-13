@@ -95,6 +95,8 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
 
    IMAGE_TYPES, // number of types
 #if EE_PRIVATE
+   IMAGE_BC4_SIGN, // BC4      4-bit lossy R    compression                              , linear gamma, Soft, DX10+, GL, partial Android
+   IMAGE_BC5_SIGN, // BC5      8-bit lossy RG   compression                              , linear gamma, Soft, DX10+, GL, partial Android
    IMAGE_R8G8B8A8_SIGN, // 32-bit (R,G,B,A), Soft, DX10+, GL, GL ES
    IMAGE_R8G8_SIGN    , // 16-bit (R,G,0,1), Soft, DX10+, GL, GL ES
    IMAGE_R8_SIGN      , //  8-bit (R,0,0,1), Soft, DX10+, GL, GL ES

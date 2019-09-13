@@ -3052,21 +3052,23 @@ void (*DecompressBlock(IMAGE_TYPE type))(C Byte *b, Color (&block)[4][4])
 {
    switch(type)
    {
-      default           :                          return null;
-      case IMAGE_BC1    : case IMAGE_BC1_SRGB    : return DecompressBlockBC1   ; break;
-      case IMAGE_BC2    : case IMAGE_BC2_SRGB    : return DecompressBlockBC2   ; break;
-      case IMAGE_BC3    : case IMAGE_BC3_SRGB    : return DecompressBlockBC3   ; break;
-      case IMAGE_BC4    :                          return DecompressBlockBC4   ; break;
-      case IMAGE_BC5    :                          return DecompressBlockBC5   ; break;
-      case IMAGE_BC6    :                          return DecompressBlockBC6   ; break;
-      case IMAGE_BC7    : case IMAGE_BC7_SRGB    : return DecompressBlockBC7   ; break;
-      case IMAGE_ETC1   :                          return DecompressBlockETC1  ; break;
-      case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   : return DecompressBlockETC2  ; break;
-      case IMAGE_ETC2_A1: case IMAGE_ETC2_A1_SRGB: return DecompressBlockETC2A1; break;
-      case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB: return DecompressBlockETC2A8; break;
+      default            :                          return null;
+      case IMAGE_BC1     : case IMAGE_BC1_SRGB    : return DecompressBlockBC1   ; break;
+      case IMAGE_BC2     : case IMAGE_BC2_SRGB    : return DecompressBlockBC2   ; break;
+      case IMAGE_BC3     : case IMAGE_BC3_SRGB    : return DecompressBlockBC3   ; break;
+      case IMAGE_BC4     :                          return DecompressBlockBC4   ; break;
+      case IMAGE_BC4_SIGN:                          return DecompressBlockBC4S  ; break;
+      case IMAGE_BC5     :                          return DecompressBlockBC5   ; break;
+      case IMAGE_BC5_SIGN:                          return DecompressBlockBC5S  ; break;
+      case IMAGE_BC6     :                          return DecompressBlockBC6   ; break;
+      case IMAGE_BC7     : case IMAGE_BC7_SRGB    : return DecompressBlockBC7   ; break;
+      case IMAGE_ETC1    :                          return DecompressBlockETC1  ; break;
+      case IMAGE_ETC2    : case IMAGE_ETC2_SRGB   : return DecompressBlockETC2  ; break;
+      case IMAGE_ETC2_A1 : case IMAGE_ETC2_A1_SRGB: return DecompressBlockETC2A1; break;
+      case IMAGE_ETC2_A8 : case IMAGE_ETC2_A8_SRGB: return DecompressBlockETC2A8; break;
    }
 }
-Bool ImageCompare::compare(C Image &a, C Image &b, Flt similar_dif, Bool alpha_weight, Int a_mip, Flt skip_dif)
+Bool ImageCompare::compare(C Image &a, C Image &b, Flt similar_dif, Bool alpha_weight, Int a_mip, Flt skip_dif) // !! Warning: this always operates on 'Color' which ignores negative values, gamma, and >1 (HP/Flt/etc.) !!
 {
    // clear
    skipped =false;
