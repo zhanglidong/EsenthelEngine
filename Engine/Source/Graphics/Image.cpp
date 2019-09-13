@@ -1752,8 +1752,8 @@ static Bool Compress(C Image &src, Image &dest, Bool mtrl_base_1=false) // assum
       case IMAGE_BC1: case IMAGE_BC1_SRGB:
       case IMAGE_BC2: case IMAGE_BC2_SRGB:
       case IMAGE_BC3: case IMAGE_BC3_SRGB:
-      case IMAGE_BC4:
-      case IMAGE_BC5:
+      case IMAGE_BC4: case IMAGE_BC4_SIGN:
+      case IMAGE_BC5: case IMAGE_BC5_SIGN:
          return CompressBC(src, dest, mtrl_base_1);
 
       case IMAGE_BC6:
