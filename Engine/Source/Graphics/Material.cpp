@@ -80,7 +80,7 @@ Material::~Material()
    if(UniqueMultiMaterialMap.elms())
 #endif
    {
-      UniqueMultiMaterialMap.lock  (); REPA(UniqueMultiMaterialMap){C UniqueMultiMaterialKey &key=UniqueMultiMaterialMap.lockedKey(i); if(key.m[0]==this || key.m[1]==this || key.m[2]==this || key.m[3]==this)UniqueMultiMaterialMap.remove(i);}
+      UniqueMultiMaterialMap.lock  (); REPA(UniqueMultiMaterialMap){C UniqueMultiMaterialKey &key=UniqueMultiMaterialMap.lockedKey(i); if(key.m[0]==this || key.m[1]==this || key.m[2]==this || key.m[3]==this)UniqueMultiMaterialMap.lockedRemove(i);}
       UniqueMultiMaterialMap.unlock();
    }
 }

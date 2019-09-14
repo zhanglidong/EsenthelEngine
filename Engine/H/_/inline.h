@@ -1781,10 +1781,11 @@ T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::reserve(Int num) {_MapTS::reserve
 T2(KEY, DATA)  void            Map<KEY, DATA>::compare(Int compare(C KEY &a, C KEY &b)) {_Map  ::compare((Int(*)(CPtr, CPtr))compare);}
 T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::compare(Int compare(C KEY &a, C KEY &b)) {_MapTS::compare((Int(*)(CPtr, CPtr))compare);}
 
-T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::remove    (  Int   i               ) {       _MapTS::remove    ( i   );}
-T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::removeKey (C KEY  &key             ) {       _MapTS::removeKey (&key );}
-T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::removeData(C DATA *data            ) {       _MapTS::removeData( data);}
-T2(KEY, DATA)  Bool  ThreadSafeMap<KEY, DATA>::replaceKey(C KEY  &src, C KEY &dest) {return _MapTS::replaceKey(&src, &dest);}
+T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::lockedRemove    (  Int   i               ) {       _Map  ::remove    ( i   );}
+T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::      remove    (  Int   i               ) {       _MapTS::remove    ( i   );}
+T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::      removeKey (C KEY  &key             ) {       _MapTS::removeKey (&key );}
+T2(KEY, DATA)  void  ThreadSafeMap<KEY, DATA>::      removeData(C DATA *data            ) {       _MapTS::removeData( data);}
+T2(KEY, DATA)  Bool  ThreadSafeMap<KEY, DATA>::      replaceKey(C KEY  &src, C KEY &dest) {return _MapTS::replaceKey(&src, &dest);}
 
 T2(KEY, DATA) T1(EXTENDED)            Map<KEY, DATA>&            Map<KEY, DATA>::replaceClass() {ASSERT_BASE_EXTENDED<DATA, EXTENDED>();         del(); _key_offset=UIntPtr(&((typename Map<KEY, EXTENDED>::Elm*)null)->key); /*_data_offset=UIntPtr(&((typename Map<KEY, EXTENDED>::Elm*)null)->data);*/ _desc_offset=UIntPtr(&((typename Map<KEY, EXTENDED>::Elm*)null)->desc); _data_size=SIZE(EXTENDED); _memx.replaceClass<typename Map<KEY, EXTENDED>::Elm>();           return T;}
 T2(KEY, DATA) T1(EXTENDED)  ThreadSafeMap<KEY, DATA>&  ThreadSafeMap<KEY, DATA>::replaceClass() {ASSERT_BASE_EXTENDED<DATA, EXTENDED>(); lock(); del(); _key_offset=UIntPtr(&((typename Map<KEY, EXTENDED>::Elm*)null)->key); /*_data_offset=UIntPtr(&((typename Map<KEY, EXTENDED>::Elm*)null)->data);*/ _desc_offset=UIntPtr(&((typename Map<KEY, EXTENDED>::Elm*)null)->desc); _data_size=SIZE(EXTENDED); _memx.replaceClass<typename Map<KEY, EXTENDED>::Elm>(); unlock(); return T;}

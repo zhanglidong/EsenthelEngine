@@ -125,10 +125,11 @@ T2(KEY, DATA) struct ThreadSafeMap : _MapTS // Thread Safe Map
 
    MAP_MODE mode(MAP_MODE mode); // set map mode, returns previous mode
 
-   void remove    (  Int   i   ); // remove i-th element from container
-   void removeKey (C KEY  &key ); // remove      element from container
-   void removeData(C DATA *data); // remove      element from container
-   Bool replaceKey(C KEY  &src, C KEY &dest); // replace existing element 'src' key with 'dest', false on fail
+   void lockedRemove    (  Int   i   ); // remove i-th element from container, assumes map is already locked
+   void       remove    (  Int   i   ); // remove i-th element from container
+   void       removeKey (C KEY  &key ); // remove      element from container
+   void       removeData(C DATA *data); // remove      element from container
+   Bool       replaceKey(C KEY  &src, C KEY &dest); // replace existing element 'src' key with 'dest', false on fail
 
    void reserve(Int num); // pre-allocate memory for storage of 'num' total elements
 
