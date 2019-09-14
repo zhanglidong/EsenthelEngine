@@ -397,7 +397,7 @@ BUFFER_I(Material, SBI_MATERIAL)
    MaterialClass Material;
 BUFFER_END
 
-inline VecH4 MaterialColor   () {return Material._color;}
+/*inline VecH4 MaterialColor   () {return Material._color;}
 inline VecH  MaterialColor3  () {return Material._color.rgb;}
 inline Half  MaterialAlpha   () {return Material._color.a;}
 inline VecH  MaterialAmbient () {return Material._ambient_specular.xyz;}
@@ -425,7 +425,7 @@ BUFFER(MultiMaterial1) MultiMaterialClass MultiMaterial1; BUFFER_END
 BUFFER(MultiMaterial2) MultiMaterialClass MultiMaterial2; BUFFER_END
 BUFFER(MultiMaterial3) MultiMaterialClass MultiMaterial3; BUFFER_END
 
-inline VecH4 MultiMaterial0Color    () {return MultiMaterial0._color     ;}
+/*inline VecH4 MultiMaterial0Color    () {return MultiMaterial0._color     ;}
 inline VecH  MultiMaterial0Color3   () {return MultiMaterial0._color.rgb ;}
 inline VecH4 MultiMaterial0NormalMul() {return MultiMaterial0._normal_mul;}
 inline VecH4 MultiMaterial0NormalAdd() {return MultiMaterial0._normal_add;}

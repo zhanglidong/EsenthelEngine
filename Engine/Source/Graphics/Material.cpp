@@ -51,20 +51,17 @@ Material::Material()
 {
    color_l.set(1, 1, 1, 1);
    ambient.set(0, 0, 0);
-   specular =0;
-   sss      =0;
+   smooth   =0;
+   reflect  =REFLECT_DEFAULT_PAR;
    glow     =0;
-   rough    =1;
+   normal   =1;
    bump     =0.03f;
-   tex_scale=1.0f;
-   det_scale=4;
    det_power=0.3f;
-   reflect  =0.2f;
+   det_scale=4;
+   tex_scale=1.0f;
 
-   cull       =true;
-   technique  =MTECH_DEFAULT;
-   user_shader=0;
-   user_type  =0;
+   cull     =true;
+   technique=MTECH_DEFAULT;
 
    clear();
    validate();
@@ -103,13 +100,13 @@ Bool Material::hasLeaf           ()C {return                                    
 Bool Material::wantTanBin()C
 {
    // #MaterialTextureChannelOrder
-   return (base_0     && bump     >EPS_MATERIAL_BUMP)  // bump          is in Base0     Alpha
-       || (base_1     && rough    >EPS_COL          )  // normal        is in Base1     XY
-       || (detail_map && det_power>EPS_COL          ); // normal detail is in DetailMap XY
+   return (base_1     && normal   >EPS_COL          )  // normal        is in Base1
+       || (base_2     && bump     >EPS_MATERIAL_BUMP)  // bump          is in Base2
+       || (detail_map && det_power>EPS_COL          ); // normal detail is in DetailMap
 }
 /******************************************************************************/
 Material& Material::reset   () {T=MaterialDefault; return validate();}
-Material& Material::validate()
+Material& Material::validate() // #MaterialTextureChannelOrder
 {
                       if(this==MaterialLast    )MaterialLast    =null;
    REPA(MaterialLast4)if(this==MaterialLast4[i])MaterialLast4[i]=null;
@@ -125,30 +122,43 @@ Material& Material::validate()
      _multi.tex_scale=tex_scale;
      _multi.det_scale=det_scale;
 
-     _multi.bump=((base_0 && base_1) ? bump : 0);
+      // base0
+      if(base_0 && base_2) // have glow in Base0 only if Base2 is present (if not present then Base0 has Alpha)
+      {
+        _multi.glow_mul=glow;
+        _multi.glow_add=0;
+      }else
+      {
+        _multi.glow_mul=0;
+        _multi.glow_add=glow;
+      }
 
       // normal map
       if(base_1)
       {
-         // normal.xy
-         // (tex.normal*2-1)*rough == tex.normal*(2*rough)-rough
-        _multi.normal_mul.c[NRMX_CHANNEL]=_multi.normal_mul.c[NRMY_CHANNEL]=2*rough;
-        _multi.normal_add.c[NRMX_CHANNEL]=_multi.normal_add.c[NRMY_CHANNEL]= -rough;
-
-         // specular
-        _multi.normal_mul.c[SPEC_CHANNEL]=specular;
-        _multi.normal_add.c[SPEC_CHANNEL]=0;
-
-         // alpha/glow
-        _multi.normal_mul.c[GLOW_CHANNEL]=glow;
-        _multi.normal_add.c[GLOW_CHANNEL]=0;
+        _multi.normal=normal;
       }else
       {
-        _multi.normal_mul=0;
-        _multi.normal_add.c[NRMX_CHANNEL]=0;
-        _multi.normal_add.c[NRMY_CHANNEL]=0;
-        _multi.normal_add.c[SPEC_CHANNEL]=specular;
-        _multi.normal_add.c[GLOW_CHANNEL]=glow;
+        _multi.normal=0;
+      }
+
+      // base2
+      if(base_2)
+      {
+        _multi.base2_mul.c[SMOOTH_CHANNEL]=smooth;
+        _multi.base2_add.c[SMOOTH_CHANNEL]=0;
+
+        _multi.base2_mul.c[REFLECT_CHANNEL]=reflect;
+        _multi.base2_add.c[REFLECT_CHANNEL]=0;
+
+        _multi.bump=bump;
+      }else
+      {
+        _multi.base2_mul=0;
+        _multi.base2_add.c[ SMOOTH_CHANNEL]=smooth;
+        _multi.base2_add.c[REFLECT_CHANNEL]=reflect;
+
+        _multi.bump=0;
       }
 
       if(detail_map)
@@ -162,7 +172,6 @@ Material& Material::validate()
         _multi.det_add=0;
       }
      _multi.macro=(macro_map!=null);
-     _multi.reflect=(reflection_map ? reflect : 0);
    }
    return T;
 }
@@ -191,12 +200,12 @@ void Material::setSolid()C
       MaterialLast4[0]=null; // because they use the same shader images
 
       if(_alpha_factor.a)Renderer._has_glow=true;
-      Sh.Col[0]  ->set(        base_0());
-      Sh.Nrm[0]  ->set(        base_1());
-      Sh.Det[0]  ->set(    detail_map());
-      Sh.Mac[0]  ->set(     macro_map());
-      Sh.Rfl[0]  ->set(reflection_map());
-      Sh.Lum     ->set(     light_map());
+      Sh.Col[0]  ->set(    base_0());
+      Sh.Nrm[0]  ->set(    base_1());
+      Sh.Ext[0]  ->set(    base_2());
+      Sh.Det[0]  ->set(detail_map());
+      Sh.Mac[0]  ->set( macro_map());
+      Sh.Lum     ->set( light_map());
       Sh.Material->set<MaterialParams>(T);
    #if !LINEAR_GAMMA
       Renderer.material_color_l->set(colorS());
@@ -212,7 +221,7 @@ void Material::setAmbient()C
 
       // textures needed for alpha-test
       Sh.Col[0]  ->set(base_0   ());
-      Sh.Nrm[0]  ->set(base_1   ());
+      Sh.Ext[0]  ->set(base_2   ());
       Sh.Lum     ->set(light_map());
       Sh.Material->set<MaterialParams>(T); // params needed for alpha-test and ambient
    #if !LINEAR_GAMMA
@@ -229,12 +238,12 @@ void Material::setBlend()C
 
       D.alphaFactor(_alpha_factor); if(_alpha_factor.a)Renderer._has_glow=true;
 
-      Sh.Col[0]  ->set(        base_0());
-      Sh.Nrm[0]  ->set(        base_1());
-      Sh.Det[0]  ->set(    detail_map());
-      Sh.Mac[0]  ->set(     macro_map());
-      Sh.Rfl[0]  ->set(reflection_map());
-      Sh.Lum     ->set(     light_map());
+      Sh.Col[0]  ->set(    base_0());
+      Sh.Nrm[0]  ->set(    base_1());
+      Sh.Ext[0]  ->set(    base_2());
+      Sh.Det[0]  ->set(detail_map());
+      Sh.Mac[0]  ->set( macro_map());
+      Sh.Lum     ->set( light_map());
       Sh.Material->set<MaterialParams>(T);
    #if !LINEAR_GAMMA
       Renderer.material_color_l->set(colorS());
@@ -255,12 +264,12 @@ void Material::setBlendForce()C
       D.alphaFactor(_alpha_factor); if(_alpha_factor.a)Renderer._has_glow=true;
    }
 
-   Sh.Col[0]  ->set(        base_0());
-   Sh.Nrm[0]  ->set(        base_1());
-   Sh.Det[0]  ->set(    detail_map());
-   Sh.Mac[0]  ->set(     macro_map());
-   Sh.Rfl[0]  ->set(reflection_map());
-   Sh.Lum     ->set(     light_map());
+   Sh.Col[0]  ->set(    base_0());
+   Sh.Nrm[0]  ->set(    base_1());
+   Sh.Ext[0]  ->set(    base_2());
+   Sh.Det[0]  ->set(detail_map());
+   Sh.Mac[0]  ->set( macro_map());
+   Sh.Lum     ->set( light_map());
    Sh.Material->set<MaterialParams>(T);
 #if !LINEAR_GAMMA
    Renderer.material_color_l->set(colorS());
@@ -273,7 +282,7 @@ void Material::setOutline()C
       MaterialLast=this;
     //MaterialLast4[0]=null; not needed since multi materials not rendered in outline mode
       Sh.Col[0]->set(base_0());
-      Sh.Nrm[0]->set(base_1());
+      Sh.Ext[0]->set(base_2());
       Renderer.material_color_l->set(LINEAR_GAMMA ? colorL() : colorS()); // only Material Color is used for potential alpha-testing
    }
 }
@@ -284,7 +293,7 @@ void Material::setBehind()C
       MaterialLast=this;
     //MaterialLast4[0]=null; not needed since multi materials not rendered in behind mode
       Sh.Col[0]->set(base_0());
-      Sh.Nrm[0]->set(base_1());
+      Sh.Ext[0]->set(base_2());
       Renderer.material_color_l->set(LINEAR_GAMMA ? colorL() : colorS()); // only Material Color is used
    }
 }
@@ -295,7 +304,7 @@ void Material::setShadow()C
       MaterialLast=this;
     //MaterialLast4[0]=null; not needed since multi materials don't have alpha test and don't need to set values in shadow mode
       Sh.Col[0]->set(base_0());
-      Sh.Nrm[0]->set(base_1());
+      Sh.Ext[0]->set(base_2());
       Renderer.material_color_l->set(LINEAR_GAMMA ? colorL() : colorS()); // only Material Color is used
    }
 }
@@ -309,19 +318,18 @@ void Material::setMulti(Int i)C
 
       if(_alpha_factor.a)Renderer._has_glow=true;
 
-      Sh.Col          [i]->set(        base_0());
-      Sh.Nrm          [i]->set(        base_1());
-      Sh.Det          [i]->set(    detail_map());
-      Sh.Mac          [i]->set(     macro_map());
-      Sh.Rfl          [i]->set(reflection_map());
-      Sh.MultiMaterial[i]->set(_multi          );
+      Sh.Col          [i]->set(  base_0  ());
+      Sh.Nrm          [i]->set(  base_1  ());
+      Sh.Ext          [i]->set(  base_2  ());
+      Sh.Det          [i]->set(detail_map());
+      Sh.Mac          [i]->set( macro_map());
+      Sh.MultiMaterial[i]->set(_multi      );
    }
 }
 void Material::setAuto()C
 {
    switch(Renderer())
    {
-      case RM_EARLY_Z :
       case RM_PREPARE :
       case RM_SOLID   :
       case RM_SOLID_M : setSolid(); break;
@@ -339,6 +347,7 @@ void Material::setAuto()C
 
       case RM_OUTLINE : setOutline(); break;
 
+      case RM_EARLY_Z :
       case RM_SHADOW  : setShadow(); break;
    }
 }
@@ -353,12 +362,15 @@ void Material::_adjustParams(UInt old_base_tex, UInt new_base_tex)
    }
    if(changed&(BT_BUMP|BT_NORMAL))
    {
-      if(!(new_base_tex&BT_BUMP) && !(new_base_tex&BT_NORMAL))rough=0;else
-      if(                                      rough<=EPS_COL)rough=MaterialDefault.rough;
+      if(!(new_base_tex&BT_BUMP) && !(new_base_tex&BT_NORMAL))normal=0;else
+      if(                                     normal<=EPS_COL)normal=MaterialDefault.normal;
    }
 
-   if(changed&BT_SPECULAR)
-      if((new_base_tex&BT_SPECULAR) && specular<=EPS_COL)specular=1;
+   if(changed&BT_SMOOTH)
+      if((new_base_tex&BT_SMOOTH) && smooth<=EPS_COL)smooth=1;
+
+   if(changed&BT_REFLECT)
+      if((new_base_tex&BT_REFLECT) && reflect<=REFLECT_DEFAULT_PAR+EPS_COL)reflect=1;
 
    if(changed&BT_GLOW)
       if((new_base_tex&BT_GLOW) && glow<=EPS_COL)glow=1;
@@ -380,146 +392,158 @@ void Material::_adjustParams(UInt old_base_tex, UInt new_base_tex)
 /******************************************************************************/
 Bool Material::saveData(File &f, CChar *path)C
 {
-   // !! for ver 10 just save like this: also remove sub surf, reflection map !!
- //f.putMulti(Byte(10), cull, Byte(technique))<<SCAST(C MaterialParams, T); // version
-   f.putMulti(Byte(9), cull, Byte(technique))<<colorS()<<ambient<<specular<<sss<<glow<<rough<<bump<<tex_scale<<det_scale<<det_power<<reflect;
+   f.putMulti(Byte(10), cull, technique)<<SCAST(C MaterialParams, T); // version
 
    // textures
-   f.putStr(        base_0.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
-   f.putStr(        base_1.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
-   f.putStr(    detail_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
-   f.putStr(     macro_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
-   f.putStr(reflection_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
-   f.putStr(     light_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
-
-   // user shader
-   f.putStr(user_shader_name);
-   f.putStr(user_type_name  );
+   f.putStr(    base_0.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
+   f.putStr(    base_1.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
+   f.putStr(    base_2.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
+   f.putStr(detail_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
+   f.putStr( macro_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
+   f.putStr( light_map.name(path)); // !! can't use 'id' because textures are stored in "Tex/" folder, so there's no point in using 'putAsset' !!
 
    return f.ok();
 }
 Bool Material::loadData(File &f, CChar *path)
 {
-   MaterialParams &mp=T; Char temp[MAX_LONG_PATH];
+   MaterialParams &mp=T; Char temp[MAX_LONG_PATH]; Flt sss, old_reflect;
    switch(f.decUIntV())
    {
-      // !! for ver 10, don't convert 'color' gamma !!
+      case 10:
+      {
+         f.getMulti(cull, technique)>>mp;
+         f.getStr(temp);     base_0.require(temp, path);
+         f.getStr(temp);     base_1.require(temp, path);
+         f.getStr(temp);     base_2.require(temp, path);
+         f.getStr(temp); detail_map.require(temp, path);
+         f.getStr(temp);  macro_map.require(temp, path);
+         f.getStr(temp);  light_map.require(temp, path);
+      }break;
 
       case 9:
       {
-         f.getMulti(cull, technique)>>mp; colorS(color_l);
-         f.getStr(temp            );         base_0.require(temp, path);
-         f.getStr(temp            );         base_1.require(temp, path);
-         f.getStr(temp            );     detail_map.require(temp, path);
-         f.getStr(temp            );      macro_map.require(temp, path);
-         f.getStr(temp            ); reflection_map.require(temp, path);
-         f.getStr(temp            );      light_map.require(temp, path);
-         f.getStr(user_shader_name); user_shader=(MaterialUserShader ? MaterialUserShader->find(user_shader_name) : 0);
-         f.getStr(user_type_name  ); user_type  =(MaterialUserType   ? MaterialUserType  ->find(user_type_name  ) : 0);
+         f.getMulti(cull, technique)>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>old_reflect; colorS(color_l); reflect=REFLECT_DEFAULT_PAR;
+         f.getStr(temp);     base_0.require(temp, path);
+         f.getStr(temp);     base_1.require(temp, path);
+                             base_2=null;
+         f.getStr(temp); detail_map.require(temp, path);
+         f.getStr(temp);  macro_map.require(temp, path);
+         f.getStr(temp);
+         f.getStr(temp);  light_map.require(temp, path);
+         f.getStr(temp);
+         f.getStr(temp);
       }break;
 
       case 8:
       {
-         f.getMulti(cull, technique)>>mp; colorS(color_l);
-         f._getStr1(temp            );         base_0.require(temp, path);
-         f._getStr1(temp            );         base_1.require(temp, path);
-         f._getStr1(temp            );     detail_map.require(temp, path);
-         f._getStr1(temp            );      macro_map.require(temp, path);
-         f._getStr1(temp            ); reflection_map.require(temp, path);
-         f._getStr1(temp            );      light_map.require(temp, path);
-         f._getStr1(user_shader_name); user_shader=(MaterialUserShader ? MaterialUserShader->find(user_shader_name) : 0);
-         f._getStr1(user_type_name  ); user_type  =(MaterialUserType   ? MaterialUserType  ->find(user_type_name  ) : 0);
+         f.getMulti(cull, technique)>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>old_reflect; colorS(color_l); reflect=REFLECT_DEFAULT_PAR;
+         f._getStr1(temp);     base_0.require(temp, path);
+         f._getStr1(temp);     base_1.require(temp, path);
+                               base_2=null;
+         f._getStr1(temp); detail_map.require(temp, path);
+         f._getStr1(temp);  macro_map.require(temp, path);
+         f._getStr1(temp);
+         f._getStr1(temp);  light_map.require(temp, path);
+         f._getStr1(temp);
+         f._getStr1(temp);
       }break;
 
       case 7:
       {
-         f>>mp>>cull>>technique; colorS(color_l);
-         f._getStr(temp            );         base_0.require(temp, path);
-         f._getStr(temp            );         base_1.require(temp, path);
-         f._getStr(temp            );     detail_map.require(temp, path);
-         f._getStr(temp            );      macro_map.require(temp, path);
-         f._getStr(temp            ); reflection_map.require(temp, path);
-         f._getStr(temp            );      light_map.require(temp, path);
-         f._getStr(user_shader_name); user_shader=(MaterialUserShader ? MaterialUserShader->find(user_shader_name) : 0);
-         f._getStr(user_type_name  ); user_type  =(MaterialUserType   ? MaterialUserType  ->find(user_type_name  ) : 0);
+         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>old_reflect>>cull>>technique; colorS(color_l); reflect=REFLECT_DEFAULT_PAR;
+         f._getStr(temp);     base_0.require(temp, path);
+         f._getStr(temp);     base_1.require(temp, path);
+                              base_2=null;
+         f._getStr(temp); detail_map.require(temp, path);
+         f._getStr(temp);  macro_map.require(temp, path);
+         f._getStr(temp);
+         f._getStr(temp);  light_map.require(temp, path);
+         f._getStr(temp);
+         f._getStr(temp);
       }break;
 
       case 6:
       {
-         f>>mp>>cull>>technique; user_type=0; user_type_name.clear(); colorS(color_l);
-         f._getStr(temp);         base_0.require(temp, path);
-         f._getStr(temp);         base_1.require(temp, path);
-         f._getStr(temp);     detail_map.require(temp, path);
-         f._getStr(temp);      macro_map.require(temp, path);
-         f._getStr(temp); reflection_map.require(temp, path);
-         f._getStr(temp);      light_map.require(temp, path);
-         user_shader_name=f._getStr8(); user_shader=(MaterialUserShader ? MaterialUserShader->find(user_shader_name) : 0);
+         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>old_reflect>>cull>>technique; colorS(color_l); reflect=REFLECT_DEFAULT_PAR;
+         f._getStr(temp);     base_0.require(temp, path);
+         f._getStr(temp);     base_1.require(temp, path);
+                              base_2=null;
+         f._getStr(temp); detail_map.require(temp, path);
+         f._getStr(temp);  macro_map.require(temp, path);
+         f._getStr(temp);
+         f._getStr(temp);  light_map.require(temp, path);
+         f._getStr8();
       }break;
 
       case 5:
       {
-         f>>mp>>cull>>technique; user_type=0; user_type_name.clear(); colorS(color_l);
-         f._getStr(temp);         base_0.require(temp, path);
-         f._getStr(temp);         base_1.require(temp, path);
-         f._getStr(temp);     detail_map.require(temp, path);
-         f._getStr(temp); reflection_map.require(temp, path);
-         f._getStr(temp);      light_map.require(temp, path);
-                               macro_map=null;
-         user_shader_name=f._getStr8(); user_shader=(MaterialUserShader ? MaterialUserShader->find(user_shader_name) : 0);
+         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>old_reflect>>cull>>technique; colorS(color_l); reflect=REFLECT_DEFAULT_PAR;
+         f._getStr(temp);     base_0.require(temp, path);
+         f._getStr(temp);     base_1.require(temp, path);
+                              base_2=null;
+         f._getStr(temp); detail_map.require(temp, path);
+         f._getStr(temp);
+         f._getStr(temp);  light_map.require(temp, path);
+                           macro_map=null;
+         f._getStr8();
       }break;
 
       case 4:
       {
-         f>>mp>>cull>>technique; user_shader=user_type=0; user_shader_name.clear(); user_type_name.clear(); colorS(color_l);
-         f._getStr(temp);         base_0.require(temp, path);
-         f._getStr(temp);         base_1.require(temp, path);
-         f._getStr(temp);     detail_map.require(temp, path);
-         f._getStr(temp); reflection_map.require(temp, path);
-         f._getStr(temp);      light_map.require(temp, path);
-                               macro_map=null;
+         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>old_reflect>>cull>>technique; colorS(color_l); reflect=REFLECT_DEFAULT_PAR;
+         f._getStr(temp);     base_0.require(temp, path);
+         f._getStr(temp);     base_1.require(temp, path);
+                              base_2=null;
+         f._getStr(temp); detail_map.require(temp, path);
+         f._getStr(temp);
+         f._getStr(temp);  light_map.require(temp, path);
+                           macro_map=null;
       }break;
 
       case 3:
       {
-         f>>color_l>>ambient>>specular>>sss>>glow>>rough>>bump>>det_scale>>det_power>>reflect>>cull>>technique; tex_scale=1; user_shader=user_type=0; user_shader_name.clear(); user_type_name.clear(); colorS(color_l);
-                 base_0.require(f._getStr8(), path);
-                 base_1.require(f._getStr8(), path);
-             detail_map.require(f._getStr8(), path);
-         reflection_map.require(f._getStr8(), path);
-              light_map.require(f._getStr8(), path);
-              macro_map=null;
+         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>det_scale>>det_power>>old_reflect>>cull>>technique; tex_scale=1; colorS(color_l); reflect=REFLECT_DEFAULT_PAR;
+             base_0.require(f._getStr8(), path);
+             base_1.require(f._getStr8(), path);
+             base_2=null;
+         detail_map.require(f._getStr8(), path);
+                            f._getStr8();
+          light_map.require(f._getStr8(), path);
+          macro_map=null;
       }break;
 
       case 2:
       {
          f.skip(1);
-         f>>color_l>>specular>>sss>>glow>>rough>>bump>>det_scale>>det_power>>reflect>>cull>>technique; ambient=0; tex_scale=1; user_shader=user_type=0; user_shader_name.clear(); user_type_name.clear(); colorS(color_l);
+         f>>color_l>>smooth>>sss>>glow>>normal>>bump>>det_scale>>det_power>>old_reflect>>cull>>technique; ambient=0; tex_scale=1; colorS(color_l); reflect=REFLECT_DEFAULT_PAR;
          if(technique==MTECH_FUR){det_power=color_l.w; color_l.w=1;}
-                 base_0.require(f._getStr8(), path);
-                 base_1.require(f._getStr8(), path);
-             detail_map.require(f._getStr8(), path);
-         reflection_map.require(f._getStr8(), path);
-              light_map=null;
-              macro_map=null;
+             base_0.require(f._getStr8(), path);
+             base_1.require(f._getStr8(), path);
+             base_2=null;
+         detail_map.require(f._getStr8(), path);
+                            f._getStr8();
+          light_map=null;
+          macro_map=null;
       }break;
 
       case 1:
       {
          f.skip(1);
-         f>>color_l>>specular>>glow>>rough>>bump>>det_scale>>det_power>>reflect>>cull>>technique; sss=0; ambient=0; tex_scale=1; user_shader=user_type=0; user_shader_name.clear(); user_type_name.clear(); colorS(color_l);
+         f>>color_l>>smooth>>glow>>normal>>bump>>det_scale>>det_power>>old_reflect>>cull>>technique; sss=0; ambient=0; tex_scale=1; colorS(color_l); reflect=REFLECT_DEFAULT_PAR;
          if(technique==MTECH_FUR){det_power=color_l.w; color_l.w=1;}
-                 base_0.require(f._getStr8(), path);
-                 base_1.require(f._getStr8(), path);
-             detail_map.require(f._getStr8(), path);
-         reflection_map.require(f._getStr8(), path);
-              light_map=null;
-              macro_map=null;
+             base_0.require(f._getStr8(), path);
+             base_1.require(f._getStr8(), path);
+             base_2=null;
+         detail_map.require(f._getStr8(), path);
+                            f._getStr8();
+          light_map=null;
+          macro_map=null;
       }break;
 
       case 0:
       {
          f.skip(1);
-         f>>color_l>>specular>>glow>>rough>>bump>>det_scale>>det_power>>reflect>>cull; sss=0; ambient=0; tex_scale=1; user_shader=user_type=0; user_shader_name.clear(); user_type_name.clear(); user_shader_name.clear(); colorS(color_l);
+         f>>color_l>>smooth>>glow>>normal>>bump>>det_scale>>det_power>>old_reflect>>cull; sss=0; ambient=0; tex_scale=1; colorS(color_l); reflect=REFLECT_DEFAULT_PAR;
          switch(f.getByte())
          {
             default: technique=MTECH_DEFAULT   ; break;
@@ -529,12 +553,13 @@ Bool Material::loadData(File &f, CChar *path)
          }
          if(technique==MTECH_FUR){det_power=color_l.w; color_l.w=1;}
          Char8 tex[80];
-         f>>tex;         base_0.require(tex, path);
-         f>>tex;         base_1.require(tex, path);
-         f>>tex;     detail_map.require(tex, path);
-         f>>tex; reflection_map.require(tex, path);
-                      light_map=null;
-                      macro_map=null;
+         f>>tex;     base_0.require(tex, path);
+         f>>tex;     base_1.require(tex, path);
+                     base_2=null;
+         f>>tex; detail_map.require(tex, path);
+         f>>tex;
+                  light_map=null;
+                  macro_map=null;
       }break;
 
       default: goto error;
