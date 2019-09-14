@@ -567,8 +567,8 @@ inline Flt RadpsToRotpm(Flt x) {return x*(60/PI2         );} // convert "Radian 
 inline Flt RotpmToRadps(Flt x) {return x*(PI2/60         );} // convert "Rotation  per Minute" To "Radian    per Second"
 
 #if EE_PRIVATE
-inline Byte FltToByte(Flt  f) {return Mid(RoundPos(f*255), 0, 255);} // 0..1 -> 0..255, it's okay to clamp after converting to int for small values
-inline Flt  ByteToFlt(Byte b) {return              b/255.0f       ;} // 0..255 -> 0..1, faster than using 'ByteToFltArray'
+inline Byte FltToByte(Flt  f) {return Mid(RoundPos(f*255), 0, 255);} // 0..1   -> 0..255, it's okay to clamp after converting to int for small values
+inline Flt  ByteToFlt(Byte b) {return              b/255.0f       ;} // 0..255 -> 0..1  , faster than using 'ByteToFltArray'
 
 inline SByte SFltToSByte(Flt f) {return Mid(Round(f*127           ), -127, 127);} // -1..1 -> -127..127, it's okay to clamp after converting to int for small values
 inline  Byte SFltToUByte(Flt f) {return Mid(Round((f+1)*(255.0f/2)),    0, 255);} // -1..1 ->    0..255, it's okay to clamp after converting to int for small values
@@ -579,21 +579,27 @@ inline Flt UByteToSFlt( Byte b) {return                  b*(2.0f/255)-1;} //    
 inline Byte FltToU2(Flt  f) {return Mid(RoundPos(f*3), 0, 3);} // 0..1 -> 0..3, it's okay to clamp after converting to int for small values
 inline Flt  U2ToFlt(Byte u) {return u/3.0f                  ;} // 0..3 -> 0..1
 
-inline UInt FltToU10(Flt  f) {return Mid(RoundPos(f*1023), 0, 1023);} // 0..1 -> 0..1023, it's okay to clamp after converting to int for small values
+inline UInt FltToU10(Flt  f) {return Mid(RoundPos(f*1023), 0, 1023);} // 0..1    -> 0..1023, it's okay to clamp after converting to int for small values
 inline Flt  U10ToFlt(UInt u) {return u/1023.0f                     ;} // 0..1023 -> 0..1
+
+inline Int SFltToShort(Flt f) {return RoundPos(Mid(f, -1.0f, 1.0f)*32767);} // -1..1 -> -32767..32767
+
+inline UInt FltToU16(Flt  f) {return RoundPos(Sat(f)*65535);} // 0..1     -> 0..65535
+inline Flt  U16ToFlt(UInt u) {return u/65535.0f            ;} // 0..65535 -> 0..1
 
 inline Byte U1ToByte(Bool x) {return  x*255            ;} // 0..1   -> 0..255
 inline Byte U2ToByte(Byte x) {return (x*255/*+ 1*/)/  3;} // 0..3   -> 0..255 (this version exactly matches float with Round, +1 is not needed in this case, function will return the same value with or without it)
 inline Byte U3ToByte(Byte x) {return (x*255+   3  )/  7;} // 0..7   -> 0..255 (this version exactly matches float with Round)
-inline Byte U4ToByte(Byte x) {return (x*255/*+ 7*/)/ 15;} // 0..15  -> 0..255 (this version exactly matches float with Round, +7 is not needed in this case, function will return the same value with or without it)
-inline Byte U5ToByte(Byte x) {return (x*255  +15  )/ 31;} // 0..31  -> 0..255 (this version exactly matches float with Round)
-inline Byte U6ToByte(Byte x) {return (x*255  +31  )/ 63;} // 0..63  -> 0..255 (this version exactly matches float with Round)
-inline Byte U7ToByte(Byte x) {return (x*255  +63  )/127;} // 0..127 -> 0..255 (this version exactly matches float with Round)
+inline Byte U4ToByte(Byte x) {return (x<<4)|x          ;} // 0..15  -> 0..255 (this version exactly matches float with Round, same as   "(x*255/*+ 7*/)/ 15" but faster, +7 is not needed in this case, function will return the same value with or without it)
+inline Byte U5ToByte(Byte x) {return (x*255  +15  )/ 31;} // 0..31  -> 0..255 (this version exactly matches float with Round, can't use "(x<<3)|(x>>2)"      because it has error of "1")
+inline Byte U6ToByte(Byte x) {return (x*255  +31  )/ 63;} // 0..63  -> 0..255 (this version exactly matches float with Round, can't use "(x<<2)|(x>>4)"      because it has error of "1")
+inline Byte U7ToByte(Byte x) {return (x<<1)|(x>>6)     ;} // 0..127 -> 0..255 (this version exactly matches float with Round, same as   "(x*255  +63  )/127" but faster)
 
 inline Byte ByteToU2 (Byte x) {return (x>>6      )    ;} // 0..255 -> 0..3
-inline UInt ByteToU10(Byte x) {return (x*1023+127)/255;} // 0..255 -> 0..1023
+inline UInt ByteToU10(Byte x) {return (x*1023+127)/255;} // 0..255 -> 0..1023 , can't use "(x<<2)|(x>>6)"     because it has error of "1"
+inline UInt ByteToU16(Byte x) {return (x<<8)|x        ;} // 0..255 -> 0..65535, same as   "(x*65535+127)/255" but faster
 
-inline Byte SByteToByte(SByte s) {return (s<=0) ? 0 : (s*255+63)/127;}
+inline Byte SByteToByte(SByte s) {return (s<=0) ? 0 : (s<<1)|(s>>6);} // -128..0 -> 0 , 0..127 -> 0..255, same as "(s*255+63)/127" but faster
 #endif
 /******************************************************************************/
 // TIME, DISTANCE, VELOCITY, ACCELERATION

@@ -124,6 +124,12 @@ ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have the sa
 
    {"BC4_SIGN"     , true ,  1,  4,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC4_SNORM     , GL_COMPRESSED_SIGNED_RED_RGTC1)},
    {"BC5_SIGN"     , true ,  1,  8,   8, 8, 0, 0,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC5_SNORM     , GL_COMPRESSED_SIGNED_RG_RGTC2 )},
+
+   {"ETC2_R8"       , true ,  1,  4,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_R11_EAC)},
+   {"ETC2_R8_SIGN"  , true ,  1,  4,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SIGNED_R11_EAC)},
+   {"ETC2_R8G8"     , true ,  1,  8,   8, 8, 0, 0,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_RG11_EAC)},
+   {"ETC2_R8G8_SIGN", true ,  1,  8,   8, 8, 0, 0,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SIGNED_RG11_EAC)},
+
    {"R8G8B8A8_SIGN", false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_R8G8B8A8_SNORM, GL_RGBA8_SNORM)},
    {"R8G8_SIGN"    , false,  2, 16,   8, 8, 0, 0,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_R8G8_SNORM    , GL_RG8_SNORM  )},
    {"R8_SIGN"      , false,  1,  8,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_R8_SNORM      , GL_R8_SNORM   )},
@@ -146,7 +152,7 @@ ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have the sa
 
    {"R11G11B10F"   , false,  4, 32,  11,11,10, 0,   0,0, 3, IMAGE_PRECISION_10, 0, GPU_API(DXGI_FORMAT_R11G11B10_FLOAT   , GL_R11F_G11F_B10F)},
    {"R9G9B9E5F"    , false,  4, 32,  14,14,14, 0,   0,0, 3, IMAGE_PRECISION_10, 0, GPU_API(DXGI_FORMAT_R9G9B9E5_SHAREDEXP, GL_RGB9_E5)},
-}; ASSERT(IMAGE_ALL_TYPES==68);
+}; ASSERT(IMAGE_ALL_TYPES==72);
 /******************************************************************************/
 Bool IsSRGB(IMAGE_TYPE type)
 {
@@ -182,7 +188,8 @@ IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type)
 
       case IMAGE_R8G8B8:
       case IMAGE_R8G8  :
-      case IMAGE_R8    : return IMAGE_R8G8B8A8;
+      case IMAGE_R8    :
+         return IMAGE_R8G8B8A8;
 
       case IMAGE_B8G8R8_SRGB: return IMAGE_B8G8R8A8_SRGB;
 
@@ -192,33 +199,43 @@ IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type)
       case IMAGE_I8 :
       case IMAGE_I16:
       case IMAGE_I24:
-      case IMAGE_I32: return IMAGE_L8A8;
+      case IMAGE_I32:
+         return IMAGE_L8A8;
 
       case IMAGE_L8_SRGB: return IMAGE_L8A8_SRGB;
 
       case IMAGE_BC1     : case IMAGE_BC4: case IMAGE_BC5: return IMAGE_BC7     ; // BC1 has only 1-bit alpha which is not enough
       case IMAGE_BC1_SRGB:                                 return IMAGE_BC7_SRGB; // BC1 has only 1-bit alpha which is not enough
 
-      case IMAGE_BC4_SIGN:
-      case IMAGE_BC5_SIGN: return IMAGE_R8G8B8A8_SIGN;
+      case IMAGE_BC4_SIGN      :
+      case IMAGE_BC5_SIGN      :
+      case IMAGE_ETC2_R8_SIGN  :
+      case IMAGE_ETC2_R8G8_SIGN:
+         return IMAGE_R8G8B8A8_SIGN;
 
       case IMAGE_BC6  :
       case IMAGE_F16  :
       case IMAGE_F16_2:
-      case IMAGE_F16_3: return IMAGE_F16_4;
+      case IMAGE_F16_3:
+         return IMAGE_F16_4;
 
       case IMAGE_F32  :
       case IMAGE_F32_2:
-      case IMAGE_F32_3: return IMAGE_F32_4;
+      case IMAGE_F32_3:
+         return IMAGE_F32_4;
 
       case IMAGE_F32_3_SRGB: return IMAGE_F32_4_SRGB;
 
-      case IMAGE_ETC1   :
-      case IMAGE_ETC2   :
-      case IMAGE_ETC2_A1: return IMAGE_ETC2_A8; // ETC2_A1 has only 1-bit alpha which is not enough
+      case IMAGE_ETC1     :
+      case IMAGE_ETC2     :
+      case IMAGE_ETC2_A1  : // ETC2_A1 has only 1-bit alpha which is not enough
+      case IMAGE_ETC2_R8  :
+      case IMAGE_ETC2_R8G8:
+         return IMAGE_ETC2_A8;
 
       case IMAGE_ETC2_SRGB   :
-      case IMAGE_ETC2_A1_SRGB: return IMAGE_ETC2_A8_SRGB; // ETC2_A1_SRGB has only 1-bit alpha which is not enough
+      case IMAGE_ETC2_A1_SRGB:
+         return IMAGE_ETC2_A8_SRGB; // ETC2_A1_SRGB has only 1-bit alpha which is not enough
    }
 }
 IMAGE_TYPE ImageTypeExcludeAlpha(IMAGE_TYPE type)
@@ -239,11 +256,13 @@ IMAGE_TYPE ImageTypeExcludeAlpha(IMAGE_TYPE type)
 
       case IMAGE_BC2:
       case IMAGE_BC3:
-      case IMAGE_BC7: return IMAGE_BC1;
+      case IMAGE_BC7:
+         return IMAGE_BC1;
 
       case IMAGE_BC2_SRGB:
       case IMAGE_BC3_SRGB:
-      case IMAGE_BC7_SRGB: return IMAGE_BC1_SRGB;
+      case IMAGE_BC7_SRGB:
+         return IMAGE_BC1_SRGB;
 
       case IMAGE_F16_4: return IMAGE_F16_3;
       case IMAGE_F32_4: return IMAGE_F32_3;
@@ -251,10 +270,12 @@ IMAGE_TYPE ImageTypeExcludeAlpha(IMAGE_TYPE type)
       case IMAGE_F32_4_SRGB: return IMAGE_F32_3_SRGB;
 
       case IMAGE_ETC2_A1:
-      case IMAGE_ETC2_A8: return IMAGE_ETC2;
+      case IMAGE_ETC2_A8:
+         return IMAGE_ETC2;
 
       case IMAGE_ETC2_A1_SRGB:
-      case IMAGE_ETC2_A8_SRGB: return IMAGE_ETC2_SRGB;
+      case IMAGE_ETC2_A8_SRGB:
+         return IMAGE_ETC2_SRGB;
    }
 }
 IMAGE_TYPE ImageTypeUncompressed(IMAGE_TYPE type)
@@ -263,16 +284,20 @@ IMAGE_TYPE ImageTypeUncompressed(IMAGE_TYPE type)
    {
       default: return type;
 
-      case IMAGE_BC4:
+      case IMAGE_BC4    :
+      case IMAGE_ETC2_R8:
          return IMAGE_R8;
 
-      case IMAGE_BC5:
+      case IMAGE_BC5      :
+      case IMAGE_ETC2_R8G8:
          return IMAGE_R8G8;
 
-      case IMAGE_BC4_SIGN:
+      case IMAGE_BC4_SIGN    :
+      case IMAGE_ETC2_R8_SIGN:
          return IMAGE_R8_SIGN;
 
-      case IMAGE_BC5_SIGN:
+      case IMAGE_BC5_SIGN      :
+      case IMAGE_ETC2_R8G8_SIGN:
          return IMAGE_R8G8_SIGN;
 
       case IMAGE_BC1 : // use since there's no other desktop compressed format without alpha
@@ -337,16 +362,20 @@ IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type) // this is for HW images, don't retu
       case IMAGE_F32_3_SRGB: return IMAGE_F32_3;
       case IMAGE_F32_4_SRGB: return IMAGE_F32_4;
 
-      case IMAGE_BC4:
+      case IMAGE_BC4    :
+      case IMAGE_ETC2_R8:
          return IMAGE_R8;
 
-      case IMAGE_BC5:
+      case IMAGE_BC5      :
+      case IMAGE_ETC2_R8G8:
          return IMAGE_R8G8;
 
-      case IMAGE_BC4_SIGN:
+      case IMAGE_BC4_SIGN    :
+      case IMAGE_ETC2_R8_SIGN:
          return IMAGE_R8_SIGN;
 
-      case IMAGE_BC5_SIGN:
+      case IMAGE_BC5_SIGN      :
+      case IMAGE_ETC2_R8G8_SIGN:
          return IMAGE_R8G8_SIGN;
 
       case IMAGE_BC6:
@@ -1521,21 +1550,29 @@ static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'des
       case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB:
          return DecompressPVRTC(src, dest);
 
-      case IMAGE_BC1    : case IMAGE_BC1_SRGB    : decompress_block       =DecompressBlockBC1   ; decompress_block_pitch       =DecompressBlockBC1   ; break;
-      case IMAGE_BC2    : case IMAGE_BC2_SRGB    : decompress_block       =DecompressBlockBC2   ; decompress_block_pitch       =DecompressBlockBC2   ; break;
-      case IMAGE_BC3    : case IMAGE_BC3_SRGB    : decompress_block       =DecompressBlockBC3   ; decompress_block_pitch       =DecompressBlockBC3   ; break;
-      case IMAGE_BC4    :                          decompress_block       =DecompressBlockBC4   ; decompress_block_pitch       =DecompressBlockBC4   ; break;
-                          case IMAGE_BC4_SIGN    : decompress_block_SByte =DecompressBlockBC4S  ; decompress_block_pitch_SByte =DecompressBlockBC4S  ; break;
-      case IMAGE_BC5    :                          decompress_block       =DecompressBlockBC5   ; decompress_block_pitch       =DecompressBlockBC5   ; break;
-                          case IMAGE_BC5_SIGN    : decompress_block_VecSB2=DecompressBlockBC5S  ; decompress_block_pitch_VecSB2=DecompressBlockBC5S  ; break;
-      case IMAGE_BC6    :                          decompress_block_VecH  =DecompressBlockBC6   ; decompress_block_pitch_VecH  =DecompressBlockBC6   ; break;
-      case IMAGE_BC7    : case IMAGE_BC7_SRGB    : decompress_block       =DecompressBlockBC7   ; decompress_block_pitch       =DecompressBlockBC7   ; break;
-      case IMAGE_ETC1   :                          decompress_block       =DecompressBlockETC1  ; decompress_block_pitch       =DecompressBlockETC1  ; break;
-      case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   : decompress_block       =DecompressBlockETC2  ; decompress_block_pitch       =DecompressBlockETC2  ; break;
-      case IMAGE_ETC2_A1: case IMAGE_ETC2_A1_SRGB: decompress_block       =DecompressBlockETC2A1; decompress_block_pitch       =DecompressBlockETC2A1; break;
-      case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB: decompress_block       =DecompressBlockETC2A8; decompress_block_pitch       =DecompressBlockETC2A8; break;
+      case IMAGE_BC1           : case IMAGE_BC1_SRGB    : decompress_block       =DecompressBlockBC1    ; decompress_block_pitch       =DecompressBlockBC1    ; break;
+      case IMAGE_BC2           : case IMAGE_BC2_SRGB    : decompress_block       =DecompressBlockBC2    ; decompress_block_pitch       =DecompressBlockBC2    ; break;
+      case IMAGE_BC3           : case IMAGE_BC3_SRGB    : decompress_block       =DecompressBlockBC3    ; decompress_block_pitch       =DecompressBlockBC3    ; break;
+      case IMAGE_BC4           :                          decompress_block       =DecompressBlockBC4    ; decompress_block_pitch       =DecompressBlockBC4    ; break;
+      case IMAGE_BC4_SIGN      :                          decompress_block_SByte =DecompressBlockBC4S   ; decompress_block_pitch_SByte =DecompressBlockBC4S   ; break;
+      case IMAGE_BC5           :                          decompress_block       =DecompressBlockBC5    ; decompress_block_pitch       =DecompressBlockBC5    ; break;
+      case IMAGE_BC5_SIGN      :                          decompress_block_VecSB2=DecompressBlockBC5S   ; decompress_block_pitch_VecSB2=DecompressBlockBC5S   ; break;
+      case IMAGE_BC6           :                          decompress_block_VecH  =DecompressBlockBC6    ; decompress_block_pitch_VecH  =DecompressBlockBC6    ; break;
+      case IMAGE_BC7           : case IMAGE_BC7_SRGB    : decompress_block       =DecompressBlockBC7    ; decompress_block_pitch       =DecompressBlockBC7    ; break;
+      case IMAGE_ETC1          :                          decompress_block       =DecompressBlockETC1   ; decompress_block_pitch       =DecompressBlockETC1   ; break;
+      case IMAGE_ETC2          : case IMAGE_ETC2_SRGB   : decompress_block       =DecompressBlockETC2   ; decompress_block_pitch       =DecompressBlockETC2   ; break;
+      case IMAGE_ETC2_A1       : case IMAGE_ETC2_A1_SRGB: decompress_block       =DecompressBlockETC2A1 ; decompress_block_pitch       =DecompressBlockETC2A1 ; break;
+      case IMAGE_ETC2_A8       : case IMAGE_ETC2_A8_SRGB: decompress_block       =DecompressBlockETC2A8 ; decompress_block_pitch       =DecompressBlockETC2A8 ; break;
+      case IMAGE_ETC2_R8       :                          decompress_block       =DecompressBlockETC2R  ; decompress_block_pitch       =DecompressBlockETC2R  ; break;
+      case IMAGE_ETC2_R8_SIGN  :                          decompress_block_SByte =DecompressBlockETC2RS ; decompress_block_pitch_SByte =DecompressBlockETC2RS ; break;
+      case IMAGE_ETC2_R8G8     :                          decompress_block       =DecompressBlockETC2RG ; decompress_block_pitch       =DecompressBlockETC2RG ; break;
+      case IMAGE_ETC2_R8G8_SIGN:                          decompress_block_VecSB2=DecompressBlockETC2RGS; decompress_block_pitch_VecSB2=DecompressBlockETC2RGS; break;
    }
-   if(dest.is() || dest.createTry(src.w(), src.h(), src.d(), (src.hwType()==IMAGE_BC6) ? IMAGE_F16_3 : (src.hwType()==IMAGE_BC4_SIGN) ? IMAGE_R8_SIGN : (src.hwType()==IMAGE_BC5_SIGN) ? IMAGE_R8G8_SIGN : src.sRGB() ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, src.cube() ? IMAGE_SOFT_CUBE : IMAGE_SOFT, src.mipMaps())) // use 'IMAGE_R8G8B8A8' because Decompress Block functions operate on 'Color'
+   if(dest.is() || dest.createTry(src.w(), src.h(), src.d(), decompress_block        ? (src.sRGB() ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8) // use 'IMAGE_R8G8B8A8'  because Decompress Block functions operate on 'Color'
+                                                           : decompress_block_SByte  ?               IMAGE_R8_SIGN                         // use 'IMAGE_R8_SIGN'   because Decompress Block functions operate on 'SByte'
+                                                           : decompress_block_VecSB2 ?               IMAGE_R8G8_SIGN                       // use 'IMAGE_R8G8_SIGN' because Decompress Block functions operate on 'VecSB2'
+                                                           : decompress_block_VecH   ?               IMAGE_F16_3                           // use 'IMAGE_F16_3'     because Decompress Block functions operate on 'VecH'
+                                                           :                                         IMAGE_NONE, src.cube() ? IMAGE_SOFT_CUBE : IMAGE_SOFT, src.mipMaps()))
       if(dest.size3()==src.size3())
    {
       Int src_faces1=src.faces()-1,
@@ -1757,15 +1794,20 @@ static Bool Compress(C Image &src, Image &dest, Bool mtrl_base_1=false) // assum
          return CompressBC(src, dest, mtrl_base_1);
 
       case IMAGE_BC6:
-      case IMAGE_BC7: case IMAGE_BC7_SRGB: DEBUG_ASSERT(CompressBC67, "'SupportCompressBC/SupportCompressAll' was not called"); return CompressBC67 ? CompressBC67(src, dest) : false;
+      case IMAGE_BC7: case IMAGE_BC7_SRGB:
+         DEBUG_ASSERT(CompressBC67, "'SupportCompressBC/SupportCompressAll' was not called"); return CompressBC67 ? CompressBC67(src, dest) : false;
 
-      case IMAGE_ETC1   :
-      case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   :
-      case IMAGE_ETC2_A1: case IMAGE_ETC2_A1_SRGB:
-      case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB: DEBUG_ASSERT(CompressETC, "'SupportCompressETC/SupportCompressAll' was not called"); return CompressETC ? CompressETC(src, dest, -1, mtrl_base_1 ? false : true) : false;
+      case IMAGE_ETC1     :
+      case IMAGE_ETC2     : case IMAGE_ETC2_SRGB     :
+      case IMAGE_ETC2_A1  : case IMAGE_ETC2_A1_SRGB  :
+      case IMAGE_ETC2_A8  : case IMAGE_ETC2_A8_SRGB  :
+      case IMAGE_ETC2_R8  : case IMAGE_ETC2_R8_SIGN  :
+      case IMAGE_ETC2_R8G8: case IMAGE_ETC2_R8G8_SIGN:
+         DEBUG_ASSERT(CompressETC, "'SupportCompressETC/SupportCompressAll' was not called"); return CompressETC ? CompressETC(src, dest, -1, mtrl_base_1 ? false : true) : false;
 
       case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB:
-      case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB: DEBUG_ASSERT(CompressPVRTC, "'SupportCompressPVRTC/SupportCompressAll' was not called"); return CompressPVRTC ? CompressPVRTC(src, dest, -1) : false;
+      case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB:
+         DEBUG_ASSERT(CompressPVRTC, "'SupportCompressPVRTC/SupportCompressAll' was not called"); return CompressPVRTC ? CompressPVRTC(src, dest, -1) : false;
    }
    return false;
 }

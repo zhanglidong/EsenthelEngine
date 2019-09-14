@@ -393,37 +393,45 @@ void Image::pixel3DF(Int x, Int y, Int z, Flt pixel)
 /******************************************************************************/
 static Color DecompressPixel(C Image &image, Int x, Int y)
 {
+   Int   x3=x&3, y3=y&3;
+ C Byte *data=image.data() + (y>>2)*image.pitch();
    switch(image.hwType())
    {
-      // BC4_SIGN, BC5_SIGN, BC6 handled elsewhere
-      case IMAGE_BC1    : case IMAGE_BC1_SRGB    : return DecompressPixelBC1   (image.data() + (x>>2)* 8 + (y>>2)*image.pitch(), x&3, y&3);
-      case IMAGE_BC2    : case IMAGE_BC2_SRGB    : return DecompressPixelBC2   (image.data() + (x>>2)*16 + (y>>2)*image.pitch(), x&3, y&3);
-      case IMAGE_BC3    : case IMAGE_BC3_SRGB    : return DecompressPixelBC3   (image.data() + (x>>2)*16 + (y>>2)*image.pitch(), x&3, y&3);
-      case IMAGE_BC4    :                          return DecompressPixelBC4   (image.data() + (x>>2)* 8 + (y>>2)*image.pitch(), x&3, y&3);
-      case IMAGE_BC5    :                          return DecompressPixelBC5   (image.data() + (x>>2)*16 + (y>>2)*image.pitch(), x&3, y&3);
-      case IMAGE_BC7    : case IMAGE_BC7_SRGB    : return DecompressPixelBC7   (image.data() + (x>>2)*16 + (y>>2)*image.pitch(), x&3, y&3);
-      case IMAGE_ETC1   :                          return DecompressPixelETC1  (image.data() + (x>>2)* 8 + (y>>2)*image.pitch(), x&3, y&3);
-      case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   : return DecompressPixelETC2  (image.data() + (x>>2)* 8 + (y>>2)*image.pitch(), x&3, y&3);
-      case IMAGE_ETC2_A1: case IMAGE_ETC2_A1_SRGB: return DecompressPixelETC2A1(image.data() + (x>>2)* 8 + (y>>2)*image.pitch(), x&3, y&3);
-      case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB: return DecompressPixelETC2A8(image.data() + (x>>2)*16 + (y>>2)*image.pitch(), x&3, y&3);
+      // IMAGE_BC4_SIGN, IMAGE_BC5_SIGN, IMAGE_BC6, IMAGE_ETC2_R8_SIGN, IMAGE_ETC2_R8G8_SIGN, handled elsewhere
+      case IMAGE_BC1      : case IMAGE_BC1_SRGB    : return DecompressPixelBC1   (data + (x>>2)* 8, x3, y3);
+      case IMAGE_BC2      : case IMAGE_BC2_SRGB    : return DecompressPixelBC2   (data + (x>>2)*16, x3, y3);
+      case IMAGE_BC3      : case IMAGE_BC3_SRGB    : return DecompressPixelBC3   (data + (x>>2)*16, x3, y3);
+      case IMAGE_BC4      :                          return DecompressPixelBC4   (data + (x>>2)* 8, x3, y3);
+      case IMAGE_BC5      :                          return DecompressPixelBC5   (data + (x>>2)*16, x3, y3);
+      case IMAGE_BC7      : case IMAGE_BC7_SRGB    : return DecompressPixelBC7   (data + (x>>2)*16, x3, y3);
+      case IMAGE_ETC1     :                          return DecompressPixelETC1  (data + (x>>2)* 8, x3, y3);
+      case IMAGE_ETC2     : case IMAGE_ETC2_SRGB   : return DecompressPixelETC2  (data + (x>>2)* 8, x3, y3);
+      case IMAGE_ETC2_A1  : case IMAGE_ETC2_A1_SRGB: return DecompressPixelETC2A1(data + (x>>2)* 8, x3, y3);
+      case IMAGE_ETC2_A8  : case IMAGE_ETC2_A8_SRGB: return DecompressPixelETC2A8(data + (x>>2)*16, x3, y3);
+      case IMAGE_ETC2_R8  :                          return DecompressPixelETC2R (data + (x>>2)* 8, x3, y3);
+      case IMAGE_ETC2_R8G8:                          return DecompressPixelETC2RG(data + (x>>2)*16, x3, y3);
    }
    return TRANSPARENT;
 }
 static Color DecompressPixel(C Image &image, Int x, Int y, Int z)
 {
+   Int   x3=x&3, y3=y&3;
+ C Byte *data=image.data() + (y>>2)*image.pitch() + z*image.pitch2();
    switch(image.hwType())
    {
-      // BC4_SIGN, BC5_SIGN, BC6 handled elsewhere
-      case IMAGE_BC1    : case IMAGE_BC1_SRGB    : return DecompressPixelBC1   (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
-      case IMAGE_BC2    : case IMAGE_BC2_SRGB    : return DecompressPixelBC2   (image.data() + (x>>2)*16 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
-      case IMAGE_BC3    : case IMAGE_BC3_SRGB    : return DecompressPixelBC3   (image.data() + (x>>2)*16 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
-      case IMAGE_BC4    :                          return DecompressPixelBC4   (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
-      case IMAGE_BC5    :                          return DecompressPixelBC5   (image.data() + (x>>2)*16 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
-      case IMAGE_BC7    : case IMAGE_BC7_SRGB    : return DecompressPixelBC7   (image.data() + (x>>2)*16 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
-      case IMAGE_ETC1   :                          return DecompressPixelETC1  (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
-      case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   : return DecompressPixelETC2  (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
-      case IMAGE_ETC2_A1: case IMAGE_ETC2_A1_SRGB: return DecompressPixelETC2A1(image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
-      case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB: return DecompressPixelETC2A8(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + z*image.pitch2(), x&3, y&3);
+      // IMAGE_BC4_SIGN, IMAGE_BC5_SIGN, IMAGE_BC6, IMAGE_ETC2_R8_SIGN, IMAGE_ETC2_R8G8_SIGN, handled elsewhere
+      case IMAGE_BC1      : case IMAGE_BC1_SRGB    : return DecompressPixelBC1   (data + (x>>2)* 8, x3, y3);
+      case IMAGE_BC2      : case IMAGE_BC2_SRGB    : return DecompressPixelBC2   (data + (x>>2)*16, x3, y3);
+      case IMAGE_BC3      : case IMAGE_BC3_SRGB    : return DecompressPixelBC3   (data + (x>>2)*16, x3, y3);
+      case IMAGE_BC4      :                          return DecompressPixelBC4   (data + (x>>2)* 8, x3, y3);
+      case IMAGE_BC5      :                          return DecompressPixelBC5   (data + (x>>2)*16, x3, y3);
+      case IMAGE_BC7      : case IMAGE_BC7_SRGB    : return DecompressPixelBC7   (data + (x>>2)*16, x3, y3);
+      case IMAGE_ETC1     :                          return DecompressPixelETC1  (data + (x>>2)* 8, x3, y3);
+      case IMAGE_ETC2     : case IMAGE_ETC2_SRGB   : return DecompressPixelETC2  (data + (x>>2)* 8, x3, y3);
+      case IMAGE_ETC2_A1  : case IMAGE_ETC2_A1_SRGB: return DecompressPixelETC2A1(data + (x>>2)* 8, x3, y3);
+      case IMAGE_ETC2_A8  : case IMAGE_ETC2_A8_SRGB: return DecompressPixelETC2A8(data + (x>>2)*16, x3, y3);
+      case IMAGE_ETC2_R8  :                          return DecompressPixelETC2R (data + (x>>2)* 8, x3, y3);
+      case IMAGE_ETC2_R8G8:                          return DecompressPixelETC2RG(data + (x>>2)*16, x3, y3);
    }
    return TRANSPARENT;
 }
@@ -488,6 +496,9 @@ static inline Flt GetPixelF(C Byte *data, C Image &image, Bool _2d, Int x, Int y
 
       case IMAGE_BC4_SIGN: return SByteToSFlt(DecompressPixelBC4S(image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3));
       case IMAGE_BC5_SIGN: return SByteToSFlt(DecompressPixelBC4S(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3)); // can use 'DecompressPixelBC4S' because BC5 is made of 2xBC4
+
+      case IMAGE_ETC2_R8_SIGN  : return SByteToSFlt(DecompressPixelETC2RS(image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3));
+      case IMAGE_ETC2_R8G8_SIGN: return SByteToSFlt(DecompressPixelETC2RS(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3)); // can use 'DecompressPixelETC2RS' because ETC2_R8G8 is made of 2xETC2_R8
 
       case IMAGE_BC1    : case IMAGE_BC1_SRGB    :
       case IMAGE_BC2    : case IMAGE_BC2_SRGB    :
@@ -557,6 +568,9 @@ static inline Color GetColor(C Byte *data, C Image &image, Bool _2d, Int x, Int 
 
       case IMAGE_BC4_SIGN: {SByte  p=DecompressPixelBC4S(image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Color(SByteToByte(p  ),                0, 0, 255);}
       case IMAGE_BC5_SIGN: {VecSB2 p=DecompressPixelBC5S(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Color(SByteToByte(p.x), SByteToByte(p.y), 0, 255);}
+
+      case IMAGE_ETC2_R8_SIGN  : {SByte  p=DecompressPixelETC2RS (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Color(SByteToByte(p  ),                0, 0, 255);}
+      case IMAGE_ETC2_R8G8_SIGN: {VecSB2 p=DecompressPixelETC2RGS(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Color(SByteToByte(p.x), SByteToByte(p.y), 0, 255);}
 
       case IMAGE_BC1    : case IMAGE_BC1_SRGB    :
       case IMAGE_BC2    : case IMAGE_BC2_SRGB    :
@@ -1115,6 +1129,9 @@ static inline Vec4 GetColorF(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
       case IMAGE_BC4_SIGN: {SByte  p=DecompressPixelBC4S(image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SByteToSFlt(p  ),                0, 0, 1);}
       case IMAGE_BC5_SIGN: {VecSB2 p=DecompressPixelBC5S(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SByteToSFlt(p.x), SByteToSFlt(p.y), 0, 1);}
 
+      case IMAGE_ETC2_R8_SIGN  : {SByte  p=DecompressPixelETC2RS (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SByteToSFlt(p  ),                0, 0, 1);}
+      case IMAGE_ETC2_R8G8_SIGN: {VecSB2 p=DecompressPixelETC2RGS(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SByteToSFlt(p.x), SByteToSFlt(p.y), 0, 1);}
+
       case IMAGE_BC1    : case IMAGE_BC1_SRGB    :
       case IMAGE_BC2    : case IMAGE_BC2_SRGB    :
       case IMAGE_BC3    : case IMAGE_BC3_SRGB    :
@@ -1283,6 +1300,9 @@ static inline Vec4 GetColorL(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
       case IMAGE_BC4_SIGN: {SByte  p=DecompressPixelBC4S(image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SByteToSFlt(p  ),                0, 0, 1);}
       case IMAGE_BC5_SIGN: {VecSB2 p=DecompressPixelBC5S(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SByteToSFlt(p.x), SByteToSFlt(p.y), 0, 1);}
 
+      case IMAGE_ETC2_R8_SIGN  : {SByte  p=DecompressPixelETC2RS (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SByteToSFlt(p  ),                0, 0, 1);}
+      case IMAGE_ETC2_R8G8_SIGN: {VecSB2 p=DecompressPixelETC2RGS(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SByteToSFlt(p.x), SByteToSFlt(p.y), 0, 1);}
+
       case IMAGE_BC1    :
       case IMAGE_BC2    :
       case IMAGE_BC3    :
@@ -1371,6 +1391,9 @@ static inline Vec4 GetColorS(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
 
       case IMAGE_BC4_SIGN: {SByte  p=DecompressPixelBC4S(image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SignLinearToSRGB(SByteToSFlt(p  )),                                  0, 0, 1);}
       case IMAGE_BC5_SIGN: {VecSB2 p=DecompressPixelBC5S(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SignLinearToSRGB(SByteToSFlt(p.x)), SignLinearToSRGB(SByteToSFlt(p.y)), 0, 1);}
+
+      case IMAGE_ETC2_R8_SIGN  : {SByte  p=DecompressPixelETC2RS (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SignLinearToSRGB(SByteToSFlt(p  )),                                  0, 0, 1);}
+      case IMAGE_ETC2_R8G8_SIGN: {VecSB2 p=DecompressPixelETC2RGS(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SignLinearToSRGB(SByteToSFlt(p.x)), SignLinearToSRGB(SByteToSFlt(p.y)), 0, 1);}
 
       case IMAGE_BC1    :
       case IMAGE_BC2    :
@@ -3502,6 +3525,91 @@ void Image::gather(Color *colors, Int *x_offset, Int x_offsets, Int *y_offset, I
    }
 }
 /******************************************************************************/
+void Image::gather(Vec2 *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C
+{
+   switch(hwType())
+   {
+      case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: FREPD(y, y_offsets)
+      {
+       C Color *color=(Color*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; (colors++)->set(ByteToFlt(src.b), ByteToFlt(src.g));}
+      }break;
+
+      case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: FREPD(y, y_offsets)
+      {
+       C Color *color=(Color*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets){C Color &src=color[x_offset[x]]; (colors++)->set(ByteToFlt(src.r), ByteToFlt(src.g));}
+      }break;
+
+      case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB: FREPD(y, y_offsets)
+      {
+       C VecB *color=(VecB*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets){C VecB &src=color[x_offset[x]]; (colors++)->set(ByteToFlt(src.x), ByteToFlt(src.y));}
+      }break;
+
+      case IMAGE_R8G8: FREPD(y, y_offsets)
+      {
+       C VecB2 *color=(VecB2*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets){C VecB2 &src=color[x_offset[x]]; (colors++)->set(ByteToFlt(src.x), ByteToFlt(src.y));}
+      }break;
+
+      case IMAGE_R8: case IMAGE_I8: FREPD(y, y_offsets)
+      {
+       C Byte *color=(Byte*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets){C Byte &src=color[x_offset[x]]; (colors++)->set(ByteToFlt(src), 0);}
+      }break;
+
+      // signed
+      case IMAGE_R8G8B8A8_SIGN: FREPD(y, y_offsets)
+      {
+       C VecSB4 *color=(VecSB4*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets){C VecSB4 &src=color[x_offset[x]]; (colors++)->set(SByteToSFlt(src.x), SByteToSFlt(src.y));}
+      }break;
+
+      case IMAGE_R8G8_SIGN: FREPD(y, y_offsets)
+      {
+       C VecSB2 *color=(VecSB2*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets){C VecSB2 &src=color[x_offset[x]]; (colors++)->set(SByteToSFlt(src.x), SByteToSFlt(src.y));}
+      }break;
+
+      case IMAGE_R8_SIGN: FREPD(y, y_offsets)
+      {
+       C SByte *color=(SByte*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets){C SByte &src=color[x_offset[x]]; (colors++)->set(SByteToSFlt(src), 0);}
+      }break;
+
+      // Flt
+      case IMAGE_F32_4: case IMAGE_F32_4_SRGB: FREPD(y, y_offsets)
+      {
+       C Vec4 *color=(Vec4*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets)*colors++=color[x_offset[x]].xy;
+      }break;
+
+      case IMAGE_F32_3: case IMAGE_F32_3_SRGB: FREPD(y, y_offsets)
+      {
+       C Vec *color=(Vec*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets)*colors++=color[x_offset[x]].xy;
+      }break;
+
+      case IMAGE_F32_2: FREPD(y, y_offsets)
+      {
+       C Vec2 *color=(Vec2*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets)*colors++=color[x_offset[x]];
+      }break;
+
+      case IMAGE_F32: FREPD(y, y_offsets)
+      {
+       C Flt *color=(Flt*)(data()+y_offset[y]*pitch());
+         FREPD(x, x_offsets)(colors++)->set(color[x_offset[x]], 0);
+      }break;
+
+      default:
+      {
+         FREPD(y, y_offsets)
+         FREPD(x, x_offsets)*colors++=colorF(x_offset[x], y_offset[y]).xy;
+      }break;
+   }
+}
 void Image::gather(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C
 {
    switch(hwType())
@@ -3866,6 +3974,129 @@ void Image::gather(Color *colors, Int *x_offset, Int x_offsets, Int *y_offset, I
          FREPD(z, z_offsets)
          FREPD(y, y_offsets)
          FREPD(x, x_offsets)*colors++=color3D(x_offset[x], y_offset[y], z_offset[z]);
+      }break;
+   }
+}
+/******************************************************************************/
+void Image::gather(Vec2 *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C
+{
+   switch(hwType())
+   {
+      case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Color *color_y=(Color*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets){C Color &src=color_y[x_offset[x]]; (colors++)->set(ByteToFlt(src.b), ByteToFlt(src.g));}
+         }
+      }break;
+
+      case IMAGE_R8G8B8A8: case IMAGE_R8G8B8A8_SRGB: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Color *color_y=(Color*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets){C Color &src=color_y[x_offset[x]]; (colors++)->set(ByteToFlt(src.r), ByteToFlt(src.g));}
+         }
+      }break;
+
+      case IMAGE_R8G8B8: case IMAGE_R8G8B8_SRGB: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C VecB *color_y=(VecB*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets){C VecB &src=color_y[x_offset[x]]; (colors++)->set(ByteToFlt(src.x), ByteToFlt(src.y));}
+         }
+      }break;
+
+      case IMAGE_R8G8: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C VecB2 *color_y=(VecB2*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets){C VecB2 &src=color_y[x_offset[x]]; (colors++)->set(ByteToFlt(src.x), ByteToFlt(src.y));}
+         }
+      }break;
+
+      case IMAGE_R8: case IMAGE_I8: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Byte *color_y=(Byte*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets){C Byte &src=color_y[x_offset[x]]; (colors++)->set(ByteToFlt(src), 0);}
+         }
+      }break;
+
+      // signed
+      case IMAGE_R8G8B8A8_SIGN: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C VecSB4 *color_y=(VecSB4*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets){C VecSB4 &src=color_y[x_offset[x]]; (colors++)->set(SByteToSFlt(src.x), SByteToSFlt(src.y));}
+         }
+      }break;
+
+      case IMAGE_R8G8_SIGN: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C VecSB2 *color_y=(VecSB2*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets){C VecSB2 &src=color_y[x_offset[x]]; (colors++)->set(SByteToSFlt(src.x), SByteToSFlt(src.y));}
+         }
+      }break;
+
+      case IMAGE_R8_SIGN: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C SByte *color_y=(SByte*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets){C SByte &src=color_y[x_offset[x]]; (colors++)->set(SByteToSFlt(src), 0);}
+         }
+      }break;
+
+      // Flt
+      case IMAGE_F32_4: case IMAGE_F32_4_SRGB: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Vec4 *color_y=(Vec4*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets)*colors++=color_y[x_offset[x]].xy;
+         }
+      }break;
+
+      case IMAGE_F32_3: case IMAGE_F32_3_SRGB: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Vec *color_y=(Vec*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets)*colors++=color_y[x_offset[x]].xy;
+         }
+      }break;
+
+      case IMAGE_F32_2: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Vec2 *color_y=(Vec2*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets)*colors++=color_y[x_offset[x]];
+         }
+      }break;
+
+      case IMAGE_F32: FREPD(z, z_offsets)
+      {
+       C Byte *data_z=data()+z_offset[z]*pitch2(); FREPD(y, y_offsets)
+         {
+          C Flt *color_y=(Flt*)(data_z+y_offset[y]*pitch());
+            FREPD(x, x_offsets)(colors++)->set(color_y[x_offset[x]], 0);
+         }
+      }break;
+
+      default:
+      {
+         FREPD(z, z_offsets)
+         FREPD(y, y_offsets)
+         FREPD(x, x_offsets)*colors++=color3DF(x_offset[x], y_offset[y], z_offset[z]).xy;
       }break;
    }
 }
