@@ -66,8 +66,8 @@ namespace EE{
 Bool _CompressETC(C Image &src, Image &dest, Int quality, Bool perceptual)
 {
    Bool etc1=(dest.hwType()==IMAGE_ETC1);
-   if(etc1 || dest.hwType()==IMAGE_ETC2      || dest.hwType()==IMAGE_ETC2_A1      || dest.hwType()==IMAGE_ETC2_A8      || dest.hwType()==IMAGE_ETC2_R8      || dest.hwType()==IMAGE_ETC2_R8G8
-           || dest.hwType()==IMAGE_ETC2_SRGB || dest.hwType()==IMAGE_ETC2_A1_SRGB || dest.hwType()==IMAGE_ETC2_A8_SRGB || dest.hwType()==IMAGE_ETC2_R8_SIGN || dest.hwType()==IMAGE_ETC2_R8G8_SIGN)
+   if(etc1 || dest.hwType()==IMAGE_ETC2_R      || dest.hwType()==IMAGE_ETC2_RG      || dest.hwType()==IMAGE_ETC2_RGB      || dest.hwType()==IMAGE_ETC2_RGBA1      || dest.hwType()==IMAGE_ETC2_RGBA
+           || dest.hwType()==IMAGE_ETC2_R_SIGN || dest.hwType()==IMAGE_ETC2_RG_SIGN || dest.hwType()==IMAGE_ETC2_RGB_SRGB || dest.hwType()==IMAGE_ETC2_RGBA1_SRGB || dest.hwType()==IMAGE_ETC2_RGBA_SRGB)
  //if(dest.size3()==src.size3()) this check is not needed because the code below supports different sizes
    {
    #if ETC1_ENC==ETC_LIB_ISPC // ISPC
@@ -205,7 +205,33 @@ Bool _CompressETC(C Image &src, Image &dest, Int quality, Bool perceptual)
                            #endif
                            }break;
 
-                           case IMAGE_ETC2: case IMAGE_ETC2_SRGB: s->gather(&rgb[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1); switch(quality)
+                           case IMAGE_ETC2_R:
+                           {
+                              s->gather(&rg[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
+                              U16 src[4*4]; REPAO(src)=FltToU16(rg[0][i].x); ETCPACK::compressBlockAlpha16(src, (Byte*)d, false);
+                           }goto no_swap;
+
+                           case IMAGE_ETC2_R_SIGN:
+                           {
+                              s->gather(&rg[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
+                              U16 src[4*4]; REPAO(src)=SFltToShort(rg[0][i].x)+32768; ETCPACK::compressBlockAlpha16(src, (Byte*)d, true);
+                           }goto no_swap;
+
+                           case IMAGE_ETC2_RG:
+                           {
+                              s->gather(&rg[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
+                              U16 src[4*4]; REPAO(src)=FltToU16(rg[0][i].x); ETCPACK::compressBlockAlpha16(src, (Byte*)d  , false);
+                                            REPAO(src)=FltToU16(rg[0][i].y); ETCPACK::compressBlockAlpha16(src, (Byte*)d+8, false);
+                           }goto no_swap;
+
+                           case IMAGE_ETC2_RG_SIGN:
+                           {
+                              s->gather(&rg[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
+                              U16 src[4*4]; REPAO(src)=SFltToShort(rg[0][i].x)+32768; ETCPACK::compressBlockAlpha16(src, (Byte*)d  , true);
+                                            REPAO(src)=SFltToShort(rg[0][i].y)+32768; ETCPACK::compressBlockAlpha16(src, (Byte*)d+8, true);
+                           }goto no_swap;
+
+                           case IMAGE_ETC2_RGB: case IMAGE_ETC2_RGB_SRGB: s->gather(&rgb[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1); switch(quality)
                            {
                               case 0: ETCPACK::compressBlockETC2Fast                (rgb[0][0].c, null, temp[0][0].c, 4, 4, 0, 0, d[0], d[1], ETCPACK::ETC2PACKAGE_RGB_NO_MIPMAPS); break;
                               case 1: ETCPACK::compressBlockETC2FastPerceptual      (rgb[0][0].c,       temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
@@ -215,7 +241,7 @@ Bool _CompressETC(C Image &src, Image &dest, Int quality, Bool perceptual)
                            #endif
                            }break;
 
-                           case IMAGE_ETC2_A1: case IMAGE_ETC2_A1_SRGB:
+                           case IMAGE_ETC2_RGBA1: case IMAGE_ETC2_RGBA1_SRGB:
                            {
                               s->gather(&rgba[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
                               REPD(y, 4)
@@ -227,7 +253,7 @@ Bool _CompressETC(C Image &src, Image &dest, Int quality, Bool perceptual)
                               ETCPACK::compressBlockETC2Fast(rgb[0][0].c, &a[0][0], temp[0][0].c, 4, 4, 0, 0, d[0], d[1], ETCPACK::ETC2PACKAGE_RGBA1_NO_MIPMAPS);
                            }break;
 
-                           case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB:
+                           case IMAGE_ETC2_RGBA: case IMAGE_ETC2_RGBA_SRGB:
                            {
                               s->gather(&rgba[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
                               REPD(y, 4)
@@ -255,32 +281,6 @@ Bool _CompressETC(C Image &src, Image &dest, Int quality, Bool perceptual)
                               #endif
                               }
                            }break;
-
-                           case IMAGE_ETC2_R8:
-                           {
-                              s->gather(&rg[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
-                              U16 src[4*4]; REPAO(src)=FltToU16(rg[0][i].x); ETCPACK::compressBlockAlpha16(src, (Byte*)d, false);
-                           }goto no_swap;
-
-                           case IMAGE_ETC2_R8G8:
-                           {
-                              s->gather(&rg[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
-                              U16 src[4*4]; REPAO(src)=FltToU16(rg[0][i].x); ETCPACK::compressBlockAlpha16(src, (Byte*)d  , false);
-                                            REPAO(src)=FltToU16(rg[0][i].y); ETCPACK::compressBlockAlpha16(src, (Byte*)d+8, false);
-                           }goto no_swap;
-
-                           case IMAGE_ETC2_R8_SIGN:
-                           {
-                              s->gather(&rg[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
-                              U16 src[4*4]; REPAO(src)=SFltToShort(rg[0][i].x)+32768; ETCPACK::compressBlockAlpha16(src, (Byte*)d, true);
-                           }goto no_swap;
-
-                           case IMAGE_ETC2_R8G8_SIGN:
-                           {
-                              s->gather(&rg[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
-                              U16 src[4*4]; REPAO(src)=SFltToShort(rg[0][i].x)+32768; ETCPACK::compressBlockAlpha16(src, (Byte*)d  , true);
-                                            REPAO(src)=SFltToShort(rg[0][i].y)+32768; ETCPACK::compressBlockAlpha16(src, (Byte*)d+8, true);
-                           }goto no_swap;
                         }
                         SwapEndian(d[0]);
                         SwapEndian(d[1]);
