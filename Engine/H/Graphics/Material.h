@@ -23,35 +23,30 @@ enum MATERIAL_TECHNIQUE : Byte // Material Techniques
 /******************************************************************************/
 struct MaterialParams // Material Parameters
 {
-   Vec4 color_l  ; // color Linear Gamma    (0,0,0,0) .. (1,1,1,1), default=(1,1,1,1)
-   Vec  ambient  ; // ambient                 (0,0,0) .. (1,1,1)  , default=(0,0,0)
-   Flt  specular , // specular                      0 .. 1        , default=0
-        sss      , // sub-surface scattering        0 .. 1        , default=0
-        glow     , // glow amount                   0 .. 1        , default=0
-        rough    , // roughness                     0 .. 1        , default=1
-        bump     , // bumpiness                     0 .. 0.09     , default=0.03
-        tex_scale, // texture scale                 0 .. Inf      , default=1, this is used mainly for World terrain textures scaling
-        det_scale, // detail  scale                 0 .. Inf      , default=4
-        det_power, // detail  power                 0 .. 1        , default=0.3
-        reflect  ; // reflection                    0 .. 1        , default=0.2
+   Vec4 color_l  ; // color Linear Gamma (0,0,0,0) .. (1,1,1,1), default=(1,1,1,1)
+   Vec  ambient  ; // ambient              (0,0,0) .. (1,1,1)  , default=(0,0,0)
+   Flt  smooth   , // smoothness                 0 .. 1        , default=0
+        reflect  , // reflectivity               0 .. 1        , default=0.04
+        glow     , // glow amount                0 .. 1        , default=0
+        normal   , // normal map sharpness       0 .. 1        , default=1
+        bump     , // bumpiness                  0 .. 0.09     , default=0.03
+        det_power, // detail     power           0 .. 1        , default=0.3
+        det_scale, // detail  UV scale           0 .. Inf      , default=4
+        tex_scale; // texture UV scale           0 .. Inf      , default=1, this is used mainly for World terrain textures UV scaling
 
  C Vec4& colorL()C {return color_l;}   void colorL(C Vec4 &color_l) {T.color_l=color_l;} // get/set Linear Gamma color
    Vec4  colorS()C;                    void colorS(C Vec4 &color_s);                     // get/set sRGB   Gamma color
 };
 struct Material : MaterialParams // Mesh Rendering Material - contains render parameters and textures
 {
-   ImagePtr                 base_0    , // base       texture #0         , default=null, this texture contains data packed in following channel order: RGB, Alpha/Bump
-                            base_1    , // base       texture #1         , default=null, this texture contains data packed in following channel order: NormalX, NormalY, Specular, Alpha/Glow
-                          detail_map  , // detail     texture            , default=null
-                           macro_map  , // macro      texture            , default=null
-                      reflection_map  , // reflection texture            , default=null
-                           light_map  ; // light map  texture            , default=null
-   Int                user_shader     , // user shader enum element index, default=0
-                      user_type       ; // user type   enum element index, default=0
-   Str8               user_shader_name, // user shader enum element name , default=""
-                      user_type_name  ; // user type   enum element name , default=""
-   Bool               cull            ; // face culling                  , default=true
-   MATERIAL_TECHNIQUE technique       ; // material technique            , default=MTECH_DEFAULT
+   ImagePtr            base_0  , // base      texture #0, default=null, this texture contains data packed in following channel order: RGB, Alpha/Glow
+                       base_1  , // base      texture #1, default=null, this texture contains data packed in following channel order: NormalX, NormalY
+                       base_2  , // base      texture #2, default=null, this texture contains data packed in following channel order: Smooth, Reflect, Bump, Alpha
+                     detail_map, // detail    texture   , default=null
+                      macro_map, // macro     texture   , default=null
+                      light_map; // light map texture   , default=null
+   Bool               cull     ; // face culling        , default=true
+   MATERIAL_TECHNIQUE technique; // material technique  , default=MTECH_DEFAULT
 
    // get
    Bool wantTanBin()C; // if this Material needs tangent/binormals
@@ -86,8 +81,6 @@ struct Material : MaterialParams // Mesh Rendering Material - contains render pa
    Bool hasGrass          ()C;                          // if material technique involves Grass Bending
    Bool hasLeaf           ()C;                          // if material technique involves Leaf  Bending
 
-   Bool alphaInBase0()C {return hasAlpha() && !base_1;}
-
    void setSolid     (     )C;
    void setAmbient   (     )C;
    void setBlend     (     )C;
@@ -106,8 +99,10 @@ private:
    Color _alpha_factor;
    struct Multi
    {
-      Vec4 color, normal_mul, normal_add;
-      Flt  tex_scale, det_scale, det_mul, det_add, bump, macro, reflect;
+      Vec4 color;
+      Vec2 base2_mul, base2_add;
+      Flt  glow_mul, glow_add, normal, bump, det_mul, det_add, macro,
+           tex_scale, det_scale;
    }_multi;
    struct MaterialShader // Material->Shader link
    {
@@ -194,15 +189,16 @@ INLINE C Material& GetShadowMaterial(C Material *material, Bool reuse_default) {
 /******************************************************************************/
 enum BASE_TEX
 {
-   BT_COLOR   =1<<0, // base texture contains color
-   BT_ALPHA   =1<<1, // base texture contains alpha
-   BT_BUMP    =1<<2, // base texture contains bump
-   BT_NORMAL  =1<<3, // base texture contains normal
-   BT_SPECULAR=1<<4, // base texture contains specular
-   BT_GLOW    =1<<5, // base texture contains glow
+   BT_COLOR  =1<<0, // base texture contains color
+   BT_ALPHA  =1<<1, // base texture contains alpha
+   BT_BUMP   =1<<2, // base texture contains bump
+   BT_NORMAL =1<<3, // base texture contains normal
+   BT_SMOOTH =1<<4, // base texture contains smoothness
+   BT_REFLECT=1<<5, // base texture contains reflectivity
+   BT_GLOW   =1<<6, // base texture contains glow
 };
-UInt CreateBaseTextures (Image &base_0, Image &base_1, C Image &col, C Image &alpha, C Image &bump, C Image &normal, C Image &specular, C Image &glow, Bool resize_to_pow2=true, Bool flip_normal_y=false, FILTER_TYPE filter=FILTER_BEST); // create 'base_0' and 'base_1' base material textures from given images, textures will be created as IMAGE_R8G8B8A8_SRGB, IMAGE_R8G8B8A8 IMAGE_SOFT, 'flip_normal_y'=if flip normal map Y channel, returns bit combination of BASE_TEX enums of what the base textures have
-void CreateDetailTexture(Image &detail,                C Image &col,                 C Image &bump, C Image &normal,                                   Bool resize_to_pow2=true, Bool flip_normal_y=false, FILTER_TYPE filter=FILTER_BEST); // create 'detail'                   material texture  from given images, texture  will be created as IMAGE_R8G8B8A8                      IMAGE_SOFT, 'flip_normal_y'=if flip normal map Y channel
-Bool CreateBumpFromColor(Image &bump  ,                C Image &col, Flt min_blur_range=-1, Flt max_blur_range=-1, Threads *threads=null                                                                                                 ); // create 'bump'                              texture  from color image , texture  will be created as IMAGE_F32                           IMAGE_SOFT, 'min_blur_range' and 'max_blur_range' are minimum and maximum blur ranges used for creating the bump map, use -1 for auto values, 'threads'=optional threads allowing to perform the operation on multiple threads
-Bool  MergeBaseTextures (Image &base_0,                C Material &material, Int image_type=-1, Int max_image_size=-1, C Vec *light_dir=&NoTemp(!Vec(1, -1, 1)), Flt light_power=0.77f, Flt spec_mul=1.0f, FILTER_TYPE filter=FILTER_BEST); // create 'base_0'   simplified base material texture out of existing 'material' textures, this works by merging the two base textures into one (thus removing bump, normal, specular and glow maps, and keeping only color and alpha maps), 'image_type'=new desired IMAGE_TYPE for texture (-1=don't modify and use existing type), 'max_image_size'=limit maximum texture resolution (value of <=0 does not apply any limit), 'light_dir'=specify direction of the light for baking the normal map onto the color map (use null for no baking), 'light_power'=intensity of light (0..1) used during baking the normal map on the color map (ignored if 'light_dir' is set to null), 'spec_mul'=specular multiplier (ignored if 'light_dir' is set to null), returns true if base textures were merged and the new image was created, returns false if the material does not use two base textures (in such case the 'base_0' is left unmodified)
+UInt CreateBaseTextures (Image &base_0, Image &base_1, Image &base_2, C Image &col, C Image &alpha, C Image &bump, C Image &normal, C Image &smooth, C Image &reflect, C Image &glow, Bool resize_to_pow2=true, Bool flip_normal_y=false, FILTER_TYPE filter=FILTER_BEST); // create 'base_0', 'base_1' and 'base_2' base material textures from given images, textures will be created as IMAGE_R8G8B8A8_SRGB, IMAGE_R8G8_SIGN, IMAGE_R8G8B8A8 IMAGE_SOFT, 'flip_normal_y'=if flip normal map Y channel, returns bit combination of BASE_TEX enums of what the base textures have
+void CreateDetailTexture(Image &detail,                               C Image &col,                 C Image &bump, C Image &normal,                                                   Bool resize_to_pow2=true, Bool flip_normal_y=false, FILTER_TYPE filter=FILTER_BEST); // create 'detail'                             material texture  from given images, texture  will be created as IMAGE_R8G8B8A8                                       IMAGE_SOFT, 'flip_normal_y'=if flip normal map Y channel
+Bool CreateBumpFromColor(Image &bump  ,                               C Image &col, Flt min_blur_range=-1, Flt max_blur_range=-1, Threads *threads=null                                                                                                 ); // create 'bump'                                                        texture  from color image , texture  will be created as IMAGE_F32                                            IMAGE_SOFT, 'min_blur_range' and 'max_blur_range' are minimum and maximum blur ranges used for creating the bump map, use -1 for auto values, 'threads'=optional threads allowing to perform the operation on multiple threads
+Bool  MergeBaseTextures (Image &base_0,                               C Material &material, Int image_type=-1, Int max_image_size=-1, C Vec *light_dir=&NoTemp(!Vec(1, -1, 1)), Flt light_power=0.77f, Flt spec_mul=1.0f, FILTER_TYPE filter=FILTER_BEST); // create 'base_0' simplified base material texture out of existing 'material' textures, this works by merging base textures into one (thus removing bump, normal, smooth, reflect and glow maps, and keeping only color and alpha maps), 'image_type'=new desired IMAGE_TYPE for texture (-1=don't modify and use existing type), 'max_image_size'=limit maximum texture resolution (value of <=0 does not apply any limit), 'light_dir'=specify direction of the light for baking the normal map onto the color map (use null for no baking), 'light_power'=intensity of light (0..1) used during baking the normal map on the color map (ignored if 'light_dir' is set to null), 'spec_mul'=specular multiplier (ignored if 'light_dir' is set to null), returns true if base textures were merged and the new image was created, returns false if the material does not use multiple base textures (in such case the 'base_0' is left unmodified)
 /******************************************************************************/

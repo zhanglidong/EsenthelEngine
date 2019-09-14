@@ -1706,13 +1706,13 @@ void DAE::create(MemPtr<XMaterial> materials, Str path)
 
          dest.name     = src.name;
          dest.color.xyz=  fx.color;
-         dest.specular =((fx.spec_level>=0) ? fx.spec_level : fx.specular);
+         dest.smooth   =((fx.spec_level>=0) ? fx.spec_level : fx.specular.max());
          dest.cull     = !fx.double_sided;
 
-         if(Image *   color_map=findImage(fx.   color_map_image_id))dest.   color_map=   color_map->texture;
-         if(Image *   alpha_map=findImage(fx.   alpha_map_image_id))dest.   alpha_map=   alpha_map->texture;
-         if(Image *specular_map=findImage(fx.specular_map_image_id))dest.specular_map=specular_map->texture;
-         if(Image *    bump_map=findImage(fx.    bump_map_image_id))dest.  normal_map=    bump_map->texture;
+         if(Image *   color_map=findImage(fx.   color_map_image_id))dest. color_map=   color_map->texture;
+         if(Image *   alpha_map=findImage(fx.   alpha_map_image_id))dest. alpha_map=   alpha_map->texture;
+         if(Image *specular_map=findImage(fx.specular_map_image_id))dest.smooth_map=specular_map->texture;
+         if(Image *    bump_map=findImage(fx.    bump_map_image_id))dest.normal_map=    bump_map->texture;
 
          dest.fixPath(path);
       }

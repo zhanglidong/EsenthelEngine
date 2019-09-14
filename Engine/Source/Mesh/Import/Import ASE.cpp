@@ -30,7 +30,7 @@ struct Mtrl : XMaterial
        //if(f.cur("*MATERIAL_AMBIENT"     ))ambient  =  f.getVec ();else
          if(f.cur("*MATERIAL_DIFFUSE"     ))color.xyz=  f.getVec ();else
        //if(f.cur("*MATERIAL_SPECULAR"    ))specular =  f.getVec ();else
-         if(f.cur("*MATERIAL_SHINE"       ))specular =  f.getFlt ();else
+         if(f.cur("*MATERIAL_SHINE"       ))smooth   =  f.getFlt ();else
          if(f.cur("*MATERIAL_TRANSPARENCY"))color.w  =1-f.getFlt ();else
          if(f.cur("*MAP_GENERIC") && f.getIn())
          {
@@ -50,7 +50,7 @@ struct Mtrl : XMaterial
          {
             for(; f.level(); )
             {
-               if(f.cur("*BITMAP"))specular_map=f.getName();
+               if(f.cur("*BITMAP"))smooth_map=f.getName();
             }
          }else
          if(f.cur("*MAP_OPACITY") && f.getIn())

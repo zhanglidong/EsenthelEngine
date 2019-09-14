@@ -16,15 +16,15 @@ XMaterial::XMaterial()
    technique    =MTECH_DEFAULT;
    color        =1;
    ambient      =0;
-   specular     =0;
-   sss          =0;
+   smooth       =0;
+   reflect      =0.04f;
    glow         =0;
-   rough        =1;
+   normal       =1;
    bump         =0.03f;
-   tex_scale    =1.0f;
-   det_scale    =4;
+   sss          =0;
    det_power    =0.3f;
-   reflection   =0.2f;
+   det_scale    =4;
+   tex_scale    =1.0f;
 }
 void XMaterial::del()
 {
@@ -32,24 +32,24 @@ void XMaterial::del()
 }
 void XMaterial::createFrom(C Material &src)
 {
-   cull          =src.cull;
-   technique     =src.technique;
-   color         =src.colorS();
-   ambient       =src.ambient;
-   specular      =src.specular;
-   sss           =src.sss;
-   glow          =src.glow;
-   rough         =src.rough;
-   bump          =src.bump;
-   tex_scale     =src.tex_scale;
-   det_scale     =src.det_scale;
-   det_power     =src.det_power;
-   reflection    =src.reflect;
-        color_map=src.        base_0.name();
-       normal_map=src.        base_1.name();
- detail_color_map=src.    detail_map.name();
-   reflection_map=src.reflection_map.name();
-        light_map=src.     light_map.name();
+   cull     =src.cull;
+   technique=src.technique;
+   color    =src.colorS();
+   ambient  =src.ambient;
+   smooth   =src.smooth;
+   reflect  =src.reflect;
+   glow     =src.glow;
+   normal   =src.normal;
+   bump     =src.bump;
+ //sss      =src.sss;
+   det_power=src.det_power;
+   det_scale=src.det_scale;
+   tex_scale=src.tex_scale;
+
+          color_map=src.    base_0.name();
+         normal_map=src.    base_1.name();
+   detail_color_map=src.detail_map.name();
+          light_map=src. light_map.name();
 }
 void XMaterial::copyParamsTo(Material &mtrl)C
 {
@@ -57,15 +57,15 @@ void XMaterial::copyParamsTo(Material &mtrl)C
    mtrl.technique=technique;
    mtrl.colorS   (color);
    mtrl.ambient  =ambient;
-   mtrl.specular =specular.max();
-   mtrl.sss      =sss;
+   mtrl.smooth   =smooth;
+   mtrl.reflect  =reflect;
    mtrl.glow     =glow;
-   mtrl.rough    =rough;
+   mtrl.normal   =normal;
    mtrl.bump     =bump;
-   mtrl.tex_scale=tex_scale;
-   mtrl.det_scale=det_scale;
+ //mtrl.sss      =sss;
    mtrl.det_power=det_power;
-   mtrl.reflect  =reflection;
+   mtrl.det_scale=det_scale;
+   mtrl.tex_scale=tex_scale;
    mtrl.validate();
 }
 static void FixPath(Str &name, Str &path)
@@ -93,8 +93,8 @@ void XMaterial::fixPath(Str path)
    FixPath(          light_map, path);
    FixPath(           bump_map, path);
    FixPath(         normal_map, path);
-   FixPath(       specular_map, path);
-   FixPath(     reflection_map, path);
+   FixPath(         smooth_map, path);
+   FixPath(        reflect_map, path);
    FixPath(   detail_color_map, path);
    FixPath(    detail_bump_map, path);
    FixPath(  detail_normal_map, path);
@@ -103,8 +103,9 @@ void XMaterial::fixPath(Str path)
 Bool XMaterial::save(File &f)C
 {
    f.cmpUIntV(0); // version
-   f<<cull<<flip_normal_y<<technique<<color<<ambient<<specular
-    <<name<<color_map<<alpha_map<<bump_map<<glow_map<<light_map<<normal_map<<specular_map<<reflection_map<<detail_color_map<<detail_bump_map<<detail_normal_map<<detail_specular_map;
+   f<<cull<<flip_normal_y<<technique<<color<<ambient<<smooth<<reflect<<glow<<normal<<bump<<sss<<det_power<<det_scale<<tex_scale
+    <<color_map<<alpha_map<<bump_map<<glow_map<<light_map<<normal_map<<smooth_map<<reflect_map<<detail_color_map<<detail_bump_map<<detail_normal_map<<detail_specular_map
+    <<name;
    return f.ok();
 }
 Bool XMaterial::load(File &f)
@@ -113,8 +114,9 @@ Bool XMaterial::load(File &f)
    {
       case 0:
       {
-         f>>cull>>flip_normal_y>>technique>>color>>ambient>>specular
-          >>name>>color_map>>alpha_map>>bump_map>>glow_map>>light_map>>normal_map>>specular_map>>reflection_map>>detail_color_map>>detail_bump_map>>detail_normal_map>>detail_specular_map;
+         f>>cull>>flip_normal_y>>technique>>color>>ambient>>smooth>>reflect>>glow>>normal>>bump>>sss>>det_power>>det_scale>>tex_scale
+          >>color_map>>alpha_map>>bump_map>>glow_map>>light_map>>normal_map>>smooth_map>>reflect_map>>detail_color_map>>detail_bump_map>>detail_normal_map>>detail_specular_map
+          >>name;
          if(f.ok())return true;
       }break;
    }

@@ -8,25 +8,25 @@ struct XMaterial // Material stored in external formats
    Bool               cull     , // enable face culling
                   flip_normal_y; // if flip normal map Y channel
    MATERIAL_TECHNIQUE technique; // material technique
-   Vec4               color    ; // color                 (0,0,0,0) .. (1,1,1,1), default=(1,1,1,1)
-   Vec                ambient  , // ambient                 (0,0,0) .. (1,1,1)  , default=(0,0,0)
-                      specular ; // specular                (0,0,0) .. (1,1,1)  , default=(0,0,0)
-   Flt                sss      , // sub-surface scattering        0 .. 1        , default=0
-                      glow     , // glow amount                   0 .. 1        , default=0
-                      rough    , // roughness                     0 .. 1        , default=1
-                      bump     , // bumpiness                     0 .. 0.09     , default=0.03
-                      tex_scale, // texture scale                 0 .. Inf      , default=1, this is used mainly for World terrain textures scaling
-                      det_scale, // detail  scale                 0 .. Inf      , default=4
-                      det_power, // detail  power                 0 .. 1        , default=0.3
-                     reflection; // reflection                    0 .. 1        , default=0.2
+   Vec4               color    ; // color          (0,0,0,0) .. (1,1,1,1), default=(1,1,1,1)
+   Vec                ambient  ; // ambient          (0,0,0) .. (1,1,1)  , default=(0,0,0)
+   Flt                smooth   , // smoothness             0 .. 1        , default=0
+                      reflect  , // reflectivity           0 .. 1        , default=0.04
+                      glow     , // glow amount            0 .. 1        , default=0
+                      normal   , // normal map sharpness   0 .. 1        , default=1
+                      bump     , // bumpiness              0 .. 0.09     , default=0.03
+                      sss      , // sub-surface scattering 0 .. 1        , default=0
+                      det_power, // detail     power       0 .. 1        , default=0.3
+                      det_scale, // detail  UV scale       0 .. Inf      , default=4
+                      tex_scale; // texture UV scale       0 .. Inf      , default=1, this is used mainly for World terrain textures scaling
    Str                color_map, // color           texture file name
                       alpha_map, // alpha           texture file name
                        bump_map, // bump            texture file name
                        glow_map, // glow            texture file name
                       light_map, // light           texture file name
                      normal_map, // normal          texture file name
-                   specular_map, // specular        texture file name
-                 reflection_map, // reflection      texture file name
+                     smooth_map, // smoothness      texture file name
+                    reflect_map, // reflectivity    texture file name
                detail_color_map, // detail color    texture file name
                 detail_bump_map, // detail bump     texture file name
               detail_normal_map, // detail normal   texture file name

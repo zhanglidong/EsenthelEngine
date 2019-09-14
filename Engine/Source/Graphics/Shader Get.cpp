@@ -67,15 +67,14 @@ static Int BumpMode(C Material &material, UInt mesh_base_flag)
             if(D.bumpMode()==BUMP_RELIEF)return SBUMP_RELIEF;
             return Mid(Ceil(material.bump/0.0075f)+SBUMP_PARALLAX0, SBUMP_PARALLAX_MIN, SBUMP_PARALLAX_MAX);
          }
-         if(material.rough>EPS_COL)return SBUMP_NORMAL;
+         if(material.normal>EPS_COL)return SBUMP_NORMAL;
       }
       return SBUMP_FLAT;
    }
    return SBUMP_ZERO;
 }
-static Bool Detail (C Material &material) {return material.    detail_map && material.det_power>EPS_COL &&  material.det_scale;}
-static Bool Macro  (C Material &material) {return material.     macro_map;}
-static Bool Reflect(C Material &material) {return material.reflection_map && material.reflect  >EPS_COL && !material.hasGrass() && !material.hasLeaf();}
+static Bool Detail(C Material &material) {return material.detail_map && material.det_power>EPS_COL && material.det_scale;}
+static Bool Macro (C Material &material) {return material. macro_map;}
 
 static UInt FlagHeightmap(UInt mesh_base_flag, Bool heightmap)
 {
@@ -113,7 +112,6 @@ void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_
    bump     =SBUMP_ZERO;
    detail   =false;
    macro    =false;
-   reflect  =false;
    Bool tex =FlagTest(mesh_base_flag, VTX_TEX0 );
    normal   =FlagTest(mesh_base_flag, VTX_NRM  );
    color    =FlagTest(mesh_base_flag, VTX_COLOR);
@@ -121,17 +119,17 @@ void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_
 
    if(material)
    {
-      MAX(textures, Textures(*m)); MAX(bump, BumpMode(*m, mesh_base_flag)); MAX(detail, Detail(*m)); MAX(macro, Macro(*m)); MAX(reflect, Reflect(*m));
+      MAX(textures, Textures(*m)); MAX(bump, BumpMode(*m, mesh_base_flag)); MAX(detail, Detail(*m)); MAX(macro, Macro(*m));
       if(material[1]) // && (mesh_base_flag&VTX_MATERIAL)) we must always return a different shader even when there's no VTX_MATERIAL component, because we need a different shader for multi-material parts that have umm, as they operate on 'MultiMaterialShaderDraws' and not 'ShaderDraws', otherwise crash or memory corruption may occur, because ShaderBase.shader_index would point to wrong container
       {
-         materials++; MAX(textures, Textures(*material[1])); MAX(bump, BumpMode(*material[1], mesh_base_flag)); MAX(detail, Detail(*material[1])); MAX(macro, Macro(*material[1])); MAX(reflect, Reflect(*material[1]));
+         materials++; MAX(textures, Textures(*material[1])); MAX(bump, BumpMode(*material[1], mesh_base_flag)); MAX(detail, Detail(*material[1])); MAX(macro, Macro(*material[1]));
          if(material[2])
          {
-            materials++; MAX(textures, Textures(*material[2])); MAX(bump, BumpMode(*material[2], mesh_base_flag)); MAX(detail, Detail(*material[2])); MAX(macro, Macro(*material[2])); MAX(reflect, Reflect(*material[2]));
+            materials++; MAX(textures, Textures(*material[2])); MAX(bump, BumpMode(*material[2], mesh_base_flag)); MAX(detail, Detail(*material[2])); MAX(macro, Macro(*material[2]));
          #if MAX_MTRLS>=4
             if(material[3])
             {
-               materials++; MAX(textures, Textures(*material[3])); MAX(bump, BumpMode(*material[3], mesh_base_flag)); MAX(detail, Detail(*material[3])); MAX(macro, Macro(*material[3])); MAX(reflect, Reflect(*material[3]));
+               materials++; MAX(textures, Textures(*material[3])); MAX(bump, BumpMode(*material[3], mesh_base_flag)); MAX(detail, Detail(*material[3])); MAX(macro, Macro(*material[3]));
             }
          #endif
          }
@@ -141,16 +139,10 @@ void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_
          case TEX_USE_DISABLE:                detail=false; break;
          case TEX_USE_SINGLE : if(materials>1)detail=false; break;
       }
-      switch(D.texReflection())
-      {
-         case TEX_USE_DISABLE:                reflect=false; break;
-         case TEX_USE_SINGLE : if(materials>1)reflect=false; break;
-      }
       if(!D.texMacro    () || lod_index<=0)macro =false; // disable macro  for LOD's=0
       if(!D.texDetailLOD() && lod_index> 0)detail=false; // disable detail for LOD's>0
       if(                     lod_index> 0)MIN(bump, SBUMP_NORMAL); // limit to normal mapping for LOD's>0
       if(!tex                             ){detail=macro=false; textures=0;}
-      if(!normal                          )reflect=false;
       if(materials>1                      )MAX(textures, 1); // multi-materials don't support 0 textures
       if(materials>1 && (bump>SBUMP_PARALLAX_MAX_MULTI && bump<=SBUMP_PARALLAX_MAX))bump=SBUMP_PARALLAX_MAX_MULTI; // multi-materials have a different limit for parallax steps
    }
@@ -187,8 +179,8 @@ Shader* DefaultShaders::Solid(Bool mirror)C
       if(fur)return ShaderFiles("Fur")->get(ShaderFurBase(skin, size, textures!=0));
       Bool detail=T.detail, tesselate=T.tesselate; Byte bump=T.bump; if(mirror){detail=false; tesselate=false; MIN(bump, SBUMP_NORMAL);} // disable detail, tesselation and fancy bump for mirror
       Str8 name;
-      if(normal      )name=ShaderDeferred(skin, materials, textures,  bump     , alpha_test, detail, macro, reflect, color, mtrl_blend, heightmap, fx, tesselate);else
-      if(materials==1)name=ShaderDeferred(skin, materials,        0, SBUMP_ZERO, false     , false , false, reflect, color, mtrl_blend, heightmap, fx, tesselate);
+      if(normal      )name=ShaderDeferred(skin, materials, textures,  bump     , alpha_test, detail, macro, color, mtrl_blend, heightmap, fx, tesselate);else
+      if(materials==1)name=ShaderDeferred(skin, materials,        0, SBUMP_ZERO, false     , false , false, color, mtrl_blend, heightmap, fx, tesselate);
       return ShaderFiles("Deferred")->get(name);
    }
    return null;
@@ -223,7 +215,7 @@ Shader* DefaultShaders::Shadow()C
 Shader* DefaultShaders::Blend()C
 {
    if(valid && blend) // "!blend" here will return null so BLST can be used in 'drawBlend'
-      return ShaderFiles("Blend")->get(ShaderBlend(skin, color, reflect, textures));
+      return ShaderFiles("Blend")->get(ShaderBlend(skin, color, textures));
    return null;
 }
 Shader* DefaultShaders::Overlay()C
@@ -262,7 +254,6 @@ FRST* DefaultShaders::Frst()C
       key.alpha_test=alpha_test;
       key.light_map =light_map;
       key.detail    =(detail && materials==1); // forward doesn't support detail in multi-material
-      key.reflect   =reflect;
       key.color     =color;
       key.mtrl_blend=mtrl_blend;
       key.fx        =fx;
@@ -289,7 +280,6 @@ BLST* DefaultShaders::Blst()C
       key.alpha_test=alpha_test;
       key.alpha     =alpha;
       key.light_map =light_map;
-      key.reflect   =reflect;
       key.skin      =skin;
       key.fx        =fx;
       return Blsts(key);

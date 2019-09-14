@@ -45,10 +45,10 @@ Bool ImportXPS(C Str &name, Mesh *mesh, Skeleton *skeleton, MemPtr<XMaterial> ma
             {
                XMaterial &mtrl=materials[i]; switch(t)
                {
-                  case 0: mtrl.   color_map=s; break;
-                  case 1: mtrl.specular_map=s; break;
-                  case 2: mtrl.  normal_map=s; break;
-                  case 3: mtrl.specular_map=s; break;
+                  case 0: mtrl. color_map=s; break;
+                  case 1: mtrl.smooth_map=s; break;
+                  case 2: mtrl.normal_map=s; break;
+                  case 3: mtrl.smooth_map=s; break;
                }
             }
             f.getLine(s); Int uv_layer_index=TextInt(s); if(uv_layer_index<0)goto error;

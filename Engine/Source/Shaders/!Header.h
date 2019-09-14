@@ -380,24 +380,16 @@ BUFFER_END
 /******************************************************************************/
 struct MaterialClass // this is used when a MeshPart has only one material
 {
-#if 0 // methods produce compile errors in this case, instead of them use "Material*" global functions listed below
-   VecH4 color   () {return _color;}
-   VecH  ambient () {return _ambient_specular.xyz;}
-   Half  specular() {return _ambient_specular.w;}
-   Half  sss     () {return _sss_glow_rough_bump.x;}
-   Half  glow    () {return _sss_glow_rough_bump.y;}
-   Half  rough   () {return _sss_glow_rough_bump.z;}
-   Half  bump    () {return _sss_glow_rough_bump.w;}
-   Flt   texScale() {return _texscale_detscale_detpower_reflect.x;}
-   Flt   detScale() {return _texscale_detscale_detpower_reflect.y;}
-   Half  detPower() {return _texscale_detscale_detpower_reflect.z;}
-   Half  reflect () {return _texscale_detscale_detpower_reflect.w;}
-#endif
-
-   VecH4 _color, // !! color must be listed first because ShaderParam handle for setting 'Material.color' is set from the entire Material object pointer !!
-         _ambient_specular,
-         _sss_glow_rough_bump;
-   Vec4  _texscale_detscale_detpower_reflect;
+   VecH4 color; // !! color must be listed first because ShaderParam handle for setting 'Material.color' is set from the entire Material object pointer !!
+   VecH  ambient;
+   Half  smooth,
+         reflect,
+         glow,
+         normal,
+         bump,
+         det_power;
+   Flt   det_scale,
+         tex_scale;
 };
 #include "!Set LP.h"
 
@@ -421,25 +413,10 @@ inline Half  MaterialReflect () {return Material._texscale_detscale_detpower_ref
 #include "!Set SP.h"
 struct MultiMaterialClass // this is used when a MeshPart has multiple materials
 {
-#if 0 // methods produce compile errors in this case, instead of them use "MultiMaterial*()" global functions listed below
-   VecH4 color    () {return _color     ;}
-   VecH  color3   () {return _color.rgb ;}
-   VecH4 normalMul() {return _normal_mul;}
-   VecH4 normalAdd() {return _normal_add;}
-   Flt   texScale () {return _texscale_detscale_detmul_detadd.x;}
-   Flt   detScale () {return _texscale_detscale_detmul_detadd.y;}
-   Half  detMul   () {return _texscale_detscale_detmul_detadd.z;}
-   Half  detAdd   () {return _texscale_detscale_detmul_detadd.w;}
-   Half  bump     () {return _bump_macro_reflect.x;}
-   Half  macro    () {return _bump_macro_reflect.y;}
-   Half  reflect  () {return _bump_macro_reflect.z;}
-#endif
-
-   VecH4 _color,
-         _normal_mul,
-         _normal_add;
-   Vec4  _texscale_detscale_detmul_detadd;
-   VecH  _bump_macro_reflect;
+   VecH4 color;
+   VecH2 base2_mul, base2_add;
+   Half  glow_mul, glow_add, normal, bump, det_mul, det_add, macro;
+   Flt   tex_scale, det_scale;
 };
 #include "!Set LP.h"
 
@@ -501,10 +478,10 @@ inline Half  MultiMaterial3Reflect  () {return MultiMaterial3._bump_macro_reflec
 #include "!Set IP.h"
 Image     Col, Col1, Col2, Col3,
           Nrm, Nrm1, Nrm2, Nrm3,
+          Ext, Ext1, Ext2, Ext3,
           Det, Det1, Det2, Det3,
           Mac, Mac1, Mac2, Mac3,
           Lum;
-ImageCube Rfl, Rfl1, Rfl2, Rfl3;
 
 Image     Img, Img1, Img2, Img3;
 ImageH    ImgX, ImgX1, ImgX2, ImgX3;

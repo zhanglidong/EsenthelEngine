@@ -174,11 +174,11 @@ Bool Import3DS(C Str &name, Mesh *mesh, MemPtr<XMaterial> materials, MemPtr<Int>
                Str tex_name; for(Char8 c; c=f.getByte(); )tex_name+=c;
                if(materials.elms())switch(last_tex)
                {
-                  case CHUNK3DS_MTRL_COLOR_MAP: materials.last().color_map     =tex_name; break;
-                  case CHUNK3DS_MTRL_SPEC_MAP : materials.last().specular_map  =tex_name; break;
-                  case CHUNK3DS_MTRL_ALPHA_MAP: materials.last().alpha_map     =tex_name; break;
-                  case CHUNK3DS_MTRL_REFL_MAP : materials.last().reflection_map=tex_name; break;
-                  case CHUNK3DS_MTRL_BUMP_MAP : materials.last().bump_map      =tex_name; break;
+                  case CHUNK3DS_MTRL_COLOR_MAP: materials.last().  color_map=tex_name; break;
+                  case CHUNK3DS_MTRL_SPEC_MAP : materials.last(). smooth_map=tex_name; break;
+                  case CHUNK3DS_MTRL_ALPHA_MAP: materials.last().  alpha_map=tex_name; break;
+                  case CHUNK3DS_MTRL_REFL_MAP : materials.last().reflect_map=tex_name; break;
+                  case CHUNK3DS_MTRL_BUMP_MAP : materials.last().   bump_map=tex_name; break;
                }
             }break;
 
