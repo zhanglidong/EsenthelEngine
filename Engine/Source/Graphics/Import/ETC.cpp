@@ -43,6 +43,40 @@ void DecompressBlockETC1(C Byte *b, Color (&block)[4][4])
 void DecompressBlockETC2  (C Byte *b, Color (&block)[4][4]) {TGP::draw_block4x4_etc2_rgb8        (b, (UInt*)block);}
 void DecompressBlockETC2A1(C Byte *b, Color (&block)[4][4]) {TGP::draw_block4x4_etc2_punchthrough(b, (UInt*)block);}
 void DecompressBlockETC2A8(C Byte *b, Color (&block)[4][4]) {TGP::draw_block4x4_etc2_eac         (b, (UInt*)block);}
+
+void DecompressBlockETC2R(C Byte *b, Color (&block)[4][4])
+{
+   UShort r[4*4]; TGP::draw_block4x4_r11_eac(b, r);
+   REP(16)block[0][i].set(r[i]>>8, 0, 0, 255);
+}
+void DecompressBlockETC2RS(C Byte *b, Color (&block)[4][4])
+{
+   Short r[4*4]; TGP::draw_block4x4_signed_r11_eac(b, r);
+   REP(16)block[0][i].set(SByteToByte(r[i]>>8), 0, 0, 255);
+}
+void DecompressBlockETC2RS(C Byte *b, SByte (&block)[4][4])
+{
+   Short r[4*4]; TGP::draw_block4x4_signed_r11_eac(b, r);
+   REP(16)block[0][i]=r[i]>>8;
+}
+void DecompressBlockETC2RG(C Byte *b, Color (&block)[4][4])
+{
+   UShort r[4*4]; TGP::draw_block4x4_r11_eac(b  , r);
+   UShort g[4*4]; TGP::draw_block4x4_r11_eac(b+8, g);
+   REP(16)block[0][i].set(r[i]>>8, g[i]>>8, 0, 255);
+}
+void DecompressBlockETC2RGS(C Byte *b, Color (&block)[4][4])
+{
+   Short r[4*4]; TGP::draw_block4x4_signed_r11_eac(b  , r);
+   Short g[4*4]; TGP::draw_block4x4_signed_r11_eac(b+8, g);
+   REP(16)block[0][i].set(SByteToByte(r[i]>>8), SByteToByte(g[i]>>8), 0, 255);
+}
+void DecompressBlockETC2RGS(C Byte *b, VecSB2 (&block)[4][4])
+{
+   Short r[4*4]; TGP::draw_block4x4_signed_r11_eac(b  , r);
+   Short g[4*4]; TGP::draw_block4x4_signed_r11_eac(b+8, g);
+   REP(16)block[0][i].set(r[i]>>8, g[i]>>8);
+}
 #endif
 #if ETC2_DEC==ETC_LIB_ETCPACK
 void DecompressBlockETC2(C Byte *b, Color (&block)[4][4])
@@ -63,7 +97,7 @@ void DecompressBlockETC2A8(C Byte *b, Color (&block)[4][4])
    ETCPACK::decompressBlockAlphaC((Byte*)b, &block[0][0].a, 4, 4, 0, 0, 4);
 }
 #endif
-
+/******************************************************************************/
 void DecompressBlockETC1(C Byte *b, Color *dest, Int pitch)
 {
 #if ETC1_DEC==ETC_LIB_ETCPACK
@@ -145,6 +179,44 @@ void DecompressBlockETC2A8(C Byte *b, Color *dest, Int pitch)
    }
 #endif
 }
+void DecompressBlockETC2R(C Byte *b, Color *dest, Int pitch)
+{
+   UShort r[4][4]; TGP::draw_block4x4_r11_eac(b, r[0]);
+   FREPD(y, 4)
+   {
+      FREPD(x, 4)dest[x].set(r[y][x]>>8, 0, 0, 255);
+      dest=(Color*)((Byte*)dest+pitch);
+   }
+}
+void DecompressBlockETC2RS(C Byte *b, SByte *dest, Int pitch)
+{
+   Short r[4][4]; TGP::draw_block4x4_signed_r11_eac(b, r[0]);
+   FREPD(y, 4)
+   {
+      FREPD(x, 4)dest[x]=(r[y][x]>>8);
+      dest=(SByte*)((Byte*)dest+pitch);
+   }
+}
+void DecompressBlockETC2RG(C Byte *b, Color *dest, Int pitch)
+{
+   UShort r[4][4]; TGP::draw_block4x4_r11_eac(b  , r[0]);
+   UShort g[4][4]; TGP::draw_block4x4_r11_eac(b+8, g[0]);
+   FREPD(y, 4)
+   {
+      FREPD(x, 4)dest[x].set(r[y][x]>>8, g[y][x]>>8, 0, 255);
+      dest=(Color*)((Byte*)dest+pitch);
+   }
+}
+void DecompressBlockETC2RGS(C Byte *b, VecSB2 *dest, Int pitch)
+{
+   Short r[4][4]; TGP::draw_block4x4_signed_r11_eac(b  , r[0]);
+   Short g[4][4]; TGP::draw_block4x4_signed_r11_eac(b+8, g[0]);
+   FREPD(y, 4)
+   {
+      FREPD(x, 4)dest[x].set(r[y][x]>>8, g[y][x]>>8);
+      dest=(VecSB2*)((Byte*)dest+pitch);
+   }
+}
 /******************************************************************************/
 Color DecompressPixelETC1(C Byte *b, Int x, Int y)
 {
@@ -195,6 +267,36 @@ Color DecompressPixelETC2A8(C Byte *b, Int x, Int y)
 #endif
    return rgba[y][x];
 }
+/******************************************************************************/
+#if 0
+Color  DecompressPixelETC2R  (C Byte *b, Int x, Int y) {Color  block[4][4]; DecompressBlockETC2R  (b, block); return block[y][x];}
+SByte  DecompressPixelETC2RS (C Byte *b, Int x, Int y) {SByte  block[4][4]; DecompressBlockETC2RS (b, block); return block[y][x];}
+Color  DecompressPixelETC2RG (C Byte *b, Int x, Int y) {Color  block[4][4]; DecompressBlockETC2RG (b, block); return block[y][x];}
+VecSB2 DecompressPixelETC2RGS(C Byte *b, Int x, Int y) {VecSB2 block[4][4]; DecompressBlockETC2RGS(b, block); return block[y][x];}
+#else
+Color DecompressPixelETC2R(C Byte *b, Int x, Int y)
+{
+   UShort r[4][4]; TGP::draw_block4x4_r11_eac(b, r[0]);
+   return Color(r[y][x]>>8, 0, 0, 255);
+}
+SByte DecompressPixelETC2RS(C Byte *b, Int x, Int y)
+{
+   Short  r[4][4]; TGP::draw_block4x4_signed_r11_eac(b, r[0]);
+   return r[y][x]>>8;
+}
+Color DecompressPixelETC2RG(C Byte *b, Int x, Int y)
+{
+   UShort r[4][4]; TGP::draw_block4x4_r11_eac(b  , r[0]);
+   UShort g[4][4]; TGP::draw_block4x4_r11_eac(b+8, g[0]);
+   return Color(r[y][x]>>8, g[y][x]>>8, 0, 255);
+}
+VecSB2 DecompressPixelETC2RGS(C Byte *b, Int x, Int y)
+{
+   Short r[4][4]; TGP::draw_block4x4_signed_r11_eac(b  , r[0]);
+   Short g[4][4]; TGP::draw_block4x4_signed_r11_eac(b+8, g[0]);
+   return VecSB2(r[y][x]>>8, g[y][x]>>8);
+}
+#endif
 /******************************************************************************/
 }
 /******************************************************************************/

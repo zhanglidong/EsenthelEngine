@@ -215,13 +215,13 @@ typedef short int16;
 
 
 // Global tables
-static uint8 table59T[8] = {3,6,11,16,23,32,41,64};  // 3-bit table for the 59 bit T-mode
-static uint8 table58H[8] = {3,6,11,16,23,32,41,64};  // 3-bit table for the 58 bit H-mode
-static int compressParams[16][4] = {{-8, -2,  2, 8}, {-8, -2,  2, 8}, {-17, -5, 5, 17}, {-17, -5, 5, 17}, {-29, -9, 9, 29}, {-29, -9, 9, 29}, {-42, -13, 13, 42}, {-42, -13, 13, 42}, {-60, -18, 18, 60}, {-60, -18, 18, 60}, {-80, -24, 24, 80}, {-80, -24, 24, 80}, {-106, -33, 33, 106}, {-106, -33, 33, 106}, {-183, -47, 47, 183}, {-183, -47, 47, 183}};
-static int unscramble[4] = {2, 3, 1, 0};
-int alphaTableInitialized = 0;
-int alphaTable[256][8];
-int alphaBase[16][4] = {	
+static const uint8 table59T[8] = {3,6,11,16,23,32,41,64};  // 3-bit table for the 59 bit T-mode
+static const uint8 table58H[8] = {3,6,11,16,23,32,41,64};  // 3-bit table for the 58 bit H-mode
+static const int compressParams[16][4] = {{-8, -2,  2, 8}, {-8, -2,  2, 8}, {-17, -5, 5, 17}, {-17, -5, 5, 17}, {-29, -9, 9, 29}, {-29, -9, 9, 29}, {-42, -13, 13, 42}, {-42, -13, 13, 42}, {-60, -18, 18, 60}, {-60, -18, 18, 60}, {-80, -24, 24, 80}, {-80, -24, 24, 80}, {-106, -33, 33, 106}, {-106, -33, 33, 106}, {-183, -47, 47, 183}, {-183, -47, 47, 183}};
+static const int unscramble[4] = {2, 3, 1, 0};
+//static int alphaTableInitialized = 0; ESENTHEL CHANGED
+static int alphaTable[256][8];
+static const int alphaBase[16][4] = {	
               {-15,-9,-6,-3},
 							{-13,-10,-7,-3},
 							{-13,-8,-5,-2},
@@ -252,8 +252,9 @@ int alphaBase[16][4] = {
 // NO WARRANTY --- SEE STATEMENT IN TOP OF FILE (C) Ericsson AB 2005-2013. All Rights Reserved.
 void setupAlphaTable() 
 {
-  if(alphaTableInitialized)
+  /*if(alphaTableInitialized) ESENTHEL CHANGED
     return;
+   alphaTableInitialized = 1;*/
 
 	//read table used for alpha compression
 	int buf;
@@ -281,7 +282,6 @@ void setupAlphaTable()
 			//note: we don't do clamping here, though we could, because we'll be clamped afterwards anyway.
 		}
 	}
-   alphaTableInitialized = 1; // ESENTHEL CHANGED
 }
 
 // Read a word in big endian style
@@ -1838,7 +1838,7 @@ void decompressBlockAlpha16bitC(uint8* data, uint8* img, int width, int height, 
 	}			
 }
 
-void decompressBlockAlpha16bit(uint8* data, uint8* img, int width, int height, int ix, int iy)
+void decompressBlockAlpha16bit(uint8* data, uint8* img, int width, int height, int ix, int iy, bool formatSigned)
 {
-  decompressBlockAlpha16bitC(data, img, width, height, ix, iy, 1);
+  decompressBlockAlpha16bitC(data, img, width, height, ix, iy, 1, formatSigned);
 }

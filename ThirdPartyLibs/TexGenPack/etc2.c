@@ -1004,7 +1004,7 @@ int draw_block4x4_etc2_punchthrough(const unsigned char *bitstring, unsigned int
 // Decode an 11-bit integer and store it in the first 16-bits in memory of each pixel in image_buffer if offset is zero,
 // in the last 16 bits in memory if offset is 1.
 
-void decode_block4x4_11bits(uint64_t qword, unsigned int *image_buffer, int offset) {
+void decode_block4x4_11bits(uint64_t qword, unsigned short *image_buffer) { // ESENTHEL CHANGED
 	int base_codeword_times_8_plus_4 = ((qword & 0xFF00000000000000) >> (56 - 3)) | 0x4;
 	int modifier_index = (qword & 0x000F000000000000) >> 48;
 	signed char *modifier_table = eac_modifier_table[modifier_index];
@@ -1014,41 +1014,38 @@ void decode_block4x4_11bits(uint64_t qword, unsigned int *image_buffer, int offs
 			int pixel_index = (qword & (0x0000E00000000000 >> (i * 3))) >> (45 - i * 3);
 			int modifier = modifier_table[pixel_index];
 			unsigned int value = clamp2047(base_codeword_times_8_plus_4 + modifier);
-			*((unsigned short *)&image_buffer[(i & 3) * 4 + ((i & 12) >> 2)] + offset) =
-				(value << 5) | (value >> 6);	// Replicate bits to 16-bit.
+			image_buffer[(i & 3) * 4 + ((i & 12) >> 2)] = (value << 5) | (value >> 6);	// Replicate bits to 16-bit.
 		}
 	else
 		for (int i = 0; i < 16; i++) {
 			int pixel_index = (qword & (0x0000E00000000000 >> (i * 3))) >> (45 - i * 3);
 			int modifier = modifier_table[pixel_index];
 			unsigned int value = clamp2047(base_codeword_times_8_plus_4 + modifier * multiplier_times_8);
-			*((unsigned short *)&image_buffer[(i & 3) * 4 + ((i & 12) >> 2)] + offset) =
-				(value << 5) | (value >> 6);	// Replicate bits to 16-bit.
+			image_buffer[(i & 3) * 4 + ((i & 12) >> 2)] = (value << 5) | (value >> 6);	// Replicate bits to 16-bit.
 		}
 }
 
 // Draw a 4x4 pixel block using 64-bit ETC2 R11_EAC compression data.
 
-int draw_block4x4_r11_eac(const unsigned char *bitstring, unsigned int *image_buffer) {
-	memset(image_buffer, 0, 64);
+int draw_block4x4_r11_eac(const unsigned char *bitstring, unsigned short *image_buffer) { // ESENTHEL CHANGED
 	uint64_t qword = ((uint64_t)bitstring[0] << 56) | ((uint64_t)bitstring[1] << 48) | ((uint64_t)bitstring[2] << 40) |
 		((uint64_t)bitstring[3] << 32) | ((uint64_t)bitstring[4] << 24) |
 		((uint64_t)bitstring[5] << 16) | ((uint64_t)bitstring[6] << 8) | bitstring[7];
-	decode_block4x4_11bits(qword, image_buffer, 0);
+	decode_block4x4_11bits(qword, image_buffer);
 	return 1;
 }
 
 // Draw a 4x4 pixel block using 128-bit ETC2 RG11_EAC compression data.
 
-int draw_block4x4_rg11_eac(const unsigned char *bitstring, unsigned int *image_buffer) {
+int draw_block4x4_rg11_eac(const unsigned char *bitstring, unsigned short *image_buffer) { // ESENTHEL CHANGED
 	uint64_t red_qword = ((uint64_t)bitstring[0] << 56) | ((uint64_t)bitstring[1] << 48) | ((uint64_t)bitstring[2] << 40) |
 		((uint64_t)bitstring[3] << 32) | ((uint64_t)bitstring[4] << 24) |
 		((uint64_t)bitstring[5] << 16) | ((uint64_t)bitstring[6] << 8) | bitstring[7];
-	decode_block4x4_11bits(red_qword, image_buffer, 0);
+	decode_block4x4_11bits(red_qword, image_buffer);
 	uint64_t green_qword = ((uint64_t)bitstring[8] << 56) | ((uint64_t)bitstring[9] << 48) | ((uint64_t)bitstring[10] << 40) |
 		((uint64_t)bitstring[11] << 32) | ((uint64_t)bitstring[12] << 24) |
 		((uint64_t)bitstring[13] << 16) | ((uint64_t)bitstring[14] << 8) | bitstring[15];
-	decode_block4x4_11bits(green_qword, image_buffer, 1);
+	decode_block4x4_11bits(green_qword, image_buffer+4*4);
 	return 1;
 }
 
@@ -1063,7 +1060,7 @@ static unsigned int replicate_11bits_signed_to_16bits(int value) {
 // Decode an 11-bit signed integer and store it in the first 16-bits in memory of each pixel in image_buffer if offset is
 // zero, in the last 16 bits in memory if offset is 1.
 
-int decode_block4x4_11bits_signed(uint64_t qword, unsigned int *image_buffer, int offset) {
+int decode_block4x4_11bits_signed(uint64_t qword, signed short *image_buffer) { // ESENTHEL CHANGED
 	int base_codeword = (signed char)((qword & 0xFF00000000000000) >> 56);		// Signed 8 bits.
 	if (base_codeword == - 128) // && (flags & ENCODE_BIT)
 		// Not allowed in encoding. Decoder should handle it but we don't do that yet.
@@ -1077,44 +1074,38 @@ int decode_block4x4_11bits_signed(uint64_t qword, unsigned int *image_buffer, in
 			int pixel_index = (qword & (0x0000E00000000000 >> (i * 3))) >> (45 - i * 3);
 			int modifier = modifier_table[pixel_index];
 			int value = clamp1023_signed(base_codeword_times_8 + modifier);
-			unsigned int bits = replicate_11bits_signed_to_16bits(value);
-			*((unsigned short *)&image_buffer[(i & 3) * 4 + ((i & 12) >> 2)] + offset) = bits;
+			image_buffer[(i & 3) * 4 + ((i & 12) >> 2)] = replicate_11bits_signed_to_16bits(value);
 		}
 	else
 		for (int i = 0; i < 16; i++) {
 			int pixel_index = (qword & (0x0000E00000000000 >> (i * 3))) >> (45 - i * 3);
 			int modifier = modifier_table[pixel_index];
 			int value = clamp1023_signed(base_codeword_times_8 + modifier * multiplier_times_8);
-			unsigned int bits = replicate_11bits_signed_to_16bits(value);
-			*((unsigned short *)&image_buffer[(i & 3) * 4 + ((i & 12) >> 2)] + offset) = bits;
+			image_buffer[(i & 3) * 4 + ((i & 12) >> 2)] = replicate_11bits_signed_to_16bits(value);
 		}
 	return 1;
 }
 
 // Draw a 4x4 pixel block using 64-bit ETC2 SIGNED_R11_EAC compression data.
 
-int draw_block4x4_signed_r11_eac(const unsigned char *bitstring, unsigned int *image_buffer) {
-	memset(image_buffer, 0, 64);
+int draw_block4x4_signed_r11_eac(const unsigned char *bitstring, signed short *image_buffer) { // ESENTHEL CHANGED
 	uint64_t qword = ((uint64_t)bitstring[0] << 56) | ((uint64_t)bitstring[1] << 48) | ((uint64_t)bitstring[2] << 40) |
 		((uint64_t)bitstring[3] << 32) | ((uint64_t)bitstring[4] << 24) |
 		((uint64_t)bitstring[5] << 16) | ((uint64_t)bitstring[6] << 8) | bitstring[7];
-	return decode_block4x4_11bits_signed(qword, image_buffer, 0);
+	return decode_block4x4_11bits_signed(qword, image_buffer);
 }
 
 // Draw a 4x4 pixel block using 128-bit ETC2 SIGNED_RG11_EAC compression data.
 
-int draw_block4x4_signed_rg11_eac(const unsigned char *bitstring, unsigned int *image_buffer) {
+int draw_block4x4_signed_rg11_eac(const unsigned char *bitstring, signed short *image_buffer) { // ESENTHEL CHANGED
 	uint64_t red_qword = ((uint64_t)bitstring[0] << 56) | ((uint64_t)bitstring[1] << 48) | ((uint64_t)bitstring[2] << 40) |
 		((uint64_t)bitstring[3] << 32) | ((uint64_t)bitstring[4] << 24) |
 		((uint64_t)bitstring[5] << 16) | ((uint64_t)bitstring[6] << 8) | bitstring[7];
-	int r = decode_block4x4_11bits_signed(red_qword, image_buffer, 0);
-	if (r == 0)
-		return 0;
+	int r = decode_block4x4_11bits_signed(red_qword, image_buffer);
 	uint64_t green_qword = ((uint64_t)bitstring[8] << 56) | ((uint64_t)bitstring[9] << 48) | ((uint64_t)bitstring[10] << 40) |
 		((uint64_t)bitstring[11] << 32) | ((uint64_t)bitstring[12] << 24) |
 		((uint64_t)bitstring[13] << 16) | ((uint64_t)bitstring[14] << 8) | bitstring[15];
-	decode_block4x4_11bits_signed(green_qword, image_buffer, 1);
-	return 1;
+	return r&decode_block4x4_11bits_signed(green_qword, image_buffer+4*4);
 }
 
 /*// Manual optimization function for the alpha components of ETC2 PUNCHTHROUGH mode.

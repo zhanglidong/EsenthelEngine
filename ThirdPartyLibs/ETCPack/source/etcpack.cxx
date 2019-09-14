@@ -8457,22 +8457,20 @@ void compressBlockETC2FastPerceptual(uint8 *img, uint8 *imgdec,int width,int hei
 	fwrite(&bytes[3],1,1,f);
 }*/
 
-extern int alphaTable[256][8];
-extern int alphaBase[16][4];
+//extern int alphaTable[256][8];
+//extern int alphaBase[16][4];
 
 // valtab holds precalculated data used for compressing using EAC2.
 // Note that valtab is constructed using get16bits11bits, which means
 // that it already is expanded to 16 bits.
 // Note also that it its contents will depend on the value of formatSigned.
-/*int *valtab;
+//int *valtab; ESENTHEL CHANGED
+static uint16 signed_valtab[1024*512],
+            unsigned_valtab[1024*512];
 
-void setupAlphaTableAndValtab()
+void setupAlphaTableAndValtab() // ESENTHEL CHANGED
 {
-  setupAlphaTable();
-
-	//fix precomputation table..!
-	valtab = new int[1024*512];
-    int16 val16;
+   setupAlphaTable();
 	int count=0;
 	for(int base=0; base<256; base++) 
 	{
@@ -8482,13 +8480,8 @@ void setupAlphaTableAndValtab()
 			{
 				for(int index=0; index<8; index++) 
 				{
-					if(formatSigned)
-					{
-						val16=get16bits11signed(base,tab,mul,index);
-						valtab[count] = val16 + 256*128;
-					}
-					else
-						valtab[count]=get16bits11bits(base,tab,mul,index);
+					  signed_valtab[count] = get16bits11signed(base,tab,mul,index) + 256*128;
+					unsigned_valtab[count] = get16bits11bits  (base,tab,mul,index);
 					count++;
 				}
 			}
@@ -8498,7 +8491,7 @@ void setupAlphaTableAndValtab()
 
 // Reads alpha data
 // NO WARRANTY --- SEE STATEMENT IN TOP OF FILE (C) Ericsson AB 2005-2013. All Rights Reserved.
-void readAlpha(uint8* &data, int &width, int &height, int &extendedwidth, int &extendedheight) 
+/*void readAlpha(uint8* &data, int &width, int &height, int &extendedwidth, int &extendedheight) 
 {
 	//width and height are already known..?
 	uint8* tempdata;
@@ -8744,14 +8737,14 @@ void compressBlockAlphaFast(uint8 * data, int ix, int iy, int width, int height,
 
 // Helper function for the below function
 // NO WARRANTY --- SEE STATEMENT IN TOP OF FILE (C) Ericsson AB 2005-2013. All Rights Reserved.
-/*int getPremulIndex(int base, int tab, int mul, int index) 
+int getPremulIndex(int base, int tab, int mul, int index) 
 {
 	return (base<<11)+(tab<<7)+(mul<<3)+index;
 }
 
 // Calculates the error used in compressBlockAlpha16()
 // NO WARRANTY --- SEE STATEMENT IN TOP OF FILE (C) Ericsson AB 2005-2013. All Rights Reserved.
-double calcError(uint8* data, int ix, int iy, int width, int height, int base, int tab, int mul, double prevbest) 
+double calcError(uint16* data, int base, int tab, int mul, double prevbest, const uint16 *valtab) // ESENTHEL CHANGED
 {
 	int offset = getPremulIndex(base,tab,mul,0);
 	double error=0;
@@ -8761,13 +8754,17 @@ double calcError(uint8* data, int ix, int iy, int width, int height, int base, i
 		{
 			double besthere = (1<<20);
 			besthere*=besthere;
+      #if 0 // ESENTHEL CHANGED (this was based on byte and with big-endian)
 			uint8 byte1 = data[2*(x+ix+(y+iy)*width)];
 			uint8 byte2 = data[2*(x+ix+(y+iy)*width)+1];
 			int alpha = (byte1<<8)+byte2;
+      #else
+			int alpha = data[x + y*4];
+      #endif
 			for(int index=0; index<8; index++) 
 			{
 				double indexError;
-				indexError = alpha-valtab[offset+index];
+				indexError = alpha-int(valtab[offset+index]); // ESENTHEL CHANGED
 				indexError*=indexError;
 				if(indexError<besthere)
 					besthere=indexError;
@@ -8802,19 +8799,20 @@ double calcError(uint8* data, int ix, int iy, int width, int height, int base, i
 // COMPRESSED_RG11_EAC is compressed by calling the function twice, dito for COMPRESSED_SIGNED_RG11_EAC.
 // 
 // NO WARRANTY --- SEE STATEMENT IN TOP OF FILE (C) Ericsson AB 2005-2013. All Rights Reserved.
-void compressBlockAlpha16(uint8* data, int ix, int iy, int width, int height, uint8* returnData) 
+void compressBlockAlpha16(uint16* data, uint8* returnData, bool formatSigned) // ESENTHEL CHANGED
 {
 	unsigned int bestbase, besttable, bestmul;
 	double besterror;
 	besterror=1<<20;
 	besterror*=besterror;
+   const uint16 *valtab=(formatSigned ? signed_valtab : unsigned_valtab);
 	for(int base=0; base<256; base++) 
 	{
 		for(int table=0; table<16; table++) 
 		{
 			for(int mul=0; mul<16; mul++) 
 			{
-				double e = calcError(data, ix, iy, width, height,base,table,mul,besterror);
+				double e = calcError(data,base,table,mul,besterror,valtab);
 				if(e<besterror) 
 				{
 					bestbase=base;
@@ -8848,9 +8846,13 @@ void compressBlockAlpha16(uint8* data, int ix, int iy, int width, int height, ui
 			double besterror=255*255;
 			besterror*=besterror;
 			int bestindex=99;
+      #if 0 // ESENTHEL CHANGED (this was based on byte and with big-endian)
 			uint8 byte1 = data[2*(x+ix+(y+iy)*width)];
 			uint8 byte2 = data[2*(x+ix+(y+iy)*width)+1];
 			int alpha = (byte1<<8)+byte2;
+      #else
+			int alpha = data[x + y*4];
+      #endif
 			for(unsigned int index=0; index<8; index++) 
 			{
 				double indexError;
@@ -8885,7 +8887,7 @@ void compressBlockAlpha16(uint8* data, int ix, int iy, int width, int height, ui
 			}
 		}
 	}
-}*/
+}
 
 // Exhaustive compression of alpha compression in a GL_COMPRESSED_RGB8_ETC2 block
 // NO WARRANTY --- SEE STATEMENT IN TOP OF FILE (C) Ericsson AB 2005-2013. All Rights Reserved.
