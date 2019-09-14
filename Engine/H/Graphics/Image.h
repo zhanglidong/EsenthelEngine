@@ -79,15 +79,15 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
    IMAGE_BC7     , // BC7      8-bit lossy RGBA         high quality compression         , linear gamma, Soft, DX11+, partial GL (compressing images to this format is available only when 'SupportCompressBC' was called in 'InitPre')
    IMAGE_BC7_SRGB, // BC7      8-bit lossy RGBA         high quality compression         , sRGB   gamma, Soft, DX11+, partial GL (compressing images to this format is available only when 'SupportCompressBC' was called in 'InitPre')
 
-   // compressed format for Android (compressing images to these formats is available only on when 'SupportCompressETC' was called in 'InitPre', decompressing these formats is available on all platforms, for GPU's that don't support these formats natively, the engine will keep them as R8G8B8A8 in the memory, decompression and especially compression may be slow, formats are recommended to be used only on Android)
-   IMAGE_ETC2        , // Ericsson 4-bit lossy RGB  compression with no    alpha (R,G,B,1     ), linear gamma, Soft, GL ES
-   IMAGE_ETC2_SRGB   , // Ericsson 4-bit lossy RGB  compression with no    alpha (R,G,B,1     ), sRGB   gamma, Soft, GL ES
-   IMAGE_ETC2_A1     , // Ericsson 4-bit lossy RGBA compression with 1-bit alpha (R,G,B,0 or 1), linear gamma, Soft, GL ES
-   IMAGE_ETC2_A1_SRGB, // Ericsson 4-bit lossy RGBA compression with 1-bit alpha (R,G,B,0 or 1), sRGB   gamma, Soft, GL ES
-   IMAGE_ETC2_A8     , // Ericsson 8-bit lossy RGBA compression with 8-bit alpha (R,G,B,A     ), linear gamma, Soft, GL ES
-   IMAGE_ETC2_A8_SRGB, // Ericsson 8-bit lossy RGBA compression with 8-bit alpha (R,G,B,A     ), sRGB   gamma, Soft, GL ES
+   // compressed format for Android/iOS (compressing images to these formats is available only when 'SupportCompressETC' was called in 'InitPre')
+   IMAGE_ETC2        , // Ericsson 4-bit lossy RGB  compression with no    alpha (R,G,B,1     ), linear gamma, Soft, partial GL, GL ES
+   IMAGE_ETC2_SRGB   , // Ericsson 4-bit lossy RGB  compression with no    alpha (R,G,B,1     ), sRGB   gamma, Soft, partial GL, GL ES
+   IMAGE_ETC2_A1     , // Ericsson 4-bit lossy RGBA compression with 1-bit alpha (R,G,B,0 or 1), linear gamma, Soft, partial GL, GL ES
+   IMAGE_ETC2_A1_SRGB, // Ericsson 4-bit lossy RGBA compression with 1-bit alpha (R,G,B,0 or 1), sRGB   gamma, Soft, partial GL, GL ES
+   IMAGE_ETC2_A8     , // Ericsson 8-bit lossy RGBA compression with 8-bit alpha (R,G,B,A     ), linear gamma, Soft, partial GL, GL ES
+   IMAGE_ETC2_A8_SRGB, // Ericsson 8-bit lossy RGBA compression with 8-bit alpha (R,G,B,A     ), sRGB   gamma, Soft, partial GL, GL ES
 
-   // compressed formats for iOS (compressing images to these formats is available only on Desktop platforms when 'SupportCompressPVRTC' was called in 'InitPre', decompressing these formats is available on all platforms, for GPU's that don't support these formats natively, the engine will keep them as R8G8B8A8 in the memory, decompression and especially compression may be slow, formats are recommended to be used only on iOS)
+   // compressed formats for iOS (compressing images to these formats is available only on Desktop platforms when 'SupportCompressPVRTC' was called in 'InitPre', decompression and especially compression may be slow, formats are recommended to be used only on iOS)
    IMAGE_PVRTC1_2     , // PVRTC1 2-bit lossy RGBA compression, linear gamma, Soft, iOS, partial Android
    IMAGE_PVRTC1_2_SRGB, // PVRTC1 2-bit lossy RGBA compression, sRGB   gamma, Soft, iOS, partial Android
    IMAGE_PVRTC1_4     , // PVRTC1 4-bit lossy RGBA compression, linear gamma, Soft, iOS, partial Android
@@ -97,6 +97,12 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
 #if EE_PRIVATE
    IMAGE_BC4_SIGN, // BC4      4-bit lossy R    compression                              , linear gamma, Soft, DX10+, GL, partial Android
    IMAGE_BC5_SIGN, // BC5      8-bit lossy RG   compression                              , linear gamma, Soft, DX10+, GL, partial Android
+
+   IMAGE_ETC2_R8       , // Ericsson 4-bit lossy R    compression with no    alpha (R,0,0,1     ), linear gamma, Soft, partial GL, GL ES
+   IMAGE_ETC2_R8_SIGN  , // Ericsson 4-bit lossy R    compression with no    alpha (R,0,0,1     ), linear gamma, Soft, partial GL, GL ES
+   IMAGE_ETC2_R8G8     , // Ericsson 8-bit lossy RG   compression with no    alpha (R,G,0,1     ), linear gamma, Soft, partial GL, GL ES
+   IMAGE_ETC2_R8G8_SIGN, // Ericsson 8-bit lossy RG   compression with no    alpha (R,G,0,1     ), linear gamma, Soft, partial GL, GL ES
+
    IMAGE_R8G8B8A8_SIGN, // 32-bit (R,G,B,A), Soft, DX10+, GL, GL ES
    IMAGE_R8G8_SIGN    , // 16-bit (R,G,0,1), Soft, DX10+, GL, GL ES
    IMAGE_R8_SIGN      , //  8-bit (R,0,0,1), Soft, DX10+, GL, GL ES
@@ -495,12 +501,14 @@ struct Image // Image (Texture)
    void gather (Flt   *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
    void gather (VecB  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
    void gather (Color *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
+   void gather (Vec2  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
    void gather (Vec4  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
    void gatherL(Vec4  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
    void gatherS(Vec4  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C;
    void gather (Flt   *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
    void gather (VecB  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
    void gather (Color *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
+   void gather (Vec2  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
    void gather (Vec4  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
    void gatherL(Vec4  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
    void gatherS(Vec4  *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C;
