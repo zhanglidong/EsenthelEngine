@@ -1794,13 +1794,13 @@ static Bool Compress(C Image &src, Image &dest, Bool mtrl_base_1=false) // assum
       case IMAGE_BC7: case IMAGE_BC7_SRGB:
          DEBUG_ASSERT(CompressBC67, "'SupportCompressBC/SupportCompressAll' was not called"); return CompressBC67 ? CompressBC67(src, dest) : false;
 
-         DEBUG_ASSERT(CompressETC, "'SupportCompressETC/SupportCompressAll' was not called"); return CompressETC ? CompressETC(src, dest, -1, mtrl_base_1 ? false : true) : false;
       case IMAGE_ETC1      :
       case IMAGE_ETC2_R    : case IMAGE_ETC2_R_SIGN    :
       case IMAGE_ETC2_RG   : case IMAGE_ETC2_RG_SIGN   :
       case IMAGE_ETC2_RGB  : case IMAGE_ETC2_RGB_SRGB  :
       case IMAGE_ETC2_RGBA1: case IMAGE_ETC2_RGBA1_SRGB:
       case IMAGE_ETC2_RGBA : case IMAGE_ETC2_RGBA_SRGB :
+         DEBUG_ASSERT(CompressETC, "'SupportCompressETC/SupportCompressAll' was not called"); return CompressETC ? CompressETC(src, dest, -1, mtrl_base_1 ? false : true) : false;
 
       case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB:
       case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB:
