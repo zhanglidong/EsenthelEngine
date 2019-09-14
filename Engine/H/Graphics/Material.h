@@ -101,7 +101,7 @@ private:
    {
       Vec4 color;
       Vec2 base2_mul, base2_add;
-      Flt  glow_mul, glow_add, normal, bump, det_mul, det_add, macro,
+      Flt  glow, normal, bump, det_mul, det_add, macro,
            tex_scale, det_scale;
    }_multi;
    struct MaterialShader // Material->Shader link

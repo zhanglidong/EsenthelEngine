@@ -415,7 +415,7 @@ struct MultiMaterialClass // this is used when a MeshPart has multiple materials
 {
    VecH4 color;
    VecH2 base2_mul, base2_add;
-   Half  glow_mul, glow_add, normal, bump, det_mul, det_add, macro;
+   Half  glow, normal, bump, det_mul, det_add, macro;
    Flt   tex_scale, det_scale;
 };
 #include "!Set LP.h"

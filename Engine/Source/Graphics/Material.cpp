@@ -6,24 +6,33 @@ namespace EE{
    If Material has only 1 texture (base_0), then it contains:
       Base0: RGBA
 
-   If Material has only 2 textures (base_0 and base_1), then they contain:
-      Base0: RGB, Bump
-      Base1: NrmX, NrmY, Spec, Alpha/Glow
+   If Material has 3 textures (base_0, base_1, base_2), then they contain:
+      Base0: RGB, Glow
+      Base1: NrmX, NrmY
+      Base2: Smooth, Reflect, Bump, Alpha
 
    When changing the above to a different order, then look for "#MaterialTextureChannelOrder" text in Engine/Editor to update the codes.
 
 /******************************************************************************/
 #define CC4_MTRL CC4('M','T','R','L')
 
-#define BUMP_DEFAULT 255 // normally this should be 128, but because 255 in BC7 gives better precision for RGB, so instead use 255 and always set Material.bump=0 when bump is not used, 128 would also disable the option of using BC1
+#define BUMP_DEFAULT_TEX 0 // normally this should be 128, but 0 will allow to use BC5 (for Mtrl.base_2 tex if there's no Alpha) and always set Material.bump=0 when bump is not used #MaterialTextureChannelOrder
 
 #define BUMP_NORMAL_SCALE (1.0f/64) // 0.015625, this value should be close to average 'Material.bump' which are 0.015, 0.03, 0.05 (remember that in Editor that value may be scaled)
 
+#define REFLECT_DEFAULT_PAR 0.04f
+
 // #MaterialTextureChannelOrder
-#define NRMX_CHANNEL 0
-#define NRMY_CHANNEL 1
-#define SPEC_CHANNEL 2
-#define GLOW_CHANNEL 3
+// Base 0
+#define    GLOW_CHANNEL 3
+// Base 1
+#define    NRMX_CHANNEL 0
+#define    NRMY_CHANNEL 1
+// Base 2
+#define  SMOOTH_CHANNEL 0
+#define REFLECT_CHANNEL 1
+#define    BUMP_CHANNEL 2
+#define   ALPHA_CHANNEL 3
 /******************************************************************************/
 static Int Compare(C UniqueMultiMaterialKey &a, C UniqueMultiMaterialKey &b)
 {
@@ -119,19 +128,9 @@ Material& Material::validate() // #MaterialTextureChannelOrder
    // set multi
    {
      _multi.color    =(LINEAR_GAMMA ? colorL() : colorS());
+     _multi.glow     =glow;
      _multi.tex_scale=tex_scale;
      _multi.det_scale=det_scale;
-
-      // base0
-      if(base_0 && base_2) // have glow in Base0 only if Base2 is present (if not present then Base0 has Alpha)
-      {
-        _multi.glow_mul=glow;
-        _multi.glow_add=0;
-      }else
-      {
-        _multi.glow_mul=0;
-        _multi.glow_add=glow;
-      }
 
       // normal map
       if(base_1)
