@@ -45,7 +45,7 @@ class ImageConvert
               has_color=true ,
               has_alpha=true ,
            ignore_alpha=false, 
-            mtrl_base_1=false;
+         non_perceptual=false;
    byte        downsize=    0;
    int         mip_maps=   -1,
                max_size=    0;
@@ -57,9 +57,9 @@ class ImageConvert
 
    static SyncLock Lock;
 
-   void set(C Str &src, C Str &dest, C DateTime &time, int type, bool ignore_alpha, bool clamp, bool mtrl_base_1=false, byte downsize=0, int max_size=0)
+   void set(C Str &src, C Str &dest, C DateTime &time, int type, bool ignore_alpha, bool clamp, bool non_perceptual=false, byte downsize=0, int max_size=0)
    {
-      T.family=IMAGE; T.src=src; T.dest=dest; T.time=time; T.type=type; T.ignore_alpha=ignore_alpha; T.clamp=clamp; T.mtrl_base_1=mtrl_base_1; T.downsize=downsize; T.max_size=max_size;
+      T.family=IMAGE; T.src=src; T.dest=dest; T.time=time; T.type=type; T.ignore_alpha=ignore_alpha; T.clamp=clamp; T.non_perceptual=non_perceptual; T.downsize=downsize; T.max_size=max_size;
    }
    void set(C Str &src, C Str &dest, C DateTime &time, C ElmImage &data, IMAGE_TYPE type)
    {
@@ -191,7 +191,7 @@ class ImageConvert
                   if(type    <0)type    =s.type();                   // source will now be as IMAGE_R8G8B8_SRGB so we can't use "-1", auto-detect instead
                   if(s.copyTry(temp, -1, -1, -1, IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1))s=&temp;
                }
-               if(s.copyTry(temp, size.x, size.y, size.z, type, mode, mip_maps, FILTER_BEST, (clamp?IC_CLAMP:IC_WRAP)|(mtrl_base_1?IC_MTRL_BASE1:0)))
+               if(s.copyTry(temp, size.x, size.y, size.z, type, mode, mip_maps, FILTER_BEST, (clamp?IC_CLAMP:IC_WRAP)|(non_perceptual?IC_NON_PERCEPTUAL:0)))
                {
                   File f; if(temp.save(f.writeMem())){f.pos(0); SafeOverwrite(f, dest, &time);} // save using specified time
                }
@@ -541,10 +541,10 @@ class Texture
        src_tex_id=UIDZero; // if this is a dynamically generated texture, then 'src_tex_id' points to the original texture from which it was created
    bool  uses_alpha=false, // if uses alpha channel
                srgb=true , // if sRGB gamma
-        mtrl_base_1=false, // if this is material base_1 texture
+     non_perceptual=false, // if use non-perceptual compression
          regenerate=false; // if this texture needs to be regenerated
    sbyte    quality=    0; // -1=PVRTC1_2, 0=default, 1=BC7
-   byte    downsize=    0; // blur mip map range
+   byte    downsize=    0; // downsize
 
    Texture& downSize(int size) {MAX(downsize, size); return T;}
 
@@ -708,8 +708,8 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
 
             // !! 'GetTexture' needs to be called always because it adds texture to publish list !!
             Texture *t0; if(        t0=GetTexture(publish_texs,          base_0_tex)){t0.srgb=true ; t0.downSize(downsize); if(ForceHQMtrlBase0 )t0.quality=1; t0.src_tex_id=src_tex; t0.regenerate|=regenerate;}
-            Texture *t1; if(        t1=GetTexture(publish_texs,          base_1_tex)){t1.srgb=false; t1.downSize(downsize); if(ForceHQMtrlBase1 )t1.quality=1; t1.mtrl_base_1=true;}
-                         if(Texture *t=GetTexture(publish_texs, data.    detail_tex)){t .srgb=false; t .downSize(downsize); if(ForceHQMtrlDetail)t .quality=1; if(!RemoveMtrlDetailBump)t.uses_alpha=true;} // Detail uses Alpha for bump unless it's removed
+            Texture *t1; if(        t1=GetTexture(publish_texs,          base_1_tex)){t1.srgb=false; t1.downSize(downsize); if(ForceHQMtrlBase1 )t1.quality=1; t1.non_perceptual=true;}
+                         if(Texture *t=GetTexture(publish_texs, data.    detail_tex)){t .srgb=false; t .downSize(downsize); if(ForceHQMtrlDetail)t .quality=1; t .non_perceptual=true; if(!RemoveMtrlDetailBump)t.uses_alpha=true;} // Detail uses Alpha for bump unless it's removed
                          if(Texture *t=GetTexture(publish_texs, data.     macro_tex)){t .srgb=true ; t .downSize(downsize);} // doesn't use Alpha, 'GetTexture' needs to be called
                          if(Texture *t=GetTexture(publish_texs, data.     light_tex)){t .srgb=true ; t .downSize(downsize);} // doesn't use Alpha, 'GetTexture' needs to be called
                          if(Texture *t=GetTexture(publish_texs, data.reflection_tex)){t .srgb=true ;}                        // doesn't use Alpha, 'GetTexture' needs to be called
@@ -730,7 +730,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
          {
             // !! 'GetTexture' needs to be called always because it adds texture to publish list !!
             Texture *t0; if(        t0=GetTexture(publish_texs, data.    base_0_tex)){t0.srgb=true ; if(ForceHQMtrlBase0)t0.quality=1;} // doesn't use Alpha
-            Texture *t1; if(        t1=GetTexture(publish_texs, data.    base_1_tex)){t1.srgb=false; if(ForceHQMtrlBase1)t1.quality=1; t1.mtrl_base_1=true;} // doesn't use Alpha
+            Texture *t1; if(        t1=GetTexture(publish_texs, data.    base_1_tex)){t1.srgb=false; if(ForceHQMtrlBase1)t1.quality=1; t1.non_perceptual=true;} // doesn't use Alpha
                          if(Texture *t=GetTexture(publish_texs, data.reflection_tex)){t .srgb=true ;} // doesn't use Alpha, 'GetTexture' needs to be called
 
             // check which base textures use Alpha Channel, #MaterialTextureChannelOrder
@@ -857,7 +857,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                FileInfo src_fi(src_name);
                if(tex.regenerate // if texture is going to be regenerated in this process, then always allow converting it
                || Compare(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc, 1)) // if different (compare just modify time, because sizes will always be different due to different formats)
-                  convert.New().set(src_name, dest_name, src_fi.modify_time_utc, change_type, !tex.uses_alpha, false, tex.mtrl_base_1, tex.downsize, max_size); // create new conversion
+                  convert.New().set(src_name, dest_name, src_fi.modify_time_utc, change_type, !tex.uses_alpha, false, tex.non_perceptual, tex.downsize, max_size); // create new conversion
             }
          }
       }else

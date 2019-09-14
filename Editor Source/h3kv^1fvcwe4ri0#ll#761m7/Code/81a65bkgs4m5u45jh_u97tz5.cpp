@@ -1712,7 +1712,7 @@ class ProjectEx : ProjectHierarchy
       {
          if(includeTex(material.base_1_tex))
          {
-            base_1.copyTry(base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP|IC_MTRL_BASE1);
+            base_1.copyTry(base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP|IC_NON_PERCEPTUAL);
             saveTex(base_1, material.base_1_tex);
          }
          Server.setTex(material.base_1_tex);
@@ -1799,7 +1799,7 @@ class ProjectEx : ProjectHierarchy
             if(includeTex(material.detail_tex))
             {
                SetFullAlpha(detail, ct, RemoveMtrlDetailBump);
-               detail.copyTry(detail, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP|IC_MTRL_BASE1);
+               detail.copyTry(detail, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP|IC_NON_PERCEPTUAL);
                saveTex(detail, material.detail_tex);
             }
             Server.setTex(material.detail_tex);

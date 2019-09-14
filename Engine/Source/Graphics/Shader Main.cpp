@@ -293,6 +293,10 @@ void MainShaderClass::getTechniques()
    Nrm[1]=ShaderImages("Nrm1");
    Nrm[2]=ShaderImages("Nrm2");
    Nrm[3]=ShaderImages("Nrm3");
+   Ext[0]=ShaderImages("Ext" );
+   Ext[1]=ShaderImages("Ext1");
+   Ext[2]=ShaderImages("Ext2");
+   Ext[3]=ShaderImages("Ext3");
    Det[0]=ShaderImages("Det" );
    Det[1]=ShaderImages("Det1");
    Det[2]=ShaderImages("Det2");
@@ -301,10 +305,6 @@ void MainShaderClass::getTechniques()
    Mac[1]=ShaderImages("Mac1");
    Mac[2]=ShaderImages("Mac2");
    Mac[3]=ShaderImages("Mac3");
-   Rfl[0]=ShaderImages("Rfl" );
-   Rfl[1]=ShaderImages("Rfl1");
-   Rfl[2]=ShaderImages("Rfl2");
-   Rfl[3]=ShaderImages("Rfl3");
    Lum   =ShaderImages("Lum" );
 
    ImgSize         =GetShaderParam("ImgSize" );

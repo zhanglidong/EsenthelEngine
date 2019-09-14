@@ -106,7 +106,7 @@ void DrawCreateMaterials()
          }
 
          // save texture
-         IMAGE_TYPE ct; ImageProps(base_0, &edit.base_0_tex, &ct, SRGB|(ForceHQMtrlBase0 ? FORCE_HQ : 0));
+         IMAGE_TYPE ct; ImageProps(base_0, &edit.base_0_tex, &ct, MTRL_BASE_0);
 
          locker.on();
          if(Proj.includeTex(edit.base_0_tex)){locker.off(); base_0.copyTry(base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); Proj.saveTex(base_0, edit.base_0_tex);}

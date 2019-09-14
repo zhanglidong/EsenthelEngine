@@ -41,9 +41,9 @@ struct MainShaderClass
 
       *Col[4],
       *Nrm[4],
+      *Ext[4],
       *Det[4],
       *Mac[4],
-      *Rfl[4],
       *Lum;
 
    ShaderParam

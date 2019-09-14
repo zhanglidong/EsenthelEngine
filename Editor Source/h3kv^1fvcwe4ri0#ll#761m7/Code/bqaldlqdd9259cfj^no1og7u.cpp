@@ -496,7 +496,7 @@ class TextureDownsize : Viewport4Region
       different|=(d!=0);
       if(d>0)
       {
-         normal_mtrl->base_1->copyTry(downsized_base[1], Max(1, normal_mtrl->base_1->w()>>d), Max(1, normal_mtrl->base_1->h()>>d), -1, -1, -1, normal_mtrl->base_1->mipMaps()-d, FILTER_BEST, IC_WRAP|IC_MTRL_BASE1);
+         normal_mtrl->base_1->copyTry(downsized_base[1], Max(1, normal_mtrl->base_1->w()>>d), Max(1, normal_mtrl->base_1->h()>>d), -1, -1, -1, normal_mtrl->base_1->mipMaps()-d, FILTER_BEST, IC_WRAP|IC_NON_PERCEPTUAL);
       }else downsized_base[1].del();
 
       int            size[]={0, 0};

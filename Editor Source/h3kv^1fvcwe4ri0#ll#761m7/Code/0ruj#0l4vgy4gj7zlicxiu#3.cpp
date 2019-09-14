@@ -425,6 +425,8 @@ enum
    FORCE_HQ    =1<<0, // high quality
    IGNORE_ALPHA=1<<1,
    SRGB        =1<<2,
+   MTRL_BASE_0 =1<<3,
+   MTRL_BASE_1 =1<<4,
 }
 class ImageHashHeader // !! try to don't make any changes to this class layout, because doing so will require a new hash for every texture !!
 {
@@ -442,51 +444,67 @@ class ImageHashHeader // !! try to don't make any changes to this class layout, 
 }
 void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type=null, uint flags=SRGB) // calculate image MD5 (when in IMAGE_R8G8B8A8 type) and get best type for image compression
 {
-   bool srgb=FlagTest(flags, SRGB);
-   if((flags&FORCE_HQ    ) && compress_type){*compress_type=(srgb ? IMAGE_BC7_SRGB : IMAGE_BC7); compress_type=null;} // when forcing  HQ    set BC7 and set null so it no longer needs to be calculated, check this before IGNORE_ALPHA
-   if((flags&IGNORE_ALPHA) && compress_type){*compress_type=(srgb ? IMAGE_BC1_SRGB : IMAGE_BC1); compress_type=null;} // when ignoring alpha set BC1 and set null so it no longer needs to be calculated
+   if(flags&MTRL_BASE_0){if(ForceHQMtrlBase0)flags|=FORCE_HQ; flags|=SRGB;} // #MaterialTextureChannelOrder
+   if(flags&MTRL_BASE_1){if(ForceHQMtrlBase1)flags|=FORCE_HQ; if(compress_type){*compress_type=IMAGE_BC5_SIGN; compress_type=null;}} // normal tex always uses BC5_SIGN (RG HQ) #MaterialTextureChannelOrder
    if(md5 || compress_type)
    {
       // set initial values
       if(md5          )md5.zero();
-      if(compress_type)*compress_type=(SupportBC7 ? (srgb ? IMAGE_BC7_SRGB : IMAGE_BC7) : (srgb ? IMAGE_BC3_SRGB : IMAGE_BC3));
+      if(compress_type)*compress_type=IMAGE_NONE;
 
       // calculate
-      if(!image.is())return;
-      MD5   m;
-      bool  bc1=true, bc2=true, // BC1 uses 1 bit alpha (0 or 255), BC2 uses 4 bit alpha
-            force_alpha=(md5 && (flags&IGNORE_ALPHA) && ImageTI[image.type()].a), // if we want hash and we want to ignore alpha, and source had alpha, then we need to adjust as if it has full alpha, this is done because: ignoring alpha may save the image in format that doesn't support the alpha channel, however if the same image is later used for something else, and now wants to use that alpha channel, then it needs to be created as a different texture (with different hash)
-            extract=((md5 && (image.hwType()!=IMAGE_R8G8B8A8 && image.hwType()!=IMAGE_R8G8B8A8_SRGB)) // calculating hash requires RGBA format
-                  || (compress_type && ImageTI[image.hwType()].compressed) // checking compress_type requires color reads so copy to RGBA soft to make them faster
-                  || force_alpha); // forcing alpha requires modifying the alpha channel, so copy to 'temp' which we can modify
-      if(md5)m.update(&ImageHashHeader(image), SIZE(ImageHashHeader)); // need to start hash with a header, to make sure different sized/cube/srgb images will always have different hash
-      Image temp; C Image *src=(extract ? &temp : &image);
-      FREPD(face, image.faces())
+      if(image.is())
       {
-         int src_face=face; if(extract)if(image.extractMipMap(temp, image.sRGB() ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, 0, DIR_ENUM(face)))src_face=0;else return; // error
-         if( src.lockRead(0, DIR_ENUM(src_face)))
+         MD5  m;
+         bool bc1=true, // BC1 4-bit uses 1-bit alpha (0 or 255) (R,G,B,a?255:0)
+              bc2=true, // BC2 8-bit uses 4-bit alpha
+              bc4=true, // BC4 4-bit is (R,0,0,1)
+              bc5=true, // BC5 8-bit is (R,G,0,1)
+              srgb=FlagTest(flags, SRGB),
+              force_alpha=((flags&IGNORE_ALPHA) && ImageTI[image.type()].a), // if we want to ignore alpha, and source had alpha, then we need to adjust as if it has full alpha, this is done because: ignoring alpha may save the image in format that doesn't support the alpha channel, however if the same image is later used for something else, and now wants to use that alpha channel, then it needs to be created as a different texture (with different hash)
+              extract=((md5 && (image.hwType()!=IMAGE_R8G8B8A8 && image.hwType()!=IMAGE_R8G8B8A8_SRGB)) // hash is based on RGBA format
+                    || (compress_type && ImageTI[image.hwType()].compressed) // checking 'compress_type' requires color reads so copy to RGBA soft to make them faster
+                    || force_alpha); // forcing alpha requires modifying the alpha channel, so copy to 'temp' which we can modify
+         if(md5)m.update(&ImageHashHeader(image), SIZE(ImageHashHeader)); // need to start hash with a header, to make sure different sized/cube/srgb images will always have different hash
+         Image temp; C Image *src=(extract ? &temp : &image);
+         FREPD(face, image.faces())
          {
-            if(force_alpha  ) REPD(z, temp.d())
-                              REPD(y, temp.h())
-                              REPD(x, temp.w())temp.pixC(x, y, z).a=255; // set before calculating hash
-            if(md5          )FREPD(z,  src.d())
-                             FREPD(y,  src.h())m.update(src.data() + y*src.pitch() + z*src.pitch2(), src.w()*src.bytePP()); // don't use src.pitch to ignore any extra padding
-            if(compress_type) REPD(z,  src.d())
-                              REPD(y,  src.h())
-                              REPD(x,  src.w())
+            int src_face=face; if(extract)if(image.extractMipMap(temp, image.sRGB() ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, 0, DIR_ENUM(face)))src_face=0;else return; // error
+            if( src.lockRead(0, DIR_ENUM(src_face)))
             {
-               Color c=src.color3D(x, y, z);
-               byte  bc2_a=((c.a*15+128)/255)*255/15;
-               if(c.a> 1 && c.a<254            // BC1 supports only 0 and 255 alpha
-               || c.a==0 && c.lum())bc1=false; // BC1 supports only black color at 0 alpha
-               if(Abs(c.a-bc2_a)>1 )bc2=false;
+               if(force_alpha  ) REPD(z, temp.d())
+                                 REPD(y, temp.h())
+                                 REPD(x, temp.w())temp.pixC(x, y, z).a=255; // set before calculating hash
+               if(md5          )FREPD(z,  src.d())
+                                FREPD(y,  src.h())m.update(src.data() + y*src.pitch() + z*src.pitch2(), src.w()*src.bytePP()); // don't use 'src.pitch' to ignore any extra padding
+               if(compress_type) REPD(z,  src.d())
+                                 REPD(y,  src.h())
+                                 REPD(x,  src.w())
+               {
+                  Color c=src.color3D(x, y, z);
+                  byte  bc2_a=((c.a*15+128)/255)*255/15;
+                  if(c.a> 1 && c.a<254                 // BC1 supports only 0 and 255 alpha
+                  || c.a==0 && c.lum()     )bc1=false; // BC1 supports only black color at 0 alpha
+                  if(Abs(c.a-bc2_a)>1      )bc2=false;
+                  if(c.g || c.b || c.a!=255)bc4=false;
+                  if(       c.b || c.a!=255)bc5=false;
+               }
+               src.unlock();
             }
-            src.unlock();
+         }
+
+         if(md5          )*md5=m();
+         if(compress_type)
+         {
+            if(bc4 && !srgb            )*compress_type=                         IMAGE_BC4 ;else // BC4 is 4-bit HQ so use it always if possible (doesn't support sRGB)
+            if(bc1 && !(flags&FORCE_HQ))*compress_type=(srgb ? IMAGE_BC1_SRGB : IMAGE_BC1);else // use BC1 only if we don't want HQ
+            if(bc5 && !srgb            )*compress_type=                         IMAGE_BC5 ;else // BC5 has better quality for RG than BC7 so check it first (doesn't support sRGB)
+            if(SupportBC7              )*compress_type=(srgb ? IMAGE_BC7_SRGB : IMAGE_BC7);else
+            if(bc1                     )*compress_type=(srgb ? IMAGE_BC1_SRGB : IMAGE_BC1);else // check BC1 again, now without HQ
+            if(bc2                     )*compress_type=(srgb ? IMAGE_BC2_SRGB : IMAGE_BC2);else
+                                        *compress_type=(srgb ? IMAGE_BC3_SRGB : IMAGE_BC3);
          }
       }
-
-      if(md5          )*md5          =m();
-      if(compress_type)*compress_type=(bc1 ? (srgb ? IMAGE_BC1_SRGB : IMAGE_BC1) : SupportBC7 ? (srgb ? IMAGE_BC7_SRGB : IMAGE_BC7) : bc2 ? (srgb ? IMAGE_BC2_SRGB : IMAGE_BC2) : (srgb ? IMAGE_BC3_SRGB : IMAGE_BC3)); // prefer BC1 because it's 4-bit per pixel
    }
 }
 /******************************************************************************/
@@ -711,7 +729,7 @@ bool UpdateMtrlBase1Tex(C Image &src, Image &dest)
          c.set(c.a, c.g, c.r, c.b);
          temp.color(x, y, c);
       }
-      return temp.copyTry(dest, -1, -1, -1, (src.type()==IMAGE_BC3 || src.type()==IMAGE_BC3_SRGB) ? IMAGE_BC7 : ImageTypeExcludeSRGB(src.type()), src.mode(), src.mipMaps(), FILTER_BEST, IC_WRAP|IC_MTRL_BASE1);
+      return temp.copyTry(dest, -1, -1, -1, (src.type()==IMAGE_BC3 || src.type()==IMAGE_BC3_SRGB) ? IMAGE_BC7 : ImageTypeExcludeSRGB(src.type()), src.mode(), src.mipMaps(), FILTER_BEST, IC_WRAP|IC_NON_PERCEPTUAL);
    }
    return false;
 }

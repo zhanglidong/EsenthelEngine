@@ -1779,7 +1779,7 @@ static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'des
    return false;
 }
 /******************************************************************************/
-static Bool Compress(C Image &src, Image &dest, Bool mtrl_base_1=false) // assumes that 'src' and 'dest' are 2 different objects, 'src' is created as non-compressed, and 'dest' is created as compressed, they have the same 'size3'
+static Bool Compress(C Image &src, Image &dest, Bool perceptual) // assumes that 'src' and 'dest' are 2 different objects, 'src' is created as non-compressed, and 'dest' is created as compressed, they have the same 'size3'
 {
    switch(dest.hwType())
    {
@@ -1788,7 +1788,7 @@ static Bool Compress(C Image &src, Image &dest, Bool mtrl_base_1=false) // assum
       case IMAGE_BC3: case IMAGE_BC3_SRGB:
       case IMAGE_BC4: case IMAGE_BC4_SIGN:
       case IMAGE_BC5: case IMAGE_BC5_SIGN:
-         return CompressBC(src, dest, mtrl_base_1);
+         return CompressBC(src, dest, perceptual);
 
       case IMAGE_BC6:
       case IMAGE_BC7: case IMAGE_BC7_SRGB:
@@ -1800,7 +1800,7 @@ static Bool Compress(C Image &src, Image &dest, Bool mtrl_base_1=false) // assum
       case IMAGE_ETC2_RGB  : case IMAGE_ETC2_RGB_SRGB  :
       case IMAGE_ETC2_RGBA1: case IMAGE_ETC2_RGBA1_SRGB:
       case IMAGE_ETC2_RGBA : case IMAGE_ETC2_RGBA_SRGB :
-         DEBUG_ASSERT(CompressETC, "'SupportCompressETC/SupportCompressAll' was not called"); return CompressETC ? CompressETC(src, dest, -1, mtrl_base_1 ? false : true) : false;
+         DEBUG_ASSERT(CompressETC, "'SupportCompressETC/SupportCompressAll' was not called"); return CompressETC ? CompressETC(src, dest, -1, perceptual) : false;
 
       case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB:
       case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB:
@@ -1940,7 +1940,7 @@ Bool Image::copyTry(Image &dest, Int w, Int h, Int d, Int type, Int mode, Int mi
                   if(!resized_src.createTry(target.w(), target.h(), target.d(), src->hwType(), (src->cube() && target.cube()) ? IMAGE_SOFT_CUBE : IMAGE_SOFT, 1))return false; // for resize use only 1 mip map, and remaining set with 'updateMipMaps' below
                   if(!src->copySoft(resized_src, filter, flags))return false; src=&resized_src; decompressed_src.del(); // we don't need 'decompressed_src' anymore so delete it to release memory
                }
-               if(!Compress(*src, target, FlagTest(flags, IC_MTRL_BASE1)))return false;
+               if(!Compress(*src, target, !FlagTest(flags, IC_NON_PERCEPTUAL)))return false;
                // in this case we have to use last 'src' mip map as the base mip map to set remaining 'target' mip maps, because now 'target' is compressed and has lower quality, while 'src' has better, this is also faster because we don't have to decompress initial mip map
                Int mip_start=src->mipMaps()-1;
                target.updateMipMaps(*src, mip_start, FILTER_BEST, flags, mip_start);

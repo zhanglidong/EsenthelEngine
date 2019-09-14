@@ -689,7 +689,6 @@ Display::Display() : _monitors(Compare, Create, null, 4)
   _tex_lod         =0;
   _tex_macro       =true;
   _tex_detail_lod  =false;
-  _tex_reflect     =TEX_USE_MULTI;
   _font_sharpness  =0.75f;
   _bend_leafs      =true;
   _particles_soft  =!MOBILE;
@@ -2481,7 +2480,6 @@ Display& Display::maxLights          (Byte             max      ) {Clamp(max, 0,
 Display& Display::texMacro           (Bool             use      ) {                                                                    if(T._tex_macro       !=use      ){T._tex_macro       =use      ; setShader();} return T;}
 Display& Display::texDetail          (TEXTURE_USAGE    usage    ) {Clamp(usage, TEX_USE_DISABLE, TEXTURE_USAGE(TEX_USE_NUM-1));        if(T._tex_detail      !=usage    ){T._tex_detail      =usage    ; setShader();} return T;}
 Display& Display::texDetailLOD       (Bool             on       ) {                                                                    if(T._tex_detail_lod  !=on       ){T._tex_detail_lod  =on       ; setShader();} return T;}
-Display& Display::texReflection      (TEXTURE_USAGE    usage    ) {Clamp(usage, TEX_USE_DISABLE, TEXTURE_USAGE(TEX_USE_NUM-1));        if(T._tex_reflect     !=usage    ){T._tex_reflect     =usage    ; setShader();} return T;}
 Display& Display::materialBlend      (Bool             per_pixel) {                                                                    if(T._mtrl_blend      !=per_pixel){T._mtrl_blend      =per_pixel; setShader();} return T;}
 Display& Display::bendLeafs          (Bool             on       ) {                                                                    if(T._bend_leafs      !=on       ){T._bend_leafs      =on       ; setShader();} return T;}
 Display& Display::outlineMode        (EDGE_DETECT_MODE mode     ) {Clamp(mode, EDGE_DETECT_NONE, EDGE_DETECT_MODE(EDGE_DETECT_NUM-1)); if(T._outline_mode    !=mode     ){T._outline_mode    =mode     ;             } return T;}

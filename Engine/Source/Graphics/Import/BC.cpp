@@ -1358,7 +1358,7 @@ static void CompressBC5S(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither
 }
 /******************************************************************************/
 static const Vec BCWeights=ColorLumWeight*0.65f;
-Bool CompressBC(C Image &src, Image &dest, Bool mtrl_base_1) // no need to store this in a separate CPP file, because its code size is small
+Bool CompressBC(C Image &src, Image &dest, Bool perceptual) // no need to store this in a separate CPP file, because its code size is small
 {
    if(dest.hwType()==IMAGE_BC1      || dest.hwType()==IMAGE_BC2      || dest.hwType()==IMAGE_BC3      || dest.hwType()==IMAGE_BC4      || dest.hwType()==IMAGE_BC5
    || dest.hwType()==IMAGE_BC1_SRGB || dest.hwType()==IMAGE_BC2_SRGB || dest.hwType()==IMAGE_BC3_SRGB || dest.hwType()==IMAGE_BC4_SIGN || dest.hwType()==IMAGE_BC5_SIGN)
@@ -1376,7 +1376,6 @@ Bool CompressBC(C Image &src, Image &dest, Bool mtrl_base_1) // no need to store
       Int  x_mul     =((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB || dest.hwType()==IMAGE_BC4 || dest.hwType()==IMAGE_BC4_SIGN) ? 8 : 16),
            src_faces1=src.faces()-1;
       Vec4 rgba[16];
-      Vec  weight(1, 1, 0.5f); // #MaterialTextureChannelOrder - NrmX, NrmY, Spec, Alpha
       REPD(mip, Min(src.mipMaps(), dest.mipMaps()))
       {
          Int x_blocks=PaddedWidth (dest.hwW(), dest.hwH(), mip, dest.hwType())/4, // operate on mip HW size to process partial and Pow2Padded blocks too
@@ -1397,16 +1396,16 @@ Bool CompressBC(C Image &src, Image &dest, Bool mtrl_base_1) // no need to store
                   {
                      Int px=bx*4, xo[4]; REPAO(xo)=Min(px+i, src.lw()-1); // use clamping to avoid black borders
                      src.gather(rgba, xo, Elms(xo), yo, Elms(yo), &sz, 1);
-                     if(!mtrl_base_1)
+                     if(perceptual)
                      {
                         Vec4 min, max; MinMax(rgba, 4*4, min, max);
                      #if 1 // this gave better results
-                        weight=BCWeights + max.xyz + max.xyz-min.xyz; // max + delta = max + (max-min)
+                        Vec weight=BCWeights + max.xyz + max.xyz-min.xyz; // max + delta = max + (max-min)
                      #else
-                        weight=LinearToSRGB(ColorLumWeight2);
+                        Vec weight=LinearToSRGB(ColorLumWeight2);
                      #endif
-                     }
-                     compress_block(dest_data + bx*x_mul, rgba, &weight, true, true);
+                           compress_block(dest_data + bx*x_mul, rgba, &weight, true, true);
+                     }else compress_block(dest_data + bx*x_mul, rgba,  null  , true, true);
                   }
                }
             }
