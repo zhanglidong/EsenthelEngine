@@ -596,22 +596,21 @@ void MaterialClear() // must be called: after changing 'Renderer.mode', after ch
    REPAO(MaterialLast4)=null;
 }
 /******************************************************************************/
-UInt CreateBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image &alpha, C Image &bump, C Image &normal, C Image &smooth, C Image &glow, Bool resize_to_pow2, Bool flip_normal_y, FILTER_TYPE filter)
+UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &col, C Image &alpha, C Image &bump, C Image &normal, C Image &smooth, C Image &reflect, C Image &glow, Bool resize_to_pow2, Bool flip_normal_y, FILTER_TYPE filter)
 {
    // FIXME
    UInt  ret=0;
    Image dest_0, dest_1;
    {
-      Image    col_temp; C Image *   col_src=&   col; if(   col_src->compressed())if(   col_src->copyTry(   col_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))   col_src=&   col_temp;else goto error;
-      Image  alpha_temp; C Image * alpha_src=& alpha; if( alpha_src->compressed())if( alpha_src->copyTry( alpha_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1)) alpha_src=& alpha_temp;else goto error;
-      Image   bump_temp; C Image *  bump_src=&  bump; if(  bump_src->compressed())if(  bump_src->copyTry(  bump_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))  bump_src=&  bump_temp;else goto error;
-      Image normal_temp; C Image *normal_src=&normal; if(normal_src->compressed())if(normal_src->copyTry(normal_temp, -1, -1, -1, IMAGE_R8G8         , IMAGE_SOFT, 1))normal_src=&normal_temp;else goto error;
-      Image smooth_temp; C Image *smooth_src=&smooth; if(smooth_src->compressed())if(smooth_src->copyTry(smooth_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))smooth_src=&smooth_temp;else goto error;
-      Image   glow_temp; C Image *  glow_src=&  glow; if(  glow_src->compressed())if(  glow_src->copyTry(  glow_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))  glow_src=&  glow_temp;else goto error;
+      Image     col_temp; C Image *    col_src=&    col; if(    col_src->compressed())if(    col_src->copyTry(    col_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))    col_src=&    col_temp;else goto error;
+      Image   alpha_temp; C Image *  alpha_src=&  alpha; if(  alpha_src->compressed())if(  alpha_src->copyTry(  alpha_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))  alpha_src=&  alpha_temp;else goto error;
+      Image    bump_temp; C Image *   bump_src=&   bump; if(   bump_src->compressed())if(   bump_src->copyTry(   bump_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))   bump_src=&   bump_temp;else goto error;
+      Image  normal_temp; C Image * normal_src=& normal; if( normal_src->compressed())if( normal_src->copyTry( normal_temp, -1, -1, -1, IMAGE_R8G8         , IMAGE_SOFT, 1)) normal_src=& normal_temp;else goto error;
+      Image  smooth_temp; C Image * smooth_src=& smooth; if( smooth_src->compressed())if( smooth_src->copyTry( smooth_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1)) smooth_src=& smooth_temp;else goto error;
+      Image reflect_temp; C Image *reflect_src=&reflect; if(reflect_src->compressed())if(reflect_src->copyTry(reflect_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))reflect_src=&reflect_temp;else goto error;
+      Image    glow_temp; C Image *   glow_src=&   glow; if(   glow_src->compressed())if(   glow_src->copyTry(   glow_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))   glow_src=&   glow_temp;else goto error;
 
       // set alpha
-      // 1. Glow  Map shouldn't be stored in #1 texture because of difficulties when drawing multi-materials
-      // 2. Alpha Map is incompatible with Glow Map
       if(!alpha_src->is() && ImageTI[col_src->type()].a) // if there's no alpha map but there is alpha in color map
       {
          Byte min_alpha=255;
@@ -644,19 +643,17 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image &alp
          if(min_alpha>=253 && min_lum<253)if(alpha_src->copyTry(alpha_temp, -1, -1, -1, IMAGE_L8, IMAGE_SOFT, 1))alpha_src=&alpha_temp;else goto error; // alpha channel is almost fully white -> use luminance as alpha
       }
 
-      // alpha is incompatible with glow map
-      if(alpha_src->is())glow_src=&glow_temp.del(); // if 'alpha' is available then delete 'glow' (alpha has higher priority)
-
       // if we're using two textures
       Bool tex2=(bump_src->is() || normal_src->is() || smooth_src->is() || glow_src->is());
 
       // set what textures do we have (set this before 'normal' is generated from 'bump')
-      if(   col_src->is())ret|=BT_COLOR ;
-      if( alpha_src->is())ret|=BT_ALPHA ;
-      if(  bump_src->is())ret|=BT_BUMP  ;
-      if(normal_src->is())ret|=BT_NORMAL;
-      if(smooth_src->is())ret|=BT_SMOOTH;
-      if(  glow_src->is())ret|=BT_GLOW  ;
+      if(    col_src->is())ret|=BT_COLOR  ;
+      if(  alpha_src->is())ret|=BT_ALPHA  ;
+      if(   bump_src->is())ret|=BT_BUMP   ;
+      if( normal_src->is())ret|=BT_NORMAL ;
+      if( smooth_src->is())ret|=BT_SMOOTH ;
+      if(reflect_src->is())ret|=BT_REFLECT;
+      if(   glow_src->is())ret|=BT_GLOW   ;
 
       // generate textures, below operate on separate set of temporary images, in case one source image is used for both texture, but they will be used at different sizes (to avoid double stretching and loss of quality)
 
