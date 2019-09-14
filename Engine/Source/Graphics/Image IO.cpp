@@ -5,126 +5,61 @@ namespace EE{
 #define CC4_IMG CC4('I','M','G',0)
 #define CC4_GFX CC4('G','F','X',0)
 /******************************************************************************/
+static IMAGE_TYPE OldImageType3(Byte type)
+{
+   static const IMAGE_TYPE types[]=
+   {
+      IMAGE_NONE, IMAGE_R8G8B8A8, IMAGE_R8G8B8A8_SRGB, IMAGE_R8G8B8, IMAGE_R8G8B8_SRGB, IMAGE_R8G8, IMAGE_R8,
+      IMAGE_A8, IMAGE_L8, IMAGE_L8_SRGB, IMAGE_L8A8, IMAGE_L8A8_SRGB,
+      IMAGE_R10G10B10A2,
+      IMAGE_I8, IMAGE_I16, IMAGE_I24, IMAGE_I32,
+      IMAGE_F16, IMAGE_F32, IMAGE_F16_2, IMAGE_F32_2, IMAGE_F16_3, IMAGE_F32_3, IMAGE_F16_4, IMAGE_F32_4, IMAGE_F32_3_SRGB, IMAGE_F32_4_SRGB,
+      IMAGE_BC1, IMAGE_BC1_SRGB, IMAGE_BC2, IMAGE_BC2_SRGB, IMAGE_BC3, IMAGE_BC3_SRGB, IMAGE_BC4, IMAGE_BC5, IMAGE_BC6, IMAGE_BC7, IMAGE_BC7_SRGB,
+      IMAGE_ETC2_RGB, IMAGE_ETC2_RGB_SRGB, IMAGE_ETC2_RGBA1, IMAGE_ETC2_RGBA1_SRGB, IMAGE_ETC2_RGBA, IMAGE_ETC2_RGBA_SRGB,
+      IMAGE_PVRTC1_2, IMAGE_PVRTC1_2_SRGB, IMAGE_PVRTC1_4, IMAGE_PVRTC1_4_SRGB,
+   };
+   return InRange(type, types) ? types[type] : IMAGE_NONE;
+}
 static IMAGE_TYPE OldImageType2(Byte type)
 {
-   switch(type)
+   static const IMAGE_TYPE types[]=
    {
-      default: return IMAGE_NONE;
+      IMAGE_NONE, IMAGE_B8G8R8A8_SRGB, IMAGE_R8G8B8A8_SRGB, IMAGE_R8G8B8_SRGB, IMAGE_R8G8, IMAGE_R8,
+      IMAGE_A8, IMAGE_L8_SRGB, IMAGE_L8A8_SRGB,
+      IMAGE_BC1_SRGB, IMAGE_BC2_SRGB, IMAGE_BC3_SRGB,
+      IMAGE_I8, IMAGE_I16, IMAGE_I24, IMAGE_I32, IMAGE_F16, IMAGE_F32, IMAGE_F16_2, IMAGE_F32_2, IMAGE_F16_3, IMAGE_F32_3, IMAGE_F16_4, IMAGE_F32_4,
+      IMAGE_PVRTC1_2_SRGB, IMAGE_PVRTC1_4_SRGB,
 
-      case 1: return IMAGE_B8G8R8A8_SRGB;
-      case 2: return IMAGE_R8G8B8A8_SRGB;
-      case 3: return IMAGE_R8G8B8_SRGB;
-      case 4: return IMAGE_R8G8;
-      case 5: return IMAGE_R8;
-
-      case 6: return IMAGE_A8;
-      case 7: return IMAGE_L8_SRGB;
-      case 8: return IMAGE_L8A8_SRGB;
-
-      case  9: return IMAGE_BC1_SRGB;
-      case 10: return IMAGE_BC2_SRGB;
-      case 11: return IMAGE_BC3_SRGB;
-
-      case 12: return IMAGE_I8;
-      case 13: return IMAGE_I16;
-      case 14: return IMAGE_I24;
-      case 15: return IMAGE_I32;
-      case 16: return IMAGE_F16;
-      case 17: return IMAGE_F32;
-      case 18: return IMAGE_F16_2;
-      case 19: return IMAGE_F32_2;
-      case 20: return IMAGE_F16_3;
-      case 21: return IMAGE_F32_3;
-      case 22: return IMAGE_F16_4;
-      case 23: return IMAGE_F32_4;
-
-      case 24: return IMAGE_PVRTC1_2_SRGB;
-      case 25: return IMAGE_PVRTC1_4_SRGB;
-
-      case 26: return IMAGE_ETC1;
-      case 27: return IMAGE_ETC2_SRGB;
-      case 28: return IMAGE_ETC2_A1_SRGB;
-      case 29: return IMAGE_ETC2_A8_SRGB;
-
-      case 30: return IMAGE_BC7_SRGB;
-
-      case 31: return IMAGE_R10G10B10A2;
-   }
+      IMAGE_ETC1, IMAGE_ETC2_RGB_SRGB, IMAGE_ETC2_RGBA1_SRGB, IMAGE_ETC2_RGBA_SRGB,
+      IMAGE_BC7_SRGB,
+      IMAGE_R10G10B10A2,
+   };
+   return InRange(type, types) ? types[type] : IMAGE_NONE;
 }
 static IMAGE_TYPE OldImageType1(Byte type)
 {
-   switch(type)
+   static const IMAGE_TYPE types[]=
    {
-      default: return IMAGE_NONE;
+      IMAGE_NONE, IMAGE_B8G8R8A8_SRGB, IMAGE_R8G8B8A8_SRGB, IMAGE_R8G8B8_SRGB, IMAGE_R8G8, IMAGE_R8,
+      IMAGE_A8, IMAGE_L8_SRGB, IMAGE_L8A8_SRGB,
+      IMAGE_BC2_SRGB, IMAGE_BC3_SRGB,
+      IMAGE_I8, IMAGE_I16, IMAGE_I24, IMAGE_I32, IMAGE_F16, IMAGE_F32, IMAGE_F16_2, IMAGE_F32_2, IMAGE_F16_3, IMAGE_F32_3, IMAGE_F16_4, IMAGE_F32_4,
+      IMAGE_PVRTC1_2_SRGB, IMAGE_PVRTC1_4_SRGB,
 
-      case  1: return IMAGE_B8G8R8A8_SRGB;
-      case  2: return IMAGE_R8G8B8A8_SRGB;
-      case  3: return IMAGE_R8G8B8_SRGB;
-      case  4: return IMAGE_R8G8;
-      case  5: return IMAGE_R8;
-
-      case  6: return IMAGE_A8;
-      case  7: return IMAGE_L8_SRGB;
-      case  8: return IMAGE_L8A8_SRGB;
-
-      case  9: return IMAGE_BC2_SRGB;
-      case 10: return IMAGE_BC3_SRGB;
-
-      case 11: return IMAGE_I8;
-      case 12: return IMAGE_I16;
-      case 13: return IMAGE_I24;
-      case 14: return IMAGE_I32;
-      case 15: return IMAGE_F16;
-      case 16: return IMAGE_F32;
-      case 17: return IMAGE_F16_2;
-      case 18: return IMAGE_F32_2;
-      case 19: return IMAGE_F16_3;
-      case 20: return IMAGE_F32_3;
-      case 21: return IMAGE_F16_4;
-      case 22: return IMAGE_F32_4;
-
-      case 23: return IMAGE_PVRTC1_2_SRGB;
-      case 24: return IMAGE_PVRTC1_4_SRGB;
-
-      case 25: return IMAGE_ETC1;
-   }
+      IMAGE_ETC1,
+   };
+   return InRange(type, types) ? types[type] : IMAGE_NONE;
 }
 static IMAGE_TYPE OldImageType0(Byte type)
 {
-   switch(type)
+   static const IMAGE_TYPE types[]=
    {
-      default: return IMAGE_NONE;
-
-      case  1: return IMAGE_B8G8R8A8_SRGB;
-      case  2: return IMAGE_B8G8R8A8_SRGB; // IMAGE_X8R8G8B8
-      case  3: return IMAGE_R8G8B8_SRGB;
-      case  4: return IMAGE_NONE; // IMAGE_A1R5G5B5
-      case  5: return IMAGE_NONE; // IMAGE_R5G6B5
-
-      case  6: return IMAGE_NONE; // IMAGE_P8
-      case  7: return IMAGE_A8;
-      case  8: return IMAGE_A8; // IMAGE_A8W
-      case  9: return IMAGE_L8_SRGB;
-      case 10: return IMAGE_I16; // IMAGE_L16
-      case 11: return IMAGE_NONE; // IMAGE_A4L4
-      case 12: return IMAGE_L8A8_SRGB;
-
-      case 13: return IMAGE_BC2_SRGB;
-      case 14: return IMAGE_BC3_SRGB;
-
-      case 15: return IMAGE_I8;
-      case 16: return IMAGE_I16;
-      case 17: return IMAGE_I24;
-      case 18: return IMAGE_I32;
-      case 19: return IMAGE_F16;
-      case 20: return IMAGE_F32;
-      case 21: return IMAGE_F16_2;
-      case 22: return IMAGE_F32_2;
-      case 23: return IMAGE_F16_3;
-      case 24: return IMAGE_F32_3;
-      case 25: return IMAGE_F16_4;
-      case 26: return IMAGE_F32_4;
-   }
+      IMAGE_NONE, IMAGE_B8G8R8A8_SRGB, IMAGE_B8G8R8A8_SRGB, IMAGE_R8G8B8_SRGB, IMAGE_NONE, IMAGE_NONE,
+      IMAGE_NONE, IMAGE_A8, IMAGE_A8, IMAGE_L8_SRGB, IMAGE_I16, IMAGE_NONE, IMAGE_L8A8_SRGB,
+      IMAGE_BC2_SRGB, IMAGE_BC3_SRGB,
+      IMAGE_I8, IMAGE_I16, IMAGE_I24, IMAGE_I32, IMAGE_F16, IMAGE_F32, IMAGE_F16_2, IMAGE_F32_2, IMAGE_F16_3, IMAGE_F32_3, IMAGE_F16_4, IMAGE_F32_4,
+   };
+   return InRange(type, types) ? types[type] : IMAGE_NONE;
 }
 /******************************************************************************/
 // SAVE / LOAD
@@ -134,12 +69,25 @@ Bool Image::saveData(File &f)C
    if(mode()!=IMAGE_SOFT && mode()!=IMAGE_SOFT_CUBE && mode()!=IMAGE_2D && mode()!=IMAGE_3D && mode()!=IMAGE_CUBE)return false; // verify that mode is correct
 
    IMAGE_TYPE file_type=T.type(); // set image type as to be stored in the file
-   if((file_type==IMAGE_BC6 || file_type==IMAGE_BC7 || file_type==IMAGE_BC7_SRGB                                                                                                                             ) && !CompressBC67
-   || (file_type==IMAGE_ETC1 || file_type==IMAGE_ETC2 || file_type==IMAGE_ETC2_A1 || file_type==IMAGE_ETC2_A8 || file_type==IMAGE_ETC2_SRGB || file_type==IMAGE_ETC2_A1_SRGB || file_type==IMAGE_ETC2_A8_SRGB) && !CompressETC
-   || (file_type==IMAGE_PVRTC1_2 || file_type==IMAGE_PVRTC1_4 || file_type==IMAGE_PVRTC1_2_SRGB || file_type==IMAGE_PVRTC1_4_SRGB                                                                            ) && !CompressPVRTC
-   )file_type=T.hwType(); // if compressing to format which isn't supported then store as current 'hwType'
+   switch(file_type) // if compressing to format which isn't supported then store as current 'hwType'
+   {
+      case IMAGE_BC6: case IMAGE_BC7: case IMAGE_BC7_SRGB:
+         if(!CompressBC67)file_type=T.hwType(); break;
 
-   f.putMulti(Byte(0), size3(), Byte(file_type), Byte(mode()), Byte(mipMaps())); // version
+      case IMAGE_ETC1      :
+      case IMAGE_ETC2_R    : case IMAGE_ETC2_R_SIGN    :
+      case IMAGE_ETC2_RG   : case IMAGE_ETC2_RG_SIGN   :
+      case IMAGE_ETC2_RGB  : case IMAGE_ETC2_RGB_SRGB  :
+      case IMAGE_ETC2_RGBA1: case IMAGE_ETC2_RGBA1_SRGB:
+      case IMAGE_ETC2_RGBA : case IMAGE_ETC2_RGBA_SRGB :
+         if(!CompressETC)file_type=T.hwType(); break;
+
+      case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB:
+      case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB:
+         if(!CompressPVRTC)file_type=T.hwType(); break;
+   }
+
+   f.putMulti(Byte(1), size3(), Byte(file_type), Byte(mode()), Byte(mipMaps())); // version
 
    if(soft() && CanDoRawCopy(hwType(), file_type)) // software with matching type, we can save without locking
    {
@@ -397,11 +345,22 @@ Bool Image::loadData(File &f, ImageHeader *header, C Str &name)
    ImageHeader ih;
    switch(f.decUIntV())
    {
-      case 0:
+      case 1:
       {
          ImageFileHeader fh; f>>fh;
          Unaligned(ih.size    , fh.size);
          Unaligned(ih.type    , fh.type);
+         Unaligned(ih.mode    , fh.mode);
+        _Unaligned(ih.mip_maps, fh.mips);
+         if(header)goto set_header;
+         if(Load(T, f, ih, name))goto ok;
+      }break;
+
+      case 0:
+      {
+         ImageFileHeader fh; f>>fh;
+         Unaligned(ih.size    , fh.size);
+         Unaligned(ih.type    , fh.type); ih.type=OldImageType3(ih.type);
          Unaligned(ih.mode    , fh.mode);
         _Unaligned(ih.mip_maps, fh.mips);
          if(header)goto set_header;

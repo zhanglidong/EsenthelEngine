@@ -36,20 +36,23 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
 {
    IMAGE_NONE, // none
 
-   IMAGE_R8G8B8A8     , // 32-bit (R,G,B,A), linear gamma, Soft, DX10+, GL, GL ES
-   IMAGE_R8G8B8A8_SRGB, // 32-bit (R,G,B,A), sRGB   gamma, Soft, DX10+, GL, GL ES
-   IMAGE_R8G8B8       , // 24-bit (R,G,B,1), linear gamma, Soft
-   IMAGE_R8G8B8_SRGB  , // 24-bit (R,G,B,1), sRGB   gamma, Soft
-   IMAGE_R8G8         , // 16-bit (R,G,0,1), linear gamma, Soft, DX10+, GL, GL ES
-   IMAGE_R8           , //  8-bit (R,0,0,1), linear gamma, Soft, DX10+, GL, GL ES
+   IMAGE_R8G8B8A8     , // 32-bit (R,G,B,A), linear gamma,  0..1 unsigned, Soft, DX10+, GL, GL ES
+   IMAGE_R8G8B8A8_SRGB, // 32-bit (R,G,B,A), sRGB   gamma,  0..1 unsigned, Soft, DX10+, GL, GL ES
+   IMAGE_R8G8B8A8_SIGN, // 32-bit (R,G,B,A), linear gamma, -1..1   signed, Soft, DX10+, GL, GL ES
+   IMAGE_R8G8B8       , // 24-bit (R,G,B,1), linear gamma,  0..1 unsigned, Soft
+   IMAGE_R8G8B8_SRGB  , // 24-bit (R,G,B,1), sRGB   gamma,  0..1 unsigned, Soft
+   IMAGE_R8G8         , // 16-bit (R,G,0,1), linear gamma,  0..1 unsigned, Soft, DX10+, GL, GL ES
+   IMAGE_R8G8_SIGN    , // 16-bit (R,G,0,1), linear gamma, -1..1   signed, Soft, DX10+, GL, GL ES
+   IMAGE_R8           , //  8-bit (R,0,0,1), linear gamma,  0..1 unsigned, Soft, DX10+, GL, GL ES
+   IMAGE_R8_SIGN      , //  8-bit (R,0,0,1), linear gamma, -1..1   signed, Soft, DX10+, GL, GL ES
+
+   IMAGE_R10G10B10A2, // 32-bit (R,G,B,A), linear gamma, 0..1 unsigned, Soft, DX10+, GL, GL ES
 
    IMAGE_A8       , //  8-bit           alpha (0,0,0,A),               Soft, DX10+, GL, GL ES
    IMAGE_L8       , //  8-bit luminance       (L,L,L,1), linear gamma, Soft,        GL, GL ES
    IMAGE_L8_SRGB  , //  8-bit luminance       (L,L,L,1), sRGB   gamma, Soft
    IMAGE_L8A8     , // 16-bit luminance alpha (L,L,L,A), linear gamma, Soft,        GL, GL ES
    IMAGE_L8A8_SRGB, // 16-bit luminance alpha (L,L,L,A), sRGB   gamma, Soft
-
-   IMAGE_R10G10B10A2, // 32-bit (R,G,B,A), linear gamma, Soft, DX10+, GL, GL ES
 
    IMAGE_I8        , //      8-bit integer              , linear gamma, Soft
    IMAGE_I16       , //     16-bit integer              , linear gamma, Soft
@@ -67,46 +70,40 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
    IMAGE_F32_4_SRGB, // 4 x 32-bit float (128-bit total), sRGB   gamma, Soft
 
    // compressed format for Desktop
-   IMAGE_BC1     , // BC1/DXT1 4-bit lossy RGBA compression with 1-bit  alpha            , linear gamma, Soft, DX10+, GL, partial Android
-   IMAGE_BC1_SRGB, // BC1/DXT1 4-bit lossy RGBA compression with 1-bit  alpha            , sRGB   gamma, Soft, DX10+, GL, partial Android
-   IMAGE_BC2     , // BC2/DXT3 8-bit lossy RGBA compression with sharp  alpha transitions, linear gamma, Soft, DX10+, GL, partial Android
-   IMAGE_BC2_SRGB, // BC2/DXT3 8-bit lossy RGBA compression with sharp  alpha transitions, sRGB   gamma, Soft, DX10+, GL, partial Android
-   IMAGE_BC3     , // BC3/DXT5 8-bit lossy RGBA compression with smooth alpha transitions, linear gamma, Soft, DX10+, GL, partial Android
-   IMAGE_BC3_SRGB, // BC3/DXT5 8-bit lossy RGBA compression with smooth alpha transitions, sRGB   gamma, Soft, DX10+, GL, partial Android
-   IMAGE_BC4     , // BC4      4-bit lossy R    compression                              , linear gamma, Soft, DX10+, GL, partial Android
-   IMAGE_BC5     , // BC5      8-bit lossy RG   compression                              , linear gamma, Soft, DX10+, GL, partial Android
-   IMAGE_BC6     , // BC6      8-bit lossy RGB 16-bit floating point compression         , linear gamma, Soft, DX11+, partial GL (compressing images to this format is available only when 'SupportCompressBC' was called in 'InitPre')
-   IMAGE_BC7     , // BC7      8-bit lossy RGBA         high quality compression         , linear gamma, Soft, DX11+, partial GL (compressing images to this format is available only when 'SupportCompressBC' was called in 'InitPre')
-   IMAGE_BC7_SRGB, // BC7      8-bit lossy RGBA         high quality compression         , sRGB   gamma, Soft, DX11+, partial GL (compressing images to this format is available only when 'SupportCompressBC' was called in 'InitPre')
+   IMAGE_BC1     , // BC1/DXT1 4-bit lossy RGBA compression with 1-bit  alpha            , linear gamma,  0..1 unsigned, Soft, DX10+, GL, partial Android
+   IMAGE_BC1_SRGB, // BC1/DXT1 4-bit lossy RGBA compression with 1-bit  alpha            , sRGB   gamma,  0..1 unsigned, Soft, DX10+, GL, partial Android
+   IMAGE_BC2     , // BC2/DXT3 8-bit lossy RGBA compression with sharp  alpha transitions, linear gamma,  0..1 unsigned, Soft, DX10+, GL, partial Android
+   IMAGE_BC2_SRGB, // BC2/DXT3 8-bit lossy RGBA compression with sharp  alpha transitions, sRGB   gamma,  0..1 unsigned, Soft, DX10+, GL, partial Android
+   IMAGE_BC3     , // BC3/DXT5 8-bit lossy RGBA compression with smooth alpha transitions, linear gamma,  0..1 unsigned, Soft, DX10+, GL, partial Android
+   IMAGE_BC3_SRGB, // BC3/DXT5 8-bit lossy RGBA compression with smooth alpha transitions, sRGB   gamma,  0..1 unsigned, Soft, DX10+, GL, partial Android
+   IMAGE_BC4     , // BC4      4-bit lossy R    compression                              , linear gamma,  0..1 unsigned, Soft, DX10+, GL, partial Android
+   IMAGE_BC4_SIGN, // BC4      4-bit lossy R    compression                              , linear gamma, -1..1   signed, Soft, DX10+, GL, partial Android
+   IMAGE_BC5     , // BC5      8-bit lossy RG   compression                              , linear gamma,  0..1 unsigned, Soft, DX10+, GL, partial Android
+   IMAGE_BC5_SIGN, // BC5      8-bit lossy RG   compression                              , linear gamma, -1..1   signed, Soft, DX10+, GL, partial Android
+   IMAGE_BC6     , // BC6      8-bit lossy RGB 16-bit floating point compression         , linear gamma,  0..1 unsigned, Soft, DX11+, partial GL (compressing images to this format is available only when 'SupportCompressBC' was called in 'InitPre')
+   IMAGE_BC7     , // BC7      8-bit lossy RGBA         high quality compression         , linear gamma,  0..1 unsigned, Soft, DX11+, partial GL (compressing images to this format is available only when 'SupportCompressBC' was called in 'InitPre')
+   IMAGE_BC7_SRGB, // BC7      8-bit lossy RGBA         high quality compression         , sRGB   gamma,  0..1 unsigned, Soft, DX11+, partial GL (compressing images to this format is available only when 'SupportCompressBC' was called in 'InitPre')
 
    // compressed format for Android/iOS (compressing images to these formats is available only when 'SupportCompressETC' was called in 'InitPre')
-   IMAGE_ETC2        , // Ericsson 4-bit lossy RGB  compression with no    alpha (R,G,B,1     ), linear gamma, Soft, partial GL, GL ES
-   IMAGE_ETC2_SRGB   , // Ericsson 4-bit lossy RGB  compression with no    alpha (R,G,B,1     ), sRGB   gamma, Soft, partial GL, GL ES
-   IMAGE_ETC2_A1     , // Ericsson 4-bit lossy RGBA compression with 1-bit alpha (R,G,B,0 or 1), linear gamma, Soft, partial GL, GL ES
-   IMAGE_ETC2_A1_SRGB, // Ericsson 4-bit lossy RGBA compression with 1-bit alpha (R,G,B,0 or 1), sRGB   gamma, Soft, partial GL, GL ES
-   IMAGE_ETC2_A8     , // Ericsson 8-bit lossy RGBA compression with 8-bit alpha (R,G,B,A     ), linear gamma, Soft, partial GL, GL ES
-   IMAGE_ETC2_A8_SRGB, // Ericsson 8-bit lossy RGBA compression with 8-bit alpha (R,G,B,A     ), sRGB   gamma, Soft, partial GL, GL ES
+   IMAGE_ETC2_R         , // Ericsson 4-bit lossy R    compression with no    alpha (R,0,0,1     ), linear gamma,  0..1 unsigned, Soft, partial GL, GL ES
+   IMAGE_ETC2_R_SIGN    , // Ericsson 4-bit lossy R    compression with no    alpha (R,0,0,1     ), linear gamma, -1..1   signed, Soft, partial GL, GL ES
+   IMAGE_ETC2_RG        , // Ericsson 8-bit lossy RG   compression with no    alpha (R,G,0,1     ), linear gamma,  0..1 unsigned, Soft, partial GL, GL ES
+   IMAGE_ETC2_RG_SIGN   , // Ericsson 8-bit lossy RG   compression with no    alpha (R,G,0,1     ), linear gamma, -1..1   signed, Soft, partial GL, GL ES
+   IMAGE_ETC2_RGB       , // Ericsson 4-bit lossy RGB  compression with no    alpha (R,G,B,1     ), linear gamma,  0..1 unsigned, Soft, partial GL, GL ES
+   IMAGE_ETC2_RGB_SRGB  , // Ericsson 4-bit lossy RGB  compression with no    alpha (R,G,B,1     ), sRGB   gamma,  0..1 unsigned, Soft, partial GL, GL ES
+   IMAGE_ETC2_RGBA1     , // Ericsson 4-bit lossy RGBA compression with 1-bit alpha (R,G,B,0 or 1), linear gamma,  0..1 unsigned, Soft, partial GL, GL ES
+   IMAGE_ETC2_RGBA1_SRGB, // Ericsson 4-bit lossy RGBA compression with 1-bit alpha (R,G,B,0 or 1), sRGB   gamma,  0..1 unsigned, Soft, partial GL, GL ES
+   IMAGE_ETC2_RGBA      , // Ericsson 8-bit lossy RGBA compression with 8-bit alpha (R,G,B,A     ), linear gamma,  0..1 unsigned, Soft, partial GL, GL ES
+   IMAGE_ETC2_RGBA_SRGB , // Ericsson 8-bit lossy RGBA compression with 8-bit alpha (R,G,B,A     ), sRGB   gamma,  0..1 unsigned, Soft, partial GL, GL ES
 
    // compressed formats for iOS (compressing images to these formats is available only on Desktop platforms when 'SupportCompressPVRTC' was called in 'InitPre', decompression and especially compression may be slow, formats are recommended to be used only on iOS)
-   IMAGE_PVRTC1_2     , // PVRTC1 2-bit lossy RGBA compression, linear gamma, Soft, iOS, partial Android
-   IMAGE_PVRTC1_2_SRGB, // PVRTC1 2-bit lossy RGBA compression, sRGB   gamma, Soft, iOS, partial Android
-   IMAGE_PVRTC1_4     , // PVRTC1 4-bit lossy RGBA compression, linear gamma, Soft, iOS, partial Android
-   IMAGE_PVRTC1_4_SRGB, // PVRTC1 4-bit lossy RGBA compression, sRGB   gamma, Soft, iOS, partial Android
+   IMAGE_PVRTC1_2     , // PVRTC1 2-bit lossy RGBA compression, linear gamma, 0..1 unsigned, Soft, iOS, partial Android
+   IMAGE_PVRTC1_2_SRGB, // PVRTC1 2-bit lossy RGBA compression, sRGB   gamma, 0..1 unsigned, Soft, iOS, partial Android
+   IMAGE_PVRTC1_4     , // PVRTC1 4-bit lossy RGBA compression, linear gamma, 0..1 unsigned, Soft, iOS, partial Android
+   IMAGE_PVRTC1_4_SRGB, // PVRTC1 4-bit lossy RGBA compression, sRGB   gamma, 0..1 unsigned, Soft, iOS, partial Android
 
    IMAGE_TYPES, // number of types
 #if EE_PRIVATE
-   IMAGE_BC4_SIGN, // BC4      4-bit lossy R    compression                              , linear gamma, Soft, DX10+, GL, partial Android
-   IMAGE_BC5_SIGN, // BC5      8-bit lossy RG   compression                              , linear gamma, Soft, DX10+, GL, partial Android
-
-   IMAGE_ETC2_R8       , // Ericsson 4-bit lossy R    compression with no    alpha (R,0,0,1     ), linear gamma, Soft, partial GL, GL ES
-   IMAGE_ETC2_R8_SIGN  , // Ericsson 4-bit lossy R    compression with no    alpha (R,0,0,1     ), linear gamma, Soft, partial GL, GL ES
-   IMAGE_ETC2_R8G8     , // Ericsson 8-bit lossy RG   compression with no    alpha (R,G,0,1     ), linear gamma, Soft, partial GL, GL ES
-   IMAGE_ETC2_R8G8_SIGN, // Ericsson 8-bit lossy RG   compression with no    alpha (R,G,0,1     ), linear gamma, Soft, partial GL, GL ES
-
-   IMAGE_R8G8B8A8_SIGN, // 32-bit (R,G,B,A), Soft, DX10+, GL, GL ES
-   IMAGE_R8G8_SIGN    , // 16-bit (R,G,0,1), Soft, DX10+, GL, GL ES
-   IMAGE_R8_SIGN      , //  8-bit (R,0,0,1), Soft, DX10+, GL, GL ES
-
    IMAGE_B8G8R8A8     , // 32-bit (R,G,B,A), Soft, DX10+
    IMAGE_B8G8R8A8_SRGB,
    IMAGE_B8G8R8       ,

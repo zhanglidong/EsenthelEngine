@@ -50,11 +50,11 @@ namespace EE{
 #define GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2 0x9277
 #define GL_COMPRESSED_RGBA8_ETC2_EAC                 0x9278
 #define GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC          0x9279
-#define GL_LUMINANCE                                 0x1909
 #define GL_COMPRESSED_RED_RGTC1                      0x8DBB
 #define GL_COMPRESSED_RG_RGTC2                       0x8DBD
 #define GL_COMPRESSED_SIGNED_RED_RGTC1               0x8DBC
 #define GL_COMPRESSED_SIGNED_RG_RGTC2                0x8DBE
+#define GL_LUMINANCE                                 0x1909
 
 #define GL_SWIZZLE (GL && !GL_ES) // Modern Desktop OpenGL (3.2) does not support GL_ALPHA8, GL_LUMINANCE8, GL_LUMINANCE8_ALPHA8, use swizzle instead
 /******************************************************************************/
@@ -64,94 +64,91 @@ static SyncLock ImageSoftLock; // it's important to use a separate lock from 'D.
 /******************************************************************************/
 ImageTypeInfo ImageTI[IMAGE_ALL_TYPES]= // !! in case multiple types have the same format, preferred version must be specified in 'ImageFormatToType' !!
 {
-   {"None"         , false,  0,  0,   0, 0, 0, 0,   0,0, 0, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, 0)},
+   {"None"           , false,  0,  0,   0, 0, 0, 0,   0,0, 0, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, 0)},
 
-   {"R8G8B8A8"     , false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_R8G8B8A8_UNORM     , GL_RGBA8)},
-   {"R8G8B8A8_SRGB", false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, GL_SRGB8_ALPHA8)},
-   {"R8G8B8"       , false,  3, 24,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN            , GL_RGB8 )},
-   {"R8G8B8_SRGB"  , false,  3, 24,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN            , GL_SRGB8)},
-   {"R8G8"         , false,  2, 16,   8, 8, 0, 0,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_R8G8_UNORM         , GL_RG8  )},
-   {"R8"           , false,  1,  8,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_R8_UNORM           , GL_R8   )},
+   {"R8G8B8A8"       , false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_R8G8B8A8_UNORM     , GL_RGBA8       )},
+   {"R8G8B8A8_SRGB"  , false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, GL_SRGB8_ALPHA8)},
+   {"R8G8B8A8_SIGN"  , false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_R8G8B8A8_SNORM     , GL_RGBA8_SNORM )},
+   {"R8G8B8"         , false,  3, 24,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN            , GL_RGB8        )},
+   {"R8G8B8_SRGB"    , false,  3, 24,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN            , GL_SRGB8       )},
+   {"R8G8"           , false,  2, 16,   8, 8, 0, 0,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_R8G8_UNORM         , GL_RG8         )},
+   {"R8G8_SIGN"      , false,  2, 16,   8, 8, 0, 0,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_R8G8_SNORM         , GL_RG8_SNORM   )},
+   {"R8"             , false,  1,  8,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_R8_UNORM           , GL_R8          )},
+   {"R8_SIGN"        , false,  1,  8,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_R8_SNORM           , GL_R8_SNORM    )},
 
-   {"A8"           , false,  1,  8,   0, 0, 0, 8,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_A8_UNORM, GL_SWIZZLE ? GL_R8  : GL_ALPHA8           )},
-   {"L8"           , false,  1,  8,   8, 8, 8, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN , GL_SWIZZLE ? GL_R8  : GL_LUMINANCE8       )},
-   {"L8_SRGB"      , false,  1,  8,   8, 8, 8, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN , 0)},
-   {"L8A8"         , false,  2, 16,   8, 8, 8, 8,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN , GL_SWIZZLE ? GL_RG8 : GL_LUMINANCE8_ALPHA8)},
-   {"L8A8_SRGB"    , false,  2, 16,   8, 8, 8, 8,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN , 0)},
+   {"R10G10B10A2"    , false,  4, 32,  10,10,10, 2,   0,0, 4, IMAGE_PRECISION_10, 0, GPU_API(DXGI_FORMAT_R10G10B10A2_UNORM, GL_RGB10_A2)},
 
-   {"R10G10B10A2"  , false,  4, 32,  10,10,10, 2,   0,0, 4, IMAGE_PRECISION_10, 0, GPU_API(DXGI_FORMAT_R10G10B10A2_UNORM, GL_RGB10_A2)},
+   {"A8"             , false,  1,  8,   0, 0, 0, 8,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_A8_UNORM, GL_SWIZZLE ? GL_R8  : GL_ALPHA8           )},
+   {"L8"             , false,  1,  8,   8, 8, 8, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN , GL_SWIZZLE ? GL_R8  : GL_LUMINANCE8       )},
+   {"L8_SRGB"        , false,  1,  8,   8, 8, 8, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN , 0)},
+   {"L8A8"           , false,  2, 16,   8, 8, 8, 8,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN , GL_SWIZZLE ? GL_RG8 : GL_LUMINANCE8_ALPHA8)},
+   {"L8A8_SRGB"      , false,  2, 16,   8, 8, 8, 8,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN , 0)},
 
-   {"I8"           , false,  1,  8,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN           , 0)},
-   {"I16"          , false,  2, 16,  16, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_16, 0, GPU_API(DXGI_FORMAT_UNKNOWN           , 0)},
-   {"I24"          , false,  3, 24,  24, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_24, 0, GPU_API(DXGI_FORMAT_UNKNOWN           , 0)},
-   {"I32"          , false,  4, 32,  32, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_UNKNOWN           , 0)},
-   {"F16"          , false,  2, 16,  16, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_16, 0, GPU_API(DXGI_FORMAT_R16_FLOAT         , GL_R16F   )},
-   {"F32"          , false,  4, 32,  32, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_R32_FLOAT         , GL_R32F   )},
-   {"F16_2"        , false,  4, 32,  16,16, 0, 0,   0,0, 2, IMAGE_PRECISION_16, 0, GPU_API(DXGI_FORMAT_R16G16_FLOAT      , GL_RG16F  )},
-   {"F32_2"        , false,  8, 64,  32,32, 0, 0,   0,0, 2, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_R32G32_FLOAT      , GL_RG32F  )},
-   {"F16_3"        , false,  6, 48,  16,16,16, 0,   0,0, 3, IMAGE_PRECISION_16, 0, GPU_API(DXGI_FORMAT_UNKNOWN           , GL_RGB16F )},
-   {"F32_3"        , false, 12, 96,  32,32,32, 0,   0,0, 3, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_R32G32B32_FLOAT   , GL_RGB32F )},
-   {"F16_4"        , false,  8, 64,  16,16,16,16,   0,0, 4, IMAGE_PRECISION_16, 0, GPU_API(DXGI_FORMAT_R16G16B16A16_FLOAT, GL_RGBA16F)},
-   {"F32_4"        , false, 16,128,  32,32,32,32,   0,0, 4, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_R32G32B32A32_FLOAT, GL_RGBA32F)},
-   {"F32_3_SRGB"   , false, 12, 96,  32,32,32, 0,   0,0, 3, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_UNKNOWN           , 0)},
-   {"F32_4_SRGB"   , false, 16,128,  32,32,32,32,   0,0, 4, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_UNKNOWN           , 0)},
+   {"I8"             , false,  1,  8,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN           , 0)},
+   {"I16"            , false,  2, 16,  16, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_16, 0, GPU_API(DXGI_FORMAT_UNKNOWN           , 0)},
+   {"I24"            , false,  3, 24,  24, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_24, 0, GPU_API(DXGI_FORMAT_UNKNOWN           , 0)},
+   {"I32"            , false,  4, 32,  32, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_UNKNOWN           , 0)},
+   {"F16"            , false,  2, 16,  16, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_16, 0, GPU_API(DXGI_FORMAT_R16_FLOAT         , GL_R16F   )},
+   {"F32"            , false,  4, 32,  32, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_R32_FLOAT         , GL_R32F   )},
+   {"F16_2"          , false,  4, 32,  16,16, 0, 0,   0,0, 2, IMAGE_PRECISION_16, 0, GPU_API(DXGI_FORMAT_R16G16_FLOAT      , GL_RG16F  )},
+   {"F32_2"          , false,  8, 64,  32,32, 0, 0,   0,0, 2, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_R32G32_FLOAT      , GL_RG32F  )},
+   {"F16_3"          , false,  6, 48,  16,16,16, 0,   0,0, 3, IMAGE_PRECISION_16, 0, GPU_API(DXGI_FORMAT_UNKNOWN           , GL_RGB16F )},
+   {"F32_3"          , false, 12, 96,  32,32,32, 0,   0,0, 3, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_R32G32B32_FLOAT   , GL_RGB32F )},
+   {"F16_4"          , false,  8, 64,  16,16,16,16,   0,0, 4, IMAGE_PRECISION_16, 0, GPU_API(DXGI_FORMAT_R16G16B16A16_FLOAT, GL_RGBA16F)},
+   {"F32_4"          , false, 16,128,  32,32,32,32,   0,0, 4, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_R32G32B32A32_FLOAT, GL_RGBA32F)},
+   {"F32_3_SRGB"     , false, 12, 96,  32,32,32, 0,   0,0, 3, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_UNKNOWN           , 0)},
+   {"F32_4_SRGB"     , false, 16,128,  32,32,32,32,   0,0, 4, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_UNKNOWN           , 0)},
 
-   {"BC1"          , true ,  0,  4,   5, 6, 5, 0,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC1_UNORM     , GL_COMPRESSED_RGBA_S3TC_DXT1_EXT      )}, // set 0 alpha bits, even though BC1 can support 1-bit alpha, it's never used in the engine, other formats are used for alpha
-   {"BC1_SRGB"     , true ,  0,  4,   5, 6, 5, 0,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC1_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT)}, // set 0 alpha bits, even though BC1 can support 1-bit alpha, it's never used in the engine, other formats are used for alpha
-   {"BC2"          , true ,  1,  8,   5, 6, 5, 4,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC2_UNORM     , GL_COMPRESSED_RGBA_S3TC_DXT3_EXT)},
-   {"BC2_SRGB"     , true ,  1,  8,   5, 6, 5, 4,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC2_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT)},
-   {"BC3"          , true ,  1,  8,   5, 6, 5, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC3_UNORM     , GL_COMPRESSED_RGBA_S3TC_DXT5_EXT)},
-   {"BC3_SRGB"     , true ,  1,  8,   5, 6, 5, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC3_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT)},
-   {"BC4"          , true ,  1,  4,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC4_UNORM     , GL_COMPRESSED_RED_RGTC1)},
-   {"BC5"          , true ,  1,  8,   8, 8, 0, 0,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC5_UNORM     , GL_COMPRESSED_RG_RGTC2)},
-   {"BC6"          , true ,  1,  8,  16,16,16, 0,   0,0, 3, IMAGE_PRECISION_16, 0, GPU_API(DXGI_FORMAT_BC6H_UF16     , GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT)},
-   {"BC7"          , true ,  1,  8,   7, 7, 7, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC7_UNORM     , GL_COMPRESSED_RGBA_BPTC_UNORM)},
-   {"BC7_SRGB"     , true ,  1,  8,   7, 7, 7, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC7_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM)},
+   {"BC1"            , true ,  0,  4,   5, 6, 5, 0,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC1_UNORM     , GL_COMPRESSED_RGBA_S3TC_DXT1_EXT      )}, // set 0 alpha bits, even though BC1 can support 1-bit alpha, it's never used in the engine, other formats are used for alpha
+   {"BC1_SRGB"       , true ,  0,  4,   5, 6, 5, 0,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC1_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT)}, // set 0 alpha bits, even though BC1 can support 1-bit alpha, it's never used in the engine, other formats are used for alpha
+   {"BC2"            , true ,  1,  8,   5, 6, 5, 4,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC2_UNORM     , GL_COMPRESSED_RGBA_S3TC_DXT3_EXT      )},
+   {"BC2_SRGB"       , true ,  1,  8,   5, 6, 5, 4,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC2_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT)},
+   {"BC3"            , true ,  1,  8,   5, 6, 5, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC3_UNORM     , GL_COMPRESSED_RGBA_S3TC_DXT5_EXT      )},
+   {"BC3_SRGB"       , true ,  1,  8,   5, 6, 5, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC3_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT)},
+   {"BC4"            , true ,  1,  4,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC4_UNORM     , GL_COMPRESSED_RED_RGTC1               )},
+   {"BC4_SIGN"       , true ,  1,  4,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC4_SNORM     , GL_COMPRESSED_SIGNED_RED_RGTC1        )},
+   {"BC5"            , true ,  1,  8,   8, 8, 0, 0,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC5_UNORM     , GL_COMPRESSED_RG_RGTC2                )},
+   {"BC5_SIGN"       , true ,  1,  8,   8, 8, 0, 0,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC5_SNORM     , GL_COMPRESSED_SIGNED_RG_RGTC2         )},
+   {"BC6"            , true ,  1,  8,  16,16,16, 0,   0,0, 3, IMAGE_PRECISION_16, 0, GPU_API(DXGI_FORMAT_BC6H_UF16     , GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT )},
+   {"BC7"            , true ,  1,  8,   7, 7, 7, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC7_UNORM     , GL_COMPRESSED_RGBA_BPTC_UNORM         )},
+   {"BC7_SRGB"       , true ,  1,  8,   7, 7, 7, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC7_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM   )},
 
-   {"ETC2"         , true ,  0,  4,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_RGB8_ETC2)},
-   {"ETC2_SRGB"    , true ,  0,  4,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB8_ETC2)},
-   {"ETC2_A1"      , true ,  0,  4,   8, 8, 8, 1,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2)},
-   {"ETC2_A1_SRGB" , true ,  0,  4,   8, 8, 8, 1,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2)},
-   {"ETC2_A8"      , true ,  1,  8,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_RGBA8_ETC2_EAC)},
-   {"ETC2_A8_SRGB" , true ,  1,  8,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC)},
+   {"ETC2_R"         , true ,  1,  4,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_R11_EAC)},
+   {"ETC2_R_SIGN"    , true ,  1,  4,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SIGNED_R11_EAC)},
+   {"ETC2_RG"        , true ,  1,  8,   8, 8, 0, 0,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_RG11_EAC)},
+   {"ETC2_RG_SIGN"   , true ,  1,  8,   8, 8, 0, 0,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SIGNED_RG11_EAC)},
+   {"ETC2_RGB"       , true ,  0,  4,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_RGB8_ETC2)},
+   {"ETC2_RGB_SRGB"  , true ,  0,  4,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB8_ETC2)},
+   {"ETC2_RGBA1"     , true ,  0,  4,   8, 8, 8, 1,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2)},
+   {"ETC2_RGBA1_SRGB", true ,  0,  4,   8, 8, 8, 1,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2)},
+   {"ETC2_RGBA"      , true ,  1,  8,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_RGBA8_ETC2_EAC)},
+   {"ETC2_RGBA_SRGB" , true ,  1,  8,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC)},
 
-   {"PVRTC1_2"     , true ,  0,  2,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG)},
-   {"PVRTC1_2_SRGB", true ,  0,  2,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT)},
-   {"PVRTC1_4"     , true ,  0,  4,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG)},
-   {"PVRTC1_4_SRGB", true ,  0,  4,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT)},
+   {"PVRTC1_2"       , true ,  0,  2,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG)},
+   {"PVRTC1_2_SRGB"  , true ,  0,  2,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT)},
+   {"PVRTC1_4"       , true ,  0,  4,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG)},
+   {"PVRTC1_4_SRGB"  , true ,  0,  4,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT)},
 
-   {null           , false,  0,  0,   0, 0, 0, 0,   0,0, 0, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, 0)},
+   {null             , false,  0,  0,   0, 0, 0, 0,   0,0, 0, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, 0)},
 
-   {"BC4_SIGN"     , true ,  1,  4,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC4_SNORM     , GL_COMPRESSED_SIGNED_RED_RGTC1)},
-   {"BC5_SIGN"     , true ,  1,  8,   8, 8, 0, 0,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_BC5_SNORM     , GL_COMPRESSED_SIGNED_RG_RGTC2 )},
+   {"B8G8R8A8"       , false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_B8G8R8A8_UNORM     , 0)},
+   {"B8G8R8A8_SRGB"  , false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_B8G8R8A8_UNORM_SRGB, 0)},
+   {"B8G8R8"         , false,  3, 24,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN            , 0)},
+   {"B8G8R8_SRGB"    , false,  3, 24,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN            , 0)},
 
-   {"ETC2_R8"       , true ,  1,  4,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_R11_EAC)},
-   {"ETC2_R8_SIGN"  , true ,  1,  4,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SIGNED_R11_EAC)},
-   {"ETC2_R8G8"     , true ,  1,  8,   8, 8, 0, 0,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_RG11_EAC)},
-   {"ETC2_R8G8_SIGN", true ,  1,  8,   8, 8, 0, 0,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_COMPRESSED_SIGNED_RG11_EAC)},
+   {"B5G6R5"         , false,  2, 16,   5, 6, 5, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_B5G6R5_UNORM  , 0)},
+   {"B5G5R5A1"       , false,  2, 16,   5, 5, 5, 1,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_B5G5R5A1_UNORM, 0)},
+   {"B4G4R4A4"       , false,  2, 16,   4, 4, 4, 4,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN       , 0)},
 
-   {"R8G8B8A8_SIGN", false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_R8G8B8A8_SNORM, GL_RGBA8_SNORM)},
-   {"R8G8_SIGN"    , false,  2, 16,   8, 8, 0, 0,   0,0, 2, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_R8G8_SNORM    , GL_RG8_SNORM  )},
-   {"R8_SIGN"      , false,  1,  8,   8, 0, 0, 0,   0,0, 1, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_R8_SNORM      , GL_R8_SNORM   )},
+   {"D16"            , false,  2, 16,   0, 0, 0, 0,  16,0, 1, IMAGE_PRECISION_16, 0, GPU_API(DXGI_FORMAT_D16_UNORM        , GL_DEPTH_COMPONENT16 )},
+   {"D24X8"          , false,  4, 32,   0, 0, 0, 0,  24,0, 1, IMAGE_PRECISION_24, 0, GPU_API(DXGI_FORMAT_UNKNOWN          , GL_DEPTH_COMPONENT24 )},
+   {"D24S8"          , false,  4, 32,   0, 0, 0, 0,  24,8, 2, IMAGE_PRECISION_24, 0, GPU_API(DXGI_FORMAT_D24_UNORM_S8_UINT, GL_DEPTH24_STENCIL8  )},
+   {"D32"            , false,  4, 32,   0, 0, 0, 0,  32,0, 1, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_D32_FLOAT        , GL_DEPTH_COMPONENT32F)},
 
-   {"B8G8R8A8"     , false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_B8G8R8A8_UNORM     , 0)},
-   {"B8G8R8A8_SRGB", false,  4, 32,   8, 8, 8, 8,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_B8G8R8A8_UNORM_SRGB, 0)},
-   {"B8G8R8"       , false,  3, 24,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN            , 0)},
-   {"B8G8R8_SRGB"  , false,  3, 24,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN            , 0)},
+   {"ETC1"           , true ,  0,  4,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_ETC1_RGB8_OES)},
 
-   {"B5G6R5"       , false,  2, 16,   5, 6, 5, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_B5G6R5_UNORM  , 0)},
-   {"B5G5R5A1"     , false,  2, 16,   5, 5, 5, 1,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_B5G5R5A1_UNORM, 0)},
-   {"B4G4R4A4"     , false,  2, 16,   4, 4, 4, 4,   0,0, 4, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN       , 0)},
-
-   {"D16"          , false,  2, 16,   0, 0, 0, 0,  16,0, 1, IMAGE_PRECISION_16, 0, GPU_API(DXGI_FORMAT_D16_UNORM        , GL_DEPTH_COMPONENT16 )},
-   {"D24X8"        , false,  4, 32,   0, 0, 0, 0,  24,0, 1, IMAGE_PRECISION_24, 0, GPU_API(DXGI_FORMAT_UNKNOWN          , GL_DEPTH_COMPONENT24 )},
-   {"D24S8"        , false,  4, 32,   0, 0, 0, 0,  24,8, 2, IMAGE_PRECISION_24, 0, GPU_API(DXGI_FORMAT_D24_UNORM_S8_UINT, GL_DEPTH24_STENCIL8  )},
-   {"D32"          , false,  4, 32,   0, 0, 0, 0,  32,0, 1, IMAGE_PRECISION_32, 0, GPU_API(DXGI_FORMAT_D32_FLOAT        , GL_DEPTH_COMPONENT32F)},
-
-   {"ETC1"         , true ,  0,  4,   8, 8, 8, 0,   0,0, 3, IMAGE_PRECISION_8 , 0, GPU_API(DXGI_FORMAT_UNKNOWN, GL_ETC1_RGB8_OES)},
-
-   {"R11G11B10F"   , false,  4, 32,  11,11,10, 0,   0,0, 3, IMAGE_PRECISION_10, 0, GPU_API(DXGI_FORMAT_R11G11B10_FLOAT   , GL_R11F_G11F_B10F)},
-   {"R9G9B9E5F"    , false,  4, 32,  14,14,14, 0,   0,0, 3, IMAGE_PRECISION_10, 0, GPU_API(DXGI_FORMAT_R9G9B9E5_SHAREDEXP, GL_RGB9_E5)},
+   {"R11G11B10F"     , false,  4, 32,  11,11,10, 0,   0,0, 3, IMAGE_PRECISION_10, 0, GPU_API(DXGI_FORMAT_R11G11B10_FLOAT   , GL_R11F_G11F_B10F)},
+   {"R9G9B9E5F"      , false,  4, 32,  14,14,14, 0,   0,0, 3, IMAGE_PRECISION_10, 0, GPU_API(DXGI_FORMAT_R9G9B9E5_SHAREDEXP, GL_RGB9_E5)},
 }; ASSERT(IMAGE_ALL_TYPES==72);
 /******************************************************************************/
 Bool IsSRGB(IMAGE_TYPE type)
@@ -160,23 +157,23 @@ Bool IsSRGB(IMAGE_TYPE type)
    {
       default: return false;
 
-      case IMAGE_B8G8R8A8_SRGB:
-      case IMAGE_B8G8R8_SRGB  :
-      case IMAGE_R8G8B8A8_SRGB:
-      case IMAGE_R8G8B8_SRGB  :
-      case IMAGE_L8_SRGB      :
-      case IMAGE_L8A8_SRGB    :
-      case IMAGE_F32_3_SRGB   :
-      case IMAGE_F32_4_SRGB   :
-      case IMAGE_BC1_SRGB     :
-      case IMAGE_BC2_SRGB     :
-      case IMAGE_BC3_SRGB     :
-      case IMAGE_BC7_SRGB     :
-      case IMAGE_ETC2_SRGB    :
-      case IMAGE_ETC2_A1_SRGB :
-      case IMAGE_ETC2_A8_SRGB :
-      case IMAGE_PVRTC1_2_SRGB:
-      case IMAGE_PVRTC1_4_SRGB:
+      case IMAGE_B8G8R8A8_SRGB  :
+      case IMAGE_B8G8R8_SRGB    :
+      case IMAGE_R8G8B8A8_SRGB  :
+      case IMAGE_R8G8B8_SRGB    :
+      case IMAGE_L8_SRGB        :
+      case IMAGE_L8A8_SRGB      :
+      case IMAGE_F32_3_SRGB     :
+      case IMAGE_F32_4_SRGB     :
+      case IMAGE_BC1_SRGB       :
+      case IMAGE_BC2_SRGB       :
+      case IMAGE_BC3_SRGB       :
+      case IMAGE_BC7_SRGB       :
+      case IMAGE_ETC2_RGB_SRGB  :
+      case IMAGE_ETC2_RGBA1_SRGB:
+      case IMAGE_ETC2_RGBA_SRGB :
+      case IMAGE_PVRTC1_2_SRGB  :
+      case IMAGE_PVRTC1_4_SRGB  :
          return true;
    }
 }
@@ -207,10 +204,10 @@ IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type)
       case IMAGE_BC1     : case IMAGE_BC4: case IMAGE_BC5: return IMAGE_BC7     ; // BC1 has only 1-bit alpha which is not enough
       case IMAGE_BC1_SRGB:                                 return IMAGE_BC7_SRGB; // BC1 has only 1-bit alpha which is not enough
 
-      case IMAGE_BC4_SIGN      :
-      case IMAGE_BC5_SIGN      :
-      case IMAGE_ETC2_R8_SIGN  :
-      case IMAGE_ETC2_R8G8_SIGN:
+      case IMAGE_BC4_SIGN    :
+      case IMAGE_BC5_SIGN    :
+      case IMAGE_ETC2_R_SIGN :
+      case IMAGE_ETC2_RG_SIGN:
          return IMAGE_R8G8B8A8_SIGN;
 
       case IMAGE_BC6  :
@@ -226,16 +223,16 @@ IMAGE_TYPE ImageTypeIncludeAlpha(IMAGE_TYPE type)
 
       case IMAGE_F32_3_SRGB: return IMAGE_F32_4_SRGB;
 
-      case IMAGE_ETC1     :
-      case IMAGE_ETC2     :
-      case IMAGE_ETC2_A1  : // ETC2_A1 has only 1-bit alpha which is not enough
-      case IMAGE_ETC2_R8  :
-      case IMAGE_ETC2_R8G8:
-         return IMAGE_ETC2_A8;
+      case IMAGE_ETC1      :
+      case IMAGE_ETC2_R    :
+      case IMAGE_ETC2_RG   :
+      case IMAGE_ETC2_RGB  :
+      case IMAGE_ETC2_RGBA1: // ETC2_RGBA1 has only 1-bit alpha which is not enough
+         return IMAGE_ETC2_RGBA;
 
-      case IMAGE_ETC2_SRGB   :
-      case IMAGE_ETC2_A1_SRGB:
-         return IMAGE_ETC2_A8_SRGB; // ETC2_A1_SRGB has only 1-bit alpha which is not enough
+      case IMAGE_ETC2_RGB_SRGB  :
+      case IMAGE_ETC2_RGBA1_SRGB:
+         return IMAGE_ETC2_RGBA_SRGB; // ETC2_RGBA1_SRGB has only 1-bit alpha which is not enough
    }
 }
 IMAGE_TYPE ImageTypeExcludeAlpha(IMAGE_TYPE type)
@@ -269,13 +266,13 @@ IMAGE_TYPE ImageTypeExcludeAlpha(IMAGE_TYPE type)
 
       case IMAGE_F32_4_SRGB: return IMAGE_F32_3_SRGB;
 
-      case IMAGE_ETC2_A1:
-      case IMAGE_ETC2_A8:
-         return IMAGE_ETC2;
+      case IMAGE_ETC2_RGBA1:
+      case IMAGE_ETC2_RGBA :
+         return IMAGE_ETC2_RGB;
 
-      case IMAGE_ETC2_A1_SRGB:
-      case IMAGE_ETC2_A8_SRGB:
-         return IMAGE_ETC2_SRGB;
+      case IMAGE_ETC2_RGBA1_SRGB:
+      case IMAGE_ETC2_RGBA_SRGB :
+         return IMAGE_ETC2_RGB_SRGB;
    }
 }
 IMAGE_TYPE ImageTypeUncompressed(IMAGE_TYPE type)
@@ -284,45 +281,45 @@ IMAGE_TYPE ImageTypeUncompressed(IMAGE_TYPE type)
    {
       default: return type;
 
-      case IMAGE_BC4    :
-      case IMAGE_ETC2_R8:
+      case IMAGE_BC4   :
+      case IMAGE_ETC2_R:
          return IMAGE_R8;
 
-      case IMAGE_BC5      :
-      case IMAGE_ETC2_R8G8:
+      case IMAGE_BC5    :
+      case IMAGE_ETC2_RG:
          return IMAGE_R8G8;
 
-      case IMAGE_BC4_SIGN    :
-      case IMAGE_ETC2_R8_SIGN:
+      case IMAGE_BC4_SIGN   :
+      case IMAGE_ETC2_R_SIGN:
          return IMAGE_R8_SIGN;
 
-      case IMAGE_BC5_SIGN      :
-      case IMAGE_ETC2_R8G8_SIGN:
+      case IMAGE_BC5_SIGN    :
+      case IMAGE_ETC2_RG_SIGN:
          return IMAGE_R8G8_SIGN;
 
       case IMAGE_BC1 : // use since there's no other desktop compressed format without alpha
       case IMAGE_ETC1:
-      case IMAGE_ETC2:
+      case IMAGE_ETC2_RGB:
          return IMAGE_R8G8B8;
 
       case IMAGE_BC2:
       case IMAGE_BC3:
       case IMAGE_BC7:
-      case IMAGE_ETC2_A1:
-      case IMAGE_ETC2_A8:
+      case IMAGE_ETC2_RGBA1:
+      case IMAGE_ETC2_RGBA :
       case IMAGE_PVRTC1_2:
       case IMAGE_PVRTC1_4:
          return IMAGE_R8G8B8A8;
 
       case IMAGE_BC1_SRGB:
-      case IMAGE_ETC2_SRGB:
+      case IMAGE_ETC2_RGB_SRGB:
          return IMAGE_R8G8B8_SRGB;
 
       case IMAGE_BC2_SRGB:
       case IMAGE_BC3_SRGB:
       case IMAGE_BC7_SRGB:
-      case IMAGE_ETC2_A1_SRGB:
-      case IMAGE_ETC2_A8_SRGB:
+      case IMAGE_ETC2_RGBA1_SRGB:
+      case IMAGE_ETC2_RGBA_SRGB :
       case IMAGE_PVRTC1_2_SRGB:
       case IMAGE_PVRTC1_4_SRGB:
          return IMAGE_R8G8B8A8_SRGB;
@@ -342,40 +339,40 @@ IMAGE_TYPE ImageTypeOnFail(IMAGE_TYPE type) // this is for HW images, don't retu
       case IMAGE_R8G8B8A8_SRGB:
          return IMAGE_NONE;
 
-      case IMAGE_B8G8R8A8_SRGB:
-      case IMAGE_B8G8R8_SRGB  :
-      case IMAGE_R8G8B8_SRGB  :
-      case IMAGE_L8_SRGB      :
-      case IMAGE_L8A8_SRGB    :
-      case IMAGE_BC1_SRGB     :
-      case IMAGE_BC2_SRGB     :
-      case IMAGE_BC3_SRGB     :
-      case IMAGE_BC7_SRGB     :
-      case IMAGE_ETC2_SRGB    :
-      case IMAGE_ETC2_A1_SRGB :
-      case IMAGE_ETC2_A8_SRGB :
-      case IMAGE_PVRTC1_2_SRGB:
-      case IMAGE_PVRTC1_4_SRGB:
+      case IMAGE_B8G8R8A8_SRGB  :
+      case IMAGE_B8G8R8_SRGB    :
+      case IMAGE_R8G8B8_SRGB    :
+      case IMAGE_L8_SRGB        :
+      case IMAGE_L8A8_SRGB      :
+      case IMAGE_BC1_SRGB       :
+      case IMAGE_BC2_SRGB       :
+      case IMAGE_BC3_SRGB       :
+      case IMAGE_BC7_SRGB       :
+      case IMAGE_ETC2_RGB_SRGB  :
+      case IMAGE_ETC2_RGBA1_SRGB:
+      case IMAGE_ETC2_RGBA_SRGB :
+      case IMAGE_PVRTC1_2_SRGB  :
+      case IMAGE_PVRTC1_4_SRGB  :
          return IMAGE_R8G8B8A8_SRGB;
 
       // Warning: these require IC_CONVERT_GAMMA
       case IMAGE_F32_3_SRGB: return IMAGE_F32_3;
       case IMAGE_F32_4_SRGB: return IMAGE_F32_4;
 
-      case IMAGE_BC4    :
-      case IMAGE_ETC2_R8:
+      case IMAGE_BC4   :
+      case IMAGE_ETC2_R:
          return IMAGE_R8;
 
-      case IMAGE_BC5      :
-      case IMAGE_ETC2_R8G8:
+      case IMAGE_BC5    :
+      case IMAGE_ETC2_RG:
          return IMAGE_R8G8;
 
-      case IMAGE_BC4_SIGN    :
-      case IMAGE_ETC2_R8_SIGN:
+      case IMAGE_BC4_SIGN   :
+      case IMAGE_ETC2_R_SIGN:
          return IMAGE_R8_SIGN;
 
-      case IMAGE_BC5_SIGN      :
-      case IMAGE_ETC2_R8G8_SIGN:
+      case IMAGE_BC5_SIGN    :
+      case IMAGE_ETC2_RG_SIGN:
          return IMAGE_R8G8_SIGN;
 
       case IMAGE_BC6:
@@ -386,72 +383,72 @@ IMAGE_TYPE ImageTypeIncludeSRGB(IMAGE_TYPE type)
 {
    switch(type)
    {
-      default            : return type;
-      case IMAGE_B8G8R8A8: return IMAGE_B8G8R8A8_SRGB;
-      case IMAGE_B8G8R8  : return IMAGE_B8G8R8_SRGB;
-      case IMAGE_R8G8B8A8: return IMAGE_R8G8B8A8_SRGB;
-      case IMAGE_R8G8B8  : return IMAGE_R8G8B8_SRGB;
-      case IMAGE_L8      : return IMAGE_L8_SRGB;
-      case IMAGE_L8A8    : return IMAGE_L8A8_SRGB;
-      case IMAGE_F32_3   : return IMAGE_F32_3_SRGB;
-      case IMAGE_F32_4   : return IMAGE_F32_4_SRGB;
-      case IMAGE_BC1     : return IMAGE_BC1_SRGB;
-      case IMAGE_BC2     : return IMAGE_BC2_SRGB;
-      case IMAGE_BC3     : return IMAGE_BC3_SRGB;
-      case IMAGE_BC7     : return IMAGE_BC7_SRGB;
-      case IMAGE_ETC2    : return IMAGE_ETC2_SRGB;
-      case IMAGE_ETC2_A1 : return IMAGE_ETC2_A1_SRGB;
-      case IMAGE_ETC2_A8 : return IMAGE_ETC2_A8_SRGB;
-      case IMAGE_PVRTC1_2: return IMAGE_PVRTC1_2_SRGB;
-      case IMAGE_PVRTC1_4: return IMAGE_PVRTC1_4_SRGB;
+      default              : return type;
+      case IMAGE_B8G8R8A8  : return IMAGE_B8G8R8A8_SRGB;
+      case IMAGE_B8G8R8    : return IMAGE_B8G8R8_SRGB;
+      case IMAGE_R8G8B8A8  : return IMAGE_R8G8B8A8_SRGB;
+      case IMAGE_R8G8B8    : return IMAGE_R8G8B8_SRGB;
+      case IMAGE_L8        : return IMAGE_L8_SRGB;
+      case IMAGE_L8A8      : return IMAGE_L8A8_SRGB;
+      case IMAGE_F32_3     : return IMAGE_F32_3_SRGB;
+      case IMAGE_F32_4     : return IMAGE_F32_4_SRGB;
+      case IMAGE_BC1       : return IMAGE_BC1_SRGB;
+      case IMAGE_BC2       : return IMAGE_BC2_SRGB;
+      case IMAGE_BC3       : return IMAGE_BC3_SRGB;
+      case IMAGE_BC7       : return IMAGE_BC7_SRGB;
+      case IMAGE_ETC2_RGB  : return IMAGE_ETC2_RGB_SRGB;
+      case IMAGE_ETC2_RGBA1: return IMAGE_ETC2_RGBA1_SRGB;
+      case IMAGE_ETC2_RGBA : return IMAGE_ETC2_RGBA_SRGB;
+      case IMAGE_PVRTC1_2  : return IMAGE_PVRTC1_2_SRGB;
+      case IMAGE_PVRTC1_4  : return IMAGE_PVRTC1_4_SRGB;
    }
 }
 IMAGE_TYPE ImageTypeExcludeSRGB(IMAGE_TYPE type)
 {
    switch(type)
    {
-      default                 : return type;
-      case IMAGE_B8G8R8A8_SRGB: return IMAGE_B8G8R8A8;
-      case IMAGE_B8G8R8_SRGB  : return IMAGE_B8G8R8;
-      case IMAGE_R8G8B8A8_SRGB: return IMAGE_R8G8B8A8;
-      case IMAGE_R8G8B8_SRGB  : return IMAGE_R8G8B8;
-      case IMAGE_L8_SRGB      : return IMAGE_L8;
-      case IMAGE_L8A8_SRGB    : return IMAGE_L8A8;
-      case IMAGE_F32_3_SRGB   : return IMAGE_F32_3;
-      case IMAGE_F32_4_SRGB   : return IMAGE_F32_4;
-      case IMAGE_BC1_SRGB     : return IMAGE_BC1;
-      case IMAGE_BC2_SRGB     : return IMAGE_BC2;
-      case IMAGE_BC3_SRGB     : return IMAGE_BC3;
-      case IMAGE_BC7_SRGB     : return IMAGE_BC7;
-      case IMAGE_ETC2_SRGB    : return IMAGE_ETC2;
-      case IMAGE_ETC2_A1_SRGB : return IMAGE_ETC2_A1;
-      case IMAGE_ETC2_A8_SRGB : return IMAGE_ETC2_A8;
-      case IMAGE_PVRTC1_2_SRGB: return IMAGE_PVRTC1_2;
-      case IMAGE_PVRTC1_4_SRGB: return IMAGE_PVRTC1_4;
+      default                   : return type;
+      case IMAGE_B8G8R8A8_SRGB  : return IMAGE_B8G8R8A8;
+      case IMAGE_B8G8R8_SRGB    : return IMAGE_B8G8R8;
+      case IMAGE_R8G8B8A8_SRGB  : return IMAGE_R8G8B8A8;
+      case IMAGE_R8G8B8_SRGB    : return IMAGE_R8G8B8;
+      case IMAGE_L8_SRGB        : return IMAGE_L8;
+      case IMAGE_L8A8_SRGB      : return IMAGE_L8A8;
+      case IMAGE_F32_3_SRGB     : return IMAGE_F32_3;
+      case IMAGE_F32_4_SRGB     : return IMAGE_F32_4;
+      case IMAGE_BC1_SRGB       : return IMAGE_BC1;
+      case IMAGE_BC2_SRGB       : return IMAGE_BC2;
+      case IMAGE_BC3_SRGB       : return IMAGE_BC3;
+      case IMAGE_BC7_SRGB       : return IMAGE_BC7;
+      case IMAGE_ETC2_RGB_SRGB  : return IMAGE_ETC2_RGB;
+      case IMAGE_ETC2_RGBA1_SRGB: return IMAGE_ETC2_RGBA1;
+      case IMAGE_ETC2_RGBA_SRGB : return IMAGE_ETC2_RGBA;
+      case IMAGE_PVRTC1_2_SRGB  : return IMAGE_PVRTC1_2;
+      case IMAGE_PVRTC1_4_SRGB  : return IMAGE_PVRTC1_4;
    }
 }
 IMAGE_TYPE ImageTypeToggleSRGB(IMAGE_TYPE type)
 {
    switch(type)
    {
-      default                 : return type;
-      case IMAGE_B8G8R8A8_SRGB: return IMAGE_B8G8R8A8;   case IMAGE_B8G8R8A8: return IMAGE_B8G8R8A8_SRGB;
-      case IMAGE_B8G8R8_SRGB  : return IMAGE_B8G8R8  ;   case IMAGE_B8G8R8  : return IMAGE_B8G8R8_SRGB;
-      case IMAGE_R8G8B8A8_SRGB: return IMAGE_R8G8B8A8;   case IMAGE_R8G8B8A8: return IMAGE_R8G8B8A8_SRGB;
-      case IMAGE_R8G8B8_SRGB  : return IMAGE_R8G8B8  ;   case IMAGE_R8G8B8  : return IMAGE_R8G8B8_SRGB;
-      case IMAGE_L8_SRGB      : return IMAGE_L8      ;   case IMAGE_L8      : return IMAGE_L8_SRGB;
-      case IMAGE_L8A8_SRGB    : return IMAGE_L8A8    ;   case IMAGE_L8A8    : return IMAGE_L8A8_SRGB;
-      case IMAGE_F32_3_SRGB   : return IMAGE_F32_3   ;   case IMAGE_F32_3   : return IMAGE_F32_3_SRGB;
-      case IMAGE_F32_4_SRGB   : return IMAGE_F32_4   ;   case IMAGE_F32_4   : return IMAGE_F32_4_SRGB;
-      case IMAGE_BC1_SRGB     : return IMAGE_BC1     ;   case IMAGE_BC1     : return IMAGE_BC1_SRGB;
-      case IMAGE_BC2_SRGB     : return IMAGE_BC2     ;   case IMAGE_BC2     : return IMAGE_BC2_SRGB;
-      case IMAGE_BC3_SRGB     : return IMAGE_BC3     ;   case IMAGE_BC3     : return IMAGE_BC3_SRGB;
-      case IMAGE_BC7_SRGB     : return IMAGE_BC7     ;   case IMAGE_BC7     : return IMAGE_BC7_SRGB;
-      case IMAGE_ETC2_SRGB    : return IMAGE_ETC2    ;   case IMAGE_ETC2    : return IMAGE_ETC2_SRGB;
-      case IMAGE_ETC2_A1_SRGB : return IMAGE_ETC2_A1 ;   case IMAGE_ETC2_A1 : return IMAGE_ETC2_A1_SRGB;
-      case IMAGE_ETC2_A8_SRGB : return IMAGE_ETC2_A8 ;   case IMAGE_ETC2_A8 : return IMAGE_ETC2_A8_SRGB;
-      case IMAGE_PVRTC1_2_SRGB: return IMAGE_PVRTC1_2;   case IMAGE_PVRTC1_2: return IMAGE_PVRTC1_2_SRGB;
-      case IMAGE_PVRTC1_4_SRGB: return IMAGE_PVRTC1_4;   case IMAGE_PVRTC1_4: return IMAGE_PVRTC1_4_SRGB;
+      default                   : return type;
+      case IMAGE_B8G8R8A8_SRGB  : return IMAGE_B8G8R8A8  ;   case IMAGE_B8G8R8A8  : return IMAGE_B8G8R8A8_SRGB;
+      case IMAGE_B8G8R8_SRGB    : return IMAGE_B8G8R8    ;   case IMAGE_B8G8R8    : return IMAGE_B8G8R8_SRGB;
+      case IMAGE_R8G8B8A8_SRGB  : return IMAGE_R8G8B8A8  ;   case IMAGE_R8G8B8A8  : return IMAGE_R8G8B8A8_SRGB;
+      case IMAGE_R8G8B8_SRGB    : return IMAGE_R8G8B8    ;   case IMAGE_R8G8B8    : return IMAGE_R8G8B8_SRGB;
+      case IMAGE_L8_SRGB        : return IMAGE_L8        ;   case IMAGE_L8        : return IMAGE_L8_SRGB;
+      case IMAGE_L8A8_SRGB      : return IMAGE_L8A8      ;   case IMAGE_L8A8      : return IMAGE_L8A8_SRGB;
+      case IMAGE_F32_3_SRGB     : return IMAGE_F32_3     ;   case IMAGE_F32_3     : return IMAGE_F32_3_SRGB;
+      case IMAGE_F32_4_SRGB     : return IMAGE_F32_4     ;   case IMAGE_F32_4     : return IMAGE_F32_4_SRGB;
+      case IMAGE_BC1_SRGB       : return IMAGE_BC1       ;   case IMAGE_BC1       : return IMAGE_BC1_SRGB;
+      case IMAGE_BC2_SRGB       : return IMAGE_BC2       ;   case IMAGE_BC2       : return IMAGE_BC2_SRGB;
+      case IMAGE_BC3_SRGB       : return IMAGE_BC3       ;   case IMAGE_BC3       : return IMAGE_BC3_SRGB;
+      case IMAGE_BC7_SRGB       : return IMAGE_BC7       ;   case IMAGE_BC7       : return IMAGE_BC7_SRGB;
+      case IMAGE_ETC2_RGB_SRGB  : return IMAGE_ETC2_RGB  ;   case IMAGE_ETC2_RGB  : return IMAGE_ETC2_RGB_SRGB;
+      case IMAGE_ETC2_RGBA1_SRGB: return IMAGE_ETC2_RGBA1;   case IMAGE_ETC2_RGBA1: return IMAGE_ETC2_RGBA1_SRGB;
+      case IMAGE_ETC2_RGBA_SRGB : return IMAGE_ETC2_RGBA ;   case IMAGE_ETC2_RGBA : return IMAGE_ETC2_RGBA_SRGB;
+      case IMAGE_PVRTC1_2_SRGB  : return IMAGE_PVRTC1_2  ;   case IMAGE_PVRTC1_2  : return IMAGE_PVRTC1_2_SRGB;
+      case IMAGE_PVRTC1_4_SRGB  : return IMAGE_PVRTC1_4  ;   case IMAGE_PVRTC1_4  : return IMAGE_PVRTC1_4_SRGB;
    }
 }
 IMAGE_TYPE ImageTypeHighPrec(IMAGE_TYPE type)
@@ -1550,23 +1547,23 @@ static Bool Decompress(C Image &src, Image &dest) // assumes that 'src' and 'des
       case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB:
          return DecompressPVRTC(src, dest);
 
-      case IMAGE_BC1           : case IMAGE_BC1_SRGB    : decompress_block       =DecompressBlockBC1    ; decompress_block_pitch       =DecompressBlockBC1    ; break;
-      case IMAGE_BC2           : case IMAGE_BC2_SRGB    : decompress_block       =DecompressBlockBC2    ; decompress_block_pitch       =DecompressBlockBC2    ; break;
-      case IMAGE_BC3           : case IMAGE_BC3_SRGB    : decompress_block       =DecompressBlockBC3    ; decompress_block_pitch       =DecompressBlockBC3    ; break;
-      case IMAGE_BC4           :                          decompress_block       =DecompressBlockBC4    ; decompress_block_pitch       =DecompressBlockBC4    ; break;
-      case IMAGE_BC4_SIGN      :                          decompress_block_SByte =DecompressBlockBC4S   ; decompress_block_pitch_SByte =DecompressBlockBC4S   ; break;
-      case IMAGE_BC5           :                          decompress_block       =DecompressBlockBC5    ; decompress_block_pitch       =DecompressBlockBC5    ; break;
-      case IMAGE_BC5_SIGN      :                          decompress_block_VecSB2=DecompressBlockBC5S   ; decompress_block_pitch_VecSB2=DecompressBlockBC5S   ; break;
-      case IMAGE_BC6           :                          decompress_block_VecH  =DecompressBlockBC6    ; decompress_block_pitch_VecH  =DecompressBlockBC6    ; break;
-      case IMAGE_BC7           : case IMAGE_BC7_SRGB    : decompress_block       =DecompressBlockBC7    ; decompress_block_pitch       =DecompressBlockBC7    ; break;
-      case IMAGE_ETC1          :                          decompress_block       =DecompressBlockETC1   ; decompress_block_pitch       =DecompressBlockETC1   ; break;
-      case IMAGE_ETC2          : case IMAGE_ETC2_SRGB   : decompress_block       =DecompressBlockETC2   ; decompress_block_pitch       =DecompressBlockETC2   ; break;
-      case IMAGE_ETC2_A1       : case IMAGE_ETC2_A1_SRGB: decompress_block       =DecompressBlockETC2A1 ; decompress_block_pitch       =DecompressBlockETC2A1 ; break;
-      case IMAGE_ETC2_A8       : case IMAGE_ETC2_A8_SRGB: decompress_block       =DecompressBlockETC2A8 ; decompress_block_pitch       =DecompressBlockETC2A8 ; break;
-      case IMAGE_ETC2_R8       :                          decompress_block       =DecompressBlockETC2R  ; decompress_block_pitch       =DecompressBlockETC2R  ; break;
-      case IMAGE_ETC2_R8_SIGN  :                          decompress_block_SByte =DecompressBlockETC2RS ; decompress_block_pitch_SByte =DecompressBlockETC2RS ; break;
-      case IMAGE_ETC2_R8G8     :                          decompress_block       =DecompressBlockETC2RG ; decompress_block_pitch       =DecompressBlockETC2RG ; break;
-      case IMAGE_ETC2_R8G8_SIGN:                          decompress_block_VecSB2=DecompressBlockETC2RGS; decompress_block_pitch_VecSB2=DecompressBlockETC2RGS; break;
+      case IMAGE_BC1         : case IMAGE_BC1_SRGB       : decompress_block       =DecompressBlockBC1      ; decompress_block_pitch       =DecompressBlockBC1      ; break;
+      case IMAGE_BC2         : case IMAGE_BC2_SRGB       : decompress_block       =DecompressBlockBC2      ; decompress_block_pitch       =DecompressBlockBC2      ; break;
+      case IMAGE_BC3         : case IMAGE_BC3_SRGB       : decompress_block       =DecompressBlockBC3      ; decompress_block_pitch       =DecompressBlockBC3      ; break;
+      case IMAGE_BC4         :                             decompress_block       =DecompressBlockBC4      ; decompress_block_pitch       =DecompressBlockBC4      ; break;
+      case IMAGE_BC4_SIGN    :                             decompress_block_SByte =DecompressBlockBC4S     ; decompress_block_pitch_SByte =DecompressBlockBC4S     ; break;
+      case IMAGE_BC5         :                             decompress_block       =DecompressBlockBC5      ; decompress_block_pitch       =DecompressBlockBC5      ; break;
+      case IMAGE_BC5_SIGN    :                             decompress_block_VecSB2=DecompressBlockBC5S     ; decompress_block_pitch_VecSB2=DecompressBlockBC5S     ; break;
+      case IMAGE_BC6         :                             decompress_block_VecH  =DecompressBlockBC6      ; decompress_block_pitch_VecH  =DecompressBlockBC6      ; break;
+      case IMAGE_BC7         : case IMAGE_BC7_SRGB       : decompress_block       =DecompressBlockBC7      ; decompress_block_pitch       =DecompressBlockBC7      ; break;
+      case IMAGE_ETC1        :                             decompress_block       =DecompressBlockETC1     ; decompress_block_pitch       =DecompressBlockETC1     ; break;
+      case IMAGE_ETC2_R      :                             decompress_block       =DecompressBlockETC2R    ; decompress_block_pitch       =DecompressBlockETC2R    ; break;
+      case IMAGE_ETC2_R_SIGN :                             decompress_block_SByte =DecompressBlockETC2RS   ; decompress_block_pitch_SByte =DecompressBlockETC2RS   ; break;
+      case IMAGE_ETC2_RG     :                             decompress_block       =DecompressBlockETC2RG   ; decompress_block_pitch       =DecompressBlockETC2RG   ; break;
+      case IMAGE_ETC2_RG_SIGN:                             decompress_block_VecSB2=DecompressBlockETC2RGS  ; decompress_block_pitch_VecSB2=DecompressBlockETC2RGS  ; break;
+      case IMAGE_ETC2_RGB    : case IMAGE_ETC2_RGB_SRGB  : decompress_block       =DecompressBlockETC2RGB  ; decompress_block_pitch       =DecompressBlockETC2RGB  ; break;
+      case IMAGE_ETC2_RGBA1  : case IMAGE_ETC2_RGBA1_SRGB: decompress_block       =DecompressBlockETC2RGBA1; decompress_block_pitch       =DecompressBlockETC2RGBA1; break;
+      case IMAGE_ETC2_RGBA   : case IMAGE_ETC2_RGBA_SRGB : decompress_block       =DecompressBlockETC2RGBA ; decompress_block_pitch       =DecompressBlockETC2RGBA ; break;
    }
    if(dest.is() || dest.createTry(src.w(), src.h(), src.d(), decompress_block        ? (src.sRGB() ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8) // use 'IMAGE_R8G8B8A8'  because Decompress Block functions operate on 'Color'
                                                            : decompress_block_SByte  ?               IMAGE_R8_SIGN                         // use 'IMAGE_R8_SIGN'   because Decompress Block functions operate on 'SByte'
@@ -1797,13 +1794,13 @@ static Bool Compress(C Image &src, Image &dest, Bool mtrl_base_1=false) // assum
       case IMAGE_BC7: case IMAGE_BC7_SRGB:
          DEBUG_ASSERT(CompressBC67, "'SupportCompressBC/SupportCompressAll' was not called"); return CompressBC67 ? CompressBC67(src, dest) : false;
 
-      case IMAGE_ETC1     :
-      case IMAGE_ETC2     : case IMAGE_ETC2_SRGB     :
-      case IMAGE_ETC2_A1  : case IMAGE_ETC2_A1_SRGB  :
-      case IMAGE_ETC2_A8  : case IMAGE_ETC2_A8_SRGB  :
-      case IMAGE_ETC2_R8  : case IMAGE_ETC2_R8_SIGN  :
-      case IMAGE_ETC2_R8G8: case IMAGE_ETC2_R8G8_SIGN:
          DEBUG_ASSERT(CompressETC, "'SupportCompressETC/SupportCompressAll' was not called"); return CompressETC ? CompressETC(src, dest, -1, mtrl_base_1 ? false : true) : false;
+      case IMAGE_ETC1      :
+      case IMAGE_ETC2_R    : case IMAGE_ETC2_R_SIGN    :
+      case IMAGE_ETC2_RG   : case IMAGE_ETC2_RG_SIGN   :
+      case IMAGE_ETC2_RGB  : case IMAGE_ETC2_RGB_SRGB  :
+      case IMAGE_ETC2_RGBA1: case IMAGE_ETC2_RGBA1_SRGB:
+      case IMAGE_ETC2_RGBA : case IMAGE_ETC2_RGBA_SRGB :
 
       case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB:
       case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB:

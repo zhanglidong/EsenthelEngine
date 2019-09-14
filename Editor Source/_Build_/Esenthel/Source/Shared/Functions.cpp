@@ -738,8 +738,10 @@ cchar8 *FormatSuffixes[]=
 {
    "_BC1",
    "_BC3", // for Web
-   "_ETC2",
-   "_ETC2_A8",
+   "_ETC2_R",
+   "_ETC2_RG",
+   "_ETC2_RGB",
+   "_ETC2_RGBA",
    "_PVRTC1_2",
    "_PVRTC1_4",
    "_SIMPLE", // used for simplified Materials
@@ -751,12 +753,14 @@ cchar8* FormatSuffix(IMAGE_TYPE type)
    {
       default: return null;
 
-      // we can return the same suffix for non-sRGB and sRGB because depending on sRGB they will already have different hash
+      // we can return the same suffix for non-sRGB and sRGB, unsigned and signed, because depending on sRGB/signed they will already have different hash
       case IMAGE_BC1: case IMAGE_BC1_SRGB: return "_BC1";
       case IMAGE_BC3: case IMAGE_BC3_SRGB: return "_BC3";
 
-      case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   : return "_ETC2";
-      case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB: return "_ETC2_A8";
+      case IMAGE_ETC2_R   : case IMAGE_ETC2_R_SIGN   : return "_ETC2_R";
+      case IMAGE_ETC2_RG  : case IMAGE_ETC2_RG_SIGN  : return "_ETC2_RG";
+      case IMAGE_ETC2_RGB : case IMAGE_ETC2_RGB_SRGB : return "_ETC2_RGB";
+      case IMAGE_ETC2_RGBA: case IMAGE_ETC2_RGBA_SRGB: return "_ETC2_RGBA";
 
       case IMAGE_PVRTC1_2: case IMAGE_PVRTC1_2_SRGB: return "_PVRTC1_2";
       case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB: return "_PVRTC1_4";

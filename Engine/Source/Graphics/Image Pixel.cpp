@@ -397,19 +397,19 @@ static Color DecompressPixel(C Image &image, Int x, Int y)
  C Byte *data=image.data() + (y>>2)*image.pitch();
    switch(image.hwType())
    {
-      // IMAGE_BC4_SIGN, IMAGE_BC5_SIGN, IMAGE_BC6, IMAGE_ETC2_R8_SIGN, IMAGE_ETC2_R8G8_SIGN, handled elsewhere
-      case IMAGE_BC1      : case IMAGE_BC1_SRGB    : return DecompressPixelBC1   (data + (x>>2)* 8, x3, y3);
-      case IMAGE_BC2      : case IMAGE_BC2_SRGB    : return DecompressPixelBC2   (data + (x>>2)*16, x3, y3);
-      case IMAGE_BC3      : case IMAGE_BC3_SRGB    : return DecompressPixelBC3   (data + (x>>2)*16, x3, y3);
-      case IMAGE_BC4      :                          return DecompressPixelBC4   (data + (x>>2)* 8, x3, y3);
-      case IMAGE_BC5      :                          return DecompressPixelBC5   (data + (x>>2)*16, x3, y3);
-      case IMAGE_BC7      : case IMAGE_BC7_SRGB    : return DecompressPixelBC7   (data + (x>>2)*16, x3, y3);
-      case IMAGE_ETC1     :                          return DecompressPixelETC1  (data + (x>>2)* 8, x3, y3);
-      case IMAGE_ETC2     : case IMAGE_ETC2_SRGB   : return DecompressPixelETC2  (data + (x>>2)* 8, x3, y3);
-      case IMAGE_ETC2_A1  : case IMAGE_ETC2_A1_SRGB: return DecompressPixelETC2A1(data + (x>>2)* 8, x3, y3);
-      case IMAGE_ETC2_A8  : case IMAGE_ETC2_A8_SRGB: return DecompressPixelETC2A8(data + (x>>2)*16, x3, y3);
-      case IMAGE_ETC2_R8  :                          return DecompressPixelETC2R (data + (x>>2)* 8, x3, y3);
-      case IMAGE_ETC2_R8G8:                          return DecompressPixelETC2RG(data + (x>>2)*16, x3, y3);
+      // IMAGE_BC4_SIGN, IMAGE_BC5_SIGN, IMAGE_BC6, IMAGE_ETC2_R_SIGN, IMAGE_ETC2_RG_SIGN, handled elsewhere
+      case IMAGE_BC1       : case IMAGE_BC1_SRGB       : return DecompressPixelBC1      (data + (x>>2)* 8, x3, y3);
+      case IMAGE_BC2       : case IMAGE_BC2_SRGB       : return DecompressPixelBC2      (data + (x>>2)*16, x3, y3);
+      case IMAGE_BC3       : case IMAGE_BC3_SRGB       : return DecompressPixelBC3      (data + (x>>2)*16, x3, y3);
+      case IMAGE_BC4       :                             return DecompressPixelBC4      (data + (x>>2)* 8, x3, y3);
+      case IMAGE_BC5       :                             return DecompressPixelBC5      (data + (x>>2)*16, x3, y3);
+      case IMAGE_BC7       : case IMAGE_BC7_SRGB       : return DecompressPixelBC7      (data + (x>>2)*16, x3, y3);
+      case IMAGE_ETC1      :                             return DecompressPixelETC1     (data + (x>>2)* 8, x3, y3);
+      case IMAGE_ETC2_R    :                             return DecompressPixelETC2R    (data + (x>>2)* 8, x3, y3);
+      case IMAGE_ETC2_RG   :                             return DecompressPixelETC2RG   (data + (x>>2)*16, x3, y3);
+      case IMAGE_ETC2_RGB  : case IMAGE_ETC2_RGB_SRGB  : return DecompressPixelETC2RGB  (data + (x>>2)* 8, x3, y3);
+      case IMAGE_ETC2_RGBA1: case IMAGE_ETC2_RGBA1_SRGB: return DecompressPixelETC2RGBA1(data + (x>>2)* 8, x3, y3);
+      case IMAGE_ETC2_RGBA : case IMAGE_ETC2_RGBA_SRGB : return DecompressPixelETC2RGBA (data + (x>>2)*16, x3, y3);
    }
    return TRANSPARENT;
 }
@@ -419,19 +419,19 @@ static Color DecompressPixel(C Image &image, Int x, Int y, Int z)
  C Byte *data=image.data() + (y>>2)*image.pitch() + z*image.pitch2();
    switch(image.hwType())
    {
-      // IMAGE_BC4_SIGN, IMAGE_BC5_SIGN, IMAGE_BC6, IMAGE_ETC2_R8_SIGN, IMAGE_ETC2_R8G8_SIGN, handled elsewhere
-      case IMAGE_BC1      : case IMAGE_BC1_SRGB    : return DecompressPixelBC1   (data + (x>>2)* 8, x3, y3);
-      case IMAGE_BC2      : case IMAGE_BC2_SRGB    : return DecompressPixelBC2   (data + (x>>2)*16, x3, y3);
-      case IMAGE_BC3      : case IMAGE_BC3_SRGB    : return DecompressPixelBC3   (data + (x>>2)*16, x3, y3);
-      case IMAGE_BC4      :                          return DecompressPixelBC4   (data + (x>>2)* 8, x3, y3);
-      case IMAGE_BC5      :                          return DecompressPixelBC5   (data + (x>>2)*16, x3, y3);
-      case IMAGE_BC7      : case IMAGE_BC7_SRGB    : return DecompressPixelBC7   (data + (x>>2)*16, x3, y3);
-      case IMAGE_ETC1     :                          return DecompressPixelETC1  (data + (x>>2)* 8, x3, y3);
-      case IMAGE_ETC2     : case IMAGE_ETC2_SRGB   : return DecompressPixelETC2  (data + (x>>2)* 8, x3, y3);
-      case IMAGE_ETC2_A1  : case IMAGE_ETC2_A1_SRGB: return DecompressPixelETC2A1(data + (x>>2)* 8, x3, y3);
-      case IMAGE_ETC2_A8  : case IMAGE_ETC2_A8_SRGB: return DecompressPixelETC2A8(data + (x>>2)*16, x3, y3);
-      case IMAGE_ETC2_R8  :                          return DecompressPixelETC2R (data + (x>>2)* 8, x3, y3);
-      case IMAGE_ETC2_R8G8:                          return DecompressPixelETC2RG(data + (x>>2)*16, x3, y3);
+      // IMAGE_BC4_SIGN, IMAGE_BC5_SIGN, IMAGE_BC6, IMAGE_ETC2_R_SIGN, IMAGE_ETC2_RG_SIGN, handled elsewhere
+      case IMAGE_BC1       : case IMAGE_BC1_SRGB       : return DecompressPixelBC1      (data + (x>>2)* 8, x3, y3);
+      case IMAGE_BC2       : case IMAGE_BC2_SRGB       : return DecompressPixelBC2      (data + (x>>2)*16, x3, y3);
+      case IMAGE_BC3       : case IMAGE_BC3_SRGB       : return DecompressPixelBC3      (data + (x>>2)*16, x3, y3);
+      case IMAGE_BC4       :                             return DecompressPixelBC4      (data + (x>>2)* 8, x3, y3);
+      case IMAGE_BC5       :                             return DecompressPixelBC5      (data + (x>>2)*16, x3, y3);
+      case IMAGE_BC7       : case IMAGE_BC7_SRGB       : return DecompressPixelBC7      (data + (x>>2)*16, x3, y3);
+      case IMAGE_ETC1      :                             return DecompressPixelETC1     (data + (x>>2)* 8, x3, y3);
+      case IMAGE_ETC2_R    :                             return DecompressPixelETC2R    (data + (x>>2)* 8, x3, y3);
+      case IMAGE_ETC2_RG   :                             return DecompressPixelETC2RG   (data + (x>>2)*16, x3, y3);
+      case IMAGE_ETC2_RGB  : case IMAGE_ETC2_RGB_SRGB  : return DecompressPixelETC2RGB  (data + (x>>2)* 8, x3, y3);
+      case IMAGE_ETC2_RGBA1: case IMAGE_ETC2_RGBA1_SRGB: return DecompressPixelETC2RGBA1(data + (x>>2)* 8, x3, y3);
+      case IMAGE_ETC2_RGBA : case IMAGE_ETC2_RGBA_SRGB : return DecompressPixelETC2RGBA (data + (x>>2)*16, x3, y3);
    }
    return TRANSPARENT;
 }
@@ -497,19 +497,21 @@ static inline Flt GetPixelF(C Byte *data, C Image &image, Bool _2d, Int x, Int y
       case IMAGE_BC4_SIGN: return SByteToSFlt(DecompressPixelBC4S(image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3));
       case IMAGE_BC5_SIGN: return SByteToSFlt(DecompressPixelBC4S(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3)); // can use 'DecompressPixelBC4S' because BC5 is made of 2xBC4
 
-      case IMAGE_ETC2_R8_SIGN  : return SByteToSFlt(DecompressPixelETC2RS(image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3));
-      case IMAGE_ETC2_R8G8_SIGN: return SByteToSFlt(DecompressPixelETC2RS(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3)); // can use 'DecompressPixelETC2RS' because ETC2_R8G8 is made of 2xETC2_R8
+      case IMAGE_ETC2_R_SIGN : return SByteToSFlt(DecompressPixelETC2RS(image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3));
+      case IMAGE_ETC2_RG_SIGN: return SByteToSFlt(DecompressPixelETC2RS(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3)); // can use 'DecompressPixelETC2RS' because ETC2_RG is made of 2xETC2_R
 
-      case IMAGE_BC1    : case IMAGE_BC1_SRGB    :
-      case IMAGE_BC2    : case IMAGE_BC2_SRGB    :
-      case IMAGE_BC3    : case IMAGE_BC3_SRGB    :
-      case IMAGE_BC4    :
-      case IMAGE_BC5    :
-      case IMAGE_BC7    : case IMAGE_BC7_SRGB    :
-      case IMAGE_ETC1   :
-      case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   :
-      case IMAGE_ETC2_A1: case IMAGE_ETC2_A1_SRGB:
-      case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB:
+      case IMAGE_BC1       : case IMAGE_BC1_SRGB       :
+      case IMAGE_BC2       : case IMAGE_BC2_SRGB       :
+      case IMAGE_BC3       : case IMAGE_BC3_SRGB       :
+      case IMAGE_BC4       :
+      case IMAGE_BC5       :
+      case IMAGE_BC7       : case IMAGE_BC7_SRGB       :
+      case IMAGE_ETC1      :
+      case IMAGE_ETC2_R    :
+      case IMAGE_ETC2_RG   :
+      case IMAGE_ETC2_RGB  : case IMAGE_ETC2_RGB_SRGB  :
+      case IMAGE_ETC2_RGBA1: case IMAGE_ETC2_RGBA1_SRGB:
+      case IMAGE_ETC2_RGBA : case IMAGE_ETC2_RGBA_SRGB :
          return ByteToFlt((_2d ? DecompressPixel(image, x, y) : DecompressPixel(image, x, y, z)).r);
    }
    return 0;
@@ -569,19 +571,21 @@ static inline Color GetColor(C Byte *data, C Image &image, Bool _2d, Int x, Int 
       case IMAGE_BC4_SIGN: {SByte  p=DecompressPixelBC4S(image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Color(SByteToByte(p  ),                0, 0, 255);}
       case IMAGE_BC5_SIGN: {VecSB2 p=DecompressPixelBC5S(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Color(SByteToByte(p.x), SByteToByte(p.y), 0, 255);}
 
-      case IMAGE_ETC2_R8_SIGN  : {SByte  p=DecompressPixelETC2RS (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Color(SByteToByte(p  ),                0, 0, 255);}
-      case IMAGE_ETC2_R8G8_SIGN: {VecSB2 p=DecompressPixelETC2RGS(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Color(SByteToByte(p.x), SByteToByte(p.y), 0, 255);}
+      case IMAGE_ETC2_R_SIGN : {SByte  p=DecompressPixelETC2RS (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Color(SByteToByte(p  ),                0, 0, 255);}
+      case IMAGE_ETC2_RG_SIGN: {VecSB2 p=DecompressPixelETC2RGS(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Color(SByteToByte(p.x), SByteToByte(p.y), 0, 255);}
 
-      case IMAGE_BC1    : case IMAGE_BC1_SRGB    :
-      case IMAGE_BC2    : case IMAGE_BC2_SRGB    :
-      case IMAGE_BC3    : case IMAGE_BC3_SRGB    :
-      case IMAGE_BC4    :
-      case IMAGE_BC5    :
-      case IMAGE_BC7    : case IMAGE_BC7_SRGB    :
-      case IMAGE_ETC1   :
-      case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   :
-      case IMAGE_ETC2_A1: case IMAGE_ETC2_A1_SRGB:
-      case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB:
+      case IMAGE_BC1       : case IMAGE_BC1_SRGB       :
+      case IMAGE_BC2       : case IMAGE_BC2_SRGB       :
+      case IMAGE_BC3       : case IMAGE_BC3_SRGB       :
+      case IMAGE_BC4       :
+      case IMAGE_BC5       :
+      case IMAGE_BC7       : case IMAGE_BC7_SRGB       :
+      case IMAGE_ETC1      :
+      case IMAGE_ETC2_R    :
+      case IMAGE_ETC2_RG   :
+      case IMAGE_ETC2_RGB  : case IMAGE_ETC2_RGB_SRGB  :
+      case IMAGE_ETC2_RGBA1: case IMAGE_ETC2_RGBA1_SRGB:
+      case IMAGE_ETC2_RGBA : case IMAGE_ETC2_RGBA_SRGB :
          return _2d ? DecompressPixel(image, x, y) : DecompressPixel(image, x, y, z);
    }
    return TRANSPARENT;
@@ -1129,19 +1133,21 @@ static inline Vec4 GetColorF(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
       case IMAGE_BC4_SIGN: {SByte  p=DecompressPixelBC4S(image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SByteToSFlt(p  ),                0, 0, 1);}
       case IMAGE_BC5_SIGN: {VecSB2 p=DecompressPixelBC5S(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SByteToSFlt(p.x), SByteToSFlt(p.y), 0, 1);}
 
-      case IMAGE_ETC2_R8_SIGN  : {SByte  p=DecompressPixelETC2RS (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SByteToSFlt(p  ),                0, 0, 1);}
-      case IMAGE_ETC2_R8G8_SIGN: {VecSB2 p=DecompressPixelETC2RGS(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SByteToSFlt(p.x), SByteToSFlt(p.y), 0, 1);}
+      case IMAGE_ETC2_R_SIGN : {SByte  p=DecompressPixelETC2RS (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SByteToSFlt(p  ),                0, 0, 1);}
+      case IMAGE_ETC2_RG_SIGN: {VecSB2 p=DecompressPixelETC2RGS(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SByteToSFlt(p.x), SByteToSFlt(p.y), 0, 1);}
 
-      case IMAGE_BC1    : case IMAGE_BC1_SRGB    :
-      case IMAGE_BC2    : case IMAGE_BC2_SRGB    :
-      case IMAGE_BC3    : case IMAGE_BC3_SRGB    :
-      case IMAGE_BC4    :
-      case IMAGE_BC5    :
-      case IMAGE_BC7    : case IMAGE_BC7_SRGB    :
-      case IMAGE_ETC1   :
-      case IMAGE_ETC2   : case IMAGE_ETC2_SRGB   :
-      case IMAGE_ETC2_A1: case IMAGE_ETC2_A1_SRGB:
-      case IMAGE_ETC2_A8: case IMAGE_ETC2_A8_SRGB:
+      case IMAGE_BC1       : case IMAGE_BC1_SRGB       :
+      case IMAGE_BC2       : case IMAGE_BC2_SRGB       :
+      case IMAGE_BC3       : case IMAGE_BC3_SRGB       :
+      case IMAGE_BC4       :
+      case IMAGE_BC5       :
+      case IMAGE_BC7       : case IMAGE_BC7_SRGB       :
+      case IMAGE_ETC1      :
+      case IMAGE_ETC2_R    :
+      case IMAGE_ETC2_RG   :
+      case IMAGE_ETC2_RGB  : case IMAGE_ETC2_RGB_SRGB  :
+      case IMAGE_ETC2_RGBA1: case IMAGE_ETC2_RGBA1_SRGB:
+      case IMAGE_ETC2_RGBA : case IMAGE_ETC2_RGBA_SRGB :
          return _2d ? DecompressPixel(image, x, y) : DecompressPixel(image, x, y, z);
    }
    return 0;
@@ -1300,28 +1306,30 @@ static inline Vec4 GetColorL(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
       case IMAGE_BC4_SIGN: {SByte  p=DecompressPixelBC4S(image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SByteToSFlt(p  ),                0, 0, 1);}
       case IMAGE_BC5_SIGN: {VecSB2 p=DecompressPixelBC5S(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SByteToSFlt(p.x), SByteToSFlt(p.y), 0, 1);}
 
-      case IMAGE_ETC2_R8_SIGN  : {SByte  p=DecompressPixelETC2RS (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SByteToSFlt(p  ),                0, 0, 1);}
-      case IMAGE_ETC2_R8G8_SIGN: {VecSB2 p=DecompressPixelETC2RGS(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SByteToSFlt(p.x), SByteToSFlt(p.y), 0, 1);}
+      case IMAGE_ETC2_R_SIGN : {SByte  p=DecompressPixelETC2RS (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SByteToSFlt(p  ),                0, 0, 1);}
+      case IMAGE_ETC2_RG_SIGN: {VecSB2 p=DecompressPixelETC2RGS(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SByteToSFlt(p.x), SByteToSFlt(p.y), 0, 1);}
 
-      case IMAGE_BC1    :
-      case IMAGE_BC2    :
-      case IMAGE_BC3    :
-      case IMAGE_BC4    :
-      case IMAGE_BC5    :
-      case IMAGE_BC7    :
-      case IMAGE_ETC1   :
-      case IMAGE_ETC2   :
-      case IMAGE_ETC2_A1:
-      case IMAGE_ETC2_A8:
+      case IMAGE_BC1       :
+      case IMAGE_BC2       :
+      case IMAGE_BC3       :
+      case IMAGE_BC4       :
+      case IMAGE_BC5       :
+      case IMAGE_BC7       :
+      case IMAGE_ETC1      :
+      case IMAGE_ETC2_R    :
+      case IMAGE_ETC2_RG   :
+      case IMAGE_ETC2_RGB  :
+      case IMAGE_ETC2_RGBA1:
+      case IMAGE_ETC2_RGBA :
          return _2d ? DecompressPixel(image, x, y) : DecompressPixel(image, x, y, z);
 
-      case IMAGE_BC1_SRGB    :
-      case IMAGE_BC2_SRGB    :
-      case IMAGE_BC3_SRGB    :
-      case IMAGE_BC7_SRGB    :
-      case IMAGE_ETC2_SRGB   :
-      case IMAGE_ETC2_A1_SRGB:
-      case IMAGE_ETC2_A8_SRGB:
+      case IMAGE_BC1_SRGB       :
+      case IMAGE_BC2_SRGB       :
+      case IMAGE_BC3_SRGB       :
+      case IMAGE_BC7_SRGB       :
+      case IMAGE_ETC2_RGB_SRGB  :
+      case IMAGE_ETC2_RGBA1_SRGB:
+      case IMAGE_ETC2_RGBA_SRGB :
          return SRGBToLinear(_2d ? DecompressPixel(image, x, y) : DecompressPixel(image, x, y, z));
    }
    return 0;
@@ -1392,28 +1400,30 @@ static inline Vec4 GetColorS(CPtr data, C Image &image, Bool _2d, Int x, Int y, 
       case IMAGE_BC4_SIGN: {SByte  p=DecompressPixelBC4S(image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SignLinearToSRGB(SByteToSFlt(p  )),                                  0, 0, 1);}
       case IMAGE_BC5_SIGN: {VecSB2 p=DecompressPixelBC5S(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SignLinearToSRGB(SByteToSFlt(p.x)), SignLinearToSRGB(SByteToSFlt(p.y)), 0, 1);}
 
-      case IMAGE_ETC2_R8_SIGN  : {SByte  p=DecompressPixelETC2RS (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SignLinearToSRGB(SByteToSFlt(p  )),                                  0, 0, 1);}
-      case IMAGE_ETC2_R8G8_SIGN: {VecSB2 p=DecompressPixelETC2RGS(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SignLinearToSRGB(SByteToSFlt(p.x)), SignLinearToSRGB(SByteToSFlt(p.y)), 0, 1);}
+      case IMAGE_ETC2_R_SIGN : {SByte  p=DecompressPixelETC2RS (image.data() + (x>>2)* 8 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SignLinearToSRGB(SByteToSFlt(p  )),                                  0, 0, 1);}
+      case IMAGE_ETC2_RG_SIGN: {VecSB2 p=DecompressPixelETC2RGS(image.data() + (x>>2)*16 + (y>>2)*image.pitch() + (_2d ? 0 : z*image.pitch2()), x&3, y&3); return Vec4(SignLinearToSRGB(SByteToSFlt(p.x)), SignLinearToSRGB(SByteToSFlt(p.y)), 0, 1);}
 
-      case IMAGE_BC1    :
-      case IMAGE_BC2    :
-      case IMAGE_BC3    :
-      case IMAGE_BC4    :
-      case IMAGE_BC5    :
-      case IMAGE_BC7    :
-      case IMAGE_ETC1   :
-      case IMAGE_ETC2   :
-      case IMAGE_ETC2_A1:
-      case IMAGE_ETC2_A8:
+      case IMAGE_BC1       :
+      case IMAGE_BC2       :
+      case IMAGE_BC3       :
+      case IMAGE_BC4       :
+      case IMAGE_BC5       :
+      case IMAGE_BC7       :
+      case IMAGE_ETC1      :
+      case IMAGE_ETC2_R    :
+      case IMAGE_ETC2_RG   :
+      case IMAGE_ETC2_RGB  :
+      case IMAGE_ETC2_RGBA1:
+      case IMAGE_ETC2_RGBA :
          return LinearToSRGB(_2d ? DecompressPixel(image, x, y) : DecompressPixel(image, x, y, z));
 
-      case IMAGE_BC1_SRGB    :
-      case IMAGE_BC2_SRGB    :
-      case IMAGE_BC3_SRGB    :
-      case IMAGE_BC7_SRGB    :
-      case IMAGE_ETC2_SRGB   :
-      case IMAGE_ETC2_A1_SRGB:
-      case IMAGE_ETC2_A8_SRGB:
+      case IMAGE_BC1_SRGB       :
+      case IMAGE_BC2_SRGB       :
+      case IMAGE_BC3_SRGB       :
+      case IMAGE_BC7_SRGB       :
+      case IMAGE_ETC2_RGB_SRGB  :
+      case IMAGE_ETC2_RGBA1_SRGB:
+      case IMAGE_ETC2_RGBA_SRGB :
          return _2d ? DecompressPixel(image, x, y) : DecompressPixel(image, x, y, z);
    }
    return 0;
