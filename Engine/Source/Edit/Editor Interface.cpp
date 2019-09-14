@@ -196,18 +196,17 @@ Material& Material::reset()
    downsize_tex_mobile=0;
    color_s=1;
    ambient=0;
-   specular=0;
+   smooth=0;
+   reflect=0;
    glow=0;
-   roughness=0;
+   normal=0;
    bump=0;
-   reflection=0;
-   color_map.clear();  alpha_map.clear();
-    bump_map.clear(); normal_map.clear();
-   specular_map.clear();
-   glow_map.clear();
-   reflection_map.clear();
-   detail_color.clear();
-   detail_bump.clear();
+    color_map.clear();   alpha_map.clear();
+     bump_map.clear();  normal_map.clear();
+   smooth_map.clear(); reflect_map.clear();
+     glow_map.clear();
+   detail_color .clear();
+   detail_bump  .clear();
    detail_normal.clear();
    macro_map.clear();
    light_map.clear();
@@ -216,14 +215,13 @@ Material& Material::reset()
 void Material::save(File &f)C
 {
    f.cmpUIntV(0);
-   f<<technique<<cull<<flip_normal_y<<tex_quality<<downsize_tex_mobile<<color_s<<ambient<<specular<<glow<<roughness<<bump<<reflection
-    <<Encode(color_map)<<Encode(alpha_map)
-    <<Encode( bump_map)<<Encode(normal_map)
-    <<Encode(specular_map)
-    <<Encode(glow_map)
-    <<Encode(reflection_map)
-    <<Encode(detail_color)
-    <<Encode(detail_bump)
+   f<<technique<<cull<<flip_normal_y<<tex_quality<<downsize_tex_mobile<<color_s<<ambient<<smooth<<reflect<<glow<<normal<<bump
+    <<Encode( color_map)<<Encode(  alpha_map)
+    <<Encode(  bump_map)<<Encode( normal_map)
+    <<Encode(smooth_map)<<Encode(reflect_map)
+    <<Encode(  glow_map)
+    <<Encode(detail_color )
+    <<Encode(detail_bump  )
     <<Encode(detail_normal)
     <<Encode(macro_map)
     <<Encode(light_map);
@@ -234,14 +232,13 @@ Bool Material::load(File &f)
    {
       case 0:
       {
-         f>>technique>>cull>>flip_normal_y>>tex_quality>>downsize_tex_mobile>>color_s>>ambient>>specular>>glow>>roughness>>bump>>reflection;
-         Decode(f, color_map); Decode(f, alpha_map);
-         Decode(f,  bump_map); Decode(f, normal_map);
-         Decode(f, specular_map);
-         Decode(f, glow_map);
-         Decode(f, reflection_map);
-         Decode(f, detail_color);
-         Decode(f, detail_bump);
+         f>>technique>>cull>>flip_normal_y>>tex_quality>>downsize_tex_mobile>>color_s>>ambient>>smooth>>reflect>>glow>>normal>>bump;
+         Decode(f,  color_map); Decode(f,   alpha_map);
+         Decode(f,   bump_map); Decode(f,  normal_map);
+         Decode(f, smooth_map); Decode(f, reflect_map);
+         Decode(f,   glow_map);
+         Decode(f, detail_color );
+         Decode(f, detail_bump  );
          Decode(f, detail_normal);
          Decode(f, macro_map);
          Decode(f, light_map);

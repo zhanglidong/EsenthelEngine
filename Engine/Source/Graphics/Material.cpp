@@ -596,17 +596,18 @@ void MaterialClear() // must be called: after changing 'Renderer.mode', after ch
    REPAO(MaterialLast4)=null;
 }
 /******************************************************************************/
-UInt CreateBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image &alpha, C Image &bump, C Image &normal, C Image &specular, C Image &glow, Bool resize_to_pow2, Bool flip_normal_y, FILTER_TYPE filter)
+UInt CreateBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image &alpha, C Image &bump, C Image &normal, C Image &smooth, C Image &glow, Bool resize_to_pow2, Bool flip_normal_y, FILTER_TYPE filter)
 {
+   // FIXME
    UInt  ret=0;
    Image dest_0, dest_1;
    {
-      Image      col_temp; C Image *     col_src=&     col; if(     col_src->compressed())if(     col_src->copyTry(     col_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))     col_src=&     col_temp;else goto error;
-      Image    alpha_temp; C Image *   alpha_src=&   alpha; if(   alpha_src->compressed())if(   alpha_src->copyTry(   alpha_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))   alpha_src=&   alpha_temp;else goto error;
-      Image     bump_temp; C Image *    bump_src=&    bump; if(    bump_src->compressed())if(    bump_src->copyTry(    bump_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))    bump_src=&    bump_temp;else goto error;
-      Image   normal_temp; C Image *  normal_src=&  normal; if(  normal_src->compressed())if(  normal_src->copyTry(  normal_temp, -1, -1, -1, IMAGE_R8G8         , IMAGE_SOFT, 1))  normal_src=&  normal_temp;else goto error;
-      Image specular_temp; C Image *specular_src=&specular; if(specular_src->compressed())if(specular_src->copyTry(specular_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))specular_src=&specular_temp;else goto error;
-      Image     glow_temp; C Image *    glow_src=&    glow; if(    glow_src->compressed())if(    glow_src->copyTry(    glow_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))    glow_src=&    glow_temp;else goto error;
+      Image    col_temp; C Image *   col_src=&   col; if(   col_src->compressed())if(   col_src->copyTry(   col_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))   col_src=&   col_temp;else goto error;
+      Image  alpha_temp; C Image * alpha_src=& alpha; if( alpha_src->compressed())if( alpha_src->copyTry( alpha_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1)) alpha_src=& alpha_temp;else goto error;
+      Image   bump_temp; C Image *  bump_src=&  bump; if(  bump_src->compressed())if(  bump_src->copyTry(  bump_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))  bump_src=&  bump_temp;else goto error;
+      Image normal_temp; C Image *normal_src=&normal; if(normal_src->compressed())if(normal_src->copyTry(normal_temp, -1, -1, -1, IMAGE_R8G8         , IMAGE_SOFT, 1))normal_src=&normal_temp;else goto error;
+      Image smooth_temp; C Image *smooth_src=&smooth; if(smooth_src->compressed())if(smooth_src->copyTry(smooth_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))smooth_src=&smooth_temp;else goto error;
+      Image   glow_temp; C Image *  glow_src=&  glow; if(  glow_src->compressed())if(  glow_src->copyTry(  glow_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))  glow_src=&  glow_temp;else goto error;
 
       // set alpha
       // 1. Glow  Map shouldn't be stored in #1 texture because of difficulties when drawing multi-materials
@@ -647,15 +648,15 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image &alp
       if(alpha_src->is())glow_src=&glow_temp.del(); // if 'alpha' is available then delete 'glow' (alpha has higher priority)
 
       // if we're using two textures
-      Bool tex2=(bump_src->is() || normal_src->is() || specular_src->is() || glow_src->is());
+      Bool tex2=(bump_src->is() || normal_src->is() || smooth_src->is() || glow_src->is());
 
       // set what textures do we have (set this before 'normal' is generated from 'bump')
-      if(     col_src->is())ret|=BT_COLOR   ;
-      if(   alpha_src->is())ret|=BT_ALPHA   ;
-      if(    bump_src->is())ret|=BT_BUMP    ;
-      if(  normal_src->is())ret|=BT_NORMAL  ;
-      if(specular_src->is())ret|=BT_SPECULAR;
-      if(    glow_src->is())ret|=BT_GLOW    ;
+      if(   col_src->is())ret|=BT_COLOR ;
+      if( alpha_src->is())ret|=BT_ALPHA ;
+      if(  bump_src->is())ret|=BT_BUMP  ;
+      if(normal_src->is())ret|=BT_NORMAL;
+      if(smooth_src->is())ret|=BT_SMOOTH;
+      if(  glow_src->is())ret|=BT_GLOW  ;
 
       // generate textures, below operate on separate set of temporary images, in case one source image is used for both texture, but they will be used at different sizes (to avoid double stretching and loss of quality)
 
@@ -672,7 +673,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image &alp
             if(!bs->is() || bs->lockRead())
             {
                REPD(y, dest_0.h())
-               REPD(x, dest_0.w()){Color c=(cs->is() ? cs->color(x, y) : WHITE); c.a=(bs->is() ? bs->color(x, y).lum() : BUMP_DEFAULT); dest_0.color(x, y, c);}
+               REPD(x, dest_0.w()){Color c=(cs->is() ? cs->color(x, y) : WHITE); c.a=(bs->is() ? bs->color(x, y).lum() : BUMP_DEFAULT_TEX); dest_0.color(x, y, c);}
                bs->unlock();
             }
             cs->unlock();
@@ -700,8 +701,8 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image &alp
       // 2nd texture
       if(tex2)
       {
-         Int w=Max(normal_src->w(), specular_src->w(), alpha_src->w(), glow_src->w()),
-             h=Max(normal_src->h(), specular_src->h(), alpha_src->h(), glow_src->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+         Int w=Max(normal_src->w(), smooth_src->w(), alpha_src->w(), glow_src->w()),
+             h=Max(normal_src->h(), smooth_src->h(), alpha_src->h(), glow_src->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
 
        C Image *bump=null;
          if(  bump_src->is() && !normal_src->is()           )bump=  bump_src;else // if bump available and normal not, then create normal from bump
@@ -717,10 +718,10 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image &alp
 
          dest_1.createSoftTry(w, h, 1, IMAGE_R8G8B8A8);
 
-         Image   normal_temp; C Image *ns=  normal_src; if(ns->is() && (ns->w()!=w || ns->h()!=h))if(ns->copyTry(  normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))ns=&  normal_temp;else goto error;
-         Image specular_temp; C Image *ss=specular_src; if(ss->is() && (ss->w()!=w || ss->h()!=h))if(ss->copyTry(specular_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))ss=&specular_temp;else goto error;
-         Image    alpha_temp; C Image *as=   alpha_src; if(as->is() && (as->w()!=w || as->h()!=h))if(as->copyTry(   alpha_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))as=&   alpha_temp;else goto error;
-         Image     glow_temp; C Image *gs=    glow_src; if(gs->is() && (gs->w()!=w || gs->h()!=h))if(gs->copyTry(    glow_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))gs=&    glow_temp;else goto error;
+         Image normal_temp; C Image *ns=normal_src; if(ns->is() && (ns->w()!=w || ns->h()!=h))if(ns->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))ns=&normal_temp;else goto error;
+         Image smooth_temp; C Image *ss=smooth_src; if(ss->is() && (ss->w()!=w || ss->h()!=h))if(ss->copyTry(smooth_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))ss=&smooth_temp;else goto error;
+         Image  alpha_temp; C Image *as= alpha_src; if(as->is() && (as->w()!=w || as->h()!=h))if(as->copyTry( alpha_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))as=& alpha_temp;else goto error;
+         Image   glow_temp; C Image *gs=  glow_src; if(gs->is() && (gs->w()!=w || gs->h()!=h))if(gs->copyTry(  glow_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))gs=&  glow_temp;else goto error;
 
          if(!ns->is() || ns->lockRead())
          {
@@ -741,10 +742,10 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, C Image &col, C Image &alp
                         if(gs->is()){Color c=gs->color(x, y); alpha_glow=DivRound(c.lum()*c.a, 255);}else
                                                               alpha_glow=255;
                         Color c;
-                        c.c[NRMX_CHANNEL]=nrm.r;
-                        c.c[NRMY_CHANNEL]=nrm.g;
-                        c.c[SPEC_CHANNEL]=spec;
-                        c.c[GLOW_CHANNEL]=alpha_glow;
+                        c.c[  NRMX_CHANNEL]=nrm.r;
+                        c.c[  NRMY_CHANNEL]=nrm.g;
+                        c.c[SMOOTH_CHANNEL]=spec;
+                        c.c[  GLOW_CHANNEL]=alpha_glow;
                         dest_1.color(x, y, c);
                      }
                      gs->unlock();
@@ -787,7 +788,7 @@ void CreateDetailTexture(Image &detail, C Image &col, C Image &bump, C Image &no
       {
          Color nrm =(ns->is() ? ns->color(x, y)       : Color(128, 128, 255, 0)); if(flip_normal_y)nrm.g=255-nrm.g;
          Byte  col =(cs->is() ? cs->color(x, y).lum() : 128);
-         Byte  bump=(bs->is() ? bs->color(x, y).lum() : BUMP_DEFAULT);
+         Byte  bump=(bs->is() ? bs->color(x, y).lum() : BUMP_DEFAULT_TEX);
          dest.color(x, y, Color(nrm.r, nrm.g, col, bump)); // #MaterialTextureChannelOrder
       }
    }
@@ -844,7 +845,7 @@ static inline Flt LightSpecular(C Vec &nrm, C Vec &light_dir, C Vec &eye_dir, Fl
 #endif
 }
 Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int max_image_size, C Vec *light_dir, Flt light_power, Flt spec_mul, FILTER_TYPE filter)
-{
+{//FIXME
    if(material.base_0 && material.base_0->is()
    && material.base_1 && material.base_1->is()) // if have both textures
    {
@@ -861,14 +862,14 @@ Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int 
       {
          Image b1; // 'base_1' resized to 'color' resolution
          MAX(light_power, 0);
-              spec_mul*=material.specular*light_power/255.0f;
-         Flt   nrm_mul =material.rough               /127.0f,
+              spec_mul*=material.smooth*light_power/255.0f;
+         Flt   nrm_mul =material.normal            /127.0f,
               glow_mul =material.glow*(2*1.75f/255.0f), // *2 because shaders use this multiplier, *1.75 because shaders iterate over few pixels and take the max out of them (this is just approximation)
               glow_blur=0.07f;
          Bool has_alpha=material.hasAlpha(),
-              has_nrm  =( light_dir && material.rough   *light_power>0.01f),
-              has_spec =( light_dir && material.specular*light_power>0.01f),
-              has_glow =(!has_alpha && material.glow                >0.01f);
+              has_nrm  =( light_dir && material.normal*light_power>0.01f),
+              has_spec =( light_dir && material.smooth*light_power>0.01f),
+              has_glow =(!has_alpha && material.glow              >0.01f);
          if( (has_alpha || has_nrm || has_spec || has_glow) && material.base_1->copyTry(b1, color.w(), color.h(), 1, ImageTypeUncompressed(material.base_1->type()), IMAGE_SOFT, 1, filter, IC_WRAP))
          {
             // setup alpha
@@ -912,7 +913,7 @@ Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int 
                      Flt d=Sat(-Dot(n, *light_dir)), l=ambient + light_power*d;
                      col=ColorBrightness(col, l);
                   }
-                  if(has_spec)if(Byte s=nrm.c[SPEC_CHANNEL])
+                  if(has_spec)if(Byte s=nrm.c[SMOOTH_CHANNEL])
                   {
                      Flt spec=LightSpecular(-n, *light_dir, Vec(0, 0, 1))*spec_mul;
                      Color cs=ColorBrightness(s*spec); cs.a=0;
