@@ -101,8 +101,8 @@ private:
    {
       Vec4 color;
       Vec2 base2_mul, base2_add;
-      Flt  glow, normal, bump, det_mul, det_add, macro,
-           tex_scale, det_scale;
+      Flt  glow, normal, bump, det_mul, det_add, macro, // medium prec
+           tex_scale, det_scale; // high prec
    }_multi;
    struct MaterialShader // Material->Shader link
    {
@@ -171,8 +171,6 @@ struct UniqueMultiMaterialData
 #endif
 /******************************************************************************/
 DECLARE_CACHE(Material, Materials, MaterialPtr); // 'Materials' cache storing 'Material' objects which can be accessed by 'MaterialPtr' pointer
-extern Enum  *MaterialUserShader               , //  Material's User Shader enum, default=Enums.get("Enum/material_user_shader.enum")
-             *MaterialUserType                 ; //  Material's User Type   enum, default=Enums.get("Enum/material_user_type.enum"  )
 #if EE_PRIVATE
 extern MaterialPtr                                                    MaterialNull;
 extern ThreadSafeMap<UniqueMultiMaterialKey, UniqueMultiMaterialData> UniqueMultiMaterialMap;

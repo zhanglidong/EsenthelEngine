@@ -16,7 +16,8 @@ namespace EE{
 /******************************************************************************/
 #define CC4_MTRL CC4('M','T','R','L')
 
-#define BUMP_DEFAULT_TEX 0 // normally this should be 128, but 0 will allow to use BC5 (for Mtrl.base_2 tex if there's no Alpha) and always set Material.bump=0 when bump is not used #MaterialTextureChannelOrder
+#define BUMP_DEFAULT_TEX 0 // 0..255, normally this should be 128, but 0 will allow to use BC5 (for Mtrl.base_2 tex if there's no Alpha) and always set Material.bump=0 when bump is not used #MaterialTextureChannelOrder
+#define BUMP_DEFAULT_PAR 0.03f
 
 #define BUMP_NORMAL_SCALE (1.0f/64) // 0.015625, this value should be close to average 'Material.bump' which are 0.015, 0.03, 0.05 (remember that in Editor that value may be scaled)
 
@@ -47,9 +48,7 @@ DEFINE_CACHE(Material, Materials, MaterialPtr, "Material");
 Material               MaterialDefault,
                        MaterialDefaultNoCull;
 const Material        *MaterialLast,
-                      *MaterialLast4[4]; // can't merge with 'MaterialLast' because that sets 'h_Material' but this sets 'h_MultiMaterial'
-Enum                  *MaterialUserShader,
-                      *MaterialUserType;
+                      *MaterialLast4[4]; // can't merge with 'MaterialLast' because that sets 'Sh.Material' but this sets 'Sh.MultiMaterial'
 MaterialPtr            MaterialNull;
 ThreadSafeMap<UniqueMultiMaterialKey, UniqueMultiMaterialData> UniqueMultiMaterialMap(Compare);
 /******************************************************************************/
@@ -64,7 +63,7 @@ Material::Material()
    reflect  =REFLECT_DEFAULT_PAR;
    glow     =0;
    normal   =1;
-   bump     =0.03f;
+   bump     =BUMP_DEFAULT_PAR;
    det_power=0.3f;
    det_scale=4;
    tex_scale=1.0f;
@@ -128,7 +127,7 @@ Material& Material::validate() // #MaterialTextureChannelOrder
    // set multi
    {
      _multi.color    =(LINEAR_GAMMA ? colorL() : colorS());
-     _multi.glow     =glow;
+     _multi.glow     =glow; // 'glow_mul', 'glow_add' not needed because Glow is stored in Base0 (which can be either Alpha or Glow, however Alpha is never used for multi-materials, so it's always 1.0)
      _multi.tex_scale=tex_scale;
      _multi.det_scale=det_scale;
 
@@ -357,12 +356,12 @@ void Material::_adjustParams(UInt old_base_tex, UInt new_base_tex)
    if(changed&BT_BUMP)
    {
       if(!(new_base_tex&BT_BUMP))bump=0;else
-      if(bump<=EPS_MATERIAL_BUMP)bump=MaterialDefault.bump;
+      if(bump<=EPS_MATERIAL_BUMP)bump=BUMP_DEFAULT_PAR;
    }
    if(changed&(BT_BUMP|BT_NORMAL))
    {
       if(!(new_base_tex&BT_BUMP) && !(new_base_tex&BT_NORMAL))normal=0;else
-      if(                                     normal<=EPS_COL)normal=MaterialDefault.normal;
+      if(                                     normal<=EPS_COL)normal=1;
    }
 
    if(changed&BT_SMOOTH)
@@ -965,9 +964,6 @@ void InitMaterial()
 
    MaterialDefaultNoCull=MaterialDefault;
    MaterialDefaultNoCull.cull=false;
-
-   MaterialUserShader=Enums.get("Enum/material_user_shader.enum");
-   MaterialUserType  =Enums.get("Enum/material_user_type.enum"  );
 
    Materials.canBeRemoved(CanBeRemoved);
 }

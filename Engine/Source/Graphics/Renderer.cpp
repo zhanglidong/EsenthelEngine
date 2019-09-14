@@ -844,7 +844,7 @@ Bool RendererClass::wantEdgeSoften()C
 {
    switch(D.edgeSoften())
    {
-      case EDGE_SOFTEN_FXAA: return /*Sh.FXAA[0]!=null &&*/ Sh.FXAA[1]!=null; // check 'h_FXAA[1]' only, because it's set only if all loaded OK
+      case EDGE_SOFTEN_FXAA: return /*Sh.FXAA[0]!=null &&*/ Sh.FXAA[1]!=null; // check 'FXAA[1]' only, because it's set only if all loaded OK
    #if SUPPORT_MLAA
       case EDGE_SOFTEN_MLAA: return Sh.MLAAEdge && Sh.MLAABlend && Sh.MLAA && _mlaa_area;
    #endif
