@@ -3,17 +3,23 @@
 namespace EE{
 /******************************************************************************
 
-   If Material has only 1 texture (base_0), then it contains:
+   If Material has base_0 but not base_2, then it contains:
       Base0: RGBA
 
-   If Material has 3 textures (base_0, base_1, base_2), then they contain:
+   If it has base_2:
       Base0: RGB, Glow
-      Base1: NrmX, NrmY
       Base2: Smooth, Reflect, Bump, Alpha
+
+   Base1 always: NrmX, NrmY
 
    When changing the above to a different order, then look for "#MaterialTextureChannelOrder" text in Engine/Editor to update the codes.
 
 /******************************************************************************/
+enum MTRL_TEX_LAYOUT : Byte
+{
+   MTL_RGBA,
+   MTL_RGB_GLOW$NRM$SMOOTH_REFLECT_BUMP_ALPHA,
+};
 #define CC4_MTRL CC4('M','T','R','L')
 
 #define BUMP_DEFAULT_TEX 0 // 0..255, normally this should be 128, but 0 will allow to use BC5 (for Mtrl.base_2 tex if there's no Alpha) and always set Material.bump=0 when bump is not used #MaterialTextureChannelOrder
@@ -597,9 +603,9 @@ void MaterialClear() // must be called: after changing 'Renderer.mode', after ch
 /******************************************************************************/
 UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &col, C Image &alpha, C Image &bump, C Image &normal, C Image &smooth, C Image &reflect, C Image &glow, Bool resize_to_pow2, Bool flip_normal_y, FILTER_TYPE filter)
 {
-   // FIXME
+   // #MaterialTextureChannelOrder
    UInt  ret=0;
-   Image dest_0, dest_1;
+   Image dest_0, dest_1, dest_2;
    {
       Image     col_temp; C Image *    col_src=&    col; if(    col_src->compressed())if(    col_src->copyTry(    col_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))    col_src=&    col_temp;else goto error;
       Image   alpha_temp; C Image *  alpha_src=&  alpha; if(  alpha_src->compressed())if(  alpha_src->copyTry(  alpha_temp, -1, -1, -1, IMAGE_L8A8         , IMAGE_SOFT, 1))  alpha_src=&  alpha_temp;else goto error;
@@ -625,7 +631,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &co
             }
             col_src->unlock();
          }
-         if(min_alpha>=253)alpha_temp.del(); // alpha channel in color map is almost fully white
+         if(min_alpha>=255)alpha_temp.del(); // alpha channel in color map is fully white
       }else
       if(alpha_src->is() && ImageTI[alpha_src->type()].channels>1 && ImageTI[alpha_src->type()].a) // if alpha has both RGB and Alpha channels, then check which one to use
          if(alpha_src->lockRead())
@@ -639,11 +645,8 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &co
             MIN(min_lum  , c.lum());
          }
          alpha_src->unlock();
-         if(min_alpha>=253 && min_lum<253)if(alpha_src->copyTry(alpha_temp, -1, -1, -1, IMAGE_L8, IMAGE_SOFT, 1))alpha_src=&alpha_temp;else goto error; // alpha channel is almost fully white -> use luminance as alpha
+         if(min_alpha>=255 && min_lum<255)if(alpha_src->copyTry(alpha_temp, -1, -1, -1, IMAGE_L8, IMAGE_SOFT, 1))alpha_src=&alpha_temp;else goto error; // alpha channel is fully white -> use luminance as alpha
       }
-
-      // if we're using two textures
-      Bool tex2=(bump_src->is() || normal_src->is() || smooth_src->is() || glow_src->is());
 
       // set what textures do we have (set this before 'normal' is generated from 'bump')
       if(    col_src->is())ret|=BT_COLOR  ;
@@ -654,103 +657,126 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &co
       if(reflect_src->is())ret|=BT_REFLECT;
       if(   glow_src->is())ret|=BT_GLOW   ;
 
-      // generate textures, below operate on separate set of temporary images, in case one source image is used for both texture, but they will be used at different sizes (to avoid double stretching and loss of quality)
+      MTRL_TEX_LAYOUT layout=((ret&(BT_SMOOTH|BT_REFLECT|BT_BUMP|BT_GLOW)) ? MTL_RGB_GLOW$NRM$SMOOTH_REFLECT_BUMP_ALPHA : MTL_RGBA);
 
-      // 1st texture
-      if(tex2) // put bump in W channel
+      // Base0
+      if(layout==MTL_RGB_GLOW$NRM$SMOOTH_REFLECT_BUMP_ALPHA) // put glow in W channel
       {
-         Int w=Max(col_src->w(), bump_src->w()),
-             h=Max(col_src->h(), bump_src->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         Image  col_temp; C Image *cs= col_src; if(cs->is() && (cs->w()!=w || cs->h()!=h))if(cs->copyTry( col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))cs=& col_temp;else goto error;
-         Image bump_temp; C Image *bs=bump_src; if(bs->is() && (bs->w()!=w || bs->h()!=h))if(bs->copyTry(bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))bs=&bump_temp;else goto error;
+         Int w=Max(col_src->w(), glow_src->w()),
+             h=Max(col_src->h(), glow_src->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+         if( col_src->is() && ( col_src->w()!=w ||  col_src->h()!=h))if( col_src->copyTry( col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP|IC_ALPHA_WEIGHT)) col_src=& col_temp;else goto error;
+         if(glow_src->is() && (glow_src->w()!=w || glow_src->h()!=h))if(glow_src->copyTry(glow_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP|IC_ALPHA_WEIGHT))glow_src=&glow_temp;else goto error;
          dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8A8_SRGB);
-         if(!cs->is() || cs->lockRead())
+         if(!col_src->is() || col_src->lockRead())
          {
-            if(!bs->is() || bs->lockRead())
+            if(!glow_src->is() || glow_src->lockRead())
             {
                REPD(y, dest_0.h())
-               REPD(x, dest_0.w()){Color c=(cs->is() ? cs->color(x, y) : WHITE); c.a=(bs->is() ? bs->color(x, y).lum() : BUMP_DEFAULT_TEX); dest_0.color(x, y, c);}
-               bs->unlock();
+               REPD(x, dest_0.w())
+               {
+                  Color c=(col_src->is() ? col_src->color(x, y) : WHITE);
+                  if(glow_src->is())
+                  {
+                     Color glow=glow_src->color(x, y); c.a=DivRound(glow.lum()*glow.a, 255);
+                  }else                                c.a=255;
+                  dest_0.color(x, y, c);
+               }
+               glow_src->unlock();
             }
-            cs->unlock();
+            col_src->unlock();
          }
       }else // put alpha in W channel
       {
          Int w=Max(col_src->w(), alpha_src->w()),
              h=Max(col_src->h(), alpha_src->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-         Image   col_temp; C Image *cs=  col_src; if(cs->is() && (cs->w()!=w || cs->h()!=h))if(cs->copyTry(  col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))cs=&  col_temp;else goto error;
-         Image alpha_temp; C Image *as=alpha_src; if(as->is() && (as->w()!=w || as->h()!=h))if(as->copyTry(alpha_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))as=&alpha_temp;else goto error;
+         if(  col_src->is() && (  col_src->w()!=w ||   col_src->h()!=h))if(  col_src->copyTry(  col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP|IC_ALPHA_WEIGHT))  col_src=&  col_temp;else goto error;
+         if(alpha_src->is() && (alpha_src->w()!=w || alpha_src->h()!=h))if(alpha_src->copyTry(alpha_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP                ))alpha_src=&alpha_temp;else goto error;
          dest_0.createSoftTry(w, h, 1, IMAGE_R8G8B8A8_SRGB);
-         if(!cs->is() || cs->lockRead())
+         if(!col_src->is() || col_src->lockRead())
          {
-            if(!as->is() || as->lockRead())
+            if(!alpha_src->is() || alpha_src->lockRead())
             {
-               Int alpha_component=(ImageTI[as->type()].a ? 3 : 0); // use Alpha or Red in case src is R8
+               Int alpha_component=(ImageTI[alpha_src->type()].a ? 3 : 0); // use Alpha or Red in case src is R8/L8
                REPD(y, dest_0.h())
-               REPD(x, dest_0.w()){Color c=(cs->is() ? cs->color(x, y) : WHITE); c.a=(as->is() ? as->color(x, y).c[alpha_component] : 255); dest_0.color(x, y, c);} // full alpha
-               as->unlock();
+               REPD(x, dest_0.w()){Color c=(col_src->is() ? col_src->color(x, y) : WHITE); c.a=(alpha_src->is() ? alpha_src->color(x, y).c[alpha_component] : 255); dest_0.color(x, y, c);} // full alpha
+               alpha_src->unlock();
             }
-            cs->unlock();
+            col_src->unlock();
          }
       }
 
-      // 2nd texture
-      if(tex2)
+      // Base1 NRM !! do this first before Base2 SRBA which resizes bump !!
+    C Image *bump_to_normal=null;
+      if(  bump_src->is() && !normal_src->is()           )bump_to_normal=  bump_src;else // if bump available and normal not, then create normal from bump
+      if(normal_src->is() &&  normal_src->monochromatic())bump_to_normal=normal_src;     // if normal is provided as monochromatic, then treat it as bump and convert to normal
+      if(bump_to_normal) // create normal from bump
       {
-         Int w=Max(normal_src->w(), smooth_src->w(), alpha_src->w(), glow_src->w()),
-             h=Max(normal_src->h(), smooth_src->h(), alpha_src->h(), glow_src->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-
-       C Image *bump=null;
-         if(  bump_src->is() && !normal_src->is()           )bump=  bump_src;else // if bump available and normal not, then create normal from bump
-         if(normal_src->is() &&  normal_src->monochromatic())bump=normal_src;     // if normal is provided as monochromatic, then treat it as bump and convert to normal
-         if(bump) // create normal from bump
+         // it's best to resize bump instead of normal
+         Int w=bump_to_normal->w(),
+             h=bump_to_normal->h(); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+         if(bump_to_normal->w()!=w || bump_to_normal->h()!=h)if(bump_to_normal->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))bump_to_normal=&normal_temp;else goto error; // !! convert to 'normal_temp' instead of 'bump_temp' because we still need original bump later !!
+         bump_to_normal->bumpToNormal(normal_temp, AvgF(w, h)*BUMP_NORMAL_SCALE); normal_src=&normal_temp;
+         flip_normal_y=false; // no need to flip since normal map generated from bump is always correct
+      }
+      if(normal_src->is())
+      {
+         Int w=normal_src->w(),
+             h=normal_src->h(); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+         if(normal_src->w()!=w || normal_src->h()!=h)if(normal_src->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))normal_src=&normal_temp;else goto error;
+         if(normal_src->lockRead())
          {
-            MAX(w, bump->w());
-            MAX(h, bump->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
-            if(bump->w()!=w || bump->h()!=h)if(bump->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))bump=&normal_temp;else goto error;
-            bump->bumpToNormal(normal_temp, AvgF(w, h)*BUMP_NORMAL_SCALE); normal_src=&normal_temp;
-            flip_normal_y=false; // no need to flip since normal map generated from bump is always correct
-         }
-
-         dest_1.createSoftTry(w, h, 1, IMAGE_R8G8B8A8);
-
-         Image normal_temp; C Image *ns=normal_src; if(ns->is() && (ns->w()!=w || ns->h()!=h))if(ns->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))ns=&normal_temp;else goto error;
-         Image smooth_temp; C Image *ss=smooth_src; if(ss->is() && (ss->w()!=w || ss->h()!=h))if(ss->copyTry(smooth_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))ss=&smooth_temp;else goto error;
-         Image  alpha_temp; C Image *as= alpha_src; if(as->is() && (as->w()!=w || as->h()!=h))if(as->copyTry( alpha_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))as=& alpha_temp;else goto error;
-         Image   glow_temp; C Image *gs=  glow_src; if(gs->is() && (gs->w()!=w || gs->h()!=h))if(gs->copyTry(  glow_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))gs=&  glow_temp;else goto error;
-
-         if(!ns->is() || ns->lockRead())
-         {
-            if(!ss->is() || ss->lockRead())
+            dest_1.createSoftTry(w, h, 1, IMAGE_R8G8_SIGN, 1);
+            Vec4 c; c.zw=0;
+            REPD(y, dest_1.h())
+            REPD(x, dest_1.w())
             {
-               if(!as->is() || as->lockRead())
-               {
-                  if(!gs->is() || gs->lockRead())
-                  {
-                     Int alpha_component=(ImageTI[as->type()].a ? 3 : 0); // use Alpha or Red in case src is R8
-                     REPD(y, dest_1.h())
-                     REPD(x, dest_1.w())
-                     {
-                        Color nrm =(ns->is() ? ns->color(x, y)       : Color(128, 128, 255, 0)); if(flip_normal_y)nrm.g=255-nrm.g;
-                        Byte  spec=(ss->is() ? ss->color(x, y).lum() : 255);
-                        Byte  alpha_glow;
-                        if(as->is())                          alpha_glow=as->color(x, y).c[alpha_component];else
-                        if(gs->is()){Color c=gs->color(x, y); alpha_glow=DivRound(c.lum()*c.a, 255);}else
-                                                              alpha_glow=255;
-                        Color c;
-                        c.c[  NRMX_CHANNEL]=nrm.r;
-                        c.c[  NRMY_CHANNEL]=nrm.g;
-                        c.c[SMOOTH_CHANNEL]=spec;
-                        c.c[  GLOW_CHANNEL]=alpha_glow;
-                        dest_1.color(x, y, c);
-                     }
-                     gs->unlock();
-                  }
-                  as->unlock();
-               }
-               ss->unlock();
+               c.xy=normal_src->colorF(x, y).xy*2-1;
+               if(flip_normal_y)CHS(c.y);
+               dest_1.colorF(x, y, c);
             }
-            ns->unlock();
+            normal_src->unlock();
+         }
+      }
+
+      // Base2 SRBA
+      if(layout==MTL_RGB_GLOW$NRM$SMOOTH_REFLECT_BUMP_ALPHA /*&& ret&(BT_SMOOTH|BT_REFLECT|BT_BUMP|BT_ALPHA)*/) // always create 'base2' so we can determine layout based on 'base2' presence
+      {
+         Int w=Max(1, Max(smooth_src->w(), reflect_src->w(), bump_src->w(), alpha_src->w())), // Max 1 in case all images are empty, but we still need it
+             h=Max(1, Max(smooth_src->h(), reflect_src->h(), bump_src->h(), alpha_src->h())); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+
+         dest_2.createSoftTry(w, h, 1, IMAGE_R8G8B8A8);
+
+         if( smooth_src->is() && ( smooth_src->w()!=w ||  smooth_src->h()!=h))if( smooth_src->copyTry( smooth_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP)) smooth_src=& smooth_temp;else goto error;
+         if(reflect_src->is() && (reflect_src->w()!=w || reflect_src->h()!=h))if(reflect_src->copyTry(reflect_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))reflect_src=&reflect_temp;else goto error;
+         if(   bump_src->is() && (   bump_src->w()!=w ||    bump_src->h()!=h))if(   bump_src->copyTry(   bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))   bump_src=&   bump_temp;else goto error;
+         if(  alpha_src->is() && (  alpha_src->w()!=w ||   alpha_src->h()!=h))if(  alpha_src->copyTry(  alpha_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))  alpha_src=&  alpha_temp;else goto error;
+
+         if(!smooth_src->is() || smooth_src->lockRead())
+         {
+            if(!reflect_src->is() || reflect_src->lockRead())
+            {
+               if(!bump_src->is() || bump_src->lockRead())
+               {
+                  if(!alpha_src->is() || alpha_src->lockRead())
+                  {
+                     Int alpha_component=(ImageTI[alpha_src->type()].a ? 3 : 0); // use Alpha or Red in case src is R8/L8
+                     REPD(y, dest_2.h())
+                     REPD(x, dest_2.w())
+                     {
+                        Color c;
+                        c.c[ SMOOTH_CHANNEL]=( smooth_src->is() ?  smooth_src->color(x, y).lum() : 255);
+                        c.c[REFLECT_CHANNEL]=(reflect_src->is() ? reflect_src->color(x, y).lum() : 255);
+                        c.c[   BUMP_CHANNEL]=(   bump_src->is() ?    bump_src->color(x, y).lum() : BUMP_DEFAULT_TEX);
+                        c.c[  ALPHA_CHANNEL]=(  alpha_src->is() ?   alpha_src->color(x, y).c[alpha_component] : 255);
+                        dest_2.color(x, y, c);
+                     }
+                     alpha_src->unlock();
+                  }
+                  bump_src->unlock();
+               }
+               reflect_src->unlock();
+            }
+            smooth_src->unlock();
          }
       }
    }
@@ -758,40 +784,62 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &co
 error:
    Swap(dest_0, base_0);
    Swap(dest_1, base_1);
+   Swap(dest_2, base_2);
    return ret;
 }
-void CreateDetailTexture(Image &detail, C Image &col, C Image &bump, C Image &normal, Bool resize_to_pow2, Bool flip_normal_y, FILTER_TYPE filter)
+/******************************************************************************/
+void CreateDetailTexture(Image &detail, C Image &col, C Image &bump, C Image &normal, C Image &smooth, Bool resize_to_pow2, Bool flip_normal_y, FILTER_TYPE filter)
 {
    Image dest;
    {
       Image    col_temp; C Image *   col_src=&   col; if(   col_src->compressed())if(   col_src->copyTry(   col_temp, -1, -1, -1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1))   col_src=&   col_temp;else goto error;
       Image   bump_temp; C Image *  bump_src=&  bump; if(  bump_src->compressed())if(  bump_src->copyTry(  bump_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))  bump_src=&  bump_temp;else goto error;
       Image normal_temp; C Image *normal_src=&normal; if(normal_src->compressed())if(normal_src->copyTry(normal_temp, -1, -1, -1, IMAGE_R8G8         , IMAGE_SOFT, 1))normal_src=&normal_temp;else goto error;
+      Image smooth_temp; C Image *smooth_src=&smooth; if(smooth_src->compressed())if(smooth_src->copyTry(smooth_temp, -1, -1, -1, IMAGE_L8           , IMAGE_SOFT, 1))smooth_src=&smooth_temp;else goto error;
 
-      Int w=Max(col_src->w(), bump_src->w(), normal_src->w()),
-          h=Max(col_src->h(), bump_src->h(), normal_src->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
+      Int w=Max(col_src->w(), bump_src->w(), normal_src->w(), smooth_src->w()),
+          h=Max(col_src->h(), bump_src->h(), normal_src->h(), smooth_src->h()); if(resize_to_pow2){w=NearestPow2(w); h=NearestPow2(h);}
 
-    C Image *cs=   col_src; if(cs->is() && (cs->w()!=w || cs->h()!=h))if(cs->copyTry(   col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))cs=&   col_temp;else goto error;
-    C Image *bs=  bump_src; if(bs->is() && (bs->w()!=w || bs->h()!=h))if(bs->copyTry(  bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))bs=&  bump_temp;else goto error;
-    C Image *ns=normal_src; if(ns->is() && (ns->w()!=w || ns->h()!=h))if(ns->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))ns=&normal_temp;else goto error;
+      if(   col_src->is() && (   col_src->w()!=w ||    col_src->h()!=h))if(   col_src->copyTry(   col_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))   col_src=&   col_temp;else goto error;
+      if(  bump_src->is() && (  bump_src->w()!=w ||   bump_src->h()!=h))if(  bump_src->copyTry(  bump_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))  bump_src=&  bump_temp;else goto error;
+      if(normal_src->is() && (normal_src->w()!=w || normal_src->h()!=h))if(normal_src->copyTry(normal_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))normal_src=&normal_temp;else goto error;
+      if(smooth_src->is() && (smooth_src->w()!=w || smooth_src->h()!=h))if(smooth_src->copyTry(smooth_temp, w, h, -1, -1, IMAGE_SOFT, 1, filter, IC_WRAP))smooth_src=&smooth_temp;else goto error;
 
-      if(bs->is() && !ns->is()){bs->bumpToNormal(normal_temp, AvgF(w, h)*BUMP_NORMAL_SCALE); ns=&normal_temp; flip_normal_y=false;} // create normal from bump map, no need to flip since normal map generated from bump is always correct
+      if(bump_src->is() && !normal_src->is()){bump_src->bumpToNormal(normal_temp, AvgF(w, h)*BUMP_NORMAL_SCALE); normal_src=&normal_temp; flip_normal_y=false;} // create normal from bump map, no need to flip since normal map generated from bump is always correct
 
       dest.createSoftTry(w, h, 1, IMAGE_R8G8B8A8);
 
-      REPD(y, dest.h())
-      REPD(x, dest.w())
+      if(!col_src->is() || col_src->lockRead())
       {
-         Color nrm =(ns->is() ? ns->color(x, y)       : Color(128, 128, 255, 0)); if(flip_normal_y)nrm.g=255-nrm.g;
-         Byte  col =(cs->is() ? cs->color(x, y).lum() : 128);
-         Byte  bump=(bs->is() ? bs->color(x, y).lum() : BUMP_DEFAULT_TEX);
-         dest.color(x, y, Color(nrm.r, nrm.g, col, bump)); // #MaterialTextureChannelOrder
+         if(!bump_src->is() || bump_src->lockRead())
+         {
+            if(!normal_src->is() || normal_src->lockRead())
+            {
+               if(!smooth_src->is() || smooth_src->lockRead())
+               {
+                  REPD(y, dest.h())
+                  REPD(x, dest.w())
+                  {
+                     Byte  col   =(   col_src->is() ?    col_src->color(x, y).lum() : 128);
+                     Byte  bump  =(  bump_src->is() ?   bump_src->color(x, y).lum() : 255);
+                     Color nrm   =(normal_src->is() ? normal_src->color(x, y)       : Color(128, 128, 255, 0)); if(flip_normal_y)nrm.g=255-nrm.g;
+                     Byte  smooth=(smooth_src->is() ? smooth_src->color(x, y).lum() : 255);
+                     dest.color(x, y, Color(nrm.r, nrm.g, col, bump)); // #MaterialTextureChannelOrder
+                  }
+                  smooth_src->unlock();
+               }
+               normal_src->unlock();
+            }
+            bump_src->unlock();
+         }
+         col_src->unlock();
       }
    }
 
 error:
    Swap(dest, detail);
 }
+/******************************************************************************/
 Bool CreateBumpFromColor(Image &bump, C Image &col, Flt min_blur_range, Flt max_blur_range, Threads *threads)
 {
    Image col_temp; C Image *col_src=&col; if(col_src->compressed())if(col_src->copyTry(col_temp, -1, -1, -1, ImageTypeUncompressed(col_src->type()), IMAGE_SOFT, 1))col_src=&col_temp;else goto error;
@@ -841,12 +889,16 @@ static inline Flt LightSpecular(C Vec &nrm, C Vec &light_dir, C Vec &eye_dir, Fl
 #endif
 }
 Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int max_image_size, C Vec *light_dir, Flt light_power, Flt spec_mul, FILTER_TYPE filter)
-{//FIXME
+{
+   // #MaterialTextureChannelOrder
    if(material.base_0 && material.base_0->is()
-   && material.base_1 && material.base_1->is()) // if have both textures
+   &&(material.base_1 && material.base_1->is()
+   || material.base_2 && material.base_2->is())) // if have multiple textures
    {
       // dimensions
-      VecI2 size=Max(material.base_0->size(), material.base_1->size());
+      VecI2 size=material.base_0->size();
+      if(material.base_1)size=Max(size, material.base_1->size());
+      if(material.base_2)size=Max(size, material.base_2->size());
       if(max_image_size>0)
       {
          MIN(size.x, max_image_size);
@@ -856,83 +908,88 @@ Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int 
       Image color; // operate on temp variable in case 'base_0' argument is set to other images used in this func
       if(material.base_0->copyTry(color, size.x, size.y, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1, filter, IC_WRAP)) // create new color map, use IMAGE_R8G8B8A8_SRGB to always include Alpha
       {
-         Image b1; // 'base_1' resized to 'color' resolution
          MAX(light_power, 0);
               spec_mul*=material.smooth*light_power/255.0f;
-         Flt   nrm_mul =material.normal            /127.0f,
-              glow_mul =material.glow*(2*1.75f/255.0f), // *2 because shaders use this multiplier, *1.75 because shaders iterate over few pixels and take the max out of them (this is just approximation)
+         Flt  glow_mul =material.glow  *(2*1.75f), // *2 because shaders use this multiplier, *1.75 because shaders iterate over few pixels and take the max out of them (this is just approximation)
               glow_blur=0.07f;
-         Bool has_alpha=material.hasAlpha(),
-              has_nrm  =( light_dir && material.normal*light_power>0.01f),
-              has_spec =( light_dir && material.smooth*light_power>0.01f),
-              has_glow =(!has_alpha && material.glow              >0.01f);
-         if( (has_alpha || has_nrm || has_spec || has_glow) && material.base_1->copyTry(b1, color.w(), color.h(), 1, ImageTypeUncompressed(material.base_1->type()), IMAGE_SOFT, 1, filter, IC_WRAP))
+         Bool has_nrm  =(light_dir && material.base_1 && material.normal*light_power>0.01f),
+              has_spec =(light_dir && material.base_2 && material.smooth*light_power>0.01f),
+              has_glow =(             material.base_2 && material.glow              >0.01f); // glow is stored in base0 but only if base2 is present
+
+         Image nrm; // 'base_1' resized to 'color' resolution
+         if(has_nrm         && material.base_1)material.base_1->copyTry(nrm, color.w(), color.h(), 1, ImageTypeUncompressed(material.base_1->type()), IMAGE_SOFT, 1, filter, IC_WRAP);
+
+         Image b2; // 'base_2' resized to 'color' resolution
+         if((1 || has_spec) && material.base_2)material.base_2->copyTry(b2 , color.w(), color.h(), 1, ImageTypeUncompressed(material.base_2->type()), IMAGE_SOFT, 1, filter, IC_WRAP); // copy always because it has alpha
+
+         // setup glow (before baking normals and overwriting 'color' alpha channel)
+         Image glow; if(has_glow && glow.createSoftTry(color.w(), color.h(), 1, IMAGE_F32_3)) // use Vec because we're storing glow with multiplier
          {
-            // setup alpha
-            if(has_alpha)
-               REPD(y, color.h())
-               REPD(x, color.w()){Color c=color.color(x, y); c.a=b1.color(x, y).c[GLOW_CHANNEL]; color.color(x, y, c);}
-
-            // setup glow (before baking normals)
-            Image glow; if(has_glow && glow.createSoftTry(color.w(), color.h(), 1, IMAGE_F32_3)) // use Vec because we're storing glow with multiplier
-            {
-               REPD(y, color.h())
-               REPD(x, color.w())
-               {
-                  Vec4 c=color.colorF(x, y)                ; // RGB
-                  Byte g=b1   .color (x, y).c[GLOW_CHANNEL]; // glow
-                  c.xyz*=g*glow_mul;
-                  glow.colorF(x, y, c);
-               }
-               glow.blur(RoundPos(glow.size().avgF()*glow_blur), false);
-            }
-
-            // bake normal map
-            if(has_nrm || has_spec)
-            {
-               Flt light=Sat(light_dir->z)*light_power, // light intensity at flat normal without ambient
-                 ambient=1-light; // setup ambient so light intensity at flat normal is 1
-               REPD(y, color.h())
-               REPD(x, color.w())
-               {
-                  // I'm assuming that the texture plane is XY plane with Z=0, and facing us (towards -Z) just like browsing image in some viewer
-                  Color col=color.color(x, y),
-                        nrm=b1   .color(x, y);
-                  Vec n;
-                  n.x=(nrm.c[NRMX_CHANNEL]-128)*nrm_mul; // NrmX increases towards right
-                  n.y=(128-nrm.c[NRMY_CHANNEL])*nrm_mul; // NrmY increases towards down
-                  n.z=-CalcZ(n.xy);
-                  n.normalize();
-
-                  if(has_nrm)
-                  {
-                     Flt d=Sat(-Dot(n, *light_dir)), l=ambient + light_power*d;
-                     col=ColorBrightness(col, l);
-                  }
-                  if(has_spec)if(Byte s=nrm.c[SMOOTH_CHANNEL])
-                  {
-                     Flt spec=LightSpecular(-n, *light_dir, Vec(0, 0, 1))*spec_mul;
-                     Color cs=ColorBrightness(s*spec); cs.a=0;
-                     col=ColorAdd(col, cs);
-                  }
-                  color.color(x, y, col);
-               }
-            }
-
-            // apply glow map (after baking normal)
-            if(glow.is())
-               REPD(y, color.h())
-               REPD(x, color.w())
-            {
-               Color c=color.color(x, y),
-                     g=glow .color(x, y); g.a=0;
-               color.color(x, y, ColorAdd(c, g));
-            }
-         }else has_alpha=false; // disable alpha if failed to copy image
-
-         if(!has_alpha) // set full alpha channel
             REPD(y, color.h())
-            REPD(x, color.w()){Color c=color.color(x, y); c.a=255; color.color(x, y, c);}
+            REPD(x, color.w())
+            {
+               Vec4 c=color.colorF(x, y); // RGB Glow
+               c.xyz*=c.c[GLOW_CHANNEL]*glow_mul;
+               glow.colorF(x, y, c);
+            }
+            glow.blur(glow.size3()*glow_blur, false);
+         }
+
+         // setup alpha
+         Bool has_alpha; // if has any alpha in the texture channel
+         if(material.base_2 // if have to replace alpha
+         || image_type<=0)  // or set 'has_alpha'
+         {
+            has_alpha=false;
+            REPD(y, color.h())
+            REPD(x, color.w())
+            {
+               Color c=color.color(x, y);
+               if(material.base_2)c.a=(b2.is() ? b2.color(x, y).a : 255); // alpha is in base2
+               if(c.a<255)has_alpha=true;
+               color.color(x, y, c);
+            }
+         }
+
+         // bake normal map
+         if(has_nrm || has_spec)
+         {
+            Flt light=Sat(light_dir->z)*light_power, // light intensity at flat normal without ambient
+               ambient=1-light; // setup ambient so light intensity at flat normal is 1
+            REPD(y, color.h())
+            REPD(x, color.w())
+            {
+               // I'm assuming that the texture plane is XY plane with Z=0, and facing us (towards -Z) just like browsing image in some viewer
+               Color col=color.color(x, y);
+               Vec n;
+               n.xy=nrm.colorF(x, y).xy*material.normal; CHS(n.y);
+               n.z=-CalcZ(n.xy);
+               n.normalize();
+
+               if(has_nrm)
+               {
+                  Flt d=Sat(-Dot(n, *light_dir)), l=ambient + light_power*d;
+                  col=ColorBrightness(col, l);
+               }
+               if(has_spec)if(Byte s=b2.color(x, y).c[SMOOTH_CHANNEL])
+               {
+                  Flt spec=LightSpecular(-n, *light_dir, Vec(0, 0, 1))*spec_mul;
+                  Color cs=ColorBrightness(s*spec); cs.a=0;
+                  col=ColorAdd(col, cs);
+               }
+               color.color(x, y, col);
+            }
+         }
+
+         // apply glow map (after baking normal)
+         if(glow.is())
+            REPD(y, color.h())
+            REPD(x, color.w())
+         {
+            Color c=color.color(x, y),
+                  g=glow .color(x, y); g.a=0;
+            color.color(x, y, ColorAdd(c, g));
+         }
 
          // image type
          if(image_type<=0)
