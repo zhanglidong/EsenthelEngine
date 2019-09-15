@@ -2,7 +2,7 @@
 #include "!Header.h"
 #include "Overlay.h"
 /******************************************************************************
-SKIN, NORMALS
+SKIN, NORMALS, ALPHA
 /******************************************************************************/
 void VS
 (
@@ -57,31 +57,25 @@ VecH4 PS
 ):TARGET
 {
    VecH4 col  =Tex(Col, inTex.xy);
-   Half  alpha=Sat((Half)inTex.z)*OverlayAlpha();
+#if ALPHA
+         col.a=Tex(Ext, inTex.xy).a; // #MaterialTextureChannelOrder
+#endif
+   col  *=MaterialColor();
+   col.a*=Sat((Half)inTex.z)*OverlayAlpha();
 
 #if NORMALS
-      VecH4 tex     =Tex(Nrm, inTex.xy); // #MaterialTextureChannelOrder
-    //Half  specular=tex.z*MaterialSpecular();
-
            VecH nrm;
-                nrm.xy =(tex.xy*2-1)*MaterialRough();
+                nrm.xy =Tex(Nrm, inTex.xy).xy*Material.normal; // #MaterialTextureChannelOrder
     //if(detail)nrm.xy+=det.xy;
                 nrm.z  =CalcZ(nrm.xy);
                 nrm    =Transform(nrm, inMatrix);
-
-      col.a=tex.w;
 
    #if SIGNED_NRM_RT
       outNrm.xyz=nrm;
    #else
       outNrm.xyz=nrm*0.5+0.5;
    #endif
-#endif
 
-   col.a*=alpha;
-   col  *=MaterialColor();
-
-#if NORMALS
    outNrm.w=col.a;
 #endif
 

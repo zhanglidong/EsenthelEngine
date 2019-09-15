@@ -1323,6 +1323,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    {
       "Col", "Col1", "Col2", "Col3",
       "Nrm", "Nrm1", "Nrm2", "Nrm3",
+      "Ext", "Ext1", "Ext2", "Ext3",
       "Det", "Det1", "Det2", "Det3",
       "Mac", "Mac1", "Mac2", "Mac3",
       "Lum",
@@ -1340,7 +1341,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    };
    static CChar8 *samplerCube[]=
    {
-      "Rfl", "Rfl1", "Rfl2", "Rfl3",
+    //"Rfl", "Rfl1", "Rfl2", "Rfl3",
       "Cub", "Cub1",
    };
    static CChar8 *sampler2DShadow[]=

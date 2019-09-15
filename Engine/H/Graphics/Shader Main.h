@@ -475,7 +475,7 @@ Str8 ShaderSetColor  (Int skin, Int textures, Int tesselate);
 Str8 ShaderBehind    (Int skin, Int textures);
 Str8 ShaderEarlyZ    (Int skin);
 Str8 ShaderAmbient   (Int skin, Int alpha_test, Int light_map);
-Str8 ShaderOverlay   (Int skin, Int normal);
+Str8 ShaderOverlay   (Int skin, Int normal, Int alpha);
 Str8 ShaderFurBase   (Int skin, Int size, Int diffuse);
 Str8 ShaderFurSoft   (Int skin, Int size, Int diffuse);
 Str8 ShaderTattoo    (Int skin, Int tesselate);
