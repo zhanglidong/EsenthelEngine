@@ -2,13 +2,13 @@
 #include "!Header.h"
 #include "Sky.h"
 /******************************************************************************
-SKIN, COLORS, REFLECT, TEXTURES
+SKIN, COLORS, REFLECT, LAYOUT
 /******************************************************************************/
 void VS
 (
    VtxInput vtx,
 
-#if TEXTURES
+#if LAYOUT
    out Vec2  outTex  :TEXCOORD  ,
 #endif
    out VecH  outRfl  :REFLECTION,
@@ -16,7 +16,7 @@ void VS
    out Vec4  outVtx  :POSITION
 )
 {
-#if TEXTURES
+#if LAYOUT
    outTex=vtx.tex();
 #endif
              outColor =MaterialColor();
@@ -49,24 +49,24 @@ void VS
 /******************************************************************************/
 VecH4 PS
 (
-#if TEXTURES
+#if LAYOUT
    Vec2  inTex  :TEXCOORD  ,
 #endif
    VecH  inRfl  :REFLECTION,
    VecH4 inColor:COLOR
 ):TARGET
 {
-   VecH4 tex_nrm; // #MaterialTextureChannelOrder
+   VecH4 ext; // #MaterialTextureChannelOrder
 
-#if TEXTURES
-   if(TEXTURES==1) inColor    *=Tex(Col, inTex);else                                                 // alpha in 'Col' texture
-   if(TEXTURES==2){inColor.rgb*=Tex(Col, inTex).rgb; tex_nrm=Tex(Nrm, inTex); inColor.a*=tex_nrm.a;} // alpha in 'Nrm' texture
+#if LAYOUT
+   if(LAYOUT==1) inColor    *=Tex(Col, inTex);else                                         // alpha in 'Col' texture
+   if(LAYOUT==2){inColor.rgb*=Tex(Col, inTex).rgb; ext=Tex(Ext, inTex); inColor.a*=ext.a;} // alpha in 'Ext' texture
 #endif
 
    inColor.rgb+=Highlight.rgb;
 
    // reflection
-   if(REFLECT)inColor.rgb+=TexCube(Rfl, inRfl).rgb*((TEXTURES==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
+   if(REFLECT)inColor.rgb+=TexCube(Rfl, inRfl).rgb*((LAYOUT==2) ? Material.reflect*ext.y : Material.reflect);
 
    return inColor;
 }

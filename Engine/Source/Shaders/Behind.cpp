@@ -1,21 +1,21 @@
 /******************************************************************************/
 #include "!Header.h"
 /******************************************************************************
-SKIN, ALPHA
+SKIN, ALPHA_TEST
 /******************************************************************************/
 void VS
 (
    VtxInput vtx,
 
    out Vec4 outVtx:POSITION,
-#if ALPHA
+#if ALPHA_TEST
    out Vec2 outTex:TEXCOORD,
 #endif
    out VecH outNrm:NORMAL, // !! not Normalized !!
    out Vec  outPos:POS
 )
 {
-#if ALPHA
+#if ALPHA_TEST
    outTex=vtx.tex();
 #endif
 
@@ -34,16 +34,16 @@ void VS
 VecH4 PS
 (
    PIXEL,
-#if ALPHA
+#if ALPHA_TEST
    Vec2 inTex:TEXCOORD,
 #endif
    VecH inNrm:NORMAL,
    Vec  inPos:POS
 ):TARGET
 {
-#if ALPHA // alpha-test
-   if(ALPHA==1)clip(Tex(Col, inTex).a + MaterialAlpha()-1);else // alpha in 'Col' texture
-   if(ALPHA==2)clip(Tex(Nrm, inTex).a + MaterialAlpha()-1);     // alpha in 'Nrm' texture, #MaterialTextureChannelOrder
+#if ALPHA_TEST
+   if(ALPHA_TEST==1)clip(Tex(Col, inTex).a + Material.color.a-1);else // alpha in 'Col' texture
+   if(ALPHA_TEST==2)clip(Tex(Ext, inTex).a + Material.color.a-1);     // alpha in 'Ext' texture, #MaterialTextureChannelOrder
 #endif
 
    Half alpha=Sat((Half(inPos.z-TexDepthPoint(PixelToScreen(pixel)))-BehindBias)/0.3);

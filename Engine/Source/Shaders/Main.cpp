@@ -428,7 +428,7 @@ void ClearDeferred(out DeferredSolidOutput output)
 /******************************************************************************/
 // DUMMY - used only to obtain info about ConstantBuffers/ShaderParams
 /******************************************************************************/
-Flt Params0_PS():TARGET {return VtxHeightmap+ObjVel[0].lin.x+FurVel[0].x+FurStep+MaterialAlpha()+MultiMaterial0TexScale()+MultiMaterial1TexScale()+MultiMaterial2TexScale()+MultiMaterial3TexScale()+Step+TexLod(FurCol, 0).x+TexLod(FurLight, 0).x;}
+Flt Params0_PS():TARGET {return VtxHeightmap+ObjVel[0].lin.x+FurVel[0].x+FurStep+Material.color.a+MultiMaterial0TexScale()+MultiMaterial1TexScale()+MultiMaterial2TexScale()+MultiMaterial3TexScale()+Step+TexLod(FurCol, 0).x+TexLod(FurLight, 0).x;}
 Flt Params1_PS():TARGET {return AmbColor.x+AmbientContrast+HdrBrightness+LocalFogColor.x+OverlayOpaqueFrac()+BehindBias;}
 /******************************************************************************/
 #if GL // #WebSRGB

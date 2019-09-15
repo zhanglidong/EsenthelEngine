@@ -396,19 +396,6 @@ struct MaterialClass // this is used when a MeshPart has only one material
 BUFFER_I(Material, SBI_MATERIAL)
    MaterialClass Material;
 BUFFER_END
-
-/*inline VecH4 MaterialColor   () {return Material._color;}
-inline VecH  MaterialColor3  () {return Material._color.rgb;}
-inline Half  MaterialAlpha   () {return Material._color.a;}
-inline VecH  MaterialAmbient () {return Material._ambient_specular.xyz;}
-inline Half  MaterialSpecular() {return Material._ambient_specular.w;}
-inline Half  MaterialGlow    () {return Material._sss_glow_rough_bump.y;}
-inline Half  MaterialRough   () {return Material._sss_glow_rough_bump.z;}
-inline Half  MaterialBump    () {return Material._sss_glow_rough_bump.w;}
-inline Flt   MaterialTexScale() {return Material._texscale_detscale_detpower_reflect.x;}
-inline Flt   MaterialDetScale() {return Material._texscale_detscale_detpower_reflect.y;}
-inline Half  MaterialDetPower() {return Material._texscale_detscale_detpower_reflect.z;}
-inline Half  MaterialReflect () {return Material._texscale_detscale_detpower_reflect.w;}
 /******************************************************************************/
 #include "!Set SP.h"
 struct MultiMaterialClass // this is used when a MeshPart has multiple materials
@@ -424,61 +411,13 @@ BUFFER(MultiMaterial0) MultiMaterialClass MultiMaterial0; BUFFER_END
 BUFFER(MultiMaterial1) MultiMaterialClass MultiMaterial1; BUFFER_END
 BUFFER(MultiMaterial2) MultiMaterialClass MultiMaterial2; BUFFER_END
 BUFFER(MultiMaterial3) MultiMaterialClass MultiMaterial3; BUFFER_END
-
-/*inline VecH4 MultiMaterial0Color    () {return MultiMaterial0._color     ;}
-inline VecH  MultiMaterial0Color3   () {return MultiMaterial0._color.rgb ;}
-inline VecH4 MultiMaterial0NormalMul() {return MultiMaterial0._normal_mul;}
-inline VecH4 MultiMaterial0NormalAdd() {return MultiMaterial0._normal_add;}
-inline Flt   MultiMaterial0TexScale () {return MultiMaterial0._texscale_detscale_detmul_detadd.x;}
-inline Flt   MultiMaterial0DetScale () {return MultiMaterial0._texscale_detscale_detmul_detadd.y;}
-inline Half  MultiMaterial0DetMul   () {return MultiMaterial0._texscale_detscale_detmul_detadd.z;}
-inline Half  MultiMaterial0DetAdd   () {return MultiMaterial0._texscale_detscale_detmul_detadd.w;}
-inline Half  MultiMaterial0Bump     () {return MultiMaterial0._bump_macro_reflect.x;}
-inline Half  MultiMaterial0Macro    () {return MultiMaterial0._bump_macro_reflect.y;}
-inline Half  MultiMaterial0Reflect  () {return MultiMaterial0._bump_macro_reflect.z;}
-
-inline VecH4 MultiMaterial1Color    () {return MultiMaterial1._color     ;}
-inline VecH  MultiMaterial1Color3   () {return MultiMaterial1._color.rgb ;}
-inline VecH4 MultiMaterial1NormalMul() {return MultiMaterial1._normal_mul;}
-inline VecH4 MultiMaterial1NormalAdd() {return MultiMaterial1._normal_add;}
-inline Flt   MultiMaterial1TexScale () {return MultiMaterial1._texscale_detscale_detmul_detadd.x;}
-inline Flt   MultiMaterial1DetScale () {return MultiMaterial1._texscale_detscale_detmul_detadd.y;}
-inline Half  MultiMaterial1DetMul   () {return MultiMaterial1._texscale_detscale_detmul_detadd.z;}
-inline Half  MultiMaterial1DetAdd   () {return MultiMaterial1._texscale_detscale_detmul_detadd.w;}
-inline Half  MultiMaterial1Bump     () {return MultiMaterial1._bump_macro_reflect.x;}
-inline Half  MultiMaterial1Macro    () {return MultiMaterial1._bump_macro_reflect.y;}
-inline Half  MultiMaterial1Reflect  () {return MultiMaterial1._bump_macro_reflect.z;}
-
-inline VecH4 MultiMaterial2Color    () {return MultiMaterial2._color     ;}
-inline VecH  MultiMaterial2Color3   () {return MultiMaterial2._color.rgb ;}
-inline VecH4 MultiMaterial2NormalMul() {return MultiMaterial2._normal_mul;}
-inline VecH4 MultiMaterial2NormalAdd() {return MultiMaterial2._normal_add;}
-inline Flt   MultiMaterial2TexScale () {return MultiMaterial2._texscale_detscale_detmul_detadd.x;}
-inline Flt   MultiMaterial2DetScale () {return MultiMaterial2._texscale_detscale_detmul_detadd.y;}
-inline Half  MultiMaterial2DetMul   () {return MultiMaterial2._texscale_detscale_detmul_detadd.z;}
-inline Half  MultiMaterial2DetAdd   () {return MultiMaterial2._texscale_detscale_detmul_detadd.w;}
-inline Half  MultiMaterial2Bump     () {return MultiMaterial2._bump_macro_reflect.x;}
-inline Half  MultiMaterial2Macro    () {return MultiMaterial2._bump_macro_reflect.y;}
-inline Half  MultiMaterial2Reflect  () {return MultiMaterial2._bump_macro_reflect.z;}
-
-inline VecH4 MultiMaterial3Color    () {return MultiMaterial3._color     ;}
-inline VecH  MultiMaterial3Color3   () {return MultiMaterial3._color.rgb ;}
-inline VecH4 MultiMaterial3NormalMul() {return MultiMaterial3._normal_mul;}
-inline VecH4 MultiMaterial3NormalAdd() {return MultiMaterial3._normal_add;}
-inline Flt   MultiMaterial3TexScale () {return MultiMaterial3._texscale_detscale_detmul_detadd.x;}
-inline Flt   MultiMaterial3DetScale () {return MultiMaterial3._texscale_detscale_detmul_detadd.y;}
-inline Half  MultiMaterial3DetMul   () {return MultiMaterial3._texscale_detscale_detmul_detadd.z;}
-inline Half  MultiMaterial3DetAdd   () {return MultiMaterial3._texscale_detscale_detmul_detadd.w;}
-inline Half  MultiMaterial3Bump     () {return MultiMaterial3._bump_macro_reflect.x;}
-inline Half  MultiMaterial3Macro    () {return MultiMaterial3._bump_macro_reflect.y;}
-inline Half  MultiMaterial3Reflect  () {return MultiMaterial3._bump_macro_reflect.z;}
 /******************************************************************************/
 // IMAGES
 /******************************************************************************/
 #include "!Set IP.h"
-Image     Col, Col1, Col2, Col3,
-          Nrm, Nrm1, Nrm2, Nrm3,
-          Ext, Ext1, Ext2, Ext3,
+Image     Col, Col1, Col2, Col3; // #MaterialTextureChannelOrder
+ImageH2   Nrm, Nrm1, Nrm2, Nrm3;
+Image     Ext, Ext1, Ext2, Ext3,
           Det, Det1, Det2, Det3,
           Mac, Mac1, Mac2, Mac3,
           Lum;
@@ -1313,7 +1252,7 @@ inline Vec HsbToRgb(Vec hsb)
 /******************************************************************************/
 inline void AlphaTest(Half alpha)
 {
-   clip(alpha+MaterialAlpha()-1);
+   clip(alpha+Material.color.a-1);
 }
 /******************************************************************************/
 // NORMAL

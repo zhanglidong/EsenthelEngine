@@ -238,16 +238,16 @@ VecH4 Decal_PS(PIXEL,
 #if MODE==2 // palette
    return (col.a*alpha)*Color[0]*MaterialColor();
 #elif MODE==1 // normal
-   VecH4 tex_nrm =Tex(Nrm, pos.xy); // #MaterialTextureChannelOrder
+   // #MaterialTextureChannelOrder
    Half  specular=tex_nrm.z*MaterialSpecular(); // specular is in 'nrm.z'
 
         VecH nrm;
-             nrm.xy =(tex_nrm.xy*2-1)*MaterialRough(); // normal is in 'nrm.xy'
+             nrm.xy =Tex(Nrm, pos.xy).xy*Material.normal; // #MaterialTextureChannelOrder
  //if(detail)nrm.xy+=det.xy;
              nrm.z  =CalcZ(nrm.xy);
              nrm    =Transform(nrm, inMatrixN);
 
-   col.a=tex_nrm.w*alpha; // alpha is in 'nrm.w'
+   col.a=tex_nrm.w*alpha; // alpha is in 'nrm.w' FIXME make NORMAL/LAYOUT independent
    col *=Color[0]*MaterialColor();
 
    #if SIGNED_NRM_RT

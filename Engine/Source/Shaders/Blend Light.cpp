@@ -5,7 +5,7 @@
 /******************************************************************************/
 #define ALPHA_CLIP 0.5
 /******************************************************************************/
-//SKIN, COLORS, TEXTURES, BUMP_MODE, ALPHA_TEST, ALPHA, LIGHT_MAP, REFLECT, FX, PER_PIXEL, SHADOW_MAPS, TESSELATE
+//SKIN, COLORS, LAYOUT, BUMP_MODE, ALPHA_TEST, ALPHA, LIGHT_MAP, REFLECT, FX, PER_PIXEL, SHADOW_MAPS, TESSELATE
 #define USE_VEL   ALPHA_TEST
 #define HEIGHTMAP 0
 #define SET_POS   (USE_VEL || SHADOW_MAPS || (REFLECT && PER_PIXEL && BUMP_MODE>SBUMP_FLAT))
@@ -16,7 +16,7 @@ struct VS_PS
    Vec pos:POS;
 #endif
 
-#if TEXTURES || LIGHT_MAP
+#if LAYOUT || LIGHT_MAP
    Vec2 tex:TEXCOORD;
 #endif
 
@@ -59,7 +59,7 @@ void VS
    Vec  pos=vtx.pos();
    VecH nrm, tan; if(BUMP_MODE>=SBUMP_FLAT)nrm=vtx.nrm(); if(BUMP_MODE>SBUMP_FLAT)tan=vtx.tan(nrm, HEIGHTMAP);
 
-#if TEXTURES || LIGHT_MAP
+#if LAYOUT || LIGHT_MAP
    O.tex=vtx.tex(HEIGHTMAP);
    if(HEIGHTMAP)O.tex*=MaterialTexScale();
 #endif
@@ -210,14 +210,14 @@ void PS
    Half  specular=MaterialSpecular();
    VecH4 tex_nrm; // #MaterialTextureChannelOrder
 
-#if   TEXTURES==0
+#if   LAYOUT==0
    if(PER_PIXEL && BUMP_MODE>=SBUMP_FLAT)nrm=Normalize(I.Nrm());
-#elif TEXTURES==1
+#elif LAYOUT==1
    VecH4 tex_col=Tex(Col, I.tex); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
    if(ALPHA)I.col*=tex_col;else I.col.rgb*=tex_col.rgb;
    if(PER_PIXEL && BUMP_MODE>=SBUMP_FLAT)nrm=Normalize(I.Nrm());
-#elif TEXTURES==2
-   tex_nrm=Tex(Nrm, I.tex); if(ALPHA_TEST)clip(tex_nrm.a-ALPHA_CLIP);
+#elif LAYOUT==2
+   tex_nrm=Tex(Nrm, I.tex); if(ALPHA_TEST)clip(tex_nrm.a-ALPHA_CLIP); // FIXME
             specular *=tex_nrm.z;
    if(ALPHA)I.col.a  *=tex_nrm.a;
             I.col.rgb*=Tex(Col, I.tex).rgb;
@@ -241,7 +241,7 @@ void PS
    #else
       Vec rfl=I.rfl;
    #endif
-      I.col.rgb+=TexCube(Rfl, rfl).rgb * ((TEXTURES==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
+      I.col.rgb+=TexCube(Rfl, rfl).rgb * ((LAYOUT==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
    }
    #endif
 

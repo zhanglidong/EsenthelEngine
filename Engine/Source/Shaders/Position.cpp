@@ -1,7 +1,7 @@
 /******************************************************************************/
 #include "!Header.h"
 /******************************************************************************
-SKIN, TEXTURES, TEST_BLEND, FX, TESSELATE
+SKIN, ALPHA_TEST, TEST_BLEND, FX, TESSELATE
 /******************************************************************************/
 struct VS_PS
 {
@@ -9,7 +9,7 @@ struct VS_PS
    Vec  pos:POS   ,
         nrm:NORMAL;
 #endif
-#if TEXTURES
+#if ALPHA_TEST
    Vec2 tex:TEXCOORD;
 #endif
 };
@@ -59,7 +59,7 @@ void VS
       if(TESSELATE)nrm=Normalize(TransformDir(nrm, bone, vtx.weight()));
    }
 
-#if TEXTURES
+#if ALPHA_TEST
    O.tex=vtx.tex();
 #endif
 #if TESSELATE
@@ -73,9 +73,9 @@ void VS
 /******************************************************************************/
 void PS(VS_PS I)
 {
-#if TEXTURES
-   if(TEXTURES==1)clip(Tex(Col, I.tex).a+(TEST_BLEND ? (MaterialAlpha()*0.5-1) : (MaterialAlpha()-1)));else
-   if(TEXTURES==2)clip(Tex(Nrm, I.tex).a+(TEST_BLEND ? (MaterialAlpha()*0.5-1) : (MaterialAlpha()-1))); // #MaterialTextureChannelOrder
+#if ALPHA_TEST
+   if(ALPHA_TEST==1)clip(Tex(Col, I.tex).a+(TEST_BLEND ? (Material.color.a*0.5-1) : (Material.color.a-1)));else
+   if(ALPHA_TEST==2)clip(Tex(Ext, I.tex).a+(TEST_BLEND ? (Material.color.a*0.5-1) : (Material.color.a-1))); // #MaterialTextureChannelOrder
 #endif
 }
 /******************************************************************************/
@@ -94,7 +94,7 @@ VS_PS HS(InputPatch<VS_PS,3> I, UInt cp_id:SV_OutputControlPointID)
    VS_PS O;
    O.pos=I[cp_id].pos;
    O.nrm=I[cp_id].nrm;
-#if TEXTURES
+#if ALPHA_TEST
    O.tex=I[cp_id].tex;
 #endif
    return O;
@@ -109,7 +109,7 @@ void DS
    out Vec4  O_vtx:POSITION
 )
 {
-#if TEXTURES
+#if ALPHA_TEST
    O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
 #endif
 

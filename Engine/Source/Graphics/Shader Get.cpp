@@ -48,13 +48,12 @@ ShaderParam* GetShaderParam(CChar8 *name) {ShaderParam *param=FindShaderParam(na
 ShaderBuffer* FindShaderBuffer(CChar8 *name) {return ShaderBuffers.find(Str8Temp(name));}
 ShaderBuffer*  GetShaderBuffer(CChar8 *name) {ShaderBuffer *sb=FindShaderBuffer(name); if(!sb)Exit(S+"Shader Buffer \""+name+"\" not found."); return sb;}
 /******************************************************************************/
-static Int Textures(C Material &material)
-{
-   if(material.base_0)
-   {
-      if(material.base_1)return 2;
-                         return 1;
-   }                     return 0;
+static Int Layout(C Material &material) // Textures
+{ // #MaterialTextureChannelOrder
+   if(material.base_2)return 2;
+   if(material.base_0)return 1;
+                      return 0;
+   // 'base_1' is normal map and doesn't affect texture layout
 }
 static Int BumpMode(C Material &material, UInt mesh_base_flag)
 {
@@ -108,7 +107,7 @@ void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_
    // !! Never return the same shader for Multi-Materials as Single-Materials !!
  T.heightmap=heightmap;
    materials=1;
-   textures =0;
+   layout   =0; // textures
    bump     =SBUMP_ZERO;
    detail   =false;
    macro    =false;
@@ -119,17 +118,17 @@ void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_
 
    if(material)
    {
-      MAX(textures, Textures(*m)); MAX(bump, BumpMode(*m, mesh_base_flag)); MAX(detail, Detail(*m)); MAX(macro, Macro(*m));
+      MAX(layout, Layout(*m)); MAX(bump, BumpMode(*m, mesh_base_flag)); MAX(detail, Detail(*m)); MAX(macro, Macro(*m));
       if(material[1]) // && (mesh_base_flag&VTX_MATERIAL)) we must always return a different shader even when there's no VTX_MATERIAL component, because we need a different shader for multi-material parts that have umm, as they operate on 'MultiMaterialShaderDraws' and not 'ShaderDraws', otherwise crash or memory corruption may occur, because ShaderBase.shader_index would point to wrong container
       {
-         materials++; MAX(textures, Textures(*material[1])); MAX(bump, BumpMode(*material[1], mesh_base_flag)); MAX(detail, Detail(*material[1])); MAX(macro, Macro(*material[1]));
+         materials++; MAX(layout, Layout(*material[1])); MAX(bump, BumpMode(*material[1], mesh_base_flag)); MAX(detail, Detail(*material[1])); MAX(macro, Macro(*material[1]));
          if(material[2])
          {
-            materials++; MAX(textures, Textures(*material[2])); MAX(bump, BumpMode(*material[2], mesh_base_flag)); MAX(detail, Detail(*material[2])); MAX(macro, Macro(*material[2]));
+            materials++; MAX(layout, Layout(*material[2])); MAX(bump, BumpMode(*material[2], mesh_base_flag)); MAX(detail, Detail(*material[2])); MAX(macro, Macro(*material[2]));
          #if MAX_MTRLS>=4
             if(material[3])
             {
-               materials++; MAX(textures, Textures(*material[3])); MAX(bump, BumpMode(*material[3], mesh_base_flag)); MAX(detail, Detail(*material[3])); MAX(macro, Macro(*material[3]));
+               materials++; MAX(layout, Layout(*material[3])); MAX(bump, BumpMode(*material[3], mesh_base_flag)); MAX(detail, Detail(*material[3])); MAX(macro, Macro(*material[3]));
             }
          #endif
          }
@@ -142,24 +141,24 @@ void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_
       if(!D.texMacro    () || lod_index<=0)macro =false; // disable macro  for LOD's=0
       if(!D.texDetailLOD() && lod_index> 0)detail=false; // disable detail for LOD's>0
       if(                     lod_index> 0)MIN(bump, SBUMP_NORMAL); // limit to normal mapping for LOD's>0
-      if(!tex                             ){detail=macro=false; textures=0;}
-      if(materials>1                      )MAX(textures, 1); // multi-materials don't support 0 textures
+      if(!tex                             ){detail=macro=false; layout=0;}
+      if(materials>1                      )MAX(layout, 1); // multi-materials don't support 0 textures
       if(materials>1 && (bump>SBUMP_PARALLAX_MAX_MULTI && bump<=SBUMP_PARALLAX_MAX))bump=SBUMP_PARALLAX_MAX_MULTI; // multi-materials have a different limit for parallax steps
    }
 
-   fur              =(normal && tex                       && materials==1 &&                !heightmap && m->technique==MTECH_FUR  ); // this requires tex coordinates, but not a material texture, we can do fur with just material color and 'FurCol'
-   blend            =(                                       materials==1 &&                !heightmap && m->technique==MTECH_BLEND); // this shouldn't require a texture, we can do alpha blending with just material color
-   grass            =(normal &&                              materials==1 && textures>=1 && !heightmap && m->hasGrass            ());
-   leaf             =(normal && (mesh_base_flag&VTX_HLP)  && materials==1 && textures>=1 && !heightmap && m->hasLeaf             () && D.bendLeafs());
-   ambient          =(                                                                                    m->ambient.max()>EPS_COL); // this doesn't operate on a texture, 'materials' are checked in 'Ambient' method because this member is used only there
-   alpha            =(                                       materials==1 && textures>=1 && !heightmap && m->hasAlpha           ()); // this is about having alpha channel in material textures so we need a texture
-   alpha_test       =(                                       materials==1 && textures>=1 && !heightmap && m->hasAlphaTest       ());
-   alpha_blend      =(                                       materials==1 &&                !heightmap && m->hasAlphaBlend      ()); // this shouldn't require a texture, we can do alpha blending with just material color
-   alpha_blend_light=(                                       materials==1 &&                !heightmap && m->hasAlphaBlendLight ()); // this shouldn't require a texture, we can do alpha blending with just material color
-    mtrl_blend      =(                                       materials> 1 && D.materialBlend()                                    ); // this is multi-material blending (blending between multiple materials)
-   skin             =((mesh_base_flag&VTX_SKIN)==VTX_SKIN && materials==1 &&                !heightmap && !grass && !leaf         );
+   fur              =(normal && tex                       && materials==1 &&              !heightmap && m->technique==MTECH_FUR  ); // this requires tex coordinates, but not a material texture, we can do fur with just material color and 'FurCol'
+   blend            =(                                       materials==1 &&              !heightmap && m->technique==MTECH_BLEND); // this shouldn't require a texture, we can do alpha blending with just material color
+   grass            =(normal &&                              materials==1 && layout>=1 && !heightmap && m->hasGrass            ());
+   leaf             =(normal && (mesh_base_flag&VTX_HLP)  && materials==1 && layout>=1 && !heightmap && m->hasLeaf             () && D.bendLeafs());
+   ambient          =(                                                                                  m->ambient.max()>EPS_COL); // this doesn't operate on a texture, 'materials' are checked in 'Ambient' method because this member is used only there
+   alpha            =(                                       materials==1 && layout>=1 && !heightmap && m->hasAlpha           ()); // this is about having alpha channel in material textures so we need a texture
+   alpha_test       =(                                       materials==1 && layout>=1 && !heightmap && m->hasAlphaTest       ());
+   alpha_blend      =(                                       materials==1 &&              !heightmap && m->hasAlphaBlend      ()); // this shouldn't require a texture, we can do alpha blending with just material color
+   alpha_blend_light=(                                       materials==1 &&              !heightmap && m->hasAlphaBlendLight ()); // this shouldn't require a texture, we can do alpha blending with just material color
+    mtrl_blend      =(                                       materials> 1 && D.materialBlend()                                  ); // this is multi-material blending (blending between multiple materials)
+   skin             =((mesh_base_flag&VTX_SKIN)==VTX_SKIN && materials==1 &&              !heightmap && !grass && !leaf         );
    fx               =(grass ? FX_GRASS : leaf ? (size ? FX_LEAFS : FX_LEAF) : FX_NONE);
-   light_map        =(                                       materials==1 && textures>=1 && m->light_map && !fx && ambient);
+   light_map        =(                                       materials==1 && layout>=1 && m->light_map && !fx && ambient);
    tesselate        =((lod_index<=0) && D.shaderModel()>=SM_5 && D.tesselation() && (!heightmap || D.tesselationHeightmap()) && normal && !fx);
 
    if(fx){detail=macro=false; MIN(bump, SBUMP_NORMAL);} // currently shaders with effects don't support detail/macro/fancy bump
@@ -176,11 +175,11 @@ Shader* DefaultShaders::Solid(Bool mirror)C
    if(valid && !alpha_blend && Renderer.anyDeferred())
    {
       // !! Never return the same shader for Multi-Materials as Single-Materials !!
-      if(fur)return ShaderFiles("Fur")->get(ShaderFurBase(skin, size, textures!=0));
+      if(fur)return ShaderFiles("Fur")->get(ShaderFurBase(skin, size, layout>0));
       Bool detail=T.detail, tesselate=T.tesselate; Byte bump=T.bump; if(mirror){detail=false; tesselate=false; MIN(bump, SBUMP_NORMAL);} // disable detail, tesselation and fancy bump for mirror
       Str8 name;
-      if(normal      )name=ShaderDeferred(skin, materials, textures,  bump     , alpha_test, detail, macro, color, mtrl_blend, heightmap, fx, tesselate);else
-      if(materials==1)name=ShaderDeferred(skin, materials,        0, SBUMP_ZERO, false     , false , false, color, mtrl_blend, heightmap, fx, tesselate);
+      if(normal      )name=ShaderDeferred(skin, materials, layout,  bump     , alpha_test, detail, macro, color, mtrl_blend, heightmap, fx, tesselate);else
+      if(materials==1)name=ShaderDeferred(skin, materials,      0, SBUMP_ZERO, false     , false , false, color, mtrl_blend, heightmap, fx, tesselate);
       return ShaderFiles("Deferred")->get(name);
    }
    return null;
@@ -188,7 +187,7 @@ Shader* DefaultShaders::Solid(Bool mirror)C
 Shader* DefaultShaders::Ambient()C
 {
 #if SUPPORT_MATERIAL_AMBIENT
-   if(valid && !alpha_blend && ambient && materials==1 && !heightmap && !fx)return ShaderFiles("Ambient")->get(ShaderAmbient(skin, alpha_test ? textures : 0, light_map));
+   if(valid && !alpha_blend && ambient && materials==1 && !heightmap && !fx)return ShaderFiles("Ambient")->get(ShaderAmbient(skin, alpha_test ? layout : 0, light_map));
 #endif
    return null;
 }
@@ -204,18 +203,18 @@ Shader* DefaultShaders::Behind()C
 }
 Shader* DefaultShaders::Fur()C
 {
-   if(valid && fur)return ShaderFiles("Fur")->get(ShaderFurSoft(skin, size, textures!=0));
+   if(valid && fur)return ShaderFiles("Fur")->get(ShaderFurSoft(skin, size, layout>0));
    return null;
 }
 Shader* DefaultShaders::Shadow()C
 {
-   if(valid && (!alpha_blend || alpha_test))return ShaderFiles("Position")->get(ShaderPosition(skin, alpha_test ? textures : 0, alpha_test && alpha_blend_light, fx, tesselate));
+   if(valid && (!alpha_blend || alpha_test))return ShaderFiles("Position")->get(ShaderPosition(skin, alpha_test ? layout : 0, alpha_test && alpha_blend_light, fx, tesselate));
    return null;
 }
 Shader* DefaultShaders::Blend()C
 {
    if(valid && blend) // "!blend" here will return null so BLST can be used in 'drawBlend'
-      return ShaderFiles("Blend")->get(ShaderBlend(skin, color, textures));
+      return ShaderFiles("Blend")->get(ShaderBlend(skin, color, layout));
    return null;
 }
 Shader* DefaultShaders::Overlay()C
@@ -250,7 +249,7 @@ FRST* DefaultShaders::Frst()C
 
       key.skin      =skin;
       key.materials =materials;
-      key.textures  =textures;
+      key.layout    =layout;
       key.alpha_test=alpha_test;
       key.light_map =light_map;
       key.detail    =(detail && materials==1); // forward doesn't support detail in multi-material
@@ -276,7 +275,7 @@ BLST* DefaultShaders::Blst()C
       key.bump_mode =Min(bump, key.per_pixel ? SBUMP_NORMAL : SBUMP_FLAT); // blend light supports only up to normal mapping
 
       key.color     =color;
-      key.textures  =textures;
+      key.layout    =layout;
       key.alpha_test=alpha_test;
       key.alpha     =alpha;
       key.light_map =light_map;

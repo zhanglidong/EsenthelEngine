@@ -22,7 +22,7 @@
 
 #define FAST_TPOS ((BUMP_MODE>=SBUMP_PARALLAX_MIN && BUMP_MODE<=SBUMP_PARALLAX_MAX) || (BUMP_MODE==SBUMP_RELIEF && !RELIEF_TAN_POS))
 /******************************************************************************
-SKIN, MATERIALS, TEXTURES, BUMP_MODE, ALPHA_TEST, DETAIL, MACRO, REFLECT, COLORS, MTRL_BLEND, HEIGHTMAP, FX, TESSELATE
+SKIN, MATERIALS, LAYOUT, BUMP_MODE, ALPHA_TEST, DETAIL, MACRO, REFLECT, COLORS, MTRL_BLEND, HEIGHTMAP, FX, TESSELATE
 /******************************************************************************/
 struct VS_PS
 {
@@ -77,7 +77,7 @@ void VS
    Vec  pos=vtx.pos();
    VecH nrm, tan; if(BUMP_MODE>=SBUMP_FLAT)nrm=vtx.nrm(); if(BUMP_MODE>SBUMP_FLAT)tan=vtx.tan(nrm, HEIGHTMAP);
 
-#if TEXTURES || DETAIL
+#if LAYOUT || DETAIL
    O.tex=vtx.tex(HEIGHTMAP);
    if(HEIGHTMAP && MATERIALS==1)O.tex*=MaterialTexScale();
 #endif
@@ -205,7 +205,7 @@ void PS
    nrm     =0;
 #elif MATERIALS==1
    // apply tex coord bump offset
-   #if TEXTURES==2
+   #if LAYOUT==2
    {
       #if BUMP_MODE>=SBUMP_PARALLAX_MIN && BUMP_MODE<=SBUMP_PARALLAX_MAX // Parallax
       {
@@ -339,14 +339,14 @@ void PS
    #endif
 
    VecH4 tex_nrm; // #MaterialTextureChannelOrder
-   if(TEXTURES==0)
+   if(LAYOUT==0)
    {
       if(DETAIL)col+=GetDetail(I.tex).z;
       nrm     =Normalize(I.Nrm());
       glow    =MaterialGlow    ();
       specular=MaterialSpecular();
    }else
-   if(TEXTURES==1)
+   if(LAYOUT==1)
    {
       VecH4 tex_col=Tex(Col, I.tex);
       if(ALPHA_TEST)
@@ -361,7 +361,7 @@ void PS
       glow    =MaterialGlow    ();
       specular=MaterialSpecular();
    }else
-   if(TEXTURES==2)
+   if(LAYOUT==2)
    {
       tex_nrm=Tex(Nrm, I.tex); // #MaterialTextureChannelOrder
       if(ALPHA_TEST)
@@ -397,10 +397,10 @@ void PS
    if(REFLECT)
    {
       Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
-      col+=TexCube(Rfl, rfl).rgb*((TEXTURES==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
+      col+=TexCube(Rfl, rfl).rgb*((LAYOUT==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
    }
 #else // MATERIALS>1
-   // assuming that in multi materials TEXTURES!=0
+   // assuming that in multi materials LAYOUT!=0
    Vec2 tex0, tex1, tex2, tex3;
                    tex0=I.tex*MultiMaterial0TexScale();
                    tex1=I.tex*MultiMaterial1TexScale();
@@ -408,7 +408,7 @@ void PS
    if(MATERIALS>=4)tex3=I.tex*MultiMaterial3TexScale();
 
    // apply tex coord bump offset
-   if(TEXTURES==2)
+   if(LAYOUT==2)
    {
       #if BUMP_MODE>=SBUMP_PARALLAX_MIN && BUMP_MODE<=SBUMP_PARALLAX_MAX // Parallax
       {
@@ -636,7 +636,7 @@ void PS
 #endif
 
    // normal, specular, glow !! do this second after modifying 'I.material' !!
-   if(TEXTURES<=1)
+   if(LAYOUT<=1)
    {
       nrm=Normalize(I.Nrm());
 
@@ -734,7 +734,7 @@ VS_PS HS
    O.pos=I[cp_id].pos;
    O.vel=I[cp_id].vel;
 
-#if TEXTURES || DETAIL
+#if LAYOUT || DETAIL
    O.tex=I[cp_id].tex;
 #endif
 
@@ -782,7 +782,7 @@ void DS
 
    O.vel=I[0].vel*B.z + I[1].vel*B.x + I[2].vel*B.y;
 
-#if TEXTURES || DETAIL
+#if LAYOUT || DETAIL
    O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
 #endif
 

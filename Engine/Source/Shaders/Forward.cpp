@@ -1,7 +1,7 @@
 /******************************************************************************/
 #include "!Header.h"
 /******************************************************************************
-SKIN, MATERIALS, TEXTURES, BUMP_MODE, ALPHA_TEST, LIGHT_MAP, DETAIL, REFLECT, COLORS, MTRL_BLEND, HEIGHTMAP, FX, PER_PIXEL
+SKIN, MATERIALS, LAYOUT, BUMP_MODE, ALPHA_TEST, LIGHT_MAP, DETAIL, REFLECT, COLORS, MTRL_BLEND, HEIGHTMAP, FX, PER_PIXEL
 LIGHT_DIR, LIGHT_DIR_SHD, LIGHT_DIR_SHD_NUM
 LIGHT_POINT, LIGHT_POINT_SHD
 LIGHT_LINEAR, LIGHT_LINEAR_SHD
@@ -78,7 +78,7 @@ void VS
    Vec  pos=vtx.pos();
    VecH nrm, tan; if(BUMP_MODE>=SBUMP_FLAT)nrm=vtx.nrm(); if(BUMP_MODE>SBUMP_FLAT)tan=vtx.tan(nrm, HEIGHTMAP);
 
-#if TEXTURES || DETAIL || LIGHT_MAP
+#if LAYOUT || DETAIL || LIGHT_MAP
    O.tex=vtx.tex(HEIGHTMAP);
    if(HEIGHTMAP && MATERIALS==1)O.tex*=MaterialTexScale();
 #endif
@@ -285,14 +285,14 @@ VecH4 PS
    specular=0;
 #elif MATERIALS==1
    VecH4 tex_nrm; // #MaterialTextureChannelOrder
-   if(TEXTURES==0)
+   if(LAYOUT==0)
    {
       if(DETAIL)col+=GetDetail(I.tex).z;
       nrm     =Normalize(I.Nrm());
       glow    =MaterialGlow    ();
       specular=MaterialSpecular();
    }else
-   if(TEXTURES==1)
+   if(LAYOUT==1)
    {
       VecH4 tex_col=Tex(Col, I.tex);
       if(ALPHA_TEST)
@@ -307,7 +307,7 @@ VecH4 PS
       glow    =MaterialGlow    ();
       specular=MaterialSpecular();
    }else
-   if(TEXTURES==2)
+   if(LAYOUT==2)
    {
       tex_nrm=Tex(Nrm, I.tex); // #MaterialTextureChannelOrder
       if(ALPHA_TEST)
@@ -349,11 +349,11 @@ VecH4 PS
    #else
       Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
    #endif
-      col+=TexCube(Rfl, rfl).rgb * ((TEXTURES==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
+      col+=TexCube(Rfl, rfl).rgb * ((LAYOUT==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
    }
    #endif
 #else // MATERIALS>1
-   // assuming that in multi materials TEXTURES!=0
+   // assuming that in multi materials LAYOUT!=0
    Vec2 tex0, tex1, tex2, tex3;
                    tex0=I.tex*MultiMaterial0TexScale();
                    tex1=I.tex*MultiMaterial1TexScale();
@@ -388,7 +388,7 @@ VecH4 PS
 #endif
 
    // normal, specular, glow !! do this second after modifying 'I.material' !!
-   if(TEXTURES<=1)
+   if(LAYOUT<=1)
    {
       nrm=Normalize(I.Nrm());
 
@@ -631,7 +631,7 @@ VS_PS HS
 #endif
 
 
-#if TEXTURES || DETAIL || LIGHT_MAP
+#if LAYOUT || DETAIL || LIGHT_MAP
    O.tex=I[cp_id].tex;
 #endif
 
@@ -675,7 +675,7 @@ void DS
    SetDSPosNrm(O.pos, O.nrm    , I[0].pos, I[1].pos, I[2].pos, I[0].Nrm(), I[1].Nrm(), I[2].Nrm(), B, hs_data, false, 0);
 #endif
 
-#if TEXTURES || DETAIL || LIGHT_MAP
+#if LAYOUT || DETAIL || LIGHT_MAP
    O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
 #endif
 

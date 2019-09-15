@@ -44,19 +44,19 @@ namespace EE{
 /******************************************************************************/
 // SHADER NAMES
 /******************************************************************************/
-Str8 ShaderDeferred  (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int detail, Int macro, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tesselate) {return S8+skin+materials+textures+bump_mode+alpha_test+detail+macro+color+mtrl_blend+heightmap+fx+tesselate;}
-Str8 ShaderBlendLight(Int skin, Int color    , Int textures, Int bump_mode, Int alpha_test, Int alpha, Int light_map, Int fx, Int per_pixel, Int shadow_maps, Int tesselate) {return S8+skin+color+textures+bump_mode+alpha_test+alpha+light_map+fx+per_pixel+shadow_maps+tesselate;}
-Str8 ShaderForward   (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tesselate) {return S8+skin+materials+textures+bump_mode+alpha_test+light_map+detail+color+mtrl_blend+heightmap+fx+per_pixel+light_dir+light_dir_shd+light_dir_shd_num+light_point+light_point_shd+light_linear+light_linear_shd+light_cone+light_cone_shd+tesselate;}
+Str8 ShaderDeferred  (Int skin, Int materials, Int layout, Int bump_mode, Int alpha_test, Int detail, Int macro, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tesselate) {return S8+skin+materials+layout+bump_mode+alpha_test+detail+macro+color+mtrl_blend+heightmap+fx+tesselate;}
+Str8 ShaderBlendLight(Int skin, Int color    , Int layout, Int bump_mode, Int alpha_test, Int alpha, Int light_map, Int fx, Int per_pixel, Int shadow_maps, Int tesselate) {return S8+skin+color+layout+bump_mode+alpha_test+alpha+light_map+fx+per_pixel+shadow_maps+tesselate;}
+Str8 ShaderForward   (Int skin, Int materials, Int layout, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tesselate) {return S8+skin+materials+layout+bump_mode+alpha_test+light_map+detail+color+mtrl_blend+heightmap+fx+per_pixel+light_dir+light_dir_shd+light_dir_shd_num+light_point+light_point_shd+light_linear+light_linear_shd+light_cone+light_cone_shd+tesselate;}
 
 Str8 ShaderAmbient   (Int skin, Int alpha_test, Int light_map) {return S8+skin+alpha_test+light_map;}
-Str8 ShaderBehind    (Int skin, Int alpha) {return S8+skin+alpha;}
-Str8 ShaderBlend     (Int skin, Int color, Int textures) {return S8+skin+color+textures;}
+Str8 ShaderBehind    (Int skin, Int alpha_test) {return S8+skin+alpha_test;}
+Str8 ShaderBlend     (Int skin, Int color, Int layout) {return S8+skin+color+layout;}
 Str8 ShaderEarlyZ    (Int skin) {return S8+skin;}
 Str8 ShaderFurBase   (Int skin, Int size, Int diffuse) {return S8+"Base"+skin+size+diffuse;}
 Str8 ShaderFurSoft   (Int skin, Int size, Int diffuse) {return S8+"Soft"+skin+size+diffuse;}
 Str8 ShaderOverlay   (Int skin, Int normal, Int alpha) {return S8+skin+normal+alpha;}
-Str8 ShaderPosition  (Int skin, Int textures, Int test_blend, Int fx, Int tesselate) {return S8+skin+textures+test_blend+fx+tesselate;}
-Str8 ShaderSetColor  (Int skin, Int alpha, Int tesselate) {return S8+skin+alpha+tesselate;}
+Str8 ShaderPosition  (Int skin, Int alpha_test, Int test_blend, Int fx, Int tesselate) {return S8+skin+alpha_test+test_blend+fx+tesselate;}
+Str8 ShaderSetColor  (Int skin, Int alpha_test, Int tesselate) {return S8+skin+alpha_test+tesselate;}
 Str8 ShaderTattoo    (Int skin, Int tesselate) {return S8+skin+tesselate;}
 /******************************************************************************/
 #if COMPILE_DX || COMPILE_GL
@@ -381,9 +381,9 @@ static void Compile(API api)
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Behind", model, api).New(src_path+"Behind.cpp");
 
-   REPD(skin , 2)
-   REPD(alpha, 3)
-      src.New(S, "VS", "PS")("SKIN", skin, "ALPHA", alpha);
+   REPD(skin      , 2)
+   REPD(alpha_test, 3)
+      src.New(S, "VS", "PS")("SKIN", skin, "ALPHA_TEST", alpha_test);
 }
 #endif
 
@@ -391,10 +391,10 @@ static void Compile(API api)
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Blend", model, api).New(src_path+"Blend.cpp");
 
-   REPD(skin    , 2)
-   REPD(color   , 2)
-   REPD(textures, 3)
-      src.New(S, "VS", "PS")("SKIN", skin, "COLORS", color, "TEXTURES", textures);
+   REPD(skin  , 2)
+   REPD(color , 2)
+   REPD(layout, 3)
+      src.New(S, "VS", "PS")("SKIN", skin, "COLORS", color, "LAYOUT", layout);
 }
 #endif
 
@@ -556,25 +556,25 @@ static void Compile(API api)
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Position", model, api).New(src_path+"Position.cpp");
    REPD(tesselate , tess ? 2 : 1)
    REPD(skin      , 2)
-   REPD(textures  , 3)
-   REPD(test_blend, textures ? 2 : 1)
-      src.New().position(skin, textures, test_blend, FX_NONE, tesselate);
+   REPD(alpha_test, 3)
+   REPD(test_blend, alpha_test ? 2 : 1)
+      src.New().position(skin, alpha_test, test_blend, FX_NONE, tesselate);
 
    // grass + leafs
-   for(Int textures=1; textures<=2; textures++)
+   for(Int alpha_test=1; alpha_test<=2; alpha_test++)
    REPD (test_blend, 2)
    REPAD(fx        , fxs)
-      src.New().position(0, textures, test_blend, fxs[fx], 0);
+      src.New().position(0, alpha_test, test_blend, fxs[fx], 0);
 }
 #endif
 
 #ifdef SET_COLOR
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Set Color", model, api).New(src_path+"Set Color.cpp");
-   REPD(tesselate, tess ? 2 : 1)
-   REPD(skin     , 2)
-   REPD(alpha    , 3)
-      src.New(S, "VS", "PS")("SKIN", skin, "ALPHA", alpha).tesselate(tesselate);
+   REPD(tesselate , tess ? 2 : 1)
+   REPD(skin      , 2)
+   REPD(alpha_test, 3)
+      src.New(S, "VS", "PS")("SKIN", skin, "ALPHA_TEST", alpha_test).tesselate(tesselate);
 }
 #endif
 
@@ -666,14 +666,14 @@ static void Compile(API api)
       REPD(skin  , heightmap ? 1 : 2)
       REPD(detail, 2)
       REPD(color , 2)
-      for(Int textures=0; textures<=2; textures++)
-      REPD(alpha_test, (textures && !heightmap) ? 2 : 1)
-         src.New().deferred(skin, 1, textures, SBUMP_FLAT, alpha_test, detail, false, color, false, heightmap, FX_NONE, tesselate); // 1 material, 0 tex
+      for(Int layout=0; layout<=2; layout++)
+      REPD(alpha_test, (layout && !heightmap) ? 2 : 1)
+         src.New().deferred(skin, 1, layout, SBUMP_FLAT, alpha_test, detail, false, color, false, heightmap, FX_NONE, tesselate); // 1 material, 0 tex
 
       // 1 material, 1-2 tex, flat, macro
       REPD(color, 2)
-      for(Int textures=1; textures<=2; textures++)
-         src.New().deferred(false, 1, textures, SBUMP_FLAT, false, false, true, color, false, heightmap, FX_NONE, tesselate);
+      for(Int layout=1; layout<=2; layout++)
+         src.New().deferred(false, 1, layout, SBUMP_FLAT, false, false, true, color, false, heightmap, FX_NONE, tesselate);
 
       // 1 material, 2 tex, normal + parallax
       REPD(skin      , heightmap ? 1 : 2)
@@ -685,8 +685,8 @@ static void Compile(API api)
 
       // 1 material, 1-2 tex, normal, macro
       REPD(color, 2)
-      for(Int textures=1; textures<=2; textures++)
-         src.New().deferred(false, 1, textures, SBUMP_NORMAL, false, false, true, color, false, heightmap, FX_NONE, tesselate);
+      for(Int layout=1; layout<=2; layout++)
+         src.New().deferred(false, 1, layout, SBUMP_NORMAL, false, false, true, color, false, heightmap, FX_NONE, tesselate);
 
       // 1 material, 2 tex, relief
       REPD(skin      , heightmap ? 1 : 2)
@@ -702,20 +702,20 @@ static void Compile(API api)
       {
          // 2-4 materials, 1-2 tex, flat
          REPD(detail, 2)
-         for(Int textures=1; textures<=2; textures++)src.New().deferred(false, materials, textures, SBUMP_FLAT, false, detail, false, color, mtrl_blend, heightmap, FX_NONE, tesselate);
+         for(Int layout=1; layout<=2; layout++)src.New().deferred(false, materials, layout, SBUMP_FLAT, false, detail, false, color, mtrl_blend, heightmap, FX_NONE, tesselate);
 
          // 2-4 materials, 1-2 tex, flat, macro
-         for(Int textures=1; textures<=2; textures++)src.New().deferred(false, materials, textures, SBUMP_FLAT, false, false, true, color, mtrl_blend, heightmap, FX_NONE, tesselate);
+         for(Int layout=1; layout<=2; layout++)src.New().deferred(false, materials, layout, SBUMP_FLAT, false, false, true, color, mtrl_blend, heightmap, FX_NONE, tesselate);
 
-         // 2-4 materials, 2 textures, normal + parallax
+         // 2-4 materials, 2 layout, normal + parallax
          REPD(detail, 2)
          for(Int bump_mode=SBUMP_NORMAL; bump_mode<=SBUMP_PARALLAX_MAX_MULTI; bump_mode++)if(bump_mode==SBUMP_NORMAL || bump_mode>=SBUMP_PARALLAX_MIN)
             src.New().deferred(false, materials, 2, bump_mode, false, detail, false, color, mtrl_blend, heightmap, FX_NONE, tesselate);
 
-         // 2-4 materials, 2 textures, normal, macro
+         // 2-4 materials, 2 layout, normal, macro
          src.New().deferred(false, materials, 2, SBUMP_NORMAL, false, false, true, color, mtrl_blend, heightmap, FX_NONE, tesselate);
 
-         // 2-4 materials, 2 textures, relief
+         // 2-4 materials, 2 layout, relief
          REPD(detail, 2)
             src.New().deferred(false, materials, 2, SBUMP_RELIEF, false, detail, false, color, mtrl_blend, heightmap, FX_NONE, tesselate);
       }
@@ -723,11 +723,11 @@ static void Compile(API api)
    }
 
    // grass + leaf, 1 material, 1-2 tex
-   for(Int textures=1; textures<=2; textures++)
-   REPD (bump_mode, (textures==2) ? 2 : 1)
+   for(Int layout=1; layout<=2; layout++)
+   REPD (bump_mode, (layout==2) ? 2 : 1)
    REPD (color    , 2)
    REPAD(fx       , fxs)
-      src.New().deferred(false, 1, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, true, false, false, color, false, false, fxs[fx], false);
+      src.New().deferred(false, 1, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, true, false, false, color, false, false, fxs[fx], false);
 }
 #endif
 
@@ -741,19 +741,19 @@ static void Compile(API api)
    {
       // base
       REPD(skin      , 2)
-      REPD(textures  , 3)
-      REPD(bump_mode , (per_pixel && textures==2) ? 2 : 1)
-      REPD(alpha_test,               textures     ? 2 : 1)
-      REPD(alpha     ,               textures     ? 2 : 1)
-      REPD(light_map ,               textures     ? 2 : 1)
-         src.New().blendLight(skin, color, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, alpha, light_map, FX_NONE, per_pixel, shadow_maps);
+      REPD(layout    , 3)
+      REPD(bump_mode , (per_pixel && layout==2) ? 2 : 1)
+      REPD(alpha_test,               layout     ? 2 : 1)
+      REPD(alpha     ,               layout     ? 2 : 1)
+      REPD(light_map ,               layout     ? 2 : 1)
+         src.New().blendLight(skin, color, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, alpha, light_map, FX_NONE, per_pixel, shadow_maps);
 
       // grass+leaf, 1 material, 1-2 tex
-      for(Int textures=1; textures<=2; textures++)
-      REPD (bump_mode , (per_pixel && textures==2) ? 2 : 1)
-      REPD (alpha_test,               textures     ? 2 : 1)
+      for(Int layout=1; layout<=2; layout++)
+      REPD (bump_mode , (per_pixel && layout==2) ? 2 : 1)
+      REPD (alpha_test,               layout     ? 2 : 1)
       REPAD(fx        , fxs)
-         src.New().blendLight(false, color, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, false, fxs[fx], per_pixel, shadow_maps);
+         src.New().blendLight(false, color, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, false, fxs[fx], per_pixel, shadow_maps);
    }
 }
 #endif
@@ -772,32 +772,32 @@ static void Compile(API api)
    REPD(per_pixel, 2)
    REPD(color    , 2)
    {
-      // 1 material, 0-2 textures
+      // 1 material, 0-2 layout
       REPD(skin      , heightmap ? 1 : 2)
-      REPD(textures  , 3)
-      REPD(bump_mode , ( per_pixel && textures==2) ? 2 : 1)
-      REPD(alpha_test, (!heightmap && textures   ) ? 2 : 1)
-      REPD(light_map , (!heightmap && textures   ) ? 2 : 1)
+      REPD(layout    , 3)
+      REPD(bump_mode , ( per_pixel && layout==2) ? 2 : 1)
+      REPD(alpha_test, (!heightmap && layout   ) ? 2 : 1)
+      REPD(light_map , (!heightmap && layout   ) ? 2 : 1)
       REPD(detail    , 2)
-         src.forwardLight(skin, 1, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, light_map, detail, color, false, heightmap, FX_NONE, per_pixel, tesselate);
+         src.forwardLight(skin, 1, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, light_map, detail, color, false, heightmap, FX_NONE, per_pixel, tesselate);
 
-      // 2-4 materials, 1-2 textures
+      // 2-4 materials, 1-2 layout
    #if MULTI_MATERIAL
       REPD(mtrl_blend, 2)
       for(Int materials=2; materials<=MAX_MTRLS; materials++)
-      for(Int textures =1; textures <=2        ; textures ++)
-      REPD(bump_mode, (per_pixel && textures==2) ? 2 : 1)
-         src.forwardLight(false, materials, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, false, false, false, color, mtrl_blend, heightmap, FX_NONE, per_pixel, tesselate);
+      for(Int layout   =1; layout   <=2        ; layout   ++)
+      REPD(bump_mode, (per_pixel && layout==2) ? 2 : 1)
+         src.forwardLight(false, materials, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, false, false, false, color, mtrl_blend, heightmap, FX_NONE, per_pixel, tesselate);
    #endif
    }
 
    // grass + leaf, 1 material, 1-2 tex
-   for(Int textures=1; textures<=2; textures++)
+   for(Int layout=1; layout<=2; layout++)
    REPD (per_pixel, 2)
-   REPD (bump_mode, (per_pixel && textures==2) ? 2 : 1)
+   REPD (bump_mode, (per_pixel && layout==2) ? 2 : 1)
    REPD (color    , 2)
    REPAD(fx       , fxs)
-      src.forwardLight(false, 1, textures, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, true, false, false, color, false, false, fxs[fx], per_pixel, false);
+      src.forwardLight(false, 1, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, true, false, false, color, false, false, fxs[fx], per_pixel, false);
 }
 #endif
 }
