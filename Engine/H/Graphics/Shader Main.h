@@ -471,8 +471,8 @@ Str8 ShaderForward   (Int skin, Int materials, Int textures, Int bump_mode, Int 
 Str8 ShaderBlendLight(Int skin, Int color    , Int textures, Int bump_mode, Int alpha_test, Int alpha, Int light_map, Int fx, Int per_pixel, Int shadow_maps, Int tesselate);
 Str8 ShaderPosition  (Int skin, Int textures, Int test_blend, Int fx, Int tesselate);
 Str8 ShaderBlend     (Int skin, Int color, Int textures);
-Str8 ShaderSetColor  (Int skin, Int textures, Int tesselate);
-Str8 ShaderBehind    (Int skin, Int textures);
+Str8 ShaderSetColor  (Int skin, Int alpha, Int tesselate);
+Str8 ShaderBehind    (Int skin, Int alpha);
 Str8 ShaderEarlyZ    (Int skin);
 Str8 ShaderAmbient   (Int skin, Int alpha_test, Int light_map);
 Str8 ShaderOverlay   (Int skin, Int normal, Int alpha);
@@ -491,7 +491,7 @@ struct DefaultShaders
         alpha, alpha_test, alpha_blend, alpha_blend_light,
         skin,
         tesselate;
-   Byte materials, textures, bump, fx;
+   Byte materials, layout, bump, fx;
 
    void      init(C Material *material[4], UInt mesh_base_flag, Int lod_index, Bool heightmap);
    DefaultShaders(C Material *material[4], UInt mesh_base_flag, Int lod_index, Bool heightmap) {init(material, mesh_base_flag, lod_index, heightmap);}

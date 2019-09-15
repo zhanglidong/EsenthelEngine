@@ -194,12 +194,12 @@ Shader* DefaultShaders::Ambient()C
 }
 Shader* DefaultShaders::Outline()C
 {
-   if(valid && !alpha_blend && !fx)return ShaderFiles("Set Color")->get(ShaderSetColor(skin, alpha_test ? textures : 0, tesselate));
+   if(valid && !alpha_blend && !fx)return ShaderFiles("Set Color")->get(ShaderSetColor(skin, alpha_test ? layout : 0, tesselate));
    return null;
 }
 Shader* DefaultShaders::Behind()C
 {
-   if(valid && !fx)return ShaderFiles("Behind")->get(ShaderBehind(skin, alpha_test ? textures : 0));
+   if(valid && !fx)return ShaderFiles("Behind")->get(ShaderBehind(skin, alpha_test ? layout : 0));
    return null;
 }
 Shader* DefaultShaders::Fur()C

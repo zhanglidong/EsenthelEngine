@@ -1,7 +1,7 @@
 /******************************************************************************/
 #include "!Header.h"
 /******************************************************************************
-SKIN, TEXTURES, TESSELATE
+SKIN, ALPHA, TESSELATE
 /******************************************************************************/
 struct VS_PS
 {
@@ -9,7 +9,7 @@ struct VS_PS
    Vec  pos:POS;
    VecH nrm:NORMAL;
 #endif
-#if TEXTURES
+#if ALPHA
    Vec2 tex:TEXCOORD;
 #endif
 };
@@ -24,7 +24,7 @@ void VS
    out Vec4  O_vtx:POSITION
 )
 {
-#if TEXTURES
+#if ALPHA
    O.tex=vtx.tex();
 #endif
 
@@ -56,9 +56,9 @@ VecH4 PS
    VS_PS I
 ):TARGET
 {
-#if TEXTURES
-   if(TEXTURES==1)clip(Tex(Col, I.tex).a+(MaterialAlpha()-1));else
-   if(TEXTURES==2)clip(Tex(Nrm, I.tex).a+(MaterialAlpha()-1)); // #MaterialTextureChannelOrder
+#if ALPHA // alpha-test
+   if(ALPHA==1)clip(Tex(Col, I.tex).a+(MaterialAlpha()-1));else
+   if(ALPHA==2)clip(Tex(Ext, I.tex).a+(MaterialAlpha()-1)); // #MaterialTextureChannelOrder
 #endif
 
    return Highlight;
@@ -82,7 +82,7 @@ VS_PS HS
    VS_PS O;
    O.pos=I[cp_id].pos;
    O.nrm=I[cp_id].nrm;
-#if TEXTURES
+#if ALPHA
    O.tex=I[cp_id].tex;
 #endif
    return O;
@@ -97,7 +97,7 @@ void DS
    out Vec4  O_vtx:POSITION
 )
 {
-#if TEXTURES
+#if ALPHA
    O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
 #endif
 

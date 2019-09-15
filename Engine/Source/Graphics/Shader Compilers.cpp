@@ -49,14 +49,14 @@ Str8 ShaderBlendLight(Int skin, Int color    , Int textures, Int bump_mode, Int 
 Str8 ShaderForward   (Int skin, Int materials, Int textures, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tesselate) {return S8+skin+materials+textures+bump_mode+alpha_test+light_map+detail+color+mtrl_blend+heightmap+fx+per_pixel+light_dir+light_dir_shd+light_dir_shd_num+light_point+light_point_shd+light_linear+light_linear_shd+light_cone+light_cone_shd+tesselate;}
 
 Str8 ShaderAmbient   (Int skin, Int alpha_test, Int light_map) {return S8+skin+alpha_test+light_map;}
-Str8 ShaderBehind    (Int skin, Int textures) {return S8+skin+textures;}
+Str8 ShaderBehind    (Int skin, Int alpha) {return S8+skin+alpha;}
 Str8 ShaderBlend     (Int skin, Int color, Int textures) {return S8+skin+color+textures;}
 Str8 ShaderEarlyZ    (Int skin) {return S8+skin;}
 Str8 ShaderFurBase   (Int skin, Int size, Int diffuse) {return S8+"Base"+skin+size+diffuse;}
 Str8 ShaderFurSoft   (Int skin, Int size, Int diffuse) {return S8+"Soft"+skin+size+diffuse;}
 Str8 ShaderOverlay   (Int skin, Int normal, Int alpha) {return S8+skin+normal+alpha;}
 Str8 ShaderPosition  (Int skin, Int textures, Int test_blend, Int fx, Int tesselate) {return S8+skin+textures+test_blend+fx+tesselate;}
-Str8 ShaderSetColor  (Int skin, Int textures, Int tesselate) {return S8+skin+textures+tesselate;}
+Str8 ShaderSetColor  (Int skin, Int alpha, Int tesselate) {return S8+skin+alpha+tesselate;}
 Str8 ShaderTattoo    (Int skin, Int tesselate) {return S8+skin+tesselate;}
 /******************************************************************************/
 #if COMPILE_DX || COMPILE_GL
@@ -381,9 +381,9 @@ static void Compile(API api)
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Behind", model, api).New(src_path+"Behind.cpp");
 
-   REPD(skin    , 2)
-   REPD(textures, 3)
-      src.New(S, "VS", "PS")("SKIN", skin, "TEXTURES", textures);
+   REPD(skin , 2)
+   REPD(alpha, 3)
+      src.New(S, "VS", "PS")("SKIN", skin, "ALPHA", alpha);
 }
 #endif
 
@@ -573,8 +573,8 @@ static void Compile(API api)
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Set Color", model, api).New(src_path+"Set Color.cpp");
    REPD(tesselate, tess ? 2 : 1)
    REPD(skin     , 2)
-   REPD(textures , 3)
-      src.New(S, "VS", "PS")("SKIN", skin, "TEXTURES", textures).tesselate(tesselate);
+   REPD(alpha    , 3)
+      src.New(S, "VS", "PS")("SKIN", skin, "ALPHA", alpha).tesselate(tesselate);
 }
 #endif
 

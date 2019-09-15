@@ -17,6 +17,7 @@ namespace EE{
 /******************************************************************************/
 enum MTRL_TEX_LAYOUT : Byte
 {
+   MTL_NONE,
    MTL_RGBA,
    MTL_RGB_GLOW$NRM$SMOOTH_REFLECT_BUMP_ALPHA,
 };
