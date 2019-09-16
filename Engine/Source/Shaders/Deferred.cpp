@@ -213,15 +213,15 @@ void PS
 
          VecH tpos=I.tpos();
       #if   PARALLAX_MODE==0 // too flat
-         Half scale=MaterialBump()/steps;
+         Half scale=Material.bump/steps;
       #elif PARALLAX_MODE==1 // best results (not as flat, and not much aliasing)
-         Half scale=MaterialBump()/(steps*Lerp(1, tpos.z, tpos.z)); // MaterialBump()/steps/Lerp(1, tpos.z, tpos.z);
+         Half scale=Material.bump/(steps*Lerp(1, tpos.z, tpos.z)); // Material.bump/steps/Lerp(1, tpos.z, tpos.z);
       #elif PARALLAX_MODE==2 // generates too steep walls (not good for parallax)
-         Half scale=MaterialBump()/(steps*Lerp(1, tpos.z, Sat(tpos.z/0.5))); // MaterialBump()/steps/Lerp(1, tpos.z, tpos.z);
+         Half scale=Material.bump/(steps*Lerp(1, tpos.z, Sat(tpos.z/0.5))); // Material.bump/steps/Lerp(1, tpos.z, tpos.z);
       #elif PARALLAX_MODE==3 // introduces a bit too much aliasing/artifacts on surfaces perpendicular to view direction
-         Half scale=MaterialBump()/steps*(2-tpos.z); // MaterialBump()/steps*Lerp(1, 1/tpos.z, tpos.z)
+         Half scale=Material.bump/steps*(2-tpos.z); // Material.bump/steps*Lerp(1, 1/tpos.z, tpos.z)
       #else // correct however introduces way too much aliasing/artifacts on surfaces perpendicular to view direction
-         Half scale=MaterialBump()/steps/tpos.z;
+         Half scale=Material.bump/steps/tpos.z;
       #endif
          tpos.xy*=scale; VecH2 add=-0.5*tpos.xy;
          UNROLL for(Int i=0; i<steps; i++)I.tex+=Tex(Col, I.tex).w*tpos.xy+add; // (tex-0.5)*tpos.xy = tex*tpos.xy + -0.5*tpos.xy
@@ -242,13 +242,13 @@ void PS
 
             VecH tpos=I.tpos();
          #if   RELIEF_MODE==0
-            Half scale=MaterialBump();
+            Half scale=Material.bump;
          #elif RELIEF_MODE==1 // best
-            Half scale=MaterialBump()/Lerp(1, tpos.z, Sat(tpos.z/RELIEF_Z_LIMIT));
+            Half scale=Material.bump/Lerp(1, tpos.z, Sat(tpos.z/RELIEF_Z_LIMIT));
          #elif RELIEF_MODE==2 // produces slight aliasing/artifacts on surfaces perpendicular to view direction
-            Half scale=MaterialBump()/Max(tpos.z, RELIEF_Z_LIMIT);
+            Half scale=Material.bump/Max(tpos.z, RELIEF_Z_LIMIT);
          #else // correct however introduces way too much aliasing/artifacts on surfaces perpendicular to view direction
-            Half scale=MaterialBump()/tpos.z;
+            Half scale=Material.bump/tpos.z;
          #endif
 
          #if RELIEF_DEC_NRM
@@ -429,10 +429,10 @@ void PS
          tpos.xy*=scale;
 
          // h=(tex-0.5)*bump_mul = x*bump_mul - 0.5*bump_mul
-         VecH4 bump_mul; bump_mul.x=MultiMaterial0Bump();
-         VecH4 bump_add; bump_mul.y=MultiMaterial1Bump(); if(MATERIALS==2){bump_mul.xy  *=I.material.xy  ; bump_add.xy  =bump_mul.xy  *-0.5;}
-         if(MATERIALS>=3)bump_mul.z=MultiMaterial2Bump(); if(MATERIALS==3){bump_mul.xyz *=I.material.xyz ; bump_add.xyz =bump_mul.xyz *-0.5;}
-         if(MATERIALS>=4)bump_mul.w=MultiMaterial3Bump(); if(MATERIALS==4){bump_mul.xyzw*=I.material.xyzw; bump_add.xyzw=bump_mul.xyzw*-0.5;}
+         VecH4 bump_mul; bump_mul.x=MultiMaterial0.bump;
+         VecH4 bump_add; bump_mul.y=MultiMaterial1.bump; if(MATERIALS==2){bump_mul.xy  *=I.material.xy  ; bump_add.xy  =bump_mul.xy  *-0.5;}
+         if(MATERIALS>=3)bump_mul.z=MultiMaterial2.bump; if(MATERIALS==3){bump_mul.xyz *=I.material.xyz ; bump_add.xyz =bump_mul.xyz *-0.5;}
+         if(MATERIALS>=4)bump_mul.w=MultiMaterial3.bump; if(MATERIALS==4){bump_mul.xyzw*=I.material.xyzw; bump_add.xyzw=bump_mul.xyzw*-0.5;}
 
          UNROLL for(Int i=0; i<steps; i++) // I.tex+=h*tpos.xy;
          {
@@ -455,10 +455,10 @@ void PS
          BRANCH if(GetLod(I.tex, DEFAULT_TEX_SIZE)<=4)
       #endif
          {
-            VecH4 bump_mul; bump_mul.x=MultiMaterial0Bump(); Half avg_bump;
-                            bump_mul.y=MultiMaterial1Bump(); if(MATERIALS==2){bump_mul.xy  *=I.material.xy  ; avg_bump=Sum(bump_mul.xy  );} // use 'Sum' because they're premultipled by 'I.material'
-            if(MATERIALS>=3)bump_mul.z=MultiMaterial2Bump(); if(MATERIALS==3){bump_mul.xyz *=I.material.xyz ; avg_bump=Sum(bump_mul.xyz );}
-            if(MATERIALS>=4)bump_mul.w=MultiMaterial3Bump(); if(MATERIALS==4){bump_mul.xyzw*=I.material.xyzw; avg_bump=Sum(bump_mul.xyzw);}
+            VecH4 bump_mul; bump_mul.x=MultiMaterial0.bump; Half avg_bump;
+                            bump_mul.y=MultiMaterial1.bump; if(MATERIALS==2){bump_mul.xy  *=I.material.xy  ; avg_bump=Sum(bump_mul.xy  );} // use 'Sum' because they're premultipled by 'I.material'
+            if(MATERIALS>=3)bump_mul.z=MultiMaterial2.bump; if(MATERIALS==3){bump_mul.xyz *=I.material.xyz ; avg_bump=Sum(bump_mul.xyz );}
+            if(MATERIALS>=4)bump_mul.w=MultiMaterial3.bump; if(MATERIALS==4){bump_mul.xyzw*=I.material.xyzw; avg_bump=Sum(bump_mul.xyzw);}
 
             Flt TexSize=DEFAULT_TEX_SIZE, // here we have 2..4 textures, so use a default value
                     lod=Max(0, GetLod(I.tex, TexSize)+RELIEF_LOD_OFFSET); // yes, can be negative, so use Max(0) to avoid increasing number of steps when surface is close to camera
