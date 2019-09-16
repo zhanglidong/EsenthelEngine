@@ -25,7 +25,7 @@ void Geom_VS // for 3D Geom
 {
    outPos=Project(TransformPos(vtx.pos()));
 
-#if GL_ES // simulate D.depthClip(false), needed for GL ES which doesn't support it, Warning: this introdocues a bit too much clipping at the viewport end, because the neighboring vertexes remain the same, and only the vertex behind the viewport gets repositioned, the line between them won't cover entire original area (however it's small)
+#if GL_ES // simulate D.depthClip(false), needed for GL ES which doesn't support it, Warning: this introduces a bit too much clipping at the viewport end, because the neighboring vertexes remain the same, and only the vertex behind the viewport gets repositioned, the line between them won't cover entire original area (however it's small)
    #if REVERSE_DEPTH
       outPos.z=Max(outPos.z, 0);
    #else
