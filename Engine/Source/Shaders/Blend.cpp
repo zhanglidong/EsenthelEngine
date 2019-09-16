@@ -19,7 +19,7 @@ void VS
 #if LAYOUT
    outTex=vtx.tex();
 #endif
-             outColor =MaterialColor();
+             outColor =Material.color;
    if(COLORS)outColor*=vtx.colorFast();
 
    Vec pos; VecH nrm;

@@ -60,7 +60,7 @@ VecH4 PS
 #if ALPHA
          col.a=Tex(Ext, inTex.xy).a; // #MaterialTextureChannelOrder
 #endif
-   col  *=MaterialColor();
+   col  *=Material.color;
    col.a*=Sat((Half)inTex.z)*OverlayAlpha();
 
 #if NORMALS

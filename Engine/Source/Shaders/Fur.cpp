@@ -71,7 +71,7 @@ void Base_PS
    VecH col=Sat(fur*FACTOR+1); // inLen*-fur+step+1 : fur*FACTOR+step+1, here step=0
 #endif
    if(DIFFUSE)col*=Tex(Col, inTex).rgb;
-   col=col*MaterialColor3()+Highlight.rgb;
+   col=col*Material.color.rgb+Highlight.rgb;
 
    inNrm=Normalize(inNrm);
 
@@ -139,7 +139,7 @@ VecH4 Soft_PS
 #endif
 
    if(DIFFUSE)color.rgb*=Tex(Col, inTex).rgb;
-              color.rgb =(color.rgb*MaterialColor3()+Highlight.rgb)*TexPoint(FurLight, PosToScreen(inPos4)).rgb; // we need to access the un-expanded pixel and not current pixel
+              color.rgb =(color.rgb*Material.color.rgb+Highlight.rgb)*TexPoint(FurLight, PosToScreen(inPos4)).rgb; // we need to access the un-expanded pixel and not current pixel
    return     color;
 }
 /******************************************************************************/

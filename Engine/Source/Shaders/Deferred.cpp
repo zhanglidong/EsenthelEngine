@@ -79,7 +79,7 @@ void VS
 
 #if LAYOUT || DETAIL
    O.tex=vtx.tex(HEIGHTMAP);
-   if(HEIGHTMAP && MATERIALS==1)O.tex*=MaterialTexScale();
+   if(HEIGHTMAP && MATERIALS==1)O.tex*=Material.tex_scale;
 #endif
 
 #if MATERIALS>1
@@ -87,7 +87,7 @@ void VS
 #endif
 
 #if COLORS
-   if(MATERIALS<=1)O.col=vtx.colorFast3()*MaterialColor3();
+   if(MATERIALS<=1)O.col=vtx.colorFast3()*Material.color.rgb;
    else            O.col=vtx.colorFast3();
 #endif
 
@@ -196,7 +196,7 @@ void PS
 #if COLORS
    col=I.col;
 #else
-   if(MATERIALS<=1)col=MaterialColor3();
+   if(MATERIALS<=1)col=Material.color.rgb;
 #endif
 
 #if BUMP_MODE==SBUMP_ZERO

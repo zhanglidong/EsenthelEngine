@@ -60,10 +60,10 @@ void VS
 
 #if LAYOUT || LIGHT_MAP
    O.tex=vtx.tex(HEIGHTMAP);
-   if(HEIGHTMAP)O.tex*=MaterialTexScale();
+   if(HEIGHTMAP)O.tex*=Material.tex_scale;
 #endif
 
-             O.col =MaterialColor();
+             O.col =Material.color;
    if(COLORS)O.col*=vtx.colorFast();
 
    if(FX==FX_LEAF)

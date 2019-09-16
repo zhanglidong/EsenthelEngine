@@ -80,7 +80,7 @@ void VS
 
 #if LAYOUT || DETAIL || LIGHT_MAP
    O.tex=vtx.tex(HEIGHTMAP);
-   if(HEIGHTMAP && MATERIALS==1)O.tex*=MaterialTexScale();
+   if(HEIGHTMAP && MATERIALS==1)O.tex*=Material.tex_scale;
 #endif
 
 #if MATERIALS>1
@@ -88,7 +88,7 @@ void VS
 #endif
 
 #if COLORS
-   if(MATERIALS<=1)O.col=vtx.colorFast3()*MaterialColor3();
+   if(MATERIALS<=1)O.col=vtx.colorFast3()*Material.color.rgb;
    else            O.col=vtx.colorFast3();
 #endif
 
@@ -242,9 +242,9 @@ void VS
 
       // STORE
       #if LIGHT_IN_COL
-         if(COLORS      )O.col*=total_lum                 ;else
-         if(MATERIALS<=1)O.col =total_lum*MaterialColor3();else
-                         O.col =total_lum                 ;
+         if(COLORS      )O.col*=total_lum                   ;else
+         if(MATERIALS<=1)O.col =total_lum*Material.color.rgb;else
+                         O.col =total_lum                   ;
       #else
          O.lum=total_lum;
       #endif
@@ -276,7 +276,7 @@ VecH4 PS
 #if SET_COL
    col=I.col;
 #else
-   if(MATERIALS<=1)col=MaterialColor3();
+   if(MATERIALS<=1)col=Material.color.rgb;
 #endif
 
 #if BUMP_MODE==SBUMP_ZERO
