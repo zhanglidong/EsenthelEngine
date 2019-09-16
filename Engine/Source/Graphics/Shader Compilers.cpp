@@ -3,8 +3,6 @@
 #include "../Shaders/!Header CPU.h"
 namespace EE{
 /******************************************************************************/
-#define MULTI_MATERIAL 1
-
 #if WINDOWS
    #define COMPILE_DX 0
    #define COMPILE_GL 0
@@ -654,104 +652,54 @@ static void Compile(API api)
 #ifdef DEFERRED
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Deferred", model, api).New(src_path+"Deferred.cpp");
-
-   // zero
-   REPD(skin , 2)
-   REPD(color, 2)src.New().deferred(skin, 1, 0, SBUMP_ZERO, false, false, false, color, false, false, FX_NONE, false);
-
-   REPD(tesselate, tess ? 2 : 1)
-   REPD(heightmap, 2)
+   REPD(color, 2)
    {
-      // 1 material, 0-2 tex, flat
-      REPD(skin  , heightmap ? 1 : 2)
-      REPD(detail, 2)
-      REPD(color , 2)
-      for(Int layout=0; layout<=2; layout++)
-      REPD(alpha_test, (layout && !heightmap) ? 2 : 1)
-         src.New().deferred(skin, 1, layout, SBUMP_FLAT, alpha_test, detail, false, color, false, heightmap, FX_NONE, tesselate); // 1 material, 0 tex
+      // zero (no vtx normals)
+      REPD(skin, 2)
+         src.New().deferred(skin, 1, 0, SBUMP_ZERO, false, false, false, color, false, false, FX_NONE, false);
 
-      // 1 material, 1-2 tex, flat, macro
-      REPD(color, 2)
-      for(Int layout=1; layout<=2; layout++)
-         src.New().deferred(false, 1, layout, SBUMP_FLAT, false, false, true, color, false, heightmap, FX_NONE, tesselate);
-
-      // 1 material, 2 tex, normal + parallax
-      REPD(skin      , heightmap ? 1 : 2)
-      REPD(alpha_test, heightmap ? 1 : 2)
+      // default
+      REPD(skin, 2)
+      for(Int materials=1, materials_max=(skin ? 1 : MAX_MTRLS); materials<=materials_max; materials++)
+      REPD(mtrl_blend, (materials>1) ? 2 : 1)
+      for(Int layout=((materials==1) ? 0 : 1); layout<=2; layout++) // multi-materials don't support 0 textures
+      for(Int bump_mode=SBUMP_FLAT, bump_max=((layout==2) ? SBUMP_RELIEF : SBUMP_NORMAL); bump_mode<=bump_max; bump_mode++)if(bump_mode<=SBUMP_NORMAL || bump_mode>=SBUMP_PARALLAX_MIN)
+      REPD(heightmap , (!skin                               ) ? 2 : 1)
+      REPD(alpha_test, (materials==1 && layout && !heightmap) ? 2 : 1)
+      REPD(macro     , (!skin  &&                  heightmap) ? 2 : 1)
+      REPD(tesselate , tess ? 2 : 1)
       REPD(detail    , 2)
-      REPD(color     , 2)
-      for(Int bump_mode=SBUMP_NORMAL; bump_mode<=SBUMP_PARALLAX_MAX; bump_mode++)if(bump_mode==SBUMP_NORMAL || bump_mode>=SBUMP_PARALLAX_MIN)
-         src.New().deferred(skin, 1, 2, bump_mode, alpha_test, detail, false, color, false, heightmap, FX_NONE, tesselate);
+         src.New().deferred(skin, materials, layout, bump_mode, alpha_test, detail, macro, color, mtrl_blend, heightmap, FX_NONE, tesselate);
 
-      // 1 material, 1-2 tex, normal, macro
-      REPD(color, 2)
+      // grass + leaf, 1 material, 1-2 tex
       for(Int layout=1; layout<=2; layout++)
-         src.New().deferred(false, 1, layout, SBUMP_NORMAL, false, false, true, color, false, heightmap, FX_NONE, tesselate);
-
-      // 1 material, 2 tex, relief
-      REPD(skin      , heightmap ? 1 : 2)
-      REPD(alpha_test, heightmap ? 1 : 2)
-      REPD(detail    , 2)
-      REPD(color     , 2)
-         src.New().deferred(skin, 1, 2, SBUMP_RELIEF, alpha_test, detail, false, color, false, heightmap, FX_NONE, tesselate);
-
-   #if MULTI_MATERIAL
-      for(Int materials=2; materials<=MAX_MTRLS; materials++)
-      REPD(color     , 2)
-      REPD(mtrl_blend, 2)
-      {
-         // 2-4 materials, 1-2 tex, flat
-         REPD(detail, 2)
-         for(Int layout=1; layout<=2; layout++)src.New().deferred(false, materials, layout, SBUMP_FLAT, false, detail, false, color, mtrl_blend, heightmap, FX_NONE, tesselate);
-
-         // 2-4 materials, 1-2 tex, flat, macro
-         for(Int layout=1; layout<=2; layout++)src.New().deferred(false, materials, layout, SBUMP_FLAT, false, false, true, color, mtrl_blend, heightmap, FX_NONE, tesselate);
-
-         // 2-4 materials, 2 layout, normal + parallax
-         REPD(detail, 2)
-         for(Int bump_mode=SBUMP_NORMAL; bump_mode<=SBUMP_PARALLAX_MAX_MULTI; bump_mode++)if(bump_mode==SBUMP_NORMAL || bump_mode>=SBUMP_PARALLAX_MIN)
-            src.New().deferred(false, materials, 2, bump_mode, false, detail, false, color, mtrl_blend, heightmap, FX_NONE, tesselate);
-
-         // 2-4 materials, 2 layout, normal, macro
-         src.New().deferred(false, materials, 2, SBUMP_NORMAL, false, false, true, color, mtrl_blend, heightmap, FX_NONE, tesselate);
-
-         // 2-4 materials, 2 layout, relief
-         REPD(detail, 2)
-            src.New().deferred(false, materials, 2, SBUMP_RELIEF, false, detail, false, color, mtrl_blend, heightmap, FX_NONE, tesselate);
-      }
-   #endif
+      REPD (bump_mode, 2)
+      REPAD(fx       , fxs)
+         src.New().deferred(false, 1, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, true, false, false, color, false, false, fxs[fx], false);
    }
-
-   // grass + leaf, 1 material, 1-2 tex
-   for(Int layout=1; layout<=2; layout++)
-   REPD (bump_mode, (layout==2) ? 2 : 1)
-   REPD (color    , 2)
-   REPAD(fx       , fxs)
-      src.New().deferred(false, 1, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, true, false, false, color, false, false, fxs[fx], false);
 }
 #endif
 
 #ifdef BLEND_LIGHT
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Blend Light", model, api).New(src_path+"Blend Light.cpp");
-
    REPD(per_pixel  , 2)
-   REPD(shadow_maps, 7) // 7=(6+off), 1=off
+   REPD(shadow_maps, 7) // 7=(6+off), 0=off
    REPD(color      , 2)
    {
       // base
       REPD(skin      , 2)
       REPD(layout    , 3)
-      REPD(bump_mode , (per_pixel && layout==2) ? 2 : 1)
-      REPD(alpha_test,               layout     ? 2 : 1)
-      REPD(alpha     ,               layout     ? 2 : 1)
-      REPD(light_map ,               layout     ? 2 : 1)
+      REPD(bump_mode , per_pixel ? 2 : 1)
+      REPD(alpha_test, layout    ? 2 : 1)
+      REPD(alpha     , layout    ? 2 : 1)
+      REPD(light_map , 2)
          src.New().blendLight(skin, color, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, alpha, light_map, FX_NONE, per_pixel, shadow_maps);
 
       // grass+leaf, 1 material, 1-2 tex
       for(Int layout=1; layout<=2; layout++)
-      REPD (bump_mode , (per_pixel && layout==2) ? 2 : 1)
-      REPD (alpha_test,               layout     ? 2 : 1)
+      REPD (bump_mode , per_pixel ? 2 : 1)
+      REPD (alpha_test, layout    ? 2 : 1)
       REPAD(fx        , fxs)
          src.New().blendLight(false, color, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, false, fxs[fx], per_pixel, shadow_maps);
    }
@@ -761,43 +709,33 @@ static void Compile(API api)
 #ifdef FORWARD
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Forward", model, api).New(src_path+"Forward.cpp");
-
-   // zero
-   REPD(skin , 2)
    REPD(color, 2)
-      src.forward(skin, 1, 0, SBUMP_ZERO, false, false, false, color, false, false, FX_NONE, false,   false,false,0,   false,false,   false,false,   false,false,   false);
-
-   REPD(tesselate, tess ? 2 : 1)
-   REPD(heightmap, 2)
-   REPD(per_pixel, 2)
-   REPD(color    , 2)
    {
-      // 1 material, 0-2 layout
-      REPD(skin      , heightmap ? 1 : 2)
-      REPD(layout    , 3)
-      REPD(bump_mode , ( per_pixel && layout==2) ? 2 : 1)
-      REPD(alpha_test, (!heightmap && layout   ) ? 2 : 1)
-      REPD(light_map , (!heightmap && layout   ) ? 2 : 1)
+      // zero (no vtx normals)
+      REPD(skin, 2)
+         src.forward(skin, 1, 0, SBUMP_ZERO, false, false, false, color, false, false, FX_NONE, false,   false,false,0,   false,false,   false,false,   false,false,   false);
+
+      // default
+      REPD(skin      , 2)
+      REPD(per_pixel , 2)
+      for(Int materials=1, materials_max=(skin ? 1 : MAX_MTRLS); materials<=materials_max; materials++)
+      REPD(mtrl_blend, (materials>1) ? 2 : 1)
+      for(Int layout=((materials==1) ? 0 : 1); layout<=2; layout++) // multi-materials don't support 0 textures
+      REPD(bump_mode , per_pixel                              ? 2 : 1)
+      REPD(heightmap , (!skin                               ) ? 2 : 1)
+      REPD(alpha_test, (materials==1 && layout && !heightmap) ? 2 : 1)
+      REPD(light_map , (materials==1 &&           !heightmap) ? 2 : 1)
+      REPD(tesselate , tess ? 2 : 1)
       REPD(detail    , 2)
-         src.forwardLight(skin, 1, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, light_map, detail, color, false, heightmap, FX_NONE, per_pixel, tesselate);
+         src.forwardLight(skin, materials, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, light_map, detail, color, mtrl_blend, heightmap, FX_NONE, per_pixel, tesselate);
 
-      // 2-4 materials, 1-2 layout
-   #if MULTI_MATERIAL
-      REPD(mtrl_blend, 2)
-      for(Int materials=2; materials<=MAX_MTRLS; materials++)
-      for(Int layout   =1; layout   <=2        ; layout   ++)
-      REPD(bump_mode, (per_pixel && layout==2) ? 2 : 1)
-         src.forwardLight(false, materials, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, false, false, false, color, mtrl_blend, heightmap, FX_NONE, per_pixel, tesselate);
-   #endif
+      // grass + leaf, 1 material, 1-2 tex
+      for(Int layout=1; layout<=2; layout++)
+      REPD (per_pixel, 2)
+      REPD (bump_mode, per_pixel ? 2 : 1)
+      REPAD(fx       , fxs)
+         src.forwardLight(false, 1, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, true, false, false, color, false, false, fxs[fx], per_pixel, false);
    }
-
-   // grass + leaf, 1 material, 1-2 tex
-   for(Int layout=1; layout<=2; layout++)
-   REPD (per_pixel, 2)
-   REPD (bump_mode, (per_pixel && layout==2) ? 2 : 1)
-   REPD (color    , 2)
-   REPAD(fx       , fxs)
-      src.forwardLight(false, 1, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, true, false, false, color, false, false, fxs[fx], per_pixel, false);
 }
 #endif
 }

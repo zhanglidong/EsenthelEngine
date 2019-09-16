@@ -483,15 +483,15 @@ Str8 ShaderTattoo    (Int skin, Int tesselate);
 struct DefaultShaders
 {
    Bool valid,
-        detail, macro, light_map,
+        detail, macro,
         mtrl_blend,
         heightmap,
-        normal, color, size,
-        fur, blend, grass, leaf, ambient,
+        tex, normal, color, size,
+        fur, blend, grass, leaf,
         alpha, alpha_test, alpha_blend, alpha_blend_light,
         skin,
         tesselate;
-   Byte materials, layout, bump, fx;
+   Byte materials, layout, bump, ambient, fx;
 
    void      init(C Material *material[4], UInt mesh_base_flag, Int lod_index, Bool heightmap);
    DefaultShaders(C Material *material[4], UInt mesh_base_flag, Int lod_index, Bool heightmap) {init(material, mesh_base_flag, lod_index, heightmap);}

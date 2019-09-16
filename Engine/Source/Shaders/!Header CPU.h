@@ -10,9 +10,8 @@
 #define SBUMP_PARALLAX4 6
 #define SBUMP_RELIEF    7
 
-#define SBUMP_PARALLAX_MIN       SBUMP_PARALLAX2 // ignore SBUMP_PARALLAX1 because just 1 sample is not worth to keep as separate shader
-#define SBUMP_PARALLAX_MAX       SBUMP_PARALLAX4
-#define SBUMP_PARALLAX_MAX_MULTI SBUMP_PARALLAX2 // for multi-material shaders, limit to only SBUMP_PARALLAX2
+#define SBUMP_PARALLAX_MIN SBUMP_PARALLAX2 // ignore SBUMP_PARALLAX1 because just 1 sample is not worth to keep as separate shader
+#define SBUMP_PARALLAX_MAX SBUMP_PARALLAX4
 
 // Effects
 #define FX_NONE  0
