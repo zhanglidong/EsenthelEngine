@@ -1481,7 +1481,7 @@ static LRESULT CALLBACK WindowMsg(HWND hwnd, UInt msg, WPARAM wParam, LPARAM lPa
             touch->_remove=false; // disable 'remove' in case it was enabled (for example the same touch was released in same/previous frame)
             if(msg!=WM_POINTERENTER)touch->reinit(posi, pos); // re-initialize for push (don't do this for hover because it can be called the same frame that release is called, and for release we want to keep the original values)
          }
-         if(msg!=WM_POINTERENTER){touch->_state=BS_ON|BS_PUSHED; touch->_force=1;}
+         if(msg!=WM_POINTERENTER)touch->_state=BS_ON|BS_PUSHED;
       }return 0; // don't process by OS
 
       case WM_POINTERUPDATE:

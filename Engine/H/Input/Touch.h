@@ -25,8 +25,6 @@ struct Touch // Single Touch on a Touch-Screen
    Bool tapped     ()C {return ButtonTp(_state)  ;} // if tapped, tapping is a single quick push and release without any movement, this can be true at the moment of the release with the condition that there was no movement and the touch life was very short
    Bool tappedFirst()C {return tapped() && _first;} // if tapped which was caused by first click of a double-click, double-clicks generate two taps, you can use this method to detect only the first one
 
-   Flt force()C {return _force;} // force of the touch in range >=0, 0=no force (hover), 1=average touch
-
    Dbl startTime()C {return                _start_time;} // time of when the touch has started, obtained using "Time.appTime()"
    Flt life     ()C {return Time.appTime()-_start_time;} // how long the touch is active
 
@@ -52,7 +50,6 @@ private:
    Bool             _selecting, _dragging, _scrolling, _stylus, _first, _remove;
    Byte             _state, _axis_moved;
    UInt             _id;
-   Flt              _force;
    Dbl              _start_time;
    VecI2            _posi, _deltai;
    Vec2             _start_pos, _prev_pos, _pos, _sm_pos, _delta, _abs_delta, _vel;

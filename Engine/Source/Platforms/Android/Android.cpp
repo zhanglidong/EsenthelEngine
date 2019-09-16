@@ -417,7 +417,7 @@ static int32_t InputCallback(android_app *app, AInputEvent *event)
                         touch->_remove=false; // disable 'remove' in case it was enabled (for example the same touch was released in same/previous frame)
                         if(action_type!=AMOTION_EVENT_ACTION_HOVER_ENTER)touch->reinit(posi, pos); // re-initialize for push (don't do this for hover because it can be called the same frame that release is called, and for release we want to keep the original values)
                      }
-                     if(action_type!=AMOTION_EVENT_ACTION_HOVER_ENTER){touch->_state=BS_ON|BS_PUSHED; touch->_force=1;}
+                     if(action_type!=AMOTION_EVENT_ACTION_HOVER_ENTER)touch->_state=BS_ON|BS_PUSHED;
                   }
                }break;
 
@@ -435,7 +435,6 @@ static int32_t InputCallback(android_app *app, AInputEvent *event)
                      touch-> reinit(posi, pos);
                   }
                   touch->_state=BS_ON|BS_PUSHED;
-                  touch->_force=1;
                }break;
 
                case AMOTION_EVENT_ACTION_MOVE:       // touch is     pressed and was moved

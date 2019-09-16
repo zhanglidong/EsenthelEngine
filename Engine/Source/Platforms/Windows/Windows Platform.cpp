@@ -400,7 +400,6 @@ ref struct FrameworkView sealed : IFrameworkView
             if(Touch *touch=FindTouchByHandle(CPtr(pointer->PointerId)))
             {
                touch->_state=BS_ON|BS_PUSHED;
-               touch->_force=1;
             }
          }break;
       }

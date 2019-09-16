@@ -1,11 +1,10 @@
 /******************************************************************************/
 @interface EAGLView : UIView<UIKeyInput>
 {    
-   BOOL           initialized, keyboard_visible, force_touch;
+   BOOL           initialized, keyboard_visible;
    CADisplayLink *display_link;
 }
 
--(void)detectForceTouch;
 -(void)update:(id)sender;
 -(void)setUpdate;
 

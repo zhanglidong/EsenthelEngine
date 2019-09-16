@@ -140,7 +140,6 @@ EAGLView* GetUIView()
          nil];
 
       initialized=false;
-      force_touch=false;
       keyboard_visible=false;
       display_link=nil;
       InitKeyMap();
@@ -171,16 +170,6 @@ EAGLView* GetUIView()
 }
 -(void)keyboardWillBeHidden:(NSNotification*)aNotification {Kb._visible=false;}
 /******************************************************************************/
--(void)detectForceTouch
-{
-   force_touch=([[self traitCollection] forceTouchCapability]==UIForceTouchCapabilityAvailable);
-}
--(void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection
-{
-   [super traitCollectionDidChange:previousTraitCollection];
-   [self detectForceTouch];
-}
-/******************************************************************************/
 -(void)layoutSubviews // this is called when the layer is initialized, resized or a sub view is added (like ads)
 {
    if(App._closed)return; // do nothing if app called 'Exit'
@@ -188,7 +177,6 @@ EAGLView* GetUIView()
    if(!initialized)
    {
       initialized=true;
-      [self detectForceTouch];
       if(!App.create())Exit("Failed to initialize the application"); // something failed
       [self setUpdate];
    }else
@@ -253,7 +241,6 @@ EAGLView* GetUIView()
       t->_first=(taps&1); // it's a first click on odd numbers, 1, 3, 5, ..
       t->_state=BS_ON|BS_PUSHED;
       if(!t->_first)t->_state|=BS_DOUBLE; // set double clicking only on even numbers, 2, 4, 6, ..
-      t->_force=(force_touch ? touch.force : 1); // API available for 'force_touch' ONLY
    }
 }
 -(void)touchesMoved:(NSSet*)touches withEvent:(UIEvent*)event
@@ -268,12 +255,10 @@ EAGLView* GetUIView()
       {
          t=&Touches.New().init(pi, p, touch, touch.type==UITouchTypeStylus);
          t->_state=BS_ON|BS_PUSHED;
-         t->_force=1;
       }
       t->_deltai+=pi-t->_posi;
       t->_posi   =pi;
       t->_pos    =p;
-      if(force_touch)t->_force=touch.force; // API available for 'force_touch' ONLY
    }
 }
 -(void)touchesEnded:(NSSet*)touches withEvent:(UIEvent*)event

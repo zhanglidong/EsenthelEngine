@@ -148,7 +148,6 @@ static EM_BOOL TouchStart(int eventType, const EmscriptenTouchEvent *e, void *us
             touch-> reinit(posi, pos);
          }
          touch->_state=BS_ON|BS_PUSHED;
-         touch->_force=1;
       }
    }
    return 1;

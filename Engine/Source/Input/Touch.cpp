@@ -39,7 +39,6 @@ Touch::Touch()
   _state=0;
   _axis_moved=0;
   _id=0;
-  _force=0;
   _start_time=0;
   _start_pos=_prev_pos=_pos=_sm_pos=_delta=_abs_delta=_vel=0; _posi=_deltai=0;
   _handle=null;
@@ -216,7 +215,6 @@ void TouchesUpdate()
 
       if(t.rs())
       {
-         t._force=0;
          if(!t.selecting() && t.life()<=0.25f+Time.ad())t._state|=BS_TAPPED;
 
          // scroll regions (don't check for 't.scrolling' here because we want to process dragging region slidebars too and for those the scrolling is not enabled)
