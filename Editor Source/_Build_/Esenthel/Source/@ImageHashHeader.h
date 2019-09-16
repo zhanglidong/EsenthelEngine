@@ -4,7 +4,7 @@ class ImageHashHeader // !! try to don't make any changes to this class layout, 
    VecI size;
    uint flags;
 
-   ImageHashHeader(C Image &image);
+   ImageHashHeader(C Image &image, bool sign);
 };
 /******************************************************************************/
 /******************************************************************************/

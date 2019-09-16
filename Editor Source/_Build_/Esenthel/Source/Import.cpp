@@ -57,8 +57,8 @@ ImporterClass Importer;
             if(GetExt(color_map)=="img" || GetExt(normal_map)=="img" || GetExt(detail_color_map)=="img" || GetExt(reflection_map)=="img") // this is 'EE.Material' ("mtrl" format)
             {
                Str b0=color_map, b1=normal_map, d=detail_color_map, r=reflection_map, l=light_map, m;
-               base_0    .load(b0); ImageProps(base_0    , &    base_0_id, null, SRGB|(ForceHQMtrlBase0 ? FORCE_HQ : 0));
-               base_1    .load(b1); ImageProps(base_1    , &    base_1_id, null,      (ForceHQMtrlBase1 ? FORCE_HQ : 0));
+               base_0    .load(b0); ImageProps(base_0    , &    base_0_id, null, MTRL_BASE_0);
+               base_1    .load(b1); ImageProps(base_1    , &    base_1_id, null, MTRL_BASE_1);
                detail    .load(d ); ImageProps(detail    , &    detail_id, null,      IGNORE_ALPHA);
                macro     .load(m ); ImageProps(macro     , &     macro_id, null, SRGB|IGNORE_ALPHA);
                reflection.load(r ); ImageProps(reflection, &reflection_id, null, SRGB|IGNORE_ALPHA);

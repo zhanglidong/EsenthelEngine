@@ -3,12 +3,11 @@
 #include "Fog.h"
 #include "Sky.h"
 /******************************************************************************/
-#define ALPHA_CLIP 0.5
-/******************************************************************************/
 //SKIN, COLORS, LAYOUT, BUMP_MODE, ALPHA_TEST, ALPHA, LIGHT_MAP, REFLECT, FX, PER_PIXEL, SHADOW_MAPS, TESSELATE
-#define USE_VEL   ALPHA_TEST
-#define HEIGHTMAP 0
-#define SET_POS   (USE_VEL || SHADOW_MAPS || (REFLECT && PER_PIXEL && BUMP_MODE>SBUMP_FLAT))
+#define USE_VEL    ALPHA_TEST
+#define HEIGHTMAP  0
+#define SET_POS    (USE_VEL || SHADOW_MAPS || (REFLECT && PER_PIXEL && BUMP_MODE>SBUMP_FLAT))
+#define ALPHA_CLIP 0.5
 /******************************************************************************/
 struct VS_PS
 {

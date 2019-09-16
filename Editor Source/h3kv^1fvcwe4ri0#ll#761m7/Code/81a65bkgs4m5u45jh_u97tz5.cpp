@@ -1693,7 +1693,7 @@ class ProjectEx : ProjectHierarchy
       IMAGE_TYPE ct;
 
       // base 0
-         old_tex_id =material.base_0_tex; ImageProps(base_0, &material.base_0_tex, &ct, SRGB | (ForceHQMtrlBase0 ? FORCE_HQ : 0));
+         old_tex_id =material.base_0_tex; ImageProps(base_0, &material.base_0_tex, &ct, MTRL_BASE_0);
       if(old_tex_id!=material.base_0_tex)material.color_map_time.getUTC(); // in order for 'base_0_tex' to sync, a base 0 texture time must be changed, but set it only if the new texture is different
       if(base_0.is())
       {
@@ -1706,7 +1706,7 @@ class ProjectEx : ProjectHierarchy
       }
 
       // base 1
-         old_tex_id =material.base_1_tex; ImageProps(base_1, &material.base_1_tex, &ct, (ForceHQMtrlBase1 ? FORCE_HQ : 0));
+         old_tex_id =material.base_1_tex; ImageProps(base_1, &material.base_1_tex, &ct, MTRL_BASE_1);
       if(old_tex_id!=material.base_1_tex)material.normal_map_time.getUTC(); // in order for 'base_1_tex' to sync, a base 1 texture time must be changed, but set it only if the new texture is different
       if(base_1.is())
       {

@@ -33,9 +33,10 @@ extern const bool          MiscOnTop,
                     TolerantSecondaryServer, // will ignore DeviceID when getting confirmation from secondary authentication server
                     SupportBC7            , // if support BC7 compression
                     WebBC7               , // if support BC7 compression for Web TODO: enable this once browsers start supporting BC7
-                    ForceHQMtrlBase0     , // if always use high quality compression for Material Base0  Texture (RGBA/RGB Bump)
-                    ForceHQMtrlBase1      , // if always use high quality compression for Material Base1  Texture (NxNySpecAlpha), set to true because normals need this (without this, they get very blocky due to low quality)
-                    ForceHQMtrlDetail     , // if always use high quality compression for Material Detail Texture (NxNyColBump  ), set to true because normals need this (without this, they get very blocky due to low quality)
+                    ForceHQMtrlBase0     , // if always use high quality compression for Material Base0  Texture (RGBA/RGB Glow      ) #MaterialTextureChannelOrder
+                    ForceHQMtrlBase1      , // if always use high quality compression for Material Base1  Texture (NxNy               ) #MaterialTextureChannelOrder, set to true because normals need this (without this, they get very blocky due to low quality)
+                    ForceHQMtrlBase2     , // if always use high quality compression for Material Base2  Texture (SmoothReflBumpAlpha) #MaterialTextureChannelOrder
+                    ForceHQMtrlDetail     , // if always use high quality compression for Material Detail Texture (NxNyColBump        ) #MaterialTextureChannelOrder, set to true because normals need this (without this, they get very blocky due to low quality)
                      RemoveMtrlDetailBump , // if always delete Bump channel from Material Detail Texture (bump channel is not actually used in shaders, so removing it from the texture will give following benefits: ForceHQMtrlDetail ? will give better quality for Nrm and Col : will allow BC1 texture and 2x smaller size)
                     ImportRemovedElms, 
                     RenameAnimBonesOnSkelChange;

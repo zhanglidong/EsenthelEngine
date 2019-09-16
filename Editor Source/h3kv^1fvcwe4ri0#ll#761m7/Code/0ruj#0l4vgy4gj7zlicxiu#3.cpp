@@ -427,25 +427,29 @@ enum
    SRGB        =1<<2,
    MTRL_BASE_0 =1<<3,
    MTRL_BASE_1 =1<<4,
+   MTRL_BASE_2 =1<<5,
 }
 class ImageHashHeader // !! try to don't make any changes to this class layout, because doing so will require a new hash for every texture !!
 {
    VecI size;
    uint flags;
 
-   ImageHashHeader(C Image &image)
+   ImageHashHeader(C Image &image, bool sign)
    {
       Zero(T); // it's very important to zero entire data at the start, in case there's any extra padding, to make sure hash is always the same
       size=image.size3();
       if(image.cube())flags|=1;
       if(image.sRGB())flags|=2;
+      if(sign        )flags|=4;
       // other flags can be used for example to force high quality, like BC7 instead of BC1
    }
 }
 void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type=null, uint flags=SRGB) // calculate image MD5 (when in IMAGE_R8G8B8A8 type) and get best type for image compression
 {
+   bool sign=false;
    if(flags&MTRL_BASE_0){if(ForceHQMtrlBase0)flags|=FORCE_HQ; flags|=SRGB;} // #MaterialTextureChannelOrder
-   if(flags&MTRL_BASE_1){if(ForceHQMtrlBase1)flags|=FORCE_HQ; if(compress_type){*compress_type=IMAGE_BC5_SIGN; compress_type=null;}} // normal tex always uses BC5_SIGN (RG HQ) #MaterialTextureChannelOrder
+   if(flags&MTRL_BASE_1){if(ForceHQMtrlBase1)flags|=FORCE_HQ; sign=true; if(compress_type){*compress_type=IMAGE_BC5_SIGN; compress_type=null;}} // normal tex always uses BC5_SIGN (RG HQ) #MaterialTextureChannelOrder
+   if(flags&MTRL_BASE_2){if(ForceHQMtrlBase2)flags|=FORCE_HQ;} // #MaterialTextureChannelOrder
    if(md5 || compress_type)
    {
       // set initial values
@@ -462,19 +466,23 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type=null, uint f
               bc5=true, // BC5 8-bit is (R,G,0,1)
               srgb=FlagTest(flags, SRGB),
               force_alpha=((flags&IGNORE_ALPHA) && ImageTI[image.type()].a), // if we want to ignore alpha, and source had alpha, then we need to adjust as if it has full alpha, this is done because: ignoring alpha may save the image in format that doesn't support the alpha channel, however if the same image is later used for something else, and now wants to use that alpha channel, then it needs to be created as a different texture (with different hash)
-              extract=((md5 && (image.hwType()!=IMAGE_R8G8B8A8 && image.hwType()!=IMAGE_R8G8B8A8_SRGB)) // hash is based on RGBA format
+              extract=((md5 && (sign ? image.hwType()!=IMAGE_R8G8B8A8_SIGN : (image.hwType()!=IMAGE_R8G8B8A8 && image.hwType()!=IMAGE_R8G8B8A8_SRGB))) // hash is based on RGBA format
                     || (compress_type && ImageTI[image.hwType()].compressed) // checking 'compress_type' requires color reads so copy to RGBA soft to make them faster
                     || force_alpha); // forcing alpha requires modifying the alpha channel, so copy to 'temp' which we can modify
-         if(md5)m.update(&ImageHashHeader(image), SIZE(ImageHashHeader)); // need to start hash with a header, to make sure different sized/cube/srgb images will always have different hash
+         if(md5)m.update(&ImageHashHeader(image, sign), SIZE(ImageHashHeader)); // need to start hash with a header, to make sure different sized/cube/srgb/sign images will always have different hash
          Image temp; C Image *src=(extract ? &temp : &image);
          FREPD(face, image.faces())
          {
-            int src_face=face; if(extract)if(image.extractMipMap(temp, image.sRGB() ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, 0, DIR_ENUM(face)))src_face=0;else return; // error
+            int src_face=face; if(extract)if(image.extractMipMap(temp, sign ? IMAGE_R8G8B8A8_SIGN : image.sRGB() ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, 0, DIR_ENUM(face)))src_face=0;else return; // error
             if( src.lockRead(0, DIR_ENUM(src_face)))
             {
-               if(force_alpha  ) REPD(z, temp.d())
-                                 REPD(y, temp.h())
-                                 REPD(x, temp.w())temp.pixC(x, y, z).a=255; // set before calculating hash
+               if(force_alpha) // set before calculating hash
+               {
+                  byte alpha=(sign ? 127 : 255);
+                  REPD(z, temp.d())
+                  REPD(y, temp.h())
+                  REPD(x, temp.w())temp.pixC(x, y, z).a=alpha;
+               }
                if(md5          )FREPD(z,  src.d())
                                 FREPD(y,  src.h())m.update(src.data() + y*src.pitch() + z*src.pitch2(), src.w()*src.bytePP()); // don't use 'src.pitch' to ignore any extra padding
                if(compress_type) REPD(z,  src.d())
