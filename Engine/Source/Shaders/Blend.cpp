@@ -59,8 +59,8 @@ VecH4 PS
    VecH4 ext; // #MaterialTextureChannelOrder
 
 #if LAYOUT
-   if(LAYOUT==1) inColor    *=Tex(Col, inTex);else                                         // alpha in 'Col' texture
-   if(LAYOUT==2){inColor.rgb*=Tex(Col, inTex).rgb; ext=Tex(Ext, inTex); inColor.a*=ext.a;} // alpha in 'Ext' texture
+   if(LAYOUT==1)                      inColor    *=Tex(Col, inTex);else                    // alpha in 'Col' texture
+   if(LAYOUT==2){ext=Tex(Ext, inTex); inColor.rgb*=Tex(Col, inTex).rgb; inColor.a*=ext.a;} // alpha in 'Ext' texture
 #endif
 
    inColor.rgb+=Highlight.rgb;

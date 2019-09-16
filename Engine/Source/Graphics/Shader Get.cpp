@@ -50,9 +50,11 @@ ShaderBuffer*  GetShaderBuffer(CChar8 *name) {ShaderBuffer *sb=FindShaderBuffer(
 /******************************************************************************/
 static Int Layout(C Material &material) // Textures
 { // #MaterialTextureChannelOrder
-   if(material.base_2)return 2;
-   if(material.base_0)return 1;
-                      return 0;
+   if(material.base_0)
+   {
+      if(material.base_2)return 2;
+                         return 1;
+   }                     return 0;
    // 'base_1' is normal map and doesn't affect texture layout
 }
 static Int BumpMode(C Material &material, UInt mesh_base_flag)
@@ -133,7 +135,7 @@ void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_
    }
    if(!D.texMacro    () || lod_index<=0 || skin || !heightmap)macro =false; // disable macro  for LOD's=0, skin, !heightmaps
    if(!D.texDetailLOD() && lod_index> 0                      )detail=false; // disable detail for LOD's>0
-   if(                     lod_index> 0                      )MIN(bump, SBUMP_NORMAL); // limit to normal mapping for LOD's>0
+   if(                     lod_index> 0 || layout<2          )MIN(bump, SBUMP_NORMAL); // limit to normal mapping for LOD's>0 and layout<2 (no bump channel)
    if(!tex                                                   ){layout=0; detail=macro=false; MIN(ambient, 1);} // disable all textures if we don't have texcoords
    if(materials>1                                            )MAX(layout, 1); // multi-materials currently don't support 0 textures
    if(materials>1 || heightmap                               )ambient=0; // multi-materials and heightmaps currently don't support ambient

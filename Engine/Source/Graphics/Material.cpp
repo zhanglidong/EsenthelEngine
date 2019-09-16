@@ -3,14 +3,19 @@
 namespace EE{
 /******************************************************************************
 
-   If Material has base_0 but not base_2, then it contains:
-      Base0: RGBA
+   If Material has base_0 && base_2:
+      Layout 2
+      base_0: RGB, Glow
+      base_2: Smooth, Reflect, Bump, Alpha
+   Elif Material has base_0
+      Layout 1
+      base_0: RGBA
+   Else
+      Layout 0
+      empty
+   Endif
 
-   If it has base_2:
-      Base0: RGB, Glow
-      Base2: Smooth, Reflect, Bump, Alpha
-
-   Base1 always: NrmX, NrmY
+   base_1 always: NrmX, NrmY
 
    When changing the above to a different order, then look for "#MaterialTextureChannelOrder" text in Engine/Editor to update the codes.
 
@@ -31,12 +36,12 @@ enum MTRL_TEX_LAYOUT : Byte
 #define REFLECT_DEFAULT_PAR 0.04f
 
 // #MaterialTextureChannelOrder
-// Base 0
+// base_0
 #define    GLOW_CHANNEL 3
-// Base 1
+// base_1
 #define    NRMX_CHANNEL 0
 #define    NRMY_CHANNEL 1
-// Base 2
+// base_2
 #define  SMOOTH_CHANNEL 0
 #define REFLECT_CHANNEL 1
 #define    BUMP_CHANNEL 2
@@ -115,8 +120,8 @@ Bool Material::hasLeaf           ()C {return                                    
 Bool Material::wantTanBin()C
 {
    // #MaterialTextureChannelOrder
-   return (base_1     && normal   >EPS_COL          )  // normal        is in Base1
-       || (base_2     && bump     >EPS_MATERIAL_BUMP)  // bump          is in Base2
+   return (base_1     && normal   >EPS_COL          )  // normal        is in base_1
+       || (base_2     && bump     >EPS_MATERIAL_BUMP)  // bump          is in base_2
        || (detail_map && det_power>EPS_COL          ); // normal detail is in DetailMap
 }
 /******************************************************************************/
@@ -134,7 +139,7 @@ Material& Material::validate() // #MaterialTextureChannelOrder
    // set multi
    {
      _multi.color    =(LINEAR_GAMMA ? colorL() : colorS());
-     _multi.glow     =glow; // 'glow_mul', 'glow_add' not needed because Glow is stored in Base0 (which can be either Alpha or Glow, however Alpha is never used for multi-materials, so it's always 1.0)
+     _multi.glow     =glow; // 'glow_mul', 'glow_add' not needed because Glow is stored in base_0 (which can be either Alpha or Glow, however Alpha is never used for multi-materials, so it's always 1.0)
      _multi.tex_scale=tex_scale;
      _multi.det_scale=det_scale;
 
@@ -660,7 +665,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &co
 
       MTRL_TEX_LAYOUT layout=((ret&(BT_SMOOTH|BT_REFLECT|BT_BUMP|BT_GLOW)) ? MTL_RGB_GLOW$NRM$SMOOTH_REFLECT_BUMP_ALPHA : MTL_RGBA);
 
-      // Base0
+      // base_0
       if(layout==MTL_RGB_GLOW$NRM$SMOOTH_REFLECT_BUMP_ALPHA) // put glow in W channel
       {
          Int w=Max(col_src->w(), glow_src->w()),
@@ -706,7 +711,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &co
          }
       }
 
-      // Base1 NRM !! do this first before Base2 SRBA which resizes bump !!
+      // base_1 NRM !! do this first before base_2 SRBA which resizes bump !!
     C Image *bump_to_normal=null;
       if(  bump_src->is() && !normal_src->is()           )bump_to_normal=  bump_src;else // if bump available and normal not, then create normal from bump
       if(normal_src->is() &&  normal_src->monochromatic())bump_to_normal=normal_src;     // if normal is provided as monochromatic, then treat it as bump and convert to normal
@@ -739,7 +744,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &co
          }
       }
 
-      // Base2 SRBA
+      // base_2 SRBA
       if(layout==MTL_RGB_GLOW$NRM$SMOOTH_REFLECT_BUMP_ALPHA /*&& ret&(BT_SMOOTH|BT_REFLECT|BT_BUMP|BT_ALPHA)*/) // always create 'base2' so we can determine layout based on 'base2' presence
       {
          Int w=Max(1, Max(smooth_src->w(), reflect_src->w(), bump_src->w(), alpha_src->w())), // Max 1 in case all images are empty, but we still need it
