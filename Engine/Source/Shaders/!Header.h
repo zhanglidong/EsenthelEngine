@@ -1415,7 +1415,7 @@ inline Half DepthWeight(Flt delta, Vec2 dw_mad)
 /******************************************************************************/
 inline VecH GetDetail(Vec2 tex)
 {
-   return (Tex(Det, tex*MaterialDetScale()).xyz-0.5)*MaterialDetPower(); // tex.xy=nrm.xy, tex.z=color, #MaterialTextureChannelOrder
+   return (Tex(Det, tex*Material.det_scale).xyz-0.5)*Material.det_power; // tex.xy=nrm.xy, tex.z=color, #MaterialTextureChannelOrder
 }
 /******************************************************************************/
 // FACE NORMAL HANDLING

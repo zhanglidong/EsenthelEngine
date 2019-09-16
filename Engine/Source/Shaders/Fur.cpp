@@ -64,7 +64,7 @@ void Base_PS
    out DeferredSolidOutput output
 )
 {
-   Half fur=Tex(FurCol, inTex*MaterialDetScale()).r;
+   Half fur=Tex(FurCol, inTex*Material.det_scale).r;
 #if SIZE
    VecH col=Sat(inLen*-fur+1); // inLen*-fur+step+1 : fur*FACTOR+step+1, here step=0
 #else
@@ -114,7 +114,7 @@ void Soft_VS
 #if SIZE
    outLen=vtx.size();
 #endif
-   pos+=nrm*(SIZE ? vtx.size()*MaterialDetPower()*FurStep.x : MaterialDetPower()*FurStep.x);
+   pos+=nrm*(SIZE ? vtx.size()*Material.det_power*FurStep.x : Material.det_power*FurStep.x);
    outVtx=Project(pos);
 }
 /******************************************************************************/
@@ -127,7 +127,7 @@ VecH4 Soft_PS
 #endif
 ):TARGET
 {
-   Half fur=Tex(FurCol, inTex*MaterialDetScale()).r;
+   Half fur=Tex(FurCol, inTex*Material.det_scale).r;
 
    VecH4 color;
 #if SIZE
