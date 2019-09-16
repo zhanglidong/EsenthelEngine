@@ -225,7 +225,7 @@ void PS
       #if   BUMP_MODE==SBUMP_FLAT
          nrm=Normalize(I.Nrm());
       #elif BUMP_MODE> SBUMP_FLAT
-         nrm.xy=(tex_nrm.xy*2-1)*MaterialRough();
+         nrm.xy=tex_nrm.xy*Material.normal;
          nrm.z =CalcZ(nrm.xy);
          nrm   =Normalize(Transform(nrm, I.mtrx));
       #endif
