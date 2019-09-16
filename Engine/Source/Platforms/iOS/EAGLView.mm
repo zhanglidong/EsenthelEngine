@@ -8,8 +8,6 @@ namespace EE{
 /******************************************************************************/
 void (*ResizeAdPtr)();
 
-static const Bool iOS_9_0=(Compare(OSVerNumber(), VecI4(9, 0, 0, 0))>=0); // if iOS 9.0 available
-
 static KB_KEY KeyMap[128];
 static inline void SetKeyMap(Char c, KB_KEY key) {U16 u=c; if(InRange(u, KeyMap))KeyMap[u]=key;}
 static void InitKeyMap()
@@ -175,7 +173,7 @@ EAGLView* GetUIView()
 /******************************************************************************/
 -(void)detectForceTouch
 {
-   force_touch=(iOS_9_0 && [[self traitCollection] forceTouchCapability]==UIForceTouchCapabilityAvailable); // API available on iOS 9.0+ ONLY
+   force_touch=([[self traitCollection] forceTouchCapability]==UIForceTouchCapabilityAvailable);
 }
 -(void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection
 {
@@ -244,7 +242,7 @@ EAGLView* GetUIView()
       Touch  *t=FindTouchByHandle(touch); // find existing one
       if(!t) // create new one
       {
-         t=&Touches.New().init(pi, p, touch, iOS_9_0 ? touch.type==UITouchTypeStylus : false); // API available on iOS 9.0+ ONLY
+         t=&Touches.New().init(pi, p, touch, touch.type==UITouchTypeStylus);
       }else
       {
          t->_deltai+=pi-t->_posi;
@@ -268,7 +266,7 @@ EAGLView* GetUIView()
       Touch  *t=FindTouchByHandle(touch); // find existing one
       if(!t) // create new one
       {
-         t=&Touches.New().init(pi, p, touch, iOS_9_0 ? touch.type==UITouchTypeStylus : false); // API available on iOS 9.0+ ONLY
+         t=&Touches.New().init(pi, p, touch, touch.type==UITouchTypeStylus);
          t->_state=BS_ON|BS_PUSHED;
          t->_force=1;
       }
