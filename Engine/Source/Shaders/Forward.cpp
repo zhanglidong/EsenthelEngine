@@ -355,20 +355,20 @@ VecH4 PS
 #else // MATERIALS>1
    // assuming that in multi materials LAYOUT!=0
    Vec2 tex0, tex1, tex2, tex3;
-                   tex0=I.tex*MultiMaterial0TexScale();
-                   tex1=I.tex*MultiMaterial1TexScale();
-   if(MATERIALS>=3)tex2=I.tex*MultiMaterial2TexScale();
-   if(MATERIALS>=4)tex3=I.tex*MultiMaterial3TexScale();
+                   tex0=I.tex*MultiMaterial0.tex_scale;
+                   tex1=I.tex*MultiMaterial1.tex_scale;
+   if(MATERIALS>=3)tex2=I.tex*MultiMaterial2.tex_scale;
+   if(MATERIALS>=4)tex3=I.tex*MultiMaterial3.tex_scale;
 
    // color !! do this first because it may modify 'I.material' which affects secondary texture !!
    VecH tex;
    if(MTRL_BLEND)
    {
       VecH4 col0, col1, col2, col3;
-                       col0=Tex(Col , tex0); col0.rgb*=MultiMaterial0Color3(); I.material.x=MultiMaterialWeight(I.material.x, col0.a);
-                       col1=Tex(Col1, tex1); col1.rgb*=MultiMaterial1Color3(); I.material.y=MultiMaterialWeight(I.material.y, col1.a); if(MATERIALS==2)I.material.xy  /=I.material.x+I.material.y;
-      if(MATERIALS>=3){col2=Tex(Col2, tex2); col2.rgb*=MultiMaterial2Color3(); I.material.z=MultiMaterialWeight(I.material.z, col2.a); if(MATERIALS==3)I.material.xyz /=I.material.x+I.material.y+I.material.z;}
-      if(MATERIALS>=4){col3=Tex(Col3, tex3); col3.rgb*=MultiMaterial3Color3(); I.material.w=MultiMaterialWeight(I.material.w, col3.a); if(MATERIALS==4)I.material.xyzw/=I.material.x+I.material.y+I.material.z+I.material.w;}
+                       col0=Tex(Col , tex0); col0.rgb*=MultiMaterial0.color.rgb; I.material.x=MultiMaterialWeight(I.material.x, col0.a);
+                       col1=Tex(Col1, tex1); col1.rgb*=MultiMaterial1.color.rgb; I.material.y=MultiMaterialWeight(I.material.y, col1.a); if(MATERIALS==2)I.material.xy  /=I.material.x+I.material.y;
+      if(MATERIALS>=3){col2=Tex(Col2, tex2); col2.rgb*=MultiMaterial2.color.rgb; I.material.z=MultiMaterialWeight(I.material.z, col2.a); if(MATERIALS==3)I.material.xyz /=I.material.x+I.material.y+I.material.z;}
+      if(MATERIALS>=4){col3=Tex(Col3, tex3); col3.rgb*=MultiMaterial3.color.rgb; I.material.w=MultiMaterialWeight(I.material.w, col3.a); if(MATERIALS==4)I.material.xyzw/=I.material.x+I.material.y+I.material.z+I.material.w;}
 
                       tex =I.material.x*col0.rgb
                           +I.material.y*col1.rgb;
@@ -376,10 +376,10 @@ VecH4 PS
       if(MATERIALS>=4)tex+=I.material.w*col3.rgb;
    }else
    {
-                      tex =I.material.x*Tex(Col , tex0).rgb*MultiMaterial0Color3()
-                          +I.material.y*Tex(Col1, tex1).rgb*MultiMaterial1Color3();
-      if(MATERIALS>=3)tex+=I.material.z*Tex(Col2, tex2).rgb*MultiMaterial2Color3();
-      if(MATERIALS>=4)tex+=I.material.w*Tex(Col3, tex3).rgb*MultiMaterial3Color3();
+                      tex =I.material.x*Tex(Col , tex0).rgb*MultiMaterial0.color.rgb
+                          +I.material.y*Tex(Col1, tex1).rgb*MultiMaterial1.color.rgb;
+      if(MATERIALS>=3)tex+=I.material.z*Tex(Col2, tex2).rgb*MultiMaterial2.color.rgb;
+      if(MATERIALS>=4)tex+=I.material.w*Tex(Col3, tex3).rgb*MultiMaterial3.color.rgb;
    }
 #if SET_COL
    col*=tex;

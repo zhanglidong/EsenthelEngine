@@ -402,10 +402,10 @@ void PS
 #else // MATERIALS>1
    // assuming that in multi materials LAYOUT!=0
    Vec2 tex0, tex1, tex2, tex3;
-                   tex0=I.tex*MultiMaterial0TexScale();
-                   tex1=I.tex*MultiMaterial1TexScale();
-   if(MATERIALS>=3)tex2=I.tex*MultiMaterial2TexScale();
-   if(MATERIALS>=4)tex3=I.tex*MultiMaterial3TexScale();
+                   tex0=I.tex*MultiMaterial0.tex_scale;
+                   tex1=I.tex*MultiMaterial1.tex_scale;
+   if(MATERIALS>=3)tex2=I.tex*MultiMaterial2.tex_scale;
+   if(MATERIALS>=4)tex3=I.tex*MultiMaterial3.tex_scale;
 
    // apply tex coord bump offset
    if(LAYOUT==2)
@@ -599,10 +599,10 @@ void PS
    VecH det0, det1, det2, det3;
    if(DETAIL) // #MaterialTextureChannelOrder
    {
-                      det0=Tex(Det , tex0*MultiMaterial0DetScale()).xyz*MultiMaterial0DetMul()+MultiMaterial0DetAdd();
-                      det1=Tex(Det1, tex1*MultiMaterial1DetScale()).xyz*MultiMaterial1DetMul()+MultiMaterial1DetAdd();
-      if(MATERIALS>=3)det2=Tex(Det2, tex2*MultiMaterial2DetScale()).xyz*MultiMaterial2DetMul()+MultiMaterial2DetAdd();
-      if(MATERIALS>=4)det3=Tex(Det3, tex3*MultiMaterial3DetScale()).xyz*MultiMaterial3DetMul()+MultiMaterial3DetAdd();
+                      det0=Tex(Det , tex0*MultiMaterial0.det_scale).xyz*MultiMaterial0.det_mul+MultiMaterial0.det_add;
+                      det1=Tex(Det1, tex1*MultiMaterial1.det_scale).xyz*MultiMaterial1.det_mul+MultiMaterial1.det_add;
+      if(MATERIALS>=3)det2=Tex(Det2, tex2*MultiMaterial2.det_scale).xyz*MultiMaterial2.det_mul+MultiMaterial2.det_add;
+      if(MATERIALS>=4)det3=Tex(Det3, tex3*MultiMaterial3.det_scale).xyz*MultiMaterial3.det_mul+MultiMaterial3.det_add;
    }
 
    // macro texture
@@ -613,21 +613,21 @@ void PS
    if(MTRL_BLEND)
    {
       VecH4 col0, col1, col2, col3;
-                       col0=Tex(Col , tex0); col0.rgb*=MultiMaterial0Color3(); I.material.x=MultiMaterialWeight(I.material.x, col0.a);
-                       col1=Tex(Col1, tex1); col1.rgb*=MultiMaterial1Color3(); I.material.y=MultiMaterialWeight(I.material.y, col1.a); if(MATERIALS==2)I.material.xy  /=I.material.x+I.material.y;
-      if(MATERIALS>=3){col2=Tex(Col2, tex2); col2.rgb*=MultiMaterial2Color3(); I.material.z=MultiMaterialWeight(I.material.z, col2.a); if(MATERIALS==3)I.material.xyz /=I.material.x+I.material.y+I.material.z;}
-      if(MATERIALS>=4){col3=Tex(Col3, tex3); col3.rgb*=MultiMaterial3Color3(); I.material.w=MultiMaterialWeight(I.material.w, col3.a); if(MATERIALS==4)I.material.xyzw/=I.material.x+I.material.y+I.material.z+I.material.w;}
+                       col0=Tex(Col , tex0); col0.rgb*=MultiMaterial0.color.rgb; I.material.x=MultiMaterialWeight(I.material.x, col0.a);
+                       col1=Tex(Col1, tex1); col1.rgb*=MultiMaterial1.color.rgb; I.material.y=MultiMaterialWeight(I.material.y, col1.a); if(MATERIALS==2)I.material.xy  /=I.material.x+I.material.y;
+      if(MATERIALS>=3){col2=Tex(Col2, tex2); col2.rgb*=MultiMaterial2.color.rgb; I.material.z=MultiMaterialWeight(I.material.z, col2.a); if(MATERIALS==3)I.material.xyz /=I.material.x+I.material.y+I.material.z;}
+      if(MATERIALS>=4){col3=Tex(Col3, tex3); col3.rgb*=MultiMaterial3.color.rgb; I.material.w=MultiMaterialWeight(I.material.w, col3.a); if(MATERIALS==4)I.material.xyzw/=I.material.x+I.material.y+I.material.z+I.material.w;}
 
-                      {if(DETAIL)col0.rgb+=det0.z; if(MACRO)col0.rgb=Lerp(col0.rgb, Tex(Mac , tex0*MacroScale).rgb, MultiMaterial0Macro()*mac_blend); tex =I.material.x*col0.rgb;}
-                      {if(DETAIL)col1.rgb+=det1.z; if(MACRO)col1.rgb=Lerp(col1.rgb, Tex(Mac1, tex1*MacroScale).rgb, MultiMaterial1Macro()*mac_blend); tex+=I.material.y*col1.rgb;}
-      if(MATERIALS>=3){if(DETAIL)col2.rgb+=det2.z; if(MACRO)col2.rgb=Lerp(col2.rgb, Tex(Mac2, tex2*MacroScale).rgb, MultiMaterial2Macro()*mac_blend); tex+=I.material.z*col2.rgb;}
-      if(MATERIALS>=4){if(DETAIL)col3.rgb+=det3.z; if(MACRO)col3.rgb=Lerp(col3.rgb, Tex(Mac3, tex3*MacroScale).rgb, MultiMaterial3Macro()*mac_blend); tex+=I.material.w*col3.rgb;}
+                      {if(DETAIL)col0.rgb+=det0.z; if(MACRO)col0.rgb=Lerp(col0.rgb, Tex(Mac , tex0*MacroScale).rgb, MultiMaterial0.macro*mac_blend); tex =I.material.x*col0.rgb;}
+                      {if(DETAIL)col1.rgb+=det1.z; if(MACRO)col1.rgb=Lerp(col1.rgb, Tex(Mac1, tex1*MacroScale).rgb, MultiMaterial1.macro*mac_blend); tex+=I.material.y*col1.rgb;}
+      if(MATERIALS>=3){if(DETAIL)col2.rgb+=det2.z; if(MACRO)col2.rgb=Lerp(col2.rgb, Tex(Mac2, tex2*MacroScale).rgb, MultiMaterial2.macro*mac_blend); tex+=I.material.z*col2.rgb;}
+      if(MATERIALS>=4){if(DETAIL)col3.rgb+=det3.z; if(MACRO)col3.rgb=Lerp(col3.rgb, Tex(Mac3, tex3*MacroScale).rgb, MultiMaterial3.macro*mac_blend); tex+=I.material.w*col3.rgb;}
    }else
    {
-                      {VecH col0=Tex(Col , tex0).rgb; if(DETAIL)col0+=det0.z; if(MACRO)col0=Lerp(col0, Tex(Mac , tex0*MacroScale).rgb, MultiMaterial0Macro()*mac_blend); tex =I.material.x*col0*MultiMaterial0Color3();}
-                      {VecH col1=Tex(Col1, tex1).rgb; if(DETAIL)col1+=det1.z; if(MACRO)col1=Lerp(col1, Tex(Mac1, tex1*MacroScale).rgb, MultiMaterial1Macro()*mac_blend); tex+=I.material.y*col1*MultiMaterial1Color3();}
-      if(MATERIALS>=3){VecH col2=Tex(Col2, tex2).rgb; if(DETAIL)col2+=det2.z; if(MACRO)col2=Lerp(col2, Tex(Mac2, tex2*MacroScale).rgb, MultiMaterial2Macro()*mac_blend); tex+=I.material.z*col2*MultiMaterial2Color3();}
-      if(MATERIALS>=4){VecH col3=Tex(Col3, tex3).rgb; if(DETAIL)col3+=det3.z; if(MACRO)col3=Lerp(col3, Tex(Mac3, tex3*MacroScale).rgb, MultiMaterial3Macro()*mac_blend); tex+=I.material.w*col3*MultiMaterial3Color3();}
+                      {VecH col0=Tex(Col , tex0).rgb; if(DETAIL)col0+=det0.z; if(MACRO)col0=Lerp(col0, Tex(Mac , tex0*MacroScale).rgb, MultiMaterial0.macro*mac_blend); tex =I.material.x*col0*MultiMaterial0.color.rgb;}
+                      {VecH col1=Tex(Col1, tex1).rgb; if(DETAIL)col1+=det1.z; if(MACRO)col1=Lerp(col1, Tex(Mac1, tex1*MacroScale).rgb, MultiMaterial1.macro*mac_blend); tex+=I.material.y*col1*MultiMaterial1.color.rgb;}
+      if(MATERIALS>=3){VecH col2=Tex(Col2, tex2).rgb; if(DETAIL)col2+=det2.z; if(MACRO)col2=Lerp(col2, Tex(Mac2, tex2*MacroScale).rgb, MultiMaterial2.macro*mac_blend); tex+=I.material.z*col2*MultiMaterial2.color.rgb;}
+      if(MATERIALS>=4){VecH col3=Tex(Col3, tex3).rgb; if(DETAIL)col3+=det3.z; if(MACRO)col3=Lerp(col3, Tex(Mac3, tex3*MacroScale).rgb, MultiMaterial3.macro*mac_blend); tex+=I.material.w*col3*MultiMaterial3.color.rgb;}
    }
 #if COLORS
    col*=tex;
