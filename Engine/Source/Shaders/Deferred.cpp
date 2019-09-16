@@ -200,7 +200,7 @@ void PS
 #endif
 
 #if BUMP_MODE==SBUMP_ZERO
-   glow    =MaterialGlow    ();
+   glow    =Material.glow;
    specular=MaterialSpecular();
    nrm     =0;
 #elif MATERIALS==1
@@ -343,7 +343,7 @@ void PS
    {
       if(DETAIL)col+=GetDetail(I.tex).z;
       nrm     =Normalize(I.Nrm());
-      glow    =MaterialGlow    ();
+      glow    =Material.glow;
       specular=MaterialSpecular();
    }else
    if(LAYOUT==1)
@@ -358,7 +358,7 @@ void PS
       }
       col    *=tex_col.rgb; if(DETAIL)col+=GetDetail(I.tex).z;
       nrm     =Normalize(I.Nrm());
-      glow    =MaterialGlow    ();
+      glow    =Material.glow;
       specular=MaterialSpecular();
    }else
    if(LAYOUT==2)
@@ -371,7 +371,7 @@ void PS
       #endif
          AlphaTest(tex_nrm.w);
       }
-      glow    =MaterialGlow    (); if(!ALPHA_TEST)glow*=tex_nrm.a;
+      glow    =Material.glow; if(!ALPHA_TEST)glow*=tex_nrm.a;
       specular=MaterialSpecular()*tex_nrm.z;
 
    #if BUMP_MODE==SBUMP_FLAT
