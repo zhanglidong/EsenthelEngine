@@ -117,9 +117,9 @@ void Surface_PS
 )
 {
    VecH nrm; // #MaterialTextureChannelOrder
-        nrm.xy=(Tex(Nrm, inTexN0.xy).xy - Tex(Nrm, inTexN0.zw).xy + Tex(Nrm, inTexN1.xy).xy - Tex(Nrm, inTexN1.zw).xy)*WaterRgh_2; // (Avg(Tex(Nrm, inTexN0.xy).xy, 1-Tex(Nrm, inTexN0.zw).xy, Tex(Nrm, inTexN1.xy).xy, 1-Tex(Nrm, inTexN1.zw).xy)*2-1)*WaterRgh
+        nrm.xy=(Tex(Nrm, inTexN0.xy).xy - Tex(Nrm, inTexN0.zw).xy + Tex(Nrm, inTexN1.xy).xy - Tex(Nrm, inTexN1.zw).xy)*WaterRgh_4; // Avg(Tex(Nrm, inTexN0.xy).xy, -Tex(Nrm, inTexN0.zw).xy, Tex(Nrm, inTexN1.xy).xy, -Tex(Nrm, inTexN1.zw).xy))*WaterRgh
 #if WAVES
-   nrm.xy+=(Tex(Nrm, inTexB.xy).xy - Tex(Nrm, inTexB.zw).xy)*WaterWave; // (Avg(Tex(Nrm, inTexB.xy).xy, 1-Tex(Nrm, inTexB.zw).xy)*2-1)*WaterWave
+   nrm.xy+=(Tex(Nrm, inTexB.xy).xy - Tex(Nrm, inTexB.zw).xy)*(WaterWave*0.5f); // Avg(Tex(Nrm, inTexB.xy).xy, -Tex(Nrm, inTexB.zw).xy))*WaterWave
 #endif
    nrm.z=CalcZ(nrm.xy);
 

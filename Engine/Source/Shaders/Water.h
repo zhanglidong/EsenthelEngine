@@ -1,7 +1,7 @@
 /******************************************************************************/
 #include "!Set SP.h"
 BUFFER(WaterSurface)
-   Half WaterRgh_2,
+   Half WaterRgh_4,
         WaterFresnelRough,
         WaterFresnelPow,
         WaterRflFake,

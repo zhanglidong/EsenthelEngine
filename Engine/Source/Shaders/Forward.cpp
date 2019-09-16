@@ -330,7 +330,7 @@ VecH4 PS
          VecH      det;
          if(DETAIL)det=GetDetail(I.tex);
 
-                   nrm.xy =(tex_nrm.xy*2-1)*MaterialRough();
+                   nrm.xy =tex_nrm.xy*Material.normal;
          if(DETAIL)nrm.xy+=det.xy;
                    nrm.z  =CalcZ(nrm.xy);
                    nrm    =Normalize(Transform(nrm, I.mtrx));

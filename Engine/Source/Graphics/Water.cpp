@@ -57,7 +57,7 @@ void WaterMtrl::set()
       SPSet("WaterScaleNrm"    , scale_normal );
       SPSet("WaterScaleBump"   , scale_bump   );
       SPSet("WaterRfr"         , refract      );
-      SPSet("WaterRgh_2"       , rough*0.5f   );
+      SPSet("WaterRgh_4"       , rough*0.25f  );
       SPSet("WaterRflFake"     , reflect_tex  );
       SPSet("WaterSpc"         , specular     );
       SPSet("WaterWave"        , wave_scale   );
