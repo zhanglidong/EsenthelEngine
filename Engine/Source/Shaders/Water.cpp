@@ -159,7 +159,7 @@ void Surface_PS
       O_nrm.xyz=view_nrm*0.5+0.5; // -1..1 -> 0..1
    #endif
 
-   #if SIGNED_NRM_RT && FULL_PRECISION_SPEC
+   #if SIGNED_NRM_RT && FULL_PRECISION_SMOOTH
       O_nrm.w=WaterSpc*2-1; // 0..1 -> -1..1
    #else
       O_nrm.w=WaterSpc;

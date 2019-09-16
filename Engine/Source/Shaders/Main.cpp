@@ -419,11 +419,12 @@ VecH4 PaletteDraw_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 /******************************************************************************/
 void ClearDeferred(out DeferredSolidOutput output)
 {
-   output.color   (0);
-   output.glow    (0);
-   output.normal  (Vec(0, 0, -1)); // set -1 because of AO #NRM_CLEAR
-   output.specular(0);
-   output.velocityZero();
+   output.color       (0);
+   output.glow        (0);
+   output.normal      (Vec(0, 0, -1)); // set -1 because of AO #NRM_CLEAR
+   output.smooth      (0);
+   output.velocityZero( );
+   output.reflect     (0);
 }
 /******************************************************************************/
 // DUMMY - used only to obtain info about ConstantBuffers/ShaderParams

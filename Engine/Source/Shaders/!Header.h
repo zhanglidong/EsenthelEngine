@@ -131,9 +131,10 @@
 /******************************************************************************/
 #define MS_SAMPLES 4 // number of samples in multi-sampled render targets
 
-#define SIGNED_NRM_RT       (!GL) // Normal   Render Target is signed everywhere except GL because there it depends on GL_EXT_render_snorm
-#define SIGNED_VEL_RT       (!GL) // Velocity Render Target is signed everywhere except GL because there it depends on GL_EXT_render_snorm
-#define FULL_PRECISION_SPEC 0     // if use full precision for specular intensity in SIGNED_NRM_RT, we can disable this because we lose only 1-bit of precision
+#define SIGNED_NRM_RT          (!GL) // Normal   Render Target is signed everywhere except GL because there it depends on GL_EXT_render_snorm
+#define SIGNED_VEL_RT          (!GL) // Velocity Render Target is signed everywhere except GL because there it depends on GL_EXT_render_snorm
+#define FULL_PRECISION_SMOOTH  0     // if use full precision for smooth  in SIGNED_NRM_RT, we can disable this because we lose only 1-bit of precision
+#define FULL_PRECISION_REFLECT 0     // if use full precision for reflect in SIGNED_VEL_RT, we can disable this because we lose only 1-bit of precision
 
 #define REVERSE_DEPTH (!GL) // if Depth Buffer is reversed. Can't enable on GL because for some reason (might be related to #glClipControl) it disables far-plane depth clipping, which can be observed when using func=FUNC_ALWAYS inside D.depthFunc. Even though we clear the depth buffer, there may still be performance hit, because normally geometry would already get clipped due to far plane, but without it, per-pixel depth tests need to be performed.
 #if     REVERSE_DEPTH
@@ -1275,7 +1276,7 @@ inline void UnpackNormal(in out VecH nrm, Int quality)
 inline VecH4 GetNormal(Vec2 tex, Int quality)
 {
    VecH4 nrm=TexPoint(Img, tex); UnpackNormal(nrm.xyz, quality);
-#if SIGNED_NRM_RT && FULL_PRECISION_SPEC
+#if SIGNED_NRM_RT && FULL_PRECISION_SMOOTH
    nrm.w=nrm.w*0.5+0.5; // -1..1 -> 0..1
 #endif
    return nrm;
@@ -1283,7 +1284,7 @@ inline VecH4 GetNormal(Vec2 tex, Int quality)
 inline VecH4 GetNormalMS(VecI2 pixel, UInt sample, Int quality)
 {
    VecH4 nrm=TexSample(ImgMS, pixel, sample); UnpackNormal(nrm.xyz, quality);
-#if SIGNED_NRM_RT && FULL_PRECISION_SPEC
+#if SIGNED_NRM_RT && FULL_PRECISION_SMOOTH
    nrm.w=nrm.w*0.5+0.5; // -1..1 -> 0..1
 #endif
    return nrm;
@@ -1630,14 +1631,20 @@ struct DeferredSolidOutput // use this structure in Pixel Shader for setting the
    #endif
    }
 
-#if SIGNED_NRM_RT && FULL_PRECISION_SPEC
-   inline void specular(Half specular) {out1.w=specular*2-1;} // 0..1 -> -1..1
+#if SIGNED_NRM_RT && FULL_PRECISION_SMOOTH
+   inline void smooth(Half smooth) {out1.w=smooth*2-1;} // 0..1 -> -1..1
 #else
-   inline void specular(Half specular) {out1.w=specular;}
+   inline void smooth(Half smooth) {out1.w=smooth;}
 #endif
 
-   inline void velocity(Vec vel, Vec view_space_pos) {out2.xyz=GetVelocity_PS(vel, view_space_pos); out2.w=0;}
-   inline void velocityZero() {out2.xyz=(SIGNED_VEL_RT ? 0 : 0.5); out2.w=0;}
+#if SIGNED_VEL_RT && FULL_PRECISION_REFLECT
+   inline void reflect(Half reflect) {out2.w=reflect*2-1;} // 0..1 -> -1..1
+#else
+   inline void reflect(Half reflect) {out2.w=reflect;}
+#endif
+
+   inline void velocity(Vec vel, Vec view_space_pos) {out2.xyz=GetVelocity_PS(vel, view_space_pos);}
+   inline void velocityZero() {out2.xyz=(SIGNED_VEL_RT ? 0 : 0.5);}
 };
 /******************************************************************************/
 // TESSELATION

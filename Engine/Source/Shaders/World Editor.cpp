@@ -39,14 +39,15 @@ void Color_PS
 )
 {
 #if VTX_COL
-   output.color   (VecH(COL_VALUE)*inCol.rgb+Highlight.rgb);
+   output.color       (VecH(COL_VALUE)*inCol.rgb+Highlight.rgb);
 #else
-   output.color   (VecH(COL_VALUE)+Highlight.rgb);
+   output.color       (VecH(COL_VALUE)+Highlight.rgb);
 #endif
-   output.glow    (0);
-   output.normal  (Normalize(inNrm));
-   output.specular(0);
-   output.velocityZero();
+   output.glow        (0);
+   output.normal      (Normalize(inNrm));
+   output.smooth      (0);
+   output.velocityZero( );
+   output.reflect     (0);
 }
 /******************************************************************************/
 // CIRCLE / SQUARE / GRID
