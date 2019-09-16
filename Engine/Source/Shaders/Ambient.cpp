@@ -38,9 +38,9 @@ VecH4 PS
 #endif
 
 #if LIGHT_MAP
-   return VecH4(Tex(Lum, inTex).rgb*MaterialAmbient(), 0);
+   return VecH4(Tex(Lum, inTex).rgb*Material.ambient, 0);
 #else
-   return VecH4(MaterialAmbient(), 0);
+   return VecH4(Material.ambient, 0);
 #endif
 }
 /******************************************************************************/

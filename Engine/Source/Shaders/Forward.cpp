@@ -183,7 +183,7 @@ void VS
       if(HAS_AMBIENT && AMBIENT_IN_VTX)
       {
          total_lum=AmbNSColor;
-         if(MATERIALS<=1 && AmbMaterial)total_lum+=MaterialAmbient();
+         if(MATERIALS<=1 && AmbMaterial)total_lum+=Material.ambient;
       }else total_lum=0;
 
       // LIGHTS
@@ -478,8 +478,8 @@ VecH4 PS
       ambient=AmbNSColor;
       if(MATERIALS<=1 && AmbMaterial)
       {
-         if(LIGHT_MAP)ambient+=MaterialAmbient()*Tex(Lum, I.tex).rgb;
-         else         ambient+=MaterialAmbient();
+         if(LIGHT_MAP)ambient+=Material.ambient*Tex(Lum, I.tex).rgb;
+         else         ambient+=Material.ambient;
       }
    }else ambient=0;
 

@@ -251,8 +251,8 @@ void PS
    VecH total_lum=AmbNSColor;
  /*if(AmbMaterial)
    {
-      if(LIGHT_MAP)total_lum+=MaterialAmbient()*Tex(Lum, I.tex).rgb;
-      else         total_lum+=MaterialAmbient();
+      if(LIGHT_MAP)total_lum+=Material.ambient*Tex(Lum, I.tex).rgb;
+      else         total_lum+=Material.ambient;
    }*/
 
 #if PER_PIXEL && FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
