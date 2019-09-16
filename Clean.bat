@@ -31,6 +31,7 @@ del "Engine\*.lib"
 del "Project\*.pdb"
 
 rmdir /s /q "Editor\Projects\_Build_"
+rmdir /s /q "Editor\Projects\_Publish_"
 
 rmdir /s /q "Editor Source\_Build_\Calculator"
 rmdir /s /q "Editor Source\_Build_\File Browser"
