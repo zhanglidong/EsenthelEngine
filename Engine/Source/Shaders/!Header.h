@@ -416,7 +416,8 @@ BUFFER(MultiMaterial3) MultiMaterialClass MultiMaterial3; BUFFER_END
 // IMAGES
 /******************************************************************************/
 #include "!Set IP.h"
-Image     Col, Col1, Col2, Col3; // #MaterialTextureChannelOrder
+// #MaterialTextureLayout
+Image     Col, Col1, Col2, Col3;
 ImageH2   Nrm, Nrm1, Nrm2, Nrm3;
 Image     Ext, Ext1, Ext2, Ext3,
           Det, Det1, Det2, Det3,
@@ -1416,7 +1417,7 @@ inline Half DepthWeight(Flt delta, Vec2 dw_mad)
 /******************************************************************************/
 inline VecH GetDetail(Vec2 tex)
 {
-   return (Tex(Det, tex*Material.det_scale).xyz-0.5)*Material.det_power; // tex.xy=nrm.xy, tex.z=color, #MaterialTextureChannelOrder
+   return (Tex(Det, tex*Material.det_scale).xyz-0.5)*Material.det_power; // tex.xy=nrm.xy, tex.z=color, #MaterialTextureLayout
 }
 /******************************************************************************/
 // FACE NORMAL HANDLING

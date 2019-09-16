@@ -58,15 +58,15 @@ VecH4 PS
 {
    VecH4 col  =Tex(Col, inTex.xy);
 #if ALPHA
-         col.a=Tex(Ext, inTex.xy).a; // #MaterialTextureChannelOrder
+         col.a=Tex(Ext, inTex.xy).a; // #MaterialTextureLayout
 #endif
    col  *=Material.color;
    col.a*=Sat((Half)inTex.z)*OverlayAlpha();
 
 #if NORMALS
            VecH nrm;
-                nrm.xy =Tex(Nrm, inTex.xy).xy*Material.normal; // #MaterialTextureChannelOrder
-    //if(detail)nrm.xy+=det.xy;
+                nrm.xy =Tex(Nrm, inTex.xy).xy*Material.normal; // #MaterialTextureLayout
+    //if(DETAIL)nrm.xy+=det.xy;
                 nrm.z  =CalcZ(nrm.xy);
                 nrm    =Transform(nrm, inMatrix);
 

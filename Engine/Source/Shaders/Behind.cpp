@@ -43,7 +43,7 @@ VecH4 PS
 {
 #if ALPHA_TEST
    if(ALPHA_TEST==1)clip(Tex(Col, inTex).a + Material.color.a-1);else // alpha in 'Col' texture
-   if(ALPHA_TEST==2)clip(Tex(Ext, inTex).a + Material.color.a-1);     // alpha in 'Ext' texture, #MaterialTextureChannelOrder
+   if(ALPHA_TEST==2)clip(Tex(Ext, inTex).a + Material.color.a-1);     // alpha in 'Ext' texture, #MaterialTextureLayout
 #endif
 
    Half alpha=Sat((Half(inPos.z-TexDepthPoint(PixelToScreen(pixel)))-BehindBias)/0.3);

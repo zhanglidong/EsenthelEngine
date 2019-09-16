@@ -207,7 +207,7 @@ void PS
 {
    VecH  nrm;
    Half  specular=MaterialSpecular();
-   VecH4 tex_nrm; // #MaterialTextureChannelOrder
+   VecH4 tex_nrm; // #MaterialTextureLayout
 
 #if   LAYOUT==0
    if(PER_PIXEL && BUMP_MODE>=SBUMP_FLAT)nrm=Normalize(I.Nrm());

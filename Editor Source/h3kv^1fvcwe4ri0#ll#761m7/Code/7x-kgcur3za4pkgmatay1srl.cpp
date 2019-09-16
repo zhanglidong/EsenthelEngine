@@ -84,7 +84,7 @@ class EditMaterial
    }
    void separateBaseTexs(C Project &proj, C TimeStamp &time=TimeStamp().getUTC())
    {
-      if(!alpha_map.is() && color_map.is() && hasBase1Tex()) // if alpha map not specified, but may come from color map, and will go to Base1 texture, #MaterialTextureChannelOrder
+      if(!alpha_map.is() && color_map.is() && hasBase1Tex()) // if alpha map not specified, but may come from color map, and will go to Base1 texture, #MaterialTextureLayout
       {
          Image color; if(proj.loadImages(color, color_map, true))if(HasAlpha(color)) // if color has alpha
          {

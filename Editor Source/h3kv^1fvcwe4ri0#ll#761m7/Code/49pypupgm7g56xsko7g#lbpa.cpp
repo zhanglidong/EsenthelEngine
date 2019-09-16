@@ -688,7 +688,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                   // adjust specular related parameters
                   {
                      flt  avg_specular=0.5;
-                     Vec4 avg; if(mtrl->base_1)if(mtrl->base_1->stats(null, null, &avg))avg_specular=avg.z; // specular is packed in BLUE channel, #MaterialTextureChannelOrder
+                     Vec4 avg; if(mtrl->base_1)if(mtrl->base_1->stats(null, null, &avg))avg_specular=avg.z; // specular is packed in BLUE channel, #MaterialTextureLayout
                      temp.specular*=avg_specular;
                      temp.reflect *=avg_specular;
                   }
@@ -714,7 +714,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                          if(Texture *t=GetTexture(publish_texs, data.     light_tex)){t .srgb=true ; t .downSize(downsize);} // doesn't use Alpha, 'GetTexture' needs to be called
                          if(Texture *t=GetTexture(publish_texs, data.reflection_tex)){t .srgb=true ;}                        // doesn't use Alpha, 'GetTexture' needs to be called
 
-            // check which base textures use Alpha Channel, #MaterialTextureChannelOrder
+            // check which base textures use Alpha Channel, #MaterialTextureLayout
             if(t1) // having 'base_1' texture means that 'base_0' alpha channel is bump intensity and 'base_1' is alpha channel opacity
             {
                if(t0)if(                       uses_tex_bump)t0.uses_alpha=true; // Alpha used for bump
@@ -733,7 +733,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
             Texture *t1; if(        t1=GetTexture(publish_texs, data.    base_1_tex)){t1.srgb=false; if(ForceHQMtrlBase1)t1.quality=1; t1.non_perceptual=true;} // doesn't use Alpha
                          if(Texture *t=GetTexture(publish_texs, data.reflection_tex)){t .srgb=true ;} // doesn't use Alpha, 'GetTexture' needs to be called
 
-            // check which base textures use Alpha Channel, #MaterialTextureChannelOrder
+            // check which base textures use Alpha Channel, #MaterialTextureLayout
             if(t1) // having 'base_1' texture means that 'base_0' alpha channel is bump intensity and 'base_1' is alpha channel opacity
             {
                if(t0)if(data.usesTexBump())t0.uses_alpha=true; // Alpha used for bump

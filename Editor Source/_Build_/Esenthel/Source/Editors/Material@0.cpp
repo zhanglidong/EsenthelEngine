@@ -211,7 +211,7 @@ MaterialTech mtrl_techs[]=
                          &reflection=mr->getReflection(),
                          &light     =mr->getLight     ();
             ALPHA_MODE alpha=D.alpha(ALPHA_NONE);
-            switch(type) // #MaterialTextureChannelOrder
+            switch(type) // #MaterialTextureLayout
             {
                case TEX_COLOR   : if(em.     color_map.is()                          )if(base_0          ){                                                                                                               base_0->drawFit(rect); tex=true;} break;
                case TEX_ALPHA   : if(em.     color_map.is() || em.alpha_map.is()     )if(base_0 || base_1){VI.shader(ShaderFiles("Main")->get(base_1 ? "DrawTexWG" : "DrawTexWG" )); if(base_1)base_1->drawFit(rect);else base_0->drawFit(rect); tex=true;} break;
@@ -471,7 +471,7 @@ MaterialTech mtrl_techs[]=
       }
 
       if(Proj.forceImageSize(edit.   color_map,                                 sizes[0], relative, edit.   color_map_time, time) // !! use '|' because all need to be processed !!
-      |  Proj.forceImageSize(edit.   alpha_map, edit.hasBase1Tex() ? sizes[1] : sizes[0], relative, edit.   alpha_map_time, time) // #MaterialTextureChannelOrder
+      |  Proj.forceImageSize(edit.   alpha_map, edit.hasBase1Tex() ? sizes[1] : sizes[0], relative, edit.   alpha_map_time, time) // #MaterialTextureLayout
       |  Proj.forceImageSize(edit.    bump_map,                                 sizes[0], relative, edit.    bump_map_time, time)
       |  Proj.forceImageSize(edit.  normal_map,                      sizes[1]           , relative, edit.  normal_map_time, time)
       |  Proj.forceImageSize(edit.specular_map,                      sizes[1]           , relative, edit.specular_map_time, time)
@@ -492,7 +492,7 @@ MaterialTech mtrl_techs[]=
       if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
          if(                       Proj.forceImageSize(edit.color_map, 0, relative, edit.color_map_time, time)  // !! use '|' because all need to be processed !!
          |                         Proj.forceImageSize(edit. bump_map, 0, relative, edit. bump_map_time, time)
-         | (!edit.hasBase1Tex() && Proj.forceImageSize(edit.alpha_map, 0, relative, edit.alpha_map_time, time))) // resize alpha only if it's going to be placed in Base0 tex, #MaterialTextureChannelOrder
+         | (!edit.hasBase1Tex() && Proj.forceImageSize(edit.alpha_map, 0, relative, edit.alpha_map_time, time))) // resize alpha only if it's going to be placed in Base0 tex, #MaterialTextureLayout
       {
          MtrlImages mi; mi.fromMaterial(edit, Proj, false); mi.baseTextureSizes(&size0, null); // calculate actual sizes
          size0.set(Max(1, Shl(size0.x, size.x)), Max(1, Shl(size0.y, size.y)));
@@ -502,7 +502,7 @@ MaterialTech mtrl_techs[]=
 
       if(                       Proj.forceImageSize(edit.color_map, size0, relative, edit.color_map_time, time)  // !! use '|' because all need to be processed !!
       |                         Proj.forceImageSize(edit. bump_map, size0, relative, edit. bump_map_time, time)
-      | (!edit.hasBase1Tex() && Proj.forceImageSize(edit.alpha_map, size0, relative, edit.alpha_map_time, time)) // resize alpha only if it's going to be placed in Base0 tex, #MaterialTextureChannelOrder
+      | (!edit.hasBase1Tex() && Proj.forceImageSize(edit.alpha_map, size0, relative, edit.alpha_map_time, time)) // resize alpha only if it's going to be placed in Base0 tex, #MaterialTextureLayout
       )
       {
          edit.cleanupMaps();
@@ -521,7 +521,7 @@ MaterialTech mtrl_techs[]=
          if(                      Proj.forceImageSize(edit.  normal_map, 0, relative, edit.  normal_map_time, time)  // !! use '|' because all need to be processed !!
          |                        Proj.forceImageSize(edit.specular_map, 0, relative, edit.specular_map_time, time)
          |                        Proj.forceImageSize(edit.    glow_map, 0, relative, edit.    glow_map_time, time)
-         | (edit.hasBase1Tex() && Proj.forceImageSize(edit.   alpha_map, 0, relative, edit.   alpha_map_time, time))) // resize alpha only if it's going to be placed in Base1 tex, #MaterialTextureChannelOrder
+         | (edit.hasBase1Tex() && Proj.forceImageSize(edit.   alpha_map, 0, relative, edit.   alpha_map_time, time))) // resize alpha only if it's going to be placed in Base1 tex, #MaterialTextureLayout
       {
          MtrlImages mi; mi.fromMaterial(edit, Proj, false); mi.baseTextureSizes(null, &size1); // calculate actual sizes
          size1.set(Max(1, Shl(size1.x, size.x)), Max(1, Shl(size1.y, size.y)));
@@ -532,7 +532,7 @@ MaterialTech mtrl_techs[]=
       if(                      Proj.forceImageSize(edit.  normal_map, size1, relative, edit.  normal_map_time, time)  // !! use '|' because all need to be processed !!
       |                        Proj.forceImageSize(edit.specular_map, size1, relative, edit.specular_map_time, time)
       |                        Proj.forceImageSize(edit.    glow_map, size1, relative, edit.    glow_map_time, time)
-      | (edit.hasBase1Tex() && Proj.forceImageSize(edit.   alpha_map, size1, relative, edit.   alpha_map_time, time)) // resize alpha only if it's going to be placed in Base1 tex, #MaterialTextureChannelOrder
+      | (edit.hasBase1Tex() && Proj.forceImageSize(edit.   alpha_map, size1, relative, edit.   alpha_map_time, time)) // resize alpha only if it's going to be placed in Base1 tex, #MaterialTextureLayout
       )
       {
          edit.cleanupMaps();

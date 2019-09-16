@@ -49,10 +49,10 @@ ShaderBuffer* FindShaderBuffer(CChar8 *name) {return ShaderBuffers.find(Str8Temp
 ShaderBuffer*  GetShaderBuffer(CChar8 *name) {ShaderBuffer *sb=FindShaderBuffer(name); if(!sb)Exit(S+"Shader Buffer \""+name+"\" not found."); return sb;}
 /******************************************************************************/
 static Int Layout(C Material &material) // Textures
-{ // #MaterialTextureChannelOrder
+{ // #MaterialTextureLayout
    if(material.base_0)
    {
-      if(material.base_2)return 2;
+      if(material.base_2)return 2; // layout 2 assumes we have both 'base_0' and 'base_2'
                          return 1;
    }                     return 0;
    // 'base_1' is normal map and doesn't affect texture layout
@@ -61,9 +61,9 @@ static Int BumpMode(C Material &material, UInt mesh_base_flag)
 {
    if(mesh_base_flag&VTX_NRM)
    {
-      if((mesh_base_flag&VTX_TEX0) && (mesh_base_flag&VTX_TAN) && D.bumpMode()>=BUMP_NORMAL && material.base_1) // #MaterialTextureChannelOrder
+      if((mesh_base_flag&VTX_TEX0) && (mesh_base_flag&VTX_TAN) && D.bumpMode()>=BUMP_NORMAL && material.base_1) // normal in 'base_1' #MaterialTextureLayout
       {
-         if(D.bumpMode()>BUMP_NORMAL && material.bump>EPS_MATERIAL_BUMP && material.base_2) // #MaterialTextureChannelOrder
+         if(D.bumpMode()>BUMP_NORMAL && material.bump>EPS_MATERIAL_BUMP && material.base_2) // bump in 'base_2' #MaterialTextureLayout
          {
             if(D.bumpMode()==BUMP_RELIEF)return SBUMP_RELIEF;
             return Mid(Ceil(material.bump/0.0075f)+SBUMP_PARALLAX0, SBUMP_PARALLAX_MIN, SBUMP_PARALLAX_MAX);

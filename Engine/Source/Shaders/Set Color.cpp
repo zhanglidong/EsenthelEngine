@@ -58,7 +58,7 @@ VecH4 PS
 {
 #if ALPHA_TEST
    if(ALPHA_TEST==1)clip(Tex(Col, I.tex).a+(Material.color.a-1));else
-   if(ALPHA_TEST==2)clip(Tex(Ext, I.tex).a+(Material.color.a-1)); // #MaterialTextureChannelOrder
+   if(ALPHA_TEST==2)clip(Tex(Ext, I.tex).a+(Material.color.a-1)); // #MaterialTextureLayout
 #endif
 
    return Highlight;

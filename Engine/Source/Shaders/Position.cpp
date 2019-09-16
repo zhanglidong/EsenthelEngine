@@ -75,7 +75,7 @@ void PS(VS_PS I)
 {
 #if ALPHA_TEST
    if(ALPHA_TEST==1)clip(Tex(Col, I.tex).a+(TEST_BLEND ? (Material.color.a*0.5-1) : (Material.color.a-1)));else
-   if(ALPHA_TEST==2)clip(Tex(Ext, I.tex).a+(TEST_BLEND ? (Material.color.a*0.5-1) : (Material.color.a-1))); // #MaterialTextureChannelOrder
+   if(ALPHA_TEST==2)clip(Tex(Ext, I.tex).a+(TEST_BLEND ? (Material.color.a*0.5-1) : (Material.color.a-1))); // #MaterialTextureLayout
 #endif
 }
 /******************************************************************************/

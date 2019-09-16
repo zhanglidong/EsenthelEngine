@@ -284,7 +284,7 @@ VecH4 PS
    glow    =Material.glow;
    specular=0;
 #elif MATERIALS==1
-   VecH4 tex_nrm; // #MaterialTextureChannelOrder
+   VecH4 tex_nrm; // #MaterialTextureLayout
    if(LAYOUT==0)
    {
       if(DETAIL)col+=GetDetail(I.tex).z;
@@ -309,7 +309,7 @@ VecH4 PS
    }else
    if(LAYOUT==2)
    {
-      tex_nrm=Tex(Nrm, I.tex); // #MaterialTextureChannelOrder
+      tex_nrm=Tex(Nrm, I.tex); // #MaterialTextureLayout
       if(ALPHA_TEST)
       {
       #if FX==FX_GRASS
@@ -392,7 +392,7 @@ VecH4 PS
    {
       nrm=Normalize(I.Nrm());
 
-                VecH2 tex =I.material.x*MultiMaterial0NormalAdd().zw // #MaterialTextureChannelOrder
+                VecH2 tex =I.material.x*MultiMaterial0NormalAdd().zw // #MaterialTextureLayout
                           +I.material.y*MultiMaterial1NormalAdd().zw;
       if(MATERIALS>=3)tex+=I.material.z*MultiMaterial2NormalAdd().zw;
       if(MATERIALS>=4)tex+=I.material.w*MultiMaterial3NormalAdd().zw;
@@ -422,7 +422,7 @@ VecH4 PS
       {
          nrm=Normalize(I.Nrm());
 
-                          VecH2 tex; // #MaterialTextureChannelOrder
+                          VecH2 tex; // #MaterialTextureLayout
                          {VecH2 nrm0; nrm0=Tex(Nrm , tex0).zw; if(REFLECT)tex_spec[0]=nrm0.x; nrm0=nrm0*MultiMaterial0NormalMul().zw+MultiMaterial0NormalAdd().zw; tex =I.material.x*nrm0;}
                          {VecH2 nrm1; nrm1=Tex(Nrm1, tex1).zw; if(REFLECT)tex_spec[1]=nrm1.x; nrm1=nrm1*MultiMaterial1NormalMul().zw+MultiMaterial1NormalAdd().zw; tex+=I.material.y*nrm1;}
          if(MATERIALS>=3){VecH2 nrm2; nrm2=Tex(Nrm2, tex2).zw; if(REFLECT)tex_spec[2]=nrm2.x; nrm2=nrm2*MultiMaterial2NormalMul().zw+MultiMaterial2NormalAdd().zw; tex+=I.material.z*nrm2;}
@@ -433,7 +433,7 @@ VecH4 PS
       }
       #elif BUMP_MODE>SBUMP_FLAT // normal mapping
       {
-                          VecH4 tex; // #MaterialTextureChannelOrder
+                          VecH4 tex; // #MaterialTextureLayout
                          {VecH4 nrm0=Tex(Nrm , tex0); if(REFLECT)tex_spec[0]=nrm0.z; nrm0=nrm0*MultiMaterial0NormalMul()+MultiMaterial0NormalAdd(); tex =I.material.x*nrm0;}
                          {VecH4 nrm1=Tex(Nrm1, tex1); if(REFLECT)tex_spec[1]=nrm1.z; nrm1=nrm1*MultiMaterial1NormalMul()+MultiMaterial1NormalAdd(); tex+=I.material.y*nrm1;}
          if(MATERIALS>=3){VecH4 nrm2=Tex(Nrm2, tex2); if(REFLECT)tex_spec[2]=nrm2.z; nrm2=nrm2*MultiMaterial2NormalMul()+MultiMaterial2NormalAdd(); tex+=I.material.z*nrm2;}

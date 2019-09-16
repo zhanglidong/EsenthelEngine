@@ -116,7 +116,7 @@ void Surface_PS
 #endif
 )
 {
-   VecH nrm; // #MaterialTextureChannelOrder
+   VecH nrm; // #MaterialTextureLayout
         nrm.xy=(Tex(Nrm, inTexN0.xy).xy - Tex(Nrm, inTexN0.zw).xy + Tex(Nrm, inTexN1.xy).xy - Tex(Nrm, inTexN1.zw).xy)*WaterRgh_4; // Avg(Tex(Nrm, inTexN0.xy).xy, -Tex(Nrm, inTexN0.zw).xy, Tex(Nrm, inTexN1.xy).xy, -Tex(Nrm, inTexN1.zw).xy))*WaterRgh
 #if WAVES
    nrm.xy+=(Tex(Nrm, inTexB.xy).xy - Tex(Nrm, inTexB.zw).xy)*(WaterWave*0.5f); // Avg(Tex(Nrm, inTexB.xy).xy, -Tex(Nrm, inTexB.zw).xy))*WaterWave

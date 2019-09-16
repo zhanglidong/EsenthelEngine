@@ -201,9 +201,9 @@ TextureDownsize TexDownsize;
                   base1_size=ImageSize(normal_mtrl->base_1, base1);
                }
                if(base0_size!=base1_size)downsized.separateBaseTexs(Proj, time);
-               VecI2 alpha_size=(downsized.hasBase1Tex() ? base1_size : base0_size); // alpha can go into Base0/Base1, #MaterialTextureChannelOrder
+               VecI2 alpha_size=(downsized.hasBase1Tex() ? base1_size : base0_size); // alpha can go into Base0/Base1, #MaterialTextureLayout
 
-               // resize images, #MaterialTextureChannelOrder
+               // resize images, #MaterialTextureLayout
                Proj.forceImageSize(downsized.   color_map, base0_size, relative, downsized.   color_map_time, time);
                Proj.forceImageSize(downsized.   alpha_map, alpha_size, relative, downsized.   alpha_map_time, time);
                Proj.forceImageSize(downsized.    bump_map, base0_size, relative, downsized.    bump_map_time, time);
@@ -356,8 +356,8 @@ TextureDownsize TexDownsize;
 
       prop_ts.reset(); prop_ts.align.set(1, 0); prop_ts.size=0.055f;
       props.New().create("Global", MemberDesc(DATA_INT).setFunc(Global, Global)).desc("How much to Downsize both Base0 and Base1 Material Textures.");
-      props.New().create("Base 0", MemberDesc(DATA_INT).setFunc(Base0 , Base0 )).desc("How much to Downsize Base0 Material Texture, such as Color, Alpha, Bump."    ); // #MaterialTextureChannelOrder
-      props.New().create("Base 1", MemberDesc(DATA_INT).setFunc(Base1 , Base1 )).desc("How much to Downsize Base1 Material Texture, such as Normal, Specular, Glow."); // #MaterialTextureChannelOrder
+      props.New().create("Base 0", MemberDesc(DATA_INT).setFunc(Base0 , Base0 )).desc("How much to Downsize Base0 Material Texture, such as Color, Alpha, Bump."    ); // #MaterialTextureLayout
+      props.New().create("Base 1", MemberDesc(DATA_INT).setFunc(Base1 , Base1 )).desc("How much to Downsize Base1 Material Texture, such as Normal, Specular, Glow."); // #MaterialTextureLayout
       Rect r=AddProperties(props, region, Vec2(padd, -0.005f), prop_h, 0.25f, &prop_ts); REPAO(props).autoData(this).range(-1, 10).mouseEditSpeed(1).changed(SetTextures);
 
       Node<MenuElm> menu; Viewport4Region &v4=T;

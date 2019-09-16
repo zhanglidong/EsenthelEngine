@@ -56,7 +56,7 @@ VecH4 PS
    VecH4 inColor:COLOR
 ):TARGET
 {
-   VecH4 ext; // #MaterialTextureChannelOrder
+   VecH4 ext; // #MaterialTextureLayout
 
 #if LAYOUT
    if(LAYOUT==1)                      inColor    *=Tex(Col, inTex);else                    // alpha in 'Col' texture

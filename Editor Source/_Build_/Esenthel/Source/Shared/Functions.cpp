@@ -318,9 +318,9 @@ bool SetFullAlpha(Image &image, IMAGE_TYPE type, bool always) // returns if any 
 void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type, uint flags) // calculate image MD5 (when in IMAGE_R8G8B8A8 type) and get best type for image compression
 {
    bool sign=false;
-   if(flags&MTRL_BASE_0){if(ForceHQMtrlBase0)flags|=FORCE_HQ; flags|=SRGB;} // #MaterialTextureChannelOrder
-   if(flags&MTRL_BASE_1){if(ForceHQMtrlBase1)flags|=FORCE_HQ; sign=true; if(compress_type){*compress_type=IMAGE_BC5_SIGN; compress_type=null;}} // normal tex always uses BC5_SIGN (RG HQ) #MaterialTextureChannelOrder
-   if(flags&MTRL_BASE_2){if(ForceHQMtrlBase2)flags|=FORCE_HQ;} // #MaterialTextureChannelOrder
+   if(flags&MTRL_BASE_0){if(ForceHQMtrlBase0)flags|=FORCE_HQ; flags|=SRGB;} // #MaterialTextureLayout
+   if(flags&MTRL_BASE_1){if(ForceHQMtrlBase1)flags|=FORCE_HQ; sign=true; if(compress_type){*compress_type=IMAGE_BC5_SIGN; compress_type=null;}} // normal tex always uses BC5_SIGN (RG HQ) #MaterialTextureLayout
+   if(flags&MTRL_BASE_2){if(ForceHQMtrlBase2)flags|=FORCE_HQ;} // #MaterialTextureLayout
    if(md5 || compress_type)
    {
       // set initial values
@@ -420,7 +420,7 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, Image *c
          REPD(y, b1.h())
          REPD(x, b1.w())
          {
-            Color c=b1.color(x, y); // #MaterialTextureChannelOrder
+            Color c=b1.color(x, y); // #MaterialTextureLayout
           /*if(old)
             {
                if(alpha   ){alpha   .pixel(x, y, c.b); if(c.b<254)tex|=BT_ALPHA   ;}
@@ -481,7 +481,7 @@ void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *col, Image 
       REPD(y, det.h())
       REPD(x, det.w())
       {
-         Color c=det.color(x, y); // #MaterialTextureChannelOrder
+         Color c=det.color(x, y); // #MaterialTextureLayout
        /*if(old)
          {
             if(col   ){col .pixel(x, y, c.r); if(c.r<254)tex|=BT_COLOR;}

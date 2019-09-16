@@ -239,12 +239,12 @@ VecH4 Decal_PS(PIXEL,
 #if MODE==2 // palette
    return (col.a*alpha)*Color[0]*Material.color;
 #elif MODE==1 // normal
-   // #MaterialTextureChannelOrder
+   // #MaterialTextureLayout
    Half  specular=tex_nrm.z*MaterialSpecular(); // specular is in 'nrm.z'
 
         VecH nrm;
-             nrm.xy =Tex(Nrm, pos.xy).xy*Material.normal; // #MaterialTextureChannelOrder
- //if(detail)nrm.xy+=det.xy;
+             nrm.xy =Tex(Nrm, pos.xy).xy*Material.normal; // #MaterialTextureLayout
+ //if(DETAIL)nrm.xy+=det.xy;
              nrm.z  =CalcZ(nrm.xy);
              nrm    =Transform(nrm, inMatrixN);
 

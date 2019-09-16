@@ -17,7 +17,7 @@ namespace EE{
 
    base_1 always: NrmX, NrmY
 
-   When changing the above to a different order, then look for "#MaterialTextureChannelOrder" text in Engine/Editor to update the codes.
+   When changing the above to a different order, then look for "#MaterialTextureLayout" text in Engine/Editor to update the codes.
 
 /******************************************************************************/
 enum MTRL_TEX_LAYOUT : Byte
@@ -28,14 +28,14 @@ enum MTRL_TEX_LAYOUT : Byte
 };
 #define CC4_MTRL CC4('M','T','R','L')
 
-#define BUMP_DEFAULT_TEX 0 // 0..255, normally this should be 128, but 0 will allow to use BC5 (for Mtrl.base_2 tex if there's no Alpha) and always set Material.bump=0 when bump is not used #MaterialTextureChannelOrder
+#define BUMP_DEFAULT_TEX 0 // 0..255, normally this should be 128, but 0 will allow to use BC5 (for Mtrl.base_2 tex if there's no Alpha) and always set Material.bump=0 when bump is not used #MaterialTextureLayout
 #define BUMP_DEFAULT_PAR 0.03f
 
 #define BUMP_NORMAL_SCALE (1.0f/64) // 0.015625, this value should be close to average 'Material.bump' which are 0.015, 0.03, 0.05 (remember that in Editor that value may be scaled)
 
 #define REFLECT_DEFAULT_PAR 0.04f
 
-// #MaterialTextureChannelOrder
+// #MaterialTextureLayout
 // base_0
 #define    GLOW_CHANNEL 3
 // base_1
@@ -119,14 +119,14 @@ Bool Material::hasLeaf           ()C {return                                    
 /******************************************************************************/
 Bool Material::wantTanBin()C
 {
-   // #MaterialTextureChannelOrder
+   // #MaterialTextureLayout
    return (base_1     && normal   >EPS_COL          )  // normal        is in base_1
        || (base_2     && bump     >EPS_MATERIAL_BUMP)  // bump          is in base_2
        || (detail_map && det_power>EPS_COL          ); // normal detail is in DetailMap
 }
 /******************************************************************************/
 Material& Material::reset   () {T=MaterialDefault; return validate();}
-Material& Material::validate() // #MaterialTextureChannelOrder
+Material& Material::validate() // #MaterialTextureLayout
 {
                       if(this==MaterialLast    )MaterialLast    =null;
    REPA(MaterialLast4)if(this==MaterialLast4[i])MaterialLast4[i]=null;
@@ -139,7 +139,7 @@ Material& Material::validate() // #MaterialTextureChannelOrder
    // set multi
    {
      _multi.color    =(LINEAR_GAMMA ? colorL() : colorS());
-     _multi.glow     =glow; // 'glow_mul', 'glow_add' not needed because Glow is stored in base_0 (which can be either Alpha or Glow, however Alpha is never used for multi-materials, so it's always 1.0)
+     _multi.glow     =glow; // 'glow_mul', 'glow_add' not needed because Glow is stored in 'base_0' (which can be either Alpha or Glow, however Alpha is never used for multi-materials, so it's always 1.0)
      _multi.tex_scale=tex_scale;
      _multi.det_scale=det_scale;
 
@@ -609,7 +609,7 @@ void MaterialClear() // must be called: after changing 'Renderer.mode', after ch
 /******************************************************************************/
 UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &col, C Image &alpha, C Image &bump, C Image &normal, C Image &smooth, C Image &reflect, C Image &glow, Bool resize_to_pow2, Bool flip_normal_y, FILTER_TYPE filter)
 {
-   // #MaterialTextureChannelOrder
+   // #MaterialTextureLayout
    UInt  ret=0;
    Image dest_0, dest_1, dest_2;
    {
@@ -830,7 +830,7 @@ void CreateDetailTexture(Image &detail, C Image &col, C Image &bump, C Image &no
                      Byte  bump  =(  bump_src->is() ?   bump_src->color(x, y).lum() : 255);
                      Color nrm   =(normal_src->is() ? normal_src->color(x, y)       : Color(128, 128, 255, 0)); if(flip_normal_y)nrm.g=255-nrm.g;
                      Byte  smooth=(smooth_src->is() ? smooth_src->color(x, y).lum() : 255);
-                     dest.color(x, y, Color(nrm.r, nrm.g, col, bump)); // #MaterialTextureChannelOrder
+                     dest.color(x, y, Color(nrm.r, nrm.g, col, bump)); // #MaterialTextureLayout
                   }
                   smooth_src->unlock();
                }
@@ -896,7 +896,7 @@ static inline Flt LightSpecular(C Vec &nrm, C Vec &light_dir, C Vec &eye_dir, Fl
 }
 Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int max_image_size, C Vec *light_dir, Flt light_power, Flt spec_mul, FILTER_TYPE filter)
 {
-   // #MaterialTextureChannelOrder
+   // #MaterialTextureLayout
    if(material.base_0 && material.base_0->is()
    &&(material.base_1 && material.base_1->is()
    || material.base_2 && material.base_2->is())) // if have multiple textures
