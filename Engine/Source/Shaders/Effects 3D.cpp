@@ -190,7 +190,7 @@ inline Half DecalOpaqueFracMul() {return DecalParams.x;}
 inline Half DecalOpaqueFracAdd() {return DecalParams.y;}
 inline Half DecalAlpha        () {return DecalParams.z;}
 
-// FULSCREEN, MODE 0-default, 1-normals, 2-palette
+// FULLSCREEN, MODE 0-default, 1-normals, 2-palette
 
 void Decal_VS(VtxInput vtx,
           out Vec4    outVtx    :POSITION,
