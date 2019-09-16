@@ -1831,7 +1831,6 @@
     <ClInclude Include="Source\Shaders\Overlay.h" />
     <ClInclude Include="Source\Shaders\Sky.h" />
     <ClInclude Include="Source\Shaders\SMAA.h" />
-    <ClInclude Include="Source\Shaders\Volumetric.h" />
     <ClInclude Include="Source\Shaders\Water.h" />
     <ClInclude Include="Source\Platforms\iOS\EAGLView.h" />
     <ClInclude Include="Source\Platforms\iOS\IAPManager.h" />
