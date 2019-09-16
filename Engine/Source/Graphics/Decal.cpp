@@ -26,7 +26,7 @@ void Decal::setShader()
 {
    REPD(f, 2)
    REPD(p, 2)
-   {
+   { // FIXME
       if(_material && _material->base_0)
       {
          Shader* &src=Sh.Decal[f][p ? 2 : _material->base_1 ? 1 : 0];
