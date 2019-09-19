@@ -66,8 +66,6 @@ static IMAGE_TYPE OldImageType0(Byte type)
 /******************************************************************************/
 Bool Image::saveData(File &f)C
 {
-   if(mode()!=IMAGE_SOFT && mode()!=IMAGE_SOFT_CUBE && mode()!=IMAGE_2D && mode()!=IMAGE_3D && mode()!=IMAGE_CUBE)return false; // verify that mode is correct
-
    IMAGE_TYPE file_type=T.type(); // set image type as to be stored in the file
    switch(file_type) // if compressing to format which isn't supported then store as current 'hwType'
    {
@@ -86,6 +84,9 @@ Bool Image::saveData(File &f)C
       case IMAGE_PVRTC1_4: case IMAGE_PVRTC1_4_SRGB:
          if(!CompressPVRTC)file_type=T.hwType(); break;
    }
+   if(file_type>=IMAGE_TYPES               // don't allow saving private formats
+   || mode()   >=IMAGE_RT   )return false; // don't allow saving private modes
+   ASSERT(IMAGE_2D==0 && IMAGE_3D==1 && IMAGE_CUBE==2 && IMAGE_SOFT==3 && IMAGE_SOFT_CUBE==4 && IMAGE_RT==5);
 
    f.putMulti(Byte(1), size3(), Byte(file_type), Byte(mode()), Byte(mipMaps())); // version
 
