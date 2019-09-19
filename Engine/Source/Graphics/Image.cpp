@@ -1544,8 +1544,8 @@ Bool Image::createTry(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int
 }
 Image& Image::create(Int w, Int h, Int d, IMAGE_TYPE type, IMAGE_MODE mode, Int mip_maps, Bool rgba_on_fail)
 {
-   if(!createTry(w, h, d, type, mode, mip_maps, rgba_on_fail))Exit(MLT(S+"Can't create texture "       +w+'x'+h+'x'+d+", type "+ImageTI[type].name+", mode "+mode+".",
-                                                                   PL,S+u"Nie można utworzyć tekstury "+w+'x'+h+'x'+d+", typ " +ImageTI[type].name+", tryb "+mode+"."));
+   if(!createTry(w, h, d, type, mode, mip_maps, rgba_on_fail))Exit(MLT(S+"Can't create Image "        +w+'x'+h+'x'+d+", type "+ImageTI[type].name+", mode "+mode+".",
+                                                                   PL,S+u"Nie można utworzyć obrazka "+w+'x'+h+'x'+d+", typ " +ImageTI[type].name+", tryb "+mode+"."));
    return T;
 }
 /******************************************************************************/
