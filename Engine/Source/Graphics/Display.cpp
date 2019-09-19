@@ -804,6 +804,10 @@ Display::Display() : _monitors(Compare, Create, null, 4)
   _view_main.full    =true; // needed for 'viewReset' which will always set full viewport if last was full too
 
   _smaa_threshold=0.1f;
+
+#if DEBUG
+   REP(IMAGE_ALL_TYPES)DYNAMIC_ASSERT(ImageTI[i].high_precision==(ImageTI[i].precision>IMAGE_PRECISION_8 || IsSByte(IMAGE_TYPE(i))), "Invalid 'ImageTI.high_precision'");
+#endif
 }
 void Display::init() // make this as a method because if we put this to Display constructor, then 'SecondaryContexts' may not have been initialized yet
 {
@@ -2441,7 +2445,7 @@ Display& Display::samples(Byte samples)
 Display& Display::highPrecColRT(Bool on) {if(_hp_col_rt!=on){_hp_col_rt=on; Renderer.rtClean();} return T;}
 Display& Display::highPrecNrmRT(Bool on) {if(_hp_nrm_rt!=on){_hp_nrm_rt=on; Renderer.rtClean();} return T;}
 Display& Display::highPrecLumRT(Bool on) {if(_hp_lum_rt!=on){_hp_lum_rt=on; Renderer.rtClean();} return T;}
-Display& Display::litColRTPrecision(IMAGE_PRECISION precision) // !! Warning: there might be small differences between using high precision RT's, because sometimes we can use sRGB/non-sRGB RT views, but sometimes we have to do gamma correction in the shader, and for performance reasons, LinearToSRGBFast/SRGBToLinearFast are chosen, which don't provide the same exact results !!
+Display& Display::litColRTPrecision(IMAGE_PRECISION precision) // !! Warning: there might be small render result differences between using high precision RT's, because sometimes we can use sRGB/non-sRGB RT views, but sometimes we have to do gamma correction in the shader, and for performance reasons, LinearToSRGBFast/SRGBToLinearFast are chosen, which don't provide the same exact results !!
 {
    Clamp(precision, IMAGE_PRECISION_8, IMAGE_PRECISION(IMAGE_PRECISION_NUM-1));
    if(_lit_col_rt_prec!=precision){_lit_col_rt_prec=precision; Renderer.rtClean();}

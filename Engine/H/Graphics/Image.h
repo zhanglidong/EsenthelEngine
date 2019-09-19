@@ -126,7 +126,8 @@ enum IMAGE_TYPE : Byte // Image Type, comments specify in which mode the type is
    IMAGE_ALL_TYPES, // number of all types
 #endif
 };
-Bool IsSRGB(IMAGE_TYPE type); // if this is a sRGB image
+Bool IsSRGB (IMAGE_TYPE type); // if this is a sRGB image
+Bool IsSByte(IMAGE_TYPE type); // if image 'type' channels have signed byte/8-bit precision
 enum IMAGE_MODE : Byte // Image Mode
 {
    IMAGE_2D       , // Hardware 2D   Texture
@@ -183,21 +184,21 @@ struct ImageTypeInfo // Image Type Information
       USAGE_IMAGE_MS  =1<<6, // type can be used in a Multi-Sampled Render Target or Depth Stencil (depending on USAGE_IMAGE_RT, USAGE_IMAGE_DS)
    };
 
-   const CChar8         *name      ; // type name
-   const Bool            compressed; // if type is compressed
-   const Byte            byte_pp   , // bytes per pixel
-                         bit_pp    , // bits  per pixel
-                         r         , // number of red     bits
-                         g         , // number of green   bits
-                         b         , // number of blue    bits
-                         a         , // number of alpha   bits
-                         d         , // number of depth   bits
-                         s         , // number of stencil bits
-                         channels  ; // number of channels
-   const IMAGE_PRECISION precision ;
+   const CChar8         *name          ; // type name
+   const Bool            compressed    , // if type is compressed
+                         high_precision; // if type requires high precision storage (for example Flt/Vec4 instead of Byte/Color)
+   const Byte            byte_pp       , // bytes per pixel
+                         bit_pp        , // bits  per pixel
+                         r             , // number of red     bits
+                         g             , // number of green   bits
+                         b             , // number of blue    bits
+                         a             , // number of alpha   bits
+                         d             , // number of depth   bits
+                         s             , // number of stencil bits
+                         channels      ; // number of channels
+   const IMAGE_PRECISION precision     ;
 
-   Bool highPrecision()C {return precision>IMAGE_PRECISION_8;} // more than 8 bits
-   Byte usage        ()C {return _usage;} // get a combination of USAGE_FLAG, available only on DX11, OpenGL 4.2
+   Byte usage()C {return _usage;} // get a combination of USAGE_FLAG, available only on DX11, OpenGL 4.2
 #if EE_PRIVATE
    constexpr Bool filterable()C {return (!GL_ES) || (precision<IMAGE_PRECISION_32 && !d);} // GLES3 doesn't support filtering F32/Depth textures - https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml , "depth textures are not filterable" - https://arm-software.github.io/opengl-es-sdk-for-android/occlusion_culling.html
 #endif
@@ -269,17 +270,17 @@ struct Image // Image (Texture)
    Byte*    data     ()  {return _data  ;} // get address            of locked data, memory accessed using this method should be interpreted according to 'hwType' (and not 'type')
  C Byte*    data     ()C {return _data  ;} // get address            of locked data, memory accessed using this method should be interpreted according to 'hwType' (and not 'type')
 
-   Flt                    aspect()C {return Flt(w())/h()                     ;} // get          aspect ratio of image "width/height"
-   Flt                 invAspect()C {return Flt(h())/w()                     ;} // get inversed aspect ratio of image "height/width"
-   UInt                 memUsage()C;                                            // get actual  memory usage of the image, this method operates on 'hwType' (what the image is using right now)
-   UInt             typeMemUsage()C;                                            // get desired memory usage of the image, this method operates on   'type' (what the image would use if it was stored in its desired type)
-   Int                    bytePP()C {return         _byte_pp                 ;} // get number of bytes per pixel
-   Bool               compressed()C {return ImageTI[_hw_type].   compressed  ;} // if  hardware type is compressed
-   IMAGE_PRECISION     precision()C {return ImageTI[_hw_type].    precision  ;} // get image precision
-   Bool            highPrecision()C {return ImageTI[_hw_type].highPrecision();} // if  any channel of the image uses more than 8 bits
-   Bool                     sRGB()C {return  IsSRGB(_hw_type)                ;} // if  this is a sRGB image
+   Flt                    aspect()C {return Flt(w())/h()                    ;} // get          aspect ratio of image "width/height"
+   Flt                 invAspect()C {return Flt(h())/w()                    ;} // get inversed aspect ratio of image "height/width"
+   UInt                 memUsage()C;                                           // get actual  memory usage of the image, this method operates on 'hwType' (what the image is using right now)
+   UInt             typeMemUsage()C;                                           // get desired memory usage of the image, this method operates on   'type' (what the image would use if it was stored in its desired type)
+   Int                    bytePP()C {return         _byte_pp                ;} // get number of bytes per pixel
+   Bool               compressed()C {return ImageTI[_hw_type].    compressed;} // if  hardware type is compressed
+   IMAGE_PRECISION     precision()C {return ImageTI[_hw_type].     precision;} // get image precision
+   Bool            highPrecision()C {return ImageTI[_hw_type].high_precision;} // if  any channel of the image uses more than 8 bits
+   Bool                     sRGB()C {return  IsSRGB(_hw_type)               ;} // if  this is a sRGB image
 #if EE_PRIVATE
-   constexpr Bool     filterable()C {return ImageTI[_hw_type].   filterable();}
+   constexpr Bool     filterable()C {return ImageTI[_hw_type].  filterable();}
 #endif
 
    CUBE_LAYOUT cubeLayout()C; // auto-detect cube layout based on image size
