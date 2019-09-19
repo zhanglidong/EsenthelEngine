@@ -1582,7 +1582,206 @@ File& File::getAsset(Str &s)
 }
 Str File::getAsset() {Str s; getAsset(s); return s;}
 /******************************************************************************/
-// Deprecated, do not use
+ Short File::getBEShort () { Short i   ; T>>i; SwapEndian(i); return i;}
+UShort File::getBEUShort() {UShort i   ; T>>i; SwapEndian(i); return i;}
+ Int   File::getBEInt24 () {Int24  i   ; T>>i; Swap(i.b[0], i.b[2]); return i.asInt();}
+UInt   File::getBEUInt24() {Byte   b[3]; T>>b; return b[2] | (b[1]<<8) | (b[0]<<16);}
+ Int   File::getBEInt   () { Int   i   ; T>>i; SwapEndian(i); return i;}
+UInt   File::getBEUInt  () {UInt   i   ; T>>i; SwapEndian(i); return i;}
+ Long  File::getBELong  () { Long  i   ; T>>i; SwapEndian(i); return i;}
+ULong  File::getBEULong () {ULong  i   ; T>>i; SwapEndian(i); return i;}
+/******************************************************************************/
+Bool File::equal(File &f, Long max_size)
+{
+   if(max_size<0 || left()<max_size || f.left()<max_size){if(left()!=f.left())return false; max_size=left();} // if 'max_size' is not specified or any of the files has less than expected bytes, then continue only if both have same amount of bytes less, and test only those bytes
+   if(max_size>0)
+   {
+      Memt<Byte, TEMP_BUF_SIZE> temp; temp.setNum(TEMP_BUF_SIZE); Int buf_size=temp.elms()/2; Ptr buf=temp.data(), buf2=temp.data()+buf_size;
+      for(; max_size>0; )
+      {
+         Int l=Min(buf_size, max_size); max_size-=l;
+         if(!getFast (buf, l) || !f.getFast(buf2, l))return false;
+         if(!EqualMem(buf,                  buf2, l))return false;
+      }
+   }
+   return true;
+}
+Bool File::copy(File &dest, Long max_size)
+{
+   if(max_size<0)max_size=left();
+   if(max_size>0)
+   {
+      Memt<Byte, TEMP_BUF_SIZE> temp; temp.setNum(TEMP_BUF_SIZE); Ptr buf=temp.data(); Int buf_size=temp.elms();
+      REP(     max_size/buf_size )if(!getFast(buf, buf_size) || !dest.put(buf, buf_size))return false;
+      buf_size=max_size%buf_size; if(!getFast(buf, buf_size) || !dest.put(buf, buf_size))return false;
+   }
+   return true;
+}
+Bool File::copy(File &dest, DataCallback &callback, Long max_size)
+{
+   if(max_size<0)max_size=left();
+   if(max_size>0)
+   {
+      Memt<Byte, TEMP_BUF_SIZE> temp; temp.setNum(TEMP_BUF_SIZE); Ptr buf=temp.data(); Int buf_size=temp.elms();
+      REP(     max_size/buf_size ){if(!getFast(buf, buf_size) || !dest.put(buf, buf_size))return false; callback.data(buf, buf_size);}
+      buf_size=max_size%buf_size;  if(!getFast(buf, buf_size) || !dest.put(buf, buf_size))return false; callback.data(buf, buf_size);
+   }
+   return true;
+}
+Bool File::copyEncrypt(File &dest, Cipher &cipher, Long max_size)
+{
+   if(max_size<0)max_size=left();
+   if(max_size>0)
+   {
+      Memt<Byte, TEMP_BUF_SIZE> temp; temp.setNum(TEMP_BUF_SIZE); Ptr buf=temp.data(); Int buf_size=temp.elms(), offset=0;
+      REP(     max_size/buf_size ){if(!getFast(buf, buf_size))return false; cipher.encrypt(buf, buf, buf_size, offset); if(!dest.put(buf, buf_size))return false; offset+=buf_size;}
+      buf_size=max_size%buf_size;  if(!getFast(buf, buf_size))return false; cipher.encrypt(buf, buf, buf_size, offset); if(!dest.put(buf, buf_size))return false;
+   }
+   return true;
+}
+/******************************************************************************/
+void File::  clearBuf() {_buf_pos=_buf_len=0;} // !! this does not reset the system file handle position, if the buffer read something, then the position is ahead !!
+Bool File::discardBuf(Bool flush)
+{
+   if(_buf_pos || _buf_len) // if there's any data in the buffer
+   {
+      Long pos=T.pos(); // remember current position before doing any operation
+      if(flush && !T.flush() && ALLOW_REFLUSH)_ok=false; // !! do this after remembering position because this method may change it !! if we had some data to save which failed, then only disable '_ok', but still proceed because here the priority is to set correct file position
+      T._pos=posFile(); // set actual position, so calling "T.pos(pos)" will proceed because current position is different than desired
+      clearBuf(); // !! do this after calling 'posFile' !! always clear buffer (in case read mode or in case write mode flush fail)
+      return T.pos(pos); // set remembered position
+   }
+   return true;
+}
+/******************************************************************************/
+void File::  limit(ULong &total_size, ULong &applied_offset, Long new_size) {total_size=size(); applied_offset=pos(); T._size=  new_size; T._offset+=applied_offset; T._cipher_offset+=applied_offset; T._pos-=applied_offset;}
+void File::unlimit(ULong &total_size, ULong &applied_offset               ) {                                         T._size=total_size; T._offset-=applied_offset; T._cipher_offset-=applied_offset; T._pos+=applied_offset; applied_offset=0;}
+/******************************************************************************/
+UInt File::crc32(Long max_size)
+{
+   Byte  buf[TEMP_BUF_SIZE];
+   CRC32 hash;
+   if(max_size<0)max_size=left();
+   for(;;)
+   {
+      Int left=Min(SIZEI(buf), max_size); if(left<=0)break;
+      if(!getFast(buf, left))return 0;
+      hash.update(buf, left); max_size-=left;
+   }
+   return hash();
+}
+UInt File::xxHash32(Long max_size)
+{
+   Byte     buf[TEMP_BUF_SIZE];
+ ::xxHash32 hash;
+   if(max_size<0)max_size=left();
+   for(;;)
+   {
+      Int left=Min(SIZEI(buf), max_size); if(left<=0)break;
+      if(!getFast(buf, left))return 0;
+      hash.update(buf, left); max_size-=left;
+   }
+   return hash();
+}
+#pragma runtime_checks("", off)
+UInt  File::xxHash64_32(Long max_size) {return xxHash64(max_size);} // we're interested only in low 32 bits
+#pragma runtime_checks("", restore)
+ULong File::xxHash64   (Long max_size)
+{
+   Byte     buf[TEMP_BUF_SIZE];
+ ::xxHash64 hash;
+   if(max_size<0)max_size=left();
+   for(;;)
+   {
+      Int left=Min(SIZEI(buf), max_size); if(left<=0)break;
+      if(!getFast(buf, left))return 0;
+      hash.update(buf, left); max_size-=left;
+   }
+   return hash();
+}
+UInt  File::spookyHash32 (Long max_size) {return spookyHash128(max_size).i[0];} // can use part of 128-bit because this is how 'SpookyHash' works
+ULong File::spookyHash64 (Long max_size) {return spookyHash128(max_size).l[0];} // can use part of 128-bit because this is how 'SpookyHash' works
+UID   File::spookyHash128(Long max_size)
+{
+   Byte       buf[TEMP_BUF_SIZE];
+   SpookyHash hash;
+   if(max_size<0)max_size=left();
+   for(;;)
+   {
+      Int left=Min(SIZEI(buf), max_size); if(left<=0)break;
+      if(!getFast(buf, left))return UIDZero;
+      hash.update(buf, left); max_size-=left;
+   }
+   return hash.hash128();
+}
+ULong File::metroHash64(Long max_size)
+{
+   Byte        buf[TEMP_BUF_SIZE];
+   MetroHash64 hash;
+   if(max_size<0)max_size=left();
+   for(;;)
+   {
+      Int left=Min(SIZEI(buf), max_size); if(left<=0)break;
+      if(!getFast(buf, left))return 0;
+      hash.update(buf, left); max_size-=left;
+   }
+   return hash();
+}
+UID File::metroHash128(Long max_size)
+{
+   Byte         buf[TEMP_BUF_SIZE];
+   MetroHash128 hash;
+   if(max_size<0)max_size=left();
+   for(;;)
+   {
+      Int left=Min(SIZEI(buf), max_size); if(left<=0)break;
+      if(!getFast(buf, left))return UIDZero;
+      hash.update(buf, left); max_size-=left;
+   }
+   return hash();
+}
+UID File::md5(Long max_size)
+{
+   Byte buf[TEMP_BUF_SIZE];
+   MD5  hash;
+   if(max_size<0)max_size=left();
+   for(;;)
+   {
+      Int left=Min(SIZEI(buf), max_size); if(left<=0)break;
+      if(!getFast(buf, left))return UIDZero;
+      hash.update(buf, left); max_size-=left;
+   }
+   return hash();
+}
+SHA1::Hash File::sha1(Long max_size)
+{
+   Byte buf[TEMP_BUF_SIZE];
+   SHA1 hash;
+   if(max_size<0)max_size=left();
+   for(;;)
+   {
+      Int left=Min(SIZEI(buf), max_size); if(left<=0)break;
+      if(!getFast(buf, left)){hash._hash.zero(); return hash._hash;}
+      hash.update(buf, left); max_size-=left;
+   }
+   return hash();
+}
+SHA2::Hash File::sha2(Long max_size)
+{
+   Byte buf[TEMP_BUF_SIZE];
+   SHA2 hash;
+   if(max_size<0)max_size=left();
+   for(;;)
+   {
+      Int left=Min(SIZEI(buf), max_size); if(left<=0)break;
+      if(!getFast(buf, left)){hash._hash.zero(); return hash._hash;}
+      hash.update(buf, left); max_size-=left;
+   }
+   return hash();
+}
+/******************************************************************************/
+// DEPRECATED, DO NOT USE
+/******************************************************************************/
 File& File::_decIntV(Int &i)
 {
    Byte v; T>>v;
@@ -1885,204 +2084,6 @@ Str File::_getAsset()
       case  1: return _getStr1();
       case  2: {UID id; T>>id; return _EncodeFileName(id);}
    }
-}
-/******************************************************************************/
- Short File::getBEShort () { Short i   ; T>>i; SwapEndian(i); return i;}
-UShort File::getBEUShort() {UShort i   ; T>>i; SwapEndian(i); return i;}
- Int   File::getBEInt24 () {Int24  i   ; T>>i; Swap(i.b[0], i.b[2]); return i.asInt();}
-UInt   File::getBEUInt24() {Byte   b[3]; T>>b; return b[2] | (b[1]<<8) | (b[0]<<16);}
- Int   File::getBEInt   () { Int   i   ; T>>i; SwapEndian(i); return i;}
-UInt   File::getBEUInt  () {UInt   i   ; T>>i; SwapEndian(i); return i;}
- Long  File::getBELong  () { Long  i   ; T>>i; SwapEndian(i); return i;}
-ULong  File::getBEULong () {ULong  i   ; T>>i; SwapEndian(i); return i;}
-/******************************************************************************/
-Bool File::equal(File &f, Long max_size)
-{
-   if(max_size<0 || left()<max_size || f.left()<max_size){if(left()!=f.left())return false; max_size=left();} // if 'max_size' is not specified or any of the files has less than expected bytes, then continue only if both have same amount of bytes less, and test only those bytes
-   if(max_size>0)
-   {
-      Memt<Byte, TEMP_BUF_SIZE> temp; temp.setNum(TEMP_BUF_SIZE); Int buf_size=temp.elms()/2; Ptr buf=temp.data(), buf2=temp.data()+buf_size;
-      for(; max_size>0; )
-      {
-         Int l=Min(buf_size, max_size); max_size-=l;
-         if(!getFast (buf, l) || !f.getFast(buf2, l))return false;
-         if(!EqualMem(buf,                  buf2, l))return false;
-      }
-   }
-   return true;
-}
-Bool File::copy(File &dest, Long max_size)
-{
-   if(max_size<0)max_size=left();
-   if(max_size>0)
-   {
-      Memt<Byte, TEMP_BUF_SIZE> temp; temp.setNum(TEMP_BUF_SIZE); Ptr buf=temp.data(); Int buf_size=temp.elms();
-      REP(     max_size/buf_size )if(!getFast(buf, buf_size) || !dest.put(buf, buf_size))return false;
-      buf_size=max_size%buf_size; if(!getFast(buf, buf_size) || !dest.put(buf, buf_size))return false;
-   }
-   return true;
-}
-Bool File::copy(File &dest, DataCallback &callback, Long max_size)
-{
-   if(max_size<0)max_size=left();
-   if(max_size>0)
-   {
-      Memt<Byte, TEMP_BUF_SIZE> temp; temp.setNum(TEMP_BUF_SIZE); Ptr buf=temp.data(); Int buf_size=temp.elms();
-      REP(     max_size/buf_size ){if(!getFast(buf, buf_size) || !dest.put(buf, buf_size))return false; callback.data(buf, buf_size);}
-      buf_size=max_size%buf_size;  if(!getFast(buf, buf_size) || !dest.put(buf, buf_size))return false; callback.data(buf, buf_size);
-   }
-   return true;
-}
-Bool File::copyEncrypt(File &dest, Cipher &cipher, Long max_size)
-{
-   if(max_size<0)max_size=left();
-   if(max_size>0)
-   {
-      Memt<Byte, TEMP_BUF_SIZE> temp; temp.setNum(TEMP_BUF_SIZE); Ptr buf=temp.data(); Int buf_size=temp.elms(), offset=0;
-      REP(     max_size/buf_size ){if(!getFast(buf, buf_size))return false; cipher.encrypt(buf, buf, buf_size, offset); if(!dest.put(buf, buf_size))return false; offset+=buf_size;}
-      buf_size=max_size%buf_size;  if(!getFast(buf, buf_size))return false; cipher.encrypt(buf, buf, buf_size, offset); if(!dest.put(buf, buf_size))return false;
-   }
-   return true;
-}
-/******************************************************************************/
-void File::  clearBuf() {_buf_pos=_buf_len=0;} // !! this does not reset the system file handle position, if the buffer read something, then the position is ahead !!
-Bool File::discardBuf(Bool flush)
-{
-   if(_buf_pos || _buf_len) // if there's any data in the buffer
-   {
-      Long pos=T.pos(); // remember current position before doing any operation
-      if(flush && !T.flush() && ALLOW_REFLUSH)_ok=false; // !! do this after remembering position because this method may change it !! if we had some data to save which failed, then only disable '_ok', but still proceed because here the priority is to set correct file position
-      T._pos=posFile(); // set actual position, so calling "T.pos(pos)" will proceed because current position is different than desired
-      clearBuf(); // !! do this after calling 'posFile' !! always clear buffer (in case read mode or in case write mode flush fail)
-      return T.pos(pos); // set remembered position
-   }
-   return true;
-}
-/******************************************************************************/
-void File::  limit(ULong &total_size, ULong &applied_offset, Long new_size) {total_size=size(); applied_offset=pos(); T._size=  new_size; T._offset+=applied_offset; T._cipher_offset+=applied_offset; T._pos-=applied_offset;}
-void File::unlimit(ULong &total_size, ULong &applied_offset               ) {                                         T._size=total_size; T._offset-=applied_offset; T._cipher_offset-=applied_offset; T._pos+=applied_offset; applied_offset=0;}
-/******************************************************************************/
-UInt File::crc32(Long max_size)
-{
-   Byte  buf[TEMP_BUF_SIZE];
-   CRC32 hash;
-   if(max_size<0)max_size=left();
-   for(;;)
-   {
-      Int left=Min(SIZEI(buf), max_size); if(left<=0)break;
-      if(!getFast(buf, left))return 0;
-      hash.update(buf, left); max_size-=left;
-   }
-   return hash();
-}
-UInt File::xxHash32(Long max_size)
-{
-   Byte     buf[TEMP_BUF_SIZE];
- ::xxHash32 hash;
-   if(max_size<0)max_size=left();
-   for(;;)
-   {
-      Int left=Min(SIZEI(buf), max_size); if(left<=0)break;
-      if(!getFast(buf, left))return 0;
-      hash.update(buf, left); max_size-=left;
-   }
-   return hash();
-}
-#pragma runtime_checks("", off)
-UInt  File::xxHash64_32(Long max_size) {return xxHash64(max_size);} // we're interested only in low 32 bits
-#pragma runtime_checks("", restore)
-ULong File::xxHash64   (Long max_size)
-{
-   Byte     buf[TEMP_BUF_SIZE];
- ::xxHash64 hash;
-   if(max_size<0)max_size=left();
-   for(;;)
-   {
-      Int left=Min(SIZEI(buf), max_size); if(left<=0)break;
-      if(!getFast(buf, left))return 0;
-      hash.update(buf, left); max_size-=left;
-   }
-   return hash();
-}
-UInt  File::spookyHash32 (Long max_size) {return spookyHash128(max_size).i[0];} // can use part of 128-bit because this is how 'SpookyHash' works
-ULong File::spookyHash64 (Long max_size) {return spookyHash128(max_size).l[0];} // can use part of 128-bit because this is how 'SpookyHash' works
-UID   File::spookyHash128(Long max_size)
-{
-   Byte       buf[TEMP_BUF_SIZE];
-   SpookyHash hash;
-   if(max_size<0)max_size=left();
-   for(;;)
-   {
-      Int left=Min(SIZEI(buf), max_size); if(left<=0)break;
-      if(!getFast(buf, left))return UIDZero;
-      hash.update(buf, left); max_size-=left;
-   }
-   return hash.hash128();
-}
-ULong File::metroHash64(Long max_size)
-{
-   Byte        buf[TEMP_BUF_SIZE];
-   MetroHash64 hash;
-   if(max_size<0)max_size=left();
-   for(;;)
-   {
-      Int left=Min(SIZEI(buf), max_size); if(left<=0)break;
-      if(!getFast(buf, left))return 0;
-      hash.update(buf, left); max_size-=left;
-   }
-   return hash();
-}
-UID File::metroHash128(Long max_size)
-{
-   Byte         buf[TEMP_BUF_SIZE];
-   MetroHash128 hash;
-   if(max_size<0)max_size=left();
-   for(;;)
-   {
-      Int left=Min(SIZEI(buf), max_size); if(left<=0)break;
-      if(!getFast(buf, left))return UIDZero;
-      hash.update(buf, left); max_size-=left;
-   }
-   return hash();
-}
-UID File::md5(Long max_size)
-{
-   Byte buf[TEMP_BUF_SIZE];
-   MD5  hash;
-   if(max_size<0)max_size=left();
-   for(;;)
-   {
-      Int left=Min(SIZEI(buf), max_size); if(left<=0)break;
-      if(!getFast(buf, left))return UIDZero;
-      hash.update(buf, left); max_size-=left;
-   }
-   return hash();
-}
-SHA1::Hash File::sha1(Long max_size)
-{
-   Byte buf[TEMP_BUF_SIZE];
-   SHA1 hash;
-   if(max_size<0)max_size=left();
-   for(;;)
-   {
-      Int left=Min(SIZEI(buf), max_size); if(left<=0)break;
-      if(!getFast(buf, left)){hash._hash.zero(); return hash._hash;}
-      hash.update(buf, left); max_size-=left;
-   }
-   return hash();
-}
-SHA2::Hash File::sha2(Long max_size)
-{
-   Byte buf[TEMP_BUF_SIZE];
-   SHA2 hash;
-   if(max_size<0)max_size=left();
-   for(;;)
-   {
-      Int left=Min(SIZEI(buf), max_size); if(left<=0)break;
-      if(!getFast(buf, left)){hash._hash.zero(); return hash._hash;}
-      hash.update(buf, left); max_size-=left;
-   }
-   return hash();
 }
 /******************************************************************************/
 }
