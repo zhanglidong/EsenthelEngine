@@ -1190,11 +1190,11 @@ Bool EditorInterface::setMaterial(C UID &elm_id, C Material &mtrl, Bool reload_t
    }
    return false;
 }
-Bool EditorInterface::reloadMaterialTextures(C UID &elm_id, bool base, bool reflection, bool detail, bool macro, bool light)
+Bool EditorInterface::reloadMaterialTextures(C UID &elm_id, bool base, bool detail, bool macro, bool light)
 {
    if(elm_id.valid() && connected())
    {
-      File &f=_conn.data.reset(); f.putByte(EI_RLD_MTRL_TEX).putUID(elm_id).putByte(base*1 | reflection*2 | detail*4 | macro*8 | light*16); f.pos(0);
+      File &f=_conn.data.reset(); f.putByte(EI_RLD_MTRL_TEX).putUID(elm_id).putByte(base*1 | detail*2 | macro*4 | light*8); f.pos(0);
       if(_conn.send(f))
       if(_conn.receive(CLIENT_WAIT_TIME_LONG)) // reloading textures may take a long time
       if(f.getByte()==EI_RLD_MTRL_TEX)return f.getBool();
