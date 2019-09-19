@@ -6,7 +6,7 @@ namespace Edit{
 
    'Arrows' uses one GuiObj instead of multiple Buttons so that Mouse/Touch can switch buttons while being continuously pressed.
 
-   Normally MT.guiObj sticks to just one Object when pressed.
+   Normally 'MT.guiObj' sticks to just one Object when pressed.
 
 /******************************************************************************/
 static Bool AdjustToGround(Viewport4 &v4) {return  v4.horizontal() && !v4.fpp();} // World  Editor mode
