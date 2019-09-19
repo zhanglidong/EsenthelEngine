@@ -210,7 +210,7 @@ struct MainShaderClass
       *RadialBlur ,
 
       // 3D FX
-      *Decal[2][3], // [FullScreen][Mode]
+      *Decal[2][2][3], // [FullScreen][Layout][Mode]
 
       // RENDERING
       *Outline        ,

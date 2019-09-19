@@ -24,19 +24,19 @@ void Decal::del()
 Decal::Decal() {zero();}
 void Decal::setShader()
 {
-   REPD(f, 2)
-   REPD(p, 2)
-   { // FIXME
+   REPD(fullscreen, 2)
+   REPD(palette   , 2)
+   { // #MaterialTextureLayout
       if(_material && _material->base_0)
       {
-         Shader* &src=Sh.Decal[f][p ? 2 : _material->base_1 ? 1 : 0];
-         if(!src)
+         Int layout=(_material->base_2!=null), mode=(palette ? 2 : _material->base_1 ? 1 : 0);
+         Shader* &src=Sh.Decal[fullscreen][layout][mode]; if(!src)
          {
-            src=ShaderFiles("Effects 3D")->get(S8+"Decal"+f+(p ? 2 : _material->base_1 ? 1 : 0));
+            src=ShaderFiles("Effects 3D")->get(S8+"Decal"+fullscreen+(layout+1)+mode);
             Sh.DecalParams=GetShaderParam("DecalParams");
          }
-            _shader[f][p]=src;
-      }else _shader[f][p]=null;
+            _shader[fullscreen][palette]=src;
+      }else _shader[fullscreen][palette]=null;
    }
 }
 Decal& Decal::material(C MaterialPtr &material)
@@ -55,7 +55,7 @@ Decal& Decal::setMatrix(C Matrix &object_world_matrix, C Matrix &decal_world_mat
    return T;
 }
 /******************************************************************************/
-void Decal::drawStatic(Flt alpha)C
+void Decal::drawStatic()C
 {
    if(_shader[0][0] && Renderer.canReadDepth())
    {
@@ -68,7 +68,7 @@ void Decal::drawStatic(Flt alpha)C
             SetOneMatrix(matrix);
 
            _material->setBlend();
-            Sh.DecalParams->set(Vec(OpaqueFracMul(), OpaqueFracAdd(), alpha));
+            Sh.DecalParams->set(Vec2(OpaqueFracMul(), OpaqueFracAdd()));
             Sh.Color[0]   ->set(color);
 
             if(terrain_only)D.stencil(STENCIL_TERRAIN_TEST);
@@ -90,7 +90,7 @@ void Decal::drawStatic(Flt alpha)C
       }
    }
 }
-void Decal::drawAnimated(C Matrix &object_world_matrix, Flt alpha)C
+void Decal::drawAnimated(C Matrix &object_world_matrix)C
 {
    if(_shader[0][0] && Renderer.canReadDepth())
    {
@@ -104,7 +104,7 @@ void Decal::drawAnimated(C Matrix &object_world_matrix, Flt alpha)C
             SetOneMatrix(m);
 
            _material->setBlend();
-            Sh.DecalParams->set(Vec(OpaqueFracMul(), OpaqueFracAdd(), alpha));
+            Sh.DecalParams->set(Vec2(OpaqueFracMul(), OpaqueFracAdd()));
             Sh.Color[0]   ->set(color);
 
             if(terrain_only)D.stencil(STENCIL_TERRAIN_TEST);

@@ -114,7 +114,7 @@ void Surface_PS
 #if !LIGHT
  , out VecH4 O_nrm:TARGET1
 #endif
-)
+) // #RTOutput
 {
    VecH nrm; // #MaterialTextureLayout
         nrm.xy=(Tex(Nrm, inTexN0.xy).xy - Tex(Nrm, inTexN0.zw).xy + Tex(Nrm, inTexN1.xy).xy - Tex(Nrm, inTexN1.zw).xy)*WaterRgh_4; // Avg(Tex(Nrm, inTexN0.xy).xy, -Tex(Nrm, inTexN0.zw).xy, Tex(Nrm, inTexN1.xy).xy, -Tex(Nrm, inTexN1.zw).xy))*WaterRgh

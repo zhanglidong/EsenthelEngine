@@ -19,8 +19,8 @@ struct Decal // Decal
 #endif
 
    // draw
-   void drawStatic  (                               Flt alpha=1)C; // draw as static decal         , 'alpha'=opacity, automatically uses Frustum culling, can be called in following render modes : RM_OVERLAY, RM_BLEND, RM_PALETTE, RM_PALETTE1
-   void drawAnimated(C Matrix &object_world_matrix, Flt alpha=1)C; // draw with given object matrix, 'alpha'=opacity, automatically uses Frustum culling, can be called in following render modes : RM_OVERLAY, RM_BLEND, RM_PALETTE, RM_PALETTE1
+   void drawStatic  (                             )C; // draw as static decal         , automatically uses Frustum culling, can be called in following render modes : RM_OVERLAY, RM_BLEND, RM_PALETTE, RM_PALETTE1
+   void drawAnimated(C Matrix &object_world_matrix)C; // draw with given object matrix, automatically uses Frustum culling, can be called in following render modes : RM_OVERLAY, RM_BLEND, RM_PALETTE, RM_PALETTE1
 
    // io
    Bool save(File &f)C; // save, false on fail

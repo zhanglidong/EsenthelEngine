@@ -1615,7 +1615,7 @@ inline Half ShadowConeValue(Vec pos, Vec2 jitter_value, Bool jitter)
 /******************************************************************************/
 struct DeferredSolidOutput // use this structure in Pixel Shader for setting the output of RT_DEFERRED solid modes
 {
-   // !! if making any change here then adjust Water shader too !!
+   // !! if making any change here then adjust Water shader too #RTOutput !!
    VecH4 out0:TARGET0,
          out1:TARGET1,
          out2:TARGET2;

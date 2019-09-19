@@ -453,8 +453,9 @@ static void Compile(API api)
    REPD(normals, 2)src.New("Laser", "Laser_VS", "Laser_PS")("NORMALS", normals);
 
    REPD(fullscreen, 2)
+   for(Int layout=1; layout<=2; layout++)
    REPD(mode      , 3) // 0-default, 1-normals, 2-palette
-      src.New("Decal", "Decal_VS", "Decal_PS")("FULLSCREEN", fullscreen, "MODE", mode);
+      src.New("Decal", "Decal_VS", "Decal_PS")("FULLSCREEN", fullscreen, "LAYOUT", layout, "MODE", mode);
 }
 #endif
 

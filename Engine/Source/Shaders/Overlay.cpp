@@ -54,7 +54,7 @@ VecH4 PS
  ,   Matrix3  inMatrix:MATRIX
  , out VecH4 outNrm   :TARGET1
 #endif
-):TARGET
+):TARGET // #RTOutput
 {
    VecH4 col  =Tex(Col, inTex.xy);
 #if ALPHA

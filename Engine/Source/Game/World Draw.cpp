@@ -218,7 +218,7 @@ void WorldManager::draw()
          if(_mesh_overlays.elms()){SetOneMatrix(); FREPA(_mesh_overlays){MeshOverlay2 &mo=_mesh_overlays[i]; if(Frustum(mo._ext))mo.draw(Sat(mo.time));}}
 
          // decals
-         FREPA(_decals){Decal2 &d=_decals[i]; d.drawStatic(Sat(d.time));}
+         FREPA(_decals){Decal2 &decal=_decals[i]; Flt color_w=decal.color.w; decal.color.w*=Sat(decal.time); decal.drawStatic(); decal.color.w=color_w;}
       }break;
 
       // water

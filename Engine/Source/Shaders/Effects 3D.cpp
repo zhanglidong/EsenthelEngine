@@ -180,17 +180,15 @@ void Laser_PS(Vec                 inPos:TEXCOORD0,
 /******************************************************************************/
 // DECAL
 /******************************************************************************/
+// FULLSCREEN, LAYOUT, MODE 0-default, 1-normals, 2-palette
 #include "!Set SP.h"
 BUFFER(Decal)
-   VecH DecalParams; // x=OpaqueFracMul, y=OpaqueFracAdd, z=alpha
+   VecH2 DecalParams; // x=OpaqueFracMul, y=OpaqueFracAdd
 BUFFER_END
 #include "!Set LP.h"
 
 inline Half DecalOpaqueFracMul() {return DecalParams.x;}
 inline Half DecalOpaqueFracAdd() {return DecalParams.y;}
-inline Half DecalAlpha        () {return DecalParams.z;}
-
-// FULLSCREEN, MODE 0-default, 1-normals, 2-palette
 
 void Decal_VS(VtxInput vtx,
           out Vec4    outVtx    :POSITION,
@@ -221,47 +219,44 @@ VecH4 Decal_PS(PIXEL,
                Matrix  inMatrix :TEXCOORD0
             #if MODE==1
          ,     Matrix3 inMatrixN:TEXCOORD3
-         , out VecH4   outNrm   :TARGET1  
+         , out VecH4   outNrm   :TARGET1
             #endif
-              ):TARGET
+              ):TARGET // #RTOutput
 {
    Vec  pos  =GetPosPoint(PixelToScreen(pixel));
         pos  =TransformTP(pos-inMatrix[3], (Matrix3)inMatrix);
    Half alpha=Sat(Half(Abs(pos.z))*DecalOpaqueFracMul()+DecalOpaqueFracAdd());
 
    clip(Vec(1-Abs(pos.xy), alpha-EPS_COL));
-   alpha*=DecalAlpha();
 
    pos.xy=pos.xy*0.5+0.5;
 
    VecH4 col=Tex(Col, pos.xy);
+#if LAYOUT==2
+       col.a=Tex(Ext, pos.xy).a; // #MaterialTextureLayout
+#endif
+   col.a*=alpha;
 
 #if MODE==2 // palette
-   return (col.a*alpha)*Color[0]*Material.color;
-#elif MODE==1 // normal
-   // #MaterialTextureLayout
-   Half  specular=tex_nrm.z*MaterialSpecular(); // specular is in 'nrm.z'
-
-        VecH nrm;
-             nrm.xy =Tex(Nrm, pos.xy).xy*Material.normal; // #MaterialTextureLayout
- //if(DETAIL)nrm.xy+=det.xy;
-             nrm.z  =CalcZ(nrm.xy);
-             nrm    =Transform(nrm, inMatrixN);
-
-   col.a=tex_nrm.w*alpha; // alpha is in 'nrm.w' FIXME make NORMAL/LAYOUT independent
-   col *=Color[0]*Material.color;
-
-   #if SIGNED_NRM_RT
-      outNrm.xyz=nrm;
-   #else
-      outNrm.xyz=nrm*0.5+0.5;
-   #endif
-      outNrm.w=col.a; // alpha
-
-   return col;
+   return (col.a*Material.color.a)*Color[0];
 #else
-   col  *=Color[0]*Material.color;
-   col.a*=alpha;
+   col*=Material.color*Color[0];
+
+   #if MODE==1 // normal
+           VecH nrm;
+                nrm.xy =Tex(Nrm, pos.xy).xy*Material.normal; // #MaterialTextureLayout
+    //if(DETAIL)nrm.xy+=det.xy;
+                nrm.z  =CalcZ(nrm.xy);
+                nrm    =Transform(nrm, inMatrixN);
+
+      #if SIGNED_NRM_RT
+         outNrm.xyz=nrm;
+      #else
+         outNrm.xyz=nrm*0.5+0.5;
+      #endif
+         outNrm.w=col.a; // alpha
+   #endif
+
    return col;
 #endif
 }

@@ -203,7 +203,7 @@ void PS
 #if USE_VEL
 , out VecH4 outVel:TARGET1 // #BlendRT
 #endif
-)
+) // #RTOutput
 {
    VecH  nrm;
    Half  specular=MaterialSpecular();
