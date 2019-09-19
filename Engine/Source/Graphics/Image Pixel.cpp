@@ -3418,8 +3418,15 @@ Vec4 Image::areaColorLanczosOrtho(C Vec2 &pos, C Vec2 &size, Bool clamp, Bool al
 /******************************************************************************/
 // GATHER
 /******************************************************************************/
+static        void RangeAssert (Int *  offset, Int   offsets,   Int   size) {REP(offsets)RANGE_ASSERT(offset[i], size);}
+static INLINE void RangeAssertX(Int *x_offset, Int x_offsets, C Image &img) {if(DEBUG)RangeAssert(x_offset, x_offsets, img.lw());}
+static INLINE void RangeAssertY(Int *y_offset, Int y_offsets, C Image &img) {if(DEBUG)RangeAssert(y_offset, y_offsets, img.lh());}
+static INLINE void RangeAssertZ(Int *z_offset, Int z_offsets, C Image &img) {if(DEBUG)RangeAssert(z_offset, z_offsets, img.ld());}
+/******************************************************************************/
 void Image::gather(Flt *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C
 {
+   RangeAssertX(x_offset, x_offsets, T);
+   RangeAssertY(y_offset, y_offsets, T);
    switch(hwType())
    {
       case IMAGE_F32: FREPD(y, y_offsets)
@@ -3477,6 +3484,8 @@ void Image::gather(Flt *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int
 /******************************************************************************/
 void Image::gather(VecB *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C
 {
+   RangeAssertX(x_offset, x_offsets, T);
+   RangeAssertY(y_offset, y_offsets, T);
    switch(hwType())
    {
       case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: FREPD(y, y_offsets)
@@ -3507,6 +3516,8 @@ void Image::gather(VecB *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
 /******************************************************************************/
 void Image::gather(Color *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C
 {
+   RangeAssertX(x_offset, x_offsets, T);
+   RangeAssertY(y_offset, y_offsets, T);
    switch(hwType())
    {
       case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: FREPD(y, y_offsets)
@@ -3537,6 +3548,8 @@ void Image::gather(Color *colors, Int *x_offset, Int x_offsets, Int *y_offset, I
 /******************************************************************************/
 void Image::gather(Vec2 *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C
 {
+   RangeAssertX(x_offset, x_offsets, T);
+   RangeAssertY(y_offset, y_offsets, T);
    switch(hwType())
    {
       case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: FREPD(y, y_offsets)
@@ -3622,6 +3635,8 @@ void Image::gather(Vec2 *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
 }
 void Image::gather(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C
 {
+   RangeAssertX(x_offset, x_offsets, T);
+   RangeAssertY(y_offset, y_offsets, T);
    switch(hwType())
    {
       case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: FREPD(y, y_offsets)
@@ -3671,6 +3686,8 @@ void Image::gather(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
 /******************************************************************************/
 void Image::gatherL(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C
 {
+   RangeAssertX(x_offset, x_offsets, T);
+   RangeAssertY(y_offset, y_offsets, T);
    switch(hwType())
    {
       case IMAGE_B8G8R8A8: FREPD(y, y_offsets)
@@ -3757,6 +3774,8 @@ void Image::gatherL(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, I
 /******************************************************************************/
 void Image::gatherS(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets)C
 {
+   RangeAssertX(x_offset, x_offsets, T);
+   RangeAssertY(y_offset, y_offsets, T);
    switch(hwType())
    {
       case IMAGE_B8G8R8A8: FREPD(y, y_offsets)
@@ -3831,6 +3850,9 @@ void Image::gatherS(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, I
 /******************************************************************************/
 void Image::gather(Flt *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C
 {
+   RangeAssertX(x_offset, x_offsets, T);
+   RangeAssertY(y_offset, y_offsets, T);
+   RangeAssertZ(z_offset, z_offsets, T);
    switch(hwType())
    {
       case IMAGE_F32: FREPD(z, z_offsets)
@@ -3910,6 +3932,9 @@ void Image::gather(Flt *pixels, Int *x_offset, Int x_offsets, Int *y_offset, Int
 /******************************************************************************/
 void Image::gather(VecB *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C
 {
+   RangeAssertX(x_offset, x_offsets, T);
+   RangeAssertY(y_offset, y_offsets, T);
+   RangeAssertZ(z_offset, z_offsets, T);
    switch(hwType())
    {
       case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: FREPD(z, z_offsets)
@@ -3950,6 +3975,9 @@ void Image::gather(VecB *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
 /******************************************************************************/
 void Image::gather(Color *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C
 {
+   RangeAssertX(x_offset, x_offsets, T);
+   RangeAssertY(y_offset, y_offsets, T);
+   RangeAssertZ(z_offset, z_offsets, T);
    switch(hwType())
    {
       case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: FREPD(z, z_offsets)
@@ -3990,6 +4018,9 @@ void Image::gather(Color *colors, Int *x_offset, Int x_offsets, Int *y_offset, I
 /******************************************************************************/
 void Image::gather(Vec2 *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C
 {
+   RangeAssertX(x_offset, x_offsets, T);
+   RangeAssertY(y_offset, y_offsets, T);
+   RangeAssertZ(z_offset, z_offsets, T);
    switch(hwType())
    {
       case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: FREPD(z, z_offsets)
@@ -4113,6 +4144,9 @@ void Image::gather(Vec2 *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
 /******************************************************************************/
 void Image::gather(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C
 {
+   RangeAssertX(x_offset, x_offsets, T);
+   RangeAssertY(y_offset, y_offsets, T);
+   RangeAssertZ(z_offset, z_offsets, T);
    switch(hwType())
    {
       case IMAGE_B8G8R8A8: case IMAGE_B8G8R8A8_SRGB: FREPD(z, z_offsets)
@@ -4172,6 +4206,9 @@ void Image::gather(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, In
 /******************************************************************************/
 void Image::gatherL(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C
 {
+   RangeAssertX(x_offset, x_offsets, T);
+   RangeAssertY(y_offset, y_offsets, T);
+   RangeAssertZ(z_offset, z_offsets, T);
    switch(hwType())
    {
       case IMAGE_B8G8R8A8: FREPD(z, z_offsets)
@@ -4277,6 +4314,9 @@ void Image::gatherL(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, I
 /******************************************************************************/
 void Image::gatherS(Vec4 *colors, Int *x_offset, Int x_offsets, Int *y_offset, Int y_offsets, Int *z_offset, Int z_offsets)C
 {
+   RangeAssertX(x_offset, x_offsets, T);
+   RangeAssertY(y_offset, y_offsets, T);
+   RangeAssertZ(z_offset, z_offsets, T);
    switch(hwType())
    {
       case IMAGE_B8G8R8A8: FREPD(z, z_offsets)
