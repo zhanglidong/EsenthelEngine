@@ -11,7 +11,7 @@
    Most Materials will use only 1 Shader (only few cases will use more)
    Because of that, Materials have one link ('MaterialShader') to the Shader already included in Material object (to reduce overhead).
    In cases where Material needs another shader, then that link can point to next link in 'MaterialShaders' container (this is a linked list, where links can continuously point to next links in that container)
-   With this mechanism we have unique MaterialShader objects (Material -> Shader), however during rendering we need to have links the other way around (Shader -> Material).
+   With this mechanism we have unique 'MaterialShader' objects (Material -> Shader), however during rendering we need to have links the other way around (Shader -> Material).
    Because first we set Shaders, then iterate all Materials belonging to this Shader.
    All draw calls will store 'ShaderDraw' first, and then that object will have a linked list of all Materials belonging to this Shader ('ShaderMaterial' objects).
    Then 'ShaderMaterial' has a linked list of all meshes 'ShaderMaterialMesh', which then have instances '*ShaderMaterialMeshInstance'.
@@ -20,8 +20,8 @@
       'MaterialShader' is a linked list of   shaders for 1 material
       'ShaderMaterial' is a linked list of materials for 1 shader
 
-   However all instances are managed per MeshPart.Variation, which is not perfect, because for example, MeshPart can have multiple variations, and some of them may have the same material.
-   Even though material is the same, they will not be instanced together. We would have to manage some sort of "unique variation" list in the MeshPart, which would complicate things.
+   However all instances are managed per 'MeshPart.Variation', which is not perfect, because for example, 'MeshPart' can have multiple variations, and some of them may have the same 'Material'.
+   Even though material is the same, they will not be instanced together. We would have to manage some sort of "unique variation" list in the 'MeshPart', which would complicate things.
 
 TODO: most of (highlight, shader_param_changes, stencil) instance parameters are never used, can we do something about it? to remove overhead and memory usage
 TODO: on stereo rendering some pixels are wasted, use a stencil mask, see - http://media.steampowered.com/apps/valve/2015/Alex_Vlachos_Advanced_VR_Rendering_GDC2015.pdf
