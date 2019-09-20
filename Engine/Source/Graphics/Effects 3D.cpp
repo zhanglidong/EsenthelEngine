@@ -11,7 +11,7 @@ static const Vec2 nrm[3]=
 /******************************************************************************/
 void DrawVelocityBlur(Flt power, C Ball &ball)
 {
-   if(Renderer._vel)
+   if(Renderer._has_vel)
    {
       Mtn.load();
 
