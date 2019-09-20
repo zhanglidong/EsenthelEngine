@@ -718,7 +718,7 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
 
                            if(compiler->api==API_DX) // strip
                            {
-                           #if 0 // FIXME - https://github.com/microsoft/DirectXShaderCompiler/issues/2374
+                           #if 0 // FIXME - https://github.com/microsoft/DirectXShaderCompiler/issues/2422
                               IDxcContainerBuilder *container_builder=null; CreateContainerBuilder(&container_builder); if(container_builder)
                               {
                                  if(OK(container_builder->Load(buffer)))

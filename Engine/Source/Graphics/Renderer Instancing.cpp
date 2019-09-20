@@ -993,8 +993,6 @@ void InitInstances()
 }
 void ClearInstances()
 {
-   Renderer._fur_is=false;
-
    // unlink default materials because shadow draws may reuse them
    MaterialDefault      .unlink();
    MaterialDefaultNoCull.unlink();

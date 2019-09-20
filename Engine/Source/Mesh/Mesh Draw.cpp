@@ -603,7 +603,7 @@ INLINE void SkeletonBlendInstance::addBlend(BLST &blst, C Material &material, C 
 }
 INLINE void SkeletonBlendInstance::addFur(Shader &shader, C Material &material, C MeshPart &mesh)
 {
-   newInstance(shader, material, BlendInstance::SOLID_FUR); Renderer._fur_is=true;
+   newInstance(shader, material, BlendInstance::SOLID_FUR); Renderer._has_fur=true;
    SkeletonBlendShaderMaterialMeshInstances.New().set(mesh);
 }
 /******************************************************************************/
@@ -731,7 +731,7 @@ INLINE BlendInstance& BlendInstancesClass::add(BLST &blst, C Material &material,
 }
 INLINE BlendInstance& BlendInstancesClass::addFur(Shader &shader, C Material &material, C MeshPart &mesh, C MeshPart::Variation &variation, C Vec &vel)
 {
-   BlendInstance &obj=New(); obj.type=BlendInstance::SOLID_FUR; Renderer._fur_is=true;
+   BlendInstance &obj=New(); obj.type=BlendInstance::SOLID_FUR; Renderer._has_fur=true;
 #if 1
    obj.s.shader   =&shader;
    obj.s.material =&material;

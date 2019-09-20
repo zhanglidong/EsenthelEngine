@@ -7,7 +7,8 @@ namespace EE{
 #define SNRM_CLEAR Vec4(0   , 0   , -1, 0) // set Z to 0   to set VecZero normals, however Z set to -1 makes ambient occlusion more precise when it uses normals (because ambient occlusion will not work good on the VecZero normals) #NRM_CLEAR
 #define  NRM_CLEAR Vec4(0.5f, 0.5f,  0, 0) // set Z to 0.5 to set VecZero normals, however Z set to  0 makes ambient occlusion more precise when it uses normals (because ambient occlusion will not work good on the VecZero normals) #NRM_CLEAR
 #define  NRM_CLEAR_START 1 // 1 works faster on GeForce 650m GT, TODO: check on newer hardware
-inline Bool ClearNrm() {return D.aoWant() && D.ambientNormal() || Renderer.stage==RS_NORMAL;}
+#define  VEL_CLEAR_START 0 // this is not needed because "ClearSkyVel" is used later, performance tests suggested it's better don't clear unless necessary, instead 'Image.discard' is used and improves performance (at least on Mobile)
+inline Bool NeedBackgroundNrm() {return D.aoWant() && D.ambientNormal() || Renderer.stage==RS_NORMAL;}
 /******************************************************************************
 
    Graphics API differences:
@@ -51,7 +52,7 @@ RendererClass::RendererClass() : highlight(null), material_color_l(null)
 
   _mode=RM_SOLID;
   _mesh_blend_alpha=ALPHA_NONE;
-  _has_glow=_fur_is=_mirror=_mirror_want=_mirror_shadows=_palette_mode=_eye_adapt_scale_cur=_t_measure=_set_depth_needed=_get_target=_stereo=_mesh_early_z=_mesh_shader_vel=false;
+  _has_glow=_has_vel=_has_fur=_mirror=_mirror_want=_mirror_shadows=_palette_mode=_eye_adapt_scale_cur=_t_measure=_set_depth_needed=_get_target=_stereo=_mesh_early_z=_mesh_shader_vel=false;
   _outline=_clear=0;
   _mirror_priority=_mirror_resolution=0;
   _frst_light_offset=_blst_light_offset=0;
@@ -537,6 +538,7 @@ void RendererClass::Combine(IMAGE_PRECISION rt_prec)
 void RendererClass::cleanup1() {_ds_1s.clear();} // '_ds_1s' isn't cleared in 'cleanup' in case it's used for drawing, so clear it here to make sure we can call discard
 void RendererClass::cleanup ()
 {
+  _has_vel=_has_fur=false; // do not clear '_has_glow' because this is called also for reflections, but if reflections have glow, then it means final result should have glow too
 //_final       =null   ; do not clear '_final' because this is called also for reflections, after which we still need '_final'
   _ds          .clear();
 //_ds_1s       .clear(); do not clear '_ds_1s' because 'setDepthForDebugDrawing' may be called after rendering finishes, also 'capture' makes use of it
@@ -598,8 +600,7 @@ RendererClass& RendererClass::operator()(void (&render)())
   _render     =render;
   _stereo     =(VR.active() && D._view_main.full && !combine && !target && !_get_target && D._allow_stereo); // use stereo only for full viewport, if we're not combining (games may use combining to display 3D items/characters in Gui)
   _eye_num    =_stereo+1; // _stereo ? 2 : 1
-  _has_glow   =false;
-  _fur_is     =false;
+  _has_glow   =_has_vel=_has_fur=false;
   _mirror_want=false;
   _outline    =0;
   _final      =(target ? target : _stereo ? VR.getRender() : _cur_main);
@@ -634,8 +635,9 @@ RendererClass& RendererClass::operator()(void (&render)())
 
       // set background sky pixels not drawn by foreground object meshes (everything at the end of depth buffer), this needs to be done before 'blend' because fur may set depth buffer without setting velocities, and before water surface
       {
-         Bool clear_nrm=(_nrm && !NRM_CLEAR_START && ClearNrm());
-         if(  clear_nrm || _vel)
+         const Bool clear_nrm=(!NRM_CLEAR_START && _nrm && NeedBackgroundNrm()),
+                    clear_vel=(!VEL_CLEAR_START && _vel);
+         if(clear_nrm || clear_vel)
          {
             D.alpha    (ALPHA_NONE);
             D.depth2DOn(FUNC_BACKGROUND);
@@ -643,9 +645,9 @@ RendererClass& RendererClass::operator()(void (&render)())
             {
                set(_nrm, _ds, true); Sh.clear(D.signedNrmRT() ? SNRM_CLEAR : NRM_CLEAR); // use DS because we use it for 'D.depth2D' optimization
             }
-            if(_vel)
+            if(clear_vel)
             {
-               Mtn.load(); set(_vel, _ds, true); Mtn.ClearSkyVel->draw(); // use DS because we use it for 'D.depth2D' optimization
+               set(_vel, _ds, true); Mtn.load(); Mtn.ClearSkyVel->draw(); // use DS because we use it for 'D.depth2D' optimization
             }
             D.depth2DOff();
          }
@@ -1017,8 +1019,8 @@ start:
       case RT_DEFERRED:
       {
          const Bool merged_clear=(D._view_main.full || TILE_BASED_GPU), // use only when having full viewport ('clearCol' ignores viewport), or when having a tile-based GPU to avoid overhead of RT transfers. Don't enable in other cases, because on Intel GPU Windows it made things much slower, on GeForce 1050 Ti it made no difference.
-                     clear_nrm  =(NRM_CLEAR_START && ClearNrm()),
-                     clear_vel  =false; // this is not needed because "ClearSkyVel" is used later, performance tests suggested it's better don't clear unless necessary, instead 'Image.discard' is used and improves performance (at least on Mobile)
+                     clear_nrm  =(NRM_CLEAR_START && NeedBackgroundNrm()),
+                     clear_vel  = VEL_CLEAR_START;
 
          if(D.motionMode()==MOTION_CAMERA_OBJECT && hasMotion() && D._max_rt>=3)
          {
@@ -1370,7 +1372,7 @@ void RendererClass::light()
       }
       D.depth2DOff();
       src.clear();
-      if(_lum!=_lum_1s && (_fur_is || stage==RS_LIGHT || stage==RS_LIGHT_AO)){set(_lum_1s, null, true); D.alpha(ALPHA_ADD); Sh.draw(*_lum);} // need to apply multi-sampled lum to 1-sample for fur and light stage
+      if(_lum!=_lum_1s && (_has_fur || stage==RS_LIGHT || stage==RS_LIGHT_AO)){set(_lum_1s, null, true); D.alpha(ALPHA_ADD); Sh.draw(*_lum);} // need to apply multi-sampled lum to 1-sample for fur and light stage
      _lum.clear(); // '_lum' will not be used after this point, however '_lum_1s' may be for rendering fur
    }
 }
@@ -1497,7 +1499,7 @@ void RendererClass::blend()
    }
 
    // apply light in case of drawing fur, which samples the light buffer
-   if(_fur_is)
+   if(_has_fur)
    {
       if(_ao)
       {

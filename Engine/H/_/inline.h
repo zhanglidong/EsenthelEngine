@@ -1916,22 +1916,6 @@ T1(TYPE)  ListColumn::ListColumn(Str (*data_to_text)(C TYPE &data), Flt width, C
 // GRAPHICS
 /******************************************************************************/
 #if EE_PRIVATE
-constexpr INLINE Bool Display::signedNrmRT()C // #SIGNED_NRM_RT
-{
-#if DX11
-   return true;
-#elif GL
-   return false;
-#endif
-}
-constexpr INLINE Bool Display::signedVelRT()C // #SIGNED_VEL_RT
-{
-#if DX11
-   return true;
-#elif GL
-   return false;
-#endif
-}
 INLINE void DisplayState::primType(UInt prim_type)
 {
    if(D._prim_type!=prim_type)
