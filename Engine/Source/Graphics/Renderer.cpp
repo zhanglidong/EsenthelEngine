@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "../Shaders/!Header CPU.h"
 namespace EE{
+// #RTOutput
 #define SVEL_CLEAR Vec4Zero
 #define  VEL_CLEAR Vec4(0.5f, 0.5f, 0.5f, 0)
 #define SNRM_CLEAR Vec4(0   , 0   , -1, 0) // set Z to 0   to set VecZero normals, however Z set to -1 makes ambient occlusion more precise when it uses normals (because ambient occlusion will not work good on the VecZero normals) #NRM_CLEAR
@@ -157,7 +158,7 @@ void RendererClass::mode(RENDER_MODE mode)
 {
    T._mode            =mode;
    T._palette_mode    =(mode==RM_PALETTE || mode==RM_PALETTE1);
-   T._mesh_shader_vel =(_vel && (mode==RM_SOLID || mode==RM_BLEND));
+   T._mesh_shader_vel =(_has_vel && (mode==RM_SOLID || mode==RM_SOLID_M || mode==RM_BLEND)); // only these modes use velocity
    T._solid_mode_index=(mirror() ? RM_SOLID_M : RM_SOLID);
    D.setFrontFace();
    MaterialClear(); // must be called when changing rendering modes, because when setting materials, we may set only some of their shader values depending on mode
@@ -305,11 +306,9 @@ static void SetMotionBlurParams(Flt pixels) // !! this needs to be called when t
 // !! Assumes that 'ImgClamp' was already set !!
 Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
 {
-   if(stage==RS_VEL && show(_vel, false, D.signedVelRT()))return true;
+   if(stage==RS_VEL && _has_vel && show(_vel, false, D.signedVelRT()))return true; // check '_has_vel' too because '_vel' RT could be created, but for other data instead of velocities
 
    Mtn.load();
-
-   Bool camera_object=(_vel!=null); // remember blur mode because it depends on '_vel' which gets cleared
 
    VecI2 res;
    res.y=Min(ByteScaleRes(fxH(), D._mtn_res), 1080); // only up to 1080 is supported, because shaders support only up to MAX_MOTION_BLUR_PIXEL_RANGE pixels, but if we enable higher resolution then it would require more pixels
@@ -334,9 +333,9 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
    ImageRTDesc rt_desc(res.x, res.y, D.signedVelRT() ? IMAGERT_RGB_S : IMAGERT_RGB); // Alpha not used (XY=Dir, Z=Dir.length)
    ImageRTPtr  converted(rt_desc);
    Shader     *shader;
-   if(camera_object)shader=Mtn.Convert[true ][!D._view_main.full];else
-   {                shader=Mtn.Convert[false][!D._view_main.full];
-                    SetFastVel();
+   if(_has_vel)shader=Mtn.Convert[true ][!D._view_main.full];else
+   {           shader=Mtn.Convert[false][!D._view_main.full];
+               SetFastVel();
    }
    set(converted, null, false);
    Rect ext_rect, *rect=null;
@@ -357,7 +356,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
 
    ImageRTPtr dilated=converted, helper;
 
-   if(camera_object) // we apply Dilation only in MOTION_CAMERA_OBJECT mode, for MOTION_CAMERA it's not needed
+   if(_has_vel) // we apply Dilation only in MOTION_CAMERA_OBJECT mode, for MOTION_CAMERA it's not needed
    {
       rt_desc.rt_type=(D.signedVelRT() ? IMAGERT_RGB_S : IMAGERT_RGB); // Alpha not used (XY=Dir, Z=Max Dir length of all nearby pixels)
       // we need to apply Dilation, for example, if a ball object has movement, then it should be blurred, and also pixels around the ball should be blurred too
@@ -1022,10 +1021,14 @@ start:
                      clear_nrm  =(NRM_CLEAR_START && NeedBackgroundNrm()),
                      clear_vel  = VEL_CLEAR_START;
 
-         if(D.motionMode()==MOTION_CAMERA_OBJECT && hasMotion() && D._max_rt>=3)
+         if(D._max_rt>=3) // #RTOutput
          {
-           _vel.get(ImageRTDesc(_col->w(), _col->h(), D.signedVelRT() ? IMAGERT_RGB_S : IMAGERT_RGB, _col->samples())); // "_vel!=null" is treated as MOTION_CAMERA_OBJECT mode across the engine, doesn't use Alpha
-            if(clear_vel && !merged_clear)_vel->clearViewport(D.signedVelRT() ? SVEL_CLEAR : VEL_CLEAR);
+               _has_vel=(D.motionMode()==MOTION_CAMERA_OBJECT && hasMotion()); // '_has_vel' is treated as MOTION_CAMERA_OBJECT mode across the engine
+            if(_has_vel || D.reflectAllow())
+            {
+              _vel.get(ImageRTDesc(_col->w(), _col->h(), D.reflectAllow() ? (D.signedVelRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA) : (D.signedVelRT() ? IMAGERT_RGB_S : IMAGERT_RGB), _col->samples()));
+               if(clear_vel && !merged_clear)_vel->clearViewport(D.signedVelRT() ? SVEL_CLEAR : VEL_CLEAR);
+            }
          }
 
         _nrm.get(ImageRTDesc(_col->w(), _col->h(), D.signedNrmRT() ? (D.highPrecNrmRT() ? IMAGERT_RGBA_SP : IMAGERT_RGBA_S) : (D.highPrecNrmRT() ? IMAGERT_RGBA_P : IMAGERT_RGBA), _col->samples())); // here Alpha is used for specular

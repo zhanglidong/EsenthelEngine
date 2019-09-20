@@ -3,22 +3,22 @@
 namespace EE{
 /******************************************************************************
 
-   RT       : Width      , Height     , Type                                                                      , Samples    , Comments
-  _main     : D.   resW(), D.   resH(),                                                              IMAGERT_SRGBA, 1          , COLOR RGB, Opacity
-  _main_ds  : D.   resW(), D.   resH(),                                                              IMAGERT_DS   , 1          , this is the Main DepthStencil buffer to be used together with '_main' RT, on OpenGL (except iOS) it is provided by the system
-  _ds       : D.renderW(), D.renderW(),                                                              IMAGERT_DS   , D.samples()
-  _ds_1s    : D.renderW(), D.renderW(),                                                              IMAGERT_DS   , 1          , if '_ds' is Multi-Sampled then this is created as a standalone 1-sampled depth buffer, otherwise it's a duplicate of '_ds'
-  _col      : D.renderW(), D.renderH(),                        D.highPrecColRT() ? IMAGERT_SRGBA_P : IMAGERT_SRGBA, D.samples(), COLOR RGB, GLOW
-  _nrm      : D.renderW(), D.renderH(), D.signedNrmRT() ? .. : D.highPrecNrmRT() ? IMAGERT_RGBA_P  : IMAGERT_RGBA , D.samples(), NRM   XYZ, SPEC
-  _vel      : D.renderW(), D.renderH(), D.signedVelRT() ? IMAGERT_RGB_S : IMAGERT_RGB                             , D.samples(), VEL   XYZ
-  _pos      : D.renderW(), D.renderH(),                                                              IMAGERT_F32  , 1          , Linearized depth
-  _lum      : D.renderW(), D.renderH(),                        D.highPrecLumRT() ? IMAGERT_SRGBA_H : IMAGERT_SRGBA, D.samples(), LIGHT RGB, LIGHT SPEC
-  _lum_1s   : D.renderW(), D.renderH(),                        D.highPrecLumRT() ? IMAGERT_SRGBA_H : IMAGERT_SRGBA, 1          , LIGHT RGB, LIGHT SPEC. if '_lum' is Multi-Sampled then this is created as a standalone 1-sampled depth buffer, otherwise it's a duplicate of '_lum'
+   #RTOutput
+   RT       : Width    , Height   ,                                                                                                         Type         , Samples  , Comments
+  _main     : D.   resW, D.   resH,                                                                                                         IMAGERT_SRGBA, 1        , COLOR RGB, Opacity
+  _main_ds  : D.   resW, D.   resH,                                                                                                         IMAGERT_DS   , 1        , this is the Main DepthStencil buffer to be used together with '_main' RT, on OpenGL (except iOS) it is provided by the system
+  _ds       : D.renderW, D.renderW,                                                                                                         IMAGERT_DS   , D.samples
+  _ds_1s    : D.renderW, D.renderW,                                                                                                         IMAGERT_DS   , 1        , if '_ds' is Multi-Sampled then this is created as a standalone 1-sampled depth buffer, otherwise it's a duplicate of '_ds'
+  _col      : D.renderW, D.renderH,                                                                     D.highPrecColRT ? IMAGERT_SRGBA_P : IMAGERT_SRGBA, D.samples, COLOR RGB, GLOW
+  _nrm      : D.renderW, D.renderH, D.signedNrmRT ? D.highPrecNrmRT ? IMAGERT_RGBA_SP : IMAGERT_RGBA_S : D.highPrecNrmRT ? IMAGERT_RGBA_P : IMAGERT_RGBA , D.samples, NRM   XYZ, SMOOTH
+  _vel      : D.renderW, D.renderH,        D.reflectAllow ? D.signedVelRT ? IMAGERT_RGBA_S : IMAGERT_RGBA : D.signedVelRT ? IMAGERT_RGB_S : IMAGERT_RGB  , D.samples, VEL   XYZ, REFLECT
+  _lum      : D.renderW, D.renderH,                                                                     D.highPrecLumRT ? IMAGERT_SRGBA_H : IMAGERT_SRGBA, D.samples, LIGHT RGB, LIGHT SPEC
+  _lum_1s   : D.renderW, D.renderH,                                                                     D.highPrecLumRT ? IMAGERT_SRGBA_H : IMAGERT_SRGBA, 1        , LIGHT RGB, LIGHT SPEC. if '_lum' is Multi-Sampled then this is created as a standalone 1-sampled depth buffer, otherwise it's a duplicate of '_lum'
 
-  _water_col: D.renderW(), D.renderH(),                                                              IMAGERT_SRGB , 1          , COLOR RGB
-  _water_nrm: D.renderW(), D.renderH(), D.signedNrmRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA                           , 1          , NRM   XYZ, SPEC. High precision is not needed because we just use better UnpackNormal in the shader
-  _water_ds : D.renderW(), D.renderH(),                                                              IMAGERT_DS   , 1          , Water Depth
-  _water_lum: D.renderW(), D.renderH(),                                                              IMAGERT_SRGBA, 1          , LIGHT RGB, LIGHT SPEC
+  _water_col: D.renderW, D.renderH,                                                                                                         IMAGERT_SRGB , 1        , COLOR RGB
+  _water_nrm: D.renderW, D.renderH,                                                                        D.signedNrmRT ? IMAGERT_RGBA_S : IMAGERT_RGBA , 1        , NRM   XYZ, SMOOTH. High precision is not needed because we just use better UnpackNormal in the shader
+  _water_ds : D.renderW, D.renderH,                                                                                                         IMAGERT_DS   , 1        , Water Depth
+  _water_lum: D.renderW, D.renderH,                                                                                                         IMAGERT_SRGBA, 1        , LIGHT RGB, LIGHT SPEC
 
   '_gui' is set to '_main', unless stereoscopic rendering is enabled then it's set to VR RT
 
