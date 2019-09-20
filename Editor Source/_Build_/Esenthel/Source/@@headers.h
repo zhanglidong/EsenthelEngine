@@ -607,7 +607,7 @@ enum VIEW_MODE
 /******************************************************************************/
 // CONSTANTS
 /******************************************************************************/
-const int  EE_APP_BUILD        =60;
+const int  EE_APP_BUILD        =61;
 const uint EditMeshFlagAnd=~(VTX_DUP|EDGE_ALL|FACE_NRM|ADJ_ALL|VTX_TAN_BIN), // TanBin are not needed in Edit because they're always re-created if needed
            GameMeshFlagAnd=~(VTX_DUP|EDGE_ALL|FACE_NRM|ADJ_ALL);
 const int           ForceInstaller=-2, // -2=disable and don't update, -1=disable, 0=auto, 1=enable (this is used only in Debug)
@@ -637,7 +637,7 @@ const int           ForceInstaller=-2, // -2=disable and don't update, -1=disabl
 const uint          MeshJoinAllTestVtxFlag=VTX_HLP|VTX_SIZE;
 const uint          NewElmTime=1;
 const uint ProjectVersion     =66, // !! increase this by one if any of engine/editor asset formats have changed !!
-           ClientServerVersion=63;
+           ClientServerVersion=64;
 const int           ServerNetworkCompressionLevel=9           , ClientNetworkCompressionLevel=5            , EsenthelProjectCompressionLevel=5;
 /******************************************************************************/
 // TYPEDEFS
