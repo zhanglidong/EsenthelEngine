@@ -208,23 +208,23 @@ void PS
 #endif
 ) // #RTOutput
 {
-   Half smooth, reflect;
+   Half smooth, reflct;
 
    // #MaterialTextureLayout
 #if   LAYOUT==0
-   smooth =Material.smooth;
-   reflect=Material.reflect;
+   smooth=Material.smooth;
+   reflct=Material.reflect;
 #elif LAYOUT==1
    VecH4 tex_col=Tex(Col, I.tex); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
    if(ALPHA)I.col*=tex_col;else I.col.rgb*=tex_col.rgb;
-   smooth =Material.smooth;
-   reflect=Material.reflect;
+   smooth=Material.smooth;
+   reflct=Material.reflect;
 #elif LAYOUT==2
    VecH4 tex_ext=Tex(Ext, I.tex); if(ALPHA_TEST)clip(tex_ext.a-ALPHA_CLIP);
             I.col.rgb*=Tex(Col, I.tex).rgb;
    if(ALPHA)I.col.a  *=tex_ext.a;
-   smooth =Material.smooth *tex_ext.x;
-   reflect=Material.reflect*tex_ext.y;
+   smooth=Material.smooth *tex_ext.x;
+   reflct=Material.reflect*tex_ext.y;
 #endif
 
    // normal
@@ -249,7 +249,7 @@ void PS
    #else
       Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
    #endif
-      I.col.rgb+=TexCube(Cub, rfl).rgb*reflect;
+      I.col.rgb+=TexCube(Cub, rfl).rgb*reflct;
    }
    #endif
 
