@@ -141,14 +141,15 @@ void VS
       }
    }else
    {
-      VecU bone=vtx.bone();
+      VecU bone    =vtx.bone  ();
+      VecH weight_h=vtx.weight();
       pos=TransformPos(pos, bone, vtx.weight());
 
    #if   BUMP_MODE> SBUMP_FLAT
-      nrm=TransformDir(nrm, bone, vtx.weight());
-      tan=TransformDir(tan, bone, vtx.weight());
+      nrm=TransformDir(nrm, bone, weight_h);
+      tan=TransformDir(tan, bone, weight_h);
    #elif BUMP_MODE==SBUMP_FLAT
-      nrm=TransformDir(nrm, bone, vtx.weight());
+      nrm=TransformDir(nrm, bone, weight_h);
    #endif
    }
 

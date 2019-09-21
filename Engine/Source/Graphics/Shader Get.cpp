@@ -149,7 +149,7 @@ void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_
    alpha_test       =(                                               materials==1 && layout>=1 && !heightmap && m->hasAlphaTest        ());
    alpha_blend      =(                                               materials==1 &&              !heightmap && m->hasAlphaBlend       ()); // this shouldn't require a texture, we can do alpha blending with just material color
    alpha_blend_light=(                                               materials==1 &&              !heightmap && m->hasAlphaBlendLight  ()); // this shouldn't require a texture, we can do alpha blending with just material color
-    mtrl_blend      =(                                               materials> 1 && D.materialBlend()                                   ); // this is multi-material blending (blending between multiple materials)
+    mtrl_blend      =(                                               materials> 1 && layout>=2 && D.materialBlend()                      ); // this is per-pixel multi-material blending (blending between multiple materials)
    tesselate        =(normal && (lod_index<=0) && D.shaderModel()>=SM_5 && D.tesselation() && (!heightmap || D.tesselationHeightmap()));
    fx               =(grass ? FX_GRASS : leaf ? (size ? FX_LEAFS : FX_LEAF) : FX_NONE);
 

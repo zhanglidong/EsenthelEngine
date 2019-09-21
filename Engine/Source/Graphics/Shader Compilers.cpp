@@ -662,9 +662,9 @@ static void Compile(API api)
       // default
       REPD(skin, 2)
       for(Int materials=1, materials_max=(skin ? 1 : MAX_MTRLS); materials<=materials_max; materials++)
-      REPD(mtrl_blend, (materials>1) ? 2 : 1)
       for(Int layout=((materials==1) ? 0 : 1); layout<=2; layout++) // multi-materials don't support 0 textures
-      for(Int bump_mode=SBUMP_FLAT, bump_max=((layout==2) ? SBUMP_RELIEF : SBUMP_NORMAL); bump_mode<=bump_max; bump_mode++)if(bump_mode<=SBUMP_NORMAL || bump_mode>=SBUMP_PARALLAX_MIN)
+      for(Int bump_mode=SBUMP_FLAT, bump_max=((layout>=2) ? SBUMP_RELIEF : SBUMP_NORMAL); bump_mode<=bump_max; bump_mode++)if(bump_mode<=SBUMP_NORMAL || bump_mode>=SBUMP_PARALLAX_MIN)
+      REPD(mtrl_blend, (materials> 1 && layout>=2           ) ? 2 : 1) // can do per-pixel mtrl-blend only if we have bump map
       REPD(heightmap , (!skin                               ) ? 2 : 1)
       REPD(alpha_test, (materials==1 && layout && !heightmap) ? 2 : 1)
       REPD(macro     , (!skin  &&                  heightmap) ? 2 : 1)
@@ -720,9 +720,9 @@ static void Compile(API api)
       REPD(skin      , 2)
       REPD(per_pixel , 2)
       for(Int materials=1, materials_max=(skin ? 1 : MAX_MTRLS); materials<=materials_max; materials++)
-      REPD(mtrl_blend, (materials>1) ? 2 : 1)
       for(Int layout=((materials==1) ? 0 : 1); layout<=2; layout++) // multi-materials don't support 0 textures
       REPD(bump_mode , per_pixel                              ? 2 : 1)
+      REPD(mtrl_blend, (materials> 1 && layout>=2           ) ? 2 : 1) // can do per-pixel mtrl-blend only if we have bump map
       REPD(heightmap , (!skin                               ) ? 2 : 1)
       REPD(alpha_test, (materials==1 && layout && !heightmap) ? 2 : 1)
       REPD(light_map , (materials==1 &&           !heightmap) ? 2 : 1)
