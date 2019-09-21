@@ -30,7 +30,7 @@ SKIN, MATERIALS, LAYOUT, BUMP_MODE, ALPHA_TEST, DETAIL, MACRO, COLORS, MTRL_BLEN
 /******************************************************************************/
 struct VS_PS
 {
-#if LAYOUT || DETAIL || MACRO
+#if LAYOUT || DETAIL || MACRO || BUMP_MODE>SBUMP_FLAT
    Vec2 tex:TEXCOORD;
 #endif
 
@@ -84,7 +84,7 @@ void VS
    Vec  pos=vtx.pos();
    VecH nrm, tan; if(BUMP_MODE>=SBUMP_FLAT)nrm=vtx.nrm(); if(BUMP_MODE>SBUMP_FLAT)tan=vtx.tan(nrm, HEIGHTMAP);
 
-#if LAYOUT || DETAIL || MACRO
+#if LAYOUT || DETAIL || MACRO || BUMP_MODE>SBUMP_FLAT
    O.tex=vtx.tex(HEIGHTMAP);
    if(HEIGHTMAP && MATERIALS==1)O.tex*=Material.tex_scale;
 #endif
@@ -724,7 +724,7 @@ VS_PS HS
    O.pos=I[cp_id].pos;
    O.vel=I[cp_id].vel;
 
-#if LAYOUT || DETAIL || MACRO
+#if LAYOUT || DETAIL || MACRO || BUMP_MODE>SBUMP_FLAT
    O.tex=I[cp_id].tex;
 #endif
 
@@ -772,7 +772,7 @@ void DS
 
    O.vel=I[0].vel*B.z + I[1].vel*B.x + I[2].vel*B.y;
 
-#if LAYOUT || DETAIL || MACRO
+#if LAYOUT || DETAIL || MACRO || BUMP_MODE>SBUMP_FLAT
    O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
 #endif
 
