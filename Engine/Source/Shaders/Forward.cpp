@@ -30,7 +30,9 @@ struct VS_PS
    Vec pos:POS;
 #endif
 
+#if LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT
    Vec2 tex:TEXCOORD;
+#endif
 
 #if   BUMP_MODE> SBUMP_FLAT && PER_PIXEL
    MatrixH3 mtrx:MATRIX; // !! may not be Normalized !!
@@ -78,7 +80,7 @@ void VS
    Vec  pos=vtx.pos();
    VecH nrm, tan; if(BUMP_MODE>=SBUMP_FLAT)nrm=vtx.nrm(); if(BUMP_MODE>SBUMP_FLAT)tan=vtx.tan(nrm, HEIGHTMAP);
 
-#if LAYOUT || DETAIL || LIGHT_MAP
+#if LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT
    O.tex=vtx.tex(HEIGHTMAP);
    if(HEIGHTMAP && MATERIALS==1)O.tex*=Material.tex_scale;
 #endif
@@ -632,7 +634,7 @@ VS_PS HS
 #endif
 
 
-#if LAYOUT || DETAIL || LIGHT_MAP
+#if LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT
    O.tex=I[cp_id].tex;
 #endif
 
@@ -676,7 +678,7 @@ void DS
    SetDSPosNrm(O.pos, O.nrm    , I[0].pos, I[1].pos, I[2].pos, I[0].Nrm(), I[1].Nrm(), I[2].Nrm(), B, hs_data, false, 0);
 #endif
 
-#if LAYOUT || DETAIL || LIGHT_MAP
+#if LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT
    O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
 #endif
 

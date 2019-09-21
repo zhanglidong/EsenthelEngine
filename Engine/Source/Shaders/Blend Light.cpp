@@ -15,7 +15,7 @@ struct VS_PS
    Vec pos:POS;
 #endif
 
-#if LAYOUT || LIGHT_MAP
+#if LAYOUT || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT
    Vec2 tex:TEXCOORD;
 #endif
 
@@ -58,7 +58,7 @@ void VS
    Vec  pos=vtx.pos();
    VecH nrm, tan; if(BUMP_MODE>=SBUMP_FLAT)nrm=vtx.nrm(); if(BUMP_MODE>SBUMP_FLAT)tan=vtx.tan(nrm, HEIGHTMAP);
 
-#if LAYOUT || LIGHT_MAP
+#if LAYOUT || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT
    O.tex=vtx.tex(HEIGHTMAP);
    if(HEIGHTMAP)O.tex*=Material.tex_scale;
 #endif
