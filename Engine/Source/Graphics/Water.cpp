@@ -77,7 +77,7 @@ void WaterMtrl::set()
       }
       Sh.Col[0]->set(     _color_map());
       Sh.Nrm[0]->set(    _normal_map());
-    //Sh.Rfl[0]->set(_reflection_map()); FIXME
+      Sh.Cub[0]->set(_reflection_map()); // FIXME
    }
 }
 /******************************************************************************/
