@@ -4,11 +4,12 @@
 #include "Sky.h"
 /******************************************************************************/
 //SKIN, COLORS, LAYOUT, BUMP_MODE, ALPHA_TEST, ALPHA, REFLECT, LIGHT_MAP, FX, PER_PIXEL, SHADOW_MAPS, TESSELATE
-#define USE_VEL    ALPHA_TEST
-#define HEIGHTMAP  0
-#define SET_POS    (USE_VEL || SHADOW_MAPS || (REFLECT && PER_PIXEL && BUMP_MODE>SBUMP_FLAT))
-#define SET_TEX    (LAYOUT || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
-#define ALPHA_CLIP 0.5
+#define USE_VEL     ALPHA_TEST
+#define HEIGHTMAP   0
+#define SET_POS     (USE_VEL || SHADOW_MAPS || (REFLECT && PER_PIXEL && BUMP_MODE>SBUMP_FLAT))
+#define SET_TEX     (LAYOUT || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
+#define VTX_REFLECT (REFLECT && !(PER_PIXEL && BUMP_MODE>SBUMP_FLAT))
+#define ALPHA_CLIP  0.5
 /******************************************************************************/
 struct VS_PS
 {
@@ -37,7 +38,7 @@ struct VS_PS
    Vec vel:VELOCITY;
 #endif
 
-#if REFLECT && !(PER_PIXEL && BUMP_MODE>SBUMP_FLAT)
+#if VTX_REFLECT
    VecH rfl:REFLECTION;
 #endif
 
@@ -141,7 +142,7 @@ void VS
 
    // normalize (have to do all at the same time, so all have the same lengths)
    if(BUMP_MODE>SBUMP_FLAT // calculating binormal (this also covers the case when we have tangent from heightmap which is not Normalized)
-   || REFLECT && !(PER_PIXEL && BUMP_MODE>SBUMP_FLAT) // per-vertex reflection
+   || VTX_REFLECT // per-vertex reflection
    || !PER_PIXEL && BUMP_MODE>=SBUMP_FLAT // per-vertex lighting
    || TESSELATE) // needed for tesselation
    {
@@ -151,7 +152,7 @@ void VS
 
    Flt dist=Length(pos);
 
-#if REFLECT && !(PER_PIXEL && BUMP_MODE>SBUMP_FLAT)
+#if VTX_REFLECT
    O.rfl=Transform3(reflect(VecH(pos/dist), nrm), CamMatrix);
 #endif
 
@@ -237,10 +238,10 @@ void PS
    // reflection
    #if REFLECT
    {
-   #if PER_PIXEL && BUMP_MODE>SBUMP_FLAT
-      Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
-   #else
+   #if VTX_REFLECT
       Vec rfl=I.rfl;
+   #else
+      Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
    #endif
       I.col.rgb+=TexCube(Rfl, rfl).rgb * ((LAYOUT==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
    }
