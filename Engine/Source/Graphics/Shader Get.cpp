@@ -76,6 +76,7 @@ static Int BumpMode(C Material &material, UInt mesh_base_flag)
 }
 static Bool Detail     (C Material &material) {return  material.detail_map && material.det_power>EPS_COL;}
 static Bool Macro      (C Material &material) {return  material. macro_map;}
+static Bool Reflect    (C Material &material) {return  material.reflect      >EPS_COL;}
 static Int  AmbientMode(C Material &material) {return (material.ambient.max()>EPS_COL) ? material.light_map ? 2 : 1 : 0;}
 
 static UInt FlagHeightmap(UInt mesh_base_flag, Bool heightmap)
@@ -113,17 +114,17 @@ void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_
    color    =FlagTest(mesh_base_flag, VTX_COLOR);
    size     =FlagTest(mesh_base_flag, VTX_SIZE );
 
-   layout=Layout(*m); bump=BumpMode(*m, mesh_base_flag); detail=Detail(*m); macro=Macro(*m); ambient=AmbientMode(*m);
+   layout=Layout(*m); bump=BumpMode(*m, mesh_base_flag); detail=Detail(*m); macro=Macro(*m); reflect=Reflect(*m); ambient=AmbientMode(*m);
    if(material && material[1]) // && (mesh_base_flag&VTX_MATERIAL)) we must always return a different shader even when there's no VTX_MATERIAL component, because we need a different shader for multi-material parts that have 'umm', as they operate on 'MultiMaterialShaderDraws' and not 'ShaderDraws', otherwise crash or memory corruption may occur, because 'ShaderBase.shader_index' would point to wrong container
    {
-      materials++; MAX(layout, Layout(*material[1])); MAX(bump, BumpMode(*material[1], mesh_base_flag)); detail|=Detail(*material[1]); macro|=Macro(*material[1]); MAX(ambient, AmbientMode(*material[1]));
+      materials++; MAX(layout, Layout(*material[1])); MAX(bump, BumpMode(*material[1], mesh_base_flag)); detail|=Detail(*material[1]); macro|=Macro(*material[1]); reflect|=Reflect(*material[1]); MAX(ambient, AmbientMode(*material[1]));
       if(material[2])
       {
-         materials++; MAX(layout, Layout(*material[2])); MAX(bump, BumpMode(*material[2], mesh_base_flag)); detail|=Detail(*material[2]); macro|=Macro(*material[2]); MAX(ambient, AmbientMode(*material[2]));
+         materials++; MAX(layout, Layout(*material[2])); MAX(bump, BumpMode(*material[2], mesh_base_flag)); detail|=Detail(*material[2]); macro|=Macro(*material[2]); reflect|=Reflect(*material[2]); MAX(ambient, AmbientMode(*material[2]));
       #if MAX_MTRLS>=4
          if(material[3])
          {
-            materials++; MAX(layout, Layout(*material[3])); MAX(bump, BumpMode(*material[3], mesh_base_flag)); detail|=Detail(*material[3]); macro|=Macro(*material[3]); MAX(ambient, AmbientMode(*material[3]));
+            materials++; MAX(layout, Layout(*material[3])); MAX(bump, BumpMode(*material[3], mesh_base_flag)); detail|=Detail(*material[3]); macro|=Macro(*material[3]); reflect|=Reflect(*material[3]); MAX(ambient, AmbientMode(*material[3]));
          }
       #endif
       }
@@ -137,6 +138,7 @@ void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_
    if(!D.texDetailLOD() && lod_index> 0                      )detail=false; // disable detail for LOD's>0
    if(                     lod_index> 0 || layout<2          )MIN(bump, SBUMP_NORMAL); // limit to normal mapping for LOD's>0 and layout<2 (no bump channel)
    if(!tex                                                   ){layout=0; detail=macro=false; MIN(ambient, 1);} // disable all textures if we don't have texcoords
+   if(!normal || !D.reflectAllow()                           )reflect=false; // reflection requires vtx normals
    if(materials>1                                            )MAX(layout, 1); // multi-materials currently don't support 0 textures
    if(materials>1 || heightmap                               )ambient=0; // multi-materials and heightmaps currently don't support ambient
 
@@ -204,7 +206,7 @@ Shader* DefaultShaders::Shadow()C
 Shader* DefaultShaders::Blend()C
 {
    if(valid && blend) // "!blend" here will return null so BLST can be used in 'drawBlend'
-      return ShaderFiles("Blend")->get(ShaderBlend(skin, color, layout));
+      return ShaderFiles("Blend")->get(ShaderBlend(skin, color, layout, reflect));
    return null;
 }
 Shader* DefaultShaders::Overlay()C
@@ -241,6 +243,7 @@ FRST* DefaultShaders::Frst()C
       key.materials =materials;
       key.layout    =layout;
       key.alpha_test=alpha_test;
+      key.reflect   =reflect;
       key.light_map =(ambient>1);
       key.detail    =(detail && materials==1); // forward currently doesn't support detail in multi-material
       key.color     =color;
@@ -268,6 +271,7 @@ BLST* DefaultShaders::Blst()C
       key.layout    =layout;
       key.alpha_test=alpha_test;
       key.alpha     =alpha;
+      key.reflect   =reflect;
       key.light_map =(ambient>1);
       key.skin      =skin;
       key.fx        =fx;

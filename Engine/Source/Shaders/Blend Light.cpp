@@ -3,7 +3,7 @@
 #include "Fog.h"
 #include "Sky.h"
 /******************************************************************************/
-//SKIN, COLORS, LAYOUT, BUMP_MODE, ALPHA_TEST, ALPHA, LIGHT_MAP, REFLECT, FX, PER_PIXEL, SHADOW_MAPS, TESSELATE
+//SKIN, COLORS, LAYOUT, BUMP_MODE, ALPHA_TEST, ALPHA, REFLECT, LIGHT_MAP, FX, PER_PIXEL, SHADOW_MAPS, TESSELATE
 #define USE_VEL    ALPHA_TEST
 #define HEIGHTMAP  0
 #define SET_POS    (USE_VEL || SHADOW_MAPS || (REFLECT && PER_PIXEL && BUMP_MODE>SBUMP_FLAT))

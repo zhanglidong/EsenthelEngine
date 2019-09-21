@@ -1798,6 +1798,7 @@ static Int Compare(C FRSTKey &a, C FRSTKey &b)
    if(Int c=Compare(a.layout    , b.layout    ))return c;
    if(Int c=Compare(a.bump_mode , b.bump_mode ))return c;
    if(Int c=Compare(a.alpha_test, b.alpha_test))return c;
+   if(Int c=Compare(a.reflect   , b.reflect   ))return c;
    if(Int c=Compare(a.light_map , b.light_map ))return c;
    if(Int c=Compare(a.detail    , b.detail    ))return c;
    if(Int c=Compare(a.color     , b.color     ))return c;
@@ -1813,7 +1814,7 @@ static Bool Create(FRST &frst, C FRSTKey &key, Ptr)
    ShaderFile *shader_file=ShaderFiles("Forward");
    if(key.bump_mode==SBUMP_ZERO)
    {
-      Shader *shader=shader_file->get(ShaderForward(key.skin, key.materials, key.layout, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.color, key.mtrl_blend, key.heightmap, key.fx, key.per_pixel,   false, 0, 0,   false, 0,   false, 0,   false, 0,   false));
+      Shader *shader=shader_file->get(ShaderForward(key.skin, key.materials, key.layout, key.bump_mode, key.alpha_test, key.reflect, key.light_map, key.detail, key.color, key.mtrl_blend, key.heightmap, key.fx, key.per_pixel,   false, 0, 0,   false, 0,   false, 0,   false, 0,   false));
       frst.all_passes=false;
       frst.none  =shader;
       frst.dir   =shader;
@@ -1827,18 +1828,18 @@ static Bool Create(FRST &frst, C FRSTKey &key, Ptr)
    }else
    {
       frst.all_passes=true;
-      frst.none  =shader_file->get(ShaderForward(key.skin, key.materials, key.layout, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.color, key.mtrl_blend, key.heightmap, key.fx, key.per_pixel,   false, false, 0,   false, false,   false, false,   false, false,   key.tesselate));
-      frst.dir   =shader_file->get(ShaderForward(key.skin, key.materials, key.layout, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.color, key.mtrl_blend, key.heightmap, key.fx, key.per_pixel,   true , false, 0,   false, false,   false, false,   false, false,   key.tesselate));
-      frst.point =shader_file->get(ShaderForward(key.skin, key.materials, key.layout, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.color, key.mtrl_blend, key.heightmap, key.fx, key.per_pixel,   false, false, 0,   true , false,   false, false,   false, false,   key.tesselate));
-      frst.linear=shader_file->get(ShaderForward(key.skin, key.materials, key.layout, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.color, key.mtrl_blend, key.heightmap, key.fx, key.per_pixel,   false, false, 0,   false, false,   true , false,   false, false,   key.tesselate));
-      frst.cone  =shader_file->get(ShaderForward(key.skin, key.materials, key.layout, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.color, key.mtrl_blend, key.heightmap, key.fx, key.per_pixel,   false, false, 0,   false, false,   false, false,   true , false,   key.tesselate));
+      frst.none  =shader_file->get(ShaderForward(key.skin, key.materials, key.layout, key.bump_mode, key.alpha_test, key.reflect, key.light_map, key.detail, key.color, key.mtrl_blend, key.heightmap, key.fx, key.per_pixel,   false, false, 0,   false, false,   false, false,   false, false,   key.tesselate));
+      frst.dir   =shader_file->get(ShaderForward(key.skin, key.materials, key.layout, key.bump_mode, key.alpha_test, key.reflect, key.light_map, key.detail, key.color, key.mtrl_blend, key.heightmap, key.fx, key.per_pixel,   true , false, 0,   false, false,   false, false,   false, false,   key.tesselate));
+      frst.point =shader_file->get(ShaderForward(key.skin, key.materials, key.layout, key.bump_mode, key.alpha_test, key.reflect, key.light_map, key.detail, key.color, key.mtrl_blend, key.heightmap, key.fx, key.per_pixel,   false, false, 0,   true , false,   false, false,   false, false,   key.tesselate));
+      frst.linear=shader_file->get(ShaderForward(key.skin, key.materials, key.layout, key.bump_mode, key.alpha_test, key.reflect, key.light_map, key.detail, key.color, key.mtrl_blend, key.heightmap, key.fx, key.per_pixel,   false, false, 0,   false, false,   true , false,   false, false,   key.tesselate));
+      frst.cone  =shader_file->get(ShaderForward(key.skin, key.materials, key.layout, key.bump_mode, key.alpha_test, key.reflect, key.light_map, key.detail, key.color, key.mtrl_blend, key.heightmap, key.fx, key.per_pixel,   false, false, 0,   false, false,   false, false,   true , false,   key.tesselate));
 
       if(D.shadowSupported())
       {
-         REPAO(frst.   dir_shd)=shader_file->get(ShaderForward(key.skin, key.materials, key.layout, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.color, key.mtrl_blend, key.heightmap, key.fx, key.per_pixel,   true , true , Ceil2(i+1),   false, false,   false, false,   false, false,  key.tesselate));
-               frst. point_shd =shader_file->get(ShaderForward(key.skin, key.materials, key.layout, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.color, key.mtrl_blend, key.heightmap, key.fx, key.per_pixel,   false, false,         0 ,   true , true ,   false, false,   false, false,  key.tesselate));
-               frst.linear_shd =shader_file->get(ShaderForward(key.skin, key.materials, key.layout, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.color, key.mtrl_blend, key.heightmap, key.fx, key.per_pixel,   false, false,         0 ,   false, false,   true , true ,   false, false,  key.tesselate));
-               frst.  cone_shd =shader_file->get(ShaderForward(key.skin, key.materials, key.layout, key.bump_mode, key.alpha_test, key.light_map, key.detail, key.color, key.mtrl_blend, key.heightmap, key.fx, key.per_pixel,   false, false,         0 ,   false, false,   false, false,   true , true ,  key.tesselate));
+         REPAO(frst.   dir_shd)=shader_file->get(ShaderForward(key.skin, key.materials, key.layout, key.bump_mode, key.alpha_test, key.reflect, key.light_map, key.detail, key.color, key.mtrl_blend, key.heightmap, key.fx, key.per_pixel,   true , true , Ceil2(i+1),   false, false,   false, false,   false, false,  key.tesselate));
+               frst. point_shd =shader_file->get(ShaderForward(key.skin, key.materials, key.layout, key.bump_mode, key.alpha_test, key.reflect, key.light_map, key.detail, key.color, key.mtrl_blend, key.heightmap, key.fx, key.per_pixel,   false, false,         0 ,   true , true ,   false, false,   false, false,  key.tesselate));
+               frst.linear_shd =shader_file->get(ShaderForward(key.skin, key.materials, key.layout, key.bump_mode, key.alpha_test, key.reflect, key.light_map, key.detail, key.color, key.mtrl_blend, key.heightmap, key.fx, key.per_pixel,   false, false,         0 ,   false, false,   true , true ,   false, false,  key.tesselate));
+               frst.  cone_shd =shader_file->get(ShaderForward(key.skin, key.materials, key.layout, key.bump_mode, key.alpha_test, key.reflect, key.light_map, key.detail, key.color, key.mtrl_blend, key.heightmap, key.fx, key.per_pixel,   false, false,         0 ,   false, false,   false, false,   true , true ,  key.tesselate));
       }else
       {
          REPAO(frst.   dir_shd)=null;
@@ -1861,6 +1862,7 @@ static Int Compare(C BLSTKey &a, C BLSTKey &b)
    if(Int c=Compare(a.bump_mode , b.bump_mode ))return c;
    if(Int c=Compare(a.alpha_test, b.alpha_test))return c;
    if(Int c=Compare(a.alpha     , b.alpha     ))return c;
+   if(Int c=Compare(a.reflect   , b.reflect   ))return c;
    if(Int c=Compare(a.light_map , b.light_map ))return c;
    if(Int c=Compare(a.fx        , b.fx        ))return c;
    if(Int c=Compare(a.per_pixel , b.per_pixel ))return c;
@@ -1869,10 +1871,10 @@ static Int Compare(C BLSTKey &a, C BLSTKey &b)
 static Bool Create(BLST &blst, C BLSTKey &key, Ptr)
 {
    ShaderFile *shader=ShaderFiles("Blend Light");
-            blst.dir[0  ]=shader->get(ShaderBlendLight(key.skin, key.color, key.layout, key.bump_mode, key.alpha_test, key.alpha, key.light_map, key.fx, key.per_pixel,   0, 0));
+            blst.dir[0  ]=shader->get(ShaderBlendLight(key.skin, key.color, key.layout, key.bump_mode, key.alpha_test, key.alpha, key.reflect, key.light_map, key.fx, key.per_pixel,   0, 0));
    if(D.shadowSupported())
    {
-      REP(6)blst.dir[i+1]=shader->get(ShaderBlendLight(key.skin, key.color, key.layout, key.bump_mode, key.alpha_test, key.alpha, key.light_map, key.fx, key.per_pixel, i+1, 0));
+      REP(6)blst.dir[i+1]=shader->get(ShaderBlendLight(key.skin, key.color, key.layout, key.bump_mode, key.alpha_test, key.alpha, key.reflect, key.light_map, key.fx, key.per_pixel, i+1, 0));
    }else
    {
       REP(6)blst.dir[i+1]=blst.dir[0];

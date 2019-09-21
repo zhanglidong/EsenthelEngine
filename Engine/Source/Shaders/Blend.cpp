@@ -2,7 +2,7 @@
 #include "!Header.h"
 #include "Sky.h"
 /******************************************************************************
-SKIN, COLORS, REFLECT, LAYOUT
+SKIN, COLORS, LAYOUT, REFLECT
 /******************************************************************************/
 void VS
 (
@@ -11,7 +11,9 @@ void VS
 #if LAYOUT
    out Vec2  outTex  :TEXCOORD  ,
 #endif
+#if REFLECT
    out VecH  outRfl  :REFLECTION,
+#endif
    out VecH4 outColor:COLOR     ,
    out Vec4  outVtx  :POSITION
 )
@@ -40,7 +42,9 @@ void VS
                  pos=TransformPos(vtx.pos(), bone, vtx.weight());
       if(REFLECT)nrm=TransformDir(vtx.nrm(), bone, vtx.weight());
    }
-   if(REFLECT)outRfl=Transform3(reflect((VecH)Normalize(pos), Normalize(nrm)), CamMatrix);
+#if REFLECT
+   outRfl=Transform3(reflect((VecH)Normalize(pos), Normalize(nrm)), CamMatrix);
+#endif
 
    outVtx=Project(pos);
 
@@ -52,7 +56,9 @@ VecH4 PS
 #if LAYOUT
    Vec2  inTex  :TEXCOORD  ,
 #endif
+#if REFLECT
    VecH  inRfl  :REFLECTION,
+#endif
    VecH4 inColor:COLOR
 ):TARGET
 {
@@ -65,8 +71,9 @@ VecH4 PS
 
    inColor.rgb+=Highlight.rgb;
 
-   // reflection
-   if(REFLECT)inColor.rgb+=TexCube(Rfl, inRfl).rgb*((LAYOUT==2) ? Material.reflect*ext.y : Material.reflect);
+#if REFLECT // reflection
+   inColor.rgb+=TexCube(Rfl, inRfl).rgb*((LAYOUT==2) ? Material.reflect*ext.y : Material.reflect);
+#endif
 
    return inColor;
 }

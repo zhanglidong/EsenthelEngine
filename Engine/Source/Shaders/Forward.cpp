@@ -1,7 +1,7 @@
 /******************************************************************************/
 #include "!Header.h"
 /******************************************************************************
-SKIN, MATERIALS, LAYOUT, BUMP_MODE, ALPHA_TEST, LIGHT_MAP, DETAIL, REFLECT, COLORS, MTRL_BLEND, HEIGHTMAP, FX, PER_PIXEL
+SKIN, MATERIALS, LAYOUT, BUMP_MODE, ALPHA_TEST, REFLECT, LIGHT_MAP, DETAIL, COLORS, MTRL_BLEND, HEIGHTMAP, FX, PER_PIXEL
 LIGHT_DIR, LIGHT_DIR_SHD, LIGHT_DIR_SHD_NUM
 LIGHT_POINT, LIGHT_POINT_SHD
 LIGHT_LINEAR, LIGHT_LINEAR_SHD

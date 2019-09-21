@@ -43,12 +43,12 @@ namespace EE{
 // SHADER NAMES
 /******************************************************************************/
 Str8 ShaderDeferred  (Int skin, Int materials, Int layout, Int bump_mode, Int alpha_test, Int detail, Int macro, Int color, Int mtrl_blend, Int heightmap, Int fx, Int tesselate) {return S8+skin+materials+layout+bump_mode+alpha_test+detail+macro+color+mtrl_blend+heightmap+fx+tesselate;}
-Str8 ShaderBlendLight(Int skin, Int color    , Int layout, Int bump_mode, Int alpha_test, Int alpha, Int light_map, Int fx, Int per_pixel, Int shadow_maps, Int tesselate) {return S8+skin+color+layout+bump_mode+alpha_test+alpha+light_map+fx+per_pixel+shadow_maps+tesselate;}
-Str8 ShaderForward   (Int skin, Int materials, Int layout, Int bump_mode, Int alpha_test, Int light_map, Int detail, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tesselate) {return S8+skin+materials+layout+bump_mode+alpha_test+light_map+detail+color+mtrl_blend+heightmap+fx+per_pixel+light_dir+light_dir_shd+light_dir_shd_num+light_point+light_point_shd+light_linear+light_linear_shd+light_cone+light_cone_shd+tesselate;}
+Str8 ShaderBlendLight(Int skin, Int color    , Int layout, Int bump_mode, Int alpha_test, Int alpha, Int reflect, Int light_map, Int fx, Int per_pixel, Int shadow_maps, Int tesselate) {return S8+skin+color+layout+bump_mode+alpha_test+alpha+reflect+light_map+fx+per_pixel+shadow_maps+tesselate;}
+Str8 ShaderForward   (Int skin, Int materials, Int layout, Int bump_mode, Int alpha_test, Int reflect, Int light_map, Int detail, Int color, Int mtrl_blend, Int heightmap, Int fx, Int per_pixel,   Int light_dir, Int light_dir_shd, Int light_dir_shd_num,   Int light_point, Int light_point_shd,   Int light_linear, Int light_linear_shd,   Int light_cone, Int light_cone_shd,   Int tesselate) {return S8+skin+materials+layout+bump_mode+alpha_test+reflect+light_map+detail+color+mtrl_blend+heightmap+fx+per_pixel+light_dir+light_dir_shd+light_dir_shd_num+light_point+light_point_shd+light_linear+light_linear_shd+light_cone+light_cone_shd+tesselate;}
 
 Str8 ShaderAmbient   (Int skin, Int alpha_test, Int light_map) {return S8+skin+alpha_test+light_map;}
 Str8 ShaderBehind    (Int skin, Int alpha_test) {return S8+skin+alpha_test;}
-Str8 ShaderBlend     (Int skin, Int color, Int layout) {return S8+skin+color+layout;}
+Str8 ShaderBlend     (Int skin, Int color, Int layout, Int reflect) {return S8+skin+color+layout+reflect;}
 Str8 ShaderEarlyZ    (Int skin) {return S8+skin;}
 Str8 ShaderFurBase   (Int skin, Int size, Int diffuse) {return S8+"Base"+skin+size+diffuse;}
 Str8 ShaderFurSoft   (Int skin, Int size, Int diffuse) {return S8+"Soft"+skin+size+diffuse;}
@@ -389,10 +389,11 @@ static void Compile(API api)
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Blend", model, api).New(src_path+"Blend.cpp");
 
-   REPD(skin  , 2)
-   REPD(color , 2)
-   REPD(layout, 3)
-      src.New(S, "VS", "PS")("SKIN", skin, "COLORS", color, "LAYOUT", layout);
+   REPD(skin   , 2)
+   REPD(color  , 2)
+   REPD(layout , 3)
+   REPD(reflect, 2)
+      src.New(S, "VS", "PS")("SKIN", skin, "COLORS", color, "LAYOUT", layout, "REFLECT", reflect);
 }
 #endif
 
@@ -687,6 +688,7 @@ static void Compile(API api)
    REPD(per_pixel  , 2)
    REPD(shadow_maps, 7) // 7=(6+off), 0=off
    REPD(color      , 2)
+   REPD(reflect    , 2)
    {
       // base
       REPD(skin      , 2)
@@ -695,14 +697,14 @@ static void Compile(API api)
       REPD(alpha_test, layout    ? 2 : 1)
       REPD(alpha     , layout    ? 2 : 1)
       REPD(light_map , 2)
-         src.New().blendLight(skin, color, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, alpha, light_map, FX_NONE, per_pixel, shadow_maps);
+         src.New().blendLight(skin, color, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, alpha, reflect, light_map, FX_NONE, per_pixel, shadow_maps);
 
       // grass+leaf, 1 material, 1-2 tex
       for(Int layout=1; layout<=2; layout++)
       REPD (bump_mode , per_pixel ? 2 : 1)
       REPD (alpha_test, layout    ? 2 : 1)
       REPAD(fx        , fxs)
-         src.New().blendLight(false, color, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, false, fxs[fx], per_pixel, shadow_maps);
+         src.New().blendLight(false, color, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, true, reflect, false, fxs[fx], per_pixel, shadow_maps);
    }
 }
 #endif
@@ -714,7 +716,7 @@ static void Compile(API api)
    {
       // zero (no vtx normals)
       REPD(skin, 2)
-         src.forward(skin, 1, 0, SBUMP_ZERO, false, false, false, color, false, false, FX_NONE, false,   false,false,0,   false,false,   false,false,   false,false,   false);
+         src.forward(skin, 1, 0, SBUMP_ZERO, false, false, false, false, color, false, false, FX_NONE, false,   false,false,0,   false,false,   false,false,   false,false,   false);
 
       // default
       REPD(skin      , 2)
@@ -728,14 +730,16 @@ static void Compile(API api)
       REPD(light_map , (materials==1 &&           !heightmap) ? 2 : 1)
       REPD(tesselate , tess ? 2 : 1)
       REPD(detail    , 2)
-         src.forwardLight(skin, materials, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, light_map, detail, color, mtrl_blend, heightmap, FX_NONE, per_pixel, tesselate);
+      REPD(reflect   , 2)
+         src.forwardLight(skin, materials, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, reflect, light_map, detail, color, mtrl_blend, heightmap, FX_NONE, per_pixel, tesselate);
 
       // grass + leaf, 1 material, 1-2 tex
       for(Int layout=1; layout<=2; layout++)
       REPD (per_pixel, 2)
       REPD (bump_mode, per_pixel ? 2 : 1)
+      REPD (reflect  , 2)
       REPAD(fx       , fxs)
-         src.forwardLight(false, 1, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, true, false, false, color, false, false, fxs[fx], per_pixel, false);
+         src.forwardLight(false, 1, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, true, reflect, false, false, color, false, false, fxs[fx], per_pixel, false);
    }
 }
 #endif

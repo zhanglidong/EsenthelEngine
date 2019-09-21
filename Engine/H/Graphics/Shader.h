@@ -473,7 +473,7 @@ private:
 #if EE_PRIVATE
 struct FRSTKey // Forward Rendering Shader Techniques Key
 {
-   Byte skin, materials, layout, bump_mode, alpha_test, light_map, detail, color, mtrl_blend, heightmap, fx, per_pixel, tesselate;
+   Byte skin, materials, layout, bump_mode, alpha_test, reflect, light_map, detail, color, mtrl_blend, heightmap, fx, per_pixel, tesselate;
 
    FRSTKey() {Zero(T);}
 };
@@ -490,7 +490,7 @@ struct FRST : ShaderBase // Forward Rendering Shader Techniques
 /******************************************************************************/
 struct BLSTKey // Blend Light Shader Techniques
 {
-   Byte skin, color, layout, bump_mode, alpha_test, alpha, light_map, fx, per_pixel;
+   Byte skin, color, layout, bump_mode, alpha_test, alpha, reflect, light_map, fx, per_pixel;
 
    BLSTKey() {Zero(T);}
 };
