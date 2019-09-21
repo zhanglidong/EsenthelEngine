@@ -20,6 +20,7 @@
 #define RELIEF_Z_LIMIT      0.4 // smaller values may cause leaking (UV swimming), and higher reduce bump intensity at angles, default=0.4
 #define RELIEF_LOD_TEST     0 // close to camera (test enabled=4.76 fps, test disabled=4.99 fps), far from camera (test enabled=9.83 fps, test disabled=9.52 fps), conclusion: this test reduces performance when close to camera by a similar factor to when far away, however since more likely pixels will be close to camera (as for distant LOD's other shaders are used) we prioritize close to camera performance, so this check should be disabled, default=0
 
+#define SET_TEX   (LAYOUT || DETAIL || MACRO || BUMP_MODE>SBUMP_FLAT)
 #define FAST_TPOS ((BUMP_MODE>=SBUMP_PARALLAX_MIN && BUMP_MODE<=SBUMP_PARALLAX_MAX) || (BUMP_MODE==SBUMP_RELIEF && !RELIEF_TAN_POS))
 
 // #MaterialTextureLayout
@@ -30,7 +31,7 @@ SKIN, MATERIALS, LAYOUT, BUMP_MODE, ALPHA_TEST, DETAIL, MACRO, COLORS, MTRL_BLEN
 /******************************************************************************/
 struct VS_PS
 {
-#if LAYOUT || DETAIL || MACRO || BUMP_MODE>SBUMP_FLAT
+#if SET_TEX
    Vec2 tex:TEXCOORD;
 #endif
 
@@ -84,7 +85,7 @@ void VS
    Vec  pos=vtx.pos();
    VecH nrm, tan; if(BUMP_MODE>=SBUMP_FLAT)nrm=vtx.nrm(); if(BUMP_MODE>SBUMP_FLAT)tan=vtx.tan(nrm, HEIGHTMAP);
 
-#if LAYOUT || DETAIL || MACRO || BUMP_MODE>SBUMP_FLAT
+#if SET_TEX
    O.tex=vtx.tex(HEIGHTMAP);
    if(HEIGHTMAP && MATERIALS==1)O.tex*=Material.tex_scale;
 #endif
@@ -724,7 +725,7 @@ VS_PS HS
    O.pos=I[cp_id].pos;
    O.vel=I[cp_id].vel;
 
-#if LAYOUT || DETAIL || MACRO || BUMP_MODE>SBUMP_FLAT
+#if SET_TEX
    O.tex=I[cp_id].tex;
 #endif
 
@@ -772,7 +773,7 @@ void DS
 
    O.vel=I[0].vel*B.z + I[1].vel*B.x + I[2].vel*B.y;
 
-#if LAYOUT || DETAIL || MACRO || BUMP_MODE>SBUMP_FLAT
+#if SET_TEX
    O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
 #endif
 

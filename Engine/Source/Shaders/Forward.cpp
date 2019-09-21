@@ -20,6 +20,7 @@ Final = (TexCol*MtrlCol*VtxCol+Detail)*FinalLight
 #define AMBIENT_IN_VTX (VTX_LIGHT && !SHADOW && !LIGHT_MAP) // if stored in 'vtx.col' or 'vtx.lum'
 #define LIGHT_IN_COL   (VTX_LIGHT && !DETAIL && (NO_AMBIENT || !SHADOW))
 #define SET_POS        ((LIGHT && PER_PIXEL) || SHADOW || (REFLECT && PER_PIXEL && BUMP_MODE>SBUMP_FLAT) || TESSELATE)
+#define SET_TEX        (LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
 #define SET_COL        (COLORS || LIGHT_IN_COL)
 #define SET_LUM        (VTX_LIGHT && !LIGHT_IN_COL)
 #define VTX_REFLECT    (REFLECT && !(PER_PIXEL && BUMP_MODE>SBUMP_FLAT))
@@ -30,7 +31,7 @@ struct VS_PS
    Vec pos:POS;
 #endif
 
-#if LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT
+#if SET_TEX
    Vec2 tex:TEXCOORD;
 #endif
 
@@ -80,7 +81,7 @@ void VS
    Vec  pos=vtx.pos();
    VecH nrm, tan; if(BUMP_MODE>=SBUMP_FLAT)nrm=vtx.nrm(); if(BUMP_MODE>SBUMP_FLAT)tan=vtx.tan(nrm, HEIGHTMAP);
 
-#if LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT
+#if SET_TEX
    O.tex=vtx.tex(HEIGHTMAP);
    if(HEIGHTMAP && MATERIALS==1)O.tex*=Material.tex_scale;
 #endif
@@ -634,7 +635,7 @@ VS_PS HS
 #endif
 
 
-#if LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT
+#if SET_TEX
    O.tex=I[cp_id].tex;
 #endif
 
@@ -678,7 +679,7 @@ void DS
    SetDSPosNrm(O.pos, O.nrm    , I[0].pos, I[1].pos, I[2].pos, I[0].Nrm(), I[1].Nrm(), I[2].Nrm(), B, hs_data, false, 0);
 #endif
 
-#if LAYOUT || DETAIL || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT
+#if SET_TEX
    O.tex=I[0].tex*B.z + I[1].tex*B.x + I[2].tex*B.y;
 #endif
 

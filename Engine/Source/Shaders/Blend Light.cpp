@@ -7,6 +7,7 @@
 #define USE_VEL    ALPHA_TEST
 #define HEIGHTMAP  0
 #define SET_POS    (USE_VEL || SHADOW_MAPS || (REFLECT && PER_PIXEL && BUMP_MODE>SBUMP_FLAT))
+#define SET_TEX    (LAYOUT || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
 #define ALPHA_CLIP 0.5
 /******************************************************************************/
 struct VS_PS
@@ -15,7 +16,7 @@ struct VS_PS
    Vec pos:POS;
 #endif
 
-#if LAYOUT || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT
+#if SET_TEX
    Vec2 tex:TEXCOORD;
 #endif
 
@@ -58,7 +59,7 @@ void VS
    Vec  pos=vtx.pos();
    VecH nrm, tan; if(BUMP_MODE>=SBUMP_FLAT)nrm=vtx.nrm(); if(BUMP_MODE>SBUMP_FLAT)tan=vtx.tan(nrm, HEIGHTMAP);
 
-#if LAYOUT || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT
+#if SET_TEX
    O.tex=vtx.tex(HEIGHTMAP);
    if(HEIGHTMAP)O.tex*=Material.tex_scale;
 #endif
