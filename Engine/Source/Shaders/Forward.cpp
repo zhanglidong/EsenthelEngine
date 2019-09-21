@@ -353,7 +353,7 @@ VecH4 PS
    #else
       Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
    #endif
-      col+=TexCube(Rfl, rfl).rgb * ((LAYOUT==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
+      col+=TexCube(Cub, rfl).rgb * ((LAYOUT==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
    }
    #endif
 #else // MATERIALS>1

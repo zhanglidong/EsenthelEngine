@@ -208,30 +208,36 @@ void PS
 #endif
 ) // #RTOutput
 {
-   VecH  nrm;
-   Half  specular=MaterialSpecular();
-   VecH4 tex_nrm; // #MaterialTextureLayout
+   Half smooth, reflect;
 
+   // #MaterialTextureLayout
 #if   LAYOUT==0
-   if(PER_PIXEL && BUMP_MODE>=SBUMP_FLAT)nrm=Normalize(I.Nrm());
+   smooth =Material.smooth;
+   reflect=Material.reflect;
 #elif LAYOUT==1
    VecH4 tex_col=Tex(Col, I.tex); if(ALPHA_TEST)clip(tex_col.a-ALPHA_CLIP);
    if(ALPHA)I.col*=tex_col;else I.col.rgb*=tex_col.rgb;
-   if(PER_PIXEL && BUMP_MODE>=SBUMP_FLAT)nrm=Normalize(I.Nrm());
+   smooth =Material.smooth;
+   reflect=Material.reflect;
 #elif LAYOUT==2
-   tex_nrm=Tex(Nrm, I.tex); if(ALPHA_TEST)clip(tex_nrm.a-ALPHA_CLIP); // FIXME
-            specular *=tex_nrm.z;
-   if(ALPHA)I.col.a  *=tex_nrm.a;
+   VecH4 tex_ext=Tex(Ext, I.tex); if(ALPHA_TEST)clip(tex_ext.a-ALPHA_CLIP);
             I.col.rgb*=Tex(Col, I.tex).rgb;
+   if(ALPHA)I.col.a  *=tex_ext.a;
+   smooth =Material.smooth *tex_ext.x;
+   reflect=Material.reflect*tex_ext.y;
+#endif
 
-   #if PER_PIXEL
-      #if   BUMP_MODE==SBUMP_FLAT
-         nrm=Normalize(I.Nrm());
-      #elif BUMP_MODE> SBUMP_FLAT
-         nrm.xy=tex_nrm.xy*Material.normal;
-         nrm.z =CalcZ(nrm.xy);
-         nrm   =Normalize(Transform(nrm, I.mtrx));
-      #endif
+   // normal
+#if PER_PIXEL
+   VecH nrm;
+   #if   BUMP_MODE==SBUMP_ZERO
+      nrm=0;
+   #elif BUMP_MODE==SBUMP_FLAT
+      nrm=Normalize(I.Nrm());
+   #else
+      nrm.xy=Tex(Nrm, I.tex).xy*Material.normal;
+      nrm.z =CalcZ(nrm.xy);
+      nrm   =Normalize(Transform(nrm, I.mtrx));
    #endif
 #endif
 
@@ -243,7 +249,7 @@ void PS
    #else
       Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
    #endif
-      I.col.rgb+=TexCube(Rfl, rfl).rgb * ((LAYOUT==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
+      I.col.rgb+=TexCube(Cub, rfl).rgb*reflect;
    }
    #endif
 

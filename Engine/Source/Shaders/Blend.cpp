@@ -72,7 +72,7 @@ VecH4 PS
    inColor.rgb+=Highlight.rgb;
 
 #if REFLECT // reflection
-   inColor.rgb+=TexCube(Rfl, inRfl).rgb*((LAYOUT==2) ? Material.reflect*ext.y : Material.reflect);
+   inColor.rgb+=TexCube(Cub, inRfl).rgb*((LAYOUT==2) ? Material.reflect*ext.y : Material.reflect);
 #endif
 
    return inColor;
