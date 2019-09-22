@@ -54,10 +54,10 @@ class CreateMaterials : PropWin
       edit.color_map_time.getUTC();
 
       SyncLockerEx locker(lock);
-      Image base_0, base_1;
-      uint  bt=Proj.createBaseTextures(base_0, base_1, edit, false);
+      Image base_0, base_1, base_2;
+      uint  bt=Proj.createBaseTextures(base_0, base_1, base_2, edit, false);
       locker.off();
-      if(base_0.is() && !base_1.is())
+      if(base_0.is() && !base_1.is() && !base_2.is()) // we should get only base0
       {
          if(bt&BT_ALPHA) // if we ended up having an alpha texture, then set alpha-test params
          {

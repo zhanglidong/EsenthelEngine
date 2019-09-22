@@ -269,7 +269,7 @@ class DetectSimilarTextures : PropWin
    void create()
    {
       add("Average Difference", MEMBER(DetectSimilarTextures, avg_difference)).range(0, 0.2).desc("Total average difference between texture pixels").mouseEditSpeed(0.02);
-      add("Material Base 1"   , MEMBER(DetectSimilarTextures, mtrl_base_1   )).desc("If compare Material Base 1 Textures, such as Normal, Specular and Glow");
+      add("Material Base 1"   , MEMBER(DetectSimilarTextures, mtrl_base_1   )).desc("If compare Material Base 1 Textures, such as Normal, Specular and Glow"); // FIXME use combobox
    #if 0 // not needed
       add("And"); // use AND because OR would list more textures
       add("Similar Portion", MEMBER(DetectSimilarTextures, similar    )).range(0, 1).desc("Portion of the entire texture that is similar.\nFor example if 2 textures have the same top half, but the bottom half is different, then this will be 0.5\nEach pixels are considered similar if their color difference is smaller than \"Similar Limit\".");

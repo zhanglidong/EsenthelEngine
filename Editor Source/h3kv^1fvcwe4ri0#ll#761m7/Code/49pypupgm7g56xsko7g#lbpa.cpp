@@ -662,17 +662,19 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                  uses_tex_glow=data.usesTexGlow();
             byte downsize  =((android || iOS) ? data.downsize_tex_mobile : 0);
             UID  base_0_tex=data.base_0_tex, src_tex=UIDZero,
-                 base_1_tex=data.base_1_tex;
+                 base_1_tex=data.base_1_tex,
+                 base_2_tex=data.base_2_tex;
 
             // simplify material
-            if(base_0_tex.valid() && base_1_tex.valid() && Proj.materialSimplify(PublishExeType))
+            if(base_0_tex.valid() && (base_1_tex.valid() || base_2_tex.valid()) && Proj.materialSimplify(PublishExeType))
             {
                uses_tex_bump=uses_tex_glow=false; // these textures are removed when merging
 
                // adjust base texture ID's
                   src_tex=base_0_tex; // mark it as dynamically generated texture
-               base_0_tex=MergedBaseTexturesID(base_0_tex, base_1_tex);
+               base_0_tex=MergedBaseTexturesID(base_0_tex, base_1_tex, base_2_tex);
                base_1_tex.zero();
+               base_2_tex.zero();
 
                // make a copy of the material with adjusted textures
                Str src_name=pfd.data.name,
@@ -685,19 +687,20 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                   Material    temp=*mtrl;
                   temp.base_0=Proj.texPath(base_0_tex); // the texture will be initially saved to 'texDynamicPath' however in PAK it will be created in 'texPath' so save the reference there
                   temp.base_1=null;
+                  temp.base_2=null;
                   // adjust specular related parameters
                   {
-                     flt  avg_specular=0.5;
-                     Vec4 avg; if(mtrl->base_1)if(mtrl->base_1->stats(null, null, &avg))avg_specular=avg.z; // specular is packed in BLUE channel, #MaterialTextureLayout
-                     temp.specular*=avg_specular;
-                     temp.reflect *=avg_specular;
+                     flt  avg_smooth=0.5, avg_reflect=0.5;
+                     Vec4 avg; if(mtrl->base_2)if(mtrl->base_2->stats(null, null, &avg)){avg_smooth=avg.x; avg_reflect=avg.y;} // #MaterialTextureLayout
+                     temp.smooth *=avg_smooth ;
+                     temp.reflect*=avg_reflect;
                   }
-                  if(temp.technique==MTECH_DEFAULT)temp.glow=0; // disable glow if it's possible that there was a glow map
+                  if(data.usesTexGlow())temp.glow=0; // disable glow if there was a glow map, because now it's removed
                   File f; temp.save(f.writeMem(), Proj.game_path); f.pos(0); SafeOverwrite(f, dest_name, &src_fi.modify_time_utc);
                }
 
                // merge textures
-               FileInfo src_base_0(Proj.texPath       (data.base_0_tex)); // get modify time of the original texture in case it was modified later (for example due to mip map blur)
+               FileInfo src_base_0(Proj.texPath       (data.base_0_tex)); // get modify time of the original texture in case it was modified later for some reason
                Str     dest_base_0=Proj.texDynamicPath(     base_0_tex) ; // get path of the merged texture
                if(Compare(src_base_0.modify_time_utc, FileInfoSystem(dest_base_0).modify_time_utc, 1)) // if different (compare just modify time, because sizes will always be different due to different formats)
                {
@@ -707,19 +710,19 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
             }
 
             // !! 'GetTexture' needs to be called always because it adds texture to publish list !!
-            Texture *t0; if(        t0=GetTexture(publish_texs,          base_0_tex)){t0.srgb=true ; t0.downSize(downsize); if(ForceHQMtrlBase0 )t0.quality=1; t0.src_tex_id=src_tex; t0.regenerate|=regenerate;}
-            Texture *t1; if(        t1=GetTexture(publish_texs,          base_1_tex)){t1.srgb=false; t1.downSize(downsize); if(ForceHQMtrlBase1 )t1.quality=1; t1.non_perceptual=true;}
-                         if(Texture *t=GetTexture(publish_texs, data.    detail_tex)){t .srgb=false; t .downSize(downsize); if(ForceHQMtrlDetail)t .quality=1; t .non_perceptual=true; if(!RemoveMtrlDetailBump)t.uses_alpha=true;} // Detail uses Alpha for bump unless it's removed
-                         if(Texture *t=GetTexture(publish_texs, data.     macro_tex)){t .srgb=true ; t .downSize(downsize);} // doesn't use Alpha, 'GetTexture' needs to be called
-                         if(Texture *t=GetTexture(publish_texs, data.     light_tex)){t .srgb=true ; t .downSize(downsize);} // doesn't use Alpha, 'GetTexture' needs to be called
-                         if(Texture *t=GetTexture(publish_texs, data.reflection_tex)){t .srgb=true ;}                        // doesn't use Alpha, 'GetTexture' needs to be called
+            Texture *t0; if(        t0=GetTexture(publish_texs,      base_0_tex)){t0.srgb=true ; t0.downSize(downsize); if(ForceHQMtrlBase0 )t0.quality=1; t0.src_tex_id=src_tex; t0.regenerate|=regenerate;}
+            Texture *t1; if(        t1=GetTexture(publish_texs,      base_1_tex)){t1.srgb=false; t1.downSize(downsize); if(ForceHQMtrlBase1 )t1.quality=1; t1.non_perceptual=true;}
+            Texture *t2; if(        t2=GetTexture(publish_texs,      base_2_tex)){t2.srgb=false; t2.downSize(downsize); if(ForceHQMtrlBase2 )t2.quality=1; t2.non_perceptual=true;}
+                         if(Texture *t=GetTexture(publish_texs, data.detail_tex)){t .srgb=false; t .downSize(downsize); if(ForceHQMtrlDetail)t .quality=1; t .non_perceptual=true; if(!RemoveMtrlDetailBump)t.uses_alpha=true;} // Detail uses Alpha for bump unless it's removed
+                         if(Texture *t=GetTexture(publish_texs, data. macro_tex)){t .srgb=true ; t .downSize(downsize);} // doesn't use Alpha, 'GetTexture' needs to be called
+                         if(Texture *t=GetTexture(publish_texs, data. light_tex)){t .srgb=true ; t .downSize(downsize);} // doesn't use Alpha, 'GetTexture' needs to be called
 
             // check which base textures use Alpha Channel, #MaterialTextureLayout
-            if(t1) // having 'base_1' texture means that 'base_0' alpha channel is bump intensity and 'base_1' is alpha channel opacity
+            if(t2)
             {
-               if(t0)if(                       uses_tex_bump)t0.uses_alpha=true; // Alpha used for bump
-                     if(data.usesTexAlpha() || uses_tex_glow)t1.uses_alpha=true; // Alpha used for opacity/glow
-            }else // 'base_1' is not present, meaning that 'base_0' alpha channel can contain opacity
+               if(t0 &&      uses_tex_glow )t0.uses_alpha=true; // t0 Alpha used for glow
+               if(      data.usesTexAlpha())t2.uses_alpha=true; // t2 Alpha used for opacity
+            }else
             if(t0)
             {
                if(data.usesTexAlpha())t0.uses_alpha=true; // Alpha used for opacity
@@ -729,14 +732,19 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
          if(elm.type==ELM_WATER_MTRL)if(ElmWaterMtrl *data=elm.waterMtrlData()) // water material
          {
             // !! 'GetTexture' needs to be called always because it adds texture to publish list !!
-            Texture *t0; if(        t0=GetTexture(publish_texs, data.    base_0_tex)){t0.srgb=true ; if(ForceHQMtrlBase0)t0.quality=1;} // doesn't use Alpha
-            Texture *t1; if(        t1=GetTexture(publish_texs, data.    base_1_tex)){t1.srgb=false; if(ForceHQMtrlBase1)t1.quality=1; t1.non_perceptual=true;} // doesn't use Alpha
-                         if(Texture *t=GetTexture(publish_texs, data.reflection_tex)){t .srgb=true ;} // doesn't use Alpha, 'GetTexture' needs to be called
+            Texture *t0; if(t0=GetTexture(publish_texs, data.base_0_tex)){t0.srgb=true ; if(ForceHQMtrlBase0)t0.quality=1;}
+            Texture *t1; if(t1=GetTexture(publish_texs, data.base_1_tex)){t1.srgb=false; if(ForceHQMtrlBase1)t1.quality=1; t1.non_perceptual=true;}
+            Texture *t2; if(t2=GetTexture(publish_texs, data.base_2_tex)){t2.srgb=false; if(ForceHQMtrlBase2)t2.quality=1; t2.non_perceptual=true;}
 
             // check which base textures use Alpha Channel, #MaterialTextureLayout
-            if(t1) // having 'base_1' texture means that 'base_0' alpha channel is bump intensity and 'base_1' is alpha channel opacity
+            if(t2)
             {
-               if(t0)if(data.usesTexBump())t0.uses_alpha=true; // Alpha used for bump
+               if(t0 &&      uses_tex_glow )t0.uses_alpha=true; // t0 Alpha used for glow
+               if(      data.usesTexAlpha())t2.uses_alpha=true; // t2 Alpha used for opacity
+            }else
+            if(t0)
+            {
+               if(data.usesTexAlpha())t0.uses_alpha=true; // Alpha used for opacity
             }
          }
 
@@ -787,7 +795,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
          if(elm.type==ELM_FONT) // font
             if(android || iOS || web) // desktop platform already has the best format chosen during font creation
                if(ElmFont *data=elm.fontData())
-                  if(IMAGE_TYPE dest_type=IMAGE_R8G8) // #FontImageLayout IMAGE_ETC2/IMAGE_PVRTC have too low quality, IMAGE_ETC2_A8 is OK however requires storing font in RGB and shadow in A which is not compatible with the best desktop IMAGE_BC5 R G layout, so just decompress to IMAGE_R8G8 so it won't have to be done on target
+                  if(IMAGE_TYPE dest_type=IMAGE_ETC2_RG) // #FontImageLayout
          {
             Str src_name=pfd.data.name,
                dest_name=Proj.formatPath(elm.id, FormatSuffix(dest_type));

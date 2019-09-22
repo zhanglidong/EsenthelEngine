@@ -77,8 +77,8 @@ class WaterMtrlRegion : MaterialRegion
    static void ScaleNormal          (  WaterMtrlRegion &mr, C Str &t) {mr.edit.scale_normal=TextFlt(t); mr.edit.scale_normal_time.getUTC();}
    static Str  ScaleBump            (C WaterMtrlRegion &mr          ) {return mr.edit.scale_bump;}
    static void ScaleBump            (  WaterMtrlRegion &mr, C Str &t) {mr.edit.scale_bump=TextFlt(t); mr.edit.scale_bump_time.getUTC();}
-   static Str  NrmScale             (C WaterMtrlRegion &mr          ) {return mr.edit.rough;}
-   static void NrmScale             (  WaterMtrlRegion &mr, C Str &t) {mr.edit.rough=TextFlt(t); mr.edit.rough_bump_time.getUTC();}
+   static Str  NrmScale             (C WaterMtrlRegion &mr          ) {return mr.edit.normal;}
+   static void NrmScale             (  WaterMtrlRegion &mr, C Str &t) {mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC();}
    static Str  ReflectTex           (C WaterMtrlRegion &mr          ) {return mr.edit.reflection;}
    static void ReflectTex           (  WaterMtrlRegion &mr, C Str &t) {mr.edit.reflection=TextFlt(t); mr.edit.reflection_time.getUTC();}
    static Str  ReflectWorld         (C WaterMtrlRegion &mr          ) {return mr.edit.reflect_world;}
@@ -109,13 +109,13 @@ class WaterMtrlRegion : MaterialRegion
    static Str  FNY (C WaterMtrlRegion &mr          ) {return mr.edit.flip_normal_y;}
    static void FNY (  WaterMtrlRegion &mr, C Str &t) {uint base_tex=mr.edit.baseTex(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(base_tex, true, false);}
 
-   virtual   EditMaterial& getEditMtrl  ()override {return edit;}
-   virtual C ImagePtr    & getBase0     ()override {return game->     colorMap();}
-   virtual C ImagePtr    & getBase1     ()override {return game->    normalMap();}
- //virtual C ImagePtr    & getDetail    ()override {return game->   detail_map  ;}
-   virtual C ImagePtr    & getReflection()override {return game->reflectionMap();}
- //virtual C ImagePtr    & getMacro     ()override {return game->    macro_map  ;}
- //virtual C ImagePtr    & getLight     ()override {return game->    light_map  ;}
+   virtual   EditMaterial& getEditMtrl()override {return edit;}
+   virtual C ImagePtr    & getBase0   ()override {return game->  colorMap();}
+   virtual C ImagePtr    & getBase1   ()override {return game-> normalMap();}
+ //virtual C ImagePtr    & getBase2   ()override {return game->            ;} FIXME?
+ //virtual C ImagePtr    & getDetail  ()override {return game->detail_map  ;}
+ //virtual C ImagePtr    & getMacro   ()override {return game-> macro_map  ;}
+ //virtual C ImagePtr    & getLight   ()override {return game-> light_map  ;}
 
    void create()
    {
@@ -154,13 +154,13 @@ class WaterMtrlRegion : MaterialRegion
       sub+=texs.New().create(TEX_COLOR  , MEMBER(EditWaterMtrl,      color_map), MEMBER(EditWaterMtrl,      color_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Color"         , T); i-=3;
       sub+=texs.New().create(TEX_BUMP   , MEMBER(EditWaterMtrl,       bump_map), MEMBER(EditWaterMtrl,       bump_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Bump"          , T); i-=3;
       sub+=texs.New().create(TEX_NORMAL , MEMBER(EditWaterMtrl,     normal_map), MEMBER(EditWaterMtrl,     normal_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Normal"        , T); i-=3*4-2;
-      sub+=texs.New().create(TEX_RFL_U  , MEMBER(EditWaterMtrl, reflection_map), MEMBER(EditWaterMtrl, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Reflect\nUp"   , T); i-=3;
+    /*sub+=texs.New().create(TEX_RFL_U  , MEMBER(EditWaterMtrl, reflection_map), MEMBER(EditWaterMtrl, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Reflect\nUp"   , T); i-=3;
       sub+=texs.New().create(TEX_RFL_D  , MEMBER(EditWaterMtrl, reflection_map), MEMBER(EditWaterMtrl, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Reflect\nDown" , T); i-=3;
       sub+=texs.New().create(TEX_RFL_ALL, MEMBER(EditWaterMtrl, reflection_map), MEMBER(EditWaterMtrl, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e-tex_size*4, i*prop_height), tex_size, tex_size), "Reflect\nAll"  , T);
       sub+=texs.New().create(TEX_RFL_L  , MEMBER(EditWaterMtrl, reflection_map), MEMBER(EditWaterMtrl, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e-tex_size*3, i*prop_height), tex_size, tex_size), "Reflect\nLeft" , T);
       sub+=texs.New().create(TEX_RFL_F  , MEMBER(EditWaterMtrl, reflection_map), MEMBER(EditWaterMtrl, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e-tex_size*2, i*prop_height), tex_size, tex_size), "Reflect\nFront", T);
       sub+=texs.New().create(TEX_RFL_R  , MEMBER(EditWaterMtrl, reflection_map), MEMBER(EditWaterMtrl, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e-tex_size*1, i*prop_height), tex_size, tex_size), "Reflect\nRight", T);
-      sub+=texs.New().create(TEX_RFL_B  , MEMBER(EditWaterMtrl, reflection_map), MEMBER(EditWaterMtrl, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*0, i*prop_height), tex_size, tex_size), "Reflect\nBack" , T); i-=3;
+      sub+=texs.New().create(TEX_RFL_B  , MEMBER(EditWaterMtrl, reflection_map), MEMBER(EditWaterMtrl, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*0, i*prop_height), tex_size, tex_size), "Reflect\nBack" , T); i-=3; */
       REPA(texs){sub+=texs[i].remove; prop_rect|=texs[i].rect();}
 
       setBottom(prop_rect);
@@ -221,17 +221,6 @@ class WaterMtrlRegion : MaterialRegion
             Time.skipUpdate(); // compressing textures can be slow
          }
          setChanged();
-
-         toGui();
-      }
-   }
-   virtual void rebuildReflection()override
-   {
-      if(elm && game)
-      {
-         Proj.mtrlCreateReflectionTexture(edit);
-         setChanged();
-         Time.skipUpdate(); // compressing textures can be slow
 
          toGui();
       }

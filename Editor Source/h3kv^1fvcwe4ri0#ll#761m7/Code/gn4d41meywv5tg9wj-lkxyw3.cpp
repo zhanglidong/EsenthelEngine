@@ -222,12 +222,12 @@ class CopyElements : ClosableWindow
 
          case ELM_MTRL: if(ElmMaterial *data=elm.mtrlData())
          {
-            includeTex(data.base_0_tex); includeTex(data.base_1_tex); includeTex(data.detail_tex); includeTex(data.macro_tex); includeTex(data.reflection_tex); includeTex(data.light_tex); // always include
+            includeTex(data.base_0_tex); includeTex(data.base_1_tex); includeTex(data.base_2_tex); includeTex(data.detail_tex); includeTex(data.macro_tex); includeTex(data.light_tex); // always include
          }break;
 
          case ELM_WATER_MTRL: if(ElmWaterMtrl *data=elm.waterMtrlData())
          {
-            includeTex(data.base_0_tex); includeTex(data.base_1_tex); includeTex(data.reflection_tex); // always include
+            includeTex(data.base_0_tex); includeTex(data.base_1_tex); includeTex(data.base_2_tex); // always include
          }break;
 
          case ELM_IMAGE_ATLAS: if(ElmImageAtlas *data=elm.imageAtlasData())

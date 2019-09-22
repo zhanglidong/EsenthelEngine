@@ -43,7 +43,7 @@ class ConvertToDeAtlasClass : PropWin
    };
 
    Memc<UID> objs, mtrls; // objects and materials to process
-   UID       base_0_tex=UIDZero, base_1_tex=UIDZero; // base textures of the materials (this should be the same for all materials)
+   UID       base_0_tex=UIDZero, base_1_tex=UIDZero, base_2_tex=UIDZero; // base textures of the materials (this should be the same for all materials)
    Preview   preview;
    MODE      mode=NEW;
    RectI     source_rect(0, 0, 0, 0);
@@ -190,15 +190,16 @@ class ConvertToDeAtlasClass : PropWin
          REPA(mtrls)MtrlEdit.flush(mtrls[i]); // flush first
          EditMaterial src_edit; src_edit.load(Proj.editPath(mtrls[0]));
          MtrlImages src; src.fromMaterial(src_edit, Proj, false);
-         VecI2 color_size=src.color.size(), alpha_size=src.alpha.size(), bump_size=src.bump.size(), normal_size=src.normal.size(), spec_size=src.specular.size(), glow_size=src.glow.size();
+         VecI2 color_size=src.color.size(), alpha_size=src.alpha.size(), bump_size=src.bump.size(), normal_size=src.normal.size(), smooth_size=src.smooth.size(), reflect_size=src.reflect.size(), glow_size=src.glow.size();
          Rect frac=Rect(source_rect)/Vec2(tex_size);
          src.crop(frac);
          VecI2 final_size=finalSize();
          src.resize(final_size);
-         Image base_0, base_1; src.createBaseTextures(base_0, base_1);
+         Image base_0, base_1, base_2; src.createBaseTextures(base_0, base_1, base_2);
 
          IMAGE_TYPE ct; ImageProps(base_0, &base_0_tex, &ct, MTRL_BASE_0); if(Proj.includeTex(base_0_tex)){base_0.copyTry(base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP                  ); Proj.saveTex(base_0, base_0_tex);} Server.setTex(base_0_tex);
                         ImageProps(base_1, &base_1_tex, &ct, MTRL_BASE_1); if(Proj.includeTex(base_1_tex)){base_1.copyTry(base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP|IC_NON_PERCEPTUAL); Proj.saveTex(base_1, base_1_tex);} Server.setTex(base_1_tex);
+                        ImageProps(base_2, &base_2_tex, &ct, MTRL_BASE_2); if(Proj.includeTex(base_2_tex)){base_2.copyTry(base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP|IC_NON_PERCEPTUAL); Proj.saveTex(base_2, base_2_tex);} Server.setTex(base_2_tex);
 
        C Rect  *crop  =((source_rect.min.any() || source_rect.max!=tex_size) ? &frac       : null);
        C VecI2 *resize=((dest_size.x>0         || dest_size.y>0            ) ? &final_size : null);
@@ -210,14 +211,16 @@ class ConvertToDeAtlasClass : PropWin
             de_atlas.copyParams(*elm_mtrl).setName(elm_mtrl.name+" (De-Atlas)").setRemoved(false); // call 'setName' after 'copyParams'
 
             EditMaterial edit; edit.load(Proj.editPath(elm_mtrl.id));
-            edit.   color_map=Process(src_edit.   color_map,  color_size, crop, resize);
-            edit.   alpha_map=Process(src_edit.   alpha_map,  alpha_size, crop, resize);
-            edit.    bump_map=Process(src_edit.    bump_map,   bump_size, crop, resize);
-            edit.  normal_map=Process(src_edit.  normal_map, normal_size, crop, resize);
-            edit.specular_map=Process(src_edit.specular_map,   spec_size, crop, resize);
-            edit.    glow_map=Process(src_edit.    glow_map,   glow_size, crop, resize);
+            edit.  color_map=Process(src_edit.  color_map,   color_size, crop, resize);
+            edit.  alpha_map=Process(src_edit.  alpha_map,   alpha_size, crop, resize);
+            edit.   bump_map=Process(src_edit.   bump_map,    bump_size, crop, resize);
+            edit. normal_map=Process(src_edit. normal_map,  normal_size, crop, resize);
+            edit. smooth_map=Process(src_edit. smooth_map,    spec_size, crop, resize);
+            edit.reflect_map=Process(src_edit.reflect_map, reflect_size, crop, resize);
+            edit.   glow_map=Process(src_edit.   glow_map,    glow_size, crop, resize);
             edit.base_0_tex=base_0_tex;
             edit.base_1_tex=base_1_tex;
+            edit.base_2_tex=base_2_tex;
             if(ElmMaterial *mtrl_data=de_atlas.mtrlData())mtrl_data.from(edit);
             Save(edit, Proj.editPath(de_atlas.id));
             Proj.makeGameVer(de_atlas);
@@ -234,7 +237,7 @@ class ConvertToDeAtlasClass : PropWin
    }
    void clearProj()
    {
-      objs.clear(); mtrls.clear(); base_0_tex.zero(); base_1_tex.zero();
+      objs.clear(); mtrls.clear(); base_0_tex.zero(); base_1_tex.zero(); base_2_tex.zero();
    }
    void create()
    {
@@ -267,16 +270,18 @@ Property &mode=add("De-Atlased Objects", MEMBER(ConvertToDeAtlasClass, mode)).se
       {
          bool include_obj=false;
          REPA(mesh_data.mtrl_ids)if(Elm *elm_mtrl=Proj.findElm(mesh_data.mtrl_ids[i]))if(ElmMaterial *mtrl_data=elm_mtrl.mtrlData())
-            if(mtrl_data.base_0_tex.valid() || mtrl_data.base_1_tex.valid())
+            if(mtrl_data.base_0_tex.valid() || mtrl_data.base_1_tex.valid() || mtrl_data.base_2_tex.valid())
          {
-            if(!base_0_tex.valid() && !base_1_tex.valid())
+            if(!base_0_tex.valid() && !base_1_tex.valid() && !base_2_tex.valid())
             {
                EditMaterial mtrl; Proj.mtrlGet(elm_mtrl.id, mtrl); mtrl_color_map=mtrl.color_map;
                base_0_tex=mtrl_data.base_0_tex;
                base_1_tex=mtrl_data.base_1_tex;
+               base_2_tex=mtrl_data.base_2_tex;
             }
             if(mtrl_data.base_0_tex==base_0_tex
-            && mtrl_data.base_1_tex==base_1_tex)
+            && mtrl_data.base_1_tex==base_1_tex
+            && mtrl_data.base_2_tex==base_2_tex)
             {
                mtrls.binaryInclude(elm_mtrl.id);
                include_obj=true;

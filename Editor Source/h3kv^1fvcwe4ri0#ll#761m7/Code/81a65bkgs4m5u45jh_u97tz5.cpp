@@ -357,7 +357,7 @@ class ProjectEx : ProjectHierarchy
    static void MtrlCullOff             (ProjectEx &proj) {proj.mtrlCull           (proj.menu_list_sel, false);}
    static void MtrlFlipNrmYOn          (ProjectEx &proj) {proj.mtrlFlipNrmY       (proj.menu_list_sel, true );}
    static void MtrlFlipNrmYOff         (ProjectEx &proj) {proj.mtrlFlipNrmY       (proj.menu_list_sel, false);}
-   static void MtrlReloadBaseTex       (ProjectEx &proj) {proj.mtrlReloadTextures (proj.menu_list_sel, true, false, false, false, false);}
+   static void MtrlReloadBaseTex       (ProjectEx &proj) {proj.mtrlReloadTextures (proj.menu_list_sel, true, false, false, false);}
    static void MtrlMulTexCol           (ProjectEx &proj) {proj.mtrlMulTexCol      (proj.menu_list_sel);}
    static void MtrlMulTexRough         (ProjectEx &proj) {proj.mtrlMulTexRough    (proj.menu_list_sel);}
    static void MtrlMoveToObj           (ProjectEx &proj) {proj.mtrlMoveToObj      (proj.menu_list_sel);}
@@ -1012,12 +1012,12 @@ class ProjectEx : ProjectHierarchy
       {
          elmChanging(mtrl);
 
-         if(src.base_0    .is() && includeTex(src.    base_0_id))saveTex(src.base_0    , src.    base_0_id); Server.setTex(src.    base_0_id);
-         if(src.base_1    .is() && includeTex(src.    base_1_id))saveTex(src.base_1    , src.    base_1_id); Server.setTex(src.    base_1_id);
-         if(src.detail    .is() && includeTex(src.    detail_id))saveTex(src.detail    , src.    detail_id); Server.setTex(src.    detail_id);
-         if(src.macro     .is() && includeTex(src.     macro_id))saveTex(src.macro     , src.     macro_id); Server.setTex(src.     macro_id);
-         if(src.reflection.is() && includeTex(src.reflection_id))saveTex(src.reflection, src.reflection_id); Server.setTex(src.reflection_id);
-         if(src.light     .is() && includeTex(src.     light_id))saveTex(src.light     , src.     light_id); Server.setTex(src.     light_id);
+         if(src.base_0.is() && includeTex(src.base_0_id))saveTex(src.base_0, src.base_0_id); Server.setTex(src.base_0_id);
+         if(src.base_1.is() && includeTex(src.base_1_id))saveTex(src.base_1, src.base_1_id); Server.setTex(src.base_1_id);
+         if(src.base_2.is() && includeTex(src.base_2_id))saveTex(src.base_2, src.base_2_id); Server.setTex(src.base_2_id);
+         if(src.detail.is() && includeTex(src.detail_id))saveTex(src.detail, src.detail_id); Server.setTex(src.detail_id);
+         if(src.macro .is() && includeTex(src. macro_id))saveTex(src.macro , src. macro_id); Server.setTex(src. macro_id);
+         if(src.light .is() && includeTex(src. light_id))saveTex(src.light , src. light_id); Server.setTex(src. light_id);
 
          TimeStamp time; time.getUTC();
          EditMaterial edit_mtrl; src.copyTo(edit_mtrl, time);
@@ -1412,7 +1412,7 @@ class ProjectEx : ProjectHierarchy
             edit.flip_normal_y=on; edit.flip_normal_y_time.now();
             Save(edit, editPath(mtrl.id));
           //makeGameVer(*mtrl); not needed because 'flip_normal_y' is not stored in game, however if tex ID is changed, then it's handled by 'mtrlReloadTextures' below
-            if(!mtrlReloadTextures(mtrl.id, true, false, false, false, false))Server.setElmLong(mtrl.id); // 'Server.setElmLong' will be called by 'mtrlReloadTextures' unless it failed
+            if(!mtrlReloadTextures(mtrl.id, true, false, false, false))Server.setElmLong(mtrl.id); // 'Server.setElmLong' will be called by 'mtrlReloadTextures' unless it failed
          }
       }
    }
@@ -1426,9 +1426,9 @@ class ProjectEx : ProjectHierarchy
          if(mtrl_data.downsize_tex_mobile!=downsize)mtrls.add(mtrl.id);
 
          // include other materials that have the same textures
-         if(mtrl_data.base_0_tex.valid() || mtrl_data.base_1_tex.valid())
+         if(mtrl_data.base_0_tex.valid() || mtrl_data.base_1_tex.valid() || mtrl_data.base_2_tex.valid())
             FREPA(elms)if(C ElmMaterial *test=elms[i].mtrlData())
-               if(test.downsize_tex_mobile!=downsize && test.base_0_tex==mtrl_data.base_0_tex && test.base_1_tex==mtrl_data.base_1_tex)mtrls.binaryInclude(elms[i].id);
+               if(test.downsize_tex_mobile!=downsize && test.base_0_tex==mtrl_data.base_0_tex && test.base_1_tex==mtrl_data.base_1_tex && test.base_2_tex==mtrl_data.base_2_tex)mtrls.binaryInclude(elms[i].id);
 
          REPA(mtrls)if(Elm *mtrl=findElm(mtrls[i]))
          {
@@ -1456,9 +1456,9 @@ class ProjectEx : ProjectHierarchy
          if(mtrl_data.texQuality()!=quality)mtrls.add(mtrl.id);
 
          // include other materials that have the same textures
-         if(mtrl_data.base_0_tex.valid() || mtrl_data.base_1_tex.valid())
+         if(mtrl_data.base_0_tex.valid() || mtrl_data.base_1_tex.valid() || mtrl_data.base_2_tex.valid())
             FREPA(elms)if(C ElmMaterial *test=elms[i].mtrlData())
-               if(test.texQuality()!=quality && test.base_0_tex==mtrl_data.base_0_tex && test.base_1_tex==mtrl_data.base_1_tex)mtrls.binaryInclude(elms[i].id);
+               if(test.texQuality()!=quality && test.base_0_tex==mtrl_data.base_0_tex && test.base_1_tex==mtrl_data.base_1_tex && test.base_2_tex==mtrl_data.base_2_tex)mtrls.binaryInclude(elms[i].id);
 
          REPA(mtrls)if(Elm *mtrl=findElm(mtrls[i]))
          {
@@ -1504,15 +1504,15 @@ class ProjectEx : ProjectHierarchy
       {
          EditMaterial edit; if(!mtrlGet(elm_ids[i], edit))ok=false;else
          {
-            if(!Equal(edit.rough, 1) && edit.hasNormalMap())
+            if(!Equal(edit.normal, 1) && edit.hasNormalMap())
             {
                edit.separateNormalMap();
                Mems<Edit.FileParams> fps=Edit.FileParams.Decode(edit.normal_map);
-               flt mul=edit.rough; if(C TextParam *p=FindTransform(fps, "scaleXY"))mul*=p.asFlt();
+               flt mul=edit.normal; if(C TextParam *p=FindTransform(fps, "scaleXY"))mul*=p.asFlt();
                if(Equal(mul, 1))DelTransform(fps, "scaleXY");
                else             SetTransform(fps, "scaleXY", TextVecEx(mul));
                edit.normal_map=Edit.FileParams.Encode(fps); edit.normal_map_time.now();
-               edit.rough=1; edit.rough_bump_time.now();
+               edit.normal=1; edit.normal_time.now();
                mtrlSync(elm_ids[i], edit, true, false, "mulTexScale");
             }
          }
@@ -1558,14 +1558,13 @@ class ProjectEx : ProjectHierarchy
             {
                if(reload_textures)
                {
-                  if(changed&EditMaterial.CHANGED_BASE )MtrlEdit.rebuildBase(base_tex, FlagTest(changed, EditMaterial.CHANGED_FNY), adjust_params, true);
-                  if(changed&EditMaterial.CHANGED_REFL )MtrlEdit.rebuildReflection();
+                  if(changed&EditMaterial.CHANGED_BASE )MtrlEdit.rebuildBase  (base_tex, FlagTest(changed, EditMaterial.CHANGED_FNY), adjust_params, true);
                   if(changed&EditMaterial.CHANGED_DET  )MtrlEdit.rebuildDetail();
-                  if(changed&EditMaterial.CHANGED_MACRO)MtrlEdit.rebuildMacro();
-                  if(changed&EditMaterial.CHANGED_LIGHT)MtrlEdit.rebuildLight();
+                  if(changed&EditMaterial.CHANGED_MACRO)MtrlEdit.rebuildMacro ();
+                  if(changed&EditMaterial.CHANGED_LIGHT)MtrlEdit.rebuildLight ();
                }else
                {
-                  if(changed&(EditMaterial.CHANGED_BASE|EditMaterial.CHANGED_REFL|EditMaterial.CHANGED_DET|EditMaterial.CHANGED_MACRO|EditMaterial.CHANGED_LIGHT))mtrlTexChanged();
+                  if(changed&(EditMaterial.CHANGED_BASE|EditMaterial.CHANGED_DET|EditMaterial.CHANGED_MACRO|EditMaterial.CHANGED_LIGHT))mtrlTexChanged();
                }
                MtrlEdit.toGui();
                MtrlEdit.setChanged();
@@ -1588,11 +1587,10 @@ class ProjectEx : ProjectHierarchy
 
                   if(reload_textures)
                   {
-                     if(changed&EditMaterial.CHANGED_BASE )new_base_tex=mtrlCreateBaseTextures     (edit, FlagTest(changed, EditMaterial.CHANGED_FNY)); // get precise base tex
-                     if(changed&EditMaterial.CHANGED_REFL )             mtrlCreateReflectionTexture(edit);
-                     if(changed&EditMaterial.CHANGED_DET  )             mtrlCreateDetailTexture    (edit);
-                     if(changed&EditMaterial.CHANGED_MACRO)             mtrlCreateMacroTexture     (edit);
-                     if(changed&EditMaterial.CHANGED_LIGHT)             mtrlCreateLightTexture     (edit);
+                     if(changed&EditMaterial.CHANGED_BASE )new_base_tex=mtrlCreateBaseTextures (edit, FlagTest(changed, EditMaterial.CHANGED_FNY)); // get precise base tex
+                     if(changed&EditMaterial.CHANGED_DET  )             mtrlCreateDetailTexture(edit);
+                     if(changed&EditMaterial.CHANGED_MACRO)             mtrlCreateMacroTexture (edit);
+                     if(changed&EditMaterial.CHANGED_LIGHT)             mtrlCreateLightTexture (edit);
                   }
 
                   edit.copyTo(*game, T);
@@ -1606,7 +1604,7 @@ class ProjectEx : ProjectHierarchy
 
                   // process dependencies
                   if(want_tan_bin!=game->wantTanBin())mtrlSetAutoTanBin(elm_id);
-                  if(changed&(EditMaterial.CHANGED_BASE|EditMaterial.CHANGED_REFL|EditMaterial.CHANGED_DET|EditMaterial.CHANGED_MACRO|EditMaterial.CHANGED_LIGHT))mtrlTexChanged();
+                  if(changed&(EditMaterial.CHANGED_BASE|EditMaterial.CHANGED_DET|EditMaterial.CHANGED_MACRO|EditMaterial.CHANGED_LIGHT))mtrlTexChanged();
                   D.setShader(game());
                }
             }return true;
@@ -1626,11 +1624,10 @@ class ProjectEx : ProjectHierarchy
             {
                if(reload_textures)
                {
-                  if(changed&EditMaterial.CHANGED_BASE )MtrlEdit.rebuildBase(base_tex, FlagTest(changed, EditMaterial.CHANGED_FNY), adjust_params, true);
-                  if(changed&EditMaterial.CHANGED_REFL )MtrlEdit.rebuildReflection();
+                  if(changed&EditMaterial.CHANGED_BASE )MtrlEdit.rebuildBase  (base_tex, FlagTest(changed, EditMaterial.CHANGED_FNY), adjust_params, true);
                   if(changed&EditMaterial.CHANGED_DET  )MtrlEdit.rebuildDetail();
-                  if(changed&EditMaterial.CHANGED_MACRO)MtrlEdit.rebuildMacro();
-                  if(changed&EditMaterial.CHANGED_LIGHT)MtrlEdit.rebuildLight();
+                  if(changed&EditMaterial.CHANGED_MACRO)MtrlEdit.rebuildMacro ();
+                  if(changed&EditMaterial.CHANGED_LIGHT)MtrlEdit.rebuildLight ();
                }
                MtrlEdit.toGui();
                MtrlEdit.setChanged();
@@ -1653,11 +1650,10 @@ class ProjectEx : ProjectHierarchy
 
                   if(reload_textures)
                   {
-                     if(changed&EditMaterial.CHANGED_BASE )new_base_tex=mtrlCreateBaseTextures     (edit, FlagTest(changed, EditMaterial.CHANGED_FNY)); // get precise base tex
-                     if(changed&EditMaterial.CHANGED_REFL )             mtrlCreateReflectionTexture(edit);
-                     if(changed&EditMaterial.CHANGED_DET  )             mtrlCreateDetailTexture    (edit);
-                     if(changed&EditMaterial.CHANGED_MACRO)             mtrlCreateMacroTexture     (edit);
-                     if(changed&EditMaterial.CHANGED_LIGHT)             mtrlCreateLightTexture     (edit);
+                     if(changed&EditMaterial.CHANGED_BASE )new_base_tex=mtrlCreateBaseTextures (edit, FlagTest(changed, EditMaterial.CHANGED_FNY)); // get precise base tex
+                     if(changed&EditMaterial.CHANGED_DET  )             mtrlCreateDetailTexture(edit);
+                     if(changed&EditMaterial.CHANGED_MACRO)             mtrlCreateMacroTexture (edit);
+                     if(changed&EditMaterial.CHANGED_LIGHT)             mtrlCreateLightTexture (edit);
                   }
 
                   edit.copyTo(*game, T);
@@ -1678,23 +1674,23 @@ class ProjectEx : ProjectHierarchy
       }
       return false;
    }
-   uint createBaseTextures(Image &base_0, Image &base_1, C EditMaterial &material, bool changed_flip_normal_y)
+   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditMaterial &material, bool changed_flip_normal_y)
    {
       MtrlImages mtrl_images;
              mtrl_images.fromMaterial(material, T, changed_flip_normal_y);
-      return mtrl_images.createBaseTextures(base_0, base_1);
+      return mtrl_images.createBaseTextures(base_0, base_1, base_2);
    }
    uint mtrlCreateBaseTextures(EditMaterial &material, bool changed_flip_normal_y)
    {
       // TODO: generating textures when the sources were not found, will reuse existing images, but due to compression, the quality will be lost, and new textures will be generated even though images are the same, this is because BC7->RGBA->BC7 is not the same
-      Image      base_0, base_1;
-      uint       bt=createBaseTextures(base_0, base_1, material, changed_flip_normal_y);
+      Image      base_0, base_1, base_2;
+      uint       bt=createBaseTextures(base_0, base_1, base_2, material, changed_flip_normal_y);
       UID        old_tex_id;
       IMAGE_TYPE ct;
 
       // base 0
          old_tex_id =material.base_0_tex; ImageProps(base_0, &material.base_0_tex, &ct, MTRL_BASE_0);
-      if(old_tex_id!=material.base_0_tex)material.color_map_time.getUTC(); // in order for 'base_0_tex' to sync, a base 0 texture time must be changed, but set it only if the new texture is different
+      if(old_tex_id!=material.base_0_tex)material.color_map_time.getUTC(); // in order for 'base_0_tex' to sync, a base 0 texture time must be changed, but set it only if the new texture is different #MaterialTextureLayout
       if(base_0.is())
       {
          if(includeTex(material.base_0_tex))
@@ -1707,7 +1703,7 @@ class ProjectEx : ProjectHierarchy
 
       // base 1
          old_tex_id =material.base_1_tex; ImageProps(base_1, &material.base_1_tex, &ct, MTRL_BASE_1);
-      if(old_tex_id!=material.base_1_tex)material.normal_map_time.getUTC(); // in order for 'base_1_tex' to sync, a base 1 texture time must be changed, but set it only if the new texture is different
+      if(old_tex_id!=material.base_1_tex)material.normal_map_time.getUTC(); // in order for 'base_1_tex' to sync, a base 1 texture time must be changed, but set it only if the new texture is different #MaterialTextureLayout
       if(base_1.is())
       {
          if(includeTex(material.base_1_tex))
@@ -1718,9 +1714,22 @@ class ProjectEx : ProjectHierarchy
          Server.setTex(material.base_1_tex);
       }
 
+      // base 2
+         old_tex_id =material.base_2_tex; ImageProps(base_2, &material.base_2_tex, &ct, MTRL_BASE_2);
+      if(old_tex_id!=material.base_2_tex)material.smooth_map_time.getUTC(); // in order for 'base_2_tex' to sync, a base 2 texture time must be changed, but set it only if the new texture is different #MaterialTextureLayout
+      if(base_2.is())
+      {
+         if(includeTex(material.base_2_tex))
+         {
+            base_2.copyTry(base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP|IC_NON_PERCEPTUAL);
+            saveTex(base_2, material.base_2_tex);
+         }
+         Server.setTex(material.base_2_tex);
+      }
+
       return bt;
    }
-   bool mtrlCreateReflectionTexture(Image &reflection, C EditMaterial &material)
+   /*bool mtrlCreateReflectionTexture(Image &reflection, C EditMaterial &material)
    {
       bool loaded=false;
       reflection.del();
@@ -1778,7 +1787,7 @@ class ProjectEx : ProjectHierarchy
             Server.setTex(material.reflection_tex);
          }
       }
-   }
+   }*/
    void mtrlCreateDetailTexture(EditMaterial &material)
    {
       // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !!
@@ -1842,29 +1851,27 @@ class ProjectEx : ProjectHierarchy
          }
       }
    }
-   bool mtrlReloadTextures(C UID &elm_id, bool base, bool reflection, bool detail, bool macro, bool light)
+   bool mtrlReloadTextures(C UID &elm_id, bool base, bool detail, bool macro, bool light)
    {
-      if(!base && !reflection && !detail && !macro && !light)return true; // nothing to reload
+      if(!base && !detail && !macro && !light)return true; // nothing to reload
       if(Elm *elm=findElm(elm_id))
       {
          if(MtrlEdit.elm_id==elm_id)
          {
             MtrlEdit.undos.set("EI");
-            if(base      )MtrlEdit.rebuildBase(0, false, false, true);
-            if(reflection)MtrlEdit.rebuildReflection();
-            if(detail    )MtrlEdit.rebuildDetail();
-            if(macro     )MtrlEdit.rebuildMacro();
-            if(light     )MtrlEdit.rebuildLight();
+            if(base  )MtrlEdit.rebuildBase(0, false, false, true);
+            if(detail)MtrlEdit.rebuildDetail();
+            if(macro )MtrlEdit.rebuildMacro();
+            if(light )MtrlEdit.rebuildLight();
             return true;
          }
          if(WaterMtrlEdit.elm_id==elm_id)
          {
             WaterMtrlEdit.undos.set("EI");
-            if(base      )WaterMtrlEdit.rebuildBase(0, false, false, true);
-            if(reflection)WaterMtrlEdit.rebuildReflection();
-            if(detail    )WaterMtrlEdit.rebuildDetail();
-            if(macro     )WaterMtrlEdit.rebuildMacro();
-            if(light     )WaterMtrlEdit.rebuildLight();
+            if(base  )WaterMtrlEdit.rebuildBase(0, false, false, true);
+            if(detail)WaterMtrlEdit.rebuildDetail();
+            if(macro )WaterMtrlEdit.rebuildMacro();
+            if(light )WaterMtrlEdit.rebuildLight();
             return true;
          }
          switch(elm.type)
@@ -1877,11 +1884,10 @@ class ProjectEx : ProjectHierarchy
                bool         want_tan_bin=game->wantTanBin();
 
                // reload
-               if(base      )mtrlCreateBaseTextures     (edit, false);
-               if(reflection)mtrlCreateReflectionTexture(edit);
-               if(detail    )mtrlCreateDetailTexture    (edit);
-               if(macro     )mtrlCreateMacroTexture     (edit);
-               if(light     )mtrlCreateLightTexture     (edit);
+               if(base  )mtrlCreateBaseTextures (edit, false);
+               if(detail)mtrlCreateDetailTexture(edit);
+               if(macro )mtrlCreateMacroTexture (edit);
+               if(light )mtrlCreateLightTexture (edit);
 
                // save because texture ID's have been changed
                if(ElmMaterial *data=elm.mtrlData()){data.newVer(); data.from(edit);}
@@ -1901,11 +1907,10 @@ class ProjectEx : ProjectHierarchy
                WaterMtrlPtr  game=gamePath(elm_id); if(!game)return false;
 
                // reload
-               if(base      )mtrlCreateBaseTextures     (edit, false);
-               if(reflection)mtrlCreateReflectionTexture(edit);
-               if(detail    )mtrlCreateDetailTexture    (edit);
-               if(macro     )mtrlCreateMacroTexture     (edit);
-               if(light     )mtrlCreateLightTexture     (edit);
+               if(base  )mtrlCreateBaseTextures (edit, false);
+               if(detail)mtrlCreateDetailTexture(edit);
+               if(macro )mtrlCreateMacroTexture (edit);
+               if(light )mtrlCreateLightTexture (edit);
 
                // save because texture ID's have been changed
                if(ElmWaterMtrl *data=elm.waterMtrlData()){data.newVer(); data.from(edit);}
@@ -1917,9 +1922,9 @@ class ProjectEx : ProjectHierarchy
       }
       return false;
    }
-   void mtrlReloadTextures(C MemPtr<UID> &elm_ids, bool base, bool reflection, bool detail, bool macro, bool light)
+   void mtrlReloadTextures(C MemPtr<UID> &elm_ids, bool base, bool detail, bool macro, bool light)
    {
-      FREPA(elm_ids)mtrlReloadTextures(elm_ids[i], base, reflection, detail, macro, light);
+      FREPA(elm_ids)mtrlReloadTextures(elm_ids[i], base, detail, macro, light);
    }
    Animation* getAnim(C UID &elm_id, Animation &temp)C
    {

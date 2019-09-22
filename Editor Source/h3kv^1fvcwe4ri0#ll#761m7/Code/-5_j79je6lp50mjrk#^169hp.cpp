@@ -78,6 +78,7 @@ class ListElm
       {
          IncludeTex(texs, mtrl_data.base_0_tex);
          IncludeTex(texs, mtrl_data.base_1_tex);
+         IncludeTex(texs, mtrl_data.base_2_tex);
       }
 
       // object
@@ -127,6 +128,7 @@ class ListElm
       {
          if(mtrl_data.base_0_tex.valid())if(C TextureInfo *tex_info=TexInfos.find(mtrl_data.base_0_tex))MIN(sharpness, tex_info.sharpness);
        //if(mtrl_data.base_1_tex.valid())if(C TextureInfo *tex_info=TexInfos.find(mtrl_data.base_1_tex))MIN(sharpness, tex_info.sharpness); ignore base1
+       //if(mtrl_data.base_2_tex.valid())if(C TextureInfo *tex_info=TexInfos.find(mtrl_data.base_2_tex))MIN(sharpness, tex_info.sharpness); ignore base2
       }
       return sharpness;
    }

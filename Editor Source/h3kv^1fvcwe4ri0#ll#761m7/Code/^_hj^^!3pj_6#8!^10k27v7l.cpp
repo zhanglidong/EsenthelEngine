@@ -12,7 +12,7 @@ class EditWaterMtrl : EditMaterial
              reflect_world_time, refract_time, refract_reflection_time, refract_underwater_time, wave_scale_time,
              fresnel_pow_time, fresnel_rough_time, fresnel_color_time, color_underwater_time;
 
-   EditWaterMtrl() {super.color_s.set(0.42, 0.50, 0.58, 1); super.rough=1; super.specular=1.5; super.reflection=0.1;}
+   EditWaterMtrl() {super.color_s.set(0.42, 0.50, 0.58, 1); super.normal=1; super.smooth=1.5; super.reflect=0.1;}
 
    // get
    bool usesTexBump()C {return wave_scale>EPSL && hasBumpMap();}
@@ -63,9 +63,9 @@ super.specular              =src.specular; spec_time=time;
 super.color_s               =Vec4(src.color, 1); color_time=time;
       color_underwater0     =src.color_underwater0; color_underwater_time=time;
       color_underwater1     =src.color_underwater1;
-          base_0_tex=src.     colorMap().id();
-          base_1_tex=src.    normalMap().id();
-      reflection_tex=src.reflectionMap().id();
+      base_0_tex=src. colorMap().id();
+      base_1_tex=src.normalMap().id();
+    //base_2_tex=src.; FIXME
    }
    void copyTo(WaterMtrl &dest, C Project &proj)C
    {
@@ -90,9 +90,9 @@ super.color_s               =Vec4(src.color, 1); color_time=time;
       dest.color                 =super.color_s.xyz     ;
       dest.color_underwater0     =color_underwater0     ;
       dest.color_underwater1     =color_underwater1     ;
-      dest.     colorMap(proj.texPath(    base_0_tex))
-          .    normalMap(proj.texPath(    base_1_tex))
-          .reflectionMap(proj.texPath(reflection_tex));
+      dest.     colorMap(proj.texPath(base_0_tex))
+          .    normalMap(proj.texPath(base_1_tex))/* FIXME
+          .reflectionMap(proj.texPath(base_2_tex))*/;
       dest.validate();
    }
    uint sync(C EditWaterMtrl &src)
