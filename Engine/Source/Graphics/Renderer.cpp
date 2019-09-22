@@ -5,10 +5,10 @@ namespace EE{
 // #RTOutput
 #define SVEL_CLEAR Vec4Zero
 #define  VEL_CLEAR Vec4(0.5f, 0.5f, 0.5f, 0)
-#define SNRM_CLEAR Vec4(0   , 0   ,   -1, 0) // set Z to 0   to set VecZero normals, however Z set to -1 makes ambient occlusion more precise when it uses normals (because ambient occlusion will not work good on the VecZero normals) #NRM_CLEAR
-#define  NRM_CLEAR Vec4(0.5f, 0.5f,    0, 0) // set Z to 0.5 to set VecZero normals, however Z set to  0 makes ambient occlusion more precise when it uses normals (because ambient occlusion will not work good on the VecZero normals) #NRM_CLEAR
+#define SNRM_CLEAR Vec4(0   , 0   ,   -1, 0) // normally Z should be set to 0   to set 'VecZero' normals, however Z is set to -1 makes ambient occlusion more precise when it uses normals (because ambient occlusion will not work good on the VecZero normals) #NRM_CLEAR
+#define  NRM_CLEAR Vec4(0.5f, 0.5f,    0, 0) // normally Z should be set to 0.5 to set 'VecZero' normals, however Z is set to  0 makes ambient occlusion more precise when it uses normals (because ambient occlusion will not work good on the VecZero normals) #NRM_CLEAR
 #define  NRM_CLEAR_START 1 // 1 works faster on GeForce 650m GT, TODO: check on newer hardware
-#define  VEL_CLEAR_START 0 // this is not needed because "ClearSkyVel" is used later, performance tests suggested it's better don't clear unless necessary, instead 'Image.discard' is used and improves performance (at least on Mobile)
+#define  VEL_CLEAR_START 0 // this is not needed because "ClearSkyVel" is used later, performance tests suggested it's better don't clear unless necessary, instead 'Image.discard' is used and improves performance (at least on Mobile), TODO: check on newer hardware
 inline Bool NeedBackgroundNrm() {return D.aoWant() && D.ambientNormal() || Renderer.stage==RS_NORMAL;}
 /******************************************************************************
 
@@ -1155,7 +1155,7 @@ void RendererClass::solid()
          {
            _first_pass=false;
             Bool clip=D._clip, clip_allow=D._clip_allow; T._clip=(clip ? D._clip_rect : D.rect()); // remember clipping because 'drawForward' may change it
-            Sh.AmbientColorNS_l->set(VecZero); Sh.AmbientMaterial->set(false); // disable ambient lighting
+            Sh.AmbientColorNS_l->set(VecZero); Sh.FirstPass->set(false); // disable ambient lighting
             D.depthFunc(FUNC_LESS_EQUAL); // need to make sure we can apply lights on existing depth
             REPA(Lights)if(i!=first_light)Lights[i].drawForward(ALPHA_ADD_KEEP); // draw 0-th at the end to setup shadow maps (needed for BLEND_LIGHT), keep alpha which is glow
             D.clip(clip ? &T._clip : null); D.clipAllow(clip_allow);
@@ -1163,7 +1163,7 @@ void RendererClass::solid()
            _first_pass=true;
 
             // restore settings
-            D.ambientSet(); Sh.AmbientMaterial->set(true); // restore ambient lighting
+            D.ambientSet(); Sh.FirstPass->set(true); // restore ambient lighting
          }
 
          // apply ambient occlusion

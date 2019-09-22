@@ -3,7 +3,8 @@
 #include "!Set SP.h"
 
 BUFFER(ApplyLight)
-   VecH NightShadeColor;
+   VecH AmbientColor,
+     NightShadeColor;
 BUFFER_END
 #include "!Set LP.h"
 
@@ -52,7 +53,7 @@ VecH LitCol(VecH4 color, VecH4 lum, Half ao, VecH night_shade_col, Bool apply_ao
 VecH4 ApplyLight_PS(NOPERSP Vec2 inTex:TEXCOORD,
                     NOPERSP PIXEL):TARGET
 {
-   Half ao; VecH ambient; if(AO){ao=TexLod(ImgX, inTex).x; if(!AO_ALL)ambient=AmbColor*ao;} // use 'TexLod' because AO can be of different size and we need to use tex filtering
+   Half ao; VecH ambient; if(AO){ao=TexLod(ImgX, inTex).x; if(!AO_ALL)ambient=AmbientColor*ao;} // use 'TexLod' because AO can be of different size and we need to use tex filtering
    VecI p=VecI(pixel.xy, 0);
    if(MULTI_SAMPLE==0)
    {

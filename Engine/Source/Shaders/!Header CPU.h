@@ -26,14 +26,15 @@
 #define LCScale 0.2 // must be in sync with GLSL
 
 // Buffer Indexes
-#define SBI_GLOBAL     0
-#define SBI_OBJ_MATRIX 1
-#define SBI_OBJ_VEL    2
-#define SBI_MESH       3
-#define SBI_MATERIAL   4
-#define SBI_VIEWPORT   5
-#define SBI_COLOR      6
-#define SBI_NUM        7
+#define SBI_FRAME      0
+#define SBI_CAMERA     1
+#define SBI_OBJ_MATRIX 2
+#define SBI_OBJ_VEL    3
+#define SBI_MESH       4
+#define SBI_MATERIAL   5
+#define SBI_VIEWPORT   6
+#define SBI_COLOR      7
+#define SBI_NUM        8
 // !! if any change is made here then all shaders need to be recompiled !!
 
 // Sampler Indexes

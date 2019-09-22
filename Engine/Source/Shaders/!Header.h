@@ -205,8 +205,8 @@ struct ViewportClass
 
 BUFFER_I(Viewport, SBI_VIEWPORT)
    Vec4          Coords  ;
-   ViewportClass Viewport;
    Vec4          RTSize  ; // xy=1/Image.hwSize(), zw=Image.hwSize(), this format is also required for SMAA
+   ViewportClass Viewport;
 BUFFER_END
 
 BUFFER(Constants)
@@ -341,20 +341,20 @@ BUFFER_END
 BUFFER_I(Color, SBI_COLOR)
    VecH4 Color[2];
 BUFFER_END
-
-BUFFER(Ambient)
-   VecH AmbColor, AmbNSColor;
-   Bool AmbMaterial=true; // if apply Material Ambient
-BUFFER_END
 /******************************************************************************/
-BUFFER_I(Global, SBI_GLOBAL)
-   Matrix4 ProjMatrix                ; // projection matrix
-   Vec     CamAngVel                 ; // camera angular velocity, pre-multiplied by 'D.motionScale'
-   Flt     TesselationDensity        ; // tesselation density
-   Vec2    GrassRangeMulAdd          ; // factors used for grass opacity      calculation
-   Vec4    ClipPlane=Vec4(0, 0, 0, 1); // clipping plane
-   VecH4   BendFactor                ; // factors used for grass/leaf bending calculation
-   Matrix  CamMatrix                 ; // camera matrix
+BUFFER_I(Frame, SBI_FRAME) // once per-frame
+   Vec   CamAngVel                 ; // camera angular velocity, pre-multiplied by 'D.motionScale' (don't put to Camera Buffer because this is set once per-frame and ignored for shadow maps)
+   Flt   TesselationDensity        ; // tesselation density
+   Vec4  ClipPlane=Vec4(0, 0, 0, 1); // clipping plane
+   Vec2  GrassRangeMulAdd          ; // factors used for grass opacity calculation
+   Bool  FirstPass=true            ; // if first pass (apply Material Ambient)
+   VecH  AmbientNSColor            ; // ambient combined with night shade
+   VecH4 BendFactor                ; // factors used for grass/leaf bending calculation
+BUFFER_END
+
+BUFFER_I(Camera, SBI_CAMERA) // this gets changed when drawing shadow maps
+   Matrix4 ProjMatrix; // projection matrix
+   Matrix  CamMatrix ; // camera     matrix
 BUFFER_END
 
 struct Velocity
@@ -423,6 +423,9 @@ Image     Ext, Ext1, Ext2, Ext3,
           Det, Det1, Det2, Det3,
           Mac, Mac1, Mac2, Mac3,
           Lum;
+
+#define BUMP_IMAGE   Ext
+#define BUMP_CHANNEL z
 
 Image     Img, Img1, Img2, Img3;
 ImageH    ImgX, ImgX1, ImgX2, ImgX3;
@@ -561,15 +564,15 @@ inline Flt  Sum(Vec   v) {return v.x+v.y+v.z    ;}
 inline Half Sum(VecH4 v) {return v.x+v.y+v.z+v.w;}
 inline Flt  Sum(Vec4  v) {return v.x+v.y+v.z+v.w;}
 
-inline Int   Sqr (Int   x) {return x*x;}
-inline Half  Sqr (Half  x) {return x*x;}
-inline Flt   Sqr (Flt   x) {return x*x;}
-inline VecH2 Sqr (VecH2 x) {return x*x;}
-inline Vec2  Sqr (Vec2  x) {return x*x;}
-inline VecH  Sqr (VecH  x) {return x*x;}
-inline Vec   Sqr (Vec   x) {return x*x;}
-inline VecH4 Sqr (VecH4 x) {return x*x;}
-inline Vec4  Sqr (Vec4  x) {return x*x;}
+inline Int   Sqr(Int   x) {return x*x;}
+inline Half  Sqr(Half  x) {return x*x;}
+inline Flt   Sqr(Flt   x) {return x*x;}
+inline VecH2 Sqr(VecH2 x) {return x*x;}
+inline Vec2  Sqr(Vec2  x) {return x*x;}
+inline VecH  Sqr(VecH  x) {return x*x;}
+inline Vec   Sqr(Vec   x) {return x*x;}
+inline VecH4 Sqr(VecH4 x) {return x*x;}
+inline Vec4  Sqr(Vec4  x) {return x*x;}
 
 inline Int   Cube(Int   x) {return x*x*x;}
 inline Half  Cube(Half  x) {return x*x*x;}

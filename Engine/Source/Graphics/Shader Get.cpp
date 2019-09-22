@@ -76,7 +76,7 @@ static Int BumpMode(C Material &material, UInt mesh_base_flag)
 }
 static Bool Detail     (C Material &material) {return  material.detail_map && material.det_power>EPS_COL;}
 static Bool Macro      (C Material &material) {return  material. macro_map;}
-static Bool Reflect    (C Material &material) {return  material.reflect      >EPS_COL;}
+static Bool Reflect    (C Material &material) {return  material.reflect      >EPS_COL;} // FIXME perhaps this should be always true? because of angles, what about smoothness?
 static Int  AmbientMode(C Material &material) {return (material.ambient.max()>EPS_COL) ? material.light_map ? 2 : 1 : 0;}
 
 static UInt FlagHeightmap(UInt mesh_base_flag, Bool heightmap)
@@ -245,7 +245,7 @@ FRST* DefaultShaders::Frst()C
       key.alpha_test=alpha_test;
       key.reflect   =reflect;
       key.light_map =(ambient>1);
-      key.detail    =(detail && materials==1); // forward currently doesn't support detail in multi-material
+      key.detail    =detail;
       key.color     =color;
       key.mtrl_blend=mtrl_blend;
       key.fx        =fx;

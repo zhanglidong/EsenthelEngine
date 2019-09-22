@@ -22,10 +22,6 @@
 
 #define SET_TEX   (LAYOUT || DETAIL || MACRO || BUMP_MODE>SBUMP_FLAT)
 #define FAST_TPOS ((BUMP_MODE>=SBUMP_PARALLAX_MIN && BUMP_MODE<=SBUMP_PARALLAX_MAX) || (BUMP_MODE==SBUMP_RELIEF && !RELIEF_TAN_POS))
-
-// #MaterialTextureLayout
-#define BUMP_IMAGE   Ext
-#define BUMP_CHANNEL z
 /******************************************************************************
 SKIN, MATERIALS, LAYOUT, BUMP_MODE, ALPHA_TEST, DETAIL, MACRO, COLORS, MTRL_BLEND, HEIGHTMAP, FX, TESSELATE
 /******************************************************************************/
@@ -402,12 +398,6 @@ void PS
              nrm    =Normalize(Transform(nrm, I.mtrx));
 #endif
 
-   /*// reflection
-   if(REFLECT)
-   {
-      Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
-      col+=TexCube(Rfl, rfl).rgb*((LAYOUT==2) ? MaterialReflect()*tex_nrm.z : MaterialReflect());
-   }*/
 #else // MATERIALS>1
    // assuming that in multi materials LAYOUT!=0
    Vec2 tex0, tex1, tex2, tex3;

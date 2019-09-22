@@ -62,17 +62,19 @@ VecH4 PS
    VecH4 inColor:COLOR
 ):TARGET
 {
-   VecH4 ext; // #MaterialTextureLayout
+   Half smooth=Material.smooth,
+        reflct=Material.reflect;
 
+   // #MaterialTextureLayout
 #if LAYOUT
-   if(LAYOUT==1)                      inColor    *=Tex(Col, inTex);else                    // alpha in 'Col' texture
-   if(LAYOUT==2){ext=Tex(Ext, inTex); inColor.rgb*=Tex(Col, inTex).rgb; inColor.a*=ext.a;} // alpha in 'Ext' texture
+   if(LAYOUT==1)                            inColor    *=Tex(Col, inTex);else                                                  // alpha in 'Col' texture
+   if(LAYOUT==2){VecH4 ext=Tex(Ext, inTex); inColor.rgb*=Tex(Col, inTex).rgb; inColor.a*=ext.a; smooth*=ext.x; reflct*=ext.y;} // alpha in 'Ext' texture
 #endif
 
    inColor.rgb+=Highlight.rgb;
 
 #if REFLECT // reflection
-   inColor.rgb+=TexCube(Cub, inRfl).rgb*((LAYOUT==2) ? Material.reflect*ext.y : Material.reflect);
+   inColor.rgb=Lerp(inColor.rgb, TexCube(Cub, inRfl).rgb, reflct);
 #endif
 
    return inColor;

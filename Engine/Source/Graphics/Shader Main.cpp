@@ -347,10 +347,10 @@ void MainShaderClass::getTechniques()
    GrassRangeMulAdd=GetShaderParam("GrassRangeMulAdd");
    BendFactor      =GetShaderParam("BendFactor");
 
+   FirstPass         =GetShaderParamBool("FirstPass"         );
    NightShadeColor   =GetShaderParam    ("NightShadeColor"   ); // set in 'D.ambientSet()'
-   AmbientColor_l    =GetShaderParam    ("AmbColor"          ); // set in 'D.ambientSet()'
-   AmbientColorNS_l  =GetShaderParam    ("AmbNSColor"        ); // set in 'D.ambientSet()'
-   AmbientMaterial   =GetShaderParamBool("AmbMaterial"       );
+   AmbientColor_l    =GetShaderParam    ("AmbientColor"      ); // set in 'D.ambientSet()'
+   AmbientColorNS_l  =GetShaderParam    ("AmbientNSColor"    ); // set in 'D.ambientSet()'
    AmbientContrast   =GetShaderParam    ("AmbientContrast"   ); AmbientContrast->set(D.ambientContrast());
    AmbientMin        =GetShaderParam    ("AmbientMin"        ); AmbientMin     ->set(D.ambientMin     ());
    AmbientRange_2    =GetShaderParam    ("AmbientRange_2"    );

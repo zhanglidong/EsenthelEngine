@@ -1571,14 +1571,15 @@ static ShaderBuffer* Get(Int i, C MemtN<ShaderBuffer*, 256> &buffers) {RANGE_ASS
 /******************************************************************************/
 Int ExpectedBufferSlot(C Str8 &name)
 {
-   if(name=="Global"   )return SBI_GLOBAL;
+   if(name=="Frame"    )return SBI_FRAME;
+   if(name=="Camera"   )return SBI_CAMERA;
    if(name=="ObjMatrix")return SBI_OBJ_MATRIX;
    if(name=="ObjVel"   )return SBI_OBJ_VEL;
    if(name=="Mesh"     )return SBI_MESH;
    if(name=="Material" )return SBI_MATERIAL;
    if(name=="Viewport" )return SBI_VIEWPORT;
    if(name=="Color"    )return SBI_COLOR;
-                        ASSERT(SBI_NUM==7);
+                        ASSERT(SBI_NUM==8);
                         return -1;
 }
 static void TestBuffer(C Str8 &name, Int bind_slot)

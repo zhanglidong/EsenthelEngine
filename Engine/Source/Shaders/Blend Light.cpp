@@ -23,6 +23,9 @@ struct VS_PS
 
    VecH4 col    :COLOR;
    VecH  col_add:COLOR_ADD;
+#if REFLECT
+   Half  fog_rev:FOG;
+#endif
 
 #if   BUMP_MODE> SBUMP_FLAT && PER_PIXEL
    MatrixH3 mtrx:MATRIX; // !! may not be Normalized !!
@@ -171,6 +174,9 @@ void VS
    Half fog_rev=    VisibleOpacity(FogDensity, dist); // fog_rev=1-fog
    O.col.rgb*=                              fog_rev ; //       *=1-fog
    O.col_add =Lerp(FogColor, Highlight.rgb, fog_rev); //         1-fog
+#if REFLECT
+   O.fog_rev=fog_rev;
+#endif
 
    //  per-vertex light
    #if !PER_PIXEL && BUMP_MODE>=SBUMP_FLAT
@@ -180,7 +186,7 @@ void VS
    #if SHADOW_MAPS
       O.lum=lum;
    #else
-      O.col.rgb*=lum+AmbNSColor;
+      O.col.rgb*=lum+AmbientNSColor;
    #endif
    }
    #endif
@@ -241,24 +247,12 @@ void PS
    #endif
 #endif
 
-   // reflection
-   #if REFLECT
-   {
-   #if VTX_REFLECT
-      Vec rfl=I.rfl;
-   #else
-      Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
-   #endif
-      I.col.rgb+=TexCube(Cub, rfl).rgb*reflct;
-   }
-   #endif
-
    // calculate lighting
 #if BUMP_MODE>=SBUMP_FLAT && (PER_PIXEL || SHADOW_MAPS)
  //VecH total_specular=0;
 
-   VecH total_lum=AmbNSColor;
- /*if(AmbMaterial)
+   VecH total_lum=AmbientNSColor;
+ /*if(FirstPass)
    {
       if(LIGHT_MAP)total_lum+=Material.ambient*Tex(Lum, I.tex).rgb;
       else         total_lum+=Material.ambient;
@@ -298,7 +292,21 @@ void PS
    // perform lighting
    I.col.rgb=I.col.rgb*total_lum;// + total_specular;
 #endif
-   I.col.rgb+=I.col_add; // add after lighting because this could have fog
+
+   // reflection
+   #if REFLECT
+   {
+   #if VTX_REFLECT
+      Vec rfl=I.rfl;
+   #else
+      Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
+   #endif
+      I.col.rgb=Lerp(I.col.rgb, TexCube(Cub, rfl).rgb*I.fog_rev, reflct);
+   }
+   #endif
+
+   I.col.rgb+=I.col_add; // add after lighting and reflection because this could have fog
+
    outCol=I.col;
 
 #if USE_VEL

@@ -142,7 +142,7 @@ struct MainShaderClass
       *SMAAThreshold=&Dummy;
 
    ShaderParamBool
-      *AmbientMaterial,
+      *FirstPass,
       *VtxSkinning;
 
    // SHADERS
