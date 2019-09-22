@@ -390,27 +390,29 @@ class MtrlImages
 {
    bool  flip_normal_y=false;
    int   tex=0;
-   Image color, alpha, bump, normal, specular, glow;
+   Image color, alpha, bump, normal, smooth, reflect, glow;
    
    bool create(C VecI2 &size)
    {
       flip_normal_y=false;
       tex=0;
-      return color   .createSoftTry(size.x, size.y, 1, IMAGE_R8G8B8_SRGB)
-          && alpha   .createSoftTry(size.x, size.y, 1, IMAGE_I8)
-          && bump    .createSoftTry(size.x, size.y, 1, IMAGE_I8)
-          && normal  .createSoftTry(size.x, size.y, 1, IMAGE_R8G8B8)
-          && specular.createSoftTry(size.x, size.y, 1, IMAGE_I8)
-          && glow    .createSoftTry(size.x, size.y, 1, IMAGE_I8);
+      return color  .createSoftTry(size.x, size.y, 1, IMAGE_R8G8B8_SRGB)
+          && alpha  .createSoftTry(size.x, size.y, 1, IMAGE_I8)
+          && bump   .createSoftTry(size.x, size.y, 1, IMAGE_I8)
+          && normal .createSoftTry(size.x, size.y, 1, IMAGE_R8G8B8)
+          && smooth .createSoftTry(size.x, size.y, 1, IMAGE_I8)
+          && reflect.createSoftTry(size.x, size.y, 1, IMAGE_I8)
+          && glow   .createSoftTry(size.x, size.y, 1, IMAGE_I8);
    }
    void clear()
    {
       flip_normal_y=false;
       tex=0;
-      color   .clear();
-      alpha   .clear();
-      specular.clear();
-      glow    .clear();
+      color  .clear();
+      alpha  .clear();
+      smooth .clear();
+      reflect.clear();
+      glow   .clear();
 
       REPD(y, bump.h())
       REPD(x, bump.w())bump.pixB(x, y)=128;
@@ -421,21 +423,23 @@ class MtrlImages
    }
    void compact()
    {
-      if(!(tex&BT_COLOR   ))color   .del();
-      if(!(tex&BT_ALPHA   ))alpha   .del();
-      if(!(tex&BT_BUMP    ))bump    .del();
-      if(!(tex&BT_NORMAL  ))normal  .del();
-      if(!(tex&BT_SPECULAR))specular.del();
-      if(!(tex&BT_GLOW    ))glow    .del();
+      if(!(tex&BT_COLOR  ))color  .del();
+      if(!(tex&BT_ALPHA  ))alpha  .del();
+      if(!(tex&BT_BUMP   ))bump   .del();
+      if(!(tex&BT_NORMAL ))normal .del();
+      if(!(tex&BT_SMOOTH ))smooth .del();
+      if(!(tex&BT_REFLECT))reflect.del();
+      if(!(tex&BT_GLOW   ))glow   .del();
    }
    void Export(C Str &name, C Str &ext)C
    {
-      color   .Export(name+"color."   +ext);
-      alpha   .Export(name+"alpha."   +ext);
-      bump    .Export(name+"bump."    +ext);
-      normal  .Export(name+"normal."  +ext);
-      specular.Export(name+"specular."+ext);
-      glow    .Export(name+"glow."    +ext);
+      color  .Export(name+"color."  +ext);
+      alpha  .Export(name+"alpha."  +ext);
+      bump   .Export(name+"bump."   +ext);
+      normal .Export(name+"normal." +ext);
+      smooth .Export(name+"smooth." +ext);
+      reflect.Export(name+"reflect."+ext);
+      glow   .Export(name+"glow."   +ext);
    }
    static void Crop(Image &image, C Rect &frac)
    {
@@ -456,59 +460,60 @@ class MtrlImages
    }
    void crop(C Rect &frac)
    {
-      Crop(color   , frac);
-      Crop(alpha   , frac);
-      Crop(bump    , frac);
-      Crop(normal  , frac);
-      Crop(specular, frac);
-      Crop(glow    , frac);
+      Crop(color  , frac);
+      Crop(alpha  , frac);
+      Crop(bump   , frac);
+      Crop(normal , frac);
+      Crop(smooth , frac);
+      Crop(reflect, frac);
+      Crop(glow   , frac);
    }
    void resize(C VecI2 &size)
    {
       if(size.x>=0 || size.y>=0)
       {
-         if(color   .is())color   .resize(size.x, size.y);
-         if(alpha   .is())alpha   .resize(size.x, size.y);
-         if(bump    .is())bump    .resize(size.x, size.y);
-         if(normal  .is())normal  .resize(size.x, size.y);
-         if(specular.is())specular.resize(size.x, size.y);
-         if(glow    .is())glow    .resize(size.x, size.y);
+         if(color  .is())color  .resize(size.x, size.y);
+         if(alpha  .is())alpha  .resize(size.x, size.y);
+         if(bump   .is())bump   .resize(size.x, size.y);
+         if(normal .is())normal .resize(size.x, size.y);
+         if(smooth .is())smooth .resize(size.x, size.y);
+         if(reflect.is())reflect.resize(size.x, size.y);
+         if(glow   .is())glow   .resize(size.x, size.y);
       }
    }
    void fromMaterial(C EditMaterial &material, C Project &proj, bool changed_flip_normal_y, C VecI2 &size=-1, bool process_alpha=false)
    {
       // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !!
-      bool col_ok=proj.loadImages(   color, material.   color_map, true , false),
-         alpha_ok=proj.loadImages(   alpha, material.   alpha_map, false, false, WHITE, &color),
-          spec_ok=proj.loadImages(specular, material.specular_map, false, false, WHITE, &color),
-          bump_ok=proj.loadImages(    bump, material.    bump_map, false, false, GREY , &color, &specular),
-           nrm_ok=proj.loadImages(  normal, material.  normal_map, false, false, Color(128, 128, 255), &color, &specular, &bump),
-          glow_ok=proj.loadImages(    glow, material.    glow_map, false, false);
+      bool col_ok=proj.loadImages(  color, material.  color_map, true , false),
+         alpha_ok=proj.loadImages(  alpha, material.  alpha_map, false, false, WHITE, &color),
+        smooth_ok=proj.loadImages( smooth, material. smooth_map, false, false, WHITE, &color),
+       reflect_ok=proj.loadImages(reflect, material.reflect_map, false, false, WHITE, &color, &smooth),
+          bump_ok=proj.loadImages(   bump, material.   bump_map, false, false, GREY , &color, &smooth),
+           nrm_ok=proj.loadImages( normal, material. normal_map, false, false, Color(128, 128, 255), &color, &smooth, &bump),
+          glow_ok=proj.loadImages(   glow, material.   glow_map, false, false);
 
       if(! col_ok && !material. alpha_map.is())alpha_ok=false; // if color map failed to load, and there is no dedicated alpha  map, and since it's possible that alpha  was created from the color, which is not available, so alpha  needs to be marked as failed
       if(!bump_ok && !material.normal_map.is())  nrm_ok=false; // if bump  map failed to load, and there is no dedicated normal map, and since it's possible that normal was created from the bump , which is not available, so normal needs to be marked as failed
 
-      ExtractBaseTextures(proj, material.base_0_tex, material.base_1_tex,
-         col_ok ? null : &color, alpha_ok ? null : &alpha, bump_ok ? null : &bump, nrm_ok ? null : &normal, spec_ok ? null : &specular, glow_ok ? null : &glow, size);
+      ExtractBaseTextures(proj, material.base_0_tex, material.base_1_tex, material.base_2_tex,
+         col_ok ? null : &color, alpha_ok ? null : &alpha, bump_ok ? null : &bump, nrm_ok ? null : &normal, smooth_ok ? null : &smooth, reflect_ok ? null : &reflect, glow_ok ? null : &glow, size);
 
       T.flip_normal_y=(nrm_ok ? material.flip_normal_y : changed_flip_normal_y); // if we failed to load the original image, and instead we're using extracted normal map, then we need to flip Y only if we're changing flipping at this moment
 
-      bool keep_alpha=false;
-
-      if(material.glow_map.is() && glow.is() && !material.alpha_map.is())alpha.del();else // if we have glow map specified and existing, and no specified alpha map, then delete alpha so glow can be used (this is necessary because alpha+glow maps are not compatible with each other)
-         if(process_alpha)processAlpha();
+      if(process_alpha)processAlpha();
 
       resize(size);
    }
-   uint createBaseTextures(Image &base_0, Image &base_1)C
+   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2)C
    {
-      return CreateBaseTextures(base_0, base_1, color, alpha, bump, normal, specular, glow, true, flip_normal_y);
+      return CreateBaseTextures(base_0, base_1, base_2, color, alpha, bump, normal, smooth, reflect, glow, true, flip_normal_y);
    }
-   void baseTextureSizes(VecI2 *size0, VecI2 *size1)
-   { // TODO: this could be optimized by calculating Max of image sizes, however there are some special cases (like glow isn't compatible with alpha, or normal made from bump, etc.)
-      Image base[2]; createBaseTextures(base[0], base[1]);
+   void baseTextureSizes(VecI2 *size0, VecI2 *size1, VecI2 *size2)
+   { // TODO: this could be optimized by calculating Max of image sizes, however there are some special cases (normal made from bump, etc.)
+      Image base[3]; createBaseTextures(base[0], base[1], base[2]);
       if(size0)*size0=base[0].size();
       if(size1)*size1=base[1].size();
+      if(size2)*size2=base[2].size();
    }
    void processAlpha()
    {
