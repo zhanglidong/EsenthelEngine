@@ -247,6 +247,10 @@ void PS
    #endif
 #endif
 
+#if PER_PIXEL && FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
+   BackFlip(nrm, front);
+#endif
+
    // calculate lighting
 #if BUMP_MODE>=SBUMP_FLAT && (PER_PIXEL || SHADOW_MAPS)
  //VecH total_specular=0;
@@ -257,10 +261,6 @@ void PS
       if(LIGHT_MAP)total_lum+=Material.ambient*Tex(Lum, I.tex).rgb;
       else         total_lum+=Material.ambient;
    }*/
-
-#if PER_PIXEL && FX!=FX_GRASS && FX!=FX_LEAF && FX!=FX_LEAFS
-   BackFlip(nrm, front);
-#endif
 
    // directional light
    {
