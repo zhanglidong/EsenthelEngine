@@ -20,8 +20,9 @@
 #define RELIEF_Z_LIMIT      0.4 // smaller values may cause leaking (UV swimming), and higher reduce bump intensity at angles, default=0.4
 #define RELIEF_LOD_TEST     0 // close to camera (test enabled=4.76 fps, test disabled=4.99 fps), far from camera (test enabled=9.83 fps, test disabled=9.52 fps), conclusion: this test reduces performance when close to camera by a similar factor to when far away, however since more likely pixels will be close to camera (as for distant LOD's other shaders are used) we prioritize close to camera performance, so this check should be disabled, default=0
 
-#define SET_TEX   (LAYOUT || DETAIL || MACRO || BUMP_MODE>SBUMP_FLAT)
-#define FAST_TPOS ((BUMP_MODE>=SBUMP_PARALLAX_MIN && BUMP_MODE<=SBUMP_PARALLAX_MAX) || (BUMP_MODE==SBUMP_RELIEF && !RELIEF_TAN_POS))
+#define SET_TEX    (LAYOUT || DETAIL || MACRO || BUMP_MODE>SBUMP_FLAT)
+#define FAST_TPOS  ((BUMP_MODE>=SBUMP_PARALLAX_MIN && BUMP_MODE<=SBUMP_PARALLAX_MAX) || (BUMP_MODE==SBUMP_RELIEF && !RELIEF_TAN_POS))
+#define GRASS_FADE (FX==FX_GRASS)
 /******************************************************************************
 SKIN, MATERIALS, LAYOUT, BUMP_MODE, ALPHA_TEST, DETAIL, MACRO, COLORS, MTRL_BLEND, HEIGHTMAP, FX, TESSELATE
 /******************************************************************************/
@@ -61,7 +62,7 @@ struct VS_PS
    Vec  tpos() {return 0;}
 #endif
 
-#if FX==FX_GRASS
+#if GRASS_FADE
    Half fade_out:FADE_OUT;
 #endif
 };
@@ -122,8 +123,8 @@ void VS
          O.nrm    =TransformDir(nrm, vtx.instance());
       #endif
 
-      #if FX==FX_GRASS
-           BendGrass(pos, O.pos, vtx.instance());
+         if(FX==FX_GRASS)BendGrass(pos, O.pos, vtx.instance());
+      #if GRASS_FADE
          O.fade_out=GrassFadeOut(vtx.instance());
       #endif
       }else
@@ -138,8 +139,8 @@ void VS
          O.nrm    =TransformDir(nrm);
       #endif
 
-      #if FX==FX_GRASS
-         BendGrass(pos, O.pos);
+         if(FX==FX_GRASS)BendGrass(pos, O.pos);
+      #if GRASS_FADE
          O.fade_out=GrassFadeOut();
       #endif
       }
@@ -353,7 +354,7 @@ void PS
       VecH4 tex_col=Tex(Col, I.tex);
       if(ALPHA_TEST)
       {
-      #if FX==FX_GRASS
+      #if GRASS_FADE
          tex_col.a-=I.fade_out;
       #endif
          AlphaTest(tex_col.a);
@@ -368,7 +369,7 @@ void PS
       VecH4 tex_ext=Tex(Ext, I.tex);
       if(ALPHA_TEST)
       {
-      #if FX==FX_GRASS
+      #if GRASS_FADE
          tex_ext.w-=I.fade_out;
       #endif
          AlphaTest(tex_ext.w);
@@ -737,7 +738,7 @@ VS_PS HS
    O._tpos=I[cp_id]._tpos;
 #endif
 
-#if FX==FX_GRASS
+#if GRASS_FADE
    O.fade_out=I[cp_id].fade_out;
 #endif
 
@@ -779,7 +780,7 @@ void DS
    O._tpos=I[0]._tpos*B.z + I[1]._tpos*B.x + I[2]._tpos*B.y;
 #endif
 
-#if FX==FX_GRASS
+#if GRASS_FADE
    O.fade_out=I[0].fade_out*B.z + I[1].fade_out*B.x + I[2].fade_out*B.y;
 #endif
 

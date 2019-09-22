@@ -25,6 +25,7 @@ Final = (TexCol*MtrlCol*VtxCol+Detail)*FinalLight
 #define SET_LUM        (VTX_LIGHT && !LIGHT_IN_COL)
 #define VTX_REFLECT    (REFLECT && !(PER_PIXEL && BUMP_MODE>SBUMP_FLAT))
 #define PIXEL_NORMAL   ((PER_PIXEL && LIGHT) || (REFLECT && !VTX_REFLECT)) // if calculate normal in the pixel shader
+#define GRASS_FADE     (FX==FX_GRASS)
 /******************************************************************************/
 struct VS_PS
 {
@@ -58,7 +59,7 @@ struct VS_PS
    VecH rfl:REFLECTION;
 #endif
 
-#if FX==FX_GRASS
+#if GRASS_FADE
    Half fade_out:FADE_OUT;
 #endif
 
@@ -123,9 +124,10 @@ void VS
          nrm=TransformDir(nrm, vtx.instance());
       #endif
 
-      #if FX==FX_GRASS
-         BendGrass(local_pos, pos, vtx.instance());
-           O.fade_out=GrassFadeOut(vtx.instance());
+         if(FX==FX_GRASS)BendGrass(local_pos, pos, vtx.instance());
+      #endif
+      #if GRASS_FADE
+         O.fade_out=GrassFadeOut(vtx.instance());
       #endif
       }else
       {
@@ -138,8 +140,8 @@ void VS
          nrm=TransformDir(nrm);
       #endif
 
-      #if FX==FX_GRASS
-         BendGrass(local_pos, pos);
+         if(FX==FX_GRASS)BendGrass(local_pos, pos);
+      #if GRASS_FADE
          O.fade_out=GrassFadeOut();
       #endif
       }
@@ -306,7 +308,7 @@ VecH4 PS
       VecH4 tex_col=Tex(Col, I.tex);
       if(ALPHA_TEST)
       {
-      #if FX==FX_GRASS
+      #if GRASS_FADE
          tex_col.a-=I.fade_out;
       #endif
          AlphaTest(tex_col.a);
@@ -321,7 +323,7 @@ VecH4 PS
       VecH4 tex_ext=Tex(Ext, I.tex);
       if(ALPHA_TEST)
       {
-      #if FX==FX_GRASS
+      #if GRASS_FADE
          tex_ext.w-=I.fade_out;
       #endif
          AlphaTest(tex_ext.w);
@@ -653,7 +655,7 @@ VS_PS HS
    O.col=I[cp_id].col;
 #endif
 
-#if FX==FX_GRASS
+#if GRASS_FADE
    O.fade_out=I[cp_id].fade_out;
 #endif
 
@@ -697,7 +699,7 @@ void DS
    O.col=I[0].col*B.z + I[1].col*B.x + I[2].col*B.y;
 #endif
 
-#if FX==FX_GRASS
+#if GRASS_FADE
    O.fade_out=I[0].fade_out*B.z + I[1].fade_out*B.x + I[2].fade_out*B.y;
 #endif
 

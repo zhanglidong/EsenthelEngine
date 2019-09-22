@@ -10,6 +10,7 @@
 #define SET_TEX     (LAYOUT || LIGHT_MAP || BUMP_MODE>SBUMP_FLAT)
 #define VTX_REFLECT (REFLECT && !(PER_PIXEL && BUMP_MODE>SBUMP_FLAT))
 #define ALPHA_CLIP  0.5
+#define GRASS_FADE  (FX==FX_GRASS)
 /******************************************************************************/
 struct VS_PS
 {
@@ -101,11 +102,8 @@ void VS
          nrm=TransformDir(nrm, vtx.instance());
       #endif
 
-         if(FX==FX_GRASS)
-         {
-            BendGrass(local_pos, pos, vtx.instance());
-              O.col.a*=1-GrassFadeOut(vtx.instance());
-         }
+         if(FX==FX_GRASS)BendGrass(local_pos, pos, vtx.instance());
+         if(GRASS_FADE  )  O.col.a*=1-GrassFadeOut(vtx.instance());
       }else
       {
          pos=TransformPos(pos);
@@ -120,11 +118,8 @@ void VS
          nrm=TransformDir(nrm);
       #endif
 
-         if(FX==FX_GRASS)
-         {
-            BendGrass(local_pos, pos);
-            O.col.a*=1-GrassFadeOut();
-         }
+         if(FX==FX_GRASS)BendGrass(local_pos, pos);
+         if(GRASS_FADE  )O.col.a*=1-GrassFadeOut();
       }
    }else
    {
