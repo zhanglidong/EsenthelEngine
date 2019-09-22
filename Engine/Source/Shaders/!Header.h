@@ -424,8 +424,11 @@ Image     Ext, Ext1, Ext2, Ext3,
           Mac, Mac1, Mac2, Mac3,
           Lum;
 
-#define BUMP_IMAGE   Ext
-#define BUMP_CHANNEL z
+#define    BUMP_IMAGE   Ext
+#define  SMOOTH_CHANNEL x
+#define REFLECT_CHANNEL y
+#define    BUMP_CHANNEL z
+#define   ALPHA_CHANNEL w
 
 Image     Img, Img1, Img2, Img3;
 ImageH    ImgX, ImgX1, ImgX2, ImgX3;
