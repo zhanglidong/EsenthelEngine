@@ -728,7 +728,7 @@ static void Compile(API api)
       REPD(heightmap , (!skin                               ) ? 2 : 1)
       REPD(alpha_test, (materials==1 && layout && !heightmap) ? 2 : 1)
       REPD(light_map , (materials==1 &&           !heightmap) ? 2 : 1)
-      REPD(tesselate , tess ? 2 : 1)
+      REPD(tesselate , tess                                   ? 2 : 1)
       REPD(detail    , 2)
       REPD(reflect   , 2)
          src.forwardLight(skin, materials, layout, bump_mode ? SBUMP_NORMAL : SBUMP_FLAT, alpha_test, reflect, light_map, detail, color, mtrl_blend, heightmap, FX_NONE, per_pixel, tesselate);
