@@ -256,17 +256,6 @@ void DecompressBlockBC4S(C Byte *b, SByte (&block)[4][4])
       block[y][x]=red[ri];
    }
 }
-void DecompressBlockBC4S(C Byte *b, Color (&block)[4][4])
-{
-   SByte red[8]; U64 ris; _DecompressBlockBC4(b, red, ris);
-   REPD(y, 4)
-   REPD(x, 4)
-   {
-      Int i=x+(y<<2),         // pixel index
-         ri=((ris>>(3*i))&7); // red   index
-      block[y][x].set(SByteToByte(red[ri]), 0, 0, 255);
-   }
-}
 void DecompressBlockBC4S(C Byte *b, SByte *dest, Int pitch)
 {
    SByte red[8]; U64 ris; _DecompressBlockBC4(b, red, ris);
@@ -325,19 +314,6 @@ void DecompressBlockBC5S(C Byte *b, VecSB2 (&block)[4][4])
       block[y][x].set(red[ri], green[gi]);
    }
 }
-void DecompressBlockBC5S(C Byte *b, Color (&block)[4][4])
-{
-   SByte red  [8]; U64 ris; _DecompressBlockBC4(b  , red  , ris);
-   SByte green[8]; U64 gis; _DecompressBlockBC4(b+8, green, gis);
-   REPD(y, 4)
-   REPD(x, 4)
-   {
-      Int i=x+(y<<2),         // pixel index
-         ri=((ris>>(3*i))&7), // red   index
-         gi=((gis>>(3*i))&7); // green index
-      block[y][x].set(SByteToByte(red[ri]), SByteToByte(green[gi]), 0, 255);
-   }
-}
 void DecompressBlockBC5S(C Byte *b, VecSB2 *dest, Int pitch)
 {
    SByte red  [8]; U64 ris; _DecompressBlockBC4(b  , red  , ris);
@@ -365,21 +341,7 @@ void DecompressBlockBC6(C Byte *b, VecH (&block)[4][4])
    Zero(block);
 #endif
 }
-void DecompressBlockBC6(C Byte *b, Color (&block)[4][4])
-{
-   VecH block_h[4][4];
-#if BC6_DEC==BC_LIB_DIRECTX
-   DirectX::D3DXDecodeBC6HU(block_h, b);
-#elif BC6_DEC==BC_LIB_TEXGENPACK
-   TGP::draw_block4x4_bptc_float(b, block_h);
-#else
-   Zero(block_h);
-#endif
-   REPD(y, 4)
-   REPD(x, 4)block[y][x]=(Vec)block_h[y][x];
-}
-void DecompressBlockBC6(C Byte *b, Color *dest, Int pitch) {Color block[4][4]; DecompressBlockBC6(b, block); FREPD(y, 4){CopyFast(dest, block[y], SIZE(Color)*4); dest=(Color*)((Byte*)dest+pitch);}} // move in forward order so 'dest' can be increased by pitch
-void DecompressBlockBC6(C Byte *b, VecH  *dest, Int pitch) {VecH  block[4][4]; DecompressBlockBC6(b, block); FREPD(y, 4){CopyFast(dest, block[y], SIZE(VecH )*4); dest=(VecH *)((Byte*)dest+pitch);}} // move in forward order so 'dest' can be increased by pitch
+void DecompressBlockBC6(C Byte *b, VecH *dest, Int pitch) {VecH block[4][4]; DecompressBlockBC6(b, block); FREPD(y, 4){CopyFast(dest, block[y], SIZE(VecH)*4); dest=(VecH *)((Byte*)dest+pitch);}} // move in forward order so 'dest' can be increased by pitch
 /******************************************************************************/
 void DecompressBlockBC7(C Byte *b, Color (&block)[4][4])
 {

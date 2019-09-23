@@ -3044,32 +3044,28 @@ Bool Image::blurCubeMipMaps(Flt angle_start, Flt angle_growth, Threads *threads)
    return true;
 }
 /******************************************************************************/
-static Bool CanDecompress(IMAGE_TYPE type)
-{
-   return type!=IMAGE_PVRTC1_2 && type!=IMAGE_PVRTC1_4 && type!=IMAGE_PVRTC1_2_SRGB && type!=IMAGE_PVRTC1_4_SRGB;
-}
 void (*DecompressBlock(IMAGE_TYPE type))(C Byte *b, Color (&block)[4][4])
 {
    switch(type)
    {
       default                :                             return null;
-      case IMAGE_BC1         : case IMAGE_BC1_SRGB       : return DecompressBlockBC1      ; break;
-      case IMAGE_BC2         : case IMAGE_BC2_SRGB       : return DecompressBlockBC2      ; break;
-      case IMAGE_BC3         : case IMAGE_BC3_SRGB       : return DecompressBlockBC3      ; break;
-      case IMAGE_BC4         :                             return DecompressBlockBC4      ; break;
-      case IMAGE_BC4_SIGN    :                             return DecompressBlockBC4S     ; break;
-      case IMAGE_BC5         :                             return DecompressBlockBC5      ; break;
-      case IMAGE_BC5_SIGN    :                             return DecompressBlockBC5S     ; break;
-      case IMAGE_BC6         :                             return DecompressBlockBC6      ; break;
-      case IMAGE_BC7         : case IMAGE_BC7_SRGB       : return DecompressBlockBC7      ; break;
-      case IMAGE_ETC1        :                             return DecompressBlockETC1     ; break;
-      case IMAGE_ETC2_R      :                             return DecompressBlockETC2R    ; break;
-      case IMAGE_ETC2_R_SIGN :                             return DecompressBlockETC2RS   ; break;
-      case IMAGE_ETC2_RG     :                             return DecompressBlockETC2RG   ; break;
-      case IMAGE_ETC2_RG_SIGN:                             return DecompressBlockETC2RGS  ; break;
-      case IMAGE_ETC2_RGB    : case IMAGE_ETC2_RGB_SRGB  : return DecompressBlockETC2RGB  ; break;
-      case IMAGE_ETC2_RGBA1  : case IMAGE_ETC2_RGBA1_SRGB: return DecompressBlockETC2RGBA1; break;
-      case IMAGE_ETC2_RGBA   : case IMAGE_ETC2_RGBA_SRGB : return DecompressBlockETC2RGBA ; break;
+      case IMAGE_BC1         : case IMAGE_BC1_SRGB       : return DecompressBlockBC1      ;
+      case IMAGE_BC2         : case IMAGE_BC2_SRGB       : return DecompressBlockBC2      ;
+      case IMAGE_BC3         : case IMAGE_BC3_SRGB       : return DecompressBlockBC3      ;
+      case IMAGE_BC4         :                             return DecompressBlockBC4      ;
+    //case IMAGE_BC4_SIGN    :                             return DecompressBlockBC4S     ; needs high precision
+      case IMAGE_BC5         :                             return DecompressBlockBC5      ;
+    //case IMAGE_BC5_SIGN    :                             return DecompressBlockBC5S     ; needs high precision
+    //case IMAGE_BC6         :                             return DecompressBlockBC6      ; needs high precision
+      case IMAGE_BC7         : case IMAGE_BC7_SRGB       : return DecompressBlockBC7      ;
+      case IMAGE_ETC1        :                             return DecompressBlockETC1     ;
+      case IMAGE_ETC2_R      :                             return DecompressBlockETC2R    ;
+      case IMAGE_ETC2_R_SIGN :                             return DecompressBlockETC2RS   ;
+      case IMAGE_ETC2_RG     :                             return DecompressBlockETC2RG   ;
+      case IMAGE_ETC2_RG_SIGN:                             return DecompressBlockETC2RGS  ;
+      case IMAGE_ETC2_RGB    : case IMAGE_ETC2_RGB_SRGB  : return DecompressBlockETC2RGB  ;
+      case IMAGE_ETC2_RGBA1  : case IMAGE_ETC2_RGBA1_SRGB: return DecompressBlockETC2RGBA1;
+      case IMAGE_ETC2_RGBA   : case IMAGE_ETC2_RGBA_SRGB : return DecompressBlockETC2RGBA ;
    }
 }
 Bool ImageCompare::compare(C Image &a, C Image &b, Flt similar_dif, Bool alpha_weight, Int a_mip, Flt skip_dif) // !! Warning: this always operates on 'Color' which ignores negative values, gamma, and >1 (HP/Flt/etc.) !!
@@ -3098,8 +3094,10 @@ Bool ImageCompare::compare(C Image &a, C Image &b, Flt similar_dif, Bool alpha_w
          {
             Image temp_a, temp_b;
           C Image *sa=&a, *sb=&b;
-            if(!CanDecompress(sa->hwType())){if(!sa->extractMipMap(temp_a, ImageTypeUncompressed(sa->type()), a_mip))return false; sa=&temp_a; a_mip=0;}
-            if(!CanDecompress(sb->hwType())){if(!sb->extractMipMap(temp_b, ImageTypeUncompressed(sb->type()), b_mip))return false; sb=&temp_b; b_mip=0;}
+            void (*decompress_a)(C Byte *b, Color (&block)[4][4])=DecompressBlock(sa->hwType());
+            void (*decompress_b)(C Byte *b, Color (&block)[4][4])=DecompressBlock(sb->hwType());
+            if(!decompress_a && sa->compressed()){if(!sa->extractMipMap(temp_a, ImageTypeUncompressed(sa->type()), a_mip))return false; sa=&temp_a; a_mip=0;}
+            if(!decompress_b && sb->compressed()){if(!sb->extractMipMap(temp_b, ImageTypeUncompressed(sb->type()), b_mip))return false; sb=&temp_b; b_mip=0;}
             if(sa->lockRead(a_mip))
             {
                if(sb->lockRead(b_mip))
@@ -3108,23 +3106,45 @@ Bool ImageCompare::compare(C Image &a, C Image &b, Flt similar_dif, Bool alpha_w
                   {
                      ok=true;
 
-               const Bool per_channel =false; // false=faster
-               const UInt     channels=4,
-                             max_value=255,
-                                 scale=channels*max_value;
-                     UInt  _skip_dif =Max(0, RoundPos(   skip_dif*scale)),
-                        _similar_dif =Max(0, RoundPos(similar_dif*scale)),
-                             max_dif =0;
-                     ULong total_dif =0,
-                           total_dif2=0,
-                       similar_pixels=0,
-                     processed_pixels=0;
+               const Bool per_channel=false, // false=faster
+                          high_prec  =(sa->highPrecision() || sb->highPrecision());
+               const Int      a_x_mul=ImageTI[sa->hwType()].bit_pp*2, // *2 because (4*4 colors / 8 bits)
+                              b_x_mul=ImageTI[sb->hwType()].bit_pp*2; // *2 because (4*4 colors / 8 bits)
+               const UInt    channels=4,
+                            max_value=(high_prec ? 1 : 255),
+                                scale=channels*max_value;
+                     ULong similar_pixels=0,
+                         processed_pixels=0;
 
-                     Int   a_x_mul=ImageTI[sa->hwType()].bit_pp*2, // *2 because (4*4 colors / 8 bits)
-                           b_x_mul=ImageTI[sb->hwType()].bit_pp*2; // *2 because (4*4 colors / 8 bits)
-                     Color a_block[4][4], b_block[4][4];
-                     void (*decompress_a)(C Byte *b, Color (&block)[4][4])=DecompressBlock(sa->hwType());
-                     void (*decompress_b)(C Byte *b, Color (&block)[4][4])=DecompressBlock(sb->hwType());
+                     // high_prec
+                     Flt    skip_fdif,
+                         similar_fdif,
+                             max_fdif;
+                     Dbl   total_fdif,
+                           total_fdif2;
+
+                     // !high_prec
+                     UInt   skip_idif,
+                         similar_idif,
+                             max_idif;
+                     ULong total_idif,
+                           total_idif2;
+
+                     if(high_prec)
+                     {
+                           skip_fdif =Max(0,    skip_dif*scale);
+                        similar_fdif =Max(0, similar_dif*scale);
+                            max_fdif =0;
+                          total_fdif =0;
+                          total_fdif2=0;
+                     }else
+                     {
+                           skip_idif =Max(0, RoundPos(   skip_dif*scale));
+                        similar_idif =Max(0, RoundPos(similar_dif*scale));
+                            max_idif =0;
+                          total_idif =0;
+                          total_idif2=0;
+                     }
 
                      REPD(by, DivCeil4(sa->lh()))
                      {
@@ -3133,44 +3153,93 @@ Bool ImageCompare::compare(C Image &a, C Image &b, Flt similar_dif, Bool alpha_w
                         {
                            const Int px=bx*4, xs=Min(4, sa->lw()-px); Int xo[4]; REPAO(xo)=Min(px+i, sa->lw()-1); // set all 'xo' and clamp, because we may read more, read below why
 
-                           // it's okay to call decompress on partial blocks, because if source is compressed then its size will always fit the entire block, and we're decompressing to temporary memory
-                           if(decompress_a)decompress_a(sa->data() + bx*a_x_mul + by*sa->pitch(), a_block);else sa->gather(a_block[0], xo, 4, yo, ys); // always read 4 xs because we need correct alignment for y's (for example if we would read only 2, then the next row would not be set for block[1][0] but for block[0][2])
-                           if(decompress_b)decompress_b(sb->data() + bx*b_x_mul + by*sb->pitch(), b_block);else sb->gather(b_block[0], xo, 4, yo, ys); // always read 4 xs because we need correct alignment for y's (for example if we would read only 2, then the next row would not be set for block[1][0] but for block[0][2])
+                           Color a_col [4][4], b_col [4][4]; // [y][x]
+                           Vec4  a_colf[4][4], b_colf[4][4]; // [y][x]
 
-                           REPD(y, ys)
-                           REPD(x, xs)
+                           if(high_prec)
                            {
-                            C Color &ca=a_block[y][x],
-                                    &cb=b_block[y][x];
-                              UInt avg_a  =AvgI(UInt(ca.a), UInt(cb.a)),
-                                   dif_r  =Abs (ca.r-cb.r),
-                                   dif_g  =Abs (ca.g-cb.g),
-                                   dif_b  =Abs (ca.b-cb.b),
-                                   dif_a  =Abs (ca.a-cb.a),
-                                   dif_rgb=dif_r+dif_g+dif_b,
-                                   dif    =(alpha_weight ? DivRound(dif_rgb*avg_a, 255u) : dif_rgb)+dif_a;
+                              // it's okay to call decompress on partial blocks, because if source is compressed then its size will always fit the entire block, and we're decompressing to temporary memory
+                              if(decompress_a){decompress_a(sa->data() + bx*a_x_mul + by*sa->pitch(), a_col); REPD(y, ys)REPD(x, xs)a_colf[y][x]=a_col[y][x];}else sa->gather(a_colf[0], xo, 4, yo, ys); // always read 4 xs because we need correct alignment for y's (for example if we would read only 2, then the next row would not be set for block[1][0] but for block[0][2])
+                              if(decompress_b){decompress_b(sb->data() + bx*b_x_mul + by*sb->pitch(), b_col); REPD(y, ys)REPD(x, xs)b_colf[y][x]=b_col[y][x];}else sb->gather(b_colf[0], xo, 4, yo, ys); // always read 4 xs because we need correct alignment for y's (for example if we would read only 2, then the next row would not be set for block[1][0] but for block[0][2])
 
-                              MAX(max_dif, dif);
-                              total_dif+=dif;
+                              REPD(y, ys)
+                              REPD(x, xs)
+                              {
+                               C Vec4 &ca=a_colf[y][x],
+                                      &cb=b_colf[y][x];
+                                 Flt avg_a  =Avg(ca.w, cb.w),
+                                     dif_r  =Abs(ca.x-cb.x),
+                                     dif_g  =Abs(ca.y-cb.y),
+                                     dif_b  =Abs(ca.z-cb.z),
+                                     dif_a  =Abs(ca.w-cb.w),
+                                     dif_rgb=dif_r+dif_g+dif_b,
+                                     dif    =(alpha_weight ? dif_rgb*avg_a : dif_rgb)+dif_a;
 
-                              if(per_channel)
-                                 total_dif2+=(alpha_weight ? Sqr(DivRound(dif_r*avg_a, 255u)) + Sqr(DivRound(dif_g*avg_a, 255u)) + Sqr(DivRound(dif_b*avg_a, 255u))
-                                                           : Sqr(         dif_r             ) + Sqr(         dif_g             ) + Sqr(         dif_b            )) + Sqr(dif_a);
-                              else total_dif2+=dif*dif;
+                                 MAX(max_fdif, dif);
+                                   total_fdif+=dif;
 
-                              if(dif<=_similar_dif)similar_pixels++;
-                              processed_pixels++;
+                                 if(per_channel)
+                                      total_fdif2+=(alpha_weight ? Sqr(dif_r*avg_a) + Sqr(dif_g*avg_a) + Sqr(dif_b*avg_a)
+                                                                 : Sqr(dif_r      ) + Sqr(dif_g      ) + Sqr(dif_b      )) + Sqr(dif_a);
+                                 else total_fdif2+=dif*dif;
 
-                              if(dif>_skip_dif){skipped=true; goto finish;} // skip after setting other parameters, especially 'max_diff'
+                                 if(dif<=similar_fdif)similar_pixels++;
+                                 processed_pixels++;
+
+                                 if(dif>skip_fdif){skipped=true; goto finish;} // skip after setting all other parameters, especially 'max_fdif'
+                              }
+                           }else
+                           {
+                              // it's okay to call decompress on partial blocks, because if source is compressed then its size will always fit the entire block, and we're decompressing to temporary memory
+                              if(decompress_a)decompress_a(sa->data() + bx*a_x_mul + by*sa->pitch(), a_col);else sa->gather(a_col[0], xo, 4, yo, ys); // always read 4 xs because we need correct alignment for y's (for example if we would read only 2, then the next row would not be set for block[1][0] but for block[0][2])
+                              if(decompress_b)decompress_b(sb->data() + bx*b_x_mul + by*sb->pitch(), b_col);else sb->gather(b_col[0], xo, 4, yo, ys); // always read 4 xs because we need correct alignment for y's (for example if we would read only 2, then the next row would not be set for block[1][0] but for block[0][2])
+
+                              REPD(y, ys)
+                              REPD(x, xs)
+                              {
+                               C Color &ca=a_col[y][x],
+                                       &cb=b_col[y][x];
+                                 UInt avg_a  =AvgI(UInt(ca.a), UInt(cb.a)),
+                                      dif_r  =Abs (ca.r-cb.r),
+                                      dif_g  =Abs (ca.g-cb.g),
+                                      dif_b  =Abs (ca.b-cb.b),
+                                      dif_a  =Abs (ca.a-cb.a),
+                                      dif_rgb=dif_r+dif_g+dif_b,
+                                      dif    =(alpha_weight ? DivRound(dif_rgb*avg_a, 255u) : dif_rgb)+dif_a;
+
+                                 MAX(max_idif, dif);
+                                   total_idif+=dif;
+
+                                 if(per_channel)
+                                      total_idif2+=(alpha_weight ? Sqr(DivRound(dif_r*avg_a, 255u)) + Sqr(DivRound(dif_g*avg_a, 255u)) + Sqr(DivRound(dif_b*avg_a, 255u))
+                                                                 : Sqr(         dif_r             ) + Sqr(         dif_g             ) + Sqr(         dif_b            )) + Sqr(dif_a);
+                                 else total_idif2+=dif*dif;
+
+                                 if(dif<=similar_idif)similar_pixels++;
+                                 processed_pixels++;
+
+                                 if(dif>skip_idif){skipped=true; goto finish;} // skip after setting all other parameters, especially 'max_idif'
+                              }
                            }
                         }
                      }
 
                   finish:
-                     Dbl   MSE=  total_dif2  /Dbl(processed_pixels*(per_channel ? channels*max_value*max_value : scale*scale));
-                     T.max_dif=    max_dif   /Flt(                 scale);
-                     T.avg_dif=  total_dif   /Dbl(processed_pixels*scale); T.avg_dif2=Sqrt(MSE);
-                     T.similar=similar_pixels/Dbl(processed_pixels      ); T.psnr    =10*log10(1.0/MSE);
+                     Dbl MSE;
+                     if(high_prec)
+                     {
+                        MSE      =total_fdif2/Dbl(processed_pixels*(per_channel ? channels*max_value*max_value : scale*scale));
+                        T.avg_dif=total_fdif /Dbl(processed_pixels*scale);
+                        T.max_dif=  max_fdif /Flt(scale);
+                     }else
+                     {
+                        MSE      =total_idif2/Dbl(processed_pixels*(per_channel ? channels*max_value*max_value : scale*scale));
+                        T.avg_dif=total_idif /Dbl(processed_pixels*scale);
+                        T.max_dif=  max_idif /Flt(scale);
+                     }
+                     T.avg_dif2=Sqrt(MSE);
+                     T.psnr    =10*log10(1.0/MSE);
+                     T.similar =similar_pixels/Dbl(processed_pixels);
                   }
                   sb->unlock();
                }

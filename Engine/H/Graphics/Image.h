@@ -276,7 +276,7 @@ struct Image // Image (Texture)
    Int                    bytePP()C {return         _byte_pp                ;} // get number of bytes per pixel
    Bool               compressed()C {return ImageTI[_hw_type].    compressed;} // if  hardware type is compressed
    IMAGE_PRECISION     precision()C {return ImageTI[_hw_type].     precision;} // get image precision
-   Bool            highPrecision()C {return ImageTI[_hw_type].high_precision;} // if  any channel of the image uses more than 8 bits
+   Bool            highPrecision()C {return ImageTI[_hw_type].high_precision;} // if  image requires high precision storage (for example Flt/Vec4 instead of Byte/Color)
    Bool                     sRGB()C {return  IsSRGB(_hw_type)               ;} // if  this is a sRGB image
 #if EE_PRIVATE
    constexpr Bool     filterable()C {return ImageTI[_hw_type].  filterable();}
