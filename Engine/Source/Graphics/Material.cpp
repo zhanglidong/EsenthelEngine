@@ -419,7 +419,7 @@ Bool Material::saveData(File &f, CChar *path)C
 }
 Bool Material::loadData(File &f, CChar *path)
 {
-   MaterialParams &mp=T; Char temp[MAX_LONG_PATH]; Flt sss, old_reflect;
+   MaterialParams &mp=T; Char temp[MAX_LONG_PATH]; Flt sss;
    switch(f.decUIntV())
    {
       case 10:
@@ -435,13 +435,13 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 9:
       {
-         f.getMulti(cull, technique)>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>old_reflect; colorS(color_l); reflect=REFLECT_DEFAULT_PAR;
+         f.getMulti(cull, technique)>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>reflect; colorS(color_l);
          f.getStr(temp);     base_0.require(temp, path);
          f.getStr(temp);     base_1.require(temp, path);
                              base_2=null;
          f.getStr(temp); detail_map.require(temp, path);
          f.getStr(temp);  macro_map.require(temp, path);
-         f.getStr(temp);
+         f.getStr(temp); if(!Is(temp))reflect=REFLECT_DEFAULT_PAR;
          f.getStr(temp);  light_map.require(temp, path);
          f.getStr(temp);
          f.getStr(temp);
@@ -449,13 +449,13 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 8:
       {
-         f.getMulti(cull, technique)>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>old_reflect; colorS(color_l); reflect=REFLECT_DEFAULT_PAR;
+         f.getMulti(cull, technique)>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>reflect; colorS(color_l);
          f._getStr1(temp);     base_0.require(temp, path);
          f._getStr1(temp);     base_1.require(temp, path);
                                base_2=null;
          f._getStr1(temp); detail_map.require(temp, path);
          f._getStr1(temp);  macro_map.require(temp, path);
-         f._getStr1(temp);
+         f._getStr1(temp); if(!Is(temp))reflect=REFLECT_DEFAULT_PAR;
          f._getStr1(temp);  light_map.require(temp, path);
          f._getStr1(temp);
          f._getStr1(temp);
@@ -463,13 +463,13 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 7:
       {
-         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>old_reflect>>cull>>technique; colorS(color_l); reflect=REFLECT_DEFAULT_PAR;
+         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
          f._getStr(temp);     base_0.require(temp, path);
          f._getStr(temp);     base_1.require(temp, path);
                               base_2=null;
          f._getStr(temp); detail_map.require(temp, path);
          f._getStr(temp);  macro_map.require(temp, path);
-         f._getStr(temp);
+         f._getStr(temp); if(!Is(temp))reflect=REFLECT_DEFAULT_PAR;
          f._getStr(temp);  light_map.require(temp, path);
          f._getStr(temp);
          f._getStr(temp);
@@ -477,25 +477,25 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 6:
       {
-         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>old_reflect>>cull>>technique; colorS(color_l); reflect=REFLECT_DEFAULT_PAR;
+         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
          f._getStr(temp);     base_0.require(temp, path);
          f._getStr(temp);     base_1.require(temp, path);
                               base_2=null;
          f._getStr(temp); detail_map.require(temp, path);
          f._getStr(temp);  macro_map.require(temp, path);
-         f._getStr(temp);
+         f._getStr(temp); if(!Is(temp))reflect=REFLECT_DEFAULT_PAR;
          f._getStr(temp);  light_map.require(temp, path);
          f._getStr8();
       }break;
 
       case 5:
       {
-         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>old_reflect>>cull>>technique; colorS(color_l); reflect=REFLECT_DEFAULT_PAR;
+         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
          f._getStr(temp);     base_0.require(temp, path);
          f._getStr(temp);     base_1.require(temp, path);
                               base_2=null;
          f._getStr(temp); detail_map.require(temp, path);
-         f._getStr(temp);
+         f._getStr(temp); if(!Is(temp))reflect=REFLECT_DEFAULT_PAR;
          f._getStr(temp);  light_map.require(temp, path);
                            macro_map=null;
          f._getStr8();
@@ -503,24 +503,24 @@ Bool Material::loadData(File &f, CChar *path)
 
       case 4:
       {
-         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>old_reflect>>cull>>technique; colorS(color_l); reflect=REFLECT_DEFAULT_PAR;
+         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>tex_scale>>det_scale>>det_power>>reflect>>cull>>technique; colorS(color_l);
          f._getStr(temp);     base_0.require(temp, path);
          f._getStr(temp);     base_1.require(temp, path);
                               base_2=null;
          f._getStr(temp); detail_map.require(temp, path);
-         f._getStr(temp);
+         f._getStr(temp); if(!Is(temp))reflect=REFLECT_DEFAULT_PAR;
          f._getStr(temp);  light_map.require(temp, path);
                            macro_map=null;
       }break;
 
       case 3:
       {
-         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>det_scale>>det_power>>old_reflect>>cull>>technique; tex_scale=1; colorS(color_l); reflect=REFLECT_DEFAULT_PAR;
+         f>>color_l>>ambient>>smooth>>sss>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull>>technique; tex_scale=1; colorS(color_l);
              base_0.require(f._getStr8(), path);
              base_1.require(f._getStr8(), path);
              base_2=null;
          detail_map.require(f._getStr8(), path);
-                            f._getStr8();
+                  Str8 temp=f._getStr8(); if(!Is(temp))reflect=REFLECT_DEFAULT_PAR;
           light_map.require(f._getStr8(), path);
           macro_map=null;
       }break;
@@ -528,13 +528,13 @@ Bool Material::loadData(File &f, CChar *path)
       case 2:
       {
          f.skip(1);
-         f>>color_l>>smooth>>sss>>glow>>normal>>bump>>det_scale>>det_power>>old_reflect>>cull>>technique; ambient=0; tex_scale=1; colorS(color_l); reflect=REFLECT_DEFAULT_PAR;
+         f>>color_l>>smooth>>sss>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull>>technique; ambient=0; tex_scale=1; colorS(color_l);
          if(technique==MTECH_FUR){det_power=color_l.w; color_l.w=1;}
              base_0.require(f._getStr8(), path);
              base_1.require(f._getStr8(), path);
              base_2=null;
          detail_map.require(f._getStr8(), path);
-                            f._getStr8();
+                  Str8 temp=f._getStr8(); if(!Is(temp))reflect=REFLECT_DEFAULT_PAR;
           light_map=null;
           macro_map=null;
       }break;
@@ -542,13 +542,13 @@ Bool Material::loadData(File &f, CChar *path)
       case 1:
       {
          f.skip(1);
-         f>>color_l>>smooth>>glow>>normal>>bump>>det_scale>>det_power>>old_reflect>>cull>>technique; sss=0; ambient=0; tex_scale=1; colorS(color_l); reflect=REFLECT_DEFAULT_PAR;
+         f>>color_l>>smooth>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull>>technique; sss=0; ambient=0; tex_scale=1; colorS(color_l);
          if(technique==MTECH_FUR){det_power=color_l.w; color_l.w=1;}
              base_0.require(f._getStr8(), path);
              base_1.require(f._getStr8(), path);
              base_2=null;
          detail_map.require(f._getStr8(), path);
-                            f._getStr8();
+                  Str8 temp=f._getStr8(); if(!Is(temp))reflect=REFLECT_DEFAULT_PAR;
           light_map=null;
           macro_map=null;
       }break;
@@ -556,7 +556,7 @@ Bool Material::loadData(File &f, CChar *path)
       case 0:
       {
          f.skip(1);
-         f>>color_l>>smooth>>glow>>normal>>bump>>det_scale>>det_power>>old_reflect>>cull; sss=0; ambient=0; tex_scale=1; colorS(color_l); reflect=REFLECT_DEFAULT_PAR;
+         f>>color_l>>smooth>>glow>>normal>>bump>>det_scale>>det_power>>reflect>>cull; sss=0; ambient=0; tex_scale=1; colorS(color_l);
          switch(f.getByte())
          {
             default: technique=MTECH_DEFAULT   ; break;
@@ -565,14 +565,14 @@ Bool Material::loadData(File &f, CChar *path)
             case 5 : technique=MTECH_GRASS     ; break;
          }
          if(technique==MTECH_FUR){det_power=color_l.w; color_l.w=1;}
-         Char8 tex[80];
-         f>>tex;     base_0.require(tex, path);
-         f>>tex;     base_1.require(tex, path);
-                     base_2=null;
-         f>>tex; detail_map.require(tex, path);
-         f>>tex;
-                  light_map=null;
-                  macro_map=null;
+         Char8 temp[80];
+         f>>temp;     base_0.require(temp, path);
+         f>>temp;     base_1.require(temp, path);
+                      base_2=null;
+         f>>temp; detail_map.require(temp, path);
+         f>>temp; if(!Is(temp))reflect=REFLECT_DEFAULT_PAR;
+                   light_map=null;
+                   macro_map=null;
       }break;
 
       default: goto error;
