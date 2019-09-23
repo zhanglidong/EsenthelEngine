@@ -3068,7 +3068,7 @@ void (*DecompressBlock(IMAGE_TYPE type))(C Byte *b, Color (&block)[4][4])
       case IMAGE_ETC2_RGBA   : case IMAGE_ETC2_RGBA_SRGB : return DecompressBlockETC2RGBA ;
    }
 }
-Bool ImageCompare::compare(C Image &a, C Image &b, Flt similar_dif, Bool alpha_weight, Int a_mip, Flt skip_dif) // !! Warning: this always operates on 'Color' which ignores negative values, gamma, and >1 (HP/Flt/etc.) !!
+Bool ImageCompare::compare(C Image &a, C Image &b, Flt similar_dif, Bool alpha_weight, Int a_mip, Flt skip_dif) // !! Warning: this always ignores gamma !!
 {
    // clear
    skipped =false;
