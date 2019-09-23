@@ -805,13 +805,13 @@ Display::Display() : _monitors(Compare, Create, null, 4)
   _view_main.full    =true; // needed for 'viewReset' which will always set full viewport if last was full too
 
   _smaa_threshold=0.1f;
-
-#if DEBUG
-   REP(IMAGE_ALL_TYPES)DYNAMIC_ASSERT(ImageTI[i].high_precision==(ImageTI[i].precision>IMAGE_PRECISION_8 || IsSByte(IMAGE_TYPE(i))), "Invalid 'ImageTI.high_precision'");
-#endif
 }
 void Display::init() // make this as a method because if we put this to Display constructor, then 'SecondaryContexts' may not have been initialized yet
 {
+#if DEBUG
+   REP(IMAGE_ALL_TYPES)DYNAMIC_ASSERT(ImageTI[i].high_precision==(ImageTI[i].precision>IMAGE_PRECISION_8 || IsSByte(IMAGE_TYPE(i))), "Invalid 'ImageTI.high_precision'");
+#endif
+
    secondaryOpenGLContexts(1); // default 1 secondary context
 
    // re-use cached result obtained at app startup, because if the app is currently fullscreen at a custom resolution, then the monitor will return that resolution, however this function is used for getting default resolutions
