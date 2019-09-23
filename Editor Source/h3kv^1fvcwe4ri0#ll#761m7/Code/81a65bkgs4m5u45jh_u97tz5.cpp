@@ -1708,7 +1708,7 @@ class ProjectEx : ProjectHierarchy
       {
          if(includeTex(material.base_1_tex))
          {
-            base_1.copyTry(base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP|IC_NON_PERCEPTUAL);
+            base_1.copyTry(base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
             saveTex(base_1, material.base_1_tex);
          }
          Server.setTex(material.base_1_tex);
@@ -1721,7 +1721,7 @@ class ProjectEx : ProjectHierarchy
       {
          if(includeTex(material.base_2_tex))
          {
-            base_2.copyTry(base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP|IC_NON_PERCEPTUAL);
+            base_2.copyTry(base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
             saveTex(base_2, material.base_2_tex);
          }
          Server.setTex(material.base_2_tex);
@@ -1808,7 +1808,7 @@ class ProjectEx : ProjectHierarchy
             if(includeTex(material.detail_tex))
             {
                SetFullAlpha(detail, ct, RemoveMtrlDetailBump);
-               detail.copyTry(detail, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP|IC_NON_PERCEPTUAL);
+               detail.copyTry(detail, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
                saveTex(detail, material.detail_tex);
             }
             Server.setTex(material.detail_tex);

@@ -532,8 +532,8 @@ class MtrlImages
             MIN(min_lum  , c.lum());
          }
          alpha.unlock();
-         if(min_alpha>=253 && min_lum>=253)alpha.del();else
-         alpha.copyTry(alpha, -1, -1, -1, (min_alpha>=253 && min_lum<253) ? IMAGE_L8 : IMAGE_A8, IMAGE_SOFT, 1); // alpha channel is almost fully white -> use luminance as alpha
+         if(min_alpha>=254 && min_lum>=254)alpha.del();else
+         alpha.copyTry(alpha, -1, -1, -1, (min_alpha>=254 && min_lum<254) ? IMAGE_L8 : IMAGE_A8, IMAGE_SOFT, 1); // alpha channel is almost fully white -> use luminance as alpha
       }
    }
 }

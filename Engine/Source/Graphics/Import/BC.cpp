@@ -1358,7 +1358,7 @@ static void CompressBC5S(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither
 }
 /******************************************************************************/
 static const Vec BCWeights=ColorLumWeight*0.65f;
-Bool CompressBC(C Image &src, Image &dest, Bool perceptual) // no need to store this in a separate CPP file, because its code size is small
+Bool CompressBC(C Image &src, Image &dest) // no need to store this in a separate CPP file, because its code size is small
 {
    if(dest.hwType()==IMAGE_BC1      || dest.hwType()==IMAGE_BC2      || dest.hwType()==IMAGE_BC3      || dest.hwType()==IMAGE_BC4      || dest.hwType()==IMAGE_BC5
    || dest.hwType()==IMAGE_BC1_SRGB || dest.hwType()==IMAGE_BC2_SRGB || dest.hwType()==IMAGE_BC3_SRGB || dest.hwType()==IMAGE_BC4_SIGN || dest.hwType()==IMAGE_BC5_SIGN)
@@ -1373,6 +1373,7 @@ Bool CompressBC(C Image &src, Image &dest, Bool perceptual) // no need to store 
                                                                                                           (dest.hwType()==IMAGE_BC5                                 ) ? CompressBC5  :
                                                                                                           (dest.hwType()==IMAGE_BC5_SIGN                            ) ? CompressBC5S :
                                                                                                           null);
+      Bool perceptual=dest.sRGB();
       Int  x_mul     =((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB || dest.hwType()==IMAGE_BC4 || dest.hwType()==IMAGE_BC4_SIGN) ? 8 : 16),
            src_faces1=src.faces()-1;
       Vec4 rgba[16];

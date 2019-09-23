@@ -474,8 +474,8 @@ class ConvertToAtlasClass : PropWin
                                                                                                                          atlas.mtrl.ambient/=mtrls.elms();
 
             IMAGE_TYPE ct; ImageProps(atlas.base_0, &atlas.base_0_id, &ct, MTRL_BASE_0); if(Importer.includeTex(atlas.base_0_id))atlas.base_0.copyTry(atlas.base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
-                           ImageProps(atlas.base_1, &atlas.base_1_id, &ct, MTRL_BASE_1); if(Importer.includeTex(atlas.base_1_id))atlas.base_1.copyTry(atlas.base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP|IC_NON_PERCEPTUAL);
-                           ImageProps(atlas.base_2, &atlas.base_2_id, &ct, MTRL_BASE_2); if(Importer.includeTex(atlas.base_2_id))atlas.base_2.copyTry(atlas.base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP|IC_NON_PERCEPTUAL);
+                           ImageProps(atlas.base_1, &atlas.base_1_id, &ct, MTRL_BASE_1); if(Importer.includeTex(atlas.base_1_id))atlas.base_1.copyTry(atlas.base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
+                           ImageProps(atlas.base_2, &atlas.base_2_id, &ct, MTRL_BASE_2); if(Importer.includeTex(atlas.base_2_id))atlas.base_2.copyTry(atlas.base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP);
 
             UID atlas_id=Proj.newMtrl(atlas, parent_id).id;
             Server.setElmFull(atlas_id);

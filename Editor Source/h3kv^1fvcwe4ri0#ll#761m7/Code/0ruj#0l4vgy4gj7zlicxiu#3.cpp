@@ -390,7 +390,7 @@ Str SetCubeFile(Str files, int face, C Str &file) // put 'file' into specified '
 bool HasAlpha(C Image &image) // if image has alpha channel
 {
    if(!ImageTI[image.type()].a)return false;
-   Vec4 min, max; if(image.stats(&min, &max, null))return !(Equal(min.w, 1, 2.5/255) && Equal(max.w, 1, 2.5/255));
+   Vec4 min, max; if(image.stats(&min, &max, null))return !(Equal(min.w, 1, 1.5/255) && Equal(max.w, 1, 1.5/255));
    return true;
 }
 bool HasColor(C Image &image) // if image is not monochromatic
@@ -478,7 +478,7 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type=null, uint f
             {
                if(force_alpha) // set before calculating hash
                {
-                  byte alpha=(sign ? 127 : 255);
+                  byte alpha=(sign ? 127 : 255); // use 127 instead of 128, because this is for signed byte (which is in range -128..127)
                   REPD(z, temp.d())
                   REPD(y, temp.h())
                   REPD(x, temp.w())temp.pixC(x, y, z).a=alpha;
@@ -491,11 +491,11 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type=null, uint f
                {
                   Color c=src.color3D(x, y, z);
                   byte  bc2_a=((c.a*15+128)/255)*255/15;
-                  if(c.a> 1 && c.a<254                 // BC1 supports only 0 and 255 alpha
-                  || c.a==0 && c.lum()     )bc1=false; // BC1 supports only black color at 0 alpha
-                  if(Abs(c.a-bc2_a)>1      )bc2=false;
-                  if(c.g || c.b || c.a!=255)bc4=false;
-                  if(       c.b || c.a!=255)bc5=false;
+                  if(c.a> 1 && c.a<254                    // BC1 supports only 0 and 255 alpha
+                  || c.a<=1 && c.lum()>1      )bc1=false; // BC1 supports only black color at 0 alpha
+                  if(Abs(c.a-bc2_a)>1         )bc2=false;
+                  if(c.g>1 || c.b>1 || c.a<254)bc4=false;
+                  if(         c.b>1 || c.a<254)bc5=false;
                }
                src.unlock();
             }
@@ -789,7 +789,7 @@ bool UpdateMtrlBase1Tex(C Image &src, Image &dest)
          c.set(c.a, c.g, c.r, c.b);
          temp.color(x, y, c);
       }
-      return temp.copyTry(dest, -1, -1, -1, (src.type()==IMAGE_BC3 || src.type()==IMAGE_BC3_SRGB) ? IMAGE_BC7 : ImageTypeExcludeSRGB(src.type()), src.mode(), src.mipMaps(), FILTER_BEST, IC_WRAP|IC_NON_PERCEPTUAL);
+      return temp.copyTry(dest, -1, -1, -1, (src.type()==IMAGE_BC3 || src.type()==IMAGE_BC3_SRGB) ? IMAGE_BC7 : ImageTypeExcludeSRGB(src.type()), src.mode(), src.mipMaps(), FILTER_BEST, IC_WRAP);
    }
    return false;
 }

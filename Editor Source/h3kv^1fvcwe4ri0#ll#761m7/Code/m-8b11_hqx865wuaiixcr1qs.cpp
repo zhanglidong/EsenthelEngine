@@ -587,8 +587,8 @@ class MaterialRegion : Region
             sizes[i].set(NearestPow2(sizes[i].x), NearestPow2(sizes[i].y)); // textures are gonna be resized to pow2 anyway, so force pow2 size, to avoid double resize
          }
          // #MaterialTextureLayout
-         if(sizes[0]!=sizes[2])edit.separateAlphaMap (Proj, time);
-         if(sizes[1]!=sizes[2])edit.separateNormalMap(      time);
+         if(sizes[0]!=sizes[2])edit.separateAlphaMap (Proj, time); // alpha  can be in base0/base2
+         if(sizes[1]!=sizes[2])edit.separateNormalMap(      time); // normal can be from bump
          relative=false; // we now have the sizes known, so disable relative mode
       }
 
@@ -612,7 +612,7 @@ class MaterialRegion : Region
       TimeStamp time; time.getUTC();
       VecI2 size0=size;
 
-      if(relative || game && game->base_2 && game->base_2->size()!=size0)edit.separateAlphaMap(Proj, time); // separate if needed, and before reverting
+      if(relative || game && game->base_2 && game->base_2->size()!=size0)edit.separateAlphaMap(Proj, time); // separate if needed (alpha can be in base0/base2), and before reverting
 
       if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
          if(                       Proj.forceImageSize(edit.color_map, 0, relative, edit.color_map_time, time)  // !! use '|' because all need to be processed !!
@@ -642,7 +642,7 @@ class MaterialRegion : Region
       TimeStamp time; time.getUTC();
       VecI2 size1=size;
 
-      if(relative || game && game->base_2 && game->base_2->size()!=size1)edit.separateNormalMap(Proj, time); // separate if needed, and before reverting
+      if(relative || game && game->base_2 && game->base_2->size()!=size1)edit.separateNormalMap(Proj, time); // separate if needed (normal can be from bump), and before reverting
 
       if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
          if(Proj.forceImageSize(edit.normal_map, 0, relative, edit.normal_map_time, time))
@@ -666,8 +666,8 @@ class MaterialRegion : Region
       TimeStamp time; time.getUTC();
       VecI2 size2=size;
 
-      if(relative || game && game->base_0 && game->base_0->size()!=size2)edit.separateAlphaMap (Proj, time); // separate if needed, and before reverting
-      if(relative || game && game->base_1 && game->base_1->size()!=size2)edit.separateNormalMap(Proj, time); // separate if needed, and before reverting
+      if(relative || game && game->base_0 && game->base_0->size()!=size2)edit.separateAlphaMap (Proj, time); // separate if needed (alpha  can be in base0/base2), and before reverting
+      if(relative || game && game->base_1 && game->base_1->size()!=size2)edit.separateNormalMap(Proj, time); // separate if needed (normal can be from bump     ), and before reverting
 
       if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
          if(                      Proj.forceImageSize(edit. smooth_map, 0, relative, edit. smooth_map_time, time)  // !! use '|' because all need to be processed !!

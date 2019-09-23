@@ -640,7 +640,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &co
             }
             col_src->unlock();
          }
-         if(min_alpha>=255)alpha_temp.del(); // alpha channel in color map is fully white
+         if(min_alpha>=254)alpha_temp.del(); // alpha channel in color map is fully white
       }else
       if(alpha_src->is() && ImageTI[alpha_src->type()].channels>1 && ImageTI[alpha_src->type()].a) // if alpha has both RGB and Alpha channels, then check which one to use
          if(alpha_src->lockRead())
@@ -654,7 +654,7 @@ UInt CreateBaseTextures(Image &base_0, Image &base_1, Image &base_2, C Image &co
             MIN(min_lum  , c.lum());
          }
          alpha_src->unlock();
-         if(min_alpha>=255 && min_lum<255)if(alpha_src->copyTry(alpha_temp, -1, -1, -1, IMAGE_L8, IMAGE_SOFT, 1))alpha_src=&alpha_temp;else goto error; // alpha channel is fully white -> use luminance as alpha
+         if(min_alpha>=254 && min_lum<254)if(alpha_src->copyTry(alpha_temp, -1, -1, -1, IMAGE_L8, IMAGE_SOFT, 1))alpha_src=&alpha_temp;else goto error; // alpha channel is fully white -> use luminance as alpha
       }
 
       // set what textures do we have (set this before 'normal' is generated from 'bump')
@@ -900,124 +900,133 @@ static inline Flt LightSpecular(C Vec &nrm, C Vec &light_dir, C Vec &eye_dir, Fl
 Bool MergeBaseTextures(Image &base_0, C Material &material, Int image_type, Int max_image_size, C Vec *light_dir, Flt light_power, Flt spec_mul, FILTER_TYPE filter)
 {
    // #MaterialTextureLayout
-   if(material.base_0 && material.base_0->is()
-   &&(material.base_1 && material.base_1->is()
-   || material.base_2 && material.base_2->is())) // if have multiple textures
+
+   // dimensions
+   VecI2 size=0;
+   if(material.base_0)size=Max(size, material.base_0->size());
+   if(material.base_1)size=Max(size, material.base_1->size());
+   if(material.base_2)size=Max(size, material.base_2->size());
+   if(max_image_size>0)
    {
-      // dimensions
-      VecI2 size=material.base_0->size();
-      if(material.base_1)size=Max(size, material.base_1->size());
-      if(material.base_2)size=Max(size, material.base_2->size());
-      if(max_image_size>0)
+      MIN(size.x, max_image_size);
+      MIN(size.y, max_image_size);
+   }
+
+   Image color; // operate on temp variable in case 'base_0' argument is set to other images used in this func
+   if(size.any()) // this implies we have at least one texture
+   {
+      if(material.base_0)
       {
-         MIN(size.x, max_image_size);
-         MIN(size.y, max_image_size);
+         if(!material.base_0->copyTry(color, size.x, size.y, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1, filter, IC_WRAP))return false; // create new color map, use IMAGE_R8G8B8A8_SRGB to always include Alpha
+      }else
+      {
+         if(!color.createSoftTry(size.x, size.y, 1, IMAGE_R8G8B8A8_SRGB))return false;
+         REPD(y, color.h())
+         REPD(x, color.w())color.color(x, y, WHITE);
       }
 
-      Image color; // operate on temp variable in case 'base_0' argument is set to other images used in this func
-      if(material.base_0->copyTry(color, size.x, size.y, 1, IMAGE_R8G8B8A8_SRGB, IMAGE_SOFT, 1, filter, IC_WRAP)) // create new color map, use IMAGE_R8G8B8A8_SRGB to always include Alpha
+      MAX(light_power, 0);
+           spec_mul*=material.smooth*light_power/255.0f;
+      Flt  glow_mul =material.glow  *(2*1.75f), // *2 because shaders use this multiplier, *1.75 because shaders iterate over few pixels and take the max out of them (this is just approximation)
+           glow_blur=0.07f;
+      Bool has_nrm  =(light_dir       && material.base_1 && material.normal*light_power>0.01f),
+           has_spec =(light_dir       && material.base_2 && material.smooth*light_power>0.01f),
+           has_glow =(material.base_2 && material.base_0 && material.glow              >0.01f); // glow is stored in base0 but only if base2 is present
+
+      Image nrm; // 'base_1' resized to 'color' resolution
+      if(has_nrm         && material.base_1)if(!material.base_1->copyTry(nrm, color.w(), color.h(), 1, ImageTypeUncompressed(material.base_1->type()), IMAGE_SOFT, 1, filter, IC_WRAP))return false;
+
+      Image b2; // 'base_2' resized to 'color' resolution
+      if((1 || has_spec) && material.base_2)if(!material.base_2->copyTry(b2 , color.w(), color.h(), 1, ImageTypeUncompressed(material.base_2->type()), IMAGE_SOFT, 1, filter, IC_WRAP))return false; // copy always because it has alpha
+
+      // setup glow (before baking normals and overwriting 'color' alpha channel)
+      Image glow; if(has_glow && glow.createSoftTry(color.w(), color.h(), 1, IMAGE_F32_3)) // use Vec because we're storing glow with multiplier
       {
-         MAX(light_power, 0);
-              spec_mul*=material.smooth*light_power/255.0f;
-         Flt  glow_mul =material.glow  *(2*1.75f), // *2 because shaders use this multiplier, *1.75 because shaders iterate over few pixels and take the max out of them (this is just approximation)
-              glow_blur=0.07f;
-         Bool has_nrm  =(light_dir && material.base_1 && material.normal*light_power>0.01f),
-              has_spec =(light_dir && material.base_2 && material.smooth*light_power>0.01f),
-              has_glow =(             material.base_2 && material.glow              >0.01f); // glow is stored in base0 but only if base2 is present
-
-         Image nrm; // 'base_1' resized to 'color' resolution
-         if(has_nrm         && material.base_1)material.base_1->copyTry(nrm, color.w(), color.h(), 1, ImageTypeUncompressed(material.base_1->type()), IMAGE_SOFT, 1, filter, IC_WRAP);
-
-         Image b2; // 'base_2' resized to 'color' resolution
-         if((1 || has_spec) && material.base_2)material.base_2->copyTry(b2 , color.w(), color.h(), 1, ImageTypeUncompressed(material.base_2->type()), IMAGE_SOFT, 1, filter, IC_WRAP); // copy always because it has alpha
-
-         // setup glow (before baking normals and overwriting 'color' alpha channel)
-         Image glow; if(has_glow && glow.createSoftTry(color.w(), color.h(), 1, IMAGE_F32_3)) // use Vec because we're storing glow with multiplier
+         REPD(y, color.h())
+         REPD(x, color.w())
          {
-            REPD(y, color.h())
-            REPD(x, color.w())
+            Vec4 c=color.colorF(x, y); // RGB Glow
+            c.xyz*=c.c[GLOW_CHANNEL]*glow_mul;
+            glow.colorF(x, y, c);
+         }
+         glow.blur(glow.size3()*glow_blur, false);
+      }
+
+      // setup alpha
+      Bool has_alpha; // if has any alpha in the texture channel
+      if(material.base_2 // if have to replace alpha
+      || image_type<=0)  // or set 'has_alpha'
+      {
+         has_alpha=false;
+         REPD(y, color.h())
+         REPD(x, color.w())
+         {
+            Color c=color.color(x, y);
+            if(material.base_2)c.a=(b2.is() ? b2.color(x, y).a : 255); // alpha is in base2
+            if(c.a<254)has_alpha=true;
+            color.color(x, y, c);
+         }
+      }
+
+      // bake normal map
+      if(has_nrm || has_spec)
+      {
+         Flt light=Sat(light_dir->z)*light_power, // light intensity at flat normal without ambient
+           ambient=1-light; // setup ambient so light intensity at flat normal is 1
+         REPD(y, color.h())
+         REPD(x, color.w())
+         {
+            // I'm assuming that the texture plane is XY plane with Z=0, and facing us (towards -Z) just like browsing image in some viewer
+            Color col=color.color(x, y);
+            Vec n;
+            n.xy=nrm.colorF(x, y).xy*material.normal; CHS(n.y);
+            n.z=-CalcZ(n.xy);
+            n.normalize();
+
+            if(has_nrm)
             {
-               Vec4 c=color.colorF(x, y); // RGB Glow
-               c.xyz*=c.c[GLOW_CHANNEL]*glow_mul;
-               glow.colorF(x, y, c);
+               Flt d=Sat(-Dot(n, *light_dir)), l=ambient + light_power*d;
+               col=ColorBrightness(col, l);
             }
-            glow.blur(glow.size3()*glow_blur, false);
-         }
-
-         // setup alpha
-         Bool has_alpha; // if has any alpha in the texture channel
-         if(material.base_2 // if have to replace alpha
-         || image_type<=0)  // or set 'has_alpha'
-         {
-            has_alpha=false;
-            REPD(y, color.h())
-            REPD(x, color.w())
+            if(has_spec)if(Byte s=b2.color(x, y).c[SMOOTH_CHANNEL])
             {
-               Color c=color.color(x, y);
-               if(material.base_2)c.a=(b2.is() ? b2.color(x, y).a : 255); // alpha is in base2
-               if(c.a<255)has_alpha=true;
-               color.color(x, y, c);
+               Flt spec=LightSpecular(-n, *light_dir, Vec(0, 0, 1))*spec_mul;
+               Color cs=ColorBrightness(s*spec); cs.a=0;
+               col=ColorAdd(col, cs);
             }
+            color.color(x, y, col);
          }
+      }
 
-         // bake normal map
-         if(has_nrm || has_spec)
-         {
-            Flt light=Sat(light_dir->z)*light_power, // light intensity at flat normal without ambient
-               ambient=1-light; // setup ambient so light intensity at flat normal is 1
-            REPD(y, color.h())
-            REPD(x, color.w())
-            {
-               // I'm assuming that the texture plane is XY plane with Z=0, and facing us (towards -Z) just like browsing image in some viewer
-               Color col=color.color(x, y);
-               Vec n;
-               n.xy=nrm.colorF(x, y).xy*material.normal; CHS(n.y);
-               n.z=-CalcZ(n.xy);
-               n.normalize();
+      // apply glow map (after baking normal)
+      if(glow.is())
+         REPD(y, color.h())
+         REPD(x, color.w())
+      {
+         Color c=color.color(x, y),
+               g=glow .color(x, y); g.a=0;
+         color.color(x, y, ColorAdd(c, g));
+      }
 
-               if(has_nrm)
-               {
-                  Flt d=Sat(-Dot(n, *light_dir)), l=ambient + light_power*d;
-                  col=ColorBrightness(col, l);
-               }
-               if(has_spec)if(Byte s=b2.color(x, y).c[SMOOTH_CHANNEL])
-               {
-                  Flt spec=LightSpecular(-n, *light_dir, Vec(0, 0, 1))*spec_mul;
-                  Color cs=ColorBrightness(s*spec); cs.a=0;
-                  col=ColorAdd(col, cs);
-               }
-               color.color(x, y, col);
-            }
-         }
-
-         // apply glow map (after baking normal)
-         if(glow.is())
-            REPD(y, color.h())
-            REPD(x, color.w())
-         {
-            Color c=color.color(x, y),
-                  g=glow .color(x, y); g.a=0;
-            color.color(x, y, ColorAdd(c, g));
-         }
-
-         // image type
-         if(image_type<=0)
+      // image type
+      if(image_type<=0)
+      {
+         if(material.base_0)
          {
             image_type=material.base_0->type();
             if(has_alpha)image_type=ImageTypeIncludeAlpha(IMAGE_TYPE(image_type)); // convert image type to one with    alpha channel
             else         image_type=ImageTypeExcludeAlpha(IMAGE_TYPE(image_type)); // convert image type to one without alpha channel
-         }
-         if(image_type==IMAGE_PVRTC1_2 || image_type==IMAGE_PVRTC1_4 || image_type==IMAGE_PVRTC1_2_SRGB || image_type==IMAGE_PVRTC1_4_SRGB)size=NearestPow2(size.avgI()); // PVRTC1 must be square and pow2
-
-         // final copy
-         if(color.copyTry(color, size.x, size.y, 1, image_type, material.base_0->mode(), (material.base_0->mipMaps()>1) ? 0 : 1, filter, IC_WRAP))
-         {
-            Swap(base_0, color);
-            return true;
-         }
+         }else           image_type=(has_alpha ? IMAGE_BC7_SRGB : IMAGE_BC1_SRGB);
       }
+      if(image_type==IMAGE_PVRTC1_2 || image_type==IMAGE_PVRTC1_4 || image_type==IMAGE_PVRTC1_2_SRGB || image_type==IMAGE_PVRTC1_4_SRGB)size=NearestPow2(size.avgI()); // PVRTC1 must be square and pow2
+
+      // final copy
+    C ImagePtr &base=(material.base_0 ? material.base_0 : material.base_1 ? material.base_1 : material.base_2);
+      if(!color.copyTry(color, size.x, size.y, 1, image_type, base->mode(), (base->mipMaps()>1) ? 0 : 1, filter, IC_WRAP))return false;
    }
-   return false;
+
+   Swap(base_0, color);
+   return true;
 }
 /******************************************************************************/
 static Bool CanBeRemoved(C Material &material) {return material.canBeRemoved();} // Renderer Instancing doesn't use incRef/decRef for more performance, so we need to do additional checking for materials if they can be removed from cache, by checking if they're not assigned to any instance

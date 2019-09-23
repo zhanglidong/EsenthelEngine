@@ -7,7 +7,7 @@ class EditMaterial
    MATERIAL_TECHNIQUE tech=MTECH_DEFAULT;
    Vec4               color_s(1, 1, 1, 1);
    Vec                ambient(0, 0, 0);
-   flt                smooth=0, reflect=0, sss=0, glow=0, normal=0, bump=0,
+   flt                smooth=0, reflect=0.04, sss=0, glow=0, normal=0, bump=0,
                       tex_scale=1, det_scale=4, det_power=0.3;
    UID                base_0_tex=UIDZero, base_1_tex=UIDZero, base_2_tex=UIDZero, detail_tex=UIDZero, macro_tex=UIDZero, light_tex=UIDZero;
    Str                color_map, alpha_map, bump_map, normal_map, smooth_map, reflect_map, glow_map,

@@ -1211,7 +1211,7 @@ inline Half DitherValue(Vec2 pixel)
 inline void ApplyDither(inout VecH col, Vec2 pixel, Bool linear_gamma=LINEAR_GAMMA)
 {
    if(linear_gamma)col=LinearToSRGBFast(col);
-   col+=DitherValue(pixel)*(1.5/256);
+   col+=DitherValue(pixel)*(1.5/255);
    if(linear_gamma)col=SRGBToLinearFast(col);
 }
 /******************************************************************************/

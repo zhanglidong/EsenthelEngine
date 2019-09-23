@@ -1046,7 +1046,7 @@ static Bool CreateAppPak(C Str &name, Bool &exists, Bool *changed=null)
 }
 static void Optimize(Image &image)
 {
-   Vec4 min; if(image.stats(&min))if(min.w>=1-2.5f/255)image.copyTry(image, -1, -1, -1, IMAGE_R8G8B8_SRGB); // if image has no alpha, then remove it, because it will reduce PNG size
+   Vec4 min; if(image.stats(&min))if(min.w>=1-1.5f/255)image.copyTry(image, -1, -1, -1, IMAGE_R8G8B8_SRGB); // if image has no alpha, then remove it, because it will reduce PNG size
    if(ImageTI[image.type()].a) // if image has alpha, then zero pixels without alpha to further improve compression
       REPD(y, image.h())
       REPD(x, image.w())

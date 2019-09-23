@@ -197,9 +197,9 @@ class ConvertToDeAtlasClass : PropWin
          src.resize(final_size);
          Image base_0, base_1, base_2; src.createBaseTextures(base_0, base_1, base_2);
 
-         IMAGE_TYPE ct; ImageProps(base_0, &base_0_tex, &ct, MTRL_BASE_0); if(Proj.includeTex(base_0_tex)){base_0.copyTry(base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP                  ); Proj.saveTex(base_0, base_0_tex);} Server.setTex(base_0_tex);
-                        ImageProps(base_1, &base_1_tex, &ct, MTRL_BASE_1); if(Proj.includeTex(base_1_tex)){base_1.copyTry(base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP|IC_NON_PERCEPTUAL); Proj.saveTex(base_1, base_1_tex);} Server.setTex(base_1_tex);
-                        ImageProps(base_2, &base_2_tex, &ct, MTRL_BASE_2); if(Proj.includeTex(base_2_tex)){base_2.copyTry(base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP|IC_NON_PERCEPTUAL); Proj.saveTex(base_2, base_2_tex);} Server.setTex(base_2_tex);
+         IMAGE_TYPE ct; ImageProps(base_0, &base_0_tex, &ct, MTRL_BASE_0); if(Proj.includeTex(base_0_tex)){base_0.copyTry(base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); Proj.saveTex(base_0, base_0_tex);} Server.setTex(base_0_tex);
+                        ImageProps(base_1, &base_1_tex, &ct, MTRL_BASE_1); if(Proj.includeTex(base_1_tex)){base_1.copyTry(base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); Proj.saveTex(base_1, base_1_tex);} Server.setTex(base_1_tex);
+                        ImageProps(base_2, &base_2_tex, &ct, MTRL_BASE_2); if(Proj.includeTex(base_2_tex)){base_2.copyTry(base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); Proj.saveTex(base_2, base_2_tex);} Server.setTex(base_2_tex);
 
        C Rect  *crop  =((source_rect.min.any() || source_rect.max!=tex_size) ? &frac       : null);
        C VecI2 *resize=((dest_size.x>0         || dest_size.y>0            ) ? &final_size : null);

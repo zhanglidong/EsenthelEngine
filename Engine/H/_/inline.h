@@ -60,8 +60,8 @@ extern Bool  _CompressBC67 (C Image &src, Image &dest);
 extern Bool (*CompressBC67)(C Image &src, Image &dest);
 inline void   SupportCompressBC() {CompressBC67=_CompressBC67;}
 
-extern Bool  _CompressETC (C Image &src, Image &dest, Int quality=-1, Bool perceptual=true);
-extern Bool (*CompressETC)(C Image &src, Image &dest, Int quality   , Bool perceptual     );
+extern Bool  _CompressETC (C Image &src, Image &dest, Int quality=-1);
+extern Bool (*CompressETC)(C Image &src, Image &dest, Int quality   );
 inline void   SupportCompressETC() {CompressETC=_CompressETC;}
 
 extern Bool  _CompressPVRTC (C Image &src, Image &dest, Int quality=-1);

@@ -63,7 +63,7 @@
 /******************************************************************************/
 namespace EE{
 /******************************************************************************/
-Bool _CompressETC(C Image &src, Image &dest, Int quality, Bool perceptual)
+Bool _CompressETC(C Image &src, Image &dest, Int quality)
 {
    Bool etc1=(dest.hwType()==IMAGE_ETC1);
    if(etc1 || dest.hwType()==IMAGE_ETC2_R      || dest.hwType()==IMAGE_ETC2_RG      || dest.hwType()==IMAGE_ETC2_RGB      || dest.hwType()==IMAGE_ETC2_RGBA1      || dest.hwType()==IMAGE_ETC2_RGBA
@@ -95,7 +95,7 @@ Bool _CompressETC(C Image &src, Image &dest, Int quality, Bool perceptual)
       if(etc1 ? ETC1_ENC==ETC_LIB_ETCPACK : ETC2_ENC==ETC_LIB_ETCPACK)
       {
          if(quality<0)quality=0; // default to 0 as 1 is just too slow
-         quality=Mid(quality, 0, EXHAUSTIVE_CODE_ACTIVE)*2+Mid(perceptual, 0, 1);
+         quality=Mid(quality, 0, EXHAUSTIVE_CODE_ACTIVE);
          block_size=ImageTI[dest.hwType()].bit_pp*2;
       }
    #endif
@@ -197,13 +197,19 @@ Bool _CompressETC(C Image &src, Image &dest, Int quality, Bool perceptual)
                         {
                            case IMAGE_ETC1: s->gather(&rgb[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1); switch(quality)
                            {
-                              case 0: ETCPACK::compressBlockDiffFlipFast            (rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
-                              case 1: ETCPACK::compressBlockDiffFlipFastPerceptual  (rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+                              default: ETCPACK::compressBlockDiffFlipFast  (rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
                            #if EXHAUSTIVE_CODE_ACTIVE
-                              case 2: ETCPACK::compressBlockETC1Exhaustive          (rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
-                              case 3: ETCPACK::compressBlockETC1ExhaustivePerceptual(rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+                              case  1: ETCPACK::compressBlockETC1Exhaustive(rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
                            #endif
                            }break;
+
+                         /*case IMAGE_ETC1_SRGB: s->gather(&rgb[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1); switch(quality)
+                           {
+                              default: ETCPACK::compressBlockDiffFlipFastPerceptual  (rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+                           #if EXHAUSTIVE_CODE_ACTIVE
+                              case  1: ETCPACK::compressBlockETC1ExhaustivePerceptual(rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+                           #endif
+                           }break;*/
 
                            case IMAGE_ETC2_R:
                            {
@@ -231,13 +237,19 @@ Bool _CompressETC(C Image &src, Image &dest, Int quality, Bool perceptual)
                                             REPAO(src)=SFltToShort(rg[0][i].y)+32768; ETCPACK::compressBlockAlpha16(src, (Byte*)d+8, true);
                            }goto no_swap;
 
-                           case IMAGE_ETC2_RGB: case IMAGE_ETC2_RGB_SRGB: s->gather(&rgb[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1); switch(quality)
+                           case IMAGE_ETC2_RGB: s->gather(&rgb[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1); switch(quality)
                            {
-                              case 0: ETCPACK::compressBlockETC2Fast                (rgb[0][0].c, null, temp[0][0].c, 4, 4, 0, 0, d[0], d[1], ETCPACK::ETC2PACKAGE_RGB_NO_MIPMAPS); break;
-                              case 1: ETCPACK::compressBlockETC2FastPerceptual      (rgb[0][0].c,       temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+                              default: ETCPACK::compressBlockETC2Fast      (rgb[0][0].c, null, temp[0][0].c, 4, 4, 0, 0, d[0], d[1], ETCPACK::ETC2PACKAGE_RGB_NO_MIPMAPS); break;
                            #if EXHAUSTIVE_CODE_ACTIVE
-                              case 2: ETCPACK::compressBlockETC2Exhaustive          (rgb[0][0].c,       temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
-                              case 3: ETCPACK::compressBlockETC2ExhaustivePerceptual(rgb[0][0].c,       temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+                              case  1: ETCPACK::compressBlockETC2Exhaustive(rgb[0][0].c,       temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+                           #endif
+                           }break;
+
+                           case IMAGE_ETC2_RGB_SRGB: s->gather(&rgb[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1); switch(quality)
+                           {
+                              default: ETCPACK::compressBlockETC2FastPerceptual      (rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+                           #if EXHAUSTIVE_CODE_ACTIVE
+                              case  1: ETCPACK::compressBlockETC2ExhaustivePerceptual(rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
                            #endif
                            }break;
 
@@ -265,20 +277,29 @@ Bool _CompressETC(C Image &src, Image &dest, Int quality, Bool perceptual)
 
                               switch(quality)
                               {
-                                 case 0: case 1: ETCPACK::compressBlockAlphaFast(&a[0][0], 0, 0, 4, 4, (Byte*)d); break;
-                                 case 2: case 3: ETCPACK::compressBlockAlphaSlow(&a[0][0], 0, 0, 4, 4, (Byte*)d); break;
+                                 default: ETCPACK::compressBlockAlphaFast(&a[0][0], 0, 0, 4, 4, (Byte*)d); break;
+                                 case  1: ETCPACK::compressBlockAlphaSlow(&a[0][0], 0, 0, 4, 4, (Byte*)d); break;
                               }
 
                               d+=2;
 
-                              switch(quality)
+                              switch(dest.hwType())
                               {
-                                 case 0: ETCPACK::compressBlockETC2Fast                (rgb[0][0].c, null, temp[0][0].c, 4, 4, 0, 0, d[0], d[1], ETCPACK::ETC2PACKAGE_RGB_NO_MIPMAPS); break;
-                                 case 1: ETCPACK::compressBlockETC2FastPerceptual      (rgb[0][0].c,       temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
-                              #if EXHAUSTIVE_CODE_ACTIVE
-                                 case 2: ETCPACK::compressBlockETC2Exhaustive          (rgb[0][0].c,       temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
-                                 case 3: ETCPACK::compressBlockETC2ExhaustivePerceptual(rgb[0][0].c,       temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
-                              #endif
+                                 case IMAGE_ETC2_RGBA: switch(quality)
+                                 {
+                                    default: ETCPACK::compressBlockETC2Fast      (rgb[0][0].c, null, temp[0][0].c, 4, 4, 0, 0, d[0], d[1], ETCPACK::ETC2PACKAGE_RGB_NO_MIPMAPS); break;
+                                 #if EXHAUSTIVE_CODE_ACTIVE
+                                    case  1: ETCPACK::compressBlockETC2Exhaustive(rgb[0][0].c,       temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+                                 #endif
+                                 }break;
+
+                                 case IMAGE_ETC2_RGBA_SRGB: switch(quality)
+                                 {
+                                    default: ETCPACK::compressBlockETC2FastPerceptual      (rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+                                 #if EXHAUSTIVE_CODE_ACTIVE
+                                    case  1: ETCPACK::compressBlockETC2ExhaustivePerceptual(rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+                                 #endif
+                                 }break;
                               }
                            }break;
                         }

@@ -12,7 +12,7 @@ class EditWaterMtrl : EditMaterial
              reflect_world_time, refract_time, refract_reflection_time, refract_underwater_time, wave_scale_time,
              fresnel_pow_time, fresnel_rough_time, fresnel_color_time, color_underwater_time;
 
-   EditWaterMtrl() {super.color_s.set(0.42, 0.50, 0.58, 1); super.normal=1; super.smooth=1.5; super.reflect=0.1;}
+   EditWaterMtrl() {super.color_s.set(0.42, 0.50, 0.58, 1);}
 
    // get
    bool usesTexBump()C {return wave_scale>EPSL && hasBumpMap();}

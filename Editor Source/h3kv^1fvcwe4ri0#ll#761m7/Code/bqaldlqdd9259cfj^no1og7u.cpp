@@ -266,8 +266,8 @@ class TextureDownsize : Viewport4Region
                   base2_size=ImageSize(normal_mtrl->base_2, base2);
                }
                // #MaterialTextureLayout
-               if(base0_size!=base2_size)downsized.separateAlphaMap (Proj, time);
-               if(base1_size!=base2_size)downsized.separateNormalMap(      time);
+               if(base0_size!=base2_size)downsized.separateAlphaMap (Proj, time); // alpha  can be in base0/base2
+               if(base1_size!=base2_size)downsized.separateNormalMap(      time); // normal can be from bump
 
                VecI2 alpha_size=(downsized.hasBase2Tex() ? base2_size : base0_size); // alpha can go into Base0/Base2, #MaterialTextureLayout
 
@@ -524,7 +524,7 @@ class TextureDownsize : Viewport4Region
       different|=(d!=0);
       if(d>0)
       {
-         normal_mtrl->base_1->copyTry(downsized_base[1], Max(1, normal_mtrl->base_1->w()>>d), Max(1, normal_mtrl->base_1->h()>>d), -1, -1, -1, normal_mtrl->base_1->mipMaps()-d, FILTER_BEST, IC_WRAP|IC_NON_PERCEPTUAL);
+         normal_mtrl->base_1->copyTry(downsized_base[1], Max(1, normal_mtrl->base_1->w()>>d), Max(1, normal_mtrl->base_1->h()>>d), -1, -1, -1, normal_mtrl->base_1->mipMaps()-d, FILTER_BEST, IC_WRAP);
       }else downsized_base[1].del();
 
       // base2
@@ -532,7 +532,7 @@ class TextureDownsize : Viewport4Region
       different|=(d!=0);
       if(d>0)
       {
-         normal_mtrl->base_2->copyTry(downsized_base[2], Max(1, normal_mtrl->base_2->w()>>d), Max(1, normal_mtrl->base_2->h()>>d), -1, -1, -1, normal_mtrl->base_2->mipMaps()-d, FILTER_BEST, IC_WRAP|IC_NON_PERCEPTUAL);
+         normal_mtrl->base_2->copyTry(downsized_base[2], Max(1, normal_mtrl->base_2->w()>>d), Max(1, normal_mtrl->base_2->h()>>d), -1, -1, -1, normal_mtrl->base_2->mipMaps()-d, FILTER_BEST, IC_WRAP);
       }else downsized_base[2].del();
 
       int    size_original=0, size_downsized=0;

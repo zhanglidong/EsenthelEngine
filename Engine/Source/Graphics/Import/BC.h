@@ -36,7 +36,7 @@ VecSB2 DecompressPixelBC5S(C Byte *b, Int x, Int y);
 VecH   DecompressPixelBC6 (C Byte *b, Int x, Int y);
 Color  DecompressPixelBC7 (C Byte *b, Int x, Int y);
 
-Bool CompressBC(C Image &src, Image &dest, Bool perceptual);
+Bool CompressBC(C Image &src, Image &dest);
 /******************************************************************************/
 #endif
 /******************************************************************************/

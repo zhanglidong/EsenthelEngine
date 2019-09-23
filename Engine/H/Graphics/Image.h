@@ -217,14 +217,13 @@ private:
 /******************************************************************************/
 enum IMAGE_COPY_FLAG
 {
-   IC_CLAMP         =   0, // perform UVW coordinate clamping when filtering pixels
-   IC_WRAP          =1<<0, // perform UVW coordinate wrapping when filtering pixels
-   IC_ALPHA_WEIGHT  =1<<1, // if use pixel's alpha for weight of pixel's color
-   IC_KEEP_EDGES    =1<<2, // if preserve the edges of the image when resizing
-   IC_NO_ALT_TYPE   =1<<3, // don't try using alternative IMAGE_TYPE if a specified is not supported
-   IC_CONVERT_GAMMA =1<<4, // make sure gamma conversion is performed
-   IC_IGNORE_GAMMA  =1<<5, // make sure gamma conversion is ignored
-   IC_NON_PERCEPTUAL=1<<6, // if use non-perceptual compression (everything except colors, such as normal maps, smoothness, reflectivity, etc.)
+   IC_CLAMP        =   0, // perform UVW coordinate clamping when filtering pixels
+   IC_WRAP         =1<<0, // perform UVW coordinate wrapping when filtering pixels
+   IC_ALPHA_WEIGHT =1<<1, // if use pixel's alpha for weight of pixel's color
+   IC_KEEP_EDGES   =1<<2, // if preserve the edges of the image when resizing
+   IC_NO_ALT_TYPE  =1<<3, // don't try using alternative IMAGE_TYPE if a specified is not supported
+   IC_CONVERT_GAMMA=1<<4, // make sure gamma conversion is performed (if no IC_CONVERT_GAMMA/IC_IGNORE_GAMMA are specified then choice is made automatically)
+   IC_IGNORE_GAMMA =1<<5, // make sure gamma conversion is ignored   (if no IC_CONVERT_GAMMA/IC_IGNORE_GAMMA are specified then choice is made automatically)
 };
 #if EE_PRIVATE
    inline Bool IcWrap (UInt flag) {return  FlagTest(flag, IC_WRAP);}

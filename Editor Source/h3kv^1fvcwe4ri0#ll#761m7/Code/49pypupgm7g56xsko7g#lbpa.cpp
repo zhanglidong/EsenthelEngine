@@ -44,8 +44,7 @@ class ImageConvert
               alpha_lum=false,
               has_color=true ,
               has_alpha=true ,
-           ignore_alpha=false, 
-         non_perceptual=false;
+           ignore_alpha=false;
    byte        downsize=    0;
    int         mip_maps=   -1,
                max_size=    0;
@@ -57,9 +56,9 @@ class ImageConvert
 
    static SyncLock Lock;
 
-   void set(C Str &src, C Str &dest, C DateTime &time, int type, bool ignore_alpha, bool clamp, bool non_perceptual=false, byte downsize=0, int max_size=0)
+   void set(C Str &src, C Str &dest, C DateTime &time, int type, bool ignore_alpha, bool clamp, byte downsize=0, int max_size=0)
    {
-      T.family=IMAGE; T.src=src; T.dest=dest; T.time=time; T.type=type; T.ignore_alpha=ignore_alpha; T.clamp=clamp; T.non_perceptual=non_perceptual; T.downsize=downsize; T.max_size=max_size;
+      T.family=IMAGE; T.src=src; T.dest=dest; T.time=time; T.type=type; T.ignore_alpha=ignore_alpha; T.clamp=clamp; T.downsize=downsize; T.max_size=max_size;
    }
    void set(C Str &src, C Str &dest, C DateTime &time, C ElmImage &data, IMAGE_TYPE type)
    {
@@ -85,8 +84,8 @@ class ImageConvert
    static bool SkipOptimize(int &type, DateTime &time) // skip formats which are slow to convert
    {
       if(PublishSkipOptimize())
-         if(type==IMAGE_BC6 || type==IMAGE_BC7      || type==IMAGE_PVRTC1_2      || type==IMAGE_PVRTC1_4      || type==IMAGE_ETC2      || type==IMAGE_ETC2_A1      || type==IMAGE_ETC2_A8
-                            || type==IMAGE_BC7_SRGB || type==IMAGE_PVRTC1_2_SRGB || type==IMAGE_PVRTC1_4_SRGB || type==IMAGE_ETC2_SRGB || type==IMAGE_ETC2_A1_SRGB || type==IMAGE_ETC2_A8_SRGB)
+         if(type==IMAGE_BC6 || type==IMAGE_BC7      || type==IMAGE_PVRTC1_2      || type==IMAGE_PVRTC1_4      || type==IMAGE_ETC2_R      || type==IMAGE_ETC2_RG      || type==IMAGE_ETC2_RGB      || type==IMAGE_ETC2_RGBA1      || type==IMAGE_ETC2_RGBA
+                            || type==IMAGE_BC7_SRGB || type==IMAGE_PVRTC1_2_SRGB || type==IMAGE_PVRTC1_4_SRGB || type==IMAGE_ETC2_R_SIGN || type==IMAGE_ETC2_RG_SIGN || type==IMAGE_ETC2_RGB_SRGB || type==IMAGE_ETC2_RGBA1_SRGB || type==IMAGE_ETC2_RGBA_SRGB)
       {
          type=-1; time.decDay(); return true; // use default type and set previous date, so the file will be regenerated next time
       }
@@ -191,7 +190,7 @@ class ImageConvert
                   if(type    <0)type    =s.type();                   // source will now be as IMAGE_R8G8B8_SRGB so we can't use "-1", auto-detect instead
                   if(s.copyTry(temp, -1, -1, -1, IMAGE_R8G8B8_SRGB, IMAGE_SOFT, 1))s=&temp;
                }
-               if(s.copyTry(temp, size.x, size.y, size.z, type, mode, mip_maps, FILTER_BEST, (clamp?IC_CLAMP:IC_WRAP)|(non_perceptual?IC_NON_PERCEPTUAL:0)))
+               if(s.copyTry(temp, size.x, size.y, size.z, type, mode, mip_maps, FILTER_BEST, (clamp?IC_CLAMP:IC_WRAP)))
                {
                   File f; if(temp.save(f.writeMem())){f.pos(0); SafeOverwrite(f, dest, &time);} // save using specified time
                }
@@ -537,11 +536,11 @@ bool PublishFunc(Thread &thread)
 /******************************************************************************/
 class Texture
 {
-   UID id, // texture id
-       src_tex_id=UIDZero; // if this is a dynamically generated texture, then 'src_tex_id' points to the original texture from which it was created
+   UID id; // texture id
    bool  uses_alpha=false, // if uses alpha channel
+            dynamic=false, // if texture is dynamically generated
                srgb=true , // if sRGB gamma
-     non_perceptual=false, // if use non-perceptual compression
+             normal=false, // if normal map
          regenerate=false; // if this texture needs to be regenerated
    sbyte    quality=    0; // -1=PVRTC1_2, 0=default, 1=BC7
    byte    downsize=    0; // downsize
@@ -564,7 +563,10 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
 {
    Memx<Texture> publish_texs; // textures to be published, need to use Memx because below pointers are stored
 
- C bool android=(PublishExeType==Edit.EXE_APK), iOS=(PublishExeType==Edit.EXE_IOS), web=(PublishExeType==Edit.EXE_WEB);
+ C bool android=(PublishExeType==Edit.EXE_APK),
+            iOS=(PublishExeType==Edit.EXE_IOS),
+            web=(PublishExeType==Edit.EXE_WEB),
+  mtrl_simplify=Proj.materialSimplify(PublishExeType);
 
    // elements
    FREPA(elms)if(Elm *elm=elms[i])if(ElmPublish(elm.type))
@@ -626,7 +628,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
             IMAGE_TYPE dest_type=IMAGE_NONE;
             if(android || iOS) // convert for mobile, desktop/web already has IMAGE_BC1 chosen
             {
-               dest_type=(android ? IMAGE_ETC2_SRGB : IMAGE_PVRTC1_4_SRGB);
+               dest_type=(android ? IMAGE_ETC2_RGB_SRGB : IMAGE_PVRTC1_4_SRGB);
                mini_map_formats_path=Proj.formatPath(elm.id, FormatSuffix(dest_type));
                mini_map_formats_path.tailSlash(true);
                FCreateDirs(mini_map_formats_path);
@@ -657,24 +659,25 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
 
          if(elm.type==ELM_MTRL)if(ElmMaterial *data=elm.mtrlData()) // material
          {
-            bool regenerate=false,
+            bool dynamic=false,
+                 regenerate=false,
                  uses_tex_bump=data.usesTexBump(), 
                  uses_tex_glow=data.usesTexGlow();
             byte downsize  =((android || iOS) ? data.downsize_tex_mobile : 0);
-            UID  base_0_tex=data.base_0_tex, src_tex=UIDZero,
+            UID  base_0_tex=data.base_0_tex,
                  base_1_tex=data.base_1_tex,
                  base_2_tex=data.base_2_tex;
 
             // simplify material
-            if(base_0_tex.valid() && (base_1_tex.valid() || base_2_tex.valid()) && Proj.materialSimplify(PublishExeType))
+            if(mtrl_simplify && (base_1_tex.valid() || base_2_tex.valid()))
             {
+               dynamic=true; // mark it as dynamically generated texture
                uses_tex_bump=uses_tex_glow=false; // these textures are removed when merging
 
                // adjust base texture ID's
-                  src_tex=base_0_tex; // mark it as dynamically generated texture
-               base_0_tex=MergedBaseTexturesID(base_0_tex, base_1_tex, base_2_tex);
-               base_1_tex.zero();
-               base_2_tex.zero();
+               base_0_tex=MergedBaseTexturesID(base_0_tex, base_1_tex, base_2_tex); // new texture merged from old
+               base_1_tex.zero(); // removed
+               base_2_tex.zero(); // removed
 
                // make a copy of the material with adjusted textures
                Str src_name=pfd.data.name,
@@ -691,29 +694,32 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                   // adjust specular related parameters
                   {
                      flt  avg_smooth=0.5, avg_reflect=0.5;
-                     Vec4 avg; if(mtrl->base_2)if(mtrl->base_2->stats(null, null, &avg)){avg_smooth=avg.x; avg_reflect=avg.y;} // #MaterialTextureLayout
+                     Vec4 avg; if(mtrl->base_2 && mtrl->base_2->stats(null, null, &avg)){avg_smooth=avg.x; avg_reflect=avg.y;} // #MaterialTextureLayout
                      temp.smooth *=avg_smooth ;
                      temp.reflect*=avg_reflect;
                   }
                   if(data.usesTexGlow())temp.glow=0; // disable glow if there was a glow map, because now it's removed
                   File f; temp.save(f.writeMem(), Proj.game_path); f.pos(0); SafeOverwrite(f, dest_name, &src_fi.modify_time_utc);
+                  regenerate=true; // material parameters could have changed, so regenerate texture too as it may depend on them
                }
 
                // merge textures
-               FileInfo src_base_0(Proj.texPath       (data.base_0_tex)); // get modify time of the original texture in case it was modified later for some reason
-               Str     dest_base_0=Proj.texDynamicPath(     base_0_tex) ; // get path of the merged texture
-               if(Compare(src_base_0.modify_time_utc, FileInfoSystem(dest_base_0).modify_time_utc, 1)) // if different (compare just modify time, because sizes will always be different due to different formats)
+               FileInfo   src_base  (Proj.texPath       (data.base_0_tex.valid() ? data.base_0_tex : data.base_1_tex.valid() ? data.base_1_tex : data.base_2_tex)); // get modify time of first available original texture
+               Str       dest_base_0=Proj.texDynamicPath(     base_0_tex); // get path where merged texture will be stored
+               if(regenerate // if material was changed
+               || Compare(src_base.modify_time_utc, FileInfoSystem(dest_base_0).modify_time_utc, 1)) // or texture times are different (compare just modify time, because sizes will always be different due to different formats)
                {
-                  generate.New().set(src_name, dest_base_0, src_base_0.modify_time_utc);
-                  regenerate=true; // this tex will be regenerated
+                  regenerate=true; // make sure this is enabled
+                  generate.New().set(src_name, dest_base_0, src_base.modify_time_utc);
                }
             }
 
             // !! 'GetTexture' needs to be called always because it adds texture to publish list !!
-            Texture *t0; if(        t0=GetTexture(publish_texs,      base_0_tex)){t0.srgb=true ; t0.downSize(downsize); if(ForceHQMtrlBase0 )t0.quality=1; t0.src_tex_id=src_tex; t0.regenerate|=regenerate;}
-            Texture *t1; if(        t1=GetTexture(publish_texs,      base_1_tex)){t1.srgb=false; t1.downSize(downsize); if(ForceHQMtrlBase1 )t1.quality=1; t1.non_perceptual=true;}
-            Texture *t2; if(        t2=GetTexture(publish_texs,      base_2_tex)){t2.srgb=false; t2.downSize(downsize); if(ForceHQMtrlBase2 )t2.quality=1; t2.non_perceptual=true;}
-                         if(Texture *t=GetTexture(publish_texs, data.detail_tex)){t .srgb=false; t .downSize(downsize); if(ForceHQMtrlDetail)t .quality=1; t .non_perceptual=true; if(!RemoveMtrlDetailBump)t.uses_alpha=true;} // Detail uses Alpha for bump unless it's removed
+            // #MaterialTextureLayout
+            Texture *t0; if(        t0=GetTexture(publish_texs,      base_0_tex)){t0.srgb=true ; t0.downSize(downsize); if(ForceHQMtrlBase0 )t0.quality=1; t0.dynamic|=dynamic; t0.regenerate|=regenerate;}
+            Texture *t1; if(        t1=GetTexture(publish_texs,      base_1_tex)){t1.srgb=false; t1.downSize(downsize); if(ForceHQMtrlBase1 )t1.quality=1; t1.normal=true;}
+            Texture *t2; if(        t2=GetTexture(publish_texs,      base_2_tex)){t2.srgb=false; t2.downSize(downsize); if(ForceHQMtrlBase2 )t2.quality=1;}
+                         if(Texture *t=GetTexture(publish_texs, data.detail_tex)){t .srgb=false; t .downSize(downsize); if(ForceHQMtrlDetail)t .quality=1; if(!RemoveMtrlDetailBump)t.uses_alpha=true;} // Detail uses Alpha for bump unless it's removed
                          if(Texture *t=GetTexture(publish_texs, data. macro_tex)){t .srgb=true ; t .downSize(downsize);} // doesn't use Alpha, 'GetTexture' needs to be called
                          if(Texture *t=GetTexture(publish_texs, data. light_tex)){t .srgb=true ; t .downSize(downsize);} // doesn't use Alpha, 'GetTexture' needs to be called
 
@@ -732,9 +738,10 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
          if(elm.type==ELM_WATER_MTRL)if(ElmWaterMtrl *data=elm.waterMtrlData()) // water material
          {
             // !! 'GetTexture' needs to be called always because it adds texture to publish list !!
+            // #MaterialTextureLayout
             Texture *t0; if(t0=GetTexture(publish_texs, data.base_0_tex)){t0.srgb=true ; if(ForceHQMtrlBase0)t0.quality=1;}
-            Texture *t1; if(t1=GetTexture(publish_texs, data.base_1_tex)){t1.srgb=false; if(ForceHQMtrlBase1)t1.quality=1; t1.non_perceptual=true;}
-            Texture *t2; if(t2=GetTexture(publish_texs, data.base_2_tex)){t2.srgb=false; if(ForceHQMtrlBase2)t2.quality=1; t2.non_perceptual=true;}
+            Texture *t1; if(t1=GetTexture(publish_texs, data.base_1_tex)){t1.srgb=false; if(ForceHQMtrlBase1)t1.quality=1; t1.normal=true;}
+            Texture *t2; if(t2=GetTexture(publish_texs, data.base_2_tex)){t2.srgb=false; if(ForceHQMtrlBase2)t2.quality=1;}
 
             // check which base textures use Alpha Channel, #MaterialTextureLayout
             if(t2)
@@ -781,7 +788,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
             if(android || iOS || (web && !WebBC7)) // desktop platform already has the best format chosen during image atlas creation
                if(ElmImageAtlas *data=elm.imageAtlasData())
                   if(data.compress())
-                     if(IMAGE_TYPE dest_type=(android ? IMAGE_ETC2_A8_SRGB : iOS ? IMAGE_PVRTC1_4_SRGB : IMAGE_BC3_SRGB)) // we assume that atlas images contain transparency
+                     if(IMAGE_TYPE dest_type=(android ? IMAGE_ETC2_RGBA_SRGB : iOS ? IMAGE_PVRTC1_4_SRGB : IMAGE_BC3_SRGB)) // we assume that atlas images contain transparency
          {
             Str src_name=pfd.data.name,
                dest_name=Proj.formatPath(elm.id, FormatSuffix(dest_type));
@@ -809,7 +816,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
          if(elm.type==ELM_PANEL_IMAGE) // panel image
             if(android || iOS || (web && !WebBC7)) // desktop platform already has the best format chosen during image atlas creation
                if(ElmPanelImage *data=elm.panelImageData())
-                  if(IMAGE_TYPE dest_type=(android ? IMAGE_ETC2_A8_SRGB : iOS ? IMAGE_PVRTC1_4_SRGB : IMAGE_BC3_SRGB)) // we assume that atlas images contain transparency
+                  if(IMAGE_TYPE dest_type=(android ? IMAGE_ETC2_RGBA_SRGB : iOS ? IMAGE_PVRTC1_4_SRGB : IMAGE_BC3_SRGB)) // we assume that atlas images contain transparency
          {
             Str src_name=pfd.data.name,
                dest_name=Proj.formatPath(elm.id, FormatSuffix(dest_type));
@@ -825,21 +832,19 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
    int tex_not_found=0;
    FREPA(publish_texs)
    {
-    C Texture &tex=publish_texs[i]; const bool dynamic=tex.src_tex_id.valid();
-      if(Proj.texs.binaryHas(tex.id) || dynamic)
+    C Texture &tex=publish_texs[i];
+      if(Proj.texs.binaryHas(tex.id) || tex.dynamic)
       {
          PakFileData &pfd=files.New();
          pfd.name=S+"Tex/"+EncodeFileName(tex.id); // dest name
-         pfd.data.set(dynamic ? Proj.texDynamicPath(tex.id) : Proj.texPath(tex.id)); // src name
+         pfd.data.set(tex.dynamic ? Proj.texDynamicPath(tex.id) : Proj.texPath(tex.id)); // src name
 
          // change type
          int change_type=-1; // sRGB is set below
-         if(android)change_type=( tex.uses_alpha  ? IMAGE_ETC2_A8  : IMAGE_ETC2    );else
-         if(iOS    )change_type=((tex.quality>=0) ? IMAGE_PVRTC1_4 : IMAGE_PVRTC1_2);else
-         if(web    )change_type=(WebBC7 ? ((tex.uses_alpha || tex.quality>0) ?        -1 : IMAGE_BC1)      // texture could have alpha, however if we're not using it, then reduce to BC1 because it's only 4-bit per pixel
-                                        :   tex.uses_alpha                   ? IMAGE_BC3 : IMAGE_BC1);else // if BC7 not supported for Web, then use BC3
-       //if(!tex.uses_alpha && (tex.quality<=0))change_type=IMAGE_BC1;else // texture could have alpha, however if we're not using it, then reduce to BC1 because it's only 4-bit per pixel, actually don't do this because it would require calling 'ImageLoadHeader' which is an IO operation and could be slow for many textures
-            {}
+         if(android)change_type=(tex.normal ? IMAGE_ETC2_RG_SIGN :  tex.uses_alpha  ? IMAGE_ETC2_RGBA : IMAGE_ETC2_RGB);else
+         if(iOS    )change_type=(tex.normal ? IMAGE_ETC2_RG_SIGN : (tex.quality>=0) ? IMAGE_PVRTC1_4  : IMAGE_PVRTC1_2);else
+         if(web    )change_type=(tex.normal ? -1                 : WebBC7 ? ((tex.uses_alpha || tex.quality>0) ?        -1 : IMAGE_BC1)  // texture could have alpha, however if we're not using it, then reduce to BC1 because it's only 4-bit per pixel
+                                                                          :   tex.uses_alpha                   ? IMAGE_BC3 : IMAGE_BC1); // if BC7 not supported for Web, then use BC3
          if(change_type>=0 && tex.srgb)change_type=ImageTypeIncludeSRGB((IMAGE_TYPE)change_type); // set sRGB
 
          // change size
@@ -850,7 +855,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
             // detect if we actually need to retype/resize
             if((change_type>=0 || max_size!=INT_MAX) && !tex.downsize) // in this detection we can change only 'change_type' and 'max_size', however if 'downsize' is set, then we will always convert, so no need to check this
             {
-               ImageHeader header; if(ImageLoadHeader(dynamic ? Proj.texPath(tex.src_tex_id) : pfd.data.name, header)) // if this is a dynamically generated texture then get the header from its source, as the dynamic texture may not exist yet
+               ImageHeader header; if(ImageLoadHeader(pfd.data.name, header)) // this may fail if this is a dynamically generated texture which doesn't exist yet, in that case just proceed with conversion
                {
                   if(header.type      ==change_type)change_type=-1     ; // if image already is of that type , then disable retyping
                   if(header.size.max()<=   max_size)   max_size=INT_MAX; // if image size fits into the limit, then disable resizing
@@ -864,8 +869,9 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                pfd.data.set(dest_name); // adjust pak file path
                FileInfo src_fi(src_name);
                if(tex.regenerate // if texture is going to be regenerated in this process, then always allow converting it
+             //|| !src_fi.type // if source was not found (this can happen for dynamically generated textures), then always allow, this is not needed because we always set 'regenerate' in this case
                || Compare(src_fi.modify_time_utc, FileInfoSystem(dest_name).modify_time_utc, 1)) // if different (compare just modify time, because sizes will always be different due to different formats)
-                  convert.New().set(src_name, dest_name, src_fi.modify_time_utc, change_type, !tex.uses_alpha, false, tex.non_perceptual, tex.downsize, max_size); // create new conversion
+                  convert.New().set(src_name, dest_name, src_fi.modify_time_utc, change_type, !tex.uses_alpha, false, tex.downsize, max_size); // create new conversion
             }
          }
       }else

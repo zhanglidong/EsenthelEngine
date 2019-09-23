@@ -25,7 +25,7 @@
 /******************************************************************************/
 namespace EE{
 /******************************************************************************/
-Bool (*CompressETC)(C Image &src, Image &dest, Int quality, Bool perceptual);
+Bool (*CompressETC)(C Image &src, Image &dest, Int quality);
 /******************************************************************************/
 #if ETC1_DEC==ETC_LIB_RG
 void DecompressBlockETC1(C Byte *b, Color (&block)[4][4]) {rg_etc1::unpack_etc1_block(b, (UInt*)block);}
