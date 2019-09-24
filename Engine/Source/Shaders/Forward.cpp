@@ -125,7 +125,6 @@ void VS
       #endif
 
          if(FX==FX_GRASS)BendGrass(local_pos, pos, vtx.instance());
-      #endif
       #if GRASS_FADE
          O.fade_out=GrassFadeOut(vtx.instance());
       #endif
