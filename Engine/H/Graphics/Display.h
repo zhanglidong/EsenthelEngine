@@ -289,6 +289,10 @@ struct Display : DisplayState, DisplayDraw // Display Control
    Display& nightShadeColorL(C Vec & lin_color);   C Vec& nightShadeColorL()C {return _ns_color_l;} // set/get Night Shade color Linear Gamma (0..1, default=0), the change is instant, you can call it real-time, setting color to 0 disables Night Shade effect
    Display& nightShadeColorS(C Vec &srgb_color);     Vec  nightShadeColorS()C;                      // set/get Night Shade color sRGB   Gamma (0..1, default=0), the change is instant, you can call it real-time, setting color to 0 disables Night Shade effect
 
+   // Environment
+   Display& envColor(  Flt      color);   Flt       envColor()C {return _env_color;} // set/get Environment color (0..1, default=1), the change is instant, you can call it real-time
+   Display& envMap  (C ImagePtr &cube); C ImagePtr& envMap  ()C {return _env_map  ;} // set/get Environment map                    , the change is instant, you can call it real-time
+
    // Shadowing
    Display& shadowMode         (SHADOW_MODE mode    );   SHADOW_MODE shadowMode         ()C {return _shd_mode      ;} // set/get Shadow Mode                                  (SHADOW_MODE         , default=SHADOW_MAP (SHADOW_NONE for Mobile)), the change is instant, you can call it real-time
    Display& shadowSoft         (Byte        soft    );   Byte        shadowSoft         ()C {return _shd_soft      ;} // set/get Shadow Softing                               (0..SHADOW_SOFT_NUM-1, default=         0                         ), available only in RT_DEFERRED renderer, the change is instant, you can call it real-time
@@ -509,6 +513,7 @@ private:
    VecI2             _res, _render_res;
    Flt               _aspect_ratio, _aspect_ratio_want, _pixel_aspect, _gamma, _font_sharpness, _scale,
                      _amb_range, _amb_contrast, _amb_min,
+                     _env_color,
                      _eye_adapt_brightness, _eye_adapt_exp, _eye_adapt_max_dark, _eye_adapt_max_bright, _eye_adapt_speed,
                      _eye_dist, _eye_dist_2,
                      _shd_frac, _shd_fade, _shd_map_size_l, _shd_map_size_c,
@@ -531,7 +536,7 @@ private:
    Rect              _view_rect, _view_eye_rect[2];
    Viewport          _view_main, _view_active;
    Str8              _device_name;
-   ImagePtr          _color_palette[2];
+   ImagePtr          _color_palette[2], _env_map;
    Image             _color_palette_soft[2];
    Mems<VecI2>       _modes;
    SyncLock          _lock;

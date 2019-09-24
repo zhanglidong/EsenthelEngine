@@ -606,7 +606,7 @@ VecH4 PS
       #else
          Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
       #endif
-         col=Lerp(col, TexCube(Cub, rfl).rgb, reflct);
+         col=Lerp(col, TexCube(Env, rfl).rgb*EnvColor, reflct);
       }else col*=1-reflct;
    }
    #endif

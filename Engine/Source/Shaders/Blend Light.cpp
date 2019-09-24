@@ -25,7 +25,7 @@ struct VS_PS
    VecH4 col    :COLOR;
    VecH  col_add:COLOR_ADD;
 #if REFLECT
-   Half  fog_rev:FOG;
+   Half  env_col:ENV;
 #endif
 
 #if   BUMP_MODE> SBUMP_FLAT && PER_PIXEL
@@ -170,7 +170,7 @@ void VS
    O.col.rgb*=                              fog_rev ; //       *=1-fog
    O.col_add =Lerp(FogColor, Highlight.rgb, fog_rev); //         1-fog
 #if REFLECT
-   O.fog_rev=fog_rev;
+   O.env_col=EnvColor*fog_rev;
 #endif
 
    //  per-vertex light
@@ -296,7 +296,7 @@ void PS
    #else
       Vec rfl=Transform3(reflect(I.pos, nrm), CamMatrix); // #ShaderHalf
    #endif
-      I.col.rgb=Lerp(I.col.rgb, TexCube(Cub, rfl).rgb*I.fog_rev, reflct);
+      I.col.rgb=Lerp(I.col.rgb, TexCube(Env, rfl).rgb*I.env_col, reflct);
    }
    #endif
 

@@ -32,6 +32,7 @@
       #define PGMOUT 0
       #define printf(x,...)
       #define   exit(x)
+      #pragma warning(disable:4065) // switch statement contains 'default' but no 'case' labels
       #pragma warning(push)
       #pragma warning(disable:4390) // ';': empty controlled statement found; is this the intent?
       #pragma runtime_checks("", off)

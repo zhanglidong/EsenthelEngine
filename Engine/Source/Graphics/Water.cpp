@@ -75,9 +75,9 @@ void WaterMtrl::set()
          SPSet("WaterRfl"   , 0);
          SPSet("WaterRfrRfl", 0);
       }
-      Sh.Col[0]->set(     _color_map());
-      Sh.Nrm[0]->set(    _normal_map());
-      Sh.Cub[0]->set(_reflection_map()); // FIXME
+      Sh.Col[0]->set( _color_map());
+      Sh.Nrm[0]->set(_normal_map());
+    //Sh.Ext[0]->set( _extra_map()); // FIXME
    }
 }
 /******************************************************************************/

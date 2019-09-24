@@ -1342,7 +1342,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
    static CChar8 *samplerCube[]=
    {
     //"Rfl", "Rfl1", "Rfl2", "Rfl3",
-      "Cub", "Cub1",
+      "Env", "Cub", "Cub1",
    };
    static CChar8 *sampler2DShadow[]=
    {

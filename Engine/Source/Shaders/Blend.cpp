@@ -74,7 +74,7 @@ VecH4 PS
    inColor.rgb+=Highlight.rgb;
 
 #if REFLECT // reflection
-   inColor.rgb=Lerp(inColor.rgb, TexCube(Cub, inRfl).rgb, reflct);
+   inColor.rgb=Lerp(inColor.rgb, TexCube(Env, inRfl).rgb*EnvColor, reflct);
 #endif
 
    return inColor;

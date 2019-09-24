@@ -29,10 +29,12 @@ struct MainShaderClass
    MainShaderClass();
 
    ShaderImage
+      DummyImage,
       *Img  [4], *ImgMS[2],
       *ImgX [4], *ImgXMS,
       *ImgXF[2],
       *ImgXY,
+      *Env=&DummyImage,
       *Cub[2],
       *Vol,
       *VolXY[2],
@@ -99,6 +101,7 @@ struct MainShaderClass
       *AmbientColor_l    =&Dummy, // Vec Linear Gamma
       *AmbientColorNS_l  =&Dummy, // Vec Linear Gamma + NightShade
       *NightShadeColor   =&Dummy,
+      *EnvColor          =&Dummy,
 
       *HdrBrightness=&Dummy,
       *HdrExp       =&Dummy,

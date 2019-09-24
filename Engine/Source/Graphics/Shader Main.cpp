@@ -272,6 +272,7 @@ void MainShaderClass::getTechniques()
    ImgXF[1] =ShaderImages("ImgXF1");
    ImgXY    =ShaderImages("ImgXY" );
 
+   Env   =ShaderImages("Env"); Env->set(D.envMap()());
    Cub[0]=ShaderImages("Cub");
    Cub[1]=ShaderImages("Cub1");
 
@@ -347,6 +348,7 @@ void MainShaderClass::getTechniques()
    GrassRangeMulAdd=GetShaderParam("GrassRangeMulAdd");
    BendFactor      =GetShaderParam("BendFactor");
 
+   EnvColor          =GetShaderParam    ("EnvColor"          ); EnvColor->set(D.envColor());
    FirstPass         =GetShaderParamBool("FirstPass"         );
    NightShadeColor   =GetShaderParam    ("NightShadeColor"   ); // set in 'D.ambientSet()'
    AmbientColor_l    =GetShaderParam    ("AmbientColor"      ); // set in 'D.ambientSet()'

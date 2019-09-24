@@ -139,7 +139,7 @@ void Surface_PS
    VecH4 col=VecH4(WaterCol*Tex(Col, inTex).rgb, 0);
    {
    #if FAKE_REFLECTION // add fake reflection
-      col.rgb+=TexCube(Cub, Transform3(reflect(view, view_nrm), CamMatrix)).rgb*WaterRflFake; // #ShaderHalf
+      col.rgb=Lerp(col.rgb, TexCube(Env, Transform3(reflect(view, view_nrm), CamMatrix)).rgb*EnvColor, WaterRflFake); // #ShaderHalf
    #endif
       // fresnel
       {
