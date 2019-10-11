@@ -194,23 +194,13 @@ enum OS_VER : Byte // Operating System Version
 
    OS_LINUX,
 
-   ANDROID_UNKNOWN,
-   ANDROID_GINGERBREAD,
-   ANDROID_HONEYCOMB,
-   ANDROID_ICE_CREAM_SANDWICH,
-   ANDROID_JELLY_BEAN,
-   ANDROID_KIT_KAT,
-   ANDROID_LOLLIPOP,
-   ANDROID_MARSHMALLOW,
-   ANDROID_NOUGAT,
-   ANDROID_OREO,
-   ANDROID_PIE,
+   OS_ANDROID,
 
    OS_IOS,
 };
 VecI4   OSVerNumber(                  ); // get Operating System version number
 OS_VER  OSVer      (                  ); // get Operating System version
-OS_VER  OSGroup    (OS_VER ver=OSVer()); // get Operating System group, this ignores specific versions and returns just the main groups, such as WINDOWS_UNKNOWN, OS_MAC, OS_LINUX, ANDROID_UNKNOWN, OS_IOS
+OS_VER  OSGroup    (OS_VER ver=OSVer()); // get Operating System group, this ignores specific versions and returns just the main groups, such as WINDOWS_UNKNOWN, OS_MAC, OS_LINUX, OS_ANDROID, OS_IOS
 CChar8* OSName     (OS_VER ver=OSVer()); // get Operating System name
 Bool    OSWindows  (OS_VER ver=OSVer()); // if  Operating System is Windows
 Bool    OSMac      (OS_VER ver=OSVer()); // if  Operating System is Mac

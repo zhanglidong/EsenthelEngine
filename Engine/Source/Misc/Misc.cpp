@@ -1216,6 +1216,7 @@ OS_VER OSVer()
    // SDK API levels taken from:
    // http://developer.android.com/guide/appendix/api-levels.html
    // http://en.wikipedia.org/wiki/Android_version_history#Version_history_by_API_level
+ /*if(AndroidSDK>=29)return ANDROID_Q;
    if(AndroidSDK>=28)return ANDROID_PIE;
    if(AndroidSDK>=26)return ANDROID_OREO;
    if(AndroidSDK>=24)return ANDROID_NOUGAT;
@@ -1225,8 +1226,8 @@ OS_VER OSVer()
    if(AndroidSDK>=16)return ANDROID_JELLY_BEAN;
    if(AndroidSDK>=14)return ANDROID_ICE_CREAM_SANDWICH;
    if(AndroidSDK>=11)return ANDROID_HONEYCOMB;
-   if(AndroidSDK>= 9)return ANDROID_GINGERBREAD;
-                     return ANDROID_UNKNOWN;
+   if(AndroidSDK>= 9)return ANDROID_GINGERBREAD;*/
+                     return OS_ANDROID;
 #elif IOS
    return OS_IOS;
 #elif WEB
@@ -1243,7 +1244,7 @@ OS_VER OSVer()
       case 0: return WINDOWS_UNKNOWN;
       case 1: return OS_MAC;
       case 2: return OS_LINUX;
-      case 3: return ANDROID_UNKNOWN;
+      case 3: return OS_ANDROID;
       case 4: return OS_IOS;
    }
 #endif
@@ -1253,7 +1254,7 @@ OS_VER OSVer()
 OS_VER OSGroup(OS_VER ver)
 {
    if(OSWindows(ver))return WINDOWS_UNKNOWN;
-   if(OSAndroid(ver))return ANDROID_UNKNOWN;
+ //if(OSAndroid(ver))return OS_ANDROID;
                      return ver;
 }
 CChar8* OSName(OS_VER ver)
@@ -1261,6 +1262,7 @@ CChar8* OSName(OS_VER ver)
    switch(ver)
    {
       default                        : return "Unknown"; // OS_UNKNOWN
+
       case WINDOWS_UNKNOWN           : return "Windows";
       case WINDOWS_2000              : return "Windows 2000";
       case WINDOWS_XP                : return "Windows XP";
@@ -1277,10 +1279,13 @@ CChar8* OSName(OS_VER ver)
       case WINDOWS_SERVER_2012       : return "Windows Server 2012";
       case WINDOWS_SERVER_2012_R2    : return "Windows Server 2012 R2";
       case WINDOWS_SERVER_2016       : return "Windows Server 2016";
+
       case OS_MAC                    : return "Mac";
+
       case OS_LINUX                  : return "Linux";
-      case ANDROID_UNKNOWN           : return "Android";
-      case ANDROID_GINGERBREAD       : return "Android Gingerbread";
+
+      case OS_ANDROID                : return "Android";
+    /*case ANDROID_GINGERBREAD       : return "Android Gingerbread";
       case ANDROID_HONEYCOMB         : return "Android Honeycomb";
       case ANDROID_ICE_CREAM_SANDWICH: return "Android Ice Cream Sandwich";
       case ANDROID_JELLY_BEAN        : return "Android Jelly Bean";
@@ -1289,14 +1294,15 @@ CChar8* OSName(OS_VER ver)
       case ANDROID_MARSHMALLOW       : return "Android Marshmallow";
       case ANDROID_NOUGAT            : return "Android Nougat";
       case ANDROID_OREO              : return "Android Oreo";
-      case ANDROID_PIE               : return "Android Pie";
+      case ANDROID_PIE               : return "Android Pie";*/
+
       case OS_IOS                    : return "iOS";
    }
 }
 Bool OSWindows(OS_VER ver) {return ver>=WINDOWS_UNKNOWN && ver<=WINDOWS_SERVER_2016;}
 Bool OSMac    (OS_VER ver) {return ver==OS_MAC;}
 Bool OSLinux  (OS_VER ver) {return ver==OS_LINUX;}
-Bool OSAndroid(OS_VER ver) {return ver>=ANDROID_UNKNOWN && ver<=ANDROID_PIE;}
+Bool OSAndroid(OS_VER ver) {return ver==OS_ANDROID;}
 Bool OSiOS    (OS_VER ver) {return ver==OS_IOS;}
 /******************************************************************************/
 #if WINDOWS_NEW
