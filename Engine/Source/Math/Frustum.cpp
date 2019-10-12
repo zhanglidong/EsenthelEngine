@@ -203,7 +203,7 @@ void FrustumClass::from(C BoxD &box)
    view_quad_max_dist=0;
    eye_dist_2=0;
    persp=false;
-   size=box.size()*0.5f;
+   size=box.size()*0.5;
    matrix.setPos(box.center());
    REPA(plane)plane_n_abs[i]=Abs(plane[i].normal);
 
@@ -747,9 +747,9 @@ void FrustumClass::getIntersectingAreas(MemPtr<VecI2> area_pos, Flt area_size, B
 
    Memt<VecD2> convex_points; CreateConvex2Dxz(convex_points, point, points); if(!convex_points.elms())return;
 
-   Bool   mask_do;
-   RectI  mask, rect; // inclusive
-   Circle circle;
+   Bool    mask_do;
+   RectI   mask, rect; // inclusive
+   CircleM circle;
    if(clamp      ){mask=*clamp; mask_do=true;}else mask_do=false;
    if(extraBall())
    {
@@ -789,17 +789,17 @@ void FrustumClass::getIntersectingAreas(MemPtr<VecI2> area_pos, Flt area_size, B
 
    REPA(convex_points) // warning: this needs to work as well for "convex_points.elms()==1"
    {
-      Vec2 start=convex_points[i], end=convex_points[(i+1)%convex_points.elms()];
+      VecD2 start=convex_points[i], end=convex_points[(i+1)%convex_points.elms()];
       if(extend)
       {
          // add corner point first as a 2x2 block (needs to process 2x2 because just 1 corner didn't cover all areas, the same was for Avg of 2 Perps)
          RectI corner; corner.min=Floor(start); VecI2 pos;
-         if(start.x-corner.min.x<0.5f)corner.max.x=corner.min.x--;else corner.max.x=corner.min.x+1; // if point is on the left   side (frac<0.5), then process from pos-1..pos, otherwise from pos..pos+1
-         if(start.y-corner.min.y<0.5f)corner.max.y=corner.min.y--;else corner.max.y=corner.min.y+1; // if point is on the bottom side (frac<0.5), then process from pos-1..pos, otherwise from pos..pos+1
+         if(start.x-corner.min.x<0.5)corner.max.x=corner.min.x--;else corner.max.x=corner.min.x+1; // if point is on the left   side (frac<0.5), then process from pos-1..pos, otherwise from pos..pos+1
+         if(start.y-corner.min.y<0.5)corner.max.y=corner.min.y--;else corner.max.y=corner.min.y+1; // if point is on the bottom side (frac<0.5), then process from pos-1..pos, otherwise from pos..pos+1
          for(pos.y=corner.min.y; pos.y<=corner.max.y; pos.y++)
          for(pos.x=corner.min.x; pos.x<=corner.max.x; pos.x++)ProcessPos(pos, rect, row_min_max_x);
 
-         Vec2 perp=Perp(start-end); if(Flt max=Abs(perp).max()){perp*=0.5f/max; start+=perp; end+=perp;} // use "Abs(perp).max()" instead of "perp.length()" because we need to extend orthogonally (because we're using extend for the purpose of detecting objects from neighborhood areas that extend over to other areas, and this extend is allowed orthogonally)
+         VecD2 perp=Perp(start-end); if(Dbl max=Abs(perp).max()){perp*=0.5/max; start+=perp; end+=perp;} // use "Abs(perp).max()" instead of "perp.length()" because we need to extend orthogonally (because we're using extend for the purpose of detecting objects from neighborhood areas that extend over to other areas, and this extend is allowed orthogonally)
       }
       for(PixelWalker walker(start, end); walker.active(); walker.step())ProcessPos(walker.pos(), rect, row_min_max_x);
    }
@@ -817,16 +817,16 @@ void FrustumClass::getIntersectingAreas(MemPtr<VecI2> area_pos, Flt area_size, B
 
    const Bool fast=true; // if use ~2x faster 'Dist2PointSquare' instead of 'Dist2(Vec2 point, RectI rect)'
 
-   Vec2 distance_pos;
-   Flt  distance_range2;
-   if(  distance_check&=persp) // can do range tests only in perspective mode (orthogonal mode is used for shadows, and there we need full range, and also in that mode 'matrix.pos' is in the center, so it can't be used as 'distance_pos')
+   VecD2 distance_pos;
+   Flt   distance_range2;
+   if(   distance_check&=persp) // can do range tests only in perspective mode (orthogonal mode is used for shadows, and there we need full range, and also in that mode 'matrix.pos' is in the center, so it can't be used as 'distance_pos')
    { // convert to area space
-      distance_pos   =matrix.pos.xz()/area_size; if(fast  )distance_pos   -=0.5f; // since in fast mode we're testing against a square of radius 0.5, instead of setting each square as "pos+0.5", we offset the 'distance_pos' by the negative (this was tested and works OK - the same results as when 'fast'=false)
+      distance_pos   =matrix.pos.xz()/area_size; if(fast  )distance_pos   -=0.5 ; // since in fast mode we're testing against a square of radius 0.5, instead of setting each square as "pos+0.5", we offset the 'distance_pos' by the negative (this was tested and works OK - the same results as when 'fast'=false)
       distance_range2=          range/area_size; if(extend)distance_range2+=0.5f; distance_range2*=distance_range2;
    }
    if(extraBall())
    {
-      if(fast)circle.pos-=0.5f; // since in fast mode we're testing against a square of radius 0.5, instead of setting each square as "pos+0.5", we offset the 'circle.pos' by the negative (this was tested and works OK - the same results as when 'fast'=false)
+      if(fast)circle.pos-=0.5; // since in fast mode we're testing against a square of radius 0.5, instead of setting each square as "pos+0.5", we offset the 'circle.pos' by the negative (this was tested and works OK - the same results as when 'fast'=false)
       SQR(circle.r);
    }
 
@@ -848,8 +848,8 @@ void FrustumClass::getIntersectingAreas(MemPtr<VecI2> area_pos, Flt area_size, B
          {
             VecI2 &min_max_x=row_min_max_x[pos.y-rect.min.y];
             if(pos.x>=min_max_x.x && pos.x<=min_max_x.y)
-               if(!distance_check || (fast ? Dist2PointSquare(distance_pos, pos, 0.5f) : Dist2(distance_pos, RectI(pos, pos+1)))<=distance_range2)
-               if(!extraBall()    || (fast ? Dist2PointSquare(  circle.pos, pos, 0.5f) : Dist2(  circle.pos, RectI(pos, pos+1)))<=  circle.r     )
+               if(!distance_check || (fast ? Dist2PointSquare(distance_pos, pos, 0.5) : Dist2(distance_pos, RectI(pos, pos+1)))<=distance_range2)
+               if(!extraBall()    || (fast ? Dist2PointSquare(  circle.pos, pos, 0.5) : Dist2(  circle.pos, RectI(pos, pos+1)))<=  circle.r     )
                   area_pos.add(pos); // add to array
 
             pos+=perp; if(!rect.includes(pos))break; // go along the parallel until you can't
@@ -865,8 +865,8 @@ void FrustumClass::getIntersectingAreas(MemPtr<VecI2> area_pos, Flt area_size, B
          MAX(min_max_x.x, rect.min.x);
          MIN(min_max_x.y, rect.max.x);
          for(pos.x=min_max_x.x; pos.x<=min_max_x.y; pos.x++)
-            if(!distance_check || (fast ? Dist2PointSquare(distance_pos, pos, 0.5f) : Dist2(distance_pos, RectI(pos, pos+1)))<=distance_range2)
-            if(!extraBall()    || (fast ? Dist2PointSquare(  circle.pos, pos, 0.5f) : Dist2(  circle.pos, RectI(pos, pos+1)))<=  circle.r     )
+            if(!distance_check || (fast ? Dist2PointSquare(distance_pos, pos, 0.5) : Dist2(distance_pos, RectI(pos, pos+1)))<=distance_range2)
+            if(!extraBall()    || (fast ? Dist2PointSquare(  circle.pos, pos, 0.5) : Dist2(  circle.pos, RectI(pos, pos+1)))<=  circle.r     )
                area_pos.add(pos); // add to array
       }
    }

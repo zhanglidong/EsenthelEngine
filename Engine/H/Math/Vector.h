@@ -372,8 +372,8 @@ struct Vec2 // Vector 2D
    CONVERSION Vec2(C VecB2  &v);
    CONVERSION Vec2(C VecSB2 &v);
    CONVERSION Vec2(C VecUS2 &v);
-};extern const Vec2
-   Vec2Zero; // Vec2(0, 0)
+};
+#define Vec2Zero (Vec4Zero.xy) // const Vec2(0, 0)
 /******************************************************************************/
 struct VecD2 // Vector 2D (double precision)
 {
@@ -503,6 +503,7 @@ struct VecD2 // Vector 2D (double precision)
    CONVERSION VecD2(C VecSB2 &v);
    CONVERSION VecD2(C VecUS2 &v);
 };
+#define VecD2Zero (VecD4Zero.xy) // const VecD2(0, 0)
 /******************************************************************************/
 struct Vec // Vector 3D
 {
@@ -684,8 +685,8 @@ struct Vec // Vector 3D
    CONVERSION Vec(C VecSB &v);
 };extern const Vec
    VecDir[DIR_NUM], // vector[DIR_ENUM] array
-   VecZero        , // Vec(0, 0, 0)
    VecOne         ; // Vec(1, 1, 1)
+#define VecZero (Vec4Zero.xyz) // const Vec(0, 0, 0)
 /******************************************************************************/
 struct VecD // Vector 3D (double precision)
 {
@@ -865,8 +866,8 @@ struct VecD // Vector 3D (double precision)
    CONVERSION VecD(C VecI  &v);
    CONVERSION VecD(C VecB  &v);
    CONVERSION VecD(C VecSB &v);
-};extern const VecD
-   VecDZero; // VecD(0, 0, 0)
+};
+#define VecDZero (VecD4Zero.xyz) // const VecD(0, 0, 0)
 /******************************************************************************/
 struct Vec4 // Vector 4D
 {
@@ -1069,7 +1070,8 @@ struct VecD4 // Vector 4D (double precision)
    CONVERSION VecD4(C VecI4  &v);
    CONVERSION VecD4(C VecB4  &v);
    CONVERSION VecD4(C VecSB4 &v);
-};
+};extern VecD4
+   const VecD4Zero; // VecD4(0, 0, 0, 0)
 /******************************************************************************/
 struct VecB2 // Vector 2D (Byte)
 {
@@ -2201,6 +2203,7 @@ Flt Dist(C Vec2  &a, C Vec2  &b);
 Flt Dist(C VecI2 &a, C Vec2  &b);
 Flt Dist(C Vec2  &a, C VecI2 &b);
 Dbl Dist(C VecD2 &a, C VecD2 &b);
+Dbl Dist(C VecD2 &a, C VecI2 &b);
 Flt Dist(C VecI2 &a, C VecI2 &b);
 Flt Dist(C Vec   &a, C Vec   &b);
 Dbl Dist(C VecD  &a, C Vec   &b);
@@ -2213,6 +2216,7 @@ Flt Dist2(C Vec2  &a, C Vec2  &b);
 Flt Dist2(C VecI2 &a, C Vec2  &b);
 Flt Dist2(C Vec2  &a, C VecI2 &b);
 Dbl Dist2(C VecD2 &a, C VecD2 &b);
+Dbl Dist2(C VecD2 &a, C VecI2 &b);
 Int Dist2(C VecI2 &a, C VecI2 &b);
 Flt Dist2(C Vec   &a, C Vec   &b);
 Dbl Dist2(C VecD  &a, C Vec   &b);

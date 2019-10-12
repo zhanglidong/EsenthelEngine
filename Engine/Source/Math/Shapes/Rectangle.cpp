@@ -2,6 +2,8 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
+const Rect RectZero(0, 0, 0, 0);
+/******************************************************************************/
 Rect::Rect(C RectI    &rect  ) {set (rect.min   , rect.max   );}
 Rect::Rect(C RectD    &rect  ) {set (rect.min   , rect.max   );}
 Rect::Rect(C Box      &box   ) {set (box .min.xy, box .max.xy);}
@@ -480,6 +482,43 @@ Flt Dist(C Vec2 &point, C RectI &rect)
    if(point.y<rect.min.y)return rect.min.y-point.y; // d side
    return 0;
 }
+Dbl Dist(C VecD2 &point, C RectD &rect)
+{
+   if(point.x>rect.max.x) // right
+   {
+      if(point.y<rect.min.y)return Dist(point, rect.rd()); // rd corner
+      if(point.y>rect.max.y)return Dist(point, rect.max ); // ru corner
+                            return point.x-rect.max.x;     // r  side
+   }
+   if(point.x<rect.min.x) // left
+   {
+      if(point.y>rect.max.y)return Dist(point, rect.lu()); // lu corner
+      if(point.y<rect.min.y)return Dist(point, rect.min ); // ld corner
+                            return rect.min.x-point.x;     // l  side
+   }
+   if(point.y>rect.max.y)return point.y-rect.max.y; // u side
+   if(point.y<rect.min.y)return rect.min.y-point.y; // d side
+   return 0;
+}
+Dbl Dist(C VecD2 &point, C RectI &rect)
+{
+   if(point.x>rect.max.x) // right
+   {
+      if(point.y<rect.min.y)return Dist(point, rect.rd()); // rd corner
+      if(point.y>rect.max.y)return Dist(point, rect.max ); // ru corner
+                            return point.x-rect.max.x;     // r  side
+   }
+   if(point.x<rect.min.x) // left
+   {
+      if(point.y>rect.max.y)return Dist(point, rect.lu()); // lu corner
+      if(point.y<rect.min.y)return Dist(point, rect.min ); // ld corner
+                            return rect.min.x-point.x;     // l  side
+   }
+   if(point.y>rect.max.y)return point.y-rect.max.y; // u side
+   if(point.y<rect.min.y)return rect.min.y-point.y; // d side
+   return 0;
+}
+/******************************************************************************/
 Flt Dist2(C Vec2 &point, C Rect &rect)
 {
    if(point.x>rect.max.x) // right
@@ -516,6 +555,43 @@ Flt Dist2(C Vec2 &point, C RectI &rect)
    if(point.y<rect.min.y)return Sqr(rect.min.y-point.y); // d side
    return 0;
 }
+Dbl Dist2(C VecD2 &point, C RectD &rect)
+{
+   if(point.x>rect.max.x) // right
+   {
+      if(point.y<rect.min.y)return Dist2(point, rect.rd()); // rd corner
+      if(point.y>rect.max.y)return Dist2(point, rect.max ); // ru corner
+                            return Sqr(point.x-rect.max.x); // r  side
+   }
+   if(point.x<rect.min.x) // left
+   {
+      if(point.y>rect.max.y)return Dist2(point, rect.lu()); // lu corner
+      if(point.y<rect.min.y)return Dist2(point, rect.min ); // ld corner
+                            return Sqr(rect.min.x-point.x); // l  side
+   }
+   if(point.y>rect.max.y)return Sqr(point.y-rect.max.y); // u side
+   if(point.y<rect.min.y)return Sqr(rect.min.y-point.y); // d side
+   return 0;
+}
+Dbl Dist2(C VecD2 &point, C RectI &rect)
+{
+   if(point.x>rect.max.x) // right
+   {
+      if(point.y<rect.min.y)return Dist2(point, rect.rd()); // rd corner
+      if(point.y>rect.max.y)return Dist2(point, rect.max ); // ru corner
+                            return Sqr(point.x-rect.max.x); // r  side
+   }
+   if(point.x<rect.min.x) // left
+   {
+      if(point.y>rect.max.y)return Dist2(point, rect.lu()); // lu corner
+      if(point.y<rect.min.y)return Dist2(point, rect.min ); // ld corner
+                            return Sqr(rect.min.x-point.x); // l  side
+   }
+   if(point.y>rect.max.y)return Sqr(point.y-rect.max.y); // u side
+   if(point.y<rect.min.y)return Sqr(rect.min.y-point.y); // d side
+   return 0;
+}
+/******************************************************************************/
 Flt Dist(C Rect &a, C Rect &b)
 {
    return Dist(Max(0, Abs(a.centerX()-b.centerX())-(a.w()+b.w())*0.5f),
@@ -528,6 +604,11 @@ Flt Dist2PointSquare(C Vec2 &pos, C Vec2 &square_center, Flt square_radius)
          +Sqr(Max(Abs(pos.y-square_center.y)-square_radius, 0));
 }
 Flt Dist2PointSquare(C Vec2 &pos, C VecI2 &square_center, Flt square_radius)
+{
+   return Sqr(Max(Abs(pos.x-square_center.x)-square_radius, 0))
+         +Sqr(Max(Abs(pos.y-square_center.y)-square_radius, 0));
+}
+Dbl Dist2PointSquare(C VecD2 &pos, C VecI2 &square_center, Dbl square_radius)
 {
    return Sqr(Max(Abs(pos.x-square_center.x)-square_radius, 0))
          +Sqr(Max(Abs(pos.y-square_center.y)-square_radius, 0));
