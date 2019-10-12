@@ -422,6 +422,11 @@ void Matrix3::mul(C MatrixM &m, MatrixM &dest)C
    dest.pos=m.pos;
    mul(m.orn(), dest.orn());
 }
+void MatrixD3::mul(C MatrixD &m, MatrixD &dest)C
+{
+   dest.pos=m.pos;
+   mul(m.orn(), dest.orn());
+}
 /******************************************************************************/
 void Matrix::mul(C Matrix3 &m, Matrix &dest)C
 {
@@ -882,6 +887,7 @@ void Matrix3 ::div(C Matrix   &m, Matrix   &dest)C {Matrix   temp; m.inverse(tem
 void Matrix3 ::div(C MatrixM  &m, MatrixM  &dest)C {MatrixM  temp; m.inverse(temp); mul(temp, dest);}
 void MatrixD3::div(C Matrix3  &m, MatrixD3 &dest)C {Matrix3  temp; m.inverse(temp); mul(temp, dest);}
 void MatrixD3::div(C MatrixD3 &m, MatrixD3 &dest)C {MatrixD3 temp; m.inverse(temp); mul(temp, dest);}
+void MatrixD3::div(C MatrixD  &m, MatrixD  &dest)C {MatrixD  temp; m.inverse(temp); mul(temp, dest);}
 void Matrix  ::div(C Matrix3  &m, Matrix   &dest)C {Matrix3  temp; m.inverse(temp); mul(temp, dest);}
 void MatrixM ::div(C Matrix3  &m, MatrixM  &dest)C {Matrix3  temp; m.inverse(temp); mul(temp, dest);}
 void MatrixD ::div(C MatrixD3 &m, MatrixD  &dest)C {MatrixD3 temp; m.inverse(temp); mul(temp, dest);}
