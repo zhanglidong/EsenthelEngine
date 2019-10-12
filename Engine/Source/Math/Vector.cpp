@@ -30,10 +30,9 @@ const Vec VecDir[DIR_NUM]=
    Vec( 0, 0, 1),
    Vec( 0, 0,-1),
 };
-const Vec2 Vec2Zero(0);
-const Vec  VecZero (0), VecOne(1);
-const VecD VecDZero(0);
-const Vec4 Vec4Zero(0);
+const Vec   VecOne   (1);
+const Vec4  Vec4Zero (0);
+const VecD4 VecD4Zero(0);
 /******************************************************************************/
 Int MinI(Int x, Int y              ) {return y<x;}
 Int MinI(Flt x, Flt y              ) {return y<x;}
@@ -103,11 +102,13 @@ Flt Dist (C Vec2  &a, C Vec2  &b) {return Dist (a.x-b.x, a.y-b.y);}
 Flt Dist (C VecI2 &a, C Vec2  &b) {return Dist (a.x-b.x, a.y-b.y);}
 Flt Dist (C Vec2  &a, C VecI2 &b) {return Dist (a.x-b.x, a.y-b.y);}
 Dbl Dist (C VecD2 &a, C VecD2 &b) {return Dist (a.x-b.x, a.y-b.y);}
+Dbl Dist (C VecD2 &a, C VecI2 &b) {return Dist (a.x-b.x, a.y-b.y);}
 Flt Dist (C VecI2 &a, C VecI2 &b) {return Dist (a.x-b.x, a.y-b.y);}
 Flt Dist2(C Vec2  &a, C Vec2  &b) {return Dist2(a.x-b.x, a.y-b.y);}
 Flt Dist2(C VecI2 &a, C Vec2  &b) {return Dist2(a.x-b.x, a.y-b.y);}
 Flt Dist2(C Vec2  &a, C VecI2 &b) {return Dist2(a.x-b.x, a.y-b.y);}
 Dbl Dist2(C VecD2 &a, C VecD2 &b) {return Dist2(a.x-b.x, a.y-b.y);}
+Dbl Dist2(C VecD2 &a, C VecI2 &b) {return Dist2(a.x-b.x, a.y-b.y);}
 Int Dist2(C VecI2 &a, C VecI2 &b) {return Dist2(a.x-b.x, a.y-b.y);}
 Flt Dist (C Vec   &a, C Vec   &b) {return Dist (a.x-b.x, a.y-b.y, a.z-b.z);}
 Dbl Dist (C VecD  &a, C Vec   &b) {return Dist (a.x-b.x, a.y-b.y, a.z-b.z);}

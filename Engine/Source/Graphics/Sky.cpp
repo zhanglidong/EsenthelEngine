@@ -177,7 +177,7 @@ void SkyClass::draw()
          Sh.SkySunPos      ->set(Sun.pos);
       }else
       {
-         Sh.SkySunHighlight->set(Vec2(0));
+         Sh.SkySunHighlight->set(Vec2Zero);
       }
 
       if(cloud)Clouds.layered.commit();

@@ -867,7 +867,7 @@ Dialog& Dialog::autoSize()
 
    Flt  max_w=Max(button_w, text_w);
    Vec2 size(Gui.dialog_padd+max_w+Gui.dialog_padd, Gui.dialog_padd+text_h+Gui.dialog_padd+Gui.dialog_button_height+Gui.dialog_padd);
-   rect(Rect_C(Vec2(0), size+defaultInnerPaddingSize()));
+   rect(Rect_C(Vec2Zero, size+defaultInnerPaddingSize()));
    text.rect(Rect_U(size.x/2, -Gui.dialog_padd, text_w, text_h));
 
    Flt x=(size.x-button_w)/2, y=text.rect().min.y-Gui.dialog_padd;

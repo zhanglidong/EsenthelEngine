@@ -163,7 +163,8 @@ struct Rect // Rectangle Shape
    CONVERSION Rect(C Tri2     &tri   );
    CONVERSION Rect(C Quad2    &quad  );
    CONVERSION Rect(C MeshBase &mshb  );
-};
+};extern const Rect
+   RectZero; // Rect(0, 0, 0, 0)
 /******************************************************************************/
 // rectangles with helper constructors
 struct Rect_RU : Rect {  Rect_RU(C Vec2 &ru, C Vec2 &size) {setRU(ru, size);}   Rect_RU(C Vec2 &ru, Flt w, Flt h) {setRU(ru, w, h);}   Rect_RU(Flt x, Flt y, Flt w, Flt h) {setRU(x, y, w, h);}   Rect_RU(C Rect &rect) {SCAST(Rect, T)=rect;}  }; // create rectangle by specifying its "Right Up  " position
@@ -427,14 +428,19 @@ inline RectI RoundGPU(C Rect &r) {return RectI(RoundGPU(r.min.x), RoundGPU(r.min
 #endif
 
 // distance
-Flt Dist (C Vec2 &point, C Rect  &rect); //         distance between point     and a rectangle
-Flt Dist (C Vec2 &point, C RectI &rect); //         distance between point     and a rectangle
-Flt Dist2(C Vec2 &point, C Rect  &rect); // squared distance between point     and a rectangle
-Flt Dist2(C Vec2 &point, C RectI &rect); // squared distance between point     and a rectangle
-Flt Dist (C Rect &a    , C Rect  &b   ); //         distance between rectangle and a rectangle
+Flt Dist (C Vec2  &point, C Rect  &rect); //         distance between point     and a rectangle
+Flt Dist (C Vec2  &point, C RectI &rect); //         distance between point     and a rectangle
+Dbl Dist (C VecD2 &point, C RectD &rect); //         distance between point     and a rectangle
+Dbl Dist (C VecD2 &point, C RectI &rect); //         distance between point     and a rectangle
+Flt Dist2(C Vec2  &point, C Rect  &rect); // squared distance between point     and a rectangle
+Flt Dist2(C Vec2  &point, C RectI &rect); // squared distance between point     and a rectangle
+Dbl Dist2(C VecD2 &point, C RectD &rect); // squared distance between point     and a rectangle
+Dbl Dist2(C VecD2 &point, C RectI &rect); // squared distance between point     and a rectangle
+Flt Dist (C Rect  &a    , C Rect  &b   ); //         distance between rectangle and a rectangle
 
-Flt Dist2PointSquare(C Vec2 &pos, C Vec2  &square_center, Flt square_radius);
-Flt Dist2PointSquare(C Vec2 &pos, C VecI2 &square_center, Flt square_radius);
+Flt Dist2PointSquare(C Vec2  &pos, C Vec2  &square_center, Flt square_radius);
+Flt Dist2PointSquare(C Vec2  &pos, C VecI2 &square_center, Flt square_radius);
+Dbl Dist2PointSquare(C VecD2 &pos, C VecI2 &square_center, Dbl square_radius);
 
 // cuts
 inline Bool Cuts   (C Vec2  &point, C Rect  &rect) {return rect.includes(point);} // if point     cuts rectangle

@@ -585,7 +585,7 @@ RendererClass& RendererClass::operator()(void (&render)())
           to  =T._shd_range;
       if(from>=D.viewRange()-EPSL) // disabled
       {
-         Sh.ShdRangeMulAdd->setConditional(Vec2(0));
+         Sh.ShdRangeMulAdd->setConditional(Vec2Zero);
       }else
       {
          MAX(to, from+0.01f);

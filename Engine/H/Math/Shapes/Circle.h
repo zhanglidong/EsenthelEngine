@@ -10,8 +10,8 @@ struct Circle // Circle Shape
    Vec2 pos; // center position
 
    // set
-   Circle& set(Flt r, C Vec2 &pos=Vec2(0,0)) {T.r=r; T.pos=pos      ; return T;}
-   Circle& set(Flt r, Flt x, Flt y         ) {T.r=r; T.pos.set(x, y); return T;}
+   Circle& set(Flt r, C Vec2 &pos=Vec2Zero) {T.r=r; T.pos=pos      ; return T;}
+   Circle& set(Flt r, Flt x, Flt y        ) {T.r=r; T.pos.set(x, y); return T;}
 
    // get
    Flt area     ()C {return PI *r*r;} // get surface area
@@ -39,8 +39,38 @@ struct Circle // Circle Shape
    void drawPie(C Color &color, Flt r_start, Flt angle_start=0, Flt angle_range=PI2, Bool fill=true, Int resolution=-1)C; // draw pie, 'r_start'=radius at which start drawing (0..'r'), 'angle_start'=angle at which start drawing (0..PI2), 'angle_range'=angle range (0..PI2)
 
    Circle() {}
-   Circle(Flt r, C Vec2 &pos=Vec2(0,0)) {set(r, pos );}
-   Circle(Flt r, Flt x, Flt y         ) {set(r, x, y);}
+   Circle(Flt r, C Vec2 &pos=Vec2Zero) {set(r, pos );}
+   Circle(Flt r, Flt x, Flt y        ) {set(r, x, y);}
+};
+/******************************************************************************/
+struct CircleM // Circle Shape (mixed precision)
+{
+   Flt   r  ; // radius
+   VecD2 pos; // center position
+
+   // set
+   CircleM& set(Flt r, C VecD2 &pos=VecD2Zero) {T.r=r; T.pos=pos      ; return T;}
+   CircleM& set(Flt r, Dbl x, Dbl y          ) {T.r=r; T.pos.set(x, y); return T;}
+
+   // get
+   Flt area     ()C {return PI *r*r;} // get surface area
+   Flt perimeter()C {return PI2*r  ;} // get perimeter
+
+   Str asText()C {return S+"Radius: "+r+", Pos: "+pos;} // get text description
+
+   // transform
+   CircleM& operator+=(C VecD2 &v) {pos+=v; return T;}
+   CircleM& operator-=(C VecD2 &v) {pos-=v; return T;}
+
+   friend CircleM operator+ (C CircleM &circle, C VecD2 &v) {return CircleM(circle)+=v;}
+   friend CircleM operator- (C CircleM &circle, C VecD2 &v) {return CircleM(circle)-=v;}
+
+   // operations
+   CircleM& extend(Flt e) {r+=e; return T;} // extend
+
+   CircleM() {}
+   CircleM(Flt r, C VecD2 &pos=VecD2Zero) {set(r, pos );}
+   CircleM(Flt r, Dbl x, Dbl y          ) {set(r, x, y);}
 };
 /******************************************************************************/
 struct CircleD // Circle Shape (double precision)
@@ -49,16 +79,28 @@ struct CircleD // Circle Shape (double precision)
    VecD2 pos; // center
 
    // set
-   CircleD& set(Dbl r, C VecD2 &pos=VecD2(0,0)) {T.r=r; T.pos=pos      ; return T;}
-   CircleD& set(Dbl r, Dbl x, Dbl y           ) {T.r=r; T.pos.set(x, y); return T;}
+   CircleD& set(Dbl r, C VecD2 &pos=VecD2Zero) {T.r=r; T.pos=pos      ; return T;}
+   CircleD& set(Dbl r, Dbl x, Dbl y          ) {T.r=r; T.pos.set(x, y); return T;}
 
    // get
    Dbl area     ()C {return PID *r*r;} // get surface area
    Dbl perimeter()C {return PID2*r  ;} // get perimeter
 
+   Str asText()C {return S+"Radius: "+r+", Pos: "+pos;} // get text description
+
+   // transform
+   CircleD& operator+=(C VecD2 &v) {pos+=v; return T;}
+   CircleD& operator-=(C VecD2 &v) {pos-=v; return T;}
+
+   friend CircleD operator+ (C CircleD &circle, C VecD2 &v) {return CircleD(circle)+=v;}
+   friend CircleD operator- (C CircleD &circle, C VecD2 &v) {return CircleD(circle)-=v;}
+
+   // operations
+   CircleD& extend(Dbl e) {r+=e; return T;} // extend
+
    CircleD() {}
-   CircleD(Dbl r, C VecD2 &pos=VecD2(0,0)) {set(r, pos );}
-   CircleD(Dbl r, Dbl x, Dbl y           ) {set(r, x, y);}
+   CircleD(Dbl r, C VecD2 &pos=VecD2Zero) {set(r, pos );}
+   CircleD(Dbl r, Dbl x, Dbl y          ) {set(r, x, y);}
 };
 /******************************************************************************/
 // distance

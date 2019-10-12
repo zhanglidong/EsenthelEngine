@@ -557,7 +557,7 @@ Rect GuiObj::localClientRect()C
       case GO_DESKTOP: return go->rect();
       default        : return Rect_LU(Vec2Zero, go->clientSize());
    }
-   return Rect(0, 0, 0, 0);
+   return RectZero;
 }
 CChar*  GuiObj::typeName()C {return GuiObjTypeName(type());}
 GuiObj& GuiObj::baseLevel(Int level) {if(_base_level!=level){_base_level=level; validateLevel();} return T;}

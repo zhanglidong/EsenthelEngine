@@ -457,10 +457,10 @@ struct MeshBase // Mesh Base (the most low level software mesh, contains : Verte
 
 #if EE_PRIVATE
    // csg
-   MeshBase& cut2D (                                                 ); // cut 2D mesh by self  !! beta !!
-   MeshBase& cut2D (C MeshBase &mshb                                 ); // cut 2D mesh by mshb  !! beta !!
-   MeshBase& grid2D(C Vec2     &scale=Vec2(1), C Vec2 &offset=Vec2(0)); // cut 2D mesh by grid  !! beta !!
-   MeshBase& csg2D (C MeshBase &mshb         ,   UInt sel            ); // csg 2D, sel=SEL_FLAG !! beta !!
+   MeshBase& cut2D (                                                  ); // cut 2D mesh by self  !! beta !!
+   MeshBase& cut2D (C MeshBase &mshb                                  ); // cut 2D mesh by mshb  !! beta !!
+   MeshBase& grid2D(C Vec2     &scale=Vec2(1), C Vec2 &offset=Vec2Zero); // cut 2D mesh by grid  !! beta !!
+   MeshBase& csg2D (C MeshBase &mshb         ,   UInt sel             ); // csg 2D, sel=SEL_FLAG !! beta !!
 #endif
 
    // add / remove

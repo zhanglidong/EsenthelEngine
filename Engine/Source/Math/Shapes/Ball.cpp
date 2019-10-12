@@ -476,7 +476,7 @@ Bool SweepBallEdge(C Ball &ball, C Vec &move, C Edge &edge, Flt *hit_frac, Vec *
       Circle circle(ball.r, matrix.      convert(ball.pos , true));
       Vec2   move2 =        matrix.orn().convert(move     , true) ;
       Vec2   normal; Flt frac;
-      if(SweepCirclePoint(circle, move2, Vec2(0), &frac, &normal))
+      if(SweepCirclePoint(circle, move2, Vec2Zero, &frac, &normal))
       {
          Vec point=ball.pos+frac*move;
          if(DistPointPlane(point, edge.p[0], matrix.z)<0)point_test=0;else
@@ -499,7 +499,7 @@ Bool SweepBallEdge(C BallD &ball, C VecD &move, C EdgeD &edge, Dbl *hit_frac, Ve
       CircleD circle(ball.r, matrix.      convert(ball.pos , true));
       VecD2   move2 =        matrix.orn().convert(move     , true) ;
       VecD2   normal; Dbl frac;
-      if(SweepCirclePoint(circle, move2, VecD2(0), &frac, &normal))
+      if(SweepCirclePoint(circle, move2, VecD2Zero, &frac, &normal))
       {
          VecD point=ball.pos+frac*move;
          if(DistPointPlane(point, edge.p[0], matrix.z)<0)point_test=0;else

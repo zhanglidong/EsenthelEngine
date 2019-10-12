@@ -484,9 +484,9 @@ Bool MeshRender::create(C MeshRender *src[], Int elms, UInt flag_and, Bool optim
                         }
                      }
                      if(temp.flag()&VTX_HLP     )if(vtx_hlp     >=0)Set(v, *(Vec  *)(src+vtx_hlp     ));else Set(v, VecZero);
-                     if(temp.flag()&VTX_TEX0    )if(vtx_tex0    >=0)Set(v, *(Vec2 *)(src+vtx_tex0    ));else Set(v, Vec2(0));
-                     if(temp.flag()&VTX_TEX1    )if(vtx_tex1    >=0)Set(v, *(Vec2 *)(src+vtx_tex1    ));else Set(v, Vec2(0));
-                     if(temp.flag()&VTX_TEX2    )if(vtx_tex2    >=0)Set(v, *(Vec2 *)(src+vtx_tex2    ));else Set(v, Vec2(0));
+                     if(temp.flag()&VTX_TEX0    )if(vtx_tex0    >=0)Set(v, *(Vec2 *)(src+vtx_tex0    ));else Set(v, Vec2Zero);
+                     if(temp.flag()&VTX_TEX1    )if(vtx_tex1    >=0)Set(v, *(Vec2 *)(src+vtx_tex1    ));else Set(v, Vec2Zero);
+                     if(temp.flag()&VTX_TEX2    )if(vtx_tex2    >=0)Set(v, *(Vec2 *)(src+vtx_tex2    ));else Set(v, Vec2Zero);
                      if(temp.flag()&VTX_MATRIX  )if(vtx_matrix  >=0)Set(v, *(VecB4*)(src+vtx_matrix  ));else Set(v, VecB4(  0, 0, 0, 0));
                      if(temp.flag()&VTX_BLEND   )if(vtx_blend   >=0)Set(v, *(VecB4*)(src+vtx_blend   ));else Set(v, VecB4(255, 0, 0, 0));
                      if(temp.flag()&VTX_SIZE    )if(vtx_size    >=0)Set(v, *(Flt  *)(src+vtx_size    ));else Set(v, Flt(0));

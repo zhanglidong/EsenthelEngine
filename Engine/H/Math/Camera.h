@@ -31,7 +31,7 @@ struct Camera
            pitch , // pitch angle                                    , default=0
            roll  , // roll  angle                                    , default=0
            dist  ; // distance between camera position and 'at' point, default=1
-   VecD    at    ; // point where camera is looking at               , default=Vec(0,0,0)
+   VecD    at    ; // point where camera is looking at               , default=VecD(0,0,0)
    MatrixM matrix; // camera object matrix                           , default=MatrixIdentity-Vec(0,0,1)
 
    Vec        vel, // camera         velocity (this gets modified when calling 'updateVelocities')
