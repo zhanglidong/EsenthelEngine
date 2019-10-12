@@ -754,13 +754,13 @@ Viewport4& Viewport4::resetPosOrn()
    if(lock())
    {
       View &v=view[VIEW_FRONT];
-      v.camera.setSpherical(VecZero, _default_yaw, _default_pitch, 0, perspective() ? _default_dist : v.viewport.range*0.5f);
+      v.camera.setSpherical(VecDZero, _default_yaw, _default_pitch, 0, perspective() ? _default_dist : v.viewport.range*0.5f);
    }else
    {
-      if(_last==&view[VIEW_FRONT   ])_last->camera.setSpherical(VecZero, _default_yaw     , _default_pitch     , 0, perspective() ? _default_dist : _last->viewport.range*0.5f);else
-      if(_last==&view[VIEW_TOP     ])_last->camera.setSpherical(VecZero, _default_yaw     , _default_pitch-PI_2, 0, perspective() ? _default_dist : _last->viewport.range*0.5f);else
-      if(_last==&view[VIEW_DIAGONAL])_last->camera.setSpherical(VecZero, _default_yaw+PI_4, _default_pitch-PI_4, 0, perspective() ? _default_dist : _last->viewport.range*0.5f);else
-      if(_last==&view[VIEW_LEFT    ])_last->camera.setSpherical(VecZero, _default_yaw+PI_2, _default_pitch     , 0, perspective() ? _default_dist : _last->viewport.range*0.5f);
+      if(_last==&view[VIEW_FRONT   ])_last->camera.setSpherical(VecDZero, _default_yaw     , _default_pitch     , 0, perspective() ? _default_dist : _last->viewport.range*0.5f);else
+      if(_last==&view[VIEW_TOP     ])_last->camera.setSpherical(VecDZero, _default_yaw     , _default_pitch-PI_2, 0, perspective() ? _default_dist : _last->viewport.range*0.5f);else
+      if(_last==&view[VIEW_DIAGONAL])_last->camera.setSpherical(VecDZero, _default_yaw+PI_4, _default_pitch-PI_4, 0, perspective() ? _default_dist : _last->viewport.range*0.5f);else
+      if(_last==&view[VIEW_LEFT    ])_last->camera.setSpherical(VecDZero, _default_yaw+PI_2, _default_pitch     , 0, perspective() ? _default_dist : _last->viewport.range*0.5f);
    }
    return T;
 }
