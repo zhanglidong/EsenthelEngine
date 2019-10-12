@@ -150,19 +150,19 @@ struct Rect // Rectangle Shape
    void drawShaded      (C Color &color0, C Color &color1,   Flt   border)C; // draw        shaded inside<->outside
    void drawBorderShaded(C Color &color0, C Color &color1, C Rect &border)C; // draw border shaded inside<->outside
 
-   Rect() {}
-   Rect(C Vec2     &vec                                       ) {set(vec, vec);}
-   Rect(C Vec2     &min  , C Vec2 &max                        ) {set(min, max);}
-   Rect(  Flt       min_x,   Flt   min_y, Flt max_x, Flt max_y) {set(min_x, min_y, max_x, max_y);}
-   Rect(C RectI    &rect  );
-   Rect(C RectD    &rect  );
-   Rect(C Box      &box   );
-   Rect(C Extent   &ext   );
-   Rect(C Circle   &circle);
-   Rect(C Edge2    &edge  );
-   Rect(C Tri2     &tri   );
-   Rect(C Quad2    &quad  );
-   Rect(C MeshBase &mshb  );
+              Rect() {}
+              Rect(C Vec2     &vec                                       ) {set(vec, vec);}
+              Rect(C Vec2     &min  , C Vec2 &max                        ) {set(min, max);}
+              Rect(  Flt       min_x,   Flt   min_y, Flt max_x, Flt max_y) {set(min_x, min_y, max_x, max_y);}
+   CONVERSION Rect(C RectI    &rect  );
+   CONVERSION Rect(C RectD    &rect  );
+   CONVERSION Rect(C Box      &box   );
+   CONVERSION Rect(C Extent   &ext   );
+   CONVERSION Rect(C Circle   &circle);
+   CONVERSION Rect(C Edge2    &edge  );
+   CONVERSION Rect(C Tri2     &tri   );
+   CONVERSION Rect(C Quad2    &quad  );
+   CONVERSION Rect(C MeshBase &mshb  );
 };
 /******************************************************************************/
 // rectangles with helper constructors

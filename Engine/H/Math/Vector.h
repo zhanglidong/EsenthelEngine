@@ -363,15 +363,15 @@ struct Vec2 // Vector 2D
    // draw
    void draw(C Color &color, Flt r=0.007f)C; // this can be optionally called outside of Render function
 
-   Vec2() {}
-   Vec2(Flt r       ) {set(r   );}
-   Vec2(Flt x, Flt y) {set(x, y);}
-   Vec2(C VecH2  &v);
-   Vec2(C VecD2  &v);
-   Vec2(C VecI2  &v);
-   Vec2(C VecB2  &v);
-   Vec2(C VecSB2 &v);
-   Vec2(C VecUS2 &v);
+              Vec2() {}
+              Vec2(Flt r       ) {set(r   );}
+              Vec2(Flt x, Flt y) {set(x, y);}
+   CONVERSION Vec2(C VecH2  &v);
+   CONVERSION Vec2(C VecD2  &v);
+   CONVERSION Vec2(C VecI2  &v);
+   CONVERSION Vec2(C VecB2  &v);
+   CONVERSION Vec2(C VecSB2 &v);
+   CONVERSION Vec2(C VecUS2 &v);
 };extern const Vec2
    Vec2Zero; // Vec2(0, 0)
 /******************************************************************************/
@@ -493,15 +493,15 @@ struct VecD2 // Vector 2D (double precision)
    // draw
    void draw(C Color &color, Flt r=0.007f)C; // this can be optionally called outside of Render function
 
-   VecD2() {}
-   VecD2(Dbl r       ) {set(r   );}
-   VecD2(Dbl x, Dbl y) {set(x, y);}
-   VecD2(C VecH2  &v);
-   VecD2(C Vec2   &v);
-   VecD2(C VecI2  &v);
-   VecD2(C VecB2  &v);
-   VecD2(C VecSB2 &v);
-   VecD2(C VecUS2 &v);
+              VecD2() {}
+              VecD2(Dbl r       ) {set(r   );}
+              VecD2(Dbl x, Dbl y) {set(x, y);}
+   CONVERSION VecD2(C VecH2  &v);
+   CONVERSION VecD2(C Vec2   &v);
+   CONVERSION VecD2(C VecI2  &v);
+   CONVERSION VecD2(C VecB2  &v);
+   CONVERSION VecD2(C VecSB2 &v);
+   CONVERSION VecD2(C VecUS2 &v);
 };
 /******************************************************************************/
 struct Vec // Vector 3D
@@ -673,15 +673,15 @@ struct Vec // Vector 3D
    void draw (C Color &color, Flt r=0.007f)C; // draw                                                             , this can be optionally called outside of Render function, this relies on active object matrix which can be set using 'SetMatrix' function
    void drawP(C Color &color, Flt r=0.007f)C; // draw with perspective making size dependent on distance to camera, this can be optionally called outside of Render function, this relies on active object matrix which can be set using 'SetMatrix' function
 
-   Vec() {}
-   Vec(Flt r              ) {set(r      );}
-   Vec(Flt x, Flt y, Flt z) {set(x, y, z);}
-   Vec(C Vec2 &xy  , Flt z) {set(xy  , z);}
-   Vec(C VecH  &v);
-   Vec(C VecD  &v);
-   Vec(C VecI  &v);
-   Vec(C VecB  &v);
-   Vec(C VecSB &v);
+              Vec() {}
+              Vec(Flt r              ) {set(r      );}
+              Vec(Flt x, Flt y, Flt z) {set(x, y, z);}
+              Vec(C Vec2  &xy , Flt z) {set(xy  , z);}
+   CONVERSION Vec(C VecH  &v);
+   CONVERSION Vec(C VecD  &v);
+   CONVERSION Vec(C VecI  &v);
+   CONVERSION Vec(C VecB  &v);
+   CONVERSION Vec(C VecSB &v);
 };extern const Vec
    VecDir[DIR_NUM], // vector[DIR_ENUM] array
    VecZero        , // Vec(0, 0, 0)
@@ -856,15 +856,15 @@ struct VecD // Vector 3D (double precision)
    void draw (C Color &color, Flt r=0.007f)C; // draw                                                             , this can be optionally called outside of Render function, this relies on active object matrix which can be set using 'SetMatrix' function
    void drawP(C Color &color, Flt r=0.007f)C; // draw with perspective making size dependent on distance to camera, this can be optionally called outside of Render function, this relies on active object matrix which can be set using 'SetMatrix' function
 
-   VecD() {}
-   VecD(Dbl r              ) {set(r      );}
-   VecD(Dbl x, Dbl y, Dbl z) {set(x, y, z);}
-   VecD(C VecD2 &xy , Dbl z) {set(xy  , z);}
-   VecD(C VecH  &v);
-   VecD(C Vec   &v);
-   VecD(C VecI  &v);
-   VecD(C VecB  &v);
-   VecD(C VecSB &v);
+              VecD() {}
+              VecD(Dbl r              ) {set(r      );}
+              VecD(Dbl x, Dbl y, Dbl z) {set(x, y, z);}
+              VecD(C VecD2 &xy , Dbl z) {set(xy  , z);}
+   CONVERSION VecD(C VecH  &v);
+   CONVERSION VecD(C Vec   &v);
+   CONVERSION VecD(C VecI  &v);
+   CONVERSION VecD(C VecB  &v);
+   CONVERSION VecD(C VecSB &v);
 };extern const VecD
    VecDZero; // VecD(0, 0, 0)
 /******************************************************************************/
@@ -949,17 +949,17 @@ struct Vec4 // Vector 4D
 
    Str asText(Int precision=INT_MAX)C; // return as text
 
-   Vec4() {}
-   Vec4(Flt r                     ) {set(r         );}
-   Vec4(Flt x, Flt y, Flt z, Flt w) {set(x, y, z, w);}
-   Vec4(C Vec2  &xy , Flt z, Flt w) {set(xy ,  z, w);}
-   Vec4(C Vec   &xyz,        Flt w) {set(xyz,     w);}
-   Vec4(C Vec2  &xy , C Vec2 &zw  ) {set(xy ,    zw);}
-   Vec4(C VecH4  &v);
-   Vec4(C VecD4  &v);
-   Vec4(C VecI4  &v);
-   Vec4(C VecB4  &v);
-   Vec4(C VecSB4 &v);
+              Vec4() {}
+              Vec4(Flt r                      ) {set(r         );}
+              Vec4(Flt x, Flt y , Flt z, Flt w) {set(x, y, z, w);}
+              Vec4(C Vec2   &xy , Flt z, Flt w) {set(xy ,  z, w);}
+              Vec4(C Vec    &xyz,        Flt w) {set(xyz,     w);}
+              Vec4(C Vec2   &xy , C Vec2 &zw  ) {set(xy ,    zw);}
+   CONVERSION Vec4(C VecH4  &v);
+   CONVERSION Vec4(C VecD4  &v);
+   CONVERSION Vec4(C VecI4  &v);
+   CONVERSION Vec4(C VecB4  &v);
+   CONVERSION Vec4(C VecSB4 &v);
 };extern Vec4
    const Vec4Zero; // Vec4(0, 0, 0, 0)
 /******************************************************************************/
@@ -1058,17 +1058,17 @@ struct VecD4 // Vector 4D (double precision)
 
    Str asText(Int precision=INT_MAX)C; // return as text
 
-   VecD4() {}
-   VecD4(Dbl r                     ) {set(r         );}
-   VecD4(Dbl x, Dbl y, Dbl z, Dbl w) {set(x, y, z, w);}
-   VecD4(C VecD2 &xy , Dbl z, Dbl w) {set(xy ,  z, w);}
-   VecD4(C VecD  &xyz,        Dbl w) {set(xyz,     w);}
-   VecD4(C VecD2 &xy , C VecD2 &zw ) {set(xy ,    zw);}
-   VecD4(C VecH4  &v);
-   VecD4(C Vec4   &v);
-   VecD4(C VecI4  &v);
-   VecD4(C VecB4  &v);
-   VecD4(C VecSB4 &v);
+              VecD4() {}
+              VecD4(Dbl r                      ) {set(r         );}
+              VecD4(Dbl x, Dbl y , Dbl z, Dbl w) {set(x, y, z, w);}
+              VecD4(C VecD2  &xy , Dbl z, Dbl w) {set(xy ,  z, w);}
+              VecD4(C VecD   &xyz,        Dbl w) {set(xyz,     w);}
+              VecD4(C VecD2  &xy , C VecD2 &zw ) {set(xy ,    zw);}
+   CONVERSION VecD4(C VecH4  &v);
+   CONVERSION VecD4(C Vec4   &v);
+   CONVERSION VecD4(C VecI4  &v);
+   CONVERSION VecD4(C VecB4  &v);
+   CONVERSION VecD4(C VecSB4 &v);
 };
 /******************************************************************************/
 struct VecB2 // Vector 2D (Byte)
@@ -1332,11 +1332,11 @@ struct VecUS2 // Vector 2D (Unsigned Short)
 
    Bool any()C {return x || y;} // if any component is non-zero
 
-   VecUS2() {}
-   VecUS2(UShort u          ) {set(u   );}
-   VecUS2(UShort x, UShort y) {set(x, y);}
-   VecUS2(C VecB2 &v);
-   VecUS2(C VecI2 &v);
+              VecUS2() {}
+              VecUS2(UShort u          ) {set(u   );}
+              VecUS2(UShort x, UShort y) {set(x, y);}
+   CONVERSION VecUS2(C VecB2 &v);
+   CONVERSION VecUS2(C VecI2 &v);
 };
 struct VecUS // Vector 3D (Unsigned Short)
 {
@@ -1394,12 +1394,12 @@ struct VecUS // Vector 3D (Unsigned Short)
 
    Bool any()C {return x || y || z;} // if any component is non-zero
 
-   VecUS() {}
-   VecUS(UShort u                    ) {set(u      );}
-   VecUS(UShort x, UShort y, UShort z) {set(x, y, z);}
-   VecUS(C VecUS2 &xy      , UShort z) {set( xy , z);}
-   VecUS(C VecB &v);
-   VecUS(C VecI &v);
+              VecUS() {}
+              VecUS(UShort u                    ) {set(u      );}
+              VecUS(UShort x, UShort y, UShort z) {set(x, y, z);}
+              VecUS(C VecUS2 &xy      , UShort z) {set( xy , z);}
+   CONVERSION VecUS(C VecB   &v);
+   CONVERSION VecUS(C VecI   &v);
 };
 /******************************************************************************/
 struct VecH2 // Vector 2D (Half)
@@ -1418,11 +1418,11 @@ struct VecH2 // Vector 2D (Half)
 
    Str asText(Int precision=INT_MAX)C; // return as text
 
-   VecH2() {}
-   VecH2(  Flt   f           ) {set(f       );}
-   VecH2(C Half &h           ) {set(h       );}
-   VecH2(C Half &x, C Half &y) {set(  x,   y);}
-   VecH2(C Vec2 &v           ) {set(v.x, v.y);}
+              VecH2() {}
+              VecH2(  Flt   f           ) {set(f       );}
+              VecH2(C Half &h           ) {set(h       );}
+              VecH2(C Half &x, C Half &y) {set(  x,   y);}
+   CONVERSION VecH2(C Vec2 &v           ) {set(v.x, v.y);}
 };
 struct VecH // Vector 3D (Half)
 {
@@ -1442,12 +1442,12 @@ struct VecH // Vector 3D (Half)
 
    Str asText(Int precision=INT_MAX)C; // return as text
 
-   VecH() {}
-   VecH(  Flt    f                      ) {set(f            );}
-   VecH(C Half  &h                      ) {set(h            );}
-   VecH(C Half  &x, C Half &y, C Half &z) {set(  x,   y,   z);}
-   VecH(C VecH2 &xy          , C Half &z) {set(  xy    ,   z);}
-   VecH(C Vec   &v                      ) {set(v.x, v.y, v.z);}
+              VecH() {}
+              VecH(  Flt    f                      ) {set(f            );}
+              VecH(C Half  &h                      ) {set(h            );}
+              VecH(C Half  &x, C Half &y, C Half &z) {set(  x,   y,   z);}
+              VecH(C VecH2 &xy          , C Half &z) {set(  xy    ,   z);}
+   CONVERSION VecH(C Vec   &v                      ) {set(v.x, v.y, v.z);}
 };
 struct VecH4 // Vector 4D (Half)
 {
@@ -1470,14 +1470,14 @@ struct VecH4 // Vector 4D (Half)
 
    Str asText(Int precision=INT_MAX)C; // return as text
 
-   VecH4() {}
-   VecH4(  Flt   f                                 ) {set(f                 );}
-   VecH4(C Half &h                                 ) {set(h                 );}
-   VecH4(C Half &x, C Half &y, C Half &z, C Half &w) {set(  x,   y,   z,   w);}
-   VecH4(C VecH2  &xy        , C Half &z, C Half &w) {set(xy      ,   z,   w);}
-   VecH4(C VecH   &xyz                  , C Half &w) {set(xyz          ,   w);}
-   VecH4(C VecH2  &xy        , C VecH2 &zw         ) {set(xy      ,  zw     );}
-   VecH4(C Vec4 &v                                 ) {set(v.x, v.y, v.z, v.w);}
+              VecH4() {}
+              VecH4(  Flt    f                                 ) {set(f                 );}
+              VecH4(C Half  &h                                 ) {set(h                 );}
+              VecH4(C Half  &x, C Half &y, C Half &z, C Half &w) {set(  x,   y,   z,   w);}
+              VecH4(C VecH2 &xy          , C Half &z, C Half &w) {set(xy      ,   z,   w);}
+              VecH4(C VecH  &xyz                    , C Half &w) {set(xyz          ,   w);}
+              VecH4(C VecH2 &xy          , C VecH2 &zw         ) {set(xy      ,  zw     );}
+   CONVERSION VecH4(C Vec4  &v                                 ) {set(v.x, v.y, v.z, v.w);}
 };
 /******************************************************************************/
 struct VecI2 // Vector 2D (integer)
@@ -1632,12 +1632,12 @@ struct VecI2 // Vector 2D (integer)
    VecI2 asIso_2()C {return VecI2(x+y*2, y-x*2);}
 #endif
 
-   VecI2() {}
-   VecI2(Int i       ) {set(i       );}
-   VecI2(Int x, Int y) {set(  x,   y);}
-   VecI2(C VecB2  &v ) {set(v.x, v.y);}
-   VecI2(C VecSB2 &v ) {set(v.x, v.y);}
-   VecI2(C VecUS2 &v ) {set(v.x, v.y);}
+              VecI2() {}
+              VecI2(Int i       ) {set(i       );}
+              VecI2(Int x, Int y) {set(  x,   y);}
+   CONVERSION VecI2(C VecB2  &v ) {set(v.x, v.y);}
+   CONVERSION VecI2(C VecSB2 &v ) {set(v.x, v.y);}
+   CONVERSION VecI2(C VecUS2 &v ) {set(v.x, v.y);}
 };
 /******************************************************************************/
 struct VecI // Vector 3D (integer)
@@ -1794,13 +1794,13 @@ struct VecI // Vector 3D (integer)
    VecI& remapFit(C MemPtr<Int> &map) {if(InRange(x, map))x=map[x];       if(InRange(y, map))y=map[y];       if(InRange(z, map))z=map[z];       return T;} // remap     components which are in range of the remap array
 #endif
 
-   VecI() {}
-   VecI(Int i              ) {set(i            );}
-   VecI(Int x, Int y, Int z) {set(  x,   y,   z);}
-   VecI(C VecI2 &xy , Int z) {set(xy      ,   z);}
-   VecI(C VecB  &v         ) {set(v.x, v.y, v.z);}
-   VecI(C VecSB &v         ) {set(v.x, v.y, v.z);}
-   VecI(C VecUS &v         ) {set(v.x, v.y, v.z);}
+              VecI() {}
+              VecI(Int i              ) {set(i            );}
+              VecI(Int x, Int y, Int z) {set(  x,   y,   z);}
+              VecI(C VecI2 &xy , Int z) {set(xy      ,   z);}
+   CONVERSION VecI(C VecB  &v         ) {set(v.x, v.y, v.z);}
+   CONVERSION VecI(C VecSB &v         ) {set(v.x, v.y, v.z);}
+   CONVERSION VecI(C VecUS &v         ) {set(v.x, v.y, v.z);}
 };
 /******************************************************************************/
 struct VecI4 // Vector 4D (integer)
@@ -1949,14 +1949,14 @@ struct VecI4 // Vector 4D (integer)
 
    Str asTextDots()C; // return as text with components separated using dots "x.y.z.w"
 
-   VecI4() {}
-   VecI4(Int i                     ) {set(i                 );}
-   VecI4(Int x, Int y, Int z, Int w) {set(  x,   y,   z,   w);}
-   VecI4(C VecI2 &xy , Int z, Int w) {set(xy      ,   z,   w);}
-   VecI4(C VecI  &xyz,        Int w) {set(xyz          ,   w);}
-   VecI4(C VecI2 &xy , C VecI2 &zw ) {set(xy      , zw      );}
-   VecI4(C VecB4  &v               ) {set(v.x, v.y, v.z, v.w);}
-   VecI4(C VecSB4 &v               ) {set(v.x, v.y, v.z, v.w);}
+              VecI4() {}
+              VecI4(Int i                      ) {set(i                 );}
+              VecI4(Int x, Int y , Int z, Int w) {set(  x,   y,   z,   w);}
+              VecI4(C VecI2  &xy , Int z, Int w) {set(xy      ,   z,   w);}
+              VecI4(C VecI   &xyz,        Int w) {set(xyz          ,   w);}
+              VecI4(C VecI2  &xy , C VecI2 &zw ) {set(xy      , zw      );}
+   CONVERSION VecI4(C VecB4  &v                ) {set(v.x, v.y, v.z, v.w);}
+   CONVERSION VecI4(C VecSB4 &v                ) {set(v.x, v.y, v.z, v.w);}
 };
 /******************************************************************************/
 // ROUNDING

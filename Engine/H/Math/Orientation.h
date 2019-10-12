@@ -64,12 +64,12 @@ struct Orient // Orientation
    // io
    void save(MemPtr<TextNode> nodes)C; // save as text
 
-   Orient() {}
-   Orient(C Vec        &dir, C Vec &perp) {T.dir=dir; T.perp=perp;}
-   Orient(C OrientD    &o);
-   Orient(C Matrix3    &m);
-   Orient(C MatrixD3   &m);
-   Orient(C Quaternion &q);
+              Orient() {}
+              Orient(C Vec        &dir, C Vec &perp) {T.dir=dir; T.perp=perp;}
+   CONVERSION Orient(C OrientD    &o);
+   CONVERSION Orient(C Matrix3    &m);
+   CONVERSION Orient(C MatrixD3   &m);
+   CONVERSION Orient(C Quaternion &q);
 };
 /******************************************************************************/
 struct OrientD // Orientation (double precision)
@@ -115,11 +115,11 @@ struct OrientD // Orientation (double precision)
    // io
    void save(MemPtr<TextNode> nodes)C; // save as text
 
-   OrientD() {}
-   OrientD(C VecD     &dir, C VecD &perp) {T.dir=dir; T.perp=perp;}
-   OrientD(C Orient   &o);
-   OrientD(C Matrix3  &m);
-   OrientD(C MatrixD3 &m);
+              OrientD() {}
+              OrientD(C VecD     &dir, C VecD &perp) {T.dir=dir; T.perp=perp;}
+   CONVERSION OrientD(C Orient   &o);
+   CONVERSION OrientD(C Matrix3  &m);
+   CONVERSION OrientD(C MatrixD3 &m);
 };
 /******************************************************************************/
 struct OrientP : Orient // Positioned Orientation
@@ -172,13 +172,13 @@ struct OrientP : Orient // Positioned Orientation
    // io
    void save(MemPtr<TextNode> nodes)C; // save as text
 
-   OrientP() {}
-   OrientP(C Vec        &pos, C Vec &dir, C Vec &perp) {T.pos=pos; T.dir=dir; T.perp=perp;}
-   OrientP(C Orient     &o);
-   OrientP(C Matrix3    &m);
-   OrientP(C Matrix     &m);
-   OrientP(C MatrixM    &m);
-   OrientP(C Quaternion &q);
+              OrientP() {}
+              OrientP(C Vec        &pos, C Vec &dir, C Vec &perp) {T.pos=pos; T.dir=dir; T.perp=perp;}
+   CONVERSION OrientP(C Orient     &o);
+   CONVERSION OrientP(C Matrix3    &m);
+   CONVERSION OrientP(C Matrix     &m);
+   CONVERSION OrientP(C MatrixM    &m);
+   CONVERSION OrientP(C Quaternion &q);
 };
 /******************************************************************************/
 struct OrientM : Orient // Positioned Orientation (mixed precision)
@@ -228,13 +228,13 @@ struct OrientM : Orient // Positioned Orientation (mixed precision)
    // io
    void save(MemPtr<TextNode> nodes)C; // save as text
 
-   OrientM() {}
-   OrientM(C VecD       &pos, C Vec &dir, C Vec &perp) {T.pos=pos; T.dir=dir; T.perp=perp;}
-   OrientM(C Orient     &o);
-   OrientM(C Matrix3    &m);
-   OrientM(C Matrix     &m);
-   OrientM(C MatrixM    &m);
-   OrientM(C Quaternion &q);
+              OrientM() {}
+              OrientM(C VecD       &pos, C Vec &dir, C Vec &perp) {T.pos=pos; T.dir=dir; T.perp=perp;}
+   CONVERSION OrientM(C Orient     &o);
+   CONVERSION OrientM(C Matrix3    &m);
+   CONVERSION OrientM(C Matrix     &m);
+   CONVERSION OrientM(C MatrixM    &m);
+   CONVERSION OrientM(C Quaternion &q);
 };
 /******************************************************************************/
 struct AxisRoll // Axis+Roll based rotation

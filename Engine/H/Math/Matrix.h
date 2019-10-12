@@ -35,10 +35,14 @@ struct Matrix3 // Matrix 3x3 (orientation + scale)
 
    void     mul(C    Matrix3 &matrix, Matrix3 &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
    void     mul(C RevMatrix3 &matrix, Matrix3 &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
+   void     mul(C    Matrix  &matrix, Matrix  &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
+   void     mul(C    MatrixM &matrix, MatrixM &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
    Matrix3& mul(C    Matrix3 &matrix               ) {mul(matrix, T); return T;} // multiply self by 'matrix'
    Matrix3& mul(C RevMatrix3 &matrix               ) {mul(matrix, T); return T;} // multiply self by 'matrix'
 
    void     div(C Matrix3 &matrix, Matrix3 &dest)C;                           // divide self by 'matrix' and store result in 'dest', this method assumes that matrixes are orthogonal
+   void     div(C Matrix  &matrix, Matrix  &dest)C;                           // divide self by 'matrix' and store result in 'dest', this method assumes that matrixes are orthogonal
+   void     div(C MatrixM &matrix, MatrixM &dest)C;                           // divide self by 'matrix' and store result in 'dest', this method assumes that matrixes are orthogonal
    Matrix3& div(C Matrix3 &matrix               ) {div(matrix, T); return T;} // divide self by 'matrix'                           , this method assumes that matrixes are orthogonal
 
    void     divNormalized(C Matrix3 &matrix, Matrix3 &dest)C;                                     // divide self by 'matrix' and store result in 'dest', this method is faster than 'div' however 'matrix' must be normalized
@@ -140,15 +144,15 @@ struct Matrix3 // Matrix 3x3 (orientation + scale)
    // draw
    void draw(C Vec &pos, C Color &x_color=RED, C Color &y_color=GREEN, C Color &z_color=BLUE, Bool arrow=true)C; // draw axes, this can be optionally called outside of Render function, this relies on active object matrix which can be set using 'SetMatrix' function
 
-   Matrix3() {}
-   Matrix3(  Flt         scale) {setScale(scale);}
-   Matrix3(C Vec        &scale) {setScale(scale);}
-   Matrix3(C Vec        &x, C Vec &y, C Vec &z) {T.x=x; T.y=y; T.z=z;}
-   Matrix3(C MatrixD3   &m);
-   Matrix3(C Matrix     &m);
-   Matrix3(C Matrix4    &m);
-   Matrix3(C Orient     &o);
-   Matrix3(C Quaternion &q);
+              Matrix3() {}
+              Matrix3(  Flt         scale) {setScale(scale);}
+              Matrix3(C Vec        &scale) {setScale(scale);}
+              Matrix3(C Vec        &x, C Vec &y, C Vec &z) {T.x=x; T.y=y; T.z=z;}
+   CONVERSION Matrix3(C MatrixD3   &m);
+   CONVERSION Matrix3(C Matrix     &m);
+   CONVERSION Matrix3(C Matrix4    &m);
+   CONVERSION Matrix3(C Orient     &o);
+   CONVERSION Matrix3(C Quaternion &q);
 };
 /******************************************************************************/
 struct MatrixD3 // Matrix 3x3 (orientation + scale, double precision)
@@ -279,15 +283,15 @@ struct MatrixD3 // Matrix 3x3 (orientation + scale, double precision)
    // draw
    void draw(C VecD &pos, C Color &x_color=RED, C Color &y_color=GREEN, C Color &z_color=BLUE, Bool arrow=true)C; // draw axes, this can be optionally called outside of Render function, this relies on active object matrix which can be set using 'SetMatrix' function
 
-   MatrixD3() {}
-   MatrixD3(  Dbl          scale) {setScale(scale);}
-   MatrixD3(C VecD        &scale) {setScale(scale);}
-   MatrixD3(C VecD        &x, C VecD &y, C VecD &z) {T.x=x; T.y=y; T.z=z;}
-   MatrixD3(C Matrix3     &m);
-   MatrixD3(C MatrixD     &m);
-   MatrixD3(C Orient      &o);
-   MatrixD3(C OrientD     &o);
-   MatrixD3(C QuaternionD &q);
+              MatrixD3() {}
+              MatrixD3(  Dbl          scale) {setScale(scale);}
+              MatrixD3(C VecD        &scale) {setScale(scale);}
+              MatrixD3(C VecD        &x, C VecD &y, C VecD &z) {T.x=x; T.y=y; T.z=z;}
+   CONVERSION MatrixD3(C Matrix3     &m);
+   CONVERSION MatrixD3(C MatrixD     &m);
+   CONVERSION MatrixD3(C Orient      &o);
+   CONVERSION MatrixD3(C OrientD     &o);
+   CONVERSION MatrixD3(C QuaternionD &q);
 };
 /******************************************************************************/
 struct Matrix : Matrix3 // Matrix 4x3 (orientation + scale + position)
@@ -326,8 +330,8 @@ struct Matrix : Matrix3 // Matrix 4x3 (orientation + scale + position)
    friend Matrix operator/ (C Matrix  &a, C    Matrix  &b) {Matrix temp; a.div    (b, temp); return temp;} // get a/b
    friend Matrix operator/ (C Matrix  &a, C    MatrixM &b) {Matrix temp; a.div    (b, temp); return temp;} // get a/b
    friend Matrix operator~ (C Matrix  &m                 ) {Matrix temp; m.inverse(   temp); return temp;} // get inversed 'm'
-   friend Matrix operator* (C Matrix3 &a, C    Matrix  &b) {return Matrix(a)*=b;} // get a*b
-   friend Matrix operator/ (C Matrix3 &a, C    Matrix  &b) {return Matrix(a)/=b;} // get a/b
+   friend Matrix operator* (C Matrix3 &a, C    Matrix  &b) {Matrix temp; a.mul    (b, temp); return temp;} // get a*b
+   friend Matrix operator/ (C Matrix3 &a, C    Matrix  &b) {Matrix temp; a.div    (b, temp); return temp;} // get a/b
 
    void    mul(C    Matrix3 &matrix, Matrix  &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
    void    mul(C    Matrix  &matrix, Matrix  &dest)C;                           // multiply self by 'matrix' and store result in 'dest'
@@ -457,20 +461,20 @@ struct Matrix : Matrix3 // Matrix 4x3 (orientation + scale + position)
    // draw
    void draw(C Color &x_color=RED, C Color &y_color=GREEN, C Color &z_color=BLUE, Bool arrow=true)C {super::draw(pos, x_color, y_color, z_color, arrow);} // draw axes, this can be optionally called outside of Render function, this relies on active object matrix which can be set using 'SetMatrix' function
 
-   Matrix() {}
-   Matrix(  Flt       scale                  ) {setScale   (scale       );}
-   Matrix(C Vec      &pos                    ) {setPos     (pos         );}
-   Matrix(C Vec      &pos  ,   Flt      scale) {setPosScale(pos  , scale);}
-   Matrix(  Flt       scale, C Vec     &pos  ) {setScalePos(scale, pos  );}
-   Matrix(C Vec      &scale, C Vec     &pos  ) {setScalePos(scale, pos  );}
-   Matrix(C Matrix3  &orn  , C Vec     &pos  ) {T.orn()=orn;    T.pos=pos;}
-   Matrix(C Vec      &pos  , C Matrix3 &orn  ) {T.orn()=orn;    T.pos=pos;}
-   Matrix(C Matrix3  &m);
-   Matrix(C MatrixD3 &m);
-   Matrix(C MatrixM  &m);
-   Matrix(C MatrixD  &m);
-   Matrix(C Matrix4  &m);
-   Matrix(C OrientP  &o);
+              Matrix() {}
+              Matrix(  Flt       scale                  ) {setScale   (scale       );}
+              Matrix(C Vec      &pos                    ) {setPos     (pos         );}
+              Matrix(C Vec      &pos  ,   Flt      scale) {setPosScale(pos  , scale);}
+              Matrix(  Flt       scale, C Vec     &pos  ) {setScalePos(scale, pos  );}
+              Matrix(C Vec      &scale, C Vec     &pos  ) {setScalePos(scale, pos  );}
+              Matrix(C Matrix3  &orn  , C Vec     &pos  ) {T.orn()=orn;    T.pos=pos;}
+              Matrix(C Vec      &pos  , C Matrix3 &orn  ) {T.orn()=orn;    T.pos=pos;}
+   CONVERSION Matrix(C Matrix3  &m);
+   CONVERSION Matrix(C MatrixD3 &m);
+   CONVERSION Matrix(C MatrixM  &m);
+   CONVERSION Matrix(C MatrixD  &m);
+   CONVERSION Matrix(C Matrix4  &m);
+   CONVERSION Matrix(C OrientP  &o);
 };extern Matrix
    const MatrixIdentity; // identity
 #if EE_PRIVATE
@@ -532,8 +536,8 @@ struct MatrixM : Matrix3 // Matrix 4x3 (orientation + scale + position, mixed pr
    friend MatrixM operator/ (C MatrixM &a, C Matrix  &b) {MatrixM temp; a.div    (b, temp); return temp;} // get a/b
    friend MatrixM operator/ (C MatrixM &a, C MatrixM &b) {MatrixM temp; a.div    (b, temp); return temp;} // get a/b
    friend MatrixM operator~ (C MatrixM &m              ) {MatrixM temp; m.inverse(   temp); return temp;} // get inversed 'm'
-   friend MatrixM operator* (C Matrix3 &a, C MatrixM &b) {return MatrixM(a)*=b;} // get a*b
-   friend MatrixM operator/ (C Matrix3 &a, C MatrixM &b) {return MatrixM(a)/=b;} // get a/b
+   friend MatrixM operator* (C Matrix3 &a, C MatrixM &b) {MatrixM temp; a.mul    (b, temp); return temp;} // get a*b
+   friend MatrixM operator/ (C Matrix3 &a, C MatrixM &b) {MatrixM temp; a.div    (b, temp); return temp;} // get a/b
 
    void     mul(C MatrixM &matrix, Matrix  &dest)C; // multiply self by 'matrix' and store result in 'dest'
    void     mul(C Matrix3 &matrix, MatrixM &dest)C; // multiply self by 'matrix' and store result in 'dest'
@@ -624,18 +628,18 @@ struct MatrixM : Matrix3 // Matrix 4x3 (orientation + scale + position, mixed pr
    MatrixM& setPosDir   (C VecD &pos, C Vec &dir, C Vec &up              ); // set as pos='pos', z='dir', y='up' and calculate correct x  , 'dir up'       must be normalized
    MatrixM& setPosDir   (C VecD &pos, C Vec &dir, C Vec &up, C Vec &right); // set as pos='pos', z='dir', y='up', x='right'               , 'dir up right' must be normalized
 
-   MatrixM() {}
-   MatrixM(  Flt      scale                  ) {setScale   (scale       );}
-   MatrixM(C Vec     &pos                    ) {setPos     (pos         );}
-   MatrixM(C VecD    &pos                    ) {setPos     (pos         );}
-   MatrixM(C VecD    &pos  ,   Flt      scale) {setPosScale(pos  , scale);}
-   MatrixM(  Flt      scale, C VecD    &pos  ) {setScalePos(scale, pos  );}
-   MatrixM(C Vec     &scale, C VecD    &pos  ) {setScalePos(scale, pos  );}
-   MatrixM(C Matrix3 &orn  , C VecD    &pos  ) {T.orn()=orn;    T.pos=pos;}
-   MatrixM(C VecD    &pos  , C Matrix3 &orn  ) {T.orn()=orn;    T.pos=pos;}
-   MatrixM(C Matrix3 &m);
-   MatrixM(C Matrix  &m);
-   MatrixM(C OrientM &o);
+              MatrixM() {}
+              MatrixM(  Flt      scale                  ) {setScale   (scale       );}
+              MatrixM(C Vec     &pos                    ) {setPos     (pos         );}
+              MatrixM(C VecD    &pos                    ) {setPos     (pos         );}
+              MatrixM(C VecD    &pos  ,   Flt      scale) {setPosScale(pos  , scale);}
+              MatrixM(  Flt      scale, C VecD    &pos  ) {setScalePos(scale, pos  );}
+              MatrixM(C Vec     &scale, C VecD    &pos  ) {setScalePos(scale, pos  );}
+              MatrixM(C Matrix3 &orn  , C VecD    &pos  ) {T.orn()=orn;    T.pos=pos;}
+              MatrixM(C VecD    &pos  , C Matrix3 &orn  ) {T.orn()=orn;    T.pos=pos;}
+   CONVERSION MatrixM(C Matrix3 &m);
+   CONVERSION MatrixM(C Matrix  &m);
+   CONVERSION MatrixM(C OrientM &o);
 };extern MatrixM
    const MatrixMIdentity; // identity
 /******************************************************************************/
@@ -771,17 +775,17 @@ struct MatrixD : MatrixD3 // Matrix 4x3 (orientation + scale + position, double 
    // draw
    void draw(C Color &x_color=RED, C Color &y_color=GREEN, C Color &z_color=BLUE, Bool arrow=true)C {super::draw(pos, x_color, y_color, z_color, arrow);} // draw axes, this can be optionally called outside of Render function, this relies on active object matrix which can be set using 'SetMatrix' function
 
-   MatrixD() {}
-   MatrixD(  Dbl       scale                   ) {setScale   (scale       );}
-   MatrixD(C VecD     &pos                     ) {setPos     (pos         );}
-   MatrixD(C VecD     &pos  ,   Dbl       scale) {setPosScale(pos  , scale);}
-   MatrixD(  Dbl       scale, C VecD     &pos  ) {setScalePos(scale, pos  );}
-   MatrixD(C VecD     &scale, C VecD     &pos  ) {setScalePos(scale, pos  );}
-   MatrixD(C MatrixD3 &orn  , C VecD     &pos  ) {T.orn()=orn;    T.pos=pos;}
-   MatrixD(C VecD     &pos  , C MatrixD3 &orn  ) {T.orn()=orn;    T.pos=pos;}
-   MatrixD(C MatrixD3 &m);
-   MatrixD(C Matrix   &m);
-   MatrixD(C OrientP  &o);
+              MatrixD() {}
+              MatrixD(  Dbl       scale                   ) {setScale   (scale       );}
+              MatrixD(C VecD     &pos                     ) {setPos     (pos         );}
+              MatrixD(C VecD     &pos  ,   Dbl       scale) {setPosScale(pos  , scale);}
+              MatrixD(  Dbl       scale, C VecD     &pos  ) {setScalePos(scale, pos  );}
+              MatrixD(C VecD     &scale, C VecD     &pos  ) {setScalePos(scale, pos  );}
+              MatrixD(C MatrixD3 &orn  , C VecD     &pos  ) {T.orn()=orn;    T.pos=pos;}
+              MatrixD(C VecD     &pos  , C MatrixD3 &orn  ) {T.orn()=orn;    T.pos=pos;}
+   CONVERSION MatrixD(C MatrixD3 &m);
+   CONVERSION MatrixD(C Matrix   &m);
+   CONVERSION MatrixD(C OrientP  &o);
 };
 /******************************************************************************/
 struct Matrix4 // Matrix 4x4
@@ -808,9 +812,9 @@ struct Matrix4 // Matrix 4x4
    Matrix4& identity(); // set as identity
    Matrix4& zero    (); // set all vectors to zero
    
-   Matrix4() {}
-   Matrix4(C Matrix3 &m);
-   Matrix4(C Matrix  &m);
+              Matrix4() {}
+   CONVERSION Matrix4(C Matrix3 &m);
+   CONVERSION Matrix4(C Matrix  &m);
 };
 #if EE_PRIVATE
 extern Matrix4 ProjMatrix; // Projection Matrix
@@ -829,9 +833,9 @@ struct GpuMatrix // GPU Matrix (transposed Matrix)
    GpuMatrix& fromMul(C MatrixM &a, C Matrix  &b)=delete; // set from "a*b"
    GpuMatrix& fromMul(C MatrixM &a, C MatrixM &b)       ; // set from "a*b"
 
-   GpuMatrix() {}
-   GpuMatrix(C Matrix  &m);
-   GpuMatrix(C MatrixM &m);
+              GpuMatrix() {}
+   CONVERSION GpuMatrix(C Matrix  &m);
+   CONVERSION GpuMatrix(C MatrixM &m);
 };
 #endif
 struct RevMatrix3 : Matrix3 // Reverse Matrix

@@ -32,9 +32,9 @@ struct Quaternion : Vec4
    Vec axis     ()C; // get rotation axis
    Vec axisAngle()C; // get rotation axis scaled by angle
 
-   Quaternion() {}
-   Quaternion(C Vec4    &v) : Vec4(v) {}
-   Quaternion(C Matrix3 &m);
+              Quaternion() {}
+              Quaternion(C Vec4    &v) : Vec4(v) {}
+   CONVERSION Quaternion(C Matrix3 &m);
 };
 /******************************************************************************/
 struct QuaternionD : VecD4
@@ -66,9 +66,9 @@ struct QuaternionD : VecD4
    VecD axis     ()C; // get rotation axis
    VecD axisAngle()C; // get rotation axis scaled by angle
 
-   QuaternionD() {}
-   QuaternionD(C VecD4    &v) : VecD4(v) {}
-   QuaternionD(C MatrixD3 &m);
+              QuaternionD() {}
+              QuaternionD(C VecD4    &v) : VecD4(v) {}
+   CONVERSION QuaternionD(C MatrixD3 &m);
 };
 /******************************************************************************/
 Quaternion GetTangent(C Quaternion &prev, C Quaternion &cur, C Quaternion &next); // get tangent

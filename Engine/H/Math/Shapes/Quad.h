@@ -108,9 +108,9 @@ struct Quad // Quadrilateral 3D
    friend Quad operator* (C Quad &quad,   Flt  r) {return Quad(quad)*=r;}
    friend Quad operator/ (C Quad &quad,   Flt  r) {return Quad(quad)/=r;}
 
-   Quad() {}
-   Quad(C Vec   &p0, C Vec &p1, C Vec &p2, C Vec &p3, C Vec *normal=null) {set(p0, p1, p2, p3, normal);}
-   Quad(C QuadD &quad);
+              Quad() {}
+              Quad(C Vec   &p0, C Vec &p1, C Vec &p2, C Vec &p3, C Vec *normal=null) {set(p0, p1, p2, p3, normal);}
+   CONVERSION Quad(C QuadD &quad);
 };
 /******************************************************************************/
 struct QuadD // Quadrilateral 3D (double precision)
@@ -141,9 +141,9 @@ struct QuadD // Quadrilateral 3D (double precision)
    friend QuadD operator* (C QuadD &quad,   Dbl   r) {return QuadD(quad)*=r;}
    friend QuadD operator/ (C QuadD &quad,   Dbl   r) {return QuadD(quad)/=r;}
 
-   QuadD() {}
-   QuadD(C VecD &p0, C VecD &p1, C VecD &p2, C VecD &p3, C VecD *normal=null) {set(p0, p1, p2, p3, normal);}
-   QuadD(C Quad &quad);
+              QuadD() {}
+              QuadD(C VecD &p0, C VecD &p1, C VecD &p2, C VecD &p3, C VecD *normal=null) {set(p0, p1, p2, p3, normal);}
+   CONVERSION QuadD(C Quad &quad);
 };
 /******************************************************************************/
 // distance between point and a quad, if you're sure that quad's are fully valid (their triangles are coplanar) set 'test_quads_as_2_tris'=false for performance boost

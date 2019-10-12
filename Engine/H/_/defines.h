@@ -165,6 +165,13 @@ ASSERT(SIZE(Char8)==1); // size of Char8 must be 1 byte
    #define   INLINE inline __attribute__((always_inline)) // force   inlining, this is stronger than 'inline'
    #define NOINLINE        __attribute__((     noinline)) // disable inlining
 #endif
+
+#define WARN(message) [[deprecated(message)]]
+#if 0 // this can be enabled to list all conversions during compilation
+   #define CONVERSION WARN("Conversion")
+#else
+   #define CONVERSION
+#endif
 /******************************************************************************/
 // CONFIGURATION
 /******************************************************************************/

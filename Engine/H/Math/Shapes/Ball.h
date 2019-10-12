@@ -56,14 +56,14 @@ struct Ball // Ball Shape
    void drawAngle(C Color &color      , Flt from, Flt to, C Vec &up, Bool fill=false, C VecI2 &resolution=VecI2(-1))C; // draw with angle ranges, this relies on active object matrix which can be set using 'SetMatrix' function
    void draw2    (C Color &color=WHITE,                              Bool fill=false,   Int    resolution=      -1 )C; // draw box based        , this relies on active object matrix which can be set using 'SetMatrix' function
 
-   Ball() {}
-   Ball(Flt r, C Vec &pos=VecZero) {set(r, pos);}
-   Ball(C Box      &box    );
-   Ball(C OBox     &obox   );
-   Ball(C Extent   &ext    );
-   Ball(C Capsule  &capsule);
-   Ball(C Shape    &shape  );
-   Ball(C MeshBase &mesh   );
+              Ball() {}
+              Ball(Flt r, C Vec &pos=VecZero) {set(r, pos);}
+   CONVERSION Ball(C Box      &box    );
+   CONVERSION Ball(C OBox     &obox   );
+   CONVERSION Ball(C Extent   &ext    );
+   CONVERSION Ball(C Capsule  &capsule);
+   CONVERSION Ball(C Shape    &shape  );
+   CONVERSION Ball(C MeshBase &mesh   );
 };
 /******************************************************************************/
 struct BallM // Ball Shape (mixed precision)

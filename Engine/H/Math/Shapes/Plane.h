@@ -51,7 +51,7 @@ struct Plane // Plane 3D
    void drawInfiniteByResolution(C Color &color,                                 Int resolution=-1)C; // this relies on active object matrix which can be set using 'SetMatrix' function
 
    Plane() {}
-   Plane(C Vec &pos,C Vec &normal) {set(pos, normal);}
+   Plane(C Vec &pos, C Vec &normal) {set(pos, normal);}
 };
 /******************************************************************************/
 struct PlaneM // Plane 3D (mixed precision)

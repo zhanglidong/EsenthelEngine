@@ -55,9 +55,9 @@ struct Tri2 // Triangle 2D
    friend Tri2 operator* (C Tri2 &tri,   Flt   r) {return Tri2(tri)*=r;}
    friend Tri2 operator/ (C Tri2 &tri,   Flt   r) {return Tri2(tri)/=r;}
 
-   Tri2() {}
-   Tri2(C Vec2  &p0, C Vec2 &p1, C Vec2 &p2) {set(p0, p1, p2);}
-   Tri2(C TriD2 &tri);
+              Tri2() {}
+              Tri2(C Vec2  &p0, C Vec2 &p1, C Vec2 &p2) {set(p0, p1, p2);}
+   CONVERSION Tri2(C TriD2 &tri);
 };
 /******************************************************************************/
 struct TriD2 // Triangle 2D (double precision)
@@ -87,9 +87,9 @@ struct TriD2 // Triangle 2D (double precision)
    friend TriD2 operator* (C TriD2 &tri,   Dbl    r) {return TriD2(tri)*=r;}
    friend TriD2 operator/ (C TriD2 &tri,   Dbl    r) {return TriD2(tri)/=r;}
 
-   TriD2() {}
-   TriD2(C VecD2 &p0, C VecD2 &p1, C VecD2 &p2) {set(p0, p1, p2);}
-   TriD2(C Tri2  &tri);
+              TriD2() {}
+              TriD2(C VecD2 &p0, C VecD2 &p1, C VecD2 &p2) {set(p0, p1, p2);}
+   CONVERSION TriD2(C Tri2  &tri);
 };
 /******************************************************************************/
 struct Tri // Triangle 3D
@@ -129,9 +129,9 @@ struct Tri // Triangle 3D
    friend Tri operator* (C Tri &tri,   Flt  r) {return Tri(tri)*=r;}
    friend Tri operator/ (C Tri &tri,   Flt  r) {return Tri(tri)/=r;}
 
-   Tri() {}
-   Tri(C Vec  &p0, C Vec &p1, C Vec &p2, C Vec *normal=null) {set(p0, p1, p2, normal);}
-   Tri(C TriD &tri);
+              Tri() {}
+              Tri(C Vec  &p0, C Vec &p1, C Vec &p2, C Vec *normal=null) {set(p0, p1, p2, normal);}
+   CONVERSION Tri(C TriD &tri);
 };
 /******************************************************************************/
 struct TriD // Triangle 3D (double precision)
@@ -164,9 +164,9 @@ struct TriD // Triangle 3D (double precision)
    friend TriD operator* (C TriD &tri,   Dbl   r) {return TriD(tri)*=r;}
    friend TriD operator/ (C TriD &tri,   Dbl   r) {return TriD(tri)/=r;}
 
-   TriD() {}
-   TriD(C VecD &p0, C VecD &p1, C VecD &p2, C VecD *normal=null) {set(p0, p1, p2, normal);}
-   TriD(C Tri  &tri);
+              TriD() {}
+              TriD(C VecD &p0, C VecD &p1, C VecD &p2, C VecD *normal=null) {set(p0, p1, p2, normal);}
+   CONVERSION TriD(C Tri  &tri);
 };
 /******************************************************************************/
 // angle

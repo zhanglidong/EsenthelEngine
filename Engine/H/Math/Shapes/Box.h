@@ -126,31 +126,31 @@ struct Box // Box Shape
    // draw
    void draw(C Color &color=WHITE, Bool fill=false)C; // this relies on active object matrix which can be set using 'SetMatrix' function
 
-   Box() {}
-   Box(C Vec      &vec                                                         ) {min=max=vec                                  ;}
-   Box(C Vec      &min, C Vec &max                                             ) {set(min, max                                );}
-   Box(  Flt       min_x, Flt min_y, Flt min_z, Flt max_x, Flt max_y, Flt max_z) {set(min_x, min_y, min_z, max_x, max_y, max_z);}
-   Box(  Flt       r,               C Vec &pos=VecZero                         ) {set(r,       pos                            );}
-   Box(  Flt       w, Flt h, Flt d, C Vec &pos=VecZero                         ) {set(w, h, d, pos                            );}
-   Box(C Rect     &rect    );
-   Box(C Circle   &circle  );
-   Box(C Edge     &edge    );
-   Box(C Tri      &tri     );
-   Box(C Quad     &quad    );
-   Box(C BoxD     &box     );
-   Box(C BoxI     &box     );
-   Box(C OBox     &obox    );
-   Box(C Extent   &ext     );
-   Box(C Ball     &ball    );
-   Box(C Capsule  &capsule );
-   Box(C Tube     &tube    );
-   Box(C Torus    &torus   );
-   Box(C Cone     &cone    );
-   Box(C Pyramid  &pyramid );
-   Box(C Shape    &shape   );
-   Box(C MeshBase &mesh    );
-   Box(C MeshPart &mesh    );
-   Box(C Skeleton &skeleton);
+              Box() {}
+              Box(C Vec      &vec                                                         ) {min=max=vec                                  ;}
+              Box(C Vec      &min, C Vec &max                                             ) {set(min, max                                );}
+              Box(  Flt       min_x, Flt min_y, Flt min_z, Flt max_x, Flt max_y, Flt max_z) {set(min_x, min_y, min_z, max_x, max_y, max_z);}
+              Box(  Flt       r,               C Vec &pos=VecZero                         ) {set(r,       pos                            );}
+              Box(  Flt       w, Flt h, Flt d, C Vec &pos=VecZero                         ) {set(w, h, d, pos                            );}
+   CONVERSION Box(C Rect     &rect    );
+   CONVERSION Box(C Circle   &circle  );
+   CONVERSION Box(C Edge     &edge    );
+   CONVERSION Box(C Tri      &tri     );
+   CONVERSION Box(C Quad     &quad    );
+   CONVERSION Box(C BoxD     &box     );
+   CONVERSION Box(C BoxI     &box     );
+   CONVERSION Box(C OBox     &obox    );
+   CONVERSION Box(C Extent   &ext     );
+   CONVERSION Box(C Ball     &ball    );
+   CONVERSION Box(C Capsule  &capsule );
+   CONVERSION Box(C Tube     &tube    );
+   CONVERSION Box(C Torus    &torus   );
+   CONVERSION Box(C Cone     &cone    );
+   CONVERSION Box(C Pyramid  &pyramid );
+   CONVERSION Box(C Shape    &shape   );
+   CONVERSION Box(C MeshBase &mesh    );
+   CONVERSION Box(C MeshPart &mesh    );
+   CONVERSION Box(C Skeleton &skeleton);
 };
 /******************************************************************************/
 // box with helper constructor
@@ -215,17 +215,17 @@ struct BoxD // Box Shape (double precision)
    BoxD& from    (C VecD &a, C VecD &b); // set box from 2 points
    Bool  from    (C VecD *v,   Int   n); // set box from 'n' 'v' points, false on fail
 
-   BoxD() {}
-   BoxD(C VecD  &vec                                                         ) {min=max=vec                                  ;}
-   BoxD(C VecD  &min, C VecD &max                                            ) {set(min, max                                );}
-   BoxD(  Dbl    min_x, Dbl min_y, Dbl min_z, Dbl max_x, Dbl max_y, Dbl max_z) {set(min_x, min_y, min_z, max_x, max_y, max_z);}
-   BoxD(  Dbl    r,               C VecD &pos=VecDZero                       ) {set(r,       pos                            );}
-   BoxD(  Dbl    w, Dbl h, Dbl d, C VecD &pos=VecDZero                       ) {set(w, h, d, pos                            );}
-   BoxD(C EdgeD &edge);
-   BoxD(C TriD  &tri );
-   BoxD(C QuadD &quad);
-   BoxD(C Box   &box );
-   BoxD(C BallM &ball);
+              BoxD() {}
+              BoxD(C VecD  &vec                                                         ) {min=max=vec                                  ;}
+              BoxD(C VecD  &min, C VecD &max                                            ) {set(min, max                                );}
+              BoxD(  Dbl    min_x, Dbl min_y, Dbl min_z, Dbl max_x, Dbl max_y, Dbl max_z) {set(min_x, min_y, min_z, max_x, max_y, max_z);}
+              BoxD(  Dbl    r,               C VecD &pos=VecDZero                       ) {set(r,       pos                            );}
+              BoxD(  Dbl    w, Dbl h, Dbl d, C VecD &pos=VecDZero                       ) {set(w, h, d, pos                            );}
+   CONVERSION BoxD(C EdgeD &edge);
+   CONVERSION BoxD(C TriD  &tri );
+   CONVERSION BoxD(C QuadD &quad);
+   CONVERSION BoxD(C Box   &box );
+   CONVERSION BoxD(C BallM &ball);
 };
 /******************************************************************************/
 struct BoxI // Box Shape (integer)
@@ -345,9 +345,9 @@ struct OBox // Oriented Box (Box with matrix transformation, can be rotated)
    // draw
    void draw(C Color &color=WHITE, Bool fill=false)C; // this relies on active object matrix which can be set using 'SetMatrix' function
 
-   OBox() {}
-   OBox(C Box   &box, C Matrix &matrix=MatrixIdentity) {T.box=box; T.matrix=matrix;} // 'matrix' must be normalized
-   OBox(C Torus &torus);
+              OBox() {}
+              OBox(C Box   &box, C Matrix &matrix=MatrixIdentity) {T.box=box; T.matrix=matrix;} // 'matrix' must be normalized
+   CONVERSION OBox(C Torus &torus);
 };
 /******************************************************************************/
 struct Extent // similar to 'Box' however it operates on center position and extents in each axis
@@ -445,10 +445,10 @@ struct Extent // similar to 'Box' however it operates on center position and ext
    // draw
    void draw(C Color &color=WHITE, Bool fill=false)C; // this relies on active object matrix which can be set using 'SetMatrix' function
 
-   Extent() {}
-   Extent(  Flt  ext, C Vec &pos=VecZero) {set(ext, pos);}
-   Extent(C Vec &ext, C Vec &pos=VecZero) {set(ext, pos);}
-   Extent(C Box &box);
+              Extent() {}
+              Extent(  Flt  ext, C Vec &pos=VecZero) {set(ext, pos);}
+              Extent(C Vec &ext, C Vec &pos=VecZero) {set(ext, pos);}
+   CONVERSION Extent(C Box &box);
 };
 /******************************************************************************/
 struct Boxes // Boxes, allows space partitioning divided into "cells.x * cells.y * cells.z" cells (sub-boxes)

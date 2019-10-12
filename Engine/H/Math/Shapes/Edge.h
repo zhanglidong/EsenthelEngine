@@ -58,11 +58,11 @@ struct Edge2 // Edge 2D
    void draw(C Color &color ,   Flt    width )C; // draw with width
    void draw(C Color &color0, C Color &color1)C; // draw with per-point color
 
-   Edge2() {}
-   Edge2(C Vec2 &p                             ) {set(p ,  p);}
-   Edge2(C Vec2 &p0, C Vec2 &p1                ) {set(p0, p1);}
-   Edge2(  Flt   x0,   Flt   y0, Flt x1, Flt y1) {set(x0, y0, x1, y1);}
-   Edge2(C EdgeD2 &edge                        );
+              Edge2() {}
+              Edge2(C Vec2 &p                             ) {set(p ,  p);}
+              Edge2(C Vec2 &p0, C Vec2 &p1                ) {set(p0, p1);}
+              Edge2(  Flt   x0,   Flt   y0, Flt x1, Flt y1) {set(x0, y0, x1, y1);}
+   CONVERSION Edge2(C EdgeD2 &edge                        );
 };
 /******************************************************************************/
 struct EdgeD2 // Edge 2D (double precision)
@@ -108,11 +108,11 @@ struct EdgeD2 // Edge 2D (double precision)
    friend EdgeD2 operator/ (C EdgeD2 &edge,   Dbl      r) {return EdgeD2(edge)/=r;}
    friend EdgeD2 operator* (C EdgeD2 &edge, C MatrixD &m) {return EdgeD2(edge)*=m;}
 
-   EdgeD2() {}
-   EdgeD2(C VecD2 &p                              ) {set(p , p );}
-   EdgeD2(C VecD2 &p0, C VecD2 &p1                ) {set(p0, p1);}
-   EdgeD2(  Dbl    x0,   Dbl    y0, Dbl x1, Dbl y1) {set(x0, y0, x1, y1);}
-   EdgeD2(C Edge2 &edge);
+              EdgeD2() {}
+              EdgeD2(C VecD2 &p                              ) {set(p , p );}
+              EdgeD2(C VecD2 &p0, C VecD2 &p1                ) {set(p0, p1);}
+              EdgeD2(  Dbl    x0,   Dbl    y0, Dbl x1, Dbl y1) {set(x0, y0, x1, y1);}
+   CONVERSION EdgeD2(C Edge2 &edge                           );
 };
 /******************************************************************************/
 struct Edge // Edge 3D
@@ -178,12 +178,12 @@ struct Edge // Edge 3D
    void draw(C Color &color ,   Flt    width )C; // draw with width          , this relies on active object matrix which can be set using 'SetMatrix' function
    void draw(C Color &color0, C Color &color1)C; // draw with per-point color, this relies on active object matrix which can be set using 'SetMatrix' function
 
-   Edge() {}
-   Edge(C Vec   &p                    ) {set(p , p    );}
-   Edge(C Vec   &p0, C Vec  &p1       ) {set(p0, p1   );}
-   Edge(C Vec2  &p0, C Vec2 &p1, Flt z) {set(p0, p1, z);}
-   Edge(C Edge2 &edge          , Flt z) {set(edge  , z);}
-   Edge(C EdgeD &edge                 );
+              Edge() {}
+              Edge(C Vec   &p                    ) {set(p , p    );}
+              Edge(C Vec   &p0, C Vec  &p1       ) {set(p0, p1   );}
+              Edge(C Vec2  &p0, C Vec2 &p1, Flt z) {set(p0, p1, z);}
+              Edge(C Edge2 &edge          , Flt z) {set(edge  , z);}
+   CONVERSION Edge(C EdgeD &edge                 );
 };
 /******************************************************************************/
 struct EdgeD // Edge 3D (double precision)
@@ -229,10 +229,10 @@ struct EdgeD // Edge 3D (double precision)
    void draw(C Color &color ,   Flt    width )C; // draw with width          , this relies on active object matrix which can be set using 'SetMatrix' function
    void draw(C Color &color0, C Color &color1)C; // draw with per-point color, this relies on active object matrix which can be set using 'SetMatrix' function
 
-   EdgeD() {}
-   EdgeD(C VecD &p             ) {set(p , p );}
-   EdgeD(C VecD &p0, C VecD &p1) {set(p0, p1);}
-   EdgeD(C Edge &edge          );
+              EdgeD() {}
+              EdgeD(C VecD &p             ) {set(p , p );}
+              EdgeD(C VecD &p0, C VecD &p1) {set(p0, p1);}
+   CONVERSION EdgeD(C Edge &edge          );
 };
 /******************************************************************************/
 struct Edge2_I : Edge2 // Edge 2D + information
@@ -246,8 +246,8 @@ struct Edge2_I : Edge2 // Edge 2D + information
    void set(C Edge2 &edge                             ) {set(edge.p[0], edge.p[1]);}
 
    Edge2_I() {}
-   Edge2_I(C Vec2  &a, C Vec2 &b, C Vec2 *normal=null){set(a, b, normal);}
-   Edge2_I(C Edge2 &edge                             ){set(edge        );}
+   Edge2_I(C Vec2  &a, C Vec2 &b, C Vec2 *normal=null) {set(a, b, normal);}
+   Edge2_I(C Edge2 &edge                             ) {set(edge        );}
 };
 /******************************************************************************/
 struct EdgeD2_I : EdgeD2 // Edge 2D + information (double precision)
@@ -401,10 +401,10 @@ private:
    Vec  _posr, _step;
 };
 /******************************************************************************/
-inline Edge2 ::Edge2 (C EdgeD2 &edge){p[0]=edge.p[0]; p[1]=edge.p[1];}
-inline EdgeD2::EdgeD2(C Edge2  &edge){p[0]=edge.p[0]; p[1]=edge.p[1];}
-inline Edge  ::Edge  (C EdgeD  &edge){p[0]=edge.p[0]; p[1]=edge.p[1];}
-inline EdgeD ::EdgeD (C Edge   &edge){p[0]=edge.p[0]; p[1]=edge.p[1];}
+inline Edge2 ::Edge2 (C EdgeD2 &edge) {p[0]=edge.p[0]; p[1]=edge.p[1];}
+inline EdgeD2::EdgeD2(C Edge2  &edge) {p[0]=edge.p[0]; p[1]=edge.p[1];}
+inline Edge  ::Edge  (C EdgeD  &edge) {p[0]=edge.p[0]; p[1]=edge.p[1];}
+inline EdgeD ::EdgeD (C Edge   &edge) {p[0]=edge.p[0]; p[1]=edge.p[1];}
 /******************************************************************************/
 // distance between point and a straight line
 Flt DistPointStr(C Vec2  &point, C Vec2  &str, C Vec2  &dir);
