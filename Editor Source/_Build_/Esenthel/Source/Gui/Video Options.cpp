@@ -191,8 +191,6 @@ VideoOptions VidOpt;
       void VideoOptions::Advanced::Dither(  Advanced &adv, C Str &text) {       D.dither(TextBool(text));}
       Str  VideoOptions::Advanced::ColRTPrec(C Advanced &adv             ) {return D.highPrecColRT();}
       void VideoOptions::Advanced::ColRTPrec(  Advanced &adv, C Str &text) {       D.highPrecColRT(TextBool(text));}
-      Str  VideoOptions::Advanced::NrmCalcPrec(C Advanced &adv             ) {return D.highPrecNrmCalc();}
-      void VideoOptions::Advanced::NrmCalcPrec(  Advanced &adv, C Str &text) {       D.highPrecNrmCalc(TextBool(text));}
       Str  VideoOptions::Advanced::NrmRTPrec(C Advanced &adv             ) {return D.highPrecNrmRT();}
       void VideoOptions::Advanced::NrmRTPrec(  Advanced &adv, C Str &text) {       D.highPrecNrmRT(TextBool(text));}
       Str  VideoOptions::Advanced::LumRTPrec(C Advanced &adv             ) {return D.highPrecLumRT();}
@@ -269,7 +267,6 @@ VideoOptions VidOpt;
          props.New().create("Monitor Precision"          , MemberDesc(         ).setFunc(MonitorPrec  , MonitorPrec  )).setEnum(Precision_t, Elms(Precision_t)).desc("Specify the exact precision of your Monitor Screen.\n8 bit per channel = 24 bit total\n10 bit per channel = 30 bit total\nIf you're not sure what your monitor supports, leave this option at \"8 bit\"\n\nAvoid setting higher precision than what your screen can actually support,\nbecause instead of getting higher quality results you will get lower quality.");
          props.New().create("High Precision Lit Color RT", MemberDesc(DATA_BOOL).setFunc(LitColRTPrec , LitColRTPrec )).desc("Enable high precision lit color render target\nThis increases precision of colors adjusted by lighting.");
          props.New().create("High Precision Color RT"    , MemberDesc(DATA_BOOL).setFunc(ColRTPrec    , ColRTPrec    )).desc("Enable high precision color render target\nThis increases precision of material color textures in Deferred Renderer.");
-         props.New().create("High Precision Normal Calc" , MemberDesc(DATA_BOOL).setFunc(NrmCalcPrec  , NrmCalcPrec  )).desc("Enable high precision normal calculation\nThis increases precision of specular lighting in Deferred Renderer.");
          props.New().create("High Precision Normal RT"   , MemberDesc(DATA_BOOL).setFunc(NrmRTPrec    , NrmRTPrec    )).desc("Enable high precision normal render target\nThis increases precision of specular lighting in Deferred Renderer.");
          props.New().create("High Precision Light RT"    , MemberDesc(DATA_BOOL).setFunc(LumRTPrec    , LumRTPrec    )).desc("Enable high precision light render target\nThis increases lighting precision in Deferred Renderer.");
          props.New().create("Bloom Scale"                , MemberDesc(DATA_REAL).setFunc(BloomScale   , BloomScale   )).range(0, 2);

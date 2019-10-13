@@ -9,7 +9,7 @@ class ElmMaterial : ElmData
       USES_TEX_GLOW =1<<2,
       TEX_QUALITY_HI=1<<3,
    };
-   UID  base_0_tex, base_1_tex, detail_tex, macro_tex, reflection_tex, light_tex;
+   UID  base_0_tex, base_1_tex, base_2_tex, detail_tex, macro_tex, light_tex;
    byte downsize_tex_mobile, flag;
 
    // get

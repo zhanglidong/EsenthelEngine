@@ -8,20 +8,19 @@ class MaterialRegion : Region
       TEX_ALPHA   ,
       TEX_BUMP    ,
       TEX_NORMAL  ,
-      TEX_SPEC    ,
+      TEX_SMOOTH  ,
+      TEX_REFLECT ,
       TEX_GLOW    ,
       TEX_DET_COL ,
       TEX_DET_BUMP,
       TEX_DET_NRM ,
       TEX_MACRO   ,
       TEX_LIGHT   ,
-      TEX_RFL_L   ,
-      TEX_RFL_F   ,
-      TEX_RFL_R   ,
-      TEX_RFL_B   ,
-      TEX_RFL_D   ,
-      TEX_RFL_U   ,
-      TEX_RFL_ALL ,
+      
+      TEX_BASE_BEGIN=TEX_COLOR,
+      TEX_BASE_END  =TEX_GLOW ,
+      TEX_DET_BEGIN =TEX_DET_COL,
+      TEX_DET_END   =TEX_DET_NRM,
    };
 
    class Change : Edit::_Undo::Change
@@ -147,18 +146,17 @@ public:
    static Str  FNY     (C MaterialRegion &mr          );
    static void FNY     (  MaterialRegion &mr, C Str &t);
 
-   static Str  Spec(C MaterialRegion &mr          );
-   static void Spec(  MaterialRegion &mr, C Str &t);
-   static Str  Glow(C MaterialRegion &mr          );
-   static void Glow(  MaterialRegion &mr, C Str &t);
+   static Str  Smooth (C MaterialRegion &mr          );
+   static void Smooth (  MaterialRegion &mr, C Str &t);
+   static Str  Reflect(C MaterialRegion &mr          );
+   static void Reflect(  MaterialRegion &mr, C Str &t);
+   static Str  Glow   (C MaterialRegion &mr          );
+   static void Glow   (  MaterialRegion &mr, C Str &t);
 
    static Str  DetScale(C MaterialRegion &mr          );
    static void DetScale(  MaterialRegion &mr, C Str &t);
    static Str  DetPower(C MaterialRegion &mr          );
    static void DetPower(  MaterialRegion &mr, C Str &t);
-
-   static Str  Reflect(C MaterialRegion &mr          );
-   static void Reflect(  MaterialRegion &mr, C Str &t);
 
    static Str  Cull    (C MaterialRegion &mr          );
    static void Cull    (  MaterialRegion &mr, C Str &t);
@@ -250,10 +248,34 @@ public:
    static void ResizeBase1_512x1024 (MaterialRegion &editor);
    static void ResizeBase1_1024x2048(MaterialRegion &editor);
 
-   static void ResizeBase1_Quarter (MaterialRegion &editor);
-   static void ResizeBase1_Half    (MaterialRegion &editor);
-   static void ResizeBase1_Original(MaterialRegion &editor);
-   static void ResizeBase1_Double  (MaterialRegion &editor);
+   static void ResizeBase2_Quarter (MaterialRegion &editor);
+   static void ResizeBase2_Half    (MaterialRegion &editor);
+   static void ResizeBase2_Original(MaterialRegion &editor);
+   static void ResizeBase2_Double  (MaterialRegion &editor);
+   
+   static void ResizeBase2_128 (MaterialRegion &editor);
+   static void ResizeBase2_256 (MaterialRegion &editor);
+   static void ResizeBase2_512 (MaterialRegion &editor);
+   static void ResizeBase2_1024(MaterialRegion &editor);
+   static void ResizeBase2_2048(MaterialRegion &editor);
+   static void ResizeBase2_4096(MaterialRegion &editor);
+
+   static void ResizeBase2_128x64   (MaterialRegion &editor);
+   static void ResizeBase2_256x128  (MaterialRegion &editor);
+   static void ResizeBase2_512x256  (MaterialRegion &editor);
+   static void ResizeBase2_1024x512 (MaterialRegion &editor);
+   static void ResizeBase2_2048x1024(MaterialRegion &editor);
+
+   static void ResizeBase2_64x128   (MaterialRegion &editor);
+   static void ResizeBase2_128x256  (MaterialRegion &editor);
+   static void ResizeBase2_256x512  (MaterialRegion &editor);
+   static void ResizeBase2_512x1024 (MaterialRegion &editor);
+   static void ResizeBase2_1024x2048(MaterialRegion &editor);
+
+   static void ResizeBase2_Quarter (MaterialRegion &editor);
+   static void ResizeBase2_Half    (MaterialRegion &editor);
+   static void ResizeBase2_Original(MaterialRegion &editor);
+   static void ResizeBase2_Double  (MaterialRegion &editor);
    
    static void BumpFromCol  (MaterialRegion &editor);
    static void BumpFromCol2 (MaterialRegion &editor);
@@ -283,15 +305,16 @@ public:
    void resizeBase(C VecI2 &size, bool relative=false);
    void resizeBase0(C VecI2 &size, bool relative=false);
    void resizeBase1(C VecI2 &size, bool relative=false);
+   void resizeBase2(C VecI2 &size, bool relative=false);
    void bumpFromCol(int blur);
 
-   virtual   EditMaterial& getEditMtrl  ();
-   virtual C ImagePtr    & getBase0     ();
-   virtual C ImagePtr    & getBase1     ();
-   virtual C ImagePtr    & getDetail    ();
-   virtual C ImagePtr    & getReflection();
-   virtual C ImagePtr    & getMacro     ();
-   virtual C ImagePtr    & getLight     ();
+   virtual   EditMaterial& getEditMtrl();
+   virtual C ImagePtr    & getBase0   ();
+   virtual C ImagePtr    & getBase1   ();
+   virtual C ImagePtr    & getBase2   ();
+   virtual C ImagePtr    & getDetail  ();
+   virtual C ImagePtr    & getMacro   ();
+   virtual C ImagePtr    & getLight   ();
 
    void setBottom(C Rect &prop_rect);
    void create();
@@ -324,7 +347,6 @@ public:
    void drop(Memc<Str> &names, GuiObj *focus_obj, C Vec2 &screen_pos);
 
    virtual void rebuildBase(uint old_base_tex, bool changed_flip_normal_y=false, bool adjust_params=true, bool always=false);
-   virtual void rebuildReflection();
    virtual void rebuildDetail();
    virtual void rebuildMacro();
    virtual void rebuildLight();

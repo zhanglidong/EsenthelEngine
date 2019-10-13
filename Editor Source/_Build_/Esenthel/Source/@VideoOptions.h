@@ -68,8 +68,6 @@ class VideoOptions : PropWin
       static void Dither       (  Advanced &adv, C Str &text);
       static Str  ColRTPrec    (C Advanced &adv             );
       static void ColRTPrec    (  Advanced &adv, C Str &text);
-      static Str  NrmCalcPrec  (C Advanced &adv             );
-      static void NrmCalcPrec  (  Advanced &adv, C Str &text);
       static Str  NrmRTPrec    (C Advanced &adv             );
       static void NrmRTPrec    (  Advanced &adv, C Str &text);
       static Str  LumRTPrec    (C Advanced &adv             );

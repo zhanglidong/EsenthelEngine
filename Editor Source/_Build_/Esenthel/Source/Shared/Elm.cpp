@@ -525,28 +525,28 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
 {
       if(id.valid())
       {
-         if(base_0_tex==id || base_1_tex==id || detail_tex==id || macro_tex==id || reflection_tex==id || light_tex==id)return true;
-         if(test_merged && MergedBaseTexturesID(base_0_tex, base_1_tex)==id)return true;
+         if(base_0_tex==id || base_1_tex==id || base_2_tex==id || detail_tex==id || macro_tex==id || light_tex==id)return true;
+         if(test_merged && MergedBaseTexturesID(base_0_tex, base_1_tex, base_2_tex)==id)return true;
       }
       return false;
    }
    void ElmMaterial::listTexs(MemPtr<UID> texs)C 
 {
-      if(    base_0_tex.valid())texs.binaryInclude(    base_0_tex);
-      if(    base_1_tex.valid())texs.binaryInclude(    base_1_tex);
-      if(    detail_tex.valid())texs.binaryInclude(    detail_tex);
-      if(     macro_tex.valid())texs.binaryInclude(     macro_tex);
-      if(reflection_tex.valid())texs.binaryInclude(reflection_tex);
-      if(     light_tex.valid())texs.binaryInclude(     light_tex);
+      if(base_0_tex.valid())texs.binaryInclude(base_0_tex);
+      if(base_1_tex.valid())texs.binaryInclude(base_1_tex);
+      if(base_2_tex.valid())texs.binaryInclude(base_2_tex);
+      if(detail_tex.valid())texs.binaryInclude(detail_tex);
+      if( macro_tex.valid())texs.binaryInclude( macro_tex);
+      if( light_tex.valid())texs.binaryInclude( light_tex);
    }
    void ElmMaterial::from(C EditMaterial &src)
    {
-          base_0_tex=src.    base_0_tex;
-          base_1_tex=src.    base_1_tex;
-          detail_tex=src.    detail_tex;
-           macro_tex=src.     macro_tex;
-      reflection_tex=src.reflection_tex;
-           light_tex=src.     light_tex;
+      base_0_tex=src.base_0_tex;
+      base_1_tex=src.base_1_tex;
+      base_2_tex=src.base_2_tex;
+      detail_tex=src.detail_tex;
+       macro_tex=src. macro_tex;
+       light_tex=src. light_tex;
 
       downsize_tex_mobile=src.downsize_tex_mobile;
 
@@ -568,41 +568,48 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    bool ElmMaterial::save(File &f)C 
 {
       super::save(f);
-      f.cmpUIntV(4);
-      f<<base_0_tex<<base_1_tex<<detail_tex<<macro_tex<<reflection_tex<<light_tex<<downsize_tex_mobile<<flag;
+      f.cmpUIntV(5);
+      f<<base_0_tex<<base_1_tex<<base_2_tex<<detail_tex<<macro_tex<<light_tex<<downsize_tex_mobile<<flag;
       return f.ok();
    }
    bool ElmMaterial::load(File &f)
 {
+      UID old_reflection_tex;
       if(super::load(f))switch(f.decUIntV())
       {
+         case 5:
+         {
+            f>>base_0_tex>>base_1_tex>>base_2_tex>>detail_tex>>macro_tex>>light_tex>>downsize_tex_mobile>>flag;
+            if(f.ok())return true;
+         }break;
+
          case 4:
          {
-            f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>reflection_tex>>light_tex>>downsize_tex_mobile>>flag;
+            f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>light_tex>>downsize_tex_mobile>>flag; base_2_tex.zero();
             if(f.ok())return true;
          }break;
 
          case 3:
          {
-            byte max_tex_size; f>>max_tex_size>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>reflection_tex>>light_tex; downsize_tex_mobile=(max_tex_size>=1 && max_tex_size<=10); flag=0;
+            byte max_tex_size; f>>max_tex_size>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>light_tex; base_2_tex.zero(); downsize_tex_mobile=(max_tex_size>=1 && max_tex_size<=10); flag=0;
             if(f.ok())return true;
          }break;
 
          case 2:
          {
-            byte max_tex_size; UID mesh_id; f>>max_tex_size>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>reflection_tex>>light_tex>>mesh_id; downsize_tex_mobile=(max_tex_size>=1 && max_tex_size<=10); flag=0;
+            byte max_tex_size; UID mesh_id; f>>max_tex_size>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>light_tex>>mesh_id; base_2_tex.zero(); downsize_tex_mobile=(max_tex_size>=1 && max_tex_size<=10); flag=0;
             if(f.ok())return true;
          }break;
 
          case 1:
          {
-            UID mesh_id; f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>reflection_tex>>light_tex>>mesh_id; downsize_tex_mobile=0; flag=0;
+            UID mesh_id; f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>light_tex>>mesh_id; base_2_tex.zero(); downsize_tex_mobile=0; flag=0;
             if(f.ok())return true;
          }break;
 
          case 0:
          {
-            UID mesh_id; f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>reflection_tex>>mesh_id; downsize_tex_mobile=0; flag=0; light_tex.zero();
+            UID mesh_id; f>>base_0_tex>>base_1_tex>>detail_tex>>macro_tex>>old_reflection_tex>>mesh_id; base_2_tex.zero(); downsize_tex_mobile=0; flag=0; light_tex.zero();
             if(f.ok())return true;
          }break;
       }
@@ -611,14 +618,14 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    void ElmMaterial::save(MemPtr<TextNode> nodes)C 
 {
       super::save(nodes);
-      if(    base_0_tex.valid())nodes.New().setFN("Base0"            ,     base_0_tex);
-      if(    base_1_tex.valid())nodes.New().setFN("Base1"            ,     base_1_tex);
-      if(    detail_tex.valid())nodes.New().setFN("Detail"           ,     detail_tex);
-      if(     macro_tex.valid())nodes.New().setFN("Macro"            ,      macro_tex);
-      if(reflection_tex.valid())nodes.New().setFN("Reflection"       , reflection_tex);
-      if(     light_tex.valid())nodes.New().setFN("Light"            ,      light_tex);
-      if(  downsize_tex_mobile )nodes.New().set  ("MobileTexDownsize", downsize_tex_mobile);
-                                nodes.New().set  ("TexQuality"       , texQuality());
+      if(  base_0_tex.valid())nodes.New().setFN("Base0"            ,   base_0_tex);
+      if(  base_1_tex.valid())nodes.New().setFN("Base1"            ,   base_1_tex);
+      if(  base_2_tex.valid())nodes.New().setFN("Base2"            ,   base_2_tex);
+      if(  detail_tex.valid())nodes.New().setFN("Detail"           ,   detail_tex);
+      if(   macro_tex.valid())nodes.New().setFN("Macro"            ,    macro_tex);
+      if(   light_tex.valid())nodes.New().setFN("Light"            ,    light_tex);
+      if(downsize_tex_mobile )nodes.New().set  ("MobileTexDownsize", downsize_tex_mobile);
+                              nodes.New().set  ("TexQuality"       , texQuality());
       if(usesTexAlpha())nodes.New().set("UsesTexAlpha");
       if(usesTexBump ())nodes.New().set("UsesTexBump" );
       if(usesTexGlow ())nodes.New().set("UsesTexGlow" );
@@ -629,14 +636,14 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
-         if(n.name=="Base0"            )n.getValue(    base_0_tex);else
-         if(n.name=="Base1"            )n.getValue(    base_1_tex);else
-         if(n.name=="Detail"           )n.getValue(    detail_tex);else
-         if(n.name=="Macro"            )n.getValue(     macro_tex);else
-         if(n.name=="Reflection"       )n.getValue(reflection_tex);else
-         if(n.name=="Light"            )n.getValue(     light_tex);else
-         if(n.name=="MobileTexDownsize")downsize_tex_mobile    =n.asInt() ;else
-         if(n.name=="TexQuality"       )texQuality             (n.asInt());else
+         if(n.name=="Base0"            )n.getValue(base_0_tex);else
+         if(n.name=="Base1"            )n.getValue(base_1_tex);else
+         if(n.name=="Base2"            )n.getValue(base_2_tex);else
+         if(n.name=="Detail"           )n.getValue(detail_tex);else
+         if(n.name=="Macro"            )n.getValue( macro_tex);else
+         if(n.name=="Light"            )n.getValue( light_tex);else
+         if(n.name=="MobileTexDownsize")downsize_tex_mobile=n.asInt() ;else
+         if(n.name=="TexQuality"       )texQuality         (n.asInt());else
          if(n.name=="UsesTexAlpha"     )FlagSet(flag, USES_TEX_ALPHA, n.asBool1());else
          if(n.name=="UsesTexBump"      )FlagSet(flag, USES_TEX_BUMP , n.asBool1());else
          if(n.name=="UsesTexGlow"      )FlagSet(flag, USES_TEX_GLOW , n.asBool1());
@@ -665,23 +672,22 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
 {
       if(id.valid())
       {
-         if(base_0_tex==id || base_1_tex==id || reflection_tex==id)return true;
-         if(test_merged && MergedBaseTexturesID(base_0_tex, base_1_tex)==id)return true;
+         if(base_0_tex==id || base_1_tex==id || base_2_tex==id)return true;
+         if(test_merged && MergedBaseTexturesID(base_0_tex, base_1_tex, base_2_tex)==id)return true;
       }
       return false;
    }
    void ElmWaterMtrl::listTexs(MemPtr<UID> texs)C 
 {
-      if(    base_0_tex.valid())texs.binaryInclude(    base_0_tex);
-      if(    base_1_tex.valid())texs.binaryInclude(    base_1_tex);
-      if(reflection_tex.valid())texs.binaryInclude(reflection_tex);
+      if(base_0_tex.valid())texs.binaryInclude(base_0_tex);
+      if(base_1_tex.valid())texs.binaryInclude(base_1_tex);
+      if(base_2_tex.valid())texs.binaryInclude(base_2_tex);
    }
    void ElmWaterMtrl::from(C EditWaterMtrl &src)
    {
-          base_0_tex=src.    base_0_tex;
-          base_1_tex=src.    base_1_tex;
-      reflection_tex=src.reflection_tex;
-
+      base_0_tex=src.base_0_tex;
+      base_1_tex=src.base_1_tex;
+      base_2_tex=src.base_2_tex;
       usesTexAlpha(src.usesTexAlpha());
       usesTexBump (src.usesTexBump ());
       usesTexGlow (src.usesTexGlow ());
@@ -692,23 +698,30 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    bool ElmWaterMtrl::save(File &f)C 
 {
       super::save(f);
-      f.cmpUIntV(1);
-      f<<base_0_tex<<base_1_tex<<reflection_tex<<flag;
+      f.cmpUIntV(2);
+      f<<base_0_tex<<base_1_tex<<base_2_tex<<flag;
       return f.ok();
    }
    bool ElmWaterMtrl::load(File &f)
 {
+      UID old_reflection_tex;
       if(super::load(f))switch(f.decUIntV())
       {
+         case 2:
+         {
+            f>>base_0_tex>>base_1_tex>>base_2_tex>>flag;
+            if(f.ok())return true;
+         }break;
+
          case 1:
          {
-            f>>base_0_tex>>base_1_tex>>reflection_tex>>flag;
+            f>>base_0_tex>>base_1_tex>>old_reflection_tex>>flag; base_2_tex.zero();
             if(f.ok())return true;
          }break;
 
          case 0:
          {
-            f>>base_0_tex>>base_1_tex>>reflection_tex; flag=0;
+            f>>base_0_tex>>base_1_tex>>old_reflection_tex; flag=0; base_2_tex.zero();
             if(f.ok())return true;
          }break;
       }
@@ -717,13 +730,13 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    void ElmWaterMtrl::save(MemPtr<TextNode> nodes)C 
 {
       super::save(nodes);
-      if(    base_0_tex.valid())nodes.New().setFN("Base0"       ,     base_0_tex);
-      if(    base_1_tex.valid())nodes.New().setFN("Base1"       ,     base_1_tex);
-      if(reflection_tex.valid())nodes.New().setFN("Reflection"  , reflection_tex);
-                                nodes.New().set  ("TexQuality"  , texQuality());
-      if(usesTexAlpha()        )nodes.New().set  ("UsesTexAlpha");
-      if(usesTexBump ()        )nodes.New().set  ("UsesTexBump" );
-      if(usesTexGlow ()        )nodes.New().set  ("UsesTexGlow" );
+      if(base_0_tex.valid())nodes.New().setFN("Base0"       , base_0_tex);
+      if(base_1_tex.valid())nodes.New().setFN("Base1"       , base_1_tex);
+      if(base_2_tex.valid())nodes.New().setFN("Base2"       , base_2_tex);
+                            nodes.New().set  ("TexQuality"  , texQuality());
+      if(usesTexAlpha()    )nodes.New().set  ("UsesTexAlpha");
+      if(usesTexBump ()    )nodes.New().set  ("UsesTexBump" );
+      if(usesTexGlow ()    )nodes.New().set  ("UsesTexGlow" );
    }
    void ElmWaterMtrl::load(C MemPtr<TextNode> &nodes)
 {
@@ -731,10 +744,10 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
       REPA(nodes)
       {
        C TextNode &n=nodes[i];
-         if(n.name=="Base0"       )n.getValue(    base_0_tex);else
-         if(n.name=="Base1"       )n.getValue(    base_1_tex);else
-         if(n.name=="Reflection"  )n.getValue(reflection_tex);else
-         if(n.name=="TexQuality"  )texQuality(n.asInt()     );else
+         if(n.name=="Base0"       )n.getValue(base_0_tex);else
+         if(n.name=="Base1"       )n.getValue(base_1_tex);else
+         if(n.name=="Base2"       )n.getValue(base_2_tex);else
+         if(n.name=="TexQuality"  )texQuality(n.asInt() );else
          if(n.name=="UsesTexAlpha")FlagSet(flag, USES_TEX_ALPHA, n.asBool1());else
          if(n.name=="UsesTexBump" )FlagSet(flag, USES_TEX_BUMP , n.asBool1());else
          if(n.name=="UsesTexGlow" )FlagSet(flag, USES_TEX_GLOW , n.asBool1());
@@ -1375,9 +1388,9 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    void ElmImage::hasAlpha(bool on) {FlagSet(flag, HAS_ALPHA, on);}
    bool       ElmImage::hasAlpha2()C {return hasAlpha() || alphaLum();}
    bool       ElmImage::hasAlpha3()C {return ignoreAlpha() ? false : hasAlpha2();}
-   IMAGE_TYPE ElmImage::androidType()C {return (type==COMPRESSED || type==COMPRESSED2) ? hasAlpha3()               ? (sRGB() ? IMAGE_ETC2_A8_SRGB  : IMAGE_ETC2_A8 ) : (sRGB() ? IMAGE_ETC2_SRGB : IMAGE_ETC2) : IMAGE_NONE;}
-   IMAGE_TYPE     ElmImage::iOSType()C {return (type==COMPRESSED || type==COMPRESSED2) ?                             (sRGB() ? IMAGE_PVRTC1_4_SRGB : IMAGE_PVRTC1_4)                                           : IMAGE_NONE;}
-   IMAGE_TYPE     ElmImage::webType()C {return (!WebBC7 && (type==COMPRESSED || type==COMPRESSED2) && hasAlpha3()) ? (sRGB() ? IMAGE_BC3_SRGB      : IMAGE_BC3     )                                           : IMAGE_NONE;}
+   IMAGE_TYPE ElmImage::androidType()C {return (type==COMPRESSED || type==COMPRESSED2) ? hasAlpha3()               ? (sRGB() ? IMAGE_ETC2_RGBA_SRGB : IMAGE_ETC2_RGBA) : (sRGB() ? IMAGE_ETC2_RGB_SRGB : IMAGE_ETC2_RGB) : IMAGE_NONE;}
+   IMAGE_TYPE     ElmImage::iOSType()C {return (type==COMPRESSED || type==COMPRESSED2) ?                             (sRGB() ? IMAGE_PVRTC1_4_SRGB  : IMAGE_PVRTC1_4 )                                                   : IMAGE_NONE;}
+   IMAGE_TYPE     ElmImage::webType()C {return (!WebBC7 && (type==COMPRESSED || type==COMPRESSED2) && hasAlpha3()) ? (sRGB() ? IMAGE_BC3_SRGB       : IMAGE_BC3      )                                                   : IMAGE_NONE;}
    bool ElmImage::equal(C ElmImage &src)C {return super::equal(src) && mip_maps_time==src.mip_maps_time && pow2_time==src.pow2_time && srgb_time==src.srgb_time && alpha_lum_time==src.alpha_lum_time && type_time==src.type_time && mode_time==src.mode_time && size_time==src.size_time && file_time==src.file_time;}
    bool ElmImage::newer(C ElmImage &src)C {return super::newer(src) || mip_maps_time> src.mip_maps_time || pow2_time> src.pow2_time || srgb_time> src.srgb_time || alpha_lum_time> src.alpha_lum_time || type_time> src.type_time || mode_time> src.mode_time || size_time> src.size_time || file_time> src.file_time;}
    bool ElmImage::mayContain(C UID &id)C {return false;}
@@ -1717,9 +1730,9 @@ bool  UndoID(  UID &id, C UID &src_id) {if(NewerID(src_id, id)){id=src_id; retur
    ElmIcon& ElmIcon::hasColor(bool on) {FlagSet(flag, HAS_COLOR, on); return T;}
    bool          ElmIcon::hasAlpha(             )C {return FlagTest(flag, HAS_ALPHA);}
    ElmIcon& ElmIcon::hasAlpha(bool on) {FlagSet(flag, HAS_ALPHA, on); return T;}
-   IMAGE_TYPE ElmIcon::androidType(Project *proj)C {ElmImage::TYPE type=T.type(proj); return (type==ElmImage::COMPRESSED || type==ElmImage::COMPRESSED2) ? hasAlpha() ? IMAGE_ETC2_A8_SRGB : IMAGE_ETC2_SRGB : IMAGE_NONE;}
-   IMAGE_TYPE     ElmIcon::iOSType(Project *proj)C {ElmImage::TYPE type=T.type(proj); return (type==ElmImage::COMPRESSED || type==ElmImage::COMPRESSED2) ?              IMAGE_PVRTC1_4_SRGB                  : IMAGE_NONE;}
-   IMAGE_TYPE     ElmIcon::webType(Project *proj)C {ElmImage::TYPE type=T.type(proj); return (!WebBC7 && (type==ElmImage::COMPRESSED || type==ElmImage::COMPRESSED2) && hasAlpha()) ? IMAGE_BC3_SRGB         : IMAGE_NONE;}
+   IMAGE_TYPE ElmIcon::androidType(Project *proj)C {ElmImage::TYPE type=T.type(proj); return (type==ElmImage::COMPRESSED || type==ElmImage::COMPRESSED2) ? hasAlpha() ? IMAGE_ETC2_RGBA_SRGB : IMAGE_ETC2_RGB_SRGB : IMAGE_NONE;}
+   IMAGE_TYPE     ElmIcon::iOSType(Project *proj)C {ElmImage::TYPE type=T.type(proj); return (type==ElmImage::COMPRESSED || type==ElmImage::COMPRESSED2) ?              IMAGE_PVRTC1_4_SRGB                        : IMAGE_NONE;}
+   IMAGE_TYPE     ElmIcon::webType(Project *proj)C {ElmImage::TYPE type=T.type(proj); return (!WebBC7 && (type==ElmImage::COMPRESSED || type==ElmImage::COMPRESSED2) && hasAlpha()) ? IMAGE_BC3_SRGB               : IMAGE_NONE;}
    bool ElmIcon::equal(C ElmIcon &src)C {return super::equal(src) && icon_settings_time==src.icon_settings_time && obj_time==src.obj_time && file_time==src.file_time && anim_id_time==src.anim_id_time && anim_pos_time==src.anim_pos_time && variation_time==src.variation_time;}
    bool ElmIcon::newer(C ElmIcon &src)C {return super::newer(src) || icon_settings_time> src.icon_settings_time || obj_time> src.obj_time || file_time> src.file_time || anim_id_time> src.anim_id_time || anim_pos_time> src.anim_pos_time || variation_time> src.variation_time;}
    bool ElmIcon::mayContain(C UID &id)C {return id==icon_settings_id || id==obj_id || id==anim_id;}
@@ -3498,9 +3511,9 @@ ElmObj::ElmObj() : mesh_id(UIDZero), base_id(UIDZero) {}
 
 ElmMesh::ElmMesh() : obj_id(UIDZero), skel_id(UIDZero), phys_id(UIDZero), body_id(UIDZero), draw_group_id(UIDZero), box(Vec(0), Vec(-1)) {}
 
-ElmMaterial::ElmMaterial() : base_0_tex(UIDZero), base_1_tex(UIDZero), detail_tex(UIDZero), macro_tex(UIDZero), reflection_tex(UIDZero), light_tex(UIDZero), downsize_tex_mobile(0), flag(0) {}
+ElmMaterial::ElmMaterial() : base_0_tex(UIDZero), base_1_tex(UIDZero), base_2_tex(UIDZero), detail_tex(UIDZero), macro_tex(UIDZero), light_tex(UIDZero), downsize_tex_mobile(0), flag(0) {}
 
-ElmWaterMtrl::ElmWaterMtrl() : base_0_tex(UIDZero), base_1_tex(UIDZero), reflection_tex(UIDZero), flag(0) {}
+ElmWaterMtrl::ElmWaterMtrl() : base_0_tex(UIDZero), base_1_tex(UIDZero), base_2_tex(UIDZero), flag(0) {}
 
 ElmSkel::ElmSkel() : mesh_id(UIDZero) {}
 

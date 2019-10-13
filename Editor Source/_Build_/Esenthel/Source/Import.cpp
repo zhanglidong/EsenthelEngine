@@ -8,25 +8,27 @@ ImporterClass Importer;
          void ImporterClass::Import::MaterialEx::copyTo(EditMaterial &dest, C TimeStamp &time)C
          {
             dest.create(mtrl, time); // set from 'Material' instead of 'XMaterial' because it had '_adjustParams' called
-            dest. flip_normal_y=    flip_normal_y; dest. flip_normal_y_time=time;
-            dest.     color_map=        color_map; dest.     color_map_time=time;
-            dest.     alpha_map=        alpha_map; dest.     alpha_map_time=time;
-            dest.      bump_map=         bump_map; dest.      bump_map_time=time;
-            dest.    normal_map=       normal_map; dest.    normal_map_time=time;
-            dest.  specular_map=     specular_map; dest.  specular_map_time=time;
-            dest.      glow_map=         glow_map; dest.      glow_map_time=time;
-            dest.     light_map=        light_map; dest.     light_map_time=time;
-            dest.reflection_map=   reflection_map; dest.reflection_map_time=time;
-            dest.     macro_map=                S; dest.     macro_map_time=time;
-            dest.detail_color  = detail_color_map; dest.    detail_map_time=time;
-            dest.detail_bump   =  detail_bump_map;
-            dest.detail_normal =detail_normal_map;
-            dest.    base_0_tex=    base_0_id;
-            dest.    base_1_tex=    base_1_id;
-            dest.    detail_tex=    detail_id;
-            dest.     macro_tex=     macro_id;
-            dest.reflection_tex=reflection_id;
-            dest.     light_tex=     light_id;
+            dest.flip_normal_y=flip_normal_y; dest.flip_normal_y_time=time;
+
+            dest.  color_map  =        color_map; dest.  color_map_time=time;
+            dest.  alpha_map  =        alpha_map; dest.  alpha_map_time=time;
+            dest.   bump_map  =         bump_map; dest.   bump_map_time=time;
+            dest. normal_map  =       normal_map; dest. normal_map_time=time;
+            dest. smooth_map  =       smooth_map; dest. smooth_map_time=time;
+            dest.reflect_map  =      reflect_map; dest.reflect_map_time=time;
+            dest.   glow_map  =         glow_map; dest.   glow_map_time=time;
+            dest.  light_map  =        light_map; dest.  light_map_time=time;
+            dest.  macro_map  =                S; dest.  macro_map_time=time;
+            dest.detail_color = detail_color_map; dest. detail_map_time=time;
+            dest.detail_bump  =  detail_bump_map;
+            dest.detail_normal=detail_normal_map;
+
+            dest.base_0_tex=base_0_id;
+            dest.base_1_tex=base_1_id;
+            dest.base_2_tex=base_2_id;
+            dest.detail_tex=detail_id;
+            dest. macro_tex= macro_id;
+            dest. light_tex= light_id;
          }
          void ImporterClass::Import::MaterialEx::check(C Str &path, Str &tex)
          {
@@ -44,43 +46,48 @@ ImporterClass Importer;
 
             if(path.is())
             {
-               check(path, color_map);
-               check(path, alpha_map);
-               check(path, bump_map);
-               check(path, glow_map);
-               check(path, light_map);
-               check(path, normal_map);
-               check(path, specular_map);
-               check(path, reflection_map);
+               check(path,   color_map);
+               check(path,   alpha_map);
+               check(path,    bump_map);
+               check(path,    glow_map);
+               check(path,   light_map);
+               check(path,  normal_map);
+               check(path,  smooth_map);
+               check(path, reflect_map);
             }
 
-            if(GetExt(color_map)=="img" || GetExt(normal_map)=="img" || GetExt(detail_color_map)=="img" || GetExt(reflection_map)=="img") // this is 'EE.Material' ("mtrl" format)
+            if(GetExt(color_map)=="img" || GetExt(normal_map)=="img" || GetExt(smooth_map)=="img" || GetExt(detail_color_map)=="img") // this is 'EE.Material' ("mtrl" format) #MaterialTextureLayout
             {
-               Str b0=color_map, b1=normal_map, d=detail_color_map, r=reflection_map, l=light_map, m;
-               base_0    .load(b0); ImageProps(base_0    , &    base_0_id, null, MTRL_BASE_0);
-               base_1    .load(b1); ImageProps(base_1    , &    base_1_id, null, MTRL_BASE_1);
-               detail    .load(d ); ImageProps(detail    , &    detail_id, null,      IGNORE_ALPHA);
-               macro     .load(m ); ImageProps(macro     , &     macro_id, null, SRGB|IGNORE_ALPHA);
-               reflection.load(r ); ImageProps(reflection, &reflection_id, null, SRGB|IGNORE_ALPHA);
-               light     .load(l ); ImageProps(light     , &     light_id, null, SRGB|IGNORE_ALPHA);
+               Str b0=color_map, b1=normal_map, b2=smooth_map, d=detail_color_map, l=light_map, m;
+               base_0.load(b0); ImageProps(base_0, &base_0_id, null, MTRL_BASE_0);
+               base_1.load(b1); ImageProps(base_1, &base_1_id, null, MTRL_BASE_1);
+               base_2.load(b2); ImageProps(base_2, &base_2_id, null, MTRL_BASE_2);
+               detail.load(d ); ImageProps(detail, &detail_id, null,      IGNORE_ALPHA);
+               macro .load(m ); ImageProps(macro , & macro_id, null, SRGB|IGNORE_ALPHA);
+               light .load(l ); ImageProps(light , & light_id, null, SRGB|IGNORE_ALPHA);
 
                Edit::FileParams fp; 
-               fp=b0; if(fp.name.is())fp.getParam("channel").setValue("rgb"); color_map=fp.encode();
-                  alpha_map.clear();
-                   bump_map.clear();
-                   glow_map.clear();
-                 normal_map.clear();
-               specular_map.clear();
-               fp=d; if(fp.name.is())fp.getParam("channel").setValue("z" ); detail_color_map =fp.encode();
-               fp=d; if(fp.name.is())fp.getParam("channel").setValue("w" ); detail_bump_map  =fp.encode();
-               fp=d; if(fp.name.is())fp.getParam("channel").setValue("xy"); detail_normal_map=fp.encode();
-               if(b1.is())
+               fp=b0; if(fp.name.is())fp.getParam("channel").setValue("rgb");  color_map=fp.encode();
+               fp=b1; if(fp.name.is())fp.getParam("channel").setValue("xy" ); normal_map=fp.encode();
+               fp=d ; if(fp.name.is())
                {
-                  fp=b0; if(fp.name.is())fp.getParam("channel").setValue("a" );     bump_map=fp.encode();
-                  fp=b1;                 fp.getParam("channel").setValue("xy");   normal_map=fp.encode();
-                  fp=b1;                 fp.getParam("channel").setValue("z" ); specular_map=fp.encode();
-                  fp=b1;                 fp.getParam("channel").setValue("w" );    alpha_map=fp.encode();
-                  fp=b1;                 fp.getParam("channel").setValue("w" );     glow_map=fp.encode();
+                  fp.getParam("channel").setValue("z" ); detail_color_map =fp.encode();
+                  fp.getParam("channel").setValue("w" ); detail_bump_map  =fp.encode();
+                  fp.getParam("channel").setValue("xy"); detail_normal_map=fp.encode();
+               }
+
+                 alpha_map.clear();
+                  bump_map.clear();
+                smooth_map.clear();
+               reflect_map.clear();
+                  glow_map.clear();
+               if(b2.is())
+               {
+                  fp=b0; if(fp.name.is())fp.getParam("channel").setValue("a");    glow_map=fp.encode();
+                  fp=b2;                 fp.getParam("channel").setValue("x");  smooth_map=fp.encode();
+                                         fp.getParam("channel").setValue("y"); reflect_map=fp.encode();
+                                         fp.getParam("channel").setValue("z");    bump_map=fp.encode();
+                                         fp.getParam("channel").setValue("w");   alpha_map=fp.encode();
                }else
                if(b0.is())
                {
@@ -88,22 +95,22 @@ ImporterClass Importer;
                }
             }else
             {
-               Image col, alpha, bump, normal, spec, glow;
-               ImportImage(       col,      color_map);
-               ImportImage(     alpha,      alpha_map);
-               ImportImage(      bump,       bump_map);
-               ImportImage(    normal,     normal_map);
-               ImportImage(      spec,   specular_map);
-               ImportImage(      glow,       glow_map);
-               ImportImage(reflection, reflection_map);
-               ImportImage(     light,      light_map);
+               Image col, alpha, bump, normal, smooth, reflect, glow;
+               ImportImage(    col,   color_map);
+               ImportImage(  alpha,   alpha_map);
+               ImportImage(   bump,    bump_map);
+               ImportImage( normal,  normal_map);
+               ImportImage( smooth,  smooth_map);
+               ImportImage(reflect, reflect_map);
+               ImportImage(   glow,    glow_map);
+               ImportImage(  light,   light_map);
 
                // process textures only if they're added for the first time, otherwise delete them so they won't be saved
-               uint       bt=CreateBaseTextures(base_0, base_1, col, alpha, bump, normal, spec, glow, true, flip_normal_y);
-               IMAGE_TYPE ct; ImageProps(    base_0, &    base_0_id, &ct, MTRL_BASE_0      ); if(Importer.includeTex(    base_0_id))                               base_0    .copyTry(base_0    , -1, -1, -1, ct, IMAGE_2D  , 0, FILTER_BEST, IC_WRAP                  ); else base_0    .del();
-                              ImageProps(    base_1, &    base_1_id, &ct, MTRL_BASE_1      ); if(Importer.includeTex(    base_1_id))                               base_1    .copyTry(base_1    , -1, -1, -1, ct, IMAGE_2D  , 0, FILTER_BEST, IC_WRAP|IC_NON_PERCEPTUAL); else base_1    .del();
-                              ImageProps(reflection, &reflection_id, &ct, SRGB|IGNORE_ALPHA); if(Importer.includeTex(reflection_id)){SetFullAlpha(reflection, ct); reflection.copyTry(reflection, -1, -1, -1, ct, IMAGE_CUBE, 1                                        );}else reflection.del();
-                              ImageProps(     light, &     light_id, &ct, SRGB|IGNORE_ALPHA); if(Importer.includeTex(     light_id)){SetFullAlpha(light     , ct); light     .copyTry(light     , -1, -1, -1, ct, IMAGE_2D  , 0                                        );}else light     .del();
+               uint       bt=CreateBaseTextures(base_0, base_1, base_2, col, alpha, bump, normal, smooth, reflect, glow, true, flip_normal_y);
+               IMAGE_TYPE ct; ImageProps(base_0, &base_0_id, &ct, MTRL_BASE_0      ); if(Importer.includeTex(base_0_id))                          base_0.copyTry(base_0, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_0.del();
+                              ImageProps(base_1, &base_1_id, &ct, MTRL_BASE_1      ); if(Importer.includeTex(base_1_id))                          base_1.copyTry(base_1, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_1.del();
+                              ImageProps(base_2, &base_2_id, &ct, MTRL_BASE_2      ); if(Importer.includeTex(base_2_id))                          base_2.copyTry(base_2, -1, -1, -1, ct, IMAGE_2D, 0, FILTER_BEST, IC_WRAP); else base_2.del();
+                              ImageProps( light, & light_id, &ct, SRGB|IGNORE_ALPHA); if(Importer.includeTex( light_id)){SetFullAlpha(light, ct); light .copyTry(light , -1, -1, -1, ct, IMAGE_2D, 0                      );}else light .del();
                mtrl._adjustParams(~bt, bt);
             }
          }
@@ -1398,7 +1405,7 @@ ImporterClass::ImporterClass() : import_results(Compare), import_target(UIDZero)
 
 ImporterClass::Import::Import() : status(-1), has_loop(false), cancel(false), remember_result(false), has_color(true), has_alpha(true), ignore_anims(false), type(ELM_NONE), mode(UPDATE), elm_id(UIDZero), parent_id(UIDZero) {}
 
-ImporterClass::Import::MaterialEx::MaterialEx() : base_0_id(UIDZero), base_1_id(UIDZero), detail_id(UIDZero), macro_id(UIDZero), reflection_id(UIDZero), light_id(UIDZero) {}
+ImporterClass::Import::MaterialEx::MaterialEx() : base_0_id(UIDZero), base_1_id(UIDZero), base_2_id(UIDZero), detail_id(UIDZero), macro_id(UIDZero), light_id(UIDZero) {}
 
 ImporterClass::Import::ImageEx::ImageEx() : cube(false) {}
 

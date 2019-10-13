@@ -168,7 +168,6 @@ void InitPre()
       D.drawNullMaterials(true);
       D.set_shader=SetShader;
       D.mode(App.desktopW()*0.8f, App.desktopH()*0.8f);
-      D.highPrecNrmCalc(true);
    #if !DEBUG
       Paks.add("Bin/Engine.pak");
       Paks.add("Bin/Editor.pak");

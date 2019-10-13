@@ -349,15 +349,72 @@ public:
    bool mtrlGet(C UID &elm_id, EditMaterial &mtrl);
    bool mtrlSync(C UID &elm_id, C EditMaterial &mtrl, bool reload_textures, bool adjust_params, cptr undo_change_type="sync");
    bool mtrlSync(C UID &elm_id, C Edit::Material &mtrl, bool reload_textures, bool adjust_params);
-   uint createBaseTextures(Image &base_0, Image &base_1, C EditMaterial &material, bool changed_flip_normal_y);
+   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2, C EditMaterial &material, bool changed_flip_normal_y);
    uint mtrlCreateBaseTextures(EditMaterial &material, bool changed_flip_normal_y);
-   bool mtrlCreateReflectionTexture(Image &reflection, C EditMaterial &material);
-   void mtrlCreateReflectionTexture(EditMaterial &material);
+   /*bool mtrlCreateReflectionTexture(Image &reflection, C EditMaterial &material)
+   {
+      bool loaded=false;
+      reflection.del();
+      Mems<Edit.FileParams> faces=Edit.FileParams.Decode(material.reflection_map);
+      if(faces.elms()==6) // 6 images specified
+      {
+         Image images[6]; REPA(images)
+         {
+            Image &image=images[i];
+            Str name=faces[i].name; UID image_id; if(DecodeFileName(name, image_id))name=editPath(image_id);else image_id.zero();
+            if(ImportImage(image, name, -1, IMAGE_SOFT, 1, true))
+            {
+               loaded=true;
+               if(Elm *elm=findElm(image_id))if(ElmImage *data=elm.imageData())if(IsCube(data.mode))image.crop(image, i*image.w()/6, 0, image.w()/6, image.h()); // crop to i-th face for cubes, we need to check ElmImage for cube, and not 'image.mode' because Cube ELM_IMAGE are stored in 6x1 Soft in editPath
+            }
+         }
+         if(loaded) // create only if any of the images were loaded, otherwise we don't need it
+         {
+            ImagePtr cur_reflection;
+            REPA(images) // check if any of the images didn't load
+            {
+               Image &image=images[i]; if(!image.is())
+               {
+                  if(!cur_reflection)cur_reflection=texPath(material.reflection_tex); // load existing reflection map
+                  if( cur_reflection)cur_reflection->extractMipMap(image, -1, 0, GetCubeDir(i)); // extract from existing reflection map
+               }
+            }
+            reflection.ImportCubeTry(images[2], images[0], images[5], images[4], images[1], images[3], -1, true, 1, true);
+         }
+      }else
+      if(faces.elms()) // if at least one face is specified
+      {
+         Str name=material.reflection_map; UID image_id; if(DecodeFileName(name, image_id))name=editPath(image_id);
+         if(ImportImage(reflection, name))
+         {
+            loaded=true;
+            int res=NearestPow2(reflection.h());
+            reflection.copyTry(reflection, res, res, 1, -1, IMAGE_SOFT_CUBE, 1);
+         }
+      }
+      return !faces.elms() || loaded;
+   }
+   void mtrlCreateReflectionTexture(EditMaterial &material)
+   {
+      Image reflection; if(mtrlCreateReflectionTexture(reflection, material)) // proceed only if there's no source, or succeeded with importing, this is to avoid clearing existing texture when failed to load
+      {
+         ImageProps(reflection, &material.reflection_tex, null, SRGB|IGNORE_ALPHA); material.reflection_map_time.getUTC(); // in order for 'reflection_tex' to sync, 'reflection_map_time' time must be changed
+         if(reflection.is())
+         {
+            if(includeTex(material.reflection_tex))
+            {
+               reflection.copyTry(reflection, -1, -1, -1, IMAGE_BC1_SRGB, IMAGE_CUBE, 1);
+               saveTex(reflection, material.reflection_tex);
+            }
+            Server.setTex(material.reflection_tex);
+         }
+      }
+   }*/
    void mtrlCreateDetailTexture(EditMaterial &material);
    void mtrlCreateMacroTexture(EditMaterial &material);
    void mtrlCreateLightTexture(EditMaterial &material);
-   bool mtrlReloadTextures(C UID &elm_id, bool base, bool reflection, bool detail, bool macro, bool light);
-   void mtrlReloadTextures(C MemPtr<UID> &elm_ids, bool base, bool reflection, bool detail, bool macro, bool light);
+   bool mtrlReloadTextures(C UID &elm_id, bool base, bool detail, bool macro, bool light);
+   void mtrlReloadTextures(C MemPtr<UID> &elm_ids, bool base, bool detail, bool macro, bool light);
    Animation* getAnim(C UID &elm_id, Animation &temp)C;
    bool animGet(C UID &elm_id, Animation &anim)C;
    bool animSet(C UID &elm_id, C Animation &anim);

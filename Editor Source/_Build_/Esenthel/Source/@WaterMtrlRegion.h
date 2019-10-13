@@ -67,13 +67,13 @@ class WaterMtrlRegion : MaterialRegion
    static Str  FNY (C WaterMtrlRegion &mr          );
    static void FNY (  WaterMtrlRegion &mr, C Str &t);
 
-   virtual   EditMaterial& getEditMtrl  ()override;
-   virtual C ImagePtr    & getBase0     ()override;
-   virtual C ImagePtr    & getBase1     ()override;
- //virtual C ImagePtr    & getDetail    ()override {return game->   detail_map  ;}
-   virtual C ImagePtr    & getReflection()override;
- //virtual C ImagePtr    & getMacro     ()override {return game->    macro_map  ;}
- //virtual C ImagePtr    & getLight     ()override {return game->    light_map  ;}
+   virtual   EditMaterial& getEditMtrl()override;
+   virtual C ImagePtr    & getBase0   ()override;
+   virtual C ImagePtr    & getBase1   ()override;
+ //virtual C ImagePtr    & getBase2   ()override {return game->            ;} FIXME?
+ //virtual C ImagePtr    & getDetail  ()override {return game->detail_map  ;}
+ //virtual C ImagePtr    & getMacro   ()override {return game-> macro_map  ;}
+ //virtual C ImagePtr    & getLight   ()override {return game-> light_map  ;}
 
    void create();
 
@@ -85,7 +85,6 @@ class WaterMtrlRegion : MaterialRegion
    void set(C WaterMtrlPtr &mtrl);
 
    virtual void rebuildBase(uint old_base_tex, bool changed_flip_normal_y=false, bool adjust_params=true, bool always=false)override;
-   virtual void rebuildReflection()override;
    virtual void rebuildDetail()override;
    virtual void rebuildMacro()override;
    virtual void rebuildLight()override;

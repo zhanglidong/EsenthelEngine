@@ -18,7 +18,7 @@ class ConvertToDeAtlasClass : PropWin
 ;
 
    Memc<UID> objs, mtrls; // objects and materials to process
-   UID       base_0_tex, base_1_tex; // base textures of the materials (this should be the same for all materials)
+   UID       base_0_tex, base_1_tex, base_2_tex; // base textures of the materials (this should be the same for all materials)
    Preview   preview;
    MODE      mode;
    RectI     source_rect;

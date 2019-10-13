@@ -14,10 +14,12 @@ class TextureDownsize : Viewport4Region
    {
       int global,
           base_0,
-          base_1;
+          base_1,
+          base_2;
 
       int base0()C;
       int base1()C;
+      int base2()C;
 
 public:
    Settings();
@@ -36,8 +38,8 @@ public:
    Tabs                    mode;
    GuiImage                mtrl_image;
    Region                  region;
-   Button                  light_dir, downsize[3][2], revert, apply, prev, next;
-   Text                    info[3][2];
+   Button                  light_dir, downsize[4][2], revert, apply, prev, next;
+   Text                    info[4][2];
    Memx<Property>          props;
    TextBlack               prop_ts, left_ts, right_ts;
    Map<UID, Settings>      settings; // key=Material ID, doesn't need to be thread-safe
@@ -46,10 +48,10 @@ public:
                             obj_id;
    Memc<UID>               secondary;
    int                     secondary_i;
-   UID                     normal_base[2];
+   UID                     normal_base[3];
    MaterialPtr             normal_mtrl;
    MeshPtr                 normal_mesh;
-   Image                   downsized_base[2];
+   Image                   downsized_base[3];
    Map<UID, DownsizedMtrl> downsized_mtrls; // key=Material ID, doesn't need to be thread-safe
    MeshLod                 downsized_mesh;
    bool                    draw_as_obj, different;
@@ -81,6 +83,9 @@ public:
    static Str  Base1(C TextureDownsize &td             );
    static void Base1(  TextureDownsize &td, C Str &text);
 
+   static Str  Base2(C TextureDownsize &td             );
+   static void Base2(  TextureDownsize &td, C Str &text);
+
    static void Prev(TextureDownsize &editor);
    static void Next(TextureDownsize &editor);
 
@@ -88,7 +93,7 @@ public:
    static void NextS(TextureDownsize &editor);
 
    void nextSecondary(int dir);
-   bool nextSecondary(int dir, C UID (&old_base)[2]);
+   bool nextSecondary(int dir, C UID (&old_base)[3]);
    bool Next(int dir=1); // find next compatible element
 
    static cchar8 *DialogID;

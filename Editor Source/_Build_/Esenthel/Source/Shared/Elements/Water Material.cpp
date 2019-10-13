@@ -3,7 +3,7 @@
 /******************************************************************************/
 
 /******************************************************************************/
-   EditWaterMtrl::EditWaterMtrl() : density(0.3f), density_add(0.45f), density_underwater(0.02f), density_underwater_add(0.6f), scale_color(200), scale_normal(10), scale_bump(100), reflect_world(0.18f), refract(0.10f), refract_reflection(0.06f), refract_underwater(0.01f), wave_scale(0.25f), fresnel_pow(5.5f), fresnel_rough(4), fresnel_color(0.10f, 0.10f, 0.10f), color_underwater0(0.26f, 0.35f, 0.42f), color_underwater1(0.10f, 0.20f, 0.30f) {super::color_s.set(0.42f, 0.50f, 0.58f, 1); super::rough=1; super::specular=1.5f; super::reflection=0.1f;}
+   EditWaterMtrl::EditWaterMtrl() : density(0.3f), density_add(0.45f), density_underwater(0.02f), density_underwater_add(0.6f), scale_color(200), scale_normal(10), scale_bump(100), reflect_world(0.18f), refract(0.10f), refract_reflection(0.06f), refract_underwater(0.01f), wave_scale(0.25f), fresnel_pow(5.5f), fresnel_rough(4), fresnel_color(0.10f, 0.10f, 0.10f), color_underwater0(0.26f, 0.35f, 0.42f), color_underwater1(0.10f, 0.20f, 0.30f) {super::color_s.set(0.42f, 0.50f, 0.58f, 1);}
    bool EditWaterMtrl::usesTexBump()C {return wave_scale>EPSL && hasBumpMap();}
    bool EditWaterMtrl::equal(C EditWaterMtrl &src)C
    {
@@ -49,9 +49,9 @@ super::specular              =src.specular; spec_time=time;
 super::color_s               =Vec4(src.color, 1); color_time=time;
       color_underwater0     =src.color_underwater0; color_underwater_time=time;
       color_underwater1     =src.color_underwater1;
-          base_0_tex=src.     colorMap().id();
-          base_1_tex=src.    normalMap().id();
-      reflection_tex=src.reflectionMap().id();
+      base_0_tex=src. colorMap().id();
+      base_1_tex=src.normalMap().id();
+    //base_2_tex=src.; FIXME
    }
    void EditWaterMtrl::copyTo(WaterMtrl &dest, C Project &proj)C
    {
@@ -76,9 +76,9 @@ super::color_s               =Vec4(src.color, 1); color_time=time;
       dest.color                 =super::color_s.xyz     ;
       dest.color_underwater0     =color_underwater0     ;
       dest.color_underwater1     =color_underwater1     ;
-      dest.     colorMap(proj.texPath(    base_0_tex))
-          .    normalMap(proj.texPath(    base_1_tex))
-          .reflectionMap(proj.texPath(reflection_tex));
+      dest.     colorMap(proj.texPath(base_0_tex))
+          .    normalMap(proj.texPath(base_1_tex))/* FIXME
+          .reflectionMap(proj.texPath(base_2_tex))*/;
       dest.validate();
    }
    uint EditWaterMtrl::sync(C EditWaterMtrl &src)

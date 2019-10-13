@@ -2,11 +2,11 @@
 /******************************************************************************/
 class Texture
 {
-   UID id, // texture id
-       src_tex_id; // if this is a dynamically generated texture, then 'src_tex_id' points to the original texture from which it was created
+   UID id; // texture id
    bool  uses_alpha, // if uses alpha channel
+            dynamic, // if texture is dynamically generated
                srgb , // if sRGB gamma
-     non_perceptual, // if use non-perceptual compression
+             normal, // if normal map
          regenerate; // if this texture needs to be regenerated
    sbyte    quality; // -1=PVRTC1_2, 0=default, 1=BC7
    byte    downsize; // downsize

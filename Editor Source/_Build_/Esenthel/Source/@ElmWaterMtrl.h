@@ -10,7 +10,7 @@ class ElmWaterMtrl : ElmData
       TEX_QUALITY_HI=1<<3,
    };
 
-   UID  base_0_tex, base_1_tex, reflection_tex;
+   UID  base_0_tex, base_1_tex, base_2_tex;
    byte flag;
 
    // get

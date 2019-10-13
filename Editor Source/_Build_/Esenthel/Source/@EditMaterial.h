@@ -8,25 +8,25 @@ class EditMaterial
    MATERIAL_TECHNIQUE tech;
    Vec4               color_s;
    Vec                ambient;
-   flt                specular, sss, glow, rough, bump,
-                      tex_scale, det_scale, det_power, reflection;
-   UID                base_0_tex, base_1_tex, detail_tex, macro_tex, reflection_tex, light_tex;
-   Str                color_map, alpha_map, bump_map, normal_map, specular_map, glow_map,
+   flt                smooth, reflect, sss, glow, normal, bump,
+                      tex_scale, det_scale, det_power;
+   UID                base_0_tex, base_1_tex, base_2_tex, detail_tex, macro_tex, light_tex;
+   Str                color_map, alpha_map, bump_map, normal_map, smooth_map, reflect_map, glow_map,
                       detail_color, detail_bump, detail_normal,
                       macro_map,
-                      reflection_map,
                       light_map;
    TimeStamp          flip_normal_y_time, tex_quality_time,
-                      color_map_time, alpha_map_time, bump_map_time, normal_map_time, specular_map_time, glow_map_time,
-                      detail_map_time, macro_map_time, reflection_map_time, light_map_time,
+                      color_map_time, alpha_map_time, bump_map_time, normal_map_time, smooth_map_time, reflect_map_time, glow_map_time,
+                      detail_map_time, macro_map_time, light_map_time,
                       cull_time, tech_time, downsize_tex_mobile_time,
-                      color_time, ambient_time, spec_time, sss_time, rough_bump_time, glow_time, tex_scale_time, detail_time, reflection_time;
+                      color_time, ambient_time, smooth_time, reflect_time, sss_time, normal_time, bump_time, glow_time, tex_scale_time, detail_time;
 
    // get
    bool hasBumpMap   ()C;
    bool hasNormalMap ()C;
    bool hasDetailMap ()C;
-   bool hasBase1Tex  ()C;
+   bool hasBase1Tex  ()C; // #MaterialTextureLayout
+   bool hasBase2Tex  ()C; // #MaterialTextureLayout
    uint baseTex      ()C;
    bool usesTexAlpha ()C;
    bool usesTexBump  ()C; // always keep bump map because it can be used for multi-material per-pixel blending
@@ -34,7 +34,6 @@ class EditMaterial
    bool usesTexGlow  ()C;
    bool usesTexDetail()C;
    bool wantTanBin   ()C;
-   
 
    bool equal(C EditMaterial &src)C;
    bool newer(C EditMaterial &src)C;
@@ -43,7 +42,7 @@ class EditMaterial
    void reset();     
    void resetAlpha();
    void separateNormalMap(C TimeStamp &time=TimeStamp().getUTC());
-   void separateBaseTexs(C Project &proj, C TimeStamp &time=TimeStamp().getUTC());
+   void separateAlphaMap(C Project &proj, C TimeStamp &time=TimeStamp().getUTC());
    void cleanupMaps();
 
    void newData();
@@ -55,10 +54,9 @@ class EditMaterial
       CHANGED_PARAM=1<<0,
       CHANGED_FNY  =1<<1,
       CHANGED_BASE =1<<2,
-      CHANGED_REFL =1<<3,
-      CHANGED_DET  =1<<4,
-      CHANGED_MACRO=1<<5,
-      CHANGED_LIGHT=1<<6,
+      CHANGED_DET  =1<<3,
+      CHANGED_MACRO=1<<4,
+      CHANGED_LIGHT=1<<5,
    };
    uint sync(C Edit::Material &src);
    uint sync(C EditMaterial &src);

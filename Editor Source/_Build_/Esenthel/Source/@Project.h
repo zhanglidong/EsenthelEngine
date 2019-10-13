@@ -180,7 +180,7 @@ class Project
    static void IncludeAlpha(Image &image);
 
    static void TransformImage(Image &image, C MemPtr<TextParam> &params, bool clamp);
-   bool loadImage(Image &image, C Edit::FileParams &fp, bool srgb, bool clamp=false, C Image *color=null, C Image *spec=null, C Image *bump=null)C;
+   bool loadImage(Image &image, C Edit::FileParams &fp, bool srgb, bool clamp=false, C Image *color=null, C Image *smooth=null, C Image *bump=null)C;
    enum APPLY_MODE
    {
       APPLY_SET,
@@ -192,7 +192,7 @@ class Project
       APPLY_SUB,
       APPLY_MAX,
    };
-   bool loadImages(Image &image, C Str &src, bool srgb=true, bool clamp=false, C Color &background=TRANSPARENT, C Image *color=null, C Image *spec=null, C Image *bump=null)C;
+   bool loadImages(Image &image, C Str &src, bool srgb=true, bool clamp=false, C Color &background=TRANSPARENT, C Image *color=null, C Image *smooth=null, C Image *bump=null)C;
 
    void savedGame(Elm &elm, C Str &name);
    void savedGame(Elm &elm             );

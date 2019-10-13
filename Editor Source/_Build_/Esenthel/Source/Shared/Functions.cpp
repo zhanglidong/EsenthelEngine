@@ -285,7 +285,7 @@ Str SetCubeFile(Str files, int face, C Str &file) // put 'file' into specified '
 bool HasAlpha(C Image &image) // if image has alpha channel
 {
    if(!ImageTI[image.type()].a)return false;
-   Vec4 min, max; if(image.stats(&min, &max, null))return !(Equal(min.w, 1, 2.5f/255) && Equal(max.w, 1, 2.5f/255));
+   Vec4 min, max; if(image.stats(&min, &max, null))return !(Equal(min.w, 1, 1.5f/255) && Equal(max.w, 1, 1.5f/255));
    return true;
 }
 bool HasColor(C Image &image) // if image is not monochromatic
@@ -349,7 +349,7 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type, uint flags)
             {
                if(force_alpha) // set before calculating hash
                {
-                  byte alpha=(sign ? 127 : 255);
+                  byte alpha=(sign ? 127 : 255); // use 127 instead of 128, because this is for signed byte (which is in range -128..127)
                   REPD(z, temp.d())
                   REPD(y, temp.h())
                   REPD(x, temp.w())temp.pixC(x, y, z).a=alpha;
@@ -362,11 +362,11 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type, uint flags)
                {
                   Color c=src->color3D(x, y, z);
                   byte  bc2_a=((c.a*15+128)/255)*255/15;
-                  if(c.a> 1 && c.a<254                 // BC1 supports only 0 and 255 alpha
-                  || c.a==0 && c.lum()     )bc1=false; // BC1 supports only black color at 0 alpha
-                  if(Abs(c.a-bc2_a)>1      )bc2=false;
-                  if(c.g || c.b || c.a!=255)bc4=false;
-                  if(       c.b || c.a!=255)bc5=false;
+                  if(c.a> 1 && c.a<254                    // BC1 supports only 0 and 255 alpha
+                  || c.a<=1 && c.lum()>1      )bc1=false; // BC1 supports only black color at 0 alpha
+                  if(Abs(c.a-bc2_a)>1         )bc2=false;
+                  if(c.g>1 || c.b>1 || c.a<254)bc4=false;
+                  if(         c.b>1 || c.a<254)bc5=false;
                }
                src->unlock();
             }
@@ -392,10 +392,83 @@ void LoadTexture(C Project &proj, C UID &tex_id, Image &image, C VecI2 &size)
    ImagePtr src=proj.texPath(tex_id);
    if(src)src->copyTry(image, size.x, size.y, 1, ImageTypeUncompressed(src->type()), IMAGE_SOFT, 1);else image.del(); // always copy, because: src texture will always be compressed, also soft doesn't require locking
 }
-void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, Image *col, Image *alpha, Image *bump, Image *normal, Image *specular, Image *glow, C VecI2 &size)
+void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *col, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, C VecI2 &size)
+{ // #MaterialTextureLayout
+   uint tex=0;
+   if(base_2.valid())
+   {
+      if(smooth || reflect || bump || alpha)
+      {
+         Image b2; LoadTexture(proj, base_2, b2, size);
+         if(smooth )smooth ->createSoft(b2.w(), b2.h(), 1, IMAGE_L8);
+         if(reflect)reflect->createSoft(b2.w(), b2.h(), 1, IMAGE_L8);
+         if(bump   )bump   ->createSoft(b2.w(), b2.h(), 1, IMAGE_L8);
+         if(alpha  )alpha  ->createSoft(b2.w(), b2.h(), 1, IMAGE_L8);
+         REPD(y, b2.h())
+         REPD(x, b2.w())
+         {
+            Color c=b2.color(x, y);
+            if(smooth ){smooth ->pixel(x, y, c.r); if(c.r<254                           )tex|=BT_SMOOTH ;}
+            if(reflect){reflect->pixel(x, y, c.g); if(c.g<254                           )tex|=BT_REFLECT;}
+            if(bump   ){bump   ->pixel(x, y, c.b); if(c.b>1 && Abs(c.b-128)>1 && c.b<254)tex|=BT_BUMP   ;} // BUMP_DEFAULT_TEX can be either 0, 128 or 255
+            if(alpha  ){alpha  ->pixel(x, y, c.a); if(c.a<254                           )tex|=BT_ALPHA  ;}
+         }
+      }
+      if(base_0.valid() && (col || glow)) // base_0 && base_2
+      {
+         Image b0; LoadTexture(proj, base_0, b0, size);
+         if(col )col ->createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
+         if(glow)glow->createSoft(b0.w(), b0.h(), 1, IMAGE_L8);
+         REPD(y, b0.h())
+         REPD(x, b0.w())
+         {
+            Color c=b0.color(x, y);
+            if(col ){col ->color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
+            if(glow){glow->pixel(x, y, c.a); if(c.a<254                      )tex|=BT_GLOW ;}
+         }
+      }
+   }else
+   if(base_0.valid() && (col || alpha)) // base_0 without base_2
+   {
+      Image b0; LoadTexture(proj, base_0, b0, size);
+      if(col  )col  ->createSoft(b0.w(), b0.h(), 1, IMAGE_R8G8B8_SRGB);
+      if(alpha)alpha->createSoft(b0.w(), b0.h(), 1, IMAGE_L8);
+      REPD(y, b0.h())
+      REPD(x, b0.w())
+      {
+         Color c=b0.color(x, y);
+         if(col  ){col  ->color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
+         if(alpha){alpha->pixel(x, y, c.a); if(c.a<254                      )tex|=BT_ALPHA;}
+      }
+   }
+   if(base_1.valid() && normal)
+   {
+      Image b1; LoadTexture(proj, base_1, b1, size);
+      normal->createSoft(b1.w(), b1.h(), 1, IMAGE_R8G8B8);
+      REPD(y, b1.h())
+      REPD(x, b1.w())
+      {
+         Vec4 n; n.xy=b1.colorF(x, y).xy;
+         if(Abs(n.x)>1.5f/127
+         || Abs(n.y)>1.5f/127)tex|=BT_NORMAL;
+         n.z=CalcZ(n.xy);
+         n.xyz=n.xyz*0.5f+0.5f;
+         n.w=1;
+         normal->colorF(x, y, n);
+      }
+   }
+   if(col     && !(tex&BT_COLOR  ))col    ->del();
+   if(alpha   && !(tex&BT_ALPHA  ))alpha  ->del();
+   if(bump    && !(tex&BT_BUMP   ))bump   ->del();
+   if(normal  && !(tex&BT_NORMAL ))normal ->del();
+   if(smooth  && !(tex&BT_SMOOTH ))smooth ->del();
+   if(reflect && !(tex&BT_REFLECT))reflect->del();
+   if(glow    && !(tex&BT_GLOW   ))glow   ->del();
+}
+void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *col, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, C VecI2 &size)
 {
    uint tex=0;
-   if(base_0.valid() && base_1.valid()) // both textures specified
+   if(base_2.valid() && base_1.valid()) // both textures specified
    {
       if(col || bump)
       {
@@ -407,40 +480,29 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, Image *c
          {
             Color c=b0.color(x, y);
             if(col ){col ->color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
-            if(bump){bump->pixel(x, y, c.a); if(Abs(c.a-128)>1     && c.a<254)tex|=BT_BUMP ;} // BUMP_DEFAULT can be either 128 or 255
+            if(bump){bump->pixel(x, y, c.a); if(Abs(c.a-128)>1     && c.a<254)tex|=BT_BUMP ;} // BUMP_DEFAULT_TEX can be either 128 or 255
          }
       }
-      if(alpha || normal || specular || glow)
+      if(alpha || normal || smooth || reflect || glow)
       {
          Image b1; LoadTexture(proj, base_1, b1, size);
-         if(alpha   )alpha   ->createSoft(b1.w(), b1.h(), 1, IMAGE_L8);
-         if(normal  )normal  ->createSoft(b1.w(), b1.h(), 1, IMAGE_R8G8B8);
-         if(specular)specular->createSoft(b1.w(), b1.h(), 1, IMAGE_L8);
-         if(glow    )glow    ->createSoft(b1.w(), b1.h(), 1, IMAGE_L8);
+         if(alpha  )alpha  ->createSoft(b1.w(), b1.h(), 1, IMAGE_L8);
+         if(normal )normal ->createSoft(b1.w(), b1.h(), 1, IMAGE_R8G8B8);
+         if(smooth )smooth ->createSoft(b1.w(), b1.h(), 1, IMAGE_L8);
+         if(reflect)reflect->createSoft(b1.w(), b1.h(), 1, IMAGE_L8);
+         if(glow   )glow   ->createSoft(b1.w(), b1.h(), 1, IMAGE_L8);
          REPD(y, b1.h())
          REPD(x, b1.w())
          {
             Color c=b1.color(x, y); // #MaterialTextureLayout
-          /*if(old)
+            if(alpha  ){alpha  ->pixel(x, y, c.a); if(c.a<254)tex|=BT_ALPHA  ;}
+            if(glow   ){glow   ->pixel(x, y, c.a); if(c.a<254)tex|=BT_GLOW   ;}
+            if(smooth ){smooth ->pixel(x, y, c.b); if(c.b<254)tex|=BT_SMOOTH ;}
+            if(reflect){reflect->pixel(x, y, c.b); if(c.b<254)tex|=BT_REFLECT;}
+            if(normal )
             {
-               if(alpha   ){alpha   .pixel(x, y, c.b); if(c.b<254)tex|=BT_ALPHA   ;}
-               if(glow    ){glow    .pixel(x, y, c.b); if(c.b<254)tex|=BT_GLOW    ;}
-               if(specular){specular.pixel(x, y, c.r); if(c.r<254)tex|=BT_SPECULAR;}
-               if(normal  )
-               {
-                  Vec n; n.xy.set((c.a-128)/127.0, (c.g-128)/127.0); n.z=Sqrt(1 - n.x*n.x - n.y*n.y);
-                  normal.color(x, y, Color(c.a, c.g, Mid(Round(n.z*127+128), 0, 255))); if(Abs(c.a-128)>1 || Abs(c.g-128)>1)tex|=BT_NORMAL;
-               }
-            }else*/
-            {
-               if(alpha   ){alpha   ->pixel(x, y, c.a); if(c.a<254)tex|=BT_ALPHA   ;}
-               if(glow    ){glow    ->pixel(x, y, c.a); if(c.a<254)tex|=BT_GLOW    ;}
-               if(specular){specular->pixel(x, y, c.b); if(c.b<254)tex|=BT_SPECULAR;}
-               if(normal  )
-               {
-                  Vec n; n.xy.set((c.r-128)/127.0f, (c.g-128)/127.0f); n.z=Sqrt(1 - n.x*n.x - n.y*n.y);
-                  normal->color(x, y, Color(c.r, c.g, Mid(Round(n.z*127+128), 0, 255))); if(Abs(c.r-128)>1 || Abs(c.g-128)>1)tex|=BT_NORMAL;
-               }
+               Vec n; n.xy.set((c.r-128)/127.0f, (c.g-128)/127.0f); n.z=CalcZ(n.xy);
+               normal->color(x, y, Color(c.r, c.g, Mid(Round(n.z*127+128), 0, 255))); if(Abs(c.r-128)>1 || Abs(c.g-128)>1)tex|=BT_NORMAL;
             }
          }
       }
@@ -461,12 +523,13 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, Image *c
          }
       }
    }
-   if(col      && !(tex&BT_COLOR   ))col     ->del();
-   if(alpha    && !(tex&BT_ALPHA   ))alpha   ->del();
-   if(bump     && !(tex&BT_BUMP    ))bump    ->del();
-   if(normal   && !(tex&BT_NORMAL  ))normal  ->del();
-   if(specular && !(tex&BT_SPECULAR))specular->del();
-   if(glow     && !(tex&BT_GLOW    ))glow    ->del();
+   if(col     && !(tex&BT_COLOR  ))col    ->del();
+   if(alpha   && !(tex&BT_ALPHA  ))alpha  ->del();
+   if(bump    && !(tex&BT_BUMP   ))bump   ->del();
+   if(normal  && !(tex&BT_NORMAL ))normal ->del();
+   if(smooth  && !(tex&BT_SMOOTH ))smooth ->del();
+   if(reflect && !(tex&BT_REFLECT))reflect->del();
+   if(glow    && !(tex&BT_GLOW   ))glow   ->del();
 }
 void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *col, Image *bump, Image *normal)
 {
@@ -482,24 +545,12 @@ void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *col, Image 
       REPD(x, det.w())
       {
          Color c=det.color(x, y); // #MaterialTextureLayout
-       /*if(old)
+         if(col   ){col ->pixel(x, y, c.b); if(c.b<254)tex|=BT_COLOR;}
+         if(bump  ){bump->pixel(x, y, c.a); if(c.a<254)tex|=BT_BUMP ;}
+         if(normal)
          {
-            if(col   ){col .pixel(x, y, c.r); if(c.r<254)tex|=BT_COLOR;}
-            if(bump  ){bump.pixel(x, y, c.b); if(c.b<254)tex|=BT_BUMP ;}
-            if(normal)
-            {
-               Vec n; n.xy.set((c.a-128)/127.0, (c.g-128)/127.0); n.z=Sqrt(1 - n.x*n.x - n.y*n.y);
-               normal.color(x, y, Color(c.a, c.g, Mid(Round(n.z*127+128), 0, 255))); if(Abs(c.a-128)>1 || Abs(c.g-128)>1)tex|=BT_NORMAL;
-            }
-         }else*/
-         {
-            if(col   ){col ->pixel(x, y, c.b); if(c.b<254)tex|=BT_COLOR;}
-            if(bump  ){bump->pixel(x, y, c.a); if(c.a<254)tex|=BT_BUMP ;}
-            if(normal)
-            {
-               Vec n; n.xy.set((c.r-128)/127.0f, (c.g-128)/127.0f); n.z=Sqrt(1 - n.x*n.x - n.y*n.y);
-               normal->color(x, y, Color(c.r, c.g, Mid(Round(n.z*127+128), 0, 255))); if(Abs(c.r-128)>1 || Abs(c.g-128)>1)tex|=BT_NORMAL;
-            }
+            Vec n; n.xy.set((c.r-128)/127.0f, (c.g-128)/127.0f); n.z=CalcZ(n.xy);
+            normal->color(x, y, Color(c.r, c.g, Mid(Round(n.z*127+128), 0, 255))); if(Abs(c.r-128)>1 || Abs(c.g-128)>1)tex|=BT_NORMAL;
          }
       }
    }
@@ -507,11 +558,12 @@ void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *col, Image 
    if(bump   && !(tex&BT_BUMP  ))bump  ->del();
    if(normal && !(tex&BT_NORMAL))normal->del();
 }
-UID MergedBaseTexturesID(C UID &base_0, C UID &base_1) // this function generates ID of a merged texture created from two base textures, formula for this function can be freely modified as in worst case merged textures will just get regenerated
+UID MergedBaseTexturesID(C UID &base_0, C UID &base_1, C UID &base_2) // this function generates ID of a merged texture created from two base textures, formula for this function can be freely modified as in worst case merged textures will just get regenerated
 {
    MD5 id;
    id.update(&base_0, SIZE(base_0));
    id.update(&base_1, SIZE(base_1));
+   id.update(&base_2, SIZE(base_2));
    return id();
 }
 /******************************************************************************/
@@ -608,7 +660,7 @@ bool UpdateMtrlBase1Tex(C Image &src, Image &dest)
          c.set(c.a, c.g, c.r, c.b);
          temp.color(x, y, c);
       }
-      return temp.copyTry(dest, -1, -1, -1, (src.type()==IMAGE_BC3 || src.type()==IMAGE_BC3_SRGB) ? IMAGE_BC7 : ImageTypeExcludeSRGB(src.type()), src.mode(), src.mipMaps(), FILTER_BEST, IC_WRAP|IC_NON_PERCEPTUAL);
+      return temp.copyTry(dest, -1, -1, -1, (src.type()==IMAGE_BC3 || src.type()==IMAGE_BC3_SRGB) ? IMAGE_BC7 : ImageTypeExcludeSRGB(src.type()), src.mode(), src.mipMaps(), FILTER_BEST, IC_WRAP);
    }
    return false;
 }
@@ -617,12 +669,13 @@ void AdjustMaterialParams(EditMaterial &edit, Material &game, uint old_base_tex,
 {
    TimeStamp time; time.getUTC();
    game._adjustParams(old_base_tex, new_base_tex);
-   SyncByValue     (edit.      tech_time, time, edit.tech     , game.technique);
-   SyncByValueEqual(edit.     color_time, time, edit.color_s.w, game.color_l.w);
-   SyncByValueEqual(edit.rough_bump_time, time, edit.bump     , game.bump     );
-   SyncByValueEqual(edit.rough_bump_time, time, edit.rough    , game.rough    );
-   SyncByValueEqual(edit.      spec_time, time, edit.specular , game.specular );
-   SyncByValueEqual(edit.      glow_time, time, edit.glow     , game.glow     );
+   SyncByValue     (edit.   tech_time, time, edit.tech     , game.technique);
+   SyncByValueEqual(edit.  color_time, time, edit.color_s.w, game.color_l.w); // alpha
+   SyncByValueEqual(edit.   bump_time, time, edit.bump     , game.bump     );
+   SyncByValueEqual(edit. normal_time, time, edit.normal   , game.normal   );
+   SyncByValueEqual(edit. smooth_time, time, edit.smooth   , game.smooth   );
+   SyncByValueEqual(edit.reflect_time, time, edit.reflect  , game.reflect  );
+   SyncByValueEqual(edit.   glow_time, time, edit.glow     , game.glow     );
 }
 /******************************************************************************/
 bool ImportImage(Image &image, C Str &name, int type, int mode, int mip_maps, bool decompress)

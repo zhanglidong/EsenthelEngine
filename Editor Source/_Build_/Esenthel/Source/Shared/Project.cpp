@@ -448,12 +448,12 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
 
          case ELM_MTRL: if(ElmMaterial *data=elm.mtrlData())
          {
-            return invalidTex(data->base_0_tex) || invalidTex(data->base_1_tex) || invalidTex(data->detail_tex) || invalidTex(data->macro_tex) || invalidTex(data->reflection_tex) || invalidTex(data->light_tex);
+            return invalidTex(data->base_0_tex) || invalidTex(data->base_1_tex) || invalidTex(data->base_2_tex) || invalidTex(data->detail_tex) || invalidTex(data->macro_tex) || invalidTex(data->light_tex);
          }break;
 
          case ELM_WATER_MTRL: if(ElmWaterMtrl *data=elm.waterMtrlData())
          {
-            return invalidTex(data->base_0_tex) || invalidTex(data->base_1_tex) || invalidTex(data->reflection_tex);
+            return invalidTex(data->base_0_tex) || invalidTex(data->base_1_tex) || invalidTex(data->base_2_tex);
          }break;
 
          case ELM_ANIM: if(ElmAnim *data=elm.animData())
@@ -1589,7 +1589,7 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
          }
       }
    }
-   bool Project::loadImage(Image &image, C Edit::FileParams &fp, bool srgb, bool clamp, C Image *color, C Image *spec, C Image *bump)C
+   bool Project::loadImage(Image &image, C Edit::FileParams &fp, bool srgb, bool clamp, C Image *color, C Image *smooth, C Image *bump)C
    {
       if(!fp.name.is()){image.del(); return true;}
       Str  name=fp.name;
@@ -1597,9 +1597,9 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
       UID  image_id;
       if(name[0]=='<')
       {
-         if( name=="<color>"                       && color)color->copyTry(image);else
-         if((name=="<spec>" || name=="<specular>") && spec )spec ->copyTry(image);else
-         if( name=="<bump>"                        && bump )bump ->copyTry(image);else
+         if( name=="<color>"                                           && color )color ->copyTry(image);else
+         if((name=="<smooth>" || name=="<spec>" || name=="<specular>") && smooth)smooth->copyTry(image);else
+         if( name=="<bump>"                                            && bump  )bump  ->copyTry(image);else
             image.del();
          goto imported;
       }
@@ -1618,16 +1618,16 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
       }
       image.del(); return false;
    }
-   bool Project::loadImages(Image &image, C Str &src, bool srgb, bool clamp, C Color &background, C Image *color, C Image *spec, C Image *bump)C
+   bool Project::loadImages(Image &image, C Str &src, bool srgb, bool clamp, C Color &background, C Image *color, C Image *smooth, C Image *bump)C
    {
       Mems<Edit::FileParams> fps=Edit::FileParams::Decode(src);
       if(!fps.elms()){image.del(); return true;}
-      if( fps.elms()==1 && !fps[0].findParam("position") && !fps[0].findParam("pos"))return loadImage(image, fps[0], srgb, clamp, color, spec, bump); // can load as a single image only if doesn't have position specified
+      if( fps.elms()==1 && !fps[0].findParam("position") && !fps[0].findParam("pos"))return loadImage(image, fps[0], srgb, clamp, color, smooth, bump); // can load as a single image only if doesn't have position specified
       image.del();
       bool ok=true, hp=false;
       Image single;
        REPA(fps)if(C TextParam *p=fps[i].findParam("mode"))if(p->value!="set"){hp=true; break;}
-      FREPA(fps)if(loadImage(single, fps[i], srgb, clamp, color, spec, bump)) // process in order
+      FREPA(fps)if(loadImage(single, fps[i], srgb, clamp, color, smooth, bump)) // process in order
       {
          VecI2 pos=0; {C TextParam *p=fps[i].findParam("position"); if(!p)p=fps[i].findParam("pos"); if(p)pos=p->asVecI2();}
          VecI2 size=single.size()+pos;
@@ -1897,8 +1897,8 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
       // erase dynamic textures
       used.clear();
       REPA(elms)if(ElmMaterial *mtrl_data=elms[i].mtrlData())
-         if(mtrl_data->base_0_tex.valid() && mtrl_data->base_1_tex.valid())
-            used.binaryInclude(MergedBaseTexturesID(mtrl_data->base_0_tex, mtrl_data->base_1_tex));
+         if(mtrl_data->base_1_tex.valid() || mtrl_data->base_2_tex.valid())
+            used.binaryInclude(MergedBaseTexturesID(mtrl_data->base_0_tex, mtrl_data->base_1_tex, mtrl_data->base_2_tex));
       for(FileFind ff(temp_tex_dynamic_path); ff(); )
       {
          bool tex_used=false;
@@ -2191,18 +2191,18 @@ uint CC4_PRDT=CC4('P', 'R', 'D', 'T'); // Project Data
                {
                   if(ver<=46)
                   {
-                     edit.   color_map  .replace('|', '\n');
-                     edit.   alpha_map  .replace('|', '\n');
-                     edit.    bump_map  .replace('|', '\n');
-                     edit.  normal_map  .replace('|', '\n');
-                     edit.specular_map  .replace('|', '\n');
-                     edit.    glow_map  .replace('|', '\n');
-                     edit.detail_color  .replace('|', '\n');
-                     edit.detail_bump   .replace('|', '\n');
-                     edit.detail_normal .replace('|', '\n');
-                     edit.     macro_map.replace('|', '\n');
-                     edit.reflection_map.replace('|', '\n');
-                     edit.     light_map.replace('|', '\n');
+                     edit.  color_map  .replace('|', '\n');
+                     edit.  alpha_map  .replace('|', '\n');
+                     edit.   bump_map  .replace('|', '\n');
+                     edit. normal_map  .replace('|', '\n');
+                     edit. smooth_map  .replace('|', '\n');
+                     edit.reflect_map  .replace('|', '\n');
+                     edit.   glow_map  .replace('|', '\n');
+                     edit.detail_color .replace('|', '\n');
+                     edit.detail_bump  .replace('|', '\n');
+                     edit.detail_normal.replace('|', '\n');
+                     edit.  macro_map  .replace('|', '\n');
+                     edit.  light_map  .replace('|', '\n');
                      Save(edit, editPath(elm->id));
                      mtrl_data->from(edit);
                   }

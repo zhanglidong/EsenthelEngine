@@ -18,7 +18,7 @@ class ElmIcon : ElmData
    ElmImage::TYPE     type(Project *proj)C;                          
    bool          hasColor(             )C; ElmIcon&hasColor(bool on);
    bool          hasAlpha(             )C; ElmIcon&hasAlpha(bool on);
-   IMAGE_TYPE androidType(Project *proj)C;                          // if want to be compressed then use ETC2_A8 or ETC2
+   IMAGE_TYPE androidType(Project *proj)C;                          // if want to be compressed then use ETC2_RGBA or ETC2_RGB
    IMAGE_TYPE     iOSType(Project *proj)C;                          // if want to be compressed then use PVRTC1_4
    IMAGE_TYPE     webType(Project *proj)C;                          // if want to be compressed with alpha then use BC3
 

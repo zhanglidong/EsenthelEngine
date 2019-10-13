@@ -4,7 +4,7 @@ class MtrlImages
 {
    bool  flip_normal_y;
    int   tex;
-   Image color, alpha, bump, normal, specular, glow;
+   Image color, alpha, bump, normal, smooth, reflect, glow;
    
    bool create(C VecI2 &size);
    void clear();
@@ -14,8 +14,8 @@ class MtrlImages
    void crop(C Rect &frac);
    void resize(C VecI2 &size);
    void fromMaterial(C EditMaterial &material, C Project &proj, bool changed_flip_normal_y, C VecI2 &size=-1, bool process_alpha=false);
-   uint createBaseTextures(Image &base_0, Image &base_1)C;
-   void baseTextureSizes(VecI2 *size0, VecI2 *size1);
+   uint createBaseTextures(Image &base_0, Image &base_1, Image &base_2)C;
+   void baseTextureSizes(VecI2 *size0, VecI2 *size1, VecI2 *size2);
    void processAlpha();
 
 public:

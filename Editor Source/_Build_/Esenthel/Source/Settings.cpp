@@ -104,7 +104,6 @@ bool SaveSettings(C Str &name)
       video.nodes.New().set("MonitorPrecision"        , D.monitorPrecision());
       video.nodes.New().set("Dither"                  , D.dither());
       video.nodes.New().set("ColRTPrecision"          , D.highPrecColRT    ());
-      video.nodes.New().set("NrmCalcPrecision"        , D.highPrecNrmCalc  ());
       video.nodes.New().set("NrmRTPrecision"          , D.highPrecNrmRT    ());
       video.nodes.New().set("LumRTPrecision"          , D.highPrecLumRT    ());
       video.nodes.New().set("LitColRTPrecision"       , D.litColRTPrecision());
@@ -169,7 +168,6 @@ void ApplyVideoSettings(C TextData &data)
       if(C TextParam *p=video->findNode("MonitorPrecision"        ))D.monitorPrecision(IMAGE_PRECISION(p->asInt()));
       if(C TextParam *p=video->findNode("Dither"                  ))D.dither(p->asBool());
       if(C TextParam *p=video->findNode("ColRTPrecision"          ))D.highPrecColRT    (p->asBool());
-      if(C TextParam *p=video->findNode("NrmCalcPrecision"        ))D.highPrecNrmCalc  (p->asBool());
       if(C TextParam *p=video->findNode("NrmRTPrecision"          ))D.highPrecNrmRT    (p->asBool());
       if(C TextParam *p=video->findNode("LumRTPrecision"          ))D.highPrecLumRT    (p->asBool());
       if(C TextParam *p=video->findNode("LitColRTPrecision"       ))D.litColRTPrecision(IMAGE_PRECISION(p->asInt()));

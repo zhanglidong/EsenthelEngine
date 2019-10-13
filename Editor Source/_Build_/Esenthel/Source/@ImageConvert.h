@@ -14,8 +14,7 @@ class ImageConvert
               alpha_lum,
               has_color ,
               has_alpha ,
-           ignore_alpha, 
-         non_perceptual;
+           ignore_alpha;
    byte        downsize;
    int         mip_maps,
                max_size;
@@ -27,7 +26,7 @@ class ImageConvert
 
    static SyncLock Lock;
 
-   void set(C Str &src, C Str &dest, C DateTime &time, int type, bool ignore_alpha, bool clamp, bool non_perceptual=false, byte downsize=0, int max_size=0);
+   void set(C Str &src, C Str &dest, C DateTime &time, int type, bool ignore_alpha, bool clamp, byte downsize=0, int max_size=0);
    void set(C Str &src, C Str &dest, C DateTime &time, C ElmImage &data, IMAGE_TYPE type);
    void set(C Str &src, C Str &dest, C DateTime &time, C ElmIcon &data, IMAGE_TYPE type);
    void set(C Str &src, C Str &dest, C DateTime &time, C ElmImageAtlas &data, IMAGE_TYPE type);

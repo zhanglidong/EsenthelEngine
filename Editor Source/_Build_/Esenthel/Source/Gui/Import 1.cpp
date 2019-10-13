@@ -345,6 +345,7 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
                EditMaterial edit; edit.create(game); // create from material
 
                // set textures
+               // FIXME
                Image base_1, detail_map; if(game.base_1)UpdateMtrlBase1Tex(*game.base_1, base_1); if(game.detail_map)UpdateMtrlBase1Tex(*game.detail_map, detail_map);
                if(game.        base_0)ImageProps(*game.        base_0, &edit.    base_0_tex, null, MTRL_BASE_0                                    );else edit.    base_0_tex.zero();
                if(game.        base_1)ImageProps(              base_1, &edit.    base_1_tex, null, MTRL_BASE_1                                    );else edit.    base_1_tex.zero();
@@ -367,25 +368,26 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
                ImportMtrlImages.binaryInclude(SkipStartPath(r , ImportSrc), ImportComparePath);
                ImportMtrlImages.binaryInclude(SkipStartPath(l , ImportSrc), ImportComparePath);
 
-               edit.   color_map=(b0.is() ? b0+"xyz" : S); edit.     color_map_time.getUTC();
-               edit.   alpha_map.clear();                  edit.     alpha_map_time.getUTC();
-               edit.    bump_map.clear();                  edit.      bump_map_time.getUTC();
-               edit.    glow_map.clear();                  edit.      glow_map_time.getUTC();
-               edit.  normal_map.clear();                  edit.    normal_map_time.getUTC();
-               edit.specular_map.clear();                  edit.  specular_map_time.getUTC();
-               edit.detail_color =(d.is() ? d+"x"  : S);   edit.    detail_map_time.getUTC();
+               edit.  color_map=(b0.is() ? b0+"xyz" : S); edit.  color_map_time.getUTC();
+               edit.  alpha_map.clear();                  edit.  alpha_map_time.getUTC();
+               edit.   bump_map.clear();                  edit.   bump_map_time.getUTC();
+               edit.   glow_map.clear();                  edit.   glow_map_time.getUTC();
+               edit. normal_map.clear();                  edit. normal_map_time.getUTC();
+               edit. smooth_map.clear();                  edit. smooth_map_time.getUTC();
+               edit.reflect_map.clear();                  edit.reflect_map_time.getUTC();
+               edit.detail_color =(d.is() ? d+"x"  : S);  edit. detail_map_time.getUTC();
                edit.detail_bump  =(d.is() ? d+"z"  : S);
                edit.detail_normal=(d.is() ? d+"wy" : S);
-               edit.     macro_map=m;                      edit.     macro_map_time.getUTC();
-               edit.reflection_map=r;                      edit.reflection_map_time.getUTC();
-               edit.     light_map=l;                      edit.     light_map_time.getUTC();
+               edit.     macro_map=m;                     edit.     macro_map_time.getUTC();
+               edit.reflection_map=r;                     edit.reflection_map_time.getUTC();
+               edit.     light_map=l;                     edit.     light_map_time.getUTC();
                if(b1.is())
                {
-                  edit.    bump_map=(b0.is() ? b0+"w" : S);
-                  edit.  normal_map=b1+"wy";
-                  edit.   alpha_map=b1+"z";
-                  edit.    glow_map=b1+"z";
-                  edit.specular_map=b1+"x";
+                  edit.  bump_map=(b0.is() ? b0+"w" : S);
+                  edit.normal_map=b1+"wy";
+                  edit. alpha_map=b1+"z";
+                  edit.  glow_map=b1+"z";
+                  edit.smooth_map=b1+"x";
                }else
                if(b0.is())
                {
