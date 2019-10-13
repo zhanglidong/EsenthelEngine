@@ -22,7 +22,7 @@ namespace EE{
                -ComboBox.Menu
                -ComboBox.Menu
 
-         baseLevel is still used, to put them always on top of other objects (including windows)
+         'baseLevel' is still used, to put them always on top of other objects (including windows)
 
    Menu's are sorted in the Desktop children array, by their number of Parents/Owners,
       so, a Menu belonging to Window, will be before a Menu belonging to Desktop.
@@ -136,7 +136,6 @@ void MenuElm::push()
 }
 void Menu::push(C Str &elm)
 {
-   DEBUG_BYTE_LOCK(_used);
    Str path=elm;
    for(GuiObj *go=this; go->is(GO_MENU); go=go->parent())if(go->asMenu()._func)
    {
@@ -155,7 +154,7 @@ void Menu::push(C Str &elm)
          menu  =parent;
          parent=parent->parent();
       }
-      go->asMenu()._func(path, go->asMenu()._func_user);
+      DEBUG_BYTE_LOCK(_used); go->asMenu()._func(path, go->asMenu()._func_user);
       break;
    }
 }
@@ -230,12 +229,11 @@ void Menu::operator()(C Str &command, Bool on, SET_MODE mode)
       MenuElm &elm=_elms[i];
       if(Equal(elm.name, start))
       {
-         DEBUG_BYTE_LOCK(_used);
          start=_GetStartNot(command);
          if(!Is(start))if(elm.on!=on)
          {
             elm.on^=true;
-            if(mode!=QUIET)elm.call();
+            if(mode!=QUIET){DEBUG_BYTE_LOCK(_used); elm.call();}
          }
          if(Menu *menu=elm.menu())(*menu)(start, on, mode);
          break;
@@ -521,12 +519,14 @@ void Menu::checkKeyboardShortcuts()
       {
          if(e._kbsc.pd())
          {
+            DEBUG_BYTE_LOCK(_used);
             e._kbsc.eat();
             e.push();
               push(e.name);
          }else
          if(e._kbsc2.pd())
          {
+            DEBUG_BYTE_LOCK(_used);
             e._kbsc2.eat();
             e.push();
               push(e.name);

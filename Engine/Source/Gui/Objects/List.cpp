@@ -491,33 +491,33 @@ CopyFast(_search  ,src._search);
          _search_i=src._search_i;
          _search_t=src._search_t;
 
-                _type_offset=src.       _type_offset;
-                _desc_offset=src.       _desc_offset;
-         _image_color_offset=src._image_color_offset;
-          _text_color_offset=src. _text_color_offset;
-         _text_shadow_offset=src._text_shadow_offset;
-          _alpha_mode_offset=src. _alpha_mode_offset;
-              _offset_offset=src.     _offset_offset;
-               _group_offset=src.      _group_offset;
-            _children_offset=src.   _children_offset;
+               _type_offset=src.       _type_offset;
+               _desc_offset=src.       _desc_offset;
+        _image_color_offset=src._image_color_offset;
+         _text_color_offset=src. _text_color_offset;
+        _text_shadow_offset=src._text_shadow_offset;
+         _alpha_mode_offset=src. _alpha_mode_offset;
+             _offset_offset=src.     _offset_offset;
+              _group_offset=src.      _group_offset;
+           _children_offset=src.   _children_offset;
 
-         _column_base  =src._column_base;
-         _column_rel   =src._column_rel;
-            _elm_height=src.   _elm_height;
-           _text_base  =src.  _text_base;
-           _text_rel   =src.  _text_rel;
-          _image_base  =src. _image_base;
-          _image_rel   =src. _image_rel;
-          _image_padd  =src. _image_padd;
-         _zoom         =src._zoom;
-         _height_ez    =src._height_ez;
+        _column_base  =src._column_base;
+        _column_rel   =src._column_rel;
+           _elm_height=src.   _elm_height;
+          _text_base  =src.  _text_base;
+          _text_rel   =src.  _text_rel;
+         _image_base  =src. _image_base;
+         _image_rel   =src. _image_rel;
+         _image_padd  =src. _image_padd;
+        _zoom         =src._zoom;
+        _height_ez    =src._height_ez;
 
-         _cur_changed_user =src._cur_changed_user;
-         _cur_changed      =src._cur_changed;
-         _sel_changed_user =src._sel_changed_user;
-         _sel_changed      =src._sel_changed;
-         _sel_changing_user=src._sel_changing_user;
-         _sel_changing     =src._sel_changing;
+        _cur_changed_user =src._cur_changed_user;
+        _cur_changed      =src._cur_changed;
+        _sel_changed_user =src._sel_changed_user;
+        _sel_changed      =src._sel_changed;
+        _sel_changing_user=src._sel_changing_user;
+        _sel_changing     =src._sel_changing;
 
          setColumns(src._columns.data(), src.columns(), src.columnsHidden()); // do this as last because it relies on other parameters
       }   
