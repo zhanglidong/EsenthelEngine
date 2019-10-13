@@ -251,7 +251,7 @@ struct CSG // Constructive Solid Geometry
          // draw polys
          if(DrawPolys)
          {
-            SetMatrix((Matrix)face_matrix);
+            SetMatrix((MatrixM)face_matrix);
             Meml<Poly> polys; mshb.edgeToPoly(polys);
             REPA(polys)if(P<0 || P==i)polys[i].draw3D(GREEN);
             if(InRange(P, polys))

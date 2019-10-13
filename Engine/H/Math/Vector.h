@@ -272,6 +272,10 @@ struct Vec2 // Vector 2D
    Vec2& operator-=(C Vec2    &v) {x-=v.x; y-=v.y; return T;}
    Vec2& operator*=(C Vec2    &v) {x*=v.x; y*=v.y; return T;}
    Vec2& operator/=(C Vec2    &v) {x/=v.x; y/=v.y; return T;}
+   Vec2& operator+=(C VecD2   &v);
+   Vec2& operator-=(C VecD2   &v);
+   Vec2& operator*=(C VecD2   &v);
+   Vec2& operator/=(C VecD2   &v);
    Vec2& operator*=(C Matrix3 &m) {return mul(m);}
    Vec2& operator*=(C Matrix  &m) {return mul(m);}
    Vec2& operator/=(C Matrix3 &m) {return div(m);}
@@ -391,6 +395,10 @@ struct VecD2 // Vector 2D (double precision)
    VecD2& operator-=(  Dbl       r) {x-=  r; y-=  r; return T;}
    VecD2& operator*=(  Dbl       r) {x*=  r; y*=  r; return T;}
    VecD2& operator/=(  Dbl       r) {x/=  r; y/=  r; return T;}
+   VecD2& operator+=(C Vec2     &v) {x+=v.x; y+=v.y; return T;}
+   VecD2& operator-=(C Vec2     &v) {x-=v.x; y-=v.y; return T;}
+   VecD2& operator*=(C Vec2     &v) {x*=v.x; y*=v.y; return T;}
+   VecD2& operator/=(C Vec2     &v) {x/=v.x; y/=v.y; return T;}
    VecD2& operator+=(C VecD2    &v) {x+=v.x; y+=v.y; return T;}
    VecD2& operator-=(C VecD2    &v) {x-=v.x; y-=v.y; return T;}
    VecD2& operator*=(C VecD2    &v) {x*=v.x; y*=v.y; return T;}
@@ -527,6 +535,10 @@ struct Vec // Vector 3D
    Vec& operator-=(C Vec      &v) {x-=v.x; y-=v.y; z-=v.z; return T;}
    Vec& operator*=(C Vec      &v) {x*=v.x; y*=v.y; z*=v.z; return T;}
    Vec& operator/=(C Vec      &v) {x/=v.x; y/=v.y; z/=v.z; return T;}
+   Vec& operator+=(C VecD     &v);
+   Vec& operator-=(C VecD     &v);
+   Vec& operator*=(C VecD     &v);
+   Vec& operator/=(C VecD     &v);
    Vec& operator*=(C Orient   &o) {return mul(o);}
    Vec& operator*=(C OrientD  &o) {return mul(o);}
    Vec& operator*=(C OrientP  &o) {return mul(o);}
@@ -894,6 +906,10 @@ struct Vec4 // Vector 4D
    Vec4& operator-=(C Vec4    &v) {x-=v.x; y-=v.y; z-=v.z; w-=v.w; return T;}
    Vec4& operator*=(C Vec4    &v) {x*=v.x; y*=v.y; z*=v.z; w*=v.w; return T;}
    Vec4& operator/=(C Vec4    &v) {x/=v.x; y/=v.y; z/=v.z; w/=v.w; return T;}
+   Vec4& operator+=(C VecD4   &v);
+   Vec4& operator-=(C VecD4   &v);
+   Vec4& operator*=(C VecD4   &v);
+   Vec4& operator/=(C VecD4   &v);
    Vec4& operator*=(C Matrix4 &m) {return mul(m);}
    Bool  operator==(  Flt      r)C;
    Bool  operator!=(  Flt      r)C;
@@ -985,6 +1001,10 @@ struct VecD4 // Vector 4D (double precision)
    VecD4& operator-=(  Dbl    r) {x-=  r; y-=  r; z-=  r; w-=  r; return T;}
    VecD4& operator*=(  Dbl    r) {x*=  r; y*=  r; z*=  r; w*=  r; return T;}
    VecD4& operator/=(  Dbl    r) {x/=  r; y/=  r; z/=  r; w/=  r; return T;}
+   VecD4& operator+=(C Vec4  &v) {x+=v.x; y+=v.y; z+=v.z; w+=v.w; return T;}
+   VecD4& operator-=(C Vec4  &v) {x-=v.x; y-=v.y; z-=v.z; w-=v.w; return T;}
+   VecD4& operator*=(C Vec4  &v) {x*=v.x; y*=v.y; z*=v.z; w*=v.w; return T;}
+   VecD4& operator/=(C Vec4  &v) {x/=v.x; y/=v.y; z/=v.z; w/=v.w; return T;}
    VecD4& operator+=(C VecD4 &v) {x+=v.x; y+=v.y; z+=v.z; w+=v.w; return T;}
    VecD4& operator-=(C VecD4 &v) {x-=v.x; y-=v.y; z-=v.z; w-=v.w; return T;}
    VecD4& operator*=(C VecD4 &v) {x*=v.x; y*=v.y; z*=v.z; w*=v.w; return T;}
@@ -2130,6 +2150,21 @@ inline Bool VecUS::operator==(C VecB  &v)C {return x==v.x && y==v.y && z==v.z;}
 inline Bool VecUS::operator!=(C VecB  &v)C {return x!=v.x || y!=v.y || z!=v.z;}
 inline Bool VecUS::operator==(C VecI  &v)C {return x==v.x && y==v.y && z==v.z;}
 inline Bool VecUS::operator!=(C VecI  &v)C {return x!=v.x || y!=v.y || z!=v.z;}
+
+inline Vec2& Vec2::operator+=(C VecD2 &v) {x+=v.x; y+=v.y; return T;}
+inline Vec2& Vec2::operator-=(C VecD2 &v) {x-=v.x; y-=v.y; return T;}
+inline Vec2& Vec2::operator*=(C VecD2 &v) {x*=v.x; y*=v.y; return T;}
+inline Vec2& Vec2::operator/=(C VecD2 &v) {x/=v.x; y/=v.y; return T;}
+
+inline Vec& Vec::operator+=(C VecD &v) {x+=v.x; y+=v.y; z+=v.z; return T;}
+inline Vec& Vec::operator-=(C VecD &v) {x-=v.x; y-=v.y; z-=v.z; return T;}
+inline Vec& Vec::operator*=(C VecD &v) {x*=v.x; y*=v.y; z*=v.z; return T;}
+inline Vec& Vec::operator/=(C VecD &v) {x/=v.x; y/=v.y; z/=v.z; return T;}
+
+inline Vec4& Vec4::operator+=(C VecD4 &v) {x+=v.x; y+=v.y; z+=v.z; w+=v.w; return T;}
+inline Vec4& Vec4::operator-=(C VecD4 &v) {x-=v.x; y-=v.y; z-=v.z; w-=v.w; return T;}
+inline Vec4& Vec4::operator*=(C VecD4 &v) {x*=v.x; y*=v.y; z*=v.z; w*=v.w; return T;}
+inline Vec4& Vec4::operator/=(C VecD4 &v) {x/=v.x; y/=v.y; z/=v.z; w/=v.w; return T;}
 
 inline VecD operator+ (C Vec &v, Dbl r) {return VecD(v.x+r, v.y+r, v.z+r);}
 inline VecD operator- (C Vec &v, Dbl r) {return VecD(v.x-r, v.y-r, v.z-r);}

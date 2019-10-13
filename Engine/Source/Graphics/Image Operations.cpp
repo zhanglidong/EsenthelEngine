@@ -1934,7 +1934,7 @@ Bool Image::stats(Vec4 *min, Vec4 *max, Vec4 *avg, Vec4 *med, Vec4 *mod, Vec *av
             Vec4 color=src->color3DF(x, y, z);
             if(min)*min =Min(*min, color);
             if(max)*max =Max(*max, color);
-            if(avg) sum+=VecD4(color);
+            if(avg) sum+=color;
             if(avg_alpha_weight){sum_alpha_weight.xyz+=color.xyz*color.w; sum_alpha_weight.w+=color.w;}
             if(med)
             {

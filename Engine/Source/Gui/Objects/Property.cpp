@@ -667,7 +667,7 @@ void Property::MouseEdit(Property &prop)
                   if(Equal(prop._mouse_edit_value.x, 0, min))prop._mouse_edit_value.x=min;
                   if(Equal(prop._mouse_edit_value.y, 0, min))prop._mouse_edit_value.y=min;
                                              prop._mouse_edit_value*=VecD2(ScaleFactor(d.x), ScaleFactor(d.y));} break;
-               case PROP_MOUSE_EDIT_LINEAR: {prop._mouse_edit_value+=VecD2(                                 d);} break;
+               case PROP_MOUSE_EDIT_LINEAR: {prop._mouse_edit_value+=      d                                  ;} break;
             }
             prop._mouse_edit_value.x=prop.clamp(prop._mouse_edit_value.x);
             prop._mouse_edit_value.y=prop.clamp(prop._mouse_edit_value.y);

@@ -2,21 +2,22 @@
 #include "stdafx.h"
 namespace EE{
 /******************************************************************************/
-static void DrawPlane(C Color &color, Flt cell_size, Int resolution, C Vec &center, C Matrix3 &matrix, Bool ball)
+static void DrawPlane(C Color &color, Flt cell_size, Int resolution, C VecD &center, C Matrix3 &matrix, Bool ball)
 {
-   Flt size=cell_size*resolution/2;
-   Vec lf  =center+size*( matrix.z-matrix.x),
-       lb  =center+size*(-matrix.z-matrix.x),
-       rb  =center+size*( matrix.x-matrix.z);
+   Flt  size=cell_size*resolution/2;
+   VecD lf  =center+size*( matrix.z-matrix.x),
+        lb  =center+size*(-matrix.z-matrix.x),
+        rb  =center+size*( matrix.x-matrix.z);
    VI.color(color);
    if(ball)
    {          
-      Ball ball(D.viewRange(), CamMatrix.pos/ObjMatrix);
+      BallM ball(D.viewRange(), CamMatrix.pos/ObjMatrix);
       REP(resolution+1)
       {
-         Flt step=i*cell_size;
-         Vec dx  =step*matrix.x,
-             dz  =step*matrix.z, a, b;
+         Flt  step=i*cell_size;
+         Vec  dx  =step*matrix.x,
+              dz  =step*matrix.z;
+         VecD a, b;
          if(CutsStrBall(lb+dx, matrix.z, ball, &a, &b)==2)VI.line(a, b);
          if(CutsStrBall(lb+dz, matrix.x, ball, &a, &b)==2)VI.line(a, b);
       }
@@ -49,9 +50,10 @@ void Plane::drawInfiniteBySize(C Color &color, Flt cell_size)C
 {
    Matrix3 matrix; matrix.setUp(normal);
    Int     resolution=Ceil2(Ceil((D.viewRange()*2)/cell_size)); // must be multiple of 2
-   Vec     cam_delta =CamMatrix.pos/ObjMatrix-pos,
-           aligned   =pos+matrix.x*AlignRound(Dot(cam_delta, matrix.x), cell_size)
-                         +matrix.z*AlignRound(Dot(cam_delta, matrix.z), cell_size);
+   Dbl    _cell_size =cell_size;
+   VecD    cam_delta =CamMatrix.pos/ObjMatrix-pos,
+           aligned   =pos+matrix.x*AlignRound(Dot(cam_delta, matrix.x), _cell_size)
+                         +matrix.z*AlignRound(Dot(cam_delta, matrix.z), _cell_size);
 
    DrawPlane(color, cell_size, resolution, aligned, matrix, true);
 }
@@ -60,8 +62,8 @@ void Plane::drawInfiniteByResolution(C Color &color, Int resolution)C
    if(resolution<0)resolution=32;else if(resolution<2)resolution=2;
 
    Matrix3 matrix; matrix.setUp(normal);
-   Flt     cell_size=(D.viewRange()*2)/resolution;
-   Vec     cam_delta=CamMatrix.pos/ObjMatrix-pos,
+   Dbl     cell_size=(D.viewRange()*2)/resolution;
+   VecD    cam_delta=CamMatrix.pos/ObjMatrix-pos,
            aligned  =pos+matrix.x*AlignRound(Dot(cam_delta, matrix.x), cell_size)
                         +matrix.z*AlignRound(Dot(cam_delta, matrix.z), cell_size);
 

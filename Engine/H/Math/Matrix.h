@@ -641,6 +641,7 @@ struct MatrixM : Matrix3 // Matrix 4x3 (orientation + scale + position, mixed pr
               MatrixM(C VecD    &pos  , C Matrix3 &orn  ) {T.orn()=orn;    T.pos=pos;}
    CONVERSION MatrixM(C Matrix3 &m);
    CONVERSION MatrixM(C Matrix  &m);
+   CONVERSION MatrixM(C MatrixD &m);
    CONVERSION MatrixM(C OrientM &o);
 };extern MatrixM
    const MatrixMIdentity; // identity
@@ -787,6 +788,7 @@ struct MatrixD : MatrixD3 // Matrix 4x3 (orientation + scale + position, double 
               MatrixD(C VecD     &pos  , C MatrixD3 &orn  ) {T.orn()=orn;    T.pos=pos;}
    CONVERSION MatrixD(C MatrixD3 &m);
    CONVERSION MatrixD(C Matrix   &m);
+   CONVERSION MatrixD(C MatrixM  &m);
    CONVERSION MatrixD(C OrientP  &o);
 };
 /******************************************************************************/

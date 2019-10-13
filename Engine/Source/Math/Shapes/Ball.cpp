@@ -389,6 +389,20 @@ Int CutsStrBall(C Vec &str_pos, C Vec &str_dir, C Ball &ball, Vec *contact_a, Ve
    }
    return 2;
 }
+Int CutsStrBall(C VecD &str_pos, C VecD &str_dir, C BallM &ball, VecD *contact_a, VecD *contact_b)
+{
+   VecD p=PointOnPlane(str_pos, ball.pos, str_dir);
+   Dbl  s=Dist        (p      , ball.pos         )/ball.r;
+   if(s> 1)return 0;
+   if(s==1){if(contact_a)*contact_a=p; return 1;}
+   if(contact_a || contact_b)
+   {
+      s=CosSin(s)*ball.r;
+      if(contact_a)*contact_a=p-s*str_dir;
+      if(contact_b)*contact_b=p+s*str_dir;
+   }
+   return 2;
+}
 Int CutsEdgeBall(C Vec &edge_start, C Vec &edge_end, C Ball &ball, Vec *contact_a, Vec *contact_b)
 {
    Vec c[2], dir=!(edge_end-edge_start);
