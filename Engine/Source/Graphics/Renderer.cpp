@@ -306,7 +306,8 @@ static void SetMotionBlurParams(Flt pixels) // !! this needs to be called when t
 // !! Assumes that 'ImgClamp' was already set !!
 Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
 {
-   if(stage==RS_VEL && _has_vel && show(_vel, false, D.signedVelRT()))return true; // check '_has_vel' too because '_vel' RT could be created, but for other data instead of velocities
+   const Bool camera_object=_has_vel; // remember motion blur mode (keep as bool in case codes operate on "Bool _has_vel" for case when '_vel' RT alpha channel is used for something, or if just '_vel' is used, however since it's cleared below, then we must remember it before clearing)
+   if(stage==RS_VEL && camera_object && show(_vel, false, D.signedVelRT()))return true;
 
    Mtn.load();
 
@@ -333,9 +334,9 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
    ImageRTDesc rt_desc(res.x, res.y, D.signedVelRT() ? IMAGERT_RGB_S : IMAGERT_RGB); // Alpha not used (XY=Dir, Z=Dir.length)
    ImageRTPtr  converted(rt_desc);
    Shader     *shader;
-   if(_has_vel)shader=Mtn.Convert[true ][!D._view_main.full];else
-   {           shader=Mtn.Convert[false][!D._view_main.full];
-               SetFastVel();
+   if(camera_object)shader=Mtn.Convert[true ][!D._view_main.full];else
+   {                shader=Mtn.Convert[false][!D._view_main.full];
+                    SetFastVel();
    }
    set(converted, null, false);
    Rect ext_rect, *rect=null;
@@ -356,7 +357,7 @@ Bool RendererClass::motionBlur(ImageRT &src, ImageRT &dest, Bool dither)
 
    ImageRTPtr dilated=converted, helper;
 
-   if(_has_vel) // we apply Dilation only in MOTION_CAMERA_OBJECT mode, for MOTION_CAMERA it's not needed
+   if(camera_object) // we apply Dilation only in MOTION_CAMERA_OBJECT mode, for MOTION_CAMERA it's not needed
    {
       rt_desc.rt_type=(D.signedVelRT() ? IMAGERT_RGB_S : IMAGERT_RGB); // Alpha not used (XY=Dir, Z=Max Dir length of all nearby pixels)
       // we need to apply Dilation, for example, if a ball object has movement, then it should be blurred, and also pixels around the ball should be blurred too

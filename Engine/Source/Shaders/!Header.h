@@ -131,8 +131,8 @@
 /******************************************************************************/
 #define MS_SAMPLES 4 // number of samples in multi-sampled render targets
 
-#define SIGNED_NRM_RT          (!GL) // Normal   Render Target is signed everywhere except GL because there it depends on GL_EXT_render_snorm
-#define SIGNED_VEL_RT          (!GL) // Velocity Render Target is signed everywhere except GL because there it depends on GL_EXT_render_snorm
+#define SIGNED_NRM_RT          0     // if Normal   Render Target is signed, in GL it depends on "GL_EXT_render_snorm", never because we use IMAGE_R10G10B10A2 which is unsigned
+#define SIGNED_VEL_RT          (!GL) // if Velocity Render Target is signed, in GL it depends on "GL_EXT_render_snorm"
 #define FULL_PRECISION_SMOOTH  0     // if use full precision for smooth  in SIGNED_NRM_RT, we can disable this because we lose only 1-bit of precision
 #define FULL_PRECISION_REFLECT 0     // if use full precision for reflect in SIGNED_VEL_RT, we can disable this because we lose only 1-bit of precision
 

@@ -174,7 +174,7 @@ struct Display : DisplayState, DisplayDraw // Display Control
                                                                 Byte             densityByte       ()C {return _density        ;} // get    Density Byte
                                                                 Bool             multiSample       ()C {return _samples>1      ;} // get if Multi Sampling is used
                                                                 void             aspectRatioEx     (Bool force=true, Bool quiet=false);
-                                                      constexpr Bool             signedNrmRT       ()C {return DX11            ;} // if Normal   Render Target is signed #SIGNED_NRM_RT
+                                                      constexpr Bool             signedNrmRT       ()C {return false           ;} // if Normal   Render Target is signed #SIGNED_NRM_RT
                                                       constexpr Bool             signedVelRT       ()C {return DX11            ;} // if Velocity Render Target is signed #SIGNED_VEL_RT
                                                                 Flt              eyeDistance_2     ()C {return _eye_dist_2     ;}
 #endif
