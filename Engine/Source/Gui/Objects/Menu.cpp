@@ -136,6 +136,7 @@ void MenuElm::push()
 }
 void Menu::push(C Str &elm)
 {
+   DEBUG_BYTE_LOCK(_used);
    Str path=elm;
    for(GuiObj *go=this; go->is(GO_MENU); go=go->parent())if(go->asMenu()._func)
    {
@@ -229,6 +230,7 @@ void Menu::operator()(C Str &command, Bool on, SET_MODE mode)
       MenuElm &elm=_elms[i];
       if(Equal(elm.name, start))
       {
+         DEBUG_BYTE_LOCK(_used);
          start=_GetStartNot(command);
          if(!Is(start))if(elm.on!=on)
          {
@@ -539,6 +541,8 @@ void Menu::update(C GuiPC &gpc)
    GuiPC gpc2(gpc, T);
    if(   gpc2.enabled)
    {
+      DEBUG_BYTE_LOCK(_used);
+
       // mouse wheel
       if(Ms.wheel() && Gui.wheel()==this)
       {

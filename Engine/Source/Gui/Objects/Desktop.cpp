@@ -74,7 +74,7 @@ GuiObj* Desktop::test(C Vec2 &pos, GuiObj* &mouse_wheel)
 }
 void Desktop::update()
 {
-   GuiPC gpc(T); if(gpc.enabled)_children.update(gpc);
+   GuiPC gpc(T); if(gpc.enabled){DEBUG_BYTE_LOCK(_used); _children.update(gpc);}
 }
 void Desktop::draw()
 {

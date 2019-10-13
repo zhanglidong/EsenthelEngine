@@ -521,10 +521,10 @@ WindowIO& WindowIO::hide()
 {
    if(visible())
    {
-                super::hide();
          rename_window.hide();
          remove_window.hide();
       overwrite_window.hide();
+                super::hide();
    }
    return T;
 }
@@ -683,7 +683,7 @@ void WindowIO::update(C GuiPC &gpc)
          if((Kb.k(KB_ENTER) || Kb.k(KB_NPENTER)) && Kb.k.first()){Kb.eatKey(); Ok();} // !! don't perform any operations on this object after 'Ok' !!
       }else
       {
-         // change content of TextLine element depending on selected list element
+         // change content of 'TextLine' element depending on selected list element
          if(list_cur!=list.cur)
             if(File *f=list())
                if(f->type==(_dir_operate ? FSTD_LINK : FSTD_FILE))textline.set(f->name);
@@ -715,8 +715,11 @@ void WindowIO::update(C GuiPC &gpc)
             Ok();
             // !! don't perform any operations on this object after 'Ok' !!
          }
+         // !! don't perform any operations on this object after 'Ok' !!
       }
+      // !! don't perform any operations on this object after 'Ok' !!
    }
+   // !! don't perform any operations on this object after 'Ok' !!
 }
 /******************************************************************************/
 }

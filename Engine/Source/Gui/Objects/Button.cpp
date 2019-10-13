@@ -97,7 +97,13 @@ Button& Button::func(void (*func)(Ptr), Ptr user, Bool immediate)
 void Button::call(Bool sound)
 {
    if(sound && T.sound && mode!=BUTTON_CONTINUOUS && _sub_type==BUTTON_TYPE_DEFAULT)Gui.playClickSound(); // don't play sounds for 'Tab' because they're played by 'Tabs'
-   if(_func)if(_func_immediate)_func(_func_user);else Gui.addFuncCall(_func, _func_user);
+   if(_func)
+   {
+      if(_func_immediate)
+      {
+         DEBUG_BYTE_LOCK(_used); _func(_func_user);
+      }else Gui.addFuncCall(_func, _func_user);
+   }
 }
 /******************************************************************************/
 TextStyle* Button::textParams(Flt &text_size, Flt &text_padd, C Flt *height)C

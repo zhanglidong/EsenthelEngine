@@ -176,7 +176,13 @@ Tabs& Tabs::func(void (*func)(Ptr), Ptr user, Bool immediate)
 void Tabs::call(Bool sound)
 {
    if(sound)Gui.playClickSound();
-   if(_func)if(_func_immediate)_func(_func_user);else Gui.addFuncCall(_func, _func_user);
+   if(_func)
+   {
+      if(_func_immediate)
+      {
+         DEBUG_BYTE_LOCK(_used); _func(_func_user);
+      }else Gui.addFuncCall(_func, _func_user);
+   }
 }
 /******************************************************************************/
 TABS_LAYOUT Tabs::actualLayout()C
@@ -330,6 +336,7 @@ GuiObj* Tabs::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)
 /******************************************************************************/
 void Tabs::update(C GuiPC &gpc)
 {
+   DEBUG_BYTE_LOCK(_used);
    GuiPC gpc2(gpc, visible(), enabled());
    Bool  enabled=gpc2.enabled;
    FREPA(T)

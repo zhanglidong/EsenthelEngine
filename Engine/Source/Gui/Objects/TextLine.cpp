@@ -170,7 +170,13 @@ TextLine& TextLine::func(void (*func)(Ptr), Ptr user, Bool immediate)
 }
 void TextLine::call()
 {
-   if(_func)if(_func_immediate)_func(_func_user);else Gui.addFuncCall(_func, _func_user);
+   if(_func)
+   {
+      if(_func_immediate)
+      {
+         DEBUG_BYTE_LOCK(_used); _func(_func_user);
+      }else Gui.addFuncCall(_func, _func_user);
+   }
 }
 /******************************************************************************/
 TextLine& TextLine::selectNone()
@@ -257,6 +263,8 @@ void TextLine::update(C GuiPC &gpc)
    GuiPC gpc2(gpc, visible() && showClear(), enabled());
    if(   gpc2.enabled)
    {
+      DEBUG_BYTE_LOCK(_used);
+
       reset.update(gpc2);
       if(Gui.kb()==this)
       {

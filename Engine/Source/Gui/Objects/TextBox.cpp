@@ -225,7 +225,13 @@ TextBox& TextBox::func(void (*func)(Ptr), Ptr user, Bool immediate)
 }
 void TextBox::call()
 {
-   if(_func)if(_func_immediate)_func(_func_user);else Gui.addFuncCall(_func, _func_user);
+   if(_func)
+   {
+      if(_func_immediate)
+      {
+         DEBUG_BYTE_LOCK(_used); _func(_func_user);
+      }else Gui.addFuncCall(_func, _func_user);
+   }
 }
 /******************************************************************************/
 TextBox& TextBox::selectNone()
@@ -359,6 +365,8 @@ void TextBox::update(C GuiPC &gpc)
    GuiPC gpc2(gpc, visible(), enabled());
    if(   gpc2.enabled)
    {
+      DEBUG_BYTE_LOCK(_used);
+
       view.update(gpc2);
       if(view())
       {

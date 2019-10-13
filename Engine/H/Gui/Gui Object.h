@@ -193,7 +193,7 @@ const_mem_addr struct GuiObj // Gui Object interface inherited by all Gui Object
    void      notifyParentOfRectChange        (C Rect &old_rect  ,   Bool  old_visible);
 #endif
 
-   virtual ~GuiObj() {del();} // set virtual destructor so 'Delete' can be used together with extended classes
+   virtual ~GuiObj(); // set virtual destructor so 'Delete' can be used together with extended classes
             GuiObj();
 
 #if !EE_PRIVATE
@@ -201,6 +201,7 @@ private:
 #endif
    Bool         _visible, _disabled, _updated;
    SByte        _base_level;
+   Byte         _used;
    GUI_OBJ_TYPE _type;
    GuiObj      *_parent;
    Rect         _rect;
@@ -261,5 +262,20 @@ CChar* GuiObjTypeName(GUI_OBJ_TYPE type); // get Gui Object Type Name from 'type
 #if EE_PRIVATE
 inline Flt GuiMaxX(C Rect &rect) {return  rect.max.x;} // max horizontal extents
 inline Flt GuiMaxY(C Rect &rect) {return -rect.min.y;} // max vertical   extents
+
+struct ByteLocker
+{
+   explicit ByteLocker(Byte &count) : count(count) {count++;}
+           ~ByteLocker(           )                {count--;}
+
+private:
+   Byte &count;
+   NO_COPY_CONSTRUCTOR(ByteLocker);
+};
+#if DEBUG
+   #define DEBUG_BYTE_LOCK(x) ByteLocker locker(x)
+#else
+   #define DEBUG_BYTE_LOCK(x)
+#endif
 #endif
 /******************************************************************************/

@@ -167,7 +167,13 @@ SlideBar& SlideBar::func(void (*func)(Ptr), Ptr user, Bool immediate)
 }
 void SlideBar::call()
 {
-   if(_func)if(_func_immediate)_func(_func_user);else Gui.addFuncCall(_func, _func_user);
+   if(_func)
+   {
+      if(_func_immediate)
+      {
+         DEBUG_BYTE_LOCK(_used); _func(_func_user);
+      }else Gui.addFuncCall(_func, _func_user);
+   }
 }
 /******************************************************************************/
 SlideBar& SlideBar::focusable(Bool on) {if(_focusable!=on){_focusable=on; if(!on)kbClear();} return T;}

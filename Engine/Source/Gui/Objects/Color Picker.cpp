@@ -114,7 +114,13 @@ ColorPicker& ColorPicker::func(void (*func)(Ptr user), Ptr user, Bool immediate)
 }
 void ColorPicker::call()
 {
-   if(_func)if(_func_immediate)_func(_func_user);else Gui.addFuncCall(_func, _func_user);
+   if(_func)
+   {
+      if(_func_immediate)
+      {
+         DEBUG_BYTE_LOCK(_used); _func(_func_user);
+      }else Gui.addFuncCall(_func, _func_user);
+   }
 }
 /******************************************************************************/
 void ColorPicker::SatLum::update(C GuiPC &gpc)

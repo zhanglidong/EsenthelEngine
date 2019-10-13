@@ -28,19 +28,30 @@ void GuiObj::zero()
   _visible   =false;
   _disabled  =false;
   _base_level=GBL_DEFAULT;
+//_used      =0; don't clear this here, because it's a ref count, instead clear this in constructor
   _desc.clear();
   _parent=null;
   _rect.zero();
 }
 GuiObj& GuiObj::del()
 {
+   DEBUG_BYTE_LOCK(_used);
    deactivate();
    if(contains(Gui.msSrc()))Gui._ms_src=null;
    if(_parent)*_parent-=T; // detach from the parent first without clearing members as it may use them
 
    zero(); return T;
 }
-GuiObj::GuiObj() {zero();}
+GuiObj::~GuiObj()
+{
+   DEBUG_ASSERT(_used==0, "'GuiObj' is being destroyed while being used");
+   del();
+}
+GuiObj::GuiObj()
+{
+   zero();
+   if(DEBUG)_used=0;
+}
 /******************************************************************************/
 GuiObj& GuiObj::create(C GuiObj &src)
 {
@@ -85,17 +96,21 @@ void GuiObj::operator+=(GuiObj &child)
    if(child.is()             // if child exists
    && this!=&child           // is not this
    && !child.contains(this)) // child doesn't contain us
-   switch(type())
    {
-      case GO_DESKTOP: asDesktop().addChild(child); break;
-    //case GO_LIST   : asList   ().addChild(child); break; this requires specifying row and optionally column, so we can't do it here
-      case GO_REGION : asRegion ().addChild(child); break;
-      case GO_TAB    : asTab    ().addChild(child); break;
-      case GO_WINDOW : asWindow ().addChild(child); break;
+      DEBUG_BYTE_LOCK(_used);
+      switch(type())
+      {
+         case GO_DESKTOP: asDesktop().addChild(child); break;
+       //case GO_LIST   : asList   ().addChild(child); break; this requires specifying row and optionally column, so we can't do it here
+         case GO_REGION : asRegion ().addChild(child); break;
+         case GO_TAB    : asTab    ().addChild(child); break;
+         case GO_WINDOW : asWindow ().addChild(child); break;
+      }
    }
 }
 void GuiObj::operator-=(GuiObj &child)
 {
+   DEBUG_BYTE_LOCK(_used);
    switch(type())
    {
       case GO_DESKTOP: asDesktop().removeChild(child); break;
@@ -152,10 +167,12 @@ Int GuiObj::childNum()
 }
 void GuiObj::notifyChildrenOfClientRectChange(C Rect *old_client, C Rect *new_client)
 {
+   DEBUG_BYTE_LOCK(_used);
    REP(childNum())if(GuiObj *go=child(i))go->parentClientRectChanged(old_client, new_client);
 }
 void GuiObj::notifyParentOfRectChange(C Rect &old_rect, Bool old_visible)
 {
+   DEBUG_BYTE_LOCK(_used);
    if(parent())parent()->childRectChanged(old_visible ? &old_rect : null, visible() ? &rect() : null, T);
 }
 /******************************************************************************/
@@ -240,6 +257,8 @@ GuiObj& GuiObj::kbSet() // this means setting keyboard focus to this element
 {
    if(is()) // allow setting focus only if created, to keep consistency with clearing kb focus when deleting object
    {
+      DEBUG_BYTE_LOCK(_used);
+
       if(MOBILE // do this for all types on Mobile platforms, because of the soft keyboard overlay, which could keep popping up annoyingly and occlude big portion of the screen
       || type()==GO_DESKTOP || type()==GO_LIST) // if this is a 'Desktop' or a 'List' then clear the sub kb focus so children won't have it, and only this object will
          if(GuiObjChildren *children=T.children())children->kb=null;
@@ -296,6 +315,8 @@ GuiObj& GuiObj::kbSet() // this means setting keyboard focus to this element
 }
 GuiObj& GuiObj::kbClear()
 {
+   DEBUG_BYTE_LOCK(_used);
+
    // remove from parents kb focus
    if(GuiObj *kb=firstKbParent())switch(kb->type())
    {
@@ -385,6 +406,7 @@ GuiObj& GuiObj::hide()
 {
    if(visible())
    {
+      DEBUG_BYTE_LOCK(_used);
      _visible=false;
       deactivate();
       notifyParentOfRectChange(rect(), true);
@@ -395,6 +417,7 @@ GuiObj& GuiObj::show()
 {
    if(hidden() && is()) // can't show a deleted object
    {
+      DEBUG_BYTE_LOCK(_used);
      _visible=true;
       notifyParentOfRectChange(rect(), false);
    }
@@ -402,6 +425,8 @@ GuiObj& GuiObj::show()
 }
 GuiObj& GuiObj::activate()
 {
+   DEBUG_BYTE_LOCK(_used);
+
    // hide all menus (from child to parent) until we reach any that belongs to 'this'
    for(GuiObj *menu=Gui.menu(); menu->is(GO_MENU); menu=menu->parent())if(!menu->contains(this))menu->hide();else break;
 
@@ -430,6 +455,8 @@ GuiObj& GuiObj::activate()
 }
 GuiObj& GuiObj::deactivate()
 {
+   DEBUG_BYTE_LOCK(_used);
+
    // clear keyboard focus
    kbClear();
 
@@ -470,6 +497,7 @@ GuiObj& GuiObj::rect(C Rect &rect)
 {
    if(T.rect()!=rect)
    {
+      DEBUG_BYTE_LOCK(_used);
       Rect old_client=localClientRect(), old_rect=T.rect(); T._rect=rect;
       Rect new_client=localClientRect();
       notifyChildrenOfClientRectChange(&old_client, &new_client);

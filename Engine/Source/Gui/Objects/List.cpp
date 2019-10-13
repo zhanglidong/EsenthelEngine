@@ -1249,15 +1249,17 @@ _List& _List::selChanging(void (*func)(Ptr), Ptr user)
 }
 void _List::callCurChanged()
 {
+ //DEBUG_BYTE_LOCK(_used); for immediate
    Gui.addFuncCall(_cur_changed, _cur_changed_user);
 }
 void _List::callSelChanged()
 {
+ //DEBUG_BYTE_LOCK(_used); for immediate
    Gui.addFuncCall(_sel_changed, _sel_changed_user);
 }
 void _List::callSelChanging()
 {
-   if(_sel_changing)_sel_changing(_sel_changing_user);
+   if(_sel_changing){DEBUG_BYTE_LOCK(_used); _sel_changing(_sel_changing_user);}
 }
 /******************************************************************************/
 _List& _List::clearElmType      (                  ) {       _type_offset=-1                                    ; return T;}
@@ -1457,6 +1459,7 @@ void _List::update(C GuiPC &gpc)
    }else
    if(visible() && gpc.visible)
    {
+      DEBUG_BYTE_LOCK(_used); // because updating children
       if(visibleElms())
       {
          Bool sel_changed=false;

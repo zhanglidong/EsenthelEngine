@@ -184,7 +184,13 @@ ComboBox& ComboBox::func(void (*func)(Ptr), Ptr user, Bool immediate)
 }
 void ComboBox::call()
 {
-   if(_func)if(_func_immediate)_func(_func_user);else Gui.addFuncCall(_func, _func_user);
+   if(_func)
+   {
+      if(_func_immediate)
+      {
+         DEBUG_BYTE_LOCK(_used); _func(_func_user);
+      }else Gui.addFuncCall(_func, _func_user);
+   }
 }
 /******************************************************************************/
 GuiObj* ComboBox::test(C GuiPC &gpc, C Vec2 &pos, GuiObj* &mouse_wheel)

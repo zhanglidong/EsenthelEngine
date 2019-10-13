@@ -6,6 +6,7 @@ namespace EE{
 /******************************************************************************/
 static void Changed(Property &prop)
 {
+   DEBUG_BYTE_LOCK(prop.button._used); // 'prop' doesn't have '_used' so just use any of its gui objects (such as button)
    if(prop._pre_changed)prop._pre_changed(prop);
    if(prop._auto_data  )prop. fromGui    (prop._auto_data);
    if(prop._changed    )prop._changed    (prop);

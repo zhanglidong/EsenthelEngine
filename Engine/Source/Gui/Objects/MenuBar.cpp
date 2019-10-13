@@ -119,7 +119,7 @@ void MenuBar::parentClientRectChanged(C Rect *old_client, C Rect *new_client)
 void MenuBar::operator()(C Str &command, Bool on, SET_MODE mode)
 {
    CChar *start=_GetStart(command);
-   if( Is(start))REP(elms())if(Equal(elm(i).name, start)){elm(i).menu(_GetStartNot(command), on, mode); break;}
+   if( Is(start))REP(elms())if(Equal(elm(i).name, start)){DEBUG_BYTE_LOCK(_used); elm(i).menu(_GetStartNot(command), on, mode); break;}
 }
 Bool MenuBar::operator()(C Str &command)C
 {
@@ -147,7 +147,8 @@ MenuBar& MenuBar::setCommand(C Str &command, Bool visible, Bool enabled)
              start=_GetStartNot(command);
       if(!Is(start))
       {
-         if(enabled==elm(i).menu.disabled())elm(i).menu.disabled(!elm(i).menu.disabled());
+         DEBUG_BYTE_LOCK(_used);
+         if(enabled==elm(i).menu.disabled())elm(i).menu.enabled(enabled); // toggle if needed
          if(visible==elm(i).hidden)
          {
                elm(i).hidden^=1;
@@ -172,6 +173,8 @@ void MenuBar::update(C GuiPC &gpc)
 {
    if(enabled() && gpc.enabled)
    {
+      DEBUG_BYTE_LOCK(_used);
+
       // activate
       if((Kb.bp(KB_LALT) || Kb.bp(KB_MENU)) // if menu key pressed this frame
       && visible() && gpc.visible // this MenuBar is visible

@@ -240,6 +240,8 @@ void Region::update(C GuiPC &gpc)
    GuiPC gpc2(gpc, visible(), enabled());
    if(   gpc2.enabled)
    {
+      DEBUG_BYTE_LOCK(_used);
+
       view.update(gpc2);
       if(view())
       {

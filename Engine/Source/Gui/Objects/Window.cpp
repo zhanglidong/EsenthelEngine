@@ -465,6 +465,8 @@ static void UpdateResize(Flt &min, Flt &max, Flt l, Flt r, Flt size_min, Flt siz
 /******************************************************************************/
 void Window::update(C GuiPC &gpc)
 {
+   DEBUG_BYTE_LOCK(_used);
+
    GuiPC gpc_this(gpc, visible(), enabled()),
          gpc_children(gpc, T);
 

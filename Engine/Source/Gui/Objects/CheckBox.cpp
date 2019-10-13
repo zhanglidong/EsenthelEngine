@@ -81,7 +81,13 @@ CheckBox& CheckBox::func(void (*func)(Ptr), Ptr user, Bool immediate)
 void CheckBox::call(Bool sound)
 {
    if(sound)Gui.playClickSound();
-   if(_func)if(_func_immediate)_func(_func_user);else Gui.addFuncCall(_func, _func_user);
+   if(_func)
+   {
+      if(_func_immediate)
+      {
+         DEBUG_BYTE_LOCK(_used); _func(_func_user);
+      }else Gui.addFuncCall(_func, _func_user);
+   }
 }
 /******************************************************************************/
 CheckBox& CheckBox::focusable(Bool on) {if(_focusable!=on){_focusable=on; if(!on)kbClear();} return T;}
