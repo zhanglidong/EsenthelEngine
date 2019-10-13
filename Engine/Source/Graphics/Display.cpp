@@ -675,7 +675,6 @@ Display::Display() : _monitors(Compare, Create, null, 4)
   _hp_col_rt       =false;
   _hp_nrm_rt       =false;
   _hp_lum_rt       =false;
-  _hp_nrm_calc     =true;
   _dither          =true;
   _mtrl_blend      =true;
   _device_mem      =-1;
@@ -2454,7 +2453,6 @@ Display& Display::litColRTPrecision(IMAGE_PRECISION precision) // !! Warning: th
    if(_lit_col_rt_prec!=precision){_lit_col_rt_prec=precision; Renderer.rtClean();}
    return T;
 }
-Display& Display::highPrecNrmCalc(Bool on) {_hp_nrm_calc=on; return T;}
 /******************************************************************************/
 void Display::setSync()
 {

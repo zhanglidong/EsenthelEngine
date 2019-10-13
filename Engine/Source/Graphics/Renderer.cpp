@@ -777,7 +777,6 @@ Bool RendererClass::reflection()
       Bool             hp_nrm_rt      =D.highPrecNrmRT    ();                     D._hp_nrm_rt      =false             ;
       Bool             hp_lum_rt      =D.highPrecLumRT    ();                     D._hp_lum_rt      =false             ;
       IMAGE_PRECISION  lit_col_rt_prec=D.litColRTPrecision();                     D._lit_col_rt_prec=IMAGE_PRECISION_8 ;
-      Bool             hp_nrm_calc    =D.highPrecNrmCalc  ();                     D.highPrecNrmCalc (false            );
       Bool             eye_adapt      =D.eyeAdaptation    ();                     D.eyeAdaptation   (false            );
       Bool             vol_light      =D.volLight         ();                     D.volLight        (false            ); // if it will be enabled, then calling 'volumetric' is required and clearing Renderer._vol_is
       AMBIENT_MODE     amb_mode       =D.ambientMode      ();                     D.ambientMode     (AMBIENT_FLAT     );
@@ -817,7 +816,6 @@ Bool RendererClass::reflection()
       D._hp_nrm_rt      =hp_nrm_rt      ;
       D._hp_lum_rt      =hp_lum_rt      ;
       D._lit_col_rt_prec=lit_col_rt_prec;
-      D.highPrecNrmCalc (hp_nrm_calc   );
       D.eyeAdaptation   (eye_adapt     );
       D.volLight        (vol_light     );
       D.ambientMode     (amb_mode      );

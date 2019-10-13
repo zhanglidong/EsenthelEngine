@@ -268,7 +268,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
          water_col=TexLod(Img3, inTex);
          VecH4 lum=TexLod(Col , inTex); // water surface light
-         VecH  nrm=GetNormal(inTex, false).xyz; // water surface normals
+         VecH  nrm=GetNormal(inTex).xyz; // water surface normals
 
          MatrixH3 mtrx;
          mtrx[0]=ViewMatrixX();
@@ -326,7 +326,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
          VecH4 water_col=TexLod(Img3, inTex),
                      lum=TexLod(Col , inTex); // water surface light
-         VecH        nrm=GetNormal(inTex, false).xyz; // water surface normals
+         VecH        nrm=GetNormal(inTex).xyz; // water surface normals
 
          MatrixH3 mtrx;
          mtrx[0]=ViewMatrixX();

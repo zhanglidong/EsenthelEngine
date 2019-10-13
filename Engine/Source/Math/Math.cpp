@@ -310,24 +310,13 @@ Dbl AngleBetween(C VecD &a, C VecD &b, C VecD &z) {Dbl angle=AbsAngleBetween(a, 
 /******************************************************************************/
 Vec DequantizeNormal(C Vec &n)
 {
-   Flt z=CalcZ(n.xy);
-
-   Vec dn(n.x, n.y, Lerp((n.z>=0) ? z : -z, n.z, n.xy.length())); // error 5232, errorNoNormalize 1583174
- //Vec dn(n.x, n.y, Lerp((n.z>=0) ? z : -z, n.z, CosSin(z))); // error 5232, errorNoNormalize 1583103
-
- //Vec dn(n.x, n.y, Lerp(n.z, (n.z>=0) ? z : -z, Sqr(z))); // error 5425, errorNoNormalize 1410261
- //Vec dn(n.x, n.y, Lerp((n.z>=0) ? z : -z, n.z, 1-Sqr(z))); // error 5425, errorNoNormalize 1410261
-
- //Vec dn(n.x, n.y, Lerp((n.z>=0) ? z : -z, n.z, n.xy.length2())); // error 5426, errorNoNormalize 1410402
-
- //Vec dn(n.x, n.y, Lerp(n.z, (n.z>=0) ? z : -z, z)); // error 7035, errorNoNormalize 1101598
- //Vec dn(n.x, n.y, Lerp((n.z>=0) ? z : -z, n.z, 1-z)); // error 7035, errorNoNormalize 1101598
-
- //Vec dn(n.x, n.y, Lerp((n.z>=0) ? z : -z, n.z, Sqr(1-z))); // error 10519, errorNoNormalize 793122
-
- //Vec dn(n.x, n.y, (n.z>=0) ? z : -z); // error 120477, errorNoNormalize 144597
-
-   dn.normalize();
+   Vec dn;
+   switch(Abs(n).maxI())
+   {
+      case 0: dn.x=Sign(n.x)*CalcZ(n.yz()); dn.y=n.y; dn.z=n.z; break;
+      case 1: dn.y=Sign(n.y)*CalcZ(n.xz()); dn.x=n.x; dn.z=n.z; break;
+      case 2: dn.z=Sign(n.z)*CalcZ(n.xy  ); dn.x=n.x; dn.y=n.y; break;
+   }
    return dn;
 }
 /******************************************************************************/

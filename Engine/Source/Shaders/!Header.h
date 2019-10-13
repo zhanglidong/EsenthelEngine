@@ -1266,32 +1266,23 @@ inline void AlphaTest(Half alpha)
 /******************************************************************************/
 // NORMAL
 /******************************************************************************/
-inline void UnpackNormal(in out VecH nrm, Int quality)
+inline void UnpackNormal(in out VecH nrm)
 {
 #if !SIGNED_NRM_RT
    nrm=nrm*2-1;
 #endif
-   if(quality>0) // always leave as it is for quality<=0 because this is used for High Precision Nrm RT, for which we don't need any dequantization
-   { // see 'DequantizeNormal'
-      quality=3; // always use quality 3 because in the engine we only have 0..1 options
-      Half z=CalcZ(nrm.xy);
-      if(quality==1){nrm.z=((nrm.z>=0) ? z : -z);}else
-      if(quality==2){nrm.z=Lerp((nrm.z>=0) ? z : -z, nrm.z, Sqr(1-z));}else // errorNoNormalize 793122 (has some artifacts for ground, when looking forward with high specular, and light direction in "sunset mode")
-      if(quality==3){nrm.z=Lerp(nrm.z, (nrm.z>=0) ? z : -z, z); nrm=Normalize(nrm);}else // error 7035 (looks almost the same as quality 4 but faster)
-                    {nrm.z=Lerp((nrm.z>=0) ? z : -z, nrm.z, Length(nrm.xy)); nrm=Normalize(nrm);} // error 5425
-   }
 }
-inline VecH4 GetNormal(Vec2 tex, Int quality)
+inline VecH4 GetNormal(Vec2 tex)
 {
-   VecH4 nrm=TexPoint(Img, tex); UnpackNormal(nrm.xyz, quality);
+   VecH4 nrm=TexPoint(Img, tex); UnpackNormal(nrm.xyz);
 #if SIGNED_NRM_RT && FULL_PRECISION_SMOOTH
    nrm.w=nrm.w*0.5+0.5; // -1..1 -> 0..1
 #endif
    return nrm;
 }
-inline VecH4 GetNormalMS(VecI2 pixel, UInt sample, Int quality)
+inline VecH4 GetNormalMS(VecI2 pixel, UInt sample)
 {
-   VecH4 nrm=TexSample(ImgMS, pixel, sample); UnpackNormal(nrm.xyz, quality);
+   VecH4 nrm=TexSample(ImgMS, pixel, sample); UnpackNormal(nrm.xyz);
 #if SIGNED_NRM_RT && FULL_PRECISION_SMOOTH
    nrm.w=nrm.w*0.5+0.5; // -1..1 -> 0..1
 #endif
