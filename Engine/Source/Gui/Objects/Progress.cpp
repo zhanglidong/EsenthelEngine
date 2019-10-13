@@ -41,6 +41,7 @@ Progress& Progress::create(C Progress &src)
    return T;
 }
 /******************************************************************************/
+// DEBUG_BYTE_LOCK(_used); for func immediate
 Progress& Progress::clear(                ) {T._progress=0                                   ; return T;}
 Progress& Progress::set  (Int  x, Int  max) {T._progress=((max>0) ? Sat(    Flt(x)/max ) : 0); return T;}
 Progress& Progress::set  (Long x, Long max) {T._progress=((max>0) ? Sat(Flt(Dbl(x)/max)) : 0); return T;}

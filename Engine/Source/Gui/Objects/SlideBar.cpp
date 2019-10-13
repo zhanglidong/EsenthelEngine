@@ -1,6 +1,6 @@
 /******************************************************************************
 
-   Don't try to disable _pixel_align for buttons,
+   Don't try to disable '_pixel_align' for buttons,
       because the middle button would flicker when moved.
 
 /******************************************************************************/
