@@ -131,10 +131,8 @@
 /******************************************************************************/
 #define MS_SAMPLES 4 // number of samples in multi-sampled render targets
 
-#define SIGNED_NRM_RT          0     // if Normal   Render Target is signed, in GL it depends on "GL_EXT_render_snorm", never because we use IMAGE_R10G10B10A2 which is unsigned
-#define SIGNED_VEL_RT          (!GL) // if Velocity Render Target is signed, in GL it depends on "GL_EXT_render_snorm"
-#define FULL_PRECISION_SMOOTH  0     // if use full precision for smooth  in SIGNED_NRM_RT, we can disable this because we lose only 1-bit of precision
-#define FULL_PRECISION_REFLECT 0     // if use full precision for reflect in SIGNED_VEL_RT, we can disable this because we lose only 1-bit of precision
+#define SIGNED_NRM_RT 0     // if Normal   Render Target is signed, in GL it depends on "GL_EXT_render_snorm", never because we use IMAGE_R10G10B10A2 which is unsigned
+#define SIGNED_VEL_RT (!GL) // if Velocity Render Target is signed, in GL it depends on "GL_EXT_render_snorm"
 
 #define REVERSE_DEPTH (!GL) // if Depth Buffer is reversed. Can't enable on GL because for some reason (might be related to #glClipControl) it disables far-plane depth clipping, which can be observed when using func=FUNC_ALWAYS inside D.depthFunc. Even though we clear the depth buffer, there may still be performance hit, because normally geometry would already get clipped due to far plane, but without it, per-pixel depth tests need to be performed.
 #if     REVERSE_DEPTH
@@ -1272,20 +1270,14 @@ inline void UnpackNormal(in out VecH nrm)
    nrm=nrm*2-1;
 #endif
 }
-inline VecH4 GetNormal(Vec2 tex)
+inline VecH GetNormal(Vec2 tex)
 {
-   VecH4 nrm=TexPoint(Img, tex); UnpackNormal(nrm.xyz);
-#if SIGNED_NRM_RT && FULL_PRECISION_SMOOTH
-   nrm.w=nrm.w*0.5+0.5; // -1..1 -> 0..1
-#endif
+   VecH   nrm=TexPoint(Img, tex).xyz; UnpackNormal(nrm);
    return nrm;
 }
-inline VecH4 GetNormalMS(VecI2 pixel, UInt sample)
+inline VecH GetNormalMS(VecI2 pixel, UInt sample)
 {
-   VecH4 nrm=TexSample(ImgMS, pixel, sample); UnpackNormal(nrm.xyz);
-#if SIGNED_NRM_RT && FULL_PRECISION_SMOOTH
-   nrm.w=nrm.w*0.5+0.5; // -1..1 -> 0..1
-#endif
+   VecH   nrm=TexSample(ImgMS, pixel, sample).xyz; UnpackNormal(nrm);
    return nrm;
 }
 /******************************************************************************/
@@ -1613,10 +1605,11 @@ inline Half ShadowConeValue(Vec pos, Vec2 jitter_value, Bool jitter)
 /******************************************************************************/
 struct DeferredSolidOutput // use this structure in Pixel Shader for setting the output of RT_DEFERRED solid modes
 {
-   // !! if making any change here then adjust Water shader too #RTOutput !!
-   VecH4 out0:TARGET0,
-         out1:TARGET1,
-         out2:TARGET2;
+   // #RTOutput
+   VecH4 out0:TARGET0; // Col, Glow
+   VecH  out1:TARGET1; // Nrm XYZ
+   VecH2 out2:TARGET2; // Smooth, Reflect
+   VecH  out3:TARGET3; // Vel XYZ
 
    // set components
    inline void color (VecH color ) {out0.rgb=color;}
@@ -1630,20 +1623,11 @@ struct DeferredSolidOutput // use this structure in Pixel Shader for setting the
    #endif
    }
 
-#if SIGNED_NRM_RT && FULL_PRECISION_SMOOTH
-   inline void smooth(Half smooth) {out1.w=smooth*2-1;} // 0..1 -> -1..1
-#else
-   inline void smooth(Half smooth) {out1.w=smooth;}
-#endif
+   inline void smooth (Half smooth ) {out2.x=smooth ;}
+   inline void reflect(Half reflect) {out2.y=reflect;}
 
-#if SIGNED_VEL_RT && FULL_PRECISION_REFLECT
-   inline void reflect(Half reflect) {out2.w=reflect*2-1;} // 0..1 -> -1..1
-#else
-   inline void reflect(Half reflect) {out2.w=reflect;}
-#endif
-
-   inline void velocity(Vec vel, Vec view_space_pos) {out2.xyz=GetVelocity_PS(vel, view_space_pos);}
-   inline void velocityZero() {out2.xyz=(SIGNED_VEL_RT ? 0 : 0.5);}
+   inline void velocity(Vec vel, Vec view_space_pos) {out3.xyz=GetVelocity_PS(vel, view_space_pos);}
+   inline void velocityZero() {out3.xyz=(SIGNED_VEL_RT ? 0 : 0.5);}
 };
 /******************************************************************************/
 // TESSELATION

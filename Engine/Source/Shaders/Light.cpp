@@ -51,9 +51,9 @@ VecH4 LightDir_PS
 
    // normal
 #if MULTI_SAMPLE
-   VecH4 nrm=GetNormalMS(pixel.xy, index);
+   VecH nrm=GetNormalMS(pixel.xy, index);
 #else
-   VecH4 nrm=GetNormal(inTex);
+   VecH nrm=GetNormal(inTex);
 #endif
 
    // diffuse
@@ -103,9 +103,9 @@ VecH4 LightPoint_PS
 
    // normal
 #if MULTI_SAMPLE
-   VecH4 nrm=GetNormalMS(pixel.xy, index);
+   VecH nrm=GetNormalMS(pixel.xy, index);
 #else
-   VecH4 nrm=GetNormal(inTex);
+   VecH nrm=GetNormal(inTex);
 #endif
 
    // diffuse
@@ -156,9 +156,9 @@ VecH4 LightLinear_PS
 
    // normal
 #if MULTI_SAMPLE
-   VecH4 nrm=GetNormalMS(pixel.xy, index);
+   VecH nrm=GetNormalMS(pixel.xy, index);
 #else
-   VecH4 nrm=GetNormal(inTex);
+   VecH nrm=GetNormal(inTex);
 #endif
 
    // diffuse
@@ -211,9 +211,9 @@ VecH4 LightCone_PS
 
    // normal
 #if MULTI_SAMPLE
-   VecH4 nrm=GetNormalMS(pixel.xy, index);
+   VecH nrm=GetNormalMS(pixel.xy, index);
 #else
-   VecH4 nrm=GetNormal(inTex);
+   VecH nrm=GetNormal(inTex);
 #endif
 
    // diffuse

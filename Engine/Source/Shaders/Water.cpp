@@ -112,7 +112,7 @@ void Surface_PS
 
    out VecH4 O_col:TARGET0
 #if !LIGHT
- , out VecH4 O_nrm:TARGET1
+ , out VecH  O_nrm:TARGET1
 #endif
 ) // #RTOutput
 {
@@ -157,12 +157,6 @@ void Surface_PS
       O_nrm.xyz=view_nrm;
    #else
       O_nrm.xyz=view_nrm*0.5+0.5; // -1..1 -> 0..1
-   #endif
-
-   #if SIGNED_NRM_RT && FULL_PRECISION_SMOOTH
-      O_nrm.w=WaterSpc*2-1; // 0..1 -> -1..1
-   #else
-      O_nrm.w=WaterSpc;
    #endif
 #else
         inTex      =PixelToScreen(pixel);
@@ -268,7 +262,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
          water_col=TexLod(Img3, inTex);
          VecH4 lum=TexLod(Col , inTex); // water surface light
-         VecH  nrm=GetNormal(inTex).xyz; // water surface normals
+         VecH  nrm=GetNormal(inTex); // water surface normals
 
          MatrixH3 mtrx;
          mtrx[0]=ViewMatrixX();
@@ -326,7 +320,7 @@ VecH4 Apply_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
 
          VecH4 water_col=TexLod(Img3, inTex),
                      lum=TexLod(Col , inTex); // water surface light
-         VecH        nrm=GetNormal(inTex).xyz; // water surface normals
+         VecH        nrm=GetNormal(inTex); // water surface normals
 
          MatrixH3 mtrx;
          mtrx[0]=ViewMatrixX();

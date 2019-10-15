@@ -76,7 +76,7 @@ VecH4 PS
       outNrm.xyz=nrm*0.5+0.5;
    #endif
 
-   outNrm.w=col.a;
+   outNrm.w=col.a; // alpha needed because of blending
 #endif
 
    return col;
