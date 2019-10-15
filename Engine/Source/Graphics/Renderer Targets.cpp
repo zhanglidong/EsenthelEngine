@@ -32,7 +32,7 @@ namespace EE{
          -if "Fog.draw || Sky.isActual" then '_ds'    has STENCIL_REF_MSAA set
 
    In OpenGL (except iOS):
-      '_main' and '_main_ds' don't have _rb and _txtr set, because they're provided by the system and not created by the engine.
+      '_main' and '_main_ds' don't have '_rb' and '_txtr' set, because they're provided by the system and not created by the engine.
       This means that when setting '_main' it's always paired with '_main_ds' depth buffer, and '_main_ds' can't be read as a depth texture.
 
    In OpenGL:
