@@ -529,11 +529,11 @@ ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
          glBlendEquation    (GL_FUNC_ADD);
          glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA, GL_ONE);
       break;
-      case ALPHA_ADDBLEND_KEEP:
+      /*case ALPHA_ADDBLEND_KEEP:
          glEnable           (GL_BLEND);
          glBlendEquation    (GL_FUNC_ADD);
          glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ZERO, GL_ONE);
-      break;
+      break;*/
       case ALPHA_ADD_KEEP:
          glEnable           (GL_BLEND);
          glBlendEquation    (GL_FUNC_ADD);
@@ -578,11 +578,11 @@ ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
          glBlendFuncSeparate(GL_CONSTANT_COLOR, GL_ONE_MINUS_SRC_COLOR, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
       break;
 
-      case ALPHA_NONE_ADD:
+      /*case ALPHA_NONE_ADD:
          glEnable           (GL_BLEND);
          glBlendEquation    (GL_FUNC_ADD);
          glBlendFuncSeparate(GL_ONE, GL_ZERO, GL_ONE, GL_ONE);
-      break;
+      break;*/
    }
 #endif
    return prev;
@@ -904,7 +904,7 @@ void DisplayState::create()
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
       BlendStates[ALPHA_MERGE].create(desc);
    }
-   {
+   /*{
       D3D11_BLEND_DESC desc; Zero(desc);
       desc.AlphaToCoverageEnable =false;
       desc.IndependentBlendEnable=false;
@@ -916,7 +916,7 @@ void DisplayState::create()
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ONE ;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
       BlendStates[ALPHA_ADDBLEND_KEEP].create(desc);
-   }
+   }*/
    {
       D3D11_BLEND_DESC desc; Zero(desc);
       desc.AlphaToCoverageEnable =false;
@@ -1072,7 +1072,7 @@ void DisplayState::create()
             desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ONE ;
       BlendStates[ALPHA_ADD_COVERAGE].create(desc);
    }*/
-   {
+   /*{
       D3D11_BLEND_DESC desc; Zero(desc);
       desc.AlphaToCoverageEnable =false;
       desc.IndependentBlendEnable=false;
@@ -1084,7 +1084,7 @@ void DisplayState::create()
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ONE ;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
       BlendStates[ALPHA_NONE_ADD].create(desc);
-   }
+   }*/
 
    // depth stencil state
    REPD(stencil    , STENCIL_NUM)

@@ -1162,14 +1162,15 @@ void RendererClass::solid()
          }
 
          // draw main light
+         ALPHA_MODE alpha=ALPHA_NONE; // #RTOutput
          if(first_light>=0)
          {
-            Lights[first_light].drawForward(fastCombine() ? ALPHA_NONE_ADD : ALPHA_NONE);
+            Lights[first_light].drawForward(alpha);
          }else // no light
          {
             setForwardCol();
            _frst_light_offset=OFFSET(FRST, none);
-            D.alpha(fastCombine() ? ALPHA_NONE_ADD : ALPHA_NONE);
+            D.alpha(alpha);
             D.stencil(STENCIL_ALWAYS_SET, 0); D.set3D(); mode(RM_SOLID);
             REPS(_eye, _eye_num)
             {
@@ -1192,7 +1193,7 @@ void RendererClass::solid()
             Bool clip=D._clip, clip_allow=D._clip_allow; T._clip=(clip ? D._clip_rect : D.rect()); // remember clipping because 'drawForward' may change it
             Sh.AmbientColorNS_l->set(VecZero); Sh.FirstPass->set(false); // disable ambient lighting
             D.depthFunc(FUNC_LESS_EQUAL); // need to make sure we can apply lights on existing depth
-            REPA(Lights)if(i!=first_light)Lights[i].drawForward(ALPHA_ADD_KEEP); // draw 0-th at the end to setup shadow maps (needed for BLEND_LIGHT), keep alpha which is glow
+            REPA(Lights)if(i!=first_light)Lights[i].drawForward(ALPHA_ADD_KEEP); // draw 0-th at the end to setup shadow maps (needed for BLEND_LIGHT), keep alpha which is glow #RTOutput
             D.clip(clip ? &T._clip : null); D.clipAllow(clip_allow);
             D.depthFunc(FUNC_LESS);
            _first_pass=true;

@@ -7,22 +7,22 @@ enum ALPHA_MODE : Byte // Alpha Blending Modes
    ALPHA_ADD      , // Color:add     , Alpha:add
    ALPHA_MUL      , // Color:multiply, Alpha:multiply
 
-   ALPHA_MERGE        , // Color:blend alpha premultiplied, Alpha:increase
-   ALPHA_ADDBLEND_KEEP, // Color:add blended              , Alpha:keep
-   ALPHA_ADD_KEEP     , // Color:add                      , Alpha:keep
-   ALPHA_BLEND_FACTOR , // Color:blend                    , Alpha:blend with factor
-   ALPHA_ADD_FACTOR   , // Color:add                      , Alpha:add   with factor
+   ALPHA_MERGE       , // Color:blend alpha premultiplied, Alpha:increase
+   ALPHA_ADD_KEEP    , // Color:add                      , Alpha:keep
+   ALPHA_BLEND_FACTOR, // Color:blend                    , Alpha:blend with factor
+   ALPHA_ADD_FACTOR  , // Color:add                      , Alpha:add   with factor
 #if EE_PRIVATE
    ALPHA_SETBLEND_SET  , // Color:set blended, Alpha:set
    ALPHA_FACTOR        , // Color:factor     , Alpha:factor
-   ALPHA_NONE_ADD      , // Color:set        , Alpha:add
    ALPHA_INVERT        , // invert destination
    ALPHA_FONT          , // Color:clear type, Alpha:increase
    ALPHA_FONT_DEC      , // Color:clear type, Alpha:decrease
+ //ALPHA_ADD_COVERAGE  , // Color:add   with Alpha To Coverage
+ //ALPHA_ADDBLEND_KEEP , // Color:add blended              , Alpha:keep
+ //ALPHA_NONE_ADD      , // Color:set        , Alpha:add
  //ALPHA_NONE_WRITE_A  , // no blending, write only to A
  //ALPHA_NONE_WRITE_RGB, // no blending, write only to RGB
  //ALPHA_NONE_COVERAGE , // no blending with Alpha To Coverage
- //ALPHA_ADD_COVERAGE  , // Color:add   with Alpha To Coverage
    ALPHA_NUM           , // number of alpha blending modes
 #endif
 };
