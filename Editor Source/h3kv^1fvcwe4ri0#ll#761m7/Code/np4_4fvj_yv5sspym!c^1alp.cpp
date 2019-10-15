@@ -58,17 +58,19 @@ class VideoOptions : PropWin
          "Depth"            , // 1
          "Color (Unlit)"    , // 2
          "Normal"           , // 3
-         "Velocity"         , // 4
-         "Light"            , // 5
-         "Light + AO"       , // 6
-         "Ambient Occlusion", // 7
-         "Color (Lit)"      , // 8
-         "Reflection"       , // 9
-         "Water Color"      , // 10
-         "Water Normal"     , // 11
-         "Water Light"      , // 12
-      }; ASSERT(RS_DEFAULT==0 && RS_DEPTH==1 && RS_COLOR==2 && RS_NORMAL==3 && RS_VEL==4 && RS_LIGHT==5 && RS_LIGHT_AO==6 && RS_AO==7 && RS_LIT_COLOR==8
-             && RS_REFLECTION==9 && RS_WATER_COLOR==10 && RS_WATER_NORMAL==11 && RS_WATER_LIGHT==12);
+         "Smoothness"       , // 4
+         "Reflectivity"     , // 5
+         "Velocity"         , // 6
+         "Light"            , // 7
+         "Light + AO"       , // 8
+         "Ambient Occlusion", // 9
+         "Color (Lit)"      , // 10
+         "Reflection"       , // 11
+         "Water Color"      , // 12
+         "Water Normal"     , // 13
+         "Water Light"      , // 14
+      }; ASSERT(RS_DEFAULT==0 && RS_DEPTH==1 && RS_COLOR==2 && RS_NORMAL==3 && RS_SMOOTH==4 && RS_REFLECT==5 && RS_VEL==6 && RS_LIGHT==7 && RS_LIGHT_AO==8 && RS_AO==9 && RS_LIT_COLOR==10
+             && RS_REFLECTION==11 && RS_WATER_COLOR==12 && RS_WATER_NORMAL==13 && RS_WATER_LIGHT==14);
       static cchar8 *ShadowReduceFlicker_t[]=
       {
          "Off",

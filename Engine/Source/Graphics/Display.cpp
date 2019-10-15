@@ -569,7 +569,7 @@ Bool Display::gatherAvailable()C
    return shaderModel()>=SM_GL_4; // 4.0+ GL required
 #endif
 }
-Bool Display::deferredUnavailable  ()C {return created() &&       _max_rt<2     ;} // deferred requires at least 2 MRT's (#0 Color, #1 Nrm, #2 Vel optional)
+Bool Display::deferredUnavailable  ()C {return created() &&       _max_rt<3     ;} // deferred requires at least 3 MRT's (#0 Color, #1 Nrm, #2 Ext, #3 Vel optional) #RTOutput
 Bool Display::deferredMSUnavailable()C {return created() && shaderModel()<SM_4_1;} // only Shader Model 4.1 (DX 10.1) and above support multi-sampled RT's
 /******************************************************************************/
 // MONITOR

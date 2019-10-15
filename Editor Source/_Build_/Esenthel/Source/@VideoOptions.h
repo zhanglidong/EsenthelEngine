@@ -19,8 +19,8 @@ class VideoOptions : PropWin
       static cchar8 *Precision_t[]
 ; ASSERT(IMAGE_PRECISION_8==0 && IMAGE_PRECISION_10==1);
       static cchar8 *Stage_t[]
-; ASSERT(RS_DEFAULT==0 && RS_DEPTH==1 && RS_COLOR==2 && RS_NORMAL==3 && RS_VEL==4 && RS_LIGHT==5 && RS_LIGHT_AO==6 && RS_AO==7 && RS_LIT_COLOR==8
-             && RS_REFLECTION==9 && RS_WATER_COLOR==10 && RS_WATER_NORMAL==11 && RS_WATER_LIGHT==12);
+; ASSERT(RS_DEFAULT==0 && RS_DEPTH==1 && RS_COLOR==2 && RS_NORMAL==3 && RS_SMOOTH==4 && RS_REFLECT==5 && RS_VEL==6 && RS_LIGHT==7 && RS_LIGHT_AO==8 && RS_AO==9 && RS_LIT_COLOR==10
+             && RS_REFLECTION==11 && RS_WATER_COLOR==12 && RS_WATER_NORMAL==13 && RS_WATER_LIGHT==14);
       static cchar8 *ShadowReduceFlicker_t[]
 ;
 

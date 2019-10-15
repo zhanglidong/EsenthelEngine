@@ -60,15 +60,17 @@ VideoOptions VidOpt;
          "Depth"            , // 1
          "Color (Unlit)"    , // 2
          "Normal"           , // 3
-         "Velocity"         , // 4
-         "Light"            , // 5
-         "Light + AO"       , // 6
-         "Ambient Occlusion", // 7
-         "Color (Lit)"      , // 8
-         "Reflection"       , // 9
-         "Water Color"      , // 10
-         "Water Normal"     , // 11
-         "Water Light"      , // 12
+         "Smoothness"       , // 4
+         "Reflectivity"     , // 5
+         "Velocity"         , // 6
+         "Light"            , // 7
+         "Light + AO"       , // 8
+         "Ambient Occlusion", // 9
+         "Color (Lit)"      , // 10
+         "Reflection"       , // 11
+         "Water Color"      , // 12
+         "Water Normal"     , // 13
+         "Water Light"      , // 14
       };
       cchar8 *VideoOptions::Advanced::ShadowReduceFlicker_t[]=
       {

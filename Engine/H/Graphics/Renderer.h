@@ -38,21 +38,23 @@ enum RENDER_STAGE : Byte // Rendering Stage, allows displaying only desired rend
 {
    RS_DEFAULT     , // default, rendering is performed normally (full scene is rendered)
    RS_DEPTH       , // display Depth
-   RS_COLOR       , // display Unlit Color        (available in RT_DEFERRED)
-   RS_NORMAL      , // display Normals            (available in RT_DEFERRED)
-   RS_VEL         , // display Velocity           (available in RT_DEFERRED)
-   RS_LIGHT       , // display Light              (available in RT_DEFERRED)
-   RS_LIGHT_AO    , // display combined Light+AO  (available in RT_DEFERRED)
-   RS_AO          , // display Ambient Occlusion  (available in RT_DEFERRED and RT_FORWARD)
+   RS_COLOR       , // display Unlit Color        (available only in RT_DEFERRED)
+   RS_NORMAL      , // display Normals            (available only in RT_DEFERRED)
+   RS_SMOOTH      , // display Smoothness         (available only in RT_DEFERRED)
+   RS_REFLECT     , // display Reflectivity       (available only in RT_DEFERRED)
+   RS_VEL         , // display Velocity           (available only in RT_DEFERRED)
+   RS_LIGHT       , // display Light              (available only in RT_DEFERRED)
+   RS_LIGHT_AO    , // display combined Light+AO  (available only in RT_DEFERRED)
+   RS_AO          , // display Ambient Occlusion
    RS_LIT_COLOR   , // display Lit Color
    RS_REFLECTION  , // display Reflection         (available if Water reflection is visible)
-   RS_WATER_COLOR , // display Water Unlit Color  (available in RT_DEFERRED and if 'Water.max1Light' is disabled)
-   RS_WATER_NORMAL, // display Water       Normal (available if RT_DEFERRED and if 'Water.max1Light' is disabled)
-   RS_WATER_LIGHT , // display Water       Light  (available if RT_DEFERRED and if 'Water.max1Light' is disabled)
+   RS_WATER_COLOR , // display Water Unlit Color  (available only in RT_DEFERRED and if 'Water.max1Light' is disabled)
+   RS_WATER_NORMAL, // display Water       Normal (available only in RT_DEFERRED and if 'Water.max1Light' is disabled)
+   RS_WATER_LIGHT , // display Water       Light  (available only in RT_DEFERRED and if 'Water.max1Light' is disabled)
 #if EE_PRIVATE
-   RS_VEL_CONVERT , // display Converted    Velocity (available in RT_DEFERRED)
-   RS_VEL_DILATED , // display Dilated      Velocity (available in RT_DEFERRED)
-   RS_VEL_LEAK    , // display Leak Removed Velocity (available in RT_DEFERRED)
+   RS_VEL_CONVERT , // display Converted    Velocity (available only in RT_DEFERRED)
+   RS_VEL_DILATED , // display Dilated      Velocity (available only in RT_DEFERRED)
+   RS_VEL_LEAK    , // display Leak Removed Velocity (available only in RT_DEFERRED)
    RS_SKY_COVERAGE, // display Sky Coverage
 #endif
 };
@@ -162,7 +164,7 @@ struct RendererClass // handles rendering
    void getLumRT     ();
    void getWaterLumRT();
 
-   Bool show      (C ImageRTPtr &image, Bool srgb, Bool sign=false);
+   Bool show      (C ImageRTPtr &image, Bool srgb, Bool sign=false, Int channel=-1);
    void setOutline(C Color      &color);
 
    void mode(RENDER_MODE mode);
@@ -283,7 +285,7 @@ private:
                 *_ui, *_ui_ds,
                 *_final;
    ImageRTPtr    _h0, _h1, _q0, _q1, // <- these members are to be used only temporarily
-                 _col, _ds, _ds_1s, _nrm, _vel,
+                 _col, _ds, _ds_1s, _nrm, _ext, _vel,
                  _lum, _lum_1s, _shd_1s, _shd_ms,
                  _water_col, _water_nrm, _water_ds, _water_lum,
                  _vol, _ao, _fade, _back, _back_ds, _mirror_rt, _outline_rt, _sky_coverage;

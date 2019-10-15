@@ -8,8 +8,10 @@ namespace EE{
 #define SNRM_CLEAR Vec4(0   , 0   ,   -1, 0) // normally Z should be set to 0   to set 'VecZero' normals, however Z is set to -1 makes ambient occlusion more precise when it uses normals (because ambient occlusion will not work good on the VecZero normals) #NRM_CLEAR
 #define  NRM_CLEAR Vec4(0.5f, 0.5f,    0, 0) // normally Z should be set to 0.5 to set 'VecZero' normals, however Z is set to  0 makes ambient occlusion more precise when it uses normals (because ambient occlusion will not work good on the VecZero normals) #NRM_CLEAR
 #define  NRM_CLEAR_START 1 // 1 works faster on GeForce 650m GT, TODO: check on newer hardware
+#define  EXT_CLEAR_START 0 // TODO: which is better?
 #define  VEL_CLEAR_START 0 // this is not needed because "ClearSkyVel" is used later, performance tests suggested it's better don't clear unless necessary, instead 'Image.discard' is used and improves performance (at least on Mobile), TODO: check on newer hardware
 inline Bool NeedBackgroundNrm() {return D.aoWant() && D.ambientNormal() || Renderer.stage==RS_NORMAL;}
+inline Bool NeedBackgroundExt() {return Renderer.stage==RS_SMOOTH || Renderer.stage==RS_REFLECT;} // #RTOutput
 /******************************************************************************
 
    Graphics API differences:
@@ -544,6 +546,7 @@ void RendererClass::cleanup ()
 //_ds_1s       .clear(); do not clear '_ds_1s' because 'setDepthForDebugDrawing' may be called after rendering finishes, also 'capture' makes use of it
    if(!_get_target)_col.clear();
   _nrm         .clear();
+  _ext         .clear();
   _vel         .clear();
   _lum         .clear();
   _lum_1s      .clear();
@@ -636,14 +639,19 @@ RendererClass& RendererClass::operator()(void (&render)())
       // set background sky pixels not drawn by foreground object meshes (everything at the end of depth buffer), this needs to be done before 'blend' because fur may set depth buffer without setting velocities, and before water surface
       {
          const Bool clear_nrm=(!NRM_CLEAR_START && _nrm && NeedBackgroundNrm()),
+                    clear_ext=(!EXT_CLEAR_START && _ext && NeedBackgroundExt()),
                     clear_vel=(!VEL_CLEAR_START && _vel);
-         if(clear_nrm || clear_vel)
+         if(clear_nrm || clear_ext || clear_vel)
          {
             D.alpha    (ALPHA_NONE);
             D.depth2DOn(FUNC_BACKGROUND);
             if(clear_nrm)
             {
                set(_nrm, _ds, true); Sh.clear(D.signedNrmRT() ? SNRM_CLEAR : NRM_CLEAR); // use DS because we use it for 'D.depth2D' optimization
+            }
+            if(clear_ext)
+            {
+               set(_ext, _ds, true); Sh.clear(Vec4Zero); // use DS because we use it for 'D.depth2D' optimization
             }
             if(clear_vel)
             {
@@ -655,9 +663,11 @@ RendererClass& RendererClass::operator()(void (&render)())
 
       if(stage)switch(stage)
       {
-         case RS_COLOR : if(_cur_type==RT_DEFERRED && show(_col  , true                  ))goto finished; break; // only on deferred renderer the color is unlit
-         case RS_NORMAL: if(                          show(_nrm  , false, D.signedNrmRT()))goto finished; break;
-         case RS_DEPTH : if(                          show(_ds_1s, false                 ))goto finished; break; // this may be affected by test blend materials later
+         case RS_COLOR  : if(_cur_type==RT_DEFERRED && show(_col  , true                  ))goto finished; break; // only on deferred renderer the color is unlit
+         case RS_NORMAL : if(                          show(_nrm  , false, D.signedNrmRT()))goto finished; break;
+         case RS_SMOOTH : if(                          show(_ext  , false, false, 0       ))goto finished; break; // #RTOutput
+         case RS_REFLECT: if(                          show(_ext  , false, false, 1       ))goto finished; break; // #RTOutput
+         case RS_DEPTH  : if(                          show(_ds_1s, false                 ))goto finished; break; // this may be affected by test blend materials later
       }
       waterPreLight(); MEASURE(water)
       light        (); MEASURE(_t_light[1])
@@ -892,7 +902,7 @@ Bool RendererClass::anyDeferred      ()C {return type()==RT_DEFERRED || Water.re
 Bool RendererClass::anyForward       ()C {return type()==RT_FORWARD  || Water.reflectionRenderer()==RT_FORWARD ;}
 Bool RendererClass::lowDepthPrecision()C {return _main_ds.type()==IMAGE_D16;} // this can happen only on Android, and there we do have information about the depth buffer
 /******************************************************************************/
-Bool RendererClass::show(C ImageRTPtr &image, Bool srgb, Bool sign)
+Bool RendererClass::show(C ImageRTPtr &image, Bool srgb, Bool sign, Int channel)
 {
    if(image)
    {
@@ -907,6 +917,25 @@ Bool RendererClass::show(C ImageRTPtr &image, Bool srgb, Bool sign)
          Sh.Color[0]->set(Vec4(0.5f, 0.5f, 0.5f, 0));
          Sh.Color[1]->set(Vec4(0.5f, 0.5f, 0.5f, 1));
          set(_final, null, true); D.alpha(ALPHA_NONE); ((LINEAR_GAMMA && !srgb) ? Sh.DrawCG : Sh.DrawC)->draw(image);
+      }else
+      if(InRange(channel, 4)) // FIXME test this
+      {
+         set(_final, null, true); D.alpha(ALPHA_NONE);
+         Shader *shader;
+         if(LINEAR_GAMMA && !srgb)switch(channel) // gamma convert
+         {
+            case 0: shader=Sh.get("DrawTexXG"); break;
+            case 1: shader=Sh.get("DrawTexYG"); break;
+            case 2: shader=Sh.get("DrawTexZG"); break;
+            case 3: shader=Sh.get("DrawTexWG"); break;
+         }else switch(channel)
+         {
+            case 0: shader=Sh.get("DrawTexX"); break;
+            case 1: shader=Sh.get("DrawTexY"); break;
+            case 2: shader=Sh.get("DrawTexZ"); break;
+            case 3: shader=Sh.get("DrawTexW"); break;
+         }
+         VI.shader(shader); image->draw(D.rect());
       }else
       if(LINEAR_GAMMA && !srgb)
       {
@@ -1016,37 +1045,44 @@ start:
    {
       case RT_DEFERRED:
       {
+         // #RTOutput
          const Bool merged_clear=(D._view_main.full || TILE_BASED_GPU), // use only when having full viewport ('clearCol' ignores viewport), or when having a tile-based GPU to avoid overhead of RT transfers. Don't enable in other cases, because on Intel GPU Windows it made things much slower, on GeForce 1050 Ti it made no difference.
                      clear_nrm  =(NRM_CLEAR_START && NeedBackgroundNrm()),
+                     clear_ext  =(EXT_CLEAR_START && NeedBackgroundExt()),
                      clear_vel  = VEL_CLEAR_START;
 
-         if(D._max_rt>=3) // #RTOutput
+         if(D._max_rt>=4)
          {
+            const Bool alpha=false;
                _has_vel=(D.motionMode()==MOTION_CAMERA_OBJECT && hasMotion()); // '_has_vel' is treated as MOTION_CAMERA_OBJECT mode across the engine
-            if(_has_vel || D.reflectAllow())
+            if(_has_vel || alpha)
             {
-              _vel.get(ImageRTDesc(_col->w(), _col->h(), D.reflectAllow() ? (D.signedVelRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA) : (D.signedVelRT() ? IMAGERT_RGB_S : IMAGERT_RGB), _col->samples()));
+              _vel.get(ImageRTDesc(_col->w(), _col->h(), alpha ? (D.signedVelRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA) : (D.signedVelRT() ? IMAGERT_RGB_S : IMAGERT_RGB), _col->samples()));
                if(clear_vel && !merged_clear)_vel->clearViewport(D.signedVelRT() ? SVEL_CLEAR : VEL_CLEAR);
             }
          }
 
-        _nrm.get(ImageRTDesc(_col->w(), _col->h(), D.signedNrmRT() ? (D.highPrecNrmRT() ? IMAGERT_RGBA_SP : IMAGERT_RGBA_S) : (D.highPrecNrmRT() ? IMAGERT_RGBA_P : IMAGERT_RGBA), _col->samples())); // here Alpha is used for specular
+        _ext.get(ImageRTDesc(_col->w(), _col->h(),                     IMAGERT_TWO                                                    , _col->samples()));
+        _nrm.get(ImageRTDesc(_col->w(), _col->h(), D.highPrecNrmRT() ? IMAGERT_RGB_H : (D.signedNrmRT() ? IMAGERT_RGB_S : IMAGERT_RGB), _col->samples())); // here Alpha is unused
+
          if(!merged_clear)
          {
+            if(clear_ext)_ext->clearViewport();
             if(clear_nrm)_nrm->clearViewport(D.signedNrmRT() ? SNRM_CLEAR : NRM_CLEAR);
             if(clear_col)_col->clearViewport();
          }
 
-         set(_col, _nrm, _vel, null, _ds, true);
+         set(_col, _nrm, _ext, _vel, _ds, true);
          if(merged_clear)
          {
             if(D._view_main.full)
             {
                if(clear_col)D.clearCol(0, Vec4Zero);
                if(clear_nrm)D.clearCol(1, D.signedNrmRT() ? SNRM_CLEAR : NRM_CLEAR);
-               if(clear_vel)D.clearCol(2, D.signedVelRT() ? SVEL_CLEAR : VEL_CLEAR);
+               if(clear_ext)D.clearCol(2, Vec4Zero);
+               if(clear_vel)D.clearCol(3, D.signedVelRT() ? SVEL_CLEAR : VEL_CLEAR);
             }else
-            if(clear_col || clear_nrm || (clear_vel && _vel))Sh.ClearDeferred->draw();
+            if(clear_col || clear_nrm || clear_ext || (clear_vel && _vel))Sh.ClearDeferred->draw();
          }
          if(clear_ds)D.clearDS();
       }break;
@@ -1376,6 +1412,7 @@ void RendererClass::light()
       src.clear();
       if(_lum!=_lum_1s && (_has_fur || stage==RS_LIGHT || stage==RS_LIGHT_AO)){set(_lum_1s, null, true); D.alpha(ALPHA_ADD); Sh.draw(*_lum);} // need to apply multi-sampled lum to 1-sample for fur and light stage
      _lum.clear(); // '_lum' will not be used after this point, however '_lum_1s' may be for rendering fur
+     _ext.clear(); // FIXME can this be cleared earlier?
    }
 }
 Bool RendererClass::waterPostLight()
