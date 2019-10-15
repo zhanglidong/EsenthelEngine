@@ -397,6 +397,7 @@ void PS
    if(DETAIL)nrm.xy+=det.xy;
              nrm.z  =CalcZ(nrm.xy);
              nrm    =Normalize(Transform(nrm, I.mtrx));
+   // TODO: a better formula would be: nrm.xy=Tex(Nrm, I.tex).xy; nrm.z=CalcZ(nrm.xy); nrm.xy*=Material.normal; nrm=Normalize(Transform(nrm, I.mtrx)); however it gets more complicated/slower with DETAIL and multi-materials, we could do this if GPU's are super fast
 #endif
 
 #else // MATERIALS>1
