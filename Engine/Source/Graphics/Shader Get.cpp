@@ -138,7 +138,7 @@ void DefaultShaders::init(C Material *material[4], UInt mesh_base_flag, Int lod_
    if(!D.texDetailLOD() && lod_index> 0                      )detail=false; // disable detail for LOD's>0
    if(                     lod_index> 0 || layout<2          )MIN(bump, SBUMP_NORMAL); // limit to normal mapping for LOD's>0 and layout<2 (no bump channel)
    if(!tex                                                   ){layout=0; detail=macro=false; MIN(ambient, 1);} // disable all textures if we don't have texcoords
-   if(!normal || !D.reflectAllow()                           )reflect=false; // reflection requires vtx normals
+   if(!normal                                                )reflect=false; // reflection requires vtx normals
    if(materials>1                                            )MAX(layout, 1); // multi-materials currently don't support 0 textures
    if(materials>1 || heightmap                               )ambient=0; // multi-materials and heightmaps currently don't support ambient
 

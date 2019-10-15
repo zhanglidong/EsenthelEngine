@@ -777,7 +777,6 @@ Display::Display() : _monitors(Compare, Create, null, 4)
           _bloom_allow=!MOBILE;
            _glow_allow=!MOBILE;
   _color_palette_allow=!MOBILE;
-        _reflect_allow=!MOBILE;
 
   _lod_factor       =1;
   _lod_factor_mirror=2;
@@ -2808,7 +2807,6 @@ Display& Display::bumpMode(BUMP_MODE mode)
    return T;
 }
 /******************************************************************************/
-Display& Display::reflectAllow (Bool allow   ) {                  _reflect_allow   =allow   ; return T;}
 Display& Display:: glowAllow   (Bool allow   ) {                     _glow_allow   =allow   ; return T;}
 Display& Display::bloomAllow   (Bool allow   ) {                    _bloom_allow   =allow   ; return T;}
 Display& Display::bloomOriginal(Flt  original) {MAX  (original, 0); _bloom_original=original; return T;}

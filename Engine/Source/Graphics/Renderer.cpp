@@ -1270,7 +1270,7 @@ void RendererClass::waterPreLight()
 {
    Water._use_secondary_rt=(!Water.max1Light()
                           && canReadDepth()
-                          && D._max_rt>=2 // col+nrm
+                          && D._max_rt>=2 // col+nrm #RTOutput
                           && _cur_type!=RT_FORWARD); // for forward for the moment we can't do it, because all lights have already been applied, but in current mode we expect solids to be drawn (so we have depth set because we copy it, and stencil set because we swap DS to preserve it and restore later)
    if(Water._use_secondary_rt)Water.drawSurfaces(); // if we use secondary RT's then we need to draw water surfaces before we calculate lights (otherwise setup lights first and then draw surfaces having shadow-maps known)
 }
