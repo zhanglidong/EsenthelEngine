@@ -215,7 +215,7 @@ class ConvertToDeAtlasClass : PropWin
             edit.  alpha_map=Process(src_edit.  alpha_map,   alpha_size, crop, resize);
             edit.   bump_map=Process(src_edit.   bump_map,    bump_size, crop, resize);
             edit. normal_map=Process(src_edit. normal_map,  normal_size, crop, resize);
-            edit. smooth_map=Process(src_edit. smooth_map,    spec_size, crop, resize);
+            edit. smooth_map=Process(src_edit. smooth_map,  smooth_size, crop, resize);
             edit.reflect_map=Process(src_edit.reflect_map, reflect_size, crop, resize);
             edit.   glow_map=Process(src_edit.   glow_map,    glow_size, crop, resize);
             edit.base_0_tex=base_0_tex;

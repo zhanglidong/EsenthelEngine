@@ -23,17 +23,17 @@ public:
    };
    class UIDEx : UID
    {
-      bool mtrl_base_1;
+      byte mtrl_base;
 
 public:
    UIDEx();
    };
    class ImageEx
    {
-      bool        mtrl_base_1;
+      byte        mtrl_base;
       Mems<Image> mips; // since we can't lock multiple mip-maps at the same time, we need to store them as separate images
       
-      void create(bool mtrl_base_1, C Image &src);
+      void create(byte mtrl_base, C Image &src);
 
 public:
    ImageEx();
@@ -52,10 +52,10 @@ public:
    bool                        pause;
    int                         compared;
 
-   bool mtrl_base_1   ;
-   flt  avg_difference,
-        similar       ,
-        similar_dif   ;
+   int mtrl_base     ; // 0=all, 1=#0, 2=#1, 3=#2
+   flt avg_difference,
+       similar       ,
+       similar_dif   ;
 
    static void CompareImage(UID &a_id, UID &b_id, int thread_index);
    static int ImageLoad(ImageHeader &header, C Str &name);
@@ -76,6 +76,8 @@ public:
                           C Rect& rect()C;                   
    virtual DetectSimilarTextures& rect(C Rect &rect)override;
    static void CurChanged(DetectSimilarTextures &dst);
+   static cchar8 *TextureTypes[]
+;
    void create();
    virtual void update(C GuiPC &gpc)override;
 

@@ -60,12 +60,13 @@ ConvertToAtlasClass ConvertToAtlas;
                c=cf;
             }else c=WHITE;
 
-            atlas.color   .color(dest_x, dest_y, c);
-            atlas.alpha   .pixB (dest_x, dest_y)=          (src.alpha   .is() ? Mid(Round(src.alpha   .pixelF(x, y)*255                       ), 0, 255) : 255);
-            atlas.bump    .pixB (dest_x, dest_y)=          (src.bump    .is() ? Mid(Round(src.bump    .pixelF(x, y)*255                       ), 0, 255) : 255);
-            atlas.specular.pixB (dest_x, dest_y)=Mid(Round((src.specular.is() ?           src.specular.color (x, y).lum() : 255)*edit.specular), 0, 255); // bake
-            atlas.glow    .pixB (dest_x, dest_y)=Mid(Round(                                      glow                           *edit.glow    ), 0, 255); // bake
-            atlas.normal  .color(dest_x, dest_y, n);
+            atlas.color  .color(dest_x, dest_y, c);
+            atlas.alpha  .pixB (dest_x, dest_y)=          (src.alpha  .is() ? Mid(Round(src.alpha  .pixelF(x, y)*255                      ), 0, 255) : 255);
+            atlas.bump   .pixB (dest_x, dest_y)=          (src.bump   .is() ? Mid(Round(src.bump   .pixelF(x, y)*255                      ), 0, 255) : 255);
+            atlas.smooth .pixB (dest_x, dest_y)=Mid(Round((src.smooth .is() ?           src.smooth .color (x, y).lum() : 255)*edit.smooth ), 0, 255); // bake
+            atlas.reflect.pixB (dest_x, dest_y)=Mid(Round((src.reflect.is() ?           src.reflect.color (x, y).lum() : 255)*edit.reflect), 0, 255); // bake
+            atlas.glow   .pixB (dest_x, dest_y)=Mid(Round(                                  glow                             *edit.glow   ), 0, 255); // bake
+            atlas.normal .color(dest_x, dest_y, n);
          }
          tex=src.color.is()*BT_COLOR | src.alpha.is()*BT_ALPHA | src.bump.is()*BT_BUMP | src.normal.is()*BT_NORMAL | src.smooth.is()*BT_SMOOTH | src.reflect.is()*BT_REFLECT | src.glow.is()*BT_GLOW;
          AtomicOr(atlas.tex, tex);

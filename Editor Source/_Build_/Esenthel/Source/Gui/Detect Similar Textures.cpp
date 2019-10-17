@@ -7,6 +7,13 @@ DetectSimilarTextures DST;
 /******************************************************************************/
    const bool DetectSimilarTextures::Decompress=false;
    const int  DetectSimilarTextures::MaxTexSize=Decompress ? 64 : 128;
+   cchar8 *DetectSimilarTextures::TextureTypes[]= // #MaterialTextureLayout
+   {
+      "All",
+      "Color" , // Base0
+      "Normal", // Base1
+      "Extra" , // Base2
+   };
 /******************************************************************************/
       void DetectSimilarTextures::Data::set(C UID &id)
       {
@@ -14,9 +21,9 @@ DetectSimilarTextures DST;
          T.name=EncodeFileName(id);
       }
       void DetectSimilarTextures::Pair::set(C UID &a, C UID &b) {T.a=a; T.b=b;}
-      void DetectSimilarTextures::ImageEx::create(bool mtrl_base_1, C Image &src)
+      void DetectSimilarTextures::ImageEx::create(byte mtrl_base, C Image &src)
       {
-         T.mtrl_base_1=mtrl_base_1;
+         T.mtrl_base=mtrl_base;
          mips.setNum(src.mipMaps());
          REPA(mips)src.extractMipMap(mips[i], Decompress ? ImageTypeUncompressed(src.type()) : -1, i);
       }
@@ -25,25 +32,20 @@ DetectSimilarTextures DST;
       if(ImageEx *a_image=DST.loaded_texs.find(a_id))
       if(ImageEx *b_image=DST.loaded_texs.find(b_id))
       {
-         if(DST.mtrl_base_1!=(a_image->mtrl_base_1 || b_image->mtrl_base_1))goto compared;
+         if(DST.mtrl_base)
+         {
+            if(DST.mtrl_base-1!=a_image->mtrl_base
+            || DST.mtrl_base-1!=b_image->mtrl_base)goto compared;
+         }
          ImageCompare ic;
-         flt  avg_difference_mip=DST.avg_difference+0.041f; // this is used for mip-maps, because mip-maps (especially due to compression) can have bigger difference than the biggest mip-map. One image in tests with 0.002233495 'avg_dif2' on biggest mip had 0.043038268 'avg_dif2' on one of the mip maps.
          int  mips=Min(a_image->mips.elms(), b_image->mips.elms());
          FREP(mips)
          {
             if(!ic.compare(a_image->mips[a_image->mips.elms()-1-i], b_image->mips[b_image->mips.elms()-1-i], DST.similar_dif, false))goto compared; // start comparing from smallest mip-map, if failed to compare
             if( ic.skipped || DST.pause)goto compared; // if comparison was skipped
-            if(i==mips-1) // biggest mip-map that we're going to test
-            {
-               if(ic.avg_dif2>DST.avg_difference // if too different
-               || ic.similar <DST.similar        // if not similar enough
-               )goto compared;
-            }else // for smaller mip-maps, use values with epsilon added
-            {
-               if(ic.avg_dif2>avg_difference_mip // if too different
-               || ic.similar <DST.similar        // if not similar enough
-               )goto compared;
-            }
+            if(ic.avg_dif2>DST.avg_difference // if too different
+            || ic.similar <DST.similar        // if not similar enough
+            )goto compared;
          }
          {
             SyncLocker locker(DST.similar_pair_lock);
@@ -85,7 +87,7 @@ DetectSimilarTextures DST;
 
             if(ok)
             {
-               ImageEx tex; tex.create(tex_id.mtrl_base_1, img);
+               ImageEx tex; tex.create(tex_id.mtrl_base, img);
                ImageEx &loaded   =*loaded_texs(tex_id); Swap(loaded, tex);
              C UID     &loaded_id=*loaded_texs.dataToKey(&loaded);
                REPA(loaded_texs)
@@ -110,9 +112,11 @@ DetectSimilarTextures DST;
       REPA(Proj.elms)
       {
          Elm &elm=Proj.elms[i];
-         if(ElmMaterial *mtrl_data=elm.mtrlData())if(mtrl_data->base_1_tex.valid())
+         if(ElmMaterial *mtrl_data=elm.mtrlData())
          {
-            int texs_i; if(texs.binarySearch(mtrl_data->base_1_tex, texs_i))proj_texs[texs_i].mtrl_base_1=true;
+            int texs_i;
+            if(mtrl_data->base_1_tex.valid() && texs.binarySearch(mtrl_data->base_1_tex, texs_i))proj_texs[texs_i].mtrl_base=1;
+            if(mtrl_data->base_2_tex.valid() && texs.binarySearch(mtrl_data->base_2_tex, texs_i))proj_texs[texs_i].mtrl_base=2;
          }
       }
       REPA(loaded_texs)if(!texs.binaryHas(loaded_texs.lockedKey(i)))loaded_texs.remove(i); // remove loaded textures if they're no longer present in the project
@@ -232,7 +236,7 @@ DetectSimilarTextures DST;
    void DetectSimilarTextures::create()
    {
       add("Average Difference", MEMBER(DetectSimilarTextures, avg_difference)).range(0, 0.2f).desc("Total average difference between texture pixels").mouseEditSpeed(0.02f);
-      add("Material Base 1"   , MEMBER(DetectSimilarTextures, mtrl_base_1   )).desc("If compare Material Base 1 Textures, such as Normal, Specular and Glow"); // FIXME use combobox
+      add("Texture Type"      , MEMBER(DetectSimilarTextures, mtrl_base     )).setEnum(TextureTypes, Elms(TextureTypes)).desc("Compare which texture types");
    #if 0 // not needed
       add("And"); // use AND because OR would list more textures
       add("Similar Portion", MEMBER(DetectSimilarTextures, similar    )).range(0, 1).desc("Portion of the entire texture that is similar.\nFor example if 2 textures have the same top half, but the bottom half is different, then this will be 0.5\nEach pixels are considered similar if their color difference is smaller than \"Similar Limit\".");
@@ -277,12 +281,12 @@ DetectSimilarTextures DST;
          }
       }
    }
-DetectSimilarTextures::DetectSimilarTextures() : io_thread_id(0), loaded_texs(Compare), pause(false), compared(0), mtrl_base_1(false), avg_difference(0.02f), similar(0.0f), similar_dif(0.1f) {}
+DetectSimilarTextures::DetectSimilarTextures() : io_thread_id(0), loaded_texs(Compare), pause(false), compared(0), mtrl_base(0), avg_difference(0.02f), similar(0.0f), similar_dif(0.1f) {}
 
 DetectSimilarTextures::Data::Data() : id(UIDZero) {}
 
-DetectSimilarTextures::UIDEx::UIDEx() : mtrl_base_1(false) {}
+DetectSimilarTextures::UIDEx::UIDEx() : mtrl_base(0) {}
 
-DetectSimilarTextures::ImageEx::ImageEx() : mtrl_base_1(false) {}
+DetectSimilarTextures::ImageEx::ImageEx() : mtrl_base(0) {}
 
 /******************************************************************************/
