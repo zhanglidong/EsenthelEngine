@@ -162,7 +162,7 @@ bool Load (EditObject &obj , C Str &name, C Str &resource_path=S) {File f; if(f.
 bool SaveCode(C Str &code, C Str &name)
 {
  //FileText f; f.writeMem(HasUnicode(code) ? UTF_16 : ANSI); // avoid UTF_8 because it's slower to write/read, and as there can be lot of codes, we don't want to sacrifice performance when opening big projects
-   FileText f; f.writeMem(HasUnicode(code) ? UTF_8 : ANSI); // FIXME restore above UTF_16 once github supports it, because now it can corrupt files
+   FileText f; f.writeMem(HasUnicode(code) ? UTF_8 : ANSI); // FIXME restore above UTF_16 once GitHub supports it, because now it can corrupt files
    f.putText(code);
    return EE.SafeOverwrite(f, name);
 }

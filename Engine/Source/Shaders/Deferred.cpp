@@ -613,7 +613,7 @@ void PS
    if(LAYOUT==2)
    {
       VecH ext0, ext1, ext2, ext3;
-                      ext0=Tex(Ext , tex0).xyz; // we need only smooth,reflect,bump
+                      ext0=Tex(Ext , tex0).xyz; // we need only Smooth, Reflect, Bump
                       ext1=Tex(Ext1, tex1).xyz;
       if(MATERIALS>=3)ext2=Tex(Ext2, tex2).xyz;
       if(MATERIALS>=4)ext3=Tex(Ext3, tex3).xyz;
@@ -694,8 +694,8 @@ void PS
    output.glow    (glow        );
    output.normal  (nrm         );
    output.smooth  (smooth      );
-   output.velocity(I.vel, I.pos);
    output.reflect (reflect     );
+   output.velocity(I.vel, I.pos);
 }
 /******************************************************************************/
 // HULL / DOMAIN
