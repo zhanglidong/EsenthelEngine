@@ -98,8 +98,8 @@ VecH4 SunRays_PS(NOPERSP Vec2 inTex  :TEXCOORD0,
        //power    *=frac;
       }
    #else
-    //Flt frac=Max(Max(Vec2Zero, Abs(sun_pos-0.5)-0.5)/Abs(sun_pos-inTex)); // Max(Max(0, Abs(sun_pos.x-0.5)-0.5)/Abs(sun_pos.x-inTex.x), Max(0, Abs(sun_pos.y-0.5)-0.5)/Abs(sun_pos.y-inTex.y));
-      Flt frac=Max(Max(Vec2Zero, Abs(sun_pos-Viewport.center)-Viewport.size/2)/Abs(sun_pos-inTex)); // Max(Max(0, Abs(sun_pos.x-0.5)-0.5)/Abs(sun_pos.x-inTex.x), Max(0, Abs(sun_pos.y-0.5)-0.5)/Abs(sun_pos.y-inTex.y));
+    //Flt frac=Max(Max(Vec2(0, 0), Abs(sun_pos-0.5)-0.5)/Abs(sun_pos-inTex)); // Max(Max(0, Abs(sun_pos.x-0.5)-0.5)/Abs(sun_pos.x-inTex.x), Max(0, Abs(sun_pos.y-0.5)-0.5)/Abs(sun_pos.y-inTex.y));
+      Flt frac=Max(Max(Vec2(0, 0), Abs(sun_pos-Viewport.center)-Viewport.size/2)/Abs(sun_pos-inTex)); // Max(Max(0, Abs(sun_pos.x-0.5)-0.5)/Abs(sun_pos.x-inTex.x), Max(0, Abs(sun_pos.y-0.5)-0.5)/Abs(sun_pos.y-inTex.y));
       sun_pos-=(  frac)*(sun_pos-inTex);
     //power  *=(1-frac);
    #endif
