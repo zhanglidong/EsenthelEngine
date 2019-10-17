@@ -33,7 +33,7 @@ struct MainShaderClass
       *Img  [4], *ImgMS[2],
       *ImgX [4], *ImgXMS,
       *ImgXF[2],
-      *ImgXY,
+      *ImgXY, *ImgXYMS,
       *Env=&DummyImage,
       *Cub[2],
       *Vol,

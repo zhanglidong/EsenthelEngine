@@ -439,6 +439,7 @@ Image3DH2 VolXY, VolXY1;
 
 Texture2DMS<VecH4, MS_SAMPLES> ImgMS, ImgMS1;
 Texture2DMS<Half , MS_SAMPLES> ImgXMS;
+Texture2DMS<VecH2, MS_SAMPLES> ImgXYMS;
 Texture2DMS<Flt  , MS_SAMPLES> DepthMS;
 #include "!Set LP.h"
 
@@ -1280,6 +1281,11 @@ inline VecH GetNormalMS(VecI2 pixel, UInt sample)
    VecH   nrm=TexSample(ImgMS, pixel, sample).xyz; UnpackNormal(nrm);
    return nrm;
 }
+/******************************************************************************/
+// EXT
+/******************************************************************************/
+inline VecH2 GetExt  (Vec2  tex               ) {return TexPoint (ImgXY  , tex          );}
+inline VecH2 GetExtMS(VecI2 pixel, UInt sample) {return TexSample(ImgXYMS, pixel, sample);}
 /******************************************************************************/
 // LOD INDEX
 /******************************************************************************/

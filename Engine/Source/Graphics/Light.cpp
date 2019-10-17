@@ -130,7 +130,9 @@ static Bool SetLum()
       D.depthUnlock(    ); D.clearCol((Renderer._lum_1s!=Renderer._lum || (Renderer._ao && !D.aoAll())) ? Vec4Zero : Vec4(D.ambientColorD(), 0));
       D.depthLock  (true);
    }
-   D.alpha(ALPHA_ADD); Sh.Img[0]->set(Renderer._nrm); Sh.ImgMS[0]->set(Renderer._nrm);
+   D.alpha(ALPHA_ADD);
+   Sh.Img[0]->set(Renderer._nrm); Sh.ImgMS[0]->set(Renderer._nrm);
+   Sh.ImgXY ->set(Renderer._ext); Sh.ImgXYMS ->set(Renderer._ext);
    return set;
 }
 void RendererClass::getLumRT() // this is called after drawing all lights, in order to make sure we have some RT's (in case there are no lights), after this ambient meshes will be drawn
@@ -154,7 +156,9 @@ static void                SetWaterLum  ()
       D.depthUnlock(    ); D.clearCol(Vec4(D.ambientColorD(), 0));
       D.depthLock  (true);
    }
-   D.alpha(ALPHA_ADD); Sh.Img[0]->set(Renderer._water_nrm); Sh.ImgMS[0]->set(Renderer._water_nrm);
+   D.alpha(ALPHA_ADD);
+   Sh.Img[0]->set(Renderer._water_nrm); Sh.ImgMS[0]->set(Renderer._water_nrm);
+ //Sh.ImgXY ->set(Renderer._water_ext); Sh.ImgXYMS ->set(Renderer._water_ext);
 }
 
 static void MapSoft(UInt depth_func=FUNC_FOREGROUND, C MatrixM *light_matrix=null)

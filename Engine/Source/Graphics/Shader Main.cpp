@@ -263,14 +263,15 @@ void MainShaderClass::getTechniques()
    ImgMS[0]=ShaderImages("ImgMS" );
    ImgMS[1]=ShaderImages("ImgMS1");
 
-   ImgX[0]  =ShaderImages("ImgX"  );
-   ImgX[1]  =ShaderImages("ImgX1" );
-   ImgX[2]  =ShaderImages("ImgX2" );
-   ImgX[3]  =ShaderImages("ImgX3" );
-   ImgXMS   =ShaderImages("ImgXMS");
-   ImgXF[0] =ShaderImages("ImgXF" );
-   ImgXF[1] =ShaderImages("ImgXF1");
-   ImgXY    =ShaderImages("ImgXY" );
+   ImgX[0] =ShaderImages("ImgX"   );
+   ImgX[1] =ShaderImages("ImgX1"  );
+   ImgX[2] =ShaderImages("ImgX2"  );
+   ImgX[3] =ShaderImages("ImgX3"  );
+   ImgXMS  =ShaderImages("ImgXMS" );
+   ImgXF[0]=ShaderImages("ImgXF"  );
+   ImgXF[1]=ShaderImages("ImgXF1" );
+   ImgXY   =ShaderImages("ImgXY"  );
+   ImgXYMS =ShaderImages("ImgXYMS");
 
    Env   =ShaderImages("Env"); Env->set(D.envMap()());
    Cub[0]=ShaderImages("Cub");
