@@ -79,6 +79,7 @@ struct DisplayState // Display States Control, this class methods can be called 
 
       #define FUNC_NEVER         GPU_API(D3D11_COMPARISON_NEVER        , GL_NEVER  )
       #define FUNC_ALWAYS        GPU_API(D3D11_COMPARISON_ALWAYS       , GL_ALWAYS )
+      #define FUNC_EQUAL         GPU_API(D3D11_COMPARISON_EQUAL        , GL_EQUAL  )
    #if REVERSE_DEPTH
       #define FUNC_LESS          GPU_API(D3D11_COMPARISON_GREATER      , GL_GREATER)
       #define FUNC_LESS_EQUAL    GPU_API(D3D11_COMPARISON_GREATER_EQUAL, GL_GEQUAL )

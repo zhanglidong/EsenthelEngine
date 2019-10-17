@@ -648,7 +648,7 @@ static void SetOldFlag(MeshPart &part, Byte flag)
  //if(flag&0x2)floor
    if(flag&0x4)part.part_flag|=MSHP_HIDDEN;
 }
-Bool MeshPart::loadData(File &f, CChar *path)
+Bool MeshPart::loadData(File &f, CChar *path, Int lod_index)
 {
    del(); switch(f.decUIntV()) // version
    {
@@ -662,7 +662,7 @@ Bool MeshPart::loadData(File &f, CChar *path)
          if(_variations.load(f, path))
          if( base      .loadData(f))
          if( render    .loadData(f))
-            if(f.ok()){setUMM().setShader(0); return true;}
+            if(f.ok()){setUMM().setShader(lod_index); return true;}
       }break;
 
       case 6:
@@ -675,7 +675,7 @@ Bool MeshPart::loadData(File &f, CChar *path)
          if(_variations.load(f, path))
          if( base      .loadData(f))
          if( render    .loadData(f))
-            if(f.ok()){setUMM().setShader(0); return true;}
+            if(f.ok()){setUMM().setShader(lod_index); return true;}
       }break;
 
       case 5:
@@ -688,7 +688,7 @@ Bool MeshPart::loadData(File &f, CChar *path)
          if(_variations.load(f, path))
          if( base      .loadData(f))
          if( render    .loadData(f))
-            if(f.ok()){setUMM().setShader(0); return true;}
+            if(f.ok()){setUMM().setShader(lod_index); return true;}
       }break;
 
       case 4:
@@ -700,7 +700,7 @@ Bool MeshPart::loadData(File &f, CChar *path)
                   _materials[2].require(f._getStr(), path);
          if(base  .loadData(f))
          if(render.loadData(f))
-            if(f.ok()){setUMM().setShader(0); return true;}
+            if(f.ok()){setUMM().setShader(lod_index); return true;}
       }break;
 
       case 3:
@@ -712,7 +712,7 @@ Bool MeshPart::loadData(File &f, CChar *path)
                   _materials[2].require(f._getStr(), path);
          if(base  .loadData(f))
          if(render.loadData(f))
-            if(f.ok()){setUMM().setShader(0); return true;}
+            if(f.ok()){setUMM().setShader(lod_index); return true;}
       }break;
 
       case 2:
@@ -724,7 +724,7 @@ Bool MeshPart::loadData(File &f, CChar *path)
                   _materials[2].require(f._getStr(), path);
          if(base  .loadData(f))
          if(render.loadData(f))
-            if(f.ok()){setUMM().setShader(0); return true;}
+            if(f.ok()){setUMM().setShader(lod_index); return true;}
       }break;
 
       case 1:
@@ -736,7 +736,7 @@ Bool MeshPart::loadData(File &f, CChar *path)
                   _materials[2].require(f._getStr(), path);
          if(base  .loadData(f))
          if(render.loadData(f))
-            if(f.ok()){setUMM().setShader(0); return true;}
+            if(f.ok()){setUMM().setShader(lod_index); return true;}
       }break;
 
       case 0:
@@ -748,7 +748,7 @@ Bool MeshPart::loadData(File &f, CChar *path)
                   _materials[2].require(f._getStr8(), path);
          if(base  .loadData(f))
          if(render.loadData(f))
-            if(f.ok()){setUMM().setShader(0); return true;}
+            if(f.ok()){setUMM().setShader(lod_index); return true;}
       }break;
    }
    del(); return false;
@@ -790,7 +790,7 @@ Bool MeshLod::saveData(File &f, CChar *path)C
    FREPA(T)if(!parts[i].saveData(f, path))return false;
    return f.ok();
 }
-Bool MeshLod::loadData(File &f, CChar *path)
+Bool MeshLod::loadData(File &f, CChar *path, Int lod_index)
 {
    switch(f.decUIntV()) // version
    {
@@ -798,7 +798,7 @@ Bool MeshLod::loadData(File &f, CChar *path)
       {
          create(f.getInt());
          f>>dist2;
-         FREPA(T)if(!parts[i].loadData(f, path))goto error;
+         FREPA(T)if(!parts[i].loadData(f, path, lod_index))goto error;
          if(f.ok())return true;
       }break;
    }
@@ -841,7 +841,7 @@ Bool Mesh::loadData(File &f, CChar *path)
 
          if(!_bone_map  .load(f))goto error;
          if(!_variations.load(f))goto error;
-        _lods.setNum(f.decUIntV()); FREP(lods())if(!lod(i).loadData(f, path))goto error;
+        _lods.setNum(f.decUIntV()); FREP(lods())if(!lod(i).loadData(f, path, i))goto error;
 
          drawGroupEnum(Enums    (f.getAssetID(), path), false);
          skeleton     (Skeletons(f.getAssetID(), path));
@@ -851,7 +851,7 @@ Bool Mesh::loadData(File &f, CChar *path)
       {
          f.getMulti(box, lod_center); ext=box;
 
-        _lods.setNum(f.decUIntV()); FREP(lods())if(!lod(i).loadData(f, path))goto error;
+        _lods.setNum(f.decUIntV()); FREP(lods())if(!lod(i).loadData(f, path, i))goto error;
          if(!_bone_map  .load(f))goto error;
          if(!_variations.load(f))goto error;
 
@@ -863,7 +863,7 @@ Bool Mesh::loadData(File &f, CChar *path)
       {
          f.getMulti(box, lod_center); ext=box;
 
-        _lods.setNum(f.decUIntV()); FREP(lods())if(!lod(i).loadData(f, path))goto error;
+        _lods.setNum(f.decUIntV()); FREP(lods())if(!lod(i).loadData(f, path, i))goto error;
          if(!_bone_map  .loadOld1(f))goto error;
          if(!_variations.load    (f))goto error;
 
@@ -875,7 +875,7 @@ Bool Mesh::loadData(File &f, CChar *path)
       {
          f.getMulti(box, lod_center); ext=box;
 
-        _lods.setNum(f.getByte()); FREP(lods())if(!lod(i).loadData(f, path))goto error;
+        _lods.setNum(f.getByte()); FREP(lods())if(!lod(i).loadData(f, path, i))goto error;
          if(!_bone_map.loadOld(f))goto error;
 
          skeleton     (Skeletons(f._getStr(), path));
@@ -886,7 +886,7 @@ Bool Mesh::loadData(File &f, CChar *path)
       {
          f>>box>>lod_center; ext=box;
 
-        _lods.setNum(f.getByte()); FREP(lods())if(!lod(i).loadData(f, path))goto error;
+        _lods.setNum(f.getByte()); FREP(lods())if(!lod(i).loadData(f, path, i))goto error;
          if(!_bone_map.loadOld(f))goto error;
 
          skeleton(Skeletons(f._getStr(), path));
@@ -895,14 +895,14 @@ Bool Mesh::loadData(File &f, CChar *path)
       case 3:
       {
          f>>box>>lod_center; ext=box;
-        _lods.setNum(f.getByte()); FREP(lods())if(!lod(i).loadData(f, path))goto error;
+        _lods.setNum(f.getByte()); FREP(lods())if(!lod(i).loadData(f, path, i))goto error;
       }break;
 
       case 2:
       {
          f.getByte();
          f>>box; ext=box; lod_center=ext.pos;
-        _lods.setNum(f.getByte()); FREP(lods())if(!lod(i).loadData(f, path))goto error;
+        _lods.setNum(f.getByte()); FREP(lods())if(!lod(i).loadData(f, path, i))goto error;
       }break;
 
       case 1:
@@ -925,7 +925,6 @@ Bool Mesh::loadData(File &f, CChar *path)
    if(f.ok())
    {
       if(App.flag&APP_AUTO_FREE_MESH_OPEN_GL_ES_DATA)freeOpenGLESData();
-      REPAO(_lods).setShader(i+1); // by default all shaders were set with lod_index=0, so now reset them with correct index
       return true;
    }
 error:;

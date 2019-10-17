@@ -190,11 +190,11 @@ struct MeshLod // Level of Detail, array of Mesh Part's
 
 #if EE_PRIVATE
    // io
-   Bool save    (File &f, CChar *path=null)C; // save, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
-   Bool load    (File &f, CChar *path=null) ; // load, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
-   Bool saveData(File &f, CChar *path=null)C; // save, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
-   Bool loadData(File &f, CChar *path=null) ; // load, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
-   Bool loadOld (File &f, CChar *path=null) ;
+   Bool save    (File &f, CChar *path=null                 )C; // save, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
+   Bool load    (File &f, CChar *path=null                 ) ; // load, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
+   Bool saveData(File &f, CChar *path=null                 )C; // save, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
+   Bool loadData(File &f, CChar *path=null, Int lod_index=0) ; // load, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
+   Bool loadOld (File &f, CChar *path=null                 ) ;
 #endif
 
    void operator*=(C Matrix3 &m) {transform(m);} // transform by matrix

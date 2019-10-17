@@ -88,7 +88,6 @@ class MaterialRegion : Region
          Mems<Edit.FileParams> files=Edit.FileParams.Decode(file); UID image_id; REPA(files)if(DecodeFileName(files[i].name, image_id))files[i].name=Proj.elmFullName(image_id);
          Str desc=Replace(text, '\n', ' '); if(C ImagePtr &image=getImage())desc+=S+", "+image->w()+'x'+image->h();
          if(type==TEX_MACRO)desc.line()+="Can be set for heightmap materials to decrease repetitiveness of textures.\nBecomes visible at distance of around 100 meters.";
-         if(type==TEX_LIGHT)desc.line()+="Model must have 2nd set of texture coordinates (VTX_TEX1) in order for lightmap to take effect";
          FREPA(files){desc+='\n'; desc+=files[i].encode();}
          T.desc(desc);
       }

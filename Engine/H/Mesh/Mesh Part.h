@@ -140,14 +140,14 @@ struct MeshPart // Mesh Base + Mesh Render
 
 #if EE_PRIVATE
    // io
-   Bool save    (File     &f, CChar *path=null)C; // save binary, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
-   Bool load    (File     &f, CChar *path=null) ; // load binary, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
-   Bool saveData(File     &f, CChar *path=null)C; // save binary, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
-   Bool loadData(File     &f, CChar *path=null) ; // load binary, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
-   Bool saveTxt (FileText &f, CChar *path=null)C; // save text  , 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
-   Bool loadTxt (FileText &f, CChar *path=null) ; // load text  , 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
-   Bool loadOld (File     &f, CChar *path=null) ;
-   Bool loadOld0(File     &f, CChar *path=null) ;
+   Bool save    (File     &f, CChar *path=null                 )C; // save binary, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
+   Bool load    (File     &f, CChar *path=null                 ) ; // load binary, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
+   Bool saveData(File     &f, CChar *path=null                 )C; // save binary, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
+   Bool loadData(File     &f, CChar *path=null, Int lod_index=0) ; // load binary, 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
+   Bool saveTxt (FileText &f, CChar *path=null                 )C; // save text  , 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
+   Bool loadTxt (FileText &f, CChar *path=null                 ) ; // load text  , 'path'=path at which resource is located (this is needed so that the sub-resources can be accessed with relative path), false on fail
+   Bool loadOld (File     &f, CChar *path=null                 ) ;
+   Bool loadOld0(File     &f, CChar *path=null                 ) ;
 
    void zero();
 #endif

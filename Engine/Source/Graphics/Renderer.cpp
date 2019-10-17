@@ -1370,7 +1370,7 @@ void RendererClass::light()
       // add ambient light from meshes
       set(_lum, _ds, true);
       D.alpha(ALPHA_ADD);
-      D.set3D(); mode(RM_AMBIENT); D.depth(true);
+      D.set3D(); mode(RM_AMBIENT); D.depth(true); D.depthFunc(FUNC_LESS_EQUAL); // need to make sure we can apply meshes on existing depth
       SortAmbientInstances();
       REPS(_eye, _eye_num)
       {
@@ -1378,7 +1378,7 @@ void RendererClass::light()
          DrawAmbientInstances(); _render();
       }
       ClearAmbientInstances();
-      D.set2D();
+      D.set2D(); D.depthFunc(FUNC_LESS);
 
       // light buffer is ready so we can combine it with color
       Bool ao=(_ao!=null), cel_shade=(cel_shade_palette!=null), night_shade=(D.nightShadeColorS().max()>EPS_COL), glow=(_has_glow && ImageTI[_col->hwType()].a); // process glow only if some object reported it and we actually have alpha channel in RT (otherwise glow could be always 1.0)
