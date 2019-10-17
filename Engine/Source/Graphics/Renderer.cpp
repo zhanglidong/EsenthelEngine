@@ -918,7 +918,7 @@ Bool RendererClass::show(C ImageRTPtr &image, Bool srgb, Bool sign, Int channel)
          Sh.Color[1]->set(Vec4(0.5f, 0.5f, 0.5f, 1));
          set(_final, null, true); D.alpha(ALPHA_NONE); ((LINEAR_GAMMA && !srgb) ? Sh.DrawCG : Sh.DrawC)->draw(image);
       }else
-      if(InRange(channel, 4)) // FIXME test this
+      if(InRange(channel, 4))
       {
          set(_final, null, true); D.alpha(ALPHA_NONE);
          Shader *shader;
