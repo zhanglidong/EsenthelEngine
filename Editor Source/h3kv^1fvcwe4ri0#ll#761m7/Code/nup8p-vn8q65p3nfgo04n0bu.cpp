@@ -120,7 +120,7 @@ cchar8 *ElmTypeDesc[]=
    "Panel is a set of properties related to drawing Gui Frames (like window borders).\nSuch as background Image, border, corner and top Images, shadow, etc.",
    "Gui is a set of multiple Gui Objects such as Windows, Buttons, etc.",
    null, //"Shader",
-   "Material is a set of properties used for rendering 3D meshes.\nSuch as Color, Normal, Specular textures, opacity and various other parameters.",
+   "Material is a set of properties used for rendering 3D meshes.\nSuch as Color, Normal, textures and various other parameters.",
    "Water Material  is a set of properties used for rendering 3D water surfaces.\nSuch as Color, Normal Textures, opacity and various other parameters.",
    "Physics Material is a set of properties for Physical Actors.\nSuch as Friction, Bounciness, etc.",
    "Object Class is a type of Object.\nEach Object can have only one Class.\nHere are few examples of Object Classes: Characters, Items, Vehicles, ..\nEach Object Class can have a set of base parameters that all Objects of this Class will automatically inherit.",

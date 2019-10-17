@@ -691,7 +691,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
                   temp.base_0=Proj.texPath(base_0_tex); // the texture will be initially saved to 'texDynamicPath' however in PAK it will be created in 'texPath' so save the reference there
                   temp.base_1=null;
                   temp.base_2=null;
-                  // adjust specular related parameters
+                  // adjust extra Base2 parameters
                   {
                      flt  avg_smooth=0.5, avg_reflect=0.5;
                      Vec4 avg; if(mtrl->base_2 && mtrl->base_2->stats(null, null, &avg)){avg_smooth=avg.x; avg_reflect=avg.y;} // #MaterialTextureLayout

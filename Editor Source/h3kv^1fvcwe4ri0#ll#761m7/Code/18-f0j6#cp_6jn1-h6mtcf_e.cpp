@@ -89,8 +89,6 @@ class WaterMtrlRegion : MaterialRegion
    static void RefractReflection    (  WaterMtrlRegion &mr, C Str &t) {mr.edit.refract_reflection=TextFlt(t); mr.edit.refract_reflection_time.getUTC();}
    static Str  RefractUnderwater    (C WaterMtrlRegion &mr          ) {return mr.edit.refract_underwater;}
    static void RefractUnderwater    (  WaterMtrlRegion &mr, C Str &t) {mr.edit.refract_underwater=TextFlt(t); mr.edit.refract_underwater_time.getUTC();}
-   static Str  Specular             (C WaterMtrlRegion &mr          ) {return mr.edit.specular;}
-   static void Specular             (  WaterMtrlRegion &mr, C Str &t) {mr.edit.specular=TextFlt(t); mr.edit.spec_time.getUTC();}
    static Str  WaveScale            (C WaterMtrlRegion &mr          ) {return mr.edit.wave_scale;}
    static void WaveScale            (  WaterMtrlRegion &mr, C Str &t) {mr.edit.wave_scale=TextFlt(t); mr.edit.wave_scale_time.getUTC();}
    static Str  FresnelPow           (C WaterMtrlRegion &mr          ) {return mr.edit.fresnel_pow;}
@@ -138,7 +136,6 @@ class WaterMtrlRegion : MaterialRegion
       props.New().create("Refraction"              , MemberDesc(DATA_REAL).setFunc(Refract              , Refract              )).range(0, 0.50).mouseEditSpeed(0.25);
       props.New().create("Refraction of Reflection", MemberDesc(DATA_REAL).setFunc(RefractReflection    , RefractReflection    )).range(0, 0.25).mouseEditSpeed(0.10);
       props.New().create("Refraction Underwater"   , MemberDesc(DATA_REAL).setFunc(RefractUnderwater    , RefractUnderwater    )).range(0, 0.04).mouseEditSpeed(0.02);
-      props.New().create("Specular"                , MemberDesc(DATA_REAL).setFunc(Specular             , Specular             )).min(0);
       props.New().create("Vertical Wave Scale"     , MemberDesc(DATA_REAL).setFunc(WaveScale            , WaveScale            )).range(0, 1);
       props.New().create("Fresnel Term Power"      , MemberDesc(DATA_REAL).setFunc(FresnelPow           , FresnelPow           )).min(0);
       props.New().create("Fresnel Term Roughness"  , MemberDesc(DATA_REAL).setFunc(FresnelRough         , FresnelRough         )).min(0);

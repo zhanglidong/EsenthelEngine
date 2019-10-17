@@ -802,12 +802,11 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       sub+=texs.New().create(TEX_LIGHT   , MEMBER(EditMaterial,      light_map), MEMBER(EditMaterial,      light_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Light"         , T);
       REPA(texs)sub+=texs[i].remove;
 
-      // #MaterialTextureLayout
-      sub+=reload_base_textures.create("Reload Base Textures").func(ReloadBaseTextures, T).desc("Reload base textures, such as Color, Alpha, Bump, Normal, Smooth, Reflect and Glow, from their original source files.");
+      sub+=reload_base_textures.create("Reload Base Textures").func(ReloadBaseTextures, T).desc("Reload base textures, such as Color, Alpha, Bump, Normal, Smooth, Reflect and Glow, from their original source files."); // #MaterialTextureLayout
       Node<MenuElm> n;
       n.New().create(auto_reload_name, AutoReload, T).flag(MENU_TOGGLABLE).setOn(auto_reload).desc("If this is enabled then base textures will be instantly reloaded when changing them.\nIf you only want to change the source file paths, without actually reloading the textures, then you can disable this option first.");
       {
-         Node<MenuElm> &resize=(n+="Resize Base Textures"); resize.desc("This allows to resize the base textures, such as Color, Alpha, Bump, Normal, Smooth, Reflect and Glow to a custom size.");
+         Node<MenuElm> &resize=(n+="Resize Base Textures"); resize.desc("This allows to resize the base textures, such as Color, Alpha, Bump, Normal, Smooth, Reflect and Glow to a custom size."); // #MaterialTextureLayout
          resize.New().create( "128x128" , ResizeBase128 , T);
          resize.New().create( "256x256" , ResizeBase256 , T);
          resize.New().create( "512x512" , ResizeBase512 , T);
@@ -835,7 +834,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
          resize.New().create("Double"  , ResizeBaseDouble  , T);
       }
       {
-         Node<MenuElm> &resize=(n+="Resize Color+Glow Textures"); resize.desc("This allows to resize the Base 0 textures, such as Color and Alpha/Glow to a custom size.");
+         Node<MenuElm> &resize=(n+="Resize Color+Glow Textures"); resize.desc("This allows to resize the Base 0 textures, such as Color and Alpha/Glow to a custom size."); // #MaterialTextureLayout
          resize.New().create( "128x128" , ResizeBase0_128 , T);
          resize.New().create( "256x256" , ResizeBase0_256 , T);
          resize.New().create( "512x512" , ResizeBase0_512 , T);
@@ -863,7 +862,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
          resize.New().create("Double"  , ResizeBase0_Double  , T);
       }
       {
-         Node<MenuElm> &resize=(n+="Resize Normal Texture"); resize.desc("This allows to resize the Base 1 textures, such as Normal to a custom size.");
+         Node<MenuElm> &resize=(n+="Resize Normal Texture"); resize.desc("This allows to resize the Base 1 textures, such as Normal to a custom size."); // #MaterialTextureLayout
          resize.New().create( "128x128" , ResizeBase1_128 , T);
          resize.New().create( "256x256" , ResizeBase1_256 , T);
          resize.New().create( "512x512" , ResizeBase1_512 , T);
@@ -891,7 +890,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
          resize.New().create("Double"  , ResizeBase1_Double  , T);
       }
       {
-         Node<MenuElm> &resize=(n+="Resize Smooth+Reflect+Bump Textures"); resize.desc("This allows to resize the Base 2 textures, such as Smooth, Reflect, Bump and Alpha to a custom size.");
+         Node<MenuElm> &resize=(n+="Resize Smooth+Reflect+Bump Textures"); resize.desc("This allows to resize the Base 2 textures, such as Smooth, Reflect, Bump and Alpha to a custom size."); // #MaterialTextureLayout
          resize.New().create( "128x128" , ResizeBase2_128 , T);
          resize.New().create( "256x256" , ResizeBase2_256 , T);
          resize.New().create( "512x512" , ResizeBase2_512 , T);
