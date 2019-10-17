@@ -1272,7 +1272,7 @@ inline void UnpackNormal(in out VecH nrm, Bool dequantize)
 #endif
    if(dequantize)
    {
-      if(nrm.z<-0.5)nrm.z=-CalcZ(nrm.xy);
+      if(nrm.z<-SQRT2_2)nrm.z=-CalcZ(nrm.xy);
    }
 }
 inline VecH GetNormal(Vec2 tex, Bool dequantize=false)
