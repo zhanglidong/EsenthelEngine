@@ -28,6 +28,7 @@
    void EditWaterMtrl::create(C WaterMtrl &src, C TimeStamp &time)
    {
       super::create(Material(), time); // call super to setup times for all values
+      // FIXME
       density               =src.density;
       density_add           =src.density_add; density_time=time;
       density_underwater    =src.density_underwater;
@@ -35,13 +36,13 @@
       scale_color           =src.scale_color; scale_color_time=time;
       scale_normal          =src.scale_normal; scale_normal_time=time;
       scale_bump            =src.scale_bump; scale_bump_time=time;
-super::rough                 =src.rough; rough_bump_time=time;
-super::reflection            =src.reflect_tex; reflection_time=time;
+//super.rough                 =src.rough; rough_bump_time=time;
+//super.reflection            =src.reflect_tex; reflection_time=time;
       reflect_world         =src.reflect_world; reflect_world_time=time;
       refract               =src.refract; refract_time=time;
       refract_reflection    =src.refract_reflection; refract_reflection_time=time;
       refract_underwater    =src.refract_underwater; refract_underwater_time=time;
-super::specular              =src.specular; spec_time=time;
+//super.specular              =src.specular; spec_time=time;
       wave_scale            =src.wave_scale; wave_scale_time=time;
       fresnel_pow           =src.fresnel_pow; fresnel_pow_time=time;
       fresnel_rough         =src.fresnel_rough; fresnel_rough_time=time;
@@ -55,6 +56,7 @@ super::color_s               =Vec4(src.color, 1); color_time=time;
    }
    void EditWaterMtrl::copyTo(WaterMtrl &dest, C Project &proj)C
    {
+      // FIXME
       dest.density               =density               ;
       dest.density_add           =density_add           ;
       dest.density_underwater    =density_underwater    ;
@@ -62,13 +64,13 @@ super::color_s               =Vec4(src.color, 1); color_time=time;
       dest.scale_color           =scale_color           ;
       dest.scale_normal          =scale_normal          ;
       dest.scale_bump            =scale_bump            ;
-      dest.rough                 =super::rough           ;
-      dest.reflect_tex           =super::reflection      ;
+      //dest.rough                 =super.rough           ;
+      //dest.reflect_tex           =super.reflection      ;
       dest.reflect_world         =reflect_world         ;
       dest.refract               =refract               ;
       dest.refract_reflection    =refract_reflection    ;
       dest.refract_underwater    =refract_underwater    ;
-      dest.specular              =super::specular        ;
+      //dest.specular              =super.specular        ;
       dest.wave_scale            =wave_scale            ;
       dest.fresnel_pow           =fresnel_pow           ;
       dest.fresnel_rough         =fresnel_rough         ;

@@ -164,7 +164,7 @@ bool Load (EditObject &obj , C Str &name, C Str &resource_path) {File f; if(f.re
 bool SaveCode(C Str &code, C Str &name)
 {
  //FileText f; f.writeMem(HasUnicode(code) ? UTF_16 : ANSI); // avoid UTF_8 because it's slower to write/read, and as there can be lot of codes, we don't want to sacrifice performance when opening big projects
-   FileText f; f.writeMem(HasUnicode(code) ? UTF_8 : ANSI); // FIXME restore above UTF_16 once github supports it, because now it can corrupt files
+   FileText f; f.writeMem(HasUnicode(code) ? UTF_8 : ANSI); // FIXME restore above UTF_16 once GitHub supports it, because now it can corrupt files
    f.putText(code);
    return EE::SafeOverwrite(f, name);
 }
@@ -465,10 +465,10 @@ void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &b
    if(reflect && !(tex&BT_REFLECT))reflect->del();
    if(glow    && !(tex&BT_GLOW   ))glow   ->del();
 }
-void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *col, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, C VecI2 &size)
+void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, Image *col, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, MATERIAL_TECHNIQUE tech, C VecI2 &size)
 {
    uint tex=0;
-   if(base_2.valid() && base_1.valid()) // both textures specified
+   if(base_0.valid() && base_1.valid()) // both textures specified
    {
       if(col || bump)
       {
@@ -480,26 +480,27 @@ void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, C UID
          {
             Color c=b0.color(x, y);
             if(col ){col ->color(x, y, c  ); if(c.r<254 || c.g<254 || c.b<254)tex|=BT_COLOR;}
-            if(bump){bump->pixel(x, y, c.a); if(Abs(c.a-128)>1     && c.a<254)tex|=BT_BUMP ;} // BUMP_DEFAULT_TEX can be either 128 or 255
+            if(bump){bump->pixel(x, y, c.a); if(Abs(c.a-128)>1     && c.a<254)tex|=BT_BUMP ;} // old BUMP_DEFAULT_TEX was either 128 or 255
          }
       }
       if(alpha || normal || smooth || reflect || glow)
       {
+         bool tex_alpha=(tech!=MTECH_DEFAULT); // old mtrl textures had Base1 W channel as either Alpha or Glow
          Image b1; LoadTexture(proj, base_1, b1, size);
-         if(alpha  )alpha  ->createSoft(b1.w(), b1.h(), 1, IMAGE_L8);
-         if(normal )normal ->createSoft(b1.w(), b1.h(), 1, IMAGE_R8G8B8);
-         if(smooth )smooth ->createSoft(b1.w(), b1.h(), 1, IMAGE_L8);
-         if(reflect)reflect->createSoft(b1.w(), b1.h(), 1, IMAGE_L8);
-         if(glow   )glow   ->createSoft(b1.w(), b1.h(), 1, IMAGE_L8);
+                       if(normal )normal ->createSoft(b1.w(), b1.h(), 1, IMAGE_R8G8B8);
+                       if(smooth )smooth ->createSoft(b1.w(), b1.h(), 1, IMAGE_L8);
+                       if(reflect)reflect->createSoft(b1.w(), b1.h(), 1, IMAGE_L8);
+         if(tex_alpha){if(alpha  )alpha  ->createSoft(b1.w(), b1.h(), 1, IMAGE_L8);}
+         else         {if(glow   )glow   ->createSoft(b1.w(), b1.h(), 1, IMAGE_L8);}
          REPD(y, b1.h())
          REPD(x, b1.w())
          {
-            Color c=b1.color(x, y); // #MaterialTextureLayout
-            if(alpha  ){alpha  ->pixel(x, y, c.a); if(c.a<254)tex|=BT_ALPHA  ;}
-            if(glow   ){glow   ->pixel(x, y, c.a); if(c.a<254)tex|=BT_GLOW   ;}
-            if(smooth ){smooth ->pixel(x, y, c.b); if(c.b<254)tex|=BT_SMOOTH ;}
-            if(reflect){reflect->pixel(x, y, c.b); if(c.b<254)tex|=BT_REFLECT;}
-            if(normal )
+            Color c=b1.color(x, y);
+            if(tex_alpha){if(alpha  ){alpha  ->pixel(x, y, c.a); if(c.a<254)tex|=BT_ALPHA  ;}}
+            else         {if(glow   ){glow   ->pixel(x, y, c.a); if(c.a<254)tex|=BT_GLOW   ;}}
+                          if(smooth ){smooth ->pixel(x, y, c.b); if(c.b<254)tex|=BT_SMOOTH ;}
+                          if(reflect){reflect->pixel(x, y, c.b); if(c.b<254)tex|=BT_REFLECT;}
+                          if(normal )
             {
                Vec n; n.xy.set((c.r-128)/127.0f, (c.g-128)/127.0f); n.z=CalcZ(n.xy);
                normal->color(x, y, Color(c.r, c.g, Mid(Round(n.z*127+128), 0, 255))); if(Abs(c.r-128)>1 || Abs(c.g-128)>1)tex|=BT_NORMAL;

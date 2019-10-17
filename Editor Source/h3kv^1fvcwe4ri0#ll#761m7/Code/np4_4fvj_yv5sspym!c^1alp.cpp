@@ -86,8 +86,6 @@ class VideoOptions : PropWin
       static void TexMipFilter (  Advanced &adv, C Str &text) {D.texMipFilter(TextBool(text));}
       static Str  DetailTexUse (C Advanced &adv             ) {return D.texDetail();}
       static void DetailTexUse (  Advanced &adv, C Str &text) {D.texDetail(TEXTURE_USAGE(TextInt(text)));}
-      static Str  ReflectTexUse(C Advanced &adv             ) {return D.texReflection();}
-      static void ReflectTexUse(  Advanced &adv, C Str &text) {D.texReflection(TEXTURE_USAGE(TextInt(text)));}
       static Str  Samples      (C Advanced &adv             ) {return D.samples()>1;}
       static void Samples      (  Advanced &adv, C Str &text) {D.samples(TextBool(text) ? 4 : 1); VidOpt.setVis();}
       static Str  Density      (C Advanced &adv             ) {int nearest=-1; flt dist; REPA(Density_t){flt d=Abs(D.density()-TextFlt(Density_t[i])); if(nearest<0 || d<dist){nearest=i; dist=d;}} return nearest;}
@@ -177,7 +175,6 @@ class VideoOptions : PropWin
          props.New().create("Texture Filtering"    , MemberDesc(         ).setFunc(TexFilter    , TexFilter    )).setEnum(TexFilter_t, tex_filter).desc("Configure Texture Anisotropic Filtering Quality");
          props.New().create("Texture Mip Filtering", MemberDesc(DATA_BOOL).setFunc(TexMipFilter , TexMipFilter )).desc("Configure Texture Mip Map Filtering");
          props.New().create("Detail Texture"       , MemberDesc(         ).setFunc(DetailTexUse , DetailTexUse )).setEnum(TexUse_t, Elms(TexUse_t)).desc("Set when Detail Texture is used");
-         props.New().create("Reflection Texture"   , MemberDesc(         ).setFunc(ReflectTexUse, ReflectTexUse)).setEnum(TexUse_t, Elms(TexUse_t)).desc("Set when Reflection Texture is used");
       #if WINDOWS
          props.New().create("Multi Sampling"       , MemberDesc(DATA_BOOL).setFunc(Samples, Samples)).desc("Set Multi Sampling Anti-Aliasing");
       #endif

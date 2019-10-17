@@ -2,6 +2,7 @@
 /******************************************************************************/
 class EditWaterMtrl : EditMaterial
 {
+   // FIXME reflect_world, etc
    flt density, density_add, density_underwater, density_underwater_add, scale_color, scale_normal, scale_bump,
        reflect_world, refract, refract_reflection, refract_underwater, wave_scale,
        fresnel_pow, fresnel_rough;

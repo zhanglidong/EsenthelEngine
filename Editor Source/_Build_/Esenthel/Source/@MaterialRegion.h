@@ -248,10 +248,10 @@ public:
    static void ResizeBase1_512x1024 (MaterialRegion &editor);
    static void ResizeBase1_1024x2048(MaterialRegion &editor);
 
-   static void ResizeBase2_Quarter (MaterialRegion &editor);
-   static void ResizeBase2_Half    (MaterialRegion &editor);
-   static void ResizeBase2_Original(MaterialRegion &editor);
-   static void ResizeBase2_Double  (MaterialRegion &editor);
+   static void ResizeBase1_Quarter (MaterialRegion &editor);
+   static void ResizeBase1_Half    (MaterialRegion &editor);
+   static void ResizeBase1_Original(MaterialRegion &editor);
+   static void ResizeBase1_Double  (MaterialRegion &editor);
    
    static void ResizeBase2_128 (MaterialRegion &editor);
    static void ResizeBase2_256 (MaterialRegion &editor);

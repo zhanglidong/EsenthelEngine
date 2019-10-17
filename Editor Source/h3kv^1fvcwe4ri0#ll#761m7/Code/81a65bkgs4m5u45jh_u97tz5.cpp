@@ -1791,17 +1791,18 @@ class ProjectEx : ProjectHierarchy
    void mtrlCreateDetailTexture(EditMaterial &material)
    {
       // !! here order of loading images is important, because we pass pointers to those images in subsequent loads !!
-      Image col, bump, normal;
-      bool col_ok=loadImage(   col, material.detail_color , true                           ), // load before 'bump'  , here 'col' and 'bump' are not yet available
-          bump_ok=loadImage(  bump, material.detail_bump  , false, false, &col, null, null ), // load before 'normal', here           'bump' is  not yet available
-           nrm_ok=loadImage(normal, material.detail_normal, false, false, &col, null, &bump);
+      Image col, smooth, bump, normal;
+      bool col_ok=loadImage(   col, material.detail_color , true                              ), // load before 'smooth', here 'col' 'smooth' 'bump' are not yet available
+        smooth_ok=loadImage(smooth, S/*material.detail_smooth*/, false, false, &col, null   , null ), // load before 'bump'  , here       'smooth' 'bump' are not yet available
+          bump_ok=loadImage(  bump, material.detail_bump  , false, false, &col, &smooth, null ), // load before 'normal', here                'bump' is  not yet available
+           nrm_ok=loadImage(normal, material.detail_normal, false, false, &col, &smooth, &bump);
 
       if(!bump_ok && !material.detail_normal.is())nrm_ok=false; // if bump map failed to load, and there is no dedicated normal map, and since it's possible that normal was created from the bump , which is not available, so normal needs to be marked as failed
 
-      if(col_ok || bump_ok || nrm_ok) // proceed only if succeeded with setting anything, this is to avoid clearing existing texture when all failed to load, continue if at least one succeeded, in case the image is different while others will be extracted from old version
+      if(col_ok || smooth_ok || bump_ok || nrm_ok) // proceed only if succeeded with setting anything, this is to avoid clearing existing texture when all failed to load, continue if at least one succeeded, in case the image is different while others will be extracted from old version
       {
                        ExtractDetailTexture(T, material.detail_tex, col_ok ? null : &col, bump_ok ? null : &bump, nrm_ok ? null : &normal);
-         Image  detail; CreateDetailTexture(detail, col, bump, normal);
+         Image  detail; CreateDetailTexture(detail, col, bump, normal, smooth);
          IMAGE_TYPE ct;          ImageProps(detail, &material.detail_tex, &ct, (ForceHQMtrlDetail ? FORCE_HQ : 0) | (RemoveMtrlDetailBump ? IGNORE_ALPHA : 0)); material.detail_map_time.getUTC(); // in order for 'detail_tex' to sync, 'detail_map_time' time must be changed
          if(detail.is())
          {

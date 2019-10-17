@@ -32,8 +32,6 @@ class VideoOptions : PropWin
       static void TexMipFilter (  Advanced &adv, C Str &text);
       static Str  DetailTexUse (C Advanced &adv             );
       static void DetailTexUse (  Advanced &adv, C Str &text);
-      static Str  ReflectTexUse(C Advanced &adv             );
-      static void ReflectTexUse(  Advanced &adv, C Str &text);
       static Str  Samples      (C Advanced &adv             );
       static void Samples      (  Advanced &adv, C Str &text);
       static Str  Density      (C Advanced &adv             );

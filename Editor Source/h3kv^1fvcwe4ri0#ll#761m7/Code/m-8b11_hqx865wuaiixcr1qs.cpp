@@ -511,10 +511,10 @@ class MaterialRegion : Region
    static void ResizeBase1_512x1024 (MaterialRegion &editor) {editor.resizeBase1(VecI2(512, 1024));}
    static void ResizeBase1_1024x2048(MaterialRegion &editor) {editor.resizeBase1(VecI2(1024, 2048));}
 
-   static void ResizeBase2_Quarter (MaterialRegion &editor) {editor.resizeBase2(-2, true);}
-   static void ResizeBase2_Half    (MaterialRegion &editor) {editor.resizeBase2(-1, true);}
-   static void ResizeBase2_Original(MaterialRegion &editor) {editor.resizeBase2( 0, true);}
-   static void ResizeBase2_Double  (MaterialRegion &editor) {editor.resizeBase2( 1, true);}
+   static void ResizeBase1_Quarter (MaterialRegion &editor) {editor.resizeBase2(-2, true);}
+   static void ResizeBase1_Half    (MaterialRegion &editor) {editor.resizeBase2(-1, true);}
+   static void ResizeBase1_Original(MaterialRegion &editor) {editor.resizeBase2( 0, true);}
+   static void ResizeBase1_Double  (MaterialRegion &editor) {editor.resizeBase2( 1, true);}
    
    static void ResizeBase2_128 (MaterialRegion &editor) {editor.resizeBase2(128);}
    static void ResizeBase2_256 (MaterialRegion &editor) {editor.resizeBase2(256);}
@@ -642,7 +642,7 @@ class MaterialRegion : Region
       TimeStamp time; time.getUTC();
       VecI2 size1=size;
 
-      if(relative || game && game->base_2 && game->base_2->size()!=size1)edit.separateNormalMap(Proj, time); // separate if needed (normal can be from bump), and before reverting
+      if(relative || game && game->base_2 && game->base_2->size()!=size1)edit.separateNormalMap(time); // separate if needed (normal can be from bump), and before reverting
 
       if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
          if(Proj.forceImageSize(edit.normal_map, 0, relative, edit.normal_map_time, time))
@@ -667,7 +667,7 @@ class MaterialRegion : Region
       VecI2 size2=size;
 
       if(relative || game && game->base_0 && game->base_0->size()!=size2)edit.separateAlphaMap (Proj, time); // separate if needed (alpha  can be in base0/base2), and before reverting
-      if(relative || game && game->base_1 && game->base_1->size()!=size2)edit.separateNormalMap(Proj, time); // separate if needed (normal can be from bump     ), and before reverting
+      if(relative || game && game->base_1 && game->base_1->size()!=size2)edit.separateNormalMap(      time); // separate if needed (normal can be from bump     ), and before reverting
 
       if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
          if(                      Proj.forceImageSize(edit. smooth_map, 0, relative, edit. smooth_map_time, time)  // !! use '|' because all need to be processed !!

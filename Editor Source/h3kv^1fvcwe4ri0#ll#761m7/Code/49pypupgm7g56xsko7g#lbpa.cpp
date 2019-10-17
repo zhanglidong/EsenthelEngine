@@ -746,7 +746,7 @@ void AddPublishFiles(Memt<Elm*> &elms, MemPtr<PakFileData> files, Memc<ImageGene
             // check which base textures use Alpha Channel, #MaterialTextureLayout
             if(t2)
             {
-               if(t0 &&      uses_tex_glow )t0.uses_alpha=true; // t0 Alpha used for glow
+               if(t0 && data.usesTexGlow ())t0.uses_alpha=true; // t0 Alpha used for glow
                if(      data.usesTexAlpha())t2.uses_alpha=true; // t2 Alpha used for opacity
             }else
             if(t0)

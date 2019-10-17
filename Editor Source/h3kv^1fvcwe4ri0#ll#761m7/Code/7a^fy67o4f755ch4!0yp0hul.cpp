@@ -465,7 +465,7 @@ class PreviewClass : Window // create as window so it will be above other window
       if(MaterialRegion.Texture *tex=CAST(MaterialRegion.Texture, Gui.ms()))
       {
          D.clip();
-         Vec2   size(D.w(), D.h()); size=size.avg(); if(tex.type==MaterialRegion.TEX_RFL_ALL)size.x*=4.0/3;
+         Vec2   size(D.w(), D.h()); size=size.avg(); //if(tex.type==MaterialRegion.TEX_RFL_ALL)size.x*=4.0/3;
          flt    x=D.w();
          if(     MtrlEdit.visible())MIN(x,      MtrlEdit.rect().min.x);
          if(WaterMtrlEdit.visible())MIN(x, WaterMtrlEdit.rect().min.x);

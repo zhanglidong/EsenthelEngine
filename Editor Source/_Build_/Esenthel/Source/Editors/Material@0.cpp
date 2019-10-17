@@ -415,10 +415,10 @@ MaterialTech mtrl_techs[]=
    void MaterialRegion::ResizeBase1_256x512(MaterialRegion &editor) {editor.resizeBase1(VecI2(256, 512));}
    void MaterialRegion::ResizeBase1_512x1024(MaterialRegion &editor) {editor.resizeBase1(VecI2(512, 1024));}
    void MaterialRegion::ResizeBase1_1024x2048(MaterialRegion &editor) {editor.resizeBase1(VecI2(1024, 2048));}
-   void MaterialRegion::ResizeBase2_Quarter(MaterialRegion &editor) {editor.resizeBase2(-2, true);}
-   void MaterialRegion::ResizeBase2_Half(MaterialRegion &editor) {editor.resizeBase2(-1, true);}
-   void MaterialRegion::ResizeBase2_Original(MaterialRegion &editor) {editor.resizeBase2( 0, true);}
-   void MaterialRegion::ResizeBase2_Double(MaterialRegion &editor) {editor.resizeBase2( 1, true);}
+   void MaterialRegion::ResizeBase1_Quarter(MaterialRegion &editor) {editor.resizeBase2(-2, true);}
+   void MaterialRegion::ResizeBase1_Half(MaterialRegion &editor) {editor.resizeBase2(-1, true);}
+   void MaterialRegion::ResizeBase1_Original(MaterialRegion &editor) {editor.resizeBase2( 0, true);}
+   void MaterialRegion::ResizeBase1_Double(MaterialRegion &editor) {editor.resizeBase2( 1, true);}
    void MaterialRegion::ResizeBase2_128(MaterialRegion &editor) {editor.resizeBase2(128);}
    void MaterialRegion::ResizeBase2_256(MaterialRegion &editor) {editor.resizeBase2(256);}
    void MaterialRegion::ResizeBase2_512(MaterialRegion &editor) {editor.resizeBase2(512);}
@@ -536,7 +536,7 @@ MaterialTech mtrl_techs[]=
       TimeStamp time; time.getUTC();
       VecI2 size1=size;
 
-      if(relative || game && game->base_2 && game->base_2->size()!=size1)edit.separateNormalMap(Proj, time); // separate if needed (normal can be from bump), and before reverting
+      if(relative || game && game->base_2 && game->base_2->size()!=size1)edit.separateNormalMap(time); // separate if needed (normal can be from bump), and before reverting
 
       if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
          if(Proj.forceImageSize(edit.normal_map, 0, relative, edit.normal_map_time, time))
@@ -561,7 +561,7 @@ MaterialTech mtrl_techs[]=
       VecI2 size2=size;
 
       if(relative || game && game->base_0 && game->base_0->size()!=size2)edit.separateAlphaMap (Proj, time); // separate if needed (alpha  can be in base0/base2), and before reverting
-      if(relative || game && game->base_1 && game->base_1->size()!=size2)edit.separateNormalMap(Proj, time); // separate if needed (normal can be from bump     ), and before reverting
+      if(relative || game && game->base_1 && game->base_1->size()!=size2)edit.separateNormalMap(      time); // separate if needed (normal can be from bump     ), and before reverting
 
       if(relative && size.any()) // if we want to have relative size and not original, then first revert to original size
          if(                      Proj.forceImageSize(edit. smooth_map, 0, relative, edit. smooth_map_time, time)  // !! use '|' because all need to be processed !!
@@ -694,12 +694,11 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       sub+=texs.New().create(TEX_LIGHT   , MEMBER(EditMaterial,      light_map), MEMBER(EditMaterial,      light_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Light"         , T);
       REPA(texs)sub+=texs[i].remove;
 
-      // #MaterialTextureLayout
-      sub+=reload_base_textures.create("Reload Base Textures").func(ReloadBaseTextures, T).desc("Reload base textures, such as Color, Alpha, Bump, Normal, Smooth, Reflect and Glow, from their original source files.");
+      sub+=reload_base_textures.create("Reload Base Textures").func(ReloadBaseTextures, T).desc("Reload base textures, such as Color, Alpha, Bump, Normal, Smooth, Reflect and Glow, from their original source files."); // #MaterialTextureLayout
       Node<MenuElm> n;
       n.New().create(auto_reload_name, AutoReload, T).flag(MENU_TOGGLABLE).setOn(auto_reload).desc("If this is enabled then base textures will be instantly reloaded when changing them.\nIf you only want to change the source file paths, without actually reloading the textures, then you can disable this option first.");
       {
-         Node<MenuElm> &resize=(n+="Resize Base Textures"); resize.desc("This allows to resize the base textures, such as Color, Alpha, Bump, Normal, Smooth, Reflect and Glow to a custom size.");
+         Node<MenuElm> &resize=(n+="Resize Base Textures"); resize.desc("This allows to resize the base textures, such as Color, Alpha, Bump, Normal, Smooth, Reflect and Glow to a custom size."); // #MaterialTextureLayout
          resize.New().create( "128x128" , ResizeBase128 , T);
          resize.New().create( "256x256" , ResizeBase256 , T);
          resize.New().create( "512x512" , ResizeBase512 , T);
@@ -727,7 +726,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
          resize.New().create("Double"  , ResizeBaseDouble  , T);
       }
       {
-         Node<MenuElm> &resize=(n+="Resize Color+Glow Textures"); resize.desc("This allows to resize the Base 0 textures, such as Color and Alpha/Glow to a custom size.");
+         Node<MenuElm> &resize=(n+="Resize Color+Glow Textures"); resize.desc("This allows to resize the Base 0 textures, such as Color and Alpha/Glow to a custom size."); // #MaterialTextureLayout
          resize.New().create( "128x128" , ResizeBase0_128 , T);
          resize.New().create( "256x256" , ResizeBase0_256 , T);
          resize.New().create( "512x512" , ResizeBase0_512 , T);
@@ -755,7 +754,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
          resize.New().create("Double"  , ResizeBase0_Double  , T);
       }
       {
-         Node<MenuElm> &resize=(n+="Resize Normal Texture"); resize.desc("This allows to resize the Base 1 textures, such as Normal to a custom size.");
+         Node<MenuElm> &resize=(n+="Resize Normal Texture"); resize.desc("This allows to resize the Base 1 textures, such as Normal to a custom size."); // #MaterialTextureLayout
          resize.New().create( "128x128" , ResizeBase1_128 , T);
          resize.New().create( "256x256" , ResizeBase1_256 , T);
          resize.New().create( "512x512" , ResizeBase1_512 , T);
@@ -783,7 +782,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
          resize.New().create("Double"  , ResizeBase1_Double  , T);
       }
       {
-         Node<MenuElm> &resize=(n+="Resize Smooth+Reflect+Bump Textures"); resize.desc("This allows to resize the Base 2 textures, such as Smooth, Reflect, Bump and Alpha to a custom size.");
+         Node<MenuElm> &resize=(n+="Resize Smooth+Reflect+Bump Textures"); resize.desc("This allows to resize the Base 2 textures, such as Smooth, Reflect, Bump and Alpha to a custom size."); // #MaterialTextureLayout
          resize.New().create( "128x128" , ResizeBase2_128 , T);
          resize.New().create( "256x256" , ResizeBase2_256 , T);
          resize.New().create( "512x512" , ResizeBase2_512 , T);

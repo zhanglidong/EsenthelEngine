@@ -63,46 +63,44 @@ class WaterMtrlRegion : MaterialRegion
    static void PreChanged(C Property &prop) {WaterMtrlEdit.undos.set(&prop);}
    static void    Changed(C Property &prop) {WaterMtrlEdit.setChanged();}
 
-   static Str  Density              (C WaterMtrlRegion &mr          ) {return mr.edit.density;}
-   static void Density              (  WaterMtrlRegion &mr, C Str &t) {mr.edit.density=TextFlt(t); mr.edit.density_time.getUTC();}
-   static Str  DensityAdd           (C WaterMtrlRegion &mr          ) {return mr.edit.density_add;}
-   static void DensityAdd           (  WaterMtrlRegion &mr, C Str &t) {mr.edit.density_add=TextFlt(t); mr.edit.density_time.getUTC();}
-   static Str  DensityUnderwater    (C WaterMtrlRegion &mr          ) {return mr.edit.density_underwater;}
-   static void DensityUnderwater    (  WaterMtrlRegion &mr, C Str &t) {mr.edit.density_underwater=TextFlt(t); mr.edit.density_underwater_time.getUTC();}
-   static Str  DensityUnderwaterAdd (C WaterMtrlRegion &mr          ) {return mr.edit.density_underwater_add;}
-   static void DensityUnderwaterAdd (  WaterMtrlRegion &mr, C Str &t) {mr.edit.density_underwater_add=TextFlt(t); mr.edit.density_underwater_time.getUTC();}
-   static Str  ScaleColor           (C WaterMtrlRegion &mr          ) {return mr.edit.scale_color;}
-   static void ScaleColor           (  WaterMtrlRegion &mr, C Str &t) {mr.edit.scale_color=TextFlt(t); mr.edit.scale_color_time.getUTC();}
-   static Str  ScaleNormal          (C WaterMtrlRegion &mr          ) {return mr.edit.scale_normal;}
-   static void ScaleNormal          (  WaterMtrlRegion &mr, C Str &t) {mr.edit.scale_normal=TextFlt(t); mr.edit.scale_normal_time.getUTC();}
-   static Str  ScaleBump            (C WaterMtrlRegion &mr          ) {return mr.edit.scale_bump;}
-   static void ScaleBump            (  WaterMtrlRegion &mr, C Str &t) {mr.edit.scale_bump=TextFlt(t); mr.edit.scale_bump_time.getUTC();}
-   static Str  NrmScale             (C WaterMtrlRegion &mr          ) {return mr.edit.normal;}
-   static void NrmScale             (  WaterMtrlRegion &mr, C Str &t) {mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC();}
-   static Str  ReflectTex           (C WaterMtrlRegion &mr          ) {return mr.edit.reflection;}
-   static void ReflectTex           (  WaterMtrlRegion &mr, C Str &t) {mr.edit.reflection=TextFlt(t); mr.edit.reflection_time.getUTC();}
-   static Str  ReflectWorld         (C WaterMtrlRegion &mr          ) {return mr.edit.reflect_world;}
-   static void ReflectWorld         (  WaterMtrlRegion &mr, C Str &t) {mr.edit.reflect_world=TextFlt(t); mr.edit.reflect_world_time.getUTC();}
-   static Str  Refract              (C WaterMtrlRegion &mr          ) {return mr.edit.refract;}
-   static void Refract              (  WaterMtrlRegion &mr, C Str &t) {mr.edit.refract=TextFlt(t); mr.edit.refract_time.getUTC();}
-   static Str  RefractReflection    (C WaterMtrlRegion &mr          ) {return mr.edit.refract_reflection;}
-   static void RefractReflection    (  WaterMtrlRegion &mr, C Str &t) {mr.edit.refract_reflection=TextFlt(t); mr.edit.refract_reflection_time.getUTC();}
-   static Str  RefractUnderwater    (C WaterMtrlRegion &mr          ) {return mr.edit.refract_underwater;}
-   static void RefractUnderwater    (  WaterMtrlRegion &mr, C Str &t) {mr.edit.refract_underwater=TextFlt(t); mr.edit.refract_underwater_time.getUTC();}
-   static Str  WaveScale            (C WaterMtrlRegion &mr          ) {return mr.edit.wave_scale;}
-   static void WaveScale            (  WaterMtrlRegion &mr, C Str &t) {mr.edit.wave_scale=TextFlt(t); mr.edit.wave_scale_time.getUTC();}
-   static Str  FresnelPow           (C WaterMtrlRegion &mr          ) {return mr.edit.fresnel_pow;}
-   static void FresnelPow           (  WaterMtrlRegion &mr, C Str &t) {mr.edit.fresnel_pow=TextFlt(t); mr.edit.fresnel_pow_time.getUTC();}
-   static Str  FresnelRough         (C WaterMtrlRegion &mr          ) {return mr.edit.fresnel_rough;}
-   static void FresnelRough         (  WaterMtrlRegion &mr, C Str &t) {mr.edit.fresnel_rough=TextFlt(t); mr.edit.fresnel_rough_time.getUTC();}
-   static Str  FresnelColor         (C WaterMtrlRegion &mr          ) {return mr.edit.fresnel_color;}
-   static void FresnelColor         (  WaterMtrlRegion &mr, C Str &t) {mr.edit.fresnel_color=TextVec(t); mr.edit.fresnel_color_time.getUTC();}
-   static Str  Col                  (C WaterMtrlRegion &mr          ) {return mr.edit.color_s;}
-   static void Col                  (  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_s.xyz=TextVec(t); mr.edit.color_time.getUTC();}
-   static Str  ColorUnderwater0     (C WaterMtrlRegion &mr          ) {return mr.edit.color_underwater0;}
-   static void ColorUnderwater0     (  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_underwater0=TextVec(t); mr.edit.color_underwater_time.getUTC();}
-   static Str  ColorUnderwater1     (C WaterMtrlRegion &mr          ) {return mr.edit.color_underwater1;}
-   static void ColorUnderwater1     (  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_underwater1=TextVec(t); mr.edit.color_underwater_time.getUTC();}
+   static Str  Density             (C WaterMtrlRegion &mr          ) {return mr.edit.density;}
+   static void Density             (  WaterMtrlRegion &mr, C Str &t) {mr.edit.density=TextFlt(t); mr.edit.density_time.getUTC();}
+   static Str  DensityAdd          (C WaterMtrlRegion &mr          ) {return mr.edit.density_add;}
+   static void DensityAdd          (  WaterMtrlRegion &mr, C Str &t) {mr.edit.density_add=TextFlt(t); mr.edit.density_time.getUTC();}
+   static Str  DensityUnderwater   (C WaterMtrlRegion &mr          ) {return mr.edit.density_underwater;}
+   static void DensityUnderwater   (  WaterMtrlRegion &mr, C Str &t) {mr.edit.density_underwater=TextFlt(t); mr.edit.density_underwater_time.getUTC();}
+   static Str  DensityUnderwaterAdd(C WaterMtrlRegion &mr          ) {return mr.edit.density_underwater_add;}
+   static void DensityUnderwaterAdd(  WaterMtrlRegion &mr, C Str &t) {mr.edit.density_underwater_add=TextFlt(t); mr.edit.density_underwater_time.getUTC();}
+   static Str  ScaleColor          (C WaterMtrlRegion &mr          ) {return mr.edit.scale_color;}
+   static void ScaleColor          (  WaterMtrlRegion &mr, C Str &t) {mr.edit.scale_color=TextFlt(t); mr.edit.scale_color_time.getUTC();}
+   static Str  ScaleNormal         (C WaterMtrlRegion &mr          ) {return mr.edit.scale_normal;}
+   static void ScaleNormal         (  WaterMtrlRegion &mr, C Str &t) {mr.edit.scale_normal=TextFlt(t); mr.edit.scale_normal_time.getUTC();}
+   static Str  ScaleBump           (C WaterMtrlRegion &mr          ) {return mr.edit.scale_bump;}
+   static void ScaleBump           (  WaterMtrlRegion &mr, C Str &t) {mr.edit.scale_bump=TextFlt(t); mr.edit.scale_bump_time.getUTC();}
+   static Str  NrmScale            (C WaterMtrlRegion &mr          ) {return mr.edit.normal;}
+   static void NrmScale            (  WaterMtrlRegion &mr, C Str &t) {mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC();}
+   static Str  Reflect             (C WaterMtrlRegion &mr          ) {return mr.edit.reflect;}
+   static void Reflect             (  WaterMtrlRegion &mr, C Str &t) {mr.edit.reflect=TextFlt(t); mr.edit.reflect_time.getUTC();}
+   static Str  Refract             (C WaterMtrlRegion &mr          ) {return mr.edit.refract;}
+   static void Refract             (  WaterMtrlRegion &mr, C Str &t) {mr.edit.refract=TextFlt(t); mr.edit.refract_time.getUTC();}
+   static Str  RefractReflection   (C WaterMtrlRegion &mr          ) {return mr.edit.refract_reflection;}
+   static void RefractReflection   (  WaterMtrlRegion &mr, C Str &t) {mr.edit.refract_reflection=TextFlt(t); mr.edit.refract_reflection_time.getUTC();}
+   static Str  RefractUnderwater   (C WaterMtrlRegion &mr          ) {return mr.edit.refract_underwater;}
+   static void RefractUnderwater   (  WaterMtrlRegion &mr, C Str &t) {mr.edit.refract_underwater=TextFlt(t); mr.edit.refract_underwater_time.getUTC();}
+   static Str  WaveScale           (C WaterMtrlRegion &mr          ) {return mr.edit.wave_scale;}
+   static void WaveScale           (  WaterMtrlRegion &mr, C Str &t) {mr.edit.wave_scale=TextFlt(t); mr.edit.wave_scale_time.getUTC();}
+   static Str  FresnelPow          (C WaterMtrlRegion &mr          ) {return mr.edit.fresnel_pow;}
+   static void FresnelPow          (  WaterMtrlRegion &mr, C Str &t) {mr.edit.fresnel_pow=TextFlt(t); mr.edit.fresnel_pow_time.getUTC();}
+   static Str  FresnelRough        (C WaterMtrlRegion &mr          ) {return mr.edit.fresnel_rough;}
+   static void FresnelRough        (  WaterMtrlRegion &mr, C Str &t) {mr.edit.fresnel_rough=TextFlt(t); mr.edit.fresnel_rough_time.getUTC();}
+   static Str  FresnelColor        (C WaterMtrlRegion &mr          ) {return mr.edit.fresnel_color;}
+   static void FresnelColor        (  WaterMtrlRegion &mr, C Str &t) {mr.edit.fresnel_color=TextVec(t); mr.edit.fresnel_color_time.getUTC();}
+   static Str  Col                 (C WaterMtrlRegion &mr          ) {return mr.edit.color_s;}
+   static void Col                 (  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_s.xyz=TextVec(t); mr.edit.color_time.getUTC();}
+   static Str  ColorUnderwater0    (C WaterMtrlRegion &mr          ) {return mr.edit.color_underwater0;}
+   static void ColorUnderwater0    (  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_underwater0=TextVec(t); mr.edit.color_underwater_time.getUTC();}
+   static Str  ColorUnderwater1    (C WaterMtrlRegion &mr          ) {return mr.edit.color_underwater1;}
+   static void ColorUnderwater1    (  WaterMtrlRegion &mr, C Str &t) {mr.edit.color_underwater1=TextVec(t); mr.edit.color_underwater_time.getUTC();}
 
    static Str  FNY (C WaterMtrlRegion &mr          ) {return mr.edit.flip_normal_y;}
    static void FNY (  WaterMtrlRegion &mr, C Str &t) {uint base_tex=mr.edit.baseTex(); mr.edit.flip_normal_y=TextBool(t); mr.edit.flip_normal_y_time.getUTC(); mr.rebuildBase(base_tex, true, false);}
@@ -131,8 +129,7 @@ class WaterMtrlRegion : MaterialRegion
       props.New().create("Scale Bump"              , MemberDesc(DATA_REAL).setFunc(ScaleBump            , ScaleBump            )).min(5).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
       props.New().create("Normal"                  , MemberDesc(DATA_REAL).setFunc(NrmScale             , NrmScale             )).range(0, 3);
       props.New().create("Flip Normal Y"           , MemberDesc(DATA_BOOL).setFunc(FNY                  , FNY                  ));
-      props.New().create("Reflection from Texture" , MemberDesc(DATA_REAL).setFunc(ReflectTex           , ReflectTex           )).range(0, 1).mouseEditSpeed(0.5);
-      props.New().create("Reflection from World"   , MemberDesc(DATA_REAL).setFunc(ReflectWorld         , ReflectWorld         )).range(0, 1);
+      props.New().create("Reflection"              , MemberDesc(DATA_REAL).setFunc(Reflect              , Reflect              )).range(0, 1).mouseEditSpeed(0.5);
       props.New().create("Refraction"              , MemberDesc(DATA_REAL).setFunc(Refract              , Refract              )).range(0, 0.50).mouseEditSpeed(0.25);
       props.New().create("Refraction of Reflection", MemberDesc(DATA_REAL).setFunc(RefractReflection    , RefractReflection    )).range(0, 0.25).mouseEditSpeed(0.10);
       props.New().create("Refraction Underwater"   , MemberDesc(DATA_REAL).setFunc(RefractUnderwater    , RefractUnderwater    )).range(0, 0.04).mouseEditSpeed(0.02);

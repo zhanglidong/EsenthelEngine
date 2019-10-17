@@ -71,18 +71,14 @@ WaterMtrlRegion WaterMtrlEdit;
    void WaterMtrlRegion::ScaleBump(  WaterMtrlRegion &mr, C Str &t) {mr.edit.scale_bump=TextFlt(t); mr.edit.scale_bump_time.getUTC();}
    Str  WaterMtrlRegion::NrmScale(C WaterMtrlRegion &mr          ) {return mr.edit.normal;}
    void WaterMtrlRegion::NrmScale(  WaterMtrlRegion &mr, C Str &t) {mr.edit.normal=TextFlt(t); mr.edit.normal_time.getUTC();}
-   Str  WaterMtrlRegion::ReflectTex(C WaterMtrlRegion &mr          ) {return mr.edit.reflection;}
-   void WaterMtrlRegion::ReflectTex(  WaterMtrlRegion &mr, C Str &t) {mr.edit.reflection=TextFlt(t); mr.edit.reflection_time.getUTC();}
-   Str  WaterMtrlRegion::ReflectWorld(C WaterMtrlRegion &mr          ) {return mr.edit.reflect_world;}
-   void WaterMtrlRegion::ReflectWorld(  WaterMtrlRegion &mr, C Str &t) {mr.edit.reflect_world=TextFlt(t); mr.edit.reflect_world_time.getUTC();}
+   Str  WaterMtrlRegion::Reflect(C WaterMtrlRegion &mr          ) {return mr.edit.reflect;}
+   void WaterMtrlRegion::Reflect(  WaterMtrlRegion &mr, C Str &t) {mr.edit.reflect=TextFlt(t); mr.edit.reflect_time.getUTC();}
    Str  WaterMtrlRegion::Refract(C WaterMtrlRegion &mr          ) {return mr.edit.refract;}
    void WaterMtrlRegion::Refract(  WaterMtrlRegion &mr, C Str &t) {mr.edit.refract=TextFlt(t); mr.edit.refract_time.getUTC();}
    Str  WaterMtrlRegion::RefractReflection(C WaterMtrlRegion &mr          ) {return mr.edit.refract_reflection;}
    void WaterMtrlRegion::RefractReflection(  WaterMtrlRegion &mr, C Str &t) {mr.edit.refract_reflection=TextFlt(t); mr.edit.refract_reflection_time.getUTC();}
    Str  WaterMtrlRegion::RefractUnderwater(C WaterMtrlRegion &mr          ) {return mr.edit.refract_underwater;}
    void WaterMtrlRegion::RefractUnderwater(  WaterMtrlRegion &mr, C Str &t) {mr.edit.refract_underwater=TextFlt(t); mr.edit.refract_underwater_time.getUTC();}
-   Str  WaterMtrlRegion::Specular(C WaterMtrlRegion &mr          ) {return mr.edit.specular;}
-   void WaterMtrlRegion::Specular(  WaterMtrlRegion &mr, C Str &t) {mr.edit.specular=TextFlt(t); mr.edit.spec_time.getUTC();}
    Str  WaterMtrlRegion::WaveScale(C WaterMtrlRegion &mr          ) {return mr.edit.wave_scale;}
    void WaterMtrlRegion::WaveScale(  WaterMtrlRegion &mr, C Str &t) {mr.edit.wave_scale=TextFlt(t); mr.edit.wave_scale_time.getUTC();}
    Str  WaterMtrlRegion::FresnelPow(C WaterMtrlRegion &mr          ) {return mr.edit.fresnel_pow;}
@@ -118,12 +114,10 @@ WaterMtrlRegion WaterMtrlEdit;
       props.New().create("Scale Bump"              , MemberDesc(DATA_REAL).setFunc(ScaleBump            , ScaleBump            )).min(5).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
       props.New().create("Normal"                  , MemberDesc(DATA_REAL).setFunc(NrmScale             , NrmScale             )).range(0, 3);
       props.New().create("Flip Normal Y"           , MemberDesc(DATA_BOOL).setFunc(FNY                  , FNY                  ));
-      props.New().create("Reflection from Texture" , MemberDesc(DATA_REAL).setFunc(ReflectTex           , ReflectTex           )).range(0, 1).mouseEditSpeed(0.5f);
-      props.New().create("Reflection from World"   , MemberDesc(DATA_REAL).setFunc(ReflectWorld         , ReflectWorld         )).range(0, 1);
+      props.New().create("Reflection"              , MemberDesc(DATA_REAL).setFunc(Reflect              , Reflect              )).range(0, 1).mouseEditSpeed(0.5f);
       props.New().create("Refraction"              , MemberDesc(DATA_REAL).setFunc(Refract              , Refract              )).range(0, 0.50f).mouseEditSpeed(0.25f);
       props.New().create("Refraction of Reflection", MemberDesc(DATA_REAL).setFunc(RefractReflection    , RefractReflection    )).range(0, 0.25f).mouseEditSpeed(0.10f);
       props.New().create("Refraction Underwater"   , MemberDesc(DATA_REAL).setFunc(RefractUnderwater    , RefractUnderwater    )).range(0, 0.04f).mouseEditSpeed(0.02f);
-      props.New().create("Specular"                , MemberDesc(DATA_REAL).setFunc(Specular             , Specular             )).min(0);
       props.New().create("Vertical Wave Scale"     , MemberDesc(DATA_REAL).setFunc(WaveScale            , WaveScale            )).range(0, 1);
       props.New().create("Fresnel Term Power"      , MemberDesc(DATA_REAL).setFunc(FresnelPow           , FresnelPow           )).min(0);
       props.New().create("Fresnel Term Roughness"  , MemberDesc(DATA_REAL).setFunc(FresnelRough         , FresnelRough         )).min(0);

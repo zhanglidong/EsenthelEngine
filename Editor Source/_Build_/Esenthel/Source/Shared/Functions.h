@@ -140,7 +140,7 @@ bool SetFullAlpha(Image &image, IMAGE_TYPE type, bool always=false);
 void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type=null, uint flags=SRGB);
 void LoadTexture(C Project &proj, C UID &tex_id, Image &image, C VecI2 &size=-1);
 void ExtractBaseTextures(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *col, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, C VecI2 &size=-1);
-void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, C UID &base_2, Image *col, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, C VecI2 &size=-1);
+void ExtractBaseTexturesOld(C Project &proj, C UID &base_0, C UID &base_1, Image *col, Image *alpha, Image *bump, Image *normal, Image *smooth, Image *reflect, Image *glow, MATERIAL_TECHNIQUE tech, C VecI2 &size=-1);
 void ExtractDetailTexture(C Project &proj, C UID &detail_tex, Image *col, Image *bump, Image *normal);
 UID MergedBaseTexturesID(C UID &base_0, C UID &base_1, C UID &base_2);
 VecI ImageSize(C VecI &src, C VecI2 &custom, bool pow2);
