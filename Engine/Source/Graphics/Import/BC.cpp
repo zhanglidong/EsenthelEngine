@@ -932,7 +932,7 @@ static void _CompressBC1(BC1 &bc, Vec4 (&color)[16], C Vec *weight, Bool dither_
 }
 static inline void _CompressBC1RGB(BC1 &bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb) {_CompressBC1(bc, color, weight, dither_rgb, false, 0);}
 
-static void CompressBC1(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a) {_CompressBC1RGB(*(BC1*)bc, color, weight, dither_rgb);}
+static void CompressBC1(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a) {_CompressBC1RGB(*(BC1*)bc, color, weight, dither_rgb);} // #BC1RGB no alpha
 static void CompressBC2(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a)
 {
    BC2 &bc2=*(BC2*)bc;

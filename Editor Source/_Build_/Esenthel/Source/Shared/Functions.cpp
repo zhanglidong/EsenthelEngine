@@ -342,6 +342,7 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type, uint flags)
                     || force_alpha); // forcing alpha requires modifying the alpha channel, so copy to 'temp' which we can modify
          if(md5)m.update(&ImageHashHeader(image, sign), SIZE(ImageHashHeader)); // need to start hash with a header, to make sure different sized/cube/srgb/sign images will always have different hash
          Image temp; C Image *src=(extract ? &temp : &image);
+         Color min(255, 255), max(0, 0);
          FREPD(face, image.faces())
          {
             int src_face=face; if(extract)if(image.extractMipMap(temp, sign ? IMAGE_R8G8B8A8_SIGN : image.sRGB() ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8, 0, DIR_ENUM(face)))src_face=0;else return; // error
@@ -362,11 +363,13 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type, uint flags)
                {
                   Color c=src->color3D(x, y, z);
                   byte  bc2_a=((c.a*15+128)/255)*255/15;
-                  if(c.a> 1 && c.a<254                    // BC1 supports only 0 and 255 alpha
-                  || c.a<=1 && c.lum()>1      )bc1=false; // BC1 supports only black color at 0 alpha
+                //if(c.a> 1 && c.a<254                    // BC1 supports only 0 and 255 alpha #BC1RGB
+                //|| c.a<=1 && c.lum()>1      )bc1=false; // BC1 supports only black color at 0 alpha
                   if(Abs(c.a-bc2_a)>1         )bc2=false;
-                  if(c.g>1 || c.b>1 || c.a<254)bc4=false;
-                  if(         c.b>1 || c.a<254)bc5=false;
+                //if(c.g>1 || c.b>1 || c.a<254)bc4=false;
+                //if(         c.b>1 || c.a<254)bc5=false;
+                  MIN(min.r, c.r); MIN(min.g, c.g); MIN(min.b, c.b); MIN(min.a, c.a);
+                  MAX(max.r, c.r); MAX(max.g, c.g); MAX(max.b, c.b); MAX(max.a, c.a);
                }
                src->unlock();
             }
@@ -375,6 +378,11 @@ void ImageProps(C Image &image, UID *md5, IMAGE_TYPE *compress_type, uint flags)
          if(md5          )*md5=m();
          if(compress_type)
          {
+            if(                      min.a<254)bc1=false; // BC1 supports only           A=255 #BC1RGB
+            if(max.g>1 || max.b>1 || min.a<254)bc4=false; // BC4 supports only G=0, B=0, A=255
+            if(           max.b>1 || min.a<254)bc5=false; // BC5 supports only      B=0, A=255
+            if((flags&MTRL_BASE_2) && max.b-min.b>1)bc1=false; // if this is Base2 Ext and have bump map #MaterialTextureLayout then disable BC1 and use high quality BC7
+
             if(bc4 && !srgb            )*compress_type=                         IMAGE_BC4 ;else // BC4 is 4-bit HQ so use it always if possible (doesn't support sRGB)
             if(bc1 && !(flags&FORCE_HQ))*compress_type=(srgb ? IMAGE_BC1_SRGB : IMAGE_BC1);else // use BC1 only if we don't want HQ
             if(bc5 && !srgb            )*compress_type=                         IMAGE_BC5 ;else // BC5 has better quality for RG than BC7 so check it first (doesn't support sRGB)
