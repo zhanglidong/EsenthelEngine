@@ -478,53 +478,55 @@ bool ImportFunc(Thread &thread) // 'ObjType' must be initialized because loading
                EditMaterial edit; edit.create(game); // create from material
 
                // set textures
-               // FIXME
-               Image base_1, detail_map; if(game.base_1)UpdateMtrlBase1Tex(*game.base_1, base_1); if(game.detail_map)UpdateMtrlBase1Tex(*game.detail_map, detail_map);
-               if(game.        base_0)ImageProps(*game.        base_0, &edit.    base_0_tex, null, MTRL_BASE_0                                    );else edit.    base_0_tex.zero();
-               if(game.        base_1)ImageProps(              base_1, &edit.    base_1_tex, null, MTRL_BASE_1                                    );else edit.    base_1_tex.zero();
-               if(game.    detail_map)ImageProps(          detail_map, &edit.    detail_tex, null, (ForceHQMtrlDetail ? FORCE_HQ : 0)|IGNORE_ALPHA);else edit.    detail_tex.zero();
-               if(game.     macro_map)ImageProps(*game.     macro_map, &edit.     macro_tex, null, SRGB|                              IGNORE_ALPHA);else edit.     macro_tex.zero();
-               if(game.reflection_map)ImageProps(*game.reflection_map, &edit.reflection_tex, null, SRGB|                              IGNORE_ALPHA);else edit.reflection_tex.zero();
-               if(game.     light_map)ImageProps(*game.     light_map, &edit.     light_tex, null, SRGB|                              IGNORE_ALPHA);else edit.     light_tex.zero();
-               if(edit.    base_0_tex.valid())if(Proj.includeTex(edit.    base_0_tex))game.        base_0->save(Proj.texPath(edit.    base_0_tex));
-               if(edit.    base_1_tex.valid())if(Proj.includeTex(edit.    base_1_tex))             base_1. save(Proj.texPath(edit.    base_1_tex));
-               if(edit.    detail_tex.valid())if(Proj.includeTex(edit.    detail_tex))         detail_map. save(Proj.texPath(edit.    detail_tex));
-               if(edit.     macro_tex.valid())if(Proj.includeTex(edit.     macro_tex))game.     macro_map->save(Proj.texPath(edit.     macro_tex));
-               if(edit.reflection_tex.valid())if(Proj.includeTex(edit.reflection_tex))game.reflection_map->save(Proj.texPath(edit.reflection_tex));
-               if(edit.     light_tex.valid())if(Proj.includeTex(edit.     light_tex))game.     light_map->save(Proj.texPath(edit.     light_tex));
+               if(game.    base_0)ImageProps(*game.    base_0, &edit.base_0_tex, null, MTRL_BASE_0                                    );else edit.base_0_tex.zero();
+               if(game.    base_1)ImageProps(*game.    base_1, &edit.base_1_tex, null, MTRL_BASE_1                                    );else edit.base_1_tex.zero();
+               if(game.    base_2)ImageProps(*game.    base_2, &edit.base_2_tex, null, MTRL_BASE_2                                    );else edit.base_2_tex.zero();
+               if(game.detail_map)ImageProps(*game.detail_map, &edit.detail_tex, null, (ForceHQMtrlDetail ? FORCE_HQ : 0)|IGNORE_ALPHA);else edit.detail_tex.zero();
+               if(game. macro_map)ImageProps(*game. macro_map, &edit. macro_tex, null, SRGB|                              IGNORE_ALPHA);else edit. macro_tex.zero();
+               if(game. light_map)ImageProps(*game. light_map, &edit. light_tex, null, SRGB|                              IGNORE_ALPHA);else edit. light_tex.zero();
+               if(edit.base_0_tex.valid())if(Proj.includeTex(edit.base_0_tex))game.    base_0->save(Proj.texPath(edit.base_0_tex));
+               if(edit.base_1_tex.valid())if(Proj.includeTex(edit.base_1_tex))game.    base_1->save(Proj.texPath(edit.base_1_tex));
+               if(edit.base_2_tex.valid())if(Proj.includeTex(edit.base_2_tex))game.    base_2->save(Proj.texPath(edit.base_2_tex));
+               if(edit.detail_tex.valid())if(Proj.includeTex(edit.detail_tex))game.detail_map->save(Proj.texPath(edit.detail_tex));
+               if(edit. macro_tex.valid())if(Proj.includeTex(edit. macro_tex))game. macro_map->save(Proj.texPath(edit. macro_tex));
+               if(edit. light_tex.valid())if(Proj.includeTex(edit. light_tex))game. light_map->save(Proj.texPath(edit. light_tex));
 
-               Str b0=MakeFullPath(game.base_0.name(), FILE_DATA), b1=MakeFullPath(game.base_1.name(), FILE_DATA), d=MakeFullPath(game.detail_map.name(), FILE_DATA), m=MakeFullPath(game.macro_map.name(), FILE_DATA), r=MakeFullPath(game.reflection_map.name(), FILE_DATA), l=MakeFullPath(game.light_map.name(), FILE_DATA);
-               ImportMtrlImages.binaryInclude(SkipStartPath(b0, ImportSrc), ImportComparePath); b0.tailSlash(true);
-               ImportMtrlImages.binaryInclude(SkipStartPath(b1, ImportSrc), ImportComparePath); b1.tailSlash(true);
-               ImportMtrlImages.binaryInclude(SkipStartPath(d , ImportSrc), ImportComparePath); d .tailSlash(true);
+               Str b0=MakeFullPath(game.    base_0.name(), FILE_DATA),
+                   b1=MakeFullPath(game.    base_1.name(), FILE_DATA),
+                   b2=MakeFullPath(game.    base_2.name(), FILE_DATA),
+                    d=MakeFullPath(game.detail_map.name(), FILE_DATA),
+                    m=MakeFullPath(game. macro_map.name(), FILE_DATA),
+                    l=MakeFullPath(game. light_map.name(), FILE_DATA);
+               ImportMtrlImages.binaryInclude(SkipStartPath(b0, ImportSrc), ImportComparePath);
+               ImportMtrlImages.binaryInclude(SkipStartPath(b1, ImportSrc), ImportComparePath);
+               ImportMtrlImages.binaryInclude(SkipStartPath(b2, ImportSrc), ImportComparePath);
+               ImportMtrlImages.binaryInclude(SkipStartPath(d , ImportSrc), ImportComparePath);
                ImportMtrlImages.binaryInclude(SkipStartPath(m , ImportSrc), ImportComparePath);
-               ImportMtrlImages.binaryInclude(SkipStartPath(r , ImportSrc), ImportComparePath);
                ImportMtrlImages.binaryInclude(SkipStartPath(l , ImportSrc), ImportComparePath);
 
-               edit.  color_map=(b0.is() ? b0+"xyz" : S); edit.  color_map_time.getUTC();
-               edit.  alpha_map.clear();                  edit.  alpha_map_time.getUTC();
-               edit.   bump_map.clear();                  edit.   bump_map_time.getUTC();
-               edit.   glow_map.clear();                  edit.   glow_map_time.getUTC();
-               edit. normal_map.clear();                  edit. normal_map_time.getUTC();
-               edit. smooth_map.clear();                  edit. smooth_map_time.getUTC();
-               edit.reflect_map.clear();                  edit.reflect_map_time.getUTC();
-               edit.detail_color =(d.is() ? d+"x"  : S);  edit. detail_map_time.getUTC();
-               edit.detail_bump  =(d.is() ? d+"z"  : S);
-               edit.detail_normal=(d.is() ? d+"wy" : S);
-               edit.     macro_map=m;                     edit.     macro_map_time.getUTC();
-               edit.reflection_map=r;                     edit.reflection_map_time.getUTC();
-               edit.     light_map=l;                     edit.     light_map_time.getUTC();
-               if(b1.is())
+               // #MaterialTextureLayout
+               edit.  color_map_time.getUTC(); edit.  color_map=b0; SetTransform(edit.color_map, "channel", "xyz");
+               edit.  alpha_map_time.getUTC(); edit.  alpha_map.clear();
+               edit.   bump_map_time.getUTC(); edit.   bump_map.clear();
+               edit.   glow_map_time.getUTC(); edit.   glow_map.clear();
+               edit. normal_map_time.getUTC(); edit. normal_map=b1; SetTransform(edit.normal_map, "channel", "xy");
+               edit. smooth_map_time.getUTC(); edit. smooth_map.clear();
+               edit.reflect_map_time.getUTC(); edit.reflect_map.clear();
+               edit. detail_map_time.getUTC(); edit.detail_color =d; SetTransform(edit.detail_color , "channel", "z" );
+                                               edit.detail_bump  =d; SetTransform(edit.detail_bump  , "channel", "w" );
+                                               edit.detail_normal=d; SetTransform(edit.detail_normal, "channel", "xy");
+               edit.  macro_map_time.getUTC(); edit. macro_map   =m;
+               edit.  light_map_time.getUTC(); edit. light_map   =l;
+               if(b2.is())
                {
-                  edit.  bump_map=(b0.is() ? b0+"w" : S);
-                  edit.normal_map=b1+"wy";
-                  edit. alpha_map=b1+"z";
-                  edit.  glow_map=b1+"z";
-                  edit.smooth_map=b1+"x";
+                  edit. smooth_map=b2; SetTransform(edit. smooth_map, "channel", "x");
+                  edit.reflect_map=b2; SetTransform(edit.reflect_map, "channel", "y");
+                  edit.   bump_map=b2; SetTransform(edit.   bump_map, "channel", "z");
+                  edit.  alpha_map=b2; SetTransform(edit.  alpha_map, "channel", "w");
+                  edit.   glow_map=b0; SetTransform(edit.   glow_map, "channel", "w");
                }else
-               if(b0.is())
                {
-                  edit.alpha_map=b0+"w";
+                  edit.alpha_map=b0; SetTransform(edit.alpha_map, "channel", "w");
                }
 
                // save
