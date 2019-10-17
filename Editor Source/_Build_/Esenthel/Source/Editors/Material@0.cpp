@@ -650,6 +650,9 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       props.New().create("Smoothness"  , MemberDesc(DATA_REAL).setFunc(Smooth , Smooth )).range(0, 1);
       props.New().create("Reflectivity", MemberDesc(DATA_REAL).setFunc(Reflect, Reflect)).range(0, 1);
       props.New().create("Glow"        , MemberDesc(DATA_REAL).setFunc(Glow   , Glow   )).range(0, 1);
+      props.New().create("Ambient Red"  , MemberDesc(DATA_REAL).setFunc(AmbR    , AmbR    )).range(0, 1);
+      props.New().create("Ambient Green", MemberDesc(DATA_REAL).setFunc(AmbG    , AmbG    )).range(0, 1);
+      props.New().create("Ambient Blue" , MemberDesc(DATA_REAL).setFunc(AmbB    , AmbB    )).range(0, 1);
       props.New();
     //props.New().create("Subsurf Scatter", MemberDesc(DATA_REAL).setFunc(SSS , SSS )).range(0, 1);
       props.New().create("Detail Scale"   , MemberDesc(DATA_REAL).setFunc(DetScale, DetScale)).range(0.01f, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
@@ -657,9 +660,6 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       props.New();
 
       props.New().create("Cull"         , MemberDesc(DATA_BOOL).setFunc(Cull    , Cull    ));
-      props.New().create("Ambient Red"  , MemberDesc(DATA_REAL).setFunc(AmbR    , AmbR    )).range(0, 1);
-      props.New().create("Ambient Green", MemberDesc(DATA_REAL).setFunc(AmbG    , AmbG    )).range(0, 1);
-      props.New().create("Ambient Blue" , MemberDesc(DATA_REAL).setFunc(AmbB    , AmbB    )).range(0, 1);
       props.New().create("UV Scale"     , MemberDesc(DATA_REAL).setFunc(TexScale, TexScale)).range(0.01f, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);
 
   Property &mts=props.New().create("Mobile Tex Size", MemberDesc(DATA_INT).setFunc(DownsizeTexMobile, DownsizeTexMobile)).setEnum(DownsizeTexMobileText, Elms(DownsizeTexMobileText)).desc("If Downsize Textures when making Applications for Mobile platforms");
@@ -678,8 +678,9 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       sub+=texs.New().create(TEX_BUMP    , MEMBER(EditMaterial,       bump_map), MEMBER(EditMaterial,       bump_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Bump"          , T);
       sub+=texs.New().create(TEX_NORMAL  , MEMBER(EditMaterial,     normal_map), MEMBER(EditMaterial,     normal_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Normal"        , T); i-=3;
       sub+=texs.New().create(TEX_SMOOTH  , MEMBER(EditMaterial,     smooth_map), MEMBER(EditMaterial,     smooth_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Smooth"        , T);
-      sub+=texs.New().create(TEX_REFLECT , MEMBER(EditMaterial,    reflect_map), MEMBER(EditMaterial,    reflect_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Reflect"       , T);
-      sub+=texs.New().create(TEX_GLOW    , MEMBER(EditMaterial,       glow_map), MEMBER(EditMaterial,       glow_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Glow"          , T); i-=3;
+      sub+=texs.New().create(TEX_REFLECT , MEMBER(EditMaterial,    reflect_map), MEMBER(EditMaterial,    reflect_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Reflect"       , T); i-=3;
+      sub+=texs.New().create(TEX_GLOW    , MEMBER(EditMaterial,       glow_map), MEMBER(EditMaterial,       glow_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Glow"          , T);
+      sub+=texs.New().create(TEX_LIGHT   , MEMBER(EditMaterial,      light_map), MEMBER(EditMaterial,      light_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Light"         , T); i-=3;
       sub+=texs.New().create(TEX_MACRO   , MEMBER(EditMaterial,      macro_map), MEMBER(EditMaterial,      macro_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Macro"         , T);
       sub+=texs.New().create(TEX_DET_COL , MEMBER(EditMaterial,   detail_color), MEMBER(EditMaterial,     detail_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Detail\nColor" , T); i-=3;
       sub+=texs.New().create(TEX_DET_BUMP, MEMBER(EditMaterial,    detail_bump), MEMBER(EditMaterial,     detail_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*0, i*prop_height), tex_size, tex_size), "Detail\nBump"  , T);
@@ -691,7 +692,6 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       sub+=texs.New().create(TEX_RFL_B   , MEMBER(EditMaterial, reflection_map), MEMBER(EditMaterial, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Reflect\nBack" , T); i-=3;
       sub+=texs.New().create(TEX_RFL_D   , MEMBER(EditMaterial, reflection_map), MEMBER(EditMaterial, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*0, i*prop_height), tex_size, tex_size), "Reflect\nDown" , T);
       sub+=texs.New().create(TEX_RFL_U   , MEMBER(EditMaterial, reflection_map), MEMBER(EditMaterial, reflection_map_time), Rect_LU(prop_rect.ru()+Vec2(e+tex_size*1, i*prop_height), tex_size, tex_size), "Reflect\nUp"   , T); i-=3; */
-      sub+=texs.New().create(TEX_LIGHT   , MEMBER(EditMaterial,      light_map), MEMBER(EditMaterial,      light_map_time), Rect_LU(prop_rect.ru()+Vec2(e           , i*prop_height), tex_size, tex_size), "Light"         , T);
       REPA(texs)sub+=texs[i].remove;
 
       sub+=reload_base_textures.create("Reload Base Textures").func(ReloadBaseTextures, T).desc("Reload base textures, such as Color, Alpha, Bump, Normal, Smooth, Reflect and Glow, from their original source files."); // #MaterialTextureLayout
