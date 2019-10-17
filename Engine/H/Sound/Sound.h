@@ -287,6 +287,7 @@ void  ResumeSound  ();
 void  VolumeSound  ();
 void EmulateSound3D();
 void   SpeedSound  ();
+Int  PlayingSounds ();
 Bool PlayingAnySound();
 
 #define MAX_SOUND_SPEED 2

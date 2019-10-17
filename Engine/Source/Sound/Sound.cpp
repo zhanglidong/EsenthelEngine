@@ -1079,6 +1079,7 @@ void ResumeSound()
 #endif
 }
 /******************************************************************************/
+Int  PlayingSounds  () {return SoundMemxPlaying.elms()  ;}
 Bool PlayingAnySound() {return SoundMemxPlaying.elms()>0;}
 /******************************************************************************/
 static void SoundPlay2D(C Str &name, SoundCallback *call, Flt volume, VOLUME_GROUP volume_group, Flt speed) // !! call 'call.del' if not passed down !!
