@@ -647,12 +647,12 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       props.New().create("Normal"         , MemberDesc(DATA_REAL).setFunc(NrmScale, NrmScale)).range(0, 2);
       props.New().create("Flip Normal Y"  , MemberDesc(DATA_BOOL).setFunc(FNY     , FNY     ));
     //props.New();
-      props.New().create("Smoothness"  , MemberDesc(DATA_REAL).setFunc(Smooth , Smooth )).range(0, 1);
-      props.New().create("Reflectivity", MemberDesc(DATA_REAL).setFunc(Reflect, Reflect)).range(0, 1);
-      props.New().create("Glow"        , MemberDesc(DATA_REAL).setFunc(Glow   , Glow   )).range(0, 1);
-      props.New().create("Ambient Red"  , MemberDesc(DATA_REAL).setFunc(AmbR    , AmbR    )).range(0, 1);
-      props.New().create("Ambient Green", MemberDesc(DATA_REAL).setFunc(AmbG    , AmbG    )).range(0, 1);
-      props.New().create("Ambient Blue" , MemberDesc(DATA_REAL).setFunc(AmbB    , AmbB    )).range(0, 1);
+      props.New().create("Smoothness"   , MemberDesc(DATA_REAL).setFunc(Smooth , Smooth )).range(0, 1);
+      props.New().create("Reflectivity" , MemberDesc(DATA_REAL).setFunc(Reflect, Reflect)).range(0, 1);
+      props.New().create("Glow"         , MemberDesc(DATA_REAL).setFunc(Glow   , Glow   )).range(0, 1);
+      props.New().create("Ambient Red"  , MemberDesc(DATA_REAL).setFunc(AmbR   , AmbR   )).range(0, 1);
+      props.New().create("Ambient Green", MemberDesc(DATA_REAL).setFunc(AmbG   , AmbG   )).range(0, 1);
+      props.New().create("Ambient Blue" , MemberDesc(DATA_REAL).setFunc(AmbB   , AmbB   )).range(0, 1);
       props.New();
     //props.New().create("Subsurf Scatter", MemberDesc(DATA_REAL).setFunc(SSS , SSS )).range(0, 1);
       props.New().create("Detail Scale"   , MemberDesc(DATA_REAL).setFunc(DetScale, DetScale)).range(0.01f, 1024).mouseEditMode(PROP_MOUSE_EDIT_SCALAR);

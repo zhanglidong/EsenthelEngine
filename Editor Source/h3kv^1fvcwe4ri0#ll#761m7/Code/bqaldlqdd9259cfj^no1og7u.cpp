@@ -424,7 +424,7 @@ class TextureDownsize : Viewport4Region
    }
    TextureDownsize& create()
    {
-      const flt padd=0.6, prop_h=0.06;
+      const flt padd=0.68, prop_h=0.06;
 
       super.create(Draw, false, 0, PI); v4.toggleHorizontal();
       wire.del(); cam_spherical.hide(); cam_lock.pos(cam_spherical.pos()); cam_tabs.hide();
@@ -433,12 +433,12 @@ class TextureDownsize : Viewport4Region
       T+=mtrl_image.create().hide(); mtrl_image.fit=true; mtrl_image.alpha_mode=ALPHA_NONE;
       T+=region    .create().removeSlideBars().skin(&TransparentSkin).hide(); region.kb_lit=false;
 
-      prop_ts.reset(); prop_ts.align.set(1, 0); prop_ts.size=0.055;
+      prop_ts.reset(); prop_ts.align.set(1, 0); prop_ts.size=0.053;
       props.New().create("Global", MemberDesc(DATA_INT).setFunc(Global, Global)).desc("How much to Downsize all Material Base Textures.");
       props.New().create("Color" , MemberDesc(DATA_INT).setFunc(Base0 , Base0 )).desc("How much to Downsize Material Base0 Texture, such as Color, Alpha, Glow."          ); // #MaterialTextureLayout
       props.New().create("Normal", MemberDesc(DATA_INT).setFunc(Base1 , Base1 )).desc("How much to Downsize Material Base1 Texture, such as Normal."                      ); // #MaterialTextureLayout
       props.New().create("Extra" , MemberDesc(DATA_INT).setFunc(Base2 , Base2 )).desc("How much to Downsize Material Base2 Texture, such as Smooth, Reflect, Bump, Alpha."); // #MaterialTextureLayout
-      Rect r=AddProperties(props, region, Vec2(padd, -0.005), prop_h, 0.25, &prop_ts); REPAO(props).autoData(this).range(-1, 10).mouseEditSpeed(1).changed(SetTextures);
+      Rect r=AddProperties(props, region, Vec2(padd, -0.005), prop_h, 0.18, &prop_ts); REPAO(props).autoData(this).range(-1, 10).mouseEditSpeed(1).changed(SetTextures);
 
       Node<MenuElm> menu; Viewport4Region &v4=T;
       menu.New().create("Camera Reset"   , CamReset  , v4).kbsc(KbSc(KB_BACK                           )).flag(MENU_HIDDEN);
@@ -471,17 +471,20 @@ class TextureDownsize : Viewport4Region
                  downsize[p][i].desc(desc);
                  downsize[p][i].mode=BUTTON_IMMEDIATE;
       }
-      left_ts.reset().size=0.05; left_ts.align.set(-1, 0); right_ts=left_ts; right_ts.align.set(1, 0);
-      Vec2 xs(r.min.x-0.05, downsize[0][1].rect().max.x+0.05);
-      REPD(p, 4)REP(2)region+=info[p][i].create(Vec2(xs.c[i], downsize[p][0].rect().centerY()), S, i ? &right_ts : &left_ts);
 
-      region+=revert.create(Rect_U(padd/2, -region.virtualHeight()-0.01, 0.22, 0.07), "Revert").func(Revert, T).focusable(false).desc("Revert Material texture sizes to the source file");
-      region+=apply .create(Rect_U(padd+(region.virtualWidth()-padd)/2, revert.rect().max.y, 0.25, 0.07), "Downsize").func(Apply, T).focusable(false).desc("Keyboard Shortcut: Enter");
+      flt w=region.virtualWidth()+padd;
 
-      region.size(Vec2(region.virtualWidth()+padd, region.virtualHeight()));
+      region+=revert.create(Rect_U(padd/2, -region.virtualHeight()-0.01, 0.22, 0.07), "Revert"  ).func(Revert, T).focusable(false).desc("Revert Material texture sizes to the source file");
+      region+=apply .create(Rect_U(w   /2,  revert.rect().max.y        , 0.25, 0.07), "Downsize").func(Apply , T).focusable(false).desc("Keyboard Shortcut: Enter");
 
       T+=prev.create(Rect_R(apply.rect().left ()-Vec2(0.02, 0), 0.1, 0.07), "<").func(Prev, T, true).focusable(false).desc("Previous Element\nKeyboard Shortcut: <");
       T+=next.create(Rect_L(apply.rect().right()+Vec2(0.02, 0), 0.1, 0.07), ">").func(Next, T, true).focusable(false).desc(    "Next Element\nKeyboard Shortcut: >");
+
+      region.size(Vec2(w, region.virtualHeight()));
+
+      left_ts.reset().size=0.0475; left_ts.align.set(-1, 0); right_ts=left_ts; right_ts.align.set(1, 0);
+      Vec2 xs(r.min.x-0.05, downsize[0][1].rect().max.x+0.05);
+      REPD(p, 4)REP(2)region+=info[p][i].create(Vec2(xs.c[i], downsize[p][0].rect().centerY()), S, i ? &right_ts : &left_ts);
 
       return T;
    }

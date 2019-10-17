@@ -51,10 +51,10 @@ VecH4 LightDir_PS
 
    // normal + ext
 #if MULTI_SAMPLE
-   VecH  nrm=GetNormalMS(pixel.xy, index);
+   VecH  nrm=GetNormalMS(pixel.xy, index, DEQUANTIZE);
    VecH2 ext=GetExtMS   (pixel.xy, index);
 #else
-   VecH  nrm=GetNormal(inTex);
+   VecH  nrm=GetNormal(inTex, DEQUANTIZE);
    VecH2 ext=GetExt   (inTex);
 #endif
 
@@ -105,10 +105,10 @@ VecH4 LightPoint_PS
 
    // normal + ext
 #if MULTI_SAMPLE
-   VecH  nrm=GetNormalMS(pixel.xy, index);
+   VecH  nrm=GetNormalMS(pixel.xy, index, DEQUANTIZE);
    VecH2 ext=GetExtMS   (pixel.xy, index);
 #else
-   VecH  nrm=GetNormal(inTex);
+   VecH  nrm=GetNormal(inTex, DEQUANTIZE);
    VecH2 ext=GetExt   (inTex);
 #endif
 
@@ -160,10 +160,10 @@ VecH4 LightLinear_PS
 
    // normal + ext
 #if MULTI_SAMPLE
-   VecH  nrm=GetNormalMS(pixel.xy, index);
+   VecH  nrm=GetNormalMS(pixel.xy, index, DEQUANTIZE);
    VecH2 ext=GetExtMS   (pixel.xy, index);
 #else
-   VecH  nrm=GetNormal(inTex);
+   VecH  nrm=GetNormal(inTex, DEQUANTIZE);
    VecH2 ext=GetExt   (inTex);
 #endif
 
@@ -217,10 +217,10 @@ VecH4 LightCone_PS
 
    // normal + ext
 #if MULTI_SAMPLE
-   VecH  nrm=GetNormalMS(pixel.xy, index);
+   VecH  nrm=GetNormalMS(pixel.xy, index, DEQUANTIZE);
    VecH2 ext=GetExtMS   (pixel.xy, index);
 #else
-   VecH  nrm=GetNormal(inTex);
+   VecH  nrm=GetNormal(inTex, DEQUANTIZE);
    VecH2 ext=GetExt   (inTex);
 #endif
 

@@ -1265,20 +1265,24 @@ inline void AlphaTest(Half alpha)
 /******************************************************************************/
 // NORMAL
 /******************************************************************************/
-inline void UnpackNormal(in out VecH nrm)
+inline void UnpackNormal(in out VecH nrm, Bool dequantize)
 {
 #if !SIGNED_NRM_RT
    nrm=nrm*2-1;
 #endif
+   if(dequantize)
+   {
+      if(nrm.z<-0.5)nrm.z=-CalcZ(nrm.xy);
+   }
 }
-inline VecH GetNormal(Vec2 tex)
+inline VecH GetNormal(Vec2 tex, Bool dequantize=false)
 {
-   VecH   nrm=TexPoint(Img, tex).xyz; UnpackNormal(nrm);
+   VecH   nrm=TexPoint(Img, tex).xyz; UnpackNormal(nrm, dequantize);
    return nrm;
 }
-inline VecH GetNormalMS(VecI2 pixel, UInt sample)
+inline VecH GetNormalMS(VecI2 pixel, UInt sample, Bool dequantize=false)
 {
-   VecH   nrm=TexSample(ImgMS, pixel, sample).xyz; UnpackNormal(nrm);
+   VecH   nrm=TexSample(ImgMS, pixel, sample).xyz; UnpackNormal(nrm, dequantize);
    return nrm;
 }
 /******************************************************************************/

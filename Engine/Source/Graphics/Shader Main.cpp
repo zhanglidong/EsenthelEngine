@@ -189,12 +189,12 @@ Shader* MainShaderClass::getShdDir  (Int map_num, Bool clouds, Bool multi_sample
 Shader* MainShaderClass::getShdPoint(                          Bool multi_sample) {return get(S8+"ShdPoint"+multi_sample);}
 Shader* MainShaderClass::getShdCone (                          Bool multi_sample) {return get(S8+"ShdCone" +multi_sample);}
 
-Shader* MainShaderClass::getDrawLightDir   (Bool shadow, Bool multi_sample            ) {return get(S8+"DrawLightDir"   +shadow+multi_sample            );}
-Shader* MainShaderClass::getDrawLightPoint (Bool shadow, Bool multi_sample            ) {return get(S8+"DrawLightPoint" +shadow+multi_sample      +GL_ES);}
-Shader* MainShaderClass::getDrawLightLinear(Bool shadow, Bool multi_sample            ) {return get(S8+"DrawLightLinear"+shadow+multi_sample      +GL_ES);}
-Shader* MainShaderClass::getDrawLightCone  (Bool shadow, Bool multi_sample, Bool image) {return get(S8+"DrawLightCone"  +shadow+multi_sample+image+GL_ES);}
+Shader* MainShaderClass::getDrawLightDir   (Bool shadow, Bool multi_sample, Bool dequantize            ) {return get(S8+"DrawLightDir"   +shadow+multi_sample+(dequantize && !multi_sample)            );} // MSAA doesn't have quality version (to make it faster)
+Shader* MainShaderClass::getDrawLightPoint (Bool shadow, Bool multi_sample, Bool dequantize            ) {return get(S8+"DrawLightPoint" +shadow+multi_sample+(dequantize && !multi_sample)      +GL_ES);} // MSAA doesn't have quality version (to make it faster)
+Shader* MainShaderClass::getDrawLightLinear(Bool shadow, Bool multi_sample, Bool dequantize            ) {return get(S8+"DrawLightLinear"+shadow+multi_sample+(dequantize && !multi_sample)      +GL_ES);} // MSAA doesn't have quality version (to make it faster)
+Shader* MainShaderClass::getDrawLightCone  (Bool shadow, Bool multi_sample, Bool dequantize, Bool image) {return get(S8+"DrawLightCone"  +shadow+multi_sample+(dequantize && !multi_sample)+image+GL_ES);} // MSAA doesn't have quality version (to make it faster)
 #if !DEPTH_CLIP_SUPPORTED
-Shader* MainShaderClass::getDrawLightConeFlat(Bool shadow, Bool multi_sample, Bool image) {return get(S8+"DrawLightConeFlat"+shadow+multi_sample+image);}
+Shader* MainShaderClass::getDrawLightConeFlat(Bool shadow, Bool multi_sample, Bool dequantize, Bool image) {return get(S8+"DrawLightConeFlat"+shadow+multi_sample+(dequantize && !multi_sample)+image);} // MSAA doesn't have quality version (to make it faster)
 #endif
 
 Shader* MainShaderClass::getApplyLight(Int multi_sample, Bool ao, Bool cel_shade, Bool night_shade, Bool glow) {return get(S8+"ApplyLight"+multi_sample+ao+cel_shade+night_shade+glow);}
@@ -574,13 +574,14 @@ void MainShaderClass::getTechniques()
       // LIGHT
       REPD(multi_sample, (D.shaderModel()>=SM_4_1) ? 2 : 1)
       REPD(shadow      , 2)
+      REPD(dequantize  , 2)
       {
-                        DrawLightDir   [shadow][multi_sample]       =getDrawLightDir   (shadow, multi_sample);
-                        DrawLightPoint [shadow][multi_sample]       =getDrawLightPoint (shadow, multi_sample);
-                        DrawLightLinear[shadow][multi_sample]       =getDrawLightLinear(shadow, multi_sample);
-         REPD(image, 2){DrawLightCone  [shadow][multi_sample][image]=getDrawLightCone  (shadow, multi_sample, image);
+                        DrawLightDir   [shadow][multi_sample][dequantize]       =getDrawLightDir   (shadow, multi_sample, dequantize);
+                        DrawLightPoint [shadow][multi_sample][dequantize]       =getDrawLightPoint (shadow, multi_sample, dequantize);
+                        DrawLightLinear[shadow][multi_sample][dequantize]       =getDrawLightLinear(shadow, multi_sample, dequantize);
+         REPD(image, 2){DrawLightCone  [shadow][multi_sample][dequantize][image]=getDrawLightCone  (shadow, multi_sample, dequantize, image);
                      #if !DEPTH_CLIP_SUPPORTED
-                        DrawLightConeFlat[shadow][multi_sample][image]=getDrawLightConeFlat(shadow, multi_sample, image);
+                        DrawLightConeFlat[shadow][multi_sample][dequantize][image]=getDrawLightConeFlat(shadow, multi_sample, dequantize, image);
                      #endif
                        }
       }
