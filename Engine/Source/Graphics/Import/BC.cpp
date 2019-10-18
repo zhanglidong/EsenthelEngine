@@ -1320,29 +1320,59 @@ static void CompressBC5S(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither
 }
 /******************************************************************************/
 static const Vec BCWeights=ColorLumWeight*0.65f;
-Bool CompressBC(C Image &src, Image &dest) // no need to store this in a separate CPP file, because its code size is small
+struct BCContext
 {
-   if(dest.hwType()==IMAGE_BC1      || dest.hwType()==IMAGE_BC2      || dest.hwType()==IMAGE_BC3      || dest.hwType()==IMAGE_BC4      || dest.hwType()==IMAGE_BC5
-   || dest.hwType()==IMAGE_BC1_SRGB || dest.hwType()==IMAGE_BC2_SRGB || dest.hwType()==IMAGE_BC3_SRGB || dest.hwType()==IMAGE_BC4_SIGN || dest.hwType()==IMAGE_BC5_SIGN)
- //if(dest.size3()==src.size3()) this check is not needed because the code below supports different sizes
+   Bool   perceptual;
+   Int    x_mul, x_blocks, y_blocks, sz;
+   Byte  *dest_data_z;
+   void (*compress_block)(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a);
+ C Image &src;
+   Image &dest;
+
+   BCContext(C Image &src, Image &dest) : src(src), dest(dest) {}
+
+   static void Process(IntPtr elm_index, BCContext &ctx, Int thread_index) {ctx.process(elm_index);}
+          void process(Int    by)
    {
-   #if 1
-      void (*compress_block)(Byte *bc, Vec4 (&color)[16], C Vec *weight, Bool dither_rgb, Bool dither_a)=((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB) ? CompressBC1  :
-                                                                                                          (dest.hwType()==IMAGE_BC2 || dest.hwType()==IMAGE_BC2_SRGB) ? CompressBC2  :
-                                                                                                          (dest.hwType()==IMAGE_BC3 || dest.hwType()==IMAGE_BC3_SRGB) ? CompressBC3  :
-                                                                                                          (dest.hwType()==IMAGE_BC4                                 ) ? CompressBC4  :
-                                                                                                          (dest.hwType()==IMAGE_BC4_SIGN                            ) ? CompressBC4S :
-                                                                                                          (dest.hwType()==IMAGE_BC5                                 ) ? CompressBC5  :
-                                                                                                          (dest.hwType()==IMAGE_BC5_SIGN                            ) ? CompressBC5S :
-                                                                                                          null);
-      Bool perceptual=dest.sRGB();
-      Int  x_mul     =((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB || dest.hwType()==IMAGE_BC4 || dest.hwType()==IMAGE_BC4_SIGN) ? 8 : 16),
-           src_faces1=src.faces()-1;
-      Vec4 rgba[16];
+      Int   py=by*4, yo[4]; REPAO(yo)=Min(py+i, src.lh()-1); // use clamping to avoid black borders
+      Byte *dest_data=dest_data_z + by*dest.pitch();
+      Vec4  rgba[16];
+      REPD(bx, x_blocks)
+      {
+         Int px=bx*4, xo[4]; REPAO(xo)=Min(px+i, src.lw()-1); // use clamping to avoid black borders
+         src.gather(rgba, xo, Elms(xo), yo, Elms(yo), &sz, 1);
+         if(perceptual)
+         {
+            Vec4 min, max; MinMax(rgba, 4*4, min, max);
+         #if 1 // this gave better results
+            Vec weight=BCWeights + max.xyz + max.xyz-min.xyz; // max + delta = max + (max-min)
+         #else
+            Vec weight=LinearToSRGB(ColorLumWeight2);
+         #endif
+               compress_block(dest_data + bx*x_mul, rgba, &weight, true, true);
+         }else compress_block(dest_data + bx*x_mul, rgba,  null  , true, true);
+      }
+   }
+
+   Bool process()
+   {
+      ImageThreads.init();
+
+      compress_block=((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB) ? CompressBC1  :
+                      (dest.hwType()==IMAGE_BC2 || dest.hwType()==IMAGE_BC2_SRGB) ? CompressBC2  :
+                      (dest.hwType()==IMAGE_BC3 || dest.hwType()==IMAGE_BC3_SRGB) ? CompressBC3  :
+                      (dest.hwType()==IMAGE_BC4                                 ) ? CompressBC4  :
+                      (dest.hwType()==IMAGE_BC4_SIGN                            ) ? CompressBC4S :
+                      (dest.hwType()==IMAGE_BC5                                 ) ? CompressBC5  :
+                      (dest.hwType()==IMAGE_BC5_SIGN                            ) ? CompressBC5S :
+                      null);
+          perceptual=dest.sRGB();
+          x_mul     =((dest.hwType()==IMAGE_BC1 || dest.hwType()==IMAGE_BC1_SRGB || dest.hwType()==IMAGE_BC4 || dest.hwType()==IMAGE_BC4_SIGN) ? 8 : 16);
+      Int src_faces1=src.faces()-1;
       REPD(mip, Min(src.mipMaps(), dest.mipMaps()))
       {
-         Int x_blocks=PaddedWidth (dest.hwW(), dest.hwH(), mip, dest.hwType())/4, // operate on mip HW size to process partial and Pow2Padded blocks too
-             y_blocks=PaddedHeight(dest.hwW(), dest.hwH(), mip, dest.hwType())/4;
+         x_blocks=PaddedWidth (dest.hwW(), dest.hwH(), mip, dest.hwType())/4; // operate on mip HW size to process partial and Pow2Padded blocks too
+         y_blocks=PaddedHeight(dest.hwW(), dest.hwH(), mip, dest.hwType())/4;
          REPD(face, dest.faces())
          {
             if(! src.lockRead(            mip, (DIR_ENUM)Min(face, src_faces1)))               return false;
@@ -1350,33 +1380,25 @@ Bool CompressBC(C Image &src, Image &dest) // no need to store this in a separat
 
             REPD(z, dest.ld())
             {
-               Int sz=Min(z, src.ld()-1);
-               REPD(by, y_blocks)
-               {
-                  Int py=by*4, yo[4]; REPAO(yo)=Min(py+i, src.lh()-1); // use clamping to avoid black borders
-                  Byte *dest_data=dest.data() + by*dest.pitch() + z*dest.pitch2();
-                  REPD(bx, x_blocks)
-                  {
-                     Int px=bx*4, xo[4]; REPAO(xo)=Min(px+i, src.lw()-1); // use clamping to avoid black borders
-                     src.gather(rgba, xo, Elms(xo), yo, Elms(yo), &sz, 1);
-                     if(perceptual)
-                     {
-                        Vec4 min, max; MinMax(rgba, 4*4, min, max);
-                     #if 1 // this gave better results
-                        Vec weight=BCWeights + max.xyz + max.xyz-min.xyz; // max + delta = max + (max-min)
-                     #else
-                        Vec weight=LinearToSRGB(ColorLumWeight2);
-                     #endif
-                           compress_block(dest_data + bx*x_mul, rgba, &weight, true, true);
-                     }else compress_block(dest_data + bx*x_mul, rgba,  null  , true, true);
-                  }
-               }
+               sz=Min(z, src.ld()-1);
+               dest_data_z=dest.data() + z*dest.pitch2();
+               ImageThreads.process(y_blocks, Process, T);
             }
             dest.unlock();
              src.unlock();
          }
       }
       return true;
+   }
+};
+Bool CompressBC(C Image &src, Image &dest) // no need to store this in a separate CPP file, because its code size is small
+{
+   if(dest.hwType()==IMAGE_BC1      || dest.hwType()==IMAGE_BC2      || dest.hwType()==IMAGE_BC3      || dest.hwType()==IMAGE_BC4      || dest.hwType()==IMAGE_BC5
+   || dest.hwType()==IMAGE_BC1_SRGB || dest.hwType()==IMAGE_BC2_SRGB || dest.hwType()==IMAGE_BC3_SRGB || dest.hwType()==IMAGE_BC4_SIGN || dest.hwType()==IMAGE_BC5_SIGN)
+ //if(dest.size3()==src.size3()) this check is not needed because the code below supports different sizes
+   {
+   #if 1
+      return BCContext(src, dest).process();
    #elif 1 // Intel ISPC
       only BC1 now supported
       need mips & cube

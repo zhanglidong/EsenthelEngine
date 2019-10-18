@@ -67,7 +67,7 @@ namespace EE{
 struct ETCContext
 {
    Bool   etc1;
-   Int    quality, sz, x_blocks, y_blocks;
+   Int    quality, x_blocks, y_blocks, sz;
    Byte  *dest_data_z;
  C Image &src, *s;
    Image &dest;
@@ -332,7 +332,7 @@ struct ETCContext
                #if ETC1_ENC==ETC_LIB_ETCPACK || ETC2_ENC==ETC_LIB_ETCPACK // ETCPACK
                   if(etc1 ? ETC1_ENC==ETC_LIB_ETCPACK : ETC2_ENC==ETC_LIB_ETCPACK)
                   {
-                     ImageThreads.process(y_blocks, ETCContext::Process, T);
+                     ImageThreads.process(y_blocks, Process, T);
                   }else
                #endif
                      {}
@@ -349,7 +349,7 @@ struct ETCContext
 /******************************************************************************/
 Bool _CompressETC(C Image &src, Image &dest, Int quality)
 {
-   ETCContext ctx(src, dest, quality); return ctx.process();
+   return ETCContext(src, dest, quality).process();
 }
 /******************************************************************************/
 }
