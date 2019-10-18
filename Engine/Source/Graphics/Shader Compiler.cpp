@@ -679,7 +679,7 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
                                        if(!param.translation.elms()                             )Exit("Shader Param is empty.\nPlease contact Developer.");
                                        if(        param.gpu_data_size >        var_desc.Size
                                        ||  Ceil16(param.gpu_data_size)!=Ceil16(var_desc.Size)   )Exit("Incorrect Shader Param size.\nPlease contact Developer."); // FIXME DX Compiler returns padded struct sizes, so it can be a little bigger than actually used 'gpu_data_size' - https://github.com/microsoft/DirectXShaderCompiler/issues/2376
-                                       if( param.translation[0].gpu_offset!=var_desc.StartOffset)Exit("Incorrect Shader Param Offset.\nPlease contact Developer.");
+                                       if( param.translation[0].gpu_offset!=var_desc.StartOffset)Exit("Incorrect Shader Param offset.\nPlease contact Developer.");
                                        if( param.gpu_data_size+var_desc.StartOffset>buffer.size )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer.");
 
                                        if(HasData(var_desc.DefaultValue, var_desc.Size)) // if parameter has any data
@@ -848,7 +848,7 @@ REPD(get_default_val, (compiler->api!=API_DX) ? 2 : 1) // non-DX shaders have to
                               param.gpu_data_size=offset-var_desc.StartOffset;
                               if(!param.translation.elms()                             )Exit("Shader Param is empty.\nPlease contact Developer.");
                               if( param.gpu_data_size!=var_desc.Size                   )Exit("Incorrect Shader Param size.\nPlease contact Developer.");
-                              if( param.translation[0].gpu_offset!=var_desc.StartOffset)Exit("Incorrect Shader Param Offset.\nPlease contact Developer.");
+                              if( param.translation[0].gpu_offset!=var_desc.StartOffset)Exit("Incorrect Shader Param offset.\nPlease contact Developer.");
                               if( param.gpu_data_size+var_desc.StartOffset>buffer.size )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer.");
 
                               if(HasData(var_desc.DefaultValue, var_desc.Size)) // if parameter has any data
@@ -1218,13 +1218,16 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
             }
          }
 
+         size_t spirv_member_size=0; spvc_compiler_get_declared_struct_member_size(spirv_compiler, buffer_handle, i, &spirv_member_size);
+         if(Ceil16(member_size)!=Ceil16(spirv_member_size))Exit("Incorrect Shader Param size.\nPlease contact Developer.");
+
          Int min=INT_MAX, max=0; REPA(param.translation){ShaderParam::Translation &translation=param.translation[i]; MIN(min, translation.gpu_offset); MAX(max, translation.gpu_offset+translation.elm_size);} // iterate all translations just for safety (normally checking just the first and last one should be enough)
          param.gpu_data_size=max-min;
 
          if(!param.translation.elms()                              )Exit("Shader Param is empty.\nPlease contact Developer.");
          if(        param.gpu_data_size >        member_size
          ||  Ceil16(param.gpu_data_size)!=Ceil16(member_size)      )Exit("Incorrect Shader Param size.\nPlease contact Developer."); // SPIR-V returns padded struct sizes, so it can be a little bigger than actually used 'gpu_data_size'
-         if( param.translation[0].gpu_offset!=offset || offset!=min)Exit("Incorrect Shader Param Offset.\nPlease contact Developer.");
+         if( param.translation[0].gpu_offset!=offset || offset!=min)Exit("Incorrect Shader Param offset.\nPlease contact Developer.");
          if( param.gpu_data_size+offset>buffer.size                )Exit("Shader Param does not fit in Constant Buffer.\nPlease contact Developer.");
 
          //if(HasData(var_desc.DefaultValue, var_desc.Size)) // if parameter has any data
@@ -1318,41 +1321,6 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
       code=Replace(code, inst+'.', S, true, true);
       code=Replace(code, inst    , S, true, true);
    }
-#if 1 // texture precision - https://github.com/microsoft/DirectXShaderCompiler/issues/2399
-   static CChar8 *sampler2D[]=
-   {
-      "Col", "Col1", "Col2", "Col3",
-      "Nrm", "Nrm1", "Nrm2", "Nrm3",
-      "Ext", "Ext1", "Ext2", "Ext3",
-      "Det", "Det1", "Det2", "Det3",
-      "Mac", "Mac1", "Mac2", "Mac3",
-      "Lum",
-      "Img", "Img1", "Img2", "Img3",
-      "ImgX", "ImgX1", "ImgX2", "ImgX3",
-      "ImgXY",
-      "ShdMap1",
-      "FurCol", "FurLight",
-      "XZImage",
-   };
-   static CChar8 *sampler3D[]=
-   {
-      "Vol",
-      "VolXY", "VolXY1",
-   };
-   static CChar8 *samplerCube[]=
-   {
-    //"Rfl", "Rfl1", "Rfl2", "Rfl3",
-      "Env", "Cub", "Cub1",
-   };
-   static CChar8 *sampler2DShadow[]=
-   {
-      "ShdMap",
-   };
-   REPA(sampler2D      )code=Replace(code, S+"uniform highp sampler2D "      +sampler2D      [i], S+"uniform mediump sampler2D "      +sampler2D      [i], true, true);
-   REPA(sampler3D      )code=Replace(code, S+"uniform highp sampler3D "      +sampler3D      [i], S+"uniform mediump sampler3D "      +sampler3D      [i], true, true);
-   REPA(samplerCube    )code=Replace(code, S+"uniform highp samplerCube "    +samplerCube    [i], S+"uniform mediump samplerCube "    +samplerCube    [i], true, true);
-   REPA(sampler2DShadow)code=Replace(code, S+"uniform highp sampler2DShadow "+sampler2DShadow[i], S+"uniform mediump sampler2DShadow "+sampler2DShadow[i], true, true);
-#endif
 
 #if FORCE_LOG_SHADER_CODE
    #pragma message("!! Warning: Use this only for debugging !!")
