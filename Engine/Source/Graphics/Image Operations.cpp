@@ -4,6 +4,8 @@ namespace EE{
 #include "Import/BC.h"
 #include "Import/ETC.h"
 /******************************************************************************/
+ImageThreadsClass ImageThreads;
+/******************************************************************************/
 static Bool Decompress(Image &image, IMAGE_TYPE &type, IMAGE_MODE &mode, Int &mip_maps) // returns if image exists
 {
    type    =image.type   ();

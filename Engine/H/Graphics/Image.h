@@ -740,6 +740,18 @@ DIR_ENUM DirToCubeFace(C Vec &dir, Int res, Vec2 &tex); // convert vector direct
 Vec      CubeFaceToDir(Flt x, Flt y, Int res, DIR_ENUM cube_face); // convert image coordinates, 'x,y'=image coordinates (0..res-1), 'res'=cube image resolution, 'cube_face'=image cube face, returned vector is not normalized, however its on a cube with radius=1 ("Abs(dir).max()=1")
 
 #if EE_PRIVATE
+struct ImageThreadsClass : Threads
+{
+   void init()
+   {
+      if(!created())createIfEmpty(false, Cpu.threads()-1, 0, "EE.Image"); // -1 because we will do processing on the caller thread too
+   }
+   T1(USER_DATA) void process(Int elms, void func(IntPtr elm_index, USER_DATA &user, Int thread_index), USER_DATA &user)
+   {
+      process1(elms, func, user, INT_MAX); // use all available threads, including this one
+   }
+}extern ImageThreads;
+
 extern const ImagePtr ImageNull;
 
 Int                        PaddedWidth      (Int w, Int h,        Int mip, IMAGE_TYPE type);

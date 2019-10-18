@@ -436,8 +436,9 @@ const_mem_addr struct Threads // Worker Threads, allow to process data on multip
    #endif
    };
 
-   void del   (                                                                        ); // delete the threads without finishing all queued work
-   void create(Bool ordered, Int threads=Cpu.threads(), Int priority=0, C Str8 &name=S8); // 'ordered'=if process queued calls in the order as they were given (this will be a bit slower), 'priority'=threads priority (-3..3), 'name'=Threads name
+   void del          (                                                                        ); // delete the threads without finishing all queued work
+   void create       (Bool ordered, Int threads=Cpu.threads(), Int priority=0, C Str8 &name=S8); // 'ordered'=if process queued calls in the order as they were given (this will be a bit slower), 'priority'=threads priority (-3..3), 'name'=Threads name
+   void createIfEmpty(Bool ordered, Int threads=Cpu.threads(), Int priority=0, C Str8 &name=S8); // 'ordered'=if process queued calls in the order as they were given (this will be a bit slower), 'priority'=threads priority (-3..3), 'name'=Threads name, create only if wasn't created yet
 
    // perform multi-threaded call on 'func' function, by giving a unique 'elm_index' from the "0 .. elms-1" range as the function parameter, this function will return only after all calls have been processed, 'max_threads'=max threads to wake up and perform processing (threads that are already awake may also do processing) -1=default value which is 'threads', 'thread_index' will always be 0..'threads'-1 (or 0 if there are no threads), consider using 'process1' for better performance
                    void process(Int elms, void func(IntPtr elm_index, Ptr        user, Int thread_index), Ptr        user=null, Int max_threads=-1) {_process(elms, (void (*)(IntPtr elm_index, Ptr user, Int thread_index))func,  user, max_threads, false);}
@@ -611,6 +612,7 @@ const_mem_addr struct Threads // Worker Threads, allow to process data on multip
    Bool busy()C; // if there's something being processed right now
 
    Bool     wantStop()C;                                         // get     if threads were requested to be stopped by the 'del' method
+   Bool     created ()C {return _created         ;}              // get     if 'Threads' object is fully created and ready to use, this is always true immediately after 'create' call returns
    Int      threads ()C {return _threads.elms()  ;}              // get     how many threads were created for this object
    Int      threads1()C {return _threads.elms()+1;}              // get     how many threads were created for this object + 1, use this method when allocating per-thread data to be used for 'process1' methods
    Int activeThreads()C;   Threads& activeThreads(Int active  ); // get/set how many threads should be active (remaining threads will be paused)
@@ -642,7 +644,7 @@ private:
    };
    Ptr            _func_user;
    Byte           _func_mode;
-   Bool           _ordered;
+   Bool           _ordered, _created;
    Int            _left, _processed, _elms, _elm_size, _calls_pos, _waiting;
 
 #if EE_PRIVATE

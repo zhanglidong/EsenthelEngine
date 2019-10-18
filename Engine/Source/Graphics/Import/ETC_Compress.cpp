@@ -64,263 +64,292 @@
 /******************************************************************************/
 namespace EE{
 /******************************************************************************/
-Bool _CompressETC(C Image &src, Image &dest, Int quality)
+struct ETCContext
 {
-   Bool etc1=(dest.hwType()==IMAGE_ETC1);
-   if(etc1 || dest.hwType()==IMAGE_ETC2_R      || dest.hwType()==IMAGE_ETC2_RG      || dest.hwType()==IMAGE_ETC2_RGB      || dest.hwType()==IMAGE_ETC2_RGBA1      || dest.hwType()==IMAGE_ETC2_RGBA
-           || dest.hwType()==IMAGE_ETC2_R_SIGN || dest.hwType()==IMAGE_ETC2_RG_SIGN || dest.hwType()==IMAGE_ETC2_RGB_SRGB || dest.hwType()==IMAGE_ETC2_RGBA1_SRGB || dest.hwType()==IMAGE_ETC2_RGBA_SRGB)
- //if(dest.size3()==src.size3()) this check is not needed because the code below supports different sizes
-   {
-   #if ETC1_ENC==ETC_LIB_ISPC // ISPC
-      Bool             fast;
-      etc_enc_settings settings;
-      rgba_surface     surf;
-      if(etc1)GetProfile_etc_slow(&settings);
-   #endif
-   #if ETC1_ENC==ETC_LIB_RG // RG
-      rg_etc1::etc1_pack_params pack;
-      if(etc1)
-      {
-         rg_etc1::pack_etc1_block_init();
-         switch(quality)
-         {
-            case 0: pack.m_quality=rg_etc1::cLowQuality   ; break; // makes gradients look bad
-   default: case 1: pack.m_quality=rg_etc1::cMediumQuality; break; // much faster than high and almost as good
-            case 2: pack.m_quality=rg_etc1::cHighQuality  ; break; // very slow
-         }
-         pack.m_dithering=false; // dithering here is actually very bad
-      }
-   #endif
-   #if ETC1_ENC==ETC_LIB_ETCPACK || ETC2_ENC==ETC_LIB_ETCPACK // ETCPACK
-      Int block_size;
-      if(etc1 ? ETC1_ENC==ETC_LIB_ETCPACK : ETC2_ENC==ETC_LIB_ETCPACK)
-      {
-         if(quality<0)quality=0; // default to 0 as 1 is just too slow
-         quality=Mid(quality, 0, EXHAUSTIVE_CODE_ACTIVE);
-         block_size=ImageTI[dest.hwType()].bit_pp*2;
-      }
-   #endif
+   Bool   etc1;
+   Int    quality, sz, x_blocks, y_blocks;
+   Byte  *dest_data_z;
+ C Image &src, *s;
+   Image &dest;
 
-      Int src_faces1=src.faces()-1;
-      Image temp; // defined outside of loop to avoid overhead
-      REPD(mip, Min(src.mipMaps(), dest.mipMaps()))
+#if ETC1_ENC==ETC_LIB_ISPC // ISPC
+   Bool             fast;
+   etc_enc_settings settings;
+   rgba_surface     surf;
+#endif
+
+#if ETC1_ENC==ETC_LIB_RG // RG
+   rg_etc1::etc1_pack_params pack;
+#endif
+
+#if ETC1_ENC==ETC_LIB_ETCPACK || ETC2_ENC==ETC_LIB_ETCPACK // ETCPACK
+   Int block_size;
+#endif
+   
+   ETCContext(C Image &src, Image &dest, Int quality) : src(src), dest(dest), quality(quality) {}
+
+   static void Process(IntPtr elm_index, ETCContext &ctx, Int thread_index) {ctx.process(elm_index);}
+          void process(Int    by)
+   {
+      Int py=by*4, yo[4]; REPAO(yo)=Min(py+i, s->lh()-1); // use clamping to avoid black borders
+      Byte *dest_data=dest_data_z + by*dest.pitch();
+      REPD(bx, x_blocks)
       {
-       C Image *s=&src;
-         Bool read_from_src=true;
-         Int  dest_mip_hwW=PaddedWidth (dest.hwW(), dest.hwH(), mip, dest.hwType()),
-              dest_mip_hwH=PaddedHeight(dest.hwW(), dest.hwH(), mip, dest.hwType());
+         Int   px=bx*4, xo[4]; REPAO(xo)=Min(px+i, s->lw()-1); // use clamping to avoid black borders
+         Vec2  rg  [4][4];
+         VecB  rgb [4][4];
+         Color rgba[4][4];
+         Byte     a[4][4];
+         Color temp[4][4];
+         UInt *d=(UInt*)(dest_data + bx*block_size);
+         switch(dest.hwType())
+         {
+            case IMAGE_ETC1: s->gather(&rgb[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1); switch(quality)
+            {
+               default: ETCPACK::compressBlockDiffFlipFast  (rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+            #if EXHAUSTIVE_CODE_ACTIVE
+               case  1: ETCPACK::compressBlockETC1Exhaustive(rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+            #endif
+            }break;
+
+            /*case IMAGE_ETC1_SRGB: s->gather(&rgb[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1); switch(quality)
+            {
+               default: ETCPACK::compressBlockDiffFlipFastPerceptual  (rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+            #if EXHAUSTIVE_CODE_ACTIVE
+               case  1: ETCPACK::compressBlockETC1ExhaustivePerceptual(rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+            #endif
+            }break;*/
+
+            case IMAGE_ETC2_R:
+            {
+               s->gather(&rg[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
+               U16 src[4*4]; REPAO(src)=FltToU16(rg[0][i].x); ETCPACK::compressBlockAlpha16(src, (Byte*)d, false);
+            }goto no_swap;
+
+            case IMAGE_ETC2_R_SIGN:
+            {
+               s->gather(&rg[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
+               U16 src[4*4]; REPAO(src)=SFltToShort(rg[0][i].x)+32768; ETCPACK::compressBlockAlpha16(src, (Byte*)d, true);
+            }goto no_swap;
+
+            case IMAGE_ETC2_RG:
+            {
+               s->gather(&rg[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
+               U16 src[4*4]; REPAO(src)=FltToU16(rg[0][i].x); ETCPACK::compressBlockAlpha16(src, (Byte*)d  , false);
+                             REPAO(src)=FltToU16(rg[0][i].y); ETCPACK::compressBlockAlpha16(src, (Byte*)d+8, false);
+            }goto no_swap;
+
+            case IMAGE_ETC2_RG_SIGN:
+            {
+               s->gather(&rg[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
+               U16 src[4*4]; REPAO(src)=SFltToShort(rg[0][i].x)+32768; ETCPACK::compressBlockAlpha16(src, (Byte*)d  , true);
+                             REPAO(src)=SFltToShort(rg[0][i].y)+32768; ETCPACK::compressBlockAlpha16(src, (Byte*)d+8, true);
+            }goto no_swap;
+
+            case IMAGE_ETC2_RGB: s->gather(&rgb[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1); switch(quality)
+            {
+               default: ETCPACK::compressBlockETC2Fast      (rgb[0][0].c, null, temp[0][0].c, 4, 4, 0, 0, d[0], d[1], ETCPACK::ETC2PACKAGE_RGB_NO_MIPMAPS); break;
+            #if EXHAUSTIVE_CODE_ACTIVE
+               case  1: ETCPACK::compressBlockETC2Exhaustive(rgb[0][0].c,       temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+            #endif
+            }break;
+
+            case IMAGE_ETC2_RGB_SRGB: s->gather(&rgb[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1); switch(quality)
+            {
+               default: ETCPACK::compressBlockETC2FastPerceptual      (rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+            #if EXHAUSTIVE_CODE_ACTIVE
+               case  1: ETCPACK::compressBlockETC2ExhaustivePerceptual(rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+            #endif
+            }break;
+
+            case IMAGE_ETC2_RGBA1: case IMAGE_ETC2_RGBA1_SRGB:
+            {
+               s->gather(&rgba[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
+               REPD(y, 4)
+               REPD(x, 4)
+               {
+                  rgb[y][x]=  rgba[y][x].v3;
+                  a  [y][x]=((rgba[y][x].a>=128) ? 255 : 0); // manually adjust because compressor has issues
+               }
+               ETCPACK::compressBlockETC2Fast(rgb[0][0].c, &a[0][0], temp[0][0].c, 4, 4, 0, 0, d[0], d[1], ETCPACK::ETC2PACKAGE_RGBA1_NO_MIPMAPS);
+            }break;
+
+            case IMAGE_ETC2_RGBA: case IMAGE_ETC2_RGBA_SRGB:
+            {
+               s->gather(&rgba[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
+               REPD(y, 4)
+               REPD(x, 4)
+               {
+                  rgb[y][x]=rgba[y][x].v3;
+                  a  [y][x]=rgba[y][x].a;
+               }
+
+               switch(quality)
+               {
+                  default: ETCPACK::compressBlockAlphaFast(&a[0][0], 0, 0, 4, 4, (Byte*)d); break;
+                  case  1: ETCPACK::compressBlockAlphaSlow(&a[0][0], 0, 0, 4, 4, (Byte*)d); break;
+               }
+
+               d+=2;
+
+               switch(dest.hwType())
+               {
+                  case IMAGE_ETC2_RGBA: switch(quality)
+                  {
+                     default: ETCPACK::compressBlockETC2Fast      (rgb[0][0].c, null, temp[0][0].c, 4, 4, 0, 0, d[0], d[1], ETCPACK::ETC2PACKAGE_RGB_NO_MIPMAPS); break;
+                  #if EXHAUSTIVE_CODE_ACTIVE
+                     case  1: ETCPACK::compressBlockETC2Exhaustive(rgb[0][0].c,       temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+                  #endif
+                  }break;
+
+                  case IMAGE_ETC2_RGBA_SRGB: switch(quality)
+                  {
+                     default: ETCPACK::compressBlockETC2FastPerceptual      (rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+                  #if EXHAUSTIVE_CODE_ACTIVE
+                     case  1: ETCPACK::compressBlockETC2ExhaustivePerceptual(rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
+                  #endif
+                  }break;
+               }
+            }break;
+         }
+         SwapEndian(d[0]);
+         SwapEndian(d[1]);
+         no_swap:;
+      }
+   }
+
+   Bool process()
+   {
+      etc1=(dest.hwType()==IMAGE_ETC1);
+      if(etc1 || dest.hwType()==IMAGE_ETC2_R      || dest.hwType()==IMAGE_ETC2_RG      || dest.hwType()==IMAGE_ETC2_RGB      || dest.hwType()==IMAGE_ETC2_RGBA1      || dest.hwType()==IMAGE_ETC2_RGBA
+              || dest.hwType()==IMAGE_ETC2_R_SIGN || dest.hwType()==IMAGE_ETC2_RG_SIGN || dest.hwType()==IMAGE_ETC2_RGB_SRGB || dest.hwType()==IMAGE_ETC2_RGBA1_SRGB || dest.hwType()==IMAGE_ETC2_RGBA_SRGB)
+    //if(dest.size3()==src.size3()) this check is not needed because the code below supports different sizes
+      {
+         ImageThreads.init();
+
       #if ETC1_ENC==ETC_LIB_ISPC // ISPC
+         if(etc1)GetProfile_etc_slow(&settings);
+      #endif
+      #if ETC1_ENC==ETC_LIB_RG // RG
          if(etc1)
          {
-            // to directly read from 'src', we need to match requirements for compressor, which needs:
-            read_from_src=((src.hwType()==IMAGE_R8G8B8A8 || src.hwType()==IMAGE_R8G8B8A8_SRGB) // IMAGE_R8G8B8A8 hw type
-                        && PaddedWidth (src.hwW(), src.hwH(), mip, src.hwType())==dest_mip_hwW   // src mip width  must be exactly the same as dest mip width
-                        && PaddedHeight(src.hwW(), src.hwH(), mip, src.hwType())==dest_mip_hwH); // src mip height must be exactly the same as dest mip height
-            if(!read_from_src)s=&temp;
+            rg_etc1::pack_etc1_block_init();
+            switch(quality)
+            {
+               case 0: pack.m_quality=rg_etc1::cLowQuality   ; break; // makes gradients look bad
+      default: case 1: pack.m_quality=rg_etc1::cMediumQuality; break; // much faster than high and almost as good
+               case 2: pack.m_quality=rg_etc1::cHighQuality  ; break; // very slow
+            }
+            pack.m_dithering=false; // dithering here is actually very bad
          }
       #endif
-         Int x_blocks=dest_mip_hwW/4, // operate on HW size to process partial and Pow2Padded blocks too
-             y_blocks=dest_mip_hwH/4;
-         REPD(face, dest.faces())
+      #if ETC1_ENC==ETC_LIB_ETCPACK || ETC2_ENC==ETC_LIB_ETCPACK // ETCPACK
+         if(etc1 ? ETC1_ENC==ETC_LIB_ETCPACK : ETC2_ENC==ETC_LIB_ETCPACK)
          {
-            if(!read_from_src)
-            {
-               if(!src.extractNonCompressedMipMapNoStretch(temp, dest_mip_hwW, dest_mip_hwH, 1, mip, (DIR_ENUM)Min(face, src_faces1), true))return false;
-               if(temp.hwType()!=IMAGE_R8G8B8A8 && temp.hwType()!=IMAGE_R8G8B8A8_SRGB)if(!temp.copyTry(temp, -1, -1, -1, dest.sRGB() ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8))return false;
-            }else
-            if(! src.lockRead(            mip, (DIR_ENUM)Min(face, src_faces1)))                                return false; // we have to lock only for 'src' because 'temp' is 1mip-1face-SOFT and doesn't need locking
-            if(!dest.lock    (LOCK_WRITE, mip, (DIR_ENUM)    face             )){if(read_from_src)src.unlock(); return false;}
+            if(quality<0)quality=0; // default to 0 as 1 is just too slow
+            quality=Mid(quality, 0, EXHAUSTIVE_CODE_ACTIVE);
+            block_size=ImageTI[dest.hwType()].bit_pp*2;
+         }
+      #endif
 
+         Int src_faces1=src.faces()-1;
+         Image temp; // defined outside of loop to avoid overhead
+         REPD(mip, Min(src.mipMaps(), dest.mipMaps()))
+         {
+            s=&src;
+            Bool read_from_src=true;
+            Int  dest_mip_hwW=PaddedWidth (dest.hwW(), dest.hwH(), mip, dest.hwType()),
+                 dest_mip_hwH=PaddedHeight(dest.hwW(), dest.hwH(), mip, dest.hwType());
          #if ETC1_ENC==ETC_LIB_ISPC // ISPC
             if(etc1)
             {
-               fast=(dest.pitch()==x_blocks*8);
-               surf.width =s->lw   ();
-               surf.height=s->lh   ();
-               surf.stride=s->pitch();
+               // to directly read from 'src', we need to match requirements for compressor, which needs:
+               read_from_src=((src.hwType()==IMAGE_R8G8B8A8 || src.hwType()==IMAGE_R8G8B8A8_SRGB) // IMAGE_R8G8B8A8 hw type
+                           && PaddedWidth (src.hwW(), src.hwH(), mip, src.hwType())==dest_mip_hwW   // src mip width  must be exactly the same as dest mip width
+                           && PaddedHeight(src.hwW(), src.hwH(), mip, src.hwType())==dest_mip_hwH); // src mip height must be exactly the same as dest mip height
+               if(!read_from_src)s=&temp;
             }
          #endif
-
-            REPD(z, dest.ld())
+            x_blocks=dest_mip_hwW/4; // operate on HW size to process partial and Pow2Padded blocks too
+            y_blocks=dest_mip_hwH/4;
+            REPD(face, dest.faces())
             {
-               Int sz=Min(z, s->ld()-1);
-               // compress
+               if(!read_from_src)
+               {
+                  if(!src.extractNonCompressedMipMapNoStretch(temp, dest_mip_hwW, dest_mip_hwH, 1, mip, (DIR_ENUM)Min(face, src_faces1), true))return false;
+                  if(temp.hwType()!=IMAGE_R8G8B8A8 && temp.hwType()!=IMAGE_R8G8B8A8_SRGB)if(!temp.copyTry(temp, -1, -1, -1, dest.sRGB() ? IMAGE_R8G8B8A8_SRGB : IMAGE_R8G8B8A8))return false;
+               }else
+               if(! src.lockRead(            mip, (DIR_ENUM)Min(face, src_faces1)))                                return false; // we have to lock only for 'src' because 'temp' is 1mip-1face-SOFT and doesn't need locking
+               if(!dest.lock    (LOCK_WRITE, mip, (DIR_ENUM)    face             )){if(read_from_src)src.unlock(); return false;}
+
             #if ETC1_ENC==ETC_LIB_ISPC // ISPC
                if(etc1)
                {
-                         surf.ptr=ConstCast(s->data() + sz*s  ->pitch2());
-                  Byte *dest_data=        dest.data() +  z*dest.pitch2();
-                  if(fast)CompressBlocksETC1(&surf, dest_data, &settings);else
-                  {
-                     surf.height=4;
-                     REP(y_blocks)
-                     {
-                        CompressBlocksETC1(&surf, dest_data, &settings);
-                        surf.ptr +=s  ->pitch()*4;
-                        dest_data+=dest.pitch();
-                     }
-                  }
-               }else
+                  fast=(dest.pitch()==x_blocks*8);
+                  surf.width =s->lw   ();
+                  surf.height=s->lh   ();
+                  surf.stride=s->pitch();
+               }
             #endif
-            #if ETC1_ENC==ETC_LIB_RG // RG
-               if(etc1)
+
+               REPD(z, dest.ld())
                {
-                  REPD(by, y_blocks)
+                  sz=Min(z, s->ld()-1);
+                  dest_data_z=dest.data() + z*dest.pitch2();
+                  // compress
+               #if ETC1_ENC==ETC_LIB_ISPC // ISPC
+                  if(etc1)
                   {
-                     Int py=by*4, yo[4]; REPAO(yo)=Min(py+i, s->lh()-1); // use clamping to avoid black borders
-                     Byte *dest_data=dest.data() + by*dest.pitch() + z*dest.pitch2();
-                     REPD(bx, x_blocks)
+                     surf.ptr=ConstCast(s->data() + sz*s->pitch2());
+                     if(fast)CompressBlocksETC1(&surf, dest_data_z, &settings);else
                      {
-                        Int px=bx*4, xo[4]; REPAO(xo)=Min(px+i, s->lw()-1); // use clamping to avoid black borders
-                        Color rgba[4][4]; s->gather(&rgba[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
-                        rg_etc1::pack_etc1_block((UInt*)(dest_data + bx*8), (UInt*)rgba, pack);
-                     }
-                  }
-               }else
-            #endif
-            #if ETC1_ENC==ETC_LIB_ETCPACK || ETC2_ENC==ETC_LIB_ETCPACK // ETCPACK
-               if(etc1 ? ETC1_ENC==ETC_LIB_ETCPACK : ETC2_ENC==ETC_LIB_ETCPACK)
-               {
-                  REPD(by, y_blocks)
-                  {
-                     Int py=by*4, yo[4]; REPAO(yo)=Min(py+i, s->lh()-1); // use clamping to avoid black borders
-                     Byte *dest_data=dest.data() + by*dest.pitch() + z*dest.pitch2();
-                     REPD(bx, x_blocks)
-                     {
-                        Int px=bx*4, xo[4]; REPAO(xo)=Min(px+i, s->lw()-1); // use clamping to avoid black borders
-                        Vec2  rg  [4][4];
-                        VecB  rgb [4][4];
-                        Color rgba[4][4];
-                        Byte     a[4][4];
-                        Color temp[4][4];
-                        UInt *d=(UInt*)(dest_data + bx*block_size);
-                        switch(dest.hwType())
+                        surf.height=4;
+                        REP(y_blocks)
                         {
-                           case IMAGE_ETC1: s->gather(&rgb[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1); switch(quality)
-                           {
-                              default: ETCPACK::compressBlockDiffFlipFast  (rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
-                           #if EXHAUSTIVE_CODE_ACTIVE
-                              case  1: ETCPACK::compressBlockETC1Exhaustive(rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
-                           #endif
-                           }break;
-
-                         /*case IMAGE_ETC1_SRGB: s->gather(&rgb[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1); switch(quality)
-                           {
-                              default: ETCPACK::compressBlockDiffFlipFastPerceptual  (rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
-                           #if EXHAUSTIVE_CODE_ACTIVE
-                              case  1: ETCPACK::compressBlockETC1ExhaustivePerceptual(rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
-                           #endif
-                           }break;*/
-
-                           case IMAGE_ETC2_R:
-                           {
-                              s->gather(&rg[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
-                              U16 src[4*4]; REPAO(src)=FltToU16(rg[0][i].x); ETCPACK::compressBlockAlpha16(src, (Byte*)d, false);
-                           }goto no_swap;
-
-                           case IMAGE_ETC2_R_SIGN:
-                           {
-                              s->gather(&rg[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
-                              U16 src[4*4]; REPAO(src)=SFltToShort(rg[0][i].x)+32768; ETCPACK::compressBlockAlpha16(src, (Byte*)d, true);
-                           }goto no_swap;
-
-                           case IMAGE_ETC2_RG:
-                           {
-                              s->gather(&rg[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
-                              U16 src[4*4]; REPAO(src)=FltToU16(rg[0][i].x); ETCPACK::compressBlockAlpha16(src, (Byte*)d  , false);
-                                            REPAO(src)=FltToU16(rg[0][i].y); ETCPACK::compressBlockAlpha16(src, (Byte*)d+8, false);
-                           }goto no_swap;
-
-                           case IMAGE_ETC2_RG_SIGN:
-                           {
-                              s->gather(&rg[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
-                              U16 src[4*4]; REPAO(src)=SFltToShort(rg[0][i].x)+32768; ETCPACK::compressBlockAlpha16(src, (Byte*)d  , true);
-                                            REPAO(src)=SFltToShort(rg[0][i].y)+32768; ETCPACK::compressBlockAlpha16(src, (Byte*)d+8, true);
-                           }goto no_swap;
-
-                           case IMAGE_ETC2_RGB: s->gather(&rgb[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1); switch(quality)
-                           {
-                              default: ETCPACK::compressBlockETC2Fast      (rgb[0][0].c, null, temp[0][0].c, 4, 4, 0, 0, d[0], d[1], ETCPACK::ETC2PACKAGE_RGB_NO_MIPMAPS); break;
-                           #if EXHAUSTIVE_CODE_ACTIVE
-                              case  1: ETCPACK::compressBlockETC2Exhaustive(rgb[0][0].c,       temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
-                           #endif
-                           }break;
-
-                           case IMAGE_ETC2_RGB_SRGB: s->gather(&rgb[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1); switch(quality)
-                           {
-                              default: ETCPACK::compressBlockETC2FastPerceptual      (rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
-                           #if EXHAUSTIVE_CODE_ACTIVE
-                              case  1: ETCPACK::compressBlockETC2ExhaustivePerceptual(rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
-                           #endif
-                           }break;
-
-                           case IMAGE_ETC2_RGBA1: case IMAGE_ETC2_RGBA1_SRGB:
-                           {
-                              s->gather(&rgba[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
-                              REPD(y, 4)
-                              REPD(x, 4)
-                              {
-                                 rgb[y][x]=  rgba[y][x].v3;
-                                 a  [y][x]=((rgba[y][x].a>=128) ? 255 : 0); // manually adjust because compressor has issues
-                              }
-                              ETCPACK::compressBlockETC2Fast(rgb[0][0].c, &a[0][0], temp[0][0].c, 4, 4, 0, 0, d[0], d[1], ETCPACK::ETC2PACKAGE_RGBA1_NO_MIPMAPS);
-                           }break;
-
-                           case IMAGE_ETC2_RGBA: case IMAGE_ETC2_RGBA_SRGB:
-                           {
-                              s->gather(&rgba[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
-                              REPD(y, 4)
-                              REPD(x, 4)
-                              {
-                                 rgb[y][x]=rgba[y][x].v3;
-                                 a  [y][x]=rgba[y][x].a;
-                              }
-
-                              switch(quality)
-                              {
-                                 default: ETCPACK::compressBlockAlphaFast(&a[0][0], 0, 0, 4, 4, (Byte*)d); break;
-                                 case  1: ETCPACK::compressBlockAlphaSlow(&a[0][0], 0, 0, 4, 4, (Byte*)d); break;
-                              }
-
-                              d+=2;
-
-                              switch(dest.hwType())
-                              {
-                                 case IMAGE_ETC2_RGBA: switch(quality)
-                                 {
-                                    default: ETCPACK::compressBlockETC2Fast      (rgb[0][0].c, null, temp[0][0].c, 4, 4, 0, 0, d[0], d[1], ETCPACK::ETC2PACKAGE_RGB_NO_MIPMAPS); break;
-                                 #if EXHAUSTIVE_CODE_ACTIVE
-                                    case  1: ETCPACK::compressBlockETC2Exhaustive(rgb[0][0].c,       temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
-                                 #endif
-                                 }break;
-
-                                 case IMAGE_ETC2_RGBA_SRGB: switch(quality)
-                                 {
-                                    default: ETCPACK::compressBlockETC2FastPerceptual      (rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
-                                 #if EXHAUSTIVE_CODE_ACTIVE
-                                    case  1: ETCPACK::compressBlockETC2ExhaustivePerceptual(rgb[0][0].c, temp[0][0].c, 4, 4, 0, 0, d[0], d[1]); break;
-                                 #endif
-                                 }break;
-                              }
-                           }break;
+                           CompressBlocksETC1(&surf, dest_data_z, &settings);
+                           surf.ptr   +=s  ->pitch()*4;
+                           dest_data_z+=dest.pitch();
                         }
-                        SwapEndian(d[0]);
-                        SwapEndian(d[1]);
-                        no_swap:;
                      }
-                  }
-               }else
-            #endif
-                  {}
-
+                  }else
+               #endif
+               #if ETC1_ENC==ETC_LIB_RG // RG
+                  if(etc1)
+                  {
+                     REPD(by, y_blocks)
+                     {
+                        Int py=by*4, yo[4]; REPAO(yo)=Min(py+i, s->lh()-1); // use clamping to avoid black borders
+                        Byte *dest_data=dest_data_z + by*dest.pitch();
+                        REPD(bx, x_blocks)
+                        {
+                           Int px=bx*4, xo[4]; REPAO(xo)=Min(px+i, s->lw()-1); // use clamping to avoid black borders
+                           Color rgba[4][4]; s->gather(&rgba[0][0], xo, Elms(xo), yo, Elms(yo), &sz, 1);
+                           rg_etc1::pack_etc1_block((UInt*)(dest_data + bx*8), (UInt*)rgba, pack);
+                        }
+                     }
+                  }else
+               #endif
+               #if ETC1_ENC==ETC_LIB_ETCPACK || ETC2_ENC==ETC_LIB_ETCPACK // ETCPACK
+                  if(etc1 ? ETC1_ENC==ETC_LIB_ETCPACK : ETC2_ENC==ETC_LIB_ETCPACK)
+                  {
+                     ImageThreads.process(y_blocks, ETCContext::Process, T);
+                  }else
+               #endif
+                     {}
+               }
+                               dest.unlock();
+               if(read_from_src)src.unlock();
             }
-                            dest.unlock();
-            if(read_from_src)src.unlock();
          }
+         return true;
       }
-      return true;
+      return false;
    }
-   return false;
+};
+/******************************************************************************/
+Bool _CompressETC(C Image &src, Image &dest, Int quality)
+{
+   ETCContext ctx(src, dest, quality); return ctx.process();
 }
 /******************************************************************************/
 }

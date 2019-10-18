@@ -38,27 +38,12 @@
 
 namespace EE{
 /******************************************************************************/
-static struct BCThreads
+#if BC_ENC==BC_LIB_BC7ENC16
+static struct BC7ENC16Init
 {
-   Threads  threads;
-   Bool     initialized;
-   SyncLock lock;
-
-   void init()
-   {
-      if(!initialized)
-      {
-         SyncLocker locker(lock); if(!initialized)
-         {
-         #if BC_ENC==BC_LIB_BC7ENC16
-            bc7enc16_compress_block_init();
-         #endif
-            threads.create(false, Cpu.threads()-1); // -1 because we will do processing on the caller thread too
-            initialized=true; // enable at the end
-         }
-      }
-   }
-}BC;
+   BC7ENC16Init() {bc7enc16_compress_block_init();}
+}BI;
+#endif
 /******************************************************************************/
 struct Data
 {
@@ -100,7 +85,7 @@ struct Data
    {
       T.src=&src;
       Int total_blocks=src.lh()/4;
-      threads=Min(total_blocks, BC.threads.threads1()); // +1 because we will do processing on the caller thread too
+      threads=Min(total_blocks, ImageThreads.threads1()); // +1 because we will do processing on the caller thread too
       thread_blocks=total_blocks/threads;
    }
 };
@@ -159,7 +144,7 @@ Bool _CompressBC67(C Image &src, Image &dest)
 {
    if(dest.hwType()==IMAGE_BC6 || dest.hwType()==IMAGE_BC7 || dest.hwType()==IMAGE_BC7_SRGB)
    {
-      BC.init(); Data data(dest);
+      ImageThreads.init(); Data data(dest);
       Int src_faces1=src.faces()-1;
       Image temp; // define outside loop to avoid overhead
       REPD(mip, Min(src.mipMaps(), dest.mipMaps()))
@@ -182,8 +167,8 @@ Bool _CompressBC67(C Image &src, Image &dest)
             if(! src.lockRead(            mip, (DIR_ENUM)Min(face, src_faces1)))                                return false; // we have to lock only for 'src' because 'temp' is 1mip-1face-SOFT and doesn't need locking
             if(!dest.lock    (LOCK_WRITE, mip, (DIR_ENUM)    face             )){if(read_from_src)src.unlock(); return false;}
 
-            data.init(s); // !! call after 'BC.init' !!
-            BC.threads.process1(data.threads, CompressBC67Block, data, INT_MAX); // use all available threads, including this one
+            data.init(s); // !! call after 'ImageThreads.init' !!
+            ImageThreads.process(data.threads, CompressBC67Block, data);
 
                             dest.unlock();
             if(read_from_src)src.unlock();

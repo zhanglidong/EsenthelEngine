@@ -905,9 +905,11 @@ void Threads::zero()
   _elm_size=0;
   _calls_pos=0;
   _waiting=0;
+  _created=false;
 }
 void Threads::del()
 {
+   SyncLocker locker(_lock_process);
    AtomicSet(_left, 0); // this will stop processing priority elements so we don't have to check 'wantStop' every time
    REPAO(_threads).stop(); // notify all threads that we want to stop
   _wake_threads+=_threads.elms(); // wake up all of them in case they are sleeping
@@ -917,6 +919,7 @@ void Threads::del()
 }
 void Threads::create(Bool ordered, Int threads, Int priority, C Str8 &name)
 {
+   SyncLocker locker(_lock_process);
    del();
    T._ordered=ordered;
 #if !HAS_THREADS
@@ -926,6 +929,15 @@ void Threads::create(Bool ordered, Int threads, Int priority, C Str8 &name)
   
    ASSERT_BASE_EXTENDED<Thread, ThreadEx>();
    REPAO(_threads).create((Bool(*)(Thread&))ThreadsFunc, this, priority, false, name.is() ? name+i : name);
+  _created=true; // set this last, to indicate object is now fully created
+}
+void Threads::createIfEmpty(Bool ordered, Int threads, Int priority, C Str8 &name)
+{
+   if(!created())
+   {
+      SyncLocker locker(_lock_process);
+      if(!created())create(ordered, threads, priority, name);
+   }
 }
 /******************************************************************************/
 Bool Threads::wantStop     ()C {return _threads.elms() ? _threads[0].wantStop() : false;}
