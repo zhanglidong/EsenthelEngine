@@ -396,6 +396,15 @@ void DrawProject()
    void ProjectEx::SoundPlay(ProjectEx &proj) {if(proj.sound.playing() && proj.list.sound_play.lit_id==proj.list.sound_play.play_id)proj.sound.close();else{proj.sound.close(); if(Elm *elm=proj.findElm(proj.list.sound_play.lit_id, ELM_SOUND)){proj.list.sound_play.play_id=elm->id; proj.sound.play(proj.gamePath(*elm));}}}
    void ProjectEx::ImageMipMapOn(ProjectEx &proj) {proj.imageMipMap(proj.menu_list_sel, true );}
    void ProjectEx::ImageMipMapOff(ProjectEx &proj) {proj.imageMipMap(proj.menu_list_sel, false);}
+   void ProjectEx::ImageResize0(ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 0);}
+   void ProjectEx::ImageResize16(ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 16);}
+   void ProjectEx::ImageResize32(ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 32);}
+   void ProjectEx::ImageResize64(ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 64);}
+   void ProjectEx::ImageResize128(ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 128);}
+   void ProjectEx::ImageResize256(ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 256);}
+   void ProjectEx::ImageResize512(ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 512);}
+   void ProjectEx::ImageResize1024(ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 1024);}
+   void ProjectEx::ImageResize2048(ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 2048);}
    void ProjectEx::MtrlRGB1(ProjectEx &proj) {proj.mtrlRGB            (proj.menu_list_sel, 1);}
    void ProjectEx::MtrlRGB(ProjectEx &proj) {SetMtrlColor.display    (proj.menu_list_sel);}
    void ProjectEx::MtrlMulRGB(ProjectEx &proj) {SetMtrlColor.display    (proj.menu_list_sel, true);}
@@ -1366,6 +1375,20 @@ void DrawProject()
       {
          image_data->newVer();
          image_data->mipMaps(on); image_data->mip_maps_time.now();
+         makeGameVer(*image);
+         Server.setElmShort(image->id);
+      }
+   }
+   void ProjectEx::imageResize(C MemPtr<UID> &elm_ids, C VecI2 &size)
+   {
+      REPA(elm_ids)
+      if(Elm *image=findElm(elm_ids[i], ELM_IMAGE))
+      if(ElmImage *image_data=image->imageData())
+      if(image_data->size!=size)
+      if(ImageEdit.elm==image)ImageEdit.setSize(size);else
+      {
+         image_data->newVer();
+         image_data->size=size; image_data->size_time.now();
          makeGameVer(*image);
          Server.setElmShort(image->id);
       }
@@ -3525,6 +3548,18 @@ void DrawProject()
                {
                   m.New().create("Enable Mip-Maps" , ImageMipMapOn , T).desc("This option will enable Mip-Maps for all selected images");
                   m.New().create("Disable Mip-Maps", ImageMipMapOff, T).desc("This option will disable Mip-Maps for all selected images");
+                  Node<MenuElm> &r=(m+="Resize");
+                  {
+                     r.New().create("Original" , ImageResize0, T);
+                     r.New().create("16x16"    , ImageResize16, T);
+                     r.New().create("32x32"    , ImageResize32, T);
+                     r.New().create("64x64"    , ImageResize64, T);
+                     r.New().create("128x128"  , ImageResize128, T);
+                     r.New().create("256x256"  , ImageResize256, T);
+                     r.New().create("512x512"  , ImageResize512, T);
+                     r.New().create("1024x1024", ImageResize1024, T);
+                     r.New().create("2048x2048", ImageResize2048, T);
+                  }
                }
             }
             if(material)

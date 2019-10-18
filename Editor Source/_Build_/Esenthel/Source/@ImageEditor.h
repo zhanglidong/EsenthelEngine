@@ -81,7 +81,8 @@ public:
    static void Redo  (ImageEditor &editor);
    static void Locate(ImageEditor &editor);
 
-   void setMipMap(bool on);
+   void setMipMap(bool on      );
+   void setSize  (C VecI2 &size);
 
    void create();
    void make2D();

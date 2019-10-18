@@ -348,6 +348,16 @@ class ProjectEx : ProjectHierarchy
    static void ImageMipMapOn (ProjectEx &proj) {proj.imageMipMap(proj.menu_list_sel, true );}
    static void ImageMipMapOff(ProjectEx &proj) {proj.imageMipMap(proj.menu_list_sel, false);}
 
+   static void ImageResize0   (ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 0);}
+   static void ImageResize16  (ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 16);}
+   static void ImageResize32  (ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 32);}
+   static void ImageResize64  (ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 64);}
+   static void ImageResize128 (ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 128);}
+   static void ImageResize256 (ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 256);}
+   static void ImageResize512 (ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 512);}
+   static void ImageResize1024(ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 1024);}
+   static void ImageResize2048(ProjectEx &proj) {proj.imageResize(proj.menu_list_sel, 2048);}
+
    static void MtrlRGB1                (ProjectEx &proj) {proj.mtrlRGB            (proj.menu_list_sel, 1);}
    static void MtrlRGB                 (ProjectEx &proj) {SetMtrlColor.display    (proj.menu_list_sel);}
    static void MtrlMulRGB              (ProjectEx &proj) {SetMtrlColor.display    (proj.menu_list_sel, true);}
@@ -1343,6 +1353,20 @@ class ProjectEx : ProjectHierarchy
       {
          image_data.newVer();
          image_data.mipMaps(on); image_data.mip_maps_time.now();
+         makeGameVer(*image);
+         Server.setElmShort(image.id);
+      }
+   }
+   void imageResize(C MemPtr<UID> &elm_ids, C VecI2 &size)
+   {
+      REPA(elm_ids)
+      if(Elm *image=findElm(elm_ids[i], ELM_IMAGE))
+      if(ElmImage *image_data=image.imageData())
+      if(image_data.size!=size)
+      if(ImageEdit.elm==image)ImageEdit.setSize(size);else
+      {
+         image_data.newVer();
+         image_data.size=size; image_data.size_time.now();
          makeGameVer(*image);
          Server.setElmShort(image.id);
       }
@@ -3592,6 +3616,18 @@ class ProjectEx : ProjectHierarchy
                {
                   m.New().create("Enable Mip-Maps" , ImageMipMapOn , T).desc("This option will enable Mip-Maps for all selected images");
                   m.New().create("Disable Mip-Maps", ImageMipMapOff, T).desc("This option will disable Mip-Maps for all selected images");
+                  Node<MenuElm> &r=(m+="Resize");
+                  {
+                     r.New().create("Original" , ImageResize0, T);
+                     r.New().create("16x16"    , ImageResize16, T);
+                     r.New().create("32x32"    , ImageResize32, T);
+                     r.New().create("64x64"    , ImageResize64, T);
+                     r.New().create("128x128"  , ImageResize128, T);
+                     r.New().create("256x256"  , ImageResize256, T);
+                     r.New().create("512x512"  , ImageResize512, T);
+                     r.New().create("1024x1024", ImageResize1024, T);
+                     r.New().create("2048x2048", ImageResize2048, T);
+                  }
                }
             }
             if(material)

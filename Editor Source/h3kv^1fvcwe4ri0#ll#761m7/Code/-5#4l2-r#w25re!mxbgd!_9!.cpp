@@ -175,7 +175,8 @@ class ImageEditor : PropWin
    static void Redo  (ImageEditor &editor) {editor.undos.redo();}
    static void Locate(ImageEditor &editor) {Proj.elmLocate(editor.elm_id);}
 
-   void setMipMap(bool on) {undos.set("mipMap"); MipMaps(T, on); setChanged(); toGui();}
+   void setMipMap(bool on      ) {                       undos.set("mipMap"); MipMaps(T, on);                    setChanged(); toGui(); }
+   void setSize  (C VecI2 &size) {if(ElmImage *d=data()){undos.set("size"  ); d.size=size; d.size_time.getUTC(); setChanged(); toGui();}}
 
    void create()
    {

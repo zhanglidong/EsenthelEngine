@@ -213,6 +213,16 @@ public:
    static void ImageMipMapOn (ProjectEx &proj);
    static void ImageMipMapOff(ProjectEx &proj);
 
+   static void ImageResize0   (ProjectEx &proj);
+   static void ImageResize16  (ProjectEx &proj);
+   static void ImageResize32  (ProjectEx &proj);
+   static void ImageResize64  (ProjectEx &proj);
+   static void ImageResize128 (ProjectEx &proj);
+   static void ImageResize256 (ProjectEx &proj);
+   static void ImageResize512 (ProjectEx &proj);
+   static void ImageResize1024(ProjectEx &proj);
+   static void ImageResize2048(ProjectEx &proj);
+
    static void MtrlRGB1                (ProjectEx &proj);
    static void MtrlRGB                 (ProjectEx &proj);
    static void MtrlMulRGB              (ProjectEx &proj);
@@ -337,6 +347,7 @@ public:
    void removeMeshVtx(C MemPtr<UID> &elm_ids, uint flag);
    bool forceImageSize(Str &file, C VecI2 &size, bool relative, TimeStamp &file_time, C TimeStamp &time);
    void imageMipMap(C MemPtr<UID> &elm_ids, bool on);
+   void imageResize(C MemPtr<UID> &elm_ids, C VecI2 &size);
    void mtrlRGB(C MemPtr<UID> &elm_ids, C Vec &srgb, bool mul=false);
    void mtrlAlpha(C MemPtr<UID> &elm_ids);
    void mtrlCull(C MemPtr<UID> &elm_ids, bool on);

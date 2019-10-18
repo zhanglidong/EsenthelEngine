@@ -140,7 +140,8 @@ ImageEditor ImageEdit;
    void ImageEditor::Undo(ImageEditor &editor) {editor.undos.undo();}
    void ImageEditor::Redo(ImageEditor &editor) {editor.undos.redo();}
    void ImageEditor::Locate(ImageEditor &editor) {Proj.elmLocate(editor.elm_id);}
-   void ImageEditor::setMipMap(bool on) {undos.set("mipMap"); MipMaps(T, on); setChanged(); toGui();}
+   void ImageEditor::setMipMap(bool on      ) {                       undos.set("mipMap"); MipMaps(T, on);                    setChanged(); toGui(); }
+   void ImageEditor::setSize(C VecI2 &size) {if(ElmImage *d=data()){undos.set("size"  ); d->size=size; d->size_time.getUTC(); setChanged(); toGui();}}
    void ImageEditor::create()
    {
       ListColumn lct[]=
