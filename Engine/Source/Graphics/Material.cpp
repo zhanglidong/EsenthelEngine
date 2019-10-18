@@ -376,24 +376,24 @@ void Material::_adjustParams(UInt old_base_tex, UInt new_base_tex)
    if(changed&(BT_BUMP|BT_NORMAL))
    {
       if(!(new_base_tex&BT_BUMP) && !(new_base_tex&BT_NORMAL))normal=0;else
-      if(                                     normal<=EPS_COL)normal=1;
+      if(                                    normal<=EPS_COL8)normal=1;
    }
 
    if(changed&BT_SMOOTH)
-      if((new_base_tex&BT_SMOOTH) && smooth<=EPS_COL)smooth=1;
+      if((new_base_tex&BT_SMOOTH) && smooth<=EPS_COL8)smooth=1;
 
    if(changed&BT_REFLECT)
-      if((new_base_tex&BT_REFLECT) && reflect<=REFLECT_DEFAULT_PAR+EPS_COL)reflect=1;
+      if((new_base_tex&BT_REFLECT) && reflect<=REFLECT_DEFAULT_PAR+EPS_COL8)reflect=1;
 
    if(changed&BT_GLOW)
-      if((new_base_tex&BT_GLOW) && glow<=EPS_COL)glow=1;
+      if((new_base_tex&BT_GLOW) && glow<=EPS_COL8)glow=1;
 
    if(changed&BT_ALPHA)
    {
       if(new_base_tex&BT_ALPHA)
       {
-         if(!hasAlphaBlend() && color_l.w>=1-EPS_COL)color_l.w=0.5f;
-         if(!hasAlpha     ()                        )technique=MTECH_ALPHA_TEST;
+         if(!hasAlphaBlend() && color_l.w>=1-EPS_COL8)color_l.w=0.5f;
+         if(!hasAlpha     ()                         )technique=MTECH_ALPHA_TEST;
       }else
       {
          if(hasAlpha())technique=MTECH_DEFAULT; // disable alpha technique if alpha map is not available

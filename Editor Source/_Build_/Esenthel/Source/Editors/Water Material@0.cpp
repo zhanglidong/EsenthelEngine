@@ -206,7 +206,7 @@ WaterMtrlRegion WaterMtrlEdit;
    void WaterMtrlRegion::rebuildMacro()
 {
    }
-   void WaterMtrlRegion::rebuildLight()
+   void WaterMtrlRegion::rebuildLight(bool old_light_map, bool adjust_params)
 {
    }
    void WaterMtrlRegion::elmChanged(C UID &mtrl_id)

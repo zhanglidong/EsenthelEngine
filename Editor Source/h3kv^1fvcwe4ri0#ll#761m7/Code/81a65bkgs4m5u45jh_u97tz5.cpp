@@ -1553,15 +1553,16 @@ class ProjectEx : ProjectHierarchy
          if(MtrlEdit.elm_id==elm_id)
          {
             MtrlEdit.undos.set(undo_change_type);
-               uint base_tex=MtrlEdit.edit.baseTex(); // get current state of textures before making any change
-            if(uint changed =MtrlEdit.edit.sync(mtrl))
+               uint base_tex =MtrlEdit.edit.baseTex(); // get current state of textures before making any change
+               bool light_map=MtrlEdit.edit.hasLightMap();
+            if(uint changed  =MtrlEdit.edit.sync(mtrl))
             {
                if(reload_textures)
                {
                   if(changed&EditMaterial.CHANGED_BASE )MtrlEdit.rebuildBase  (base_tex, FlagTest(changed, EditMaterial.CHANGED_FNY), adjust_params, true);
                   if(changed&EditMaterial.CHANGED_DET  )MtrlEdit.rebuildDetail();
                   if(changed&EditMaterial.CHANGED_MACRO)MtrlEdit.rebuildMacro ();
-                  if(changed&EditMaterial.CHANGED_LIGHT)MtrlEdit.rebuildLight ();
+                  if(changed&EditMaterial.CHANGED_LIGHT)MtrlEdit.rebuildLight (light_map, adjust_params);
                }else
                {
                   if(changed&(EditMaterial.CHANGED_BASE|EditMaterial.CHANGED_DET|EditMaterial.CHANGED_MACRO|EditMaterial.CHANGED_LIGHT))mtrlTexChanged();
@@ -1578,7 +1579,8 @@ class ProjectEx : ProjectHierarchy
             {
                // load
                EditMaterial edit; if(!mtrlGet(elm_id, edit))return false;
-               uint         old_base_tex=edit.baseTex();
+               uint         old_base_tex =edit.baseTex();
+               bool         old_light_map=edit.hasLightMap();
                if(uint changed=edit.sync(mtrl)) // if changed anything
                {
                   MaterialPtr game=gamePath(elm_id); if(!game)return false;
@@ -1594,7 +1596,7 @@ class ProjectEx : ProjectHierarchy
                   }
 
                   edit.copyTo(*game, T);
-                  if(adjust_params)AdjustMaterialParams(edit, *game, old_base_tex, new_base_tex);
+                  if(adjust_params)AdjustMaterialParams(edit, *game, old_base_tex, new_base_tex, old_light_map);
 
                   // save
                   if(ElmMaterial *data=elm.mtrlData()){data.newVer(); data.from(edit);}
@@ -1619,15 +1621,16 @@ class ProjectEx : ProjectHierarchy
          if(MtrlEdit.elm_id==elm_id)
          {
             MtrlEdit.undos.set("sync");
-               uint base_tex=MtrlEdit.edit.baseTex(); // get current state of textures before making any change
-            if(uint changed =MtrlEdit.edit.sync(mtrl))
+               uint base_tex =MtrlEdit.edit.baseTex(); // get current state of textures before making any change
+               bool light_map=MtrlEdit.edit.hasLightMap();
+            if(uint changed  =MtrlEdit.edit.sync(mtrl))
             {
                if(reload_textures)
                {
                   if(changed&EditMaterial.CHANGED_BASE )MtrlEdit.rebuildBase  (base_tex, FlagTest(changed, EditMaterial.CHANGED_FNY), adjust_params, true);
                   if(changed&EditMaterial.CHANGED_DET  )MtrlEdit.rebuildDetail();
                   if(changed&EditMaterial.CHANGED_MACRO)MtrlEdit.rebuildMacro ();
-                  if(changed&EditMaterial.CHANGED_LIGHT)MtrlEdit.rebuildLight ();
+                  if(changed&EditMaterial.CHANGED_LIGHT)MtrlEdit.rebuildLight (light_map, adjust_params);
                }
                MtrlEdit.toGui();
                MtrlEdit.setChanged();
@@ -1641,7 +1644,8 @@ class ProjectEx : ProjectHierarchy
             {
                // load
                EditMaterial edit; if(!mtrlGet(elm_id, edit))return false;
-               uint         old_base_tex=edit.baseTex();
+               uint         old_base_tex =edit.baseTex();
+               bool         old_light_map=edit.hasLightMap();
                if(uint changed=edit.sync(mtrl)) // if changed anything
                {
                   MaterialPtr game=gamePath(elm_id); if(!game)return false;
@@ -1657,7 +1661,7 @@ class ProjectEx : ProjectHierarchy
                   }
 
                   edit.copyTo(*game, T);
-                  if(adjust_params)AdjustMaterialParams(edit, *game, old_base_tex, new_base_tex);
+                  if(adjust_params)AdjustMaterialParams(edit, *game, old_base_tex, new_base_tex, old_light_map);
 
                   // save
                   if(ElmMaterial *data=elm.mtrlData()){data.newVer(); data.from(edit);}
@@ -1860,10 +1864,10 @@ class ProjectEx : ProjectHierarchy
          if(MtrlEdit.elm_id==elm_id)
          {
             MtrlEdit.undos.set("EI");
-            if(base  )MtrlEdit.rebuildBase(0, false, false, true);
+            if(base  )MtrlEdit.rebuildBase  (0, false, false, true);
             if(detail)MtrlEdit.rebuildDetail();
-            if(macro )MtrlEdit.rebuildMacro();
-            if(light )MtrlEdit.rebuildLight();
+            if(macro )MtrlEdit.rebuildMacro ();
+            if(light )MtrlEdit.rebuildLight (false, false);
             return true;
          }
          if(WaterMtrlEdit.elm_id==elm_id)
@@ -1872,7 +1876,7 @@ class ProjectEx : ProjectHierarchy
             if(base  )WaterMtrlEdit.rebuildBase(0, false, false, true);
             if(detail)WaterMtrlEdit.rebuildDetail();
             if(macro )WaterMtrlEdit.rebuildMacro();
-            if(light )WaterMtrlEdit.rebuildLight();
+            if(light )WaterMtrlEdit.rebuildLight(false, false);
             return true;
          }
          switch(elm.type)

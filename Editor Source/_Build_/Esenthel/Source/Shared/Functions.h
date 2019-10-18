@@ -148,7 +148,7 @@ bool EditToGameImage(Image &edit, Image &game, bool pow2, bool srgb, bool alpha_
 bool EditToGameImage(Image &edit, Image &game, C ElmImage &data, C int *force_type=null);
 void DrawPanelImage(C PanelImage &pi, C Rect &rect, bool draw_lines=false);
 bool UpdateMtrlBase1Tex(C Image &src, Image &dest);
-void AdjustMaterialParams(EditMaterial &edit, Material &game, uint old_base_tex, uint new_base_tex);
+void AdjustMaterialParams(EditMaterial &edit, Material &game, uint old_base_tex, uint new_base_tex, bool old_light_map);
 bool ImportImage(Image &image, C Str &name, int type=-1, int mode=-1, int mip_maps=-1, bool decompress=false);
 bool ValidChar(char c);
 bool ValidText(C Str &text, int min=1, int max=-1);

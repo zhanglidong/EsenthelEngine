@@ -98,7 +98,8 @@ MaterialTech mtrl_techs[]=
          {
             mr->undos.set(null, true);
             EditMaterial &mtrl=mr->getEditMtrl();
-            uint base_tex=mtrl.baseTex(); // get current state of textures before making any change
+            uint base_tex =mtrl.baseTex(); // get current state of textures before making any change
+            bool light_map=mtrl.hasLightMap();
           //if(type>=TEX_RFL_L && type<=TEX_RFL_U)file=SetCubeFile(md_file.asText(&mtrl), type-TEX_RFL_L, file);
             md_time.as<TimeStamp>(&mtrl).now();
             md_file.fromText     (&mtrl, file);
@@ -130,7 +131,7 @@ MaterialTech mtrl_techs[]=
             if(type>=TEX_BASE_BEGIN && type<=TEX_BASE_END)mr->rebuildBase  (base_tex);else
             if(type>=TEX_DET_BEGIN  && type<=TEX_DET_END )mr->rebuildDetail();else
             if(type==TEX_MACRO                           )mr->rebuildMacro ();else
-            if(type==TEX_LIGHT                           )mr->rebuildLight ();else
+            if(type==TEX_LIGHT                           )mr->rebuildLight (light_map);else
                                                           mr->setChanged   ();
 
             // if adjusting reflection texture, then adjust parameters of all other relfection slots, because they are connected
@@ -989,7 +990,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
          setChanged();
          Proj.mtrlTexChanged();
 
-         if(adjust_params)AdjustMaterialParams(edit, *game, old_base_tex, new_base_tex);
+         if(adjust_params)AdjustMaterialParams(edit, *game, old_base_tex, new_base_tex, edit.hasLightMap());
          D.setShader(game());
          toGui();
 
@@ -1026,7 +1027,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
          toGui();
       }
    }
-   void MaterialRegion::rebuildLight()
+   void MaterialRegion::rebuildLight(bool old_light_map, bool adjust_params)
    {
       if(elm && game)
       {
@@ -1035,6 +1036,7 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
          Proj.mtrlTexChanged();
          Time.skipUpdate(); // compressing textures can be slow
 
+         if(adjust_params)AdjustMaterialParams(edit, *game, edit.baseTex(), edit.baseTex(), old_light_map);
          D.setShader(game());
          toGui();
       }

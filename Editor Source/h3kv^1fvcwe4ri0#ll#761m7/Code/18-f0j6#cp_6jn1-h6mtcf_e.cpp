@@ -225,7 +225,7 @@ class WaterMtrlRegion : MaterialRegion
    virtual void rebuildMacro()override
    {
    }
-   virtual void rebuildLight()override
+   virtual void rebuildLight(bool old_light_map, bool adjust_params=true)override
    {
    }
 

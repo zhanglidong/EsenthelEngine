@@ -349,7 +349,7 @@ public:
    virtual void rebuildBase(uint old_base_tex, bool changed_flip_normal_y=false, bool adjust_params=true, bool always=false);
    virtual void rebuildDetail();
    virtual void rebuildMacro();
-   virtual void rebuildLight();
+   virtual void rebuildLight(bool old_light_map, bool adjust_params=true);
 
    virtual void elmChanged(C UID&mtrl_id);
    void erasing(C UID &elm_id);         

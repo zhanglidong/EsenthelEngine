@@ -6,6 +6,7 @@
    bool EditMaterial::hasBumpMap()C {return   bump_map.is() /*|| bump_from_color && color_map.is()*/;}
    bool EditMaterial::hasNormalMap()C {return normal_map.is() || hasBumpMap();}
    bool EditMaterial::hasDetailMap()C {return detail_color.is() || detail_bump.is() || detail_normal.is();}
+   bool EditMaterial::hasLightMap()C {return light_map.is();}
    bool EditMaterial::hasBase1Tex()C {return hasNormalMap();}
    bool EditMaterial::hasBase2Tex()C {return smooth_map.is() || reflect_map.is() || hasBumpMap() || glow_map.is();}
    uint EditMaterial::baseTex()C {return (color_map.is() ? BT_COLOR : 0)|(alpha_map.is() ? BT_ALPHA : 0)|(hasBumpMap() ? BT_BUMP : 0)|(hasNormalMap() ? BT_NORMAL : 0)|(smooth_map.is() ? BT_SMOOTH : 0)|(reflect_map.is() ? BT_REFLECT : 0)|(glow_map.is() ? BT_GLOW : 0);}

@@ -83,7 +83,7 @@ class WaterMtrlRegion : MaterialRegion
    virtual void rebuildBase(uint old_base_tex, bool changed_flip_normal_y=false, bool adjust_params=true, bool always=false)override;
    virtual void rebuildDetail()override;
    virtual void rebuildMacro()override;
-   virtual void rebuildLight()override;
+   virtual void rebuildLight(bool old_light_map, bool adjust_params=true)override;
 
    virtual void elmChanged(C UID &mtrl_id)override;
 

@@ -25,6 +25,7 @@ class EditMaterial
    bool hasBumpMap   ()C;
    bool hasNormalMap ()C;
    bool hasDetailMap ()C;
+   bool hasLightMap  ()C;
    bool hasBase1Tex  ()C; // #MaterialTextureLayout
    bool hasBase2Tex  ()C; // #MaterialTextureLayout
    uint baseTex      ()C;

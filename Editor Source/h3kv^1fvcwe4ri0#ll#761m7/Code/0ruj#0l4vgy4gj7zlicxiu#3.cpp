@@ -803,7 +803,7 @@ bool UpdateMtrlBase1Tex(C Image &src, Image &dest)
    return false;
 }
 /******************************************************************************/
-void AdjustMaterialParams(EditMaterial &edit, Material &game, uint old_base_tex, uint new_base_tex)
+void AdjustMaterialParams(EditMaterial &edit, Material &game, uint old_base_tex, uint new_base_tex, bool old_light_map)
 {
    TimeStamp time; time.getUTC();
    game._adjustParams(old_base_tex, new_base_tex);
@@ -814,6 +814,13 @@ void AdjustMaterialParams(EditMaterial &edit, Material &game, uint old_base_tex,
    SyncByValueEqual(edit. smooth_time, time, edit.smooth   , game.smooth   );
    SyncByValueEqual(edit.reflect_time, time, edit.reflect  , game.reflect  );
    SyncByValueEqual(edit.   glow_time, time, edit.glow     , game.glow     );
+
+   bool new_light_map=edit.hasLightMap(); if(old_light_map!=new_light_map)
+   {
+      if(!new_light_map              )game.ambient=0;else
+      if(game.ambient.min()<=EPS_COL8)game.ambient=1;
+      SyncByValueEqual(edit.ambient_time, time, edit.ambient, game.ambient);
+   }
 }
 /******************************************************************************/
 bool ImportImage(Image &image, C Str &name, int type=-1, int mode=-1, int mip_maps=-1, bool decompress=false)
