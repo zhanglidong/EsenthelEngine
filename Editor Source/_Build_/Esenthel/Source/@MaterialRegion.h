@@ -289,8 +289,8 @@ public:
    static void BumpFromCol24(MaterialRegion &editor);
    static void BumpFromCol32(MaterialRegion &editor);
 
-   static void MulTexCol  (MaterialRegion &editor);
-   static void MulTexRough(MaterialRegion &editor);
+   static void MulTexCol   (MaterialRegion &editor);
+   static void MulTexNormal(MaterialRegion &editor);
 
    bool bigVisible()C;
 

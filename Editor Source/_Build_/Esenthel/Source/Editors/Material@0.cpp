@@ -450,8 +450,8 @@ MaterialTech mtrl_techs[]=
    void MaterialRegion::BumpFromCol16(MaterialRegion &editor) {editor.bumpFromCol(16);}
    void MaterialRegion::BumpFromCol24(MaterialRegion &editor) {editor.bumpFromCol(24);}
    void MaterialRegion::BumpFromCol32(MaterialRegion &editor) {editor.bumpFromCol(32);}
-   void MaterialRegion::MulTexCol(MaterialRegion &editor) {Proj.mtrlMulTexCol  (editor.elm_id);}
-   void MaterialRegion::MulTexRough(MaterialRegion &editor) {Proj.mtrlMulTexRough(editor.elm_id);}
+   void MaterialRegion::MulTexCol(MaterialRegion &editor) {Proj.mtrlMulTexCol   (editor.elm_id);}
+   void MaterialRegion::MulTexNormal(MaterialRegion &editor) {Proj.mtrlMulTexNormal(editor.elm_id);}
    bool MaterialRegion::bigVisible()C {return visible() && big();}
    void   MaterialRegion::setRGB(C Vec           &srgb) {if(edit.color_s.xyz        !=srgb){undos.set("rgb1" ); edit.color_s.xyz        =srgb; edit.              color_time.getUTC(); setChanged(); toGui();}}
    void MaterialRegion::resetAlpha(                     ) {                                   undos.set("alpha"); edit.resetAlpha()            ;                                         setChanged(); toGui(); }
@@ -825,8 +825,8 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       }
       {
          Node<MenuElm> &extra=(n+="Extra");
-         extra.New().create("Multiply Color Texture by Color"     , MulTexCol  , T);
-         extra.New().create("Multiply Normal Texture by Roughness", MulTexRough, T);
+         extra.New().create("Multiply Color Texture by Color Value"  , MulTexCol   , T);
+         extra.New().create("Multiply Normal Texture by Normal Value", MulTexNormal, T);
       }
       sub+=texture_options.create().setData(n); texture_options.flag|=COMBOBOX_CONST_TEXT;
 

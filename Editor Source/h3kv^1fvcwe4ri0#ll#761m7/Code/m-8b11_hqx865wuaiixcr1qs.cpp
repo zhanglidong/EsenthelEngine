@@ -552,8 +552,8 @@ class MaterialRegion : Region
    static void BumpFromCol24(MaterialRegion &editor) {editor.bumpFromCol(24);}
    static void BumpFromCol32(MaterialRegion &editor) {editor.bumpFromCol(32);}
 
-   static void MulTexCol  (MaterialRegion &editor) {Proj.mtrlMulTexCol  (editor.elm_id);}
-   static void MulTexRough(MaterialRegion &editor) {Proj.mtrlMulTexRough(editor.elm_id);}
+   static void MulTexCol   (MaterialRegion &editor) {Proj.mtrlMulTexCol   (editor.elm_id);}
+   static void MulTexNormal(MaterialRegion &editor) {Proj.mtrlMulTexNormal(editor.elm_id);}
 
    bool bigVisible()C {return visible() && big();}
 
@@ -933,8 +933,8 @@ alpha=&props.New().create("Alpha", MemberDesc(DATA_REAL).setFunc(Alpha, Alpha)).
       }
       {
          Node<MenuElm> &extra=(n+="Extra");
-         extra.New().create("Multiply Color Texture by Color"     , MulTexCol  , T);
-         extra.New().create("Multiply Normal Texture by Roughness", MulTexRough, T);
+         extra.New().create("Multiply Color Texture by Color Value"  , MulTexCol   , T);
+         extra.New().create("Multiply Normal Texture by Normal Value", MulTexNormal, T);
       }
       sub+=texture_options.create().setData(n); texture_options.flag|=COMBOBOX_CONST_TEXT;
 

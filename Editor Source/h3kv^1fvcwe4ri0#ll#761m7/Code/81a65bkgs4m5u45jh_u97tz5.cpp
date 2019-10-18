@@ -359,7 +359,7 @@ class ProjectEx : ProjectHierarchy
    static void MtrlFlipNrmYOff         (ProjectEx &proj) {proj.mtrlFlipNrmY       (proj.menu_list_sel, false);}
    static void MtrlReloadBaseTex       (ProjectEx &proj) {proj.mtrlReloadTextures (proj.menu_list_sel, true, false, false, false);}
    static void MtrlMulTexCol           (ProjectEx &proj) {proj.mtrlMulTexCol      (proj.menu_list_sel);}
-   static void MtrlMulTexRough         (ProjectEx &proj) {proj.mtrlMulTexRough    (proj.menu_list_sel);}
+   static void MtrlMulTexNormal        (ProjectEx &proj) {proj.mtrlMulTexNormal   (proj.menu_list_sel);}
    static void MtrlMoveToObj           (ProjectEx &proj) {proj.mtrlMoveToObj      (proj.menu_list_sel);}
    static void MtrlMerge               (ProjectEx &proj) {MSM             .display(proj.menu_list_sel);}
    static void MtrlConvertToAtlas      (ProjectEx &proj) {ConvertToAtlas  .setElms(proj.menu_list_sel);}
@@ -1497,7 +1497,7 @@ class ProjectEx : ProjectHierarchy
       }
       return ok;
    }
-   bool mtrlMulTexRough(C MemPtr<UID> &elm_ids)
+   bool mtrlMulTexNormal(C MemPtr<UID> &elm_ids)
    {
       bool ok=true;
       REPA(elm_ids)
@@ -3615,8 +3615,8 @@ class ProjectEx : ProjectHierarchy
                   m++;
                   m.New().create("Reload Base Textures", MtrlReloadBaseTex, T);
                   m++;
-                  m.New().create("Multiply Color Texture by Color"     , MtrlMulTexCol  , T);
-                  m.New().create("Multiply Normal Texture by Roughness", MtrlMulTexRough, T);
+                  m.New().create("Multiply Color Texture by Color Value"  , MtrlMulTexCol   , T);
+                  m.New().create("Multiply Normal Texture by Normal Value", MtrlMulTexNormal, T);
                   m++;
                   m.New().create("Move to its Object", MtrlMoveToObj, T).desc("This option will move the Material Element to the Object it belongs to");
                   m++;

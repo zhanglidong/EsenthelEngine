@@ -224,7 +224,7 @@ public:
    static void MtrlFlipNrmYOff         (ProjectEx &proj);
    static void MtrlReloadBaseTex       (ProjectEx &proj);
    static void MtrlMulTexCol           (ProjectEx &proj);
-   static void MtrlMulTexRough         (ProjectEx &proj);
+   static void MtrlMulTexNormal        (ProjectEx &proj);
    static void MtrlMoveToObj           (ProjectEx &proj);
    static void MtrlMerge               (ProjectEx &proj);
    static void MtrlConvertToAtlas      (ProjectEx &proj);
@@ -344,7 +344,7 @@ public:
    void mtrlDownsizeTexMobile(C MemPtr<UID> &elm_ids, byte downsize);
    void mtrlTexQuality(C MemPtr<UID> &elm_ids, int quality);
    bool mtrlMulTexCol(C MemPtr<UID> &elm_ids);
-   bool mtrlMulTexRough(C MemPtr<UID> &elm_ids);
+   bool mtrlMulTexNormal(C MemPtr<UID> &elm_ids);
    void mtrlMoveToObj(C MemPtr<UID> &elm_ids);
    bool mtrlGet(C UID &elm_id, EditMaterial &mtrl);
    bool mtrlSync(C UID &elm_id, C EditMaterial &mtrl, bool reload_textures, bool adjust_params, cptr undo_change_type="sync");
