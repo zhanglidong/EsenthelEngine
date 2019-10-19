@@ -1561,8 +1561,8 @@ void RendererClass::blend()
 
    D.stencilRef(STENCIL_REF_TERRAIN); // set in case draw codes will use stencil
 
-   const Bool blend_affect_vel=true; // #BlendRT
-   set(_col, blend_affect_vel ? _vel() : null, null, null, _ds, true); setDSLookup(); // 'setDSLookup' after 'set' #RTOutput
+   const Bool blend_affect_vel=true;
+   set(_col,  blend_affect_vel ? _vel() : null, null, null, _ds, true); setDSLookup(); // 'setDSLookup' after 'set' #RTOutput
    D.alpha(ALPHA_BLEND_FACTOR);
    D.set3D(); D.depthWrite(false); D.depthFunc(FUNC_LESS_EQUAL); D.depth(true); mode(RM_BLEND); // use less equal for blend because we may want to draw blend graphics on top of existing pixels (for example world editor terrain highlight)
    SortBlendInstances();

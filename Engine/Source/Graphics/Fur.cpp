@@ -46,7 +46,7 @@ void PrepareFur()
 #endif
 }
 /******************************************************************************/
-#define FUR_VEL_FIX (WINDOWS && GL) // Fur Shader does not ouput velocity to second RT, however for some reason it will set the same value as the source color, #BlendRT TODO: check again in the future (was tested and works OK on Android)
+#define FUR_VEL_FIX (WINDOWS && GL) // Fur Shader does not ouput velocity to second RT, however for some reason it will set the same value as the source color, #RTOutput TODO: check again in the future (was tested and works OK on Android)
 void DrawFur(C MeshRender &mshr, Shader &shader, Flt scale)
 {
 #if FUR_VEL_FIX

@@ -205,7 +205,7 @@ void PS
 
   out VecH4 outCol:TARGET0
 #if USE_VEL
-, out VecH4 outVel:TARGET1 // #BlendRT
+, out VecH4 outVel:TARGET1
 #endif
 ) // #RTOutput
 {
