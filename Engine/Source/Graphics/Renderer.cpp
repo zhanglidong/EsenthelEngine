@@ -9,7 +9,7 @@ namespace EE{
 #define  NRM_CLEAR Vec4(0.5f, 0.5f,    0, 0) // normally Z should be set to 0.5 to set 'VecZero' normals, however Z is set to  0 makes ambient occlusion more precise when it uses normals (because ambient occlusion will not work good on the VecZero normals) #NRM_CLEAR
 #define  NRM_CLEAR_START 1 // 1 works faster on GeForce 650m GT, TODO: check on newer hardware
 #define  EXT_CLEAR_START 0 // TODO: which is better?
-#define  VEL_CLEAR_START 0 // this is not needed because "ClearSkyVel" is used later, performance tests suggested it's better don't clear unless necessary, instead 'Image.discard' is used and improves performance (at least on Mobile), TODO: check on newer hardware
+#define  VEL_CLEAR_START 0 // this is not needed because "ClearDeferred" is used later, performance tests suggested it's better don't clear unless necessary, instead 'Image.discard' is used and improves performance (at least on Mobile), TODO: check on newer hardware
 inline Bool NeedBackgroundNrm() {return D.aoWant() && D.ambientNormal() || Renderer.stage==RS_NORMAL;}
 inline Bool NeedBackgroundExt() {return Renderer.stage==RS_SMOOTH || Renderer.stage==RS_REFLECT;}
 /******************************************************************************
@@ -645,18 +645,8 @@ RendererClass& RendererClass::operator()(void (&render)())
          {
             D.alpha    (ALPHA_NONE);
             D.depth2DOn(FUNC_BACKGROUND);
-            if(clear_nrm)
-            {
-               set(_nrm, _ds, true); Sh.clear(D.signedNrmRT() ? SNRM_CLEAR : NRM_CLEAR); // use DS because we use it for 'D.depth2D' optimization
-            }
-            if(clear_ext)
-            {
-               set(_ext, _ds, true); Sh.clear(Vec4Zero); // use DS because we use it for 'D.depth2D' optimization
-            }
-            if(clear_vel)
-            {
-               set(_vel, _ds, true); Mtn.load(); Mtn.ClearSkyVel->draw(); // use DS because we use it for 'D.depth2D' optimization
-            }
+            set(null, clear_nrm ? _nrm() : null, clear_ext ? _ext() : null, clear_vel ? _vel() : null, _ds, true); // use DS because we use it for 'D.depth2D' optimization #RTOutput
+            Sh.ClearDeferred->draw();
             D.depth2DOff();
          }
       }
@@ -1046,33 +1036,33 @@ start:
       case RT_DEFERRED:
       {
          // #RTOutput
-         const Bool merged_clear=(D._view_main.full || TILE_BASED_GPU), // use only when having full viewport ('clearCol' ignores viewport), or when having a tile-based GPU to avoid overhead of RT transfers. Don't enable in other cases, because on Intel GPU Windows it made things much slower, on GeForce 1050 Ti it made no difference.
-                     clear_nrm  =(NRM_CLEAR_START && NeedBackgroundNrm()),
-                     clear_ext  =(EXT_CLEAR_START && NeedBackgroundExt()),
-                     clear_vel  = VEL_CLEAR_START;
-
          if(D._max_rt>=4)
          {
             const Bool alpha=false;
                _has_vel=(D.motionMode()==MOTION_CAMERA_OBJECT && hasMotion()); // '_has_vel' is treated as MOTION_CAMERA_OBJECT mode across the engine
             if(_has_vel || alpha)
-            {
-              _vel.get(ImageRTDesc(_col->w(), _col->h(), alpha ? (D.signedVelRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA) : (D.signedVelRT() ? IMAGERT_RGB_S : IMAGERT_RGB), _col->samples()));
-               if(clear_vel && !merged_clear)_vel->clearViewport(D.signedVelRT() ? SVEL_CLEAR : VEL_CLEAR);
-            }
+               _vel.get(ImageRTDesc(_col->w(), _col->h(), alpha ? (D.signedVelRT() ? IMAGERT_RGBA_S : IMAGERT_RGBA) : (D.signedVelRT() ? IMAGERT_RGB_S : IMAGERT_RGB), _col->samples()));
          }
+
+         const Bool merged_clear=(D._view_main.full || TILE_BASED_GPU), // use only when having full viewport ('clearCol' ignores viewport), or when having a tile-based GPU to avoid overhead of RT transfers. Don't enable in other cases, because on Intel GPU Windows it made things much slower, on GeForce 1050 Ti it made no difference.
+                     clear_nrm  =(NRM_CLEAR_START && NeedBackgroundNrm()),
+                     clear_ext  =(EXT_CLEAR_START && NeedBackgroundExt()),
+                     clear_vel  =(VEL_CLEAR_START && _vel);
+                     ASSERT(!VEL_CLEAR_START); // some of codes below clear velocity to constant value, however we always need to use "ClearDeferred" because of camera angular velocities
 
         _ext.get(ImageRTDesc(_col->w(), _col->h(),                     IMAGERT_TWO                                                    , _col->samples()));
         _nrm.get(ImageRTDesc(_col->w(), _col->h(), D.highPrecNrmRT() ? IMAGERT_RGB_H : (D.signedNrmRT() ? IMAGERT_RGB_S : IMAGERT_RGB), _col->samples())); // here Alpha is unused
 
          if(!merged_clear)
          {
+            if(clear_vel)_vel->clearViewport(D.signedVelRT() ? SVEL_CLEAR : VEL_CLEAR);
             if(clear_ext)_ext->clearViewport();
             if(clear_nrm)_nrm->clearViewport(D.signedNrmRT() ? SNRM_CLEAR : NRM_CLEAR);
             if(clear_col)_col->clearViewport();
          }
 
          set(_col, _nrm, _ext, _vel, _ds, true);
+
          if(merged_clear)
          {
             if(D._view_main.full)
@@ -1082,7 +1072,7 @@ start:
                if(clear_ext)D.clearCol(2, Vec4Zero);
                if(clear_vel)D.clearCol(3, D.signedVelRT() ? SVEL_CLEAR : VEL_CLEAR);
             }else
-            if(clear_col || clear_nrm || clear_ext || (clear_vel && _vel))Sh.ClearDeferred->draw();
+            if(clear_col || clear_nrm || clear_ext || clear_vel)Sh.ClearDeferred->draw();
          }
          if(clear_ds)D.clearDS();
       }break;

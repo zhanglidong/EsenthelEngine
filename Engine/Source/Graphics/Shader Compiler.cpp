@@ -1219,7 +1219,7 @@ static void Convert(ShaderData &shader_data, ConvertContext &cc, Int thread_inde
          }
 
          size_t spirv_member_size=0; spvc_compiler_get_declared_struct_member_size(spirv_compiler, buffer_handle, i, &spirv_member_size);
-         if(Ceil16(member_size)!=Ceil16(spirv_member_size))Exit("Incorrect Shader Param size.\nPlease contact Developer.");
+         if(Ceil16(member_size)!=Ceil16((UInt)spirv_member_size))Exit("Incorrect Shader Param size.\nPlease contact Developer.");
 
          Int min=INT_MAX, max=0; REPA(param.translation){ShaderParam::Translation &translation=param.translation[i]; MIN(min, translation.gpu_offset); MAX(max, translation.gpu_offset+translation.elm_size);} // iterate all translations just for safety (normally checking just the first and last one should be enough)
          param.gpu_data_size=max-min;

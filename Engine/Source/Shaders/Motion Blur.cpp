@@ -61,21 +61,6 @@ void Explosion_PS(Vec   inPos:TEXCOORD0,
    outVel=inVel;
 }
 /******************************************************************************/
-void ClearSkyVel_VS(VtxInput vtx,
-        NOPERSP out VecH outVel:VELOCITY, // #RTOutput
-        NOPERSP out Vec4 outVtx:POSITION)
-{
-   Vec pos=Vec(ScreenToPosXY(vtx.tex()), 1); // we shouldn't normalize this vector, instead, we should keep it at Z=1 so we don't have to divide by Z later
-
-   outVel.xyz=Cross(pos, CamAngVel);
-#if !SIGNED_VEL_RT
-   outVel.xyz=outVel.xyz*0.5+0.5;
-#endif
-
-   outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
-}
-VecH ClearSkyVel_PS(NOPERSP VecH inVel:VELOCITY):TARGET {return inVel;} // yes, per-vertex precision is enough, as it generates the same results as if drawing a half sky ball mesh (results with the half ball mesh were the same as the one from this pixel shader)
-/******************************************************************************/
 void Convert_VS(VtxInput vtx,
     NOPERSP out Vec2 outTex  :TEXCOORD0,
     NOPERSP out Vec2 outPos  :TEXCOORD1, // position relative to viewport center scaled from UV to ScreenPos

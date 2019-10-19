@@ -677,8 +677,6 @@ void MotionBlur::load()
 
       Explosion=shader->get("Explosion");
 
-      ClearSkyVel=shader->get("ClearSkyVel");
-
       REPD(h, 2)
       REPD(c, 2)Convert[h][c]=shader->get(S8+"Convert"+h+c);
 

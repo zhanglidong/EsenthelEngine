@@ -97,7 +97,7 @@ static void Compile(API api)
       src.New("Draw3DFlat", "Draw3DFlat_VS", "DrawFlat_PS");
       src.New("SetCol"    , "Draw_VS"      , "DrawFlat_PS");
 
-      src.New("ClearDeferred", "Draw_VS", "ClearDeferred");
+      src.New("ClearDeferred", "ClearDeferred_VS", "ClearDeferred_PS");
 
       src.New("Draw2DCol", "Draw2DCol_VS", "Draw2DCol_PS");
       src.New("Draw3DCol", "Draw3DCol_VS", "Draw3DCol_PS");
@@ -515,8 +515,6 @@ static void Compile(API api)
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Motion Blur", model, api).New(src_path+"Motion Blur.cpp");
    src.New("Explosion", "Explosion_VS", "Explosion_PS");
-
-   src.New("ClearSkyVel", "ClearSkyVel_VS", "ClearSkyVel_PS");
 
    REPD(mode , 2)
    REPD(clamp, 2)src.New("Convert", "Convert_VS", "Convert_PS")("MODE", mode, "CLAMP", clamp);

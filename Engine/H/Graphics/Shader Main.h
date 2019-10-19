@@ -407,7 +407,6 @@ struct MotionBlur
                *MotionVelScaleLimit,
                *MotionPixelSize    ;
    Shader      *Explosion          ,
-               *ClearSkyVel        ,
                *Convert      [2][2], // [High][Clamp]
                *Dilate             ,
                *SetDirs      [2]   , // [Clamp]

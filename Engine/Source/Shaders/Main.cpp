@@ -417,14 +417,28 @@ VecH4 PaletteDraw_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
                 +c3.rgb*c3.a)/(a+HALF_MIN), a); // NaN
 }
 /******************************************************************************/
-void ClearDeferred(out DeferredSolidOutput output)
+void ClearDeferred_VS(VtxInput vtx,
+          NOPERSP out VecH outVel:VELOCITY,
+          NOPERSP out Vec4 outVtx:POSITION )
 {
-   output.color       (0);
-   output.glow        (0);
-   output.normal      (Vec(0, 0, -1)); // set -1 because of AO #NRM_CLEAR
-   output.smooth      (0);
-   output.velocityZero( );
-   output.reflect     (0);
+   Vec pos=Vec(ScreenToPosXY(vtx.tex()), 1); // we shouldn't normalize this vector, instead, we should keep it at Z=1 so we don't have to divide by Z later
+
+   outVel=Cross(pos, CamAngVel);
+#if !SIGNED_VEL_RT
+   outVel=outVel*0.5+0.5;
+#endif
+
+   outVtx=Vec4(vtx.pos2(), Z_BACK, 1); // set Z to be at the end of the viewport, this enables optimizations by optional applying lighting only on solid pixels (no sky/background)
+}
+void ClearDeferred_PS(NOPERSP VecH inVel:VELOCITY, // yes, per-vertex precision is enough, as it generates the same results as if drawing a half sky ball mesh (results with the half ball mesh were the same as the one from this pixel shader)
+           out DeferredSolidOutput output) // #RTOutput
+{
+   output.color  (0);
+   output.glow   (0);
+   output.normal (Vec(0, 0, -1)); // set -1 because of AO #NRM_CLEAR
+   output.smooth (0);
+   output.reflect(0);
+   output.out3   =inVel; // #RTOutput
 }
 /******************************************************************************/
 // DUMMY - used only to obtain info about ConstantBuffers/ShaderParams
