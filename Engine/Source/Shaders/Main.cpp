@@ -438,7 +438,7 @@ void ClearDeferred_PS(NOPERSP VecH inVel:VELOCITY, // yes, per-vertex precision 
    output.normal (Vec(0, 0, -1)); // set -1 because of AO #NRM_CLEAR
    output.smooth (0);
    output.reflect(0);
-   output.out3   =inVel; // #RTOutput
+   output.velocityRaw(inVel);
 }
 /******************************************************************************/
 // DUMMY - used only to obtain info about ConstantBuffers/ShaderParams

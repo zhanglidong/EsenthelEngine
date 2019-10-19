@@ -1636,8 +1636,9 @@ struct DeferredSolidOutput // use this structure in Pixel Shader for setting the
    inline void smooth (Half smooth ) {out2.x=smooth ;}
    inline void reflect(Half reflect) {out2.y=reflect;}
 
-   inline void velocity(Vec vel, Vec view_space_pos) {out3.xyz=GetVelocity_PS(vel, view_space_pos);}
-   inline void velocityZero() {out3.xyz=(SIGNED_VEL_RT ? 0 : 0.5);}
+   inline void velocity    (Vec  vel, Vec view_space_pos) {out3.xyz=GetVelocity_PS(vel, view_space_pos);}
+   inline void velocityRaw (VecH vel                    ) {out3.xyz=vel;}
+   inline void velocityZero(                            ) {out3.xyz=(SIGNED_VEL_RT ? 0 : 0.5);}
 };
 /******************************************************************************/
 // TESSELATION
