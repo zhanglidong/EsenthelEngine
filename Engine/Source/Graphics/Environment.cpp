@@ -231,7 +231,6 @@ Bool Environment::Sky::load(File &f, CChar *path)
 void Environment::Sun::set()C
 {
  ::Sun.draw           =on;
- ::Sun.blend          =blend;
  ::Sun.glow           =glow;
  ::Sun.size           =size;
  ::Sun.highlight_front=highlight_front;
@@ -245,7 +244,6 @@ void Environment::Sun::set()C
 void Environment::Sun::get()
 {
    on             =::Sun.draw;
-   blend          =::Sun.blend;
    glow           =::Sun.glow;
    size           =::Sun.size;
    highlight_front=::Sun.highlight_front;
@@ -258,19 +256,26 @@ void Environment::Sun::get()
 }
 void Environment::Sun::reset()
 {
-   on=true; blend=true; glow=128; size=0.15; highlight_front=0.20f; highlight_back=0.15f; pos.set(-SQRT3_3, SQRT3_3, -SQRT3_3); light_color_s=0.7f; rays_color=0.12f; image_color=1; image=null;
+   on=true; glow=128; size=0.15; highlight_front=0.20f; highlight_back=0.15f; pos.set(-SQRT3_3, SQRT3_3, -SQRT3_3); light_color_s=0.7f; rays_color=0.12f; image_color=1; image=null;
 }
 
 Bool Environment::Sun::save(File &f, CChar *path)C
 {
-   f.cmpUIntV(0); // version
-   f<<on<<blend<<glow<<size<<highlight_front<<highlight_back<<pos<<light_color_s<<rays_color<<image_color; f._putStr(image.name(path));
+   f.cmpUIntV(1); // version
+   f<<on<<glow<<size<<highlight_front<<highlight_back<<pos<<light_color_s<<rays_color<<image_color; f.putAsset(image.id());
    return f.ok();
 }
 Bool Environment::Sun::load(File &f, CChar *path)
 {
+   Bool blend;
    switch(f.decUIntV())
    {
+      case 1:
+      {
+         f>>on>>glow>>size>>highlight_front>>highlight_back>>pos>>light_color_s>>rays_color>>image_color; image.require(f.getAssetID(), path);
+         if(f.ok())return true;
+      }break;
+
       case 0:
       {
          f>>on>>blend>>glow>>size>>highlight_front>>highlight_back>>pos>>light_color_s>>rays_color>>image_color; image.require(f._getStr(), path);

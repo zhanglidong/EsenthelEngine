@@ -120,8 +120,7 @@ struct Environment
 
    struct Sun
    {
-      Bool     on             , // if enabled                  ,        true/false         , default=true
-               blend          ; // if use blending for image   ,        true/false         , default=true, if true then 'image' will be applied using alpha blending, if false then 'image' will be added onto the screen
+      Bool     on             ; // if enabled                  ,        true/false         , default=true
       Byte     glow           ; // glow amount                 ,           0..255          , default=128 , total glow amount is equal to ('image' alpha channel * 'image_color' alpha component * 'glow')
       Flt      size           , // image size                  ,           0..1            , default=0.15
                highlight_front, // highlight on atmospheric sky,           0..Inf          , default=0.20

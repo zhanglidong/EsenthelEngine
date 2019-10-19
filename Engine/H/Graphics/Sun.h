@@ -17,12 +17,11 @@ struct Astro // Astronomical Object (Star/Planet/Moon)
 {
    Bool draw; // if use this object in drawing, true/false, default=true
 
-   Bool     blend      ; // if use blending for image,        true/false              , default=true, if true then 'image' will be applied using alpha blending, if false then 'image' will be added onto the screen
-   Byte     glow       ; // glow amount              ,           0..255               , default=0   , total glow amount is equal to ('image' alpha channel * 'image_color' alpha component * 'glow')
-   Flt      size       ; // image      size          ,           0..1                 , default=0.15
-   Vec      pos        ; // normalized position      , position on sky sphere radius=1, default=!Vec(-1,1,-1)
-   Color    image_color; // image      color         ,                                , default=WHITE
-   ImagePtr image      ; // image                                                     , default=null
+   Byte     glow       ; // glow amount        ,           0..255               , default=0   , total glow amount is equal to ('image' alpha channel * 'image_color' alpha component * 'glow')
+   Flt      size       ; // image      size    ,           0..1                 , default=0.15
+   Vec      pos        ; // normalized position, position on sky sphere radius=1, default=!Vec(-1,1,-1)
+   Color    image_color; // image      color   ,                                , default=WHITE
+   ImagePtr image      ; // image                                               , default=null
 
    Vec light_color_l  ; // light      color linear gamma, (0,0,0)..(1,1,1), default=(0,0,0), value of (0,0,0) disables light casting
    Flt light_vol      , // volumetric amount            ,       0..Inf    , default=0.0

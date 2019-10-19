@@ -86,8 +86,8 @@ class EnvEditor : ClosableWindow
    static void SkyBox   (  EditEnv &env, C Str &text);
    static Str  SkyBox   (C EditEnv &env             );
 
-   static void SunBlend (  EditEnv &env, C Str &text);
-   static Str  SunBlend (C EditEnv &env             );
+ //static void SunBlend (  EditEnv &env, C Str &text) {env.sun.blend=TextBool(text); env.sun_blend_time.getUTC();}
+ //static Str  SunBlend (C EditEnv &env             ) {return env.sun.blend;}
    static void SunGlow  (  EditEnv &env, C Str &text);
    static Str  SunGlow  (C EditEnv &env             );
    static void SunSize  (  EditEnv &env, C Str &text);

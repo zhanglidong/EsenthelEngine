@@ -10,7 +10,6 @@ Astro::Astro()
 {
    draw=true;
 
-   blend=true;
    glow=0;
    size=0.15f;
    pos.set(-SQRT3_3, SQRT3_3, -SQRT3_3);
@@ -39,7 +38,7 @@ void Astro::Draw()
       // TODO: apply per-pixel softing based on depth buffer, exactly like particle softing (draw closer to camera, but scale XY size, along CamMatrix.xy) and modify pixel shader
       Renderer._has_glow|=(glow!=0);
       D .alphaFactor(VecB4(0, 0, 0, glow)); MaterialClear(); // 'MaterialClear' must be called when changing 'D.alphaFactor'
-      D .alpha      (blend ? ALPHA_BLEND_FACTOR : ALPHA_ADD_FACTOR);
+      D .alpha      (ALPHA_BLEND_FACTOR);
       VI.image      (image());
       VI.setType    (VI_3D_TEX_COL, VI_STRIP);
       if(Vtx3DTexCol *v=(Vtx3DTexCol*)VI.addVtx(4))

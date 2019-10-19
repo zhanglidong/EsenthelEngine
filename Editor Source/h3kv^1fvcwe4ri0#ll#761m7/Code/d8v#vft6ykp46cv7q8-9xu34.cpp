@@ -107,8 +107,8 @@ class EnvEditor : ClosableWindow
    static void SkyBox   (  EditEnv &env, C Str &text) {env.skybox_id=Proj.findElmImageID(text); env.sky_skybox_time.getUTC();}
    static Str  SkyBox   (C EditEnv &env             ) {return Proj.elmFullName(env.skybox_id);}
 
-   static void SunBlend (  EditEnv &env, C Str &text) {env.sun.blend=TextBool(text); env.sun_blend_time.getUTC();}
-   static Str  SunBlend (C EditEnv &env             ) {return env.sun.blend;}
+ //static void SunBlend (  EditEnv &env, C Str &text) {env.sun.blend=TextBool(text); env.sun_blend_time.getUTC();}
+ //static Str  SunBlend (C EditEnv &env             ) {return env.sun.blend;}
    static void SunGlow  (  EditEnv &env, C Str &text) {env.sun.glow=TextInt(text); env.sun_glow_time.getUTC();}
    static Str  SunGlow  (C EditEnv &env             ) {return env.sun.glow;}
    static void SunSize  (  EditEnv &env, C Str &text) {env.sun.size=TextFlt(text); env.sun_size_time.getUTC();}
@@ -242,7 +242,7 @@ class EnvEditor : ClosableWindow
       sky.add("Skybox"          , MemberDesc(DATA_STR               ).setFunc(SkyBox   , SkyBox   )).elmType(ELM_IMAGE);
       sky.autoData(&edit); sky.create("Sky", PropElmNameWidth);
 
-      sun.add("Blend"          , MemberDesc(DATA_BOOL).setFunc(SunBlend , SunBlend )).desc("If use blending for image.\nIf true then image will be applied using alpha blending,\nif false then image will be added onto the screen.");
+    //sun.add("Blend"          , MemberDesc(DATA_BOOL).setFunc(SunBlend , SunBlend )).desc("If use blending for image.\nIf true then image will be applied using alpha blending,\nif false then image will be added onto the screen.");
       sun.add("Glow"           , MemberDesc(DATA_INT ).setFunc(SunGlow  , SunGlow  )).range(0, 255);
       sun.add("Size"           , MemberDesc(DATA_REAL).setFunc(SunSize  , SunSize  )).range(0, 1);
       sun.add("Image"          , MemberDesc(DATA_STR ).setFunc(SunImage , SunImage )).elmType(ELM_IMAGE);

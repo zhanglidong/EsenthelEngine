@@ -545,11 +545,11 @@ ALPHA_MODE DisplayState::alpha(ALPHA_MODE alpha)
          glBlendEquation    (GL_FUNC_ADD);
          glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_CONSTANT_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       break;
-      case ALPHA_ADD_FACTOR:
+    /*case ALPHA_ADD_FACTOR:
          glEnable           (GL_BLEND);
          glBlendEquation    (GL_FUNC_ADD);
          glBlendFuncSeparate(GL_ONE, GL_ONE, GL_CONSTANT_ALPHA, GL_ONE);
-      break;
+      break;*/
       case ALPHA_SETBLEND_SET:
          glEnable           (GL_BLEND);
          glBlendEquation    (GL_FUNC_ADD);
@@ -943,7 +943,7 @@ void DisplayState::create()
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
       BlendStates[ALPHA_BLEND_FACTOR].create(desc);
    }
-   {
+   /*{
       D3D11_BLEND_DESC desc; Zero(desc);
       desc.AlphaToCoverageEnable =false;
       desc.IndependentBlendEnable=false;
@@ -955,7 +955,7 @@ void DisplayState::create()
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_ONE;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
       BlendStates[ALPHA_ADD_FACTOR].create(desc);
-   }
+   }*/
    {
       D3D11_BLEND_DESC desc; Zero(desc);
       desc.AlphaToCoverageEnable =false;

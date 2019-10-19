@@ -8,7 +8,7 @@ class EditEnv : Environment
              clouds_scale_time[4], clouds_velocity_time[4], clouds_color_time[4], clouds_image_time[4],
              fog_on_time, fog_affect_sky_time, fog_density_time, fog_color_time,
              sky_on_time, sky_frac_time, sky_atmospheric_density_exponent_time, sky_atmospheric_horizon_exponent_time, sky_atmospheric_horizon_color_time, sky_atmospheric_sky_color_time, sky_atmospheric_stars_time, sky_atmospheric_stars_orientation_time, sky_skybox_time,
-             sun_on_time, sun_blend_time, sun_glow_time, sun_size_time, sun_highlight_front_time, sun_highlight_back_time, sun_pos_time, sun_light_color_time, sun_rays_color_time, sun_image_color_time, sun_image_time;
+             sun_on_time, sun_glow_time, sun_size_time, sun_highlight_front_time, sun_highlight_back_time, sun_pos_time, sun_light_color_time, sun_rays_color_time, sun_image_color_time, sun_image_time;
 
    EditEnv() {REPAO(cloud_id).zero();}
 
@@ -29,7 +29,7 @@ class EditEnv : Environment
    || sky_atmospheric_horizon_exponent_time>src.sky_atmospheric_horizon_exponent_time || sky_atmospheric_horizon_color_time>src.sky_atmospheric_horizon_color_time
    || sky_atmospheric_sky_color_time>src.sky_atmospheric_sky_color_time || sky_atmospheric_stars_time>src.sky_atmospheric_stars_time
    || sky_atmospheric_stars_orientation_time>src.sky_atmospheric_stars_orientation_time || sky_skybox_time>src.sky_skybox_time
-   || sun_on_time>src.sun_on_time || sun_blend_time>src.sun_blend_time || sun_glow_time>src.sun_glow_time || sun_size_time>src.sun_size_time || sun_highlight_front_time>src.sun_highlight_front_time
+   || sun_on_time>src.sun_on_time || sun_glow_time>src.sun_glow_time || sun_size_time>src.sun_size_time || sun_highlight_front_time>src.sun_highlight_front_time
    || sun_highlight_back_time>src.sun_highlight_back_time || sun_pos_time>src.sun_pos_time || sun_light_color_time>src.sun_light_color_time || sun_rays_color_time>src.sun_rays_color_time
    || sun_image_color_time>src.sun_image_color_time || sun_image_time>src.sun_image_time;
    }
@@ -49,7 +49,7 @@ class EditEnv : Environment
    && sky_atmospheric_horizon_exponent_time==src.sky_atmospheric_horizon_exponent_time && sky_atmospheric_horizon_color_time==src.sky_atmospheric_horizon_color_time
    && sky_atmospheric_sky_color_time==src.sky_atmospheric_sky_color_time && sky_atmospheric_stars_time==src.sky_atmospheric_stars_time
    && sky_atmospheric_stars_orientation_time==src.sky_atmospheric_stars_orientation_time && sky_skybox_time==src.sky_skybox_time
-   && sun_on_time==src.sun_on_time && sun_blend_time==src.sun_blend_time && sun_glow_time==src.sun_glow_time && sun_size_time==src.sun_size_time && sun_highlight_front_time==src.sun_highlight_front_time
+   && sun_on_time==src.sun_on_time && sun_glow_time==src.sun_glow_time && sun_size_time==src.sun_size_time && sun_highlight_front_time==src.sun_highlight_front_time
    && sun_highlight_back_time==src.sun_highlight_back_time && sun_pos_time==src.sun_pos_time && sun_light_color_time==src.sun_light_color_time && sun_rays_color_time==src.sun_rays_color_time
    && sun_image_color_time==src.sun_image_color_time && sun_image_time==src.sun_image_time;
    }
@@ -63,7 +63,7 @@ class EditEnv : Environment
       REPAO(clouds_scale_time)++; REPAO(clouds_velocity_time)++; REPAO(clouds_color_time)++; REPAO(clouds_image_time)++;
       fog_on_time++; fog_affect_sky_time++; fog_density_time++; fog_color_time++;
       sky_on_time++; sky_frac_time++; sky_atmospheric_density_exponent_time++; sky_atmospheric_horizon_exponent_time++; sky_atmospheric_horizon_color_time++; sky_atmospheric_sky_color_time++; sky_atmospheric_stars_time++; sky_atmospheric_stars_orientation_time++; sky_skybox_time++;
-      sun_on_time++; sun_blend_time++; sun_glow_time++; sun_size_time++; sun_highlight_front_time++; sun_highlight_back_time++; sun_pos_time++; sun_light_color_time++; sun_rays_color_time++; sun_image_color_time++; sun_image_time++;
+      sun_on_time++; sun_glow_time++; sun_size_time++; sun_highlight_front_time++; sun_highlight_back_time++; sun_pos_time++; sun_light_color_time++; sun_rays_color_time++; sun_image_color_time++; sun_image_time++;
    }
    bool sync(C EditEnv &src)
    {
@@ -102,7 +102,6 @@ class EditEnv : Environment
       changed|=Sync(sky_atmospheric_stars_orientation_time, src.sky_atmospheric_stars_orientation_time, sky.atmospheric_stars_orientation, src.sky.atmospheric_stars_orientation);
       changed|=Sync(sky_skybox_time, src.sky_skybox_time, skybox_id, src.skybox_id);
       changed|=Sync(sun_on_time, src.sun_on_time, sun.on, src.sun.on);
-      changed|=Sync(sun_blend_time, src.sun_blend_time, sun.blend, src.sun.blend);
       changed|=Sync(sun_glow_time, src.sun_glow_time, sun.glow, src.sun.glow);
       changed|=Sync(sun_size_time, src.sun_size_time, sun.size, src.sun.size);
       changed|=Sync(sun_highlight_front_time, src.sun_highlight_front_time, sun.highlight_front, src.sun.highlight_front);
@@ -151,7 +150,6 @@ class EditEnv : Environment
       changed|=Undo(sky_atmospheric_stars_orientation_time, src.sky_atmospheric_stars_orientation_time, sky.atmospheric_stars_orientation, src.sky.atmospheric_stars_orientation);
       changed|=Undo(sky_skybox_time, src.sky_skybox_time, skybox_id, src.skybox_id);
       changed|=Undo(sun_on_time, src.sun_on_time, sun.on, src.sun.on);
-      changed|=Undo(sun_blend_time, src.sun_blend_time, sun.blend, src.sun.blend);
       changed|=Undo(sun_glow_time, src.sun_glow_time, sun.glow, src.sun.glow);
       changed|=Undo(sun_size_time, src.sun_size_time, sun.size, src.sun.size);
       changed|=Undo(sun_highlight_front_time, src.sun_highlight_front_time, sun.highlight_front, src.sun.highlight_front);
@@ -176,7 +174,7 @@ class EditEnv : Environment
    // io
    bool save(File &f)C
    {
-      f.cmpUIntV(3);
+      f.cmpUIntV(4);
       super.save(f);
       f<<sun_id<<star_id<<skybox_id<<cloud_id
        <<ambient_on_time<<ambient_color_time<<night_shade_color_time
@@ -186,15 +184,31 @@ class EditEnv : Environment
        <<fog_on_time<<fog_affect_sky_time<<fog_density_time<<fog_color_time
        <<sky_on_time<<sky_frac_time<<sky_atmospheric_density_exponent_time<<sky_atmospheric_horizon_exponent_time<<sky_atmospheric_horizon_color_time<<sky_atmospheric_sky_color_time
        <<sky_atmospheric_stars_time<<sky_atmospheric_stars_orientation_time<<sky_skybox_time
-       <<sun_on_time<<sun_blend_time<<sun_glow_time<<sun_size_time<<sun_highlight_front_time<<sun_highlight_back_time<<sun_pos_time<<sun_light_color_time<<sun_rays_color_time
+       <<sun_on_time<<sun_glow_time<<sun_size_time<<sun_highlight_front_time<<sun_highlight_back_time<<sun_pos_time<<sun_light_color_time<<sun_rays_color_time
        <<sun_image_color_time<<sun_image_time;
       return f.ok();
    }
    bool load(File &f)
    {
-      TimeStamp bloom_contrast_time, clouds_ray_mask_contrast_time;
+      TimeStamp bloom_contrast_time, clouds_ray_mask_contrast_time, sun_blend_time;
       reset(); switch(f.decUIntV())
       {
+         case 4:
+         {
+            if(!super.load(f))break;
+            f>>sun_id>>star_id>>skybox_id>>cloud_id
+             >>ambient_on_time>>ambient_color_time>>night_shade_color_time
+             >>bloom_on_time>>bloom_half_time>>bloom_saturate_time>>bloom_maximum_time>>bloom_blurs_time>>bloom_original_time>>bloom_scale_time>>bloom_cut_time
+             >>clouds_on_time>>clouds_vertical_scale_time
+             >>clouds_scale_time>>clouds_velocity_time>>clouds_color_time>>clouds_image_time
+             >>fog_on_time>>fog_affect_sky_time>>fog_density_time>>fog_color_time
+             >>sky_on_time>>sky_frac_time>>sky_atmospheric_density_exponent_time>>sky_atmospheric_horizon_exponent_time>>sky_atmospheric_horizon_color_time>>sky_atmospheric_sky_color_time
+             >>sky_atmospheric_stars_time>>sky_atmospheric_stars_orientation_time>>sky_skybox_time
+             >>sun_on_time>>sun_glow_time>>sun_size_time>>sun_highlight_front_time>>sun_highlight_back_time>>sun_pos_time>>sun_light_color_time>>sun_rays_color_time
+             >>sun_image_color_time>>sun_image_time;
+            if(f.ok())return true;
+         }break;
+
          case 3:
          {
             if(!super.load(f))break;

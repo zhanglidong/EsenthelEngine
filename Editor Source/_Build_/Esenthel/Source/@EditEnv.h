@@ -9,7 +9,7 @@ class EditEnv : Environment
              clouds_scale_time[4], clouds_velocity_time[4], clouds_color_time[4], clouds_image_time[4],
              fog_on_time, fog_affect_sky_time, fog_density_time, fog_color_time,
              sky_on_time, sky_frac_time, sky_atmospheric_density_exponent_time, sky_atmospheric_horizon_exponent_time, sky_atmospheric_horizon_color_time, sky_atmospheric_sky_color_time, sky_atmospheric_stars_time, sky_atmospheric_stars_orientation_time, sky_skybox_time,
-             sun_on_time, sun_blend_time, sun_glow_time, sun_size_time, sun_highlight_front_time, sun_highlight_back_time, sun_pos_time, sun_light_color_time, sun_rays_color_time, sun_image_color_time, sun_image_time;
+             sun_on_time, sun_glow_time, sun_size_time, sun_highlight_front_time, sun_highlight_back_time, sun_pos_time, sun_light_color_time, sun_rays_color_time, sun_image_color_time, sun_image_time;
 
    EditEnv();
 
