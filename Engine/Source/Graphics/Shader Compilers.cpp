@@ -52,7 +52,7 @@ Str8 ShaderBlend     (Int skin, Int color, Int layout, Int reflect) {return S8+s
 Str8 ShaderEarlyZ    (Int skin) {return S8+skin;}
 Str8 ShaderFurBase   (Int skin, Int size, Int diffuse) {return S8+"Base"+skin+size+diffuse;}
 Str8 ShaderFurSoft   (Int skin, Int size, Int diffuse) {return S8+"Soft"+skin+size+diffuse;}
-Str8 ShaderOverlay   (Int skin, Int normal, Int alpha) {return S8+skin+normal+alpha;}
+Str8 ShaderOverlay   (Int skin, Int normal, Int layout) {return S8+skin+normal+layout;}
 Str8 ShaderPosition  (Int skin, Int alpha_test, Int test_blend, Int fx, Int tesselate) {return S8+skin+alpha_test+test_blend+fx+tesselate;}
 Str8 ShaderSetColor  (Int skin, Int alpha_test, Int tesselate) {return S8+skin+alpha_test+tesselate;}
 Str8 ShaderTattoo    (Int skin, Int tesselate) {return S8+skin+tesselate;}
@@ -542,7 +542,8 @@ static void Compile(API api)
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Overlay", model, api).New(src_path+"Overlay.cpp");
    REPD(skin  , 2)
    REPD(normal, 2)
-   REPD(alpha , 2)src.New(S, "VS", "PS")("SKIN", skin, "NORMALS", normal, "ALPHA", alpha);
+   for(Int layout=1; layout<=2; layout++)
+      src.New(S, "VS", "PS")("SKIN", skin, "NORMALS", normal, "LAYOUT", layout);
 }
 {
    ShaderCompiler::Source &src=ShaderCompilers.New().set(dest_path+"Tattoo", model, api).New(src_path+"Tattoo.cpp");

@@ -2,17 +2,19 @@
 #include "!Header.h"
 #include "Overlay.h"
 /******************************************************************************
-SKIN, NORMALS, ALPHA
+SKIN, NORMALS, LAYOUT
 /******************************************************************************/
 void VS
 (
    VtxInput vtx,
 
-   out Vec     outTex   :TEXCOORD, // xy=uv, z=alpha
+   out Vec      outTex   :TEXCOORD, // xy=uv, z=alpha
 #if NORMALS
-   out Matrix3 outMatrix:MATRIX,
+   out MatrixH3 outMatrix:MATRIX,
+#else
+   out VecH     outNrm   :NORMAL,
 #endif
-   out Vec4    outVtx   :POSITION
+   out Vec4     outVtx   :POSITION
 )
 {
    Matrix3 m;
@@ -28,6 +30,8 @@ void VS
    #if NORMALS
       outMatrix[1]=Normalize(TransformDir(OverlayParams.mtrx[1]));
       outMatrix[2]=Normalize(TransformDir(OverlayParams.mtrx[2]));
+   #else
+      outNrm=Normalize(TransformDir(OverlayParams.mtrx[2]));
    #endif
 
       outVtx=Project(TransformPos(vtx.pos()));
@@ -38,6 +42,8 @@ void VS
    #if NORMALS
       outMatrix[1]=Normalize(TransformDir(OverlayParams.mtrx[1], bone, vtx.weight()));
       outMatrix[2]=Normalize(TransformDir(OverlayParams.mtrx[2], bone, vtx.weight()));
+   #else
+      outNrm=Normalize(TransformDir(OverlayParams.mtrx[2], bone, vtx.weight()));
    #endif
 
       outVtx=Project(TransformPos(vtx.pos(), bone, vtx.weight()));
@@ -49,35 +55,52 @@ void VS
 /******************************************************************************/
 VecH4 PS
 (
-     Vec      inTex   :TEXCOORD
+    Vec      inTex   :TEXCOORD,
 #if NORMALS
- ,   Matrix3  inMatrix:MATRIX
- , out VecH4 outNrm   :TARGET1
+    MatrixH3 inMatrix:MATRIX  ,
+#else
+    VecH     inNrm   :NORMAL  ,
 #endif
+out VecH4   outNrm   :TARGET1 ,
+out VecH4   outExt   :TARGET2
 ):TARGET // #RTOutput
 {
-   VecH4 col  =Tex(Col, inTex.xy);
-#if ALPHA
-         col.a=Tex(Ext, inTex.xy).a; // #MaterialTextureLayout
+   Half  smooth =Material.smooth ,
+         reflect=Material.reflect;
+   VecH4 col    =Tex(Col, inTex.xy);
+#if LAYOUT==2 // #MaterialTextureLayout
+   VecH4 ext    =Tex(Ext, inTex.xy);
+   smooth *=ext.x;
+   reflect*=ext.y;
+   col.a   =ext.a;
 #endif
    col  *=Material.color;
    col.a*=Sat((Half)inTex.z)*OverlayAlpha();
 
+   VecH nrm;
 #if NORMALS
-           VecH nrm;
                 nrm.xy =Tex(Nrm, inTex.xy).xy*Material.normal; // #MaterialTextureLayout
     //if(DETAIL)nrm.xy+=det.xy;
                 nrm.z  =CalcZ(nrm.xy);
-                nrm    =Transform(nrm, inMatrix);
+                nrm    =Normalize(Transform(nrm, inMatrix));
 
-   #if SIGNED_NRM_RT
-      outNrm.xyz=nrm;
-   #else
-      outNrm.xyz=nrm*0.5+0.5;
-   #endif
-
-   outNrm.w=col.a; // alpha needed because of blending
+#else
+   nrm=Normalize(inNrm);
 #endif
+
+   // Nrm
+#if SIGNED_NRM_RT
+   outNrm.xyz=nrm;
+#else
+   outNrm.xyz=nrm*0.5+0.5;
+#endif
+   outNrm.w=col.a; // alpha needed because of blending
+
+   // Ext
+   outExt.x=smooth;
+   outExt.y=reflect;
+   outExt.z=0;
+   outExt.w=col.a; // alpha needed because of blending
 
    return col;
 }

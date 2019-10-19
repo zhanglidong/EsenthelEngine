@@ -1251,8 +1251,7 @@ void RendererClass::overlay()
 {
    D.stencilRef(STENCIL_REF_TERRAIN); // set in case draw codes will use stencil
 
-   if(_cur_type==RT_DEFERRED && D.bumpMode()!=BUMP_FLAT){set(_col, _nrm, null, null, _ds, true, WANT_DEPTH_READ); D.colWrite(COL_WRITE_RGB, 1);} // if we can blend normals
-   else                                                  set(_col,                   _ds, true, WANT_DEPTH_READ);
+   set(_col, D.bumpMode()>BUMP_FLAT ? _nrm() : null, _ext, null, _ds, true, WANT_DEPTH_READ); // #RTOutput
    setDSLookup(); // 'setDSLookup' after 'set'
    D.alpha(ALPHA_BLEND_FACTOR);
    D.set3D(); D.depthWrite(false); D.bias(BIAS_OVERLAY); D.depthFunc(FUNC_LESS_EQUAL); D.depth(true); mode(RM_OVERLAY); // overlay requires BIAS because we may use 'MeshOverlay' which generates triangles by clipping existing ones
@@ -1262,7 +1261,6 @@ void RendererClass::overlay()
       DrawOverlayObjects(); _render();
    }
    D.set2D(); D.depthWrite(true); D.bias(BIAS_ZERO); D.depthFunc(FUNC_LESS);
-   D.colWrite(COL_WRITE_RGBA, 1);
 
    D.stencil(STENCIL_NONE); // disable any stencil that might have been enabled
    OverlayObjects.clear();
@@ -1564,7 +1562,7 @@ void RendererClass::blend()
    D.stencilRef(STENCIL_REF_TERRAIN); // set in case draw codes will use stencil
 
    const Bool blend_affect_vel=true; // #BlendRT
-   set(_col, blend_affect_vel ? _vel() : null, null, null, _ds, true); setDSLookup(); // 'setDSLookup' after 'set'
+   set(_col, blend_affect_vel ? _vel() : null, null, null, _ds, true); setDSLookup(); // 'setDSLookup' after 'set' #RTOutput
    D.alpha(ALPHA_BLEND_FACTOR);
    D.set3D(); D.depthWrite(false); D.depthFunc(FUNC_LESS_EQUAL); D.depth(true); mode(RM_BLEND); // use less equal for blend because we may want to draw blend graphics on top of existing pixels (for example world editor terrain highlight)
    SortBlendInstances();
@@ -1609,7 +1607,7 @@ void RendererClass::palette(Int index)
 
       D.stencil(STENCIL_NONE); // disable any stencil that might have been enabled
 
-      set(_col, null, true);
+      set(_col, null, true); // #RTOutput
       D .alpha(ALPHA_BLEND_DEC);
       Sh.Img[1]->set(palette());
       Sh.PaletteDraw->draw(intensity);
