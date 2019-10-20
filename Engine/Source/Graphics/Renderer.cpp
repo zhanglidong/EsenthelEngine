@@ -439,7 +439,7 @@ void RendererClass::Combine(IMAGE_PRECISION rt_prec)
    if(_alpha)
    {
       // merge _col with _alpha
-      // FIXME multi-sample
+      // TODO: when using multi-sampling and D.particlesSoft then there can be outlines around objects touching particles, this is because Particle soft shader uses TexDepthPoint
       Sh.Img[0]->set(_col  );
       Sh.Img[1]->set(_alpha);
       if(_col->w()<_final->w() // upscale
