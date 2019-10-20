@@ -426,12 +426,13 @@ void RendererClass::dof(ImageRT &src, ImageRT &dest, Bool dither)
    Sh.Img[1]->set(rt0);
    GetDof(dither && (src.highPrecision() || rt0->highPrecision()) && !dest.highPrecision(), D.dofFocusMode())->draw(src);
 }
-INLINE Shader* GetCombine          () {Shader* &s=Sh.Combine          ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("Combine0"         ); return s;}
-INLINE Shader* GetCombineSS        () {Shader* &s=Sh.CombineSS        ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("Combine1"         ); return s;}
-INLINE Shader* GetCombineMS        () {Shader* &s=Sh.CombineMS        ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("Combine2"         ); return s;}
-INLINE Shader* GetSetAlphaFromDepth() {Shader* &s=Sh.SetAlphaFromDepth; if(SLOW_SHADER_LOAD && !s)s=Sh.get("SetAlphaFromDepth"); return s;}
-INLINE Shader* GetReplaceAlpha     () {Shader* &s=Sh.ReplaceAlpha     ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("ReplaceAlpha"     ); return s;}
-INLINE Shader* GetCombineAlpha     () {Shader* &s=Sh.CombineAlpha     ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("CombineAlpha"     ); return s;}
+INLINE Shader* GetCombine            () {Shader* &s=Sh.Combine            ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("Combine0"           ); return s;}
+INLINE Shader* GetCombineSS          () {Shader* &s=Sh.CombineSS          ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("Combine1"           ); return s;}
+INLINE Shader* GetCombineMS          () {Shader* &s=Sh.CombineMS          ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("Combine2"           ); return s;}
+INLINE Shader* GetSetAlphaFromDepth  () {Shader* &s=Sh.SetAlphaFromDepth  ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("SetAlphaFromDepth"  ); return s;}
+INLINE Shader* GetSetAlphaFromDepthMS() {Shader* &s=Sh.SetAlphaFromDepthMS; if(SLOW_SHADER_LOAD && !s)s=Sh.get("SetAlphaFromDepthMS"); return s;}
+INLINE Shader* GetReplaceAlpha       () {Shader* &s=Sh.ReplaceAlpha       ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("ReplaceAlpha"       ); return s;}
+INLINE Shader* GetCombineAlpha       () {Shader* &s=Sh.CombineAlpha       ; if(SLOW_SHADER_LOAD && !s)s=Sh.get("CombineAlpha"       ); return s;}
 void RendererClass::Combine(IMAGE_PRECISION rt_prec)
 {
    Bool alpha_premultiplied=false;
@@ -1244,8 +1245,8 @@ void RendererClass::resolveDepth()
       D.alpha(ALPHA_NONE);
 
       // set multi-sampled '_ds' MSAA
-      if(_cur_type==RT_DEFERRED      // for     deferred set it always (needed for lighting)
-      || Fog.draw || Sky.isActual()) // for non-deferred it will be used only for fog and sky
+      if(_cur_type==RT_DEFERRED                       // for     deferred set it always (needed for lighting)
+      || Fog.draw || Sky.isActual() || slowCombine()) // for non-deferred it will be used only for fog, sky and slowCombine
       {
          D.stencil(STENCIL_MSAA_SET, STENCIL_REF_MSAA);
          set(null, _ds, true);
@@ -1260,8 +1261,8 @@ void RendererClass::resolveDepth()
       D.depthFunc(FUNC_LESS  ); D.depthUnlock(    );
 
       // set 1-sampled '_ds_1s' MSAA
-      if(_cur_type==RT_DEFERRED // for     deferred set it always (needed for lighting)
-      || slowCombine())         // for non-deferred it will be used only for slow combine
+      if(_cur_type==RT_DEFERRED               // for     deferred set it always (needed for lighting)
+      || slowCombine() || ms_samples_color.a) // for non-deferred it will be used only for slow combine and visualizing multi-samples
       {
          D.stencilRef(STENCIL_REF_MSAA);
        //if(_nrm){Sh.ImgMS[0]->set(_nrm); Sh.DetectMSNrm->draw();}else 'DetectMSNrm' generates too many MS pixels, making rendering slower, so don't use
@@ -1366,19 +1367,19 @@ void RendererClass::light()
    {
       D.alpha(ALPHA_NONE);
      _alpha.get(ImageRTDesc(_col->w(), _col->h(), IMAGERT_ONE, _col->samples()));
-      /*if(_alpha->multiSample()) FIXME
+      if(_alpha->multiSample())
       {
-         set(_alpha, _ds_1s, true, NEED_DEPTH_READ);
+         set(_alpha, _ds, true, NEED_DEPTH_READ);
          if(hasStencilAttached())
          {
-            D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); GetCombineMS()->draw(_col);
-                            D.stencilRef(0               ); GetCombine  ()->draw(_col);
+            D.stencil(STENCIL_MSAA_TEST, STENCIL_REF_MSAA); GetSetAlphaFromDepthMS()->draw();
+                            D.stencilRef(0               ); GetSetAlphaFromDepth  ()->draw();
             D.stencil(STENCIL_NONE     );
          }else
          {
-            GetCombineMS()->draw(_col); // we have to run all at multi-sampled frequency
+            GetSetAlphaFromDepthMS()->draw(); // we have to run all at multi-sampled frequency
          }
-      }else*/
+      }else
       {
          set(_alpha, null, true);
          GetSetAlphaFromDepth()->draw();

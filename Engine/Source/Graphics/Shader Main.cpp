@@ -482,12 +482,13 @@ void MainShaderClass::getTechniques()
    }
 
 #if !SLOW_SHADER_LOAD
-                            Combine          =get("Combine0");
-                            CombineSS        =get("Combine1");
-   if(D.shaderModel()>=SM_4)CombineMS        =get("Combine2");
-                            SetAlphaFromDepth=get("SetAlphaFromDepth");
-                            ReplaceAlpha     =get("ReplaceAlpha");
-                            CombineAlpha     =get("CombineAlpha");
+                            Combine            =get("Combine0");
+                            CombineSS          =get("Combine1");
+   if(D.shaderModel()>=SM_4)CombineMS          =get("Combine2");
+                            SetAlphaFromDepth  =get("SetAlphaFromDepth");
+   if(D.shaderModel()>=SM_4)SetAlphaFromDepthMS=get("SetAlphaFromDepthMS");
+                            ReplaceAlpha       =get("ReplaceAlpha");
+                            CombineAlpha       =get("CombineAlpha");
 #endif
 
    // SKY

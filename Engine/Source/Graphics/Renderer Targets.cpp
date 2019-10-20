@@ -38,8 +38,8 @@ namespace EE{
          -'_ds_1s' is set to down-sampled copy of '_ds'
          -both '_ds' and '_ds_1s' have STENCIL_REF_MSAA set
       In Non-Deferred Renderer:
-         -if 'slowCombine'              then '_ds_1s' has STENCIL_REF_MSAA set
-         -if "Fog.draw || Sky.isActual" then '_ds'    has STENCIL_REF_MSAA set
+         -if "slowCombine || ms_samples_color.a"       then '_ds_1s' has STENCIL_REF_MSAA set
+         -if "Fog.draw || Sky.isActual || slowCombine" then '_ds'    has STENCIL_REF_MSAA set
 
    In OpenGL (except iOS):
       '_main' and '_main_ds' don't have '_rb' and '_txtr' set, because they're provided by the system and not created by the engine.

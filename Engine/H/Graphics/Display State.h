@@ -53,7 +53,7 @@ enum STENCIL_MODE : Byte
 enum STENCIL_REF : Byte
 {
    STENCIL_REF_ZERO     =   0,
-   STENCIL_REF_MSAA     =0x01, // Multi-Sampled Pixel
+   STENCIL_REF_MSAA     =0x01, // Multi-Sampled Pixel !! using this requires that it's set in 'resolveDepth' !!
    STENCIL_REF_EDGE_SOFT=0x02, // Edge Soften
    STENCIL_REF_TERRAIN  =0x04, // Terrain (to apply decals)
    STENCIL_REF_WATER    =0x08, // Water

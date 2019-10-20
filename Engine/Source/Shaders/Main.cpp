@@ -291,6 +291,11 @@ Half SetAlphaFromDepth_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
    return DEPTH_FOREGROUND(TexDepthRawPoint(inTex));
 }
+Half SetAlphaFromDepthMS_PS(NOPERSP Vec2 inTex:TEXCOORD, NOPERSP PIXEL):TARGET
+{
+   Half   alpha=0; UNROLL for(Int i=0; i<MS_SAMPLES; i++)alpha+=DEPTH_FOREGROUND(TexDepthMSRaw(pixel.xy, i));
+   return alpha/MS_SAMPLES;
+}
 VecH4 ReplaceAlpha_PS(NOPERSP Vec2 inTex:TEXCOORD):TARGET
 {
    return VecH4(0, 0, 0, TexLod(Img1, inTex).x); // use linear filtering because 'Img1' can be of different size

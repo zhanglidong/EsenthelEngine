@@ -233,6 +233,7 @@ struct MainShaderClass
       *CombineMS,
       *CombineSS,
       *SetAlphaFromDepth,
+      *SetAlphaFromDepthMS,
       *ReplaceAlpha,
       *CombineAlpha,
 
