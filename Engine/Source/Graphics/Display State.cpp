@@ -874,7 +874,6 @@ void DisplayState::create()
       desc.RenderTarget[0]. SrcBlendAlpha=D3D11_BLEND_ZERO;
       desc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_INV_SRC_ALPHA;
       desc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
-      BlendStates[ALPHA_BLEND_DEC].create(desc);
       if(D.independentBlendAvailable()) // #RTOutput.Blend set RT2 Alpha as Increase
       {
          desc.IndependentBlendEnable=true;
@@ -884,6 +883,7 @@ void DisplayState::create()
          desc.RenderTarget[2]. SrcBlendAlpha=D3D11_BLEND_ZERO          ;
          desc.RenderTarget[2].DestBlendAlpha=D3D11_BLEND_ONE           ;
       }
+      BlendStates[ALPHA_BLEND_DEC].create(desc);
    }
    {
       D3D11_BLEND_DESC desc; Zero(desc);
