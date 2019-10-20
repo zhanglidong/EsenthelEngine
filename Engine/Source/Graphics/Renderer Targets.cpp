@@ -22,16 +22,16 @@ namespace EE{
   _water_ds : D.renderW, D.renderH,                                                                                            IMAGERT_DS   , 1        , Water Depth
   _water_lum: D.renderW, D.renderH,                                                                                            IMAGERT_SRGBA, 1        , LIGHT RGB, LIGHT SPEC
 
-  '_gui' is set to '_main', unless stereoscopic rendering is enabled then it's set to VR RT
+   '_gui' is set to '_main', unless stereoscopic rendering is enabled then it's set to VR RT
 
-   if using Renderer.combine (Renderer.slowCombine && D.independentBlendAvailable) #RTOutput.Blend then after all non-blended meshes are drawn:
+   If using Renderer.combine (Renderer.slowCombine && D.independentBlendAvailable) #RTOutput.Blend then after all non-blended meshes are drawn:
      -'_alpha' RT is created and set as RT2
      -ALPHA_MODE states such as ALPHA_BLEND_DEC ALPHA_BLEND_FACTOR are set to Increase RT2
      -all alpha-blended effects output alpha into RT2:
-         -particles
-         -mesh 3D shaders (blend, blend light)
-         -palette apply
-         -post process effects operate on alpha as well (eyeAdapt, bloom, motionBlur, dof)
+         -Mesh 3D Shaders (Blend, BlendLight)
+         -Particles
+         -Palette apply
+         -post process effects operate on alpha as well (EyeAdapt, Bloom, MotionBlur, DoF)
 
    If '_ds' is multi-sampled on DX10+ then:
       In Deferred Renderer:
